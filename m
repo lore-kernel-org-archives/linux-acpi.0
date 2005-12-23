@@ -1,50 +1,76 @@
-From: Karol Kozimor <sziwan@hell.org.pl>
-Subject: Re: [PATCH] Work around asus_acpi driver oopses on Samsung P30s and the like due to the ACPI implicit return
-Date: Fri, 23 Dec 2005 13:19:23 +0100
-Message-ID: <20051223121923.GA12918@hell.org.pl>
-References: <F7DC2337C7631D4386A2DF6E8FB22B300580F140@hdsmsx401.amr.corp.intel.com> <20051222174226.GB20051@hell.org.pl> <20051223113347.GA20475@orest.greek0.net>
+From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
+Subject: Re: Toshiba Satellite P10
+Date: Fri, 23 Dec 2005 14:43:11 +0100
+Message-ID: <20051223134311.GA18826@localhost.localdomain>
+References: <43A8F98D.3000704@csstirisano.co.za> <20051222110219.GB9838@elf.ucw.cz> <20051222120413.GA28743@suse.de> <43AAB13E.4080206@csstirisano.co.za> <20051222160633.GA3316@suse.de> <43AB9CD2.9090106@csstirisano.co.za>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1030512AbVLWMTa@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="tKW2IUtsqtDRztdT"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20051223113347.GA20475@orest.greek0.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christian Aichinger <Greek0@gmx.net>
-Cc: Linus Torvalds <torvalds@osdl.org>, Hanno B??ck <mail@hboeck.de>, Andrew Morton <akpm@osdl.org>, acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, "Brown, Len" <len.brown@intel.com>
+In-Reply-To: <43AB9CD2.9090106-W7S27g77yncFbeUAN25fX/d9D2ou9A/h@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Christian Aichinger:
-> > Here it goes. Rediffed, also plugs a leak my previous patch introduced. I
-> > believe it addresses Linus' comments. It's still not a proper fix (see
-> > below), but I believe it's better than none.
-> > Best regards,
-> This will break other hardware as the P30/P35 as well, since there
-> are some buggy DSDT's out there that return an ACPI_TYPE_BUFFER.
 
-I've never seen one, I'd like to look at those if you've got them. Are you
-sure it's the actual machine code that returns buffers, and not an implicit
-return of the interpreter?
+--tKW2IUtsqtDRztdT
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> That's the whole reason why I was testing exactly for
-> ACPI_TYPE_INTEGER in my patch.
+howdy folks..
 
-I don't really seem to follow: my logic checks for ACPI_TYPE_STRING, and if
-not found, looks at DSDT signatures. If something different than a string
-is returned by INIT _and_ the machine isn't a P30/P35 (DSDT sigs) then the
-defaults are set as in every other case a machine is not recognized by the
-driver.
+* Jaco Kroon <jacok-W7S27g77yncFbeUAN25fX/d9D2ou9A/h@public.gmane.org> [2005-12-23 12:16 +0100]:
+> Stefan Seyfried wrote:
+> >On Thu, Dec 22, 2005 at 03:59:26PM +0200, Jaco Kroon wrote:
+>=20
+> LOL!  I wish.  fglrx is the ati binary drivers (as asked in the response=
+=20
+> from Pavel).  According to another friend of mine the answer to this one=
+=20
+> is no.  He can suspend/resume his notebook as long as he's using the=20
+> opensource radeon driver and not fglrx.  He's not using a P10 though.
 
-> My first version was pretty simmilar to yours, until I was told on
-> acpi-devel that this breaks someone elses hardware (causing it to be
-> considered as P30/P35, while it isn't). I can dig up the mails if
-> you want.
+ATI has introduced support for suspension recently, since version 8.19.x
+or so.=EE=80=80i had good luck in S3+S4 with the latest drivers on Samsung =
+X20
+and IBM T43p.
 
-The original driver behaviour was: ( if INIT returns NULL && DSDT sigs
-match ) machine is a P30. My patch changes that to ( if INIT returns
-!ACPI_TYPE_STRING && DSDT sigs match ) machine is a P30. I'd like to see
-those reports please.
-Best regards,
+cheers,
+ Sebastian
+--=20
+ _   ascii ribbon campaign     .oOo.   GCSd-s:+aC++ULB+++W++M+PS+++Y+
+( )
+ X   Jeden Tag eine Erisische Tat!
+/ \ =20
 
--- 
-Karol 'sziwan' Kozimor
-sziwan@hell.org.pl
+--tKW2IUtsqtDRztdT
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD4DBQFDq/7vreHfL3pi+bQRAmRdAJd4MfI3xh4iZuUzb/qF6B0Ygb/MAJ9tW5DN
++T76V+CtRcVTxwcaPDDmvQ==
+=bxBa
+-----END PGP SIGNATURE-----
+
+--tKW2IUtsqtDRztdT--
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
+for problems?  Stop!  Download the new AJAX search engine that makes
+searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
+http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
