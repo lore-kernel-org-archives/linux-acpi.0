@@ -1,81 +1,107 @@
-From: Len Brown <len.brown@intel.com>
-Subject: git pull on Linux/ACPI release tree
-Date: Fri, 23 Dec 2005 00:42:16 -0500
-Message-ID: <200512230042.17903.len.brown@intel.com>
-References: <200512010305.43469.len.brown@intel.com> <200512060317.53925.len.brown@intel.com>
+From: Jaco Kroon <jacok-W7S27g77yncFbeUAN25fX/d9D2ou9A/h@public.gmane.org>
+Subject: Re: Toshiba Satellite P10
+Date: Fri, 23 Dec 2005 08:44:34 +0200
+Message-ID: <43AB9CD2.9090106@csstirisano.co.za>
+References: <43A8F98D.3000704@csstirisano.co.za> <20051222110219.GB9838@elf.ucw.cz> <20051222120413.GA28743@suse.de> <43AAB13E.4080206@csstirisano.co.za> <20051222160633.GA3316@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1030183AbVLWFmx@vger.kernel.org>
-In-Reply-To: <200512060317.53925.len.brown@intel.com>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: torvalds@osdl.org
-Cc: acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, akpm@osdl.org
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20051222160633.GA3316-l3A5Bk7waGM@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Stefan Seyfried <seife-l3A5Bk7waGM@public.gmane.org>
+Cc: Holger Macht <hmacht-l3A5Bk7waGM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Jaco Kroon <jaco-P18QfuJFXGPYkQIYctQFYw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+Stefan Seyfried wrote:
+> On Thu, Dec 22, 2005 at 03:59:26PM +0200, Jaco Kroon wrote:
+>>P4 - not HT though (not afaik anyway - or for a change I was blind - 
+>>running without HT anyway).
+> 
+> it looks like you have a very different P10 than the one we have...
 
-please pull from: 
+Similar but different yes.  Mine is P10-772 (iirc), the one mentioned in 
+the kernel specs is 5??.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
+>>I also assume it's at this time impossible to use fglrx with resume/suspend?
+> 
+> ...because ours has a NVidia graphics card.
 
-This will update the files shown below.
+LOL!  I wish.  fglrx is the ati binary drivers (as asked in the response 
+from Pavel).  According to another friend of mine the answer to this one 
+is no.  He can suspend/resume his notebook as long as he's using the 
+opensource radeon driver and not fglrx.  He's not using a P10 though.
 
-thanks!
+>>With regards to the ACPI code though - I've managed to fix all the 
+>>warnings and errors, except the one about the ResourceSource error, 
+>>which according to the spec is optional but iasl insists it's required. 
+>> No idea what I'm going to do about that.  Also not sure whether fixing 
+>>_WAK to always return a value will actually do something.
+> 
+> I do not remember that i would have to fix any DSDT bugs, everything worked
+> with the original DSDT.
 
--Len
+There is only really one error that bothers me, and I read somewhere 
+that the kernel doesn't look at it's value, and that is the _WAK call 
+that doesn't return a value.  Unless that of course changed recently. 
+And I can't recompile the DSDT due to those ResourceSource required 
+errors, which seems to be a bug in iasl.
 
- drivers/acpi/processor_thermal.c |    4 ++--
- drivers/acpi/utilities/utmisc.c  |   20 ++++++++++----------
- include/acpi/acglobal.h          |    2 +-
- 3 files changed, 13 insertions(+), 13 deletions(-)
+I still haven't managed to finish of the resume process.  The screen 
+comes back up and console switching works but that is just about where 
+it ends.  I don't see any kernel panic messages either.  Will RTFM and 
+fool around some more.
 
-through these commits:
+> But it is some time ago that i did use this machine, and due to its 
+> tremendously huge footprint and very heavy weight, i just used it
+> as a Workstation, so not very frequent. Also the dual turbines did their
+> share that it was turned off most of the time :-))
 
-Alex Williamson:
-      [ACPI] increase owner_id limit to 64 from 32
+It's not _that_ heavy!  But yes, it is rather noisy, but nothing 
+compared to these air-conditioners we have here, or my graphics card in 
+my desktop at home.
 
-Len Brown:
-      [ACPI] fix build warning from owner_id patch
+>>Notice: This message and any attachments are confidential and intended 
+>>solely for the addressee. If you have received this message in error, 
+>>please notify the sender by email or by phone to the listed number. Any 
+>>unauthorised use, alteration or dissemination is prohibited. CSS 
+>>Tirisano (Pty) Ltd accepts no liability for any direct, indirect or 
+>>consequential loss or damages, arising from the contents of this message.
+> 
+> OMG! i hope i'm not going to jail now ;-)
 
-Thomas Renninger:
-      [ACPI] fix passive cooling regression
+Company policy.  It sucks I know.  The content of these messages is 
+fortunately intented for any soul who is interrested.
 
-with this log:
+Thanks,
 
-commit 9d6be4bed65a3bd36ab2de12923bff4f4530bd86
-Author: Len Brown <len.brown@intel.com>
-Date:   Thu Dec 22 22:23:06 2005 -0500
+-- 
+Jaco Kroon
+Support Engineer
+CSS TIRISANO
+Computer Systems (Pty) Ltd
+Tel:   +27 12 621 3171
+Fax:   +27 12 661 4984
+Cell:  +27 84 515 8255
 
-    [ACPI] fix build warning from owner_id patch
-    
-    Signed-off-by: Len Brown <len.brown@intel.com>
+Notice: This message and any attachments are confidential and intended 
+solely for the addressee. If you have received this message in error, 
+please notify the sender by email or by phone to the listed number. Any 
+unauthorised use, alteration or dissemination is prohibited. CSS 
+Tirisano (Pty) Ltd accepts no liability for any direct, indirect or 
+consequential loss or damages, arising from the contents of this message.
 
-commit 75b245b3259133360845bc6de3aecb8a6bd6ab59
-Author: Thomas Renninger <trenn@suse.de>
-Date:   Wed Dec 21 01:29:00 2005 -0500
 
-    [ACPI] fix passive cooling regression
-    
-    Return logic was inverted.
-    Going for changing the return value to not return zero as it is makes
-    more sense regarding the naming of the function (cpu_has_cpufreq()).
-    
-    http://bugzilla.kernel.org/show_bug.cgi?id=3410
-    
-    Signed-off-by: Thomas Renninger <trenn@suse.de>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 05465fd5622202d65634b3a9a8bcc9cbb384a82a
-Author: Alex Williamson <alex.williamson@hp.com>
-Date:   Thu Dec 8 15:37:00 2005 -0500
-
-    [ACPI] increase owner_id limit to 64 from 32
-    
-    This is an interim patch until changes in an updated
-    ACPICA core increase the limit to 255.
-    
-    Signed-off-by: Alex Williamson <alex.williamson@hp.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
+-------------------------------------------------------
+This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
+for problems?  Stop!  Download the new AJAX search engine that makes
+searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
+http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
