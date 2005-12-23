@@ -1,13 +1,13 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Subject: Re: Toshiba Satellite P10
-Date: Sat, 24 Dec 2005 00:01:33 +0100
-Message-ID: <20051223230133.GC16104@elf.ucw.cz>
-References: <43A8F98D.3000704@csstirisano.co.za> <20051222110219.GB9838@elf.ucw.cz> <20051222120413.GA28743@suse.de> <43AAB13E.4080206@csstirisano.co.za> <20051222160633.GA3316@suse.de> <43AB9CD2.9090106@csstirisano.co.za> <20051223111239.GB10748@elf.ucw.cz> <43AC2B95.9060901@kroon.co.za> <20051223172459.GB15357@elf.ucw.cz> <43AC80F3.6040605@kroon.co.za>
+Date: Fri, 23 Dec 2005 23:25:05 +0000
+Message-ID: <20051223232505.GA21166@srcf.ucam.org>
+References: <43A8F98D.3000704@csstirisano.co.za> <20051222110219.GB9838@elf.ucw.cz> <20051222120413.GA28743@suse.de> <43AAB13E.4080206@csstirisano.co.za> <20051222160633.GA3316@suse.de> <43AB9CD2.9090106@csstirisano.co.za>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <43AC80F3.6040605-P18QfuJFXGPYkQIYctQFYw@public.gmane.org>
+In-Reply-To: <43AB9CD2.9090106-W7S27g77yncFbeUAN25fX/d9D2ou9A/h@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,37 +17,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jaco Kroon <jaco-P18QfuJFXGPYkQIYctQFYw@public.gmane.org>
-Cc: Stefan Seyfried <seife-l3A5Bk7waGM@public.gmane.org>, Holger Macht <hmacht-l3A5Bk7waGM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Jaco Kroon <jacok-W7S27g77yncFbeUAN25fX/d9D2ou9A/h@public.gmane.org>
+Cc: Stefan Seyfried <seife-l3A5Bk7waGM@public.gmane.org>, Holger Macht <hmacht-l3A5Bk7waGM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Jaco Kroon <jaco-P18QfuJFXGPYkQIYctQFYw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Fri, Dec 23, 2005 at 08:44:34AM +0200, Jaco Kroon wrote:
 
-> > But try _minimal config_, first.
-> 
-> Doesn't include CONFIG_NET imho, but kernel/power/ui.h (part of
-> suspend2?) doesn't compile without it.  I can probably write a patch,
-> the problem seems to be that ui_helper_data only gets declared if
-> CONFIG_NET is set, but it gets used elsewhere even if CONFIG_NET is
-> not set.
+> LOL!  I wish.  fglrx is the ati binary drivers (as asked in the response 
+> from Pavel).  According to another friend of mine the answer to this one 
+> is no.  He can suspend/resume his notebook as long as he's using the 
+> opensource radeon driver and not fglrx.  He's not using a P10 though.
 
-You did not tell me your kernel contains suspend2. Revert those
-patches. In-kernel code tends to have less bells/whistles, but seems
-more reliable to me. (And it is the only one I can help you with.)
+The latest fglrx should support suspend/resume. I don't think any 
+distributions include it yet, so you'll have to get it from ati.com.
 
-> Setting CONFIG_NET works around this problem.
-> 
-> With almost nothing in the kernel though (only what is essential to make
-> it boot) suspend-to-ram works.  Still suspend-to-disk though.
-> 
-> Guess it's time to go find the module that causes the problem and fix it
-> (if I can figure it out).
-
-Yep ;-). Keep us updated with name of offending module.
-
-								Pavel
 -- 
-Thanks, Sharp!
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 -------------------------------------------------------
