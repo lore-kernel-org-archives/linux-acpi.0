@@ -1,60 +1,60 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: Toshiba Satellite P10
-Date: Fri, 23 Dec 2005 12:12:39 +0100
-Message-ID: <20051223111239.GB10748@elf.ucw.cz>
-References: <43A8F98D.3000704@csstirisano.co.za> <20051222110219.GB9838@elf.ucw.cz> <20051222120413.GA28743@suse.de> <43AAB13E.4080206@csstirisano.co.za> <20051222160633.GA3316@suse.de> <43AB9CD2.9090106@csstirisano.co.za>
+From: Christian Aichinger <Greek0@gmx.net>
+Subject: Re: [PATCH] Work around asus_acpi driver oopses on Samsung P30s and the like due to the ACPI implicit return
+Date: Fri, 23 Dec 2005 12:33:47 +0100
+Message-ID: <20051223113347.GA20475@orest.greek0.net>
+References: <F7DC2337C7631D4386A2DF6E8FB22B300580F140@hdsmsx401.amr.corp.intel.com> <20051222174226.GB20051@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="4Ckj6UjgE2iN1+kY"
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1030495AbVLWLdd@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <43AB9CD2.9090106-W7S27g77yncFbeUAN25fX/d9D2ou9A/h@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jaco Kroon <jacok-W7S27g77yncFbeUAN25fX/d9D2ou9A/h@public.gmane.org>
-Cc: Stefan Seyfried <seife-l3A5Bk7waGM@public.gmane.org>, Holger Macht <hmacht-l3A5Bk7waGM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Jaco Kroon <jaco-P18QfuJFXGPYkQIYctQFYw@public.gmane.org>
+In-Reply-To: <20051222174226.GB20051@hell.org.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Karol Kozimor <sziwan@hell.org.pl>
+Cc: Linus Torvalds <torvalds@osdl.org>, Hanno B??ck <mail@hboeck.de>, Andrew Morton <akpm@osdl.org>, acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, "Brown, Len" <len.brown@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-> >>With regards to the ACPI code though - I've managed to fix all the 
-> >>warnings and errors, except the one about the ResourceSource error, 
-> >>which according to the spec is optional but iasl insists it's required. 
-> >>No idea what I'm going to do about that.  Also not sure whether fixing 
-> >>_WAK to always return a value will actually do something.
-> >
-> >I do not remember that i would have to fix any DSDT bugs, everything worked
-> >with the original DSDT.
-> 
-> There is only really one error that bothers me, and I read somewhere 
-> that the kernel doesn't look at it's value, and that is the _WAK call 
-> that doesn't return a value.  Unless that of course changed recently. 
-> And I can't recompile the DSDT due to those ResourceSource required 
-> errors, which seems to be a bug in iasl.
+--4Ckj6UjgE2iN1+kY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Fix iasl, then ;-).
+On Thu, Dec 22, 2005 at 06:42:26PM +0100, Karol Kozimor wrote:
+> Thus wrote Brown, Len:
+> > Karol,
+> > Do you have an update of your asus driver in the pipeline
+> > that addresses this?
+>=20
+> Here it goes. Rediffed, also plugs a leak my previous patch introduced. I
+> believe it addresses Linus' comments. It's still not a proper fix (see
+> below), but I believe it's better than none.
+> Best regards,
 
-> I still haven't managed to finish of the resume process.  The screen 
-> comes back up and console switching works but that is just about where 
-> it ends.  I don't see any kernel panic messages either.  Will RTFM and 
-> fool around some more.
+This will break other hardware as the P30/P35 as well, since there
+are some buggy DSDT's out there that return an ACPI_TYPE_BUFFER.
+That's the whole reason why I was testing exactly for
+ACPI_TYPE_INTEGER in my patch.
 
-RTFM will not help you here, I'm afraid. Try it with minimal kernel
-config.
-								Pavel
+My first version was pretty simmilar to yours, until I was told on
+acpi-devel that this breaks someone elses hardware (causing it to be
+considered as P30/P35, while it isn't). I can dig up the mails if
+you want.
 
--- 
-Thanks, Sharp!
+Cheers,
+Christian
 
+--4Ckj6UjgE2iN1+kY
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
--------------------------------------------------------
-This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
-for problems?  Stop!  Download the new AJAX search engine that makes
-searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
-http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFDq+CbxsP1RlTwJHsRAl73AJ9xWYcwWJtcZyPRVB4ZIoLR5ms84QCfVExj
+Tiz4lbngeX171YEyVUEtSOE=
+=rhsM
+-----END PGP SIGNATURE-----
+
+--4Ckj6UjgE2iN1+kY--
