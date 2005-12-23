@@ -1,51 +1,81 @@
-From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: regression between -rc4 and -rc5
-Date: Thu, 22 Dec 2005 21:38:39 +0100
-Message-ID: <43AB0ECF.10302@suse.de>
-References: <1c687cba0512180712oc9579cbi96e97b5c89e424fd@mail.gmail.com>
+From: Len Brown <len.brown@intel.com>
+Subject: git pull on Linux/ACPI release tree
+Date: Fri, 23 Dec 2005 00:42:16 -0500
+Message-ID: <200512230042.17903.len.brown@intel.com>
+References: <200512010305.43469.len.brown@intel.com> <200512060317.53925.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1c687cba0512180712oc9579cbi96e97b5c89e424fd-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Olaf Conradi <oohlaf-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1030183AbVLWFmx@vger.kernel.org>
+In-Reply-To: <200512060317.53925.len.brown@intel.com>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: torvalds@osdl.org
+Cc: acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, akpm@osdl.org
 List-Id: linux-acpi@vger.kernel.org
 
-Olaf Conradi wrote:
-> 
-> In the mean time I upgraded to kernel 2.6.15-rc4 and most problems
-> disappeared. Still using the original DSDT. During heavy usage cpu
-> temperature rises to 76-78, and never reaches 80.
-> 
-> Yesterday I upgraded to kernel 2.6.15-rc5, and during compilation of
-> ndiswrapper, while browsing the internet, it shutdown. If I compile
-> ndiswrapper and don't do anything else, the cpu temp touches 80
-> briefly, but does not shutdown. Under -rc4 this does not happen.
-> 
-What you see is probably a bug that slipped in 2.6.15-rc5:
-It totally disables the use of cpufreq for passive cooling.
-I already pointed Len to it and as this is really sever I am sure it
-will be added before 2.6.15 is out if possible.
-Also see Dirk Mueller's mail (12/21/2005):
-Subject: make cpu_has_cpufreq() work
-or the bug:
-http://bugzilla.kernel.org/show_bug.cgi?id=3410
+Hi Linus,
 
-   Thomas
+please pull from: 
 
+git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
 
--------------------------------------------------------
-This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
-for problems?  Stop!  Download the new AJAX search engine that makes
-searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
-http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
+This will update the files shown below.
+
+thanks!
+
+-Len
+
+ drivers/acpi/processor_thermal.c |    4 ++--
+ drivers/acpi/utilities/utmisc.c  |   20 ++++++++++----------
+ include/acpi/acglobal.h          |    2 +-
+ 3 files changed, 13 insertions(+), 13 deletions(-)
+
+through these commits:
+
+Alex Williamson:
+      [ACPI] increase owner_id limit to 64 from 32
+
+Len Brown:
+      [ACPI] fix build warning from owner_id patch
+
+Thomas Renninger:
+      [ACPI] fix passive cooling regression
+
+with this log:
+
+commit 9d6be4bed65a3bd36ab2de12923bff4f4530bd86
+Author: Len Brown <len.brown@intel.com>
+Date:   Thu Dec 22 22:23:06 2005 -0500
+
+    [ACPI] fix build warning from owner_id patch
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 75b245b3259133360845bc6de3aecb8a6bd6ab59
+Author: Thomas Renninger <trenn@suse.de>
+Date:   Wed Dec 21 01:29:00 2005 -0500
+
+    [ACPI] fix passive cooling regression
+    
+    Return logic was inverted.
+    Going for changing the return value to not return zero as it is makes
+    more sense regarding the naming of the function (cpu_has_cpufreq()).
+    
+    http://bugzilla.kernel.org/show_bug.cgi?id=3410
+    
+    Signed-off-by: Thomas Renninger <trenn@suse.de>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 05465fd5622202d65634b3a9a8bcc9cbb384a82a
+Author: Alex Williamson <alex.williamson@hp.com>
+Date:   Thu Dec 8 15:37:00 2005 -0500
+
+    [ACPI] increase owner_id limit to 64 from 32
+    
+    This is an interim patch until changes in an updated
+    ACPICA core increase the limit to 255.
+    
+    Signed-off-by: Alex Williamson <alex.williamson@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
