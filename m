@@ -1,12 +1,12 @@
 From: Jaco Kroon <jaco-P18QfuJFXGPYkQIYctQFYw@public.gmane.org>
 Subject: Re: Toshiba Satellite P10
-Date: Sat, 24 Dec 2005 14:43:23 +0200
-Message-ID: <43AD426B.4030000@kroon.co.za>
-References: <20051223111239.GB10748@elf.ucw.cz> <43AC2B95.9060901@kroon.co.za> <20051223172459.GB15357@elf.ucw.cz> <43AC80F3.6040605@kroon.co.za> <20051223230133.GC16104@elf.ucw.cz> <43AC9127.10007@kroon.co.za> <20051224002527.GA16285@elf.ucw.cz> <43AC97E7.1030800@kroon.co.za> <20051224003808.GB16285@elf.ucw.cz> <43AD0AC6.9060904@kroon.co.za> <20051224114621.GC26351@elf.ucw.cz>
+Date: Sat, 24 Dec 2005 14:45:30 +0200
+Message-ID: <43AD42EA.9010107@kroon.co.za>
+References: <43AC80F3.6040605@kroon.co.za> <20051223230133.GC16104@elf.ucw.cz> <43AC9127.10007@kroon.co.za> <20051224002527.GA16285@elf.ucw.cz> <43AC97E7.1030800@kroon.co.za> <20051224003808.GB16285@elf.ucw.cz> <43AD0AC6.9060904@kroon.co.za> <20051224085403.GB23539@suse.de> <43AD113F.4090601@kroon.co.za> <43AD38C5.5030203@kroon.co.za> <20051224122218.GG26351@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms060206090308060608030903"
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms090204090801070102010807"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20051224114621.GC26351-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <20051224122218.GG26351-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -22,7 +22,7 @@ List-Id: linux-acpi@vger.kernel.org
 
 This is a cryptographically signed message in MIME format.
 
---------------ms060206090308060608030903
+--------------ms090204090801070102010807
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
@@ -30,78 +30,42 @@ Pavel Machek wrote:
 > Hi!
 > 
 > 
->>>>>Okay, what *other* patches do you have installed? What kernel are you
->>>>>running? 2.6.15-rc6?
->>>>
->>>>I'm trying with 2.6.14.3, but I've got 2.6.15rc5 available here (can
->>>>always get the VI patch to rc6).  Was intending to run the acpi_include
->>>>patch, but since that is a standard option in 2.6.14.x I never actually
->>>>pulled in that patch, so no other patches and I've backed out suspend2
->>>>now.  Will also give 15rc6 a go in the morning.
->>>
->>>rc5 should be good enough.
+>>Damn.  I just thought I solved it.  I disabled the APIC and tried again.
+>> This time round I managed to re-enable APIC in the kernel source
+>>(without IO-APIC) and _recompile_ it entirely.  Only upon issueing "make
+>>install modules_install" did it pop.
 >>
->>Same problem.  SysRq+T reveals that the newly spawned process is getting
->>stuck in:
+>>Sequence was something like:
 >>
->>ide_do_request+0x18a/0x3c5
->>io_schedule+0xe/0x16
->>sync_page+0x3e/0x4b
->>__wait_on_bit_lock+0x41/0x61
->>sync_page+0x0/0x4b
->>__lock_page+0x9d/0xb1
->>wake_bit_function+0x0/0x55
->>wake_bit_function+0x0/0x55
->>do_generic_mapping_read+0x335/0x7fd
->>__generic_file_aio_read+0x19d/0x203
->>file_read_actor+0x0/0xfa
->>generic_file_read+0xba/0xd8
->>autoremove_wake_function+0x0/0x57
->>vfs_read+0x1a5/0x1aa
->>kernel_read+0x50/0x5f
->>prepare_binprm+0xd8/0x103
->>do_execve+0xfe/0x203
->>sys_execve+0x3c/0x6f
->>sysenter_past_esp+0x54/0x75
+>>echo mem > /sys/power/state
+>>cd /usr/src/linux
+>>make menuconfig
+>>make menuconfig
+>>echo mem > /sys/power/state
+>>make menuconfig
+>>--> re-enable APIC but not IO-APIC
+>>make
+>>make install modules_install
+>>->> pop.  When copying the image from the source directory to /boot.
 >>
->>Second run round the first command I issued worked fine, as did cd to
->>/usr/src/linux, but running make menuconfig failed.  This time the stack
->>trace was considerably longer (I'm not going to type that over).  The
->>top two calls are the same, but it comes in from sync_buffer,
->>__wait_on_bit, sync_buffer, sync_buffer, out_of_line_wait_on_bit,
->>wake_bit_function, wakebit_function, and so forth.  A quick scan of the
->>VI between rc5  and rc6 doesn't reveal any changes that could possibly
->>affect this (I'm going to patch to rc6 in any case).
->>
->>Could it be a bug in reiserfs?  I have run a fsck but no errors were
->>found, so I presume the fs is still in tact.
+>>This is beginning to sound more and more like some obscure
+>>race-condition if you ask me.
 > 
-> Seife is right, this looks like an ide problem. And the fact that
-> autorepeat does not work for you may mean something bad with
-> interrupts. Can you try "noapic"?
-
-See my other mail.
-
->>>>Will do if I get it working.  more-or-less is simply not good enough (or
->>>>should I just make a note there?).
->>>
->>>It is good enough for video.txt. It describes how to get _video_
->>>working, and video works just ok for you.
->>
->>You should have received the patch.
 > 
-> I don't see it here. Can you just attach it to this discussion? It
-> should be small enough...
+> I would be surprised if that was the case. Are you sure it is not just
+> "disk does not work after resume", and depending of stuff in cache, it
+> fails at random places?
 
-http://sourceforge.net/mailarchive/forum.php?thread_id=9313913&forum_id=6102
-
+Yes.  If the first thing I do after boot is "echo mem >
+/sys/power/state", then how can tools like dmesg, make, gcc, cat and
+even ls be in the cache?
 
 -- 
 There are only 10 kinds of people in this world,
   those that understand binary and those that don't.
 http://www.kroon.co.za/
 
---------------ms060206090308060608030903
+--------------ms090204090801070102010807
 Content-Type: application/x-pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -153,20 +117,20 @@ JVCUYsfbJ3FXJY3dqZw5jowgT2Vfldr394fWxghOrvbqNOUQGls1TXfjViF4gtwhGTXeJLHT
 HUb/XV9lTzGCAzswggM3AgEBMGkwYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBD
 b25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFp
 bCBJc3N1aW5nIENBAgMN6dYwCQYFKw4DAhoFAKCCAacwGAYJKoZIhvcNAQkDMQsGCSqGSIb3
-DQEHATAcBgkqhkiG9w0BCQUxDxcNMDUxMjI0MTI0MzIzWjAjBgkqhkiG9w0BCQQxFgQUZ6Ss
-Z9kLTnqIGdgB4TG7DqgUaGswUgYJKoZIhvcNAQkPMUUwQzAKBggqhkiG9w0DBzAOBggqhkiG
+DQEHATAcBgkqhkiG9w0BCQUxDxcNMDUxMjI0MTI0NTMwWjAjBgkqhkiG9w0BCQQxFgQUAC8e
+g5HIi5/et//rugUNiRdRG6QwUgYJKoZIhvcNAQkPMUUwQzAKBggqhkiG9w0DBzAOBggqhkiG
 9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAgcwDQYIKoZIhvcNAwICASgweAYJKwYB
 BAGCNxAEMWswaTBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhhd3RlIENvbnN1bHRpbmcg
 KFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVtYWlsIElzc3Vpbmcg
 Q0ECAw3p1jB6BgsqhkiG9w0BCRACCzFroGkwYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRo
 YXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBG
-cmVlbWFpbCBJc3N1aW5nIENBAgMN6dYwDQYJKoZIhvcNAQEBBQAEggEAe2gC9SxkhzqHbkdf
-nFnzwtV3TqFA/aSVJnJbQNmyscHFjlzmoMkQP6I54GW+H5j4RtbtO3tDd2kbZ3PQYvzj8Qqa
-ld8TmxGncQmRD531NqrCixQAiPOdgv3u0A8e2BXKUf8WkYcTOeDLTs1aYjWmaL86da6vH9RC
-r0Bih+1HmE2sVEeNc0C6Yhv9So5tgdD9o4dtVpRi9X4rciQbk3IrwJ/1NKqPZ80/a4nfhb6w
-jKEapZCPsuaHj5dBUUuPJybpUvzsWPWZqrf6t2IjO0qyBvqdsFxNYS+PE7OKWijH3uNwaczg
-tTXLaPy0KoHVTPo74YWaZKam/XlDd8SamahXigAAAAAAAA==
---------------ms060206090308060608030903--
+cmVlbWFpbCBJc3N1aW5nIENBAgMN6dYwDQYJKoZIhvcNAQEBBQAEggEA0sQPQfv1PuzWJMhN
+sjaaV47ueGy+9MOp0HfBlOtMhm9oTQG7cc7d7rAbTQiyruuWqNkCXfDbNAwp6wmrf0643Y4j
+q9zVrbsHDY4RTt/eKg9zBf3ybpRGnviy59pOePTXv9IekXJ5pq/6Isf+lX7G0yP4L7LP5I8Z
+wW4UlmO7pIrA7P0xFNF75W+FT/Kfxnv+ymFN3TeNOQUbD4INzlxwZHiRi5JCIPpOAgg67N2I
+BUdLpTH8vIOG8KF8123ISri50NPmoCf3NTuRLSAra84yPjV7/iQdXMmrMWcycXYSQYU4w7Ww
+EhDMnY+WYBrQWw+aAjNvcyzyVWjNBY0lkTlIqAAAAAAAAA==
+--------------ms090204090801070102010807--
 
 
 -------------------------------------------------------
