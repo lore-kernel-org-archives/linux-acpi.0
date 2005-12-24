@@ -1,12 +1,13 @@
-From: Jaco Kroon <jaco-P18QfuJFXGPYkQIYctQFYw@public.gmane.org>
-Subject: Re: Toshiba Satellite P10
-Date: Sat, 24 Dec 2005 14:02:13 +0200
-Message-ID: <43AD38C5.5030203@kroon.co.za>
-References: <20051223111239.GB10748@elf.ucw.cz> <43AC2B95.9060901@kroon.co.za> <20051223172459.GB15357@elf.ucw.cz> <43AC80F3.6040605@kroon.co.za> <20051223230133.GC16104@elf.ucw.cz> <43AC9127.10007@kroon.co.za> <20051224002527.GA16285@elf.ucw.cz> <43AC97E7.1030800@kroon.co.za> <20051224003808.GB16285@elf.ucw.cz> <43AD0AC6.9060904@kroon.co.za> <20051224085403.GB23539@suse.de> <43AD113F.4090601@kroon.co.za>
+From: <cthulhufhtagn-nvIDUHlZTd3QT0dZR+AlfA@public.gmane.org>
+Subject: Need some help with Toshiba L20-101 DSDT table
+Date: Sat, 24 Dec 2005 01:33:10 -0700
+Message-ID: <20051224083310.C9DA75C002D@webmail3.spymac.net>
+Reply-To: cthulhufhtagn-nvIDUHlZTd3QT0dZR+AlfA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms050804010301070501010609"
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <43AD113F.4090601-P18QfuJFXGPYkQIYctQFYw@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,128 +17,126 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jaco Kroon <jaco-P18QfuJFXGPYkQIYctQFYw@public.gmane.org>
-Cc: Stefan Seyfried <seife-l3A5Bk7waGM@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Holger Macht <hmacht-l3A5Bk7waGM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a cryptographically signed message in MIME format.
-
---------------ms050804010301070501010609
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-
-Jaco Kroon wrote:
-> Stefan Seyfried wrote:
->>>Same problem.  SysRq+T reveals that the newly spawned process is getting
->>>stuck in:
->>>
->>>ide_do_request+0x18a/0x3c5
->>>io_schedule+0xe/0x16
-
-[--snip--]
-
->>To my untrained eye this looks like an IDE suspend / resume problem.
->>Maybe another machine that needs those ACPI methods for the IDE drives
->>badly :-(
-> 
-> 
-> To mine as well.  _WAK?  Some other methods?  I'm posting my DSDT at
-> http://www.kroon.co.za/downloads/toshiba_p10-792/ now.  If somebody else
-> can take a look it just might reveal something I'm missing.
-
-Damn.  I just thought I solved it.  I disabled the APIC and tried again.
- This time round I managed to re-enable APIC in the kernel source
-(without IO-APIC) and _recompile_ it entirely.  Only upon issueing "make
-install modules_install" did it pop.
-
-Sequence was something like:
-
-echo mem > /sys/power/state
-cd /usr/src/linux
-make menuconfig
-make menuconfig
-echo mem > /sys/power/state
-make menuconfig
---> re-enable APIC but not IO-APIC
-make
-make install modules_install
-->> pop.  When copying the image from the source directory to /boot.
-
-This is beginning to sound more and more like some obscure
-race-condition if you ask me.
-
-Jaco
--- 
-There are only 10 kinds of people in this world,
-  those that understand binary and those that don't.
-http://www.kroon.co.za/
-
---------------ms050804010301070501010609
-Content-Type: application/x-pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIII5TCC
-As0wggI2oAMCAQICAw3p1jANBgkqhkiG9w0BAQQFADBiMQswCQYDVQQGEwJaQTElMCMGA1UE
-ChMcVGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNv
-bmFsIEZyZWVtYWlsIElzc3VpbmcgQ0EwHhcNMDUwMTI4MjExMjIzWhcNMDYwMTI4MjExMjIz
-WjBCMR8wHQYDVQQDExZUaGF3dGUgRnJlZW1haWwgTWVtYmVyMR8wHQYJKoZIhvcNAQkBFhBq
-YWNvQGtyb29uLmNvLnphMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4CsLuOWD
-wimwAv4QLdlT99frJCwzUBVQNL7c7x4ufEquAH6RamWfQyQHzykEJM8NeMIrfb+k3fZEi+ZU
-g5sq2uIqzOuCJsIj0x3LnoydXTikbv1AFWQDEuqITlroA8bGJE/mMlbPrKyDACPo5cQAzUQz
-LAg7LQQQVkKNWH4eeXUwZ5lOZEWWno0P5DXHdSLQxCshgWVPRrbtKe25WGObqJMa//1T5qX8
-0mKIdAbHlz90BwgX/MjLp0BpXTii2653ScOujCLTC3cPdDUDK68qG7RqatVw5+HE/npJIWa1
-0TxJUp5Ii8nPbGPzpEWQmZ8TjkjMs26w80PPPKh2Vh2siQIDAQABoy0wKzAbBgNVHREEFDAS
-gRBqYWNvQGtyb29uLmNvLnphMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQEEBQADgYEAqXNX
-QEMTVQoj3JoEwK9vlfqSVz5ZEUklpgEhwFJsD+PKa/LgUGVHk3Gw8wws4+wZxmpOsJ7vdiWL
-y8zlX7HfPWMcbibTi6C7nT6WahqdeAo3kVjhnMqJ3Sf6sX0JGl9bWfIhgmIVy/ZdM2ztrXwd
-rbWiT7un5lM05D4YPCNH9fcwggLNMIICNqADAgECAgMN6dYwDQYJKoZIhvcNAQEEBQAwYjEL
-MAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAq
-BgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA1MDEyODIx
-MTIyM1oXDTA2MDEyODIxMTIyM1owQjEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJl
-cjEfMB0GCSqGSIb3DQEJARYQamFjb0Brcm9vbi5jby56YTCCASIwDQYJKoZIhvcNAQEBBQAD
-ggEPADCCAQoCggEBAOArC7jlg8IpsAL+EC3ZU/fX6yQsM1AVUDS+3O8eLnxKrgB+kWpln0Mk
-B88pBCTPDXjCK32/pN32RIvmVIObKtriKszrgibCI9Mdy56MnV04pG79QBVkAxLqiE5a6APG
-xiRP5jJWz6ysgwAj6OXEAM1EMywIOy0EEFZCjVh+Hnl1MGeZTmRFlp6ND+Q1x3Ui0MQrIYFl
-T0a27SntuVhjm6iTGv/9U+al/NJiiHQGx5c/dAcIF/zIy6dAaV04otuud0nDrowi0wt3D3Q1
-AyuvKhu0amrVcOfhxP56SSFmtdE8SVKeSIvJz2xj86RFkJmfE45IzLNusPNDzzyodlYdrIkC
-AwEAAaMtMCswGwYDVR0RBBQwEoEQamFjb0Brcm9vbi5jby56YTAMBgNVHRMBAf8EAjAAMA0G
-CSqGSIb3DQEBBAUAA4GBAKlzV0BDE1UKI9yaBMCvb5X6klc+WRFJJaYBIcBSbA/jymvy4FBl
-R5NxsPMMLOPsGcZqTrCe73Yli8vM5V+x3z1jHG4m04ugu50+lmoanXgKN5FY4ZzKid0n+rF9
-CRpfW1nyIYJiFcv2XTNs7a18Ha21ok+7p+ZTNOQ+GDwjR/X3MIIDPzCCAqigAwIBAgIBDTAN
-BgkqhkiG9w0BAQUFADCB0TELMAkGA1UEBhMCWkExFTATBgNVBAgTDFdlc3Rlcm4gQ2FwZTES
-MBAGA1UEBxMJQ2FwZSBUb3duMRowGAYDVQQKExFUaGF3dGUgQ29uc3VsdGluZzEoMCYGA1UE
-CxMfQ2VydGlmaWNhdGlvbiBTZXJ2aWNlcyBEaXZpc2lvbjEkMCIGA1UEAxMbVGhhd3RlIFBl
-cnNvbmFsIEZyZWVtYWlsIENBMSswKQYJKoZIhvcNAQkBFhxwZXJzb25hbC1mcmVlbWFpbEB0
-aGF3dGUuY29tMB4XDTAzMDcxNzAwMDAwMFoXDTEzMDcxNjIzNTk1OVowYjELMAkGA1UEBhMC
-WkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1Ro
-YXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMIGfMA0GCSqGSIb3DQEBAQUAA4GN
-ADCBiQKBgQDEpjxVc1X7TrnKmVoeaMB1BHCd3+n/ox7svc31W/Iadr1/DDph8r9RzgHU5VAK
-MNcCY1osiRVwjt3J8CuFWqo/cVbLrzwLB+fxH5E2JCoTzyvV84J3PQO+K/67GD4Hv0CAAmTX
-p6a7n2XRxSpUhQ9IBH+nttE8YQRAHmQZcmC3+wIDAQABo4GUMIGRMBIGA1UdEwEB/wQIMAYB
-Af8CAQAwQwYDVR0fBDwwOjA4oDagNIYyaHR0cDovL2NybC50aGF3dGUuY29tL1RoYXd0ZVBl
-cnNvbmFsRnJlZW1haWxDQS5jcmwwCwYDVR0PBAQDAgEGMCkGA1UdEQQiMCCkHjAcMRowGAYD
-VQQDExFQcml2YXRlTGFiZWwyLTEzODANBgkqhkiG9w0BAQUFAAOBgQBIjNFQg+oLLswNo2as
-Zw9/r6y+whehQ5aUnX9MIbj4Nh+qLZ82L8D0HFAgk3A8/a3hYWLD2ToZfoSxmRsAxRoLgnSe
-JVCUYsfbJ3FXJY3dqZw5jowgT2Vfldr394fWxghOrvbqNOUQGls1TXfjViF4gtwhGTXeJLHT
-HUb/XV9lTzGCAzswggM3AgEBMGkwYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBD
-b25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFp
-bCBJc3N1aW5nIENBAgMN6dYwCQYFKw4DAhoFAKCCAacwGAYJKoZIhvcNAQkDMQsGCSqGSIb3
-DQEHATAcBgkqhkiG9w0BCQUxDxcNMDUxMjI0MTIwMjEzWjAjBgkqhkiG9w0BCQQxFgQUiV6E
-Ljm5g6T1RGg85pTQqriBgHowUgYJKoZIhvcNAQkPMUUwQzAKBggqhkiG9w0DBzAOBggqhkiG
-9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAgcwDQYIKoZIhvcNAwICASgweAYJKwYB
-BAGCNxAEMWswaTBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhhd3RlIENvbnN1bHRpbmcg
-KFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVtYWlsIElzc3Vpbmcg
-Q0ECAw3p1jB6BgsqhkiG9w0BCRACCzFroGkwYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRo
-YXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBG
-cmVlbWFpbCBJc3N1aW5nIENBAgMN6dYwDQYJKoZIhvcNAQEBBQAEggEAHyLzFVnXqDBV0hcL
-GiQZHnFaD8Mf03I713kKd5RNBiaIGIlmyyIZIAeTUpnsQqMaUTZ9m3B1tbb1ZFtisWHkTVQE
-K4sdVOtVqi7Q5LCxP0aPDTPbcHxBIg5eizLFhNFWTXMT3RfK+uIwFIwm27nju9Lq2K8hdQzw
-ckvOkLqR1kJsMH+rUAcpH0LzwWVx62EWNFtT8QAnAz9IEHItP4TEJwUl5ABS0aMvBIpsvrI+
-YbMgmXPhQgK9Fs6Ee5DywTekd8/uRaorXINao+k8kf38WpeMYCuf4m/Vx4em8B2SOfnYi0Xb
-S/zBWH1UNOdTzr1ZWZ9ynwEFgiLrWoP16EcXjQAAAAAAAA==
---------------ms050804010301070501010609--
+I'm geting this four errors which I suppose are caused by that objects bein=
+g=0D
+defined before (never heard about the "ACPI language" 'till today).=0D
+----------------=0D
+# ./iasl -tc dsdt.dsl=0D
+=0D
+Intel ACPI Component Architecture=0D
+ASL Optimizing Compiler / AML Disassembler version 20030228 [Feb 28 2003]=
+=0D
+Copyright (C) 2000 - 2003 Intel Corporation=0D
+Supports ACPI Specification Revision 2.0b=0D
+=0D
+dsdt.dsl   370:             If (LEqual (And (PDC0, 0x0A), 0x0A))=0D
+Error    1022 -           Object does not exist ^  (PDC0)=0D
+=0D
+dsdt.dsl   375:             If (LEqual (And (PDC1, 0x0A), 0x0A))=0D
+Error    1022 -           Object does not exist ^  (PDC1)=0D
+=0D
+dsdt.dsl  3936:                 Z003,=0D
+Error    1022 -                    ^ Object does not exist (Z003)=0D
+=0D
+dsdt.dsl  3937:                 Z003,=0D
+Error    1022 -                    ^ Object does not exist (Z003)=0D
+=0D
+ASL Input:  dsdt.dsl - 4240 lines, 137275 bytes, 1880 keywords=0D
+Compilation complete. 4 Errors, 0 Warnings, 0 Remarks, 546 Optimizations=0D
+------------------=0D
+=0D
+I fixed the Z003 deleting that two entries, which I think is tricky. Couldn=
+'t fix=0D
+the PDCs after researching on Google for almost an hour. This are the fragm=
+ents=0D
+of code:=0D
+=0D
+-------------------=0D
+    Method (PNOT, 0, Serialized)=0D
+    {=0D
+        If (HTTE)=0D
+        {=0D
+            If (LEqual (And (PDC0, 0x0A), 0x0A))=0D
+            {=0D
+                Notify (\_PR.CPU0, 0x80)=0D
+            }=0D
+=0D
+            If (LEqual (And (PDC1, 0x0A), 0x0A))=0D
+            {=0D
+                Notify (\_PR.CPU1, 0x80)=0D
+            }=0D
+        }=0D
+        Else=0D
+        {=0D
+            Notify (\_PR.CPU0, 0x80)=0D
+            Sleep (0x64)=0D
+            Notify (\_PR.CPU0, 0x81)=0D
+        }=0D
+    }=0D
+---------------------=0D
+=0D
+And:=0D
+=0D
+---------------------=0D
+        Device (BAT1)=0D
+        {=0D
+            Name (_HID, EisaId ("PNP0C0A"))=0D
+            Name (_UID, 0x01)=0D
+            Name (CBTI, 0x00)=0D
+            Name (PBTI, 0x00)=0D
+            Name (BTIN, 0x00)=0D
+            Name (BTCH, 0x00)=0D
+            Name (BIFI, 0x00)=0D
+            Name (SEL0, 0x00)=0D
+            Name (BCRI, 0x00)=0D
+            Name (PBIF, Package (0x0D)=0D
+            {=0D
+                0x01,=0D
+                0x1130,=0D
+                0x1130,=0D
+                0x01,=0D
+                0x2B5C,=0D
+                0x012C,=0D
+                0x84,=0D
+                0x20,=0D
+                0x20,=0D
+                "PA34200-1BRS",=0D
+                "11        ",=0D
+                "11        ",=0D
+                "TOSHIBA   "=0D
+            })=0D
+            Name (PBST, Package (0x04)=0D
+            {=0D
+                0x00,=0D
+                Z003,=0D
+                Z003,=0D
+                0x2710=0D
+            })=0D
+            Name (ERRC, 0x00)=0D
+            Name (_PCL, Package (0x01)=0D
+            {=0D
+                \_SB=0D
+            })=0D
+--------------------=0D
+=0D
+I'm not sure about I'm giving enough info, and didn't think posting the who=
+le=0D
+archive was very polite.=0D
+=0D
+Has anyone a idea on how to fix it? If you need the full *dsl to give me so=
+me=0D
+advice, tell me and I'll send it off the list. I'm starting to learn C, so =
+please=0D
+don't blame me for not knowing how to programm in such a low level thingy. =
+I=0D
+would appreciate it if you could give me some links to an introduction to "=
+ACPI=0D
+programming", too.=0D
+=0D
+Thank you very much!=0D
 
 
 -------------------------------------------------------
