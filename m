@@ -1,13 +1,13 @@
-From: <cthulhufhtagn-nvIDUHlZTd3QT0dZR+AlfA@public.gmane.org>
-Subject: Need some help with Toshiba L20-101 DSDT table
-Date: Sat, 24 Dec 2005 01:33:10 -0700
-Message-ID: <20051224083310.C9DA75C002D@webmail3.spymac.net>
-Reply-To: cthulhufhtagn-nvIDUHlZTd3QT0dZR+AlfA@public.gmane.org
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: Toshiba Satellite P10
+Date: Sat, 24 Dec 2005 13:22:18 +0100
+Message-ID: <20051224122218.GG26351@elf.ucw.cz>
+References: <43AC80F3.6040605@kroon.co.za> <20051223230133.GC16104@elf.ucw.cz> <43AC9127.10007@kroon.co.za> <20051224002527.GA16285@elf.ucw.cz> <43AC97E7.1030800@kroon.co.za> <20051224003808.GB16285@elf.ucw.cz> <43AD0AC6.9060904@kroon.co.za> <20051224085403.GB23539@suse.de> <43AD113F.4090601@kroon.co.za> <43AD38C5.5030203@kroon.co.za>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <43AD38C5.5030203-P18QfuJFXGPYkQIYctQFYw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,126 +17,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Jaco Kroon <jaco-P18QfuJFXGPYkQIYctQFYw@public.gmane.org>
+Cc: Stefan Seyfried <seife-l3A5Bk7waGM@public.gmane.org>, Holger Macht <hmacht-l3A5Bk7waGM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I'm geting this four errors which I suppose are caused by that objects bein=
-g=0D
-defined before (never heard about the "ACPI language" 'till today).=0D
-----------------=0D
-# ./iasl -tc dsdt.dsl=0D
-=0D
-Intel ACPI Component Architecture=0D
-ASL Optimizing Compiler / AML Disassembler version 20030228 [Feb 28 2003]=
-=0D
-Copyright (C) 2000 - 2003 Intel Corporation=0D
-Supports ACPI Specification Revision 2.0b=0D
-=0D
-dsdt.dsl   370:             If (LEqual (And (PDC0, 0x0A), 0x0A))=0D
-Error    1022 -           Object does not exist ^  (PDC0)=0D
-=0D
-dsdt.dsl   375:             If (LEqual (And (PDC1, 0x0A), 0x0A))=0D
-Error    1022 -           Object does not exist ^  (PDC1)=0D
-=0D
-dsdt.dsl  3936:                 Z003,=0D
-Error    1022 -                    ^ Object does not exist (Z003)=0D
-=0D
-dsdt.dsl  3937:                 Z003,=0D
-Error    1022 -                    ^ Object does not exist (Z003)=0D
-=0D
-ASL Input:  dsdt.dsl - 4240 lines, 137275 bytes, 1880 keywords=0D
-Compilation complete. 4 Errors, 0 Warnings, 0 Remarks, 546 Optimizations=0D
-------------------=0D
-=0D
-I fixed the Z003 deleting that two entries, which I think is tricky. Couldn=
-'t fix=0D
-the PDCs after researching on Google for almost an hour. This are the fragm=
-ents=0D
-of code:=0D
-=0D
--------------------=0D
-    Method (PNOT, 0, Serialized)=0D
-    {=0D
-        If (HTTE)=0D
-        {=0D
-            If (LEqual (And (PDC0, 0x0A), 0x0A))=0D
-            {=0D
-                Notify (\_PR.CPU0, 0x80)=0D
-            }=0D
-=0D
-            If (LEqual (And (PDC1, 0x0A), 0x0A))=0D
-            {=0D
-                Notify (\_PR.CPU1, 0x80)=0D
-            }=0D
-        }=0D
-        Else=0D
-        {=0D
-            Notify (\_PR.CPU0, 0x80)=0D
-            Sleep (0x64)=0D
-            Notify (\_PR.CPU0, 0x81)=0D
-        }=0D
-    }=0D
----------------------=0D
-=0D
-And:=0D
-=0D
----------------------=0D
-        Device (BAT1)=0D
-        {=0D
-            Name (_HID, EisaId ("PNP0C0A"))=0D
-            Name (_UID, 0x01)=0D
-            Name (CBTI, 0x00)=0D
-            Name (PBTI, 0x00)=0D
-            Name (BTIN, 0x00)=0D
-            Name (BTCH, 0x00)=0D
-            Name (BIFI, 0x00)=0D
-            Name (SEL0, 0x00)=0D
-            Name (BCRI, 0x00)=0D
-            Name (PBIF, Package (0x0D)=0D
-            {=0D
-                0x01,=0D
-                0x1130,=0D
-                0x1130,=0D
-                0x01,=0D
-                0x2B5C,=0D
-                0x012C,=0D
-                0x84,=0D
-                0x20,=0D
-                0x20,=0D
-                "PA34200-1BRS",=0D
-                "11        ",=0D
-                "11        ",=0D
-                "TOSHIBA   "=0D
-            })=0D
-            Name (PBST, Package (0x04)=0D
-            {=0D
-                0x00,=0D
-                Z003,=0D
-                Z003,=0D
-                0x2710=0D
-            })=0D
-            Name (ERRC, 0x00)=0D
-            Name (_PCL, Package (0x01)=0D
-            {=0D
-                \_SB=0D
-            })=0D
---------------------=0D
-=0D
-I'm not sure about I'm giving enough info, and didn't think posting the who=
-le=0D
-archive was very polite.=0D
-=0D
-Has anyone a idea on how to fix it? If you need the full *dsl to give me so=
-me=0D
-advice, tell me and I'll send it off the list. I'm starting to learn C, so =
-please=0D
-don't blame me for not knowing how to programm in such a low level thingy. =
-I=0D
-would appreciate it if you could give me some links to an introduction to "=
-ACPI=0D
-programming", too.=0D
-=0D
-Thank you very much!=0D
+Hi!
+
+> Damn.  I just thought I solved it.  I disabled the APIC and tried again.
+>  This time round I managed to re-enable APIC in the kernel source
+> (without IO-APIC) and _recompile_ it entirely.  Only upon issueing "make
+> install modules_install" did it pop.
+> 
+> Sequence was something like:
+> 
+> echo mem > /sys/power/state
+> cd /usr/src/linux
+> make menuconfig
+> make menuconfig
+> echo mem > /sys/power/state
+> make menuconfig
+> --> re-enable APIC but not IO-APIC
+> make
+> make install modules_install
+> ->> pop.  When copying the image from the source directory to /boot.
+> 
+> This is beginning to sound more and more like some obscure
+> race-condition if you ask me.
+
+I would be surprised if that was the case. Are you sure it is not just
+"disk does not work after resume", and depending of stuff in cache, it
+fails at random places?
+								Pavel
+-- 
+Thanks, Sharp!
 
 
 -------------------------------------------------------
