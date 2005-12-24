@@ -1,13 +1,9 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: Toshiba Satellite P10
-Date: Sat, 24 Dec 2005 01:38:08 +0100
-Message-ID: <20051224003808.GB16285@elf.ucw.cz>
-References: <20051222160633.GA3316@suse.de> <43AB9CD2.9090106@csstirisano.co.za> <20051223111239.GB10748@elf.ucw.cz> <43AC2B95.9060901@kroon.co.za> <20051223172459.GB15357@elf.ucw.cz> <43AC80F3.6040605@kroon.co.za> <20051223230133.GC16104@elf.ucw.cz> <43AC9127.10007@kroon.co.za> <20051224002527.GA16285@elf.ucw.cz> <43AC97E7.1030800@kroon.co.za>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: "Jaco Kroon" <jkroon-P18QfuJFXGPYkQIYctQFYw@public.gmane.org>
+Subject: Add Toshiba Satellite P10-792 to Doc*/power/video.txt
+Date: Sat, 24 Dec 2005 10:08:46 +0200
+Message-ID: <20051224080203.3FFF587146@belrog.fns.co.za>
+Reply-To: jaco-P18QfuJFXGPYkQIYctQFYw@public.gmane.org
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <43AC97E7.1030800-P18QfuJFXGPYkQIYctQFYw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,50 +13,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jaco Kroon <jaco-P18QfuJFXGPYkQIYctQFYw@public.gmane.org>
-Cc: Stefan Seyfried <seife-l3A5Bk7waGM@public.gmane.org>, Holger Macht <hmacht-l3A5Bk7waGM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+This patch adds the Toshiba Satellite P10-792 to the list of systems where video can be made to work during suspend-to-ram.
 
-> > Okay, what *other* patches do you have installed? What kernel are you
-> > running? 2.6.15-rc6?
-> 
-> I'm trying with 2.6.14.3, but I've got 2.6.15rc5 available here (can
-> always get the VI patch to rc6).  Was intending to run the acpi_include
-> patch, but since that is a standard option in 2.6.14.x I never actually
-> pulled in that patch, so no other patches and I've backed out suspend2
-> now.  Will also give 15rc6 a go in the morning.
+Signed-of-by: Jaco Kroon <jaco-P18QfuJFXGPYkQIYctQFYw@public.gmane.org>
 
-rc5 should be good enough.
-
-> >>This feels like a post-wakeup racecondition to me... Disabling the big
-> >>kernel lock preemption think again... yes, seems to be working better
-> >>now.  Suspending to ram and then to disk still fails.  (resume from mem
-> >>works, can do make menuconfig - a few times - and then it starts
-> >>suspend-to-disk process and then just hangs).
-> > 
-> > So... there's no module to blame? I do have CONFIG_PREEMPT=y and
-> > CONFIG_PREEMPT_BKL=y set here, but there were some problems with those
-> > before, so keeping it disabled may be wise.
-> 
-> I've also found that I forgot to disable registers.  Neither made a
-> difference though.
-
-CONFIG_REGPARM?
-
-> > Ouch and now that suspend-to-ram more or less works for you, can you
-> > submit update to Doc*/power/video.txt?
-> 
-> Will do if I get it working.  more-or-less is simply not good enough (or
-> should I just make a note there?).
-
-It is good enough for video.txt. It describes how to get _video_
-working, and video works just ok for you.
-
-							Pavel
--- 
-Thanks, Sharp!
+--- linux/Documentation/power/video.txt.orig	2005-12-24 09:57:04.000000000 +0200
++++ linux/Documentation/power/video.txt	2005-12-24 09:57:15.000000000 +0200
+@@ -134,6 +134,7 @@
+ Toshiba Satellite 4080XCDT      s3_mode (3)
+ Toshiba Satellite 4090XCDT      ??? (*)
+ Toshiba Satellite P10-554       s3_bios,s3_mode (4)(****)
++Toshiba Satellite P10-792       s3_bios,s3_mode (4)(****)
+ Toshiba M30                     (2) xor X with nvidia driver using internal AGP
+ Uniwill 244IIO			??? (*)
+ 
 
 
 -------------------------------------------------------
