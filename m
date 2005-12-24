@@ -1,13 +1,13 @@
 From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 Subject: Re: Toshiba Satellite P10
-Date: Sat, 24 Dec 2005 12:46:21 +0100
-Message-ID: <20051224114621.GC26351@elf.ucw.cz>
-References: <20051223111239.GB10748@elf.ucw.cz> <43AC2B95.9060901@kroon.co.za> <20051223172459.GB15357@elf.ucw.cz> <43AC80F3.6040605@kroon.co.za> <20051223230133.GC16104@elf.ucw.cz> <43AC9127.10007@kroon.co.za> <20051224002527.GA16285@elf.ucw.cz> <43AC97E7.1030800@kroon.co.za> <20051224003808.GB16285@elf.ucw.cz> <43AD0AC6.9060904@kroon.co.za>
+Date: Sat, 24 Dec 2005 12:47:58 +0100
+Message-ID: <20051224114758.GD26351@elf.ucw.cz>
+References: <20051223172459.GB15357@elf.ucw.cz> <43AC80F3.6040605@kroon.co.za> <20051223230133.GC16104@elf.ucw.cz> <43AC9127.10007@kroon.co.za> <20051224002527.GA16285@elf.ucw.cz> <43AC97E7.1030800@kroon.co.za> <20051224003808.GB16285@elf.ucw.cz> <43AD0AC6.9060904@kroon.co.za> <43AD2676.10703@roarinelk.homelinux.net> <43AD2F3F.7010003@kroon.co.za>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <43AD0AC6.9060904-P18QfuJFXGPYkQIYctQFYw@public.gmane.org>
+In-Reply-To: <43AD2F3F.7010003-P18QfuJFXGPYkQIYctQFYw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,72 +18,38 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Jaco Kroon <jaco-P18QfuJFXGPYkQIYctQFYw@public.gmane.org>
-Cc: Stefan Seyfried <seife-l3A5Bk7waGM@public.gmane.org>, Holger Macht <hmacht-l3A5Bk7waGM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Manuel Lauss <mano-nEyxjcs6f3Vin2gBucwGBecsttgLyre6@public.gmane.org>, Stefan Seyfried <seife-l3A5Bk7waGM@public.gmane.org>, Holger Macht <hmacht-l3A5Bk7waGM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> >>>Okay, what *other* patches do you have installed? What kernel are you
-> >>>running? 2.6.15-rc6?
-> >>
-> >>I'm trying with 2.6.14.3, but I've got 2.6.15rc5 available here (can
-> >>always get the VI patch to rc6).  Was intending to run the acpi_include
-> >>patch, but since that is a standard option in 2.6.14.x I never actually
-> >>pulled in that patch, so no other patches and I've backed out suspend2
-> >>now.  Will also give 15rc6 a go in the morning.
+> > I have a Vaio which has the same ide problem (at least I think so):
+> > after resume, all processes wishing to access the disk hang,
+> > dmesg shows lots of "hda: lost interrupt" messages.
+> > However, doing a "hdparm -w /dev/hda" after resume makes everything
+> > work again.
 > > 
-> > rc5 should be good enough.
 > 
-> Same problem.  SysRq+T reveals that the newly spawned process is getting
-> stuck in:
+> >From the man page:
 > 
-> ide_do_request+0x18a/0x3c5
-> io_schedule+0xe/0x16
-> sync_page+0x3e/0x4b
-> __wait_on_bit_lock+0x41/0x61
-> sync_page+0x0/0x4b
-> __lock_page+0x9d/0xb1
-> wake_bit_function+0x0/0x55
-> wake_bit_function+0x0/0x55
-> do_generic_mapping_read+0x335/0x7fd
-> __generic_file_aio_read+0x19d/0x203
-> file_read_actor+0x0/0xfa
-> generic_file_read+0xba/0xd8
-> autoremove_wake_function+0x0/0x57
-> vfs_read+0x1a5/0x1aa
-> kernel_read+0x50/0x5f
-> prepare_binprm+0xd8/0x103
-> do_execve+0xfe/0x203
-> sys_execve+0x3c/0x6f
-> sysenter_past_esp+0x54/0x75
+>        -w     Perform a device reset (DANGEROUS).  Do NOT use this
+> option.  It
+>               exists for unlikely situations where a reboot might
+> otherwise be
+>               required to get a confused drive back into a useable state.
 > 
-> Second run round the first command I issued worked fine, as did cd to
-> /usr/src/linux, but running make menuconfig failed.  This time the stack
-> trace was considerably longer (I'm not going to type that over).  The
-> top two calls are the same, but it comes in from sync_buffer,
-> __wait_on_bit, sync_buffer, sync_buffer, out_of_line_wait_on_bit,
-> wake_bit_function, wakebit_function, and so forth.  A quick scan of the
-> VI between rc5  and rc6 doesn't reveal any changes that could possibly
-> affect this (I'm going to patch to rc6 in any case).
-> 
-> Could it be a bug in reiserfs?  I have run a fsck but no errors were
-> found, so I presume the fs is still in tact.
+> Ok.  I don't have really important data on the notebook atm (all backed
+> up for obvious reasons).  So I gave this a try.  It causes the kernel to
+> crash entirely.  No more SysRq.  No OOPS.  Nothing.  It outputs a single
+> string namely "/dev/hda:" and then dies.
 
-Seife is right, this looks like an ide problem. And the fact that
-autorepeat does not work for you may mean something bad with
-interrupts. Can you try "noapic"?
+Try verifying that your interrupts work after resume. (I assume we are
+still talking suspend-to-RAM here, and that you got suspend-to-disk to
+more or less work?) Do cat /proc/interrupts; sleep 10; cat
+/proc/interrupts both before and after suspend.
 
-> >>Will do if I get it working.  more-or-less is simply not good enough (or
-> >>should I just make a note there?).
-> > 
-> > It is good enough for video.txt. It describes how to get _video_
-> > working, and video works just ok for you.
-> 
-> You should have received the patch.
-
-I don't see it here. Can you just attach it to this discussion? It
-should be small enough...
 								Pavel
+
 
 -- 
 Thanks, Sharp!
