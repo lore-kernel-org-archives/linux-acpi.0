@@ -1,12 +1,12 @@
 From: Jaco Kroon <jaco-P18QfuJFXGPYkQIYctQFYw@public.gmane.org>
 Subject: Re: Toshiba Satellite P10
-Date: Sat, 24 Dec 2005 14:35:06 +0200
-Message-ID: <43AD407A.5020708@kroon.co.za>
-References: <20051223172459.GB15357@elf.ucw.cz> <43AC80F3.6040605@kroon.co.za> <20051223230133.GC16104@elf.ucw.cz> <43AC9127.10007@kroon.co.za> <20051224002527.GA16285@elf.ucw.cz> <43AC97E7.1030800@kroon.co.za> <20051224003808.GB16285@elf.ucw.cz> <43AD0AC6.9060904@kroon.co.za> <43AD2676.10703@roarinelk.homelinux.net> <43AD2F3F.7010003@kroon.co.za> <20051224114758.GD26351@elf.ucw.cz>
+Date: Sat, 24 Dec 2005 14:43:23 +0200
+Message-ID: <43AD426B.4030000@kroon.co.za>
+References: <20051223111239.GB10748@elf.ucw.cz> <43AC2B95.9060901@kroon.co.za> <20051223172459.GB15357@elf.ucw.cz> <43AC80F3.6040605@kroon.co.za> <20051223230133.GC16104@elf.ucw.cz> <43AC9127.10007@kroon.co.za> <20051224002527.GA16285@elf.ucw.cz> <43AC97E7.1030800@kroon.co.za> <20051224003808.GB16285@elf.ucw.cz> <43AD0AC6.9060904@kroon.co.za> <20051224114621.GC26351@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms020204010401060802040707"
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms060206090308060608030903"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20051224114758.GD26351-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <20051224114621.GC26351-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,12 +17,12 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: Manuel Lauss <mano-nEyxjcs6f3Vin2gBucwGBecsttgLyre6@public.gmane.org>, Stefan Seyfried <seife-l3A5Bk7waGM@public.gmane.org>, Holger Macht <hmacht-l3A5Bk7waGM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Stefan Seyfried <seife-l3A5Bk7waGM@public.gmane.org>, Holger Macht <hmacht-l3A5Bk7waGM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 This is a cryptographically signed message in MIME format.
 
---------------ms020204010401060802040707
+--------------ms060206090308060608030903
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
@@ -30,102 +30,78 @@ Pavel Machek wrote:
 > Hi!
 > 
 > 
->>>I have a Vaio which has the same ide problem (at least I think so):
->>>after resume, all processes wishing to access the disk hang,
->>>dmesg shows lots of "hda: lost interrupt" messages.
->>>However, doing a "hdparm -w /dev/hda" after resume makes everything
->>>work again.
+>>>>>Okay, what *other* patches do you have installed? What kernel are you
+>>>>>running? 2.6.15-rc6?
+>>>>
+>>>>I'm trying with 2.6.14.3, but I've got 2.6.15rc5 available here (can
+>>>>always get the VI patch to rc6).  Was intending to run the acpi_include
+>>>>patch, but since that is a standard option in 2.6.14.x I never actually
+>>>>pulled in that patch, so no other patches and I've backed out suspend2
+>>>>now.  Will also give 15rc6 a go in the morning.
 >>>
+>>>rc5 should be good enough.
 >>
->>>From the man page:
+>>Same problem.  SysRq+T reveals that the newly spawned process is getting
+>>stuck in:
 >>
->>       -w     Perform a device reset (DANGEROUS).  Do NOT use this
->>option.  It
->>              exists for unlikely situations where a reboot might
->>otherwise be
->>              required to get a confused drive back into a useable state.
+>>ide_do_request+0x18a/0x3c5
+>>io_schedule+0xe/0x16
+>>sync_page+0x3e/0x4b
+>>__wait_on_bit_lock+0x41/0x61
+>>sync_page+0x0/0x4b
+>>__lock_page+0x9d/0xb1
+>>wake_bit_function+0x0/0x55
+>>wake_bit_function+0x0/0x55
+>>do_generic_mapping_read+0x335/0x7fd
+>>__generic_file_aio_read+0x19d/0x203
+>>file_read_actor+0x0/0xfa
+>>generic_file_read+0xba/0xd8
+>>autoremove_wake_function+0x0/0x57
+>>vfs_read+0x1a5/0x1aa
+>>kernel_read+0x50/0x5f
+>>prepare_binprm+0xd8/0x103
+>>do_execve+0xfe/0x203
+>>sys_execve+0x3c/0x6f
+>>sysenter_past_esp+0x54/0x75
 >>
->>Ok.  I don't have really important data on the notebook atm (all backed
->>up for obvious reasons).  So I gave this a try.  It causes the kernel to
->>crash entirely.  No more SysRq.  No OOPS.  Nothing.  It outputs a single
->>string namely "/dev/hda:" and then dies.
+>>Second run round the first command I issued worked fine, as did cd to
+>>/usr/src/linux, but running make menuconfig failed.  This time the stack
+>>trace was considerably longer (I'm not going to type that over).  The
+>>top two calls are the same, but it comes in from sync_buffer,
+>>__wait_on_bit, sync_buffer, sync_buffer, out_of_line_wait_on_bit,
+>>wake_bit_function, wakebit_function, and so forth.  A quick scan of the
+>>VI between rc5  and rc6 doesn't reveal any changes that could possibly
+>>affect this (I'm going to patch to rc6 in any case).
+>>
+>>Could it be a bug in reiserfs?  I have run a fsck but no errors were
+>>found, so I presume the fs is still in tact.
 > 
+> Seife is right, this looks like an ide problem. And the fact that
+> autorepeat does not work for you may mean something bad with
+> interrupts. Can you try "noapic"?
+
+See my other mail.
+
+>>>>Will do if I get it working.  more-or-less is simply not good enough (or
+>>>>should I just make a note there?).
+>>>
+>>>It is good enough for video.txt. It describes how to get _video_
+>>>working, and video works just ok for you.
+>>
+>>You should have received the patch.
 > 
-> Try verifying that your interrupts work after resume. (I assume we are
-> still talking suspend-to-RAM here, and that you got suspend-to-disk to
-> more or less work?) Do cat /proc/interrupts; sleep 10; cat
-> /proc/interrupts both before and after suspend.
+> I don't see it here. Can you just attach it to this discussion? It
+> should be small enough...
 
-I presume you're looking for ide0 and ide1 interrupts, yes, after
-suspending to ram twice the command showed that interrupt 14 (ide0)
-increased from 994 to 1011 and for 15 (ide1) it stayed at 24.  My hdd is
-on hda so that'll be on ide0, dvd-rw is on hdc or ide1.
+http://sourceforge.net/mailarchive/forum.php?thread_id=9313913&forum_id=6102
 
-The interrupt counts for cascade (irq 2), rtc (irq 8) and acpi (irq 9)
-stayed constant though, at 0, 2 and 4 respectively.
 
-No NMI or ERR conditions were ever signaled.
-
-Now, with APIC, but no IO-APIC there is a bug notice during resume.
-Going to type it over (from dmesg):
-
-Back to C!
-Debug: sleeping function called from invalid context at mm/slab.c:2472
-in_atomic():0, irqs_disabled():1
- __might_sleep+0x9e/0xa6
- acpi_os_allocate+0x15/0x26
- kmem_cache_alloc+0x95/0xad
- acpi_ut_callocate+0x37/0x79
- acpi_os_acquire_object+0xf/0x3c
- acpi_ut_allocate_object_desc_dbg+0xc/0x49
- acpi_ut_create_internal_object_dbg+0x18/0x6d
- acpi_rs_set_srs_method_data+0x41/0xc
- kmem_cache_alloc+0x6d/0xad
- acpi_pci_link_set+0x4c/0x1ad
- acpi_pci_link_set+0x126/0x1ad
- acpi_pci_link_resume+0x22/0x28
- irqrouters_resume+0x25/0x38
- __sysdev_resume+0x3d/0x71
- sysdev_resume+0x38/0x5e
- device_power_up+0x5/0xa
- suspend_enter+0x36/0x54
- enter_state+0x49/0x8a
- state_store+0x9a/0xad
- subsys_attr_store+0x37/0x40
- flush_write_buffer+0x3e/0x4a
- sysfs_write_file+0x6b/0x92
- vfs_write+0x1a5/0x1aa
- sys_write+0x51/0x80
- sysenter_past_esp+0x54/0x75
-ACPI: PCI Interrupt 0000:00:14.1[A] -> Link [LNK0] -> GSI 11 (level,
-low) -> IRQ 11
-ACPI: PCI Interrupt 0000:02:04.0[A] -> Link [LNK0] -> GSI 11 (level,
-low) -> IRQ 11
-Restarting tasks... done
-
-Both cases looks identical.  /proc/interrupts doesn't list 11 as an
-interrupt ?!?
-
-Also, this time round the auto-repeat on the keys is working again after
-resume.  In fact, everything seems to be working.  Just that debug
-stacktrace that bothers me.  Oh, and my console blanking time also seems
-to get lost but I can fix that with the help of echo and /dev/tty*.
-
-Anyhow, suspended twice to ram now in succession, make cleaned and
-rebuilt the kernel, installed it, and the only thing that even suggests
-there is a glitch is that trace.
-
-Looks like I need APIC on and IO-APIC off.  Any explanations very
-welcome:  and don't tell me the IO-APIC is buggy - I've been running
-with both those options on for as long as I've had this notebook now.
-
-Jaco
 -- 
 There are only 10 kinds of people in this world,
   those that understand binary and those that don't.
 http://www.kroon.co.za/
 
---------------ms020204010401060802040707
+--------------ms060206090308060608030903
 Content-Type: application/x-pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -177,20 +153,20 @@ JVCUYsfbJ3FXJY3dqZw5jowgT2Vfldr394fWxghOrvbqNOUQGls1TXfjViF4gtwhGTXeJLHT
 HUb/XV9lTzGCAzswggM3AgEBMGkwYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBD
 b25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFp
 bCBJc3N1aW5nIENBAgMN6dYwCQYFKw4DAhoFAKCCAacwGAYJKoZIhvcNAQkDMQsGCSqGSIb3
-DQEHATAcBgkqhkiG9w0BCQUxDxcNMDUxMjI0MTIzNTA2WjAjBgkqhkiG9w0BCQQxFgQUcaPO
-B9/6Nl0CeIB2hBrxMb/ziuEwUgYJKoZIhvcNAQkPMUUwQzAKBggqhkiG9w0DBzAOBggqhkiG
+DQEHATAcBgkqhkiG9w0BCQUxDxcNMDUxMjI0MTI0MzIzWjAjBgkqhkiG9w0BCQQxFgQUZ6Ss
+Z9kLTnqIGdgB4TG7DqgUaGswUgYJKoZIhvcNAQkPMUUwQzAKBggqhkiG9w0DBzAOBggqhkiG
 9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAgcwDQYIKoZIhvcNAwICASgweAYJKwYB
 BAGCNxAEMWswaTBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhhd3RlIENvbnN1bHRpbmcg
 KFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVtYWlsIElzc3Vpbmcg
 Q0ECAw3p1jB6BgsqhkiG9w0BCRACCzFroGkwYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRo
 YXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBG
-cmVlbWFpbCBJc3N1aW5nIENBAgMN6dYwDQYJKoZIhvcNAQEBBQAEggEA0n+LAt/npTmq1pId
-2i/AsLFq0JI+zB2kHr8ZWJA5tspmFzlyTZd2717uMIJnMvj345UJfIAb2IKh3SSUQ7K4qfiD
-qNe4xDDP1Tqq+8OUbnEPJ5fK//yuy3z76O306L6JOe5kA/Mki6CmYE40qsufstA6NDgKnGOG
-j9o/9+mKJXy27fkyeDF+88pdm5kU1+dcaEzxLhuN6f06NP8SR/BFU6Xso6lk5oGZJz2hX3kD
-Odyg39UydqQSt300JCGGWP9toL1rDfGARzO5PWuSyW3pcHHaC3IQxIis+oi59X2m62yj2ZJn
-5kq4AliogPuCOcrU//Uo0uGLf9c1qUMzfVK49QAAAAAAAA==
---------------ms020204010401060802040707--
+cmVlbWFpbCBJc3N1aW5nIENBAgMN6dYwDQYJKoZIhvcNAQEBBQAEggEAe2gC9SxkhzqHbkdf
+nFnzwtV3TqFA/aSVJnJbQNmyscHFjlzmoMkQP6I54GW+H5j4RtbtO3tDd2kbZ3PQYvzj8Qqa
+ld8TmxGncQmRD531NqrCixQAiPOdgv3u0A8e2BXKUf8WkYcTOeDLTs1aYjWmaL86da6vH9RC
+r0Bih+1HmE2sVEeNc0C6Yhv9So5tgdD9o4dtVpRi9X4rciQbk3IrwJ/1NKqPZ80/a4nfhb6w
+jKEapZCPsuaHj5dBUUuPJybpUvzsWPWZqrf6t2IjO0qyBvqdsFxNYS+PE7OKWijH3uNwaczg
+tTXLaPy0KoHVTPo74YWaZKam/XlDd8SamahXigAAAAAAAA==
+--------------ms060206090308060608030903--
 
 
 -------------------------------------------------------
