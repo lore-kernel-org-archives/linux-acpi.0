@@ -1,13 +1,11 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: Toshiba Satellite P10 + ati-drivers (fglrx)
-Date: Sun, 25 Dec 2005 09:47:28 +0100
-Message-ID: <20051225084728.GE2183@elf.ucw.cz>
-References: <20051224003808.GB16285@elf.ucw.cz> <43AD0AC6.9060904@kroon.co.za> <43AD2676.10703@roarinelk.homelinux.net> <43AD2F3F.7010003@kroon.co.za> <20051224114758.GD26351@elf.ucw.cz> <43AD407A.5020708@kroon.co.za> <20051224124903.GH26351@elf.ucw.cz> <43AD49A8.3010708@kroon.co.za> <20051224135756.GI26351@elf.ucw.cz> <43AE57B4.7030008@kroon.co.za>
+From: "Alessandro Wenz" <wenz-DQbB3G1+4zEox3rIn2DAYQ@public.gmane.org>
+Subject: Re: Vaticanism vibrate
+Date: Sun, 25 Dec 2005 09:28:30 -0500
+Message-ID: <000001c6095f$7a7bbab0$7e40a8c0@mastiff>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0001_01C60935.91A5B2B0"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <43AE57B4.7030008-P18QfuJFXGPYkQIYctQFYw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,49 +15,88 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jaco Kroon <jaco-P18QfuJFXGPYkQIYctQFYw@public.gmane.org>
-Cc: Manuel Lauss <mano-nEyxjcs6f3Vin2gBucwGBecsttgLyre6@public.gmane.org>, Stefan Seyfried <seife-l3A5Bk7waGM@public.gmane.org>, Holger Macht <hmacht-l3A5Bk7waGM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Hagir Shine <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+This is a multi-part message in MIME format.
 
-> New weird error.  This may also be harmless though.  Just first a few
-> notes, I'm back onto 2.6.14.3 kernel (fglrx doesn't work with 2.6.15-rc?
-> - it just crashes the whole system), and I really need that.
-> 
-> With fglrx I can suspend to disk and resume.  However, I can't
-> suspend-to-ram.  Well, suspend works and it comes back up fine but as
-> soon as I switch back to X it hard-crashes the machine.  Now, I'm
-> currently between resume and switching to X, and the last few lines from
-> dmesg looks as follows:
-> 
-> Restarting tasks... done
->     ACPI-0284: *** Error: Region EmbeddedController(3) has no handler
->     ACPI-0508: *** Error: Method execution failed [\_SB_.EPWR.PCLK]
-> (Node c14d3200), AE_NOT_EXIST
->     ACPI-0508: *** Error: Method execution failed
-> [\_SB_.CPI0.LPC0.EC0_._Q1E] (Node c14ceee0), AE_NOT_EXIST
+------=_NextPart_000_0001_01C60935.91A5B2B0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-...something wrong with embedded controller... here fixed DSDT *might*
-help.
+=20
+http://www.charanas.com
+=20
+V
+P
+V
 
-> Now I have a very weird feeling down in my gut that I did not see this
-> before and it's probably due to the fglrx module in my kernel.  And
-> interrupt 11, btw, is for the screen (it gets shown now in
-> /proc/interrupts after I restored most of my kernel).
-> 
-> Now, initially when I switch back to X I get the correct image on the
-> bottom third of the screen with the top two thirds seemingly corrupted.
->  This is pretty normal and is identical to what I normally see when
-> switching between consoles and X.  This lasts for about half a second
-> before it freezes up and causes a hard-lock.  Normally the screen just
-> resets itself at the time it now locks up.
+L
+M
+A
+X
+S
+C
 
-I'm sorry, there's no way we can help you with fglrx. I'm glad at
-least s-t-disk works.
-								Pavel
--- 
-Thanks, Sharp!
+a.lium
+
+r.opecia
+iagr.a
+e.vitra
+e.ridia
+
+m.bien
+a.nax
+
+o.ma
+i.alis
+$1,25
+=20
+
+$3,35
+=20
+=20
+=20
+=20
+=20
+$3,85
+
+
+------=_NextPart_000_0001_01C60935.91A5B2B0
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Dus-ascii">
+<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV>&nbsp;</DIV>
+<DIV><A =
+href=3D"http://www.charanas.com">http://www.charanas.com</A></DIV>
+<DIV></FONT>&nbsp;</DIV>
+<DIV style=3D"FLOAT: left"><STRONG>V</STRONG><BR>P<BR><B>V</B><BR>
+<DIV>L</DIV>M<BR>A<BR>X<BR>S<BR><STRONG>C</STRONG><BR></DIV>
+<DIV style=3D"FLOAT: left"><STRONG>a.lium</STRONG><BR>
+<DIV>r.opecia</DIV>
+<DIV><B>iagr.a</B></DIV>e.vitra<BR>e.ridia<BR>
+<DIV>m.bien</DIV>a.nax<BR>
+<DIV>o.ma</DIV>
+<DIV><B>i.alis</B></DIV></DIV>
+<DIV style=3D"FLOAT: left"><STRONG>$1,25</STRONG><BR>&nbsp;<BR>
+<DIV><B>$3,35</B></DIV>
+<DIV>&nbsp;</DIV>
+<DIV>&nbsp;</DIV>&nbsp;<BR>&nbsp;<BR>&nbsp;<BR><B>$3,85</B><BR></DIV></BO=
+DY></HTML>
+------=_NextPart_000_0001_01C60935.91A5B2B0--
+
+
+
 
 
 -------------------------------------------------------
