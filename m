@@ -1,10 +1,10 @@
 From: Jaco Kroon <jaco-P18QfuJFXGPYkQIYctQFYw@public.gmane.org>
 Subject: Re: Toshiba Satellite P10 + ati-drivers (fglrx)
-Date: Sun, 25 Dec 2005 18:16:18 +0200
-Message-ID: <43AEC5D2.4090003@kroon.co.za>
+Date: Sun, 25 Dec 2005 22:32:32 +0200
+Message-ID: <43AF01E0.2020701@kroon.co.za>
 References: <20051224003808.GB16285@elf.ucw.cz> <43AD0AC6.9060904@kroon.co.za> <43AD2676.10703@roarinelk.homelinux.net> <43AD2F3F.7010003@kroon.co.za> <20051224114758.GD26351@elf.ucw.cz> <43AD407A.5020708@kroon.co.za> <20051224124903.GH26351@elf.ucw.cz> <43AD49A8.3010708@kroon.co.za> <20051224135756.GI26351@elf.ucw.cz> <43AE57B4.7030008@kroon.co.za> <20051225084728.GE2183@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms020401040507040201060404"
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms080101000609010306050409"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 In-Reply-To: <20051225084728.GE2183-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -17,33 +17,70 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: Manuel Lauss <mano-nEyxjcs6f3Vin2gBucwGBecsttgLyre6@public.gmane.org>, Stefan Seyfried <seife-l3A5Bk7waGM@public.gmane.org>, Holger Macht <hmacht-l3A5Bk7waGM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 This is a cryptographically signed message in MIME format.
 
---------------ms020401040507040201060404
+--------------ms080101000609010306050409
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
 Pavel Machek wrote:
-> Hi!
+>>Now, initially when I switch back to X I get the correct image on the
+>>bottom third of the screen with the top two thirds seemingly corrupted.
+>> This is pretty normal and is identical to what I normally see when
+>>switching between consoles and X.  This lasts for about half a second
+>>before it freezes up and causes a hard-lock.  Normally the screen just
+>>resets itself at the time it now locks up.
 > 
-[--snip--]
+> 
 > I'm sorry, there's no way we can help you with fglrx. I'm glad at
 > least s-t-disk works.
-> 								Pavel
 
-LOL - was just posting back as a follow up so that you all know how it
-turned out.
+Was the ati-agp module in the kernel.  Adding some suspend/resume
+support for that module fixes all and I can now happily suspend-to-ram
+and successfully resume.  I've mailed a patch to the agpgart maintainer
+and cc'ed the lkml.  For refference purposes the patch (based on
+http://unixhead.org/docs/thinkpad/ati-agp/ati-agp.diff) is as follows,
+and I'll also make it available on my website:
 
-Jaco
+--- linux-2.6.15-rc6/drivers/char/agp/ati-agp.c.orig	2005-12-25
+22:21:32.000000000 +0200
++++ linux-2.6.15-rc6/drivers/char/agp/ati-agp.c	2005-12-25
+22:23:33.000000000 +0200
+@@ -243,6 +243,15 @@
+ 	return 0;
+ }
+
++static int ati_resume(struct pci_dev *dev)
++{
++	return ati_configure();
++}
++
++static int ati_suspend(struct pci_dev *dev, pm_message_t state)
++{
++	return 0;
++}
+
+ /*
+  *Since we don't need contigious memory we just try
+@@ -525,6 +534,8 @@
+ 	.id_table	= agp_ati_pci_table,
+ 	.probe		= agp_ati_probe,
+ 	.remove		= agp_ati_remove,
++	.resume		= ati_resume,
++	.suspend	= ati_suspend,
+ };
+
+ static int __init agp_ati_init(void)
+
 -- 
 There are only 10 kinds of people in this world,
   those that understand binary and those that don't.
 http://www.kroon.co.za/
 
---------------ms020401040507040201060404
+--------------ms080101000609010306050409
 Content-Type: application/x-pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -95,20 +132,20 @@ JVCUYsfbJ3FXJY3dqZw5jowgT2Vfldr394fWxghOrvbqNOUQGls1TXfjViF4gtwhGTXeJLHT
 HUb/XV9lTzGCAzswggM3AgEBMGkwYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBD
 b25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFp
 bCBJc3N1aW5nIENBAgMN6dYwCQYFKw4DAhoFAKCCAacwGAYJKoZIhvcNAQkDMQsGCSqGSIb3
-DQEHATAcBgkqhkiG9w0BCQUxDxcNMDUxMjI1MTYxNjE4WjAjBgkqhkiG9w0BCQQxFgQUtXxF
-DPBUak0nracfCdpfPTodsdIwUgYJKoZIhvcNAQkPMUUwQzAKBggqhkiG9w0DBzAOBggqhkiG
+DQEHATAcBgkqhkiG9w0BCQUxDxcNMDUxMjI1MjAzMjMyWjAjBgkqhkiG9w0BCQQxFgQUk6H6
+JnhiKzFbO2qdU862ob0Qv7UwUgYJKoZIhvcNAQkPMUUwQzAKBggqhkiG9w0DBzAOBggqhkiG
 9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAgcwDQYIKoZIhvcNAwICASgweAYJKwYB
 BAGCNxAEMWswaTBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhhd3RlIENvbnN1bHRpbmcg
 KFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVtYWlsIElzc3Vpbmcg
 Q0ECAw3p1jB6BgsqhkiG9w0BCRACCzFroGkwYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRo
 YXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBG
-cmVlbWFpbCBJc3N1aW5nIENBAgMN6dYwDQYJKoZIhvcNAQEBBQAEggEAG3r241P9w4wDd/g5
-EZF6KcREgHuesWqt/C40DDMJ/LrMG8zNgoR+hFelVlWLpMyF8NqFW7Y6gLrs90fUb0+2Q2w5
-+MVzCqF2LOdecQxpy4+7Qcb8g4dPyEScSycMjYMiwAiXVsy4H4qBXnAGOR2TO5MmluuU6dW4
-mBLUt5Z6CTBsfiSeowhISjgorTXJbxh84FD0ZY3eoveOtA46eEIeSwljcfDrFGXPr9yFAcWR
-/WKQAf9Guo2sLMvhBVa0XPxKU2ia8D0yTGTFC1diyinbKVTSgJiASeqXKVx9LhdsxFn92qp1
-gbZwlol5Qo8q8SB7d42AQwHgD8uKOHpOp466FgAAAAAAAA==
---------------ms020401040507040201060404--
+cmVlbWFpbCBJc3N1aW5nIENBAgMN6dYwDQYJKoZIhvcNAQEBBQAEggEAS26OeYHz4VXF/FDh
+mJlD2qOY6bawYusIRLa2dKsiM+CX+D/298d7VLqfNIbpz5JYXricPIyp0LpWVLVH3xsQhD9P
+5INcFD6R7y614uqP0gMtfjUaHHG4uaTGEm66OujOevquxT6ycGsjNlrJePB/Qas+ItbW3FLL
+02y3yPgB1ftKEoTKCasTFJtkA5+2gs1wkO5oO6zhbaMi+IIzBJH0mNJnfip6LaidF81/68JB
+fdG4a1laX+XnFoox8johhuuYPIMIBMQMcObnSEi2Oin57JurxmQ7rFBFRRUXF9ZrS9PbvYlR
+DjLG1mkQCf0IJeo18byd32aOmTLdTT1yEdE3UAAAAAAAAA==
+--------------ms080101000609010306050409--
 
 
 -------------------------------------------------------
