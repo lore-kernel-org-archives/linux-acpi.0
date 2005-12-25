@@ -1,11 +1,15 @@
-From: "Alessandro Wenz" <wenz-DQbB3G1+4zEox3rIn2DAYQ@public.gmane.org>
-Subject: Re: Vaticanism vibrate
-Date: Sun, 25 Dec 2005 09:28:30 -0500
-Message-ID: <000001c6095f$7a7bbab0$7e40a8c0@mastiff>
+From: Olaf Conradi <oohlaf-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: regression between -rc4 and -rc5
+Date: Sun, 25 Dec 2005 17:02:41 +0100
+Message-ID: <1c687cba0512250802nde1e87du3ca9b39ac435cb6d@mail.gmail.com>
+References: <1c687cba0512180712oc9579cbi96e97b5c89e424fd@mail.gmail.com>
+	 <43AB0ECF.10302@suse.de>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0001_01C60935.91A5B2B0"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <43AB0ECF.10302-l3A5Bk7waGM@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,88 +19,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Hagir Shine <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Hi, thanks for your reply.
 
-------=_NextPart_000_0001_01C60935.91A5B2B0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+On 12/22/05, Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org> wrote:
+> What you see is probably a bug that slipped in 2.6.15-rc5:
+> It totally disables the use of cpufreq for passive cooling.
+> I already pointed Len to it and as this is really sever I am sure it
+> will be added before 2.6.15 is out if possible.
+> Also see Dirk Mueller's mail (12/21/2005):
+> Subject: make cpu_has_cpufreq() work
+> or the bug:
+> http://bugzilla.kernel.org/show_bug.cgi?id=3D3410
 
-=20
-http://www.charanas.com
-=20
-V
-P
-V
+My processor does not support speedstep for frequency scaling, it only
+supports throttling.
 
-L
-M
-A
-X
-S
-C
+The bug you pointed to does not seem to be entirely cpufreq specific,
+so maybe it is relevant. Am not sure.
 
-a.lium
+How can I diagnose the problem? I can put the system under load by
+compiling something, but how can I best monitor acpi?
 
-r.opecia
-iagr.a
-e.vitra
-e.ridia
-
-m.bien
-a.nax
-
-o.ma
-i.alis
-$1,25
-=20
-
-$3,35
-=20
-=20
-=20
-=20
-=20
-$3,85
-
-
-------=_NextPart_000_0001_01C60935.91A5B2B0
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Dus-ascii">
-<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV>&nbsp;</DIV>
-<DIV><A =
-href=3D"http://www.charanas.com">http://www.charanas.com</A></DIV>
-<DIV></FONT>&nbsp;</DIV>
-<DIV style=3D"FLOAT: left"><STRONG>V</STRONG><BR>P<BR><B>V</B><BR>
-<DIV>L</DIV>M<BR>A<BR>X<BR>S<BR><STRONG>C</STRONG><BR></DIV>
-<DIV style=3D"FLOAT: left"><STRONG>a.lium</STRONG><BR>
-<DIV>r.opecia</DIV>
-<DIV><B>iagr.a</B></DIV>e.vitra<BR>e.ridia<BR>
-<DIV>m.bien</DIV>a.nax<BR>
-<DIV>o.ma</DIV>
-<DIV><B>i.alis</B></DIV></DIV>
-<DIV style=3D"FLOAT: left"><STRONG>$1,25</STRONG><BR>&nbsp;<BR>
-<DIV><B>$3,35</B></DIV>
-<DIV>&nbsp;</DIV>
-<DIV>&nbsp;</DIV>&nbsp;<BR>&nbsp;<BR>&nbsp;<BR><B>$3,85</B><BR></DIV></BO=
-DY></HTML>
-------=_NextPart_000_0001_01C60935.91A5B2B0--
-
-
-
+Cheers and a merry xmas,
+ -Olaf
 
 
 -------------------------------------------------------
