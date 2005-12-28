@@ -1,11 +1,13 @@
-From: "Ritva Kofoed" <ritvekofoed-iOyWPrnZIjB2oYFZOn8jrw@public.gmane.org>
-Subject: Re: unhinge distrustful
-Date: Wed, 28 Dec 2005 10:08:05 -0500
-Message-ID: <000001c60bc0$814b9b40$862ba8c0@safeguard>
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: /proc/acpi/alarm -- does it work or not?
+Date: Wed, 28 Dec 2005 19:24:32 +0100
+Message-ID: <20051228182431.GA26207@hell.org.pl>
+References: <20051226204305.GA2028@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0001_01C60B96.98759340"
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20051226204305.GA2028-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,89 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Vibeke Rittenhouse <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ronald.mythtv-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Thus wrote Pavel Machek:
+[...]
 
-------=_NextPart_000_0001_01C60B96.98759340
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Last time I checked (2.6.15-rc[45]) it worked fine -- I use it routinely
+for S3 stress-testing (speaking of which, my machine has just failed to
+resume after some 20 days of uptime and > 150 S3 cycles).
 
-=20
-http://www.wenartak.com
-=20
-L
-V
-V
-S
-A
-C
-P
+> Here are my attempts: [Commands were typed one-after-another where it
+> makes sense, and I left machine suspended for long enough -- timer
+> should have expired]
+> 
+> root@amd:/proc/acpi# cat alarm
+> 2005-12-00 01:03:24
+> root@amd:/proc/acpi# echo '0-0-0 22:35:00' > alarm
 
-X
-M
+You got it mixed up. It's either
+"2005-12-28 19:50:00" for absolute or
+"+0000-00-00 00:01:00" for relative.
 
-ev-itra
-a-lium
+RTC IRQ counter is incremented whenever the timer triggers, regardless of
+whether the system is up or down (my system, at least).
 
-iagr-a
-om-a
+HTH, best regards,
 
-mb-ien
-i-alis
-rop-ecia
-
-ana-x
-er-idia
-
-=20
-$1,25
-
-$3,35
-=20
-=20
-$3,85
-
-=20
-=20
-=20
-
-
-------=_NextPart_000_0001_01C60B96.98759340
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Dus-ascii">
-<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV>&nbsp;</DIV>
-<DIV><A =
-href=3D"http://www.wenartak.com">http://www.wenartak.com</A></DIV>
-<DIV></FONT>&nbsp;</DIV>
-<DIV style=3D"FLOAT: =
-left">L<BR><STRONG>V</STRONG><BR><B>V</B><BR>S<BR>A<BR><B>C</B><BR>P<BR>
-<DIV>X</DIV>M<BR></DIV>
-<DIV style=3D"FLOAT: left">ev-itra<BR><B>a-lium</B><BR>
-<DIV><B>iagr-a</B></DIV>om-a<BR>
-<DIV>mb-ien</DIV><B>i-alis</B><BR>rop-ecia<BR>
-<DIV>ana-x</DIV>er-idia<BR></DIV>
-<DIV style=3D"FLOAT: left">&nbsp;<BR><B>$1,25</B><BR>
-<DIV><B>$3,35</B></DIV>
-<DIV>&nbsp;</DIV>&nbsp;<BR><B>$3,85</B><BR>
-<DIV>&nbsp;</DIV>
-<DIV>&nbsp;</DIV>&nbsp;<BR></DIV></BODY></HTML>
-------=_NextPart_000_0001_01C60B96.98759340--
-
-
-
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
