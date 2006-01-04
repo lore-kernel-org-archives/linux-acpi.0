@@ -1,38 +1,54 @@
-From: Steven Rostedt <rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org>
-Subject: Re: [patch 1/1] acpi: cleanup u32 flags in spin_lock calls
-Date: Wed, 4 Jan 2006 07:11:29 -0500 (EST)
-Message-ID: <Pine.LNX.4.58.0601040710420.3052@gandalf.stny.rr.com>
-References: <F7DC2337C7631D4386A2DF6E8FB22B3005965885@hdsmsx401.amr.corp.intel.com>
- <Pine.LNX.4.58.0601032235340.28111@gandalf.stny.rr.com>
- <20060103195518.6b6a7afe.akpm@osdl.org>
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: [patch 1/1] acpi: fix asus_acpi on Samsung P30/P35
+Date: Wed, 4 Jan 2006 17:37:29 +0100
+Message-ID: <20060104163729.GA6533@hell.org.pl>
+References: <F7DC2337C7631D4386A2DF6E8FB22B30059658DB@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20060103195518.6b6a7afe.akpm-3NddpPZAyC0@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B30059658DB-N2PTB0HCzHKkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, Greek0-hi6Y0CQ0nG0@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Thus wrote Brown, Len:
+> Due to necessary bug compatibility with MS, we're stuck with
+> the implicit return workaround behaviour for the forseeable future.
 
-On Tue, 3 Jan 2006, Andrew Morton wrote:
+I suppose so.
 
-> Steven Rostedt <rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org> wrote:
-> >
-> >  So as long as this is 64 bits
-> >  on a 64 bit machine, I'm fine with it.
->
-> No, it's wrong.  We cannot assume that a 64-bit platform defines u64 as
-> `unsigned long'.  For example, one architecture (sh64) defines u64 as
-> `unsigned long long', so we'll get warnings when mixing pointers to u64
-> and to the arg to local_irq_*().
->
-> Please don't invent new stuff.  Linux uses `unsigned long' and that's that.
+> acpi=struct exists so that OEMs can use Linux (and ACPICA)
+> to test their BIOS.  Linux should do the right thing with
+> or without it -- but I would expect it to be enabled only in
+> the test lab in practice.
+> 
+> Note that in any case, acpi_strict is not intended to be
+> changed at run-time -- for who knows what other workarounds
+> other threads may be in the middle of when it might be changed...
 
-OK, it was fine with me, but I guess it's not fine with Linus ;)
+That's exactly the reason I didn't push this concept further. Having a Big
+ACPI Lock to accompany BKL is an interesting idea, but I doubt it would
+catch on. OTOH, it would be nice to have 'my laptop boots with acpi=strict'
+stickers to give out on trade shows. People would love it.
 
--- Steve
+> The only question is what to do for 2.6.14/15 stable.
+> A. apply this patch after it is tested in 2.6.16?
+> B. wait for an update to replace this patch?
 
+Ugh, 5 am is not exactly the best time to sound clear and concise. What I
+meant was, in short:
+1. The patch applied to acpi-test is sufficient for stable (i.e. 2.6.15.x).
+2. I will provide another patch for acpi-test with my next batch of
+   updates. These will go into 2.6.16, .17 or whatever. Until this time,
+   however, the patch supplied stays at acpi-test.
+
+Best regards,
+
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
