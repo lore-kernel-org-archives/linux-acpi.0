@@ -1,16 +1,109 @@
-From: Pedro Venda <pjvenda-5F30ELgabapIqyNDz2gUUA@public.gmane.org>
-Subject: (no subject)
-Date: Thu, 05 Jan 2006 16:16:39 +0000
-Message-ID: <43BD4667.5040803@rnl.ist.utl.pt>
+From: Petr Vandrovec <vandrove-hnqZr3NxcozrBKCeMvbIDA@public.gmane.org>
+Subject: Re: (1) ACPI messes up Parallel support in kernels >2.6.9
+Date: Thu, 05 Jan 2006 20:20:02 +0100
+Message-ID: <43BD7162.2090906@vc.cvut.cz>
+References: <200601042203.12377.dmutters@gmail.com> <20060104225209.56e35802.akpm@osdl.org> <20060105085559.GA1357@neo.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20060105085559.GA1357-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
+Cc: Dane Mutters <dmutters-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-subscribe
+Adam Belay wrote:
+> On Wed, Jan 04, 2006 at 10:52:09PM -0800, Andrew Morton wrote:
+> 
+>>Dane Mutters <dmutters-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>>
+>>>	I've been attempting to figure out this problem for a long time, and have 
+>>> come to the conclusion that it must be a kernel bug (that or perhaps I'm a 
+>>> bit dense).  Whenever I have the option, "Device Drivers > Plug and Play > 
+>>> ACPI Support" enabled, I become unable to print using my parallel port.
+>>
+>>hm, regressions are bad and the fact that it _used_ to work meand that we
+>>should be able to make it work again.
+>>
+>>Could you please raise a bug reports against acpi at bugzilla.kernel.org? 
+>>It might help if that report includes the output of `dmesg -s 1000000' for
+>>both working and non-working kernels.
+>>
+>>Thanks.
+> 
+> 
+> This may be a PnP bug.  If you can provide further information, I'll
+> look into it.
+
+At least on my hardware (ASUS A8V, W83627THF superio) problem is that it now 
+uses ECP...
+
+Once parport_pc is loaded, it says it found PnPBIOS parport and finds printer
+
+parport: PnPBIOS parport detected.
+parport0: PC-style at 0x378 (0x778), irq 7, dma 3 
+[PCSPP,TRISTATE,COMPAT,EPP,ECP,DMA]
+parport0: Printer, HEWLETT-PACKARD DESKJET 690C
+lp0: using parport0 (interrupt-driven).
+lp0: ECP mode
+
+unfortunately write to /dev/lp* blocks indefinitely.  SuperIO registers 
+inspection reveals that SIO is actually programmed to use DMA 1 and not DMA 3. 
+When SuperIO is reprogrammed, data are apparently sent somewhere (as writes to 
+/dev/lp no longer blocks), IRQ count is incremented for each block sent, but 
+unfortunately printer does not seem to agree that any data arrived.
+
+Actually I believe that ECP mode never worked for me - but in the past 
+parport_pc just used SPP or EPP, and everything was happy.  Now 'modprobe 
+parport_pc io=0x378' does not work anymore as parallel port hardware is kindly 
+disabled by PnPBIOS code :-(  So I have to first enable parport in SuperIO, then 
+set parport mode to SPP, PS2, EPP1.7 or EPP1.9 (low three bits of F0 register in 
+function 1 must be 100, 000, 001 or 101) and load parport_pc io=0x378 
+io_hi=0x778 irq=7 dma=1.  Then ECP mode is not used and printing works...
+
+parport0: PC-style at 0x378, irq 7 [PCSPP,TRISTATE,EPP]
+parport0: Printer, HEWLETT-PACKARD DESKJET 690C
+lp0: using parport0 (interrupt-driven).
+
+If you are interested, ACPI DSDT is available at 
+http://platan.vc.cvut.cz/ftp/private/a8v.acpi.dsdt.  W83627THF datasheet is 
+available from Winbond website...  I do not understand AML sufficiently to tell 
+whether problem with DMA is caused by parport or AML interpreter or buggy DSDT. 
+  Non-working ECP is either dead hardware or parport problem existing for very long.
+
+SuperIO dump after initial parport_pc load:
+
+       RR/EN 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F 10 11 12 13 14 15 16 17
+BASE: 0B    82 84 FF FE A2 00 00 FF 20 00 00 1A 48 00 00 FF
+FN00: 01    03 F0 FF FF FF FF FF FF FF FF FF FF FF FF FF FF 06 FF FF FF 02 FF FF FF
+     :       8E 00 FF FF 00 00 FF FF FF FF FF FF FF FF FF FF
+FN01: 01    03 78 FF FF FF FF FF FF FF FF FF FF FF FF FF FF 07 FF FF FF 01 FF FF FF
+     :       3A FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+FN02: 01    03 F8 FF FF FF FF FF FF FF FF FF FF FF FF FF FF 04 FF FF FF FF FF FF FF
+     :       00 FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+FN03: 01    02 F8 FF FF FF FF FF FF FF FF FF FF FF FF FF FF 03 FF FF FF FF FF FF FF
+     :       00 00 FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+FN04: 01    FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+     :       FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+FN05: 00    00 00 00 00 FF FF FF FF FF FF FF FF FF FF FF FF 00 FF 00 FF FF FF FF FF
+     :       83 FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+FN06: 00    FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+     :       FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+FN07: 08    02 01 03 30 FF FF FF FF FF FF FF FF FF FF FF FF 00 FF FF FF FF FF FF FF
+     :       FF FF FF FF E3 00 FF FF FF FF FF FF FF FF FF 00
+FN08: 01    FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+     :       FF 38 00 00 FF 00 00 00 FF FF FF FF FF FF FF FF
+FN09: 03    FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+     :       FF 51 00 00 DF 21 00 FF FF FF FF FF FF FF FF FF
+FN0A: 01    FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF 00 FF FF FF FF FF FF FF
+     :       00 AF FF 3F 00 FF 00 00 FF 00 FF FF FF FF 00 00
+FN0B: 01    02 90 FF FF FF FF FF FF FF FF FF FF FF FF FF FF 00 FF FF FF FF FF FF FF
+     :       01 FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+PowerState: 01
+
+								Petr
+
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
