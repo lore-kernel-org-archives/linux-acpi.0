@@ -1,47 +1,37 @@
-From: Steven Rostedt <rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org>
-Subject: RE: [patch 1/1] acpi: cleanup u32 flags in spin_lock calls
-Date: Wed, 4 Jan 2006 20:00:38 -0500 (EST)
-Message-ID: <Pine.LNX.4.58.0601041959490.23940@gandalf.stny.rr.com>
-References: <F7DC2337C7631D4386A2DF6E8FB22B300599CF4E@hdsmsx401.amr.corp.intel.com>
+From: Chris Wright <chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org>
+Subject: Re: [stable] Re: [patch 1/1] acpi: fix asus_acpi on Samsung P30/P35
+Date: Wed, 4 Jan 2006 17:47:07 -0800
+Message-ID: <20060105014707.GE3335@sorel.sous-sol.org>
+References: <F7DC2337C7631D4386A2DF6E8FB22B30059658DB@hdsmsx401.amr.corp.intel.com> <20060104163729.GA6533@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B300599CF4E-N2PTB0HCzHKkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20060104163729.GA6533-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Greek0-hi6Y0CQ0nG0@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 4 Jan 2006, Brown, Len wrote:
+* Karol Kozimor (sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org) wrote:
+> Thus wrote Brown, Len:
+> > The only question is what to do for 2.6.14/15 stable.
+> > A. apply this patch after it is tested in 2.6.16?
+> > B. wait for an update to replace this patch?
+> 
+> Ugh, 5 am is not exactly the best time to sound clear and concise. What I
+> meant was, in short:
+> 1. The patch applied to acpi-test is sufficient for stable (i.e. 2.6.15.x).
+> 2. I will provide another patch for acpi-test with my next batch of
+>    updates. These will go into 2.6.16, .17 or whatever. Until this time,
+>    however, the patch supplied stays at acpi-test.
 
->
-> >Updated..
->
-> Andrew, Steven,
->
-> (and I'm sorry I have to bother you by asking this...)
->
-> Please acknowldge that you license this patch back to Intel
-> according either license appearing at the top of the acpi files changed.
+Any reason not to push the current one up, instead of keeping an interim
+patch that is in stable and acpi-test, but nowhere else?  For -stable we
+prefer things that are upstream (i.e. reasonably well-tested).
 
-No problem.  I license that patch back to Intel.
-
-Steven Rostedt.
-
--- Steve
-
->
-> Doing so means that we can apply this patch or a derivative of it "upstream"
-> in the ACPICA core, which Linux shares with FreeBSD etc.
->
-> Not doing so means that your path is licensed as GPL only, and if
-> I check it into Linux, then I have created a permanent divergence between
-> Linux and the shared ACPICA interpreter -- not a disaster, but
-> a headache for me when I don't really need more headaches.
->
-> thanks,
-> -Len
->
+thanks,
+-chris
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
