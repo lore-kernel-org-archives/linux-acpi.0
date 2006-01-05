@@ -1,26 +1,35 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [stable] Re: [patch 1/1] acpi: fix asus_acpi on Samsung P30/P35
-Date: Wed, 4 Jan 2006 22:27:55 -0500
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B300599D0BA@hdsmsx401.amr.corp.intel.com>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: pnp: PnPACPI: METHOD_NAME__CRS failure for PNP0200
+Date: Wed, 4 Jan 2006 23:48:04 -0500
+Message-ID: <200601042348.05216.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chris Wright <chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org>, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Greek0-hi6Y0CQ0nG0@public.gmane.org
+To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On my D875PBZ i386 box running the latest ACPI patch, PNPACPI is bombing
+out with these:
 
->Any reason not to push the current one up, instead of keeping 
->an interim patch that is in stable and acpi-test, but nowhere else?
->For -stable we prefer things that are upstream (i.e. reasonably well-tested).
+pnp: PnPACPI: unknown resource type 7
+pnp: PnPACPI: METHOD_NAME__CRS failure for PNP0200
+<repeat for a total of 13 devices>.
+pnp: PnP ACPI: found 0 devices
 
-No reason except that I'm waiting for an -mm iteration
-before we pushing anything to 2.6.16.  It has been 3 weeks
-since -mm shipped, so a lot has changed besides this
-and I'd like to see it all survive -mm before pushing to linus.
+instead of
+pnp: PnP ACPI: found 13 devices
+
+These are coming from pnpacpi_allocated_resource(),
+which except for the type 7's, seems to get exactly
+the same sequence of resource types as the successful
+stock 2.6.15 build.
+
+Anybody else seeting this?
+Not immediately clear why I see it here and didn't see them on my primary test box.
 
 thanks,
 -Len
