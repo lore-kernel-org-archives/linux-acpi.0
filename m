@@ -1,28 +1,34 @@
-From: Chris Wright <chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org>
-Subject: Re: [stable] Re: [patch 1/1] acpi: fix asus_acpi on Samsung P30/P35
-Date: Wed, 4 Jan 2006 21:10:01 -0800
-Message-ID: <20060105051001.GG3335@sorel.sous-sol.org>
-References: <F7DC2337C7631D4386A2DF6E8FB22B300599D0BA@hdsmsx401.amr.corp.intel.com>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: Re: (1) ACPI messes up Parallel support in kernels >2.6.9
+Date: Wed, 4 Jan 2006 22:52:09 -0800
+Message-ID: <20060104225209.56e35802.akpm@osdl.org>
+References: <200601042203.12377.dmutters@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B300599D0BA-N2PTB0HCzHKkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <200601042203.12377.dmutters-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Chris Wright <chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org>, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Greek0-hi6Y0CQ0nG0@public.gmane.org
+To: Dane Mutters <dmutters-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-* Brown, Len (len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org) wrote:
-> No reason except that I'm waiting for an -mm iteration
-> before we pushing anything to 2.6.16.  It has been 3 weeks
-> since -mm shipped, so a lot has changed besides this
-> and I'd like to see it all survive -mm before pushing to linus.
+Dane Mutters <dmutters-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>
+> 	I've been attempting to figure out this problem for a long time, and have 
+>  come to the conclusion that it must be a kernel bug (that or perhaps I'm a 
+>  bit dense).  Whenever I have the option, "Device Drivers > Plug and Play > 
+>  ACPI Support" enabled, I become unable to print using my parallel port.
 
-Sounds good, we can just wait for your cycle.
+hm, regressions are bad and the fact that it _used_ to work meand that we
+should be able to make it work again.
 
-thanks,
--chris
+Could you please raise a bug reports against acpi at bugzilla.kernel.org? 
+It might help if that report includes the output of `dmesg -s 1000000' for
+both working and non-working kernels.
+
+Thanks.
+
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
