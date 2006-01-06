@@ -1,46 +1,51 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 8/9] acpi: remove Kconfig ACPI laptop default settings
-Date: Thu, 05 Jan 2006 22:30:59 -0800
-Message-ID: <200601060631.k066VCQq008144@shell0.pdx.osdl.net>
+Subject: [patch 7/9] PNPACPI: clean blacklist
+Date: Thu, 05 Jan 2006 22:30:58 -0800
+Message-ID: <200601060631.k066VBNT008141@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, bbpetkov-LWAfsSFWpa4@public.gmane.org, petkov-xhPu7QH+N+StU9/U+hoEgQ@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, castet.matthieu-GANU6spQydw@public.gmane.org, ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org, shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-From: Borislav Petkov <bbpetkov-LWAfsSFWpa4@public.gmane.org>
+From: matthieu castet <castet.matthieu-GANU6spQydw@public.gmane.org>
 
-Remove the default (y|m) ACPI settings for laptops in order to speed up
-automated kbuilds without compiling unneeded stuff - I'm pretty certain the
-majority of machines running lnx are not laptops after all :)
+Clean the blacklist.  Battery, Button, Fan don't have a CRS and should be
+removed.  PCI root is in pnpbios and is harmless.
 
-Signed-off-by: Borislav Petkov <petkov-xhPu7QH+N+StU9/U+hoEgQ@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
+Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- drivers/acpi/Kconfig |    2 --
- 1 files changed, 2 deletions(-)
+ drivers/pnp/pnpacpi/core.c |   11 +++++++----
+ 1 files changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN drivers/acpi/Kconfig~acpi-remove-kconfig-acpi-laptop-default-settings drivers/acpi/Kconfig
---- devel/drivers/acpi/Kconfig~acpi-remove-kconfig-acpi-laptop-default-settings	2006-01-05 22:28:52.000000000 -0800
-+++ devel-akpm/drivers/acpi/Kconfig	2006-01-05 22:28:52.000000000 -0800
-@@ -168,7 +168,6 @@ config ACPI_NUMA
- config ACPI_ASUS
-         tristate "ASUS/Medion Laptop Extras"
- 	depends on X86
--	default y
-         ---help---
-           This driver provides support for extra features of ACPI-compatible
-           ASUS laptops. As some of Medion laptops are made by ASUS, it may also
-@@ -209,7 +208,6 @@ config ACPI_IBM
- config ACPI_TOSHIBA
- 	tristate "Toshiba Laptop Extras"
- 	depends on X86
--	default y
- 	---help---
- 	  This driver adds support for access to certain system settings
- 	  on "legacy free" Toshiba laptops.  These laptops can be recognized by
+diff -puN drivers/pnp/pnpacpi/core.c~pnpacpi-clean-blacklist drivers/pnp/pnpacpi/core.c
+--- devel/drivers/pnp/pnpacpi/core.c~pnpacpi-clean-blacklist	2006-01-05 22:28:30.000000000 -0800
++++ devel-akpm/drivers/pnp/pnpacpi/core.c	2006-01-05 22:28:30.000000000 -0800
+@@ -27,12 +27,15 @@
+ 
+ static int num = 0;
+ 
++/* We need only to blacklist devices that have already an acpi driver that
++ * can't use pnp layer. We don't need to blacklist device that are directly
++ * used by the kernel (PCI root, ...), as it is harmless and there were
++ * already present in pnpbios. But there is an exception for devices that
++ * have irqs (PIC, Timer) because we call acpi_register_gsi.
++ * Finaly only devices that have a CRS method need to be in this list.
++ */
+ static char __initdata excluded_id_list[] =
+-	"PNP0C0A," /* Battery */
+-	"PNP0C0C,PNP0C0E,PNP0C0D," /* Button */
+ 	"PNP0C09," /* EC */
+-	"PNP0C0B," /* Fan */
+-	"PNP0A03," /* PCI root */
+ 	"PNP0C0F," /* Link device */
+ 	"PNP0000," /* PIC */
+ 	"PNP0100," /* Timer */
 _
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
