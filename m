@@ -1,74 +1,40 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 9/9] asus_acpi: Invert read of wled proc file to show correct state of LED
-Date: Thu, 05 Jan 2006 22:31:01 -0800
-Message-ID: <200601060631.k066VEgJ008147@shell0.pdx.osdl.net>
+Subject: [patch 6/9] PNPACPI: only parse device that have CRS method
+Date: Thu, 05 Jan 2006 22:30:57 -0800
+Message-ID: <200601060631.k066V9G7008138@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, bcollins-GeWIH/nMZzLQT0dZR+AlfA@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, castet.matthieu-GANU6spQydw@public.gmane.org, ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-From: Ben Collins <bcollins-GeWIH/nMZzLQT0dZR+AlfA@public.gmane.org>
+From: matthieu castet <castet.matthieu-GANU6spQydw@public.gmane.org>
 
-User with this equipment stated that writes to this file worked correctly,
-but that reads were showing inverted state (1 for off, 0 for on). 
-Following the same style for reads, introduced an invert flag to read_led,
-and used it for wled.
+Blacklist devices that don't have CRS method as they are useless for pnp
+layer as they don't provide any resource.
 
-Signed-off-by: Ben Collins <bcollins-GeWIH/nMZzLQT0dZR+AlfA@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- drivers/acpi/asus_acpi.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/pnp/pnpacpi/core.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/acpi/asus_acpi.c~asus_acpi-invert-read-of-wled-proc-file-to-show-correct drivers/acpi/asus_acpi.c
---- devel/drivers/acpi/asus_acpi.c~asus_acpi-invert-read-of-wled-proc-file-to-show-correct	2006-01-05 22:28:55.000000000 -0800
-+++ devel-akpm/drivers/acpi/asus_acpi.c	2006-01-05 22:28:55.000000000 -0800
-@@ -490,13 +490,13 @@ proc_read_info(char *page, char **start,
-  */
+diff -puN drivers/pnp/pnpacpi/core.c~pnpacpi-only-parse-device-that-have-crs-method drivers/pnp/pnpacpi/core.c
+--- devel/drivers/pnp/pnpacpi/core.c~pnpacpi-only-parse-device-that-have-crs-method	2006-01-05 22:28:25.000000000 -0800
++++ devel-akpm/drivers/pnp/pnpacpi/core.c	2006-01-05 22:29:45.000000000 -0800
+@@ -131,7 +131,8 @@ static int __init pnpacpi_add_device(str
+ 	struct pnp_id *dev_id;
+ 	struct pnp_dev *dev;
  
- /* Generic LED functions */
--static int read_led(const char *ledname, int ledmask)
-+static int read_led(const char *ledname, int ledmask, int invert)
- {
- 	if (ledname) {
- 		int led_status;
+-	if (!ispnpidacpi(acpi_device_hid(device)) ||
++	status = acpi_get_handle(device->handle, "_CRS", &temp);
++	if (ACPI_FAILURE(status) || !ispnpidacpi(acpi_device_hid(device)) ||
+ 		is_exclusive_device(device))
+ 		return 0;
  
- 		if (read_acpi_int(NULL, ledname, &led_status))
--			return led_status;
-+			return (invert) ? !led_status : led_status;
- 		else
- 			printk(KERN_WARNING "Asus ACPI: Error reading LED "
- 			       "status\n");
-@@ -552,7 +552,7 @@ proc_read_mled(char *page, char **start,
- 	       void *data)
- {
- 	return sprintf(page, "%d\n",
--		       read_led(hotk->methods->mled_status, MLED_ON));
-+		       read_led(hotk->methods->mled_status, MLED_ON, 0));
- }
- 
- static int
-@@ -570,7 +570,7 @@ proc_read_wled(char *page, char **start,
- 	       void *data)
- {
- 	return sprintf(page, "%d\n",
--		       read_led(hotk->methods->wled_status, WLED_ON));
-+		       read_led(hotk->methods->wled_status, WLED_ON, 1));
- }
- 
- static int
-@@ -588,7 +588,7 @@ proc_read_tled(char *page, char **start,
- 	       void *data)
- {
- 	return sprintf(page, "%d\n",
--		       read_led(hotk->methods->tled_status, TLED_ON));
-+		       read_led(hotk->methods->tled_status, TLED_ON, 0));
- }
- 
- static int
 _
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
