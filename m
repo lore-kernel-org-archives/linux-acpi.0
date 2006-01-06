@@ -1,67 +1,40 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 1/9] git-acpi: memhotplug build fix
-Date: Thu, 05 Jan 2006 22:30:51 -0800
-Message-ID: <200601060631.k066V3kc008123@shell0.pdx.osdl.net>
+Subject: [patch 2/9] 2.6-sony_acpi4 warning fix
+Date: Thu, 05 Jan 2006 22:30:52 -0800
+Message-ID: <200601060631.k066V4I3008126@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, kamezawa.hiroyu-+CUm20s59erQFUHtdCDX3A@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, bboissin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, benoit.boissinot-vYW+cPY1g1pg9hUCZPvPmw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+From: Benoit Boissinot <bboissin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-drivers/acpi/acpi_memhotplug.c: In function `acpi_memory_get_device_resources':
-drivers/acpi/acpi_memhotplug.c:101: error: structure has no member named `attribute'
-drivers/acpi/acpi_memhotplug.c:103: error: structure has no member named `attribute'
-drivers/acpi/acpi_memhotplug.c: In function `acpi_memory_disable_device':
-drivers/acpi/acpi_memhotplug.c:253: warning: unused variable `attr'
+Fix unused variable warning
 
-Cc: <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Signed-off-by: Benoit Boissinot <benoit.boissinot-vYW+cPY1g1pg9hUCZPvPmw@public.gmane.org>
 Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- drivers/acpi/acpi_memhotplug.c |   13 ++++++-------
- 1 files changed, 6 insertions(+), 7 deletions(-)
+ arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c |    4 ----
+ 1 files changed, 4 deletions(-)
 
-diff -puN drivers/acpi/acpi_memhotplug.c~git-acpi-memhotplug-build-fix drivers/acpi/acpi_memhotplug.c
---- devel/drivers/acpi/acpi_memhotplug.c~git-acpi-memhotplug-build-fix	2006-01-05 22:28:02.000000000 -0800
-+++ devel-akpm/drivers/acpi/acpi_memhotplug.c	2006-01-05 22:28:02.000000000 -0800
-@@ -71,8 +71,8 @@ static struct acpi_driver acpi_memory_de
- struct acpi_memory_device {
- 	acpi_handle handle;
- 	unsigned int state;	/* State of the memory device */
--	unsigned short cache_attribute;	/* memory cache attribute */
--	unsigned short read_write_attribute;	/* memory read/write attribute */
-+	unsigned short caching;	/* memory cache attribute */
-+	unsigned short write_protect;	/* memory read/write attribute */
- 	u64 start_addr;		/* Memory Range start physical addr */
- 	u64 end_addr;		/* Memory Range end physical addr */
- };
-@@ -97,10 +97,10 @@ acpi_memory_get_device_resources(struct 
- 	if (ACPI_SUCCESS(status)) {
- 		if (address64.resource_type == ACPI_MEMORY_RANGE) {
- 			/* Populate the structure */
--			mem_device->cache_attribute =
--			    address64.attribute.memory.cache_attribute;
--			mem_device->read_write_attribute =
--			    address64.attribute.memory.read_write_attribute;
-+			mem_device->caching =
-+			    address64.info.mem.caching;
-+			mem_device->write_protect =
-+			    address64.info.mem.write_protect;
- 			mem_device->start_addr = address64.minimum;
- 			mem_device->end_addr = address64.maximum;
- 		}
-@@ -250,7 +250,6 @@ static int acpi_memory_disable_device(st
- 	int result;
- 	u64 start = mem_device->start_addr;
- 	u64 len = mem_device->end_addr - start + 1;
--	unsigned long attr = mem_device->read_write_attribute;
+diff -puN arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~git-acpi-warning-fix arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
+--- devel/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~git-acpi-warning-fix	2006-01-05 22:28:07.000000000 -0800
++++ devel-akpm/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c	2006-01-05 22:28:07.000000000 -0800
+@@ -306,10 +306,6 @@ acpi_cpufreq_cpu_init (
+ 	struct cpufreq_acpi_io	*data;
+ 	unsigned int		result = 0;
  
- 	ACPI_FUNCTION_TRACE("acpi_memory_disable_device");
+-	union acpi_object		arg0 = {ACPI_TYPE_BUFFER};
+-	u32				arg0_buf[3];
+-	struct acpi_object_list 	arg_list = {1, &arg0};
+-
+ 	dprintk("acpi_cpufreq_cpu_init\n");
  
+ 	data = kzalloc(sizeof(struct cpufreq_acpi_io), GFP_KERNEL);
 _
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
