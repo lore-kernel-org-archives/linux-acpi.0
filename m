@@ -1,51 +1,74 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 7/9] PNPACPI: clean blacklist
-Date: Thu, 05 Jan 2006 22:30:58 -0800
-Message-ID: <200601060631.k066VBNT008141@shell0.pdx.osdl.net>
+Subject: [patch 9/9] asus_acpi: Invert read of wled proc file to show correct state of LED
+Date: Thu, 05 Jan 2006 22:31:01 -0800
+Message-ID: <200601060631.k066VEgJ008147@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, castet.matthieu-GANU6spQydw@public.gmane.org, ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org, shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, bcollins-GeWIH/nMZzLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-From: matthieu castet <castet.matthieu-GANU6spQydw@public.gmane.org>
+From: Ben Collins <bcollins-GeWIH/nMZzLQT0dZR+AlfA@public.gmane.org>
 
-Clean the blacklist.  Battery, Button, Fan don't have a CRS and should be
-removed.  PCI root is in pnpbios and is harmless.
+User with this equipment stated that writes to this file worked correctly,
+but that reads were showing inverted state (1 for off, 0 for on). 
+Following the same style for reads, introduced an invert flag to read_led,
+and used it for wled.
 
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
-Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ben Collins <bcollins-GeWIH/nMZzLQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- drivers/pnp/pnpacpi/core.c |   11 +++++++----
- 1 files changed, 7 insertions(+), 4 deletions(-)
+ drivers/acpi/asus_acpi.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/pnp/pnpacpi/core.c~pnpacpi-clean-blacklist drivers/pnp/pnpacpi/core.c
---- devel/drivers/pnp/pnpacpi/core.c~pnpacpi-clean-blacklist	2006-01-05 22:28:30.000000000 -0800
-+++ devel-akpm/drivers/pnp/pnpacpi/core.c	2006-01-05 22:28:30.000000000 -0800
-@@ -27,12 +27,15 @@
+diff -puN drivers/acpi/asus_acpi.c~asus_acpi-invert-read-of-wled-proc-file-to-show-correct drivers/acpi/asus_acpi.c
+--- devel/drivers/acpi/asus_acpi.c~asus_acpi-invert-read-of-wled-proc-file-to-show-correct	2006-01-05 22:28:55.000000000 -0800
++++ devel-akpm/drivers/acpi/asus_acpi.c	2006-01-05 22:28:55.000000000 -0800
+@@ -490,13 +490,13 @@ proc_read_info(char *page, char **start,
+  */
  
- static int num = 0;
+ /* Generic LED functions */
+-static int read_led(const char *ledname, int ledmask)
++static int read_led(const char *ledname, int ledmask, int invert)
+ {
+ 	if (ledname) {
+ 		int led_status;
  
-+/* We need only to blacklist devices that have already an acpi driver that
-+ * can't use pnp layer. We don't need to blacklist device that are directly
-+ * used by the kernel (PCI root, ...), as it is harmless and there were
-+ * already present in pnpbios. But there is an exception for devices that
-+ * have irqs (PIC, Timer) because we call acpi_register_gsi.
-+ * Finaly only devices that have a CRS method need to be in this list.
-+ */
- static char __initdata excluded_id_list[] =
--	"PNP0C0A," /* Battery */
--	"PNP0C0C,PNP0C0E,PNP0C0D," /* Button */
- 	"PNP0C09," /* EC */
--	"PNP0C0B," /* Fan */
--	"PNP0A03," /* PCI root */
- 	"PNP0C0F," /* Link device */
- 	"PNP0000," /* PIC */
- 	"PNP0100," /* Timer */
+ 		if (read_acpi_int(NULL, ledname, &led_status))
+-			return led_status;
++			return (invert) ? !led_status : led_status;
+ 		else
+ 			printk(KERN_WARNING "Asus ACPI: Error reading LED "
+ 			       "status\n");
+@@ -552,7 +552,7 @@ proc_read_mled(char *page, char **start,
+ 	       void *data)
+ {
+ 	return sprintf(page, "%d\n",
+-		       read_led(hotk->methods->mled_status, MLED_ON));
++		       read_led(hotk->methods->mled_status, MLED_ON, 0));
+ }
+ 
+ static int
+@@ -570,7 +570,7 @@ proc_read_wled(char *page, char **start,
+ 	       void *data)
+ {
+ 	return sprintf(page, "%d\n",
+-		       read_led(hotk->methods->wled_status, WLED_ON));
++		       read_led(hotk->methods->wled_status, WLED_ON, 1));
+ }
+ 
+ static int
+@@ -588,7 +588,7 @@ proc_read_tled(char *page, char **start,
+ 	       void *data)
+ {
+ 	return sprintf(page, "%d\n",
+-		       read_led(hotk->methods->tled_status, TLED_ON));
++		       read_led(hotk->methods->tled_status, TLED_ON, 0));
+ }
+ 
+ static int
 _
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
