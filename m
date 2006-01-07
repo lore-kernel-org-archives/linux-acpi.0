@@ -1,33 +1,39 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: Untangling the sleep hotkey mess
-Date: Sat, 7 Jan 2006 21:14:50 +0000
-Message-ID: <20060107211449.GA6998@srcf.ucam.org>
-References: <20060107172446.GA3092@srcf.ucam.org> <20060107192444.GA21915@osgiliath.brixandersen.dk> <20060107205232.GA6445@srcf.ucam.org> <20060107210103.GA5961@osgiliath.brixandersen.dk>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: Re: 2.6.15-mm2
+Date: Sat, 7 Jan 2006 14:58:00 -0800
+Message-ID: <20060107145800.113d7de5.akpm@osdl.org>
+References: <20060107052221.61d0b600.akpm@osdl.org>
+	<43C0172E.7040607@ens-lyon.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20060107210103.GA5961-GgQh6P/XBPa901fzNV2Eubv56P54cF3WWmv/VHan8Is@public.gmane.org>
+In-Reply-To: <43C0172E.7040607-vYW+cPY1g1pg9hUCZPvPmw@public.gmane.org>
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Brice Goglin <Brice.Goglin-vYW+cPY1g1pg9hUCZPvPmw@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Jan 07, 2006 at 10:01:03PM +0100, Henrik Brix Andersen wrote:
+Brice Goglin <Brice.Goglin-vYW+cPY1g1pg9hUCZPvPmw@public.gmane.org> wrote:
+>
+> 2) acpi-cpufreq does not load either, returns ENODEV too. It's probably
+>  git-acpi. I tried to revert it but there are lots of other patches
+>  depending on it, so I finally gave up.
 
-> So what you really propose is to abstract the handling of ACPI events
-> by yet another layer, a hotkey daemon?
+OK, let me try to reproduce this.  acpi and cpufreq are fully merged up, so
+this bug may well be in mainline now.
 
-No, what I propose is that sleep keys end up generating the same 
-userspace event no matter how they're connected. The easiest way to 
-achieve that (that is, the one which requires the least amount of new 
-code to be written) would be to do it through the input layer. If you 
-then want to respond to events by running something as root, this would 
-require a small daemon that monitors input events.
+>  3) wpa_supplicant does not find my WPA network anymore (while iwlist
+>  scanning sees). I didn't see anything relevant in dmesg. My driver is
+>  ipw2200.
 
-The current situation (where sleep keys may generate three different 
-types of events) is getting somewhat untenable.
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+It's things like this which make me consider a career in carpentry.
+
+I assume 2.6.15 works OK?
+
+Unfortunately I don't know diddly about wpa_supplicant (how come FC5-test1
+doesn't ship it?)
+
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
