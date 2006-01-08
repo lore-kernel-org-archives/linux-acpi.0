@@ -1,46 +1,48 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: RE: 2.6.14.3 suspend/resume with SMP (HT)
-Date: Tue, 10 Jan 2006 15:54:03 +0800
-Message-ID: <59D45D057E9702469E5775CBB56411F10158042C@pdsmsx406>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: git pull on Linux/ACPI release tree
+Date: Sun, 08 Jan 2006 00:16:51 -0800 (PST)
+Message-ID: <tnx64os3xri.fsf@arm.com>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3005A13489@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-class: urn:content-classes:message
-Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Karl H. Beckers" <karl.h.beckers-hi6Y0CQ0nG0@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <git-owner@vger.kernel.org>
+In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B3005A13489@hdsmsx401.amr.corp.intel.com> (Len
+ Brown's message of "Sun, 8 Jan 2006 02:47:30 -0500")
+Sender: git-owner@vger.kernel.org
+To: len.brown@intel.com
+Cc: torvalds@osdl.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@osdl.org, git@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
->I have not used suspend successfully before on either the laptop in
->question or my home machine (as opposed to suspend2 ... but after
->installing ubuntu I was hoping the stuff provided would just work).
+"Brown, Len" wrote:
+>>I _really_ wish you wouldn't have those automatic merges.
+>>
+>>Why do you do them? They add nothing but ugly and unnecessary 
+>>history, and in this pull, I think almost exactly half of the
+>>commits were just these empty merges.
 >
->You can find the requested files attached. The files *after-boot* were
->taken after the inital boot with ps and lsmod after stopping everything
->I could and unloading all modules I could.
->
->The files *after-reboot* were taking after the next reboot.
->
->@Pavel: I AM using 2.6.15-rc5 now. Have no idea if a driver is breaking
->things. Don't think it is at this point. When suspending in any other
->way but from single user mode with next to every process stopped and
->module unloaded suspend fails ... and that is prolly due to some driver
->but I was going to research that after resuming successfully once.
->
->Haven't been able to suspend/resume with nosmp kernels either, but
->haven't tried with 2.6.15-rc yet.
->Will try.
-Does your problem look like below one?
-http://bugzilla.kernel.org/show_bug.cgi?id=5757
+> Is it possible for it git, like bk, to simply ignore merge commits
+> in its summary output?
 
-IIRC, your CPU can't be booted after resume.
+As Junio suggested, you can have a look at StGIT
+(http://www.procode.org/stgit/) for a different workflow. There is a
+tutorial both on the web and in the doc/ directory but, anyway, it is
+pretty similar to Quilt only that the patches are GIT commits.
 
-Thanks,
-Shaohua
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+In principle, you keep all the patches in a stack whose base is the
+HEAD of Linus' kernel. You can indefinitely modify/push/pop the
+patches and, once you are happy with the state of the stack, ask Linus
+to pull using standard GIT commands (or mail them with 'stg
+mail'). You can afterwards pull the latest changes from Linus using
+'stg pull'. This operation pops the patches you have, advances the
+base of the stack (so no "merge" message) and pushes your patches
+back. Since pushing is done with a three-way merge, it detects whether
+there are any upstream modifications to your patches (if not, all the
+patches should become empty and safely removed from the stack).
+
+You can also have a branch for upstream merges only and you can easily
+cherry-pick patches or commits from other branches. This is quite
+useful if you want to continue the work on your development branch
+until Linus merges your patches.
+
+-- 
+Catalin
