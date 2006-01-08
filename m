@@ -1,45 +1,38 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: git pull on Linux/ACPI release tree
-Date: Sun, 8 Jan 2006 13:28:50 -0500
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3005A13505@hdsmsx401.amr.corp.intel.com>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: Re: 2.6.15-mm2
+Date: Sun, 8 Jan 2006 10:56:38 -0800
+Message-ID: <20060108105638.6227c4db.akpm@osdl.org>
+References: <20060107052221.61d0b600.akpm@osdl.org>
+	<43C0172E.7040607@ens-lyon.org>
+	<20060107145800.113d7de5.akpm@osdl.org>
+	<43C050FA.9040400@ens-lyon.org>
+	<20060108042425.4d0b8a76.akpm@osdl.org>
+	<43C12404.1010306@ens-lyon.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <43C12404.1010306-vYW+cPY1g1pg9hUCZPvPmw@public.gmane.org>
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: torvalds-3NddpPZAyC0@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, git-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Brice Goglin <Brice.Goglin-vYW+cPY1g1pg9hUCZPvPmw@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
- 
->I know a lot of people react to this kind of usage with "what's the
->point of the source control system if you're just messing with patches
->in and out of the tree all the time" But as a subsystem maintainer,
->you deal with a lot of changes and it's important to get a pristine
->clean history when you push things to Linus.
+Brice Goglin <Brice.Goglin-vYW+cPY1g1pg9hUCZPvPmw@public.gmane.org> wrote:
 >
->In fact, I do this so much that Linus's tree HEAD often equals my
->origin when he pulls.
->
->Merges really suck and I also hate it when the tree gets cluttered
->up with them, and Linus is right, ACPI is the worst offender here.
->
->Yes, we can grep the merges out of the shortlog or whatever, but that
->merging crap is still physically in the tree.
->
->Just don't do it.  Merge into a private branch for testing if you
->don't want to rebuild trees like I do, but push the clean tree to
->Linus.
+> Andrew Morton wrote:
+> 
+> >Well whatever bug it is, it's in Linus's tree now.  Happens for me too.
+> >
+> >  
+> >
+> Happens for you in -git4 ?
 
-Perhaps the tools should try to support what "a lot of people"
-expect, rather than making "a lot of people" do extra work
-because of the tools?
+Yup.
 
-Call me old fashioned, but I believe that tools are supposed to
-make work easier, not harder.
+> Does not here...
 
--Len
+grr.
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
