@@ -1,56 +1,63 @@
-From: Luben Tuikov <ltuikov@yahoo.com>
+From: Adrian Bunk <bunk-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>
 Subject: Re: git pull on Linux/ACPI release tree
-Date: Sun, 8 Jan 2006 13:20:57 -0800 (PST)
-Message-ID: <20060108212057.79825.qmail@web31815.mail.mud.yahoo.com>
-References: <Pine.LNX.4.64.0601081141450.3169@g5.osdl.org>
-Reply-To: ltuikov@yahoo.com
+Date: Mon, 9 Jan 2006 00:06:11 +0100
+Message-ID: <20060108230611.GP3774@stusta.de>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3005A13505@hdsmsx401.amr.corp.intel.com> <Pine.LNX.4.64.0601081111190.3169@g5.osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <git-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0601081141450.3169@g5.osdl.org>
-Sender: git-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@osdl.org>, Martin Langhoff <martin.langhoff@gmail.com>
-Cc: "Brown, Len" <len.brown@intel.com>, "David S. Miller" <davem@davemloft.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@osdl.org, git@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0601081111190.3169-hNm40g4Ew95AfugRpC6u6w@public.gmane.org>
+Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, git-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---- Linus Torvalds <torvalds@osdl.org> wrote:
-> So trying out git-rebase and git-cherry-pick just in case you decide to 
-> want to use them might be worthwhile. Making it part of your daily routine 
-> like David has done? Somewhat questionable, but hey, it seems to be 
-> working for David, and it does make some things much easier, so..
+On Sun, Jan 08, 2006 at 11:41:28AM -0800, Linus Torvalds wrote:
+>...
+> What I object to is that there were _also_ two automated merges within ten 
+> hours or each other, with absolutely _zero_ development in your tree in 
+> between. Why did you do that in your development tree? By _definition_ you 
+> had done zero development. You just tracked the development in _my_ tree.
+>...
 
-How about this usage (branch == tree):
+My impression is that you and Len are talking at different levels.
 
-Tree A    (your tree)
-  Tree B     (project B, dependent on Tree A)
-     Tree C     (project C, dependent on project B)
+I can't speak for Len, but let me try to describe a problem in this area 
+I don't know the solution for:
 
-(i.e. diff(C-A) = diff(C-B) + diff(B-A))
+Consider I want to do the following:
+1. update my tree daily from your tree
+2. include 10 patches per week into my tree
+3. ask you once a month to pull from my tree
 
-Your tree is pulled into Tree A as often as your tree
-changes and it just fast forwards.
+How should step 1 be done?
 
-If I want to run project B with your latest tree, then
-I resolve/merge from tree A to tree B, compile B
-and run it.
+In CVS, I'd do a "cvs update -dP ."
+In cogito, the equivalent command seems to be "cg-update".
 
-If I want to run project C and project B with your
-latest tree, I resolve/merge from tree A to tree B
-and from tree B to tree C, compile C and run it.
+CVS has no problems if I have changed MAINTAINERS in one place and it 
+changes daily in your tree in other places, but how do I do the same in 
+git/cogito without creating the merges you don't want to see?
 
-In such cases, are you saying that you'd prefer to
-pull from Tree B and Tree C (depending on your needs)?
+The solution might be described somewhere in TFM, but this is the class 
+of problems people like me run into when the goal is simply a git tree 
+to both track your tree and send changes to you without any interest in 
+advanced SCM knowledge.
 
-Another question:
-Sometimes, a fix for project B finds its way into
-tree C (project C) (since C depended on that fix in B).
-Now I'd like to pull that particular fix, identified by
-its SHA, into project B, and nothing else, for this I can
-use git-cherry-pick, right?
+> 		Linus
 
-And lastly, is there a tool whereby I can "see" changes
-between repos, kind of like git-diff but being able to
-give URLs too?
+cu
+Adrian
 
-    Luben
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
+
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
