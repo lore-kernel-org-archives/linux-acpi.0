@@ -1,32 +1,67 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: 2.6.15-mm2
-Date: Sun, 8 Jan 2006 03:16:29 -0500
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3005A1348A@hdsmsx401.amr.corp.intel.com>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: git pull on Linux/ACPI release tree
+Date: Sun, 08 Jan 2006 00:16:51 -0800 (PST)
+Message-ID: <20060108.001651.02992220.davem@davemloft.net>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3005A13489@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-class: urn:content-classes:message
-Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Brice Goglin <Brice.Goglin-vYW+cPY1g1pg9hUCZPvPmw@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <git-owner@vger.kernel.org>
+In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B3005A13489@hdsmsx401.amr.corp.intel.com>
+Sender: git-owner@vger.kernel.org
+To: len.brown@intel.com
+Cc: torvalds@osdl.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@osdl.org, git@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
- 
->2) acpi-cpufreq does not load either, returns ENODEV too. It's probably
->git-acpi. I tried to revert it but there are lots of other patches
->depending on it, so I finally gave up.
+=46rom: "Brown, Len" <len.brown@intel.com>
+Date: Sun, 8 Jan 2006 02:47:30 -0500
 
-Brice,
-Can you try the converse?
-Apply the acpi patch (which is included in -mm)
-without the rest of the mm tree to see if that broke acpi-cpufreq?:
+> I'm probably a na=EFve git user -- but I expect I have a lot of compa=
+ny.
+> If there is a better way of using the tool to get the job done,
+> I'm certainly a willing customer with open ears.
 
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/test/2.6.15/acpi-test-20051216-2.6.15.diff.bz2
+What I do is simply build a new fresh tree if I feel the urge
+to sync with the top of Linus's tree.  I use the script below
+which I call "git suck".  It just sucks the patches out of
+one tree and sticks them into another tree.  You go:
 
-thanks,
--Len
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+bash$ cd new-2.6
+bash$ git suck ../foo-2.6
+
+It preserves everything except the dates, and it's so incredibly
+cheap and fast with GIT.
+
+I know a lot of people react to this kind of usage with "what's the
+point of the source control system if you're just messing with patches
+in and out of the tree all the time" But as a subsystem maintainer,
+you deal with a lot of changes and it's important to get a pristine
+clean history when you push things to Linus.
+
+In fact, I do this so much that Linus's tree HEAD often equals my
+origin when he pulls.
+
+Merges really suck and I also hate it when the tree gets cluttered
+up with them, and Linus is right, ACPI is the worst offender here.
+
+Yes, we can grep the merges out of the shortlog or whatever, but that
+merging crap is still physically in the tree.
+
+Just don't do it.  Merge into a private branch for testing if you
+don't want to rebuild trees like I do, but push the clean tree to
+Linus.
+
+#!/bin/sh
+#
+# Usage: git suck path-to-tree
+#
+# Pull all patches relative to 'origin' from the tree specified
+# and apply them to the current directory tree, keeping all changelog
+# and authorship information identical.  It will update the dates
+# of the changes of course.
+(cd $1; git format-patch --mbox origin) || exit 1
+for i in $1/*.txt
+do
+   sed 's/\[PATCH\] //' <$i >tmp.patch
+   git-applymbox -k tmp.patch || exit 1
+done
