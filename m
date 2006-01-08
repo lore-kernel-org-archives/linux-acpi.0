@@ -1,67 +1,91 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: git pull on Linux/ACPI release tree
-Date: Sun, 08 Jan 2006 00:16:51 -0800 (PST)
-Message-ID: <20060108.001651.02992220.davem@davemloft.net>
-References: <F7DC2337C7631D4386A2DF6E8FB22B3005A13489@hdsmsx401.amr.corp.intel.com>
+From: Erik Slagter <erik-KW7PGP3XNp7a5EbDDlwbIw@public.gmane.org>
+Subject: Re: 2.6.15-mm2
+Date: Sun, 08 Jan 2006 11:31:22 +0100
+Message-ID: <1136716282.7377.1.camel@localhost.localdomain>
+References: <20060107052221.61d0b600.akpm@osdl.org>
+	 <43C0172E.7040607@ens-lyon.org>  <20060107145800.113d7de5.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <git-owner@vger.kernel.org>
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B3005A13489@hdsmsx401.amr.corp.intel.com>
-Sender: git-owner@vger.kernel.org
-To: len.brown@intel.com
-Cc: torvalds@osdl.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@osdl.org, git@vger.kernel.org
+Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-vECwmaLyi7O+WNzQaB7W"
+Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20060107145800.113d7de5.akpm-3NddpPZAyC0@public.gmane.org>
+Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-=46rom: "Brown, Len" <len.brown@intel.com>
-Date: Sun, 8 Jan 2006 02:47:30 -0500
 
-> I'm probably a na=EFve git user -- but I expect I have a lot of compa=
-ny.
-> If there is a better way of using the tool to get the job done,
-> I'm certainly a willing customer with open ears.
+--=-vECwmaLyi7O+WNzQaB7W
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-What I do is simply build a new fresh tree if I feel the urge
-to sync with the top of Linus's tree.  I use the script below
-which I call "git suck".  It just sucks the patches out of
-one tree and sticks them into another tree.  You go:
+On Sat, 2006-01-07 at 14:58 -0800, Andrew Morton wrote:
 
-bash$ cd new-2.6
-bash$ git suck ../foo-2.6
+> I assume 2.6.15 works OK?
+>=20
+> Unfortunately I don't know diddly about wpa_supplicant (how come FC5-test=
+1
+> doesn't ship it?)
 
-It preserves everything except the dates, and it's so incredibly
-cheap and fast with GIT.
+Yeah, for some odd reason FC doesn't ship wpa_supplicant, forcing all
+those poor users to use WEP "encryption" :-(
 
-I know a lot of people react to this kind of usage with "what's the
-point of the source control system if you're just messing with patches
-in and out of the tree all the time" But as a subsystem maintainer,
-you deal with a lot of changes and it's important to get a pristine
-clean history when you push things to Linus.
+--=-vECwmaLyi7O+WNzQaB7W
+Content-Type: application/x-pkcs7-signature; name=smime.p7s
+Content-Disposition: attachment; filename=smime.p7s
+Content-Transfer-Encoding: base64
 
-In fact, I do this so much that Linus's tree HEAD often equals my
-origin when he pulls.
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIILzCCAnIw
+ggHboAMCAQICAw/xBDANBgkqhkiG9w0BAQQFADBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhh
+d3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVt
+YWlsIElzc3VpbmcgQ0EwHhcNMDUxMTI5MTc0MTQ0WhcNMDYxMTI5MTc0MTQ0WjBqMRAwDgYDVQQE
+EwdTbGFndGVyMRUwEwYDVQQqEwxFcmlrIE1hcnRpam4xHTAbBgNVBAMTFEVyaWsgTWFydGlqbiBT
+bGFndGVyMSAwHgYJKoZIhvcNAQkBFhFlcmlrQHNsYWd0ZXIubmFtZTCBnzANBgkqhkiG9w0BAQEF
+AAOBjQAwgYkCgYEAtYqGuTSGbsTHZPiKQnNmvpVaxVuBZS6rV5xuKD47J9hz8Vq3Xh4PpuGYNW5L
+vevp80oj6sYAhNuU380UNRqALFaer8MtG6fXpvBgq+MCxVQzMyYxAnopqWlZQIUQNQX9wZmI0gVv
+gY6vwcXRBXkMyrzm41dy4oFwh+PTj3U+xwcCAwEAAaMuMCwwHAYDVR0RBBUwE4ERZXJpa0BzbGFn
+dGVyLm5hbWUwDAYDVR0TAQH/BAIwADANBgkqhkiG9w0BAQQFAAOBgQCf5+l4khcSjUOL8WcuJ7Q1
+eXhSPe0VJEsHSfVJCNFmfFZFiGZNwQRliOuGFxSy+uPb8ZVIZ3cBIen/K0k2hWS6pCiDm3xNdkFU
+mhWsibmyMoc91I0Re2ZWPmL6isxiyr56Qv7vNz2UHSinLJr/QtsvRv/RKFlcO1gm1wsCOPkyITCC
+AnIwggHboAMCAQICAw/xBDANBgkqhkiG9w0BAQQFADBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMc
+VGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZy
+ZWVtYWlsIElzc3VpbmcgQ0EwHhcNMDUxMTI5MTc0MTQ0WhcNMDYxMTI5MTc0MTQ0WjBqMRAwDgYD
+VQQEEwdTbGFndGVyMRUwEwYDVQQqEwxFcmlrIE1hcnRpam4xHTAbBgNVBAMTFEVyaWsgTWFydGlq
+biBTbGFndGVyMSAwHgYJKoZIhvcNAQkBFhFlcmlrQHNsYWd0ZXIubmFtZTCBnzANBgkqhkiG9w0B
+AQEFAAOBjQAwgYkCgYEAtYqGuTSGbsTHZPiKQnNmvpVaxVuBZS6rV5xuKD47J9hz8Vq3Xh4PpuGY
+NW5Lvevp80oj6sYAhNuU380UNRqALFaer8MtG6fXpvBgq+MCxVQzMyYxAnopqWlZQIUQNQX9wZmI
+0gVvgY6vwcXRBXkMyrzm41dy4oFwh+PTj3U+xwcCAwEAAaMuMCwwHAYDVR0RBBUwE4ERZXJpa0Bz
+bGFndGVyLm5hbWUwDAYDVR0TAQH/BAIwADANBgkqhkiG9w0BAQQFAAOBgQCf5+l4khcSjUOL8Wcu
+J7Q1eXhSPe0VJEsHSfVJCNFmfFZFiGZNwQRliOuGFxSy+uPb8ZVIZ3cBIen/K0k2hWS6pCiDm3xN
+dkFUmhWsibmyMoc91I0Re2ZWPmL6isxiyr56Qv7vNz2UHSinLJr/QtsvRv/RKFlcO1gm1wsCOPky
+ITCCAz8wggKooAMCAQICAQ0wDQYJKoZIhvcNAQEFBQAwgdExCzAJBgNVBAYTAlpBMRUwEwYDVQQI
+EwxXZXN0ZXJuIENhcGUxEjAQBgNVBAcTCUNhcGUgVG93bjEaMBgGA1UEChMRVGhhd3RlIENvbnN1
+bHRpbmcxKDAmBgNVBAsTH0NlcnRpZmljYXRpb24gU2VydmljZXMgRGl2aXNpb24xJDAiBgNVBAMT
+G1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBDQTErMCkGCSqGSIb3DQEJARYccGVyc29uYWwtZnJl
+ZW1haWxAdGhhd3RlLmNvbTAeFw0wMzA3MTcwMDAwMDBaFw0xMzA3MTYyMzU5NTlaMGIxCzAJBgNV
+BAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNU
+aGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQTCBnzANBgkqhkiG9w0BAQEFAAOBjQAw
+gYkCgYEAxKY8VXNV+065yplaHmjAdQRwnd/p/6Me7L3N9VvyGna9fww6YfK/Uc4B1OVQCjDXAmNa
+LIkVcI7dyfArhVqqP3FWy688Cwfn8R+RNiQqE88r1fOCdz0Dviv+uxg+B79AgAJk16emu59l0cUq
+VIUPSAR/p7bRPGEEQB5kGXJgt/sCAwEAAaOBlDCBkTASBgNVHRMBAf8ECDAGAQH/AgEAMEMGA1Ud
+HwQ8MDowOKA2oDSGMmh0dHA6Ly9jcmwudGhhd3RlLmNvbS9UaGF3dGVQZXJzb25hbEZyZWVtYWls
+Q0EuY3JsMAsGA1UdDwQEAwIBBjApBgNVHREEIjAgpB4wHDEaMBgGA1UEAxMRUHJpdmF0ZUxhYmVs
+Mi0xMzgwDQYJKoZIhvcNAQEFBQADgYEASIzRUIPqCy7MDaNmrGcPf6+svsIXoUOWlJ1/TCG4+DYf
+qi2fNi/A9BxQIJNwPP2t4WFiw9k6GX6EsZkbAMUaC4J0niVQlGLH2ydxVyWN3amcOY6MIE9lX5Xa
+9/eH1sYITq726jTlEBpbNU1341YheILcIRk13iSx0x1G/11fZU8xggJmMIICYgIBATBpMGIxCzAJ
+BgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQD
+EyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQQIDD/EEMAkGBSsOAwIaBQCgggFT
+MBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA2MDEwODEwMzExOVow
+IwYJKoZIhvcNAQkEMRYEFP8jrYmpTHNTafHKlKZuWPxzheMcMHgGCSsGAQQBgjcQBDFrMGkwYjEL
+MAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNV
+BAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBAgMP8QQwegYLKoZIhvcNAQkQ
+Agsxa6BpMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBM
+dGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQQIDD/EEMA0G
+CSqGSIb3DQEBAQUABIGAnD4Kfqhq2rrPYhZ/8A2/gSh2Pvq97etxGwjFDuracG+E0HX5tnrlrkz7
+xfP1by7QGSuE3Vg1QIVzPQO57P+xg2UNqLrZWM4kimmvMux6ABL8AImBSFmEXyGE+MnkYWH7HDHU
+lfv4tIVE2XSl2ptL0W29EpzFqusdWMhkpoar5hQAAAAAAAA=
 
-Merges really suck and I also hate it when the tree gets cluttered
-up with them, and Linus is right, ACPI is the worst offender here.
 
-Yes, we can grep the merges out of the shortlog or whatever, but that
-merging crap is still physically in the tree.
-
-Just don't do it.  Merge into a private branch for testing if you
-don't want to rebuild trees like I do, but push the clean tree to
-Linus.
-
-#!/bin/sh
-#
-# Usage: git suck path-to-tree
-#
-# Pull all patches relative to 'origin' from the tree specified
-# and apply them to the current directory tree, keeping all changelog
-# and authorship information identical.  It will update the dates
-# of the changes of course.
-(cd $1; git format-patch --mbox origin) || exit 1
-for i in $1/*.txt
-do
-   sed 's/\[PATCH\] //' <$i >tmp.patch
-   git-applymbox -k tmp.patch || exit 1
-done
+--=-vECwmaLyi7O+WNzQaB7W--
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
