@@ -1,69 +1,81 @@
-From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Subject: Re: 2.6.15-mm2
-Date: Sun, 8 Jan 2006 04:24:25 -0800
-Message-ID: <20060108042425.4d0b8a76.akpm@osdl.org>
-References: <20060107052221.61d0b600.akpm@osdl.org>
-	<43C0172E.7040607@ens-lyon.org>
-	<20060107145800.113d7de5.akpm@osdl.org>
-	<43C050FA.9040400@ens-lyon.org>
+From: Richard Hughes <hughsient@gmail.com>
+Subject: Re: [gpm] Untangling the sleep hotkey mess
+Date: Sun, 08 Jan 2006 12:58:44 +0000
+Message-ID: <1136725124.2444.26.camel@localhost>
+References: <20060107172446.GA3092@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <43C050FA.9040400-vYW+cPY1g1pg9hUCZPvPmw@public.gmane.org>
-Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Brice Goglin <Brice.Goglin-vYW+cPY1g1pg9hUCZPvPmw@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <hal-bounces@lists.freedesktop.org>
+In-Reply-To: <20060107172446.GA3092@srcf.ucam.org>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/listinfo/hal>,
+	<mailto:hal-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/hal>
+List-Post: <mailto:hal@lists.freedesktop.org>
+List-Help: <mailto:hal-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/hal>,
+	<mailto:hal-request@lists.freedesktop.org?subject=subscribe>
+Sender: hal-bounces@lists.freedesktop.org
+Errors-To: hal-bounces@lists.freedesktop.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org, desktop_portables@lists.osdl.org, hal@lists.freedesktop.org, gnome-power-manager-list@gnome.org
 List-Id: linux-acpi@vger.kernel.org
 
-Brice Goglin <Brice.Goglin-vYW+cPY1g1pg9hUCZPvPmw@public.gmane.org> wrote:
->
-> Andrew Morton wrote:
+On Sat, 2006-01-07 at 17:24 +0000, Matthew Garrett wrote:
+> Currently, there are three ways that a sleep hotkey may generate an 
+> event:
 > 
-> >Brice Goglin <Brice.Goglin-vYW+cPY1g1pg9hUCZPvPmw@public.gmane.org> wrote:
-> >  
-> >
-> >>2) acpi-cpufreq does not load either, returns ENODEV too. It's probably
-> >> git-acpi. I tried to revert it but there are lots of other patches
-> >> depending on it, so I finally gave up.
-> >>    
-> >>
-> >
-> >OK, let me try to reproduce this.  acpi and cpufreq are fully merged up, so
-> >this bug may well be in mainline now.
-> >
-> >  
-> >
-> >> 3) wpa_supplicant does not find my WPA network anymore (while iwlist
-> >> scanning sees). I didn't see anything relevant in dmesg. My driver is
-> >> ipw2200.
-> >>    
-> >>
-> >
-> >It's things like this which make me consider a career in carpentry.
-> >
-> >I assume 2.6.15 works OK?
-> >  
-> >
+> 1) Exposed in DSDT as an ACPI object, generates an ACPI notification 
+> event (the "normal" way)
 > 
-> 2.6.15 and 2.6.15-git3 both don't show any of these issues. Did acpi and
-> cpufreq get merged after -git3 ?
+> 2) Uses hardware-specific ACPI driver, generates an ACPI notification 
+> event. Not exposed in the DSDT in any standard way (ibm-acpi, 
+> toshiba-acpi, panasonic-acpi)
 > 
+> 3) Generates a scancode, which is picked up by the kernel and turned 
+> into a keycode (HP laptops work like this)
+> 
+> This is all quite horribly confusing, and makes life miserable for 
+> userspace.
 
-Well whatever bug it is, it's in Linus's tree now.  Happens for me too.
+Wholeheartedly agree.
 
-I traced the failure down as far as acpi_processor_get_performance_info(),
-where it's failing here:
+>  I would like to suggest the following standardisation:
+> 
+> a) Hal should assume that all hardware has a sleep key, since there's no 
+> way to actually tell.
+> 
+> b) Events generated in cases (1) and (2) should, for now, be caught by 
+> acpid (or something similar) and then fed back into the input layer via 
+> uinput. This should be scancode 142, which will end up as X keycode 223.
 
-	status = acpi_get_handle(pr->handle, "_PCT", &handle);
-	if (ACPI_FAILURE(status)) {
-		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-				  "ACPI-based processor performance control unavailable\n"));
-		return_VALUE(-ENODEV);
-	}
+Yes, I proposed something similar here
+[http://www.nabble.com/ACPI-to-uinput-bridge-t409384.html] -- using HAL
+and uinput to send the keys to user-programs.
 
+> c) Most keyboards in case (3) will already send scancode 142. For 
+> laptops, those that shouldn't should be remapped at boot time by 
+> checking the system DMI information and consulting a lookup table.
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes, perhaps using the existing HAL infrastructure with FDI lookup
+tables? We already have a HAL addon for watching ACPI events, and doing
+things like refreshing the battery values, and emitting conditions for
+the common buttons (lid, sleep, power) -- we could just extend this code
+in the HAL addon.
+
+The HAL addon is well tested, and plays nice with acpid if required.
+
+> Rationale:
+> 
+> Having one type of event rather than three makes it easier for userspace 
+> coders. Choosing to do it through the input layer lets people take 
+> advantage of pre-existing code for binding userspace events to keyboard 
+> events, and is significantly easier to do than getting keyboard events 
+> back to the ACPI layer. Keycode 142 is chosen because it's what 
+> Microsoft uses, and so most manufacturers who have taken this approach 
+> have copied them.
+
+Can we not go further and define Dock/UnDock,
+BrightnessUp/BrightnessDown, Hibernate, etc?
+
+Richard.
