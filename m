@@ -1,132 +1,47 @@
-From: Al Viro <viro@ftp.linux.org.uk>
-Subject: Re: git pull on Linux/ACPI release tree
-Date: Mon, 9 Jan 2006 00:48:44 +0000
-Message-ID: <20060109004844.GG27946@ftp.linux.org.uk>
-References: <F7DC2337C7631D4386A2DF6E8FB22B3005A13489@hdsmsx401.amr.corp.intel.com> <Pine.LNX.4.64.0601081100220.3169@g5.osdl.org>
+From: Yu Luming <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [gpm] Untangling the sleep hotkey mess
+Date: Mon, 9 Jan 2006 09:10:23 +0800
+Message-ID: <200601090910.24397.luming.yu@intel.com>
+References: <20060107172446.GA3092@srcf.ucam.org> <20060108134744.GA21538@srcf.ucam.org> <1136729632.2444.36.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1161263AbWAIAtM@vger.kernel.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1136729632.2444.36.camel@localhost>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0601081100220.3169@g5.osdl.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@osdl.org>
-Cc: "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@osdl.org, git@vger.kernel.org
+Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Richard Hughes <hughsient-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gnome-power-manager-list-rDKQcyrBJuzYtjvyW6yDsg@public.gmane.org, hal-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, desktop_portables-qjLDD68F18O7TbgM5vRIOg@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Jan 08, 2006 at 11:10:20AM -0800, Linus Torvalds wrote:
-> That has absolutely nothing to do with anything. It's not the comment 
-> (which admittedly gives absolutely no information - but why should it, 
-> since the _commit_ itself has no information in it?)
 
-How do you deal with conflict resolution?  That's a genuine question -
-I'm not talking about deliberate misuse to hide an attack, just a normal
-situation when you have to resolve something like
+>  3. Use the new acpi kernel hotkeys stuff -- not that I really understand
+>  the interface, nor how to use it correctly. Plus I'm not sure how much
+>  of the vendor kernel modules can use this new interface, or if it's
+>  suitable. It all seemed a bit fragile last time I looked.
 
-A:
-	if (foo)
-		bar
+Please take a look at 
+http://bugzilla.kernel.org/show_bug.cgi?id=5749
 
-B:
-	if (foo & baz)
-		bar
+There are some examples to use hotkey.c for specific laptops with dedicated
+hotkey acpi device objects , and dedicated AML methods.
+This patch: http://bugzilla.kernel.org/show_bug.cgi?id=5749#c3
+can be used to replace sony_acpi.c
 
-A':
-#ifdef X
-	if (foo)
-		bar
-	...
-#endif
+This patch: http://bugzilla.kernel.org/show_bug.cgi?id=5749#c4
+can be used to support brightness control for panasonic laptop.
 
-merge of A' and B: trivial conflict
+This patch: http://bugzilla.kernel.org/show_bug.cgi?id=5749#c5
+can be used to support brighness contrl for ASUS laptop.
 
-and have git pull fail.  The obvious way (edit file in question, update-index,
-commit) will not only leave zero information about said conflict and actions
-needed to deal with it, but will lead to situation when git whatchanged will
-not show anything useful.   I.e. if conflict turns out to be non-trivial and
-ends up being resolved wrong, everyone will have very nasty time trying to
-figure out where the breakage had come from when looking at history 6 months
-down the road.
+Please notes, I will update these patch against len's testing tree, and 
+ask for inclusion.
 
-Is there any SOP I'm missing here?
-
-Worse (for my use), format-patch on such tree will not give a useful patchset.
-You get a series of patches that won't apply to _any_ tree.  Even if all
-conflicts had been resolved correctly, they still remain there for everyone
-trying to apply the patch series, unless you manually rebase it before
-format-patch.
-
-And that's a fundamental problem behind all that rebase activity, AFAICS.
-It definitely is in my case, and yes, it's fscking inconvenient in a lot
-of respects.  E.g. I'm using git for resync between build trees on several
-boxen.  There's a repository holding patchset, plus one clone per build
-box.  Fixes for build breakage, etc., get done in those clones; after they
-are committed there, I pull into master and then pull from other clones
-to spread them to other build trees.  Works fine, but...  Any rebase in
-master => instant hell for all clones.  I've ended up with the following
-layout that kinda-sorta avoids mess:
-master:origin: matches upstream
-master:topic branch: _not_ rebased until there is a conflict, never get
-	a pull from anywhere
-master:master: gets pulls from topic branches and origin _and_ _nothing_ _else_
-master:work: where interaction with build boxen and any edits done in master
-	repository go.  Edits, commits, pulls from master:master, pulls from
-	build boxen.
-buildN:origin == master:work
-buildN:work: where work on buildN goes.
-When I want to get new stuff (== difference between master:master and
-master:work) into the patchset, I cherry-pick from work to topic branches
-and re-pull them into master:master until it matches master:work.  Then
-I pull master:master into master:work to create a point in work history
-that marks beginning of new portion of pending stuff.  New stuff upstream
-is pulled to master:origin -> master:master -> master:work -> build trees.
-
-That works, and gives me merge-free topic branches I can safely format-patch
-while keeping master in sync with mainline _and_ also safe for format-patch.
-The price is in rather convoluted SOP.  And the following piece of fun:
-when cherry-pick work->topic, pull topic->master or pull origin->master
-gives a conflict, it's time to rebase.  Which I do by renaming topic branches
-(direct mv in .git/refs/heads), then starting new ones at current origin
-and applying old ones to them (cherry + cherry-pick if possible, format-patch
-+ applymbox if things get hairy).  Then master is recreated as branch from
-origin that gets pulls from topic branches, work is branched from it and
-build trees get killed and cloned from scratch.  It's tolerable since I'm
-using ccache on build boxen, so it's _not_ that much of rebuild.
-
-However, that clearly is a killer if any poor sucker (me included) ever
-clones from master for any other purpose.  And that, BTW, is the main
-reason that stops me from moving master to kernel.org right now.
-
-> And yes, you can always work around it, but there's just no point. And 
-> none of the other developers seem to need to do it. They do their 
-> development, and then they say "please pull". At that point the two 
-> histories are tied together, but now they are tied together for a 
-> _reason_. It was an intentional synchronization point.
-> 
-> An "automated pull" by definition has no reason. If it works automated, 
-> then the merge has zero semantic meaning. 
-
-I'm afraid you are missing a part of picture.  There is a bunch of git
-uses that handle a heap of foam rather than a long-term branching.  I.e.
-the tree is tied to mainline closely and most of the stuff in it is
-supposed to get flushed into mainline soon after it appears.  I.e. the
-situation when we have a mergepoint for fixes that _has_ to follow
-mainline closely.
-
-I wonder what life would be without merge nodes and with equality nodes
-instead.  I.e. to merge
-O -> A1 -> ..... -> An (=A)
-  -> B1 -> ..... -> Bm (=B)
-would be to create a new branch (C) at Bm, have entire A1...An replayed there,
-have B1...Bm replayed in A and then create a node certifying that new head
-of A and head of C refer to the same tree.  Plus have a way to see which
-commits are claimed to be replays of each other.  At least that way rebase
-would be simply saying that old history is superceded by new one, with
-equality node proving that it's OK to do.  We would have
-O -> M1 -> ....  ->Mn for mainline
-O -> B1 -> ....  -> B for branch post-pull
-Mn -> P1 -> ... -> P for merge branch
-and B == P as equality node.   Old branch would have a bunch of changesets
-of its own plus ones from mainline that got there by pulls (including the
-last one).  And new branch would contain the ports of not-yet-merged ones
-to new mainline head, with the same tree as the result and all further
-development going on there rather than in the old branch.  Oh, well...
+-- 
+Thanks,
+Luming
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
