@@ -1,43 +1,103 @@
-From: Johannes Schindelin <Johannes.Schindelin@gmx.de>
-Subject: Re: git pull on Linux/ACPI release tree
-Date: Mon, 9 Jan 2006 13:31:52 +0100 (CET)
-Message-ID: <Pine.LNX.4.63.0601091320420.2503@wbgn013.biozentrum.uni-wuerzburg.de>
-References: <F7DC2337C7631D4386A2DF6E8FB22B3005A136FE@hdsmsx401.amr.corp.intel.com>
- <46a038f90601090211j33479764q13c74df60033a061@mail.gmail.com>
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] fix pnpacpi regression resulting from ACPICA 20051117
+Date: Mon, 9 Jan 2006 10:53:05 -0800
+Message-ID: <971FCB6690CD0E4898387DBF7552B90E03EE6513@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <git-owner@vger.kernel.org>
-In-Reply-To: <46a038f90601090211j33479764q13c74df60033a061@mail.gmail.com>
-Sender: git-owner@vger.kernel.org
-To: Martin Langhoff <martin.langhoff@gmail.com>
-Cc: "Brown, Len" <len.brown@intel.com>, "David S. Miller" <davem@davemloft.net>, torvalds@osdl.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@osdl.org, git@vger.kernel.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-class: urn:content-classes:message
+Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, akpm-3NddpPZAyC0@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+The callback should be able to handle resource descriptors that it
+doesn't know about, new ones can be added at any time.
 
-On Mon, 9 Jan 2006, Martin Langhoff wrote:
+This change was made during the resource manager update. I think that I
+would like to have WalkResources return the EndTag to the callback since
+it is a valid resource descriptor and it does impart information to the
+callback.
 
-> In a sense we are still exploring possible/desirable workflows and what 
-> the missing pieces are. And yes, some thing don't quite make sense from 
-> the outside, perhaps because they just don't or because we arent' 
-> explaining them very well.
+Bob
 
-Maybe what is needed here is this:
 
-T1 - T2 .. Tn .. Tp
-  \         \      \
-   \         M1     M2
-    \       /      /
-     B1 .. Bm .. Bo
-
-where T1..Tp are the upstream commits, B1..Bo are the local commits, and
-M1.. are the test merges just to make sure nothing breaks?
-
-As long as the Mx commits resolve automatically, no need for an explicit 
-merge in the Bx commits, since a pull from B into T will just recreate an 
-Mx as next commit in T.
-
-Kind of "throw away merge".
-
-Ciao,
-Dscho
+> -----Original Message-----
+> From: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-acpi-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Len Brown
+> Sent: Thursday, January 05, 2006 12:13 AM
+> To: akpm-3NddpPZAyC0@public.gmane.org; linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: [PATCH] [ACPI] fix pnpacpi regression resulting from ACPICA
+> 20051117
+> 
+> Andrew,
+> I just pushed this patch to the test branch of the acpi git tree.
+> Please pull my tree again or apply this patch before you ship
+> the next -mm if possible.
+> 
+> Thanks to Shaohua Li for keeping me awake helping me to fix this:-)
+> 
+> thanks,
+> -Len
+> 
+> In ACPICA 20051117, acpi_walk_resources() started
+> sending ACPI_RESOURCE_TYPE_END_TAG to the callback
+> routine which wasn't prepared for it, causing
+> _CRS to fail and PnPACPI to not recognize any devices:
+> 
+> pnp: ACPI device : hid PNP0C02
+> pnp: PnPACPI: unknown resource type 7
+> pnp: PnPACPI: METHOD_NAME__CRS failure for PNP0c02
+> 
+> Signed-off-by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> ---
+> 
+>  drivers/acpi/resources/rsxface.c |   12 ++++++------
+>  1 files changed, 6 insertions(+), 6 deletions(-)
+> 
+> ed349a8a0a780ed27e2a765f16cee54d9b63bfee
+> diff --git a/drivers/acpi/resources/rsxface.c
+> b/drivers/acpi/resources/rsxface.c
+> index 50a956b..5408e5d 100644
+> --- a/drivers/acpi/resources/rsxface.c
+> +++ b/drivers/acpi/resources/rsxface.c
+> @@ -286,6 +286,12 @@ acpi_walk_resources(acpi_handle device_h
+>  			break;
+>  		}
+> 
+> +		/* end_tag indicates end-of-list */
+> +
+> +		if (resource->type == ACPI_RESOURCE_TYPE_END_TAG) {
+> +			break;
+> +		}
+> +
+>  		/* Invoke the user function, abort on any error returned
+*/
+> 
+>  		status = user_function(resource, context);
+> @@ -298,12 +304,6 @@ acpi_walk_resources(acpi_handle device_h
+>  			break;
+>  		}
+> 
+> -		/* end_tag indicates end-of-list */
+> -
+> -		if (resource->type == ACPI_RESOURCE_TYPE_END_TAG) {
+> -			break;
+> -		}
+> -
+>  		/* Get the next resource descriptor */
+> 
+>  		resource =
+> --
+> 1.0.6-g58e3
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
