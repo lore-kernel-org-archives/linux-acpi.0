@@ -1,64 +1,103 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [gpm] Untangling the sleep hotkey mess
-Date: Mon, 9 Jan 2006 16:52:11 -0500
-Message-ID: <d120d5000601091352m19ba5eb0n80c462cba49bd2a6__33878.6203683869$1138784376$gmane$org@mail.gmail.com>
-References: <3ACA40606221794F80A5670F0AF15F840AA37137@pdsmsx403>
-	 <20060109014350.GA672@srcf.ucam.org>
-	 <200601091019.01083.luming.yu@intel.com>
-	 <20060109023037.GA1316@srcf.ucam.org>
-	 <1136801040.19776.34.camel@localhost>
-	 <d120d5000601091314g7cef73fk445976b14c549a04@mail.gmail.com>
-	 <20060109214050.GA19974@srcf.ucam.org>
-Reply-To: dtor_core@ameritech.net
+From: Linus Torvalds <torvalds@osdl.org>
+Subject: RE: git pull on Linux/ACPI release tree
+Date: Mon, 9 Jan 2006 08:47:39 -0800 (PST)
+Message-ID: <Pine.LNX.4.64.0601090835580.3169@g5.osdl.org>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3005A13706@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wproxy.gmail.com ([64.233.184.203]:39656 "EHLO wproxy.gmail.com")
-	by vger.kernel.org with ESMTP id S1750783AbWAIVwM convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 9 Jan 2006 16:52:12 -0500
-Received: by wproxy.gmail.com with SMTP id i24so2684563wra
-        for <linux-acpi@vger.kernel.org>; Mon, 09 Jan 2006 13:52:12 -0800 (PST)
-In-Reply-To: <20060109214050.GA19974@srcf.ucam.org>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751510AbWAIQsQ@vger.kernel.org>
+In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B3005A13706@hdsmsx401.amr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>, Junio C Hamano <junkio@cox.net>, Martin Langhoff <martin.langhoff@gmail.com>, "David S. Miller" <davem@davemloft.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@osdl.org, git@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Richard Hughes <hughsient@gmail.com>, Yu Luming <luming.yu@intel.com>, linux-acpi@vger.kernel.org, gnome-power-manager-list@gnome.org, desktop_portables@lists.osdl.org
 
-On 1/9/06, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> On Mon, Jan 09, 2006 at 04:14:40PM -0500, Dmitry Torokhov wrote:
-> > And what do you do if:
+
+
+On Mon, 9 Jan 2006, Brown, Len wrote:
 > >
-> > 1. You don't have ACPI available (other platforms)
-> > 2. APM works better for some reason
-> > 3. The hotkey (sleep, power, etc) does not come from ACPI?
->
-> With most APM machines, pressing the hotkey causes the BIOS to send a
-> system suspend event. There's no real way for the OS to tell what's
-> caused this (it could be low battery, a closed lid or a sleep key press)
-> and so the correct thing to do is to tell userspace that a suspend is
-> about to happen and then do it.
->
-> But yes, PMU sleep requests are (last time I checked) generally managed
-> by keycode 142 being generated and userspace dealing with it. There's no
-> equivalent to /proc/acpi/events. This is why I think standardising on
-> the input layer is a more sensible approach than trying to turn input
-> events into acpi ones.
->
+> >The huge majority of my "automatic update from upstream" merges
+> >go into my test branch ... which never becomes part of the real
+> >history as I never ask Linus to pull from it.
+> >
+> >-Tony
+> >
+> >[1] Sometimes I goof on this because I forget that I've applied
+> >a trivial patch directly to the release branch without going through
+> >a topic branch.  I think I'll fix my update script to check 
+> >for this case.
+> 
+> I figured that checking some trivial patches directly into "release"
+> would be a convenient way to make sure I didn't forget to push them --
+> as they didn't depend on anything else in my tree.  Okay.
 
-I probably was not clear in my original message. The new input handler
-for ACPI would be only used for compatibility with cirrent
-installations relying on ACPID. This will allow gradual conversion of
-ACPI drivers to use input layer instead of sending events dircetly to
-/proc/acpi/events.
+One thing we could do is to make it easier to apply a patch to a 
+_non_current_ branch.
 
-OTOH there should probably be anotehr generic power interface
-filtering out power-related input events from the stream of all input
-events in the system and making them available to userspace without
-requiring applications (be it individual applications or HAL) to open
-zillion of raw /dev/input/evenX devices.
+In other words, let's say that we want to encourage the separation of a 
+"development branch" and a "testing and use" branch (which I'd definitely 
+personally like to encourage people to do).
 
---
-Dmitry
+And one way to do that might be to teach "git-apply" to apply patches to a 
+non-active branch, and then you keep the "testing and use" branch as your 
+_checked_out_ branch (and it's going to be really dirty), but when you 
+actually apply patches you could do that to the "development" branch with 
+something like
+
+	git-apply -b development < patch-file
+
+(Now, of course, that's only if you apply somebody elses patch - if you 
+actually do development _yourself_, you'd either have to check out the 
+development branch and do it there, or you'd move the patch you have in 
+your "ugly" checked-out testing branch into the development branch with
+
+	git diff | git-apply -b development
+
+or something similar..)
+
+Then you could always do "git pull . development" to pull in the 
+development stuff into your working branch - keeping the development 
+branch clean all the time.
+
+Do you think that kind of workflow would be more palatable to you? It 
+shouldn't be /that/ hard to make git-apply branch-aware... (It was part of 
+my original plan, but it is more work than just using the working 
+directory, so I never finished the thought).
+
+> I'm hopeful that gitk users will not be irritated also
+> by the liberal use of topic branches.
+
+"gitk" is actually pretty good at showing multiple branches. Try doing a
+
+	gitk --all -d
+
+and you'll see all the topic branches in date order. The "-d" isn't 
+strictly necessary, and to some degree makes the output messier by 
+interleaving the commits from different branches, so you may not want to 
+do it, but it is sometimes nice to see the "relative dates" of individual 
+commits rather than the denser format that gitk defaults to.
+
+> In the case where a topic branch is a single commit, gitk users
+> will see both the original commit, as well as the merge commit
+> back into "release".
+
+Yes, topic branches will always imply more commits, but I think they are 
+of the "nice" kind.
+
+I definitely encourage people to use git as a distributed concurrent 
+development system ratehr than the "collection of patches" thing. Quilt is 
+much better at the collection of patches. 
+
+So I'd encourage topic branches - even within something like ACPI, you 
+might have separate topics ("interpreter" branch vs "x86" branch vs 
+"generic-acpi" branch).
+
+And yes, that will make history sometimes messier too, and it will cause 
+more merges, but the difference there is that the merges will be 
+meaningful (ie merging the "acpi interpreter" branch into the generic ACPI 
+branch suddenly has _meaning_, even if there only ends up being a couple 
+of commits per merge).
+
+Ok?
+
+		Linus
