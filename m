@@ -1,40 +1,25 @@
-From: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
-Subject: Re: [gpm] Untangling the sleep hotkey mess
-Date: Mon, 9 Jan 2006 01:09:05 -0500
-Message-ID: <200601090109.05791.dtor_core@ameritech.net>
-References: <20060107172446.GA3092@srcf.ucam.org> <200601090007.43578.dtor_core@ameritech.net> <20060109052407.GA4213@srcf.ucam.org>
+From: Linus Torvalds <torvalds@osdl.org>
+Subject: Re: git pull on Linux/ACPI release tree
+Date: Sun, 8 Jan 2006 22:13:49 -0800 (PST)
+Message-ID: <Pine.LNX.4.64.0601082212420.3169@g5.osdl.org>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3005A136DD@hdsmsx401.amr.corp.intel.com>
+ <46a038f90601082208i95cd19fmda542da0da8cc9ef@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20060109052407.GA4213-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: Richard Hughes <hughsient-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gnome-power-manager-list-rDKQcyrBJuzYtjvyW6yDsg@public.gmane.org, hal-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, desktop_portables-qjLDD68F18O7TbgM5vRIOg@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <git-owner@vger.kernel.org>
+In-Reply-To: <46a038f90601082208i95cd19fmda542da0da8cc9ef@mail.gmail.com>
+Sender: git-owner@vger.kernel.org
+To: Martin Langhoff <martin.langhoff@gmail.com>
+Cc: "Brown, Len" <len.brown@intel.com>, "David S. Miller" <davem@davemloft.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@osdl.org, git@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday 09 January 2006 00:24, Matthew Garrett wrote:
-> On Mon, Jan 09, 2006 at 12:07:43AM -0500, Dmitry Torokhov wrote:
-> 
-> > Why don't we create an input handler that would feed certain events
-> > from input layer to acpid via bus_acpi_generate_event().
-> 
-> I'm not convinced that making the input layer depend on ACPI (even 
-> optionally) would go down terribly well. It also strikes me as *wrong* - 
-> the sleep key on this keyboard has nothing to do with ACPI, whereas keys 
-> presented through ACPI are still an input device.
-> 
 
-The handler is just for compatibility with present installations.
-New installations will use the new interface, whatver it will be.
-But input layer will be a hub of sorts and I am arguing for ACPI
-to be converted to use input layer directly.
 
--- 
-Dmitry
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Mon, 9 Jan 2006, Martin Langhoff wrote:
+> 
+> and if it does anything but a very trivial merge, backtrack and do a merge.
+
+To be fair, backtracking a "git-rebase" isn't obvious. One of the 
+downsides of rebasing.
+
+		Linus
