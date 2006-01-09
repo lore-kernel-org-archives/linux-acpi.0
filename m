@@ -1,25 +1,53 @@
-From: Linus Torvalds <torvalds@osdl.org>
-Subject: Re: git pull on Linux/ACPI release tree
-Date: Sun, 8 Jan 2006 22:13:49 -0800 (PST)
-Message-ID: <Pine.LNX.4.64.0601082212420.3169@g5.osdl.org>
-References: <F7DC2337C7631D4386A2DF6E8FB22B3005A136DD@hdsmsx401.amr.corp.intel.com>
- <46a038f90601082208i95cd19fmda542da0da8cc9ef@mail.gmail.com>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: git pull on Linux/ACPI release tree
+Date: Mon, 9 Jan 2006 01:13:17 -0500
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3005A136E9@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <git-owner@vger.kernel.org>
-In-Reply-To: <46a038f90601082208i95cd19fmda542da0da8cc9ef@mail.gmail.com>
-Sender: git-owner@vger.kernel.org
-To: Martin Langhoff <martin.langhoff@gmail.com>
-Cc: "Brown, Len" <len.brown@intel.com>, "David S. Miller" <davem@davemloft.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@osdl.org, git@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-class: urn:content-classes:message
+Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>, Martin Langhoff <martin.langhoff-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, git-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+ 
+>Which just means that a commit that was tested and found to be working 
+>might suddenly not work any more, which can be very surprising ("But I 
+>didn't change anything!").
 
+This is why I try to follow the top of tree as closely as possible.
+While parts of ACPI are well contained, other parts get stomped on constantly.
+My two updates in 10 hours were not becaudse of what I did,
+it was in response to seeing the flood gates in 2.6.16 open.
 
-On Mon, 9 Jan 2006, Martin Langhoff wrote:
-> 
-> and if it does anything but a very trivial merge, backtrack and do a merge.
+Also, it isn't accurate that nothing changed at my end.
+I put some trivial patches into my release branch,
+udpated the release branch with upstream,
+and then pulled the release branch into my test branch
+where there are other patches you haven't seen yet.
 
-To be fair, backtracking a "git-rebase" isn't obvious. One of the 
-downsides of rebasing.
+I pushed the release branch just to 'clear the deck' of
+the trivial patches there since there was no reason to delay
+them behind all the stuff still on the test branch.
 
-		Linus
+>So trying out git-rebase and git-cherry-pick just in case you 
+>decide to want to use them might be worthwhile. Making it part of your 
+>daily routine like David has done? Somewhat questionable, but hey,
+>it seems to be working for David, and it does make some things much easier, so..
+
+In the past I have use git-cherry-pick to recover from when a "good" patch
+was checked in on top of a "bad" patch, and I wanted to push
+the good without the bad.
+
+But the linearization model will not work for me in general.
+Branches enable parallel lines of development in git.  If that
+is thrown out, then we're basically back at quilt.
+
+thanks,
+-Len
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
