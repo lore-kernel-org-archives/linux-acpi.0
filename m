@@ -1,49 +1,63 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: git pull on Linux/ACPI release tree
-Date: Mon, 9 Jan 2006 00:53:12 -0500
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3005A136DD@hdsmsx401.amr.corp.intel.com>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Strange interpreter behaviour
+Date: Mon, 9 Jan 2006 13:58:46 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F840AA37537@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Martin Langhoff <martin.langhoff-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, torvalds-3NddpPZAyC0@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, git-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+>I got an ASUS M6, which contains some strange _CST related ASL code.
+>In the _CST method there is a check, if \_SB.INV7 is set :
+>                 If (\_SB.INV7)
+>                 {
+>                     Return (NOC3)
+>                 }
+>This seems to always return true. There is also the method \_GPE:_L17 
+>which just inverts \_SB.INV7 and sends a signal to refetch the 
+>CST Object :
+>           Method (_L17, 0, NotSerialized)
+>         {
+>             If (\_SB.INV7)
+>             {
+>                 Store (0x00, \_SB.INV7)
+>             }
+>             Else
+>             {
+>                 Store (0x01, \_SB.INV7)
+>             }
+>
+>             Notify (\_PR.CPU1, 0x81)
+>         }
+>
+>Now I called the _L17 method manually :
+>echo "0:\\_GPE:_L17:\\_GPE:_L17:10001:1" > 
+>/proc/acpi/hotkey/poll_config
+>echo "10001:0:1:0" > /proc/acpi/hotkey/action
+>
+>What I noticed is that every time I call the action, my C-State usage 
+>counter gets reset to zero. From that behaviour I would 
 
->On 1/9/06, Brown, Len <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->> Perhaps the tools should try to support what "a lot of people"
->> expect, rather than making "a lot of people" do extra work
->> because of the tools?
->
->I think it does. All the tricky stuff that David and Junio have been
->discussing is actually done very transparently by
->
->    git-rebase <upstream>
->
->Now, git-rebase uses git-format-patch <options> | git-am <options> so
->it sometimes has problems merging. In that case, you can choose to
->either resolve the problem (see the doco for how to signal to git-am
->that you've resolved a conflict) or to cancel the rebase. If you
->choose to cancel the rebase, do
->
->   cp .git/refs/heads/{<headname>,<headnamebadrebase>}
->   cat .git/HEAD_ORIG > .git/refs/heads/<headname>
->   git-reset --hard
->   rm -fr .dotest
->
->and you'll be back to where you started. Perhaps this could be rolled
->into something like git-rebase --cancel to make it easier, but that's
->about it. The toolchain definitely supports it.
+Please show  /proc/acpi/processor/power .
 
-This is completely insane.
-Do you have any idea what "sometimes has problems merging" means
-in practice?  It means the tools are really nifty in the trivial
-case but worse than worthless when you need them the most.
+>follow, that the 
+>L17 method was executed and the CST Object was refetched. 
+>there seems 
+>to be an error in setting the \_SB.INV7 bit/register/whatever. 
+>(I assume 
+>0 is false an 1 is true in ASL if-clauses ?)
 
--Len
+Don't understand what is wrong.
+Please clearly point it out.
+
+Thanks,
+Luming
+
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
