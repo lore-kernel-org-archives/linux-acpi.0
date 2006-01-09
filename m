@@ -1,51 +1,44 @@
 From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: git pull on Linux/ACPI release tree
-Date: Mon, 9 Jan 2006 01:13:17 -0500
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3005A136E9@hdsmsx401.amr.corp.intel.com>
+Date: Mon, 9 Jan 2006 01:27:19 -0500
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3005A136F6@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>, Martin Langhoff <martin.langhoff-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, git-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, torvalds-3NddpPZAyC0@public.gmane.org
+Cc: martin.langhoff-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, git-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
- 
->Which just means that a commit that was tested and found to be working 
->might suddenly not work any more, which can be very surprising ("But I 
->didn't change anything!").
 
-This is why I try to follow the top of tree as closely as possible.
-While parts of ACPI are well contained, other parts get stomped on constantly.
-My two updates in 10 hours were not becaudse of what I did,
-it was in response to seeing the flood gates in 2.6.16 open.
+>From: David S. Miller
 
-Also, it isn't accurate that nothing changed at my end.
-I put some trivial patches into my release branch,
-udpated the release branch with upstream,
-and then pulled the release branch into my test branch
-where there are other patches you haven't seen yet.
+>I think merges with conflicts that need to get resolved by hand create
+>a lot of noise and useless information and therefore to me they are
+>pointless.  But this is just my opinion.  It simply works easier to me
+>to shuffle the patches in by hand and deal with the rejects one by
+>one.  It's very much akin to how Andrew's -mm tree works.
 
-I pushed the release branch just to 'clear the deck' of
-the trivial patches there since there was no reason to delay
-them behind all the stuff still on the test branch.
+I guess in this model you can do all your development with quilt,
+and the value of git is a high-bandwidth bransport medium to
+replace e-mail.
 
->So trying out git-rebase and git-cherry-pick just in case you 
->decide to want to use them might be worthwhile. Making it part of your 
->daily routine like David has done? Somewhat questionable, but hey,
->it seems to be working for David, and it does make some things much easier, so..
+>I think a clean history is worth an extra few minutes of someone's
+>time.  And note that subsystem development is largely linear anyways.
 
-In the past I have use git-cherry-pick to recover from when a "good" patch
-was checked in on top of a "bad" patch, and I wanted to push
-the good without the bad.
+Maybe true in your neck of the woods, but not true here.
 
-But the linearization model will not work for me in general.
-Branches enable parallel lines of development in git.  If that
-is thrown out, then we're basically back at quilt.
+I have more than a dozen topic branches in my tree, and they mature
+at different rates.
 
-thanks,
+When a topic branch is in the test tree and and a follow-up patch
+is needed, I check out that topic branch and put the patch
+exactly in non-linear 3D history where it is meant to live.
+When the topic seems fully baked, I can pull the top of the
+branch into the release tree.
+
 -Len
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
