@@ -1,103 +1,140 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] fix pnpacpi regression resulting from ACPICA 20051117
-Date: Mon, 9 Jan 2006 10:53:05 -0800
-Message-ID: <971FCB6690CD0E4898387DBF7552B90E03EE6513@orsmsx403.amr.corp.intel.com>
+From: Junio C Hamano <junkio@cox.net>
+Subject: Re: git pull on Linux/ACPI release tree
+Date: Mon, 09 Jan 2006 12:06:50 -0800
+Message-ID: <7vu0cdjhd1.fsf@assigned-by-dhcp.cox.net>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3005A13706@hdsmsx401.amr.corp.intel.com>
+	<Pine.LNX.4.64.0601090835580.3169@g5.osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-class: urn:content-classes:message
-Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, akpm-3NddpPZAyC0@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <git-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.64.0601090835580.3169@g5.osdl.org> (Linus Torvalds's
+	message of "Mon, 9 Jan 2006 08:47:39 -0800 (PST)")
+Sender: git-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@osdl.org>
+Cc: "Brown, Len" <len.brown@intel.com>, "Luck, Tony" <tony.luck@intel.com>, Martin Langhoff <martin.langhoff@gmail.com>, "David S. Miller" <davem@davemloft.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@osdl.org, git@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The callback should be able to handle resource descriptors that it
-doesn't know about, new ones can be added at any time.
+Linus Torvalds <torvalds@osdl.org> writes:
 
-This change was made during the resource manager update. I think that I
-would like to have WalkResources return the EndTag to the callback since
-it is a valid resource descriptor and it does impart information to the
-callback.
+> One thing we could do is to make it easier to apply a patch to a 
+> _non_current_ branch.
+>...
+> And one way to do that might be to teach "git-apply" to apply patches to a 
+> non-active branch,...
+>
+> 	git diff | git-apply -b development
+>
+> or something similar..)
+>
+> Then you could always do "git pull . development" to pull in the 
+> development stuff into your working branch - keeping the development 
+> branch clean all the time.
 
-Bob
+I had to do something like that last night, when I hacked on
+gitweb.  gitweb as shipped does not work for anybody but kay
+(e.g. it has /home/kay hardcoded in it).  So I did:
 
+	$ git clone git://git.kernel.org/pub/scm/git/gitweb gitweb
+        $ cd gitweb
+        $ git checkout -b custom
+        $ edit gitweb.cgi ;# adjust /home/kay -> somewhere else etc.
+        $ git commit -a -m "customization for junio's home"
 
-> -----Original Message-----
-> From: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-acpi-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Len Brown
-> Sent: Thursday, January 05, 2006 12:13 AM
-> To: akpm-3NddpPZAyC0@public.gmane.org; linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: [PATCH] [ACPI] fix pnpacpi regression resulting from ACPICA
-> 20051117
-> 
-> Andrew,
-> I just pushed this patch to the test branch of the acpi git tree.
-> Please pull my tree again or apply this patch before you ship
-> the next -mm if possible.
-> 
-> Thanks to Shaohua Li for keeping me awake helping me to fix this:-)
-> 
-> thanks,
-> -Len
-> 
-> In ACPICA 20051117, acpi_walk_resources() started
-> sending ACPI_RESOURCE_TYPE_END_TAG to the callback
-> routine which wasn't prepared for it, causing
-> _CRS to fail and PnPACPI to not recognize any devices:
-> 
-> pnp: ACPI device : hid PNP0C02
-> pnp: PnPACPI: unknown resource type 7
-> pnp: PnPACPI: METHOD_NAME__CRS failure for PNP0c02
-> 
-> Signed-off-by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
-> ---
-> 
->  drivers/acpi/resources/rsxface.c |   12 ++++++------
->  1 files changed, 6 insertions(+), 6 deletions(-)
-> 
-> ed349a8a0a780ed27e2a765f16cee54d9b63bfee
-> diff --git a/drivers/acpi/resources/rsxface.c
-> b/drivers/acpi/resources/rsxface.c
-> index 50a956b..5408e5d 100644
-> --- a/drivers/acpi/resources/rsxface.c
-> +++ b/drivers/acpi/resources/rsxface.c
-> @@ -286,6 +286,12 @@ acpi_walk_resources(acpi_handle device_h
->  			break;
->  		}
-> 
-> +		/* end_tag indicates end-of-list */
-> +
-> +		if (resource->type == ACPI_RESOURCE_TYPE_END_TAG) {
-> +			break;
-> +		}
-> +
->  		/* Invoke the user function, abort on any error returned
-*/
-> 
->  		status = user_function(resource, context);
-> @@ -298,12 +304,6 @@ acpi_walk_resources(acpi_handle device_h
->  			break;
->  		}
-> 
-> -		/* end_tag indicates end-of-list */
-> -
-> -		if (resource->type == ACPI_RESOURCE_TYPE_END_TAG) {
-> -			break;
-> -		}
-> -
->  		/* Get the next resource descriptor */
-> 
->  		resource =
-> --
-> 1.0.6-g58e3
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
-in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Then I started preparing a proposed fix for Kay:
+
+	$ git checkout -b symref master
+        $ edit gitweb.cgi
+        $ git commit -a -s -m "make it work on symref repository"
+
+Now the thing is that I cannot test symref branch as is.  I
+deliberately omitted the change necessary to make the upstream
+work on my local machine from that branch, because I want to
+keep my home-machine customization separate from what I will
+eventually feed Kay.  So I do a throwaway test branch:
+
+	$ git checkout -b test master
+        $ git pull . custom symref ;# an octopus ;-)
+        # I could have done two separate pulls, custom then symref.
+
+The interesting part starts here.  Inevitably, I find bugs and
+bugs and bugs in the test branch, and I fix them in the working
+tree, without committing.  Eventually things starts working.
+I did not commit here in the test branch, because the symref
+branch is where I intend to keep this set of changes.  So
+instead, I did this:
+
+	$ git diff HEAD >P.diff
+        $ git checkout -f symref
+        $ git reset --soft HEAD^
+        $ git apply P.diff
+        $ git commit -a -C ORIG_HEAD
+
+Usually I strongly discourage people to use "checkout -f"
+because it will leave files that are in the current branch but
+not in the new branch behind in the working tree.  Here I used
+"checkout -f symref" because I knew this is a one-file project.
+
+Instead of fixing the symref commit in place like this, I could
+have committed P.diff as a separate "fixup" commit on top of the
+symref branch, in which case the above sequence would have been:
+
+	$ git diff HEAD >P.diff
+        $ git checkout -f symref
+        $ git apply P.diff
+        $ git commit -a -m 'fixup bugs in the previous.'
+
+but I did not --- it would have been more disgusting than
+honest.
+
+And after that, the usual format-patch:
+
+	$ git format-patch origin..symref
+
+In either case, this *was* cumbersome.  And I did it twice for
+two independent topics.  Admittedly, these topic branches were
+both single-commit topics, and in real life your subsystem
+maintainers must be facing bigger mess than this toy experience
+of mine, but the principle is the same.
+
+I think there are a couple of ways to improve what I had to do.
+I'll think aloud here.  The fictitious transcripts all start
+after I got things working in the test branch working tree, with
+a clean index file (i.e. changes are in the working tree only).
+
+1. Make a commit in the "test" branch, and then cherry-pick the
+   commit back to the topic branch:
+
+	$ git commit -a -m "Fix symref fix"
+        $ git checkout symref
+        $ git cherry-pick -r test
+
+2. Fix "git checkout <branch>" so that it does a reasonable thing
+   even when a dirty path is different in current HEAD and
+   destination branch.  Then I could:
+
+	$ git checkout symref ;# this would not work in the current git
+	    # it would die like this:
+            # $ git checkout symref
+            # fatal: Entry 'gitweb.cgi' not uptodate. Cannot merge.
+	$ git diff ;# just to make sure inevitable automated merge
+		    # did the right thing
+        $ git commit -a -m "Fix symref fix"
+	    # I could collapse them into one instead, like this:
+	    # $ git reset --soft HEAD^
+	    # $ git commit -a -C ORIG_HEAD
+
+To retest (possibly with latest from Kay), we can rebuild the
+test branch from scratch since it is by definition a throwaway
+branch and never is exposed to public:
+
+        $ git fetch origin
+	$ git checkout test
+        $ git reset --head origin
+        $ git pull . custom symref
+
+Obviously I prefer to have #2 work well, but #1 would work today.
+
+I am not sure if making "git-apply" to take different branch is
+a sane approach.  It might make sense to teach git-applymbox and
+git-am about branches, though.  So is teaching git-merge about
+merging into different branch.
