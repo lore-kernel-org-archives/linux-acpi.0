@@ -1,64 +1,48 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Strange interpreter behaviour
-Date: Mon, 9 Jan 2006 13:58:46 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F840AA37537@pdsmsx403>
+From: Martin Langhoff <martin.langhoff@gmail.com>
+Subject: Re: git pull on Linux/ACPI release tree
+Date: Mon, 9 Jan 2006 19:08:44 +1300
+Message-ID: <46a038f90601082208i95cd19fmda542da0da8cc9ef@mail.gmail.com>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3005A136DD@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-class: urn:content-classes:message
-Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <git-owner@vger.kernel.org>
+In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B3005A136DD@hdsmsx401.amr.corp.intel.com>
+Content-Disposition: inline
+Sender: git-owner@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>, torvalds@osdl.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@osdl.org, git@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
->I got an ASUS M6, which contains some strange _CST related ASL code.
->In the _CST method there is a check, if \_SB.INV7 is set :
->                 If (\_SB.INV7)
->                 {
->                     Return (NOC3)
->                 }
->This seems to always return true. There is also the method \_GPE:_L17 
->which just inverts \_SB.INV7 and sends a signal to refetch the 
->CST Object :
->           Method (_L17, 0, NotSerialized)
->         {
->             If (\_SB.INV7)
->             {
->                 Store (0x00, \_SB.INV7)
->             }
->             Else
->             {
->                 Store (0x01, \_SB.INV7)
->             }
->
->             Notify (\_PR.CPU1, 0x81)
->         }
->
->Now I called the _L17 method manually :
->echo "0:\\_GPE:_L17:\\_GPE:_L17:10001:1" > 
->/proc/acpi/hotkey/poll_config
->echo "10001:0:1:0" > /proc/acpi/hotkey/action
->
->What I noticed is that every time I call the action, my C-State usage 
->counter gets reset to zero. From that behaviour I would 
+On 1/9/06, Brown, Len <len.brown@intel.com> wrote:
+> This is completely insane.
+> Do you have any idea what "sometimes has problems merging" means
+> in practice?  It means the tools are really nifty in the trivial
+> case but worse than worthless when you need them the most.
 
-Please show  /proc/acpi/processor/power .
+Len,
 
->follow, that the 
->L17 method was executed and the CST Object was refetched. 
->there seems 
->to be an error in setting the \_SB.INV7 bit/register/whatever. 
->(I assume 
->0 is false an 1 is true in ASL if-clauses ?)
+all I meant was that you will sometimes see conflicts. And in that
+case, you are far better off cancelling the rebase and doing a merge,
+where you will have to resolve the conflicts by hand.
 
-Don't understand what is wrong.
-Please clearly point it out.
+git-rebase is for when the potential merge is clearly trivial. In any
+other case, you do want a proper merge. But in any case, it is easy to
+do
 
-Thanks,
-Luming
+    git-fetch <upstream> && git-rebase <upstream>
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+and if it does anything but a very trivial merge, backtrack and do a merge.
+
+In any case, if I have any suspicion that the merge may not be trivial, I do
+
+   git-fetch <upstream> && gitk --since=" 1 month ago" upstream master
+
+before deciding on a course of action. Of course, you can merge all
+the time. It's whether people care about a readable/useful history
+afterwards.
+
+cheers,
+
+
+martin
