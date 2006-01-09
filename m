@@ -1,39 +1,40 @@
-From: David Hinds <dhinds@sonic.net>
-Subject: Re: [RFC] Add lspnp support for sysfs
-Date: Tue, 31 Jan 2006 21:59:11 -0800
-Message-ID: <20060201055911.GA13540@sonic.net>
-References: <200601131051.36906.bjorn.helgaas@hp.com> <200601311007.07379.bjorn.helgaas@hp.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [gpm] Untangling the sleep hotkey mess
+Date: Mon, 9 Jan 2006 21:40:50 +0000
+Message-ID: <20060109214050.GA19974__22151.6800382689$1138782876$gmane$org@srcf.ucam.org>
+References: <3ACA40606221794F80A5670F0AF15F840AA37137@pdsmsx403> <20060109014350.GA672@srcf.ucam.org> <200601091019.01083.luming.yu@intel.com> <20060109023037.GA1316@srcf.ucam.org> <1136801040.19776.34.camel@localhost> <d120d5000601091314g7cef73fk445976b14c549a04@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from b.mail.sonic.net ([64.142.19.5]:54492 "EHLO b.mail.sonic.net")
-	by vger.kernel.org with ESMTP id S1030408AbWBAGAx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Feb 2006 01:00:53 -0500
+Received: from cavan.codon.org.uk ([217.147.92.49]:12421 "EHLO
+	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
+	id S1750734AbWAIVlF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 9 Jan 2006 16:41:05 -0500
 Content-Disposition: inline
-In-Reply-To: <200601311007.07379.bjorn.helgaas@hp.com>
+In-Reply-To: <d120d5000601091314g7cef73fk445976b14c549a04@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-pcmcia@lists.infradead.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Adam Belay <ambx1@neo.rr.com>, Matthieu Castet <castet.matthieu@free.fr>, Li Shaohua <shaohua.li@intel.com>
+To: dtor_core@ameritech.net
+Cc: Richard Hughes <hughsient@gmail.com>, Yu Luming <luming.yu@intel.com>, linux-acpi@vger.kernel.org, gnome-power-manager-list@gnome.org, desktop_portables@lists.osdl.org
 
-On Tue, Jan 31, 2006 at 10:07:07AM -0700, Bjorn Helgaas wrote:
-> On Friday 13 January 2006 10:51, Bjorn Helgaas wrote:
-> > Add lspnp support for sysfs.  This makes it work with generic PNP
-> > (including PNPACPI, PNPBIOS, ISAPNP) instead of just with PNPBIOS.
-> > I'm particularly interested in ia64, which never has PNPBIOS, but
-> > may have PNPACPI.
+On Mon, Jan 09, 2006 at 04:14:40PM -0500, Dmitry Torokhov wrote:
+> And what do you do if:
 > 
-> Ping.  I think we have two votes in favor of this, at least in
-> concept (mine and Adam's).  We had a couple tangential questions.
-> Nobody seemed really opposed.
-> 
-> What can I do to either advance this or come to the conclusion
-> that it's not worth the effort?  David, are you the pcmcia-cs
-> maintainer?  Are you interested in this at all?
+> 1. You don't have ACPI available (other platforms)
+> 2. APM works better for some reason
+> 3. The hotkey (sleep, power, etc) does not come from ACPI?
 
-I think it would be good for lspnp to live somewhere other than
-pcmcia-cs.  It really doesn't belong there, and now that pcmcia-cs is
-essentially deprecated, it makes even less sense.
+With most APM machines, pressing the hotkey causes the BIOS to send a 
+system suspend event. There's no real way for the OS to tell what's 
+caused this (it could be low battery, a closed lid or a sleep key press) 
+and so the correct thing to do is to tell userspace that a suspend is 
+about to happen and then do it.
 
--- Dave
+But yes, PMU sleep requests are (last time I checked) generally managed 
+by keycode 142 being generated and userspace dealing with it. There's no 
+equivalent to /proc/acpi/events. This is why I think standardising on 
+the input layer is a more sensible approach than trying to turn input 
+events into acpi ones.
 
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
