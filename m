@@ -1,54 +1,64 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: [gpm] Untangling the sleep hotkey mess
-Date: Mon, 9 Jan 2006 04:07:51 +0000
-Message-ID: <20060109040751.GA2880@srcf.ucam.org>
-References: <3ACA40606221794F80A5670F0AF15F840AA37137@pdsmsx403> <200601091113.16092.luming.yu@intel.com> <20060109032717.GA2238@srcf.ucam.org> <200601091155.24380.luming.yu@intel.com>
+From: Martin Langhoff <martin.langhoff-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: git pull on Linux/ACPI release tree
+Date: Mon, 9 Jan 2006 17:34:25 +1300
+Message-ID: <46a038f90601082034g2865b26ftc344c599e29a4655@mail.gmail.com>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3005A13505@hdsmsx401.amr.corp.intel.com>
+	 <Pine.LNX.4.64.0601081111190.3169@g5.osdl.org>
+	 <20060108230611.GP3774@stusta.de>
+	 <Pine.LNX.4.64.0601081909250.3169@g5.osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.64.0601081909250.3169-hNm40g4Ew95AfugRpC6u6w@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200601091155.24380.luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yu Luming <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Richard Hughes <hughsient-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gnome-power-manager-list-rDKQcyrBJuzYtjvyW6yDsg@public.gmane.org, desktop_portables-qjLDD68F18O7TbgM5vRIOg@public.gmane.org
+To: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
+Cc: Adrian Bunk <bunk-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, git-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 09, 2006 at 11:55:24AM +0800, Yu Luming wrote:
+On 1/9/06, Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org> wrote:
+> And then do
+>
+>         git-rebase linus
+>
+> to rebase your development branch to mine.
+>
+> THIS is what "rebase" is for. It sounds like what you really want to do is
+> not have a development branch at all, but you just want to track my tree
+> and then keep track of a few branches of your own. In other words, you
+> don't really have a "real" branch - you've got an odd collection of
+> patches that you really want to carry around on top of _my_ branch. No?
 
-> From practical point of view,  the acpi hotkey won't change for a quite 
-> long period. For example, I cannot find too much changes on acpi hotkey from
-> Thinkpad T21 and Thinkpad T42.  And, I don't see any reason for ODM to 
-> change their well-know ACPI device PNP ID and well-know AML methods names for
-> acpi hotkey on new platfrom, because they can just implement any platform 
-> changes in AML code. 
+FWIW, I determine whether I should rebase or merge based on
 
-Toshiba have entirely changed their ACPI hotkey setup with the new Tecra 
-range. The BIOS bears almost no resemblance to the previous one. Sony 
-have changed their brightness handling code in newer machines - it seems 
-to be impossible to change it through ACPI now.
+ + Whether the branch/head I maintain is public. For public repos, I
+*must* merge carefully as rebase "rewinds" the head and that makes a
+mess of any repositor tracking me.
 
-Rule 1 of laptops: Vendors will do unpredictable and hard to understand 
-things. They don't consider what they're providing to be well-known. As 
-far as vendors are concerned, it's an internal implementation detail and 
-they'll change it whenever they feel like it.
+ + Whether the changes on my both sides are significant, and it is
+semantically meaningful to have a merge. If either side had just a
+couple of minor commits, rebase makes life a lot easier down the path.
+If both side clearly saw parallel development, it is more sincere to
+merge and let that be recorded.
 
-If Intel would like a single driver able to support all future laptops, 
-then Intel need to specify hotkey behaviour in the ACPI spec and refuse 
-to allow people to claim ACPI compliance unless they implement it. Until 
-that happens there's no way of claiming that this stuff will just carry 
-on working.
+ + If my attempt to rebase leads to any non-trivial conflicts or
+co-dependencies, then I definitely cancel the rebase and merge.
 
-> >  In the Windows world, vendors can provide customised distributions on a
-> >  per-laptop basis. That's not practical in the Linux world.
-> My points is that if hotkey.c become sucessful, then linux won't need those 
-> platform specific hotkey drivers for common hotkeys  such as brightness 
-> control, volume control, and output switch.. 
+> Now, in this model, you're not really using git as a distributed system.
 
-It *will*, it's just they'll all be in a single driver that special 
-cases a bunch of manufacturers. The fact that all of this is in one file 
-rather than 20 doesn't make it inherently better.
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+I'd argue that it is not about distributed or not. It's all in what
+you want to record in your history. As such, it is a communication
+device -- and I want to make effective use of it. I guess the question
+I ask myself is: what will communicate what's happened here most
+clearly? What will be useful for people to read? In that context, a
+white-lie here and there simplifying the history a bit where it's not
+interesting counts as a good thing.
+
+cheers,
+
+
+martin
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
