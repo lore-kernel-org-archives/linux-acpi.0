@@ -1,40 +1,49 @@
-From: Martin Langhoff <martin.langhoff@gmail.com>
-Subject: Re: git pull on Linux/ACPI release tree
-Date: Tue, 10 Jan 2006 12:34:39 +1300
-Message-ID: <46a038f90601091534s7f4b36a5he05778f1ed82f34@mail.gmail.com>
-References: <20060109225143.60520.qmail@web31807.mail.mud.yahoo.com>
-	 <Pine.LNX.4.64.0601091502200.5588@g5.osdl.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <git-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0601091502200.5588@g5.osdl.org>
-Content-Disposition: inline
-Sender: git-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@osdl.org>
-Cc: Luben Tuikov <ltuikov@yahoo.com>, "Brown, Len" <len.brown@intel.com>, "Luck, Tony" <tony.luck@intel.com>, Junio C Hamano <junkio@cox.net>, "David S. Miller" <davem@davemloft.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@osdl.org, git@vger.kernel.org
+From: Sanjoy Mahajan <sanjoy-Bhlo64W4KxTQzY9nttDBhA@public.gmane.org>
+Subject: truncated output from /proc/acpi/debug_level
+Date: Mon, 09 Jan 2006 23:56:10 +0000
+Message-ID: <E1Ew6ry-0000QG-00@skye.ra.phy.cam.ac.uk>
+Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 1/10/06, Linus Torvalds <torvalds@osdl.org> wrote:
-> Using many branches in the same tree is
-> definitely the better approach for _distribution_, but that doesn't
-> necessarily mean that it's the better one for development.
-(...)
-> So git certainly supports that kind of behaviour, but nobody I know
-> actually does it that way
+[bug #5076]
 
-Hrm! We do. http://locke.catalyst.net.nz/gitweb?p=moodle.git;a=heads
-shows a lot of heads that share 99% of the code. The repo is ~90MB --
-and we check each head out with cogito, develop and push. It is a
-shared team repo, using git+ssh and sticky gid and umask 002.
+'cat /proc/acpi/debug_level' will truncate output sometimes (to
+reproduce it for sure, read one byte at a time unbuffered, e.g. using
+the C program in the bugzilla entry).  I submitted a patch via the
+bugzilla in the 2.6.13 era, but it doesn't seem to have made it into
+mainline, so I've appended it below.  It's also at
 
-Works pretty well I have to add. The only odd thing is that the
-fastest way to actually start working on a new branch is to ssh on to
-the server and cp moodle.git/refs/heads/{foo,bar} and then cg-clone
-that bar branch away. Perhaps I should code up an 'cg-branch-add
---in-server' patch.
+<http://bugzilla.kernel.org/attachment.cgi?id=5653&action=view>
 
-regards,
+-Sanjoy
+
+`Never underestimate the evil of which men of power are capable.'
+         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
 
 
-martin
+--- linux-2.6.13-rc6/drivers/acpi/debug.c~	2005-08-07 14:18:56.000000000 -0400
++++ linux-2.6.13-rc6/drivers/acpi/debug.c	2005-08-16 20:57:29.000000000 -0400
+@@ -104,9 +104,6 @@ acpi_system_read_debug (
+ 	int 			size = 0;
+ 	unsigned int		i;
+ 
+-	if (off != 0)
+-		goto end;
+-
+ 	p += sprintf(p, "%-25s\tHex        SET\n", "Description");
+ 
+ 	switch ((unsigned long) data) {
+@@ -143,7 +140,6 @@ acpi_system_read_debug (
+ 		break;
+ 	}
+ 	
+-end:
+ 	size = (p - page);
+ 	if (size <= off+count) *eof = 1;
+ 	*start = page + off;
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
