@@ -1,48 +1,40 @@
-From: Martin Langhoff <martin.langhoff@gmail.com>
-Subject: Re: git pull on Linux/ACPI release tree
-Date: Mon, 9 Jan 2006 19:08:44 +1300
-Message-ID: <46a038f90601082208i95cd19fmda542da0da8cc9ef@mail.gmail.com>
-References: <F7DC2337C7631D4386A2DF6E8FB22B3005A136DD@hdsmsx401.amr.corp.intel.com>
+From: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
+Subject: Re: [gpm] Untangling the sleep hotkey mess
+Date: Mon, 9 Jan 2006 01:09:05 -0500
+Message-ID: <200601090109.05791.dtor_core@ameritech.net>
+References: <20060107172446.GA3092@srcf.ucam.org> <200601090007.43578.dtor_core@ameritech.net> <20060109052407.GA4213@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <git-owner@vger.kernel.org>
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B3005A136DD@hdsmsx401.amr.corp.intel.com>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20060109052407.GA4213-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Content-Disposition: inline
-Sender: git-owner@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: "David S. Miller" <davem@davemloft.net>, torvalds@osdl.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@osdl.org, git@vger.kernel.org
+Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: Richard Hughes <hughsient-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gnome-power-manager-list-rDKQcyrBJuzYtjvyW6yDsg@public.gmane.org, hal-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, desktop_portables-qjLDD68F18O7TbgM5vRIOg@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 1/9/06, Brown, Len <len.brown@intel.com> wrote:
-> This is completely insane.
-> Do you have any idea what "sometimes has problems merging" means
-> in practice?  It means the tools are really nifty in the trivial
-> case but worse than worthless when you need them the most.
+On Monday 09 January 2006 00:24, Matthew Garrett wrote:
+> On Mon, Jan 09, 2006 at 12:07:43AM -0500, Dmitry Torokhov wrote:
+> 
+> > Why don't we create an input handler that would feed certain events
+> > from input layer to acpid via bus_acpi_generate_event().
+> 
+> I'm not convinced that making the input layer depend on ACPI (even 
+> optionally) would go down terribly well. It also strikes me as *wrong* - 
+> the sleep key on this keyboard has nothing to do with ACPI, whereas keys 
+> presented through ACPI are still an input device.
+> 
 
-Len,
+The handler is just for compatibility with present installations.
+New installations will use the new interface, whatver it will be.
+But input layer will be a hub of sorts and I am arguing for ACPI
+to be converted to use input layer directly.
 
-all I meant was that you will sometimes see conflicts. And in that
-case, you are far better off cancelling the rebase and doing a merge,
-where you will have to resolve the conflicts by hand.
-
-git-rebase is for when the potential merge is clearly trivial. In any
-other case, you do want a proper merge. But in any case, it is easy to
-do
-
-    git-fetch <upstream> && git-rebase <upstream>
-
-and if it does anything but a very trivial merge, backtrack and do a merge.
-
-In any case, if I have any suspicion that the merge may not be trivial, I do
-
-   git-fetch <upstream> && gitk --since=" 1 month ago" upstream master
-
-before deciding on a course of action. Of course, you can merge all
-the time. It's whether people care about a readable/useful history
-afterwards.
-
-cheers,
-
-
-martin
+-- 
+Dmitry
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
