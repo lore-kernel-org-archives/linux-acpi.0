@@ -1,191 +1,60 @@
-From: Linus Torvalds <torvalds@osdl.org>
-Subject: Re: git pull on Linux/ACPI release tree
-Date: Sun, 8 Jan 2006 17:13:47 -0800 (PST)
-Message-ID: <Pine.LNX.4.64.0601081643090.3169@g5.osdl.org>
-References: <20060108212057.79825.qmail@web31815.mail.mud.yahoo.com>
+From: Richard Hughes <hughsient@gmail.com>
+Subject: Re: [gpm] Untangling the sleep hotkey mess
+Date: Mon, 09 Jan 2006 01:21:36 +0000
+Message-ID: <1136769696.3059.19.camel@localhost>
+References: <20060107172446.GA3092@srcf.ucam.org>
+	<20060108134744.GA21538@srcf.ucam.org>
+	<1136729632.2444.36.camel@localhost>
+	<200601090910.24397.luming.yu@intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <git-owner@vger.kernel.org>
-In-Reply-To: <20060108212057.79825.qmail@web31815.mail.mud.yahoo.com>
-Sender: git-owner@vger.kernel.org
-To: Luben Tuikov <ltuikov@yahoo.com>
-Cc: Martin Langhoff <martin.langhoff@gmail.com>, "Brown, Len" <len.brown@intel.com>, "David S. Miller" <davem@davemloft.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@osdl.org, git@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <hal-bounces@lists.freedesktop.org>
+In-Reply-To: <200601090910.24397.luming.yu@intel.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/listinfo/hal>,
+	<mailto:hal-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/hal>
+List-Post: <mailto:hal@lists.freedesktop.org>
+List-Help: <mailto:hal-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/hal>,
+	<mailto:hal-request@lists.freedesktop.org?subject=subscribe>
+Sender: hal-bounces@lists.freedesktop.org
+Errors-To: hal-bounces@lists.freedesktop.org
+To: Yu Luming <luming.yu@intel.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, desktop_portables@lists.osdl.org, gnome-power-manager-list@gnome.org, hal@lists.freedesktop.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-
-
-On Sun, 8 Jan 2006, Luben Tuikov wrote:
->
-> How about this usage (branch == tree):
+On Mon, 2006-01-09 at 09:10 +0800, Yu Luming wrote:
+> >  3. Use the new acpi kernel hotkeys stuff -- not that I really understand
+> >  the interface, nor how to use it correctly. Plus I'm not sure how much
+> >  of the vendor kernel modules can use this new interface, or if it's
+> >  suitable. It all seemed a bit fragile last time I looked.
 > 
-> Tree A    (your tree)
->   Tree B     (project B, dependent on Tree A)
->      Tree C     (project C, dependent on project B)
+> Please take a look at 
+> http://bugzilla.kernel.org/show_bug.cgi?id=5749
 > 
-> (i.e. diff(C-A) = diff(C-B) + diff(B-A))
+> There are some examples to use hotkey.c for specific laptops with dedicated
+> hotkey acpi device objects , and dedicated AML methods.
+> This patch: http://bugzilla.kernel.org/show_bug.cgi?id=5749#c3
+> can be used to replace sony_acpi.c
 > 
-> Your tree is pulled into Tree A as often as your tree
-> changes and it just fast forwards.
+> This patch: http://bugzilla.kernel.org/show_bug.cgi?id=5749#c4
+> can be used to support brightness control for panasonic laptop.
 > 
-> If I want to run project B with your latest tree, then
-> I resolve/merge from tree A to tree B, compile B
-> and run it.
+> This patch: http://bugzilla.kernel.org/show_bug.cgi?id=5749#c5
+> can be used to support brighness contrl for ASUS laptop.
 > 
-> If I want to run project C and project B with your
-> latest tree, I resolve/merge from tree A to tree B
-> and from tree B to tree C, compile C and run it.
+> Please notes, I will update these patch against len's testing tree, and 
+> ask for inclusion.
 
-No.
+Why do we want to use the new hotkey stuff when we can just process all
+the events in userspace using acpi events? The hotkey stuff seems
+overcomplicated and fragile in my opinion.
 
-If tree B is based on _some_point_in_ A, then you just test that.
+Sending and receiving :::data:in:some::odd:format seems a little unusual
+to me when we can just listen for the event in one place (like HAL) --
+but then maybe I don't understand all the details. It's not like we will
+have different programs registering for different acpi button events,
+right?
 
-Because development line B is _independent_ of development line A. The 
-fact that A changes doesn't change B - unless they have some real 
-dependencies (which we should try to avoid).
-
-So when you update ("fetch" in git parlance) branch A from me, that 
-shouldn't affect branch B _nor_ branch C in any way. They clearly do not 
-depend on the new stuff in A, since they do their own independent 
-development. The fact that they _started_ at some random point during the 
-development of A doesn't change that fact.
-
-Now, if you want to _test_ the combined "new stuff in branch A and new 
-stuff in branch B", feel free to do that. But realize that that is _not_ 
-appropriate in either branch A _nor_ branch B.
-
-So you'd be much better off with a separate "test" branch that you test 
-stuff out in, and you then resolve ("pull" in git parlance) both branch A 
-and branch B into that test branch.
-
-See? Testing the combination of two branches doesn't actually have 
-anything to do with either branch.
-
-At some point, you decide that you want to merge what you've done in 
-branch B. That's a _different_ and independent thing from deciding that 
-you want to test the combination of two development branches. Clearly, 
-it's great to test often, but that has nothing to do with releasing a 
-branch.
-
-> In such cases, are you saying that you'd prefer to
-> pull from Tree B and Tree C (depending on your needs)?
-
-I'm saying that mixing up the "let's test the combination" and "let's 
-merge the two branches" are totally different things and should not be 
-mixed up.
-
-One is a random event (and then it makes sense to have, for example, a 
-"automated test branch" that automatically merges every day and tests the 
-results. I don't think you should expose those random merges to others, 
-because they actually hinder the readability of the history for _both_ 
-sides.
-
-The other is a _directed_ event. It's the event of saying "branch B" is 
-now ready to be merged. Usually that's best done by just saying "please 
-pull now" - ie not by merging branch A into branch B (because that's not 
-what you actually want, is it? What you want is for the development in 
-branch B to show up in branch A - so you want branch A to do the pull).
-
-Now, there's a third kind of event, which is again independent of the 
-other two. It's more of a "let's try to keep the 'topic branch' 
-development up-to-date with the branch we eventually want to merge the 
-topic changes into". That's where you can now do two things:
-
- - David often "rebases" all of the changes in his "topic branch" (ie 
-   conceptually "branch B") to the new top-of-head of "branch A". In other 
-   words, he re-writes branch B entirely _as_if_ it was based on the newer 
-   state "branch A". This is what "git rebase" is all about.
-
- - You can just pull from branch A into branch B, as a way to keep branch 
-   B more up-to-date with the work in the "main trunk" or whatever. This 
-   is ok, but it shouldn't be a common event. It should be something that 
-   happens when you (for example) notice during testing that the test 
-   merge no longer works cleanly. Or it might be "It's now been two weeks 
-   since I synchronized, let's just synchronize to be safe".
-
-See? I'm not objecting to topic branches pulling from my tree in general. 
-It's just that they should have a _reason_. There's never any reason to 
-pull into a development tree that you haven't done any development in, 
-just because you also want to use that development tree for testing.
-
-> Another question:
-> Sometimes, a fix for project B finds its way into
-> tree C (project C) (since C depended on that fix in B).
-> Now I'd like to pull that particular fix, identified by
-> its SHA, into project B, and nothing else, for this I can
-> use git-cherry-pick, right?
-
-That's one way. It's often the best way, especially if it's a really 
-obvious bugfix. Or you could just fix it in your tree yourself. It will 
-mean that the two branches have the same fix, but especially if it really 
-is an identical fix, it won't be a merge problem.
-
-You _can_ just decide to pull branch B into branch C, but that has a real 
-problem, namely that it inexorably links the two together, so that nobody 
-can then pull branch C without pulling indirectly branch B at the time 
-that B->C merge happened. Sometimes that is ok. But it's nice to avoid it 
-if you can.
-
-But for example, if somebody fixed something in the trunk, and you 
-actually do need that fix from the trunk for your topic branch 
-development, then just doing a pull is _fine_. Now we're back to doing a 
-merge that actually has a perfectly good reason.
-
-IOW, don't cherry-pick to avoid merges when the merge really does make 
-tons of sense. Merges are good, it's just that _too_ much of a good thing 
-is bad.
-
-> And lastly, is there a tool whereby I can "see" changes
-> between repos, kind of like git-diff but being able to
-> give URLs too?
-
-No, all the good tools really are based on fetching (NOT "pulling") the 
-other branch into your local tree as a separate branch. At that point, 
-there are tons of wonderful tools you can use.
-
-In other words, say that you want to know what has happened in another 
-repository, at git://git.kernel.org/xyzzy. You aren't interested in the 
-stuff that is already part of the trunk, you're just interested in what is 
-only in that "xyzzy" branch, and how it relates to your code. 
-
-What you'd do is
-
-	git fetch git://git.kernel.org/xyzzy master:xyzzy-snapshot
-
-which says "fetch the 'master' branch from that xyzzy repository, and call 
-it 'xyzzy-snapshot' locally.
-
-You can then (for example) fetch the code that is in _my_ tree by doign 
-the same time (just call that branch 'linus'), and you can now do
-
-	gitk linus..xyzzy-snapshot HEAD
-
-which looks strange (you give "gitk" _both_ a range from the "linus" 
-branch to the "xyzzy-snapshot" _and_ your own HEAD at this time), but what 
-it basically does is that the "linus.." syntax tells git that you're not 
-interested in anything that is already in the 'linus' branch.
-
-So the above command line will actually graphically show _both_ your 
-current HEAD branch _and_ the 'xyzzy-snapshot' branch, in parallel. You 
-can see how (if at all) they are related to each other, ignoring all the 
-commits that have already made it into my tree.
-
-(You can also do "linus..HEAD" instead of just HEAD and effectively repeat 
-the "don't show 'linus' branch any more" twice. It's perfectly equivalent, 
-of course. You may also want to use the "-d" flag to "gitk" which tells it 
-to show things in date order, instead of a simplified history order).
-
-Or just do "what has xyzzy-snapshot that I do not have in my HEAD":
-
-	git log HEAD..xyzzy-snapshot
-
-(or gitk), or the other way around: what do _I_ have in my HEAD that 
-hasn't been pushed to xyzzy-snapshot yet:
-
-	git log xyzzy-snapshot..HEAD
-
-(or do diffs, "git whatchanged -p", or whatever).
-
-In other words, using a few different branches (you can make them up 
-dynamically) can be very powerful.
-
-		Linus
+Richard.
