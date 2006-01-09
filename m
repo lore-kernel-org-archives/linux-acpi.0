@@ -1,30 +1,49 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: [gpm] Untangling the sleep hotkey mess
-Date: Mon, 9 Jan 2006 05:24:07 +0000
-Message-ID: <20060109052407.GA4213__47602.0234440968$1136784405$gmane$org@srcf.ucam.org>
-References: <20060107172446.GA3092@srcf.ucam.org> <1136729632.2444.36.camel@localhost> <1136769294.3059.12.camel@localhost> <200601090007.43578.dtor_core@ameritech.net>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: git pull on Linux/ACPI release tree
+Date: Mon, 9 Jan 2006 00:53:12 -0500
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3005A136DD@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200601090007.43578.dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
-Cc: Richard Hughes <hughsient-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gnome-power-manager-list-rDKQcyrBJuzYtjvyW6yDsg@public.gmane.org, hal-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, desktop_portables-qjLDD68F18O7TbgM5vRIOg@public.gmane.org
+To: Martin Langhoff <martin.langhoff-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, torvalds-3NddpPZAyC0@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, git-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 09, 2006 at 12:07:43AM -0500, Dmitry Torokhov wrote:
 
-> Why don't we create an input handler that would feed certain events
-> from input layer to acpid via bus_acpi_generate_event().
+>On 1/9/06, Brown, Len <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>> Perhaps the tools should try to support what "a lot of people"
+>> expect, rather than making "a lot of people" do extra work
+>> because of the tools?
+>
+>I think it does. All the tricky stuff that David and Junio have been
+>discussing is actually done very transparently by
+>
+>    git-rebase <upstream>
+>
+>Now, git-rebase uses git-format-patch <options> | git-am <options> so
+>it sometimes has problems merging. In that case, you can choose to
+>either resolve the problem (see the doco for how to signal to git-am
+>that you've resolved a conflict) or to cancel the rebase. If you
+>choose to cancel the rebase, do
+>
+>   cp .git/refs/heads/{<headname>,<headnamebadrebase>}
+>   cat .git/HEAD_ORIG > .git/refs/heads/<headname>
+>   git-reset --hard
+>   rm -fr .dotest
+>
+>and you'll be back to where you started. Perhaps this could be rolled
+>into something like git-rebase --cancel to make it easier, but that's
+>about it. The toolchain definitely supports it.
 
-I'm not convinced that making the input layer depend on ACPI (even 
-optionally) would go down terribly well. It also strikes me as *wrong* - 
-the sleep key on this keyboard has nothing to do with ACPI, whereas keys 
-presented through ACPI are still an input device.
+This is completely insane.
+Do you have any idea what "sometimes has problems merging" means
+in practice?  It means the tools are really nifty in the trivial
+case but worse than worthless when you need them the most.
 
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+-Len
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
