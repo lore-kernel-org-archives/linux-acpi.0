@@ -1,68 +1,96 @@
-From: Yu Luming <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [Desktop_portables] Re: [gpm] Untangling the sleep hotkey mess
-Date: Mon, 9 Jan 2006 15:47:42 +0800
-Message-ID: <200601091547.43439.luming.yu@intel.com>
-References: <3ACA40606221794F80A5670F0AF15F840AA37137@pdsmsx403> <200601091155.24380.luming.yu@intel.com> <20060109071439.GA31974@hell.org.pl>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: git pull on Linux/ACPI release tree
+Date: Mon, 9 Jan 2006 03:05:42 -0500
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3005A13706@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20060109071439.GA31974-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Cc: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, desktop_portables-qjLDD68F18O7TbgM5vRIOg@public.gmane.org, Richard Hughes <hughsient-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, gnome-power-manager-list-rDKQcyrBJuzYtjvyW6yDsg@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <git-owner@vger.kernel.org>
+Content-class: urn:content-classes:message
+Sender: git-owner@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>, Linus Torvalds <torvalds@osdl.org>
+Cc: Junio C Hamano <junkio@cox.net>, Martin Langhoff <martin.langhoff@gmail.com>, "David S. Miller" <davem@davemloft.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@osdl.org, git@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday 09 January 2006 15:14, Karol Kozimor wrote:
-> Thus wrote Yu Luming:
->  > >From practical point of view,=A0 the acpi hotkey won't change for=
- a quite
->  >
->  > long period. For example, I cannot find too much changes on acpi h=
-otkey
->  > from Thinkpad T21 and Thinkpad T42.=A0 And, I don't see any reason=
- for ODM
->  > to change their well-know ACPI device PNP ID and well-know AML met=
-hods
->  > names for acpi hotkey on new platfrom, because they can just imple=
-ment
->  > any platform changes in AML code.
+Linus,
+I think Tony has articulated the work-flow problem that
+originally started this thread, as well as the fix.
+
+>I'll try to update the using-topic-branches document to capture this.
+>Some of the problem is that it doesn't quite capture what I'm doing
+>with my test/release branches.
 >
->  Tell me more...
-
-I just want to say the hot-keys on keyboard for brightness, sound
-volume, display output switching won't change too much,=20
-because user needs these buttons. And almost all laptops implement them=
-=2E
-
-=46or each ODM, if they implement hot-keys with dedicated ACPI devices =
-and
-dedicated AML methods. It doesn't make any sense to change
-the name on new platforms for supporting same hot-keys.
+>My release branch really is just used as a transfer point to Linus.
+>I usually[1] don't leave patches sitting in "release" for long enough
+>that I'll be tempted to merge in from Linus ... once I decide that
+>some patches are ready to go to Linus I'll update "release" from Linus
+>(which will be a fast-forward, so no history) merge in the topic
+>branches, do one final sanity build, push to kernel.org and send
+>the "please pull" e-mail.
 >
->  There's already 3 or 4 major variations of method layout for ASUS la=
-ptops
->  hotkey device, subtle differences like method name changes
-> notwithstanding. One of the reasons the driver's development lags so =
-much
-> is that the support code has become such a mess. I really wish their =
-BIOS
-> teams would settle on one scheme, and there was a point when I though=
-t
-> they'd done just that, but in the end it just didn't happen.
+>The huge majority of my "automatic update from upstream" merges
+>go into my test branch ... which never becomes part of the real
+>history as I never ask Linus to pull from it.
 >
-We need a hotkey spec for those well-know hot-keys now,
-Then, we can look forward to a clean hotkey driver in the future.
+>-Tony
+>
+>[1] Sometimes I goof on this because I forget that I've applied
+>a trivial patch directly to the release branch without going through
+>a topic branch.  I think I'll fix my update script to check 
+>for this case.
 
-Thanks,
-Luming
+I figured that checking some trivial patches directly into "release"
+would be a convenient way to make sure I didn't forget to push them --
+as they didn't depend on anything else in my tree.  Okay.
 
---=20
-Thanks,
-Luming
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To make sure that my test branch (where I generate my consolidated
+plain patch, and what Andrew pulls) includes everything, I then pull
+"release" into "test".  Still good.
+
+But then I decide I need to update my test tree from upstream.
+I did this by pulling "linus" into "release", and then pulling
+"release" into "test".  This creates the book-keeping merge
+in "release" that irritates gitk users.
+
+This "flow", BTW, is a habit I picked up from the
+"two-phase release strategy" that we used in bk days.
+There I'd pull from upstream down into my to-linus tree and then pull
+from the to-linus tree into the to-andrew tree.
+I expect BK also created a merge cset, but apparently
+nobody was looking at the history like they do with gitk today.
+
+So if I simply don't pull from "linus" into a modified
+"release" branch then the cluttered history issue goes away.
+I should fetch "linus" into "release" right before I merge
+the topic branches into "release" and push upstream.
+The fetch is a clean fast-forward, and the merges all have
+real content.
+
+This will work as long as "release" doesn't get too old
+to be pulled upstream without conflicts.  Based on past
+experience with low latency pulls upstream, I think this will be rare.
+
+Andrew will still get cluttered history in the test tree,
+but as he's focused on the content and not the (throw-away) history,
+this is surely a non-issue.
+
+So problem #1 is solved, yes?
+
+Going forward...
+I'm hopeful that gitk users will not be irritated also
+by the liberal use of topic branches.  I'm starting to like using
+them quite a bit.  Yes, it is true that I could cherry-pick
+the topics out of their original context to re-manufacture linear
+history.  But that is extra work.  Also, as you poined out,
+there is real value in the real history because the context is accurate.
+Further, I find that sometimes I need to augment a topic branch
+with a follow-up patch.  I can checkout the topic branch an plop
+the follow-up right on the tip where it logically should live,
+and (Tony's) scripts will remind me when the branch is not fully
+pulled into test or release -- so it will never get misplaced.
+
+In the case where a topic branch is a single commit, gitk users
+will see both the original commit, as well as the merge commit
+back into "release".
+
+-Len
