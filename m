@@ -1,46 +1,23 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: git pull on Linux/ACPI release tree
-Date: Mon, 9 Jan 2006 01:27:19 -0500
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3005A136F6@hdsmsx401.amr.corp.intel.com>
+From: Junio C Hamano <junkio@cox.net>
+Subject: Re: git pull on Linux/ACPI release tree
+Date: Sun, 08 Jan 2006 22:46:06 -0800
+Message-ID: <7vlkxpucep.fsf@assigned-by-dhcp.cox.net>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3005A136DD@hdsmsx401.amr.corp.intel.com>
+	<46a038f90601082208i95cd19fmda542da0da8cc9ef@mail.gmail.com>
+	<Pine.LNX.4.64.0601082212420.3169@g5.osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-class: urn:content-classes:message
-Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, torvalds-3NddpPZAyC0@public.gmane.org
-Cc: martin.langhoff-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, git-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <git-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.64.0601082212420.3169@g5.osdl.org> (Linus Torvalds's
+	message of "Sun, 8 Jan 2006 22:13:49 -0800 (PST)")
+Sender: git-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@osdl.org>
+Cc: Martin Langhoff <martin.langhoff@gmail.com>, "Brown, Len" <len.brown@intel.com>, "David S. Miller" <davem@davemloft.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@osdl.org, git@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+Linus Torvalds <torvalds@osdl.org> writes:
 
->From: David S. Miller
+> To be fair, backtracking a "git-rebase" isn't obvious. One of the 
+> downsides of rebasing.
 
->I think merges with conflicts that need to get resolved by hand create
->a lot of noise and useless information and therefore to me they are
->pointless.  But this is just my opinion.  It simply works easier to me
->to shuffle the patches in by hand and deal with the rejects one by
->one.  It's very much akin to how Andrew's -mm tree works.
-
-I guess in this model you can do all your development with quilt,
-and the value of git is a high-bandwidth bransport medium to
-replace e-mail.
-
->I think a clean history is worth an extra few minutes of someone's
->time.  And note that subsystem development is largely linear anyways.
-
-Maybe true in your neck of the woods, but not true here.
-
-I have more than a dozen topic branches in my tree, and they mature
-at different rates.
-
-When a topic branch is in the test tree and and a follow-up patch
-is needed, I check out that topic branch and put the patch
-exactly in non-linear 3D history where it is meant to live.
-When the topic seems fully baked, I can pull the top of the
-branch into the release tree.
-
--Len
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I thought "git reset --hard ORIG_HEAD" as usual would do.
