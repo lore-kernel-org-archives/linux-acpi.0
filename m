@@ -1,46 +1,88 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: [gpm] Untangling the sleep hotkey mess
-Date: Mon, 9 Jan 2006 22:04:05 +0000
-Message-ID: <20060109220404.GA20463@srcf.ucam.org>
-References: <3ACA40606221794F80A5670F0AF15F840AA37137@pdsmsx403> <20060109014350.GA672@srcf.ucam.org> <200601091019.01083.luming.yu@intel.com> <20060109023037.GA1316@srcf.ucam.org> <1136801040.19776.34.camel@localhost> <d120d5000601091314g7cef73fk445976b14c549a04@mail.gmail.com> <20060109214050.GA19974@srcf.ucam.org> <d120d5000601091352m19ba5eb0n80c462cba49bd2a6@mail.gmail.com>
+From: Luben Tuikov <ltuikov@yahoo.com>
+Subject: RE: git pull on Linux/ACPI release tree
+Date: Mon, 9 Jan 2006 14:51:43 -0800 (PST)
+Message-ID: <20060109225143.60520.qmail@web31807.mail.mud.yahoo.com>
+References: <Pine.LNX.4.64.0601090850350.3169@g5.osdl.org>
+Reply-To: ltuikov@yahoo.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <d120d5000601091352m19ba5eb0n80c462cba49bd2a6-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org
-Cc: Richard Hughes <hughsient-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Yu Luming <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gnome-power-manager-list-rDKQcyrBJuzYtjvyW6yDsg@public.gmane.org, desktop_portables-qjLDD68F18O7TbgM5vRIOg@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <git-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.64.0601090850350.3169@g5.osdl.org>
+Sender: git-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@osdl.org>, "Brown, Len" <len.brown@intel.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>, Junio C Hamano <junkio@cox.net>, Martin Langhoff <martin.langhoff@gmail.com>, "David S. Miller" <davem@davemloft.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@osdl.org, git@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 09, 2006 at 04:52:11PM -0500, Dmitry Torokhov wrote:
+--- Linus Torvalds <torvalds@osdl.org> wrote:
+> But if there are workflow problems, let's try to fix them. The "apply 
+> patches directly to another branch" suggestion may not be sane (maybe it's 
+> too confusing to apply a patch and not actually see it in the working 
+> tree), but workflow suggestions in general are appreciated.
 
-> I probably was not clear in my original message. The new input handler
-> for ACPI would be only used for compatibility with cirrent
-> installations relying on ACPID. This will allow gradual conversion of
-> ACPI drivers to use input layer instead of sending events dircetly to
-> /proc/acpi/events.
+This is sensible, thank you.
 
-Ah, I see what you mean. However, there's still some slight awkwardness 
-here, since userspace will be expecting the events to come from the 
-button driver (the regexp used is generally button[ /]sleep), and 
-that'll be registered even if there's no sleep button (the lid switch 
-and power button are still handled via it). I don't believe you can 
-register two drivers with the same name, so without gross hacks I can't 
-see an easy way to provide this functionality through /proc/acpi without 
-requiring userspace to be fixed up /anyway/...
+A very general workflow I've seen people use is more/less as
+I outlined in my previous email:
 
-> OTOH there should probably be anotehr generic power interface
-> filtering out power-related input events from the stream of all input
-> events in the system and making them available to userspace without
-> requiring applications (be it individual applications or HAL) to open
-> zillion of raw /dev/input/evenX devices.
+  tree A  (linus' or trunk)
+     Project B  (Tree B)
+        Project C  (Tree C, depending on stuff in Project B)
 
-Sure. As mentioned before, we basically just want keycodes 116, 142 and 
-205 (POWER, SLEEP and SUSPEND) - I guess that's not too difficult?
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Now this could be how the "managers" see things, but development,
+could've "cloned" from Tree B and Tree C further, as is often
+customary to have a a) per user tree, or b) per bug tree.
+
+So pull/merge/fetch/whatever follows Tree A->B->C.
+
+It is sensible to have another tree say, called something
+like "for_linus" or "upstream" or "product" which includes
+what has accumulated in C from B and in B from A, (eq diff(C-A)).
+I.e. a "push" tree.  So that I can tell you, "hey,
+pull/fetch/merge/whatever the current verb en vogue is, from
+here to get latest xyz".
+
+What I also wanted to mention is that Tree B undeniably
+depends on the _latest_ state of Tree A, since Project B
+uses API/behaviour of the code in Tree A, so one cannot just
+say they are independent.  Similarly for Tree C/Project C,
+is dependent on B, and dependent on A.
+
+Also sometimes a bugfix in C, prompts a bugfix in A,
+so that the bugfix in A doesn't apply unless the bugfix in C.
+(To get things more complicated.)
+
+I think this is more/less the most easier to see, understand and
+follow workflow approach, which is also the case for other SCMs.
+
+What are the commands to follow to make everyone happy when
+pulling from such a development process?
+
+FWIW, "git diff A C | send to Linus" would get you the
+"no merge messages/ancestors I want to see" idea, if I understand
+this thread correctly.
+
+> We've made switching branches about as efficient as it can be (but if the 
+> differences are huge, the cost of re-writing the working directory is 
+> never going to be low). But switching branches has the "confusion factor" 
+> (ie you forget which branch you're on, and apply a patch to your working 
+> branch instead of your development branch), so maybe there are other ways 
+> of doing the same thing that might be sensible..
+
+Yes.  Ever since I started used git, I never used branch
+switching, but I do have git branches and I do use git branching.
+
+I basically have a branch per directory, whereby the object db
+is shared as is remotes/refs/etc, HEAD and index are not shared
+of course.
+
+This allows me to do a simple and fast "cd" to change/go to a
+different branch, since they are in different directories.
+So the time I wait to switch branches is the time the filesystem
+takes to do a "cd".
+
+This also allows me to build/test/patch/work on branches
+simultaneously.
+
+Thank you,
+   Luben
