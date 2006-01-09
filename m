@@ -1,45 +1,58 @@
 From: Richard Hughes <hughsient-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [gpm] Untangling the sleep hotkey mess
-Date: Mon, 09 Jan 2006 09:44:55 +0000
-Message-ID: <1136799895.19776.14.camel@localhost>
-References: <20060107172446.GA3092@srcf.ucam.org>
-	 <200601090007.43578.dtor_core@ameritech.net>
-	 <20060109052407.GA4213@srcf.ucam.org>
-	 <200601090109.05791.dtor_core@ameritech.net>
+Subject: Re: [Desktop_portables] Re: [gpm] Untangling the sleep hotkey mess
+Date: Mon, 09 Jan 2006 09:48:06 +0000
+Message-ID: <1136800086.19776.18.camel@localhost>
+References: <3ACA40606221794F80A5670F0AF15F840AA37137@pdsmsx403>
+	 <200601091155.24380.luming.yu@intel.com>
+	 <20060109071439.GA31974@hell.org.pl>
+	 <200601091547.43439.luming.yu@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <200601090109.05791.dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
+In-Reply-To: <200601091547.43439.luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
-Cc: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gnome-power-manager-list-rDKQcyrBJuzYtjvyW6yDsg@public.gmane.org, hal-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, desktop_portables-qjLDD68F18O7TbgM5vRIOg@public.gmane.org
+To: Yu Luming <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, desktop_portables-qjLDD68F18O7TbgM5vRIOg@public.gmane.org, gnome-power-manager-list-rDKQcyrBJuzYtjvyW6yDsg@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2006-01-09 at 01:09 -0500, Dmitry Torokhov wrote:
-> On Monday 09 January 2006 00:24, Matthew Garrett wrote:
-> > On Mon, Jan 09, 2006 at 12:07:43AM -0500, Dmitry Torokhov wrote:
-> > 
-> > > Why don't we create an input handler that would feed certain events
-> > > from input layer to acpid via bus_acpi_generate_event().
-> > 
-> > I'm not convinced that making the input layer depend on ACPI (even 
-> > optionally) would go down terribly well. It also strikes me as *wrong* - 
-> > the sleep key on this keyboard has nothing to do with ACPI, whereas keys 
-> > presented through ACPI are still an input device.
-> > 
+On Mon, 2006-01-09 at 15:47 +0800, Yu Luming wrote:
+> On Monday 09 January 2006 15:14, Karol Kozimor wrote:
+> > Thus wrote Yu Luming:
+> >  > >From practical point of view,  the acpi hotkey won't change for a quite
+> >  >
+> >  > long period. For example, I cannot find too much changes on acpi hotkey
+> >  > from Thinkpad T21 and Thinkpad T42.  And, I don't see any reason for ODM
+> >  > to change their well-know ACPI device PNP ID and well-know AML methods
+> >  > names for acpi hotkey on new platfrom, because they can just implement
+> >  > any platform changes in AML code.
+> >
+> >  Tell me more...
 > 
-> The handler is just for compatibility with present installations.
-> New installations will use the new interface, whatver it will be.
+> I just want to say the hot-keys on keyboard for brightness, sound
+> volume, display output switching won't change too much, 
+> because user needs these buttons. And almost all laptops implement them.
+> 
+> For each ODM, if they implement hot-keys with dedicated ACPI devices and
+> dedicated AML methods. It doesn't make any sense to change
+> the name on new platforms for supporting same hot-keys.
+> >
+> >  There's already 3 or 4 major variations of method layout for ASUS laptops
+> >  hotkey device, subtle differences like method name changes
+> > notwithstanding. One of the reasons the driver's development lags so much
+> > is that the support code has become such a mess. I really wish their BIOS
+> > teams would settle on one scheme, and there was a point when I thought
+> > they'd done just that, but in the end it just didn't happen.
+> >
+> We need a hotkey spec for those well-know hot-keys now,
+> Then, we can look forward to a clean hotkey driver in the future.
 
-Like what?
+What spec would that be? Surely we *just* need a way to get the hotkeys
+to userspace as early as possible? Be they KEY_BRIGHTNESSDOWN or some
+random value like 0x140.
+Why make this complicated, or am I missing a trick?
 
-> But input layer will be a hub of sorts and I am arguing for ACPI
-> to be converted to use input layer directly.
-
-What does lkml think of ACPI using the input layer directly? 
-
-Richard
+Thanks, Richard.
 
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
