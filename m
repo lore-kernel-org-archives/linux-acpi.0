@@ -1,40 +1,70 @@
-From: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
-Subject: Re: git pull on Linux/ACPI release tree
-Date: Tue, 10 Jan 2006 12:31:18 -0800 (PST)
-Message-ID: <Pine.LNX.4.64.0601101229390.4939@g5.osdl.org>
-References: <F7DC2337C7631D4386A2DF6E8FB22B3005A13505@hdsmsx401.amr.corp.intel.com>
- <Pine.LNX.4.64.0601081111190.3169@g5.osdl.org> <20060108230611.GP3774@stusta.de>
- <Pine.LNX.4.64.0601081909250.3169@g5.osdl.org> <20060110201909.GB3911@stusta.de>
+From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
+Subject: Re: [RFC 1/2] Modular acpi_idle policy
+Date: Wed, 11 Jan 2006 00:00:44 +0100
+Message-ID: <20060110230044.GA30356@isilmar.linta.de>
+References: <1136866373.5750.28.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20060110201909.GB3911-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1136866373.5750.28.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adrian Bunk <bunk-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, git-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI-ML <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pallipadi Venkatesh <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
+
+On Tue, Jan 10, 2006 at 12:12:53PM +0800, Shaohua Li wrote:
+> Modular C-state policy. And convert current algorithm to the framework.
+> This is the updated patch I sent out to the list several months ago.
+> Next patch will use the framework.
+
+Have you reviewed my patches I sent to this list on 2005-12-31 yet? As they
+touch a lot of this code _and_ (partly) make sense for _all_ C-state
+policies, please consider merging them first before these patches.
+
+> -	/*
+> -	 * Check BM Activity
+> -	 * -----------------
+> -	 * Check for bus mastering activity (if required), record, and check
+> -	 * for demotion.
+> -	 */
+
+Whatever the C-State policy is, we need to track the BM activity.
+
+> +	cx = current_policy->pre_cx(pr);
+> +	if (cx != pr->power.state)
+> +		acpi_processor_power_activate(pr, cx);
 
 
-On Tue, 10 Jan 2006, Adrian Bunk wrote:
-> 
-> > Now, in this model, you're not really using git as a distributed system. 
-> > In this model, you're using git to track somebody elses tree, and track a 
-> > few patches on top of it, and then "git rebase" is a way to move the base 
-> > that you're tracking your patches against forwards..
-> 
-> I am using the workaround of carrying the patches in a mail folder, 
-> applying them in a batch, and not pulling from your tree between 
-> applying a batch of patches and you pulling from my tree.
+> @@ -320,18 +256,19 @@ static void acpi_processor_idle(void)
+>  		 *      go to an ISR rather than here.  Need to instrument
+>  		 *      base interrupt handler.
+>  		 */
+> -		sleep_ticks = 0xFFFFFFFF;
+> +		t2 = read_acpi_pmtimer();
+> +		sleep_ticks = ticks_elapsed(t1, t2);
 
-Yes, that also works.
+This result may be _very_ wrong, at least with preemption enabled...
 
-I think "quilt" is really the right thing here, although stg may be even 
-easier due to the more direct git integration. But with a smallish number 
-of patches, just doing patch management by hand is obviously simply not a 
-huge problem either, so extra tools may just end up confusing the issue.
+> +	/* FIXME: we have trouble in MP case here */
+Please solve it first before merging, there are MP systems using ACPI
+C-States AFAICS...
 
-		Linus
+> +static struct acpi_processor_cx* dfl_cstate_pre_cx(struct acpi_processor *pr)
+
+This one misses important policy updates (see my mails to this mailing list
+2005-12-31).
+
+> +	/* FIXME: we currently only support one extra policy */
+
+And please provide for multiple extra policies, as unless Thomas, you and I
+can agree on two policies, there'll be three ;-)
+
+
+Thanks,
+	Dominik
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
