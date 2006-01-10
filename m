@@ -1,63 +1,38 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: Re: git pull on Linux/ACPI release tree
-Date: Tue, 10 Jan 2006 21:19:09 +0100
-Message-ID: <20060110201909.GB3911@stusta.de>
-References: <F7DC2337C7631D4386A2DF6E8FB22B3005A13505@hdsmsx401.amr.corp.intel.com> <Pine.LNX.4.64.0601081111190.3169@g5.osdl.org> <20060108230611.GP3774@stusta.de> <Pine.LNX.4.64.0601081909250.3169@g5.osdl.org>
+From: "Karl H. Beckers" <karl.h.beckers-hi6Y0CQ0nG0@public.gmane.org>
+Subject: RE: RE: 2.6.14.3 suspend/resume with SMP (HT)
+Date: Tue, 10 Jan 2006 21:32:30 +0100
+Message-ID: <1136925150.8636.4.camel@localhost.localdomain>
+References: <59D45D057E9702469E5775CBB56411F10158042C@pdsmsx406>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932574AbWAJUT1@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0601081909250.3169@g5.osdl.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@osdl.org>
-Cc: "Brown, Len" <len.brown@intel.com>, "David S. Miller" <davem@davemloft.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@osdl.org, git@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <59D45D057E9702469E5775CBB56411F10158042C@pdsmsx406>
+Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Jan 08, 2006 at 07:26:50PM -0800, Linus Torvalds wrote:
->...
-> THIS is what "rebase" is for. It sounds like what you really want to do is 
-> not have a development branch at all, but you just want to track my tree 
-> and then keep track of a few branches of your own. In other words, you 
-> don't really have a "real" branch - you've got an odd collection of 
-> patches that you really want to carry around on top of _my_ branch. No?
+Am Dienstag, den 10.01.2006, 15:54 +0800 schrieb Li, Shaohua:
+[....]
+> Does your problem look like below one?
+> http://bugzilla.kernel.org/show_bug.cgi?id=5757
+> 
+> IIRC, your CPU can't be booted after resume.
+> 
+> Thanks,
+> Shaohua
+> 
 
-Yes.
+hmmm,
+hard to say ... the symptoms are certainly somewhat different as I never
+have problems during normal operation.
+Also I can't try disabling USB-emulation (don't even know if my machine
+has it) since I don't have such a switch in my BIOS settings.
 
-> Now, in this model, you're not really using git as a distributed system. 
-> In this model, you're using git to track somebody elses tree, and track a 
-> few patches on top of it, and then "git rebase" is a way to move the base 
-> that you're tracking your patches against forwards..
+Karl.
 
-I am using the workaround of carrying the patches in a mail folder, 
-applying them in a batch, and not pulling from your tree between 
-applying a batch of patches and you pulling from my tree.
-
-> It's also entirely possible that you may want to look at "stacked git"
-> (stg), which is really more about a "quilt on top of git" approach. Which
-> again, may or may not suit your needs better.
->...
-
-After a quick look, stg seems to be an interesting project that might 
-suit my needs.
-
-I'd say the main problem is that git with several other projects like 
-cogito and stg on top of it allow many different workflows. But finding 
-the one that suits one's needs without doing something in a wrong way
-is non-trivial.
-
-It might help if someone could write some kind of "Git for dummies" that 
-focusses only on the usage and advantages/disadvantages of user 
-interfaces like cogito, stg and (H)GCT and restricts the discussion of 
-git internals to a short paragraph in the introduction.
-
-> 		Linus
-
-cu
-Adrian
-
--- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
