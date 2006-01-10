@@ -1,43 +1,129 @@
-From: Alex Riesen <raa.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: git pull on Linux/ACPI release tree
-Date: Tue, 10 Jan 2006 16:31:19 +0100
-Message-ID: <81b0412b0601100731p46ec276btfe04382a9e53bd5c@mail.gmail.com>
-References: <F7DC2337C7631D4386A2DF6E8FB22B3005A13706@hdsmsx401.amr.corp.intel.com>
-	 <Pine.LNX.4.64.0601090835580.3169@g5.osdl.org>
-	 <7vu0cdjhd1.fsf@assigned-by-dhcp.cox.net>
+From: Lukasz Muziol <l.muziol-kecf2yCh/1qFxr2TtlUqVg@public.gmane.org>
+Subject: No ACPI battery events on HP compaq nx9000 (kernel 2.6.14-suspend2-r7)
+Date: Tue, 10 Jan 2006 16:01:08 +0000
+Message-ID: <20060110160108.09861e96.l.muziol@cs.ucl.ac.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <7vu0cdjhd1.fsf-u5dp/1a/izZijMVVUgEtmwqrb7wDvxM8@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Junio C Hamano <junkio-j9pdmedNgrk@public.gmane.org>
-Cc: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Luck, Tony" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Martin Langhoff <martin.langhoff-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, git-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 1/9/06, Junio C Hamano <junkio-j9pdmedNgrk@public.gmane.org> wrote:
-> 2. Fix "git checkout <branch>" so that it does a reasonable thing
->    even when a dirty path is different in current HEAD and
->    destination branch.  Then I could:
->
->         $ git checkout symref ;# this would not work in the current git
->             # it would die like this:
->             # $ git checkout symref
->             # fatal: Entry 'gitweb.cgi' not uptodate. Cannot merge.
+Hi folks!
 
-That is actually very interesting. I already wished sometimes to be
-able to switch branches with a dirty working directory (and usually
-ended up with git diff+checkout+apply).
-Even if it results in a merge and conflict markers in files it looks
-like a very practical idea!
+I have a problem with ACPI battery support on my compaq nx9000, running Gentoo and 2.6.14-suspend2-r7 kernel. The battery state is read correctly at boot-up, but then stays at the same level. It only gets updated when the ac adapter is plugged or unplugged. It seems like no regular ACPI battery events are being generated and /proc/acpi/battery/BAT1/state doesn't have the correct values. Also, ocasionally plugging/unplugging the ac adapter doesn't produce an event either. I've tried several other recent kernels, the result always being the same. 
 
->         $ git diff ;# just to make sure inevitable automated merge
->                     # did the right thing
->         $ git commit -a -m "Fix symref fix"
->             # I could collapse them into one instead, like this:
->             # $ git reset --soft HEAD^
->             # $ git commit -a -C ORIG_HEAD
+dmesg | grep ACPI produces:
+
+BIOS-e820: 000000000bf70000 - 000000000bf7c000 (ACPI data)
+BIOS-e820: 000000000bf7c000 - 000000000bf80000 (ACPI NVS)
+ACPI: RSDP (v000 PTLTD ) @ 0x000f6ca0
+ACPI: RSDT (v001 PTLTD RSDT 0x06040000 LTP 0x00000000) @ 0x0bf75e53
+ACPI: FADT (v001 ATI Salmon 0x06040000 ATI 0x000f4240) @ 0x0bf7bf64
+ACPI: BOOT (v001 PTLTD $SBFTBL$ 0x06040000 LTP 0x00000001) @ 0x0bf7bfd8
+ACPI: DSDT (v001 ATI MS2_1535 0x06040000 MSFT 0x0100000e) @ 0x00000000
+ACPI: PM-Timer IO Port: 0x8008
+ACPI: setting ELCR to 0200 (from 0420)
+ACPI: bus type pci registered
+ACPI: Subsystem revision 20050902
+ACPI: Interpreter enabled
+ACPI: Using PIC for interrupt routing
+ACPI: PCI Root Bridge [PCI0] (0000:00)
+PCI quirk: region 8000-803f claimed by ali7101 ACPI
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.AGPB._PRT]
+ACPI: PCI Interrupt Link [LNK0] (IRQs 7 10) *0, disabled.
+ACPI: PCI Interrupt Link [LNK1] (IRQs 7 *10)
+ACPI: PCI Interrupt Link [LNK2] (IRQs 7 *10)
+ACPI: PCI Interrupt Link [LNK3] (IRQs 7 *10)
+ACPI: PCI Interrupt Link [LNK4] (IRQs 7 11) *0, disabled.
+ACPI: PCI Interrupt Link [LNK5] (IRQs 7 *11)
+ACPI: PCI Interrupt Link [LNK6] (IRQs 7 10) *0, disabled.
+ACPI: PCI Interrupt Link [LNK7] (IRQs *5)
+ACPI: PCI Interrupt Link [LNK8] (IRQs 7 10) *0, disabled.
+ACPI: Embedded Controller [EC0] (gpe 24)
+pnp: PnP ACPI init
+pnp: PnP ACPI: found 13 devices
+PCI: Using ACPI for IRQ routing
+ACPI: PCI Interrupt Link [LNK5] enabled at IRQ 11
+ACPI: PCI Interrupt 0000:00:0a.0[A] -> Link [LNK5] -> GSI 11 (level, low) -> IRQ 11
+ACPI: PCI Interrupt 0000:00:0a.1[A] -> Link [LNK5] -> GSI 11 (level, low) -> IRQ 11
+ACPI: PCI Interrupt Link [LNK0] enabled at IRQ 10
+ACPI: PCI Interrupt 0000:01:05.0[A] -> Link [LNK0] -> GSI 10 (level, low) -> IRQ 10
+ACPI: AC Adapter [ACAD] (on-line)
+ACPI: Battery Slot [BAT1] (battery absent)
+ACPI: Power Button (FF) [PWRF]
+ACPI: Power Button (CM) [PWRB]
+ACPI: Lid Switch [LID]
+ACPI: Video Device [VGA] (multi-head: yes rom: no post: no)
+ACPI: CPU0 (power states: C1[C1] C2[C2])
+ACPI: Processor [CPU0] (supports 8 throttling states)
+ACPI: Thermal Zone [THRM] (57 C)
+ACPI: PCI Interrupt 0000:00:10.0[A]: no GSI
+acpi-cpufreq: CPU0 - ACPI performance management activated.
+ACPI wakeup devices:
+ACPI: (supports S0 S3 S4 S5)
+ACPI: PCI Interrupt Link [LNK3] enabled at IRQ 10
+ACPI: PCI Interrupt 0000:00:09.0[A] -> Link [LNK3] -> GSI 10 (level, low) -> IRQ 10
+ACPI: PCI Interrupt Link [LNK2] enabled at IRQ 10
+ACPI: PCI Interrupt 0000:00:0e.0[A] -> Link [LNK2] -> GSI 10 (level, low) -> IRQ 10
+ACPI: PCI Interrupt 0000:00:0e.1[b] -> Link [LNK3] -> GSI 10 (level, low) -> IRQ 10
+ACPI: PCI Interrupt Link [LNK7] enabled at IRQ 5
+ACPI: PCI Interrupt 0000:00:06.0[A] -> Link [LNK7] -> GSI 5 (level, low) -> IRQ 5
+ACPI: PCI Interrupt 0000:00:0a.0[A] -> Link [LNK5] -> GSI 11 (level, low) -> IRQ 11
+ACPI: PCI Interrupt 0000:00:0a.1[A] -> Link [LNK5] -> GSI 11 (level, low) -> IRQ 11
+ACPI: PCI Interrupt 0000:01:05.0[A] -> Link [LNK0] -> GSI 10 (level, low) -> IRQ 10
+
+
+
+This line's interesting:
+
+ACPI: Battery Slot [BAT1] (battery absent)
+
+The battery really is there and /proc/acpi/battery/BAT1/state confirms that it's present.
+
+
+
+My kernel config:
+
+
+# Power management options (ACPI, APM)
+# ACPI (Advanced Configuration and Power Interface) Support
+CONFIG_ACPI=y
+CONFIG_ACPI_SLEEP=y
+CONFIG_ACPI_SLEEP_PROC_FS=y
+# CONFIG_ACPI_SLEEP_PROC_SLEEP is not set
+CONFIG_ACPI_AC=y
+CONFIG_ACPI_BATTERY=y
+CONFIG_ACPI_BUTTON=y
+CONFIG_ACPI_VIDEO=y
+# CONFIG_ACPI_HOTKEY is not set
+CONFIG_ACPI_FAN=y
+CONFIG_ACPI_PROCESSOR=y
+CONFIG_ACPI_THERMAL=y
+# CONFIG_ACPI_ASUS is not set
+# CONFIG_ACPI_IBM is not set
+# CONFIG_ACPI_TOSHIBA is not set
+CONFIG_ACPI_BLACKLIST_YEAR=0
+# CONFIG_ACPI_DEBUG is not set
+CONFIG_ACPI_EC=y
+CONFIG_ACPI_POWER=y
+CONFIG_ACPI_SYSTEM=y
+# CONFIG_ACPI_CONTAINER is not set
+CONFIG_X86_ACPI_CPUFREQ=y
+# CONFIG_X86_ACPI_CPUFREQ_PROC_INTF is not set
+CONFIG_PNPACPI=y
+# CONFIG_SERIAL_8250_ACPI is not set
+
+
+
+
+When I got this machine it came with an XP and everything seemed to be fine then.
+
+Anyone's got any ideas why this could be happening?
+
+Thanks in advance.
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
