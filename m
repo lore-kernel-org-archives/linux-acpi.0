@@ -1,38 +1,45 @@
-From: "Karl H. Beckers" <karl.h.beckers-hi6Y0CQ0nG0@public.gmane.org>
-Subject: RE: RE: 2.6.14.3 suspend/resume with SMP (HT)
-Date: Tue, 10 Jan 2006 21:32:30 +0100
-Message-ID: <1136925150.8636.4.camel@localhost.localdomain>
-References: <59D45D057E9702469E5775CBB56411F10158042C@pdsmsx406>
+From: Martin Langhoff <martin.langhoff@gmail.com>
+Subject: Re: git pull on Linux/ACPI release tree
+Date: Wed, 11 Jan 2006 09:33:11 +1300
+Message-ID: <46a038f90601101233h5def4840k315be9520796b5e@mail.gmail.com>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3005A13505@hdsmsx401.amr.corp.intel.com>
+	 <Pine.LNX.4.64.0601081111190.3169@g5.osdl.org>
+	 <20060108230611.GP3774@stusta.de>
+	 <Pine.LNX.4.64.0601081909250.3169@g5.osdl.org>
+	 <20060110201909.GB3911@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <59D45D057E9702469E5775CBB56411F10158042C@pdsmsx406>
-Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <git-owner@vger.kernel.org>
+In-Reply-To: <20060110201909.GB3911@stusta.de>
+Content-Disposition: inline
+Sender: git-owner@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Linus Torvalds <torvalds@osdl.org>, "Brown, Len" <len.brown@intel.com>, "David S. Miller" <davem@davemloft.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@osdl.org, git@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Am Dienstag, den 10.01.2006, 15:54 +0800 schrieb Li, Shaohua:
-[....]
-> Does your problem look like below one?
-> http://bugzilla.kernel.org/show_bug.cgi?id=5757
-> 
-> IIRC, your CPU can't be booted after resume.
-> 
-> Thanks,
-> Shaohua
-> 
+On 1/11/06, Adrian Bunk <bunk@stusta.de> wrote:
+> I am using the workaround of carrying the patches in a mail folder,
+> applying them in a batch, and not pulling from your tree between
+> applying a batch of patches and you pulling from my tree.
 
-hmmm,
-hard to say ... the symptoms are certainly somewhat different as I never
-have problems during normal operation.
-Also I can't try disabling USB-emulation (don't even know if my machine
-has it) since I don't have such a switch in my BIOS settings.
+In that case, there's a mostly automated way of doing that if you read
+the last couple lines of git-rebase, using something along the lines
+of
 
-Karl.
+      git-format-patch <yours> <linus> | git-am -3 -k
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I'd say the main problem is that git with several other projects like
+> cogito and stg on top of it allow many different workflows. But finding
+> the one that suits one's needs without doing something in a wrong way
+> is non-trivial.
+
+You are right about that, but much of the space (of what workflows are
+interesting) is still being explored, and git and the porcelains
+reacting to people's interests. So it's still a moving target. A fast
+moving target.
+
+cheers,
+
+
+martin
