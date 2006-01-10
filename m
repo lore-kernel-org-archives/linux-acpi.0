@@ -1,40 +1,80 @@
-From: Kyle Moffett <mrmacman_g4@mac.com>
+From: Linus Torvalds <torvalds@osdl.org>
 Subject: Re: git pull on Linux/ACPI release tree
-Date: Tue, 10 Jan 2006 13:05:56 -0500
-Message-ID: <252A408D-0B42-49F3-92BC-B80F94F19F40@mac.com>
-References: <20060109225143.60520.qmail@web31807.mail.mud.yahoo.com> <Pine.LNX.4.64.0601091845160.5588@g5.osdl.org> <99D82C29-4F19-4DD3-A961-698C3FC0631D@mac.com> <46a038f90601092238r3476556apf948bfe5247da484@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v746.2)
-Content-Type: text/plain; charset=US-ASCII; delsp=yes; format=flowed
-Content-Transfer-Encoding: 7bit
+Date: Tue, 10 Jan 2006 10:27:02 -0800 (PST)
+Message-ID: <Pine.LNX.4.64.0601101015260.4939@g5.osdl.org>
+References: <20060109225143.60520.qmail@web31807.mail.mud.yahoo.com>
+ <Pine.LNX.4.64.0601091845160.5588@g5.osdl.org> <99D82C29-4F19-4DD3-A961-698C3FC0631D@mac.com>
+ <46a038f90601092238r3476556apf948bfe5247da484@mail.gmail.com>
+ <252A408D-0B42-49F3-92BC-B80F94F19F40@mac.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <git-owner@vger.kernel.org>
-In-Reply-To: <46a038f90601092238r3476556apf948bfe5247da484@mail.gmail.com>
+In-Reply-To: <252A408D-0B42-49F3-92BC-B80F94F19F40@mac.com>
 Sender: git-owner@vger.kernel.org
-To: Martin Langhoff <martin.langhoff@gmail.com>
-Cc: Luben Tuikov <ltuikov@yahoo.com>, "Brown, Len" <len.brown@intel.com>, "Luck, Tony" <tony.luck@intel.com>, Junio C Hamano <junkio@cox.net>, Linus Torvalds <torvalds@osdl.org>, "David S. Miller" <davem@davemloft.net>, linux-acpi@vger.kernel.org, LKML Kernel <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, Git Mailing List <git@vger.kernel.org>
+To: Kyle Moffett <mrmacman_g4@mac.com>
+Cc: Martin Langhoff <martin.langhoff@gmail.com>, Luben Tuikov <ltuikov@yahoo.com>, "Brown, Len" <len.brown@intel.com>, "Luck, Tony" <tony.luck@intel.com>, Junio C Hamano <junkio@cox.net>, "David S. Miller" <davem@davemloft.net>, linux-acpi@vger.kernel.org, LKML Kernel <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, Git Mailing List <git@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Jan 10, 2006, at 01:38, Martin Langhoff wrote:
-> On 1/10/06, Kyle Moffett <mrmacman_g4@mac.com> wrote:
->> If they all work, then we know precisely that it's the  
->> interactions between them, which also makes debugging a lot easier.
+
+On Tue, 10 Jan 2006, Kyle Moffett wrote:
 >
-> The more complex your tree structure is, the more the interactions  
-> are likely to be part of the problem. Is git-bisect not useful in  
-> this scenario?
+> On Jan 10, 2006, at 01:38, Martin Langhoff wrote:
+> > 
+> > The more complex your tree structure is, the more the interactions are
+> > likely to be part of the problem. Is git-bisect not useful in this scenario?
+> 
+> IIRC git-bisect just does an outright linearization of the whole tree anyways,
+> which makes git-bisect work everywhere, even in the presence of difficult
+> cross-merges.
 
-IIRC git-bisect just does an outright linearization of the whole tree  
-anyways, which makes git-bisect work everywhere, even in the presence  
-of difficult cross-merges.  On the other hand, if you are git- 
-bisecting ACPI changes (perhaps due to some ACPI breakage), and ACPI  
-has 10 pulls from mainline, you _also_ have to wade through the  
-bisection of any other changes that occurred in mainline, even if  
-they're totally irrelevant.  This is why it's useful to only pull  
-mainline into your tree (EX: ACPI) when you functionally depend on  
-changes there (as Linus so eloquently expounded upon).
+It's not really a linearization - at no time does git-bisect _order_ the 
+commits. After all, no linear order actually exists. 
 
-Cheers,
-Kyle Moffett
+Instead, it really cuts the tree up into successively smaller parts. 
 
---
-Q: Why do programmers confuse Halloween and Christmas?
-A: Because OCT 31 == DEC 25.
+Think of it as doing a binary search in a 2-dimensional surface - you 
+can't linearize the plane, but you can decide to test first one half of 
+the surface, and then depending on whether it was there, you can halve 
+that surface etc.. 
+
+> On the other hand, if you are git-bisecting ACPI changes
+> (perhaps due to some ACPI breakage), and ACPI has 10 pulls from mainline, you
+> _also_ have to wade through the bisection of any other changes that occurred
+> in mainline, even if they're totally irrelevant.
+
+Yes. Although if you _know_ that the problem happened in a specific file 
+or specific subdirectory, you can actually tell "git bisect" to only 
+bother with changes to that file/directory/set-of-directories to speed up 
+the search.
+
+IOW, if you absolutely know that it's ACPI-related, you can do something 
+like
+
+	git bisect start drivers/acpi arch/i386/kernel/acpi
+
+to tell the bisect code that it should totally ignore anything that 
+doesn't touch those two directories.
+
+However, if it turns out that you were wrong (and the ACPI breakage was 
+brought on by something that changed something else), "git bisect" will 
+just get confused and report the wrong commit, so this is really something 
+you should be careful with (and verify the end result by checking that 
+undoing that _particular_ commit really fixes things).
+
+And yes, "git bisect" _will_ work with bugs that depend on two branches of 
+a merge: it will point to the merge commit itself as being the problem. 
+Now, at that point you really are screwed, and you'll have to figure out 
+why both branches work, but the combination of them do not.
+
+Maybe it's as simple as just a merge done wrong (bad manual fixups), but 
+maybe it's a perfectly executed merge that just happens to have one branch 
+changing the assumptions that the other branch depended on.
+
+Happily, that is not very common. I know people are using "git bisect", 
+and I don't think anybody has ever reported it so far. It will happen 
+eventually, but I'd actually expect it to be much more common that "git 
+bisect" will hit other - worse - problems, like bugs that "come and go", 
+and that a simple bisection simply cannot find because they aren't 
+totally repeatable.
+
+			Linus
