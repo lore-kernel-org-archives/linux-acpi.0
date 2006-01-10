@@ -1,72 +1,97 @@
-From: Johannes Schindelin <Johannes.Schindelin-Mmb7MZpHnFY@public.gmane.org>
+From: Linus Torvalds <torvalds@osdl.org>
 Subject: Re: git pull on Linux/ACPI release tree
-Date: Tue, 10 Jan 2006 19:45:11 +0100 (CET)
-Message-ID: <Pine.LNX.4.63.0601101938420.26999@wbgn013.biozentrum.uni-wuerzburg.de>
+Date: Tue, 10 Jan 2006 11:01:18 -0800 (PST)
+Message-ID: <Pine.LNX.4.64.0601101048440.4939@g5.osdl.org>
 References: <20060109225143.60520.qmail@web31807.mail.mud.yahoo.com>
  <Pine.LNX.4.64.0601091845160.5588@g5.osdl.org> <99D82C29-4F19-4DD3-A961-698C3FC0631D@mac.com>
  <46a038f90601092238r3476556apf948bfe5247da484@mail.gmail.com>
  <252A408D-0B42-49F3-92BC-B80F94F19F40@mac.com> <Pine.LNX.4.64.0601101015260.4939@g5.osdl.org>
+ <Pine.LNX.4.63.0601101938420.26999@wbgn013.biozentrum.uni-wuerzburg.de>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.64.0601101015260.4939-hNm40g4Ew95AfugRpC6u6w@public.gmane.org>
-Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
-Cc: Kyle Moffett <mrmacman_g4-ee4meeAH724@public.gmane.org>, Martin Langhoff <martin.langhoff-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Luben Tuikov <ltuikov-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Luck, Tony" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Junio C Hamano <junkio-j9pdmedNgrk@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Git Mailing List <git-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <git-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.63.0601101938420.26999@wbgn013.biozentrum.uni-wuerzburg.de>
+Sender: git-owner@vger.kernel.org
+To: Johannes Schindelin <Johannes.Schindelin@gmx.de>
+Cc: Kyle Moffett <mrmacman_g4@mac.com>, Martin Langhoff <martin.langhoff@gmail.com>, Luben Tuikov <ltuikov@yahoo.com>, "Brown, Len" <len.brown@intel.com>, "Luck, Tony" <tony.luck@intel.com>, Junio C Hamano <junkio@cox.net>, "David S. Miller" <davem@davemloft.net>, linux-acpi@vger.kernel.org, LKML Kernel <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, Git Mailing List <git@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
 
-On Tue, 10 Jan 2006, Linus Torvalds wrote:
 
-> 
-> On Tue, 10 Jan 2006, Kyle Moffett wrote:
-> >
-> > On Jan 10, 2006, at 01:38, Martin Langhoff wrote:
-> > > 
-> > > The more complex your tree structure is, the more the interactions are
-> > > likely to be part of the problem. Is git-bisect not useful in this scenario?
+On Tue, 10 Jan 2006, Johannes Schindelin wrote:
 > > 
-> > IIRC git-bisect just does an outright linearization of the whole tree anyways,
-> > which makes git-bisect work everywhere, even in the presence of difficult
-> > cross-merges.
+> > Think of it as doing a binary search in a 2-dimensional surface - you 
+> > can't linearize the plane, but you can decide to test first one half of 
+> > the surface, and then depending on whether it was there, you can halve 
+> > that surface etc.. 
 > 
-> It's not really a linearization - at no time does git-bisect _order_ the 
-> commits. After all, no linear order actually exists. 
+> How?
 > 
-> Instead, it really cuts the tree up into successively smaller parts. 
-> 
-> Think of it as doing a binary search in a 2-dimensional surface - you 
-> can't linearize the plane, but you can decide to test first one half of 
-> the surface, and then depending on whether it was there, you can halve 
-> that surface etc.. 
+> If you bisect, you test a commit. If the commit is bad, you assume *all* 
+> commits before that as bad. If it is good, you assume *all* commits after 
+> that as good.
 
-How?
+No, that's not how bisect works at all.
 
-If you bisect, you test a commit. If the commit is bad, you assume *all* 
-commits before that as bad. If it is good, you assume *all* commits after 
-that as good.
+It's true that if a commit is bad, then all the commits _reachable_ from 
+that commit are considered bad. 
 
-Now, if you have a 2-dimensional surface, you don't have a *point*, but 
-typically a *line* separating good from bad.
+And it's true that if a commit is good, then all commits that _reach_ that 
+commit are considered good.
 
-Further, the comparison with 2 dimensions is particularly bad. You 
-*have* partially linear development lines, it got *nothing* to do with 
-an area. The commits still make up a *list*, and it depends how you 
-*order* that list for bisect. (And don't tell me they are not ordered: 
-they are.)
+But that doesn't mean that there is an ordering. The commits that fall 
+into the camp of being "neither good nor bad" are _not_ ordered. There are 
+commits in there that are not directly reachable from the good commit.
 
-If you order the commits by date, you don't get anything meaningful point 
-before which it is bad, and after which it is good.
+> Now, if you have a 2-dimensional surface, you don't have a *point*, but 
+> typically a *line* separating good from bad.
 
-So, how is bisect supposed to work if you don't have one straight 
-development line from bad to good?
+Exactly. 
 
-Ciao,
-Dscho
+And a git graph is not really a two-dimensional surface, but exactly was 
+with a 2-dimensional surface, it is _not_ enough to have a *point* to 
+separate the good from bad.
 
+You need to have a _set of points_ to separate the good from the bad. You 
+can think of it as a line that bisects the surface: if you were to print 
+out the development graph, the set of points literally _do_ form a virtual 
+line across the development surface.
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+(Actually, you can't in general print out the development graph on a 
+2-dimensional paper without having development lines that cross each 
+other, but you could actually do it in three dimensions, where the 
+"boundary" between good and bad is actually a 2-dimensional surface in 
+3-dimensional space).
+
+But to describe the surface of "known good", you actually just need a list 
+of known good commits, and the "commits reachable from those commits" 
+_becomes_ the surface.
+
+> Further, the comparison with 2 dimensions is particularly bad.
+
+No it is not. It's a very good comparison.
+
+In a linearized model (one-dimensional, fully ordered set), the only thing 
+you need for bisection is two points: the beginning and the end.
+
+In the git model, you need _many_ points to describe the area being 
+bisected. Exactly the same way as if you were to bisect a 2-dimensional 
+surface.
+
+Now, the git history is _not_ really a two-dimensional surface, so it's 
+just an analogy, not an exact identity. But from a visualization 
+standpoint, it's a good way to think of each "git bisect" as adding a 
+_line_ on the surface rather than a point on a linear line.
+
+> So, how is bisect supposed to work if you don't have one straight 
+> development line from bad to good?
+
+Read the code.
+
+I'm pretty proud of it. It's simple, and it's obvious once you think about 
+it, but it is pretty novel as far as I know. BK certainly had nothing 
+similar, not have I heard of anythign else that does it. Git _might_ be 
+the first thing that has ever done it, although it's simple enough that I 
+wouldn't be surprised if others have too.
+
+			Linus
