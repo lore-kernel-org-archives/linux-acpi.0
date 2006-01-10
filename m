@@ -1,80 +1,63 @@
-From: Linus Torvalds <torvalds@osdl.org>
+From: Adrian Bunk <bunk@stusta.de>
 Subject: Re: git pull on Linux/ACPI release tree
-Date: Tue, 10 Jan 2006 11:28:58 -0800 (PST)
-Message-ID: <Pine.LNX.4.64.0601101111110.4939@g5.osdl.org>
-References: <20060109225143.60520.qmail@web31807.mail.mud.yahoo.com>
- <Pine.LNX.4.64.0601091845160.5588@g5.osdl.org> <99D82C29-4F19-4DD3-A961-698C3FC0631D@mac.com>
- <46a038f90601092238r3476556apf948bfe5247da484@mail.gmail.com>
- <252A408D-0B42-49F3-92BC-B80F94F19F40@mac.com> <Pine.LNX.4.64.0601101015260.4939@g5.osdl.org>
- <Pine.LNX.4.63.0601101938420.26999@wbgn013.biozentrum.uni-wuerzburg.de>
- <Pine.LNX.4.64.0601101048440.4939@g5.osdl.org>
+Date: Tue, 10 Jan 2006 21:19:09 +0100
+Message-ID: <20060110201909.GB3911@stusta.de>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3005A13505@hdsmsx401.amr.corp.intel.com> <Pine.LNX.4.64.0601081111190.3169@g5.osdl.org> <20060108230611.GP3774@stusta.de> <Pine.LNX.4.64.0601081909250.3169@g5.osdl.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <git-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0601101048440.4939@g5.osdl.org>
-Sender: git-owner@vger.kernel.org
-To: Johannes Schindelin <Johannes.Schindelin@gmx.de>
-Cc: Kyle Moffett <mrmacman_g4@mac.com>, Martin Langhoff <martin.langhoff@gmail.com>, Luben Tuikov <ltuikov@yahoo.com>, "Brown, Len" <len.brown@intel.com>, "Luck, Tony" <tony.luck@intel.com>, Junio C Hamano <junkio@cox.net>, "David S. Miller" <davem@davemloft.net>, linux-acpi@vger.kernel.org, LKML Kernel <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, Git Mailing List <git@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932574AbWAJUT1@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0601081909250.3169@g5.osdl.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@osdl.org>
+Cc: "Brown, Len" <len.brown@intel.com>, "David S. Miller" <davem@davemloft.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@osdl.org, git@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Sun, Jan 08, 2006 at 07:26:50PM -0800, Linus Torvalds wrote:
+>...
+> THIS is what "rebase" is for. It sounds like what you really want to do is 
+> not have a development branch at all, but you just want to track my tree 
+> and then keep track of a few branches of your own. In other words, you 
+> don't really have a "real" branch - you've got an odd collection of 
+> patches that you really want to carry around on top of _my_ branch. No?
 
+Yes.
 
-On Tue, 10 Jan 2006, Linus Torvalds wrote:
-> 
-> Now, the git history is _not_ really a two-dimensional surface, so it's 
-> just an analogy, not an exact identity. But from a visualization 
-> standpoint, it's a good way to think of each "git bisect" as adding a 
-> _line_ on the surface rather than a point on a linear line.
+> Now, in this model, you're not really using git as a distributed system. 
+> In this model, you're using git to track somebody elses tree, and track a 
+> few patches on top of it, and then "git rebase" is a way to move the base 
+> that you're tracking your patches against forwards..
 
-Actually, the way I think of it is akin to the "light cones" in physics. A 
-point in space-time doesn't define a fully ordered "before and after": but 
-it _does_ describe a "light cone" which tells you what is reachable from 
-that point, and what that point reaches. Within those cones, that 
-particular point ("commit") has a strict ordering.
+I am using the workaround of carrying the patches in a mail folder, 
+applying them in a batch, and not pulling from your tree between 
+applying a batch of patches and you pulling from my tree.
 
-And exactly as in physics, in git there's a lot of space that is _not_ 
-ordered by that commit. And the way to bisect is basically to find the 
-right points in "git space" to create the right "light cone" that you 
-find the point where the git space that is reachable from that commit has 
-the same volume as the git space that isn't reachable.
+> It's also entirely possible that you may want to look at "stacked git"
+> (stg), which is really more about a "quilt on top of git" approach. Which
+> again, may or may not suit your needs better.
+>...
 
-And maybe that makes more sense to you (if you're into physics), or maybe 
-it makes less sense to you.
+After a quick look, stg seems to be an interesting project that might 
+suit my needs.
 
-Now, since we always search the "git space" in the cone that is defined by 
-"reachable from the bad commit, but not reachable from any good commit", 
-the way we handle "bad" and "good" is actually not a mirror-image. If we 
-fine a new _bad_ commit, we know that it was reachable from the old bad 
-commit, and thus the old bad commit is now uninteresting: the new bad 
-commit forms a "past light cone" that is a strict subset of the old one, 
-so we can totally discard the old bad commit from any future 
-consideration. It doesn't tell us anything new.
+I'd say the main problem is that git with several other projects like 
+cogito and stg on top of it allow many different workflows. But finding 
+the one that suits one's needs without doing something in a wrong way
+is non-trivial.
 
-In contrast, if we find a new _good_ commit, the "past light cone" (aka 
-"set of commits reachable from it") is -not- necessarily a proper superset 
-of the previous set of good commits, so when we find a good commit, we 
-still need to carry the _other_ good commits around, and the "known good" 
-universe is the _union_ of all the "good commit past lightcones".
+It might help if someone could write some kind of "Git for dummies" that 
+focusses only on the usage and advantages/disadvantages of user 
+interfaces like cogito, stg and (H)GCT and restricts the discussion of 
+git internals to a short paragraph in the introduction.
 
-Then the "unknown space" is the set difference of the "past lightcone of 
-the bad commit" and of this "union of past lightcones of good commits". 
-It's the space that is reachable from the known-bad commit, but not 
-reachable from any known-good commit.
+> 		Linus
 
-So this means that when doing bisection, what we want to do is find the 
-point in git space that has _new_ "reachability" within that unknown space 
-that is as close to half that volume as space as possible. And that's 
-exactly what "git-rev-list --bisect" calculates.
+cu
+Adrian
 
-So every time, we try to either move the "known bad" light-cone down in 
-time in the unknown space, _or_ we add a new "known good" light-cone. In 
-either case, the "unknown git space" keeps shrinking by half each time.
+-- 
 
-("by half" is not exact, because git space is not only quanticized, it 
-also has a rather strange "distance function". In other words, we're 
-talking about a rather strange space. The good news is that the space is 
-small enough that we can just enumerate every quantum and simply 
-calculate the volume it defines in that space. IOW, we do a very 
-brute-force thing, and it works fine).
-
-			Linus
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
