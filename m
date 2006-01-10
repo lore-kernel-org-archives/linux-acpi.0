@@ -1,80 +1,72 @@
-From: Linus Torvalds <torvalds@osdl.org>
+From: Johannes Schindelin <Johannes.Schindelin-Mmb7MZpHnFY@public.gmane.org>
 Subject: Re: git pull on Linux/ACPI release tree
-Date: Tue, 10 Jan 2006 10:27:02 -0800 (PST)
-Message-ID: <Pine.LNX.4.64.0601101015260.4939@g5.osdl.org>
+Date: Tue, 10 Jan 2006 19:45:11 +0100 (CET)
+Message-ID: <Pine.LNX.4.63.0601101938420.26999@wbgn013.biozentrum.uni-wuerzburg.de>
 References: <20060109225143.60520.qmail@web31807.mail.mud.yahoo.com>
  <Pine.LNX.4.64.0601091845160.5588@g5.osdl.org> <99D82C29-4F19-4DD3-A961-698C3FC0631D@mac.com>
  <46a038f90601092238r3476556apf948bfe5247da484@mail.gmail.com>
- <252A408D-0B42-49F3-92BC-B80F94F19F40@mac.com>
+ <252A408D-0B42-49F3-92BC-B80F94F19F40@mac.com> <Pine.LNX.4.64.0601101015260.4939@g5.osdl.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <git-owner@vger.kernel.org>
-In-Reply-To: <252A408D-0B42-49F3-92BC-B80F94F19F40@mac.com>
-Sender: git-owner@vger.kernel.org
-To: Kyle Moffett <mrmacman_g4@mac.com>
-Cc: Martin Langhoff <martin.langhoff@gmail.com>, Luben Tuikov <ltuikov@yahoo.com>, "Brown, Len" <len.brown@intel.com>, "Luck, Tony" <tony.luck@intel.com>, Junio C Hamano <junkio@cox.net>, "David S. Miller" <davem@davemloft.net>, linux-acpi@vger.kernel.org, LKML Kernel <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, Git Mailing List <git@vger.kernel.org>
+Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.64.0601101015260.4939-hNm40g4Ew95AfugRpC6u6w@public.gmane.org>
+Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
+Cc: Kyle Moffett <mrmacman_g4-ee4meeAH724@public.gmane.org>, Martin Langhoff <martin.langhoff-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Luben Tuikov <ltuikov-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Luck, Tony" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Junio C Hamano <junkio-j9pdmedNgrk@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Git Mailing List <git-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
 
-On Tue, 10 Jan 2006, Kyle Moffett wrote:
->
-> On Jan 10, 2006, at 01:38, Martin Langhoff wrote:
-> > 
-> > The more complex your tree structure is, the more the interactions are
-> > likely to be part of the problem. Is git-bisect not useful in this scenario?
+On Tue, 10 Jan 2006, Linus Torvalds wrote:
+
 > 
-> IIRC git-bisect just does an outright linearization of the whole tree anyways,
-> which makes git-bisect work everywhere, even in the presence of difficult
-> cross-merges.
+> On Tue, 10 Jan 2006, Kyle Moffett wrote:
+> >
+> > On Jan 10, 2006, at 01:38, Martin Langhoff wrote:
+> > > 
+> > > The more complex your tree structure is, the more the interactions are
+> > > likely to be part of the problem. Is git-bisect not useful in this scenario?
+> > 
+> > IIRC git-bisect just does an outright linearization of the whole tree anyways,
+> > which makes git-bisect work everywhere, even in the presence of difficult
+> > cross-merges.
+> 
+> It's not really a linearization - at no time does git-bisect _order_ the 
+> commits. After all, no linear order actually exists. 
+> 
+> Instead, it really cuts the tree up into successively smaller parts. 
+> 
+> Think of it as doing a binary search in a 2-dimensional surface - you 
+> can't linearize the plane, but you can decide to test first one half of 
+> the surface, and then depending on whether it was there, you can halve 
+> that surface etc.. 
 
-It's not really a linearization - at no time does git-bisect _order_ the 
-commits. After all, no linear order actually exists. 
+How?
 
-Instead, it really cuts the tree up into successively smaller parts. 
+If you bisect, you test a commit. If the commit is bad, you assume *all* 
+commits before that as bad. If it is good, you assume *all* commits after 
+that as good.
 
-Think of it as doing a binary search in a 2-dimensional surface - you 
-can't linearize the plane, but you can decide to test first one half of 
-the surface, and then depending on whether it was there, you can halve 
-that surface etc.. 
+Now, if you have a 2-dimensional surface, you don't have a *point*, but 
+typically a *line* separating good from bad.
 
-> On the other hand, if you are git-bisecting ACPI changes
-> (perhaps due to some ACPI breakage), and ACPI has 10 pulls from mainline, you
-> _also_ have to wade through the bisection of any other changes that occurred
-> in mainline, even if they're totally irrelevant.
+Further, the comparison with 2 dimensions is particularly bad. You 
+*have* partially linear development lines, it got *nothing* to do with 
+an area. The commits still make up a *list*, and it depends how you 
+*order* that list for bisect. (And don't tell me they are not ordered: 
+they are.)
 
-Yes. Although if you _know_ that the problem happened in a specific file 
-or specific subdirectory, you can actually tell "git bisect" to only 
-bother with changes to that file/directory/set-of-directories to speed up 
-the search.
+If you order the commits by date, you don't get anything meaningful point 
+before which it is bad, and after which it is good.
 
-IOW, if you absolutely know that it's ACPI-related, you can do something 
-like
+So, how is bisect supposed to work if you don't have one straight 
+development line from bad to good?
 
-	git bisect start drivers/acpi arch/i386/kernel/acpi
+Ciao,
+Dscho
 
-to tell the bisect code that it should totally ignore anything that 
-doesn't touch those two directories.
 
-However, if it turns out that you were wrong (and the ACPI breakage was 
-brought on by something that changed something else), "git bisect" will 
-just get confused and report the wrong commit, so this is really something 
-you should be careful with (and verify the end result by checking that 
-undoing that _particular_ commit really fixes things).
-
-And yes, "git bisect" _will_ work with bugs that depend on two branches of 
-a merge: it will point to the merge commit itself as being the problem. 
-Now, at that point you really are screwed, and you'll have to figure out 
-why both branches work, but the combination of them do not.
-
-Maybe it's as simple as just a merge done wrong (bad manual fixups), but 
-maybe it's a perfectly executed merge that just happens to have one branch 
-changing the assumptions that the other branch depended on.
-
-Happily, that is not very common. I know people are using "git bisect", 
-and I don't think anybody has ever reported it so far. It will happen 
-eventually, but I'd actually expect it to be much more common that "git 
-bisect" will hit other - worse - problems, like bugs that "come and go", 
-and that a simple bisection simply cannot find because they aren't 
-totally repeatable.
-
-			Linus
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
