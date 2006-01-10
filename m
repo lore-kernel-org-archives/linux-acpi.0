@@ -1,7 +1,8 @@
-From: Lukasz Muziol <l.muziol-kecf2yCh/1qFxr2TtlUqVg@public.gmane.org>
-Subject: No ACPI battery events on HP compaq nx9000 (kernel 2.6.14-suspend2-r7)
-Date: Tue, 10 Jan 2006 16:01:08 +0000
-Message-ID: <20060110160108.09861e96.l.muziol@cs.ucl.ac.uk>
+From: Lukasz Muziol <wookie2-h7QdYz1kt/Q@public.gmane.org>
+Subject: No ACPI battery events on HP compaq nx9000 (kernel
+ 2.6.14-suspend2-r7)
+Date: Tue, 10 Jan 2006 16:02:33 +0000
+Message-ID: <20060110160233.7591b759.wookie2@o2.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -121,7 +122,7 @@ CONFIG_PNPACPI=y
 
 When I got this machine it came with an XP and everything seemed to be fine then.
 
-Anyone's got any ideas why this could be happening?
+Anyone's got any ideas why this could be happening? Please let me know if there's any other info I can provide.
 
 Thanks in advance.
 -
