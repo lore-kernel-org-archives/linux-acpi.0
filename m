@@ -1,32 +1,58 @@
-From: Luben Tuikov <ltuikov-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Re: git pull on Linux/ACPI release tree
-Date: Tue, 10 Jan 2006 19:32:29 -0800 (PST)
-Message-ID: <20060111033229.5590.qmail@web31809.mail.mud.yahoo.com>
-References: <252A408D-0B42-49F3-92BC-B80F94F19F40@mac.com>
-Reply-To: ltuikov-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
+From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
+Subject: Re: [RFC 1/2] Modular acpi_idle policy
+Date: Wed, 11 Jan 2006 08:57:46 +0100
+Message-ID: <20060111075746.GA599@isilmar.linta.de>
+References: <1136866373.5750.28.camel@sli10-desk.sh.intel.com> <20060110230044.GA30356@isilmar.linta.de> <1136943726.5750.52.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <252A408D-0B42-49F3-92BC-B80F94F19F40-ee4meeAH724@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1136943726.5750.52.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kyle Moffett <mrmacman_g4-ee4meeAH724@public.gmane.org>, Martin Langhoff <martin.langhoff-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Luben Tuikov <ltuikov-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Luck, Tony" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Junio C Hamano <junkio-j9pdmedNgrk@public.gmane.org>, Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Git Mailing List <git-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI-ML <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pallipadi Venkatesh <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
---- Kyle Moffett <mrmacman_g4-ee4meeAH724@public.gmane.org> wrote:
-> they're totally irrelevant.  This is why it's useful to only pull  
-> mainline into your tree (EX: ACPI) when you functionally depend on  
-> changes there (as Linus so eloquently expounded upon).
+Hi,
 
-Sometimes the dependency is _behavioural_.  For example certain
-behaviour of other modules of the kernel changed and you want
-to test that your module works ok with them under different
-behaviour.  In which case you may or may not have to
-change your code after the fact.
+On Wed, Jan 11, 2006 at 09:42:01AM +0800, Shaohua Li wrote:
+> > Have you reviewed my patches I sent to this list on 2005-12-31 yet? As they
+> > touch a lot of this code _and_ (partly) make sense for _all_ C-state
+> > policies, please consider merging them first before these patches.
+> Len hopes policy changes can be smoothly made. The approach is we keep
+> current policy as default and add new policies as module. If you change
+> the policy a lot, you'd better make a module.
+OK, that's fine with me :-)
 
-    Luben
+> > > -	/*
+> > > -	 * Check BM Activity
+> > > -	 * -----------------
+> > > -	 * Check for bus mastering activity (if required), record, and check
+> > > -	 * for demotion.
+> > > -	 */
+> > 
+> > Whatever the C-State policy is, we need to track the BM activity.
+> It's policy specific, right? No reason generic code do the BM activity
+> track.
 
+Not exactly. _Every_ C-State policy must check whether there is BM activity
+and not enter C3-type sleep. How it keeps track of "past" BM activity, is up
+to the policy, that's correct. But I'd favour it if every policy just would
+need to call one function (acpi_processor_check_bm_activity) which returns
+one on current bus master activity and zero if there is no such activity.
+This probing of the hardware is _not_ policy-specific.
+
+> > This result may be _very_ wrong, at least with preemption enabled...
+> IIRC, with Ingo's patch, idle thread can't be preempted at any places in
+> current kernel. Yes, the result may be very wrong, but it's better than
+> 0xFFFFFFFF.
+
+Well, last time I looked that was the case. Might have changed in between,
+though... one more reason to add a schedule() call at the place I suggested
+;-)
+
+Thanks,
+	Dominik
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
