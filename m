@@ -1,62 +1,70 @@
-From: Yasunori Goto <y-goto-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Subject: [Patch 2/2]Memory hotplug from ACPI container driver take 2.(allow -EEXIST.)
-Date: Wed, 11 Jan 2006 18:58:51 +0900
-Message-ID: <20060111184657.BCB4.Y-GOTO@jp.fujitsu.com>
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: [Patch 1/2]Memory hotplug from ACPI container driver take 2.(Register start func.)
+Date: Wed, 11 Jan 2006 18:58:44 +0900
+Message-ID: <20060111184634.BCB2.Y-GOTO@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Tolentino, Matthew E" <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI-ML <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel ML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932185AbWAKJ7T@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: "Tolentino, Matthew E" <matthew.e.tolentino@intel.com>, ACPI-ML <linux-acpi@vger.kernel.org>, Linux Kernel ML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
 
-When acpi_memory_device_init() is called at boottime to
-register struct memory acpi_memory_device. So, 
-acpi_bus_add() are called via acpi_driver_attach().
-But it also calls ops->start() function.
-It is called even if the memory blocks are initialized at
-early boottime. In this case add_memory() return -EEXIST, and
-the memory blocks becomes INVALID state even if it is normal.
+This is a patch to create start function which calls add_memory().
+Container driver can call add_memory() by this.
 
-This is patch for it.
 
-Signed-off-by: Yasunori Goto <y-goto-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
 
 Index: new_feature_patch/drivers/acpi/acpi_memhotplug.c
 ===================================================================
---- new_feature_patch.orig/drivers/acpi/acpi_memhotplug.c	2006-01-11 16:03:34.000000000 +0900
-+++ new_feature_patch/drivers/acpi/acpi_memhotplug.c	2006-01-11 16:44:18.000000000 +0900
-@@ -203,8 +203,19 @@ static int acpi_memory_enable_device(str
- 	 */
- 	result = add_memory(mem_device->start_addr,
- 			    (mem_device->end_addr - mem_device->start_addr) + 1);
--	if (result) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "\nadd_memory failed\n"));
+--- new_feature_patch.orig/drivers/acpi/acpi_memhotplug.c	2006-01-11 15:49:06.000000000 +0900
++++ new_feature_patch/drivers/acpi/acpi_memhotplug.c	2006-01-11 16:03:34.000000000 +0900
+@@ -57,6 +57,7 @@ MODULE_LICENSE("GPL");
+ 
+ static int acpi_memory_device_add(struct acpi_device *device);
+ static int acpi_memory_device_remove(struct acpi_device *device, int type);
++static int acpi_memory_device_start (struct acpi_device *device);
+ 
+ static struct acpi_driver acpi_memory_device_driver = {
+ 	.name = ACPI_MEMORY_DEVICE_DRIVER_NAME,
+@@ -65,6 +66,7 @@ static struct acpi_driver acpi_memory_de
+ 	.ops = {
+ 		.add = acpi_memory_device_add,
+ 		.remove = acpi_memory_device_remove,
++		.start = acpi_memory_device_start,
+ 		},
+ };
+ 
+@@ -394,6 +396,26 @@ static int acpi_memory_device_remove(str
+ 	return_VALUE(0);
+ }
+ 
++static int
++acpi_memory_device_start (struct acpi_device *device)
++{
++	struct acpi_memory_device *mem_device = NULL;
++	int result = 0;
 +
-+	switch(result) {
-+	case 0:
-+		break;
-+	case -EEXIST:
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+				  "\nmemory %lu-%lu has already existed\n"
-+				  mem_device->start_addr,
-+				  mem_device->end_addr));
-+		return 0;
-+	default:
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-+				  "\nadd_memory failed result=%d\n", result));
- 		mem_device->state = MEMORY_INVALID_STATE;
- 		return result;
- 	}
++	ACPI_FUNCTION_TRACE("acpi_memory_device_start");
++
++	mem_device = (struct acpi_memory_device *) acpi_driver_data(device);
++
++	if (!acpi_memory_check_device(mem_device)){
++		/* call add_memory func */
++		result = acpi_memory_enable_device(mem_device);
++		if (result)
++			ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
++			"Error in acpi_memory_enable_device\n"));
++	}
++	return_VALUE(result);
++}
++
+ /*
+  * Helper function to check for memory device
+  */
 
 -- 
 Yasunori Goto 
-
-
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
