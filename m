@@ -1,65 +1,113 @@
-From: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC 2/2] new C-state policy
-Date: Thu, 12 Jan 2006 10:54:43 +0800
-Message-ID: <1137034483.5750.77.camel@sli10-desk.sh.intel.com>
-References: <1136866376.5750.29.camel@sli10-desk.sh.intel.com>
-	 <20060110231711.GB30356@isilmar.linta.de>
-	 <1136944855.5750.61.camel@sli10-desk.sh.intel.com>
-	 <20060111080402.GB599@isilmar.linta.de>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: Re: 2.6.15-mm3
+Date: Wed, 11 Jan 2006 20:33:32 -0800
+Message-ID: <20060111203332.50c45031.akpm@osdl.org>
+References: <20060111042135.24faf878.akpm@osdl.org>
+	<43C5D537.7020800@reub.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20060111080402.GB599-JwFqNg2GrOVrgjWwlLH9qw@public.gmane.org>
+In-Reply-To: <43C5D537.7020800-MwA23MxOyI4@public.gmane.org>
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
-Cc: ACPI-ML <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pallipadi Venkatesh <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+To: Reuben Farrelly <reuben-lkml-MwA23MxOyI4@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, linux-usb-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Neil Brown <neilb-YbfuJp6tym7X/JP9YwkgDA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2006-01-11 at 09:04 +0100, Dominik Brodowski wrote:
-> On Wed, Jan 11, 2006 at 10:00:54AM +0800, Shaohua Li wrote:
-> > > As the behaviour is so totally different whether CONFIG_PREEMPTION is set or
-> > > not, I'd suggest the following (untested): add a "schedule()" right after
-> > > "local_irq_enable()". This will force the same behaviour as
-> > > CONFIG_PREEMPTION does currently also for the !CONFIG_PREEMTPION case.
-> > I only do bm check with irq disabled. promotion/demotion calculation is
-> > done with irq enabled. As I said, idle currently can't be preempted at
-> > any places.
+Reuben Farrelly <reuben-lkml-MwA23MxOyI4@public.gmane.org> wrote:
+>
 > 
-> *panic* -- you're disabling IRQs, checking for bm activity (1), then re-enabling
-> IRQs (2), then doing some calculations (3), then disabling IRQs (4)again? This calls
-> for "false negatives", i.e. bus mastering activity being initiated between
-> (2) and (4), causing faulty transitions afterwards....
-It is unavoidable regardless any policy. Disabling IRQs or doing
-calculations later doesn't change it, unless you do bm calculation
-twice, one is just before going to C-state the other is just after
-C-state. But might not be worthy doing to me ....
-
 > 
-> > > > It's still not very good. Comments/suggestions are highly appreciated.
-> > > Take a look at my four patches, please, and all the tricks and tweaks they
-> > > do ;-)
-> > Sure, I did look at your patches. They did have many good staffs. As I
-> > said, Len hopes smooth move, so adding a new module might be better. 
+> On 12/01/2006 1:21 a.m., Andrew Morton wrote:
+> > ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.15/2.6.15-mm3/
+> > 
+> > - New config options (VMSPLIT_*) to permit non-standard user/kernel
+> >   splitting on x86.  Needs testing please.
+> > 
+> > - Lots of updates to the USB, PCI, driver and I2C trees.  This is usually a
+> >   worry.
+> > 
+> > - Multiblock allocation speedup for ext3.  This is only used by direct-IO at
+> >   present.
+> > 
+> > - Reminder: -mm kernel commit activity can be reviewed by subscribing to the
+> >   mm-commits mailing list.
+> > 
+> >   echo "subscribe mm-commits" | mail marordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > 
+> > - If you hit a bug in -mm and it's not obvious which patch caused it, it is
+> >   most valuable if you can perform a bisection search to identify which patch
+> >   introduced the bug.  Instructions for this process are at
+> > 
+> > 	http://www.zip.com.au/~akpm/linux/patches/stuff/tpp.txt
+> > 
+> >   But beware that this process takes some time (around ten rebuilds and
+> >   reboots), so consider reporting the bug first and if we cannot immediately
+> >   identify the faulty patch, then perform the bisection search.
 > 
-> Sure, for the policy changes yes. However, for the staticistics patch (which
-> was 3/4) the core is the place to go, IMHO...
-Sure. I actually have a similar patch doing this. You are quicker :).
-Venkatesh suggested export the statistics by sysfs instead of mess proc,
-how about it?
-
-> > > Also, the actual checking for bm_activity should be common code, e.g.
-> > It's policy specific. Each policy could have its own method to calculate
-> > bm_activity.
+> I'm not sure if this is new to -mm3, but it's the first time I have seen it.
 > 
-> What to do once bm_activity is or was detected, yes. How to determine
-> whether there is current bus mastering activity, no -- that's core stuff,
-> not policy stuff.
-Thanks, I understand your point now. I'll update the first patch.
+> The sequence of events leading up to this was to reboot the machine, it came up 
+> and crashed:
+> 
+> Call Trace:
+>   [<c0103c5d>] show_stack+0x9b/0xc0
+>   [<c0103de4>] show_registers+0x162/0x1e7
+>   [<c0103f8f>] die+0x126/0x231
+>   [<c01140db>] do_page_fault+0x271/0x5b9
+>   [<c01037df>] error_code+0x4f/0x54
+>   [<c023cabd>] class_device_del+0xa3/0x156
+>   [<c023cb7b>] class_device_unregister+0xb/0x15
+>   [<c0255dbf>] scsi_remove_host+0xb4/0xef
+> 
 
-Thanks,
-Shaohua
+There's some trace missing here.  I assume it's the same ata_device_add()
+thing.
 
+> uhci_hcd 0000:00:1d.2: irq 185, io base 0x0000d400
+> usb usb4: configuration #1 chosen from 1 choice
+> hub 4-0:1.0: USB hub found
+> hub 4-0:1.0: 2 ports detected
+> ACPI: PCI Interrupt 0000:00:1d.3[D] -> GSI 16 (level, low) -> IRQ 169
+> uhci_hcd 0000:00:1d.3: UHCI Host Controller
+> uhci_hcd 0000:00:1d.3: new USB bus registered, assigned bus number 5
+> uhci_hcd 0000:00:1d.3: irq 169, io base 0x0000d800
+> usb usb5: configuration #1 chosen from 1 choice
+> hub 5-0:1.0: USB hub found
+> hub 5-0:1.0: 2 ports detected
+> Initializing USB Mass Storage driver...
+> irq 193: nobody cared (try booting with the "irqpoll" option)
+>   [<c01041d9>] dump_stack+0x17/0x19
+>   [<c0139f47>] __report_bad_irq+0x27/0x83
+>   [<c013a021>] note_interrupt+0x7e/0x21d
+>   [<c0139af4>] __do_IRQ+0xd3/0xef
+>   [<c0105038>] do_IRQ+0x3d/0x57
+>   =======================
+>   [<c0103686>] common_interrupt+0x1a/0x20
+>   [<c0101bc4>] cpu_idle+0x63/0x78
+>   [<c0100615>] rest_init+0x23/0x2e
+>   [<c03d070f>] start_kernel+0x2ca/0x34b
+>   [<c0100210>] 0xc0100210
+> handlers:
+> [<c027017e>] (usb_hcd_irq+0x0/0x56)
+> Disabling IRQ #193
+
+USB lost its interrupt.  Could be USB, more likely ACPI.
+
+> md: Autodetecting RAID arrays.
+> md: autorun ...
+> md: ... autorun DONE.
+> ReiserFS: md0: warning: sh-2006: read_super_block: bread failed (dev md0, block 
+> 2, size 4096)
+> ReiserFS: md0: warning: sh-2006: read_super_block: bread failed (dev md0, block 
+> 16, size 4096)
+> EXT3-fs: unable to read superblock
+> EXT2-fs: unable to read superblock
+> isofs_fill_super: bread failed, dev=md0, iso_blknum=16, block=32
+> Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block(9,0)
+> 
+
+Looks like RAID0 keeled over.
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
