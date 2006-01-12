@@ -1,93 +1,65 @@
-From: Mattia Dongili <malattia-k2GhghHVRtY@public.gmane.org>
-Subject: Re: 2.6.15-mm2: reiser3 oops on suspend and more (bonus oops shot!)
-Date: Wed, 11 Jan 2006 19:40:28 +0100
-Message-ID: <20060111184027.GB4735@inferi.kami.home>
-References: <20060110235554.GA3527@inferi.kami.home> <20060110170037.4a614245.akpm@osdl.org> <15632.83.103.117.254.1136989660.squirrel@picard.linux.it> <20060110235554.GA3527@inferi.kami.home> <20060110170037.4a614245.akpm@osdl.org> <20060111100016.GC2574@elf.ucw.cz> <20060110235554.GA3527@inferi.kami.home> <20060110170037.4a614245.akpm@osdl.org>
+From: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC 2/2] new C-state policy
+Date: Thu, 12 Jan 2006 10:54:43 +0800
+Message-ID: <1137034483.5750.77.camel@sli10-desk.sh.intel.com>
+References: <1136866376.5750.29.camel@sli10-desk.sh.intel.com>
+	 <20060110231711.GB30356@isilmar.linta.de>
+	 <1136944855.5750.61.camel@sli10-desk.sh.intel.com>
+	 <20060111080402.GB599@isilmar.linta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <15632.83.103.117.254.1136989660.squirrel-UBpYxYsHrkCaHsy+v9mlyw@public.gmane.org> <20060111100016.GC2574-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org> <20060110170037.4a614245.akpm-3NddpPZAyC0@public.gmane.org>
+In-Reply-To: <20060111080402.GB599-JwFqNg2GrOVrgjWwlLH9qw@public.gmane.org>
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, reiserfs-dev-nJ1KrdHEGnBBDgjK7y7TUQ@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
+Cc: ACPI-ML <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pallipadi Venkatesh <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
-I gave -mm3 a run:
-
-On Tue, Jan 10, 2006 at 05:00:37PM -0800, Andrew Morton wrote:
-> Mattia Dongili <malattia-k2GhghHVRtY@public.gmane.org> wrote:
-[...]
-> > 1- reiser3 oopsed[1] twice while suspending to ram. It seems
-> >    reproducible (have some activity on the fs and suspend)
+On Wed, 2006-01-11 at 09:04 +0100, Dominik Brodowski wrote:
+> On Wed, Jan 11, 2006 at 10:00:54AM +0800, Shaohua Li wrote:
+> > > As the behaviour is so totally different whether CONFIG_PREEMPTION is set or
+> > > not, I'd suggest the following (untested): add a "schedule()" right after
+> > > "local_irq_enable()". This will force the same behaviour as
+> > > CONFIG_PREEMPTION does currently also for the !CONFIG_PREEMTPION case.
+> > I only do bm check with irq disabled. promotion/demotion calculation is
+> > done with irq enabled. As I said, idle currently can't be preempted at
+> > any places.
 > 
-> No significant reiser3 changes in there, so I'd be suspecting something
-> else has gone haywire.
+> *panic* -- you're disabling IRQs, checking for bm activity (1), then re-enabling
+> IRQs (2), then doing some calculations (3), then disabling IRQs (4)again? This calls
+> for "false negatives", i.e. bus mastering activity being initiated between
+> (2) and (4), causing faulty transitions afterwards....
+It is unavoidable regardless any policy. Disabling IRQs or doing
+calculations later doesn't change it, unless you do bm calculation
+twice, one is just before going to C-state the other is just after
+C-state. But might not be worthy doing to me ....
 
-It's still there. But I caught it during normal runtime, a couple more
-pictures (yes, I'm going to try to setup a netconsole):
-
-the oops (sorry, it sucks, probably useless):
-http://oioio.altervista.org/linux/dsc03136.jpg
-
-a screen with the call traces, the keyboard was still active and sysrq
-combos worked. It showed many processes stuck within reiser's log writer:
-http://oioio.altervista.org/linux/dsc03138.jpg
-
-going to revert the 
-
-> > 3- This laptop experienced 2 long stalls (20~25 sec) during boot,
-> >    apparently after scanning usb_storage devices and starting portmap.
-
-umph... it's still here call traces:
-http://oioio.altervista.org/linux/portmap_stall_trace1
-
-[...]
-> There's not much point in fiddling with -mm2.  If git7 is OK then please
-> test the next -mm and if it still fails then yes, doing a bisection would
-> really help.
 > 
-> <types madly>
+> > > > It's still not very good. Comments/suggestions are highly appreciated.
+> > > Take a look at my four patches, please, and all the tricks and tweaks they
+> > > do ;-)
+> > Sure, I did look at your patches. They did have many good staffs. As I
+> > said, Len hopes smooth move, so adding a new module might be better. 
 > 
-> See http://www.zip.com.au/~akpm/linux/patches/stuff/bisecting-mm-trees.txt
+> Sure, for the policy changes yes. However, for the staticistics patch (which
+> was 3/4) the core is the place to go, IMHO...
+Sure. I actually have a similar patch doing this. You are quicker :).
+Venkatesh suggested export the statistics by sysfs instead of mess proc,
+how about it?
 
-give me some hours for this.
-Anyway I'd like to try to revert some reiser3 changes first and see if
-the oops goes (I can leave with a longer boot but I'm worried about my
-root fs :))
+> > > Also, the actual checking for bm_activity should be common code, e.g.
+> > It's policy specific. Each policy could have its own method to calculate
+> > bm_activity.
+> 
+> What to do once bm_activity is or was detected, yes. How to determine
+> whether there is current bus mastering activity, no -- that's core stuff,
+> not policy stuff.
+Thanks, I understand your point now. I'll update the first patch.
 
-> > 4- I'm also affected by the ACPI Misaligned resource pointer error.
+Thanks,
+Shaohua
 
-still here:
-# grep -e 'Jan 11.*Misaligned.*' /var/log/syslog
-Jan 11 18:07:10 inferi kernel: **** SET: Misaligned resource pointer: cff4b7e2 Type 07 Len 0
-Jan 11 18:07:10 inferi kernel: **** SET: Misaligned resource pointer: cff4b7e2 Type 07 Len 0
-Jan 11 18:07:10 inferi kernel: **** SET: Misaligned resource pointer: cff4b2e2 Type 07 Len 0
-Jan 11 18:07:10 inferi kernel: **** SET: Misaligned resource pointer: cf657902 Type 07 Len 0
-Jan 11 18:07:10 inferi kernel: **** SET: Misaligned resource pointer: cf657602 Type 07 Len 0
-Jan 11 18:07:10 inferi kernel: **** SET: Misaligned resource pointer: cf657402 Type 07 Len 0
-Jan 11 18:07:10 inferi kernel: **** SET: Misaligned resource pointer: cf657402 Type 07 Len 0
-Jan 11 18:18:53 inferi kernel: **** SET: Misaligned resource pointer: cf657d02 Type 07 Len 0
-Jan 11 18:21:14 inferi kernel: **** SET: Misaligned resource pointer: cf657d02 Type 07 Len 0
-
-DSDT and lspci can be found here if useful:
-http://oioio.altervista.org/linux/DSDT.aml
-http://oioio.altervista.org/linux/DSDT.dsl
-http://oioio.altervista.org/linux/lspci-v
-
-On Wed, Jan 11, 2006 at 11:00:16AM +0100, Pavel Machek wrote:
-[...]
-> > > 1- reiser3 oopsed[1] twice while suspending to ram. It seems
-> > >    reproducible (have some activity on the fs and suspend)
-[...]
-> Suspend to *RAM*? That really does not do anything that should kill
-
-Sorry, it seems it has nothing to do with s2ram.
-
--- 
-mattia
-:wq!
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
