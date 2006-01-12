@@ -1,43 +1,27 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [linux-usb-devel] Re: 2.6.15-mm3 [USB lost interrupt bug]
-Date: Thu, 12 Jan 2006 10:53:21 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.0601121052190.5383-100000@iolanthe.rowland.org>
-References: <43C6194C.1070107@reub.net>
+From: Greg KH <greg@kroah.com>
+Subject: Re: git pull on Linux/ACPI release tree
+Date: Wed, 11 Jan 2006 17:37:06 -0800
+Message-ID: <20060112013706.GA3339@kroah.com>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3005A13505@hdsmsx401.amr.corp.intel.com> <Pine.LNX.4.64.0601081111190.3169@g5.osdl.org> <20060108230611.GP3774@stusta.de> <Pine.LNX.4.64.0601081909250.3169@g5.osdl.org> <20060110201909.GB3911@stusta.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <43C6194C.1070107-MwA23MxOyI4@public.gmane.org>
-Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Reuben Farrelly <reuben-lkml-MwA23MxOyI4@public.gmane.org>
-Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, linux-usb-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Neil Brown <neilb-YbfuJp6tym7X/JP9YwkgDA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <git-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20060110201909.GB3911@stusta.de>
+Sender: git-owner@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Linus Torvalds <torvalds@osdl.org>, "Brown, Len" <len.brown@intel.com>, "David S. Miller" <davem@davemloft.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@osdl.org, git@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 12 Jan 2006, Reuben Farrelly wrote:
-
-> >> Initializing USB Mass Storage driver...
-> >> irq 193: nobody cared (try booting with the "irqpoll" option)
-
-> >> handlers:
-> >> [<c027017e>] (usb_hcd_irq+0x0/0x56)
-> >> Disabling IRQ #193
-> > 
-> > USB lost its interrupt.  Could be USB, more likely ACPI.
+On Tue, Jan 10, 2006 at 09:19:09PM +0100, Adrian Bunk wrote:
 > 
-> I've seen this one happen nearly every boot since then including bootups that 
-> are otherwise OK (no oopses), so it's probably worth more looking into rather 
-> than being written off as a 'once off':
-> 
-> uhci_hcd 0000:00:1d.3: Unlink after no-IRQ?  Controller is probably using the 
-> wrong IRQ.
+> I am using the workaround of carrying the patches in a mail folder, 
+> applying them in a batch, and not pulling from your tree between 
+> applying a batch of patches and you pulling from my tree.
 
-> It's a new regression to -mm3.
+Ick, I'd strongly recommend using quilt for this.  It works great for
+just this kind of workflow.
 
-Did the same IRQ get assigned to that controller in earlier kernel 
-versions?
+thanks,
 
-Alan Stern
-
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+greg k-h
