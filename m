@@ -1,145 +1,56 @@
-From: Magnus Sandberg <mem-P9zfqOBuU5vLoDKTGw+V6w@public.gmane.org>
-Subject: Re: FSC Amilo M-3438G
-Date: Thu, 12 Jan 2006 22:51:02 +0100
-Message-ID: <20060112215102.827BA1C812@debian.datakon.se>
-References: <20060112092118.84F211C812@debian.datakon.se>
+From: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: soft lockup detected in acpi_processor_idle() -- false
+	positive?
+Date: Fri, 13 Jan 2006 08:55:24 +0800
+Message-ID: <1137113724.5750.113.camel@sli10-desk.sh.intel.com>
+References: <20060112184305.GA7068@isilmar.linta.de>
+	 <200601122054.14128.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: Your message of "Thu, 12 Jan 2006 10:21:18 +0100."
-             <20060112092118.84F211C812-FBVcP3zgNXfBmJu9jE4dRbNAH6kLmebB@public.gmane.org>
+In-Reply-To: <200601122054.14128.rjw-KKrjLPT3xs0@public.gmane.org>
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: mem-P9zfqOBuU5vLoDKTGw+V6w@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Cc: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi again,
+On Thu, 2006-01-12 at 20:54 +0100, Rafael J. Wysocki wrote:
+> On Thursday, 12 January 2006 19:43, Dominik Brodowski wrote:
+> > Latest git, fresh after resuming from suspend-to-disk (in-kernel variant):
+> > 
+> > [4294914.586000] Restarting tasks... done
+> > [4294922.657000] BUG: soft lockup detected on CPU#0!
+> > [4294922.657000] 
+> > [4294922.657000] Pid: 0, comm:              swapper
+> > [4294922.657000] EIP: 0060:[<f003084c>] CPU: 0
+> > [4294922.657000] EIP is at acpi_processor_idle+0x1f3/0x2d5 [processor]
+> > [4294922.657000]  EFLAGS: 00000282    Not tainted  (2.6.15)
+> > [4294922.657000] EAX: fffff000 EBX: 005543a8 ECX: 00000000 EDX: 00000000
+> > [4294922.657000] ESI: edcc3064 EDI: edcc2f60 EBP: c041cfdc DS: 007b ES: 007b
+> > [4294922.657000] CR0: 8005003b CR2: 080c3000 CR3: 2d530000 CR4: 000006d0
+> > 
+> > 
+> > As acpi_processor_idle doesn't take any locks AFAIK, it seems to me to be a
+> > false positive -- or do I miss something obvious?
+> 
+> I think it's a false-positive.
+> 
+> This "soft lockup" message has been appearing for me for quite some time now
+> (actually since the softlockup patch made it into -mm ;-)), in a
+> non-reproducible manner, but I haven't been able to nail it down.
+> 
+> Still, I thought it was x86-64-specific, but your machine is an i386,
+> so there's more to it, apparently.  Probably there's missing
+> touch_softlockup_watchdog() somewhere, or the timer .suspend()/.resume()
+> routines need some additional review.
+I got some similar reports for S3:
+http://bugzilla.kernel.org/show_bug.cgi?id=5825
+I guess x86-64 lacks .suspend/.resume for timer. Last time I looked at
+such issue in ia32, and I fixed it, but I didn't fix x86-64.
 
-I should clarify that I'm running Debian Etch (testing) with Linux
-kernel 2.6.12-1-686.
-
-I have now tried to recompile the dsdt and got the following output.
-How should I correct the warnings? Could this warnings have anything to do 
-with my battery problems? Why is the new compiled DSDT.aml much smaller 
-than the dumped one? I small difference in size is okay, I guess. But 13% 
-smaller, is that okay?
-
-
-# acpidump -b -t DSDT -o dsdt.aml
-# iasl -d dsdt.aml
-
-Intel ACPI Component Architecture
-AML Disassembler version 20051117 [Nov 27 2005]
-Copyright (C) 2000 - 2005 Intel Corporation
-Supports ACPI Specification Revision 3.0
-
-Loading Acpi table from file dsdt.aml
-Acpi table [DSDT] successfully installed and loaded
-Pass 1 parse of [DSDT]
-Pass 2 parse of [DSDT]
-Parsing Deferred Opcodes (Methods/Buffers/Packages/Regions)
-............................................................................
-............................................................................
-............................................................................
-............................................................................
-......
-Parsing completed
-Disassembly completed, written to "dsdt.dsl"
-# iasl -tc dsdt.dsl
-
-Intel ACPI Component Architecture
-ASL Optimizing Compiler version 20051117 [Nov 27 2005]
-Copyright (C) 2000 - 2005 Intel Corporation
-Supports ACPI Specification Revision 3.0
-
-dsdt.dsl  2017:                             Store (0x1F, DBG8)
-Warning  2097 -              Statement is unreachable ^ 
-
-dsdt.dsl  2022:                             Store (0x0F, DBG8)
-Warning  2097 -              Statement is unreachable ^ 
-
-dsdt.dsl  3357:                         Name (_WDG, Buffer (0x50)
-Warning  2096 -            Unknown reserved name ^  (_WDG)
-
-ASL Input:  dsdt.dsl - 4389 lines, 145148 bytes, 1799 keywords
-AML Output: DSDT.aml - 16556 bytes 565 named objects 1234 executable opcodes
-
-Compilation complete. 0 Errors, 3 Warnings, 0 Remarks, 614 Optimizations
-# ls -lrt
-total 344
--rw-r--r--  1 root root  19011 2006-01-12 22:06 dsdt.aml
--rw-r--r--  1 root root 145148 2006-01-12 22:07 dsdt.dsl
--rw-r--r--  1 root root 155519 2006-01-12 22:21 dsdt.hex
--rw-r--r--  1 root root  16556 2006-01-12 22:21 DSDT.aml
-
-
-Regards,
-
-                                  _\\|//_
-                                  (-0-0-)
-                    /-----------ooO-(_)-Ooo----------\
-                    |           Magnus Sandberg      |
-                    | Email:  mem (a) datakon <.> se |
-                    |   GSM:    +46-70-205 81 84     |
-                    \--------------------------------/
-                                  ||   ||
-                                 ooO   Ooo
-
-
- ----- On 12th of January 2006 Magnus Sandberg wrote; -----
-
-Subject: FSC Amilo M-3438G
-From: Magnus Sandberg
-Date: Thu, 12 Jan 2006 10:21:18 +0100
-To: linux-acpi
-
-Hi,
-
-I'm new to this list and I have just got a Fujitsu-Siemens Amilo M-3438G 
-which I'm installing Debian on.
-
-I have some problems with ACPI on the machine. The problems I have found so 
-far is that;
-- I don't get any events when the battery is discharged or running low
-- The lid button only reports close events so the lid-state is always
-  "closed"
-- I don't know if "Fn"-keys should be reported via ACPI or not?
-  I only get the "sleep mode" Fn-key event, no other Fn-keys.
-- I don't get events for "special hot keys" like "silent mode", etc
-  (The Amilo M3438 has 4 hot keys above the Fn-keys)
-
-Things that do work;
-- Power button generate event
-- I get events for AC, CPU and BAT when I add or remove AC-adator
-- As mentioned above Fn-key for sleep button works
-- I can read battery state and battery info. Remaining capacity and voltage
-  seams to be okay. Remaining capacity is like 2 mAh just before the
-  machine dies. Warning and low levels seams to be calculated from
-  "last full capacity", I don't know if that is the way it should be done?
-- Thermal Zone seams to work, get values in the range 31 C - 53 C
-
-My questions are if I have to compile a new DSDT or if I should do 
-something else to correct the problems. And what things should or can ACPI 
-support (like Fn-keys or hot keys, etc)?
-
-I changed the scripts in /etc/acpi to send all unknown events via logger to 
-/var/log/messages
-
-If I remove the AC, I get the following;
-
-ac_adapter AC0 00000080 00000000
-battery BAT0 00000080 00000001
-processor CPU1 00000080 00000006
-
-If I connect the AC, I get;
-
-ac_adapter AC0 00000080 00000001
-battery BAT0 00000080 00000001
-processor CPU1 00000080 00000005
-
-
-<<< The rest of the email is removed >>>
-
+Thanks,
+Shaohua
 
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
