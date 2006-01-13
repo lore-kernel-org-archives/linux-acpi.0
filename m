@@ -1,65 +1,45 @@
-From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Subject: Re: t41, suspend on ram, power consumption
-Date: Fri, 13 Jan 2006 15:21:18 +0100
-Message-ID: <87u0c8xl7l.fsf@gismo.pca.it>
-References: <20060113095634.GA7112@mnementh.homelinux.org>
- <20060113101638.12055.qmail@web81607.mail.mud.yahoo.com>
- <20060113133023.GA6527@mnementh.homelinux.org> <87y81kxlz1.fsf@gismo.pca.it>
- <20060113141232.GA8136@mnementh.homelinux.org>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: Re: git pull on Linux/ACPI release tree
+Date: Fri, 13 Jan 2006 15:50:27 +0100
+Message-ID: <20060113145027.GN29663@stusta.de>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3005A13505@hdsmsx401.amr.corp.intel.com> <Pine.LNX.4.64.0601081111190.3169@g5.osdl.org> <20060108230611.GP3774@stusta.de> <Pine.LNX.4.64.0601081909250.3169@g5.osdl.org> <20060110201909.GB3911@stusta.de> <20060112013706.GA3339@kroah.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg=pgp-sha1; boundary="=-=-="
-Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <20060113141232.GA8136-zdned+2MO19t+tyI2NedBz+iFHGzDt/a@public.gmane.org>
-Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <git-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20060112013706.GA3339@kroah.com>
+Sender: git-owner@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Linus Torvalds <torvalds@osdl.org>, "Brown, Len" <len.brown@intel.com>, "David S. Miller" <davem@davemloft.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@osdl.org, git@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Wed, Jan 11, 2006 at 05:37:06PM -0800, Greg KH wrote:
+> On Tue, Jan 10, 2006 at 09:19:09PM +0100, Adrian Bunk wrote:
+> > 
+> > I am using the workaround of carrying the patches in a mail folder, 
+> > applying them in a batch, and not pulling from your tree between 
+> > applying a batch of patches and you pulling from my tree.
+> 
+> Ick, I'd strongly recommend using quilt for this.  It works great for
+> just this kind of workflow.
 
---=-=-=
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+It works in my case because I'm only going through the folder with the 
+trivial patches in batches and ask Linus to pull from my tree 
+immediately after I'm finished.
 
-Hello!
+That would certainly not be a recommended practice for a subsystem 
+maintainer, but I'm handling only trivial patches.
 
-On Fri, 13 Jan 2006 15:12:32 +0100, Fr=C3=A9d=C3=A9ric Gobry wrote:
->>           1 http://debian.fastweb.it experimental/main Packages
->
-> aha ! that's why my own apt-cache search returned nothing :-)
+> thanks,
+> 
+> greg k-h
 
-And that's why I put that line ;-)
+cu
+Adrian
 
->> FWIW, I've a T42p with a vanilla 2.6.15: suspend-to-ram and
->> suspend-to-disk works out of the box, with all the drivers enabled
->> (included ipw2100, radeonfb and Xorg radeon without DRI), even with
->> multiple repeated cycles.
->
-> vanilla 2.6.15 means "debian-vanilla" or vanilla from kernel.org ?
+-- 
 
-"vanilla" =3D "kernel.org".  The kernel is the only thing I compile by
-myself.
-
-> I use the radeon and dri modules, maybe I should try your setup. I'd
-> be sad to give up dri, though.
-
-I suggest to try without DRI and from the console.  Then in a console
-and so on.  A lot were my tests...
-
-Thx, bye,
-Gismo / Luca
-
---=-=-=
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQBDx7dhVAp7Xm10JmkRAkxKAJ9hVtJPxTB9Gx3K5Y7J46rxFNqiFQCfVD1B
-pe2MLCUsdWJ0438q4+IVrjE=
-=HeEa
------END PGP SIGNATURE-----
---=-=-=--
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
