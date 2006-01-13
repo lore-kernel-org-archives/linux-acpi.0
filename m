@@ -1,127 +1,65 @@
-From: =?iso-8859-1?Q?Fr=E9d=E9ric?= Gobry <frederic.gobry-p8DiymsW2f8@public.gmane.org>
-Subject: t41, suspend on ram, power consumption
-Date: Fri, 13 Jan 2006 10:56:34 +0100
-Message-ID: <20060113095634.GA7112@mnementh.homelinux.org>
+From: <foo_bar_baz_boo-acpi-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Re: t41, suspend on ram, power consumption
+Date: Fri, 13 Jan 2006 02:16:38 -0800 (PST)
+Message-ID: <20060113101638.12055.qmail@web81607.mail.mud.yahoo.com>
+References: <20060113095634.GA7112@mnementh.homelinux.org>
+Reply-To: foo_bar_baz_boo-acpi-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20060113095634.GA7112-zdned+2MO19t+tyI2NedBz+iFHGzDt/a@public.gmane.org>
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?ISO-8859-1?Q?=20=22Fr=E9d=E9ric=22?= Gobry <frederic.gobry-p8DiymsW2f8@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+--- Fr=E9d=E9ric Gobry <frederic.gobry-p8DiymsW2f8@public.gmane.org> wrote:
+> Hi,
+>=20
+> On my Thinkpad T41, I try to use ACPI (Debian unstable, kernel
+> 2.6.15)
+> to suspend the system on RAM. It works quite well (ie, it goes to
+> sleep
+> and resumes properly), but I guess that some hardware parts are not
+> actually stopped properly, as:
+>=20
+>   - the autonomy of the mode is very short (a few hours for a fully
+>     charged battery), whereas I managed to get at least one day of
+>     autonomy when APM used to work.
+>=20
+>   - the laptop gets warm
+>=20
+> Do you have an idea what could cause this behavior, or alternatively
+> how
+> I could start tracking it down myself?
+>=20
+> thanks,
+>=20
+> Fr=E9d=E9ric
 
-On my Thinkpad T41, I try to use ACPI (Debian unstable, kernel 2.6.15)
-to suspend the system on RAM. It works quite well (ie, it goes to sleep
-and resumes properly), but I guess that some hardware parts are not
-actually stopped properly, as:
+I'll take a stab at this.
 
-  - the autonomy of the mode is very short (a few hours for a fully
-    charged battery), whereas I managed to get at least one day of
-    autonomy when APM used to work.
+Please install cpufreqd to control the speed of the CPU. You'll need to
+enable some underlying kernel support, something along the lines of:
+CONFIG_CPU_FREQ and friends.
 
-  - the laptop gets warm
+Additionally, you probably want to consider the suspend2 kernel patch
+series from http://www.suspend2.net/ to allow for reliably shutting the
+system off without losing state and storing memory into your swap
+partition or a file.
 
-Do you have an idea what could cause this behavior, or alternatively ho=
-w
-I could start tracking it down myself?
+You'll probably want to poke around /proc/acpi and such to find out if
+C1, C2, and C3 are getting entered a reasonable amount of time by the
+processor. This might lead to the possibility that one or multiple of
+these states are underused, which could be caused by anything from a
+kernel bug to some kind of problem with your DSDT that prevents one or
+more of these states from being marked as available.
 
-thanks,
+Last thing I can think of, try building a kernel that uses APM (it's
+still available under Power Management as far as I recall) instead of
+ACPI and see how it works for comparison purposes.
 
-=46r=E9d=E9ric
-
-
-Jan 13 10:06:45 mnementh kernel: Stopping tasks: =3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D|
-Jan 13 10:06:45 mnementh kernel: ACPI: PCI interrupt for device 0000:02=
-:02.0 disabled
-Jan 13 10:06:45 mnementh kernel: ACPI: PCI interrupt for device 0000:02=
-:01.0 disabled
-Jan 13 10:06:45 mnementh kernel: ACPI: PCI interrupt for device 0000:02=
-:00.1 disabled
-Jan 13 10:06:45 mnementh kernel: ACPI: PCI interrupt for device 0000:02=
-:00.0 disabled
-Jan 13 10:06:45 mnementh kernel: ACPI: PCI interrupt for device 0000:00=
-:1f.6 disabled
-Jan 13 10:06:45 mnementh kernel: ACPI: PCI interrupt for device 0000:00=
-:1f.5 disabled
-Jan 13 10:06:45 mnementh kernel: ACPI: PCI interrupt for device 0000:00=
-:1d.7 disabled
-Jan 13 10:06:45 mnementh kernel: ACPI: PCI interrupt for device 0000:00=
-:1d.2 disabled
-Jan 13 10:06:45 mnementh kernel: ACPI: PCI interrupt for device 0000:00=
-:1d.1 disabled
-Jan 13 10:06:45 mnementh kernel: ACPI: PCI interrupt for device 0000:00=
-:1d.0 disabled
-Jan 13 10:06:45 mnementh kernel: Intel machine check architecture suppo=
-rted.
-Jan 13 10:06:45 mnementh kernel: Intel machine check reporting enabled =
-on CPU#0.
-Jan 13 10:06:45 mnementh kernel: PCI: Enabling device 0000:00:1d.0 (000=
-0 -> 0001)
-Jan 13 10:06:45 mnementh kernel: ACPI: PCI Interrupt 0000:00:1d.0[A] ->=
- Link [LNKA] -> GSI 11 (level, low) -> IRQ 11
-Jan 13 10:06:45 mnementh kernel: PCI: Enabling device 0000:00:1d.1 (000=
-0 -> 0001)
-Jan 13 10:06:45 mnementh kernel: ACPI: PCI Interrupt 0000:00:1d.1[B] ->=
- Link [LNKD] -> GSI 11 (level, low) -> IRQ 11
-Jan 13 10:06:45 mnementh kernel: PCI: Enabling device 0000:00:1d.2 (000=
-0 -> 0001)
-Jan 13 10:06:45 mnementh kernel: ACPI: PCI Interrupt 0000:00:1d.2[C] ->=
- Link [LNKC] -> GSI 11 (level, low) -> IRQ 11
-Jan 13 10:06:45 mnementh kernel: PCI: Enabling device 0000:00:1d.7 (000=
-0 -> 0002)
-Jan 13 10:06:45 mnementh kernel: ACPI: PCI Interrupt 0000:00:1d.7[D] ->=
- Link [LNKH] -> GSI 11 (level, low) -> IRQ 11
-Jan 13 10:06:45 mnementh kernel: ehci_hcd 0000:00:1d.7: debug port 1
-Jan 13 10:06:45 mnementh kernel: ehci_hcd 0000:00:1d.7: USB 2.0 started=
-, EHCI 1.00, driver 10 Dec 2004
-Jan 13 10:06:45 mnementh kernel: ACPI: PCI Interrupt 0000:00:1f.1[A] ->=
- Link [LNKC] -> GSI 11 (level, low) -> IRQ 11
-Jan 13 10:06:45 mnementh kernel: ACPI: PCI Interrupt 0000:00:1f.5[B] ->=
- Link [LNKB] -> GSI 11 (level, low) -> IRQ 11
-Jan 13 10:06:45 mnementh kernel: ACPI: PCI Interrupt 0000:00:1f.6[B] ->=
- Link [LNKB] -> GSI 11 (level, low) -> IRQ 11
-Jan 13 10:06:45 mnementh kernel: ACPI: PCI Interrupt 0000:01:00.0[A] ->=
- Link [LNKA] -> GSI 11 (level, low) -> IRQ 11
-Jan 13 10:06:45 mnementh kernel: ACPI: PCI Interrupt 0000:02:00.0[A] ->=
- Link [LNKA] -> GSI 11 (level, low) -> IRQ 11
-Jan 13 10:06:45 mnementh kernel: ACPI: PCI Interrupt 0000:02:00.1[B] ->=
- Link [LNKB] -> GSI 11 (level, low) -> IRQ 11
-Jan 13 10:06:45 mnementh kernel: ACPI: PCI Interrupt 0000:02:01.0[A] ->=
- Link [LNKA] -> GSI 11 (level, low) -> IRQ 11
-Jan 13 10:06:45 mnementh kernel: ACPI: PCI Interrupt 0000:02:02.0[A] ->=
- Link [LNKC] -> GSI 11 (level, low) -> IRQ 11
-Jan 13 10:06:45 mnementh kernel: e1000: eth0: e1000_watchdog_task: NIC =
-Link is Up 100 Mbps Full Duplex
-Jan 13 10:06:45 mnementh kernel: Restarting tasks...<3>hub 2-0:1.0: ove=
-r-current change on port 1
-Jan 13 10:06:45 mnementh kernel:  done
-Jan 13 10:06:45 mnementh kernel: agpgart: Found an AGP 2.0 compliant de=
-vice at 0000:00:00.0.
-Jan 13 10:06:45 mnementh kernel: agpgart: Putting AGP V2 device at 0000=
-:00:00.0 into 1x mode
-Jan 13 10:06:45 mnementh kernel: agpgart: Putting AGP V2 device at 0000=
-:01:00.0 into 1x mode
-Jan 13 10:15:26 mnementh kernel: usb 3-1: new full speed USB device usi=
-ng uhci_hcd and address 2
-Jan 13 10:15:26 mnementh kernel: Bluetooth: HCI USB driver ver 2.9
-Jan 13 10:15:26 mnementh kernel: usbcore: registered new driver hci_usb
-Jan 13 10:15:29 mnementh kernel: usb 3-1: USB disconnect, address 2
-
-
- =20
---=20
-=46r=E9d=E9ric Gobry    Infoscience
-                  SISB / EPFL
-                  Tel: +41216932288
-http://people.epfl.ch/frederic.gobry
-
+Good Luck!
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
