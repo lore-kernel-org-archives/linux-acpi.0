@@ -1,67 +1,59 @@
-From: <foo_bar_baz_boo-acpi-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Re: t41, suspend on ram, power consumption
-Date: Fri, 13 Jan 2006 02:16:38 -0800 (PST)
-Message-ID: <20060113101638.12055.qmail@web81607.mail.mud.yahoo.com>
-References: <20060113095634.GA7112@mnementh.homelinux.org>
-Reply-To: foo_bar_baz_boo-acpi-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
+From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Subject: Re: soft lockup detected in acpi_processor_idle() -- false positive?
+Date: Fri, 13 Jan 2006 12:17:04 +0100
+Message-ID: <200601131217.05512.rjw@sisk.pl>
+References: <20060112184305.GA7068@isilmar.linta.de> <200601122054.14128.rjw@sisk.pl> <1137113724.5750.113.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20060113095634.GA7112-zdned+2MO19t+tyI2NedBz+iFHGzDt/a@public.gmane.org>
+In-Reply-To: <1137113724.5750.113.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?ISO-8859-1?Q?=20=22Fr=E9d=E9ric=22?= Gobry <frederic.gobry-p8DiymsW2f8@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
---- Fr=E9d=E9ric Gobry <frederic.gobry-p8DiymsW2f8@public.gmane.org> wrote:
-> Hi,
->=20
-> On my Thinkpad T41, I try to use ACPI (Debian unstable, kernel
-> 2.6.15)
-> to suspend the system on RAM. It works quite well (ie, it goes to
-> sleep
-> and resumes properly), but I guess that some hardware parts are not
-> actually stopped properly, as:
->=20
->   - the autonomy of the mode is very short (a few hours for a fully
->     charged battery), whereas I managed to get at least one day of
->     autonomy when APM used to work.
->=20
->   - the laptop gets warm
->=20
-> Do you have an idea what could cause this behavior, or alternatively
-> how
-> I could start tracking it down myself?
->=20
-> thanks,
->=20
-> Fr=E9d=E9ric
+On Friday, 13 January 2006 01:55, Shaohua Li wrote:
+> On Thu, 2006-01-12 at 20:54 +0100, Rafael J. Wysocki wrote:
+> > On Thursday, 12 January 2006 19:43, Dominik Brodowski wrote:
+> > > Latest git, fresh after resuming from suspend-to-disk (in-kernel variant):
+> > > 
+> > > [4294914.586000] Restarting tasks... done
+> > > [4294922.657000] BUG: soft lockup detected on CPU#0!
+> > > [4294922.657000] 
+> > > [4294922.657000] Pid: 0, comm:              swapper
+> > > [4294922.657000] EIP: 0060:[<f003084c>] CPU: 0
+> > > [4294922.657000] EIP is at acpi_processor_idle+0x1f3/0x2d5 [processor]
+> > > [4294922.657000]  EFLAGS: 00000282    Not tainted  (2.6.15)
+> > > [4294922.657000] EAX: fffff000 EBX: 005543a8 ECX: 00000000 EDX: 00000000
+> > > [4294922.657000] ESI: edcc3064 EDI: edcc2f60 EBP: c041cfdc DS: 007b ES: 007b
+> > > [4294922.657000] CR0: 8005003b CR2: 080c3000 CR3: 2d530000 CR4: 000006d0
+> > > 
+> > > 
+> > > As acpi_processor_idle doesn't take any locks AFAIK, it seems to me to be a
+> > > false positive -- or do I miss something obvious?
+> > 
+> > I think it's a false-positive.
+> > 
+> > This "soft lockup" message has been appearing for me for quite some time now
+> > (actually since the softlockup patch made it into -mm ;-)), in a
+> > non-reproducible manner, but I haven't been able to nail it down.
+> > 
+> > Still, I thought it was x86-64-specific, but your machine is an i386,
+> > so there's more to it, apparently.  Probably there's missing
+> > touch_softlockup_watchdog() somewhere, or the timer .suspend()/.resume()
+> > routines need some additional review.
+> I got some similar reports for S3:
+> http://bugzilla.kernel.org/show_bug.cgi?id=5825
+> I guess x86-64 lacks .suspend/.resume for timer.
 
-I'll take a stab at this.
+No, it doesn't.  They are similar to i386 ones.
 
-Please install cpufreqd to control the speed of the CPU. You'll need to
-enable some underlying kernel support, something along the lines of:
-CONFIG_CPU_FREQ and friends.
-
-Additionally, you probably want to consider the suspend2 kernel patch
-series from http://www.suspend2.net/ to allow for reliably shutting the
-system off without losing state and storing memory into your swap
-partition or a file.
-
-You'll probably want to poke around /proc/acpi and such to find out if
-C1, C2, and C3 are getting entered a reasonable amount of time by the
-processor. This might lead to the possibility that one or multiple of
-these states are underused, which could be caused by anything from a
-kernel bug to some kind of problem with your DSDT that prevents one or
-more of these states from being marked as available.
-
-Last thing I can think of, try building a kernel that uses APM (it's
-still available under Power Management as far as I recall) instead of
-ACPI and see how it works for comparison purposes.
-
-Good Luck!
+Greetings,
+Rafael
 -
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
