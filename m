@@ -1,28 +1,26 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: [RFC] generic acpi hotkey
-Date: Fri, 13 Jan 2006 09:18:38 -0700
-Message-ID: <200601130918.38569.bjorn.helgaas@hp.com>
-References: <200601130949.38988.luming.yu@intel.com>
+From: "John H." <mistamaila-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: compaq 2110us cannot resume from suspend to ram
+Date: Fri, 13 Jan 2006 10:28:30 -0600
+Message-ID: <5b9417770601130828o52ff0e7dvfbb72722ae676f4c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <200601130949.38988.luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yu Luming <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, borislav-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, john-wanGne27zNesTnJN9+BGXg@public.gmane.org, Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>, Timo Hoenig <thoenig-l3A5Bk7waGM@public.gmane.org>
+To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday 12 January 2006 18:49, Yu Luming wrote:
-> 				ACPI hotkey ver.0.03
-> 				Luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-> 				1/13/2005
+Works in XP, but in linux, with fc4 and 2.6.15(has always done this on
+all kernels I've had), when i try to resume from suspend to ram,
+touching either power button or any MM button on top, as soon as I
+touch, it seems for a split second to be resuming, then powers off
+instantly.
 
-Can you add this to the fine collection of ACPI information under
-Documentation/?  And maybe include or somehow reconcile it with
-acpi-hotkey.txt, which is currently unintelligible?
+As pavel said, I posted bug
+http://bugzilla.kernel.org/show_bug.cgi?id=5884
+
+please advise, thanks!
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
