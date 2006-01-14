@@ -1,73 +1,127 @@
-From: "John H." <mistamaila-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [Acpi4asus-user] Asus S5000: Problems with Suspend-to-RAM
-Date: Sat, 14 Jan 2006 17:28:15 -0600
-Message-ID: <5b9417770601141528h77410d57g9c9b6dbcbb2df72f@mail.gmail.com>
-References: <200601142257.46188.jani-matti.hatinen@iki.fi>
-	 <20060114230647.GA12613@hell.org.pl>
+From: Keith Owens <kaos-sJ/iWh9BUns@public.gmane.org>
+Subject: Re: [PATCH] SN: Add initial ACPI support
+Date: Sun, 15 Jan 2006 10:42:42 +1100
+Message-ID: <28961.1137282162@ocs3.ocs.com.au>
+References: <20060114173747.12715.63396.sendpatchset@attica.americas.sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20060114230647.GA12613-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Content-Disposition: inline
+In-reply-to: Your message of "Sat, 14 Jan 2006 11:37:47 MDT."
+             <20060114173747.12715.63396.sendpatchset-iV7pWHqs0A8TG1waqwXmH7Cf4lofQVJ7@public.gmane.org>
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?ISO-8859-1?Q?Jani-Matti_H=E4tinen?= <jani-matti.hatinen-X3B1VOXEql0@public.gmane.org>, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: John Keller <jpk-sJ/iWh9BUns@public.gmane.org>
+Cc: linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-i THINK that may be what is happening on my compaq 2110us as well, but
-i am not sure?
-when i try to resume from echo mem > /sys/power/state by hitting an
-acpi button, it seems for a split second it is resuming, but then
-powers off instantly.
+John Keller (on Sat, 14 Jan 2006 11:37:47 -0600 (CST)) wrote:
+>First phase in introducing ACPI support to SN.
 
-fc4
-acpid-1.0.4-1
+>Index: acpi_support/arch/ia64/sn/kernel/io_init.c
+>===================================================================
+>--- acpi_support.orig/arch/ia64/sn/kernel/io_init.c	2006-01-14 09:26:29.761674100 -0600
+>+++ acpi_support/arch/ia64/sn/kernel/io_init.c	2006-01-14 09:45:06.418505048 -0600
 
+>+#define SN_ACPI_BASE_SUPPORT (acpi_gbl_DSDT->oem_revision >= 0x20101)
 
+These mini tests are conventionally defined as pseudo functions, i.e.
+#define SN_ACPI_BASE_SUPPORT() ...
 
-On 1/14/06, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org> wrote:
-> Thus wrote Jani-Matti H=E4tinen:
-> > I have an Asus S5000 laptop and I have some problems with Suspend-t=
-o-RAM on
-> > it.
-> >   The laptop goes into suspend just fine, but on resume it immediat=
-ely
-> > switches to runlevel 0 and goes down.
->
-> You're getting spurious power button events, and since your acpid is
-> configured to shut the system down on power button press, that's exac=
-tly
-> what happens. Turn off acpid and try again or work it around in your
-> scripts.
->
-> BTW: This bug has been present since at least 2.5.7x, reported a coup=
-le of
-> times, even tracked (http://bugme.osdl.org/show_bug.cgi?id=3D3525 is =
-the only
-> one I can find now, but I'm sure there are more). In spite of that, i=
-t
-> occurs on every single machine I tested for S3. And contrary to what =
-the
-> comments on #3525 say, it's definitely not a userspace issue, because=
- the
-> power button event is sent *regardless* what triggered the wake-up, b=
-e it a
-> keypress, lid event, one of the ACPI-controlled buttons or RTC alarm.
->
-> Should I just reopen #3525 (it says Toshiba?) or file a new one?
-> Best regards,
->
-> --
-> Karol 'sziwan' Kozimor
-> sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+>+static void __init sn_acpi_setup(void);
+
+Forward declarations do not include __init/__exit etc.  I know that the
+kernel has several examples of this, but they are wrong.
+
+> static struct list_head sn_sysdata_list;
+> 
+>@@ -157,26 +162,96 @@
+
+Patches look nicer with function names in the '@@' line.
+export QUILT_DIFF_OPTS=-p in ~/.bashrc.
+
+>+inline uint64_t
+>+sal_ioif_init(void)
+
+Make that static with no inline, let gcc decide if it should be inlined
+or not.
+
+>+	struct ia64_sal_retval ret_stuff;
+>+	ret_stuff.status = 0;
+>+	ret_stuff.v0 = 0;
+>+
+>+	SAL_CALL_NOLOCK(ret_stuff,
+>+			(u64) SN_SAL_IOIF_INIT,
+>+			0, 0, 0, 0, 0, 0, 0);
+
+Is that really meant to be a NOLOCK call?  Can SAL cope with another
+SAL call being executed at the same time as SN_SAL_IOIF_INIT?
+
++static void __init
++sn_hubdev_init(struct hubdev_info *hubdev)
++{
++
++	struct sn_flush_device_list *sn_flush_device_list;
+
+sn_flush_device_list no longer exists.  Prarit Bhargava changed it in
+https://www.redhat.com/archives/fedora-devel-list/2006-January/msg00123.html
+and that patch is now in the IA64 git tree.
+
+>+	if (!hubdev->hdi_flush_nasid_list.widget_p)
+>+		return;
+>+
+>+	hubdev->hdi_flush_nasid_list.widget_p =
+>+	    kmalloc((HUB_WIDGET_ID_MAX + 1) *
+>+		    sizeof(struct sn_flush_device_list *), GFP_KERNEL);
+
+Overwriting hubdev->hdi_flush_nasid_list.widget_p only if it is already
+set does not look right.  Should the test be this?
+
+	if (hubdev->hdi_flush_nasid_list.widget_p)
+		return;
+
+>+	memset(hubdev->hdi_flush_nasid_list.widget_p, 0x0,
+>+	       (HUB_WIDGET_ID_MAX + 1) *
+>+	       sizeof(struct sn_flush_device_list *));
+
+You memset hubdev->hdi_flush_nasid_list.widget_p without testing if
+kmalloc succeeded :(.
+
+BTW, replace all occurrences of kmalloc + memset with kzalloc.
+
+>+	for (widget = 0; widget <= HUB_WIDGET_ID_MAX; widget++) {
+>+		sn_flush_device_list = kmalloc(DEV_PER_WIDGET *
+>+					       sizeof(struct
+>+						      sn_flush_device_list),
+>+					       GFP_KERNEL);
+>+		memset(sn_flush_device_list, 0x0,
+>+		       DEV_PER_WIDGET *
+>+		       sizeof(struct sn_flush_device_list));
+
+Missing test if kmalloc succeeded.
+
+>+		status = sal_get_widget_dmaflush_list(hubdev->hdi_nasid, widget,
+>+						 (uint64_t)
+>+						 __pa (sn_flush_device_list));
+>+		if (status) {
+>+			kfree(sn_flush_device_list);
+>+			return;
+>+		}
+>+
+>+		spin_lock_init(&sn_flush_device_list->sfdl_flush_lock);
+
+The spinlock was moved out of sn_flush_device_list to its own
+structure, so the prom is not exposed to changes in the size of kernel
+structures.  You need to (a) change sn_flush_device_list to
+sn_flush_device_common and (b) allocate the related
+sn_flush_device_kernel and format it.
+
+At this point the patch does not make any sense.  It only applies over
+the top of Prarit's patch (i.e. against a recent ia64 git tree), but
+you are deleting all the sn_flush_device_kernel code that Prarit
+recently added and appear to be going back to the old
+sn_flush_device_list code that Prarit removed because it broke the
+prom.
+
 -
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
