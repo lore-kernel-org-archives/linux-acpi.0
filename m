@@ -1,108 +1,69 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Strange interpreter behaviour
-Date: Mon, 16 Jan 2006 18:19:32 +0100
-Message-ID: <20060116171932.GF25115@poupinou.org>
-References: <43BFF7DE.1000909@tzi.de>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] acpi: remove function tracing macros
+Date: Mon, 16 Jan 2006 13:14:54 -0500
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3005B835E4@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <43BFF7DE.1000909-cGBD8117FJM@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pekka Enberg <penberg-bbCR+/B0CizivPeTLB3BmA@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Jan 07, 2006 at 06:18:22PM +0100, Janosch Machowinski wrote:
-> Hey,
-> I got an ASUS M6, which contains some strange _CST related ASL code.
-> In the _CST method there is a check, if \_SB.INV7 is set :
->                 If (\_SB.INV7)
->                 {
->                     Return (NOC3)
->                 }
-> This seems to always return true. There is also the method \_GPE:_L17 
-> which just inverts \_SB.INV7 and sends a signal to refetch the CST Object :
->           Method (_L17, 0, NotSerialized)
->         {
->             If (\_SB.INV7)
->             {
->                 Store (0x00, \_SB.INV7)
->             }
->             Else
->             {
->                 Store (0x01, \_SB.INV7)
->             }
-> 
->             Notify (\_PR.CPU1, 0x81)
->         }
-> 
-> Now I called the _L17 method manually :
-> echo "0:\\_GPE:_L17:\\_GPE:_L17:10001:1" > /proc/acpi/hotkey/poll_config
-> echo "10001:0:1:0" > /proc/acpi/hotkey/action
-> 
-> What I noticed is that every time I call the action, my C-State usage 
-> counter gets reset to zero. From that behaviour I would follow, that the 
-> L17 method was executed and the CST Object was refetched. So there seems 
-> to be an error in setting the \_SB.INV7 bit/register/whatever. (I assume 
-> 0 is false an 1 is true in ASL if-clauses ?)
 
-Sound like \_SB.INV7 is a bit into a GPIO.
-More, the associated OR is defined like that:
-	OperationRegion (GPIO, SystemIO, IO2B, 0x40) 
+>From: Pekka Enberg <penberg-bbCR+/B0CizivPeTLB3BmA@public.gmane.org>
+>
+>This patch removes function tracing macro usage from drivers/acpi/. In
+>particular, ACPI_FUNCTION_TRACE are ACPI_FUNCTION_NAME removed 
+>completely and return_VALUE, return_PTR, and return_ACPI_STATUS
+>are converted with proper use of return.
+>
+>I have not included the actual patch in this mail because it 
+>is 600 KB in size. You can find the patch here:
+>
+>http://www.cs.helsinki.fi/u/penberg/linux/acpi-remove-function-tracing-macros.patch
+>
+>Signed-off-by: Pekka Enberg <penberg-bbCR+/B0CizivPeTLB3BmA@public.gmane.org>
 
-Note that IO2B is given here:
-    OperationRegion (BIOS, SystemMemory, 0x1FF50064, 0xFF)
-    Field (BIOS, ByteAcc, NoLock, Preserve)
-    {
-        SS1,    1,
-        SS2,    1,
-        SS3,    1,
-        SS4,    1,
-        Offset (0x01),
-        IOST,   16,
-        SPIO,   16,
-        PMBS,   16,
-        PMLN,   8,
-        SMBS,   16,
-        SMLN,   8,
-        IO1B,   16,
-        IO1L,   8,
-        IO2B,   16,
-        IO2L,   8,
-        TOPM,   32,
-        ROMS,   32,
+I'm sorry, I can't apply this source clean-up patch.
 
-Therefore one think to check is that IO2B is set correctly to point to
-the GPIO's, then look if the GPIO is configured as a GPO (not as a GPI).
+We need tracing to debug interpreter failures on hardware
+in the field.
 
-For checking if IO2B is correct:
-sudo dd if=/dev/mem bs=1c skip=536150130 count=2 | hexdump
+And there is more to the long story, which I'll try to makes short here.
 
-./acpixtract FACP < acpidump.out | ./acpitbl
+Linux shares the same dual-licensed ACPICA core interpreter with FreeBSD
+Apple etc. -- indeed every ACPI-enabled OS other than Windows.
+Linux gets a huge benefit from doing so.
+In Linux, ACPICA refers to almost all the files under drivers/acpi/*.
+(maybe I should re-arrange the source tree to make this more clear)
 
-where acpidump.txt is the output from ./acpidump.  I assume you know
-what I'm talking about reading the bugzilla report, or else do something
-like that:
+When we make GPL changes to those files, we diverge
+from the rest of the universe and the overloaded
+Linux/ACPI maintainer (me) starts to lose his sanity.
+That said, if the author of the patch re-licenses it back
+to Intel so it can be distributed under eitiher GPL or BSD,
+then Intel can apply a change "up-stream" and divergence
+can be avoided.  But per above, that isn't the primary
+issue with ripping out tracing.
 
-wget ftp://ftp.kernel.org//pub/linux/kernel/people/lenb/acpi/utils/pmtools-20050926.tar.bz2
-tar xjvfp pmtools-20050926.tar.bz2
-cd pmtools
-make
-cd acpidump
-sudo ./acpidmp > acpidmp.out
+Note that tracing is built in only for CONFIG_ACPI_DEBUG.
 
-I think the value given by the 'sudo dd' above should correspond to the
-GPE0_BLK: field from the ./acpitbl above.
+Note that Patrick has an upcoming patch set that removes
+tracing from the "pure GPL" drivers in drivers/acpi/*.c
+where it isn't really needed.
 
-For checking if the register where the INV7 is defined is configured as
-a GPO, well I have to know the ouput from 'lspci -v -xxx -s"the southbridge"'
+Note that ACPICA 20060113 includes an additional patch
+suggested by SuSE to split up CONFIG_ACPI_DEBUG
+so that the tracing can be left out and the warnings
+included.
 
--- 
-Bruno Ducrot
+thank you for your understanding.
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+-Len
+
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
