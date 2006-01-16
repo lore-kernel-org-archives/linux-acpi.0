@@ -1,111 +1,71 @@
-From: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
-Subject: Re: Strange interpreter behaviour
-Date: Mon, 16 Jan 2006 20:22:49 +0100
-Message-ID: <43CBF289.60401@tzi.de>
-References: <3ACA40606221794F80A5670F0AF15F840AB2770B@pdsmsx403>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] acpi: remove function tracing macros
+Date: Mon, 16 Jan 2006 15:01:46 -0500
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3005B8388F@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F840AB2770B@pdsmsx403>
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pekka Enberg <penberg-bbCR+/B0CizivPeTLB3BmA@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Yu, Luming wrote:
->>Sorry, seems I missed the main plot ;-)
->>In case \_SB.INV7 is 0, the _CST method returns a CST object with a C3 
->>and C4 State. If it is 1 I only get the "NOC3" (see above) CST object.
->>I can call the _L17 method as often as I want and it seems I 
->>allways get 
->>a clean fresh CST with only C1 and C2. That's why I assume that 
->>something with setting the \_SB.INV7 register is not right. I 
->>mentioned 
->>this a while ago in a bug : 
->>http://bugzilla.kernel.org/show_bug.cgi?id=4485
-> 
-> 
-> Not sure, but I think you need to do further investigation.
-> Are you sure _CST always exits with Return (NOC3).
-> 
-> ACST contains C3 state?
-> 
-Yep, ACST and BCST definitely contain one or more C3 states :
-                 Name (ACST, Package (0x03)
-                 {
-                     0x02,
-                     Package (0x04)
-                     {
-                         ResourceTemplate ()
-                         {
-                             Register (SystemIO, 0x08, 0x00, 
-0x00000000000005FF)
-                         },
+ 
+>I appreciate that but per-function tracing is overkill.
 
-                         0x02,
-                         0x01,
-                         0x03E8
-                     },
+I agree that 100% function coverage is overkill.
+However, 100% is preferable to 0%.
+The most desirable middle-ground will take some work
+on the part of the folks that actually use the tracing.
 
-                     Package (0x04)
-                     {
-                         ResourceTemplate ()
-                         {
-                             Register (SystemIO, 0x08, 0x00, 
-0x0000000000000415)
-                         },
+>Especially since
+>the macros used for it are very obfuscating (i.e. return_VALUE, et al)
+>and we have things like kprobes.
 
-                         0x03,
-                         0x01,
-                         0x01F4
-                     }
-                 })
+Everybody agreees with you about the return_VALUE syntax.
+The other irritating thing about this instrumentation is
+that the function trace header looks like a call, but
+is actually a declaration -- so sometimes DEBUG builds
+break when executable code is put before it.  The fortunate
+thing is that a relatively small group of people make
+changes to the ACPI sub-system and this is one of the
+things they learn about quickly:-)
 
+If kprobes can give us the same functionality,
+I'll be delighted if somebody can show me how.
 
-                  Name (BCST, Package (0x04)
-                 {
-                     0x03,
-                     Package (0x04)
-                     {
-                         ResourceTemplate ()
-                         {
-                             Register (SystemIO, 0x08, 0x00, 
-0x00000000000005FF)
-                         },
+>On Mon, 2006-01-16 at 13:14 -0500, Brown, Len wrote:
+>> When we make GPL changes to those files, we diverge
+>> from the rest of the universe and the overloaded
+>> Linux/ACPI maintainer (me) starts to lose his sanity.
+>> That said, if the author of the patch re-licenses it back
+>> to Intel so it can be distributed under eitiher GPL or BSD,
+>> then Intel can apply a change "up-stream" and divergence
+>> can be avoided.  But per above, that isn't the primary
+>> issue with ripping out tracing.
+>> 
+>> Note that tracing is built in only for CONFIG_ACPI_DEBUG.
+>
+>My main concern is that the ACPI subsystem uses obfuscating macros to
+>implement function tracing in the kernel. Please note that we do not
+>allow this in new code and there are janitor such as myself that are
+>working to remove the existing ones.
+>
+>While I have no intention of making your life as Linux maintainer
+>harder, I would appreciate if you would at least consider ripping out
+>function tracing from upstream. I am certainly willing to relicense or
+>even transfer copyrights of the patch if that's what you need.
 
-                         0x02,
-                         0x01,
-                         0x03E8
-                     },
+I share your concern about source code style.
+Note that as I mentioned, we've got some changes in the pipeline
+to clean up drivers/acpi/*.c already.
+Changing this in the upstream interpreter in drivers/acpi/*/
+will be harder and will take longer.
 
-                     Package (0x04)
-                     {
-                         ResourceTemplate ()
-                         {
-                             Register (SystemIO, 0x08, 0x00, 
-0x0000000000000415)
-                         },
-
-                         0x03,
-                         0x01,
-                         0x01F4
-                     },
-
-                     Package (0x04)
-                     {
-                         ResourceTemplate ()
-                         {
-                             Register (SystemIO, 0x08, 0x00, 
-0x0000000000000416)
-                         },
-
-                         0x04,
-                         0x02,
-                         0xFA
-                     }
-                 })
-
+thanks,
+-Len
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
