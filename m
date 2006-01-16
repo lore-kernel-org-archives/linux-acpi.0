@@ -1,38 +1,36 @@
-From: Jes Sorensen <jes@trained-monkey.org>
-Subject: Re: [PATCH] RESEND - SN: Add initial ACPI support
-Date: 16 Jan 2006 03:21:01 -0500
-Message-ID: <yq01wz8vb0y.fsf@jaguar.mkp.net>
-References: <20060115182308.22089.1201.sendpatchset@attica.americas.sgi.com>
+From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: lid
+Date: Mon, 16 Jan 2006 10:35:23 +0100
+Message-ID: <43CB68DB.2000105@suse.de>
+References: <43C93E89.4000908@xover.htu.tuwien.ac.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <20060115182308.22089.1201.sendpatchset@attica.americas.sgi.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: John Keller <jpk@sgi.com>
-Cc: linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <43C93E89.4000908-xHt1aDgCSJ+En27Z3eobquNwNpCqAOSQ@public.gmane.org>
+Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Fabian Zeindl <fabian-xHt1aDgCSJ+En27Z3eobquNwNpCqAOSQ@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->>>>> "John" == John Keller <jpk@sgi.com> writes:
+Fabian Zeindl wrote:
+> Hi
+> 
+>  When my laptop is started and my laptop lid is open,
+> /proc/acpi/button/lid/LID/state says "closed". When I close it once and
+> open it again once the value is set correctly. This is very annoying
+> cause my screensaver always invokes on startup.
+> 
+> I have an Acer Travelmate 243LC.
+> 
+I saw another report like that recently?
+Better you open a bug on buzilla.kernel.org.
+Also attach full dmesg (with button module loaded) and acpidmp there.
+Please add me to CC.
 
-John> Please disregard the earlier (01/14) post of this patch.  I
-John> erroneously sent out an early version, which was not fully
-John> merged with the latest ia64 git tree.
+     Thomas
 
-Hi John,
-
-Looks much better. On top of Prarit's comments I just noticed this
-one:
-
-+	if (!hubdev->hdi_flush_nasid_list.widget_p)
-+		return;
-+
-+	hubdev->hdi_flush_nasid_list.widget_p =
-+		kzalloc((HUB_WIDGET_ID_MAX + 1) *
-+		    sizeof(struct sn_flush_device_kernel *),
-+		    GFP_KERNEL);
-
-This doesn't look right, if widget_p is NULL no alloc ortherwise
-overwrite it? Did the order get reversed?
-
-Cheers,
-Jes
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
