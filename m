@@ -1,62 +1,32 @@
-From: Oliver Eichler <oliver.eichler-5W6aQA0Q0dJqZL4Zj8yd/A@public.gmane.org>
-Subject: Re: Shutdown without poweroff (notebook)
-Date: Tue, 17 Jan 2006 16:58:24 +0100
-Message-ID: <200601171658.25027.oliver.eichler@dspsolutions.de>
-References: <200601171121.49406.oliver.eichler@dspsolutions.de> <20060117151411.GA20512@localhost.localdomain>
-Reply-To: oliver.eichler-5W6aQA0Q0dJqZL4Zj8yd/A@public.gmane.org
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] fix pnpacpi regression resulting from ACPICA 20051117
+Date: Tue, 17 Jan 2006 11:09:13 -0800
+Message-ID: <971FCB6690CD0E4898387DBF7552B90E040A4DA8@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20060117151411.GA20512-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, 17. January 2006 16:14, Sebastian Henschel wrote:
-> hello Oliver=E1=B9=A1.
->
-> * Oliver Eichler <oliver.eichler-5W6aQA0Q0dJqZL4Zj8yd/A@public.gmane.org> [2006-01-17 14:50 +=
-0100]:
-> > My system:
-> > Acer 5024 notebook
-> > SuSE 10.0
-> >
-> > My problem:
-> > The notebook will not poweroff at shutdown.
-> >
-> > I guess there is something wrong with ACPI. However I have no clue =
-where
-> > to start looking. Can anyone give me a hand on troubleshouting?
->
-> take a look at http://tuxmobil.org/acer.html
-> there are three reports listed about your machine. no SuSe, though.
->
+>  		default:
+>  			pnp_warn("PnPACPI: unknown resource type %d",
+res-
+> >type);
+>  			return AE_ERROR;
 
-Yes, I know these. But no one seems to have problems with the power but=
-ton. I=20
-couldn't googel any other complain about the power button for this note=
-book.=20
-I could find several power off complains for other devices, but their=20
-solutions didn't work for me. That's why I ended up here as the last=20
-resort :).
+> >I agree; pnpacpi should just ignore tags it doesn't understand.
+
+Doesn't this code still bomb out on resource types it doesn't know
+about?
 
 
-Oliver
-
-> hth,
->  Sebastian
-
---=20
-Ingenieure Kellermann, Voigt, Hoepfl, Eichler und Weidner, Partnerschaf=
-t=20
-
-DSP Solutions                                 http://www.dspsolutions.d=
-e
 
 -
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
