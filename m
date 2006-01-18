@@ -1,79 +1,85 @@
-From: Kristen Accardi <kristen.c.accardi@intel.com>
-Subject: [patch 0/4]  Hot Dock/Undock support
-Date: Tue, 17 Jan 2006 16:56:53 -0800
-Message-ID: <1137545813.19858.45.camel@whizzy>
+From: Hanno Mueller <sockpuppet@hanno.de>
+Subject: How to get /proc/acpi/alarm to work
+Date: Wed, 18 Jan 2006 02:42:54 +0100
+Message-ID: <43CD9D1E.6010205@hanno.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932471AbWARAz2@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: greg@kroah.com, pcihpd-discuss@lists.sourceforge.net, len.brown@intel.com, linux-acpi@vger.kernel.org, pavel@ucw.cz
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from p-dns.epublica.de ([213.238.59.9]:12235 "EHLO
+	kermit.epublica.de") by vger.kernel.org with ESMTP id S1751288AbWARBm7
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Jan 2006 20:42:59 -0500
+Received: from p548e9abd.dip0.t-ipconnect.de ([84.142.154.189] helo=[192.168.178.20])
+	by kermit.epublica.de with esmtp (Exim 3.36 #2 (Debian))
+	id 1Ez2Le-0000ri-00
+	for <linux-acpi@vger.kernel.org>; Wed, 18 Jan 2006 02:42:54 +0100
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-This series of patches is against the -mm kernel, and will enable
-docking station support.  It is an early patch, but still pretty 
-functional, so I think it's worthwhile to include at this point.
-For some laptops, it's necessary to use the pci=assign-busses kernel 
-parameter, because some _DCK methods will attempt to assign bus numbers
-to the dock bridge (incorrectly).
+Hello,
 
-Supported Features:
-* Hot Dock/Undock via hardware control
-* Enumeration of PCI Devices on Dock Station (Hot Add/Remove) via pci 
 
-Not Supported Yet (but will be with laptops with sane dsdts):
-* _EJD, _EDL support for devices that aren't enumerable
-* hot add of devices other than PCI devices (such as the serial/lpt etc).
-* More thorough testing needs to be done for everything, but especially
-  video, as I've not even begun to worry about that.
+Linux: 2.6.15.1 vanilla
+Mainboard: ASRock P4V88+, revision 1.00
+BIOS: Updated to 1.6 (latest release from manufacturer's site)
 
-All docking events are handled by the acpiphp driver.  For docking,
-the acpiphp driver will call the _DCK acpi method, and then insert
-the docking bridge and all the pci devices behind the dock bridge.
-This is in conflict with some acpi platform drivers (ibm_acpi) that already
-attempt to implement a limited form of docking support only for that platform.
-You may not use both drivers at the same time right now.  This is a generic
-docking solution that should work for all docking stations, not just IBM,
-although I tested it on an IBM docking station exclusively, because that's
-all I've got right now. 
 
-Right now devices that are not on enumerable buses (or on the PCI bus at all) 
-will not be discovered by acpiphp.  Your mileage will vary on any devices 
-other than PCI.  This is because in many cases, there are extra hardware 
-configuration steps that need to occur after the _DCK method (because they 
-really should have been done in the _DCK method but were not).  Even with PCI 
-devices, you may find that some things don't work properly, because there 
-was some extra configuration step that needed to occur that didn't get done 
-as part of _DCK.  For example, included in this patch series is a quirk for the
-IBM Dock Station II, which seemed to need the cardbus controller interrupts
-tied together, but this didn't get done with any of the laptops I tested
-with.  I've not yet been able to determine what needs to be done to the 
-USB controller on the T30 or T41 to make it discover the USB hub on the
-docking station, although this works fine on the T20, and also I hear on
-the T42, although I've not tested the T42 myself.  
+My mainboard's BIOS allows to set an RTC wakeup time and day (not month
+or year) in its ACPI settings.
 
-You may also find that as soon as you call _DCK, everything is
-broken.  For example, on the T30 laptop I tested, the _DCK method would set
-the dock bridge's parent secondary bus number to zero, even if it should
-have been something other than zero.  This specific case is handled in
-the acpiphp driver in the post_dock_fixups() routine, but this may need to
-be changed for the future if it starts to get out of hand. 
+This will wakeup the system from the S5 state.
 
-There is a workaround right now in this patch for a problem with acpi, where
-the acpi thread that notifies acpiphp of the dock event will deadlock while
-executing the _DCK method.  I've managed to avoid trying to solve this 
-problem for now by spawning a separate thread to handle the _DCK, but 
-eventually this will be addressed when I'm brave enough. 
 
-Please comment on these patches, and test if you have a docking station
-available.  When you find problems, if you would like me to debug them,
-please load the acpiphp driver with the debug param (modprobe acpiphp debug=1),
-and send me the output of dmesg -s 100000 as well as lspci -vv -x -n with
-the laptop booted in the station, and then the output after booting out
-of the station and attempting to dock, as well as a copy of your disassembled
-dsdt.  Make sure you have PCI debugging enabled, and debugging enabled for
-whatever device you are having issues with.  This should be a good starting 
-point.
+Problem: It is not possible to set this value through /proc/acpi/alarm.
 
-Kristen
+
+It's possible to write valid value to /proc/acpi/alarm and to retrieve
+it [1]:
+
+# echo "2006-01-18 03:00:00" > /proc/acpi/alarm
+# cat /proc/acpi/alarm
+2006-01-18 03:00:00
+
+After a reboot the stored value is broken [2]:
+
+# cat /proc/acpi/alarm
+2006-00-00 03:00:00
+
+The alarm time does not wake up the system. It doesn't wake up at
+03:00:00 BIOS time, not today, not tomorrow, not on 2006-01-18.
+
+Also, the alarm time does not show up in the BIOS's ACPI settings.
+There, one can still find the old values that where entered several
+boots ago.
+
+
+Since the mainboard explicitely lists this function in its ACPI
+settings, I guess that the Linux kernel somehow doesn't handle my
+mainboard right.
+
+I'm aware that there are many broken ACPI implementations on mainboards
+out there. Is there any way I can find out how to fix this issue? Is
+there a debugging guide for this? [3]
+
+
+Thanks,
+
+Hanno
+
+
+
+[1] Yes, when I tried this, it was a date and time in the future. I read
+somewhere that a past or invalid date will turn off the alarm time setting.
+
+[2] I read in a forum that calling /sbin/hwclock can mess with the alarm
+value. When I tried the things above, I removed the /sbin/hwclock calls
+from my system's init.d-scripts, but that didn't help.
+
+[3] The same mainboard does not work with nvram-wakeup, which is a
+popular older program used by many Linux vdr/pvr setups. nvram-wakeup
+uses /dev/nvram to store the wakeup time directly in the NVRAM section.
+Ugly, but it works with two other (older) mainboards I tried. On my
+current mainboard, however, the alarm timer bytes do not appear to be
+accessible through NVRAM.
