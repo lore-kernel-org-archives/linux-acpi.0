@@ -1,42 +1,51 @@
-From: Thomas Renninger <acpi@renninger.de>
-Subject: Re: Shutdown without poweroff (notebook)
-Date: Wed, 18 Jan 2006 13:19:34 +0100
-Message-ID: <43CE3256.3050200@renninger.de>
-References: <200601171121.49406.oliver.eichler@dspsolutions.de>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [patch 0/4]  Hot Dock/Undock support
+Date: Wed, 18 Jan 2006 14:04:44 +0100
+Message-ID: <20060118130444.GA1518@elf.ucw.cz>
+References: <1137545813.19858.45.camel@whizzy>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:50154 "EHLO mx2.suse.de")
-	by vger.kernel.org with ESMTP id S1030301AbWARMTi (ORCPT
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:6627 "EHLO amd.ucw.cz")
+	by vger.kernel.org with ESMTP id S932523AbWARNE4 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Jan 2006 07:19:38 -0500
-In-Reply-To: <200601171121.49406.oliver.eichler@dspsolutions.de>
+	Wed, 18 Jan 2006 08:04:56 -0500
+Content-Disposition: inline
+In-Reply-To: <1137545813.19858.45.camel@whizzy>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: oliver.eichler@dspsolutions.de
-Cc: linux-acpi@vger.kernel.org
+To: Kristen Accardi <kristen.c.accardi@intel.com>
+Cc: linux-kernel@vger.kernel.org, greg@kroah.com, pcihpd-discuss@lists.sourceforge.net, len.brown@intel.com, linux-acpi@vger.kernel.org
 
-Oliver Eichler wrote:
-> Hi,
-> 
-> My system:
-> Acer 5024 notebook
-> SuSE 10.0
-> 
-> My problem:
-> The notebook will not poweroff at shutdown.
-> 
-> I guess there is something wrong with ACPI. However I have no clue where to 
-> start looking. Can anyone give me a hand on troubleshouting?
-> 
-Ndiswrapper should be unrelated (just try without loading the module and you'll know).
-I got reports for an ACER Ferrari.
-Some reported that uncommenting the gfxmenu entry in /boot/grub/menu.lst helped.
-For some others it will reveal another problem then: shutdown is doing a reboot one time...
-Also see:
-https://bugzilla.novell.com/show_bug.cgi?id=141238
+Hi!
 
-Good luck,
+> This series of patches is against the -mm kernel, and will enable
+> docking station support.  It is an early patch, but still pretty 
+> functional, so I think it's worthwhile to include at this point.
+> For some laptops, it's necessary to use the pci=assign-busses kernel 
+> parameter, because some _DCK methods will attempt to assign bus numbers
+> to the dock bridge (incorrectly).
 
-     Thomas
+On thinkpad X32: I selected
+
+CONFIG_HOTPLUG_PCI=y
+# CONFIG_HOTPLUG_PCI_FAKE is not set
+# CONFIG_HOTPLUG_PCI_COMPAQ is not set
+# CONFIG_HOTPLUG_PCI_IBM is not set
+CONFIG_HOTPLUG_PCI_ACPI=y
+# CONFIG_HOTPLUG_PCI_ACPI_IBM is not set
+# CONFIG_HOTPLUG_PCI_CPCI is not set
+# CONFIG_HOTPLUG_PCI_SHPC is not set
+CONFIG_ACPI_IBM=y
+
+Recompiled, rebooted with machine out of dock. /sys/bus/pci/slots/ is
+empty. I then inserted machine into dock, and locked it:
+
+root@amd:/sys/bus/pci/slots# echo dock > /proc/acpi/ibm/dock
+root@amd:/sys/bus/pci/slots# ls
+root@amd:/sys/bus/pci/slots#
+
+...still empty. What am I doing wrong?
+								Pavel
+-- 
+Thanks, Sharp!
