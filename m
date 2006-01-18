@@ -1,83 +1,47 @@
-From: Hanno Mueller <sockpuppet@hanno.de>
-Subject: Re: How to get /proc/acpi/alarm to work?
-Date: Wed, 18 Jan 2006 11:02:06 +0100
-Message-ID: <43CE121E.8000806@hanno.de>
-References: <59D45D057E9702469E5775CBB56411F101682685@pdsmsx406>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [patch 0/4]  Hot Dock/Undock support
+Date: Wed, 18 Jan 2006 13:16:15 +0100
+Message-ID: <20060118121615.GA13800@elf.ucw.cz>
+References: <1137545813.19858.45.camel@whizzy>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from p-dns.epublica.de ([213.238.59.9]:40836 "EHLO
-	kermit.epublica.de") by vger.kernel.org with ESMTP id S1751372AbWARKCM
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Jan 2006 05:02:12 -0500
-Received: from router.epublica.de ([82.149.68.78] helo=[192.168.1.42])
-	by kermit.epublica.de with esmtp (Exim 3.36 #2 (Debian))
-	id 1EzA8l-0000wa-00
-	for <linux-acpi@vger.kernel.org>; Wed, 18 Jan 2006 11:02:07 +0100
-In-Reply-To: <59D45D057E9702469E5775CBB56411F101682685@pdsmsx406>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:46790 "EHLO amd.ucw.cz")
+	by vger.kernel.org with ESMTP id S1030195AbWARMQf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Jan 2006 07:16:35 -0500
+Content-Disposition: inline
+In-Reply-To: <1137545813.19858.45.camel@whizzy>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Kristen Accardi <kristen.c.accardi@intel.com>
+Cc: linux-kernel@vger.kernel.org, greg@kroah.com, pcihpd-discuss@lists.sourceforge.net, len.brown@intel.com, linux-acpi@vger.kernel.org
 
-Li, Shaohua schrieb:
-> Is it possible you could try the patch at 
-> http://bugzilla.kernel.org/show_bug.cgi?id=5833?
-> Christian Lupien's patch made a lot of improvements on alarm.
+Hi!
 
-Thanks, but no, that didn't solve the problem.
+> This series of patches is against the -mm kernel, and will enable
+> docking station support.  It is an early patch, but still pretty 
+> functional, so I think it's worthwhile to include at this point.
 
-Let me rephrase the description. My BIOS has a different ACPI alarm
-value than the value stored in /proc/acpi/alarm.
+They seem to be in 2.6.16-rc1-mm1 patch, good.
 
+> Supported Features:
+> * Hot Dock/Undock via hardware control
+> * Enumeration of PCI Devices on Dock Station (Hot Add/Remove) via pci 
+> 
+> Not Supported Yet (but will be with laptops with sane dsdts):
+> * _EJD, _EDL support for devices that aren't enumerable
+> * hot add of devices other than PCI devices (such as the serial/lpt etc).
+> * More thorough testing needs to be done for everything, but especially
+>   video, as I've not even begun to worry about that.
+...
+> Please comment on these patches, and test if you have a docking station
+> available.  When you find problems, if you would like me to debug them,
+> please load the acpiphp driver with the debug param (modprobe
+> acpiphp debug=1),
 
-
-I can set the RTC alarm wakeup in the BIOS's ACPI settings to:
-
-  enabled: yes
-  day:     18
-  hour:    15
-  minute:  10
-  second:  30
-
-If I look at /proc/acpi/alarm, it doesn't show me "****-**-18 15:10:30"
-as one would expect, but a different value.
-
-When doing
-
-  echo "2006-01-18 15:20:45" > /proc/acpi/alarm
-
-I get (with Christian's patch):
-
-  cat /proc/acpi/alarm
-  "****-**-** 15:20:45 +int (2006-01-18 10:50:12)"
-
-Now, after rebooting, the BIOS _still_ shows 15:10:30 on day 18 in its
-ACPI settings.
-
-
-So on my system, the BIOS's RTC alarm wakeup ACPI setting appears to be
-something different than what /proc/acpi/alarm has access to.
-
-Also, the /proc/acpi/alarm setting does not wake the system from S5,
-while the BIOS setting can. And the BIOS can handle the day's number as
-a wakeup setting, while /proc/acpi/alarm cannot.
-
-Any idea how to read and change the BIOS's RTC alarm wakeup from Linux?
-I have read from users of other mainboards that it works for them
-(including the day's number).
-
-As I wrote before, the nvram-wakeup method does not work on this
-mainboard, either.
-
-Regards,
-
-Hanno
-
-
+I'll try to test them and write some small docking HOWTO (or maybe
+force you to write it :-). This is not exactly easy to setup...
+								Pavel
 -- 
-epublica GmbH
-http://www.epublica.de
-
-Open Business Club - join: http://www.openbc.com/go/invanon/2
-
+Thanks, Sharp!
