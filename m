@@ -1,95 +1,60 @@
-From: Kristen Accardi <kristen.c.accardi@intel.com>
-Subject: Re: [Pcihpd-discuss] Re: [patch 0/4]  Hot Dock/Undock support
-Date: Wed, 18 Jan 2006 13:06:09 -0800
-Message-ID: <1137618370.31839.12.camel@whizzy>
-References: <1137545813.19858.45.camel@whizzy>
-	 <20060118130444.GA1518@elf.ucw.cz> <1137609747.31839.6.camel@whizzy>
-	 <20060118194554.GA1502@elf.ucw.cz>
+From: Karol Kozimor <sziwan@hell.org.pl>
+Subject: [PATCH 5/9] support A4G
+Date: Wed, 18 Jan 2006 22:41:54 +0100
+Message-ID: <20060118214153.GF7199@hell.org.pl>
+References: <20060118212110.GA7199@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr19.intel.com ([134.134.136.18]:64452 "EHLO
-	orsfmr004.jf.intel.com") by vger.kernel.org with ESMTP
-	id S964941AbWARVjp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Jan 2006 16:39:45 -0500
-In-Reply-To: <20060118194554.GA1502@elf.ucw.cz>
+Received: from hell.org.pl ([62.233.239.4]:59410 "HELO hell.org.pl")
+	by vger.kernel.org with SMTP id S964948AbWARVl6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Jan 2006 16:41:58 -0500
+Content-Disposition: inline
+In-Reply-To: <20060118212110.GA7199@hell.org.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-kernel@vger.kernel.org, greg@kroah.com, pcihpd-discuss@lists.sourceforge.net, len.brown@intel.com, linux-acpi@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Wed, 2006-01-18 at 20:45 +0100, Pavel Machek wrote:
-> Hi!
-> 
-> > > > This series of patches is against the -mm kernel, and will enable
-> > > > docking station support.  It is an early patch, but still pretty 
-> > > > functional, so I think it's worthwhile to include at this point.
-> > > > For some laptops, it's necessary to use the pci=assign-busses kernel 
-> > > > parameter, because some _DCK methods will attempt to assign bus numbers
-> > > > to the dock bridge (incorrectly).
-> > > 
-> > > On thinkpad X32: I selected
-> ...
-> > > Recompiled, rebooted with machine out of dock. /sys/bus/pci/slots/ is
-> > > empty. I then inserted machine into dock, and locked it:
-> > > 
-> > > root@amd:/sys/bus/pci/slots# echo dock > /proc/acpi/ibm/dock
-> > > root@amd:/sys/bus/pci/slots# ls
-> > > root@amd:/sys/bus/pci/slots#
-> > > 
-> > > ...still empty. What am I doing wrong?
-> > 
-> > You may not use the ibm_acpi driver at the same time as the acpiphp
-> > driver for docking.  This is because the ibm_acpi driver also tries to
-> > handle the dock event notification, and doesn't actually do any
-> > hotplugging of the devices.  So, you want to set that config option to
-> > N.  What you are doing above is actually writing to the ibm_acpi
-> > driver.
-> 
-> Done.
-> 
-> > I didn't provide a way to do undocking via software. I just use the
-> > button on the dock station.  You should however, see something
-> > in /sys/bus/pci/slots - can you scan your dmesg to make sure that the
-> > acpiphp driver is running?  You might run it as a module and enable
-> > debugging:
-> > 
-> > modprobe acpiphp debug=1
-> > 
-> > This way we can see if it finds your dock slot and registers the notify
-> > handler.
-> 
-> Result is:
-> 
-> root@amd:/data/l/linux-mm/drivers/pci/hotplug# insmod acpiphp.ko debug=1
-> insmod: error inserting 'acpiphp.ko': -1 No such device
-> root@amd:/data/l/linux-mm/drivers/pci/hotplug# dmesg | tail -3
-> Failure of coda_cnode_make for root: error -19
-> acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5
-> acpiphp_glue: Total 0 slots
-> root@amd:/data/l/linux-mm/drivers/pci/hotplug#
-> 
-> Should I have CONFIG_HOTPLUG_PCI_ACPI_IBM set?
-> 
-> 								Pavel
-> 
+This patch adds support for Asus A4G.
+Originally by Giuseppe Rota.
 
+Signed-off-by: Karol Kozimor <sziwan@hell.org.pl>
 
-Hum, I don't think so (but maybe someone else knows for sure), I thought
-that driver was specifically for a certain kind of IBM server, not an
-IBM laptop.  It looks like from this output that the acpiphp is not
-recognizing any hotplug capable devices on your laptop.  I believe that
-this is defined by acpiphp as a slot which is "ejectable", meaning
-contains an ACPI method called _EJ0.  I think we should take a look at
-your dsdt to make sure that it seems reasonable, and also perhaps you
-could send the output of lspci -vv -x with the laptop booted in the dock
-just to see what kind of dock bridge you have and make sure everything
-seems like it should work.  Please send the disassembled output of your
-dsdt - if you've never done it before, instructions for doing this can
-be found here: 
-http://acpi.sourceforge.net/dsdt/index.php
-
-thanks!
-Kristen
-
+--- a/drivers/acpi/asus_acpi.c	2006-01-18 17:36:00.000000000 +0100
++++ b/drivers/acpi/asus_acpi.c	2006-01-18 17:44:03.000000000 +0100
+@@ -120,6 +120,7 @@ struct asus_hotk {
+ 	enum {
+ 		A1x = 0,	//A1340D, A1300F
+ 		A2x,		//A2500H
++		A4G,		//A4700G
+ 		D1x,		//D1
+ 		L2D,		//L2000D
+ 		L3C,		//L3800C
+@@ -189,6 +190,16 @@ static struct model_data model_conf[END_
+ 	 .display_get = "\\INFB"},
+ 
+ 	{
++	 .name = "A4G",
++	 .mt_mled = "MLED",
++/* WLED present, but not controlled by ACPI */
++	 .mt_lcd_switch = xxN_PREFIX "_Q10",
++	 .brightness_set = "SPLV",
++	 .brightness_get = "GPLV",
++	 .display_set = "SDSP",
++	 .display_get = "\\ADVG"},
++
++	{
+ 	 .name = "D1x",
+ 	 .mt_mled = "MLED",
+ 	 .mt_lcd_switch = "\\Q0D",
+@@ -1122,6 +1133,8 @@ static int __init asus_hotk_get_info(voi
+ 		hotk->model = S2x;
+ 	else if (strncmp(model->string.pointer, "L5", 2) == 0)
+ 		hotk->model = L5x;
++	else if (strncmp(model->string.pointer, "A4G", 3) == 0)
++		hotk->model = A4G;
+ 	else if (strncmp(model->string.pointer, "W1N", 3) == 0)
+ 		hotk->model = W1N;
+ 
