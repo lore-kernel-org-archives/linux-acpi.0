@@ -1,43 +1,68 @@
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: Re: [discuss] [PATCH/RFC] Unify mapping from PXM to node id.
-Date: Wed, 18 Jan 2006 09:42:21 +0900
-Message-ID: <20060118094209.019D.Y-GOTO@jp.fujitsu.com>
-References: <20060117205442.5B9A.Y-GOTO@jp.fujitsu.com> <200601171505.32933.ak@suse.de>
+From: Kristen Accardi <kristen.c.accardi@intel.com>
+Subject: [patch 1/4]  pci: return max reserved busnr
+Date: Tue, 17 Jan 2006 16:56:56 -0800
+Message-ID: <1137545816.19858.46.camel@whizzy>
+References: <20060116200218.275371000@whizzy>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:41694 "EHLO
-	fgwmail6.fujitsu.co.jp") by vger.kernel.org with ESMTP
-	id S964982AbWARAmr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Jan 2006 19:42:47 -0500
-In-Reply-To: <200601171505.32933.ak@suse.de>
+Received: from fmr17.intel.com ([134.134.136.16]:28568 "EHLO
+	orsfmr002.jf.intel.com") by vger.kernel.org with ESMTP
+	id S964978AbWARAyQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Jan 2006 19:54:16 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <ak@suse.de>
-Cc: discuss@x86-64.org, ACPI-ML <linux-acpi@vger.kernel.org>, linux-ia64@vger.kernel.org, Linux Kernel ML <linux-kernel@vger.kernel.org>, "Luck, Tony" <tony.luck@intel.com>, "Brown, Len" <len.brown@intel.com>
+To: linux-kernel@vger.kernel.org
+Cc: greg@kroah.com, pcihpd-discuss@lists.sourceforge.net, len.brown@intel.com, linux-acpi@vger.kernel.org, pavel@ucw.cz
 
-> On Tuesday 17 January 2006 13:36, Yasunori Goto wrote:
-> > Hello.
-> >
-> > This patch is to unify mapping from pxm to node id as a common code.
-> > In current code, i386, x86-64, and ia64 have its mapping by each own code.
-> > But PXM is defined by ACPI and node id is used generically. So,
-> > I think there is no reason to define it on each arch's code.
-> > This mapping should be written at drivers/acpi/numa.c.
-> >
-> 
-> > Please comment.
-> 
-> The array is unnecessary big - PXMs are only 8bit so it could be u8.
-> 
-> Looks ok to me on x86-64 in principle, except that the __devinits should
-> be probably __cpuinits. I haven't tested/compiled it though
+Change the semantics of this call to return the max reserved
+bus number instead of just the max assigned bus number.
 
-Ok. I'll modify them, and test it on x86-64 too.
-Thanks for your comment.
+Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com> 
 
--- 
-Yasunori Goto 
 
+ drivers/pci/pci.c   |    5 +++--
+ include/linux/pci.h |    1 +
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+--- linux-2.6.15-mm.orig/drivers/pci/pci.c
++++ linux-2.6.15-mm/drivers/pci/pci.c
+@@ -19,7 +19,6 @@
+ #include <asm/dma.h>	/* isa_dma_bridge_buggy */
+ #include "pci.h"
+ 
+-#if 0
+ 
+ /**
+  * pci_bus_max_busnr - returns maximum PCI bus number of given bus' children
+@@ -34,7 +33,7 @@ pci_bus_max_busnr(struct pci_bus* bus)
+ 	struct list_head *tmp;
+ 	unsigned char max, n;
+ 
+-	max = bus->number;
++	max = bus->subordinate;
+ 	list_for_each(tmp, &bus->children) {
+ 		n = pci_bus_max_busnr(pci_bus_b(tmp));
+ 		if(n > max)
+@@ -42,7 +41,9 @@ pci_bus_max_busnr(struct pci_bus* bus)
+ 	}
+ 	return max;
+ }
++EXPORT_SYMBOL_GPL(pci_bus_max_busnr);
+ 
++#if 0
+ /**
+  * pci_max_busnr - returns maximum PCI bus number
+  *
+--- linux-2.6.15-mm.orig/include/linux/pci.h
++++ linux-2.6.15-mm/include/linux/pci.h
+@@ -514,6 +514,7 @@ int pci_scan_bridge(struct pci_bus *bus,
+ void pci_walk_bus(struct pci_bus *top, void (*cb)(struct pci_dev *, void *),
+ 		  void *userdata);
+ int pci_cfg_space_size(struct pci_dev *dev);
++unsigned char pci_bus_max_busnr(struct pci_bus* bus);
+ 
+ /* kmem_cache style wrapper around pci_alloc_consistent() */
+ 
 
