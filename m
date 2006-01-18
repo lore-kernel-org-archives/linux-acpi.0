@@ -1,57 +1,53 @@
-From: Karol Kozimor <sziwan@hell.org.pl>
-Subject: [PATCH 7/9] support L5D
-Date: Wed, 18 Jan 2006 22:52:02 +0100
-Message-ID: <20060118215202.GH7199@hell.org.pl>
-References: <20060118212110.GA7199@hell.org.pl>
+From: Kristen Accardi <kristen.c.accardi@intel.com>
+Subject: Re: [Pcihpd-discuss] Re: [patch 0/4]  Hot Dock/Undock support
+Date: Wed, 18 Jan 2006 13:43:00 -0800
+Message-ID: <1137620581.31839.21.camel@whizzy>
+References: <1137545813.19858.45.camel@whizzy>
+	 <20060118130444.GA1518@elf.ucw.cz> <1137609747.31839.6.camel@whizzy>
+	 <20060118204251.GA1544@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hell.org.pl ([62.233.239.4]:13573 "HELO hell.org.pl")
-	by vger.kernel.org with SMTP id S1161018AbWARVwG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Jan 2006 16:52:06 -0500
-Content-Disposition: inline
-In-Reply-To: <20060118212110.GA7199@hell.org.pl>
+Received: from fmr19.intel.com ([134.134.136.18]:24010 "EHLO
+	orsfmr004.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1161029AbWARWBF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Jan 2006 17:01:05 -0500
+In-Reply-To: <20060118204251.GA1544@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-kernel@vger.kernel.org, greg@kroah.com, pcihpd-discuss@lists.sourceforge.net, len.brown@intel.com, linux-acpi@vger.kernel.org
 
-This patch adds support for Asus L5D and thus fixes
-http://bugme.osdl.org/show_bug.cgi?id=4695
+On Wed, 2006-01-18 at 21:42 +0100, Pavel Machek wrote:
+> Hi!
+> 
+> There's a bug in error handling:
+> 
+> int __init acpiphp_glue_init(void)
+> {
+>         int num = 0;
+> 
+>         acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
+>                         ACPI_UINT32_MAX, find_root_bridges, &num,
+> NULL);
+> 
+>         if (num <= 0)
+>                 return -1;
+>         else
+>                 acpi_pci_register_driver(&acpi_pci_hp_driver);
+> 
+>         return 0;
+> }
+> 
+> You register driver here, but if acpiphp_get_num_slots() returns 0
+> later, you return -ENODEV, aborting load of driver, but without
+> undergistering that driver. It oopses after a while. Same problem if
+> init_slots() returns error.
+> 
+> 								Pavel
 
-Signed-off-by: Karol Kozimor <sziwan@hell.org.pl>
+This one needs some more thought on how to fix, because I'm not certain
+if we have the code in place to back out of this once we find root
+bridges that exist.  it might be easy, but it might not be. 
 
---- a/drivers/acpi/asus_acpi.c	2006-01-18 18:08:48.000000000 +0100
-+++ b/drivers/acpi/asus_acpi.c	2006-01-18 18:10:40.000000000 +0100
-@@ -129,7 +129,7 @@ struct asus_hotk {
- 		L2D,		//L2000D
- 		L3C,		//L3800C
- 		L3D,		//L3400D
--		L3H,		//L3H, but also L2000E
-+		L3H,		//L3H, L2000E, L5D
- 		L4R,		//L4500R
- 		L5x,		//L5800C 
- 		L8L,		//L8400L
-@@ -1123,8 +1123,9 @@ static int __init asus_hotk_get_info(voi
- 	hotk->model = END_MODEL;
- 	if (strncmp(model->string.pointer, "L3D", 3) == 0)
- 		hotk->model = L3D;
--	else if (strncmp(model->string.pointer, "L3H", 3) == 0 ||
--		 strncmp(model->string.pointer, "L2E", 3) == 0)
-+	else if (strncmp(model->string.pointer, "L2E", 3) == 0 ||
-+		 strncmp(model->string.pointer, "L3H", 3) == 0 ||
-+		 strncmp(model->string.pointer, "L5D", 3) == 0)
- 		hotk->model = L3H;
- 	else if (strncmp(model->string.pointer, "L3", 2) == 0 ||
- 		 strncmp(model->string.pointer, "L2B", 3) == 0)
-@@ -1195,6 +1196,9 @@ static int __init asus_hotk_get_info(voi
- 		 strncmp(model->string.pointer, "W3N", 3) == 0)
- 		hotk->methods->mt_mled = NULL;
- 	/* S5N, M5N and W3N have no MLED */
-+	else if (strncmp(model->string.pointer, "L5D", 3) == 0)
-+		hotk->methods->mt_wled = NULL;
-+	/* L5D's WLED is not controlled by ACPI */
- 	else if (strncmp(model->string.pointer, "M2N", 3) == 0)
- 		hotk->methods->mt_wled = "WLED";
- 	/* M2N has a usable WLED */
