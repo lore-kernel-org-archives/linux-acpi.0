@@ -1,60 +1,32 @@
-From: Karol Kozimor <sziwan@hell.org.pl>
-Subject: [PATCH 5/9] support A4G
-Date: Wed, 18 Jan 2006 22:41:54 +0100
-Message-ID: <20060118214153.GF7199@hell.org.pl>
-References: <20060118212110.GA7199@hell.org.pl>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [Pcihpd-discuss] Re: [patch 0/4]  Hot Dock/Undock support
+Date: Wed, 18 Jan 2006 21:47:09 +0000
+Message-ID: <20060118214709.GA12010@srcf.ucam.org>
+References: <1137545813.19858.45.camel@whizzy> <20060118130444.GA1518@elf.ucw.cz> <1137609747.31839.6.camel@whizzy> <20060118194554.GA1502@elf.ucw.cz> <1137618370.31839.12.camel@whizzy>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hell.org.pl ([62.233.239.4]:59410 "HELO hell.org.pl")
-	by vger.kernel.org with SMTP id S964948AbWARVl6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Jan 2006 16:41:58 -0500
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1161014AbWARVsG@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20060118212110.GA7199@hell.org.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1137618370.31839.12.camel@whizzy>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kristen Accardi <kristen.c.accardi@intel.com>
+Cc: Pavel Machek <pavel@ucw.cz>, linux-kernel@vger.kernel.org, greg@kroah.com, pcihpd-discuss@lists.sourceforge.net, len.brown@intel.com, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org
 
-This patch adds support for Asus A4G.
-Originally by Giuseppe Rota.
+On Wed, Jan 18, 2006 at 01:06:09PM -0800, Kristen Accardi wrote:
 
-Signed-off-by: Karol Kozimor <sziwan@hell.org.pl>
+> Hum, I don't think so (but maybe someone else knows for sure), I thought
+> that driver was specifically for a certain kind of IBM server, not an
+> IBM laptop.  It looks like from this output that the acpiphp is not
+> recognizing any hotplug capable devices on your laptop.  I believe that
+> this is defined by acpiphp as a slot which is "ejectable", meaning
+> contains an ACPI method called _EJ0.  
 
---- a/drivers/acpi/asus_acpi.c	2006-01-18 17:36:00.000000000 +0100
-+++ b/drivers/acpi/asus_acpi.c	2006-01-18 17:44:03.000000000 +0100
-@@ -120,6 +120,7 @@ struct asus_hotk {
- 	enum {
- 		A1x = 0,	//A1340D, A1300F
- 		A2x,		//A2500H
-+		A4G,		//A4700G
- 		D1x,		//D1
- 		L2D,		//L2000D
- 		L3C,		//L3800C
-@@ -189,6 +190,16 @@ static struct model_data model_conf[END_
- 	 .display_get = "\\INFB"},
- 
- 	{
-+	 .name = "A4G",
-+	 .mt_mled = "MLED",
-+/* WLED present, but not controlled by ACPI */
-+	 .mt_lcd_switch = xxN_PREFIX "_Q10",
-+	 .brightness_set = "SPLV",
-+	 .brightness_get = "GPLV",
-+	 .display_set = "SDSP",
-+	 .display_get = "\\ADVG"},
-+
-+	{
- 	 .name = "D1x",
- 	 .mt_mled = "MLED",
- 	 .mt_lcd_switch = "\\Q0D",
-@@ -1122,6 +1133,8 @@ static int __init asus_hotk_get_info(voi
- 		hotk->model = S2x;
- 	else if (strncmp(model->string.pointer, "L5", 2) == 0)
- 		hotk->model = L5x;
-+	else if (strncmp(model->string.pointer, "A4G", 3) == 0)
-+		hotk->model = A4G;
- 	else if (strncmp(model->string.pointer, "W1N", 3) == 0)
- 		hotk->model = W1N;
- 
+To the best of my knowledge, the X-series docking station doesn't 
+contain any PCI devices. It's an extension of the IDE bus plus some 
+broken out serial, parallel, USB and so on. I'd expect driver support 
+for it to just require supporting the dock object and calling its eject 
+routine when the user hits the eject button.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
