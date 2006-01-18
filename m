@@ -1,59 +1,79 @@
 From: Kristen Accardi <kristen.c.accardi@intel.com>
-Subject: [patch 4/4]  pci: quirk for IBM Dock II cardbus controllers
-Date: Tue, 17 Jan 2006 16:57:04 -0800
-Message-ID: <1137545824.19858.49.camel@whizzy>
-References: <20060116200218.275371000@whizzy>
+Subject: [patch 0/4]  Hot Dock/Undock support
+Date: Tue, 17 Jan 2006 16:56:53 -0800
+Message-ID: <1137545813.19858.45.camel@whizzy>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964984AbWARAyd@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932471AbWARAz2@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: greg@kroah.com, pcihpd-discuss@lists.sourceforge.net, len.brown@intel.com, linux-acpi@vger.kernel.org, pavel@ucw.cz
 List-Id: linux-acpi@vger.kernel.org
 
-The IBM Dock II cardbus bridges require some extra configuration
-before Yenta is loaded in order to setup the Interrupts to be
-routed properly. 
+This series of patches is against the -mm kernel, and will enable
+docking station support.  It is an early patch, but still pretty 
+functional, so I think it's worthwhile to include at this point.
+For some laptops, it's necessary to use the pci=assign-busses kernel 
+parameter, because some _DCK methods will attempt to assign bus numbers
+to the dock bridge (incorrectly).
 
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Supported Features:
+* Hot Dock/Undock via hardware control
+* Enumeration of PCI Devices on Dock Station (Hot Add/Remove) via pci 
 
- drivers/pci/quirks.c |   27 +++++++++++++++++++++++++++
- 1 files changed, 27 insertions(+)
+Not Supported Yet (but will be with laptops with sane dsdts):
+* _EJD, _EDL support for devices that aren't enumerable
+* hot add of devices other than PCI devices (such as the serial/lpt etc).
+* More thorough testing needs to be done for everything, but especially
+  video, as I've not even begun to worry about that.
 
---- linux-2.6.15-mm.orig/drivers/pci/quirks.c
-+++ linux-2.6.15-mm/drivers/pci/quirks.c
-@@ -1242,6 +1242,33 @@ DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_IN
- DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_PXHV,	quirk_pcie_pxh);
- 
+All docking events are handled by the acpiphp driver.  For docking,
+the acpiphp driver will call the _DCK acpi method, and then insert
+the docking bridge and all the pci devices behind the dock bridge.
+This is in conflict with some acpi platform drivers (ibm_acpi) that already
+attempt to implement a limited form of docking support only for that platform.
+You may not use both drivers at the same time right now.  This is a generic
+docking solution that should work for all docking stations, not just IBM,
+although I tested it on an IBM docking station exclusively, because that's
+all I've got right now. 
 
-+/*
-+ * Fixup the cardbus bridges on the IBM Dock II docking station
-+ */
-+static void __devinit quirk_ibm_dock2_cardbus(struct pci_dev *dev)
-+{
-+	u32 val;
-+
-+	/*
-+	 * tie the 2 interrupt pins to INTA, and configure the
-+	 * multifunction routing register to handle this.
-+	 */
-+	if ((dev->subsystem_vendor == PCI_VENDOR_ID_IBM) &&
-+		(dev->subsystem_device == 0x0148)) {
-+		printk(KERN_INFO "PCI: Found IBM Dock II Cardbus Bridge "
-+			"applying quirk\n");
-+		pci_read_config_dword(dev, 0x8c, &val);
-+		val = ((val & 0xffffff00) | 0x1002);
-+		pci_write_config_dword(dev, 0x8c, val);
-+		pci_read_config_dword(dev, 0x80, &val);
-+		val = ((val & 0x00ffff00) | 0x2864c077);
-+		pci_write_config_dword(dev, 0x80, val);
-+	}
-+}
-+
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_TI, PCI_DEVICE_ID_TI_1420,
-+				quirk_ibm_dock2_cardbus);
-+
- static void __devinit quirk_netmos(struct pci_dev *dev)
- {
- 	unsigned int num_parallel = (dev->subsystem_device & 0xf0) >> 4;
+Right now devices that are not on enumerable buses (or on the PCI bus at all) 
+will not be discovered by acpiphp.  Your mileage will vary on any devices 
+other than PCI.  This is because in many cases, there are extra hardware 
+configuration steps that need to occur after the _DCK method (because they 
+really should have been done in the _DCK method but were not).  Even with PCI 
+devices, you may find that some things don't work properly, because there 
+was some extra configuration step that needed to occur that didn't get done 
+as part of _DCK.  For example, included in this patch series is a quirk for the
+IBM Dock Station II, which seemed to need the cardbus controller interrupts
+tied together, but this didn't get done with any of the laptops I tested
+with.  I've not yet been able to determine what needs to be done to the 
+USB controller on the T30 or T41 to make it discover the USB hub on the
+docking station, although this works fine on the T20, and also I hear on
+the T42, although I've not tested the T42 myself.  
+
+You may also find that as soon as you call _DCK, everything is
+broken.  For example, on the T30 laptop I tested, the _DCK method would set
+the dock bridge's parent secondary bus number to zero, even if it should
+have been something other than zero.  This specific case is handled in
+the acpiphp driver in the post_dock_fixups() routine, but this may need to
+be changed for the future if it starts to get out of hand. 
+
+There is a workaround right now in this patch for a problem with acpi, where
+the acpi thread that notifies acpiphp of the dock event will deadlock while
+executing the _DCK method.  I've managed to avoid trying to solve this 
+problem for now by spawning a separate thread to handle the _DCK, but 
+eventually this will be addressed when I'm brave enough. 
+
+Please comment on these patches, and test if you have a docking station
+available.  When you find problems, if you would like me to debug them,
+please load the acpiphp driver with the debug param (modprobe acpiphp debug=1),
+and send me the output of dmesg -s 100000 as well as lspci -vv -x -n with
+the laptop booted in the station, and then the output after booting out
+of the station and attempting to dock, as well as a copy of your disassembled
+dsdt.  Make sure you have PCI debugging enabled, and debugging enabled for
+whatever device you are having issues with.  This should be a good starting 
+point.
+
+Kristen
