@@ -1,51 +1,60 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [patch 0/4]  Hot Dock/Undock support
-Date: Wed, 18 Jan 2006 14:04:44 +0100
-Message-ID: <20060118130444.GA1518@elf.ucw.cz>
-References: <1137545813.19858.45.camel@whizzy>
+From: Fabio <fabio.venturi@studenti.unipr.it>
+Subject: Gentoo on Acer Aspire 3502WLCi with bugged DSDT (Phoenix BIOS)
+Date: Wed, 18 Jan 2006 19:06:06 +0100
+Message-ID: <1137607566.7720.23.camel@bluestar>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:6627 "EHLO amd.ucw.cz")
-	by vger.kernel.org with ESMTP id S932523AbWARNE4 (ORCPT
+Received: from as1.cineca.com ([130.186.84.251]:18914 "EHLO as1.cineca.com")
+	by vger.kernel.org with ESMTP id S964869AbWARSGb (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Jan 2006 08:04:56 -0500
-Content-Disposition: inline
-In-Reply-To: <1137545813.19858.45.camel@whizzy>
+	Wed, 18 Jan 2006 13:06:31 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by as1.cineca.com (Postfix) with ESMTP id A92D771497
+	for <linux-acpi@vger.kernel.org>; Wed, 18 Jan 2006 19:06:30 +0100 (CET)
+Received: from unipr.mm.cineca.it (unipr.mm.cineca.it [130.186.10.204])
+	by as1.cineca.com (Postfix) with ESMTP id 28CC2714AF
+	for <linux-acpi@vger.kernel.org>; Wed, 18 Jan 2006 19:06:25 +0100 (CET)
+Received: from bluestar (host24-202.pool8255.interbusiness.it [82.55.202.24])
+	(using TLSv1 with cipher RC4-MD5 (128/128 bits))
+	(No client certificate requested)
+	as user fabio.venturi@studenti.unipr.it by unipr.mm.cineca.it (Postfix) with ESMTP id 19D2E44AB34
+	for <linux-acpi@vger.kernel.org>; Wed, 18 Jan 2006 19:06:24 +0100 (MET)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kristen Accardi <kristen.c.accardi@intel.com>
-Cc: linux-kernel@vger.kernel.org, greg@kroah.com, pcihpd-discuss@lists.sourceforge.net, len.brown@intel.com, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Hi!
+Greetings to anyone in the ML,
+I got the laptop in object with a bugged DSDT (REALLY?!?!?!  :o)
+So I downloaded a fixed DSDT from the acpi site and compiled it with
+the iasl compiler.
+Then I patched the kernel (2.6.15) so now it can read a custom DSDT
+and I put the new DSDT.aml in /boot
 
-> This series of patches is against the -mm kernel, and will enable
-> docking station support.  It is an early patch, but still pretty 
-> functional, so I think it's worthwhile to include at this point.
-> For some laptops, it's necessary to use the pci=assign-busses kernel 
-> parameter, because some _DCK methods will attempt to assign bus numbers
-> to the dock bridge (incorrectly).
+I read on a gentoo forum that i can pass the file to the kernel 
+like a initrd image, so i modified my grub like this:
 
-On thinkpad X32: I selected
+[...]
+title Gentoo GNU/Linux (Fixed DSDT)
+kernel (hd0,2)/boot/bzImage-2.6.15 root=/dev/hda3
+initrd=(hd0,2)/boot/DSDT.aml
+[...]
 
-CONFIG_HOTPLUG_PCI=y
-# CONFIG_HOTPLUG_PCI_FAKE is not set
-# CONFIG_HOTPLUG_PCI_COMPAQ is not set
-# CONFIG_HOTPLUG_PCI_IBM is not set
-CONFIG_HOTPLUG_PCI_ACPI=y
-# CONFIG_HOTPLUG_PCI_ACPI_IBM is not set
-# CONFIG_HOTPLUG_PCI_CPCI is not set
-# CONFIG_HOTPLUG_PCI_SHPC is not set
-CONFIG_ACPI_IBM=y
+but on restart i find:
+fabio@bluestar ~ $ dmesg |grep -i dsdt
+ACPI: DSDT (v001 PTLTD     661MX 0x06040000 MSFT 0x0100000e) @
+0x00000000
+ACPI: Looking for DSDT in initramfs... error, file /DSDT.aml not found.
+Table [DSDT](id 0006) - 485 Objects with 39 Devices 93 Methods 10
+Regions
 
-Recompiled, rebooted with machine out of dock. /sys/bus/pci/slots/ is
-empty. I then inserted machine into dock, and locked it:
+I tried to create an initrd.img with "mkinitrd initrd.img 2.6.15" and
+then add the DSDT.aml to it by the initrd-add script,
+but during the start-up the pc hangs with the message:
+"error: Unable to mount root fs on unknown-block(3,3)"
 
-root@amd:/sys/bus/pci/slots# echo dock > /proc/acpi/ibm/dock
-root@amd:/sys/bus/pci/slots# ls
-root@amd:/sys/bus/pci/slots#
+I don't know what to do, hope someone
+could help me, thank you in advance
+Fabio
 
-...still empty. What am I doing wrong?
-								Pavel
--- 
-Thanks, Sharp!
