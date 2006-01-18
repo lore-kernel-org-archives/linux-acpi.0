@@ -1,72 +1,75 @@
-From: Kristen Accardi <kristen.c.accardi@intel.com>
+From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: [Pcihpd-discuss] Re: [patch 0/4]  Hot Dock/Undock support
-Date: Wed, 18 Jan 2006 10:42:27 -0800
-Message-ID: <1137609747.31839.6.camel@whizzy>
-References: <1137545813.19858.45.camel@whizzy>
-	 <20060118130444.GA1518@elf.ucw.cz>
+Date: Wed, 18 Jan 2006 20:45:54 +0100
+Message-ID: <20060118194554.GA1502@elf.ucw.cz>
+References: <1137545813.19858.45.camel@whizzy> <20060118130444.GA1518@elf.ucw.cz> <1137609747.31839.6.camel@whizzy>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr18.intel.com ([134.134.136.17]:60300 "EHLO
-	orsfmr003.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1030261AbWARSmB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Jan 2006 13:42:01 -0500
-In-Reply-To: <20060118130444.GA1518@elf.ucw.cz>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:46798 "EHLO amd.ucw.cz")
+	by vger.kernel.org with ESMTP id S1030433AbWARUnS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Jan 2006 15:43:18 -0500
+Content-Disposition: inline
+In-Reply-To: <1137609747.31839.6.camel@whizzy>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
+To: Kristen Accardi <kristen.c.accardi@intel.com>
 Cc: linux-kernel@vger.kernel.org, greg@kroah.com, pcihpd-discuss@lists.sourceforge.net, len.brown@intel.com, linux-acpi@vger.kernel.org
 
-On Wed, 2006-01-18 at 14:04 +0100, Pavel Machek wrote:
-> Hi!
-> 
-> > This series of patches is against the -mm kernel, and will enable
-> > docking station support.  It is an early patch, but still pretty 
-> > functional, so I think it's worthwhile to include at this point.
-> > For some laptops, it's necessary to use the pci=assign-busses kernel 
-> > parameter, because some _DCK methods will attempt to assign bus numbers
-> > to the dock bridge (incorrectly).
-> 
-> On thinkpad X32: I selected
-> 
-> CONFIG_HOTPLUG_PCI=y
-> # CONFIG_HOTPLUG_PCI_FAKE is not set
-> # CONFIG_HOTPLUG_PCI_COMPAQ is not set
-> # CONFIG_HOTPLUG_PCI_IBM is not set
-> CONFIG_HOTPLUG_PCI_ACPI=y
-> # CONFIG_HOTPLUG_PCI_ACPI_IBM is not set
-> # CONFIG_HOTPLUG_PCI_CPCI is not set
-> # CONFIG_HOTPLUG_PCI_SHPC is not set
-> CONFIG_ACPI_IBM=y
-> 
-> Recompiled, rebooted with machine out of dock. /sys/bus/pci/slots/ is
-> empty. I then inserted machine into dock, and locked it:
-> 
-> root@amd:/sys/bus/pci/slots# echo dock > /proc/acpi/ibm/dock
-> root@amd:/sys/bus/pci/slots# ls
-> root@amd:/sys/bus/pci/slots#
-> 
-> ...still empty. What am I doing wrong?
-> 								Pavel
+Hi!
 
-You may not use the ibm_acpi driver at the same time as the acpiphp
-driver for docking.  This is because the ibm_acpi driver also tries to
-handle the dock event notification, and doesn't actually do any
-hotplugging of the devices.  So, you want to set that config option to
-N.  What you are doing above is actually writing to the ibm_acpi driver.
-I didn't provide a way to do undocking via software. I just use the
-button on the dock station.  You should however, see something
-in /sys/bus/pci/slots - can you scan your dmesg to make sure that the
-acpiphp driver is running?  You might run it as a module and enable
-debugging:
+> > > This series of patches is against the -mm kernel, and will enable
+> > > docking station support.  It is an early patch, but still pretty 
+> > > functional, so I think it's worthwhile to include at this point.
+> > > For some laptops, it's necessary to use the pci=assign-busses kernel 
+> > > parameter, because some _DCK methods will attempt to assign bus numbers
+> > > to the dock bridge (incorrectly).
+> > 
+> > On thinkpad X32: I selected
+...
+> > Recompiled, rebooted with machine out of dock. /sys/bus/pci/slots/ is
+> > empty. I then inserted machine into dock, and locked it:
+> > 
+> > root@amd:/sys/bus/pci/slots# echo dock > /proc/acpi/ibm/dock
+> > root@amd:/sys/bus/pci/slots# ls
+> > root@amd:/sys/bus/pci/slots#
+> > 
+> > ...still empty. What am I doing wrong?
+> 
+> You may not use the ibm_acpi driver at the same time as the acpiphp
+> driver for docking.  This is because the ibm_acpi driver also tries to
+> handle the dock event notification, and doesn't actually do any
+> hotplugging of the devices.  So, you want to set that config option to
+> N.  What you are doing above is actually writing to the ibm_acpi
+> driver.
 
-modprobe acpiphp debug=1
+Done.
 
-This way we can see if it finds your dock slot and registers the notify
-handler.
+> I didn't provide a way to do undocking via software. I just use the
+> button on the dock station.  You should however, see something
+> in /sys/bus/pci/slots - can you scan your dmesg to make sure that the
+> acpiphp driver is running?  You might run it as a module and enable
+> debugging:
+> 
+> modprobe acpiphp debug=1
+> 
+> This way we can see if it finds your dock slot and registers the notify
+> handler.
 
-Thanks for testing!
+Result is:
 
-Kristen
+root@amd:/data/l/linux-mm/drivers/pci/hotplug# insmod acpiphp.ko debug=1
+insmod: error inserting 'acpiphp.ko': -1 No such device
+root@amd:/data/l/linux-mm/drivers/pci/hotplug# dmesg | tail -3
+Failure of coda_cnode_make for root: error -19
+acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5
+acpiphp_glue: Total 0 slots
+root@amd:/data/l/linux-mm/drivers/pci/hotplug#
 
+Should I have CONFIG_HOTPLUG_PCI_ACPI_IBM set?
+
+								Pavel
+
+-- 
+Thanks, Sharp!
