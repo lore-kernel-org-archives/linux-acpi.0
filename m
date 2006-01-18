@@ -1,57 +1,95 @@
-From: Karol Kozimor <sziwan@hell.org.pl>
-Subject: [PATCH 4/9] support W3400N
-Date: Wed, 18 Jan 2006 22:38:49 +0100
-Message-ID: <20060118213849.GE7199@hell.org.pl>
-References: <20060118212110.GA7199@hell.org.pl>
+From: Kristen Accardi <kristen.c.accardi@intel.com>
+Subject: Re: [Pcihpd-discuss] Re: [patch 0/4]  Hot Dock/Undock support
+Date: Wed, 18 Jan 2006 13:06:09 -0800
+Message-ID: <1137618370.31839.12.camel@whizzy>
+References: <1137545813.19858.45.camel@whizzy>
+	 <20060118130444.GA1518@elf.ucw.cz> <1137609747.31839.6.camel@whizzy>
+	 <20060118194554.GA1502@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hell.org.pl ([62.233.239.4]:43276 "HELO hell.org.pl")
-	by vger.kernel.org with SMTP id S964931AbWARVix (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Jan 2006 16:38:53 -0500
-Content-Disposition: inline
-In-Reply-To: <20060118212110.GA7199@hell.org.pl>
+Received: from fmr19.intel.com ([134.134.136.18]:64452 "EHLO
+	orsfmr004.jf.intel.com") by vger.kernel.org with ESMTP
+	id S964941AbWARVjp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Jan 2006 16:39:45 -0500
+In-Reply-To: <20060118194554.GA1502@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-kernel@vger.kernel.org, greg@kroah.com, pcihpd-discuss@lists.sourceforge.net, len.brown@intel.com, linux-acpi@vger.kernel.org
 
-This patch adds support for Asus W3400N.
+On Wed, 2006-01-18 at 20:45 +0100, Pavel Machek wrote:
+> Hi!
+> 
+> > > > This series of patches is against the -mm kernel, and will enable
+> > > > docking station support.  It is an early patch, but still pretty 
+> > > > functional, so I think it's worthwhile to include at this point.
+> > > > For some laptops, it's necessary to use the pci=assign-busses kernel 
+> > > > parameter, because some _DCK methods will attempt to assign bus numbers
+> > > > to the dock bridge (incorrectly).
+> > > 
+> > > On thinkpad X32: I selected
+> ...
+> > > Recompiled, rebooted with machine out of dock. /sys/bus/pci/slots/ is
+> > > empty. I then inserted machine into dock, and locked it:
+> > > 
+> > > root@amd:/sys/bus/pci/slots# echo dock > /proc/acpi/ibm/dock
+> > > root@amd:/sys/bus/pci/slots# ls
+> > > root@amd:/sys/bus/pci/slots#
+> > > 
+> > > ...still empty. What am I doing wrong?
+> > 
+> > You may not use the ibm_acpi driver at the same time as the acpiphp
+> > driver for docking.  This is because the ibm_acpi driver also tries to
+> > handle the dock event notification, and doesn't actually do any
+> > hotplugging of the devices.  So, you want to set that config option to
+> > N.  What you are doing above is actually writing to the ibm_acpi
+> > driver.
+> 
+> Done.
+> 
+> > I didn't provide a way to do undocking via software. I just use the
+> > button on the dock station.  You should however, see something
+> > in /sys/bus/pci/slots - can you scan your dmesg to make sure that the
+> > acpiphp driver is running?  You might run it as a module and enable
+> > debugging:
+> > 
+> > modprobe acpiphp debug=1
+> > 
+> > This way we can see if it finds your dock slot and registers the notify
+> > handler.
+> 
+> Result is:
+> 
+> root@amd:/data/l/linux-mm/drivers/pci/hotplug# insmod acpiphp.ko debug=1
+> insmod: error inserting 'acpiphp.ko': -1 No such device
+> root@amd:/data/l/linux-mm/drivers/pci/hotplug# dmesg | tail -3
+> Failure of coda_cnode_make for root: error -19
+> acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5
+> acpiphp_glue: Total 0 slots
+> root@amd:/data/l/linux-mm/drivers/pci/hotplug#
+> 
+> Should I have CONFIG_HOTPLUG_PCI_ACPI_IBM set?
+> 
+> 								Pavel
+> 
 
-Signed-off-by: Karol Kozimor <sziwan@hell.org.pl>
 
---- a/drivers/acpi/asus_acpi.c	2006-01-18 17:32:25.000000000 +0100
-+++ b/drivers/acpi/asus_acpi.c	2006-01-18 17:36:00.000000000 +0100
-@@ -130,7 +130,7 @@ struct asus_hotk {
- 		L8L,		//L8400L
- 		M1A,		//M1300A
- 		M2E,		//M2400E, L4400L
--		M6N,		//M6800N
-+		M6N,		//M6800N, W3400N
- 		M6R,		//M6700R, A3000G
- 		P30,		//Samsung P30
- 		S1x,		//S1300A, but also L1400B and M2400A (L84F)
-@@ -1090,7 +1090,8 @@ static int __init asus_hotk_get_info(voi
- 		hotk->model = L8L;
- 	else if (strncmp(model->string.pointer, "L4R", 3) == 0)
- 		hotk->model = L4R;
--	else if (strncmp(model->string.pointer, "M6N", 3) == 0)
-+	else if (strncmp(model->string.pointer, "M6N", 3) == 0 ||
-+		 strncmp(model->string.pointer, "W3N", 3) == 0)
- 		hotk->model = M6N;
- 	else if (strncmp(model->string.pointer, "M6R", 3) == 0 ||
- 		 strncmp(model->string.pointer, "A3G", 3) == 0)
-@@ -1143,9 +1144,10 @@ static int __init asus_hotk_get_info(voi
- 		hotk->methods->lcd_status = "\\BLFG";
- 	/* A3G is like M6R */
- 	else if (strncmp(model->string.pointer, "S5N", 3) == 0 ||
--		 strncmp(model->string.pointer, "M5N", 3) == 0)
-+		 strncmp(model->string.pointer, "M5N", 3) == 0 ||
-+		 strncmp(model->string.pointer, "W3N", 3) == 0)
- 		hotk->methods->mt_mled = NULL;
--	/* S5N and M5N have no MLED */
-+	/* S5N, M5N and W3N have no MLED */
- 	else if (strncmp(model->string.pointer, "M2N", 3) == 0)
- 		hotk->methods->mt_wled = "WLED";
- 	/* M2N has a usable WLED */
+Hum, I don't think so (but maybe someone else knows for sure), I thought
+that driver was specifically for a certain kind of IBM server, not an
+IBM laptop.  It looks like from this output that the acpiphp is not
+recognizing any hotplug capable devices on your laptop.  I believe that
+this is defined by acpiphp as a slot which is "ejectable", meaning
+contains an ACPI method called _EJ0.  I think we should take a look at
+your dsdt to make sure that it seems reasonable, and also perhaps you
+could send the output of lspci -vv -x with the laptop booted in the dock
+just to see what kind of dock bridge you have and make sure everything
+seems like it should work.  Please send the disassembled output of your
+dsdt - if you've never done it before, instructions for doing this can
+be found here: 
+http://acpi.sourceforge.net/dsdt/index.php
+
+thanks!
+Kristen
+
