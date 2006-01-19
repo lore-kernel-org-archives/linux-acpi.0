@@ -1,95 +1,86 @@
-From: Vasileios Gkanis <gkanis@cems.umn.edu>
-Subject: High pitched sound with 2.6.15-ck1 --  Need your help
-Date: Thu, 19 Jan 2006 01:54:04 +0200
-Message-ID: <200601190154.04718.gkanis@cems.umn.edu>
+From: Kristen Accardi <kristen.c.accardi@intel.com>
+Subject: Re: [Pcihpd-discuss] Re: [patch 0/4]  Hot Dock/Undock support
+Date: Wed, 18 Jan 2006 16:06:59 -0800
+Message-ID: <1137629220.31839.56.camel@whizzy>
+References: <1137545813.19858.45.camel@whizzy>
+	 <20060118130444.GA1518@elf.ucw.cz> <1137609747.31839.6.camel@whizzy>
+	 <20060118194554.GA1502@elf.ucw.cz> <1137618370.31839.12.camel@whizzy>
+	 <20060118222348.GG1580@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tyr.cems.umn.edu ([134.84.164.251]:63141 "EHLO
-	mail.cems.umn.edu") by vger.kernel.org with ESMTP id S1030465AbWARXy7
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Jan 2006 18:54:59 -0500
-Received: from [192.168.1.3] (ipa213.1.tellas.gr [84.254.1.213])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mail.cems.umn.edu (Postfix) with ESMTP id B1B3537000F
-	for <linux-acpi@vger.kernel.org>; Wed, 18 Jan 2006 17:53:47 -0600 (CST)
-Content-Disposition: inline
+Received: from fmr17.intel.com ([134.134.136.16]:63906 "EHLO
+	orsfmr002.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1030486AbWASAEU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Jan 2006 19:04:20 -0500
+In-Reply-To: <20060118222348.GG1580@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-kernel@vger.kernel.org, greg@kroah.com, pcihpd-discuss@lists.sourceforge.net, len.brown@intel.com, linux-acpi@vger.kernel.org
 
-Hi,
-
-I have a laptop which makes this high pitched sound when HZ is 1000.  Up to 
-2.6.13 kernel, the dynamic tick patch would do the trick and this sound would 
-not be audible. Unfortunately, this is not the case with 2.6.15 kernel and 
-ck1 patch (Con Kolivas' patch).
-
-I am sending you the output from cat /proc/acpi/processor/CPU0/power and 
-dmesg | grep dyn for these two kernels.
-
-2.6.15
-
-dmesg | grep dyn
-dyn-tick: Disabling APIC timer, using PIT reprogramming
-dyn-tick: Maximum ticks to skip limited to 54
-dyn-tick: Enabling dynamic tick timer v060101
-
-cat /proc/acpi/processor/CPU0/power
-active state:            C4
-max_cstate:              C8
-bus master activity:     00000000
-states:
-    C1:                  type[C1] promotion[C2] demotion[--] latency[001] 
-usage[00000010] duration[00000000000000000000]
-    C2:                  type[C2] promotion[C3] demotion[C1] latency[001] 
-usage[00002323] duration[00000000000028289396]
-    C3:                  type[C3] promotion[C4] demotion[C2] latency[085] 
-usage[00004662] duration[00000000000033903705]
-   *C4:                  type[C3] promotion[--] demotion[C3] latency[185] 
-usage[00040131] duration[00000000000671395256]
-
-
-
-2.6.13
-
-dmesg | grep dyn
-dyn-tick: Found suitable timer: pmtmr
-dyn-tick: Registering dynamic tick timer v050610-1
-dyn-tick: Maximum ticks to skip limited to 54
-dyn-tick: Timer not enabled during boot
-
-cat /proc/acpi/processor/CPU0/power
-active state:            C2
-max_cstate:              C8
-bus master activity:     1ffa7ffc
-states:
-    C1:                  type[C1] promotion[C2] demotion[--] latency[001] 
-usage[00000010]
-   *C2:                  type[C2] promotion[C3] demotion[C1] latency[001] 
-usage[00017371]
-    C3:                  type[C3] promotion[C4] demotion[C2] latency[085] 
-usage[00002288]
-    C4:                  type[C3] promotion[--] demotion[C3] latency[185] 
-usage[00009309]
+On Wed, 2006-01-18 at 23:23 +0100, Pavel Machek wrote:
+<snip>
+> Device GDCK looks like dock to my untrained eye. Unfortunately its
+> type is IBM0079... ...
+> 
+> Ahha, and ibm_acpi.c agrees with me.
+> 
+> IBM_HANDLE(dock, root, "\\_SB.GDCK",    /* X30, X31, X40 */
+> 
+>         Scope (\_SB)
+>         {
+>             Device (GDCK)
+>             {
+>                 Name (_HID, EisaId ("IBM0079"))
+>                 Name (_CID, 0x150CD041)
+>                 Method (_STA, 0, NotSerialized)
+>                 {
+> ...
+>                 Method (_DCK, 1, NotSerialized)
+>                 {
+>                     Store (0x00, Local0)
+>                     If (LEqual (GGID (), 0x03))
+>                     {
+>                         Store (\_SB.PCI0.LPC.EC.SDCK (Arg0), Local0)
+>                     }
+> 
+>                     If (LEqual (GGID (), 0x00))
+>                     {
+>                         Store (\_SB.PCI0.PCI1.DOCK.DDCK (Arg0), Local0)
+>                     }
+> 
+>                     Return (Local0)
+>                 }
+> 
+>                 Method (_EJ0, 1, NotSerialized)
+>                 {
+>                     If (LEqual (GGID (), 0x03))
+>                     {
+>                         \_SB.PCI0.LPC.EC.SEJ0 (Arg0)
+>                     }
+> 
+>                     If (LEqual (GGID (), 0x00))
+>                     {
+>                         \_SB.PCI0.PCI1.DOCK.DEJ0 (Arg0)
+>                     }
+>                 }
+> ....
+> 
+> Hope this helps.
+> 						Pavel
 
 
+so the problem that I see is that this dsdt defines two separate dock
+devices, one outside the scope of pci, and one within it.  The one
+outside the scope of pci defines the _EJ0 and _DCK methods.  So, when
+acpiphp loads, it scans the pci slots for ejectable slots, finds none
+(because _EJ0 is defined in the dock device that is outside the scope of
+pci) and exits.  This dsdt is different from the others I've used in
+that most of them define all methods related to docking under the actual
+dock bridge (within the scope of pci).  perhaps some acpi people can
+shed some light on the best way to handle this - otherwise I'm sure I
+can hack something up that will be less than acceptable :).
 
-I would like to add that pmstats for both kernel reports the same value of HZ. 
-Also, I use the conservative governor for both kernel. It is important to say 
-here that for the 2.6.13 kernel, if I do not use the dynamic tick patch, the 
-sound will not be audible if I change the governor to performance.  
-Nevertheless, this is not the case for the 2.6.15 kernel.
 
-Finally, I found out that if I have "idle=poll" in the kernel arguments then I 
-will not hear this sound, but then again my system runs in C1 state. This is 
-a solution, but it is not the best one, and I would like to know if there are 
-alternative solutions to this problem.
-
-If you need more info about my system, I will be happy to provide it.
-
-Thank you,
-Vasilis
