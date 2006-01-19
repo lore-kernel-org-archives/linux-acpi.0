@@ -1,7 +1,7 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 2/5] ia64: ioremap: check EFI for valid memory attributes
-Date: Thu, 19 Jan 2006 13:12:44 -0700
-Message-ID: <200601191312.44564.bjorn.helgaas@hp.com>
+Subject: [PATCH 1/5] EFI, /dev/mem: simplify efi_mem_attribute_range()
+Date: Thu, 19 Jan 2006 13:12:18 -0700
+Message-ID: <200601191312.19027.bjorn.helgaas@hp.com>
 References: <20060104221627.GA26064@lists.us.dell.com> <20060118181116.GA5537@lists.us.dell.com> <200601191310.57303.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
@@ -23,104 +23,182 @@ To: Matt Domsch <Matt_Domsch@dell.com>
 Cc: linux-ia64@vger.kernel.org, ak@suse.de, openipmi-developer@lists.sourceforge.net, akpm@osdl.org, "Tolentino, Matthew E" <matthew.e.tolentino@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Check the EFI memory map so we can use the correct memory attributes
-for ioremap().  Previously, we always used uncacheable access, which
-blows up on some machines for regular system memory.
+Pass the size, not a pointer to the size, to efi_mem_attribute_range().
 
-Depends on the previous efi_mem_attribute_range() patch.
+This function validates memory regions for the /dev/mem read/write/mmap
+paths.  The pointer allows arches to reduce the size of the range, but
+I think that's unnecessary complexity.  Simplifying it will let me use
+efi_mem_attribute_range() to improve the ia64 ioremap() implementation.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Index: work-mm3/arch/ia64/mm/ioremap.c
+Index: work-mm3/arch/ia64/kernel/efi.c
 ===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ work-mm3/arch/ia64/mm/ioremap.c	2006-01-18 17:04:42.000000000 -0700
-@@ -0,0 +1,40 @@
-+/*
-+ * (c) Copyright 2006 Hewlett-Packard Development Company, L.P.
-+ *	Bjorn Helgaas <bjorn.helgaas@hp.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/compiler.h>
-+#include <linux/efi.h>
-+#include <asm/io.h>
-+
-+static inline void __iomem *
-+__ioremap (unsigned long offset, unsigned long size)
-+{
-+	return (void __iomem *) (__IA64_UNCACHED_OFFSET | offset);
-+}
-+
-+void __iomem *
-+ioremap (unsigned long offset, unsigned long size)
-+{
-+	if (efi_mem_attribute_range(offset, size, EFI_MEMORY_UC))
-+		return __ioremap(offset, size);
-+
-+	if (efi_mem_attribute_range(offset, size, EFI_MEMORY_WB))
-+		return phys_to_virt(offset);
-+
-+	/*
-+	 * Someday this should check ACPI resources so we
-+	 * can do the right thing for hot-plugged regions.
-+	 */
-+	return __ioremap(offset, size);
-+}
-+
-+void __iomem *
-+ioremap_nocache (unsigned long offset, unsigned long size)
-+{
-+	return __ioremap(offset, size);
-+}
-Index: work-mm3/include/asm-ia64/io.h
-===================================================================
---- work-mm3.orig/include/asm-ia64/io.h	2006-01-18 13:33:06.000000000 -0700
-+++ work-mm3/include/asm-ia64/io.h	2006-01-18 16:50:54.000000000 -0700
-@@ -416,25 +416,14 @@
- # define outl_p		outl
- #endif
- 
--/*
-- * An "address" in IO memory space is not clearly either an integer or a pointer. We will
-- * accept both, thus the casts.
-- *
-- * On ia-64, we access the physical I/O memory space through the uncached kernel region.
-- */
--static inline void __iomem *
--ioremap (unsigned long offset, unsigned long size)
--{
--	return (void __iomem *) (__IA64_UNCACHED_OFFSET | (offset));
--}
-+extern void __iomem * ioremap(unsigned long offset, unsigned long size);
-+extern void __iomem * ioremap_nocache (unsigned long offset, unsigned long size);
- 
- static inline void
- iounmap (volatile void __iomem *addr)
+--- work-mm3.orig/arch/ia64/kernel/efi.c	2006-01-18 13:25:29.000000000 -0700
++++ work-mm3/arch/ia64/kernel/efi.c	2006-01-18 13:27:18.000000000 -0700
+@@ -685,27 +685,34 @@
+ /*
+  * Determines whether the memory at phys_addr supports the desired
+  * attribute (WB, UC, etc).  If this returns 1, the caller can safely
+- * access *size bytes at phys_addr with the specified attribute.
++ * access size bytes at phys_addr with the specified attribute.
+  */
+-static int
+-efi_mem_attribute_range (unsigned long phys_addr, unsigned long *size, u64 attr)
++int
++efi_mem_attribute_range (unsigned long phys_addr, unsigned long size, u64 attr)
  {
++	unsigned long end = phys_addr + size;
+ 	efi_memory_desc_t *md = efi_memory_descriptor(phys_addr);
+-	unsigned long md_end;
+ 
+-	if (!md || (md->attribute & attr) != attr)
++	/*
++	 * Some firmware doesn't report MMIO regions in the EFI memory
++	 * map.  The Intel BigSur (a.k.a. HP i2000) has this problem.
++	 * On those platforms, we have to assume UC is valid everywhere.
++	 */
++	if (!md || (md->attribute & attr) != attr) {
++		if (attr == EFI_MEMORY_UC && !efi_memmap_has_mmio())
++			return 1;
+ 		return 0;
++	}
+ 
+ 	do {
+-		md_end = efi_md_end(md);
+-		if (phys_addr + *size <= md_end)
++		unsigned long md_end = efi_md_end(md);
++
++		if (end <= md_end)
+ 			return 1;
+ 
+ 		md = efi_memory_descriptor(md_end);
+-		if (!md || (md->attribute & attr) != attr) {
+-			*size = md_end - phys_addr;
+-			return 1;
+-		}
++		if (!md || (md->attribute & attr) != attr)
++			return 0;
+ 	} while (md);
+ 	return 0;
+ }
+@@ -716,7 +723,7 @@
+  * control access size.
+  */
+ int
+-valid_phys_addr_range (unsigned long phys_addr, unsigned long *size)
++valid_phys_addr_range (unsigned long phys_addr, unsigned long size)
+ {
+ 	return efi_mem_attribute_range(phys_addr, size, EFI_MEMORY_WB);
+ }
+@@ -731,7 +738,7 @@
+  * because that doesn't appear in the boot-time EFI memory map.
+  */
+ int
+-valid_mmap_phys_addr_range (unsigned long phys_addr, unsigned long *size)
++valid_mmap_phys_addr_range (unsigned long phys_addr, unsigned long size)
+ {
+ 	if (efi_mem_attribute_range(phys_addr, size, EFI_MEMORY_WB))
+ 		return 1;
+@@ -739,14 +746,6 @@
+ 	if (efi_mem_attribute_range(phys_addr, size, EFI_MEMORY_UC))
+ 		return 1;
+ 
+-	/*
+-	 * Some firmware doesn't report MMIO regions in the EFI memory map.
+-	 * The Intel BigSur (a.k.a. HP i2000) has this problem.  In this
+-	 * case, we can't use the EFI memory map to validate mmap requests.
+-	 */
+-	if (!efi_memmap_has_mmio())
+-		return 1;
+-
+ 	return 0;
  }
  
--#define ioremap_nocache(o,s)	ioremap(o,s)
--
- /* Use normal IO mappings for DMI */
- #define dmi_ioremap ioremap
- #define dmi_iounmap(x,l) iounmap(x)
-Index: work-mm3/arch/ia64/mm/Makefile
+Index: work-mm3/drivers/char/mem.c
 ===================================================================
---- work-mm3.orig/arch/ia64/mm/Makefile	2006-01-18 13:33:06.000000000 -0700
-+++ work-mm3/arch/ia64/mm/Makefile	2006-01-18 13:33:34.000000000 -0700
-@@ -2,7 +2,7 @@
- # Makefile for the ia64-specific parts of the memory manager.
- #
+--- work-mm3.orig/drivers/char/mem.c	2006-01-18 13:25:27.000000000 -0700
++++ work-mm3/drivers/char/mem.c	2006-01-18 13:27:18.000000000 -0700
+@@ -88,21 +88,15 @@
+ }
  
--obj-y := init.o fault.o tlb.o extable.o
-+obj-y := init.o fault.o tlb.o extable.o ioremap.o
+ #ifndef ARCH_HAS_VALID_PHYS_ADDR_RANGE
+-static inline int valid_phys_addr_range(unsigned long addr, size_t *count)
++static inline int valid_phys_addr_range(unsigned long addr, size_t count)
+ {
+-	unsigned long end_mem;
+-
+-	end_mem = __pa(high_memory);
+-	if (addr >= end_mem)
++	if (addr + count > __pa(high_memory))
+ 		return 0;
  
- obj-$(CONFIG_HUGETLB_PAGE) += hugetlbpage.o
- obj-$(CONFIG_NUMA)	   += numa.o
+-	if (*count > end_mem - addr)
+-		*count = end_mem - addr;
+-
+ 	return 1;
+ }
+ 
+-static inline int valid_mmap_phys_addr_range(unsigned long addr, size_t *size)
++static inline int valid_mmap_phys_addr_range(unsigned long addr, size_t size)
+ {
+ 	return 1;
+ }
+@@ -119,7 +113,7 @@
+ 	ssize_t read, sz;
+ 	char *ptr;
+ 
+-	if (!valid_phys_addr_range(p, &count))
++	if (!valid_phys_addr_range(p, count))
+ 		return -EFAULT;
+ 	read = 0;
+ #ifdef __ARCH_HAS_NO_PAGE_ZERO_MAPPED
+@@ -177,7 +171,7 @@
+ 	unsigned long copied;
+ 	void *ptr;
+ 
+-	if (!valid_phys_addr_range(p, &count))
++	if (!valid_phys_addr_range(p, count))
+ 		return -EFAULT;
+ 
+ 	written = 0;
+@@ -251,7 +245,7 @@
+ {
+ 	size_t size = vma->vm_end - vma->vm_start;
+ 
+-	if (!valid_mmap_phys_addr_range(vma->vm_pgoff << PAGE_SHIFT, &size))
++	if (!valid_mmap_phys_addr_range(vma->vm_pgoff << PAGE_SHIFT, size))
+ 		return -EINVAL;
+ 
+ 	vma->vm_page_prot = phys_mem_access_prot(file, vma->vm_pgoff,
+Index: work-mm3/include/asm-ia64/io.h
+===================================================================
+--- work-mm3.orig/include/asm-ia64/io.h	2006-01-18 13:25:27.000000000 -0700
++++ work-mm3/include/asm-ia64/io.h	2006-01-18 13:27:18.000000000 -0700
+@@ -88,8 +88,8 @@
+ }
+ 
+ #define ARCH_HAS_VALID_PHYS_ADDR_RANGE
+-extern int valid_phys_addr_range (unsigned long addr, size_t *count); /* efi.c */
+-extern int valid_mmap_phys_addr_range (unsigned long addr, size_t *count);
++extern int valid_phys_addr_range (unsigned long addr, size_t count); /* efi.c */
++extern int valid_mmap_phys_addr_range (unsigned long addr, size_t count);
+ 
+ /*
+  * The following two macros are deprecated and scheduled for removal.
+Index: work-mm3/include/linux/efi.h
+===================================================================
+--- work-mm3.orig/include/linux/efi.h	2006-01-18 13:25:27.000000000 -0700
++++ work-mm3/include/linux/efi.h	2006-01-18 13:27:18.000000000 -0700
+@@ -292,6 +292,8 @@
+ extern u64 efi_get_iobase (void);
+ extern u32 efi_mem_type (unsigned long phys_addr);
+ extern u64 efi_mem_attributes (unsigned long phys_addr);
++extern int efi_mem_attribute_range (unsigned long phys_addr, unsigned long size,
++				    u64 attr);
+ extern int __init efi_uart_console_only (void);
+ extern void efi_initialize_iomem_resources(struct resource *code_resource,
+ 					struct resource *data_resource);
 
 
 -------------------------------------------------------
