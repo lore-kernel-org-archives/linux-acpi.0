@@ -1,135 +1,38 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH 5/5] ACPI: clean up memory attribute checking for map/read/write
-Date: Thu, 19 Jan 2006 13:14:31 -0700
-Message-ID: <200601191314.31705.bjorn.helgaas@hp.com>
-References: <20060104221627.GA26064@lists.us.dell.com> <20060118181116.GA5537@lists.us.dell.com> <200601191310.57303.bjorn.helgaas@hp.com>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: 2.6.15-mm2 (acpi-cpufreq not loading)
+Date: Thu, 19 Jan 2006 16:06:47 -0500
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3005C6CA52@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <openipmi-developer-admin@lists.sourceforge.net>
-In-Reply-To: <200601191310.57303.bjorn.helgaas@hp.com>
-Content-Disposition: inline
-Sender: openipmi-developer-admin@lists.sourceforge.net
-Errors-To: openipmi-developer-admin@lists.sourceforge.net
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
-	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=unsubscribe>
-List-Post: <mailto:openipmi-developer@lists.sourceforge.net>
-List-Help: <mailto:openipmi-developer-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
-	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=openipmi-developer>
-To: Matt Domsch <Matt_Domsch@dell.com>
-Cc: linux-ia64@vger.kernel.org, ak@suse.de, openipmi-developer@lists.sourceforge.net, akpm@osdl.org, "Tolentino, Matthew E" <matthew.e.tolentino@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fmr14.intel.com ([192.55.52.68]:15795 "EHLO
+	fmsfmr002.fm.intel.com") by vger.kernel.org with ESMTP
+	id S1422641AbWASVGv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Jan 2006 16:06:51 -0500
+Content-class: urn:content-classes:message
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Brice Goglin <Brice.Goglin@ens-lyon.org>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-ia64 ioremap is now smart enough to use the correct memory attributes,
-so remove the EFI checks from osl.c.
+Brice,
 
-Depends on the previous ia64 ioremap patch.
+>>Can you test the _PDC patch here all by itself?
+>>
+>>http://bugzilla.kernel.org/show_bug.cgi?id=5483#c17
+>>
+>>  
+>>
+>Yes, 2.6.15 +
+>http://bugzilla.kernel.org/attachment.cgi?id=6731&action=view is also
+>broken.
+>
+>>If this patch is what causes the failure, please 
+>>build with CONFIG_ACP_DEBUG=y and attach the dmesg
+>>from the failure, as well as the output from acpidump,
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+The dmesg you attached doesn't show a message showing
+that acpi-cpufreq failed to load.
 
-Index: work-mm3/drivers/acpi/osl.c
-===================================================================
---- work-mm3.orig/drivers/acpi/osl.c	2006-01-19 11:37:23.000000000 -0700
-+++ work-mm3/drivers/acpi/osl.c	2006-01-19 11:38:05.000000000 -0700
-@@ -180,22 +180,14 @@
- acpi_os_map_memory(acpi_physical_address phys, acpi_size size,
- 		   void __iomem ** virt)
- {
--	if (efi_enabled) {
--		if (EFI_MEMORY_WB & efi_mem_attributes(phys)) {
--			*virt = (void __iomem *)phys_to_virt(phys);
--		} else {
--			*virt = ioremap(phys, size);
--		}
--	} else {
--		if (phys > ULONG_MAX) {
--			printk(KERN_ERR PREFIX "Cannot map memory that high\n");
--			return AE_BAD_PARAMETER;
--		}
--		/*
--		 * ioremap checks to ensure this is in reserved space
--		 */
--		*virt = ioremap((unsigned long)phys, size);
-+	if (phys > ULONG_MAX) {
-+		printk(KERN_ERR PREFIX "Cannot map memory that high\n");
-+		return AE_BAD_PARAMETER;
- 	}
-+	/*
-+	 * ioremap checks to ensure this is in reserved space
-+	 */
-+	*virt = ioremap((unsigned long)phys, size);
- 
- 	if (!*virt)
- 		return AE_NO_MEMORY;
-@@ -405,18 +397,8 @@
- {
- 	u32 dummy;
- 	void __iomem *virt_addr;
--	int iomem = 0;
- 
--	if (efi_enabled) {
--		if (EFI_MEMORY_WB & efi_mem_attributes(phys_addr)) {
--			/* HACK ALERT! We can use readb/w/l on real memory too.. */
--			virt_addr = (void __iomem *)phys_to_virt(phys_addr);
--		} else {
--			iomem = 1;
--			virt_addr = ioremap(phys_addr, width);
--		}
--	} else
--		virt_addr = (void __iomem *)phys_to_virt(phys_addr);
-+	virt_addr = ioremap(phys_addr, width);
- 	if (!value)
- 		value = &dummy;
- 
-@@ -434,10 +416,7 @@
- 		BUG();
- 	}
- 
--	if (efi_enabled) {
--		if (iomem)
--			iounmap(virt_addr);
--	}
-+	iounmap(virt_addr);
- 
- 	return AE_OK;
- }
-@@ -446,18 +425,8 @@
- acpi_os_write_memory(acpi_physical_address phys_addr, u32 value, u32 width)
- {
- 	void __iomem *virt_addr;
--	int iomem = 0;
- 
--	if (efi_enabled) {
--		if (EFI_MEMORY_WB & efi_mem_attributes(phys_addr)) {
--			/* HACK ALERT! We can use writeb/w/l on real memory too */
--			virt_addr = (void __iomem *)phys_to_virt(phys_addr);
--		} else {
--			iomem = 1;
--			virt_addr = ioremap(phys_addr, width);
--		}
--	} else
--		virt_addr = (void __iomem *)phys_to_virt(phys_addr);
-+	virt_addr = ioremap(phys_addr, width);
- 
- 	switch (width) {
- 	case 8:
-@@ -473,8 +442,7 @@
- 		BUG();
- 	}
- 
--	if (iomem)
--		iounmap(virt_addr);
-+	iounmap(virt_addr);
- 
- 	return AE_OK;
- }
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
-for problems?  Stop!  Download the new AJAX search engine that makes
-searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
-http://sel.as-us.falkag.net/sel?cmd=lnk&kid=103432&bid=230486&dat=121642
+-Len
