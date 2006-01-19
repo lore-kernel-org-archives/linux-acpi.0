@@ -1,31 +1,31 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: t41, suspend on ram, power consumption
-Date: Thu, 19 Jan 2006 23:15:14 +0000
-Message-ID: <20060119231514.GA9829@srcf.ucam.org>
-References: <20060113095634.GA7112@mnementh.homelinux.org> <20060113101638.12055.qmail@web81607.mail.mud.yahoo.com> <20060117203732.GC24179@message-id.gmane0305.slipkontur.de> <20060119105001.GE2154@poupinou.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [RFC] Add lspnp support for sysfs
+Date: Thu, 19 Jan 2006 16:50:59 -0700
+Message-ID: <200601191650.59642.bjorn.helgaas@hp.com>
+References: <200601131051.36906.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:40903 "EHLO
-	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
-	id S1161046AbWASXPc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Jan 2006 18:15:32 -0500
+Received: from atlrel8.hp.com ([156.153.255.206]:16006 "EHLO atlrel8.hp.com")
+	by vger.kernel.org with ESMTP id S1161243AbWASXvF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Jan 2006 18:51:05 -0500
+In-Reply-To: <200601131051.36906.bjorn.helgaas@hp.com>
 Content-Disposition: inline
-In-Reply-To: <20060119105001.GE2154@poupinou.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bruno Ducrot <ducrot@poupinou.org>
-Cc: Stefan Seyfried <seife@gmane0305.slipkontur.de>, linux-acpi@vger.kernel.org
+To: linux-pcmcia@lists.infradead.org
+Cc: linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Adam Belay <ambx1@neo.rr.com>, Matthieu Castet <castet.matthieu@free.fr>, Li Shaohua <shaohua.li@intel.com>
 
-On Thu, Jan 19, 2006 at 11:50:01AM +0100, Bruno Ducrot wrote:
+On Friday 13 January 2006 10:51, Bjorn Helgaas wrote:
+> Add lspnp support for sysfs.  This makes it work with generic PNP
+> (including PNPACPI, PNPBIOS, ISAPNP) instead of just with PNPBIOS.
+> I'm particularly interested in ia64, which never has PNPBIOS, but
+> may have PNPACPI.
 
-> I'm not sure you are right with that claim.  There may be some code
-> onto suspend2 patches that may help improve suspend/resume devices that
-> are not yet merged to mainline.  I don't think however this fill fix
-> the thinkpad problem of the OP though.
-
-Last time I checked, there was some code to restore AGP bridge state. 
-I think that's pretty much it.
- 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Any more feedback on this?  I'd like to see lspnp work again
+on modern systems, because it's so much easier to tell a user
+to run lspnp than it is to tell him how to grub around in
+/sys/bus/pnp/devices.
