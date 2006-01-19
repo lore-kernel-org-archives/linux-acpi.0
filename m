@@ -1,45 +1,31 @@
-From: Brice Goglin <Brice.Goglin@ens-lyon.org>
-Subject: Re: 2.6.15-mm2 (acpi-cpufreq not loading)
-Date: Thu, 19 Jan 2006 17:02:46 -0500
-Message-ID: <43D00C86.3050403@ens-lyon.org>
-References: <F7DC2337C7631D4386A2DF6E8FB22B3005C6CA52@hdsmsx401.amr.corp.intel.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: t41, suspend on ram, power consumption
+Date: Thu, 19 Jan 2006 23:15:14 +0000
+Message-ID: <20060119231514.GA9829@srcf.ucam.org>
+References: <20060113095634.GA7112@mnementh.homelinux.org> <20060113101638.12055.qmail@web81607.mail.mud.yahoo.com> <20060117203732.GC24179@message-id.gmane0305.slipkontur.de> <20060119105001.GE2154@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from h-66-166-126-70.lsanca54.covad.net ([66.166.126.70]:60610 "EHLO
-	myri.com") by vger.kernel.org with ESMTP id S1161157AbWASWCz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Jan 2006 17:02:55 -0500
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B3005C6CA52@hdsmsx401.amr.corp.intel.com>
+Received: from cavan.codon.org.uk ([217.147.92.49]:40903 "EHLO
+	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
+	id S1161046AbWASXPc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Jan 2006 18:15:32 -0500
+Content-Disposition: inline
+In-Reply-To: <20060119105001.GE2154@poupinou.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, linux-acpi@vger.kernel.org
+To: Bruno Ducrot <ducrot@poupinou.org>
+Cc: Stefan Seyfried <seife@gmane0305.slipkontur.de>, linux-acpi@vger.kernel.org
 
-Brown, Len wrote:
+On Thu, Jan 19, 2006 at 11:50:01AM +0100, Bruno Ducrot wrote:
 
->The dmesg you attached doesn't show a message showing
->that acpi-cpufreq failed to load.
->  
->
-Yes, modprobe's error is not shown in dmesg (I don't know whether it is
-configurable or not). I just double-checked my boot, I get :
+> I'm not sure you are right with that claim.  There may be some code
+> onto suspend2 patches that may help improve suspend/resume devices that
+> are not yet merged to mainline.  I don't think however this fill fix
+> the thinkpad problem of the OP though.
 
-ACPI: Processor [CPU] (supports 8 throttling states)
-FATAL: Error loading acpi_cpufreq (/lib/modules/.../acpi_cpufreq.ko): No
-such device
-Machine check exception polling timer started.
-
-instead of (2.6.15):
-
-ACPI: Processor [CPU] (supports 8 throttling states)
-acpi-cpufreq: CPU0 - ACPI performance management activated.
-Machine check exception polling timer started.
-
-In case if matters, acpi-cpufreq is loaded early (in /etc/modules on my
-Debian), before any other acpi modules is loaded (except processor since
-it depends on it).
-
-Brice
-
+Last time I checked, there was some code to restore AGP bridge state. 
+I think that's pretty much it.
+ 
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
