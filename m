@@ -1,48 +1,29 @@
-From: Karol Kozimor <sziwan@hell.org.pl>
-Subject: Re: wake-on-lan
-Date: Fri, 20 Jan 2006 06:16:35 +0100
-Message-ID: <20060120051635.GA30662@hell.org.pl>
-References: <F7DC2337C7631D4386A2DF6E8FB22B3005C6CECE@hdsmsx401.amr.corp.intel.com>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: Gentoo on Acer Aspire 3502WLCi with bugged DSDT (Phoenix BIOS)
+Date: Fri, 20 Jan 2006 00:57:49 -0500
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3005C6CEF2@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hell.org.pl ([62.233.239.4]:36370 "HELO hell.org.pl")
-	by vger.kernel.org with SMTP id S1161314AbWATFQu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Jan 2006 00:16:50 -0500
-Content-Disposition: inline
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B3005C6CECE@hdsmsx401.amr.corp.intel.com>
+Received: from fmr14.intel.com ([192.55.52.68]:10394 "EHLO
+	fmsfmr002.fm.intel.com") by vger.kernel.org with ESMTP
+	id S1030330AbWATF7g convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jan 2006 00:59:36 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: Joseph Dunn <jdunn14@hotpop.com>, linux-acpi@vger.kernel.org
+To: Fabio <fabio.venturi@studenti.unipr.it>, linux-acpi@vger.kernel.org
 
-Thus wrote Brown, Len:
-> >When I halt the machine (shutdown -h) I cannot
-> >wake it.  However, if the machine is unplugged, then plugged back in,
-> >*then* I can wake it. 
-> 
-> WOL can be done a couple of ways.
-> 
-> If it is implemented using ACPI GPE's, then
-> you need to find a string (unfortunately, they're arbitrary)
-> in /proc/acpi/wakeup that looks like your device and echo that
-> string into the file to toggle between enabled and disabled.
-> 
-> Only Power/Sleep/LID buttons are enabled for wakeup by default.
-> 
-> Note that this I/F is temporary -- the ability of
-> a device to wake the system should really be a property
-> of that device in the /sys tree.
+Note that in most cases when Linux doesn't digest the DSDT
+that the vendor shipped, it is a Linux bug that needs to
+be filed and fixed.  We're not taking the moral high ground here,
+in most cases we're trying to be resilient to the bugs
+in DSDTs that Windows allows.
 
-Note also that there are very few explicit calls to pci_enable_wake() in
-the whole tree. Linux doesn't set the PME-Enable bit properly, which
-apparently results in WOL either working or not working. My understanding
-is that the final outcome depends on what BIOS does to the card during
-POST. Please see http://bugme.osdl.org/show_bug.cgi?id=3801 for a weird 
-example.
-Best regards,
+That said, if you want to run a custom DSDT and you're
+building a custom kernel for the box, then simply
+use the CONFIG_ACPI_CUSTOM_DSDT option.
 
--- 
-Karol 'sziwan' Kozimor
-sziwan@hell.org.pl
+cheers,
+-Len
