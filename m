@@ -1,40 +1,42 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE:  Re: 2.6.15-mm2 (acpi-cpufreq not loading)
-Date: Fri, 20 Jan 2006 03:31:09 -0500
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3005C6CEFF@hdsmsx401.amr.corp.intel.com>
+From: Andrew Morton <akpm@osdl.org>
+Subject: Fw: [Bugme-new] [Bug 5788] New: ASUS A6k Notebook hangs on boot
+ while initializing ehci_hcd
+Date: Fri, 20 Jan 2006 00:36:12 -0800
+Message-ID: <20060120003612.1290dd35.akpm@osdl.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr13.intel.com ([192.55.52.67]:20103 "EHLO
-	fmsfmr001.fm.intel.com") by vger.kernel.org with ESMTP
-	id S1750732AbWATIbg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jan 2006 03:31:36 -0500
-Content-class: urn:content-classes:message
+Received: from smtp.osdl.org ([65.172.181.4]:6825 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1750726AbWATIgd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 20 Jan 2006 03:36:33 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id k0K8aRDZ015085
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <linux-acpi@vger.kernel.org>; Fri, 20 Jan 2006 00:36:32 -0800
+Received: from bix (shell0.pdx.osdl.net [10.9.0.31])
+	by shell0.pdx.osdl.net (8.13.1/8.11.6) with SMTP id k0K8aQwx021976
+	for <linux-acpi@vger.kernel.org>; Fri, 20 Jan 2006 00:36:27 -0800
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: GregR <grcore@usamtb.com>, Brice Goglin <Brice.Goglin@ens-lyon.org>
-Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
 
->Brice Goglin <Brice.Goglin <at> ens-lyon.org> writes:
->
->> Yes, modprobe's error is not shown in dmesg (I don't know 
->> whether it is configurable or not). I just double-checked my boot, I get :
->
->[SNIP]
->
->> In case if matters, acpi-cpufreq is loaded early (in 
->/etc/modules on my
->> Debian), before any other acpi modules is loaded (except 
->processor since
->> it depends on it).
->
->If it helps, I had the same problem with 2.6.15, and I ended 
->up building it in [*], as opposed to a module [M] at compile time.
->Worked fine after that.
+I'm not sure o this is an acpi problem or not.  Could someone please
+take a look and reassign it if so?
 
-Brice, does building =y help?
+Thanks.
 
-thanks,
--Len
+Begin forwarded message:
+
+Date: Tue, 27 Dec 2005 12:41:59 -0800
+From: bugme-daemon@bugzilla.kernel.org
+To: bugme-new@lists.osdl.org
+Subject: [Bugme-new] [Bug 5788] New: ASUS A6k Notebook hangs on boot while initializing ehci_hcd
+
+
+http://bugzilla.kernel.org/show_bug.cgi?id=5788
+
+            Summary: ASUS A6k Notebook hangs on boot while initializing
+                     ehci_hcd
