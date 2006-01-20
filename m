@@ -1,39 +1,72 @@
-From: "John H." <mistamaila@gmail.com>
-Subject: Re: compaq 2110us cannot resume from suspend to ram
-Date: Fri, 20 Jan 2006 10:34:42 -0600
-Message-ID: <5b9417770601200834i1f7fe367rbda454ce223f7092@mail.gmail.com>
-References: <5b9417770601130828o52ff0e7dvfbb72722ae676f4c@mail.gmail.com>
+From: Kristen Accardi <kristen.c.accardi@intel.com>
+Subject: Re: [Pcihpd-discuss] [patch 2/4] acpiphp: handle dock bridges
+Date: Fri, 20 Jan 2006 09:56:59 -0800
+Message-ID: <1137779819.16192.5.camel@whizzy>
+References: <20060116200218.275371000@whizzy>
+	 <1137545819.19858.47.camel@whizzy>
+	 <87r773a8dz.wl%muneda.takahiro@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zproxy.gmail.com ([64.233.162.203]:64700 "EHLO zproxy.gmail.com")
-	by vger.kernel.org with ESMTP id S1751065AbWATQen convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Jan 2006 11:34:43 -0500
-Received: by zproxy.gmail.com with SMTP id 14so497815nzn
-        for <linux-acpi@vger.kernel.org>; Fri, 20 Jan 2006 08:34:43 -0800 (PST)
-In-Reply-To: <5b9417770601130828o52ff0e7dvfbb72722ae676f4c@mail.gmail.com>
-Content-Disposition: inline
+Received: from fmr20.intel.com ([134.134.136.19]:60816 "EHLO
+	orsfmr005.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1751005AbWATRy7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 20 Jan 2006 12:54:59 -0500
+In-Reply-To: <87r773a8dz.wl%muneda.takahiro@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: MUNEDA Takahiro <muneda.takahiro@jp.fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, greg@kroah.com, pcihpd-discuss@lists.sourceforge.net, len.brown@intel.com, linux-acpi@vger.kernel.org, pavel@ucw.cz
 
-it's also known as
-hp nx9005.
+On Fri, 2006-01-20 at 12:24 +0900, MUNEDA Takahiro wrote:
+> Hi,
+> 
+> At Tue, 17 Jan 2006 16:56:59 -0800,
+> Kristen Accardi <kristen.c.accardi@intel.com> wrote:
+> > 
+> > @@ -681,6 +713,88 @@ static int acpiphp_configure_ioapics(acp
+> (snip)
+> > +static int acpiphp_bus_add(struct acpiphp_func *func)
+> > +{
+> > +	acpi_handle phandle;
+> > +	struct acpi_device *device, *pdevice;
+> > +	int ret_val;
+> > +
+> > +	acpi_get_parent(func->handle, &phandle);
+> > +	if (acpi_bus_get_device(phandle, &pdevice)) {
+> > +		dbg("no parent device, assuming NULL\n");
+> > +		pdevice = NULL;
+> > +	}
+> > +	ret_val = acpi_bus_add(&device, pdevice, func->handle,
+> > +			ACPI_BUS_TYPE_DEVICE);
+> > +	if (ret_val)
+> > +		dbg("cannot add bridge to acpi list\n");
+> > +
+> > +	/*
+> > +	 * try to start anyway.  We could have failed to add
+> > +	 * simply because this bus had previously been added
+> > +	 * on another dock.  Don't bother with the return value
+> > +	 * we just keep going.
+> > +	 */
+> > +	ret_val = acpi_bus_start(device);
+> > +
+> > +	return ret_val;
+> > +}
+> > +
+> > +
+> > +
+> 
+> When the device is docked, acpi_bus_add() is called to register
+> the device into acpi list. But if the device is undocked,
+> acpi_bus_trim() doesn't called.
+> Can you hot-add/remove the dock station repeatedly?
+> 
+> Thanks,
+> MUNE
+> 
 
-Sometimes it reboots automatically on resume, or it seems to power
-off, but if you hit a MM key again, it reboots instantly.
+Yes you can.  The reason for this is because even if we fail the call to
+acpi_bus_add(), we ignore the return value and call acpi_bus_start()
+anyway.
 
-On 1/13/06, John H. <mistamaila@gmail.com> wrote:
-> Works in XP, but in linux, with fc4 and 2.6.15(has always done this on
-> all kernels I've had), when i try to resume from suspend to ram,
-> touching either power button or any MM button on top, as soon as I
-> touch, it seems for a split second to be resuming, then powers off
-> instantly.
->
-> As pavel said, I posted bug
-> http://bugzilla.kernel.org/show_bug.cgi?id=5884
->
-> please advise, thanks!
->
