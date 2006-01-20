@@ -1,28 +1,29 @@
-From: Brice Goglin <Brice.Goglin@ens-lyon.org>
-Subject: Re: 2.6.15-mm2 (acpi-cpufreq not loading)
-Date: Fri, 20 Jan 2006 08:59:07 -0500
-Message-ID: <43D0ECAB.7040807@ens-lyon.org>
-References: <F7DC2337C7631D4386A2DF6E8FB22B3005C6CEFF@hdsmsx401.amr.corp.intel.com>
+From: Janosch Machowinski <scotch@tzi.de>
+Subject: Re: Strange interpreter behaviour
+Date: Fri, 20 Jan 2006 16:27:50 +0100
+Message-ID: <43D10176.302@tzi.de>
+References: <43BFF7DE.1000909@tzi.de> <20060116171932.GF25115@poupinou.org> <43CC0FC0.9090806@tzi.de> <20060117103043.GA2154@poupinou.org> <43CCE603.3010600@tzi.de> <20060117132435.GB2154@poupinou.org> <43CCFF1C.4000309@tzi.de> <20060117154742.GD2154@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from h-66-166-126-70.lsanca54.covad.net ([66.166.126.70]:36349 "EHLO
-	myri.com") by vger.kernel.org with ESMTP id S1750982AbWATN7j (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Jan 2006 08:59:39 -0500
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B3005C6CEFF@hdsmsx401.amr.corp.intel.com>
+Received: from m1.informatik.uni-bremen.de ([134.102.201.18]:64235 "EHLO
+	informatik.uni-bremen.de") by vger.kernel.org with ESMTP
+	id S1750797AbWATP0m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 20 Jan 2006 10:26:42 -0500
+In-Reply-To: <20060117154742.GD2154@poupinou.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: GregR <grcore@usamtb.com>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, linux-acpi@vger.kernel.org
+To: Bruno Ducrot <ducrot@poupinou.org>
+Cc: linux-acpi@vger.kernel.org
 
-Brown, Len wrote:
+> Sometimes I'm stupid.  Try this version instead.
+> 
+Okay, this worked,
+the outprut from your little programm was 0x500,
+but it should be
+GPE0_BLK:         0x00000428
+GPE1_BLK:         0x00000000
 
->Brice, does building =y help?
->  
->
-No, it does not. By the way, 2.6.16-rc1-mm2 has the same problem.
-
-Brice
+So is this an error in ACPI-CA or in my DSDT ?
 
