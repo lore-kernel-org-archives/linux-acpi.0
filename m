@@ -1,50 +1,39 @@
-From: "Li, Shaohua" <shaohua.li@intel.com>
-Subject: RE: How to get /proc/acpi/alarm to work?
-Date: Fri, 20 Jan 2006 09:44:16 +0800
-Message-ID: <59D45D057E9702469E5775CBB56411F1016C9816@pdsmsx406>
+From: Adam Belay <ambx1@neo.rr.com>
+Subject: Re: [RFC] Add lspnp support for sysfs
+Date: Thu, 19 Jan 2006 21:47:32 -0500
+Message-ID: <20060120024731.GA27435@neo.rr.com>
+References: <200601131051.36906.bjorn.helgaas@hp.com> <200601191650.59642.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr20.intel.com ([134.134.136.19]:57298 "EHLO
-	orsfmr005.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1422723AbWATBoQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Jan 2006 20:44:16 -0500
-Content-class: urn:content-classes:message
+Received: from HELIOUS.MIT.EDU ([18.248.3.87]:36808 "EHLO neo.rr.com")
+	by vger.kernel.org with ESMTP id S1161167AbWATCma (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Jan 2006 21:42:30 -0500
+Content-Disposition: inline
+In-Reply-To: <200601191650.59642.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanno Mueller <sockpuppet@hanno.de>
-Cc: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: linux-pcmcia@lists.infradead.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Li Shaohua <shaohua.li@intel.com>
 
-Hi,
->
->thanks.
->
->Li, Shaohua schrieb:
->> Can you enable the RTC driver? IIRC, without it, the date you see is
->> wrong, which might make you set wrong alarm.
->
->Yes, it is enabled (now). But no, it didn't help.
->
->
->
->I still have two different alarm settings.
->
->1) The setting stored in the BIOS's ACPI section as "RTC alarm". I can
->choose a time and a specific day of the month.
->
->2) The setting stored in /proc/acpi/alarm - there I can only choose the
->time, not the day.
->
->These two settings appear to be completely independent from each other.
->
->Also, the 2nd setting does not work. I can change it and the computer
->remembers it between reboots, but the BIOS does not wake up the system
->from S5. The 1st setting is able to wake up the system.
->
-ACPI alarm can only wakeup system from S3 and wakeup from S4 is
-optional. IIRC, it can't wakeup system from S5.
+On Thu, Jan 19, 2006 at 04:50:59PM -0700, Bjorn Helgaas wrote:
+> On Friday 13 January 2006 10:51, Bjorn Helgaas wrote:
+> > Add lspnp support for sysfs.  This makes it work with generic PNP
+> > (including PNPACPI, PNPBIOS, ISAPNP) instead of just with PNPBIOS.
+> > I'm particularly interested in ia64, which never has PNPBIOS, but
+> > may have PNPACPI.
+> 
+> Any more feedback on this?  I'd like to see lspnp work again
+> on modern systems, because it's so much easier to tell a user
+> to run lspnp than it is to tell him how to grub around in
+> /sys/bus/pnp/devices.
+
+Personally, I think this would be really useful, and I agree asking users
+to poke around sysfs can be difficult.  I'd like to see it as a
+seperate utility from the original lspnp included in pcmcia-cs (which
+should actually be called "lspnpbios") as it can be handy for a different
+sort of testing.
 
 Thanks,
-Shaohua
+Adam
