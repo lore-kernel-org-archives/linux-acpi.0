@@ -1,43 +1,44 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: Gentoo on Acer Aspire 3502WLCi with bugged DSDT (Phoenix BIOS)
-Date: Fri, 20 Jan 2006 17:27:58 -0500
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3005CA2273@hdsmsx401.amr.corp.intel.com>
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Subject: RE: 2.6.15-mm2 (acpi-cpufreq not loading)
+Date: Fri, 20 Jan 2006 14:44:58 -0800
+Message-ID: <88056F38E9E48644A0F562A38C64FB6006F826E1@scsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr14.intel.com ([192.55.52.68]:24277 "EHLO
-	fmsfmr002.fm.intel.com") by vger.kernel.org with ESMTP
-	id S932245AbWATW2m convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jan 2006 17:28:42 -0500
+Received: from fmr24.intel.com ([143.183.121.16]:55734 "EHLO
+	scsfmr004.sc.intel.com") by vger.kernel.org with ESMTP
+	id S932253AbWATWpK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jan 2006 17:45:10 -0500
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Fabio Venturi <fabio.venturi@studenti.unipr.it>
-Cc: linux-acpi@vger.kernel.org
+To: Brice Goglin <Brice.Goglin@ens-lyon.org>, "Brown, Len" <len.brown@intel.com>
+Cc: GregR <grcore@usamtb.com>, linux-acpi@vger.kernel.org
 
+ 
 
->title Gentoo GNU/Linux (Fixed DSDT)
->kernel (hd0,2)/boot/bzImage-2.6.15 root=/dev/hda3
->initrd=(hd0,2)/boot/DSDT.aml
->[...]
+>-----Original Message-----
+>From: Brice Goglin [mailto:Brice.Goglin@ens-lyon.org] 
+>Sent: Friday, January 20, 2006 5:59 AM
+>To: Brown, Len
+>Cc: GregR; Pallipadi, Venkatesh; linux-acpi@vger.kernel.org
+>Subject: Re: 2.6.15-mm2 (acpi-cpufreq not loading)
 >
->but when the system finish to boot, "dmsg |grep -i dsdt" says:
+>Brown, Len wrote:
 >
->ACPI: DSDT (v001 PTLTD     661MX 0x06040000 MSFT 0x0100000e) @
->0x00000000
->ACPI: Looking for DSDT in initramfs... error, file /DSDT.aml not found.
->Table [DSDT](id 0006) - 485 Objects with 39 Devices 93 Methods 10
->Regions
+>>Brice, does building =y help?
+>>  
+>>
+>No, it does not. By the way, 2.6.16-rc1-mm2 has the same problem.
 >
->So the original DSDT from the BIOS is loaded instead of
->loading the custom one.
->(Yes, i activate the CONFIG_ACPI_CUSTOM_DSDT, RamDisk Support ecc..
 
-If you're using CONFIG_ACPI_CUSTOM_DSDT
-(and setting CONFIG_ACPI_CUSTOM_DSDT_FILE to the soruce file...)
+Brice,
 
-then do not apply the initrd patch (unapply it if you've applied it)
-do not create a special initrd file, and do not modify your grub/menu.lst
+Can you try whether speedstep-centrino driver loads?
+You can select both acpi-cpufreq and speedstep-centrino in config and
+they will be loaded in proper order at boot time.
 
--Len
+Thanks,
+Venki
