@@ -1,30 +1,54 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: 2.6.16-rc1-mm1 (**** SET: Misaligned resource pointer: ...)
-Date: Fri, 20 Jan 2006 01:08:08 -0500
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3005C6CEF4@hdsmsx401.amr.corp.intel.com>
+From: Adam Belay <ambx1@neo.rr.com>
+Subject: Re: wake-on-lan
+Date: Fri, 20 Jan 2006 01:36:37 -0500
+Message-ID: <20060120063637.GC27435@neo.rr.com>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3005C6CECE@hdsmsx401.amr.corp.intel.com> <20060120051635.GA30662@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr15.intel.com ([192.55.52.69]:50336 "EHLO
-	fmsfmr005.fm.intel.com") by vger.kernel.org with ESMTP
-	id S1422686AbWATGI1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Jan 2006 01:08:27 -0500
-Content-class: urn:content-classes:message
+Received: from HELIOUS.MIT.EDU ([18.248.3.87]:59849 "EHLO neo.rr.com")
+	by vger.kernel.org with ESMTP id S1030438AbWATGbe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 20 Jan 2006 01:31:34 -0500
+Content-Disposition: inline
+In-Reply-To: <20060120051635.GA30662@hell.org.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Grant Coady <gcoady@gmail.com>, Andrew Morton <akpm@osdl.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Moore, Robert" <robert.moore@intel.com>
+To: Karol Kozimor <sziwan@hell.org.pl>
+Cc: "Brown, Len" <len.brown@intel.com>, Joseph Dunn <jdunn14@hotpop.com>, linux-acpi@vger.kernel.org
 
+On Fri, Jan 20, 2006 at 06:16:35AM +0100, Karol Kozimor wrote:
+> Thus wrote Brown, Len:
+> > >When I halt the machine (shutdown -h) I cannot
+> > >wake it.  However, if the machine is unplugged, then plugged back in,
+> > >*then* I can wake it. 
+> > 
+> > WOL can be done a couple of ways.
+> > 
+> > If it is implemented using ACPI GPE's, then
+> > you need to find a string (unfortunately, they're arbitrary)
+> > in /proc/acpi/wakeup that looks like your device and echo that
+> > string into the file to toggle between enabled and disabled.
+> > 
+> > Only Power/Sleep/LID buttons are enabled for wakeup by default.
+> > 
+> > Note that this I/F is temporary -- the ability of
+> > a device to wake the system should really be a property
+> > of that device in the /sys tree.
+> 
+> Note also that there are very few explicit calls to pci_enable_wake() in
+> the whole tree. Linux doesn't set the PME-Enable bit properly, which
+> apparently results in WOL either working or not working. My understanding
+> is that the final outcome depends on what BIOS does to the card during
+> POST. Please see http://bugme.osdl.org/show_bug.cgi?id=3801 for a weird 
+> example.
 
->**** SET: Misaligned resource pointer: efe72c22 Type 07 Len 0
+I'm in the process of overhauling the PCI layer's power management event
+support.  Basically, I'd like to catch ACPI GPE events and then walk the
+device tree in thier corresponding location to see if PME is set.  If so
+a function like ->wake() will be called for the device driver that owns
+the triggered device.  This should allow for even runtime PME usage.  I'm
+expecting to have a patch available for the PCI end of these changes soon.
 
-Grant,
-Thanks for sending the DSDT.
-
-Bob dug into this and concluded that this
-new warning is from excess paranoia and can be ignored.
-It will be gone in the next revision of the ACPI patch.
-
-thanks,
--Len
+Thanks,
+Adam
