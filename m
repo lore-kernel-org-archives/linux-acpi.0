@@ -1,65 +1,51 @@
-From: Fabio Venturi <fabio.venturi@studenti.unipr.it>
-Subject: RE: Gentoo on Acer Aspire 3502WLCi with bugged DSDT (Phoenix BIOS)
-Date: Fri, 20 Jan 2006 11:13:51 +0100
-Message-ID: <1137752031.26366.14.camel@redstar>
-References: <F7DC2337C7631D4386A2DF6E8FB22B3005C6CEF2@hdsmsx401.amr.corp.intel.com>
+From: Rolf Eike Beer <eike-hotplug@sf-tec.de>
+Subject: Re: [Pcihpd-discuss] [PATCH 2/7] acpiphp - remove init_slots()
+Date: Fri, 20 Jan 2006 11:25:59 +0100
+Message-ID: <200601201126.06541@bilbo.math.uni-mannheim.de>
+References: <877j8vp5y4.wl%muneda.takahiro@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed;
+  boundary="nextPart1951623.UNT2uWdESP";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from as1.cineca.com ([130.186.84.251]:2486 "EHLO as1.cineca.com")
-	by vger.kernel.org with ESMTP id S1750797AbWATKNR (ORCPT
+Received: from mail.sf-mail.de ([62.27.20.61]:18392 "EHLO mail.sf-mail.de")
+	by vger.kernel.org with ESMTP id S1750808AbWATK3f (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Jan 2006 05:13:17 -0500
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B3005C6CEF2@hdsmsx401.amr.corp.intel.com>
+	Fri, 20 Jan 2006 05:29:35 -0500
+In-Reply-To: <877j8vp5y4.wl%muneda.takahiro@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: pcihpd-discuss@lists.sourceforge.net
+Cc: MUNEDA Takahiro <muneda.takahiro@jp.fujitsu.com>, greg@kroah.com, pavel@ucw.cz, kristen.c.accardi@intel.com, linux-acpi@vger.kernel.org, len.brown@intel.com
 
-Thank you for the answer ,
-as i wrote, i already downloaded (from the ACPI site)
-and compiled with iasl a bug-fixed DSDT for my laptop,
-the problem is I can't make the kernel read it during the boot.
-In a gentoo forum (http://forums.gentoo.org/viewtopic.php?t=122145)
-i found that i can pass the new DSDT.aml to the kernel
-like an initrd image so i changes grub.conf like this:
+--nextPart1951623.UNT2uWdESP
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-[...]
-title Gentoo GNU/Linux (Fixed DSDT)
-kernel (hd0,2)/boot/bzImage-2.6.15 root=/dev/hda3
-initrd=(hd0,2)/boot/DSDT.aml
-[...]
+MUNEDA Takahiro wrote:
 
-but when the system finish to boot, "dmsg |grep -i dsdt" says:
+>+	slot = kmalloc(sizeof(struct slot), GFP_KERNEL);
+>+	if (!slot)
+>+		goto error;
+>+	memset(slot, 0, sizeof(struct slot));
 
-ACPI: DSDT (v001 PTLTD     661MX 0x06040000 MSFT 0x0100000e) @
-0x00000000
-ACPI: Looking for DSDT in initramfs... error, file /DSDT.aml not found.
-Table [DSDT](id 0006) - 485 Objects with 39 Devices 93 Methods 10
-Regions
+Use kzalloc() instead of kmalloc() and memset(). Use sizeof(*slot).
 
-So the original DSDT from the BIOS is loaded instead of
-loading the custom one.
-(Yes, i activate the CONFIG_ACPI_CUSTOM_DSDT, RamDisk Support ecc..
-options)
-I hope I clearly explained my problem (in a bad english :oP ),
-thank you for this and any further help
-regards
-Fabio
+Eike
 
-Il giorno ven, 20/01/2006 alle 00.57 -0500, Brown, Len ha scritto:
-> Note that in most cases when Linux doesn't digest the DSDT
-> that the vendor shipped, it is a Linux bug that needs to
-> be filed and fixed.  We're not taking the moral high ground here,
-> in most cases we're trying to be resilient to the bugs
-> in DSDTs that Windows allows.
-> 
-> That said, if you want to run a custom DSDT and you're
-> building a custom kernel for the box, then simply
-> use the CONFIG_ACPI_CUSTOM_DSDT option.
-> 
-> cheers,
-> -Len
-> 
+--nextPart1951623.UNT2uWdESP
+Content-Type: application/pgp-signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.0 (GNU/Linux)
+
+iD8DBQBD0Lq+XKSJPmm5/E4RArq4AJwNIdUl/sA8YxaflqrRDkIyFq/7GgCgi4Nv
+OOad2SoTuRLn7u8BvJQzhio=
+=Vn2G
+-----END PGP SIGNATURE-----
+
+--nextPart1951623.UNT2uWdESP--
