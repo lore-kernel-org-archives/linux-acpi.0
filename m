@@ -1,79 +1,60 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: Re: 2.6.15-mm3 [USB lost interrupt bug]
-Date: Fri, 20 Jan 2006 21:47:23 -0800
-Message-ID: <20060120214723.79111715.akpm@osdl.org>
-References: <Pine.LNX.4.44L0.0601152243330.1929-100000@netrider.rowland.org>
-	<43D1C4E9.7030901@reub.net>
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Subject: RE: 2.6.15-mm2 (acpi-cpufreq not loading)
+Date: Fri, 20 Jan 2006 22:00:26 -0800
+Message-ID: <88056F38E9E48644A0F562A38C64FB6006FB7B20@scsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-devel-admin@lists.sourceforge.net>
-In-Reply-To: <43D1C4E9.7030901@reub.net>
-Sender: linux-usb-devel-admin@lists.sourceforge.net
-Errors-To: linux-usb-devel-admin@lists.sourceforge.net
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
-	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Post: <mailto:linux-usb-devel@lists.sourceforge.net>
-List-Help: <mailto:linux-usb-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
-	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-usb-devel>
-To: Reuben Farrelly <reuben-lkml@reub.net>
-Cc: stern@rowland.harvard.edu, linux-kernel@vger.kernel.org, jgarzik@pobox.com, greg@kroah.com, linux-usb-devel@lists.sourceforge.net, neilb@cse.unsw.edu.au, linux-acpi@vger.kernel.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fmr21.intel.com ([143.183.121.13]:62081 "EHLO
+	scsfmr001.sc.intel.com") by vger.kernel.org with ESMTP
+	id S1750744AbWAUGAe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Jan 2006 01:00:34 -0500
+Content-class: urn:content-classes:message
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Brice Goglin <Brice.Goglin@ens-lyon.org>
+Cc: "Brown, Len" <len.brown@intel.com>, GregR <grcore@usamtb.com>, linux-acpi@vger.kernel.org
 
-Reuben Farrelly <reuben-lkml@reub.net> wrote:
+
+>-----Original Message-----
+>From: Brice Goglin [mailto:Brice.Goglin@ens-lyon.org] 
+>Sent: Friday, January 20, 2006 8:24 PM
+>To: Pallipadi, Venkatesh
+>Cc: Brown, Len; GregR; linux-acpi@vger.kernel.org
+>Subject: Re: 2.6.15-mm2 (acpi-cpufreq not loading)
 >
-> 
-> 
-> On 16/01/2006 4:46 p.m., Alan Stern wrote:
-> > On Mon, 16 Jan 2006, Reuben Farrelly wrote:
-> > 
-> >>> From the information presented here, it looks like -mm1 correctly routes
-> >>> the 1d.1 controller to IRQ 193 and the 1d.3 controller to IRQ 169, whereas
-> >>> -mm3 incorrectly routes the 1d.3 controller to IRQ 193.  That would make 
-> >>> it an ACPI problem.
-> >> Is this likely to be the same or similar issue to the IRQ 0 problem I see quite 
-> >> frequently on the SATA ports on later -mm releases?
-> >> (see http://www.ussg.iu.edu/hypermail/linux/kernel/0601.1/1851.html)
-> > 
-> > I doubt they are at all related.  In the USB problem the resource is there 
-> > but ACPI is routing it wrongly.  In the SATA problem the resource isn't 
-> > there to begin with.
-> > 
-> > But then I know almost nothing about ACPI, so I could be wrong...
-> > 
-> > Alan Stern
-> 
-> Some good news.  I think it's fixed in 2.6.16-rc1-mm2.  In fact a whole boatload 
-> of problems I was having are fixed in this -mm release, including a nasty libata 
-> oops that seemed to have a few people scratching their heads.
+>Pallipadi, Venkatesh wrote:
+>
+>>Can you try whether speedstep-centrino driver loads?
+>>You can select both acpi-cpufreq and speedstep-centrino in config and
+>>they will be loaded in proper order at boot time.
+>>  
+>>
+>Yes, speedstep-centrino works. I'll be happy to keep using it since it
+>seems to provide the same features. But, both are supposed to 
+>work here,
+>right ?
+>By the way, do you think I should update my BIOS ? My Thinkpad T43 has
+>been updated two month ago but there's a new update available.
+>
 
-OK, but probably that libata error-path bug is still in there.  It's just
-that you're no longer taking the error paths.  And now we've lost our means
-to reproduce it.
+Good to know. BIOS is supposed to support either one or both of them,
+but as long as one of them works it should be fine. 
 
-> I've now done in excess of 20 reboots with this code and haven't had either 
-> problem show up at all.
-> 
-> So for now I'll keep a record of things for a bit longer, but I guess I've 
-> reason to be fairly confident that both this USB/IRQ problem and my ATA/IRQ 
-> problem are now fixed.
-> 
-> It does make me wonder if the ACPI update in rc1-mm2 fixed it, and was actually 
-> the cause of most of my problems......it would be nice to know for sure.
+Technically, those two should have been a single driver and OS should
+use speedstep-centrino mechanism first, if that fails then should fall
+back to acpi-cpufreq. But, they are different drivers for historical
+reasons.
 
-We probably won't know.  Did you ever test 2.6.16-rc1 plus 2.6.16-rc1-mm1's
-acpi.patch?  If that plays up we'd have confirmation.
+Probably we can provide a single config option that selects both the
+drivers automatically.
 
+Speedstep-centrino is preferrable and better than acpi-cpufreq. It does
+a faster frequency transition. So, don't worry about upgrading the BIOS
+due to this failure. In general, it is always better to update the BIOS
+whenever a upgrade is available though.
 
-
--------------------------------------------------------
-This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
-for problems?  Stop!  Download the new AJAX search engine that makes
-searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
-http://sel.as-us.falkag.net/sel?cmd=lnk&kid=103432&bid=230486&dat=121642
-_______________________________________________
-linux-usb-devel@lists.sourceforge.net
-To unsubscribe, use the last form field at:
-https://lists.sourceforge.net/lists/listinfo/linux-usb-devel
+Thanks,
+Venki
