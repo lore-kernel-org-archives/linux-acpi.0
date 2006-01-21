@@ -1,94 +1,45 @@
-From: Jeff Garzik <jgarzik@pobox.com>
-Subject: [PATCH] Re: [linux-usb-devel] Re: 2.6.15-mm3 [USB lost interrupt
- bug]
-Date: Sat, 21 Jan 2006 03:32:18 -0500
-Message-ID: <43D1F192.3060406@pobox.com>
-References: <Pine.LNX.4.44L0.0601152243330.1929-100000@netrider.rowland.org>	<43D1C4E9.7030901@reub.net> <20060120214723.79111715.akpm@osdl.org> <43D1E9A4.8090504@reub.net>
+From: Komuro <komurojun-mbn@nifty.com>
+Subject: Re: Re: [RFC] Add lspnp support for sysfs
+Date: Sat, 21 Jan 2006 19:00:12 +0900 (JST)
+Message-ID: <5004686.116921137837612492.komurojun-mbn@nifty.com>
+References: <20060120024731.GA27435@neo.rr.com>
+ <200601131051.36906.bjorn.helgaas@hp.com>
+	<200601191650.59642.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------040803060803060209030702"
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <43D1E9A4.8090504@reub.net>
-Sender: linux-ide-owner@vger.kernel.org
-To: Reuben Farrelly <reuben-lkml@reub.net>, Andrew Morton <akpm@osdl.org>
-Cc: stern@rowland.harvard.edu, linux-kernel@vger.kernel.org, greg@kroah.com, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, neilb@cse.unsw.edu.au, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="iso-2022-jp"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from pxy2nd.nifty.com ([202.248.175.14]:60177 "HELO pxy2nd.nifty.com")
+	by vger.kernel.org with SMTP id S1750772AbWAUKAP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 21 Jan 2006 05:00:15 -0500
+In-Reply-To: <20060120024731.GA27435@neo.rr.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-This is a multi-part message in MIME format.
---------------040803060803060209030702
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Adam Belay <ambx1@neo.rr.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-acpi@vger.kernel.org, linux-pcmcia@lists.infradead.org, Li Shaohua <shaohua.li@intel.com>, Matthieu Castet <castet.matthieu@free.fr>, Len Brown <len.brown@intel.com>
 
 
-On the libata side of things, does this patch produce any useful results?
+Hello,
 
-	Jeff
+I want 'check_pnp_irq' api in the kernel pnp layer.
+to avoid irq conflict between 16bit-pcmcia card
+and on-board pnp-devices.
 
-
-
-
---------------040803060803060209030702
-Content-Type: text/plain;
- name="patch.pci-region-check"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="patch.pci-region-check"
-
-diff --git a/drivers/scsi/libata-core.c b/drivers/scsi/libata-core.c
-index 46c4cdb..4691f8d 100644
---- a/drivers/scsi/libata-core.c
-+++ b/drivers/scsi/libata-core.c
-@@ -4794,7 +4794,14 @@ ata_pci_init_native_mode(struct pci_dev 
- 			pci_resource_start(pdev, 1) | ATA_PCI_CTL_OFS;
- 		probe_ent->port[p].bmdma_addr = pci_resource_start(pdev, 4);
- 		ata_std_ports(&probe_ent->port[p]);
--		p++;
-+
-+		if (pci_resource_start(pdev, 0) &&
-+		    pci_resource_len(pdev, 0) &&
-+		    pci_resource_start(pdev, 1) &&
-+		    pci_resource_len(pdev, 1) &&
-+		    pci_resource_start(pdev, 4) &&
-+		    pci_resource_len(pdev, 4))
-+			p++;
- 	}
+for example,
+int check_pnp_irq(int irq)
+  return  0 (unused)
+         -1 (used)
+         -2 (reserved)
  
- 	if (ports & ATA_PORT_SECONDARY) {
-@@ -4804,10 +4811,23 @@ ata_pci_init_native_mode(struct pci_dev 
- 			pci_resource_start(pdev, 3) | ATA_PCI_CTL_OFS;
- 		probe_ent->port[p].bmdma_addr = pci_resource_start(pdev, 4) + 8;
- 		ata_std_ports(&probe_ent->port[p]);
--		p++;
-+
-+		if (pci_resource_start(pdev, 2) &&
-+		    pci_resource_len(pdev, 2) &&
-+		    pci_resource_start(pdev, 3) &&
-+		    pci_resource_len(pdev, 3) &&
-+		    pci_resource_start(pdev, 4) &&
-+		    pci_resource_len(pdev, 4) > 8)
-+			p++;
- 	}
- 
- 	probe_ent->n_ports = p;
-+
-+	if (p == 0) {
-+		kfree(probe_ent);
-+		probe_ent = NULL;
-+	}
-+
- 	return probe_ent;
- }
- 
-@@ -4815,6 +4835,10 @@ static struct ata_probe_ent *ata_pci_ini
- {
- 	struct ata_probe_ent *probe_ent;
- 
-+	if (!pci_resource_start(pdev, 4) ||
-+	    !pci_resource_len(pdev, 4))
-+		return NULL;
-+
- 	probe_ent = ata_probe_ent_alloc(pci_dev_to_dev(pdev), port);
- 	if (!probe_ent)
- 		return NULL;
+Below is a known problems and limitations
+in the pcmcia-cs README-2.4
 
---------------040803060803060209030702--
+>  The kernel PCMCIA package cannot be configured to use PnP BIOS calls
+>  for resource management.  Recent kernels do have PnP BIOS support
+>  but the "glue" hasn't been written.
+
+
+Best Regards
+Komuro
+
