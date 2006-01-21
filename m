@@ -1,116 +1,103 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] acpiphp: treat dck separate from dock bridge
-Date: Sat, 21 Jan 2006 13:10:46 +0100
-Message-ID: <20060121121046.GA1530@elf.ucw.cz>
-References: <20060116200218.275371000@whizzy> <1137545819.19858.47.camel@whizzy> <1137808506.16192.69.camel@whizzy>
+From: Fabio Venturi <fabio.venturi@studenti.unipr.it>
+Subject: Re: Gentoo on Acer Aspire 3502WLCi with bugged DSDT (Phoenix BIOS)
+Date: Sat, 21 Jan 2006 16:44:16 +0100
+Message-ID: <1137858256.25402.19.camel@redstar>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3005C6CEF2@hdsmsx401.amr.corp.intel.com>
+	 <1137752031.26366.14.camel@redstar> <20060120130936.GA21264@poupinou.org>
+	 <20060120132434.GB21264@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:21888 "EHLO amd.ucw.cz")
-	by vger.kernel.org with ESMTP id S932124AbWAUMLA (ORCPT
+Received: from as1.cineca.com ([130.186.84.251]:13716 "EHLO as1.cineca.com")
+	by vger.kernel.org with ESMTP id S1750769AbWAUOnk (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 21 Jan 2006 07:11:00 -0500
-Content-Disposition: inline
-In-Reply-To: <1137808506.16192.69.camel@whizzy>
+	Sat, 21 Jan 2006 09:43:40 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by as1.cineca.com (Postfix) with ESMTP id B74F571490
+	for <linux-acpi@vger.kernel.org>; Sat, 21 Jan 2006 15:43:31 +0100 (CET)
+Received: from unipr.mm.cineca.it (unipr.mm.cineca.it [130.186.10.204])
+	by as1.cineca.com (Postfix) with ESMTP id DC6987148F
+	for <linux-acpi@vger.kernel.org>; Sat, 21 Jan 2006 15:43:30 +0100 (CET)
+Received: from host82-138.pool8253.interbusiness.it (host82-138.pool8253.interbusiness.it [82.53.138.82])
+	(using TLSv1 with cipher RC4-MD5 (128/128 bits))
+	(No client certificate requested)
+	as user fabio.venturi@studenti.unipr.it by unipr.mm.cineca.it (Postfix) with ESMTP id CD867265439
+	for <linux-acpi@vger.kernel.org>; Sat, 21 Jan 2006 15:43:29 +0100 (MET)
+In-Reply-To: <20060120132434.GB21264@poupinou.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kristen Accardi <kristen.c.accardi@intel.com>
-Cc: linux-kernel@vger.kernel.org, greg@kroah.com, pcihpd-discuss@lists.sourceforge.net, len.brown@intel.com, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Hi!
 
-> actual p2p bridge, and what I try to do here is:
-> 1) find the device that _DCK is defined under
-> 2) if this is a bridged device, we are done (i.e. is has _ADR and is
-> ejectable)
-> 3) if not, then walk the namespace looking for _EJD.  If you find one,
-> see if the dependency is on the dock device.  The dock bridge should be
-> dependent on the dock device.  
+> On Fri, Jan 20, 2006 at 02:09:36PM +0100, Bruno Ducrot wrote:
+> > On Fri, Jan 20, 2006 at 11:13:51AM +0100, Fabio Venturi wrote:
+> > > Thank you for the answer ,
+> > > as i wrote, i already downloaded (from the ACPI site)
+> > > and compiled with iasl a bug-fixed DSDT for my laptop,
+> > > the problem is I can't make the kernel read it during the boot.
+> > > In a gentoo forum (http://forums.gentoo.org/viewtopic.php?t=122145)
+> > > i found that i can pass the new DSDT.aml to the kernel
+> > > like an initrd image so i changes grub.conf like this:
+> > > 
+> > > [...]
+> > > title Gentoo GNU/Linux (Fixed DSDT)
+> > > kernel (hd0,2)/boot/bzImage-2.6.15 root=/dev/hda3
+> > > initrd=(hd0,2)/boot/DSDT.aml
+> > > [...]
+> > > 
+> > > but when the system finish to boot, "dmsg |grep -i dsdt" says:
+> > > 
+> > > ACPI: DSDT (v001 PTLTD     661MX 0x06040000 MSFT 0x0100000e) @
+> > > 0x00000000
+> > > ACPI: Looking for DSDT in initramfs... error, file /DSDT.aml not found.
+> > > Table [DSDT](id 0006) - 485 Objects with 39 Devices 93 Methods 10
+> > > Regions
+> > > 
+> > > So the original DSDT from the BIOS is loaded instead of
+> > > loading the custom one.
+> > > (Yes, i activate the CONFIG_ACPI_CUSTOM_DSDT, RamDisk Support ecc..
+> > > options)
+> > 
+> > What wanted to tell you Len is that you should consider the other method
+> > as pointed by gentoo link you provided (the static one, instead of the
+> > initrd method).  This method is now in mainstream, so you don't have to
+> > patch the kernel anymore.
+> > 
+> > Just get for example a kernel version 2.6.15, then you must have
+> > something like that:
+> > 
+> > # CONFIG_STANDALONE is not set
+> > CONFIG_ACPI_CUSTOM_DSDT=y
+> > CONFIG_ACPI_CUSTOM_DSDT_FILE="/path/to/foo.hex"
+> > 
+> > where foo.hex is a C header file (NOT an aml one) that is generated
+> > by the command
+> > iasl -p foo -tc foo.dsl
+> > 
 > 
-> 	- when you find something that is dependent on the dock device,
-> 	  see if it has an _ADR and a _PRT entry.  If so, then it is the
-> 	  p2p dock bridge.
+> BTW if you have a problem with your battery and that's why you have to
+> override the DSDT, you should consider to *NOT* override it, and instead
+> test Len's next ACPI release.
 > 
-> So, this is likely a wrong assumption, so I will be thinking some more
-> about how to tell which acpi device is the dock bridge.  But meanwhile,
-> this patch could be tested/reviewed to see if it gets us a step further
-> in the right direction.
+> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/test/2.6.15/
+> 
+> Instead of doing some black magic, you also will be able to report if
+> the workaround made by ACPI intel developers is helpful for your laptop.
+> 
 
-Oopsen seems to be called because add_p2p_bridge is never called. I
-think it should be called for this device:
+GREAT! Everything is working well now and all I did was:
+trash the existing kernel, decompress the vanilla 2.6.15 kernel
+(I don't know if this work also with custom kernel), patched to the
+last stable 2.6.15-1 and, as Bruno Ducrot suggested, patched
+with Len Brown's patch found at:
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/test/2.6.15/acpi-test-20051216-2.6.15.diff.bz2
+and now the battery (the only device with a problem) is regularly
+monitored by ACPI.
+If you need some dumps or my kernel .config file just tell me,
+I'll sent it immediately.
+Thank you very much for the great help you gave me!
+Regards
+Fabio
 
-0000:00:1e.0 PCI bridge: Intel Corporation 82801 Mobile PCI Bridge (rev 81)
 
---- clean-mm//drivers/pci/hotplug/acpiphp_glue.c	2006-01-21 11:38:51.000000000 +0100
-+++ linux-mm/drivers/pci/hotplug/acpiphp_glue.c	2006-01-21 12:53:28.000000000 +0100
-@@ -454,16 +457,22 @@
- 		return AE_OK;
- 	}
- 
-+	printk("ADR ok\n");
-+
- 	device = (tmp >> 16) & 0xffff;
- 	function = tmp & 0xffff;
- 
- 	dev = pci_get_slot(pci_bus, PCI_DEVFN(device, function));
- 
-+	printk("device, function = %lx\n", tmp);
-+
- 	if (!dev || !dev->subordinate)
- 		goto out;
- 
-+	printk("detect slots\n");
-+
- 	/* check if this bridge has ejectable slots */
--	if (detect_ejectable_slots(handle) > 0) {
-+	if ((tmp == 0x1e0000) || (detect_ejectable_slots(handle) > 0)) {
- 		dbg("found PCI-to-PCI bridge at PCI %s\n", pci_name(dev));
- 		add_p2p_bridge(handle, dev);
- 	}
-
-...but then bridge->slots is still empty. I tried forcing
-is_ejectable(), but then I get:
-
-Jan 21 13:09:52 amd kernel: acpiphp: ACPI Hot Plug PCI Controller
-Driver version: 0.5
-Jan 21 13:09:53 amd kernel: add_bridge
-Jan 21 13:09:53 amd kernel: find_p2p_bridge
-Jan 21 13:09:53 amd kernel: ADR ok
-Jan 21 13:09:53 amd kernel: device, function = 1f0000
-Jan 21 13:09:53 amd kernel: find_p2p_bridge
-Jan 21 13:09:53 amd kernel: ADR ok
-Jan 21 13:09:53 amd kernel: device, function = 10000
-Jan 21 13:09:53 amd kernel: detect slots
-Jan 21 13:09:53 amd kernel: find_p2p_bridge
-Jan 21 13:09:53 amd kernel: ADR ok
-Jan 21 13:09:53 amd kernel: device, function = 1e0000
-Jan 21 13:09:53 amd kernel: detect slots
-Jan 21 13:09:53 amd kernel: acpiphp_glue: found PCI-to-PCI bridge at
-PCI 0000:00:1e.0
-Jan 21 13:09:53 amd kernel: add_p2p_bridge
-Jan 21 13:09:53 amd kernel: acpiphp_glue: _HPP evaluation failed
-Jan 21 13:09:53 amd kernel: find_p2p_bridge
-Jan 21 13:09:53 amd kernel: ADR ok
-Jan 21 13:09:53 amd kernel: device, function = 1f0001
-Jan 21 13:09:53 amd kernel: find_p2p_bridge
-Jan 21 13:09:53 amd kernel: ADR ok
-Jan 21 13:09:53 amd kernel: device, function = 1d0000
-Jan 21 13:09:53 amd kernel: find_p2p_bridge
-Jan 21 13:09:53 amd kernel: ADR ok
-Jan 21 13:09:53 amd kernel: device, function = 1d0001
-Jan 21 13:09:53 amd kernel: find_p2p_bridge
-Jan 21 13:09:53 amd kernel: ADR ok
-Jan 21 13:09:53 amd kernel: device, function = 1d0002
-Jan 21 13:09:53 amd kernel: find_p2p_bridge
-Jan 21 13:09:53 amd kernel: ADR ok
-Jan 21 13:09:53 amd kernel: device, function = 1d0007
-Jan 21 13:09:53 amd kernel: find_p2p_bridge
-Jan 21 13:09:53 amd kernel: ADR ok
-Jan 21 13:09:53 amd kernel: device, function = 1f0006
-Jan 21 13:09:53 amd kernel: acpiphp_glue: Bus 0000:02 has 0 slots
-Jan 21 13:09:53 amd kernel: acpiphp_glue: Total 0 slots
-Jan 21 13:10:05 amd pam_limits[1345]: wrong limit value 'unlimited'
-
-								Pavel
--- 
-Thanks, Sharp!
