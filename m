@@ -1,63 +1,92 @@
-From: =?ISO-8859-1?Q?Mathieu_B=E9rard?= <Mathieu.Berard@crans.org>
-Subject: linux-2.6.16-rc1-mm2: new ACPI errors
-Date: Sat, 21 Jan 2006 19:31:27 +0100
-Message-ID: <43D27DFF.2030104@crans.org>
+From: Janosch Machowinski <scotch@tzi.de>
+Subject: Re: Strange interpreter behaviour
+Date: Sat, 21 Jan 2006 19:55:59 +0100
+Message-ID: <43D283BF.9000004@tzi.de>
+References: <43BFF7DE.1000909@tzi.de> <20060116171932.GF25115@poupinou.org> <43CC0FC0.9090806@tzi.de> <20060117103043.GA2154@poupinou.org> <43CCE603.3010600@tzi.de> <20060117132435.GB2154@poupinou.org> <43CCFF1C.4000309@tzi.de> <20060117154742.GD2154@poupinou.org> <43D10176.302@tzi.de> <20060120193248.GD21264@poupinou.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp6-g19.free.fr ([212.27.42.36]:3491 "EHLO smtp6-g19.free.fr")
-	by vger.kernel.org with ESMTP id S932232AbWAUSba (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 21 Jan 2006 13:31:30 -0500
-Received: from perenold.hd.free.fr (vbo91-2-82-239-207-88.fbx.proxad.net [82.239.207.88])
-	by smtp6-g19.free.fr (Postfix) with ESMTP id 12AB315833
-	for <linux-acpi@vger.kernel.org>; Sat, 21 Jan 2006 19:31:29 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-	by perenold.hd.free.fr (Postfix) with ESMTP id 95162753
-	for <linux-acpi@vger.kernel.org>; Sat, 21 Jan 2006 19:31:28 +0100 (CET)
-Received: from perenold.hd.free.fr ([127.0.0.1])
-	by localhost (perenold.hd.free.fr [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id 31516-10 for <linux-acpi@vger.kernel.org>;
-	Sat, 21 Jan 2006 19:31:28 +0100 (CET)
-Received: from localhost.localdomain (manwe.beleriand.perenold.info [192.168.0.49])
-	by perenold.hd.free.fr (Postfix) with ESMTP id 6C16625C
-	for <linux-acpi@vger.kernel.org>; Sat, 21 Jan 2006 19:31:28 +0100 (CET)
-Received: from [127.0.0.1] (localhost.localdomain [127.0.0.1])
-	by localhost.localdomain (Postfix) with ESMTP id 20E6C1C010AB
-	for <linux-acpi@vger.kernel.org>; Sat, 21 Jan 2006 19:31:28 +0100 (CET)
+Received: from m1.informatik.uni-bremen.de ([134.102.201.18]:54712 "EHLO
+	informatik.uni-bremen.de") by vger.kernel.org with ESMTP
+	id S1750838AbWAUSys (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 21 Jan 2006 13:54:48 -0500
+In-Reply-To: <20060120193248.GD21264@poupinou.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Bruno Ducrot <ducrot@poupinou.org>
+Cc: linux-acpi@vger.kernel.org
 
-Hi,
-I've got 4 new ACPI errors during the boot sequence:
+> On Fri, Jan 20, 2006 at 04:27:50PM +0100, Janosch Machowinski wrote:
+> 
+>>>Sometimes I'm stupid.  Try this version instead.
+>>>
+>>
+>>Okay, this worked,
+>>the outprut from your little programm was 0x500,
+>>but it should be
+>>GPE0_BLK:         0x00000428
+>>GPE1_BLK:         0x00000000
+>>
+>>So is this an error in ACPI-CA or in my DSDT ?
+>>
+> 
+> 
+>>From the ich4-m specification (see
+> ftp://download.intel.com/design/mobile/datashts/25233701.pdf
+> )
+> and the lspci -xxx I've requested, we can look that, for the isa
+> bridge, we can see that 0x500 is the base address for the GPIO
+> configuration registers.
+> 
+> The lspci show us:
+> 00:1f.0 ISA bridge: Intel Corporation 82801DBM (ICH4-M) LPC Interface
+> Bridge (rev 03)
+> Flags: bus master, medium devsel, latency 0
+> 00: 86 80 cc 24 0f 01 80 02 03 00 01 06 00 00 80 00
+> 10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> 20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> 30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> 40: 01 04 00 00 10 00 00 00 00 00 00 00 00 00 00 00
+> 50: 00 00 00 00 00 00 00 00 01 05 00 00 10 00 00 00
+> 60: 0b 04 0a 05 90 00 00 00 80 80 80 0a 00 00 00 00
+> 70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> 80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> 90: ff fc 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> a0: 28 03 00 00 00 00 00 00 0d 00 00 00 00 00 00 00
+> b0: 00 00 00 00 00 00 00 00 00 80 02 02 00 00 00 00
+> c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> d0: 02 28 00 00 02 cf 00 00 04 00 00 00 00 00 00 00
+> e0: 12 00 00 c0 00 00 06 34 33 22 11 00 00 00 67 45
+> f0: 00 00 01 00 00 00 00 00 60 0f 03 00 00 00 80 02
+> 
+> 
+> The GPIO base address is at 0x58-0x5b (see page 305).
+> 
+>>From page 396 (9.10 General Purpose I/O Registers) we'll
+> learn that the ACPI node INV7 correspond to the
+> 8th bit of the 'GPIO signal invert (GPI_INV)' register.
+> 
+> Therefore actually INV7 control somehow we'll treat
+> what happens under the GPE0_BLK, but do not modify it.
+> (I must confess I don't see why the ODM designed
+> that stuff like this).
+> 
+> At the description of this register, and for bit 8, we'll
+> see that setting this bit will have no effect if the
+> corresponding GPIO is set as an output.  We'll therefore
+> shall check if that is the problem.
+> 
+> Could you please (again, sorry!) 
+Don't be sorry to debug my notebook ;-)
+run the next tool attached?
+> This would help to progress a little bit further.
+> 
 
-ACPI: Subsystem revision 20060113
-ACPI: Interpreter enabled
-ACPI: Using IOAPIC for interrupt routing
-ACPI Error (nsxfeval-0240): Handle is NULL and Pathname is relative
-ACPI Error (nsxfeval-0240): Handle is NULL and Pathname is relative
-ACPI Error (nsxfeval-0240): Handle is NULL and Pathname is relative
-ACPI Error (nsxfeval-0240): Handle is NULL and Pathname is relative
-...
-
-After some investigations it appears that the corresponding Pathname are
-_PR0, _PR1, _PR2 and _PR3 and are concerning the root node.
-
-
-There is no _PRx in my dsdt so this error has probably always existed but
-has been made visible by the switch from ACPI_DEBUG_PRINT to
-ACPI_REPORT_ERROR in the latest ACPI patch.
-
-Is this a real error ? Is it OK for my dsdt to lack these _PRx objects  ?
-
-Thanks
-
-(this has already been reported some time ago:
-http://marc.theaimsgroup.com/?l=linux-kernel&m=112429158821875&w=2)
-
-(Please CC me)
-
- 
+scotchmobil pmtools # ./scan_gpio_ctl
+      00 01 02 03 04 05 06 07   08 09 0a 0b 0c 0d 0e 0f
+0500 bf 39 00 1a ff ff 00 00   00 00 00 00 00 00 01 08
+0510 00 00 00 00 00 00 00 00   00 00 00 02 00 00 00 00
+0520 00 00 00 00 00 00 00 00   00 00 00 00 88 39 00 00
+0530 ff 0f 00 00 06 04 00 00   8f 04 00 00 00 00 00 00
 
