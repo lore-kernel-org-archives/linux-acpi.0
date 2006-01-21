@@ -1,34 +1,57 @@
-From: Brice Goglin <Brice.Goglin@ens-lyon.org>
-Subject: Re: 2.6.15-mm2 (acpi-cpufreq not loading)
-Date: Fri, 20 Jan 2006 23:24:18 -0500
-Message-ID: <43D1B772.3010604@ens-lyon.org>
-References: <88056F38E9E48644A0F562A38C64FB6006F826E1@scsmsx403.amr.corp.intel.com>
+From: Reuben Farrelly <reuben-lkml@reub.net>
+Subject: Re: [linux-usb-devel] Re: 2.6.15-mm3 [USB lost interrupt bug]
+Date: Sat, 21 Jan 2006 18:21:45 +1300
+Message-ID: <43D1C4E9.7030901@reub.net>
+References: <Pine.LNX.4.44L0.0601152243330.1929-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from h-66-166-126-70.lsanca54.covad.net ([66.166.126.70]:49344 "EHLO
-	myri.com") by vger.kernel.org with ESMTP id S1161238AbWAUEYS (ORCPT
+Received: from tornado.reub.net ([202.89.145.182]:46013 "EHLO tornado.reub.net")
+	by vger.kernel.org with ESMTP id S1161273AbWAUFVt (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Jan 2006 23:24:18 -0500
-In-Reply-To: <88056F38E9E48644A0F562A38C64FB6006F826E1@scsmsx403.amr.corp.intel.com>
+	Sat, 21 Jan 2006 00:21:49 -0500
+In-Reply-To: <Pine.LNX.4.44L0.0601152243330.1929-100000@netrider.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: "Brown, Len" <len.brown@intel.com>, GregR <grcore@usamtb.com>, linux-acpi@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, jgarzik@pobox.com, Greg KH <greg@kroah.com>, linux-usb-devel@lists.sourceforge.net, Neil Brown <neilb@cse.unsw.edu.au>, linux-acpi@vger.kernel.org
 
-Pallipadi, Venkatesh wrote:
 
->Can you try whether speedstep-centrino driver loads?
->You can select both acpi-cpufreq and speedstep-centrino in config and
->they will be loaded in proper order at boot time.
->  
->
-Yes, speedstep-centrino works. I'll be happy to keep using it since it
-seems to provide the same features. But, both are supposed to work here,
-right ?
-By the way, do you think I should update my BIOS ? My Thinkpad T43 has
-been updated two month ago but there's a new update available.
 
-Brice
+On 16/01/2006 4:46 p.m., Alan Stern wrote:
+> On Mon, 16 Jan 2006, Reuben Farrelly wrote:
+> 
+>>> From the information presented here, it looks like -mm1 correctly routes
+>>> the 1d.1 controller to IRQ 193 and the 1d.3 controller to IRQ 169, whereas
+>>> -mm3 incorrectly routes the 1d.3 controller to IRQ 193.  That would make 
+>>> it an ACPI problem.
+>> Is this likely to be the same or similar issue to the IRQ 0 problem I see quite 
+>> frequently on the SATA ports on later -mm releases?
+>> (see http://www.ussg.iu.edu/hypermail/linux/kernel/0601.1/1851.html)
+> 
+> I doubt they are at all related.  In the USB problem the resource is there 
+> but ACPI is routing it wrongly.  In the SATA problem the resource isn't 
+> there to begin with.
+> 
+> But then I know almost nothing about ACPI, so I could be wrong...
+> 
+> Alan Stern
+
+Some good news.  I think it's fixed in 2.6.16-rc1-mm2.  In fact a whole boatload 
+of problems I was having are fixed in this -mm release, including a nasty libata 
+oops that seemed to have a few people scratching their heads.
+
+I've now done in excess of 20 reboots with this code and haven't had either 
+problem show up at all.
+
+So for now I'll keep a record of things for a bit longer, but I guess I've 
+reason to be fairly confident that both this USB/IRQ problem and my ATA/IRQ 
+problem are now fixed.
+
+It does make me wonder if the ACPI update in rc1-mm2 fixed it, and was actually 
+the cause of most of my problems......it would be nice to know for sure.
+
+Thanks,
+Reuben
 
