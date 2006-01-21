@@ -1,60 +1,43 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Subject: RE: 2.6.15-mm2 (acpi-cpufreq not loading)
-Date: Fri, 20 Jan 2006 22:00:26 -0800
-Message-ID: <88056F38E9E48644A0F562A38C64FB6006FB7B20@scsmsx403.amr.corp.intel.com>
+From: Reuben Farrelly <reuben-lkml@reub.net>
+Subject: Re: [linux-usb-devel] Re: 2.6.15-mm3 [USB lost interrupt bug]
+Date: Sat, 21 Jan 2006 20:58:28 +1300
+Message-ID: <43D1E9A4.8090504@reub.net>
+References: <Pine.LNX.4.44L0.0601152243330.1929-100000@netrider.rowland.org>	<43D1C4E9.7030901@reub.net> <20060120214723.79111715.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr21.intel.com ([143.183.121.13]:62081 "EHLO
-	scsfmr001.sc.intel.com") by vger.kernel.org with ESMTP
-	id S1750744AbWAUGAe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Jan 2006 01:00:34 -0500
-Content-class: urn:content-classes:message
+Received: from tornado.reub.net ([202.89.145.182]:56999 "EHLO tornado.reub.net")
+	by vger.kernel.org with ESMTP id S1751094AbWAUH6j (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 21 Jan 2006 02:58:39 -0500
+In-Reply-To: <20060120214723.79111715.akpm@osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Brice Goglin <Brice.Goglin@ens-lyon.org>
-Cc: "Brown, Len" <len.brown@intel.com>, GregR <grcore@usamtb.com>, linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: stern@rowland.harvard.edu, linux-kernel@vger.kernel.org, jgarzik@pobox.com, greg@kroah.com, linux-usb-devel@lists.sourceforge.net, neilb@cse.unsw.edu.au, linux-acpi@vger.kernel.org
 
 
->-----Original Message-----
->From: Brice Goglin [mailto:Brice.Goglin@ens-lyon.org] 
->Sent: Friday, January 20, 2006 8:24 PM
->To: Pallipadi, Venkatesh
->Cc: Brown, Len; GregR; linux-acpi@vger.kernel.org
->Subject: Re: 2.6.15-mm2 (acpi-cpufreq not loading)
->
->Pallipadi, Venkatesh wrote:
->
->>Can you try whether speedstep-centrino driver loads?
->>You can select both acpi-cpufreq and speedstep-centrino in config and
->>they will be loaded in proper order at boot time.
->>  
+
+On 21/01/2006 6:47 p.m., Andrew Morton wrote:
+
+>> I've now done in excess of 20 reboots with this code and haven't had either 
+>> problem show up at all.
 >>
->Yes, speedstep-centrino works. I'll be happy to keep using it since it
->seems to provide the same features. But, both are supposed to 
->work here,
->right ?
->By the way, do you think I should update my BIOS ? My Thinkpad T43 has
->been updated two month ago but there's a new update available.
->
+>> So for now I'll keep a record of things for a bit longer, but I guess I've 
+>> reason to be fairly confident that both this USB/IRQ problem and my ATA/IRQ 
+>> problem are now fixed.
+>>
+>> It does make me wonder if the ACPI update in rc1-mm2 fixed it, and was actually 
+>> the cause of most of my problems......it would be nice to know for sure.
+> 
+> We probably won't know.  Did you ever test 2.6.16-rc1 plus 2.6.16-rc1-mm1's
+> acpi.patch?  If that plays up we'd have confirmation.
 
-Good to know. BIOS is supposed to support either one or both of them,
-but as long as one of them works it should be fine. 
+It has been OK over 15x reboots (just tested now).  2.6.16-rc1-mm1 wasn't the 
+usual standard award winning release for me because of the reiserfs problems so 
+I only booted into it once and ran it for a couple of hours before retreating to 
+2.6.15-rc1.
 
-Technically, those two should have been a single driver and OS should
-use speedstep-centrino mechanism first, if that fails then should fall
-back to acpi-cpufreq. But, they are different drivers for historical
-reasons.
+Last *known* problematic release on that box was 2.6.15-mm4.
 
-Probably we can provide a single config option that selects both the
-drivers automatically.
-
-Speedstep-centrino is preferrable and better than acpi-cpufreq. It does
-a faster frequency transition. So, don't worry about upgrading the BIOS
-due to this failure. In general, it is always better to update the BIOS
-whenever a upgrade is available though.
-
-Thanks,
-Venki
