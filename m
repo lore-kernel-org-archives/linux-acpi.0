@@ -1,118 +1,116 @@
-From: Stephen Evanchik <evanchsa@gmail.com>
-Subject: Suspend to RAM no longer works in 2.6.15.1 worked in 2.6.9 and 2.6.10
-Date: Sat, 21 Jan 2006 17:35:36 -0500
-Message-ID: <a71293c20601211435y51097a51w88ab9fd7c8f5993d@mail.gmail.com>
+From: Simon Bridge <corwin@ihug.co.nz>
+Subject: reality check: dsdt.dsl -> compile -> DSDT.aml -> decompile ->
+	DSDT.dsl but dsdt.dsl neq DSDT.dsl
+Date: Sun, 22 Jan 2006 14:52:22 +1300
+Message-ID: <1137894742.11725.29.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wproxy.gmail.com ([64.233.184.202]:50741 "EHLO wproxy.gmail.com")
-	by vger.kernel.org with ESMTP id S1751208AbWAUWfh convert rfc822-to-8bit
+Received: from grunt8.ihug.co.nz ([203.109.254.48]:17322 "EHLO
+	grunt8.ihug.co.nz") by vger.kernel.org with ESMTP id S1751247AbWAVBxM
 	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 21 Jan 2006 17:35:37 -0500
-Received: by wproxy.gmail.com with SMTP id 36so675647wra
-        for <linux-acpi@vger.kernel.org>; Sat, 21 Jan 2006 14:35:36 -0800 (PST)
-Content-Disposition: inline
+	Sat, 21 Jan 2006 20:53:12 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-Hi,
+I am attempting to hack my dsdt ...
+There are two puzzling things here. Comment is invited.
+1. what/where is RSDT
+2. if I compile dsdt.dsl to get DSDT.aml, then decompile DSDT.aml to get
+DSDT.dsl ... shouldn't I expect DSDT.dsl == dsdt.dsl?
 
- I have a Biostar iDEQ PC with a VIA KM400 chipset that used to STR in
-kernel version 2.6.9 and 2.6.10. I just got around to updating it to
-2.6.15.1 tonight and now STR no longer works.  echo "mem" >
-/sys/power/state causes the machine to turn off and then immediately
-power on, the dmesg output from the point of the STR to the resume is
-included below.
-
-I also tried kernel version 2.6.14 which does not work as well.
-
-I can provide more details if necessary, I am going to try 2.6.12 and
-then go from there in the meantime.
+here's the gory details:
 
 
-Thanks,
-Stephen
+machine: acer aspire 3003LC
+linux: ubuntu 5.10
+kernel: 2.6.12-9-686 (ubuntu standard - via apt-get)
+
+# iasl -g
+
+Intel ACPI Component Architecture
+ASL Optimizing Compiler version 20050930 [Nov 20 2005]
+Copyright (C) 2000 - 2005 Intel Corporation
+Supports ACPI Specification Revision 3.0
+
+Could not obtain RSDT
+Could not get ACPI tables, AE_NO_ACPI_TABLES
+
+... Well, OK.
+/proc/acpi exists and contains a file called dsdt.
+
+# cp /proc/acpi/dsdt dsdt.dat
+# iasl -d dsdt.dat
+# iasl -ta dsdt.dsl
+
+generates a bunch of errors - I googled them, and applied the
+recommended hacks until the following result:
+
+# iasl -ta dsdt.dsl
+
+Intel ACPI Component Architecture
+ASL Optimizing Compiler version 20050930 [Nov 20 2005]
+Copyright (C) 2000 - 2005 Intel Corporation
+Supports ACPI Specification Revision 3.0
+
+ASL Input:  dsdt.dsl - 3471 lines, 121247 bytes, 1565 keywords
+AML Output: DSDT.aml - 13975 bytes 377 named objects 1188 executable
+opcodes
+
+Compilation complete. 0 Errors, 0 Warnings, 0 Remarks, 542 Optimizations
+
+... which seems fine so far.
+
+# cp DSDT.amp /etc/mkinitramfs/DSDT.aml
+
+reboot.
+I see a syslog saying that this DSDT.aml is detected and loaded.
+However, I get errors as follows:
+
+ACPI-0508: *** Error: Method execution failed [\_SB_.BAT1._BST] (Node
+cbed7be0), AE_NOT_FOUND
+ACPI-0362: *** Error: Looking up [Z007] in namespace, AE_NOT_FOUND
+
+... ad infinitum.
+
+Puzzled - especially since Z007 does not appear in dsdt.dsl (replaced by
+"ones" on advice from this forum - a la acer laptops and Z007 being
+nonexistant anywhere.)
+
+OK - so I try:
+
+# acpi -dc DSDT.aml
+
+which provides the following error:
+Error 1061 - Object does not exist (\_PR.CPU0._PPC)
+
+This appears six times overall, across methods:
+_Q8A, _Q8D, _Q8D ... which seem unhelpful.
+
+I see /proc/acpi/processor/CPU0 contains files; 
+info  limit  power  throttling
+
+I see that _PPC is a reserved method name:
+_PPC    Method with 0 arguments, must return a value
+
+CPU0 is AMD Mobile Sempron.
+
+So I'm starting to feel a little out to sea.
+I could attempt to hack a fix for these new errors, but there's no point
+if they are an artifact of the decompilation process. I've tried to test
+this by compiling in compatability mode - the same error crop up,
+suggesting this is no artifact. However, if I decompile an aml file with
+the same compiler it was compiled with, shouldn't I end up with the same
+dsl file I started out with?
+
+I thought it may be that the computer alters the DSDT.aml it uses, but
+the same result is available from a copy the computer hasn't access to.
+
+Any comments on anything here would be appreciated.
+Thanks.
 
 
 
-Clip from dmesg:
 
-
-Stopping tasks:
-======================================================================================================|
-ACPI: PCI interrupt for device 0000:00:11.5 disabled
-ACPI: PCI interrupt for device 0000:00:10.4 disabled
-ACPI: PCI interrupt for device 0000:00:10.3 disabled
-ACPI: PCI interrupt for device 0000:00:10.2 disabled
-ACPI: PCI interrupt for device 0000:00:10.1 disabled
-ACPI: PCI interrupt for device 0000:00:10.0 disabled
-Intel machine check architecture supported.
-Intel machine check reporting enabled on CPU#0.
-Back to C!
-Debug: sleeping function called from invalid context at mm/slab.c:2472
-in_atomic():0, irqs_disabled():1
- [<c011bcf1>] __might_sleep+0xa1/0xc0
- [<c014a54a>] kmem_cache_alloc+0x5a/0x70
- [<c020fac2>] acpi_os_acquire_object+0xb/0x36
- [<c0224b86>] acpi_ut_allocate_object_desc_dbg+0x13/0x49
- [<c0224a17>] acpi_ut_create_internal_object_dbg+0xf/0x61
- [<c0220f14>] acpi_rs_set_srs_method_data+0x39/0xb5
- [<c021b2ac>] acpi_hw_low_level_write+0x3c/0x48
- [<c021b264>] acpi_hw_low_level_read+0x42/0x4e
- [<c0228a9b>] acpi_pci_link_set+0x121/0x1a2
- [<c0228f45>] irqrouter_resume+0x26/0x38
- [<c02607e4>] __sysdev_resume+0x34/0x80
- [<c0260aa8>] sysdev_resume+0x38/0x5b
- [<c0265925>] device_power_up+0x5/0xa
- [<c013b1e6>] suspend_enter+0x36/0x60
- [<c013b13f>] suspend_prepare+0x6f/0xe0
- [<c013b297>] enter_state+0x47/0x80
- [<c013b411>] state_store+0x91/0xa4
- [<c013b380>] state_store+0x0/0xa4
- [<c01a3868>] subsys_attr_store+0x38/0x50
- [<c01a3b1e>] flush_write_buffer+0x2e/0x40
- [<c01a3b81>] sysfs_write_file+0x51/0x80
- [<c0161389>] vfs_write+0xd9/0x180
- [<c01614e1>] sys_write+0x41/0x70
- [<c010327b>] sysenter_past_esp+0x54/0x75
-ACPI: PCI Interrupt Link [ALKA] BIOS reported IRQ 0, using IRQ 20
-ACPI: PCI Interrupt Link [ALKB] BIOS reported IRQ 0, using IRQ 21
-ACPI: PCI Interrupt Link [ALKC] BIOS reported IRQ 0, using IRQ 22
-ACPI: PCI Interrupt Link [ALKD] BIOS reported IRQ 0, using IRQ 23
-PCI: Setting latency timer of device 0000:00:01.0 to 64
-ACPI: PCI Interrupt 0000:00:09.0[A] -> GSI 17 (level, low) -> IRQ 20
-ACPI: PCI Interrupt 0000:00:0f.0[B] -> Link [ALKA] -> GSI 20 (level,
-low) -> IRQ 16
-ACPI: PCI Interrupt 0000:00:0f.1[A] -> Link [ALKA] -> GSI 20 (level,
-low) -> IRQ 16
-PCI: Via IRQ fixup for 0000:00:0f.1, from 255 to 0
-ACPI: PCI Interrupt 0000:00:10.0[A] -> Link [ALKB] -> GSI 21 (level,
-low) -> IRQ 19
-ACPI: PCI Interrupt 0000:00:10.1[A] -> Link [ALKB] -> GSI 21 (level,
-low) -> IRQ 19
-ACPI: PCI Interrupt 0000:00:10.2[B] -> Link [ALKB] -> GSI 21 (level,
-low) -> IRQ 19
-ACPI: PCI Interrupt 0000:00:10.3[B] -> Link [ALKB] -> GSI 21 (level,
-low) -> IRQ 19
-ACPI: PCI Interrupt 0000:00:10.4[C] -> Link [ALKB] -> GSI 21 (level,
-low) -> IRQ 19
-ACPI: PCI Interrupt 0000:00:11.5[C] -> Link [ALKC] -> GSI 22 (level,
-low) -> IRQ 18
-eth0: link up, 100Mbps, full-duplex, lpa 0x45E1
-Restarting tasks...<6>usb 2-1: USB disconnect, address 9
- done
-usb 2-2: USB disconnect, address 7
-usb 2-2.1: USB disconnect, address 8
-usb 2-2: new full speed USB device using uhci_hcd and address 10
-hub 2-2:1.0: USB hub found
-hub 2-2:1.0: 3 ports detected
-usb 2-2.1: new low speed USB device using uhci_hcd and address 11
-input: LOGITECH USB Keyboard as /class/input/input10
-input: USB HID v1.10 Keyboard [LOGITECH USB Keyboard] on usb-0000:00:10.0-2.1
-input: LOGITECH USB Keyboard as /class/input/input11
-input: USB HID v1.10 Device [LOGITECH USB Keyboard] on usb-0000:00:10.0-2.1
-usb 2-1: new low speed USB device using uhci_hcd and address 12
-input: Logitech USB Receiver as /class/input/input12
-input: USB HID v1.10 Mouse [Logitech USB Receiver] on usb-0000:00:10.0-1
