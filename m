@@ -1,60 +1,54 @@
-From: Gerfried Maier <moali@sbox.tugraz.at>
+From: Niko Ehrenfeuchter <ehrenfeu@informatik.uni-freiburg.de>
 Subject: Re: CPU - Power state (Cx) usage count not working
-Date: Mon, 23 Jan 2006 12:39:46 +0100
-Message-ID: <43D4C082.7060908@sbox.tugraz.at>
-References: <43D491A5.6010000@sbox.tugraz.at> <1138012807.2948.9.camel@spitfire>
+Date: Mon, 23 Jan 2006 13:33:59 +0100
+Message-ID: <1138019639.30619.6.camel@littledragon>
+References: <43D491A5.6010000@sbox.tugraz.at>
+	 <1138012807.2948.9.camel@spitfire>  <43D4C082.7060908@sbox.tugraz.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailrelay.tu-graz.ac.at ([129.27.2.202]:902 "EHLO
-	mailrelay2.tu-graz.ac.at") by vger.kernel.org with ESMTP
-	id S1751094AbWAWLju (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 23 Jan 2006 06:39:50 -0500
-Received: from [129.27.123.23] (emapc23.tu-graz.ac.at [129.27.123.23])
-	by mailrelay2.tu-graz.ac.at (8.13.5/8.13.5) with ESMTP id k0NBdlth002571
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Mon, 23 Jan 2006 12:39:48 +0100 (CET)
-In-Reply-To: <1138012807.2948.9.camel@spitfire>
+Received: from atlas.informatik.uni-freiburg.de ([132.230.150.3]:41944 "EHLO
+	atlas.informatik.uni-freiburg.de") by vger.kernel.org with ESMTP
+	id S1751351AbWAWMeE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 23 Jan 2006 07:34:04 -0500
+Received: from lsfks16.ruf.uni-freiburg.de ([132.230.4.96])
+	by atlas.informatik.uni-freiburg.de with esmtpsa (SSLv3:RC4-MD5:128)
+	(Exim 4.60)
+	(envelope-from <ehrenfeu@informatik.uni-freiburg.de>)
+	id 1F10tX-0004O1-AL
+	for linux-acpi@vger.kernel.org; Mon, 23 Jan 2006 13:34:03 +0100
+In-Reply-To: <43D4C082.7060908@sbox.tugraz.at>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-Hi Niko!
-
-Thanks for your quick reply.
-
-Niko Ehrenfeuchter wrote:
-> [...]
->>active state:            C2
->>default state:           C1
->>bus master activity:     00004f00
->>states:
->>    C1:                  promotion[C2] demotion[--] latency[000]
->>usage[00033670]
->>   *C2:                  promotion[C3] demotion[C1] latency[084]
->>usage[00357060]
->>    C3:                  promotion[--] demotion[C2] latency[120]
->>usage[00000000]
->> [...]
-
-
-> the counter normally shows the de facto usage, so I assume your system
-> never uses C3 in the above situation. Unloading the usb-modules on a 2.4
-> kernel _might_ help, but it also might not suffice. 
-
-The above example was not a capture from my system (which i
-unfortunately do not have available by now) but the example given in the
-wiki-entry you referred below.
-
-On my system all _3 counters_ C1, C2 and C3 always stay at [00000000]
-and not only the C3 counter.
-
-Having read my original posting again, I'm afraid that this ambiguity
-was caused by me with my unclear formulation of the OP. Sorry for this.
-
-> [...]
+On Mon, 2006-01-23 at 12:39 +0100, Gerfried Maier wrote:
+> Hi Niko!
 > 
-> http://acpi.sourceforge.net/wiki/index.php/WhyMyCxPowerStateIsNotUsed
+> Thanks for your quick reply.
 
-moali
+[...]
+
+> > the counter normally shows the de facto usage, so I assume your system
+> > never uses C3 in the above situation. Unloading the usb-modules on a 2.4
+> > kernel _might_ help, but it also might not suffice. 
+> 
+> The above example was not a capture from my system (which i
+> unfortunately do not have available by now) but the example given in the
+> wiki-entry you referred below.
+
+:)
+
+> On my system all _3 counters_ C1, C2 and C3 always stay at [00000000]
+> and not only the C3 counter.
+
+ok, now that's much clearer...  can you revert to the old kernel that
+made use of the power states to check if it still works?
+
+as far as i can see, the latest acpi patch for 2.4 is really old
+(20040326), so i'd really recommend to try 2.6
+
+regards,
+niko
+
