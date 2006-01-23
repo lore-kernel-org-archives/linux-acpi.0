@@ -1,717 +1,405 @@
-From: Kristen Accardi <kristen.c.accardi@intel.com>
-Subject: Re: [PATCH] acpiphp: treat dck separate from dock bridge
-Date: Mon, 23 Jan 2006 11:20:58 -0800
-Message-ID: <1138044058.29375.8.camel@whizzy>
-References: <20060116200218.275371000@whizzy>
-	 <1137545819.19858.47.camel@whizzy> <1137808506.16192.69.camel@whizzy>
-	 <20060121121046.GA1530@elf.ucw.cz>
+From: Raphael Clifford <raphael@clifford.net>
+Subject: Re: 2.6.16-rc1  will not boot on msi rs480m2 when either acpi orapic
+ is enabled
+Date: Mon, 23 Jan 2006 19:55:47 +0000
+Message-ID: <43D534C3.5020900@clifford.net>
+References: <43D4FE2F.5080700@clifford.net> <200601231000.46575.bjorn.helgaas@hp.com> <43D528A0.8030704@clifford.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr18.intel.com ([134.134.136.17]:50873 "EHLO
-	orsfmr003.jf.intel.com") by vger.kernel.org with ESMTP
-	id S964864AbWAWTR5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 23 Jan 2006 14:17:57 -0500
-In-Reply-To: <20060121121046.GA1530@elf.ucw.cz>
+Received: from ptb-relay03.plus.net ([212.159.14.214]:2267 "EHLO
+	ptb-relay03.plus.net") by vger.kernel.org with ESMTP
+	id S932454AbWAWTug (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 23 Jan 2006 14:50:36 -0500
+In-Reply-To: <43D528A0.8030704@clifford.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-kernel@vger.kernel.org, greg@kroah.com, pcihpd-discuss@lists.sourceforge.net, len.brown@intel.com, linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Sat, 2006-01-21 at 13:10 +0100, Pavel Machek wrote:
-<snip>
-> 
-> Oopsen seems to be called because add_p2p_bridge is never called. I
-> think it should be called for this device:
-> 
-> 0000:00:1e.0 PCI bridge: Intel Corporation 82801 Mobile PCI Bridge (rev 81)
-> 
-> --- clean-mm//drivers/pci/hotplug/acpiphp_glue.c	2006-01-21 11:38:51.000000000 +0100
-> +++ linux-mm/drivers/pci/hotplug/acpiphp_glue.c	2006-01-21 12:53:28.000000000 +0100
-> @@ -454,16 +457,22 @@
->  		return AE_OK;
->  	}
->  
-> +	printk("ADR ok\n");
-> +
->  	device = (tmp >> 16) & 0xffff;
->  	function = tmp & 0xffff;
->  
->  	dev = pci_get_slot(pci_bus, PCI_DEVFN(device, function));
->  
-> +	printk("device, function = %lx\n", tmp);
-> +
->  	if (!dev || !dev->subordinate)
->  		goto out;
->  
-> +	printk("detect slots\n");
-> +
->  	/* check if this bridge has ejectable slots */
-> -	if (detect_ejectable_slots(handle) > 0) {
-> +	if ((tmp == 0x1e0000) || (detect_ejectable_slots(handle) > 0)) {
->  		dbg("found PCI-to-PCI bridge at PCI %s\n", pci_name(dev));
->  		add_p2p_bridge(handle, dev);
->  	}
-> 
-> ...but then bridge->slots is still empty. I tried forcing
-> is_ejectable(), but then I get:
-> 
-> Jan 21 13:09:52 amd kernel: acpiphp: ACPI Hot Plug PCI Controller
-> Driver version: 0.5
-> Jan 21 13:09:53 amd kernel: add_bridge
-> Jan 21 13:09:53 amd kernel: find_p2p_bridge
-> Jan 21 13:09:53 amd kernel: ADR ok
-> Jan 21 13:09:53 amd kernel: device, function = 1f0000
-> Jan 21 13:09:53 amd kernel: find_p2p_bridge
-> Jan 21 13:09:53 amd kernel: ADR ok
-> Jan 21 13:09:53 amd kernel: device, function = 10000
-> Jan 21 13:09:53 amd kernel: detect slots
-> Jan 21 13:09:53 amd kernel: find_p2p_bridge
-> Jan 21 13:09:53 amd kernel: ADR ok
-> Jan 21 13:09:53 amd kernel: device, function = 1e0000
-> Jan 21 13:09:53 amd kernel: detect slots
-> Jan 21 13:09:53 amd kernel: acpiphp_glue: found PCI-to-PCI bridge at
-> PCI 0000:00:1e.0
-> Jan 21 13:09:53 amd kernel: add_p2p_bridge
-> Jan 21 13:09:53 amd kernel: acpiphp_glue: _HPP evaluation failed
-> Jan 21 13:09:53 amd kernel: find_p2p_bridge
-> Jan 21 13:09:53 amd kernel: ADR ok
-> Jan 21 13:09:53 amd kernel: device, function = 1f0001
-> Jan 21 13:09:53 amd kernel: find_p2p_bridge
-> Jan 21 13:09:53 amd kernel: ADR ok
-> Jan 21 13:09:53 amd kernel: device, function = 1d0000
-> Jan 21 13:09:53 amd kernel: find_p2p_bridge
-> Jan 21 13:09:53 amd kernel: ADR ok
-> Jan 21 13:09:53 amd kernel: device, function = 1d0001
-> Jan 21 13:09:53 amd kernel: find_p2p_bridge
-> Jan 21 13:09:53 amd kernel: ADR ok
-> Jan 21 13:09:53 amd kernel: device, function = 1d0002
-> Jan 21 13:09:53 amd kernel: find_p2p_bridge
-> Jan 21 13:09:53 amd kernel: ADR ok
-> Jan 21 13:09:53 amd kernel: device, function = 1d0007
-> Jan 21 13:09:53 amd kernel: find_p2p_bridge
-> Jan 21 13:09:53 amd kernel: ADR ok
-> Jan 21 13:09:53 amd kernel: device, function = 1f0006
-> Jan 21 13:09:53 amd kernel: acpiphp_glue: Bus 0000:02 has 0 slots
-> Jan 21 13:09:53 amd kernel: acpiphp_glue: Total 0 slots
-> Jan 21 13:10:05 amd pam_limits[1345]: wrong limit value 'unlimited'
-> 
-> 								Pavel
+Raphael Clifford wrote:
+> Bjorn Helgaas wrote:
+>> On Monday 23 January 2006 09:02, Raphael Clifford wrote:
+>>  
+>>> MSI rs480m2 system  (AMD64 processor) will not boot when either acpi 
+>>> or apic are
+>>> enabled in the boot arguments.  This has been tested in many kernels 
+>>> (gentoo and vanilla) up
+>>> to and including 2.6.16-rc1.      
+>>
+>> Can you try "pci=routeirq"?  Can you capture the entire boot output
+>> with a serial console or netconsole?  Are any BIOS updates available
+>> for this box?
+>>
+>> -- 
+> The system boots with pci=routeirq as the only boot prompt argument.  
+> The latest dmesg is attached below. For full debug info on the system 
+> please see
+>
+>
+> http://bugzilla.kernel.org/show_bug.cgi?id=5933
+>
+> Do you need to see the entire boot output specifically from the cases 
+> where it doesn't boot too?
+>
+>
+[... dmesg cut ...]
+
+It seems I made a brown paper bag error in my testing and 2.6.16-rc1 
+*does* in fact boot now with BOTH acpi and apic enabled (previous kernel 
+versions didn't and you must have both enabled both for it to boot)!
+
+The only remaining signs of problems it seems are
+
+"APIC error on CPU0: 04(40)"
+
+and
 
 
-Well, let's back up a bit.  I see a few things wrong.  Starting with
-just the basics, it doesn't seem like we have even found your _DCK
-method, otherwise find_num_slots should have reported 1.  If we had been
-able to find the dock bridge, then adding the p2p bridge would have
-worked as well.  Let's debug this problem first - Can you please try
-this patch, making sure to load the module with debugging enabled:
+"Losing some ticks... checking if CPU frequency changed.
+Your time source seems to be instable or some driver is hogging interupts
+rip ext3_reserve_inode_write+0x3a/0x94
+"
 
-modprobe acpiphp debug=1
+The system is still jerky and jumpy when ripping a DVD for example with 
+50-70% "si" in top.
 
-and then send me the output of dmesg -s 10000?  Thanks for helping me
-debug, I appreciate it.  This patch just adds some extra debugging info
-to the code path that I would expect to be taken while trying to find
-your _DCK method.  Other than that, it is unchanged.
+Raphael
 
-Kristen
+---------- Latest dmesg ------------
+Bootdata ok (command line is root=/dev/ram0 init=/linuxrc ramdisk=8192 
+real_root=/dev/sda5 udev )
+Linux version 2.6.16-rc1 (root@localhost) (gcc version 3.4.4 (Gentoo 
+3.4.4-r1, ssp-3.4.4-1.0, pie-8.7.8)) #1 Sat Jan 21 14:56:38 GMT 2006
+BIOS-provided physical RAM map:
+ BIOS-e820: 0000000000000000 - 000000000009f800 (usable)
+ BIOS-e820: 000000000009f800 - 00000000000a0000 (reserved)
+ BIOS-e820: 00000000000f0000 - 0000000000100000 (reserved)
+ BIOS-e820: 0000000000100000 - 000000003bef0000 (usable)
+ BIOS-e820: 000000003bef0000 - 000000003bef3000 (ACPI NVS)
+ BIOS-e820: 000000003bef3000 - 000000003bf00000 (ACPI data)
+ BIOS-e820: 00000000e0000000 - 00000000f0000000 (reserved)
+ BIOS-e820: 00000000fec00000 - 0000000100000000 (reserved)
+ACPI: RSDP (v000 RS480                                 ) @ 
+0x00000000000f8070
+ACPI: RSDT (v001 RS480  AWRDACPI 0x42302e31 AWRD 0x00000000) @ 
+0x000000003bef3040
+ACPI: FADT (v002 RS480  AWRDACPI 0x42302e31 AWRD 0x00000000) @ 
+0x000000003bef30c0
+ACPI: SSDT (v001 PTLTD  POWERNOW 0x00000001  LTP 0x00000001) @ 
+0x000000003bef69c0
+ACPI: SRAT (v001 AMD    HAMMER   0x00000001 AMD  0x00000001) @ 
+0x000000003bef6ac0
+ACPI: MCFG (v001 RS480  AWRDACPI 0x42302e31 AWRD 0x00000000) @ 
+0x000000003bef6bc0
+ACPI: MADT (v001 RS480  AWRDACPI 0x42302e31 AWRD 0x00000000) @ 
+0x000000003bef6900
+ACPI: DSDT (v001 RS480  AWRDACPI 0x00001000 MSFT 0x0100000e) @ 
+0x0000000000000000
+On node 0 totalpages: 240915
+  DMA zone: 2823 pages, LIFO batch:0
+  DMA32 zone: 238092 pages, LIFO batch:31
+  Normal zone: 0 pages, LIFO batch:0
+  HighMem zone: 0 pages, LIFO batch:0
+ACPI: PM-Timer IO Port: 0x4008
+ACPI: Local APIC address 0xfee00000
+ACPI: LAPIC (acpi_id[0x00] lapic_id[0x00] enabled)
+Processor #0 15:15 APIC version 16
+ACPI: LAPIC (acpi_id[0x01] lapic_id[0x01] disabled)
+ACPI: LAPIC_NMI (acpi_id[0x00] high edge lint[0x1])
+ACPI: LAPIC_NMI (acpi_id[0x01] high edge lint[0x1])
+ACPI: IOAPIC (id[0x02] address[0xfec00000] gsi_base[0])
+IOAPIC[0]: apic_id 2, version 33, address 0xfec00000, GSI 0-23
+ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 21 low level)
+ACPI: IRQ0 used by override.
+ACPI: IRQ2 used by override.
+Setting APIC routing to flat
+Using ACPI (MADT) for SMP configuration information
+Allocating PCI resources starting at 40000000 (gap: 3bf00000:a4100000)
+Checking aperture...
+CPU 0: aperture @ 218a000000 size 32 MB
+Aperture from northbridge cpu 0 too small (32 MB)
+No AGP bridge found
+Built 1 zonelists
+Kernel command line: root=/dev/ram0 init=/linuxrc ramdisk=8192 
+real_root=/dev/sda5 udev
+Initializing CPU#0
+PID hash table entries: 4096 (order: 12, 131072 bytes)
+time.c: Using 3.579545 MHz PM timer.
+time.c: Detected 1790.895 MHz processor.
+time.c: Using PIT/TSC based timekeeping.
+Console: colour VGA+ 80x25
+Dentry cache hash table entries: 131072 (order: 8, 1048576 bytes)
+Inode-cache hash table entries: 65536 (order: 7, 524288 bytes)
+PCI-DMA: Disabling IOMMU.
+Memory: 960000k/981952k available (2786k kernel code, 21036k reserved, 
+1087k data, 200k init)
+Calibrating delay using timer specific routine.. 3588.84 BogoMIPS 
+(lpj=7177687)
+Mount-cache hash table entries: 256
+CPU: L1 I Cache: 64K (64 bytes/line), D cache 64K (64 bytes/line)
+CPU: L2 Cache: 512K (64 bytes/line)
+mtrr: v2.0 (20020519)
+CPU: AMD Athlon(tm) 64 Processor 3000+ stepping 00
+Using local APIC timer interrupts.
+Detected 12.436 MHz APIC timer.
+testing NMI watchdog ... OK.
+checking if image is initramfs... it is
+Freeing initrd memory: 1433k freed
+DMI 2.4 present.
+NET: Registered protocol family 16
+ACPI: bus type pci registered
+PCI: Using configuration type 1
+PCI: Using MMCONFIG at e0000000
+ACPI: Subsystem revision 20050902
+GSI 21 sharing vector 0xA9 and IRQ 21
+ACPI: Interpreter enabled
+ACPI: Using IOAPIC for interrupt routing
+ACPI: PCI Root Bridge [PCI0] (0000:00)
+PCI: Probing PCI hardware (bus 00)
+ACPI: Assume root bridge [\_SB_.PCI0] bus is 0
+PCI: Ignoring BAR0-3 of IDE controller 0000:00:14.1
+Boot video device is 0000:01:05.0
+PCI: Transparent bridge - 0000:00:14.4
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 10 11) *0, disabled.
+ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 7 10 11) *0, disabled.
+ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 6 7 10 11) *0, disabled.
+ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 6 7 10 11) *0, disabled.
+ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 *5 6 7 10 11)
+ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 7 10 *11)
+ACPI: PCI Interrupt Link [LNK0] (IRQs 3 4 5 6 7 10 *11), disabled.
+ACPI: PCI Interrupt Link [LNK1] (IRQs 3 4 5 6 7 *10 11)
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P2P_._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.AGP_._PRT]
+SCSI subsystem initialized
+usbcore: registered new driver usbfs
+usbcore: registered new driver hub
+PCI: Using ACPI for IRQ routing
+PCI: If a device doesn't work, try "pci=routeirq".  If it helps, post a 
+report
+PCI: Cannot allocate resource region 3 of device 0000:00:00.0
+TC classifier action (bugs to netdev@vger.kernel.org cc hadi@cyberus.ca)
+PCI: Bridge: 0000:00:01.0
+  IO window: e000-efff
+  MEM window: fdd00000-fddfffff
+  PREFETCH window: d8000000-dfffffff
+PCI: Bridge: 0000:00:14.4
+  IO window: d000-dfff
+  MEM window: fdc00000-fdcfffff
+  PREFETCH window: fde00000-fdefffff
+IA32 emulation $Id: sys_ia32.c,v 1.32 2002/03/24 13:02:28 ak Exp $
+Total HugeTLB memory allocated, 0
+JFS: nTxBlock = 7515, nTxLock = 60122
+SGI XFS with ACLs, large block/inode numbers, no debug enabled
+Initializing Cryptographic API
+io scheduler noop registered
+io scheduler anticipatory registered
+io scheduler deadline registered
+io scheduler cfq registered
+pci_hotplug: PCI Hot Plug PCI Core version: 0.5
+acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5
+acpiphp_glue: can't get bus number, assuming 0
+ACPI: Power Button (FF) [PWRF]
+ACPI: Power Button (CM) [PWRB]
+ACPI: Processor [CPU0] (supports 8 throttling states)
+ibm_acpi: ec object not found
+Real Time Clock Driver v1.12ac
+Non-volatile memory driver v1.2
+Linux agpgart interface v0.101 (c) Dave Jones
+serio: i8042 AUX port at 0x60,0x64 irq 12
+serio: i8042 KBD port at 0x60,0x64 irq 1
+Serial: 8250/16550 driver $Revision: 1.90 $ 4 ports, IRQ sharing disabled
+serial8250: ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
+serial8250: ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
+RAMDISK driver initialized: 16 RAM disks of 8192K size 1024 blocksize
+loop: loaded (max 8 devices)
+Uniform Multi-Platform E-IDE driver Revision: 7.00alpha2
+ide: Assuming 33MHz system bus speed for PIO modes; override with idebus=xx
+Probing IDE interface ide0...
+hda: BENQ DVD DD DW1640, ATAPI CD/DVD-ROM drive
+Probing IDE interface ide1...
+ide0 at 0x1f0-0x1f7,0x3f6 on irq 14
+hda: ATAPI 126X DVD-ROM DVD-R CD-R/RW drive, 2048kB Cache
+Uniform CD-ROM driver Revision: 3.20
+usbmon: debugfs is not available
+mice: PS/2 mouse device common for all mice
+md: linear personality registered for level -1
+md: raid0 personality registered for level 0
+md: raid1 personality registered for level 1
+md: raid5 personality registered for level 5
+md: raid4 personality registered for level 4
+raid5: automatically using best checksumming function: generic_sse
+   generic_sse:  5459.000 MB/sec
+raid5: using function: generic_sse (5459.000 MB/sec)
+raid6: int64x1    833 MB/s
+raid6: int64x2   1040 MB/s
+raid6: int64x4   1081 MB/s
+raid6: int64x8    817 MB/s
+raid6: sse2x1    1087 MB/s
+raid6: sse2x2    1465 MB/s
+raid6: sse2x4    1663 MB/s
+raid6: using algorithm sse2x4 (1663 MB/s)
+md: raid6 personality registered for level 6
+md: multipath personality registered for level -4
+md: md driver 0.90.3 MAX_MD_DEVS=256, MD_SB_DISKS=27
+md: bitmap version 4.39
+device-mapper: 4.5.0-ioctl (2005-10-04) initialised: dm-devel@redhat.com
+NET: Registered protocol family 2
+IP route cache hash table entries: 32768 (order: 6, 262144 bytes)
+TCP established hash table entries: 131072 (order: 8, 1048576 bytes)
+TCP bind hash table entries: 65536 (order: 7, 524288 bytes)
+TCP: Hash tables configured (established 131072 bind 65536)
+TCP reno registered
+TCP bic registered
+NET: Registered protocol family 1
+NET: Registered protocol family 10
+lo: Disabled Privacy Extensions
+IPv6 over IPv4 tunneling driver
+NET: Registered protocol family 17
+NET: Registered protocol family 15
+powernow-k8: Found 1 AMD Athlon 64 / Opteron processors (version 1.60.0)
+powernow-k8:    0 : fid 0xa (1800 MHz), vid 0x6 (1400 mV)
+powernow-k8:    1 : fid 0x2 (1000 MHz), vid 0x12 (1100 mV)
+cpu_init done, current fid 0xa, vid 0x6
+ACPI wakeup devices:
+PCI0 USB0 USB1 USB2 AUDO  P2P  MAC
+ACPI: (supports S0 S1 S3 S5)
+BIOS EDD facility v0.16 2004-Jun-25, 1 devices found
+Freeing unused kernel memory: 200k freed
+GSI 16 sharing vector 0xB1 and IRQ 16
+ACPI: PCI Interrupt 0000:00:13.2[A] -> GSI 19 (level, low) -> IRQ 16
+ehci_hcd 0000:00:13.2: EHCI Host Controller
+ehci_hcd 0000:00:13.2: new USB bus registered, assigned bus number 1
+ehci_hcd 0000:00:13.2: irq 16, io mem 0xfe02b000
+ehci_hcd 0000:00:13.2: USB 2.0 started, EHCI 1.00, driver 10 Dec 2004
+usb usb1: configuration #1 chosen from 1 choice
+hub 1-0:1.0: USB hub found
+hub 1-0:1.0: 8 ports detected
+input: AT Translated Set 2 keyboard as /class/input/input0
+usb 1-7: new high speed USB device using ehci_hcd and address 3
+usb 1-7: configuration #1 chosen from 1 choice
+usbcore: registered new driver hiddev
+usbcore: registered new driver usbhid
+drivers/usb/input/hid-core.c: v2.6:USB HID core driver
+Initializing USB Mass Storage driver...
+scsi0 : SCSI emulation for USB Mass Storage devices
+usbcore: registered new driver usb-storage
+USB Mass Storage support registered.
+usb-storage: device found at 3
+usb-storage: waiting for device to settle before scanning
+USB Universal Host Controller Interface driver v2.3
+ohci_hcd: 2005 April 22 USB 1.1 'Open' Host Controller (OHCI) Driver (PCI)
+ACPI: PCI Interrupt 0000:00:13.0[A] -> GSI 19 (level, low) -> IRQ 16
+ohci_hcd 0000:00:13.0: OHCI Host Controller
+ohci_hcd 0000:00:13.0: new USB bus registered, assigned bus number 2
+ohci_hcd 0000:00:13.0: irq 16, io mem 0xfe02d000
+usb usb2: configuration #1 chosen from 1 choice
+hub 2-0:1.0: USB hub found
+hub 2-0:1.0: 4 ports detected
+ACPI: PCI Interrupt 0000:00:13.1[A] -> GSI 19 (level, low) -> IRQ 16
+ohci_hcd 0000:00:13.1: OHCI Host Controller
+ohci_hcd 0000:00:13.1: new USB bus registered, assigned bus number 3
+ohci_hcd 0000:00:13.1: irq 16, io mem 0xfe02c000
+usb usb3: configuration #1 chosen from 1 choice
+hub 3-0:1.0: USB hub found
+hub 3-0:1.0: 4 ports detected
+libata version 1.20 loaded.
+sata_sil 0000:00:11.0: version 0.9
+GSI 17 sharing vector 0xB9 and IRQ 17
+ACPI: PCI Interrupt 0000:00:11.0[A] -> GSI 23 (level, low) -> IRQ 17
+ata1: SATA max UDMA/100 cmd 0xFFFFC2000002E080 ctl 0xFFFFC2000002E08A 
+bmdma 0xFFFFC2000002E000 irq 17
+ata2: SATA max UDMA/100 cmd 0xFFFFC2000002E0C0 ctl 0xFFFFC2000002E0CA 
+bmdma 0xFFFFC2000002E008 irq 17
+ata1: SATA link down (SStatus 0)
+scsi1 : sata_sil
+usb 3-1: new low speed USB device using ohci_hcd and address 2
+ata2: SATA link down (SStatus 0)
+scsi2 : sata_sil
+GSI 18 sharing vector 0xC1 and IRQ 18
+ACPI: PCI Interrupt 0000:00:12.0[A] -> GSI 22 (level, low) -> IRQ 18
+ata3: SATA max UDMA/100 cmd 0xFFFFC20000030080 ctl 0xFFFFC2000003008A 
+bmdma 0xFFFFC20000030000 irq 18
+ata4: SATA max UDMA/100 cmd 0xFFFFC200000300C0 ctl 0xFFFFC200000300CA 
+bmdma 0xFFFFC20000030008 irq 18
+usb 3-1: configuration #1 chosen from 1 choice
+input: Microsoft Microsoft 3-Button Mouse with IntelliEye(TM) as 
+/class/input/input1
+input: USB HID v1.10 Mouse [Microsoft Microsoft 3-Button Mouse with 
+IntelliEye(TM)] on usb-0000:00:13.1-1
+ata3: SATA link up 1.5 Gbps (SStatus 113)
+ata3: dev 0 cfg 49:2f00 82:746b 83:7f01 84:4023 85:7468 86:3c01 87:4023 
+88:40ff
+ata3: dev 0 ATA-7, max UDMA7, 390721968 sectors: LBA48
+ata3: dev 0 configured for UDMA/100
+scsi3 : sata_sil
+ata4: SATA link down (SStatus 0)
+scsi4 : sata_sil
+  Vendor: ATA       Model: SAMSUNG SP2004C   Rev: VM10
+  Type:   Direct-Access                      ANSI SCSI revision: 05
+SCSI device sda: 390721968 512-byte hdwr sectors (200050 MB)
+sda: Write Protect is off
+sda: Mode Sense: 00 3a 00 00
+SCSI device sda: drive cache: write back
+SCSI device sda: 390721968 512-byte hdwr sectors (200050 MB)
+sda: Write Protect is off
+sda: Mode Sense: 00 3a 00 00
+SCSI device sda: drive cache: write back
+ sda: sda1 sda2 sda3 < sda5 sda6 > sda4
+sd 3:0:0:0: Attached scsi disk sda
+sd 3:0:0:0: Attached scsi generic sg0 type 0
+ReiserFS: sda5: warning: sh-2021: reiserfs_fill_super: can not find 
+reiserfs on sda5
+kjournald starting.  Commit interval 5 seconds
+EXT3-fs warning: maximal mount count reached, running e2fsck is recommended
+EXT3 FS on sda5, internal journal
+EXT3-fs: recovery complete.
+EXT3-fs: mounted filesystem with ordered data mode.
+  Vendor: USB2.0    Model: CF  CardReader    Rev:    
+  Type:   Direct-Access                      ANSI SCSI revision: 00
+sd 0:0:0:0: Attached scsi removable disk sdb
+sd 0:0:0:0: Attached scsi generic sg1 type 0
+  Vendor: USB2.0    Model: CBO CardReader    Rev:    
+  Type:   Direct-Access                      ANSI SCSI revision: 00
+sd 0:0:0:1: Attached scsi removable disk sdc
+sd 0:0:0:1: Attached scsi generic sg2 type 0
+usb-storage: device scan complete
+Adding 2811332k swap on /dev/sda6.  Priority:-1 extents:1 across:2811332k
+EXT3-fs warning: maximal mount count reached, running e2fsck is recommended
+EXT3 FS on sda5, internal journal
+kjournald starting.  Commit interval 5 seconds
+EXT3-fs warning: maximal mount count reached, running e2fsck is recommended
+EXT3 FS on sda4, internal journal
+EXT3-fs: recovery complete.
+EXT3-fs: mounted filesystem with ordered data mode.
+kjournald starting.  Commit interval 5 seconds
+EXT3-fs warning: mounting unchecked fs, running e2fsck is recommended
+EXT3 FS on sda2, internal journal
+EXT3-fs: recovery complete.
+EXT3-fs: mounted filesystem with ordered data mode.
+NTFS driver 2.1.25 [Flags: R/O MODULE].
+NTFS volume version 3.1.
+GSI 19 sharing vector 0xC9 and IRQ 19
+ACPI: PCI Interrupt 0000:00:14.5[B] -> GSI 17 (level, low) -> IRQ 19
+8139too Fast Ethernet driver 0.9.27
+GSI 20 sharing vector 0xD1 and IRQ 20
+ACPI: PCI Interrupt 0000:02:03.0[A] -> GSI 20 (level, low) -> IRQ 20
+eth0: RealTek RTL8139 at 0xffffc20000066000, 00:13:d3:2e:29:c6, IRQ 20
+eth0:  Identified 8139 chip type 'RTL-8100B/8139D'
+eth0: link up, 100Mbps, full-duplex, lpa 0x41E1
+smsc47m1: Found SMSC LPC47M15x/LPC47M192/LPC47M997
+Driver 'smsc47m1' needs updating - please use bus_type methods
+eth0: no IPv6 routers present
+APIC error on CPU0: 04(40)
+UDF-fs INFO UDF 0.9.8.1 (2004/29/09) Mounting volume 'DUNE_CVR_MNT', 
+timestamp 2036/02/07 01:58 (1000)
+Losing some ticks... checking if CPU frequency changed.
+warning: many lost ticks.
+Your time source seems to be instable or some driver is hogging interupts
+rip ext3_reserve_inode_write+0x3a/0x94
 
- drivers/pci/hotplug/acpiphp.h      |   11 +
- drivers/pci/hotplug/acpiphp_glue.c |  366 +++++++++++++++++++++++++++----------
- 2 files changed, 284 insertions(+), 93 deletions(-)
 
---- linux-2.6.16-rc1.orig/drivers/pci/hotplug/acpiphp.h
-+++ linux-2.6.16-rc1/drivers/pci/hotplug/acpiphp.h
-@@ -148,6 +148,17 @@ struct acpiphp_func {
- 	u32		flags;		/* see below */
- };
- 
-+
-+struct acpiphp_dock_bridge {
-+	acpi_handle dock_bridge_handle;
-+	acpi_handle dck_handle;
-+	struct acpiphp_func *func;
-+	struct acpiphp_slot *slot;
-+	u32 last_dock_time;
-+	u32 flags;
-+};
-+
-+
- /**
-  * struct acpiphp_attention_info - device specific attention registration
-  *
---- linux-2.6.16-rc1.orig/drivers/pci/hotplug/acpiphp_glue.c
-+++ linux-2.6.16-rc1/drivers/pci/hotplug/acpiphp_glue.c
-@@ -53,15 +53,14 @@
- #include "acpiphp.h"
- 
- static LIST_HEAD(bridge_list);
-+static struct acpiphp_dock_bridge dock_bridge;
- 
- #define MY_NAME "acpiphp_glue"
--static struct work_struct dock_task;
- static int enable_device(struct acpiphp_slot *slot);
- static void handle_hotplug_event_bridge (acpi_handle, u32, void *);
- static void handle_hotplug_event_func (acpi_handle, u32, void *);
- static void acpiphp_sanitize_bus(struct pci_bus *bus);
- static void acpiphp_set_hpp_values(acpi_handle handle, struct pci_bus *bus);
--static void dock(void *data);
- static unsigned int get_slot_status(struct acpiphp_slot *slot);
- 
- /*
-@@ -104,13 +103,26 @@ static int is_ejectable(acpi_handle hand
- }
- 
- 
-+
-+static int is_dock(acpi_handle handle)
-+{
-+	acpi_status status;
-+	acpi_handle tmp;
-+
-+	status = acpi_get_handle(handle, "_DCK", &tmp);
-+	if (ACPI_FAILURE(status)) {
-+		return 0;
-+	}
-+	return 1;
-+}
-+
- /* callback routine to check the existence of ejectable slots */
- static acpi_status
- is_ejectable_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
- {
- 	int *count = (int *)context;
- 
--	if (is_ejectable(handle)) {
-+	if (is_ejectable(handle) || (handle == dock_bridge.dock_bridge_handle)) {
- 		(*count)++;
- 		/* only one ejectable slot is enough */
- 		return AE_CTRL_TERMINATE;
-@@ -120,7 +132,9 @@ is_ejectable_slot(acpi_handle handle, u3
- }
- 
- 
--static acpi_status handle_dock(struct acpiphp_func *func, int dock)
-+
-+
-+static acpi_status handle_dock(int dock)
- {
- 	acpi_status status;
- 	struct acpi_object_list arg_list;
-@@ -134,10 +148,13 @@ static acpi_status handle_dock(struct ac
- 	arg_list.pointer = &arg;
- 	arg.type = ACPI_TYPE_INTEGER;
- 	arg.integer.value = dock;
--	status = acpi_evaluate_object(func->handle, "_DCK",
-+	status = acpi_evaluate_object(dock_bridge.dck_handle, "_DCK",
- 					&arg_list, &buffer);
- 	if (ACPI_FAILURE(status))
- 		err("%s: failed to dock!!\n", MY_NAME);
-+	acpi_os_free(buffer.pointer);
-+
-+	dbg("%s: exit\n", __FUNCTION__);
- 
- 	return status;
- }
-@@ -157,6 +174,7 @@ register_slot(acpi_handle handle, u32 lv
- 	int device, function;
- 	static int num_slots = 0;	/* XXX if we support I/O node hotplug... */
- 
-+
- 	status = acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
- 
- 	if (ACPI_FAILURE(status))
-@@ -164,9 +182,10 @@ register_slot(acpi_handle handle, u32 lv
- 
- 	status = acpi_get_handle(handle, "_EJ0", &tmp);
- 
--	if (ACPI_FAILURE(status))
-+	if ((handle != dock_bridge.dock_bridge_handle) && ACPI_FAILURE(status))
- 		return AE_OK;
- 
-+
- 	device = (adr >> 16) & 0xffff;
- 	function = adr & 0xffff;
- 
-@@ -178,7 +197,8 @@ register_slot(acpi_handle handle, u32 lv
- 	INIT_LIST_HEAD(&newfunc->sibling);
- 	newfunc->handle = handle;
- 	newfunc->function = function;
--	newfunc->flags = FUNC_HAS_EJ0;
-+	if (ACPI_SUCCESS(status))
-+		newfunc->flags = FUNC_HAS_EJ0;
- 
- 	if (ACPI_SUCCESS(acpi_get_handle(handle, "_STA", &tmp)))
- 		newfunc->flags |= FUNC_HAS_STA;
-@@ -189,6 +209,9 @@ register_slot(acpi_handle handle, u32 lv
- 	if (ACPI_SUCCESS(acpi_get_handle(handle, "_PS3", &tmp)))
- 		newfunc->flags |= FUNC_HAS_PS3;
- 
-+	if (ACPI_SUCCESS(acpi_get_handle(handle, "_DCK", &tmp)))
-+		newfunc->flags |= FUNC_HAS_DCK;
-+
- 	status = acpi_evaluate_integer(handle, "_SUN", NULL, &sun);
- 	if (ACPI_FAILURE(status))
- 		sun = -1;
-@@ -236,24 +259,22 @@ register_slot(acpi_handle handle, u32 lv
- 		slot->flags |= (SLOT_ENABLED | SLOT_POWEREDON);
- 	}
- 
--	/* install dock notify handler */
--	if (ACPI_SUCCESS(acpi_get_handle(handle, "_DCK", &tmp))) {
--		newfunc->flags |= FUNC_HAS_DCK;
--		INIT_WORK(&dock_task, dock, slot);
--	}
- 
- 	/* install notify handler */
--	status = acpi_install_notify_handler(handle,
-+	if (!(newfunc->flags & FUNC_HAS_DCK)) {
-+		status = acpi_install_notify_handler(handle,
- 					     ACPI_SYSTEM_NOTIFY,
- 					     handle_hotplug_event_func,
- 					     newfunc);
--
--	if (ACPI_FAILURE(status)) {
--		err("failed to register interrupt notify handler\n");
--		return status;
-+		if (ACPI_FAILURE(status))
-+			err("failed to register interrupt notify handler\n");
-+	} else if (handle == dock_bridge.dock_bridge_handle) {
-+		dock_bridge.func = newfunc;
-+		dock_bridge.slot = slot;
-+		status = AE_OK;
- 	}
- 
--	return AE_OK;
-+	return status;
- }
- 
- 
-@@ -544,11 +565,13 @@ static void cleanup_bridge(struct acpiph
- 		list_for_each_safe (list, tmp, &slot->funcs) {
- 			struct acpiphp_func *func;
- 			func = list_entry(list, struct acpiphp_func, sibling);
--			status = acpi_remove_notify_handler(func->handle,
-+			if (!(func->flags & FUNC_HAS_DCK)) {
-+				status = acpi_remove_notify_handler(func->handle,
- 						ACPI_SYSTEM_NOTIFY,
- 						handle_hotplug_event_func);
--			if (ACPI_FAILURE(status))
--				err("failed to remove notify handler\n");
-+				if (ACPI_FAILURE(status))
-+					err("failed to remove notify handler\n");
-+			}
- 			pci_dev_put(func->pci_dev);
- 			list_del(list);
- 			kfree(func);
-@@ -713,33 +736,6 @@ static int acpiphp_configure_ioapics(acp
- 	return 0;
- }
- 
--/*
-- * the _DCK method can do funny things... and sometimes not
-- * hah-hah funny.
-- */
--static void post_dock_fixups(struct acpiphp_slot *slot,
--			     struct acpiphp_func *func)
--{
--	struct pci_bus *bus = slot->bridge->pci_bus;
--	u32 buses;
--
--	/* fixup bad _DCK function that rewrites
--	 * secondary bridge on slot
--	 */
--	pci_read_config_dword(bus->self,
--				PCI_PRIMARY_BUS,
--				&buses);
--
--	if (((buses >> 8) & 0xff) != bus->secondary) {
--		buses = (buses & 0xff000000)
--	     		| ((unsigned int)(bus->primary)     <<  0)
--	     		| ((unsigned int)(bus->secondary)   <<  8)
--	     		| ((unsigned int)(bus->subordinate) << 16);
--		pci_write_config_dword(bus->self,
--					PCI_PRIMARY_BUS,
--					buses);
--	}
--}
- 
- 
- static int acpiphp_bus_add(struct acpiphp_func *func)
-@@ -771,26 +767,32 @@ static int acpiphp_bus_add(struct acpiph
- 
- 
- 
--static void dock(void *data)
-+
-+/*
-+ * the _DCK method can do funny things... and sometimes not
-+ * hah-hah funny.
-+ */
-+static void post_dock_fixups(void)
- {
--	struct list_head *l;
--	struct acpiphp_func *func;
--	struct acpiphp_slot *slot = data;
-+	struct pci_bus *bus = dock_bridge.slot->bridge->pci_bus;
-+	u32 buses;
- 
--	mutex_lock(&slot->crit_sect);
--	list_for_each(l, &slot->funcs) {
--		func = list_entry(l, struct acpiphp_func, sibling);
--		if (func->flags & FUNC_HAS_DCK) {
--			handle_dock(func, 1);
--			post_dock_fixups(slot, func);
--			slot->flags |= SLOT_POWEREDON;
--			if (get_slot_status(slot) == ACPI_STA_ALL) {
--				enable_device(slot);
--			}
--		}
-+	/* fixup bad _DCK function that rewrites
-+	 * secondary bridge on slot
-+	 */
-+	pci_read_config_dword(bus->self,
-+				PCI_PRIMARY_BUS,
-+				&buses);
-+
-+	if (((buses >> 8) & 0xff) != bus->secondary) {
-+		buses = (buses & 0xff000000)
-+	     		| ((unsigned int)(bus->primary)     <<  0)
-+	     		| ((unsigned int)(bus->secondary)   <<  8)
-+	     		| ((unsigned int)(bus->subordinate) << 16);
-+		pci_write_config_dword(bus->self,
-+					PCI_PRIMARY_BUS,
-+					buses);
- 	}
--	slot->flags &= (~SLOT_DOCKING);
--	mutex_unlock(&slot->crit_sect);
- }
- 
- 
-@@ -819,19 +821,6 @@ static int power_on_slot(struct acpiphp_
- 			} else
- 				break;
- 		}
--
--		if (func->flags & FUNC_HAS_DCK) {
--			dbg("%s: executing _DCK\n", __FUNCTION__);
--			slot->flags |= SLOT_DOCKING;
--			/*
--			 * FIXME - work around for acpi.  Right
--			 * now if we call _DCK from this thread,
--			 * we block forever.
--			 */
--			schedule_work(&dock_task);
--			retval = -1;
--			goto err_exit;
--		}
- 	}
- 
- 	/* TBD: evaluate _STA to check if the slot is enabled */
-@@ -857,11 +846,6 @@ static int power_off_slot(struct acpiphp
- 
- 	list_for_each (l, &slot->funcs) {
- 		func = list_entry(l, struct acpiphp_func, sibling);
--		if (func->flags & FUNC_HAS_DCK) {
--			dbg("%s: undock commencing\n", __FUNCTION__);
--			handle_dock(func, 0);
--			dbg("%s: undock complete\n", __FUNCTION__);
--		}
- 		if (func->flags & FUNC_HAS_PS3) {
- 			status = acpi_evaluate_object(func->handle, "_PS3", NULL, NULL);
- 			if (ACPI_FAILURE(status)) {
-@@ -871,6 +855,7 @@ static int power_off_slot(struct acpiphp
- 			} else
- 				break;
- 		}
-+
- 	}
- 
- 	/* TBD: evaluate _STA to check if the slot is disabled */
-@@ -882,6 +867,8 @@ static int power_off_slot(struct acpiphp
- }
- 
- 
-+
-+
- /**
-  * get_func - given pci_dev & slot, get the matching acpiphp_func
-  * @slot: slot to be scanned.
-@@ -889,22 +876,27 @@ static int power_off_slot(struct acpiphp
-  *
-  * This function will check the list of acpiphp functions for
-  * this slot and return the one that represents the given
-- * pci_dev structure.
-+ * pci_dev structure.  This function will incremente the ref
-+ * pointer of the pci_dev struct as a side effect, so the caller
-+ * must call pci_dev_put when they are done.
-  */
- static struct acpiphp_func * get_func(struct acpiphp_slot *slot,
- 					struct pci_dev *dev)
- {
--	struct list_head *l;
--	struct acpiphp_func *func;
-+	struct acpiphp_func *func = NULL;
- 	struct pci_bus *bus = slot->bridge->pci_bus;
-+	struct pci_dev *pdev;
- 
--	list_for_each (l, &slot->funcs) {
--		func = list_entry(l, struct acpiphp_func, sibling);
--		if (pci_get_slot(bus, PCI_DEVFN(slot->device,
--					func->function)) == dev)
--			return func;
-+	list_for_each_entry (func, &slot->funcs, sibling) {
-+		pdev = pci_get_slot(bus, PCI_DEVFN(slot->device,
-+					func->function));
-+		if (pdev) {
-+			if (pdev == dev)
-+				break;
-+			pci_dev_put(pdev);
-+		}
- 	}
--	return NULL;
-+	return func;
- }
- 
- 
-@@ -987,8 +979,11 @@ static int enable_device(struct acpiphp_
- 				if (pass && dev->subordinate) {
- 					pci_bus_size_bridges(dev->subordinate);
- 					func = get_func(slot, dev);
--					if (func)
-+					if (func) {
- 						acpiphp_bus_add(func);
-+						/* side effect of get_func() */
-+						pci_dev_put(dev);
-+					}
- 				}
- 			}
- 		}
-@@ -1306,6 +1301,7 @@ static void handle_bridge_insertion(acpi
-  * ACPI event handlers
-  */
- 
-+
- /**
-  * handle_hotplug_event_bridge - handle ACPI event on bridges
-  *
-@@ -1439,6 +1435,47 @@ static void handle_hotplug_event_func(ac
- 	}
- }
- 
-+
-+
-+static void
-+handle_hotplug_event_dock(acpi_handle handle, u32 type, void *context)
-+{
-+	acpi_handle dock = dock_bridge.dock_bridge_handle;
-+
-+	switch (type) {
-+		case ACPI_NOTIFY_BUS_CHECK:
-+			dbg("%s: Bus check notify\n",
-+				__FUNCTION__);
-+			dock_bridge.flags |= SLOT_DOCKING;
-+			handle_dock(1);
-+			if (dock) {
-+				post_dock_fixups();
-+				handle_hotplug_event_func(dock,
-+					type, dock_bridge.func);
-+			}
-+			dock_bridge.flags &= ~(SLOT_DOCKING);
-+			dock_bridge.last_dock_time = jiffies;
-+			break;
-+		case ACPI_NOTIFY_EJECT_REQUEST:
-+			if (dock_bridge.flags & SLOT_DOCKING ||
-+				dock_bridge.last_dock_time == jiffies) {
-+				dbg("%s: Ignore bogus eject request\n",
-+					__FUNCTION__);
-+			} else {
-+				dbg("%s: Eject notify\n", __FUNCTION__);
-+				handle_dock(0);
-+				handle_hotplug_event_func(dock,
-+					type, dock_bridge.func);
-+			}
-+			break;
-+		default:
-+			warn("%s: unknown event type 0x%x\n",
-+				__FUNCTION__, type);
-+	}
-+}
-+
-+
-+
- static int is_root_bridge(acpi_handle handle)
- {
- 	acpi_status status;
-@@ -1468,6 +1505,130 @@ static int is_root_bridge(acpi_handle ha
- 	return 0;
- }
- 
-+
-+static acpi_status
-+find_dock_ejd(acpi_handle handle, u32 lvl, void *context, void **rv)
-+{
-+	acpi_status status;
-+	acpi_handle tmp;
-+	acpi_handle dck_handle = (acpi_handle) context;
-+	char objname[64];
-+	char ejd_objname[64];
-+	struct acpi_buffer buffer = { .length = sizeof(objname),
-+				      .pointer = objname };
-+	struct acpi_buffer ejd_buffer = { .length = sizeof(ejd_objname),
-+					  .pointer = ejd_objname };
-+	union acpi_object *ejd_obj;
-+	union acpi_object *dck_obj;
-+
-+	dbg("%s: enter\n", __FUNCTION__);
-+
-+	status = acpi_get_handle(handle, "_EJD", &tmp);
-+	if (ACPI_FAILURE(status)) {
-+		dbg("%s: no _EJD methods found\n", __FUNCTION__);
-+		return 0;
-+	}
-+
-+	/* make sure we are dependent on the dock device */
-+	acpi_get_name(dck_handle, ACPI_FULL_PATHNAME, &buffer);
-+	status = acpi_evaluate_object(handle, "_EJD", NULL, &ejd_buffer);
-+	if (ACPI_FAILURE(status)) {
-+		err("Unable to execute _EJD!\n");
-+		return 0;
-+	}
-+
-+	ejd_obj = ejd_buffer.pointer;
-+	dck_obj = buffer.pointer;
-+	if (!strncmp(ejd_obj->string.pointer, dck_obj->string.pointer,
-+		ejd_obj->string.length)) {
-+		dbg("%s: found device dependent on dock\n", __FUNCTION__);
-+		/* ok, this device is dependent on the dock device,
-+		 * if it was the actual dock bridge, it would have
-+		 * a PRT associated with it.
-+		 */
-+		status = acpi_get_handle(handle, "_PRT", &tmp);
-+		if (ACPI_FAILURE(status))
-+			return 0;
-+
-+		/* yippee, we found the dock bridge! */
-+		dbg("%s: found dock bridge\n", __FUNCTION__);
-+		*(rv) = handle;
-+		return AE_CTRL_TERMINATE;
-+	}
-+	return AE_OK;
-+}
-+
-+
-+static acpi_handle
-+get_dock_handle(acpi_handle handle)
-+{
-+	acpi_handle dock_bridge_handle = NULL;
-+
-+	dbg("%s: enter\n", __FUNCTION__);
-+
-+	/*
-+	 * first see if we are the dock bridge.
-+	 */
-+	if (is_ejectable(handle))
-+		return handle;
-+
-+	dbg("%s: not ejectable\n", __FUNCTION__);
-+
-+	/*
-+	 * otherwise, we are going to have to find
-+	 * the dock bridge by checking the _EJD list.
-+	 */
-+	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
-+		ACPI_UINT32_MAX, find_dock_ejd, handle, &dock_bridge_handle);
-+
-+	return dock_bridge_handle;
-+}
-+
-+
-+
-+static acpi_status
-+find_dock(acpi_handle handle, u32 lvl, void *context, void **rv)
-+{
-+	int *count = (int *)context;
-+
-+	dbg("%s: enter\n", __FUNCTION__);
-+
-+	if (is_dock(handle)) {
-+		/* found a dock.  Now we have to determine if
-+		 * the _DCK method is within the scope of the
-+		 * dock bridge, or outside it (as in the IBM x-series)
-+		 */
-+		dbg("%s: found dock\n", __FUNCTION__);
-+		dock_bridge.dock_bridge_handle = get_dock_handle(handle);
-+		dock_bridge.dck_handle = handle;
-+		acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
-+			handle_hotplug_event_dock, NULL);
-+		(*count)++;
-+	}
-+
-+	return AE_OK;
-+}
-+
-+
-+
-+
-+static int
-+find_dock_bridge(void)
-+{
-+	int num = 0;
-+
-+	/* start from the root object, because some laptops define
-+	 * _DCK methods outside the scope of PCI (IBM x-series laptop)
-+	 */
-+	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
-+			ACPI_UINT32_MAX, find_dock, &num, NULL);
-+
-+	return num;
-+}
-+
-+
-+
-+
- static acpi_status
- find_root_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
- {
-@@ -1494,6 +1655,8 @@ int __init acpiphp_glue_init(void)
- {
- 	int num = 0;
- 
-+	num = find_dock_bridge();
-+
- 	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
- 			ACPI_UINT32_MAX, find_root_bridges, &num, NULL);
- 
-@@ -1513,6 +1676,17 @@ int __init acpiphp_glue_init(void)
-  */
- void __exit acpiphp_glue_exit(void)
- {
-+	acpi_handle handle = dock_bridge.dck_handle;
-+
-+	/* if we have a dock station handle, we should
-+	 * remove the notify handler
-+	 */
-+	if (handle) {
-+		if (ACPI_FAILURE(acpi_remove_notify_handler(handle,
-+			ACPI_SYSTEM_NOTIFY, handle_hotplug_event_dock)))
-+			err("failed to remove dock notify handler\n");
-+	}
-+
- 	acpi_pci_unregister_driver(&acpi_pci_hp_driver);
- }
- 
-@@ -1537,6 +1711,12 @@ int __init acpiphp_get_num_slots(void)
- 		num_slots += bridge->nr_slots;
- 	}
- 
-+	/* it's possible to have a dock station that doesn't actually
-+	 * use a pci dock bridge.  For now, continue to allow this
-+	 * to be handled by this driver.
-+	 */
-+	if (dock_bridge.dck_handle && !dock_bridge.dock_bridge_handle)
-+		num_slots++;
- 	dbg("Total %d slots\n", num_slots);
- 	return num_slots;
- }
 
