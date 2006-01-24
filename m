@@ -1,43 +1,38 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: 2.6.16-rc1  will not boot on msi rs480m2 when either acpi orapic is enabled
-Date: Mon, 23 Jan 2006 14:17:03 -0700
-Message-ID: <200601231417.03619.bjorn.helgaas@hp.com>
-References: <43D4FE2F.5080700@clifford.net> <43D528A0.8030704@clifford.net> <43D534C3.5020900@clifford.net>
+From: "Yu, Luming" <luming.yu@intel.com>
+Subject: RE: (no subject)
+Date: Tue, 24 Jan 2006 14:59:01 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F840AC934D7@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel8.hp.com ([156.153.255.206]:55763 "EHLO atlrel8.hp.com")
-	by vger.kernel.org with ESMTP id S1030191AbWAWVRM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 23 Jan 2006 16:17:12 -0500
-In-Reply-To: <43D534C3.5020900@clifford.net>
-Content-Disposition: inline
+Received: from fmr20.intel.com ([134.134.136.19]:37036 "EHLO
+	orsfmr005.jf.intel.com") by vger.kernel.org with ESMTP
+	id S932239AbWAXG7J convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Jan 2006 01:59:09 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Raphael Clifford <raphael@clifford.net>
-Cc: linux-acpi@vger.kernel.org
+To: Pedro Venda <pjvenda@rnl.ist.utl.pt>, linux-acpi@vger.kernel.org
 
-On Monday 23 January 2006 12:55, Raphael Clifford wrote:
->> It seems I made a brown paper bag error in my testing and 2.6.16-rc1 
-> *does* in fact boot now with BOTH acpi and apic enabled (previous kernel 
-> versions didn't and you must have both enabled both for it to boot)!
+http://vger.kernel.org/vger-lists.html#linux-acpi=20
 
-Whew, that's a relief.  I didn't have any good ideas about where
-to look.  Sorry, I can't help with the other stuff you mention below.
-
-> The only remaining signs of problems it seems are
-> 
-> "APIC error on CPU0: 04(40)"
-> 
-> and
-> 
-> "Losing some ticks... checking if CPU frequency changed.
-> Your time source seems to be instable or some driver is hogging interupts
-> rip ext3_reserve_inode_write+0x3a/0x94
-> "
-> 
-> The system is still jerky and jumpy when ripping a DVD for example with 
-> 50-70% "si" in top.
-
+>-----Original Message-----
+>From: linux-acpi-owner@vger.kernel.org=20
+>[mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Pedro Venda
+>Sent: 2006=C4=EA1=D4=C26=C8=D5 0:17
+>To: linux-acpi@vger.kernel.org
+>Subject: (no subject)
+>
+>subscribe
+>-
+>To unsubscribe from this list: send the line "unsubscribe=20
+>linux-acpi" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
