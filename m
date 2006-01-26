@@ -1,104 +1,43 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH] RESEND - SN: Add initial ACPI support
-Date: Thu, 26 Jan 2006 10:20:45 -0700
-Message-ID: <200601261020.45802.bjorn.helgaas@hp.com>
-References: <20060123160003.30149.60885.sendpatchset@attica.americas.sgi.com>
+From: Thomas Renninger <acpi@renninger.de>
+Subject: Re: [PATCH 0/2] Deliver ACPI events upon subscription and      implement
+ multiple readers for /proc/acpi/event
+Date: Thu, 26 Jan 2006 18:38:20 +0100
+Message-ID: <43D9090C.1030306@renninger.de>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3005D2A09E@hdsmsx401.amr.corp.intel.com>    <200601250023.01359.dtor_core@ameritech.net> <10537.83.103.117.254.1138182891.squirrel@picard.linux.it>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <20060123160003.30149.60885.sendpatchset@attica.americas.sgi.com>
-Content-Disposition: inline
-Sender: linux-ia64-owner@vger.kernel.org
-To: John Keller <jpk@sgi.com>
-Cc: linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx2.suse.de ([195.135.220.15]:64985 "EHLO mx2.suse.de")
+	by vger.kernel.org with ESMTP id S932376AbWAZRis (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 26 Jan 2006 12:38:48 -0500
+In-Reply-To: <10537.83.103.117.254.1138182891.squirrel@picard.linux.it>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mattia Dongili <malattia@linux.it>
+Cc: Dmitry Torokhov <dtor_core@ameritech.net>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Robert Love <rml@novell.com>, kasievers@suse.de
 
-On Monday 23 January 2006 09:00, John Keller wrote:
-> +obj-$(CONFIG_IA64_SGI_SN2)	+= acpi-ext.o
+Mattia Dongili wrote:
+> On Wed, January 25, 2006 6:23 am, Dmitry Torokhov said:
+>> On Wednesday 25 January 2006 00:09, Brown, Len wrote:
+> [...]
+ > I have no problem changing the implementation to avoid useless stuff if
+> the patch is going to be considered for acceptance.
+> 
+>>> The other argument against is why enhance an interface when
+>>> perhaps we should instead consider replacing it altogether...
+> 
+> The same thing has been said at Dmitry's submission (08/2004) and
+> /proc/acpi/event is still there. :)
+> Also, removing /proc/acpi/event will take a very long time.
+> Anyway what would you suggest (if you have already some plan)? I'd like to
+> try implementing it.
 
-Just FYI, this code is moving into drivers/acpi soon.  Robert Moore
-might have made a trivial interface change when he integrated it into
-the ACPI CA.  No big deal, basically acpi-ext.c was arch-independent
-and we moved it to generic code.
+What about the dbus-kernel interface?
+Acpi events are probably one of the things that should
+make use of this one sooner or later?
 
-> + * sn_fixup_ionodes() - This routine initializes the HUB data strcuture for
+However I have no idea in which state dbus is on kernel side.
 
-s/strcuture/structure/
-
->  /*
-> - * sn_pci_controller_fixup() - This routine sets up a bus's resources
-> - * consistent with the Linux PCI abstraction layer.
-> + * sn_common_bus_fixup()
->   */
-
-Nit: A comment that merely restates the function name is useless.
-Actually, it's worse than useless because it takes up space and
-requires maintenance.
-
-> +void sn_pci_controller_fixup(int segment, int busnum, struct pci_bus *bus)
-
-This function looks very much like pci_acpi_scan_root().  Is this the
-old, non-ACPI path?
-
-> +	printk(KERN_INFO "ACPI  DSDT OEM Rev 0x%x\n",
-> +	       acpi_gbl_DSDT->oem_revision);
-
-Doesn't ACPI print something like this for you already?  (I think it's
-KERN_DEBUG now, so usually not on the console, but still in dmesg.)
-
-> +static int __init
-> +sn_io_fixup(void)
-> +{
-> +	struct pci_bus *bus;
-> +	struct pci_dev *pci_dev = NULL;
-> +	extern void sn_init_cpei_timer(void);
-> +#ifdef CONFIG_PROC_FS
-> +	extern void register_sn_procfs(void);
-> +#endif
-> +
-> +	if (!ia64_platform_is("sn2") || IS_RUNNING_ON_FAKE_PROM())
-> +		return 0;
-> +
-> +	/* Exit if running with old PROM without ACPI support */
-> +	if (!SN_ACPI_BASE_SUPPORT())
-> +		return 0;
-> +
-> +	sn_irq_lh_init();
-> +	INIT_LIST_HEAD(&sn_sysdata_list);
-> +	sn_init_cpei_timer();
-
-Seems like a weird place to call sn_init_cpei_timer().  I guess I
-have no idea what the CPEI stuff is, but it looks like it *could*
-report platform errors other than PCI.  And you probably want to
-call it even if you don't have ACPI support, don't you?
-
-> +
-> +#ifdef CONFIG_PROC_FS
-> +	register_sn_procfs();
-> +#endif
-> +
-> +	/*
-> +	 * Generic Linux PCI Layer has created the pci_bus and pci_dev
-> +	 * structures - time for us to add our SN Platform specific
-> +	 * information.
-> +	 */
-> +
-> +	bus = NULL;
-> +	while ((bus = pci_find_next_bus(bus)) != NULL)
-> +		sn_pci_bus_fixup(bus);
-> +
-> +	while ((pci_dev =
-> +		pci_find_device(PCI_ANY_ID, PCI_ANY_ID, pci_dev)) != NULL) {
-> +		sn_pci_fixup_slot(pci_dev);
-> +	}
-
-You're doing these fixups with an fs_initcall().  I think they should
-be done by hooking into pcibios_fixup_bus() (maybe we need a new platform
-vector or optional function pointer there; I think PPC has something
-like that already).  The initcall scheme won't work if you hot-plug
-things.
-
-Bjorn
-
+   Thomas
