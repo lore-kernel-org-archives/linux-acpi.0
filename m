@@ -1,39 +1,50 @@
-From: "John H." <mistamaila@gmail.com>
-Subject: Re: Suspend/resume waiting for a key ?
-Date: Thu, 26 Jan 2006 07:09:31 -0600
-Message-ID: <5b9417770601260509g7f054895of731a9668e993ae@mail.gmail.com>
-References: <20060123060743.GA22878@tangens.sinus.cz>
-	 <5b9417770601252100w5521ace9h178d16d459410373@mail.gmail.com>
-	 <20060126112006.GA9469@tangens.sinus.cz>
+From: Paul Jackson <pj@sgi.com>
+Subject: Re: [RFT/PATCH]Unify mapping from pxm to node id (take 2).
+Date: Thu, 26 Jan 2006 07:48:46 -0800
+Message-ID: <20060126074846.1a6dd300.pj@sgi.com>
+References: <20060120195733.1263.Y-GOTO@jp.fujitsu.com>
+	<20060123165644.C147.Y-GOTO@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zproxy.gmail.com ([64.233.162.195]:37012 "EHLO zproxy.gmail.com")
-	by vger.kernel.org with ESMTP id S1751344AbWAZNJc convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Jan 2006 08:09:32 -0500
-Received: by zproxy.gmail.com with SMTP id 14so353401nzn
-        for <linux-acpi@vger.kernel.org>; Thu, 26 Jan 2006 05:09:31 -0800 (PST)
-In-Reply-To: <20060126112006.GA9469@tangens.sinus.cz>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932374AbWAZPtM@vger.kernel.org>
+In-Reply-To: <20060123165644.C147.Y-GOTO@jp.fujitsu.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, akpm@osdl.org, tony.luck@intel.com, ak@suse.de, len.brown@intel.com, discuss@x86-64.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Troller <patrol@sinus.cz>, "John H." <mistamaila@gmail.com>, linux-acpi@vger.kernel.org
 
-oh, i have the equiv of a nx9005, which reboots on resume from suspend to ram.
+This patch doesn't work for arch/ia64/sn (probably not for ia64/hp either).
 
-On 1/26/06, Pavel Troller <patrol@sinus.cz> wrote:
-> > is this a compaq 2110us or 2100us by chance?
-> >
-> Hi!
->   No, it is not. It's nx9010. However, I've got a new information from its
-> owner and it looks that the system is broken in more ways, for example the
-> system freezes in X until a key is pressed or the mouse moved and the time
-> is losing permanently. So just now I suspect the dyntick patch, which I've
-> compiled in to maximize battery life. As soon as I get access to it, I'll
-> disable it and let's see what happens. It's interesting, that the system
-> was able to compile its own kernel as well as perform all the installation
-> tasks without a glitch.
->                          With regards, Pavel Troller
->
+The final link fails:
+---------------------
+arch/ia64/sn/built-in.o(.init.text+0x1c90): In function `sn_setup':
+arch/ia64/sn/kernel/setup.c:151: undefined reference to `nid_to_pxm_map'
+arch/ia64/sn/built-in.o(.init.text+0x1c91):arch/ia64/sn/kernel/setup.c:155: undefined reference to `pxm_to_nid_map'
+arch/ia64/sn/built-in.o(.init.text+0x1ca0):arch/ia64/sn/kernel/setup.c:151: undefined reference to `nid_to_pxm_map'
+arch/ia64/sn/built-in.o(.init.text+0x1cb0):arch/ia64/sn/kernel/setup.c:155: undefined reference to `pxm_to_nid_map'
+
+It looks like you removed the definitions of pxm_to_nid_map and nid_to_pxm_map,
+but did not remove all the uses.  I recommend when removing global kernel
+symbols that one grep all the kernel files for other uses.
+
+A grep of the kernel (in Andrew's 2.6.16-rc1-mm3 quilt stack, just
+after this patch and its first fix are applied) shows:
+
+$ grep -rEIw pxm_to_nid_map\|nid_to_pxm_map * | grep -vE patches\|System.map
+arch/i386/kernel/srat.c:        u8 nid_to_pxm_map[MAX_NUMNODES];/* logical node ID to _PXM map */
+arch/ia64/hp/common/sba_iommu.c:        node = pxm_to_nid_map[pxm];
+arch/ia64/sn/kernel/setup.c:    nid = pxm_to_nid_map[pxm];
+arch/ia64/sn/kernel/setup.c:            nasid = pxm_to_nasid(nid_to_pxm_map[node]);
+include/asm-ia64/acpi.h:extern int __devinitdata pxm_to_nid_map[MAX_PXM_DOMAINS];
+include/asm-ia64/acpi.h:extern int __initdata nid_to_pxm_map[MAX_NUMNODES];
+
+>From the above, I presume that arch/ia64/hp is broken, along with
+arch/ia64/sn.  And it looks like the nid_to_pxm_map[] in srat.c
+is a waste of stack space, and the two remaining externs in
+asm-ia64/acpi.h should be removed.
+
+-- 
+                  I won't rest till it's the best ...
+                  Programmer, Linux Scalability
+                  Paul Jackson <pj@sgi.com> 1.925.600.0401
