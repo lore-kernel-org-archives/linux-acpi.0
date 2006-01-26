@@ -1,74 +1,52 @@
 From: "John H." <mistamaila@gmail.com>
-Subject: Re: acpidmp and acpixtract
-Date: Wed, 25 Jan 2006 14:51:33 -0600
-Message-ID: <5b9417770601251251p41d6ec98l947e0fffde6ca148@mail.gmail.com>
-References: <5b9417770601251017i283c5279mcc14250cd4e816c9@mail.gmail.com>
-	 <5b9417770601251056j30f3a262n62c72e2cfb3db8e3@mail.gmail.com>
-	 <Pine.LNX.4.58.0601251058220.29859@shark.he.net>
-	 <5b9417770601251133q781a5558ib8d55d7a3e585564@mail.gmail.com>
-	 <Pine.LNX.4.58.0601251137360.29859@shark.he.net>
+Subject: Re: Suspend/resume waiting for a key ?
+Date: Wed, 25 Jan 2006 23:00:22 -0600
+Message-ID: <5b9417770601252100w5521ace9h178d16d459410373@mail.gmail.com>
+References: <20060123060743.GA22878@tangens.sinus.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zproxy.gmail.com ([64.233.162.199]:21470 "EHLO zproxy.gmail.com")
-	by vger.kernel.org with ESMTP id S1751123AbWAYUve convert rfc822-to-8bit
+Received: from zproxy.gmail.com ([64.233.162.196]:53526 "EHLO zproxy.gmail.com")
+	by vger.kernel.org with ESMTP id S1751293AbWAZFAX convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Jan 2006 15:51:34 -0500
-Received: by zproxy.gmail.com with SMTP id 14so201885nzn
-        for <linux-acpi@vger.kernel.org>; Wed, 25 Jan 2006 12:51:33 -0800 (PST)
-In-Reply-To: <Pine.LNX.4.58.0601251137360.29859@shark.he.net>
+	Thu, 26 Jan 2006 00:00:23 -0500
+Received: by zproxy.gmail.com with SMTP id 14so284899nzn
+        for <linux-acpi@vger.kernel.org>; Wed, 25 Jan 2006 21:00:22 -0800 (PST)
+In-Reply-To: <20060123060743.GA22878@tangens.sinus.cz>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Randy.Dunlap" <rdunlap@xenotime.net>, shaohua.li@intel.com, linux-acpi@vger.kernel.org
+To: Pavel Troller <patrol@sinus.cz>, linux-acpi@vger.kernel.org
 
-http://bugzilla.kernel.org/show_bug.cgi?id=5884
+is this a compaq 2110us or 2100us by chance?
 
-On 1/25/06, Randy.Dunlap <rdunlap@xenotime.net> wrote:
-> On Wed, 25 Jan 2006, John H. wrote:
->
-> > ok, i have it in a text file.
-> >
-> > i am trying to resolve issue of reboot on resume from suspend to ram
-> > on compaq 2110us/ hp nx9005.
-> >
-> > should i put the text file on this list?
->
-> How large is it?  The list probably has a message limit of
-> around 80KB - 100KB.  It's probably best to create a
-> bugzilla entry for the problem (or use an existing one)
-> at http://bugzilla.kernel.org .
->
->
-> > On 1/25/06, Randy.Dunlap <rdunlap@xenotime.net> wrote:
-> > > On Wed, 25 Jan 2006, John H. wrote:
-> > >
-> > > > hmm,
-> > > > #!/usr/bin/perl
-> > > > #
-> > > > # acpixtract - extract raw table from acpidmp output
-> > > > #
-> > > > # Example: cat mail.txt | ./acpixtract DSDT | ./acpidisasm
-> > > >
-> > > >
-> > > > how do i get the acpidmp output of my bios in order to use to diagnose?
-> > > >
-> > > Please use acpidump (not acpidmp).
-> > > acpidump is part of the pmtools package.  Grab the latest
-> > > pmtools package from
-> > >   http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
-> > > or from your distro.
-> > >
-> > > >
-> > > > On 1/25/06, John H. <mistamaila@gmail.com> wrote:
-> > > > > i am trying to use acpidmp which i've compiled from cvs from sourceforge
-> > > > > when i run perl /usr/local/bin/acpixtract
-> > > > > to extract bios, it never "stops" and dumps a file.
-> > > > > what am i doing wrong?
-> > > > >
-> > > > -
->
-> --
-> ~Randy
+On 1/23/06, Pavel Troller <patrol@sinus.cz> wrote:
+> Hi!
+>   Yesterday I was installing Linux to my friend's notebook. It was a Compaq
+> model; sorry but just now I don't remember exact ID.
+>   When I tried STD, in principle it worked, but there were some strange things
+> happening. Especially, it wrote a bunch of obvious messages (mostly about
+> various devices on a PCI bus) and then it stopped. I was waiting about 30
+> seconds and then tried to switch the consoles. As soon as I pressed Alt, the
+> process continued smoothly and the machine suspended itself.
+>   During resuming, the same was observed. To resume quickly, repeated pressing
+> of any key was of a great help. Otherwise resuming process hang in various
+> phases, but pressing a key helped.
+>   It has to be said that even switching from X server to text console during
+> normal operation sometimes behaves similarly; the graphics screen remains
+> visible until any key is pressed, after that, it immediately turns to the text
+> console.
+>   I've tried ec_burst=1, but the machine was unable to suspend then.
+>   All this was tested with 2.6.15.1 kernel.
+>   There weren't any unusual mesages in the syslog/suspending console.
+>   I don't have access to the machine now, but some tuning is still neccessary,
+> so I will see it in a near future. I would like to gain some ideas before, to
+> retry my attempts with STD. So any ideas what to try are greatly appreciated
+> :-).
+>                      With regards, Pavel Troller
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
