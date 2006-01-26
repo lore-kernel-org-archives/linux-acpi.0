@@ -1,74 +1,261 @@
-From: Grant Grundler <iod00d@hp.com>
-Subject: [PATCH] enable ACPI/NUMA for HP ZX1 config
-Date: Wed, 25 Jan 2006 21:59:17 -0800
-Message-ID: <20060126055917.GA12615@esmail.cup.hp.com>
+From: "Suietov, Fiodor F" <fiodor.f.suietov@intel.com>
+Subject: RE: reality check: dsdt.dsl -> compile -> DSDT.aml -> decompile ->DSDT.dsl but dsdt.dsl neq DSDT.dsl
+Date: Thu, 26 Jan 2006 13:22:45 +0300
+Message-ID: <E124AAE027DA384D8B919F93E4D8C708011433AD@mssmsx402nb>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from palrel10.hp.com ([156.153.255.245]:6575 "EHLO palrel10.hp.com")
-	by vger.kernel.org with ESMTP id S1750798AbWAZF7G (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Jan 2006 00:59:06 -0500
-Content-Disposition: inline
+Received: from petasus.ims.intel.com ([62.118.80.130]:11991 "EHLO
+	petasus.ims.intel.com") by vger.kernel.org with ESMTP
+	id S932273AbWAZKXC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jan 2006 05:23:02 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-ia64@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: Simon Bridge <corwin@ihug.co.nz>, Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org
 
-Tony,
+Wednesday, January 25 Moore, Robert wrote:
+> Any disassembler is not *guaranteed* to generate the exact source
+code.
+> I would be interested in a bit more explanation, however.
+> 
+There are at least three points in iASL "compile" phase which
+result in mentioned difference between dsdt.dsl and DSDT.dsl:
+ - updating of the table header fields (Creator ID, Creator Revision,
+   Length);
+ - the hex constant leading zeroes excision (like 0x02 instead 0x0002
+   substitution);
+ - default iASL compiler optimization (named reference optimization,
+   integer optimization to constants, folding on "normal" expressions).
 
-Bjorn/Alex cleaned up IA64_HP_ZX1 to also support SX1000 as well.
-I suspect NUMA was introduced later and HP forgot to update
-the ZX1/SX1000 config to also support NUMA. ACPI support
-just seems to have been overlooked since it's required for
-HP platforms.
+So, to minimize the difference between dsdt.dsl and DSDT.dsl the iASL
+compiler should be called with -oa flag (when compiling dsdt.dsl to
+DSDT.aml) disabling in such a way all optimizations (and of course apply
+-f flag, if any Errors are detected).
 
-How would you prefer to handle ACPI_NUMA?
-Instead of adding more machines to change the default,
-I suggest the default be "Y" with no coniditions (as proposed below).
-Given the "depends NUMA", it means the user already said Y to NUMA,
-this only applies if ia64 or x86_64, and I don't expect any
-performance impact in the ACPI code path.
+Fiodor
 
-thanks,
-grant
-
-Signed-off-by: Grant Grundler <iod00d@hp.com>
-
---- a/arch/ia64/Kconfig	19 Dec 2005 12:42:13 -0000
-+++ b/arch/ia64/Kconfig	25 Jan 2006 21:08:04 -0000
-@@ -90,12 +90,14 @@ config IA64_DIG
- 
- config IA64_HP_ZX1
- 	bool "HP-zx1/sx1000"
-+	select ACPI
- 	help
- 	  Build a kernel that runs on HP zx1 and sx1000 systems.  This adds
- 	  support for the HP I/O MMU.
- 
- config IA64_HP_ZX1_SWIOTLB
- 	bool "HP-zx1/sx1000 with software I/O TLB"
-+	select ACPI
- 	help
- 	  Build a kernel that runs on HP zx1 and sx1000 systems even when they
- 	  have broken PCI devices which cannot DMA to full 32 bits.  Apart
-@@ -311,7 +313,7 @@ config ARCH_DISCONTIGMEM_DEFAULT
- config NUMA
- 	bool "NUMA support"
- 	depends on !IA64_HP_SIM && !FLATMEM
--	default y if IA64_SGI_SN2
-+	default y if IA64_SGI_SN2 || IA64_HP_ZX1 || IA64_HP_ZX1_SWIOTLB
- 	help
- 	  Say Y to compile the kernel to support NUMA (Non-Uniform Memory
- 	  Access).  This option is for configuring high-end multiprocessor
---- a/drivers/acpi/Kconfig	17 Jan 2006 14:51:01 -0000
-+++ b/drivers/acpi/Kconfig	25 Jan 2006 21:08:06 -0000
-@@ -163,7 +163,7 @@ config ACPI_NUMA
- 	bool "NUMA support"
- 	depends on NUMA
- 	depends on (IA64 || X86_64)
--	default y if IA64_GENERIC || IA64_SGI_SN2
-+	default y
- 
- config ACPI_ASUS
-         tristate "ASUS/Medion Laptop Extras"
+> -----Original Message-----
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> owner@vger.kernel.org] On Behalf Of Moore, Robert
+> Sent: Wednesday, January 25, 2006 8:55 PM
+> To: Simon Bridge
+> Cc: Thomas Renninger; linux-acpi@vger.kernel.org
+> Subject: RE: reality check: dsdt.dsl -> compile -> DSDT.aml ->
+decompile -
+> >DSDT.dsl but dsdt.dsl neq DSDT.dsl
+> 
+> Well, yes, if the external cannot be resolved at runtime, it will
+> generate an error -- Unless you have the update to ACPICA that allows
+> unresolved references within packages, AND you enable the interpreter
+> slack mode.
+> 
+> > I got the DSDT.aml (the result of successfully compiling dsdt.dsl
+> > remember) and decompiled it - the result is expected to be the same
+as
+> > dsdt.dsl... but it wasn't! There were substantial differences. When
+> this
+> > new version was compiled, it produced errors.
+> 
+> Any disassembler is not *guaranteed* to generate the exact source
+code.
+> I would be interested in a bit more explanation, however.
+> 
+> Bob
+> 
+> > -----Original Message-----
+> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> > owner@vger.kernel.org] On Behalf Of Simon Bridge
+> > Sent: Tuesday, January 24, 2006 7:42 PM
+> > To: Moore, Robert
+> > Cc: Thomas Renninger; linux-acpi@vger.kernel.org
+> > Subject: RE: reality check: dsdt.dsl -> compile -> DSDT.aml ->
+> decompile -
+> > >DSDT.dsl but dsdt.dsl neq DSDT.dsl
+> >
+> > On Tue, 2006-01-24 at 14:39 -0800, Moore, Robert wrote:
+> > > The change to ACPICA to "support" such non-existent names was
+> > > implemented in the run-time interpreter but not the compiler.
+> > >
+> > > The iASL compiler will still emit an error in this case, and I
+feel
+> this
+> > > is correct since we want the compiler to catch these kinds of
+> errors.
+> > > The "-f" flag will override this and any other errors, however.
+> > >
+> > > Another very simple fix to this kind of error is to add an
+> "External"
+> > > statement to the ASL code (for the missing symbol), same as any
+> other
+> > > symbol which is defined in another table.
+> > >
+> > > Bob
+> > >
+> > >
+> > Cool - thanks guys. (Robert and Thomas)
+> >
+> > I should note, in responce here, that Z007 is not in the code.
+> > "Externalling" it produces the same kernel messages.
+> >
+> > The CPU0 symbol is different - neither of you seemed to have spotted
+> > that (correct me).
+> >
+> > The firmware dsdt was decompiled to dsdt.dsl and this edited. It
+> > compiled *without error* to DSDT.aml and was acepted by the kernel.
+> >
+> > There were kernel messages (explained by Thomas - thanks) which I
+> > thought I'd got rid of. So I decided to check that the aml code was
+> what
+> > I thought it was.
+> >
+> > I got the DSDT.aml (the result of successfully compiling dsdt.dsl
+> > remember) and decompiled it - the result is expected to be the same
+as
+> > dsdt.dsl... but it wasn't! There were substantial differences. When
+> this
+> > new version was compiled, it produced errors.
+> >
+> > I was hoping this was a known problem with iasl or something. Has
+> nobody
+> > seen this before - it happens every time on this machine. Perhaps
+it's
+> > just me. But if I cannot trust the compiler to render the code
+> properly
+> > where am I?
+> >
+> > Thomas: I'll try the patches ... isn't the patch you posted for the
+> > 2.6.16 kernel? (Hmmm... to self: isn't that what he said?)
+> >
+> > It has already occurred to me to test this all out with a vanilla
+> kernel
+> > - done it before - only I'm going to have to support this distro to
+> > others so I'd rather do what's possible with the distro kernel as
+> well.
+> >
+> > (I'd normally do this sort of fiddling in Fedora. I hoped to keep
+the
+> > Ubuntu box standard as possible so I can anticipate what users are
+> > experiencing.)
+> >
+> > If you think I'll really need to upgrade the kernel, you're probably
+> > right. My old problem of the DSDT not being taken into the kernel
+was
+> > solved by a kernel upgrade :)
+> >
+> > Hopefully the ubuntu folk will add the next big ACPI patch to their
+> > repos in good time.
+> >
+> > >
+> > >
+> > > > -----Original Message-----
+> > > > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> > > > owner@vger.kernel.org] On Behalf Of Thomas Renninger
+> > > > Sent: Tuesday, January 24, 2006 1:11 AM
+> > > > To: Simon Bridge
+> > > > Cc: linux-acpi@vger.kernel.org
+> > > > Subject: Re: reality check: dsdt.dsl -> compile -> DSDT.aml ->
+> > > decompile -
+> > > > > DSDT.dsl but dsdt.dsl neq DSDT.dsl
+> > > >
+> > > > Simon Bridge wrote:
+> > > > > # iasl -ta dsdt.dsl
+> > > > >
+> > > > > Intel ACPI Component Architecture
+> > > > > ASL Optimizing Compiler version 20050930 [Nov 20 2005]
+> > > > > Copyright (C) 2000 - 2005 Intel Corporation
+> > > > > Supports ACPI Specification Revision 3.0
+> > > > >
+> > > > > ASL Input:  dsdt.dsl - 3471 lines, 121247 bytes, 1565 keywords
+> > > > > AML Output: DSDT.aml - 13975 bytes 377 named objects 1188
+> executable
+> > > > > opcodes
+> > > > >
+> > > > > Compilation complete. 0 Errors, 0 Warnings, 0 Remarks, 542
+> > > Optimizations
+> > > > >
+> > > > > ... which seems fine so far.
+> > > > >
+> > > > > # cp DSDT.amp /etc/mkinitramfs/DSDT.aml
+> > > > >
+> > > > > reboot.
+> > > > > I see a syslog saying that this DSDT.aml is detected and
+loaded.
+> > > > > However, I get errors as follows:
+> > > > >
+> > > > > ACPI-0508: *** Error: Method execution failed
+[\_SB_.BAT1._BST]
+> > > (Node
+> > > > > cbed7be0), AE_NOT_FOUND
+> > > > > ACPI-0362: *** Error: Looking up [Z007] in namespace,
+> AE_NOT_FOUND
+> > > > >
+> > > > > ... ad infinitum.
+> > > > Those Z00X objects should get fixed as soon as the next big ACPI
+> patch
+> > > > from
+> > > > Len goes mainline.
+> > > >
+> > > > This should be interesting for a lot people here, currently
+> patching
+> > > > there DSDTs because of this error.
+> > > >
+> > > > See: http://bugzilla.kernel.org/show_bug.cgi?id=5322
+> > > > I expect you used an iasl compiler newer than 20051216 that
+> already
+> > > > includes
+> > > > the fix and therefore does not complain about the missing Z007
+> object.
+> > > > Your kernel is probably still missing this fix and constantly
+> > > complains.
+> > > >
+> > > > You may want to patch 2.6.16-rc1 with Len's latest patches:
+> > > >
+> > >
+>
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/test/2.6
+> > > .1
+> > > > 6/
+> > > > If you try this out, I'd be glad if you could report back
+whether
+> the
+> > > > Z00X issue is really finally solved for you.
+> > > >
+> > > > >
+> > > > > Puzzled - especially since Z007 does not appear in dsdt.dsl
+> > > (replaced by
+> > > > > "ones" on advice from this forum - a la acer laptops and Z007
+> being
+> > > > > nonexistant anywhere.)
+> > > > ...
+> > > >
+> > > > > which provides the following error:
+> > > > > Error 1061 - Object does not exist (\_PR.CPU0._PPC)
+> > > > The object is probably declared in SSDT.
+> > > > acpidmp >/tmp/acpidmp
+> > > > acpixtract ssdt acpidmp >ssdt
+> > > > iasl -d ssdt
+> > > >
+> > > > To get rid of the compiler error just declare it:
+> > > > External (\_PR.CPU0._PPC)
+> > > > So that the compiler knows it is declared in some
+> > > > other, later loaded ACPI table.
+> > > > >
+> > > > > This appears six times overall, across methods:
+> > > > > _Q8A, _Q8D, _Q8D ... which seem unhelpful.
+> > > > >
+> > > > > I see /proc/acpi/processor/CPU0 contains files;
+> > > > > info  limit  power  throttling
+> > > > >
+> > > > > I see that _PPC is a reserved method name:
+> > > > > _PPC    Method with 0 arguments, must return a value
+> > > > It is probably because of the above missing external().
+> > > >
+> > > > If the Z00x is your only problem, don't waste time by trying
+> > > > to rewrite your DSDT, better try out Len's patches
+> > > > and let us know if you still see anything bad.
+> > > >
+> > > >        Thomas
