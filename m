@@ -1,50 +1,104 @@
-From: Paul Jackson <pj@sgi.com>
-Subject: Re: [RFT/PATCH]Unify mapping from pxm to node id (take 2).
-Date: Thu, 26 Jan 2006 07:48:46 -0800
-Message-ID: <20060126074846.1a6dd300.pj@sgi.com>
-References: <20060120195733.1263.Y-GOTO@jp.fujitsu.com>
-	<20060123165644.C147.Y-GOTO@jp.fujitsu.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH] RESEND - SN: Add initial ACPI support
+Date: Thu, 26 Jan 2006 10:20:45 -0700
+Message-ID: <200601261020.45802.bjorn.helgaas@hp.com>
+References: <20060123160003.30149.60885.sendpatchset@attica.americas.sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932374AbWAZPtM@vger.kernel.org>
-In-Reply-To: <20060123165644.C147.Y-GOTO@jp.fujitsu.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, akpm@osdl.org, tony.luck@intel.com, ak@suse.de, len.brown@intel.com, discuss@x86-64.org
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <20060123160003.30149.60885.sendpatchset@attica.americas.sgi.com>
+Content-Disposition: inline
+Sender: linux-ia64-owner@vger.kernel.org
+To: John Keller <jpk@sgi.com>
+Cc: linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patch doesn't work for arch/ia64/sn (probably not for ia64/hp either).
+On Monday 23 January 2006 09:00, John Keller wrote:
+> +obj-$(CONFIG_IA64_SGI_SN2)	+= acpi-ext.o
 
-The final link fails:
----------------------
-arch/ia64/sn/built-in.o(.init.text+0x1c90): In function `sn_setup':
-arch/ia64/sn/kernel/setup.c:151: undefined reference to `nid_to_pxm_map'
-arch/ia64/sn/built-in.o(.init.text+0x1c91):arch/ia64/sn/kernel/setup.c:155: undefined reference to `pxm_to_nid_map'
-arch/ia64/sn/built-in.o(.init.text+0x1ca0):arch/ia64/sn/kernel/setup.c:151: undefined reference to `nid_to_pxm_map'
-arch/ia64/sn/built-in.o(.init.text+0x1cb0):arch/ia64/sn/kernel/setup.c:155: undefined reference to `pxm_to_nid_map'
+Just FYI, this code is moving into drivers/acpi soon.  Robert Moore
+might have made a trivial interface change when he integrated it into
+the ACPI CA.  No big deal, basically acpi-ext.c was arch-independent
+and we moved it to generic code.
 
-It looks like you removed the definitions of pxm_to_nid_map and nid_to_pxm_map,
-but did not remove all the uses.  I recommend when removing global kernel
-symbols that one grep all the kernel files for other uses.
+> + * sn_fixup_ionodes() - This routine initializes the HUB data strcuture for
 
-A grep of the kernel (in Andrew's 2.6.16-rc1-mm3 quilt stack, just
-after this patch and its first fix are applied) shows:
+s/strcuture/structure/
 
-$ grep -rEIw pxm_to_nid_map\|nid_to_pxm_map * | grep -vE patches\|System.map
-arch/i386/kernel/srat.c:        u8 nid_to_pxm_map[MAX_NUMNODES];/* logical node ID to _PXM map */
-arch/ia64/hp/common/sba_iommu.c:        node = pxm_to_nid_map[pxm];
-arch/ia64/sn/kernel/setup.c:    nid = pxm_to_nid_map[pxm];
-arch/ia64/sn/kernel/setup.c:            nasid = pxm_to_nasid(nid_to_pxm_map[node]);
-include/asm-ia64/acpi.h:extern int __devinitdata pxm_to_nid_map[MAX_PXM_DOMAINS];
-include/asm-ia64/acpi.h:extern int __initdata nid_to_pxm_map[MAX_NUMNODES];
+>  /*
+> - * sn_pci_controller_fixup() - This routine sets up a bus's resources
+> - * consistent with the Linux PCI abstraction layer.
+> + * sn_common_bus_fixup()
+>   */
 
->From the above, I presume that arch/ia64/hp is broken, along with
-arch/ia64/sn.  And it looks like the nid_to_pxm_map[] in srat.c
-is a waste of stack space, and the two remaining externs in
-asm-ia64/acpi.h should be removed.
+Nit: A comment that merely restates the function name is useless.
+Actually, it's worse than useless because it takes up space and
+requires maintenance.
 
--- 
-                  I won't rest till it's the best ...
-                  Programmer, Linux Scalability
-                  Paul Jackson <pj@sgi.com> 1.925.600.0401
+> +void sn_pci_controller_fixup(int segment, int busnum, struct pci_bus *bus)
+
+This function looks very much like pci_acpi_scan_root().  Is this the
+old, non-ACPI path?
+
+> +	printk(KERN_INFO "ACPI  DSDT OEM Rev 0x%x\n",
+> +	       acpi_gbl_DSDT->oem_revision);
+
+Doesn't ACPI print something like this for you already?  (I think it's
+KERN_DEBUG now, so usually not on the console, but still in dmesg.)
+
+> +static int __init
+> +sn_io_fixup(void)
+> +{
+> +	struct pci_bus *bus;
+> +	struct pci_dev *pci_dev = NULL;
+> +	extern void sn_init_cpei_timer(void);
+> +#ifdef CONFIG_PROC_FS
+> +	extern void register_sn_procfs(void);
+> +#endif
+> +
+> +	if (!ia64_platform_is("sn2") || IS_RUNNING_ON_FAKE_PROM())
+> +		return 0;
+> +
+> +	/* Exit if running with old PROM without ACPI support */
+> +	if (!SN_ACPI_BASE_SUPPORT())
+> +		return 0;
+> +
+> +	sn_irq_lh_init();
+> +	INIT_LIST_HEAD(&sn_sysdata_list);
+> +	sn_init_cpei_timer();
+
+Seems like a weird place to call sn_init_cpei_timer().  I guess I
+have no idea what the CPEI stuff is, but it looks like it *could*
+report platform errors other than PCI.  And you probably want to
+call it even if you don't have ACPI support, don't you?
+
+> +
+> +#ifdef CONFIG_PROC_FS
+> +	register_sn_procfs();
+> +#endif
+> +
+> +	/*
+> +	 * Generic Linux PCI Layer has created the pci_bus and pci_dev
+> +	 * structures - time for us to add our SN Platform specific
+> +	 * information.
+> +	 */
+> +
+> +	bus = NULL;
+> +	while ((bus = pci_find_next_bus(bus)) != NULL)
+> +		sn_pci_bus_fixup(bus);
+> +
+> +	while ((pci_dev =
+> +		pci_find_device(PCI_ANY_ID, PCI_ANY_ID, pci_dev)) != NULL) {
+> +		sn_pci_fixup_slot(pci_dev);
+> +	}
+
+You're doing these fixups with an fs_initcall().  I think they should
+be done by hooking into pcibios_fixup_bus() (maybe we need a new platform
+vector or optional function pointer there; I think PPC has something
+like that already).  The initcall scheme won't work if you hot-plug
+things.
+
+Bjorn
+
