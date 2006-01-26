@@ -1,57 +1,130 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: UBUNTU - acpi battery on ACER TRAVELMATE 4000 WLMI
-Date: Thu, 26 Jan 2006 15:27:00 -0500
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3005D98454@hdsmsx401.amr.corp.intel.com>
+From: John Keller <jpk@sgi.com>
+Subject: Re: [PATCH] RESEND - SN: Add initial ACPI support
+Date: Thu, 26 Jan 2006 17:04:20 -0600 (CST)
+Message-ID: <200601262304.k0QN4K69039262@fcbayern.americas.sgi.com>
+References: <200601261020.45802.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr14.intel.com ([192.55.52.68]:34506 "EHLO
-	fmsfmr002.fm.intel.com") by vger.kernel.org with ESMTP
-	id S932365AbWAZU1E convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jan 2006 15:27:04 -0500
-Received: from fmsfmr100.fm.intel.com (fmsfmr100.fm.intel.com [10.253.24.20])
-	by fmsfmr002.fm.intel.com (8.12.10/8.12.10/d: major-outer.mc,v 1.1 2004/09/17 17:50:56 root Exp $) with ESMTP id k0QKR4fq004051
-	for <linux-acpi@vger.kernel.org>; Thu, 26 Jan 2006 20:27:04 GMT
-Received: from fmsmsxvs040.fm.intel.com (fmsmsxvs040.fm.intel.com [132.233.42.124])
-	by fmsfmr100.fm.intel.com (8.12.10/8.12.10/d: major-inner.mc,v 1.2 2004/09/17 18:05:01 root Exp $) with SMTP id k0QKR3dF027252
-	for <linux-acpi@vger.kernel.org>; Thu, 26 Jan 2006 20:27:04 GMT
-Received: from fmsmsx332.amr.corp.intel.com ([132.233.42.148])
- by fmsmsxvs040.fm.intel.com (SAVSMTP 3.1.7.47) with SMTP id M2006012612270304761
- for <linux-acpi@vger.kernel.org>; Thu, 26 Jan 2006 12:27:03 -0800
-Content-class: urn:content-classes:message
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <200601261020.45802.bjorn.helgaas@hp.com> from "Bjorn Helgaas" at Jan 26, 2006 10:20:45 AM
+Sender: linux-ia64-owner@vger.kernel.org
+To: Bjorn Helgaas <linux-acpi-owner@vger.kernel.org>
+Cc: linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marco Giumelli <mr.giumo@gmail.com>, linux-acpi@vger.kernel.org
 
->Hi, I'm a linux newbye.
->I installed Ubuntu Linux Breezy(5.10) on my notebook:
->acer travelmate 4000 WLMI.
->Everything run but the battery.
->I can't see the battery status.
->I tryed to patch the kernel (2.6.12) following the wiki instructions:
->https://wiki.ubuntu.com/ACPIBattery
+> 
+> On Monday 23 January 2006 09:00, John Keller wrote:
+> > +obj-$(CONFIG_IA64_SGI_SN2)	+= acpi-ext.o
+> 
+> Just FYI, this code is moving into drivers/acpi soon.  Robert Moore
+> might have made a trivial interface change when he integrated it into
+> the ACPI CA.  No big deal, basically acpi-ext.c was arch-independent
+> and we moved it to generic code.
+> 
+> > + * sn_fixup_ionodes() - This routine initializes the HUB data strcuture for
+> 
+> s/strcuture/structure/
+> 
+> >  /*
+> > - * sn_pci_controller_fixup() - This routine sets up a bus's resources
+> > - * consistent with the Linux PCI abstraction layer.
+> > + * sn_common_bus_fixup()
+> >   */
+> 
+> Nit: A comment that merely restates the function name is useless.
+> Actually, it's worse than useless because it takes up space and
+> requires maintenance.
 
-I should state for the record (again) that a Linux distro
-is really out on thin ice when they advocate that users
-other than hackers modify and run the platform firmware -
-as such a configuration is simply not supportable.
+Yeah, I agree, my mistake.
 
-To make matters worse, if the modified DSDT works,
-then the user doesn't complain about Linux and Linux
-doesn't get fixed to work on an unmodified DSDT...
 
-I wish the repository of DSDTs on sourceforge.net
-would simply GO AWAY for this reason.  It is a crutch
-that makes Linux  WORSE, NOT BETTER.
+> 
+> > +void sn_pci_controller_fixup(int segment, int busnum, struct pci_bus *bus)
+> 
+> This function looks very much like pci_acpi_scan_root().  Is this the
+> old, non-ACPI path?
+> 
+> > +	printk(KERN_INFO "ACPI  DSDT OEM Rev 0x%x\n",
+> > +	       acpi_gbl_DSDT->oem_revision);
+> 
+> Doesn't ACPI print something like this for you already?  (I think it's
+> KERN_DEBUG now, so usually not on the console, but still in dmesg.)
 
-That said....
-If you can boot a recent kernel.org kernel, say 2.6.15
-and still have a problem, then please speak up on this
-list and/or in bugzilla.kernel.org.  Run only the
-DSDT that comes with the BIOS for the machine,
-and change it only by updating to a newer BIOS
-from the vendor for that machine.
+I haven't seen it. If so, I'll remove this.
 
-thanks,
--Len
+
+> 
+> > +static int __init
+> > +sn_io_fixup(void)
+> > +{
+> > +	struct pci_bus *bus;
+> > +	struct pci_dev *pci_dev = NULL;
+> > +	extern void sn_init_cpei_timer(void);
+> > +#ifdef CONFIG_PROC_FS
+> > +	extern void register_sn_procfs(void);
+> > +#endif
+> > +
+> > +	if (!ia64_platform_is("sn2") || IS_RUNNING_ON_FAKE_PROM())
+> > +		return 0;
+> > +
+> > +	/* Exit if running with old PROM without ACPI support */
+> > +	if (!SN_ACPI_BASE_SUPPORT())
+> > +		return 0;
+> > +
+> > +	sn_irq_lh_init();
+> > +	INIT_LIST_HEAD(&sn_sysdata_list);
+> > +	sn_init_cpei_timer();
+> 
+> Seems like a weird place to call sn_init_cpei_timer().  I guess I
+> have no idea what the CPEI stuff is, but it looks like it *could*
+> report platform errors other than PCI.  And you probably want to
+> call it even if you don't have ACPI support, don't you?
+
+I'll look into what this call is all about. The current code is
+doing this in the io fixup path, and I just kept it in the new
+SN ACPI code path.
+
+
+> 
+> > +
+> > +#ifdef CONFIG_PROC_FS
+> > +	register_sn_procfs();
+> > +#endif
+> > +
+> > +	/*
+> > +	 * Generic Linux PCI Layer has created the pci_bus and pci_dev
+> > +	 * structures - time for us to add our SN Platform specific
+> > +	 * information.
+> > +	 */
+> > +
+> > +	bus = NULL;
+> > +	while ((bus = pci_find_next_bus(bus)) != NULL)
+> > +		sn_pci_bus_fixup(bus);
+> > +
+> > +	while ((pci_dev =
+> > +		pci_find_device(PCI_ANY_ID, PCI_ANY_ID, pci_dev)) != NULL) {
+> > +		sn_pci_fixup_slot(pci_dev);
+> > +	}
+> 
+> You're doing these fixups with an fs_initcall().  I think they should
+> be done by hooking into pcibios_fixup_bus() (maybe we need a new platform
+> vector or optional function pointer there; I think PPC has something
+> like that already).  The initcall scheme won't work if you hot-plug
+> things.
+
+Is there a preferred way to do this (platform vector vs PPC way)?
+Or is there some way to register an ACPI driver to invoke this
+code? (I guess the acpi_pci_root_driver is already registered for
+the bridge.)
+
+
+> 
+> Bjorn
+> 
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
