@@ -1,40 +1,80 @@
-From: typo3@linuxmaker.de
-Subject: Network and mouse failed with DSDT in initrd
-Date: Fri, 27 Jan 2006 18:41:56 +0100 (CET)
-Message-ID: <20060127174156.6734040040@smtp.it-netzwerkservice.net>
+From: "John H." <mistamaila@gmail.com>
+Subject: Re: acpidmp and acpixtract
+Date: Fri, 27 Jan 2006 12:32:19 -0600
+Message-ID: <5b9417770601271032l716fa3a3t6bc887161b659b79@mail.gmail.com>
+References: <5b9417770601251017i283c5279mcc14250cd4e816c9@mail.gmail.com>
+	 <5b9417770601251056j30f3a262n62c72e2cfb3db8e3@mail.gmail.com>
+	 <Pine.LNX.4.58.0601251058220.29859@shark.he.net>
+	 <5b9417770601251133q781a5558ib8d55d7a3e585564@mail.gmail.com>
+	 <Pine.LNX.4.58.0601251137360.29859@shark.he.net>
+	 <5b9417770601251251p41d6ec98l947e0fffde6ca148@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from swallow.it-netzwerkservice.net ([213.30.246.176]:15507 "EHLO
-	smtp.it-netzwerkservice.net") by vger.kernel.org with ESMTP
-	id S1750964AbWA0Rml (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 27 Jan 2006 12:42:41 -0500
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by smtp.it-netzwerkservice.net (Postfix) with ESMTP id 8BF0840042
-	for <linux-acpi@vger.kernel.org>; Fri, 27 Jan 2006 18:42:40 +0100 (CET)
-Received: from smtp.it-netzwerkservice.net ([127.0.0.1])
-	by localhost (swallow [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id 31430-09 for <linux-acpi@vger.kernel.org>;
-	Fri, 27 Jan 2006 18:42:31 +0100 (CET)
-Received: from tux (localhost.localdomain [127.0.0.1])
-	by smtp.it-netzwerkservice.net (Postfix) with SMTP id 6734040040
-	for <linux-acpi@vger.kernel.org>; Fri, 27 Jan 2006 18:41:56 +0100 (CET)
+Received: from zproxy.gmail.com ([64.233.162.198]:14347 "EHLO zproxy.gmail.com")
+	by vger.kernel.org with ESMTP id S1750786AbWA0ScU convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 27 Jan 2006 13:32:20 -0500
+Received: by zproxy.gmail.com with SMTP id 14so679429nzn
+        for <linux-acpi@vger.kernel.org>; Fri, 27 Jan 2006 10:32:19 -0800 (PST)
+In-Reply-To: <5b9417770601251251p41d6ec98l947e0fffde6ca148@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Randy.Dunlap" <rdunlap@xenotime.net>, shaohua.li@intel.com, linux-acpi@vger.kernel.org
 
-Hello,
+any ideas on this?  i suspend to ram, but when i try to resume, it
+reboots machine.
 
-I use an ACER Extensa 4101WLMi Laptop with the BIOS-ID S3C23 and the operating system Debian Linux 3.1 with a self compiled kernel (2.6.15.1).
-I have found a howto for generate a DSDT into the initrd at following sites http://gaugusch.at/kernel.shtml. In your repository I found two DSDT-Tables for ACER Extensa 4100WLMi with S3C23. So I use ACER-Extensa_4100WLMi-S3C23-original.asl to build my DSDT.aml like that HowTo above.
-If I put down DSDT.aml into my /boot/initrd and I reboot my machine I can see, the state of battery will displayed and klaptop pick out the informations.
-But now, me Laptop don't recognize at booting the card of network. And additional the response time of my USB-Mouse becomes very slow.
-Do you know what gets here wrong? Or do you with DSDT in your repository is the right for my laptop? I have attempted to make a dsdt.dat with the second DSDT-table ACER-Extensa_4100WLMi-S3C23-custom. But the command
-iasl -d ACER-Extensa_4100WLMi-S3C23-custom
-tells me some errors:
-"ACPI Error (tbutils-0252): Table signature at 0xbf8b2120 [0xbf8b20ec] has invalid characters
-ACPI Warning (tbutils-0255): Invalid table signature found:][
-Table header is invalid!
-Could not get table from the file"
-
-Also, if you can tell me, what I have to do right, in this case I become lucky!
-
-Thank you,
-Andreas
+On 1/25/06, John H. <mistamaila@gmail.com> wrote:
+> http://bugzilla.kernel.org/show_bug.cgi?id=5884
+>
+> On 1/25/06, Randy.Dunlap <rdunlap@xenotime.net> wrote:
+> > On Wed, 25 Jan 2006, John H. wrote:
+> >
+> > > ok, i have it in a text file.
+> > >
+> > > i am trying to resolve issue of reboot on resume from suspend to ram
+> > > on compaq 2110us/ hp nx9005.
+> > >
+> > > should i put the text file on this list?
+> >
+> > How large is it?  The list probably has a message limit of
+> > around 80KB - 100KB.  It's probably best to create a
+> > bugzilla entry for the problem (or use an existing one)
+> > at http://bugzilla.kernel.org .
+> >
+> >
+> > > On 1/25/06, Randy.Dunlap <rdunlap@xenotime.net> wrote:
+> > > > On Wed, 25 Jan 2006, John H. wrote:
+> > > >
+> > > > > hmm,
+> > > > > #!/usr/bin/perl
+> > > > > #
+> > > > > # acpixtract - extract raw table from acpidmp output
+> > > > > #
+> > > > > # Example: cat mail.txt | ./acpixtract DSDT | ./acpidisasm
+> > > > >
+> > > > >
+> > > > > how do i get the acpidmp output of my bios in order to use to diagnose?
+> > > > >
+> > > > Please use acpidump (not acpidmp).
+> > > > acpidump is part of the pmtools package.  Grab the latest
+> > > > pmtools package from
+> > > >   http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
+> > > > or from your distro.
+> > > >
+> > > > >
+> > > > > On 1/25/06, John H. <mistamaila@gmail.com> wrote:
+> > > > > > i am trying to use acpidmp which i've compiled from cvs from sourceforge
+> > > > > > when i run perl /usr/local/bin/acpixtract
+> > > > > > to extract bios, it never "stops" and dumps a file.
+> > > > > > what am i doing wrong?
+> > > > > >
+> > > > > -
+> >
+> > --
+> > ~Randy
+> >
+>
