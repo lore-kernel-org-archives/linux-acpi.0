@@ -1,130 +1,64 @@
-From: John Keller <jpk@sgi.com>
-Subject: Re: [PATCH] RESEND - SN: Add initial ACPI support
-Date: Thu, 26 Jan 2006 17:04:20 -0600 (CST)
-Message-ID: <200601262304.k0QN4K69039262@fcbayern.americas.sgi.com>
-References: <200601261020.45802.bjorn.helgaas@hp.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH 0/7] acpiphp - slots management fix
+Date: Thu, 26 Jan 2006 20:14:25 -0800
+Message-ID: <20060127041425.GA20453@kroah.com>
+References: <87acdrp5y9.wl%muneda.takahiro@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <200601261020.45802.bjorn.helgaas@hp.com> from "Bjorn Helgaas" at Jan 26, 2006 10:20:45 AM
-Sender: linux-ia64-owner@vger.kernel.org
-To: Bjorn Helgaas <linux-acpi-owner@vger.kernel.org>
-Cc: linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from dsl093-040-174.pdx1.dsl.speakeasy.net ([66.93.40.174]:28882
+	"EHLO aria.kroah.org") by vger.kernel.org with ESMTP
+	id S1751226AbWA0EO0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 26 Jan 2006 23:14:26 -0500
+Content-Disposition: inline
+In-Reply-To: <87acdrp5y9.wl%muneda.takahiro@jp.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: MUNEDA Takahiro <muneda.takahiro@jp.fujitsu.com>
+Cc: pavel@ucw.cz, kristen.c.accardi@intel.com, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org, len.brown@intel.com
 
+On Fri, Jan 20, 2006 at 07:08:30PM +0900, MUNEDA Takahiro wrote:
+> Hi,
 > 
-> On Monday 23 January 2006 09:00, John Keller wrote:
-> > +obj-$(CONFIG_IA64_SGI_SN2)	+= acpi-ext.o
+> This series of patches contains slots management fix.
+> Here are summary of changes:
 > 
-> Just FYI, this code is moving into drivers/acpi soon.  Robert Moore
-> might have made a trivial interface change when he integrated it into
-> the ACPI CA.  No big deal, basically acpi-ext.c was arch-independent
-> and we moved it to generic code.
+> o [PATCH 1/7] - removes unnecesary struct members
 > 
-> > + * sn_fixup_ionodes() - This routine initializes the HUB data strcuture for
+> o [PATCH 2/7] - removes init_slots(), because acpiphp doesn't
+>                 register slots when driver is loaded.
 > 
-> s/strcuture/structure/
+> o [PATCH 3/7] - changes register_slot() to register hotplug
+>                 slots when they are found
 > 
-> >  /*
-> > - * sn_pci_controller_fixup() - This routine sets up a bus's resources
-> > - * consistent with the Linux PCI abstraction layer.
-> > + * sn_common_bus_fixup()
-> >   */
+> o [PATCH 4/7] - changes init_bridge_misc() to register hotplug
+>                 slots when they are found
 > 
-> Nit: A comment that merely restates the function name is useless.
-> Actually, it's worse than useless because it takes up space and
-> requires maintenance.
+> o [PATCH 5/7] - removes cleanup_slots(), because acpiphp
+>                 doesn't unregister slots when driver is going
+>                 to be un-loaded.
+> 
+> o [PATCH 6/7] - changes cleanup_brige() to unregister hotplug
+>                 slots when acpiphp cleanup the bridge.
+> 
+> o [PATCH 7/7] - adds spin_lock/_unlock to protect slot_list
+> 
+> 
+> For more specifc information, please see the header of each patch.
+> These patches are against 2.6.16-rc1. I tested them on Tiger4.
 
-Yeah, I agree, my mistake.
+This patch series does not even compile when applied:
 
+  CC [M]  drivers/pci/hotplug/acpiphp_core.o
+drivers/pci/hotplug/acpiphp_core.c: In function `acpiphp_register_hotplug_slot':
+drivers/pci/hotplug/acpiphp_core.c:355: error: `hotplug_slot' undeclared (first use in this function)
+drivers/pci/hotplug/acpiphp_core.c:355: error: (Each undeclared identifier is reported only once
+drivers/pci/hotplug/acpiphp_core.c:355: error: for each function it appears in.)
+drivers/pci/hotplug/acpiphp_core.c:359: error: `hotplug_slot_info' undeclared (first use in this function)
+make[2]: *** [drivers/pci/hotplug/acpiphp_core.o] Error 1
 
-> 
-> > +void sn_pci_controller_fixup(int segment, int busnum, struct pci_bus *bus)
-> 
-> This function looks very much like pci_acpi_scan_root().  Is this the
-> old, non-ACPI path?
-> 
-> > +	printk(KERN_INFO "ACPI  DSDT OEM Rev 0x%x\n",
-> > +	       acpi_gbl_DSDT->oem_revision);
-> 
-> Doesn't ACPI print something like this for you already?  (I think it's
-> KERN_DEBUG now, so usually not on the console, but still in dmesg.)
+Care to redo them?
 
-I haven't seen it. If so, I'll remove this.
+thanks,
 
-
-> 
-> > +static int __init
-> > +sn_io_fixup(void)
-> > +{
-> > +	struct pci_bus *bus;
-> > +	struct pci_dev *pci_dev = NULL;
-> > +	extern void sn_init_cpei_timer(void);
-> > +#ifdef CONFIG_PROC_FS
-> > +	extern void register_sn_procfs(void);
-> > +#endif
-> > +
-> > +	if (!ia64_platform_is("sn2") || IS_RUNNING_ON_FAKE_PROM())
-> > +		return 0;
-> > +
-> > +	/* Exit if running with old PROM without ACPI support */
-> > +	if (!SN_ACPI_BASE_SUPPORT())
-> > +		return 0;
-> > +
-> > +	sn_irq_lh_init();
-> > +	INIT_LIST_HEAD(&sn_sysdata_list);
-> > +	sn_init_cpei_timer();
-> 
-> Seems like a weird place to call sn_init_cpei_timer().  I guess I
-> have no idea what the CPEI stuff is, but it looks like it *could*
-> report platform errors other than PCI.  And you probably want to
-> call it even if you don't have ACPI support, don't you?
-
-I'll look into what this call is all about. The current code is
-doing this in the io fixup path, and I just kept it in the new
-SN ACPI code path.
-
-
-> 
-> > +
-> > +#ifdef CONFIG_PROC_FS
-> > +	register_sn_procfs();
-> > +#endif
-> > +
-> > +	/*
-> > +	 * Generic Linux PCI Layer has created the pci_bus and pci_dev
-> > +	 * structures - time for us to add our SN Platform specific
-> > +	 * information.
-> > +	 */
-> > +
-> > +	bus = NULL;
-> > +	while ((bus = pci_find_next_bus(bus)) != NULL)
-> > +		sn_pci_bus_fixup(bus);
-> > +
-> > +	while ((pci_dev =
-> > +		pci_find_device(PCI_ANY_ID, PCI_ANY_ID, pci_dev)) != NULL) {
-> > +		sn_pci_fixup_slot(pci_dev);
-> > +	}
-> 
-> You're doing these fixups with an fs_initcall().  I think they should
-> be done by hooking into pcibios_fixup_bus() (maybe we need a new platform
-> vector or optional function pointer there; I think PPC has something
-> like that already).  The initcall scheme won't work if you hot-plug
-> things.
-
-Is there a preferred way to do this (platform vector vs PPC way)?
-Or is there some way to register an ACPI driver to invoke this
-code? (I guess the acpi_pci_root_driver is already registered for
-the bridge.)
-
-
-> 
-> Bjorn
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+greg k-h
