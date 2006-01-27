@@ -1,40 +1,49 @@
-From: Johan Vromans <jvromans@squirrel.nl>
-Subject: Re: UBUNTU - acpi battery on ACER TRAVELMATE 4000 WLMI
-Date: Fri, 27 Jan 2006 12:43:28 +0100
-Message-ID: <m21wytlwv3.fsf@phoenix.squirrel.nl>
-References: <F7DC2337C7631D4386A2DF6E8FB22B3005D98454@hdsmsx401.amr.corp.intel.com>
+From: John Keller <jpk@sgi.com>
+Subject: Re: [PATCH] RESEND - SN: Add initial ACPI support
+Date: Fri, 27 Jan 2006 07:54:00 -0600 (CST)
+Message-ID: <200601271354.k0RDs1uV037880@fcbayern.americas.sgi.com>
+References: <200601261020.45802.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:45061 "EHLO
-	smtp-vbr15.xs4all.nl") by vger.kernel.org with ESMTP
-	id S964986AbWA0Lni (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 27 Jan 2006 06:43:38 -0500
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B3005D98454@hdsmsx401.amr.corp.intel.com> (Len
- Brown's message of "Thu, 26 Jan 2006 15:27:00 -0500")
+Received: from omx1-ext.sgi.com ([192.48.179.11]:52152 "EHLO
+	omx1.americas.sgi.com") by vger.kernel.org with ESMTP
+	id S1751046AbWA0NyI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 27 Jan 2006 08:54:08 -0500
+In-Reply-To: <200601261020.45802.bjorn.helgaas@hp.com> from "Bjorn Helgaas" at Jan 26, 2006 10:20:45 AM
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: Marco Giumelli <mr.giumo@gmail.com>, linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <linux-acpi-owner@vger.kernel.org>
+Cc: linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org
 
-"Brown, Len" <len.brown@intel.com> writes:
+Bjorn,
 
-> I wish the repository of DSDTs on sourceforge.net would simply GO
-> AWAY for this reason. It is a crutch that makes Linux WORSE, NOT
-> BETTER.
+Just noticed that my last reply didn't respond to all your comments....
 
-I too run Linux (Fedora Core) on a TravelMate 4001WLMi[1]. I needed to
-change the DSDT since it returned the wrong values for the processor
-speeds (!) which, I have been assured, is not an uncommon problem. No
-other changes were necessary. In fact, I could have continued using
-the unmodified DSDT except for the frequencey scaling.
+John
+----
 
-For the smart battery, I use the original, EC based implementation by
-Rich Townsend, and it works like a charm.
 
-Later (AFAIK) Rich went to a DSDT-based approach of the smart battery
-problem. I personally prefer the EC based version.
+> 
+> On Monday 23 January 2006 09:00, John Keller wrote:
+> > +obj-$(CONFIG_IA64_SGI_SN2)	+= acpi-ext.o
+> 
+> Just FYI, this code is moving into drivers/acpi soon.  Robert Moore
+> might have made a trivial interface change when he integrated it into
+> the ACPI CA.  No big deal, basically acpi-ext.c was arch-independent
+> and we moved it to generic code.
 
--- Johan
+Yes, I saw earlier discussions of this, and am aware it's coming soon,
+and I believe it is already in Len's acpica tree.
 
-[1] http://www.squirrel.nl/people/jvromans/articles/TM4001WLMi/index.html
+...
+
+> 
+> > +void sn_pci_controller_fixup(int segment, int busnum, struct pci_bus *bus)
+> 
+> This function looks very much like pci_acpi_scan_root().  Is this the
+> old, non-ACPI path?
+
+Correct. sn_pci_controller_fixup() is the old non-ACPI path.
+
