@@ -1,80 +1,80 @@
-From: "John H." <mistamaila@gmail.com>
-Subject: Re: acpidmp and acpixtract
-Date: Fri, 27 Jan 2006 12:32:19 -0600
-Message-ID: <5b9417770601271032l716fa3a3t6bc887161b659b79@mail.gmail.com>
-References: <5b9417770601251017i283c5279mcc14250cd4e816c9@mail.gmail.com>
-	 <5b9417770601251056j30f3a262n62c72e2cfb3db8e3@mail.gmail.com>
-	 <Pine.LNX.4.58.0601251058220.29859@shark.he.net>
-	 <5b9417770601251133q781a5558ib8d55d7a3e585564@mail.gmail.com>
-	 <Pine.LNX.4.58.0601251137360.29859@shark.he.net>
-	 <5b9417770601251251p41d6ec98l947e0fffde6ca148@mail.gmail.com>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: UBUNTU - acpi battery on ACER TRAVELMATE 4000 WLMI
+Date: Fri, 27 Jan 2006 14:05:23 -0500
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3005DD43C6@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zproxy.gmail.com ([64.233.162.198]:14347 "EHLO zproxy.gmail.com")
-	by vger.kernel.org with ESMTP id S1750786AbWA0ScU convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 27 Jan 2006 13:32:20 -0500
-Received: by zproxy.gmail.com with SMTP id 14so679429nzn
-        for <linux-acpi@vger.kernel.org>; Fri, 27 Jan 2006 10:32:19 -0800 (PST)
-In-Reply-To: <5b9417770601251251p41d6ec98l947e0fffde6ca148@mail.gmail.com>
-Content-Disposition: inline
+Received: from fmr13.intel.com ([192.55.52.67]:63899 "EHLO
+	fmsfmr001.fm.intel.com") by vger.kernel.org with ESMTP
+	id S932367AbWA0TFb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Jan 2006 14:05:31 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Randy.Dunlap" <rdunlap@xenotime.net>, shaohua.li@intel.com, linux-acpi@vger.kernel.org
+To: Johan Vromans <jvromans@squirrel.nl>
+Cc: Marco Giumelli <mr.giumo@gmail.com>, linux-acpi@vger.kernel.org, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
 
-any ideas on this?  i suspend to ram, but when i try to resume, it
-reboots machine.
+>> I wish the repository of DSDTs on sourceforge.net would simply GO
+>> AWAY for this reason. It is a crutch that makes Linux WORSE, NOT
+>> BETTER.
+>
+>I too run Linux (Fedora Core) on a TravelMate 4001WLMi[1]. I needed to
+>change the DSDT since it returned the wrong values for the processor
+>speeds (!) which, I have been assured, is not an uncommon problem. No
+>other changes were necessary. In fact, I could have continued using
+>the unmodified DSDT except for the frequencey scaling.
 
-On 1/25/06, John H. <mistamaila@gmail.com> wrote:
-> http://bugzilla.kernel.org/show_bug.cgi?id=5884
+This is mostly a cosmetic, rather than functional fix.
+Changing the MHz values in the 1st slot of each PSS entry
+will change the numbers you see in /sysfs.  It can also
+have a small effect on how a governor such as ondemand
+chooses the next state, since the % of maximum for each state
+are now slightly different.  Eg. for P2, original 1200/1600 is 75%,
+but modified 1000/1500 is 67%.  But either of these 13% from 
+P1 (88% original, 80% modified) and 19% & 14% above the
+original and correct P3 -- so is isn't going to make much
+difference on which state is slected for a given workload.
+I'd be impressed if you were able to measure any difference.
+
+As the PERF_CTRL values in the patches _PSS are unchanged,
+The actual MHz that the processor runs at when a certain
+P-state is selected is unmodified.
+
+If I were to hack the DSDT, probably a more interesting thing
+to do would be fill in CPSS with some of the entries from PPSS
+to give your system P-states when on AC power.
+
+Also, you may find that the current speedstep-centrino
+is able to load on this system.  Without hard-coded tables
+for this processor family/model/stepping, it too would use
+the ACPI PSS, but it would use native MSR access, which
+is lower overhead than the IO port access used by acpi-cpufreq.
+(in the future, acpi-cpufreq and speedstep-centrino should
+be combined into a single driver)
+
+>For the smart battery, I use the original, EC based implementation by
+>Rich Townsend, and it works like a charm.
 >
-> On 1/25/06, Randy.Dunlap <rdunlap@xenotime.net> wrote:
-> > On Wed, 25 Jan 2006, John H. wrote:
-> >
-> > > ok, i have it in a text file.
-> > >
-> > > i am trying to resolve issue of reboot on resume from suspend to ram
-> > > on compaq 2110us/ hp nx9005.
-> > >
-> > > should i put the text file on this list?
-> >
-> > How large is it?  The list probably has a message limit of
-> > around 80KB - 100KB.  It's probably best to create a
-> > bugzilla entry for the problem (or use an existing one)
-> > at http://bugzilla.kernel.org .
-> >
-> >
-> > > On 1/25/06, Randy.Dunlap <rdunlap@xenotime.net> wrote:
-> > > > On Wed, 25 Jan 2006, John H. wrote:
-> > > >
-> > > > > hmm,
-> > > > > #!/usr/bin/perl
-> > > > > #
-> > > > > # acpixtract - extract raw table from acpidmp output
-> > > > > #
-> > > > > # Example: cat mail.txt | ./acpixtract DSDT | ./acpidisasm
-> > > > >
-> > > > >
-> > > > > how do i get the acpidmp output of my bios in order to use to diagnose?
-> > > > >
-> > > > Please use acpidump (not acpidmp).
-> > > > acpidump is part of the pmtools package.  Grab the latest
-> > > > pmtools package from
-> > > >   http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
-> > > > or from your distro.
-> > > >
-> > > > >
-> > > > > On 1/25/06, John H. <mistamaila@gmail.com> wrote:
-> > > > > > i am trying to use acpidmp which i've compiled from cvs from sourceforge
-> > > > > > when i run perl /usr/local/bin/acpixtract
-> > > > > > to extract bios, it never "stops" and dumps a file.
-> > > > > > what am i doing wrong?
-> > > > > >
-> > > > > -
-> >
-> > --
-> > ~Randy
-> >
->
+>Later (AFAIK) Rich went to a DSDT-based approach of the smart battery
+>problem. I personally prefer the EC based version.
+
+The DSDT-based approach is an interesting science project,
+but it has no place in a product.  Distros would be crazy
+to support users running modified platform firmware.
+
+The EC smart battery driver has been on the list several times,
+most recently from Vladimir, and that is the direction to go
+to get a distro to support SB out of the box.  I expect it
+to be upstream shortly -- the hold-up was the EC update.
+
+>[1] 
+>http://www.squirrel.nl/people/jvromans/articles/TM4001WLMi/index.html
+
+great job getting your laptop running and sharing your notes
+for others to benefit from your experience!  The only thing
+I didn't notice there was a copy of /proc/cpuinfo
+
+cheers,
+-Len
