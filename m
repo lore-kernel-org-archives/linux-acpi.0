@@ -1,40 +1,47 @@
-From: Paul Jackson <pj@sgi.com>
-Subject: Re: [PATCH 001/003]Fix unify mapping from pxm to node id.
-Date: Fri, 27 Jan 2006 23:15:17 -0800
-Message-ID: <20060127231517.4c0ce573.pj@sgi.com>
-References: <20060123165644.C147.Y-GOTO@jp.fujitsu.com>
-	<20060126074846.1a6dd300.pj@sgi.com>
-	<20060128122758.CF50.Y-GOTO@jp.fujitsu.com>
+From: Janosch Machowinski <scotch@tzi.de>
+Subject: Re: High pitched sound with 2.6.15-ck1 --  Update info
+Date: Sat, 28 Jan 2006 12:10:19 +0100
+Message-ID: <43DB511B.5020605@tzi.de>
+References: <200601280105.44804.gkanis@cems.umn.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from omx1-ext.sgi.com ([192.48.179.11]:56262 "EHLO
-	omx1.americas.sgi.com") by vger.kernel.org with ESMTP
-	id S932535AbWA1HQO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 28 Jan 2006 02:16:14 -0500
-In-Reply-To: <20060128122758.CF50.Y-GOTO@jp.fujitsu.com>
+Received: from m1.informatik.uni-bremen.de ([134.102.201.18]:62460 "EHLO
+	informatik.uni-bremen.de") by vger.kernel.org with ESMTP
+	id S932131AbWA1LJI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 28 Jan 2006 06:09:08 -0500
+In-Reply-To: <200601280105.44804.gkanis@cems.umn.edu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: akpm@osdl.org, apw@shadowen.org, bob.picco@hp.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, tony.luck@intel.com, ak@suse.de, len.brown@intel.com, discuss@x86-64.org
+To: Vasileios Gkanis <gkanis@cems.umn.edu>
+Cc: linux-acpi@vger.kernel.org
 
-Yasunori-san,
+Vasileios Gkanis wrote:
+> Hi,
+> 
+> I had some free time and I was switching from one C-state to another to check 
+> when I hear this high pitched sound, I discover the following:
+> 
+> When the system is in the C4-state I hear this high pitched sound only when 
+> the USB-mouse is plugged in!  If I unplug the mouse, the sound is not audible 
+> anymore. If I plug in the USB-stick the sound is not audible!  I did some 
+> experiments and I found that when the system is in the C3 or C4-state, I hear 
+> the sound only when the USB-mouse is plugged in. On the other hand, in the C1 
+> or C2-state the sound is not audible regardless of whether the USB-mouse is 
+> plugged in or not. 
+> I see a similar behavior in windows, but the only difference is that the sound 
+> is not audible when the USB-stick and the USB-mouse are both plugged in!
+> 
+> Does anybody have any idea why this is happening?
+> 
+Jep,
+this happens because your power converters starts "singing". If
+you switch the C-State, you need a different amount of power. So if
+you have a kernel frequency of 1000 herz, your power converter has
+to adjust the amount of power 1000 times per second. And because
+of that it starts "singing". By the way, you can also modulate the sound
+by scaling your CPU frequency up or down. (Perhaps you could also write
+a programm, that can play some melody based on this phaenomenon ;-) )
 
-Thank-you for updating your patch.
-
-However I am still puzzled by one detail.
-
-Your latest patchset removes the defines:
--#define MAX_PXM_DOMAINS	256	/* 1 byte and no promises about values */
-
-and:
--#define MAX_PXM_DOMAINS (256)
-
-but continues to have code using MAX_PXM_DOMAINS.  I am unable
-to compile ia64 with it now, for lack of this define.
-
--- 
-                  I won't rest till it's the best ...
-                  Programmer, Linux Scalability
-                  Paul Jackson <pj@sgi.com> 1.925.600.0401
+    Janosch
