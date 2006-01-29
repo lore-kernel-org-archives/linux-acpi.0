@@ -1,46 +1,38 @@
-From: Paul Jackson <pj@sgi.com>
-Subject: Re: [PATCH 001/003]Fix unify mapping from pxm to node id.
-Date: Sun, 29 Jan 2006 02:38:41 -0800
-Message-ID: <20060129023841.439a21af.pj@sgi.com>
-References: <20060123165644.C147.Y-GOTO@jp.fujitsu.com>
-	<20060126074846.1a6dd300.pj@sgi.com>
-	<20060128122758.CF50.Y-GOTO@jp.fujitsu.com>
-	<20060127231517.4c0ce573.pj@sgi.com>
-	<20060129034434.GO7306@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Miernik <miernik@ffii.org>
+Subject: why no duration[00000000000000000000] for C1 state?
+Date: Sun, 29 Jan 2006 11:07:22 +0100
+Message-ID: <20060129100722.1359.0.NOFFLE@localhost.localdomain.local>
+Reply-To: Miernik <miernik@ffii.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from omx1-ext.sgi.com ([192.48.179.11]:49311 "EHLO
-	omx1.americas.sgi.com") by vger.kernel.org with ESMTP
-	id S1750896AbWA2KjX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Jan 2006 05:39:23 -0500
-In-Reply-To: <20060129034434.GO7306@localhost>
+Received: from main.gmane.org ([80.91.229.2]:3254 "EHLO ciao.gmane.org")
+	by vger.kernel.org with ESMTP id S1750901AbWA2LAh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Jan 2006 06:00:37 -0500
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1F3AIO-0004SC-8j
+	for linux-acpi@vger.kernel.org; Sun, 29 Jan 2006 12:00:36 +0100
+Received: from 217.17.47.111 ([217.17.47.111])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Sun, 29 Jan 2006 12:00:36 +0100
+Received: from miernik by 217.17.47.111 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Sun, 29 Jan 2006 12:00:36 +0100
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: y-goto@jp.fujitsu.com, akpm@osdl.org, apw@shadowen.org, bob.picco@hp.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, tony.luck@intel.com, ak@suse.de, len.brown@intel.com, discuss@x86-64.org
+To: linux-acpi@vger.kernel.org
 
-Now that I applied the patches correctly:
-  x86-x86_64-ia64-unify-mapping-from-pxm-to-node-id.patch
-  x86-x86_64-ia64-unify-mapping-from-pxm-to-node-id-fix.patch
-  [PATCH 001/003]Fix unify mapping from pxm to node id. 
-  [PATCH 002/003]Fix unify mapping from pxm to node id. 
-  [PATCH 003/003]Fix unify mapping from pxm to node id. 
-
-They compiled on a 2.6.16-rc1-mm3 source base, for archs:
-  alpha arm i386 ia64 sparc x86_64
-
-and they compiled and booted ok on SN2 (ia64 sn2_defconfig).
-
-I just noticed as I typed the above that the last 3 patches all had the
-same Subject "Fix unify mapping from pxm to node id."  Each patch
-should have a different Subject (after the [...] is stripped.)
-
-Other than that detail ... looks good.
-
-	Acked-by: Paul Jackson <pj@sgi.com>
+On
+http://ck.kolivas.org/patches/dyn-ticks/split-out/C-States-3_accounting_of_sleep_times.patch
+it says: "Also track the actual time spent in C-States (C2 upwards, we
+can't determine this for C1), not only the number of invocations." Why
+we cannot have time spent in C1? Would it also be possible to have time
+spent in C0 and/or total time of the statistics? And/or % of time spent
+in each state?
 
 -- 
-                  I won't rest till it's the best ...
-                  Programmer, Linux Scalability
-                  Paul Jackson <pj@sgi.com> 1.925.600.0401
+Miernik             _________________________  xmpp:miernik@amessage.info
+___________________/_______________________/      mailto:miernik@ffii.org
+                       Save Europe from Software Patents
+                http://www.gnu.org/philosophy/savingeurope.html
+
