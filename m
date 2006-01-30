@@ -1,38 +1,89 @@
-From: Miernik <miernik@ffii.org>
-Subject: why no duration[00000000000000000000] for C1 state?
-Date: Sun, 29 Jan 2006 11:07:22 +0100
-Message-ID: <20060129100722.1359.0.NOFFLE@localhost.localdomain.local>
-Reply-To: Miernik <miernik@ffii.org>
+From: Simon Bridge <corwin@ihug.co.nz>
+Subject: RE: reality check: dsdt.dsl -> compile -> DSDT.aml -> decompile
+	->DSDT.dsl but dsdt.dsl neq DSDT.dsl
+Date: Mon, 30 Jan 2006 15:53:37 +1300
+Message-ID: <1138589618.31634.21.camel@localhost.localdomain>
+References: <971FCB6690CD0E4898387DBF7552B90E0421863E@orsmsx403.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:3254 "EHLO ciao.gmane.org")
-	by vger.kernel.org with ESMTP id S1750901AbWA2LAh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Jan 2006 06:00:37 -0500
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1F3AIO-0004SC-8j
-	for linux-acpi@vger.kernel.org; Sun, 29 Jan 2006 12:00:36 +0100
-Received: from 217.17.47.111 ([217.17.47.111])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Sun, 29 Jan 2006 12:00:36 +0100
-Received: from miernik by 217.17.47.111 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Sun, 29 Jan 2006 12:00:36 +0100
+Received: from grunt11.ihug.co.nz ([203.109.254.54]:50335 "EHLO
+	grunt11.ihug.co.nz") by vger.kernel.org with ESMTP id S1750847AbWA3Cya
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Jan 2006 21:54:30 -0500
+In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E0421863E@orsmsx403.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org
 
-On
-http://ck.kolivas.org/patches/dyn-ticks/split-out/C-States-3_accounting_of_sleep_times.patch
-it says: "Also track the actual time spent in C-States (C2 upwards, we
-can't determine this for C1), not only the number of invocations." Why
-we cannot have time spent in C1? Would it also be possible to have time
-spent in C0 and/or total time of the statistics? And/or % of time spent
-in each state?
+On Wed, 2006-01-25 at 09:55 -0800, Moore, Robert wrote:
+> Well, yes, if the external cannot be resolved at runtime, it will
+> generate an error -- Unless you have the update to ACPICA that allows
+> unresolved references within packages, AND you enable the interpreter
+> slack mode.
+> 
+> > I got the DSDT.aml (the result of successfully compiling dsdt.dsl
+> > remember) and decompiled it - the result is expected to be the same as
+> > dsdt.dsl... but it wasn't! There were substantial differences. When
+> this
+> > new version was compiled, it produced errors.
+> 
+> Any disassembler is not *guaranteed* to generate the exact source code.
+> I would be interested in a bit more explanation, however.
+> 
 
--- 
-Miernik             _________________________  xmpp:miernik@amessage.info
-___________________/_______________________/      mailto:miernik@ffii.org
-                       Save Europe from Software Patents
-                http://www.gnu.org/philosophy/savingeurope.html
+Considering this reply and others, I've made some time to actually sit
+down and *carefully* watch what I'm doing.
+
+I started from scratch, so everything is clean, and ran iASL in
+compatibility mode (-oa flag enabled). I kept a log of everything I did.
+I figured it would help if folk didn't have to second-guess my thought
+processes. Summary below - exact commands and output available.
+
+I have discovered that decompiling seems to remove "external"
+declarations.
+
+All other changes involve substituting for "ones" and such like with the
+appropriate, explicit, form needed (0x01 or 0x0001 or whatever). This
+doesn't happen if iASL is run in compatibility mode.
+
+The missing variables were:
+\_PR.CPU0._PPC
+Z007
+
+If I just stick external statements for these at the top of the code, I
+get the following from the compiler:
+No back ptr to Op: type 8
+No back ptr to Op: type 8
+dsdt.dsl   150:         Processor (CPU0, 0x00, 0x00008010, 0x06) {}
+Error    1054 -                       ^ Name already exists in scope
+(CPU0)
+
+If I put the external statement after line 150 - then there are no
+compiler errors. (To what extent does this matter? Is there a better way
+of accommodating this?)
+
+The remaining kernel errors are:
+[4342789.367000]     ACPI-0508: *** Error: Method execution failed
+[\_SB_.BAT1._BST] (Node cbed7be0), AE_NOT_FOUND
+[4342819.371000]     ACPI-0362: *** Error: Looking up [Z007] in
+namespace, AE_NOT_FOUND
+
+This would seem to suggest that the external statements are removed by
+decompiling (rather than compiling - whew), and that Z007 does not exist
+anywhere.[1]
+
+Perhaps the first error is the infamous acer smart-battery issue?
+(Later: I see Acer 3002WLMi in the readme for the patch-set -
+http://sourceforge.net/projects/sbs-linux/ -  but not 3003LC)
+
+Anyway - it would appear I have a dsdt suitable for including in the
+archive...
+
+[1] From previous discussions - there is a patch waiting, and I can try
+the latest vanilla kernel with all the acpi patches.
+
+
 
