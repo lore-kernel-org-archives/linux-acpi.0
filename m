@@ -1,89 +1,64 @@
-From: Simon Bridge <corwin@ihug.co.nz>
-Subject: RE: reality check: dsdt.dsl -> compile -> DSDT.aml -> decompile
-	->DSDT.dsl but dsdt.dsl neq DSDT.dsl
-Date: Mon, 30 Jan 2006 15:53:37 +1300
-Message-ID: <1138589618.31634.21.camel@localhost.localdomain>
-References: <971FCB6690CD0E4898387DBF7552B90E0421863E@orsmsx403.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Subject: Re: debugging 600E
+Date: Mon, 30 Jan 2006 04:15:25 +0000
+Message-ID: <E1F3QRq-0001e5-00@skye.ra.phy.cam.ac.uk>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3005D9812B@hdsmsx401.amr.corp.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from grunt11.ihug.co.nz ([203.109.254.54]:50335 "EHLO
-	grunt11.ihug.co.nz") by vger.kernel.org with ESMTP id S1750847AbWA3Cya
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Jan 2006 21:54:30 -0500
-In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E0421863E@orsmsx403.amr.corp.intel.com>
+Received: from mraos.ra.phy.cam.ac.uk ([131.111.48.8]:57323 "EHLO
+	mraos.ra.phy.cam.ac.uk") by vger.kernel.org with ESMTP
+	id S1751237AbWA3EP2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Jan 2006 23:15:28 -0500
+In-Reply-To: Your message of "Thu, 26 Jan 2006 13:16:27 EST."
+             <F7DC2337C7631D4386A2DF6E8FB22B3005D9812B@hdsmsx401.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, linux-acpi@vger.kernel.org
 
-On Wed, 2006-01-25 at 09:55 -0800, Moore, Robert wrote:
-> Well, yes, if the external cannot be resolved at runtime, it will
-> generate an error -- Unless you have the update to ACPICA that allows
-> unresolved references within packages, AND you enable the interpreter
-> slack mode.
-> 
-> > I got the DSDT.aml (the result of successfully compiling dsdt.dsl
-> > remember) and decompiled it - the result is expected to be the same as
-> > dsdt.dsl... but it wasn't! There were substantial differences. When
-> this
-> > new version was compiled, it produced errors.
-> 
-> Any disassembler is not *guaranteed* to generate the exact source code.
-> I would be interested in a bit more explanation, however.
-> 
+>From <http://bugzilla.kernel.org/show_bug.cgi?id=5966>
 
-Considering this reply and others, I've made some time to actually sit
-down and *carefully* watch what I'm doing.
+> Looking at the Thinkpad web site, there is a newer BIOS for the
+> 600E.  I've got INET28WW (1.08), and INET36WW (1.16) is available.
 
-I started from scratch, so everything is clean, and ran iASL in
-compatibility mode (-oa flag enabled). I kept a log of everything I did.
-I figured it would help if folk didn't have to second-guess my thought
-processes. Summary below - exact commands and output available.
+Just a word of warning about the 600X bios dates, which might apply to
+the 600E as well.  On the 600X, the latest BIOS claims to be from
+1999, but that date is almost surely wrong.  The readme/changelog with
+the BIOS update diskette is dated Sept 20, 2001 and contains this note
+about the 1.01 update:
 
-I have discovered that decompiling seems to remove "external"
-declarations.
+ - (Fix) If Windows 98 Second Edition is installed as APM mode and
+         an updated BIOS is installed with a BIOS date 12/02/99 or 
+         later, Windows 98SE will change the mode from APM to ACPI 
+         whenever a New hardware profile is created.  So this BIOS 
+         set the date to 11-30-99. 
 
-All other changes involve substituting for "ones" and such like with the
-appropriate, explicit, form needed (0x01 or 0x0001 or whatever). This
-doesn't happen if iASL is run in compatibility mode.
+Probably they've marked all the dates as 11-30-99 in order to keep
+working around this W98SE misfeature.  My guess is that BIOS 1.11 is
+really from Sept 2001.
 
-The missing variables were:
-\_PR.CPU0._PPC
-Z007
+Also, I noticed that you need a working battery in order to update the
+BIOS.  I have a spare 600X battery, which should work in the 600E and
+I would lend you.  It is brand new, IBM/Lenovo, and I just opened the
+box to verify that it works.
 
-If I just stick external statements for these at the top of the code, I
-get the following from the compiler:
-No back ptr to Op: type 8
-No back ptr to Op: type 8
-dsdt.dsl   150:         Processor (CPU0, 0x00, 0x00008010, 0x06) {}
-Error    1054 -                       ^ Name already exists in scope
-(CPU0)
+Unfortunately, the laptop doesn't even recognize the battery (even
+after a reboot).  'acpi' stalls for 5-10 seconds, and the dmesg has
+many of these lines
 
-If I put the external statement after line 150 - then there are no
-compiler errors. (To what extent does this matter? Is there a better way
-of accommodating this?)
+     osl-0854 [545] os_wait_semaphore     : Failed to acquire
+        semaphore[e3fce660|1|0], AE_TIME
+     osl-0854 [545] os_wait_semaphore     : Failed to acquire
+        semaphore[e3fce660|1|100], AE_TIME
 
-The remaining kernel errors are:
-[4342789.367000]     ACPI-0508: *** Error: Method execution failed
-[\_SB_.BAT1._BST] (Node cbed7be0), AE_NOT_FOUND
-[4342819.371000]     ACPI-0362: *** Error: Looking up [Z007] in
-namespace, AE_NOT_FOUND
+and then it reports charge information only for battery 2 (the extra
+battery that replaces the CD/DVD slot).
 
-This would seem to suggest that the external statements are removed by
-decompiling (rather than compiling - whew), and that Z007 does not exist
-anywhere.[1]
+If this is a software (ACPI) problem, let me know and I'll try tests
+here.  If it's a hardware problem with the battery, I'll send it back
+for a replacement.  But if you think the battery would work in your
+600E anyway, I'll send it to you.
 
-Perhaps the first error is the infamous acer smart-battery issue?
-(Later: I see Acer 3002WLMi in the readme for the patch-set -
-http://sourceforge.net/projects/sbs-linux/ -  but not 3003LC)
+-Sanjoy
 
-Anyway - it would appear I have a dsdt suitable for including in the
-archive...
-
-[1] From previous discussions - there is a patch waiting, and I can try
-the latest vanilla kernel with all the acpi patches.
-
-
-
+`Never underestimate the evil of which men of power are capable.'
+         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
