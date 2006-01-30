@@ -1,56 +1,40 @@
-From: Matt Domsch <Matt_Domsch@dell.com>
-Subject: Re: [Openipmi-developer] [PATCH 0/5] ia64 ioremap, DMI, EFI system table
-Date: Mon, 30 Jan 2006 11:11:31 -0600
-Message-ID: <20060130171131.GA24947@lists.us.dell.com>
-References: <20060104221627.GA26064@lists.us.dell.com> <200601181029.46352.bjorn.helgaas@hp.com> <20060118181116.GA5537@lists.us.dell.com> <200601191310.57303.bjorn.helgaas@hp.com>
+From: Janosch Machowinski <scotch@tzi.de>
+Subject: Re: High pitched sound with 2.6.15-ck1 --  Update info
+Date: Mon, 30 Jan 2006 22:59:05 +0100
+Message-ID: <43DE8C29.1030007@tzi.de>
+References: <200601280105.44804.gkanis@cems.umn.edu> <43DB511B.5020605@tzi.de> <200601301732.47677.gkanis@cems.umn.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ausc60pc101.us.dell.com ([143.166.85.206]:51320 "EHLO
-	ausc60pc101.us.dell.com") by vger.kernel.org with ESMTP
-	id S964797AbWA3RLb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 30 Jan 2006 12:11:31 -0500
-Content-Disposition: inline
-In-Reply-To: <200601191310.57303.bjorn.helgaas@hp.com>
+Received: from m1.informatik.uni-bremen.de ([134.102.201.18]:26844 "EHLO
+	informatik.uni-bremen.de") by vger.kernel.org with ESMTP
+	id S932276AbWA3V67 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 30 Jan 2006 16:58:59 -0500
+In-Reply-To: <200601301732.47677.gkanis@cems.umn.edu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-ia64@vger.kernel.org, ak@suse.de, openipmi-developer@lists.sourceforge.net, akpm@osdl.org, "Tolentino, Matthew E" <matthew.e.tolentino@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Vasileios Gkanis <gkanis@cems.umn.edu>
+Cc: linux-acpi@vger.kernel.org
 
-On Thu, Jan 19, 2006 at 01:10:57PM -0700, Bjorn Helgaas wrote:
-> OK, here's a set of patches to (hopefully) clean up this area
-> a bit:
+Vasileios Gkanis schrieb:
+>>Jep,
+>>this happens because your power converters starts "singing". If
+>>you switch the C-State, you need a different amount of power. So if
+>>you have a kernel frequency of 1000 herz, your power converter has
+>>to adjust the amount of power 1000 times per second. And because
+>>of that it starts "singing". By the way, you can also modulate the sound
+>>by scaling your CPU frequency up or down. (Perhaps you could also write
+>>a programm, that can play some melody based on this phaenomenon ;-) )
+>>
+>>    Janosch
 > 
-> 1  Simplify efi_mem_attribute_range() so I can use it both for
->    /dev/mem validation and ioremap() attribute checking.
 > 
-> 2  Make ia64 ioremap() check memory attributes, so it works for
->    plain memory that only supports write-back access, as well as
->    for MMIO space that only supports uncacheable access.
-> 
-> 3  DMI ioremaps too much space, which makes it fail on machines
->    where the SMBIOS table is near the end of a memory region.
-> 
-> 4  Keep EFI table addresses as physical, not virtual.  The SMBIOS
->    address was physical on x86 but virtual on ia64, which broke
->    dmi_scan_machine().
-> 
-> 5  Use smarter ioremap() implementation to remove some cruft in
->    acpi_os_{read,write,map}_memory().  This one's just an optional
->    cleanup; I don't think it fixes any bugs.
+> What you said is correct. But, do you know why this happens when I plug in the 
+> USB-mouse and not when I plug in the USB-stick?
 
-
-This set of patches works for me on my IA64 Tiger4 (Dell PowerEdge
-7250) in kernel 2.6.16-rc1-mm4.  modprobe ipmi_si successfully
-automatically finds the IPMI controller now.
-
-Thanks Bjorn for doing a more complete cleanup in support of this!
-
-Thanks,
-Matt
-
--- 
-Matt Domsch
-Software Architect
-Dell Linux Solutions linux.dell.com & www.dell.com/linux
-Linux on Dell mailing lists @ http://lists.us.dell.com
+I would guess that the mouse has a higher power consumption as the 
+stick. Try to put in some other usb-devices, that needs a lot of power 
+(one of this usb-harddrives without external AC for example) and test it 
+  ;-)
+   Janosch
