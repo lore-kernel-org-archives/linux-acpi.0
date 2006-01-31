@@ -1,36 +1,117 @@
-From: matthieu castet <castet.matthieu@free.fr>
-Subject: Re: [RFC] Add lspnp support for sysfs
-Date: Tue, 31 Jan 2006 18:46:25 +0100
-Message-ID: <43DFA271.4030504@free.fr>
-References: <200601131051.36906.bjorn.helgaas@hp.com> <200601311007.07379.bjorn.helgaas@hp.com>
+From: Kristen Accardi <kristen.c.accardi@intel.com>
+Subject: Re: [Pcihpd-discuss] Re: [PATCH 0/7] acpiphp - slots management fix
+Date: Tue, 31 Jan 2006 10:20:18 -0800
+Message-ID: <1138731618.18768.5.camel@whizzy>
+References: <87acdrp5y9.wl%muneda.takahiro@jp.fujitsu.com>
+	 <20060127041425.GA20453@kroah.com>
+	 <87slr7k8qi.wl%muneda.takahiro@jp.fujitsu.com>
+	 <20060129034502.GA7168@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cac94-1-81-57-151-96.fbx.proxad.net ([81.57.151.96]:11737 "EHLO
-	localhost") by vger.kernel.org with ESMTP id S1751305AbWAaRos (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 31 Jan 2006 12:44:48 -0500
-In-Reply-To: <200601311007.07379.bjorn.helgaas@hp.com>
+Received: from fmr20.intel.com ([134.134.136.19]:33496 "EHLO
+	orsfmr005.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1751313AbWAaSQ6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 31 Jan 2006 13:16:58 -0500
+In-Reply-To: <20060129034502.GA7168@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-pcmcia@lists.infradead.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Adam Belay <ambx1@neo.rr.com>, Li Shaohua <shaohua.li@intel.com>, David Hinds <dhinds@sonic.net>
+To: Greg KH <greg@kroah.com>
+Cc: MUNEDA Takahiro <muneda.takahiro@jp.fujitsu.com>, pavel@ucw.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org, len.brown@intel.com
 
-Hi everybody,
+On Sat, 2006-01-28 at 19:45 -0800, Greg KH wrote:
+> On Sun, Jan 29, 2006 at 12:34:29PM +0900, MUNEDA Takahiro wrote:
+> > Hi,
+> > 
+> > At Thu, 26 Jan 2006 20:14:25 -0800,
+> > Greg KH <greg@kroah.com> wrote:
+> > > 
+> > > On Fri, Jan 20, 2006 at 07:08:30PM +0900, MUNEDA Takahiro wrote:
+> > > > Hi,
+> > > > 
+> > > > This series of patches contains slots management fix.
+> > > > Here are summary of changes:
+> > > > 
+> > > > o [PATCH 1/7] - removes unnecesary struct members
+> > > > 
+> > > > o [PATCH 2/7] - removes init_slots(), because acpiphp doesn't
+> > > >                 register slots when driver is loaded.
+> > > > 
+> > > > o [PATCH 3/7] - changes register_slot() to register hotplug
+> > > >                 slots when they are found
+> > > > 
+> > > > o [PATCH 4/7] - changes init_bridge_misc() to register hotplug
+> > > >                 slots when they are found
+> > > > 
+> > > > o [PATCH 5/7] - removes cleanup_slots(), because acpiphp
+> > > >                 doesn't unregister slots when driver is going
+> > > >                 to be un-loaded.
+> > > > 
+> > > > o [PATCH 6/7] - changes cleanup_brige() to unregister hotplug
+> > > >                 slots when acpiphp cleanup the bridge.
+> > > > 
+> > > > o [PATCH 7/7] - adds spin_lock/_unlock to protect slot_list
+> > > > 
+> > > > 
+> > > > For more specifc information, please see the header of each patch.
+> > > > These patches are against 2.6.16-rc1. I tested them on Tiger4.
+> > > 
+> > > This patch series does not even compile when applied:
+> > > 
+> > >   CC [M]  drivers/pci/hotplug/acpiphp_core.o
+> > > drivers/pci/hotplug/acpiphp_core.c: In function `acpiphp_register_hotplug_slot':
+> > > drivers/pci/hotplug/acpiphp_core.c:355: error: `hotplug_slot' undeclared (first use in this function)
+> > > drivers/pci/hotplug/acpiphp_core.c:355: error: (Each undeclared identifier is reported only once
+> > > drivers/pci/hotplug/acpiphp_core.c:355: error: for each function it appears in.)
+> > > drivers/pci/hotplug/acpiphp_core.c:359: error: `hotplug_slot_info' undeclared (first use in this function)
+> > > make[2]: *** [drivers/pci/hotplug/acpiphp_core.o] Error 1
+> > > 
+> > > Care to redo them?
+> > 
+> > 
+> > I'm sorry for my late replying.
+> > And thanks for your taking care of my patch.
+> > 
+> > At first, please let me introduce the base idea of this patch.
+> > I'm trying to support p2p bridge hotplug with acpiphp.
+> > 
+> >  Current acpiphp manages hotplug slot by ID. The ID is incremented
+> >  when acpiphp founds hotpluggable slots.
+> >  If the bridges(with hotpluggable slots) are hotplugged many times,
+> >  the hotpluggable slots are added many times also. The ID might be
+> >  overflowed. So this patch removes IDs to manage slots.
+> > 
+> >  And, this patch changes the slot register/unregister timing.
+> >  Current acpiphp registers the slots in the init_slots()
+> >  called from acpiphp_init(), and unregisters the slots in the
+> >  cleanup_slots() called from acpiphp_exit().
+> >  acpiphp doesn't assume the increase and decrease of the
+> >  hotpluggable slots.
+> >  This patch removes the slot register/unregister processes from the
+> >  init/exit phases. Instead, adds the these processes in the bridge
+> >  add/cleanup phases.
+> > 
+> > Currently, this change doesn't have any meanings. But these changes
+> > are needed to support p2p bridge(with hotplug slot) hotplug.
+> > 
+> > Here is an updated patch. Old patches were not need to be separated,
+> > so I merge them into below patch.
+> > 
+> > This patch is against 2.6.16-rc1-mm3. I tested them on Tiger4 and
+> > it works fine.
+> 
+> Ok, Kristen, have any objections to this patch?  I know it's in much the
+> same area that you are working in.
+> 
+> thanks,
+> 
+> greg k-h
+> -
 
-Bjorn Helgaas wrote:
-> On Friday 13 January 2006 10:51, Bjorn Helgaas wrote:
-> 
->>Add lspnp support for sysfs.  This makes it work with generic PNP
->>(including PNPACPI, PNPBIOS, ISAPNP) instead of just with PNPBIOS.
->>I'm particularly interested in ia64, which never has PNPBIOS, but
->>may have PNPACPI.
-> 
-> 
-> Ping.  I think we have two votes in favor of this, at least in
-> concept (mine and Adam's).  We had a couple tangential questions.
-> Nobody seemed really opposed.
-I also think it is a good idea.
+Just reviewing them, they seem like they will be fine to me.
 
-Matthieu
+Thanks,
+Kristen
+
+
