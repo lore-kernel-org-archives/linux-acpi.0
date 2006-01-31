@@ -1,41 +1,71 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: debugging 600E
-Date: Mon, 30 Jan 2006 17:55:07 -0500
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3005E22331@hdsmsx401.amr.corp.intel.com>
+From: Len Brown <len.brown@intel.com>
+Subject: latest ACPI patch is acpi-test-20060127-2.6.16-rc1.diff.gz
+Date: Tue, 31 Jan 2006 03:36:20 -0500
+Message-ID: <200601310336.20837.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr13.intel.com ([192.55.52.67]:23020 "EHLO
-	fmsfmr001.fm.intel.com") by vger.kernel.org with ESMTP
-	id S964900AbWA3WzP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jan 2006 17:55:15 -0500
-Content-class: urn:content-classes:message
+Received: from sccrmhc14.comcast.net ([63.240.77.84]:2496 "EHLO
+	sccrmhc14.comcast.net") by vger.kernel.org with ESMTP
+	id S965055AbWAaIgY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 31 Jan 2006 03:36:24 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Cc: "Moore, Robert" <robert.moore@intel.com>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
+Added an ACPICA update that fixes some long-standing bugs...
 
->From <http://bugzilla.kernel.org/show_bug.cgi?id=5966>
+latest patch is available here:
 
->Probably they've marked all the dates as 11-30-99
+git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git acpica
+git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git test
 
-Yes, this seems to be true.
-I did get a battery and updated to the latest 600E BIOS and the date is unchanged.
-But as I build with CONFIG_ACPI_BLACKLIST_YEAR=0 this isn't an issue.
+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/test/2.6.16/
 
->Unfortunately, the laptop doesn't even recognize the battery (even
->after a reboot).  'acpi' stalls for 5-10 seconds, and the dmesg has
->many of these lines
->
->     osl-0854 [545] os_wait_semaphore     : Failed to acquire
->        semaphore[e3fce660|1|0], AE_TIME
->     osl-0854 [545] os_wait_semaphore     : Failed to acquire
->        semaphore[e3fce660|1|100], AE_TIME
-
-Probably an EC issue.  Do you still see this with the latest
-ACPI patch or mm tree (which includes EC interrupt mode).
-
-thanks,
+cheers,
 -Len
+
+[ACPI] ACPICA 20060127
+
+Implemented support in the Resource Manager to allow
+unresolved namestring references within resource package
+objects for the _PRT method. This support is in addition
+to the previously implemented unresolved reference
+support within the AML parser. If the interpreter slack
+mode is enabled (true on Linux unless acpi=strict),
+these unresolved references will be passed through
+to the caller as a NULL package entry.
+http://bugzilla.kernel.org/show_bug.cgi?id=5741
+
+Implemented and deployed new macros and functions for
+error and warning messages across the subsystem. These
+macros are simpler and generate less code than their
+predecessors. The new macros ACPI_ERROR, ACPI_EXCEPTION,
+ACPI_WARNING, and ACPI_INFO replace the ACPI_REPORT_*
+macros.
+
+Implemented the acpi_cpu_flags type to simplify host OS
+integration of the Acquire/Release Lock OSL interfaces.
+Suggested by Steven Rostedt and Andrew Morton.
+
+Fixed a problem where Alias ASL operators are sometimes
+not correctly resolved. causing AE_AML_INTERNAL
+http://bugzilla.kernel.org/show_bug.cgi?id=5189
+http://bugzilla.kernel.org/show_bug.cgi?id=5674
+
+Fixed several problems with the implementation of the
+ConcatenateResTemplate ASL operator. As per the ACPI
+specification, zero length buffers are now treated as a
+single EndTag. One-length buffers always cause a fatal
+exception. Non-zero length buffers that do not end with
+a full 2-byte EndTag cause a fatal exception.
+
+Fixed a possible structure overwrite in the
+AcpiGetObjectInfo external interface. (With assistance
+from Thomas Renninger)
+
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
