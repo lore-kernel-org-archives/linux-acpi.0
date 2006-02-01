@@ -1,162 +1,68 @@
-From: Kristen Carlson Accardi <kristenc@cs.pdx.edu>
-Subject: [patch] acpiphp: add new bus to acpi
-Date: Wed, 1 Feb 2006 13:38:54 -0800
-Message-ID: <20060201213854.GC27247@nerpa>
+From: Bruno Ducrot <ducrot@poupinou.org>
+Subject: Re: UBUNTU - acpi battery on ACER TRAVELMATE 4000 WLMI
+Date: Thu, 2 Feb 2006 00:03:22 +0100
+Message-ID: <20060201230322.GA11924@poupinou.org>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3005E8FE7F@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1422952AbWBAVjP@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from poup.poupinou.org ([195.101.94.96]:38448 "EHLO
+	poup.poupinou.org") by vger.kernel.org with ESMTP id S1423011AbWBAXD1
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 1 Feb 2006 18:03:27 -0500
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: pcihpd-discuss@lists.sourceforge.net
-Cc: greg@kroah.com, linux-kernel@vger.kernel.org, muneda.takahiro@jp.fujitsu.com, linux-acpi@vger.kernel.org
+In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B3005E8FE7F@hdsmsx401.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-From: kristen.c.accardi@intel.com
+On Tue, Jan 31, 2006 at 09:35:05PM -0500, Brown, Len wrote:
+> 
+> >On Fri, Jan 27, 2006 at 02:05:23PM -0500, Brown, Len wrote:
+> >> Also, you may find that the current speedstep-centrino
+> >> is able to load on this system.  Without hard-coded tables
+> >> for this processor family/model/stepping, it too would use
+> >> the ACPI PSS, but it would use native MSR access, which
+> >> is lower overhead than the IO port access used by acpi-cpufreq.
+> >> (in the future, acpi-cpufreq and speedstep-centrino should
+> >> be combined into a single driver)
+> >
+> >Do you mean you want to combine all possible drivers into only
+> >one?  That is at that time of writing:
+> >
+> >acpi-cpufreq (IO version), speedstep-centrino, powernow-k7
+> >and powernow-k8?
+> >
+> >Well, it might be possible that some cpufreq devellopers
+> >would be against this approach I'm afraid.
+> 
+> acpi-cpufreq + speedstep-centrino = intel-enhanced-speedstep
 
-If we add a new bridge with subordinate busses, we should call make sure
-that acpi is notified so that the PRT (if present) can be read and drivers
-who have registered on this bus will be notified when it is started.
-Also make sure to use the max reservered bus number for the starting the bus
-scan.
- 
- 
- Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
----
-I broke this out of the dock patches because it is applicable to more
-than just docking stations.
+I see.  I thought you wanted to kill processor_perflib.c.  I was
+indeed wrong.  I would like to point that acpi-cpufreq could also be
+somewhat in "conflict" with speedstep-smi and speedstep-ich.
+That remind me that acpi-cpufreq is not only intel enhanced speedstep (a
+la Pentium Mobile, or Xeons, I means), but can work on some Pentium III
+or IV IIRC.
 
- drivers/pci/hotplug/acpiphp_glue.c |  106 ++++++++++++++++++++++++++++++++++++-
- 1 file changed, 104 insertions(+), 2 deletions(-)
+> unless you can think of a better name.  Both acpi-cpufreq
+> and speedstep-centrino turn out not to be good names,
+> since they don't describe either the function of the driver
+> or what hardware they run on.
 
-Index: linux-2.6.16-rc1/drivers/pci/hotplug/acpiphp_glue.c
-===================================================================
---- linux-2.6.16-rc1.orig/drivers/pci/hotplug/acpiphp_glue.c
-+++ linux-2.6.16-rc1/drivers/pci/hotplug/acpiphp_glue.c
-@@ -751,6 +751,101 @@ static int power_off_slot(struct acpiphp
- }
- 
- 
-+
-+/**
-+ * acpiphp_max_busnr - return the highest reserved bus number under
-+ * the given bus.
-+ * @bus: bus to start search with
-+ *
-+ */
-+static unsigned char acpiphp_max_busnr(struct pci_bus *bus)
-+{
-+	struct list_head *tmp;
-+	unsigned char max, n;
-+
-+	/*
-+	 * pci_bus_max_busnr will return the highest
-+	 * reserved busnr for all these children.
-+	 * that is equivalent to the bus->subordinate
-+	 * value.  We don't want to use the parent's
-+	 * bus->subordinate value because it could have
-+	 * padding in it.
-+	 */
-+	max = bus->secondary;
-+
-+	list_for_each(tmp, &bus->children) {
-+		n = pci_bus_max_busnr(pci_bus_b(tmp));
-+		if (n > max)
-+			max = n;
-+	}
-+	return max;
-+}
-+
-+
-+
-+/**
-+ *  get_func - get a pointer to acpiphp_func given a slot, device
-+ *  @slot: slot to search
-+ *  @dev:  pci_dev struct to match.
-+ *
-+ *  This function will increase the reference count of pci_dev,
-+ *  so callers should call pci_dev_put when complete.
-+ *
-+ */
-+static struct acpiphp_func *
-+get_func(struct acpiphp_slot *slot, struct pci_dev *dev)
-+{
-+	struct acpiphp_func *func = NULL;
-+	struct pci_bus *bus = slot->bridge->pci_bus;
-+	struct pci_dev *pdev;
-+
-+	list_for_each_entry(func, &slot->funcs, sibling) {
-+		pdev = pci_get_slot(bus, PCI_DEVFN(slot->device,
-+					func->function));
-+		if (pdev) {
-+			if (pdev == dev)
-+				break;
-+			pci_dev_put(pdev);
-+		}
-+	}
-+	return func;
-+}
-+
-+
-+/**
-+ * acpiphp_bus_add - add a new bus to acpi subsystem
-+ * @func: acpiphp_func of the bridge
-+ *
-+ */
-+static int acpiphp_bus_add(struct acpiphp_func *func)
-+{
-+	acpi_handle phandle;
-+	struct acpi_device *device, *pdevice;
-+	int ret_val;
-+
-+	acpi_get_parent(func->handle, &phandle);
-+	if (acpi_bus_get_device(phandle, &pdevice)) {
-+		dbg("no parent device, assuming NULL\n");
-+		pdevice = NULL;
-+	}
-+	ret_val = acpi_bus_add(&device, pdevice, func->handle,
-+			ACPI_BUS_TYPE_DEVICE);
-+	if (ret_val)
-+		dbg("cannot add bridge to acpi list\n");
-+
-+	/*
-+	 * try to start anyway.  We could have failed to add
-+	 * simply because this bus had previously been added
-+	 * on another add.  Don't bother with the return value
-+	 * we just keep going.
-+	 */
-+	ret_val = acpi_bus_start(device);
-+
-+	return ret_val;
-+}
-+
-+
-+
- /**
-  * enable_device - enable, configure a slot
-  * @slot: slot to be enabled
-@@ -788,7 +883,7 @@ static int enable_device(struct acpiphp_
- 		goto err_exit;
- 	}
- 
--	max = bus->secondary;
-+	max = acpiphp_max_busnr(bus);
- 	for (pass = 0; pass < 2; pass++) {
- 		list_for_each_entry(dev, &bus->devices, bus_list) {
- 			if (PCI_SLOT(dev->devfn) != slot->device)
-@@ -796,8 +891,15 @@ static int enable_device(struct acpiphp_
- 			if (dev->hdr_type == PCI_HEADER_TYPE_BRIDGE ||
- 			    dev->hdr_type == PCI_HEADER_TYPE_CARDBUS) {
- 				max = pci_scan_bridge(bus, dev, max, pass);
--				if (pass && dev->subordinate)
-+				if (pass && dev->subordinate) {
- 					pci_bus_size_bridges(dev->subordinate);
-+					func = get_func(slot, dev);
-+					if (func) {
-+						acpiphp_bus_add(func);
-+						/* side effect of get_func */
-+						pci_dev_put(dev);
-+					}
-+				}
- 			}
- 		}
- 	}
+Especially for speedstep-centrino.  I'm not sure for acpi-cpufreq
+though, but it's true this driver works only with Intel processors.
+
+> No, it wouldn't' make sense to combine the intel and amd drivers.
+
+Well, a BIOS writer could write a SMI handler (after all,
+they have the right to do what they want) in order to support
+acpi-cpufreq for an AMD processor, but I highly doubt this will
+ever happens.  It's simply too late now.
+
+-- 
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
