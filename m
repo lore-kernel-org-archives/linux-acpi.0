@@ -1,18 +1,15 @@
 From: Kristen Carlson Accardi <kristenc@cs.pdx.edu>
 Subject: [patch] acpiphp: add new bus to acpi
-Date: Wed, 1 Feb 2006 13:27:43 -0800
-Message-ID: <20060201212743.GB27247@nerpa>
+Date: Wed, 1 Feb 2006 13:38:54 -0800
+Message-ID: <20060201213854.GC27247@nerpa>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rigel.cs.pdx.edu ([131.252.208.59]:39312 "EHLO rigel.cs.pdx.edu")
-	by vger.kernel.org with ESMTP id S932461AbWBAV2t (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Feb 2006 16:28:49 -0500
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1422952AbWBAVjP@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: pcihp-discuss@lists.sourceforge.net
+Sender: linux-kernel-owner@vger.kernel.org
+To: pcihpd-discuss@lists.sourceforge.net
 Cc: greg@kroah.com, linux-kernel@vger.kernel.org, muneda.takahiro@jp.fujitsu.com, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
 From: kristen.c.accardi@intel.com
 
@@ -163,4 +160,3 @@ Index: linux-2.6.16-rc1/drivers/pci/hotplug/acpiphp_glue.c
  			}
  		}
  	}
-
