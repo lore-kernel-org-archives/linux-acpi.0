@@ -1,152 +1,180 @@
 From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: [Patch:004/004] Unify pxm_to_node id ver.2. (For i386)
-Date: Wed, 01 Feb 2006 21:36:56 +0900
-Message-ID: <20060201205415.41EE.Y-GOTO@jp.fujitsu.com>
+Subject: [Patch:002/004] Unify pxm_to_node id ver.2. (for ia64)
+Date: Wed, 01 Feb 2006 21:36:39 +0900
+Message-ID: <20060201205233.41EA.Y-GOTO@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:22741 "EHLO
-	fgwmail7.fujitsu.co.jp") by vger.kernel.org with ESMTP
-	id S932457AbWBAMh4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 1 Feb 2006 07:37:56 -0500
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1030358AbWBAMiR@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Andrew Morton <akpm@osdl.org>
-Cc: "Luck, Tony" <tony.luck@intel.com>, Andi Kleen <ak@suse.de>, "Brown, Len" <len.brown@intel.com>, Bob Picco <bob.picco@hp.com>, Paul Jackson <pj@sgi.com>, Andy Whitcroft <apw@shadowen.org>, Linux Kernel ML <linux-kernel@vger.kernel.org>, ACPI-ML <linux-acpi@vger.kernel.org>, linux-ia64@vger.kernel.org, x86-64 Discuss <discuss@x86-64.org>
+Cc: Andi Kleen <ak@suse.de>, "Brown, Len" <len.brown@intel.com>, "Luck, Tony" <tony.luck@intel.com>, Bob Picco <bob.picco@hp.com>, Paul Jackson <pj@sgi.com>, Andy Whitcroft <apw@shadowen.org>, Linux Kernel ML <linux-kernel@vger.kernel.org>, linux-ia64@vger.kernel.org, ACPI-ML <linux-acpi@vger.kernel.org>, x86-64 Discuss <discuss@x86-64.org>
+List-Id: linux-acpi@vger.kernel.org
+
+This is to use generic pxm_to_node() function instead of
+old pxm_to_nid_map for ia64. And remove old definition.
 
 
-This is to remove the code of pxm_to_nid_map from i386 code.
-And, some of changing Kconfig and dummy function for compile.
-
-
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: Bob Picco <bob.picco@hp.com>
 Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
 
- arch/i386/Kconfig       |    6 ++++++
- arch/i386/kernel/srat.c |   19 ++-----------------
- drivers/acpi/Kconfig    |    2 +-
- include/linux/acpi.h    |    8 ++++++++
- 4 files changed, 17 insertions(+), 18 deletions(-)
+ arch/ia64/hp/common/sba_iommu.c |    2 +-
+ arch/ia64/kernel/acpi.c         |   25 +++++++++----------------
+ arch/ia64/pci/pci.c             |    2 +-
+ arch/ia64/sn/kernel/setup.c     |    4 ++--
+ include/asm-ia64/acpi.h         |    7 -------
+ 5 files changed, 13 insertions(+), 27 deletions(-)
 
-Index: pxm_ver2/arch/i386/kernel/srat.c
+Index: pxm_ver2/arch/ia64/kernel/acpi.c
 ===================================================================
---- pxm_ver2.orig/arch/i386/kernel/srat.c	2006-02-01 18:53:44.000000000 +0900
-+++ pxm_ver2/arch/i386/kernel/srat.c	2006-02-01 18:54:36.000000000 +0900
-@@ -39,7 +39,6 @@
- #define NODE_ARRAY_OFFSET(x)	((x) % 8)	/* 8 bits/char */
- #define BMAP_SET(bmap, bit)	((bmap)[NODE_ARRAY_INDEX(bit)] |= 1 << NODE_ARRAY_OFFSET(bit))
- #define BMAP_TEST(bmap, bit)	((bmap)[NODE_ARRAY_INDEX(bit)] & (1 << NODE_ARRAY_OFFSET(bit)))
--#define MAX_PXM_DOMAINS		256	/* 1 byte and no promises about values */
- /* bitmap length; _PXM is at most 255 */
- #define PXM_BITMAP_LEN (MAX_PXM_DOMAINS / 8) 
- static u8 pxm_bitmap[PXM_BITMAP_LEN];	/* bitmap of proximity domains */
-@@ -213,19 +212,11 @@ static __init void node_read_chunk(int n
- 		node_end_pfn[nid] = memory_chunk->end_pfn;
- }
+--- pxm_ver2.orig/arch/ia64/kernel/acpi.c	2006-02-01 18:53:46.000000000 +0900
++++ pxm_ver2/arch/ia64/kernel/acpi.c	2006-02-01 18:54:13.000000000 +0900
+@@ -415,9 +415,6 @@ static int __initdata srat_num_cpus;	/* 
+ static u32 __devinitdata pxm_flag[PXM_FLAG_LEN];
+ #define pxm_bit_set(bit)	(set_bit(bit,(void *)pxm_flag))
+ #define pxm_bit_test(bit)	(test_bit(bit,(void *)pxm_flag))
+-/* maps to convert between proximity domain and logical node ID */
+-int __devinitdata pxm_to_nid_map[MAX_PXM_DOMAINS];
+-int __initdata nid_to_pxm_map[MAX_NUMNODES];
+ static struct acpi_table_slit __initdata *slit_table;
  
--static u8 pxm_to_nid_map[MAX_PXM_DOMAINS];/* _PXM to logical node ID map */
--
--int pxm_to_node(int pxm)
--{
--	return pxm_to_nid_map[pxm];
--}
--
- /* Parse the ACPI Static Resource Affinity Table */
- static int __init acpi20_parse_srat(struct acpi_table_srat *sratp)
- {
- 	u8 *start, *end, *p;
- 	int i, j, nid;
--	u8 nid_to_pxm_map[MAX_NUMNODES];/* logical node ID to _PXM map */
- 
- 	start = (u8 *)(&(sratp->reserved) + 1);	/* skip header */
- 	p = start;
-@@ -235,10 +226,6 @@ static int __init acpi20_parse_srat(stru
- 	memset(node_memory_chunk, 0, sizeof(node_memory_chunk));
- 	memset(zholes_size, 0, sizeof(zholes_size));
- 
--	/* -1 in these maps means not available */
+ /*
+@@ -506,22 +503,18 @@ void __init acpi_numa_arch_fixup(void)
+ 	 * MCD - This can probably be dropped now.  No need for pxm ID to node ID
+ 	 * mapping with sparse node numbering iff MAX_PXM_DOMAINS <= MAX_NUMNODES.
+ 	 */
+-	/* calculate total number of nodes in system from PXM bitmap */
 -	memset(pxm_to_nid_map, -1, sizeof(pxm_to_nid_map));
 -	memset(nid_to_pxm_map, -1, sizeof(nid_to_pxm_map));
--
- 	num_memory_chunks = 0;
- 	while (p < end) {
- 		switch (*p) {
-@@ -278,9 +265,7 @@ static int __init acpi20_parse_srat(stru
  	nodes_clear(node_online_map);
  	for (i = 0; i < MAX_PXM_DOMAINS; i++) {
- 		if (BMAP_TEST(pxm_bitmap, i)) {
--			nid = num_online_nodes();
+ 		if (pxm_bit_test(i)) {
+-			int nid = num_online_nodes();
 -			pxm_to_nid_map[i] = nid;
 -			nid_to_pxm_map[nid] = i;
 +			int nid = acpi_map_pxm_to_node(i);
++			pxm_bit_set(i);
  			node_set_online(nid);
  		}
  	}
-@@ -288,7 +273,7 @@ static int __init acpi20_parse_srat(stru
  
- 	/* set cnode id in memory chunk structure */
- 	for (i = 0; i < num_memory_chunks; i++)
--		node_memory_chunk[i].nid = pxm_to_nid_map[node_memory_chunk[i].pxm];
-+		node_memory_chunk[i].nid = pxm_to_node(node_memory_chunk[i].pxm);
+ 	/* set logical node id in memory chunk structure */
+ 	for (i = 0; i < num_node_memblks; i++)
+-		node_memblk[i].nid = pxm_to_nid_map[node_memblk[i].nid];
++		node_memblk[i].nid = pxm_to_node(node_memblk[i].nid);
  
- 	printk("pxm bitmap: ");
- 	for (i = 0; i < sizeof(pxm_bitmap); i++) {
-Index: pxm_ver2/arch/i386/Kconfig
+ 	/* assign memory bank numbers for each chunk on each node */
+ 	for_each_online_node(i) {
+@@ -535,7 +528,7 @@ void __init acpi_numa_arch_fixup(void)
+ 
+ 	/* set logical node id in cpu structure */
+ 	for (i = 0; i < srat_num_cpus; i++)
+-		node_cpuid[i].nid = pxm_to_nid_map[node_cpuid[i].nid];
++		node_cpuid[i].nid = pxm_to_node(node_cpuid[i].nid);
+ 
+ 	printk(KERN_INFO "Number of logical nodes in system = %d\n",
+ 	       num_online_nodes());
+@@ -548,11 +541,11 @@ void __init acpi_numa_arch_fixup(void)
+ 	for (i = 0; i < slit_table->localities; i++) {
+ 		if (!pxm_bit_test(i))
+ 			continue;
+-		node_from = pxm_to_nid_map[i];
++		node_from = pxm_to_node(i);
+ 		for (j = 0; j < slit_table->localities; j++) {
+ 			if (!pxm_bit_test(j))
+ 				continue;
+-			node_to = pxm_to_nid_map[j];
++			node_to = pxm_to_node(j);
+ 			node_distance(node_from, node_to) =
+ 			    slit_table->entry[i * slit_table->localities + j];
+ 		}
+@@ -758,9 +751,9 @@ int acpi_map_cpu2node(acpi_handle handle
+ 
+ 	/*
+ 	 * Assuming that the container driver would have set the proximity
+-	 * domain and would have initialized pxm_to_nid_map[pxm_id] && pxm_flag
++	 * domain and would have initialized pxm_to_node(pxm_id) && pxm_flag
+ 	 */
+-	node_cpuid[cpu].nid = (pxm_id < 0) ? 0 : pxm_to_nid_map[pxm_id];
++	node_cpuid[cpu].nid = (pxm_id < 0) ? 0 : pxm_to_node(pxm_id);
+ 
+ 	node_cpuid[cpu].phys_id = physid;
+ #endif
+@@ -886,7 +879,7 @@ acpi_map_iosapic(acpi_handle handle, u32
+ 	if (pxm < 0)
+ 		return AE_OK;
+ 
+-	node = pxm_to_nid_map[pxm];
++	node = pxm_to_node(pxm);
+ 
+ 	if (node >= MAX_NUMNODES || !node_online(node) ||
+ 	    cpus_empty(node_to_cpumask(node)))
+Index: pxm_ver2/arch/ia64/pci/pci.c
 ===================================================================
---- pxm_ver2.orig/arch/i386/Kconfig	2006-02-01 18:53:44.000000000 +0900
-+++ pxm_ver2/arch/i386/Kconfig	2006-02-01 18:54:36.000000000 +0900
-@@ -139,6 +139,12 @@ config ACPI_SRAT
- 	bool
- 	default y
- 	depends on NUMA && (X86_SUMMIT || X86_GENERICARCH)
-+	select ACPI_NUMA
-+
-+config HAVE_ARCH_PARSE_SRAT
-+       bool
-+       default y
-+       depends on ACPI_SRAT
+--- pxm_ver2.orig/arch/ia64/pci/pci.c	2006-02-01 18:53:46.000000000 +0900
++++ pxm_ver2/arch/ia64/pci/pci.c	2006-02-01 18:54:13.000000000 +0900
+@@ -353,7 +353,7 @@ pci_acpi_scan_root(struct acpi_device *d
+ 	pxm = acpi_get_pxm(controller->acpi_handle);
+ #ifdef CONFIG_NUMA
+ 	if (pxm >= 0)
+-		controller->node = pxm_to_nid_map[pxm];
++		controller->node = pxm_to_node(pxm);
+ #endif
  
- config X86_SUMMIT_NUMA
- 	bool
-Index: pxm_ver2/drivers/acpi/Kconfig
+ 	acpi_walk_resources(device->handle, METHOD_NAME__CRS, count_window,
+Index: pxm_ver2/include/asm-ia64/acpi.h
 ===================================================================
---- pxm_ver2.orig/drivers/acpi/Kconfig	2006-02-01 18:53:44.000000000 +0900
-+++ pxm_ver2/drivers/acpi/Kconfig	2006-02-01 18:54:36.000000000 +0900
-@@ -162,7 +162,7 @@ config ACPI_THERMAL
- config ACPI_NUMA
- 	bool "NUMA support"
- 	depends on NUMA
--	depends on (IA64 || X86_64)
-+	depends on (X86_32 || IA64 || X86_64)
- 	default y if IA64_GENERIC || IA64_SGI_SN2
+--- pxm_ver2.orig/include/asm-ia64/acpi.h	2006-02-01 18:53:46.000000000 +0900
++++ pxm_ver2/include/asm-ia64/acpi.h	2006-02-01 18:54:13.000000000 +0900
+@@ -107,13 +107,6 @@ extern unsigned int is_cpu_cpei_target(u
+ extern void set_cpei_target_cpu(unsigned int cpu);
+ extern unsigned int get_cpei_target_cpu(void);
  
- config ACPI_ASUS
-Index: pxm_ver2/include/linux/acpi.h
+-#ifdef CONFIG_ACPI_NUMA
+-/* Proximity bitmap length; _PXM is at most 255 (8 bit)*/
+-#define MAX_PXM_DOMAINS (256)
+-extern int __devinitdata pxm_to_nid_map[MAX_PXM_DOMAINS];
+-extern int __initdata nid_to_pxm_map[MAX_NUMNODES];
+-#endif
+-
+ extern u16 ia64_acpiid_to_sapicid[];
+ 
+ /*
+Index: pxm_ver2/arch/ia64/hp/common/sba_iommu.c
 ===================================================================
---- pxm_ver2.orig/include/linux/acpi.h	2006-02-01 18:53:53.000000000 +0900
-+++ pxm_ver2/include/linux/acpi.h	2006-02-01 18:54:36.000000000 +0900
-@@ -409,10 +409,18 @@ void acpi_table_print_madt_entry (acpi_t
- void acpi_table_print_srat_entry (acpi_table_entry_header *srat);
+--- pxm_ver2.orig/arch/ia64/hp/common/sba_iommu.c	2006-02-01 18:53:46.000000000 +0900
++++ pxm_ver2/arch/ia64/hp/common/sba_iommu.c	2006-02-01 18:54:13.000000000 +0900
+@@ -1958,7 +1958,7 @@ sba_map_ioc_to_node(struct ioc *ioc, acp
+ 	if (pxm < 0)
+ 		return;
  
- /* the following four functions are architecture-dependent */
-+#ifdef CONFIG_HAVE_ARCH_PARSE_SRAT
-+#define NR_NODE_MEMBLKS MAX_NUMNODES
-+#define acpi_numa_slit_init(slit) do {} while (0)
-+#define acpi_numa_processor_affinity_init(pa) do {} while (0)
-+#define acpi_numa_memory_affinity_init(ma) do {} while (0)
-+#define acpi_numa_arch_fixup() do {} while (0)
-+#else
- void acpi_numa_slit_init (struct acpi_table_slit *slit);
- void acpi_numa_processor_affinity_init (struct acpi_table_processor_affinity *pa);
- void acpi_numa_memory_affinity_init (struct acpi_table_memory_affinity *ma);
- void acpi_numa_arch_fixup(void);
-+#endif
+-	node = pxm_to_nid_map[pxm];
++	node = pxm_to_node(pxm);
  
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
- /* Arch dependent functions for cpu hotplug support */
+ 	if (node >= MAX_NUMNODES || !node_online(node))
+ 		return;
+Index: pxm_ver2/arch/ia64/sn/kernel/setup.c
+===================================================================
+--- pxm_ver2.orig/arch/ia64/sn/kernel/setup.c	2006-02-01 18:53:46.000000000 +0900
++++ pxm_ver2/arch/ia64/sn/kernel/setup.c	2006-02-01 18:54:13.000000000 +0900
+@@ -152,7 +152,7 @@ static int __init pxm_to_nasid(int pxm)
+ 	int i;
+ 	int nid;
+ 
+-	nid = pxm_to_nid_map[pxm];
++	nid = pxm_to_node(pxm);
+ 	for (i = 0; i < num_node_memblks; i++) {
+ 		if (node_memblk[i].nid == nid) {
+ 			return NASID_GET(node_memblk[i].start_paddr);
+@@ -698,7 +698,7 @@ void __init build_cnode_tables(void)
+ 	 * cnode == node for all C & M bricks.
+ 	 */
+ 	for_each_online_node(node) {
+-		nasid = pxm_to_nasid(nid_to_pxm_map[node]);
++		nasid = pxm_to_nasid(node_to_pxm(node));
+ 		sn_cnodeid_to_nasid[node] = nasid;
+ 		physical_node_map[nasid] = node;
+ 	}
 
 -- 
 Yasunori Goto 
-
-
