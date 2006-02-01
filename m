@@ -1,60 +1,131 @@
 From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: [Patch:000/004] Unify pxm_to_node id ver.2.
-Date: Wed, 01 Feb 2006 21:36:16 +0900
-Message-ID: <20060201205152.41E6.Y-GOTO@jp.fujitsu.com>
+Subject: [Patch:001/004] Unify pxm_to_node id ver.2. (generic code)
+Date: Wed, 01 Feb 2006 21:36:28 +0900
+Message-ID: <20060201205204.41E8.Y-GOTO@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:33491 "EHLO
+Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:59603 "EHLO
 	fgwmail7.fujitsu.co.jp") by vger.kernel.org with ESMTP
-	id S932434AbWBAMgw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 1 Feb 2006 07:36:52 -0500
+	id S932446AbWBAMhG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 1 Feb 2006 07:37:06 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andrew Morton <akpm@osdl.org>
-Cc: "Luck, Tony" <tony.luck@intel.com>, Andi Kleen <ak@suse.de>, "Brown, Len" <len.brown@intel.com>, Bob Picco <bob.picco@hp.com>, Andy Whitcroft <apw@shadowen.org>, Paul Jackson <pj@sgi.com>, Linux Kernel ML <linux-kernel@vger.kernel.org>, ACPI-ML <linux-acpi@vger.kernel.org>, linux-ia64@vger.kernel.org, x86-64 Discuss <discuss@x86-64.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>, "Brown, Len" <len.brown@intel.com>, Andi Kleen <ak@suse.de>, Bob Picco <bob.picco@hp.com>, Paul Jackson <pj@sgi.com>, Andy Whitcroft <apw@shadowen.org>, Linux Kernel ML <linux-kernel@vger.kernel.org>, ACPI-ML <linux-acpi@vger.kernel.org>, linux-ia64@vger.kernel.org, x86-64 Discuss <discuss@x86-64.org>
 
-Hello.
+This is new generic code for pxm_to_node_map.
 
-I rewrote patches to unify mapping from pxm to node id as ver.2.
-I already posted all of fixes for ver.1.
-However, searching first patch and appling fixes are a bit messy
-due to too many mail and patches in LKML.
-So, I rearranged them to find all of them easier.
-Basically, (ver.1 + previous fix patches) = ver.2.
-But ver.2 is set of following patches.
-  - generic code.
-  - for ia64.
-  - for x86_64.
-  - for i386.
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-Fixes from ver.1 are followigs.
-  - They are for 2.6.16-rc1-mm4.
-  - Fix old map from HP and SGI's code by Bob Picco-san.
-  - Remove MAX_PXM_DOMAINS from asm-ia64/acpi.h. It is already defined at
-    include/acpi/acpi_numa.h.
-  - Fix return code of setup_node() at arch/x86_64/mm/srat.c
-  - Fix ACPI_NUMA config for i386 by Andy Witcroft-san.
-  - Define dummy functions for i386's compile error.
-  - Remove garbage nid_to_pxm_map from acpi20_parse_srat() 
-    at arch/i386/kernel/srat.c
+ drivers/acpi/numa.c      |   50 +++++++++++++++++++++++++++++++++++++++++++++++
+ include/acpi/acpi_numa.h |   18 ++++++++++++++++
+ include/linux/acpi.h     |    1 
+ 3 files changed, 69 insertions(+)
 
-I tested ia64 and x86_64 with dummy SRAT NUMA emulation.
-And I checked compile completion for hp, SGI, and Summit.
-
-Andrew-san. Please apply.
-
-Thanks.
-
-----------------------------------
-
-This patch is to unify mapping from pxm to node id.
-In current code, i386, x86-64, and ia64 have its mapping by each own code.
-But PXM is defined by ACPI and node id is used generically. So,
-I think there is no reason to define it on each arch's code.
-This mapping should be written at drivers/acpi/numa.c as a common code.
-
+Index: pxm_ver2/drivers/acpi/numa.c
+===================================================================
+--- pxm_ver2.orig/drivers/acpi/numa.c	2006-02-01 18:53:46.000000000 +0900
++++ pxm_ver2/drivers/acpi/numa.c	2006-02-01 18:53:53.000000000 +0900
+@@ -36,12 +36,62 @@
+ #define _COMPONENT	ACPI_NUMA
+ ACPI_MODULE_NAME("numa")
+ 
++static nodemask_t nodes_found_map = NODE_MASK_NONE;
++#define PXM_INVAL	0xff
++#define NID_INVAL	0xff
++
++/* maps to convert between proximity domain and logical node ID */
++u8 __cpuinitdata pxm_to_node_map[MAX_PXM_DOMAINS]
++				= { [0 ... MAX_PXM_DOMAINS - 1] = NID_INVAL };
++u8 __cpuinitdata node_to_pxm_map[MAX_NUMNODES]
++				= { [0 ... MAX_NUMNODES - 1] = PXM_INVAL };
++
+ extern int __init acpi_table_parse_madt_family(enum acpi_table_id id,
+ 					       unsigned long madt_size,
+ 					       int entry_id,
+ 					       acpi_madt_entry_handler handler,
+ 					       unsigned int max_entries);
+ 
++int __cpuinit pxm_to_node(int pxm)
++{
++	if ((unsigned)pxm >= 256)
++		return -1;
++	/* Extent 0xff to (int)-1 */
++	return (signed char)pxm_to_node_map[pxm];
++}
++
++int __cpuinit node_to_pxm(int node)
++{
++	if ((unsigned)node >= 256)
++		return -1;
++	/* Extent 0xff to (int)-1 */
++	return (signed char)node_to_pxm_map[node];
++}
++
++int __cpuinit acpi_map_pxm_to_node(u8 pxm)
++{
++	u8 node = pxm_to_node_map[pxm];
++
++	if (node == NID_INVAL){
++		if (nodes_weight(nodes_found_map) >= MAX_NUMNODES)
++			return -1;
++		node = first_unset_node(nodes_found_map);
++		pxm_to_node_map[pxm] = node;
++		node_to_pxm_map[node] = pxm;
++		node_set(node, nodes_found_map);
++	}
++
++	return (int)node;
++}
++
++void __cpuinit acpi_unmap_pxm_to_node(int node)
++{
++	u8 pxm = node_to_pxm_map[node];
++	pxm_to_node_map[pxm] = NID_INVAL;
++	node_to_pxm_map[node] = PXM_INVAL;
++	node_clear(node, nodes_found_map);
++}
++
+ void __init acpi_table_print_srat_entry(acpi_table_entry_header * header)
+ {
+ 
+Index: pxm_ver2/include/acpi/acpi_numa.h
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ pxm_ver2/include/acpi/acpi_numa.h	2006-02-01 18:53:53.000000000 +0900
+@@ -0,0 +1,18 @@
++#ifndef __ACPI_NUMA_H
++#define __ACPI_NUMA_H
++
++#ifdef CONFIG_ACPI_NUMA
++#include <linux/kernel.h>
++
++/* Proximity bitmap length; _PXM is at most 255 (8 bit)*/
++#define MAX_PXM_DOMAINS (256)
++extern u8 __cpuinitdata pxm_to_node_map[MAX_PXM_DOMAINS];
++extern u8 __cpuinitdata node_to_pxm_map[MAX_NUMNODES];
++
++extern int __cpuinit pxm_to_node(int);
++extern int __cpuinit node_to_pxm(int);
++extern int __cpuinit acpi_map_pxm_to_node(u8);
++extern void __cpuinit acpi_unmap_pxm_to_node(int);
++
++#endif				/* CONFIG_ACPI_NUMA */
++#endif				/* __ACP_NUMA_H */
+Index: pxm_ver2/include/linux/acpi.h
+===================================================================
+--- pxm_ver2.orig/include/linux/acpi.h	2006-02-01 18:53:46.000000000 +0900
++++ pxm_ver2/include/linux/acpi.h	2006-02-01 18:53:53.000000000 +0900
+@@ -38,6 +38,7 @@
+ #include <acpi/acpi.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
++#include <acpi/acpi_numa.h>
+ #include <asm/acpi.h>
+ 
+ 
 
 -- 
 Yasunori Goto 
