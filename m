@@ -1,49 +1,44 @@
-From: Andy Whitcroft <apw@shadowen.org>
-Subject: Re: [Patch:000/004] Unify pxm_to_node id ver.2.
-Date: Wed, 01 Feb 2006 14:35:25 +0000
-Message-ID: <43E0C72D.4070709@shadowen.org>
-References: <20060201205152.41E6.Y-GOTO@jp.fujitsu.com>
+From: Gerfried Maier <moali@sbox.tugraz.at>
+Subject: Re: CPU - Power state (Cx) usage count not working
+Date: Wed, 01 Feb 2006 15:44:21 +0100
+Message-ID: <43E0C945.7010007@sbox.tugraz.at>
+References: <43D491A5.6010000@sbox.tugraz.at>	 <1138012807.2948.9.camel@spitfire>  <43D4C082.7060908@sbox.tugraz.at> <1138019639.30619.6.camel@littledragon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <20060201205152.41E6.Y-GOTO@jp.fujitsu.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Andrew Morton <akpm@osdl.org>, "Luck, Tony" <tony.luck@intel.com>, Andi Kleen <ak@suse.de>, "Brown, Len" <len.brown@intel.com>, Bob Picco <bob.picco@hp.com>, Paul Jackson <pj@sgi.com>, Linux Kernel ML <linux-kernel@vger.kernel.org>, ACPI-ML <linux-acpi@vger.kernel.org>, linux-ia64@vger.kernel.org, x86-64 Discuss <discuss@x86-64.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mailrelay.tu-graz.ac.at ([129.27.2.202]:24424 "EHLO
+	mailrelay1.tu-graz.ac.at") by vger.kernel.org with ESMTP
+	id S1161065AbWBAOo0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 1 Feb 2006 09:44:26 -0500
+Received: from [129.27.123.23] (emapc23.tu-graz.ac.at [129.27.123.23])
+	by mailrelay1.tu-graz.ac.at (8.13.5/8.13.5) with ESMTP id k11EiOW5023914
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-acpi@vger.kernel.org>; Wed, 1 Feb 2006 15:44:24 +0100 (CET)
+In-Reply-To: <1138019639.30619.6.camel@littledragon>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Yasunori Goto wrote:
-> Hello.
+Niko Ehrenfeuchter wrote:
 > 
-> I rewrote patches to unify mapping from pxm to node id as ver.2.
-> I already posted all of fixes for ver.1.
-> However, searching first patch and appling fixes are a bit messy
-> due to too many mail and patches in LKML.
-> So, I rearranged them to find all of them easier.
-> Basically, (ver.1 + previous fix patches) = ver.2.
-> But ver.2 is set of following patches.
->   - generic code.
->   - for ia64.
->   - for x86_64.
->   - for i386.
-> 
-> Fixes from ver.1 are followigs.
->   - They are for 2.6.16-rc1-mm4.
->   - Fix old map from HP and SGI's code by Bob Picco-san.
->   - Remove MAX_PXM_DOMAINS from asm-ia64/acpi.h. It is already defined at
->     include/acpi/acpi_numa.h.
->   - Fix return code of setup_node() at arch/x86_64/mm/srat.c
->   - Fix ACPI_NUMA config for i386 by Andy Witcroft-san.
->   - Define dummy functions for i386's compile error.
->   - Remove garbage nid_to_pxm_map from acpi20_parse_srat() 
->     at arch/i386/kernel/srat.c
-> 
-> I tested ia64 and x86_64 with dummy SRAT NUMA emulation.
-> And I checked compile completion for hp, SGI, and Summit.
+>> On my system all _3 counters_ C1, C2 and C3 always stay at [00000000]
+>> and not only the C3 counter.
+>
+> ok, now that's much clearer...  can you revert to the old kernel that
+> made use of the power states to check if it still works?
 
-Ran it across my test boxes, builds and boots on the affected platforms
-and generally elsewhere.
+I figured out, that the preemptive-patch from
+http://www.kernel.org/pub/linux/kernel/people/rml/preempt-kernel/v2.4/
+is responsible for all the couters staying at [00000000]. With this
+patch not applied 2.4.31 works as expected. So, this was my fault at
+all. Sorry for bothering the list.
 
--apw
+> as far as i can see, the latest acpi patch for 2.4 is really old
+> (20040326), so i'd really recommend to try 2.6
+
+I'm afraid that I can't use 2.6 because of annoyances with the nvidia
+X11-drivers. So I'm stuck to 2.4.
+
+moali
 
