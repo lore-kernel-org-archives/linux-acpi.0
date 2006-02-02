@@ -1,71 +1,32 @@
-From: "Brown, Len" <len.brown@intel.com>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Subject: RE: [PATCH] amd76x_pm: C3 powersaving for AMD K7
-Date: Wed, 1 Feb 2006 20:35:36 -0500
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3005EC94C3@hdsmsx401.amr.corp.intel.com>
+Date: Thu, 02 Feb 2006 01:50:41 +0000
+Message-ID: <1138845041.5557.20.camel@localhost.localdomain>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3005EC94C3@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr22.intel.com ([143.183.121.14]:42171 "EHLO
-	scsfmr002.sc.intel.com") by vger.kernel.org with ESMTP
-	id S1422694AbWBBBf7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Feb 2006 20:35:59 -0500
-Content-class: urn:content-classes:message
+Received: from [81.2.110.250] ([81.2.110.250]:29408 "EHLO lxorguk.ukuu.org.uk")
+	by vger.kernel.org with ESMTP id S1423052AbWBBBtb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Feb 2006 20:49:31 -0500
+In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B3005EC94C3@hdsmsx401.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Erik Slagter <erik@slagter.name>
-Cc: Andrew Morton <akpm@osdl.org>, Joerg Sommrey <jo@sommrey.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, arjan@infradead.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: Tony Lindgren <tony@atomide.com>, Erik Slagter <erik@slagter.name>, Andrew Morton <akpm@osdl.org>, Joerg Sommrey <jo@sommrey.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, arjan@infradead.org
 
- 
->> > Linux/ACPI has had generic supported SMP deep (> C1) C-states
->> > for a few months now and AFAIK it is working fine.
->> > Why is a platform specific driver needed for these boards?
->> 
->> Boards with this chipset tend to have some timing in the DSDT wrong
->> which prevents ACPI te actually use the C2/C3 states. It seems that
->> C2/C3 can only be used on amd76x boards with some extra setup code.
->> Maybe it would be an idea to merge both pieces of code as much as
->> possible?
->
->Yes, in amd76x case it's just to enable the C states. Then at least
->Fujitsu Lifebook p2120 needs patching of a register to stay in C2 
->and C3 sleep, otherwise it just wakes up right away. These are just
->some random machines I've been using, so there's probably quite a
->few machines that could use some fixups.
->
->What would be nice would be some hooks in ACPI to scan the north and
->south bridges based on some fixup list during init, and then do the
->necessary fixups would be nice. And then ACPI C states would just
->work!
+On Mer, 2006-02-01 at 20:35 -0500, Brown, Len wrote:
+> This endeavor is full of risk, and I would be extremely careful
+> about enabling features that the BIOS explicitly disabled --
+> unless the hardware manufacturer publicly publishes
+> support for the feature, or the errata that you're working around.
 
-Maybe they'll just work, or maybe they'll appear to work,
-but will silently corrupt user data...
+Folks had code that supported AMD76x by banging the hardware directly.
+On some AMD76x systems it caused corruption. Nobody AFAIK ever figured
+out if it was an errata (nothing obvious in the docs/errata list) or a
+bug in the code doing the banging on the chip or some other bit of
+hardware on the mainboard that needed extra handling.
 
-This endeavor is full of risk, and I would be extremely careful
-about enabling features that the BIOS explicitly disabled --
-unless the hardware manufacturer publicly publishes
-support for the feature, or the errata that you're working around.
+Alan
 
-Re: bad timing
-If the BIOS advertises C2 latency > 100usec, then the BIOS
-and the system do not support C2.
-If the BIOS advertises C3 latency > 1000usec, then the BIOS
-and the system do not support C3.
-This isn't just a suggestion, it is the standard method
-that the spec provides the BIOS to tell the OS to NOT USE these states.
-
-Why would a BIOS do this when it appears that the registers
-to enter C2 and C3 are present?  There are lots of possibilities,
-but the most scary is that the feature may appear to work
-but silently corrupts data.  This risk is particularly acute
-for multi-core/SMP systems and C3.  For this state, the CPU
-cache snooping is DISABLED.  So if the hardware has any issues
-at all with DMA traffic or the memory traffic of another CPU
-passing over the bus w/o first re-enabling snooping, then
-the data is exposed to corruption.
-
-I don't have religion against model-specific workarounds,
-they have their place.  But they can be extremely risky, and this
-risk is magnified when the vendor that produced the model is silent.
-
--Len
