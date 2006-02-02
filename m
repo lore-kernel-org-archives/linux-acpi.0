@@ -1,51 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] amd76x_pm: C3 powersaving for AMD K7
-Date: Thu, 2 Feb 2006 11:38:33 -0800
-Message-ID: <20060202193833.GM15939@atomide.com>
-References: <F7DC2337C7631D4386A2DF6E8FB22B3005EC94C3@hdsmsx401.amr.corp.intel.com> <1138845041.5557.20.camel@localhost.localdomain> <1138873815.4449.61.camel@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751173AbWBBTjK@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1138873815.4449.61.camel@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Erik Slagter <erik@slagter.name>
-Cc: linux-acpi@vger.kernel.org, arjan@infradead.org, linux-kernel@vger.kernel.org, Joerg Sommrey <jo@sommrey.de>, Andrew Morton <akpm@osdl.org>, Len <len.brown@intel.com>, Brown@skylla.slagter.name, Alan Cox <alan@lxorguk.ukuu.org.uk>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: some new unaligned access while booting ia64 (HP rx2620)
+Date: Thu, 2 Feb 2006 11:46:04 -0800
+Message-ID: <200602021946.k12Jk446028921@agluck-lia64.sc.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fmr21.intel.com ([143.183.121.13]:54694 "EHLO
+	scsfmr001.sc.intel.com") by vger.kernel.org with ESMTP
+	id S1751178AbWBBTqF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 2 Feb 2006 14:46:05 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-ia64@vger.kernel.org
 
-* Erik Slagter <erik@slagter.name> [060202 01:50]:
-> On Thu, 2006-02-02 at 01:50 +0000, Alan Cox wrote:
-> > On Mer, 2006-02-01 at 20:35 -0500, Brown, Len wrote:
-> > > This endeavor is full of risk, and I would be extremely careful
-> > > about enabling features that the BIOS explicitly disabled --
-> > > unless the hardware manufacturer publicly publishes
-> > > support for the feature, or the errata that you're working around.
+Booting a snapshot of Linus' tree this morning I saw a few (new?)
+kernel unaligned access warnings:
 
-Well the same code could also be used to disable C states on buggy
-hardware. On my Fujitsu Lifebook p2120 C states are enabled, but don't
-work. But we don't have currently anything in place to fix them or
-disable them. And enabling C states on amd76x could be a cmdline option.
- 
-> > Folks had code that supported AMD76x by banging the hardware directly.
-> > On some AMD76x systems it caused corruption. Nobody AFAIK ever figured
-> > out if it was an errata (nothing obvious in the docs/errata list) or a
-> > bug in the code doing the banging on the chip or some other bit of
-> > hardware on the mainboard that needed extra handling.
-> 
-> Looks like it would be beneficial if someone, preferably with some
-> authority ;-), would try to get Tyan and/or AMD to reveal this
-> information.
-> 
-> I have read the docs for the AMD768 chipset numerous times, but I least
-> I (okay okay, I am not the expert here ;-)) cannot find anything that
-> would prevent this from working correctly.
-> 
-> AFAIK Tyan has been more or less cooperative with linux developers in
-> the past?! I'd be more than happy to ask them, but I don't think they
-> will take me very serious
+ACPI: Subsystem revision 20060127
+ACPI: Interpreter enabled
+ACPI: Using IOSAPIC for interrupt routing
+ACPI: PCI Root Bridge [PCI0] (0000:00)
+kernel unaligned access to 0xe00000407ec5a204, ip=0xa0000001003af8c0
+kernel unaligned access to 0xe00000407ec5a23c, ip=0xa0000001003af8c0
+kernel unaligned access to 0xe00000407ec5a28c, ip=0xa0000001003af8c0
+kernel unaligned access to 0xe00000407ec5a1fc, ip=0xa0000001003ae6c1
+kernel unaligned access to 0xe00000407ec5a204, ip=0xa0000001003ae6d1
+ACPI: PCI Interrupt Routing Table [\_SB_.SBA0.PCI0._PRT]
+ACPI: PCI Root Bridge [PCI1] (0000:20)
 
-The C states on amd76x are quite usable. The only problem I had on my
-Tyan s2460 was the some BIOS bug puts the machine into sleep at first
-when they're enabled :) This does not happen on other systems.
+The first three at ip=0xa0000001003af8c0 are in acpi_rs_get_resource_source()
+while zeroing a 64-bit value:
+a0000001003af8c0:       dc 00 00 46 98 11       [MFB] (p06) st8 [r35]=r0
 
-Tony
+Which looks from the assembly code like we are doing a:
+   resource_source->string_ptr = 0;
+but I don't see anything quite like that in the C source (but
+there may be macros & inlining happening).
+
+The other two, ip=0xa0000001003ae6c1 and ip=0xa0000001003ae6d1 are in
+acpi_resource_to_address64() close together in this little
+block:
+
+a0000001003ae6c6:       50 02 58 30 20 00                   ld8 r37=[r22]
+a0000001003ae6cc:       00 00 00 20                         nop.b 0x0;;
+a0000001003ae6d0:       19 00 94 1e 98 11       [MMB]       st8 [r15]=r37
+a0000001003ae6d6:       70 02 40 30 20 00                   ld8 r39=[r16]
+
+These loads are dereferencing the acpi_resource structure that was passed
+as the first argument (offsets 40 and 48 bytes).
+
+-Tony
