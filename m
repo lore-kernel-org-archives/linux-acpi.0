@@ -1,78 +1,75 @@
 From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: some new unaligned access while booting ia64 (HP rx2620)
-Date: Thu, 2 Feb 2006 14:28:30 -0800
-Message-ID: <971FCB6690CD0E4898387DBF7552B90E043A0634@orsmsx403.amr.corp.intel.com>
+Subject: RE: ACPI dsdt.dsl Compilation Parse Error
+Date: Thu, 2 Feb 2006 14:32:12 -0800
+Message-ID: <971FCB6690CD0E4898387DBF7552B90E043A064B@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-ia64-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fmr17.intel.com ([134.134.136.16]:15084 "EHLO
+	orsfmr002.jf.intel.com") by vger.kernel.org with ESMTP
+	id S932362AbWBBWcQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Feb 2006 17:32:16 -0500
 Content-class: urn:content-classes:message
-Sender: linux-ia64-owner@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>, linux-acpi@vger.kernel.org
-Cc: linux-ia64@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>, Andy <winxp_escapee@btinternet.com>
+Cc: linux-acpi@vger.kernel.org
 
-The ACPICA resource manager was mostly rewritten around the 20051021
-time frame, and we may have disturbed some of the aligned access
-support. I'll look at these, it looks like enough info to fix them.
+FYI,
 
-Thanks,
-Bob
+We changed the compiler to support this syntax in version 20050526:
+
+
+Implemented support to allow Type 1 and Type 2 ASL operators to appear
+at the module level (not within a control method.) These operators will
+be executed once at the time the table is loaded. This type of code was
+legal up until the release of ACPI 2.0B (2002) and is now supported by
+the iASL compiler in order to provide backwards compatibility with
+earlier BIOS ASL code.
+
 
 
 > -----Original Message-----
 > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> owner@vger.kernel.org] On Behalf Of Luck, Tony
-> Sent: Thursday, February 02, 2006 11:46 AM
-> To: linux-acpi@vger.kernel.org
-> Cc: linux-ia64@vger.kernel.org
-> Subject: some new unaligned access while booting ia64 (HP rx2620)
+> owner@vger.kernel.org] On Behalf Of Alexey Starikovskiy
+> Sent: Tuesday, January 31, 2006 8:18 AM
+> To: Andy
+> Cc: linux-acpi@vger.kernel.org
+> Subject: Re: ACPI dsdt.dsl Compilation Parse Error
 > 
-> Booting a snapshot of Linus' tree this morning I saw a few (new?)
-> kernel unaligned access warnings:
+> Andy wrote:
+> > I'm trying to debug ACPI on an emachines 2220, D845GVSR motherboard,
+> > SR84510B.44T.009.PO3 system BIOS running Suse 9.3 Pro' Linux.
+> >
+> > When I attempt to recompile the dsdt.dsl file I get a Parse error,
+> >
+> > Suse:~ # iasl -tc dsdt.dsl
+> >
+> > Intel ACPI Component Architecture
+> > ASL Optimizing Compiler / AML Disassembler version 20050309 [Mar 19
+20
+> > 05]
+> > Copyright (C) 2000 - 2005 Intel Corporation
+> > Supports ACPI Specification Revision 3.0
+> >
+> > dsdt.dsl  3531:     If (SS1)
+> > Error    1037 -      ^ syntax error, unexpected PARSEOP_IF
+> >
+> > ASL Input:  dsdt.dsl - 3797 lines, 118111 bytes, 1730 keywords
+> > Compilation complete. 1 Errors, 0 Warnings, 0 Remarks, 0
+Optimizations
+> > Suse:~ #
 > 
-> ACPI: Subsystem revision 20060127
-> ACPI: Interpreter enabled
-> ACPI: Using IOSAPIC for interrupt routing
-> ACPI: PCI Root Bridge [PCI0] (0000:00)
-> kernel unaligned access to 0xe00000407ec5a204, ip=0xa0000001003af8c0
-> kernel unaligned access to 0xe00000407ec5a23c, ip=0xa0000001003af8c0
-> kernel unaligned access to 0xe00000407ec5a28c, ip=0xa0000001003af8c0
-> kernel unaligned access to 0xe00000407ec5a1fc, ip=0xa0000001003ae6c1
-> kernel unaligned access to 0xe00000407ec5a204, ip=0xa0000001003ae6d1
-> ACPI: PCI Interrupt Routing Table [\_SB_.SBA0.PCI0._PRT]
-> ACPI: PCI Root Bridge [PCI1] (0000:20)
+> iasl barks on 'if' statements in global scope. In your case you can
+> safely remove this 'if' (but leave everything inside braces), just
+> because it's evaluated to true (you don't disable S1 sleep in BIOS, do
+> you?).
 > 
-> The first three at ip=0xa0000001003af8c0 are in
-> acpi_rs_get_resource_source()
-> while zeroing a 64-bit value:
-> a0000001003af8c0:       dc 00 00 46 98 11       [MFB] (p06) st8
-[r35]=r0
+> Regards,
+> 	Alex.
 > 
-> Which looks from the assembly code like we are doing a:
->    resource_source->string_ptr = 0;
-> but I don't see anything quite like that in the C source (but
-> there may be macros & inlining happening).
-> 
-> The other two, ip=0xa0000001003ae6c1 and ip=0xa0000001003ae6d1 are in
-> acpi_resource_to_address64() close together in this little
-> block:
-> 
-> a0000001003ae6c6:       50 02 58 30 20 00                   ld8
-r37=[r22]
-> a0000001003ae6cc:       00 00 00 20                         nop.b
-0x0;;
-> a0000001003ae6d0:       19 00 94 1e 98 11       [MMB]       st8
-[r15]=r37
-> a0000001003ae6d6:       70 02 40 30 20 00                   ld8
-r39=[r16]
-> 
-> These loads are dereferencing the acpi_resource structure that was
-passed
-> as the first argument (offsets 40 and 48 bytes).
-> 
-> -Tony
 > -
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi"
 in
