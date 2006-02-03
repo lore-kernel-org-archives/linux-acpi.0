@@ -1,45 +1,55 @@
-From: Joerg Sommrey <jo@sommrey.de>
-Subject: Re: [PATCH] amd76x_pm: C3 powersaving for AMD K7
-Date: Fri, 3 Feb 2006 08:03:30 +0100
-Message-ID: <20060203070329.GA5414@sommrey.de>
-References: <20060202222407.GB896@sommrey.de> <20060202143725.46d218dc.akpm@osdl.org>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: [PATCH] amd76x_pm: C3 powersaving for AMD K7
+Date: Fri, 3 Feb 2006 03:45:59 -0500
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3005EFE84D@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bender.bawue.de ([193.7.176.20]:53171 "EHLO bender.bawue.de")
-	by vger.kernel.org with ESMTP id S1750967AbWBCHEQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Feb 2006 02:04:16 -0500
-Content-Disposition: inline
-In-Reply-To: <20060202143725.46d218dc.akpm@osdl.org>
+Received: from fmr17.intel.com ([134.134.136.16]:51945 "EHLO
+	orsfmr002.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1750893AbWBCIrW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Feb 2006 03:47:22 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tony@atomide.com, len.brown@intel.com, erik@slagter.name, alan@lxorguk.ukuu.org.uk
+To: Joerg Sommrey <jo@sommrey.de>, Andrew Morton <akpm@osdl.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tony@atomide.com, erik@slagter.name, alan@lxorguk.ukuu.org.uk
 
-On Thu, Feb 02, 2006 at 02:37:25PM -0800, Andrew Morton wrote:
-> Joerg Sommrey <jo@sommrey.de> wrote:
-> >
-> > This is a processor idle module for AMD SMP 760MP(X) based systems.
-> >
-> 
-> Len's comments about loss of cache coherency on some machines possibly
-> causing corruption made me drop this patch.   Was I wrong to do so?
-> 
-You maintain -mm, so it's your decision.  I don't think it is a question
-of right or wrong.  If you regard this stuff as too risky, dropping
-it is ok.
+ 
+>... I disagree with Len in two points:
+>- I cannot see a problem witch cache snooping.
+>  The AMD-768 docs clearly
+>  states that trying to snoop the cache while in C3 is a resume event.
 
-However, I disagree with Len in two points:
-- I cannot see a problem witch cache snooping.  The AMD-768 docs clearly
-  states that trying to snoop the cache while in C3 is a resume event.
-- Enabling C2/C3 in the BIOS would be a very bad thing IMHO.  From all
-  the testing with amd76x_pm I found that is very tricky to go into
-  C2/C3 "the right way".  Simply reading the PM register without a
-  suitable logic around leads to all kinds of instabilities.  You need
-  to implement this logic and then enable the hardware.  The BIOS cannot
-  do this.
+Certainly the BIOS writer also had access to that document, plus
+documents we do not see, yet they decided NOT to enable C2/C3.
 
--jo
+>- Enabling C2/C3 in the BIOS would be a very bad thing IMHO.
+>  From all he testing with amd76x_pm I found that is very tricky
+>  to go into C2/C3 "the right way".
 
--- 
--rw-r--r--  1 jo users 63 2006-02-03 07:43 /home/jo/.signature
+Who defines the "right way"?  Is it guaranteed to work on all
+models and all configurations?  Exactly what is the reward
+for the cost we'd be paying and the risk we'd be taking?
+
+>  Simply reading the PM register without a
+>  suitable logic around leads to all kinds of instabilities.  You need
+>  to implement this logic and then enable the hardware.  The BIOS cannot
+>  do this.
+
+How about if we put it this way...
+If the ACPI maintainer were an AMD employee,
+and he accepted a patch like this specific to Intel hardware --
+a patch that rejects whatever validation Intel, the BIOS
+vendor and the board vendor have put into the product --
+I'd call for his expulsion for ineptitude.
+
+If somebody from AMD steps forth and says that hey, their hardware
+is broken if used in the standard way, but that this "logic around"
+is a valid model-specific workaround -- then we have something
+that MAYBE we can work with.  Otherwise, do whatever works for your
+own system, but it would be reckless of us to put stuff like this
+in the upstream kernel and then ask distros to support it.
+
+-Len
