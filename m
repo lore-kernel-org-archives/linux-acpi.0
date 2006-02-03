@@ -1,101 +1,51 @@
-From: Erik Slagter <erik@slagter.name>
+From: Pavel Troller <patrol@sinus.cz>
 Subject: Re: [PATCH] amd76x_pm: C3 powersaving for AMD K7
-Date: Fri, 03 Feb 2006 11:28:50 +0100
-Message-ID: <1138962530.18273.22.camel@localhost.localdomain>
-References: <F7DC2337C7631D4386A2DF6E8FB22B3005EC94C3@hdsmsx401.amr.corp.intel.com>
-	 <1138958502.18273.1.camel@localhost.localdomain>
-	 <20060203093335.GA4403@tangens.sinus.cz>
-	 <1138959572.18273.18.camel@localhost.localdomain>
-	 <20060203101448.GA16010@tangens.sinus.cz>
+Date: Fri, 3 Feb 2006 11:31:27 +0100
+Message-ID: <20060203103127.GA17072@tangens.sinus.cz>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3005EFE84D@hdsmsx401.amr.corp.intel.com> <1138959312.18273.14.camel@localhost.localdomain>
+Reply-To: Pavel Troller <patrol@sinus.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-uJbpn6PBwftcY4wfBkZl"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from erik-slagter.demon.nl ([83.161.107.130]:35794 "EHLO
-	artemis.slagter.name") by vger.kernel.org with ESMTP
-	id S1751136AbWBCK3A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 3 Feb 2006 05:29:00 -0500
-In-Reply-To: <20060203101448.GA16010@tangens.sinus.cz>
+Received: from tangens.sinus.cz ([195.39.17.8]:52121 "EHLO tangens.sinus.cz")
+	by vger.kernel.org with ESMTP id S1751036AbWBCKpi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Feb 2006 05:45:38 -0500
+Received: from tangens.sinus.cz (patrol@localhost [127.0.0.1])
+	by tangens.sinus.cz (8.13.5/8.13.5) with ESMTP id k13Ajakq023587
+	for <linux-acpi@vger.kernel.org>; Fri, 3 Feb 2006 11:45:36 +0100
+Received: (from patrol@localhost)
+	by tangens.sinus.cz (8.13.5/8.13.5/Submit) id k13Ajar8023586
+	for linux-acpi@vger.kernel.org; Fri, 3 Feb 2006 11:45:36 +0100
+Content-Disposition: inline
+In-Reply-To: <1138959312.18273.14.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Troller <patrol@sinus.cz>
-Cc: linux-acpi@vger.kernel.org
+To: Erik Slagter <erik@slagter.name>
 
-
---=-uJbpn6PBwftcY4wfBkZl
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, 2006-02-03 at 11:14 +0100, Pavel Troller wrote:
-> > Still I don't get it. Current linux acpi implementation suggests there
-> > are 8 C states. My laptop says the processor supports 4 C states, my
-> > other laptop says it has 3 C states. Do you mean the table always has 8
-> > C entries, and all of the unusable states are marked "unusable"? In tha=
-t
-> > case I would understand.
-> The problem is that there are more methods to describe C states. C2 and C=
-3
-> are always present in RSDT. The remaining ones should be presented over
-> DSDT. In this case, it is dynamic, so any number of states can be added,
-> or even modified at runtime.
-
-Hmmm.
-
-Thanks.
-
---=-uJbpn6PBwftcY4wfBkZl
-Content-Type: application/x-pkcs7-signature; name=smime.p7s
-Content-Disposition: attachment; filename=smime.p7s
-Content-Transfer-Encoding: base64
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIILzCCAnIw
-ggHboAMCAQICAw/xBDANBgkqhkiG9w0BAQQFADBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhh
-d3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVt
-YWlsIElzc3VpbmcgQ0EwHhcNMDUxMTI5MTc0MTQ0WhcNMDYxMTI5MTc0MTQ0WjBqMRAwDgYDVQQE
-EwdTbGFndGVyMRUwEwYDVQQqEwxFcmlrIE1hcnRpam4xHTAbBgNVBAMTFEVyaWsgTWFydGlqbiBT
-bGFndGVyMSAwHgYJKoZIhvcNAQkBFhFlcmlrQHNsYWd0ZXIubmFtZTCBnzANBgkqhkiG9w0BAQEF
-AAOBjQAwgYkCgYEAtYqGuTSGbsTHZPiKQnNmvpVaxVuBZS6rV5xuKD47J9hz8Vq3Xh4PpuGYNW5L
-vevp80oj6sYAhNuU380UNRqALFaer8MtG6fXpvBgq+MCxVQzMyYxAnopqWlZQIUQNQX9wZmI0gVv
-gY6vwcXRBXkMyrzm41dy4oFwh+PTj3U+xwcCAwEAAaMuMCwwHAYDVR0RBBUwE4ERZXJpa0BzbGFn
-dGVyLm5hbWUwDAYDVR0TAQH/BAIwADANBgkqhkiG9w0BAQQFAAOBgQCf5+l4khcSjUOL8WcuJ7Q1
-eXhSPe0VJEsHSfVJCNFmfFZFiGZNwQRliOuGFxSy+uPb8ZVIZ3cBIen/K0k2hWS6pCiDm3xNdkFU
-mhWsibmyMoc91I0Re2ZWPmL6isxiyr56Qv7vNz2UHSinLJr/QtsvRv/RKFlcO1gm1wsCOPkyITCC
-AnIwggHboAMCAQICAw/xBDANBgkqhkiG9w0BAQQFADBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMc
-VGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZy
-ZWVtYWlsIElzc3VpbmcgQ0EwHhcNMDUxMTI5MTc0MTQ0WhcNMDYxMTI5MTc0MTQ0WjBqMRAwDgYD
-VQQEEwdTbGFndGVyMRUwEwYDVQQqEwxFcmlrIE1hcnRpam4xHTAbBgNVBAMTFEVyaWsgTWFydGlq
-biBTbGFndGVyMSAwHgYJKoZIhvcNAQkBFhFlcmlrQHNsYWd0ZXIubmFtZTCBnzANBgkqhkiG9w0B
-AQEFAAOBjQAwgYkCgYEAtYqGuTSGbsTHZPiKQnNmvpVaxVuBZS6rV5xuKD47J9hz8Vq3Xh4PpuGY
-NW5Lvevp80oj6sYAhNuU380UNRqALFaer8MtG6fXpvBgq+MCxVQzMyYxAnopqWlZQIUQNQX9wZmI
-0gVvgY6vwcXRBXkMyrzm41dy4oFwh+PTj3U+xwcCAwEAAaMuMCwwHAYDVR0RBBUwE4ERZXJpa0Bz
-bGFndGVyLm5hbWUwDAYDVR0TAQH/BAIwADANBgkqhkiG9w0BAQQFAAOBgQCf5+l4khcSjUOL8Wcu
-J7Q1eXhSPe0VJEsHSfVJCNFmfFZFiGZNwQRliOuGFxSy+uPb8ZVIZ3cBIen/K0k2hWS6pCiDm3xN
-dkFUmhWsibmyMoc91I0Re2ZWPmL6isxiyr56Qv7vNz2UHSinLJr/QtsvRv/RKFlcO1gm1wsCOPky
-ITCCAz8wggKooAMCAQICAQ0wDQYJKoZIhvcNAQEFBQAwgdExCzAJBgNVBAYTAlpBMRUwEwYDVQQI
-EwxXZXN0ZXJuIENhcGUxEjAQBgNVBAcTCUNhcGUgVG93bjEaMBgGA1UEChMRVGhhd3RlIENvbnN1
-bHRpbmcxKDAmBgNVBAsTH0NlcnRpZmljYXRpb24gU2VydmljZXMgRGl2aXNpb24xJDAiBgNVBAMT
-G1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBDQTErMCkGCSqGSIb3DQEJARYccGVyc29uYWwtZnJl
-ZW1haWxAdGhhd3RlLmNvbTAeFw0wMzA3MTcwMDAwMDBaFw0xMzA3MTYyMzU5NTlaMGIxCzAJBgNV
-BAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNU
-aGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQTCBnzANBgkqhkiG9w0BAQEFAAOBjQAw
-gYkCgYEAxKY8VXNV+065yplaHmjAdQRwnd/p/6Me7L3N9VvyGna9fww6YfK/Uc4B1OVQCjDXAmNa
-LIkVcI7dyfArhVqqP3FWy688Cwfn8R+RNiQqE88r1fOCdz0Dviv+uxg+B79AgAJk16emu59l0cUq
-VIUPSAR/p7bRPGEEQB5kGXJgt/sCAwEAAaOBlDCBkTASBgNVHRMBAf8ECDAGAQH/AgEAMEMGA1Ud
-HwQ8MDowOKA2oDSGMmh0dHA6Ly9jcmwudGhhd3RlLmNvbS9UaGF3dGVQZXJzb25hbEZyZWVtYWls
-Q0EuY3JsMAsGA1UdDwQEAwIBBjApBgNVHREEIjAgpB4wHDEaMBgGA1UEAxMRUHJpdmF0ZUxhYmVs
-Mi0xMzgwDQYJKoZIhvcNAQEFBQADgYEASIzRUIPqCy7MDaNmrGcPf6+svsIXoUOWlJ1/TCG4+DYf
-qi2fNi/A9BxQIJNwPP2t4WFiw9k6GX6EsZkbAMUaC4J0niVQlGLH2ydxVyWN3amcOY6MIE9lX5Xa
-9/eH1sYITq726jTlEBpbNU1341YheILcIRk13iSx0x1G/11fZU8xggJmMIICYgIBATBpMGIxCzAJ
-BgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQD
-EyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQQIDD/EEMAkGBSsOAwIaBQCgggFT
-MBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA2MDIwMzEwMjg1MFow
-IwYJKoZIhvcNAQkEMRYEFAIGS5K27NhJwYDeezsdSqnM4KnMMHgGCSsGAQQBgjcQBDFrMGkwYjEL
-MAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNV
-BAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBAgMP8QQwegYLKoZIhvcNAQkQ
-Agsxa6BpMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBM
-dGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQQIDD/EEMA0G
-CSqGSIb3DQEBAQUABIGAXFEHir0JIz5lMVpQQxFpSJ9YfdeJ6HL6mVoPJpje+55jeoqcVGsW802b
-eofCILHray5YphSJtykwqbmdpBDMcFNuuhlSjD4sx1A0nz10BRnVPBbJzFj1DxPpo9YEr87ecreD
-dvvb6Do9tzu1hqRZf+6Y8UF0F3fYQBHJmHPGvG8AAAAAAAA=
-
-
---=-uJbpn6PBwftcY4wfBkZl--
+> > Certainly the BIOS writer also had access to that document, plus
+> > documents we do not see, yet they decided NOT to enable C2/C3.
+> 
+> You are probably right, but I remain suspicious that the BIOS writers
+> simply didn't want to go through the trouble of implementing and testing
+> the whole thing, presumable because:
+>...
+> If I remember correctly there was some sort of windows driver supplied
+> with the board to enable power saving. This would suggest that in
+> principle there is no reason it cannot work.
+> 
+EXACTLY. It is the main problem. I'm afraid that BIOS writers are writing
+just the basic part, and they hope that the rest will be done by the OS
+driver (which they eventually also supply, but just for the "majority"
+OS :-((( ).
+  I have EXACTLY the same problem with my Clevo D610SU notebook. It's a SIS
+chipset with Intel P4/2G4. In Linux, it's surface is always warm, the fan
+is starting every moment even in the full idle. 6000 mAh accu can power it
+for 45 mins. The same hardware on windoze with a driver supplied on the CD
+which came with the notebook is cold all the time (ok, in idle), the fans
+start on a heavy load only, and the battery is enough for 2.5 - 3 hours.
+  And yes, in RSDT, L2_LAT is 101 and L3_LAT is 1001, just for being disabled.
+  I even patched Linux to accept them. It is not fatal. C2 is used, C3 isn't
+because of lack of BM capabilities, but there is NO CHANGE in the power
+consumption :-(. I even use dyntick to maximize the power saving. 
+  Does anybody a clue, what to do in this case ? 
+                                          With regards, Pavel Troller
