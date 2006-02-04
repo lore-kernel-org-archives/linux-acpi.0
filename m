@@ -1,33 +1,38 @@
-From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Subject: Re: S3 sleep regression / 2.6.16-rc1+acpi-release-20060113
-Date: Sat, 04 Feb 2006 20:53:55 +0000
-Message-ID: <E1F5UPr-0008FN-00@skye.ra.phy.cam.ac.uk>
-References: <200602041712.30428.ncunningham@cyclades.com>
+From: Dominik Brodowski <linux@dominikbrodowski.net>
+Subject: Re: why no duration[00000000000000000000] for C1 state?
+Date: Sat, 4 Feb 2006 22:32:58 +0100
+Message-ID: <20060204213258.GA21284@isilmar.linta.de>
+References: <20060129100722.1359.0.NOFFLE@localhost.localdomain.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mraos.ra.phy.cam.ac.uk ([131.111.48.8]:59059 "EHLO
-	mraos.ra.phy.cam.ac.uk") by vger.kernel.org with ESMTP
-	id S964827AbWBDUx7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 4 Feb 2006 15:53:59 -0500
-In-Reply-To: Your message of "Sat, 04 Feb 2006 17:12:25 +1000."
-             <200602041712.30428.ncunningham@cyclades.com>
+Received: from isilmar.linta.de ([213.239.214.66]:24804 "EHLO linta.de")
+	by vger.kernel.org with ESMTP id S932577AbWBDVc7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Feb 2006 16:32:59 -0500
+Content-Disposition: inline
+In-Reply-To: <20060129100722.1359.0.NOFFLE@localhost.localdomain.local>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Nigel Cunningham <ncunningham@cyclades.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Miernik <miernik@ffii.org>
+Cc: linux-acpi@vger.kernel.org
 
-> After the first suspend, do you have any processes sucking all
-> available cpu? This sounds like a thread that has been added since
-> 2.6.15, which is being told to enter the freezer, but isn't doing
-> it. They usually end up sucking cpu afterwards.
+Hi,
 
-A good thought.  I just tried it again.  The system woke up from the
-first S3 sleep with nothing chewing CPU.  Just as a check, the second
-S3 sleep still hangs with the repeating exregion-* messages.
+On Sun, Jan 29, 2006 at 11:07:22AM +0100, Miernik wrote:
+> On
+> http://ck.kolivas.org/patches/dyn-ticks/split-out/C-States-3_accounting_of_sleep_times.patch
+> it says: "Also track the actual time spent in C-States (C2 upwards, we
+> can't determine this for C1), not only the number of invocations." Why
+> we cannot have time spent in C1?
 
-I also tried vanilla 2.6.16-rc2 (which includes the latest ACPICA
-releases in it), and it has the same problem.
+Once an interrupt awakes the CPU, the interrupt is handled immediately if
+the CPU was in C1, while on C2 or C3, the idle handler is executed at first,
+allowing to measure the "stop" time.
 
--Sanjoy
+> Would it also be possible to have time
+> spent in C0 and/or total time of the statistics? And/or % of time spent
+> in each state?
 
-`Never underestimate the evil of which men of power are capable.'
-         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
+That can be done in userspace.
+
+	Dominik
