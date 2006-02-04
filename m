@@ -1,64 +1,36 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: Convert PRINT_DEBUG(DB_ERROR/WARNING,...) to ACPI_ERROR/WARNING
-Date: Fri, 3 Feb 2006 13:41:00 -0800
-Message-ID: <971FCB6690CD0E4898387DBF7552B90E043CB638@orsmsx403.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr17.intel.com ([134.134.136.16]:57005 "EHLO
-	orsfmr002.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1945994AbWBCVlJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Feb 2006 16:41:09 -0500
-Content-class: urn:content-classes:message
-Sender: linux-acpi-owner@vger.kernel.org
+From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Subject: S3 sleep regression / 2.6.16-rc1+acpi-release-20060113
+Date: Sat, 04 Feb 2006 05:02:43 +0000
+Message-ID: <E1F5FZL-0001sP-00@skye.ra.phy.cam.ac.uk>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1946307AbWBDFCq@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>, ACPI-ML <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>
 
-BTW,
+The gory details are at
+<http://bugzilla.kernel.org/show_bug.cgi?id=5989>, but the short
+summary:
 
-The implementations of ACPI_ERROR/WARNING/INFO automatically insert a
-newline at the end of the message, along with the ACPI version.
+With 2.6.15, S3 sleep and wake were 98% fine (once in a while waking
+would hang, but I haven't managed to reproduce it).  However, with
+2.6.16-rc1 with the acpi-20060113 patch, the first sleep and wake goes
+fine and the second sleep hangs at the 'Stopping tasks'.
 
-+		ACPI_ERROR((AE_INFO, "Error reading AC Adapter
-state\n"));
+With tons of debugging turned on, the second sleep does not hang, but
+the wakeup hangs.  With 0x1F as the acpi debug_level, the second sleep
+still hangs and produces some output across a serial console.  In the
+second sleep (after the second 'Stopping tasks'), it endlessly repeats
+a short sequence of
 
-So, you will probably want to remove the \n at the end of each of these.
+exregion-0182 ...
+exregion-0287 ...
+exregion-0182 ...
 
-With hundreds of such messages, this actually saves an "interesting"
-amount of memory.
+The machine is a TP 600X with the latest (1.11) BIOS and a fixed DSDT
+so that it can S3 sleep at all.
 
-Also, I created the ACPI_EXCEPTION interface that will decode and
-display the ACPI_STATUS code; you may want to use this instead of
-ACPI_ERROR is some cases.
+-Sanjoy
 
-Bob
-
-
-> -----Original Message-----
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> owner@vger.kernel.org] On Behalf Of Thomas Renninger
-> Sent: Friday, February 03, 2006 1:20 PM
-> To: ACPI-ML; Brown, Len
-> Subject: Convert PRINT_DEBUG(DB_ERROR/WARNING,...) to
-ACPI_ERROR/WARNING
-> 
-> This patch lets all ACPI errors and warnings be printed
-> even ACPI_DEBUG is disabled.
-> 
-> I removed all "proc entry could not be created" messages
-> and returned -ENODEV.
-> 
-> I also removed all "Error removing/adding notify handler" messages.
-> I will provide a second patch (ACPICA) and add a message to
-> the add/remove_handler function itself.
-> 
-> This should give the "non kernel debuggers" a chance to figure out
-> why their xy hardware does not work without the need of recompiling
-> kernels. And should provide as with better bug reports...
-> 
-> This one is on top of Len's latest 2.6.16-rc1/2 push.
-> 
->     Thomas
-
+`Never underestimate the evil of which men of power are capable.'
+         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
