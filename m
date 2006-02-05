@@ -1,208 +1,48 @@
-From: Tim Dijkstra <newsuser@famdijkstra.org>
-Subject: USB not waking up from S3
-Date: Sun, 5 Feb 2006 14:50:36 +0100
-Message-ID: <20060205145036.538e3795@commensaal.drs.p>
+From: Arthur Huillet <arthur.huillet@agoctrl.org>
+Subject: Question about AthlonXP on nforce 2 : C2-C3 states
+Date: Sun, 5 Feb 2006 15:21:20 +0100
+Message-ID: <20060205152120.1688bd7b.arthur.huillet@agoctrl.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary=Sig_7rv79QSfJkzTAo1A1kNgj4_;
- protocol="application/pgp-signature"; micalg=PGP-SHA1
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from baardmijt.demon.nl ([212.238.157.49]:40152 "EHLO
-	baardmijt.demon.nl") by vger.kernel.org with ESMTP id S1750813AbWBENur
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 5 Feb 2006 08:50:47 -0500
-Received: from commensaal.drs.p ([192.168.13.3])
-	by baardmijt.demon.nl with esmtp (Exim 4.50)
-	id 1F5kHi-0001qU-B5
-	for linux-acpi@vger.kernel.org; Sun, 05 Feb 2006 14:50:34 +0100
+Received: from ABesancon-103-1-6-191.w193-252.abo.wanadoo.fr ([193.252.219.191]:60550
+	"EHLO Chani.agoctrl.org") by vger.kernel.org with ESMTP
+	id S1750820AbWBEOVT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 5 Feb 2006 09:21:19 -0500
+Received: from Chani.agoctrl.org (Chani.agoctrl.org [192.168.0.2])
+	by Chani.agoctrl.org (Postfix) with SMTP id B224265F9E
+	for <linux-acpi@vger.kernel.org>; Sun,  5 Feb 2006 15:21:20 +0100 (CET)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
---Sig_7rv79QSfJkzTAo1A1kNgj4_
-Content-Type: multipart/mixed; boundary="MP_DtJjQd/zbofK5LW1c+P5Sjc"
+Hello,
 
---MP_DtJjQd/zbofK5LW1c+P5Sjc
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+I've recently discovered that my system didn't seem to go into C2/C3 states. In fact, they're not
+even recognized :
 
-Hi,
+# cat /proc/acpi/processor/CPU0/info 
+processor id:            0
+acpi id:                 0
+bus mastering control:   no
+power management:        no
+throttling control:      no
+limit interface:         no
 
-I've got S3 working pretty well on my desktop now a days (thank you for
-that), but a problem remains (well actually two).
+# cat /proc/acpi/processor/CPU0/power 
+active state:            C1
+max_cstate:              C8
+bus master activity:     00000000
+states:
+   *C1:                  type[C1] promotion[--] demotion[--] latency[000] usage[00000000]
 
-If I try to go to S3 (echo mem > /sys/power/state), with the uhci_hcd
-loaded everything seems to go fine except that there's an immediate
-resume. I wonder if that has something to do with USB* being ACPI
-wakeup devices.
+Would you happen to know why the Cx states are not seen ? Also, isn't there supposed to be bus
+mastering control available ? 
+My mainboard is a Asus A7N8X rev 1.xx (nforce2).
+The kernels I tried with no success in whatever case are 2.4.29 and 2.6.15.2.
+Unfortunately, google doesn't seem to know much about this problem...
 
-Feb  2 20:09:54 commensaal kernel: ACPI wakeup devices:
-Feb  2 20:09:54 commensaal kernel: PCI0 PCI1 USB0 USB1 USB2 SU20  LAN
-
-
-Anyway, I tried to work around that problem by rmmod'ing uhci_hcd before
-suspend, and modprobing afterwards. This seems to work except that
-everything having to do with USB being really slow (I have a CF-reader
-that takes ages to mount, and then is really slow in transferspeed.)
-
-Now if use pci-config (it's by  Donald Becker, http://www.scyld.com/diag/in=
-dex.html)
-to check the status, it tells me that the device is in state D3.
-
-If I check /sys/..../power/state it contains 0.
-
-Now this program also has a --wake option, so I was adventurous and
-tried it on the usb devices. And that helped! pci-config reports state
-D0 and my CF-reader works at full speed!
-
-IMHO this is a bug, but I don't know if it's in the usb or acpi part. Anywa=
-y,=20
-if you need more info let me know. For now I'll attach my lspci-vvv.
-
-grts Tim
-
---MP_DtJjQd/zbofK5LW1c+P5Sjc
-Content-Type: application/octet-stream; name=lspci-vvv.before
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename=lspci-vvv.before
-
-MDAwMDowMDowMC4wIEhvc3QgYnJpZGdlOiBWSUEgVGVjaG5vbG9naWVzLCBJbmMuIFZUODM3NyBb
-S1Q0MDAvS1Q2MDAgQUdQXSBIb3N0IEJyaWRnZQoJU3Vic3lzdGVtOiBBc3VzdGVrIENvbXB1dGVy
-LCBJbmMuIEE3VjhYIG1vdGhlcmJvYXJkCglDb250cm9sOiBJL08tIE1lbSsgQnVzTWFzdGVyKyBT
-cGVjQ3ljbGUtIE1lbVdJTlYtIFZHQVNub29wLSBQYXJFcnItIFN0ZXBwaW5nLSBTRVJSLSBGYXN0
-QjJCLQoJU3RhdHVzOiBDYXArIDY2TUh6KyBVREYtIEZhc3RCMkItIFBhckVyci0gREVWU0VMPW1l
-ZGl1bSA+VEFib3J0LSA8VEFib3J0LSA8TUFib3J0LSA+U0VSUi0gPFBFUlItCglMYXRlbmN5OiAw
-CglSZWdpb24gMDogTWVtb3J5IGF0IGY4MDAwMDAwICgzMi1iaXQsIHByZWZldGNoYWJsZSkgW3Np
-emU9NjRNXQoJQ2FwYWJpbGl0aWVzOiA8YXZhaWxhYmxlIG9ubHkgdG8gcm9vdD4KCjAwMDA6MDA6
-MDEuMCBQQ0kgYnJpZGdlOiBWSUEgVGVjaG5vbG9naWVzLCBJbmMuIFZUODIzNSBQQ0kgQnJpZGdl
-IChwcm9nLWlmIDAwIFtOb3JtYWwgZGVjb2RlXSkKCUNvbnRyb2w6IEkvTysgTWVtKyBCdXNNYXN0
-ZXIrIFNwZWNDeWNsZS0gTWVtV0lOVi0gVkdBU25vb3AtIFBhckVyci0gU3RlcHBpbmctIFNFUlIt
-IEZhc3RCMkItCglTdGF0dXM6IENhcCsgNjZNSHorIFVERi0gRmFzdEIyQi0gUGFyRXJyLSBERVZT
-RUw9bWVkaXVtID5UQWJvcnQtIDxUQWJvcnQtIDxNQWJvcnQrID5TRVJSLSA8UEVSUi0KCUxhdGVu
-Y3k6IDAKCUJ1czogcHJpbWFyeT0wMCwgc2Vjb25kYXJ5PTAxLCBzdWJvcmRpbmF0ZT0wMSwgc2Vj
-LWxhdGVuY3k9MAoJSS9PIGJlaGluZCBicmlkZ2U6IDAwMDBmMDAwLTAwMDAwZmZmCglNZW1vcnkg
-YmVoaW5kIGJyaWRnZTogZjQwMDAwMDAtZjVkZmZmZmYKCVByZWZldGNoYWJsZSBtZW1vcnkgYmVo
-aW5kIGJyaWRnZTogZjVmMDAwMDAtZjdmZmZmZmYKCUJyaWRnZUN0bDogUGFyaXR5LSBTRVJSLSBO
-b0lTQS0gVkdBKyBNQWJvcnQtID5SZXNldC0gRmFzdEIyQi0KCUNhcGFiaWxpdGllczogPGF2YWls
-YWJsZSBvbmx5IHRvIHJvb3Q+CgowMDAwOjAwOjA3LjAgRmlyZVdpcmUgKElFRUUgMTM5NCk6IFZJ
-QSBUZWNobm9sb2dpZXMsIEluYy4gSUVFRSAxMzk0IEhvc3QgQ29udHJvbGxlciAocmV2IDQ2KSAo
-cHJvZy1pZiAxMCBbT0hDSV0pCglTdWJzeXN0ZW06IFZJQSBUZWNobm9sb2dpZXMsIEluYy4gSUVF
-RSAxMzk0IEhvc3QgQ29udHJvbGxlcgoJQ29udHJvbDogSS9PKyBNZW0rIEJ1c01hc3RlcisgU3Bl
-Y0N5Y2xlLSBNZW1XSU5WKyBWR0FTbm9vcC0gUGFyRXJyLSBTdGVwcGluZysgU0VSUi0gRmFzdEIy
-Qi0KCVN0YXR1czogQ2FwKyA2Nk1Iei0gVURGLSBGYXN0QjJCLSBQYXJFcnItIERFVlNFTD1tZWRp
-dW0gPlRBYm9ydC0gPFRBYm9ydC0gPE1BYm9ydC0gPlNFUlItIDxQRVJSLQoJTGF0ZW5jeTogMzIg
-KDgwMDBucyBtYXgpLCBDYWNoZSBMaW5lIFNpemU6IDB4MDggKDMyIGJ5dGVzKQoJSW50ZXJydXB0
-OiBwaW4gQSByb3V0ZWQgdG8gSVJRIDE5CglSZWdpb24gMDogTWVtb3J5IGF0IGYzODAwMDAwICgz
-Mi1iaXQsIG5vbi1wcmVmZXRjaGFibGUpIFtzaXplPTJLXQoJUmVnaW9uIDE6IEkvTyBwb3J0cyBh
-dCBkODAwIFtzaXplPTEyOF0KCUNhcGFiaWxpdGllczogPGF2YWlsYWJsZSBvbmx5IHRvIHJvb3Q+
-CgowMDAwOjAwOjA4LjAgUkFJRCBidXMgY29udHJvbGxlcjogUHJvbWlzZSBUZWNobm9sb2d5LCBJ
-bmMuIFBEQzIwMzc2IChGYXN0VHJhayAzNzYpIChyZXYgMDIpCglTdWJzeXN0ZW06IEFzdXN0ZWsg
-Q29tcHV0ZXIsIEluYy4gQTdWOFggbW90aGVyYm9hcmQKCUNvbnRyb2w6IEkvTysgTWVtKyBCdXNN
-YXN0ZXIrIFNwZWNDeWNsZS0gTWVtV0lOVisgVkdBU25vb3AtIFBhckVyci0gU3RlcHBpbmctIFNF
-UlItIEZhc3RCMkItCglTdGF0dXM6IENhcCsgNjZNSHorIFVERi0gRmFzdEIyQi0gUGFyRXJyLSBE
-RVZTRUw9bWVkaXVtID5UQWJvcnQtIDxUQWJvcnQtIDxNQWJvcnQtID5TRVJSLSA8UEVSUi0KCUxh
-dGVuY3k6IDk2ICgxMDAwbnMgbWluLCA0NTAwbnMgbWF4KSwgQ2FjaGUgTGluZSBTaXplOiAweDA4
-ICgzMiBieXRlcykKCUludGVycnVwdDogcGluIEEgcm91dGVkIHRvIElSUSAxMAoJUmVnaW9uIDA6
-IEkvTyBwb3J0cyBhdCBkNDAwIFtzaXplPTY0XQoJUmVnaW9uIDE6IEkvTyBwb3J0cyBhdCBkMDAw
-IFtzaXplPTE2XQoJUmVnaW9uIDI6IEkvTyBwb3J0cyBhdCBiODAwIFtzaXplPTEyOF0KCVJlZ2lv
-biAzOiBNZW1vcnkgYXQgZjMwMDAwMDAgKDMyLWJpdCwgbm9uLXByZWZldGNoYWJsZSkgW3NpemU9
-NEtdCglSZWdpb24gNDogTWVtb3J5IGF0IGYyODAwMDAwICgzMi1iaXQsIG5vbi1wcmVmZXRjaGFi
-bGUpIFtzaXplPTEyOEtdCglDYXBhYmlsaXRpZXM6IDxhdmFpbGFibGUgb25seSB0byByb290PgoK
-MDAwMDowMDowOS4wIEV0aGVybmV0IGNvbnRyb2xsZXI6IEJyb2FkY29tIENvcnBvcmF0aW9uIEJD
-TTQ0MDEgMTAwQmFzZS1UIChyZXYgMDEpCglTdWJzeXN0ZW06IEFzdXN0ZWsgQ29tcHV0ZXIsIElu
-Yy4gQTdWOFggbW90aGVyYm9hcmQKCUNvbnRyb2w6IEkvTy0gTWVtKyBCdXNNYXN0ZXIrIFNwZWND
-eWNsZS0gTWVtV0lOVi0gVkdBU25vb3AtIFBhckVyci0gU3RlcHBpbmctIFNFUlItIEZhc3RCMkIt
-CglTdGF0dXM6IENhcCsgNjZNSHotIFVERi0gRmFzdEIyQi0gUGFyRXJyLSBERVZTRUw9ZmFzdCA+
-VEFib3J0LSA8VEFib3J0LSA8TUFib3J0LSA+U0VSUi0gPFBFUlItCglMYXRlbmN5OiAzMgoJSW50
-ZXJydXB0OiBwaW4gQSByb3V0ZWQgdG8gSVJRIDE4CglSZWdpb24gMDogTWVtb3J5IGF0IGYyMDAw
-MDAwICgzMi1iaXQsIG5vbi1wcmVmZXRjaGFibGUpIFtzaXplPThLXQoJRXhwYW5zaW9uIFJPTSBh
-dCBmNWVmMDAwMCBbZGlzYWJsZWRdIFtzaXplPTE2S10KCUNhcGFiaWxpdGllczogPGF2YWlsYWJs
-ZSBvbmx5IHRvIHJvb3Q+CgowMDAwOjAwOjEwLjAgVVNCIENvbnRyb2xsZXI6IFZJQSBUZWNobm9s
-b2dpZXMsIEluYy4gVlQ4Mnh4eHh4IFVIQ0kgVVNCIDEuMSBDb250cm9sbGVyIChyZXYgODApIChw
-cm9nLWlmIDAwIFtVSENJXSkKCVN1YnN5c3RlbTogQXN1c3RlayBDb21wdXRlciwgSW5jLiBWVDYy
-MDIgVVNCMi4wIDQgcG9ydCBjb250cm9sbGVyCglDb250cm9sOiBJL08rIE1lbSsgQnVzTWFzdGVy
-KyBTcGVjQ3ljbGUtIE1lbVdJTlYrIFZHQVNub29wLSBQYXJFcnItIFN0ZXBwaW5nLSBTRVJSLSBG
-YXN0QjJCLQoJU3RhdHVzOiBDYXArIDY2TUh6LSBVREYtIEZhc3RCMkItIFBhckVyci0gREVWU0VM
-PW1lZGl1bSA+VEFib3J0LSA8VEFib3J0LSA8TUFib3J0LSA+U0VSUi0gPFBFUlItCglMYXRlbmN5
-OiAzMiwgQ2FjaGUgTGluZSBTaXplOiAweDA4ICgzMiBieXRlcykKCUludGVycnVwdDogcGluIEEg
-cm91dGVkIHRvIElSUSAxNwoJUmVnaW9uIDQ6IEkvTyBwb3J0cyBhdCBiNDAwIFtzaXplPTMyXQoJ
-Q2FwYWJpbGl0aWVzOiA8YXZhaWxhYmxlIG9ubHkgdG8gcm9vdD4KCjAwMDA6MDA6MTAuMSBVU0Ig
-Q29udHJvbGxlcjogVklBIFRlY2hub2xvZ2llcywgSW5jLiBWVDgyeHh4eHggVUhDSSBVU0IgMS4x
-IENvbnRyb2xsZXIgKHJldiA4MCkgKHByb2ctaWYgMDAgW1VIQ0ldKQoJU3Vic3lzdGVtOiBBc3Vz
-dGVrIENvbXB1dGVyLCBJbmMuIFZUNjIwMiBVU0IyLjAgNCBwb3J0IGNvbnRyb2xsZXIKCUNvbnRy
-b2w6IEkvTysgTWVtKyBCdXNNYXN0ZXIrIFNwZWNDeWNsZS0gTWVtV0lOVisgVkdBU25vb3AtIFBh
-ckVyci0gU3RlcHBpbmctIFNFUlItIEZhc3RCMkItCglTdGF0dXM6IENhcCsgNjZNSHotIFVERi0g
-RmFzdEIyQi0gUGFyRXJyLSBERVZTRUw9bWVkaXVtID5UQWJvcnQtIDxUQWJvcnQtIDxNQWJvcnQt
-ID5TRVJSLSA8UEVSUi0KCUxhdGVuY3k6IDMyLCBDYWNoZSBMaW5lIFNpemU6IDB4MDggKDMyIGJ5
-dGVzKQoJSW50ZXJydXB0OiBwaW4gQiByb3V0ZWQgdG8gSVJRIDE3CglSZWdpb24gNDogSS9PIHBv
-cnRzIGF0IGIwMDAgW3NpemU9MzJdCglDYXBhYmlsaXRpZXM6IDxhdmFpbGFibGUgb25seSB0byBy
-b290PgoKMDAwMDowMDoxMC4yIFVTQiBDb250cm9sbGVyOiBWSUEgVGVjaG5vbG9naWVzLCBJbmMu
-IFZUODJ4eHh4eCBVSENJIFVTQiAxLjEgQ29udHJvbGxlciAocmV2IDgwKSAocHJvZy1pZiAwMCBb
-VUhDSV0pCglTdWJzeXN0ZW06IEFzdXN0ZWsgQ29tcHV0ZXIsIEluYy4gVlQ2MjAyIFVTQjIuMCA0
-IHBvcnQgY29udHJvbGxlcgoJQ29udHJvbDogSS9PKyBNZW0rIEJ1c01hc3RlcisgU3BlY0N5Y2xl
-LSBNZW1XSU5WKyBWR0FTbm9vcC0gUGFyRXJyLSBTdGVwcGluZy0gU0VSUi0gRmFzdEIyQi0KCVN0
-YXR1czogQ2FwKyA2Nk1Iei0gVURGLSBGYXN0QjJCLSBQYXJFcnItIERFVlNFTD1tZWRpdW0gPlRB
-Ym9ydC0gPFRBYm9ydC0gPE1BYm9ydC0gPlNFUlItIDxQRVJSLQoJTGF0ZW5jeTogMzIsIENhY2hl
-IExpbmUgU2l6ZTogMHgwOCAoMzIgYnl0ZXMpCglJbnRlcnJ1cHQ6IHBpbiBDIHJvdXRlZCB0byBJ
-UlEgMTcKCVJlZ2lvbiA0OiBJL08gcG9ydHMgYXQgYTgwMCBbc2l6ZT0zMl0KCUNhcGFiaWxpdGll
-czogPGF2YWlsYWJsZSBvbmx5IHRvIHJvb3Q+CgowMDAwOjAwOjEwLjMgVVNCIENvbnRyb2xsZXI6
-IFZJQSBUZWNobm9sb2dpZXMsIEluYy4gVVNCIDIuMCAocmV2IDgyKSAocHJvZy1pZiAyMCBbRUhD
-SV0pCglTdWJzeXN0ZW06IEFzdXN0ZWsgQ29tcHV0ZXIsIEluYy4gQTdWOFggbW90aGVyYm9hcmQK
-CUNvbnRyb2w6IEkvTysgTWVtKyBCdXNNYXN0ZXIrIFNwZWNDeWNsZS0gTWVtV0lOVisgVkdBU25v
-b3AtIFBhckVyci0gU3RlcHBpbmctIFNFUlItIEZhc3RCMkItCglTdGF0dXM6IENhcCsgNjZNSHot
-IFVERi0gRmFzdEIyQi0gUGFyRXJyLSBERVZTRUw9bWVkaXVtID5UQWJvcnQtIDxUQWJvcnQtIDxN
-QWJvcnQtID5TRVJSLSA8UEVSUi0KCUxhdGVuY3k6IDMyLCBDYWNoZSBMaW5lIFNpemU6IDB4MTAg
-KDY0IGJ5dGVzKQoJSW50ZXJydXB0OiBwaW4gRCByb3V0ZWQgdG8gSVJRIDE3CglSZWdpb24gMDog
-TWVtb3J5IGF0IGYxODAwMDAwICgzMi1iaXQsIG5vbi1wcmVmZXRjaGFibGUpIFtzaXplPTI1Nl0K
-CUNhcGFiaWxpdGllczogPGF2YWlsYWJsZSBvbmx5IHRvIHJvb3Q+CgowMDAwOjAwOjExLjAgSVNB
-IGJyaWRnZTogVklBIFRlY2hub2xvZ2llcywgSW5jLiBWVDgyMzUgSVNBIEJyaWRnZQoJU3Vic3lz
-dGVtOiBBc3VzdGVrIENvbXB1dGVyLCBJbmMuIEE3VjhYIG1vdGhlcmJvYXJkCglDb250cm9sOiBJ
-L08rIE1lbSsgQnVzTWFzdGVyKyBTcGVjQ3ljbGUtIE1lbVdJTlYtIFZHQVNub29wLSBQYXJFcnIt
-IFN0ZXBwaW5nKyBTRVJSLSBGYXN0QjJCLQoJU3RhdHVzOiBDYXArIDY2TUh6LSBVREYtIEZhc3RC
-MkItIFBhckVyci0gREVWU0VMPW1lZGl1bSA+VEFib3J0LSA8VEFib3J0LSA8TUFib3J0LSA+U0VS
-Ui0gPFBFUlItCglMYXRlbmN5OiAwCglDYXBhYmlsaXRpZXM6IDxhdmFpbGFibGUgb25seSB0byBy
-b290PgoKMDAwMDowMDoxMS4xIElERSBpbnRlcmZhY2U6IFZJQSBUZWNobm9sb2dpZXMsIEluYy4g
-VlQ4MkM1ODZBL0IvVlQ4MkM2ODYvQS9CL1ZUODIzeC9BL0MgUElQQyBCdXMgTWFzdGVyIElERSAo
-cmV2IDA2KSAocHJvZy1pZiA4YSBbTWFzdGVyIFNlY1AgUHJpUF0pCglTdWJzeXN0ZW06IEFzdXN0
-ZWsgQ29tcHV0ZXIsIEluYy4gQTdWOFggbW90aGVyYm9hcmQKCUNvbnRyb2w6IEkvTysgTWVtKyBC
-dXNNYXN0ZXIrIFNwZWNDeWNsZS0gTWVtV0lOVi0gVkdBU25vb3AtIFBhckVyci0gU3RlcHBpbmct
-IFNFUlItIEZhc3RCMkItCglTdGF0dXM6IENhcCsgNjZNSHotIFVERi0gRmFzdEIyQisgUGFyRXJy
-LSBERVZTRUw9bWVkaXVtID5UQWJvcnQtIDxUQWJvcnQtIDxNQWJvcnQtID5TRVJSLSA8UEVSUi0K
-CUxhdGVuY3k6IDMyCglJbnRlcnJ1cHQ6IHBpbiBBIHJvdXRlZCB0byBJUlEgMjU1CglSZWdpb24g
-NDogSS9PIHBvcnRzIGF0IGE0MDAgW3NpemU9MTZdCglDYXBhYmlsaXRpZXM6IDxhdmFpbGFibGUg
-b25seSB0byByb290PgoKMDAwMDowMDoxMS41IE11bHRpbWVkaWEgYXVkaW8gY29udHJvbGxlcjog
-VklBIFRlY2hub2xvZ2llcywgSW5jLiBWVDgyMzMvQS84MjM1LzgyMzcgQUM5NyBBdWRpbyBDb250
-cm9sbGVyIChyZXYgNTApCglTdWJzeXN0ZW06IEFzdXN0ZWsgQ29tcHV0ZXIsIEluYy4gQTdWOFgg
-TW90aGVyYm9hcmQgKFJlYWx0ZWsgQUxDNjUwIGNvZGVjKQoJQ29udHJvbDogSS9PKyBNZW0tIEJ1
-c01hc3Rlci0gU3BlY0N5Y2xlLSBNZW1XSU5WLSBWR0FTbm9vcC0gUGFyRXJyLSBTdGVwcGluZy0g
-U0VSUi0gRmFzdEIyQi0KCVN0YXR1czogQ2FwKyA2Nk1Iei0gVURGLSBGYXN0QjJCLSBQYXJFcnIt
-IERFVlNFTD1tZWRpdW0gPlRBYm9ydC0gPFRBYm9ydC0gPE1BYm9ydC0gPlNFUlItIDxQRVJSLQoJ
-SW50ZXJydXB0OiBwaW4gQyByb3V0ZWQgdG8gSVJRIDE2CglSZWdpb24gMDogSS9PIHBvcnRzIGF0
-IGUwMDAgW3NpemU9MjU2XQoJQ2FwYWJpbGl0aWVzOiA8YXZhaWxhYmxlIG9ubHkgdG8gcm9vdD4K
-CjAwMDA6MDE6MDAuMCBWR0EgY29tcGF0aWJsZSBjb250cm9sbGVyOiBuVmlkaWEgQ29ycG9yYXRp
-b24gTlY1TTY0IFtSSVZBIFROVDIgTW9kZWwgNjQvTW9kZWwgNjQgUHJvXSAocmV2IDE1KSAocHJv
-Zy1pZiAwMCBbVkdBXSkKCUNvbnRyb2w6IEkvTysgTWVtKyBCdXNNYXN0ZXIrIFNwZWNDeWNsZS0g
-TWVtV0lOVi0gVkdBU25vb3AtIFBhckVyci0gU3RlcHBpbmctIFNFUlItIEZhc3RCMkItCglTdGF0
-dXM6IENhcCsgNjZNSHorIFVERi0gRmFzdEIyQisgUGFyRXJyLSBERVZTRUw9bWVkaXVtID5UQWJv
-cnQtIDxUQWJvcnQtIDxNQWJvcnQtID5TRVJSLSA8UEVSUi0KCUxhdGVuY3k6IDY0ICgxMjUwbnMg
-bWluLCAyNTBucyBtYXgpCglJbnRlcnJ1cHQ6IHBpbiBBIHJvdXRlZCB0byBJUlEgMTEKCVJlZ2lv
-biAwOiBNZW1vcnkgYXQgZjQwMDAwMDAgKDMyLWJpdCwgbm9uLXByZWZldGNoYWJsZSkgW3NpemU9
-MTZNXQoJUmVnaW9uIDE6IE1lbW9yeSBhdCBmNjAwMDAwMCAoMzItYml0LCBwcmVmZXRjaGFibGUp
-IFtzaXplPTMyTV0KCUV4cGFuc2lvbiBST00gYXQgZjVmZjAwMDAgW2Rpc2FibGVkXSBbc2l6ZT02
-NEtdCglDYXBhYmlsaXRpZXM6IDxhdmFpbGFibGUgb25seSB0byByb290PgoK
-
---MP_DtJjQd/zbofK5LW1c+P5Sjc--
-
---Sig_7rv79QSfJkzTAo1A1kNgj4_
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFD5gKylR+JLH/tVJsRAqS5AJ0SD5eB6ZOu721dCwfsisgrEQe11gCfWawT
-NYfgbUJiUWt6qxOCBr/mnGM=
-=c0PH
------END PGP SIGNATURE-----
-
---Sig_7rv79QSfJkzTAo1A1kNgj4_--
+-- 
+Greetings, 
+A.H.
