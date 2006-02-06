@@ -1,41 +1,80 @@
-From: Arthur Huillet <arthur.huillet@agoctrl.org>
-Subject: Re: Question about AthlonXP on nforce 2 : C2-C3 states
-Date: Sun, 5 Feb 2006 16:55:49 +0100
-Message-ID: <20060205165549.0bffebc8.arthur.huillet@agoctrl.org>
-References: <20060205152120.1688bd7b.arthur.huillet@agoctrl.org>
-	<20060205143742.GA20815@tangens.sinus.cz>
-	<20060205160750.4a1c1b3e.arthur.huillet@agoctrl.org>
-	<20060205154245.GA31112@tangens.sinus.cz>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [patch] acpiphp: handle dock stations
+Date: Mon, 6 Feb 2006 14:15:50 +0100
+Message-ID: <20060206131550.GA1538@elf.ucw.cz>
+References: <20060201233005.GA4999@nerpa>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [84.4.96.230] ([84.4.96.230]:21709 "EHLO Chani.agoctrl.org")
-	by vger.kernel.org with ESMTP id S1751782AbWBEPzs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 5 Feb 2006 10:55:48 -0500
-In-Reply-To: <20060205154245.GA31112@tangens.sinus.cz>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:59098 "EHLO amd.ucw.cz")
+	by vger.kernel.org with ESMTP id S932080AbWBFNQH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Feb 2006 08:16:07 -0500
+Content-Disposition: inline
+In-Reply-To: <20060201233005.GA4999@nerpa>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Troller <patrol@sinus.cz>
-Cc: linux-acpi@vger.kernel.org
+To: Kristen Carlson Accardi <kristenc@cs.pdx.edu>
+Cc: pcihpd-discuss@lists.sourceforge.net, greg@kroah.com, len.brown@intel.com, linux-kernel@vger.kernel.org, muneda.takahiro@jp.fujitsu.com, linux-acpi@vger.kernel.org
 
+Hi!
 
-> On Athlon boards, I'm successfully using athcool
-> ( http://members.jcom.home.ne.jp/jacobi/linux/files/athcool-0.3.11.tar.gz ),
-> it substantially decreases CPU temperature even with C1 due to enabling
-> "HALT Command detection" bit on the NB. 
+> From: kristen.c.accardi@intel.com
+> 
+> This patch will add hot add/remove of docking stations to acpiphp.  Because
+> some docking stations will have a _DCK method that is not associated with
+> a dock bridge, we use the _EJD method to determine which devices are 
+> dependent on the dock device, then try to find which of these dependent
+> devices are pci devices.  We register a separate event handler with acpi
+> to handle dock notifications, but if we have discovered any pci devices
+> dependent on the dock station, we notify the acpiphp driver to rescan
+> the correct bus.  If no pci devices are found, but there is still a _DCK method
+> present, the driver will stay loaded to deal with the dock notifications.
 
-Yes, I've already done that and it does work very well. 
+It still registers my docking bridge as -1:
 
-> HOWEVER, as many ACPI people already said several times, IT MAY BE RISKY AND
-> you CAN severely DAMAGE YOUR DATA when experimenting with this.
+acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5
+acpiphp: Slot [4294967295] registered
+acpiphp_ibm: ibm_find_acpi_device:  Failed to get device
+information<3>acpiphp_ibm: ibm_find_acpi_device:  Failed to get device
+information<3>acpiphp_ibm: ibm_find_acpi_device:  Failed to get device
+information<3>acpiphp_ibm: ibm_acpiphp_init: acpi_walk_namespace
+failed
+radeonfb: Retrieved PLL infos from BIOS
 
-I guess so, otherwise the BIOS wouldn't probably be blocking those features. 
-Thanks for the help, I won't test C2-C3 because the temperature results in C1 are already
-excellent.
+...which is still better than not registering it at all :-).
 
-Now to take a look at cpufreq-nforce2 and have fun with it :) 
-Have a nice day.
+This one actually does not oops at insertion into dock. Good!
+
+It detects insertion into dock:
+
+Feb  6 14:13:00 amd kernel: acpi_bus-0073 [62] bus_get_device        :
+No context for object [c1d2c408]
+Feb  6 14:13:01 amd kernel: PCI: Bus 3, cardbus bridge: 0000:02:00.0
+Feb  6 14:13:01 amd kernel:   IO window: 00004000-000040ff
+Feb  6 14:13:01 amd kernel:   IO window: 00004400-000044ff
+Feb  6 14:13:01 amd kernel:   PREFETCH window: e8000000-e9ffffff
+Feb  6 14:13:01 amd kernel:   MEM window: c2000000-c3ffffff
+Feb  6 14:13:01 amd kernel: PCI: Bus 7, cardbus bridge: 0000:02:00.1
+Feb  6 14:13:01 amd kernel:   IO window: 00004800-000048ff
+Feb  6 14:13:01 amd kernel:   IO window: 00004c00-00004cff
+Feb  6 14:13:01 amd kernel:   PREFETCH window: ea000000-ebffffff
+Feb  6 14:13:01 amd kernel:   MEM window: c4000000-c5ffffff
+
+When I press eject button, I get
+
+Feb  6 14:13:27 amd kernel: acpi_bus-0073 [72] bus_get_device        :
+No context for object [c1d2c408]
+
+and dock fan stops (but machine is not unlocked):
+
+root@amd:/sys/bus/pci/slots/4294967295# cat *
+0
+0000:02:03
+cat: attention: Invalid argument
+0
+0
+
+...but I can't remove machine.
+								Pavel
 -- 
-Greetings, 
-A.H.
+Web maintainer for suspend.sf.net (www.sf.net/projects/suspend) wanted...
