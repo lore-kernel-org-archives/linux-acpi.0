@@ -1,30 +1,36 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [Pcihpd-discuss] Re: [PATCH 0/7] acpiphp - slots management fix
-Date: Tue, 7 Feb 2006 12:13:04 -0800
-Message-ID: <20060207201304.GA18648@kroah.com>
-References: <87acdrp5y9.wl%muneda.takahiro@jp.fujitsu.com> <20060127041425.GA20453@kroah.com> <87slr7k8qi.wl%muneda.takahiro@jp.fujitsu.com> <20060129034502.GA7168@kroah.com> <1138731618.18768.5.camel@whizzy>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH] ACPI: print wakeup device list on same line as label
+Date: Tue, 7 Feb 2006 16:18:01 -0700
+Message-ID: <200602071618.01163.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from dsl093-040-174.pdx1.dsl.speakeasy.net ([66.93.40.174]:47812
-	"EHLO aria.kroah.org") by vger.kernel.org with ESMTP
-	id S965039AbWBGUMv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 7 Feb 2006 15:12:51 -0500
+Received: from atlrel7.hp.com ([156.153.255.213]:53984 "EHLO atlrel7.hp.com")
+	by vger.kernel.org with ESMTP id S1030246AbWBGXSB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Feb 2006 18:18:01 -0500
 Content-Disposition: inline
-In-Reply-To: <1138731618.18768.5.camel@whizzy>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kristen Accardi <kristen.c.accardi@intel.com>
-Cc: MUNEDA Takahiro <muneda.takahiro@jp.fujitsu.com>, pavel@ucw.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org, len.brown@intel.com
+To: Len Brown <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>
 
-On Tue, Jan 31, 2006 at 10:20:18AM -0800, Kristen Accardi wrote:
-> Just reviewing them, they seem like they will be fine to me.
+Print the ACPI wakeup device list on the same line as the label
+to make "dmesg | grep ACPI" output more useful.
 
-This conflicts with your other patch you sent me.  I'll keep yours, and
-drop this one, and let you merge his in with yours.
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Is that ok?
-
-thanks,
-
-greg k-h
+Index: work-mm4/drivers/acpi/sleep/wakeup.c
+===================================================================
+--- work-mm4.orig/drivers/acpi/sleep/wakeup.c	2006-02-01 16:24:45.000000000 -0700
++++ work-mm4/drivers/acpi/sleep/wakeup.c	2006-02-07 15:01:40.000000000 -0700
+@@ -155,7 +155,7 @@
+ 
+ 	if (acpi_disabled)
+ 		return 0;
+-	printk("ACPI wakeup devices: \n");
++	printk(KERN_INFO PREFIX "wakeup devices: ");
+ 
+ 	spin_lock(&acpi_device_lock);
+ 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
