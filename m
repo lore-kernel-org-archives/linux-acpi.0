@@ -1,48 +1,30 @@
-From: "Randy.Dunlap" <rdunlap@xenotime.net>
-Subject: Re: [PATCH] acpi: make message more descriptive/meaningful
-Date: Tue, 7 Feb 2006 10:18:01 -0800 (PST)
-Message-ID: <Pine.LNX.4.58.0602071017430.12589@shark.he.net>
-References: <20060206192910.66cb9c86.rdunlap@xenotime.net>
- <20060207181809.GA3692@linux.intel.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [Pcihpd-discuss] Re: [PATCH 0/7] acpiphp - slots management fix
+Date: Tue, 7 Feb 2006 12:13:04 -0800
+Message-ID: <20060207201304.GA18648@kroah.com>
+References: <87acdrp5y9.wl%muneda.takahiro@jp.fujitsu.com> <20060127041425.GA20453@kroah.com> <87slr7k8qi.wl%muneda.takahiro@jp.fujitsu.com> <20060129034502.GA7168@kroah.com> <1138731618.18768.5.camel@whizzy>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from xenotime.net ([66.160.160.81]:40641 "HELO xenotime.net")
-	by vger.kernel.org with SMTP id S1750792AbWBGSSD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Feb 2006 13:18:03 -0500
-Received: from shark.he.net ([66.160.160.2]) by xenotime.net for <linux-acpi@vger.kernel.org>; Tue, 7 Feb 2006 10:18:01 -0800
-In-Reply-To: <20060207181809.GA3692@linux.intel.com>
+Received: from dsl093-040-174.pdx1.dsl.speakeasy.net ([66.93.40.174]:47812
+	"EHLO aria.kroah.org") by vger.kernel.org with ESMTP
+	id S965039AbWBGUMv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 7 Feb 2006 15:12:51 -0500
+Content-Disposition: inline
+In-Reply-To: <1138731618.18768.5.camel@whizzy>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Patrick Mochel <mochel@linux.intel.com>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>, linux-acpi@vger.kernel.org, len.brown@intel.com
+To: Kristen Accardi <kristen.c.accardi@intel.com>
+Cc: MUNEDA Takahiro <muneda.takahiro@jp.fujitsu.com>, pavel@ucw.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org, len.brown@intel.com
 
-On Tue, 7 Feb 2006, Patrick Mochel wrote:
+On Tue, Jan 31, 2006 at 10:20:18AM -0800, Kristen Accardi wrote:
+> Just reviewing them, they seem like they will be fine to me.
 
-> On Mon, Feb 06, 2006 at 07:29:10PM -0800, Randy.Dunlap wrote:
->
-> > Identify which device is not power-manageable to make
-> > the message more useful.
->
->
-> > --- linux-2615-rc6g4.orig/drivers/acpi/bus.c
-> > +++ linux-2615-rc6g4/drivers/acpi/bus.c
-> > @@ -198,7 +198,8 @@ int acpi_bus_set_power(acpi_handle handl
-> >
-> >  	if (!device->flags.power_manageable) {
-> >  		ACPI_DEBUG_PRINT((ACPI_DB_WARN,
-> > -				  "Device is not power manageable\n"));
-> > +				  "Device '%s' is not power manageable\n",
-> > +					device->kobj.name));
->
->
-> This is good information, but does it have to come in such a scary message?
-> It appears that something is wrong with the device, when in fact, it just
-> doesn't support an optional capability.
->
-> Could we demote the message to e.g. ACPI_DB_INFO?
+This conflicts with your other patch you sent me.  I'll keep yours, and
+drop this one, and let you merge his in with yours.
 
-Sure, fine with me.
+Is that ok?
 
--- 
-~Randy
+thanks,
+
+greg k-h
