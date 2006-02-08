@@ -1,108 +1,39 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [linux-pm] Re: [PATCH, RFC] [1/3] Generic in-kernel AC status
-Date: Wed, 8 Feb 2006 17:49:33 +0000
-Message-ID: <20060208174933.GA30719@srcf.ucam.org>
-References: <20060208125753.GA25562@srcf.ucam.org> <20060208130422.GB25659@srcf.ucam.org> <20060208165803.GA15239@kroah.com> <20060208170857.GA29818@srcf.ucam.org> <20060208171649.GA21373@kroah.com>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: ACPI not working since 2.6.14
+Date: Wed, 8 Feb 2006 15:56:44 -0500
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3006002649@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:232 "EHLO
-	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
-	id S1030397AbWBHRtk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 8 Feb 2006 12:49:40 -0500
-Content-Disposition: inline
-In-Reply-To: <20060208171649.GA21373@kroah.com>
+Received: from fmr18.intel.com ([134.134.136.17]:34539 "EHLO
+	orsfmr003.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1751120AbWBHU4x convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Feb 2006 15:56:53 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: linux-pm@lists.osdl.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Ps <Ps_Mail@freenet.de>, linux-acpi@vger.kernel.org
 
-On Wed, Feb 08, 2006 at 09:16:49AM -0800, Greg KH wrote:
+> >NFORCE-CK804
 
-> kerneldoc will not work with this.  It needs to be a one line, short,
-> description.  Put the full description below the function paramaters, it
-> can be as many lines as you want there.
+Please file a bug here:
 
-Ok, how's this one?
+http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
+pick Component "Config-interrupts"
 
-Signed-Off-By: Matthew Garrett <mjg59@srcf.ucam.org>
+For the last known working kernel please
+1. attach complete output from dmesg -s64000
+2. paste copy of /proc/interrupts
+3. attach output from lspci -vv
 
-diff --git a/include/linux/pm.h b/include/linux/pm.h
-index 5be87ba..59ece0f 100644
---- a/include/linux/pm.h
-+++ b/include/linux/pm.h
-@@ -129,6 +129,8 @@ struct pm_ops {
- 
- extern void pm_set_ops(struct pm_ops *);
- extern struct pm_ops *pm_ops;
-+extern void pm_set_ac_status(int (*ac_status_function)(void));
-+extern int pm_get_ac_status(void);
- extern int pm_suspend(suspend_state_t state);
- 
- 
-diff --git a/kernel/power/main.c b/kernel/power/main.c
-index 46110d5..31745fb 100644
---- a/kernel/power/main.c
-+++ b/kernel/power/main.c
-@@ -15,7 +15,7 @@
- #include <linux/errno.h>
- #include <linux/init.h>
- #include <linux/pm.h>
--
-+#include <linux/module.h>
- 
- #include "power.h"
- 
-@@ -25,6 +25,7 @@
- DECLARE_MUTEX(pm_sem);
- 
- struct pm_ops *pm_ops = NULL;
-+int (*get_ac_status)(void);
- suspend_disk_method_t pm_disk_mode = PM_DISK_SHUTDOWN;
- 
- /**
-@@ -39,6 +40,41 @@ void pm_set_ops(struct pm_ops * ops)
- 	up(&pm_sem);
- }
- 
-+/**
-+ *	pm_set_ac_status - Set the ac status callback.
-+ *	@ops:	Pointer to function
-+ *
-+ *      Provide a callback that returns true if the system is currently on
-+ *      AC power. This should be called by power management subsystems.
-+ */
-+
-+void pm_set_ac_status(int (*ac_status_function)(void))
-+{
-+	down(&pm_sem);
-+	get_ac_status = ac_status_function;
-+	up(&pm_sem);
-+}
-+EXPORT_SYMBOL_GPL(pm_set_ac_status);
-+
-+/**
-+ *	pm_get_ac_status - return true if the system is on AC
-+ *
-+ *      Returns true if the system has a registered callback for determining 
-+ *      AC state and is currently on AC power, false otherwise.
-+ */
-+
-+int pm_get_ac_status(void)
-+{
-+	int status=0;
-+
-+	down (&pm_sem);
-+	if (get_ac_status)
-+		status = get_ac_status();
-+	up (&pm_sem);
-+
-+	return status;
-+}
-+EXPORT_SYMBOL_GPL(pm_get_ac_status);
- 
- /**
-  *	suspend_prepare - Do prep work before entering low-power state.
+also, please attach your acpidump output there.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+For latest (failing) kernel, please capture the "debug" serial console,
+or if you can get far enough the full dmesg and /proc/interrutps
+
+Please try booting the latest kernel with "noapic"
+or "acpi=noirq" and report what you see with dmesg and /proc/interrupts
+
+thanks,
+-Len
