@@ -1,159 +1,140 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: [PATCH] Make ibm_acpi use generic backlight infrastructure
-Date: Wed, 8 Feb 2006 16:10:56 +0000
-Message-ID: <20060208161056.GA28922@srcf.ucam.org>
+Subject: [PATCH] Make asus_acpi use generic backlight infrastructure
+Date: Wed, 8 Feb 2006 16:13:03 +0000
+Message-ID: <20060208161303.GA28963@srcf.ucam.org>
+References: <20060208161056.GA28922@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:27790 "EHLO
+Received: from cavan.codon.org.uk ([217.147.92.49]:31118 "EHLO
 	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
-	id S1161076AbWBHQLD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 8 Feb 2006 11:11:03 -0500
+	id S1161096AbWBHQNL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 8 Feb 2006 11:13:11 -0500
 Content-Disposition: inline
+In-Reply-To: <20060208161056.GA28922@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: borislav@users.sf.net
+To: sziwan@hell.org.pl
 Cc: linux-acpi@vger.kernel.org
 
-The included patch allows brightness to be controlled through 
-/sys/class/backlight on IBM ACPI machines.
+The included patch makes it possible to alter the brightness through 
+/sys/class/backlight on machines which support asus_acpi.
 
 Signed-Off-By: Matthew Garrett <mjg59@srcf.ucam.org>
 
-diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
-index 5cc0903..a18cad4 100644
---- a/drivers/acpi/ibm_acpi.c
-+++ b/drivers/acpi/ibm_acpi.c
-@@ -78,6 +78,8 @@
+diff --git a/drivers/acpi/asus_acpi.c b/drivers/acpi/asus_acpi.c
+index 7e9913f..3d320fd 100644
+--- a/drivers/acpi/asus_acpi.c
++++ b/drivers/acpi/asus_acpi.c
+@@ -38,6 +38,8 @@
  #include <linux/init.h>
  #include <linux/types.h>
  #include <linux/proc_fs.h>
 +#include <linux/backlight.h>
 +#include <linux/err.h>
- #include <asm/uaccess.h>
- 
  #include <acpi/acpi_drivers.h>
-@@ -243,6 +245,8 @@ struct ibm_struct {
+ #include <acpi/acpi_bus.h>
+ #include <asm/uaccess.h>
+@@ -82,6 +84,8 @@ MODULE_PARM_DESC(uid, "UID for entries i
+ module_param(asus_gid, uint, 0);
+ MODULE_PARM_DESC(gid, "GID for entries in /proc/acpi/asus.\n");
  
- static struct proc_dir_entry *proc_dir = NULL;
- 
-+static struct backlight_device *ibm_backlight_device;
++static struct backlight_device *asus_backlight_device;
 +
- #define onoff(status,bit) ((status) & (1 << (bit)) ? "on" : "off")
- #define enabled(status,bit) ((status) & (1 << (bit)) ? "enabled" : "disabled")
- #define strlencmp(a,b) (strncmp((a), (b), strlen(b)))
-@@ -1317,15 +1321,25 @@ static int ecdump_write(char *buf)
+ /* For each model, all features implemented, 
+  * those marked with R are relative to HOTK, A for absolute */
+ struct model_data {
+@@ -689,7 +693,7 @@ proc_write_lcd(struct file *file, const 
+ 	return count;
+ }
  
- static int brightness_offset = 0x31;
- 
-+static int brightness_read_value(struct backlight_device *bd)
-+{
-+	u8 level;
-+	if (!acpi_ec_read(brightness_offset, &level))
-+		return -EIO;
-+
-+	level &= 0x7;
-+	return level;
-+}
-+
- static int brightness_read(char *p)
+-static int read_brightness(void)
++static int read_brightness(struct backlight_device *bd)
  {
- 	int len = 0;
--	u8 level;
-+	int level = brightness_read_value(NULL);
+ 	int value;
  
--	if (!acpi_ec_read(brightness_offset, &level)) {
-+	if (level < 0) {
- 		len += sprintf(p + len, "level:\t\tunreadable\n");
- 	} else {
--		len += sprintf(p + len, "level:\t\t%d\n", level & 0x7);
-+		len += sprintf(p + len, "level:\t\t%d\n", level);
- 		len += sprintf(p + len, "commands:\tup, down\n");
- 		len += sprintf(p + len, "commands:\tlevel <level>"
- 			       " (<level> is 0-7)\n");
-@@ -1337,9 +1351,32 @@ static int brightness_read(char *p)
- #define BRIGHTNESS_UP	4
- #define BRIGHTNESS_DOWN	5
- 
-+static int brightness_write_value(struct backlight_device *bd, int value)
-+{
-+	int current_value = brightness_read_value(bd);
-+	int inc;
-+	int cmos_cmd; 
-+
-+	value &= 7;
-+
-+	cmos_cmd = value > current_value ? BRIGHTNESS_UP : BRIGHTNESS_DOWN;
-+
-+	inc = value > current_value ? 1 : -1;
-+
-+	while (value != current_value) {
-+		current_value += inc;
-+
-+		if (!cmos_eval(cmos_cmd))
-+			return -EIO;
-+		if (!acpi_ec_write(brightness_offset, current_value))
-+			return -EIO;
-+	}
-+
-+	return 0;
-+}
-+
- static int brightness_write(char *buf)
+@@ -711,10 +715,13 @@ static int read_brightness(void)
+ /*
+  * Change the brightness level
+  */
+-static void set_brightness(int value)
++static void set_brightness(struct backlight_device *bd, int value)
  {
--	int cmos_cmd, inc, i;
- 	u8 level;
- 	int new_level;
- 	char *cmd;
-@@ -1359,14 +1396,8 @@ static int brightness_write(char *buf)
- 		} else
- 			return -EINVAL;
+ 	acpi_status status = 0;
  
--		cmos_cmd = new_level > level ? BRIGHTNESS_UP : BRIGHTNESS_DOWN;
--		inc = new_level > level ? 1 : -1;
--		for (i = level; i != new_level; i += inc) {
--			if (!cmos_eval(cmos_cmd))
--				return -EIO;
--			if (!acpi_ec_write(brightness_offset, i + inc))
--				return -EIO;
--		}
-+		brightness_write_value(NULL, new_level);
-+		
++	value = (0 < value) ? ((15 < value) ? 15 : value) : 0;
++	/* 0 <= value <= 15 */
++
+ 	/* SPLV laptop */
+ 	if (hotk->methods->brightness_set) {
+ 		if (!write_acpi_int(hotk->handle, hotk->methods->brightness_set,
+@@ -725,7 +732,7 @@ static void set_brightness(int value)
  	}
  
- 	return 0;
-@@ -1890,10 +1921,20 @@ IBM_PARAM(brightness);
- IBM_PARAM(volume);
- IBM_PARAM(fan);
+ 	/* No SPLV method if we are here, act as appropriate */
+-	value -= read_brightness();
++	value -= read_brightness(NULL);
+ 	while (value != 0) {
+ 		status = acpi_evaluate_object(NULL, (value > 0) ?
+ 					      hotk->methods->brightness_up :
+@@ -743,7 +750,7 @@ static int
+ proc_read_brn(char *page, char **start, off_t off, int count, int *eof,
+ 	      void *data)
+ {
+-	return sprintf(page, "%d\n", read_brightness());
++	return sprintf(page, "%d\n", read_brightness(NULL));
+ }
  
-+
-+static struct backlight_properties ibmbl_data = {
-+        .owner          = THIS_MODULE,
-+        .get_brightness = brightness_read_value,
-+        .set_brightness = brightness_write_value,
-+        .max_brightness = 7,
+ static int
+@@ -754,9 +761,7 @@ proc_write_brn(struct file *file, const 
+ 
+ 	count = parse_arg(buffer, count, &value);
+ 	if (count > 0) {
+-		value = (0 < value) ? ((15 < value) ? 15 : value) : 0;
+-		/* 0 <= value <= 15 */
+-		set_brightness(value);
++		set_brightness(NULL,value);
+ 	} else if (count < 0) {
+ 		printk(KERN_WARNING "Asus ACPI: Error reading user input\n");
+ 	}
+@@ -1205,6 +1210,13 @@ static int asus_hotk_remove(struct acpi_
+ 	return 0;
+ }
+ 
++static struct backlight_properties asusbl_data = {
++	.owner          = THIS_MODULE,
++	.get_brightness = read_brightness,
++	.set_brightness = set_brightness,
++	.max_brightness = 15,
 +};
 +
- static void acpi_ibm_exit(void)
+ static int __init asus_acpi_init(void)
  {
- 	int i;
- 
-+	backlight_device_unregister(ibm_backlight_device);
-+
- 	for (i = ARRAY_SIZE(ibms) - 1; i >= 0; i--)
- 		ibm_exit(&ibms[i]);
- 
-@@ -1959,6 +2000,11 @@ static int __init acpi_ibm_init(void)
- 		}
+ 	int result;
+@@ -1230,11 +1242,24 @@ static int __init asus_acpi_init(void)
+ 		return -ENODEV;
  	}
  
-+	ibm_backlight_device = backlight_device_register ("ibm_bl", NULL,
-+							  &ibmbl_data);
-+        if (IS_ERR (ibm_backlight_device))
-+		acpi_ibm_exit();
++	asus_backlight_device = backlight_device_register ("asus_bl", NULL,
++							   &asusbl_data);
++
++	if (IS_ERR (asus_backlight_device)) {
++		printk("Unable to register backlight\n");
++		acpi_bus_unregister_driver(&asus_hotk_driver);
++		remove_proc_entry(PROC_ASUS, acpi_root_dir);
++		
++		acpi_os_free(asus_info);
++		return -ENODEV;
++	}
 +
  	return 0;
  }
+ 
+ static void __exit asus_acpi_exit(void)
+ {
++	backlight_device_unregister(asus_backlight_device);
+ 	acpi_bus_unregister_driver(&asus_hotk_driver);
+ 	remove_proc_entry(PROC_ASUS, acpi_root_dir);
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
