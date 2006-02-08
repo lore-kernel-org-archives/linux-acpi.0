@@ -1,39 +1,40 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: ACPI not working since 2.6.14
-Date: Wed, 8 Feb 2006 15:56:44 -0500
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3006002649@hdsmsx401.amr.corp.intel.com>
+From: Philipp Matthias Hahn <pmhahn@titan.lahn.de>
+Subject: Re: [PATCH, RFC] [1/3] Generic in-kernel AC status
+Date: Wed, 8 Feb 2006 23:25:32 +0100
+Message-ID: <20060208222532.GA4824@titan.lahn.de>
+References: <20060208125753.GA25562@srcf.ucam.org> <20060208130422.GB25659@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr18.intel.com ([134.134.136.17]:34539 "EHLO
-	orsfmr003.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1751120AbWBHU4x convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Feb 2006 15:56:53 -0500
-Content-class: urn:content-classes:message
+Received: from ip-svs-1.Informatik.Uni-Oldenburg.DE ([134.106.12.126]:40405
+	"EHLO aechz.svs.informatik.uni-oldenburg.de") by vger.kernel.org
+	with ESMTP id S965190AbWBHW0A (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Feb 2006 17:26:00 -0500
+Content-Disposition: inline
+In-Reply-To: <20060208130422.GB25659@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ps <Ps_Mail@freenet.de>, linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-pm@lists.osdl.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-> >NFORCE-CK804
+Hi!
 
-Please file a bug here:
+On Wed, Feb 08, 2006 at 01:04:22PM +0000, Matthew Garrett wrote:
+> diff --git a/include/linux/pm.h b/include/linux/pm.h
+...
+> +void pm_set_ac_status(int (*ac_status_function)(void))
+> +{
+> +	down(&pm_sem);
+> +	get_ac_status = ac_status_function;
+> +	up(&pm_sem);
+> +}
 
-http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
-pick Component "Config-interrupts"
+Why do you need a semaphore/mutex, when you only do one assignment,
+which is atomic by itself?
 
-For the last known working kernel please
-1. attach complete output from dmesg -s64000
-2. paste copy of /proc/interrupts
-3. attach output from lspci -vv
-
-also, please attach your acpidump output there.
-
-For latest (failing) kernel, please capture the "debug" serial console,
-or if you can get far enough the full dmesg and /proc/interrutps
-
-Please try booting the latest kernel with "noapic"
-or "acpi=noirq" and report what you see with dmesg and /proc/interrupts
-
-thanks,
--Len
+BYtE
+Philipp
+-- 
+  / /  (_)__  __ ____  __ Philipp Hahn
+ / /__/ / _ \/ // /\ \/ /
+/____/_/_//_/\_,_/ /_/\_\ pmhahn@titan.lahn.de
