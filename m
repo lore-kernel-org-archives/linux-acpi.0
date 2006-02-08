@@ -1,26 +1,44 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [Lhms-devel] [RFC:PATCH(000/003)] Memory add to onlined node. (ver. 2)
-Date: Thu, 9 Feb 2006 09:04:43 -0800
-Message-ID: <B8E391BBE9FE384DAA4C5C003888BE6F05AA16C3@scsmsx401.amr.corp.intel.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] amd76x_pm: C3 powersaving for AMD K7
+Date: Wed, 8 Feb 2006 20:10:51 +0000
+Message-ID: <20060208201050.GA2353@ucw.cz>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3005EFE84D@hdsmsx401.amr.corp.intel.com> <fad2c7740602030759i65e45a6as29964b8e90aeecd7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Content-class: urn:content-classes:message
-Sender: linux-ia64-owner@vger.kernel.org
-To: Yasunori Goto <y-goto@jp.fujitsu.com>, Andi Kleen <ak@suse.de>, "Brown, Len" <len.brown@intel.com>, "Tolentino, Matthew E" <matthew.e.tolentino@intel.com>, "S, Naveen B" <naveen.b.s@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: ACPI-ML <linux-acpi@vger.kernel.org>, Linux Kernel ML <linux-kernel@vger.kernel.org>, linux-ia64@vger.kernel.org, x86-64 Discuss <discuss@x86-64.org>, Linux Hotplug Memory Support <lhms-devel@lists.sourceforge.net>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:37643 "EHLO
+	spitz.ucw.cz") by vger.kernel.org with ESMTP id S965239AbWBIRG0
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Feb 2006 12:06:26 -0500
+Content-Disposition: inline
+In-Reply-To: <fad2c7740602030759i65e45a6as29964b8e90aeecd7@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Juhani Rautiainen <juhani.rautiainen@gmail.com>
+Cc: "Brown, Len" <len.brown@intel.com>, Joerg Sommrey <jo@sommrey.de>, Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tony@atomide.com, erik@slagter.name, alan@lxorguk.ukuu.org.uk
 
-> - if the node is already online.-  If the node is offline, 
-> (It means new node is comming!)  then the memory will belongs
-> to node 0 yet.
+On Fri 03-02-06 17:59:38, Juhani Rautiainen wrote:
+> On 2/3/06, Brown, Len <len.brown@intel.com> wrote:
+> >
+> >
+> > Certainly the BIOS writer also had access to that document, plus
+> > documents we do not see, yet they decided NOT to enable C2/C3.
+> 
+> This comes from AMD-768 reveision guide. In product errata there there
+> is errata number
+> 24 which seems to suggest that you can't enable POS, C2 or C3 states
+> in single processor
+> environments. This at the end of errata:
+> ----- snip ----
+> This workaround will not work for awaking from the C2/C3 state, since
+> the operating
+> system has full control.
 
-What is the long term plan to address this?  Can you make sure
-that the new node is always brought online before you get to
-this code?  Or will you have to bring the node online in the
-middle of the memory hot-add code?
+As far as I read this: they suggest to disable it in BIOS because
+workaround is needed during wakeup and Windows do not have that
+workaround. IOW the patch is safe, as long as workaround is
+included. Good.
+								Pavel
 
-Presumably there is a similar issue with hot add cpu.
-
--Tony
+-- 
+Thanks, Sharp!
