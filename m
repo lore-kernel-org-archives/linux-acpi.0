@@ -1,67 +1,33 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH] HPET: handle multiple ACPI EXTENDED_IRQ resources
-Date: Tue, 7 Feb 2006 16:50:27 -0700
-Message-ID: <200602071650.27379.bjorn.helgaas@hp.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] Add generic backlight support to toshiba_acpi driver
+Date: Wed, 8 Feb 2006 10:07:57 +0100
+Message-ID: <20060208090757.GB11895@elf.ucw.cz>
+References: <20060207133456.GA2452@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel7.hp.com ([156.153.255.213]:61371 "EHLO atlrel7.hp.com")
-	by vger.kernel.org with ESMTP id S1030294AbWBGXu3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Feb 2006 18:50:29 -0500
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:18588 "EHLO amd.ucw.cz")
+	by vger.kernel.org with ESMTP id S1161075AbWBHJKE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Feb 2006 04:10:04 -0500
 Content-Disposition: inline
+In-Reply-To: <20060207133456.GA2452@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bob Picco <robert.picco@hp.com>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Adam Belay <ambx1@neo.rr.com>, Andrew Morton <akpm@osdl.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: john@neggie.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-When the _CRS for a single HPET contains multiple EXTENDED_IRQ
-resources, we overwrote hdp->hd_nirqs every time we found one.
+Hi!
 
-So the driver worked when all the IRQs were described in a
-single EXTENDED_IRQ resource, but failed when multiple resources
-were used.  (Strictly speaking, I think the latter is actually
-more correct, but both styles have been used.)
+> The included patch adds support for interacting with the toshiba_acpi 
+> backlight control through the generic backlight interface 
+> (/sys/class/backlight).
+> 
+> ACPI folk: this gives us the benefit of a consistent interface to LCD 
+> brightness. Is it worth me converting the other drivers over?
 
-Someday we should remove all the ACPI stuff from hpet.c and use
-PNP driver registration instead.  But currently PNP_MAX_IRQ is 2,
-and HPETs often have more IRQs.  Hint, hint, Adam :-)
+Not sure if I'm ACPI folk but yes, consistent interface would be nice.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+								Pavel
 
-Index: work-mm4/drivers/char/hpet.c
-===================================================================
---- work-mm4.orig/drivers/char/hpet.c	2006-02-07 16:18:46.000000000 -0700
-+++ work-mm4/drivers/char/hpet.c	2006-02-07 16:29:00.000000000 -0700
-@@ -953,22 +953,18 @@
- 		}
- 	} else if (res->type == ACPI_RESOURCE_TYPE_EXTENDED_IRQ) {
- 		struct acpi_resource_extended_irq *irqp;
--		int i;
-+		int i, irq;
- 
- 		irqp = &res->data.extended_irq;
- 
--		if (irqp->interrupt_count > 0) {
--			hdp->hd_nirqs = irqp->interrupt_count;
-+		for (i = 0; i < irqp->interrupt_count; i++) {
-+			irq = acpi_register_gsi(irqp->interrupts[i],
-+				      irqp->triggering, irqp->polarity);
-+			if (irq < 0)
-+				return AE_ERROR;
- 
--			for (i = 0; i < hdp->hd_nirqs; i++) {
--				int rc =
--				    acpi_register_gsi(irqp->interrupts[i],
--						      irqp->triggering,
--						      irqp->polarity);
--				if (rc < 0)
--					return AE_ERROR;
--				hdp->hd_irq[i] = rc;
--			}
-+			hdp->hd_irq[hdp->hd_nirqs] = irq;
-+			hdp->hd_nirqs++;
- 		}
- 	}
- 
+-- 
+Web maintainer for suspend.sf.net (www.sf.net/projects/suspend) wanted...
