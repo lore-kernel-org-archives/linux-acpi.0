@@ -1,32 +1,55 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [linux-pm] Re: [PATCH, RFC] [1/3] Generic in-kernel AC status
-Date: Wed, 8 Feb 2006 21:46:03 -0800
-Message-ID: <20060209054603.GB18324@kroah.com>
-References: <20060208125753.GA25562@srcf.ucam.org> <20060208130422.GB25659@srcf.ucam.org> <20060208165803.GA15239@kroah.com> <20060208170857.GA29818@srcf.ucam.org> <20060208171649.GA21373@kroah.com> <20060208174933.GA30719@srcf.ucam.org>
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: [RFC:PATCH(000/003)] Memory add to onlined node. (ver. 2)
+Date: Thu, 09 Feb 2006 16:05:46 +0900
+Message-ID: <20060209153539.6CEE.Y-GOTO@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kroah.org ([69.55.234.183]:6317 "EHLO perch.kroah.org")
-	by vger.kernel.org with ESMTP id S1422802AbWBIFqj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Feb 2006 00:46:39 -0500
-Content-Disposition: inline
-In-Reply-To: <20060208174933.GA30719@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Andi Kleen <ak@suse.de>, "Luck, Tony" <tony.luck@intel.com>, "Brown, Len" <len.brown@intel.com>, "Tolentino, Matthew E" <matthew.e.tolentino@intel.com>, naveen.b.s@intel.com, Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: ACPI-ML <linux-acpi@vger.kernel.org>, Linux Kernel ML <linux-kernel@vger.kernel.org>, linux-ia64@vger.kernel.org, x86-64 Discuss <discuss@x86-64.org>, Linux Hotplug Memory Support <lhms-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-pm@lists.osdl.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Feb 08, 2006 at 05:49:33PM +0000, Matthew Garrett wrote:
-> +/**
-> + *	pm_set_ac_status - Set the ac status callback.
-> + *	@ops:	Pointer to function
-> + *
-> + *      Provide a callback that returns true if the system is currently on
-> + *      AC power. This should be called by power management subsystems.
-> + */
+Hello.
 
-Mix of tabs and spaces here.  Just use 1 space after the "*" character.
+I updated patches for memory hot-add.
+Current code allow addition to just node 0.
+By this patch, the new memory is able to be added to appropriate node,
+- if the node is already online.-  If the node is offline, 
+(It means new node is comming!)  then the memory will belongs
+to node 0 yet.
 
-thanks,
+If new memory belongs to new node, new pgdat must be initialized.
+But, it still need more many steps. So, I would like to propose
+this small steps for a while.
 
-greg k-h
+This patch is use acpi's DSDT to find node id from physicall address.
+So, this patch is just for intel/AMD architecture.
+
+I tested this patch on ia64 and x86-64 box with custermized  SRAT & DSDT
+node emulation.
+
+This patch is for 2.6.16-rc2-mm1. 
+
+Please comment.
+
+Change log from ver.1 is
+  - The parameter of size of add_memory() was changed from (_MAX - _MIN + 1)
+    to _LEN by Bjorn Helgaas-san.
+    To compare physical memory and DSDT at
+    acpi_memory_match_paddr_to_memdevice(), using MAX-MIN +1 was changed 
+    to using length.
+  - change from using acpi_map_pxm_to_node() to pxm_to_node().
+    acpi_map_pxm_to_node() is useful to decide new node's id
+    when new node can be added, but it is not appropriate for 
+    current code.
+  - Remove extra \n from ACPI_TRACE_FUNCTION().
+  - Update for 2.6.16-rc2-mm1.
+  - Tested on x86_64 box with SRAT & DSDT emulation.
+
+Please comment.
+-- 
+Yasunori Goto 
+
+
