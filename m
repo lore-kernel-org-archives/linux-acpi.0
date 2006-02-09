@@ -1,165 +1,60 @@
-From: Johannes Becker <jonnybecker@web.de>
-Subject: Newbie: ACPI dsdt.dsl Compilation Error
-Date: Thu, 09 Feb 2006 13:21:16 +0100
-Message-ID: <43EB33BC.7010706@web.de>
+From: "Tolentino, Matthew E" <matthew.e.tolentino@intel.com>
+Subject: RE: [Lhms-devel] Re: [RFC:PATCH(003/003)] Memory add to onlined node. (ver. 2) (For x86_64)
+Date: Thu, 9 Feb 2006 06:27:04 -0800
+Message-ID: <D36CE1FCEFD3524B81CA12C6FE5BCAB00C59CC5D@fmsmsx406.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------060508030701080401050606"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp07.web.de ([217.72.192.225]:23738 "EHLO smtp07.web.de")
-	by vger.kernel.org with ESMTP id S1422882AbWBIMVY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Feb 2006 07:21:24 -0500
-Received: from [84.153.55.138] (helo=[192.168.178.21])
-	by smtp07.web.de with asmtp (TLSv1:AES256-SHA:256)
-	(WEB.DE 4.105 #340)
-	id 1F7Ana-0000Cf-00
-	for linux-acpi@vger.kernel.org; Thu, 09 Feb 2006 13:21:22 +0100
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932514AbWBIO1X@vger.kernel.org>
+Content-class: urn:content-classes:message
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yasunori Goto <y-goto@jp.fujitsu.com>, Andi Kleen <ak@suse.de>, keith <kmannth@us.ibm.com>
+Cc: "Brown, Len" <len.brown@intel.com>, "S, Naveen B" <naveen.b.s@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Linux Kernel ML <linux-kernel@vger.kernel.org>, ACPI-ML <linux-acpi@vger.kernel.org>, x86-64 Discuss <discuss@x86-64.org>, Linux Hotplug Memory Support <lhms-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060508030701080401050606
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Yasunori Goto <> wrote:
+> BTW, I have 2 question about x86_64's memory hot-add.
+> 
+> Q1)
+>>  int add_memory(u64 start, u64 size)
+>>  {
+>> -	struct pglist_data *pgdat = NODE_DATA(0);
+>> -	struct zone *zone = pgdat->node_zones + MAX_NR_ZONES-2;
+> 
+> Current code adds memory to ZONE_NORMAL like this.
+> But, ZONE_DMA32 is available on 2.6.15. So, I'm afraid there are
+> 2 types trouble.
+> 
+>   a) When new memory is added to < 4GB, this should be added to
+>      Zone_DMA32.
+>      Are there any real machine which allow to add memory under
+>      4GB?
 
-Hi,
+The Intel machine that supports this will not hot-add memory in
+the physical address space below 4GB, even if you only have 1GB
+before hot-adding.  There are too many restrictions and gotchas
+involved in the lower 4GB.  Keith has the only other machine that
+I'm aware of and I would guess that machine has similar restrictions.
+Keith?  
 
-Hi,
+>   b) If machine boots up with under 4GB memory, and new memory
+>      is added to over 4GB, then kernel might panic due to Zone
+>      Normal's initialization is imcomplete.
 
-OS: openSUSE 10.0
+I do recall a problem like that a while back where the free lists
+weren't initialized properly before hot-adding.  It was fixed
+when I submitted the hot-add patches, but I haven't looked in the 
+past two weeks or so. 
 
-I've got a Medion MD40100 Notebook. It has a Intel Mobile Pentium 4 2,8
-GHz.
+> Q2)
+>   Are there any real machine which can add memory with NUMA feature?
+>   Or will be there?
+>   In my patch, I assume that DSDT is defined well for NUMA by
+>   firmware. (Container device, Memory device...).
 
-I think my ACPI isn't running right. The FAN is running constantly at a
-high level, can't set trip_points, etc..
-Searching for the error I found this in ACPI-Watch
+I don't currently know of one that is available, but I would 
+venture a guess that we would use ACPI to notify the OS, via
+the DSDT or perhaps an SSDT.   
 
-Code:
-acpi watch 0.75
-(C) 2002 Oliver Diedrich
-
-System information
-
-System:   (null) (null) ((null)); serial #: (null)
-BIOS:   (null) (null) ((null))
-Board:   (null) (null) ((null)); serial #: (null)
-CPU:   (null) Mobile Intel(R) Pentium(R) 4     CPU 2.80GHz, 2793 MHz
-RAM:   896 MByte
-Kernel:   Linux 2.6.13-15.7-default for i686 (build #1 Tue Nov 29
-14:32:29 UTC 2005)
-ACPI:   release 20050408
-
-ACPI related syslog messages:
-
-...
-
-/proc/acpi/fan
-
-/proc/acpi/thermal_zone/THM0/polling_frequency
-( 2/09/06  2:07:40)   polling frequency:   2 seconds
-
-/proc/acpi/thermal_zone/THM0/cooling_mode
-( 2/09/06  2:07:40)   <setting not supported>
-( 2/09/06  2:07:40)   cooling mode:   critical
-
-/proc/acpi/thermal_zone/THM0/trip_points
-( 2/09/06  2:07:40)   critical (S5):   90 C
-
-/proc/acpi/thermal_zone/THM0/temperature
-( 2/09/06  2:07:40)   temperature:   44 C
-...
-
-/proc/acpi/thermal_zone/THM0/state
-( 2/09/06  2:07:40)   state:   ok
-
-...
-
-/proc/acpi/event
-( 2/09/06  2:07:40)   ### read error ###
-
-/proc/acpi/fadt
-( 2/09/06  2:07:40)   ### read error ###
-
-/proc/acpi/dsdt
-( 2/09/06  2:07:40)   ### read error ###
-
-/proc/acpi/info
-( 2/09/06  2:07:40)   version:   20050408
-...
-
-So the dsdt can't be read (because it's probably broken. Following the
-instructions from a page
-(http://lists.suse.com/archive/suse-laptop/2005-Jan/0273.html) I did the
-following in the command line:
-
-1) cp /proc/acpi/dsdt /tmp
-2) cd /tmp
-3) iasl -d dsdt
-4) iasl -sa dsdt.dsl
-
-
-Now I get 6 errors on point 4):
-
-linux:/tmp # iasl -sa dsdt.dsl
-
-Intel ACPI Component Architecture
-ASL Optimizing Compiler version 20050902 [Sep  9 2005]
-Copyright (C) 2000 - 2005 Intel Corporation
-Supports ACPI Specification Revision 3.0
-
-dsdt.dsl   193:     Field (PORT, WordAcc, NoLock, Preserve)
-Error    1025 -               ^ Access width is greater than region size
-
-dsdt.dsl   195:         P80H,   8
-Error    1026 -            ^ Access width of Field Unit extends beyond
-region limit
-
-dsdt.dsl  1010:                     Field (EVGR, DWordAcc, NoLock, Preserve)
-Error    1025 -                               ^ Access width is greater
-than region size
-
-dsdt.dsl  1012:                         EVID,   16
-Error    1026 -                            ^ Access width of Field Unit
-extends beyond region limit
-
-dsdt.dsl  3304:                             While (Local1)
-Error    1048 -                                         ^ Method local
-variable is not initialized (Local1)
-
-dsdt.dsl  4952:     Method (_WAK, 1, NotSerialized)
-Warning  2078 -                ^ Reserved method must return a value (_WAK)
-
-dsdt.dsl  4977:                 Store (\TRAW (), Local0)
-Error    1058 -                            ^ Called method returns no value
-
-ASL Input:  dsdt.dsl - 4988 lines, 173086 bytes, 2311 keywords
-Compilation complete. 6 Errors, 1 Warnings, 0 Remarks, 492 Optimizations
-
-Since I'm a newbie and these errors don't tell me nothing:
-Can anybody help me correct these errors?
-
-Cheers
-Jonny
-
---------------060508030701080401050606
-Content-Type: text/x-vcard; charset=utf-8;
- name="jonnybecker.vcf"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="jonnybecker.vcf"
-
-begin:vcard
-fn:Johannes Becker
-n:Becker;Johannes
-adr;quoted-printable:;;Theresienstr.27;M=C3=BCnchen;Bayern;80333;Deutschland
-email;internet:jonnybecker@web.de
-tel;home:+498950005858
-tel;cell:+491774566435
-x-mozilla-html:FALSE
-version:2.1
-end:vcard
-
-
---------------060508030701080401050606--
+matt
