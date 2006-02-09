@@ -1,110 +1,111 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] Add generic backlight support to toshiba_acpi driver
-Date: Thu, 9 Feb 2006 16:54:07 +0000
-Message-ID: <20060209165407.GA20754@srcf.ucam.org>
-References: <20060207133456.GA2452@srcf.ucam.org> <20060208090757.GB11895@elf.ucw.cz> <Pine.LNX.4.61.0602091747070.30108@yvahk01.tjqt.qr>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: some new unaligned access while booting ia64 (HP rx2620)
+Date: Thu, 9 Feb 2006 08:56:12 -0800
+Message-ID: <971FCB6690CD0E4898387DBF7552B90E044B8C69@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:2768 "EHLO
-	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
-	id S932359AbWBIQy3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Feb 2006 11:54:29 -0500
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.61.0602091747070.30108@yvahk01.tjqt.qr>
+Received: from fmr18.intel.com ([134.134.136.17]:40425 "EHLO
+	orsfmr003.jf.intel.com") by vger.kernel.org with ESMTP
+	id S932303AbWBIQ42 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Feb 2006 11:56:28 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Cc: Pavel Machek <pavel@ucw.cz>, john@neggie.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>, linux-acpi@vger.kernel.org
+Cc: linux-ia64@vger.kernel.org
 
-On Thu, Feb 09, 2006 at 05:47:49PM +0100, Jan Engelhardt wrote:
+I'm wondering if the resource structures are being inadvertently packed.
 
-> Note to self: Don't forget to change 2.6-sony-acpi?.diff from -mm to use 
-> this /sys/class/backlight instead of /proc/acpi/sony/brightness when it's 
-> ready.
+You might try removing this code from actypes.h:
 
-Ah, you're maintaining that now. Here you go (Stelian took a look and 
-seemed happy with it - the /sys/class/backlight stuff is in mainstream)
+/*
+ * If possible, pack the following structures to byte alignment
+ */
+#ifndef ACPI_MISALIGNMENT_NOT_SUPPORTED
+#pragma pack(1)
+#endif
 
-diff --git a/drivers/acpi/sony_acpi.c b/drivers/acpi/sony_acpi.c
-index 7636bba..6505b24 100644
---- a/drivers/acpi/sony_acpi.c
-+++ b/drivers/acpi/sony_acpi.c
-@@ -27,6 +27,8 @@
- #include <linux/moduleparam.h>
- #include <linux/init.h>
- #include <linux/types.h>
-+#include <linux/backlight.h>
-+#include <linux/err.h>
- #include <acpi/acpi_drivers.h>
- #include <acpi/acpi_bus.h>
- #include <asm/uaccess.h>
-@@ -62,6 +64,8 @@ static struct acpi_driver sony_acpi_driv
- static acpi_handle sony_acpi_handle;
- static struct proc_dir_entry *sony_acpi_dir;
- 
-+static struct backlight_device *sony_backlight_device;
-+
- static struct sony_acpi_value {
- 	char			*name;	 /* name of the entry */
- 	struct proc_dir_entry 	*proc;	 /* /proc entry */
-@@ -258,6 +262,31 @@ static acpi_status sony_walk_callback(ac
- 	return AE_OK;
- }
- 
-+static int sony_brightness_get(struct backlight_device *bd) 
-+{
-+	int value;
-+
-+	if (acpi_callgetfunc(sony_acpi_handle, "GBRT", &value))
-+		return 0;
-+
-+	return value-1;
-+}
-+	
-+
-+static int sony_brightness_set(struct backlight_device *bd, int value) {
-+	value &= 0x7;
-+	value++;
-+
-+	return acpi_callsetfunc(sony_acpi_handle, "SBRT", value, NULL);
-+}
-+
-+static struct backlight_properties sonybl_data = {
-+	.owner          = THIS_MODULE,
-+	.get_brightness = sony_brightness_get,
-+	.set_brightness = sony_brightness_set,
-+	.max_brightness = 7,
-+};
-+
- static int __init sony_acpi_add(struct acpi_device *device)
- {
- 	acpi_status status;
-@@ -378,12 +407,24 @@ static int __init sony_acpi_init(void)
- 		remove_proc_entry("sony", acpi_root_dir);
- 		return -ENODEV;
- 	}
-+
-+	sony_backlight_device = backlight_device_register ("sony_bl", NULL,
-+							   &sonybl_data);
-+
-+	if (IS_ERR (sony_backlight_device)) {
-+		printk("Unable to register backlight\n");
-+		acpi_bus_unregister_driver(&sony_acpi_driver);
-+		remove_proc_entry("sony", acpi_root_dir);
-+		return -ENODEV;
-+	}
-+
- 	return 0;
- }
- 
- 
- static void __exit sony_acpi_exit(void)
- {
-+	backlight_device_unregister(sony_backlight_device);
- 	acpi_bus_unregister_driver(&sony_acpi_driver);
- 	remove_proc_entry("sony", acpi_root_dir);
- }
+Please send the dsdt or acpidump for this machine
+Thanks,
+Bob
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+
+
+> -----Original Message-----
+> From: Moore, Robert
+> Sent: Thursday, February 02, 2006 2:29 PM
+> To: Luck, Tony; linux-acpi@vger.kernel.org
+> Cc: linux-ia64@vger.kernel.org
+> Subject: RE: some new unaligned access while booting ia64 (HP rx2620)
+> 
+> The ACPICA resource manager was mostly rewritten around the 20051021
+time
+> frame, and we may have disturbed some of the aligned access support.
+I'll
+> look at these, it looks like enough info to fix them.
+> 
+> Thanks,
+> Bob
+> 
+> 
+> > -----Original Message-----
+> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> > owner@vger.kernel.org] On Behalf Of Luck, Tony
+> > Sent: Thursday, February 02, 2006 11:46 AM
+> > To: linux-acpi@vger.kernel.org
+> > Cc: linux-ia64@vger.kernel.org
+> > Subject: some new unaligned access while booting ia64 (HP rx2620)
+> >
+> > Booting a snapshot of Linus' tree this morning I saw a few (new?)
+> > kernel unaligned access warnings:
+> >
+> > ACPI: Subsystem revision 20060127
+> > ACPI: Interpreter enabled
+> > ACPI: Using IOSAPIC for interrupt routing
+> > ACPI: PCI Root Bridge [PCI0] (0000:00)
+> > kernel unaligned access to 0xe00000407ec5a204, ip=0xa0000001003af8c0
+> > kernel unaligned access to 0xe00000407ec5a23c, ip=0xa0000001003af8c0
+> > kernel unaligned access to 0xe00000407ec5a28c, ip=0xa0000001003af8c0
+> > kernel unaligned access to 0xe00000407ec5a1fc, ip=0xa0000001003ae6c1
+> > kernel unaligned access to 0xe00000407ec5a204, ip=0xa0000001003ae6d1
+> > ACPI: PCI Interrupt Routing Table [\_SB_.SBA0.PCI0._PRT]
+> > ACPI: PCI Root Bridge [PCI1] (0000:20)
+> >
+> > The first three at ip=0xa0000001003af8c0 are in
+> > acpi_rs_get_resource_source()
+> > while zeroing a 64-bit value:
+> > a0000001003af8c0:       dc 00 00 46 98 11       [MFB] (p06) st8
+[r35]=r0
+> >
+> > Which looks from the assembly code like we are doing a:
+> >    resource_source->string_ptr = 0;
+> > but I don't see anything quite like that in the C source (but
+> > there may be macros & inlining happening).
+> >
+> > The other two, ip=0xa0000001003ae6c1 and ip=0xa0000001003ae6d1 are
+in
+> > acpi_resource_to_address64() close together in this little
+> > block:
+> >
+> > a0000001003ae6c6:       50 02 58 30 20 00                   ld8
+> r37=[r22]
+> > a0000001003ae6cc:       00 00 00 20                         nop.b
+0x0;;
+> > a0000001003ae6d0:       19 00 94 1e 98 11       [MMB]       st8
+> [r15]=r37
+> > a0000001003ae6d6:       70 02 40 30 20 00                   ld8
+> r39=[r16]
+> >
+> > These loads are dereferencing the acpi_resource structure that was
+> passed
+> > as the first argument (offsets 40 and 48 bytes).
+> >
+> > -Tony
+> > -
+> > To unsubscribe from this list: send the line "unsubscribe
+linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
