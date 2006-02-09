@@ -1,41 +1,22 @@
-From: Gabor Gombas <gombasg@sztaki.hu>
-Subject: Re: [linux-pm] Re: [PATCH, RFC] [1/3] Generic in-kernel AC status
-Date: Thu, 9 Feb 2006 09:53:44 +0100
-Message-ID: <20060209085344.GF16052@boogie.lpds.sztaki.hu>
-References: <20060208125753.GA25562@srcf.ucam.org> <20060208130422.GB25659@srcf.ucam.org> <20060208165803.GA15239@kroah.com> <20060208170857.GA29818@srcf.ucam.org>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: Convert PRINT_DEBUG(DB_ERROR/WARNING,...) to ACPI_ERROR/WARNING
+Date: Thu, 9 Feb 2006 04:26:35 -0500
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3006002BF9@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from boogie.lpds.sztaki.hu ([193.225.12.226]:1929 "EHLO
-	boogie.lpds.sztaki.hu") by vger.kernel.org with ESMTP
-	id S965202AbWBIIxy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Feb 2006 03:53:54 -0500
-Content-Disposition: inline
-In-Reply-To: <20060208170857.GA29818@srcf.ucam.org>
+Received: from fmr22.intel.com ([143.183.121.14]:12219 "EHLO
+	scsfmr002.sc.intel.com") by vger.kernel.org with ESMTP
+	id S1030330AbWBIJ0r convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Feb 2006 04:26:47 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Greg KH <greg@kroah.com>, linux-pm@lists.osdl.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>, "Moore, Robert" <robert.moore@intel.com>
+Cc: ACPI-ML <linux-acpi@vger.kernel.org>
 
-On Wed, Feb 08, 2006 at 05:08:58PM +0000, Matthew Garrett wrote:
+applied to acpi-test
 
-> The backlight interface only supports exporting and setting the current 
-> brightness. For various bits of hardware, the AC and DC brightnesses are 
-> stored separately. Drivers would need to know which brightness value to 
-> export to userspace. I have an HP backlight driver here which would 
-> benefit from this, and I'm looking at the same issue for a Panasonic 
-> one.
-
-I don't know the backlight interface but extending it to export all
-available brightness values would seem more logical to me.
-
-If I'd had a laptop I'd hate if I could only set the DC brightness if I
-plug out the AC power.
-
-Gabor
-
--- 
-     ---------------------------------------------------------
-     MTA SZTAKI Computer and Automation Research Institute
-                Hungarian Academy of Sciences
-     ---------------------------------------------------------
+thanks,
+-Len
