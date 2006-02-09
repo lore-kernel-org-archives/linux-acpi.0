@@ -1,54 +1,56 @@
 From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: [RFC:PATCH(000/003)] Memory add to onlined node. (ver. 2)
-Date: Thu, 09 Feb 2006 16:05:46 +0900
-Message-ID: <20060209153539.6CEE.Y-GOTO@jp.fujitsu.com>
+Subject: [RFC:PATCH(002/003)] Memory add to onlined node. (ver. 2) (For ia64)
+Date: Thu, 09 Feb 2006 16:06:37 +0900
+Message-ID: <20060209153743.6CF2.Y-GOTO@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Andi Kleen <ak@suse.de>, "Luck, Tony" <tony.luck@intel.com>, "Brown, Len" <len.brown@intel.com>, "Tolentino, Matthew E" <matthew.e.tolentino@intel.com>, naveen.b.s@intel.com, Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: ACPI-ML <linux-acpi@vger.kernel.org>, Linux Kernel ML <linux-kernel@vger.kernel.org>, linux-ia64@vger.kernel.org, x86-64 Discuss <discuss@x86-64.org>, Linux Hotplug Memory Support <lhms-devel@lists.sourceforge.net>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:29577 "EHLO
+	fgwmail5.fujitsu.co.jp") by vger.kernel.org with ESMTP
+	id S1422845AbWBIHHS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Feb 2006 02:07:18 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andi Kleen <ak@suse.de>, "Luck, Tony" <tony.luck@intel.com>, "Tolentino, Matthew E" <matthew.e.tolentino@intel.com>, "Brown, Len" <len.brown@intel.com>, naveen.b.s@intel.com, Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Linux Kernel ML <linux-kernel@vger.kernel.org>, ACPI-ML <linux-acpi@vger.kernel.org>, linux-ia64@vger.kernel.org, x86-64 Discuss <discuss@x86-64.org>, Linux Hotplug Memory Support <lhms-devel@lists.sourceforge.net>
 
-Hello.
+This is for ia64 to add memory which belongs onlined node.
 
-I updated patches for memory hot-add.
-Current code allow addition to just node 0.
-By this patch, the new memory is able to be added to appropriate node,
-- if the node is already online.-  If the node is offline, 
-(It means new node is comming!)  then the memory will belongs
-to node 0 yet.
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-If new memory belongs to new node, new pgdat must be initialized.
-But, it still need more many steps. So, I would like to propose
-this small steps for a while.
 
-This patch is use acpi's DSDT to find node id from physicall address.
-So, this patch is just for intel/AMD architecture.
+Index: node_simple3/arch/ia64/mm/init.c
+===================================================================
+--- node_simple3.orig/arch/ia64/mm/init.c	2006-02-08 16:54:56.204707334 +0900
++++ node_simple3/arch/ia64/mm/init.c	2006-02-08 17:21:57.082617165 +0900
+@@ -20,6 +20,7 @@
+ #include <linux/swap.h>
+ #include <linux/proc_fs.h>
+ #include <linux/bitops.h>
++#include <linux/acpi.h>
+ 
+ #include <asm/a.out.h>
+ #include <asm/dma.h>
+@@ -652,9 +653,15 @@ int add_memory(u64 start, u64 size)
+ 	struct zone *zone;
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+-	int ret;
++	int ret, node;
+ 
+-	pgdat = NODE_DATA(0);
++	node = acpi_paddr_to_node(start, size);
++
++	if (node >= 0 && node_online(node))
++		pgdat = NODE_DATA(node);
++	else
++		/* New node's memory will be added to Node 0 temporarll. */
++		pgdat = NODE_DATA(0);
+ 
+ 	zone = pgdat->node_zones + ZONE_NORMAL;
+ 	ret = __add_pages(zone, start_pfn, nr_pages);
 
-I tested this patch on ia64 and x86-64 box with custermized  SRAT & DSDT
-node emulation.
-
-This patch is for 2.6.16-rc2-mm1. 
-
-Please comment.
-
-Change log from ver.1 is
-  - The parameter of size of add_memory() was changed from (_MAX - _MIN + 1)
-    to _LEN by Bjorn Helgaas-san.
-    To compare physical memory and DSDT at
-    acpi_memory_match_paddr_to_memdevice(), using MAX-MIN +1 was changed 
-    to using length.
-  - change from using acpi_map_pxm_to_node() to pxm_to_node().
-    acpi_map_pxm_to_node() is useful to decide new node's id
-    when new node can be added, but it is not appropriate for 
-    current code.
-  - Remove extra \n from ACPI_TRACE_FUNCTION().
-  - Update for 2.6.16-rc2-mm1.
-  - Tested on x86_64 box with SRAT & DSDT emulation.
-
-Please comment.
 -- 
 Yasunori Goto 
 
