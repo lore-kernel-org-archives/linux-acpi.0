@@ -1,36 +1,41 @@
-From: Upayavira <uv@odoko.co.uk>
-Subject: IDE device ACPI handler is NULL
-Date: Fri, 10 Feb 2006 06:33:14 +0000
-Message-ID: <43EC33AA.3000805@odoko.co.uk>
+From: Stefan Seyfried <seife@suse.de>
+Subject: Re: [PATCH, RFC] [1/3] Generic in-kernel AC status
+Date: Fri, 10 Feb 2006 09:06:43 +0100
+Message-ID: <20060210080643.GA14763@suse.de>
+References: <20060208125753.GA25562@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:63424 "EHLO
-	out4.smtp.messagingengine.com") by vger.kernel.org with ESMTP
-	id S1751162AbWBJGdT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 10 Feb 2006 01:33:19 -0500
-Received: from frontend1.internal (mysql-sessions.internal [10.202.2.149])
-	by frontend1.messagingengine.com (Postfix) with ESMTP id C9DE8D34327
-	for <linux-acpi@vger.kernel.org>; Fri, 10 Feb 2006 01:33:18 -0500 (EST)
-Received: from [10.0.0.4] (host-87-74-25-34.bulldogdsl.com [87.74.25.34])
-	by www.fastmail.fm (Postfix) with ESMTP id 6097D571506
-	for <linux-acpi@vger.kernel.org>; Fri, 10 Feb 2006 01:33:18 -0500 (EST)
+Received: from ns2.suse.de ([195.135.220.15]:27592 "EHLO mx2.suse.de")
+	by vger.kernel.org with ESMTP id S1751185AbWBJIHF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Feb 2006 03:07:05 -0500
+Content-Disposition: inline
+In-Reply-To: <20060208125753.GA25562@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-pm@lists.osdl.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-I am running Ubuntu Breezy on a Dell M60 notebook - Centrino processor,
-NVidia video drivers. I have just succeeded at getting suspend/hibernate
-working (sometimes). I am now getting the following message:
+On Wed, Feb 08, 2006 at 12:57:53PM +0000, Matthew Garrett wrote:
+> The included patch adds support for power management methods to regis=
+ter=20
+> callbacks in order to allow drivers to check if the system is on AC o=
+r=20
+> not. Following patches add support to ACPI and APM. Feedback welcome.
 
-"ide device ACPI handler is NULL"
-
-Sometimes on suspension, sometimes on hibernation, and sometimes on
-resuming. When I get that message, the system will not resume.
-
-Any ideas what this is about?
-
-Thanks in advance.
-
-Upayavira, a grateful ACPI user
+Ok. Maybe i am not seeing the point. But why do we need this in the ker=
+nel?
+Can't we handles this easily in userspace?
+--=20
+Stefan Seyfried                  \ "I didn't want to write for pay. I
+QA / R&D Team Mobile Devices      \ wanted to be paid for what I write.=
+"
+SUSE LINUX Products GmbH, N=FCrnberg \                    -- Leonard Co=
+hen
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
