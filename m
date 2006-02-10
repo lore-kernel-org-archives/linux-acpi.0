@@ -1,59 +1,36 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [2.6.16-rc2] Error - nsxfeval - And uncool silence from kernel hackers.
-Date: Thu, 9 Feb 2006 20:24:19 -0800
-Message-ID: <20060210042419.GA27457@kroah.com>
-References: <20060210000101.2f028801.lista1@telia.com> <20060209233233.GB23971@kroah.com> <20060210035051.55dbb74a.lista1@telia.com>
+From: Upayavira <uv@odoko.co.uk>
+Subject: IDE device ACPI handler is NULL
+Date: Fri, 10 Feb 2006 06:33:14 +0000
+Message-ID: <43EC33AA.3000805@odoko.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from dsl093-040-174.pdx1.dsl.speakeasy.net ([66.93.40.174]:34211
-	"EHLO aria.kroah.org") by vger.kernel.org with ESMTP
-	id S1751068AbWBJEY0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Feb 2006 23:24:26 -0500
-Content-Disposition: inline
-In-Reply-To: <20060210035051.55dbb74a.lista1@telia.com>
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:63424 "EHLO
+	out4.smtp.messagingengine.com") by vger.kernel.org with ESMTP
+	id S1751162AbWBJGdT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Feb 2006 01:33:19 -0500
+Received: from frontend1.internal (mysql-sessions.internal [10.202.2.149])
+	by frontend1.messagingengine.com (Postfix) with ESMTP id C9DE8D34327
+	for <linux-acpi@vger.kernel.org>; Fri, 10 Feb 2006 01:33:18 -0500 (EST)
+Received: from [10.0.0.4] (host-87-74-25-34.bulldogdsl.com [87.74.25.34])
+	by www.fastmail.fm (Postfix) with ESMTP id 6097D571506
+	for <linux-acpi@vger.kernel.org>; Fri, 10 Feb 2006 01:33:18 -0500 (EST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Voluspa <lista1@telia.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com
+To: linux-acpi@vger.kernel.org
 
-On Fri, Feb 10, 2006 at 03:50:51AM +0100, Voluspa wrote:
-> On Thu, 9 Feb 2006 15:32:33 -0800 Greg KH wrote:
-> > On Fri, Feb 10, 2006 at 12:01:01AM +0100, Voluspa wrote:
-> > > 
-> > > Booted 2.6.16-rc2 on my AMD x86_64 notebook and saw something new in the
-> > > log (different from 2.6.15):
-> > 
-> > So, 2.6.16-rc2 works just fine, with out your reversal of that one
-> > patch?
-> 
-> Eh, I bundled two issues in my rant. 1) nsxfeval, which the ACPI guys
-> have confirmed is pure noise and can be forgotten. 2) "PCI: Failed to
-> allocate mem resource" which has been there since the commit I pointed
-> to, and never has effected the machine negatively (as far as I can tell).
-> So yes, 2.6.16-rc2 seems fine, and I don't patch it for that PCI thing.
-> It's just that the message is present and will worry people 'forever'
-> if nothing is done.
+I am running Ubuntu Breezy on a Dell M60 notebook - Centrino processor,
+NVidia video drivers. I have just succeeded at getting suspend/hibernate
+working (sometimes). I am now getting the following message:
 
-As long as everything is working properly, you can happily ignore the
-issue and blame your bios vendor for making such a stupid mistake :)
+"ide device ACPI handler is NULL"
 
-> Yeah, I know, sorry if I jabbed too hard. I was caught up in a sadness for
-> anyone who's mail is ignored. There is a form of humiliation when that
-> happens on a high profile list like lkml or other kernel related lists.
-> A mirror of the defeat can be found on a small server in Korpilombolo for
-> the next two decades at least.
+Sometimes on suspension, sometimes on hibernation, and sometimes on
+resuming. When I get that message, the system will not resume.
 
-I know it's tough when things like this are ignored, and no, you didn't
-jab to hard at all.  We all need to be reminded when we forget things
-like this, myself especially at times :)
+Any ideas what this is about?
 
-> But I must say that during the years that I've read lkml, it _feels_ as if
-> the reply-rate has improved significantly. The list is not as terrifying as
-> it used to be.
+Thanks in advance.
 
-Glad to hear it, we are trying here...
-
-thanks,
-
-greg k-h
+Upayavira, a grateful ACPI user
