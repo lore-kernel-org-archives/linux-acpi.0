@@ -1,60 +1,36 @@
-From: "Moore, Robert" <robert.moore@intel.com>
+From: "Luck, Tony" <tony.luck@intel.com>
 Subject: RE: some new unaligned access while booting ia64 (HP rx2620)
-Date: Fri, 10 Feb 2006 15:07:10 -0800
-Message-ID: <971FCB6690CD0E4898387DBF7552B90E0452B062@orsmsx403.amr.corp.intel.com>
+Date: Fri, 10 Feb 2006 13:15:39 -0800
+Message-ID: <B8E391BBE9FE384DAA4C5C003888BE6F05AD5A66@scsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-ia64-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fmr22.intel.com ([143.183.121.14]:16082 "EHLO
+	scsfmr002.sc.intel.com") by vger.kernel.org with ESMTP
+	id S1750956AbWBJVPp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Feb 2006 16:15:45 -0500
 Content-class: urn:content-classes:message
-Sender: linux-ia64-owner@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>, Thomas Renninger <trenn@suse.de>, "Brown, Len" <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>, Thomas Renninger <trenn@suse.de>
+Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
 
-You may need to selectively enable/disable the debug trace during a
-particular call.
+> Enabling debugging in the ACPI subsystem will certainly give this
+> information. AcpiDebugLevel = 0x00FFFFFF works nicely, although
+> a lot of trace info is produced.
 
-I suspect that the problem is happening during the execution of the
-ACPICA interface AcpiSetCurrentResources (aka
-acpi_set_current_resources).
+There is no AcpiDebugLevel in the Linux kernel.  I did find a
+variable "acpidbg_level" ... so I set CONFIG_ACPI_DEBUG=y and
+added
+	acpi_dbg_level = 0x00FFFFFF;
+at the start of init/main.c/start_kernel()
 
-Here's the way I would do it:
+But then my system didn't boot at all :-(
 
-Set a breakpoint on acpi_set_current_resources. When you get there,
-enable debug output. When finished, disable debugging.
+Tried again w/o the "acpi_dbg_level = 0x00FFFFFF;", and that didn't
+boot either.  So there is something bad in the CONFIG_ACPI_DEBUG
+code.
 
-If this isn't possible with your debugger, you can always change the
-source to enable/disable debugging at the start and end of
-acpi_set_current_resources.
-
-Bob
-
-
-> -----Original Message-----
-> From: Luck, Tony
-> Sent: Friday, February 10, 2006 2:59 PM
-> To: Moore, Robert; 'Thomas Renninger'; Brown, Len
-> Cc: 'linux-acpi@vger.kernel.org'; 'linux-ia64@vger.kernel.org'
-> Subject: RE: some new unaligned access while booting ia64 (HP rx2620)
-> 
-> > That looks good. You'll probably need to increase your dmesg buffer
-> > or send the output to a serial port, since you will get megabytes
-> > of info.
-> 
-> I only have a serial port on this machine ... but all the interesting
-> output happens before it is enabled ... i.e. is buffered up in log_buf
-> until the serial console is brought online.
-> 
-> I made log_buf as big as I could (2^21 bytes is the biggest it would
-> let me go), and that is not enough for all the ACPI messages ... so
-the
-> initial part where the unaligned messages were printed was lost in the
-> wraparound before anything could be dumped to the serial port.
-> 
-> Now I've got network problems in the lab ... when I can reconnect to
-> my systems, I'll change lib/Kconfig.debug to allow a bigger log_buf
-> and try again.
-> 
-> -Tony
+-Tony
