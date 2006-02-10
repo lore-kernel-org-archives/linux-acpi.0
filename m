@@ -1,28 +1,43 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: some new unaligned access while booting ia64 (HP rx2620)
-Date: Fri, 10 Feb 2006 15:58:41 -0800
-Message-ID: <B8E391BBE9FE384DAA4C5C003888BE6F05AD5D9F@scsmsx401.amr.corp.intel.com>
+From: Kristen Accardi <kristen.c.accardi@intel.com>
+Subject: Re: [Pcihpd-discuss] Re: [PATCH 0/7] acpiphp - slots management fix
+Date: Fri, 10 Feb 2006 11:28:24 -0800
+Message-ID: <1139599704.26632.53.camel@whizzy>
+References: <87acdrp5y9.wl%muneda.takahiro@jp.fujitsu.com>
+	 <20060127041425.GA20453@kroah.com>
+	 <87slr7k8qi.wl%muneda.takahiro@jp.fujitsu.com>
+	 <20060129034502.GA7168@kroah.com> <1138731618.18768.5.camel@whizzy>
+	 <20060207201304.GA18648@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr21.intel.com ([143.183.121.13]:22998 "EHLO
-	scsfmr001.sc.intel.com") by vger.kernel.org with ESMTP
-	id S932256AbWBJX6p convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Feb 2006 18:58:45 -0500
-Content-class: urn:content-classes:message
+Received: from fmr17.intel.com ([134.134.136.16]:50643 "EHLO
+	orsfmr002.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1751311AbWBJTYK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Feb 2006 14:24:10 -0500
+In-Reply-To: <20060207201304.GA18648@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>, Thomas Renninger <trenn@suse.de>, "Brown, Len" <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: MUNEDA Takahiro <muneda.takahiro@jp.fujitsu.com>, pavel@ucw.cz, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org, len.brown@intel.com
 
-> This only contains the output of stores to the ACPI "debug"
-> object, not the full trace output. However, "_CRS 0" may help
+On Tue, 2006-02-07 at 12:13 -0800, Greg KH wrote:
+> On Tue, Jan 31, 2006 at 10:20:18AM -0800, Kristen Accardi wrote:
+> > Just reviewing them, they seem like they will be fine to me.
+> 
+> This conflicts with your other patch you sent me.  I'll keep yours, and
+> drop this one, and let you merge his in with yours.
+> 
+> Is that ok?
+> 
+> thanks,
+> 
+> greg k-h
 
-Ah yes.  I'd dropped the acpi_dbg_level = 0xffffff; while trying
-to figure out what was going wrong with CONFIG_ACPI_DEBUG=y.
+I tried to merge this in against 2.6.16-rc2-mm1, which contains the
+patch you kept, and there are compile issues in his patch still.  I
+think it would be best if Muneda merged these himself.
 
-Putting it back in, 16MB is not enough for log_buf :-(
+Kristen
 
--Tony
+
