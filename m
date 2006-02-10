@@ -1,63 +1,168 @@
-From: Gabor Gombas <gombasg@sztaki.hu>
-Subject: Re: Re: [PATCH, RFC] [1/3] Generic in-kernel AC status
-Date: Fri, 10 Feb 2006 14:56:22 +0100
-Message-ID: <20060210135622.GI11740@boogie.lpds.sztaki.hu>
-References: <20060208125753.GA25562@srcf.ucam.org>
-	<20060208130422.GB25659@srcf.ucam.org>
-	<20060208165803.GA15239@kroah.com>
-	<20060208170857.GA29818@srcf.ucam.org>
-	<20060209085344.GF16052@boogie.lpds.sztaki.hu>
-	<20060210122131.GC4974@elf.ucw.cz>
-	<20060210131337.GD11740@boogie.lpds.sztaki.hu>
-	<20060210135415.GC5109@elf.ucw.cz>
+From: Kristen Accardi <kristen.c.accardi@intel.com>
+Subject: Re: [Pcihpd-discuss] [patch] acpiphp: add new bus to acpi
+Date: Fri, 10 Feb 2006 11:25:17 -0800
+Message-ID: <1139599518.26632.49.camel@whizzy>
+References: <20060201213854.GC27247@nerpa>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============55412056003603372=="
-Return-path: <linux-pm-bounces@lists.osdl.org>
-In-Reply-To: <20060210135415.GC5109@elf.ucw.cz>
-List-Unsubscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
-List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.osdl.org>
-List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
-List-Subscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.osdl.org
-Errors-To: linux-pm-bounces@lists.osdl.org
-To: Pavel Machek <pavel@suse.cz>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, linux-pm@lists.osdl.org, seife@suse.de, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fmr17.intel.com ([134.134.136.16]:22995 "EHLO
+	orsfmr002.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1750961AbWBJTVo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Feb 2006 14:21:44 -0500
+In-Reply-To: <20060201213854.GC27247@nerpa>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
---===============55412056003603372==
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Fri, Feb 10, 2006 at 02:54:15PM +0100, Pavel Machek wrote:
-
-> > Yes, but userspace already knows if you are on AC power or not,
-> > therefore it can decide what "current" means. If this is the only reason
-> > then adding a new kernel infrastructure is overkill.
-> 
-> It is not.
-
-Ok, fair enough.
-
-Gabor
-
--- 
-     ---------------------------------------------------------
-     MTA SZTAKI Computer and Automation Research Institute
-                Hungarian Academy of Sciences,
-     Laboratory of Parallel and Distributed Systems
-     Address   : H-1132 Budapest Victor Hugo u. 18-22. Hungary
-     Phone/Fax : +36 1 329-78-64 (secretary)
-     W3        : http://www.lpds.sztaki.hu
-     ---------------------------------------------------------
-
---===============55412056003603372==
-Content-Type: text/plain; charset="iso-8859-1"
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+To: Kristen Carlson Accardi <kristenc@cs.pdx.edu>
+Cc: pcihpd-discuss@lists.sourceforge.net, greg@kroah.com, linux-kernel@vger.kernel.org, muneda.takahiro@jp.fujitsu.com, linux-acpi@vger.kernel.org
 
 
---===============55412056003603372==--
+From: kristen.c.accardi@intel.com
+
+If we add a new bridge with subordinate busses, we should call make sure
+that acpi is notified so that the PRT (if present) can be read and drivers
+who have registered on this bus will be notified when it is started.
+Also make sure to use the max reserved bus number for the starting the bus
+scan.
+ 
+ Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+ drivers/pci/hotplug/acpiphp_glue.c |  111 ++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 109 insertions(+), 2 deletions(-)
+
+--- linux-dock-mm.orig/drivers/pci/hotplug/acpiphp_glue.c
++++ linux-dock-mm/drivers/pci/hotplug/acpiphp_glue.c
+@@ -778,6 +778,106 @@ static int power_off_slot(struct acpiphp
+ }
+ 
+ 
++
++/**
++ * acpiphp_max_busnr - return the highest reserved bus number under
++ * the given bus.
++ * @bus: bus to start search with
++ *
++ */
++static unsigned char acpiphp_max_busnr(struct pci_bus *bus)
++{
++	struct list_head *tmp;
++	unsigned char max, n;
++
++	/*
++	 * pci_bus_max_busnr will return the highest
++	 * reserved busnr for all these children.
++	 * that is equivalent to the bus->subordinate
++	 * value.  We don't want to use the parent's
++	 * bus->subordinate value because it could have
++	 * padding in it.
++	 */
++	max = bus->secondary;
++
++	list_for_each(tmp, &bus->children) {
++		n = pci_bus_max_busnr(pci_bus_b(tmp));
++		if (n > max)
++			max = n;
++	}
++	return max;
++}
++
++
++
++/**
++ *  get_func - get a pointer to acpiphp_func given a slot, device
++ *  @slot: slot to search
++ *  @dev:  pci_dev struct to match.
++ *
++ *  This function will increase the reference count of pci_dev,
++ *  so callers should call pci_dev_put when complete.
++ *
++ */
++static struct acpiphp_func *
++get_func(struct acpiphp_slot *slot, struct pci_dev *dev)
++{
++	struct acpiphp_func *func = NULL;
++	struct pci_bus *bus = slot->bridge->pci_bus;
++	struct pci_dev *pdev;
++
++	list_for_each_entry(func, &slot->funcs, sibling) {
++		pdev = pci_get_slot(bus, PCI_DEVFN(slot->device,
++					func->function));
++		if (pdev) {
++			if (pdev == dev)
++				break;
++			pci_dev_put(pdev);
++		}
++	}
++	return func;
++}
++
++
++/**
++ * acpiphp_bus_add - add a new bus to acpi subsystem
++ * @func: acpiphp_func of the bridge
++ *
++ */
++static int acpiphp_bus_add(struct acpiphp_func *func)
++{
++	acpi_handle phandle;
++	struct acpi_device *device, *pdevice;
++	int ret_val;
++
++	acpi_get_parent(func->handle, &phandle);
++	if (acpi_bus_get_device(phandle, &pdevice)) {
++		dbg("no parent device, assuming NULL\n");
++		pdevice = NULL;
++	}
++	if (acpi_bus_get_device(func->handle, &device)) {
++		ret_val = acpi_bus_add(&device, pdevice, func->handle,
++			ACPI_BUS_TYPE_DEVICE);
++		if (ret_val) {
++			dbg("error adding bus, %x\n",
++				-ret_val);
++			goto acpiphp_bus_add_out;
++		}
++	}
++	/*
++	 * try to start anyway.  We could have failed to add
++	 * simply because this bus had previously been added
++	 * on another add.  Don't bother with the return value
++	 * we just keep going.
++	 */
++	ret_val = acpi_bus_start(device);
++
++acpiphp_bus_add_out:
++	return ret_val;
++}
++
++
++
+ /**
+  * enable_device - enable, configure a slot
+  * @slot: slot to be enabled
+@@ -815,7 +915,7 @@ static int enable_device(struct acpiphp_
+ 		goto err_exit;
+ 	}
+ 
+-	max = bus->secondary;
++	max = acpiphp_max_busnr(bus);
+ 	for (pass = 0; pass < 2; pass++) {
+ 		list_for_each_entry(dev, &bus->devices, bus_list) {
+ 			if (PCI_SLOT(dev->devfn) != slot->device)
+@@ -823,8 +923,15 @@ static int enable_device(struct acpiphp_
+ 			if (dev->hdr_type == PCI_HEADER_TYPE_BRIDGE ||
+ 			    dev->hdr_type == PCI_HEADER_TYPE_CARDBUS) {
+ 				max = pci_scan_bridge(bus, dev, max, pass);
+-				if (pass && dev->subordinate)
++				if (pass && dev->subordinate) {
+ 					pci_bus_size_bridges(dev->subordinate);
++					func = get_func(slot, dev);
++					if (func) {
++						acpiphp_bus_add(func);
++						/* side effect of get_func */
++						pci_dev_put(dev);
++					}
++				}
+ 			}
+ 		}
+ 	}
+
