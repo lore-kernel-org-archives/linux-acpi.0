@@ -1,60 +1,35 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: some new unaligned access while booting ia64 (HP rx2620)
-Date: Fri, 10 Feb 2006 03:07:43 +0100
-Message-ID: <43EBF56F.7090507@suse.de>
-References: <971FCB6690CD0E4898387DBF7552B90E044F0914@orsmsx403.amr.corp.intel.com>
+From: Voluspa <lista1@telia.com>
+Subject: Re: [2.6.16-rc2] Error - nsxfeval - And uncool silence from kernel
+ hackers.
+Date: Fri, 10 Feb 2006 03:15:59 +0100
+Message-ID: <20060210031559.4aa6b268.lista1@telia.com>
+References: <971FCB6690CD0E4898387DBF7552B90E044F086A@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E044F0914@orsmsx403.amr.corp.intel.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from pne-smtpout2-sn1.fre.skanova.net ([81.228.11.159]:22696 "EHLO
+	pne-smtpout2-sn1.fre.skanova.net") by vger.kernel.org with ESMTP
+	id S1750974AbWBJCQF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Feb 2006 21:16:05 -0500
+In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E044F086A@orsmsx403.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com, greg@kroah.com
 
-Moore, Robert wrote:
-> The next thing that would be useful is to know what method(s) are
-> executing when the message pops out.
+On Thu, 9 Feb 2006 15:13:51 -0800 Moore, Robert wrote:
+> > ACPI Error (nsxfeval-0242): Handle is NULL and Pathname is relative
+> > [20060127]
 > 
+> This is an extraneous message and has been removed.
 > 
->> -----Original Message-----
->> From: Luck, Tony
->> Sent: Thursday, February 09, 2006 1:16 PM
->> To: Moore, Robert; 'linux-acpi@vger.kernel.org'
->> Cc: 'linux-ia64@vger.kernel.org'
->> Subject: RE: some new unaligned access while booting ia64 (HP rx2620)
->>
->> But I goofed and muddled up my two problems.  I tried
->> booting on my zx1 ... which was broken altogether by
->> recent acpi changes.
->>
->> Getting back to the rx2620 ... deleting those lines makes
->> no difference.  I still boot ok, I still see the unaligned
->> access messages.
->>
->> /proc/acpi/dsdt for that system attached.
->>
->> -Tony
+> We recently changed all of the DEBUG_PRINT statements with error and
+> warning levels to ACPI_ERROR and ACPI_WARNING. There have been a couple
+> of messages that now pop out inappropriately, and they have been fixed.
 
-I also got kernel missalignment errors..., unfortunately also
-a lot of slab debugger errors until the machine rebooted, so
-I didn't care too much about the missalignments, but these
-could have the same cause?
+Thank you for the quick jot down. Now the answer is archived for others.
 
-I now could nail the mem
-corruptions down to ACPICA-20051021 by binary search.
-It's late, maybe I got something wrong, but I am quite sure the
-culprit lies there.
-
-The patch is huge, but maybe it's just one of the other pragmas or
-whatever related?:
-
-grep pragma ../ACPICA_20051021.patch
-+#pragma pack(1)
-+#pragma pack()
-+#pragma pack(1)
-+#pragma pack()
-
-
-     Thomas
+Mvh
+Mats Johannesson
+--
