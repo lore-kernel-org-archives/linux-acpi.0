@@ -1,168 +1,100 @@
-From: Kristen Accardi <kristen.c.accardi@intel.com>
-Subject: Re: [Pcihpd-discuss] [patch] acpiphp: add new bus to acpi
-Date: Fri, 10 Feb 2006 11:25:17 -0800
-Message-ID: <1139599518.26632.49.camel@whizzy>
-References: <20060201213854.GC27247@nerpa>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: some new unaligned access while booting ia64 (HP rx2620)
+Date: Fri, 10 Feb 2006 12:11:51 -0800
+Message-ID: <971FCB6690CD0E4898387DBF7552B90E0452ACB2@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr17.intel.com ([134.134.136.16]:22995 "EHLO
-	orsfmr002.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1750961AbWBJTVo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 10 Feb 2006 14:21:44 -0500
-In-Reply-To: <20060201213854.GC27247@nerpa>
+Received: from fmr18.intel.com ([134.134.136.17]:7595 "EHLO
+	orsfmr003.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1751368AbWBJUL5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Feb 2006 15:11:57 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kristen Carlson Accardi <kristenc@cs.pdx.edu>
-Cc: pcihpd-discuss@lists.sourceforge.net, greg@kroah.com, linux-kernel@vger.kernel.org, muneda.takahiro@jp.fujitsu.com, linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
+
+When the resource descriptor list (ResourceTemplate) is extracted from
+the raw AML byte stream, it is converted and expanded to an internal
+format that is easier for the drivers to interpret. For IA64, this
+includes alignment of the various structs on 64-bit boundaries.
+
+I suspect that the recent restructuring of the Resource Manager code may
+have broken some of the alignment support. Obviously, we don't see any
+issues on the 32-bit machines. 
+
+What I need is to know exactly what control method has executed and what
+resource descriptor is being processed when the alignment fault(s)
+occur. 
+
+Enabling debugging in the ACPI subsystem will certainly give this
+information. AcpiDebugLevel = 0x00FFFFFF works nicely, although a lot of
+trace info is produced. You can tweak the number above to get just the
+info you need, or enable/disable debugging around a particular piece of
+code, such as in a driver that is calling the ACPI subsystem to get the
+resource descriptor template.
+
+Also, the length of the target buffer for the resource descriptors is
+calculated taking alignment issues into account. If this is out of sync
+with the code that actually populates the buffer, the buffer can be
+overrun.
+
+Bob
 
 
-From: kristen.c.accardi@intel.com
-
-If we add a new bridge with subordinate busses, we should call make sure
-that acpi is notified so that the PRT (if present) can be read and drivers
-who have registered on this bus will be notified when it is started.
-Also make sure to use the max reserved bus number for the starting the bus
-scan.
- 
- Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
- drivers/pci/hotplug/acpiphp_glue.c |  111 ++++++++++++++++++++++++++++++++++++-
- 1 files changed, 109 insertions(+), 2 deletions(-)
-
---- linux-dock-mm.orig/drivers/pci/hotplug/acpiphp_glue.c
-+++ linux-dock-mm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -778,6 +778,106 @@ static int power_off_slot(struct acpiphp
- }
- 
- 
-+
-+/**
-+ * acpiphp_max_busnr - return the highest reserved bus number under
-+ * the given bus.
-+ * @bus: bus to start search with
-+ *
-+ */
-+static unsigned char acpiphp_max_busnr(struct pci_bus *bus)
-+{
-+	struct list_head *tmp;
-+	unsigned char max, n;
-+
-+	/*
-+	 * pci_bus_max_busnr will return the highest
-+	 * reserved busnr for all these children.
-+	 * that is equivalent to the bus->subordinate
-+	 * value.  We don't want to use the parent's
-+	 * bus->subordinate value because it could have
-+	 * padding in it.
-+	 */
-+	max = bus->secondary;
-+
-+	list_for_each(tmp, &bus->children) {
-+		n = pci_bus_max_busnr(pci_bus_b(tmp));
-+		if (n > max)
-+			max = n;
-+	}
-+	return max;
-+}
-+
-+
-+
-+/**
-+ *  get_func - get a pointer to acpiphp_func given a slot, device
-+ *  @slot: slot to search
-+ *  @dev:  pci_dev struct to match.
-+ *
-+ *  This function will increase the reference count of pci_dev,
-+ *  so callers should call pci_dev_put when complete.
-+ *
-+ */
-+static struct acpiphp_func *
-+get_func(struct acpiphp_slot *slot, struct pci_dev *dev)
-+{
-+	struct acpiphp_func *func = NULL;
-+	struct pci_bus *bus = slot->bridge->pci_bus;
-+	struct pci_dev *pdev;
-+
-+	list_for_each_entry(func, &slot->funcs, sibling) {
-+		pdev = pci_get_slot(bus, PCI_DEVFN(slot->device,
-+					func->function));
-+		if (pdev) {
-+			if (pdev == dev)
-+				break;
-+			pci_dev_put(pdev);
-+		}
-+	}
-+	return func;
-+}
-+
-+
-+/**
-+ * acpiphp_bus_add - add a new bus to acpi subsystem
-+ * @func: acpiphp_func of the bridge
-+ *
-+ */
-+static int acpiphp_bus_add(struct acpiphp_func *func)
-+{
-+	acpi_handle phandle;
-+	struct acpi_device *device, *pdevice;
-+	int ret_val;
-+
-+	acpi_get_parent(func->handle, &phandle);
-+	if (acpi_bus_get_device(phandle, &pdevice)) {
-+		dbg("no parent device, assuming NULL\n");
-+		pdevice = NULL;
-+	}
-+	if (acpi_bus_get_device(func->handle, &device)) {
-+		ret_val = acpi_bus_add(&device, pdevice, func->handle,
-+			ACPI_BUS_TYPE_DEVICE);
-+		if (ret_val) {
-+			dbg("error adding bus, %x\n",
-+				-ret_val);
-+			goto acpiphp_bus_add_out;
-+		}
-+	}
-+	/*
-+	 * try to start anyway.  We could have failed to add
-+	 * simply because this bus had previously been added
-+	 * on another add.  Don't bother with the return value
-+	 * we just keep going.
-+	 */
-+	ret_val = acpi_bus_start(device);
-+
-+acpiphp_bus_add_out:
-+	return ret_val;
-+}
-+
-+
-+
- /**
-  * enable_device - enable, configure a slot
-  * @slot: slot to be enabled
-@@ -815,7 +915,7 @@ static int enable_device(struct acpiphp_
- 		goto err_exit;
- 	}
- 
--	max = bus->secondary;
-+	max = acpiphp_max_busnr(bus);
- 	for (pass = 0; pass < 2; pass++) {
- 		list_for_each_entry(dev, &bus->devices, bus_list) {
- 			if (PCI_SLOT(dev->devfn) != slot->device)
-@@ -823,8 +923,15 @@ static int enable_device(struct acpiphp_
- 			if (dev->hdr_type == PCI_HEADER_TYPE_BRIDGE ||
- 			    dev->hdr_type == PCI_HEADER_TYPE_CARDBUS) {
- 				max = pci_scan_bridge(bus, dev, max, pass);
--				if (pass && dev->subordinate)
-+				if (pass && dev->subordinate) {
- 					pci_bus_size_bridges(dev->subordinate);
-+					func = get_func(slot, dev);
-+					if (func) {
-+						acpiphp_bus_add(func);
-+						/* side effect of get_func */
-+						pci_dev_put(dev);
-+					}
-+				}
- 			}
- 		}
- 	}
-
+> -----Original Message-----
+> From: Thomas Renninger [mailto:trenn@suse.de]
+> Sent: Thursday, February 09, 2006 6:08 PM
+> To: Moore, Robert
+> Cc: Luck, Tony; linux-acpi@vger.kernel.org; linux-ia64@vger.kernel.org
+> Subject: Re: some new unaligned access while booting ia64 (HP rx2620)
+> 
+> Moore, Robert wrote:
+> > The next thing that would be useful is to know what method(s) are
+> > executing when the message pops out.
+> >
+> >
+> >> -----Original Message-----
+> >> From: Luck, Tony
+> >> Sent: Thursday, February 09, 2006 1:16 PM
+> >> To: Moore, Robert; 'linux-acpi@vger.kernel.org'
+> >> Cc: 'linux-ia64@vger.kernel.org'
+> >> Subject: RE: some new unaligned access while booting ia64 (HP
+rx2620)
+> >>
+> >> But I goofed and muddled up my two problems.  I tried
+> >> booting on my zx1 ... which was broken altogether by
+> >> recent acpi changes.
+> >>
+> >> Getting back to the rx2620 ... deleting those lines makes
+> >> no difference.  I still boot ok, I still see the unaligned
+> >> access messages.
+> >>
+> >> /proc/acpi/dsdt for that system attached.
+> >>
+> >> -Tony
+> 
+> I also got kernel missalignment errors..., unfortunately also
+> a lot of slab debugger errors until the machine rebooted, so
+> I didn't care too much about the missalignments, but these
+> could have the same cause?
+> 
+> I now could nail the mem
+> corruptions down to ACPICA-20051021 by binary search.
+> It's late, maybe I got something wrong, but I am quite sure the
+> culprit lies there.
+> 
+> The patch is huge, but maybe it's just one of the other pragmas or
+> whatever related?:
+> 
+> grep pragma ../ACPICA_20051021.patch
+> +#pragma pack(1)
+> +#pragma pack()
+> +#pragma pack(1)
+> +#pragma pack()
+> 
+> 
+>      Thomas
