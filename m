@@ -1,100 +1,53 @@
 From: "Moore, Robert" <robert.moore@intel.com>
 Subject: RE: some new unaligned access while booting ia64 (HP rx2620)
-Date: Fri, 10 Feb 2006 12:11:51 -0800
-Message-ID: <971FCB6690CD0E4898387DBF7552B90E0452ACB2@orsmsx403.amr.corp.intel.com>
+Date: Fri, 10 Feb 2006 13:19:23 -0800
+Message-ID: <971FCB6690CD0E4898387DBF7552B90E0452ADF8@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr18.intel.com ([134.134.136.17]:7595 "EHLO
-	orsfmr003.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1751368AbWBJUL5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Feb 2006 15:11:57 -0500
+Received: from fmr17.intel.com ([134.134.136.16]:9445 "EHLO
+	orsfmr002.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1750880AbWBJVT2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Feb 2006 16:19:28 -0500
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: "Luck, Tony" <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>, Thomas Renninger <trenn@suse.de>, "Brown, Len" <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
 
-When the resource descriptor list (ResourceTemplate) is extracted from
-the raw AML byte stream, it is converted and expanded to an internal
-format that is easier for the drivers to interpret. For IA64, this
-includes alignment of the various structs on 64-bit boundaries.
+Yes, In linux everything gets converted to lower case, sorry.
 
-I suspect that the recent restructuring of the Resource Manager code may
-have broken some of the alignment support. Obviously, we don't see any
-issues on the 32-bit machines. 
+The debug trace mechanism is known to work, I hope it isn't broken on
+IA64. 
 
-What I need is to know exactly what control method has executed and what
-resource descriptor is being processed when the alignment fault(s)
-occur. 
-
-Enabling debugging in the ACPI subsystem will certainly give this
-information. AcpiDebugLevel = 0x00FFFFFF works nicely, although a lot of
-trace info is produced. You can tweak the number above to get just the
-info you need, or enable/disable debugging around a particular piece of
-code, such as in a driver that is calling the ACPI subsystem to get the
-resource descriptor template.
-
-Also, the length of the target buffer for the resource descriptors is
-calculated taking alignment issues into account. If this is out of sync
-with the code that actually populates the buffer, the buffer can be
-overrun.
+Does any debug info come out?
 
 Bob
 
 
 > -----Original Message-----
-> From: Thomas Renninger [mailto:trenn@suse.de]
-> Sent: Thursday, February 09, 2006 6:08 PM
-> To: Moore, Robert
-> Cc: Luck, Tony; linux-acpi@vger.kernel.org; linux-ia64@vger.kernel.org
-> Subject: Re: some new unaligned access while booting ia64 (HP rx2620)
+> From: Luck, Tony
+> Sent: Friday, February 10, 2006 1:16 PM
+> To: Moore, Robert; 'Thomas Renninger'
+> Cc: 'linux-acpi@vger.kernel.org'; 'linux-ia64@vger.kernel.org'
+> Subject: RE: some new unaligned access while booting ia64 (HP rx2620)
 > 
-> Moore, Robert wrote:
-> > The next thing that would be useful is to know what method(s) are
-> > executing when the message pops out.
-> >
-> >
-> >> -----Original Message-----
-> >> From: Luck, Tony
-> >> Sent: Thursday, February 09, 2006 1:16 PM
-> >> To: Moore, Robert; 'linux-acpi@vger.kernel.org'
-> >> Cc: 'linux-ia64@vger.kernel.org'
-> >> Subject: RE: some new unaligned access while booting ia64 (HP
-rx2620)
-> >>
-> >> But I goofed and muddled up my two problems.  I tried
-> >> booting on my zx1 ... which was broken altogether by
-> >> recent acpi changes.
-> >>
-> >> Getting back to the rx2620 ... deleting those lines makes
-> >> no difference.  I still boot ok, I still see the unaligned
-> >> access messages.
-> >>
-> >> /proc/acpi/dsdt for that system attached.
-> >>
-> >> -Tony
+> > Enabling debugging in the ACPI subsystem will certainly give this
+> > information. AcpiDebugLevel = 0x00FFFFFF works nicely, although
+> > a lot of trace info is produced.
 > 
-> I also got kernel missalignment errors..., unfortunately also
-> a lot of slab debugger errors until the machine rebooted, so
-> I didn't care too much about the missalignments, but these
-> could have the same cause?
+> There is no AcpiDebugLevel in the Linux kernel.  I did find a
+> variable "acpidbg_level" ... so I set CONFIG_ACPI_DEBUG=y and
+> added
+> 	acpi_dbg_level = 0x00FFFFFF;
+> at the start of init/main.c/start_kernel()
 > 
-> I now could nail the mem
-> corruptions down to ACPICA-20051021 by binary search.
-> It's late, maybe I got something wrong, but I am quite sure the
-> culprit lies there.
+> But then my system didn't boot at all :-(
 > 
-> The patch is huge, but maybe it's just one of the other pragmas or
-> whatever related?:
+> Tried again w/o the "acpi_dbg_level = 0x00FFFFFF;", and that didn't
+> boot either.  So there is something bad in the CONFIG_ACPI_DEBUG
+> code.
 > 
-> grep pragma ../ACPICA_20051021.patch
-> +#pragma pack(1)
-> +#pragma pack()
-> +#pragma pack(1)
-> +#pragma pack()
-> 
-> 
->      Thomas
+> -Tony
