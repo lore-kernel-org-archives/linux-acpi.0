@@ -1,101 +1,49 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Fw: [Bugme-new] [Bug 6056] New: SATA problem on sata_nv
- (NFPIK8AA-8EKRS)
-Date: Sat, 11 Feb 2006 13:08:58 -0800
-Message-ID: <20060211130858.5a54aa55.akpm@osdl.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: some new unaligned access while booting ia64 (HP rx2620)
+Date: Sat, 11 Feb 2006 14:25:11 -0700
+Message-ID: <200602111425.11897.bjorn.helgaas@hp.com>
+References: <B8E391BBE9FE384DAA4C5C003888BE6F05AD5C61@scsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:50829 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S932354AbWBKVJk (ORCPT
+Received: from atlrel9.hp.com ([156.153.255.214]:63616 "EHLO atlrel9.hp.com")
+	by vger.kernel.org with ESMTP id S964804AbWBKVZM (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 11 Feb 2006 16:09:40 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id k1BL9cDZ018908
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Sat, 11 Feb 2006 13:09:38 -0800
-Received: from bix (shell0.pdx.osdl.net [10.9.0.31])
-	by shell0.pdx.osdl.net (8.13.1/8.11.6) with SMTP id k1BL9cL3013071
-	for <linux-acpi@vger.kernel.org>; Sat, 11 Feb 2006 13:09:38 -0800
+	Sat, 11 Feb 2006 16:25:12 -0500
+In-Reply-To: <B8E391BBE9FE384DAA4C5C003888BE6F05AD5C61@scsmsx401.amr.corp.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, Thomas Renninger <trenn@suse.de>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
 
+On Friday 10 February 2006 15:58, Luck, Tony wrote:
+> > That looks good. You'll probably need to increase your dmesg buffer
+> > or send the output to a serial port, since you will get megabytes
+> > of info.
+> 
+> I only have a serial port on this machine ... but all the interesting
+> output happens before it is enabled ... i.e. is buffered up in log_buf
+> until the serial console is brought online.
 
-This might be an ACPI problem?
+This is because when you use "console=ttyS0", we can't use that
+console until we know which device will be "ttyS0".  We learn
+that when the serial driver discovers the devices, which is
+fairly late.  (Most other architectures have hard-coded "ttyS0
+is at I/O port 0x3f8" assumptions, which lets them start the
+console earlier.)
 
-Begin forwarded message:
+But since you have an HP box with an HCDP, you can remove the
+"console=ttyS0" argument (after making sure that you have only
+the desired port enabled for EFI console output).  In this case,
+the HCDP table tells us the port address, so we can enable the
+console very early.
 
-Date: Sat, 11 Feb 2006 08:00:00 -0800
-From: bugme-daemon@bugzilla.kernel.org
-To: bugme-new@lists.osdl.org
-Subject: [Bugme-new] [Bug 6056] New: SATA problem on sata_nv (NFPIK8AA-8EKRS)
+Alternatively, you can use "console=uart,mmio,0x<address>", which
+will also work very early.  This works on any  box, since it doesn't
+depend on the HCDP, but you do have to figure out the UART address
+(it's printed when the serial driver discovers the port).
 
-
-http://bugzilla.kernel.org/show_bug.cgi?id=6056
-
-           Summary: SATA problem on sata_nv (NFPIK8AA-8EKRS)
-    Kernel Version: 2.6.15.4
-            Status: NEW
-          Severity: high
-             Owner: jgarzik@pobox.com
-         Submitter: tawa777@ybb.ne.jp
-
-
-Most recent kernel where this bug did not occur:
-
-Distribution: 
-FedoraCore4(x86-64)
-
-Hardware Environment:
-CPU: Opteron 140EE
-Motherboard: NFPIK8AA-8EKRS
-Memory: 512MB x 2 (ECC-Reg. DDR400)
-HDD:HDS728080PLA380.
-
-Software Environment:
-Problem Description:
-
-I have begun to use a PC with a Motherboard named NFPIK8AA-8EKRS.
-http://www.foxconnchannel.com/products_motherboard_2.cfm?pName=NFPIK8AA-8EKRS
-
-The Board has two on-board SATA controllers,
-one is called Nforce4 Professional 2200(CK8-04)
-other is called Nforce4 professional 2050(I/O-4).
-And each controller has four SATA ports.
-Thus this board has total 8 SATA ports.
-
-I find when a SATA Disk which FC4 is installed
-is connected to a SATA ports controlled by I/O-4,
-the disk is not boot without the option of "acpi=noirq".
-When the Disk is connected to CK8-04,
-Boot process works fine.
-
-I have took pictures of monitor
-showing error message in booting without "acpi=noirq".
-http://type-r.dnsalias.net/9usjs/a.jpg
-http://type-r.dnsalias.net/9usjs/b.jpg
-http://type-r.dnsalias.net/9usjs/c.jpg
-http://type-r.dnsalias.net/9usjs/d.jpg
-http://type-r.dnsalias.net/9usjs/e.jpg
-
-I also put dmesg's
-http://type-r.dnsalias.net/9usjs/dmesg.txt
-http://type-r.dnsalias.net/9usjs/dmesg_noirq.txt.
-
-Former shows the log when I connect the HDD to the port controlled by CK8-04,
-latter shows one when I connect the HDD to the port controlled by I/O-4.
-
-If further information is needed,
-I will post it as much as possible.
-
-
-
-Steps to reproduce:
-1. Power off the PC
-2. Connect the SATA disk to ports controlled by I/O-4. 
-3. Power on the PC
-
-------- You are receiving this mail because: -------
-You are on the CC list for the bug, or are watching someone who is.
+Bjorn
