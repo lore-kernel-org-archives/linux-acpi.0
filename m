@@ -1,43 +1,35 @@
-From: Bob McKay <urilabob@gmail.com>
-Subject: ASUS P5WD2-E motherboard and ACPI in Fedora Core 4
-Date: Sun, 12 Feb 2006 17:09:02 +0900
-Message-ID: <21b1bb250602120009n4fe85ac7he78b6675ab47c42b@mail.gmail.com>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: [PATCH, RFC] [1/3] Generic in-kernel AC status
+Date: Sun, 12 Feb 2006 11:17:51 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0602121116190.25363@yvahk01.tjqt.qr>
+References: <20060208125753.GA25562@srcf.ucam.org> <20060210080643.GA14763@suse.de>
+ <20060210121913.GA4974@elf.ucw.cz> <20060210123259.GB18577@suse.de>
+ <20060210134638.GA5109@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from uproxy.gmail.com ([66.249.92.202]:47645 "EHLO uproxy.gmail.com")
-	by vger.kernel.org with ESMTP id S932325AbWBLIJD convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 12 Feb 2006 03:09:03 -0500
-Received: by uproxy.gmail.com with SMTP id m2so359698ugc
-        for <linux-acpi@vger.kernel.org>; Sun, 12 Feb 2006 00:09:02 -0800 (PST)
-Content-Disposition: inline
+Received: from linux01.gwdg.de ([134.76.13.21]:37791 "EHLO linux01.gwdg.de")
+	by vger.kernel.org with ESMTP id S932374AbWBLKSF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 12 Feb 2006 05:18:05 -0500
+In-Reply-To: <20060210134638.GA5109@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@suse.cz>
+Cc: Stefan Seyfried <seife@suse.de>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-pm@lists.osdl.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-I recently installed FC4 ('install everything' option) on system based
-on ASUS P5WD2E motherboard running P4 3.0G cpu. The install appeared
-to be OK. When booted, the ethernet ports fail to be detected (in
-particular, system-config-network shows no ethernet ports). The only
-obvious error in /var/log/messages reports an AE_BAD_HEADER from
-ACPI-1138 in the sequence following 'Initializing IPSec netlink
-socket', so I'm assuming this is an ACPI problem. I haven't been able
-to find anything in the acpi or asus mailing lists about this (most of
-the comments about acpi seem to relate to asus laptops rather than to
-desktop motherboards).
+>> > > Ok. Maybe i am not seeing the point. But why do we need this in the kernel?
+>> > > Can't we handles this easily in userspace?
+>> > 
+>> > Some kernel parts need to now: for example powernow-k8: some
+>> 
+>> we can tell them from userspace.
+>
+>No, because battery will explode if you do not slow cpu down fast
+>enough.
 
-I'd really appreciate suggestions as to what to do. One option, of
-course, is to turn acpi off. I assume I'm not going to fry anything on
-a desktop with loads of cooling by doing this? (I'm not doing any
-overclocking or anything fancy).
+How is that? APC UPS don't explode either if they are switching to battery.
 
-Since I'm running the FC4 current kernel (2.6.11) rather than the
-latest kernel (and not confident to go upgrading the kernel), I've
-reported it to bugzilla.redhat.com (bug 180901) and to asus, rather
-than to the acpi bugzilla, but I thought I should mention it here as a
-problem, because doubtless others are going to hit the same problem,
-both in fedora and other distros
-   Best WIshes
-   Bob
+
+Jan Engelhardt
+-- 
