@@ -1,57 +1,33 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: Compaq X1050 multiple suspend problems (ACPI, PS2)
-Date: Mon, 13 Feb 2006 15:56:26 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F840AE81145@pdsmsx403>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: Linux 2.6.16-rc3
+Date: Mon, 13 Feb 2006 03:02:46 -0500
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30060BD1D9@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr17.intel.com ([134.134.136.16]:30154 "EHLO
-	orsfmr002.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1751216AbWBMH4h convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Feb 2006 02:56:37 -0500
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-scsi-owner@vger.kernel.org>
 Content-class: urn:content-classes:message
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-scsi-owner@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: akpm@osdl.org, torvalds@osdl.org, linux-kernel@vger.kernel.org, axboe@suse.de, James.Bottomley@steeleye.com, greg@kroah.com, linux-acpi@vger.kernel.org, linux-usb-devel@lists.sourceforge.net, "Yu, Luming" <luming.yu@intel.com>, lk@bencastricum.nl, sanjoy@mrao.cam.ac.uk, helgehaf@aitel.hist.no, fluido@fluido.as, gbruchhaeuser@gmx.de, Nicolas.Mailhot@LaPoste.net, perex@suse.cz, tiwai@suse.de, patrizio.bassi@gmail.com, bni.swe@gmail.com, arvidjaar@mail.ru, p_christ@hol.gr, ghrt@dial.kappa.ro, jinhong.hu@gmail.com, andrew.vasquez@qlogic.com, linux-scsi@vger.kernel.org, bcrl@kvack.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org
-Cc: Robert Hancock <hancockr@shaw.ca>
 
->Subject: Fw: Compaq X1050 multiple suspend problems (ACPI, PS2)
+>> >- In http://bugzilla.kernel.org/show_bug.cgi?id=5989, Sanjoy 
+>> >Mahajan has  another regression, but he's off collecting more info.
+>> 
+>> We're talking here about a system from 1999 where Windows 98
+>> refuses to run in ACPI mode and instead runs in APM mode.
 >
->
->
->Begin forwarded message:
->
->Date: Sun, 12 Feb 2006 23:26:39 -0600
->From: Robert Hancock <hancockr@shaw.ca>
->To: linux-kernel <linux-kernel@vger.kernel.org>
->Subject: Compaq X1050 multiple suspend problems (ACPI, PS2)
->
->
->The following is with a Compaq Presario X1050, Fedora Core 4 
->and Fedora 
->kernel version 2.6.15-1.1831_FC4.
->
->I'm trying to get suspend working on this laptop. It kind of 
->works with 
->a script which does
->
->echo -n mem > /sys/power/state
->
->to do the suspend, with calls in the suspend/restore to use vbetool to 
->save/restore the video state and re-POST the video after resume. 
->However, the keyboard was behaving wonky after resume (losing 
->characters) and ACPI seems unhappy.
->
->The full kernel output from boot, suspend and resume is attached. Note 
->the "sleeping function called from invalid context" warning out of the 
->ACPI code, the method execution failures in ACPI and synchronization 
->errors from the psmouse and keyboard drivers.
->
->I can provide some further info or debugging tests if desired.
->
+>If it worked before a change which was installed, it's a regression
+>regardless of whether another OS tries to use ACPI on that system or
+>not.  I don't understand how one can use that fact to label this as
+>not a regression from Linux's perspective.
 
-Please try  2.6.16-rc3. There is a fix for :
+I don't think anybody claimed this isn't a regression for the 600X.
+Sanjoy has done a wonderful job documenting that.
 
-ACPI-0412: *** Error: Handler for [EmbeddedControl] returned AE_TIME
+My point is that it that on the grand scale of bugs serious enough
+to have an effect on the course of 2.6.16, this one doesn't qualify
+unless the same issue is seen on other systems.
+
+-Len
