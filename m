@@ -1,126 +1,97 @@
-From: Patrizio Bassi <patrizio.bassi@gmail.com>
-Subject: Re: Linux 2.6.16-rc3
-Date: Mon, 13 Feb 2006 10:22:22 +0100
-Message-ID: <43F04FCE.9030309@gmail.com>
-References: <Pine.LNX.4.64.0602121709240.3691@g5.osdl.org> <20060212190520.244fcaec.akpm@osdl.org>
-Reply-To: patrizio.bassi@gmail.com
+From: Erik Slagter <erik@slagter.name>
+Subject: Re: [2.6.16-rc2] Error - nsxfeval - And uncool silence from kernel
+	hackers.
+Date: Mon, 13 Feb 2006 11:12:34 +0100
+Message-ID: <1139825554.22090.45.camel@localhost.localdomain>
+References: <20060210000101.2f028801.lista1@telia.com>
+	 <20060209233233.GB23971@kroah.com>
+	 <20060210035051.55dbb74a.lista1@telia.com>
+	 <20060210042419.GA27457@kroah.com>  <43EF3287.7010503@palacio-cristal.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-RA0Muoik1bhbJr8wOkV+"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zproxy.gmail.com ([64.233.162.196]:41754 "EHLO zproxy.gmail.com")
-	by vger.kernel.org with ESMTP id S1751666AbWBMJWg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Feb 2006 04:22:36 -0500
-Received: by zproxy.gmail.com with SMTP id i28so956155nzi
-        for <linux-acpi@vger.kernel.org>; Mon, 13 Feb 2006 01:22:34 -0800 (PST)
-In-Reply-To: <20060212190520.244fcaec.akpm@osdl.org>
+Received: from erik-slagter.demon.nl ([83.161.107.130]:51638 "EHLO
+	artemis.slagter.name") by vger.kernel.org with ESMTP
+	id S1751705AbWBMKMo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Feb 2006 05:12:44 -0500
+Received: from skylla.slagter.name (skylla.slagter.name [172.31.4.2])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(Client CN "skylla.slagter.name", Issuer "CA Cert Signing Authority" (verified OK))
+	by artemis.slagter.name (Postfix) with ESMTP id 85D6F1A3400A
+	for <linux-acpi@vger.kernel.org>; Mon, 13 Feb 2006 11:12:37 +0100 (CET)
+In-Reply-To: <43EF3287.7010503@palacio-cristal.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: Linus Torvalds <torvalds@osdl.org>, linux-kernel@vger.kernel.org, Jens Axboe <axboe@suse.de>, James Bottomley <James.Bottomley@steeleye.com>, "Brown, Len" <len.brown@intel.com>, "David S. Miller" <davem@davemloft.net>, Greg KH <greg@kroah.com>, linux-acpi@vger.kernel.org, linux-usb-devel@lists.sourceforge.net, "Yu, Luming" <luming.yu@intel.com>, Ben Castricum <lk@bencastricum.nl>, sanjoy@mrao.cam.ac.uk, Helge Hafting <helgehaf@aitel.hist.no>, "Carlo E. Prelz" <fluido@fluido.as>, =?ISO-8859-1?Q?Gerrit_Bruchh=E4us?= =?ISO-8859-1?Q?er?= <gbruchhaeuser@gmx.de>, Nicolas.Mailhot@LaPoste.net, Jaroslav Kysela <perex@suse.cz>, Takashi Iwai <tiwai@suse.de>, =?ISO-8859-1?Q?Bj=F6rn_Nilsson?= <bni.swe@gmail.com>, Andrey Borzenkov <arvidjaar@mail.ru>, "P. Christeas" <p_christ@hol.gr>, ghrt <ghrt@dial.kappa.ro>, jinhong hu <jinhong.hu@gmail.com>, Andrew Vasquez <andrew.vasquez@qlo>
-
-Andrew Morton ha scritto:
-> We still have some serious bugs, several of which are in 2.6.15 as well:
->
-> - The scsi_cmd leak, which I don't think is fixed.
->
-> - The some-x86_64-boxes-use-GFP_DMA-from-bio-layer bug, which causes
->   oom-killings.
->
-> - The skbuff_head_cache leak, which has been around since at least
->   2.6.11.  Another box-killer, but is seems very hard to hit. 
->   (mki@mozone.net, "the dreaded oom-killer (reproducable in 2.6.11 -
->   2.6.16-rc1) :(")
->
-> - http://bugzilla.kernel.org/show_bug.cgi?id=6060: an apparent ACPI
->   regression.
->
-> - Nathan's "sysfs-related oops during module unload", which Greg seems to
->   have under control.
->
-> - http://bugzilla.kernel.org/show_bug.cgi?id=6049 - another acpi
->   regression.  We have the actual offending commit here.
->
-> - A couple of random tty-related oopses reported by Jesper Juhl.  We
->   don't know why these happened - they appear to not be related to the tty
->   buffering changes.
->
-> - http://bugzilla.kernel.org/show_bug.cgi?id=6038, another box-killing
->   acpi regression.
->
-> - Various reports similar to
->   http://bugzilla.kernel.org/show_bug.cgi?id=6011, seemingly related to USB
->   PCI quirk handling.
->
-> - "Ben Castricum" <lk@bencastricum.nl> reports that ppp has started
->   exhibiting mysterious failures (again).
->
-> - Nasty warnings from scsi about kobject-layer things being called from
->   irq context.  James has a push-it-to-process-context patch which sadly
->   assumes kmalloc() is immortal, but no other fix seems to have offered
->   itself.
->
-> - In http://bugzilla.kernel.org/show_bug.cgi?id=5989, Sanjoy Mahajan has
->   another regression, but he's off collecting more info.
->
-> - Helge Hafting reports a usb printer regression - I don't know if that's
->   still live?
->
-> - "Carlo E.  Prelz" <fluido@fluido.as> has another USB/ehci regression
->   ("ATI RS480-based motherboard: stuck while booting with kernel >= 2.6.15
->   rc1").
->
-> - Gerrit Bruchhuser <gbruchhaeuser@gmx.de> seems to have an aic7xxx
->   regression ("AHA-7850 doesn't detect scanner anymore") but he doesn't say
->   which kernel got it right.
->
-> - http://bugzilla.kernel.org/show_bug.cgi?id=5914 - a sata bug (which is
->   quite unremarkable :(), but this one is reported to eat filesystems.
->
-> - Patrizio Bassi <patrizio.bassi@gmail.com> has an alsa suspend
->   regression ("alsa suspend/resume continues to fail for ens1370")
->
-> - Bjorn Nilsson <bni.swe@gmail.com> has an sk99lin regression ("3COM
->   3C940, does not work anymore after upgrade to 2.6.15")
->
-> - Andrey Borzenkov <arvidjaar@mail.ru> has an acpi-cpufreq regression
->   ("cannot unload acpi-cpufreq")
->
-> - "P.  Christeas" <p_christ@hol.gr> had an autofs regression ("Regression
->   in Autofs, 2.6.15-git"), whic might be fixed now?
->
-> - ghrt <ghrt@dial.kappa.ro> reports an alsa regression ("PROBLEM: SB
->   Live!  5.1 (emu10k1, rev.  0a) doesn't work with 2.6.15")
->
-> - jinhong hu <jinhong.hu@gmail.com> reports what appears to be a qlogic
->   regression ("kernel 2.6.15 scsi problem")
->
-> - Benjamin LaHaise <bcrl@kvack.org> had an NFS problem ("NFS processes
->   gettting stuck in D with currrent git").
->
->
->
-> These are clear regressions, reported in the last month by people who are
-> willing to test patches.  They're almost all in subsystems which have
-> active and professional maintainers.
->
->   
-Really sad to say, but my Alsa ens1370 regression due to suspend problem
-is still there.
-Only fix is reboot actually. Ready to patch :)
-
-PS.
-
-i have a bug similar to:
-http://bugzilla.kernel.org/show_bug.cgi?id=6038 (marked as blocking by
-Andrew)
-on my laptop.
-
-but my dma expiry problem only happens during suspend.
-I have a Sis 630 chipset with a 2.5" hitachi drive.
-Been there...for ages..i can say: always...never got a working 2.6 kernel.
-However in my poor opinion it's not blocking on my system, just boring.
+To: linux-acpi@vger.kernel.org
 
 
-Patrizio
+--=-RA0Muoik1bhbJr8wOkV+
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+
+On Sun, 2006-02-12 at 14:05 +0100, Tako Schotanus wrote:
+
+> Might have been such a stupid question as not to warrant any attention,=20
+> but even a "oh please leave us alone" would be better than this dratted=20
+> silence hehe
+
+Don't be sad, it's probably just that nobody knows how to tackle the
+problem.
+
+--=-RA0Muoik1bhbJr8wOkV+
+Content-Type: application/x-pkcs7-signature; name=smime.p7s
+Content-Disposition: attachment; filename=smime.p7s
+Content-Transfer-Encoding: base64
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIILzCCAnIw
+ggHboAMCAQICAw/xBDANBgkqhkiG9w0BAQQFADBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhh
+d3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVt
+YWlsIElzc3VpbmcgQ0EwHhcNMDUxMTI5MTc0MTQ0WhcNMDYxMTI5MTc0MTQ0WjBqMRAwDgYDVQQE
+EwdTbGFndGVyMRUwEwYDVQQqEwxFcmlrIE1hcnRpam4xHTAbBgNVBAMTFEVyaWsgTWFydGlqbiBT
+bGFndGVyMSAwHgYJKoZIhvcNAQkBFhFlcmlrQHNsYWd0ZXIubmFtZTCBnzANBgkqhkiG9w0BAQEF
+AAOBjQAwgYkCgYEAtYqGuTSGbsTHZPiKQnNmvpVaxVuBZS6rV5xuKD47J9hz8Vq3Xh4PpuGYNW5L
+vevp80oj6sYAhNuU380UNRqALFaer8MtG6fXpvBgq+MCxVQzMyYxAnopqWlZQIUQNQX9wZmI0gVv
+gY6vwcXRBXkMyrzm41dy4oFwh+PTj3U+xwcCAwEAAaMuMCwwHAYDVR0RBBUwE4ERZXJpa0BzbGFn
+dGVyLm5hbWUwDAYDVR0TAQH/BAIwADANBgkqhkiG9w0BAQQFAAOBgQCf5+l4khcSjUOL8WcuJ7Q1
+eXhSPe0VJEsHSfVJCNFmfFZFiGZNwQRliOuGFxSy+uPb8ZVIZ3cBIen/K0k2hWS6pCiDm3xNdkFU
+mhWsibmyMoc91I0Re2ZWPmL6isxiyr56Qv7vNz2UHSinLJr/QtsvRv/RKFlcO1gm1wsCOPkyITCC
+AnIwggHboAMCAQICAw/xBDANBgkqhkiG9w0BAQQFADBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMc
+VGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZy
+ZWVtYWlsIElzc3VpbmcgQ0EwHhcNMDUxMTI5MTc0MTQ0WhcNMDYxMTI5MTc0MTQ0WjBqMRAwDgYD
+VQQEEwdTbGFndGVyMRUwEwYDVQQqEwxFcmlrIE1hcnRpam4xHTAbBgNVBAMTFEVyaWsgTWFydGlq
+biBTbGFndGVyMSAwHgYJKoZIhvcNAQkBFhFlcmlrQHNsYWd0ZXIubmFtZTCBnzANBgkqhkiG9w0B
+AQEFAAOBjQAwgYkCgYEAtYqGuTSGbsTHZPiKQnNmvpVaxVuBZS6rV5xuKD47J9hz8Vq3Xh4PpuGY
+NW5Lvevp80oj6sYAhNuU380UNRqALFaer8MtG6fXpvBgq+MCxVQzMyYxAnopqWlZQIUQNQX9wZmI
+0gVvgY6vwcXRBXkMyrzm41dy4oFwh+PTj3U+xwcCAwEAAaMuMCwwHAYDVR0RBBUwE4ERZXJpa0Bz
+bGFndGVyLm5hbWUwDAYDVR0TAQH/BAIwADANBgkqhkiG9w0BAQQFAAOBgQCf5+l4khcSjUOL8Wcu
+J7Q1eXhSPe0VJEsHSfVJCNFmfFZFiGZNwQRliOuGFxSy+uPb8ZVIZ3cBIen/K0k2hWS6pCiDm3xN
+dkFUmhWsibmyMoc91I0Re2ZWPmL6isxiyr56Qv7vNz2UHSinLJr/QtsvRv/RKFlcO1gm1wsCOPky
+ITCCAz8wggKooAMCAQICAQ0wDQYJKoZIhvcNAQEFBQAwgdExCzAJBgNVBAYTAlpBMRUwEwYDVQQI
+EwxXZXN0ZXJuIENhcGUxEjAQBgNVBAcTCUNhcGUgVG93bjEaMBgGA1UEChMRVGhhd3RlIENvbnN1
+bHRpbmcxKDAmBgNVBAsTH0NlcnRpZmljYXRpb24gU2VydmljZXMgRGl2aXNpb24xJDAiBgNVBAMT
+G1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBDQTErMCkGCSqGSIb3DQEJARYccGVyc29uYWwtZnJl
+ZW1haWxAdGhhd3RlLmNvbTAeFw0wMzA3MTcwMDAwMDBaFw0xMzA3MTYyMzU5NTlaMGIxCzAJBgNV
+BAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNU
+aGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQTCBnzANBgkqhkiG9w0BAQEFAAOBjQAw
+gYkCgYEAxKY8VXNV+065yplaHmjAdQRwnd/p/6Me7L3N9VvyGna9fww6YfK/Uc4B1OVQCjDXAmNa
+LIkVcI7dyfArhVqqP3FWy688Cwfn8R+RNiQqE88r1fOCdz0Dviv+uxg+B79AgAJk16emu59l0cUq
+VIUPSAR/p7bRPGEEQB5kGXJgt/sCAwEAAaOBlDCBkTASBgNVHRMBAf8ECDAGAQH/AgEAMEMGA1Ud
+HwQ8MDowOKA2oDSGMmh0dHA6Ly9jcmwudGhhd3RlLmNvbS9UaGF3dGVQZXJzb25hbEZyZWVtYWls
+Q0EuY3JsMAsGA1UdDwQEAwIBBjApBgNVHREEIjAgpB4wHDEaMBgGA1UEAxMRUHJpdmF0ZUxhYmVs
+Mi0xMzgwDQYJKoZIhvcNAQEFBQADgYEASIzRUIPqCy7MDaNmrGcPf6+svsIXoUOWlJ1/TCG4+DYf
+qi2fNi/A9BxQIJNwPP2t4WFiw9k6GX6EsZkbAMUaC4J0niVQlGLH2ydxVyWN3amcOY6MIE9lX5Xa
+9/eH1sYITq726jTlEBpbNU1341YheILcIRk13iSx0x1G/11fZU8xggJmMIICYgIBATBpMGIxCzAJ
+BgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQD
+EyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQQIDD/EEMAkGBSsOAwIaBQCgggFT
+MBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA2MDIxMzEwMTIzNFow
+IwYJKoZIhvcNAQkEMRYEFGwG3N+QQhXJpybsyvgPNyUUU2VTMHgGCSsGAQQBgjcQBDFrMGkwYjEL
+MAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNV
+BAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBAgMP8QQwegYLKoZIhvcNAQkQ
+Agsxa6BpMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBM
+dGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQQIDD/EEMA0G
+CSqGSIb3DQEBAQUABIGAHscIk+qqXSGnaH2SU5YLHOYehe/+AAuHXgzW3pLQo7NvWS4mi0gYvZWb
+Q5oGCXpaeFr9jzA2sinnejCtZjWrbZSs3LXSfjNsqqxNJnL0LxmcDU4FGWfLn4ARPbRaeRMpStCw
+/2z+EOKZjYGfygwCz+PetgCx8Un7s+N4dVbTBpwAAAAAAAA=
+
+
+--=-RA0Muoik1bhbJr8wOkV+--
