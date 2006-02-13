@@ -1,59 +1,81 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: Linux 2.6.16-rc3
-Date: Mon, 13 Feb 2006 12:38:00 -0800
-Message-ID: <20060213203800.GC22441@kroah.com>
-References: <Pine.LNX.4.64.0602121709240.3691@g5.osdl.org> <20060212190520.244fcaec.akpm@osdl.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH] HPET: handle multiple ACPI EXTENDED_IRQ resources
+Date: Mon, 13 Feb 2006 14:24:28 -0700
+Message-ID: <200602131424.28369.bjorn.helgaas@hp.com>
+References: <200602071650.27379.bjorn.helgaas@hp.com> <20060212225528.GC21804@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-scsi-owner@vger.kernel.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from atlrel9.hp.com ([156.153.255.214]:30899 "EHLO atlrel9.hp.com")
+	by vger.kernel.org with ESMTP id S1030192AbWBMVYc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Feb 2006 16:24:32 -0500
+In-Reply-To: <20060212225528.GC21804@localhost>
 Content-Disposition: inline
-In-Reply-To: <20060212190520.244fcaec.akpm@osdl.org>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: Linus Torvalds <torvalds@osdl.org>, linux-kernel@vger.kernel.org, Jens Axboe <axboe@suse.de>, James Bottomley <James.Bottomley@steeleye.com>, "Brown, Len" <len.brown@intel.com>, "David S. Miller" <davem@davemloft.net>, linux-acpi@vger.kernel.org, linux-usb-devel@lists.sourceforge.net, "Yu, Luming" <luming.yu@intel.com>, Ben Castricum <lk@bencastricum.nl>, sanjoy@mrao.cam.ac.uk, Helge Hafting <helgehaf@aitel.hist.no>, "Carlo E. Prelz" <fluido@fluido.as>, Gerrit Bruchh?user <gbruchhaeuser@gmx.de>, Nicolas.Mailhot@LaPoste.net, Jaroslav Kysela <perex@suse.cz>, Takashi Iwai <tiwai@suse.de>, Patrizio Bassi <patrizio.bassi@gmail.com>, Bj?rn Nilsson <bni.swe@gmail.com>, Andrey Borzenkov <arvidjaar@mail.ru>, "P. Christeas" <p_christ@hol.gr>, ghrt <ghrt@dial.kappa.ro>, jinhong hu <jinhong.hu@gmail.com>, Andrew Vasquez <andrew.vasquez@qlogic.com>, linux-scsi@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bob Picco <bob.picco@hp.com>
+Cc: Bob Picco <robert.picco@hp.com>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Adam Belay <ambx1@neo.rr.com>, Andrew Morton <akpm@osdl.org>, "Randy.Dunlap" <rdunlap@xenotime.net>
 
-On Sun, Feb 12, 2006 at 07:05:20PM -0800, Andrew Morton wrote:
+Andrew, I know it's late in the 2.6.16 cycle, but it would be really
+nice if this patch made it.  Without it, HPETs on new HP boxes don't
+work, so we're going to have to get it in the distros some way or
+another.
+
+On Sunday 12 February 2006 15:55, Bob Picco wrote:
+> Bjorn Helgaas wrote:	[Tue Feb 07 2006, 06:50:27PM EST]
+> > When the _CRS for a single HPET contains multiple EXTENDED_IRQ
+> > resources, we overwrote hdp->hd_nirqs every time we found one.
+> > 
+> > So the driver worked when all the IRQs were described in a
+> > single EXTENDED_IRQ resource, but failed when multiple resources
+> > were used.  (Strictly speaking, I think the latter is actually
+> > more correct, but both styles have been used.)
+> > 
+> > Someday we should remove all the ACPI stuff from hpet.c and use
+> > PNP driver registration instead.  But currently PNP_MAX_IRQ is 2,
+> > and HPETs often have more IRQs.  Hint, hint, Adam :-)
+> > 
+> > Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> > 
+> > Index: work-mm4/drivers/char/hpet.c
+> > ===================================================================
+> > --- work-mm4.orig/drivers/char/hpet.c	2006-02-07 16:18:46.000000000 -0700
+> > +++ work-mm4/drivers/char/hpet.c	2006-02-07 16:29:00.000000000 -0700
+> > @@ -953,22 +953,18 @@
+> >  		}
+> >  	} else if (res->type == ACPI_RESOURCE_TYPE_EXTENDED_IRQ) {
+> >  		struct acpi_resource_extended_irq *irqp;
+> > -		int i;
+> > +		int i, irq;
+> >  
+> >  		irqp = &res->data.extended_irq;
+> >  
+> > -		if (irqp->interrupt_count > 0) {
+> > -			hdp->hd_nirqs = irqp->interrupt_count;
+> > +		for (i = 0; i < irqp->interrupt_count; i++) {
+> > +			irq = acpi_register_gsi(irqp->interrupts[i],
+> > +				      irqp->triggering, irqp->polarity);
+> > +			if (irq < 0)
+> > +				return AE_ERROR;
+> >  
+> > -			for (i = 0; i < hdp->hd_nirqs; i++) {
+> > -				int rc =
+> > -				    acpi_register_gsi(irqp->interrupts[i],
+> > -						      irqp->triggering,
+> > -						      irqp->polarity);
+> > -				if (rc < 0)
+> > -					return AE_ERROR;
+> > -				hdp->hd_irq[i] = rc;
+> > -			}
+> > +			hdp->hd_irq[hdp->hd_nirqs] = irq;
+> > +			hdp->hd_nirqs++;
+> >  		}
+> >  	}
+> >  
 > 
-> We still have some serious bugs, several of which are in 2.6.15 as well:
+> Acked-by: Bob Picco <bob.picco@hp.com>
 > 
-> - Nathan's "sysfs-related oops during module unload", which Greg seems to
->   have under control.
-
-Yes, this isn't a "regression" but has been there for a while.  It can
-also only be triggered by a root user, so it's severity is much lower.
-
-> - Various reports similar to
->   http://bugzilla.kernel.org/show_bug.cgi?id=6011, seemingly related to USB
->   PCI quirk handling.
-
-I have a patch for this, which will be going to Linus later tonight.
-
-> - Nasty warnings from scsi about kobject-layer things being called from
->   irq context.  James has a push-it-to-process-context patch which sadly
->   assumes kmalloc() is immortal, but no other fix seems to have offered
->   itself.
-
-This has been the case for a long time.  I don't really think there is a
-rush to get this fixed, but I really like James's proposed patch.  It's
-up to him if he feels it is ready for 2.6.16 or not.
-
-> - Helge Hafting reports a usb printer regression - I don't know if that's
->   still live?
-
-He never reported back, and one other person who reported this, figured
-out that it was bad ram in the system.  Replacing that fixed the issue.
-I've also printed a lot of stuff here (tax time...) and had no problems.
-
-> - "Carlo E.  Prelz" <fluido@fluido.as> has another USB/ehci regression
->   ("ATI RS480-based motherboard: stuck while booting with kernel >= 2.6.15
->   rc1").
-
-Fixed by the previously mentioned EHCI quirk/handoff patch that will be
-going to Linus.
-
-So, that's it for the USB stuff, thankfully.
-
-thanks,
-
-greg k-h
+> 
