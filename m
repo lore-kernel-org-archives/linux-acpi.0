@@ -1,39 +1,52 @@
-From: Andreas Schwab <schwab@suse.de>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Subject: Re: some new unaligned access while booting ia64 (HP rx2620)
-Date: Mon, 13 Feb 2006 23:57:15 +0100
-Message-ID: <je7j7yc1f8.fsf@sykes.suse.de>
-References: <971FCB6690CD0E4898387DBF7552B90E0452B0D7@orsmsx403.amr.corp.intel.com>
-	<43F0D526.5010806@suse.de> <200602131533.53905.bjorn.helgaas@hp.com>
+Date: Mon, 13 Feb 2006 17:22:28 -0700
+Message-ID: <200602131722.28703.bjorn.helgaas@hp.com>
+References: <971FCB6690CD0E4898387DBF7552B90E0452B0D7@orsmsx403.amr.corp.intel.com> <200602131533.53905.bjorn.helgaas@hp.com> <je7j7yc1f8.fsf@sykes.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <200602131533.53905.bjorn.helgaas@hp.com> (Bjorn Helgaas's
-	message of "Mon, 13 Feb 2006 15:33:53 -0700")
-Sender: linux-ia64-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Thomas Renninger <trenn@suse.de>, "Moore, Robert" <robert.moore@intel.com>, "Luck, Tony" <tony.luck@intel.com>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from atlrel9.hp.com ([156.153.255.214]:62636 "EHLO atlrel9.hp.com")
+	by vger.kernel.org with ESMTP id S1030333AbWBNAWa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Feb 2006 19:22:30 -0500
+In-Reply-To: <je7j7yc1f8.fsf@sykes.suse.de>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andreas Schwab <schwab@suse.de>
+Cc: Thomas Renninger <trenn@suse.de>, "Moore, Robert" <robert.moore@intel.com>, "Luck, Tony" <tony.luck@intel.com>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
 
-Bjorn Helgaas <bjorn.helgaas@hp.com> writes:
+On Monday 13 February 2006 15:57, Andreas Schwab wrote:
+> Bjorn Helgaas <bjorn.helgaas@hp.com> writes:
+> > I looked at both of those paths, and I don't see anything wrong.  I
+> > tried unsuccessfully to reproduce it with an rc1-mm4 kernel on an
+> > rx2600. 
+> 
+> Please try rx7620 or rx8640.  Apparently this only happens on the NUMA
+> systems.
 
-> I looked at both of those paths, and I don't see anything wrong.  I
-> tried unsuccessfully to reproduce it with an rc1-mm4 kernel on an
-> rx2600.=20
+While I was reading your mail, I was booting an rx7620 for something else.
+When I looked at it again, it was spewing the slab errors :-)
 
-Please try rx7620 or rx8640.  Apparently this only happens on the NUMA
-systems.
+I don't have time to debug it completely today, but it looks like the
+conversion of an AML vendor resource is overrunning the buffer.  p1
+and p2 are pointers to the redzones before and after the object.
+0x170fc2a5 is the correct value:
 
-Andreas.
+acpi_rs_create_resource_list: p1 0xe0000007fc1518f0 p2 0xe0000007fc1519f8
+acpi_rs_create_resource_list: *p1 0x170fc2a5 *p2 0x170fc2a5
+acpi_rs_convert_aml_to_resources: p1 0xe0000007fc1518f0 p2 0xe0000007fc1519f8
+acpi_rs_convert_aml_to_resources: *p1 0x170fc2a5 *p2 0x170fc2a5
+acpi_rs_convert_aml_to_resources: before converting AML resource 0x88: *p1 0x170fc2a5 *p2 0x170fc2a5
+acpi_rs_convert_aml_to_resources: before converting AML resource 0x8a: *p1 0x170fc2a5 *p2 0x170fc2a5
+acpi_rs_convert_aml_to_resources: before converting AML resource 0x8a: *p1 0x170fc2a5 *p2 0x170fc2a5
+acpi_rs_convert_aml_to_resources: before converting AML resource 0x84: *p1 0x170fc2a5 *p2 0x170fc2a5
+acpi_rs_convert_aml_to_resources: before converting AML resource 0x84: *p1 0x170fc2a5 *p2 0x170fc2a5
+acpi_rs_convert_aml_to_resources: before converting AML resource 0x79: *p1 0x170fc2a5 *p2 0xf901001a00000028
 
---=20
-Andreas Schwab, SuSE Labs, schwab@suse.de
-SuSE Linux Products GmbH, Maxfeldstra=DFe 5, 90409 N=FCrnberg, Germany
-PGP key fingerprint =3D 58CA 54C7 6D53 942B 1756  01D3 44D5 214B 8276 4=
-ED5
-"And now for something completely different."
--
-To unsubscribe from this list: send the line "unsubscribe linux-ia64" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+AML resource type 0x84 is a vendor-defined descriptor.  This makes sense
+because rx7620 and rx8620 have large vendor-defined descriptors, while
+the smaller boxes like rx2600 do not.
