@@ -1,48 +1,36 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: Compaq X1050 multiple suspend problems (ACPI, PS2)
-Date: Tue, 14 Feb 2006 11:19:23 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F840AEE1EB2@pdsmsx403>
+From: Lee Revell <rlrevell@joe-job.com>
+Subject: Re: Linux 2.6.16-rc3
+Date: Mon, 13 Feb 2006 22:30:56 -0500
+Message-ID: <1139887857.11659.28.camel@mindpipe>
+References: <F7DC2337C7631D4386A2DF6E8FB22B30060BD1D9@hdsmsx401.amr.corp.intel.com>
+	 <20060213001240.05e57d42.akpm@osdl.org>
+	 <1139821068.2997.22.camel@laptopd505.fenrus.org>
+	 <20060214030821.GA23031@mail.harddata.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr19.intel.com ([134.134.136.18]:13224 "EHLO
-	orsfmr004.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1750783AbWBNDTd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Feb 2006 22:19:33 -0500
-Content-class: urn:content-classes:message
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <20060214030821.GA23031@mail.harddata.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Michal Jaegermann <michal@harddata.com>
+Cc: Arjan van de Ven <arjan@infradead.org>, Andrew Morton <akpm@osdl.org>, "Brown, Len" <len.brown@intel.com>, davem@davemloft.net, torvalds@osdl.org, linux-kernel@vger.kernel.org, axboe@suse.de, James.Bottomley@steeleye.com, greg@kroah.com, linux-acpi@vger.kernel.org, linux-usb-devel@lists.sourceforge.net, luming.yu@intel.com, lk@bencastricum.nl, sanjoy@mrao.cam.ac.uk, helgehaf@aitel.hist.no, fluido@fluido.as, gbruchhaeuser@gmx.de, Nicolas.Mailhot@LaPoste.net, perex@suse.cz, tiwai@suse.de, patrizio.bassi@gmail.com, bni.swe@gmail.com, arvidjaar@mail.ru, p_christ@hol.gr, ghrt@dial.kappa.ro, jinhong.hu@gmail.com, andrew.vasquez@qlogic.com, linux-scsi@vger.kernel.org, bcrl@kvack.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Hancock <hancockr@shaw.ca>
-Cc: Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
 
+On Mon, 2006-02-13 at 20:08 -0700, Michal Jaegermann wrote:
+> On Mon, Feb 13, 2006 at 09:57:48AM +0100, Arjan van de Ven wrote:
+> > On Mon, 2006-02-13 at 00:12 -0800, Andrew Morton wrote:
+> > > 
+> > > I think we can assume that it will be seen there.  2.6.16 is going into
+> > > distros and will have more exposure than 2.6.15, 
+> > 
+> > 2.6.15 went into distros as well, such as Fedora Core 4 ;)
+> 
+> And promptly broke laptop suspension.  See, for example:
+> https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=180998
 
->No luck with 2.6.16-rc3. Slightly different messages, but still ACPI 
->complaints about EC, battery status polling fails and the 
->keyboard loses 
->characters after resume. Full dmesg attached.
->
-Do you have such issues before resume?
-What about ec_intr=0?
+It broke suspension on YOUR laptop - the bug report does not give a make
+and model.  2.6.15 would not have shipped if it broke suspend on the
+developers' laptops.
 
-I found "ACPI: read EC, IB not empty" in the dmesg.
-Could you try this against 2.6.16-rc3
+Lee
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 79b09d7..c4c9ded 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -51,7 +51,7 @@ ACPI_MODULE_NAME("acpi_ec")
- #define ACPI_EC_FLAG_SCI       0x20    /* EC-SCI occurred */
- #define ACPI_EC_EVENT_OBF      0x01    /* Output buffer full */
- #define ACPI_EC_EVENT_IBE      0x02    /* Input buffer empty */
--#define ACPI_EC_DELAY          50      /* Wait 50ms max. during EC ops
-*/
-+#define ACPI_EC_DELAY          100     /* Wait 50ms max. during EC ops
-*/
- #define ACPI_EC_UDELAY_GLK     1000    /* Wait 1ms max. to get global
-lock */
- #define ACPI_EC_UDELAY         100     /* Poll @ 100us increments */
- #define ACPI_EC_UDELAY_COUNT   1000    /* Wait 10ms max. during EC ops
-*/
