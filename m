@@ -1,55 +1,48 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH] ACPI: fix vendor resource length computation
-Date: Tue, 14 Feb 2006 16:13:09 -0700
-Message-ID: <200602141613.09152.bjorn.helgaas@hp.com>
-References: <971FCB6690CD0E4898387DBF7552B90E0452B0D7@orsmsx403.amr.corp.intel.com> <je7j7yc1f8.fsf@sykes.suse.de> <200602131722.28703.bjorn.helgaas@hp.com>
+From: Robert Hancock <hancockr@shaw.ca>
+Subject: Re: Compaq X1050 multiple suspend problems (ACPI, PS2)
+Date: Tue, 14 Feb 2006 17:13:40 -0600
+Message-ID: <43F26424.8040708@shaw.ca>
+References: <3ACA40606221794F80A5670F0AF15F840AEE20B9@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <200602131722.28703.bjorn.helgaas@hp.com>
-Content-Disposition: inline
-Sender: linux-ia64-owner@vger.kernel.org
-To: Andreas Schwab <schwab@suse.de>
-Cc: Thomas Renninger <trenn@suse.de>, "Moore, Robert" <robert.moore@intel.com>, "Luck, Tony" <tony.luck@intel.com>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, Andrew Morton <akpm@osdl.org>, efocht@hpce.nec.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from shawidc-mo1.cg.shawcable.net ([24.71.223.10]:42712 "EHLO
+	pd2mo2so.prod.shaw.ca") by vger.kernel.org with ESMTP
+	id S1422869AbWBNXNm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 14 Feb 2006 18:13:42 -0500
+In-reply-to: <3ACA40606221794F80A5670F0AF15F840AEE20B9@pdsmsx403>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Yu, Luming" <luming.yu@intel.com>
+Cc: Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
 
-acpi_rs_get_list_length() needs to account for all the vendor-defined
-data bytes.  Failing to include these causes buffers to be sized too
-small, which causes slab corruption when we later convert AML to
-resources and run off the end of the buffer.
+No difference there either.. The contents of 
+/proc/acpi/embedded_controller/C0EA/info both before and after suspend are:
 
-I'm no expert on this code, so please scrutinize this carefully.
+gpe bit:                 0x1c
+ports:                   0x66, 0x62
+use global lock:         no
 
-This causes slab corruption on machines that use ACPI vendor-defined
-resources.  All HP ia64 machines do, and I'm told that some NEC
-machines may as well.  So if the fix is correct, it would be good
-to have it in 2.6.16.
+I'll open a Bugzilla report.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-
-Index: work-mm4/drivers/acpi/resources/rscalc.c
-===================================================================
---- work-mm4.orig/drivers/acpi/resources/rscalc.c	2006-02-14 13:32:50.000000000 -0700
-+++ work-mm4/drivers/acpi/resources/rscalc.c	2006-02-14 13:33:25.000000000 -0700
-@@ -391,8 +391,7 @@
- 			 * Ensure a 32-bit boundary for the structure
- 			 */
- 			extra_struct_bytes =
--			    ACPI_ROUND_UP_to_32_bITS(resource_length) -
--			    resource_length;
-+			    ACPI_ROUND_UP_to_32_bITS(resource_length);
- 			break;
- 
- 		case ACPI_RESOURCE_NAME_END_TAG:
-@@ -408,8 +407,7 @@
- 			 * Add vendor data and ensure a 32-bit boundary for the structure
- 			 */
- 			extra_struct_bytes =
--			    ACPI_ROUND_UP_to_32_bITS(resource_length) -
--			    resource_length;
-+			    ACPI_ROUND_UP_to_32_bITS(resource_length);
- 			break;
- 
- 		case ACPI_RESOURCE_NAME_ADDRESS32:
+Yu, Luming wrote:
+>> I have not seen any ACPI errors other than during suspend/resume.
+>>
+>> Tried ec_intr=0 option on the command line, same problem.
+>>
+>> ACPI_EC_DELAY=100 patch did not help either, same or at least similar 
+>> problem. Output attached.
+>>
+> 
+> Please try boot with lapic. I'm NOT sure if it is irq related resume
+> issue.
+> After resume, please try cat /proc/acpi/embedded_controller/*/info.
+> Please test if it do the trick.
+> 
+> If still not, please file a bug in ACPI category on bugzilla.kernel.org.
+> 
+> 
+> Thanks,
+> Luming
+> 
