@@ -1,51 +1,52 @@
-From: Pavel Troller <patrol@sinus.cz>
-Subject: Another motherboard with broken processor ACPI
-Date: Wed, 15 Feb 2006 14:53:10 +0100
-Message-ID: <20060215135310.GA4587@tangens.sinus.cz>
-Reply-To: Pavel Troller <patrol@sinus.cz>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH, RFC] [1/3] Generic in-kernel AC status
+Date: Wed, 15 Feb 2006 16:04:45 +0100
+Message-ID: <43F3430D.1010002@suse.de>
+References: <20060208125753.GA25562@srcf.ucam.org> <20060210121913.GA4974@elf.ucw.cz> <43F216FE.7050101@suse.de> <200602142117.31232.rjw@sisk.pl> <43F3206B.6090902@suse.de> <20060215124729.GA10968@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tangens.sinus.cz ([195.39.17.8]:33189 "EHLO tangens.sinus.cz")
-	by vger.kernel.org with ESMTP id S1945945AbWBONxM (ORCPT
+Received: from mail.suse.de ([195.135.220.2]:57748 "EHLO mx1.suse.de")
+	by vger.kernel.org with ESMTP id S1945957AbWBOPEr (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Feb 2006 08:53:12 -0500
-Received: from tangens.sinus.cz (patrol@localhost [127.0.0.1])
-	by tangens.sinus.cz (8.13.5/8.13.5) with ESMTP id k1FDrACG012097
-	for <linux-acpi@vger.kernel.org>; Wed, 15 Feb 2006 14:53:10 +0100
-Received: (from patrol@localhost)
-	by tangens.sinus.cz (8.13.5/8.13.5/Submit) id k1FDrAEE012096
-	for linux-acpi@vger.kernel.org; Wed, 15 Feb 2006 14:53:10 +0100
-Content-Disposition: inline
+	Wed, 15 Feb 2006 10:04:47 -0500
+In-Reply-To: <20060215124729.GA10968@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Pavel Machek <pavel@suse.cz>, Stefan Seyfried <seife@suse.de>, linux-pm@lists.osdl.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi!
-  Because one of my motherboards exhibited some stability problems, I've
-decided to try a new one. And because I wanted to keep all the remaining
-components like CPU and RAM, I've bought the probably last 32bit Athlon
-board from MSI with VIA KT880 chipset.
-  On a box of the board, there are many pictures and texts saying how much
-is that board good in power saving, that its new technology allows saving
-about 65% of energy etc. etc, that the clock of the CPU can be reduced at
-idle times etc. Of course there is a CD with windoze programs allowing to do
-all this magic, there are screenshots in the manual, how to achive all this.
-  After installation, I've found that the board is almost compatible with
-my older one. Just a new module for ethernet had to be compiled. But when
-I looked at /proc/acpi/processor/CPU1/power, it was very similar to the
-picture so many times discussed here: Just C1 detected and used.
-  I dumped my FADT and found the obvious trick: P2_LVL_LAT = 101,
-P3_LVL_LAT = 1001. OK. BUT... my acpi/processor.h is patched, allowing to
-enter deeper C states even for latencies being so high! Why the hell it's
-not recognizing them now ? OK, no bus master, so no C3, but what about C2 ?
-It's definitly something out of FADT, because I've compared it with the old
-one and except some addresses they are identical.
-  I also tried to activate athcool.. It said it did its work but there is
-no impact to the CPU temperature, which is all the time at about 60C...
-Other CPU acpi features like throttling or limit interface, are disabled too.
-  So in Linux, this mobo is a real power-sucker :-(.
-  You can really see that the motherboard vendors are bypassing the standard
-methods of resources control (i.e. ACPI) and they are doing things by their
-proprietary interfaces, available for selected OSes only :-(((.
-                                         With regards, Pavel Troller
+Matthew Garrett wrote:
+> On Wed, Feb 15, 2006 at 01:36:59PM +0100, Thomas Renninger wrote:
+> 
+>> Maybe I oversaw an issue, but I really don't see a reason for connecting
+>> the brightness to ac in kernel space.
+> 
+> The backlight class maintainer specified that /sys/../brightness should 
+Who's that? Is there more info/spec available?
+> return the *current* brightness. In some cases that's impossible without 
+> knowing the ac status.
+> 
+Ok.
+The ac/battery status is used to guess the current brightness? Please
+do not set suggested values automatically, IMO this is not a nice feature...
+I am really looking forward to see a general /sys/../brightness.
+Thanks a lot for working on this!
+Just an idea for later:
+Beside min/max there probably should be a /sys/../brightness_bat 
+and /sys/../brightness_ac.
+- If ac/battery brightness will not be set by kernel, userspace can write the
+  right value to /sys/../brightness and the above two can be readonly.
+- If ac/battery brightness will be set by kernel the above two should even be
+  writeable so that people can avoid the need of pressing "brightness up"
+  button without hacking the kernel.
+
+I vote for letting userspace doing the stuff..., e.g. changing brightness behind
+the back of some userspace tool will result in userspace tools starting to
+poll.
+
+Comments?
+
+    Thomas
+
