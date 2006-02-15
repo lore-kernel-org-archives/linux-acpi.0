@@ -1,43 +1,51 @@
-From: Renato Golin <rengolin@gmail.com>
-Subject: Re: Toshiba Equium L20
-Date: Wed, 15 Feb 2006 13:36:45 +0000
-Message-ID: <d9b9d95f0602150536y49e9534bu6a7e18cad686e5ab@mail.gmail.com>
-References: <1140001153.8856.1.camel@localhost>
-	 <d9b9d95f0602150520j72e0e89ai883f1118cd662c65@mail.gmail.com>
+From: Pavel Troller <patrol@sinus.cz>
+Subject: Another motherboard with broken processor ACPI
+Date: Wed, 15 Feb 2006 14:53:10 +0100
+Message-ID: <20060215135310.GA4587@tangens.sinus.cz>
+Reply-To: Pavel Troller <patrol@sinus.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wproxy.gmail.com ([64.233.184.205]:55703 "EHLO wproxy.gmail.com")
-	by vger.kernel.org with ESMTP id S1945938AbWBONgt convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Feb 2006 08:36:49 -0500
-Received: by wproxy.gmail.com with SMTP id 36so112376wra
-        for <linux-acpi@vger.kernel.org>; Wed, 15 Feb 2006 05:36:48 -0800 (PST)
-In-Reply-To: <d9b9d95f0602150520j72e0e89ai883f1118cd662c65@mail.gmail.com>
+Received: from tangens.sinus.cz ([195.39.17.8]:33189 "EHLO tangens.sinus.cz")
+	by vger.kernel.org with ESMTP id S1945945AbWBONxM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Feb 2006 08:53:12 -0500
+Received: from tangens.sinus.cz (patrol@localhost [127.0.0.1])
+	by tangens.sinus.cz (8.13.5/8.13.5) with ESMTP id k1FDrACG012097
+	for <linux-acpi@vger.kernel.org>; Wed, 15 Feb 2006 14:53:10 +0100
+Received: (from patrol@localhost)
+	by tangens.sinus.cz (8.13.5/8.13.5/Submit) id k1FDrAEE012096
+	for linux-acpi@vger.kernel.org; Wed, 15 Feb 2006 14:53:10 +0100
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-Sorry for the spam again, but the kernel 2.6.15.4 have some
-differences on the methods I saw.
-
-On parser/psparse.c, function acpi_ps_parse_aml:
-
-status = acpi_ds_call_control_method(thread, walk_state, NULL);
-(...)
-} else if ((status != AE_OK) && (walk_state->method_desc)) {
-  ACPI_REPORT_METHOD_ERROR("Method execution failed",
-walk_state->method_node, NULL, status);
-
-
-On dispatcher/dsmethod.c, function acpi_ds_call_control_method
-
-still no AE_NOT_FOUND ...
-
-Btw, I'm going to post now on my site my dmesgs/lspci/ifconfig for
-kernel 2.6.15 with and without acpi.
-
-cheers,
---rengolin
+Hi!
+  Because one of my motherboards exhibited some stability problems, I've
+decided to try a new one. And because I wanted to keep all the remaining
+components like CPU and RAM, I've bought the probably last 32bit Athlon
+board from MSI with VIA KT880 chipset.
+  On a box of the board, there are many pictures and texts saying how much
+is that board good in power saving, that its new technology allows saving
+about 65% of energy etc. etc, that the clock of the CPU can be reduced at
+idle times etc. Of course there is a CD with windoze programs allowing to do
+all this magic, there are screenshots in the manual, how to achive all this.
+  After installation, I've found that the board is almost compatible with
+my older one. Just a new module for ethernet had to be compiled. But when
+I looked at /proc/acpi/processor/CPU1/power, it was very similar to the
+picture so many times discussed here: Just C1 detected and used.
+  I dumped my FADT and found the obvious trick: P2_LVL_LAT = 101,
+P3_LVL_LAT = 1001. OK. BUT... my acpi/processor.h is patched, allowing to
+enter deeper C states even for latencies being so high! Why the hell it's
+not recognizing them now ? OK, no bus master, so no C3, but what about C2 ?
+It's definitly something out of FADT, because I've compared it with the old
+one and except some addresses they are identical.
+  I also tried to activate athcool.. It said it did its work but there is
+no impact to the CPU temperature, which is all the time at about 60C...
+Other CPU acpi features like throttling or limit interface, are disabled too.
+  So in Linux, this mobo is a real power-sucker :-(.
+  You can really see that the motherboard vendors are bypassing the standard
+methods of resources control (i.e. ACPI) and they are doing things by their
+proprietary interfaces, available for selected OSes only :-(((.
+                                         With regards, Pavel Troller
