@@ -1,48 +1,90 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH, RFC] [1/3] Generic in-kernel AC status
-Date: Wed, 15 Feb 2006 12:47:29 +0000
-Message-ID: <20060215124729.GA10968@srcf.ucam.org>
-References: <20060208125753.GA25562@srcf.ucam.org>
-	<20060210121913.GA4974@elf.ucw.cz> <43F216FE.7050101@suse.de>
-	<200602142117.31232.rjw@sisk.pl> <43F3206B.6090902@suse.de>
+From: Renato Golin <rengolin@gmail.com>
+Subject: Re: Toshiba Equium L20
+Date: Wed, 15 Feb 2006 13:20:20 +0000
+Message-ID: <d9b9d95f0602150520j72e0e89ai883f1118cd662c65@mail.gmail.com>
+References: <1140001153.8856.1.camel@localhost>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============082156322930274861=="
-Return-path: <linux-pm-bounces@lists.osdl.org>
-In-Reply-To: <43F3206B.6090902@suse.de>
-List-Unsubscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
-List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.osdl.org>
-List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
-List-Subscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.osdl.org
-Errors-To: linux-pm-bounces@lists.osdl.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-acpi@vger.kernel.org, Stefan Seyfried <seife@suse.de>, linux-pm@lists.osdl.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from wproxy.gmail.com ([64.233.184.206]:14485 "EHLO wproxy.gmail.com")
+	by vger.kernel.org with ESMTP id S1945934AbWBONUW convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Feb 2006 08:20:22 -0500
+Received: by wproxy.gmail.com with SMTP id i2so107191wra
+        for <linux-acpi@vger.kernel.org>; Wed, 15 Feb 2006 05:20:21 -0800 (PST)
+In-Reply-To: <1140001153.8856.1.camel@localhost>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
---===============082156322930274861==
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Just one more information i got from my 2.6.12-10 kernel's source. I'm
+not a kernel hacker but I could find some points that it may be
+calling that error messages.
 
-On Wed, Feb 15, 2006 at 01:36:59PM +0100, Thomas Renninger wrote:
+What I got is that both errors on parser/psparse.c and
+utilities/uteval.c call the acpi_ns_report_error with the message
+"Method execution failed" that's why we see that particular order on
+/var/log/messages.
 
-> Maybe I oversaw an issue, but I really don't see a reason for connecting
-> the brightness to ac in kernel space.
+As far as I can tell, it can only be one of those two errors:
+acpi_ps_parse_loop or acpi_ns_evaluate_relative. Couldn't be
+acpi_ns_evaluate_relative because it have a special treatment for
+AE_NOT_FOUND and the error message is different, thus it must be on
+acpi_ps_parse_loop.
 
-The backlight class maintainer specified that /sys/../brightness should 
-return the *current* brightness. In some cases that's impossible without 
-knowing the ac status.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
-
---===============082156322930274861==
-Content-Type: text/plain; charset="iso-8859-1"
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Also, I noted that acpi_ps_parse_loop has no special treatment for
+AE_NOT_FOUND and also does not return it by it's own, so it's probably
+returned by some methods it calls.
 
 
---===============082156322930274861==--
+Now, for the code snippets:
+
+  - drivers/acpi/parser/psparse.c:1112 - 1138
+
+    while (walk_state) {
+        if (ACPI_SUCCESS (status)) {
+            /*
+             * The parse_loop executes AML until the method terminates
+             * or calls another method.
+             */
+            status = acpi_ps_parse_loop (walk_state);
+        }
+(...)
+        if (status == AE_CTRL_TRANSFER) {
+(...)
+       else if ((status != AE_OK) && (walk_state->method_desc)) {
+            ACPI_REPORT_METHOD_ERROR ("Method execution failed",
+                walk_state->method_node, NULL, status);
+
+
+  - drivers/acpi/utilities/uteval.c:150 - 162
+
+    status = acpi_ns_evaluate_relative (path, &info);
+    if (ACPI_FAILURE (status)) {
+        if (status == AE_NOT_FOUND) {
+            ACPI_DEBUG_PRINT ((ACPI_DB_EXEC, "[%4.4s.%s] was not found\n",
+                acpi_ut_get_node_name (prefix_node), path));
+        }
+        else {
+            ACPI_REPORT_METHOD_ERROR ("Method execution failed",
+                prefix_node, path, status);
+        }
+
+        return_ACPI_STATUS (status);
+    }
+
+
+  - drivers/acpi/namespace/nsutils.c:70
+
+void
+acpi_ns_report_error (...)
+(...)
+    acpi_os_printf ("%8s-%04d: *** Error: Looking up ",
+        module_name, line_number);
+
+
+
+cheers,
+--rengolin
