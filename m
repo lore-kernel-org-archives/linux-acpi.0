@@ -1,67 +1,32 @@
 From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [PATCH, RFC] [1/3] Generic in-kernel AC status
-Date: Thu, 16 Feb 2006 23:44:40 +0100
-Message-ID: <20060216224439.GL3490@openzaurus.ucw.cz>
-References: <20060208125753.GA25562@srcf.ucam.org>
-	<20060210121913.GA4974@elf.ucw.cz> <43F216FE.7050101@suse.de>
-	<200602142117.31232.rjw@sisk.pl> <43F3206B.6090902@suse.de>
+Subject: Re: Linux 2.6.16-rc3
+Date: Fri, 17 Feb 2006 00:04:18 +0100
+Message-ID: <20060216230418.GN3490@openzaurus.ucw.cz>
+References: <F7DC2337C7631D4386A2DF6E8FB22B30060BD1D9@hdsmsx401.amr.corp.intel.com> <20060213001240.05e57d42.akpm@osdl.org> <1139821068.2997.22.camel@laptopd505.fenrus.org> <20060214030821.GA23031@mail.harddata.com> <20060213192838.64013c6c.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============34846981832221879=="
-Return-path: <linux-pm-bounces@lists.osdl.org>
-In-Reply-To: <43F3206B.6090902@suse.de>
-List-Unsubscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
-List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.osdl.org>
-List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
-List-Subscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.osdl.org
-Errors-To: linux-pm-bounces@lists.osdl.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, linux-pm@lists.osdl.org, Stefan Seyfried <seife@suse.de>, linux-kernel@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-
---===============34846981832221879==
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751236AbWBRMzn@vger.kernel.org>
 Content-Disposition: inline
+In-Reply-To: <20060213192838.64013c6c.akpm@osdl.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: Michal Jaegermann <michal@harddata.com>, Dave Jones <davej@codemonkey.org.uk>, arjan@infradead.org, len.brown@intel.com, davem@davemloft.net, torvalds@osdl.org, linux-kernel@vger.kernel.org, axboe@suse.de, James.Bottomley@steeleye.com, greg@kroah.com, linux-acpi@vger.kernel.org, linux-usb-devel@lists.sourceforge.net, luming.yu@intel.com, lk@bencastricum.nl, sanjoy@mrao.cam.ac.uk, helgehaf@aitel.hist.no, fluido@fluido.as, gbruchhaeuser@gmx.de, Nicolas.Mailhot@LaPoste.net, perex@suse.cz, tiwai@suse.de, patrizio.bassi@gmail.com, bni.swe@gmail.com, arvidjaar@mail.ru, p_christ@hol.gr, ghrt@dial.kappa.ro, jinhong.hu@gmail.com, andrew.vasquez@qlogic.com, linux-scsi@vger.kernel.org, bcrl@kvack.org
+List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> >This is not true as far as my box is concerned 
-> >(Asus L5D).  It starts with
-> >the _highest_ clock available.
-> Hmm, but then there shouldn't be any critical 
-> overheat problems and if,
-> the hardware has to switch off the machine 
-> hard. OS always could freeze,
-> but the battery must not start to burn...
+> That's suspend-to-disk, yes?
+> 
+> Dave, would you have the 2.6.15-1.1830_FC4 -> 2.6.15-1.1831_FC4 details
+> handy?  There surely can't be much difference?
+> 
+> There seem to be several ACPI problems there.  Do we have a reliable means
+> of feeding such reports up into the (for example) acpi developers?
+> 
+> <I have this vaguely unsettled feeling that distros must get more bug
+> reports than the usptream developers, yet we hear so little about it>
 
-I told that to hw designers... too late. Fortunately batteries usually
-only crash machine if you overload them.
-
-> IMO, the /sys/.../brightness patch should go in 
-> as soon as possible, I think
-> all everybody agrees here?
-
-Yep.
-
-> Maybe I oversaw an issue, but I really don't 
-> see a reason for connecting
-> the brightness to ac in kernel space.
-
-We are not going to connect it. But to implement .../brightness, you need to
-know ac/battery on several "broken" notebooks.
-
+Its about 1:1 upstream:suse bugs for me... Unfortunately
+suse bugs are often for old kernel...
 -- 
 64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
-
-
---===============34846981832221879==
-Content-Type: text/plain; charset="iso-8859-1"
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-
-
---===============34846981832221879==--
