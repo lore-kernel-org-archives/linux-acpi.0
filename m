@@ -1,68 +1,71 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: [2.6 patch] ACPI should depend on, not select PCI
-Date: Thu, 16 Feb 2006 21:32:30 +0100
-Message-ID: <20060216203229.GB3694@stusta.de>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] ACPI: fix vendor resource length computation
+Date: Thu, 16 Feb 2006 14:54:03 -0800
+Message-ID: <971FCB6690CD0E4898387DBF7552B90E0461225F@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout.stusta.mhn.de ([141.84.69.5]:28173 "HELO
-	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
-	id S932353AbWBPUcb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 16 Feb 2006 15:32:31 -0500
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Content-class: urn:content-classes:message
+Sender: linux-ia64-owner@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>, "Luck, Tony" <tony.luck@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Andreas Schwab <schwab@suse.de>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, Andrew Morton <akpm@osdl.org>, efocht@hpce.nec.com
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-ACPI should depend on, not select PCI.
+I recently added a new interface to ACPICA to support this kind of
+debugging. It enables/disables debug for a specific control method:
 
-Otherwise, illegal configurations like X86_VOYAGER=y, PCI=y are 
-possible.
+ACPI_STATUS
+AcpiDebugTrace (
+    char                    *Name,
+    UINT32                  DebugLevel,
+    UINT32                  DebugLayer,
+    UINT32                  Flags);
 
-This patch also fixes the options select'ing ACPI to also select PCI.
+It would be nice to see this exposed in Linux somehow.
+
+Bob
 
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-
----
-
- arch/ia64/Kconfig    |    1 +
- arch/x86_64/Kconfig  |    1 +
- drivers/acpi/Kconfig |    3 +--
- 3 files changed, 3 insertions(+), 2 deletions(-)
-
---- linux-2.6.16-rc3-mm1-full/drivers/acpi/Kconfig.old	2006-02-16 21:21:23.000000000 +0100
-+++ linux-2.6.16-rc3-mm1-full/drivers/acpi/Kconfig	2006-02-16 21:21:42.000000000 +0100
-@@ -10,9 +10,8 @@
- config ACPI
- 	bool "ACPI Support"
- 	depends on IA64 || X86
-+	depends on PCI
- 	select PM
--	select PCI
--
- 	default y
- 	---help---
- 	  Advanced Configuration and Power Interface (ACPI) support for 
---- linux-2.6.16-rc3-mm1-full/arch/ia64/Kconfig.old	2006-02-16 21:21:52.000000000 +0100
-+++ linux-2.6.16-rc3-mm1-full/arch/ia64/Kconfig	2006-02-16 21:22:08.000000000 +0100
-@@ -73,6 +73,7 @@
- config IA64_GENERIC
- 	bool "generic"
- 	select ACPI
-+	select PCI
- 	select NUMA
- 	select ACPI_NUMA
- 	help
---- linux-2.6.16-rc3-mm1-full/arch/x86_64/Kconfig.old	2006-02-16 21:22:19.000000000 +0100
-+++ linux-2.6.16-rc3-mm1-full/arch/x86_64/Kconfig	2006-02-16 21:23:39.000000000 +0100
-@@ -285,6 +285,7 @@
-        bool "ACPI NUMA detection"
-        depends on NUMA
-        select ACPI 
-+	select PCI
-        select ACPI_NUMA
-        default y
-        help
-
+> -----Original Message-----
+> From: Thomas Renninger [mailto:trenn@suse.de]
+> Sent: Thursday, February 16, 2006 12:59 AM
+> To: Luck, Tony
+> Cc: Moore, Robert; Bjorn Helgaas; Andreas Schwab; Brown, Len; linux-
+> acpi@vger.kernel.org; linux-ia64@vger.kernel.org; Andrew Morton;
+> efocht@hpce.nec.com
+> Subject: Re: [PATCH] ACPI: fix vendor resource length computation
+> 
+> Luck, Tony wrote:
+> >> I'm working on the alignment issue also, should be a fix this week.
+> >
+> > With Bjorn's tip on using console=uart,mmio,0x{address} I can now
+> > get a complete trace from boot using acpi_dbg_level = 0xffffff ...
+> > well in theory I can, I started the boot two days ago and have
+> > 2.2 million lines of output so far, and it is still going!  Now
+> > I'm just curious as to whether this will actually complete, but
+> > if it doesn't do so in the next few days I'll have to abort the
+> > boot and get back to using that system for regression testing on
+> > other patches.
+> >
+> > Sadly, I think that using the "console=uart,..." flag may have
+> > caused the kernel to skip the bit of acpi probing that caused the
+> > unaligned traps, as I don't see any "unaligned" messages in the
+> > output so far ... so this might be a completely futile exercise.
+> >
+> Better don't use the boot parameters. Try to identify at which point
+> the culprit might lie and then embed the code you like to
+> debug in the sources into:
+> acpi_dbg_level=0xXY (whatever debug level, avoid mutex and other
+>                         unnecessary stuff you don't need)
+> ... bad code to debug
+> 
+> acpi_dbg_level=0xF
+> 
+> I expect the output will never end, there will pop up an acpi
+interrupt
+> or some polling is done by ACPI and you are trapped in endless
+output...
+> 
+>     Thomas
