@@ -1,37 +1,31 @@
-From: Helge Hafting <helge.hafting@aitel.hist.no>
-Subject: Re: Linux 2.6.16-rc3
-Date: Sat, 18 Feb 2006 22:06:39 +0100
-Message-ID: <43F78C5F.4030504@aitel.hist.no>
-References: <Pine.LNX.4.64.0602121709240.3691@g5.osdl.org> <20060212190520.244fcaec.akpm@osdl.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from embla.aitel.hist.no ([158.38.50.22]:32677 "HELO
-	embla.aitel.hist.no") by vger.kernel.org with SMTP id S932172AbWBRVGs
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 18 Feb 2006 16:06:48 -0500
-In-Reply-To: <20060212190520.244fcaec.akpm@osdl.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Subject: Re: [linux-usb-devel] Re: Linux 2.6.16-rc3
+Date: Sat, 18 Feb 2006 23:20:15 +0000
+Message-ID: <E1FAbN9-0003T2-00@skye.ra.phy.cam.ac.uk>
+References: <3ACA40606221794F80A5670F0AF15F840AF2824B@pdsmsx403>
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: Your message of "Wed, 15 Feb 2006 13:58:51 +0800."
+             <3ACA40606221794F80A5670F0AF15F840AF2824B@pdsmsx403>
+Sender: linux-scsi-owner@vger.kernel.org
+To: "Yu, Luming" <luming.yu@intel.com>
+Cc: "Brown, Len" <len.brown@intel.com>, "David S. Miller" <davem@davemloft.net>, akpm@osdl.org, torvalds@osdl.org, linux-kernel@vger.kernel.org, axboe@suse.de, James.Bottomley@steeleye.com, greg@kroah.com, linux-acpi@vger.kernel.org, linux-usb-devel@lists.sourceforge.net, lk@bencastricum.nl, helgehaf@aitel.hist.no, fluido@fluido.as, gbruchhaeuser@gmx.de, Nicolas.Mailhot@LaPoste.net, perex@suse.cz, tiwai@suse.de, patrizio.bassi@gmail.com, bni.swe@gmail.com, arvidjaar@mail.ru, p_christ@hol.gr, ghrt@dial.kappa.ro, jinhong.hu@gmail.com, andrew.vasquez@qlogic.com, linux-scsi@vger.kernel.org, bcrl@kvack.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: Linus Torvalds <torvalds@osdl.org>, linux-kernel@vger.kernel.org, Jens Axboe <axboe@suse.de>, James Bottomley <James.Bottomley@steeleye.com>, "Brown, Len" <len.brown@intel.com>, "David S. Miller" <davem@davemloft.net>, Greg KH <greg@kroah.com>, linux-acpi@vger.kernel.org, linux-usb-devel@lists.sourceforge.net, "Yu, Luming" <luming.yu@intel.com>, Ben Castricum <lk@bencastricum.nl>, sanjoy@mrao.cam.ac.uk, Helge Hafting <helgehaf@aitel.hist.no>, "Carlo E. Prelz" <fluido@fluido.as>, =?UTF-8?B?R2Vycml0IEJydWNoaMOkdXNlcg==?= <gbruchhaeuser@gmx.de>, Nicolas.Mailhot@LaPoste.net, Jaroslav Kysela <perex@suse.cz>, Takashi Iwai <tiwai@suse.de>, Patrizio Bassi <patrizio.bassi@gmail.com>, =?UTF-8?B?QmrDtnJuIE5pbHNzb24=?= <bni.swe@gmail.com>, Andrey Borzenkov <arvidjaar@mail.ru>, "P. Christeas" <p_christ@hol.gr>, ghrt <ghrt@dial.kappa.ro>, jinhong hu <jinhong.hu@gmail.com>, Andrew
 
-Andrew Morton wrote:
+>>> I don't think anybody claimed this isn't a regression for the 600X.
 
->We still have some serious bugs, several of which are in 2.6.15 as well:
->
-[...]
+>> I narrowed it further.  The short story is that this commit (diff
+>> below sig) makes the second S3 sleep go into the endless loop, if
+>> the loaded modules are exactly thermal, processor, intel_agp, and
+>> agpgart:
 
->- Helge Hafting reports a usb printer regression - I don't know if that's
->  still live?
->  
->
-I tried printing four pages of graphichs with 2.6.16-rc3-mm1
-and it worked fine.  When I had the problem I couldn't even print
-three, I had to print the 10 pages I needed one by one.
+> If you believe this patch is the root cause of the regression you
+> have been seeing.
 
-So I believe the situation has improved.
+Not sure if you were waiting for me to say something, but I do believe
+the change of default from ec_intr=0 to ec_intr=1 causes the problem
+for me.
 
-Helge Hafting
+-Sanjoy
 
+`Never underestimate the evil of which men of power are capable.'
+         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
