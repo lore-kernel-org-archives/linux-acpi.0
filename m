@@ -1,31 +1,34 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: Len traveling until Feb 26
-Date: Sun, 19 Feb 2006 04:14:34 -0500
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30061F41E9@hdsmsx401.amr.corp.intel.com>
+From: "Pekka Enberg" <penberg@cs.helsinki.fi>
+Subject: Re: 2.6.16-rc4: known regressions
+Date: Sun, 19 Feb 2006 13:06:45 +0200
+Message-ID: <84144f020602190306o3149d51by82b8ccc6108af012@mail.gmail.com>
+References: <Pine.LNX.4.64.0602171438050.916@g5.osdl.org>
+	 <20060217231444.GM4422@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr15.intel.com ([192.55.52.69]:50574 "EHLO
-	fmsfmr005.fm.intel.com") by vger.kernel.org with ESMTP
-	id S932375AbWBSJOr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 19 Feb 2006 04:14:47 -0500
-Content-class: urn:content-classes:message
+Received: from nproxy.gmail.com ([64.233.182.207]:51134 "EHLO nproxy.gmail.com")
+	by vger.kernel.org with ESMTP id S932397AbWBSLG4 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 19 Feb 2006 06:06:56 -0500
+Received: by nproxy.gmail.com with SMTP id l37so494814nfc
+        for <linux-acpi@vger.kernel.org>; Sun, 19 Feb 2006 03:06:55 -0800 (PST)
+In-Reply-To: <20060217231444.GM4422@stusta.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Andrew Morton <akpm@osdl.org>
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Stultz <johnstul@us.ibm.com>, paulus@samba.org, linuxppc-dev@ozlabs.org, gregkh@suse.de, Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>, len.brown@intel.com, linux-acpi@vger.kernel.org, Meelis Roos <mroos@linux.ee>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@atrey.karlin.mff.cuni.cz
 
-I'll be traveling this week w/ no access to Linux.
+On 2/18/06, Adrian Bunk <bunk@stusta.de> wrote:
+> Subject    : gnome-volume-manager broken on powerpc since 2.6.16-rc1
+> References : http://bugzilla.kernel.org/show_bug.cgi?id=6021
+> Submitter  : John Stultz <johnstul@us.ibm.com>
+> Status     : still present in -git two days ago
 
-Dunno if I'll be able to get access to e-mail or not.
-Last time I traveled for a week I never did catch up
-on the mail that arrived while I was away -- so I'll try...
+This is not ppc only. I have the exact same problem on Gentoo
+Linux/x86. No ipod events on 2.6.16-rc1, whereas 2.6.15 works fine.
+Haven't had the time to investigate further yet, sorry.
 
-Please use intel-linux-acpi at linux.intel.com as a proxy
-for me while I'm away.
-
-thanks,
-Len Brown
-Intel Open Source Technology Center 
+                          Pekka
