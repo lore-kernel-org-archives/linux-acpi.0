@@ -1,54 +1,31 @@
 From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: Missing PSB or _PSS in BIOS
-Date: Sun, 19 Feb 2006 02:50:05 -0500
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30061F41E8@hdsmsx401.amr.corp.intel.com>
+Subject: Len traveling until Feb 26
+Date: Sun, 19 Feb 2006 04:14:34 -0500
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30061F41E9@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr17.intel.com ([134.134.136.16]:54764 "EHLO
-	orsfmr002.jf.intel.com") by vger.kernel.org with ESMTP
-	id S932232AbWBSHuU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 19 Feb 2006 02:50:20 -0500
+Received: from fmr15.intel.com ([192.55.52.69]:50574 "EHLO
+	fmsfmr005.fm.intel.com") by vger.kernel.org with ESMTP
+	id S932375AbWBSJOr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 19 Feb 2006 04:14:47 -0500
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: legoll@online.fr, linux-acpi@vger.kernel.org
-Cc: cpufreq@lists.linux.org.uk
+To: linux-acpi@vger.kernel.org
+Cc: Andrew Morton <akpm@osdl.org>
 
+I'll be traveling this week w/ no access to Linux.
 
->I'm using an opteron 165 (dual-core) which frequency/voltage should
->be able to be scaled, but unfortunately the latest BIOS for my 
->motherboard
->lacks the frequency transition tables needed by powernow-k8.c
->
->as shown by the boot message:
->powernow-k8: MP systems not supported by PSB BIOS structure
->powernow-k8:  BIOS error - no PSB or ACPI _PSS objects
->
->Would it be possible to write suitable ACPI _PSS from AMD processor 
->documentation ?
->Or take the infos from some other ACPI BIOS which has support, and put 
->it in mine ?
->
->And use the "ACPI load custom DSDT" kernel option to get the 
->patched one 
->used by the
->powernow-k8 driver ?
->
->I found a lot of infos about fixing glitches in DSDT but could 
->not find 
->anything
->about adding missing  _PSS entries...
->
->Would that be dangerous ?
->
->Is there something else I could do ?
->I don't think I'll get an answer from the vendor, even if I tried...
+Dunno if I'll be able to get access to e-mail or not.
+Last time I traveled for a week I never did catch up
+on the mail that arrived while I was away -- so I'll try...
 
-Sure it is possible.
+Please use intel-linux-acpi at linux.intel.com as a proxy
+for me while I'm away.
 
-It is only dangerous if you care about the data on the machine.
-Presumably the vendor had a reason not to enable this feature...
-
--Len
+thanks,
+Len Brown
+Intel Open Source Technology Center 
