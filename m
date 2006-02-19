@@ -1,34 +1,76 @@
-From: "Pekka Enberg" <penberg@cs.helsinki.fi>
-Subject: Re: 2.6.16-rc4: known regressions
-Date: Sun, 19 Feb 2006 13:06:45 +0200
-Message-ID: <84144f020602190306o3149d51by82b8ccc6108af012@mail.gmail.com>
-References: <Pine.LNX.4.64.0602171438050.916@g5.osdl.org>
-	 <20060217231444.GM4422@stusta.de>
+From: Vince <legoll@online.fr>
+Subject: Re: Missing PSB or _PSS in BIOS
+Date: Sun, 19 Feb 2006 12:37:49 +0100
+Message-ID: <43F8588D.8030408@online.fr>
+References: <F7DC2337C7631D4386A2DF6E8FB22B30061F41E8@hdsmsx401.amr.corp.intel.com>
+Reply-To: legoll@online.fr
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nproxy.gmail.com ([64.233.182.207]:51134 "EHLO nproxy.gmail.com")
-	by vger.kernel.org with ESMTP id S932397AbWBSLG4 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 19 Feb 2006 06:06:56 -0500
-Received: by nproxy.gmail.com with SMTP id l37so494814nfc
-        for <linux-acpi@vger.kernel.org>; Sun, 19 Feb 2006 03:06:55 -0800 (PST)
-In-Reply-To: <20060217231444.GM4422@stusta.de>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <cpufreq-bounces+glkc-cpufreq=gmane.org@lists.linux.org.uk>
+In-reply-to: <F7DC2337C7631D4386A2DF6E8FB22B30061F41E8@hdsmsx401.amr.corp.intel.com>
+List-Unsubscribe: <http://lists.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@lists.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://lists.linux.org.uk/mailman/private/cpufreq>
+List-Post: <mailto:cpufreq@lists.linux.org.uk>
+List-Help: <mailto:cpufreq-request@lists.linux.org.uk?subject=help>
+List-Subscribe: <http://lists.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@lists.linux.org.uk?subject=subscribe>
+Sender: cpufreq-bounces@lists.linux.org.uk
+Errors-To: cpufreq-bounces+glkc-cpufreq=gmane.org+glkc-cpufreq=gmane.org@lists.linux.org.uk
+To: "Brown, Len" <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org, cpufreq@lists.linux.org.uk
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Stultz <johnstul@us.ibm.com>, paulus@samba.org, linuxppc-dev@ozlabs.org, gregkh@suse.de, Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>, len.brown@intel.com, linux-acpi@vger.kernel.org, Meelis Roos <mroos@linux.ee>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@atrey.karlin.mff.cuni.cz
 
-On 2/18/06, Adrian Bunk <bunk@stusta.de> wrote:
-> Subject    : gnome-volume-manager broken on powerpc since 2.6.16-rc1
-> References : http://bugzilla.kernel.org/show_bug.cgi?id=6021
-> Submitter  : John Stultz <johnstul@us.ibm.com>
-> Status     : still present in -git two days ago
+Brown, Len wrote:
+ >> I'm using an opteron 165 (dual-core) which frequency/voltage should
+ >> be able to be scaled, but unfortunately the latest BIOS for my
+ >> motherboard
+ >> lacks the frequency transition tables needed by powernow-k8.c
+ >>
+ >> as shown by the boot message:
+ >> powernow-k8: MP systems not supported by PSB BIOS structure
+ >> powernow-k8:  BIOS error - no PSB or ACPI _PSS objects
+ >>
+ >> Would it be possible to write suitable ACPI _PSS from AMD processor
+ >> documentation ?
+ >> Or take the infos from some other ACPI BIOS which has support, and put
+ >> it in mine ?
+ >>
+ >> And use the "ACPI load custom DSDT" kernel option to get the
+ >> patched one
+ >> used by the
+ >> powernow-k8 driver ?
+ >>
+ >> I found a lot of infos about fixing glitches in DSDT but could
+ >> not find
+ >> anything
+ >> about adding missing  _PSS entries...
+ >>
+ >> Would that be dangerous ?
+ >>
+ >> Is there something else I could do ?
+ >> I don't think I'll get an answer from the vendor, even if I tried...
+ >
+ > Sure it is possible.
 
-This is not ppc only. I have the exact same problem on Gentoo
-Linux/x86. No ipod events on 2.6.16-rc1, whereas 2.6.15 works fine.
-Haven't had the time to investigate further yet, sorry.
+ > It is only dangerous if you care about the data on the machine.
+ > Presumably the vendor had a reason not to enable this feature...
 
-                          Pekka
+I suspected the reason would be 'do not care', but you are making it sound
+this is not right for this processor, or something... Care to elaborate 
+a bit,
+or could you point me at a CPU errata or any other source of information
+that will enlighten me as to why enabling this feature would eat my data...
+
+The powernow driver has got patches to enable dual core CPUs, the CPU report
+the feature as present (/proc/cpuinfo), so I had the impression this was not
+working only because the BIOS is crappy, not because of it being a dangerous
+feature...
+
+Sorry if you think I'm silly, but I'm new to ACPI / powernow internals, 
+so please,
+excuse my ignorance...
+
+-- 
+Vincent Legoll
