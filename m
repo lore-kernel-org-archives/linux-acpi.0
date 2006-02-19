@@ -1,31 +1,57 @@
-From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Subject: Re: [linux-usb-devel] Re: Linux 2.6.16-rc3
-Date: Sat, 18 Feb 2006 23:20:15 +0000
-Message-ID: <E1FAbN9-0003T2-00@skye.ra.phy.cam.ac.uk>
-References: <3ACA40606221794F80A5670F0AF15F840AF2824B@pdsmsx403>
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: Your message of "Wed, 15 Feb 2006 13:58:51 +0800."
-             <3ACA40606221794F80A5670F0AF15F840AF2824B@pdsmsx403>
-Sender: linux-scsi-owner@vger.kernel.org
-To: "Yu, Luming" <luming.yu@intel.com>
-Cc: "Brown, Len" <len.brown@intel.com>, "David S. Miller" <davem@davemloft.net>, akpm@osdl.org, torvalds@osdl.org, linux-kernel@vger.kernel.org, axboe@suse.de, James.Bottomley@steeleye.com, greg@kroah.com, linux-acpi@vger.kernel.org, linux-usb-devel@lists.sourceforge.net, lk@bencastricum.nl, helgehaf@aitel.hist.no, fluido@fluido.as, gbruchhaeuser@gmx.de, Nicolas.Mailhot@LaPoste.net, perex@suse.cz, tiwai@suse.de, patrizio.bassi@gmail.com, bni.swe@gmail.com, arvidjaar@mail.ru, p_christ@hol.gr, ghrt@dial.kappa.ro, jinhong.hu@gmail.com, andrew.vasquez@qlogic.com, linux-scsi@vger.kernel.org, bcrl@kvack.org
+From: Vince <legoll@online.fr>
+Subject: Missing PSB or _PSS in BIOS
+Date: Sun, 19 Feb 2006 02:45:06 +0100
+Message-ID: <43F7CDA2.8030209@online.fr>
+Reply-To: legoll@online.fr
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from sp604002mt.neufgp.fr ([84.96.92.61]:57257 "EHLO sMtp.neuf.fr")
+	by vger.kernel.org with ESMTP id S964801AbWBSBpN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 18 Feb 2006 20:45:13 -0500
+Received: from [192.168.0.6] ([62.39.233.176]) by sp604002mt.gpm.neuf.ld
+ (Sun Java System Messaging Server 6.2-4.03 (built Sep 22 2005))
+ with ESMTP id <0IUW00CK3VJ62VC0@sp604002mt.gpm.neuf.ld> for
+ linux-acpi@vger.kernel.org; Sun, 19 Feb 2006 02:45:06 +0100 (CET)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: cpufreq@lists.linux.org.uk, legoll@online.fr
 
->>> I don't think anybody claimed this isn't a regression for the 600X.
+Hello,
 
->> I narrowed it further.  The short story is that this commit (diff
->> below sig) makes the second S3 sleep go into the endless loop, if
->> the loaded modules are exactly thermal, processor, intel_agp, and
->> agpgart:
+I'm using an opteron 165 (dual-core) which frequency/voltage should
+be able to be scaled, but unfortunately the latest BIOS for my motherboard
+lacks the frequency transition tables needed by powernow-k8.c
 
-> If you believe this patch is the root cause of the regression you
-> have been seeing.
+as shown by the boot message:
+powernow-k8: MP systems not supported by PSB BIOS structure
+powernow-k8:  BIOS error - no PSB or ACPI _PSS objects
 
-Not sure if you were waiting for me to say something, but I do believe
-the change of default from ec_intr=0 to ec_intr=1 causes the problem
-for me.
+Would it be possible to write suitable ACPI _PSS from AMD processor 
+documentation ?
+Or take the infos from some other ACPI BIOS which has support, and put 
+it in mine ?
 
--Sanjoy
+And use the "ACPI load custom DSDT" kernel option to get the patched one 
+used by the
+powernow-k8 driver ?
 
-`Never underestimate the evil of which men of power are capable.'
-         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
+I found a lot of infos about fixing glitches in DSDT but could not find 
+anything
+about adding missing  _PSS entries...
+
+Would that be dangerous ?
+
+Is there something else I could do ?
+I don't think I'll get an answer from the vendor, even if I tried...
+
+Please, keep me on the CC list
+
+-- 
+Vincent Legoll
+
+
+
