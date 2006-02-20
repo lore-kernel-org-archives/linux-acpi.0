@@ -1,80 +1,115 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Fw: [Bugme-new] [Bug 6111] New: Acpi defunct -- buttons, battery
-Date: Mon, 20 Feb 2006 13:41:38 -0800
-Message-ID: <20060220134138.69f6ecaf.akpm@osdl.org>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: [RFC: 2.6 patch] drivers/acpi/utilities/utmisc.c: remove 3 unused global functions
+Date: Mon, 20 Feb 2006 23:36:29 +0100
+Message-ID: <20060220223628.GP4661@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:15830 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S932674AbWBTVnQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Feb 2006 16:43:16 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id k1KLhDDZ010109
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Mon, 20 Feb 2006 13:43:13 -0800
-Received: from bix (shell0.pdx.osdl.net [10.9.0.31])
-	by shell0.pdx.osdl.net (8.13.1/8.11.6) with SMTP id k1KLhC01017323
-	for <linux-acpi@vger.kernel.org>; Mon, 20 Feb 2006 13:43:12 -0800
+Received: from emailhub.stusta.mhn.de ([141.84.69.5]:64524 "HELO
+	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
+	id S1030263AbWBTWga (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 Feb 2006 17:36:30 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: len.brown@intel.com
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+
+This patch removes the following four unused global functions from 
+drivers/acpi/utilities/utmisc.c:
+- acpi_ut_strupr()
+- acpi_ut_report_warning()
+- acpi_ut_report_info()
+
+Is this patch OK or is future usage planned or are they still used on 
+other operating systems?
 
 
-The ec-burst thing seems to be causing quite a lot of problems out there.
-Is there something we can do for 2.6.16?
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
-Begin forwarded message:
+---
 
-Date: Mon, 20 Feb 2006 12:58:09 -0800
-From: bugme-daemon@bugzilla.kernel.org
-To: bugme-new@lists.osdl.org
-Subject: [Bugme-new] [Bug 6111] New: Acpi defunct -- buttons, battery
+ drivers/acpi/utilities/utmisc.c |   44 --------------------------------
+ include/acpi/acutils.h          |    6 ----
+ 2 files changed, 50 deletions(-)
 
+--- linux-2.6.16-rc1-mm5-full/include/acpi/acutils.h.old	2006-02-03 19:28:37.000000000 +0100
++++ linux-2.6.16-rc1-mm5-full/include/acpi/acutils.h	2006-02-03 19:29:42.000000000 +0100
+@@ -279,10 +279,6 @@
+ 
+ void acpi_ut_report_error(char *module_name, u32 line_number);
+ 
+-void acpi_ut_report_info(char *module_name, u32 line_number);
+-
+-void acpi_ut_report_warning(char *module_name, u32 line_number);
+-
+ /* Error and message reporting interfaces */
+ 
+ void ACPI_INTERNAL_VAR_XFACE
+@@ -454,8 +450,6 @@
+ 			  void *target_object,
+ 			  acpi_pkg_callback walk_callback, void *context);
+ 
+-void acpi_ut_strupr(char *src_string);
+-
+ void acpi_ut_print_string(char *string, u8 max_length);
+ 
+ u8 acpi_ut_valid_acpi_name(u32 name);
+--- linux-2.6.16-rc1-mm5-full/drivers/acpi/utilities/utmisc.c.old	2006-02-03 19:28:53.000000000 +0100
++++ linux-2.6.16-rc1-mm5-full/drivers/acpi/utilities/utmisc.c	2006-02-03 19:30:04.000000000 +0100
+@@ -217,39 +217,6 @@
+ 
+ /*******************************************************************************
+  *
+- * FUNCTION:    acpi_ut_strupr (strupr)
+- *
+- * PARAMETERS:  src_string      - The source string to convert
+- *
+- * RETURN:      None
+- *
+- * DESCRIPTION: Convert string to uppercase
+- *
+- * NOTE: This is not a POSIX function, so it appears here, not in utclib.c
+- *
+- ******************************************************************************/
+-
+-void acpi_ut_strupr(char *src_string)
+-{
+-	char *string;
+-
+-	ACPI_FUNCTION_ENTRY();
+-
+-	if (!src_string) {
+-		return;
+-	}
+-
+-	/* Walk entire string, uppercasing the letters */
+-
+-	for (string = src_string; *string; string++) {
+-		*string = (char)ACPI_TOUPPER(*string);
+-	}
+-
+-	return;
+-}
+-
+-/*******************************************************************************
+- *
+  * FUNCTION:    acpi_ut_print_string
+  *
+  * PARAMETERS:  String          - Null terminated ASCII string
+@@ -922,14 +864,3 @@
+ 	acpi_os_printf("ACPI Error (%s-%04d): ", module_name, line_number);
+ }
+ 
+-void acpi_ut_report_warning(char *module_name, u32 line_number)
+-{
+-
+-	acpi_os_printf("ACPI Warning (%s-%04d): ", module_name, line_number);
+-}
+-
+-void acpi_ut_report_info(char *module_name, u32 line_number)
+-{
+-
+-	acpi_os_printf("ACPI (%s-%04d): ", module_name, line_number);
+-}
 
-http://bugzilla.kernel.org/show_bug.cgi?id=6111
-
-           Summary: Acpi defunct -- buttons, battery
-    Kernel Version: 2.6.16-rc4
-            Status: NEW
-          Severity: normal
-             Owner: acpi_config-other@kernel-bugs.osdl.org
-         Submitter: xslaby@fi.muni.cz
-
-
-Most recent kernel where this bug did not occur: 2.6.12?
-Distribution: FC5 test2
-
-Hardware Environment:
-asus m6r laptop
-
-Software Environment:
-asus acpi specifics enabled in kernel
-
-Problem Description:
-Acpi says no matter what is enabled/disabled from ec_intr and noapic:
-ACPI: write EC, IB not empty
-ACPI: write EC, IB not empty
-ACPI: write EC, IB not empty
-ACPI Exception (evregion-0409): AE_TIME, Returned by Handler for
-[EmbeddedControl] [20060127]
-ACPI Error (psparse-0517): Method parse/execution failed
-[\_SB_.PCI0.SBRG.EC0_.RDC3] (Node ddf13fa8), AE_TIME
-ACPI Error (psparse-0517): Method parse/execution failed [\ECIO] (Node
-ddf13628), AE_TIME
-ACPI Error (psparse-0517): Method parse/execution failed
-[\_SB_.PCI0.SBRG.EC0_.ACPS] (Node ddf11228), AE_TIME
-ACPI Error (psparse-0517): Method parse/execution failed [\ACPS] (Node
-ddf0b368), AE_TIME
-ACPI Error (psparse-0517): Method parse/execution failed [\_SB_.PCI0.AC0_._PSR]
-(Node ddf10228), AE_TIME
- acpi_ac-0095 [10] ac_get_state          : Error reading AC Adapter state
-
-Steps to reproduce:
-simply boot
-
-Problems were solved by using ec_burst and patch from bug 4980 before -rc2.
-
-------- You are receiving this mail because: -------
-You are on the CC list for the bug, or are watching someone who is.
