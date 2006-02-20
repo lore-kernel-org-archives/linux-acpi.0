@@ -1,39 +1,80 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 2.6.15.3 1/1] ACPI: Atlas ACPI driver
-Date: Mon, 20 Feb 2006 11:28:19 +0000
-Message-ID: <20060220112819.GA4837@srcf.ucam.org>
-References: <200602200213.k1K2DrDW013988@ns1.clipsalportal.com> <20060220102639.GA4342@srcf.ucam.org> <756b48450602200249k1b79b108u42bfef68e1e9dba8@mail.gmail.com> <20060220110145.GB4489@srcf.ucam.org> <756b48450602200325v28f0300cu8b4845ab9dba9a4c@mail.gmail.com>
+From: Andrew Morton <akpm@osdl.org>
+Subject: Fw: [Bugme-new] [Bug 6111] New: Acpi defunct -- buttons, battery
+Date: Mon, 20 Feb 2006 13:41:38 -0800
+Message-ID: <20060220134138.69f6ecaf.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [217.147.92.49] ([217.147.92.49]:42660 "EHLO
-	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
-	id S932609AbWBTL26 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Feb 2006 06:28:58 -0500
-Content-Disposition: inline
-In-Reply-To: <756b48450602200325v28f0300cu8b4845ab9dba9a4c@mail.gmail.com>
+Received: from smtp.osdl.org ([65.172.181.4]:15830 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932674AbWBTVnQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 Feb 2006 16:43:16 -0500
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id k1KLhDDZ010109
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <linux-acpi@vger.kernel.org>; Mon, 20 Feb 2006 13:43:13 -0800
+Received: from bix (shell0.pdx.osdl.net [10.9.0.31])
+	by shell0.pdx.osdl.net (8.13.1/8.11.6) with SMTP id k1KLhC01017323
+	for <linux-acpi@vger.kernel.org>; Mon, 20 Feb 2006 13:43:12 -0800
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jaya Kumar <jayakumar.acpi@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Mon, Feb 20, 2006 at 07:25:26PM +0800, Jaya Kumar wrote:
 
-> I have some questions then.
-> 1. Are Patrick's acpi driver model changes considered to be a more
-> final approach that standardize everyone to some sysfs based interface
-> to userspace?
+The ec-burst thing seems to be causing quite a lot of problems out there.
+Is there something we can do for 2.6.16?
 
-I don't believe so. Backlight drivers will still need to register as 
-such independently. It's just somewhat orthogonal.
+Begin forwarded message:
 
-> Ok. I wish I'd known before. I scanned the mailing list before
-> mbarking on this to see if any issues were raised with toshiba and
-> asus driver code and didn't see anything. FWIW, my powers of mind
-> reading only work on Fridays. :-)
+Date: Mon, 20 Feb 2006 12:58:09 -0800
+From: bugme-daemon@bugzilla.kernel.org
+To: bugme-new@lists.osdl.org
+Subject: [Bugme-new] [Bug 6111] New: Acpi defunct -- buttons, battery
 
-I started sending patches a couple of weeks ago, but I need to tidy them 
-up to apply against latest -mm.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+http://bugzilla.kernel.org/show_bug.cgi?id=6111
+
+           Summary: Acpi defunct -- buttons, battery
+    Kernel Version: 2.6.16-rc4
+            Status: NEW
+          Severity: normal
+             Owner: acpi_config-other@kernel-bugs.osdl.org
+         Submitter: xslaby@fi.muni.cz
+
+
+Most recent kernel where this bug did not occur: 2.6.12?
+Distribution: FC5 test2
+
+Hardware Environment:
+asus m6r laptop
+
+Software Environment:
+asus acpi specifics enabled in kernel
+
+Problem Description:
+Acpi says no matter what is enabled/disabled from ec_intr and noapic:
+ACPI: write EC, IB not empty
+ACPI: write EC, IB not empty
+ACPI: write EC, IB not empty
+ACPI Exception (evregion-0409): AE_TIME, Returned by Handler for
+[EmbeddedControl] [20060127]
+ACPI Error (psparse-0517): Method parse/execution failed
+[\_SB_.PCI0.SBRG.EC0_.RDC3] (Node ddf13fa8), AE_TIME
+ACPI Error (psparse-0517): Method parse/execution failed [\ECIO] (Node
+ddf13628), AE_TIME
+ACPI Error (psparse-0517): Method parse/execution failed
+[\_SB_.PCI0.SBRG.EC0_.ACPS] (Node ddf11228), AE_TIME
+ACPI Error (psparse-0517): Method parse/execution failed [\ACPS] (Node
+ddf0b368), AE_TIME
+ACPI Error (psparse-0517): Method parse/execution failed [\_SB_.PCI0.AC0_._PSR]
+(Node ddf10228), AE_TIME
+ acpi_ac-0095 [10] ac_get_state          : Error reading AC Adapter state
+
+Steps to reproduce:
+simply boot
+
+Problems were solved by using ec_burst and patch from bug 4980 before -rc2.
+
+------- You are receiving this mail because: -------
+You are on the CC list for the bug, or are watching someone who is.
