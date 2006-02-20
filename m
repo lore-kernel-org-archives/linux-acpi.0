@@ -1,525 +1,145 @@
-From: "Jaya Kumar" <jayakumar.acpi@gmail.com>
-Subject: Re: [PATCH 2.6.15.3 1/1] ACPI: Atlas ACPI driver
-Date: Mon, 20 Feb 2006 16:37:23 +0800
-Message-ID: <756b48450602200037l2e26c10k9853d6db5761ed4@mail.gmail.com>
-References: <3ACA40606221794F80A5670F0AF15F840AFD43B9@pdsmsx403>
+From: "Li, Shaohua" <shaohua.li@intel.com>
+Subject: RE: ACPI Troubles with 2.6.16-rc3
+Date: Mon, 20 Feb 2006 16:43:23 +0800
+Message-ID: <59D45D057E9702469E5775CBB56411F101AE926E@pdsmsx406>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zproxy.gmail.com ([64.233.162.193]:58519 "EHLO zproxy.gmail.com")
-	by vger.kernel.org with ESMTP id S932365AbWBTIhY convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Feb 2006 03:37:24 -0500
-Received: by zproxy.gmail.com with SMTP id m22so831500nzf
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Feb 2006 00:37:23 -0800 (PST)
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F840AFD43B9@pdsmsx403>
-Content-Disposition: inline
+Received: from fmr17.intel.com ([134.134.136.16]:40627 "EHLO
+	orsfmr002.jf.intel.com") by vger.kernel.org with ESMTP
+	id S932396AbWBTInb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Feb 2006 03:43:31 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Yu, Luming" <luming.yu@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Edgar Hucek <hostmaster@ed-soft.at>, Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: linux-acpi@vger.kernel.org, "Tolentino, Matthew E" <matthew.e.tolentino@intel.com>
 
-On 2/20/06, Yu, Luming <luming.yu@intel.com> wrote:
-> I found _BCM, _BCL ... which are reserved methods for
-> ACPI video extension device. If the vendor follows
-> ACPI video extension spec, this proposed driver is
-> NOT needed. Because, we do have acpi video driver
-> in kernel today.  Could you please show me acpidump
-> output?
->
-> Thanks,
-> Luming
-
-Hi Luming,
-
-Thanks for your reply.
-
-Note that aside from the ACPILCD00 HID, there's also the ASIM0000 HID
-that I'm supporting in this driver. I've appended the DSDT info you
-requested. Let me know what you feel needs to be done to either make
-the current acpi video driver detect this extension device (Should I
-just try adding the ACPILCD00 HID to the video driver?).
+>mem38: type=7, attr=0xf, range=[0x000000001feef000-0x000000001fef0000)
+(0MB)
+>mem39: type=9, attr=0xf, range=[0x000000001fef0000-0x000000001feff000)
+(0MB)
+>mem40: type=6, attr=0x800000000000000f,
+range=[0x000000001feff000-0x000000001ff00000) (0MB)
+>mem41: type=11, attr=0x8000000000000000,
+range=[0x00000000e00f8000-0x00000000e00f9000) (0MB)
+>mem42: type=11, attr=0x8000000000000000,
+range=[0x00000000fed1c000-0x00000000fed20000) (0MB)
+>mem43: type=11, attr=0x8000000000000000,
+range=[0x00000000fffb0000-0x00000000fffe0000) (0MB)
+from my little understanding, 'high_memory' should be
+0x1fef0000+0xc0000000. mem39 - mem43 haven't usable ram region, so
+kernel will ignore them. __ioremap will check 'high_memory', and should
+be ok.
+Is it possible you could get the dmesg from the kernel with my debug
+patch?
+Let's check where it failed.
 
 Thanks,
-jayakumar
-
---- DSDT info ---
-                Device (LCD)
-                {
-                    Name (_HID, "ACPILCD00")
-                    Method (_ADR, 0, NotSerialized)
-                    {
-                        Return (0x0110)
-                    }
-
-                    Method (_INI, 0, NotSerialized)
-                    {
-                        And (GLIE, 0xFFFFDFBF, Local0)
-                        Or (Local0, 0x20400000, GLIE)
-                        And (GLII, 0xFFFFDFBF, Local0)
-                        Or (Local0, 0x20400000, GLII)
-                        And (GLEE, 0xFFFFDFBF, Local0)
-                        Or (Local0, 0x20400000, GLEE)
-                        And (GLOE, 0xDFBFFFFF, Local0)
-                        Or (Local0, 0x2040, GLOE)
-                        And (GLPU, 0xFFFFDFBF, Local0)
-                        Or (Local0, 0x20400000, GLPU)
-                        And (GLOV, 0xFFBFDFFF, Local0)
-                        Or (Local0, 0x20000040, GLOV)
-                        Sleep (0x0BB8)
-                        And (GLOV, 0xDFBFFFFF, Local0)
-                        Or (Local0, 0x2040, GLOV)
-                        Store (VSA8 (0x16, 0x30), BRSV)
-                        If (LNot (LLess (BRSV, 0x20)))
-                        {
-                            Store (0x1F, BRSV)
-                        }
-
-                        Store (One, Local0)
-                        While (LNot (LGreater (Local0, BRSV)))
-                        {
-                            SBRL (One, One)
-                            Increment (Local0)
-                        }
-                    }
-                    Method (_BCL, 0, NotSerialized)
-                    {
-                        Return (Package (0x02)
-                        {
-                            0x1F,
-                            0x1F
-                        })
-                    }
-
-                    Method (_BCM, 1, NotSerialized)
-                    {
-                        Store (Arg0, Local0)
-                        Store (RBRL (), Local1)
-                        And (Local1, 0xFF, Local1)
-                        If (LAnd (LNot (LLess (Local0, Zero)), LNot
-(LGreater (Local0, Local1))))
-                        {
-                            Store (BRSV, Local1)
-                            And (Local1, 0xFF, Local1)
-                            While (LNot (LEqual (Arg0, BRSV)))
-                            {
-                                If (LGreater (Arg0, BRSV))
-                                {
-                                    SBRL (One, One)
-                                    Increment (BRSV)
-                                }
-                                Else
-                                {
-                                    If (LEqual (Arg0, BRSV))
-                                    {
-                                        Break
-                                    }
-                                    Else
-                                    {
-                                        SBRL (Zero, One)
-                                        Decrement (BRSV)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-
+Shaohua
+>-----Original Message-----
+>From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+>owner@vger.kernel.org] On Behalf Of Edgar Hucek
+>Sent: Saturday, February 18, 2006 1:28 AM
+>To: Bjorn Helgaas
+>Cc: linux-acpi@vger.kernel.org; Tolentino, Matthew E
+>Subject: Re: ACPI Troubles with 2.6.16-rc3
 >
-> >Hi Len, ACPI, and kernel folk,
-> >
-> >Appended is my patch adding an ACPI driver for Atlas boards. I've
-> >done this patch against 2.6.15.3.
-> >
-> >Please let me know if it looks okay so far and if you have any
-> >feedback
-> >or suggestions.
-> >
-> >Thanks,
-> >Jaya Kumar
-> >
-> >Signed-off-by: Jaya Kumar <jayakumar.acpi@gmail.com>
-> >
-> >---
-> >
-> > MAINTAINERS               |    5
-> > drivers/acpi/Kconfig      |   11 +
-> > drivers/acpi/Makefile     |    1
-> > drivers/acpi/atlas_acpi.c |  279
-> >++++++++++++++++++++++++++++++++++++++++++++++
-> > 4 files changed, 296 insertions(+)
-> >
-> >---
-> >
-> >diff -X linux-2.6.15.3/Documentation/dontdiff -uprN
-> >linux-2.6.15.3-vanilla/drivers/acpi/atlas_acpi.c
-> >linux-2.6.15.3/drivers/acpi/atlas_acpi.c
-> >--- linux-2.6.15.3-vanilla/drivers/acpi/atlas_acpi.c
-> >1970-01-01 07:30:00.000000000 +0730
-> >+++ linux-2.6.15.3/drivers/acpi/atlas_acpi.c   2006-02-20
-> >10:00:19.000000000 +0800
-> >@@ -0,0 +1,279 @@
-> >+/*
-> >+ *  atlas_acpi.c - Atlas Wallmount Touchscreen ACPI Extras
-> >+ *
-> >+ *  Copyright (C) 2006 Jaya Kumar
-> >+ *  Based on Toshiba ACPI by John Belmonte and ASUS ACPI
-> >+ *  This work was sponsored by CIS(M) Sdn Bhd.
-> >+ *
-> >+ *  This program is free software; you can redistribute it
-> >and/or modify
-> >+ *  it under the terms of the GNU General Public License as
-> >published by
-> >+ *  the Free Software Foundation; either version 2 of the License, or
-> >+ *  (at your option) any later version.
-> >+ *
-> >+ *  This program is distributed in the hope that it will be useful,
-> >+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-> >+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> >+ *  GNU General Public License for more details.
-> >+ *
-> >+ *  You should have received a copy of the GNU General Public License
-> >+ *  along with this program; if not, write to the Free Software
-> >+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-> >02111-1307  USA
-> >+ *
-> >+ */
-> >+
-> >+#include <linux/kernel.h>
-> >+#include <linux/module.h>
-> >+#include <linux/init.h>
-> >+#include <linux/types.h>
-> >+#include <linux/proc_fs.h>
-> >+#include <asm/uaccess.h>
-> >+#include <acpi/acpi_drivers.h>
-> >+
-> >+#define PROC_ATLAS                            "atlas"
-> >+#define ACPI_ATLAS_NAME                       "Atlas ACPI"
-> >+#define ACPI_ATLAS_CLASS                      "Atlas"
-> >+#define ACPI_ATLAS_BUTTON_HID                 "ASIM0000"
-> >+#define ACPI_ATLAS_BRIGHTNESS_HID             "ACPILCD00"
-> >+
-> >+struct atlas_device {
-> >+      struct acpi_device *dev;
-> >+      u8 brightness;
-> >+      u8 max_brightness;
-> >+};
-> >+
-> >+static struct proc_dir_entry *atlas_proc_dir;
-> >+static struct atlas_device *atlas_dev;
-> >+
-> >+/* based on acpi_memory_powerdown_device */
-> >+static int atlas_set_brightness(struct acpi_device *device, u16 value)
-> >+{
-> >+      acpi_status status;
-> >+      struct acpi_object_list arg_list;
-> >+      union acpi_object arg;
-> >+
-> >+      arg_list.count = 1;
-> >+      arg_list.pointer = &arg;
-> >+      arg.type = ACPI_TYPE_INTEGER;
-> >+      arg.integer.value = value;
-> >+      status = acpi_evaluate_object(device->handle, "_BCM",
-> >&arg_list, NULL);
-> >+      if (ACPI_FAILURE(status)) {
-> >+              printk(KERN_ERR "%s:  ACPI set failed\n", __FUNCTION__);
-> >+              return -ENODEV;
-> >+      }
-> >+
-> >+      return status ;
-> >+}
-> >+
-> >+/* based on ibm_get_table_from_acpi */
-> >+static int acpi_read_max_brightness(struct acpi_device *device)
-> >+{
-> >+      union acpi_object *package;
-> >+      struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-> >+      acpi_status status;
-> >+      union acpi_object *obj = NULL;
-> >+
-> >+      status = acpi_evaluate_object(device->handle, "_BCL",
-> >NULL, &buffer);
-> >+      if (ACPI_FAILURE(status)) {
-> >+              printk(KERN_ERR "%s:  ACPI evaluation
-> >failed\n", __FUNCTION__);
-> >+              return -ENODEV;
-> >+      }
-> >+
-> >+      package = (union acpi_object *) buffer.pointer;
-> >+      obj = &(package->package.elements[0]);
-> >+      return obj->integer.value;
-> >+}
-> >+
-> >+/* based on drivers/usb/media/vicam.c:vicam_write_proc_gain */
-> >+static int atlas_write_proc_lcd(struct file *file, const char *buffer,
-> >+                              unsigned long count, void *data)
-> >+{
-> >+      u16 gtmp;
-> >+      char kbuf[8];
-> >+      struct atlas_device *dev = (struct atlas_device *) data;
-> >+
-> >+      if (count > 4)
-> >+              return -EINVAL;
-> >+
-> >+      if (copy_from_user(kbuf, buffer, count))
-> >+              return -EFAULT;
-> >+
-> >+      gtmp = (u16) simple_strtoul(kbuf, NULL, 10);
-> >+      if (gtmp > dev->max_brightness)
-> >+              return -EINVAL;
-> >+
-> >+      atlas_set_brightness(dev->dev, gtmp);
-> >+      dev->brightness = gtmp;
-> >+
-> >+      return count;
-> >+}
-> >+
-> >+/* based on drivers/mca/mca-proc.c:get_mca_machine_info */
-> >+static int atlas_read_proc_lcd(char* page, char **start, off_t off,
-> >+                                      int count, int *eof, void *data)
-> >+{
-> >+      struct atlas_device *dev = (struct atlas_device *) data;
-> >+      int len;
-> >+
-> >+      len = sprintf(page,     "brightness:              %d\n"
-> >+                              "brightness_levels:     0,%d\n",
-> >+                              dev->brightness,dev->max_brightness);
-> >+
-> >+      if (len <= off + count)
-> >+              *eof = 1;
-> >+      *start = page + off;
-> >+      len -= off;
-> >+      if (len > count)
-> >+              len = count;
-> >+      if (len < 0)
-> >+              len = 0;
-> >+      return len;
-> >+}
-> >+
-> >+/* button handling code */
-> >+static acpi_status acpi_atlas_button_setup(acpi_handle region_handle,
-> >+                  u32 function, void *handler_context, void
-> >**return_context)
-> >+{
-> >+      *return_context =
-> >+              (function != ACPI_REGION_DEACTIVATE) ?
-> >handler_context : NULL;
-> >+
-> >+      return AE_OK;
-> >+}
-> >+
-> >+static acpi_status acpi_atlas_button_handler(u32 function,
-> >+                    acpi_physical_address address,
-> >+                    u32 bit_width, acpi_integer * value,
-> >+                    void *handler_context, void *region_context)
-> >+{
-> >+      acpi_status status;
-> >+      struct acpi_device *dev;
-> >+
-> >+      dev = (struct acpi_device *) handler_context;
-> >+      if (function == ACPI_WRITE)
-> >+              status = acpi_bus_generate_event(dev, 0x80, address);
-> >+      else {
-> >+              printk(KERN_WARNING "atlas: shrugged on
-> >unexpected function"
-> >+                      ":function=%x,address=%x,value=%x\n",
-> >+                      function, (u32)address, (u32)*value);
-> >+              status = -EINVAL;
-> >+      }
-> >+
-> >+      return status ;
-> >+}
-> >+
-> >+static int atlas_acpi_button_add(struct acpi_device *device)
-> >+{
-> >+
-> >+      /* hookup button handler */
-> >+      return acpi_install_address_space_handler(device->handle,
-> >+                              0x81, &acpi_atlas_button_handler,
-> >+                              &acpi_atlas_button_setup, device);
-> >+}
-> >+
-> >+static int atlas_acpi_lcd_add(struct acpi_device *device)
-> >+{
-> >+      acpi_status status;
-> >+      struct proc_dir_entry *proc;
-> >+
-> >+      atlas_dev = (struct atlas_device *)
-> >+                      kmalloc(sizeof(struct atlas_device),
-> >GFP_KERNEL);
-> >+      if (!atlas_dev)
-> >+              return -ENOMEM;
-> >+
-> >+      /* get max brightness for /proc read use */
-> >+      atlas_dev->max_brightness = acpi_read_max_brightness(device);
-> >+      atlas_dev->dev = device;
-> >+      acpi_driver_data(device) = atlas_dev;
-> >+
-> >+      /* setup proc entry to set and get lcd brightness */
-> >+      proc = create_proc_read_entry("lcd", S_IFREG | S_IRUGO
-> >| S_IWUSR,
-> >+                      atlas_proc_dir, atlas_read_proc_lcd, atlas_dev);
-> >+      if (!proc) {
-> >+              printk(KERN_ERR "atlas: couldn't alloc proc entry\n");
-> >+              kfree(atlas_dev);
-> >+              status = -ENOMEM;
-> >+      } else {
-> >+              proc->owner = THIS_MODULE;
-> >+              proc->write_proc = atlas_write_proc_lcd;
-> >+              status = AE_OK;
-> >+      }
-> >+      return status ;
-> >+}
-> >+
-> >+static int atlas_acpi_add(struct acpi_device *device)
-> >+{
-> >+
-> >+      if (!strcmp(acpi_device_hid(device), ACPI_ATLAS_BUTTON_HID))
-> >+              return atlas_acpi_button_add(device);
-> >+      else
-> >+              return atlas_acpi_lcd_add(device);
-> >+}
-> >+
-> >+static int atlas_acpi_remove(struct acpi_device *device, int type)
-> >+{
-> >+      acpi_status status;
-> >+
-> >+      if (!device || !acpi_driver_data(device))
-> >+              return -EINVAL;
-> >+
-> >+      if (!strcmp(acpi_device_hid(device), ACPI_ATLAS_BUTTON_HID)) {
-> >+              status =
-> >acpi_remove_address_space_handler(device->handle,
-> >+                              0x81, &acpi_atlas_button_handler);
-> >+              if (ACPI_FAILURE(status))
-> >+                      printk(KERN_ERR
-> >+                              "Atlas: Error removing addr spc
-> >handler\n");
-> >+      } else {
-> >+              if (atlas_proc_dir)
-> >+                      remove_proc_entry("lcd", atlas_proc_dir);
-> >+
-> >+              kfree(atlas_dev);
-> >+              status = AE_OK;
-> >+      }
-> >+
-> >+      return status;
-> >+}
-> >+
-> >+static struct acpi_driver atlas_acpi_driver = {
-> >+      .name   = ACPI_ATLAS_NAME,
-> >+      .class  = ACPI_ATLAS_CLASS,
-> >+      .ids    = ACPI_ATLAS_BUTTON_HID "," ACPI_ATLAS_BRIGHTNESS_HID,
-> >+      .ops = {
-> >+              .add = atlas_acpi_add,
-> >+              .remove = atlas_acpi_remove,
-> >+              },
-> >+};
-> >+
-> >+static int __init atlas_acpi_init(void)
-> >+{
-> >+      int result;
-> >+
-> >+      atlas_proc_dir = proc_mkdir(PROC_ATLAS, acpi_root_dir);
-> >+      if (!atlas_proc_dir) {
-> >+              printk(KERN_ERR "Atlas ACPI: Unable to create
-> >/proc dir\n");
-> >+              return -ENODEV;
-> >+      }
-> >+      atlas_proc_dir->owner = THIS_MODULE;
-> >+
-> >+      result = acpi_bus_register_driver(&atlas_acpi_driver);
-> >+      if (result < 0) {
-> >+              printk(KERN_ERR "Atlas ACPI: Unable to register
-> >driver\n");
-> >+              remove_proc_entry(PROC_ATLAS, acpi_root_dir);
-> >+              return -ENODEV;
-> >+      }
-> >+
-> >+      return 0;
-> >+}
-> >+
-> >+static void __exit atlas_acpi_exit(void)
-> >+{
-> >+      acpi_bus_unregister_driver(&atlas_acpi_driver);
-> >+      if (atlas_proc_dir)
-> >+              remove_proc_entry(PROC_ATLAS, acpi_root_dir);
-> >+}
-> >+
-> >+module_init(atlas_acpi_init);
-> >+module_exit(atlas_acpi_exit);
-> >+
-> >+MODULE_AUTHOR("Jaya Kumar");
-> >+MODULE_LICENSE("GPL");
-> >+MODULE_DESCRIPTION("Atlas ACPI");
-> >+MODULE_SUPPORTED_DEVICE("Atlas ACPI");
-> >diff -X linux-2.6.15.3/Documentation/dontdiff -uprN
-> >linux-2.6.15.3-vanilla/drivers/acpi/Kconfig
-> >linux-2.6.15.3/drivers/acpi/Kconfig
-> >--- linux-2.6.15.3-vanilla/drivers/acpi/Kconfig
-> >2006-02-19 13:31:11.000000000 +0800
-> >+++ linux-2.6.15.3/drivers/acpi/Kconfig        2006-02-19
-> >19:29:04.000000000 +0800
-> >@@ -194,6 +194,17 @@ config ACPI_ASUS
-> >           something works not quite as expected, please use
-> >the mailing list
-> >           available on the above page
-> >(acpi4asus-user@lists.sourceforge.net)
-> >
-> >+config ACPI_ATLAS
-> >+        tristate "Atlas Wallmount Touchscreen Extras"
-> >+      depends on X86
-> >+      default n
-> >+      ---help---
-> >+        This driver is intended for Atlas wallmount touchscreens.
-> >+        The button events will show up in /proc/acpi/events
-> >and the lcd
-> >+        brightness control is at /proc/acpi/atlas/lcd
-> >+
-> >+        If you have an Atlas wallmount touchscreen, say Y or M here.
-> >+
-> > config ACPI_IBM
-> >       tristate "IBM ThinkPad Laptop Extras"
-> >       depends on X86
-> >diff -X linux-2.6.15.3/Documentation/dontdiff -uprN
-> >linux-2.6.15.3-vanilla/drivers/acpi/Makefile
-> >linux-2.6.15.3/drivers/acpi/Makefile
-> >--- linux-2.6.15.3-vanilla/drivers/acpi/Makefile
-> >2006-02-19 13:31:11.000000000 +0800
-> >+++ linux-2.6.15.3/drivers/acpi/Makefile       2006-02-19
-> >14:23:59.000000000 +0800
-> >@@ -53,6 +53,7 @@ obj-$(CONFIG_ACPI_SYSTEM)    += system.o ev
-> > obj-$(CONFIG_ACPI_DEBUG)      += debug.o
-> > obj-$(CONFIG_ACPI_NUMA)               += numa.o
-> > obj-$(CONFIG_ACPI_ASUS)               += asus_acpi.o
-> >+obj-$(CONFIG_ACPI_ATLAS)      += atlas_acpi.o
-> > obj-$(CONFIG_ACPI_IBM)                += ibm_acpi.o
-> > obj-$(CONFIG_ACPI_TOSHIBA)    += toshiba_acpi.o
-> > obj-y                         += scan.o motherboard.o
-> >diff -X linux-2.6.15.3/Documentation/dontdiff -uprN
-> >linux-2.6.15.3-vanilla/MAINTAINERS linux-2.6.15.3/MAINTAINERS
-> >--- linux-2.6.15.3-vanilla/MAINTAINERS 2006-02-19
-> >13:30:48.000000000 +0800
-> >+++ linux-2.6.15.3/MAINTAINERS 2006-02-20 09:44:12.000000000 +0800
-> >@@ -366,6 +366,11 @@ M:        ecashin@coraid.com
-> > W:    http://www.coraid.com/support/linux
-> > S:    Supported
-> >
-> >+ATLAS ACPI EXTRAS DRIVER
-> >+P:    Jaya Kumar
-> >+M:    jayakumar.acpi@gmail.com
-> >+S:    Maintained
-> >+
-> > ATM
-> > P:    Chas Williams
-> > M:    chas@cmf.nrl.navy.mil
-> >-
-> >To unsubscribe from this list: send the line "unsubscribe
-> >linux-acpi" in
-> >the body of a message to majordomo@vger.kernel.org
-> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
+>Hi.
 >
+>The memory mapp is on the wiki.
+>btw: The wiki have a new homepage :
+>http://www.mactel-linux.org/wiki/Main_Page
+>
+>Later this day i'll put information together how to boot Linux on the
+>Intel iMac. You wi'll be surprised how simple it is ;)
+>
+>cu
+>
+>Edgar
+>
+>Bjorn Helgaas wrote:
+>> On Friday 17 February 2006 00:54, Edgar Hucek wrote:
+>>> The machine is an Apple Intel iMac 17" Dual Core booted with
+>>> elilo.
+>>
+>> Nice work.  I think I could help debug this much better with my own
+>> Intel iMac :-)
+>>
+>> Your wiki (http://xbox-linux.org/mactel/index.php/Main_Page) mentions
+>> changes to elilo.  Can you detail those?  The elilo maintainer works
+>> across the aisle and would like to make this work out of the box.  Or
+>> maybe you just had to remove the ExitBootServices call, so the kernel
+>> can keep using the firmware console or something?
+>>
+>> If you have a way to capture the EFI memmap, could you post that on
+>> your wiki page as well?  I guess you could collect basically the same
+>> information by turning on EFI_DEBUG in arch/i386/kernel/efi.c.
+>>
+>> The memmap I've seen (from another iMac) has a few strange things:
+>>
+>>> Type       Start            End               # Pages
+>Attributes
+>>> reserved   000000000009F000-000000000009FFFF  0000000000000001
+>000000000000000F
+>>> available  0000000000100000-000000007BD1DFFF  000000000007BC1E
+>000000000000000F
+>>
+>> No MemMapIO region for VGA frame buffer.  Intel ia64 boxes have the
+>> same bug.
+>>
+>>> MemMapIO   00000000E00F8000-00000000E00F8FFF  0000000000000001
+>8000000000000000
+>>> MemMapIO   00000000FED1C000-00000000FED1FFFF  0000000000000004
+>8000000000000000
+>>> MemMapIO   00000000FFFB0000-00000000FFFDFFFF  0000000000000030
+>8000000000000000
+>>
+>> Marked "runtime", but no access types supported.  I'd expect at least
+>> UC to be set.
+>>
+>> And the PCI windows aren't mentioned.  I'd expect
+0x80000000-0x88000000
+>> and some other regions to be MemMapIO.  I guess you can learn this
+from
+>> the ACPI root bridge descriptions, so maybe it's not strictly
+required.
+>>
+>> But as for your specific issue, I'd expect your memmap to show that
+the
+>> ACPI tables are in memory that supports WB, so acpi_os_map_memory()
+>> will just use phys_to_virt() instead of ioremap(), which is what your
+>> dmesg showed:
+>>
+>>> ACPI: XSDT (v001 APPLE   Apple00 0x00000039      0x01000013) @
+>0x1fefd120
+>>> ...
+>>> iounmap: bad address dfefd000
+>>>  [<c0253684>] acpi_tb_get_table_header+0x67/0x92
+>>>  [<c02536c2>] acpi_tb_get_table+0x13/0x55
+>>>  [<c02538b2>] acpi_tb_get_table_rsdt+0x1f/0x99
+>>>  [<c0253971>] acpi_load_tables+0x45/0xa9
+>>>  [<c0443d56>] acpi_early_init+0x46/0xf6
+>>
+>> (0xdfefd000 = 0x1fefd000 + 0xc0000000)
+>>
+>> In that case, the iounmap() will certainly fail, as Shaohua points
+out.
+>> His test patch forces acpi_os_map_memory() to always use ioremap(),
+but
+>> that didn't help your situation.  My guess is you hit the
+>> "if(!PageReserved(page))" case in __ioremap(), and we're missing
+>> a SetPageReserved() somewhere in the EFI memory initialization, but
+>> I'm not enough of an x86/VM expert propose anything.
+>>
+>> Sorry for rambling on so long without contributing anything...  Maybe
+>> Matt will have some ideas.
+>>
+>
+>-
+>To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
