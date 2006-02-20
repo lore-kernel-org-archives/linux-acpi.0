@@ -1,115 +1,43 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: [RFC: 2.6 patch] drivers/acpi/utilities/utmisc.c: remove 3 unused global functions
-Date: Mon, 20 Feb 2006 23:36:29 +0100
-Message-ID: <20060220223628.GP4661@stusta.de>
+From: Edgar Hucek <hostmaster@ed-soft.at>
+Subject: [PATCH 1/1] EFI iounpam fix for acpi_os_unmap_memory
+Date: Tue, 21 Feb 2006 00:36:51 +0100
+Message-ID: <43FA5293.4070807@ed-soft.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emailhub.stusta.mhn.de ([141.84.69.5]:64524 "HELO
-	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
-	id S1030263AbWBTWga (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Feb 2006 17:36:30 -0500
-Content-Disposition: inline
+Received: from 83-64-96-243.bad-voeslau.xdsl-line.inode.at ([83.64.96.243]:29316
+	"EHLO mognix.dark-green.com") by vger.kernel.org with ESMTP
+	id S1161200AbWBTXgu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 Feb 2006 18:36:50 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This patch removes the following four unused global functions from 
-drivers/acpi/utilities/utmisc.c:
-- acpi_ut_strupr()
-- acpi_ut_report_warning()
-- acpi_ut_report_info()
+When EFI is enabled acpi_os_unmap_memory trys to unmap memory
+which was not mapped by acpi_os_map_memory.
 
-Is this patch OK or is future usage planned or are they still used on 
-other operating systems?
+This patch for it.
 
+Signed-off-by: Edgar Hucek <hostmaster@ed-soft.at>
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+diff -uNr linux-2.6.16-rc4.orig/drivers/acpi/osl.c
+linux-2.6.16-rc4/drivers/acpi/osl.c
+--- linux-2.6.16-rc4.orig/drivers/acpi/osl.c    2006-02-19
+18:48:58.000000000 +0100
++++ linux-2.6.16-rc4/drivers/acpi/osl.c 2006-02-20 15:31:44.000000000 +0100
+@@ -208,7 +208,13 @@
 
----
-
- drivers/acpi/utilities/utmisc.c |   44 --------------------------------
- include/acpi/acutils.h          |    6 ----
- 2 files changed, 50 deletions(-)
-
---- linux-2.6.16-rc1-mm5-full/include/acpi/acutils.h.old	2006-02-03 19:28:37.000000000 +0100
-+++ linux-2.6.16-rc1-mm5-full/include/acpi/acutils.h	2006-02-03 19:29:42.000000000 +0100
-@@ -279,10 +279,6 @@
- 
- void acpi_ut_report_error(char *module_name, u32 line_number);
- 
--void acpi_ut_report_info(char *module_name, u32 line_number);
--
--void acpi_ut_report_warning(char *module_name, u32 line_number);
--
- /* Error and message reporting interfaces */
- 
- void ACPI_INTERNAL_VAR_XFACE
-@@ -454,8 +450,6 @@
- 			  void *target_object,
- 			  acpi_pkg_callback walk_callback, void *context);
- 
--void acpi_ut_strupr(char *src_string);
--
- void acpi_ut_print_string(char *string, u8 max_length);
- 
- u8 acpi_ut_valid_acpi_name(u32 name);
---- linux-2.6.16-rc1-mm5-full/drivers/acpi/utilities/utmisc.c.old	2006-02-03 19:28:53.000000000 +0100
-+++ linux-2.6.16-rc1-mm5-full/drivers/acpi/utilities/utmisc.c	2006-02-03 19:30:04.000000000 +0100
-@@ -217,39 +217,6 @@
- 
- /*******************************************************************************
-  *
-- * FUNCTION:    acpi_ut_strupr (strupr)
-- *
-- * PARAMETERS:  src_string      - The source string to convert
-- *
-- * RETURN:      None
-- *
-- * DESCRIPTION: Convert string to uppercase
-- *
-- * NOTE: This is not a POSIX function, so it appears here, not in utclib.c
-- *
-- ******************************************************************************/
--
--void acpi_ut_strupr(char *src_string)
--{
--	char *string;
--
--	ACPI_FUNCTION_ENTRY();
--
--	if (!src_string) {
--		return;
--	}
--
--	/* Walk entire string, uppercasing the letters */
--
--	for (string = src_string; *string; string++) {
--		*string = (char)ACPI_TOUPPER(*string);
--	}
--
--	return;
--}
--
--/*******************************************************************************
-- *
-  * FUNCTION:    acpi_ut_print_string
-  *
-  * PARAMETERS:  String          - Null terminated ASCII string
-@@ -922,14 +864,3 @@
- 	acpi_os_printf("ACPI Error (%s-%04d): ", module_name, line_number);
+ void acpi_os_unmap_memory(void __iomem * virt, acpi_size size)
+ {
+-       iounmap(virt);
++       if(efi_enabled) {
++               if (!(EFI_MEMORY_WB &
+efi_mem_attributes(virt_to_phys(virt)))) {
++                       iounmap(virt);
++               }
++       } else {
++               iounmap(virt);
++       }
  }
- 
--void acpi_ut_report_warning(char *module_name, u32 line_number)
--{
--
--	acpi_os_printf("ACPI Warning (%s-%04d): ", module_name, line_number);
--}
--
--void acpi_ut_report_info(char *module_name, u32 line_number)
--{
--
--	acpi_os_printf("ACPI (%s-%04d): ", module_name, line_number);
--}
-
+ EXPORT_SYMBOL_GPL(acpi_os_unmap_memory);
