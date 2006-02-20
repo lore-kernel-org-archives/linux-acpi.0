@@ -1,55 +1,59 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Henrik Brix Andersen <brix@gentoo.org>
 Subject: Re: [PATCH 2.6.15.3 1/1] ACPI: Atlas ACPI driver
-Date: Mon, 20 Feb 2006 11:01:45 +0000
-Message-ID: <20060220110145.GB4489@srcf.ucam.org>
-References: <200602200213.k1K2DrDW013988@ns1.clipsalportal.com> <20060220102639.GA4342@srcf.ucam.org> <756b48450602200249k1b79b108u42bfef68e1e9dba8@mail.gmail.com>
+Date: Mon, 20 Feb 2006 12:17:49 +0100
+Message-ID: <20060220111749.GC28090@osgiliath.brixandersen.dk>
+References: <200602200213.k1K2DrDW013988@ns1.clipsalportal.com> <20060220102639.GA4342@srcf.ucam.org> <756b48450602200249k1b79b108u42bfef68e1e9dba8@mail.gmail.com> <20060220110145.GB4489@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="DKU6Jbt7q3WqK7+M"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [217.147.92.49] ([217.147.92.49]:36304 "EHLO
-	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
-	id S932285AbWBTLCY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Feb 2006 06:02:24 -0500
+Received: from smtp.gentoo.org ([134.68.220.30]:14985 "EHLO smtp.gentoo.org")
+	by vger.kernel.org with ESMTP id S932499AbWBTLRw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 Feb 2006 06:17:52 -0500
+Received: from 83.72.33.139.ip.tele2adsl.dk ([83.72.33.139] helo=osgiliath.brixandersen.dk)
+	by smtp.gentoo.org with esmtpa (Exim 4.54)
+	id 1FB939-0004th-G3
+	for linux-acpi@vger.kernel.org; Mon, 20 Feb 2006 11:17:51 +0000
 Content-Disposition: inline
-In-Reply-To: <756b48450602200249k1b79b108u42bfef68e1e9dba8@mail.gmail.com>
+In-Reply-To: <20060220110145.GB4489@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jaya Kumar <jayakumar.acpi@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Mon, Feb 20, 2006 at 06:49:54PM +0800, Jaya Kumar wrote:
 
-> I'm not sure how standard that is. For example, I looked at the asus
-> and toshiba drivers. These ACPI board drivers use
-> /proc/acpi/somedevice/lcd. For example,
+--DKU6Jbt7q3WqK7+M
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-And, from a userspace perspective, it sucks. I'm in the process of 
-writing patches to transition them all over, and I'd prefer not to have 
-to write one for your driver as well :)
+On Mon, Feb 20, 2006 at 11:01:45AM +0000, Matthew Garrett wrote:
+> Doing it via the input layer adds flexibility - it makes it easier for=20
+> non-root uesrspace to handle things, but you can still have a root-level=
+=20
+> daemon that monitors /dev/input/event* and runs commands in response to=
+=20
+> keycodes.
 
-> I'll go take a look at that. I didn't look for an acpi driver outside
-> of the drivers/acpi directory. But if that's the consensus, shouldn't
-> someone also mod the toshiba and asus drivers?
+Except that this daemon isn't written yet?
 
-I'm doing so.
+Regards,
+Brix
+--=20
+Henrik Brix Andersen <brix@gentoo.org>
+Gentoo Metadistribution | Mobile computing herd
 
-> Standard wallmount stuff. There's 8 buttons on the one I'm using for
-> testing. Vol up/down. Brightness up/down. Then several buttons for
-> miscellaneous usage by people who customize the chassis. Most apps for
-> this type of board are custom written and tend to just select on
-> /proc/acpi/event.
+--DKU6Jbt7q3WqK7+M
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-Volume and brightness are things that can easily be exposed through the 
-input layer, and if you're running X then it's much easier to handle 
-events that come through the input layer than ones which come from 
-acpi/events. There's four keycodes for programmable buttons specced (see 
-/usr/include/linux/input.h - _PROG1-4), so that would fit quite nicely 
-as well.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2.1 (GNU/Linux)
+Comment: GnuPG signed
 
-Doing it via the input layer adds flexibility - it makes it easier for 
-non-root uesrspace to handle things, but you can still have a root-level 
-daemon that monitors /dev/input/event* and runs commands in response to 
-keycodes.
+iD8DBQFD+aVdv+Q4flTiePgRAmkEAJ9vefNQot38K0iVDSsNi2PJOlMJ5wCdGcO9
+w7HwTwO6c0nQCCXfDmkklkc=
+=goqU
+-----END PGP SIGNATURE-----
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+--DKU6Jbt7q3WqK7+M--
