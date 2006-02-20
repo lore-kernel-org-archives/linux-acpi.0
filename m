@@ -1,40 +1,243 @@
-From: James Bottomley <James.Bottomley@SteelEye.com>
-Subject: Re: [linux-usb-devel] Re: Linux 2.6.16-rc3
-Date: Sun, 19 Feb 2006 08:30:58 -0600
-Message-ID: <1140359458.3103.11.camel@mulgrave.il.steeleye.com>
-References: <1139934883.14115.4.camel@mulgrave.il.steeleye.com>
-	 <1140054960.3037.5.camel@mulgrave.il.steeleye.com>
-	 <20060216171200.GD29443@flint.arm.linux.org.uk>
-	 <1140112653.3178.9.camel@mulgrave.il.steeleye.com>
-	 <20060216180939.GF29443@flint.arm.linux.org.uk>
-	 <1140113671.3178.16.camel@mulgrave.il.steeleye.com>
-	 <20060216181803.GG29443@flint.arm.linux.org.uk>
-	 <1140116969.3178.24.camel@mulgrave.il.steeleye.com>
-	 <20060216200138.GA4203@suse.de>
-	 <1140223363.3231.9.camel@mulgrave.il.steeleye.com>
-	 <20060218100344.GA8532@procyon.home>
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: [PATCH] create symlink from memory section to device [1/2] sysfs
+ change.
+Date: Mon, 20 Feb 2006 10:34:12 +0900
+Message-ID: <43F91C94.5060301@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from stat9.steeleye.com ([209.192.50.41]:37019 "EHLO
-	hancock.sc.steeleye.com") by vger.kernel.org with ESMTP
-	id S932569AbWBSObZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 19 Feb 2006 09:31:25 -0500
-In-Reply-To: <20060218100344.GA8532@procyon.home>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:5603 "EHLO
+	fgwmail6.fujitsu.co.jp") by vger.kernel.org with ESMTP
+	id S932510AbWBTBdj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 19 Feb 2006 20:33:39 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sergey Vlasov <vsu@altlinux.ru>
-Cc: Jens Axboe <axboe@suse.de>, Russell King <rmk+lkml@arm.linux.org.uk>, Greg KH <greg@kroah.com>, Andrew Morton <akpm@osdl.org>, Linus Torvalds <torvalds@osdl.org>, linux-kernel@vger.kernel.org, "Brown, Len" <len.brown@intel.com>, "David S. Miller" <davem@davemloft.net>, linux-acpi@vger.kernel.org, linux-usb-devel@lists.sourceforge.net, "Yu, Luming" <luming.yu@intel.com>, Ben Castricum <lk@bencastricum.nl>, sanjoy@mrao.cam.ac.uk, Helge Hafting <helgehaf@aitel.hist.no>, "Carlo E. Prelz" <fluido@fluido.as>, Gerrit Bruchh?user <gbruchhaeuser@gmx.de>, Nicolas.Mailhot@LaPoste.net, Jaroslav Kysela <perex@suse.cz>, Takashi Iwai <tiwai@suse.de>, Patrizio Bassi <patrizio.bassi@gmail.com>, Bj?rn Nilsson <bni.swe@gmail.com>, Andrey Borzenkov <arvidjaar@mail.ru>, "P. Christeas" <p_christ@hol.gr>, ghrt <ghrt@dial.kappa.ro>, jinhong hu <jinhong.hu@gmail.com>, Andrew Vasquez <andre>
+To: linux-acpi@vger.kernel.org
+Cc: lhms <lhms-devel@lists.sourceforge.net>, Patrick Mochel <mochel@linux.intel.com>, Greg KH <gregkh@suse.de>, "Brown, Len" <len.brown@intel.com>
 
-On Sat, 2006-02-18 at 13:03 +0300, Sergey Vlasov wrote:
-> After removing kfree(), which was here in the initial implementation,
-> this function became a thunk which does nothing useful - we can just
-> stick fn and data directly into work_struct.
+Now, we cannot know the relationship between (hot-plug) memory
+and its device. Each memory section has phys_device member, but it is
+always 0.
 
-Yes, thanks ... although I think there's still value to wrappering
-work_struct (a bit like kref wrappers atomic_t).
+These patches creates symbolic link from memory section to acpi name space,
+cut out from linux-memory-hotplug tree. This patch is against 2.6.16-rc4.
 
-James
+My concern is whether making symbolic link to namespace is sane or insane.
+
+-- Kame
+
+struct memory_block is a struct for memory hotplug and creates sysfs
+entry like this.
+/sys/device/system/memory/memory10/
+This struct has a member phys_device and this is just a number.
+A user can read this member like this.
+%cat /sys/devices/system/memory/memory10/state
+0
+
+AFAIK, there is no table for finding a device from this number.
+And this is always 0 now.
+
+This patch changes memory_block->phys_device from a number
+to symboliclink to the device to which the memory block
+belongs to.
+ex)
+% readlink /sys/devices/system/memory/memory10/phys_device
+../../../../firmware/acpi/namespace/ACPI/_SB/LSB1/MEM3
+
+This is usefull for memory hotplug shell script and we don't
+have to maintain a table phys_device_number <-> real device.
+
+A patch for making acpi-memory-hotplug use this follows this patch.
+
+Signed-Off-By: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+
+Index: testtree/drivers/base/memory.c
+===================================================================
+--- testtree.orig/drivers/base/memory.c	2006-02-17 15:07:56.000000000 +0900
++++ testtree/drivers/base/memory.c	2006-02-17 15:08:16.000000000 +0900
+@@ -252,31 +252,30 @@
+  	return count;
+  }
+
+-/*
+- * phys_device is a bad name for this.  What I really want
+- * is a way to differentiate between memory ranges that
+- * are part of physical devices that constitute
+- * a complete removable unit or fru.
+- * i.e. do these ranges belong to the same physical device,
+- * s.t. if I offline all of these sections I can then
+- * remove the physical device?
+- */
+-static ssize_t show_phys_device(struct sys_device *dev, char *buf)
+-{
+-	struct memory_block *mem =
+-		container_of(dev, struct memory_block, sysdev);
+-	return sprintf(buf, "%d\n", mem->phys_device);
+-}
+
+  static SYSDEV_ATTR(phys_index, 0444, show_mem_phys_index, NULL);
+  static SYSDEV_ATTR(state, 0644, show_mem_state, store_mem_state);
+-static SYSDEV_ATTR(phys_device, 0444, show_phys_device, NULL);
+
+  #define mem_create_simple_file(mem, attr_name)	\
+  	sysdev_create_file(&mem->sysdev, &attr_##attr_name)
+  #define mem_remove_simple_file(mem, attr_name)	\
+  	sysdev_remove_file(&mem->sysdev, &attr_##attr_name)
+
++static int attach_phys_device(struct memory_block *mem, struct kobject *kobj)
++{
++	int ret;
++	ret = sysfs_create_link(&mem->sysdev.kobj, kobj, "phys_device");
++	if (ret)
++		return ret;
++	mem->phys_device = kobj;
++	return 0;
++}
++
++static void remove_phys_device(struct memory_block *mem)
++{
++	sysfs_remove_link(&mem->sysdev.kobj, "phys_device");
++	mem->phys_device = NULL;
++}
+  /*
+   * Block size attribute stuff
+   */
+@@ -330,13 +329,14 @@
+  #endif
+
+  /*
+- * Note that phys_device is optional.  It is here to allow for
+- * differentiation between which *physical* devices each
++ * kobj is a kobject of physical memory device which includes the specified range
++ * It is here to allow for differentiation between which *physical* devices each
+   * section belongs to...
++ * If kobj != NULL, symbolic link to device from mem_section is created.
+   */
+
+  static int add_memory_block(unsigned long node_id, struct mem_section *section,
+-		     unsigned long state, int phys_device)
++		     unsigned long state, struct kobject *kobj)
+  {
+  	struct memory_block *mem = kzalloc(sizeof(*mem), GFP_KERNEL);
+  	int ret = 0;
+@@ -346,16 +346,16 @@
+
+  	mem->phys_index = __section_nr(section);
+  	mem->state = state;
++	mem->phys_device = 0;
+  	init_MUTEX(&mem->state_sem);
+-	mem->phys_device = phys_device;
+
+  	ret = register_memory(mem, section, NULL);
+  	if (!ret)
+  		ret = mem_create_simple_file(mem, phys_index);
+  	if (!ret)
+  		ret = mem_create_simple_file(mem, state);
+-	if (!ret)
+-		ret = mem_create_simple_file(mem, phys_device);
++	if (!ret && kobj)
++		ret = attach_phys_device(mem, kobj);
+
+  	return ret;
+  }
+@@ -391,27 +391,58 @@
+  	return mem;
+  }
+
+-int remove_memory_block(unsigned long node_id, struct mem_section *section,
+-		int phys_device)
++static struct memory_block *pfn_to_memory_block(unsigned long pfn)
++{
++	struct mem_section *section;
++	section = __nr_to_section(pfn_to_section_nr(pfn));
++	return find_memory_block(section);
++}
++
++
++int remove_memory_block(unsigned long node_id, struct mem_section *section)
+  {
+  	struct memory_block *mem;
+
+  	mem = find_memory_block(section);
+  	mem_remove_simple_file(mem, phys_index);
+  	mem_remove_simple_file(mem, state);
+-	mem_remove_simple_file(mem, phys_device);
++	if (mem->phys_device)
++		remove_phys_device(mem);
+  	unregister_memory(mem, section, NULL);
+
+  	return 0;
+  }
+
+  /*
++ * creating symbolic link from mem_section[] in specified address range
++ * to specified device. This device here is expected to be physical memory device.
++ * This symbolic link will be used to show relationship between mem_section and device.
++ */
++int attach_device_to_memsection(u64 start_addr, u64 end_addr, struct kobject *kobj)
++{
++	unsigned long pfn = start_addr >> PAGE_SHIFT;
++	unsigned long end_pfn = end_addr >> PAGE_SHIFT;
++	struct memory_block *mem;
++	int ret = 0;
++	for (; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
++		mem = pfn_to_memory_block(pfn);
++		if (mem) {
++			ret = attach_phys_device(mem, kobj);
++			if (ret)
++				break;
++		}
++	}
++	return ret;
++}
++
++
++/*
+   * need an interface for the VM to add new memory regions,
+   * but without onlining it.
+   */
+  int register_new_memory(struct mem_section *section)
+  {
+-	return add_memory_block(0, section, MEM_OFFLINE, 0);
++	return add_memory_block(0, section, MEM_OFFLINE, NULL);
+  }
+
+  int unregister_memory_section(struct mem_section *section)
+@@ -419,7 +450,7 @@
+  	if (!valid_section(section))
+  		return -EINVAL;
+
+-	return remove_memory_block(0, section, 0);
++	return remove_memory_block(0, section);
+  }
+
+  /*
+Index: testtree/include/linux/memory.h
+===================================================================
+--- testtree.orig/include/linux/memory.h	2006-02-17 15:07:56.000000000 +0900
++++ testtree/include/linux/memory.h	2006-02-17 15:08:16.000000000 +0900
+@@ -31,7 +31,9 @@
+  	 * initialization.
+  	 */
+  	struct semaphore state_sem;
+-	int phys_device;		/* to which fru does this belong? */
++
++	/* information related to hardware */
++	struct kobject *phys_device;	/* a device includes this memory. */
+  	void *hw;			/* optional pointer to fw/hw data */
+  	int (*phys_callback)(struct memory_block *);
+  	struct sys_device sysdev;
+@@ -73,7 +75,10 @@
+  extern int register_new_memory(struct mem_section *);
+  extern int unregister_memory_section(struct mem_section *);
+  extern int memory_dev_init(void);
+-extern int remove_memory_block(unsigned long, struct mem_section *, int);
++extern int remove_memory_block(unsigned long, struct mem_section *);
++/* creating symbolic link between memory device and memory section */
++extern int attach_device_to_memsection(u64 start_addr, u64 end_addr, struct kobject *kobj);
++
+
+  #define CONFIG_MEM_BLOCK_SIZE	(PAGES_PER_SECTION<<PAGE_SHIFT)
 
 
