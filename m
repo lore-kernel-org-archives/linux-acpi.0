@@ -1,59 +1,55 @@
-From: Bruno Ducrot <ducrot@poupinou.org>
-Subject: Re: Missing PSB or _PSS in BIOS
-Date: Mon, 20 Feb 2006 12:00:51 +0100
-Message-ID: <20060220110051.GA15047@poupinou.org>
-References: <43F7CDA2.8030209@online.fr>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 2.6.15.3 1/1] ACPI: Atlas ACPI driver
+Date: Mon, 20 Feb 2006 11:01:45 +0000
+Message-ID: <20060220110145.GB4489@srcf.ucam.org>
+References: <200602200213.k1K2DrDW013988@ns1.clipsalportal.com> <20060220102639.GA4342@srcf.ucam.org> <756b48450602200249k1b79b108u42bfef68e1e9dba8@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from poup.poupinou.org ([195.101.94.96]:34593 "EHLO
-	poup.poupinou.org") by vger.kernel.org with ESMTP id S964880AbWBTLAy
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Feb 2006 06:00:54 -0500
+Received: from [217.147.92.49] ([217.147.92.49]:36304 "EHLO
+	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
+	id S932285AbWBTLCY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 Feb 2006 06:02:24 -0500
 Content-Disposition: inline
-In-Reply-To: <43F7CDA2.8030209@online.fr>
+In-Reply-To: <756b48450602200249k1b79b108u42bfef68e1e9dba8@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vince <legoll@online.fr>
-Cc: linux-acpi@vger.kernel.org, cpufreq@lists.linux.org.uk
+To: Jaya Kumar <jayakumar.acpi@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sun, Feb 19, 2006 at 02:45:06AM +0100, Vince wrote:
-> Hello,
-> 
-> I'm using an opteron 165 (dual-core) which frequency/voltage should
-> be able to be scaled, but unfortunately the latest BIOS for my motherboard
-> lacks the frequency transition tables needed by powernow-k8.c
-> 
-> as shown by the boot message:
-> powernow-k8: MP systems not supported by PSB BIOS structure
-> powernow-k8:  BIOS error - no PSB or ACPI _PSS objects
-> 
-> Would it be possible to write suitable ACPI _PSS from AMD processor 
-> documentation ?
-> Or take the infos from some other ACPI BIOS which has support, and put 
-> it in mine ?
-> 
-> And use the "ACPI load custom DSDT" kernel option to get the patched one 
-> used by the
-> powernow-k8 driver ?
-> 
-> I found a lot of infos about fixing glitches in DSDT but could not find 
-> anything
-> about adding missing  _PSS entries...
-> 
-> Would that be dangerous ?
-> 
-> Is there something else I could do ?
-> I don't think I'll get an answer from the vendor, even if I tried...
-> 
+On Mon, Feb 20, 2006 at 06:49:54PM +0800, Jaya Kumar wrote:
 
-First, check if 'Cool'n Quiet' is enabled in the bios.  Second, if that
-do not work, try to upgrade your bios.  I had a similar problem with a
-HP Proliant 385, and after upgrading it was (almost) ok (they just
-forgot one p-state, but it was easy to add it afterward).
+> I'm not sure how standard that is. For example, I looked at the asus
+> and toshiba drivers. These ACPI board drivers use
+> /proc/acpi/somedevice/lcd. For example,
+
+And, from a userspace perspective, it sucks. I'm in the process of 
+writing patches to transition them all over, and I'd prefer not to have 
+to write one for your driver as well :)
+
+> I'll go take a look at that. I didn't look for an acpi driver outside
+> of the drivers/acpi directory. But if that's the consensus, shouldn't
+> someone also mod the toshiba and asus drivers?
+
+I'm doing so.
+
+> Standard wallmount stuff. There's 8 buttons on the one I'm using for
+> testing. Vol up/down. Brightness up/down. Then several buttons for
+> miscellaneous usage by people who customize the chassis. Most apps for
+> this type of board are custom written and tend to just select on
+> /proc/acpi/event.
+
+Volume and brightness are things that can easily be exposed through the 
+input layer, and if you're running X then it's much easier to handle 
+events that come through the input layer than ones which come from 
+acpi/events. There's four keycodes for programmable buttons specced (see 
+/usr/include/linux/input.h - _PROG1-4), so that would fit quite nicely 
+as well.
+
+Doing it via the input layer adds flexibility - it makes it easier for 
+non-root uesrspace to handle things, but you can still have a root-level 
+daemon that monitors /dev/input/event* and runs commands in response to 
+keycodes.
 
 -- 
-Bruno Ducrot
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Matthew Garrett | mjg59@srcf.ucam.org
