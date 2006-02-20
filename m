@@ -1,112 +1,366 @@
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: [PATCH] create symlink from memory section to device [2/2] acpi_memhotplug
- change.
-Date: Mon, 20 Feb 2006 10:35:36 +0900
-Message-ID: <43F91CE8.3010303@jp.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: jayakumar.acpi@gmail.com
+Subject: [PATCH 2.6.15.3 1/1] ACPI: Atlas ACPI driver
+Date: Mon, 20 Feb 2006 10:13:53 +0800
+Message-ID: <200602200213.k1K2DrDW013988@ns1.clipsalportal.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:19405 "EHLO
-	fgwmail7.fujitsu.co.jp") by vger.kernel.org with ESMTP
-	id S932521AbWBTBeN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 19 Feb 2006 20:34:13 -0500
+Received: from [202.75.186.170] ([202.75.186.170]:33284 "EHLO
+	ns1.clipsalportal.com") by vger.kernel.org with ESMTP
+	id S932591AbWBTCTJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 19 Feb 2006 21:19:09 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: lhms <lhms-devel@lists.sourceforge.net>, Patrick Mochel <mochel@linux.intel.com>, "Brown, Len" <len.brown@intel.com>, Greg KH <gregkh@suse.de>
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This patch add phys_device symbolic link support to acpi memory hotplug.
-This will help shell script for memory hotplug.
+Hi Len, ACPI, and kernel folk,
 
-example)
-%readlink /sys/devices/system/memory/memory10/phys_device
-../../../../firmware/acpi/namespace/ACPI/_SB/LSB1/MEM3
+Appended is my patch adding an ACPI driver for Atlas boards. I've
+done this patch against 2.6.15.3. 
 
+Please let me know if it looks okay so far and if you have any feedback 
+or suggestions.
 
-Signed-Off-By: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Thanks,
+Jaya Kumar
 
+Signed-off-by: Jaya Kumar <jayakumar.acpi@gmail.com>
 
-Index: testtree/drivers/acpi/acpi_memhotplug.c
-===================================================================
---- testtree.orig/drivers/acpi/acpi_memhotplug.c	2006-02-17 15:07:53.000000000 +0900
-+++ testtree/drivers/acpi/acpi_memhotplug.c	2006-02-17 15:08:30.000000000 +0900
-@@ -30,6 +30,7 @@
-  #include <linux/init.h>
-  #include <linux/types.h>
-  #include <linux/memory_hotplug.h>
-+#include <linux/memory.h>
-  #include <acpi/acpi_drivers.h>
+---
 
-  #define ACPI_MEMORY_DEVICE_COMPONENT		0x08000000UL
-@@ -180,6 +181,19 @@
-  	return_VALUE(0);
-  }
+ MAINTAINERS               |    5 
+ drivers/acpi/Kconfig      |   11 +
+ drivers/acpi/Makefile     |    1 
+ drivers/acpi/atlas_acpi.c |  279 ++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 296 insertions(+)
 
-+static acpi_status acpi_memory_link_name(struct acpi_memory_device *mem_device)
-+{
-+	struct acpi_device *device = NULL;
-+	acpi_status status;
-+	int ret;
-+	status = acpi_bus_get_device(mem_device->handle, &device);
-+	if (ACPI_FAILURE(status))
-+		return status;
-+	ret = attach_device_to_memsection(mem_device->start_addr,
-+					mem_device->end_addr, &device->kobj);
-+	return_VALUE(ret);
-+}
+---
+
+diff -X linux-2.6.15.3/Documentation/dontdiff -uprN linux-2.6.15.3-vanilla/drivers/acpi/atlas_acpi.c linux-2.6.15.3/drivers/acpi/atlas_acpi.c
+--- linux-2.6.15.3-vanilla/drivers/acpi/atlas_acpi.c	1970-01-01 07:30:00.000000000 +0730
++++ linux-2.6.15.3/drivers/acpi/atlas_acpi.c	2006-02-20 10:00:19.000000000 +0800
+@@ -0,0 +1,279 @@
++/*
++ *  atlas_acpi.c - Atlas Wallmount Touchscreen ACPI Extras
++ *
++ *  Copyright (C) 2006 Jaya Kumar
++ *  Based on Toshiba ACPI by John Belmonte and ASUS ACPI
++ *  This work was sponsored by CIS(M) Sdn Bhd.
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ */
 +
-  static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
-  {
-  	int result;
-@@ -206,7 +220,8 @@
-  		mem_device->state = MEMORY_INVALID_STATE;
-  		return result;
-  	}
--
-+	/* link to /sys/devices/system/memory/memoryX  */
-+	result = acpi_memory_link_name(mem_device);
-  	return result;
-  }
-
-@@ -471,6 +486,22 @@
-  	return_ACPI_STATUS(status);
-  }
-
-+static acpi_status __init acpi_memory_link_name_cb(acpi_handle handle, u32 level,
-+						  void *ctxt, void **retv)
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/types.h>
++#include <linux/proc_fs.h>
++#include <asm/uaccess.h>
++#include <acpi/acpi_drivers.h>
++
++#define PROC_ATLAS				"atlas"
++#define ACPI_ATLAS_NAME 			"Atlas ACPI"
++#define ACPI_ATLAS_CLASS			"Atlas"
++#define ACPI_ATLAS_BUTTON_HID			"ASIM0000"
++#define ACPI_ATLAS_BRIGHTNESS_HID		"ACPILCD00"
++
++struct atlas_device {
++	struct acpi_device *dev;
++	u8 brightness;
++	u8 max_brightness;
++};
++
++static struct proc_dir_entry *atlas_proc_dir;
++static struct atlas_device *atlas_dev;
++
++/* based on acpi_memory_powerdown_device */
++static int atlas_set_brightness(struct acpi_device *device, u16 value)
 +{
 +	acpi_status status;
-+	struct acpi_memory_device *mem_device;
-+	status = is_memory_device(handle);
-+	if (ACPI_FAILURE(status))
-+		return_ACPI_STATUS(AE_OK); /* continue */
-+	if (acpi_memory_get_device(handle, &mem_device)) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-+				  "Error in finding driver data\n"));
-+		return_ACPI_STATUS(AE_OK); /* continue */
-+	}
-+	return acpi_memory_link_name(mem_device);
-+}
++	struct acpi_object_list arg_list; 
++	union acpi_object arg;
 +
-  static int __init acpi_memory_device_init(void)
-  {
-  	int result;
-@@ -494,6 +525,16 @@
-  		return_VALUE(-ENODEV);
-  	}
-
-+	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
-+				     ACPI_UINT32_MAX,
-+				     acpi_memory_link_name_cb,
-+				     NULL, NULL);
++	arg_list.count = 1;
++	arg_list.pointer = &arg;
++	arg.type = ACPI_TYPE_INTEGER;
++	arg.integer.value = value;
++	status = acpi_evaluate_object(device->handle, "_BCM", &arg_list, NULL);
 +	if (ACPI_FAILURE(status)) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "walk_namespace failed\n"));
-+		acpi_bus_unregister_driver(&acpi_memory_device_driver);
-+		return_VALUE(-ENODEV);
++		printk(KERN_ERR "%s:  ACPI set failed\n", __FUNCTION__);
++		return -ENODEV;
++	} 
++
++	return status ;
++}
++	
++/* based on ibm_get_table_from_acpi */
++static int acpi_read_max_brightness(struct acpi_device *device)
++{
++	union acpi_object *package;
++	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
++	acpi_status status;
++	union acpi_object *obj = NULL;
++ 
++	status = acpi_evaluate_object(device->handle, "_BCL", NULL, &buffer);
++	if (ACPI_FAILURE(status)) {
++		printk(KERN_ERR "%s:  ACPI evaluation failed\n", __FUNCTION__);
++		return -ENODEV;
++	} 
++
++	package = (union acpi_object *) buffer.pointer;
++	obj = &(package->package.elements[0]);
++	return obj->integer.value;
++}
++	
++/* based on drivers/usb/media/vicam.c:vicam_write_proc_gain */
++static int atlas_write_proc_lcd(struct file *file, const char *buffer,
++				unsigned long count, void *data)
++{
++	u16 gtmp;
++	char kbuf[8];
++	struct atlas_device *dev = (struct atlas_device *) data;
++
++	if (count > 4)
++		return -EINVAL;
++
++	if (copy_from_user(kbuf, buffer, count))
++		return -EFAULT;
++
++	gtmp = (u16) simple_strtoul(kbuf, NULL, 10);
++	if (gtmp > dev->max_brightness)
++		return -EINVAL;
++
++	atlas_set_brightness(dev->dev, gtmp);
++	dev->brightness = gtmp;
++
++	return count;
++}
++
++/* based on drivers/mca/mca-proc.c:get_mca_machine_info */
++static int atlas_read_proc_lcd(char* page, char **start, off_t off,
++					int count, int *eof, void *data)
++{
++	struct atlas_device *dev = (struct atlas_device *) data;
++	int len;
++	
++	len = sprintf(page,	"brightness:              %d\n"
++				"brightness_levels:     0,%d\n",
++				dev->brightness,dev->max_brightness);
++
++	if (len <= off + count) 
++		*eof = 1;
++	*start = page + off;
++	len -= off;
++	if (len > count) 
++		len = count;
++	if (len < 0) 
++		len = 0;
++	return len;
++}
++
++/* button handling code */
++static acpi_status acpi_atlas_button_setup(acpi_handle region_handle,
++		    u32 function, void *handler_context, void **return_context)
++{
++	*return_context = 
++		(function != ACPI_REGION_DEACTIVATE) ?  handler_context : NULL;
++
++	return AE_OK;
++}
++
++static acpi_status acpi_atlas_button_handler(u32 function,
++		      acpi_physical_address address,
++		      u32 bit_width, acpi_integer * value,
++		      void *handler_context, void *region_context)
++{
++	acpi_status status;
++	struct acpi_device *dev;
++
++	dev = (struct acpi_device *) handler_context;
++	if (function == ACPI_WRITE)
++		status = acpi_bus_generate_event(dev, 0x80, address);
++	else {
++		printk(KERN_WARNING "atlas: shrugged on unexpected function"
++			":function=%x,address=%x,value=%x\n",
++			function, (u32)address, (u32)*value);
++		status = -EINVAL;
 +	}
 +
-  	return_VALUE(0);
-  }
-
-
++	return status ;
++}
++
++static int atlas_acpi_button_add(struct acpi_device *device)
++{
++
++	/* hookup button handler */
++	return acpi_install_address_space_handler(device->handle,
++				0x81, &acpi_atlas_button_handler,
++				&acpi_atlas_button_setup, device);
++}
++
++static int atlas_acpi_lcd_add(struct acpi_device *device)
++{
++	acpi_status status;
++	struct proc_dir_entry *proc;
++
++	atlas_dev = (struct atlas_device *) 
++			kmalloc(sizeof(struct atlas_device), GFP_KERNEL);
++	if (!atlas_dev)
++		return -ENOMEM;
++
++	/* get max brightness for /proc read use */
++	atlas_dev->max_brightness = acpi_read_max_brightness(device);
++	atlas_dev->dev = device;
++	acpi_driver_data(device) = atlas_dev;
++
++	/* setup proc entry to set and get lcd brightness */
++	proc = create_proc_read_entry("lcd", S_IFREG | S_IRUGO | S_IWUSR,
++			atlas_proc_dir, atlas_read_proc_lcd, atlas_dev);
++	if (!proc) {
++		printk(KERN_ERR "atlas: couldn't alloc proc entry\n");
++		kfree(atlas_dev);
++		status = -ENOMEM;
++	} else {
++		proc->owner = THIS_MODULE;
++		proc->write_proc = atlas_write_proc_lcd;
++		status = AE_OK;
++	}
++	return status ;
++}
++
++static int atlas_acpi_add(struct acpi_device *device)
++{
++
++	if (!strcmp(acpi_device_hid(device), ACPI_ATLAS_BUTTON_HID))
++		return atlas_acpi_button_add(device);
++	else 
++		return atlas_acpi_lcd_add(device);
++}
++
++static int atlas_acpi_remove(struct acpi_device *device, int type)
++{
++	acpi_status status;
++	
++	if (!device || !acpi_driver_data(device))
++		return -EINVAL;
++
++	if (!strcmp(acpi_device_hid(device), ACPI_ATLAS_BUTTON_HID)) {
++		status = acpi_remove_address_space_handler(device->handle,
++				0x81, &acpi_atlas_button_handler);
++		if (ACPI_FAILURE(status))
++			printk(KERN_ERR 
++				"Atlas: Error removing addr spc handler\n");
++	} else {
++		if (atlas_proc_dir)
++			remove_proc_entry("lcd", atlas_proc_dir);
++
++		kfree(atlas_dev);
++		status = AE_OK;
++	}
++
++	return status;
++}
++
++static struct acpi_driver atlas_acpi_driver = {
++	.name 	= ACPI_ATLAS_NAME,
++	.class 	= ACPI_ATLAS_CLASS,
++	.ids 	= ACPI_ATLAS_BUTTON_HID "," ACPI_ATLAS_BRIGHTNESS_HID,
++	.ops = {
++		.add = atlas_acpi_add,
++		.remove = atlas_acpi_remove,
++		},
++};
++
++static int __init atlas_acpi_init(void)
++{
++	int result;
++
++	atlas_proc_dir = proc_mkdir(PROC_ATLAS, acpi_root_dir);
++	if (!atlas_proc_dir) {
++		printk(KERN_ERR "Atlas ACPI: Unable to create /proc dir\n");
++		return -ENODEV;
++	}
++	atlas_proc_dir->owner = THIS_MODULE;
++
++	result = acpi_bus_register_driver(&atlas_acpi_driver);
++	if (result < 0) {
++		printk(KERN_ERR "Atlas ACPI: Unable to register driver\n");
++		remove_proc_entry(PROC_ATLAS, acpi_root_dir);
++		return -ENODEV;
++	}
++
++	return 0;
++}
++
++static void __exit atlas_acpi_exit(void)
++{
++	acpi_bus_unregister_driver(&atlas_acpi_driver);
++	if (atlas_proc_dir) 
++		remove_proc_entry(PROC_ATLAS, acpi_root_dir);
++}
++
++module_init(atlas_acpi_init);
++module_exit(atlas_acpi_exit);
++
++MODULE_AUTHOR("Jaya Kumar");
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("Atlas ACPI");
++MODULE_SUPPORTED_DEVICE("Atlas ACPI");
+diff -X linux-2.6.15.3/Documentation/dontdiff -uprN linux-2.6.15.3-vanilla/drivers/acpi/Kconfig linux-2.6.15.3/drivers/acpi/Kconfig
+--- linux-2.6.15.3-vanilla/drivers/acpi/Kconfig	2006-02-19 13:31:11.000000000 +0800
++++ linux-2.6.15.3/drivers/acpi/Kconfig	2006-02-19 19:29:04.000000000 +0800
+@@ -194,6 +194,17 @@ config ACPI_ASUS
+           something works not quite as expected, please use the mailing list
+           available on the above page (acpi4asus-user@lists.sourceforge.net)
+           
++config ACPI_ATLAS
++        tristate "Atlas Wallmount Touchscreen Extras"
++	depends on X86
++	default n
++	---help---
++	  This driver is intended for Atlas wallmount touchscreens. 
++	  The button events will show up in /proc/acpi/events and the lcd
++	  brightness control is at /proc/acpi/atlas/lcd
++
++	  If you have an Atlas wallmount touchscreen, say Y or M here.
++         
+ config ACPI_IBM
+ 	tristate "IBM ThinkPad Laptop Extras"
+ 	depends on X86
+diff -X linux-2.6.15.3/Documentation/dontdiff -uprN linux-2.6.15.3-vanilla/drivers/acpi/Makefile linux-2.6.15.3/drivers/acpi/Makefile
+--- linux-2.6.15.3-vanilla/drivers/acpi/Makefile	2006-02-19 13:31:11.000000000 +0800
++++ linux-2.6.15.3/drivers/acpi/Makefile	2006-02-19 14:23:59.000000000 +0800
+@@ -53,6 +53,7 @@ obj-$(CONFIG_ACPI_SYSTEM)	+= system.o ev
+ obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
+ obj-$(CONFIG_ACPI_NUMA)		+= numa.o
+ obj-$(CONFIG_ACPI_ASUS)		+= asus_acpi.o
++obj-$(CONFIG_ACPI_ATLAS)	+= atlas_acpi.o
+ obj-$(CONFIG_ACPI_IBM)		+= ibm_acpi.o
+ obj-$(CONFIG_ACPI_TOSHIBA)	+= toshiba_acpi.o
+ obj-y				+= scan.o motherboard.o
+diff -X linux-2.6.15.3/Documentation/dontdiff -uprN linux-2.6.15.3-vanilla/MAINTAINERS linux-2.6.15.3/MAINTAINERS
+--- linux-2.6.15.3-vanilla/MAINTAINERS	2006-02-19 13:30:48.000000000 +0800
++++ linux-2.6.15.3/MAINTAINERS	2006-02-20 09:44:12.000000000 +0800
+@@ -366,6 +366,11 @@ M:	ecashin@coraid.com
+ W:	http://www.coraid.com/support/linux
+ S:	Supported
+ 
++ATLAS ACPI EXTRAS DRIVER
++P:	Jaya Kumar
++M:	jayakumar.acpi@gmail.com
++S:	Maintained
++
+ ATM
+ P:	Chas Williams
+ M:	chas@cmf.nrl.navy.mil
