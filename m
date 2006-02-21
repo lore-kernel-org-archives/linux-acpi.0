@@ -1,51 +1,34 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: "Device is not power manageable"
-Date: Tue, 21 Feb 2006 04:27:08 -0800
-Message-ID: <20060221042708.653944c1.akpm@osdl.org>
+From: Andi Kleen <ak@suse.de>
+Subject: Re: [PATCH 1/1] EFI iounpam fix for acpi_os_unmap_memory
+Date: 21 Feb 2006 15:15:21 +0100
+Message-ID: <p73ek1w4x3a.fsf@verdi.suse.de>
+References: <43FA5293.4070807@ed-soft.at>
+	<20060220220219.6d82366a.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:48844 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1751176AbWBUM2s (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Feb 2006 07:28:48 -0500
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id k1LCSlDZ015346
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Tue, 21 Feb 2006 04:28:47 -0800
-Received: from bix (shell0.pdx.osdl.net [10.9.0.31])
-	by shell0.pdx.osdl.net (8.13.1/8.11.6) with SMTP id k1LCSkFm013693
-	for <linux-acpi@vger.kernel.org>; Tue, 21 Feb 2006 04:28:46 -0800
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1161223AbWBUOPg@vger.kernel.org>
+In-Reply-To: <20060220220219.6d82366a.akpm@osdl.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Domsch <Matt_Domsch@dell.com>, hostmaster@ed-soft.at
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+
+Andrew Morton <akpm@osdl.org> writes:
+
+>  
+>  void acpi_os_unmap_memory(void __iomem * virt, acpi_size size)
+>  {
+> +	/* Don't unmap memory which was not mapped by acpi_os_map_memory */
+> +	if (efi_enabled &&
+> +	    (efi_mem_attributes(virt_to_phys(virt)) & EFI_MEMORY_WB))
+> +		return;
 
 
-What does this mean?
+The patch is wrong because if the address came from ioremap 
+virt_to_phys doesn't give the real physical address. Also looking
+at acpi_os_map_memory it doesn't quite match the logic there.
 
-sony:/home/akpm> dmesg -s 1000000 | grep 199
-Detected 1995.262 MHz processor.
-Sangoma WANPIPE Router v1.1 (c) 1995-2000 Sangoma Technologies Inc.
-ACPI (acpi_bus-0199): Device is not power manageable [20060210]
-e100: Copyright(c) 1999-2005 Intel Corporation
-ACPI (acpi_bus-0199): Device is not power manageable [20060210]
-ACPI (acpi_bus-0199): Device is not power manageable [20060210]
-ACPI (acpi_bus-0199): Device is not power manageable [20060210]
-ACPI (acpi_bus-0199): Device is not power manageable [20060210]
-ACPI (acpi_bus-0199): Device is not power manageable [20060210]
-ACPI (acpi_bus-0199): Device is not power manageable [20060210]
-ACPI (acpi_bus-0199): Device is not power manageable [20060210]
-ACPI (acpi_bus-0199): Device is not power manageable [20060210]
-ACPI (acpi_bus-0199): Device is not power manageable [20060210]
-ACPI (acpi_bus-0199): Device is not power manageable [20060210]
-ACPI (acpi_bus-0199): Device is not power manageable [20060210]
+One working way to check for ioremap memory is 
+virt >= VMALLOC_START  && virt < VMALLOC_END
 
-<suspend-to-ram>
-<resume>
-
-ACPI Error (evevent-0314): No installed handler for fixed event [00000002] [20060210]
-
-
-And how does one identify that device?
-
+-Andi
