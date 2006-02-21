@@ -1,76 +1,42 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: Possible mem leak in drivers handling multiple HIDs with single driver->ops.add
-Date: Tue, 21 Feb 2006 10:33:31 -0700
-Message-ID: <200602211033.31720.bjorn.helgaas@hp.com>
-References: <756b48450602180252h666256fo1cb9a2bf78b9deea@mail.gmail.com>
+From: Andrew Morton <akpm@osdl.org>
+Subject: Re: [PATCH 1/1] EFI iounpam fix for acpi_os_unmap_memory
+Date: Tue, 21 Feb 2006 12:59:19 -0800
+Message-ID: <20060221125919.5085de5f.akpm@osdl.org>
+References: <43FA5293.4070807@ed-soft.at>
+	<20060220220219.6d82366a.akpm@osdl.org>
+	<p73ek1w4x3a.fsf@verdi.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel7.hp.com ([156.153.255.213]:47518 "EHLO atlrel7.hp.com")
-	by vger.kernel.org with ESMTP id S1750720AbWBURdi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Feb 2006 12:33:38 -0500
-In-Reply-To: <756b48450602180252h666256fo1cb9a2bf78b9deea@mail.gmail.com>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932649AbWBUVBO@vger.kernel.org>
+In-Reply-To: <p73ek1w4x3a.fsf@verdi.suse.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andi Kleen <ak@suse.de>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Matt_Domsch@dell.com, hostmaster@ed-soft.at
 List-Id: linux-acpi@vger.kernel.org
-To: Jaya Kumar <jayakumar.acpi@gmail.com>
-Cc: linux-acpi@vger.kernel.org
 
-On Saturday 18 February 2006 03:52, Jaya Kumar wrote:
-> ... I'm trying to
-> understand if there maybe a possible memory leak in the following
-> scenario. Here's what I see:
+Andi Kleen <ak@suse.de> wrote:
+>
+> Andrew Morton <akpm@osdl.org> writes:
 > 
-> drivers/acpi/button.c calls:
-> 464         result = acpi_bus_register_driver(&acpi_button_driver);
+> >  
+> >  void acpi_os_unmap_memory(void __iomem * virt, acpi_size size)
+> >  {
+> > +	/* Don't unmap memory which was not mapped by acpi_os_map_memory */
+> > +	if (efi_enabled &&
+> > +	    (efi_mem_attributes(virt_to_phys(virt)) & EFI_MEMORY_WB))
+> > +		return;
 > 
-> with acpi_button_driver containing:
->  77         .ids = "ACPI_FPB,ACPI_FSB,PNP0C0D,PNP0C0C,PNP0C0E",
 > 
-> Now, acpi_bus_register_driver calls acpi_driver_attach which does the following:
-> 560         list_for_each_safe(node, next, &acpi_device_list) {
-> ...
-> 568                 if (!acpi_bus_match(dev, drv)) {
-> 569                         if (!acpi_bus_driver_init(dev, drv)) {
+> The patch is wrong because if the address came from ioremap 
+> virt_to_phys doesn't give the real physical address. Also looking
+> at acpi_os_map_memory it doesn't quite match the logic there.
 > 
-> In iterating over the acpi_device_list, are there possible scenarios
-> of hardware containing multiple matching HIDS where acpi_bus_match
-> (which matches individual device HIDs to the driver's supported .ids)
-> ends up matching for a single driver and then calling
-> acpi_bus_driver_init which ends up calling that single driver's add
-> function multiple times:
+> One working way to check for ioremap memory is 
+> virt >= VMALLOC_START  && virt < VMALLOC_END
 > 
-> 514         result = driver->ops.add(device);
 
-An ACPI device may have multiple IDs (a _HID and zero or more _CIDs).
+OK, thanks.  I don't think we actually know who is trying to unmap some
+memory which acpi didn't map.
 
-But the loop body in acpi_driver_attach() is only executed once
-per device (not once per device ID), so acpi_bus_driver_init() is
-called at most once per device.  And acpi_bus_driver_init() calls
-the .add() method only once.
-
-I don't see the scenario you're concerned about.  Did I miss
-something?
-
-> In the button.c case, this calls:
-> 
-> 300 static int acpi_button_add(struct acpi_device *device)
-> ...
-> 311         button = kmalloc(sizeof(struct acpi_button), GFP_KERNEL);
-> 
-> In which case, acpi_button_add is called multiple times and we leak
-> all but the last kmalloc of button, as well as other stuff like proc
-> setup, etc.
-> 
-> To summarize the question, is it possible for one overall ACPI setup
-> to have multiple HIDs that then map to a single driver's add function?
-> If so, then I believe that button.c and container.c could leak memory.
-> 
-> If you think that this situation is possible, then I'll do a small
-> patch to fixup button.c and container.c.
-> 
-> Thanks,
-> jayakumar
+Edgar, can you please describe the bug which you're trying to fix?
