@@ -1,41 +1,29 @@
-From: Janosch Machowinski <scotch@tzi.de>
-Subject: annoying fan problem
-Date: Tue, 21 Feb 2006 01:04:14 +0100
-Message-ID: <43FA58FE.80700@tzi.de>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 2.6.15.3 1/1] ACPI: Atlas ACPI driver
+Date: Tue, 21 Feb 2006 00:02:50 +0000
+Message-ID: <20060221000250.GA7788@srcf.ucam.org>
+References: <200602200213.k1K2DrDW013988@ns1.clipsalportal.com> <20060220102639.GA4342@srcf.ucam.org> <756b48450602200249k1b79b108u42bfef68e1e9dba8@mail.gmail.com> <20060220110145.GB4489@srcf.ucam.org> <20060220111749.GC28090@osgiliath.brixandersen.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailhost.informatik.uni-bremen.de ([134.102.201.18]:11154 "EHLO
-	informatik.uni-bremen.de") by vger.kernel.org with ESMTP
-	id S1161200AbWBTX54 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Feb 2006 18:57:56 -0500
-Received: from [192.168.0.1] (dslc-082-082-066-139.pools.arcor-ip.net [82.82.66.139])
-	(authenticated bits=0)
-	by informatik.uni-bremen.de (8.13.4/8.13.2) with ESMTP id k1KNveed011599
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Tue, 21 Feb 2006 00:57:53 +0100 (CET)
+Received: from [217.147.92.49] ([217.147.92.49]:21175 "EHLO
+	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
+	id S1161212AbWBUAD2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 Feb 2006 19:03:28 -0500
+Received: from mjg59 by vavatch.codon.org.uk with local (Exim 4.52)
+	id 1FBKzS-00021r-Tv
+	for linux-acpi@vger.kernel.org; Tue, 21 Feb 2006 00:02:51 +0000
+Content-Disposition: inline
+In-Reply-To: <20060220111749.GC28090@osgiliath.brixandersen.dk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-Hey folks,
-I got an annoying problem with my fan, when I boot the system,
-it is allways on, with full speed. If I start compiling some stuff,
-or use BurnP6 to get the CPU over 65 degrees, the fan starts
-to behave right and goes into passive mode on cooldown.
-The notebook is an Asus M68Ne and has the latest bios installed.
-cat trip_points shows :
-critical (S5):           105 C
-passive:                 100 C: tc1=2 tc2=10 tsp=100 devices=0xc14d5ea0
+On Mon, Feb 20, 2006 at 12:17:49PM +0100, Henrik Brix Andersen wrote:
 
-cat cooling_mode
-<setting not supported>
-cooling mode:   passive
+> Except that this daemon isn't written yet?
 
-Any ideas ?
-Thanks
-      Janosch
+Given that it's about 20 lines of code plus the rest of acpid...
 
-
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
