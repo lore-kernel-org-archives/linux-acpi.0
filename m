@@ -1,29 +1,40 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 2.6.15.3 1/1] ACPI: Atlas ACPI driver
-Date: Tue, 21 Feb 2006 00:02:50 +0000
-Message-ID: <20060221000250.GA7788@srcf.ucam.org>
-References: <200602200213.k1K2DrDW013988@ns1.clipsalportal.com> <20060220102639.GA4342@srcf.ucam.org> <756b48450602200249k1b79b108u42bfef68e1e9dba8@mail.gmail.com> <20060220110145.GB4489@srcf.ucam.org> <20060220111749.GC28090@osgiliath.brixandersen.dk>
+From: Edgar Hucek <hostmaster@ed-soft.at>
+Subject: [PATCH 1/1] EFI iounpam fix for acpi_os_unmap_memory take two
+Date: Tue, 21 Feb 2006 01:16:04 +0100
+Message-ID: <43FA5BC4.7050206@ed-soft.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [217.147.92.49] ([217.147.92.49]:21175 "EHLO
-	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
-	id S1161212AbWBUAD2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Feb 2006 19:03:28 -0500
-Received: from mjg59 by vavatch.codon.org.uk with local (Exim 4.52)
-	id 1FBKzS-00021r-Tv
-	for linux-acpi@vger.kernel.org; Tue, 21 Feb 2006 00:02:51 +0000
-Content-Disposition: inline
-In-Reply-To: <20060220111749.GC28090@osgiliath.brixandersen.dk>
+Received: from 83-64-96-243.bad-voeslau.xdsl-line.inode.at ([83.64.96.243]:54484
+	"EHLO mognix.dark-green.com") by vger.kernel.org with ESMTP
+	id S1161217AbWBUAQE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 Feb 2006 19:16:04 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Feb 20, 2006 at 12:17:49PM +0100, Henrik Brix Andersen wrote:
+When EFI is enabled acpi_os_unmap_memory trys to unmap memory
+which was not mapped by acpi_os_map_memory.
 
-> Except that this daemon isn't written yet?
+Signed-off-by: Edgar Hucek <hostmaster@ed-soft.at>
 
-Given that it's about 20 lines of code plus the rest of acpid...
+diff -uNr linux-2.6.16-rc4.orig/drivers/acpi/osl.c linux-2.6.16-rc4/drivers/acpi/osl.c
+--- linux-2.6.16-rc4.orig/drivers/acpi/osl.c    2006-02-19 18:48:58.000000000 +0100
++++ linux-2.6.16-rc4/drivers/acpi/osl.c 2006-02-20 15:31:44.000000000 +0100
+@@ -208,7 +208,13 @@
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+ void acpi_os_unmap_memory(void __iomem * virt, acpi_size size)
+ {
+-       iounmap(virt);
++       if(efi_enabled) {
++               if (!(EFI_MEMORY_WB & efi_mem_attributes(virt_to_phys(virt)))) {
++                       iounmap(virt);
++               }
++       } else {
++               iounmap(virt);
++       }
+ }
+ EXPORT_SYMBOL_GPL(acpi_os_unmap_memory);
+
+
