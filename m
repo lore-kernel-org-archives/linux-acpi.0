@@ -1,54 +1,43 @@
-From: "Li, Shaohua" <shaohua.li@intel.com>
-Subject: RE: [PATCH 1/1] EFI iounpam fix for acpi_os_unmap_memory take two
-Date: Tue, 21 Feb 2006 09:26:37 +0800
-Message-ID: <59D45D057E9702469E5775CBB56411F101AE95F6@pdsmsx406>
+From: Andrew Morton <akpm@osdl.org>
+Subject: Re: 2.6.16-rc[34]: resume-from-RAM unreliable
+Date: Mon, 20 Feb 2006 21:09:43 -0800
+Message-ID: <20060220210943.7f159749.akpm@osdl.org>
+References: <43F9D3CA.1010709@rtr.ca>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr20.intel.com ([134.134.136.19]:5597 "EHLO
-	orsfmr005.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1161262AbWBUB1v convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Feb 2006 20:27:51 -0500
-Content-class: urn:content-classes:message
+Received: from smtp.osdl.org ([65.172.181.4]:2768 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1161373AbWBUFLX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 21 Feb 2006 00:11:23 -0500
+In-Reply-To: <43F9D3CA.1010709@rtr.ca>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Edgar Hucek <hostmaster@ed-soft.at>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Mark Lord <lkml@rtr.ca>
+Cc: linux-kernel@vger.kernel.org, torvalds@osdl.org, linux-acpi@vger.kernel.org
 
-Hi,
+Mark Lord <lkml@rtr.ca> wrote:
 >
->When EFI is enabled acpi_os_unmap_memory trys to unmap memory
->which was not mapped by acpi_os_map_memory.
-Yes, this could solve you problem at hand, but I wonder why we should
-always use ioremap in acpi_os_map_memory. It's ACPI tables or pci memory
-bar, ioremap should be safe to me.
+> For the past week, I've been trying to keep with the latest -rc*-git*
+> releases of 2.6.16 on my notebook, and something new in those is
+> impacting resume-from-RAM.
+> 
+> It works most of the time, but *rarely* when suspended for more
+> than a few hours (like overnight).  Which makes testing somewhat
+> challenging, as this is also my main work machine.
+> 
+> Black screen on resume, no response to alt-sysrq-b,
+> and no convenient serial port in the machine.
+> 
+> Works 100% with 2.6.15 kernels.
+> 
+> If I can figure out anything more that's useful, I'll do so,
+> but that's all I know about it right now.
+> 
+> Debugging resume on a "legacy free" notebook is not fun.
+> 
 
-Thanks,
-Shaohua
-
->
->Signed-off-by: Edgar Hucek <hostmaster@ed-soft.at>
->
->diff -uNr linux-2.6.16-rc4.orig/drivers/acpi/osl.c linux-2.6.16-
->rc4/drivers/acpi/osl.c
->--- linux-2.6.16-rc4.orig/drivers/acpi/osl.c    2006-02-19
->18:48:58.000000000 +0100
->+++ linux-2.6.16-rc4/drivers/acpi/osl.c 2006-02-20 15:31:44.000000000
-+0100
->@@ -208,7 +208,13 @@
->
-> void acpi_os_unmap_memory(void __iomem * virt, acpi_size size)
-> {
->-       iounmap(virt);
->+       if(efi_enabled) {
->+               if (!(EFI_MEMORY_WB &
->efi_mem_attributes(virt_to_phys(virt)))) {
->+                       iounmap(virt);
->+               }
->+       } else {
->+               iounmap(virt);
->+       }
-> }
-> EXPORT_SYMBOL_GPL(acpi_os_unmap_memory);
+It's awful, isn't it?  git-bisct is the best bet, but at one bisection
+point per day it could get a bit dull.
 
