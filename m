@@ -1,108 +1,79 @@
-From: Andi Kleen <ak@suse.de>
-Subject: Re: [PATCH 1/1] EFI iounpam fix for acpi_os_unmap_memory
-Date: Tue, 21 Feb 2006 22:09:06 +0100
-Message-ID: <200602212209.07586.ak@suse.de>
-References: <43FA5293.4070807@ed-soft.at> <p73ek1w4x3a.fsf@verdi.suse.de> <20060221125919.5085de5f.akpm@osdl.org>
+From: Andrew Morton <akpm@osdl.org>
+Subject: Re: hald in status D with 2.6.16-rc4
+Date: Tue, 21 Feb 2006 14:49:07 -0800
+Message-ID: <20060221144907.1ac11799.akpm@osdl.org>
+References: <200602202034.29413.mail@earthworm.de>
+	<20060220211909.7964d56e.akpm@osdl.org>
+	<200602212322.48645.mail@earthworm.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns1.suse.de ([195.135.220.2]:15279 "EHLO mx1.suse.de")
-	by vger.kernel.org with ESMTP id S932776AbWBUVJZ (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:57780 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S964888AbWBUWux (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Feb 2006 16:09:25 -0500
-In-Reply-To: <20060221125919.5085de5f.akpm@osdl.org>
-Content-Disposition: inline
+	Tue, 21 Feb 2006 17:50:53 -0500
+In-Reply-To: <200602212322.48645.mail@earthworm.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Matt_Domsch@dell.com, hostmaster@ed-soft.at, Bjorn Helgaas <bjorn.helgaas@hp.com>
+To: "Hesse, Christian" <mail@earthworm.de>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tuesday 21 February 2006 21:59, Andrew Morton wrote:
-> Andi Kleen <ak@suse.de> wrote:
+"Hesse, Christian" <mail@earthworm.de> wrote:
+>
+> On Tuesday 21 February 2006 06:19, Andrew Morton wrote:
+> > "Hesse, Christian" <mail@earthworm.de> wrote:
+> > > Hello everybody,
+> > >
+> > > since using kernel version 2.6.16-rc4 the hal daemon is in status D after
+> > > resume. I use suspend2 2.2.0.1 for 2.6.16-rc3. Any hints what could be
+> > > the problem? It worked perfectly with 2.6.15.x and suspend2 2.2.
 > >
-> > Andrew Morton <akpm@osdl.org> writes:
-> > 
-> > >  
-> > >  void acpi_os_unmap_memory(void __iomem * virt, acpi_size size)
-> > >  {
-> > > +	/* Don't unmap memory which was not mapped by acpi_os_map_memory */
-> > > +	if (efi_enabled &&
-> > > +	    (efi_mem_attributes(virt_to_phys(virt)) & EFI_MEMORY_WB))
-> > > +		return;
-> > 
-> > 
-> > The patch is wrong because if the address came from ioremap 
-> > virt_to_phys doesn't give the real physical address. Also looking
-> > at acpi_os_map_memory it doesn't quite match the logic there.
-> > 
-> > One working way to check for ioremap memory is 
-> > virt >= VMALLOC_START  && virt < VMALLOC_END
-> > 
+> > a) Look in the logs for any oopses, other nasties
 > 
-> OK, thanks.  I don't think we actually know who is trying to unmap some
-> memory which acpi didn't map.
+> Nothing.
 > 
-> Edgar, can you please describe the bug which you're trying to fix?
-
-I think the bug is clear - the logic in acpi_os_unmap_memory needs to match 
-what acpi_os_map_memory() does for EFI. In particular this means not calling
-iounmap.
-
-He probably has a EFI system where this caused troubles.
-
-But think even acpi_os_miap_memory is broken - I doubt the efi_mem_attributes
-thing guarantees that  the memory is mapped. I guess this was added for
-IA64 because ioremap used to return uncached memory there and IA64 doesn't
-like this for memory accesses or something like that.
-
-But Bjorn afaik recently fixed this by making ioremap handle it. So the right 
-fix probably would be to just drop all the efi_enabled gunk in acpi_os_map_memory 
-and just always use ioremap()
-
-Also removed this ptr > ULONG_MAX check. Obvious it can never trigger.
-
-<untested patch follows>
-
-Signed-off-by: Andi Kleen <ak@suse.de>
-
-Index: linux/drivers/acpi/osl.c
-===================================================================
---- linux.orig/drivers/acpi/osl.c
-+++ linux/drivers/acpi/osl.c
-@@ -182,23 +182,10 @@ acpi_status
- acpi_os_map_memory(acpi_physical_address phys, acpi_size size,
- 		   void __iomem ** virt)
- {
--	if (efi_enabled) {
--		if (EFI_MEMORY_WB & efi_mem_attributes(phys)) {
--			*virt = (void __iomem *)phys_to_virt(phys);
--		} else {
--			*virt = ioremap(phys, size);
--		}
--	} else {
--		if (phys > ULONG_MAX) {
--			printk(KERN_ERR PREFIX "Cannot map memory that high\n");
--			return AE_BAD_PARAMETER;
--		}
--		/*
--		 * ioremap checks to ensure this is in reserved space
--		 */
--		*virt = ioremap((unsigned long)phys, size);
--	}
--
-+	/*
-+	 * ioremap checks to ensure this is in reserved space
-+	 */
-+	*virt = ioremap((unsigned long)phys, size);
- 	if (!*virt)
- 		return AE_NO_MEMORY;
- 
-
-
-
-
-
-
+> > b) Do `echo t > /proc/sysrq-trigger', `dmesg -s 1000000 > foo' then find
+> >    the trace for `hald' in `foo', send it to this list.
 > 
+> Ok, here it is:
+> 
+> hald          D E0B50480     0  7791      1  7797   10654  7609 (NOTLB)
+> cc6cbccc e0b50480 000f4428 e0b50480 000f4428 c6c9605c c14dce00 c14dce00
+>        e0b50480 000f4428 cc3df530 dff6e5c0 cc3df530 00000296 dff6e5c8 c046f202
+>        00000001 cc3df530 c0115680 d7ea1ce0 dff6e5c8 00000003 00000001 00000000
+> Call Trace:
+>  [<c046f202>] __down+0x62/0xc0
+>  [<c0115680>] default_wake_function+0x0/0x20
+>  [<c046dd3f>] __down_failed+0x7/0xc
+>  [<c0288bbf>] .text.lock.osl+0x13/0x3c
+>  [<c0292678>] acpi_ex_system_wait_semaphore+0x34/0x48
+>  [<c028d5da>] acpi_ev_acquire_global_lock+0x67/0x6c
+>  [<c0293fdc>] acpi_ex_acquire_global_lock+0x14/0x3b
+>  [<c028f578>] acpi_ex_read_data_from_field+0x114/0x14b
+>  [<c029475b>] acpi_ex_resolve_node_to_value+0x123/0x1ac
+>  [<c028fdc2>] acpi_ex_resolve_to_value+0x5e/0x69
+>  [<c02923df>] acpi_ex_resolve_operands+0x277/0x4dc
+>  [<c028a4fd>] acpi_ds_exec_end_op+0xab/0x36e
+>  [<c0298fe6>] acpi_ps_parse_loop+0x5ba/0x8bc
+>  [<c0298881>] acpi_ps_parse_aml+0x4e/0x1f9
+>  [<c02998fb>] acpi_ps_execute_pass+0x72/0x83
+>  [<c0299824>] acpi_ps_execute_method+0x54/0x7d
+>  [<c0296c5f>] acpi_ns_execute_control_method+0x5a/0x67
+>  [<c0296bee>] acpi_ns_evaluate_by_handle+0x73/0x8a
+>  [<c0296aee>] acpi_ns_evaluate_relative+0xaa/0xc6
+>  [<c0296375>] acpi_evaluate_object+0x139/0x1fb
+>  [<c024e2e2>] copy_to_user+0x42/0x60
+>  [<c02a0107>] acpi_battery_get_status+0x6b/0x11c
+>  [<c02a056b>] acpi_battery_read_state+0x52/0x185
+>  [<c01832d8>] seq_read+0xe8/0x2f0
+>  [<c0162dba>] vfs_read+0xaa/0x1a0
+>  [<c01631d1>] sys_read+0x51/0x80
+>  [<c0102b5f>] sysenter_past_esp+0x54/0x75
+> 
+> This is with 2.6.16-rc4-git1 + suspend2 2.2.0.1.
+
+Hopefully suspend2 isn't involved.  People would feel more comfortable if
+you could test a vanilla mainline tree..
+
+Could the ACPI team please take a look at fixing this regression?
