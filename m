@@ -1,79 +1,161 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: hald in status D with 2.6.16-rc4
-Date: Tue, 21 Feb 2006 14:49:07 -0800
-Message-ID: <20060221144907.1ac11799.akpm@osdl.org>
-References: <200602202034.29413.mail@earthworm.de>
-	<20060220211909.7964d56e.akpm@osdl.org>
-	<200602212322.48645.mail@earthworm.de>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [RFC: 2.6 patch] drivers/acpi/utilities/utmisc.c: remove 3 unused global functions
+Date: Tue, 21 Feb 2006 15:14:20 -0800
+Message-ID: <971FCB6690CD0E4898387DBF7552B90E046E49C8@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:57780 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S964888AbWBUWux (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Feb 2006 17:50:53 -0500
-In-Reply-To: <200602212322.48645.mail@earthworm.de>
+Received: from fmr20.intel.com ([134.134.136.19]:26080 "EHLO
+	orsfmr005.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1750749AbWBUXO2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Feb 2006 18:14:28 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Hesse, Christian" <mail@earthworm.de>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>, "Brown, Len" <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-"Hesse, Christian" <mail@earthworm.de> wrote:
+Acpi_ut_strupr is used by the iASL compiler. I am probably going to put
+a conditional compile around it.
+
+The two report functions are obsolete, but may still be used by some of
+the drivers. They will be removed soon.
+
+> -----Original Message-----
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> owner@vger.kernel.org] On Behalf Of Adrian Bunk
+> Sent: Monday, February 20, 2006 2:36 PM
+> To: Brown, Len
+> Cc: linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org
+> Subject: [RFC: 2.6 patch] drivers/acpi/utilities/utmisc.c: remove 3
+unused
+> global functions
+> 
+> This patch removes the following four unused global functions from
+> drivers/acpi/utilities/utmisc.c:
+> - acpi_ut_strupr()
+> - acpi_ut_report_warning()
+> - acpi_ut_report_info()
+> 
+> Is this patch OK or is future usage planned or are they still used on
+> other operating systems?
+> 
+> 
+> Signed-off-by: Adrian Bunk <bunk@stusta.de>
+> 
+> ---
+> 
+>  drivers/acpi/utilities/utmisc.c |   44
+--------------------------------
+>  include/acpi/acutils.h          |    6 ----
+>  2 files changed, 50 deletions(-)
+> 
+> --- linux-2.6.16-rc1-mm5-full/include/acpi/acutils.h.old
+2006-02-03
+> 19:28:37.000000000 +0100
+> +++ linux-2.6.16-rc1-mm5-full/include/acpi/acutils.h	2006-02-03
+> 19:29:42.000000000 +0100
+> @@ -279,10 +279,6 @@
+> 
+>  void acpi_ut_report_error(char *module_name, u32 line_number);
+> 
+> -void acpi_ut_report_info(char *module_name, u32 line_number);
+> -
+> -void acpi_ut_report_warning(char *module_name, u32 line_number);
+> -
+>  /* Error and message reporting interfaces */
+> 
+>  void ACPI_INTERNAL_VAR_XFACE
+> @@ -454,8 +450,6 @@
+>  			  void *target_object,
+>  			  acpi_pkg_callback walk_callback, void
+*context);
+> 
+> -void acpi_ut_strupr(char *src_string);
+> -
+>  void acpi_ut_print_string(char *string, u8 max_length);
+> 
+>  u8 acpi_ut_valid_acpi_name(u32 name);
+> --- linux-2.6.16-rc1-mm5-full/drivers/acpi/utilities/utmisc.c.old
+2006-02-
+> 03 19:28:53.000000000 +0100
+> +++ linux-2.6.16-rc1-mm5-full/drivers/acpi/utilities/utmisc.c	2006-02-
+> 03 19:30:04.000000000 +0100
+> @@ -217,39 +217,6 @@
+> 
+> 
 >
-> On Tuesday 21 February 2006 06:19, Andrew Morton wrote:
-> > "Hesse, Christian" <mail@earthworm.de> wrote:
-> > > Hello everybody,
-> > >
-> > > since using kernel version 2.6.16-rc4 the hal daemon is in status D after
-> > > resume. I use suspend2 2.2.0.1 for 2.6.16-rc3. Any hints what could be
-> > > the problem? It worked perfectly with 2.6.15.x and suspend2 2.2.
-> >
-> > a) Look in the logs for any oopses, other nasties
+/***********************************************************************
+**
+> ******
+>   *
+> - * FUNCTION:    acpi_ut_strupr (strupr)
+> - *
+> - * PARAMETERS:  src_string      - The source string to convert
+> - *
+> - * RETURN:      None
+> - *
+> - * DESCRIPTION: Convert string to uppercase
+> - *
+> - * NOTE: This is not a POSIX function, so it appears here, not in
+> utclib.c
+> - *
+> -
+>
+************************************************************************
+**
+> ****/
+> -
+> -void acpi_ut_strupr(char *src_string)
+> -{
+> -	char *string;
+> -
+> -	ACPI_FUNCTION_ENTRY();
+> -
+> -	if (!src_string) {
+> -		return;
+> -	}
+> -
+> -	/* Walk entire string, uppercasing the letters */
+> -
+> -	for (string = src_string; *string; string++) {
+> -		*string = (char)ACPI_TOUPPER(*string);
+> -	}
+> -
+> -	return;
+> -}
+> -
+> -
+>
+/***********************************************************************
+**
+> ******
+> - *
+>   * FUNCTION:    acpi_ut_print_string
+>   *
+>   * PARAMETERS:  String          - Null terminated ASCII string
+> @@ -922,14 +864,3 @@
+>  	acpi_os_printf("ACPI Error (%s-%04d): ", module_name,
+line_number);
+>  }
 > 
-> Nothing.
+> -void acpi_ut_report_warning(char *module_name, u32 line_number)
+> -{
+> -
+> -	acpi_os_printf("ACPI Warning (%s-%04d): ", module_name,
+> line_number);
+> -}
+> -
+> -void acpi_ut_report_info(char *module_name, u32 line_number)
+> -{
+> -
+> -	acpi_os_printf("ACPI (%s-%04d): ", module_name, line_number);
+> -}
 > 
-> > b) Do `echo t > /proc/sysrq-trigger', `dmesg -s 1000000 > foo' then find
-> >    the trace for `hald' in `foo', send it to this list.
-> 
-> Ok, here it is:
-> 
-> hald          D E0B50480     0  7791      1  7797   10654  7609 (NOTLB)
-> cc6cbccc e0b50480 000f4428 e0b50480 000f4428 c6c9605c c14dce00 c14dce00
->        e0b50480 000f4428 cc3df530 dff6e5c0 cc3df530 00000296 dff6e5c8 c046f202
->        00000001 cc3df530 c0115680 d7ea1ce0 dff6e5c8 00000003 00000001 00000000
-> Call Trace:
->  [<c046f202>] __down+0x62/0xc0
->  [<c0115680>] default_wake_function+0x0/0x20
->  [<c046dd3f>] __down_failed+0x7/0xc
->  [<c0288bbf>] .text.lock.osl+0x13/0x3c
->  [<c0292678>] acpi_ex_system_wait_semaphore+0x34/0x48
->  [<c028d5da>] acpi_ev_acquire_global_lock+0x67/0x6c
->  [<c0293fdc>] acpi_ex_acquire_global_lock+0x14/0x3b
->  [<c028f578>] acpi_ex_read_data_from_field+0x114/0x14b
->  [<c029475b>] acpi_ex_resolve_node_to_value+0x123/0x1ac
->  [<c028fdc2>] acpi_ex_resolve_to_value+0x5e/0x69
->  [<c02923df>] acpi_ex_resolve_operands+0x277/0x4dc
->  [<c028a4fd>] acpi_ds_exec_end_op+0xab/0x36e
->  [<c0298fe6>] acpi_ps_parse_loop+0x5ba/0x8bc
->  [<c0298881>] acpi_ps_parse_aml+0x4e/0x1f9
->  [<c02998fb>] acpi_ps_execute_pass+0x72/0x83
->  [<c0299824>] acpi_ps_execute_method+0x54/0x7d
->  [<c0296c5f>] acpi_ns_execute_control_method+0x5a/0x67
->  [<c0296bee>] acpi_ns_evaluate_by_handle+0x73/0x8a
->  [<c0296aee>] acpi_ns_evaluate_relative+0xaa/0xc6
->  [<c0296375>] acpi_evaluate_object+0x139/0x1fb
->  [<c024e2e2>] copy_to_user+0x42/0x60
->  [<c02a0107>] acpi_battery_get_status+0x6b/0x11c
->  [<c02a056b>] acpi_battery_read_state+0x52/0x185
->  [<c01832d8>] seq_read+0xe8/0x2f0
->  [<c0162dba>] vfs_read+0xaa/0x1a0
->  [<c01631d1>] sys_read+0x51/0x80
->  [<c0102b5f>] sysenter_past_esp+0x54/0x75
-> 
-> This is with 2.6.16-rc4-git1 + suspend2 2.2.0.1.
-
-Hopefully suspend2 isn't involved.  People would feel more comfortable if
-you could test a vanilla mainline tree..
-
-Could the ACPI team please take a look at fixing this regression?
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
