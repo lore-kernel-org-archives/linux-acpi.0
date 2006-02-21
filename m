@@ -1,43 +1,41 @@
-From: Edgar Hucek <hostmaster@ed-soft.at>
-Subject: [PATCH 1/1] EFI iounpam fix for acpi_os_unmap_memory
-Date: Tue, 21 Feb 2006 00:36:51 +0100
-Message-ID: <43FA5293.4070807@ed-soft.at>
+From: Janosch Machowinski <scotch@tzi.de>
+Subject: annoying fan problem
+Date: Tue, 21 Feb 2006 01:04:14 +0100
+Message-ID: <43FA58FE.80700@tzi.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 83-64-96-243.bad-voeslau.xdsl-line.inode.at ([83.64.96.243]:29316
-	"EHLO mognix.dark-green.com") by vger.kernel.org with ESMTP
-	id S1161200AbWBTXgu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Feb 2006 18:36:50 -0500
+Received: from mailhost.informatik.uni-bremen.de ([134.102.201.18]:11154 "EHLO
+	informatik.uni-bremen.de") by vger.kernel.org with ESMTP
+	id S1161200AbWBTX54 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 Feb 2006 18:57:56 -0500
+Received: from [192.168.0.1] (dslc-082-082-066-139.pools.arcor-ip.net [82.82.66.139])
+	(authenticated bits=0)
+	by informatik.uni-bremen.de (8.13.4/8.13.2) with ESMTP id k1KNveed011599
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-acpi@vger.kernel.org>; Tue, 21 Feb 2006 00:57:53 +0100 (CET)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-When EFI is enabled acpi_os_unmap_memory trys to unmap memory
-which was not mapped by acpi_os_map_memory.
+Hey folks,
+I got an annoying problem with my fan, when I boot the system,
+it is allways on, with full speed. If I start compiling some stuff,
+or use BurnP6 to get the CPU over 65 degrees, the fan starts
+to behave right and goes into passive mode on cooldown.
+The notebook is an Asus M68Ne and has the latest bios installed.
+cat trip_points shows :
+critical (S5):           105 C
+passive:                 100 C: tc1=2 tc2=10 tsp=100 devices=0xc14d5ea0
 
-This patch for it.
+cat cooling_mode
+<setting not supported>
+cooling mode:   passive
 
-Signed-off-by: Edgar Hucek <hostmaster@ed-soft.at>
+Any ideas ?
+Thanks
+      Janosch
 
-diff -uNr linux-2.6.16-rc4.orig/drivers/acpi/osl.c
-linux-2.6.16-rc4/drivers/acpi/osl.c
---- linux-2.6.16-rc4.orig/drivers/acpi/osl.c    2006-02-19
-18:48:58.000000000 +0100
-+++ linux-2.6.16-rc4/drivers/acpi/osl.c 2006-02-20 15:31:44.000000000 +0100
-@@ -208,7 +208,13 @@
 
- void acpi_os_unmap_memory(void __iomem * virt, acpi_size size)
- {
--       iounmap(virt);
-+       if(efi_enabled) {
-+               if (!(EFI_MEMORY_WB &
-efi_mem_attributes(virt_to_phys(virt)))) {
-+                       iounmap(virt);
-+               }
-+       } else {
-+               iounmap(virt);
-+       }
- }
- EXPORT_SYMBOL_GPL(acpi_os_unmap_memory);
+
