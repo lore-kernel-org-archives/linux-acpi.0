@@ -1,43 +1,60 @@
 From: Andrew Morton <akpm@osdl.org>
-Subject: Re: 2.6.16-rc[34]: resume-from-RAM unreliable
-Date: Mon, 20 Feb 2006 21:09:43 -0800
-Message-ID: <20060220210943.7f159749.akpm@osdl.org>
-References: <43F9D3CA.1010709@rtr.ca>
+Subject: Re: [PATCH 1/1] EFI iounpam fix for acpi_os_unmap_memory
+Date: Mon, 20 Feb 2006 22:02:19 -0800
+Message-ID: <20060220220219.6d82366a.akpm@osdl.org>
+References: <43FA5293.4070807@ed-soft.at>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:2768 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1161373AbWBUFLX (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:22747 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1161385AbWBUGEG (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Feb 2006 00:11:23 -0500
-In-Reply-To: <43F9D3CA.1010709@rtr.ca>
+	Tue, 21 Feb 2006 01:04:06 -0500
+In-Reply-To: <43FA5293.4070807@ed-soft.at>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Lord <lkml@rtr.ca>
-Cc: linux-kernel@vger.kernel.org, torvalds@osdl.org, linux-acpi@vger.kernel.org
+To: Edgar Hucek <hostmaster@ed-soft.at>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Domsch <Matt_Domsch@dell.com>
 
-Mark Lord <lkml@rtr.ca> wrote:
+Edgar Hucek <hostmaster@ed-soft.at> wrote:
 >
-> For the past week, I've been trying to keep with the latest -rc*-git*
-> releases of 2.6.16 on my notebook, and something new in those is
-> impacting resume-from-RAM.
-> 
-> It works most of the time, but *rarely* when suspended for more
-> than a few hours (like overnight).  Which makes testing somewhat
-> challenging, as this is also my main work machine.
-> 
-> Black screen on resume, no response to alt-sysrq-b,
-> and no convenient serial port in the machine.
-> 
-> Works 100% with 2.6.15 kernels.
-> 
-> If I can figure out anything more that's useful, I'll do so,
-> but that's all I know about it right now.
-> 
-> Debugging resume on a "legacy free" notebook is not fun.
-> 
+> When EFI is enabled acpi_os_unmap_memory trys to unmap memory
+>  which was not mapped by acpi_os_map_memory.
 
-It's awful, isn't it?  git-bisct is the best bet, but at one bisection
-point per day it could get a bit dull.
+Your email client replaces tabs with spaces and wordwraps things.
+
+The patch could be cleaned up a bit..
+
+Matt, ACPi people: please ack or nack asap.
+
+
+
+From: Edgar Hucek <hostmaster@ed-soft.at>
+
+When EFI is enabled acpi_os_unmap_memory t] rys to unmap memory
+which was not mapped by acpi_os_map_memory.
+
+Signed-off-by: Edgar Hucek <hostmaster@ed-soft.at>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
+---
+
+ drivers/acpi/osl.c |    4 ++++
+ 1 files changed, 4 insertions(+)
+
+diff -puN drivers/acpi/osl.c~efi-iounpam-fix-for-acpi_os_unmap_memory drivers/acpi/osl.c
+--- devel/drivers/acpi/osl.c~efi-iounpam-fix-for-acpi_os_unmap_memory	2006-02-20 21:55:48.000000000 -0800
++++ devel-akpm/drivers/acpi/osl.c	2006-02-20 21:58:36.000000000 -0800
+@@ -208,6 +208,10 @@ EXPORT_SYMBOL_GPL(acpi_os_map_memory);
+ 
+ void acpi_os_unmap_memory(void __iomem * virt, acpi_size size)
+ {
++	/* Don't unmap memory which was not mapped by acpi_os_map_memory */
++	if (efi_enabled &&
++	    (efi_mem_attributes(virt_to_phys(virt)) & EFI_MEMORY_WB))
++		return;
+ 	iounmap(virt);
+ }
+ EXPORT_SYMBOL_GPL(acpi_os_unmap_memory);
+_
 
