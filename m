@@ -1,48 +1,79 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: annoying fan problem
-Date: Wed, 22 Feb 2006 21:03:21 +0100
-Message-ID: <200602222103.21942.trenn@suse.de>
-References: <43FA58FE.80700@tzi.de>
+From: "Hesse, Christian" <mail@earthworm.de>
+Subject: Re: hald in status D with 2.6.16-rc4
+Date: Wed, 22 Feb 2006 21:12:03 +0100
+Message-ID: <200602222112.09567.mail@earthworm.de>
+References: <200602202034.29413.mail@earthworm.de> <20060221144907.1ac11799.akpm@osdl.org> <200602221110.44813.mail@earthworm.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: multipart/signed;
+  boundary="nextPart2171728.DpEzgh5O4M";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:17816 "EHLO mx1.suse.de")
-	by vger.kernel.org with ESMTP id S1751404AbWBVUDY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Feb 2006 15:03:24 -0500
-In-Reply-To: <43FA58FE.80700@tzi.de>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1422669AbWBVUYa@vger.kernel.org>
+In-Reply-To: <200602221110.44813.mail@earthworm.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Janosch Machowinski <scotch@tzi.de>
-Cc: linux-acpi@vger.kernel.org
 
-On Tuesday 21 February 2006 01:04, Janosch Machowinski wrote:
-> Hey folks,
-> I got an annoying problem with my fan, when I boot the system,
-> it is allways on, with full speed. If I start compiling some stuff,
-> or use BurnP6 to get the CPU over 65 degrees, the fan starts
-> to behave right and goes into passive mode on cooldown.
-> The notebook is an Asus M68Ne and has the latest bios installed.
-> cat trip_points shows :
-> critical (S5):           105 C
-> passive:                 100 C: tc1=2 tc2=10 tsp=100 devices=0xc14d5ea0
-> 
-> cat cooling_mode
-> <setting not supported>
-> cooling mode:   passive
-> 
-There are  more people out there with different kind of fan problems.
+--nextPart2171728.DpEzgh5O4M
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-1. Does grep _WDG /proc/acpi/dsdt matches?
-2. Is this only when resuming from a suspend?
-3. Do you get semaphore/mutex errors in the latest 2.6.16-rc3 or higher
-   kernels?
+On Wednesday 22 February 2006 11:10, Hesse, Christian wrote:
+> On Tuesday 21 February 2006 23:49, Andrew Morton wrote:
+> > "Hesse, Christian" <mail@earthworm.de> wrote:
+> > > On Tuesday 21 February 2006 06:19, Andrew Morton wrote:
+> > > > "Hesse, Christian" <mail@earthworm.de> wrote:
+> > > > > Hello everybody,
+> > > > >
+> > > > > since using kernel version 2.6.16-rc4 the hal daemon is in status=
+ D
+> > > > > after resume. I use suspend2 2.2.0.1 for 2.6.16-rc3. Any hints wh=
+at
+> > > > > could be the problem? It worked perfectly with 2.6.15.x and
+> > > > > suspend2 2.2.
+> > > >
+> > > > a) Look in the logs for any oopses, other nasties
+> > >
+> > > Nothing.
+> > >
+> > > > b) Do `echo t > /proc/sysrq-trigger', `dmesg -s 1000000 > foo' then
+> > > > find the trace for `hald' in `foo', send it to this list.
+> > >
+> > > Ok, here it is:
+> > >
+> > > [ trace snipped ]
+> > >
+> > > This is with 2.6.16-rc4-git1 + suspend2 2.2.0.1.
+> >
+> > Hopefully suspend2 isn't involved.  People would feel more comfortable =
+if
+> > you could test a vanilla mainline tree..
+> >
+> > Could the ACPI team please take a look at fixing this regression?
+>
+> I did two cycles with mainline suspend now and did not hit the problem...=
+ I
+> will keep an eye on it.
 
-Best is you grep bugzilla.kernel.org for fan problems assigned to the ACPI
-component. Search for a related one and add your info (dmesg and acpidmp output
-of a recent kernel) or open a new one if you think it's unrelated. Please CC me.
+It is independent from suspend version, hald hangs with mainline suspend as=
+=20
+well.
+=2D-=20
+Christian
 
-       Thomas
+--nextPart2171728.DpEzgh5O4M
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.9.20 (GNU/Linux)
+
+iD8DBQBD/MWZlZfG2c8gdSURAooFAJ9aR1/WgR6ImND4ubQlVRYKNo0HpACfcwmB
+Du5xfD8iHV92zMDo0CFlvsQ=
+=D52y
+-----END PGP SIGNATURE-----
+
+--nextPart2171728.DpEzgh5O4M--
