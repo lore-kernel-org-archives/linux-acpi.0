@@ -1,75 +1,68 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: Re: 2.6.16-rc4: known regressions
-Date: Wed, 22 Feb 2006 13:23:17 +0100
-Message-ID: <20060222122317.GF4661@stusta.de>
-References: <3ACA40606221794F80A5670F0AF15F840B020D85@pdsmsx403>
+From: Kristen Accardi <kristen.c.accardi@intel.com>
+Subject: [patch 1/3] acpi: export acpi_bus_trim
+Date: Wed, 22 Feb 2006 11:21:25 -0800
+Message-ID: <1140636085.32574.19.camel@whizzy>
+References: <20060222190839.268403000@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout.stusta.mhn.de ([141.84.69.5]:62222 "HELO
-	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
-	id S1751225AbWBVMXU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Feb 2006 07:23:20 -0500
-Content-Disposition: inline
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F840B020D85@pdsmsx403>
+Received: from fmr18.intel.com ([134.134.136.17]:24467 "EHLO
+	orsfmr003.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1751405AbWBVTQZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Feb 2006 14:16:25 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Yu, Luming" <luming.yu@intel.com>
-Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net
+Cc: greg@kroah.com, len.brown@intel.com, muneda.takahiro@jp.fujitsu.com, pavel@ucw.cz, Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-On Wed, Feb 22, 2006 at 02:55:10PM +0800, Yu, Luming wrote:
-> > >Subject    : S3 sleep hangs the second time - 600X
-> >> >References : http://bugzilla.kernel.org/show_bug.cgi?id=5989
-> >> >Submitter  : Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-> >> >Status     : problematic commit identified,
-> >> >             further discussion is in the bug
-> >> 
-> >> The real problem is there are some bugs hidden by ec_intr=0.
-> >> ec_intr=1 just get these bug  just exposed, and we need to fix them. 
-> >
-> >From a users' point of view, these are regressions from 
-> >2.6.15, and not 
-> >all of them might be fixed in time for 2.6.16.
-> >
-> >What is a possible short term solution/workaround for 2.6.16?
-> 
-> ec_intr=0 is a reasonable workaround for this box,
-> if we couldn't root-cause and fix the real problem on time.
-> 
-> >Can we go back to default to polling mode in 2.6.16?
-> 
-> No, don't do this.  There are other laptops need this. And I didn't
-> get regression report that is root-caused to enabling ec_intr=1 by
-> default. If you argue bug 5989, 6075 could be,  I think
-> the truth is, for 5989, we need to fix thermal and processor driver
-> issue.
+Export the acpi_bus_trim function so that the pci hotplug driver can 
+use it.
 
-We do both agree that defaulting to polling mode is not a long term 
-solution.
+Signed-off-by:  Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-The question is what to do until it's resolved - assuming that issues 
-like 5989 might not be fixed in time for 2.6.16.
+---
+ drivers/acpi/scan.c     |    5 +++--
+ include/acpi/acpi_bus.h |    1 +
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-Breaking setups working with the defaults under 2.6.15 in 2.6.16 doesn't 
-sound that good.
+--- linux-dock-mm.orig/drivers/acpi/scan.c
++++ linux-dock-mm/drivers/acpi/scan.c
+@@ -24,7 +24,6 @@ static LIST_HEAD(acpi_device_list);
+ DEFINE_SPINLOCK(acpi_device_lock);
+ LIST_HEAD(acpi_wakeup_device_list);
+ 
+-static int acpi_bus_trim(struct acpi_device *start, int rmdevice);
+ 
+ static void acpi_device_release(struct kobject *kobj)
+ {
+@@ -1268,7 +1267,7 @@ int acpi_bus_start(struct acpi_device *d
+ 
+ EXPORT_SYMBOL(acpi_bus_start);
+ 
+-static int acpi_bus_trim(struct acpi_device *start, int rmdevice)
++int acpi_bus_trim(struct acpi_device *start, int rmdevice)
+ {
+ 	acpi_status status;
+ 	struct acpi_device *parent, *child;
+@@ -1321,6 +1320,8 @@ static int acpi_bus_trim(struct acpi_dev
+ 	}
+ 	return err;
+ }
++EXPORT_SYMBOL(acpi_bus_trim);
++
+ 
+ static int acpi_bus_scan_fixed(struct acpi_device *root)
+ {
+--- linux-dock-mm.orig/include/acpi/acpi_bus.h
++++ linux-dock-mm/include/acpi/acpi_bus.h
+@@ -330,6 +330,7 @@ int acpi_bus_register_driver(struct acpi
+ int acpi_bus_unregister_driver(struct acpi_driver *driver);
+ int acpi_bus_add(struct acpi_device **child, struct acpi_device *parent,
+ 		 acpi_handle handle, int type);
++int acpi_bus_trim(struct acpi_device *start, int rmdevice);
+ int acpi_bus_start(struct acpi_device *device);
+ 
+ int acpi_match_ids(struct acpi_device *device, char *ids);
 
-> for 6075, we need to fix interrupt issue.
-
-As far as I understand 6075, the submitter already tried ec_intr=0 
-without success.
-
-> So far, I don't think we need o fall back.
-> 
-> Thanks,
-> Luming
-
-cu
-Adrian
-
--- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
-
+--
