@@ -1,49 +1,53 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: Re: 2.6.16-rc4: known regressions
-Date: Wed, 22 Feb 2006 04:16:32 +0100
-Message-ID: <20060222031632.GD4661@stusta.de>
-References: <3ACA40606221794F80A5670F0AF15F840AFD52B2@pdsmsx403>
+From: Stelian Pop <stelian@popies.net>
+Subject: Re: [PATCH 1/1] EFI iounpam fix for acpi_os_unmap_memory
+Date: Wed, 22 Feb 2006 07:50:22 +0100
+Message-ID: <1140591022.4813.7.camel@deep-space-9.dsnet>
+References: <43FA5293.4070807@ed-soft.at> <p73ek1w4x3a.fsf@verdi.suse.de>
+	 <20060221125919.5085de5f.akpm@osdl.org>  <200602212209.07586.ak@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emailhub.stusta.mhn.de ([141.84.69.5]:21515 "HELO
-	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
-	id S1750930AbWBVDQd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Feb 2006 22:16:33 -0500
-Content-Disposition: inline
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F840AFD52B2@pdsmsx403>
+Received: from sd291.sivit.org ([194.146.225.122]:5385 "EHLO sd291.sivit.org")
+	by vger.kernel.org with ESMTP id S1751342AbWBVGu0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Feb 2006 01:50:26 -0500
+In-Reply-To: <200602212209.07586.ak@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Yu, Luming" <luming.yu@intel.com>
-Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
+To: Andi Kleen <ak@suse.de>
+Cc: Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Matt_Domsch@dell.com, hostmaster@ed-soft.at, Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-On Wed, Feb 22, 2006 at 10:39:01AM +0800, Yu, Luming wrote:
-> >
-> >Subject    : S3 sleep hangs the second time - 600X
-> >References : http://bugzilla.kernel.org/show_bug.cgi?id=5989
-> >Submitter  : Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-> >Status     : problematic commit identified,
-> >             further discussion is in the bug
-> 
-> The real problem is there are some bugs hidden by ec_intr=0.
-> ec_intr=1 just get these bug  just exposed, and we need to fix them. 
+Le mardi 21 f=E9vrier 2006 =E0 22:09 +0100, Andi Kleen a =E9crit :
+> On Tuesday 21 February 2006 21:59, Andrew Morton wrote:
 
->From a users' point of view, these are regressions from 2.6.15, and not 
-all of them might be fixed in time for 2.6.16.
+> > OK, thanks.  I don't think we actually know who is trying to unmap =
+some
+> > memory which acpi didn't map.
+> >=20
+> > Edgar, can you please describe the bug which you're trying to fix?
+>=20
+> I think the bug is clear - the logic in acpi_os_unmap_memory needs to=
+ match=20
+> what acpi_os_map_memory() does for EFI. In particular this means not =
+calling
+> iounmap.
+>=20
+> He probably has a EFI system where this caused troubles.
 
-What is a possible short term solution/workaround for 2.6.16?
-Can we go back to default to polling mode in 2.6.16?
+This EFI system is the new Intel Core Duo based Apple iMac (Edgar
+described the process of booting Linux on this pretty box at=20
+http://www.mactel-linux.org/)
 
-> Thanks,
-> Luming
+In particular, the iounmap problem is visible in the logs at
+http://www.mactel-linux.org/wiki/Dmesg
 
-cu
-Adrian
+Stelian.
+--=20
+Stelian Pop <stelian@popies.net>
 
--- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
-
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
