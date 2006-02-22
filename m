@@ -1,53 +1,54 @@
-From: Stelian Pop <stelian@popies.net>
-Subject: Re: [PATCH 1/1] EFI iounpam fix for acpi_os_unmap_memory
-Date: Wed, 22 Feb 2006 07:50:22 +0100
-Message-ID: <1140591022.4813.7.camel@deep-space-9.dsnet>
-References: <43FA5293.4070807@ed-soft.at> <p73ek1w4x3a.fsf@verdi.suse.de>
-	 <20060221125919.5085de5f.akpm@osdl.org>  <200602212209.07586.ak@suse.de>
+From: "Yu, Luming" <luming.yu@intel.com>
+Subject: RE: 2.6.16-rc4: known regressions
+Date: Wed, 22 Feb 2006 14:55:10 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F840B020D85@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sd291.sivit.org ([194.146.225.122]:5385 "EHLO sd291.sivit.org")
-	by vger.kernel.org with ESMTP id S1751342AbWBVGu0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Feb 2006 01:50:26 -0500
-In-Reply-To: <200602212209.07586.ak@suse.de>
+Received: from fmr18.intel.com ([134.134.136.17]:13030 "EHLO
+	orsfmr003.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1751342AbWBVG4a convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Feb 2006 01:56:30 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <ak@suse.de>
-Cc: Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Matt_Domsch@dell.com, hostmaster@ed-soft.at, Bjorn Helgaas <bjorn.helgaas@hp.com>
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-Le mardi 21 f=E9vrier 2006 =E0 22:09 +0100, Andi Kleen a =E9crit :
-> On Tuesday 21 February 2006 21:59, Andrew Morton wrote:
+> >Subject    : S3 sleep hangs the second time - 600X
+>> >References : http://bugzilla.kernel.org/show_bug.cgi?id=5989
+>> >Submitter  : Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+>> >Status     : problematic commit identified,
+>> >             further discussion is in the bug
+>> 
+>> The real problem is there are some bugs hidden by ec_intr=0.
+>> ec_intr=1 just get these bug  just exposed, and we need to fix them. 
+>
+>From a users' point of view, these are regressions from 
+>2.6.15, and not 
+>all of them might be fixed in time for 2.6.16.
+>
+>What is a possible short term solution/workaround for 2.6.16?
 
-> > OK, thanks.  I don't think we actually know who is trying to unmap =
-some
-> > memory which acpi didn't map.
-> >=20
-> > Edgar, can you please describe the bug which you're trying to fix?
->=20
-> I think the bug is clear - the logic in acpi_os_unmap_memory needs to=
- match=20
-> what acpi_os_map_memory() does for EFI. In particular this means not =
-calling
-> iounmap.
->=20
-> He probably has a EFI system where this caused troubles.
+ec_intr=0 is a reasonable workaround for this box,
+if we couldn't root-cause and fix the real problem on time.
 
-This EFI system is the new Intel Core Duo based Apple iMac (Edgar
-described the process of booting Linux on this pretty box at=20
-http://www.mactel-linux.org/)
+>Can we go back to default to polling mode in 2.6.16?
+>
 
-In particular, the iounmap problem is visible in the logs at
-http://www.mactel-linux.org/wiki/Dmesg
+No, don't do this.  There are other laptops need this. And I didn't
+get regression report that is root-caused to enabling ec_intr=1 by
+default. If you argue bug 5989, 6075 could be,  I think
+the truth is, for 5989, we need to fix thermal and processor driver
+issue.
+for 6075, we need to fix interrupt issue.
 
-Stelian.
---=20
-Stelian Pop <stelian@popies.net>
+So far, I don't think we need o fall back.
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Luming
+
+.
+
