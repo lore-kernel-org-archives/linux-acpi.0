@@ -1,54 +1,71 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: 2.6.16-rc4: known regressions
-Date: Wed, 22 Feb 2006 14:55:10 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F840B020D85@pdsmsx403>
+From: "Hesse, Christian" <mail@earthworm.de>
+Subject: Re: hald in status D with 2.6.16-rc4
+Date: Wed, 22 Feb 2006 11:10:40 +0100
+Message-ID: <200602221110.44813.mail@earthworm.de>
+References: <200602202034.29413.mail@earthworm.de> <200602212322.48645.mail@earthworm.de> <20060221144907.1ac11799.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr18.intel.com ([134.134.136.17]:13030 "EHLO
-	orsfmr003.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1751342AbWBVG4a convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Feb 2006 01:56:30 -0500
-Content-class: urn:content-classes:message
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed;
+  boundary="nextPart3847742.ymNGRa4gJc";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932584AbWBVKKy@vger.kernel.org>
+In-Reply-To: <20060221144907.1ac11799.akpm@osdl.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-> >Subject    : S3 sleep hangs the second time - 600X
->> >References : http://bugzilla.kernel.org/show_bug.cgi?id=5989
->> >Submitter  : Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
->> >Status     : problematic commit identified,
->> >             further discussion is in the bug
->> 
->> The real problem is there are some bugs hidden by ec_intr=0.
->> ec_intr=1 just get these bug  just exposed, and we need to fix them. 
+--nextPart3847742.ymNGRa4gJc
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+On Tuesday 21 February 2006 23:49, Andrew Morton wrote:
+> "Hesse, Christian" <mail@earthworm.de> wrote:
+> > On Tuesday 21 February 2006 06:19, Andrew Morton wrote:
+> > > "Hesse, Christian" <mail@earthworm.de> wrote:
+> > > > Hello everybody,
+> > > >
+> > > > since using kernel version 2.6.16-rc4 the hal daemon is in status D
+> > > > after resume. I use suspend2 2.2.0.1 for 2.6.16-rc3. Any hints what
+> > > > could be the problem? It worked perfectly with 2.6.15.x and suspend2
+> > > > 2.2.
+> > >
+> > > a) Look in the logs for any oopses, other nasties
+> >
+> > Nothing.
+> >
+> > > b) Do `echo t > /proc/sysrq-trigger', `dmesg -s 1000000 > foo' then
+> > > find the trace for `hald' in `foo', send it to this list.
+> >
+> > Ok, here it is:
+> >
+> > [ trace snipped ]
+> >
+> > This is with 2.6.16-rc4-git1 + suspend2 2.2.0.1.
 >
->From a users' point of view, these are regressions from 
->2.6.15, and not 
->all of them might be fixed in time for 2.6.16.
+> Hopefully suspend2 isn't involved.  People would feel more comfortable if
+> you could test a vanilla mainline tree..
 >
->What is a possible short term solution/workaround for 2.6.16?
+> Could the ACPI team please take a look at fixing this regression?
 
-ec_intr=0 is a reasonable workaround for this box,
-if we couldn't root-cause and fix the real problem on time.
+I did two cycles with mainline suspend now and did not hit the problem... I=
+=20
+will keep an eye on it.
+=2D-=20
+Christian
 
->Can we go back to default to polling mode in 2.6.16?
->
+--nextPart3847742.ymNGRa4gJc
+Content-Type: application/pgp-signature
 
-No, don't do this.  There are other laptops need this. And I didn't
-get regression report that is root-caused to enabling ec_intr=1 by
-default. If you argue bug 5989, 6075 could be,  I think
-the truth is, for 5989, we need to fix thermal and processor driver
-issue.
-for 6075, we need to fix interrupt issue.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.9.20 (GNU/Linux)
 
-So far, I don't think we need o fall back.
+iD8DBQBD/DiklZfG2c8gdSURAtg/AKCG5pGesZvwq/7v/cK/mKrdXM3SegCaA4PQ
+dtrRwr9/FVeKSzSUt/80eyA=
+=HB41
+-----END PGP SIGNATURE-----
 
-Thanks,
-Luming
-
-.
-
+--nextPart3847742.ymNGRa4gJc--
