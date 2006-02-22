@@ -1,31 +1,79 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: 2.6.16-rc4: known regressions
-Date: Wed, 22 Feb 2006 10:39:01 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F840AFD52B2@pdsmsx403>
+From: "Randy.Dunlap" <rdunlap@xenotime.net>
+Subject: Re: "Device is not power manageable"
+Date: Tue, 21 Feb 2006 18:59:20 -0800
+Message-ID: <20060221185920.df65a7e3.rdunlap@xenotime.net>
+References: <20060221042708.653944c1.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr18.intel.com ([134.134.136.17]:48069 "EHLO
-	orsfmr003.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1751059AbWBVCke convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Feb 2006 21:40:34 -0500
-Content-class: urn:content-classes:message
+Received: from xenotime.net ([66.160.160.81]:60348 "HELO xenotime.net")
+	by vger.kernel.org with SMTP id S1751252AbWBVC6S (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 21 Feb 2006 21:58:18 -0500
+Received: from midway.site ([71.111.157.99]) by xenotime.net for <linux-acpi@vger.kernel.org>; Tue, 21 Feb 2006 18:58:17 -0800
+In-Reply-To: <20060221042708.653944c1.akpm@osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Stultz <johnstul@us.ibm.com>, paulus@samba.org, linuxppc-dev@ozlabs.org, gregkh@suse.de, Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Meelis Roos <mroos@linux.ee>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@atrey.karlin.mff.cuni.cz
+To: Andrew Morton <akpm@osdl.org>
+Cc: linux-acpi@vger.kernel.org
 
->
->Subject    : S3 sleep hangs the second time - 600X
->References : http://bugzilla.kernel.org/show_bug.cgi?id=5989
->Submitter  : Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
->Status     : problematic commit identified,
->             further discussion is in the bug
+On Tue, 21 Feb 2006 04:27:08 -0800 Andrew Morton wrote:
 
-The real problem is there are some bugs hidden by ec_intr=0.
-ec_intr=1 just get these bug  just exposed, and we need to fix them. 
+> 
+> What does this mean?
+> 
+> sony:/home/akpm> dmesg -s 1000000 | grep 199
+> Detected 1995.262 MHz processor.
+> Sangoma WANPIPE Router v1.1 (c) 1995-2000 Sangoma Technologies Inc.
+> ACPI (acpi_bus-0199): Device is not power manageable [20060210]
+> e100: Copyright(c) 1999-2005 Intel Corporation
+> ACPI (acpi_bus-0199): Device is not power manageable [20060210]
+> ACPI (acpi_bus-0199): Device is not power manageable [20060210]
+> ACPI (acpi_bus-0199): Device is not power manageable [20060210]
+> ACPI (acpi_bus-0199): Device is not power manageable [20060210]
+> ACPI (acpi_bus-0199): Device is not power manageable [20060210]
+> ACPI (acpi_bus-0199): Device is not power manageable [20060210]
+> ACPI (acpi_bus-0199): Device is not power manageable [20060210]
+> ACPI (acpi_bus-0199): Device is not power manageable [20060210]
+> ACPI (acpi_bus-0199): Device is not power manageable [20060210]
+> ACPI (acpi_bus-0199): Device is not power manageable [20060210]
+> ACPI (acpi_bus-0199): Device is not power manageable [20060210]
+> 
+> <suspend-to-ram>
+> <resume>
+> 
+> ACPI Error (evevent-0314): No installed handler for fixed event [00000002] [20060210]
+> 
+> 
+> And how does one identify that device?
 
-Thanks,
-Luming
+Here's the patch that I have used.
+
+-- 
+
+From: Jae-hyeon Park <jhpark@tuhep.phys.tohoku.ac.jp>
+
+Identify which device is not power-manageable to make
+the message more useful.
+
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+---
+ drivers/acpi/bus.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
+
+--- linux-2616-rc4.orig/drivers/acpi/bus.c
++++ linux-2616-rc4/drivers/acpi/bus.c
+@@ -197,8 +197,9 @@ int acpi_bus_set_power(acpi_handle handl
+ 	/* Make sure this is a valid target state */
+ 
+ 	if (!device->flags.power_manageable) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_WARN,
+-				  "Device is not power manageable\n"));
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++				  "Device '%s' is not power manageable\n",
++					device->kobj.name));
+ 		return_VALUE(-ENODEV);
+ 	}
+ 	/*
+
