@@ -1,71 +1,92 @@
-From: "Hesse, Christian" <mail@earthworm.de>
-Subject: Re: hald in status D with 2.6.16-rc4
-Date: Wed, 22 Feb 2006 11:10:40 +0100
-Message-ID: <200602221110.44813.mail@earthworm.de>
-References: <200602202034.29413.mail@earthworm.de> <200602212322.48645.mail@earthworm.de> <20060221144907.1ac11799.akpm@osdl.org>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: "Device is not power manageable"
+Date: Wed, 22 Feb 2006 12:44:41 +0100
+Message-ID: <200602221244.42339.trenn@suse.de>
+References: <20060221042708.653944c1.akpm@osdl.org> <20060221185920.df65a7e3.rdunlap@xenotime.net> <20060221190840.5e67d07e.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart3847742.ymNGRa4gJc";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932584AbWBVKKy@vger.kernel.org>
-In-Reply-To: <20060221144907.1ac11799.akpm@osdl.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-
---nextPart3847742.ymNGRa4gJc
 Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor.suse.de ([195.135.220.2]:59811 "EHLO mx1.suse.de")
+	by vger.kernel.org with ESMTP id S1750791AbWBVLoo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Feb 2006 06:44:44 -0500
+In-Reply-To: <20060221190840.5e67d07e.akpm@osdl.org>
 Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: linux-acpi@vger.kernel.org, rdunlap@xenotime.net
 
-On Tuesday 21 February 2006 23:49, Andrew Morton wrote:
-> "Hesse, Christian" <mail@earthworm.de> wrote:
-> > On Tuesday 21 February 2006 06:19, Andrew Morton wrote:
-> > > "Hesse, Christian" <mail@earthworm.de> wrote:
-> > > > Hello everybody,
-> > > >
-> > > > since using kernel version 2.6.16-rc4 the hal daemon is in status D
-> > > > after resume. I use suspend2 2.2.0.1 for 2.6.16-rc3. Any hints what
-> > > > could be the problem? It worked perfectly with 2.6.15.x and suspend2
-> > > > 2.2.
-> > >
-> > > a) Look in the logs for any oopses, other nasties
+On Wednesday 22 February 2006 04:08, you wrote:
+> "Randy.Dunlap" <rdunlap@xenotime.net> wrote:
 > >
-> > Nothing.
-> >
-> > > b) Do `echo t > /proc/sysrq-trigger', `dmesg -s 1000000 > foo' then
-> > > find the trace for `hald' in `foo', send it to this list.
-> >
-> > Ok, here it is:
-> >
-> > [ trace snipped ]
-> >
-> > This is with 2.6.16-rc4-git1 + suspend2 2.2.0.1.
->
-> Hopefully suspend2 isn't involved.  People would feel more comfortable if
-> you could test a vanilla mainline tree..
->
-> Could the ACPI team please take a look at fixing this regression?
+> > Here's the patch that I have used.
+> > 
+> >  -- 
+> > 
+> >  From: Jae-hyeon Park <jhpark@tuhep.phys.tohoku.ac.jp>
+> > 
+> >  Identify which device is not power-manageable to make
+> >  the message more useful.
+> > 
+> >  Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+> >  ---
+> >   drivers/acpi/bus.c |    5 +++--
+> >   1 files changed, 3 insertions(+), 2 deletions(-)
+> > 
+> >  --- linux-2616-rc4.orig/drivers/acpi/bus.c
+> >  +++ linux-2616-rc4/drivers/acpi/bus.c
+> >  @@ -197,8 +197,9 @@ int acpi_bus_set_power(acpi_handle handl
+> >   	/* Make sure this is a valid target state */
+> >   
+> >   	if (!device->flags.power_manageable) {
+> >  -		ACPI_DEBUG_PRINT((ACPI_DB_WARN,
+> >  -				  "Device is not power manageable\n"));
+> >  +		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> >  +				  "Device '%s' is not power manageable\n",
+> >  +					device->kobj.name));
+> >   		return_VALUE(-ENODEV);
+> >   	}
+> >   	/*
+> 
+> Thanks.  I guess that won't be very popular due to using linux-specific
+> stuff in a generic file, but I'll merge it.
 
-I did two cycles with mainline suspend now and did not hit the problem... I=
-=20
-will keep an eye on it.
-=2D-=20
-Christian
+That will conflict with latest patches:
+ACPI_DEBUG_PRINT((ACPI_DB_WARN, ...)) have been converted to 
+ACPI_WARNING((AE_INFO, ...)).
 
---nextPart3847742.ymNGRa4gJc
-Content-Type: application/pgp-signature
+This was done because a lot real error/warning messages were only printed with
+ACPI_DEBUG=y (like all ACPI_DEBUG_PRINT messages).
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.9.20 (GNU/Linux)
+In this case I used ACPI_INFO((AE_INFO,...)) as I knew the message
+pops up here and there.
 
-iD8DBQBD/DiklZfG2c8gdSURAtg/AKCG5pGesZvwq/7v/cK/mKrdXM3SegCaA4PQ
-dtrRwr9/FVeKSzSUt/80eyA=
-=HB41
------END PGP SIGNATURE-----
+This one lets the message vanish totally and only shows it with ACPI_DEBUG=y and 
+acpi_dbg_level | ACPI_DEBUG_INFO:
 
---nextPart3847742.ymNGRa4gJc--
+
+signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+signed-off-by: Thomas Renninger <trenn@suse.de>
+
+bus.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletion(-)
+
+Index: linux-2.6.15/drivers/acpi/bus.c
+===================================================================
+--- linux-2.6.15.orig/drivers/acpi/bus.c
++++ linux-2.6.15/drivers/acpi/bus.c
+@@ -196,7 +196,9 @@ int acpi_bus_set_power(acpi_handle handl
+ 	/* Make sure this is a valid target state */
+ 
+ 	if (!device->flags.power_manageable) {
+-		ACPI_INFO((AE_INFO, "Device is not power manageable"));
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++			      "Device %s is not power manageable",
++			      device->kobj.name));
+ 		return_VALUE(-ENODEV);
+ 	}
+ 	/*
+
