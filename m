@@ -1,92 +1,75 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: "Device is not power manageable"
-Date: Wed, 22 Feb 2006 12:44:41 +0100
-Message-ID: <200602221244.42339.trenn@suse.de>
-References: <20060221042708.653944c1.akpm@osdl.org> <20060221185920.df65a7e3.rdunlap@xenotime.net> <20060221190840.5e67d07e.akpm@osdl.org>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: Re: 2.6.16-rc4: known regressions
+Date: Wed, 22 Feb 2006 13:23:17 +0100
+Message-ID: <20060222122317.GF4661@stusta.de>
+References: <3ACA40606221794F80A5670F0AF15F840B020D85@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:59811 "EHLO mx1.suse.de")
-	by vger.kernel.org with ESMTP id S1750791AbWBVLoo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Feb 2006 06:44:44 -0500
-In-Reply-To: <20060221190840.5e67d07e.akpm@osdl.org>
+Received: from mailout.stusta.mhn.de ([141.84.69.5]:62222 "HELO
+	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
+	id S1751225AbWBVMXU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Feb 2006 07:23:20 -0500
 Content-Disposition: inline
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F840B020D85@pdsmsx403>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: linux-acpi@vger.kernel.org, rdunlap@xenotime.net
+To: "Yu, Luming" <luming.yu@intel.com>
+Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-On Wednesday 22 February 2006 04:08, you wrote:
-> "Randy.Dunlap" <rdunlap@xenotime.net> wrote:
+On Wed, Feb 22, 2006 at 02:55:10PM +0800, Yu, Luming wrote:
+> > >Subject    : S3 sleep hangs the second time - 600X
+> >> >References : http://bugzilla.kernel.org/show_bug.cgi?id=5989
+> >> >Submitter  : Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+> >> >Status     : problematic commit identified,
+> >> >             further discussion is in the bug
+> >> 
+> >> The real problem is there are some bugs hidden by ec_intr=0.
+> >> ec_intr=1 just get these bug  just exposed, and we need to fix them. 
 > >
-> > Here's the patch that I have used.
-> > 
-> >  -- 
-> > 
-> >  From: Jae-hyeon Park <jhpark@tuhep.phys.tohoku.ac.jp>
-> > 
-> >  Identify which device is not power-manageable to make
-> >  the message more useful.
-> > 
-> >  Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-> >  ---
-> >   drivers/acpi/bus.c |    5 +++--
-> >   1 files changed, 3 insertions(+), 2 deletions(-)
-> > 
-> >  --- linux-2616-rc4.orig/drivers/acpi/bus.c
-> >  +++ linux-2616-rc4/drivers/acpi/bus.c
-> >  @@ -197,8 +197,9 @@ int acpi_bus_set_power(acpi_handle handl
-> >   	/* Make sure this is a valid target state */
-> >   
-> >   	if (!device->flags.power_manageable) {
-> >  -		ACPI_DEBUG_PRINT((ACPI_DB_WARN,
-> >  -				  "Device is not power manageable\n"));
-> >  +		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-> >  +				  "Device '%s' is not power manageable\n",
-> >  +					device->kobj.name));
-> >   		return_VALUE(-ENODEV);
-> >   	}
-> >   	/*
+> >From a users' point of view, these are regressions from 
+> >2.6.15, and not 
+> >all of them might be fixed in time for 2.6.16.
+> >
+> >What is a possible short term solution/workaround for 2.6.16?
 > 
-> Thanks.  I guess that won't be very popular due to using linux-specific
-> stuff in a generic file, but I'll merge it.
+> ec_intr=0 is a reasonable workaround for this box,
+> if we couldn't root-cause and fix the real problem on time.
+> 
+> >Can we go back to default to polling mode in 2.6.16?
+> 
+> No, don't do this.  There are other laptops need this. And I didn't
+> get regression report that is root-caused to enabling ec_intr=1 by
+> default. If you argue bug 5989, 6075 could be,  I think
+> the truth is, for 5989, we need to fix thermal and processor driver
+> issue.
 
-That will conflict with latest patches:
-ACPI_DEBUG_PRINT((ACPI_DB_WARN, ...)) have been converted to 
-ACPI_WARNING((AE_INFO, ...)).
+We do both agree that defaulting to polling mode is not a long term 
+solution.
 
-This was done because a lot real error/warning messages were only printed with
-ACPI_DEBUG=y (like all ACPI_DEBUG_PRINT messages).
+The question is what to do until it's resolved - assuming that issues 
+like 5989 might not be fixed in time for 2.6.16.
 
-In this case I used ACPI_INFO((AE_INFO,...)) as I knew the message
-pops up here and there.
+Breaking setups working with the defaults under 2.6.15 in 2.6.16 doesn't 
+sound that good.
 
-This one lets the message vanish totally and only shows it with ACPI_DEBUG=y and 
-acpi_dbg_level | ACPI_DEBUG_INFO:
+> for 6075, we need to fix interrupt issue.
 
+As far as I understand 6075, the submitter already tried ec_intr=0 
+without success.
 
-signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-signed-off-by: Thomas Renninger <trenn@suse.de>
+> So far, I don't think we need o fall back.
+> 
+> Thanks,
+> Luming
 
-bus.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletion(-)
+cu
+Adrian
 
-Index: linux-2.6.15/drivers/acpi/bus.c
-===================================================================
---- linux-2.6.15.orig/drivers/acpi/bus.c
-+++ linux-2.6.15/drivers/acpi/bus.c
-@@ -196,7 +196,9 @@ int acpi_bus_set_power(acpi_handle handl
- 	/* Make sure this is a valid target state */
- 
- 	if (!device->flags.power_manageable) {
--		ACPI_INFO((AE_INFO, "Device is not power manageable"));
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+			      "Device %s is not power manageable",
-+			      device->kobj.name));
- 		return_VALUE(-ENODEV);
- 	}
- 	/*
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
 
