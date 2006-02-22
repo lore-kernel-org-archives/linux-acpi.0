@@ -1,48 +1,31 @@
-From: "Randy.Dunlap" <rdunlap@xenotime.net>
-Subject: Re: 2.6.16-rc[34]: resume-from-RAM unreliable
-Date: Tue, 21 Feb 2006 15:50:10 -0800 (PST)
-Message-ID: <Pine.LNX.4.58.0602211548590.8603@shark.he.net>
-References: <43F9D3CA.1010709@rtr.ca> <20060220210943.7f159749.akpm@osdl.org>
- <43FBA6AF.3070207@rtr.ca>
+From: "Yu, Luming" <luming.yu@intel.com>
+Subject: RE: 2.6.16-rc4: known regressions
+Date: Wed, 22 Feb 2006 10:39:01 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F840AFD52B2@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from xenotime.net ([66.160.160.81]:197 "HELO xenotime.net")
-	by vger.kernel.org with SMTP id S1161231AbWBUXuL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Feb 2006 18:50:11 -0500
-Received: from shark.he.net ([66.160.160.2]) by xenotime.net for <linux-acpi@vger.kernel.org>; Tue, 21 Feb 2006 15:50:10 -0800
-In-Reply-To: <43FBA6AF.3070207@rtr.ca>
+Received: from fmr18.intel.com ([134.134.136.17]:48069 "EHLO
+	orsfmr003.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1751059AbWBVCke convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Feb 2006 21:40:34 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Lord <lkml@rtr.ca>
-Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, torvalds@osdl.org, linux-acpi@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Stultz <johnstul@us.ibm.com>, paulus@samba.org, linuxppc-dev@ozlabs.org, gregkh@suse.de, Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Meelis Roos <mroos@linux.ee>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@atrey.karlin.mff.cuni.cz
 
-On Tue, 21 Feb 2006, Mark Lord wrote:
+>
+>Subject    : S3 sleep hangs the second time - 600X
+>References : http://bugzilla.kernel.org/show_bug.cgi?id=5989
+>Submitter  : Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+>Status     : problematic commit identified,
+>             further discussion is in the bug
 
-> Andrew Morton wrote:
-> > Mark Lord <lkml@rtr.ca> wrote:
-> >> For the past week, I've been trying to keep with the latest -rc*-git*
-> >> releases of 2.6.16 on my notebook, and something new in those is
-> >> impacting resume-from-RAM.
->
-> Mmm.. working 100% now with Randy Dunlop's ACPI additions from here:
->
->      http://www.xenotime.net/linux/SATA/2.6.16-rc3/
->
-> Note that these are the latest evolution from a simpler patch by Jens
-> which I first started using in *spring 2005* to get suspend/resume working.
->
-> Are we *ever* going to add these to mainstream?
-> It's been almost a friggin' year!
->
-> Cheers
+The real problem is there are some bugs hidden by ec_intr=0.
+ec_intr=1 just get these bug  just exposed, and we need to fix them. 
 
-Yes, I understand (I think).  Fortunately I haven't been working
-on it quite that long.
-
-I'm updating the patchset to 2.6.16-rc4 and then I'll post it,
-probably tomorrow.
-
--- 
-~Randy
+Thanks,
+Luming
