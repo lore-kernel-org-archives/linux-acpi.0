@@ -1,54 +1,49 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: "Device is not power manageable"
-Date: Tue, 21 Feb 2006 19:08:40 -0800
-Message-ID: <20060221190840.5e67d07e.akpm@osdl.org>
-References: <20060221042708.653944c1.akpm@osdl.org>
-	<20060221185920.df65a7e3.rdunlap@xenotime.net>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: Re: 2.6.16-rc4: known regressions
+Date: Wed, 22 Feb 2006 04:16:32 +0100
+Message-ID: <20060222031632.GD4661@stusta.de>
+References: <3ACA40606221794F80A5670F0AF15F840AFD52B2@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:61335 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1751242AbWBVDKY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Feb 2006 22:10:24 -0500
-In-Reply-To: <20060221185920.df65a7e3.rdunlap@xenotime.net>
+Received: from emailhub.stusta.mhn.de ([141.84.69.5]:21515 "HELO
+	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
+	id S1750930AbWBVDQd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 21 Feb 2006 22:16:33 -0500
+Content-Disposition: inline
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F840AFD52B2@pdsmsx403>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Randy.Dunlap" <rdunlap@xenotime.net>
-Cc: linux-acpi@vger.kernel.org
+To: "Yu, Luming" <luming.yu@intel.com>
+Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-"Randy.Dunlap" <rdunlap@xenotime.net> wrote:
->
-> Here's the patch that I have used.
+On Wed, Feb 22, 2006 at 10:39:01AM +0800, Yu, Luming wrote:
+> >
+> >Subject    : S3 sleep hangs the second time - 600X
+> >References : http://bugzilla.kernel.org/show_bug.cgi?id=5989
+> >Submitter  : Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+> >Status     : problematic commit identified,
+> >             further discussion is in the bug
 > 
->  -- 
-> 
->  From: Jae-hyeon Park <jhpark@tuhep.phys.tohoku.ac.jp>
-> 
->  Identify which device is not power-manageable to make
->  the message more useful.
-> 
->  Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
->  ---
->   drivers/acpi/bus.c |    5 +++--
->   1 files changed, 3 insertions(+), 2 deletions(-)
-> 
->  --- linux-2616-rc4.orig/drivers/acpi/bus.c
->  +++ linux-2616-rc4/drivers/acpi/bus.c
->  @@ -197,8 +197,9 @@ int acpi_bus_set_power(acpi_handle handl
->   	/* Make sure this is a valid target state */
->   
->   	if (!device->flags.power_manageable) {
->  -		ACPI_DEBUG_PRINT((ACPI_DB_WARN,
->  -				  "Device is not power manageable\n"));
->  +		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
->  +				  "Device '%s' is not power manageable\n",
->  +					device->kobj.name));
->   		return_VALUE(-ENODEV);
->   	}
->   	/*
+> The real problem is there are some bugs hidden by ec_intr=0.
+> ec_intr=1 just get these bug  just exposed, and we need to fix them. 
 
-Thanks.  I guess that won't be very popular due to using linux-specific
-stuff in a generic file, but I'll merge it.
+>From a users' point of view, these are regressions from 2.6.15, and not 
+all of them might be fixed in time for 2.6.16.
+
+What is a possible short term solution/workaround for 2.6.16?
+Can we go back to default to polling mode in 2.6.16?
+
+> Thanks,
+> Luming
+
+cu
+Adrian
+
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
 
