@@ -1,353 +1,119 @@
-From: Kristen Accardi <kristen.c.accardi@intel.com>
-Subject: [PATCH] acpiphp - slot management fix - V3.1
-Date: Thu, 23 Feb 2006 09:46:46 -0800
-Message-ID: <1140716807.11750.7.camel@whizzy>
+From: James Bottomley <James.Bottomley@SteelEye.com>
+Subject: Re: [linux-usb-devel] Re: Linux 2.6.16-rc3
+Date: Thu, 23 Feb 2006 12:43:43 -0600
+Message-ID: <1140720224.2809.10.camel@localhost.localdomain>
+References: <1139934883.14115.4.camel@mulgrave.il.steeleye.com>
+	 <1140054960.3037.5.camel@mulgrave.il.steeleye.com>
+	 <20060216171200.GD29443@flint.arm.linux.org.uk>
+	 <1140112653.3178.9.camel@mulgrave.il.steeleye.com>
+	 <20060216180939.GF29443@flint.arm.linux.org.uk>
+	 <1140113671.3178.16.camel@mulgrave.il.steeleye.com>
+	 <20060216181803.GG29443@flint.arm.linux.org.uk>
+	 <1140116969.3178.24.camel@mulgrave.il.steeleye.com>
+	 <20060216200138.GA4203@suse.de>
+	 <1140223363.3231.9.camel@mulgrave.il.steeleye.com>
+	 <20060218100344.GA8532@procyon.home>
+	 <1140359458.3103.11.camel@mulgrave.il.steeleye.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr20.intel.com ([134.134.136.19]:63679 "EHLO
-	orsfmr005.jf.intel.com") by vger.kernel.org with ESMTP
-	id S932356AbWBWRl6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Feb 2006 12:41:58 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <1140359458.3103.11.camel@mulgrave.il.steeleye.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Sergey Vlasov <vsu@altlinux.ru>
+Cc: Jens Axboe <axboe@suse.de>, Russell King <rmk+lkml@arm.linux.org.uk>, Greg KH <greg@kroah.com>, Andrew Morton <akpm@osdl.org>, Linus Torvalds <torvalds@osdl.org>, linux-kernel@vger.kernel.org, "Brown, Len" <len.brown@intel.com>, "David S. Miller" <davem@davemloft.net>, linux-acpi@vger.kernel.org, linux-usb-devel@lists.sourceforge.net, "Yu, Luming" <luming.yu@intel.com>, Ben Castricum <lk@bencastricum.nl>, sanjoy@mrao.cam.ac.uk, Helge Hafting <helgehaf@aitel.hist.no>, "Carlo E. Prelz" <fluido@fluido.as>, Gerrit Bruchh?user <gbruchhaeuser@gmx.de>, Nicolas.Mailhot@LaPoste.net, Jaroslav Kysela <perex@suse.cz>, Takashi Iwai <tiwai@suse.de>, Patrizio Bassi <patrizio.bassi@gmail.com>, Bj?rn Nilsson <bni.swe@gmail.com>, Andrey Borzenkov <arvidjaar@mail.ru>, "P. Christeas" <p_christ@hol.gr>, ghrt <ghrt@dial.kappa.ro>, jinhong hu <jinhong.hu@gmail.com>, Andrew Vasquez <andre>
 List-Id: linux-acpi@vger.kernel.org
-To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Kristen Accardi <kristen.c.accardi@intel.com>, Greg KH <greg@kroah.com>
-Cc: len.brown@intel.com, muneda.takahiro@jp.fujitsu.com, pcihpd-discuss@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-o This patch removes IDs (for slots management).
-o This patch removes the slot register/unregister processes
-  from the init/exit phases. Instead, adds these processes
-  in the bridge add/cleanup phases.
-o Currently, this change doesn't have any meanings. But
-  these changes are needed to support p2p bridge(with
-  hotplug slot)
+On Sun, 2006-02-19 at 08:30 -0600, James Bottomley wrote:
+> Yes, thanks ... although I think there's still value to wrappering
+> work_struct (a bit like kref wrappers atomic_t).
 
-Signed-off-by: MUNEDA Takahiro <muneda.takahiro@jp.fujitsu.com>
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
----
-This patch will apply to 2.6.16-rc4-mm1+acpiphp dock patches submitted
-2/22.
+OK, so how about this?
 
- drivers/pci/hotplug/acpiphp.h      |    8 --
- drivers/pci/hotplug/acpiphp_core.c |  127 +++++++++++++++++--------------------
- drivers/pci/hotplug/acpiphp_glue.c |   48 ++++++-------
- 3 files changed, 86 insertions(+), 97 deletions(-)
+James
 
---- linux-dock-mm.orig/drivers/pci/hotplug/acpiphp.h
-+++ linux-dock-mm/drivers/pci/hotplug/acpiphp.h
-@@ -60,10 +60,7 @@ struct acpiphp_slot;
-  * struct slot - slot information for each *physical* slot
-  */
- struct slot {
--	u8 number;
- 	struct hotplug_slot	*hotplug_slot;
--	struct list_head	slot_list;
--
- 	struct acpiphp_slot	*acpi_slot;
+[PATCH] add execute_in_process_context() API
+
+We have several points in the SCSI stack (primarily for our device
+functions) where we need to guarantee process context, but (given the
+place where the last reference was released) we cannot guarantee this.
+
+This API gets around the issue by executing the function directly if
+the caller has process context, but scheduling a workqueue to execute
+in process context if the caller doesn't have it.
+
+Signed-off-by: James Bottomley <James.Bottomley@SteelEye.com>
+
+Index: BUILD-2.6/include/linux/workqueue.h
+===================================================================
+--- BUILD-2.6.orig/include/linux/workqueue.h	2006-02-20 08:57:43.000000000 -0600
++++ BUILD-2.6/include/linux/workqueue.h	2006-02-20 08:58:34.000000000 -0600
+@@ -20,6 +20,10 @@
+ 	struct timer_list timer;
  };
  
-@@ -119,9 +116,9 @@ struct acpiphp_slot {
- 	struct acpiphp_bridge *bridge;	/* parent */
- 	struct list_head funcs;		/* one slot may have different
- 					   objects (i.e. for each function) */
-+	struct slot *slot;
- 	struct mutex crit_sect;
++struct execute_work {
++	struct work_struct work;
++};
++
+ #define __WORK_INITIALIZER(n, f, d) {				\
+         .entry	= { &(n).entry, &(n).entry },			\
+ 	.func = (f),						\
+@@ -74,6 +78,8 @@
+ void cancel_rearming_delayed_work(struct work_struct *work);
+ void cancel_rearming_delayed_workqueue(struct workqueue_struct *,
+ 				       struct work_struct *);
++int execute_in_process_context(void (*fn)(void *), void *,
++			       struct execute_work *);
  
--	u32		id;		/* slot id (serial #) for hotplug core */
- 	u8		device;		/* pci device# */
+ /*
+  * Kill off a pending schedule_delayed_work().  Note that the work callback
+Index: BUILD-2.6/kernel/workqueue.c
+===================================================================
+--- BUILD-2.6.orig/kernel/workqueue.c	2006-02-20 08:57:43.000000000 -0600
++++ BUILD-2.6/kernel/workqueue.c	2006-02-20 08:59:18.000000000 -0600
+@@ -27,6 +27,7 @@
+ #include <linux/cpu.h>
+ #include <linux/notifier.h>
+ #include <linux/kthread.h>
++#include <linux/hardirq.h>
  
- 	u32		sun;		/* ACPI _SUN (slot unique number) */
-@@ -229,12 +226,13 @@ struct acpiphp_dock_station {
- /* acpiphp_core.c */
- extern int acpiphp_register_attention(struct acpiphp_attention_info*info);
- extern int acpiphp_unregister_attention(struct acpiphp_attention_info *info);
-+extern int acpiphp_register_hotplug_slot(struct acpiphp_slot *slot);
-+extern void acpiphp_unregister_hotplug_slot(struct acpiphp_slot *slot);
- 
- /* acpiphp_glue.c */
- extern int acpiphp_glue_init (void);
- extern void acpiphp_glue_exit (void);
- extern int acpiphp_get_num_slots (void);
--extern struct acpiphp_slot *get_slot_from_id (int id);
- typedef int (*acpiphp_callback)(struct acpiphp_slot *slot, void *data);
- void handle_hotplug_event_func(acpi_handle, u32, void*);
- 
---- linux-dock-mm.orig/drivers/pci/hotplug/acpiphp_core.c
-+++ linux-dock-mm/drivers/pci/hotplug/acpiphp_core.c
-@@ -44,8 +44,6 @@
- #include "pci_hotplug.h"
- #include "acpiphp.h"
- 
--static LIST_HEAD(slot_list);
--
- #define MY_NAME	"acpiphp"
- 
- static int debug;
-@@ -341,62 +339,53 @@ static void release_slot(struct hotplug_
- 	kfree(slot);
+ /*
+  * The per-CPU workqueue (if single thread, we always use the first
+@@ -476,6 +477,34 @@
  }
+ EXPORT_SYMBOL(cancel_rearming_delayed_work);
  
--/**
-- * init_slots - initialize 'struct slot' structures for each slot
-- *
-- */
--static int __init init_slots(void)
-+/* callback routine to initialize 'struct slot' for each slot */
-+int acpiphp_register_hotplug_slot(struct acpiphp_slot *acpiphp_slot)
- {
- 	struct slot *slot;
-+	struct hotplug_slot *hotplug_slot;
-+	struct hotplug_slot_info *hotplug_slot_info;
- 	int retval = -ENOMEM;
--	int i;
- 
--	for (i = 0; i < num_slots; ++i) {
--		slot = kmalloc(sizeof(struct slot), GFP_KERNEL);
--		if (!slot)
--			goto error;
--		memset(slot, 0, sizeof(struct slot));
--
--		slot->hotplug_slot = kmalloc(sizeof(struct hotplug_slot), GFP_KERNEL);
--		if (!slot->hotplug_slot)
--			goto error_slot;
--		memset(slot->hotplug_slot, 0, sizeof(struct hotplug_slot));
--
--		slot->hotplug_slot->info = kmalloc(sizeof(struct hotplug_slot_info), GFP_KERNEL);
--		if (!slot->hotplug_slot->info)
--			goto error_hpslot;
--		memset(slot->hotplug_slot->info, 0, sizeof(struct hotplug_slot_info));
--
--		slot->hotplug_slot->name = kmalloc(SLOT_NAME_SIZE, GFP_KERNEL);
--		if (!slot->hotplug_slot->name)
--			goto error_info;
--
--		slot->number = i;
--
--		slot->hotplug_slot->private = slot;
--		slot->hotplug_slot->release = &release_slot;
--		slot->hotplug_slot->ops = &acpi_hotplug_slot_ops;
--
--		slot->acpi_slot = get_slot_from_id(i);
--		slot->hotplug_slot->info->power_status = acpiphp_get_power_status(slot->acpi_slot);
--		slot->hotplug_slot->info->attention_status = 0;
--		slot->hotplug_slot->info->latch_status = acpiphp_get_latch_status(slot->acpi_slot);
--		slot->hotplug_slot->info->adapter_status = acpiphp_get_adapter_status(slot->acpi_slot);
--		slot->hotplug_slot->info->max_bus_speed = PCI_SPEED_UNKNOWN;
--		slot->hotplug_slot->info->cur_bus_speed = PCI_SPEED_UNKNOWN;
--
--		make_slot_name(slot);
--
--		retval = pci_hp_register(slot->hotplug_slot);
--		if (retval) {
--			err("pci_hp_register failed with error %d\n", retval);
--			goto error_name;
--		}
--
--		/* add slot to our internal list */
--		list_add(&slot->slot_list, &slot_list);
--		info("Slot [%s] registered\n", slot->hotplug_slot->name);
--	}
-+	slot = kzalloc(sizeof(*slot), GFP_KERNEL);
-+	if (!slot)
-+		goto error;
-+
-+	slot->hotplug_slot = kzalloc(sizeof(*hotplug_slot), GFP_KERNEL);
-+	if (!slot->hotplug_slot)
-+		goto error_slot;
-+
-+	slot->hotplug_slot->info = kzalloc(sizeof(*hotplug_slot_info),
-+					   GFP_KERNEL);
-+	if (!slot->hotplug_slot->info)
-+		goto error_hpslot;
-+
-+	slot->hotplug_slot->name = kzalloc(SLOT_NAME_SIZE, GFP_KERNEL);
-+	if (!slot->hotplug_slot->name)
-+		goto error_info;
-+
-+	slot->hotplug_slot->private = slot;
-+	slot->hotplug_slot->release = &release_slot;
-+	slot->hotplug_slot->ops = &acpi_hotplug_slot_ops;
-+
-+	slot->acpi_slot = acpiphp_slot;
-+	slot->hotplug_slot->info->power_status = acpiphp_get_power_status(slot->acpi_slot);
-+	slot->hotplug_slot->info->attention_status = 0;
-+	slot->hotplug_slot->info->latch_status = acpiphp_get_latch_status(slot->acpi_slot);
-+	slot->hotplug_slot->info->adapter_status = acpiphp_get_adapter_status(slot->acpi_slot);
-+	slot->hotplug_slot->info->max_bus_speed = PCI_SPEED_UNKNOWN;
-+	slot->hotplug_slot->info->cur_bus_speed = PCI_SPEED_UNKNOWN;
-+
-+	acpiphp_slot->slot = slot;
-+	make_slot_name(slot);
-+
-+	retval = pci_hp_register(slot->hotplug_slot);
-+	if (retval) {
-+		err("pci_hp_register failed with error %d\n", retval);
-+		goto error_name;
-+ 	}
-+
-+	info("Slot [%s] registered\n", slot->hotplug_slot->name);
- 
- 	return 0;
- error_name:
-@@ -412,17 +401,16 @@ error:
- }
- 
-
--static void __exit cleanup_slots (void)
-+void acpiphp_unregister_hotplug_slot(struct acpiphp_slot *acpiphp_slot)
- {
--	struct list_head *tmp, *n;
--	struct slot *slot;
-+	struct slot *slot = acpiphp_slot->slot;
-+	int retval = 0;
- 
--	list_for_each_safe (tmp, n, &slot_list) {
--		/* memory will be freed in release_slot callback */
--		slot = list_entry(tmp, struct slot, slot_list);
--		list_del(&slot->slot_list);
--		pci_hp_deregister(slot->hotplug_slot);
--	}
-+	info ("Slot [%s] unregistered\n", slot->hotplug_slot->name);
-+
-+	retval = pci_hp_deregister(slot->hotplug_slot);
-+	if (retval)
-+		err("pci_hp_deregister failed with error %d\n", retval);
- }
- 
-
-@@ -439,16 +427,21 @@ static int __init acpiphp_init(void)
- 
- 	/* read all the ACPI info from the system */
- 	retval = init_acpi();
--	if (retval && !(docking_station))
--		return retval;
- 
--	return init_slots();
-+	/* if we have found a docking station, we should
-+	 * go ahead and load even if init_acpi has found
-+	 * no slots.  This handles the case when the _DCK
-+	 * method not defined under the actual dock bridge
-+	 */
-+	if (docking_station)
++/**
++ * execute_in_process_context - reliably execute the routine with user context
++ * @fn:		the function to execute
++ * @data:	data to pass to the function
++ * @ew:		guaranteed storage for the execute work structure (must
++ *		be available when the work executes)
++ *
++ * Executes the function immediately if process context is available,
++ * otherwise schedules the function for delayed execution.
++ *
++ * Returns:	0 - function was executed
++ *		1 - function was scheduled for execution
++ */
++int execute_in_process_context(void (*fn)(void *data), void *data,
++			       struct execute_work *ew)
++{
++	if (!in_interrupt()) {
++		fn(data);
 +		return 0;
-+	else
-+		return retval;
- }
- 
-
- static void __exit acpiphp_exit(void)
- {
--	cleanup_slots();
- 	/* deallocate internal data structures etc. */
- 	acpiphp_glue_exit();
- 
---- linux-dock-mm.orig/drivers/pci/hotplug/acpiphp_glue.c
-+++ linux-dock-mm/drivers/pci/hotplug/acpiphp_glue.c
-@@ -128,8 +128,7 @@ register_slot(acpi_handle handle, u32 lv
- 	acpi_handle tmp;
- 	acpi_status status = AE_OK;
- 	unsigned long adr, sun;
--	int device, function;
--	static int num_slots = 0;	/* XXX if we support I/O node hotplug... */
-+	int device, function, retval;
- 
- 	status = acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
- 
-@@ -198,7 +197,6 @@ register_slot(acpi_handle handle, u32 lv
- 
- 		memset(slot, 0, sizeof(struct acpiphp_slot));
- 		slot->bridge = bridge;
--		slot->id = num_slots++;
- 		slot->device = device;
- 		slot->sun = sun;
- 		INIT_LIST_HEAD(&slot->funcs);
-@@ -212,6 +210,11 @@ register_slot(acpi_handle handle, u32 lv
- 		dbg("found ACPI PCI Hotplug slot %d at PCI %04x:%02x:%02x\n",
- 				slot->sun, pci_domain_nr(bridge->pci_bus),
- 				bridge->pci_bus->number, slot->device);
-+		retval = acpiphp_register_hotplug_slot(slot);
-+		if (retval) {
-+			warn("acpiphp_register_hotplug_slot failed(err code = 0x%x)\n", retval);
-+			goto err_exit;
-+		}
- 	}
- 
- 	newfunc->slot = slot;
-@@ -253,6 +256,14 @@ register_slot(acpi_handle handle, u32 lv
- 		status = AE_OK;
- 
- 	return status;
-+
-+ err_exit:
-+	bridge->nr_slots--;
-+	bridge->slots = slot->next;
-+	kfree(slot);
-+	kfree(newfunc);
-+
-+	return AE_OK;
- }
- 
-
-@@ -335,9 +346,16 @@ static void init_bridge_misc(struct acpi
- 	/* decode ACPI 2.0 _HPP (hot plug parameters) */
- 	decode_hpp(bridge);
- 
-+	/* must be added to the list prior to calling register_slot */
-+	list_add(&bridge->list, &bridge_list);
-+
- 	/* register all slot objects under this bridge */
- 	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, bridge->handle, (u32)1,
- 				     register_slot, bridge, NULL);
-+	if (ACPI_FAILURE(status)) {
-+		list_del(&bridge->list);
-+		return;
 +	}
- 
- 	/* install notify handler */
- 	if (bridge->type != BRIDGE_TYPE_HOST) {
-@@ -350,8 +368,6 @@ static void init_bridge_misc(struct acpi
- 			err("failed to register interrupt notify handler\n");
- 		}
- 	}
--
--	list_add(&bridge->list, &bridge_list);
- }
- 
++
++	INIT_WORK(&ew->work, fn, data);
++	schedule_work(&ew->work);
++
++	return 1;
++}
++EXPORT_SYMBOL_GPL(execute_in_process_context);
++
+ int keventd_up(void)
+ {
+ 	return keventd_wq != NULL;
 
-@@ -555,6 +571,8 @@ static void cleanup_bridge(struct acpiph
- 			list_del(list);
- 			kfree(func);
- 		}
-+		acpiphp_unregister_hotplug_slot(slot);
-+		list_del(&slot->funcs);
- 		kfree(slot);
- 		slot = next;
- 	}
-@@ -1521,26 +1539,6 @@ static int acpiphp_for_each_slot(acpiphp
- }
- #endif
- 
--/* search matching slot from id  */
--struct acpiphp_slot *get_slot_from_id(int id)
--{
--	struct list_head *node;
--	struct acpiphp_bridge *bridge;
--	struct acpiphp_slot *slot;
--
--	list_for_each (node, &bridge_list) {
--		bridge = (struct acpiphp_bridge *)node;
--		for (slot = bridge->slots; slot; slot = slot->next)
--			if (slot->id == id)
--				return slot;
--	}
--
--	/* should never happen! */
--	err("%s: no object for id %d\n", __FUNCTION__, id);
--	WARN_ON(1);
--	return NULL;
--}
--
- 
- /**
-  * acpiphp_enable_slot - power on slot
+
