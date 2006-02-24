@@ -1,61 +1,75 @@
-From: Sebastian Henschel <acpi@kodeaffe.de>
-Subject: retirement of acpi.sf.net's webmaster - now
-Date: Fri, 24 Feb 2006 16:20:34 +0200
-Message-ID: <20060224142034.GB15356@localhost.localdomain>
+From: Kristen Accardi <kristen.c.accardi@intel.com>
+Subject: Re: [Pcihpd-discuss] Re: [patch 2/3] acpiphp: add dock event
+	handling
+Date: Fri, 24 Feb 2006 09:29:37 -0800
+Message-ID: <1140802177.2085.4.camel@whizzy>
+References: <20060223195022.747891000@intel.com>
+	 <1140724577.11750.17.camel@whizzy>
+	 <87acchz3n6.wl%muneda.takahiro@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="XOIedfhf+7KOe/yw"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vs2066161.vserver.de ([85.25.66.161]:18911 "EHLO
-	vs2066161.netfabrik.de") by vger.kernel.org with ESMTP
-	id S932115AbWBXOXX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 24 Feb 2006 09:23:23 -0500
-Received: from [62.85.2.44] (helo=localhost.localdomain)
-	by vs2066161.netfabrik.de with esmtpsa (TLS-1.0:RSA_AES_256_CBC_SHA:32)
-	(Exim 4.50)
-	id 1FCdqn-0005JS-QS
-	for linux-acpi@vger.kernel.org; Fri, 24 Feb 2006 15:23:18 +0100
-Received: from shensche by localhost.localdomain with local (Exim 4.60)
-	(envelope-from <acpi@kodeaffe.de>)
-	id 1FCdoA-0005yh-EH
-	for linux-acpi@vger.kernel.org; Fri, 24 Feb 2006 16:20:34 +0200
-Content-Disposition: inline
+Received: from fmr20.intel.com ([134.134.136.19]:52149 "EHLO
+	orsfmr005.jf.intel.com") by vger.kernel.org with ESMTP
+	id S932393AbWBXRYu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 24 Feb 2006 12:24:50 -0500
+In-Reply-To: <87acchz3n6.wl%muneda.takahiro@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: MUNEDA Takahiro <muneda.takahiro@jp.fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, greg@kroah.com, len.brown@intel.com, pavel@ucw.cz
 
+On Fri, 2006-02-24 at 15:12 +0900, MUNEDA Takahiro wrote:
+> At Thu, 23 Feb 2006 11:56:17 -0800,
+> Kristen Accardi <kristen.c.accardi@intel.com> wrote:
+> > 
+> > @@ -828,11 +862,21 @@ static int acpiphp_bus_add(struct acpiph
+> >  		dbg("no parent device, assuming NULL\n");
+> >  		pdevice = NULL;
+> >  	}
+> > +	if (!acpi_bus_get_device(func->handle, &device)) {
+> > +		dbg("bus exists... trim\n");
+> > +		/* this shouldn't be in here, so remove
+> > +		 * the bus then re-add it...
+> > +		 */
+> > +		ret_val = acpi_bus_trim(device, 1);
+> > +		dbg("acpi_bus_trim return %x\n", ret_val);
+> > +	}
+> >  	ret_val = acpi_bus_add(&device, pdevice, func->handle,
+> > -			ACPI_BUS_TYPE_DEVICE);
+> > -	if (ret_val)
+> > -		dbg("cannot add bridge to acpi list\n");
+> > -
+> > +		ACPI_BUS_TYPE_DEVICE);
+> > +	if (ret_val) {
+> > +		dbg("error adding bus, %x\n",
+> > +			-ret_val);
+> > +		goto acpiphp_bus_add_out;
+> > +	}
+> >  	/*
+> >  	 * try to start anyway.  We could have failed to add
+> >  	 * simply because this bus had previously been added
+> 
+> Hi Kristen,
+> 
+> Why don't you call acpi_bus_trim() when the device is
+> removed. This time, eject_dock() or disable_device()?
+> So you don't need to call acpi_bus_trim() as error case.
+> 
+> Thanks,
+> MUNE
+> 
 
---XOIedfhf+7KOe/yw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+MUNE,
+I added this because I found that in some laptops the dsdt reported a
+bus present that wasn't actually, so the bus would be added at boot
+time, but the PRT not read if the laptop was booted undocked.  Initially
+I tried to get a handle to the existing bus, and then if the bus already
+was added, just call acpi_bus_start() - but this did not cause the PRT
+to be read in this case - the only thing that worked for me was to
+remove the bus and readd it.  If there's a better way to handle this,
+I'd appreciate the suggestion.  
 
-g'day mates...
+Kristen
 
-the day has come, hereby i declare my official semi-withdrawal of
-acpi.sf.net. nobody has stepped up so far to take over.
-any future updates might or might not happen, depending on my
-status wrt access to the net and time.
-
-thanks for all the fish,
- Sebastian
---=20
- _   ascii ribbon campaign     .oOo.   GCSd-s:+aC++ULB+++W++M+PS+++Y+
-( )
- X   Die Ordnung ist nur die verbreitetste Form des Chaos.
-/ \ =20
-
---XOIedfhf+7KOe/yw
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQFD/xYyreHfL3pi+bQRAu0FAKCaXFM+smkDALqzKGfbI+fc/MMGXACfX7SR
-1Up8DvKXcLbpEgr3o/w1hpk=
-=TODt
------END PGP SIGNATURE-----
-
---XOIedfhf+7KOe/yw--
