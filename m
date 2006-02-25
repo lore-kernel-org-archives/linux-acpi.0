@@ -1,75 +1,125 @@
-From: Kristen Accardi <kristen.c.accardi@intel.com>
-Subject: Re: [Pcihpd-discuss] Re: [patch 2/3] acpiphp: add dock event
-	handling
-Date: Fri, 24 Feb 2006 09:29:37 -0800
-Message-ID: <1140802177.2085.4.camel@whizzy>
-References: <20060223195022.747891000@intel.com>
-	 <1140724577.11750.17.camel@whizzy>
-	 <87acchz3n6.wl%muneda.takahiro@jp.fujitsu.com>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: [RFC: 2.6.16 patch] drivers/acpi/ec.c: default to polling mode for 2.6.16
+Date: Sat, 25 Feb 2006 16:13:51 +0100
+Message-ID: <20060225151351.GR3674@stusta.de>
+References: <3ACA40606221794F80A5670F0AF15F840B020D85@pdsmsx403> <20060222122317.GF4661@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr20.intel.com ([134.134.136.19]:52149 "EHLO
-	orsfmr005.jf.intel.com") by vger.kernel.org with ESMTP
-	id S932393AbWBXRYu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 24 Feb 2006 12:24:50 -0500
-In-Reply-To: <87acchz3n6.wl%muneda.takahiro@jp.fujitsu.com>
+Received: from emailhub.stusta.mhn.de ([141.84.69.5]:29702 "HELO
+	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
+	id S1030267AbWBYPNx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 25 Feb 2006 10:13:53 -0500
+Content-Disposition: inline
+In-Reply-To: <20060222122317.GF4661@stusta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: MUNEDA Takahiro <muneda.takahiro@jp.fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, greg@kroah.com, len.brown@intel.com, pavel@ucw.cz
+To: "Yu, Luming" <luming.yu@intel.com>
+Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-On Fri, 2006-02-24 at 15:12 +0900, MUNEDA Takahiro wrote:
-> At Thu, 23 Feb 2006 11:56:17 -0800,
-> Kristen Accardi <kristen.c.accardi@intel.com> wrote:
+On Wed, Feb 22, 2006 at 01:23:17PM +0100, Adrian Bunk wrote:
+> On Wed, Feb 22, 2006 at 02:55:10PM +0800, Yu, Luming wrote:
+> > > >Subject    : S3 sleep hangs the second time - 600X
+> > >> >References : http://bugzilla.kernel.org/show_bug.cgi?id=5989
+> > >> >Submitter  : Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+> > >> >Status     : problematic commit identified,
+> > >> >             further discussion is in the bug
+> > >> 
+> > >> The real problem is there are some bugs hidden by ec_intr=0.
+> > >> ec_intr=1 just get these bug  just exposed, and we need to fix them. 
+> > >
+> > >From a users' point of view, these are regressions from 
+> > >2.6.15, and not 
+> > >all of them might be fixed in time for 2.6.16.
+> > >
+> > >What is a possible short term solution/workaround for 2.6.16?
 > > 
-> > @@ -828,11 +862,21 @@ static int acpiphp_bus_add(struct acpiph
-> >  		dbg("no parent device, assuming NULL\n");
-> >  		pdevice = NULL;
-> >  	}
-> > +	if (!acpi_bus_get_device(func->handle, &device)) {
-> > +		dbg("bus exists... trim\n");
-> > +		/* this shouldn't be in here, so remove
-> > +		 * the bus then re-add it...
-> > +		 */
-> > +		ret_val = acpi_bus_trim(device, 1);
-> > +		dbg("acpi_bus_trim return %x\n", ret_val);
-> > +	}
-> >  	ret_val = acpi_bus_add(&device, pdevice, func->handle,
-> > -			ACPI_BUS_TYPE_DEVICE);
-> > -	if (ret_val)
-> > -		dbg("cannot add bridge to acpi list\n");
-> > -
-> > +		ACPI_BUS_TYPE_DEVICE);
-> > +	if (ret_val) {
-> > +		dbg("error adding bus, %x\n",
-> > +			-ret_val);
-> > +		goto acpiphp_bus_add_out;
-> > +	}
-> >  	/*
-> >  	 * try to start anyway.  We could have failed to add
-> >  	 * simply because this bus had previously been added
+> > ec_intr=0 is a reasonable workaround for this box,
+> > if we couldn't root-cause and fix the real problem on time.
+> > 
+> > >Can we go back to default to polling mode in 2.6.16?
+> > 
+> > No, don't do this.  There are other laptops need this. And I didn't
+> > get regression report that is root-caused to enabling ec_intr=1 by
+> > default. If you argue bug 5989, 6075 could be,  I think
+> > the truth is, for 5989, we need to fix thermal and processor driver
+> > issue.
 > 
-> Hi Kristen,
+> We do both agree that defaulting to polling mode is not a long term 
+> solution.
 > 
-> Why don't you call acpi_bus_trim() when the device is
-> removed. This time, eject_dock() or disable_device()?
-> So you don't need to call acpi_bus_trim() as error case.
+> The question is what to do until it's resolved - assuming that issues 
+> like 5989 might not be fixed in time for 2.6.16.
 > 
-> Thanks,
-> MUNE
+> Breaking setups working with the defaults under 2.6.15 in 2.6.16 doesn't 
+> sound that good.
 > 
+> > for 6075, we need to fix interrupt issue.
+> 
+> As far as I understand 6075, the submitter already tried ec_intr=0 
+> without success.
+>...
 
-MUNE,
-I added this because I found that in some laptops the dsdt reported a
-bus present that wasn't actually, so the bus would be added at boot
-time, but the PRT not read if the laptop was booted undocked.  Initially
-I tried to get a handle to the existing bus, and then if the bus already
-was added, just call acpi_bus_start() - but this did not cause the PRT
-to be read in this case - the only thing that worked for me was to
-remove the bus and readd it.  If there's a better way to handle this,
-I'd appreciate the suggestion.  
+Let me suggest the following patch for going back to default to polling 
+mode in 2.6.16.
 
-Kristen
+The idea is to get this patch into 2.6.16, immediately revert it in 
+Len's ACPI tree, and properly fix all issues before 2.6.17.
 
+This way, there will be less regressions when the changed default is in 
+a stable kernel.
+
+cu
+Adrian
+
+
+<--  snip  -->
+
+
+The changed default seems to cause regressions (see 
+http://bugzilla.kernel.org/show_bug.cgi?id=5989).
+
+Let's change the default back to polling mode for one more stable 
+kernel.
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+
+---
+
+ Documentation/kernel-parameters.txt |    4 ++--
+ drivers/acpi/ec.c                   |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+--- linux-2.6.16-rc4-mm2-full/Documentation/kernel-parameters.txt.old	2006-02-25 16:01:51.000000000 +0100
++++ linux-2.6.16-rc4-mm2-full/Documentation/kernel-parameters.txt	2006-02-25 16:02:04.000000000 +0100
+@@ -460,8 +460,8 @@
+ 
+ 	ec_intr=	[HW,ACPI] ACPI Embedded Controller interrupt mode
+ 			Format: <int>
+-			0: polling mode
+-			non-0: interrupt mode (default)
++			0: polling mode (default)
++			non-0: interrupt mode
+ 
+ 	eda=		[HW,PS2]
+ 
+--- linux-2.6.16-rc4-mm2-full/drivers/acpi/ec.c.old	2006-02-25 16:00:22.000000000 +0100
++++ linux-2.6.16-rc4-mm2-full/drivers/acpi/ec.c	2006-02-25 16:01:24.000000000 +0100
+@@ -73,7 +73,7 @@
+ 	.class = ACPI_EC_CLASS,
+ 	.ids = ACPI_EC_HID,
+ 	.ops = {
+-		.add = acpi_ec_intr_add,
++		.add = acpi_ec_poll_add,
+ 		.remove = acpi_ec_remove,
+ 		.start = acpi_ec_start,
+ 		.stop = acpi_ec_stop,
+@@ -147,7 +147,7 @@
+ 
+ /* External interfaces use first EC only, so remember */
+ static struct acpi_device *first_ec;
+-static int acpi_ec_poll_mode = EC_INTR;
++static int acpi_ec_poll_mode = EC_POLL;
+ 
+ /* --------------------------------------------------------------------------
+                              Transaction Management
