@@ -1,125 +1,54 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: [RFC: 2.6.16 patch] drivers/acpi/ec.c: default to polling mode for 2.6.16
-Date: Sat, 25 Feb 2006 16:13:51 +0100
-Message-ID: <20060225151351.GR3674@stusta.de>
-References: <3ACA40606221794F80A5670F0AF15F840B020D85@pdsmsx403> <20060222122317.GF4661@stusta.de>
+From: Sam Ravnborg <sam@ravnborg.org>
+Subject: Use of __init in asus_acpi.c + sony_acpi.c?
+Date: Sun, 26 Feb 2006 10:42:06 +0100
+Message-ID: <20060226094206.GA9871@mars.ravnborg.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emailhub.stusta.mhn.de ([141.84.69.5]:29702 "HELO
-	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
-	id S1030267AbWBYPNx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 25 Feb 2006 10:13:53 -0500
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751302AbWBZJmT@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20060222122317.GF4661@stusta.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: len.brown@intel.com, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Yu, Luming" <luming.yu@intel.com>
-Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-On Wed, Feb 22, 2006 at 01:23:17PM +0100, Adrian Bunk wrote:
-> On Wed, Feb 22, 2006 at 02:55:10PM +0800, Yu, Luming wrote:
-> > > >Subject    : S3 sleep hangs the second time - 600X
-> > >> >References : http://bugzilla.kernel.org/show_bug.cgi?id=5989
-> > >> >Submitter  : Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-> > >> >Status     : problematic commit identified,
-> > >> >             further discussion is in the bug
-> > >> 
-> > >> The real problem is there are some bugs hidden by ec_intr=0.
-> > >> ec_intr=1 just get these bug  just exposed, and we need to fix them. 
-> > >
-> > >From a users' point of view, these are regressions from 
-> > >2.6.15, and not 
-> > >all of them might be fixed in time for 2.6.16.
-> > >
-> > >What is a possible short term solution/workaround for 2.6.16?
-> > 
-> > ec_intr=0 is a reasonable workaround for this box,
-> > if we couldn't root-cause and fix the real problem on time.
-> > 
-> > >Can we go back to default to polling mode in 2.6.16?
-> > 
-> > No, don't do this.  There are other laptops need this. And I didn't
-> > get regression report that is root-caused to enabling ec_intr=1 by
-> > default. If you argue bug 5989, 6075 could be,  I think
-> > the truth is, for 5989, we need to fix thermal and processor driver
-> > issue.
-> 
-> We do both agree that defaulting to polling mode is not a long term 
-> solution.
-> 
-> The question is what to do until it's resolved - assuming that issues 
-> like 5989 might not be fixed in time for 2.6.16.
-> 
-> Breaking setups working with the defaults under 2.6.15 in 2.6.16 doesn't 
-> sound that good.
-> 
-> > for 6075, we need to fix interrupt issue.
-> 
-> As far as I understand 6075, the submitter already tried ec_intr=0 
-> without success.
->...
+When running the section mismatch check on latest -mm I see:
 
-Let me suggest the following patch for going back to default to polling 
-mode in 2.6.16.
+WARNING: drivers/acpi/asus_acpi.o - Section mismatch: reference to \
+.init.text:asus_hotk_add from .data between 'asus_hotk_driver' (at \
+offset 0xe0) and 'model_conf'
+WARNING: drivers/acpi/sony_acpi.o - Section mismatch: reference to \
+.init.text:sony_acpi_add from .data between 'sony_acpi_driver' (at \
+offset 0xe0) and 'sony_acpi_values'
+WARNING: drivers/acpi/sony_acpi.o - Section mismatch: reference to    \
+.exit.text:sony_acpi_remove from .data between 'sony_acpi_driver' (at \
+offset 0xe8) and 'sony_acpi_values'
 
-The idea is to get this patch into 2.6.16, immediately revert it in 
-Len's ACPI tree, and properly fix all issues before 2.6.17.
+Browsing the source I see that this is assignments to struct acpi_driver
+structure:
 
-This way, there will be less regressions when the changed default is in 
-a stable kernel.
-
-cu
-Adrian
+static struct acpi_driver asus_hotk_driver = {
+	.name = ACPI_HOTK_NAME,
+	.class = ACPI_HOTK_CLASS,
+	.ids = ACPI_HOTK_HID,
+	.ops = {
+		.add = asus_hotk_add,          <==== __init
+		.remove	= asus_hotk_remove,
+	},
+};
 
 
-<--  snip  -->
+>From browsing the code I cannot see when this happens.
+In asus_acpi.c and sony_acpi.c the .add and .remove methods are
+declared __init/__exit indicating that the add method is solely used
+during early init of the module.
 
+Is it correct that acpi_bus_register_driver() is only called during the
+early init phase of a drivers and so we can discard the .add methods
+after first usage?
 
-The changed default seems to cause regressions (see 
-http://bugzilla.kernel.org/show_bug.cgi?id=5989).
+Likewise for .remove that this is only used when a module is unloaded
+and so can be discarded when builtin?
 
-Let's change the default back to polling mode for one more stable 
-kernel.
+Either asus_acpi.c and sony_acpi.c needs updates or the rest of
+acpi_driver needs an update (fails to use __init, __exit).
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-
----
-
- Documentation/kernel-parameters.txt |    4 ++--
- drivers/acpi/ec.c                   |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
-
---- linux-2.6.16-rc4-mm2-full/Documentation/kernel-parameters.txt.old	2006-02-25 16:01:51.000000000 +0100
-+++ linux-2.6.16-rc4-mm2-full/Documentation/kernel-parameters.txt	2006-02-25 16:02:04.000000000 +0100
-@@ -460,8 +460,8 @@
- 
- 	ec_intr=	[HW,ACPI] ACPI Embedded Controller interrupt mode
- 			Format: <int>
--			0: polling mode
--			non-0: interrupt mode (default)
-+			0: polling mode (default)
-+			non-0: interrupt mode
- 
- 	eda=		[HW,PS2]
- 
---- linux-2.6.16-rc4-mm2-full/drivers/acpi/ec.c.old	2006-02-25 16:00:22.000000000 +0100
-+++ linux-2.6.16-rc4-mm2-full/drivers/acpi/ec.c	2006-02-25 16:01:24.000000000 +0100
-@@ -73,7 +73,7 @@
- 	.class = ACPI_EC_CLASS,
- 	.ids = ACPI_EC_HID,
- 	.ops = {
--		.add = acpi_ec_intr_add,
-+		.add = acpi_ec_poll_add,
- 		.remove = acpi_ec_remove,
- 		.start = acpi_ec_start,
- 		.stop = acpi_ec_stop,
-@@ -147,7 +147,7 @@
- 
- /* External interfaces use first EC only, so remember */
- static struct acpi_device *first_ec;
--static int acpi_ec_poll_mode = EC_INTR;
-+static int acpi_ec_poll_mode = EC_POLL;
- 
- /* --------------------------------------------------------------------------
-                              Transaction Management
+	Sam
