@@ -1,37 +1,28 @@
-From: Diemo Schwarz <Diemo.Schwarz@ircam.fr>
-Subject: system won't wake up, not even reboot
-Date: Mon, 27 Feb 2006 10:16:31 +0100
-Message-ID: <4402C36F.8080604@ircam.fr>
+From: Mark Lord <lkml@rtr.ca>
+Subject: Re: 2.6.16-rc5: known regressions
+Date: Mon, 27 Feb 2006 08:36:47 -0500
+Message-ID: <4403006F.2070603@rtr.ca>
+References: <Pine.LNX.4.64.0602262122000.22647@g5.osdl.org> <20060227061354.GO3674@stusta.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from exerese.ircam.fr ([129.102.3.2]:19912 "EHLO exerese.ircam.fr")
-	by vger.kernel.org with ESMTP id S1750920AbWB0JQS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Feb 2006 04:16:18 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <20060227061354.GO3674@stusta.de>
+Sender: linux-ide-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>, Luming Yu <luming.yu@intel.com>, len.brown@intel.com, linux-acpi@vger.kernel.org, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, linux-input@atrey.karlin.mff.cuni.cz, Meelis Roos <mroos@linux.ee>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
+Adrian Bunk wrote:
+>
+> Subject    : 2.6.16-rc[34]: resume-from-RAM unreliable (SATA)
+> References : http://lkml.org/lkml/2006/2/20/159
+> Submitter  : Mark Lord <lkml@rtr.ca>
+> Handled-By : Randy Dunlap <rdunlap@xenotime.net>
+> Status     : one of Randy's patches seems to fix it
 
-with kernel 2.6.15 on compaq presario 900 notebook an S3 sleep worked 
-fine but the machine woke up to a black screen.
+I'm not certain about this.  It may also have been broken in 2.6.15,
+but it (resume) did work fine with 2.6.14.  I've been using Randy's
+patches with both 2.6.15 (since -rc?), and 2.6.16-rc.
 
-The problem is that I can't reboot!  After a hard shutdown (pressing the 
-power button for several seconds), waking the machine up (by a short 
-press on the power button) makes it go into the same state (fan turning, 
-power led on, screen black, can't ping the machine).
-
-I'm seriously blocked here, is there anything I can do to get the 
-machine back to life?
-
-Thanks for your help!...
-								...Diemo
-
-
--- 
-Diemo Schwarz, PhD  --  http://www.ircam.fr/anasyn/schwarz
-Real-Time Applications Team  --  http://www.ircam.fr/equipes/temps-reel
-IRCAM - Centre Pompidou  --  1, place Igor-Stravinsky, 75004 Paris, France
-Phone +33-1-4478-4879  --  Fax +33-1-4478-1540
+Cheers
