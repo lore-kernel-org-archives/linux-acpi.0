@@ -1,28 +1,89 @@
-From: Mark Lord <lkml@rtr.ca>
-Subject: Re: 2.6.16-rc5: known regressions
-Date: Mon, 27 Feb 2006 08:36:47 -0500
-Message-ID: <4403006F.2070603@rtr.ca>
-References: <Pine.LNX.4.64.0602262122000.22647@g5.osdl.org> <20060227061354.GO3674@stusta.de>
+From: "Hesse, Christian" <mail@earthworm.de>
+Subject: Re: hald in status D with 2.6.16-rc4
+Date: Mon, 27 Feb 2006 23:48:37 +0100
+Message-ID: <200602272348.37288.mail@earthworm.de>
+References: <200602202034.29413.mail@earthworm.de> <200602221110.44813.mail@earthworm.de> <200602222112.09567.mail@earthworm.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: multipart/signed;
+  boundary="nextPart39355267.8HGVQ3LJXq";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <20060227061354.GO3674@stusta.de>
-Sender: linux-ide-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>, Luming Yu <luming.yu@intel.com>, len.brown@intel.com, linux-acpi@vger.kernel.org, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, linux-input@atrey.karlin.mff.cuni.cz, Meelis Roos <mroos@linux.ee>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from lugor.de ([212.112.242.222]:40917 "EHLO solar.mylinuxtime.de")
+	by vger.kernel.org with ESMTP id S1751758AbWB0Wsx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Feb 2006 17:48:53 -0500
+In-Reply-To: <200602222112.09567.mail@earthworm.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Adrian Bunk wrote:
+--nextPart39355267.8HGVQ3LJXq
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+On Wednesday 22 February 2006 21:12, Hesse, Christian wrote:
+> On Wednesday 22 February 2006 11:10, Hesse, Christian wrote:
+> > On Tuesday 21 February 2006 23:49, Andrew Morton wrote:
+> > > "Hesse, Christian" <mail@earthworm.de> wrote:
+> > > > On Tuesday 21 February 2006 06:19, Andrew Morton wrote:
+> > > > > "Hesse, Christian" <mail@earthworm.de> wrote:
+> > > > > > Hello everybody,
+> > > > > >
+> > > > > > since using kernel version 2.6.16-rc4 the hal daemon is in stat=
+us
+> > > > > > D after resume. I use suspend2 2.2.0.1 for 2.6.16-rc3. Any hints
+> > > > > > what could be the problem? It worked perfectly with 2.6.15.x and
+> > > > > > suspend2 2.2.
+> > > > >
+> > > > > a) Look in the logs for any oopses, other nasties
+> > > >
+> > > > Nothing.
+> > > >
+> > > > > b) Do `echo t > /proc/sysrq-trigger', `dmesg -s 1000000 > foo' th=
+en
+> > > > > find the trace for `hald' in `foo', send it to this list.
+> > > >
+> > > > Ok, here it is:
+> > > >
+> > > > [ trace snipped ]
+> > > >
+> > > > This is with 2.6.16-rc4-git1 + suspend2 2.2.0.1.
+> > >
+> > > Hopefully suspend2 isn't involved.  People would feel more comfortable
+> > > if you could test a vanilla mainline tree..
+> > >
+> > > Could the ACPI team please take a look at fixing this regression?
+> >
+> > I did two cycles with mainline suspend now and did not hit the problem.=
+=2E.
+> > I will keep an eye on it.
 >
-> Subject    : 2.6.16-rc[34]: resume-from-RAM unreliable (SATA)
-> References : http://lkml.org/lkml/2006/2/20/159
-> Submitter  : Mark Lord <lkml@rtr.ca>
-> Handled-By : Randy Dunlap <rdunlap@xenotime.net>
-> Status     : one of Randy's patches seems to fix it
+> It is independent from suspend version, hald hangs with mainline suspend =
+as
+> well.
 
-I'm not certain about this.  It may also have been broken in 2.6.15,
-but it (resume) did work fine with 2.6.14.  I've been using Randy's
-patches with both 2.6.15 (since -rc?), and 2.6.16-rc.
+I think this is a big regression since 2.5.15. Is anybody working on it? I =
+did=20
+not get a reply for nearly a week now...
+If anybody needs more information let me know.
+=2D-=20
+Regards,
+Christian
 
-Cheers
+--nextPart39355267.8HGVQ3LJXq
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.9.20 (GNU/Linux)
+
+iD8DBQBEA4HFlZfG2c8gdSURAtfHAKC/NIY8RpYHug4Z8rRF7QowW/2vuwCggs4K
+Rrs8sUtwg0lzdBUnsUUYRxA=
+=V3Me
+-----END PGP SIGNATURE-----
+
+--nextPart39355267.8HGVQ3LJXq--
