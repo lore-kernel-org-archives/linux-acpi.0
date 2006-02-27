@@ -1,54 +1,97 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Subject: Use of __init in asus_acpi.c + sony_acpi.c?
-Date: Sun, 26 Feb 2006 10:42:06 +0100
-Message-ID: <20060226094206.GA9871@mars.ravnborg.org>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: 2.6.16-rc5: known regressions
+Date: Mon, 27 Feb 2006 07:13:54 +0100
+Message-ID: <20060227061354.GO3674@stusta.de>
+References: <Pine.LNX.4.64.0602262122000.22647@g5.osdl.org>
+Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751302AbWBZJmT@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mailout.stusta.mhn.de ([141.84.69.5]:13331 "HELO
+	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
+	id S1751038AbWB0GNz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Feb 2006 01:13:55 -0500
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: len.brown@intel.com, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+In-Reply-To: <Pine.LNX.4.64.0602262122000.22647@g5.osdl.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>, Luming Yu <luming.yu@intel.com>, len.brown@intel.com, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, linux-input@atrey.karlin.mff.cuni.cz, Meelis Roos <mroos@linux.ee>
 
-When running the section mismatch check on latest -mm I see:
+This email lists some known regressions in 2.6.16-rc5 compared to 2.6.15.
 
-WARNING: drivers/acpi/asus_acpi.o - Section mismatch: reference to \
-.init.text:asus_hotk_add from .data between 'asus_hotk_driver' (at \
-offset 0xe0) and 'model_conf'
-WARNING: drivers/acpi/sony_acpi.o - Section mismatch: reference to \
-.init.text:sony_acpi_add from .data between 'sony_acpi_driver' (at \
-offset 0xe0) and 'sony_acpi_values'
-WARNING: drivers/acpi/sony_acpi.o - Section mismatch: reference to    \
-.exit.text:sony_acpi_remove from .data between 'sony_acpi_driver' (at \
-offset 0xe8) and 'sony_acpi_values'
+If you find your name in the Cc header, you are either submitter of one
+of the bugs, maintainer of an affectected subsystem or driver, a patch
+of you was declared guilty for a breakage or I'm considering you in any
+other way possibly involved with one or more of these issues.
 
-Browsing the source I see that this is assignments to struct acpi_driver
-structure:
-
-static struct acpi_driver asus_hotk_driver = {
-	.name = ACPI_HOTK_NAME,
-	.class = ACPI_HOTK_CLASS,
-	.ids = ACPI_HOTK_HID,
-	.ops = {
-		.add = asus_hotk_add,          <==== __init
-		.remove	= asus_hotk_remove,
-	},
-};
+Due to the huge amount of recipients, this email has a Reply-To set.
+Please add the appropriate people to the Cc when replying regarding one 
+of these issues.
 
 
->From browsing the code I cannot see when this happens.
-In asus_acpi.c and sony_acpi.c the .add and .remove methods are
-declared __init/__exit indicating that the add method is solely used
-during early init of the module.
+Subject    : usb_submit_urb(ctrl) failed on 2.6.16-rc4-git10 kernel
+References : http://bugzilla.kernel.org/show_bug.cgi?id=6134
+Submitter  : Ryan Phillips <rphillips@gentoo.org>
+Status     : unknown
 
-Is it correct that acpi_bus_register_driver() is only called during the
-early init phase of a drivers and so we can discard the .add methods
-after first usage?
 
-Likewise for .remove that this is only used when a module is unloaded
-and so can be discarded when builtin?
+Subject    : Oops in Kernel 2.6.16-rc4 on Modprobe of saa7134.ko
+References : http://lkml.org/lkml/2006/2/20/122
+Submitter  : Brian Marete <bgmarete@gmail.com>
+Status     : unknown
 
-Either asus_acpi.c and sony_acpi.c needs updates or the rest of
-acpi_driver needs an update (fails to use __init, __exit).
 
-	Sam
+Subject    : saa7146: no devices created in /dev/dvb
+References : https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=181063
+             http://lkml.org/lkml/2006/2/18/204
+Submitter  : Tom Seeley <redhat@tomseeley.co.uk>
+             Dave Jones <davej@redhat.com>
+Handled-By : Jiri Slaby <jirislaby@gmail.com>
+Status     : unknown
+
+
+Subject    : S3 sleep hangs the second time - 600X
+References : http://bugzilla.kernel.org/show_bug.cgi?id=5989
+Submitter  : Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Handled-By : Luming Yu <luming.yu@intel.com>
+Status     : is being debugged,
+             we might want to change the default back for 2.6.16:
+             http://lkml.org/lkml/2006/2/25/101
+
+
+Subject    : 2.6.16-rc[34]: resume-from-RAM unreliable (SATA)
+References : http://lkml.org/lkml/2006/2/20/159
+Submitter  : Mark Lord <lkml@rtr.ca>
+Handled-By : Randy Dunlap <rdunlap@xenotime.net>
+Status     : one of Randy's patches seems to fix it
+
+
+Subject    : total ps2 keyboard lockup from boot
+References : http://bugzilla.kernel.org/show_bug.cgi?id=6130
+Submitter  : Duncan <1i5t5.duncan@cox.net>
+Handled-By : Dmitry Torokhov <dmitry.torokhov@gmail.com>
+             Pavlik Vojtech <vojtech@suse.cz>
+Status     : discussion and debugging in the bug logs
+
+
+Subject    : psmouse starts losing sync in 2.6.16-rc2
+References : http://lkml.org/lkml/2006/2/5/50
+Submitter  : Meelis Roos <mroos@linux.ee>
+Handled-By : Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Status     : Dmitry: Working on various manifestations of this one.
+                     At worst we will have to disable resync by default
+                     before 2.6.16 final is out and continue in 2.6.17 cycle.
+
+
+
+cu
+Adrian
+
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
+
