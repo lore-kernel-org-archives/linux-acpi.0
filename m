@@ -1,91 +1,41 @@
-From: "Hesse, Christian" <mail@earthworm.de>
-Subject: Re: hald in status D with 2.6.16-rc4
-Date: Tue, 28 Feb 2006 08:47:45 +0100
-Message-ID: <200602280847.51677.mail@earthworm.de>
-References: <200602202034.29413.mail@earthworm.de> <200602272348.37288.mail@earthworm.de> <200602281040.44957.ncunningham@cyclades.com>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: 2.6.16-rc5: known regressions
+Date: Mon, 27 Feb 2006 14:09:45 +0000
+Message-ID: <20060227140944.GC2429@ucw.cz>
+References: <Pine.LNX.4.64.0602262122000.22647@g5.osdl.org> <20060227061354.GO3674@stusta.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart6720020.FOX7EZvp2u";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lugor.de ([212.112.242.222]:52402 "EHLO solar.mylinuxtime.de")
-	by vger.kernel.org with ESMTP id S1751914AbWB1Hs5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Feb 2006 02:48:57 -0500
-In-Reply-To: <200602281040.44957.ncunningham@cyclades.com>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:61710 "EHLO
+	spitz.ucw.cz") by vger.kernel.org with ESMTP id S1751110AbWB1O4n
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Feb 2006 09:56:43 -0500
+Content-Disposition: inline
+In-Reply-To: <20060227061354.GO3674@stusta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Nigel Cunningham <ncunningham@cyclades.com>
-Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>, Luming Yu <luming.yu@intel.com>, len.brown@intel.com, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, linux-input@atrey.karlin.mff.cuni.cz, Meelis Roos <mroos@linux.ee>
 
---nextPart6720020.FOX7EZvp2u
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+On Mon 27-02-06 07:13:54, Adrian Bunk wrote:
+> 
+> Subject    : S3 sleep hangs the second time - 600X
+> References : http://bugzilla.kernel.org/show_bug.cgi?id=5989
+> Submitter  : Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+> Handled-By : Luming Yu <luming.yu@intel.com>
+> Status     : is being debugged,
+>              we might want to change the default back for 2.6.16:
+>              http://lkml.org/lkml/2006/2/25/101
 
-On Tuesday 28 February 2006 01:40, Nigel Cunningham wrote:
-> On Tuesday 28 February 2006 08:48, Hesse, Christian wrote:
-> > On Wednesday 22 February 2006 21:12, Hesse, Christian wrote:
-> > > On Wednesday 22 February 2006 11:10, Hesse, Christian wrote:
-> > > > On Tuesday 21 February 2006 23:49, Andrew Morton wrote:
-> > > > > "Hesse, Christian" <mail@earthworm.de> wrote:
-> > > > > > On Tuesday 21 February 2006 06:19, Andrew Morton wrote:
-> > > > > > > "Hesse, Christian" <mail@earthworm.de> wrote:
-> > > > > > > > Hello everybody,
-> > > > > > > >
-> > > > > > > > since using kernel version 2.6.16-rc4 the hal daemon is in
-> > > > > > > > status D after resume. I use suspend2 2.2.0.1 for 2.6.16-rc=
-3.
-> > > > > > > > Any hints what could be the problem? It worked perfectly wi=
-th
-> > > > > > > > 2.6.15.x and suspend2 2.2.
-> > > > > > >
-> > > > > > > a) Look in the logs for any oopses, other nasties
-> > > > > >
-> > > > > > Nothing.
-> > > > > >
-> > > > > > > b) Do `echo t > /proc/sysrq-trigger', `dmesg -s 1000000 > foo'
-> > > > > > > then find the trace for `hald' in `foo', send it to this list.
-> > > > > >
-> > > > > > Ok, here it is:
-> > > > > >
-> > > > > > [ trace snipped ]
-> > > > > >
-> > > > > > This is with 2.6.16-rc4-git1 + suspend2 2.2.0.1.
-> > > > >
-> > > > > Hopefully suspend2 isn't involved.  People would feel more
-> > > > > comfortable if you could test a vanilla mainline tree..
-> > > > >
-> > > > > Could the ACPI team please take a look at fixing this regression?
-> > > >
-> > > > I did two cycles with mainline suspend now and did not hit the
-> > > > problem... I will keep an eye on it.
-> > >
-> > > It is independent from suspend version, hald hangs with mainline
-> > > suspend as well.
-> >
-> > I think this is a big regression since 2.5.15. Is anybody working on it?
-> > I did not get a reply for nearly a week now...
-> > If anybody needs more information let me know.
->
-> I would suggest bugging the acpi guys :)
+Luming's call, but ec_intr apparently fixed some machines, too.s
 
-They are in cc, but nobody cares. :(
-=2D-=20
-Christian
+> Subject    : 2.6.16-rc[34]: resume-from-RAM unreliable (SATA)
+> References : http://lkml.org/lkml/2006/2/20/159
+> Submitter  : Mark Lord <lkml@rtr.ca>
+> Handled-By : Randy Dunlap <rdunlap@xenotime.net>
+> Status     : one of Randy's patches seems to fix it
 
---nextPart6720020.FOX7EZvp2u
-Content-Type: application/pgp-signature
+Is this really regression?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.9.20 (GNU/Linux)
-
-iD8DBQBEBAAnlZfG2c8gdSURAjQ6AKC62G4ihhjgBhs1+eS7tV1gWjKmHwCfcz8B
-k+kka2GcdLnOaT9nk8GL/Sk=
-=A0ne
------END PGP SIGNATURE-----
-
---nextPart6720020.FOX7EZvp2u--
+-- 
+Thanks, Sharp!
