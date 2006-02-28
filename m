@@ -1,71 +1,91 @@
-From: Pavel Troller <patrol@sinus.cz>
-Subject: Re: "ATA: abnormal status" after wakeup from STR
-Date: Tue, 28 Feb 2006 07:11:43 +0100
-Message-ID: <20060228061143.GA23692@tangens.sinus.cz>
-References: <20060228042336.GA20450@tangens.sinus.cz>
-Reply-To: Pavel Troller <patrol@sinus.cz>
+From: "Hesse, Christian" <mail@earthworm.de>
+Subject: Re: hald in status D with 2.6.16-rc4
+Date: Tue, 28 Feb 2006 08:47:45 +0100
+Message-ID: <200602280847.51677.mail@earthworm.de>
+References: <200602202034.29413.mail@earthworm.de> <200602272348.37288.mail@earthworm.de> <200602281040.44957.ncunningham@cyclades.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed;
+  boundary="nextPart6720020.FOX7EZvp2u";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tangens.sinus.cz ([195.39.17.8]:37552 "EHLO tangens.sinus.cz")
-	by vger.kernel.org with ESMTP id S1751848AbWB1GLp (ORCPT
+Received: from lugor.de ([212.112.242.222]:52402 "EHLO solar.mylinuxtime.de")
+	by vger.kernel.org with ESMTP id S1751914AbWB1Hs5 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Feb 2006 01:11:45 -0500
-Received: from tangens.sinus.cz (patrol@localhost [127.0.0.1])
-	by tangens.sinus.cz (8.13.5/8.13.5) with ESMTP id k1S6BhuL023990
-	for <linux-acpi@vger.kernel.org>; Tue, 28 Feb 2006 07:11:43 +0100
-Received: (from patrol@localhost)
-	by tangens.sinus.cz (8.13.5/8.13.5/Submit) id k1S6BhJV023989
-	for linux-acpi@vger.kernel.org; Tue, 28 Feb 2006 07:11:43 +0100
-Content-Disposition: inline
-In-Reply-To: <20060228042336.GA20450@tangens.sinus.cz>
+	Tue, 28 Feb 2006 02:48:57 -0500
+In-Reply-To: <200602281040.44957.ncunningham@cyclades.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Nigel Cunningham <ncunningham@cyclades.com>
+Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-> Hi!
->   I'm observing a problem on two different motherboards from MSI, one equipped
-> with VIA chipset (for Athlon) and the other with Intel (for P-4). The problem,
-> however, looks the same.
->   When awaking from STR, at the whole end, there appears:
-> Restarting tasks...<4>ATA: abnormal status 0x80 on port 0xE907
-> abnormal status 0x80 on port 0xE907
-> abnormal status 0x80 on port 0xE907
-> done
-> ata1: command 0x35 timeout, stat 0x50 hosts_stat 0x1
->   The system then continues to operate with no visible damage.
->   In /proc/ioports I see the IO port assigned to libata. The system uses a SATA
-> disk, so it's related.
->   The timeout mentioned in the message is something about 30 seconds. The time
-> to wake up from STR is very long due to this.
->   I have the following questions:
->   1) Is it safe to operate the system after such an event ? Is the SATA iface
-> in sane state and is it able to work reliably ?
->   2) Is there a known method to fix the problem now ? I've read something about
-> SATA patches but didn't experiment with anything yet. Would you recommend me
-> to try something ?
->               With regards, Pavel Troller
-> 	      
-> P.S. I forgot to say, it's on 2.6.15.4.
-Hi!
-  Replying to myself with new information:
-  I've just tried 2.6.16-rc5 and results are much worse - the disk is dead.
-  On resume, the following occurs:
+--nextPart6720020.FOX7EZvp2u
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-ATA: abnormal status 0x80 on port 0xE907
-ATA: abnormal status 0x80 on port 0xE907
-ATA: abnormal status 0x80 on port 0xE907
-ata1: qc timeout (cmd 0xef)
-ata1: failed to set xfermode, disabled
-ata1: dev 0 configured for UDMA/133
-Restarting tasks...<6>sd 0:0:0:0: SCSI error: return code = 0x40000
-end_request: I/O error, dev sda, sector 6511
-sd 0:0:0:0: SCSI error: return code = 0x40000
-end_request: I/O error, dev sda, sector 6519
-sd 0:0:0:0: SCSI error: return code = 0x40000
-end_request: I/O error, dev sda, sector 6527
-Buffer I/O error on device sda1, logical block 808
-lost page write due to I/O error on sda1
-Aborting journal on device sda1.
+On Tuesday 28 February 2006 01:40, Nigel Cunningham wrote:
+> On Tuesday 28 February 2006 08:48, Hesse, Christian wrote:
+> > On Wednesday 22 February 2006 21:12, Hesse, Christian wrote:
+> > > On Wednesday 22 February 2006 11:10, Hesse, Christian wrote:
+> > > > On Tuesday 21 February 2006 23:49, Andrew Morton wrote:
+> > > > > "Hesse, Christian" <mail@earthworm.de> wrote:
+> > > > > > On Tuesday 21 February 2006 06:19, Andrew Morton wrote:
+> > > > > > > "Hesse, Christian" <mail@earthworm.de> wrote:
+> > > > > > > > Hello everybody,
+> > > > > > > >
+> > > > > > > > since using kernel version 2.6.16-rc4 the hal daemon is in
+> > > > > > > > status D after resume. I use suspend2 2.2.0.1 for 2.6.16-rc=
+3.
+> > > > > > > > Any hints what could be the problem? It worked perfectly wi=
+th
+> > > > > > > > 2.6.15.x and suspend2 2.2.
+> > > > > > >
+> > > > > > > a) Look in the logs for any oopses, other nasties
+> > > > > >
+> > > > > > Nothing.
+> > > > > >
+> > > > > > > b) Do `echo t > /proc/sysrq-trigger', `dmesg -s 1000000 > foo'
+> > > > > > > then find the trace for `hald' in `foo', send it to this list.
+> > > > > >
+> > > > > > Ok, here it is:
+> > > > > >
+> > > > > > [ trace snipped ]
+> > > > > >
+> > > > > > This is with 2.6.16-rc4-git1 + suspend2 2.2.0.1.
+> > > > >
+> > > > > Hopefully suspend2 isn't involved.  People would feel more
+> > > > > comfortable if you could test a vanilla mainline tree..
+> > > > >
+> > > > > Could the ACPI team please take a look at fixing this regression?
+> > > >
+> > > > I did two cycles with mainline suspend now and did not hit the
+> > > > problem... I will keep an eye on it.
+> > >
+> > > It is independent from suspend version, hald hangs with mainline
+> > > suspend as well.
+> >
+> > I think this is a big regression since 2.5.15. Is anybody working on it?
+> > I did not get a reply for nearly a week now...
+> > If anybody needs more information let me know.
+>
+> I would suggest bugging the acpi guys :)
 
-With regards, Pavel Troller
+They are in cc, but nobody cares. :(
+=2D-=20
+Christian
+
+--nextPart6720020.FOX7EZvp2u
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.9.20 (GNU/Linux)
+
+iD8DBQBEBAAnlZfG2c8gdSURAjQ6AKC62G4ihhjgBhs1+eS7tV1gWjKmHwCfcz8B
+k+kka2GcdLnOaT9nk8GL/Sk=
+=A0ne
+-----END PGP SIGNATURE-----
+
+--nextPart6720020.FOX7EZvp2u--
