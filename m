@@ -1,90 +1,47 @@
-From: Nigel Cunningham <ncunningham@cyclades.com>
-Subject: Re: hald in status D with 2.6.16-rc4
-Date: Tue, 28 Feb 2006 10:40:38 +1000
-Message-ID: <200602281040.44957.ncunningham@cyclades.com>
-References: <200602202034.29413.mail@earthworm.de> <200602222112.09567.mail@earthworm.de> <200602272348.37288.mail@earthworm.de>
+From: Pavel Troller <patrol@sinus.cz>
+Subject: "ATA: abnormal status" after wakeup from STR
+Date: Tue, 28 Feb 2006 05:23:36 +0100
+Message-ID: <20060228042336.GA20450@tangens.sinus.cz>
+Reply-To: Pavel Troller <patrol@sinus.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2996100.gXiE0eJXLC";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from b3162.static.pacific.net.au ([203.143.238.98]:3730 "EHLO
-	cust8446.nsw01.dataco.com.au") by vger.kernel.org with ESMTP
-	id S1751520AbWB1Ann (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Feb 2006 19:43:43 -0500
-In-Reply-To: <200602272348.37288.mail@earthworm.de>
+Received: from tangens.sinus.cz ([195.39.17.8]:62348 "EHLO tangens.sinus.cz")
+	by vger.kernel.org with ESMTP id S1750795AbWB1EXi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Feb 2006 23:23:38 -0500
+Received: from tangens.sinus.cz (patrol@localhost [127.0.0.1])
+	by tangens.sinus.cz (8.13.5/8.13.5) with ESMTP id k1S4NaSX020869
+	for <linux-acpi@vger.kernel.org>; Tue, 28 Feb 2006 05:23:36 +0100
+Received: (from patrol@localhost)
+	by tangens.sinus.cz (8.13.5/8.13.5/Submit) id k1S4NauA020868
+	for linux-acpi@vger.kernel.org; Tue, 28 Feb 2006 05:23:36 +0100
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Hesse, Christian" <mail@earthworm.de>
-Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
---nextPart2996100.gXiE0eJXLC
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hi.
-
-On Tuesday 28 February 2006 08:48, Hesse, Christian wrote:
-> On Wednesday 22 February 2006 21:12, Hesse, Christian wrote:
-> > On Wednesday 22 February 2006 11:10, Hesse, Christian wrote:
-> > > On Tuesday 21 February 2006 23:49, Andrew Morton wrote:
-> > > > "Hesse, Christian" <mail@earthworm.de> wrote:
-> > > > > On Tuesday 21 February 2006 06:19, Andrew Morton wrote:
-> > > > > > "Hesse, Christian" <mail@earthworm.de> wrote:
-> > > > > > > Hello everybody,
-> > > > > > >
-> > > > > > > since using kernel version 2.6.16-rc4 the hal daemon is in
-> > > > > > > status D after resume. I use suspend2 2.2.0.1 for 2.6.16-rc3.
-> > > > > > > Any hints what could be the problem? It worked perfectly with
-> > > > > > > 2.6.15.x and suspend2 2.2.
-> > > > > >
-> > > > > > a) Look in the logs for any oopses, other nasties
-> > > > >
-> > > > > Nothing.
-> > > > >
-> > > > > > b) Do `echo t > /proc/sysrq-trigger', `dmesg -s 1000000 > foo'
-> > > > > > then find the trace for `hald' in `foo', send it to this list.
-> > > > >
-> > > > > Ok, here it is:
-> > > > >
-> > > > > [ trace snipped ]
-> > > > >
-> > > > > This is with 2.6.16-rc4-git1 + suspend2 2.2.0.1.
-> > > >
-> > > > Hopefully suspend2 isn't involved.  People would feel more
-> > > > comfortable if you could test a vanilla mainline tree..
-> > > >
-> > > > Could the ACPI team please take a look at fixing this regression?
-> > >
-> > > I did two cycles with mainline suspend now and did not hit the
-> > > problem... I will keep an eye on it.
-> >
-> > It is independent from suspend version, hald hangs with mainline suspend
-> > as well.
->
-> I think this is a big regression since 2.5.15. Is anybody working on it? I
-> did not get a reply for nearly a week now...
-> If anybody needs more information let me know.
-
-I would suggest bugging the acpi guys :)
-
-Regards,
-
-Nigel
-
---nextPart2996100.gXiE0eJXLC
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQBEA5wMN0y+n1M3mo0RAhDWAKC0xFVNjfcScw9Apcig8CndmoIgwwCfaNEe
-Hn87Ptchm/HcpCrioEM4W9w=
-=ZjlT
------END PGP SIGNATURE-----
-
---nextPart2996100.gXiE0eJXLC--
+Hi!
+  I'm observing a problem on two different motherboards from MSI, one equipped
+with VIA chipset (for Athlon) and the other with Intel (for P-4). The problem,
+however, looks the same.
+  When awaking from STR, at the whole end, there appears:
+Restarting tasks...<4>ATA: abnormal status 0x80 on port 0xE907
+abnormal status 0x80 on port 0xE907
+abnormal status 0x80 on port 0xE907
+done
+ata1: command 0x35 timeout, stat 0x50 hosts_stat 0x1
+  The system then continues to operate with no visible damage.
+  In /proc/ioports I see the IO port assigned to libata. The system uses a SATA
+disk, so it's related.
+  The timeout mentioned in the message is something about 30 seconds. The time
+to wake up from STR is very long due to this.
+  I have the following questions:
+  1) Is it safe to operate the system after such an event ? Is the SATA iface
+in sane state and is it able to work reliably ?
+  2) Is there a known method to fix the problem now ? I've read something about
+SATA patches but didn't experiment with anything yet. Would you recommend me
+to try something ?
+              With regards, Pavel Troller
+	      
+P.S. I forgot to say, it's on 2.6.15.4.
