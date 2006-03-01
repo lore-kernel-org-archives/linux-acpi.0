@@ -1,46 +1,95 @@
-From: Dave Jones <davej@redhat.com>
-Subject: 2.6.16rc5 acpi slab corruption
-Date: Wed, 1 Mar 2006 15:32:08 -0500
-Message-ID: <20060301203208.GA21722@redhat.com>
-References: <200603012014.k21KE9FI010352@dhcp150.install.boston.redhat.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH] ACPI: remove __init/__exit from Asus and Sony .add()/.remove() methods
+Date: Wed, 1 Mar 2006 13:51:21 -0700
+Message-ID: <200603011351.21322.bjorn.helgaas@hp.com>
+References: <20060226094206.GA9871@mars.ravnborg.org> <200603011215.59604.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:167 "EHLO mx1.redhat.com")
-	by vger.kernel.org with ESMTP id S1751177AbWCAUcK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Mar 2006 15:32:10 -0500
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932444AbWCAUv1@vger.kernel.org>
+In-Reply-To: <200603011215.59604.bjorn.helgaas@hp.com>
 Content-Disposition: inline
-In-Reply-To: <200603012014.k21KE9FI010352@dhcp150.install.boston.redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sam Ravnborg <sam@ravnborg.org>
+Cc: len.brown@intel.com, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Karol Kozimor <sziwan@users.sourceforge.net>, Julien Lerouge <julien.lerouge@free.fr>, acpi4asus-user@lists.sourceforge.net, Stelian Pop <stelian@popies.net>, Andrew Morton <akpm@osdl.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Linux Kernel <linux-kernel@vger.kernel.org>
 
-With the latest git, on a testbox here, we're seeing this..
+Even though the devices claimed by asus_acpi.c and sony_acpi.c can not
+be hot-plugged, the driver registration infrastructure allows the .add()
+and .remove() methods to be called at any time while the driver is
+registered.  So remove __init and __exit from them.
 
-  slab size-512: redzone mismatch in slab f7d74040, obj f7d74078, bufct=
-l 0xfffffffe
-  Redzone: 0x170fc2a5/0x170fc200.
-  Last user: [<c0205e51>](acpi_ut_allocate+0x28/0x45)
-  000: 53 53 44 54 fa 01 00 00 01 f9 50 6d 52 65 66 00
-  010: 43 70 75 30 49 73 74 00 00 30 00 00 49 4e 54 4c
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-over and over just after booting.
-Translating that to ascii, it looks like..
-
-SSDT =EF=BF=BDPmRef
-Cpu0Ist0INTL
-
-
-(Does no-one else run with slab-poisoning any more?
- Sometimes I feel I'm the only person who sees these.)
-
-		Dave
-
-
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Index: work-mm4/drivers/acpi/asus_acpi.c
+===================================================================
+--- work-mm4.orig/drivers/acpi/asus_acpi.c	2006-02-22 09:55:50.000000000 -0700
++++ work-mm4/drivers/acpi/asus_acpi.c	2006-03-01 12:17:50.000000000 -0700
+@@ -817,7 +817,7 @@
+ 			      unsigned long count, void *data);
+ 
+ static int
+-__init asus_proc_add(char *name, proc_writefunc * writefunc,
++asus_proc_add(char *name, proc_writefunc * writefunc,
+ 		     proc_readfunc * readfunc, mode_t mode,
+ 		     struct acpi_device *device)
+ {
+@@ -836,7 +836,7 @@
+ 	return 0;
+ }
+ 
+-static int __init asus_hotk_add_fs(struct acpi_device *device)
++static int asus_hotk_add_fs(struct acpi_device *device)
+ {
+ 	struct proc_dir_entry *proc;
+ 	mode_t mode;
+@@ -954,7 +954,7 @@
+  * This function is used to initialize the hotk with right values. In this
+  * method, we can make all the detection we want, and modify the hotk struct
+  */
+-static int __init asus_hotk_get_info(void)
++static int asus_hotk_get_info(void)
+ {
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	struct acpi_buffer dsdt = { ACPI_ALLOCATE_BUFFER, NULL };
+@@ -1101,7 +1101,7 @@
+ 	return AE_OK;
+ }
+ 
+-static int __init asus_hotk_check(void)
++static int asus_hotk_check(void)
+ {
+ 	int result = 0;
+ 
+@@ -1121,7 +1121,7 @@
+ 
+ static int asus_hotk_found;
+ 
+-static int __init asus_hotk_add(struct acpi_device *device)
++static int asus_hotk_add(struct acpi_device *device)
+ {
+ 	acpi_status status = AE_OK;
+ 	int result;
+Index: work-mm4/drivers/acpi/sony_acpi.c
+===================================================================
+--- work-mm4.orig/drivers/acpi/sony_acpi.c	2006-02-22 09:55:50.000000000 -0700
++++ work-mm4/drivers/acpi/sony_acpi.c	2006-03-01 12:18:24.000000000 -0700
+@@ -258,7 +258,7 @@
+ 	return AE_OK;
+ }
+ 
+-static int __init sony_acpi_add(struct acpi_device *device)
++static int sony_acpi_add(struct acpi_device *device)
+ {
+ 	acpi_status status;
+ 	int result;
+@@ -340,7 +340,7 @@
+ }
+ 
+ 
+-static int __exit sony_acpi_remove(struct acpi_device *device, int type)
++static int sony_acpi_remove(struct acpi_device *device, int type)
+ {
+ 	acpi_status status;
+ 	struct sony_acpi_value *item;
