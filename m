@@ -1,48 +1,43 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: Use of __init in asus_acpi.c + sony_acpi.c?
-Date: Wed, 1 Mar 2006 12:15:59 -0700
-Message-ID: <200603011215.59604.bjorn.helgaas@hp.com>
-References: <20060226094206.GA9871@mars.ravnborg.org>
+Subject: Re: system won't wake up, not even reboot
+Date: Wed, 1 Mar 2006 12:38:05 -0700
+Message-ID: <200603011238.05513.bjorn.helgaas@hp.com>
+References: <4402C36F.8080604@ircam.fr>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751807AbWCATQF@vger.kernel.org>
-In-Reply-To: <20060226094206.GA9871@mars.ravnborg.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from atlrel8.hp.com ([156.153.255.206]:9920 "EHLO atlrel8.hp.com")
+	by vger.kernel.org with ESMTP id S1750702AbWCATiJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Mar 2006 14:38:09 -0500
+In-Reply-To: <4402C36F.8080604@ircam.fr>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: len.brown@intel.com, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Karol Kozimor <sziwan@users.sourceforge.net>, Julien Lerouge <julien.lerouge@free.fr>, acpi4asus-user@lists.sourceforge.net, Stelian Pop <stelian@popies.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Diemo Schwarz <Diemo.Schwarz@ircam.fr>
+Cc: linux-acpi@vger.kernel.org
 
-On Sunday 26 February 2006 02:42, Sam Ravnborg wrote:
-> WARNING: drivers/acpi/asus_acpi.o - Section mismatch: reference to \
-> .init.text:asus_hotk_add from .data between 'asus_hotk_driver' (at \
-> offset 0xe0) and 'model_conf'
-> WARNING: drivers/acpi/sony_acpi.o - Section mismatch: reference to \
-> .init.text:sony_acpi_add from .data between 'sony_acpi_driver' (at \
-> offset 0xe0) and 'sony_acpi_values'
-> ...
-> From browsing the code I cannot see when this happens.
-> In asus_acpi.c and sony_acpi.c the .add and .remove methods are
-> declared __init/__exit indicating that the add method is solely used
-> during early init of the module.
+On Monday 27 February 2006 02:16, Diemo Schwarz wrote:
+> with kernel 2.6.15 on compaq presario 900 notebook an S3 sleep worked 
+> fine but the machine woke up to a black screen.
 > 
-> Is it correct that acpi_bus_register_driver() is only called during the
-> early init phase of a drivers and so we can discard the .add methods
-> after first usage?
+> The problem is that I can't reboot!  After a hard shutdown (pressing the 
+> power button for several seconds), waking the machine up (by a short 
+> press on the power button) makes it go into the same state (fan turning, 
+> power led on, screen black, can't ping the machine).
+> 
+> I'm seriously blocked here, is there anything I can do to get the 
+> machine back to life?
 
-I think this is a bug in asus_acpi.c and sony_acpi.c.  They assume
-that their devices can not be hot-plugged, so if they aren't found
-at the time of acpi_bus_register_driver(), they can discard the
-.add() methods.
+When you power-up the machine, can you interrupt the boot process
+by changing the boot order or entering BIOS setup?  If so, you
+should be able to boot from a floppy or CD.
 
-It is true that these particular devices can't be hot-plugged, but
-there's no way to tell that to acpi_bus_register_driver(), so we have
-to assume .add() could be called as long as the driver remains
-registered.
+If you can't interrupt the boot process, maybe the machine was not
+completely powered-off, and it's really trying to resume from an
+S3 sleep.  You could try removing any batteries and AC adapters to
+make sure it's powered-off, then try booting again.
 
-I'll cook up a patch for asus_acpi.c and sony_acpi.c.  Thanks for
-finding this.
-
-Bjorn
+[I know next to nothing about suspend/resume, but since nobody else
+has stepped up ...]
