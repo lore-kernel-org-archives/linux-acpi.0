@@ -1,95 +1,49 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH] ACPI: remove __init/__exit from Asus and Sony .add()/.remove() methods
-Date: Wed, 1 Mar 2006 13:51:21 -0700
-Message-ID: <200603011351.21322.bjorn.helgaas@hp.com>
-References: <20060226094206.GA9871@mars.ravnborg.org> <200603011215.59604.bjorn.helgaas@hp.com>
+From: Cestonaro Thilo <c.thilo@gmx.de>
+Subject: Temporarily disable ACPI (hibernate, standby) via module
+Date: Wed, 01 Mar 2006 22:20:45 +0100
+Message-ID: <1141248046.24588.18.camel@localhost.localdomain>
+Reply-To: c.thilo@gmx.de
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932444AbWCAUv1@vger.kernel.org>
-In-Reply-To: <200603011215.59604.bjorn.helgaas@hp.com>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: len.brown@intel.com, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Karol Kozimor <sziwan@users.sourceforge.net>, Julien Lerouge <julien.lerouge@free.fr>, acpi4asus-user@lists.sourceforge.net, Stelian Pop <stelian@popies.net>, Andrew Morton <akpm@osdl.org>
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-FC77MVDbO0yY6Qsn/Zjq"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.gmx.de ([213.165.64.20]:31623 "HELO mail.gmx.net")
+	by vger.kernel.org with SMTP id S1751918AbWCAVUs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Mar 2006 16:20:48 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Even though the devices claimed by asus_acpi.c and sony_acpi.c can not
-be hot-plugged, the driver registration infrastructure allows the .add()
-and .remove() methods to be called at any time while the driver is
-registered.  So remove __init and __exit from them.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+--=-FC77MVDbO0yY6Qsn/Zjq
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Index: work-mm4/drivers/acpi/asus_acpi.c
-===================================================================
---- work-mm4.orig/drivers/acpi/asus_acpi.c	2006-02-22 09:55:50.000000000 -0700
-+++ work-mm4/drivers/acpi/asus_acpi.c	2006-03-01 12:17:50.000000000 -0700
-@@ -817,7 +817,7 @@
- 			      unsigned long count, void *data);
- 
- static int
--__init asus_proc_add(char *name, proc_writefunc * writefunc,
-+asus_proc_add(char *name, proc_writefunc * writefunc,
- 		     proc_readfunc * readfunc, mode_t mode,
- 		     struct acpi_device *device)
- {
-@@ -836,7 +836,7 @@
- 	return 0;
- }
- 
--static int __init asus_hotk_add_fs(struct acpi_device *device)
-+static int asus_hotk_add_fs(struct acpi_device *device)
- {
- 	struct proc_dir_entry *proc;
- 	mode_t mode;
-@@ -954,7 +954,7 @@
-  * This function is used to initialize the hotk with right values. In this
-  * method, we can make all the detection we want, and modify the hotk struct
-  */
--static int __init asus_hotk_get_info(void)
-+static int asus_hotk_get_info(void)
- {
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 	struct acpi_buffer dsdt = { ACPI_ALLOCATE_BUFFER, NULL };
-@@ -1101,7 +1101,7 @@
- 	return AE_OK;
- }
- 
--static int __init asus_hotk_check(void)
-+static int asus_hotk_check(void)
- {
- 	int result = 0;
- 
-@@ -1121,7 +1121,7 @@
- 
- static int asus_hotk_found;
- 
--static int __init asus_hotk_add(struct acpi_device *device)
-+static int asus_hotk_add(struct acpi_device *device)
- {
- 	acpi_status status = AE_OK;
- 	int result;
-Index: work-mm4/drivers/acpi/sony_acpi.c
-===================================================================
---- work-mm4.orig/drivers/acpi/sony_acpi.c	2006-02-22 09:55:50.000000000 -0700
-+++ work-mm4/drivers/acpi/sony_acpi.c	2006-03-01 12:18:24.000000000 -0700
-@@ -258,7 +258,7 @@
- 	return AE_OK;
- }
- 
--static int __init sony_acpi_add(struct acpi_device *device)
-+static int sony_acpi_add(struct acpi_device *device)
- {
- 	acpi_status status;
- 	int result;
-@@ -340,7 +340,7 @@
- }
- 
- 
--static int __exit sony_acpi_remove(struct acpi_device *device, int type)
-+static int sony_acpi_remove(struct acpi_device *device, int type)
- {
- 	acpi_status status;
- 	struct sony_acpi_value *item;
+Hey list,
+
+I'm working at a module for bios flashing. Now my prob. is, when the
+computer wants to go in a not useful power state during the flash, would
+not be nice.
+
+Is there a better way then unloading the acpi modules (which also do not
+work if acpi is included in the kernel). Is there a global way how I can
+disable it temporarily? Or do you have any other idea of solution for my
+prob?
+
+Ciao Thilo
+PS.: Hopefully I'm at the correct address (list) with this question else
+apologize me please.
+
+--=-FC77MVDbO0yY6Qsn/Zjq
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Dies ist ein digital signierter Nachrichtenteil
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQBEBhAtwiMZl/fiM0MRAnXQAJ9cNojwOmX7k32WaiQ8cJsQSH5pCgCfUzRn
+dUAGA/MgO+WnS6hQFo3gPlw=
+=dfRV
+-----END PGP SIGNATURE-----
+
+--=-FC77MVDbO0yY6Qsn/Zjq--
+
