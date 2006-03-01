@@ -1,43 +1,46 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: system won't wake up, not even reboot
-Date: Wed, 1 Mar 2006 12:38:05 -0700
-Message-ID: <200603011238.05513.bjorn.helgaas@hp.com>
-References: <4402C36F.8080604@ircam.fr>
+From: Dave Jones <davej@redhat.com>
+Subject: 2.6.16rc5 acpi slab corruption
+Date: Wed, 1 Mar 2006 15:32:08 -0500
+Message-ID: <20060301203208.GA21722@redhat.com>
+References: <200603012014.k21KE9FI010352@dhcp150.install.boston.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel8.hp.com ([156.153.255.206]:9920 "EHLO atlrel8.hp.com")
-	by vger.kernel.org with ESMTP id S1750702AbWCATiJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Mar 2006 14:38:09 -0500
-In-Reply-To: <4402C36F.8080604@ircam.fr>
+Received: from mx1.redhat.com ([66.187.233.31]:167 "EHLO mx1.redhat.com")
+	by vger.kernel.org with ESMTP id S1751177AbWCAUcK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Mar 2006 15:32:10 -0500
 Content-Disposition: inline
+In-Reply-To: <200603012014.k21KE9FI010352@dhcp150.install.boston.redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Diemo Schwarz <Diemo.Schwarz@ircam.fr>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Linux Kernel <linux-kernel@vger.kernel.org>
 
-On Monday 27 February 2006 02:16, Diemo Schwarz wrote:
-> with kernel 2.6.15 on compaq presario 900 notebook an S3 sleep worked 
-> fine but the machine woke up to a black screen.
-> 
-> The problem is that I can't reboot!  After a hard shutdown (pressing the 
-> power button for several seconds), waking the machine up (by a short 
-> press on the power button) makes it go into the same state (fan turning, 
-> power led on, screen black, can't ping the machine).
-> 
-> I'm seriously blocked here, is there anything I can do to get the 
-> machine back to life?
+With the latest git, on a testbox here, we're seeing this..
 
-When you power-up the machine, can you interrupt the boot process
-by changing the boot order or entering BIOS setup?  If so, you
-should be able to boot from a floppy or CD.
+  slab size-512: redzone mismatch in slab f7d74040, obj f7d74078, bufct=
+l 0xfffffffe
+  Redzone: 0x170fc2a5/0x170fc200.
+  Last user: [<c0205e51>](acpi_ut_allocate+0x28/0x45)
+  000: 53 53 44 54 fa 01 00 00 01 f9 50 6d 52 65 66 00
+  010: 43 70 75 30 49 73 74 00 00 30 00 00 49 4e 54 4c
 
-If you can't interrupt the boot process, maybe the machine was not
-completely powered-off, and it's really trying to resume from an
-S3 sleep.  You could try removing any batteries and AC adapters to
-make sure it's powered-off, then try booting again.
+over and over just after booting.
+Translating that to ascii, it looks like..
 
-[I know next to nothing about suspend/resume, but since nobody else
-has stepped up ...]
+SSDT =EF=BF=BDPmRef
+Cpu0Ist0INTL
+
+
+(Does no-one else run with slab-poisoning any more?
+ Sometimes I feel I'm the only person who sees these.)
+
+		Dave
+
+
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
