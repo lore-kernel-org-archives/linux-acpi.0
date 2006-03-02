@@ -1,29 +1,56 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: Temporarily disable ACPI (hibernate, standby) via module
-Date: Wed, 1 Mar 2006 19:28:27 -0500
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30063BFA14@hdsmsx401.amr.corp.intel.com>
+From: Andi Kleen <ak@suse.de>
+Subject: Re: 2.6.16rc5 'found' an extra CPU.
+Date: Thu, 2 Mar 2006 01:55:46 +0100
+Message-ID: <200603020155.46534.ak@suse.de>
+References: <20060301224647.GD1440@redhat.com> <20060301230317.GF1440@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr17.intel.com ([134.134.136.16]:17337 "EHLO
-	orsfmr002.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1751152AbWCBA2c convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Mar 2006 19:28:32 -0500
-Content-class: urn:content-classes:message
+Received: from ns1.suse.de ([195.135.220.2]:46480 "EHLO mx1.suse.de")
+	by vger.kernel.org with ESMTP id S1750799AbWCBAxx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Mar 2006 19:53:53 -0500
+In-Reply-To: <20060301230317.GF1440@redhat.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: c.thilo@gmx.de, linux-acpi@vger.kernel.org
+To: Dave Jones <davej@redhat.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Ashok Raj <ashok.raj@intel.com>
 
+On Thursday 02 March 2006 00:03, Dave Jones wrote:
+> On Wed, Mar 01, 2006 at 05:46:47PM -0500, Dave Jones wrote:
+>  > This amused me.
+>  >
+>  > (17:43:34:davej@nemesis:~)$ ll /proc/acpi/processor/
+>  > total 0
+>  > dr-xr-xr-x 2 root root 0 Mar  1 17:43 CPU1/
+>  > dr-xr-xr-x 2 root root 0 Mar  1 17:43 CPU2/
+>  > dr-xr-xr-x 2 root root 0 Mar  1 17:43 CPU3/
+>  > (17:43:36:davej@nemesis:~)$
+>
+> Digging further. I notice more oddities (or maybe I've just
+> misunderstood this -- corrections welcomed)
 
->I'm working at a module for bios flashing. Now my prob. is, when the
->computer wants to go in a not useful power state during the 
->flash, would not be nice.
+Probably related to Ashok's ACPI CPU hotplug patches.
 
-please define "not useful power state"
+What's the full bootup log?
 
-you can disable P-states and C-states at run-time, if that
-is what you're looking for.  Note that the same problem
-will exist without ACPI.
+> (17:59:02:davej@nemesis:~)$ cat
+> /sys/devices/system/cpu/cpu0/topology/core_id 0
+> (17:59:23:davej@nemesis:~)$ cat
+> /sys/devices/system/cpu/cpu1/topology/core_id 0
+>
+> (17:59:38:davej@nemesis:~)$ cat
+> /sys/devices/system/cpu/cpu0/topology/core_siblings
+> 00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001
+> (17:59:47:davej@nemesis:~)$ cat
+> /sys/devices/system/cpu/cpu1/topology/core_siblings
+> 00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000002
+>
+> Neither of these CPUs are HT / dual-core, so shouldn't these be the same ?
 
--Len
+It looks like a standard dual socket machine. Each CPU is a sibling of its own
+only.
+
+-Andi
