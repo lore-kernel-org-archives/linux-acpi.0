@@ -1,32 +1,31 @@
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [v4l-dvb-maintainer] 2.6.16-rc5: known regressions
-Date: Thu, 02 Mar 2006 11:00:11 -0300
-Message-ID: <1141308011.5884.5.camel@localhost>
-References: <Pine.LNX.4.64.0602262122000.22647@g5.osdl.org>
-	 <20060227061354.GO3674@stusta.de>
+From: Zwane Mwaikambo <zwane@arm.linux.org.uk>
+Subject: Re: 2.6.16rc5 'found' an extra CPU.
+Date: Thu, 2 Mar 2006 07:53:39 -0800 (PST)
+Message-ID: <Pine.LNX.4.64.0603020737420.28074@montezuma.fsmlabs.com>
+References: <F7DC2337C7631D4386A2DF6E8FB22B30063BFB95@hdsmsx401.amr.corp.intel.com>
+ <20060302093333.GB18448@pern.dea.icai.upcomillas.es>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pentafluge.infradead.org ([213.146.154.40]:26016 "EHLO
-	pentafluge.infradead.org") by vger.kernel.org with ESMTP
-	id S1751200AbWCBOAw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 2 Mar 2006 09:00:52 -0500
-In-Reply-To: <20060227061354.GO3674@stusta.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751472AbWCBPtQ@vger.kernel.org>
+In-Reply-To: <20060302093333.GB18448@pern.dea.icai.upcomillas.es>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Romano Giannetti <romanol@upcomillas.es>
+Cc: "Brown, Len" <len.brown@intel.com>, Dave Jones <davej@redhat.com>, "Raj, Ashok" <ashok.raj@intel.com>, Andi Kleen <ak@suse.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, video4linux-list@redhat.com, Jiri Slaby <jirislaby@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, linux-ide@vger.kernel.org, Randy Dunlap <rdunlap@xenotime.net>, linux-input@atrey.karlin.mff.cuni.cz, linux-usb-devel@lists.sourceforge.net, Meelis Roos <mroos@linux.ee>, Luming Yu <luming.yu@intel.com>, linux-acpi@vger.kernel.org, Pavlik Vojtech <vojtech@suse.cz>, Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>, jgarzik@pobox.com, len.brown@intel.com, Brian Marete <bgmarete@gmail.com>, Dave Jones <davej@redhat.com>, v4l-dvb-maintainer@linuxtv.org, Duncan <1i5t5.duncan@cox.net>, Tom Seeley <redhat@tomseeley.co.uk>, michael@mihu.de, gregkh@suse.de, Mark Lord <lkml@rtr.ca>
 
+On Thu, 2 Mar 2006, Romano Giannetti wrote:
 
-> Subject    : Oops in Kernel 2.6.16-rc4 on Modprobe of saa7134.ko
-> References : http://lkml.org/lkml/2006/2/20/122
-> Submitter  : Brian Marete <bgmarete@gmail.com>
-> Status     : unknown
+> On Thu, Mar 02, 2006 at 12:49:53AM -0500, Brown, Len wrote:
+> > 
+> > I'm afraid that even after we get this stuff out of /proc
+> > and into sysfs where it belongs, we'll have to leave /proc/acpi around
+> > for a while b/c unfortunately people are under the impression
+> > that the path names there actually mean something and
+> > they can actually count on them -- which they can't.
+> 
+> Is it possible to obtain the same control/information with sysfs that is
+> available from /proc/acpi? For example, I use quite extensively CPU
+> throttling on my VAIO ("cool & quiet home-made mode"), and I was unable to
+> find the equivalent of /proc/acpi/processor/CPU0/throttling ...
 
-This is not a regression, since the user is not configuring saa7134 with
-the right card. 
-
-Cheers, 
-Mauro.
-
+I can't help thinking that that should be going through cpufreq.
