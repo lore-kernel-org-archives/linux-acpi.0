@@ -1,74 +1,59 @@
-From: Michael Schierl <schierlm@gmx.de>
-Subject: Resume problems on Fujitsu-Siemens AMILO M7440G
-Date: Thu, 02 Mar 2006 22:45:06 +0100
-Message-ID: <44076762.404@gmx.de>
+From: Kristen Accardi <kristen.c.accardi@intel.com>
+Subject: Re: [RFC][PATCH] acpiphp: configure _PRT
+Date: Thu, 02 Mar 2006 15:34:09 -0800
+Message-ID: <1141342449.913.7.camel@whizzy>
+References: <873bi19ces.wl%muneda.takahiro@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.de ([213.165.64.20]:33458 "HELO mail.gmx.net")
-	by vger.kernel.org with SMTP id S1030220AbWCBVpB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Mar 2006 16:45:01 -0500
+Received: from fmr20.intel.com ([134.134.136.19]:4746 "EHLO
+	orsfmr005.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1752075AbWCBX2b (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 2 Mar 2006 18:28:31 -0500
+In-Reply-To: <873bi19ces.wl%muneda.takahiro@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: MUNEDA Takahiro <muneda.takahiro@jp.fujitsu.com>
+Cc: pcihpd-discuss@lists.sourceforge.net, Greg KH <greg@kroah.com>, linux-acpi@vger.kernel.org, len.brown@intel.com
 
-Hi,
+On Thu, 2006-03-02 at 22:58 +0900, MUNEDA Takahiro wrote:
+> Hi,
+> 
+> Current acpiphp does not free acpi_device structs when the
+> PCI devices are removed. When the PCI device is added,
+> acpi_bus_add() fails because acpi_device struct has already
+> exists. So, _PRT method does not evaluate.
+> 
+> This patch fixes this issue.
+> 
+> This patch is against 2.6.16-rc5-mm1 plus following patches.
+> 
+>  o Kristen's latest patch set
+>  o Kenji's acpiphp: Scan slots under the nested P2P bridge
+> 
+> I tested this patch on my tiger4 box except for dock eject
+> case, because I don't have any pc which has _DCK method.
+> 
 
-My new notebook, a Fujitsu-Siemens AMILO M7440G, does not resume after
-suspend (echo mem >/sys/power/state).
+I tested this on a couple laptops that have _DCK methods - It seems to
+work fine, however, see comment below:
+<snip>
 
-Since my old notebook worked with APM, ACPI stuff is quite new for me; I
- tried several things but with no success.
+> Index: linux-2.6.16-rc5-mm1/drivers/pci/hotplug/acpiphp_dock.c
+> ===================================================================
+> --- linux-2.6.16-rc5-mm1.orig/drivers/pci/hotplug/acpiphp_dock.c
+> +++ linux-2.6.16-rc5-mm1/drivers/pci/hotplug/acpiphp_dock.c
+> @@ -290,6 +290,7 @@ handle_hotplug_event_dock(acpi_handle ha
+>  			dbg("EJECT request\n");
+>  			if (!dock_in_progress() && dock_present()) {
+>  				hotplug_pci(type);
+> +				acpiphp_bus_trim(handle);
 
-What happens:
+This is not necessary.  hotplug_pci() will pass the eject event down to
+the acpiphp handle_hotplug_event_func() routine, which will call
+disable_device() and remove the bus that way as part of your new patch.
 
-- I boot a minimal kernel (vanilla 2.6.15.2), with init=/bin/bash to
-  minimize userspace problems (root fs = ext3, mounted read only)
-- I mount /sys and echo mem >/sys/power/state
-- my notebook seems to suspend properly, everything powers down, power
-  LED is flashing. (I cannot eject CD now)
-- when pressing the power button (the notebook cannot be waken up by
-  pressing keys on the keyboard, but that is the same on Windows, so
-  most likely by design), the power LED changes to light (without
-  flashing), and the CDROM spins up. (Now I can eject CD). Screen is
-  dark and remains so until I power it down hard (by pressing power
-  button for 5 seconds).
-- when compiling in network support and netconsole support (and enabling
-  netconsole to maybe get error messages), the
-  behaviour changes: the CDROM still spins up but the power LED remains
-  flashing. (you can find the .config at
-  http://home.arcor.de/mschierlm/test/acpi/_config ) No reaction on the
-  net console after suspend.
-- The notebook does not have any serial ports.
-
-Next I patched the kernel with acpi-release-20050902-2.6.15.diff.bz2, no
-changes. Patching it with acpi-test-20051216-2.6.15.diff.bz2 (after
-unapplying the old patch), no changes either. The reaction with a
-"non-minimal" kernel is like the one with the minimal one.
-
-Next I downloaded acpica-unix-20060217.tar.gz and decompiled my DSDT.
-Result is in same place as _config. Recompiling it only creates one
-warning about no return value in _WAK. There are lots of tutorials
-around, some say it does not matter, others say I should add a return
-value. So I added a return value, but did not notice any changes in
-behaviour.
-
-The next issue was to check if the dsdt uses any _OS checks. The only
-match for _OS in the file is in line
-
-If (CondRefOf (_OSI, Local0))
-
-which is quite unrelated I guess (I don't understand that ACPI
-"programming language", but it seems that _OSI is something else than
-_OS). So if I understood the tutorial correctly, there is no need to try
-different ACPI os names.
-
-I'm out of ideas now.
-
-Any suggestions what to do to make my new notebook suspend on Linux? It
-suspends fine on Windows and the latest BIOS update is installed.
-
-Please CC me since I am not on the list. Thank you,
-
-Michael
+>  				undock();
+>  				eject_dock();
+>  				if (dock_present())
