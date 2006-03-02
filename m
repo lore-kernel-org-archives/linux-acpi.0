@@ -1,56 +1,86 @@
-From: Romano Giannetti <romanol@upcomillas.es>
-Subject: Re: 2.6.16rc5 'found' an extra CPU.
-Date: Thu, 2 Mar 2006 16:58:50 +0100
-Message-ID: <20060302155850.GB10823@pern.dea.icai.upcomillas.es>
-References: <F7DC2337C7631D4386A2DF6E8FB22B30063BFB95@hdsmsx401.amr.corp.intel.com> <20060302093333.GB18448@pern.dea.icai.upcomillas.es> <Pine.LNX.4.64.0603020737420.28074@montezuma.fsmlabs.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: acpi_os_map_memory()/acpi_os_unmap_memory()
+Date: Thu, 2 Mar 2006 09:26:02 -0700
+Message-ID: <200603020926.02151.bjorn.helgaas@hp.com>
+References: <F7DC2337C7631D4386A2DF6E8FB22B30063BFB23@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from antispam.upcomillas.es ([130.206.70.245]:32209 "EHLO
-	antispam.upcomillas.es") by vger.kernel.org with ESMTP
-	id S1750729AbWCBP6H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 2 Mar 2006 10:58:07 -0500
+Received: from atlrel7.hp.com ([156.153.255.213]:45776 "EHLO atlrel7.hp.com")
+	by vger.kernel.org with ESMTP id S1751588AbWCBQ0E (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Mar 2006 11:26:04 -0500
+In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B30063BFB23@hdsmsx401.amr.corp.intel.com>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0603020737420.28074@montezuma.fsmlabs.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zwane Mwaikambo <zwane@arm.linux.org.uk>
-Cc: "Brown, Len" <len.brown@intel.com>, Dave Jones <davej@redhat.com>, "Raj, Ashok" <ashok.raj@intel.com>, Andi Kleen <ak@suse.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: "Grover, Andrew" <andrew.grover@intel.com>, linux-acpi@vger.kernel.org, Andi Kleen <ak@suse.de>
 
-
-On Thu, Mar 02, 2006 at 07:53:39AM -0800, Zwane Mwaikambo wrote:
-> On Thu, 2 Mar 2006, Romano Giannetti wrote:
+On Wednesday 01 March 2006 20:10, Brown, Len wrote:
+> Andy,
+> Do you recall the history of how this pair of routines got this way?
 > 
-> > On Thu, Mar 02, 2006 at 12:49:53AM -0500, Brown, Len wrote:
-> > > 
-> > > I'm afraid that even after we get this stuff out of /proc
-> > > and into sysfs where it belongs, we'll have to leave /proc/acpi around
-> > > for a while b/c unfortunately people are under the impression
-> > > that the path names there actually mean something and
-> > > they can actually count on them -- which they can't.
-> > 
-> > Is it possible to obtain the same control/information with sysfs that is
-> > available from /proc/acpi? For example, I use quite extensively CPU
-> > throttling on my VAIO ("cool & quiet home-made mode"), and I was unable to
-> > find the equivalent of /proc/acpi/processor/CPU0/throttling ...
-> 
-> I can't help thinking that that should be going through cpufreq.
+> First problem is something mapped with efi_enabled may not use ioremap,
+> but the then un-map on the same region uses iounmap().
 
-Yes, I agree. But in the relevant /sys/devices/system/cpu/cpu0/cpufreq there
-were no "throttling" options (well: as of 2.6.11). Maybe it's something
-failing in my old vaio fx701, but scaling down frequencies is not sufficient
-to keep it cool (compiling a kernel in summer in Madrid without air
-conditioning reliably triggers thermal shutdown if I do not throttle the CPU
-at level 4 when overheating; I have a little python script running for it).
+I think we added the efi_enabled check in acpi_os_map_memory() for
+the ia64 port, because some HP ia64 boxes don't support UC access to
+main memory.
 
-Romano 
+The fact that acpi_os_unmap_memory() doesn't work the same way is
+just an oversight on our part.  On ia64, iounmap() is a no-op, so
+it didn't matter.
 
--- 
-Romano Giannetti             -  Univ. Pontificia Comillas (Madrid, Spain)
-Electronic Engineer - phone +34 915 422 800 ext 2416  fax +34 915 596 569
-http://www.dea.icai.upcomillas.es/romano/
+> Second issue is that it isn't clear that ioremap() is the right way
+> to go for a general purpose memory mapper.  acpi_os_map_memory()
+> is used by the core to map the tables and also to support
+> AML operation region reads and writes which can be memory
+> or memory mapped registers.
 
---
-La presente comunicación tiene carácter confidencial y es para el exclusivo uso del destinatario indicado en la misma. Si Ud. no es el destinatario indicado, le informamos que cualquier forma de distribución, reproducción o uso de esta comunicación y/o de la información contenida en la misma están estrictamente prohibidos por la ley. Si Ud. ha recibido esta comunicación por error, por favor, notifíquelo inmediatamente al remitente contestando a este mensaje y proceda a continuación a destruirlo. Gracias por su colaboración.
+Andi Kleen suggested making ioremap() smart enough to deal with
+either regular memory or MMIO.  I think that's much better than
+having the efi_enabled gunk in acpi_os_map_memory(), but if you
+have an even better idea, that'd be great.
 
-This communication contains confidential information. It is for the exclusive use of the intended addressee. If you are not the intended addressee, please note that any form of distribution, copying or use of this communication or the information in it is strictly prohibited by law. If you have received this communication in error, please immediately notify the sender by reply e-mail and destroy this message. Thank you for your cooperation. 
+> 2002/03/14 agrover            | acpi_status
+> 2005/08/05 len.brown          | acpi_os_map_memory(acpi_physical_address
+> phys, acpi_size size,
+> 2005/08/05 len.brown          | 		   void __iomem ** virt)
+> 2002/03/14 agrover            | {
+> 2003/12/29 akpm               | 	if (efi_enabled) {
+> 2003/12/29 akpm               | 		if (EFI_MEMORY_WB &
+> efi_mem_attributes(phys)) {
+> 2005/08/05 len.brown          | 			*virt = (void
+> __iomem *)phys_to_virt(phys);
+> 2003/12/29 akpm               | 		} else {
+> 2003/12/29 akpm               | 			*virt =
+> ioremap(phys, size);
+> 2003/12/29 akpm               | 		}
+> 2002/10/01 agrover            | 	} else {
+> 2003/12/29 akpm               | 		if (phys > ULONG_MAX) {
+> 2003/12/29 akpm               | 			printk(KERN_ERR
+> PREFIX "Cannot map memory that high\n");
+> 2003/12/29 akpm               | 			return
+> AE_BAD_PARAMETER;
+> 2003/12/29 akpm               | 		}
+> 2003/12/29 akpm               | 		/*
+> 2005/08/05 len.brown          | 		 * ioremap checks to
+> ensure this is in reserved space
+> 2005/08/05 len.brown          | 		 */
+> 2005/08/05 len.brown          | 		*virt =
+> ioremap((unsigned long)phys, size);
+> 2002/03/14 agrover            | 	}
+> 2002/05/29 agrover            | 
+> 2002/03/14 agrover            | 	if (!*virt)
+> 2002/03/14 agrover            | 		return AE_NO_MEMORY;
+> 2002/03/14 agrover            | 
+> 2002/03/14 agrover            | 	return AE_OK;
+> 2002/03/14 agrover            | }
+> 2006/01/08 kjhall             | EXPORT_SYMBOL_GPL(acpi_os_map_memory);
+> 2002/03/14 agrover            | 
+> 2005/08/05 len.brown          | void acpi_os_unmap_memory(void __iomem *
+> virt, acpi_size size)
+> 2002/03/14 agrover            | {
+> 2002/03/14 agrover            | 	iounmap(virt);
