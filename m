@@ -1,86 +1,70 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: acpi_os_map_memory()/acpi_os_unmap_memory()
-Date: Thu, 2 Mar 2006 09:26:02 -0700
-Message-ID: <200603020926.02151.bjorn.helgaas@hp.com>
-References: <F7DC2337C7631D4386A2DF6E8FB22B30063BFB23@hdsmsx401.amr.corp.intel.com>
+From: Ashok Raj <ashok.raj@intel.com>
+Subject: Re: 2.6.16rc5 'found' an extra CPU.
+Date: Thu, 2 Mar 2006 08:30:38 -0800
+Message-ID: <20060302083038.A11407@unix-os.sc.intel.com>
+References: <F7DC2337C7631D4386A2DF6E8FB22B30063BFB95@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel7.hp.com ([156.153.255.213]:45776 "EHLO atlrel7.hp.com")
-	by vger.kernel.org with ESMTP id S1751588AbWCBQ0E (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Mar 2006 11:26:04 -0500
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B30063BFB23@hdsmsx401.amr.corp.intel.com>
+Received: from fmr21.intel.com ([143.183.121.13]:21192 "EHLO
+	scsfmr001.sc.intel.com") by vger.kernel.org with ESMTP
+	id S1751095AbWCBQa6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 2 Mar 2006 11:30:58 -0500
 Content-Disposition: inline
+In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B30063BFB95@hdsmsx401.amr.corp.intel.com>; from len.brown@intel.com on Wed, Mar 01, 2006 at 09:49:53PM -0800
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Brown, Len" <len.brown@intel.com>
-Cc: "Grover, Andrew" <andrew.grover@intel.com>, linux-acpi@vger.kernel.org, Andi Kleen <ak@suse.de>
+Cc: Dave Jones <davej@redhat.com>, "Raj, Ashok" <ashok.raj@intel.com>, Andi Kleen <ak@suse.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wednesday 01 March 2006 20:10, Brown, Len wrote:
-> Andy,
-> Do you recall the history of how this pair of routines got this way?
+On Wed, Mar 01, 2006 at 09:49:53PM -0800, Brown, Len wrote:
 > 
-> First problem is something mapped with efi_enabled may not use ioremap,
-> but the then un-map on the same region uses iounmap().
+> >sysfs gets it right.
+> >
+> >(23:11:01:davej@nemesis:~)$ ls /sys/devices/system/cpu/
+> >cpu0/  cpu1/
+> >(23:11:07:davej@nemesis:~)$ ls /proc/acpi/processor/
+> >CPU1/  CPU2/  CPU3/
+> 
+> This is because the BIOS has three "Processor" objects in the DSDT.
+> 
 
-I think we added the efi_enabled check in acpi_os_map_memory() for
-the ia64 port, because some HP ia64 boxes don't support UC access to
-main memory.
+I have a dual core + HT platform. I disabled HT to have the same situation
+as Dave.
 
-The fact that acpi_os_unmap_memory() doesn't work the same way is
-just an oversight on our part.  On ia64, iounmap() is a no-op, so
-it didn't matter.
+ACPI DSDT dump shows 4 objects in \_PR scope as below.
 
-> Second issue is that it isn't clear that ioremap() is the right way
-> to go for a general purpose memory mapper.  acpi_os_map_memory()
-> is used by the core to map the tables and also to support
-> AML operation region reads and writes which can be memory
-> or memory mapped registers.
+    Scope (\_PR)
+    {
+        Processor (CPU0, 0x01, 0x00000410, 0x06) {}
+        Processor (CPU1, 0x02, 0x00000410, 0x06) {}
+        Processor (CPU2, 0x03, 0x00000410, 0x06) {}
+        Processor (CPU3, 0x04, 0x00000410, 0x06) {}
+    }
 
-Andi Kleen suggested making ioremap() smart enough to deal with
-either regular memory or MMIO.  I think that's much better than
-having the efi_enabled gunk in acpi_os_map_memory(), but if you
-have an even better idea, that'd be great.
+Only 2 are marked enabled in the ACPI MADT..
 
-> 2002/03/14 agrover            | acpi_status
-> 2005/08/05 len.brown          | acpi_os_map_memory(acpi_physical_address
-> phys, acpi_size size,
-> 2005/08/05 len.brown          | 		   void __iomem ** virt)
-> 2002/03/14 agrover            | {
-> 2003/12/29 akpm               | 	if (efi_enabled) {
-> 2003/12/29 akpm               | 		if (EFI_MEMORY_WB &
-> efi_mem_attributes(phys)) {
-> 2005/08/05 len.brown          | 			*virt = (void
-> __iomem *)phys_to_virt(phys);
-> 2003/12/29 akpm               | 		} else {
-> 2003/12/29 akpm               | 			*virt =
-> ioremap(phys, size);
-> 2003/12/29 akpm               | 		}
-> 2002/10/01 agrover            | 	} else {
-> 2003/12/29 akpm               | 		if (phys > ULONG_MAX) {
-> 2003/12/29 akpm               | 			printk(KERN_ERR
-> PREFIX "Cannot map memory that high\n");
-> 2003/12/29 akpm               | 			return
-> AE_BAD_PARAMETER;
-> 2003/12/29 akpm               | 		}
-> 2003/12/29 akpm               | 		/*
-> 2005/08/05 len.brown          | 		 * ioremap checks to
-> ensure this is in reserved space
-> 2005/08/05 len.brown          | 		 */
-> 2005/08/05 len.brown          | 		*virt =
-> ioremap((unsigned long)phys, size);
-> 2002/03/14 agrover            | 	}
-> 2002/05/29 agrover            | 
-> 2002/03/14 agrover            | 	if (!*virt)
-> 2002/03/14 agrover            | 		return AE_NO_MEMORY;
-> 2002/03/14 agrover            | 
-> 2002/03/14 agrover            | 	return AE_OK;
-> 2002/03/14 agrover            | }
-> 2006/01/08 kjhall             | EXPORT_SYMBOL_GPL(acpi_os_map_memory);
-> 2002/03/14 agrover            | 
-> 2005/08/05 len.brown          | void acpi_os_unmap_memory(void __iomem *
-> virt, acpi_size size)
-> 2002/03/14 agrover            | {
-> 2002/03/14 agrover            | 	iounmap(virt);
+>From boot log
+
+ACPI: LAPIC (acpi_id[0x01] lapic_id[0x00] enabled)
+Processor #0 15:4 APIC version 20
+ACPI: LAPIC (acpi_id[0x03] lapic_id[0x02] enabled)
+Processor #2 15:4 APIC version 20
+ACPI: LAPIC (acpi_id[0x02] lapic_id[0x01] disabled)
+ACPI: LAPIC (acpi_id[0x04] lapic_id[0x03] disabled)
+
+But proc/acpi/processor also lists just 2 entries.
+
+[root@araj-sfield-2 tmp]# ls /proc/acpi/processor/
+CPU0  CPU2
+
+I suspect that the BIOS is goofy and sending a valid acpiid when we try
+to evaluate the processor object.
+
+Could you see what comes out of the /proc/acpi/processor/CPUx/info for all the
+3 listed in your system?
+
+Also if you can send DSDT dump just to look over.
+
+Cheers,
+ashok
