@@ -1,53 +1,43 @@
-From: Dave Jones <davej@redhat.com>
-Subject: Re: 2.6.16rc5 'found' an extra CPU.
-Date: Wed, 1 Mar 2006 23:11:54 -0500
-Message-ID: <20060302041154.GA31863@redhat.com>
-References: <20060301224647.GD1440@redhat.com> <200603020155.46534.ak@suse.de> <20060302011959.GC19755@redhat.com> <200603020238.31639.ak@suse.de> <20060301195218.A3539@unix-os.sc.intel.com>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: 2.6.16rc5 'found' an extra CPU.
+Date: Thu, 2 Mar 2006 00:49:53 -0500
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30063BFB95@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:3018 "EHLO mx1.redhat.com")
-	by vger.kernel.org with ESMTP id S1751136AbWCBEMB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Mar 2006 23:12:01 -0500
-Content-Disposition: inline
-In-Reply-To: <20060301195218.A3539@unix-os.sc.intel.com>
+Received: from fmr23.intel.com ([143.183.121.15]:13984 "EHLO
+	scsfmr003.sc.intel.com") by vger.kernel.org with ESMTP
+	id S1750774AbWCBFuK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Mar 2006 00:50:10 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ashok Raj <ashok.raj@intel.com>
+To: Dave Jones <davej@redhat.com>, "Raj, Ashok" <ashok.raj@intel.com>
 Cc: Andi Kleen <ak@suse.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wed, Mar 01, 2006 at 07:52:19PM -0800, Ashok Raj wrote:
- > On Thu, Mar 02, 2006 at 02:38:31AM +0100, Andi Kleen wrote:
- > > 
- > > > ACPI: LAPIC (acpi_id[0x01] lapic_id[0x00] enabled)
- > > > Processor #0 15:5 APIC version 16
- > > > ACPI: LAPIC (acpi_id[0x02] lapic_id[0x01] enabled)
- > > > Processor #1 15:5 APIC version 16
- > > > ACPI: LAPIC (acpi_id[0x03] lapic_id[0x82] disabled)
- > > > ACPI: LAPIC (acpi_id[0x04] lapic_id[0x83] disabled)
- > > 
- > > It's because of the two disabled CPUs. We decreed at some point
- > > that disabled CPUs mean hotpluggable CPUs. But it's doing
- > > this for some time so you probably only noticed now.
- > > 
- > > All is ok. Sorry for blaming you wrongly, Ashok.
- > 
- > 
- > Phew!..
- > 
- > The ACPI hotplug code isnt in 2.6.15-rc* yet. It should be in the next
- > -mm when Andrew rolls the next mm.
- > 
- > But the 3 entries seem weird, we should only see 2 sysfs entries in 
- > /sys/devices/system/cpu and just 2 entries in proc/acpi/processor as well.
 
-sysfs gets it right.
+>sysfs gets it right.
+>
+>(23:11:01:davej@nemesis:~)$ ls /sys/devices/system/cpu/
+>cpu0/  cpu1/
+>(23:11:07:davej@nemesis:~)$ ls /proc/acpi/processor/
+>CPU1/  CPU2/  CPU3/
 
-(23:11:01:davej@nemesis:~)$ ls /sys/devices/system/cpu/
-cpu0/  cpu1/
-(23:11:07:davej@nemesis:~)$ ls /proc/acpi/processor/
-CPU1/  CPU2/  CPU3/
-(23:11:11:davej@nemesis:~)$
+This is because the BIOS has three "Processor" objects in the DSDT.
 
-		Dave
+As I've mentioned before, /proc/acpi/*/* should not exist.
+Internal ACPI BIOS names "CPU1, CPU1, CPU3" in this case
+are actually arbitray 4-character strings, and should
+never be exposed to the user in the file-system.
 
+sysfs with cpu0, cpu1 -- predictable strings for objects --
+gets it right, and is the direction we are going.
+
+I'm afraid that even after we get this stuff out of /proc
+and into sysfs where it belongs, we'll have to leave /proc/acpi around
+for a while b/c unfortunately people are under the impression
+that the path names there actually mean something and
+they can actually count on them -- which they can't.
+
+-Len
