@@ -1,56 +1,40 @@
-From: Andi Kleen <ak@suse.de>
+From: Chuck Ebbert <76306.1226@compuserve.com>
 Subject: Re: 2.6.16rc5 'found' an extra CPU.
-Date: Thu, 2 Mar 2006 01:55:46 +0100
-Message-ID: <200603020155.46534.ak@suse.de>
-References: <20060301224647.GD1440@redhat.com> <20060301230317.GF1440@redhat.com>
+Date: Wed, 1 Mar 2006 19:55:25 -0500
+Message-ID: <200603011957_MC3-1-B99B-8FFE@compuserve.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+	 charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns1.suse.de ([195.135.220.2]:46480 "EHLO mx1.suse.de")
-	by vger.kernel.org with ESMTP id S1750799AbWCBAxx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Mar 2006 19:53:53 -0500
-In-Reply-To: <20060301230317.GF1440@redhat.com>
+Received: from liaag2ag.mx.compuserve.com ([149.174.40.158]:4789 "EHLO
+	liaag2ag.mx.compuserve.com") by vger.kernel.org with ESMTP
+	id S1750981AbWCBA5p (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 1 Mar 2006 19:57:45 -0500
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Dave Jones <davej@redhat.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Ashok Raj <ashok.raj@intel.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Andi Kleen <ak@suse.de>
 
-On Thursday 02 March 2006 00:03, Dave Jones wrote:
-> On Wed, Mar 01, 2006 at 05:46:47PM -0500, Dave Jones wrote:
->  > This amused me.
->  >
->  > (17:43:34:davej@nemesis:~)$ ll /proc/acpi/processor/
->  > total 0
->  > dr-xr-xr-x 2 root root 0 Mar  1 17:43 CPU1/
->  > dr-xr-xr-x 2 root root 0 Mar  1 17:43 CPU2/
->  > dr-xr-xr-x 2 root root 0 Mar  1 17:43 CPU3/
->  > (17:43:36:davej@nemesis:~)$
->
-> Digging further. I notice more oddities (or maybe I've just
-> misunderstood this -- corrections welcomed)
+In-Reply-To: <20060301230317.GF1440@redhat.com>
 
-Probably related to Ashok's ACPI CPU hotplug patches.
+On Wed, 1 Mar 2006 18:03:17, Dave Jones wrote:
 
-What's the full bootup log?
-
-> (17:59:02:davej@nemesis:~)$ cat
-> /sys/devices/system/cpu/cpu0/topology/core_id 0
-> (17:59:23:davej@nemesis:~)$ cat
-> /sys/devices/system/cpu/cpu1/topology/core_id 0
->
-> (17:59:38:davej@nemesis:~)$ cat
-> /sys/devices/system/cpu/cpu0/topology/core_siblings
+> (17:59:38:davej@nemesis:~)$ cat /sys/devices/system/cpu/cpu0/topology/core_siblings
 > 00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001
-> (17:59:47:davej@nemesis:~)$ cat
-> /sys/devices/system/cpu/cpu1/topology/core_siblings
+> (17:59:47:davej@nemesis:~)$ cat /sys/devices/system/cpu/cpu1/topology/core_siblings
 > 00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000002
->
+> 
 > Neither of these CPUs are HT / dual-core, so shouldn't these be the same ?
 
-It looks like a standard dual socket machine. Each CPU is a sibling of its own
-only.
+Those are bitmaps. 1 => only bit 0 is set => CPU 0 is all alone.
 
--Andi
+Did you really build a 256-CPU SMP kernel or is ACPI ignoring CONFIG_NR_CPUS
+or something?
+
+
+-- 
+Chuck
+"The sleet in Crete falls neatly in the street."
+
