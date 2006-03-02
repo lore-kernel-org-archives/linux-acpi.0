@@ -1,70 +1,46 @@
-From: Ashok Raj <ashok.raj@intel.com>
-Subject: Re: 2.6.16rc5 'found' an extra CPU.
-Date: Thu, 2 Mar 2006 08:30:38 -0800
-Message-ID: <20060302083038.A11407@unix-os.sc.intel.com>
-References: <F7DC2337C7631D4386A2DF6E8FB22B30063BFB95@hdsmsx401.amr.corp.intel.com>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: 2.6.16rc5 'found' an extra CPU.
+Date: Thu, 2 Mar 2006 12:30:42 -0500
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30063F8D66@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr21.intel.com ([143.183.121.13]:21192 "EHLO
-	scsfmr001.sc.intel.com") by vger.kernel.org with ESMTP
-	id S1751095AbWCBQa6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 2 Mar 2006 11:30:58 -0500
-Content-Disposition: inline
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B30063BFB95@hdsmsx401.amr.corp.intel.com>; from len.brown@intel.com on Wed, Mar 01, 2006 at 09:49:53PM -0800
+Received: from fmr17.intel.com ([134.134.136.16]:15570 "EHLO
+	orsfmr002.jf.intel.com") by vger.kernel.org with ESMTP
+	id S932255AbWCBRa7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Mar 2006 12:30:59 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: Dave Jones <davej@redhat.com>, "Raj, Ashok" <ashok.raj@intel.com>, Andi Kleen <ak@suse.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Andi Kleen <ak@suse.de>
+Cc: Dave Jones <davej@redhat.com>, "Raj, Ashok" <ashok.raj@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Mochel, Patrick" <patrick.mochel@intel.com>
 
-On Wed, Mar 01, 2006 at 09:49:53PM -0800, Brown, Len wrote:
-> 
-> >sysfs gets it right.
-> >
-> >(23:11:01:davej@nemesis:~)$ ls /sys/devices/system/cpu/
-> >cpu0/  cpu1/
-> >(23:11:07:davej@nemesis:~)$ ls /proc/acpi/processor/
-> >CPU1/  CPU2/  CPU3/
-> 
-> This is because the BIOS has three "Processor" objects in the DSDT.
-> 
 
-I have a dual core + HT platform. I disabled HT to have the same situation
-as Dave.
+>On Thursday 02 March 2006 06:49, Brown, Len wrote:
+>
+>> I'm afraid that even after we get this stuff out of /proc
+>> and into sysfs where it belongs, we'll have to leave 
+>/proc/acpi around
+>> for a while b/c unfortunately people are under the impression
+>> that the path names there actually mean something and
+>> they can actually count on them -- which they can't.
+>
+>But they should. Once you provide an interface here you 
+>have to provide it essentially forever. Or at least if you really
+>change it use a very long deprecation period, but even that 
+>is a bad thing to do to users.
 
-ACPI DSDT dump shows 4 objects in \_PR scope as below.
+The 4-character strings in the path names (eg "CPU0") are _arbitrary_.
+They come _directly_ from the BIOS source code and depend
+on whatever mood the BIOS writer was in that day.
+For this reason, users _can't_ count on these strings
+and these path-names being consistent across platforms.
 
-    Scope (\_PR)
-    {
-        Processor (CPU0, 0x01, 0x00000410, 0x06) {}
-        Processor (CPU1, 0x02, 0x00000410, 0x06) {}
-        Processor (CPU2, 0x03, 0x00000410, 0x06) {}
-        Processor (CPU3, 0x04, 0x00000410, 0x06) {}
-    }
+Yes, this is a horrible design.
+Yes, I want to delete it in favor of sysfs as soon as possible,
+Patrick has a big patch set in development to get that ball rolling.
+Yes, users kick and scream whenever you change something they can see
+and thus it takes a long time.
 
-Only 2 are marked enabled in the ACPI MADT..
-
->From boot log
-
-ACPI: LAPIC (acpi_id[0x01] lapic_id[0x00] enabled)
-Processor #0 15:4 APIC version 20
-ACPI: LAPIC (acpi_id[0x03] lapic_id[0x02] enabled)
-Processor #2 15:4 APIC version 20
-ACPI: LAPIC (acpi_id[0x02] lapic_id[0x01] disabled)
-ACPI: LAPIC (acpi_id[0x04] lapic_id[0x03] disabled)
-
-But proc/acpi/processor also lists just 2 entries.
-
-[root@araj-sfield-2 tmp]# ls /proc/acpi/processor/
-CPU0  CPU2
-
-I suspect that the BIOS is goofy and sending a valid acpiid when we try
-to evaluate the processor object.
-
-Could you see what comes out of the /proc/acpi/processor/CPUx/info for all the
-3 listed in your system?
-
-Also if you can send DSDT dump just to look over.
-
-Cheers,
-ashok
+-Len
