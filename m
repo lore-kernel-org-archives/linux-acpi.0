@@ -1,48 +1,53 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: 2.6.16rc5 'found' an extra CPU.
-Date: Thu, 2 Mar 2006 12:34:02 -0500
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30063F8D72@hdsmsx401.amr.corp.intel.com>
+From: Dave Jones <davej@redhat.com>
+Subject: Re: 2.6.16rc5 'found' an extra CPU.
+Date: Thu, 2 Mar 2006 13:44:28 -0500
+Message-ID: <20060302184428.GB7304@redhat.com>
+References: <F7DC2337C7631D4386A2DF6E8FB22B30063BFB95@hdsmsx401.amr.corp.intel.com> <20060302083038.A11407@unix-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr19.intel.com ([134.134.136.18]:46776 "EHLO
-	orsfmr004.jf.intel.com") by vger.kernel.org with ESMTP
-	id S932266AbWCBRe1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Mar 2006 12:34:27 -0500
-Content-class: urn:content-classes:message
+Received: from mx1.redhat.com ([66.187.233.31]:64159 "EHLO mx1.redhat.com")
+	by vger.kernel.org with ESMTP id S1751660AbWCBSof (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Mar 2006 13:44:35 -0500
+Content-Disposition: inline
+In-Reply-To: <20060302083038.A11407@unix-os.sc.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: Dave Jones <davej@redhat.com>, "Raj, Ashok" <ashok.raj@intel.com>, Andi Kleen <ak@suse.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Ashok Raj <ashok.raj@intel.com>
+Cc: "Brown, Len" <len.brown@intel.com>, Andi Kleen <ak@suse.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+
+On Thu, Mar 02, 2006 at 08:30:38AM -0800, Ashok Raj wrote:
 
 
->I have a dual core + HT platform. I disabled HT to have the 
->same situation as Dave.
->
->ACPI DSDT dump shows 4 objects in \_PR scope as below.
->
->    Scope (\_PR)
->    {
->        Processor (CPU0, 0x01, 0x00000410, 0x06) {}
->        Processor (CPU1, 0x02, 0x00000410, 0x06) {}
->        Processor (CPU2, 0x03, 0x00000410, 0x06) {}
->        Processor (CPU3, 0x04, 0x00000410, 0x06) {}
->    }
->
->Only 2 are marked enabled in the ACPI MADT..
->
->From boot log
->
->ACPI: LAPIC (acpi_id[0x01] lapic_id[0x00] enabled)
->Processor #0 15:4 APIC version 20
->ACPI: LAPIC (acpi_id[0x03] lapic_id[0x02] enabled)
->Processor #2 15:4 APIC version 20
->ACPI: LAPIC (acpi_id[0x02] lapic_id[0x01] disabled)
->ACPI: LAPIC (acpi_id[0x04] lapic_id[0x03] disabled)
->
->But proc/acpi/processor also lists just 2 entries.
+ > Could you see what comes out of the /proc/acpi/processor/CPUx/info for all the
+ > 3 listed in your system?
 
-We were certainly on safer ground when we used
-to completely ignore disabled entries.
+I thought I already posted that..
 
--Len
+(13:43:44:davej@nemesis:~)$ cat /proc/acpi/processor/CPU*/info
+processor id:            0
+acpi id:                 1
+bus mastering control:   no
+power management:        no
+throttling control:      yes
+limit interface:         yes
+processor id:            1
+acpi id:                 2
+bus mastering control:   no
+power management:        no
+throttling control:      no
+limit interface:         no
+processor id:            255
+acpi id:                 3
+bus mastering control:   no
+power management:        no
+throttling control:      no
+limit interface:         no
+
+
+ > Also if you can send DSDT dump just to look over.
+
+http://people.redhat.com/davej/dsdt
+
+		Dave
+
