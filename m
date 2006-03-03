@@ -1,43 +1,106 @@
-From: "Jaya Kumar" <jayakumar.acpi@gmail.com>
-Subject: Re: Possible mem leak in drivers handling multiple HIDs with single driver->ops.add
-Date: Fri, 3 Mar 2006 12:20:54 -0500
-Message-ID: <756b48450603030920p5fc98fc3yd7e2f40ce9a963c2@mail.gmail.com>
-References: <756b48450602180252h666256fo1cb9a2bf78b9deea@mail.gmail.com>
-	 <200602211033.31720.bjorn.helgaas@hp.com>
-	 <756b48450603022321t66ae776dj41078b729d319ee0@mail.gmail.com>
-	 <200603030906.13851.bjorn.helgaas@hp.com>
+From: Ashok Raj <ashok.raj@intel.com>
+Subject: Re: 2.6.16rc5 'found' an extra CPU.
+Date: Fri, 3 Mar 2006 09:41:37 -0800
+Message-ID: <20060303094137.A26387@unix-os.sc.intel.com>
+References: <F7DC2337C7631D4386A2DF6E8FB22B30063BFB95@hdsmsx401.amr.corp.intel.com> <20060302083038.A11407@unix-os.sc.intel.com> <20060302184428.GB7304@redhat.com> <20060302112119.A13035@unix-os.sc.intel.com> <20060302231452.440a91c8.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wproxy.gmail.com ([64.233.184.200]:5568 "EHLO wproxy.gmail.com")
-	by vger.kernel.org with ESMTP id S1751019AbWCCRUz convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 3 Mar 2006 12:20:55 -0500
-Received: by wproxy.gmail.com with SMTP id 36so945202wra
-        for <linux-acpi@vger.kernel.org>; Fri, 03 Mar 2006 09:20:54 -0800 (PST)
-In-Reply-To: <200603030906.13851.bjorn.helgaas@hp.com>
+Received: from fmr22.intel.com ([143.183.121.14]:10423 "EHLO
+	scsfmr002.sc.intel.com") by vger.kernel.org with ESMTP
+	id S1751346AbWCCRmA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 3 Mar 2006 12:42:00 -0500
 Content-Disposition: inline
+In-Reply-To: <20060302231452.440a91c8.akpm@osdl.org>; from akpm@osdl.org on Thu, Mar 02, 2006 at 11:14:52PM -0800
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: Ashok Raj <ashok.raj@intel.com>, davej@redhat.com, len.brown@intel.com, ak@suse.de, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 3/3/06, Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
-> Yes.  But you have two devices, and acpi_button_add() will get called
-> once for each of them, which is exactly what we want.  Your original
-> question was about this line in acpi_button_add():
->
-> 311         button = kmalloc(sizeof(struct acpi_button), GFP_KERNEL);
->
-> This kmalloc will happen for every button device, but the pointer is
-> attached to the acpi_device:
->
->         acpi_driver_data(device) = button;
->
-> and the corresponding kfree is in acpi_button_remove().
+On Thu, Mar 02, 2006 at 11:14:52PM -0800, Andrew Morton wrote:
+> On a uniprocessor build this causes a crash in acpi_processor_start():
+> 
+> 	BUG_ON((pr->id >= NR_CPUS) || (pr->id < 0));
+> 
+> pr->id is 255.
+> 
+> I could bodge around this in various ways, but the semantics of cpu IDs in
+> there seem to be a bit opaque, and I suspect some more thought needs to go
+> into it all.
+> 
+> As well as uniprocessor testing ;)
 
-You are right. I see acpi_button_add_fs() also handles the multiple
-call case correctly. Thanks for helping explain this.
+The UP definition of convert_acpiid_to_cpu() was left as (0xff), i should
+have converted that to (-1) now that its an "int".
 
-jayakumar
+Here is the updated one, this time i also testbooted the UP kernel. :-)
+
+-- 
+Cheers,
+Ashok Raj
+- Open Source Technology Center
+
+
+Local apic entries are only 8 bits, but it seemed to not be caught with 
+u8 return value result in the check
+
+cpu_index >= NR_CPUS becomming always false.
+
+drivers/acpi/processor_core.c: In function `acpi_processor_get_info':
+drivers/acpi/processor_core.c:483: warning: comparison is always false due to limited range of data type
+
+
+Signed-off-by: Ashok Raj <ashok.raj@intel.com>
+-----------------------------------------------------
+ drivers/acpi/processor_core.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
+
+Index: linux-2.6.16-rc5-mm1/drivers/acpi/processor_core.c
+===================================================================
+--- linux-2.6.16-rc5-mm1.orig/drivers/acpi/processor_core.c
++++ linux-2.6.16-rc5-mm1/drivers/acpi/processor_core.c
+@@ -382,7 +382,7 @@ static int acpi_processor_remove_fs(stru
+ 
+ /* Use the acpiid in MADT to map cpus in case of SMP */
+ #ifndef CONFIG_SMP
+-#define convert_acpiid_to_cpu(acpi_id) (0xff)
++#define convert_acpiid_to_cpu(acpi_id) (-1)
+ #else
+ 
+ #ifdef CONFIG_IA64
+@@ -395,7 +395,7 @@ static int acpi_processor_remove_fs(stru
+ #define ARCH_BAD_APICID		(0xff)
+ #endif
+ 
+-static u8 convert_acpiid_to_cpu(u8 acpi_id)
++static int convert_acpiid_to_cpu(u8 acpi_id)
+ {
+ 	u16 apic_id;
+ 	int i;
+@@ -421,7 +421,7 @@ static int acpi_processor_get_info(struc
+ 	acpi_status status = 0;
+ 	union acpi_object object = { 0 };
+ 	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
+-	u8 cpu_index;
++	int cpu_index;
+ 	static int cpu0_initialized;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_processor_get_info");
+@@ -466,7 +466,7 @@ static int acpi_processor_get_info(struc
+ 	cpu_index = convert_acpiid_to_cpu(pr->acpi_id);
+ 
+ 	/* Handle UP system running SMP kernel, with no LAPIC in MADT */
+-	if (!cpu0_initialized && (cpu_index == 0xff) &&
++	if (!cpu0_initialized && (cpu_index == -1) &&
+ 	    (num_online_cpus() == 1)) {
+ 		cpu_index = 0;
+ 	}
+@@ -480,7 +480,7 @@ static int acpi_processor_get_info(struc
+ 	 *  less than the max # of CPUs. They should be ignored _iff
+ 	 *  they are physically not present.
+ 	 */
+-	if (cpu_index >= NR_CPUS) {
++	if (cpu_index == -1) {
+ 		if (ACPI_FAILURE
+ 		    (acpi_processor_hotadd_init(pr->handle, &pr->id))) {
+ 			ACPI_ERROR((AE_INFO,
