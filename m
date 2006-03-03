@@ -1,61 +1,29 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: Possible mem leak in drivers handling multiple HIDs with single driver->ops.add
-Date: Fri, 3 Mar 2006 09:06:13 -0700
-Message-ID: <200603030906.13851.bjorn.helgaas@hp.com>
-References: <756b48450602180252h666256fo1cb9a2bf78b9deea@mail.gmail.com> <200602211033.31720.bjorn.helgaas@hp.com> <756b48450603022321t66ae776dj41078b729d319ee0@mail.gmail.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: 2.6.16-rc5: known regressions
+Date: Fri, 3 Mar 2006 16:51:19 +0000
+Message-ID: <20060303165119.GA30228@srcf.ucam.org>
+References: <3ACA40606221794F80A5670F0AF15F840B0CE273@pdsmsx403> <E1FF0Vm-0002Fl-00@skye.ra.phy.cam.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel7.hp.com ([156.153.255.213]:61061 "EHLO atlrel7.hp.com")
-	by vger.kernel.org with ESMTP id S1030227AbWCCQGR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Mar 2006 11:06:17 -0500
-In-Reply-To: <756b48450603022321t66ae776dj41078b729d319ee0@mail.gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-ide-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <E1FF0Vm-0002Fl-00@skye.ra.phy.cam.ac.uk>
+Sender: linux-ide-owner@vger.kernel.org
+To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Cc: "Yu, Luming" <luming.yu@intel.com>, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, linux-input@atrey.karlin.mff.cuni.cz, Meelis Roos <mroos@linux.ee>
 List-Id: linux-acpi@vger.kernel.org
-To: Jaya Kumar <jayakumar.acpi@gmail.com>
-Cc: linux-acpi@vger.kernel.org
 
-On Friday 03 March 2006 00:21, Jaya Kumar wrote:
-> On 2/22/06, Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
-> > But the loop body in acpi_driver_attach() is only executed once
-> > per device (not once per device ID), so acpi_bus_driver_init() is
-> > called at most once per device.  And acpi_bus_driver_init() calls
-> > the .add() method only once.
-> >
-> The scenario I was asking about is different. I'm asking whether it's
-> possible that a system has multiple ACPI devices that each have at
-> least one HID that maps to a single driver add(). Here's a scenario I
-> was thinking about, let's say the BIOS states that I have an ACPI
-> device that handle miscellaneous control buttons:
->         Device (FOO1)
->         {
->             Name (_HID, "PNP0C0D")
-> 
-> and on the same system, the BIOS states that I have another ACPI
-> device that handles the power button:
->         Device (FOO2)
->         {
->             Name (_HID, "ACPI_FPB")
-> 
-> then this scenario would result in button.c's add() getting called twice. Right?
+On Fri, Mar 03, 2006 at 02:59:22AM +0000, Sanjoy Mahajan wrote:
 
-Yes.  But you have two devices, and acpi_button_add() will get called
-once for each of them, which is exactly what we want.  Your original
-question was about this line in acpi_button_add():
+> I'll try it, although I don't think I'll get any data on the problem.
+> The unmodified DSDT (bios 1.11) lacks an S3 sleep object, so I had to
+> modify the DSDT even to get S3 to sleep at all.  See
+> <http://bugzilla.kernel.org/show_bug.cgi?id=3534> for that discussion.
 
-311         button = kmalloc(sizeof(struct acpi_button), GFP_KERNEL);
+I think it's arguably a bit extreme to describe "My setup is so 
+unsupported that I had to modify my firmware to enable sleep and then 
+override the kernel's sanity checks and it's stopped working with 
+2.6.16" as a regression.
 
-This kmalloc will happen for every button device, but the pointer is
-attached to the acpi_device:
-
-        acpi_driver_data(device) = button;
-
-and the corresponding kfree is in acpi_button_remove().
-
-If you still think there is a problem, maybe it will be clear to me
-if you post the patch to fix it.
-
-Bjorn
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
