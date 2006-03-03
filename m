@@ -1,27 +1,38 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: ACPI resume and legacy-free IA32 EFI machines
-Date: Fri, 3 Mar 2006 19:12:04 +0000
-Message-ID: <20060303191204.GA31032@srcf.ucam.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:53390 "EHLO
-	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
-	id S1750724AbWCCTMJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 3 Mar 2006 14:12:09 -0500
-Received: from mjg59 by vavatch.codon.org.uk with local (Exim 4.52)
-	id 1FFFh6-00084q-Ga
-	for linux-acpi@vger.kernel.org; Fri, 03 Mar 2006 19:12:04 +0000
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Subject: Re: 2.6.16-rc5: known regressions
+Date: Fri, 03 Mar 2006 21:04:18 +0000
+Message-ID: <E1FFHRi-000451-00@skye.ra.phy.cam.ac.uk>
+References: <20060303165119.GA30228@srcf.ucam.org>
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: Your message of "Fri, 03 Mar 2006 16:51:19 GMT."
+             <20060303165119.GA30228@srcf.ucam.org>
+Sender: linux-ide-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "Yu, Luming" <luming.yu@intel.com>, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, linux-input@atrey.karlin.mff.cuni.cz, Meelis Roos <mroos@linux.ee>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-I haven't been able to find any mention of this in the ACPI spec. I have 
-a legacy-free EFI machine which I've successfully suspended, but resume 
-fails (I have no way of getting debug information out of it right now). 
-Do EFI machines resume in the same way as traditional IA32 machines (ie, 
-coming up in real mode), or is there a need for different resume code?
+>> I'll try it, although I don't think I'll get any data on the problem.
+>> The unmodified DSDT (bios 1.11) lacks an S3 sleep object, so I had to
+>> modify the DSDT even to get S3 to sleep at all.  See
+>> <http://bugzilla.kernel.org/show_bug.cgi?id=3534> for that discussion.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+> I think it's arguably a bit extreme to describe "My setup is so 
+> unsupported that I had to modify my firmware to enable sleep and then 
+> override the kernel's sanity checks and it's stopped working with 
+> 2.6.16" as a regression.
+
+I agree, and that was the point of 'picture of me hanging head in
+shame', so there's no need to rub it in.
+
+Anyway, the TP600X w/ vanilla DSDT *was* unsupported (circa 2.6.11),
+but now the ACPI interpreter can interpret the vanilla DSDT and go
+into S3 sleep (before, it would complain about a missing S3 sleep
+object because the DSDT used a funny syntax).  There were other
+problems in the vanilla DSDT (e.g. probably using fn-F7 to switch to
+an external display doesn't work) but I'll investigate them one at a
+time.
+
+-Sanjoy
+
+`Never underestimate the evil of which men of power are capable.'
+         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
