@@ -1,29 +1,43 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: 2.6.16-rc5: known regressions
-Date: Fri, 3 Mar 2006 16:51:19 +0000
-Message-ID: <20060303165119.GA30228@srcf.ucam.org>
-References: <3ACA40606221794F80A5670F0AF15F840B0CE273@pdsmsx403> <E1FF0Vm-0002Fl-00@skye.ra.phy.cam.ac.uk>
+From: "Jaya Kumar" <jayakumar.acpi@gmail.com>
+Subject: Re: Possible mem leak in drivers handling multiple HIDs with single driver->ops.add
+Date: Fri, 3 Mar 2006 12:20:54 -0500
+Message-ID: <756b48450603030920p5fc98fc3yd7e2f40ce9a963c2@mail.gmail.com>
+References: <756b48450602180252h666256fo1cb9a2bf78b9deea@mail.gmail.com>
+	 <200602211033.31720.bjorn.helgaas@hp.com>
+	 <756b48450603022321t66ae776dj41078b729d319ee0@mail.gmail.com>
+	 <200603030906.13851.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ide-owner@vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from wproxy.gmail.com ([64.233.184.200]:5568 "EHLO wproxy.gmail.com")
+	by vger.kernel.org with ESMTP id S1751019AbWCCRUz convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 3 Mar 2006 12:20:55 -0500
+Received: by wproxy.gmail.com with SMTP id 36so945202wra
+        for <linux-acpi@vger.kernel.org>; Fri, 03 Mar 2006 09:20:54 -0800 (PST)
+In-Reply-To: <200603030906.13851.bjorn.helgaas@hp.com>
 Content-Disposition: inline
-In-Reply-To: <E1FF0Vm-0002Fl-00@skye.ra.phy.cam.ac.uk>
-Sender: linux-ide-owner@vger.kernel.org
-To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Cc: "Yu, Luming" <luming.yu@intel.com>, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, linux-input@atrey.karlin.mff.cuni.cz, Meelis Roos <mroos@linux.ee>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Fri, Mar 03, 2006 at 02:59:22AM +0000, Sanjoy Mahajan wrote:
+On 3/3/06, Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+> Yes.  But you have two devices, and acpi_button_add() will get called
+> once for each of them, which is exactly what we want.  Your original
+> question was about this line in acpi_button_add():
+>
+> 311         button = kmalloc(sizeof(struct acpi_button), GFP_KERNEL);
+>
+> This kmalloc will happen for every button device, but the pointer is
+> attached to the acpi_device:
+>
+>         acpi_driver_data(device) = button;
+>
+> and the corresponding kfree is in acpi_button_remove().
 
-> I'll try it, although I don't think I'll get any data on the problem.
-> The unmodified DSDT (bios 1.11) lacks an S3 sleep object, so I had to
-> modify the DSDT even to get S3 to sleep at all.  See
-> <http://bugzilla.kernel.org/show_bug.cgi?id=3534> for that discussion.
+You are right. I see acpi_button_add_fs() also handles the multiple
+call case correctly. Thanks for helping explain this.
 
-I think it's arguably a bit extreme to describe "My setup is so 
-unsupported that I had to modify my firmware to enable sleep and then 
-override the kernel's sanity checks and it's stopped working with 
-2.6.16" as a regression.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+jayakumar
