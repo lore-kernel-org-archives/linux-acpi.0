@@ -1,58 +1,40 @@
-From: "Jaya Kumar" <jayakumar.acpi@gmail.com>
-Subject: Re: [PATCH 2.6.15.3 1/1] ACPI: Atlas ACPI driver
-Date: Fri, 3 Mar 2006 16:16:05 +0800
-Message-ID: <756b48450603030016r36940139m4d64da5c23156d00@mail.gmail.com>
-References: <AcY1+QTZumb9d6e3RHms9ocp4LswwgAtmORQ>
-	 <3ACA40606221794F80A5670F0AF15F840AFD4B93@pdsmsx403>
+From: Michael Schierl <schierlm@gmx.de>
+Subject: Re: Resume problems on Fujitsu-Siemens AMILO M7440G
+Date: Fri, 03 Mar 2006 11:33:44 +0100
+Message-ID: <44081B88.5090903@gmx.de>
+References: <44076762.404@gmx.de> <1141349791.19013.1.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pproxy.gmail.com ([64.233.166.177]:23425 "EHLO pproxy.gmail.com")
-	by vger.kernel.org with ESMTP id S1752184AbWCCIQG convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 3 Mar 2006 03:16:06 -0500
-Received: by pproxy.gmail.com with SMTP id s49so258670pyc
-        for <linux-acpi@vger.kernel.org>; Fri, 03 Mar 2006 00:16:05 -0800 (PST)
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F840AFD4B93@pdsmsx403>
-Content-Disposition: inline
+Received: from mail.gmx.de ([213.165.64.20]:13287 "HELO mail.gmx.net")
+	by vger.kernel.org with SMTP id S1751256AbWCCKdg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Mar 2006 05:33:36 -0500
+In-Reply-To: <1141349791.19013.1.camel@sli10-desk.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Yu, Luming" <luming.yu@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On 2/21/06, Yu, Luming <luming.yu@intel.com> wrote:
-> It would be better if you can merge this stuff with acpi video driver.
-> If you look at video.c, there is NO HID definition for video device.
-> we rely on acpi_video_bus_match to recoginize video device in ACPI
-> namespace.
+Hi Shaohua,
 
-I took a quick look and I think Atlas might be ugly. The current acpi
-video driver, as you pointed out, looks for well known required nodes,
-specifically _DOD,_DOS,_ROM,.... None of these nodes are provided on
-Atlas. From looking at the DSDT, all I see are _BCL and _BCM. It
-doesn't even have _BQC. So, from a quick look at the existing video
-driver, I see a couple of problems that I need advice on:
+Shaohua Li schrieb:
+> On Fri, 2006-03-03 at 05:45 +0800, Michael Schierl wrote:
 
-- is it ok if I add a _BCM check in acpi_video_bus_match. i think this
-is not a problem.
-- acpi_video_bus_check fails out if no _DOS,_ROM,_GPD,_SPD,_VPO. this
-check fails on Atlas because it doesn't have any of those
-capabilities. The video driver does check for _BCM in
-video_device_find_cap but that's at a much later stage. Do you want me
-to do something like if (acpi_video_bus_check() &&
-acpi_video_output_device_exceptions_detect() )... or do you want me to
-do something cleaner and move the whole _BCM detection earlier in the
-process?
-- acpi_video_bus_get_devices will only call video_bus_get_one_device
-if the device node has children. In Atlas, the "Video Bus", (ie: LCD
-device in the DSDT I pasted before) has no children, at least as found
-by scan.c, so we won't get to get_one_device(). What do you think I
-should do about this?
+> If the video is dark, please try the boot options listed in
+> documentation/power/video.txt.
 
-I have a suspicion that for boards like this where ACPI support isn't
-so complete, we should just use board specific drivers rather than
-mangling the mainstream video driver code. What do you think?
+I tried them (all three variations of acpi_sleep=), no change.
 
-Thanks,
-jayakumar
+Since I do not have a Radeon graphics "card" (it's an Intel 91x), I did
+not try those radeon specific tweaks.
+
+> Did the keyboard response after resume?
+
+The Num and Caps Lock LEDs do work (the notebook does not have a Scroll
+Lock LED). Typing "reboot" has no effect, though.
+
+I tried the same setup without SATA support, but from an initial ramdisk
+instead. Same results, so it is most probably not the SATA driver.
+
+Michael
