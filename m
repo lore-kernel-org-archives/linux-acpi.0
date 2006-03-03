@@ -1,89 +1,53 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: 2.6.16rc5 'found' an extra CPU.
-Date: Thu, 2 Mar 2006 23:14:52 -0800
-Message-ID: <20060302231452.440a91c8.akpm@osdl.org>
-References: <F7DC2337C7631D4386A2DF6E8FB22B30063BFB95@hdsmsx401.amr.corp.intel.com>
-	<20060302083038.A11407@unix-os.sc.intel.com>
-	<20060302184428.GB7304@redhat.com>
-	<20060302112119.A13035@unix-os.sc.intel.com>
+From: "Jaya Kumar" <jayakumar.acpi@gmail.com>
+Subject: Re: Possible mem leak in drivers handling multiple HIDs with single driver->ops.add
+Date: Fri, 3 Mar 2006 15:21:16 +0800
+Message-ID: <756b48450603022321t66ae776dj41078b729d319ee0@mail.gmail.com>
+References: <756b48450602180252h666256fo1cb9a2bf78b9deea@mail.gmail.com>
+	 <200602211033.31720.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:3542 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1752072AbWCCHQX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Mar 2006 02:16:23 -0500
-In-Reply-To: <20060302112119.A13035@unix-os.sc.intel.com>
+Received: from pproxy.gmail.com ([64.233.166.176]:56649 "EHLO pproxy.gmail.com")
+	by vger.kernel.org with ESMTP id S1752074AbWCCHVR convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 3 Mar 2006 02:21:17 -0500
+Received: by pproxy.gmail.com with SMTP id z74so247720pyg
+        for <linux-acpi@vger.kernel.org>; Thu, 02 Mar 2006 23:21:16 -0800 (PST)
+In-Reply-To: <200602211033.31720.bjorn.helgaas@hp.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: davej@redhat.com, ashok.raj@intel.com, len.brown@intel.com, ak@suse.de, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: linux-acpi@vger.kernel.org
 
-Ashok Raj <ashok.raj@intel.com> wrote:
+On 2/22/06, Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
 >
-> Local apic entries are only 8 bits, but it seemed to not be caught with 
-> u8 return value result in the check
-> 
-> cpu_index >= NR_CPUS becomming always false.
-> 
-> drivers/acpi/processor_core.c: In function `acpi_processor_get_info':
-> drivers/acpi/processor_core.c:483: warning: comparison is always false due to limited range of data type
-> 
-> 
-> Signed-off-by: Ashok Raj <ashok.raj@intel.com>
-> -----------------------------------------------------
->  drivers/acpi/processor_core.c |    8 ++++----
->  1 files changed, 4 insertions(+), 4 deletions(-)
-> 
-> Index: linux-2.6.16-rc5-mm1/drivers/acpi/processor_core.c
-> ===================================================================
-> --- linux-2.6.16-rc5-mm1.orig/drivers/acpi/processor_core.c
-> +++ linux-2.6.16-rc5-mm1/drivers/acpi/processor_core.c
-> @@ -395,7 +395,7 @@ static int acpi_processor_remove_fs(stru
->  #define ARCH_BAD_APICID		(0xff)
->  #endif
->  
-> -static u8 convert_acpiid_to_cpu(u8 acpi_id)
-> +static int convert_acpiid_to_cpu(u8 acpi_id)
->  {
->  	u16 apic_id;
->  	int i;
-> @@ -421,7 +421,7 @@ static int acpi_processor_get_info(struc
->  	acpi_status status = 0;
->  	union acpi_object object = { 0 };
->  	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
-> -	u8 cpu_index;
-> +	int cpu_index;
->  	static int cpu0_initialized;
->  
->  	ACPI_FUNCTION_TRACE("acpi_processor_get_info");
-> @@ -466,7 +466,7 @@ static int acpi_processor_get_info(struc
->  	cpu_index = convert_acpiid_to_cpu(pr->acpi_id);
->  
->  	/* Handle UP system running SMP kernel, with no LAPIC in MADT */
-> -	if (!cpu0_initialized && (cpu_index == 0xff) &&
-> +	if (!cpu0_initialized && (cpu_index == -1) &&
->  	    (num_online_cpus() == 1)) {
->  		cpu_index = 0;
->  	}
-> @@ -480,7 +480,7 @@ static int acpi_processor_get_info(struc
->  	 *  less than the max # of CPUs. They should be ignored _iff
->  	 *  they are physically not present.
->  	 */
-> -	if (cpu_index >= NR_CPUS) {
-> +	if (cpu_index == -1) {
->  		if (ACPI_FAILURE
->  		    (acpi_processor_hotadd_init(pr->handle, &pr->id))) {
->  			ACPI_ERROR((AE_INFO,
+> But the loop body in acpi_driver_attach() is only executed once
+> per device (not once per device ID), so acpi_bus_driver_init() is
+> called at most once per device.  And acpi_bus_driver_init() calls
+> the .add() method only once.
+>
+> I don't see the scenario you're concerned about.  Did I miss
+> something?
+>
 
-On a uniprocessor build this causes a crash in acpi_processor_start():
+The scenario I was asking about is different. I'm asking whether it's
+possible that a system has multiple ACPI devices that each have at
+least one HID that maps to a single driver add(). Here's a scenario I
+was thinking about, let's say the BIOS states that I have an ACPI
+device that handle miscellaneous control buttons:
+        Device (FOO1)
+        {
+            Name (_HID, "PNP0C0D")
 
-	BUG_ON((pr->id >= NR_CPUS) || (pr->id < 0));
+and on the same system, the BIOS states that I have another ACPI
+device that handles the power button:
+        Device (FOO2)
+        {
+            Name (_HID, "ACPI_FPB")
 
-pr->id is 255.
+then this scenario would result in button.c's add() getting called twice. Right?
 
-I could bodge around this in various ways, but the semantics of cpu IDs in
-there seem to be a bit opaque, and I suspect some more thought needs to go
-into it all.
-
-As well as uniprocessor testing ;)
-
+Thanks,
+jayakumar
