@@ -1,61 +1,58 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: Resume problems on Fujitsu-Siemens AMILO M7440G
-Date: Fri, 03 Mar 2006 09:36:31 +0800
-Message-ID: <1141349791.19013.1.camel@sli10-desk.sh.intel.com>
-References: <44076762.404@gmx.de>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr17.intel.com ([134.134.136.16]:51929 "EHLO
-	orsfmr002.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1751231AbWCCBhS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 2 Mar 2006 20:37:18 -0500
-In-Reply-To: <44076762.404@gmx.de>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Subject: Re: 2.6.16-rc5: known regressions
+Date: Fri, 03 Mar 2006 02:59:22 +0000
+Message-ID: <E1FF0Vm-0002Fl-00@skye.ra.phy.cam.ac.uk>
+References: <3ACA40606221794F80A5670F0AF15F840B0CE273@pdsmsx403>
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: Your message of "Mon, 27 Feb 2006 17:04:15 +0800."
+             <3ACA40606221794F80A5670F0AF15F840B0CE273@pdsmsx403>
+Sender: linux-ide-owner@vger.kernel.org
+To: "Yu, Luming" <luming.yu@intel.com>
+Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, linux-input@atrey.karlin.mff.cuni.cz, Meelis Roos <mroos@linux.ee>
 List-Id: linux-acpi@vger.kernel.org
-To: Michael Schierl <schierlm@gmx.de>
-Cc: linux-acpi@vger.kernel.org
 
-On Fri, 2006-03-03 at 05:45 +0800, Michael Schierl wrote:
-> Hi,
-> 
-> My new notebook, a Fujitsu-Siemens AMILO M7440G, does not resume
-> after 
-> suspend (echo mem >/sys/power/state).
-> 
-> Since my old notebook worked with APM, ACPI stuff is quite new for me;
-> I 
->  tried several things but with no success.
-> 
-> What happens:
-> 
-> - I boot a minimal kernel (vanilla 2.6.15.2), with init=/bin/bash to 
->   minimize userspace problems (root fs = ext3, mounted read only) 
-> - I mount /sys and echo mem >/sys/power/state 
-> - my notebook seems to suspend properly, everything powers down,
-> power 
->   LED is flashing. (I cannot eject CD now) 
-> - when pressing the power button (the notebook cannot be waken up by 
->   pressing keys on the keyboard, but that is the same on Windows, so 
->   most likely by design), the power LED changes to light (without 
->   flashing), and the CDROM spins up. (Now I can eject CD). Screen is 
->   dark and remains so until I power it down hard (by pressing power 
->   button for 5 seconds). 
-> - when compiling in network support and netconsole support (and
-> enabling 
->   netconsole to maybe get error messages), the 
->   behaviour changes: the CDROM still spins up but the power LED
-> remains 
->   flashing. (you can find the .config at 
->   http://home.arcor.de/mschierlm/test/acpi/_config ) No reaction on
-> the 
->   net console after suspend. 
-> - The notebook does not have any serial ports.
-If the video is dark, please try the boot options listed in
-documentation/power/video.txt.
-Did the keyboard response after resume?
+>> Subject    : S3 sleep hangs the second time - 600X
+>> References : http://bugzilla.kernel.org/show_bug.cgi?id=5989
 
-Thanks,
-Shaohua
+From: "Yu, Luming" <luming.yu@intel.com>
+> According to bug report, the BIOS DSDT is modified.  I don't know
+> how these changes affect the results of suspend/resume. But, it is
+> clear this is NOT right approach to fix problem. Hence, I need the
+> testing report with un-modified DSDT on TP 600X, bios 1.11.
 
+I'll try it, although I don't think I'll get any data on the problem.
+The unmodified DSDT (bios 1.11) lacks an S3 sleep object, so I had to
+modify the DSDT even to get S3 to sleep at all.  See
+<http://bugzilla.kernel.org/show_bug.cgi?id=3534> for that discussion.
+In additional comment #4 there (2004-10-14), you said:
+
+  The root cause of [the missing S3 object] failure is that linux is
+  using element in
+
+  const char      *acpi_gbl_sleep_state_names[ACPI_S_STATE_COUNT] =
+  {
+	  "\_S0_",
+	  "\_S1_",
+	  "\_S2_",
+	  "\_S3_",
+	  "\_S4_",
+	  "\_S5_"
+  };
+
+  to call acpi_get_sleep_type_data, but your box define _S3 under the
+  device PNP0A03. So, the evaluating \_S3 will fail.
+
+  The workaround in DSDT is to change _S3 to \_S3_ .
+  We can fix it in acpi driver soon.
+
+It looks unchanged in a recent acpi driver
+(drivers/acpi/utilities/utglobal.c, line 170, 2.6.16-rc2), so I
+suspect S3 won't happen with the vanilla DSDT.
+
+(Sorry, I was away for 10 days and also just saw your info requests in
+the bugme #5989.)
+
+-Sanjoy
+
+`Never underestimate the evil of which men of power are capable.'
+         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
