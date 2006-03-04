@@ -1,41 +1,46 @@
-From: "David W. Hankins" <David_Hankins@isc.org>
-Subject: 8 cstates but only 4 to use?
-Date: Sat, 4 Mar 2006 05:54:23 +0000
-Message-ID: <20060304055423.GC26099@isc.org>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: [-mm patch] drivers/acpi/bus.c: make struct acpi_sci_dir static
+Date: Sat, 4 Mar 2006 13:14:21 +0100
+Message-ID: <20060304121421.GK9295@stusta.de>
+References: <20060303045651.1f3b55ec.akpm@osdl.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from farside.isc.org ([204.152.187.5]:46064 "EHLO farside.isc.org")
-	by vger.kernel.org with ESMTP id S1750998AbWCDFyX convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 4 Mar 2006 00:54:23 -0500
+Received: from mailout.stusta.mhn.de ([141.84.69.5]:17424 "HELO
+	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
+	id S1751526AbWCDMOW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 4 Mar 2006 07:14:22 -0500
 Content-Disposition: inline
+In-Reply-To: <20060303045651.1f3b55ec.akpm@osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>, Ashok Raj <ashok.raj@intel.com>
+Cc: linux-kernel@vger.kernel.org, len.brown@intel.com, linux-acpi@vger.kernel.org
 
-I looked through the excellent Howto/FAQ provided by Glenn Ariel (thank
-you, sir), and he answered a lot of my questions, but was unable to find
-the answer to one remaining niggling curiosity.
+On Fri, Mar 03, 2006 at 04:56:51AM -0800, Andrew Morton wrote:
+>...
+> Changes since 2.6.16-rc5-mm1:
+>...
+> +enable-sci_emulate-to-manually-simulate-physical-hotplug-testing.patch
+> 
+>  x86_64 CPU hotplug
+>...
 
-The 'power' procfile lists a max_cstate of C8, but only lists C1-C4 as
-usable states to enter...I notice it is also this way in the example
-file output provided in Mr. Ariel's howto, so this must not be uncommon
-or new.
 
-But, if 8 states are avaialble, why are only 4 in use?
+There's no reason for struct acpi_sci_dir being global.
 
->From a cursory investigation of the sources, it seems through #def's,
-this is a fixed upper limit.
 
-And I figure it can't be just that no one ever thought to #define 5-9,
-that would be silly.
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
-Thanks in advance, sorry if this is in a FAQ elsewhere, google is getting
-a lot of folks' dmesg output when I try to find answers along these lines.
+--- linux-2.6.16-rc5-mm2-full/drivers/acpi/bus.c.old	2006-03-03 17:33:38.000000000 +0100
++++ linux-2.6.16-rc5-mm2-full/drivers/acpi/bus.c	2006-03-03 17:33:51.000000000 +0100
+@@ -47,7 +47,7 @@
+ static void acpi_sci_notify_client(char *acpi_name, u32 event);
+ static int acpi_sci_notify_write_proc(struct file *file, const char *buffer, \
+ 	unsigned long count, void *data);
+-struct proc_dir_entry 		*acpi_sci_dir;
++static struct proc_dir_entry 	*acpi_sci_dir;
+ 
+ #else
+ #define acpi_init_sci_emulate()
 
--- 
-David W. Hankins		"If you don't do it right the first time,
-Software Engineer			you'll just have to do it again."
-Internet Systems Consortium, Inc.		-- Jack T. Hankins
