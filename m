@@ -1,38 +1,41 @@
-From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Subject: Re: 2.6.16-rc5: known regressions
-Date: Fri, 03 Mar 2006 21:04:18 +0000
-Message-ID: <E1FFHRi-000451-00@skye.ra.phy.cam.ac.uk>
-References: <20060303165119.GA30228@srcf.ucam.org>
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: Your message of "Fri, 03 Mar 2006 16:51:19 GMT."
-             <20060303165119.GA30228@srcf.ucam.org>
-Sender: linux-ide-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: "Yu, Luming" <luming.yu@intel.com>, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, linux-input@atrey.karlin.mff.cuni.cz, Meelis Roos <mroos@linux.ee>
+From: "David W. Hankins" <David_Hankins@isc.org>
+Subject: 8 cstates but only 4 to use?
+Date: Sat, 4 Mar 2006 05:54:23 +0000
+Message-ID: <20060304055423.GC26099@isc.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from farside.isc.org ([204.152.187.5]:46064 "EHLO farside.isc.org")
+	by vger.kernel.org with ESMTP id S1750998AbWCDFyX convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 4 Mar 2006 00:54:23 -0500
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
->> I'll try it, although I don't think I'll get any data on the problem.
->> The unmodified DSDT (bios 1.11) lacks an S3 sleep object, so I had to
->> modify the DSDT even to get S3 to sleep at all.  See
->> <http://bugzilla.kernel.org/show_bug.cgi?id=3534> for that discussion.
+I looked through the excellent Howto/FAQ provided by Glenn Ariel (thank
+you, sir), and he answered a lot of my questions, but was unable to find
+the answer to one remaining niggling curiosity.
 
-> I think it's arguably a bit extreme to describe "My setup is so 
-> unsupported that I had to modify my firmware to enable sleep and then 
-> override the kernel's sanity checks and it's stopped working with 
-> 2.6.16" as a regression.
+The 'power' procfile lists a max_cstate of C8, but only lists C1-C4 as
+usable states to enter...I notice it is also this way in the example
+file output provided in Mr. Ariel's howto, so this must not be uncommon
+or new.
 
-I agree, and that was the point of 'picture of me hanging head in
-shame', so there's no need to rub it in.
+But, if 8 states are avaialble, why are only 4 in use?
 
-Anyway, the TP600X w/ vanilla DSDT *was* unsupported (circa 2.6.11),
-but now the ACPI interpreter can interpret the vanilla DSDT and go
-into S3 sleep (before, it would complain about a missing S3 sleep
-object because the DSDT used a funny syntax).  There were other
-problems in the vanilla DSDT (e.g. probably using fn-F7 to switch to
-an external display doesn't work) but I'll investigate them one at a
-time.
+>From a cursory investigation of the sources, it seems through #def's,
+this is a fixed upper limit.
 
--Sanjoy
+And I figure it can't be just that no one ever thought to #define 5-9,
+that would be silly.
 
-`Never underestimate the evil of which men of power are capable.'
-         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
+Thanks in advance, sorry if this is in a FAQ elsewhere, google is getting
+a lot of folks' dmesg output when I try to find answers along these lines.
+
+-- 
+David W. Hankins		"If you don't do it right the first time,
+Software Engineer			you'll just have to do it again."
+Internet Systems Consortium, Inc.		-- Jack T. Hankins
