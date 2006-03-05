@@ -1,52 +1,52 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: Suspend to RAM regression retraced
-Date: Sat, 4 Mar 2006 17:03:45 -0800
-Message-ID: <20060304170345.2d9b6673.akpm@osdl.org>
-References: <1141289925.18519.14.camel@localhost.localdomain>
+From: Dave Jones <davej@redhat.com>
+Subject: Re: 2.6.16rc5 'found' an extra CPU.
+Date: Sat, 4 Mar 2006 21:26:04 -0500
+Message-ID: <20060305022604.GA1289@redhat.com>
+References: <200603011957_MC3-1-B99B-8FFE@compuserve.com> <20060302010953.GA19755@redhat.com> <20060304164238.37d2ea49.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:32743 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1751773AbWCEBF1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Mar 2006 20:05:27 -0500
-In-Reply-To: <1141289925.18519.14.camel@localhost.localdomain>
+Received: from mx1.redhat.com ([66.187.233.31]:2223 "EHLO mx1.redhat.com")
+	by vger.kernel.org with ESMTP id S1750715AbWCEC0j (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Mar 2006 21:26:39 -0500
+Content-Disposition: inline
+In-Reply-To: <20060304164238.37d2ea49.akpm@osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean-Marc Valin <Jean-Marc.Valin@USherbrooke.ca>
-Cc: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: 76306.1226@compuserve.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ak@suse.de, Ashok Raj <ashok.raj@intel.com>
 
-Jean-Marc Valin <Jean-Marc.Valin@USherbrooke.ca> wrote:
->
-> Hi,
-> 
-> A while ago I reported a regression (http://lkml.org/lkml/2005/9/21/290)
-> in suspend to RAM that happened with kernel 2.6.12 on my Dell D600
-> laptop. After several months of testing (this is my work machine and the
-> bug takes time to reproduce), I have finally narrowed it down. It seems
-> like to problem was introduced between 2.6.12-rc5 and 2.6.12-rc6. 
-> 
-> Basically, what happens is that with 2.6.12-rc6, my machine *sometimes*
-> doesn't resume when I suspend it. This happens especially when it has
-> been running for a while. It almost always works when I just rebooted,
-> or if I just successfully resumed. So it behaves like "something" gets
-> randomly corrupted, at which point the machine still works, but will not
-> resume if I suspend it. Also, I've observed the same behaviour with and
-> without preemption enabled. 
-> 
-> Can someone have a look at what could cause the problem and fix it? I
-> can provide more information if needed. BTW, I'm not on the list so
-> please CC to me.
-> 
-> Thanks,
-> 
-> 	Jean-Marc
-> 
-> P.S. Machine setup is:
-> Ubuntu 5.10 (but problem also observed on 5.04 and old Debian unstable)
-> Dell Latitude D600 (Bios rev. A14)
-> Pentium-M 1.6 GHz / 1 GB RAM
-> ATI Technologies, Inc. Radeon Mobility 9000 M9 (R250 Lf)
-> 
+On Sat, Mar 04, 2006 at 04:42:38PM -0800, Andrew Morton wrote:
+ > Dave Jones <davej@redhat.com> wrote:
+ > >
+ > > On Wed, Mar 01, 2006 at 07:55:25PM -0500, Chuck Ebbert wrote:
+ > >  > In-Reply-To: <20060301230317.GF1440@redhat.com>
+ > >  > 
+ > >  > On Wed, 1 Mar 2006 18:03:17, Dave Jones wrote:
+ > >  > 
+ > >  > > (17:59:38:davej@nemesis:~)$ cat /sys/devices/system/cpu/cpu0/topology/core_siblings
+ > >  > > 00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001
+ > >  > > (17:59:47:davej@nemesis:~)$ cat /sys/devices/system/cpu/cpu1/topology/core_siblings
+ > >  > > 00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000002
+ > >  > > 
+ > >  > > Neither of these CPUs are HT / dual-core, so shouldn't these be the same ?
+ > >  > 
+ > >  > Those are bitmaps. 1 => only bit 0 is set => CPU 0 is all alone.
+ > >  > 
+ > >  > Did you really build a 256-CPU SMP kernel or is ACPI ignoring CONFIG_NR_CPUS
+ > >  > or something?
+ > > 
+ > > Yes, it's =256.
+ > > 
+ > 
+ > Is that the only way in which to trigger the bug?
+ > 
+ > If so, I'd be inclined to hold the fix back for 2.6.17.
 
-Thanks.  You'd be best off raising a report at bugzilla.kernel.org, please.
+not had chance to test Ashok's change yet (and probably won't until
+at least Monday), but Andi's one-liner to limit x86-64's NR_CPUs
+to 255 instead of 256 did the trick, and is a lot less invasive
+for 2.6.16
+
+		Dave
+
