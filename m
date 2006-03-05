@@ -1,52 +1,71 @@
-From: Dave Jones <davej@redhat.com>
-Subject: Re: 2.6.16rc5 'found' an extra CPU.
-Date: Sat, 4 Mar 2006 21:26:04 -0500
-Message-ID: <20060305022604.GA1289@redhat.com>
-References: <200603011957_MC3-1-B99B-8FFE@compuserve.com> <20060302010953.GA19755@redhat.com> <20060304164238.37d2ea49.akpm@osdl.org>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: [2.6 patch] ACPI should depend on, not select PCI
+Date: Sun, 5 Mar 2006 23:21:36 +0100
+Message-ID: <20060305222136.GD20287@stusta.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:2223 "EHLO mx1.redhat.com")
-	by vger.kernel.org with ESMTP id S1750715AbWCEC0j (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Mar 2006 21:26:39 -0500
+Received: from emailhub.stusta.mhn.de ([141.84.69.5]:6669 "HELO
+	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
+	id S1751888AbWCEWVi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 5 Mar 2006 17:21:38 -0500
 Content-Disposition: inline
-In-Reply-To: <20060304164238.37d2ea49.akpm@osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andrew Morton <akpm@osdl.org>
-Cc: 76306.1226@compuserve.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ak@suse.de, Ashok Raj <ashok.raj@intel.com>
+Cc: len.brown@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sat, Mar 04, 2006 at 04:42:38PM -0800, Andrew Morton wrote:
- > Dave Jones <davej@redhat.com> wrote:
- > >
- > > On Wed, Mar 01, 2006 at 07:55:25PM -0500, Chuck Ebbert wrote:
- > >  > In-Reply-To: <20060301230317.GF1440@redhat.com>
- > >  > 
- > >  > On Wed, 1 Mar 2006 18:03:17, Dave Jones wrote:
- > >  > 
- > >  > > (17:59:38:davej@nemesis:~)$ cat /sys/devices/system/cpu/cpu0/topology/core_siblings
- > >  > > 00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001
- > >  > > (17:59:47:davej@nemesis:~)$ cat /sys/devices/system/cpu/cpu1/topology/core_siblings
- > >  > > 00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000002
- > >  > > 
- > >  > > Neither of these CPUs are HT / dual-core, so shouldn't these be the same ?
- > >  > 
- > >  > Those are bitmaps. 1 => only bit 0 is set => CPU 0 is all alone.
- > >  > 
- > >  > Did you really build a 256-CPU SMP kernel or is ACPI ignoring CONFIG_NR_CPUS
- > >  > or something?
- > > 
- > > Yes, it's =256.
- > > 
- > 
- > Is that the only way in which to trigger the bug?
- > 
- > If so, I'd be inclined to hold the fix back for 2.6.17.
+ACPI should depend on, not select PCI.
 
-not had chance to test Ashok's change yet (and probably won't until
-at least Monday), but Andi's one-liner to limit x86-64's NR_CPUs
-to 255 instead of 256 did the trick, and is a lot less invasive
-for 2.6.16
+Otherwise, illegal configurations like X86_VOYAGER=y, PCI=y are 
+possible.
 
-		Dave
+This patch also fixes the options select'ing ACPI to also select PCI.
+
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+
+---
+
+This patch was already sent on:
+- 16 Feb 2006
+
+ arch/ia64/Kconfig    |    1 +
+ arch/x86_64/Kconfig  |    1 +
+ drivers/acpi/Kconfig |    3 +--
+ 3 files changed, 3 insertions(+), 2 deletions(-)
+
+--- linux-2.6.16-rc3-mm1-full/drivers/acpi/Kconfig.old	2006-02-16 21:21:23.000000000 +0100
++++ linux-2.6.16-rc3-mm1-full/drivers/acpi/Kconfig	2006-02-16 21:21:42.000000000 +0100
+@@ -10,9 +10,8 @@
+ config ACPI
+ 	bool "ACPI Support"
+ 	depends on IA64 || X86
++	depends on PCI
+ 	select PM
+-	select PCI
+-
+ 	default y
+ 	---help---
+ 	  Advanced Configuration and Power Interface (ACPI) support for 
+--- linux-2.6.16-rc3-mm1-full/arch/ia64/Kconfig.old	2006-02-16 21:21:52.000000000 +0100
++++ linux-2.6.16-rc3-mm1-full/arch/ia64/Kconfig	2006-02-16 21:22:08.000000000 +0100
+@@ -73,6 +73,7 @@
+ config IA64_GENERIC
+ 	bool "generic"
+ 	select ACPI
++	select PCI
+ 	select NUMA
+ 	select ACPI_NUMA
+ 	help
+--- linux-2.6.16-rc3-mm1-full/arch/x86_64/Kconfig.old	2006-02-16 21:22:19.000000000 +0100
++++ linux-2.6.16-rc3-mm1-full/arch/x86_64/Kconfig	2006-02-16 21:23:39.000000000 +0100
+@@ -285,6 +285,7 @@
+        bool "ACPI NUMA detection"
+        depends on NUMA
+        select ACPI 
++	select PCI
+        select ACPI_NUMA
+        default y
+        help
 
