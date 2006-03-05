@@ -1,26 +1,43 @@
-From: Andrew Morton <akpm@osdl.org>
+From: Dave Jones <davej@redhat.com>
 Subject: Re: [2.6 patch] ACPI should depend on, not select PCI
-Date: Sun, 5 Mar 2006 14:25:54 -0800
-Message-ID: <20060305142554.1d0ee460.akpm@osdl.org>
-References: <20060305222136.GD20287@stusta.de>
+Date: Sun, 5 Mar 2006 18:11:18 -0500
+Message-ID: <20060305231118.GB22019@redhat.com>
+References: <20060305222136.GD20287@stusta.de> <20060305142554.1d0ee460.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:28141 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1751835AbWCEWav (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 5 Mar 2006 17:30:51 -0500
-In-Reply-To: <20060305222136.GD20287@stusta.de>
+Received: from mx1.redhat.com ([66.187.233.31]:42942 "EHLO mx1.redhat.com")
+	by vger.kernel.org with ESMTP id S1751297AbWCEXM3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 5 Mar 2006 18:12:29 -0500
+Content-Disposition: inline
+In-Reply-To: <20060305142554.1d0ee460.akpm@osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: len.brown@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: Adrian Bunk <bunk@stusta.de>, len.brown@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Adrian Bunk <bunk@stusta.de> wrote:
->
-> ACPI should depend on, not select PCI.
-> 
+On Sun, Mar 05, 2006 at 02:25:54PM -0800, Andrew Morton wrote:
+ > Adrian Bunk <bunk@stusta.de> wrote:
+ > >
+ > > ACPI should depend on, not select PCI.
+ > > 
+ > 
+ > It's surprising that there's any such linkage, actually.  Is it
+ > impossible for a non-PCI system to have ACPI?
 
-It's surprising that there's any such linkage, actually.  Is it
-impossible for a non-PCI system to have ACPI?
+When ACPI was concieved (~1999 according to the spec I have handy)
+ISA-only PCs were somewhat scarce.  It's probably safe to say anything
+that supports ACPI has PCI  (For x86[64] at least, I don't know about ia64)
 
+The spec mentions as a minimum requirement for OSPM/ACPI systems
+amongst other things..
+
+"A _PRT method for all root PCI bridges"
+
+which pretty much sounds like it's at dependant on PCI (or a later
+evolved standard like PCIE) hardware being present.
+
+		Dave
+
+-- 
+http://www.codemonkey.org.uk
