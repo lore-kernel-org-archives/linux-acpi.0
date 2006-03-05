@@ -1,36 +1,113 @@
-From: Dominik Brodowski <linux@dominikbrodowski.net>
-Subject: Re: 8 cstates but only 4 to use?
-Date: Sat, 4 Mar 2006 13:44:13 +0100
-Message-ID: <20060304124413.GA13950@isilmar.linta.de>
-References: <20060304055423.GC26099@isc.org>
+From: Andrew Morton <akpm@osdl.org>
+Subject: Re: 2.6.16rc5 'found' an extra CPU.
+Date: Sat, 4 Mar 2006 16:42:38 -0800
+Message-ID: <20060304164238.37d2ea49.akpm@osdl.org>
+References: <200603011957_MC3-1-B99B-8FFE@compuserve.com>
+	<20060302010953.GA19755@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from isilmar.linta.de ([213.239.214.66]:1690 "EHLO linta.de")
-	by vger.kernel.org with ESMTP id S1751368AbWCDMoP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Mar 2006 07:44:15 -0500
-Content-Disposition: inline
-In-Reply-To: <20060304055423.GC26099@isc.org>
+Received: from smtp.osdl.org ([65.172.181.4]:4579 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932312AbWCEAo0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Mar 2006 19:44:26 -0500
+In-Reply-To: <20060302010953.GA19755@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "David W. Hankins" <David_Hankins@isc.org>
-Cc: linux-acpi@vger.kernel.org
+To: Dave Jones <davej@redhat.com>
+Cc: 76306.1226@compuserve.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ak@suse.de, Ashok Raj <ashok.raj@intel.com>
 
-Hi,
+Dave Jones <davej@redhat.com> wrote:
+>
+> On Wed, Mar 01, 2006 at 07:55:25PM -0500, Chuck Ebbert wrote:
+>  > In-Reply-To: <20060301230317.GF1440@redhat.com>
+>  > 
+>  > On Wed, 1 Mar 2006 18:03:17, Dave Jones wrote:
+>  > 
+>  > > (17:59:38:davej@nemesis:~)$ cat /sys/devices/system/cpu/cpu0/topology/core_siblings
+>  > > 00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001
+>  > > (17:59:47:davej@nemesis:~)$ cat /sys/devices/system/cpu/cpu1/topology/core_siblings
+>  > > 00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000002
+>  > > 
+>  > > Neither of these CPUs are HT / dual-core, so shouldn't these be the same ?
+>  > 
+>  > Those are bitmaps. 1 => only bit 0 is set => CPU 0 is all alone.
+>  > 
+>  > Did you really build a 256-CPU SMP kernel or is ACPI ignoring CONFIG_NR_CPUS
+>  > or something?
+> 
+> Yes, it's =256.
+> 
 
-On Sat, Mar 04, 2006 at 05:54:23AM +0000, David W. Hankins wrote:
-> The 'power' procfile lists a max_cstate of C8, but only lists C1-C4 as
-> usable states to enter...I notice it is also this way in the example
-> file output provided in Mr. Ariel's howto, so this must not be uncommon
-> or new.
+Is that the only way in which to trigger the bug?
 
-max_cstate is the maximum the kernel would make use of if they were provided
-by the hardware and by the BIOS. However,
+If so, I'd be inclined to hold the fix back for 2.6.17.
 
-> But, if 8 states are avaialble, why are only 4 in use?
 
-it is quite common that only one, two, three or -- at most! -- four of these
-states are actually available on a system. The ACPI core allows for eight to
-be ready for future systems which might have more than these four available.
+From: Ashok Raj <ashok.raj@intel.com>
 
-	Dominik
+Local apic entries are only 8 bits, but it seemed to not be caught with u8
+return value result in the check cpu_index >= NR_CPUS becomming always false.
+
+drivers/acpi/processor_core.c: In function `acpi_processor_get_info':
+drivers/acpi/processor_core.c:483: warning: comparison is always false due to limited range of data type
+
+Signed-off-by: Ashok Raj <ashok.raj@intel.com>
+Cc: "Brown, Len" <len.brown@intel.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
+---
+
+ drivers/acpi/processor_core.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
+
+diff -puN drivers/acpi/processor_core.c~acpi-signedness-fix-2 drivers/acpi/processor_core.c
+--- 25/drivers/acpi/processor_core.c~acpi-signedness-fix-2	Fri Mar  3 16:25:09 2006
++++ 25-akpm/drivers/acpi/processor_core.c	Fri Mar  3 16:25:09 2006
+@@ -382,7 +382,7 @@ static int acpi_processor_remove_fs(stru
+ 
+ /* Use the acpiid in MADT to map cpus in case of SMP */
+ #ifndef CONFIG_SMP
+-#define convert_acpiid_to_cpu(acpi_id) (0xff)
++#define convert_acpiid_to_cpu(acpi_id) (-1)
+ #else
+ 
+ #ifdef CONFIG_IA64
+@@ -395,7 +395,7 @@ static int acpi_processor_remove_fs(stru
+ #define ARCH_BAD_APICID		(0xff)
+ #endif
+ 
+-static u8 convert_acpiid_to_cpu(u8 acpi_id)
++static int convert_acpiid_to_cpu(u8 acpi_id)
+ {
+ 	u16 apic_id;
+ 	int i;
+@@ -421,7 +421,7 @@ static int acpi_processor_get_info(struc
+ 	acpi_status status = 0;
+ 	union acpi_object object = { 0 };
+ 	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
+-	u8 cpu_index;
++	int cpu_index;
+ 	static int cpu0_initialized;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_processor_get_info");
+@@ -466,7 +466,7 @@ static int acpi_processor_get_info(struc
+ 	cpu_index = convert_acpiid_to_cpu(pr->acpi_id);
+ 
+ 	/* Handle UP system running SMP kernel, with no LAPIC in MADT */
+-	if (!cpu0_initialized && (cpu_index == 0xff) &&
++	if (!cpu0_initialized && (cpu_index == -1) &&
+ 	    (num_online_cpus() == 1)) {
+ 		cpu_index = 0;
+ 	}
+@@ -480,7 +480,7 @@ static int acpi_processor_get_info(struc
+ 	 *  less than the max # of CPUs. They should be ignored _iff
+ 	 *  they are physically not present.
+ 	 */
+-	if (cpu_index >= NR_CPUS) {
++	if (cpu_index == -1) {
+ 		if (ACPI_FAILURE
+ 		    (acpi_processor_hotadd_init(pr->handle, &pr->id))) {
+ 			ACPI_ERROR((AE_INFO,
+_
+
