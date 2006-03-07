@@ -1,38 +1,39 @@
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: [PATCH] naming memory hotplug's phys_device take2 [3/3] name memory
- at boot
-Date: Tue, 7 Mar 2006 16:03:14 +0900
-Message-ID: <20060307160314.35687b55.kamezawa.hiroyu@jp.fujitsu.com>
+From: "Yu, Luming" <luming.yu@intel.com>
+Subject: RE: [PATCH 2.6.15.3 1/1] ACPI: Atlas ACPI driver
+Date: Tue, 7 Mar 2006 16:52:46 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F840B22A242@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:55712 "EHLO
-	fgwmail6.fujitsu.co.jp") by vger.kernel.org with ESMTP
-	id S1752089AbWCGHDs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 7 Mar 2006 02:03:48 -0500
+Received: from fmr20.intel.com ([134.134.136.19]:27790 "EHLO
+	orsfmr005.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1752123AbWCGIwu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Mar 2006 03:52:50 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Andrew Morton <akpm@osdl.org>, Dave Hansen <haveblue@us.ibm.com>, Greg KH <greg@kroah.com>, LHMS <lhms-devel@lists.sourceforge.net>, ACPI <linux-acpi@vger.kernel.org>
+To: Jaya Kumar <jayakumar.acpi@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This patch shows ACPI information of rams which exists at boot time,
-maybe will not be used until memory-hot-remove will be implemented.
+>I've added it as an attachment here. Please let me know if you get it.
+>
+I just found this:
+            Device (SVG)
+                Device (LCD)
+It looks too simple to fit video.c.
 
-Signed-Off-By: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+But it is quite easy to implement in hotkey.c.
+Because it has dedicated device with HID and , 
+well-known method name.
 
-Index: linux-2.6.16-rc5-mm2/drivers/acpi/acpi_memhotplug.c
-===================================================================
---- linux-2.6.16-rc5-mm2.orig/drivers/acpi/acpi_memhotplug.c	2006-03-07 15:28:08.000000000 +0900
-+++ linux-2.6.16-rc5-mm2/drivers/acpi/acpi_memhotplug.c	2006-03-07 15:28:10.000000000 +0900
-@@ -387,6 +387,10 @@
- 
- 	printk(KERN_INFO "%s \n", acpi_device_name(device));
- 
-+	/* if memory is available now (we have page memmap), name it */
-+	if ( pfn_valid(mem_device->start_addr >> PAGE_SHIFT)) {
-+		acpi_memory_device_export_name(mem_device);
-+	}
- 	return_VALUE(result);
- }
- 
+Ideally, you can enable this jus like this:
+http://bugzilla.kernel.org/attachment.cgi?id=6843&action=view
+
+Note, the latest hotkey.c need patch at
+http://bugzilla.kernel.org/show_bug.cgi?id=5749
+
+
+Thanks,
+Luming
