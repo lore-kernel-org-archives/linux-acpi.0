@@ -1,78 +1,49 @@
-From: Jiri Slaby <jirislaby@gmail.com>
-Subject: [PATCH 1/1] acpi EC: acpi-ecdt-uid-hack
-Date: Tue, 07 Mar 2006 17:08:03 +0100
-Message-ID: <E1FGejD-0000QV-00@decibel.fi.muni.cz>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751149AbWCGQIT@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Len Brown <len.brown@intel.com>, Luming Yu <luming.yu@intel.com>, Robert Moore <robert.moore@intel.com>, Linux kernel mailing list <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>
+From: "Jaya Kumar" <jayakumar.acpi@gmail.com>
+Subject: Re: [PATCH 2.6.15.3 1/1] ACPI: Atlas ACPI driver
+Date: Tue, 7 Mar 2006 11:09:28 -0500
+Message-ID: <756b48450603070809i65a08b3aga99c72509f736c3f@mail.gmail.com>
+References: <3ACA40606221794F80A5670F0AF15F840B22A242@pdsmsx403>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from zproxy.gmail.com ([64.233.162.195]:63583 "EHLO zproxy.gmail.com")
+	by vger.kernel.org with ESMTP id S1751221AbWCGQJa convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 7 Mar 2006 11:09:30 -0500
+Received: by zproxy.gmail.com with SMTP id i11so1501379nzh
+        for <linux-acpi@vger.kernel.org>; Tue, 07 Mar 2006 08:09:29 -0800 (PST)
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F840B22A242@pdsmsx403>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Yu, Luming" <luming.yu@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-acpi-ecdt-uid-hack
+On 3/7/06, Yu, Luming <luming.yu@intel.com> wrote:
+> >I've added it as an attachment here. Please let me know if you get it.
+> >
+> I just found this:
+>             Device (SVG)
+>                 Device (LCD)
+> It looks too simple to fit video.c.
 
-On some boxes ecdt uid may be equal to 0, so do not test for uids equality, so
-that fake handler will be unconditionally removed to allow loading the real one.
+I'm sorry but I'm confused. Do you mean that I shouldn't try to
+support the brightness using the default video driver (ie: leave it as
+a board specific driver because the board's ACPI implementation for
+video support is insufficient) or did you mean that it will be easy
+and simple to fit in video.c?
 
-See http://bugzilla.kernel.org/show_bug.cgi?id=6111
+> But it is quite easy to implement in hotkey.c.
+> Because it has dedicated device with HID and ,
+> well-known method name.
+>
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Luming Yu <luming.yu@intel.com>
+I'm confused by hotkey here. I'm not sure how hotkey is involved here.
+The Atlas board has no  keys physically. It has buttons which are
+hooked up using the ASIM HID and that is what I am trying to support
+since those physically exist on the board. Can you help me understand
+how hotkey is involved in this?
 
----
-commit ff7e5094ceaf67b950f7684c66c54011fa0e5cd5
-tree bde2662da704bea931d88fcc8a5d16d2f8895700
-parent 8e07cf694b71c1cddded6f311e15db6e25696157
-author Jiri Slaby <ku@bellona.localdomain> Mon, 06 Mar 2006 17:40:42 +0059
-committer Jiri Slaby <ku@bellona.localdomain> Mon, 06 Mar 2006 17:40:42 +0059
-
- drivers/acpi/ec.c |   16 ++++++----------
- 1 files changed, 6 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index f339bd4..de95a09 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -989,7 +989,6 @@ static int acpi_ec_poll_add(struct acpi_
- 	int result = 0;
- 	acpi_status status = AE_OK;
- 	union acpi_ec *ec = NULL;
--	unsigned long uid;
- 
- 	ACPI_FUNCTION_TRACE("acpi_ec_add");
- 
-@@ -1012,10 +1011,9 @@ static int acpi_ec_poll_add(struct acpi_
- 	acpi_evaluate_integer(ec->common.handle, "_GLK", NULL,
- 			      &ec->common.global_lock);
- 
--	/* If our UID matches the UID for the ECDT-enumerated EC,
--	   we now have the *real* EC info, so kill the makeshift one. */
--	acpi_evaluate_integer(ec->common.handle, "_UID", NULL, &uid);
--	if (ec_ecdt && ec_ecdt->common.uid == uid) {
-+	/* XXX we don't test uids, because on some boxes ecdt uid = 0, see:
-+	   http://bugzilla.kernel.org/show_bug.cgi?id=6111 */
-+	if (ec_ecdt) {
- 		acpi_remove_address_space_handler(ACPI_ROOT_OBJECT,
- 						  ACPI_ADR_SPACE_EC,
- 						  &acpi_ec_space_handler);
-@@ -1059,7 +1057,6 @@ static int acpi_ec_intr_add(struct acpi_
- 	int result = 0;
- 	acpi_status status = AE_OK;
- 	union acpi_ec *ec = NULL;
--	unsigned long uid;
- 
- 	ACPI_FUNCTION_TRACE("acpi_ec_add");
- 
-@@ -1085,10 +1082,9 @@ static int acpi_ec_intr_add(struct acpi_
- 	acpi_evaluate_integer(ec->common.handle, "_GLK", NULL,
- 			      &ec->common.global_lock);
- 
--	/* If our UID matches the UID for the ECDT-enumerated EC,
--	   we now have the *real* EC info, so kill the makeshift one. */
--	acpi_evaluate_integer(ec->common.handle, "_UID", NULL, &uid);
--	if (ec_ecdt && ec_ecdt->common.uid == uid) {
-+	/* XXX we don't test uids, because on some boxes ecdt uid = 0, see:
-+	   http://bugzilla.kernel.org/show_bug.cgi?id=6111 */
-+	if (ec_ecdt) {
- 		acpi_remove_address_space_handler(ACPI_ROOT_OBJECT,
- 						  ACPI_ADR_SPACE_EC,
- 						  &acpi_ec_space_handler);
+Thanks,
+jayakumar
