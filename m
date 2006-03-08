@@ -1,10 +1,10 @@
 From: akpm@osdl.org
-Subject: [patch 13/22] ACPI: print wakeup device list on same line as label
-Date: Tue, 07 Mar 2006 23:49:39 -0800
-Message-ID: <200603080751.k287pSZu000984@shell0.pdx.osdl.net>
+Subject: [patch 11/22] ACPI: make acpi_bus_register_driver() return success/failure, not device count
+Date: Tue, 07 Mar 2006 23:49:38 -0800
+Message-ID: <200603080751.k287pR2T000978@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:2466 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S932418AbWCHHvp (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:2210 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932420AbWCHHvp (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Mar 2006 02:51:45 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -14,26 +14,80 @@ Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, bjorn.helgaas@hp.com
 
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Print the ACPI wakeup device list on the same line as the label to make
-"dmesg | grep ACPI" output more useful.
+acpi_bus_register_driver() should not return the number of devices claimed. 
+We're not asking to find devices, we're making a driver available to devices,
+including hot-pluggable devices that may appear in the future.
+
+I audited all callers of acpi_bus_register_driver(), and except asus_acpi.c
+and sonypi.c (fixed in previous patches), all either ignore the return value
+or test only for failure (<0).
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/sleep/wakeup.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/scan.c |   16 +++++-----------
+ 1 files changed, 5 insertions(+), 11 deletions(-)
 
-diff -puN drivers/acpi/sleep/wakeup.c~acpi-print-wakeup-device-list-on-same-line-as-label drivers/acpi/sleep/wakeup.c
---- devel/drivers/acpi/sleep/wakeup.c~acpi-print-wakeup-device-list-on-same-line-as-label	2006-03-07 23:47:10.000000000 -0800
-+++ devel-akpm/drivers/acpi/sleep/wakeup.c	2006-03-07 23:47:10.000000000 -0800
-@@ -155,7 +155,7 @@ static int __init acpi_wakeup_device_ini
+diff -puN drivers/acpi/scan.c~acpi-make-acpi_bus_register_driver-return-success-failure-not-device-count drivers/acpi/scan.c
+--- devel/drivers/acpi/scan.c~acpi-make-acpi_bus_register_driver-return-success-failure-not-device-count	2006-03-07 23:47:10.000000000 -0800
++++ devel-akpm/drivers/acpi/scan.c	2006-03-07 23:47:10.000000000 -0800
+@@ -549,10 +549,9 @@ static int acpi_start_single_object(stru
+ 	return_VALUE(result);
+ }
+ 
+-static int acpi_driver_attach(struct acpi_driver *drv)
++static void acpi_driver_attach(struct acpi_driver *drv)
+ {
+ 	struct list_head *node, *next;
+-	int count = 0;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_driver_attach");
+ 
+@@ -569,7 +568,6 @@ static int acpi_driver_attach(struct acp
+ 			if (!acpi_bus_driver_init(dev, drv)) {
+ 				acpi_start_single_object(dev);
+ 				atomic_inc(&drv->references);
+-				count++;
+ 				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 						  "Found driver [%s] for device [%s]\n",
+ 						  drv->name, dev->pnp.bus_id));
+@@ -578,7 +576,6 @@ static int acpi_driver_attach(struct acp
+ 		spin_lock(&acpi_device_lock);
+ 	}
+ 	spin_unlock(&acpi_device_lock);
+-	return_VALUE(count);
+ }
+ 
+ static int acpi_driver_detach(struct acpi_driver *drv)
+@@ -611,14 +608,11 @@ static int acpi_driver_detach(struct acp
+  * @driver: driver being registered
+  *
+  * Registers a driver with the ACPI bus.  Searches the namespace for all
+- * devices that match the driver's criteria and binds.  Returns the
+- * number of devices that were claimed by the driver, or a negative
+- * error status for failure.
++ * devices that match the driver's criteria and binds.  Returns zero for
++ * success or a negative error status for failure.
+  */
+ int acpi_bus_register_driver(struct acpi_driver *driver)
+ {
+-	int count;
+-
+ 	ACPI_FUNCTION_TRACE("acpi_bus_register_driver");
  
  	if (acpi_disabled)
- 		return 0;
--	printk("ACPI wakeup devices: \n");
-+	printk(KERN_INFO PREFIX "wakeup devices: ");
- 
+@@ -630,9 +624,9 @@ int acpi_bus_register_driver(struct acpi
  	spin_lock(&acpi_device_lock);
- 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+ 	list_add_tail(&driver->node, &acpi_bus_drivers);
+ 	spin_unlock(&acpi_device_lock);
+-	count = acpi_driver_attach(driver);
++	acpi_driver_attach(driver);
+ 
+-	return_VALUE(count);
++	return_VALUE(0);
+ }
+ 
+ EXPORT_SYMBOL(acpi_bus_register_driver);
 _
