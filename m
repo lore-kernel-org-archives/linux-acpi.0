@@ -1,70 +1,98 @@
-From: akpm@osdl.org
-Subject: [patch 21/22] ACPI should depend on, not select PCI
-Date: Tue, 07 Mar 2006 23:49:48 -0800
-Message-ID: <200603080751.k287pbkK001014@shell0.pdx.osdl.net>
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATH] Avoid slab errors on suspend
+Date: Wed, 8 Mar 2006 09:04:52 +0100
+Message-ID: <200603080904.53204.trenn@suse.de>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:7331 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1751768AbWCHHyz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Mar 2006 02:54:55 -0500
+Received: from mx2.suse.de ([195.135.220.15]:28367 "EHLO mx2.suse.de")
+	by vger.kernel.org with ESMTP id S932331AbWCHIEz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Mar 2006 03:04:55 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, bunk@stusta.de
+To: linux-acpi@vger.kernel.org
+Cc: Pavel Machek <pavel@suse.cz>, Len Brown <len.brown@intel.com>
 
+When going into suspend irqs must be disabled for a long time.
 
-From: Adrian Bunk <bunk@stusta.de>
+There is already a acpi_in_resume variable in osl.c
+to not make use of sleeping functions (mem allocs/mutexes).
+This one just makes a bit more intensive use of it.
 
-ACPI should depend on, not select PCI.
+The acpi_in_resume seem to vanish later (pci_link.c):
+/*
+ * FIXME: this is a workaround to avoid nasty warning.  It will be removed
+ * after every device calls pci_disable_device in .resume.
+ */
+but for now below patch seem to be needed:
 
-Otherwise, illegal configurations like X86_VOYAGER=y, PCI=y are
-possible.
+Subject: No GFP_KERNEL buffer alloc or mutexes if resuming
 
-This patch also fixes the options select'ing ACPI to also select PCI.
+Signed-off-by: Thomas Renninger <trenn@suse.de>
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: "Brown, Len" <len.brown@intel.com>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
----
+ drivers/acpi/osl.c   |   10 +++++++---
+ drivers/acpi/utils.c |    6 +++++-
+ 2 files changed, 12 insertions(+), 4 deletions(-)
 
- arch/ia64/Kconfig    |    1 +
- arch/x86_64/Kconfig  |    1 +
- drivers/acpi/Kconfig |    3 +--
- 3 files changed, 3 insertions(+), 2 deletions(-)
-
-diff -puN arch/ia64/Kconfig~acpi-should-depend-on-not-select-pci arch/ia64/Kconfig
---- devel/arch/ia64/Kconfig~acpi-should-depend-on-not-select-pci	2006-03-07 23:47:11.000000000 -0800
-+++ devel-akpm/arch/ia64/Kconfig	2006-03-07 23:47:11.000000000 -0800
-@@ -69,6 +69,7 @@ choice
- config IA64_GENERIC
- 	bool "generic"
- 	select ACPI
-+	select PCI
- 	select NUMA
- 	select ACPI_NUMA
- 	help
-diff -puN arch/x86_64/Kconfig~acpi-should-depend-on-not-select-pci arch/x86_64/Kconfig
---- devel/arch/x86_64/Kconfig~acpi-should-depend-on-not-select-pci	2006-03-07 23:47:11.000000000 -0800
-+++ devel-akpm/arch/x86_64/Kconfig	2006-03-07 23:47:11.000000000 -0800
-@@ -276,6 +276,7 @@ config X86_64_ACPI_NUMA
-        bool "ACPI NUMA detection"
-        depends on NUMA
-        select ACPI 
-+	select PCI
-        select ACPI_NUMA
-        default y
-        help
-diff -puN drivers/acpi/Kconfig~acpi-should-depend-on-not-select-pci drivers/acpi/Kconfig
---- devel/drivers/acpi/Kconfig~acpi-should-depend-on-not-select-pci	2006-03-07 23:47:11.000000000 -0800
-+++ devel-akpm/drivers/acpi/Kconfig	2006-03-07 23:47:11.000000000 -0800
-@@ -10,9 +10,8 @@ menu "ACPI (Advanced Configuration and P
- config ACPI
- 	bool "ACPI Support"
- 	depends on IA64 || X86
-+	depends on PCI
- 	select PM
--	select PCI
--
- 	default y
- 	---help---
- 	  Advanced Configuration and Power Interface (ACPI) support for 
-_
+Index: linux-2.6.15/drivers/acpi/osl.c
+===================================================================
+--- linux-2.6.15.orig/drivers/acpi/osl.c
++++ linux-2.6.15/drivers/acpi/osl.c
+@@ -880,7 +880,7 @@ acpi_status acpi_os_wait_semaphore(acpi_
+ 	ACPI_DEBUG_PRINT((ACPI_DB_MUTEX, "Waiting for semaphore[%p|%d|%d]\n",
+ 			  handle, units, timeout));
+ 
+-	if (in_atomic())
++	if (in_atomic() || acpi_in_resume)
+ 		timeout = 0;
+ 
+ 	switch (timeout) {
+@@ -1009,7 +1009,7 @@ u8 acpi_os_writable(void *ptr, acpi_size
+ 
+ u32 acpi_os_get_thread_id(void)
+ {
+-	if (!in_atomic())
++	if (!in_atomic() && !acpi_in_resume)
+ 		return current->pid;
+ 
+ 	return 0;
+@@ -1252,7 +1252,11 @@ acpi_status acpi_os_release_object(acpi_
+ 
+ void *acpi_os_acquire_object(acpi_cache_t * cache)
+ {
+-	void *object = kmem_cache_alloc(cache, GFP_KERNEL);
++	void *object;
++	if (acpi_in_resume)
++		object = kmem_cache_alloc(cache, GFP_ATOMIC);
++	else
++		object = kmem_cache_alloc(cache, GFP_KERNEL);
+ 	WARN_ON(!object);
+ 	return object;
+ }
+Index: linux-2.6.15/drivers/acpi/utils.c
+===================================================================
+--- linux-2.6.15.orig/drivers/acpi/utils.c
++++ linux-2.6.15/drivers/acpi/utils.c
+@@ -250,6 +250,7 @@ acpi_extract_package(union acpi_object *
+ 
+ EXPORT_SYMBOL(acpi_extract_package);
+ 
++extern int acpi_in_resume;
+ acpi_status
+ acpi_evaluate_integer(acpi_handle handle,
+ 		      acpi_string pathname,
+@@ -264,7 +265,10 @@ acpi_evaluate_integer(acpi_handle handle
+ 	if (!data)
+ 		return_ACPI_STATUS(AE_BAD_PARAMETER);
+ 
+-	element = kmalloc(sizeof(union acpi_object), GFP_KERNEL);
++	if (acpi_in_resume)
++		element = kmalloc(sizeof(union acpi_object), GFP_ATOMIC);
++	else
++		element = kmalloc(sizeof(union acpi_object), GFP_KERNEL);
+ 	if (!element)
+ 		return_ACPI_STATUS(AE_NO_MEMORY);
+ 
