@@ -1,135 +1,89 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: Concurrency in the execution of ACPI control methods
-Date: Tue, 7 Mar 2006 12:47:49 -0800
-Message-ID: <971FCB6690CD0E4898387DBF7552B90E04970A19@orsmsx403.amr.corp.intel.com>
+From: "Yu, Luming" <luming.yu@intel.com>
+Subject: RE: [PATCH 2.6.15.3 1/1] ACPI: Atlas ACPI driver
+Date: Wed, 8 Mar 2006 14:17:31 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F840B22AA1D@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr18.intel.com ([134.134.136.17]:12495 "EHLO
+Received: from fmr18.intel.com ([134.134.136.17]:7623 "EHLO
 	orsfmr003.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1751481AbWCGUsC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Mar 2006 15:48:02 -0500
+	id S1751440AbWCHGRh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Mar 2006 01:17:37 -0500
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Wainwright <prw@ceiriog.eclipse.co.uk>, linux-acpi@vger.kernel.org
+To: Jaya Kumar <jayakumar.acpi@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-Looking at method _L19, the Sleep() operator should relinquish the
-processor and allow the Notify dispatch to occur.
+>> I just found this:
+>>             Device (SVG)
+>>                 Device (LCD)
+>> It looks too simple to fit video.c.
+>
+>I'm sorry but I'm confused. Do you mean that I shouldn't try to
+>support the brightness using the default video driver (ie: leave it as
+>a board specific driver because the board's ACPI implementation for
+>video support is insufficient) or did you mean that it will be easy
+>and simple to fit in video.c?
 
-AcpiOsQueueForExecution should be using a different thread than the
-thread that executes the AML interpreter. The Notify dispatcher does not
-enter the AML interpreter mutex, so there should not be a deadlock. The
-actual handler for the Notify should be in a driver somewhere.
+I think video.c is NOT a right solution for your problem.
 
-I have found that the best method to determine exactly what is going on
-is to enable full debug tracing in the ACPICA subsystem (via
-acpi_dbg_level) and analyze the sequence of events.
+>
+>> But it is quite easy to implement in hotkey.c.
+>> Because it has dedicated device with HID and ,
+>> well-known method name.
+>>
+>
+>I'm confused by hotkey here. I'm not sure how hotkey is involved here.
 
-Perhaps the ACPICA reference uses a bad choice of words. The code
-supports the concurrency model defined in the ACPICA spec.
+hotkey.c provide a generic way to register well-known acpi device, and
+well-known methods that are mostly related to hotkey. 
 
-Bob
+>The Atlas board has no  keys physically. It has buttons which are
 
+No differences between buttons and keys to me.
 
+>hooked up using the ASIM HID and that is what I am trying to support
+>since those physically exist on the board. Can you help me understand
+>how hotkey is involved in this?
 
-> -----Original Message-----
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> owner@vger.kernel.org] On Behalf Of Peter Wainwright
-> Sent: Tuesday, March 07, 2006 12:23 PM
-> To: linux-acpi@vger.kernel.org
-> Subject: Concurrency in the execution of ACPI control methods
-> 
-> Hello,
-> 
-> this is my first posting to this list. I recently purchased a HP
-nx6125
-> laptop. This
-> laptop is known to suffer from a number of bugs when used with linux;
-> these have
-> been reported on Suse, Gentoo and Debian lists as well as on kernel
-> bugzilla.
-> The kernel bug is http://bugzilla.kernel.org/show_bug.cgi?id=5534.
-> 
-> I posted my own analysis of this bug on bugzilla, but there has been
-no
-> reply
-> so far. I am posting here because I think it may raise an issue which
-is
-> wider than
-> the scope of that bug, which seemingly affects only nx6125 owners. I
-> think the ACPI
-> spec is unclear on certain points so that the linux implementation may
-> not be adequate
-> for some machines.
-> 
-> <gory_technical_details>
-> 
-> In brief, the bug is that thermal Notify events are never processed
-> until
-> someone explicitly reads the temperature
-> (e.g. /proc/acpi/thermal_zone/TZ1/temperature).
-> According to my analysis, thermal events on the nx6125 are handled by
-a
-> control method
-> (_L19) which issues a Notify event to the OS and then Sleeps and loops
-> waiting for the
-> OS to reset the trip points and clear the exception condition.
-> 
-> It seems to me that this causes a deadlock, because the GPE events and
-> the Notify
-> events are queued in a single-threaded workqueue and the Notify events
-> cannot be
-> processed until after _L19 returns.
-> 
-> </gory_technical_details>
-> 
-> This is described in
-http://bugzilla.kernel.org/show_bug.cgi?id=5534#c65
-> and
-> http://bugzilla.kernel.org/show_bug.cgi?id=5534#c66.
-> 
-> My question is this: If this analysis is true, it means that the HP
-BIOS
-> is
-> expecting some type of concurrent execution of ACPI control methods.
-> This seems to
-> go against (one interpretation of) the ACPI spec. However, the ACPI
-spec
-> is not
-> entirely clear on the issue. The ACPI CA Reference Manual by Intel
-(one
-> of the
-> authors of the ACPI spec) says "If a control method blocks (an event
-> that can occur
-> only under a few limited conditions), another method may begin
-> execution. However, ???it can be said that the specification precludes
-> the concurrent execution of control methods???. Therefore, the AML
-> interpreter itself is essentially a single-threaded component of the
-> ACPI subsystem". This looks like equivocation to me - surely it's
-either
-> single-threaded or not! "essentially" - "it can be said" - what are
-they
-> saying
-> here? Anyway, it seems to me that to successfully interpret this DSDT
-> (http://acpi.sourceforge.net/dsdt/view.php?id=558) it would be
-necessary
-> to use
-> multiple threads in kacpid. Are there any other machines which do this
-> kind
-> of clever stuff? What is the correct interpretation of the ACPI spec
-here?
-> 
-> 
-> 
-> Peter Wainwright
-> 
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
-in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+You have dedicated ACPI device and method for brightness control.
+So hotkey.c is the right place for support Device LCD.
+
+As for Device ASIM, I don't understand this code in your patch,
+Care to explain. It looks strange to me.
+
++static acpi_status acpi_atlas_button_handler(u32 function,
++		      acpi_physical_address address,
++		      u32 bit_width, acpi_integer * value,
++		      void *handler_context, void *region_context)
++{
++	acpi_status status;
++	struct acpi_device *dev;
++
++	dev = (struct acpi_device *) handler_context;
++	if (function == ACPI_WRITE)
++		status = acpi_bus_generate_event(dev, 0x80, address);
++	else {
++		printk(KERN_WARNING "atlas: shrugged on unexpected
+function"
++			":function=%x,address=%x,value=%x\n",
++			function, (u32)address, (u32)*value);
++		status = -EINVAL;
++	}
++
++	return status ;
++}
++
++static int atlas_acpi_button_add(struct acpi_device *device)
++{
++
++	/* hookup button handler */
++	return acpi_install_address_space_handler(device->handle,
++				0x81, &acpi_atlas_button_handler,
++				&acpi_atlas_button_setup, device);
++}
++
