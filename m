@@ -1,10 +1,10 @@
 From: akpm@osdl.org
-Subject: [patch 09/22] ACPI: update asus_acpi driver registration
-Date: Tue, 07 Mar 2006 23:49:36 -0800
-Message-ID: <200603080751.k287pPfb000972@shell0.pdx.osdl.net>
+Subject: [patch 12/22] ACPI: simplify scan.c coding
+Date: Tue, 07 Mar 2006 23:49:39 -0800
+Message-ID: <200603080751.k287pSpR000981@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:3746 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S932438AbWCHHvp (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:3490 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932431AbWCHHvp (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Mar 2006 02:51:45 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -14,69 +14,83 @@ Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, bjorn.helgaas@hp.com
 
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Remove the assumption that acpi_bus_register_driver() returns the number of
-devices claimed.  Returning the count is unreliable because devices may be
-hot-plugged in the future (admittedly not applicable for this driver).
-
-Since the hardware for this driver is not hot-pluggable, determine whether the
-hardware is present by noticing calls to the .add() method.  It would be
-better to probe the ACPI namespace for the ASUS HIDs, and load the driver only
-when we find one, but ACPI doesn't support that yet.
-
-I don't have an ASUS laptop to test on, but on my HP dl360, it does report the
-appropriate error when attempting to load the module:
-
-    $ sudo insmod drivers/acpi/asus_acpi.ko
-    insmod: error inserting 'drivers/acpi/asus_acpi.ko': -1 No such device
+No functional changes; just remove leftover, unused "buffer" and simplify
+control flow (no need to remember error values and goto the end, when we can
+simply return the value directly).
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/asus_acpi.c |   18 +++++++++++++++++-
- 1 files changed, 17 insertions(+), 1 deletion(-)
+ drivers/acpi/scan.c |   36 +++++++++++++-----------------------
+ 1 files changed, 13 insertions(+), 23 deletions(-)
 
-diff -puN drivers/acpi/asus_acpi.c~acpi-update-asus_acpi-driver-registration drivers/acpi/asus_acpi.c
---- devel/drivers/acpi/asus_acpi.c~acpi-update-asus_acpi-driver-registration	2006-03-07 23:47:09.000000000 -0800
-+++ devel-akpm/drivers/acpi/asus_acpi.c	2006-03-07 23:47:09.000000000 -0800
-@@ -1119,6 +1119,8 @@ static int __init asus_hotk_check(void)
- 	return result;
- }
+diff -puN drivers/acpi/scan.c~acpi-simplify-scanc-coding drivers/acpi/scan.c
+--- devel/drivers/acpi/scan.c~acpi-simplify-scanc-coding	2006-03-07 23:47:10.000000000 -0800
++++ devel-akpm/drivers/acpi/scan.c	2006-03-07 23:47:10.000000000 -0800
+@@ -236,12 +236,9 @@ static int acpi_bus_get_power_flags(stru
  
-+static int asus_hotk_found;
-+
- static int __init asus_hotk_add(struct acpi_device *device)
+ int acpi_match_ids(struct acpi_device *device, char *ids)
  {
- 	acpi_status status = AE_OK;
-@@ -1180,6 +1182,8 @@ static int __init asus_hotk_add(struct a
+-	int error = 0;
+-	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+-
+ 	if (device->flags.hardware_id)
+ 		if (strstr(ids, device->pnp.hardware_id))
+-			goto Done;
++			return 0;
+ 
+ 	if (device->flags.compatible_ids) {
+ 		struct acpi_compatible_id_list *cid_list = device->pnp.cid_list;
+@@ -250,15 +247,10 @@ int acpi_match_ids(struct acpi_device *d
+ 		/* compare multiple _CID entries against driver ids */
+ 		for (i = 0; i < cid_list->count; i++) {
+ 			if (strstr(ids, cid_list->id[i].value))
+-				goto Done;
++				return 0;
  		}
  	}
+-	error = -ENOENT;
+-
+-      Done:
+-	if (buffer.pointer)
+-		acpi_os_free(buffer.pointer);
+-	return error;
++	return -ENOENT;
+ }
  
-+	asus_hotk_found = 1;
+ static acpi_status
+@@ -640,21 +632,19 @@ EXPORT_SYMBOL(acpi_bus_register_driver);
+  */
+ int acpi_bus_unregister_driver(struct acpi_driver *driver)
+ {
+-	int error = 0;
+-
+ 	ACPI_FUNCTION_TRACE("acpi_bus_unregister_driver");
+ 
+-	if (driver) {
+-		acpi_driver_detach(driver);
++	if (!driver)
++		return_VALUE(-EINVAL);
+ 
+-		if (!atomic_read(&driver->references)) {
+-			spin_lock(&acpi_device_lock);
+-			list_del_init(&driver->node);
+-			spin_unlock(&acpi_device_lock);
+-		}
+-	} else
+-		error = -EINVAL;
+-	return_VALUE(error);
++	acpi_driver_detach(driver);
 +
-       end:
- 	if (result) {
- 		kfree(hotk);
-@@ -1226,7 +1230,19 @@ static int __init asus_acpi_init(void)
- 	asus_proc_dir->owner = THIS_MODULE;
- 
- 	result = acpi_bus_register_driver(&asus_hotk_driver);
--	if (result < 1) {
-+	if (result < 0) {
-+		remove_proc_entry(PROC_ASUS, acpi_root_dir);
-+		return -ENODEV;
++	if (!atomic_read(&driver->references)) {
++		spin_lock(&acpi_device_lock);
++		list_del_init(&driver->node);
++		spin_unlock(&acpi_device_lock);
 +	}
-+
-+	/*
-+	 * This is a bit of a kludge.  We only want this module loaded
-+	 * for ASUS systems, but there's currently no way to probe the
-+	 * ACPI namespace for ASUS HIDs.  So we just return failure if
-+	 * we didn't find one, which will cause the module to be
-+	 * unloaded.
-+	 */
-+	if (!asus_hotk_found) {
- 		acpi_bus_unregister_driver(&asus_hotk_driver);
- 		remove_proc_entry(PROC_ASUS, acpi_root_dir);
- 		return -ENODEV;
++	return_VALUE(0);
+ }
+ 
+ EXPORT_SYMBOL(acpi_bus_unregister_driver);
 _
