@@ -1,83 +1,82 @@
 From: akpm@osdl.org
-Subject: [patch 20/22] acpi signedness fix
-Date: Tue, 07 Mar 2006 23:49:46 -0800
-Message-ID: <200603080751.k287pZkA001011@shell0.pdx.osdl.net>
+Subject: [patch 09/22] ACPI: update asus_acpi driver registration
+Date: Tue, 07 Mar 2006 23:49:36 -0800
+Message-ID: <200603080751.k287pPfb000972@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:4514 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S932439AbWCHHvq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Mar 2006 02:51:46 -0500
+Received: from smtp.osdl.org ([65.172.181.4]:3746 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932438AbWCHHvp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Mar 2006 02:51:45 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, ashok.raj@intel.com, davej@codemonkey.org.uk, kaneshige.kenji@soft.fujitsu.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, bjorn.helgaas@hp.com
 
 
-From: Ashok Raj <ashok.raj@intel.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Local apic entries are only 8 bits, but it seemed to not be caught with u8
-return value result in the check
+Remove the assumption that acpi_bus_register_driver() returns the number of
+devices claimed.  Returning the count is unreliable because devices may be
+hot-plugged in the future (admittedly not applicable for this driver).
 
-cpu_index >= NR_CPUS becomming always false.
+Since the hardware for this driver is not hot-pluggable, determine whether the
+hardware is present by noticing calls to the .add() method.  It would be
+better to probe the ACPI namespace for the ASUS HIDs, and load the driver only
+when we find one, but ACPI doesn't support that yet.
 
-drivers/acpi/processor_core.c: In function `acpi_processor_get_info':
-drivers/acpi/processor_core.c:483: warning: comparison is always false due to limited range of data type
+I don't have an ASUS laptop to test on, but on my HP dl360, it does report the
+appropriate error when attempting to load the module:
 
-Signed-off-by: Ashok Raj <ashok.raj@intel.com>
+    $ sudo insmod drivers/acpi/asus_acpi.ko
+    insmod: error inserting 'drivers/acpi/asus_acpi.ko': -1 No such device
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: "Brown, Len" <len.brown@intel.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
-Cc: Kenji Kaneshige <kaneshige.kenji@soft.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/processor_core.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/acpi/asus_acpi.c |   18 +++++++++++++++++-
+ 1 files changed, 17 insertions(+), 1 deletion(-)
 
-diff -puN drivers/acpi/processor_core.c~acpi-signedness-fix-2 drivers/acpi/processor_core.c
---- devel/drivers/acpi/processor_core.c~acpi-signedness-fix-2	2006-03-07 23:47:11.000000000 -0800
-+++ devel-akpm/drivers/acpi/processor_core.c	2006-03-07 23:47:11.000000000 -0800
-@@ -382,7 +382,7 @@ static int acpi_processor_remove_fs(stru
+diff -puN drivers/acpi/asus_acpi.c~acpi-update-asus_acpi-driver-registration drivers/acpi/asus_acpi.c
+--- devel/drivers/acpi/asus_acpi.c~acpi-update-asus_acpi-driver-registration	2006-03-07 23:47:09.000000000 -0800
++++ devel-akpm/drivers/acpi/asus_acpi.c	2006-03-07 23:47:09.000000000 -0800
+@@ -1119,6 +1119,8 @@ static int __init asus_hotk_check(void)
+ 	return result;
+ }
  
- /* Use the acpiid in MADT to map cpus in case of SMP */
- #ifndef CONFIG_SMP
--#define convert_acpiid_to_cpu(acpi_id) (0xff)
-+#define convert_acpiid_to_cpu(acpi_id) (-1)
- #else
- 
- #ifdef CONFIG_IA64
-@@ -395,7 +395,7 @@ static int acpi_processor_remove_fs(stru
- #define ARCH_BAD_APICID		(0xff)
- #endif
- 
--static u8 convert_acpiid_to_cpu(u8 acpi_id)
-+static int convert_acpiid_to_cpu(u8 acpi_id)
++static int asus_hotk_found;
++
+ static int __init asus_hotk_add(struct acpi_device *device)
  {
- 	u16 apic_id;
- 	int i;
-@@ -421,7 +421,7 @@ static int acpi_processor_get_info(struc
- 	acpi_status status = 0;
- 	union acpi_object object = { 0 };
- 	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
--	u8 cpu_index;
-+	int cpu_index;
- 	static int cpu0_initialized;
- 
- 	ACPI_FUNCTION_TRACE("acpi_processor_get_info");
-@@ -466,7 +466,7 @@ static int acpi_processor_get_info(struc
- 	cpu_index = convert_acpiid_to_cpu(pr->acpi_id);
- 
- 	/* Handle UP system running SMP kernel, with no LAPIC in MADT */
--	if (!cpu0_initialized && (cpu_index == 0xff) &&
-+	if (!cpu0_initialized && (cpu_index == -1) &&
- 	    (num_online_cpus() == 1)) {
- 		cpu_index = 0;
+ 	acpi_status status = AE_OK;
+@@ -1180,6 +1182,8 @@ static int __init asus_hotk_add(struct a
+ 		}
  	}
-@@ -480,7 +480,7 @@ static int acpi_processor_get_info(struc
- 	 *  less than the max # of CPUs. They should be ignored _iff
- 	 *  they are physically not present.
- 	 */
--	if (cpu_index >= NR_CPUS) {
-+	if (cpu_index == -1) {
- 		if (ACPI_FAILURE
- 		    (acpi_processor_hotadd_init(pr->handle, &pr->id))) {
- 			ACPI_ERROR((AE_INFO,
+ 
++	asus_hotk_found = 1;
++
+       end:
+ 	if (result) {
+ 		kfree(hotk);
+@@ -1226,7 +1230,19 @@ static int __init asus_acpi_init(void)
+ 	asus_proc_dir->owner = THIS_MODULE;
+ 
+ 	result = acpi_bus_register_driver(&asus_hotk_driver);
+-	if (result < 1) {
++	if (result < 0) {
++		remove_proc_entry(PROC_ASUS, acpi_root_dir);
++		return -ENODEV;
++	}
++
++	/*
++	 * This is a bit of a kludge.  We only want this module loaded
++	 * for ASUS systems, but there's currently no way to probe the
++	 * ACPI namespace for ASUS HIDs.  So we just return failure if
++	 * we didn't find one, which will cause the module to be
++	 * unloaded.
++	 */
++	if (!asus_hotk_found) {
+ 		acpi_bus_unregister_driver(&asus_hotk_driver);
+ 		remove_proc_entry(PROC_ASUS, acpi_root_dir);
+ 		return -ENODEV;
 _
