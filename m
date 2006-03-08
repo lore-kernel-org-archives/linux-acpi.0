@@ -1,89 +1,109 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: [PATCH 2.6.15.3 1/1] ACPI: Atlas ACPI driver
-Date: Wed, 8 Mar 2006 14:17:31 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F840B22AA1D@pdsmsx403>
+From: "Jaya Kumar" <jayakumar.acpi@gmail.com>
+Subject: Re: [PATCH 2.6.15.3 1/1] ACPI: Atlas ACPI driver
+Date: Wed, 8 Mar 2006 15:11:47 +0800
+Message-ID: <756b48450603072311g2c604738h3972b3ddd720266d@mail.gmail.com>
+References: <3ACA40606221794F80A5670F0AF15F840B22AA1D@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr18.intel.com ([134.134.136.17]:7623 "EHLO
-	orsfmr003.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1751440AbWCHGRh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Mar 2006 01:17:37 -0500
-Content-class: urn:content-classes:message
+Received: from pproxy.gmail.com ([64.233.166.178]:30759 "EHLO pproxy.gmail.com")
+	by vger.kernel.org with ESMTP id S1752081AbWCHHLs convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 8 Mar 2006 02:11:48 -0500
+Received: by pproxy.gmail.com with SMTP id f25so1273559pyf
+        for <linux-acpi@vger.kernel.org>; Tue, 07 Mar 2006 23:11:47 -0800 (PST)
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F840B22AA1D@pdsmsx403>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jaya Kumar <jayakumar.acpi@gmail.com>
+To: "Yu, Luming" <luming.yu@intel.com>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
+On 3/8/06, Yu, Luming <luming.yu@intel.com> wrote:
+> I think video.c is NOT a right solution for your problem.
 
->> I just found this:
->>             Device (SVG)
->>                 Device (LCD)
->> It looks too simple to fit video.c.
+Cool. I agree with you there.
+
+> You have dedicated ACPI device and method for brightness control.
+> So hotkey.c is the right place for support Device LCD.
+
+I'm confused by what you are saying. The only actual input mechanism
+that is physically hooked up on this Atlas board, as far as I can
+tell, is ASIM which is connected to the buttons on the board. None of
+the other capabilities of the actual chips are actually physically
+hooked up on the actual board. There is no keyboard, no USB, etc. When
+I press the physical buttons on the board, I get events such as the
+following:
+
+evregion-0303 [19] ev_address_space_dispa: No handler for Region
+[ASI2] (cf7809fc) [user_defined_region]
+ exfldio-0284: *** Error: Region user_defined_region(81) has no handler
+ psparse-0508: *** Error: Method execution failed [\BNSV] (Node
+cf789d48), AE_NOT_EXIST
+ psparse-0508: *** Error: Method execution failed [\_GPE._L15] (Node
+cf789888), AE_NOT_EXIST
+   evgpe-0549: *** Error: AE_NOT_EXIST while evaluating method [_L15]
+for GPE[ 0]
+evregion-0303 [19] ev_address_space_dispa: No handler for Region
+[ASI2] (cf7809fc) [user_defined_region]
+ exfldio-0284: *** Error: Region user_defined_region(81) has no handler
+ psparse-0508: *** Error: Method execution failed [\BNSV] (Node
+cf789d48), AE_NOT_EXIST
+ psparse-0508: *** Error: Method execution failed [\_GPE._L15] (Node
+cf789888), AE_NOT_EXIST
+   evgpe-0549: *** Error: AE_NOT_EXIST while evaluating method [_L15]
+for GPE[ 0]
+
 >
->I'm sorry but I'm confused. Do you mean that I shouldn't try to
->support the brightness using the default video driver (ie: leave it as
->a board specific driver because the board's ACPI implementation for
->video support is insufficient) or did you mean that it will be easy
->and simple to fit in video.c?
+> As for Device ASIM, I don't understand this code in your patch,
+> Care to explain. It looks strange to me.
 
-I think video.c is NOT a right solution for your problem.
+Sure. As per the dmesg above, the button presses are generating
+something from region 81. So my solution to that was to hookup an
+address space handler for region 81 for the ASIM HID and then generate
+the corresponding button events in the handler. That's the code that
+you see below:
+
+I hope what I've explained above makes sense. To reiterate, if you
+want me to do something with respect to hotkey, I still don't
+understand how and where hotkey is involved. Perhaps you could help me
+by elaborating further.
+
+Thanks,
+jayakumar
+
 
 >
->> But it is quite easy to implement in hotkey.c.
->> Because it has dedicated device with HID and ,
->> well-known method name.
->>
+> +static acpi_status acpi_atlas_button_handler(u32 function,
+> +                     acpi_physical_address address,
+> +                     u32 bit_width, acpi_integer * value,
+> +                     void *handler_context, void *region_context)
+> +{
+> +       acpi_status status;
+> +       struct acpi_device *dev;
+> +
+> +       dev = (struct acpi_device *) handler_context;
+> +       if (function == ACPI_WRITE)
+> +               status = acpi_bus_generate_event(dev, 0x80, address);
+> +       else {
+> +               printk(KERN_WARNING "atlas: shrugged on unexpected
+> function"
+> +                       ":function=%x,address=%x,value=%x\n",
+> +                       function, (u32)address, (u32)*value);
+> +               status = -EINVAL;
+> +       }
+> +
+> +       return status ;
+> +}
+> +
+> +static int atlas_acpi_button_add(struct acpi_device *device)
+> +{
+> +
+> +       /* hookup button handler */
+> +       return acpi_install_address_space_handler(device->handle,
+> +                               0x81, &acpi_atlas_button_handler,
+> +                               &acpi_atlas_button_setup, device);
+> +}
+> +
 >
->I'm confused by hotkey here. I'm not sure how hotkey is involved here.
-
-hotkey.c provide a generic way to register well-known acpi device, and
-well-known methods that are mostly related to hotkey. 
-
->The Atlas board has no  keys physically. It has buttons which are
-
-No differences between buttons and keys to me.
-
->hooked up using the ASIM HID and that is what I am trying to support
->since those physically exist on the board. Can you help me understand
->how hotkey is involved in this?
-
-You have dedicated ACPI device and method for brightness control.
-So hotkey.c is the right place for support Device LCD.
-
-As for Device ASIM, I don't understand this code in your patch,
-Care to explain. It looks strange to me.
-
-+static acpi_status acpi_atlas_button_handler(u32 function,
-+		      acpi_physical_address address,
-+		      u32 bit_width, acpi_integer * value,
-+		      void *handler_context, void *region_context)
-+{
-+	acpi_status status;
-+	struct acpi_device *dev;
-+
-+	dev = (struct acpi_device *) handler_context;
-+	if (function == ACPI_WRITE)
-+		status = acpi_bus_generate_event(dev, 0x80, address);
-+	else {
-+		printk(KERN_WARNING "atlas: shrugged on unexpected
-function"
-+			":function=%x,address=%x,value=%x\n",
-+			function, (u32)address, (u32)*value);
-+		status = -EINVAL;
-+	}
-+
-+	return status ;
-+}
-+
-+static int atlas_acpi_button_add(struct acpi_device *device)
-+{
-+
-+	/* hookup button handler */
-+	return acpi_install_address_space_handler(device->handle,
-+				0x81, &acpi_atlas_button_handler,
-+				&acpi_atlas_button_setup, device);
-+}
-+
