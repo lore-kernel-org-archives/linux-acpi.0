@@ -1,11 +1,11 @@
 From: akpm@osdl.org
-Subject: [patch 11/22] ACPI: make acpi_bus_register_driver() return success/failure, not device count
-Date: Tue, 07 Mar 2006 23:49:38 -0800
-Message-ID: <200603080751.k287pR2T000978@shell0.pdx.osdl.net>
+Subject: [patch 04/22] PNPACPI: fix non-memory address space descriptor handling
+Date: Tue, 07 Mar 2006 23:49:31 -0800
+Message-ID: <200603080751.k287pLXv000957@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:2210 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S932420AbWCHHvp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Mar 2006 02:51:45 -0500
+Received: from smtp.osdl.org ([65.172.181.4]:1954 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932404AbWCHHvo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Mar 2006 02:51:44 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
@@ -14,80 +14,103 @@ Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, bjorn.helgaas@hp.com
 
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-acpi_bus_register_driver() should not return the number of devices claimed. 
-We're not asking to find devices, we're making a driver available to devices,
-including hot-pluggable devices that may appear in the future.
+Fix resource_type handling for QWORD, DWORD, and WORD Address Space
+Descriptors.  Previously we ignored the resource_type, so I/O ports and bus
+number ranges were incorrectly parsed as memory ranges.
 
-I audited all callers of acpi_bus_register_driver(), and except asus_acpi.c
-and sonypi.c (fixed in previous patches), all either ignore the return value
-or test only for failure (<0).
+Sample PCI root bridge resources from HP rx2600 before this patch:
+
+    # cat /sys/bus/pnp/devices/00:02/resources
+    state = active
+    mem 0x0-0x1f
+    mem 0x0-0x3af
+    mem 0x3e0-0x1fff
+    mem 0x80000000-0x8fffffff
+
+With this patch:
+
+    # cat /sys/bus/pnp/devices/00:02/resources
+    state = active
+    io 0x0-0x3af
+    io 0x3e0-0x1fff
+    mem 0x80000000-0x8fffffff
+    mem 0x80004000000-0x80103fffffe
+
+Changes:
+    0x0-0x1f PCI bus number range was incorrectly reported as memory, now
+	not reported at all
+    0x0-0x3af I/O port range was incorrectly reported as memory
+    0x3e0-0x1fff I/O port range was incorrectly reported as memory
+    0x80004000000-0x80103fffffe memory range wasn't reported at all because
+	we only support PNP_MAX_MEM (4) memory resources
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/scan.c |   16 +++++-----------
- 1 files changed, 5 insertions(+), 11 deletions(-)
+ drivers/pnp/pnpacpi/rsparser.c |   35 ++++++++++++++++++++-----------
+ 1 files changed, 23 insertions(+), 12 deletions(-)
 
-diff -puN drivers/acpi/scan.c~acpi-make-acpi_bus_register_driver-return-success-failure-not-device-count drivers/acpi/scan.c
---- devel/drivers/acpi/scan.c~acpi-make-acpi_bus_register_driver-return-success-failure-not-device-count	2006-03-07 23:47:10.000000000 -0800
-+++ devel-akpm/drivers/acpi/scan.c	2006-03-07 23:47:10.000000000 -0800
-@@ -549,10 +549,9 @@ static int acpi_start_single_object(stru
- 	return_VALUE(result);
- }
+diff -puN drivers/pnp/pnpacpi/rsparser.c~pnpacpi-fix-non-memory-address-space-descriptor-handling drivers/pnp/pnpacpi/rsparser.c
+--- devel/drivers/pnp/pnpacpi/rsparser.c~pnpacpi-fix-non-memory-address-space-descriptor-handling	2006-03-07 23:47:09.000000000 -0800
++++ devel-akpm/drivers/pnp/pnpacpi/rsparser.c	2006-03-07 23:47:09.000000000 -0800
+@@ -120,7 +120,7 @@ pnpacpi_parse_allocated_dmaresource(stru
  
--static int acpi_driver_attach(struct acpi_driver *drv)
-+static void acpi_driver_attach(struct acpi_driver *drv)
+ static void
+ pnpacpi_parse_allocated_ioresource(struct pnp_resource_table * res,
+-	u32 io, u32 len)
++	u64 io, u64 len)
  {
- 	struct list_head *node, *next;
--	int count = 0;
- 
- 	ACPI_FUNCTION_TRACE("acpi_driver_attach");
- 
-@@ -569,7 +568,6 @@ static int acpi_driver_attach(struct acp
- 			if (!acpi_bus_driver_init(dev, drv)) {
- 				acpi_start_single_object(dev);
- 				atomic_inc(&drv->references);
--				count++;
- 				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 						  "Found driver [%s] for device [%s]\n",
- 						  drv->name, dev->pnp.bus_id));
-@@ -578,7 +576,6 @@ static int acpi_driver_attach(struct acp
- 		spin_lock(&acpi_device_lock);
+ 	int i = 0;
+ 	while (!(res->port_resource[i].flags & IORESOURCE_UNSET) &&
+@@ -156,6 +156,27 @@ pnpacpi_parse_allocated_memresource(stru
  	}
- 	spin_unlock(&acpi_device_lock);
--	return_VALUE(count);
  }
  
- static int acpi_driver_detach(struct acpi_driver *drv)
-@@ -611,14 +608,11 @@ static int acpi_driver_detach(struct acp
-  * @driver: driver being registered
-  *
-  * Registers a driver with the ACPI bus.  Searches the namespace for all
-- * devices that match the driver's criteria and binds.  Returns the
-- * number of devices that were claimed by the driver, or a negative
-- * error status for failure.
-+ * devices that match the driver's criteria and binds.  Returns zero for
-+ * success or a negative error status for failure.
-  */
- int acpi_bus_register_driver(struct acpi_driver *driver)
- {
--	int count;
--
- 	ACPI_FUNCTION_TRACE("acpi_bus_register_driver");
++static void
++pnpacpi_parse_allocated_address_space(struct pnp_resource_table *res_table,
++	struct acpi_resource *res)
++{
++	struct acpi_resource_address64 addr, *p = &addr;
++	acpi_status status;
++
++	status = acpi_resource_to_address64(res, p);
++	if (!ACPI_SUCCESS(status)) {
++		pnp_warn("PnPACPI: failed to convert resource type %d",
++			res->type);
++		return;
++	}
++
++	if (p->resource_type == ACPI_MEMORY_RANGE)
++		pnpacpi_parse_allocated_memresource(res_table,
++				p->minimum, p->address_length);
++	else if (p->resource_type == ACPI_IO_RANGE)
++		pnpacpi_parse_allocated_ioresource(res_table,
++				p->minimum, p->address_length);
++}
  
- 	if (acpi_disabled)
-@@ -630,9 +624,9 @@ int acpi_bus_register_driver(struct acpi
- 	spin_lock(&acpi_device_lock);
- 	list_add_tail(&driver->node, &acpi_bus_drivers);
- 	spin_unlock(&acpi_device_lock);
--	count = acpi_driver_attach(driver);
-+	acpi_driver_attach(driver);
+ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
+ 	void *data)
+@@ -221,19 +242,9 @@ static acpi_status pnpacpi_allocated_res
+ 				res->data.fixed_memory32.address_length);
+ 		break;
+ 	case ACPI_RESOURCE_TYPE_ADDRESS16:
+-		pnpacpi_parse_allocated_memresource(res_table,
+-				res->data.address16.minimum,
+-				res->data.address16.address_length);
+-		break;
+ 	case ACPI_RESOURCE_TYPE_ADDRESS32:
+-		pnpacpi_parse_allocated_memresource(res_table,
+-				res->data.address32.minimum,
+-				res->data.address32.address_length);
+-		break;
+ 	case ACPI_RESOURCE_TYPE_ADDRESS64:
+-		pnpacpi_parse_allocated_memresource(res_table,
+-		res->data.address64.minimum,
+-		res->data.address64.address_length);
++		pnpacpi_parse_allocated_address_space(res_table, res);
+ 		break;
  
--	return_VALUE(count);
-+	return_VALUE(0);
- }
- 
- EXPORT_SYMBOL(acpi_bus_register_driver);
+ 	case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64:
 _
