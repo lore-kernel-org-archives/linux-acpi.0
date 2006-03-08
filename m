@@ -1,85 +1,75 @@
 From: akpm@osdl.org
-Subject: [patch 16/22] acpi_os_acquire_object (GFP_KERNEL) called with IRQs disabled through suspend-resume
-Date: Tue, 07 Mar 2006 23:49:42 -0800
-Message-ID: <200603080751.k287pVM0000994@shell0.pdx.osdl.net>
+Subject: [patch 14/22] ACPI: fix memory hotplug range length handling
+Date: Tue, 07 Mar 2006 23:49:40 -0800
+Message-ID: <200603080751.k287pTBJ000987@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:56481 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1752089AbWCHHvg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Mar 2006 02:51:36 -0500
+Received: from smtp.osdl.org ([65.172.181.4]:58273 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1752091AbWCHHvh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Mar 2006 02:51:37 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, davi.arnaut@gmail.com, pavel@ucw.cz
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, bjorn.helgaas@hp.com
 
 
-From: Davi Arnaut <davi.arnaut@gmail.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-acpi_os_acquire_object() gets called, with IRQs disabled, from:
+Address space descriptors contain _MIN, _MAX, and _LEN.  _MIN and _MAX are
+the bounds within which the region can be moved (this is clarified in Table
+6-38 of the ACPI 3.0 spec).  We should use _LEN to determine the size of
+the region, not _MAX - _MIN + 1.
 
-Debug: sleeping function called from invalid context at mm/slab.c:2499
-in_atomic():0, irqs_disabled():1
- [<c01462f3>] kmem_cache_alloc+0x40/0x4f     [<c0202c85>] acpi_os_acquire_object+0xb/0x3c
- [<c02171b1>] acpi_ut_allocate_object_desc_dbg+0x13/0x49     [<c021704b>] acpi_ut_create_internal_object_dbg+0xf/0x5e
- [<c02136d4>] acpi_rs_set_srs_method_data+0x3d/0xb9     [<c021aa3d>] acpi_pci_link_set+0x102/0x17b
- [<c021aecb>] irqrouter_resume+0x1e/0x3c     [<c024d921>] __sysdev_resume+0x11/0x6b
- [<c024dbde>] sysdev_resume+0x34/0x52     [<c0251cb7>] device_power_up+0x5/0xa
- [<c0138787>] suspend_enter+0x44/0x46     [<c01386e5>] suspend_prepare+0x63/0xc1
- [<c0138813>] enter_state+0x5e/0x7c     [<c013894c>] state_store+0x81/0x8f
- [<c01388cb>] state_store+0x0/0x8f     [<c0196a0a>] subsys_attr_store+0x1e/0x22
- [<c0196c12>] flush_write_buffer+0x22/0x28     [<c0196c64>] sysfs_write_file+0x4c/0x71
- [<c0196c18>] sysfs_write_file+0x0/0x71     [<c015b2c9>] vfs_write+0xa2/0x15a
- [<c015b42c>] sys_write+0x41/0x6a     [<c0102e75>] syscall_call+0x7/0xb
-
-The patch also fixes a missing check for NULL return from
-acpi_os_acquire_object().
-
-Signed-off-by: Davi Arnaut <davi.arnaut@gmail.com>
-Cc: "Brown, Len" <len.brown@intel.com>
-Cc: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/osl.c            |    7 ++++++-
- drivers/acpi/parser/psutils.c |    8 ++++++--
- 2 files changed, 12 insertions(+), 3 deletions(-)
+ drivers/acpi/acpi_memhotplug.c |   12 +++++-------
+ 1 files changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN drivers/acpi/osl.c~acpi_os_acquire_object-gfp_kernel-called-with-irqs drivers/acpi/osl.c
---- devel/drivers/acpi/osl.c~acpi_os_acquire_object-gfp_kernel-called-with-irqs	2006-03-07 23:47:11.000000000 -0800
-+++ devel-akpm/drivers/acpi/osl.c	2006-03-07 23:47:11.000000000 -0800
-@@ -1175,7 +1175,12 @@ acpi_status acpi_os_release_object(acpi_
+diff -puN drivers/acpi/acpi_memhotplug.c~acpi-fix-memory-hotplug-range-length-handling drivers/acpi/acpi_memhotplug.c
+--- devel/drivers/acpi/acpi_memhotplug.c~acpi-fix-memory-hotplug-range-length-handling	2006-03-07 23:47:10.000000000 -0800
++++ devel-akpm/drivers/acpi/acpi_memhotplug.c	2006-03-07 23:47:10.000000000 -0800
+@@ -74,7 +74,7 @@ struct acpi_memory_device {
+ 	unsigned short caching;	/* memory cache attribute */
+ 	unsigned short write_protect;	/* memory read/write attribute */
+ 	u64 start_addr;		/* Memory Range start physical addr */
+-	u64 end_addr;		/* Memory Range end physical addr */
++	u64 length;		/* Memory Range length */
+ };
  
- void *acpi_os_acquire_object(acpi_cache_t * cache)
- {
--	void *object = kmem_cache_alloc(cache, GFP_KERNEL);
-+	void *object;
-+
-+	if (acpi_in_resume)
-+		object = kmem_cache_alloc(cache, GFP_ATOMIC);
-+	else
-+		object = kmem_cache_alloc(cache, GFP_KERNEL);
- 	WARN_ON(!object);
- 	return object;
- }
-diff -puN drivers/acpi/parser/psutils.c~acpi_os_acquire_object-gfp_kernel-called-with-irqs drivers/acpi/parser/psutils.c
---- devel/drivers/acpi/parser/psutils.c~acpi_os_acquire_object-gfp_kernel-called-with-irqs	2006-03-07 23:47:11.000000000 -0800
-+++ devel-akpm/drivers/acpi/parser/psutils.c	2006-03-07 23:47:11.000000000 -0800
-@@ -139,12 +139,16 @@ union acpi_parse_object *acpi_ps_alloc_o
- 		/* The generic op (default) is by far the most common (16 to 1) */
- 
- 		op = acpi_os_acquire_object(acpi_gbl_ps_node_cache);
--		memset(op, 0, sizeof(struct acpi_parse_obj_common));
-+
-+		if (op)
-+			memset(op, 0, sizeof(struct acpi_parse_obj_common));
- 	} else {
- 		/* Extended parseop */
- 
- 		op = acpi_os_acquire_object(acpi_gbl_ps_node_ext_cache);
--		memset(op, 0, sizeof(struct acpi_parse_obj_named));
-+
-+		if (op)
-+			memset(op, 0, sizeof(struct acpi_parse_obj_named));
+ static int
+@@ -97,12 +97,11 @@ acpi_memory_get_device_resources(struct 
+ 	if (ACPI_SUCCESS(status)) {
+ 		if (address64.resource_type == ACPI_MEMORY_RANGE) {
+ 			/* Populate the structure */
+-			mem_device->caching =
+-			    address64.info.mem.caching;
++			mem_device->caching = address64.info.mem.caching;
+ 			mem_device->write_protect =
+ 			    address64.info.mem.write_protect;
+ 			mem_device->start_addr = address64.minimum;
+-			mem_device->end_addr = address64.maximum;
++			mem_device->length = address64.address_length;
+ 		}
  	}
  
- 	/* Initialize the Op */
+@@ -197,8 +196,7 @@ static int acpi_memory_enable_device(str
+ 	 * Tell the VM there is more memory here...
+ 	 * Note: Assume that this function returns zero on success
+ 	 */
+-	result = add_memory(mem_device->start_addr,
+-			    (mem_device->end_addr - mem_device->start_addr) + 1);
++	result = add_memory(mem_device->start_addr, mem_device->length);
+ 	if (result) {
+ 		ACPI_ERROR((AE_INFO, "add_memory failed"));
+ 		mem_device->state = MEMORY_INVALID_STATE;
+@@ -247,7 +245,7 @@ static int acpi_memory_disable_device(st
+ {
+ 	int result;
+ 	u64 start = mem_device->start_addr;
+-	u64 len = mem_device->end_addr - start + 1;
++	u64 len = mem_device->length;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_memory_disable_device");
+ 
 _
