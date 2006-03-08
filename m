@@ -1,124 +1,156 @@
 From: akpm@osdl.org
-Subject: [patch 03/22] sem2mutex: acpi, acpi_link_lock
-Date: Tue, 07 Mar 2006 23:49:30 -0800
-Message-ID: <200603080751.k287pJXS000954@shell0.pdx.osdl.net>
+Subject: [patch 17/22] acpi: ia64: wake on LAN fix
+Date: Tue, 07 Mar 2006 23:49:43 -0800
+Message-ID: <200603080751.k287pW21000997@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:42657 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1751772AbWCHHvY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Mar 2006 02:51:24 -0500
+Received: from smtp.osdl.org ([65.172.181.4]:58529 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1752098AbWCHHvi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Mar 2006 02:51:38 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, mingo@elte.hu
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, takeuchi_satoru@jp.fujitsu.com, tony.luck@intel.com
 
 
-From: Ingo Molnar <mingo@elte.hu>
+From: Satoru Takeuchi <takeuchi_satoru@jp.fujitsu.com>
 
-Semaphore to mutex conversion.
+Currently wakeup capability is available if and only if
+CONFIG_ACPI_SLEEP=y.  But S5 is not a sleep state.  This patch makes ACPI
+subsystem to be able to wakeup from S5 state even if sleep mode is not
+supported.
 
-The conversion was generated via scripts, and the result was validated
-automatically via a script as well.
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Satoru Takeuchi <takeuchi_satoru@jp.fujitsu.com>
+Cc: "Brown, Len" <len.brown@intel.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/pci_link.c |   25 +++++++++++++------------
- 1 files changed, 13 insertions(+), 12 deletions(-)
+ drivers/acpi/sleep/Makefile   |    3 +--
+ drivers/acpi/sleep/poweroff.c |    1 +
+ drivers/acpi/sleep/proc.c     |   16 ++++++++++++++++
+ drivers/acpi/sleep/wakeup.c   |    2 ++
+ 4 files changed, 20 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/pci_link.c~sem2mutex-acpi-acpi_link_lock drivers/acpi/pci_link.c
---- devel/drivers/acpi/pci_link.c~sem2mutex-acpi-acpi_link_lock	2006-03-07 23:47:08.000000000 -0800
-+++ devel-akpm/drivers/acpi/pci_link.c	2006-03-07 23:47:08.000000000 -0800
-@@ -38,6 +38,7 @@
- #include <linux/spinlock.h>
- #include <linux/pm.h>
- #include <linux/pci.h>
-+#include <linux/mutex.h>
+diff -puN drivers/acpi/sleep/Makefile~acpi-ia64-wake-on-lan-fix drivers/acpi/sleep/Makefile
+--- devel/drivers/acpi/sleep/Makefile~acpi-ia64-wake-on-lan-fix	2006-03-07 23:47:11.000000000 -0800
++++ devel-akpm/drivers/acpi/sleep/Makefile	2006-03-07 23:47:11.000000000 -0800
+@@ -1,5 +1,4 @@
+-obj-y					:= poweroff.o wakeup.o
++obj-y					:= poweroff.o wakeup.o proc.o
+ obj-$(CONFIG_ACPI_SLEEP)		+= main.o
+-obj-$(CONFIG_ACPI_SLEEP_PROC_FS)	+= proc.o
  
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
-@@ -91,7 +92,7 @@ static struct {
- 	int count;
- 	struct list_head entries;
- } acpi_link;
--DECLARE_MUTEX(acpi_link_lock);
-+DEFINE_MUTEX(acpi_link_lock);
+ EXTRA_CFLAGS += $(ACPI_CFLAGS)
+diff -puN drivers/acpi/sleep/poweroff.c~acpi-ia64-wake-on-lan-fix drivers/acpi/sleep/poweroff.c
+--- devel/drivers/acpi/sleep/poweroff.c~acpi-ia64-wake-on-lan-fix	2006-03-07 23:47:11.000000000 -0800
++++ devel-akpm/drivers/acpi/sleep/poweroff.c	2006-03-07 23:47:11.000000000 -0800
+@@ -45,6 +45,7 @@ void acpi_power_off(void)
+ 	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
+ 	printk("%s called\n", __FUNCTION__);
+ 	local_irq_disable();
++	acpi_enable_wakeup_device(ACPI_STATE_S5);
+ 	/* Some SMP machines only can poweroff in boot CPU */
+ 	acpi_enter_sleep_state(ACPI_STATE_S5);
+ }
+diff -puN drivers/acpi/sleep/proc.c~acpi-ia64-wake-on-lan-fix drivers/acpi/sleep/proc.c
+--- devel/drivers/acpi/sleep/proc.c~acpi-ia64-wake-on-lan-fix	2006-03-07 23:47:11.000000000 -0800
++++ devel-akpm/drivers/acpi/sleep/proc.c	2006-03-07 23:47:11.000000000 -0800
+@@ -70,6 +70,7 @@ acpi_system_write_sleep(struct file *fil
+ }
+ #endif				/* CONFIG_ACPI_SLEEP_PROC_SLEEP */
  
- /* --------------------------------------------------------------------------
-                             PCI Link Device Management
-@@ -634,19 +635,19 @@ acpi_pci_link_allocate_irq(acpi_handle h
- 		return_VALUE(-1);
- 	}
++#ifdef	CONFIG_ACPI_SLEEP
+ static int acpi_system_alarm_seq_show(struct seq_file *seq, void *offset)
+ {
+ 	u32 sec, min, hr;
+@@ -339,6 +340,7 @@ acpi_system_write_alarm(struct file *fil
+       end:
+ 	return_VALUE(result ? result : count);
+ }
++#endif				/* CONFIG_ACPI_SLEEP */
  
--	down(&acpi_link_lock);
-+	mutex_lock(&acpi_link_lock);
- 	if (acpi_pci_link_allocate(link)) {
--		up(&acpi_link_lock);
-+		mutex_unlock(&acpi_link_lock);
- 		return_VALUE(-1);
- 	}
+ extern struct list_head acpi_wakeup_device_list;
+ extern spinlock_t acpi_device_lock;
+@@ -357,6 +359,10 @@ acpi_system_wakeup_device_seq_show(struc
  
- 	if (!link->irq.active) {
--		up(&acpi_link_lock);
-+		mutex_unlock(&acpi_link_lock);
- 		ACPI_ERROR((AE_INFO, "Link active IRQ is 0!"));
- 		return_VALUE(-1);
- 	}
- 	link->refcnt++;
--	up(&acpi_link_lock);
-+	mutex_unlock(&acpi_link_lock);
+ 		if (!dev->wakeup.flags.valid)
+ 			continue;
++#ifndef CONFIG_ACPI_SLEEP
++		if (dev->wakeup.sleep_state != ACPI_STATE_S5)
++			continue;
++#endif
+ 		spin_unlock(&acpi_device_lock);
+ 		seq_printf(seq, "%4s	%4d		%s%8s\n",
+ 			   dev->pnp.bus_id,
+@@ -394,6 +400,10 @@ acpi_system_write_wakeup_device(struct f
+ 		    container_of(node, struct acpi_device, wakeup_list);
+ 		if (!dev->wakeup.flags.valid)
+ 			continue;
++#ifndef CONFIG_ACPI_SLEEP
++		if (dev->wakeup.sleep_state != ACPI_STATE_S5)
++			continue;
++#endif
  
- 	if (triggering)
- 		*triggering = link->irq.triggering;
-@@ -684,9 +685,9 @@ int acpi_pci_link_free_irq(acpi_handle h
- 		return_VALUE(-1);
- 	}
+ 		if (!strncmp(dev->pnp.bus_id, str, 4)) {
+ 			dev->wakeup.state.enabled =
+@@ -452,6 +462,7 @@ static struct file_operations acpi_syste
+ };
+ #endif				/* CONFIG_ACPI_SLEEP_PROC_SLEEP */
  
--	down(&acpi_link_lock);
-+	mutex_lock(&acpi_link_lock);
- 	if (!link->irq.initialized) {
--		up(&acpi_link_lock);
-+		mutex_unlock(&acpi_link_lock);
- 		ACPI_ERROR((AE_INFO, "Link isn't initialized"));
- 		return_VALUE(-1);
- 	}
-@@ -709,7 +710,7 @@ int acpi_pci_link_free_irq(acpi_handle h
- 	if (link->refcnt == 0) {
- 		acpi_ut_evaluate_object(link->handle, "_DIS", 0, NULL);
- 	}
--	up(&acpi_link_lock);
-+	mutex_unlock(&acpi_link_lock);
- 	return_VALUE(link->irq.active);
++#ifdef	CONFIG_ACPI_SLEEP
+ static struct file_operations acpi_system_alarm_fops = {
+ 	.open = acpi_system_alarm_open_fs,
+ 	.read = seq_read,
+@@ -467,6 +478,7 @@ static u32 rtc_handler(void *context)
+ 
+ 	return ACPI_INTERRUPT_HANDLED;
+ }
++#endif				/* CONFIG_ACPI_SLEEP */
+ 
+ static int acpi_sleep_proc_init(void)
+ {
+@@ -484,12 +496,14 @@ static int acpi_sleep_proc_init(void)
+ 		entry->proc_fops = &acpi_system_sleep_fops;
+ #endif
+ 
++#ifdef	CONFIG_ACPI_SLEEP
+ 	/* 'alarm' [R/W] */
+ 	entry =
+ 	    create_proc_entry("alarm", S_IFREG | S_IRUGO | S_IWUSR,
+ 			      acpi_root_dir);
+ 	if (entry)
+ 		entry->proc_fops = &acpi_system_alarm_fops;
++#endif
+ 
+ 	/* 'wakeup device' [R/W] */
+ 	entry =
+@@ -498,7 +512,9 @@ static int acpi_sleep_proc_init(void)
+ 	if (entry)
+ 		entry->proc_fops = &acpi_system_wakeup_device_fops;
+ 
++#ifdef	CONFIG_ACPI_SLEEP
+ 	acpi_install_fixed_event_handler(ACPI_EVENT_RTC, rtc_handler, NULL);
++#endif
+ 	return 0;
  }
  
-@@ -740,7 +741,7 @@ static int acpi_pci_link_add(struct acpi
- 	strcpy(acpi_device_class(device), ACPI_PCI_LINK_CLASS);
- 	acpi_driver_data(device) = link;
+diff -puN drivers/acpi/sleep/wakeup.c~acpi-ia64-wake-on-lan-fix drivers/acpi/sleep/wakeup.c
+--- devel/drivers/acpi/sleep/wakeup.c~acpi-ia64-wake-on-lan-fix	2006-03-07 23:47:11.000000000 -0800
++++ devel-akpm/drivers/acpi/sleep/wakeup.c	2006-03-07 23:47:11.000000000 -0800
+@@ -48,6 +48,7 @@ void acpi_enable_wakeup_device_prep(u8 s
+ 	}
+ 	spin_unlock(&acpi_device_lock);
+ }
++#endif
  
--	down(&acpi_link_lock);
-+	mutex_lock(&acpi_link_lock);
- 	result = acpi_pci_link_get_possible(link);
- 	if (result)
- 		goto end;
-@@ -775,7 +776,7 @@ static int acpi_pci_link_add(struct acpi
-       end:
- 	/* disable all links -- to be activated on use */
- 	acpi_ut_evaluate_object(link->handle, "_DIS", 0, NULL);
--	up(&acpi_link_lock);
-+	mutex_unlock(&acpi_link_lock);
+ /**
+  * acpi_enable_wakeup_device - enable wakeup devices
+@@ -100,6 +101,7 @@ void acpi_enable_wakeup_device(u8 sleep_
+ 	spin_unlock(&acpi_device_lock);
+ }
  
- 	if (result)
- 		kfree(link);
-@@ -829,9 +830,9 @@ static int acpi_pci_link_remove(struct a
- 
- 	link = (struct acpi_pci_link *)acpi_driver_data(device);
- 
--	down(&acpi_link_lock);
-+	mutex_lock(&acpi_link_lock);
- 	list_del(&link->node);
--	up(&acpi_link_lock);
-+	mutex_unlock(&acpi_link_lock);
- 
- 	kfree(link);
- 
++#ifdef CONFIG_ACPI_SLEEP
+ /**
+  * acpi_disable_wakeup_device - disable devices' wakeup capability
+  *	@sleep_state:	ACPI state
 _
