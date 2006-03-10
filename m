@@ -1,49 +1,62 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: [Pcihpd-discuss] question on what is ejectable?
-Date: Fri, 10 Mar 2006 11:28:58 +0900
-Message-ID: <4410E46A.8050409@jp.fujitsu.com>
-References: <1141851331.32163.26.camel@whizzy>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
+From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Subject: Re: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
+Date: Fri, 10 Mar 2006 00:26:14 -0500
+Message-ID: <E1FHa8k-00015b-M5@approximate.corpus.cam.ac.uk>
+References: <3ACA40606221794F80A5670F0AF15F840B0CE273@pdsmsx403>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:35032 "EHLO
-	fgwmail7.fujitsu.co.jp") by vger.kernel.org with ESMTP
-	id S1752117AbWCJCai (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Mar 2006 21:30:38 -0500
-Received: from m5.gw.fujitsu.co.jp ([10.0.50.75])
-        by fgwmail7.fujitsu.co.jp (Fujitsu Gateway)
-        with ESMTP id k2A2UZh1022913 for <linux-acpi@vger.kernel.org>; Fri, 10 Mar 2006 11:30:36 +0900
-        (envelope-from kaneshige.kenji@jp.fujitsu.com)
-Received: from s6.gw.fujitsu.co.jp by m5.gw.fujitsu.co.jp (8.12.10/Fujitsu Domain Master)
-	id k2A2UY5o029090 for <linux-acpi@vger.kernel.org>; Fri, 10 Mar 2006 11:30:34 +0900
-	(envelope-from kaneshige.kenji@jp.fujitsu.com)
-Received: from s6.gw.fujitsu.co.jp (s6 [127.0.0.1])
-	by s6.gw.fujitsu.co.jp (Postfix) with ESMTP id 1F70A29C132
-	for <linux-acpi@vger.kernel.org>; Fri, 10 Mar 2006 11:30:34 +0900 (JST)
-Received: from ml6.s.css.fujitsu.com (ml6.s.css.fujitsu.com [10.23.4.196])
-	by s6.gw.fujitsu.co.jp (Postfix) with ESMTP id 09D1629C34D
-	for <linux-acpi@vger.kernel.org>; Fri, 10 Mar 2006 11:30:33 +0900 (JST)
-In-Reply-To: <1141851331.32163.26.camel@whizzy>
+Received: from smtpauth07.mail.atl.earthlink.net ([209.86.89.67]:43922 "EHLO
+	smtpauth07.mail.atl.earthlink.net") by vger.kernel.org with ESMTP
+	id S1750741AbWCJF2G (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Mar 2006 00:28:06 -0500
+In-Reply-To: Your message of "Mon, 27 Feb 2006 17:04:15 +0800."
+             <3ACA40606221794F80A5670F0AF15F840B0CE273@pdsmsx403>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kristen Accardi <kristen.c.accardi@intel.com>
-Cc: linux-acpi@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net
+To: "Yu, Luming" <luming.yu@intel.com>
+Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, linux-input@atrey.karlin.mff.cuni.cz, Meelis Roos <mroos@linux.ee>
 
-Kristen Accardi wrote:
-> I notice in the acpi_bus_get_flags() function ejectable is defined as
-> anything that has either _EJ0 or _EJD.  However, the acpi pci hotplug
-> driver defines an ejectable slot as being one which must have (among
-> other things) _EJ0.  Is it legitimate to change the definition of an
-> ejectable slot to be one that has either _EJ0 or _EJD (in addition to
-> the other requirements for pci hotplug slots).
-> 
+[Re: bugme #5989, head no longer hanging in shame]
 
-As the acpi_bus_get_flags() does, I think "ejectable device" is defined
-as anything that has either _EJ0 or _EJD. But I don't think the device
-is "ejectable slot" if it has _EJD but it doesn't have _EJ0. If an eject
-request was notified to such devices, I don't know how to eject those.
-I think one of the requirements for pci hotplug slots is having _EJ0.
+From: "Yu, Luming" <luming.yu@intel.com>
+> I suggest you to retest, and post dmesg with UN-modified BIOS.
 
-Thanks,
-Kenji Kaneshige
+I'm now running/testing an unmodified DSDT with 2.6.16-rc5.  For a while
+I had no S3 hangs, but I just noticed them again.  The error is the same
+as with the modified DSDT (with slightly different offsets):
+
+exregion-0185 [36] ex_system_memory_space: system_memory 0 (32 width) Address=0000000023FDFFC0
+exregion-0185 [36] ex_system_memory_space: system_memory 1 (32 width) Address=0000000023FDFFC0
+exregion-0290 [36] ex_system_io_space_han: system_iO 1 (8 width) Address=00000000000000B2
+
+repeated endlessly.
+
+I think the problem resurfaced once I decided to let my sleep.sh script
+leave the thermal driver loaded before going into S3 (suspecting that
+the bug might come back if I did that).
+
+So I susect that my modified DSDT didn't cause the S3 problems, it
+merely exposed one even in the minimal configuration discussed in the
+#5989 report.
+
+Which makes me wonder about another bug that disappeared when I switched
+to the vanilla DSDT: While printing (via gs+hpijs to an HP photosmart
+2710 via the wireless card), the system makes double-beeps as if it were
+having the AC adapter plugged and unplugged.  These noises happen when
+printing via the wireless card or via USB (to a different HP inkjet),
+but not when printing via the parallel port to a Lexmark laserprinter
+(using just gs).  Since I didn't do anything to the battery code in the
+DSDT, I now wonder whether changing the DSDT merely exposed the issue
+but didn't create it.
+
+[From an earlier msg:]
+> I think the truth is, for 5989, we need to fix thermal and processor
+> driver issue.
+
+I agree, although I think the processor driver is not the culprit.  My
+earlier testing with the (with the modified DSDT) worked fine with the
+processor module loaded, but hung with processor + thermal loaded.
+
+-Sanjoy
+
+`A society of sheep must in time beget a government of wolves.'
+   - Bertrand de Jouvenal
