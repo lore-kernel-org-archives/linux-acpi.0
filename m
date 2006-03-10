@@ -1,135 +1,58 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: acpi resume
-Date: Fri, 10 Mar 2006 14:02:46 -0500
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30065968E6@hdsmsx401.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Subject: Re: acpi resume
+Date: Fri, 10 Mar 2006 23:47:16 +0000
+Message-ID: <E1FHrKG-0007Rr-00@skye.ra.phy.cam.ac.uk>
+References: <F7DC2337C7631D4386A2DF6E8FB22B30065968E6@hdsmsx401.amr.corp.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr18.intel.com ([134.134.136.17]:57570 "EHLO
-	orsfmr003.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1750976AbWCJTDC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Mar 2006 14:03:02 -0500
-Content-class: urn:content-classes:message
+Received: from mraos.ra.phy.cam.ac.uk ([131.111.48.8]:11410 "EHLO
+	mraos.ra.phy.cam.ac.uk") by vger.kernel.org with ESMTP
+	id S1752254AbWCJXrX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Mar 2006 18:47:23 -0500
+In-Reply-To: Your message of "Fri, 10 Mar 2006 14:02:46 EST."
+             <F7DC2337C7631D4386A2DF6E8FB22B30065968E6@hdsmsx401.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: Stelian Pop <stelian@popies.net>, linux-acpi@vger.kernel.org, Patrick Mochel <mochel@linux.intel.com>
+To: "Brown, Len" <len.brown@intel.com>
+Cc: Andrew Morton <akpm@osdl.org>, Stelian Pop <stelian@popies.net>, linux-acpi@vger.kernel.org, Patrick Mochel <mochel@linux.intel.com>
 
->So I thought I'd get cunning and make the Vaio's screen restore the
->brightness after s2r:
->
->--- devel/drivers/acpi/sony_acpi.c~sony_apci-resume	
->2006-03-10 03:39:06.000000000 -0800
->+++ devel-akpm/drivers/acpi/sony_acpi.c	2006-03-10 
->03:44:42.000000000 -0800
->@@ -46,19 +46,6 @@ module_param(debug, int, 0);
-> MODULE_PARM_DESC(debug, "set this to 1 (and RTFM) if you want 
->to help "
-> 			"the development of this driver");
-> 
->-static int sony_acpi_add (struct acpi_device *device);
->-static int sony_acpi_remove (struct acpi_device *device, int type);
->-
->-static struct acpi_driver sony_acpi_driver = {
->-	.name	= ACPI_SNC_DRIVER_NAME,
->-	.class	= ACPI_SNC_CLASS,
->-	.ids	= ACPI_SNC_HID,
->-	.ops	= {
->-			.add	= sony_acpi_add,
->-			.remove	= sony_acpi_remove,
->-		  },
->-};
->-
-> static acpi_handle sony_acpi_handle;
-> static struct proc_dir_entry *sony_acpi_dir;
-> 
->@@ -69,6 +56,8 @@ static struct sony_acpi_value {
-> 	char			*acpiset;/* name of the ACPI 
->get function */
-> 	int 			min;	 /* minimum allowed 
->value or -1 */
-> 	int			max;	 /* maximum allowed 
->value or -1 */
->+	int			value;	 /* current setting */
->+	int			valid;	 /* Has ever been set */
-> 	int			debug;	 /* active only in 
->debug mode ? */
-> } sony_acpi_values[] = {
-> 	{
->@@ -234,10 +223,31 @@ static int sony_acpi_write(struct file *
-> 
-> 	if (acpi_callsetfunc(sony_acpi_handle, item->acpiset, 
->value, NULL) < 0)
-> 		return -EIO;
->-
->+	item->value = value;
->+	item->valid = 1;
-> 	return count;
-> }
-> 
->+static int sony_acpi_resume(struct acpi_device *device, int state)
->+{
->+	struct sony_acpi_value *item;
->+
->+	printk("%s\n", __FUNCTION__);
->+	for (item = sony_acpi_values; item->name; item++) {
->+		int ret;
->+
->+		if (!item->valid)
->+			continue;
->+		ret = acpi_callsetfunc(sony_acpi_handle, item->acpiset,
->+					item->value, NULL);
->+		if (ret < 0) {
->+			printk("%s: %d\n", __FUNCTION__, ret);
->+			break;
->+		}
->+	}
->+	return 0;
->+}
->+
-> static void sony_acpi_notify(acpi_handle handle, u32 event, 
->void *data)
-> {
-> 	printk(LOG_PFX "sony_acpi_notify\n");
->@@ -339,7 +349,6 @@ outwalk:
-> 	return result;
-> }
-> 
->-
-> static int sony_acpi_remove(struct acpi_device *device, int type)
-> {
-> 	acpi_status status;
->@@ -362,6 +371,17 @@ static int sony_acpi_remove(struct acpi_
-> 	return 0;
-> }
-> 
->+static struct acpi_driver sony_acpi_driver = {
->+	.name	= ACPI_SNC_DRIVER_NAME,
->+	.class	= ACPI_SNC_CLASS,
->+	.ids	= ACPI_SNC_HID,
->+	.ops	= {
->+			.add	= sony_acpi_add,
->+			.remove	= sony_acpi_remove,
->+			.resume = sony_acpi_resume,
->+		  },
->+};
->+
-> static int __init sony_acpi_init(void)
-> {
-> 	int result;
->_
->
->
->But afaict, core ACPI never calls that resume method :(
+> The "acpi drivers" themselves don't have suspend/resume methods yet.
+> Others need them too, the biggest is the button driver that needs to
+> forget events that happened during suspend, and the next one is
+> probably thermal, which doesn't restore the user-supplied
+> trip-points.
 
-The "acpi drivers" themselves don't have suspend/resume methods yet.
-Others need them too, the biggest is the button driver
-that needs to forget events that happened during suspend,
-and the next one is probably thermal, which doesn't
-restore the user-supplied trip-points.
+The change to therml would fix at least one issue (4364).  Also 'fan',
+at least on my TP 600X with the modified DSDT (have to try it with the
+vanilla DSDT), would benefit from resume magic to make its idea of the
+fan state matches the actual fan state.  
 
-I think acpi/sysfs patch Patrick is working on is supposed
-to address this framework issue.
+Here's how the problem shows up.  When the machine is running hot, you
+put it to sleep, and the hardware shuts off the fan maybe without all
+software knowing that it's off.  You wake it up soon, while it is
+still warm enough that the fan should be on.  The ACPI drivers will
+think that the fan is on, since it got turned off underneath them, and
+not try to turn the fan on.  So the machine get ever warmer with no
+fan, which is a bit dangerous.  
 
--Len
+Matthew Garret suggested a workaround [msg of Thu, 16 Feb 2006
+17:30:47 GMT, 'Re: confused fan after S3 resume (TP 600X)']:
+
+  here's what I have in the Ubuntu resume script:
+
+  for x in /proc/acpi/fan/*; do
+      if [ "`grep on $x/state`" ]; then
+	  echo -n 3 > $x/state;
+	  echo -n 0 > $x/state;
+      fi
+  done
+
+However, that didn't turn the fan on here.  Instead, upon wake I set
+the trip point high so that the system turns off the fan.  Now the
+system's idea of the fan state matches the actual state of the fan.
+Then I lower the trip point to its desired value.  The fan will turn
+on if the trip point went below the thermal zone's temperature.
+
+-Sanjoy
+
+`Never underestimate the evil of which men of power are capable.'
+         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
