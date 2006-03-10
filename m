@@ -1,60 +1,49 @@
-From: "Randy.Dunlap" <rdunlap@xenotime.net>
-Subject: Re: [PATCH] ACPI support for IDE drives
-Date: Thu, 9 Mar 2006 15:33:23 -0800
-Message-ID: <20060309153323.6be4d1a4.rdunlap@xenotime.net>
-References: <440C1E07.4050303@suse.de>
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: Re: [Pcihpd-discuss] question on what is ejectable?
+Date: Fri, 10 Mar 2006 11:28:58 +0900
+Message-ID: <4410E46A.8050409@jp.fujitsu.com>
+References: <1141851331.32163.26.camel@whizzy>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <440C1E07.4050303@suse.de>
-Sender: linux-ide-owner@vger.kernel.org
-To: Hannes Reinecke <hare@suse.de>
-Cc: axboe@suse.de, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:35032 "EHLO
+	fgwmail7.fujitsu.co.jp") by vger.kernel.org with ESMTP
+	id S1752117AbWCJCai (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Mar 2006 21:30:38 -0500
+Received: from m5.gw.fujitsu.co.jp ([10.0.50.75])
+        by fgwmail7.fujitsu.co.jp (Fujitsu Gateway)
+        with ESMTP id k2A2UZh1022913 for <linux-acpi@vger.kernel.org>; Fri, 10 Mar 2006 11:30:36 +0900
+        (envelope-from kaneshige.kenji@jp.fujitsu.com)
+Received: from s6.gw.fujitsu.co.jp by m5.gw.fujitsu.co.jp (8.12.10/Fujitsu Domain Master)
+	id k2A2UY5o029090 for <linux-acpi@vger.kernel.org>; Fri, 10 Mar 2006 11:30:34 +0900
+	(envelope-from kaneshige.kenji@jp.fujitsu.com)
+Received: from s6.gw.fujitsu.co.jp (s6 [127.0.0.1])
+	by s6.gw.fujitsu.co.jp (Postfix) with ESMTP id 1F70A29C132
+	for <linux-acpi@vger.kernel.org>; Fri, 10 Mar 2006 11:30:34 +0900 (JST)
+Received: from ml6.s.css.fujitsu.com (ml6.s.css.fujitsu.com [10.23.4.196])
+	by s6.gw.fujitsu.co.jp (Postfix) with ESMTP id 09D1629C34D
+	for <linux-acpi@vger.kernel.org>; Fri, 10 Mar 2006 11:30:33 +0900 (JST)
+In-Reply-To: <1141851331.32163.26.camel@whizzy>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Kristen Accardi <kristen.c.accardi@intel.com>
+Cc: linux-acpi@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net
 
-On Mon, 06 Mar 2006 12:33:27 +0100 Hannes Reinecke wrote:
-
-> Hi all,
+Kristen Accardi wrote:
+> I notice in the acpi_bus_get_flags() function ejectable is defined as
+> anything that has either _EJ0 or _EJD.  However, the acpi pci hotplug
+> driver defines an ejectable slot as being one which must have (among
+> other things) _EJ0.  Is it legitimate to change the definition of an
+> ejectable slot to be one that has either _EJ0 or _EJD (in addition to
+> the other requirements for pci hotplug slots).
 > 
-> This patch is adds ACPI support for IDE drives. It is basically a rework
-> of Randy Dunlaps patch for libata. And as such it has exactly the same
-> issues (namely it breaks layering).
-> 
-> But, however, there are machines out there who do require ACPI support
-> even for standard IDE controllers. So we need to implement something
-> here; just telling the users "we're not doing it" is hardly gaining us
-> anything.
-> And I'm told that Ubuntu has something like this for ages; but of course
-> this one is far superior :-).
-> 
-> As usual, comments etc. welcome.
 
-attachments are difficult to review/comment on.  anyway:
+As the acpi_bus_get_flags() does, I think "ejectable device" is defined
+as anything that has either _EJ0 or _EJD. But I don't think the device
+is "ejectable slot" if it has _EJD but it doesn't have _EJ0. If an eject
+request was notified to such devices, I don't know how to eject those.
+I think one of the requirements for pci hotplug slots is having _EJ0.
 
-For struct GTM_buffer, I changed __u32 to u32 on request from
-Jeff G. and Pavel (in the libata patch).
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-I don't understand this (latter) comment:
-
-+ * ide_acpi_hwif_get_handle - Get ACPI object handle for a given hwif
-+ * @hwif: device to locate
-+ *
-+ * Retrieves the object handle of a given hwif. According to the ACPI
-+ * spec is the hwif a child of the PCI device.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Jeff and Pavel also disagreed with using sscanf(dev->bus_id)
-to get the PCI bus:dev.func, so I used their suggestions to modify
-the libata code to use the following:
-
-	struct pci_dev *pdev = to_pci_dev(dev);
-
-	bus = pdev->bus->number;
-	devnum = PCI_SLOT(pdev->devfn);
-	func = PCI_FUNC(pdev->devfn);
-
-HTH and thanks for doing this.
----
-~Randy
-Please use an email client that implements proper (compliant) threading.
-(You know who you are.)
+Thanks,
+Kenji Kaneshige
