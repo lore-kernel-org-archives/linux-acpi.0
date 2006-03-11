@@ -1,49 +1,72 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [2.6 patch] drivers/acpi/video.c: fix a NULL pointer dereference
-Date: Fri, 10 Mar 2006 23:00:45 -0500
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3006596EE5@hdsmsx401.amr.corp.intel.com>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: [2.6 patch] drivers/acpi/video.c: fix a NULL pointer dereference
+Date: Sat, 11 Mar 2006 16:11:54 +0100
+Message-ID: <20060311151154.GR21864@stusta.de>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3006596EE5@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr14.intel.com ([192.55.52.68]:39142 "EHLO
-	fmsfmr002.fm.intel.com") by vger.kernel.org with ESMTP
-	id S932400AbWCKEB6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Mar 2006 23:01:58 -0500
-Content-class: urn:content-classes:message
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751183AbWCKPMR@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B3006596EE5@hdsmsx401.amr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-
->The Coverity checker spotted this obvious bug in 
->acpi_video_device_lcd_query_levels().
->
->
->
->Signed-off-by: Adrian Bunk <bunk@stusta.de>
->
->--- linux-2.6.16-rc5-mm3-full/drivers/acpi/video.c.old	
->2006-03-10 18:04:18.000000000 +0100
->+++ linux-2.6.16-rc5-mm3-full/drivers/acpi/video.c	
->2006-03-10 18:04:33.000000000 +0100
->@@ -321,11 +321,11 @@ acpi_video_device_lcd_query_levels(struc
+On Fri, Mar 10, 2006 at 11:00:45PM -0500, Brown, Len wrote:
 > 
-> 	status = acpi_evaluate_object(device->handle, "_BCL", 
->NULL, &buffer);
-> 	if (!ACPI_SUCCESS(status))
-> 		return_VALUE(status);
-> 	obj = (union acpi_object *)buffer.pointer;
->-	if (!obj && (obj->type != ACPI_TYPE_PACKAGE)) {
->+	if (obj && (obj->type != ACPI_TYPE_PACKAGE)) {
+> >The Coverity checker spotted this obvious bug in 
+> >acpi_video_device_lcd_query_levels().
+> >
+> >
+> >
+> >Signed-off-by: Adrian Bunk <bunk@stusta.de>
+> >
+> >--- linux-2.6.16-rc5-mm3-full/drivers/acpi/video.c.old	
+> >2006-03-10 18:04:18.000000000 +0100
+> >+++ linux-2.6.16-rc5-mm3-full/drivers/acpi/video.c	
+> >2006-03-10 18:04:33.000000000 +0100
+> >@@ -321,11 +321,11 @@ acpi_video_device_lcd_query_levels(struc
+> > 
+> > 	status = acpi_evaluate_object(device->handle, "_BCL", 
+> >NULL, &buffer);
+> > 	if (!ACPI_SUCCESS(status))
+> > 		return_VALUE(status);
+> > 	obj = (union acpi_object *)buffer.pointer;
+> >-	if (!obj && (obj->type != ACPI_TYPE_PACKAGE)) {
+> >+	if (obj && (obj->type != ACPI_TYPE_PACKAGE)) {
+> 
+> how about
+> +	if (!obj || (obj->type != ACPI_TYPE_PACKAGE)) {
+>...
 
-how about
+Yes, thanks for the correction.
+
+cu
+Adrian
+
+
+<--  snip  -->
+
+
+The Coverity checker spotted this bug in
+acpi_video_device_lcd_query_levels().
+
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+
+--- linux-2.6.16-rc5-mm3-full/drivers/acpi/video.c.old	2006-03-10 18:04:18.000000000 +0100
++++ linux-2.6.16-rc5-mm3-full/drivers/acpi/video.c	2006-03-10 18:04:33.000000000 +0100
+@@ -321,11 +321,11 @@ acpi_video_device_lcd_query_levels(struc
+ 
+ 	status = acpi_evaluate_object(device->handle, "_BCL", NULL, &buffer);
+ 	if (!ACPI_SUCCESS(status))
+ 		return_VALUE(status);
+ 	obj = (union acpi_object *)buffer.pointer;
+-	if (!obj && (obj->type != ACPI_TYPE_PACKAGE)) {
 +	if (!obj || (obj->type != ACPI_TYPE_PACKAGE)) {
-
-> 		ACPI_ERROR((AE_INFO, "Invalid _BCL data"));
-> 		status = -EFAULT;
-> 		goto err;
-> 	}
-> 
->
+ 		ACPI_ERROR((AE_INFO, "Invalid _BCL data"));
+ 		status = -EFAULT;
+ 		goto err;
+ 	}
+ 
