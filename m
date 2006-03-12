@@ -1,72 +1,40 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: [2.6 patch] drivers/acpi/video.c: fix a NULL pointer dereference
-Date: Sat, 11 Mar 2006 16:11:54 +0100
-Message-ID: <20060311151154.GR21864@stusta.de>
-References: <F7DC2337C7631D4386A2DF6E8FB22B3006596EE5@hdsmsx401.amr.corp.intel.com>
+From: zicada@stoneinnovation.no
+Subject: external monitor issue with acpi on whitebook.
+Date: Sun, 12 Mar 2006 12:57:52 +0100 (CET)
+Message-ID: <56646.83.249.129.209.1142164672.squirrel@83.249.129.209>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751183AbWCKPMR@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B3006596EE5@hdsmsx401.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from [193.69.188.101] ([193.69.188.101]:36993 "EHLO
+	stoneinnovation.no") by vger.kernel.org with ESMTP id S932220AbWCLMJc
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 12 Mar 2006 07:09:32 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Fri, Mar 10, 2006 at 11:00:45PM -0500, Brown, Len wrote:
-> 
-> >The Coverity checker spotted this obvious bug in 
-> >acpi_video_device_lcd_query_levels().
-> >
-> >
-> >
-> >Signed-off-by: Adrian Bunk <bunk@stusta.de>
-> >
-> >--- linux-2.6.16-rc5-mm3-full/drivers/acpi/video.c.old	
-> >2006-03-10 18:04:18.000000000 +0100
-> >+++ linux-2.6.16-rc5-mm3-full/drivers/acpi/video.c	
-> >2006-03-10 18:04:33.000000000 +0100
-> >@@ -321,11 +321,11 @@ acpi_video_device_lcd_query_levels(struc
-> > 
-> > 	status = acpi_evaluate_object(device->handle, "_BCL", 
-> >NULL, &buffer);
-> > 	if (!ACPI_SUCCESS(status))
-> > 		return_VALUE(status);
-> > 	obj = (union acpi_object *)buffer.pointer;
-> >-	if (!obj && (obj->type != ACPI_TYPE_PACKAGE)) {
-> >+	if (obj && (obj->type != ACPI_TYPE_PACKAGE)) {
-> 
-> how about
-> +	if (!obj || (obj->type != ACPI_TYPE_PACKAGE)) {
->...
+Hello all,
 
-Yes, thanks for the correction.
+I recently started trying to get ACPI working on a Quanta KN1 based
+whitebook. These laptops come with a variety of names, but are all built
+around the KN1 base. It has a 915gm/pm chipset and an nvidia geforce 6600
+vga card.
 
-cu
-Adrian
+As long as no external monitor is connected, every acpi feature works
+perfectly,- but as soon as i connect my external monitor, pretty much
+everything freezes until i disconnect it again. dmesg is filled up with
+"unknown event" after a monitor has been connected.
 
+I have tried rewriting the DSDT, but i fear my AML skills are pretty
+lacking :)
 
-<--  snip  -->
+I've searched the web but been unable to find anyone else with this exact
+problem.
+Is this is a bug in linux-acpi, a bug in DSDT or a combination ?
 
+I can provide my original DSDT aswell as any logs needed.
 
-The Coverity checker spotted this bug in
-acpi_video_device_lcd_query_levels().
+Thanks in advance for any help or info on this matter.
 
-
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-
---- linux-2.6.16-rc5-mm3-full/drivers/acpi/video.c.old	2006-03-10 18:04:18.000000000 +0100
-+++ linux-2.6.16-rc5-mm3-full/drivers/acpi/video.c	2006-03-10 18:04:33.000000000 +0100
-@@ -321,11 +321,11 @@ acpi_video_device_lcd_query_levels(struc
- 
- 	status = acpi_evaluate_object(device->handle, "_BCL", NULL, &buffer);
- 	if (!ACPI_SUCCESS(status))
- 		return_VALUE(status);
- 	obj = (union acpi_object *)buffer.pointer;
--	if (!obj && (obj->type != ACPI_TYPE_PACKAGE)) {
-+	if (!obj || (obj->type != ACPI_TYPE_PACKAGE)) {
- 		ACPI_ERROR((AE_INFO, "Invalid _BCL data"));
- 		status = -EFAULT;
- 		goto err;
- 	}
- 
+-- Thomas W. Larsen
