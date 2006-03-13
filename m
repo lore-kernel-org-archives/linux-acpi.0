@@ -1,43 +1,59 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
-Date: Mon, 13 Mar 2006 12:51:57 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F840B2DAF0C@pdsmsx403>
+From: Nigel Cunningham <ncunningham@cyclades.com>
+Subject: Re: S3 sleep regression / 2.6.16-rc1+acpi-release-20060113
+Date: Mon, 13 Mar 2006 15:23:55 +1000
+Message-ID: <200603131524.00992.ncunningham@cyclades.com>
+References: <E1F5UPr-0008FN-00@skye.ra.phy.cam.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-ide-owner@vger.kernel.org>
-Content-class: urn:content-classes:message
-Sender: linux-ide-owner@vger.kernel.org
-To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, linux-input@atrey.karlin.mff.cuni.cz, Meelis Roos <mroos@linux.ee>
+Content-Type: multipart/signed;
+  boundary="nextPart2595158.1OvIRZuyx7";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from b3162.static.pacific.net.au ([203.143.238.98]:60581 "EHLO
+	cust8446.nsw01.dataco.com.au") by vger.kernel.org with ESMTP
+	id S932302AbWCMF0Y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Mar 2006 00:26:24 -0500
+In-Reply-To: <E1F5UPr-0008FN-00@skye.ra.phy.cam.ac.uk>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
->> I need the acpi trace log before _PTS to see what kind of thermal
->> related methods got called.
+--nextPart2595158.1OvIRZuyx7
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hi Bernard.
+
+On Sunday 05 February 2006 06:53, Sanjoy Mahajan wrote:
+> > After the first suspend, do you have any processes sucking all
+> > available cpu? This sounds like a thread that has been added since
+> > 2.6.15, which is being told to enter the freezer, but isn't doing
+> > it. They usually end up sucking cpu afterwards.
 >
->Alas, I've included all the dmesg's.  
-
-I need the full log  for S3 suspend failure not just snippets.
-Please attach it on bugzilla.kernel.org
-
-The log for S3 suspend success cannot help me to track down.
-
-
+> A good thought.  I just tried it again.  The system woke up from the
+> first S3 sleep with nothing chewing CPU.  Just as a check, the second
+> S3 sleep still hangs with the repeating exregion-* messages.
 >
->Below is the script that I use to enter S3 sleep.  It unloads rid of
->troublesome modules and stop services that don't sleep well.  Then
->(for debugging) it sends the kernel version and boot parameters across
->the serial console (the @@@@ SLEEP line), raises the debug level to
->0x1F, does a sync (in case the sleep hangs, since this is my
->production machine), and then enters mem sleep.
->
->So nothing in it should trigger any thermal methods; except that I
->usually have the THM2 trip point raised to 45C with a polling time of
->100 seconds.  So once in a while a thermal poll will happen sleep is
->being set up.  I am not sure whether it would be reported in the
->dmesgs if it happened; but the S3 failure happens much more often than
->such a thermal polling would happen, so I doubt the S3 failure
->requires a thermal poll.
+> I also tried vanilla 2.6.16-rc2 (which includes the latest ACPICA
+> releases in it), and it has the same problem.
 
-Could you try to mute thermal poll?
+I think this is your department :)
+
+Nigel
+
+--nextPart2595158.1OvIRZuyx7
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQBEFQHwN0y+n1M3mo0RAkuDAJ4pAw8tbREpmMEsP43CVkmR/BtAMwCfXJ9e
+jqeMyXaI7y3syJa9S5xJIlc=
+=xHHK
+-----END PGP SIGNATURE-----
+
+--nextPart2595158.1OvIRZuyx7--
