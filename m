@@ -1,42 +1,48 @@
 From: Nigel Cunningham <ncunningham@cyclades.com>
 Subject: Re: S3 sleep regression / 2.6.16-rc1+acpi-release-20060113
-Date: Mon, 13 Mar 2006 15:25:18 +1000
-Message-ID: <200603131525.22991.ncunningham@cyclades.com>
-References: <E1F5UPr-0008FN-00@skye.ra.phy.cam.ac.uk>
+Date: Mon, 13 Mar 2006 15:39:25 +1000
+Message-ID: <200603131539.34635.ncunningham@cyclades.com>
+References: <E1F5UPr-0008FN-00@skye.ra.phy.cam.ac.uk> <200603131525.22991.ncunningham@cyclades.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed;
-  boundary="nextPart4055526.Ihti8gY48J";
+  boundary="nextPart2399682.2UaMtXR8W9";
   protocol="application/pgp-signature";
   micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from b3162.static.pacific.net.au ([203.143.238.98]:61861 "EHLO
+Received: from b3162.static.pacific.net.au ([203.143.238.98]:50135 "EHLO
 	cust8446.nsw01.dataco.com.au") by vger.kernel.org with ESMTP
-	id S1751507AbWCMF1p (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Mar 2006 00:27:45 -0500
-In-Reply-To: <E1F5UPr-0008FN-00@skye.ra.phy.cam.ac.uk>
+	id S1751463AbWCMFl5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Mar 2006 00:41:57 -0500
+In-Reply-To: <200603131525.22991.ncunningham@cyclades.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
---nextPart4055526.Ihti8gY48J
+--nextPart2399682.2UaMtXR8W9
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-[ OOPS. Forward the wrong message. Will do the right one in a minute. Sorry! ]
+Hmm.
 
---nextPart4055526.Ihti8gY48J
+Having control-R do reply to all isn't always a good idea, is it? :)
+
+Sorry for the spam!
+
+Nigel
+
+--nextPart2399682.2UaMtXR8W9
 Content-Type: application/pgp-signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQBEFQJCN0y+n1M3mo0RAl7fAJ9nu9MYa8+Wx5i9CGUuoYnjfJnYHACgstCR
-7bo6ui6Q7gNfsgO3LdHzlcI=
-=Qrrl
+iD8DBQBEFQWWN0y+n1M3mo0RAj36AKDTqtm1416c6BmZLCOyhUCwta0msACggx1o
+qj1a5satO2kuuYSYiTLck1o=
+=GNKj
 -----END PGP SIGNATURE-----
 
---nextPart4055526.Ihti8gY48J--
+--nextPart2399682.2UaMtXR8W9--
