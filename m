@@ -1,23 +1,22 @@
-From: Olaf Hering <olh@suse.de>
-Subject: Re: 2.6.16-rc6: known regressions
-Date: Mon, 13 Mar 2006 21:09:10 +0100
-Message-ID: <20060313200910.GA11366@suse.de>
-References: <Pine.LNX.4.64.0603111551330.18022@g5.osdl.org> <20060313200544.GG13973@stusta.de>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: 2.6.16-rc6: known regressions
+Date: Mon, 13 Mar 2006 15:11:06 -0500
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30065E0E36@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932421AbWCMUJS@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20060313200544.GG13973@stusta.de>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964769AbWCMUMv@vger.kernel.org>
+Content-class: urn:content-classes:message
 Sender: linux-kernel-owner@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Avuton Olrich <avuton@gmail.com>, xfs-masters@oss.sgi.com, linux-xfs@oss.sgi.com, Dave Jones <davej@redhat.com>, len.brown@intel.com, linux-acpi@vger.kernel.org, norsk5@xmission.com, dsp@llnl.gov, bluesmoke-devel@lists.sourceforge.net, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, pete.chapman@exgate.tek.com, paulus@samba.org, anton@samba.org, linuxppc64-dev@ozlabs.org, Tom Seeley <redhat@tomseeley.co.uk>, Jiri Slaby <jirislaby@gmail.com>, laredo@gnu.org, v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
+To: Adrian Bunk <bunk@stusta.de>, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Dave Jones <davej@redhat.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
- On Mon, Mar 13, Adrian Bunk wrote:
+ 
+>Subject    : 2.6.16-rc5 acpi slab corruption
+>References : http://lkml.org/lkml/2006/3/1/223
+>Submitter  : Dave Jones <davej@redhat.com>
+>Status     : unknown
 
-> Subject    : 2.6.16-rc5-git14 crash in spin_bug on ppc64
-> References : http://lkml.org/lkml/2006/3/10/190
-> Submitter  : Olaf Hering <olh@suse.de>
-> Status     : unknown
-
-I have seen it only once, and I rebooted that kernel alot.
+Closed.
+http://bugzilla.kernel.org/show_bug.cgi?id=6176
