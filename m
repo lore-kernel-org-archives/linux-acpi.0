@@ -1,76 +1,43 @@
-From: "Jaya Kumar" <jayakumar.acpi@gmail.com>
-Subject: Re: [PATCH 2.6.15.3 1/1] ACPI: Atlas ACPI driver
-Date: Mon, 13 Mar 2006 14:38:04 +0800
-Message-ID: <756b48450603122238l36e8615dy497b7e4e34dc2fb4@mail.gmail.com>
-References: <3ACA40606221794F80A5670F0AF15F840B22AB1A@pdsmsx403>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Subject: Re: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
+Date: Mon, 13 Mar 2006 07:28:02 +0000
+Message-ID: <E1FIhTG-00079G-00@skye.ra.phy.cam.ac.uk>
+References: <3ACA40606221794F80A5670F0AF15F840B2DAF0C@pdsmsx403>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pproxy.gmail.com ([64.233.166.176]:19493 "EHLO pproxy.gmail.com")
-	by vger.kernel.org with ESMTP id S1751694AbWCMGiF convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Mar 2006 01:38:05 -0500
-Received: by pproxy.gmail.com with SMTP id x66so2254237pye
-        for <linux-acpi@vger.kernel.org>; Sun, 12 Mar 2006 22:38:04 -0800 (PST)
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F840B22AB1A@pdsmsx403>
-Content-Disposition: inline
+Received: from mraos.ra.phy.cam.ac.uk ([131.111.48.8]:65180 "EHLO
+	mraos.ra.phy.cam.ac.uk") by vger.kernel.org with ESMTP
+	id S1751832AbWCMH2F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Mar 2006 02:28:05 -0500
+In-Reply-To: Your message of "Mon, 13 Mar 2006 12:51:57 +0800."
+             <3ACA40606221794F80A5670F0AF15F840B2DAF0C@pdsmsx403>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Yu, Luming" <luming.yu@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, linux-input@atrey.karlin.mff.cuni.cz, Meelis Roos <mroos@linux.ee>
 
-On 3/8/06, Yu, Luming <luming.yu@intel.com> wrote:
-> I suggest LCD support in hotkey.c like:
-> http://bugzilla.kernel.org/attachment.cgi?id=6843&action=view
->
-> Config userspace acpi daemon to respond events by evoking
-> LCD._BCM with command:
->        echo -n xx > /sys/hotkey/brightness.
->
+> Could you try to mute thermal poll?
 
-A quick question here. I took a look at your patch adding hotkeylib. I
-see brightness_show/store callbacks and I think they end up calling 
-write_acpi_int to do the actual method eval.
+Done.  The sleep.sh script now has
 
-So I assume my action_method has got to be "_BCM". I don't have a poll
-method but it looks like I'll need to put something in there since you
-check for it. Atlas has a _BCL. I guess I'll just use that.
+echo 0 > /proc/acpi/thermal_zone/THM2/polling_frequency
+echo 0 > /proc/acpi/thermal_zone/THM0/polling_frequency
+sleep 1
 
-+       if(!poll_handle || !poll_method || !action_handle || !action_method)
-+               goto do_fail;
+> I need the full log  for S3 suspend failure not just snippets.
+> Please attach it on bugzilla.kernel.org
 
->From what I can tell, it looks like I have to use ACPILCD00 as my HID
-in this hotkey code. Right? So basically, it'd be something like:
-        {
-                .ids = "ACPILCD00",
-                .name = "brightness",
-                .poll_method = "_BCL",
-                .action_method = "_BCM",
-                .min = 1,
-                .max = 31,
-                .id = 10001,
-        },
+Done.
 
-So if I get that working, is that what you are saying is the right way
-to do brightness support for limited devices like Atlas? I guess it
-feels kind of odd to me because it's an LCD device rather than a
-hotkey device. But afaict it looks like doing that will work fine and
-have the added benefit of not creating any new /proc entries. So let
-me know if I understood you correctly.
+> The log for S3 suspend success cannot help me to track down.
 
-By the way, I just applied your sequence of patches from
-http://bugzilla.kernel.org/show_bug.cgi?id=5749 to my tree. You know,
-if it's okay with you, I'll post the full diff from below to your bug
-report so that the next person doesn't have to cherrypick.
+For completeness, I didn't excise that portion of the log.  It's not
+many lines, plus it doesn't make it harder to find the failing
+portion: The suspend failure happens after the second "@@@@ SLEEP" in
+the log.
 
-wget "http://bugzilla.kernel.org/attachment.cgi?id=6839&action=view"
-wget "http://bugzilla.kernel.org/attachment.cgi?id=6840&action=view"
-wget "http://bugzilla.kernel.org/attachment.cgi?id=6841&action=view"
-wget "http://bugzilla.kernel.org/attachment.cgi?id=6842&action=view"
-wget "http://bugzilla.kernel.org/attachment.cgi?id=6843&action=view"
-wget "http://bugzilla.kernel.org/attachment.cgi?id=7061&action=view"
-wget "http://bugzilla.kernel.org/attachment.cgi?id=7060&action=view"
+Should I turn on more acpi_debug_level debugging?
 
-Thanks,
-jayakumar
+-Sanjoy
+
+`Never underestimate the evil of which men of power are capable.'
+         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
