@@ -1,41 +1,32 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
-Date: Mon, 13 Mar 2006 16:35:45 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F840B2DB21B@pdsmsx403>
+From: Bart Jonkers <jonkersbart@gmail.com>
+Subject: Question about own battery driver
+Date: Mon, 13 Mar 2006 09:45:15 +0100
+Message-ID: <1142239515.9419.10.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-ide-owner@vger.kernel.org>
-Content-class: urn:content-classes:message
-Sender: linux-ide-owner@vger.kernel.org
-To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, linux-input@atrey.karlin.mff.cuni.cz, Meelis Roos <mroos@linux.ee>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from nproxy.gmail.com ([64.233.182.205]:57234 "EHLO nproxy.gmail.com")
+	by vger.kernel.org with ESMTP id S932364AbWCMIpa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Mar 2006 03:45:30 -0500
+Received: by nproxy.gmail.com with SMTP id x29so869988nfb
+        for <linux-acpi@vger.kernel.org>; Mon, 13 Mar 2006 00:45:28 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
+Hey,
 
-Thanks for your debug information.
+I am busy with creating a battery driver for an embedded system and want
+to let my driver interface with the acpi interface.
 
->
->> Could you try to mute thermal poll?
->
->Done.  The sleep.sh script now has
->
->echo 0 > /proc/acpi/thermal_zone/THM2/polling_frequency
->echo 0 > /proc/acpi/thermal_zone/THM0/polling_frequency
->sleep 1
+Is there information available somewhere on how to do this or are there
+drivers available I can use as example.
 
-Hmm,  could you file dmesges with tmermal module loaded and
-unloaded?
+I have already looked to the sources in the kernel and at
+http://acpi.sourceforge.net/ , but found nothing that could help me.
 
->
->> I need the full log  for S3 suspend failure not just snippets.
->> Please attach it on bugzilla.kernel.org
->
->Done.
-
-I saw this acpi_debug=0xffffffff.
-
-I used to used to use acpi_debug_layer=0x10 acpi_debug_level=0x10
-Could you try that?
+Thanks in advance,
+Bart
 
