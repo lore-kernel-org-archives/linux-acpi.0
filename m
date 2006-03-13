@@ -1,43 +1,41 @@
-From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Subject: Re: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
-Date: Mon, 13 Mar 2006 07:28:02 +0000
-Message-ID: <E1FIhTG-00079G-00@skye.ra.phy.cam.ac.uk>
-References: <3ACA40606221794F80A5670F0AF15F840B2DAF0C@pdsmsx403>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mraos.ra.phy.cam.ac.uk ([131.111.48.8]:65180 "EHLO
-	mraos.ra.phy.cam.ac.uk") by vger.kernel.org with ESMTP
-	id S1751832AbWCMH2F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Mar 2006 02:28:05 -0500
-In-Reply-To: Your message of "Mon, 13 Mar 2006 12:51:57 +0800."
-             <3ACA40606221794F80A5670F0AF15F840B2DAF0C@pdsmsx403>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: "Yu, Luming" <luming.yu@intel.com>
+From: "Yu, Luming" <luming.yu@intel.com>
+Subject: RE: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
+Date: Mon, 13 Mar 2006 16:35:45 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F840B2DB21B@pdsmsx403>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-ide-owner@vger.kernel.org>
+Content-class: urn:content-classes:message
+Sender: linux-ide-owner@vger.kernel.org
+To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
 Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, linux-input@atrey.karlin.mff.cuni.cz, Meelis Roos <mroos@linux.ee>
+List-Id: linux-acpi@vger.kernel.org
 
-> Could you try to mute thermal poll?
 
-Done.  The sleep.sh script now has
+Thanks for your debug information.
 
-echo 0 > /proc/acpi/thermal_zone/THM2/polling_frequency
-echo 0 > /proc/acpi/thermal_zone/THM0/polling_frequency
-sleep 1
+>
+>> Could you try to mute thermal poll?
+>
+>Done.  The sleep.sh script now has
+>
+>echo 0 > /proc/acpi/thermal_zone/THM2/polling_frequency
+>echo 0 > /proc/acpi/thermal_zone/THM0/polling_frequency
+>sleep 1
 
-> I need the full log  for S3 suspend failure not just snippets.
-> Please attach it on bugzilla.kernel.org
+Hmm,  could you file dmesges with tmermal module loaded and
+unloaded?
 
-Done.
+>
+>> I need the full log  for S3 suspend failure not just snippets.
+>> Please attach it on bugzilla.kernel.org
+>
+>Done.
 
-> The log for S3 suspend success cannot help me to track down.
+I saw this acpi_debug=0xffffffff.
 
-For completeness, I didn't excise that portion of the log.  It's not
-many lines, plus it doesn't make it harder to find the failing
-portion: The suspend failure happens after the second "@@@@ SLEEP" in
-the log.
+I used to used to use acpi_debug_layer=0x10 acpi_debug_level=0x10
+Could you try that?
 
-Should I turn on more acpi_debug_level debugging?
-
--Sanjoy
-
-`Never underestimate the evil of which men of power are capable.'
-         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
