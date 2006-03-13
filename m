@@ -1,40 +1,50 @@
-From: zicada@stoneinnovation.no
-Subject: external monitor issue with acpi on whitebook.
-Date: Sun, 12 Mar 2006 12:57:52 +0100 (CET)
-Message-ID: <56646.83.249.129.209.1142164672.squirrel@83.249.129.209>
+From: "Yu, Luming" <luming.yu@intel.com>
+Subject: RE: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
+Date: Mon, 13 Mar 2006 10:00:37 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F840B2DACA5@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [193.69.188.101] ([193.69.188.101]:36993 "EHLO
-	stoneinnovation.no") by vger.kernel.org with ESMTP id S932220AbWCLMJc
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 12 Mar 2006 07:09:32 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751971AbWCMCCh@vger.kernel.org>
+Content-class: urn:content-classes:message
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, linux-input@atrey.karlin.mff.cuni.cz, Meelis Roos <mroos@linux.ee>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Hello all,
+>width) Address=0000000023FDFFC0
+>exregion-0290 [36] ex_system_io_space_han: system_iO 1 (8 
+>width) Address=00000000000000B2
+>exregion-0185 [35] ex_system_memory_space: system_memory 0 (32 
+>width) Address=0000000023FDFFC0
+>exregion-0185 [36] ex_system_memory_space: system_memory 0 (32 
+>width) Address=0000000023FDFFC0
+>exregion-0185 [36] ex_system_memory_space: system_memory 1 (32 
+>width) Address=0000000023FDFFC0
+>exregion-0290 [36] ex_system_io_space_han: system_iO 1 (8 
+>width) Address=00000000000000B2
+>
+>And then these above four lines (exregion-0185, -0185, -0185, -0290)
+>repeat until I reboot.
+>
 
-I recently started trying to get ACPI working on a Quanta KN1 based
-whitebook. These laptops come with a variety of names, but are all built
-around the KN1 base. It has a 915gm/pm chipset and an nvidia geforce 6600
-vga card.
+If I understand correctly, it was due to  LEqual(S_AH, 0xA6) awlays
+true.
+SMM bios code didn't  respond , or respond correctly 
+to the request by "store 0x81, APMD"  due to thermal module caused
+issue?
+I need the acpi trace log before _PTS to see what kind of thermal
+related methods got called.
 
-As long as no external monitor is connected, every acpi feature works
-perfectly,- but as soon as i connect my external monitor, pretty much
-everything freezes until i disconnect it again. dmesg is filled up with
-"unknown event" after a monitor has been connected.
-
-I have tried rewriting the DSDT, but i fear my AML skills are pretty
-lacking :)
-
-I've searched the web but been unable to find anyone else with this exact
-problem.
-Is this is a bug in linux-acpi, a bug in DSDT or a combination ?
-
-I can provide my original DSDT aswell as any logs needed.
-
-Thanks in advance for any help or info on this matter.
-
--- Thomas W. Larsen
+    Method (SMPI, 1, NotSerialized)
+    {
+        Store (S_AX, Local0)
+        Store (0x81, APMD)
+        While (LEqual (S_AH, 0xA6))
+        {
+            Sleep (0x64)
+            Store (Local0, S_AX)
+            Store (0x81, APMD)
+        }
+    }
