@@ -1,92 +1,44 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: [PATCH 2.6.15.3 1/1] ACPI: Atlas ACPI driver
-Date: Mon, 13 Mar 2006 21:16:53 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC262@pdsmsx403>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr20.intel.com ([134.134.136.19]:23460 "EHLO
-	orsfmr005.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1751751AbWCMNQ5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Mar 2006 08:16:57 -0500
-Content-class: urn:content-classes:message
-Sender: linux-acpi-owner@vger.kernel.org
+From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Subject: Re: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
+Date: Mon, 13 Mar 2006 15:21:10 +0000
+Message-ID: <E1FIor8-0002Rj-00@skye.ra.phy.cam.ac.uk>
+References: <3ACA40606221794F80A5670F0AF15F840B2DB21B@pdsmsx403>
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: Your message of "Mon, 13 Mar 2006 16:35:45 +0800."
+             <3ACA40606221794F80A5670F0AF15F840B2DB21B@pdsmsx403>
+Sender: linux-ide-owner@vger.kernel.org
+To: "Yu, Luming" <luming.yu@intel.com>
+Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, linux-input@atrey.karlin.mff.cuni.cz, Meelis Roos <mroos@linux.ee>
 List-Id: linux-acpi@vger.kernel.org
-To: Jaya Kumar <jayakumar.acpi@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
->On 3/8/06, Yu, Luming <luming.yu@intel.com> wrote:
->> I suggest LCD support in hotkey.c like:
->> http://bugzilla.kernel.org/attachment.cgi?id=6843&action=view
->>
->> Config userspace acpi daemon to respond events by evoking
->> LCD._BCM with command:
->>        echo -n xx > /sys/hotkey/brightness.
->>
->
->A quick question here. I took a look at your patch adding hotkeylib. I
->see brightness_show/store callbacks and I think they end up calling 
->write_acpi_int to do the actual method eval.
+> Hmm, could you file dmesgs with thermal module loaded and unloaded?
 
-Yes.  But there are some restricts with write_acpi_int that only
-takes single integer parameter, and write_acpi_int2 that fits aml
-method of taking Package as argument.  
+Filed at bugzilla.
 
->
->So I assume my action_method has got to be "_BCM". I don't have a poll
->method but it looks like I'll need to put something in there since you
->check for it. Atlas has a _BCL. I guess I'll just use that.
+> I saw this acpi_debug=0xffffffff.
 
-Yes. poll_method is for query the status/current value.
-For example, to query current brightness value.
- 
->
->+       if(!poll_handle || !poll_method || !action_handle || 
->!action_method)
->+               goto do_fail;
->
->From what I can tell, it looks like I have to use ACPILCD00 as my HID
->in this hotkey code. Right? So basically, it'd be something like:
->        {
->                .ids = "ACPILCD00",
->                .name = "brightness",
->                .poll_method = "_BCL",
->                .action_method = "_BCM",
->                .min = 1,
->                .max = 31,
->                .id = 10001,
->        },
+Sorry, it's a legacy from trying to debug #5112, and I've removed it
+for getting the above dmesgs.  I'm not even sure what that option does
+since it's not documented in the kernel-parameters.txt, but it does
+increase the amount of debugging info.
 
-I think this is ok.
+> I used to used to use acpi_debug_layer=0x10 acpi_debug_level=0x10
+> Could you try that?
 
->
->So if I get that working, is that what you are saying is the right way
->to do brightness support for limited devices like Atlas? I guess it
->feels kind of odd to me because it's an LCD device rather than a
->hotkey device. But afaict it looks like doing that will work fine and
->have the added benefit of not creating any new /proc entries. So let
->me know if I understood you correctly.
+For the above dmesgs I booted with acpi_dbg_level=0x10
+acpi_dbg_layer=0x10 and then did two sleep-wake cycles with no thermal
+module (both went fine), then one cycle with the thermal module loaded
+(went fine), and then the usual failing second sleep with the thermal
+module still loaded.  The sleep-wake cycles themselves (i.e. once the
+system booted) were done with acpi_debug_level=0x1F rather than the
+0x10 boot value.
 
-Yes.  You are right.
+Let me know if there's a different permutation of debug options that I
+should try.  I wasn't sure whether you meant that I should leave all
+the debug values at 0x10.  Or whether I should still include
+acpi_debug=0xffffffff on top of the other options.
 
->
->By the way, I just applied your sequence of patches from
->http://bugzilla.kernel.org/show_bug.cgi?id=5749 to my tree. You know,
->if it's okay with you, I'll post the full diff from below to your bug
->report so that the next person doesn't have to cherrypick.
+-Sanjoy
 
-Thanks for doing that.
-
->
->wget "http://bugzilla.kernel.org/attachment.cgi?id=6839&action=view"
->wget "http://bugzilla.kernel.org/attachment.cgi?id=6840&action=view"
->wget "http://bugzilla.kernel.org/attachment.cgi?id=6841&action=view"
->wget "http://bugzilla.kernel.org/attachment.cgi?id=6842&action=view"
->wget "http://bugzilla.kernel.org/attachment.cgi?id=6843&action=view"
->wget "http://bugzilla.kernel.org/attachment.cgi?id=7061&action=view"
->wget "http://bugzilla.kernel.org/attachment.cgi?id=7060&action=view"
->
->Thanks,
->jayakumar
+`Never underestimate the evil of which men of power are capable.'
+         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
