@@ -1,62 +1,251 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
-Date: Tue, 14 Mar 2006 09:48:36 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F840B2DB6BF@pdsmsx403>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-ide-owner@vger.kernel.org>
-Content-class: urn:content-classes:message
-Sender: linux-ide-owner@vger.kernel.org
-To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, linux-input@atrey.karlin.mff.cuni.cz, Meelis Roos <mroos@linux.ee>
+From: jayakumar.acpi@gmail.com
+Subject: [RFC/PATCH 2.6.14.7 1/1] ACPI: Atlas ACPI driver
+Date: Tue, 14 Mar 2006 10:39:57 +0800
+Message-ID: <200603140239.k2E2dvgq012339@ns1.clipsalportal.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from [202.75.186.170] ([202.75.186.170]:11780 "EHLO
+	ns1.clipsalportal.com") by vger.kernel.org with ESMTP
+	id S1751796AbWCNCoe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Mar 2006 21:44:34 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
->> Hmm, could you file dmesgs with thermal module loaded and unloaded?
->
->Filed at bugzilla.
+Hi Len, Luming, and ACPI folk,
 
-Excellent! .
+As per the discussion with Luming here:
+http://marc.theaimsgroup.com/?l=linux-kernel&m=114225584330589&w=2
+I've made the following changes to the original Atlas patch:
+- removed __init/__exit as per Bjorn Helgaas' ASUS patch
+- removed /proc usage and LCD control using _BCM
+- added Atlas LCD brightness to the generic hotkey driver
 
->Let me know if there's a different permutation of debug options that I
->should try.  I wasn't sure whether you meant that I should leave all
->the debug values at 0x10.  Or whether I should still include
->acpi_debug=0xffffffff on top of the other options.
+I've done this patch against 2.6.14.7 + Luming's generic hotkey 
+patch as posted here:
+http://bugzilla.kernel.org/show_bug.cgi?id=5749
 
-So far, it's ok,  I saw these,  Could you do bisection to find out
-which methods or which thermal zone cause trouble?
-To do that, you have to hack thermal.c by commenting out 
-some calls of evaluating methods below.
-I hope it is easy for you!	 :-)
+Please let me know if it looks okay and if you have any feedback 
+or suggestions.
 
 Thanks,
-Luming
+Jaya Kumar
 
-Execute Method: [\_TZ_.THM0._TMP] (Node c157bf88)
-Execute Method: [\_TZ_.THM0._PSV] (Node c157be48)
-Execute Method: [\_TZ_.THM0._TC1] (Node c157bdc8)
-Execute Method: [\_TZ_.THM0._TC2] (Node c157bd88)
-Execute Method: [\_TZ_.THM0._TSP] (Node c157bd48)
-Execute Method: [\_TZ_.THM0._AC0] (Node c157bf48)
-Execute Method: [\_TZ_.THM0._SCP] (Node c157bec8)
-Execute Method: [\_TZ_.THM0._TMP] (Node c157bf88)
-ACPI: Thermal Zone [THM0] (47 C)
-Execute Method: [\_TZ_.THM2._TMP] (Node c157bb88)
-Execute Method: [\_TZ_.THM2._AC0] (Node c157bb48)
-Execute Method: [\_TZ_.THM2._SCP] (Node c157bac8)
-Execute Method: [\_TZ_.THM2._TMP] (Node c157bb88)
-Execute Method: [\_TZ_.PFN0._ON_] (Node c157a2c8)
-Execute Method: [\_TZ_.PFN0._STA] (Node c157a308)
-ACPI: Thermal Zone [THM2] (40 C)
-Execute Method: [\_TZ_.THM6._TMP] (Node c157b948)
-Execute Method: [\_TZ_.THM6._AC0] (Node c157b908)
-Execute Method: [\_TZ_.THM6._SCP] (Node c157b888)
-Execute Method: [\_TZ_.THM6._TMP] (Node c157b948)
-ACPI: Thermal Zone [THM6] (30 C)
-Execute Method: [\_TZ_.THM7._TMP] (Node c157b708)
-Execute Method: [\_TZ_.THM7._AC0] (Node c157b6c8)
-Execute Method: [\_TZ_.THM7._SCP] (Node c157b648)
-Execute Method: [\_TZ_.THM7._TMP] (Node c157b708)
-ACPI: Thermal Zone [THM7] (33 C)
+Signed-off-by: Jaya Kumar <jayakumar.acpi@gmail.com>
 
+---
+
+ MAINTAINERS               |    5 +
+ drivers/acpi/Kconfig      |   11 ++++
+ drivers/acpi/Makefile     |    1 
+ drivers/acpi/atlas_acpi.c |  123 ++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/hotkey.c     |   14 +++++
+ 5 files changed, 154 insertions(+)
+
+---
+
+diff -X linux-2.6.14.7/Documentation/dontdiff -uprN linux-2.6.14.7-vanilla/drivers/acpi/atlas_acpi.c linux-2.6.14.7/drivers/acpi/atlas_acpi.c
+--- linux-2.6.14.7-vanilla/drivers/acpi/atlas_acpi.c	1970-01-01 07:30:00.000000000 +0730
++++ linux-2.6.14.7/drivers/acpi/atlas_acpi.c	2006-03-14 10:31:04.538158024 +0800
+@@ -0,0 +1,123 @@
++/*
++ *  atlas_acpi.c - Atlas Wallmount Touchscreen ACPI Extras
++ *
++ *  Copyright (C) 2006 Jaya Kumar
++ *  Based on Toshiba ACPI by John Belmonte and ASUS ACPI
++ *  This work was sponsored by CIS(M) Sdn Bhd.
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/types.h>
++#include <linux/proc_fs.h>
++#include <asm/uaccess.h>
++#include <acpi/acpi_drivers.h>
++
++#define PROC_ATLAS			"atlas"
++#define ACPI_ATLAS_NAME			"Atlas ACPI"
++#define ACPI_ATLAS_CLASS		"Atlas"
++#define ACPI_ATLAS_BUTTON_HID		"ASIM0000"
++
++/* button handling code */
++static acpi_status acpi_atlas_button_setup(acpi_handle region_handle,
++		    u32 function, void *handler_context, void **return_context)
++{
++	*return_context = 
++		(function != ACPI_REGION_DEACTIVATE) ?  handler_context : NULL;
++
++	return AE_OK;
++}
++
++static acpi_status acpi_atlas_button_handler(u32 function,
++		      acpi_physical_address address,
++		      u32 bit_width, acpi_integer * value,
++		      void *handler_context, void *region_context)
++{
++	acpi_status status;
++	struct acpi_device *dev;
++
++	dev = (struct acpi_device *) handler_context;
++	if (function == ACPI_WRITE)
++		status = acpi_bus_generate_event(dev, 0x80, address);
++	else {
++		printk(KERN_WARNING "atlas: shrugged on unexpected function"
++			":function=%x,address=%x,value=%x\n",
++			function, (u32)address, (u32)*value);
++		status = -EINVAL;
++	}
++
++	return status ;
++}
++
++static int atlas_acpi_button_add(struct acpi_device *device)
++{
++	/* hookup button handler */
++	return acpi_install_address_space_handler(device->handle,
++				0x81, &acpi_atlas_button_handler,
++				&acpi_atlas_button_setup, device);
++}
++
++static int atlas_acpi_button_remove(struct acpi_device *device, int type)
++{
++	acpi_status status;
++	
++	status = acpi_remove_address_space_handler(device->handle,
++				0x81, &acpi_atlas_button_handler);
++	if (ACPI_FAILURE(status))
++		printk(KERN_ERR "Atlas: Error removing addr spc handler\n");
++
++	return status;
++}
++
++static struct acpi_driver atlas_acpi_driver = {
++	.name 	= ACPI_ATLAS_NAME,
++	.class 	= ACPI_ATLAS_CLASS,
++	.ids 	= ACPI_ATLAS_BUTTON_HID, 
++	.ops = {
++		.add = atlas_acpi_button_add,
++		.remove = atlas_acpi_button_remove,
++		},
++};
++
++static int atlas_acpi_init(void)
++{
++	int result;
++
++	result = acpi_bus_register_driver(&atlas_acpi_driver);
++	if (result < 0) {
++		printk(KERN_ERR "Atlas ACPI: Unable to register driver\n");
++		return -ENODEV;
++	}
++
++	return 0;
++}
++
++static void atlas_acpi_exit(void)
++{
++	acpi_bus_unregister_driver(&atlas_acpi_driver);
++}
++
++module_init(atlas_acpi_init);
++module_exit(atlas_acpi_exit);
++
++MODULE_AUTHOR("Jaya Kumar");
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("Atlas ACPI");
++MODULE_SUPPORTED_DEVICE("Atlas ACPI");
++
+diff -X linux-2.6.14.7/Documentation/dontdiff -uprN linux-2.6.14.7-vanilla/drivers/acpi/hotkey.c linux-2.6.14.7/drivers/acpi/hotkey.c
+--- linux-2.6.14.7-vanilla/drivers/acpi/hotkey.c	2006-03-13 13:50:38.000000000 +0800
++++ linux-2.6.14.7/drivers/acpi/hotkey.c	2006-03-13 23:23:46.000000000 +0800
+@@ -187,6 +187,15 @@ static struct acpi_polling_hotkey pollin
+ 		.id = 10001,
+ 	},
+ 	{
++		.ids = "ACPILCD00",
++		.name = "brightness",
++		.poll_method = "_BCL",
++		.action_method = "_BCM",
++		.min = 1,
++		.max = 31,
++		.id = 10001,
++	},
++	{
+ 		.ids = "SNY5001", 
+ 		.name		= "brightness_default",
+ 		.poll_method = "GPBR",
+@@ -268,6 +277,11 @@ struct specific_hotkey_driver_config {
+ 		.ids = "ATK0100",
+ 		.driver = NULL,
+ 	},
++ 	{
++		.name = "Atlas ACPI Extras Driver",
++		.ids = "ACPILCD00",
++		.driver = NULL,
++	},
+ 	{
+ 		.name = "",
+ 		.ids = NULL,
+diff -X linux-2.6.14.7/Documentation/dontdiff -uprN linux-2.6.14.7-vanilla/drivers/acpi/Kconfig linux-2.6.14.7/drivers/acpi/Kconfig
+--- linux-2.6.14.7-vanilla/drivers/acpi/Kconfig	2006-03-12 22:37:04.000000000 +0800
++++ linux-2.6.14.7/drivers/acpi/Kconfig	2006-03-14 10:30:41.439669528 +0800
+@@ -193,7 +193,18 @@ config ACPI_ASUS
+           driver is still under development, so if your laptop is unsupported or
+           something works not quite as expected, please use the mailing list
+           available on the above page (acpi4asus-user@lists.sourceforge.net)
++
++config ACPI_ATLAS
++	tristate "Atlas Wallmount Touchscreen Extras"
++	depends on X86
++	default n
++         ---help---
++          This driver is intended for Atlas wallmounted touchscreens. 
++          The button events will show up in /proc/acpi/events and the lcd
++          brightness control is controlled using /sys/hotkey/brightness
+           
++          If you have an Atlas wallmounted touchscreen, say Y or M here. 
++
+ config ACPI_IBM
+ 	tristate "IBM ThinkPad Laptop Extras"
+ 	depends on X86
+diff -X linux-2.6.14.7/Documentation/dontdiff -uprN linux-2.6.14.7-vanilla/drivers/acpi/Makefile linux-2.6.14.7/drivers/acpi/Makefile
+--- linux-2.6.14.7-vanilla/drivers/acpi/Makefile	2006-03-13 13:50:38.000000000 +0800
++++ linux-2.6.14.7/drivers/acpi/Makefile	2006-03-13 23:27:48.000000000 +0800
+@@ -53,6 +53,7 @@ obj-$(CONFIG_ACPI_SYSTEM)	+= system.o ev
+ obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
+ obj-$(CONFIG_ACPI_NUMA)		+= numa.o
+ obj-$(CONFIG_ACPI_ASUS)		+= asus_acpi.o
++obj-$(CONFIG_ACPI_ATLAS)	+= atlas_acpi.o
+ obj-$(CONFIG_ACPI_IBM)		+= ibm_acpi.o
+ obj-$(CONFIG_ACPI_TOSHIBA)	+= toshiba_acpi.o
+ obj-y				+= scan.o motherboard.o hotkeylib.o
+diff -X linux-2.6.14.7/Documentation/dontdiff -uprN linux-2.6.14.7-vanilla/MAINTAINERS linux-2.6.14.7/MAINTAINERS
+--- linux-2.6.14.7-vanilla/MAINTAINERS	2006-03-12 22:36:46.000000000 +0800
++++ linux-2.6.14.7/MAINTAINERS	2006-03-13 23:29:01.000000000 +0800
+@@ -355,6 +355,11 @@ M:	ecashin@coraid.com
+ W:	http://www.coraid.com/support/linux
+ S:	Supported
+ 
++ATLAS ACPI EXTRAS DRIVER
++P:	Jaya Kumar
++M:	jayakumar.acpi@gmail.com
++S:	Maintained
++
+ ATM
+ P:	Chas Williams
+ M:	chas@cmf.nrl.navy.mil
