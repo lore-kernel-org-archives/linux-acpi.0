@@ -1,78 +1,53 @@
-From: Craig Lawson <craig.lawson@dslextreme.com>
-Subject: BIOS wake-up alarm doesn't work anymore
-Date: Tue, 14 Mar 2006 01:03:21 -0800
-Message-ID: <441686D9.4040107@dslextreme.com>
-References: <1139558159.29028.16.camel@localhost.localdomain> <200603131221.13287.ncunningham@cyclades.com>
+From: Tom Seeley <redhat@tomseeley.co.uk>
+Subject: Re: 2.6.16-rc6: known regressions
+Date: Tue, 14 Mar 2006 09:36:30 +0000
+Message-ID: <44168E9E.7050503@tomseeley.co.uk>
+References: <Pine.LNX.4.64.0603111551330.18022@g5.osdl.org> <20060313200544.GG13973@stusta.de> <E1FIuFC-0004kk-00@decibel.fi.muni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail5.dslextreme.com ([66.51.199.81]:57262 "HELO
-	mail5.dslextreme.com") by vger.kernel.org with SMTP
-	id S1751270AbWCNJDY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 14 Mar 2006 04:03:24 -0500
-In-Reply-To: <200603131221.13287.ncunningham@cyclades.com>
+Received: from toby.tomseeley.co.uk ([194.143.175.75]:24229 "EHLO
+	toby.tomseeley.co.uk") by vger.kernel.org with ESMTP
+	id S1752046AbWCNJgw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 14 Mar 2006 04:36:52 -0500
+In-Reply-To: <E1FIuFC-0004kk-00@decibel.fi.muni.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Jiri Slaby <jirislaby@gmail.com>
+Cc: Greg KH <gregkh@suse.de>, Adrian Bunk <bunk@stusta.de>, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Avuton Olrich <avuton@gmail.com>, xfs-masters@oss.sgi.com, linux-xfs@oss.sgi.com, Dave Jones <davej@redhat.com>, len.brown@intel.com, linux-acpi@vger.kernel.org, norsk5@xmission.com, dsp@llnl.gov, bluesmoke-devel@lists.sourceforge.net, linux-usb-devel@lists.sourceforge.net, pete.chapman@exgate.tek.com, Olaf Hering <olh@suse.de>, paulus@samba.org, anton@samba.org, linuxppc64-dev@ozlabs.org, laredo@gnu.org, v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
 
-Hi ACPI list,
+Jiri Slaby wrote:
+> Greg KH wrote:
+>> On Mon, Mar 13, 2006 at 09:05:44PM +0100, Adrian Bunk wrote:
+>>> Subject    : Stradis driver udev brekage
+>>> References : http://bugzilla.kernel.org/show_bug.cgi?id=6170
+>>>              https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=181063
+>>>              http://lkml.org/lkml/2006/2/18/204
+>>> Submitter  : Tom Seeley <redhat@tomseeley.co.uk>
+>>>              Dave Jones <davej@redhat.com>
+>>> Handled-By : Jiri Slaby <jirislaby@gmail.com>
+>>> Status     : unknown
+>> Jiri, why did you create a kernel.org bugzilla bug with almost no
+>> information in it?
+>>
+>> Anyway, this is the first I've heard of this, more information is
+>> needed to help track it down.  How about the contents of /sys/class/dvb/ ?
+> Hello,
+> 
+> sorry for that, I expected Tom to help us track this down -- he has this
+> problem, but he haven't replied yet. Nobody else is complaining, would we defer
+> or close it for now?
+> 
+> best regards,
 
-I'm new to the list, and I'm looking for some help with my system.
+Apologies for the lack of additional information, this is simply a lack 
+of time on my behalf.  My first attempt to bisect 2.6.15 <-> 2.6.16-rc5 
+produced a kernel which caused udev to crash (and stop init).  I will 
+shift the goalposts and try again.  Once I have the results I will post 
+them to bugzilla.  I will also post the contents of /sys/class/dvb as 
+requested above.
 
-Something has changed with my BIOS wake-up alarm. It was set to wake
-everyday at 3:00 am, cron would run backups, and then suspend to S5
-again. Worked that way for well over a year, though several kernel
-upgrades. But when I switched to 2.6.14-5 with suspend2 2.2-rc14
-(specifically Gentoo suspend2-sources-2.6.14-r7), it stopped working.
-The kernel I used immediately prior was 2.6.11.11 + suspend2-2.1.8. (and
-I am now on 2.6.15-r6.)
+Thanks,
 
-My BIOS alarm has 3 fields: day, hour, and minute. I have it set to "day
-= 0, 10:45 am" (UTC), where day = 0 means "everyday". /proc/acpi/alarm
-shows "2006-01-00 10:45:00" (year, month, and seconds are filled in by
-the kernel, year and month are from today's date).
-
-I read with interest Hanno's and Shaohua's e-mails from around
-2006-01-18. Sounds like Hanno's problem is similar to mine (except I
-know mine used to work reliably). My kernels have been configured with
-CONFIG_RTC=m.
-
-I tried several things to understand the problem:
-
-    * I can write timestamps into /proc/acpi/alarm. When I read them
-      back, they are the same (day, hours, and minute, that is).
-    * I write a timestamp into /proc/acpi/alarm with day = 0, and the
-      system won't wake.
-    * I configure the alarm in the BIOS with day = 0 and then power off.
-      It won't wake.
-    * I write a timestamp into /proc/acpi/alarm with a non-zero day, and
-      the system wakes when it's supposed to. After waking, the day has
-      been cleared to 0.
-    * I write a timestamp two days in the future and suspend to S5. I
-      resume the next day, and the day has been cleared to zero.
-    * Write a non-zero day, suspend to S5, power on and go to BIOS
-      config to see what's in there. The BIOS has day = 0. Don't change
-      it and power off. Result: system won't wake.
-    * As a work-around, I have an hourly cron job that computes and
-      writes the next wake time into /proc/acpi/alarm. Result: wakes
-      from S5 reliably.
-
-More system details:
-  MB is: DFI PS83-BL
-  BIOS is: Award 02/16/2004-I865P/PE-6A79AD4DC-00 (updated Sept 2004)
-  Flash type is: Winbond 49V002F/3.3V
-
-This is definitely not as good as before. When day = 0 meant "every
-day", my system could be unplugged for several days, and it would always
-wake at 3 am the day after power was restored. And it never forgot to
-wake up.
-
-What has changed? And why, if I remove all power to the machine and then
-configure the BIOS alarm directly, won't the system wake up?
-
-And is this a bug or a feature?
-
-Thanks and Best Regards,
-Craig.
-
+Tom.
