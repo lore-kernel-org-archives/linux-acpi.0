@@ -1,66 +1,97 @@
-From: zicada@stoneinnovation.no
-Subject: Re: [Bug 6217] New: 'no event handler' error loops when connecting
-     an external monitor
-Date: Wed, 15 Mar 2006 17:55:38 +0100 (CET)
-Message-ID: <27338.213.88.150.18.1142441738.squirrel@213.88.150.18>
-References: <200603121744.k2CHiDuk019008@fire-2.osdl.org>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: some new unaligned access while booting ia64 (HP rx2620)
+Date: Wed, 15 Mar 2006 09:14:19 -0800
+Message-ID: <971FCB6690CD0E4898387DBF7552B90E04ABAD16@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [193.69.188.101] ([193.69.188.101]:41675 "EHLO
-	stoneinnovation.no") by vger.kernel.org with ESMTP id S1750702AbWCORHa
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Mar 2006 12:07:30 -0500
-In-Reply-To: <200603121744.k2CHiDuk019008@fire-2.osdl.org>
+Received: from fmr17.intel.com ([134.134.136.16]:25547 "EHLO
+	orsfmr002.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1750762AbWCORQC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Mar 2006 12:16:02 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, Thomas Renninger <trenn@suse.de>
 
-Sorry for bugging you guys again with this.
-Just wondering if there is anything else I can do to help out. Im unsure
-wether the problem is due to a buggy dsdt or a bug in linux-acpi,
-therefore im not too sure what info to supply you with. I realize you are
-all probably very busy, but some feedback on what i can do to help would
-be greatly appreciated. Im reading through the acpi specification and
-trying to make sense of it all, but im fairly new to both aml and lower
-level kernel code. Is there another channel i should go through ? Maybe an
-irc channel somewhere on freenode, or another mailinglist ? I want to
-help! :-)
+Yes, the reasons are very similar.
 
--- Thomas W. Larsen
+Probably best just to wait for the patch to bubble through the pipeline.
 
-> http://bugzilla.kernel.org/show_bug.cgi?id=6217
->
->            Summary: "no event handler" error loops when connecting an
->                     external monitor
->     Kernel Version: 2.6.15
->             Status: NEW
->           Severity: normal
->              Owner: acpi_aml-interpreter@kernel-bugs.osdl.org
->          Submitter: zicada@stoneinnovation.no
->
->
-> Most recent kernel where this bug did not occur: NA
-> Distribution: Gentoo
-> Hardware Environment: Quanta KN1 based notebook (915GM/PM, nvidia gf 6600)
-> Software Environment: Gentoo / 2.6.15
-> Problem Description:
-> Most ACPI functionality seem to run fine except when an external monitor
-> is
-> connected. All procs freeze, and syslog is spammed with:
-> "ACPI Error (evgpe-0688): No handler or method for GPE[17], disabling
-> event
-> [20060127]"
-> Whenever the monitor is disconnected, the kernel resumes normal operation.
-> I tried rewriting the DSDT to the best of my (very limited) knowledge. Got
-> rid
-> of the 4 errors, but this did not affect the issue.
->
-> DSDT original (in hex format) can be found at this url:
-> http://www.stoneinnovation.no/zicada/dsdt.hex
->
-> ------- You are receiving this mail because: -------
-> You reported the bug, or are watching the reporter.
->
 
+> -----Original Message-----
+> From: Bjorn Helgaas [mailto:bjorn.helgaas@hp.com]
+> Sent: Wednesday, March 15, 2006 8:49 AM
+> To: Moore, Robert
+> Cc: Luck, Tony; linux-acpi@vger.kernel.org;
+linux-ia64@vger.kernel.org;
+> Thomas Renninger
+> Subject: Re: some new unaligned access while booting ia64 (HP rx2620)
+> 
+> On Wednesday 15 March 2006 08:47, Moore, Robert wrote:
+> > They should be fixed in ACPICA version 20060217:
+> >
+> > Fixed a problem where several resource descriptor types could
+overrun
+> > the internal descriptor buffer due to size miscalculation:
+VendorShort,
+> > VendorLong, and Interrupt. This was noticed on IA64 machines, but
+could
+> > affect all platforms.
+> 
+> Did you determine that the buffer overrun problem that caused
+> the slab corruption was the same thing that caused the unaligned
+> access messages?
+> 
+> Can you point me to the patch?  Or possibly a place to get the
+> 20060217 ACPICA and the previous version, so I can extract the
+> patch myself?  I poked around the Intel ACPI web page, but could
+> only find the most recent ACPICA; there didn't seem to be any
+> history.
+> 
+> Bjorn
+> 
+> > > -----Original Message-----
+> > > From: Bjorn Helgaas [mailto:bjorn.helgaas@hp.com]
+> > > Sent: Tuesday, March 14, 2006 4:00 PM
+> > > To: Luck, Tony
+> > > Cc: linux-acpi@vger.kernel.org; linux-ia64@vger.kernel.org; Moore,
+> > Robert;
+> > > Thomas Renninger
+> > > Subject: Re: some new unaligned access while booting ia64 (HP
+rx2620)
+> > >
+> > > On Thursday 02 February 2006 12:46, Luck, Tony wrote:
+> > > > Booting a snapshot of Linus' tree this morning I saw a few
+(new?)
+> > > > kernel unaligned access warnings:
+> > > >
+> > > > ACPI: Subsystem revision 20060127
+> > > > ACPI: Interpreter enabled
+> > > > ACPI: Using IOSAPIC for interrupt routing
+> > > > ACPI: PCI Root Bridge [PCI0] (0000:00)
+> > > > kernel unaligned access to 0xe00000407ec5a204,
+ip=0xa0000001003af8c0
+> > > > kernel unaligned access to 0xe00000407ec5a23c,
+ip=0xa0000001003af8c0
+> > > > kernel unaligned access to 0xe00000407ec5a28c,
+ip=0xa0000001003af8c0
+> > > > kernel unaligned access to 0xe00000407ec5a1fc,
+ip=0xa0000001003ae6c1
+> > > > kernel unaligned access to 0xe00000407ec5a204,
+ip=0xa0000001003ae6d1
+> > > > ACPI: PCI Interrupt Routing Table [\_SB_.SBA0.PCI0._PRT]
+> > > > ACPI: PCI Root Bridge [PCI1] (0000:20)
+> > >
+> > > Did we ever resolve this?  Are we just waiting for new ACPI bits
+> > > to trickle into -mm and mainline?
+> > >
+> > > I'd like to see the patch for just this issue, because it affects
+> > > SLES10, and Novell might balk at a complete ACPI CA update, but
+> > > might take just the individual patch.
+> > >
+> > > Bjorn
+> >
