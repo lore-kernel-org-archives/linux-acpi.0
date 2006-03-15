@@ -1,45 +1,44 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: some new unaligned access while booting ia64 (HP rx2620)
-Date: Tue, 14 Mar 2006 16:59:49 -0700
-Message-ID: <200603141659.49535.bjorn.helgaas@hp.com>
-References: <200602021946.k12Jk446028921@agluck-lia64.sc.intel.com>
+From: "Yu, Luming" <luming.yu@intel.com>
+Subject: RE: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
+Date: Wed, 15 Mar 2006 09:46:30 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F840B32A693@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel9.hp.com ([156.153.255.214]:12168 "EHLO atlrel9.hp.com")
-	by vger.kernel.org with ESMTP id S932097AbWCNX75 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 14 Mar 2006 18:59:57 -0500
-In-Reply-To: <200602021946.k12Jk446028921@agluck-lia64.sc.intel.com>
-Content-Disposition: inline
+Received: from fmr20.intel.com ([134.134.136.19]:23274 "EHLO
+	orsfmr005.jf.intel.com") by vger.kernel.org with ESMTP
+	id S932179AbWCOBrf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Mar 2006 20:47:35 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, "Moore, Robert" <robert.moore@intel.com>, Thomas Renninger <trenn@suse.de>
+To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
 
-On Thursday 02 February 2006 12:46, Luck, Tony wrote:
-> Booting a snapshot of Linus' tree this morning I saw a few (new?)
-> kernel unaligned access warnings:
-> 
-> ACPI: Subsystem revision 20060127
-> ACPI: Interpreter enabled
-> ACPI: Using IOSAPIC for interrupt routing
-> ACPI: PCI Root Bridge [PCI0] (0000:00)
-> kernel unaligned access to 0xe00000407ec5a204, ip=0xa0000001003af8c0
-> kernel unaligned access to 0xe00000407ec5a23c, ip=0xa0000001003af8c0
-> kernel unaligned access to 0xe00000407ec5a28c, ip=0xa0000001003af8c0
-> kernel unaligned access to 0xe00000407ec5a1fc, ip=0xa0000001003ae6c1
-> kernel unaligned access to 0xe00000407ec5a204, ip=0xa0000001003ae6d1
-> ACPI: PCI Interrupt Routing Table [\_SB_.SBA0.PCI0._PRT]
-> ACPI: PCI Root Bridge [PCI1] (0000:20)
+>
+>[I've trimmed non-relevant lists (v4l-dvb-maintainer@linuxtv.org,
+>video4linux-list@redhat.com, linux-ide@vger.kernel.org,
+>linux-input@atrey.karlin.mff.cuni.cz,
+>linux-usb-devel@lists.sourceforge.net) from the CC.  Let me know if
+>anyone else wants to be trimmed.]
+>
+>> Could you do bisection to find out which methods or which thermal
+>> zone cause trouble?  To do that, you have to hack thermal.c by
+>> commenting out some calls of evaluating methods below.  I hope it is
+>> easy for you!  :-)
+>
+>I eventually muddled my way there.  The short story is that I can
+>reproduce the hang -- on the FIRST S3 cycle -- when the _TMP method is
+>called a few times, just for THM0.  
 
-Did we ever resolve this?  Are we just waiting for new ACPI bits
-to trickle into -mm and mainline?
+Excellent!
+Could you just comment out _TMP in kernel or in DSDT,
+and do several  S3 suspend /resume  Cycles without remove thermal
+module, 
+I want to make sure we are at right place to drill down. 
 
-I'd like to see the patch for just this issue, because it affects
-SLES10, and Novell might balk at a complete ACPI CA update, but
-might take just the individual patch.
+Thanks for your  testing reports. It's impressive. :-)
 
-Bjorn
+--Luming
