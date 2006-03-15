@@ -1,65 +1,60 @@
 From: "Yu, Luming" <luming.yu@intel.com>
 Subject: RE: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
-Date: Wed, 15 Mar 2006 14:16:02 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F840B32AA80@pdsmsx403>
+Date: Wed, 15 Mar 2006 14:25:45 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F840B32AAAE@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr20.intel.com ([134.134.136.19]:41370 "EHLO
-	orsfmr005.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1752056AbWCOGRA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Mar 2006 01:17:00 -0500
+Received: from fmr18.intel.com ([134.134.136.17]:47772 "EHLO
+	orsfmr003.jf.intel.com") by vger.kernel.org with ESMTP
+	id S932605AbWCOG0l convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Mar 2006 01:26:41 -0500
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
 Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
 
->> Could you just comment out _TMP in kernel or in DSDT, 
->
->I think it needs both excisions: If I comment out just the kernel _TMP
->calls, the DSDT might slip one in through the interpreter.  If I
->comment out just the DSDT _TMP calls, then the kernel can still call
->_TMP.  So instead I modified acpi_evaluate_integer() to return 27 C
->(3000 dK) if it's ever asked for a temperature, without doing any
->actual work:
->
->--- utils.c.orig	2006-02-27 00:09:35.000000000 -0500
->+++ utils.c		2006-03-14 23:36:59.000000000 -0500
->@@ -270,7 +270,15 @@ acpi_evaluate_integer(acpi_handle handle
->   memset(element, 0, sizeof(union acpi_object));
->   buffer.length = sizeof(union acpi_object);
->   buffer.pointer = element;
->-  status = acpi_evaluate_object(handle, pathname, arguments, &buffer);
->+  if (strcmp(pathname, "_TMP") != 0)
->+    status = acpi_evaluate_object(handle, pathname, 
->arguments, &buffer);
->+    else {
->+      printk(KERN_INFO PREFIX "acpi_evaluate_integer: Faking _TMP\n");
->+        status = AE_OK;
->+	   element->type = ACPI_TYPE_INTEGER;
->+	     element->integer.value = 3000; /* 27 C, in deciKelvins */
->+	     }
->+
->	if (ACPI_FAILURE(status)) {
->	   acpi_util_eval_error(handle, pathname, status);
->					return_ACPI_STATUS(status);
->
->This diff is in addition to the previous debugging changes to
->thermal.c.
 
-If you do it in this way, all thermal zone's _TMP will be faked.
-If you remove the real THM0._TMP, and fake a dummy THM0._TMP
-in DSDT, and don't change anything in kernel, then if S3 works
-well, I will be convinced that THM0._TMP was causing trouble.
-Yes, I'm asking you to override DSDT for debugging. :-)
-But, please make sure don't change other things in DSDT, otherwise
-it still won't be trusted. :-)
+>One sad piece of data that I came across, perhaps worth investigating
+>further after this one is chased down:
+>
+>As described in the last email, the combination of _TMP fakery (in
+>utils.c) plus the bisecting version of thermal.c (loading only the
+>zone THM0 and then only up to bisect_get_info=1) got rid of the hangs.
+>
+>So I got bold and tried _TMP fakery but with the vanilla thermal.c.
+>The idea being that if _TMP is to blame for all the problems, then S3
+>sleep should work fine with this setup.  But it hung in the usual way,
+>on the second sleep.  Below are the dmesgs after the usual boot-time
+>ones.
+>
+>This experiment produces a hang even with _TMP faked, whereas the
+>previous experiment didn't (also with _TMP faked but, after the boot,
+>loading only the THM0 zone and only doing the _TMP methods of it, even
+>on wake).  So one of the non-TMP methods below must be causing a
+>problem?  My suspicion is that it's one of the methods called on wake
+>(_THM0._PSV or ._TC1, etc. or maybe one of the other zone's methods),
+>which would explain why the first sleep goes fine but the second one
+>fails.
+>
+>I don't think it's any of the calls made when 'thermal' is loading at
+>boot time, because the same calls happen in the previous experiment.
+>In that experiment, thermal loads normally (with _TMP faked), and only
+>after boot do I unload it and replace it with
+>
+>  modprobe thermal zone_to_keep=0 bisect_get_info=1
+>
+>Anyway, here are the dmesgs for this experiment (hangs on 2nd sleep):
 
-Anyway, I'm studying THM0._TMP, and try to figure out how it is related
-with EC. 
+Ok, Let's change the way of hacking. Let's start bisection
+without  touching kernel, instead with DSDT.
+Firstly, you need to find out which THM.
+Then,  which Methods.
+Finally, which statements that triggers S3 hang.
 
 Thanks,
 Luming
+
