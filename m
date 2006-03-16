@@ -1,63 +1,48 @@
-From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Subject: Re: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
-Date: Thu, 16 Mar 2006 05:47:49 +0000
-Message-ID: <E1FJlKv-00081K-00@skye.ra.phy.cam.ac.uk>
-References: <3ACA40606221794F80A5670F0AF15F840B32AC5E@pdsmsx403>
+From: Franklin Marmon <marmon@montana.com>
+Subject: function keys
+Date: Wed, 15 Mar 2006 22:56:43 -0700
+Message-ID: <200603152256.43735.marmon@montana.com>
+Reply-To: marmon@montana.com
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mraos.ra.phy.cam.ac.uk ([131.111.48.8]:15852 "EHLO
-	mraos.ra.phy.cam.ac.uk") by vger.kernel.org with ESMTP
-	id S932656AbWCPFrw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 16 Mar 2006 00:47:52 -0500
-In-Reply-To: Your message of "Wed, 15 Mar 2006 16:02:57 +0800."
-             <3ACA40606221794F80A5670F0AF15F840B32AC5E@pdsmsx403>
+Received: from jollyroger.montana.com ([66.109.128.82]:48364 "EHLO
+	jollyroger.montana.com") by vger.kernel.org with ESMTP
+	id S932673AbWCPF4k (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Mar 2006 00:56:40 -0500
+Received: from laptop.hydeco.com (marmon.montana.com [66.109.143.72])
+	(authenticated bits=0)
+	by jollyroger.montana.com (8.12.11/8.12.11) with ESMTP id k2G5tpWk008104
+	for <linux-acpi@vger.kernel.org>; Wed, 15 Mar 2006 22:55:52 -0700
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Yu, Luming" <luming.yu@intel.com>
-Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
+To: linux-acpi@vger.kernel.org
 
-Here the test results on the DSDT variants, as a tree.  THM0 is the
-root (meaning a DSDT with only THM0).  -XYZ means 'fake the method XYZ
-in THM0, relative to the situation in the parent DSDT':
 
-hang:	 THM0
-okay:		-TMP
-hang:		-PSV
-okay:			-AC0 (i.e. THM0 methods but no PSV, no AC0)
-hang:			-SCP
-hang:		-AC0
+I am currently using an acpi driver for sony laptops (sony_acpi.c) which 
+provides an interface for reading that last pressed function key by means of 
+a /proc interface file. When read this file will show either 0 or the last 
+function key combination that was typed. It provides this value by using the 
+acpi_evaluate_object() function to obtain the value of "GHKE". A user space 
+program is currently used to read this value every N seconds and check for 
+events.
 
-The first two results are consistent with the view that TMP is the
-problem.  
+Is there an interrupt generated when one of these function keys is pressed and 
+is this interrupt currently handled by the acpi subsystem? If so, is there a 
+way to add this acpi device driver into a wait queue for this type of event 
+so that a proper char device may be created and polled, rather than reading 
+the /proc file system every N seconds?
 
->From the first five results, I convinced myself that TMP needed AC0
-around to cause a problem, and vice versa: hang iff (TMP & AC0).  But
-the last result (-AC0) surprised me.  Now I think: 
-   hang iff (TMP & (PSV | AC0)).
+Is there a better way to handle this type of thing in the kernel already that 
+I've missed?
 
-The -PSV-AC0 DSDT, which did not hang, seemed close to hanging.  After
-a few cycles, it became very sluggish and the load was 8.2 on wakeup.
-But the sluggishness disappeared after a couple more cycles, and I
-couldn't produce a hang (tried two reboots, each with different
-permutations of sleep.sh or "echo 1 > THM0/polling_frequency").
+Thank you,
 
-The -AC0 DSDT hung upon doing 
+frm
 
- echo 1 > THM0/polling_frequency ; sleep.sh; sleep.sh
-
-and it got in an endless loop that showed it sluggishly executing
-(over and over again) THM0._TMP.
-
-It's probably not coincidence that TMP and AC0 both use the EC.
-Although PSV doesn't.
-
-I didn't make any tests on the MODP method.  And the TC1, TC2, and TSP
-methods seemed to trivial (just returning a constant) that it didn't
-seem worth testing them.
-
-I keep the kernels around for each permutation, so I can retest any of
-the above, or send the THM0 portions of the .dsl files.
-
--Sanjoy
-
-`Never underestimate the evil of which men of power are capable.'
-         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
+--
+Franklin Marmon
+freenode nic: Agathezol
