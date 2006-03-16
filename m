@@ -1,54 +1,44 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
-Date: Thu, 16 Mar 2006 16:18:05 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F840B37A7EF@pdsmsx403>
+From: Pavel Troller <patrol@sinus.cz>
+Subject: Intel Entry Server Board - No CPU PM available
+Date: Thu, 16 Mar 2006 15:44:42 +0100
+Message-ID: <20060316144442.GA13141@tangens.sinus.cz>
+Reply-To: Pavel Troller <patrol@sinus.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr18.intel.com ([134.134.136.17]:59884 "EHLO
-	orsfmr003.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1752187AbWCPITe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Mar 2006 03:19:34 -0500
-Content-class: urn:content-classes:message
+Received: from tangens.sinus.cz ([195.39.17.8]:11460 "EHLO tangens.sinus.cz")
+	by vger.kernel.org with ESMTP id S1751161AbWCPOoo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Mar 2006 09:44:44 -0500
+Received: from tangens.sinus.cz (patrol@localhost [127.0.0.1])
+	by tangens.sinus.cz (8.13.5/8.13.5) with ESMTP id k2GEiggZ016069
+	for <linux-acpi@vger.kernel.org>; Thu, 16 Mar 2006 15:44:42 +0100
+Received: (from patrol@localhost)
+	by tangens.sinus.cz (8.13.5/8.13.5/Submit) id k2GEiguD016068
+	for linux-acpi@vger.kernel.org; Thu, 16 Mar 2006 15:44:42 +0100
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
+To: linux-acpi@vger.kernel.org
 
-
->> To verify this, please hack acpi_thermal_active.
->
->Do you mean hack it for now to return without doing anything (like if
->'tz' wasn't valid)?  Or do it farther in the function, like by
->changing
->
->				result =
->				    acpi_bus_set_power(active->devices.
->						       handles[j],
->						       ACPI_STATE_D0);
->to 
->
->				result = 1;
->
->>  Disable active/passive cooling request before suspend.
-
-Yes, just return , and DONT do anything could impact to platform.
-
->
->Do I need to hack acpi_thermal_passive() as well?
-
-Yes.
-
-Please also make sure you have vanilla DSDT,  vanilla Kernel, and just
-hacked 
-acpi_thermal_active/passive.
-
-I'm waiting for your good news.
-If it is the root cause, probably you need to come up with a real patch.
-:-)
-
-
-Thanks,
-Luming
+Hi!
+  The following question is targeted to the Intel folks, which are for sure
+here and actively helping the Linux ACPI community.
+  We've purchased two pieces of "Intel Server Platform SR1425BK1-E" chassis.
+  They contain SE7221BK1-E motherboard.
+  We've equipped them with P-4's of adequate performance and with 1 GB of
+RAM each.
+  After installing Linux, I was curious, how the CPU power management is
+working. What I've found, made me feel sad. It looked as in the worst and
+cheapest, anonymous mobo. Just C1 available, P_LVL2_LAT=101, P_LVL3_LAT=1001.
+The same cheap trick for disabling ACPI functionality as so many times
+discussed here.
+  I know that one can say "It's a server, it's made for heavy crunching all
+the time, so what to do with ACPI PM here?" But I don't think so. Because it's
+a server, it will run for many years 24/7/365. It can save a lot of resources
+and give a big gift to all the Earth environment by saving so much power, 
+as is possible. 
+  Is there a chance to get ACPI CPU PM working here, for example by changing
+BIOS, its configuration, hidden jumper or anything else ? Or is this just
+the next one in the long row of ACPI-unfriendly products ?
+               With regards, Pavel Troller
