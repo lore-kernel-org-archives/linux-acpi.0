@@ -1,64 +1,40 @@
-From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Subject: Re: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
-Date: Thu, 16 Mar 2006 15:15:10 +0000
-Message-ID: <E1FJuBy-0004Sd-00@skye.ra.phy.cam.ac.uk>
-References: <3ACA40606221794F80A5670F0AF15F840B37A7EF@pdsmsx403>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: Intel Entry Server Board - No CPU PM available
+Date: Thu, 16 Mar 2006 17:22:24 -0500
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3006690634@hdsmsx401.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mraos.ra.phy.cam.ac.uk ([131.111.48.8]:17057 "EHLO
-	mraos.ra.phy.cam.ac.uk") by vger.kernel.org with ESMTP
-	id S1751331AbWCPPPO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 16 Mar 2006 10:15:14 -0500
-In-Reply-To: Your message of "Thu, 16 Mar 2006 16:18:05 +0800."
-             <3ACA40606221794F80A5670F0AF15F840B37A7EF@pdsmsx403>
+Received: from fmr14.intel.com ([192.55.52.68]:50105 "EHLO
+	fmsfmr002.fm.intel.com") by vger.kernel.org with ESMTP
+	id S1750866AbWCPWWp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Mar 2006 17:22:45 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Yu, Luming" <luming.yu@intel.com>
-Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
+To: Pavel Troller <patrol@sinus.cz>, linux-acpi@vger.kernel.org
 
-Bad news.  It hangs when I do the usual stress test:
+The important thing isn't the number of idle C-states,
+it is the power consumed in the C-states that are used.
 
-echo 1 > THM0/polling_frequency
-sleep.sh
-sleep.sh
+Consult the data-sheet for whatever processor you drop
+into this box and see what it consumes in C1.
 
-The second sleep.sh hangs going to sleep.  It is in an endless loop
-printing the following line, once per second (from the
-polling_frequency):
+Another thing you can do is see if you can load a cpufreq driver
+on this box.  You may be limited to p4-clockmod, which
+is just a linear throttling.
 
-  Execute Method: [\_TZ_.THM0._TMP] (Node c157bf88)
+Generally you don't want to use throttling, as it is
+usually a better power deal to finish work quickly
+and then get into idle to enjoy non-linear power savings.
+However, if your system is never idle, eg. it always
+runs some cpu-soaker background task that never completes
+and you don't care so much about its performance,
+then throttling can save you power.
 
-> Please also make sure you have vanilla DSDT
+Throttling has no effect on power savings when idle
+(since the CPU is already running at 0MHz when idle).
 
-$ grep DSDT /boot/config-2.6.16-rc5.fake-thermal_active+passive
-# CONFIG_ACPI_CUSTOM_DSDT is not set
-
-> vanilla Kernel, and just hacked acpi_thermal_active/passive.
-
-Only diff between pristine 2.6.16-rc5 tree and mine is:
-
-diff -rup /tmp/linux-2.6.16-rc5/drivers/acpi/thermal.c /usr/src/linux-2.6.16-rc5/drivers/acpi/thermal.c
---- /tmp/linux-2.6.16-rc5/drivers/acpi/thermal.c	2006-02-27 00:09:35.000000000 -0500
-+++ /usr/src/linux-2.6.16-rc5/drivers/acpi/thermal.c	2006-03-16 09:45:30.000000000 -0500
-@@ -526,6 +526,8 @@ static void acpi_thermal_passive(struct 
- 
- 	ACPI_FUNCTION_TRACE("acpi_thermal_passive");
- 
-+	return;
-+
- 	if (!tz || !tz->trips.passive.flags.valid)
- 		return;
- 
-@@ -615,6 +617,8 @@ static void acpi_thermal_active(struct a
- 
- 	ACPI_FUNCTION_TRACE("acpi_thermal_active");
- 
-+	return;
-+
- 	if (!tz)
- 		return;
- 
-
--Sanjoy
-
-`Never underestimate the evil of which men of power are capable.'
-         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
+cheers,
+-Len
