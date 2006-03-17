@@ -1,108 +1,89 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: Problem with ACPI on an AMD Athlon 64 X2 motherboard - freeze on boot
-Date: Fri, 17 Mar 2006 11:29:02 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F840B37ADC6@pdsmsx403>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=gb2312
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Subject: Re: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
+Date: Fri, 17 Mar 2006 06:28:47 +0000
+Message-ID: <E1FK8S7-0003ZD-00@skye.ra.phy.cam.ac.uk>
+References: <3ACA40606221794F80A5670F0AF15F840B37ABA9@pdsmsx403>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:39564 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S964925AbWCQD34 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Mar 2006 22:29:56 -0500
-Content-class: urn:content-classes:message
+Received: from mraos.ra.phy.cam.ac.uk ([131.111.48.8]:29403 "EHLO
+	mraos.ra.phy.cam.ac.uk") by vger.kernel.org with ESMTP
+	id S1752546AbWCQG2w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 17 Mar 2006 01:28:52 -0500
+In-Reply-To: Your message of "Fri, 17 Mar 2006 09:17:40 +0800."
+             <3ACA40606221794F80A5670F0AF15F840B37ABA9@pdsmsx403>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robin Verduijn <verdujin.acpi@gmail.com>, linux-acpi@vger.kernel.org
+To: "Yu, Luming" <luming.yu@intel.com>
+Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
 
- Hi,
+> Hmm,  we can continue to have fun with debugging. Right?
 
-Please file a bug on bugzilla.kernel.org.
-Otherwise, it is hard to track.
+Definitely, I haven't given up.
 
-Thanks,
-Luming=20
+>> The second sleep.sh hangs going to sleep.  It is in an endless loop
+>> printing the following line, once per second (from the
+>> polling_frequency):
+>>
+>>  Execute Method: [\_TZ_.THM0._TMP] (Node c157bf88)
 
->-----Original Message-----
->From: linux-acpi-owner@vger.kernel.org=20
->[mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Robin Verduijn
->Sent: 2006=C4=EA3=D4=C217=C8=D5 8:58
->To: linux-acpi@vger.kernel.org
->Subject: Problem with ACPI on an AMD Athlon 64 X2 motherboard=20
->- freeze on boot
->
->Hi,
->
->I have recently bought an Alienware Aurora m7700 notebook, which comes
->with an AMD Athlon 64 X2 4400+ dual core processor (wow, that's a
->mouth full). Since it came set up with a RAID-0 VIA adapter I need
->dmraid in order to recognize my drives, which means that I cannot boot
->directly into Linux. Thus, I am forced to use Loadlin and a
->vmlinuz/initrd combination which initializes dmraid and boots up the
->rest of the system. I am only mentioning all this in case the fact
->that I am booting from Loadlin has anything to do with my problem.
->
->My problem is that, with an SMP kernel, I am unable to get both
->processors recognized. I currently suspect that the reason for this is
->that the system freezes very early on in the boot cycle if ACPI is
->turned on. When I specify "acpi=3Doff" the system boots successfully b=
-ut
->it fails to detect the motherboard as multi-processor and only
->initializes the first processor.
->
->When I boot from a Knoppix 4.0.2 cd, ACPI is turned on successfully
->and IO-APIC/Local APIC is turned on so that both of my processors get
->recognized. In fact, if I try to boot Knoppix with "acpi=3Doff" it
->freezes immediately on startup. This puzzles me somewhat since I have
->tried using the very same kernel from the Knoppix cd to boot from my
->harddisk and got the same problem there.
->
->The reason I am asking for help on this list is that I am now
->labouring under the assumption that the problem with recognizing my
->processors is due to the fact that ACPI cannot be turned on (at least,
->not when booting from my hard drive), which I think must be because my
->BIOS has a faulty ACPI namespace. I read up on
->http://acpi.sourceforge.net/dsdt and obtained the DSDT for my system,
->which turns out to have quite a lot of compilation errors. Some of
->these I could correct but almost two dozen remain, and I was wondering
->if someone on this list could nudge me along in the right
->direction[1].
->
->Kernel: 2.6.15.6 from kernel.org
->Running Debian Sarge with a bare minimum of packages installed.
->
->Attached:
->	AuroraAMD64.dsl		The DSDT file I am trying to=20
->get compiled
->	AuroraAMD64.diff	The changes I was able to make=20
->to it so far
->	config-2.6.15.6		The changes I was able to make=20
->to it so far
->	cpuinfo.txt.knoppix	The output of /proc/cpuinfo=20
->when booted using Knoppix
->	dmesg.knoppix		The output of 'dmesg' when run=20
->under Knoppix
->	dmesg.txt		The output of 'dmesg' when I=20
->have to boot with acpi=3Doff
->	dmidecode.txt		The output of 'dmidecode'
->	dmidecode.knoppix.txt	The output of 'dmidecode' under Knoppix
->	lspci.txt		The output of 'lspci -v -v'
->	stdout-stderr.iasl.log	The iasl compiler errors when trying to
->compile AuroraAMD64.dsl
->
->If there is any other information I could give that might help with
->this, please let me know. I am really eager to get this 100% working
->under Linux...
->
->Thanks in advance,
->- robin
->
->[1] Of course, if trying to make the DSDT compile correctly is just a
->red herring, I would still appreciate any suggestions as to what the
->real root cause is :-)
->
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I don't think these lines are a problem.  They just reflect that
+thermal polling is happening once per second.  So even though the ACPI
+system is hanging in the SMPI loop (as you say below), it is alive
+enough to poll the temperature sensors.
+
+> Also please mute THM0 polling.
+
+I retested the hacked kernel (with faked thermal_active/passive)
+but with no thermal polling, just doing
+
+  cat THM*/polling_frequency (they were all 'polling disabled')
+  sleep.sh  (works)
+  sleep.sh  (hangs in the usual SMPI loop)
+
+and it hangs as usual.
+
+> This should be the different problem from the previous reported hang.
+> I recall it was hanging at a loop in SMPI waiting for BIOS's response.
+> Please confirm, 
+
+I just retested vanilla 2.6.16-rc5 (vanilla kernel, vanilla DSDT),
+with polling_interval=1 (second).  My earlier tests with that kernel
+had polling_interval=100, and the easiest way to reproduce the hang
+was:
+
+  echo 100 > THM0/polling_interval
+  modprobe -r thermal ; modprobe thermal
+  sleep.sh  (this hangs)
+
+With this method, the system would hang on the *first* sleep cycle.
+The other method to produce the hang, with thermal polling muted, was:
+
+  echo 0 > THM0/polling_interval (and the rest of them, to make sure)
+  sleep.sh  (it comes back)
+  sleep.sh  (this one hangs)
+
+I tried the same method but with 1 second instead of 100 seconds:
+
+  echo 1 > THM0/polling_interval
+  sleep.sh  (this one works, maybe because I didn't do the modprobing)
+  sleep.sh  (this hangs)
+
+The second sleep.sh hangs in the usual loop, which produces the
+ex-region etc. loop, but interspersed in that dmesg output
+is the output from the thermal polling.  So I also see 
+
+  Execute Method: [\_TZ_.THM0._TMP] (Node c157bf88)
+
+plus its associated function traces (ec_intr_write or something like
+that -- I saved all the log files).
+
+One other point is that we haven't yet used a piece of information:
+that the system never hangs if I boot with ec_intr=0.  Actually,
+that's why I tried commenting out the \_SB.PCI0.ISA0.EC0.UPDT () line
+in _TMP method, and it did 'solve' the problem (at least, it did with
+AC0 faked -- I haven't tried keeping AC0 but taking out just that
+line).
+
+-Sanjoy
+
+`Never underestimate the evil of which men of power are capable.'
+         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
