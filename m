@@ -1,48 +1,73 @@
-From: Jiri Slaby <jirislaby@gmail.com>
-Subject: Re: 2.6.16-rc6: known regressions
-Date: Fri, 17 Mar 2006 18:29:26 +0059
-Message-ID: <441AF20D.5010901@gmail.com>
-References: <Pine.LNX.4.64.0603111551330.18022@g5.osdl.org> <20060313200544.GG13973@stusta.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Subject: Re: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
+Date: Fri, 17 Mar 2006 18:43:14 +0000
+Message-ID: <E1FKJus-000166-00@skye.ra.phy.cam.ac.uk>
+References: <3ACA40606221794F80A5670F0AF15F84041AC265@pdsmsx403>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from orfeus.profiwh.com ([82.100.20.117]:61195 "EHLO
-	orfeus.profiwh.com") by vger.kernel.org with ESMTP id S1030222AbWCQR3e
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 17 Mar 2006 12:29:34 -0500
-In-Reply-To: <20060313200544.GG13973@stusta.de>
+Received: from mraos.ra.phy.cam.ac.uk ([131.111.48.8]:41892 "EHLO
+	mraos.ra.phy.cam.ac.uk") by vger.kernel.org with ESMTP
+	id S1751322AbWCQSnR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 17 Mar 2006 13:43:17 -0500
+In-Reply-To: Your message of "Fri, 17 Mar 2006 15:50:35 +0800."
+             <3ACA40606221794F80A5670F0AF15F84041AC265@pdsmsx403>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Avuton Olrich <avuton@gmail.com>, xfs-masters@oss.sgi.com, linux-xfs@oss.sgi.com, Dave Jones <davej@redhat.com>, len.brown@intel.com, linux-acpi@vger.kernel.org, norsk5@xmission.com, dsp@llnl.gov, bluesmoke-devel@lists.sourceforge.net, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, pete.chapman@exgate.tek.com, Olaf Hering <olh@suse.de>, paulus@samba.org, anton@samba.org, linuxppc64-dev@ozlabs.org, Tom Seeley <redhat@tomseeley.co.uk>, Jiri Slaby <jirislaby@gmail.com>, laredo@gnu.org, v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
+To: "Yu, Luming" <luming.yu@intel.com>
+Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+> So, please try hack thermal.c by removing calls to _TMP.
 
-Adrian Bunk napsal(a):
-> This email lists some known regressions in 2.6.16-rc6 compared to 2.6.15.
-[snip]
-> Subject    : Stradis driver udev brekage
-> References : http://bugzilla.kernel.org/show_bug.cgi?id=6170
->              https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=181063
->              http://lkml.org/lkml/2006/2/18/204
-> Submitter  : Tom Seeley <redhat@tomseeley.co.uk>
->              Dave Jones <davej@redhat.com>
-> Handled-By : Jiri Slaby <jirislaby@gmail.com>
-> Status     : unknown
-Solved, see https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=181063#c16
+I did something like that before, by changing acpi_evaluate_integer()
+to return 3000 if it is asked for _TMP.  
 
-regards,
-- --
-Jiri Slaby         www.fi.muni.cz/~xslaby
-\_.-^-._   jirislaby@gmail.com   _.-^-._/
-B67499670407CE62ACC8 22A032CC55C339D47A7E
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2.1 (GNU/Linux)
-Comment: Using GnuPG with Fedora - http://enigmail.mozdev.org
+--- a/utils.c	2006-03-15 01:42:34.000000000 -0500
++++ b/utils.c	2006-03-14 23:36:59.000000000 -0500
+@@ -270,7 +270,15 @@ acpi_evaluate_integer(acpi_handle handle
+ 	memset(element, 0, sizeof(union acpi_object));
+ 	buffer.length = sizeof(union acpi_object);
+ 	buffer.pointer = element;
+-	status = acpi_evaluate_object(handle, pathname, arguments, &buffer);
++	if (strcmp(pathname, "_TMP") != 0)
++	  status = acpi_evaluate_object(handle, pathname, arguments, &buffer);
++	else {
++	  printk(KERN_INFO PREFIX "acpi_evaluate_integer: Faking _TMP\n");
++	  status = AE_OK;
++	  element->type = ACPI_TYPE_INTEGER;
++	  element->integer.value = 3000; /* 27 C, in deciKelvins */
++	}
++
+ 	if (ACPI_FAILURE(status)) {
+ 		acpi_util_eval_error(handle, pathname, status);
+ 		return_ACPI_STATUS(status);
 
-iD8DBQFEGvINMsxVwznUen4RAqW3AJ9vgpxMrf7oXzj46zxtee4J4WthmQCgqYU0
-xmCArHJ8Nr3UCyt68HAdbDI=
-=u8yx
------END PGP SIGNATURE-----
+
+The alternative, obvious change in thermal.c (diff below) turns out
+not to be a minimal change.  If acpi_thermal_get_temperature() returns
+with a failure, then most of the later methods in THM0 aren't
+executed, so one is actually commenting out much more than _TMP.
+
+Which is why I think the minimal change is the diff above to utils.c.
+With that change the system never hung.
+
+Or should I do a compromise modification, where calls from thermal.c
+to _TMP use the hacked acpi_evaluate_integer()
+[e.g. acpi_evaluate_integer_called_from_thermal()], but other calls to
+_TMP get the unhacked version?
+
+Here is the diff for commenting out _TMP directly in thermal.c, which
+I think I've tried already but I'll try it again.  I'm sure it'll
+work, though.
+
+--- a/thermal.c	2006-03-16 09:45:30.000000000 -0500
++++ b/thermal.c	2006-03-17 09:00:30.000000000 -0500
+@@ -222,7 +222,7 @@ static int acpi_thermal_get_temperature(
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_thermal_get_temperature");
+ 
+-	if (!tz)
++	if (!tz || strcmp(tz->handle, "_TMP") == 0)
+ 		return_VALUE(-EINVAL);
+ 
+ 	tz->last_temperature = tz->temperature;
+
+
