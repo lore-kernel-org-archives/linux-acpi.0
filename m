@@ -1,41 +1,71 @@
-From: Garry Williams <gtwilliams@gmail.com>
-Subject: Re: function keys
-Date: Thu, 16 Mar 2006 20:04:52 -0500
-Message-ID: <1142557492.3455.74.camel@localhost>
-References: <200603152256.43735.marmon@montana.com>
+From: "Yu, Luming" <luming.yu@intel.com>
+Subject: RE: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
+Date: Fri, 17 Mar 2006 09:17:40 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F840B37ABA9@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from xproxy.gmail.com ([66.249.82.201]:5839 "EHLO xproxy.gmail.com")
-	by vger.kernel.org with ESMTP id S1750759AbWCQBEy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 16 Mar 2006 20:04:54 -0500
-Received: by xproxy.gmail.com with SMTP id s14so358791wxc
-        for <linux-acpi@vger.kernel.org>; Thu, 16 Mar 2006 17:04:54 -0800 (PST)
-In-Reply-To: <200603152256.43735.marmon@montana.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752479AbWCQBSx@vger.kernel.org>
+Content-class: urn:content-classes:message
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
 List-Id: linux-acpi@vger.kernel.org
-To: marmon@montana.com
-Cc: linux-acpi@vger.kernel.org
 
-On Wed, 2006-03-15 at 22:56 -0700, Franklin Marmon wrote:
-> I am currently using an acpi driver for sony laptops (sony_acpi.c) which 
-> provides an interface for reading that last pressed function key by means of 
-> a /proc interface file. When read this file will show either 0 or the last 
-> function key combination that was typed. It provides this value by using the 
-> acpi_evaluate_object() function to obtain the value of "GHKE". A user space 
-> program is currently used to read this value every N seconds and check for 
-> events.
+>Bad news.  It hangs when I do the usual stress test:
+
+Hmm,  we can continue to have fun with debugging. Right?
+
+>
+>echo 1 > THM0/polling_frequency
+>sleep.sh
+>sleep.sh
+>
+>The second sleep.sh hangs going to sleep.  It is in an endless loop
+>printing the following line, once per second (from the
+>polling_frequency):
+>
+>  Execute Method: [\_TZ_.THM0._TMP] (Node c157bf88)
+
+This should be the diffient problem with the previous reported hang.
+I recall it was hang at a loop in SMPI waiting for BIOS's response.
+Please confirm, Also please mute THM0 polling.
+
+>
+>> Please also make sure you have vanilla DSDT
+>
+>$ grep DSDT /boot/config-2.6.16-rc5.fake-thermal_active+passive
+># CONFIG_ACPI_CUSTOM_DSDT is not set
+>
+>> vanilla Kernel, and just hacked acpi_thermal_active/passive.
+>
+>Only diff between pristine 2.6.16-rc5 tree and mine is:
+>
+>diff -rup /tmp/linux-2.6.16-rc5/drivers/acpi/thermal.c 
+>/usr/src/linux-2.6.16-rc5/drivers/acpi/thermal.c
+>--- /tmp/linux-2.6.16-rc5/drivers/acpi/thermal.c	
+>2006-02-27 00:09:35.000000000 -0500
+>+++ /usr/src/linux-2.6.16-rc5/drivers/acpi/thermal.c	
+>2006-03-16 09:45:30.000000000 -0500
+>@@ -526,6 +526,8 @@ static void acpi_thermal_passive(struct 
 > 
-> Is there an interrupt generated when one of these function keys is pressed and 
-> is this interrupt currently handled by the acpi subsystem? If so, is there a 
-> way to add this acpi device driver into a wait queue for this type of event 
-> so that a proper char device may be created and polled, rather than reading 
-> the /proc file system every N seconds?
+> 	ACPI_FUNCTION_TRACE("acpi_thermal_passive");
+> 
+>+	return;
+>+
+> 	if (!tz || !tz->trips.passive.flags.valid)
+> 		return;
+> 
+>@@ -615,6 +617,8 @@ static void acpi_thermal_active(struct a
+> 
+> 	ACPI_FUNCTION_TRACE("acpi_thermal_active");
+> 
+>+	return;
+>+
+> 	if (!tz)
+> 		return;
+> 
+>
 
- http://developer.berlios.de/projects/fsfn/ 
-
--- 
-Garry Williams -- +1 (678) 656-4579
-
+This looks ok for debugging.
