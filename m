@@ -1,43 +1,33 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
-Date: Fri, 17 Mar 2006 15:50:35 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC265@pdsmsx403>
+From: "Robin Verduijn" <verdujin.acpi@gmail.com>
+Subject: Re: Problem with ACPI on an AMD Athlon 64 X2 motherboard - freeze on boot
+Date: Fri, 17 Mar 2006 08:01:40 -0500
+Message-ID: <e27260ff0603170501n322ec182t95c799c6753414fe@mail.gmail.com>
+References: <3ACA40606221794F80A5670F0AF15F840B37ADC6@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:28245 "EHLO
-	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
-	id S964872AbWCQHvC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Mar 2006 02:51:02 -0500
-Content-class: urn:content-classes:message
+Received: from xproxy.gmail.com ([66.249.82.194]:43272 "EHLO xproxy.gmail.com")
+	by vger.kernel.org with ESMTP id S932083AbWCQNBl convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 17 Mar 2006 08:01:41 -0500
+Received: by xproxy.gmail.com with SMTP id s14so424498wxc
+        for <linux-acpi@vger.kernel.org>; Fri, 17 Mar 2006 05:01:40 -0800 (PST)
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F840B37ADC6@pdsmsx403>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
+To: linux-acpi@vger.kernel.org
 
->> How about re-testing dummy _PSV and dummy _AC0 in DSDT?
+Hi Luming,
+
+On 3/16/06, Yu, Luming <luming.yu@intel.com> wrote:
+>  Hi,
 >
->Just retested and you were right.  This time I managed to get it to
->hang, after many cycles of sleep.sh and "modprobe -r thermal ;
->modprobe thermal" mixed in.
->
+> Please file a bug on bugzilla.kernel.org.
+> Otherwise, it is hard to track.
 
-Hmmm, may I think this is a problem of:
-_TMP ,
-
-It is neither _TMP && (_PSV || _AC0),
-nor  _TMP || _PSV || _AC0.
-
-So, please try hack thermal.c by removing calls to _TMP.
-And do stress test with Vanilla Kernel, Vanilla Dsdt , just
-with hacked thermal.c
-
-Anyway, the clean way to fix your problem might be:
-
- suspend thermal driver with disabling AML methods invoke
-that might cause/ trigger BIOS issues.
+Thanks for your reply! I have created bug #6238 for this.
 
 Thanks,
-Luming
+- robin
