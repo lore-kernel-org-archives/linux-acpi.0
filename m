@@ -1,83 +1,65 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
-Date: Sat, 18 Mar 2006 10:02:45 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC266@pdsmsx403>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Subject: Re: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
+Date: Sat, 18 Mar 2006 07:23:56 +0000
+Message-ID: <E1FKVn2-0007I5-00@skye.ra.phy.cam.ac.uk>
+References: <3ACA40606221794F80A5670F0AF15F84041AC266@pdsmsx403>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:7696 "EHLO
-	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S1751290AbWCRCCv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Mar 2006 21:02:51 -0500
-Content-class: urn:content-classes:message
+Received: from mraos.ra.phy.cam.ac.uk ([131.111.48.8]:16589 "EHLO
+	mraos.ra.phy.cam.ac.uk") by vger.kernel.org with ESMTP
+	id S1752249AbWCRHYB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 18 Mar 2006 02:24:01 -0500
+In-Reply-To: Your message of "Sat, 18 Mar 2006 10:02:45 +0800."
+             <3ACA40606221794F80A5670F0AF15F84041AC266@pdsmsx403>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+To: "Yu, Luming" <luming.yu@intel.com>
 Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
 
->> So, please try hack thermal.c by removing calls to _TMP.
->
->I did something like that before, by changing acpi_evaluate_integer()
->to return 3000 if it is asked for _TMP.  
->
->--- a/utils.c	2006-03-15 01:42:34.000000000 -0500
->+++ b/utils.c	2006-03-14 23:36:59.000000000 -0500
->@@ -270,7 +270,15 @@ acpi_evaluate_integer(acpi_handle handle
-> 	memset(element, 0, sizeof(union acpi_object));
-> 	buffer.length = sizeof(union acpi_object);
-> 	buffer.pointer = element;
->-	status = acpi_evaluate_object(handle, pathname, 
->arguments, &buffer);
->+	if (strcmp(pathname, "_TMP") != 0)
->+	  status = acpi_evaluate_object(handle, pathname, 
->arguments, &buffer);
->+	else {
->+	  printk(KERN_INFO PREFIX "acpi_evaluate_integer: 
->Faking _TMP\n");
->+	  status = AE_OK;
->+	  element->type = ACPI_TYPE_INTEGER;
->+	  element->integer.value = 3000; /* 27 C, in deciKelvins */
->+	}
->+
-> 	if (ACPI_FAILURE(status)) {
-> 		acpi_util_eval_error(handle, pathname, status);
-> 		return_ACPI_STATUS(status);
->
->
->The alternative, obvious change in thermal.c (diff below) turns out
->not to be a minimal change.  If acpi_thermal_get_temperature() returns
->with a failure, then most of the later methods in THM0 aren't
->executed, so one is actually commenting out much more than _TMP.
->
->Which is why I think the minimal change is the diff above to utils.c.
->With that change the system never hung.
+>> Which is why I think the minimal change is the diff above to
+>> utils.c [to make acpi_evaluate_integer fake _TMP].  With that
+>> change the system never hung.
 
-Good, this is exactly what I wanted.  How many times you tested with
-this
-hack without hang?  If s3 hang really goes away , then probably you can
-move on , and come up with a real patch that could go into the 2.6.16. 
-What do you think? :-)
+> Good, this is exactly what I wanted.  How many times you tested with
+> this hack without hang?
 
-The short-term proper way could be:
-1. add a global variable: acpi_in_suspend.
-2. in acpi_pm_prepare:
-	a.call acpi_os_wait_events_complete()
-	b.set acpi_in_suspend = YES.
-   in acpi_pm_finish :
-	set acpi_in_suspend = NO.
-3. in acpi_thermal_run:
-	if (acpi_in_suspend == YES)
-		do nothing.
+Sadly, I just tried it again and it hung.  But from looking at my old
+emails and test results, I know why.  I made the previous tests with
+only THM0 loaded.  The bisection began by loading only THM0 (by having
+acpi_thermal_add() ignore THM[267]).  The hang still happened, so I
+never tested whether THM[267] also have problems: chase one problem at
+a time.
 
-The long-term proper way should be:
-1. ACPI subsystem should stop invoking BIOS before Suspend except
-for several necessary AML methods that are required to put 
-the platform into S3 state.  Otherwise, un-tested BIOS code path 
-could cause trouble to linux, because I assume such platform 
-should have been tested under windows. 
+To test the theory, I recompiled to recreate the kernel with the
+utils.c change [to make acpi_evaluate_integer fake _TMP] and with only
+THM0 loaded (i.e. what I had tested and reported a few days ago).  It
+didn't hang (10 cycles), which repeats my previous result.
 
-Thanks,
-Luming
- 
+> The short-term proper way could be:
+> 1. add a global variable: acpi_in_suspend.
+> 2. in acpi_pm_prepare:
+>	a.call acpi_os_wait_events_complete()
+> 	b.set acpi_in_suspend = YES.
+>    in acpi_pm_finish :
+> 	set acpi_in_suspend = NO.
+> 3. in acpi_thermal_run:
+> 	if (acpi_in_suspend == YES)
+>		do nothing.
+
+I tested the included diff to implement the above short-term fix.  It
+also hung on the second sleep.  BUT, it's the same reason that the
+utils.c change didn't help: because acpi_thermal_add() was loading
+THM[0267].  After the usual modification to acpi_thermal_add() to have
+it ignore THM[267], the system didn't hang (12 cycles).  Which is
+progress.
+
+So I conclude that this diff does fix the THM0 problem, but that at
+least one other thermal zone has a problem, and the problem is not
+_TMP.  Or at least, the problem is not the same one that THM0 has
+(running thermal threads at suspend time), otherwise the diff would
+fix it like it fixed THM0.
+
+I guess I should try loading only one of THM2,6,7 to see which zones
+besides THM0 produce a problem, and then narrow the problem to one
+method within the zone.
+
+-Sanjoy
