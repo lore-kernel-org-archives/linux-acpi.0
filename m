@@ -1,47 +1,41 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
-Date: Sat, 18 Mar 2006 23:10:32 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC268@pdsmsx403>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Subject: Re: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
+Date: Sat, 18 Mar 2006 15:48:25 +0000
+Message-ID: <E1FKdfF-00022L-00@skye.ra.phy.cam.ac.uk>
+References: <3ACA40606221794F80A5670F0AF15F84041AC268@pdsmsx403>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:16461 "EHLO
-	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S932392AbWCRPKj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 18 Mar 2006 10:10:39 -0500
-Content-class: urn:content-classes:message
+Received: from mraos.ra.phy.cam.ac.uk ([131.111.48.8]:13800 "EHLO
+	mraos.ra.phy.cam.ac.uk") by vger.kernel.org with ESMTP
+	id S1750994AbWCRPs3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 18 Mar 2006 10:48:29 -0500
+In-Reply-To: Your message of "Sat, 18 Mar 2006 23:10:32 +0800."
+             <3ACA40606221794F80A5670F0AF15F84041AC268@pdsmsx403>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+To: "Yu, Luming" <luming.yu@intel.com>
 Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
 
+> Please try additional ugly hack
+>  5. in acpi_os_queue_for_execution:
+>	if(acpi_in_suspend == YES)
+>		do nothing.
 
->> Hmm,  probably, you need to do :
->>
->> 4. in acpi_thermal_notify,
->>       if (acpi_in_suspend == YES)
->>               do nothing.
->
->I've just tested that.  It suspended twice without problem, which made
->me think the problem was solved.  But it hung on the third suspend!
+Am compiling it.  If acpi_in_suspend, I've had it do
+return_ACPI_STATUS(AE_BAD_PARAMETER).  Is there a better error code to
+use?  I didn't want to use AE_OK, since the caller might think that
+the function will be executed eventually, and might do something silly
+like wait for it to be executed -- and produce another hang.  I didn't
+know, but to be safe I wanted to return an error code.
 
-I'm NOT surprised about that hung, because kernel thread kacpid 
-is a kernel worker thread that has flag PF_NOFREEZE, that means
-kacpid won't be freezed.  I tried to freeze kacpid, but end up with 
-this conclusion.  From my understanding, for safety concern,
-kernel worker thread should be freezed. Because, kacpid could
-invoke AML methods that we are trying to avoid during suspend.
+> Also, please add acpi_debug_layer=0x10 acpi_debug_leve=0x10 boot
+> option, then you can observe what methods were executed before
+> suspend.
 
-Please try additional ugly hack
- 5. in acpi_os_queue_for_execution:
-	if(acpi_in_suspend == YES)
-		do nothing.
+That's in my lilo.conf so all kernels I test use those options.  I can
+send you the dmesgs from the suspends without the ugly hack (and will
+send them from the upcoming suspends, with the ugly hack).
 
-Also, please add acpi_debug_layer=0x10 acpi_debug_leve=0x10 
-boot option, then you can observe what methods were executed
-before suspend.
+-Sanjoy
 
-Thanks,
-Luming
+`Never underestimate the evil of which men of power are capable.'
+         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
