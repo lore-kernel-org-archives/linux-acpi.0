@@ -1,29 +1,55 @@
-From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Subject: Re: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
-Date: Sat, 18 Mar 2006 20:12:10 +0000
-Message-ID: <E1FKhmU-00042R-00@skye.ra.phy.cam.ac.uk>
-References: <3ACA40606221794F80A5670F0AF15F84041AC26B@pdsmsx403>
+From: Andrew Morton <akpm@osdl.org>
+Subject: Re: 2.6.16-rc6-mm2 uninitialized online_policy_cpus.bits[0]
+Date: Sat, 18 Mar 2006 17:35:12 -0800
+Message-ID: <20060318173512.313a3453.akpm@osdl.org>
+References: <20060318044056.350a2931.akpm@osdl.org>
+	<200603191209.54946.kernel@kolivas.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mraos.ra.phy.cam.ac.uk ([131.111.48.8]:59894 "EHLO
-	mraos.ra.phy.cam.ac.uk") by vger.kernel.org with ESMTP
-	id S1750896AbWCRUMN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 18 Mar 2006 15:12:13 -0500
-In-Reply-To: Your message of "Sun, 19 Mar 2006 01:08:41 +0800."
-             <3ACA40606221794F80A5670F0AF15F84041AC26B@pdsmsx403>
+Received: from smtp.osdl.org ([65.172.181.4]:24008 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1751198AbWCSBiW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 18 Mar 2006 20:38:22 -0500
+In-Reply-To: <200603191209.54946.kernel@kolivas.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Yu, Luming" <luming.yu@intel.com>
-Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
+To: Con Kolivas <kernel@kolivas.org>
+Cc: linux-kernel@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-> Do you load processor driver?
+Con Kolivas <kernel@kolivas.org> wrote:
+>
+> Wonder if this is related to rc6's oops?
+>  gcc 4.0.3
+> 
+>    CC [M]  arch/i386/kernel/cpu/cpufreq/speedstep-centrino.o
+>  arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c: In function 
+>  'centrino_target':
+>  include/linux/bitmap.h:170: warning: 'online_policy_cpus.bits[0]' is used 
+>  uninitialized in this function
+>    CC [M]  arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.o
+>  arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c: In function 
+>  'acpi_cpufreq_target':
+>  include/linux/bitmap.h:170: warning: 'online_policy_cpus.bits[0]' is used 
+>  uninitialized in this function
 
-It's loads at boot.  When thermal loads, it pulls in processor:
+Well conceivably.  That warning is a consequence of my quick hack to make
+the ACPI tree compile on uniprocessor.
 
-$ lsmod | grep thermal
-thermal                17224  0 
-processor              30080  1 thermal
+ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.16-rc6/2.6.16-rc6-mm2/broken-out/git-acpi-up-fix.patch
 
--Sanjoy
+My patch is, as the compiler points out, wrong.
 
-`Never underestimate the evil of which men of power are capable.'
-         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
+I've sent that patch two or three times to the APCI maintainers, to the
+ACPI mailing list and to the author of the original buggy patch.  The
+response thus far has been dead silence.
+
+IOW, despite my efforts, the ACPI tree has been in a non-compiling state on
+uniprocessor since February 11.
+
+This is pathetic.  People are trying to get things done here and ACPI is
+getting in the way.  But *need* to get the ACPI development tree out for
+people to test else we'll never be able to take another ACPI update into
+mainline.
+
