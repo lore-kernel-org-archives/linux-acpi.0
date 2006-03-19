@@ -1,41 +1,101 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
-Date: Sun, 19 Mar 2006 12:12:09 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC26C@pdsmsx403>
+From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: Re: 2.6.16-rc6-mm2 uninitialized online_policy_cpus.bits[0]
+Date: Sat, 18 Mar 2006 22:13:42 -0800
+Message-ID: <20060318221342.A9304@unix-os.sc.intel.com>
+References: <20060318044056.350a2931.akpm@osdl.org> <200603191209.54946.kernel@kolivas.org> <20060318173512.313a3453.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:53556 "EHLO
-	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
-	id S1751379AbWCSEMd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 18 Mar 2006 23:12:33 -0500
-Content-class: urn:content-classes:message
+Received: from fmr22.intel.com ([143.183.121.14]:6295 "EHLO
+	scsfmr002.sc.intel.com") by vger.kernel.org with ESMTP
+	id S1750992AbWCSGN5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 19 Mar 2006 01:13:57 -0500
+Content-Disposition: inline
+In-Reply-To: <20060318173512.313a3453.akpm@osdl.org>; from akpm@osdl.org on Sat, Mar 18, 2006 at 05:35:12PM -0800
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
+To: Andrew Morton <akpm@osdl.org>
+Cc: Con Kolivas <kernel@kolivas.org>, linux-kernel@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
->> Do you load processor driver?
->
->It's loads at boot.  When thermal loads, it pulls in processor:
->
->$ lsmod | grep thermal
->thermal                17224  0 
->processor              30080  1 thermal
->
+On Sat, Mar 18, 2006 at 05:35:12PM -0800, Andrew Morton wrote:
+> Con Kolivas <kernel@kolivas.org> wrote:
+> >
+> > Wonder if this is related to rc6's oops?
+> >  gcc 4.0.3
+> > 
+> >    CC [M]  arch/i386/kernel/cpu/cpufreq/speedstep-centrino.o
+> >  arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c: In function 
+> >  'centrino_target':
+> >  include/linux/bitmap.h:170: warning: 'online_policy_cpus.bits[0]' is used 
+> >  uninitialized in this function
+> >    CC [M]  arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.o
+> >  arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c: In function 
+> >  'acpi_cpufreq_target':
+> >  include/linux/bitmap.h:170: warning: 'online_policy_cpus.bits[0]' is used 
+> >  uninitialized in this function
+> 
+> Well conceivably.  That warning is a consequence of my quick hack to make
+> the ACPI tree compile on uniprocessor.
+> 
+> ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.16-rc6/2.6.16-rc6-mm2/broken-out/git-acpi-up-fix.patch
+> 
+> My patch is, as the compiler points out, wrong.
+> 
+> I've sent that patch two or three times to the APCI maintainers, to the
+> ACPI mailing list and to the author of the original buggy patch.  The
+> response thus far has been dead silence.
+> 
+> IOW, despite my efforts, the ACPI tree has been in a non-compiling state on
+> uniprocessor since February 11.
+> 
+> This is pathetic.  People are trying to get things done here and ACPI is
+> getting in the way.  
 
-Maybe I need to make a summary here for this issue:
-1. The s3 hang is in While-loop in SMPI that looks like
-waiting BIOS response.
-2. If THM2, THM6, THM7 disabled, disabling THM0._TMP
-fix the s3 hang.
 
-I think you need to continue to find out which THMs, which methods
-cause s3 hang when THM0._TMP disabled.
-I assume the problem is:
-THM0._TMP && THMx._XXX && THMy._YYY..
+Oops. Sorry. It is me who dropped the ball here. I somehow assumed that
+your original patch fixed the issue and didn't look at the actual code.
+
+Here is the patch against mm.
 
 Thanks,
-Luming
+Venki
+
+
+
+Fix the UP build breakage in acpi-cpufreq and speedstep-centrino due to
+previous p-state software coordination patch.
+
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+
+diff -purN linux-2.6.15/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c linux-2.6.15-new/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
+--- linux-2.6.15/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c	2006-03-18 19:41:25.000000000 -0800
++++ linux-2.6.15-new/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c	2006-03-18 19:48:10.000000000 -0800
+@@ -225,9 +225,11 @@ acpi_cpufreq_target (
+ 	freqs.old = data->freq_table[cur_state].frequency;
+ 	freqs.new = data->freq_table[next_state].frequency;
+ 
+-#ifdef CONFIG_SMP
++#ifdef CONFIG_HOTPLUG_CPU
+ 	/* cpufreq holds the hotplug lock, so we are safe from here on */
+ 	cpus_and(online_policy_cpus, cpu_online_map, policy->cpus);
++#else
++	online_policy_cpus = policy->cpus;
+ #endif
+ 
+ 	for_each_cpu_mask(j, online_policy_cpus) {
+diff -purN linux-2.6.15/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c linux-2.6.15-new/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c
+--- linux-2.6.15/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c	2006-03-18 19:41:25.000000000 -0800
++++ linux-2.6.15-new/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c	2006-03-18 19:47:46.000000000 -0800
+@@ -652,9 +652,11 @@ static int centrino_target (struct cpufr
+ 		return -EINVAL;
+ 	}
+ 
+-#ifdef CONFIG_SMP
++#ifdef CONFIG_HOTPLUG_CPU
+ 	/* cpufreq holds the hotplug lock, so we are safe from here on */
+ 	cpus_and(online_policy_cpus, cpu_online_map, policy->cpus);
++#else
++	online_policy_cpus = policy->cpus;
+ #endif
+ 
+ 	saved_mask = current->cpus_allowed;
