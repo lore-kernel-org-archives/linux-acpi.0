@@ -1,44 +1,54 @@
-From: Stefan Seyfried <seife@gmane0305.slipkontur.de>
-Subject: Re: Powers off after suspen to mem
-Date: Mon, 20 Mar 2006 07:55:47 +0100
-Message-ID: <20060320065547.GA24019@message-id.gmane0305.slipkontur.de>
-References: <F7DC2337C7631D4386A2DF6E8FB22B30065E13EC@hdsmsx401.amr.corp.intel.com>
+From: Michael Schierl <schierlm@gmx.de>
+Subject: Re: Resume problems on Fujitsu-Siemens AMILO M7440G -- SATA
+Date: Mon, 20 Mar 2006 19:43:04 +0100
+Message-ID: <441EF7B8.4040901@gmx.de>
+References: <44076762.404@gmx.de> <1141349791.19013.1.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:44943 "EHLO ciao.gmane.org")
-	by vger.kernel.org with ESMTP id S932170AbWCTHAZ (ORCPT
+Received: from mail.gmx.net ([213.165.64.20]:46756 "HELO mail.gmx.net")
+	by vger.kernel.org with SMTP id S1751249AbWCTSnF (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Mar 2006 02:00:25 -0500
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1FLENL-0005bw-QM
-	for linux-acpi@vger.kernel.org; Mon, 20 Mar 2006 08:00:23 +0100
-Received: from gprs-pool-1-007.eplus-online.de ([212.23.126.7])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Mar 2006 08:00:23 +0100
-Received: from seife by gprs-pool-1-007.eplus-online.de with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Mar 2006 08:00:23 +0100
-Content-Disposition: inline
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B30065E13EC@hdsmsx401.amr.corp.intel.com>
+	Mon, 20 Mar 2006 13:43:05 -0500
+In-Reply-To: <1141349791.19013.1.camel@sli10-desk.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org
 
-On Mon, Mar 13, 2006 at 10:50:01PM -0500, Brown, Len wrote:
-> rmmod button
-> before the suspend.
+[added linux-ide to CC]
 
-ok.
- 
-> or resume by opening the lid instead of pressing the power button. 
+Shaohua Li schrieb:
 
-This won't help on toshibas (for example) that always generate a
-button/power event on resume, no matter how you do it.
+> If the video is dark, please try the boot options listed in
+> documentation/power/video.txt.
 
-=> best solution is to let userspace ignore button event directly
-   after resume (like e.g. powersaved does)
--- 
-Stefan Seyfried
+Okay, I got video working on vanilla 2.6.16 by using "vbetool post" and
+"vbetool vbestate restore" directly after "echo mem >/sys/power/state".
 
+I copy all stuff need into tmpfs to ensure that it can restore the video
+without hard disk access.
+
+when accessing hard disks first time after resume, I get (wrote it by
+hand so maybe this is not 100% correct)
+
+ata1: handling error / timeout
+ata1: port reset  p_ is 400000 is 0 pis 400000 cmd 8007
+                          tf 80 ss 113 se 405000
+ata1: status = 0x50 {DriveReady SeekComplete}
+sda: current: senseKey 0x0 ASC  0x0 ASCQ 0x0
+
+Sometimes there is "cmd 6" instead of "cmd 8007".
+
+What to do, what to test?
+
+I don't have any way of getting information out of my machine after
+resume except on display (hard disks do not work after resume, the
+notebook does not have a serial port and network does not work after
+resume either) and by flashing keyboard LEDs, so transcribing huge dmesg
+output would be a pain...
+
+Please CC me since I am not on the list(s). Thank you.
+
+Michael
