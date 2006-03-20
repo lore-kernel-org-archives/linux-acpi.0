@@ -1,28 +1,44 @@
-From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Subject: Re: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
-Date: Mon, 20 Mar 2006 06:39:48 +0000
-Message-ID: <E1FLE3Q-0002RH-00@skye.ra.phy.cam.ac.uk>
-References: <3ACA40606221794F80A5670F0AF15F84041AC26C@pdsmsx403>
+From: Stefan Seyfried <seife@gmane0305.slipkontur.de>
+Subject: Re: Powers off after suspen to mem
+Date: Mon, 20 Mar 2006 07:55:47 +0100
+Message-ID: <20060320065547.GA24019@message-id.gmane0305.slipkontur.de>
+References: <F7DC2337C7631D4386A2DF6E8FB22B30065E13EC@hdsmsx401.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mraos.ra.phy.cam.ac.uk ([131.111.48.8]:8402 "EHLO
-	mraos.ra.phy.cam.ac.uk") by vger.kernel.org with ESMTP
-	id S932092AbWCTGjw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Mar 2006 01:39:52 -0500
-In-Reply-To: Your message of "Sun, 19 Mar 2006 12:12:09 +0800."
-             <3ACA40606221794F80A5670F0AF15F84041AC26C@pdsmsx403>
+Received: from main.gmane.org ([80.91.229.2]:44943 "EHLO ciao.gmane.org")
+	by vger.kernel.org with ESMTP id S932170AbWCTHAZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 Mar 2006 02:00:25 -0500
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1FLENL-0005bw-QM
+	for linux-acpi@vger.kernel.org; Mon, 20 Mar 2006 08:00:23 +0100
+Received: from gprs-pool-1-007.eplus-online.de ([212.23.126.7])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Mar 2006 08:00:23 +0100
+Received: from seife by gprs-pool-1-007.eplus-online.de with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Mar 2006 08:00:23 +0100
+Content-Disposition: inline
+In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B30065E13EC@hdsmsx401.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Yu, Luming" <luming.yu@intel.com>
-Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
+To: linux-acpi@vger.kernel.org
 
-> I think you need to continue to find out which THMs, which methods
-> cause s3 hang when THM0._TMP disabled.
+On Mon, Mar 13, 2006 at 10:50:01PM -0500, Brown, Len wrote:
+> rmmod button
+> before the suspend.
 
-So far I've found that if (with no THM0 loaded) I load exactly one of
-THM2, THM6, or THM7, then there's no hang.  Now I am looking for which
-combinations of the THM[0267] zones cause the problem.
+ok.
+ 
+> or resume by opening the lid instead of pressing the power button. 
 
--Sanjoy
+This won't help on toshibas (for example) that always generate a
+button/power event on resume, no matter how you do it.
 
-`Never underestimate the evil of which men of power are capable.'
-         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
+=> best solution is to let userspace ignore button event directly
+   after resume (like e.g. powersaved does)
+-- 
+Stefan Seyfried
+
