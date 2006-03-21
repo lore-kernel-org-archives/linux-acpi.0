@@ -1,55 +1,60 @@
-From: Michael Schierl <schierlm@gmx.de>
+From: "martin schneebacher" <masc@operamail.com>
 Subject: Re: Resume problems on Fujitsu-Siemens AMILO M7440G -- SATA
-Date: Tue, 21 Mar 2006 16:37:03 +0100
-Message-ID: <44201D9F.7090701@gmx.de>
-References: <44076762.404@gmx.de> <1141349791.19013.1.camel@sli10-desk.sh.intel.com> <441EF7B8.4040901@gmx.de> <441F04D6.4070404@rtr.ca>
+Date: Tue, 21 Mar 2006 17:25:47 +0100
+Message-ID: <20060321162547.D6F51CA0A4@ws5-11.us4.outblaze.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.de ([213.165.64.20]:54409 "HELO mail.gmx.net")
-	by vger.kernel.org with SMTP id S1751777AbWCUPhB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Mar 2006 10:37:01 -0500
-In-Reply-To: <441F04D6.4070404@rtr.ca>
+Received: from webmail-outgoing2.us4.outblaze.com ([205.158.62.67]:14522 "EHLO
+	webmail-outgoing.us4.outblaze.com") by vger.kernel.org with ESMTP
+	id S1030459AbWCUQW5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Mar 2006 11:22:57 -0500
+Received: from unknown (unknown [192.168.9.180])
+	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id 34F581800E45
+	for <linux-acpi@vger.kernel.org>; Tue, 21 Mar 2006 16:25:48 +0000 (GMT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Lord <liml@rtr.ca>
+To: Michael Schierl <schierlm@gmx.de>, Mark Lord <liml@rtr.ca>
 Cc: Shaohua Li <shaohua.li@intel.com>, linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org
 
-Mark Lord wrote:
+hi!
 
->> I copy all stuff need into tmpfs to ensure that it can restore the video
->> without hard disk access.
->
-> OOhh.. clever, wish I'd thought of that,
+> ----- Original Message -----
+> From: "Michael Schierl" <schierlm@gmx.de>
+> To: "Mark Lord" <liml@rtr.ca>
+> Subject: Re: Resume problems on Fujitsu-Siemens AMILO M7440G -- SATA
+> Date: 	Tue, 21 Mar 2006 16:37:03 +0100
+> > Randy Dunlop's libata-acpi patch might work for you.
+> > http://www.xenotime.net/linux/SATA/
+> 
+> I tried the 2.6.16-rc4 patches on 2.6.16 (one hunk did not apply in
+> libata.h, but I think I was able to fix it manually). Before suspend it
+> works well, after suspend it does not work. Seems that the timeout is
+> longer with the patch, though. I tried it several times; once it seemed
+> to have worked, but it was not reproducible (and it did not work any
+> longer after the next suspend), so I guess it could be just that I only
+> tried files already in cache. (Or alternatively, the patch has a success
+> rate of maybe 5%...)
+> 
+> "Just for fun" i tried the 2.6.15 patches on 2.6.15, but it did not even
+> boot.
+> 
+> BTW: It is an Intel AHCI controller.
+> 
+> Any other ideas/patches?
 
-One should not forget to disable swap first :)
+have you ever tried the sata_pm patch from http://tpctl.sourceforge.net/tmp/sata_pm.2.6.15-rc6.patch ?
+i have a intel SATA ICH6M interface and it works fine with this patch.
 
-> as all of my (now solved) suspend/resume issues
-> were *all* libata related.
+bye...masc.
 
-So I guess it is a good idea to get SATA working first, isn't it?
 
->> What to do, what to test?
->
-> Randy Dunlop's libata-acpi patch might work for you.
-> http://www.xenotime.net/linux/SATA/
 
-I tried the 2.6.16-rc4 patches on 2.6.16 (one hunk did not apply in
-libata.h, but I think I was able to fix it manually). Before suspend it
-works well, after suspend it does not work. Seems that the timeout is
-longer with the patch, though. I tried it several times; once it seemed
-to have worked, but it was not reproducible (and it did not work any
-longer after the next suspend), so I guess it could be just that I only
-tried files already in cache. (Or alternatively, the patch has a success
-rate of maybe 5%...)
+-- 
+_______________________________________________
+Surf the Web in a faster, safer and easier way:
+Download Opera 8 at http://www.opera.com
 
-"Just for fun" i tried the 2.6.15 patches on 2.6.15, but it did not even
-boot.
-
-BTW: It is an Intel AHCI controller.
-
-Any other ideas/patches?
-
-Michael
+Powered by Outblaze
