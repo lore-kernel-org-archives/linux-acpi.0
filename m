@@ -1,49 +1,68 @@
-From: Mark Lord <liml@rtr.ca>
-Subject: Re: Resume problems on Fujitsu-Siemens AMILO M7440G -- SATA
-Date: Mon, 20 Mar 2006 14:39:02 -0500
-Message-ID: <441F04D6.4070404@rtr.ca>
-References: <44076762.404@gmx.de> <1141349791.19013.1.camel@sli10-desk.sh.intel.com> <441EF7B8.4040901@gmx.de>
+From: "Yu, Luming" <luming.yu@intel.com>
+Subject: RE: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
+Date: Tue, 21 Mar 2006 09:38:42 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F840B417262@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rtr.ca ([64.26.128.89]:44715 "EHLO mail.rtr.ca")
-	by vger.kernel.org with ESMTP id S964869AbWCTTjA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Mar 2006 14:39:00 -0500
-In-Reply-To: <441EF7B8.4040901@gmx.de>
+Received: from mga01.intel.com ([192.55.52.88]:22563 "EHLO
+	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
+	id S964953AbWCUBjD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Mar 2006 20:39:03 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Michael Schierl <schierlm@gmx.de>
-Cc: Shaohua Li <shaohua.li@intel.com>, linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org
+To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
 
-Michael Schierl wrote:
-..
-> Okay, I got video working on vanilla 2.6.16 by using "vbetool post" and
-> "vbetool vbestate restore" directly after "echo mem >/sys/power/state".
-> 
-> I copy all stuff need into tmpfs to ensure that it can restore the video
-> without hard disk access.
+>> I think you need to continue to find out which THMs, which methods
+>> cause s3 hang when THM0._TMP disabled.
+>
+>So far I've found that if (with no THM0 loaded) I load exactly one of
+>THM2, THM6, or THM7, then there's no hang.  Now I am looking for which
+>combinations of the THM[0267] zones cause the problem.
 
-OOhh.. clever, wish I'd thought of that,
-as all of my (now solved) suspend/resume issues
-were *all* libata related.
+Hmm, I guess you don't need to try each combination of  THM[0267].
+>From pervious experience, we know _THM0._TMP causes problem.
+If you fake _TMP for all THM, what could happen?
 
-> when accessing hard disks first time after resume, I get (wrote it by
-> hand so maybe this is not 100% correct)
-> 
-> ata1: handling error / timeout
-> ata1: port reset  p_ is 400000 is 0 pis 400000 cmd 8007
->                           tf 80 ss 113 se 405000
-> ata1: status = 0x50 {DriveReady SeekComplete}
-> sda: current: senseKey 0x0 ASC  0x0 ASCQ 0x0
-> 
-> Sometimes there is "cmd 6" instead of "cmd 8007".
-> 
-> What to do, what to test?
+If you verified _TMP cause issue by fake them in DSDT,  probably,
+we need to continue dig Method : UPDT. 
 
-Randy Dunlop's libata-acpi patch might work for you.
-http://www.xenotime.net/linux/SATA/
+                    Method (UPDT, 0, NotSerialized)
+                    {
+                        If (IGNR)
+                        {
+                            Decrement (IGNR)
+                        }
+                        Else
+                        {
+                            If (H8DR)
+                            {
+                                If (Acquire (I2CM, 0x0064)) {}
+                                Else
+                                {
+                                    Store (I2RB (Zero, 0x01, 0x04),
+Local7)
+                                    If (Local7)
+                                    {
+                                        Fatal (0x01, 0x80000003, Local7)
+                                    }
+                                    Else
+                                    {
+                                        Store (HBS0, TMP0)
+                                        Store (HBS2, TMP2)
+                                        Store (HBS6, TMP6)
+                                        Store (HBS7, TMP7)
+                                    }
 
-Cheers
+                                    Release (I2CM)
+                                }
+                            }
+                        }
+                    }
 
+Thanks,
+Luming
