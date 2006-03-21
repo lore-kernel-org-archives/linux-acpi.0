@@ -1,69 +1,97 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
-Date: Tue, 21 Mar 2006 17:11:29 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F840B417863@pdsmsx403>
+From: "Karasyov, Konstantin A" <konstantin.a.karasyov@intel.com>
+Subject: FW: linux kernel ACPI thermal trip_points
+Date: Tue, 21 Mar 2006 12:48:42 +0300
+Message-ID: <E124AAE027DA384D8B919F93E4D8C7080175E40F@mssmsx402nb>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:50441 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1751227AbWCUJLs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Mar 2006 04:11:48 -0500
+Received: from mga03.intel.com ([143.182.124.21]:59056 "EHLO
+	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
+	id S932379AbWCUJs6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Mar 2006 04:48:58 -0500
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
+To: adsmith@math.duke.edu
+Cc: linux-acpi@vger.kernel.org
 
->With _TMP faked in the kernel and one whole zone ignored, this 
->is what I
->get:
->
->Zone to ignore	|	Result
->---------------------------------------------------------------
->---------
->THM0			OK (10 cycles)
->THM2			"kernel panic! attempted to kill init"
+Hello, Abraham.
 
-I guess, if you fake DSDT by completely removing THM2
-you won't see this.
+It is possible, that the trip points are being reset by BIOS on thermal
+events. To make sure, please, send the output of acpidump and dmesg
+commands. 'acpidump' available in pmtools here:
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
 
->THM6			Hangs (4th cycle)
-Is it still hang at SMPI?
+You can use linux-acpi@vger.kernel.org mailing list or open a new entry
+in bugzilla.kernel.org under ACPI/Power-Thermal component.
 
->THM7			OK (8 cycles)
->
->So THM6 seems healthy, but THM0 and THM7 (and maybe THM2) interact
->badly.  If I unload THM2, THM6, and THM7, then it's okay (previous
->experiments with faking _TMP but with only THM0 loaded).  But unloading
->THM6 is not enough.
 
-Please try to remove THM2 judge if it is JUST the 
-problem of THM0 && THM7.
+Regards.
+Konstantin.
 
->
->The kernel panic for the don't-load-THM2 kernel is very strange.  I had
->another kernel panic while doing another set of tests, which I also
->couldn't explain.  The only difference between the no-THM0 and the
->no-THM2 kernels is:
+-----Original Message-----
+From: adsmith@math.duke.edu [mailto:adsmith@math.duke.edu] 
+Sent: Saturday, March 18, 2006 7:03 AM
+To: Grover, Andrew; paul.s.diefenbaugh@intel.co
+Cc: Abraham David Smith
+Subject: linux kernel ACPI thermal trip_points
 
-Could you just printk device->pnp? it could be null point (due to 
-you hack?)
+I have a question about the acpi thermal_zone driver as it appears in
+the 2.6.15 kernel series.
 
->
->diff -r b7ad6c906aba -r 213308f0ec31 drivers/acpi/thermal.c
->--- a/drivers/acpi/thermal.c	Tue Mar 21 02:23:30 2006 -0500
->+++ b/drivers/acpi/thermal.c	Tue Mar 21 02:36:42 2006 -0500
->@@ -1324,7 +1324,7 @@ static int acpi_thermal_add(struct acpi_
-> 
-> 	if (!device)
-> 		return_VALUE(-EINVAL);
->-	if (strcmp("THM2", device->pnp.bus_id) == 0) {
->+	if (strcmp("THM0", device->pnp.bus_id) == 0) {
-> 	    printk(KERN_INFO PREFIX "thermal_add: ignoring %s\n",
-> 		   device->pnp.bus_id);
-> 	    return_VALUE(-EINVAL);
->
->
+Naturally, I've already search the web and various forums before
+emailing the driver authors,
+
+On my laptop (a Sharp Actius PC-UM32W), the following occurs:
+
+The default trip_points are 
+
+hedwig THRM # cat trip_points 
+critical (S5):           95 C
+passive:                 85 C: tc1=1 tc2=5 tsp=30 devices=0xcf6c2448 
+active[0]:               70 C: devices=0xcf6c3708 
+active[1]:               63 C: devices=0xcf6c3948 
+active[2]:               55 C: devices=0xcf6c3b88 
+
+
+Then, I reset them as follows
+
+hedwig THRM # echo -n "75:0:30:45:40:35" > trip_points
+hedwig THRM # cat trip_points 
+critical (S5):           75 C
+passive:                 30 C: tc1=1 tc2=5 tsp=30 devices=0xcf6c2448 
+active[0]:               45 C: devices=0xcf6c3708 
+active[1]:               40 C: devices=0xcf6c3948 
+active[2]:               35 C: devices=0xcf6c3b88 
+
+However, the new trip points are ignored, and once the temp rises or
+falls across one of the *original* trip points, they are then shown as
+at first:
+
+hedwig THRM # cat trip_points 
+critical (S5):           95 C
+passive:                 85 C: tc1=1 tc2=5 tsp=30 devices=0xcf6c2448 
+active[0]:               70 C: devices=0xcf6c3708 
+active[1]:               63 C: devices=0xcf6c3948 
+active[2]:               55 C: devices=0xcf6c3b88 
+
+
+(The only relevant daemon running is acpid-1.0.4, and it is merely
+printing behaviour to the system logs.)
+
+Do you have any suggestions as to how to override this behavior or
+otherwise force lower trip-points?
+
+Thanks,
+Abe Smith
+
+
+
+
+-- 
+# Abraham David Smith,  <adsmith@math.duke.edu> #
+# http://fds.duke.edu/db/aas/math/grad/adsmith  #
+# Please enable PGP or GnuPG for email privacy! #
+# Mathematics Graduate Student, Duke University #
