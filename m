@@ -1,68 +1,62 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
-Date: Tue, 21 Mar 2006 09:38:42 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F840B417262@pdsmsx403>
+From: "L. A. Linden Levy" <lindenle@uiuc.edu>
+Subject: Suspend Medion Akoya LS
+Date: Mon, 20 Mar 2006 23:59:23 -0600
+Message-ID: <20060320235923.5b6c948b@toodles.lindenlevy.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; boundary=Sig_1U1whmcqEDVekf.VhWNSPl0;
+ protocol="application/pgp-signature"; micalg=PGP-SHA1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:22563 "EHLO
-	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
-	id S964953AbWCUBjD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Mar 2006 20:39:03 -0500
-Content-class: urn:content-classes:message
+Received: from ylpvm25-ext.prodigy.net ([207.115.57.56]:50333 "EHLO
+	ylpvm25.prodigy.net") by vger.kernel.org with ESMTP
+	id S1030328AbWCUGB2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 21 Mar 2006 01:01:28 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
+To: linux-acpi@vger.kernel.org
+Cc: lindenle@gmail.com
 
->> I think you need to continue to find out which THMs, which methods
->> cause s3 hang when THM0._TMP disabled.
->
->So far I've found that if (with no THM0 loaded) I load exactly one of
->THM2, THM6, or THM7, then there's no hang.  Now I am looking for which
->combinations of the THM[0267] zones cause the problem.
+--Sig_1U1whmcqEDVekf.VhWNSPl0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Hmm, I guess you don't need to try each combination of  THM[0267].
->From pervious experience, we know _THM0._TMP causes problem.
-If you fake _TMP for all THM, what could happen?
+Hi when I use suspend my machine wont wake up unless i hit the power
+button but then it shuts down. It is like the keyboard is not
+registering when it is suspended. Can anyone help me make this work?
 
-If you verified _TMP cause issue by fake them in DSDT,  probably,
-we need to continue dig Method : UPDT. 
+kernel 2.6.15
 
-                    Method (UPDT, 0, NotSerialized)
-                    {
-                        If (IGNR)
-                        {
-                            Decrement (IGNR)
-                        }
-                        Else
-                        {
-                            If (H8DR)
-                            {
-                                If (Acquire (I2CM, 0x0064)) {}
-                                Else
-                                {
-                                    Store (I2RB (Zero, 0x01, 0x04),
-Local7)
-                                    If (Local7)
-                                    {
-                                        Fatal (0x01, 0x80000003, Local7)
-                                    }
-                                    Else
-                                    {
-                                        Store (HBS0, TMP0)
-                                        Store (HBS2, TMP2)
-                                        Store (HBS6, TMP6)
-                                        Store (HBS7, TMP7)
-                                    }
 
-                                    Release (I2CM)
-                                }
-                            }
-                        }
-                    }
 
-Thanks,
-Luming
+ P.S. I can provide more info if necessary, thanks!!
+
+--=20
+---------------------------------------------
+Loren A. Linden Levy
+481 Loomis, Department of Physics
+University of Illinois at Urbana-Champaign
+1110 W. Green St., Urbana, IL 61801-3080
+Tel:   217-244-7995   Fax: 217-333-1215
+Email: lindenle@uiuc.edu
+url:   http://w3.physics.uiuc.edu/~lindenle/
+_____________________________________________
+---------------------------------------------
+This email has been cryptographically signed.
+Search for "lindenle" at pgp.mit.edu
+to obtain my public key which can be used=20
+to verify the authenticity of this message.
+_____________________________________________
+---------------------------------------------
+
+--Sig_1U1whmcqEDVekf.VhWNSPl0
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2.2 (GNU/Linux)
+
+iD8DBQFEH5Y/lZX6YS+3ZksRAsKuAJ4ii9vS22A28UruHmTEYKLZvAT2lQCdFCLK
+xTInZsQY8YFeqI4QXjm+y7M=
+=ibrD
+-----END PGP SIGNATURE-----
+
+--Sig_1U1whmcqEDVekf.VhWNSPl0--
