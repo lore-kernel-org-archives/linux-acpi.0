@@ -1,12 +1,12 @@
 From: akpm@osdl.org
-Subject: [patch 12/23] ACPI: simplify scan.c coding
-Date: Tue, 21 Mar 2006 22:30:36 -0800
-Message-ID: <200603220633.k2M6XoHG019559@shell0.pdx.osdl.net>
+Subject: [patch 05/23] PNPACPI: remove some code duplication
+Date: Tue, 21 Mar 2006 22:30:30 -0800
+Message-ID: <200603220633.k2M6Xh9q019538@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:17084 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1750834AbWCVGdx (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:10172 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1750830AbWCVGdt (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Mar 2006 01:33:53 -0500
+	Wed, 22 Mar 2006 01:33:49 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
@@ -15,83 +15,169 @@ Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, bjorn.helgaas@hp.com
 
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-No functional changes; just remove leftover, unused "buffer" and simplify
-control flow (no need to remember error values and goto the end, when we can
-simply return the value directly).
+Factor out the duplicated switch from pnpacpi_count_resources() and
+pnpacpi_type_resources().  Remove the unnecessary re-initialization of
+resource->type and length from all the encode functions (id and length are
+originally set in the pnpacpi_build_resource_template() ->
+pnpacpi_type_resources() path).
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/scan.c |   36 +++++++++++++-----------------------
- 1 files changed, 13 insertions(+), 23 deletions(-)
+ drivers/pnp/pnpacpi/rsparser.c |   67 ++++++++-----------------------
+ 1 files changed, 18 insertions(+), 49 deletions(-)
 
-diff -puN drivers/acpi/scan.c~acpi-simplify-scanc-coding drivers/acpi/scan.c
---- devel/drivers/acpi/scan.c~acpi-simplify-scanc-coding	2006-03-21 22:30:05.000000000 -0800
-+++ devel-akpm/drivers/acpi/scan.c	2006-03-21 22:30:05.000000000 -0800
-@@ -236,12 +236,9 @@ static int acpi_bus_get_power_flags(stru
+diff -puN drivers/pnp/pnpacpi/rsparser.c~pnpacpi-remove-some-code-duplication drivers/pnp/pnpacpi/rsparser.c
+--- devel/drivers/pnp/pnpacpi/rsparser.c~pnpacpi-remove-some-code-duplication	2006-03-21 22:30:04.000000000 -0800
++++ devel-akpm/drivers/pnp/pnpacpi/rsparser.c	2006-03-21 22:30:04.000000000 -0800
+@@ -647,13 +647,8 @@ acpi_status pnpacpi_parse_resource_optio
+ 	return status;
+ }
  
- int acpi_match_ids(struct acpi_device *device, char *ids)
+-/*
+- * Set resource
+- */
+-static acpi_status pnpacpi_count_resources(struct acpi_resource *res,
+-	void *data)
++static int pnpacpi_supported_resource(struct acpi_resource *res)
  {
--	int error = 0;
--	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
--
- 	if (device->flags.hardware_id)
- 		if (strstr(ids, device->pnp.hardware_id))
--			goto Done;
-+			return 0;
- 
- 	if (device->flags.compatible_ids) {
- 		struct acpi_compatible_id_list *cid_list = device->pnp.cid_list;
-@@ -250,15 +247,10 @@ int acpi_match_ids(struct acpi_device *d
- 		/* compare multiple _CID entries against driver ids */
- 		for (i = 0; i < cid_list->count; i++) {
- 			if (strstr(ids, cid_list->id[i].value))
--				goto Done;
-+				return 0;
- 		}
+-	int *res_cnt = (int *)data;
+ 	switch (res->type) {
+ 	case ACPI_RESOURCE_TYPE_IRQ:
+ 	case ACPI_RESOURCE_TYPE_DMA:
+@@ -666,15 +661,21 @@ static acpi_status pnpacpi_count_resourc
+ 	case ACPI_RESOURCE_TYPE_ADDRESS32:
+ 	case ACPI_RESOURCE_TYPE_ADDRESS64:
+ 	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+-		(*res_cnt) ++;
+-	case ACPI_RESOURCE_TYPE_START_DEPENDENT:
+-	case ACPI_RESOURCE_TYPE_END_DEPENDENT:
+-	case ACPI_RESOURCE_TYPE_VENDOR:
+-	case ACPI_RESOURCE_TYPE_END_TAG:
+-	case ACPI_RESOURCE_TYPE_GENERIC_REGISTER:
+-	default:
+-		return AE_OK;
++		return 1;
  	}
--	error = -ENOENT;
--
--      Done:
--	if (buffer.pointer)
--		acpi_os_free(buffer.pointer);
--	return error;
-+	return -ENOENT;
- }
- 
- static acpi_status
-@@ -640,21 +632,19 @@ EXPORT_SYMBOL(acpi_bus_register_driver);
-  */
- int acpi_bus_unregister_driver(struct acpi_driver *driver)
- {
--	int error = 0;
--
- 	ACPI_FUNCTION_TRACE("acpi_bus_unregister_driver");
- 
--	if (driver) {
--		acpi_driver_detach(driver);
-+	if (!driver)
-+		return_VALUE(-EINVAL);
- 
--		if (!atomic_read(&driver->references)) {
--			spin_lock(&acpi_device_lock);
--			list_del_init(&driver->node);
--			spin_unlock(&acpi_device_lock);
--		}
--	} else
--		error = -EINVAL;
--	return_VALUE(error);
-+	acpi_driver_detach(driver);
++	return 0;
++}
 +
-+	if (!atomic_read(&driver->references)) {
-+		spin_lock(&acpi_device_lock);
-+		list_del_init(&driver->node);
-+		spin_unlock(&acpi_device_lock);
-+	}
-+	return_VALUE(0);
++/*
++ * Set resource
++ */
++static acpi_status pnpacpi_count_resources(struct acpi_resource *res,
++	void *data)
++{
++	int *res_cnt = (int *)data;
++
++	if (pnpacpi_supported_resource(res))
++		(*res_cnt)++;
+ 	return AE_OK;
  }
  
- EXPORT_SYMBOL(acpi_bus_unregister_driver);
+@@ -682,27 +683,11 @@ static acpi_status pnpacpi_type_resource
+ 	void *data)
+ {
+ 	struct acpi_resource **resource = (struct acpi_resource **)data;	
+-	switch (res->type) {
+-	case ACPI_RESOURCE_TYPE_IRQ:
+-	case ACPI_RESOURCE_TYPE_DMA:
+-	case ACPI_RESOURCE_TYPE_IO:
+-	case ACPI_RESOURCE_TYPE_FIXED_IO:
+-	case ACPI_RESOURCE_TYPE_MEMORY24:
+-	case ACPI_RESOURCE_TYPE_MEMORY32:
+-	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
+-	case ACPI_RESOURCE_TYPE_ADDRESS16:
+-	case ACPI_RESOURCE_TYPE_ADDRESS32:
+-	case ACPI_RESOURCE_TYPE_ADDRESS64:
+-	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
++
++	if (pnpacpi_supported_resource(res)) {
+ 		(*resource)->type = res->type;
++		(*resource)->length = sizeof(struct acpi_resource);
+ 		(*resource)++;
+-	case ACPI_RESOURCE_TYPE_START_DEPENDENT:
+-	case ACPI_RESOURCE_TYPE_END_DEPENDENT:
+-	case ACPI_RESOURCE_TYPE_VENDOR:
+-	case ACPI_RESOURCE_TYPE_END_TAG:
+-	case ACPI_RESOURCE_TYPE_GENERIC_REGISTER:
+-	default:
+-		return AE_OK;
+ 	}
+ 
+ 	return AE_OK;
+@@ -749,8 +734,6 @@ static void pnpacpi_encode_irq(struct ac
+ 	
+ 	decode_irq_flags(p->flags & IORESOURCE_BITS, &triggering,
+ 		&polarity);
+-	resource->type = ACPI_RESOURCE_TYPE_IRQ;
+-	resource->length = sizeof(struct acpi_resource);
+ 	resource->data.irq.triggering = triggering;
+ 	resource->data.irq.polarity = polarity;
+ 	if (triggering == ACPI_EDGE_SENSITIVE)
+@@ -768,8 +751,6 @@ static void pnpacpi_encode_ext_irq(struc
+ 	
+ 	decode_irq_flags(p->flags & IORESOURCE_BITS, &triggering,
+ 		&polarity);
+-	resource->type = ACPI_RESOURCE_TYPE_EXTENDED_IRQ;
+-	resource->length = sizeof(struct acpi_resource);
+ 	resource->data.extended_irq.producer_consumer = ACPI_CONSUMER;
+ 	resource->data.extended_irq.triggering = triggering;
+ 	resource->data.extended_irq.polarity = polarity;
+@@ -784,8 +765,6 @@ static void pnpacpi_encode_ext_irq(struc
+ static void pnpacpi_encode_dma(struct acpi_resource *resource,
+ 	struct resource *p)
+ {
+-	resource->type = ACPI_RESOURCE_TYPE_DMA;
+-	resource->length = sizeof(struct acpi_resource);
+ 	/* Note: pnp_assign_dma will copy pnp_dma->flags into p->flags */
+ 	if (p->flags & IORESOURCE_DMA_COMPATIBLE)
+ 		resource->data.dma.type = ACPI_COMPATIBILITY;
+@@ -809,8 +788,6 @@ static void pnpacpi_encode_dma(struct ac
+ static void pnpacpi_encode_io(struct acpi_resource *resource,
+ 	struct resource *p)
+ {
+-	resource->type = ACPI_RESOURCE_TYPE_IO;
+-	resource->length = sizeof(struct acpi_resource);
+ 	/* Note: pnp_assign_port will copy pnp_port->flags into p->flags */
+ 	resource->data.io.io_decode = (p->flags & PNP_PORT_FLAG_16BITADDR)?
+ 		ACPI_DECODE_16 : ACPI_DECODE_10;
+@@ -823,8 +800,6 @@ static void pnpacpi_encode_io(struct acp
+ static void pnpacpi_encode_fixed_io(struct acpi_resource *resource,
+ 	struct resource *p)
+ {
+-	resource->type = ACPI_RESOURCE_TYPE_FIXED_IO;
+-	resource->length = sizeof(struct acpi_resource);
+ 	resource->data.fixed_io.address = p->start;
+ 	resource->data.fixed_io.address_length = p->end - p->start + 1;
+ }
+@@ -832,8 +807,6 @@ static void pnpacpi_encode_fixed_io(stru
+ static void pnpacpi_encode_mem24(struct acpi_resource *resource,
+ 	struct resource *p)
+ {
+-	resource->type = ACPI_RESOURCE_TYPE_MEMORY24;
+-	resource->length = sizeof(struct acpi_resource);
+ 	/* Note: pnp_assign_mem will copy pnp_mem->flags into p->flags */
+ 	resource->data.memory24.write_protect =
+ 		(p->flags & IORESOURCE_MEM_WRITEABLE) ?
+@@ -847,8 +820,6 @@ static void pnpacpi_encode_mem24(struct 
+ static void pnpacpi_encode_mem32(struct acpi_resource *resource,
+ 	struct resource *p)
+ {
+-	resource->type = ACPI_RESOURCE_TYPE_MEMORY32;
+-	resource->length = sizeof(struct acpi_resource);
+ 	resource->data.memory32.write_protect =
+ 		(p->flags & IORESOURCE_MEM_WRITEABLE) ?
+ 		ACPI_READ_WRITE_MEMORY : ACPI_READ_ONLY_MEMORY;
+@@ -861,8 +832,6 @@ static void pnpacpi_encode_mem32(struct 
+ static void pnpacpi_encode_fixed_mem32(struct acpi_resource *resource,
+ 	struct resource *p)
+ {
+-	resource->type = ACPI_RESOURCE_TYPE_FIXED_MEMORY32;
+-	resource->length = sizeof(struct acpi_resource);
+ 	resource->data.fixed_memory32.write_protect =
+ 		(p->flags & IORESOURCE_MEM_WRITEABLE) ?
+ 		ACPI_READ_WRITE_MEMORY : ACPI_READ_ONLY_MEMORY;
 _
