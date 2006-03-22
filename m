@@ -1,12 +1,12 @@
 From: akpm@osdl.org
-Subject: [patch 11/23] ACPI: make acpi_bus_register_driver() return success/failure, not device count
-Date: Tue, 21 Mar 2006 22:30:35 -0800
-Message-ID: <200603220633.k2M6XnGo019556@shell0.pdx.osdl.net>
+Subject: [patch 18/23] ACPI: remove __init/__exit from Asus .add()/.remove() methods
+Date: Tue, 21 Mar 2006 22:30:42 -0800
+Message-ID: <200603220633.k2M6Xtmj019580@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:16316 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1750830AbWCVGdx (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:22460 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1750851AbWCVGd6 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Mar 2006 01:33:53 -0500
+	Wed, 22 Mar 2006 01:33:58 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
@@ -15,80 +15,64 @@ Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, bjorn.helgaas@hp.com
 
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-acpi_bus_register_driver() should not return the number of devices claimed. 
-We're not asking to find devices, we're making a driver available to devices,
-including hot-pluggable devices that may appear in the future.
-
-I audited all callers of acpi_bus_register_driver(), and except asus_acpi.c
-and sonypi.c (fixed in previous patches), all either ignore the return value
-or test only for failure (<0).
+Even though the devices claimed by asus_acpi.c can not be hot-plugged, the
+driver registration infrastructure allows the .add() and .remove() methods to
+be called at any time while the driver is registered.  So remove __init and
+__exit from them.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/scan.c |   16 +++++-----------
- 1 files changed, 5 insertions(+), 11 deletions(-)
+ drivers/acpi/asus_acpi.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/acpi/scan.c~acpi-make-acpi_bus_register_driver-return-success-failure-not-device-count drivers/acpi/scan.c
---- devel/drivers/acpi/scan.c~acpi-make-acpi_bus_register_driver-return-success-failure-not-device-count	2006-03-21 22:30:05.000000000 -0800
-+++ devel-akpm/drivers/acpi/scan.c	2006-03-21 22:30:05.000000000 -0800
-@@ -549,10 +549,9 @@ static int acpi_start_single_object(stru
- 	return_VALUE(result);
- }
+diff -puN drivers/acpi/asus_acpi.c~acpi-remove-__init-__exit-from-asus-add-remove-methods drivers/acpi/asus_acpi.c
+--- devel/drivers/acpi/asus_acpi.c~acpi-remove-__init-__exit-from-asus-add-remove-methods	2006-03-21 22:30:06.000000000 -0800
++++ devel-akpm/drivers/acpi/asus_acpi.c	2006-03-21 22:30:06.000000000 -0800
+@@ -817,7 +817,7 @@ typedef int (proc_writefunc) (struct fil
+ 			      unsigned long count, void *data);
  
--static int acpi_driver_attach(struct acpi_driver *drv)
-+static void acpi_driver_attach(struct acpi_driver *drv)
+ static int
+-__init asus_proc_add(char *name, proc_writefunc * writefunc,
++asus_proc_add(char *name, proc_writefunc * writefunc,
+ 		     proc_readfunc * readfunc, mode_t mode,
+ 		     struct acpi_device *device)
  {
- 	struct list_head *node, *next;
--	int count = 0;
- 
- 	ACPI_FUNCTION_TRACE("acpi_driver_attach");
- 
-@@ -569,7 +568,6 @@ static int acpi_driver_attach(struct acp
- 			if (!acpi_bus_driver_init(dev, drv)) {
- 				acpi_start_single_object(dev);
- 				atomic_inc(&drv->references);
--				count++;
- 				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 						  "Found driver [%s] for device [%s]\n",
- 						  drv->name, dev->pnp.bus_id));
-@@ -578,7 +576,6 @@ static int acpi_driver_attach(struct acp
- 		spin_lock(&acpi_device_lock);
- 	}
- 	spin_unlock(&acpi_device_lock);
--	return_VALUE(count);
+@@ -836,7 +836,7 @@ __init asus_proc_add(char *name, proc_wr
+ 	return 0;
  }
  
- static int acpi_driver_detach(struct acpi_driver *drv)
-@@ -611,14 +608,11 @@ static int acpi_driver_detach(struct acp
-  * @driver: driver being registered
-  *
-  * Registers a driver with the ACPI bus.  Searches the namespace for all
-- * devices that match the driver's criteria and binds.  Returns the
-- * number of devices that were claimed by the driver, or a negative
-- * error status for failure.
-+ * devices that match the driver's criteria and binds.  Returns zero for
-+ * success or a negative error status for failure.
+-static int __init asus_hotk_add_fs(struct acpi_device *device)
++static int asus_hotk_add_fs(struct acpi_device *device)
+ {
+ 	struct proc_dir_entry *proc;
+ 	mode_t mode;
+@@ -954,7 +954,7 @@ static void asus_hotk_notify(acpi_handle
+  * This function is used to initialize the hotk with right values. In this
+  * method, we can make all the detection we want, and modify the hotk struct
   */
- int acpi_bus_register_driver(struct acpi_driver *driver)
+-static int __init asus_hotk_get_info(void)
++static int asus_hotk_get_info(void)
  {
--	int count;
--
- 	ACPI_FUNCTION_TRACE("acpi_bus_register_driver");
- 
- 	if (acpi_disabled)
-@@ -630,9 +624,9 @@ int acpi_bus_register_driver(struct acpi
- 	spin_lock(&acpi_device_lock);
- 	list_add_tail(&driver->node, &acpi_bus_drivers);
- 	spin_unlock(&acpi_device_lock);
--	count = acpi_driver_attach(driver);
-+	acpi_driver_attach(driver);
- 
--	return_VALUE(count);
-+	return_VALUE(0);
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	struct acpi_buffer dsdt = { ACPI_ALLOCATE_BUFFER, NULL };
+@@ -1101,7 +1101,7 @@ static int __init asus_hotk_get_info(voi
+ 	return AE_OK;
  }
  
- EXPORT_SYMBOL(acpi_bus_register_driver);
+-static int __init asus_hotk_check(void)
++static int asus_hotk_check(void)
+ {
+ 	int result = 0;
+ 
+@@ -1121,7 +1121,7 @@ static int __init asus_hotk_check(void)
+ 
+ static int asus_hotk_found;
+ 
+-static int __init asus_hotk_add(struct acpi_device *device)
++static int asus_hotk_add(struct acpi_device *device)
+ {
+ 	acpi_status status = AE_OK;
+ 	int result;
 _
