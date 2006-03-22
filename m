@@ -1,84 +1,107 @@
 From: akpm@osdl.org
-Subject: [patch 20/23] acpi signedness fix
-Date: Tue, 21 Mar 2006 22:30:44 -0800
-Message-ID: <200603220633.k2M6Xw7N019586@shell0.pdx.osdl.net>
+Subject: [patch 07/23] ACPI: request correct fixed hardware resource type (MMIO vs I/O port)
+Date: Tue, 21 Mar 2006 22:30:31 -0800
+Message-ID: <200603220633.k2M6Xjst019544@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:61885 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1750918AbWCVGid (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:28106 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1750992AbWCVG7D (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Mar 2006 01:38:33 -0500
+	Wed, 22 Mar 2006 01:59:03 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, ashok.raj@intel.com, davej@codemonkey.org.uk, kaneshige.kenji@soft.fujitsu.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, bjorn.helgaas@hp.com
 
 
-From: Ashok Raj <ashok.raj@intel.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Local apic entries are only 8 bits, but it seemed to not be caught with u8
-return value result in the check
+ACPI supports fixed hardware (PM_TMR, GPE blocks, etc) in either I/O port
+or MMIO space, but used to always request the regions from I/O space
+because it didn't check the address_space_id.
 
-cpu_index >= NR_CPUS becomming always false.
+Sample ACPI fixed hardware in MMIO space (HP rx2600), was incorrectly
+reported in /proc/ioports, now reported in /proc/iomem:
 
-drivers/acpi/processor_core.c: In function `acpi_processor_get_info':
-drivers/acpi/processor_core.c:483: warning: comparison is always false due to limited range of data type
+    ff5c1004-ff5c1007 : PM_TMR
+    ff5c1008-ff5c100b : PM1a_EVT_BLK
+    ff5c100c-ff5c100d : PM1a_CNT_BLK
+    ff5c1010-ff5c1013 : GPE0_BLK
+    ff5c1014-ff5c1017 : GPE1_BLK
 
-Signed-off-by: Ashok Raj <ashok.raj@intel.com>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: "Brown, Len" <len.brown@intel.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
-Cc: Kenji Kaneshige <kaneshige.kenji@soft.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/processor_core.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/acpi/motherboard.c |   41 +++++++++++++++++++----------------
+ 1 files changed, 23 insertions(+), 18 deletions(-)
 
-diff -puN drivers/acpi/processor_core.c~acpi-signedness-fix-2 drivers/acpi/processor_core.c
---- devel/drivers/acpi/processor_core.c~acpi-signedness-fix-2	2006-03-21 22:30:07.000000000 -0800
-+++ devel-akpm/drivers/acpi/processor_core.c	2006-03-21 22:30:07.000000000 -0800
-@@ -382,7 +382,7 @@ static int acpi_processor_remove_fs(stru
+diff -puN drivers/acpi/motherboard.c~acpi-request-correct-fixed-hardware-resource-type-mmio-vs-i-o-port drivers/acpi/motherboard.c
+--- devel/drivers/acpi/motherboard.c~acpi-request-correct-fixed-hardware-resource-type-mmio-vs-i-o-port	2006-03-21 22:30:04.000000000 -0800
++++ devel-akpm/drivers/acpi/motherboard.c	2006-03-21 22:30:04.000000000 -0800
+@@ -123,41 +123,46 @@ static struct acpi_driver acpi_motherboa
+ 		},
+ };
  
- /* Use the acpiid in MADT to map cpus in case of SMP */
- #ifndef CONFIG_SMP
--#define convert_acpiid_to_cpu(acpi_id) (0xff)
-+#define convert_acpiid_to_cpu(acpi_id) (-1)
- #else
- 
- #ifdef CONFIG_IA64
-@@ -395,7 +395,7 @@ static int acpi_processor_remove_fs(stru
- #define ARCH_BAD_APICID		(0xff)
- #endif
- 
--static u8 convert_acpiid_to_cpu(u8 acpi_id)
-+static int convert_acpiid_to_cpu(u8 acpi_id)
++static void __init acpi_request_region (struct acpi_generic_address *addr,
++	unsigned int length, char *desc)
++{
++	if (!addr->address || !length)
++		return;
++
++	if (addr->address_space_id == ACPI_ADR_SPACE_SYSTEM_IO)
++		request_region(addr->address, length, desc);
++	else if (addr->address_space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
++		request_mem_region(addr->address, length, desc);
++}
++
+ static void __init acpi_reserve_resources(void)
  {
- 	u16 apic_id;
- 	int i;
-@@ -421,7 +421,7 @@ static int acpi_processor_get_info(struc
- 	acpi_status status = 0;
- 	union acpi_object object = { 0 };
- 	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
--	u8 cpu_index;
-+	int cpu_index;
- 	static int cpu0_initialized;
+-	if (acpi_gbl_FADT->xpm1a_evt_blk.address && acpi_gbl_FADT->pm1_evt_len)
+-		request_region(acpi_gbl_FADT->xpm1a_evt_blk.address,
++	acpi_request_region(&acpi_gbl_FADT->xpm1a_evt_blk,
+ 			       acpi_gbl_FADT->pm1_evt_len, "PM1a_EVT_BLK");
  
- 	ACPI_FUNCTION_TRACE("acpi_processor_get_info");
-@@ -466,7 +466,7 @@ static int acpi_processor_get_info(struc
- 	cpu_index = convert_acpiid_to_cpu(pr->acpi_id);
+-	if (acpi_gbl_FADT->xpm1b_evt_blk.address && acpi_gbl_FADT->pm1_evt_len)
+-		request_region(acpi_gbl_FADT->xpm1b_evt_blk.address,
++	acpi_request_region(&acpi_gbl_FADT->xpm1b_evt_blk,
+ 			       acpi_gbl_FADT->pm1_evt_len, "PM1b_EVT_BLK");
  
- 	/* Handle UP system running SMP kernel, with no LAPIC in MADT */
--	if (!cpu0_initialized && (cpu_index == 0xff) &&
-+	if (!cpu0_initialized && (cpu_index == -1) &&
- 	    (num_online_cpus() == 1)) {
- 		cpu_index = 0;
- 	}
-@@ -480,7 +480,7 @@ static int acpi_processor_get_info(struc
- 	 *  less than the max # of CPUs. They should be ignored _iff
- 	 *  they are physically not present.
- 	 */
--	if (cpu_index >= NR_CPUS) {
-+	if (cpu_index == -1) {
- 		if (ACPI_FAILURE
- 		    (acpi_processor_hotadd_init(pr->handle, &pr->id))) {
- 			ACPI_ERROR((AE_INFO,
+-	if (acpi_gbl_FADT->xpm1a_cnt_blk.address && acpi_gbl_FADT->pm1_cnt_len)
+-		request_region(acpi_gbl_FADT->xpm1a_cnt_blk.address,
++	acpi_request_region(&acpi_gbl_FADT->xpm1a_cnt_blk,
+ 			       acpi_gbl_FADT->pm1_cnt_len, "PM1a_CNT_BLK");
+ 
+-	if (acpi_gbl_FADT->xpm1b_cnt_blk.address && acpi_gbl_FADT->pm1_cnt_len)
+-		request_region(acpi_gbl_FADT->xpm1b_cnt_blk.address,
++	acpi_request_region(&acpi_gbl_FADT->xpm1b_cnt_blk,
+ 			       acpi_gbl_FADT->pm1_cnt_len, "PM1b_CNT_BLK");
+ 
+-	if (acpi_gbl_FADT->xpm_tmr_blk.address && acpi_gbl_FADT->pm_tm_len == 4)
+-		request_region(acpi_gbl_FADT->xpm_tmr_blk.address, 4, "PM_TMR");
++	if (acpi_gbl_FADT->pm_tm_len == 4)
++		acpi_request_region(&acpi_gbl_FADT->xpm_tmr_blk, 4, "PM_TMR");
+ 
+-	if (acpi_gbl_FADT->xpm2_cnt_blk.address && acpi_gbl_FADT->pm2_cnt_len)
+-		request_region(acpi_gbl_FADT->xpm2_cnt_blk.address,
++	acpi_request_region(&acpi_gbl_FADT->xpm2_cnt_blk,
+ 			       acpi_gbl_FADT->pm2_cnt_len, "PM2_CNT_BLK");
+ 
+ 	/* Length of GPE blocks must be a non-negative multiple of 2 */
+ 
+-	if (acpi_gbl_FADT->xgpe0_blk.address && acpi_gbl_FADT->gpe0_blk_len &&
+-	    !(acpi_gbl_FADT->gpe0_blk_len & 0x1))
+-		request_region(acpi_gbl_FADT->xgpe0_blk.address,
++	if (!(acpi_gbl_FADT->gpe0_blk_len & 0x1))
++		acpi_request_region(&acpi_gbl_FADT->xgpe0_blk,
+ 			       acpi_gbl_FADT->gpe0_blk_len, "GPE0_BLK");
+ 
+-	if (acpi_gbl_FADT->xgpe1_blk.address && acpi_gbl_FADT->gpe1_blk_len &&
+-	    !(acpi_gbl_FADT->gpe1_blk_len & 0x1))
+-		request_region(acpi_gbl_FADT->xgpe1_blk.address,
++	if (!(acpi_gbl_FADT->gpe1_blk_len & 0x1))
++		acpi_request_region(&acpi_gbl_FADT->xgpe1_blk,
+ 			       acpi_gbl_FADT->gpe1_blk_len, "GPE1_BLK");
+ }
+ 
 _
