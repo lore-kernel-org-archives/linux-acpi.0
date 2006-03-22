@@ -1,41 +1,62 @@
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: Re: CONFIG_ACPI_HOTPLUG_MEMORY=m with x86_64 devel tree
-Date: Wed, 22 Mar 2006 20:32:20 +0900
-Message-ID: <20060322203220.6433e697.kamezawa.hiroyu@jp.fujitsu.com>
-References: <20060321222332.1a037c8e.akpm@osdl.org>
-	<20060322192804.E490.Y-GOTO@jp.fujitsu.com>
-	<20060322030208.30e3581e.akpm@osdl.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:36245 "EHLO
-	fgwmail6.fujitsu.co.jp") by vger.kernel.org with ESMTP
-	id S1750745AbWCVLch (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Mar 2006 06:32:37 -0500
-In-Reply-To: <20060322030208.30e3581e.akpm@osdl.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Subject: Re: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
+Date: Wed, 22 Mar 2006 09:16:11 -0500
+Message-ID: <E1FM48B-00011o-Cs@approximate.corpus.cam.ac.uk>
+References: <3ACA40606221794F80A5670F0AF15F840B418018@pdsmsx403>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751268AbWCVOQm@vger.kernel.org>
+In-Reply-To: Your message of "Wed, 22 Mar 2006 15:28:44 +0800."
+             <3ACA40606221794F80A5670F0AF15F840B418018@pdsmsx403>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Yu, Luming" <luming.yu@intel.com>
+Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: y-goto@jp.fujitsu.com, ak@muc.de, linux-acpi@vger.kernel.org, tony.luck@intel.com
 
-On Wed, 22 Mar 2006 03:02:08 -0800
-Andrew Morton <akpm@osdl.org> wrote:
+  How about this. The side effect of this change is that _BIF, _BST could
+  NOT work. But I think it's just ok.
 
-> Yasunori Goto <y-goto@jp.fujitsu.com> wrote:
-> I think the problem was introduced by one of the newly-queued patches in
-> Andi's tree, possibly
-> ftp://ftp.firstfloor.org/pub/ak/x86_64/quilt-current/patches/hotadd-reserve
-> 
-I didn't notice this patch and am shocked now....
 
-First, e820 doesn't holds information of memory which doesn't exist at boot
-time, I think. This patch can work only with emulated environ. 
+		      Method (I2RB, 3, NotSerialized)
+		      {
+			  Store (Arg0, HCSL)
+			  Store (ShiftLeft (Arg1, 0x01), HMAD)
+			  Store (Arg2, HMCM)
+			  Store (0x0B, HMPR)
+	    /*              Return (CHKS ())*/
+		      }
 
-Next, Goto-san is now working on new patches , node-hot-add.
-It includes add-new-zone/rebuild-zonelist...etc patches, which will be necessary
-also for x86_64, even if it's not NUMA. 
-I doesn't think this patch should be merged *now*.
+It hangs in the usual way (2nd sleep).  The boot messages had two Fatal
+opcodes, but that must be the _BIF and _BST that you mentioned:
 
--- Kame
+  Execute Method: [\_TZ_.THM0._TMP] (Node e3f8bf88)
+  ACPI: Fatal opcode executed
+  Execute Method: [\_TZ_.THM0._PSV] (Node e3f8be48)
+  Execute Method: [\_TZ_.THM0._TC1] (Node e3f8bdc8)
+  Execute Method: [\_TZ_.THM0._TC2] (Node e3f8bd88)
+  Execute Method: [\_TZ_.THM0._TSP] (Node e3f8bd48)
+  Execute Method: [\_TZ_.THM0._AC0] (Node e3f8bf48)
+  Execute Method: [\_TZ_.THM0._SCP] (Node e3f8bec8)
+  Execute Method: [\_TZ_.THM0._TMP] (Node e3f8bf88)
+  ACPI: Fatal opcode executed
+  ACPI: Thermal Zone [THM0] (47 C)
 
+With later modifications (e.g. commenting out one of the Store lines), I
+could Return(0x00) instead of commenting out the line.  Let me know
+which ones to try.  
+
+One more thought.  We know that commenting out the UPDT call in _TMP
+fixes the hang.  By bisecting the UPDT method, however, we change every
+call to UPDT, including the one in THM0._TMP.  So we're making extra
+changes beyond what is needed to fix the hang (and maybe producing
+another hang?).
+
+But let's continue this bisection since it's almost done.  If we
+eventually find the offending statement, we can use the information in
+order to find the smallest change that fixes the hang.  We make a copy
+of the original UPDT method, call it UPDTCOPY, say; same for I2RB.  Then
+THM0._TMP can call EC0.UPDTCOPY(), which calls I2RBCOPY.  And we modify
+I2RBCOPY, but we leave I2RB and UPDT alone.
+
+-Sanjoy
+
+`A society of sheep must in time beget a government of wolves.'
+   - Bertrand de Jouvenal
