@@ -1,40 +1,125 @@
 From: akpm@osdl.org
-Subject: [patch 13/23] ACPI: print wakeup device list on same line as label
-Date: Tue, 21 Mar 2006 22:30:37 -0800
-Message-ID: <200603220633.k2M6Xpdj019562@shell0.pdx.osdl.net>
+Subject: [patch 03/23] sem2mutex: acpi, acpi_link_lock
+Date: Tue, 21 Mar 2006 22:30:28 -0800
+Message-ID: <200603220633.k2M6Xf8H019532@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:17852 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1750839AbWCVGdy (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:8124 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1750824AbWCVGdr (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Mar 2006 01:33:54 -0500
+	Wed, 22 Mar 2006 01:33:47 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, bjorn.helgaas@hp.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, mingo@elte.hu
 
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+From: Ingo Molnar <mingo@elte.hu>
 
-Print the ACPI wakeup device list on the same line as the label to make
-"dmesg | grep ACPI" output more useful.
+Semaphore to mutex conversion.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+The conversion was generated via scripts, and the result was validated
+automatically via a script as well.
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/sleep/wakeup.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/pci_link.c |   25 +++++++++++++------------
+ 1 files changed, 13 insertions(+), 12 deletions(-)
 
-diff -puN drivers/acpi/sleep/wakeup.c~acpi-print-wakeup-device-list-on-same-line-as-label drivers/acpi/sleep/wakeup.c
---- devel/drivers/acpi/sleep/wakeup.c~acpi-print-wakeup-device-list-on-same-line-as-label	2006-03-21 22:30:05.000000000 -0800
-+++ devel-akpm/drivers/acpi/sleep/wakeup.c	2006-03-21 22:30:05.000000000 -0800
-@@ -155,7 +155,7 @@ static int __init acpi_wakeup_device_ini
+diff -puN drivers/acpi/pci_link.c~sem2mutex-acpi-acpi_link_lock drivers/acpi/pci_link.c
+--- devel/drivers/acpi/pci_link.c~sem2mutex-acpi-acpi_link_lock	2006-03-21 22:30:04.000000000 -0800
++++ devel-akpm/drivers/acpi/pci_link.c	2006-03-21 22:30:04.000000000 -0800
+@@ -38,6 +38,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/pm.h>
+ #include <linux/pci.h>
++#include <linux/mutex.h>
  
- 	if (acpi_disabled)
- 		return 0;
--	printk("ACPI wakeup devices: \n");
-+	printk(KERN_INFO PREFIX "wakeup devices: ");
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+@@ -91,7 +92,7 @@ static struct {
+ 	int count;
+ 	struct list_head entries;
+ } acpi_link;
+-DECLARE_MUTEX(acpi_link_lock);
++DEFINE_MUTEX(acpi_link_lock);
  
- 	spin_lock(&acpi_device_lock);
- 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+ /* --------------------------------------------------------------------------
+                             PCI Link Device Management
+@@ -634,19 +635,19 @@ acpi_pci_link_allocate_irq(acpi_handle h
+ 		return_VALUE(-1);
+ 	}
+ 
+-	down(&acpi_link_lock);
++	mutex_lock(&acpi_link_lock);
+ 	if (acpi_pci_link_allocate(link)) {
+-		up(&acpi_link_lock);
++		mutex_unlock(&acpi_link_lock);
+ 		return_VALUE(-1);
+ 	}
+ 
+ 	if (!link->irq.active) {
+-		up(&acpi_link_lock);
++		mutex_unlock(&acpi_link_lock);
+ 		ACPI_ERROR((AE_INFO, "Link active IRQ is 0!"));
+ 		return_VALUE(-1);
+ 	}
+ 	link->refcnt++;
+-	up(&acpi_link_lock);
++	mutex_unlock(&acpi_link_lock);
+ 
+ 	if (triggering)
+ 		*triggering = link->irq.triggering;
+@@ -684,9 +685,9 @@ int acpi_pci_link_free_irq(acpi_handle h
+ 		return_VALUE(-1);
+ 	}
+ 
+-	down(&acpi_link_lock);
++	mutex_lock(&acpi_link_lock);
+ 	if (!link->irq.initialized) {
+-		up(&acpi_link_lock);
++		mutex_unlock(&acpi_link_lock);
+ 		ACPI_ERROR((AE_INFO, "Link isn't initialized"));
+ 		return_VALUE(-1);
+ 	}
+@@ -709,7 +710,7 @@ int acpi_pci_link_free_irq(acpi_handle h
+ 	if (link->refcnt == 0) {
+ 		acpi_ut_evaluate_object(link->handle, "_DIS", 0, NULL);
+ 	}
+-	up(&acpi_link_lock);
++	mutex_unlock(&acpi_link_lock);
+ 	return_VALUE(link->irq.active);
+ }
+ 
+@@ -740,7 +741,7 @@ static int acpi_pci_link_add(struct acpi
+ 	strcpy(acpi_device_class(device), ACPI_PCI_LINK_CLASS);
+ 	acpi_driver_data(device) = link;
+ 
+-	down(&acpi_link_lock);
++	mutex_lock(&acpi_link_lock);
+ 	result = acpi_pci_link_get_possible(link);
+ 	if (result)
+ 		goto end;
+@@ -775,7 +776,7 @@ static int acpi_pci_link_add(struct acpi
+       end:
+ 	/* disable all links -- to be activated on use */
+ 	acpi_ut_evaluate_object(link->handle, "_DIS", 0, NULL);
+-	up(&acpi_link_lock);
++	mutex_unlock(&acpi_link_lock);
+ 
+ 	if (result)
+ 		kfree(link);
+@@ -829,9 +830,9 @@ static int acpi_pci_link_remove(struct a
+ 
+ 	link = (struct acpi_pci_link *)acpi_driver_data(device);
+ 
+-	down(&acpi_link_lock);
++	mutex_lock(&acpi_link_lock);
+ 	list_del(&link->node);
+-	up(&acpi_link_lock);
++	mutex_unlock(&acpi_link_lock);
+ 
+ 	kfree(link);
+ 
 _
