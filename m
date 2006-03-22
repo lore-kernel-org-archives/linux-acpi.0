@@ -1,62 +1,35 @@
-From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Subject: Re: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
-Date: Wed, 22 Mar 2006 09:16:11 -0500
-Message-ID: <E1FM48B-00011o-Cs@approximate.corpus.cam.ac.uk>
-References: <3ACA40606221794F80A5670F0AF15F840B418018@pdsmsx403>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751268AbWCVOQm@vger.kernel.org>
-In-Reply-To: Your message of "Wed, 22 Mar 2006 15:28:44 +0800."
-             <3ACA40606221794F80A5670F0AF15F840B418018@pdsmsx403>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Yu, Luming" <luming.yu@intel.com>
-Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
+From: Andi Kleen <ak@muc.de>
+Subject: Re: CONFIG_ACPI_HOTPLUG_MEMORY=m with x86_64 devel tree
+Date: 22 Mar 2006 18:13:29 +0100
+Message-ID: <20060322171329.GA30737@muc.de>
+References: <20060321222332.1a037c8e.akpm@osdl.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from colin.muc.de ([193.149.48.1]:42503 "EHLO mail.muc.de")
+	by vger.kernel.org with ESMTP id S1750782AbWCVRNh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Mar 2006 12:13:37 -0500
+Date: Wed, 22 Mar 2006 18:13:29 +0100
+Content-Disposition: inline
+In-Reply-To: <20060321222332.1a037c8e.akpm@osdl.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: linux-acpi@vger.kernel.org
 
-  How about this. The side effect of this change is that _BIF, _BST could
-  NOT work. But I think it's just ok.
+On Tue, Mar 21, 2006 at 10:23:32PM -0800, Andrew Morton wrote:
+> WARNING: "remove_memory" [drivers/acpi/acpi_memhotplug.ko] undefined!
+> WARNING: "add_memory" [drivers/acpi/acpi_memhotplug.ko] undefined!
+> WARNING: "acpi_os_allocate" [drivers/acpi/acpi_memhotplug.ko] undefined!
+> 
+> Does it actually make sense to load acpi_memhotplug.ko as a module?  Will
 
+Yes.
 
-		      Method (I2RB, 3, NotSerialized)
-		      {
-			  Store (Arg0, HCSL)
-			  Store (ShiftLeft (Arg1, 0x01), HMAD)
-			  Store (Arg2, HMCM)
-			  Store (0x0B, HMPR)
-	    /*              Return (CHKS ())*/
-		      }
+> it all work?
 
-It hangs in the usual way (2nd sleep).  The boot messages had two Fatal
-opcodes, but that must be the _BIF and _BST that you mentioned:
+Just need to export the symbols I think. Thanks for the headsup.
 
-  Execute Method: [\_TZ_.THM0._TMP] (Node e3f8bf88)
-  ACPI: Fatal opcode executed
-  Execute Method: [\_TZ_.THM0._PSV] (Node e3f8be48)
-  Execute Method: [\_TZ_.THM0._TC1] (Node e3f8bdc8)
-  Execute Method: [\_TZ_.THM0._TC2] (Node e3f8bd88)
-  Execute Method: [\_TZ_.THM0._TSP] (Node e3f8bd48)
-  Execute Method: [\_TZ_.THM0._AC0] (Node e3f8bf48)
-  Execute Method: [\_TZ_.THM0._SCP] (Node e3f8bec8)
-  Execute Method: [\_TZ_.THM0._TMP] (Node e3f8bf88)
-  ACPI: Fatal opcode executed
-  ACPI: Thermal Zone [THM0] (47 C)
+-Andi
 
-With later modifications (e.g. commenting out one of the Store lines), I
-could Return(0x00) instead of commenting out the line.  Let me know
-which ones to try.  
-
-One more thought.  We know that commenting out the UPDT call in _TMP
-fixes the hang.  By bisecting the UPDT method, however, we change every
-call to UPDT, including the one in THM0._TMP.  So we're making extra
-changes beyond what is needed to fix the hang (and maybe producing
-another hang?).
-
-But let's continue this bisection since it's almost done.  If we
-eventually find the offending statement, we can use the information in
-order to find the smallest change that fixes the hang.  We make a copy
-of the original UPDT method, call it UPDTCOPY, say; same for I2RB.  Then
-THM0._TMP can call EC0.UPDTCOPY(), which calls I2RBCOPY.  And we modify
-I2RBCOPY, but we leave I2RB and UPDT alone.
-
--Sanjoy
-
-`A society of sheep must in time beget a government of wolves.'
-   - Bertrand de Jouvenal
