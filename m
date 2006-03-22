@@ -1,115 +1,107 @@
-From: akpm@osdl.org
-Subject: [patch 08/23] ACPI: Add "ACPI" to motherboard resources in /proc/io{mem,port}
-Date: Tue, 21 Mar 2006 22:30:32 -0800
-Message-ID: <200603220633.k2M6XkhR019547@shell0.pdx.osdl.net>
+From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Subject: Re: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
+Date: Wed, 22 Mar 2006 02:00:05 -0500
+Message-ID: <E1FLxK9-000243-Cc@approximate.corpus.cam.ac.uk>
+References: <3ACA40606221794F80A5670F0AF15F840B417BB4@pdsmsx403>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:27850 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1750991AbWCVG7D (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Mar 2006 01:59:03 -0500
+Received: from elasmtp-mealy.atl.sa.earthlink.net ([209.86.89.69]:45538 "EHLO
+	elasmtp-mealy.atl.sa.earthlink.net") by vger.kernel.org with ESMTP
+	id S1751001AbWCVHAc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Mar 2006 02:00:32 -0500
+In-Reply-To: Your message of "Wed, 22 Mar 2006 09:34:53 +0800."
+             <3ACA40606221794F80A5670F0AF15F840B417BB4@pdsmsx403>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, bjorn.helgaas@hp.com
+To: "Yu, Luming" <luming.yu@intel.com>
+Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
 
+I tried the following kernels (all with only THM0):
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+1. No other changes: It hangs, as before and as expected.
 
-Add "ACPI" to motherboard resource allocation names, so people have a clue
-about where to look.  And remove some trailing spaces.
+2. Commented out a large chunk of the UPDT() method:
 
-Changes these /proc/iomem entries from this:
+diff -r ac2b38909dfa -r c431c477d3b6 dsdt/600x.dsl
+--- a/dsdt/600x.dsl	Tue Mar 21 17:12:47 2006 -0500
++++ b/dsdt/600x.dsl	Wed Mar 22 00:22:21 2006 -0500
+@@ -4132,19 +4132,6 @@ DefinitionBlock ("DSDT.aml", "DSDT", 1, 
+                                 If (Acquire (I2CM, 0x0064)) {}
+                                 Else
+                                 {
+-                                    Store (I2RB (Zero, 0x01, 0x04), Local7)
+-                                    If (Local7)
+-                                    {
+-                                        Fatal (0x01, 0x80000003, Local7)
+-                                    }
+-                                    Else
+-                                    {
+-                                        Store (HBS0, TMP0)
+-                                        Store (HBS2, TMP2)
+-                                        Store (HBS6, TMP6)
+-                                        Store (HBS7, TMP7)
+-                                    }
+-
+                                     Release (I2CM)
+                                 }
+                             }
 
-    ff5c1004-ff5c1007 : PM_TMR
-    ff5c1008-ff5c100b : PM1a_EVT_BLK
-    ff5c100c-ff5c100d : PM1a_CNT_BLK
-    ff5c1010-ff5c1013 : GPE0_BLK
-    ff5c1014-ff5c1017 : GPE1_BLK
+So now it just grabs and releases the I2CM lock.  
 
-to this:
+This kernel hung on the first sleep, but I couldn't reproduce that
+behavior.  I tried two more boots, and each time it never hung.  I even
+thought it might depend on the result of previous boots, so I tried
+kernel #1 again and got the same hang, and then tried #2.  But it still
+wouldn't hang.  So I went back through the serial console logs to check
+whether I was hallucinating, and I was not.  This kernel had indeed hung
+on the first sleep, but only the first time I booted it.
 
-    ff5c1004-ff5c1007 : ACPI PM_TMR
-    ff5c1008-ff5c100b : ACPI PM1a_EVT_BLK
-    ff5c100c-ff5c100d : ACPI PM1a_CNT_BLK
-    ff5c1010-ff5c1013 : ACPI GPE0_BLK
-    ff5c1014-ff5c1017 : ACPI GPE1_BLK
+So I'm going to assume that it's okay, and that if it isn't okay, it's
+because of another, more intermitten bug.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: "Brown, Len" <len.brown@intel.com>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
----
+3. Commented out EC0.UPDT() call in THM0._THM, and this kernel was fine,
+   which is how it behaved a couple days ago, and is what I expected.
 
- drivers/acpi/motherboard.c |   22 +++++++++++-----------
- 1 files changed, 11 insertions(+), 11 deletions(-)
+I'm about to try a smaller change (continuing the bisect):
 
-diff -puN drivers/acpi/motherboard.c~acpi-add-acpi-to-motherboard-resources-in-proc-iomemport drivers/acpi/motherboard.c
---- devel/drivers/acpi/motherboard.c~acpi-add-acpi-to-motherboard-resources-in-proc-iomemport	2006-03-21 22:30:05.000000000 -0800
-+++ devel-akpm/drivers/acpi/motherboard.c	2006-03-21 22:30:05.000000000 -0800
-@@ -37,7 +37,7 @@ ACPI_MODULE_NAME("acpi_motherboard")
- #define ACPI_MB_HID2			"PNP0C02"
- /**
-  * Doesn't care about legacy IO ports, only IO ports beyond 0x1000 are reserved
-- * Doesn't care about the failure of 'request_region', since other may reserve 
-+ * Doesn't care about the failure of 'request_region', since other may reserve
-  * the io ports as well
-  */
- #define IS_RESERVED_ADDR(base, len) \
-@@ -46,7 +46,7 @@ ACPI_MODULE_NAME("acpi_motherboard")
- /*
-  * Clearing the flag (IORESOURCE_BUSY) allows drivers to use
-  * the io ports if they really know they can use it, while
-- * still preventing hotplug PCI devices from using it. 
-+ * still preventing hotplug PCI devices from using it.
-  */
- static acpi_status acpi_reserve_io_ranges(struct acpi_resource *res, void *data)
- {
-@@ -138,39 +138,39 @@ static void __init acpi_request_region (
- static void __init acpi_reserve_resources(void)
- {
- 	acpi_request_region(&acpi_gbl_FADT->xpm1a_evt_blk,
--			       acpi_gbl_FADT->pm1_evt_len, "PM1a_EVT_BLK");
-+			       acpi_gbl_FADT->pm1_evt_len, "ACPI PM1a_EVT_BLK");
+diff -r ac2b38909dfa -r f10a309b8385 dsdt/600x.dsl
+--- a/dsdt/600x.dsl	Tue Mar 21 17:12:47 2006 -0500
++++ b/dsdt/600x.dsl	Wed Mar 22 01:44:12 2006 -0500
+@@ -4137,13 +4137,6 @@ DefinitionBlock ("DSDT.aml", "DSDT", 1, 
+                                     {
+                                         Fatal (0x01, 0x80000003, Local7)
+                                     }
+-                                    Else
+-                                    {
+-                                        Store (HBS0, TMP0)
+-                                        Store (HBS2, TMP2)
+-                                        Store (HBS6, TMP6)
+-                                        Store (HBS7, TMP7)
+-                                    }
  
- 	acpi_request_region(&acpi_gbl_FADT->xpm1b_evt_blk,
--			       acpi_gbl_FADT->pm1_evt_len, "PM1b_EVT_BLK");
-+			       acpi_gbl_FADT->pm1_evt_len, "ACPI PM1b_EVT_BLK");
- 
- 	acpi_request_region(&acpi_gbl_FADT->xpm1a_cnt_blk,
--			       acpi_gbl_FADT->pm1_cnt_len, "PM1a_CNT_BLK");
-+			       acpi_gbl_FADT->pm1_cnt_len, "ACPI PM1a_CNT_BLK");
- 
- 	acpi_request_region(&acpi_gbl_FADT->xpm1b_cnt_blk,
--			       acpi_gbl_FADT->pm1_cnt_len, "PM1b_CNT_BLK");
-+			       acpi_gbl_FADT->pm1_cnt_len, "ACPI PM1b_CNT_BLK");
- 
- 	if (acpi_gbl_FADT->pm_tm_len == 4)
--		acpi_request_region(&acpi_gbl_FADT->xpm_tmr_blk, 4, "PM_TMR");
-+		acpi_request_region(&acpi_gbl_FADT->xpm_tmr_blk, 4, "ACPI PM_TMR");
- 
- 	acpi_request_region(&acpi_gbl_FADT->xpm2_cnt_blk,
--			       acpi_gbl_FADT->pm2_cnt_len, "PM2_CNT_BLK");
-+			       acpi_gbl_FADT->pm2_cnt_len, "ACPI PM2_CNT_BLK");
- 
- 	/* Length of GPE blocks must be a non-negative multiple of 2 */
- 
- 	if (!(acpi_gbl_FADT->gpe0_blk_len & 0x1))
- 		acpi_request_region(&acpi_gbl_FADT->xgpe0_blk,
--			       acpi_gbl_FADT->gpe0_blk_len, "GPE0_BLK");
-+			       acpi_gbl_FADT->gpe0_blk_len, "ACPI GPE0_BLK");
- 
- 	if (!(acpi_gbl_FADT->gpe1_blk_len & 0x1))
- 		acpi_request_region(&acpi_gbl_FADT->xgpe1_blk,
--			       acpi_gbl_FADT->gpe1_blk_len, "GPE1_BLK");
-+			       acpi_gbl_FADT->gpe1_blk_len, "ACPI GPE1_BLK");
- }
- 
- static int __init acpi_motherboard_init(void)
- {
- 	acpi_bus_register_driver(&acpi_motherboard_driver1);
- 	acpi_bus_register_driver(&acpi_motherboard_driver2);
--	/* 
-+	/*
- 	 * Guarantee motherboard IO reservation first
- 	 * This module must run after scan.c
- 	 */
-_
+                                     Release (I2CM)
+                                 }
+
+
+After that bisection there's not much more to change in UPDT().
+However, I can drill down into I2RB() because of this line in UPDT():
+
+    Store (I2RB (Zero, 0x01, 0x04), Local7)
+
+But I have no idea what's safe to experiment with in I2RB():
+
+                    Method (I2RB, 3, NotSerialized)
+                    {
+                        Store (Arg0, HCSL)
+                        Store (ShiftLeft (Arg1, 0x01), HMAD)
+                        Store (Arg2, HMCM)
+                        Store (0x0B, HMPR)
+                        Return (CHKS ())
+                    }
+
+
+All those lines look like tricky hardware manipulations.
+
+By the way, which debug_{level,layer} settings will show the lines of
+the human-readable DSDT as they are executed?
+
+-Sanjoy
