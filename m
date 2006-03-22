@@ -1,216 +1,248 @@
 From: akpm@osdl.org
-Subject: [patch 23/23] acpi memory hotplug cannot manage _CRS with plural resoureces
-Date: Tue, 21 Mar 2006 22:30:48 -0800
-Message-ID: <200603220634.k2M6Y1Ee019600@shell0.pdx.osdl.net>
+Subject: [patch 19/23] serial: remove 8250_acpi (replaced by 8250_pnp and PNPACPI)
+Date: Tue, 21 Mar 2006 22:30:42 -0800
+Message-ID: <200603220633.k2M6XuQY019583@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:27324 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1750855AbWCVGeF (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:30396 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1750858AbWCVGeO (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Mar 2006 01:34:05 -0500
+	Wed, 22 Mar 2006 01:34:14 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, kamezawa.hiroyu@jp.fujitsu.com, kaneshige.kenji@jp.fujitsu.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, bjorn.helgaas@hp.com, ambx1@neo.rr.com, rmk@arm.linux.org.uk
 
 
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Current acpi memory hotplug just looks into the first entry of resources in
-_CRS.  But, _CRS can contain plural resources.  So, if _CRS contains plural
-resoureces, acpi memory hot add cannot add all memory.
+With the combination of PNPACPI and 8250_pnp, we no longer need 8250_acpi.
 
-With this patch, acpi memory hotplug can deal with Memory Device, whose
-_CRS contains plural resources.
-
-Tested on ia64 memory hotplug test envrionment (not emulation, uses alpha
-version firmware which supports dynamic reconfiguration of NUMA.)
-
-Note: Microsoft's Windows Server 2003 requires big (>4G)resoureces to be
-      divided into small (<4G) resources. looks crazy, but not invalid.
-      (See http://www.microsoft.com/whdc/system/pnppwr/hotadd/hotaddmem.mspx)
-      For this reason, a firmware vendor who supports Windows writes plural
-      resources in a _CRS even if they are contiguous.
-
-Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Cc: "Brown, Len" <len.brown@intel.com>
+Cc: Adam Belay <ambx1@neo.rr.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/acpi_memhotplug.c |  109 ++++++++++++++++++++++---------
- 1 files changed, 78 insertions(+), 31 deletions(-)
+ dev/null                |  183 --------------------------------------
+ drivers/serial/Kconfig  |    8 -
+ drivers/serial/Makefile |    1 
+ 3 files changed, 192 deletions(-)
 
-diff -puN drivers/acpi/acpi_memhotplug.c~acpi-memory-hotplug-cannot-manage-_crs-with-plural-resoureces drivers/acpi/acpi_memhotplug.c
---- devel/drivers/acpi/acpi_memhotplug.c~acpi-memory-hotplug-cannot-manage-_crs-with-plural-resoureces	2006-03-21 22:30:07.000000000 -0800
-+++ devel-akpm/drivers/acpi/acpi_memhotplug.c	2006-03-21 22:30:07.000000000 -0800
-@@ -68,44 +68,76 @@ static struct acpi_driver acpi_memory_de
- 		},
- };
- 
-+struct acpi_memory_info {
-+	struct list_head list;
-+	u64 start_addr;		/* Memory Range start physical addr */
-+	u64 length;		/* Memory Range length */
-+	unsigned short caching;	/* memory cache attribute */
-+	unsigned short write_protect;	/* memory read/write attribute */
-+	unsigned int enabled:1;
-+};
-+
- struct acpi_memory_device {
- 	acpi_handle handle;
- 	unsigned int state;	/* State of the memory device */
--	unsigned short caching;	/* memory cache attribute */
--	unsigned short write_protect;	/* memory read/write attribute */
--	u64 start_addr;		/* Memory Range start physical addr */
--	u64 length;		/* Memory Range length */
-+	struct list_head res_list;
- };
- 
-+static acpi_status
-+acpi_memory_get_resource(struct acpi_resource *resource, void *context)
-+{
-+	struct acpi_memory_device *mem_device = context;
-+	struct acpi_resource_address64 address64;
-+	struct acpi_memory_info *info, *new;
-+	acpi_status status;
-+
-+	status = acpi_resource_to_address64(resource, &address64);
-+	if (ACPI_FAILURE(status) ||
-+	    (address64.resource_type != ACPI_MEMORY_RANGE))
-+		return AE_OK;
-+
-+	list_for_each_entry(info, &mem_device->res_list, list) {
-+		/* Can we combine the resource range information? */
-+		if ((info->caching == address64.info.mem.caching) &&
-+		    (info->write_protect == address64.info.mem.write_protect) &&
-+		    (info->start_addr + info->length == address64.minimum)) {
-+			info->length += address64.address_length;
-+			return AE_OK;
-+		}
-+	}
-+
-+	new = acpi_os_allocate(sizeof(struct acpi_memory_info));
-+	if (!new)
-+		return AE_ERROR;
-+
-+	memset(new, 0, sizeof(*new));
-+	INIT_LIST_HEAD(&new->list);
-+	new->caching = address64.info.mem.caching;
-+	new->write_protect = address64.info.mem.write_protect;
-+	new->start_addr = address64.minimum;
-+	new->length = address64.address_length;
-+	list_add_tail(&new->list, &mem_device->res_list);
-+
-+	return AE_OK;
-+}
-+
- static int
- acpi_memory_get_device_resources(struct acpi_memory_device *mem_device)
- {
- 	acpi_status status;
--	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
--	struct acpi_resource *resource = NULL;
--	struct acpi_resource_address64 address64;
-+	struct acpi_memory_info *info, *n;
- 
- 	ACPI_FUNCTION_TRACE("acpi_memory_get_device_resources");
- 
- 	/* Get the range from the _CRS */
--	status = acpi_get_current_resources(mem_device->handle, &buffer);
--	if (ACPI_FAILURE(status))
-+	status = acpi_walk_resources(mem_device->handle, METHOD_NAME__CRS,
-+				     acpi_memory_get_resource, mem_device);
-+	if (ACPI_FAILURE(status)) {
-+		list_for_each_entry_safe(info, n, &mem_device->res_list, list)
-+			acpi_os_free(info);
- 		return_VALUE(-EINVAL);
+diff -L drivers/serial/8250_acpi.c -puN drivers/serial/8250_acpi.c~serial-remove-8250_acpi-replaced-by-8250_pnp-and-pnpacpi /dev/null
+--- devel/drivers/serial/8250_acpi.c
++++ /dev/null	2003-09-15 06:40:47.000000000 -0700
+@@ -1,183 +0,0 @@
+-/*
+- * Copyright (c) 2002-2003 Matthew Wilcox for Hewlett-Packard
+- * Copyright (C) 2004 Hewlett-Packard Co
+- *	Bjorn Helgaas <bjorn.helgaas@hp.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- */
 -
--	resource = (struct acpi_resource *)buffer.pointer;
--	status = acpi_resource_to_address64(resource, &address64);
--	if (ACPI_SUCCESS(status)) {
--		if (address64.resource_type == ACPI_MEMORY_RANGE) {
--			/* Populate the structure */
--			mem_device->caching = address64.info.mem.caching;
--			mem_device->write_protect =
--			    address64.info.mem.write_protect;
--			mem_device->start_addr = address64.minimum;
--			mem_device->length = address64.address_length;
--		}
- 	}
- 
--	acpi_os_free(buffer.pointer);
- 	return_VALUE(0);
- }
- 
-@@ -180,7 +212,8 @@ static int acpi_memory_check_device(stru
- 
- static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
- {
+-#include <linux/acpi.h>
+-#include <linux/init.h>
+-#include <linux/module.h>
+-#include <linux/serial_core.h>
+-
+-#include <acpi/acpi_bus.h>
+-
+-#include <asm/io.h>
+-
+-#include "8250.h"
+-
+-struct serial_private {
+-	int	line;
+-};
+-
+-static acpi_status acpi_serial_mmio(struct uart_port *port,
+-				    struct acpi_resource_address64 *addr)
+-{
+-	port->mapbase = addr->minimum;
+-	port->iotype = UPIO_MEM;
+-	port->flags |= UPF_IOREMAP;
+-	return AE_OK;
+-}
+-
+-static acpi_status acpi_serial_port(struct uart_port *port,
+-				    struct acpi_resource_io *io)
+-{
+-	if (io->address_length) {
+-		port->iobase = io->minimum;
+-		port->iotype = UPIO_PORT;
+-	} else
+-		printk(KERN_ERR "%s: zero-length IO port range?\n", __FUNCTION__);
+-	return AE_OK;
+-}
+-
+-static acpi_status acpi_serial_ext_irq(struct uart_port *port,
+-				       struct acpi_resource_extended_irq *ext_irq)
+-{
+-	int rc;
+-
+-	if (ext_irq->interrupt_count > 0) {
+-		rc = acpi_register_gsi(ext_irq->interrupts[0],
+-	                   ext_irq->triggering, ext_irq->polarity);
+-		if (rc < 0)
+-			return AE_ERROR;
+-		port->irq = rc;
+-	}
+-	return AE_OK;
+-}
+-
+-static acpi_status acpi_serial_irq(struct uart_port *port,
+-				   struct acpi_resource_irq *irq)
+-{
+-	int rc;
+-
+-	if (irq->interrupt_count > 0) {
+-		rc = acpi_register_gsi(irq->interrupts[0],
+-	                   irq->triggering, irq->polarity);
+-		if (rc < 0)
+-			return AE_ERROR;
+-		port->irq = rc;
+-	}
+-	return AE_OK;
+-}
+-
+-static acpi_status acpi_serial_resource(struct acpi_resource *res, void *data)
+-{
+-	struct uart_port *port = (struct uart_port *) data;
+-	struct acpi_resource_address64 addr;
+-	acpi_status status;
+-
+-	status = acpi_resource_to_address64(res, &addr);
+-	if (ACPI_SUCCESS(status))
+-		return acpi_serial_mmio(port, &addr);
+-	else if (res->type == ACPI_RESOURCE_TYPE_IO)
+-		return acpi_serial_port(port, &res->data.io);
+-	else if (res->type == ACPI_RESOURCE_TYPE_EXTENDED_IRQ)
+-		return acpi_serial_ext_irq(port, &res->data.extended_irq);
+-	else if (res->type == ACPI_RESOURCE_TYPE_IRQ)
+-		return acpi_serial_irq(port, &res->data.irq);
+-	return AE_OK;
+-}
+-
+-static int acpi_serial_add(struct acpi_device *device)
+-{
+-	struct serial_private *priv;
+-	acpi_status status;
+-	struct uart_port port;
 -	int result;
-+	int result, num_enabled = 0;
-+	struct acpi_memory_info *info;
+-
+-	memset(&port, 0, sizeof(struct uart_port));
+-
+-	port.uartclk = 1843200;
+-	port.flags = UPF_SKIP_TEST | UPF_BOOT_AUTOCONF;
+-
+-	priv = kmalloc(sizeof(struct serial_private), GFP_KERNEL);
+-	if (!priv) {
+-		result = -ENOMEM;
+-		goto fail;
+-	}
+-	memset(priv, 0, sizeof(*priv));
+-
+-	status = acpi_walk_resources(device->handle, METHOD_NAME__CRS,
+-				     acpi_serial_resource, &port);
+-	if (ACPI_FAILURE(status)) {
+-		result = -ENODEV;
+-		goto fail;
+-	}
+-
+-	if (!port.mapbase && !port.iobase) {
+-		printk(KERN_ERR "%s: no iomem or port address in %s _CRS\n",
+-			__FUNCTION__, device->pnp.bus_id);
+-		result = -ENODEV;
+-		goto fail;
+-	}
+-
+-	priv->line = serial8250_register_port(&port);
+-	if (priv->line < 0) {
+-		printk(KERN_WARNING "Couldn't register serial port %s: %d\n",
+-			device->pnp.bus_id, priv->line);
+-		result = -ENODEV;
+-		goto fail;
+-	}
+-
+-	acpi_driver_data(device) = priv;
+-	return 0;
+-
+-fail:
+-	kfree(priv);
+-
+-	return result;
+-}
+-
+-static int acpi_serial_remove(struct acpi_device *device, int type)
+-{
+-	struct serial_private *priv;
+-
+-	if (!device || !acpi_driver_data(device))
+-		return -EINVAL;
+-
+-	priv = acpi_driver_data(device);
+-	serial8250_unregister_port(priv->line);
+-	kfree(priv);
+-
+-	return 0;
+-}
+-
+-static struct acpi_driver acpi_serial_driver = {
+-	.name =		"serial",
+-	.class =	"",
+-	.ids =		"PNP0501",
+-	.ops =	{
+-		.add =		acpi_serial_add,
+-		.remove =	acpi_serial_remove,
+-	},
+-};
+-
+-static int __init acpi_serial_init(void)
+-{
+-	return acpi_bus_register_driver(&acpi_serial_driver);
+-}
+-
+-static void __exit acpi_serial_exit(void)
+-{
+-	acpi_bus_unregister_driver(&acpi_serial_driver);
+-}
+-
+-module_init(acpi_serial_init);
+-module_exit(acpi_serial_exit);
+-
+-MODULE_LICENSE("GPL");
+-MODULE_DESCRIPTION("Generic 8250/16x50 ACPI serial driver");
+diff -puN drivers/serial/Kconfig~serial-remove-8250_acpi-replaced-by-8250_pnp-and-pnpacpi drivers/serial/Kconfig
+--- devel/drivers/serial/Kconfig~serial-remove-8250_acpi-replaced-by-8250_pnp-and-pnpacpi	2006-03-21 22:30:07.000000000 -0800
++++ devel-akpm/drivers/serial/Kconfig	2006-03-21 22:30:07.000000000 -0800
+@@ -77,14 +77,6 @@ config SERIAL_8250_CS
  
- 	ACPI_FUNCTION_TRACE("acpi_memory_enable_device");
+ 	  If unsure, say N.
  
-@@ -195,12 +228,21 @@ static int acpi_memory_enable_device(str
- 	/*
- 	 * Tell the VM there is more memory here...
- 	 * Note: Assume that this function returns zero on success
-+    	 * We don't have memory-hot-add rollback function,now.
-+         * (i.e. memory-hot-remove function)
- 	 */
--	result = add_memory(mem_device->start_addr, mem_device->length);
--	if (result) {
-+	list_for_each_entry(info, &mem_device->res_list, list) {
-+		result = add_memory(info->start_addr, info->length);
-+		if (result)
-+			continue;
-+		info->enabled = 1;
-+		num_enabled++;
-+	}
-+
-+	if (!num_enabled) {
- 		ACPI_ERROR((AE_INFO, "add_memory failed"));
- 		mem_device->state = MEMORY_INVALID_STATE;
--		return result;
-+		return -EINVAL;
- 	}
+-config SERIAL_8250_ACPI
+-	bool "8250/16550 device discovery via ACPI namespace"
+-	default y if IA64
+-	depends on ACPI && SERIAL_8250
+-	---help---
+-	  If you wish to enable serial port discovery via the ACPI
+-	  namespace, say Y here.  If unsure, say N.
+-
+ config SERIAL_8250_NR_UARTS
+ 	int "Maximum number of 8250/16550 serial ports"
+ 	depends on SERIAL_8250
+diff -puN drivers/serial/Makefile~serial-remove-8250_acpi-replaced-by-8250_pnp-and-pnpacpi drivers/serial/Makefile
+--- devel/drivers/serial/Makefile~serial-remove-8250_acpi-replaced-by-8250_pnp-and-pnpacpi	2006-03-21 22:30:07.000000000 -0800
++++ devel-akpm/drivers/serial/Makefile	2006-03-21 22:30:07.000000000 -0800
+@@ -5,7 +5,6 @@
+ #
  
- 	return result;
-@@ -244,8 +286,7 @@ static int acpi_memory_powerdown_device(
- static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
- {
- 	int result;
--	u64 start = mem_device->start_addr;
--	u64 len = mem_device->length;
-+	struct acpi_memory_info *info, *n;
- 
- 	ACPI_FUNCTION_TRACE("acpi_memory_disable_device");
- 
-@@ -253,9 +294,14 @@ static int acpi_memory_disable_device(st
- 	 * Ask the VM to offline this memory range.
- 	 * Note: Assume that this function returns zero on success
- 	 */
--	result = remove_memory(start, len);
--	if (result)
--		return_VALUE(result);
-+	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
-+		if (info->enabled) {
-+			result = remove_memory(info->start_addr, info->length);
-+			if (result)
-+				return_VALUE(result);
-+		}
-+		acpi_os_free(info);
-+	}
- 
- 	/* Power-off and eject the device */
- 	result = acpi_memory_powerdown_device(mem_device);
-@@ -347,6 +393,7 @@ static int acpi_memory_device_add(struct
- 		return_VALUE(-ENOMEM);
- 	memset(mem_device, 0, sizeof(struct acpi_memory_device));
- 
-+	INIT_LIST_HEAD(&mem_device->res_list);
- 	mem_device->handle = device->handle;
- 	sprintf(acpi_device_name(device), "%s", ACPI_MEMORY_DEVICE_NAME);
- 	sprintf(acpi_device_class(device), "%s", ACPI_MEMORY_DEVICE_CLASS);
+ serial-8250-y :=
+-serial-8250-$(CONFIG_SERIAL_8250_ACPI) += 8250_acpi.o
+ serial-8250-$(CONFIG_PNP) += 8250_pnp.o
+ serial-8250-$(CONFIG_GSC) += 8250_gsc.o
+ serial-8250-$(CONFIG_PCI) += 8250_pci.o
 _
