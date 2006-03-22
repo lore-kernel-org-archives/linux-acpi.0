@@ -1,12 +1,12 @@
 From: akpm@osdl.org
-Subject: [patch 10/23] ACPI: fix sonypi ACPI driver registration
-Date: Tue, 21 Mar 2006 22:30:34 -0800
-Message-ID: <200603220633.k2M6Xm7P019553@shell0.pdx.osdl.net>
+Subject: [patch 12/23] ACPI: simplify scan.c coding
+Date: Tue, 21 Mar 2006 22:30:36 -0800
+Message-ID: <200603220633.k2M6XoHG019559@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:15036 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1750836AbWCVGdw (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:17084 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1750834AbWCVGdx (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Mar 2006 01:33:52 -0500
+	Wed, 22 Mar 2006 01:33:53 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
@@ -15,60 +15,83 @@ Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, bjorn.helgaas@hp.com
 
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Remove the assumption that acpi_bus_register_driver() returns the number of
-devices claimed.  Returning the count is unreliable because devices may be
-hot-plugged in the future (admittedly not applicable for this driver).
-
-This also fixes a bug: if sonypi_acpi_driver was registered but found no
-devices, sonypi_exit() did not unregister it.
+No functional changes; just remove leftover, unused "buffer" and simplify
+control flow (no need to remember error values and goto the end, when we can
+simply return the value directly).
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/sonypi.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/acpi/scan.c |   36 +++++++++++++-----------------------
+ 1 files changed, 13 insertions(+), 23 deletions(-)
 
-diff -puN drivers/char/sonypi.c~acpi-fix-sonypi-acpi-driver-registration drivers/char/sonypi.c
---- devel/drivers/char/sonypi.c~acpi-fix-sonypi-acpi-driver-registration	2006-03-21 22:30:05.000000000 -0800
-+++ devel-akpm/drivers/char/sonypi.c	2006-03-21 22:30:05.000000000 -0800
-@@ -512,7 +512,7 @@ static struct sonypi_device {
+diff -puN drivers/acpi/scan.c~acpi-simplify-scanc-coding drivers/acpi/scan.c
+--- devel/drivers/acpi/scan.c~acpi-simplify-scanc-coding	2006-03-21 22:30:05.000000000 -0800
++++ devel-akpm/drivers/acpi/scan.c	2006-03-21 22:30:05.000000000 -0800
+@@ -236,12 +236,9 @@ static int acpi_bus_get_power_flags(stru
  
- #ifdef CONFIG_ACPI
- static struct acpi_device *sonypi_acpi_device;
--static int acpi_enabled;
-+static int acpi_driver_registered;
- #endif
- 
- static int sonypi_ec_write(u8 addr, u8 value)
-@@ -869,7 +869,7 @@ found:
- 		sonypi_report_input_event(event);
- 
- #ifdef CONFIG_ACPI
--	if (acpi_enabled)
-+	if (sonypi_acpi_device)
- 		acpi_bus_generate_event(sonypi_acpi_device, 1, event);
- #endif
- 
-@@ -1548,8 +1548,8 @@ static int __init sonypi_init(void)
- 		goto err_free_device;
- 
- #ifdef CONFIG_ACPI
--	if (acpi_bus_register_driver(&sonypi_acpi_driver) > 0)
--		acpi_enabled = 1;
-+	if (acpi_bus_register_driver(&sonypi_acpi_driver) >= 0)
-+		acpi_driver_registered = 1;
- #endif
- 
- 	return 0;
-@@ -1564,7 +1564,7 @@ static int __init sonypi_init(void)
- static void __exit sonypi_exit(void)
+ int acpi_match_ids(struct acpi_device *device, char *ids)
  {
- #ifdef CONFIG_ACPI
--	if (acpi_enabled)
-+	if (acpi_driver_registered)
- 		acpi_bus_unregister_driver(&sonypi_acpi_driver);
- #endif
- 	platform_device_unregister(sonypi_platform_device);
+-	int error = 0;
+-	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+-
+ 	if (device->flags.hardware_id)
+ 		if (strstr(ids, device->pnp.hardware_id))
+-			goto Done;
++			return 0;
+ 
+ 	if (device->flags.compatible_ids) {
+ 		struct acpi_compatible_id_list *cid_list = device->pnp.cid_list;
+@@ -250,15 +247,10 @@ int acpi_match_ids(struct acpi_device *d
+ 		/* compare multiple _CID entries against driver ids */
+ 		for (i = 0; i < cid_list->count; i++) {
+ 			if (strstr(ids, cid_list->id[i].value))
+-				goto Done;
++				return 0;
+ 		}
+ 	}
+-	error = -ENOENT;
+-
+-      Done:
+-	if (buffer.pointer)
+-		acpi_os_free(buffer.pointer);
+-	return error;
++	return -ENOENT;
+ }
+ 
+ static acpi_status
+@@ -640,21 +632,19 @@ EXPORT_SYMBOL(acpi_bus_register_driver);
+  */
+ int acpi_bus_unregister_driver(struct acpi_driver *driver)
+ {
+-	int error = 0;
+-
+ 	ACPI_FUNCTION_TRACE("acpi_bus_unregister_driver");
+ 
+-	if (driver) {
+-		acpi_driver_detach(driver);
++	if (!driver)
++		return_VALUE(-EINVAL);
+ 
+-		if (!atomic_read(&driver->references)) {
+-			spin_lock(&acpi_device_lock);
+-			list_del_init(&driver->node);
+-			spin_unlock(&acpi_device_lock);
+-		}
+-	} else
+-		error = -EINVAL;
+-	return_VALUE(error);
++	acpi_driver_detach(driver);
++
++	if (!atomic_read(&driver->references)) {
++		spin_lock(&acpi_device_lock);
++		list_del_init(&driver->node);
++		spin_unlock(&acpi_device_lock);
++	}
++	return_VALUE(0);
+ }
+ 
+ EXPORT_SYMBOL(acpi_bus_unregister_driver);
 _
