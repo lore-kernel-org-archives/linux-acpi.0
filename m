@@ -1,37 +1,42 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
-Date: Wed, 22 Mar 2006 15:28:44 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F840B418018@pdsmsx403>
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: Re: CONFIG_ACPI_HOTPLUG_MEMORY=m with x86_64 devel tree
+Date: Wed, 22 Mar 2006 19:56:37 +0900
+Message-ID: <20060322192804.E490.Y-GOTO@jp.fujitsu.com>
+References: <20060321222332.1a037c8e.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:52521 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1751055AbWCVH3T convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Mar 2006 02:29:19 -0500
-Content-class: urn:content-classes:message
+Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:52126 "EHLO
+	fgwmail7.fujitsu.co.jp") by vger.kernel.org with ESMTP
+	id S1750830AbWCVK54 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Mar 2006 05:57:56 -0500
+In-Reply-To: <20060321222332.1a037c8e.akpm@osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
+To: Andrew Morton <akpm@osdl.org>
+Cc: Andi Kleen <ak@muc.de>, linux-acpi@vger.kernel.org, "Luck, Tony" <tony.luck@intel.com>
 
->Since I don't think Fatal() isn't being called, I guess the problem is
->in I2RB.  But all those magic numbers in I2RB make me recultant to take
->out lines, unless you tell me which changes won't harm the hardware.
->
+> WARNING: "remove_memory" [drivers/acpi/acpi_memhotplug.ko] undefined!
+> WARNING: "add_memory" [drivers/acpi/acpi_memhotplug.ko] undefined!
+> WARNING: "acpi_os_allocate" [drivers/acpi/acpi_memhotplug.ko] undefined!
+> 
+> Does it actually make sense to load acpi_memhotplug.ko as a module?  Will
+> it all work?
 
-How about this. The side effect of this change is that _BIF, _BST could
-NOT
-work. But I think it's just ok.
+Are these warning 2.6.16-rc6-mm2?
+I tried it on ia64. 
+If EXPORT_SYMBOL_GPL for them are defined, it worked well as a module. 
+Probably, x86-64 will work by same definition.
+
+In 2.6.16 stock kernel, EXPORT_SYMBOL is already defined for
+add_memory() and remove_memory() of x86-64. (only x86-64, not for ia64).
+acpi_os_allocate() is not called in acpi_memhotplug.ko of 2.6.16.
+it is called only on 2.6-16-rc6-mm2.
+
+Bye.
+
+-- 
+Yasunori Goto 
 
 
-                    Method (I2RB, 3, NotSerialized)
-                    {
-                        Store (Arg0, HCSL)
-                        Store (ShiftLeft (Arg1, 0x01), HMAD)
-                        Store (Arg2, HMCM)
-                        Store (0x0B, HMPR)
-          /*              Return (CHKS ())*/
-                    }
