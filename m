@@ -1,90 +1,104 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
-Date: Wed, 22 Mar 2006 12:58:36 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F840B417DFC@pdsmsx403>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Subject: Re: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
+Date: Wed, 22 Mar 2006 05:13:54 +0000
+Message-ID: <E1FLvfO-00014M-00@skye.ra.phy.cam.ac.uk>
+References: <3ACA40606221794F80A5670F0AF15F840B417DFC@pdsmsx403>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:21855 "EHLO
-	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S1750759AbWCVE6q convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Mar 2006 23:58:46 -0500
-Content-class: urn:content-classes:message
+Received: from mraos.ra.phy.cam.ac.uk ([131.111.48.8]:16554 "EHLO
+	mraos.ra.phy.cam.ac.uk") by vger.kernel.org with ESMTP
+	id S1750766AbWCVFOC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Mar 2006 00:14:02 -0500
+In-Reply-To: Your message of "Wed, 22 Mar 2006 12:58:36 +0800."
+             <3ACA40606221794F80A5670F0AF15F840B417DFC@pdsmsx403>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+To: "Yu, Luming" <luming.yu@intel.com>
 Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
 
->> We can do bisection in EC0.UPDT to find out which statement cause
->> hang?
->
->Yes, though see below for why I don't think it'll help no 
->matter what we
->find there.
+> Please don't give up . :-)
 
-Please don't give up . :-)
+I haven't!
 
-I need to know which statement  in EC0.UPDT that could trigger the
-problem.
-That is very important to understand the problem correctly.
-If we cannot find out that statement , then, I will dout the testing
-results that guiding us to here.
+> I need to know which statement in EC0.UPDT that could trigger the
+> problem.  That is very important to understand the problem
+> correctly.
 
->
->> My assumption is that since Windows works well, then these BIOS code
->> should have been tested ok. The only possible excuse for BIOS is that
->> Linux is using unnecessary/untested code path for 
->Suspend/resume.  So,
->> Eventually, we need to disable unnecessary BIOS call for
->> suspend/resume
->
->Maybe we're not collecting the right data in that case.  We know that
->commenting out the call to UPDT in THM0.TMP fixes the hang.  
->But it does
->not follow that the osl suspend code should avoid running UPDT.
+> This is still my assumption that some AML code needed to be avoided
+> in suspend/resume, I need data support. So, we need to dig more in
+> EC0.UPDT.
 
-This is still my assumption that some AML code needed to be avoided
-in suspend/resume, I need data support. So, we need to dig more in 
-EC0.UPDT.
+You've convinced me!
+
+> If we cannot find out that statement , then, I will dout the testing
+> results that guiding us to here.
+
+Yes, the testing is often frustrating and unreliable because the bug
+is not 100% reproducible, which is why I think it's more than 1 bug
+(one reliable bug, related to THM0, and one or more flakey ones).
+
+>> However, we do have one more piece of data.  When it hangs, it hangs in
+>> \_SI._SST, because I see that line on successful sleeps (as the last
+
+> I don't know this. I always assume the hang is at _PTS.SMPI
+
+Oh, I think you're right.  Robert Moore's comment at the bugzilla
+entry agrees with what you say.  I was (I don't know why) assuming
+that the ACPI system printed "Execute Method ..." after it finished
+executing the method.  In which case, seeing the PTS but not the SST
+made me think that PTS worked but SST failed.  However, what you say
+is consistent with ACPI printing "Execute Method" as it begins a
+method -- in which case seeing the PTS but not the SST means it fails
+in PTS (and in PTS.SMPI).
+
+-Sanjoy
+
+`Never underestimate the evil of which men of power are capable.'
+         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
 
 
->
->The hang may work like this: Between boot and sleep, calling 
->UPDT messes
->up something in the ec [which is why it takes >1 sleep to 
->cause a hang].
->When the system tries to sleep, that something triggers and the ec
->hangs.  But it may hang somewhere else than UPDT, and avoiding UPDT
->during sleep will not fix it.
+http://bugzilla.kernel.org/show_bug.cgi?id=5989
 
-If BIOS behaviors NOT correctly , then everything can happen.
 
->
->However, we do have one more piece of data.  When it hangs, it hangs in
->\_SI._SST, because I see that line on successful sleeps (as the last
 
-I don't know this. I always assume the hang is at _PTS.SMPI
 
->method before the beep) but not when it hangs (and then I also don't
->hear a beep).  There are lots of calls to EC0.XXX, including to
->EC0.BEEP, within _SST, which isn't surprising if the EC is the problem.
 
-It could be. But there should have something that trigger it.
+------- Additional Comments From Robert.Moore@intel.com  2006-02-06 14:46 
 
->So perhaps I should bisect in _SST and put in the debug lines there?
->
->Here's another idea, which is a terrible hack.  But there are lots of
->lines in the DSDT like
->   If (LOr (SPS, WNTF))
->which I imagine is saying "If something or if WinNT".  So, 
->what if Linux
->pretends to be WinNT (or W98F -- which is another common 
->test), at least
->for the 600x?  Maybe those code paths are known to work.
->
-Yes, you can try that.
+You are stuck in the loop in the method below. I would guess that the
+code is 
+waiting for a response from the SMI bios and it never happens.
 
-Thanks,
-Luming
+    Method (SMPI, 1, NotSerialized)
+    {
+        Store (S_AX, Local0)
+        Store (0x81, APMD)
+        While (LEqual (S_AH, 0xA6))
+        {
+            Sleep (0x64)
+            Store (Local0, S_AX)
+            Store (0x81, APMD)
+        }
+    }
+
+    OperationRegion (MNVS, SystemMemory, 0x23FDF000, 0x1000)
+    Field (MNVS, DWordAcc, NoLock, Preserve)
+    {
+        Offset (0xFC0), 
+        S_AX,   16, 
+
+    OperationRegion (APMC, SystemIO, 0xB2, 0x01)
+    Field (APMC, ByteAcc, NoLock, Preserve)
+    {
+        APMD,   8
+
+
+Store (Local0, S_AX)
+
+exregion-0182 [29] ex_system_memory_space: system_memory 0 (32 width) 
+Address=0000000023FDFFC0
+
+
+Store (0x81, APMD)
+
+exregion-0287 [30] ex_system_io_space_han: system_iO 1 (8 width) 
+Address=00000000000000B2
