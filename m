@@ -1,44 +1,35 @@
-From: Francesco Biscani <biscani@pd.astro.it>
-Subject: Re: ACPI error in 2.6.16 (AE_TIME, Returned by Handler for EmbeddedControl)
-Date: Thu, 23 Mar 2006 23:34:03 +0100
-Message-ID: <200603232334.04717.biscani@pd.astro.it>
-References: <3ACA40606221794F80A5670F0AF15F840B468EFD@pdsmsx403>
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: Re: [PATCH: 000/002] Catch notification of memory add event of ACPI
+ via container driver.
+Date: Fri, 24 Mar 2006 08:38:00 +0900
+Message-ID: <20060324083800.d1bb156f.kamezawa.hiroyu@jp.fujitsu.com>
+References: <20060323221810.8A0B.Y-GOTO@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-relay-1.tiscali.it ([213.205.33.41]:22980 "EHLO
-	mail-relay-1.tiscali.it") by vger.kernel.org with ESMTP
-	id S1422718AbWCWWeK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Mar 2006 17:34:10 -0500
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F840B468EFD@pdsmsx403>
-Content-Disposition: inline
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:10154 "EHLO
+	fgwmail5.fujitsu.co.jp") by vger.kernel.org with ESMTP
+	id S932567AbWCWXhV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Mar 2006 18:37:21 -0500
+In-Reply-To: <20060323221810.8A0B.Y-GOTO@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Yu, Luming" <luming.yu@intel.com>
-Cc: "Brown, Len" <len.brown@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+Cc: akpm@osdl.org, y-goto@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, len.brown@intel.com
 
-On Thursday 23 March 2006 04:46, Yu, Luming wrote:
-> Please file this bug on bugzilla.kernel.org
-> We need to find out why ?
-> Could you post dmesg for ec_intr=3D0 , ec_intr=3D1 on bugzilla.
+On Thu, 23 Mar 2006 22:41:05 +0900
+Yasunori Goto <y-goto@jp.fujitsu.com> wrote:
 
-Done:
-
-http://bugzilla.kernel.org/show_bug.cgi?id=3D6278
-
-Thanks,
-
-  Francesco
+>These 2 patches are to catch notification of new node's hot-add event via ACPI.
 
 
---=20
-Dr. Francesco Biscani
-Dipartimento di Astronomia
-Universit=E0 di Padova
-biscani@pd.astro.it
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+One more thing, this patch works for the case that memory device "PNP0C80" appears
+in container device"ACPI0004,PNP0A05,PNP0A06". In this case, ACPI's notify just comes
+to container device (not to memory device in it). This patch is necessary to deal with it.
+
+I heared  that some of firmwares (will?) use this kind of design, memory in a container,
+even if it's not NUMA.
+
+-- Kame.
+
