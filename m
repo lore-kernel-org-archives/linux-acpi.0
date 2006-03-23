@@ -1,53 +1,64 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: ACPI error in 2.6.16
-Date: Wed, 22 Mar 2006 18:34:55 -0800
-Message-ID: <20060322183455.32a385e5.akpm@osdl.org>
-References: <200603222359.55631.biscani@pd.astro.it>
-	<4421F834.1070602@liberouter.org>
+From: Andi Kleen <ak@muc.de>
+Subject: Re: CONFIG_ACPI_HOTPLUG_MEMORY=m with x86_64 devel tree
+Date: 23 Mar 2006 03:43:06 +0100
+Message-ID: <20060323024306.GA90581@muc.de>
+References: <20060321222332.1a037c8e.akpm@osdl.org> <20060322192804.E490.Y-GOTO@jp.fujitsu.com> <20060322030208.30e3581e.akpm@osdl.org> <20060322203220.6433e697.kamezawa.hiroyu@jp.fujitsu.com> <20060322192134.GA44212@muc.de> <20060323082732.9828ca2f.kamezawa.hiroyu@jp.fujitsu.com> <20060323000759.GB71469@muc.de> <20060323093609.8eb03249.kamezawa.hiroyu@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:62084 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S964897AbWCWCiY (ORCPT
+Received: from colin.muc.de ([193.149.48.1]:59910 "EHLO mail.muc.de")
+	by vger.kernel.org with ESMTP id S964908AbWCWCnO (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Mar 2006 21:38:24 -0500
-In-Reply-To: <4421F834.1070602@liberouter.org>
+	Wed, 22 Mar 2006 21:43:14 -0500
+Date: Thu, 23 Mar 2006 03:43:06 +0100
+Content-Disposition: inline
+In-Reply-To: <20060323093609.8eb03249.kamezawa.hiroyu@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiri Slaby <slaby@liberouter.org>
-Cc: biscani@pd.astro.it, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: akpm@osdl.org, y-goto@jp.fujitsu.com, linux-acpi@vger.kernel.org, tony.luck@intel.com
 
-Jiri Slaby <slaby@liberouter.org> wrote:
->
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
+On Thu, Mar 23, 2006 at 09:36:09AM +0900, KAMEZAWA Hiroyuki wrote:
+> On 23 Mar 2006 01:07:59 +0100
+> Andi Kleen <ak@muc.de> wrote:
 > 
-> Francesco Biscani napsal(a):
-> > Hello,
+> > On Thu, Mar 23, 2006 at 08:27:32AM +0900, KAMEZAWA Hiroyuki wrote:
+> > > On 22 Mar 2006 20:21:34 +0100
+> > > Andi Kleen <ak@muc.de> wrote:
+> > > 
+> > > > > It includes add-new-zone/rebuild-zonelist...etc patches, which will be necessary
+> > > > > also for x86_64, even if it's not NUMA. 
+> > > > 
+> > > > Hmm? x86_64 supports NUMA systems.
+> > > > 
+> > > Ah, I know.
+> > > I wrote "even if.." just because we cannot reserve mem_map for not exisiting node.
 > > 
-> > sometimes at boot I get the following from the logs:
+> > Hmm actually I haven't tested it but in theory the reserve hotplug
+> > code should just work if you list the new nodes already in SRAT as empty
+> > hotplug PXMs.
 > > 
-> > ACPI: write EC, IB not empty
-> > ACPI Exception (evregion-0409): AE_TIME, Returned by Handler for 
-> > [EmbeddedControl] [20060127]
-> > ACPI Error (psparse-0517): Method parse/execution failed 
-> > [\_SB_.PCI0.ISA_.EC0_.SMRD] (Node c13ecd40), AE_TIME
-> > ACPI Error (psparse-0517): Method parse/execution failed [\_SB_.BAT1.UPBI] 
-> > (Node dbf42720), AE_TIME
-> > ACPI Error (psparse-0517): Method parse/execution failed [\_SB_.BAT1.CHBP] 
-> > (Node dbf42660), AE_TIME
-> > ACPI Error (psparse-0517): Method parse/execution failed 
-> > [\_SB_.PCI0.ISA_.EC0_.SMSL] (Node c13ecce0), AE_TIME
-> > ACPI Error (psparse-0517): Method parse/execution failed 
-> > [\_SB_.PCI0.ISA_.EC0_._Q09] (Node c13ecc40), AE_TIME
-> > 
-> > And after that the battery is reported as absent (even if it is physically 
-> > present). I get the impression that this happens when rebooting, not 
-> > from "cold powerons".
-> > 
-> > This did not happen in 2.6.15, it appeared somewhere in 2.6.16-rc series.
-> Could you post dmesgs of both, acpidump and .config? Could you bisect them?
+> SRAT is required by Microsoft, then most of servers will equip it, I think.
+> And SRAT just tells each cpu's/memory range's  a pxm.
 > 
+> But allocating memmap for SRAT entry has some problem in big system.
+> 
+> For example, our server (ia64/Fujitsu PrimeQuest) can equip memory from
+> 4G to 1T(maybe 2T in future), and SRAT will *always* say  we have possible 1T memory.
+> (Microsoft requires "write all possible memory in SRAT") 
+> When we reserve memmap for possible 1T memory, Linux will not work well in minimum 4G
 
-And please Cc: linux-acpi@vger.kernel.org, thanks.
+Don't do that.
+The x86-64 kernel will preallocate memmaps when everything is enabled soon.
+Ok that won't concern your IA64 machine immediately.
+
+
+> > Ok there is no code yet to add hotplug cpus to specific nodes later
+> > but that would be easy to add.
+> > 
+> We found hot-add-memory-less-node problem now. So, "cpu hot add to a new node"  
+> will be supported later.
+
+Again should be pretty easy.
+
+-Andi
