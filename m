@@ -1,59 +1,50 @@
-From: Francesco Biscani <biscani@pd.astro.it>
-Subject: Re: ACPI error in 2.6.16 (AE_TIME, Returned by Handler for EmbeddedControl)
-Date: Thu, 23 Mar 2006 04:01:58 +0100
-Message-ID: <200603230401.58507.biscani@pd.astro.it>
-References: <F7DC2337C7631D4386A2DF6E8FB22B30067BF1BC@hdsmsx401.amr.corp.intel.com>
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: Re: CONFIG_ACPI_HOTPLUG_MEMORY=m with x86_64 devel tree
+Date: Thu, 23 Mar 2006 12:22:50 +0900
+Message-ID: <20060323122250.c22003d0.kamezawa.hiroyu@jp.fujitsu.com>
+References: <20060321222332.1a037c8e.akpm@osdl.org>
+	<20060322192804.E490.Y-GOTO@jp.fujitsu.com>
+	<20060322030208.30e3581e.akpm@osdl.org>
+	<20060322203220.6433e697.kamezawa.hiroyu@jp.fujitsu.com>
+	<20060322192134.GA44212@muc.de>
+	<20060323082732.9828ca2f.kamezawa.hiroyu@jp.fujitsu.com>
+	<20060323000759.GB71469@muc.de>
+	<20060323093609.8eb03249.kamezawa.hiroyu@jp.fujitsu.com>
+	<20060323024306.GA90581@muc.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-relay-1.tiscali.it ([213.205.33.41]:56966 "EHLO
-	mail-relay-1.tiscali.it") by vger.kernel.org with ESMTP
-	id S932526AbWCWDCI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Mar 2006 22:02:08 -0500
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B30067BF1BC@hdsmsx401.amr.corp.intel.com>
-Content-Disposition: inline
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:14531 "EHLO
+	fgwmail5.fujitsu.co.jp") by vger.kernel.org with ESMTP
+	id S932183AbWCWDXE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Mar 2006 22:23:04 -0500
+In-Reply-To: <20060323024306.GA90581@muc.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, "Yu, Luming" <luming.yu@intel.com>, Jiri Slaby <slaby@liberouter.org>
+To: Andi Kleen <ak@muc.de>
+Cc: akpm@osdl.org, y-goto@jp.fujitsu.com, linux-acpi@vger.kernel.org, tony.luck@intel.com, yo-goto@ml.soft.fujitsu.com
 
-On Thursday 23 March 2006 02:45, Brown, Len wrote:
-> does this go away if you boot with "ec_intr=3D0"?
+On 23 Mar 2006 03:43:06 +0100
+Andi Kleen <ak@muc.de> wrote:
 
-So far it seems like that option solves the problem. But since the bug =
-appears=20
-very erratically I think it's better to wait for a few more reboots.
+>
+> Don't do that.
+> The x86-64 kernel will preallocate memmaps when everything is enabled soon.
+> Ok that won't concern your IA64 machine immediately.
+> 
+> 
 
-BTW, when I was testing _without_ ec_intr=3D0 I got this in the log (th=
-is=20
-happened the first reboot after the one mentioned in my previous mail):
+I read hotadd-reserve patches again.. Okay, please preallocate if you want.
 
-Mar 23 03:48:50 kurtz ACPI: read EC, IB not empty
-Mar 23 03:48:50 kurtz ACPI: read EC, OB not full
-Mar 23 03:48:50 kurtz ACPI Exception (evregion-0409): AE_TIME, Returned=
- by=20
-Handler for [EmbeddedControl] [20060127]
-Mar 23 03:48:50 kurtz ACPI Exception (dswexec-0458): AE_TIME, While res=
-olving=20
-operands for [AE_NOT_CONFIGURED] [20060127]
-Mar 23 03:48:50 kurtz ACPI Error (psparse-0517): Method parse/execution=
- failed=20
-[\_SB_.PCI0.ISA_.EC0_._Q20] (Node c13ecbc0), AE_TIME
+Problem I found is:
+1) Goto's rebuild_zonelist patch will not work if CONFIG_MEMORY_HOTPLUG=n.
+   rebuild zonelist is necessary when the system has just memory < 4G at boot,   
+   and hot add memory > 4G. because x86_64 has DMA32, ZONE_NORAML is not included into
+   zonelist at boot time if system doesn't have memory >4G at boot.
 
-This is an hp pavilion ze5616ea laptop, FYI.
+2) zone and node's spanned_pages and present_pages are not incremented. you should do.
 
-Thanks and best regards,
+Bye.
+-- Kame
 
-  Francesco
-
---=20
-Dr. Francesco Biscani
-Dipartimento di Astronomia
-Universit=E0 di Padova
-biscani@pd.astro.it
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
