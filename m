@@ -1,50 +1,56 @@
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: Re: CONFIG_ACPI_HOTPLUG_MEMORY=m with x86_64 devel tree
-Date: Thu, 23 Mar 2006 12:22:50 +0900
-Message-ID: <20060323122250.c22003d0.kamezawa.hiroyu@jp.fujitsu.com>
-References: <20060321222332.1a037c8e.akpm@osdl.org>
-	<20060322192804.E490.Y-GOTO@jp.fujitsu.com>
-	<20060322030208.30e3581e.akpm@osdl.org>
-	<20060322203220.6433e697.kamezawa.hiroyu@jp.fujitsu.com>
-	<20060322192134.GA44212@muc.de>
-	<20060323082732.9828ca2f.kamezawa.hiroyu@jp.fujitsu.com>
-	<20060323000759.GB71469@muc.de>
-	<20060323093609.8eb03249.kamezawa.hiroyu@jp.fujitsu.com>
-	<20060323024306.GA90581@muc.de>
+From: "Yu, Luming" <luming.yu@intel.com>
+Subject: RE: ACPI error in 2.6.16 (AE_TIME, Returned by Handler for EmbeddedControl)
+Date: Thu, 23 Mar 2006 11:46:31 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F840B468EFD@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:14531 "EHLO
-	fgwmail5.fujitsu.co.jp") by vger.kernel.org with ESMTP
-	id S932183AbWCWDXE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Mar 2006 22:23:04 -0500
-In-Reply-To: <20060323024306.GA90581@muc.de>
+Received: from mga03.intel.com ([143.182.124.21]:62769 "EHLO
+	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
+	id S965123AbWCWDrW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Mar 2006 22:47:22 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <ak@muc.de>
-Cc: akpm@osdl.org, y-goto@jp.fujitsu.com, linux-acpi@vger.kernel.org, tony.luck@intel.com, yo-goto@ml.soft.fujitsu.com
+To: Francesco Biscani <biscani@pd.astro.it>, "Brown, Len" <len.brown@intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Jiri Slaby <slaby@liberouter.org>
 
-On 23 Mar 2006 03:43:06 +0100
-Andi Kleen <ak@muc.de> wrote:
-
+>On Thursday 23 March 2006 02:45, Brown, Len wrote:
+>> does this go away if you boot with "ec_intr=0"?
 >
-> Don't do that.
-> The x86-64 kernel will preallocate memmaps when everything is enabled soon.
-> Ok that won't concern your IA64 machine immediately.
-> 
-> 
+>So far it seems like that option solves the problem. But since 
+>the bug appears 
+>very erratically I think it's better to wait for a few more reboots.
+>
+>BTW, when I was testing _without_ ec_intr=0 I got this in the 
+>log (this 
+>happened the first reboot after the one mentioned in my previous mail):
+>
+>Mar 23 03:48:50 kurtz ACPI: read EC, IB not empty
+>Mar 23 03:48:50 kurtz ACPI: read EC, OB not full
+>Mar 23 03:48:50 kurtz ACPI Exception (evregion-0409): AE_TIME, 
+>Returned by 
+>Handler for [EmbeddedControl] [20060127]
+>Mar 23 03:48:50 kurtz ACPI Exception (dswexec-0458): AE_TIME, 
+>While resolving 
+>operands for [AE_NOT_CONFIGURED] [20060127]
+>Mar 23 03:48:50 kurtz ACPI Error (psparse-0517): Method 
+>parse/execution failed 
+>[\_SB_.PCI0.ISA_.EC0_._Q20] (Node c13ecbc0), AE_TIME
+>
+>This is an hp pavilion ze5616ea laptop, FYI.
+>
+>Thanks and best regards,
+>
+>  Francesco
 
-I read hotadd-reserve patches again.. Okay, please preallocate if you want.
+Please file this bug on bugzilla.kernel.org
+We need to find out why ?
+Could you post dmesg for ec_intr=0 , ec_intr=1 on bugzilla.
 
-Problem I found is:
-1) Goto's rebuild_zonelist patch will not work if CONFIG_MEMORY_HOTPLUG=n.
-   rebuild zonelist is necessary when the system has just memory < 4G at boot,   
-   and hot add memory > 4G. because x86_64 has DMA32, ZONE_NORAML is not included into
-   zonelist at boot time if system doesn't have memory >4G at boot.
 
-2) zone and node's spanned_pages and present_pages are not incremented. you should do.
-
-Bye.
--- Kame
+Thanks,
+Luming
 
