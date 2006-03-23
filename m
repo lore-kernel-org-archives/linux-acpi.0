@@ -1,82 +1,57 @@
-From: "L. A. Linden Levy" <lindenle@uiuc.edu>
-Subject: Re: Suspend Medion Akoya LS
-Date: Thu, 23 Mar 2006 05:59:39 -0600
-Message-ID: <20060323055939.5c6ffb36@toodles.lindenlevy.com>
-References: <20060320235923.5b6c948b@toodles.lindenlevy.com>
-	<1143110861.12702.4.camel@localhost>
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: [PATCH: 000/002] Catch notification of memory add event of ACPI via container driver.
+Date: Thu, 23 Mar 2006 22:41:05 +0900
+Message-ID: <20060323221810.8A0B.Y-GOTO@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary=Sig_mQ5NJOU1G_hCfUGW8y2c1wr;
- protocol="application/pgp-signature"; micalg=PGP-SHA1
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ylpvm25-ext.prodigy.net ([207.115.57.56]:39595 "EHLO
-	ylpvm25.prodigy.net") by vger.kernel.org with ESMTP id S965123AbWCWMBx
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Mar 2006 07:01:53 -0500
-In-Reply-To: <1143110861.12702.4.camel@localhost>
+Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:50391 "EHLO
+	fgwmail7.fujitsu.co.jp") by vger.kernel.org with ESMTP
+	id S1751201AbWCWNlz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Mar 2006 08:41:55 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Garry Williams <gtwilliams@gmail.com>
-Cc: lindenle@gmail.com, linux-acpi@vger.kernel.org
-
---Sig_mQ5NJOU1G_hCfUGW8y2c1wr
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
-
-Garry,
-
-Thanks. I had actually just figured this out on my own this morning. I
-just commented out the shutdown part of my powerbtn.sh script. Since I
-dont care to shutdown with the power button I am just going to leave
-it this way.
-
-On Thu, 23 Mar 2006 05:47:40 -0500
-Garry Williams <gtwilliams@gmail.com> wrote:
-
-> On Mon, 2006-03-20 at 23:59 -0600, L. A. Linden Levy wrote:
-> > Hi when I use suspend my machine wont wake up unless i hit the power
-> > button but then it shuts down. It is like the keyboard is not
-> > registering when it is suspended. Can anyone help me make this work?
-> >=20
-> > kernel 2.6.15
->=20
-> Try removing the button action that is specified in a file
-> in /etc/acpi/events.  It may be named sample.conf, depending on your
-> distribution.  Then you can safely wake by pressing the power button.
->=20
-> If that solves your problem and you still want to be able to call
-> shutdown(8) by hitting the power button, then disable/enable this
-> button rule in your suspend script.
->=20
+To: Andrew Morton <akpm@osdl.org>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>, ACPI-ML <linux-acpi@vger.kernel.org>, Linux Kernel ML <linux-kernel@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>
 
 
---=20
----------------------------------------------
-Loren A. Linden Levy
-481 Loomis, Department of Physics
-University of Illinois at Urbana-Champaign
-1110 W. Green St., Urbana, IL 61801-3080
-Tel:   217-244-7995   Fax: 217-333-1215
-Email: lindenle@uiuc.edu
-url:   http://w3.physics.uiuc.edu/~lindenle/
-_____________________________________________
----------------------------------------------
-This email has been cryptographically signed.
-Search for "lindenle" at pgp.mit.edu
-to obtain my public key which can be used=20
-to verify the authenticity of this message.
-_____________________________________________
----------------------------------------------
+Hi.
 
---Sig_mQ5NJOU1G_hCfUGW8y2c1wr
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
+These 2 patches are to catch notification of new node's hot-add event via ACPI.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2.2 (GNU/Linux)
+They were members of v4 of new node hot-add patches.
+However, I would like to merge them at first before other patch.
+Because, if these 2 patches are merged into mainline, all new node's memory
+can be added to node 0. If not, no memory is added even if other patches are
+merged. In addition, there is no opposition to these patches.
 
-iD8DBQFEIo2vlZX6YS+3ZksRAnqRAJ9SV4H6m3eE1H3GMD2GwL3aAuEAyACfYFd0
-bxhYDDqKwqTX0Ksh0BSp7ps=
-=mQXO
------END PGP SIGNATURE-----
+To tell the truth, I've posted similer patches a few times to ACPI-ML.
+But, unfortunately, there was no response.
 
---Sig_mQ5NJOU1G_hCfUGW8y2c1wr--
+So, could you apply these patches to -mm tree? 
+
+This patch is for 2.6.16-mm1.
+I tested on my ia64 Tiger4 box with my node emulation. 
+In addition, our firmware team provided us new firmware which can allow hot-add.
+These patches worked well on it. :-)
+
+Bye.
+
+------------------------------------------
+
+These 2 patches are to catch notification of new node's hot-add event
+via ACPI.
+If a new node is added, notification of ACPI reaches container device
+which means node, and container driver scans belonging devices.
+To call memory device's driver, start function of acpi memory device is
+necessary. First patch is to register its function.
+
+In addition, the scanning of memory devices and call add_memory() works 
+even if memory is registered at boottime. 
+Second patch is to avoid redundant call of add_memory().
+
+-- 
+Yasunori Goto 
+
+
