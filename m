@@ -1,323 +1,89 @@
 From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: [RFC/PATCH 2.6.14.7 1/1] ACPI: Atlas ACPI driver
-Date: Thu, 23 Mar 2006 12:00:25 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F840B468F19@pdsmsx403>
+Subject: RE: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
+Date: Thu, 23 Mar 2006 12:46:20 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F840B468F5D@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:49545 "EHLO
-	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
-	id S965172AbWCWEAb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Mar 2006 23:00:31 -0500
+Received: from mga03.intel.com ([143.182.124.21]:9909 "EHLO
+	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
+	id S965365AbWCWEqd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Mar 2006 23:46:33 -0500
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jaya Kumar <jayakumar.acpi@gmail.com>
-Cc: "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
+To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
 
->Hi Luming,
+>  How about this. The side effect of this change is that _BIF, 
+>_BST could
+>  NOT work. But I think it's just ok.
 >
->Just pinging to see if this patch was okay with you.
+>
+>		      Method (I2RB, 3, NotSerialized)
+>		      {
+>			  Store (Arg0, HCSL)
+>			  Store (ShiftLeft (Arg1, 0x01), HMAD)
+>			  Store (Arg2, HMCM)
+>			  Store (0x0B, HMPR)
+>	    /*              Return (CHKS ())*/
+>		      }
+>
+>It hangs in the usual way (2nd sleep).  The boot messages had two Fatal
+>opcodes, but that must be the _BIF and _BST that you mentioned:
 
-Overall, it is good.
-And you got my signed-off for this work: :-)
+Good, then the hang should be caused by:
 
-Signed-off-by: Luming Yu <luming.yu@intel.com>
+			  Store (Arg0, HCSL)
+			  Store (ShiftLeft (Arg1, 0x01), HMAD)
+			  Store (Arg2, HMCM)
+			  Store (0x0B, HMPR)
 
-And could you prepare the patch set including my patches
-at bug 5749, and send them to akpm, (please CC me and  Len brown)?
+Could you add this at the beginning of this block:
+	Store (Arg0,  Debug)
+And add this at the end of this block:
+	Store( HMPR, Debug)
 
-Thanks,
-Luming
-
+Also change boot option: acpi_debug_layer=0x00100010,
+acpi_debug_level=0x10
+Let me verify if ec access is just ok.
 
 >
->Thanks,
->jaya
+>  Execute Method: [\_TZ_.THM0._TMP] (Node e3f8bf88)
+>  ACPI: Fatal opcode executed
+>  Execute Method: [\_TZ_.THM0._PSV] (Node e3f8be48)
+>  Execute Method: [\_TZ_.THM0._TC1] (Node e3f8bdc8)
+>  Execute Method: [\_TZ_.THM0._TC2] (Node e3f8bd88)
+>  Execute Method: [\_TZ_.THM0._TSP] (Node e3f8bd48)
+>  Execute Method: [\_TZ_.THM0._AC0] (Node e3f8bf48)
+>  Execute Method: [\_TZ_.THM0._SCP] (Node e3f8bec8)
+>  Execute Method: [\_TZ_.THM0._TMP] (Node e3f8bf88)
+>  ACPI: Fatal opcode executed
+>  ACPI: Thermal Zone [THM0] (47 C)
 >
->On 3/14/06, jayakumar.acpi@gmail.com <jayakumar.acpi@gmail.com> wrote:
->> Hi Len, Luming, and ACPI folk,
->>
->> As per the discussion with Luming here:
->> http://marc.theaimsgroup.com/?l=linux-kernel&m=114225584330589&w=2
->> I've made the following changes to the original Atlas patch:
->> - removed __init/__exit as per Bjorn Helgaas' ASUS patch
->> - removed /proc usage and LCD control using _BCM
->> - added Atlas LCD brightness to the generic hotkey driver
->>
->> I've done this patch against 2.6.14.7 + Luming's generic hotkey
->> patch as posted here:
->> http://bugzilla.kernel.org/show_bug.cgi?id=5749
->>
->> Please let me know if it looks okay and if you have any feedback
->> or suggestions.
->>
->> Thanks,
->> Jaya Kumar
->>
->> Signed-off-by: Jaya Kumar <jayakumar.acpi@gmail.com>
->>
->> ---
->>
->>  MAINTAINERS               |    5 +
->>  drivers/acpi/Kconfig      |   11 ++++
->>  drivers/acpi/Makefile     |    1
->>  drivers/acpi/atlas_acpi.c |  123 
->++++++++++++++++++++++++++++++++++++++++++++++
->>  drivers/acpi/hotkey.c     |   14 +++++
->>  5 files changed, 154 insertions(+)
->>
->> ---
->>
->> diff -X linux-2.6.14.7/Documentation/dontdiff -uprN 
->linux-2.6.14.7-vanilla/drivers/acpi/atlas_acpi.c 
->linux-2.6.14.7/drivers/acpi/atlas_acpi.c
->> --- linux-2.6.14.7-vanilla/drivers/acpi/atlas_acpi.c    
->1970-01-01 07:30:00.000000000 +0730
->> +++ linux-2.6.14.7/drivers/acpi/atlas_acpi.c    2006-03-14 
->10:31:04.538158024 +0800
->> @@ -0,0 +1,123 @@
->> +/*
->> + *  atlas_acpi.c - Atlas Wallmount Touchscreen ACPI Extras
->> + *
->> + *  Copyright (C) 2006 Jaya Kumar
->> + *  Based on Toshiba ACPI by John Belmonte and ASUS ACPI
->> + *  This work was sponsored by CIS(M) Sdn Bhd.
->> + *
->> + *  This program is free software; you can redistribute it 
->and/or modify
->> + *  it under the terms of the GNU General Public License as 
->published by
->> + *  the Free Software Foundation; either version 2 of the 
->License, or
->> + *  (at your option) any later version.
->> + *
->> + *  This program is distributed in the hope that it will be useful,
->> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
->> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> + *  GNU General Public License for more details.
->> + *
->> + *  You should have received a copy of the GNU General 
->Public License
->> + *  along with this program; if not, write to the Free Software
->> + *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, 
->MA  02111-1307  USA
->> + *
->> + */
->> +
->> +#include <linux/kernel.h>
->> +#include <linux/module.h>
->> +#include <linux/init.h>
->> +#include <linux/types.h>
->> +#include <linux/proc_fs.h>
->> +#include <asm/uaccess.h>
->> +#include <acpi/acpi_drivers.h>
->> +
->> +#define PROC_ATLAS                     "atlas"
->> +#define ACPI_ATLAS_NAME                        "Atlas ACPI"
->> +#define ACPI_ATLAS_CLASS               "Atlas"
->> +#define ACPI_ATLAS_BUTTON_HID          "ASIM0000"
->> +
->> +/* button handling code */
->> +static acpi_status acpi_atlas_button_setup(acpi_handle 
->region_handle,
->> +                   u32 function, void *handler_context, 
->void **return_context)
->> +{
->> +       *return_context =
->> +               (function != ACPI_REGION_DEACTIVATE) ?  
->handler_context : NULL;
->> +
->> +       return AE_OK;
->> +}
->> +
->> +static acpi_status acpi_atlas_button_handler(u32 function,
->> +                     acpi_physical_address address,
->> +                     u32 bit_width, acpi_integer * value,
->> +                     void *handler_context, void *region_context)
->> +{
->> +       acpi_status status;
->> +       struct acpi_device *dev;
->> +
->> +       dev = (struct acpi_device *) handler_context;
->> +       if (function == ACPI_WRITE)
->> +               status = acpi_bus_generate_event(dev, 0x80, address);
->> +       else {
->> +               printk(KERN_WARNING "atlas: shrugged on 
->unexpected function"
->> +                       ":function=%x,address=%x,value=%x\n",
->> +                       function, (u32)address, (u32)*value);
->> +               status = -EINVAL;
->> +       }
->> +
->> +       return status ;
->> +}
->> +
->> +static int atlas_acpi_button_add(struct acpi_device *device)
->> +{
->> +       /* hookup button handler */
->> +       return acpi_install_address_space_handler(device->handle,
->> +                               0x81, &acpi_atlas_button_handler,
->> +                               &acpi_atlas_button_setup, device);
->> +}
->> +
->> +static int atlas_acpi_button_remove(struct acpi_device 
->*device, int type)
->> +{
->> +       acpi_status status;
->> +
->> +       status = acpi_remove_address_space_handler(device->handle,
->> +                               0x81, &acpi_atlas_button_handler);
->> +       if (ACPI_FAILURE(status))
->> +               printk(KERN_ERR "Atlas: Error removing addr 
->spc handler\n");
->> +
->> +       return status;
->> +}
->> +
->> +static struct acpi_driver atlas_acpi_driver = {
->> +       .name   = ACPI_ATLAS_NAME,
->> +       .class  = ACPI_ATLAS_CLASS,
->> +       .ids    = ACPI_ATLAS_BUTTON_HID,
->> +       .ops = {
->> +               .add = atlas_acpi_button_add,
->> +               .remove = atlas_acpi_button_remove,
->> +               },
->> +};
->> +
->> +static int atlas_acpi_init(void)
->> +{
->> +       int result;
->> +
->> +       result = acpi_bus_register_driver(&atlas_acpi_driver);
->> +       if (result < 0) {
->> +               printk(KERN_ERR "Atlas ACPI: Unable to 
->register driver\n");
->> +               return -ENODEV;
->> +       }
->> +
->> +       return 0;
->> +}
->> +
->> +static void atlas_acpi_exit(void)
->> +{
->> +       acpi_bus_unregister_driver(&atlas_acpi_driver);
->> +}
->> +
->> +module_init(atlas_acpi_init);
->> +module_exit(atlas_acpi_exit);
->> +
->> +MODULE_AUTHOR("Jaya Kumar");
->> +MODULE_LICENSE("GPL");
->> +MODULE_DESCRIPTION("Atlas ACPI");
->> +MODULE_SUPPORTED_DEVICE("Atlas ACPI");
->> +
->> diff -X linux-2.6.14.7/Documentation/dontdiff -uprN 
->linux-2.6.14.7-vanilla/drivers/acpi/hotkey.c 
->linux-2.6.14.7/drivers/acpi/hotkey.c
->> --- linux-2.6.14.7-vanilla/drivers/acpi/hotkey.c        
->2006-03-13 13:50:38.000000000 +0800
->> +++ linux-2.6.14.7/drivers/acpi/hotkey.c        2006-03-13 
->23:23:46.000000000 +0800
->> @@ -187,6 +187,15 @@ static struct acpi_polling_hotkey pollin
->>                .id = 10001,
->>        },
->>        {
->> +               .ids = "ACPILCD00",
->> +               .name = "brightness",
->> +               .poll_method = "_BCL",
->> +               .action_method = "_BCM",
->> +               .min = 1,
->> +               .max = 31,
->> +               .id = 10001,
->> +       },
->> +       {
->>                .ids = "SNY5001",
->>                .name           = "brightness_default",
->>                .poll_method = "GPBR",
->> @@ -268,6 +277,11 @@ struct specific_hotkey_driver_config {
->>                .ids = "ATK0100",
->>                .driver = NULL,
->>        },
->> +       {
->> +               .name = "Atlas ACPI Extras Driver",
->> +               .ids = "ACPILCD00",
->> +               .driver = NULL,
->> +       },
->>        {
->>                .name = "",
->>                .ids = NULL,
->> diff -X linux-2.6.14.7/Documentation/dontdiff -uprN 
->linux-2.6.14.7-vanilla/drivers/acpi/Kconfig 
->linux-2.6.14.7/drivers/acpi/Kconfig
->> --- linux-2.6.14.7-vanilla/drivers/acpi/Kconfig 2006-03-12 
->22:37:04.000000000 +0800
->> +++ linux-2.6.14.7/drivers/acpi/Kconfig 2006-03-14 
->10:30:41.439669528 +0800
->> @@ -193,7 +193,18 @@ config ACPI_ASUS
->>           driver is still under development, so if your 
->laptop is unsupported or
->>           something works not quite as expected, please use 
->the mailing list
->>           available on the above page 
->(acpi4asus-user@lists.sourceforge.net)
->> +
->> +config ACPI_ATLAS
->> +       tristate "Atlas Wallmount Touchscreen Extras"
->> +       depends on X86
->> +       default n
->> +         ---help---
->> +          This driver is intended for Atlas wallmounted 
->touchscreens.
->> +          The button events will show up in 
->/proc/acpi/events and the lcd
->> +          brightness control is controlled using 
->/sys/hotkey/brightness
->>
->> +          If you have an Atlas wallmounted touchscreen, say 
->Y or M here.
->> +
->>  config ACPI_IBM
->>        tristate "IBM ThinkPad Laptop Extras"
->>        depends on X86
->> diff -X linux-2.6.14.7/Documentation/dontdiff -uprN 
->linux-2.6.14.7-vanilla/drivers/acpi/Makefile 
->linux-2.6.14.7/drivers/acpi/Makefile
->> --- linux-2.6.14.7-vanilla/drivers/acpi/Makefile        
->2006-03-13 13:50:38.000000000 +0800
->> +++ linux-2.6.14.7/drivers/acpi/Makefile        2006-03-13 
->23:27:48.000000000 +0800
->> @@ -53,6 +53,7 @@ obj-$(CONFIG_ACPI_SYSTEM)     += system.o ev
->>  obj-$(CONFIG_ACPI_DEBUG)       += debug.o
->>  obj-$(CONFIG_ACPI_NUMA)                += numa.o
->>  obj-$(CONFIG_ACPI_ASUS)                += asus_acpi.o
->> +obj-$(CONFIG_ACPI_ATLAS)       += atlas_acpi.o
->>  obj-$(CONFIG_ACPI_IBM)         += ibm_acpi.o
->>  obj-$(CONFIG_ACPI_TOSHIBA)     += toshiba_acpi.o
->>  obj-y                          += scan.o motherboard.o hotkeylib.o
->> diff -X linux-2.6.14.7/Documentation/dontdiff -uprN 
->linux-2.6.14.7-vanilla/MAINTAINERS linux-2.6.14.7/MAINTAINERS
->> --- linux-2.6.14.7-vanilla/MAINTAINERS  2006-03-12 
->22:36:46.000000000 +0800
->> +++ linux-2.6.14.7/MAINTAINERS  2006-03-13 23:29:01.000000000 +0800
->> @@ -355,6 +355,11 @@ M: ecashin@coraid.com
->>  W:     http://www.coraid.com/support/linux
->>  S:     Supported
->>
->> +ATLAS ACPI EXTRAS DRIVER
->> +P:     Jaya Kumar
->> +M:     jayakumar.acpi@gmail.com
->> +S:     Maintained
->> +
->>  ATM
->>  P:     Chas Williams
->>  M:     chas@cmf.nrl.navy.mil
->> -
->> To unsubscribe from this list: send the line "unsubscribe 
->linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+>With later modifications (e.g. commenting out one of the Store 
+>lines), I
+>could Return(0x00) instead of commenting out the line.  Let me know
+>which ones to try.  
+
+Probably yes.
+
 >
+>One more thought.  We know that commenting out the UPDT call in _TMP
+>fixes the hang.  By bisecting the UPDT method, however, we change every
+>call to UPDT, including the one in THM0._TMP.  So we're making extra
+>changes beyond what is needed to fix the hang (and maybe producing
+>another hang?).
+>
+>But let's continue this bisection since it's almost done.  If we
+>eventually find the offending statement, we can use the information in
+>order to find the smallest change that fixes the hang.  We make a copy
+>of the original UPDT method, call it UPDTCOPY, say; same for 
+>I2RB.  Then
+>THM0._TMP can call EC0.UPDTCOPY(), which calls I2RBCOPY.  And we modify
+>I2RBCOPY, but we leave I2RB and UPDT alone.
+>
+Yes, that's good idea to have separate i2rb copy for THM0 which we are
+hacking.
