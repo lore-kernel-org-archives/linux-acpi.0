@@ -1,23 +1,34 @@
-From: Michael Schierl <schierlm@gmx.de>
-Subject: Re: Resume problems on Fujitsu-Siemens AMILO M7440G -- SATA
-Date: Thu, 23 Mar 2006 20:01:27 +0100
-Message-ID: <4422F087.3070100@gmx.de>
-References: <20060321162547.D6F51CA0A4@ws5-11.us4.outblaze.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <20060321162547.D6F51CA0A4@ws5-11.us4.outblaze.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: martin schneebacher <masc@operamail.com>
-Cc: Mark Lord <liml@rtr.ca>, Shaohua Li <shaohua.li@intel.com>, linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org
+From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Subject: Re: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
+Date: Thu, 23 Mar 2006 14:19:59 -0500
+Message-ID: <E1FMVLj-0001D8-Vc@approximate.corpus.cam.ac.uk>
+References: <3ACA40606221794F80A5670F0AF15F840B4692FA@pdsmsx403>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtpauth08.mail.atl.earthlink.net ([209.86.89.68]:27581 "EHLO
+	smtpauth08.mail.atl.earthlink.net") by vger.kernel.org with ESMTP
+	id S1751446AbWCWTU3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Mar 2006 14:20:29 -0500
+In-Reply-To: Your message of "Thu, 23 Mar 2006 17:10:00 +0800."
+             <3ACA40606221794F80A5670F0AF15F840B4692FA@pdsmsx403>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Yu, Luming" <luming.yu@intel.com>
+Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
 
-martin schneebacher schrieb:
+> Does it mean we need to slow down  acpi_ec_intr_read/write ?
+> Could you try to insert acpi_os_stall (100)  after  ACPI_DEBUG_PRINT
+> statement both in acpi_ec_intr_read/write.
 
-> have you ever tried the sata_pm patch from http://tpctl.sourceforge.net/tmp/sata_pm.2.6.15-rc6.patch ?
-> i have a intel SATA ICH6M interface and it works fine with this patch.
+I added that line in those two places.  The result refused to hang with
+acpi_debug_layer=0x00100010, but it did hang (on the usual second sleep)
+with it set to 0x10.
 
-Tried it against vanilla 2.6.15 - no change.
+> Hmmm, then I cannot get the ec access log for hang case?!
 
-Michael
+It seems difficult, but let's keep trying if you have other ideas for
+how to get it.
+
+-Sanjoy
+
+`A society of sheep must in time beget a government of wolves.'
+   - Bertrand de Jouvenal
