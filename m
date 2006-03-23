@@ -1,54 +1,39 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
-Date: Thu, 23 Mar 2006 17:10:00 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F840B4692FA@pdsmsx403>
+From: Garry Williams <gtwilliams@gmail.com>
+Subject: Re: Suspend Medion Akoya LS
+Date: Thu, 23 Mar 2006 05:47:40 -0500
+Message-ID: <1143110861.12702.4.camel@localhost>
+References: <20060320235923.5b6c948b@toodles.lindenlevy.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:24623 "EHLO
-	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
-	id S1751394AbWCWJKO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Mar 2006 04:10:14 -0500
-Content-class: urn:content-classes:message
+Received: from xproxy.gmail.com ([66.249.82.197]:21972 "EHLO xproxy.gmail.com")
+	by vger.kernel.org with ESMTP id S932324AbWCWKro (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Mar 2006 05:47:44 -0500
+Received: by xproxy.gmail.com with SMTP id t10so281581wxc
+        for <linux-acpi@vger.kernel.org>; Thu, 23 Mar 2006 02:47:43 -0800 (PST)
+In-Reply-To: <20060320235923.5b6c948b@toodles.lindenlevy.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
+To: "L. A. Linden Levy" <lindenle@uiuc.edu>
+Cc: linux-acpi@vger.kernel.org, lindenle@gmail.com
 
->   Good, then the hang should be caused by:
->
->			     Store (Arg0, HCSL)
->			     Store (ShiftLeft (Arg1, 0x01), HMAD)
->			     Store (Arg2, HMCM)
->			     Store (0x0B, HMPR)
->
->   Could you add this at the beginning of this block:
->	   Store (Arg0,  Debug)
->   And add this at the end of this block:
->	   Store( HMPR, Debug)
->
->I added those two lines to the DSDT with only THM0 zone, but with
->nothing else commented out.  Below are the dmesgs for one sleep-wake
->cycle, plus an 'acpi -t'.  I thought it would hang if I did one more
->cycle, but it didn't.  So I tried five more, and it was fine too.
->
->Then I reset /proc/acpi/acpi_debug_layer to 0x10 (the boot paramater is
->acpi_dbg_layer although the /proc file is acpi_debug_layer), and
->unloaded and reloaded the thermal module.  And it hung in the 
->(expected)
->two cycles.  I've seen this behavior before: It won't hang with lots of
->debugging turned on, but it does hang with less debugging.  Strange!
+On Mon, 2006-03-20 at 23:59 -0600, L. A. Linden Levy wrote:
+> Hi when I use suspend my machine wont wake up unless i hit the power
+> button but then it shuts down. It is like the keyboard is not
+> registering when it is suspended. Can anyone help me make this work?
+> 
+> kernel 2.6.15
 
-Hmmm, then I cannot get the ec access log for hang case?!
+Try removing the button action that is specified in a file
+in /etc/acpi/events.  It may be named sample.conf, depending on your
+distribution.  Then you can safely wake by pressing the power button.
 
-	acpi_hw_low_level_read(8, data, &ec->common.data_addr);
-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Read [%02x] from address
-[%02x]\n",
-			  *data, address));
+If that solves your problem and you still want to be able to call
+shutdown(8) by hitting the power button, then disable/enable this button
+rule in your suspend script.
 
-Does it mean we need to slow down  acpi_ec_intr_read/write ?
-Could you try to insert acpi_os_stall (100)  after  ACPI_DEBUG_PRINT
-statement
-both in acpi_ec_intr_read/write.
+-- 
+Garry Williams -- +1 (678) 656-4579
+
