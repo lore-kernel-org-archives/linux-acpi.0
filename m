@@ -1,64 +1,74 @@
-From: Andi Kleen <ak@muc.de>
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Subject: Re: CONFIG_ACPI_HOTPLUG_MEMORY=m with x86_64 devel tree
-Date: 23 Mar 2006 03:43:06 +0100
-Message-ID: <20060323024306.GA90581@muc.de>
-References: <20060321222332.1a037c8e.akpm@osdl.org> <20060322192804.E490.Y-GOTO@jp.fujitsu.com> <20060322030208.30e3581e.akpm@osdl.org> <20060322203220.6433e697.kamezawa.hiroyu@jp.fujitsu.com> <20060322192134.GA44212@muc.de> <20060323082732.9828ca2f.kamezawa.hiroyu@jp.fujitsu.com> <20060323000759.GB71469@muc.de> <20060323093609.8eb03249.kamezawa.hiroyu@jp.fujitsu.com>
+Date: Thu, 23 Mar 2006 11:55:23 +0900
+Message-ID: <20060323115523.126feb3e.kamezawa.hiroyu@jp.fujitsu.com>
+References: <20060321222332.1a037c8e.akpm@osdl.org>
+	<20060322192804.E490.Y-GOTO@jp.fujitsu.com>
+	<20060322030208.30e3581e.akpm@osdl.org>
+	<20060322203220.6433e697.kamezawa.hiroyu@jp.fujitsu.com>
+	<20060322192134.GA44212@muc.de>
+	<20060323082732.9828ca2f.kamezawa.hiroyu@jp.fujitsu.com>
+	<20060323000759.GB71469@muc.de>
+	<20060323093609.8eb03249.kamezawa.hiroyu@jp.fujitsu.com>
+	<20060323024306.GA90581@muc.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from colin.muc.de ([193.149.48.1]:59910 "EHLO mail.muc.de")
-	by vger.kernel.org with ESMTP id S964908AbWCWCnO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Mar 2006 21:43:14 -0500
-Date: Thu, 23 Mar 2006 03:43:06 +0100
-Content-Disposition: inline
-In-Reply-To: <20060323093609.8eb03249.kamezawa.hiroyu@jp.fujitsu.com>
+Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:1933 "EHLO
+	fgwmail7.fujitsu.co.jp") by vger.kernel.org with ESMTP
+	id S964914AbWCWCzf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Mar 2006 21:55:35 -0500
+In-Reply-To: <20060323024306.GA90581@muc.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+To: Andi Kleen <ak@muc.de>
 Cc: akpm@osdl.org, y-goto@jp.fujitsu.com, linux-acpi@vger.kernel.org, tony.luck@intel.com
 
-On Thu, Mar 23, 2006 at 09:36:09AM +0900, KAMEZAWA Hiroyuki wrote:
-> On 23 Mar 2006 01:07:59 +0100
-> Andi Kleen <ak@muc.de> wrote:
-> 
-> > On Thu, Mar 23, 2006 at 08:27:32AM +0900, KAMEZAWA Hiroyuki wrote:
-> > > On 22 Mar 2006 20:21:34 +0100
-> > > Andi Kleen <ak@muc.de> wrote:
+On 23 Mar 2006 03:43:06 +0100
+Andi Kleen <ak@muc.de> wrote:
+
+> On Thu, Mar 23, 2006 at 09:36:09AM +0900, KAMEZAWA Hiroyuki wrote:
+> > On 23 Mar 2006 01:07:59 +0100
+> > Andi Kleen <ak@muc.de> wrote:
+> > 
+> > > On Thu, Mar 23, 2006 at 08:27:32AM +0900, KAMEZAWA Hiroyuki wrote:
+> > > > On 22 Mar 2006 20:21:34 +0100
+> > > > Andi Kleen <ak@muc.de> wrote:
+> > > > 
+> > > > > > It includes add-new-zone/rebuild-zonelist...etc patches, which will be necessary
+> > > > > > also for x86_64, even if it's not NUMA. 
+> > > > > 
+> > > > > Hmm? x86_64 supports NUMA systems.
+> > > > > 
+> > > > Ah, I know.
+> > > > I wrote "even if.." just because we cannot reserve mem_map for not exisiting node.
 > > > 
-> > > > > It includes add-new-zone/rebuild-zonelist...etc patches, which will be necessary
-> > > > > also for x86_64, even if it's not NUMA. 
-> > > > 
-> > > > Hmm? x86_64 supports NUMA systems.
-> > > > 
-> > > Ah, I know.
-> > > I wrote "even if.." just because we cannot reserve mem_map for not exisiting node.
+> > > Hmm actually I haven't tested it but in theory the reserve hotplug
+> > > code should just work if you list the new nodes already in SRAT as empty
+> > > hotplug PXMs.
+> > > 
+> > SRAT is required by Microsoft, then most of servers will equip it, I think.
+> > And SRAT just tells each cpu's/memory range's  a pxm.
 > > 
-> > Hmm actually I haven't tested it but in theory the reserve hotplug
-> > code should just work if you list the new nodes already in SRAT as empty
-> > hotplug PXMs.
+> > But allocating memmap for SRAT entry has some problem in big system.
 > > 
-> SRAT is required by Microsoft, then most of servers will equip it, I think.
-> And SRAT just tells each cpu's/memory range's  a pxm.
+> > For example, our server (ia64/Fujitsu PrimeQuest) can equip memory from
+> > 4G to 1T(maybe 2T in future), and SRAT will *always* say  we have possible 1T memory.
+> > (Microsoft requires "write all possible memory in SRAT") 
+> > When we reserve memmap for possible 1T memory, Linux will not work well in minimum 4G
 > 
-> But allocating memmap for SRAT entry has some problem in big system.
+> Don't do that.
+Don't do what ?
+
+> The x86-64 kernel will preallocate memmaps when everything is enabled soon.
+> Ok that won't concern your IA64 machine immediately.
 > 
-> For example, our server (ia64/Fujitsu PrimeQuest) can equip memory from
-> 4G to 1T(maybe 2T in future), and SRAT will *always* say  we have possible 1T memory.
-> (Microsoft requires "write all possible memory in SRAT") 
-> When we reserve memmap for possible 1T memory, Linux will not work well in minimum 4G
 
-Don't do that.
-The x86-64 kernel will preallocate memmaps when everything is enabled soon.
-Ok that won't concern your IA64 machine immediately.
+BTW, why don't you just use SPARSEMEM ? and Goto-san has to consider x86_64 special case 
+or just should ignore x86_64 ?
+
+- Kame
 
 
-> > Ok there is no code yet to add hotplug cpus to specific nodes later
-> > but that would be easy to add.
-> > 
-> We found hot-add-memory-less-node problem now. So, "cpu hot add to a new node"  
-> will be supported later.
 
-Again should be pretty easy.
-
--Andi
