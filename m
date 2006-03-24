@@ -1,60 +1,60 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
-Date: Fri, 24 Mar 2006 09:31:46 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F840B469696@pdsmsx403>
+From: Nigel Cunningham <ncunningham@cyclades.com>
+Subject: ACPI Compile error in current git (pci.h)
+Date: Fri, 24 Mar 2006 14:04:03 +1000
+Message-ID: <200603241404.08109.ncunningham@cyclades.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed;
+  boundary="nextPart1862015.krs2c7nWbr";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:20006 "EHLO
-	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
-	id S1422979AbWCXBcA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Mar 2006 20:32:00 -0500
-Content-class: urn:content-classes:message
+Received: from b3162.static.pacific.net.au ([203.143.238.98]:6613 "EHLO
+	cust8446.nsw01.dataco.com.au") by vger.kernel.org with ESMTP
+	id S1751233AbWCXEFu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Mar 2006 23:05:50 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
+To: linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, Greg KH <gregkh@suse.de>
 
-es it mean we need to slow down  acpi_ec_intr_read/write ?
->> Could you try to insert acpi_os_stall (100)  after  ACPI_DEBUG_PRINT
->> statement both in acpi_ec_intr_read/write.
->
->I added that line in those two places.  The result refused to hang with
->acpi_debug_layer=0x00100010, but it did hang (on the usual 
->second sleep)
->with it set to 0x10.
+--nextPart1862015.krs2c7nWbr
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Really strange,  how several printks could change the results.
-Could you try to repalce acpi_os_stall with acpi_os_sleep(1)
-in acpi_ec_intr_read/write?
+Hi.
 
->
->> Hmmm, then I cannot get the ec access log for hang case?!
->
->It seems difficult, but let's keep trying if you have other ideas for
->how to get it.
->
+Current git produces the following compile error (x86_64 uniprocessor compi=
+le):
 
-Also, please change I2RB copy to: 
+arch/x86_64/pci/mmconfig.c:152: error: conflicting types for =E2=80=98pci_m=
+mcfg_init=E2=80=99
+arch/i386/pci/pci.h:85: error: previous declaration of =E2=80=98pci_mmcfg_i=
+nit=E2=80=99 was here
+make[1]: *** [arch/x86_64/pci/mmconfig.o] Error 1
+make: *** [arch/x86_64/pci] Error 2
 
-                    Method (I2RBcopy, 3, NotSerialized)
-                    {
-                        Store (Arg0, HCSL)
-                        Store (ShiftLeft (Arg1, 0x01), HMAD)
-                        Store (Arg2, HMCM)
-                        Store (0x0B, HMPR)
+I haven't found out yet how the i386 file is getting included, but I
+can say that git compiled fine last night.
 
-		Store(CHKS(), local0)
-		Store(local0, Debug)
+Greg, I believe you're the pci guru, so I thought I'd try you too.
+Apologies in advance if I've gotten it wrong.
 
-                        Return (local0)
-                    }
-And boot with acpi_dbg_layer=0x10 acpi_dbg_level=0x10,
-Post full log (Don't edit) for both not hang case, and hang case on
-bugzilla.
-There should have some clues.
+Regards,
 
-Thanks,
-Luming
+Nigel
+
+--nextPart1862015.krs2c7nWbr
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQBEI2+4N0y+n1M3mo0RAs9PAKCJv3OgCscy4erTjLxLvwZkJibrnQCfbR3Z
+ncq1mzUM8OOg7W7n9p9ubEU=
+=QITD
+-----END PGP SIGNATURE-----
+
+--nextPart1862015.krs2c7nWbr--
