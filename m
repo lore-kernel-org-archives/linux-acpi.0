@@ -1,35 +1,64 @@
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: Re: [PATCH: 000/002] Catch notification of memory add event of ACPI
- via container driver.
-Date: Fri, 24 Mar 2006 08:38:00 +0900
-Message-ID: <20060324083800.d1bb156f.kamezawa.hiroyu@jp.fujitsu.com>
-References: <20060323221810.8A0B.Y-GOTO@jp.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Subject: Re: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
+Date: Thu, 23 Mar 2006 20:17:48 -0500
+Message-ID: <E1FMaw0-00011t-5p@approximate.corpus.cam.ac.uk>
+References: <3ACA40606221794F80A5670F0AF15F840B417DFC@pdsmsx403>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:10154 "EHLO
-	fgwmail5.fujitsu.co.jp") by vger.kernel.org with ESMTP
-	id S932567AbWCWXhV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Mar 2006 18:37:21 -0500
-In-Reply-To: <20060323221810.8A0B.Y-GOTO@jp.fujitsu.com>
+Received: from smtpauth07.mail.atl.earthlink.net ([209.86.89.67]:51940 "EHLO
+	smtpauth07.mail.atl.earthlink.net") by vger.kernel.org with ESMTP
+	id S932624AbWCXBSY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Mar 2006 20:18:24 -0500
+In-Reply-To: Your message of "Wed, 22 Mar 2006 12:58:36 +0800."
+             <3ACA40606221794F80A5670F0AF15F840B417DFC@pdsmsx403>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: akpm@osdl.org, y-goto@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, len.brown@intel.com
+To: "Yu, Luming" <luming.yu@intel.com>
+Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>
 
-On Thu, 23 Mar 2006 22:41:05 +0900
-Yasunori Goto <y-goto@jp.fujitsu.com> wrote:
+>> So perhaps I should bisect in _SST and put in the debug lines there?
+>> Here's another idea, which is a terrible hack.  But there are lots of
+>> lines in the DSDT like
+>>    If (LOr (SPS, WNTF))
+>> which I imagine is saying "If something or if WinNT".  So,
+>> what if Linux
+>> pretends to be WinNT (or W98F -- which is another common
+>> test), at least
+>> for the 600x?  Maybe those code paths are known to work.
+>> 
 
->These 2 patches are to catch notification of new node's hot-add event via ACPI.
+> Yes, you can try that.
+
+I tried the patch below.  
+
+It went to sleep fine.  It wouldn't wake up with the Fn key or
+closing/opening the lid (both methods wake up Linux sleep).  But the
+power switch did the trick, and it made it through most of the wakeup.
+But the screen came back toofull of garbage and not taking keyboard
+input (at least not to X), and it might have been stuck in PCI0._INI.
+That was the last Execute Method on the serial console, and after that
+line it was just printing dots one at a time: .......
+
+So I had to power it down (by holding the power switch until it turned
+off) and could never try the second sleep.
+
+-Sanjoy
+
+
+summary:     Pretend to be Windows 98 in DSDT.
+
+diff -r bf1b330b9a7f -r 8109ef6f6d19 dsdt/600x.dsl
+--- a/dsdt/600x.dsl	Tue Mar 21 12:11:19 2006 -0500
++++ b/dsdt/600x.dsl	Thu Mar 23 19:49:10 2006 -0500
+@@ -1090,7 +1090,7 @@ DefinitionBlock ("DSDT.aml", "DSDT", 1, 
+             })
+             Method (_INI, 0, NotSerialized)
+             {
+-                If (LEqual (SCMP (\_OS, "Microsoft Windows"), Zero))
++                If (One) /* LEqual (SCMP (\_OS, "Microsoft Windows"), Zero)) */
+                 {
+                     Store (One, W98F)
+                 }
 
 
 
-One more thing, this patch works for the case that memory device "PNP0C80" appears
-in container device"ACPI0004,PNP0A05,PNP0A06". In this case, ACPI's notify just comes
-to container device (not to memory device in it). This patch is necessary to deal with it.
-
-I heared  that some of firmwares (will?) use this kind of design, memory in a container,
-even if it's not NUMA.
-
--- Kame.
 
