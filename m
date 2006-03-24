@@ -1,66 +1,53 @@
-From: Nigel Cunningham <ncunningham@cyclades.com>
-Subject: Re: ACPI Compile error in current git (pci.h)
-Date: Fri, 24 Mar 2006 14:37:18 +1000
-Message-ID: <200603241437.26633.ncunningham@cyclades.com>
-References: <200603241404.08109.ncunningham@cyclades.com>
+From: "Bonilla, Alejandro" <abonilla@linuxwireless.org>
+Subject: Compaq V2000 Fan Control
+Date: Fri, 24 Mar 2006 14:28:15 -0600
+Message-ID: <1143232095.4053.5.camel@ubuntu.americas.hpqcorp.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1639322.RHo9zxKrpc";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from b3162.static.pacific.net.au ([203.143.238.98]:54438 "EHLO
-	cust8446.nsw01.dataco.com.au") by vger.kernel.org with ESMTP
-	id S1423002AbWCXEjI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Mar 2006 23:39:08 -0500
-In-Reply-To: <200603241404.08109.ncunningham@cyclades.com>
+Received: from linuxwireless.org.ve.carpathiahost.net ([66.117.45.234]:22750
+	"EHLO linuxwireless.org.ve.carpathiahost.net") by vger.kernel.org
+	with ESMTP id S1751139AbWCXU2W (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Mar 2006 15:28:22 -0500
+Received: from [192.168.1.14] ([200.91.94.134])
+	by linuxwireless.org.ve.carpathiahost.net (8.12.10/8.12.10) with ESMTP id k2OKSKOQ031296
+	for <linux-acpi@vger.kernel.org>; Fri, 24 Mar 2006 15:28:21 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, Greg KH <gregkh@suse.de>
+To: linux-acpi@vger.kernel.org
 
---nextPart1639322.RHo9zxKrpc
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Hi,
 
-Hi again.
+I'm trying to make my Compaq laptop give me control over the fan using
+ACPI, but this ain't working. I have to be honest. I don't know much
+about debugging acpi or about tools that will tell me much more.
 
-On Friday 24 March 2006 14:04, Nigel Cunningham wrote:
-> Hi.
->
-> Current git produces the following compile error (x86_64 uniprocessor
-> compile):
->
-> arch/x86_64/pci/mmconfig.c:152: error: conflicting types for
-> =E2=80=98pci_mmcfg_init=E2=80=99 arch/i386/pci/pci.h:85: error: previous =
-declaration of
-> =E2=80=98pci_mmcfg_init=E2=80=99 was here make[1]: *** [arch/x86_64/pci/m=
-mconfig.o] Error 1
-> make: *** [arch/x86_64/pci] Error 2
->
-> I haven't found out yet how the i386 file is getting included, but I
-> can say that git compiled fine last night.
+Here is what I try:
 
-Got the answer to this bit - it is included via the Makefile in the directo=
-ry=20
-setting a -I flag, and the file including "pci.h".
+echo 100:0:50:80:70:50 > /proc/acpi/thermal_zone/THR1/trip_points
 
-Regards,
+If I set the critical to a value lower than what it is now, it will halt
+the PC, which is good. (100)
 
-Nigel
+If I set the passive to 50, nothing occurs. The Fan is not kicked if the
+temp is higher, like 60c.
 
---nextPart1639322.RHo9zxKrpc
-Content-Type: application/pgp-signature
+I was told the last value is the one that triggers the Fan. Still, it
+just won't work for me.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+This is the value that comes up on boot:
+cat /proc/acpi/thermal_zone/THR1/trip_points 
+critical (S5):           95 C
+passive:                 88 C: tc1=2 tc2=3 tsp=50 devices=0xdf64a940
 
-iD8DBQBEI3eGN0y+n1M3mo0RAlxHAJ47+FmcFCqO1H6oI71J8B5oFm91YACg5el9
-C272IdRRXR4Ldm/IZyDf/m8=
-=QrI4
------END PGP SIGNATURE-----
+If I set the critical value to something really low, the Fan will kick
+in at it's full power and will try to cool down the PC, but that is
+while it's already halting.
 
---nextPart1639322.RHo9zxKrpc--
+Anyone has a clue for me?
+
+Thanks,
+.Alejandro
+
+
