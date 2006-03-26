@@ -1,26 +1,47 @@
-From: Russell King <rmk@arm.linux.org.uk>
-Subject: Re: [PATCH] serial: remove 8250_acpi (replaced by 8250_pnp and PNPACPI)
-Date: Sat, 25 Mar 2006 17:47:21 +0000
-Message-ID: <20060325174721.GG6100@flint.arm.linux.org.uk>
-References: <200603011700.27683.bjorn.helgaas@hp.com>
+From: Joschka Sulzer <joschkasulzer@aol.com>
+Subject: ACPI-Problems with debian-etch & Kernel 2.6.16
+Date: Sun, 26 Mar 2006 17:04:03 +0200
+Message-ID: <4426AD63.8080505@aol.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <200603011700.27683.bjorn.helgaas@hp.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-serial@vger.kernel.org, len.brown@intel.com, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, Andrew Morton <akpm@osdl.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from imo-m23.mx.aol.com ([64.12.137.4]:29669 "EHLO
+	imo-m23.mail.aol.com") by vger.kernel.org with ESMTP
+	id S1751200AbWCZPEc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 26 Mar 2006 10:04:32 -0500
+Received: from JoschkaSulzer@aol.com
+	by imo-m23.mx.aol.com (mail_out_v38_r7.3.) id x.29b.7f07cf1 (16098)
+	 for <linux-acpi@vger.kernel.org>; Sun, 26 Mar 2006 10:04:30 -0500 (EST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Wed, Mar 01, 2006 at 05:00:27PM -0700, Bjorn Helgaas wrote:
-> [This is post-2.6.16 material]
-> 
-> With the combination of PNPACPI and 8250_pnp, we no longer need 8250_acpi.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+ 
+I recently installed etch on my Ac er Extensa laptop and as with sarge
+, it boots only with noapic nolapic kernel-options
+I can't use X and the text-terminals are full of:
 
-Applied, thanks.
+ACPI:0339: *** ERROR: Looking up[Z00C] in namespace, AE_NOT_FOUND
+search_node dfb855960 start node dfb85960 return_node 00000000
 
--- 
-Russell King
- Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
- maintainer of:  2.6 Serial core
+AND
+
+ACPI-0508: *** ERROR: method execution failed [\_SB_.BAT1._BST] (node
+dfb8680), AE_NOT_FOUND)
+
+These messages appear every 10 seconds!
+If anyone could help me please
+Greetings Joschka Sulzer
+
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (MingW32)
+ 
+iD8DBQFEJq1ifBvDFfZPfAIRAgmVAJoCEnLP14gH/4JIg/OgB/tObKVMZACZAXMZ
+rJR2E5Jl13C9WbX8vUXmSjo=
+=M6Uf
+-----END PGP SIGNATURE-----
+
