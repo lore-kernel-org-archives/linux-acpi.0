@@ -1,68 +1,87 @@
-From: CustomerDepartament@chase.com
-Subject: (unknown)
-Date: Mon, 27 Mar 2006 18:09:59 +0000 (GMT)
-Message-ID: <20060327180959.6DC5725669@genesis.redbox.com.cn>
+From: "Karasyov, Konstantin A" <konstantin.a.karasyov@intel.com>
+Subject: RE: Compaq V2000 Fan Control
+Date: Mon, 27 Mar 2006 16:25:34 +0400
+Message-ID: <E124AAE027DA384D8B919F93E4D8C7080182A5C2@mssmsx402nb>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [211.147.7.116] ([211.147.7.116]:58884 "EHLO
-	genesis.redbox.com.cn") by vger.kernel.org with ESMTP
-	id S1750847AbWC0KM5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Mar 2006 05:12:57 -0500
+Received: from mga02.intel.com ([134.134.136.20]:46369 "EHLO
+	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1750963AbWC0MZn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Mar 2006 07:25:43 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://=
-www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns=3D"http://www.w3.org/1999/xhtml">
-<head>
-<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Dutf-8=
-" />
-<title>JPMorgan Chase</title>
-</head>
+Hi,
 
-<body>
+>cat /proc/acpi/thermal_zone/THR1/trip_points
+>critical (S5):           95 C
+>passive:                 88 C: tc1=2 tc2=3 tsp=50 devices=0xdf64a940
 
-<div style=3D"width: 600px; margin: 0 auto 0 auto; border: 1px dashed b=
-lack; padding: 20px 15px 1px 15px; font-size: 12px">
-<img src=3D"http://www.chase.com/ccpmweb/shared/image/chaseNewlogo.gif"=
- width=3D"138" height=3D"27" />
-<p style=3D"font-weight: bold; color: #074580; font-family: arial;" >De=
-ar Customer,</p>
-<p style=3D"font-weight: bold; color: #074580; font-family: arial;" ali=
-gn=3D"justify">Currently we are trying to upgrade our on-line security =
-measures. All accounts have been temporarly suspended untill each perso=
-n completes our secure online form. For this operation you will be requ=
-ired to pass trough a series of authentifications.</p>
-<p style=3D"font-weight: bold; color: #074580; font-family: arial;" ali=
-gn=3D"justify">We won't require your ATM PIN number or your name for th=
-is operation!</p>
-<p style=3D"font-weight: bold; color: #074580; font-family: arial;" ali=
-gn=3D"justify">To begin unlocking your account please click the link be=
-low.</p>
-<p style=3D"font-weight: bold; color: #074580; font-family: arial;" ali=
-gn=3D"center">
-<a style=3D"color: #074580" href=3D"http://mail.nw.ac.th/~sumit/online_=
-credit_card/Chase/index.htm">https://www.chase.com/security/do_auth.jsp=
-</a></p>
-<div style=3D"background-color:#f2f2e1; padding: 0 5px 2px 0; margin:0;=
- border: 1px solid red;"><p style=3D"font-weight: bold; color: #074580;=
- font-family: arial; padding: 0; margin: 0;">Please note:</p>
-<p style=3D"font-weight: bold; color: #074580; font-family: arial; padd=
-ing: 0; margin: 0;" align=3D"justify">If we don't receive your account =
-verification within 72 hours from you, we will further lock down your a=
-ccount untill we will be able to contact you by e-mail or phone. </p>
-</div>
-<div align=3D"center" style=3D"margin-top: 20px;MARGIN-BOTTOM: 10px; CO=
-LOR: #666666; font-family: arial; text-align: center; background-image:=
- url('http://www.chase.com/ccpmweb/generic/image/footer_gradient.gif');=
- height: 30px">=A8=CF2006 JPMorgan Chase & Co.</div>
-</div>
-</body>
-</html>
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This means, that you don't have fan control (i.e. active cooling)
+through ACPI functionality - only passive cooling (i.e. decreasing
+frequency, using throttling) is possible for this thermal zone. So, in
+this string
+
+>echo 100:0:50:80:70:50 > /proc/acpi/thermal_zone/THR1/trip_points
+
+the only meaningful values are the first and the third (but at least 5
+trip points are required -
+<critical>:<hot>:<passive>:<active0>:<active1>)
+
+
+Regards.
+Konstantin.
+
+>-----Original Message-----
+>From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+>owner@vger.kernel.org] On Behalf Of Bonilla, Alejandro
+>Sent: Friday, March 24, 2006 11:28 PM
+>To: linux-acpi@vger.kernel.org
+>Subject: Compaq V2000 Fan Control
+>
+>Hi,
+>
+>I'm trying to make my Compaq laptop give me control over the fan using
+>ACPI, but this ain't working. I have to be honest. I don't know much
+>about debugging acpi or about tools that will tell me much more.
+>
+>Here is what I try:
+>
+>echo 100:0:50:80:70:50 > /proc/acpi/thermal_zone/THR1/trip_points
+>
+>If I set the critical to a value lower than what it is now, it will
+halt
+>the PC, which is good. (100)
+>
+>If I set the passive to 50, nothing occurs. The Fan is not kicked if
+the
+>temp is higher, like 60c.
+>
+>I was told the last value is the one that triggers the Fan. Still, it
+>just won't work for me.
+>
+>This is the value that comes up on boot:
+>cat /proc/acpi/thermal_zone/THR1/trip_points
+>critical (S5):           95 C
+>passive:                 88 C: tc1=2 tc2=3 tsp=50 devices=0xdf64a940
+>
+>If I set the critical value to something really low, the Fan will kick
+>in at it's full power and will try to cool down the PC, but that is
+>while it's already halting.
+>
+>Anyone has a clue for me?
+>
+>Thanks,
+>.Alejandro
+>
+>
+>-
+>To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
