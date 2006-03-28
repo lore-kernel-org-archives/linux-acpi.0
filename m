@@ -1,168 +1,74 @@
 From: akpm@osdl.org
-Subject: [patch 02/26] sem2mutex: drivers/acpi/
-Date: Tue, 28 Mar 2006 14:03:28 -0800
-Message-ID: <200603282203.k2SM3YqH027653@shell0.pdx.osdl.net>
+Subject: [patch 10/26] ACPI: fix sonypi ACPI driver registration
+Date: Tue, 28 Mar 2006 14:03:37 -0800
+Message-ID: <200603282203.k2SM3hTM027677@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:53167 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S932416AbWC1WDr (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:52655 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932412AbWC1WDq (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Mar 2006 17:03:47 -0500
+	Tue, 28 Mar 2006 17:03:46 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, arjan@infradead.org, mingo@elte.hu
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, bjorn.helgaas@hp.com
 
 
-From: Arjan van de Ven <arjan@infradead.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Semaphore to mutex conversion.
+Remove the assumption that acpi_bus_register_driver() returns the number of
+devices claimed.  Returning the count is unreliable because devices may be
+hot-plugged in the future (admittedly not applicable for this driver).
 
-The conversion was generated via scripts, and the result was validated
-automatically via a script as well.
+This also fixes a bug: if sonypi_acpi_driver was registered but found no
+devices, sonypi_exit() did not unregister it.
 
-Signed-off-by: Arjan van de Ven <arjan@infradead.org>
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/processor_perflib.c |   27 ++++++++++++++-------------
- drivers/acpi/scan.c              |    3 ++-
- 2 files changed, 16 insertions(+), 14 deletions(-)
+ drivers/char/sonypi.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/acpi/processor_perflib.c~sem2mutex-drivers-acpi drivers/acpi/processor_perflib.c
---- devel/drivers/acpi/processor_perflib.c~sem2mutex-drivers-acpi	2006-03-28 14:03:00.000000000 -0800
-+++ devel-akpm/drivers/acpi/processor_perflib.c	2006-03-28 14:03:00.000000000 -0800
-@@ -34,6 +34,7 @@
- #ifdef CONFIG_X86_ACPI_CPUFREQ_PROC_INTF
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
-+#include <linux/mutex.h>
+diff -puN drivers/char/sonypi.c~acpi-fix-sonypi-acpi-driver-registration drivers/char/sonypi.c
+--- devel/drivers/char/sonypi.c~acpi-fix-sonypi-acpi-driver-registration	2006-03-28 14:03:04.000000000 -0800
++++ devel-akpm/drivers/char/sonypi.c	2006-03-28 14:03:04.000000000 -0800
+@@ -512,7 +512,7 @@ static struct sonypi_device {
  
- #include <asm/uaccess.h>
+ #ifdef CONFIG_ACPI
+ static struct acpi_device *sonypi_acpi_device;
+-static int acpi_enabled;
++static int acpi_driver_registered;
  #endif
-@@ -48,7 +49,7 @@
- #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
- ACPI_MODULE_NAME("acpi_processor")
  
--static DECLARE_MUTEX(performance_sem);
-+static DEFINE_MUTEX(performance_mutex);
+ static int sonypi_ec_write(u8 addr, u8 value)
+@@ -869,7 +869,7 @@ found:
+ 		sonypi_report_input_event(event);
  
- /*
-  * _PPC support is implemented as a CPUfreq policy notifier:
-@@ -72,7 +73,7 @@ static int acpi_processor_ppc_notifier(s
- 	struct acpi_processor *pr;
- 	unsigned int ppc = 0;
+ #ifdef CONFIG_ACPI
+-	if (acpi_enabled)
++	if (sonypi_acpi_device)
+ 		acpi_bus_generate_event(sonypi_acpi_device, 1, event);
+ #endif
  
--	down(&performance_sem);
-+	mutex_lock(&performance_mutex);
+@@ -1548,8 +1548,8 @@ static int __init sonypi_init(void)
+ 		goto err_free_device;
  
- 	if (event != CPUFREQ_INCOMPATIBLE)
- 		goto out;
-@@ -93,7 +94,7 @@ static int acpi_processor_ppc_notifier(s
- 				     core_frequency * 1000);
- 
-       out:
--	up(&performance_sem);
-+	mutex_unlock(&performance_mutex);
+ #ifdef CONFIG_ACPI
+-	if (acpi_bus_register_driver(&sonypi_acpi_driver) > 0)
+-		acpi_enabled = 1;
++	if (acpi_bus_register_driver(&sonypi_acpi_driver) >= 0)
++		acpi_driver_registered = 1;
+ #endif
  
  	return 0;
- }
-@@ -620,7 +621,7 @@ int acpi_processor_preregister_performan
- 
- 	ACPI_FUNCTION_TRACE("acpi_processor_preregister_performance");
- 
--	down(&performance_sem);
-+	mutex_lock(&performance_mutex);
- 
- 	retval = 0;
- 
-@@ -768,7 +769,7 @@ err_ret:
- 		pr->performance = NULL; /* Will be set for real in register */
- 	}
- 
--	up(&performance_sem);
-+	mutex_unlock(&performance_mutex);
- 	return_VALUE(retval);
- }
- EXPORT_SYMBOL(acpi_processor_preregister_performance);
-@@ -785,16 +786,16 @@ acpi_processor_register_performance(stru
- 	if (!(acpi_processor_ppc_status & PPC_REGISTERED))
- 		return_VALUE(-EINVAL);
- 
--	down(&performance_sem);
-+	mutex_lock(&performance_mutex);
- 
- 	pr = processors[cpu];
- 	if (!pr) {
--		up(&performance_sem);
-+		mutex_unlock(&performance_mutex);
- 		return_VALUE(-ENODEV);
- 	}
- 
- 	if (pr->performance) {
--		up(&performance_sem);
-+		mutex_unlock(&performance_mutex);
- 		return_VALUE(-EBUSY);
- 	}
- 
-@@ -802,13 +803,13 @@ acpi_processor_register_performance(stru
- 
- 	if (acpi_processor_get_performance_info(pr)) {
- 		pr->performance = NULL;
--		up(&performance_sem);
-+		mutex_unlock(&performance_mutex);
- 		return_VALUE(-EIO);
- 	}
- 
- 	acpi_cpufreq_add_file(pr);
- 
--	up(&performance_sem);
-+	mutex_unlock(&performance_mutex);
- 	return_VALUE(0);
- }
- 
-@@ -822,11 +823,11 @@ acpi_processor_unregister_performance(st
- 
- 	ACPI_FUNCTION_TRACE("acpi_processor_unregister_performance");
- 
--	down(&performance_sem);
-+	mutex_lock(&performance_mutex);
- 
- 	pr = processors[cpu];
- 	if (!pr) {
--		up(&performance_sem);
-+		mutex_unlock(&performance_mutex);
- 		return_VOID;
- 	}
- 
-@@ -835,7 +836,7 @@ acpi_processor_unregister_performance(st
- 
- 	acpi_cpufreq_remove_file(pr);
- 
--	up(&performance_sem);
-+	mutex_unlock(&performance_mutex);
- 
- 	return_VOID;
- }
-diff -puN drivers/acpi/scan.c~sem2mutex-drivers-acpi drivers/acpi/scan.c
---- devel/drivers/acpi/scan.c~sem2mutex-drivers-acpi	2006-03-28 14:03:00.000000000 -0800
-+++ devel-akpm/drivers/acpi/scan.c	2006-03-28 14:03:00.000000000 -0800
-@@ -5,6 +5,7 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/acpi.h>
-+#include <linux/mutex.h>
- 
- #include <acpi/acpi_drivers.h>
- #include <acpi/acinterp.h>	/* for acpi_ex_eisa_id_to_string() */
-@@ -470,7 +471,7 @@ static int acpi_bus_get_perf_flags(struc
-    -------------------------------------------------------------------------- */
- 
- static LIST_HEAD(acpi_bus_drivers);
--static DECLARE_MUTEX(acpi_bus_drivers_lock);
-+static DEFINE_MUTEX(acpi_bus_drivers_lock);
- 
- /**
-  * acpi_bus_match - match device IDs to driver's supported IDs
+@@ -1564,7 +1564,7 @@ static int __init sonypi_init(void)
+ static void __exit sonypi_exit(void)
+ {
+ #ifdef CONFIG_ACPI
+-	if (acpi_enabled)
++	if (acpi_driver_registered)
+ 		acpi_bus_unregister_driver(&sonypi_acpi_driver);
+ #endif
+ 	platform_device_unregister(sonypi_platform_device);
 _
