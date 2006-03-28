@@ -1,12 +1,12 @@
 From: akpm@osdl.org
-Subject: [patch 09/26] ACPI: update asus_acpi driver registration
-Date: Tue, 28 Mar 2006 14:03:36 -0800
-Message-ID: <200603282203.k2SM3gKA027674@shell0.pdx.osdl.net>
+Subject: [patch 04/26] PNPACPI: fix non-memory address space descriptor handling
+Date: Tue, 28 Mar 2006 14:03:30 -0800
+Message-ID: <200603282203.k2SM3a7E027659@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:53423 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S932414AbWC1WDq (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:47023 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932408AbWC1WDl (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Mar 2006 17:03:46 -0500
+	Tue, 28 Mar 2006 17:03:41 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
@@ -15,69 +15,103 @@ Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, bjorn.helgaas@hp.com
 
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Remove the assumption that acpi_bus_register_driver() returns the number of
-devices claimed.  Returning the count is unreliable because devices may be
-hot-plugged in the future (admittedly not applicable for this driver).
+Fix resource_type handling for QWORD, DWORD, and WORD Address Space
+Descriptors.  Previously we ignored the resource_type, so I/O ports and bus
+number ranges were incorrectly parsed as memory ranges.
 
-Since the hardware for this driver is not hot-pluggable, determine whether the
-hardware is present by noticing calls to the .add() method.  It would be
-better to probe the ACPI namespace for the ASUS HIDs, and load the driver only
-when we find one, but ACPI doesn't support that yet.
+Sample PCI root bridge resources from HP rx2600 before this patch:
 
-I don't have an ASUS laptop to test on, but on my HP dl360, it does report the
-appropriate error when attempting to load the module:
+    # cat /sys/bus/pnp/devices/00:02/resources
+    state = active
+    mem 0x0-0x1f
+    mem 0x0-0x3af
+    mem 0x3e0-0x1fff
+    mem 0x80000000-0x8fffffff
 
-    $ sudo insmod drivers/acpi/asus_acpi.ko
-    insmod: error inserting 'drivers/acpi/asus_acpi.ko': -1 No such device
+With this patch:
+
+    # cat /sys/bus/pnp/devices/00:02/resources
+    state = active
+    io 0x0-0x3af
+    io 0x3e0-0x1fff
+    mem 0x80000000-0x8fffffff
+    mem 0x80004000000-0x80103fffffe
+
+Changes:
+    0x0-0x1f PCI bus number range was incorrectly reported as memory, now
+	not reported at all
+    0x0-0x3af I/O port range was incorrectly reported as memory
+    0x3e0-0x1fff I/O port range was incorrectly reported as memory
+    0x80004000000-0x80103fffffe memory range wasn't reported at all because
+	we only support PNP_MAX_MEM (4) memory resources
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/asus_acpi.c |   18 +++++++++++++++++-
- 1 files changed, 17 insertions(+), 1 deletion(-)
+ drivers/pnp/pnpacpi/rsparser.c |   35 ++++++++++++++++++++-----------
+ 1 files changed, 23 insertions(+), 12 deletions(-)
 
-diff -puN drivers/acpi/asus_acpi.c~acpi-update-asus_acpi-driver-registration drivers/acpi/asus_acpi.c
---- devel/drivers/acpi/asus_acpi.c~acpi-update-asus_acpi-driver-registration	2006-03-28 14:03:03.000000000 -0800
-+++ devel-akpm/drivers/acpi/asus_acpi.c	2006-03-28 14:03:03.000000000 -0800
-@@ -1119,6 +1119,8 @@ static int __init asus_hotk_check(void)
- 	return result;
+diff -puN drivers/pnp/pnpacpi/rsparser.c~pnpacpi-fix-non-memory-address-space-descriptor-handling drivers/pnp/pnpacpi/rsparser.c
+--- devel/drivers/pnp/pnpacpi/rsparser.c~pnpacpi-fix-non-memory-address-space-descriptor-handling	2006-03-28 14:03:01.000000000 -0800
++++ devel-akpm/drivers/pnp/pnpacpi/rsparser.c	2006-03-28 14:03:01.000000000 -0800
+@@ -120,7 +120,7 @@ pnpacpi_parse_allocated_dmaresource(stru
+ 
+ static void
+ pnpacpi_parse_allocated_ioresource(struct pnp_resource_table * res,
+-	u32 io, u32 len)
++	u64 io, u64 len)
+ {
+ 	int i = 0;
+ 	while (!(res->port_resource[i].flags & IORESOURCE_UNSET) &&
+@@ -156,6 +156,27 @@ pnpacpi_parse_allocated_memresource(stru
+ 	}
  }
  
-+static int asus_hotk_found;
++static void
++pnpacpi_parse_allocated_address_space(struct pnp_resource_table *res_table,
++	struct acpi_resource *res)
++{
++	struct acpi_resource_address64 addr, *p = &addr;
++	acpi_status status;
 +
- static int __init asus_hotk_add(struct acpi_device *device)
- {
- 	acpi_status status = AE_OK;
-@@ -1180,6 +1182,8 @@ static int __init asus_hotk_add(struct a
- 		}
- 	}
- 
-+	asus_hotk_found = 1;
-+
-       end:
- 	if (result) {
- 		kfree(hotk);
-@@ -1226,7 +1230,19 @@ static int __init asus_acpi_init(void)
- 	asus_proc_dir->owner = THIS_MODULE;
- 
- 	result = acpi_bus_register_driver(&asus_hotk_driver);
--	if (result < 1) {
-+	if (result < 0) {
-+		remove_proc_entry(PROC_ASUS, acpi_root_dir);
-+		return -ENODEV;
++	status = acpi_resource_to_address64(res, p);
++	if (!ACPI_SUCCESS(status)) {
++		pnp_warn("PnPACPI: failed to convert resource type %d",
++			res->type);
++		return;
 +	}
 +
-+	/*
-+	 * This is a bit of a kludge.  We only want this module loaded
-+	 * for ASUS systems, but there's currently no way to probe the
-+	 * ACPI namespace for ASUS HIDs.  So we just return failure if
-+	 * we didn't find one, which will cause the module to be
-+	 * unloaded.
-+	 */
-+	if (!asus_hotk_found) {
- 		acpi_bus_unregister_driver(&asus_hotk_driver);
- 		remove_proc_entry(PROC_ASUS, acpi_root_dir);
- 		return -ENODEV;
++	if (p->resource_type == ACPI_MEMORY_RANGE)
++		pnpacpi_parse_allocated_memresource(res_table,
++				p->minimum, p->address_length);
++	else if (p->resource_type == ACPI_IO_RANGE)
++		pnpacpi_parse_allocated_ioresource(res_table,
++				p->minimum, p->address_length);
++}
+ 
+ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
+ 	void *data)
+@@ -221,19 +242,9 @@ static acpi_status pnpacpi_allocated_res
+ 				res->data.fixed_memory32.address_length);
+ 		break;
+ 	case ACPI_RESOURCE_TYPE_ADDRESS16:
+-		pnpacpi_parse_allocated_memresource(res_table,
+-				res->data.address16.minimum,
+-				res->data.address16.address_length);
+-		break;
+ 	case ACPI_RESOURCE_TYPE_ADDRESS32:
+-		pnpacpi_parse_allocated_memresource(res_table,
+-				res->data.address32.minimum,
+-				res->data.address32.address_length);
+-		break;
+ 	case ACPI_RESOURCE_TYPE_ADDRESS64:
+-		pnpacpi_parse_allocated_memresource(res_table,
+-		res->data.address64.minimum,
+-		res->data.address64.address_length);
++		pnpacpi_parse_allocated_address_space(res_table, res);
+ 		break;
+ 
+ 	case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64:
 _
