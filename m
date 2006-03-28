@@ -1,117 +1,92 @@
 From: akpm@osdl.org
-Subject: [patch 04/26] PNPACPI: fix non-memory address space descriptor handling
-Date: Tue, 28 Mar 2006 14:03:30 -0800
-Message-ID: <200603282203.k2SM3a7E027659@shell0.pdx.osdl.net>
+Subject: [patch 25/26] Catch notification of memory add event of ACPI via container driver. (register start func for memory device)
+Date: Tue, 28 Mar 2006 14:03:50 -0800
+Message-ID: <200603282203.k2SM3vfn027725@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:47023 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S932408AbWC1WDl (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:5040 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932427AbWC1WEE (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Mar 2006 17:03:41 -0500
+	Tue, 28 Mar 2006 17:04:04 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, bjorn.helgaas@hp.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, y-goto@jp.fujitsu.com, haveblue@us.ibm.com
 
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-Fix resource_type handling for QWORD, DWORD, and WORD Address Space
-Descriptors.  Previously we ignored the resource_type, so I/O ports and bus
-number ranges were incorrectly parsed as memory ranges.
+This is a patch to call add_memroy() when notify reaches for new node's add
+event.
 
-Sample PCI root bridge resources from HP rx2600 before this patch:
+When new node is added, notify of ACPI reaches container device which means
+the node.
 
-    # cat /sys/bus/pnp/devices/00:02/resources
-    state = active
-    mem 0x0-0x1f
-    mem 0x0-0x3af
-    mem 0x3e0-0x1fff
-    mem 0x80000000-0x8fffffff
+Container device driver calls acpi_bus_scan() to find and add belonging
+devices (which means cpu, memory and so on).  Its function calls add and
+start function of belonging devices's driver.
 
-With this patch:
+Howevever, current memory hotplug driver just register add function to
+create sysfs file for its memory.  But, acpi_memory_enable_device() is not
+called because it is considered just the case that notify reaches memory
+device directly.  So, if notify reaches container device nothing can call
+add_memory().
 
-    # cat /sys/bus/pnp/devices/00:02/resources
-    state = active
-    io 0x0-0x3af
-    io 0x3e0-0x1fff
-    mem 0x80000000-0x8fffffff
-    mem 0x80004000000-0x80103fffffe
+This is a patch to create start function which calls add_memory(). 
+add_memory() can be called by this when notify reaches container device.
 
-Changes:
-    0x0-0x1f PCI bus number range was incorrectly reported as memory, now
-	not reported at all
-    0x0-0x3af I/O port range was incorrectly reported as memory
-    0x3e0-0x1fff I/O port range was incorrectly reported as memory
-    0x80004000000-0x80103fffffe memory range wasn't reported at all because
-	we only support PNP_MAX_MEM (4) memory resources
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+[akpm@osdl.org: coding cleanups]
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
 Cc: "Brown, Len" <len.brown@intel.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/pnp/pnpacpi/rsparser.c |   35 ++++++++++++++++++++-----------
- 1 files changed, 23 insertions(+), 12 deletions(-)
+ drivers/acpi/acpi_memhotplug.c |   21 +++++++++++++++++++++
+ 1 files changed, 21 insertions(+)
 
-diff -puN drivers/pnp/pnpacpi/rsparser.c~pnpacpi-fix-non-memory-address-space-descriptor-handling drivers/pnp/pnpacpi/rsparser.c
---- devel/drivers/pnp/pnpacpi/rsparser.c~pnpacpi-fix-non-memory-address-space-descriptor-handling	2006-03-28 14:03:01.000000000 -0800
-+++ devel-akpm/drivers/pnp/pnpacpi/rsparser.c	2006-03-28 14:03:01.000000000 -0800
-@@ -120,7 +120,7 @@ pnpacpi_parse_allocated_dmaresource(stru
+diff -puN drivers/acpi/acpi_memhotplug.c~catch-notification-of-memory-add-event-of-acpi-via-container-driver-register-start-func-for-memory-device drivers/acpi/acpi_memhotplug.c
+--- devel/drivers/acpi/acpi_memhotplug.c~catch-notification-of-memory-add-event-of-acpi-via-container-driver-register-start-func-for-memory-device	2006-03-28 14:03:08.000000000 -0800
++++ devel-akpm/drivers/acpi/acpi_memhotplug.c	2006-03-28 14:03:08.000000000 -0800
+@@ -57,6 +57,7 @@ MODULE_LICENSE("GPL");
  
- static void
- pnpacpi_parse_allocated_ioresource(struct pnp_resource_table * res,
--	u32 io, u32 len)
-+	u64 io, u64 len)
- {
- 	int i = 0;
- 	while (!(res->port_resource[i].flags & IORESOURCE_UNSET) &&
-@@ -156,6 +156,27 @@ pnpacpi_parse_allocated_memresource(stru
- 	}
+ static int acpi_memory_device_add(struct acpi_device *device);
+ static int acpi_memory_device_remove(struct acpi_device *device, int type);
++static int acpi_memory_device_start(struct acpi_device *device);
+ 
+ static struct acpi_driver acpi_memory_device_driver = {
+ 	.name = ACPI_MEMORY_DEVICE_DRIVER_NAME,
+@@ -65,6 +66,7 @@ static struct acpi_driver acpi_memory_de
+ 	.ops = {
+ 		.add = acpi_memory_device_add,
+ 		.remove = acpi_memory_device_remove,
++		.start = acpi_memory_device_start,
+ 		},
+ };
+ 
+@@ -429,6 +431,25 @@ static int acpi_memory_device_remove(str
+ 	return_VALUE(0);
  }
  
-+static void
-+pnpacpi_parse_allocated_address_space(struct pnp_resource_table *res_table,
-+	struct acpi_resource *res)
++static int acpi_memory_device_start (struct acpi_device *device)
 +{
-+	struct acpi_resource_address64 addr, *p = &addr;
-+	acpi_status status;
++	struct acpi_memory_device *mem_device;
++	int result = 0;
 +
-+	status = acpi_resource_to_address64(res, p);
-+	if (!ACPI_SUCCESS(status)) {
-+		pnp_warn("PnPACPI: failed to convert resource type %d",
-+			res->type);
-+		return;
++	ACPI_FUNCTION_TRACE("acpi_memory_device_start");
++
++	mem_device = acpi_driver_data(device);
++
++	if (!acpi_memory_check_device(mem_device)) {
++		/* call add_memory func */
++		result = acpi_memory_enable_device(mem_device);
++		if (result)
++			ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
++				"Error in acpi_memory_enable_device\n"));
 +	}
-+
-+	if (p->resource_type == ACPI_MEMORY_RANGE)
-+		pnpacpi_parse_allocated_memresource(res_table,
-+				p->minimum, p->address_length);
-+	else if (p->resource_type == ACPI_IO_RANGE)
-+		pnpacpi_parse_allocated_ioresource(res_table,
-+				p->minimum, p->address_length);
++	return_VALUE(result);
 +}
- 
- static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
- 	void *data)
-@@ -221,19 +242,9 @@ static acpi_status pnpacpi_allocated_res
- 				res->data.fixed_memory32.address_length);
- 		break;
- 	case ACPI_RESOURCE_TYPE_ADDRESS16:
--		pnpacpi_parse_allocated_memresource(res_table,
--				res->data.address16.minimum,
--				res->data.address16.address_length);
--		break;
- 	case ACPI_RESOURCE_TYPE_ADDRESS32:
--		pnpacpi_parse_allocated_memresource(res_table,
--				res->data.address32.minimum,
--				res->data.address32.address_length);
--		break;
- 	case ACPI_RESOURCE_TYPE_ADDRESS64:
--		pnpacpi_parse_allocated_memresource(res_table,
--		res->data.address64.minimum,
--		res->data.address64.address_length);
-+		pnpacpi_parse_allocated_address_space(res_table, res);
- 		break;
- 
- 	case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64:
++
+ /*
+  * Helper function to check for memory device
+  */
 _
