@@ -1,74 +1,64 @@
 From: akpm@osdl.org
-Subject: [patch 10/26] ACPI: fix sonypi ACPI driver registration
-Date: Tue, 28 Mar 2006 14:03:37 -0800
-Message-ID: <200603282203.k2SM3hTM027677@shell0.pdx.osdl.net>
+Subject: [patch 01/26] git-acpi: uniprocessor compile fixes
+Date: Tue, 28 Mar 2006 14:03:27 -0800
+Message-ID: <200603282203.k2SM3Xd1027650@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:52655 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S932412AbWC1WDq (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:43695 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932242AbWC1WDg (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Mar 2006 17:03:46 -0500
+	Tue, 28 Mar 2006 17:03:36 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, bjorn.helgaas@hp.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, venkatesh.pallipadi@intel.com
 
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+From: Andrew Morton <akpm@osdl.org>,
+      Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-Remove the assumption that acpi_bus_register_driver() returns the number of
-devices claimed.  Returning the count is unreliable because devices may be
-hot-plugged in the future (admittedly not applicable for this driver).
+cpu_online_map doesn't exist if !CONFIG_SMP.
 
-This also fixes a bug: if sonypi_acpi_driver was registered but found no
-devices, sonypi_exit() did not unregister it.
+This path is rather lame and it'd be nice to fix it better.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: "Brown, Len" <len.brown@intel.com>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Len Brown <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/char/sonypi.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c       |    4 ++++
+ arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c |    4 ++++
+ 2 files changed, 8 insertions(+)
 
-diff -puN drivers/char/sonypi.c~acpi-fix-sonypi-acpi-driver-registration drivers/char/sonypi.c
---- devel/drivers/char/sonypi.c~acpi-fix-sonypi-acpi-driver-registration	2006-03-28 14:03:04.000000000 -0800
-+++ devel-akpm/drivers/char/sonypi.c	2006-03-28 14:03:04.000000000 -0800
-@@ -512,7 +512,7 @@ static struct sonypi_device {
+diff -puN arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~git-acpi-up-fix arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
+--- devel/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~git-acpi-up-fix	2006-03-28 14:02:59.000000000 -0800
++++ devel-akpm/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c	2006-03-28 14:02:59.000000000 -0800
+@@ -225,8 +225,12 @@ acpi_cpufreq_target (
+ 	freqs.old = data->freq_table[cur_state].frequency;
+ 	freqs.new = data->freq_table[next_state].frequency;
  
- #ifdef CONFIG_ACPI
- static struct acpi_device *sonypi_acpi_device;
--static int acpi_enabled;
-+static int acpi_driver_registered;
- #endif
++#ifdef CONFIG_HOTPLUG_CPU
+ 	/* cpufreq holds the hotplug lock, so we are safe from here on */
+ 	cpus_and(online_policy_cpus, cpu_online_map, policy->cpus);
++#else
++	online_policy_cpus = policy->cpus;
++#endif
  
- static int sonypi_ec_write(u8 addr, u8 value)
-@@ -869,7 +869,7 @@ found:
- 		sonypi_report_input_event(event);
+ 	for_each_cpu_mask(j, online_policy_cpus) {
+ 		freqs.cpu = j;
+diff -puN arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c~git-acpi-up-fix arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c
+--- devel/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c~git-acpi-up-fix	2006-03-28 14:02:59.000000000 -0800
++++ devel-akpm/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c	2006-03-28 14:02:59.000000000 -0800
+@@ -652,8 +652,12 @@ static int centrino_target (struct cpufr
+ 		return -EINVAL;
+ 	}
  
- #ifdef CONFIG_ACPI
--	if (acpi_enabled)
-+	if (sonypi_acpi_device)
- 		acpi_bus_generate_event(sonypi_acpi_device, 1, event);
- #endif
++#ifdef CONFIG_HOTPLUG_CPU
+ 	/* cpufreq holds the hotplug lock, so we are safe from here on */
+ 	cpus_and(online_policy_cpus, cpu_online_map, policy->cpus);
++#else
++	online_policy_cpus = policy->cpus;
++#endif
  
-@@ -1548,8 +1548,8 @@ static int __init sonypi_init(void)
- 		goto err_free_device;
- 
- #ifdef CONFIG_ACPI
--	if (acpi_bus_register_driver(&sonypi_acpi_driver) > 0)
--		acpi_enabled = 1;
-+	if (acpi_bus_register_driver(&sonypi_acpi_driver) >= 0)
-+		acpi_driver_registered = 1;
- #endif
- 
- 	return 0;
-@@ -1564,7 +1564,7 @@ static int __init sonypi_init(void)
- static void __exit sonypi_exit(void)
- {
- #ifdef CONFIG_ACPI
--	if (acpi_enabled)
-+	if (acpi_driver_registered)
- 		acpi_bus_unregister_driver(&sonypi_acpi_driver);
- #endif
- 	platform_device_unregister(sonypi_platform_device);
+ 	saved_mask = current->cpus_allowed;
+ 	first_cpu = 1;
 _
