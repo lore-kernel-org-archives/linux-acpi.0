@@ -1,101 +1,30 @@
-From: "Bonilla, Alejandro" <abonilla@linuxwireless.org>
-Subject: RE: Compaq V2000 Fan Control
-Date: Mon, 27 Mar 2006 18:41:17 -0600
-Message-ID: <1143506477.6550.9.camel@ubuntu.americas.hpqcorp.net>
-References: <E124AAE027DA384D8B919F93E4D8C7080182A5C2@mssmsx402nb>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: Compaq V2000 Fan Control
+Date: Tue, 28 Mar 2006 02:04:45 +0100
+Message-ID: <20060328010445.GA25040@srcf.ucam.org>
+References: <E124AAE027DA384D8B919F93E4D8C7080182A5C2@mssmsx402nb> <1143506477.6550.9.camel@ubuntu.americas.hpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from linuxwireless.org.ve.carpathiahost.net ([66.117.45.234]:36058
-	"EHLO linuxwireless.org.ve.carpathiahost.net") by vger.kernel.org
-	with ESMTP id S1751187AbWC1AlW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Mar 2006 19:41:22 -0500
-In-Reply-To: <E124AAE027DA384D8B919F93E4D8C7080182A5C2@mssmsx402nb>
+Received: from cavan.codon.org.uk ([217.147.92.49]:13519 "EHLO
+	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
+	id S1750710AbWC1BFF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Mar 2006 20:05:05 -0500
+Content-Disposition: inline
+In-Reply-To: <1143506477.6550.9.camel@ubuntu.americas.hpqcorp.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Karasyov, Konstantin A" <konstantin.a.karasyov@intel.com>
+To: "Bonilla, Alejandro" <abonilla@linuxwireless.org>
 Cc: linux-acpi@vger.kernel.org
 
-On Mon, 2006-03-27 at 16:25 +0400, Karasyov, Konstantin A wrote:
-> Hi,
-> 
-> >cat /proc/acpi/thermal_zone/THR1/trip_points
-> >critical (S5):           95 C
-> >passive:                 88 C: tc1=2 tc2=3 tsp=50 devices=0xdf64a940
-> 
-> This means, that you don't have fan control (i.e. active cooling)
-> through ACPI functionality - only passive cooling (i.e. decreasing
-> frequency, using throttling) is possible for this thermal zone. So, in
-> this string
+On Mon, Mar 27, 2006 at 06:41:17PM -0600, Bonilla, Alejandro wrote:
 
-I know I don't have it. Is there a way to debug this and see if it could
-occur or if it just could be that it needs a tweak? Or is definitely not
-going to work?
+> I know I don't have it. Is there a way to debug this and see if it could
+> occur or if it just could be that it needs a tweak? Or is definitely not
+> going to work?
 
-.Alejandro 
+Your laptop doesn't expose the fan as an ACPI object. As a result, 
+there's no way to control it through the standard ACPI interfaces.
 
-> 
-> >echo 100:0:50:80:70:50 > /proc/acpi/thermal_zone/THR1/trip_points
-> 
-> the only meaningful values are the first and the third (but at least 5
-> trip points are required -
-> <critical>:<hot>:<passive>:<active0>:<active1>)
-> 
-> 
-> Regards.
-> Konstantin.
-> 
-> >-----Original Message-----
-> >From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> >owner@vger.kernel.org] On Behalf Of Bonilla, Alejandro
-> >Sent: Friday, March 24, 2006 11:28 PM
-> >To: linux-acpi@vger.kernel.org
-> >Subject: Compaq V2000 Fan Control
-> >
-> >Hi,
-> >
-> >I'm trying to make my Compaq laptop give me control over the fan using
-> >ACPI, but this ain't working. I have to be honest. I don't know much
-> >about debugging acpi or about tools that will tell me much more.
-> >
-> >Here is what I try:
-> >
-> >echo 100:0:50:80:70:50 > /proc/acpi/thermal_zone/THR1/trip_points
-> >
-> >If I set the critical to a value lower than what it is now, it will
-> halt
-> >the PC, which is good. (100)
-> >
-> >If I set the passive to 50, nothing occurs. The Fan is not kicked if
-> the
-> >temp is higher, like 60c.
-> >
-> >I was told the last value is the one that triggers the Fan. Still, it
-> >just won't work for me.
-> >
-> >This is the value that comes up on boot:
-> >cat /proc/acpi/thermal_zone/THR1/trip_points
-> >critical (S5):           95 C
-> >passive:                 88 C: tc1=2 tc2=3 tsp=50 devices=0xdf64a940
-> >
-> >If I set the critical value to something really low, the Fan will kick
-> >in at it's full power and will try to cool down the PC, but that is
-> >while it's already halting.
-> >
-> >Anyone has a clue for me?
-> >
-> >Thanks,
-> >.Alejandro
-> >
-> >
-> >-
-> >To unsubscribe from this list: send the line "unsubscribe linux-acpi"
-> in
-> >the body of a message to majordomo@vger.kernel.org
-> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
