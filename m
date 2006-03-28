@@ -1,12 +1,12 @@
 From: akpm@osdl.org
-Subject: [patch 14/26] ACPI: fix memory hotplug range length handling
-Date: Tue, 28 Mar 2006 14:03:40 -0800
-Message-ID: <200603282203.k2SM3kLQ027689@shell0.pdx.osdl.net>
+Subject: [patch 11/26] ACPI: make acpi_bus_register_driver() return success/failure, not device count
+Date: Tue, 28 Mar 2006 14:03:37 -0800
+Message-ID: <200603282203.k2SM3id6027680@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:58543 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S932421AbWC1WDv (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:55215 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932417AbWC1WDs (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Mar 2006 17:03:51 -0500
+	Tue, 28 Mar 2006 17:03:48 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
@@ -15,62 +15,80 @@ Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, bjorn.helgaas@hp.com
 
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Address space descriptors contain _MIN, _MAX, and _LEN.  _MIN and _MAX are
-the bounds within which the region can be moved (this is clarified in Table
-6-38 of the ACPI 3.0 spec).  We should use _LEN to determine the size of
-the region, not _MAX - _MIN + 1.
+acpi_bus_register_driver() should not return the number of devices claimed. 
+We're not asking to find devices, we're making a driver available to devices,
+including hot-pluggable devices that may appear in the future.
+
+I audited all callers of acpi_bus_register_driver(), and except asus_acpi.c
+and sonypi.c (fixed in previous patches), all either ignore the return value
+or test only for failure (<0).
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/acpi_memhotplug.c |   12 +++++-------
- 1 files changed, 5 insertions(+), 7 deletions(-)
+ drivers/acpi/scan.c |   16 +++++-----------
+ 1 files changed, 5 insertions(+), 11 deletions(-)
 
-diff -puN drivers/acpi/acpi_memhotplug.c~acpi-fix-memory-hotplug-range-length-handling drivers/acpi/acpi_memhotplug.c
---- devel/drivers/acpi/acpi_memhotplug.c~acpi-fix-memory-hotplug-range-length-handling	2006-03-28 14:03:05.000000000 -0800
-+++ devel-akpm/drivers/acpi/acpi_memhotplug.c	2006-03-28 14:03:05.000000000 -0800
-@@ -74,7 +74,7 @@ struct acpi_memory_device {
- 	unsigned short caching;	/* memory cache attribute */
- 	unsigned short write_protect;	/* memory read/write attribute */
- 	u64 start_addr;		/* Memory Range start physical addr */
--	u64 end_addr;		/* Memory Range end physical addr */
-+	u64 length;		/* Memory Range length */
- };
+diff -puN drivers/acpi/scan.c~acpi-make-acpi_bus_register_driver-return-success-failure-not-device-count drivers/acpi/scan.c
+--- devel/drivers/acpi/scan.c~acpi-make-acpi_bus_register_driver-return-success-failure-not-device-count	2006-03-28 14:03:04.000000000 -0800
++++ devel-akpm/drivers/acpi/scan.c	2006-03-28 14:03:04.000000000 -0800
+@@ -548,10 +548,9 @@ static int acpi_start_single_object(stru
+ 	return_VALUE(result);
+ }
  
- static int
-@@ -97,12 +97,11 @@ acpi_memory_get_device_resources(struct 
- 	if (ACPI_SUCCESS(status)) {
- 		if (address64.resource_type == ACPI_MEMORY_RANGE) {
- 			/* Populate the structure */
--			mem_device->caching =
--			    address64.info.mem.caching;
-+			mem_device->caching = address64.info.mem.caching;
- 			mem_device->write_protect =
- 			    address64.info.mem.write_protect;
- 			mem_device->start_addr = address64.minimum;
--			mem_device->end_addr = address64.maximum;
-+			mem_device->length = address64.address_length;
- 		}
- 	}
- 
-@@ -197,8 +196,7 @@ static int acpi_memory_enable_device(str
- 	 * Tell the VM there is more memory here...
- 	 * Note: Assume that this function returns zero on success
- 	 */
--	result = add_memory(mem_device->start_addr,
--			    (mem_device->end_addr - mem_device->start_addr) + 1);
-+	result = add_memory(mem_device->start_addr, mem_device->length);
- 	if (result) {
- 		ACPI_ERROR((AE_INFO, "add_memory failed"));
- 		mem_device->state = MEMORY_INVALID_STATE;
-@@ -247,7 +245,7 @@ static int acpi_memory_disable_device(st
+-static int acpi_driver_attach(struct acpi_driver *drv)
++static void acpi_driver_attach(struct acpi_driver *drv)
  {
- 	int result;
- 	u64 start = mem_device->start_addr;
--	u64 len = mem_device->end_addr - start + 1;
-+	u64 len = mem_device->length;
+ 	struct list_head *node, *next;
+-	int count = 0;
  
- 	ACPI_FUNCTION_TRACE("acpi_memory_disable_device");
+ 	ACPI_FUNCTION_TRACE("acpi_driver_attach");
  
+@@ -568,7 +567,6 @@ static int acpi_driver_attach(struct acp
+ 			if (!acpi_bus_driver_init(dev, drv)) {
+ 				acpi_start_single_object(dev);
+ 				atomic_inc(&drv->references);
+-				count++;
+ 				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 						  "Found driver [%s] for device [%s]\n",
+ 						  drv->name, dev->pnp.bus_id));
+@@ -577,7 +575,6 @@ static int acpi_driver_attach(struct acp
+ 		spin_lock(&acpi_device_lock);
+ 	}
+ 	spin_unlock(&acpi_device_lock);
+-	return_VALUE(count);
+ }
+ 
+ static int acpi_driver_detach(struct acpi_driver *drv)
+@@ -610,14 +607,11 @@ static int acpi_driver_detach(struct acp
+  * @driver: driver being registered
+  *
+  * Registers a driver with the ACPI bus.  Searches the namespace for all
+- * devices that match the driver's criteria and binds.  Returns the
+- * number of devices that were claimed by the driver, or a negative
+- * error status for failure.
++ * devices that match the driver's criteria and binds.  Returns zero for
++ * success or a negative error status for failure.
+  */
+ int acpi_bus_register_driver(struct acpi_driver *driver)
+ {
+-	int count;
+-
+ 	ACPI_FUNCTION_TRACE("acpi_bus_register_driver");
+ 
+ 	if (acpi_disabled)
+@@ -629,9 +623,9 @@ int acpi_bus_register_driver(struct acpi
+ 	spin_lock(&acpi_device_lock);
+ 	list_add_tail(&driver->node, &acpi_bus_drivers);
+ 	spin_unlock(&acpi_device_lock);
+-	count = acpi_driver_attach(driver);
++	acpi_driver_attach(driver);
+ 
+-	return_VALUE(count);
++	return_VALUE(0);
+ }
+ 
+ EXPORT_SYMBOL(acpi_bus_register_driver);
 _
