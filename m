@@ -1,48 +1,115 @@
 From: akpm@osdl.org
-Subject: [patch 23/26] x86_64: Remove entries in /sys/firmware/acpi for processor also
-Date: Tue, 28 Mar 2006 14:03:48 -0800
-Message-ID: <200603282203.k2SM3tt6027719@shell0.pdx.osdl.net>
+Subject: [patch 08/26] ACPI: Add "ACPI" to motherboard resources in /proc/io{mem,port}
+Date: Tue, 28 Mar 2006 14:03:34 -0800
+Message-ID: <200603282203.k2SM3fE9027671@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:1968 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S932429AbWC1WEA (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:49839 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932411AbWC1WDo (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Mar 2006 17:04:00 -0500
+	Tue, 28 Mar 2006 17:03:44 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, ashok.raj@intel.com, ak@muc.de
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, bjorn.helgaas@hp.com
 
 
-From: Ashok Raj <ashok.raj@intel.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Processor entries under /sys/firmware/acpi/namespace/ACPI/_SB/CPU* were not
-being removed due to acpi_bus_trim not asking for it just for processors. 
-Without which a new hot-add after a remove doesnt call appropriate init
-functions resulting in subsequent hot-add for same cpu failing.
+Add "ACPI" to motherboard resource allocation names, so people have a clue
+about where to look.  And remove some trailing spaces.
 
-Not clear why we restricted that to non-processor devices.
+Changes these /proc/iomem entries from this:
 
-Signed-off-by: Ashok Raj <ashok.raj@intel.com>
-Cc: Andi Kleen <ak@muc.de>
+    ff5c1004-ff5c1007 : PM_TMR
+    ff5c1008-ff5c100b : PM1a_EVT_BLK
+    ff5c100c-ff5c100d : PM1a_CNT_BLK
+    ff5c1010-ff5c1013 : GPE0_BLK
+    ff5c1014-ff5c1017 : GPE1_BLK
+
+to this:
+
+    ff5c1004-ff5c1007 : ACPI PM_TMR
+    ff5c1008-ff5c100b : ACPI PM1a_EVT_BLK
+    ff5c100c-ff5c100d : ACPI PM1a_CNT_BLK
+    ff5c1010-ff5c1013 : ACPI GPE0_BLK
+    ff5c1014-ff5c1017 : ACPI GPE1_BLK
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/scan.c |    5 +----
- 1 files changed, 1 insertion(+), 4 deletions(-)
+ drivers/acpi/motherboard.c |   22 +++++++++++-----------
+ 1 files changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN drivers/acpi/scan.c~remove-entries-in-sys-firmware-acpi-for-processor-also drivers/acpi/scan.c
---- devel/drivers/acpi/scan.c~remove-entries-in-sys-firmware-acpi-for-processor-also	2006-03-28 14:03:07.000000000 -0800
-+++ devel-akpm/drivers/acpi/scan.c	2006-03-28 14:03:07.000000000 -0800
-@@ -433,10 +433,7 @@ acpi_eject_store(struct acpi_device *dev
- 	islockable = device->flags.lockable;
- 	handle = device->handle;
+diff -puN drivers/acpi/motherboard.c~acpi-add-acpi-to-motherboard-resources-in-proc-iomemport drivers/acpi/motherboard.c
+--- devel/drivers/acpi/motherboard.c~acpi-add-acpi-to-motherboard-resources-in-proc-iomemport	2006-03-28 14:03:03.000000000 -0800
++++ devel-akpm/drivers/acpi/motherboard.c	2006-03-28 14:03:03.000000000 -0800
+@@ -37,7 +37,7 @@ ACPI_MODULE_NAME("acpi_motherboard")
+ #define ACPI_MB_HID2			"PNP0C02"
+ /**
+  * Doesn't care about legacy IO ports, only IO ports beyond 0x1000 are reserved
+- * Doesn't care about the failure of 'request_region', since other may reserve 
++ * Doesn't care about the failure of 'request_region', since other may reserve
+  * the io ports as well
+  */
+ #define IS_RESERVED_ADDR(base, len) \
+@@ -46,7 +46,7 @@ ACPI_MODULE_NAME("acpi_motherboard")
+ /*
+  * Clearing the flag (IORESOURCE_BUSY) allows drivers to use
+  * the io ports if they really know they can use it, while
+- * still preventing hotplug PCI devices from using it. 
++ * still preventing hotplug PCI devices from using it.
+  */
+ static acpi_status acpi_reserve_io_ranges(struct acpi_resource *res, void *data)
+ {
+@@ -138,39 +138,39 @@ static void __init acpi_request_region (
+ static void __init acpi_reserve_resources(void)
+ {
+ 	acpi_request_region(&acpi_gbl_FADT->xpm1a_evt_blk,
+-			       acpi_gbl_FADT->pm1_evt_len, "PM1a_EVT_BLK");
++			       acpi_gbl_FADT->pm1_evt_len, "ACPI PM1a_EVT_BLK");
  
--	if (type == ACPI_TYPE_PROCESSOR)
--		result = acpi_bus_trim(device, 0);
--	else
--		result = acpi_bus_trim(device, 1);
-+	result = acpi_bus_trim(device, 1);
+ 	acpi_request_region(&acpi_gbl_FADT->xpm1b_evt_blk,
+-			       acpi_gbl_FADT->pm1_evt_len, "PM1b_EVT_BLK");
++			       acpi_gbl_FADT->pm1_evt_len, "ACPI PM1b_EVT_BLK");
  
- 	if (!result)
- 		result = acpi_eject_operation(handle, islockable);
+ 	acpi_request_region(&acpi_gbl_FADT->xpm1a_cnt_blk,
+-			       acpi_gbl_FADT->pm1_cnt_len, "PM1a_CNT_BLK");
++			       acpi_gbl_FADT->pm1_cnt_len, "ACPI PM1a_CNT_BLK");
+ 
+ 	acpi_request_region(&acpi_gbl_FADT->xpm1b_cnt_blk,
+-			       acpi_gbl_FADT->pm1_cnt_len, "PM1b_CNT_BLK");
++			       acpi_gbl_FADT->pm1_cnt_len, "ACPI PM1b_CNT_BLK");
+ 
+ 	if (acpi_gbl_FADT->pm_tm_len == 4)
+-		acpi_request_region(&acpi_gbl_FADT->xpm_tmr_blk, 4, "PM_TMR");
++		acpi_request_region(&acpi_gbl_FADT->xpm_tmr_blk, 4, "ACPI PM_TMR");
+ 
+ 	acpi_request_region(&acpi_gbl_FADT->xpm2_cnt_blk,
+-			       acpi_gbl_FADT->pm2_cnt_len, "PM2_CNT_BLK");
++			       acpi_gbl_FADT->pm2_cnt_len, "ACPI PM2_CNT_BLK");
+ 
+ 	/* Length of GPE blocks must be a non-negative multiple of 2 */
+ 
+ 	if (!(acpi_gbl_FADT->gpe0_blk_len & 0x1))
+ 		acpi_request_region(&acpi_gbl_FADT->xgpe0_blk,
+-			       acpi_gbl_FADT->gpe0_blk_len, "GPE0_BLK");
++			       acpi_gbl_FADT->gpe0_blk_len, "ACPI GPE0_BLK");
+ 
+ 	if (!(acpi_gbl_FADT->gpe1_blk_len & 0x1))
+ 		acpi_request_region(&acpi_gbl_FADT->xgpe1_blk,
+-			       acpi_gbl_FADT->gpe1_blk_len, "GPE1_BLK");
++			       acpi_gbl_FADT->gpe1_blk_len, "ACPI GPE1_BLK");
+ }
+ 
+ static int __init acpi_motherboard_init(void)
+ {
+ 	acpi_bus_register_driver(&acpi_motherboard_driver1);
+ 	acpi_bus_register_driver(&acpi_motherboard_driver2);
+-	/* 
++	/*
+ 	 * Guarantee motherboard IO reservation first
+ 	 * This module must run after scan.c
+ 	 */
 _
