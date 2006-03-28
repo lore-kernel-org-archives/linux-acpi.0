@@ -1,97 +1,168 @@
 From: akpm@osdl.org
-Subject: [patch 12/26] ACPI: simplify scan.c coding
-Date: Tue, 28 Mar 2006 14:03:38 -0800
-Message-ID: <200603282203.k2SM3iIk027683@shell0.pdx.osdl.net>
+Subject: [patch 02/26] sem2mutex: drivers/acpi/
+Date: Tue, 28 Mar 2006 14:03:28 -0800
+Message-ID: <200603282203.k2SM3YqH027653@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:55727 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S932419AbWC1WDs (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:53167 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932416AbWC1WDr (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Mar 2006 17:03:48 -0500
+	Tue, 28 Mar 2006 17:03:47 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, bjorn.helgaas@hp.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, arjan@infradead.org, mingo@elte.hu
 
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+From: Arjan van de Ven <arjan@infradead.org>
 
-No functional changes; just remove leftover, unused "buffer" and simplify
-control flow (no need to remember error values and goto the end, when we can
-simply return the value directly).
+Semaphore to mutex conversion.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+The conversion was generated via scripts, and the result was validated
+automatically via a script as well.
+
+Signed-off-by: Arjan van de Ven <arjan@infradead.org>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/scan.c |   36 +++++++++++++-----------------------
- 1 files changed, 13 insertions(+), 23 deletions(-)
+ drivers/acpi/processor_perflib.c |   27 ++++++++++++++-------------
+ drivers/acpi/scan.c              |    3 ++-
+ 2 files changed, 16 insertions(+), 14 deletions(-)
 
-diff -puN drivers/acpi/scan.c~acpi-simplify-scanc-coding drivers/acpi/scan.c
---- devel/drivers/acpi/scan.c~acpi-simplify-scanc-coding	2006-03-28 14:03:04.000000000 -0800
-+++ devel-akpm/drivers/acpi/scan.c	2006-03-28 14:03:04.000000000 -0800
-@@ -235,12 +235,9 @@ static int acpi_bus_get_power_flags(stru
+diff -puN drivers/acpi/processor_perflib.c~sem2mutex-drivers-acpi drivers/acpi/processor_perflib.c
+--- devel/drivers/acpi/processor_perflib.c~sem2mutex-drivers-acpi	2006-03-28 14:03:00.000000000 -0800
++++ devel-akpm/drivers/acpi/processor_perflib.c	2006-03-28 14:03:00.000000000 -0800
+@@ -34,6 +34,7 @@
+ #ifdef CONFIG_X86_ACPI_CPUFREQ_PROC_INTF
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
++#include <linux/mutex.h>
  
- int acpi_match_ids(struct acpi_device *device, char *ids)
- {
--	int error = 0;
--	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
--
- 	if (device->flags.hardware_id)
- 		if (strstr(ids, device->pnp.hardware_id))
--			goto Done;
-+			return 0;
+ #include <asm/uaccess.h>
+ #endif
+@@ -48,7 +49,7 @@
+ #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
+ ACPI_MODULE_NAME("acpi_processor")
  
- 	if (device->flags.compatible_ids) {
- 		struct acpi_compatible_id_list *cid_list = device->pnp.cid_list;
-@@ -249,15 +246,10 @@ int acpi_match_ids(struct acpi_device *d
- 		/* compare multiple _CID entries against driver ids */
- 		for (i = 0; i < cid_list->count; i++) {
- 			if (strstr(ids, cid_list->id[i].value))
--				goto Done;
-+				return 0;
- 		}
+-static DECLARE_MUTEX(performance_sem);
++static DEFINE_MUTEX(performance_mutex);
+ 
+ /*
+  * _PPC support is implemented as a CPUfreq policy notifier:
+@@ -72,7 +73,7 @@ static int acpi_processor_ppc_notifier(s
+ 	struct acpi_processor *pr;
+ 	unsigned int ppc = 0;
+ 
+-	down(&performance_sem);
++	mutex_lock(&performance_mutex);
+ 
+ 	if (event != CPUFREQ_INCOMPATIBLE)
+ 		goto out;
+@@ -93,7 +94,7 @@ static int acpi_processor_ppc_notifier(s
+ 				     core_frequency * 1000);
+ 
+       out:
+-	up(&performance_sem);
++	mutex_unlock(&performance_mutex);
+ 
+ 	return 0;
+ }
+@@ -620,7 +621,7 @@ int acpi_processor_preregister_performan
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_processor_preregister_performance");
+ 
+-	down(&performance_sem);
++	mutex_lock(&performance_mutex);
+ 
+ 	retval = 0;
+ 
+@@ -768,7 +769,7 @@ err_ret:
+ 		pr->performance = NULL; /* Will be set for real in register */
  	}
--	error = -ENOENT;
--
--      Done:
--	if (buffer.pointer)
--		acpi_os_free(buffer.pointer);
--	return error;
-+	return -ENOENT;
+ 
+-	up(&performance_sem);
++	mutex_unlock(&performance_mutex);
+ 	return_VALUE(retval);
+ }
+ EXPORT_SYMBOL(acpi_processor_preregister_performance);
+@@ -785,16 +786,16 @@ acpi_processor_register_performance(stru
+ 	if (!(acpi_processor_ppc_status & PPC_REGISTERED))
+ 		return_VALUE(-EINVAL);
+ 
+-	down(&performance_sem);
++	mutex_lock(&performance_mutex);
+ 
+ 	pr = processors[cpu];
+ 	if (!pr) {
+-		up(&performance_sem);
++		mutex_unlock(&performance_mutex);
+ 		return_VALUE(-ENODEV);
+ 	}
+ 
+ 	if (pr->performance) {
+-		up(&performance_sem);
++		mutex_unlock(&performance_mutex);
+ 		return_VALUE(-EBUSY);
+ 	}
+ 
+@@ -802,13 +803,13 @@ acpi_processor_register_performance(stru
+ 
+ 	if (acpi_processor_get_performance_info(pr)) {
+ 		pr->performance = NULL;
+-		up(&performance_sem);
++		mutex_unlock(&performance_mutex);
+ 		return_VALUE(-EIO);
+ 	}
+ 
+ 	acpi_cpufreq_add_file(pr);
+ 
+-	up(&performance_sem);
++	mutex_unlock(&performance_mutex);
+ 	return_VALUE(0);
  }
  
- static acpi_status
-@@ -639,21 +631,19 @@ EXPORT_SYMBOL(acpi_bus_register_driver);
-  */
- int acpi_bus_unregister_driver(struct acpi_driver *driver)
- {
--	int error = 0;
--
- 	ACPI_FUNCTION_TRACE("acpi_bus_unregister_driver");
+@@ -822,11 +823,11 @@ acpi_processor_unregister_performance(st
  
--	if (driver) {
--		acpi_driver_detach(driver);
-+	if (!driver)
-+		return_VALUE(-EINVAL);
+ 	ACPI_FUNCTION_TRACE("acpi_processor_unregister_performance");
  
--		if (!atomic_read(&driver->references)) {
--			spin_lock(&acpi_device_lock);
--			list_del_init(&driver->node);
--			spin_unlock(&acpi_device_lock);
--		}
--	} else
--		error = -EINVAL;
--	return_VALUE(error);
-+	acpi_driver_detach(driver);
-+
-+	if (!atomic_read(&driver->references)) {
-+		spin_lock(&acpi_device_lock);
-+		list_del_init(&driver->node);
-+		spin_unlock(&acpi_device_lock);
-+	}
-+	return_VALUE(0);
+-	down(&performance_sem);
++	mutex_lock(&performance_mutex);
+ 
+ 	pr = processors[cpu];
+ 	if (!pr) {
+-		up(&performance_sem);
++		mutex_unlock(&performance_mutex);
+ 		return_VOID;
+ 	}
+ 
+@@ -835,7 +836,7 @@ acpi_processor_unregister_performance(st
+ 
+ 	acpi_cpufreq_remove_file(pr);
+ 
+-	up(&performance_sem);
++	mutex_unlock(&performance_mutex);
+ 
+ 	return_VOID;
  }
+diff -puN drivers/acpi/scan.c~sem2mutex-drivers-acpi drivers/acpi/scan.c
+--- devel/drivers/acpi/scan.c~sem2mutex-drivers-acpi	2006-03-28 14:03:00.000000000 -0800
++++ devel-akpm/drivers/acpi/scan.c	2006-03-28 14:03:00.000000000 -0800
+@@ -5,6 +5,7 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/acpi.h>
++#include <linux/mutex.h>
  
- EXPORT_SYMBOL(acpi_bus_unregister_driver);
+ #include <acpi/acpi_drivers.h>
+ #include <acpi/acinterp.h>	/* for acpi_ex_eisa_id_to_string() */
+@@ -470,7 +471,7 @@ static int acpi_bus_get_perf_flags(struc
+    -------------------------------------------------------------------------- */
+ 
+ static LIST_HEAD(acpi_bus_drivers);
+-static DECLARE_MUTEX(acpi_bus_drivers_lock);
++static DEFINE_MUTEX(acpi_bus_drivers_lock);
+ 
+ /**
+  * acpi_bus_match - match device IDs to driver's supported IDs
 _
