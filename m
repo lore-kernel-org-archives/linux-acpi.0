@@ -1,48 +1,44 @@
-From: Joschka Sulzer <joschkasulzer@aol.com>
-Subject: Re: ACPI-Problems with debian-etch & Kernel 2.6.16
-Date: Tue, 28 Mar 2006 19:39:52 +0200
-Message-ID: <442974E8.5000403@aol.com>
-References: <E1FO4hA-0000e4-00@skye.ra.phy.cam.ac.uk>
+From: "Randy.Dunlap" <rdunlap@xenotime.net>
+Subject: [PATCH -mm] acpi: fix memory_hotplug externs
+Date: Tue, 28 Mar 2006 11:46:55 -0800
+Message-ID: <20060328114655.05e1933f.rdunlap@xenotime.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from imo-d20.mx.aol.com ([205.188.139.136]:18929 "EHLO
-	imo-d20.mx.aol.com") by vger.kernel.org with ESMTP id S1751203AbWC1Rks
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Mar 2006 12:40:48 -0500
-In-Reply-To: <E1FO4hA-0000e4-00@skye.ra.phy.cam.ac.uk>
+Received: from xenotime.net ([66.160.160.81]:16276 "HELO xenotime.net")
+	by vger.kernel.org with SMTP id S1751307AbWC1Too (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Mar 2006 14:44:44 -0500
+Received: from midway.site ([71.111.157.99]) by xenotime.net for <linux-acpi@vger.kernel.org>; Tue, 28 Mar 2006 11:44:40 -0800
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: sanjoy@mrao.cam.ac.uk
-Cc: linux-acpi@vger.kernel.org
+To: lkml <linux-kernel@vger.kernel.org>
+Cc: akpm <akpm@osdl.org>, linux-acpi@vger.kernel.org
 
-sanjoy@mrao.cam.ac.uk schrieb:
->> These messages appear every 10 seconds!
->>     
->
-> Do you have thermal polling turned on?
->
-> more /proc/acpi/thermal_zone/*/polling_frequency
->
-> Not that you should turn the polling off, but maybe every time a
-> thermal poll is run, the embedded controller (ec) does an UPDT, which
-> also means it looks at the battery state.  And maybe the UPDT causes
-> the namespace AE_NOT_FOUND.  Perhaps it didn't cause a problem before
-> because the default used to be ec_intr=0, and the ec worked fine with
-> that setting.
->
-> You could try booting with ec_intr=0 to see if it suppresses the
-> problem.
->
-> I've spent a while (see bugzilla #5989) debugging the consequences of
-> changing the default from ec_intr=0 to ec_intr=1 (which happened in
-> 2.6.16-rc* sometime -- see the #5989 bugzilla entries for the exact
-> git commit id).  Probably it's a good change in general -- I leave
-> that to the experts -- but it has certainly exposed a few troubles in
-> the mangy BIOS on my TP 600X.
->   
+From: Randy Dunlap <rdunlap@xenotime.net>
 
-I don't care anymore; updating to 2.6.16 solved my problems ;-)
-Now the Kernel boots without any Kernelparameters at all !
+Spell CONFIG option correctly so that externs work.
+Fixes these warnings:
+drivers/acpi/acpi_memhotplug.c:248: warning: implicit declaration of function 'add_memory'
+drivers/acpi/acpi_memhotplug.c:312: warning: implicit declaration of function 'remove_memory'
 
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+---
+ linsrc/linux-2616-mm2/include/linux/memory_hotplug.h |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
+
+--- rddunlap.orig/linsrc/linux-2616-mm2/include/linux/memory_hotplug.h
++++ rddunlap/linsrc/linux-2616-mm2/include/linux/memory_hotplug.h
+@@ -105,7 +105,7 @@ static inline int __remove_pages(struct 
+ }
+ 
+ #if defined(CONFIG_MEMORY_HOTPLUG) || defined(CONFIG_ACPI_HOTPLUG_MEMORY) \
+-	|| defined(CONFIG_ACPI_MEMORY_HOTPLUG_MODULE)
++	|| defined(CONFIG_ACPI_HOTPLUG_MEMORY_MODULE)
+ extern int add_memory(u64 start, u64 size);
+ extern int remove_memory(u64 start, u64 size);
+ #endif
+
+
+---
