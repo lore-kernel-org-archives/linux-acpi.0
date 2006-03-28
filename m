@@ -1,44 +1,40 @@
-From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Subject: Re: ACPI-Problems with debian-etch & Kernel 2.6.16
-Date: Tue, 28 Mar 2006 04:16:36 +0100
-Message-ID: <E1FO4hA-0000e4-00@skye.ra.phy.cam.ac.uk>
-References: <4426AD63.8080505@aol.com>
+From: "Yu, Luming" <luming.yu@intel.com>
+Subject: RE: Compaq V2000 Fan Control
+Date: Tue, 28 Mar 2006 11:15:13 +0800
+Message-ID: <554C5F4C5BA7384EB2B412FD46A3BAD10F0194@pdsmsx411.ccr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mraos.ra.phy.cam.ac.uk ([131.111.48.8]:22218 "EHLO
-	mraos.ra.phy.cam.ac.uk") by vger.kernel.org with ESMTP
-	id S1751224AbWC1DQj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Mar 2006 22:16:39 -0500
-In-Reply-To: Your message of "Sun, 26 Mar 2006 17:04:03 +0200."
-             <4426AD63.8080505@aol.com>
+Received: from mga03.intel.com ([143.182.124.21]:40039 "EHLO
+	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
+	id S1751222AbWC1Ddq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Mar 2006 22:33:46 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Joschka Sulzer <joschkasulzer@aol.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>, "Bonilla, Alejandro" <abonilla@linuxwireless.org>
 Cc: linux-acpi@vger.kernel.org
 
-> These messages appear every 10 seconds!
+>> I know I don't have it. Is there a way to debug this and see 
+>if it could
+>> occur or if it just could be that it needs a tweak? Or is 
+>definitely not
+>> going to work?
+>
+>Your laptop doesn't expose the fan as an ACPI object. As a result, 
+>there's no way to control it through the standard ACPI interfaces.
 
-Do you have thermal polling turned on?
+Not precisely.  Fan control sometimes are side effect of AML methods.
+If you do want to understand how fan control is implemented in AML
+methods,
+probably, you need to hack DSDT. 
 
-more /proc/acpi/thermal_zone/*/polling_frequency
+If no explict Fan control, at least we need to make sure implicit fan
+control works
+But, it depends on platform vendor to implement Fan control in ACPI or
+not.
 
-Not that you should turn the polling off, but maybe every time a
-thermal poll is run, the embedded controller (ec) does an UPDT, which
-also means it looks at the battery state.  And maybe the UPDT causes
-the namespace AE_NOT_FOUND.  Perhaps it didn't cause a problem before
-because the default used to be ec_intr=0, and the ec worked fine with
-that setting.
-
-You could try booting with ec_intr=0 to see if it suppresses the
-problem.
-
-I've spent a while (see bugzilla #5989) debugging the consequences of
-changing the default from ec_intr=0 to ec_intr=1 (which happened in
-2.6.16-rc* sometime -- see the #5989 bugzilla entries for the exact
-git commit id).  Probably it's a good change in general -- I leave
-that to the experts -- but it has certainly exposed a few troubles in
-the mangy BIOS on my TP 600X.
-
--Sanjoy
-
-`Never underestimate the evil of which men of power are capable.'
-         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
+Thanks,
+Luming
