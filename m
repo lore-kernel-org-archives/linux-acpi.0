@@ -1,80 +1,102 @@
 From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: [Patch:000/004]Unify pxm_to_node id ver.3.
-Date: Tue, 28 Mar 2006 19:12:35 +0900
-Message-ID: <20060328183058.CC46.Y-GOTO@jp.fujitsu.com>
+Subject: [Patch:003/004]Unify pxm_to_node id ver.3.(for x86-64)
+Date: Tue, 28 Mar 2006 19:17:14 +0900
+Message-ID: <20060328191359.CC4C.Y-GOTO@jp.fujitsu.com>
+References: <20060328183058.CC46.Y-GOTO@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:11228 "EHLO
-	fgwmail7.fujitsu.co.jp") by vger.kernel.org with ESMTP
-	id S932093AbWC1KNc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Mar 2006 05:13:32 -0500
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:58586 "EHLO
+	fgwmail6.fujitsu.co.jp") by vger.kernel.org with ESMTP
+	id S1751209AbWC1KRb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Mar 2006 05:17:31 -0500
+In-Reply-To: <20060328183058.CC46.Y-GOTO@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andrew Morton <akpm@osdl.org>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>, "Luck, Tony" <tony.luck@intel.com>, Andi Kleen <ak@suse.de>, "Brown, Len" <len.brown@intel.com>, Linux Kernel ML <linux-kernel@vger.kernel.org>, ACPI-ML <linux-acpi@vger.kernel.org>, linux-ia64@vger.kernel.org, x86-64 Discuss <discuss@x86-64.org>
-
-Hello.
-
-I rewrote patches to unify mapping from pxm to node id as ver.3.
-
-In previous patches, I moved MAX_PXM_DOMAINS into
-include/acpi/acpi_numa.h to unify pxm_to_node mapping. 
-Its max number was 256. 
-However, ACPI spec ver.3 defines pxm's extension. So, pxm can be over 256.
-256 was not enough for maximum of it, and u8 was not good for pxm's
-definition.
-In addition, SGI's SN2 already uses its extension in 2.6.16-git14,
-and MAX_PXM_DOMAINS was defined by CONFIG_IA64_NR_NODES
-in include/asm-ia64/acpi.h.
-I defined CONFIG_NR_NODES for common definition.
-
-This patches are for 2.6.16-git14.
-I tested them on ia64(Tiger4) with node emulation.
-
-And I confirmed no compile error against ....
-  - x86-64
-  - i386 with summit config.
-  - ia64's SN2 config.
-
-Please apply.
-
-Thanks.
-
-------------------------
-Change log from ver.2
-  - update for 2.6.16-git14.
-  - definition of pxm was changed from u8 to int. Pxm can be over 256.
-  - CONFIG_NR_NODES is defined to configure MAX_PXM_DOMAINS.
-  - redundant call of pxm_bit_set() is removed at acpi_numa_arch_fixup()
-    of ia64 like followings.  :-P
-	if (pxm_bit_test(i)) {
-		:
-		pxm_bit_set(i);  <---------------------- !!!
-		:
-	}
-
-Change log from ver.1 
-  - Fix old map from HP and SGI's code by Bob Picco-san.
-  - Remove MAX_PXM_DOMAINS from asm-ia64/acpi.h. It is already defined at
-    include/acpi/acpi_numa.h.
-  - Fix return code of setup_node() at arch/x86_64/mm/srat.c
-  - Fix ACPI_NUMA config for i386 by Andy Witcroft-san.
-  - Define dummy functions for i386's compile error.
-  - Remove garbage nid_to_pxm_map from acpi20_parse_srat() 
-    at arch/i386/kernel/srat.c
-
-----------------------------------
-Description.
-
-This patch is to unify mapping from pxm to node id.
-In current code, i386, x86-64, and ia64 have its mapping by each own code.
-But PXM is defined by ACPI and node id is used generically. So,
-I think there is no reason to define it on each arch's code.
-This mapping should be written at drivers/acpi/numa.c as a common code.
+Cc: "Luck, Tony" <tony.luck@intel.com>, Andi Kleen <ak@suse.de>, "Brown, Len" <len.brown@intel.com>, Linux Kernel ML <linux-kernel@vger.kernel.org>, ACPI-ML <linux-acpi@vger.kernel.org>, linux-ia64@vger.kernel.org, x86-64 Discuss <discuss@x86-64.org>
 
 
+This is to remove the code of pxm_to_node from x86-64 code.
+
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+
+ arch/x86_64/mm/srat.c     |   33 +--------------------------------
+ include/asm-x86_64/numa.h |    1 -
+ 2 files changed, 1 insertion(+), 33 deletions(-)
+
+Index: pxm_ver3/arch/x86_64/mm/srat.c
+===================================================================
+--- pxm_ver3.orig/arch/x86_64/mm/srat.c	2006-03-27 12:09:14.000000000 +0900
++++ pxm_ver3/arch/x86_64/mm/srat.c	2006-03-27 14:07:14.000000000 +0900
+@@ -22,35 +22,15 @@
+ static struct acpi_table_slit *acpi_slit;
+ 
+ static nodemask_t nodes_parsed __initdata;
+-static nodemask_t nodes_found __initdata;
+ static struct bootnode nodes[MAX_NUMNODES] __initdata;
+-static u8 pxm2node[256] = { [0 ... 255] = 0xff };
+ 
+ /* Too small nodes confuse the VM badly. Usually they result
+    from BIOS bugs. */
+ #define NODE_MIN_SIZE (4*1024*1024)
+ 
+-static int node_to_pxm(int n);
+-
+-int pxm_to_node(int pxm)
+-{
+-	if ((unsigned)pxm >= 256)
+-		return -1;
+-	/* Extend 0xff to (int)-1 */
+-	return (signed char)pxm2node[pxm];
+-}
+-
+ static __init int setup_node(int pxm)
+ {
+-	unsigned node = pxm2node[pxm];
+-	if (node == 0xff) {
+-		if (nodes_weight(nodes_found) >= MAX_NUMNODES)
+-			return -1;
+-		node = first_unset_node(nodes_found); 
+-		node_set(node, nodes_found);
+-		pxm2node[pxm] = node;
+-	}
+-	return pxm2node[pxm];
++	return acpi_map_pxm_to_node(pxm);
+ }
+ 
+ static __init int conflicting_nodes(unsigned long start, unsigned long end)
+@@ -292,17 +272,6 @@ int __init acpi_scan_nodes(unsigned long
+ 	return 0;
+ }
+ 
+-static int node_to_pxm(int n)
+-{
+-       int i;
+-       if (pxm2node[n] == n)
+-               return n;
+-       for (i = 0; i < 256; i++)
+-               if (pxm2node[i] == n)
+-                       return i;
+-       return 0;
+-}
+-
+ int __node_distance(int a, int b)
+ {
+ 	int index;
+Index: pxm_ver3/include/asm-x86_64/numa.h
+===================================================================
+--- pxm_ver3.orig/include/asm-x86_64/numa.h	2006-03-27 12:09:17.000000000 +0900
++++ pxm_ver3/include/asm-x86_64/numa.h	2006-03-27 14:05:12.000000000 +0900
+@@ -9,7 +9,6 @@ struct bootnode {
+ };
+ 
+ extern int compute_hash_shift(struct bootnode *nodes, int numnodes);
+-extern int pxm_to_node(int nid);
+ 
+ #define ZONE_ALIGN (1UL << (MAX_ORDER+PAGE_SHIFT))
+ 
 
 -- 
 Yasunori Goto 
