@@ -1,125 +1,48 @@
 From: akpm@osdl.org
-Subject: [patch 03/26] sem2mutex: acpi, acpi_link_lock
-Date: Tue, 28 Mar 2006 14:03:29 -0800
-Message-ID: <200603282203.k2SM3Zss027656@shell0.pdx.osdl.net>
+Subject: [patch 23/26] x86_64: Remove entries in /sys/firmware/acpi for processor also
+Date: Tue, 28 Mar 2006 14:03:48 -0800
+Message-ID: <200603282203.k2SM3tt6027719@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:47279 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S932409AbWC1WDl (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:1968 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932429AbWC1WEA (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Mar 2006 17:03:41 -0500
+	Tue, 28 Mar 2006 17:04:00 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, mingo@elte.hu
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, ashok.raj@intel.com, ak@muc.de
 
 
-From: Ingo Molnar <mingo@elte.hu>
+From: Ashok Raj <ashok.raj@intel.com>
 
-Semaphore to mutex conversion.
+Processor entries under /sys/firmware/acpi/namespace/ACPI/_SB/CPU* were not
+being removed due to acpi_bus_trim not asking for it just for processors. 
+Without which a new hot-add after a remove doesnt call appropriate init
+functions resulting in subsequent hot-add for same cpu failing.
 
-The conversion was generated via scripts, and the result was validated
-automatically via a script as well.
+Not clear why we restricted that to non-processor devices.
 
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Ashok Raj <ashok.raj@intel.com>
+Cc: Andi Kleen <ak@muc.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/pci_link.c |   25 +++++++++++++------------
- 1 files changed, 13 insertions(+), 12 deletions(-)
+ drivers/acpi/scan.c |    5 +----
+ 1 files changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/acpi/pci_link.c~sem2mutex-acpi-acpi_link_lock drivers/acpi/pci_link.c
---- devel/drivers/acpi/pci_link.c~sem2mutex-acpi-acpi_link_lock	2006-03-28 14:03:00.000000000 -0800
-+++ devel-akpm/drivers/acpi/pci_link.c	2006-03-28 14:03:00.000000000 -0800
-@@ -38,6 +38,7 @@
- #include <linux/spinlock.h>
- #include <linux/pm.h>
- #include <linux/pci.h>
-+#include <linux/mutex.h>
+diff -puN drivers/acpi/scan.c~remove-entries-in-sys-firmware-acpi-for-processor-also drivers/acpi/scan.c
+--- devel/drivers/acpi/scan.c~remove-entries-in-sys-firmware-acpi-for-processor-also	2006-03-28 14:03:07.000000000 -0800
++++ devel-akpm/drivers/acpi/scan.c	2006-03-28 14:03:07.000000000 -0800
+@@ -433,10 +433,7 @@ acpi_eject_store(struct acpi_device *dev
+ 	islockable = device->flags.lockable;
+ 	handle = device->handle;
  
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
-@@ -91,7 +92,7 @@ static struct {
- 	int count;
- 	struct list_head entries;
- } acpi_link;
--DECLARE_MUTEX(acpi_link_lock);
-+DEFINE_MUTEX(acpi_link_lock);
+-	if (type == ACPI_TYPE_PROCESSOR)
+-		result = acpi_bus_trim(device, 0);
+-	else
+-		result = acpi_bus_trim(device, 1);
++	result = acpi_bus_trim(device, 1);
  
- /* --------------------------------------------------------------------------
-                             PCI Link Device Management
-@@ -634,19 +635,19 @@ acpi_pci_link_allocate_irq(acpi_handle h
- 		return_VALUE(-1);
- 	}
- 
--	down(&acpi_link_lock);
-+	mutex_lock(&acpi_link_lock);
- 	if (acpi_pci_link_allocate(link)) {
--		up(&acpi_link_lock);
-+		mutex_unlock(&acpi_link_lock);
- 		return_VALUE(-1);
- 	}
- 
- 	if (!link->irq.active) {
--		up(&acpi_link_lock);
-+		mutex_unlock(&acpi_link_lock);
- 		ACPI_ERROR((AE_INFO, "Link active IRQ is 0!"));
- 		return_VALUE(-1);
- 	}
- 	link->refcnt++;
--	up(&acpi_link_lock);
-+	mutex_unlock(&acpi_link_lock);
- 
- 	if (triggering)
- 		*triggering = link->irq.triggering;
-@@ -684,9 +685,9 @@ int acpi_pci_link_free_irq(acpi_handle h
- 		return_VALUE(-1);
- 	}
- 
--	down(&acpi_link_lock);
-+	mutex_lock(&acpi_link_lock);
- 	if (!link->irq.initialized) {
--		up(&acpi_link_lock);
-+		mutex_unlock(&acpi_link_lock);
- 		ACPI_ERROR((AE_INFO, "Link isn't initialized"));
- 		return_VALUE(-1);
- 	}
-@@ -709,7 +710,7 @@ int acpi_pci_link_free_irq(acpi_handle h
- 	if (link->refcnt == 0) {
- 		acpi_ut_evaluate_object(link->handle, "_DIS", 0, NULL);
- 	}
--	up(&acpi_link_lock);
-+	mutex_unlock(&acpi_link_lock);
- 	return_VALUE(link->irq.active);
- }
- 
-@@ -740,7 +741,7 @@ static int acpi_pci_link_add(struct acpi
- 	strcpy(acpi_device_class(device), ACPI_PCI_LINK_CLASS);
- 	acpi_driver_data(device) = link;
- 
--	down(&acpi_link_lock);
-+	mutex_lock(&acpi_link_lock);
- 	result = acpi_pci_link_get_possible(link);
- 	if (result)
- 		goto end;
-@@ -775,7 +776,7 @@ static int acpi_pci_link_add(struct acpi
-       end:
- 	/* disable all links -- to be activated on use */
- 	acpi_ut_evaluate_object(link->handle, "_DIS", 0, NULL);
--	up(&acpi_link_lock);
-+	mutex_unlock(&acpi_link_lock);
- 
- 	if (result)
- 		kfree(link);
-@@ -829,9 +830,9 @@ static int acpi_pci_link_remove(struct a
- 
- 	link = (struct acpi_pci_link *)acpi_driver_data(device);
- 
--	down(&acpi_link_lock);
-+	mutex_lock(&acpi_link_lock);
- 	list_del(&link->node);
--	up(&acpi_link_lock);
-+	mutex_unlock(&acpi_link_lock);
- 
- 	kfree(link);
- 
+ 	if (!result)
+ 		result = acpi_eject_operation(handle, islockable);
 _
