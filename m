@@ -1,59 +1,83 @@
 From: akpm@osdl.org
-Subject: [patch 26/26] Catch notification of memory add event of ACPI via container driver. (avoid redundant call add_memory)
-Date: Tue, 28 Mar 2006 14:03:52 -0800
-Message-ID: <200603282203.k2SM3wrt027728@shell0.pdx.osdl.net>
+Subject: [patch 09/26] ACPI: update asus_acpi driver registration
+Date: Tue, 28 Mar 2006 14:03:36 -0800
+Message-ID: <200603282203.k2SM3gKA027674@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:4784 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S932425AbWC1WEE (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:53423 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932414AbWC1WDq (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Mar 2006 17:04:04 -0500
+	Tue, 28 Mar 2006 17:03:46 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, y-goto@jp.fujitsu.com, haveblue@us.ibm.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, bjorn.helgaas@hp.com
 
 
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-When acpi_memory_device_init() is called at boottime to register struct
-memory acpi_memory_device, acpi_bus_add() are called via
-acpi_driver_attach().
+Remove the assumption that acpi_bus_register_driver() returns the number of
+devices claimed.  Returning the count is unreliable because devices may be
+hot-plugged in the future (admittedly not applicable for this driver).
 
-But it also calls ops->start() function.  It is called even if the memory
-blocks are initialized at early boottime.  In this case add_memory() return
--EEXIST, and the memory blocks becomes INVALID state even if it is normal.
+Since the hardware for this driver is not hot-pluggable, determine whether the
+hardware is present by noticing calls to the .add() method.  It would be
+better to probe the ACPI namespace for the ASUS HIDs, and load the driver only
+when we find one, but ACPI doesn't support that yet.
 
-This is patch to avoid calling add_memory() for already available memory.
+I don't have an ASUS laptop to test on, but on my HP dl360, it does report the
+appropriate error when attempting to load the module:
 
-[akpm@osdl.org: coding cleanups]
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+    $ sudo insmod drivers/acpi/asus_acpi.ko
+    insmod: error inserting 'drivers/acpi/asus_acpi.ko': -1 No such device
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: "Brown, Len" <len.brown@intel.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/acpi_memhotplug.c |   11 +++++++++++
- 1 files changed, 11 insertions(+)
+ drivers/acpi/asus_acpi.c |   18 +++++++++++++++++-
+ 1 files changed, 17 insertions(+), 1 deletion(-)
 
-diff -puN drivers/acpi/acpi_memhotplug.c~catch-notification-of-memory-add-event-of-acpi-via-container-driveravoid-redundant-call-add_memory drivers/acpi/acpi_memhotplug.c
---- devel/drivers/acpi/acpi_memhotplug.c~catch-notification-of-memory-add-event-of-acpi-via-container-driveravoid-redundant-call-add_memory	2006-03-28 14:03:08.000000000 -0800
-+++ devel-akpm/drivers/acpi/acpi_memhotplug.c	2006-03-28 14:03:08.000000000 -0800
-@@ -234,6 +234,17 @@ static int acpi_memory_enable_device(str
-          * (i.e. memory-hot-remove function)
- 	 */
- 	list_for_each_entry(info, &mem_device->res_list, list) {
-+		u64 start_pfn, end_pfn;
+diff -puN drivers/acpi/asus_acpi.c~acpi-update-asus_acpi-driver-registration drivers/acpi/asus_acpi.c
+--- devel/drivers/acpi/asus_acpi.c~acpi-update-asus_acpi-driver-registration	2006-03-28 14:03:03.000000000 -0800
++++ devel-akpm/drivers/acpi/asus_acpi.c	2006-03-28 14:03:03.000000000 -0800
+@@ -1119,6 +1119,8 @@ static int __init asus_hotk_check(void)
+ 	return result;
+ }
+ 
++static int asus_hotk_found;
 +
-+		start_pfn = info->start_addr >> PAGE_SHIFT;
-+		end_pfn = (info->start_addr + info->length - 1) >> PAGE_SHIFT;
+ static int __init asus_hotk_add(struct acpi_device *device)
+ {
+ 	acpi_status status = AE_OK;
+@@ -1180,6 +1182,8 @@ static int __init asus_hotk_add(struct a
+ 		}
+ 	}
+ 
++	asus_hotk_found = 1;
 +
-+		if (pfn_valid(start_pfn) || pfn_valid(end_pfn)) {
-+			/* already enabled. try next area */
-+			num_enabled++;
-+			continue;
-+		}
+       end:
+ 	if (result) {
+ 		kfree(hotk);
+@@ -1226,7 +1230,19 @@ static int __init asus_acpi_init(void)
+ 	asus_proc_dir->owner = THIS_MODULE;
+ 
+ 	result = acpi_bus_register_driver(&asus_hotk_driver);
+-	if (result < 1) {
++	if (result < 0) {
++		remove_proc_entry(PROC_ASUS, acpi_root_dir);
++		return -ENODEV;
++	}
 +
- 		result = add_memory(info->start_addr, info->length);
- 		if (result)
- 			continue;
++	/*
++	 * This is a bit of a kludge.  We only want this module loaded
++	 * for ASUS systems, but there's currently no way to probe the
++	 * ACPI namespace for ASUS HIDs.  So we just return failure if
++	 * we didn't find one, which will cause the module to be
++	 * unloaded.
++	 */
++	if (!asus_hotk_found) {
+ 		acpi_bus_unregister_driver(&asus_hotk_driver);
+ 		remove_proc_entry(PROC_ASUS, acpi_root_dir);
+ 		return -ENODEV;
 _
