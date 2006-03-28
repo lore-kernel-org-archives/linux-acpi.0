@@ -1,40 +1,82 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: Compaq V2000 Fan Control
-Date: Tue, 28 Mar 2006 11:15:13 +0800
-Message-ID: <554C5F4C5BA7384EB2B412FD46A3BAD10F0194@pdsmsx411.ccr.corp.intel.com>
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: [Patch:000/004]Unify pxm_to_node id ver.3.
+Date: Tue, 28 Mar 2006 19:12:35 +0900
+Message-ID: <20060328183058.CC46.Y-GOTO@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:40039 "EHLO
-	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S1751222AbWC1Ddq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Mar 2006 22:33:46 -0500
-Content-class: urn:content-classes:message
+Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:11228 "EHLO
+	fgwmail7.fujitsu.co.jp") by vger.kernel.org with ESMTP
+	id S932093AbWC1KNc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Mar 2006 05:13:32 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>, "Bonilla, Alejandro" <abonilla@linuxwireless.org>
-Cc: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>, "Luck, Tony" <tony.luck@intel.com>, Andi Kleen <ak@suse.de>, "Brown, Len" <len.brown@intel.com>, Linux Kernel ML <linux-kernel@vger.kernel.org>, ACPI-ML <linux-acpi@vger.kernel.org>, linux-ia64@vger.kernel.org, x86-64 Discuss <discuss@x86-64.org>
 
->> I know I don't have it. Is there a way to debug this and see 
->if it could
->> occur or if it just could be that it needs a tweak? Or is 
->definitely not
->> going to work?
->
->Your laptop doesn't expose the fan as an ACPI object. As a result, 
->there's no way to control it through the standard ACPI interfaces.
+Hello.
 
-Not precisely.  Fan control sometimes are side effect of AML methods.
-If you do want to understand how fan control is implemented in AML
-methods,
-probably, you need to hack DSDT. 
+I rewrote patches to unify mapping from pxm to node id as ver.3.
 
-If no explict Fan control, at least we need to make sure implicit fan
-control works
-But, it depends on platform vendor to implement Fan control in ACPI or
-not.
+In previous patches, I moved MAX_PXM_DOMAINS into
+include/acpi/acpi_numa.h to unify pxm_to_node mapping. 
+Its max number was 256. 
+However, ACPI spec ver.3 defines pxm's extension. So, pxm can be over 256.
+256 was not enough for maximum of it, and u8 was not good for pxm's
+definition.
+In addition, SGI's SN2 already uses its extension in 2.6.16-git14,
+and MAX_PXM_DOMAINS was defined by CONFIG_IA64_NR_NODES
+in include/asm-ia64/acpi.h.
+I defined CONFIG_NR_NODES for common definition.
 
-Thanks,
-Luming
+This patches are for 2.6.16-git14.
+I tested them on ia64(Tiger4) with node emulation.
+
+And I confirmed no compile error against ....
+  - x86-64
+  - i386 with summit config.
+  - ia64's SN2 config.
+
+Please apply.
+
+Thanks.
+
+------------------------
+Change log from ver.2
+  - update for 2.6.16-git14.
+  - definition of pxm was changed from u8 to int. Pxm can be over 256.
+  - CONFIG_NR_NODES is defined to configure MAX_PXM_DOMAINS.
+  - redundant call of pxm_bit_set() is removed at acpi_numa_arch_fixup()
+    of ia64 like followings.  :-P
+	if (pxm_bit_test(i)) {
+		:
+		pxm_bit_set(i);  <---------------------- !!!
+		:
+	}
+
+Change log from ver.1 
+  - Fix old map from HP and SGI's code by Bob Picco-san.
+  - Remove MAX_PXM_DOMAINS from asm-ia64/acpi.h. It is already defined at
+    include/acpi/acpi_numa.h.
+  - Fix return code of setup_node() at arch/x86_64/mm/srat.c
+  - Fix ACPI_NUMA config for i386 by Andy Witcroft-san.
+  - Define dummy functions for i386's compile error.
+  - Remove garbage nid_to_pxm_map from acpi20_parse_srat() 
+    at arch/i386/kernel/srat.c
+
+----------------------------------
+Description.
+
+This patch is to unify mapping from pxm to node id.
+In current code, i386, x86-64, and ia64 have its mapping by each own code.
+But PXM is defined by ACPI and node id is used generically. So,
+I think there is no reason to define it on each arch's code.
+This mapping should be written at drivers/acpi/numa.c as a common code.
+
+
+
+-- 
+Yasunori Goto 
+
+
