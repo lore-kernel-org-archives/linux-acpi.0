@@ -1,64 +1,125 @@
 From: akpm@osdl.org
-Subject: [patch 01/26] git-acpi: uniprocessor compile fixes
-Date: Tue, 28 Mar 2006 14:03:27 -0800
-Message-ID: <200603282203.k2SM3Xd1027650@shell0.pdx.osdl.net>
+Subject: [patch 03/26] sem2mutex: acpi, acpi_link_lock
+Date: Tue, 28 Mar 2006 14:03:29 -0800
+Message-ID: <200603282203.k2SM3Zss027656@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:43695 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S932242AbWC1WDg (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:47279 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932409AbWC1WDl (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Mar 2006 17:03:36 -0500
+	Tue, 28 Mar 2006 17:03:41 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, venkatesh.pallipadi@intel.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, mingo@elte.hu
 
 
-From: Andrew Morton <akpm@osdl.org>,
-      Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+From: Ingo Molnar <mingo@elte.hu>
 
-cpu_online_map doesn't exist if !CONFIG_SMP.
+Semaphore to mutex conversion.
 
-This path is rather lame and it'd be nice to fix it better.
+The conversion was generated via scripts, and the result was validated
+automatically via a script as well.
 
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Len Brown <len.brown@intel.com>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c       |    4 ++++
- arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c |    4 ++++
- 2 files changed, 8 insertions(+)
+ drivers/acpi/pci_link.c |   25 +++++++++++++------------
+ 1 files changed, 13 insertions(+), 12 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~git-acpi-up-fix arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
---- devel/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~git-acpi-up-fix	2006-03-28 14:02:59.000000000 -0800
-+++ devel-akpm/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c	2006-03-28 14:02:59.000000000 -0800
-@@ -225,8 +225,12 @@ acpi_cpufreq_target (
- 	freqs.old = data->freq_table[cur_state].frequency;
- 	freqs.new = data->freq_table[next_state].frequency;
+diff -puN drivers/acpi/pci_link.c~sem2mutex-acpi-acpi_link_lock drivers/acpi/pci_link.c
+--- devel/drivers/acpi/pci_link.c~sem2mutex-acpi-acpi_link_lock	2006-03-28 14:03:00.000000000 -0800
++++ devel-akpm/drivers/acpi/pci_link.c	2006-03-28 14:03:00.000000000 -0800
+@@ -38,6 +38,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/pm.h>
+ #include <linux/pci.h>
++#include <linux/mutex.h>
  
-+#ifdef CONFIG_HOTPLUG_CPU
- 	/* cpufreq holds the hotplug lock, so we are safe from here on */
- 	cpus_and(online_policy_cpus, cpu_online_map, policy->cpus);
-+#else
-+	online_policy_cpus = policy->cpus;
-+#endif
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+@@ -91,7 +92,7 @@ static struct {
+ 	int count;
+ 	struct list_head entries;
+ } acpi_link;
+-DECLARE_MUTEX(acpi_link_lock);
++DEFINE_MUTEX(acpi_link_lock);
  
- 	for_each_cpu_mask(j, online_policy_cpus) {
- 		freqs.cpu = j;
-diff -puN arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c~git-acpi-up-fix arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c
---- devel/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c~git-acpi-up-fix	2006-03-28 14:02:59.000000000 -0800
-+++ devel-akpm/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c	2006-03-28 14:02:59.000000000 -0800
-@@ -652,8 +652,12 @@ static int centrino_target (struct cpufr
- 		return -EINVAL;
+ /* --------------------------------------------------------------------------
+                             PCI Link Device Management
+@@ -634,19 +635,19 @@ acpi_pci_link_allocate_irq(acpi_handle h
+ 		return_VALUE(-1);
  	}
  
-+#ifdef CONFIG_HOTPLUG_CPU
- 	/* cpufreq holds the hotplug lock, so we are safe from here on */
- 	cpus_and(online_policy_cpus, cpu_online_map, policy->cpus);
-+#else
-+	online_policy_cpus = policy->cpus;
-+#endif
+-	down(&acpi_link_lock);
++	mutex_lock(&acpi_link_lock);
+ 	if (acpi_pci_link_allocate(link)) {
+-		up(&acpi_link_lock);
++		mutex_unlock(&acpi_link_lock);
+ 		return_VALUE(-1);
+ 	}
  
- 	saved_mask = current->cpus_allowed;
- 	first_cpu = 1;
+ 	if (!link->irq.active) {
+-		up(&acpi_link_lock);
++		mutex_unlock(&acpi_link_lock);
+ 		ACPI_ERROR((AE_INFO, "Link active IRQ is 0!"));
+ 		return_VALUE(-1);
+ 	}
+ 	link->refcnt++;
+-	up(&acpi_link_lock);
++	mutex_unlock(&acpi_link_lock);
+ 
+ 	if (triggering)
+ 		*triggering = link->irq.triggering;
+@@ -684,9 +685,9 @@ int acpi_pci_link_free_irq(acpi_handle h
+ 		return_VALUE(-1);
+ 	}
+ 
+-	down(&acpi_link_lock);
++	mutex_lock(&acpi_link_lock);
+ 	if (!link->irq.initialized) {
+-		up(&acpi_link_lock);
++		mutex_unlock(&acpi_link_lock);
+ 		ACPI_ERROR((AE_INFO, "Link isn't initialized"));
+ 		return_VALUE(-1);
+ 	}
+@@ -709,7 +710,7 @@ int acpi_pci_link_free_irq(acpi_handle h
+ 	if (link->refcnt == 0) {
+ 		acpi_ut_evaluate_object(link->handle, "_DIS", 0, NULL);
+ 	}
+-	up(&acpi_link_lock);
++	mutex_unlock(&acpi_link_lock);
+ 	return_VALUE(link->irq.active);
+ }
+ 
+@@ -740,7 +741,7 @@ static int acpi_pci_link_add(struct acpi
+ 	strcpy(acpi_device_class(device), ACPI_PCI_LINK_CLASS);
+ 	acpi_driver_data(device) = link;
+ 
+-	down(&acpi_link_lock);
++	mutex_lock(&acpi_link_lock);
+ 	result = acpi_pci_link_get_possible(link);
+ 	if (result)
+ 		goto end;
+@@ -775,7 +776,7 @@ static int acpi_pci_link_add(struct acpi
+       end:
+ 	/* disable all links -- to be activated on use */
+ 	acpi_ut_evaluate_object(link->handle, "_DIS", 0, NULL);
+-	up(&acpi_link_lock);
++	mutex_unlock(&acpi_link_lock);
+ 
+ 	if (result)
+ 		kfree(link);
+@@ -829,9 +830,9 @@ static int acpi_pci_link_remove(struct a
+ 
+ 	link = (struct acpi_pci_link *)acpi_driver_data(device);
+ 
+-	down(&acpi_link_lock);
++	mutex_lock(&acpi_link_lock);
+ 	list_del(&link->node);
+-	up(&acpi_link_lock);
++	mutex_unlock(&acpi_link_lock);
+ 
+ 	kfree(link);
+ 
 _
