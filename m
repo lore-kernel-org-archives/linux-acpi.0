@@ -1,58 +1,229 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: [Patch:001/004]Unify pxm_to_node id ver.3.(generic code)
-Date: Tue, 28 Mar 2006 13:07:36 -0800
-Message-ID: <20060328130736.5a4273d9.akpm@osdl.org>
-References: <20060328183058.CC46.Y-GOTO@jp.fujitsu.com>
-	<20060328191250.CC48.Y-GOTO@jp.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: akpm@osdl.org
+Subject: [patch 22/26] acpi memory hotplug cannot manage _CRS with plural resoureces
+Date: Tue, 28 Mar 2006 14:03:48 -0800
+Message-ID: <200603282203.k2SM3s7s027716@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:64667 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S932213AbWC1VHy (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:688 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932422AbWC1WD7 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Mar 2006 16:07:54 -0500
-In-Reply-To: <20060328191250.CC48.Y-GOTO@jp.fujitsu.com>
+	Tue, 28 Mar 2006 17:03:59 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: tony.luck@intel.com, ak@suse.de, len.brown@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, discuss@x86-64.org
-
-Yasunori Goto <y-goto@jp.fujitsu.com> wrote:
->
-> +/* Proximity bitmap length */
->  +#ifdef CONFIG_NR_NODES_CHANGABLE
->  +#define MAX_PXM_DOMAINS CONFIG_NR_NODES
->  +#else
->  +#define MAX_PXM_DOMAINS (256)
->  +#endif
-
-I don't think we need CONFIG_NR_NODES_CHANGABLE (it is spelled
-"changeable", btw).
-
-If the architecture wants to support changing of CONFIG_NR_NODES then it
-can permit CONFIG_NR_NODES to be changed in its Kconfig implementation.
-
-If the architecture doesn't want to permit changing of CONFIG_NR_NODES
-then it should simply hardwire CONFIG_NR_NODES to the chosen value in
-its Kconfig.
-
-So all architectures which use acpi_numa must implement CONFIG_NR_NODES.
-
-In fact, it would probably make sense to require that all NUMA-supporting
-archtectures implement CONFIG_NR_NODES.
-
-Also, we already have NODES_SHIFT defined in include/asm-*/numnodes.h. 
-What's the relationship between that and CONFIG_NR_NODES?  It seems that we
-want to derive NODES_SHIFT from CONFIG_NR_NODES.
-
-Was ia64's CONFIG_IA64_NR_NODES the best choice?  Should ia64 instead have
-made NODES_SHIFT Kconfigurable, and derived its max-nr_nodes from that?
-
-It's all a bit of a pickle.
+To: len.brown@intel.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, kamezawa.hiroyu@jp.fujitsu.com, kaneshige.kenji@jp.fujitsu.com
 
 
-I guess for now a suitable approach would be to make all numa-using
-architectures define CONFIG_NR_NODES, and to leave that rather
-unpleasant-looking code in include/asm-ia64/numnodes.h as it is.
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
+Current acpi memory hotplug just looks into the first entry of resources in
+_CRS.  But, _CRS can contain plural resources.  So, if _CRS contains plural
+resoureces, acpi memory hot add cannot add all memory.
+
+With this patch, acpi memory hotplug can deal with Memory Device, whose
+_CRS contains plural resources.
+
+Tested on ia64 memory hotplug test envrionment (not emulation, uses alpha
+version firmware which supports dynamic reconfiguration of NUMA.)
+
+Note: Microsoft's Windows Server 2003 requires big (>4G)resoureces to be
+      divided into small (<4G) resources. looks crazy, but not invalid.
+      (See http://www.microsoft.com/whdc/system/pnppwr/hotadd/hotaddmem.mspx)
+      For this reason, a firmware vendor who supports Windows writes plural
+      resources in a _CRS even if they are contiguous.
+
+[akpm@osdl.org: export acpi_os_allocate]
+Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: "Brown, Len" <len.brown@intel.com>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
+---
+
+ drivers/acpi/acpi_memhotplug.c |  109 ++++++++++++++++++++++---------
+ drivers/acpi/osl.c             |    1 
+ 2 files changed, 79 insertions(+), 31 deletions(-)
+
+diff -puN drivers/acpi/acpi_memhotplug.c~acpi-memory-hotplug-cannot-manage-_crs-with-plural-resoureces drivers/acpi/acpi_memhotplug.c
+--- devel/drivers/acpi/acpi_memhotplug.c~acpi-memory-hotplug-cannot-manage-_crs-with-plural-resoureces	2006-03-28 14:03:07.000000000 -0800
++++ devel-akpm/drivers/acpi/acpi_memhotplug.c	2006-03-28 14:03:07.000000000 -0800
+@@ -68,44 +68,76 @@ static struct acpi_driver acpi_memory_de
+ 		},
+ };
+ 
++struct acpi_memory_info {
++	struct list_head list;
++	u64 start_addr;		/* Memory Range start physical addr */
++	u64 length;		/* Memory Range length */
++	unsigned short caching;	/* memory cache attribute */
++	unsigned short write_protect;	/* memory read/write attribute */
++	unsigned int enabled:1;
++};
++
+ struct acpi_memory_device {
+ 	acpi_handle handle;
+ 	unsigned int state;	/* State of the memory device */
+-	unsigned short caching;	/* memory cache attribute */
+-	unsigned short write_protect;	/* memory read/write attribute */
+-	u64 start_addr;		/* Memory Range start physical addr */
+-	u64 length;		/* Memory Range length */
++	struct list_head res_list;
+ };
+ 
++static acpi_status
++acpi_memory_get_resource(struct acpi_resource *resource, void *context)
++{
++	struct acpi_memory_device *mem_device = context;
++	struct acpi_resource_address64 address64;
++	struct acpi_memory_info *info, *new;
++	acpi_status status;
++
++	status = acpi_resource_to_address64(resource, &address64);
++	if (ACPI_FAILURE(status) ||
++	    (address64.resource_type != ACPI_MEMORY_RANGE))
++		return AE_OK;
++
++	list_for_each_entry(info, &mem_device->res_list, list) {
++		/* Can we combine the resource range information? */
++		if ((info->caching == address64.info.mem.caching) &&
++		    (info->write_protect == address64.info.mem.write_protect) &&
++		    (info->start_addr + info->length == address64.minimum)) {
++			info->length += address64.address_length;
++			return AE_OK;
++		}
++	}
++
++	new = acpi_os_allocate(sizeof(struct acpi_memory_info));
++	if (!new)
++		return AE_ERROR;
++
++	memset(new, 0, sizeof(*new));
++	INIT_LIST_HEAD(&new->list);
++	new->caching = address64.info.mem.caching;
++	new->write_protect = address64.info.mem.write_protect;
++	new->start_addr = address64.minimum;
++	new->length = address64.address_length;
++	list_add_tail(&new->list, &mem_device->res_list);
++
++	return AE_OK;
++}
++
+ static int
+ acpi_memory_get_device_resources(struct acpi_memory_device *mem_device)
+ {
+ 	acpi_status status;
+-	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+-	struct acpi_resource *resource = NULL;
+-	struct acpi_resource_address64 address64;
++	struct acpi_memory_info *info, *n;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_memory_get_device_resources");
+ 
+ 	/* Get the range from the _CRS */
+-	status = acpi_get_current_resources(mem_device->handle, &buffer);
+-	if (ACPI_FAILURE(status))
++	status = acpi_walk_resources(mem_device->handle, METHOD_NAME__CRS,
++				     acpi_memory_get_resource, mem_device);
++	if (ACPI_FAILURE(status)) {
++		list_for_each_entry_safe(info, n, &mem_device->res_list, list)
++			acpi_os_free(info);
+ 		return_VALUE(-EINVAL);
+-
+-	resource = (struct acpi_resource *)buffer.pointer;
+-	status = acpi_resource_to_address64(resource, &address64);
+-	if (ACPI_SUCCESS(status)) {
+-		if (address64.resource_type == ACPI_MEMORY_RANGE) {
+-			/* Populate the structure */
+-			mem_device->caching = address64.info.mem.caching;
+-			mem_device->write_protect =
+-			    address64.info.mem.write_protect;
+-			mem_device->start_addr = address64.minimum;
+-			mem_device->length = address64.address_length;
+-		}
+ 	}
+ 
+-	acpi_os_free(buffer.pointer);
+ 	return_VALUE(0);
+ }
+ 
+@@ -180,7 +212,8 @@ static int acpi_memory_check_device(stru
+ 
+ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
+ {
+-	int result;
++	int result, num_enabled = 0;
++	struct acpi_memory_info *info;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_memory_enable_device");
+ 
+@@ -195,12 +228,21 @@ static int acpi_memory_enable_device(str
+ 	/*
+ 	 * Tell the VM there is more memory here...
+ 	 * Note: Assume that this function returns zero on success
++    	 * We don't have memory-hot-add rollback function,now.
++         * (i.e. memory-hot-remove function)
+ 	 */
+-	result = add_memory(mem_device->start_addr, mem_device->length);
+-	if (result) {
++	list_for_each_entry(info, &mem_device->res_list, list) {
++		result = add_memory(info->start_addr, info->length);
++		if (result)
++			continue;
++		info->enabled = 1;
++		num_enabled++;
++	}
++
++	if (!num_enabled) {
+ 		ACPI_ERROR((AE_INFO, "add_memory failed"));
+ 		mem_device->state = MEMORY_INVALID_STATE;
+-		return result;
++		return -EINVAL;
+ 	}
+ 
+ 	return result;
+@@ -244,8 +286,7 @@ static int acpi_memory_powerdown_device(
+ static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
+ {
+ 	int result;
+-	u64 start = mem_device->start_addr;
+-	u64 len = mem_device->length;
++	struct acpi_memory_info *info, *n;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_memory_disable_device");
+ 
+@@ -253,9 +294,14 @@ static int acpi_memory_disable_device(st
+ 	 * Ask the VM to offline this memory range.
+ 	 * Note: Assume that this function returns zero on success
+ 	 */
+-	result = remove_memory(start, len);
+-	if (result)
+-		return_VALUE(result);
++	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
++		if (info->enabled) {
++			result = remove_memory(info->start_addr, info->length);
++			if (result)
++				return_VALUE(result);
++		}
++		acpi_os_free(info);
++	}
+ 
+ 	/* Power-off and eject the device */
+ 	result = acpi_memory_powerdown_device(mem_device);
+@@ -347,6 +393,7 @@ static int acpi_memory_device_add(struct
+ 		return_VALUE(-ENOMEM);
+ 	memset(mem_device, 0, sizeof(struct acpi_memory_device));
+ 
++	INIT_LIST_HEAD(&mem_device->res_list);
+ 	mem_device->handle = device->handle;
+ 	sprintf(acpi_device_name(device), "%s", ACPI_MEMORY_DEVICE_NAME);
+ 	sprintf(acpi_device_class(device), "%s", ACPI_MEMORY_DEVICE_CLASS);
+diff -puN drivers/acpi/osl.c~acpi-memory-hotplug-cannot-manage-_crs-with-plural-resoureces drivers/acpi/osl.c
+--- devel/drivers/acpi/osl.c~acpi-memory-hotplug-cannot-manage-_crs-with-plural-resoureces	2006-03-28 14:03:07.000000000 -0800
++++ devel-akpm/drivers/acpi/osl.c	2006-03-28 14:03:07.000000000 -0800
+@@ -145,6 +145,7 @@ void *acpi_os_allocate(acpi_size size)
+ 	else
+ 		return kmalloc(size, GFP_KERNEL);
+ }
++EXPORT_SYMBOL(acpi_os_allocate);
+ 
+ void acpi_os_free(void *ptr)
+ {
+_
