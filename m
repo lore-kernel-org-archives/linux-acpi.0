@@ -1,52 +1,131 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: no /proc/acpi, trying to dump dsdt to a file
-Date: Wed, 29 Mar 2006 14:11:15 -0500
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB60B8170@hdsmsx411.amr.corp.intel.com>
+From: glen martin <lists@locutory.org>
+Subject: Re: no /proc/acpi, trying to dump dsdt to a file
+Date: Wed, 29 Mar 2006 11:53:34 -0800
+Message-ID: <442AE5BE.50409@locutory.org>
+References: <971FCB6690CD0E4898387DBF7552B90E04D4B332@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:5306 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1750836AbWC2TL1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Mar 2006 14:11:27 -0500
-Content-class: urn:content-classes:message
+Received: from m198-163.dsl.rawbw.com ([198.144.198.163]:16623 "EHLO
+	slowpoke.locutory.org") by vger.kernel.org with ESMTP
+	id S1750894AbWC2Txf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Mar 2006 14:53:35 -0500
+Received: from [127.0.0.1] (slowpoke.locutory.org [192.168.0.126])
+	by slowpoke.locutory.org (Postfix) with ESMTP id 41DEE1C06E
+	for <linux-acpi@vger.kernel.org>; Wed, 29 Mar 2006 11:53:33 -0800 (PST)
+In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E04D4B332@orsmsx403.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>, glen martin <lists@locutory.org>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
+Sent to Robert privately, so I wouldn't spam the list with an 
+attachment. If anyone else wants it, let me know.
 
+Moore, Robert wrote:
 
->-----Original Message-----
->From: Brown, Len
->Sent: Wednesday, March 29, 2006 2:04 PM
->To: 'glen martin'; linux-acpi@vger.kernel.org
->Subject: RE: no /proc/acpi, trying to dump dsdt to a file
+>I would be very interesting to see what windows does with this DSDT when
+>encountered. If you could get this and send it, it would help.
 >
->You can dump your ACPI tables with acpidump, no matter if you
->are booted in ACPI mode or not.  Get the latest from pmtools here:
+>Windows puts the DSDT into the registry, under
+>HKEY_LOCAL_MACHINE/HARDWARE/ACPI/DSDT.
 >
->http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
 >
->/DSDT.aml not found.
->> tbxface-0109 [02] load_tables           : ACPI Tables successfully acquired
->>nssearch-0311: *** Error: ns_search_and_enter: Bad character in ACPI
->>Name: 43035350
->> dswload-0292: *** Error: Looking up [0x43035350] (NON-ASCII)
->> in namespace, AE_BAD_CHARACTER
->>  psloop-0287 [09] ps_parse_loop         : During name lookup/catalog,
->>AE_BAD_CHARACTER
->> tbxface-0115: *** Error: acpi_load_tables: Could not load namespace:
->>AE_BAD_CHARACTER
->> tbxface-0123: *** Error: acpi_load_tables: Could not load tables:
->>AE_BAD_CHARACTER
->>ACPI: Unable to load the System Description Tables
+>
+>  
+>
+>>-----Original Message-----
+>>From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+>>owner@vger.kernel.org] On Behalf Of glen martin
+>>Sent: Wednesday, March 29, 2006 10:50 AM
+>>To: linux-acpi@vger.kernel.org
+>>Subject: Re: no /proc/acpi, trying to dump dsdt to a file
+>>
+>>Yeah, no problem at all. What, Windows care about a broken dsdt? Bah
+>>    
+>>
+>...
+>  
+>
+>>:)
+>>
+>>A number of folks have run into this dsdt problem with this and
+>>    
+>>
+>related
+>  
+>
+>>boards from ASUS. The instructions on how to deal suggest dumping and
+>>fixing the dsdt table,or grabbing a pre-fixed one from the repository
+>>    
+>>
+>on
+>  
+>
+>>SF.  I tried the repository, but the iasl compiler won't deal with it,
+>>so the next attempt was to dump and fix my existing broken table from
+>>the BIOS.
+>>
+>>Thanks,
+>>
+>>glen
 >>
 >>
->>Any suggestions?
+>>Moore, Robert wrote:
+>>
+>>    
+>>
+>>>Does this machine boot Windows ok?
+>>>
+>>>
+>>>      
+>>>
+>>>>-----Original Message-----
+>>>>From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+>>>>owner@vger.kernel.org] On Behalf Of glen martin
+>>>>Sent: Wednesday, March 29, 2006 9:51 AM
+>>>>...
+>>>>kernel is 2.6.15, with gentoo patches and the patch to load a dsdt
+>>>>        
+>>>>
+>from
+>  
 >
->Replace the non-ascii character with an ascii one.
->There is a patch about to work around this -- let me find it...
+>>initrd.
+>>    
+>>
+>>>>I'm trying to dump my dsdt, but there is no /proc/acpi, let alone
+>>>>/proc/acpi/dsdt.
+>>>>
+>>>>Is there something special needed to make /proc/acpi show up? Or
+>>>>        
+>>>>
+>other
+>  
+>
+>>>>way to get at the existing dsdt in this situation?
+>>>>
+>>>>
+>>>>        
+>>>>
+>><snip>
+>>
+>>-
+>>To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+>>    
+>>
+>in
+>  
+>
+>>the body of a message to majordomo@vger.kernel.org
+>>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>    
+>>
+>-
+>To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>  
+>
 
-Please try the test patch here:
-https://bugzilla.novell.com/show_bug.cgi?id=147621#c22
