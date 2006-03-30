@@ -1,86 +1,96 @@
-From: Kimball Murray <kimball.murray@gmail.com>
-Subject: [PATCH] ACPI SCI interrupt source override
-Date: Thu, 30 Mar 2006 15:25:52 -0500
-Message-ID: <20060330202152.27940.89027.sendpatchset@dhcp83-97.boston.redhat.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: ACPI_DEBUG_PRINT and ACPI_WARNING
+Date: Thu, 30 Mar 2006 15:11:13 -0800
+Message-ID: <971FCB6690CD0E4898387DBF7552B90E04DB9B66@orsmsx403.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:59782 "EHLO mx1.redhat.com")
-	by vger.kernel.org with ESMTP id S1750816AbWC3UZ7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 30 Mar 2006 15:25:59 -0500
+Received: from mga02.intel.com ([134.134.136.20]:46733 "EHLO
+	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1751119AbWC3XLO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Mar 2006 18:11:14 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com
-Cc: Kimball Murray <kimball.murray@gmail.com>kimball.murray@gmail.com, linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-Greetings.  The Linux group at Stratus Technologies has come across an
-issue with SCI routing under ACPI.  We were bitten by this when we made an
-x86_64 platform whose BIOS provides an Interrupt Source Override for the SCI
-itself.  Apparently the override has no effect for the System Control
-Interrupt, and this appears to be because of the way the SCI is setup
-in the ACPI code.  It does not handle the case where busirq != gsi.
+Next question would be, do the various unix flavors all have a similar
+mechanism?
 
-The code that sets up the SCI routing assumes that bus irq == global irq.
-So there is simply no provision for telling it otherwise.  The attached patch
-provides this mechanism.
+So, we could have something like:
 
-This patch provided by David Bulkow, was tested on an i386 platform,
-which does not use the SCI override, and also on an x86_64 platform which
-does use an override.
+ACPI_ERROR -> KERN_ERR
+ACPI_WARNING -> KERN_WARNING
+ACPI_EXCEPTION -> KERN_ERR?
+ACPI_INFO -> KERN_INFO
 
-This patch was generated against Len's tree, version 2.6.16-rc5-g9dc2a5c1.
-
-Comments welcome.  - Kimball Murray
+ACPI_DEBUG_PRINT -> KERN_DEBUG
 
 
-Signed-off by: David Bulkow	<david.bulkow@stratus.com>
 
----------------- snip -----------------------------------------
-
-diff --git a/arch/i386/kernel/acpi/boot.c b/arch/i386/kernel/acpi/boot.c
-index f1a2194..ed2600a 100644
---- a/arch/i386/kernel/acpi/boot.c
-+++ b/arch/i386/kernel/acpi/boot.c
-@@ -324,7 +324,7 @@ acpi_parse_ioapic(acpi_table_entry_heade
- /*
-  * Parse Interrupt Source Override for the ACPI SCI
-  */
--static void acpi_sci_ioapic_setup(u32 gsi, u16 polarity, u16 trigger)
-+static void acpi_sci_ioapic_setup(u32 busirq, u32 gsi, u16 polarity, u16 trigger)
- {
- 	if (trigger == 0)	/* compatible SCI trigger is level */
- 		trigger = 3;
-@@ -344,13 +344,13 @@ static void acpi_sci_ioapic_setup(u32 gs
- 	 * If GSI is < 16, this will update its flags,
- 	 * else it will create a new mp_irqs[] entry.
- 	 */
--	mp_override_legacy_irq(gsi, polarity, trigger, gsi);
-+	mp_override_legacy_irq(busirq, polarity, trigger, gsi);
- 
- 	/*
- 	 * stash over-ride to indicate we've been here
- 	 * and for later update of acpi_fadt
- 	 */
--	acpi_sci_override_gsi = gsi;
-+        acpi_sci_override_gsi = busirq;
- 	return;
- }
- 
-@@ -368,7 +368,8 @@ acpi_parse_int_src_ovr(acpi_table_entry_
- 	acpi_table_print_madt_entry(header);
- 
- 	if (intsrc->bus_irq == acpi_fadt.sci_int) {
--		acpi_sci_ioapic_setup(intsrc->global_irq,
-+		acpi_sci_ioapic_setup(intsrc->bus_irq,
-+				      intsrc->global_irq,
- 				      intsrc->flags.polarity,
- 				      intsrc->flags.trigger);
- 		return 0;
-@@ -786,7 +787,7 @@ static int __init acpi_parse_madt_ioapic
- 	 * pretend we got one so we can set the SCI flags.
- 	 */
- 	if (!acpi_sci_override_gsi)
--		acpi_sci_ioapic_setup(acpi_fadt.sci_int, 0, 0);
-+		acpi_sci_ioapic_setup(acpi_fadt.sci_int, acpi_fadt.sci_int, 0, 0);
- 
- 	/* Fill in identity legacy mapings where no override */
- 	mp_config_acpi_legacy_irqs();
+> -----Original Message-----
+> From: Moore, Robert
+> Sent: Wednesday, March 29, 2006 3:06 PM
+> To: Brown, Len; linux-acpi@vger.kernel.org
+> Subject: RE: ACPI_DEBUG_PRINT and ACPI_WARNING
+> 
+> You would like an OSL interface that gets passed the debug level and
+can
+> map this to the host debug/error levels?
+> 
+> > -----Original Message-----
+> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> > owner@vger.kernel.org] On Behalf Of Brown, Len
+> > Sent: Wednesday, March 29, 2006 2:58 PM
+> > To: linux-acpi@vger.kernel.org
+> > Subject: ACPI_DEBUG_PRINT and ACPI_WARNING
+> >
+> >
+> > I think we have a problem with both ACPI_DEBUG_PRINT and
+ACPI_WARNING
+> > and how these ACPI core macros work on Linux.
+> >
+> > ACPI_WARNING is an improvement over the past where all the
+> > ACPI_DEBUG_PRINT messages went away on a production kernel.
+> >
+> > ACPI_DEBUG_PRINT is very handy in that via acpi_ut_print()
+> > you can turn them on and off on your debug kernel depending
+> > on the level and section of code.
+> >
+> > But both funnel through osl.c where there is no native Linux
+> > print level associated with the message, and thus if it gets
+> > that far, it unconditionaly gets printed to the screen and
+> > log buffer, no mater how the system has been administered
+> > to handle messages of different levels.
+> >
+> > ie. the kernel.h levels are not used:
+> >
+> > #define	KERN_EMERG	"<0>"	/* system is unusable
+> > */
+> > #define	KERN_ALERT	"<1>"	/* action must be taken
+immediately
+> > */
+> > #define	KERN_CRIT	"<2>"	/* critical conditions
+> > */
+> > #define	KERN_ERR	"<3>"	/* error conditions
+> > */
+> > #define	KERN_WARNING	"<4>"	/* warning conditions
+> > */
+> > #define	KERN_NOTICE	"<5>"	/* normal but significant
+condition
+> > */
+> > #define	KERN_INFO	"<6>"	/* informational
+> > */
+> > #define	KERN_DEBUG	"<7>"	/* debug-level messages
+> > */
+> >
+> > thoughts?
+> >
+> > -Len
+> > -
+> > To unsubscribe from this list: send the line "unsubscribe
+linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
