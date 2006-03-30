@@ -1,28 +1,86 @@
-From: Andi Kleen <ak@muc.de>
-Subject: Re: CONFIG_ACPI_HOTPLUG_MEMORY=m with x86_64 devel tree II
-Date: 30 Mar 2006 16:31:22 +0200
-Message-ID: <20060330143122.GB84501@muc.de>
-References: <20060322192134.GA44212@muc.de> <20060323082732.9828ca2f.kamezawa.hiroyu@jp.fujitsu.com> <20060323000759.GB71469@muc.de> <20060323093609.8eb03249.kamezawa.hiroyu@jp.fujitsu.com> <20060323024306.GA90581@muc.de> <20060323125942.2facb79b.kamezawa.hiroyu@jp.fujitsu.com> <20060330134133.GB80060@muc.de> <20060330225459.c2c53dbe.kamezawa.hiroyu@jp.fujitsu.com> <20060330141811.GA84501@muc.de> <20060330232522.f9259d93.kamezawa.hiroyu@jp.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Kimball Murray <kimball.murray@gmail.com>
+Subject: [PATCH] ACPI SCI interrupt source override
+Date: Thu, 30 Mar 2006 15:25:52 -0500
+Message-ID: <20060330202152.27940.89027.sendpatchset@dhcp83-97.boston.redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from colin.muc.de ([193.149.48.1]:20751 "EHLO mail.muc.de")
-	by vger.kernel.org with ESMTP id S932236AbWC3ObY (ORCPT
+Received: from mx1.redhat.com ([66.187.233.31]:59782 "EHLO mx1.redhat.com")
+	by vger.kernel.org with ESMTP id S1750816AbWC3UZ7 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 30 Mar 2006 09:31:24 -0500
-Date: Thu, 30 Mar 2006 16:31:22 +0200
-Content-Disposition: inline
-In-Reply-To: <20060330232522.f9259d93.kamezawa.hiroyu@jp.fujitsu.com>
+	Thu, 30 Mar 2006 15:25:59 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: akpm@osdl.org, y-goto@jp.fujitsu.com, linux-acpi@vger.kernel.org, tony.luck@intel.com
+To: len.brown@intel.com
+Cc: Kimball Murray <kimball.murray@gmail.com>kimball.murray@gmail.com, linux-acpi@vger.kernel.org
 
-> 2GB to 6GB pages are all added to NORMAL, not DMA32. (2.6.16)
-> If this is not sane, x86_64's add_memory should have to check address of start/end.
+Greetings.  The Linux group at Stratus Technologies has come across an
+issue with SCI routing under ACPI.  We were bitten by this when we made an
+x86_64 platform whose BIOS provides an Interrupt Source Override for the SCI
+itself.  Apparently the override has no effect for the System Control
+Interrupt, and this appears to be because of the way the SCI is setup
+in the ACPI code.  It does not handle the case where busirq != gsi.
 
-Hmm thinking about it again it might not be that bad. It could
-cause some additional bounces during IO, but shouldn't cause
-any malfunction.
+The code that sets up the SCI routing assumes that bus irq == global irq.
+So there is simply no provision for telling it otherwise.  The attached patch
+provides this mechanism.
 
--Andi
+This patch provided by David Bulkow, was tested on an i386 platform,
+which does not use the SCI override, and also on an x86_64 platform which
+does use an override.
+
+This patch was generated against Len's tree, version 2.6.16-rc5-g9dc2a5c1.
+
+Comments welcome.  - Kimball Murray
+
+
+Signed-off by: David Bulkow	<david.bulkow@stratus.com>
+
+---------------- snip -----------------------------------------
+
+diff --git a/arch/i386/kernel/acpi/boot.c b/arch/i386/kernel/acpi/boot.c
+index f1a2194..ed2600a 100644
+--- a/arch/i386/kernel/acpi/boot.c
++++ b/arch/i386/kernel/acpi/boot.c
+@@ -324,7 +324,7 @@ acpi_parse_ioapic(acpi_table_entry_heade
+ /*
+  * Parse Interrupt Source Override for the ACPI SCI
+  */
+-static void acpi_sci_ioapic_setup(u32 gsi, u16 polarity, u16 trigger)
++static void acpi_sci_ioapic_setup(u32 busirq, u32 gsi, u16 polarity, u16 trigger)
+ {
+ 	if (trigger == 0)	/* compatible SCI trigger is level */
+ 		trigger = 3;
+@@ -344,13 +344,13 @@ static void acpi_sci_ioapic_setup(u32 gs
+ 	 * If GSI is < 16, this will update its flags,
+ 	 * else it will create a new mp_irqs[] entry.
+ 	 */
+-	mp_override_legacy_irq(gsi, polarity, trigger, gsi);
++	mp_override_legacy_irq(busirq, polarity, trigger, gsi);
+ 
+ 	/*
+ 	 * stash over-ride to indicate we've been here
+ 	 * and for later update of acpi_fadt
+ 	 */
+-	acpi_sci_override_gsi = gsi;
++        acpi_sci_override_gsi = busirq;
+ 	return;
+ }
+ 
+@@ -368,7 +368,8 @@ acpi_parse_int_src_ovr(acpi_table_entry_
+ 	acpi_table_print_madt_entry(header);
+ 
+ 	if (intsrc->bus_irq == acpi_fadt.sci_int) {
+-		acpi_sci_ioapic_setup(intsrc->global_irq,
++		acpi_sci_ioapic_setup(intsrc->bus_irq,
++				      intsrc->global_irq,
+ 				      intsrc->flags.polarity,
+ 				      intsrc->flags.trigger);
+ 		return 0;
+@@ -786,7 +787,7 @@ static int __init acpi_parse_madt_ioapic
+ 	 * pretend we got one so we can set the SCI flags.
+ 	 */
+ 	if (!acpi_sci_override_gsi)
+-		acpi_sci_ioapic_setup(acpi_fadt.sci_int, 0, 0);
++		acpi_sci_ioapic_setup(acpi_fadt.sci_int, acpi_fadt.sci_int, 0, 0);
+ 
+ 	/* Fill in identity legacy mapings where no override */
+ 	mp_config_acpi_legacy_irqs();
