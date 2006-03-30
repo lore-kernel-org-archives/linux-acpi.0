@@ -1,48 +1,31 @@
-From: chrisse kristen <053atlanta@sesmail.com>
-Subject: New part-time vacancies available in your area
-Date: Thu, 30 Mar 2006 13:38:24 +0300
-Message-ID: <bea301c653e6$79f72a10$a64bbf68@sesmail.com>
+From: Andi Kleen <ak@muc.de>
+Subject: Re: CONFIG_ACPI_HOTPLUG_MEMORY=m with x86_64 devel tree II
+Date: 30 Mar 2006 15:41:33 +0200
+Message-ID: <20060330134133.GB80060@muc.de>
+References: <20060321222332.1a037c8e.akpm@osdl.org> <20060322192804.E490.Y-GOTO@jp.fujitsu.com> <20060322030208.30e3581e.akpm@osdl.org> <20060322203220.6433e697.kamezawa.hiroyu@jp.fujitsu.com> <20060322192134.GA44212@muc.de> <20060323082732.9828ca2f.kamezawa.hiroyu@jp.fujitsu.com> <20060323000759.GB71469@muc.de> <20060323093609.8eb03249.kamezawa.hiroyu@jp.fujitsu.com> <20060323024306.GA90581@muc.de> <20060323125942.2facb79b.kamezawa.hiroyu@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-    format=flowed;
-    charset="windows-1251";
-    reply-type=original
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zeus1.kernel.org ([204.152.191.4]:49044 "EHLO zeus1.kernel.org")
-	by vger.kernel.org with ESMTP id S932151AbWC3MmJ (ORCPT
+Received: from colin.muc.de ([193.149.48.1]:47882 "EHLO mail.muc.de")
+	by vger.kernel.org with ESMTP id S932167AbWC3Nlm (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 30 Mar 2006 07:42:09 -0500
-Received: from dslb-084-058-100-228.pools.arcor-ip.net (dslb-084-058-100-228.pools.arcor-ip.net [84.58.100.228])
-	by zeus1.kernel.org (8.13.1/8.13.1) with SMTP id k2UCfvpD002191
-	for <linux-acpi@vger.kernel.org>; Thu, 30 Mar 2006 12:42:01 GMT
+	Thu, 30 Mar 2006 08:41:42 -0500
+Date: Thu, 30 Mar 2006 15:41:33 +0200
+Content-Disposition: inline
+In-Reply-To: <20060323125942.2facb79b.kamezawa.hiroyu@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-
-Dear Applicant,
-
-Our company located in Salinas,CA is hiring now across the United 
-States and Canada.
-
-Available vacancies(part-time and full-time):
-
-- Couriers($8-14 Per Hour) - Vacancies available in 87 cities across 
-the U.S. and Canada
-- Call Center Operators( Women with pleasant voice ; $8-12 Per Hour/ 
-outgoing(verification) calls.
-- File Managers(20 vacancies available)
-- Payment Processing Assistants/Managers( available nation-wide)
-- And more part-time vacancies in the US(except Alaska) and Canada
-Entry level candidates/retirees are welcome.
-Training provided.
-
-Please visit our vacancies page/online registration form to find more 
-vacancies available in your area:
-http://www.fidelity-usa.com/registervac.htm
+To: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: akpm@osdl.org, y-goto@jp.fujitsu.com, linux-acpi@vger.kernel.org, tony.luck@intel.com
 
 
-Best Regards,
-Amanda Rockwell,
-Fidelity Alliance LLC.
+Hi,
 
+I started to implement your suggestion now.
+
+But one problem I noticed and I don't see how the current sparsemem code
+handles correctly is that it makes no attempt to handle hotadd
+areas that cross zone boundaries. Is there code somewhere that rejects
+them?
+
+-Andi
