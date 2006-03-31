@@ -1,61 +1,67 @@
-From: Klaus-Martin Scheuer <k-mscheuer@visio-net.de>
-Subject: Hotkeys do not work after Suspend-to-RAM (Kernel 2.6.16 + Samsung P35)
-Date: Fri, 31 Mar 2006 09:24:58 +0200
-Message-ID: <200603310924.58970.k-mscheuer@visio-net.de>
+From: Erik Slagter <erik@slagter.name>
+Subject: OOPS 2.6.16 and 2.6.16-git14
+Date: Fri, 31 Mar 2006 15:01:28 +0200
+Message-ID: <1143810088.15258.1.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart3555697.xOOUuzUO8z";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ad96e004e.dsl.de.colt.net ([217.110.0.78]:36564 "EHLO
-	hostingserver.dmz.labffm.de") by vger.kernel.org with ESMTP
-	id S1751242AbWCaHZA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 31 Mar 2006 02:25:00 -0500
-Received: from bart (p54A8C49F.dip0.t-ipconnect.de [84.168.196.159])
-	by hostingserver.dmz.labffm.de (Postfix) with ESMTP id 98E544850B
-	for <linux-acpi@vger.kernel.org>; Fri, 31 Mar 2006 09:24:59 +0200 (CEST)
+Received: from erik-slagter.demon.nl ([83.160.41.216]:45198 "EHLO
+	artemis.slagter.name") by vger.kernel.org with ESMTP
+	id S932096AbWCaNBl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 31 Mar 2006 08:01:41 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
---nextPart3555697.xOOUuzUO8z
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+I get a kernel OOPS using 2.6.16 and 2.6.16-git14, I was using 2.6.14.2
+before without the problem.
 
-Hi,
+The OOPS happens when doing either
 
-I just upgraded my notebook to the kernel version 2.6.16 and encountered th=
-at=20
-after a suspend-to-ram cycle (suspend-to-disk makes no problems) the hotkey=
-s=20
-did not work. I tried to rmmod asus_acpi before suspending and modprobe it=
-=20
-after resuming with no success. Then I tried to rmmod and modprobe it only=
-=20
-after resuming. Again no sccess.
-I can state that there are no hotkey events in /var/log/messages after=20
-resuming, it works before suspending.
+echo "3" > /proc/acpi/sleep
 
-Almost the same configuration worked with kernel 2.6.14.
+or
 
-Any suggestions?
+echo "mem" > /sys/power/state
 
-Regards
-Klaus-Martin Scheuer
+As I have a laptop without serial ports, I'd have to write down the
+oops, so please forgive that I didn't write down ALL the output, I think
+I have the most important stuff, though.
 
---nextPart3555697.xOOUuzUO8z
-Content-Type: application/pgp-signature
+Please note that it also happens when mentioned modules are not linked
+in and that I enabled the kernel read-only pages option (although that
+doesn't seem to be related).
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2.2 (GNU/Linux)
+I am not subscribed, so please CC.
 
-iD8DBQBELNlKCmkDofDxVpkRAuqAAJ9MGVgTtbUMQyHSaVGa/ArWcE25IACggKYY
-opZgZHXGQt9SyeXczZQ55bY=
-=NUyz
------END PGP SIGNATURE-----
+========================= OOPS ====================
 
---nextPart3555697.xOOUuzUO8z--
+hci_usb: 2-1:1.1: no suspend for driver hci_usb?
+hci_usb: 2-1:1.0: no suspend for driver hci_usb?
+kernel tried to execute NX-protected page - exploit attempt? (uid 0)
+BUG: unable to handle kernel paging request at virtual address c04ce31
+ 
+ Printing EIP
+c04ce31c
+*pde = 00000000
+Oops: 0011 [#1]
+Modules linked in: pl2303 usbserial ehci_hcd ipw2200 uhci_hcd
+CPU: 0
+EIP: 0060:[<c04ce31c>] Not tainted VLI
+EFLAGS: 00010046 (2.6.16-git14 #4)
+EIP is at 0x04ce31c
+eax: c04dec00 ebx: c0001000 ecx: c000080 edx: 00000100
+esi: 00000003 edi: 00000000 ebp: 0000046 esp: f4f0bef4
+ds: 007b es: 007b ss: 0068
+Process zsh (pid: 3657, threadinfo=f4f40a000, task=f4c0ea90)
+Stack: <0>c0244b4e c04e3f08 00000000 ....
+Call trace: acpi_pm_enter+0x53/0x99     suspend_enter+0x4f/0x60
+            enter_state+0xde/0x160      state_store+0x97/0xc0
+            state_store+0x0/0xc0        subsys_attr_store+0x29/0x40
+            sysfs_write_file+0x93/0xf0  vfs_write+0xa6/0x160
+            sysfs_write+0x0/0xf0        sys_write+0x41/0x70
+            sysenter_past_esp+0x54/0x75
+
+
+Config and Map not included, they are rather big. Submission on request.
