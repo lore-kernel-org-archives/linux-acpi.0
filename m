@@ -1,29 +1,52 @@
-From: M ROBERT Bertrand <bertrand.robert@akseo.net>
-Subject: ACPI for Kernel 2.6.16
-Date: Sat, 1 Apr 2006 15:17:42 +0200
-Message-ID: <200604011517.42686.bertrand.robert@akseo.net>
+From: "Michael J. Kidd" <mjkidd@linuxkidd.com>
+Subject: Help with Averatec C3500
+Date: Sat, 01 Apr 2006 11:58:41 -0500
+Message-ID: <442EB141.5040205@linuxkidd.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mf00.sitadelle.com ([212.94.174.67]:48005 "EHLO
-	smtp.cegetel.net") by vger.kernel.org with ESMTP id S1751445AbWDANRs
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 1 Apr 2006 08:17:48 -0500
-Received: from acer (unknown [84.7.42.29])
-	by smtp.cegetel.net (Postfix) with ESMTP id 3CD9C1A4406
-	for <linux-acpi@vger.kernel.org>; Sat,  1 Apr 2006 15:17:31 +0200 (CEST)
-Content-Disposition: inline
+Received: from wsip-70-169-128-52.hr.hr.cox.net ([70.169.128.52]:45272 "HELO
+	wsip-70-169-128-52.hr.hr.cox.net") by vger.kernel.org with SMTP
+	id S1751552AbWDAQ7H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 1 Apr 2006 11:59:07 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-Hello, 
+Hello all,
+ I have an Averatec C3500 Convertible Tablet PC.  With the initial bios 
+version that ships with the unit, USB and PCMCIA both work fine in 
+linux.  However, there is a terrible keyboard lag and dropped keys.  The 
+follow-on bios revisions fixed the keyboard issues, but caused USB and 
+PCMCIA to both stop working.  Note: All devices continue to operate fine 
+in Windows.  I'm posting this here in hopes that someone will take 
+interest in this issue ( there are several others trying to use linux on 
+these laptops. )  I've captured dmesg output after enabling 
+CONFIG_USB_DEBUG and CONFIG_PCMCIA_DEBUG in the kernel config, and the 
+output from lspci -vvxxx, as well as the DSDT output from both the 
+original BIOS ( USB working / Keyboard not ) and the latest BIOS 
+revision ( USB Not working / Keyboard works great ).
 
-Hello, I would like to know when would be available the patch ACPI for the 
-version 2.6.16.1 of kernel GNU / LINUX?
-Can the patch for the version 2.6.16 RC1 work on my version?
-I thank you beforehand.
+The link for all this captured data is: http://www.linuxkidd.com/c3500   
+I've detailed the machine hardware, running kernel, etc.. as well as 
+linked to all the above described captures.
 
-Bye
+After posting the above request to the linux-usb list, Alan Stern 
+responded with:
+----------------------------------------------------------------------
+According to the log, the I/O memory mappings for the USB and PCMCIA
+controllers aren't getting set up. It's not a USB or PCMCIA issue at all;
+you should ask for help on the PCI and ACPI mailing lists.
+----------------------------------------------------------------------
+
+So, here I am...
+
+If there's anything else I can provide to assist in troubleshooting,
+Please ask!  I'd really like to get this working.
+
+Thanks in advance for any help!
+Michael J. Kidd
+
+
+
