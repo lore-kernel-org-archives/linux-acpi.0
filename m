@@ -1,93 +1,59 @@
 From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [patch 01/26] git-acpi: uniprocessor compile fixes
-Date: Sat, 1 Apr 2006 21:12:46 -0500
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6123DD1@hdsmsx411.amr.corp.intel.com>
+Subject: RE: [patch 13/26] ACPI: print wakeup device list on same line as label
+Date: Sat, 1 Apr 2006 21:55:48 -0500
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB6123DD6@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:16251 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S932375AbWDBCMu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 1 Apr 2006 21:12:50 -0500
+Received: from mga01.intel.com ([192.55.52.88]:22833 "EHLO
+	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
+	id S1751653AbWDBCzv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 1 Apr 2006 21:55:51 -0500
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: akpm@osdl.org
-Cc: linux-acpi@vger.kernel.org, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Cc: linux-acpi@vger.kernel.org, bjorn.helgaas@hp.com
 
-applied.
+
+>From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+>
+>Print the ACPI wakeup device list on the same line as the label to make
+>"dmesg | grep ACPI" output more useful.
+
+It is a temporary hack that we expose these devices via the internal BIOS names.
+They should really be properties of devices in the device tree.
+
+Instead of updating this message, can we delete it altogether?
+
 thanks,
--Len 
+-Len
 
->-----Original Message-----
->From: akpm@osdl.org [mailto:akpm@osdl.org] 
->Sent: Tuesday, March 28, 2006 5:03 PM
->To: Brown, Len
->Cc: linux-acpi@vger.kernel.org; akpm@osdl.org; Pallipadi, Venkatesh
->Subject: [patch 01/26] git-acpi: uniprocessor compile fixes
->
->
->From: Andrew Morton <akpm@osdl.org>,
->      Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
->
->cpu_online_map doesn't exist if !CONFIG_SMP.
->
->This path is rather lame and it'd be nice to fix it better.
->
->Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
->Cc: Len Brown <len.brown@intel.com>
+
+>Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 >Signed-off-by: Andrew Morton <akpm@osdl.org>
 >---
 >
-> arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c       |    4 ++++
-> arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c |    4 ++++
-> 2 files changed, 8 insertions(+)
+> drivers/acpi/sleep/wakeup.c |    2 +-
+> 1 files changed, 1 insertion(+), 1 deletion(-)
 >
 >diff -puN 
->arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~git-acpi-up-fix 
->arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
+>drivers/acpi/sleep/wakeup.c~acpi-print-wakeup-device-list-on-sa
+me-line-as-label drivers/acpi/sleep/wakeup.c
 >--- 
->devel/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~git-acpi
->-up-fix	2006-03-28 14:02:59.000000000 -0800
->+++ devel-akpm/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c	
->2006-03-28 14:02:59.000000000 -0800
->@@ -225,8 +225,12 @@ acpi_cpufreq_target (
-> 	freqs.old = data->freq_table[cur_state].frequency;
-> 	freqs.new = data->freq_table[next_state].frequency;
+>devel/drivers/acpi/sleep/wakeup.c~acpi-print-wakeup-device-list
+-on-same-line-as-label	2006-03-28 14:03:04.000000000 -0800
+>+++ devel-akpm/drivers/acpi/sleep/wakeup.c	2006-03-28 
+>14:03:04.000000000 -0800
+>@@ -155,7 +155,7 @@ static int __init acpi_wakeup_device_ini
 > 
->+#ifdef CONFIG_HOTPLUG_CPU
-> 	/* cpufreq holds the hotplug lock, so we are safe from 
->here on */
-> 	cpus_and(online_policy_cpus, cpu_online_map, policy->cpus);
->+#else
->+	online_policy_cpus = policy->cpus;
->+#endif
+> 	if (acpi_disabled)
+> 		return 0;
+>-	printk("ACPI wakeup devices: \n");
+>+	printk(KERN_INFO PREFIX "wakeup devices: ");
 > 
-> 	for_each_cpu_mask(j, online_policy_cpus) {
-> 		freqs.cpu = j;
->diff -puN 
->arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c~git-acpi-up-f
->ix arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c
->--- 
->devel/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c~git-acp
->i-up-fix	2006-03-28 14:02:59.000000000 -0800
->+++ 
->devel-akpm/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c	
->2006-03-28 14:02:59.000000000 -0800
->@@ -652,8 +652,12 @@ static int centrino_target (struct cpufr
-> 		return -EINVAL;
-> 	}
-> 
->+#ifdef CONFIG_HOTPLUG_CPU
-> 	/* cpufreq holds the hotplug lock, so we are safe from 
->here on */
-> 	cpus_and(online_policy_cpus, cpu_online_map, policy->cpus);
->+#else
->+	online_policy_cpus = policy->cpus;
->+#endif
-> 
-> 	saved_mask = current->cpus_allowed;
-> 	first_cpu = 1;
+> 	spin_lock(&acpi_device_lock);
+> 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
 >_
 >
