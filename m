@@ -1,20 +1,20 @@
 From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [patch 23/26] x86_64: Remove entries in /sys/firmware/acpi for processor also
-Date: Sun, 2 Apr 2006 00:22:35 -0500
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6123DF0@hdsmsx411.amr.corp.intel.com>
+Subject: RE: [patch 19/26] acpi signedness fix
+Date: Sun, 2 Apr 2006 00:22:28 -0500
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB6123DEE@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:10073 "EHLO
-	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
-	id S1751368AbWDBFWj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Apr 2006 00:22:39 -0500
+Received: from mga02.intel.com ([134.134.136.20]:47654 "EHLO
+	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1751356AbWDBFWc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Apr 2006 00:22:32 -0500
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: akpm@osdl.org
-Cc: linux-acpi@vger.kernel.org, "Raj, Ashok" <ashok.raj@intel.com>, ak@muc.de
+Cc: linux-acpi@vger.kernel.org, "Raj, Ashok" <ashok.raj@intel.com>, davej@codemonkey.org.uk, kaneshige.kenji@soft.fujitsu.com
 
 applied.
 
@@ -22,52 +22,93 @@ thanks,
 -Len 
 
 >-----Original Message-----
->From: akpm@osdl.org [mailto:akpm@osdl.org] 
+>From: linux-acpi-owner@vger.kernel.org 
+>[mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of akpm@osdl.org
 >Sent: Tuesday, March 28, 2006 5:04 PM
 >To: Brown, Len
->Cc: linux-acpi@vger.kernel.org; akpm@osdl.org; Raj, Ashok; ak@muc.de
->Subject: [patch 23/26] x86_64: Remove entries in 
->/sys/firmware/acpi for processor also
+>Cc: linux-acpi@vger.kernel.org; akpm@osdl.org; Raj, Ashok; 
+>davej@codemonkey.org.uk; kaneshige.kenji@soft.fujitsu.com
+>Subject: [patch 19/26] acpi signedness fix
 >
 >
 >From: Ashok Raj <ashok.raj@intel.com>
 >
->Processor entries under 
->/sys/firmware/acpi/namespace/ACPI/_SB/CPU* were not
->being removed due to acpi_bus_trim not asking for it just for 
->processors. 
->Without which a new hot-add after a remove doesnt call appropriate init
->functions resulting in subsequent hot-add for same cpu failing.
+>Local apic entries are only 8 bits, but it seemed to not be 
+>caught with u8
+>return value result in the check
 >
->Not clear why we restricted that to non-processor devices.
+>cpu_index >= NR_CPUS becomming always false.
+>
+>drivers/acpi/processor_core.c: In function `acpi_processor_get_info':
+>drivers/acpi/processor_core.c:483: warning: comparison is 
+>always false due to limited range of data type
 >
 >Signed-off-by: Ashok Raj <ashok.raj@intel.com>
->Cc: Andi Kleen <ak@muc.de>
+>Cc: "Brown, Len" <len.brown@intel.com>
+>Cc: Dave Jones <davej@codemonkey.org.uk>
+>Cc: Kenji Kaneshige <kaneshige.kenji@soft.fujitsu.com>
 >Signed-off-by: Andrew Morton <akpm@osdl.org>
 >---
 >
-> drivers/acpi/scan.c |    5 +----
-> 1 files changed, 1 insertion(+), 4 deletions(-)
+> drivers/acpi/processor_core.c |   10 +++++-----
+> 1 files changed, 5 insertions(+), 5 deletions(-)
 >
->diff -puN 
->drivers/acpi/scan.c~remove-entries-in-sys-firmware-acpi-for-pro
->cessor-also drivers/acpi/scan.c
->--- 
->devel/drivers/acpi/scan.c~remove-entries-in-sys-firmware-acpi-f
->or-processor-also	2006-03-28 14:03:07.000000000 -0800
->+++ devel-akpm/drivers/acpi/scan.c	2006-03-28 
->14:03:07.000000000 -0800
->@@ -433,10 +433,7 @@ acpi_eject_store(struct acpi_device *dev
-> 	islockable = device->flags.lockable;
-> 	handle = device->handle;
+>diff -puN drivers/acpi/processor_core.c~acpi-signedness-fix-2 
+>drivers/acpi/processor_core.c
+>--- devel/drivers/acpi/processor_core.c~acpi-signedness-fix-2	
+>2006-03-28 14:03:06.000000000 -0800
+>+++ devel-akpm/drivers/acpi/processor_core.c	2006-03-28 
+>14:03:06.000000000 -0800
+>@@ -382,7 +382,7 @@ static int acpi_processor_remove_fs(stru
 > 
->-	if (type == ACPI_TYPE_PROCESSOR)
->-		result = acpi_bus_trim(device, 0);
->-	else
->-		result = acpi_bus_trim(device, 1);
->+	result = acpi_bus_trim(device, 1);
+> /* Use the acpiid in MADT to map cpus in case of SMP */
+> #ifndef CONFIG_SMP
+>-#define convert_acpiid_to_cpu(acpi_id) (0xff)
+>+#define convert_acpiid_to_cpu(acpi_id) (-1)
+> #else
 > 
-> 	if (!result)
-> 		result = acpi_eject_operation(handle, islockable);
+> #ifdef CONFIG_IA64
+>@@ -395,7 +395,7 @@ static int acpi_processor_remove_fs(stru
+> #define ARCH_BAD_APICID		(0xff)
+> #endif
+> 
+>-static u8 convert_acpiid_to_cpu(u8 acpi_id)
+>+static int convert_acpiid_to_cpu(u8 acpi_id)
+> {
+> 	u16 apic_id;
+> 	int i;
+>@@ -421,7 +421,7 @@ static int acpi_processor_get_info(struc
+> 	acpi_status status = 0;
+> 	union acpi_object object = { 0 };
+> 	struct acpi_buffer buffer = { sizeof(union 
+>acpi_object), &object };
+>-	u8 cpu_index;
+>+	int cpu_index;
+> 	static int cpu0_initialized;
+> 
+> 	ACPI_FUNCTION_TRACE("acpi_processor_get_info");
+>@@ -466,7 +466,7 @@ static int acpi_processor_get_info(struc
+> 	cpu_index = convert_acpiid_to_cpu(pr->acpi_id);
+> 
+> 	/* Handle UP system running SMP kernel, with no LAPIC in MADT */
+>-	if (!cpu0_initialized && (cpu_index == 0xff) &&
+>+	if (!cpu0_initialized && (cpu_index == -1) &&
+> 	    (num_online_cpus() == 1)) {
+> 		cpu_index = 0;
+> 	}
+>@@ -480,7 +480,7 @@ static int acpi_processor_get_info(struc
+> 	 *  less than the max # of CPUs. They should be ignored _iff
+> 	 *  they are physically not present.
+> 	 */
+>-	if (cpu_index >= NR_CPUS) {
+>+	if (cpu_index == -1) {
+> 		if (ACPI_FAILURE
+> 		    (acpi_processor_hotadd_init(pr->handle, &pr->id))) {
+> 			ACPI_ERROR((AE_INFO,
 >_
+>-
+>To unsubscribe from this list: send the line "unsubscribe 
+>linux-acpi" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
