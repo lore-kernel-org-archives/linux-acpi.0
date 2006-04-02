@@ -1,103 +1,93 @@
 From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [patch 20/26] ACPI should depend on, not select PCI
-Date: Sat, 1 Apr 2006 21:07:17 -0500
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6123DCF@hdsmsx411.amr.corp.intel.com>
+Subject: RE: [patch 01/26] git-acpi: uniprocessor compile fixes
+Date: Sat, 1 Apr 2006 21:12:46 -0500
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB6123DD1@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:50572 "EHLO
+Received: from mga02.intel.com ([134.134.136.20]:16251 "EHLO
 	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S932373AbWDBCHU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 1 Apr 2006 21:07:20 -0500
+	id S932375AbWDBCMu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 1 Apr 2006 21:12:50 -0500
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: akpm@osdl.org
-Cc: linux-acpi@vger.kernel.org, bunk@stusta.de
+Cc: linux-acpi@vger.kernel.org, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
 
 applied.
-
 thanks,
 -Len 
 
 >-----Original Message-----
 >From: akpm@osdl.org [mailto:akpm@osdl.org] 
->Sent: Tuesday, March 28, 2006 5:04 PM
+>Sent: Tuesday, March 28, 2006 5:03 PM
 >To: Brown, Len
->Cc: linux-acpi@vger.kernel.org; akpm@osdl.org; bunk@stusta.de
->Subject: [patch 20/26] ACPI should depend on, not select PCI
+>Cc: linux-acpi@vger.kernel.org; akpm@osdl.org; Pallipadi, Venkatesh
+>Subject: [patch 01/26] git-acpi: uniprocessor compile fixes
 >
 >
->From: Adrian Bunk <bunk@stusta.de>
+>From: Andrew Morton <akpm@osdl.org>,
+>      Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 >
->ACPI should depend on, not select PCI.
+>cpu_online_map doesn't exist if !CONFIG_SMP.
 >
->Otherwise, illegal configurations like X86_VOYAGER=y, PCI=y are
->possible.
+>This path is rather lame and it'd be nice to fix it better.
 >
->This patch also fixes the options select'ing ACPI to also select PCI.
->
->Signed-off-by: Adrian Bunk <bunk@stusta.de>
->Cc: "Brown, Len" <len.brown@intel.com>
+>Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+>Cc: Len Brown <len.brown@intel.com>
 >Signed-off-by: Andrew Morton <akpm@osdl.org>
 >---
 >
-> arch/ia64/Kconfig    |    1 +
-> arch/x86_64/Kconfig  |    1 +
-> drivers/acpi/Kconfig |    3 +--
-> 3 files changed, 3 insertions(+), 2 deletions(-)
+> arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c       |    4 ++++
+> arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c |    4 ++++
+> 2 files changed, 8 insertions(+)
 >
 >diff -puN 
->arch/ia64/Kconfig~acpi-should-depend-on-not-select-pci 
->arch/ia64/Kconfig
+>arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~git-acpi-up-fix 
+>arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
 >--- 
->devel/arch/ia64/Kconfig~acpi-should-depend-on-not-select-pci	
->2006-03-28 14:03:06.000000000 -0800
->+++ devel-akpm/arch/ia64/Kconfig	2006-03-28 
->14:03:06.000000000 -0800
->@@ -77,6 +77,7 @@ choice
-> config IA64_GENERIC
-> 	bool "generic"
-> 	select ACPI
->+	select PCI
-> 	select NUMA
-> 	select ACPI_NUMA
-> 	help
+>devel/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~git-acpi
+>-up-fix	2006-03-28 14:02:59.000000000 -0800
+>+++ devel-akpm/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c	
+>2006-03-28 14:02:59.000000000 -0800
+>@@ -225,8 +225,12 @@ acpi_cpufreq_target (
+> 	freqs.old = data->freq_table[cur_state].frequency;
+> 	freqs.new = data->freq_table[next_state].frequency;
+> 
+>+#ifdef CONFIG_HOTPLUG_CPU
+> 	/* cpufreq holds the hotplug lock, so we are safe from 
+>here on */
+> 	cpus_and(online_policy_cpus, cpu_online_map, policy->cpus);
+>+#else
+>+	online_policy_cpus = policy->cpus;
+>+#endif
+> 
+> 	for_each_cpu_mask(j, online_policy_cpus) {
+> 		freqs.cpu = j;
 >diff -puN 
->arch/x86_64/Kconfig~acpi-should-depend-on-not-select-pci 
->arch/x86_64/Kconfig
+>arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c~git-acpi-up-f
+>ix arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c
 >--- 
->devel/arch/x86_64/Kconfig~acpi-should-depend-on-not-select-pci	
->2006-03-28 14:03:06.000000000 -0800
->+++ devel-akpm/arch/x86_64/Kconfig	2006-03-28 
->14:03:06.000000000 -0800
->@@ -289,6 +289,7 @@ config X86_64_ACPI_NUMA
->        bool "ACPI NUMA detection"
->        depends on NUMA
->        select ACPI 
->+	select PCI
->        select ACPI_NUMA
->        default y
->        help
->diff -puN 
->drivers/acpi/Kconfig~acpi-should-depend-on-not-select-pci 
->drivers/acpi/Kconfig
->--- 
->devel/drivers/acpi/Kconfig~acpi-should-depend-on-not-sel
->ect-pci	2006-03-28 14:03:06.000000000 -0800
->+++ devel-akpm/drivers/acpi/Kconfig	2006-03-28 
->14:03:06.000000000 -0800
->@@ -10,9 +10,8 @@ menu "ACPI (Advanced Configuration and P
-> config ACPI
-> 	bool "ACPI Support"
-> 	depends on IA64 || X86
->+	depends on PCI
-> 	select PM
->-	select PCI
->-
-> 	default y
-> 	---help---
-> 	  Advanced Configuration and Power Interface (ACPI) support for 
+>devel/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c~git-acp
+>i-up-fix	2006-03-28 14:02:59.000000000 -0800
+>+++ 
+>devel-akpm/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c	
+>2006-03-28 14:02:59.000000000 -0800
+>@@ -652,8 +652,12 @@ static int centrino_target (struct cpufr
+> 		return -EINVAL;
+> 	}
+> 
+>+#ifdef CONFIG_HOTPLUG_CPU
+> 	/* cpufreq holds the hotplug lock, so we are safe from 
+>here on */
+> 	cpus_and(online_policy_cpus, cpu_online_map, policy->cpus);
+>+#else
+>+	online_policy_cpus = policy->cpus;
+>+#endif
+> 
+> 	saved_mask = current->cpus_allowed;
+> 	first_cpu = 1;
 >_
 >
