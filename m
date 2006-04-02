@@ -1,114 +1,107 @@
 From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [patch 19/26] acpi signedness fix
-Date: Sun, 2 Apr 2006 00:22:28 -0500
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6123DEE@hdsmsx411.amr.corp.intel.com>
+Subject: RE: [patch 21/26] acpi EC: acpi-ecdt-uid-hack
+Date: Sun, 2 Apr 2006 00:22:31 -0500
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB6123DEF@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:47654 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1751356AbWDBFWc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Apr 2006 00:22:32 -0500
+Received: from mga01.intel.com ([192.55.52.88]:10073 "EHLO
+	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
+	id S1751359AbWDBFWf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Apr 2006 00:22:35 -0500
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: akpm@osdl.org
-Cc: linux-acpi@vger.kernel.org, "Raj, Ashok" <ashok.raj@intel.com>, davej@codemonkey.org.uk, kaneshige.kenji@soft.fujitsu.com
+Cc: linux-acpi@vger.kernel.org, jirislaby@gmail.com, "Yu, Luming" <luming.yu@intel.com>
 
-applied.
+applied to acpi-test
 
 thanks,
 -Len 
 
 >-----Original Message-----
->From: linux-acpi-owner@vger.kernel.org 
->[mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of akpm@osdl.org
+>From: akpm@osdl.org [mailto:akpm@osdl.org] 
 >Sent: Tuesday, March 28, 2006 5:04 PM
 >To: Brown, Len
->Cc: linux-acpi@vger.kernel.org; akpm@osdl.org; Raj, Ashok; 
->davej@codemonkey.org.uk; kaneshige.kenji@soft.fujitsu.com
->Subject: [patch 19/26] acpi signedness fix
+>Cc: linux-acpi@vger.kernel.org; akpm@osdl.org; 
+>jirislaby@gmail.com; Yu, Luming
+>Subject: [patch 21/26] acpi EC: acpi-ecdt-uid-hack
 >
 >
->From: Ashok Raj <ashok.raj@intel.com>
+>From: Jiri Slaby <jirislaby@gmail.com>
 >
->Local apic entries are only 8 bits, but it seemed to not be 
->caught with u8
->return value result in the check
+>On some boxes ecdt uid may be equal to 0, so do not test for 
+>uids equality,
+>so that fake handler will be unconditionally removed to allow 
+>loading the
+>real one.
 >
->cpu_index >= NR_CPUS becomming always false.
+>See http://bugzilla.kernel.org/show_bug.cgi?id=6111
 >
->drivers/acpi/processor_core.c: In function `acpi_processor_get_info':
->drivers/acpi/processor_core.c:483: warning: comparison is 
->always false due to limited range of data type
->
->Signed-off-by: Ashok Raj <ashok.raj@intel.com>
+>Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+>Cc: Luming Yu <luming.yu@intel.com>
 >Cc: "Brown, Len" <len.brown@intel.com>
->Cc: Dave Jones <davej@codemonkey.org.uk>
->Cc: Kenji Kaneshige <kaneshige.kenji@soft.fujitsu.com>
 >Signed-off-by: Andrew Morton <akpm@osdl.org>
 >---
 >
-> drivers/acpi/processor_core.c |   10 +++++-----
-> 1 files changed, 5 insertions(+), 5 deletions(-)
+> drivers/acpi/ec.c |   16 ++++++----------
+> 1 files changed, 6 insertions(+), 10 deletions(-)
 >
->diff -puN drivers/acpi/processor_core.c~acpi-signedness-fix-2 
->drivers/acpi/processor_core.c
->--- devel/drivers/acpi/processor_core.c~acpi-signedness-fix-2	
->2006-03-28 14:03:06.000000000 -0800
->+++ devel-akpm/drivers/acpi/processor_core.c	2006-03-28 
->14:03:06.000000000 -0800
->@@ -382,7 +382,7 @@ static int acpi_processor_remove_fs(stru
+>diff -puN drivers/acpi/ec.c~acpi-ec-acpi-ecdt-uid-hack 
+>drivers/acpi/ec.c
+>--- devel/drivers/acpi/ec.c~acpi-ec-acpi-ecdt-uid-hack	
+>2006-03-28 14:03:07.000000000 -0800
+>+++ devel-akpm/drivers/acpi/ec.c	2006-03-28 
+>14:03:07.000000000 -0800
+>@@ -989,7 +989,6 @@ static int acpi_ec_poll_add(struct acpi_
+> 	int result = 0;
+> 	acpi_status status = AE_OK;
+> 	union acpi_ec *ec = NULL;
+>-	unsigned long uid;
 > 
-> /* Use the acpiid in MADT to map cpus in case of SMP */
-> #ifndef CONFIG_SMP
->-#define convert_acpiid_to_cpu(acpi_id) (0xff)
->+#define convert_acpiid_to_cpu(acpi_id) (-1)
-> #else
+> 	ACPI_FUNCTION_TRACE("acpi_ec_add");
 > 
-> #ifdef CONFIG_IA64
->@@ -395,7 +395,7 @@ static int acpi_processor_remove_fs(stru
-> #define ARCH_BAD_APICID		(0xff)
-> #endif
+>@@ -1012,10 +1011,9 @@ static int acpi_ec_poll_add(struct acpi_
+> 	acpi_evaluate_integer(ec->common.handle, "_GLK", NULL,
+> 			      &ec->common.global_lock);
 > 
->-static u8 convert_acpiid_to_cpu(u8 acpi_id)
->+static int convert_acpiid_to_cpu(u8 acpi_id)
-> {
-> 	u16 apic_id;
-> 	int i;
->@@ -421,7 +421,7 @@ static int acpi_processor_get_info(struc
-> 	acpi_status status = 0;
-> 	union acpi_object object = { 0 };
-> 	struct acpi_buffer buffer = { sizeof(union 
->acpi_object), &object };
->-	u8 cpu_index;
->+	int cpu_index;
-> 	static int cpu0_initialized;
+>-	/* If our UID matches the UID for the ECDT-enumerated EC,
+>-	   we now have the *real* EC info, so kill the makeshift one. */
+>-	acpi_evaluate_integer(ec->common.handle, "_UID", NULL, &uid);
+>-	if (ec_ecdt && ec_ecdt->common.uid == uid) {
+>+	/* XXX we don't test uids, because on some boxes ecdt 
+>uid = 0, see:
+>+	   http://bugzilla.kernel.org/show_bug.cgi?id=6111 */
+>+	if (ec_ecdt) {
+> 		acpi_remove_address_space_handler(ACPI_ROOT_OBJECT,
+> 						  ACPI_ADR_SPACE_EC,
+> 						  
+>&acpi_ec_space_handler);
+>@@ -1059,7 +1057,6 @@ static int acpi_ec_intr_add(struct acpi_
+> 	int result = 0;
+> 	acpi_status status = AE_OK;
+> 	union acpi_ec *ec = NULL;
+>-	unsigned long uid;
 > 
-> 	ACPI_FUNCTION_TRACE("acpi_processor_get_info");
->@@ -466,7 +466,7 @@ static int acpi_processor_get_info(struc
-> 	cpu_index = convert_acpiid_to_cpu(pr->acpi_id);
+> 	ACPI_FUNCTION_TRACE("acpi_ec_add");
 > 
-> 	/* Handle UP system running SMP kernel, with no LAPIC in MADT */
->-	if (!cpu0_initialized && (cpu_index == 0xff) &&
->+	if (!cpu0_initialized && (cpu_index == -1) &&
-> 	    (num_online_cpus() == 1)) {
-> 		cpu_index = 0;
-> 	}
->@@ -480,7 +480,7 @@ static int acpi_processor_get_info(struc
-> 	 *  less than the max # of CPUs. They should be ignored _iff
-> 	 *  they are physically not present.
-> 	 */
->-	if (cpu_index >= NR_CPUS) {
->+	if (cpu_index == -1) {
-> 		if (ACPI_FAILURE
-> 		    (acpi_processor_hotadd_init(pr->handle, &pr->id))) {
-> 			ACPI_ERROR((AE_INFO,
+>@@ -1085,10 +1082,9 @@ static int acpi_ec_intr_add(struct acpi_
+> 	acpi_evaluate_integer(ec->common.handle, "_GLK", NULL,
+> 			      &ec->common.global_lock);
+> 
+>-	/* If our UID matches the UID for the ECDT-enumerated EC,
+>-	   we now have the *real* EC info, so kill the makeshift one. */
+>-	acpi_evaluate_integer(ec->common.handle, "_UID", NULL, &uid);
+>-	if (ec_ecdt && ec_ecdt->common.uid == uid) {
+>+	/* XXX we don't test uids, because on some boxes ecdt 
+>uid = 0, see:
+>+	   http://bugzilla.kernel.org/show_bug.cgi?id=6111 */
+>+	if (ec_ecdt) {
+> 		acpi_remove_address_space_handler(ACPI_ROOT_OBJECT,
+> 						  ACPI_ADR_SPACE_EC,
+> 						  
+>&acpi_ec_space_handler);
 >_
->-
->To unsubscribe from this list: send the line "unsubscribe 
->linux-acpi" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
