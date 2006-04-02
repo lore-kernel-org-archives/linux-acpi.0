@@ -1,22 +1,23 @@
 From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [patch 09/26] ACPI: update asus_acpi driver registration
-Date: Sun, 2 Apr 2006 00:21:38 -0500
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6123DE7@hdsmsx411.amr.corp.intel.com>
+Subject: RE: [patch 11/26] ACPI: make acpi_bus_register_driver() return success/failure, not device count
+Date: Sun, 2 Apr 2006 00:21:46 -0500
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB6123DE9@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:46992 "EHLO
+Received: from mga01.intel.com ([192.55.52.88]:47405 "EHLO
 	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
-	id S1751123AbWDBFVl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Apr 2006 00:21:41 -0500
+	id S1751221AbWDBFVt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Apr 2006 00:21:49 -0500
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: akpm@osdl.org
 Cc: linux-acpi@vger.kernel.org, bjorn.helgaas@hp.com
 
-applied
+applied.
+
 thanks,
 -Len 
 
@@ -25,87 +26,100 @@ thanks,
 >Sent: Tuesday, March 28, 2006 5:04 PM
 >To: Brown, Len
 >Cc: linux-acpi@vger.kernel.org; akpm@osdl.org; bjorn.helgaas@hp.com
->Subject: [patch 09/26] ACPI: update asus_acpi driver registration
+>Subject: [patch 11/26] ACPI: make acpi_bus_register_driver() 
+>return success/failure, not device count
 >
 >
 >From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 >
->Remove the assumption that acpi_bus_register_driver() returns 
->the number of
->devices claimed.  Returning the count is unreliable because 
->devices may be
->hot-plugged in the future (admittedly not applicable for this driver).
+>acpi_bus_register_driver() should not return the number of 
+>devices claimed. 
+>We're not asking to find devices, we're making a driver 
+>available to devices,
+>including hot-pluggable devices that may appear in the future.
 >
->Since the hardware for this driver is not hot-pluggable, 
->determine whether the
->hardware is present by noticing calls to the .add() method.  
->It would be
->better to probe the ACPI namespace for the ASUS HIDs, and load 
->the driver only
->when we find one, but ACPI doesn't support that yet.
->
->I don't have an ASUS laptop to test on, but on my HP dl360, it 
->does report the
->appropriate error when attempting to load the module:
->
->    $ sudo insmod drivers/acpi/asus_acpi.ko
->    insmod: error inserting 'drivers/acpi/asus_acpi.ko': -1 No 
->such device
+>I audited all callers of acpi_bus_register_driver(), and 
+>except asus_acpi.c
+>and sonypi.c (fixed in previous patches), all either ignore 
+>the return value
+>or test only for failure (<0).
 >
 >Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 >Cc: "Brown, Len" <len.brown@intel.com>
 >Signed-off-by: Andrew Morton <akpm@osdl.org>
 >---
 >
-> drivers/acpi/asus_acpi.c |   18 +++++++++++++++++-
-> 1 files changed, 17 insertions(+), 1 deletion(-)
+> drivers/acpi/scan.c |   16 +++++-----------
+> 1 files changed, 5 insertions(+), 11 deletions(-)
 >
 >diff -puN 
->drivers/acpi/asus_acpi.c~acpi-update-asus_acpi-driver-registrat
-ion drivers/acpi/asus_acpi.c
+>drivers/acpi/scan.c~acpi-make-acpi_bus_register_driver-return-s
+uccess-failure-not-device-count drivers/acpi/scan.c
 >--- 
->devel/drivers/acpi/asus_acpi.c~acpi-update-asus_acpi-driver-reg
-istration	2006-03-28 14:03:03.000000000 -0800
->+++ devel-akpm/drivers/acpi/asus_acpi.c	2006-03-28 
->14:03:03.000000000 -0800
->@@ -1119,6 +1119,8 @@ static int __init asus_hotk_check(void)
-> 	return result;
+>devel/drivers/acpi/scan.c~acpi-make-acpi_bus_register_driver-re
+turn-success-failure-not-device-count	2006-03-28 >14:03:04.000000000 -0800
+>+++ devel-akpm/drivers/acpi/scan.c	2006-03-28 
+>14:03:04.000000000 -0800
+>@@ -548,10 +548,9 @@ static int acpi_start_single_object(stru
+> 	return_VALUE(result);
 > }
 > 
->+static int asus_hotk_found;
->+
-> static int __init asus_hotk_add(struct acpi_device *device)
+>-static int acpi_driver_attach(struct acpi_driver *drv)
+>+static void acpi_driver_attach(struct acpi_driver *drv)
 > {
-> 	acpi_status status = AE_OK;
->@@ -1180,6 +1182,8 @@ static int __init asus_hotk_add(struct a
-> 		}
+> 	struct list_head *node, *next;
+>-	int count = 0;
+> 
+> 	ACPI_FUNCTION_TRACE("acpi_driver_attach");
+> 
+>@@ -568,7 +567,6 @@ static int acpi_driver_attach(struct acp
+> 			if (!acpi_bus_driver_init(dev, drv)) {
+> 				acpi_start_single_object(dev);
+> 				atomic_inc(&drv->references);
+>-				count++;
+> 				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> 						  "Found driver 
+>[%s] for device [%s]\n",
+> 						  drv->name, 
+>dev->pnp.bus_id));
+>@@ -577,7 +575,6 @@ static int acpi_driver_attach(struct acp
+> 		spin_lock(&acpi_device_lock);
 > 	}
+> 	spin_unlock(&acpi_device_lock);
+>-	return_VALUE(count);
+> }
 > 
->+	asus_hotk_found = 1;
->+
->       end:
-> 	if (result) {
-> 		kfree(hotk);
->@@ -1226,7 +1230,19 @@ static int __init asus_acpi_init(void)
-> 	asus_proc_dir->owner = THIS_MODULE;
+> static int acpi_driver_detach(struct acpi_driver *drv)
+>@@ -610,14 +607,11 @@ static int acpi_driver_detach(struct acp
+>  * @driver: driver being registered
+>  *
+>  * Registers a driver with the ACPI bus.  Searches the 
+>namespace for all
+>- * devices that match the driver's criteria and binds.  Returns the
+>- * number of devices that were claimed by the driver, or a negative
+>- * error status for failure.
+>+ * devices that match the driver's criteria and binds.  
+>Returns zero for
+>+ * success or a negative error status for failure.
+>  */
+> int acpi_bus_register_driver(struct acpi_driver *driver)
+> {
+>-	int count;
+>-
+> 	ACPI_FUNCTION_TRACE("acpi_bus_register_driver");
 > 
-> 	result = acpi_bus_register_driver(&asus_hotk_driver);
->-	if (result < 1) {
->+	if (result < 0) {
->+		remove_proc_entry(PROC_ASUS, acpi_root_dir);
->+		return -ENODEV;
->+	}
->+
->+	/*
->+	 * This is a bit of a kludge.  We only want this module loaded
->+	 * for ASUS systems, but there's currently no way to probe the
->+	 * ACPI namespace for ASUS HIDs.  So we just return failure if
->+	 * we didn't find one, which will cause the module to be
->+	 * unloaded.
->+	 */
->+	if (!asus_hotk_found) {
-> 		acpi_bus_unregister_driver(&asus_hotk_driver);
-> 		remove_proc_entry(PROC_ASUS, acpi_root_dir);
-> 		return -ENODEV;
+> 	if (acpi_disabled)
+>@@ -629,9 +623,9 @@ int acpi_bus_register_driver(struct acpi
+> 	spin_lock(&acpi_device_lock);
+> 	list_add_tail(&driver->node, &acpi_bus_drivers);
+> 	spin_unlock(&acpi_device_lock);
+>-	count = acpi_driver_attach(driver);
+>+	acpi_driver_attach(driver);
+> 
+>-	return_VALUE(count);
+>+	return_VALUE(0);
+> }
+> 
+> EXPORT_SYMBOL(acpi_bus_register_driver);
 >_
 >
