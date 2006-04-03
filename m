@@ -1,63 +1,58 @@
-From: Bruno Ducrot <ducrot@poupinou.org>
-Subject: Re: Laptop fan on Acer 4061NWLCi
-Date: Mon, 3 Apr 2006 15:41:38 +0200
-Message-ID: <20060403134138.GA13970@poupinou.org>
-References: <794f042d0604030408k3073a44dg70255e3342f4a2db@mail.gmail.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: acpi_thread_id = acpi_os_get_thread_id()
+Date: Mon, 3 Apr 2006 07:35:50 -0700
+Message-ID: <971FCB6690CD0E4898387DBF7552B90E04DF3123@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from poup.poupinou.org ([195.101.94.96]:35871 "EHLO
-	poup.poupinou.org") by vger.kernel.org with ESMTP id S1750866AbWDCNlm
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 3 Apr 2006 09:41:42 -0400
-Content-Disposition: inline
-In-Reply-To: <794f042d0604030408k3073a44dg70255e3342f4a2db@mail.gmail.com>
+Received: from mga01.intel.com ([192.55.52.88]:29213 "EHLO
+	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
+	id S1751545AbWDCOfx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Apr 2006 10:35:53 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Saurabh Nanda <saurabhnanda@gmail.com>
+To: "Brown, Len" <len.brown@intel.com>
 Cc: linux-acpi@vger.kernel.org
 
-On Mon, Apr 03, 2006 at 04:38:06PM +0530, Saurabh Nanda wrote:
-> Hi,
-> 
-> I have recently bought an Acer 4061NWLCi laptop and am having trouble
-> getting ACPI to work. I hope somoene will help me out :-)
-> 
-> I am running Ubuntu Linux -- Breezy Badger 5.10. With the default
-> Ubuntu kernel (2.6.12) ACPI did not work at all. I did not even get
-> the battery status in GNOME. Then I installed the latest kernel (
-> 2.6.16.1) and ACPI started working - at least partially! I could check
-> my CPU temperature, AC adapter status, and battery status.
-> 
-> The only thing not working is the CPU fan. I tried reading through my
-> current(broken) DSDT and surprisingly there is no mention of a fan
-> anywhere! In the Thermal Zone configuration there is no mention of
-> _ACx (_AC0, _AC1, etc.) as well. I can post my DSDT to the list if it
-> would help.
-> 
-> Can anyone please help me in fixing this? Running my laptop without a
-> fan is pretty dangerous as the CPU temperatures crosses 65 degrees
-> celcius at times.
-> 
-> Can I declare a fan and an active cooling temperature point in the
-> DSDT, recompile it and hope that it would work? Has anyone else done
-> this kind of a thing before?
+HP-UX wanted the new type. It can be defined as necessary for Linux;
+However,I can change the default to UINT32 if that's what is used on
+most operating systems.
 
-Yes, only problem is to define _ON and _OFF methods in order to control
-the fan device.  Good luck...
+The information as to thread ID can be very useful when debugging multi
+threaded issues, and will probably become more important as we encounter
+more of these. I would like to keep it around for the time being.
 
-With my own laptop (Acer TM 4102WLMi) I can only get the fan speed,
-but that's all.  I think it's possible to write some
-different thresholds in order to control the cpu fan, but I don't
-see why this is needed (after all 65 degree celcius should be ok for
-a pentium-m).  In the case of my Acer, the fan speed is available
-at 0x5d, 0x5c on the EC space and I think there are some more Acer
-models that define those.
+Bob
 
-Cheers,
 
--- 
-Bruno Ducrot
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+> -----Original Message-----
+> From: Brown, Len
+> Sent: Saturday, April 01, 2006 12:14 AM
+> To: Moore, Robert
+> Cc: linux-acpi@vger.kernel.org
+> Subject: acpi_thread_id = acpi_os_get_thread_id()
+> 
+> Bob,
+> with the new type acpi_thread_id, it seems that the thread_id grows
+from
+> 32-bits
+> to 64-bits on a 64-bit mahcine.
+> 
+> acpi_os_get_thread_id() currently returns task.pid on Linux,
+> a 32-bit integer on both 32 and 64-bit machines.
+> 
+> So if acpi_os_get_thread_id() is called at interrupt level,
+> its return value is meaningless.
+> 
+> Linux doesn't define ACPI_MUTEX_DEBUG, and looks like it never will.
+> 
+> Is it possible to delete the concept of acpi_os_get_thread_id()?
+> I'm wondering at the moment if the right thing isn't to do this:
+> 
+> #define acpi_os_get_thread_id() (0)
+> 
+> thanks,
+> -Len
