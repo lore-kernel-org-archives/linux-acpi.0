@@ -1,63 +1,73 @@
-From: Bruno Ducrot <ducrot@poupinou.org>
-Subject: Re: Laptop fan on Acer 4061NWLCi
-Date: Mon, 3 Apr 2006 18:45:54 +0200
-Message-ID: <20060403164554.GB13970@poupinou.org>
-References: <794f042d0604030408k3073a44dg70255e3342f4a2db@mail.gmail.com> <20060403134138.GA13970@poupinou.org> <794f042d0604030856t465a822fub4449c02e1a3456e@mail.gmail.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [patch 13/26] ACPI: print wakeup device list on same line as label
+Date: Mon, 3 Apr 2006 11:14:13 -0600
+Message-ID: <200604031114.13997.bjorn.helgaas@hp.com>
+References: <CFF307C98FEABE47A452B27C06B85BB6123DD6@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from poup.poupinou.org ([195.101.94.96]:39996 "EHLO
-	poup.poupinou.org") by vger.kernel.org with ESMTP id S1751544AbWDCQp7
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 3 Apr 2006 12:45:59 -0400
+Received: from atlrel7.hp.com ([156.153.255.213]:52659 "EHLO atlrel7.hp.com")
+	by vger.kernel.org with ESMTP id S932325AbWDCROR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Apr 2006 13:14:17 -0400
+In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB6123DD6@hdsmsx411.amr.corp.intel.com>
 Content-Disposition: inline
-In-Reply-To: <794f042d0604030856t465a822fub4449c02e1a3456e@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Saurabh Nanda <saurabhnanda@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: akpm@osdl.org, linux-acpi@vger.kernel.org
 
-On Mon, Apr 03, 2006 at 09:26:28PM +0530, Saurabh Nanda wrote:
-> Hi,
+On Saturday 01 April 2006 19:55, Brown, Len wrote:
+> >From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> >
+> >Print the ACPI wakeup device list on the same line as the label to make
+> >"dmesg | grep ACPI" output more useful.
 > 
-> > Yes, only problem is to define _ON and _OFF methods in order to control
-> > the fan device.  Good luck...
-> 
-> How do I do that? Can you please point me to some examples?
+> It is a temporary hack that we expose these devices via the internal BIOS names.
+> They should really be properties of devices in the device tree.
 
-I can't, sorry.  It depend how the fan is controlled.  This could be
-some magic values to poke to the EC space for example, or some
-io register to set/reset, etc.
+That's true.  Is it an issue that this property is not yet exported
+in the device tree?  Probably not, because any current consumers of
+this information would have to be scanning dmesg for ugly names like
+these from my HP nw8240:
 
-Look at ACPI spec v3.0 (available at www.acpi.info) page 345, 
-"11.6 ThermalZone Examples."
-for examples of fan devices and how to make them work with a
-thermal zone.  But if you don't know how to control that fan,
-I don't see how I can help you.
-Those examples depends on the fact that the fan is controllable
-via some registers into the EC space.  I don't know if your laptop
-do have those registers.
+    ACPI wakeup devices: C069 C0CE C1D1 C0DE C1D4 
 
-> I've got my fan *visible* (doesn't function -- just visible), under
-> /proc/acpi. What else should I do to get it actually working?
+> Instead of updating this message, can we delete it altogether?
 
-BTW you are sure the fan is not functionning properly?
-What happens if you try to control it like this:
+Sure.  Andrew, can you replace
+acpi-print-wakeup-device-list-on-same-line-as-label
+with the following?
 
-off:
-echo 3 > /proc/acpi/fan/???/state
 
-on:
-echo 0 > /proc/acpi/fan/???/state
+[ACPI] Don't print internal BIOS names of wakeup devices
 
-If that's work, it's just a matter to add to the thermal zone
-some lines like those:
+The "wakeup" property of a device should be exported via the
+device tree, not by a printk of an internal BIOS name.
 
-Method(_AC0)(Return (a temperature))
-Name(_AL0, Package() {\_SB...\FAN})
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
--- 
-Bruno Ducrot
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Index: linux-2.6/drivers/acpi/sleep/wakeup.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/sleep/wakeup.c	2006-02-13 15:44:33.000000000 -0700
++++ linux-2.6/drivers/acpi/sleep/wakeup.c	2006-04-03 11:00:41.000000000 -0600
+@@ -155,7 +155,6 @@
+ 
+ 	if (acpi_disabled)
+ 		return 0;
+-	printk("ACPI wakeup devices: \n");
+ 
+ 	spin_lock(&acpi_device_lock);
+ 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+@@ -174,10 +173,8 @@
+ 			dev->wakeup.state.enabled = 1;
+ 			spin_lock(&acpi_device_lock);
+ 		}
+-		printk("%4s ", dev->pnp.bus_id);
+ 	}
+ 	spin_unlock(&acpi_device_lock);
+-	printk("\n");
+ 
+ 	return 0;
+ }
