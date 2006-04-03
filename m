@@ -1,74 +1,131 @@
 From: "Karasyov, Konstantin A" <konstantin.a.karasyov@intel.com>
-Subject: RE: Laptop fan on Acer 4061NWLCi
-Date: Mon, 3 Apr 2006 19:31:49 +0400
-Message-ID: <E124AAE027DA384D8B919F93E4D8C708018E7C54@mssmsx402nb>
+Subject: RE: Compaq V2000 Fan Control
+Date: Mon, 3 Apr 2006 19:38:22 +0400
+Message-ID: <E124AAE027DA384D8B919F93E4D8C708018E7C5C@mssmsx402nb>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:16043 "EHLO
-	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
-	id S1751724AbWDCPcB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Apr 2006 11:32:01 -0400
+Received: from mga02.intel.com ([134.134.136.20]:402 "EHLO
+	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1751735AbWDCPkn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Apr 2006 11:40:43 -0400
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Saurabh Nanda <saurabhnanda@gmail.com>, linux-acpi@vger.kernel.org
+To: "Bonilla, Alejandro" <abonilla@linuxwireless.org>
+Cc: linux-acpi@vger.kernel.org
 
 Hi,
 
-Do you have any devices with 'PNP0C0B' ID in your DSDT? It's associated
-with fan in ACPI spec. If you have one there is a chance that you can
-assign it to _ALx method in thermal zone.
+If you have any devices with 'PNP0C0B' ID in your DSDT then there is a
+chance that you can assign it to _ALx method in thermal zone.
 
-Do the thermal zone(s) provide other trip points (i.e. passive or
-critical)?
-Also, some systems provide hardware control to the fan, so the fan turns
-on when the temperature high enough.
- 
-Anyway, sending DSDT would help to clarify the issue. 
+Anyway, posting your DSDT would help to clarify the issue. 
 
 Regards.
 Konstantin.
 
 >-----Original Message-----
 >From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
->owner@vger.kernel.org] On Behalf Of Saurabh Nanda
->Sent: Monday, April 03, 2006 3:08 PM
->To: linux-acpi@vger.kernel.org
->Subject: Laptop fan on Acer 4061NWLCi
+>owner@vger.kernel.org] On Behalf Of Bonilla, Alejandro
+>Sent: Tuesday, March 28, 2006 4:41 AM
+>To: Karasyov, Konstantin A
+>Cc: linux-acpi@vger.kernel.org
+>Subject: RE: Compaq V2000 Fan Control
 >
->Hi,
+>On Mon, 2006-03-27 at 16:25 +0400, Karasyov, Konstantin A wrote:
+>> Hi,
+>>
+>> >cat /proc/acpi/thermal_zone/THR1/trip_points
+>> >critical (S5):           95 C
+>> >passive:                 88 C: tc1=2 tc2=3 tsp=50 devices=0xdf64a940
+>>
+>> This means, that you don't have fan control (i.e. active cooling)
+>> through ACPI functionality - only passive cooling (i.e. decreasing
+>> frequency, using throttling) is possible for this thermal zone. So,
+in
+>> this string
 >
->I have recently bought an Acer 4061NWLCi laptop and am having trouble
->getting ACPI to work. I hope somoene will help me out :-)
+>I know I don't have it. Is there a way to debug this and see if it
+could
+>occur or if it just could be that it needs a tweak? Or is definitely
+not
+>going to work?
 >
->I am running Ubuntu Linux -- Breezy Badger 5.10. With the default
->Ubuntu kernel (2.6.12) ACPI did not work at all. I did not even get
->the battery status in GNOME. Then I installed the latest kernel (
->2.6.16.1) and ACPI started working - at least partially! I could check
->my CPU temperature, AC adapter status, and battery status.
+>.Alejandro
 >
->The only thing not working is the CPU fan. I tried reading through my
->current(broken) DSDT and surprisingly there is no mention of a fan
->anywhere! In the Thermal Zone configuration there is no mention of
->_ACx (_AC0, _AC1, etc.) as well. I can post my DSDT to the list if it
->would help.
+>>
+>> >echo 100:0:50:80:70:50 > /proc/acpi/thermal_zone/THR1/trip_points
+>>
+>> the only meaningful values are the first and the third (but at least
+5
+>> trip points are required -
+>> <critical>:<hot>:<passive>:<active0>:<active1>)
+>>
+>>
+>> Regards.
+>> Konstantin.
+>>
+>> >-----Original Message-----
+>> >From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+>> >owner@vger.kernel.org] On Behalf Of Bonilla, Alejandro
+>> >Sent: Friday, March 24, 2006 11:28 PM
+>> >To: linux-acpi@vger.kernel.org
+>> >Subject: Compaq V2000 Fan Control
+>> >
+>> >Hi,
+>> >
+>> >I'm trying to make my Compaq laptop give me control over the fan
+using
+>> >ACPI, but this ain't working. I have to be honest. I don't know much
+>> >about debugging acpi or about tools that will tell me much more.
+>> >
+>> >Here is what I try:
+>> >
+>> >echo 100:0:50:80:70:50 > /proc/acpi/thermal_zone/THR1/trip_points
+>> >
+>> >If I set the critical to a value lower than what it is now, it will
+>> halt
+>> >the PC, which is good. (100)
+>> >
+>> >If I set the passive to 50, nothing occurs. The Fan is not kicked if
+>> the
+>> >temp is higher, like 60c.
+>> >
+>> >I was told the last value is the one that triggers the Fan. Still,
+it
+>> >just won't work for me.
+>> >
+>> >This is the value that comes up on boot:
+>> >cat /proc/acpi/thermal_zone/THR1/trip_points
+>> >critical (S5):           95 C
+>> >passive:                 88 C: tc1=2 tc2=3 tsp=50 devices=0xdf64a940
+>> >
+>> >If I set the critical value to something really low, the Fan will
+kick
+>> >in at it's full power and will try to cool down the PC, but that is
+>> >while it's already halting.
+>> >
+>> >Anyone has a clue for me?
+>> >
+>> >Thanks,
+>> >.Alejandro
+>> >
+>> >
+>> >-
+>> >To unsubscribe from this list: send the line "unsubscribe
+linux-acpi"
+>> in
+>> >the body of a message to majordomo@vger.kernel.org
+>> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> -
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
->Can anyone please help me in fixing this? Running my laptop without a
->fan is pretty dangerous as the CPU temperatures crosses 65 degrees
->celcius at times.
->
->Can I declare a fan and an active cooling temperature point in the
->DSDT, recompile it and hope that it would work? Has anyone else done
->this kind of a thing before?
->
->TIA
->Nandz,
->--
->http://nandz.blogspot.com
->http://foodieforlife.blogspot.com
 >-
 >To unsubscribe from this list: send the line "unsubscribe linux-acpi"
 in
