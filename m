@@ -1,234 +1,71 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: 2.6.16 not booting due to ACPI  revision 20060127
-Date: Tue, 4 Apr 2006 15:57:26 -0700
-Message-ID: <971FCB6690CD0E4898387DBF7552B90E04E7C019@orsmsx403.amr.corp.intel.com>
+From: "Michael J. Kidd" <mjkidd@linuxkidd.com>
+Subject: Re: Help with Averatec C3500
+Date: Tue, 04 Apr 2006 19:43:10 -0400
+Message-ID: <4433048E.8060607@linuxkidd.com>
+References: <442EB141.5040205@linuxkidd.com> <200604041326.45510.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:64930 "EHLO
-	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
-	id S1750912AbWDDW52 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Apr 2006 18:57:28 -0400
-Content-class: urn:content-classes:message
+Received: from wsip-70-169-128-52.hr.hr.cox.net ([70.169.128.52]:16275 "HELO
+	wsip-70-169-128-52.hr.hr.cox.net") by vger.kernel.org with SMTP
+	id S1750943AbWDDXnQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 4 Apr 2006 19:43:16 -0400
+In-Reply-To: <200604041326.45510.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: xb <xavier.bru@bull.net>, "Brown, Len" <len.brown@intel.com>, "Luck, Tony" <tony.luck@intel.com>, linux-acpi@vger.kernel.org, "Therien, Guy" <guy.therien@intel.com>
-Cc: linux-ia64@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: linux-acpi@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>
+
+Bug #6332 filed against ACPI.
+
+As far as the part of the output which details the lack of IO address, 
+I'll leave that to Alan Stern... I'm not quite that advanced at this point..
+
+Thanks for the help!
+Michael J. Kidd
+
+Bjorn Helgaas wrote:
+> On Saturday 01 April 2006 09:58, Michael J. Kidd wrote:
+>   
+>>  I have an Averatec C3500 Convertible Tablet PC.  With the initial bios 
+>> version that ships with the unit, USB and PCMCIA both work fine in 
+>> linux.  However, there is a terrible keyboard lag and dropped keys.  The 
+>> follow-on bios revisions fixed the keyboard issues, but caused USB and 
+>> PCMCIA to both stop working.  Note: All devices continue to operate fine 
+>> in Windows.  I'm posting this here in hopes that someone will take 
+>> interest in this issue ( there are several others trying to use linux on 
+>> these laptops. )  I've captured dmesg output after enabling 
+>> CONFIG_USB_DEBUG and CONFIG_PCMCIA_DEBUG in the kernel config, and the 
+>> output from lspci -vvxxx, as well as the DSDT output from both the 
+>> original BIOS ( USB working / Keyboard not ) and the latest BIOS 
+>> revision ( USB Not working / Keyboard works great ).
+>>
+>> The link for all this captured data is: http://www.linuxkidd.com/c3500   
+>> I've detailed the machine hardware, running kernel, etc.. as well as 
+>> linked to all the above described captures.
+>>     
+>
+> Thanks for your effort in debugging this.  Can you please open a
+> bug report at http://bugzilla.kernel.org?
+>
+>   
+>> After posting the above request to the linux-usb list, Alan Stern 
+>> responded with:
+>> ----------------------------------------------------------------------
+>> According to the log, the I/O memory mappings for the USB and PCMCIA
+>> controllers aren't getting set up. It's not a USB or PCMCIA issue at all;
+>> you should ask for help on the PCI and ACPI mailing lists.
+>>     
+>
+> I don't know enough about USB to know what you're referring to.
+> Can you point out the messages that suggest a PCI or ACPI issue?
+>
+> Bjorn
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>   
 
 
-I believe that we must run _STA in order to determine whether the devic=
-e is present or not and whether to continue initialization of the devic=
-e children.
-
-Thus, the patch given is essentially correct.
-
-
-
-
------Original Message-----
-=46rom: xb [mailto:xavier.bru@bull.net]=20
-Sent: Tuesday, April 04, 2006 1:24 AM
-To: Brown, Len; Moore, Robert; Luck, Tony; linux-acpi@vger.kernel.org; =
-Therien, Guy
-Cc: linux-ia64@vger.kernel.org
-Subject: Re: 2.6.16 not booting due to ACPI revision 20060127
-
-Hi Robert and len,
-
-Thanks for answering my mail.
-I think that the problem is that we execute methods on the hot plug con=
-troler for an unexisting bus.=20
-There is a method that loops on a particular field:
-
-000065f3:=A0 04 -------- Method WSOB
-000065f9:=A0 05 . . . . .=A0 0x00
-000065fa:=A0 05 . . . . .=A0 While
-000065fc:=A0 06 . . . . . .=A0 SOBO
-00006600:=A0 06 . . . . . .=A0 Noop
-
-I put, attached a partial trace of the called methods, and a dump of th=
-e DSDT.
-Thanks again.
-
-Brown, Len wrote:=20
-We have platforms that do not boot in 2.6.16, but boot OK with 2.6.15=20
-(loop in ACPI code).
-   =20
-
-Sounds like it wouldn't have booted any of the 2.6.16 pre-release
-candidates either...
-
- =20
-Yes.
-
-After some investigations, I found this is due to pci buses that are=20
-described in the configuration, but not available in limited=20
-configurations.
-   =20
-
- =20
-These buses have a _STA method, but no _INI method.
-With 2.6.15, the _STA method is run, and as the bus is not=20
-present, the bus and all devices behind it are ignored.
-   =20
-
-The non-present busses should still be ignored in 2.6.16,
-independent of the STA/INI optimization.
-
- =20
-How can this be done if we do not run the STA method ?
-
-With 2.6.16, as no _INI method is provided for the bus, _STA method is=20
-not run, and then we loop when executing methods for devices=20
-behind the not present bus.
-   =20
-
-Need to find out what methods are looping on non-existent
-devices, and why STA didn't prevent that.  This is probably
-independent of the STA/INI optimization in 20060127.
-
- =20
-As described earlier, we loop in WSOB method for hotplug controler for =
-unexisting bus...
-
-It sounds like either
-1. we're not evaluating _STA someplace in the bus enumeration code
-   when we should be, and perhaps this was masked in 2.6.15 when
-   we blindly evaluated STA everywhere.
-
-   I'll venture that is the issue here -- the STA/INI optimization
-   has unmasked a Linux bug.  Note that the patch to
-   again blindly execute STA everwhere would simply re-mask the bug,
-   rather than fixing it directly.
-or
-
-2. _STA on this box is somehow special and has side effects.
-
- =20
-
-Please open a bugzilla here:
-http://bugzilla.kernel.org/enter_bug.cgi?product=3DACPI
-
-and attach the output from acpidump
-acpidump is available in the latest pmtools here:
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
-
-
- =20
-OK, I will do that.
-
-Having a look to ACPI specification, I could find nowhere the=20
-restriction that _STA method is called only when an _INI method is=20
-provided for the device:
-
-"6.5.1 _INI (Init)
-=2E..
-If the _STA method indicates that the device is present, OSPM will=20
-evaluate the _INI for the device (if the _INI method exists) and will=20
-examine each of the children of the device for _INI methods.=20
-If the _STA=20
-method indicates that the device is not present, OSPM will not run the=20
-_INI and will not examine the children of the device for _INI=20
-methods. "
-   =20
-
-That is true, but it is also true that the ACPI spec doesn't say
-how how many times STA will be evaluated, if at all.
-
- =20
-traces -----------------------------------------------
-
-
-Device PC11
-000060e4:  02 . .  Name _HID
-000060e9:  03 . . .  PNP0A03  PCI Bus  0x030ad041
-000060ee:  02 . .  Name _UID
-000060f3:  03 . . .  0x0b
-000060f5:  02 . .  Name _ADR
-000060fa:  03 . . .  0x00
-000060fc:  02 ---- 'PCI bus number setup by the BIOS'  Method _BBN
-00006102:  03 . . .  0x00
-00006103:  03 . . .  Return
-00006104:  04 . . . .  path: \_SB_.CSFF.IO15.B1__
-00006117:  02 ---- 'Dynamic_Statu'  Method _STA
-0000611d:  03 . . .  0x00
-0000611e:  03 . . .  If
-00006120:  04 . . . .  LEqual
-00006121:  05 . . . . .  path: \_SB_.CSFF.IO11.HUBD
-00006134:  05 . . . . .  0x00
-00006136:  04 . . . .  Return
-00006137:  05 . . . . .  0x0f
-00006139:  03 . . .  Return
-0000613a:  04 . . . .  0x00
-0000613c:  02 ---- 'Current Resource Setting'  Method _CRS
-00006142:  03 . . .  0x00
-00006143:  03 . . .  Return
-00006144:  04 . . . .  path: \_SB_.HLRS
-0000614e:  03 . . .  0x01
-00006150:  03 . . .  0x01
-00006152:  02
-
-   =20
-
-Does this trace show the access to the bus that does not exist?
-Where is the loop?
- =20
-Yes (see traces).
-
-
-thanks,
--Len
-
- =20
-Moore, Robert wrote:=20
-We changed the device initialization sequence to improve boot
-performance by not executing _STA unless an _INI is actually present.
-
-The change to selectively run _STA was made in 20051216, from the
-release notes:
-
-"Implemented an optimization to the initialization sequence that can
-improve boot time. During ACPI device initialization, the _STA method i=
-s
-now run if and only if the _INI method exists. The _STA method is used
-to determine if the device is present; An _INI can only be run if _STA
-returns present, but it is a waste of time to run the _STA method if th=
-e
-_INI does not exist."
-
- =20
-Our BIOS provides description for the maximum configuration, then I thi=
-nk it relies on the fact we run _STA method on the bus before accessing=
- devices on that bus...
-
-
-It is my understanding of the ACPI spec that there is no requirement
-that _STA be run, ever. There is only a requirement that _INI be run if
-the device is present and _INI exists.
-=20
-Therefore, the optimization above was implemented because we were only
-running _STA to determine whether or not to run _INI. If there is no
-_INI present, it is pointless to run the _STA.
-
-
- =20
-Having a look to ACPI specification, I could find nowhere the=20
-restriction that _STA method is called only when an _INI method is=20
-provided for the device:
-
-     =20
-
-Yes, there is no restriction on when or if _STA can be run. However, I
-do not think that there a *requirement* to run _STA, only _INI.
-
-I don't understand why running _STA fixes the problem. Exactly what or
-who is depending on _STA to be run?
-
-Bob
- =20
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
