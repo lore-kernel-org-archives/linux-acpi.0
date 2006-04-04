@@ -1,38 +1,42 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: 2.6.17-rc1-mm1: why did acpi_ns_build_external_path() become global?
-Date: Tue, 4 Apr 2006 18:29:55 +0200
-Message-ID: <20060404162955.GN6529@stusta.de>
-References: <20060404014504.564bf45a.akpm@osdl.org>
+From: Stephen Hemminger <shemminger@osdl.org>
+Subject: [PATCH] acpi: eliminate section mismatch warning
+Date: Tue, 4 Apr 2006 11:26:33 -0700
+Message-ID: <20060404112633.05fc15fa@dxpl.pdx.osdl.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750753AbWDDQab@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20060404014504.564bf45a.akpm@osdl.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>, len.brown@intel.com
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.osdl.org ([65.172.181.4]:58530 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1750787AbWDDS0h (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Apr 2006 14:26:37 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Tue, Apr 04, 2006 at 01:45:04AM -0700, Andrew Morton wrote:
->...
-> Changes since 2.6.16-mm2:
-> 
->  git-acpi.patch
->...
->  git trees.
->...
+Fix the linker warning (noise) from section mismatch in ACPI caused
+because the function acpi_processor_power_init's references can't be
+evaluated at compile time. It uses "first_run" flag and therefore
+changes behaviour after first use, and compiler/linker can't see that.
 
-acpi_ns_build_external_path() became global but isn't used outside the 
-file it's defined in.
+This does cost slightly more dead data.
 
-Was this accidental or is a usage pending?
+Signed-off-by: Stephen Hemminger <shemminger@osdl.org>
 
-cu
-Adrian
-
--- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
+--- test-2.6.orig/drivers/acpi/processor_idle.c
++++ test-2.6/drivers/acpi/processor_idle.c
+@@ -94,9 +94,11 @@ static int set_max_cstate(struct dmi_sys
+ 	return 0;
+ }
+ 
+-/* Actually this shouldn't be __cpuinitdata, would be better to fix the
+-   callers to only run once -AK */
+-static struct dmi_system_id __cpuinitdata processor_power_dmi_table[] = {
++/* This used to be __cpuinitdata but then linker would complain about
++   section mismatch because of the first_run flag;
++   would be better to fix thecallers to only run once
++ */
++static struct dmi_system_id processor_power_dmi_table[] = {
+ 	{ set_max_cstate, "IBM ThinkPad R40e", {
+ 	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+ 	  DMI_MATCH(DMI_BIOS_VERSION,"1SET60WW")}, (void *)1},
