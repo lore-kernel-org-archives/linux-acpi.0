@@ -1,38 +1,63 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: Help with Averatec C3500
-Date: Thu, 6 Apr 2006 11:34:28 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0604061132020.5126-100000@iolanthe.rowland.org>
-References: <200604060859.42629.bjorn.helgaas@hp.com>
+From: "David J. Wallace" <katana@onetel.com>
+Subject: Re: ACPI hotkeys and Panasonic R4
+Date: Thu, 6 Apr 2006 20:22:58 +0100
+Message-ID: <200604062023.06260.katana@onetel.com>
+References: <554C5F4C5BA7384EB2B412FD46A3BAD1190137@pdsmsx411.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed;
+  boundary="nextPart3682664.hYDNYcoSpX";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:28316 "HELO
-	iolanthe.rowland.org") by vger.kernel.org with SMTP
-	id S1751109AbWDFPec (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 6 Apr 2006 11:34:32 -0400
-In-Reply-To: <200604060859.42629.bjorn.helgaas@hp.com>
+Received: from ironport1.mynow.co.uk ([81.91.192.235]:20039 "EHLO
+	ironport1.mynow.co.uk") by vger.kernel.org with ESMTP
+	id S932231AbWDFTXK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 6 Apr 2006 15:23:10 -0400
+In-Reply-To: <554C5F4C5BA7384EB2B412FD46A3BAD1190137@pdsmsx411.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: "Michael J. Kidd" <mjkidd@linuxkidd.com>, linux-acpi@vger.kernel.org
+To: "Yu, Luming" <luming.yu@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Thu, 6 Apr 2006, Bjorn Helgaas wrote:
+--nextPart3682664.hYDNYcoSpX
+Content-Type: text/plain;
+  charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-> Alan, could you give me a hint about what you mean?  ACPI doesn't
-> ioremap device registers, so I'm not sure what the problem is.
-> 
-> > > After posting the above request to the linux-usb list, Alan Stern 
-> > > responded with:
-> > > ----------------------------------------------------------------------
-> > > According to the log, the I/O memory mappings for the USB and PCMCIA
-> > > controllers aren't getting set up. It's not a USB or PCMCIA issue at all;
-> > > you should ask for help on the PCI and ACPI mailing lists.
+On Thursday 06 April 2006 02:16, Yu, Luming wrote:
+> Please try boot option: acpi_generic_hotkey
+> Please don't forget apply patchs mentioned at:
+> http://bugzilla.kernel.org/show_bug.cgi?id=3D5749#c11
+>
+> For panasonic , the patch just support :
+> echo -n xx > /sys/hotkey/brightness .
+>
+> If you have other question, please feel free to ask.
+>
+> --Luming
 
-Since I don't know how this low-level stuff is handled, I was guessing.
+Thanks for the info. I didn't realise I needed the patch. I applied the pat=
+ch=20
+and now echo -n xx > /sys/hotkey/brightness allows control of the LCD=20
+brightness. Any plans to support any of the other hotkeys?
 
-ACPI is involved in setting up motherboard resources, including 
-configuration of various bridges.  If a bridge wasn't configured properly, 
-the CPU wouldn't be able to access the device's I/O hardware.
+Now to define some events in event_config.
 
-Alan Stern
+Thanks again,
 
+David
+
+--nextPart3682664.hYDNYcoSpX
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2.2 (GNU/Linux)
+
+iD8DBQBENWqaKsvwCXwmAPgRAltWAJ0SGxySY33PpEltvp0ido4+BX1x6wCcCQ5x
+1M1MW/w4PiVQ6sJx1ggGrYM=
+=o2wL
+-----END PGP SIGNATURE-----
+
+--nextPart3682664.hYDNYcoSpX--
