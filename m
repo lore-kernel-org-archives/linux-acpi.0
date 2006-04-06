@@ -1,60 +1,43 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: ACPI hotkeys and Panasonic R4
-Date: Thu, 6 Apr 2006 09:16:12 +0800
-Message-ID: <554C5F4C5BA7384EB2B412FD46A3BAD1190137@pdsmsx411.ccr.corp.intel.com>
+From: Greg KH <gregkh@suse.de>
+Subject: Re: ACPI Compile error in current git (pci.h)
+Date: Wed, 5 Apr 2006 20:50:12 -0700
+Message-ID: <20060406035012.GB26601@suse.de>
+References: <200603241404.08109.ncunningham@cyclades.com> <200603241437.26633.ncunningham@cyclades.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=gb2312
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:27671 "EHLO
-	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
-	id S1751245AbWDFBRP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Apr 2006 21:17:15 -0400
-Content-class: urn:content-classes:message
+Received: from mail.kroah.org ([69.55.234.183]:23503 "EHLO perch.kroah.org")
+	by vger.kernel.org with ESMTP id S1751357AbWDFDzE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Apr 2006 23:55:04 -0400
+Content-Disposition: inline
+In-Reply-To: <200603241437.26633.ncunningham@cyclades.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "David J. Wallace" <david@laohu.co.uk>
-Cc: linux-acpi@vger.kernel.org
+To: Nigel Cunningham <ncunningham@cyclades.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Please try boot option: acpi_generic_hotkey
-Please don't forget apply patchs mentioned at:
-http://bugzilla.kernel.org/show_bug.cgi?id=3D5749#c11
+On Fri, Mar 24, 2006 at 02:37:18PM +1000, Nigel Cunningham wrote:
+> Hi again.
+> 
+> On Friday 24 March 2006 14:04, Nigel Cunningham wrote:
+> > Hi.
+> >
+> > Current git produces the following compile error (x86_64 uniprocessor
+> > compile):
+> >
+> > arch/x86_64/pci/mmconfig.c:152: error: conflicting types for
+> > ???pci_mmcfg_init??? arch/i386/pci/pci.h:85: error: previous declaration of
+> > ???pci_mmcfg_init??? was here make[1]: *** [arch/x86_64/pci/mmconfig.o] Error 1
+> > make: *** [arch/x86_64/pci] Error 2
+> >
+> > I haven't found out yet how the i386 file is getting included, but I
+> > can say that git compiled fine last night.
+> 
+> Got the answer to this bit - it is included via the Makefile in the directory 
+> setting a -I flag, and the file including "pci.h".
 
-=46or panasonic , the patch just support :
-echo -n xx > /sys/hotkey/brightness .
+Does this still happen for 2.6.17-rc1?
 
-If you have other question, please feel free to ask.=20
-=20
---Luming
+thanks,
 
->-----Original Message-----
->From: David J. Wallace [mailto:david@laohu.co.uk]=20
->Sent: 2006=C4=EA4=D4=C26=C8=D5 3:41
->To: Yu, Luming
->Subject: ACPI hotkeys and Panasonic R4
->
->Luming,
->
->I believe that you are the author of the Linux ACPI hotkey=20
->driver. I can not=20
->get this driver to load on my Panasonic R4. Is this laptop=20
->supported? I would=20
->appreciate any pointers in getting these going.=20
->
->I get the following message when trying to load the module:
->
->FATAL:Error inserting hotkey  (lib/modules....): No such device
->
->I've attached my dmesg and DSDT
->
->I would appreciate any assistance that you could offer.
->
->Thanks,
->
->David
->
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+greg k-h
