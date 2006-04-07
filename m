@@ -1,43 +1,54 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: 2.6.17-rc1-mm1: drivers/acpi/numa.c compile error
-Date: Fri, 7 Apr 2006 14:27:57 +0200
-Message-ID: <20060407122757.GI7118@stusta.de>
-References: <20060404014504.564bf45a.akpm@osdl.org>
+From: Iacopo Spalletti <avvisi@spalletti.it>
+Subject: Problems resuming from S3 in 2.6.16
+Date: Fri, 7 Apr 2006 17:03:16 +0200
+Message-ID: <200604071703.16518.avvisi@spalletti.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emailhub.stusta.mhn.de ([141.84.69.5]:38155 "HELO
-	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
-	id S964783AbWDGM17 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Apr 2006 08:27:59 -0400
+Received: from ercolino.iast.it ([62.48.34.168]:52167 "EHLO ercolino.iast.it")
+	by vger.kernel.org with ESMTP id S932437AbWDGPDr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Apr 2006 11:03:47 -0400
+Received: from localhost (ercolino [127.0.0.1])
+	by ercolino.iast.it (Mail Daemon) with ESMTP id 310F5378C7
+	for <linux-acpi@vger.kernel.org>; Fri,  7 Apr 2006 17:03:21 +0200 (CEST)
+Received: from ercolino.iast.it ([127.0.0.1])
+	by localhost (ercolino [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 26429-05 for <linux-acpi@vger.kernel.org>;
+	Fri, 7 Apr 2006 17:03:21 +0200 (CEST)
+Received: from [192.168.1.90] (host153-31.pool8544.interbusiness.it [85.44.31.153])
+	(using TLSv1 with cipher EXP1024-RC4-SHA (56/128 bits))
+	(No client certificate requested)
+	by ercolino.iast.it (Mail Daemon) with ESMTP id EC9C1378AB
+	for <linux-acpi@vger.kernel.org>; Fri,  7 Apr 2006 17:03:20 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20060404014504.564bf45a.akpm@osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>, len.brown@intel.com
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-I'm getting the following compile error with CONFIG_ACPI_NUMA=y:
+I used to suspend/resume my Asus V6V (Radeon Mobility X600 video card) laptop 
+without problems in 2.6.15 with little problems using vbetool to resume video 
+card state.
+Starting from 2.6.16 resume hangs when accessing X, either by switching to X 
+virtual terminal or starting X from scratch.
+Trying suspend/resume from single mode with all modules unloaded doesn't 
+change situation.
+I tried with both custom-compiled vanilla kernel and debian unstable kernel 
+without success
 
-<--  snip  -->
-
-...
-  CC      drivers/acpi/numa.o
-drivers/acpi/numa.c: In function 'acpi_numa_init':
-drivers/acpi/numa.c:231: error: 'NR_NODE_MEMBLKS' undeclared (first use in this function)
-drivers/acpi/numa.c:231: error: (Each undeclared identifier is reported only once
-drivers/acpi/numa.c:231: error: for each function it appears in.)
-make[2]: *** [drivers/acpi/numa.o] Error 1
-
-<--  snip  -->
-
-cu
-Adrian
+This is the script i use to resume/suspend:
+chvt 2
+vbetool dpms off
+vbetool vbestate save >$statedir/vbe
+cat /dev/vcsa >$statedir/vcsa
+echo mem >/sys/power/state
+vbetool post
+vbetool vbestate restore <$statedir/vbe
 
 -- 
+Regards 
+IS
+Iacopo Spalletti
 
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
-
+PGP key block: http://www.spalletti.it/pgp
