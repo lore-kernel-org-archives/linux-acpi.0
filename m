@@ -1,74 +1,32 @@
-From: "David J. Wallace" <katana@onetel.com>
-Subject: Re: Problems resuming from S3 in 2.6.16
-Date: Fri, 7 Apr 2006 17:07:01 +0100
-Message-ID: <200604071707.06159.katana@onetel.com>
-References: <200604071703.16518.avvisi@spalletti.it>
+From: Andrew Morton <akpm@osdl.org>
+Subject: Re: 2.6.17-rc1-mm1: drivers/acpi/numa.c compile error
+Date: Fri, 7 Apr 2006 13:59:37 -0700
+Message-ID: <20060407135937.56a84d44.akpm@osdl.org>
+References: <20060404014504.564bf45a.akpm@osdl.org>
+	<20060407122757.GI7118@stusta.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1541649.8MSqCmXbRs";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ironport1.mynow.co.uk ([81.91.192.235]:19260 "EHLO
-	ironport1.mynow.co.uk") by vger.kernel.org with ESMTP
-	id S932439AbWDGQHN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Apr 2006 12:07:13 -0400
-In-Reply-To: <200604071703.16518.avvisi@spalletti.it>
+Received: from smtp.osdl.org ([65.172.181.4]:62378 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S964843AbWDGVA2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Apr 2006 17:00:28 -0400
+In-Reply-To: <20060407122757.GI7118@stusta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: len.brown@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yasunori Goto <y-goto@jp.fujitsu.com>
 
---nextPart1541649.8MSqCmXbRs
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-
-On Friday 07 April 2006 16:03, Iacopo Spalletti wrote:
-> I used to suspend/resume my Asus V6V (Radeon Mobility X600 video card)
-> laptop without problems in 2.6.15 with little problems using vbetool to
-> resume video card state.
-> Starting from 2.6.16 resume hangs when accessing X, either by switching to
-> X virtual terminal or starting X from scratch.
-> Trying suspend/resume from single mode with all modules unloaded doesn't
-> change situation.
-> I tried with both custom-compiled vanilla kernel and debian unstable kern=
-el
-> without success
+Adrian Bunk <bunk@stusta.de> wrote:
 >
-> This is the script i use to resume/suspend:
-> chvt 2
-> vbetool dpms off
-> vbetool vbestate save >$statedir/vbe
-> cat /dev/vcsa >$statedir/vcsa
-> echo mem >/sys/power/state
-> vbetool post
-> vbetool vbestate restore <$statedir/vbe
+> I'm getting the following compile error with CONFIG_ACPI_NUMA=y:
+> 
+> <--  snip  -->
+> 
+> ...
+>   CC      drivers/acpi/numa.o
+> drivers/acpi/numa.c: In function 'acpi_numa_init':
+> drivers/acpi/numa.c:231: error: 'NR_NODE_MEMBLKS' undeclared (first use in this function)
 
-My Panasonic R4 is similarly affected. I hadn't made the link with the upgr=
-ade=20
-2.6.16 and the failure to start X after resume as so much else has been=20
-changing.=20
-
-My script is very similar to the one above.
-
-Regards,
-
-David=20
-
-=2D-=20
-Check out Linux on the Panasonic R4 Laptop - www.laohu.co.uk/r4
-
---nextPart1541649.8MSqCmXbRs
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2.2 (GNU/Linux)
-
-iD8DBQBENo4qKsvwCXwmAPgRAoFoAJ9oDdIRvtjjE7KKrJupVapNf7q1iQCeLLjQ
-+MZ3Qucj6gl3W6vM2/izXAc=
-=aC75
------END PGP SIGNATURE-----
-
---nextPart1541649.8MSqCmXbRs--
+I'm not quite sure how we managed that, but I guess
+unify-pxm_to_node-and-node_to_pxm.patch triggered it?
