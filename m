@@ -1,54 +1,52 @@
-From: "Randy.Dunlap" <rdunlap@xenotime.net>
-Subject: Re: 2.6.17-rc1-mm1: drivers/acpi/numa.c compile error
-Date: Sun, 9 Apr 2006 08:57:08 -0700
-Message-ID: <20060409085708.6ed19e81.rdunlap@xenotime.net>
-References: <20060404014504.564bf45a.akpm@osdl.org>
-	<20060407122757.GI7118@stusta.de>
-	<20060407135937.56a84d44.akpm@osdl.org>
-	<20060409154446.GE8454@stusta.de>
+From: Andreas Saur <saur@acmelabs.de>
+Subject: Help: Can't resume an Abit NF7 (nForce2) from S3
+Date: Sun, 09 Apr 2006 21:15:03 +0200
+Message-ID: <44395D37.7060700@acmelabs.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from xenotime.net ([66.160.160.81]:16779 "HELO xenotime.net")
-	by vger.kernel.org with SMTP id S1750781AbWDIPyu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Apr 2006 11:54:50 -0400
-Received: from midway.site ([71.111.157.99]) by xenotime.net for <linux-acpi@vger.kernel.org>; Sun, 9 Apr 2006 08:54:48 -0700
-In-Reply-To: <20060409154446.GE8454@stusta.de>
+Received: from natlemon.rzone.de ([81.169.145.170]:2179 "EHLO
+	natlemon.rzone.de") by vger.kernel.org with ESMTP id S1750774AbWDITPG
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 9 Apr 2006 15:15:06 -0400
+Received: from server.zuhause.xx (p5081405B.dip0.t-ipconnect.de [80.129.64.91])
+	(authenticated bits=0)
+	by post.webmailer.de (8.13.6/8.13.6) with ESMTP id k39JF4Lu007377
+	for <linux-acpi@vger.kernel.org>; Sun, 9 Apr 2006 21:15:04 +0200 (MEST)
+Received: from [192.168.1.39] (helo=[192.168.1.39])
+	by server.zuhause.xx with esmtp (Exim 4.50)
+	id 1FSfNb-00009I-M4
+	for linux-acpi@vger.kernel.org; Sun, 09 Apr 2006 21:15:23 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: akpm@osdl.org, len.brown@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, y-goto@jp.fujitsu.com, tony.luck@intel.com, ak@muc.de, haveblue@us.ibm.com
+To: linux-acpi@vger.kernel.org
 
-On Sun, 9 Apr 2006 17:44:46 +0200 Adrian Bunk wrote:
+Dear list.
+I've got three Abit NF7 (nForce2) boards here, and hope I can make S3 
+work for  them. I've tried a lot of patches and Vanilla (and -mm) 
+Kernels. I've also published a bug report at Bugzilla 
+(http://bugzilla.kernel.org/show_bug.cgi?id=6326).
 
-> On Fri, Apr 07, 2006 at 01:59:37PM -0700, Andrew Morton wrote:
-> > Adrian Bunk <bunk@stusta.de> wrote:
-> > >
-> > > I'm getting the following compile error with CONFIG_ACPI_NUMA=y:
-> > > 
-> > > <--  snip  -->
-> > > 
-> > > ...
-> > >   CC      drivers/acpi/numa.o
-> > > drivers/acpi/numa.c: In function 'acpi_numa_init':
-> > > drivers/acpi/numa.c:231: error: 'NR_NODE_MEMBLKS' undeclared (first use in this function)
-> > 
-> > I'm not quite sure how we managed that, but I guess
-> > unify-pxm_to_node-and-node_to_pxm.patch triggered it?
-> 
-> Yes, obviously (I got this error on i386):
-> 
->  config ACPI_NUMA
->         bool "NUMA support"
->         depends on NUMA
-> -       depends on (IA64 || X86_64)
-> +       depends on (X86_32 || IA64 || X86_64)
->         default y if IA64_GENERIC || IA64_SGI_SN2
+The last kernel I've tried was 2.6.17-rc1-mm2 (at the very moment the 
+most recent one). But nothing worked yet. My problem isn't a 
+non-returning VGA screen, my whole box is dead after invoking '#echo -n 
+mem > /sys/power/state' from the single user mode. After waking the 
+mashine up, the CPU-Fan and the HDD come up, but the keyboard is dead, 
+and all logs are empty after reset. And that is the bad part of it, I 
+can't offer you a logging entry, because there is none.
 
-The new/fixed line should just be
-	depends on X86 || IA64
-since X86_32 and X86_64 both set X86.
+Question 1: How can I get some logs out of my box? ( e.g. CONFIG_DEBUG_??? )
+Question 2: Is anybody out there with a working 'resume from S3' on an 
+Abit NF7?
+Question 3: If NF7 is a notorious no go board for ACPI, could i at least 
+get mental assistence? ;-)
 
----
-~Randy
+Thank's for support in advance.
+
+      Andreas
+
+P.S.: detailled informations about my system see: 
+http://bugzilla.kernel.org/show_bug.cgi?id=6326
+
+
