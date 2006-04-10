@@ -1,68 +1,125 @@
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: [PATCH] memory hotplug : change phys_device to symbolic [2/2] for
- acpi
-Date: Mon, 10 Apr 2006 18:23:25 +0900
-Message-ID: <20060410182325.32b8c90b.kamezawa.hiroyu@jp.fujitsu.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH] memory hotplug : change phys_device to symbolic [1/2]
+Date: Mon, 10 Apr 2006 07:41:49 -0700
+Message-ID: <20060410144149.GA15186@kroah.com>
+References: <20060410182052.f5c0a444.kamezawa.hiroyu@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:23185 "EHLO
-	fgwmail7.fujitsu.co.jp") by vger.kernel.org with ESMTP
-	id S1751042AbWDJJWz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 10 Apr 2006 05:22:55 -0400
+Received: from smtp1.oregonstate.edu ([128.193.0.11]:25533 "EHLO
+	smtp1.oregonstate.edu") by vger.kernel.org with ESMTP
+	id S1751161AbWDJRrG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 Apr 2006 13:47:06 -0400
+Content-Disposition: inline
+In-Reply-To: <20060410182052.f5c0a444.kamezawa.hiroyu@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Greg <greg@kroah.com>, mochel@linux.intel.com, len.brown@intel.com, ACPI <linux-acpi@vger.kernel.org>, Dave Hansen <haveblue@us.ibm.com>, Andrew Morton <akpm@osdl.org>
+To: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, mochel@linux.intel.com, len.brown@intel.com, ACPI <linux-acpi@vger.kernel.org>, Dave Hansen <haveblue@us.ibm.com>, Andrew Morton <akpm@osdl.org>
 
-This is acpi part.
--Kame
-===
+On Mon, Apr 10, 2006 at 06:20:52PM +0900, KAMEZAWA Hiroyuki wrote:
+> This patch changes memoryX/phys_device to symbolic link.
+> 
+> This phys_device always contains 0 now, and of no use.
+> 
+> This patch changes it to symbolic link. acpi memohotplug is changed to support
+> this.
+> 
+> When this is applied, phys_device becomes meaningful.
+> ==
+> [kamezawa@casares ~]$ readlink /sys/devices/system/memory/memory10/phys_device
+> ../../../../firmware/acpi/namespace/ACPI/_SB/LSB1/MEM2
+> 
+> ==
+> I posted previous version in Feb/2006.
+> Several changes to acpi_memhotplug.c in these days simplified acpi part of
+> this patch :) This patch is against 2.6.17-rc1-mm2.
+> 
+> Note:
+> There looks no code to make symbolic link to acpi namespace now. But this patch 
+> will not bother Patrick-san's acpi refactoring work now goes on. 
+> (I asked him , he answerd if enough simple.)
+> 
+> [1/2] includes sysfs changes.
+> [2/2] includes acpi memhoplug changes.
+> 
+> Thanks,
+> -Kame
+> 
+> Now, memory device 's sysfs entry (/sys/devices/system/memory/memoryX)
+> has phys_device file. Now, it contains just an integer.
+> But it is always 0.
+> 
+> The purpose of phys_device is to show relationship between memory section
+> and physical ram device. But to show relationship, we have to maintain
+> a table phys_device number <-> device.
+> 
+> This patch changes phys_device file to symbolic link to the device.
+> By this, phys_device directly points to a physical device to which it
+> belongs to.
+> 
+> 
+> Signed-Off-By: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+> 
+> Index: linux-2.6.17-rc1-mm2/drivers/base/memory.c
+> ===================================================================
+> --- linux-2.6.17-rc1-mm2.orig/drivers/base/memory.c	2006-04-10 15:48:17.000000000 +0900
+> +++ linux-2.6.17-rc1-mm2/drivers/base/memory.c	2006-04-10 15:50:19.000000000 +0900
+> @@ -252,31 +252,33 @@
+>  	return count;
+>  }
+>  
+> -/*
+> - * phys_device is a bad name for this.  What I really want
+> - * is a way to differentiate between memory ranges that
+> - * are part of physical devices that constitute
+> - * a complete removable unit or fru.
+> - * i.e. do these ranges belong to the same physical device,
+> - * s.t. if I offline all of these sections I can then
+> - * remove the physical device?
+> - */
+> -static ssize_t show_phys_device(struct sys_device *dev, char *buf)
+> -{
+> -	struct memory_block *mem =
+> -		container_of(dev, struct memory_block, sysdev);
+> -	return sprintf(buf, "%d\n", mem->phys_device);
+> -}
+>  
+>  static SYSDEV_ATTR(phys_index, 0444, show_mem_phys_index, NULL);
+>  static SYSDEV_ATTR(state, 0644, show_mem_state, store_mem_state);
+> -static SYSDEV_ATTR(phys_device, 0444, show_phys_device, NULL);
+>  
+>  #define mem_create_simple_file(mem, attr_name)	\
+>  	sysdev_create_file(&mem->sysdev, &attr_##attr_name)
+>  #define mem_remove_simple_file(mem, attr_name)	\
+>  	sysdev_remove_file(&mem->sysdev, &attr_##attr_name)
+>  
+> +static int attach_phys_device(struct memory_block *mem, struct kobject *kobj)
+> +{
+> +	int ret;
+> +	ret = sysfs_create_link(&mem->sysdev.kobj, kobj, "phys_device");
+> +	if (ret)
+> +		return ret;
+> +	mem->phys_device = kobj;
 
-This patch adds symbolic link from memmory sysfs device to
-memory device in acpi namespace.
+mem->phys_device = kobject_get(kobj);
+is probably better, as you are storing a pointer to a kobject, so you
+need to increment its reference count.
 
-like this:
-[kamezawa@casares ~]$ readlink /sys/devices/system/memory/memory10/phys_device
-../../../../firmware/acpi/namespace/ACPI/_SB/LSB1/MEM2
+> +static void remove_phys_device(struct memory_block *mem)
+> +{
+> +	if (mem->phys_device) {
+> +		sysfs_remove_link(&mem->sysdev.kobj, "phys_device");
+> +		mem->phys_device = NULL;
 
-Signed-Off-By: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+kobject_put(mem->phys_device);
+mem->phys_device = NULL;
 
-Index: linux-2.6.17-rc1-mm2/drivers/acpi/acpi_memhotplug.c
-===================================================================
---- linux-2.6.17-rc1-mm2.orig/drivers/acpi/acpi_memhotplug.c	2006-04-10 18:09:39.000000000 +0900
-+++ linux-2.6.17-rc1-mm2/drivers/acpi/acpi_memhotplug.c	2006-04-10 18:09:57.000000000 +0900
-@@ -30,6 +30,7 @@
- #include <linux/init.h>
- #include <linux/types.h>
- #include <linux/memory_hotplug.h>
-+#include <linux/memory.h>
- #include <acpi/acpi_drivers.h>
- 
- #define ACPI_MEMORY_DEVICE_COMPONENT		0x08000000UL
-@@ -215,6 +216,7 @@
- {
- 	int result, num_enabled = 0;
- 	struct acpi_memory_info *info;
-+	struct acpi_device *device;
- 
- 	ACPI_FUNCTION_TRACE("acpi_memory_enable_device");
- 
-@@ -250,6 +252,15 @@
- 		info->enabled = 1;
- 		num_enabled++;
- 	}
-+	result = acpi_bus_get_device(mem_device->handle, &device);
-+	if (!result) {
-+		/* create symbolic link between acpi namespace <->
-+		   memory sysfs */
-+		list_for_each_entry(info, &mem_device->res_list, list)
-+			attach_device_to_memsection(info->start_addr,
-+					info->start_addr + info->length,
-+						    &device->kobj);
-+	}
- 
- 	if (!num_enabled) {
- 		ACPI_ERROR((AE_INFO, "add_memory failed"));
+is a better way to do this.
 
+And yes, the sysfs_create_link() function does increment the reference
+count of the kobject, but it's better to be safe :)
+
+thanks,
+
+greg k-h
