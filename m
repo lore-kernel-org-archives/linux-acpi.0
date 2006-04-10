@@ -1,225 +1,246 @@
-From: Holger Macht <hmacht@suse.de>
-Subject: Re: kernel vs user power management
-Date: Mon, 10 Apr 2006 10:35:45 +0200
-Message-ID: <20060410083544.GB20070@homac.suse.de>
-References: <CFF307C98FEABE47A452B27C06B85BB622B275@hdsmsx411.amr.corp.intel.com>
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: [PATCH] memory hotplug : change phys_device to symbolic [1/2]
+Date: Mon, 10 Apr 2006 18:20:52 +0900
+Message-ID: <20060410182052.f5c0a444.kamezawa.hiroyu@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-laptop-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB622B275@hdsmsx411.amr.corp.intel.com>
-Sender: linux-laptop-owner@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: thoenig@suse.de, linux-acpi@vger.kernel.org, linux-laptop@vger.kernel.org, Andi Kleen <ak@suse.de>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:52965 "EHLO
+	fgwmail5.fujitsu.co.jp") by vger.kernel.org with ESMTP
+	id S1751037AbWDJJTP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 Apr 2006 05:19:15 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Greg <greg@kroah.com>, mochel@linux.intel.com, len.brown@intel.com, ACPI <linux-acpi@vger.kernel.org>, Dave Hansen <haveblue@us.ibm.com>, Andrew Morton <akpm@osdl.org>
 
-On Sat 08. Apr - 23:06:54, Brown, Len wrote:
-> >On Sat 08. Apr - 02:42:12, Brown, Len wrote:
-> >> Timo, Holger,
-> >> Andi pointed me to your FOSDEM Linux Power Management presentation:
-> >> 
-> >> http://en.opensuse.org/FOSDEM2006
-> >> 
-> >> http://files.opensuse.org/opensuse/en/b/b5/One_step_opendesign.pdf
-> >> 
-> >> And I'm glad to see you working on Linux Power Management.
-> >> 
-> >> But I'm a little concerned that user-space and the kernel are
-> >> a little out of sync on a few things.
-> >> 
-> >> I'm happy to see that the userspace p-state governor
-> >> is no longer enabled by default on SuSE systems.
-> >> While it was passable on servers with steady-state
-> >> workloads, it was very bad for laptops where the
-> >> machine spends a lot of time idle, but has short
-> >> bursts of processing need which userspace could
-> >> not detect.  These laptops would spend virtually
-> >> all their time in Pn when using the userspace governor.
-> >
-> >To be honest, this observation suprises me a little bit. We did some
-> >measurements with userspace agains ondemand governor some time 
-> >ago and did not notice any big differences in the results between them.
-> >Well, these tests are about 1 1/2 years ago, though, and there went some 
-> >changes into the kernel until now ;-)
-> 
-> Yes, measurements show that ondemand as improved
-> considerably since its initial implementation.
-> It continues to improve today, though there is now smaller room for improvement.
-> 
-> Also, the other important thing to meausre here is *response time* --
-> not throughput.  This will expose the benefits of switching quickly
-> via ondemand vs. slowly via userspace.
-> This is particularly important on interarctive workloads.
-> 
-> No, you'll not notice much, if any,  difference for course grain things
-> like doing a kernel build or running a steady-state server workload.
+This patch changes memoryX/phys_device to symbolic link.
 
-Agreed.
+This phys_device always contains 0 now, and of no use.
 
-> 
-> >Nevertheless, we adjust the sampling rate in any case and 
-> >currently set it to 333 milliseconds (that's configurable).
-> >We noticed if we use the
-> >default ondemand setting, the ondemand governor increases the frequency
-> >too often although there is not much to do which is also not 
-> >helpful.
-> 
-> I have not observed the ondemand governor today switching up
-> more often than is helpful.
-> 
-> I speak for intel hardware, of course.
-> It might be that other hardware, which can not switch up and down
-> very quickly, not not benefit from ondemand and may be better
-> suited to userspace.
+This patch changes it to symbolic link. acpi memohotplug is changed to support
+this.
 
-Ok. But to decrease this value of 333 milliseconds should be a good idea
-in any case.
+When this is applied, phys_device becomes meaningful.
+==
+[kamezawa@casares ~]$ readlink /sys/devices/system/memory/memory10/phys_device
+../../../../firmware/acpi/namespace/ACPI/_SB/LSB1/MEM2
 
-> 
-> >But 333 milliseconds is maybe a bit too high, it's taken because 
-> >of historical reasons.
-> >This value _was_ the default interval of our main event loop.
-> >I think I will lower it a bit.
-> 
-> Go ahead and tune userspace to work optimally on systems that can't run ondemand.
-> Systems that are able to run ondemand should not be running userspace
-> at all.
+==
+I posted previous version in Feb/2006.
+Several changes to acpi_memhotplug.c in these days simplified acpi part of
+this patch :) This patch is against 2.6.17-rc1-mm2.
 
-They don't at the moment.
+Note:
+There looks no code to make symbolic link to acpi namespace now. But this patch 
+will not bother Patrick-san's acpi refactoring work now goes on. 
+(I asked him , he answerd if enough simple.)
 
-> 
-> >Furthermore, we had some problems on multiprocessor systems in the past
-> >(about 1/2 year ago) with the ondemand governor. After some time the
-> >system was running (even some hours or even days) the machine locked up
-> >hard.  Thus, we set the userspace governor by default on those systems
-> >where we never experienced such problems. At the moment I did 
-> >only get one similar report where the root cause is not clear.
-> 
-> It is important that this failure be root caused and this
-> doubt be put behind us.  Got a bug URL?
+[1/2] includes sysfs changes.
+[2/2] includes acpi memhoplug changes.
 
-See Andi's mail. I didn't know that this is already fixed.
+Thanks,
+-Kame
 
-> 
-> >So I stick to the
-> >ondemand governor in any case in newer releases. And such lockups are
-> >really hard to reproduce and to debug.
-> >
-> >Another argument was that speedstep_ich was not yet ready for ondemand
-> >which it is now IIRC.
-> 
-> speedstep-centrino and acpi-cpufreq support real p-states and can
-> can support ondemand.  (indeed, these two drivers need to be merged into a single driver)
-> 
-> While older systems will use speedstep-ich, I don't expect to see much
-> use for it on modern systems.  p4clockmod is just t-states,
-> and one could argue that it should not exist at all.
+Now, memory device 's sysfs entry (/sys/devices/system/memory/memoryX)
+has phys_device file. Now, it contains just an integer.
+But it is always 0.
 
-Yes, we do not use or load p4clockmod it in any case because of that.
+The purpose of phys_device is to show relationship between memory section
+and physical ram device. But to show relationship, we have to maintain
+a table phys_device number <-> device.
 
-> 
-> I don't know if the amd-specific drivers would work or not.
-> Last I heard their latency was too high, but maybe they've
-> fixed that.
-> 
-> There is a cpufreq architecture issue here here, of course.
-> the drivers make all the different states look the same
-> to the governors.  But P-states and T-states are not the same,
-> they are very different.
+This patch changes phys_device file to symbolic link to the device.
+By this, phys_device directly points to a physical device to which it
+belongs to.
 
-Yes, of course.
 
-> 
-> >> The next step is to delete the userspace governor
-> >> as a valid governor selection entirely.  If somebody
-> >> really wants manual control, they can still set the
-> >> limits within which "ondemand" will stay.
-> >
-> >In current code, I always try to use the ondemand governor at 
-> >first and if that fails we automatically switch to the userspace
-> >implementation at runtime.
-> >
-> >This way has the advantage that we always get a working cpu
-> >frequency scaling support.. But it also has one big disadvantage, we do
-> >not get reports about not working ondemand governor so maybe 
-> >we simply did fot notice the improvements in this area. For our stable 
-> >releases, I will keep the current inplementation. For the unstable one,
-> >I will disable the
-> >autoswitching code and if it still works good then for a few 
-> >month, I will remove the userspace implementation completely.
-> >It should not hurt to let
-> >the code in for some time and remove the visible configuration option,
-> >just to have fallback under strange circumstances.  Would this 
-> >be ok with you?
-> 
-> I think you'll need to keep the userspace backup scheme for systems
-> which have switching latency too high to load and run ondemand.
-> 
-> However, systems which can run ondemand, should never run userspace,
-> and providing userspace as an option on such systems is probably
-> not the right knob to present to administrators on those boxes.
+Signed-Off-By: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Well, then could change that configuration option we have currently
-(CPUFREQ_CONTROL="") to a secret one. Not showing it in the configuration
-file, but it can still be put in if someone knows it or we tell him.
+Index: linux-2.6.17-rc1-mm2/drivers/base/memory.c
+===================================================================
+--- linux-2.6.17-rc1-mm2.orig/drivers/base/memory.c	2006-04-10 15:48:17.000000000 +0900
++++ linux-2.6.17-rc1-mm2/drivers/base/memory.c	2006-04-10 15:50:19.000000000 +0900
+@@ -252,31 +252,33 @@
+ 	return count;
+ }
+ 
+-/*
+- * phys_device is a bad name for this.  What I really want
+- * is a way to differentiate between memory ranges that
+- * are part of physical devices that constitute
+- * a complete removable unit or fru.
+- * i.e. do these ranges belong to the same physical device,
+- * s.t. if I offline all of these sections I can then
+- * remove the physical device?
+- */
+-static ssize_t show_phys_device(struct sys_device *dev, char *buf)
+-{
+-	struct memory_block *mem =
+-		container_of(dev, struct memory_block, sysdev);
+-	return sprintf(buf, "%d\n", mem->phys_device);
+-}
+ 
+ static SYSDEV_ATTR(phys_index, 0444, show_mem_phys_index, NULL);
+ static SYSDEV_ATTR(state, 0644, show_mem_state, store_mem_state);
+-static SYSDEV_ATTR(phys_device, 0444, show_phys_device, NULL);
+ 
+ #define mem_create_simple_file(mem, attr_name)	\
+ 	sysdev_create_file(&mem->sysdev, &attr_##attr_name)
+ #define mem_remove_simple_file(mem, attr_name)	\
+ 	sysdev_remove_file(&mem->sysdev, &attr_##attr_name)
+ 
++static int attach_phys_device(struct memory_block *mem, struct kobject *kobj)
++{
++	int ret;
++	ret = sysfs_create_link(&mem->sysdev.kobj, kobj, "phys_device");
++	if (ret)
++		return ret;
++	mem->phys_device = kobj;
++	return 0;
++}
++
++static void remove_phys_device(struct memory_block *mem)
++{
++	if (mem->phys_device) {
++		sysfs_remove_link(&mem->sysdev.kobj, "phys_device");
++		mem->phys_device = NULL;
++	}
++}
++
+ /*
+  * Block size attribute stuff
+  */
+@@ -330,13 +332,13 @@
+ #endif
+ 
+ /*
+- * Note that phys_device is optional.  It is here to allow for
+- * differentiation between which *physical* devices each
+- * section belongs to...
++ * kobj is a kobject of physical memory device to which this section
++ * belongs. If kobj != NULL, symbolic link to device from mem section is
++ * created
+  */
+ 
+ static int add_memory_block(unsigned long node_id, struct mem_section *section,
+-		     unsigned long state, int phys_device)
++		     unsigned long state, struct kobject *kobj)
+ {
+ 	struct memory_block *mem = kzalloc(sizeof(*mem), GFP_KERNEL);
+ 	int ret = 0;
+@@ -346,16 +348,17 @@
+ 
+ 	mem->phys_index = __section_nr(section);
+ 	mem->state = state;
++	mem->phys_device = NULL;
+ 	init_MUTEX(&mem->state_sem);
+-	mem->phys_device = phys_device;
++
+ 
+ 	ret = register_memory(mem, section, NULL);
+ 	if (!ret)
+ 		ret = mem_create_simple_file(mem, phys_index);
+ 	if (!ret)
+ 		ret = mem_create_simple_file(mem, state);
+-	if (!ret)
+-		ret = mem_create_simple_file(mem, phys_device);
++	if (!ret && kobj)
++		ret = attach_phys_device(mem, kobj);
+ 
+ 	return ret;
+ }
+@@ -391,27 +394,54 @@
+ 	return mem;
+ }
+ 
+-int remove_memory_block(unsigned long node_id, struct mem_section *section,
+-		int phys_device)
++static struct memory_block *pfn_to_memory_block(unsigned long pfn)
++{
++	struct mem_section *section;
++	section = __nr_to_section(pfn_to_section_nr(pfn));
++	return find_memory_block(section);
++}
++
++int remove_memory_block(unsigned long node_id, struct mem_section *section)
+ {
+ 	struct memory_block *mem;
+ 
+ 	mem = find_memory_block(section);
+ 	mem_remove_simple_file(mem, phys_index);
+ 	mem_remove_simple_file(mem, state);
+-	mem_remove_simple_file(mem, phys_device);
++	remove_phys_device(mem);
+ 	unregister_memory(mem, section, NULL);
+ 
+ 	return 0;
+ }
+ 
+ /*
++ * attach device's kobject to memory section.
++ * This is called after add_memory().
++ */
++int attach_device_to_memsection(u64 start_addr, u64 end_addr,
++				struct kobject *kobj)
++{
++	unsigned long pfn = start_addr >> PAGE_SHIFT;
++	unsigned long end_pfn = end_addr >> PAGE_SHIFT;
++	struct memory_block *mem;
++	int ret = 0;
++
++	for (; !ret && (pfn < end_pfn); pfn += PAGES_PER_SECTION) {
++		mem = pfn_to_memory_block(pfn);
++		if (mem)
++			ret = attach_phys_device(mem, kobj);
++	}
++	return ret;
++}
++EXPORT_SYMBOL_GPL(attach_device_to_memsection);
++
++/*
+  * need an interface for the VM to add new memory regions,
+  * but without onlining it.
+  */
+ int register_new_memory(struct mem_section *section)
+ {
+-	return add_memory_block(0, section, MEM_OFFLINE, 0);
++	return add_memory_block(0, section, MEM_OFFLINE, NULL);
+ }
+ 
+ int unregister_memory_section(struct mem_section *section)
+@@ -419,7 +449,7 @@
+ 	if (!valid_section(section))
+ 		return -EINVAL;
+ 
+-	return remove_memory_block(0, section, 0);
++	return remove_memory_block(0, section);
+ }
+ 
+ /*
+Index: linux-2.6.17-rc1-mm2/include/linux/memory.h
+===================================================================
+--- linux-2.6.17-rc1-mm2.orig/include/linux/memory.h	2006-04-10 15:48:30.000000000 +0900
++++ linux-2.6.17-rc1-mm2/include/linux/memory.h	2006-04-10 15:50:19.000000000 +0900
+@@ -31,7 +31,7 @@
+ 	 * initialization.
+ 	 */
+ 	struct semaphore state_sem;
+-	int phys_device;		/* to which fru does this belong? */
++	struct kobject *phys_device;	/* to which kobj does this belong? */
+ 	void *hw;			/* optional pointer to fw/hw data */
+ 	int (*phys_callback)(struct memory_block *);
+ 	struct sys_device sysdev;
+@@ -73,7 +73,9 @@
+ extern int register_new_memory(struct mem_section *);
+ extern int unregister_memory_section(struct mem_section *);
+ extern int memory_dev_init(void);
+-extern int remove_memory_block(unsigned long, struct mem_section *, int);
++extern int remove_memory_block(unsigned long, struct mem_section *);
++extern int attach_device_to_memsection(u64 start_addr, u64 end_addr,
++				      struct kobject *kobj);
+ 
+ #define CONFIG_MEM_BLOCK_SIZE	(PAGES_PER_SECTION<<PAGE_SHIFT)
+ 
 
-> 
-> >> I'm happy to see that clock throttling is not enabled by
-> >> default in recent SuSE release, at least on my laptop
-> >> which supports P-states.
-> >> 
-> >> I'd like to see no option to enable clock-throttling on
-> >> systems that support real p-states.
-> >
-> >Yes, this is reasonable, indeen. Will do that. With p-states in this
-> >context, you mean cpufreq here?
-> 
-> throttling is always T-states.
-> cpufreq is usually p-states, but in the case of p4clockmod,
-> it is T-states also.  As I mentioned above, cpufreq is doing
-> you a dis-service by hiding the difference from you
-> and really need to be enhanced to know (and export)
-> the difference.
-
-Yes, this would be good, indeed. But what else drivers are currently
-affected? It's only p4clockmod I know of.
-
-> 
-> >> It is useful only for workloads which have an infinite
-> >> amount of non-idle computing which you don't care how
-> >> slow it computes.  For the vast majority of workloads
-> >> it just slows down the machine and delays the processor
-> >> from getting into idle where it can save a non-linear
-> >> amount of power.  Further, there exist today systems which
-> >> will consume MORE power in deep C-states when throttled
-> >> vs. when not throttled.
-> >> 
-> >> The other major topic is the user/kernel interface
-> >> for power management policy.  there needs to be in-kernel
-> >> state for this, else the device drivers will have no low-latency
-> >> way to get the answer to the simple policy question of how 
-> >they should
-> >> optimize for performance vs power at any given instant when they
-> >> recognize their device is idle..  this state should be controlled
-> >> by user space, but I think it is most practical for it to
-> >> be kernel resident.
-> >
-> >I'm not sure if I completely understand what you mean here. Do you mean
-> >the so called "runtime device power management"?
-> 
-> yes.
-> 
-> >If so, I fully agree with you. But I do not set a specific 
-> >policy in the powersave code explicitely for that feature.
-> >If the policy information
-> >will go into the kernel, I will use and set this one, of course.
-> 
-> okay, great.
-> Yes, the kernel folks have known for years that this has to be done.
-> Hopefully progress will be made soon...
-> 
-> thanks,
-> -Len
-
-Regards,
-	Holger
