@@ -1,125 +1,63 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH] memory hotplug : change phys_device to symbolic [1/2]
-Date: Mon, 10 Apr 2006 07:41:49 -0700
-Message-ID: <20060410144149.GA15186@kroah.com>
-References: <20060410182052.f5c0a444.kamezawa.hiroyu@jp.fujitsu.com>
+From: Felix Kuehling <fkuehlin@ati.com>
+Subject: RE: Power-button event after resume from S3
+Date: Mon, 10 Apr 2006 16:47:31 -0400
+Message-ID: <1144702051.340.53.camel@localhost.localdomain>
+References: <554C5F4C5BA7384EB2B412FD46A3BAD11906E5@pdsmsx411.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.oregonstate.edu ([128.193.0.11]:25533 "EHLO
-	smtp1.oregonstate.edu") by vger.kernel.org with ESMTP
-	id S1751161AbWDJRrG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 10 Apr 2006 13:47:06 -0400
-Content-Disposition: inline
-In-Reply-To: <20060410182052.f5c0a444.kamezawa.hiroyu@jp.fujitsu.com>
+Received: from outbound-ash.frontbridge.com ([206.16.192.249]:18083 "EHLO
+	outbound2-ash-R.bigfish.com") by vger.kernel.org with ESMTP
+	id S1750765AbWDJUrj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 Apr 2006 16:47:39 -0400
+Received: from outbound2-ash.bigfish.com (localhost.localdomain [127.0.0.1])
+	by outbound2-ash-R.bigfish.com (Postfix) with ESMTP id 66C2574B95F
+	for <linux-acpi@vger.kernel.org>; Mon, 10 Apr 2006 20:47:39 +0000 (UTC)
+Received: from mail64-ash-R.bigfish.com (unknown [172.18.2.1])
+	by outbound2-ash.bigfish.com (Postfix) with ESMTP id 5E39774B94B
+	for <linux-acpi@vger.kernel.org>; Mon, 10 Apr 2006 20:47:39 +0000 (UTC)
+Received: from mail64-ash.bigfish.com (localhost.localdomain [127.0.0.1])
+	by mail64-ash-R.bigfish.com (Postfix) with ESMTP id 52EB34E75DE
+	for <linux-acpi@vger.kernel.org>; Mon, 10 Apr 2006 20:47:39 +0000 (UTC)
+Received: from mail4.ati.com (h209-50-91-134.gtconnect.net [209.50.91.134])
+	(using TLSv1 with cipher EDH-RSA-DES-CBC3-SHA (168/168 bits))
+	(No client certificate requested)
+	by mail64-ash.bigfish.com (Postfix) with ESMTP id 293664E71EB
+	for <linux-acpi@vger.kernel.org>; Mon, 10 Apr 2006 20:47:39 +0000 (UTC)
+Received: from torcaexgw1.atitech.com (exchange.atitech.com [172.24.5.245])
+	by mail4.ati.com (8.13.1/8.13.1) with ESMTP id k3AKlTmj025535
+	for <linux-acpi@vger.kernel.org>; Mon, 10 Apr 2006 16:47:38 -0400
+In-Reply-To: <554C5F4C5BA7384EB2B412FD46A3BAD11906E5@pdsmsx411.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, mochel@linux.intel.com, len.brown@intel.com, ACPI <linux-acpi@vger.kernel.org>, Dave Hansen <haveblue@us.ibm.com>, Andrew Morton <akpm@osdl.org>
+To: "Yu, Luming" <luming.yu@intel.com>
+Cc: linux-acpi@vger.kernel.org, Matthew Tippett <mtippett@ati.com>, Chang-Hwa Lee <changl@ati.com>, Samuel Li <samli@ati.com>
 
-On Mon, Apr 10, 2006 at 06:20:52PM +0900, KAMEZAWA Hiroyuki wrote:
-> This patch changes memoryX/phys_device to symbolic link.
+On Fri, 2006-07-04 at 10:49 +0800, Yu, Luming wrote:
+> >Are there plans for a real fix for this problem, either in the 
+> >kernel or
+> >in acpid?
+> >
 > 
-> This phys_device always contains 0 now, and of no use.
-> 
-> This patch changes it to symbolic link. acpi memohotplug is changed to support
-> this.
-> 
-> When this is applied, phys_device becomes meaningful.
-> ==
-> [kamezawa@casares ~]$ readlink /sys/devices/system/memory/memory10/phys_device
-> ../../../../firmware/acpi/namespace/ACPI/_SB/LSB1/MEM2
-> 
-> ==
-> I posted previous version in Feb/2006.
-> Several changes to acpi_memhotplug.c in these days simplified acpi part of
-> this patch :) This patch is against 2.6.17-rc1-mm2.
-> 
-> Note:
-> There looks no code to make symbolic link to acpi namespace now. But this patch 
-> will not bother Patrick-san's acpi refactoring work now goes on. 
-> (I asked him , he answerd if enough simple.)
-> 
-> [1/2] includes sysfs changes.
-> [2/2] includes acpi memhoplug changes.
-> 
-> Thanks,
-> -Kame
-> 
-> Now, memory device 's sysfs entry (/sys/devices/system/memory/memoryX)
-> has phys_device file. Now, it contains just an integer.
-> But it is always 0.
-> 
-> The purpose of phys_device is to show relationship between memory section
-> and physical ram device. But to show relationship, we have to maintain
-> a table phys_device number <-> device.
-> 
-> This patch changes phys_device file to symbolic link to the device.
-> By this, phys_device directly points to a physical device to which it
-> belongs to.
-> 
-> 
-> Signed-Off-By: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-> 
-> Index: linux-2.6.17-rc1-mm2/drivers/base/memory.c
-> ===================================================================
-> --- linux-2.6.17-rc1-mm2.orig/drivers/base/memory.c	2006-04-10 15:48:17.000000000 +0900
-> +++ linux-2.6.17-rc1-mm2/drivers/base/memory.c	2006-04-10 15:50:19.000000000 +0900
-> @@ -252,31 +252,33 @@
->  	return count;
->  }
->  
-> -/*
-> - * phys_device is a bad name for this.  What I really want
-> - * is a way to differentiate between memory ranges that
-> - * are part of physical devices that constitute
-> - * a complete removable unit or fru.
-> - * i.e. do these ranges belong to the same physical device,
-> - * s.t. if I offline all of these sections I can then
-> - * remove the physical device?
-> - */
-> -static ssize_t show_phys_device(struct sys_device *dev, char *buf)
-> -{
-> -	struct memory_block *mem =
-> -		container_of(dev, struct memory_block, sysdev);
-> -	return sprintf(buf, "%d\n", mem->phys_device);
-> -}
->  
->  static SYSDEV_ATTR(phys_index, 0444, show_mem_phys_index, NULL);
->  static SYSDEV_ATTR(state, 0644, show_mem_state, store_mem_state);
-> -static SYSDEV_ATTR(phys_device, 0444, show_phys_device, NULL);
->  
->  #define mem_create_simple_file(mem, attr_name)	\
->  	sysdev_create_file(&mem->sysdev, &attr_##attr_name)
->  #define mem_remove_simple_file(mem, attr_name)	\
->  	sysdev_remove_file(&mem->sysdev, &attr_##attr_name)
->  
-> +static int attach_phys_device(struct memory_block *mem, struct kobject *kobj)
-> +{
-> +	int ret;
-> +	ret = sysfs_create_link(&mem->sysdev.kobj, kobj, "phys_device");
-> +	if (ret)
-> +		return ret;
-> +	mem->phys_device = kobj;
+> We need a  patch to handle the wakeup power-button event.
+> Do you want to hack a patch for this?
 
-mem->phys_device = kobject_get(kobj);
-is probably better, as you are storing a pointer to a kobject, so you
-need to increment its reference count.
+Before working on a patch I'd like to be sure that there is a general
+consensus that this is indeed The Right Way (TM) to fix the problem.
+Whose blessing would a patch need before being accepted?
 
-> +static void remove_phys_device(struct memory_block *mem)
-> +{
-> +	if (mem->phys_device) {
-> +		sysfs_remove_link(&mem->sysdev.kobj, "phys_device");
-> +		mem->phys_device = NULL;
+Thanks,
+  Felix
 
-kobject_put(mem->phys_device);
-mem->phys_device = NULL;
+> 
+> Probably, you need to hack acpi_button_notify.
+> like:
+> 
+> if (acpi_in_suspend)
+> 	don't generate event.
+> 
+> --Luming
+> 
 
-is a better way to do this.
 
-And yes, the sysfs_create_link() function does increment the reference
-count of the kobject, but it's better to be safe :)
-
-thanks,
-
-greg k-h
