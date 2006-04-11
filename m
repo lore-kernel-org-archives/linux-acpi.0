@@ -1,31 +1,39 @@
-From: "Eugene Ewe Otto" <eeo5w@cms.mail.virginia.edu>
-Subject: How trip_points works
-Date: Mon, 10 Apr 2006 21:02:50 -0400
-Message-ID: <web-191114550@cgatepro-4.mail.virginia.edu>
+From: "Yu, Luming" <luming.yu@intel.com>
+Subject: RE: Power-button event after resume from S3
+Date: Tue, 11 Apr 2006 09:11:18 +0800
+Message-ID: <554C5F4C5BA7384EB2B412FD46A3BAD11E39CC@pdsmsx411.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
-	format=flowed
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fork11.mail.Virginia.EDU ([128.143.2.181]:54993 "EHLO
-	fork11.mail.virginia.edu") by vger.kernel.org with ESMTP
-	id S932238AbWDKBCw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 10 Apr 2006 21:02:52 -0400
+Received: from mga01.intel.com ([192.55.52.88]:35006 "EHLO
+	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
+	id S932244AbWDKBLa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Apr 2006 21:11:30 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Felix Kuehling <fkuehlin@ati.com>
+Cc: linux-acpi@vger.kernel.org, Matthew Tippett <mtippett@ati.com>, Chang-Hwa Lee <changl@ati.com>, Samuel Li <samli@ati.com>
 
-Hi all,
+>Before working on a patch I'd like to be sure that there is a general
+>consensus that this is indeed The Right Way (TM) to fix the problem.
+>Whose blessing would a patch need before being accepted?
 
-I want to modify my thermal trip points but it doesn't seem to be working. 
- When I try to echo a new set of values into the trip_points file (as per 
-the docs on the ACPI website) nothing changes.
+I think this is the simplest and right way to fix this problem.
+And, it should be accepted. :-)
 
-When I cat trip_points, I only have a critical temperature point set at 99 C 
--- does this mean that passive and active cooling are handled by BIOS? If 
-this is the case, can I make ACPI responsible for handling trip points or 
-would it be better to modify the DSDT with the trip point values I want?
+>> Probably, you need to hack acpi_button_notify.
+>> like:
+>> 
+>> if (acpi_in_suspend)
+>> 	don't generate event.
 
-Thanks a lot!
+More precisely,  it should be:
+acpi_button_notify:
+	if(acpi_during_suspend_resume)
+		don't generate power button event to confuse user space
+daemon,
 
--Eugene
+
