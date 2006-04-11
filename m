@@ -1,168 +1,92 @@
 From: akpm@osdl.org
-Subject: [patch 01/13] sem2mutex: drivers/acpi/
-Date: Mon, 10 Apr 2006 23:16:50 -0700
-Message-ID: <200604110717.k3B7HWaV014896@shell0.pdx.osdl.net>
+Subject: [patch 06/13] Catch notification of memory add event of ACPI via container driver. (register start func for memory device)
+Date: Mon, 10 Apr 2006 23:16:55 -0700
+Message-ID: <200604110717.k3B7HalP014911@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:35716 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S932311AbWDKHRk (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:38532 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932314AbWDKHRm (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 Apr 2006 03:17:40 -0400
+	Tue, 11 Apr 2006 03:17:42 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, arjan@infradead.org, mingo@elte.hu
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, y-goto@jp.fujitsu.com, haveblue@us.ibm.com
 
 
-From: Arjan van de Ven <arjan@infradead.org>
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-Semaphore to mutex conversion.
+This is a patch to call add_memroy() when notify reaches for new node's add
+event.
 
-The conversion was generated via scripts, and the result was validated
-automatically via a script as well.
+When new node is added, notify of ACPI reaches container device which means
+the node.
 
-Signed-off-by: Arjan van de Ven <arjan@infradead.org>
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Container device driver calls acpi_bus_scan() to find and add belonging
+devices (which means cpu, memory and so on).  Its function calls add and
+start function of belonging devices's driver.
+
+Howevever, current memory hotplug driver just register add function to
+create sysfs file for its memory.  But, acpi_memory_enable_device() is not
+called because it is considered just the case that notify reaches memory
+device directly.  So, if notify reaches container device nothing can call
+add_memory().
+
+This is a patch to create start function which calls add_memory(). 
+add_memory() can be called by this when notify reaches container device.
+
+[akpm@osdl.org: coding cleanups]
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
 Cc: "Brown, Len" <len.brown@intel.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/processor_perflib.c |   27 ++++++++++++++-------------
- drivers/acpi/scan.c              |    3 ++-
- 2 files changed, 16 insertions(+), 14 deletions(-)
+ drivers/acpi/acpi_memhotplug.c |   21 +++++++++++++++++++++
+ 1 files changed, 21 insertions(+)
 
-diff -puN drivers/acpi/processor_perflib.c~sem2mutex-drivers-acpi drivers/acpi/processor_perflib.c
---- devel/drivers/acpi/processor_perflib.c~sem2mutex-drivers-acpi	2006-04-10 23:16:18.000000000 -0700
-+++ devel-akpm/drivers/acpi/processor_perflib.c	2006-04-10 23:16:18.000000000 -0700
-@@ -34,6 +34,7 @@
- #ifdef CONFIG_X86_ACPI_CPUFREQ_PROC_INTF
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
-+#include <linux/mutex.h>
+diff -puN drivers/acpi/acpi_memhotplug.c~catch-notification-of-memory-add-event-of-acpi-via-container-driver-register-start-func-for-memory-device drivers/acpi/acpi_memhotplug.c
+--- devel/drivers/acpi/acpi_memhotplug.c~catch-notification-of-memory-add-event-of-acpi-via-container-driver-register-start-func-for-memory-device	2006-04-10 23:16:20.000000000 -0700
++++ devel-akpm/drivers/acpi/acpi_memhotplug.c	2006-04-10 23:16:20.000000000 -0700
+@@ -57,6 +57,7 @@ MODULE_LICENSE("GPL");
  
- #include <asm/uaccess.h>
- #endif
-@@ -48,7 +49,7 @@
- #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
- ACPI_MODULE_NAME("acpi_processor")
+ static int acpi_memory_device_add(struct acpi_device *device);
+ static int acpi_memory_device_remove(struct acpi_device *device, int type);
++static int acpi_memory_device_start(struct acpi_device *device);
  
--static DECLARE_MUTEX(performance_sem);
-+static DEFINE_MUTEX(performance_mutex);
+ static struct acpi_driver acpi_memory_device_driver = {
+ 	.name = ACPI_MEMORY_DEVICE_DRIVER_NAME,
+@@ -65,6 +66,7 @@ static struct acpi_driver acpi_memory_de
+ 	.ops = {
+ 		.add = acpi_memory_device_add,
+ 		.remove = acpi_memory_device_remove,
++		.start = acpi_memory_device_start,
+ 		},
+ };
  
- /*
-  * _PPC support is implemented as a CPUfreq policy notifier:
-@@ -72,7 +73,7 @@ static int acpi_processor_ppc_notifier(s
- 	struct acpi_processor *pr;
- 	unsigned int ppc = 0;
- 
--	down(&performance_sem);
-+	mutex_lock(&performance_mutex);
- 
- 	if (event != CPUFREQ_INCOMPATIBLE)
- 		goto out;
-@@ -93,7 +94,7 @@ static int acpi_processor_ppc_notifier(s
- 				     core_frequency * 1000);
- 
-       out:
--	up(&performance_sem);
-+	mutex_unlock(&performance_mutex);
- 
- 	return 0;
- }
-@@ -620,7 +621,7 @@ int acpi_processor_preregister_performan
- 
- 	ACPI_FUNCTION_TRACE("acpi_processor_preregister_performance");
- 
--	down(&performance_sem);
-+	mutex_lock(&performance_mutex);
- 
- 	retval = 0;
- 
-@@ -768,7 +769,7 @@ err_ret:
- 		pr->performance = NULL; /* Will be set for real in register */
- 	}
- 
--	up(&performance_sem);
-+	mutex_unlock(&performance_mutex);
- 	return_VALUE(retval);
- }
- EXPORT_SYMBOL(acpi_processor_preregister_performance);
-@@ -785,16 +786,16 @@ acpi_processor_register_performance(stru
- 	if (!(acpi_processor_ppc_status & PPC_REGISTERED))
- 		return_VALUE(-EINVAL);
- 
--	down(&performance_sem);
-+	mutex_lock(&performance_mutex);
- 
- 	pr = processors[cpu];
- 	if (!pr) {
--		up(&performance_sem);
-+		mutex_unlock(&performance_mutex);
- 		return_VALUE(-ENODEV);
- 	}
- 
- 	if (pr->performance) {
--		up(&performance_sem);
-+		mutex_unlock(&performance_mutex);
- 		return_VALUE(-EBUSY);
- 	}
- 
-@@ -802,13 +803,13 @@ acpi_processor_register_performance(stru
- 
- 	if (acpi_processor_get_performance_info(pr)) {
- 		pr->performance = NULL;
--		up(&performance_sem);
-+		mutex_unlock(&performance_mutex);
- 		return_VALUE(-EIO);
- 	}
- 
- 	acpi_cpufreq_add_file(pr);
- 
--	up(&performance_sem);
-+	mutex_unlock(&performance_mutex);
+@@ -428,6 +430,25 @@ static int acpi_memory_device_remove(str
  	return_VALUE(0);
  }
  
-@@ -822,11 +823,11 @@ acpi_processor_unregister_performance(st
- 
- 	ACPI_FUNCTION_TRACE("acpi_processor_unregister_performance");
- 
--	down(&performance_sem);
-+	mutex_lock(&performance_mutex);
- 
- 	pr = processors[cpu];
- 	if (!pr) {
--		up(&performance_sem);
-+		mutex_unlock(&performance_mutex);
- 		return_VOID;
- 	}
- 
-@@ -835,7 +836,7 @@ acpi_processor_unregister_performance(st
- 
- 	acpi_cpufreq_remove_file(pr);
- 
--	up(&performance_sem);
-+	mutex_unlock(&performance_mutex);
- 
- 	return_VOID;
- }
-diff -puN drivers/acpi/scan.c~sem2mutex-drivers-acpi drivers/acpi/scan.c
---- devel/drivers/acpi/scan.c~sem2mutex-drivers-acpi	2006-04-10 23:16:18.000000000 -0700
-+++ devel-akpm/drivers/acpi/scan.c	2006-04-10 23:16:18.000000000 -0700
-@@ -5,6 +5,7 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/acpi.h>
-+#include <linux/mutex.h>
- 
- #include <acpi/acpi_drivers.h>
- #include <acpi/acinterp.h>	/* for acpi_ex_eisa_id_to_string() */
-@@ -459,7 +460,7 @@ static int acpi_bus_get_perf_flags(struc
-    -------------------------------------------------------------------------- */
- 
- static LIST_HEAD(acpi_bus_drivers);
--static DECLARE_MUTEX(acpi_bus_drivers_lock);
-+static DEFINE_MUTEX(acpi_bus_drivers_lock);
- 
- /**
-  * acpi_bus_match - match device IDs to driver's supported IDs
++static int acpi_memory_device_start (struct acpi_device *device)
++{
++	struct acpi_memory_device *mem_device;
++	int result = 0;
++
++	ACPI_FUNCTION_TRACE("acpi_memory_device_start");
++
++	mem_device = acpi_driver_data(device);
++
++	if (!acpi_memory_check_device(mem_device)) {
++		/* call add_memory func */
++		result = acpi_memory_enable_device(mem_device);
++		if (result)
++			ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
++				"Error in acpi_memory_enable_device\n"));
++	}
++	return_VALUE(result);
++}
++
+ /*
+  * Helper function to check for memory device
+  */
 _
