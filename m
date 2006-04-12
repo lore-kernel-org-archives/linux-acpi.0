@@ -1,46 +1,31 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Suspend to disk
-Date: Tue, 11 Apr 2006 22:38:06 +0200
-Message-ID: <200604112238.07166.rjw@sisk.pl>
-References: <443C0C2D.1020207@gmx.de> <200604112235.18943.rjw@sisk.pl>
+From: "Cleaveland, AJ Allan @ IS" <Allan.J.Cleaveland@L-3Com.com>
+Subject: Hibernate
+Date: Wed, 12 Apr 2006 07:50:37 -0500
+Message-ID: <7736DD1D5D6EDD4081B590872B56DCCC0C29F913@gvlexch01.gvl.is.l-3com.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:65243 "EHLO ogre.sisk.pl")
-	by vger.kernel.org with ESMTP id S1750933AbWDKUih (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 Apr 2006 16:38:37 -0400
-In-Reply-To: <200604112235.18943.rjw@sisk.pl>
-Content-Disposition: inline
+Received: from smtpout1.l-3com.com ([128.170.207.211]:63860 "EHLO
+	smtpout1.L-3com.com") by vger.kernel.org with ESMTP id S932171AbWDLMuw
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Apr 2006 08:50:52 -0400
+Received: from gvlmailhub.gvl.is.l-3com.com (gvlmailhub.gvl.l-3com.com [138.254.134.153])
+	by isDNS.is.l-3com.com  with ESMTP id k3CCh64v026940
+	for <linux-acpi@vger.kernel.org>; Wed, 12 Apr 2006 07:43:06 -0500
+Received: from gvlexch01.gvl.is.l-3com.com (gvlexch01.gvl.is.l-3com.com [138.254.134.121])
+	by gvlmailhub.gvl.is.l-3com.com (8.11.6/8.11.6) with ESMTP id k3CCokl08804
+	for <linux-acpi@vger.kernel.org>; Wed, 12 Apr 2006 07:50:46 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Christian Heimanns <ch.heimanns@gmx.de>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Pavel Machek <pavel@suse.cz>
+To: linux-acpi@vger.kernel.org
 
-[update]
-
-On Tuesday 11 April 2006 22:35, Rafael J. Wysocki wrote:
-> On Tuesday 11 April 2006 22:06, Christian Heimanns wrote:
-> > Hello to all,
-> > following situation:
-> > On my notebook Samsung X20 1730V I'm running Slackware 10.2 current with
-> > kernel 2.6.15.6. Suspend to RAM and suspend to disk works fine.
-> > Since kernel >= 2.6.16 suspend to disk breaks the restore of the
-> > X-Server. That means that the current sessions is lost and the X-Server
-> > restarts.
-> 
-> Does it resume successfully without X (ie. runlevel 3)?
-> 
-> > No problems with suspend to RAM. Please find attached the 
-> > dmesg output for kernel 2.6.15.6 and 2.6.16.2. As well there is the
-> > output frpm lspci. The only difference I can find is that I have with
-> > kernel 2.6.16 some
-> 
-> Do you use a framebuffer driver and if so, is it modular?
-
-Sorry, I see in the logs that you do.  Could you please boot with vga=normal
-and see if that helps?
-
-Rafael
+I'm trying to get hibernate to work on CentOS 4.  What I really want to do
+is use hibernate to start-up the machine every time.  To do this I would
+create an "image" to come out of hibernate with and set the machine to
+always think it's coming out of hibernate, no matter how it was actually
+shut down.  It would always use my "image", even if it was placed in
+hibernate when it shut down.  Without rewriting other people's code does
+anyone know of a way to do this?
+ 
+Thank you,
+Allan
