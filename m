@@ -1,66 +1,50 @@
-From: "Cleaveland, AJ Allan @ IS" <Allan.J.Cleaveland@L-3Com.com>
-Subject: RE: Hibernate
-Date: Thu, 13 Apr 2006 08:19:11 -0500
-Message-ID: <7736DD1D5D6EDD4081B590872B56DCCC0C29F91A@gvlexch01.gvl.is.l-3com.com>
+From: "Yu, Luming" <luming.yu@intel.com>
+Subject: RE: RE: Failed resuming IDE from S3 on Abit NF7 (nForce2)
+Date: Thu, 13 Apr 2006 21:37:38 +0800
+Message-ID: <554C5F4C5BA7384EB2B412FD46A3BAD11206BE@pdsmsx411.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpout1.l-3com.com ([128.170.207.211]:21849 "EHLO
-	smtpout1.L-3com.com") by vger.kernel.org with ESMTP id S964925AbWDMNT0
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Apr 2006 09:19:26 -0400
+Received: from mga03.intel.com ([143.182.124.21]:35390 "EHLO
+	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
+	id S964928AbWDMNh5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Apr 2006 09:37:57 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: 'Nigel Cunningham' <ncunningham@cyclades.com>
-Cc: linux-acpi@vger.kernel.org
+To: Andreas Saur <saur@acmelabs.de>, linux-acpi@vger.kernel.org
 
-Nigel,
+>the bug you are refering to, seems pretty much the same bug like I do 
+>have here. But I've got two questions. Could you please help me? And I 
+>do asume, that this patch isn't in the resent kernel yet, isn't it?
 
-    Thank you for the suggestion.  I will look into it.  It sounds like it
-might work, though since this is likely to be used by us in a variety of
-settings, it may also be too restrictive for some of our uses.
+I didn't check it, Probably Not.
 
-Allan
-
------Original Message-----
-From: Nigel Cunningham [mailto:ncunningham@cyclades.com] 
-Sent: Thursday, April 13, 2006 6:27 AM
-To: Allan.J.Cleaveland@L-3Com.com
-Cc: linux-acpi@vger.kernel.org
-Subject: Re: Hibernate
-
-
-Hi Allan.
-
-On Wednesday 12 April 2006 22:50, Cleaveland, AJ Allan @ IS wrote:
-> I'm trying to get hibernate to work on CentOS 4.  What I really want 
-> to do is use hibernate to start-up the machine every time.  To do this 
-> I would create an "image" to come out of hibernate with and set the 
-> machine to always think it's coming out of hibernate, no matter how it 
-> was actually shut down.  It would always use my "image", even if it 
-> was placed in hibernate when it shut down.  Without rewriting other 
-> people's code does anyone know of a way to do this?
 >
-> Thank you,
-> Allan
+>1) If I want to adopt your patch, I should use the values from my 
+>acpidump, but I can't find anything reasonable. What should my values 
+>look like? (see here: 
+>http://bugzilla.kernel.org/attachment.cgi?id=7762&action=view )
+>
+\\_SB.PCI0.IDE0.PRI0  (It's zero)
+\\_SB.PCI0.IDE0.SEC0 (It's zero)
 
-I'm not sure I understand what you're saying correctly, but it sounds to me 
-like you want something like the KeepImage feature in Suspend2. This feature
 
-lets you suspend once, and subsequently simply powerdown rather than 
-rewriting the image. To use this mode reliably, any filesystems mounted when
+>2) How do I ensure, that this native IDE driver is really used? Do I 
+>have to uncheck all non-native IDE drivers in the kernel 
+>config? (In my 
+>case it's the amd71xx, I guess)
+>
 
-the image is created have to be immutable. This is because the image will 
-include information about the filesystems such as superblocks, inodes, 
-dentries and so on, and these data structures must match the data on disk.
+You can try only CONFIG_IDE_GENERIC.
 
-On resume, you can mount other filesystems (and unmount them prior to
-powering 
-down again), so it is possible to save state.
 
-Is that the sort of thing you're after? If not, could you give further 
-details?
+>Please excuse the silly questions, but I am pretty new to game 
+>of kernel 
+>configuration and compilation, but steady learning :-)
 
-Regards,
+happy hacking. :-)
 
-Nigel
+--Luming
