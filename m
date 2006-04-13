@@ -1,86 +1,62 @@
-From: Dominik Brodowski <linux@dominikbrodowski.net>
-Subject: [PATCH] ACPI C-States: bm_activity improvements
-Date: Thu, 13 Apr 2006 22:22:06 +0200
-Message-ID: <20060413202206.GB7522@dominikbrodowski.de>
+From: Nigel Cunningham <ncunningham@cyclades.com>
+Subject: Re: Hibernate
+Date: Fri, 14 Apr 2006 07:15:15 +1000
+Message-ID: <200604140715.19206.ncunningham@cyclades.com>
+References: <7736DD1D5D6EDD4081B590872B56DCCC0C29F91A@gvlexch01.gvl.is.l-3com.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed;
+  boundary="nextPart1400471.DLmHoFsluM";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from isilmar.linta.de ([213.239.214.66]:49365 "EHLO linta.de")
-	by vger.kernel.org with ESMTP id S932460AbWDMUWT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Apr 2006 16:22:19 -0400
-Content-Disposition: inline
+Received: from cust8446.nsw01.dataco.com.au ([203.171.93.254]:4006 "EHLO
+	cust8446.nsw01.dataco.com.au") by vger.kernel.org with ESMTP
+	id S964971AbWDMVQz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Apr 2006 17:16:55 -0400
+In-Reply-To: <7736DD1D5D6EDD4081B590872B56DCCC0C29F91A@gvlexch01.gvl.is.l-3com.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, len.brown@intel.com
+To: "Cleaveland, AJ Allan @ IS" <Allan.J.Cleaveland@l-3com.com>
+Cc: linux-acpi@vger.kernel.org
 
-Do not assume there was bus mastering activity if the idle handler didn't
-get called, as there's only reason to not enter C3-type sleep if there is
-bus master activity going on. Only for the "promotion" into C3-type sleep
-bus mastering activity is taken into account, and there only current bus
-mastering activity, and not pure guessing should lead to the decision on
-whether to enter C3-type sleep or not.
+--nextPart1400471.DLmHoFsluM
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Also, as bm_activity is a jiffy-based bitmask (bit 0: bus mastering activity
-during this juffy, bit 31: bus mastering activity 31 jiffies ago), fix the
-setting of bit 0, as it might be called multiple times within one jiffy.
+Hi.
 
-Signed-off-by: Dominik Brodowski <linux@dominikbrodowski.net>
+On Thursday 13 April 2006 23:19, Cleaveland, AJ Allan @ IS wrote:
+> Nigel,
+>
+>     Thank you for the suggestion.  I will look into it.  It sounds like it
+> might work, though since this is likely to be used by us in a variety of
+> settings, it may also be too restrictive for some of our uses.
 
----
+Yes, the 'normal' thing is just to write the image everytime you suspend. F=
+or=20
+Suspend2, this usually takes 20s absolute tops (depends on the amount of=20
+memory in use, cpu and disk speeds). The in-kernel swsusp is a lot slower. =
+I=20
+haven't had the chance to test Rafael's userspace swsusp yet, but Pavel is=
+=20
+claiming it's a lot closer to Suspend2 speed.
 
- drivers/acpi/processor_idle.c |   18 ++++++------------
- 1 files changed, 6 insertions(+), 12 deletions(-)
+Regards,
 
-2e1b29fabc1085e1ab5b05dcac5d59e82c633668
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 4f166fa..29470e1 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -3,7 +3,7 @@
-  *
-  *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
-  *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
-- *  Copyright (C) 2004       Dominik Brodowski <linux@brodo.de>
-+ *  Copyright (C) 2004, 2005 Dominik Brodowski <linux@brodo.de>
-  *  Copyright (C) 2004  Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-  *  			- Added processor hotplug support
-  *  Copyright (C) 2005  Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-@@ -261,21 +261,15 @@ static void acpi_processor_idle(void)
- 		u32 bm_status = 0;
- 		unsigned long diff = jiffies - pr->power.bm_check_timestamp;
- 
--		if (diff > 32)
--			diff = 32;
-+		if (diff > 31)
-+			diff = 31;
- 
--		while (diff) {
--			/* if we didn't get called, assume there was busmaster activity */
--			diff--;
--			if (diff)
--				pr->power.bm_activity |= 0x1;
--			pr->power.bm_activity <<= 1;
--		}
-+		pr->power.bm_activity <<= diff;
- 
- 		acpi_get_register(ACPI_BITREG_BUS_MASTER_STATUS,
- 				  &bm_status, ACPI_MTX_DO_NOT_LOCK);
- 		if (bm_status) {
--			pr->power.bm_activity++;
-+			pr->power.bm_activity |= 0x1;
- 			acpi_set_register(ACPI_BITREG_BUS_MASTER_STATUS,
- 					  1, ACPI_MTX_DO_NOT_LOCK);
- 		}
-@@ -287,7 +281,7 @@ static void acpi_processor_idle(void)
- 		else if (errata.piix4.bmisx) {
- 			if ((inb_p(errata.piix4.bmisx + 0x02) & 0x01)
- 			    || (inb_p(errata.piix4.bmisx + 0x0A) & 0x01))
--				pr->power.bm_activity++;
-+				pr->power.bm_activity |= 0x1;
- 		}
- 
- 		pr->power.bm_check_timestamp = jiffies;
--- 
-1.2.4
+Nigel
 
+--nextPart1400471.DLmHoFsluM
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQBEPr9nN0y+n1M3mo0RApMEAJ41xIeZCa+D+odEk1RQr6/isiVSpwCggRnD
+1mx9DP6GALJfUj1hz+yIYio=
+=XX7o
+-----END PGP SIGNATURE-----
+
+--nextPart1400471.DLmHoFsluM--
