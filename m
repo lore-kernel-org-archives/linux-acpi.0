@@ -1,48 +1,85 @@
-From: Felix Kuehling <fkuehlin@ati.com>
-Subject: Re: Power-button event after resume from S3
-Date: Thu, 13 Apr 2006 10:28:38 -0400
-Message-ID: <1144938518.1936.8.camel@localhost.localdomain>
-References: <E1FT8ip-00028X-00@skye.ra.phy.cam.ac.uk>
-	 <200604111414.59650.ncunningham@cyclades.com>
+From: Dominik Brodowski <linux@dominikbrodowski.net>
+Subject: [PATCH] ACPI C-States: accounting of sleep times
+Date: Thu, 13 Apr 2006 22:21:23 +0200
+Message-ID: <20060413202123.GA7522@dominikbrodowski.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-res.frontbridge.com ([63.161.60.49]:62409 "EHLO
-	outbound1-res-R.bigfish.com") by vger.kernel.org with ESMTP
-	id S964950AbWDMO3D (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Apr 2006 10:29:03 -0400
-In-Reply-To: <200604111414.59650.ncunningham@cyclades.com>
+Received: from isilmar.linta.de ([213.239.214.66]:49109 "EHLO linta.de")
+	by vger.kernel.org with ESMTP id S932458AbWDMUWT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Apr 2006 16:22:19 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Nigel Cunningham <ncunningham@cyclades.com>
-Cc: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>, "Yu, Luming" <luming.yu@intel.com>, linux-acpi@vger.kernel.org, Matthew Tippett <mtippett@ati.com>, Chang-Hwa Lee <changl@ati.com>, Samuel Li <samli@ati.com>
+To: linux-acpi@vger.kernel.org, len.brown@intel.com
 
-On Tue, 2006-11-04 at 14:14 +1000, Nigel Cunningham wrote:
-> Hi.
-> 
-> On Tuesday 11 April 2006 12:35, Sanjoy Mahajan wrote:
-> > >  if(acpi_during_suspend_resume)
-> > >	don't generate power button event to confuse user space daemon
-> >
-> > This patch might be useful useful in setting and unsetting
-> > acpi_during_suspend_resume (and also using it, but you should ignore
-> > those as they are hacks for a different problem).  The equivalent
-> > variable in the patch below is acpi_in_suspend.
-> 
-> If you want this to get wider testing, I'll be happy to include it in the 
-> Suspend2 patchset.
+Track the actual time spent in C-States (C2 upwards, we can't
+determine this for C1), not only the number of invocations. This is
+especially useful for dynamic ticks / "tickless systems", but is also
+of interest on normal systems, as any interrupt activity leads to
+C-States being exited, not only the timer interrupt.
 
-Just to clarify, software suspend is not affected by this problem. Only
-S3, possibly S1 and maybe S4BIOS are affected, though I've never seen
-the latter on any real system.
+The time is being measured in PM timer ticks, so an increase by one equals
+279 nanoseconds.
 
-Regards,
-  Felix
+Signed-off-by: Dominik Brodowski <linux@dominikbrodowski.net>
 
-> 
-> Regards,
-> 
-> Nigel
+---
 
+ drivers/acpi/processor_idle.c |   10 ++++++----
+ include/acpi/processor.h      |    1 +
+ 2 files changed, 7 insertions(+), 4 deletions(-)
+
+3997a08ff5aa0553dfff81801c3690a5c91ac7bc
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 80fa434..4f166fa 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -322,8 +322,6 @@ static void acpi_processor_idle(void)
+ 		cx = &pr->power.states[ACPI_STATE_C1];
+ #endif
+ 
+-	cx->usage++;
+-
+ 	/*
+ 	 * Sleep:
+ 	 * ------
+@@ -421,6 +419,9 @@ static void acpi_processor_idle(void)
+ 		local_irq_enable();
+ 		return;
+ 	}
++	cx->usage++;
++	if ((cx->type != ACPI_STATE_C1) && (sleep_ticks > 0))
++		cx->time += sleep_ticks;
+ 
+ 	next_state = pr->power.state;
+ 
+@@ -1055,9 +1056,10 @@ static int acpi_processor_power_seq_show
+ 		else
+ 			seq_puts(seq, "demotion[--] ");
+ 
+-		seq_printf(seq, "latency[%03d] usage[%08d]\n",
++		seq_printf(seq, "latency[%03d] usage[%08d] duration[%020llu]\n",
+ 			   pr->power.states[i].latency,
+-			   pr->power.states[i].usage);
++			   pr->power.states[i].usage,
++			   pr->power.states[i].time);
+ 	}
+ 
+       end:
+diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+index badf027..ca0e031 100644
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -51,6 +51,7 @@ struct acpi_processor_cx {
+ 	u32 latency_ticks;
+ 	u32 power;
+ 	u32 usage;
++	u64 time;
+ 	struct acpi_processor_cx_policy promotion;
+ 	struct acpi_processor_cx_policy demotion;
+ };
+-- 
+1.2.4
 
