@@ -1,50 +1,48 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: RE: Failed resuming IDE from S3 on Abit NF7 (nForce2)
-Date: Thu, 13 Apr 2006 21:37:38 +0800
-Message-ID: <554C5F4C5BA7384EB2B412FD46A3BAD11206BE@pdsmsx411.ccr.corp.intel.com>
+From: Felix Kuehling <fkuehlin@ati.com>
+Subject: Re: Power-button event after resume from S3
+Date: Thu, 13 Apr 2006 10:28:38 -0400
+Message-ID: <1144938518.1936.8.camel@localhost.localdomain>
+References: <E1FT8ip-00028X-00@skye.ra.phy.cam.ac.uk>
+	 <200604111414.59650.ncunningham@cyclades.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:35390 "EHLO
-	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S964928AbWDMNh5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Apr 2006 09:37:57 -0400
-Content-class: urn:content-classes:message
+Received: from outbound-res.frontbridge.com ([63.161.60.49]:62409 "EHLO
+	outbound1-res-R.bigfish.com") by vger.kernel.org with ESMTP
+	id S964950AbWDMO3D (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Apr 2006 10:29:03 -0400
+In-Reply-To: <200604111414.59650.ncunningham@cyclades.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andreas Saur <saur@acmelabs.de>, linux-acpi@vger.kernel.org
+To: Nigel Cunningham <ncunningham@cyclades.com>
+Cc: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>, "Yu, Luming" <luming.yu@intel.com>, linux-acpi@vger.kernel.org, Matthew Tippett <mtippett@ati.com>, Chang-Hwa Lee <changl@ati.com>, Samuel Li <samli@ati.com>
 
->the bug you are refering to, seems pretty much the same bug like I do 
->have here. But I've got two questions. Could you please help me? And I 
->do asume, that this patch isn't in the resent kernel yet, isn't it?
+On Tue, 2006-11-04 at 14:14 +1000, Nigel Cunningham wrote:
+> Hi.
+> 
+> On Tuesday 11 April 2006 12:35, Sanjoy Mahajan wrote:
+> > >  if(acpi_during_suspend_resume)
+> > >	don't generate power button event to confuse user space daemon
+> >
+> > This patch might be useful useful in setting and unsetting
+> > acpi_during_suspend_resume (and also using it, but you should ignore
+> > those as they are hacks for a different problem).  The equivalent
+> > variable in the patch below is acpi_in_suspend.
+> 
+> If you want this to get wider testing, I'll be happy to include it in the 
+> Suspend2 patchset.
 
-I didn't check it, Probably Not.
+Just to clarify, software suspend is not affected by this problem. Only
+S3, possibly S1 and maybe S4BIOS are affected, though I've never seen
+the latter on any real system.
 
->
->1) If I want to adopt your patch, I should use the values from my 
->acpidump, but I can't find anything reasonable. What should my values 
->look like? (see here: 
->http://bugzilla.kernel.org/attachment.cgi?id=7762&action=view )
->
-\\_SB.PCI0.IDE0.PRI0  (It's zero)
-\\_SB.PCI0.IDE0.SEC0 (It's zero)
+Regards,
+  Felix
 
-
->2) How do I ensure, that this native IDE driver is really used? Do I 
->have to uncheck all non-native IDE drivers in the kernel 
->config? (In my 
->case it's the amd71xx, I guess)
->
-
-You can try only CONFIG_IDE_GENERIC.
+> 
+> Regards,
+> 
+> Nigel
 
 
->Please excuse the silly questions, but I am pretty new to game 
->of kernel 
->configuration and compilation, but steady learning :-)
-
-happy hacking. :-)
-
---Luming
