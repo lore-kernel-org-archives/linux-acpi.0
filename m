@@ -1,113 +1,234 @@
-From: Andreas Saur <saur@acmelabs.de>
-Subject: Failed resuming IDE from S3 on Abit NF7 (nForce2)
-Date: Thu, 13 Apr 2006 07:28:28 +0200
-Message-ID: <443DE17C.5020904@acmelabs.de>
+From: Andrew Morton <akpm@osdl.org>
+Subject: Re: [patch 1/3] acpi: dock driver
+Date: Wed, 12 Apr 2006 22:27:35 -0700
+Message-ID: <20060412222735.38aa0f58.akpm@osdl.org>
+References: <20060412221027.472109000@intel.com>
+	<1144880322.11215.44.camel@whizzy>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from natlemon.rzone.de ([81.169.145.170]:31901 "EHLO
-	natlemon.rzone.de") by vger.kernel.org with ESMTP id S964798AbWDMF2g
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Apr 2006 01:28:36 -0400
-Received: from server.zuhause.xx (p508138F7.dip0.t-ipconnect.de [80.129.56.247])
-	(authenticated bits=0)
-	by post.webmailer.de (8.13.6/8.13.6) with ESMTP id k3D5SW4T002086
-	for <linux-acpi@vger.kernel.org>; Thu, 13 Apr 2006 07:28:33 +0200 (MEST)
-Received: from server.zuhause.xx ([192.168.1.2] helo=[127.0.0.1])
-	by server.zuhause.xx with esmtp (Exim 4.50)
-	id 1FTuP8-0007PA-5o
-	for linux-acpi@vger.kernel.org; Thu, 13 Apr 2006 07:30:09 +0200
+Received: from smtp.osdl.org ([65.172.181.4]:8125 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S964797AbWDMF2M (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Apr 2006 01:28:12 -0400
+In-Reply-To: <1144880322.11215.44.camel@whizzy>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+Cc: len.brown@intel.com, greg@kroah.com, linux-acpi@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, linux-kernel@vger.kernel.org, mochel@linux.intel.com, arjan@linux.intel.com, muneda.takahiro@jp.fujitsu.com, pavel@ucw.cz, temnota@kmv.ru, kristen.c.accardi@intel.com
 
-Topic: Failed resuming IDE from S3 on Abit NF7 (nForce2)
+Kristen Accardi <kristen.c.accardi@intel.com> wrote:
+>
+> Create a driver which lives in the acpi subsystem to handle dock events.  This 
+> driver is not an acpi driver, because acpi drivers require that the object
+> be present when the driver is loaded.
+> 
+> ...
+>
+> +/**
+> + * add_dock_dependent_device - associate a device with the dock station
+> + * @ds: The dock station
+> + * @dd: The dependent device
+> + *
+> + * Add the dependent device to the dock's dependent device list.
+> + */
+> +static void
+> +add_dock_dependent_device(struct dock_station *ds,
+> +			  struct dock_dependent_device *dd)
+> +{
+> +	list_add_tail(&dd->list, &ds->dependent_devices);
+> +}
+> +
 
-Hello all,
-as already reported on bugzilla 
-(http://bugzilla.kernel.org/show_bug.cgi?id=6326) and on this mailing 
-list (http://marc.theaimsgroup.com/?l=linux-acpi&m=114461011901806&w=2), 
-I've finally made it to get some more or less usefull logs about this 
-bug. After a accidentally building a kernel with an initrd(*), I was 
-able to resume from S3, but only until the system didn't perform a disk 
-access on IDE. But that was enough to make a dmesg with an interesting 
-entry:
+Does this not need any locking?
 
-"pnp: Failed to activate device 00:09.", where 00:09 is IDE!
+> +/**
+> + * find_dock_dependent_device - get a device dependent on this dock
+> + * @ds: the dock station
+> + * @handle: the acpi_handle of the device we want
+> + *
+> + * iterate over the dependent device list for this dock.  If the
+> + * dependent device matches the handle, return.
+> + */
+> +static struct dock_dependent_device *
+> +find_dock_dependent_device(struct dock_station *ds, acpi_handle handle)
+> +{
+> +	struct dock_dependent_device *dd;
+> +
+> +	list_for_each_entry(dd, &ds->dependent_devices, list) {
+> +		if (handle == dd->handle)
+> +			return dd;
+> +	}
+> +	return NULL;
+> +}
 
-With the first access to IDE the system was instantly frozen.
+Nor this?
 
-The only workaround I've found was here:
-    http://lkml.org/lkml/2006/2/21/280
-I've applied the mentioned kernel-patch:
-    
-http://www.xenotime.net/linux/SATA/2.6.16-rc3/libata-rollup-2616-rc3.patch
-, but it didn't work for me. In the mail was also said, that there is a 
-trivial "4-hooks" patch, that also has to be applied, but reading all 
-the mails I couldn't find this patch.
+> +
+> +
+> +
+> +
 
-Doest anybody know something about libata concerning ACPI problems? Btw. 
-I've got an "sata_nv" mnodule loaded in the single-user-mode, but my 
-sata is switched off in BIOS.
+The driver has a lot of blank lines between functions.  I don't think this
+adds any benefit - it just makes less of the code visible.
 
-Help appreciated! Thanks.
+> +EXPORT_SYMBOL_GPL(is_dock_device);
 
-----dmesg---Linux version 2.6.17-rc1-mm2a (root@vulcan) (gcc version 
-4.0.3 20060304 ------
-PM: Preparing system for mem sleep
-Stopping tasks: =========|
-[ACPI Debug]  String: [0x15] "==== SST Working ===="
-Suspending device 1.0
-Suspending device ide1
-Suspending device eisa.0
-Suspending device serio1
-Suspending device serio0
-Suspending device i8042
-Suspending device serial8250
-Suspending device pnp1
-Suspending device pcspkr
-Suspending device 00:09
-Suspending device 00:08
-Suspending device 00:07
-Suspending device 00:06
-Suspending device 00:05
-Suspending device 00:04
-Suspending device 00:03
-Suspending device 00:02
-Suspending device 00:01
-Suspending device 00:00
-Suspending device pnp0
-Suspending device 0000:02:00.1
-Suspending device 0000:02:00.0
-Suspending device 0000:00:1e.0
-Suspending device 0000:00:09.0
-Suspending device 0000:00:08.0
-Suspending device 0000:00:04.0
-Suspending device 0000:00:01.1
-Suspending device 0000:00:01.0
-Suspending device 0000:00:00.5
-Suspending device 0000:00:00.4
-Suspending device 0000:00:00.3
-Suspending device 0000:00:00.2
-Suspending device 0000:00:00.1
-Suspending device 0000:00:00.0
-Suspending device pci0000:00
-Suspending device platform
-PM: Entering mem sleep
- hwsleep-0285 [11] enter_sleep_state     : Entering sleep state [S3]
-Back to C!
-PM: Finishing wakeup.
-ACPI: PCI Interrupt 0000:00:04.0[A] -> Link [LMAC] -> GSI 11 (level,
-low) -> IRQ 11
-PCI: Setting latency timer of device 0000:00:04.0 to 64
-PCI: Setting latency timer of device 0000:00:08.0 to 64
-pnp: Failed to activate device 00:09.
-Restarting tasks... done
-[ACPI Debug]  String: [0x15] "==== SST Working ===="
-ACPI Error (evevent-0314): No installed handler for fixed event
-[00000002] [20060310]
-[ACPI Debug]  String: [0x15] "==== SST Working ===="
+I assume all these exports are used?
 
-(*) don't know if initrd is the reason, but I've tried so much, that I 
-don't correctly remember anymore.
+> +
+> +
+> +
+> +
+> +/**
+> + * hotplug_devices - insert or remove devices on the dock station
+> + * @ds: the dock station
+> + * @event: either bus check or eject request
+> + *
+> + * Some devices on the dock station need to have drivers called
+> + * to perform hotplug operations after a dock event has occurred.
+> + * Traverse the list of dock devices that have registered a
+> + * hotplug handler, and call the handler.
+> + */
+> +static void hotplug_devices(struct dock_station *ds, u32 event)
+> +{
+> +	struct dock_dependent_device *dd;
+> +
+> +	list_for_each_entry(dd, &ds->hotplug_devices, hotplug_list) {
+> +		if (dd->handler)
+> +			dd->handler(dd->handle, event, dd->context);
+> +	}
+> +}
+> +
+> +
+> +
+> +
+
+There's a reasonable chance that someone else will choose identifiers such
+as `hotplug_devices' and `hotplug_list'.  Let's hope they're not put in a
+header file which gets included here...
+
+
+> +/**
+> + * dock_in_progress - see if we are in the middle of handling a dock event
+> + * @ds: the dock station
+> + *
+> + * Sometimes while docking, false dock events can be sent to the driver
+> + * because good connections aren't made or some other reason.  Ignore these
+> + * if we are in the middle of doing something.
+> + */
+> +static int dock_in_progress(struct dock_station *ds)
+> +{
+> +	if (ds->flags & DOCK_DOCKING ||
+> +		(jiffies < (ds->last_dock_time + 10))) {
+
+Peculiar mixture of paranoid and trusting parenthesisation there..
+
+It'll malfunction if jiffies happens to wrap - use time_before() or
+time_after() to fix.
+
+> +static void acpi_dock_notify(acpi_handle handle, u32 event, void *data)
+> +{
+> +	struct dock_station *ds = (struct dock_station *)data;
+> +	struct acpi_device *device;
+> +
+> +	ACPI_FUNCTION_TRACE("acpi_dock_notify");
+> +
+> +	switch (event) {
+> +		case ACPI_NOTIFY_BUS_CHECK:
+
+We normally indent thusly:
+
+	switch (event) {
+	case ACPI_NOTIFY_BUS_CHECK:
+
+> +			if (!dock_in_progress(ds) && dock_present(ds)) {
+> +				begin_dock(ds);
+> +				dock(ds);
+> +				if (!dock_present(ds)) {
+> +					printk(KERN_ERR PREFIX "Unable to dock!\n");
+> +					break;
+> +				}
+> +				atomic_notifier_call_chain(&dock_notifier_list,
+> +					 event, NULL);
+> +				hotplug_devices(ds, event);
+> +				complete_dock(ds);
+> +				if (acpi_bus_get_device(ds->handle, &device))
+> +					acpi_bus_generate_event(device,
+> +						event, 0);
+> +			}
+
+and if you do that here, this code will look nicer.
+
+> +
+> +/**
+> + * acpi_dock_add - add a new dock station
+> + * @handle: the dock station handle
+> + *
+> + * allocated and initialize a new dock station device.  Find all devices
+> + * that are on the dock station, and register for dock event notifications.
+> + */
+> +static int acpi_dock_add(acpi_handle handle)
+> +{
+> +	int ret;
+> +	acpi_status status;
+> +
+> +	ACPI_FUNCTION_TRACE("acpi_dock_add");
+> +
+> +	/* allocate & initialize the dock_station private data */
+> +	ds = kzalloc(sizeof(*ds), GFP_KERNEL);
+
+<wonders what ds is>
+
+Oh, it's a file-wide `struct dock_station *'.
+
+Suggest that it be given a more file-widey name.
+
+Would it be better if `ds' be defined at compile time?  Perhaps not..
+
+> +	if (!ds)
+> +		return_VALUE(-ENOMEM);
+> +	ds->handle = handle;
+> +	INIT_LIST_HEAD(&ds->dependent_devices);
+> +	INIT_LIST_HEAD(&ds->hotplug_devices);
+> +
+> +	/* Find dependent devices */
+> +	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
+> +			ACPI_UINT32_MAX, find_dock_devices, ds, NULL);
+> +
+> +	/* register for dock events */
+> +	status = acpi_install_notify_handler(ds->handle, ACPI_SYSTEM_NOTIFY,
+> +				acpi_dock_notify, ds);
+> +	if (ACPI_FAILURE(status)) {
+> +		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
+> +			"Error installing notify handler\n"));
+> +		ret = -ENODEV;
+> +		goto dock_add_err;
+> +	}
+> +
+> +	printk(KERN_INFO PREFIX "%s \n", ACPI_DOCK_DRIVER_NAME);
+> +
+> +	return_VALUE(0);
+> +dock_add_err:
+> +	kfree(ds);
+> +	return_VALUE(ret);
+> +}
+> +
+>
+> ...
+>
+> --- 2.6-git-kca2.orig/drivers/acpi/Kconfig
+> +++ 2.6-git-kca2/drivers/acpi/Kconfig
+> @@ -134,6 +134,12 @@ config ACPI_FAN
+>  	  This driver adds support for ACPI fan devices, allowing user-mode 
+>  	  applications to perform basic fan control (on, off, status).
+>  
+> +config ACPI_DOCK
+> +	tristate "Dock"
+> +	default y
+> +	help
+> +	  This driver adds support for ACPI controlled docking stations
+
+It doesn't depend upon anything else?
+
+
