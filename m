@@ -1,53 +1,76 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Power-button event after resume from S3
-Date: Fri, 14 Apr 2006 11:29:15 +0200
-Message-ID: <200604141129.17043.rjw@sisk.pl>
-References: <E1FT8ip-00028X-00@skye.ra.phy.cam.ac.uk> <1144938518.1936.8.camel@localhost.localdomain> <200604141533.40747.ncunningham@cyclades.com>
+From: Christian Heimanns <ch.heimanns@gmx.de>
+Subject: Re: Suspend to disk
+Date: Fri, 14 Apr 2006 13:26:35 +0200
+Message-ID: <443F86EB.8060903@gmx.de>
+References: <443C0C2D.1020207@gmx.de> <200604112235.18943.rjw@sisk.pl> <200604112238.07166.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:53376 "EHLO ogre.sisk.pl")
-	by vger.kernel.org with ESMTP id S965118AbWDNJab (ORCPT
+Received: from mail.gmx.de ([213.165.64.20]:32446 "HELO mail.gmx.net")
+	by vger.kernel.org with SMTP id S1750990AbWDNL1T (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Apr 2006 05:30:31 -0400
-In-Reply-To: <200604141533.40747.ncunningham@cyclades.com>
-Content-Disposition: inline
+	Fri, 14 Apr 2006 07:27:19 -0400
+In-Reply-To: <200604112238.07166.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Nigel Cunningham <ncunningham@cyclades.com>
-Cc: Felix Kuehling <fkuehlin@ati.com>, Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>, "Yu, Luming" <luming.yu@intel.com>, linux-acpi@vger.kernel.org, Matthew Tippett <mtippett@ati.com>, Chang-Hwa Lee <changl@ati.com>, Samuel Li <samli@ati.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, pavel@suse.cz
 
-Hi,
+Sorry for the delay, I was on the road...
 
-On Friday 14 April 2006 07:33, Nigel Cunningham wrote:
-> On Friday 14 April 2006 00:28, Felix Kuehling wrote:
-> > On Tue, 2006-11-04 at 14:14 +1000, Nigel Cunningham wrote:
-> > > Hi.
-> > >
-> > > On Tuesday 11 April 2006 12:35, Sanjoy Mahajan wrote:
-> > > > >  if(acpi_during_suspend_resume)
-> > > > >	don't generate power button event to confuse user space daemon
-> > > >
-> > > > This patch might be useful useful in setting and unsetting
-> > > > acpi_during_suspend_resume (and also using it, but you should ignore
-> > > > those as they are hacks for a different problem).  The equivalent
-> > > > variable in the patch below is acpi_in_suspend.
-> > >
-> > > If you want this to get wider testing, I'll be happy to include it in the
-> > > Suspend2 patchset.
-> >
-> > Just to clarify, software suspend is not affected by this problem. Only
-> > S3, possibly S1 and maybe S4BIOS are affected, though I've never seen
-> > the latter on any real system.
-> 
-> Thanks. I still think it would be worth including, because Suspend2 (and now 
-> uswsusp, I believe) lets you choose what to do after writing the image. One 
-> of the options is suspending to ram, so that you effectively get disk-backed 
-> suspend to ram. It might be useful in this situation.
+Rafael J. Wysocki wrote:
+> [update]
+>=20
+> On Tuesday 11 April 2006 22:35, Rafael J. Wysocki wrote:
+>> On Tuesday 11 April 2006 22:06, Christian Heimanns wrote:
+>>> Hello to all,
+>>> following situation:
+>>> On my notebook Samsung X20 1730V I'm running Slackware 10.2 current=
+ with
+>>> kernel 2.6.15.6. Suspend to RAM and suspend to disk works fine.
+>>> Since kernel >=3D 2.6.16 suspend to disk breaks the restore of the
+>>> X-Server. That means that the current sessions is lost and the X-Se=
+rver
+>>> restarts.
+>> Does it resume successfully without X (ie. runlevel 3)?
+>>
+>>> No problems with suspend to RAM. Please find attached the=20
+>>> dmesg output for kernel 2.6.15.6 and 2.6.16.2. As well there is the
+>>> output frpm lspci. The only difference I can find is that I have wi=
+th
+>>> kernel 2.6.16 some
+>> Do you use a framebuffer driver and if so, is it modular?
+>=20
+> Sorry, I see in the logs that you do.  Could you please boot with vga=
+=3Dnormal
+> and see if that helps?
+>=20
 
-Yes we support suspend-to-disk-and-RAM now, so it may be useful to us too.
+I tried kernel 2.6.16.2 with vga=3Dnormal. No changes. Suspend to RAM
+works well, suspend to disk not. It's just the X-Server who restarts an=
+d
+ I lose the suspended X-session. The following messages I've found in
+the dmesg output after resume:
 
-Greetings,
-Rafael
+pnp: Device 00:08 does not supported activation.
+pnp: Device 00:09 does not supported activation.
+Restarting tasks... done
+
+No idea what pnp device 00:08 and 00:09 is! These problems I have only
+with the kernel >=3D 2.6.16
+
+Regards,
+Christian
+--=20
+---
+Christian Heimanns
+ch.heimanns<at>gmx<dot>de
+
+### Pinguine k=C3=B6nnen nicht fliegen
+- Pinguine st=C3=BCrzen auch nicht ab! ###
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
