@@ -1,76 +1,52 @@
-From: Christian Heimanns <ch.heimanns@gmx.de>
-Subject: Re: Suspend to disk
-Date: Fri, 14 Apr 2006 13:26:35 +0200
-Message-ID: <443F86EB.8060903@gmx.de>
-References: <443C0C2D.1020207@gmx.de> <200604112235.18943.rjw@sisk.pl> <200604112238.07166.rjw@sisk.pl>
+From: Daniel Drake <dsd@gentoo.org>
+Subject: "Unable to start the ACPI Interpreter" in 2.6.16
+Date: Fri, 14 Apr 2006 14:29:57 +0100
+Message-ID: <443FA3D5.4070103@gentoo.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.de ([213.165.64.20]:32446 "HELO mail.gmx.net")
-	by vger.kernel.org with SMTP id S1750990AbWDNL1T (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Apr 2006 07:27:19 -0400
-In-Reply-To: <200604112238.07166.rjw@sisk.pl>
+Received: from mta09-winn.ispmail.ntl.com ([81.103.221.49]:3567 "EHLO
+	mtaout03-winn.ispmail.ntl.com") by vger.kernel.org with ESMTP
+	id S1751251AbWDNNRA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 14 Apr 2006 09:17:00 -0400
+Received: from aamtaout01-winn.ispmail.ntl.com ([81.103.221.35])
+          by mtaout03-winn.ispmail.ntl.com with ESMTP
+          id <20060414131659.ORKL27969.mtaout03-winn.ispmail.ntl.com@aamtaout01-winn.ispmail.ntl.com>
+          for <linux-acpi@vger.kernel.org>; Fri, 14 Apr 2006 14:16:59 +0100
+Received: from [192.168.0.2] (really [86.14.216.162])
+          by aamtaout01-winn.ispmail.ntl.com with ESMTP
+          id <20060414131659.VFOZ19763.aamtaout01-winn.ispmail.ntl.com@[192.168.0.2]>
+          for <linux-acpi@vger.kernel.org>; Fri, 14 Apr 2006 14:16:59 +0100
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, pavel@suse.cz
+To: linux-acpi@vger.kernel.org
 
-Sorry for the delay, I was on the road...
+Hi,
 
-Rafael J. Wysocki wrote:
-> [update]
->=20
-> On Tuesday 11 April 2006 22:35, Rafael J. Wysocki wrote:
->> On Tuesday 11 April 2006 22:06, Christian Heimanns wrote:
->>> Hello to all,
->>> following situation:
->>> On my notebook Samsung X20 1730V I'm running Slackware 10.2 current=
- with
->>> kernel 2.6.15.6. Suspend to RAM and suspend to disk works fine.
->>> Since kernel >=3D 2.6.16 suspend to disk breaks the restore of the
->>> X-Server. That means that the current sessions is lost and the X-Se=
-rver
->>> restarts.
->> Does it resume successfully without X (ie. runlevel 3)?
->>
->>> No problems with suspend to RAM. Please find attached the=20
->>> dmesg output for kernel 2.6.15.6 and 2.6.16.2. As well there is the
->>> output frpm lspci. The only difference I can find is that I have wi=
-th
->>> kernel 2.6.16 some
->> Do you use a framebuffer driver and if so, is it modular?
->=20
-> Sorry, I see in the logs that you do.  Could you please boot with vga=
-=3Dnormal
-> and see if that helps?
->=20
+A Gentoo user reported a 2.6.16 regression at http://bugs.gentoo.org/129011
 
-I tried kernel 2.6.16.2 with vga=3Dnormal. No changes. Suspend to RAM
-works well, suspend to disk not. It's just the X-Server who restarts an=
-d
- I lose the suspended X-session. The following messages I've found in
-the dmesg output after resume:
+In a nutshell, ACPI worked in 2.6.15, and breaks in 2.6.16 and the 
+/proc/acpi interface is not present. Here are the relevant looking 
+messages from dmesg:
 
-pnp: Device 00:08 does not supported activation.
-pnp: Device 00:09 does not supported activation.
-Restarting tasks... done
+ACPI: SCI (IRQ0) allocation failed
+ACPI Exception (evevent-0167): AE_NOT_ACQUIRED, Unable to install System 
+Control Interrupt handler [20060127]
+ACPI: Unable to start the ACPI Interpreter
+evxfevnt-0134 [06] disable               : ACPI mode disabled
+ACPI (utalloc-0862): No outstanding allocations [20060127]
+ACPI Exception (utmutex-0257): AE_BAD_PARAMETER, Thread 1 could not 
+acquire Mutex [6] [20060127]
+ACPI Exception (utmutex-0257): AE_BAD_PARAMETER, Thread 1 could not 
+acquire Mutex [6] [20060127]
 
-No idea what pnp device 00:08 and 00:09 is! These problems I have only
-with the kernel >=3D 2.6.16
+Full dmesg can be found at 
+http://bugs.gentoo.org/attachment.cgi?id=84551&action=view
 
-Regards,
-Christian
---=20
----
-Christian Heimanns
-ch.heimanns<at>gmx<dot>de
+This bug is already fixed in 2.6.17-rc1. Does anyone know offhand which 
+patch fixes this? I'd like to backport the fix and also submit it for 
+the -stable branch.
 
-### Pinguine k=C3=B6nnen nicht fliegen
-- Pinguine st=C3=BCrzen auch nicht ab! ###
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Daniel
