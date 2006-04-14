@@ -1,26 +1,26 @@
 From: Nigel Cunningham <ncunningham@cyclades.com>
-Subject: Re: Hibernate
-Date: Fri, 14 Apr 2006 14:31:45 +1000
-Message-ID: <200604141431.50491.ncunningham@cyclades.com>
-References: <7736DD1D5D6EDD4081B590872B56DCCC0C29F913@gvlexch01.gvl.is.l-3com.com> <200604132126.42755.ncunningham@cyclades.com> <1144983375.2865.73.camel@sli10-desk.sh.intel.com>
+Subject: Re: Power-button event after resume from S3
+Date: Fri, 14 Apr 2006 15:33:32 +1000
+Message-ID: <200604141533.40747.ncunningham@cyclades.com>
+References: <E1FT8ip-00028X-00@skye.ra.phy.cam.ac.uk> <200604111414.59650.ncunningham@cyclades.com> <1144938518.1936.8.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: multipart/signed;
-  boundary="nextPart1876207.dNlPS4c2tD";
+  boundary="nextPart2361262.0L3hUunO7A";
   protocol="application/pgp-signature";
   micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cust8446.nsw01.dataco.com.au ([203.171.93.254]:29832 "EHLO
+Received: from cust8446.nsw01.dataco.com.au ([203.171.93.254]:30167 "EHLO
 	cust8446.nsw01.dataco.com.au") by vger.kernel.org with ESMTP
-	id S965064AbWDNEd0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Apr 2006 00:33:26 -0400
-In-Reply-To: <1144983375.2865.73.camel@sli10-desk.sh.intel.com>
+	id S965110AbWDNFfQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 14 Apr 2006 01:35:16 -0400
+In-Reply-To: <1144938518.1936.8.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: "Cleaveland, AJ Allan @ IS" <Allan.J.Cleaveland@l-3com.com>, linux-acpi@vger.kernel.org
+To: Felix Kuehling <fkuehlin@ati.com>
+Cc: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>, "Yu, Luming" <luming.yu@intel.com>, linux-acpi@vger.kernel.org, Matthew Tippett <mtippett@ati.com>, Chang-Hwa Lee <changl@ati.com>, Samuel Li <samli@ati.com>
 
---nextPart1876207.dNlPS4c2tD
+--nextPart2361262.0L3hUunO7A
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
@@ -28,58 +28,48 @@ Content-Disposition: inline
 
 Hi.
 
-On Friday 14 April 2006 12:56, Shaohua Li wrote:
-> On Thu, 2006-04-13 at 19:26 +0800, Nigel Cunningham wrote:
-> > Hi Allan.
+On Friday 14 April 2006 00:28, Felix Kuehling wrote:
+> On Tue, 2006-11-04 at 14:14 +1000, Nigel Cunningham wrote:
+> > Hi.
 > >
-> > On Wednesday 12 April 2006 22:50, Cleaveland, AJ Allan @ IS wrote:
-> > > I'm trying to get hibernate to work on CentOS 4.  What I really want =
-to
-> > > do is use hibernate to start-up the machine every time.  To do this I
-> > > would create an "image" to come out of hibernate with and set the
-> > > machine to always think it's coming out of hibernate, no matter how it
-> > > was actually shut down.  It would always use my "image", even if it w=
-as
-> > > placed in hibernate when it shut down.  Without rewriting other
-> > > people's code does anyone know of a way to do this?
+> > On Tuesday 11 April 2006 12:35, Sanjoy Mahajan wrote:
+> > > >  if(acpi_during_suspend_resume)
+> > > >	don't generate power button event to confuse user space daemon
 > > >
-> > > Thank you,
-> > > Allan
+> > > This patch might be useful useful in setting and unsetting
+> > > acpi_during_suspend_resume (and also using it, but you should ignore
+> > > those as they are hacks for a different problem).  The equivalent
+> > > variable in the patch below is acpi_in_suspend.
 > >
-> > I'm not sure I understand what you're saying correctly, but it sounds to
-> > me like you want something like the KeepImage feature in Suspend2. This
-> > feature lets you suspend once, and subsequently simply powerdown rather
-> > than rewriting the image. To use this mode reliably, any filesystems
-> > mounted when the image is created have to be immutable. This is because
-> > the image will include information about the filesystems such as
-> > superblocks, inodes, dentries and so on, and these data structures must
-> > match the data on disk.
+> > If you want this to get wider testing, I'll be happy to include it in t=
+he
+> > Suspend2 patchset.
 >
-> We could have file in memory for the snapshot kernel before we mount any
-> hardisk filesystem, and then create a new initrd including the snapshot
-> image after boot. Later we always use the new initrd. This way even the
-> hardisk is touched, the kernel can still resume.
+> Just to clarify, software suspend is not affected by this problem. Only
+> S3, possibly S1 and maybe S4BIOS are affected, though I've never seen
+> the latter on any real system.
 
-Yes. I've been thinking about this for a while, and planned to work on it t=
-o=20
-reduce the boot time of some of our Cyclades products. In fact, I was=20
-thinking about making the initrd be the image (using code I already have in=
+Thanks. I still think it would be worth including, because Suspend2 (and no=
+w=20
+uswsusp, I believe) lets you choose what to do after writing the image. One=
 =20
-the filewriter to do this).
+of the options is suspending to ram, so that you effectively get disk-backe=
+d=20
+suspend to ram. It might be useful in this situation.
 
 Regards,
 
 Nigel
 
---nextPart1876207.dNlPS4c2tD
+--nextPart2361262.0L3hUunO7A
 Content-Type: application/pgp-signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQBEPyW2N0y+n1M3mo0RAip4AJ9Mm2ArkGsVSd9fOdmT8AeTxBgI2gCbBx5Z
-x2gEReaHgXJUEeqKywjuttA=
-=6hA6
+iD8DBQBEPzQ0N0y+n1M3mo0RAvllAJ0Rci4lEeEFLsF8nank26N2f7sIzACgnu28
+sIj0rqXPoE+hhdJz2QWR2bM=
+=+5sp
 -----END PGP SIGNATURE-----
 
---nextPart1876207.dNlPS4c2tD--
+--nextPart2361262.0L3hUunO7A--
