@@ -1,33 +1,64 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: Suspend to disk (some PATCH)
-Date: Sat, 15 Apr 2006 15:18:36 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0604151518250.29152@yvahk01.tjqt.qr>
-References: <443C0C2D.1020207@gmx.de> <Pine.LNX.4.61.0604142354390.4238@yvahk01.tjqt.qr>
- <20060414220254.GA20944@atrey.karlin.mff.cuni.cz> <200604151325.59347.rjw@sisk.pl>
+From: Harald Dunkel <harald.dunkel@t-online.de>
+Subject: acpi_power_off doesn't
+Date: Sat, 15 Apr 2006 16:18:18 +0200
+Message-ID: <444100AA.7060300@t-online.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig2E05F0B7A2554A7467442B3E"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from linux01.gwdg.de ([134.76.13.21]:7300 "EHLO linux01.gwdg.de")
-	by vger.kernel.org with ESMTP id S1030246AbWDONSk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 15 Apr 2006 09:18:40 -0400
-In-Reply-To: <200604151325.59347.rjw@sisk.pl>
+Received: from mailout06.sul.t-online.com ([194.25.134.19]:62343 "EHLO
+	mailout06.sul.t-online.com") by vger.kernel.org with ESMTP
+	id S1030249AbWDOOSa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 15 Apr 2006 10:18:30 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Pavel Machek <pavel@ucw.cz>, Christian Heimanns <ch.heimanns@gmx.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
->> > >> pnp: Device 00:08 does not supported activation.
->> > >> pnp: Device 00:09 does not supported activation.
->> > 
->> > Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
->> 
->> ACK, but I guess you need to add an changelog and mail it to akpm.
->
->Well, I can do that if you don't mind.
->
-Please do so, thanks.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig2E05F0B7A2554A7467442B3E
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Hi folks,
+
+Sometimes acpi_power_off doesn't switch off my PC. If I
+boot and press the power button again as soon as it is
+up, then it shuts down as expected. But if I login, let
+it run for some time, logout, and press the power button,
+then it walks through the runlevel 0 scripts as before,
+finally it says
+
+	acpi_power_off called.
+
+and keeps on running. The PC does _not_ go off.
+
+Kernel is 2.6.16.5, Pentium M 2GHz, Aopen MZ915-M.
+
+Any idea?
+
+This PC is supposed to startup and shutdown without
+watching, so any help would be highly appreciated.
 
 
-Jan Engelhardt
--- 
+Regards
+
+Harri
+
+
+
+--------------enig2E05F0B7A2554A7467442B3E
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.3 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFEQQCwUTlbRTxpHjcRAsqkAKCBPsgtNmkNPVZggalf3fYcEIInsgCdF8XD
+fxrjP+A3CE96awP9iJHqY2I=
+=ERSC
+-----END PGP SIGNATURE-----
+
+--------------enig2E05F0B7A2554A7467442B3E--
