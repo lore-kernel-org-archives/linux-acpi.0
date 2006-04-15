@@ -1,85 +1,33 @@
-From: Christian Heimanns <ch.heimanns@gmx.de>
-Subject: Re: Suspend to disk
-Date: Sat, 15 Apr 2006 09:55:22 +0200
-Message-ID: <4440A6EA.7040606@gmx.de>
-References: <443C0C2D.1020207@gmx.de> <200604112238.07166.rjw@sisk.pl> <443F86EB.8060903@gmx.de> <200604141611.50740.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Suspend to disk (some PATCH)
+Date: Sat, 15 Apr 2006 13:25:58 +0200
+Message-ID: <200604151325.59347.rjw@sisk.pl>
+References: <443C0C2D.1020207@gmx.de> <Pine.LNX.4.61.0604142354390.4238@yvahk01.tjqt.qr> <20060414220254.GA20944@atrey.karlin.mff.cuni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.de ([213.165.64.20]:41385 "HELO mail.gmx.net")
-	by vger.kernel.org with SMTP id S1751564AbWDOHz3 (ORCPT
+Received: from ogre.sisk.pl ([217.79.144.158]:52358 "EHLO ogre.sisk.pl")
+	by vger.kernel.org with ESMTP id S932488AbWDOL1Q (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 15 Apr 2006 03:55:29 -0400
-In-Reply-To: <200604141611.50740.rjw@sisk.pl>
+	Sat, 15 Apr 2006 07:27:16 -0400
+In-Reply-To: <20060414220254.GA20944@atrey.karlin.mff.cuni.cz>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, pavel@suse.cz
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Jan Engelhardt <jengelh@linux01.gwdg.de>, Christian Heimanns <ch.heimanns@gmx.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Saturday 15 April 2006 00:02, Pavel Machek wrote:
+> > >> 
+> > >> pnp: Device 00:08 does not supported activation.
+> > >> pnp: Device 00:09 does not supported activation.
+> > 
+> > Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+> 
+> ACK, but I guess you need to add an changelog and mail it to akpm.
 
-Rafael J. Wysocki wrote:
-> On Friday 14 April 2006 13:26, Christian Heimanns wrote:
->> Sorry for the delay, I was on the road...
->>
->> Rafael J. Wysocki wrote:
->>> [update]
+Well, I can do that if you don't mind.
 
-> You can try to do something like this: change the runlevel to 3 (eg. =
-init 3),
-> the start the X server manually (ie. "X" as root), switch to a text t=
-erminal
-> and try to suspend.  Then, after resume, see if the X server is still=
- running
-> and if not, look into its log.
->=20
-Thank you Rafael,
-I think I've found a solution: Not the kernel or ACPI is guilty, just m=
-y
-Notebook :-) I changed my acpi scripts a little and now it's working
-again. I had to play around with vbetool and 915resolution called in
-proper order.
-You pointed me to this solution and I already signed off from the
-mailing lists. Thanks again,
-
-Christian
-
-My new suspend/resume part:
-/sbin/hwclock --systohc
-/usr/bin/chvt 1
-/usr/local/sbin/vbetool vbestate save > /tmp/vbestate-save
-/usr/bin/sync
-echo shutdown > /sys/power/disk
-echo disk > /sys/power/state
-/sbin/hwclock --hctosys
-/usr/local/sbin/vbetool vbestate restore < /tmp/vbestate-save
-/usr/sbin/915resolution 3c 1400 1050
-/usr/bin/chvt 2 #my X vt
-
-The old one was just:
-echo shutdown > /sys/power/disk
-echo disk > /sys/power/state
-/usr/sbin/915resolution 3c 1400 1050
-
-- --
-- ---
-Christian Heimanns
-ch.heimanns<at>gmx<dot>de
-
-### Pinguine k=C3=B6nnen nicht fliegen
-- - Pinguine st=C3=BCrzen auch nicht ab! ###
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2.2 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFEQKbmABNhR5QHn0wRAm6XAJ9+E9rQRdfYy3h6E+D01puulN85zQCeL+nA
-EuHA1Q6ojlv7KRu+/j5XeBU=3D
-=3DcCwH
------END PGP SIGNATURE-----
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Rafael
