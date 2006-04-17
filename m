@@ -1,41 +1,31 @@
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: Re: [patch 1/3] acpi: dock driver
-Date: Sun, 16 Apr 2006 09:28:40 -0400
-Message-ID: <44424688.3050802@redhat.com>
-References: <20060412221027.472109000@intel.com>	 <1144880322.11215.44.camel@whizzy>  <20060412222735.38aa0f58.akpm@osdl.org> <1145054985.29319.51.camel@whizzy>
+From: "Yu, Luming" <luming.yu@intel.com>
+Subject: acpi hotkey sysfs support
+Date: Mon, 17 Apr 2006 11:09:10 +0800
+Message-ID: <554C5F4C5BA7384EB2B412FD46A3BAD1223969@pdsmsx411.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750741AbWDPN3e@vger.kernel.org>
-In-Reply-To: <1145054985.29319.51.camel@whizzy>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kristen Accardi <kristen.c.accardi@intel.com>
-Cc: Andrew Morton <akpm@osdl.org>, len.brown@intel.com, greg@kroah.com, linux-acpi@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, linux-kernel@vger.kernel.org, mochel@linux.intel.com, arjan@linux.intel.com, muneda.takahiro@jp.fujitsu.com, pavel@ucw.cz, temnota@kmv.ru
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:49010 "EHLO
+	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
+	id S1750995AbWDQDJQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Apr 2006 23:09:16 -0400
+Content-class: urn:content-classes:message
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: sziwan@hell.org.pl, Stelian Pop <stelian@popies.net>, thoenig@suse.de, borislav@users.sf.net, john@neggie.net, tauber@informatik.hu-berlin.de
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-I'm not sure if my previous reply made it out to the list and everyone 
-else.  I'm in the process of switching email addresses :(.  Sorry if 
-this is a repeat Kristen, et al.... My apologies if this is the case ...
+Hello all,
 
->+static struct dock_dependent_device * alloc_dock_dependent_device(acpi_handle handle)
->+{
->+	struct dock_dependent_device *dd;
->+
->+	dd = kzalloc(sizeof(*dd), GFP_KERNEL);
->+	if (dd) {
->+		dd->handle = handle;
->+		INIT_LIST_HEAD(&dd->list);
->+		INIT_LIST_HEAD(&dd->hotplug_list);
->+	}
->+	return dd;
->+}
->+
->
->  
->
-What do you do if this returns NULL (ie, kzalloc did not succeed)?  Then 
-you blindly use the pointer elsewhere in the code?
+I have created a place under sysfs to have a unified place
+to gather user input for common hotkey features. 
+http://bugzilla.kernel.org/show_bug.cgi?id=5749#c10
 
-P.
+All of you are owner of a specific acpi hotkey driver. 
+Would you like to use that sysfs support to reduce the
+unnecessary interface complexity.
 
-P.
+Thanks a lot
+Luming
