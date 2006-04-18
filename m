@@ -1,21 +1,21 @@
 From: mochel@linux.intel.com
-Subject: [PATCH 20/24] Remove unneeded debugging macros in drivers/acpi/processor_perflib.c
+Subject: [PATCH 19/24] Remove unneeded debugging macros in drivers/acpi/processor_idle.c
 Date: Mon, 17 Apr 2006 18:21:55 -0700
-Message-ID: <11453233154124-git-send-email-mochel@linux.intel.com>
-References: <11453233151054-git-send-email-mochel@linux.intel.com>
+Message-ID: <11453233151054-git-send-email-mochel@linux.intel.com>
+References: <11453233141934-git-send-email-mochel@linux.intel.com>
 Reply-To: mochel@linux.intel.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr19.intel.com ([134.134.136.18]:64952 "EHLO
-	orsfmr004.jf.intel.com") by vger.kernel.org with ESMTP
-	id S932129AbWDRBZ0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+Received: from fmr17.intel.com ([134.134.136.16]:60559 "EHLO
+	orsfmr002.jf.intel.com") by vger.kernel.org with ESMTP
+	id S932123AbWDRBZ0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Mon, 17 Apr 2006 21:25:26 -0400
-Received: from orsfmr100.jf.intel.com (orsfmr100.jf.intel.com [10.7.209.16])
-	by orsfmr004.jf.intel.com (8.12.10/8.12.10/d: major-outer.mc,v 1.1 2004/09/17 17:50:56 root Exp $) with ESMTP id k3I1PQlA026793
+Received: from orsfmr101.jf.intel.com (orsfmr101.jf.intel.com [10.7.209.17])
+	by orsfmr002.jf.intel.com (8.12.10/8.12.10/d: major-outer.mc,v 1.1 2004/09/17 17:50:56 root Exp $) with ESMTP id k3I1PQBH025153
 	for <linux-acpi@vger.kernel.org>; Tue, 18 Apr 2006 01:25:26 GMT
-In-Reply-To: <11453233151054-git-send-email-mochel@linux.intel.com>
+In-Reply-To: <11453233141934-git-send-email-mochel@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
@@ -25,383 +25,318 @@ Signed-off-by: Patrick Mochel <mochel@linux.intel.com>
 
 ---
 
- drivers/acpi/processor_perflib.c |  105 ++++++++++++++------------------------
- 1 files changed, 38 insertions(+), 67 deletions(-)
+ drivers/acpi/processor_idle.c |   80 ++++++++++++++---------------------------
+ 1 files changed, 28 insertions(+), 52 deletions(-)
 
-applies-to: c9fce8cafc46d108ef9d5e396a15447e82d53151
-68dba1dee647266a54bddaff530d8b05aab558d6
-diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
-index 3dd4284..6e22004 100644
---- a/drivers/acpi/processor_perflib.c
-+++ b/drivers/acpi/processor_perflib.c
-@@ -107,10 +107,8 @@ static int acpi_processor_get_platform_l
- 	acpi_status status = 0;
- 	unsigned long ppc = 0;
+applies-to: a950fd29a26cf294c2e4de46d8d1f89d6feec874
+c00c2a68335e667033330b863c256f3b90f3fb29
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 5b72cc9..5ccce5a 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -508,10 +508,8 @@ static int acpi_processor_set_power_poli
+ 	struct acpi_processor_cx *higher = NULL;
+ 	struct acpi_processor_cx *cx;
  
--	ACPI_FUNCTION_TRACE("acpi_processor_get_platform_limit");
+-	ACPI_FUNCTION_TRACE("acpi_processor_set_power_policy");
 -
  	if (!pr)
 -		return_VALUE(-EINVAL);
 +		return -EINVAL;
  
  	/*
- 	 * _PPC indicates the maximum state currently supported by the platform
-@@ -123,12 +121,12 @@ static int acpi_processor_get_platform_l
- 
- 	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
- 		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _PPC"));
--		return_VALUE(-ENODEV);
-+		return -ENODEV;
+ 	 * This function sets the default Cx state policy (OS idle handler).
+@@ -535,7 +533,7 @@ static int acpi_processor_set_power_poli
  	}
  
- 	pr->performance_platform_limit = (int)ppc;
+ 	if (!state_is_set)
+-		return_VALUE(-ENODEV);
++		return -ENODEV;
+ 
+ 	/* demotion */
+ 	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
+@@ -574,18 +572,16 @@ static int acpi_processor_set_power_poli
+ 		higher = cx;
+ 	}
  
 -	return_VALUE(0);
 +	return 0;
  }
  
- int acpi_processor_ppc_has_changed(struct acpi_processor *pr)
-@@ -167,12 +165,10 @@ static int acpi_processor_get_performanc
- 	union acpi_object *pct = NULL;
- 	union acpi_object obj = { 0 };
- 
--	ACPI_FUNCTION_TRACE("acpi_processor_get_performance_control");
+ static int acpi_processor_get_power_info_fadt(struct acpi_processor *pr)
+ {
+-	ACPI_FUNCTION_TRACE("acpi_processor_get_power_info_fadt");
 -
- 	status = acpi_evaluate_object(pr->handle, "_PCT", NULL, &buffer);
- 	if (ACPI_FAILURE(status)) {
- 		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _PCT"));
--		return_VALUE(-ENODEV);
-+		return -ENODEV;
- 	}
- 
- 	pct = (union acpi_object *)buffer.pointer;
-@@ -219,7 +215,7 @@ static int acpi_processor_get_performanc
-       end:
- 	acpi_os_free(buffer.pointer);
- 
--	return_VALUE(result);
-+	return result;
- }
- 
- static int acpi_processor_get_performance_states(struct acpi_processor *pr)
-@@ -232,12 +228,10 @@ static int acpi_processor_get_performanc
- 	union acpi_object *pss = NULL;
- 	int i;
- 
--	ACPI_FUNCTION_TRACE("acpi_processor_get_performance_states");
--
- 	status = acpi_evaluate_object(pr->handle, "_PSS", NULL, &buffer);
- 	if (ACPI_FAILURE(status)) {
- 		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _PSS"));
--		return_VALUE(-ENODEV);
-+		return -ENODEV;
- 	}
- 
- 	pss = (union acpi_object *)buffer.pointer;
-@@ -298,7 +292,7 @@ static int acpi_processor_get_performanc
-       end:
- 	acpi_os_free(buffer.pointer);
- 
--	return_VALUE(result);
-+	return result;
- }
- 
- static int acpi_processor_get_performance_info(struct acpi_processor *pr)
-@@ -307,31 +301,29 @@ static int acpi_processor_get_performanc
- 	acpi_status status = AE_OK;
- 	acpi_handle handle = NULL;
- 
--	ACPI_FUNCTION_TRACE("acpi_processor_get_performance_info");
--
- 	if (!pr || !pr->performance || !pr->handle)
+ 	if (!pr)
 -		return_VALUE(-EINVAL);
 +		return -EINVAL;
  
- 	status = acpi_get_handle(pr->handle, "_PCT", &handle);
- 	if (ACPI_FAILURE(status)) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 				  "ACPI-based processor performance control unavailable\n"));
+ 	if (!pr->pblk)
 -		return_VALUE(-ENODEV);
 +		return -ENODEV;
- 	}
  
- 	result = acpi_processor_get_performance_control(pr);
- 	if (result)
--		return_VALUE(result);
-+		return result;
- 
- 	result = acpi_processor_get_performance_states(pr);
- 	if (result)
--		return_VALUE(result);
-+		return result;
- 
- 	result = acpi_processor_get_platform_limit(pr);
- 	if (result)
--		return_VALUE(result);
-+		return result;
- 
--	return_VALUE(0);
-+	return 0;
- }
- 
- int acpi_processor_notify_smm(struct module *calling_module)
-@@ -339,13 +331,11 @@ int acpi_processor_notify_smm(struct mod
- 	acpi_status status;
- 	static int is_done = 0;
- 
--	ACPI_FUNCTION_TRACE("acpi_processor_notify_smm");
--
- 	if (!(acpi_processor_ppc_status & PPC_REGISTERED))
--		return_VALUE(-EBUSY);
-+		return -EBUSY;
- 
- 	if (!try_module_get(calling_module))
--		return_VALUE(-EINVAL);
-+		return -EINVAL;
- 
- 	/* is_done is set to negative if an error occured,
- 	 * and to postitive if _no_ error occured, but SMM
-@@ -354,10 +344,10 @@ int acpi_processor_notify_smm(struct mod
+ 	/* if info is obtained from pblk/fadt, type equals state */
+ 	pr->power.states[ACPI_STATE_C2].type = ACPI_STATE_C2;
+@@ -597,7 +593,7 @@ static int acpi_processor_get_power_info
+ 	 * an SMP system. 
  	 */
- 	if (is_done > 0) {
- 		module_put(calling_module);
--		return_VALUE(0);
-+		return 0;
- 	} else if (is_done < 0) {
- 		module_put(calling_module);
--		return_VALUE(is_done);
-+		return is_done;
- 	}
+ 	if ((num_online_cpus() > 1) && !acpi_fadt.plvl2_up)
+-		return_VALUE(-ENODEV);
++		return -ENODEV;
+ #endif
  
- 	is_done = -EIO;
-@@ -366,7 +356,7 @@ int acpi_processor_notify_smm(struct mod
- 	if ((!acpi_fadt.smi_cmd) || (!acpi_fadt.pstate_cnt)) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No SMI port or pstate_cnt\n"));
- 		module_put(calling_module);
--		return_VALUE(0);
-+		return 0;
- 	}
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-@@ -388,7 +378,7 @@ int acpi_processor_notify_smm(struct mod
- 				"smi_cmd [0x%x]", acpi_fadt.pstate_cnt,
- 				acpi_fadt.smi_cmd));
- 		module_put(calling_module);
--		return_VALUE(status);
-+		return status;
- 	}
- 
- 	/* Success. If there's no _PPC, we need to fear nothing, so
-@@ -398,7 +388,7 @@ int acpi_processor_notify_smm(struct mod
- 	if (!(acpi_processor_ppc_status & PPC_IN_USE))
- 		module_put(calling_module);
+ 	/* determine C2 and C3 address from pblk */
+@@ -613,13 +609,11 @@ static int acpi_processor_get_power_info
+ 			  pr->power.states[ACPI_STATE_C2].address,
+ 			  pr->power.states[ACPI_STATE_C3].address));
  
 -	return_VALUE(0);
 +	return 0;
  }
  
- EXPORT_SYMBOL(acpi_processor_notify_smm);
-@@ -419,8 +409,6 @@ static int acpi_processor_perf_seq_show(
- 	struct acpi_processor *pr = (struct acpi_processor *)seq->private;
- 	int i;
+ static int acpi_processor_get_power_info_default_c1(struct acpi_processor *pr)
+ {
+-	ACPI_FUNCTION_TRACE("acpi_processor_get_power_info_default_c1");
+-
+ 	/* Zero initialize all the C-states info. */
+ 	memset(pr->power.states, 0, sizeof(pr->power.states));
  
--	ACPI_FUNCTION_TRACE("acpi_processor_perf_seq_show");
+@@ -631,7 +625,7 @@ static int acpi_processor_get_power_info
+ 	pr->power.states[ACPI_STATE_C0].valid = 1;
+ 	pr->power.states[ACPI_STATE_C1].valid = 1;
+ 
+-	return_VALUE(0);
++	return 0;
+ }
+ 
+ static int acpi_processor_get_power_info_cst(struct acpi_processor *pr)
+@@ -643,10 +637,8 @@ static int acpi_processor_get_power_info
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	union acpi_object *cst;
+ 
+-	ACPI_FUNCTION_TRACE("acpi_processor_get_power_info_cst");
+-
+ 	if (nocst)
+-		return_VALUE(-ENODEV);
++		return -ENODEV;
+ 
+ 	current_count = 1;
+ 
+@@ -658,7 +650,7 @@ static int acpi_processor_get_power_info
+ 	status = acpi_evaluate_object(pr->handle, "_CST", NULL, &buffer);
+ 	if (ACPI_FAILURE(status)) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No _CST, giving up\n"));
+-		return_VALUE(-ENODEV);
++		return -ENODEV;
+ 	}
+ 
+ 	cst = (union acpi_object *)buffer.pointer;
+@@ -764,15 +756,13 @@ static int acpi_processor_get_power_info
+       end:
+ 	acpi_os_free(buffer.pointer);
+ 
+-	return_VALUE(status);
++	return status;
+ }
+ 
+ static void acpi_processor_power_verify_c2(struct acpi_processor_cx *cx)
+ {
+-	ACPI_FUNCTION_TRACE("acpi_processor_get_power_verify_c2");
+-
+ 	if (!cx->address)
+-		return_VOID;
++		return;
+ 
+ 	/*
+ 	 * C2 latency must be less than or equal to 100
+@@ -781,7 +771,7 @@ static void acpi_processor_power_verify_
+ 	else if (cx->latency > ACPI_PROCESSOR_MAX_C2_LATENCY) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 				  "latency too large [%d]\n", cx->latency));
+-		return_VOID;
++		return;
+ 	}
+ 
+ 	/*
+@@ -791,7 +781,6 @@ static void acpi_processor_power_verify_
+ 	cx->valid = 1;
+ 	cx->latency_ticks = US_TO_PM_TIMER_TICKS(cx->latency);
+ 
+-	return_VOID;
+ }
+ 
+ static void acpi_processor_power_verify_c3(struct acpi_processor *pr,
+@@ -799,10 +788,8 @@ static void acpi_processor_power_verify_
+ {
+ 	static int bm_check_flag;
+ 
+-	ACPI_FUNCTION_TRACE("acpi_processor_get_power_verify_c3");
+-
+ 	if (!cx->address)
+-		return_VOID;
++		return;
+ 
+ 	/*
+ 	 * C3 latency must be less than or equal to 1000
+@@ -811,7 +798,7 @@ static void acpi_processor_power_verify_
+ 	else if (cx->latency > ACPI_PROCESSOR_MAX_C3_LATENCY) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 				  "latency too large [%d]\n", cx->latency));
+-		return_VOID;
++		return;
+ 	}
+ 
+ 	/*
+@@ -824,7 +811,7 @@ static void acpi_processor_power_verify_
+ 	else if (errata.piix4.fdma) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 				  "C3 not supported on PIIX4 with Type-F DMA\n"));
+-		return_VOID;
++		return;
+ 	}
+ 
+ 	/* All the logic here assumes flags.bm_check is same across all CPUs */
+@@ -841,7 +828,7 @@ static void acpi_processor_power_verify_
+ 		if (!pr->flags.bm_control) {
+ 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 					  "C3 support requires bus mastering control\n"));
+-			return_VOID;
++			return;
+ 		}
+ 	} else {
+ 		/*
+@@ -852,7 +839,7 @@ static void acpi_processor_power_verify_
+ 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 					  "Cache invalidation should work properly"
+ 					  " for C3 to be enabled on SMP systems\n"));
+-			return_VOID;
++			return;
+ 		}
+ 		acpi_set_register(ACPI_BITREG_BUS_MASTER_RLD,
+ 				  0, ACPI_MTX_DO_NOT_LOCK);
+@@ -867,7 +854,6 @@ static void acpi_processor_power_verify_
+ 	cx->valid = 1;
+ 	cx->latency_ticks = US_TO_PM_TIMER_TICKS(cx->latency);
+ 
+-	return_VOID;
+ }
+ 
+ static int acpi_processor_power_verify(struct acpi_processor *pr)
+@@ -926,8 +912,6 @@ static int acpi_processor_get_power_info
+ 	unsigned int i;
+ 	int result;
+ 
+-	ACPI_FUNCTION_TRACE("acpi_processor_get_power_info");
+-
+ 	/* NOTE: the idle thread may not be running while calling
+ 	 * this function */
+ 
+@@ -949,7 +933,7 @@ static int acpi_processor_get_power_info
+ 	 */
+ 	result = acpi_processor_set_power_policy(pr);
+ 	if (result)
+-		return_VALUE(result);
++		return result;
+ 
+ 	/*
+ 	 * if one state of type C2 or C3 is available, mark this
+@@ -963,24 +947,22 @@ static int acpi_processor_get_power_info
+ 		}
+ 	}
+ 
+-	return_VALUE(0);
++	return 0;
+ }
+ 
+ int acpi_processor_cst_has_changed(struct acpi_processor *pr)
+ {
+ 	int result = 0;
+ 
+-	ACPI_FUNCTION_TRACE("acpi_processor_cst_has_changed");
+-
+ 	if (!pr)
+-		return_VALUE(-EINVAL);
++		return -EINVAL;
+ 
+ 	if (nocst) {
+-		return_VALUE(-ENODEV);
++		return -ENODEV;
+ 	}
+ 
+ 	if (!pr->flags.power_setup_done)
+-		return_VALUE(-ENODEV);
++		return -ENODEV;
+ 
+ 	/* Fall back to the default idle loop */
+ 	pm_idle = pm_idle_save;
+@@ -991,7 +973,7 @@ int acpi_processor_cst_has_changed(struc
+ 	if ((pr->flags.power == 1) && (pr->flags.power_setup_done))
+ 		pm_idle = acpi_processor_idle;
+ 
+-	return_VALUE(result);
++	return result;
+ }
+ 
+ /* proc interface */
+@@ -1001,8 +983,6 @@ static int acpi_processor_power_seq_show
+ 	struct acpi_processor *pr = (struct acpi_processor *)seq->private;
+ 	unsigned int i;
+ 
+-	ACPI_FUNCTION_TRACE("acpi_processor_power_seq_show");
 -
  	if (!pr)
  		goto end;
  
-@@ -443,7 +431,7 @@ static int acpi_processor_perf_seq_show(
- 			   (u32) pr->performance->states[i].transition_latency);
+@@ -1059,7 +1039,7 @@ static int acpi_processor_power_seq_show
+ 	}
  
        end:
 -	return_VALUE(0);
 +	return 0;
  }
  
- static int acpi_processor_perf_open_fs(struct inode *inode, struct file *file)
-@@ -465,23 +453,21 @@ acpi_processor_write_performance(struct 
- 	unsigned int new_state = 0;
- 	struct cpufreq_policy policy;
- 
--	ACPI_FUNCTION_TRACE("acpi_processor_write_performance");
--
- 	if (!pr || (count > sizeof(state_string) - 1))
--		return_VALUE(-EINVAL);
-+		return -EINVAL;
- 
- 	perf = pr->performance;
- 	if (!perf)
--		return_VALUE(-EINVAL);
-+		return -EINVAL;
- 
- 	if (copy_from_user(state_string, buffer, count))
--		return_VALUE(-EFAULT);
-+		return -EFAULT;
- 
- 	state_string[count] = '\0';
- 	new_state = simple_strtoul(state_string, NULL, 0);
- 
- 	if (new_state >= perf->state_count)
--		return_VALUE(-EINVAL);
-+		return -EINVAL;
- 
- 	cpufreq_get_policy(&policy, pr->id);
- 
-@@ -491,9 +477,9 @@ acpi_processor_write_performance(struct 
- 
- 	result = cpufreq_set_policy(&policy);
- 	if (result)
--		return_VALUE(result);
-+		return result;
- 
--	return_VALUE(count);
-+	return count;
- }
- 
- static void acpi_cpufreq_add_file(struct acpi_processor *pr)
-@@ -501,10 +487,8 @@ static void acpi_cpufreq_add_file(struct
+ static int acpi_processor_power_open_fs(struct inode *inode, struct file *file)
+@@ -1083,8 +1063,6 @@ int acpi_processor_power_init(struct acp
  	struct proc_dir_entry *entry = NULL;
- 	struct acpi_device *device = NULL;
+ 	unsigned int i;
  
--	ACPI_FUNCTION_TRACE("acpi_cpufreq_addfile");
+-	ACPI_FUNCTION_TRACE("acpi_processor_power_init");
 -
- 	if (acpi_bus_get_device(pr->handle, &device))
--		return_VOID;
-+		return;
- 
- 	/* add file 'performance' [R/W] */
- 	entry = create_proc_entry(ACPI_PROCESSOR_FILE_PERFORMANCE,
-@@ -516,23 +500,19 @@ static void acpi_cpufreq_add_file(struct
- 		entry->data = acpi_driver_data(device);
- 		entry->owner = THIS_MODULE;
- 	}
--	return_VOID;
- }
- 
- static void acpi_cpufreq_remove_file(struct acpi_processor *pr)
- {
- 	struct acpi_device *device = NULL;
- 
--	ACPI_FUNCTION_TRACE("acpi_cpufreq_addfile");
--
- 	if (acpi_bus_get_device(pr->handle, &device))
--		return_VOID;
-+		return;
- 
- 	/* remove file 'performance' */
- 	remove_proc_entry(ACPI_PROCESSOR_FILE_PERFORMANCE,
- 			  acpi_device_dir(device));
- 
--	return_VOID;
- }
- 
- #else
-@@ -556,11 +536,9 @@ static int acpi_processor_get_psd(struct
- 	union acpi_object  *psd = NULL;
- 	struct acpi_psd_package *pdomain;
- 
--	ACPI_FUNCTION_TRACE("acpi_processor_get_psd");
--
- 	status = acpi_evaluate_object(pr->handle, "_PSD", NULL, &buffer);
- 	if (ACPI_FAILURE(status)) {
--		return_VALUE(-ENODEV);
-+		return -ENODEV;
+ 	if (!first_run) {
+ 		dmi_check_system(processor_power_dmi_table);
+ 		if (max_cstate < ACPI_C_STATES_MAX)
+@@ -1095,7 +1073,7 @@ int acpi_processor_power_init(struct acp
  	}
  
- 	psd = (union acpi_object *) buffer.pointer;
-@@ -603,7 +581,7 @@ static int acpi_processor_get_psd(struct
- 
- end:
- 	acpi_os_free(buffer.pointer);
--	return_VALUE(result);
-+	return result;
- }
- 
- int acpi_processor_preregister_performance(
-@@ -618,8 +596,6 @@ int acpi_processor_preregister_performan
- 	struct acpi_processor *match_pr;
- 	struct acpi_psd_package *match_pdomain;
- 
--	ACPI_FUNCTION_TRACE("acpi_processor_preregister_performance");
--
- 	down(&performance_sem);
- 
- 	retval = 0;
-@@ -769,7 +745,7 @@ err_ret:
- 	}
- 
- 	up(&performance_sem);
--	return_VALUE(retval);
-+	return retval;
- }
- EXPORT_SYMBOL(acpi_processor_preregister_performance);
- 
-@@ -780,22 +756,20 @@ acpi_processor_register_performance(stru
- {
- 	struct acpi_processor *pr;
- 
--	ACPI_FUNCTION_TRACE("acpi_processor_register_performance");
--
- 	if (!(acpi_processor_ppc_status & PPC_REGISTERED))
+ 	if (!pr)
 -		return_VALUE(-EINVAL);
 +		return -EINVAL;
  
- 	down(&performance_sem);
+ 	if (acpi_fadt.cst_cnt && !nocst) {
+ 		status =
+@@ -1140,14 +1118,12 @@ int acpi_processor_power_init(struct acp
  
- 	pr = processors[cpu];
- 	if (!pr) {
- 		up(&performance_sem);
--		return_VALUE(-ENODEV);
-+		return -ENODEV;
- 	}
+ 	pr->flags.power_setup_done = 1;
  
- 	if (pr->performance) {
- 		up(&performance_sem);
--		return_VALUE(-EBUSY);
-+		return -EBUSY;
- 	}
- 
- 	pr->performance = performance;
-@@ -803,13 +777,13 @@ acpi_processor_register_performance(stru
- 	if (acpi_processor_get_performance_info(pr)) {
- 		pr->performance = NULL;
- 		up(&performance_sem);
--		return_VALUE(-EIO);
-+		return -EIO;
- 	}
- 
- 	acpi_cpufreq_add_file(pr);
- 
- 	up(&performance_sem);
 -	return_VALUE(0);
 +	return 0;
  }
  
- EXPORT_SYMBOL(acpi_processor_register_performance);
-@@ -820,14 +794,12 @@ acpi_processor_unregister_performance(st
+ int acpi_processor_power_exit(struct acpi_processor *pr,
+ 			      struct acpi_device *device)
  {
- 	struct acpi_processor *pr;
- 
--	ACPI_FUNCTION_TRACE("acpi_processor_unregister_performance");
+-	ACPI_FUNCTION_TRACE("acpi_processor_power_exit");
 -
- 	down(&performance_sem);
+ 	pr->flags.power_setup_done = 0;
  
- 	pr = processors[cpu];
- 	if (!pr) {
- 		up(&performance_sem);
--		return_VOID;
-+		return;
+ 	if (acpi_device_dir(device))
+@@ -1166,5 +1142,5 @@ int acpi_processor_power_exit(struct acp
+ 		cpu_idle_wait();
  	}
  
- 	kfree(pr->performance->states);
-@@ -837,7 +809,6 @@ acpi_processor_unregister_performance(st
- 
- 	up(&performance_sem);
- 
--	return_VOID;
+-	return_VALUE(0);
++	return 0;
  }
- 
- EXPORT_SYMBOL(acpi_processor_unregister_performance);
 ---
 0.99.9.GIT
 
