@@ -1,279 +1,163 @@
-From: "Yu, Ling L" <ling.l.yu@intel.com>
-Subject: FW: ABAT test result delivery on HP nx6130
-Date: Tue, 18 Apr 2006 10:33:30 +0800
-Message-ID: <D352FD896397D04482B87731BD4DBE7F411211@bjsmsx401nb>
+From: "Garry T. Williams" <gtwilliams@gmail.com>
+Subject: Re: acpi function test suite 0.1 and test results
+Date: Mon, 17 Apr 2006 23:29:08 -0400
+Message-ID: <200604172329.08968.gtwilliams@gmail.com>
+References: <D352FD896397D04482B87731BD4DBE7F4111E9@bjsmsx401nb>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----_=_NextPart_001_01C66290.7BAA8451"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:7242 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S932151AbWDRCdg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Apr 2006 22:33:36 -0400
-Content-class: urn:content-classes:message
+Received: from wproxy.gmail.com ([64.233.184.225]:14172 "EHLO wproxy.gmail.com")
+	by vger.kernel.org with ESMTP id S1751394AbWDRD3Q (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 17 Apr 2006 23:29:16 -0400
+Received: by wproxy.gmail.com with SMTP id i2so200030wra
+        for <linux-acpi@vger.kernel.org>; Mon, 17 Apr 2006 20:29:15 -0700 (PDT)
+In-Reply-To: <D352FD896397D04482B87731BD4DBE7F4111E9@bjsmsx401nb>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: "Luo, Zhenlin" <zhenlin.luo@intel.com>
+To: "Yu, Ling L" <ling.l.yu@intel.com>
+Cc: linux-acpi@vger.kernel.org, "Zhang, Kexin" <kexin.zhang@intel.com>, "Luo, Zhenlin" <zhenlin.luo@intel.com>
 
-This is a multi-part message in MIME format.
+On Monday 17 April 2006 22:18, Yu, Ling L wrote:
+> All
+> I and Kexin Zhang wrote some ACPI function test suite, please download
+> it from
+> http://acpi.sourceforge.net/validation/testcases/acpi-test-0.1.tar.gz 
+> (which also includes the ABAT0.2 I published before)
 
-------_=_NextPart_001_01C66290.7BAA8451
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: quoted-printable
+I thought you should know that this test suite hung my laptop, forcing a 
+complete power off to recover.
 
-ACPI ABAT test results on HP nx6130, delivered by James, =
-Zhenlin.luo@intel.com=20
+Here's the details:
 
-Date:	2006/4/17
-Hardware Platform:	HP nx6130
-Kernel & patches:	Kernel 2.6.14 + suspend2 patch =
-(http://www.suspend2.net/downloads/all/suspend2-2.2-rc13-for-2.6.14.tar.b=
-z2)
-Test Cases:	ABAT 0.2 =
-(http://acpi.sourceforge.net/validation/testcases/acpi_abat_0.2.tar.gz ) =
-Please see the TestSpec.txt in ABAT 0.2=09
-Test Results:	details and some log file attached
+Hardware: Sony Vaio FS640/W
 
-=09
-Thanks
-- Ling
-=A1=A1=A1=A1
-=A1=A1=A1=A1
-=A1=A1=A1=A1_____________________________________________
-From: Luo, Zhenlin=20
-Sent: Monday, April 17, 2006 10:31 AM
-To: linux-acpi@vger.kernel.org
-Cc: Yu, Ling L
-Subject: ABAT test result delivery on HP nx6130
-=A1=A1=A1=A1
-=A1=A1=A1=A1Date
-=A1=A1=A1=A1Hardware Platform
-=A1=A1=A1=A1Kernel & patches
-=A1=A1=A1=A1Test Cases
-=A1=A1=A1=A1Feature being tested
-=A1=A1=A1=A1Test Results
-=A1=A1=A1=A1Contributor
-=A1=A1=A1=A12006/4/17
-=A1=A1=A1=A1HP nx6130
-Kernel 2.6.14 + suspend2 patch =
-(http://www.suspend2.net/downloads/all/suspend2-2.2-rc13-for-2.6.14.tar.b=
-z2)
-=A1=A1=A1=A1ABAT 0.2 (http://acpi.sourceforge.net/ validation/testcases/ =
-acpi_abat_0.2.tar.gz)
-=A1=A1=A1=A1Please see the TestSpec.txt in ABAT 0.2
-=A1=A1=A1=A1Test Results details and some log file attached
-=A1=A1=A1=A1James, Zhenlin.luo@intel.com
-=A1=A1=A1=A1
-=A1=A1=A1=A1
-James
-=A1=A1=A1=A1
- <<abat0.2_2.6.14_RF_testresults>>=20
+$ uname -a
+Linux tfr 2.6.16-1.2080_FC5 #1 Tue Mar 28 03:38:34 EST 2006 i686 i686 
+i386 GNU/Linux
+$
 
-------_=_NextPart_001_01C66290.7BAA8451
-Content-Type: application/octet-stream;
-	name="abat0.2_2.6.14_RF_testresults"
-Content-Transfer-Encoding: base64
-Content-Description: abat0.2_2.6.14_RF_testresults
-Content-Disposition: attachment;
-	filename="abat0.2_2.6.14_RF_testresults"
+This system was *upgraded* from FC4.
 
-QUNQSSBBQkFUIHN0YXJ0ZWQuLi4KClJlZCBGbGFnIERlc2t0b3AgNS4wIFJUTQpLZXJuZWwgXHIg
-b24gYW4gXG0KTGludXggbG9jYWxob3N0LmxvY2FsZG9tYWluIDIuNi4xNC03RFQgIzEgVHVlIEph
-biAxMCAxMDoyODozNyBDU1QgMjAwNiBpNjg2IGk2ODYgaTM4NiBHTlUvTGludXgKCgoKKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKgoqICAgICAg
-ICAgICBUZXN0IEFDUEkgZmlsZSBzeXN0ZW0gaW50ZXJmYWNlcyAgICAgICAgICAqCioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioKCi0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KQUNQSSBpcyBz
-dXBwb3J0ZWQuCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0KdmVyc2lvbjogICAgMjAwNTA5MDIgICAgCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KYWxhcm0gICAgICAgMjAwNi0wNC0wNiAg
-MTE6MjU6NTkgICAgCmV2ZW50ICAgICAgIE9LICAgICAgICAgIApkc2R0ICAgICAgICBPSyAgICAg
-ICAgICAKZmFkdCAgICAgICAgT0sgICAgICAgICAgCnNsZWVwICAgICAgIFMwIFMzIFM0IFM1IAp3
-YWtldXAgICAgICBOb3Qgc2V0IAotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tCkRyaXZlciAgICAgIFN0YXRlICAgICAgIERldmljZSAgICAgIEl0
-ZW0gICAgICAgICBJbmZvcm1hdGlvbgotLS0tLS0gICAgICAtLS0tLSAgICAgICAtLS0tLS0gICAg
-ICAtLS0tICAgICAgICAgLS0tLS0tLS0tLS0KYWMgICAgICAgICAgbG9hZGVkICAgICAgTk8gICAg
-ICAgICAgCmJhdHRlcnkgICAgIGxvYWRlZCAgICAgIE5PICAgICAgICAgIApidXR0b24gICAgICBs
-b2FkZWQgICAgICBsaWQvQzFFNCAgICBpbmZvICAgICAgICAgdHlwZTogTGlkIFN3aXRjaAogICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzdGF0ZSAgICAgICAgc3RhdGU6IG9wZW4K
-ICAgICAgICAgICAgICAgICAgICAgICAgcG93ZXIvUFdSRiAgaW5mbyAgICAgICAgIHR5cGU6IFBv
-d2VyIEJ1dHRvbiAoRkYpCiAgICAgICAgICAgICAgICAgICAgICAgIHNsZWVwL0MxRTMgIGluZm8g
-ICAgICAgICB0eXBlOiBTbGVlcCBCdXR0b24gKENNKQplYyAgICAgICAgICBidWlsZC1pbiAgICBO
-TyAgICAgICAgICAKZmFuICAgICAgICAgbG9hZGVkICAgICAgTk8gICAgICAgICAgCnBvd2VyICAg
-ICAgIGJ1aWxkLWluICAgIE5PICAgICAgICAgIApwcm9jZXNzb3IgICBidWlsZC1pbiAgICBOTyAg
-ICAgICAgICAKdGhlcm1hbCAgICAgbG9hZGVkICAgICAgTk8gICAgICAgICAgCnZpZGVvICAgICAg
-IGxvYWRlZCAgICAgIEMwRjcgICAgICAgIERPUyAgICAgICAgICBET1Mgc2V0dGluZzogPDA+CiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGluZm8gICAgICAgICBTd2l0Y2hpbmcg
-aGVhZHM6IHllcwogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgVmlkZW8gUk9NOiBubwogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgRGV2aWNlIHRvIGJlIFBPU1RlZCBvbiBib290OgogICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgbm8KICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgUE9TVCAgICAgICAgIDxub3Qgc3VwcG9ydGVkPgogICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICBQT1NUX2luZm8gICAgPG5vdCBzdXBwb3J0ZWQ+CiAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFJPTSAgICAgICAgICA8VE9ETz4KICAgICAg
-ICAgICAgICAgICAgICAgICAgQzBGNy9DMTAzICAgYnJpZ2h0bmVzcyAgIDxub3Qgc3VwcG9ydGVk
-PgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBFRElEICAgICAgICAgPG5vdCBz
-dXBwb3J0ZWQ+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGluZm8gICAgICAg
-ICBkZXZpY2VfaWQ6IDB4MDEwMAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgdHlwZTogQ1JUCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICBrbm93biBieSBiaW9zOiBubwogICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICBzdGF0ZSAgICAgICAgc3RhdGU6IDB4MDAKICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgIHF1ZXJ5OiAweDAwCiAgICAgICAgICAgICAgICAg
-ICAgICAgIEMwRjcvQzEwNCAgIGJyaWdodG5lc3MgICA8bm90IHN1cHBvcnRlZD4KICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgRURJRCAgICAgICAgIDxub3Qgc3VwcG9ydGVkPgog
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBpbmZvICAgICAgICAgZGV2aWNlX2lk
-OiAweDAxMTAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IHR5cGU6IFVOS05PV04KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgIGtub3duIGJ5IGJpb3M6IG5vCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIHN0YXRlICAgICAgICBzdGF0ZTogMHgxZgogICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgcXVlcnk6IDB4MDEKICAgICAgICAgICAgICAgICAgICAgICAg
-QzBGNy9DMTA1ICAgYnJpZ2h0bmVzcyAgIDxub3Qgc3VwcG9ydGVkPgogICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICBFRElEICAgICAgICAgPG5vdCBzdXBwb3J0ZWQ+CiAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgIGluZm8gICAgICAgICBkZXZpY2VfaWQ6IDB4MDIw
-MAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdHlwZTog
-VFZPVVQKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGtu
-b3duIGJ5IGJpb3M6IG5vCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHN0YXRl
-ICAgICAgICBzdGF0ZTogMHgwMQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgcXVlcnk6IDB4MDAKICAgICAgICAgICAgICAgICAgICAgICAgQzBGNy9DMTA2
-ICAgYnJpZ2h0bmVzcyAgIDxub3Qgc3VwcG9ydGVkPgogICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICBFRElEICAgICAgICAgPG5vdCBzdXBwb3J0ZWQ+CiAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIGluZm8gICAgICAgICBkZXZpY2VfaWQ6IDB4MDIxMAogICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdHlwZTogVU5LTk9XTgog
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAga25vd24gYnkg
-Ymlvczogbm8KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc3RhdGUgICAgICAg
-IHN0YXRlOiAweDAxCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICBxdWVyeTogMHgwMAotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tCgotLS0tLS0tLS0tLS0tClRlc3QgU3VtbWFyeToKLS0tLS0tLS0tLS0t
-LQpUT1RBTDogMTcKUEFTUzogIDE3CkZBSUw6ICAwCk5PVFNVUFBPUlQ6IDAKVU5SRVNPTFZFRDog
-MApVTlRFU1RFRDogICAwCi0tLS0tLS0tLS0tLS0KCgoKKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKgoqICAgICAgICAgICBUZXN0IEFDUEkgZHJp
-dmVycyAgICAgICAgICAgICAgICAgICAgICAgICAqCioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioKCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KRHJpdmVyICAgICAgU3RhdGUgICAgICAgQWN0
-aW9uICAgICAgUmVzdWx0cyAKYWMgICAgICAgICAgbG9hZGVkICAgICAgdmVyaWZ5aW5nICAgUEFT
-UyAKICAgICAgICAgICAgICAgICAgICAgICAgdW5sb2FkaW5nICAgUEFTUyAKICAgICAgICAgICAg
-ICAgICAgICAgICAgdmVyaWZ5aW5nICAgUEFTUyAKICAgICAgICAgICAgICAgICAgICAgICAgbG9h
-ZGluZyAgICAgUEFTUyAKICAgICAgICAgICAgICAgICAgICAgICAgdmVyaWZ5aW5nICAgUEFTUyAK
-YmF0dGVyeSAgICAgbG9hZGVkICAgICAgdmVyaWZ5aW5nICAgUEFTUyAKICAgICAgICAgICAgICAg
-ICAgICAgICAgdW5sb2FkaW5nICAgUEFTUyAKICAgICAgICAgICAgICAgICAgICAgICAgdmVyaWZ5
-aW5nICAgUEFTUyAKICAgICAgICAgICAgICAgICAgICAgICAgbG9hZGluZyAgICAgUEFTUyAKICAg
-ICAgICAgICAgICAgICAgICAgICAgdmVyaWZ5aW5nICAgUEFTUyAKYnV0dG9uICAgICAgbG9hZGVk
-ICAgICAgdmVyaWZ5aW5nICAgUEFTUyAKICAgICAgICAgICAgICAgICAgICAgICAgdW5sb2FkaW5n
-ICAgUEFTUyAKICAgICAgICAgICAgICAgICAgICAgICAgdmVyaWZ5aW5nICAgUEFTUyAKICAgICAg
-ICAgICAgICAgICAgICAgICAgbG9hZGluZyAgICAgUEFTUyAKICAgICAgICAgICAgICAgICAgICAg
-ICAgdmVyaWZ5aW5nICAgUEFTUyAKZWMgICAgICAgICAgYnVpbGQtaW4gICAgdmVyaWZ5aW5nICAg
-UEFTUyAKZmFuICAgICAgICAgbG9hZGVkICAgICAgdmVyaWZ5aW5nICAgUEFTUyAKICAgICAgICAg
-ICAgICAgICAgICAgICAgdW5sb2FkaW5nICAgUEFTUyAKICAgICAgICAgICAgICAgICAgICAgICAg
-dmVyaWZ5aW5nICAgUEFTUyAKICAgICAgICAgICAgICAgICAgICAgICAgbG9hZGluZyAgICAgUEFT
-UyAKICAgICAgICAgICAgICAgICAgICAgICAgdmVyaWZ5aW5nICAgUEFTUyAKcG93ZXIgICAgICAg
-YnVpbGQtaW4gICAgdmVyaWZ5aW5nICAgUEFTUyAKcHJvY2Vzc29yICAgYnVpbGQtaW4gICAgdmVy
-aWZ5aW5nICAgUEFTUyAKdGhlcm1hbCAgICAgbG9hZGVkICAgICAgdmVyaWZ5aW5nICAgUEFTUyAK
-ICAgICAgICAgICAgICAgICAgICAgICAgdW5sb2FkaW5nICAgUEFTUyAKICAgICAgICAgICAgICAg
-ICAgICAgICAgdmVyaWZ5aW5nICAgUEFTUyAKICAgICAgICAgICAgICAgICAgICAgICAgbG9hZGlu
-ZyAgICAgUEFTUyAKICAgICAgICAgICAgICAgICAgICAgICAgdmVyaWZ5aW5nICAgUEFTUyAKdmlk
-ZW8gICAgICAgbG9hZGVkICAgICAgdmVyaWZ5aW5nICAgUEFTUyAKICAgICAgICAgICAgICAgICAg
-ICAgICAgdW5sb2FkaW5nICAgUEFTUyAKICAgICAgICAgICAgICAgICAgICAgICAgdmVyaWZ5aW5n
-ICAgUEFTUyAKICAgICAgICAgICAgICAgICAgICAgICAgbG9hZGluZyAgICAgUEFTUyAKICAgICAg
-ICAgICAgICAgICAgICAgICAgdmVyaWZ5aW5nICAgUEFTUyAKY29udGFpbmVyICAgbG9hZGVkICAg
-ICAgdmVyaWZ5aW5nICAgUEFTUyAKICAgICAgICAgICAgICAgICAgICAgICAgdW5sb2FkaW5nICAg
-UEFTUyAKICAgICAgICAgICAgICAgICAgICAgICAgdmVyaWZ5aW5nICAgUEFTUyAKICAgICAgICAg
-ICAgICAgICAgICAgICAgbG9hZGluZyAgICAgUEFTUyAKICAgICAgICAgICAgICAgICAgICAgICAg
-dmVyaWZ5aW5nICAgUEFTUyAKbWVtaG90cGx1ZyAgbm90c3VwcG9ydCAgCm51bWEgICAgICAgIG5v
-dHN1cHBvcnQgIAotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tCgoKLS0tLS0tLS0tLS0tLQpUZXN0IFN1bW1hcnk6Ci0tLS0tLS0tLS0tLS0KVE9U
-QUw6IDEyClBBU1M6ICAxMApGQUlMOiAgMApOT1RTVVBQT1JUOiAyClVOUkVTT0xWRUQ6IDAKVU5U
-RVNURUQ6ICAgMAotLS0tLS0tLS0tLS0tCgoKCgoqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqCiogICAgICAgICAgIFRlc3QgQUNQSSBQLXN0YXRl
-ICAgICAgICAgICAgICAgICAgICAgICAgICoKKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKgoKCk5hdGl2ZSBHZXlzZXJ2aWxsZSBJSUkgU3VwcG9y
-dCAoUCBzdGF0ZSkgLSBEZW1hbmQgQmFzZWQgU3dpdGNoaW5nCiMjIyMjIyMjIyMjIyMjIyMjIyMj
-IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
-IyMKICAgICAgICAgICAgICAgICBHVjMvREJTIHZhbGlkYXRpb24gZm9yIEkzODYgYW5kIEVNNjRU
-CglHZXlzZXJ2aWxsZSBJSUkgaXMgYW4gZWZmaWNpZW50IG1lY2hhbmlzbSBmb3Igc3dpdGNoaW5n
-IHRvL2Zyb20gbG93Cgl2b2x0YWdlIG1vZGUgLSBFbmhhbmNlZCBTcGVlZFN0ZXAgVGVjaG5vbG9n
-eS4gRGVwZW5kZW50IHVwb24gQUNQSS4KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpSZWQgRmxhZyBE
-ZXNrdG9wIDUuMCBSVE0KS2VybmVsIFxyIG9uIGFuIFxtCkxpbnV4IGxvY2FsaG9zdC5sb2NhbGRv
-bWFpbiAyLjYuMTQtN0RUICMxIFR1ZSBKYW4gMTAgMTA6Mjg6MzcgQ1NUIDIwMDYgaTY4NiBpNjg2
-IGkzODYgR05VL0xpbnV4Ci0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KU3RhcnQgc2V0dXAKZmxhZ3MJ
-CTogZnB1IHZtZSBkZSBwc2UgdHNjIG1zciBwYWUgbWNlIGN4OCBhcGljIHNlcCBtdHJyIHBnZSBt
-Y2EgY21vdiBwYXQgY2xmbHVzaCBkdHMgYWNwaSBtbXggZnhzciBzc2Ugc3NlMiBzcyB0bSBwYmUg
-bnggZXN0IHRtMgptb2Rwcm9iZSBjcHVmcmVxX3Bvd2Vyc2F2ZQptb2Rwcm9iZSBjcHVmcmVxX29u
-ZGVtYW5kClRoZSBzZXJ2aWNlIGNwdXNwZWVkIHNob3VsZCBiZSBzdG9wcGVkIGJlZm9yZSBydW5u
-aW5nIHRlc3RzClN0b3BwaW5nIGNwdXNwZWVkOiAbWzYwR1sgIBtbMDszMm1PSxtbMDszOW0gIF0N
-Ci4uL3RtcC9zeXN0ZW1fdXBkYXRlX2luZm86Cm1vZHByb2JlIC1yIGNwdWZyZXFfcG93ZXJzYXZl
-Cm1vZHByb2JlIC1yIGNwdWZyZXFfb25kZW1hbmQKL2V0Yy9pbml0LmQvY3B1c3BlZWQgcmVzdGFy
-dApGaW5pc2ggc2V0dXAKRXhlY3V0aW9uIG9mIHRlc3RfMV8xCmdldF9nb3Zlcm5vcnMgb3V0cHV0
-OgpvbmRlbWFuZCBwb3dlcnNhdmUgdXNlcnNwYWNlIHBlcmZvcm1hbmNlIApudW0gQ1BVID0gMApS
-RUFEX0dPVkVSTk9SIHBlcmZvcm1hbmNlCk1BWF9GUkVRIDE4NjcwMDAKUkVBRF9GUkVRIDE4Njcw
-MDAKVGVzdCBwX3N0YXRlc190ZXN0XzFfMQlQQVNTRUQKRXhlY3V0aW9uIG9mIHRlc3RfMl8xCmdl
-dF9nb3Zlcm5vcnMgb3V0cHV0OgpvbmRlbWFuZCBwb3dlcnNhdmUgdXNlcnNwYWNlIHBlcmZvcm1h
-bmNlIApudW0gQ1BVID0gMApSRUFEX0dPVkVSTk9SIHBvd2Vyc2F2ZQpNSU5fRlJFUSA4MDAwMDAK
-UkVBRF9GUkVRIDgwMDAwMApUZXN0IHBfc3RhdGVzX3Rlc3RfMl8xCVBBU1NFRApFeGVjdXRpb24g
-b2YgdGVzdF8zXzEKZ2V0X2dvdmVybm9ycyBvdXRwdXQ6Cm9uZGVtYW5kIHBvd2Vyc2F2ZSB1c2Vy
-c3BhY2UgcGVyZm9ybWFuY2UgCm51bSBDUFUgPSAwClJFQURfR09WRVJOT1IgdXNlcnNwYWNlClRl
-c3QgcF9zdGF0ZXNfdGVzdF8zXzEJUEFTU0VECkV4ZWN1dGlvbiBvZiB0ZXN0XzNfMgpnZXRfZ292
-ZXJub3JzIG91dHB1dDoKb25kZW1hbmQgcG93ZXJzYXZlIHVzZXJzcGFjZSBwZXJmb3JtYW5jZSAK
-bnVtIENQVSA9IDAKUkVBRF9HT1ZFUk5PUiB1c2Vyc3BhY2UKQVZMQkxfRlJFUVMgMTg2NzAwMCAx
-NjAwMDAwIDEzMzMwMDAgMTA2NzAwMCA4MDAwMDAgClJFQURfRlJFUSAxODY3MDAwClJFQURfRlJF
-USAxNjAwMDAwClJFQURfRlJFUSAxMzMzMDAwClJFQURfRlJFUSAxMDY3MDAwClJFQURfRlJFUSA4
-MDAwMDAKVGVzdCBwX3N0YXRlc190ZXN0XzNfMglQQVNTRUQKRXhlY3V0aW9uIG9mIHRlc3RfNF8x
-CmdldF9nb3Zlcm5vcnMgb3V0cHV0OgpvbmRlbWFuZCBwb3dlcnNhdmUgdXNlcnNwYWNlIHBlcmZv
-cm1hbmNlIApudW0gQ1BVID0gMApSRUFEX0dPVkVSTk9SIG9uZGVtYW5kClRlc3QgcF9zdGF0ZXNf
-dGVzdF80XzEJUEFTU0VECkV4ZWN1dGlvbiBvZiB0ZXN0XzRfMgpnZXRfZ292ZXJub3JzIG91dHB1
-dDoKb25kZW1hbmQgcG93ZXJzYXZlIHVzZXJzcGFjZSBwZXJmb3JtYW5jZSAKbnVtIENQVSA9IDAK
-UkVBRF9HT1ZFUk5PUiBvbmRlbWFuZApNSU5fRlJFUSA4MDAwMDAKUkVBRF9GUkVRIDgwMDAwMApU
-ZXN0IHBfc3RhdGVzX3Rlc3RfNF8yCVBBU1NFRApFeGVjdXRpb24gb2YgdGVzdF80XzMKZ2V0X2dv
-dmVybm9ycyBvdXRwdXQ6Cm9uZGVtYW5kIHBvd2Vyc2F2ZSB1c2Vyc3BhY2UgcGVyZm9ybWFuY2Ug
-Cm51bSBDUFUgPSAwClJFQURfR09WRVJOT1Igb25kZW1hbmQKTUFYX0ZSRVEgMTg2NzAwMApSRUFE
-X0ZSRVEgMTg2NzAwMApUZXN0IHBfc3RhdGVzX3Rlc3RfNF8zCVBBU1NFRApFeGVjdXRpb24gb2Yg
-dGVzdF80XzQKZ2V0X2dvdmVybm9ycyBvdXRwdXQ6Cm9uZGVtYW5kIHBvd2Vyc2F2ZSB1c2Vyc3Bh
-Y2UgcGVyZm9ybWFuY2UgClRNUF9GSUxFX1BJRDoKNjgzMQpudW0gQ1BVID0gMApSRUFEX0dPVkVS
-Tk9SIG9uZGVtYW5kCk1BWF9GUkVRIDE4NjcwMDAKTUlOX0ZSRVEgODAwMDAwClJFQURfRlJFUSAx
-ODY3MDAwClRlc3QgX3Rlc3RfNF80ICAgUEFTU0VEClN0YXJ0IGNsZWFudXAKbW9kcHJvYmUgLXIg
-Y3B1ZnJlcV9wb3dlcnNhdmUKbW9kcHJvYmUgLXIgY3B1ZnJlcV9vbmRlbWFuZApGQVRBTDogTW9k
-dWxlIGNwdWZyZXFfb25kZW1hbmQgaXMgaW4gdXNlLgptb2Rwcm9iZSAtciBjcHVmcmVxX29uZGVt
-YW5kOiByZXR1cm4gY29kZSAxCkRvIGF0dGVtcHQgdG8gY2hhbmdlIGdvdmVybm9yCm1vZHVsZSB0
-byBiZSByZW1vdmVkIG9uZGVtYW5kCmF2YWlsYWJsZSBnb3Zlcm5vcnMgLSBvbmRlbWFuZCB1c2Vy
-c3BhY2UgcGVyZm9ybWFuY2UgCnNldF9nb3Zlcm5vciB1c2Vyc3BhY2UKbW9kcHJvYmUgLXIgY3B1
-ZnJlcV9vbmRlbWFuZApPSwovZXRjL2luaXQuZC9jcHVzcGVlZCByZXN0YXJ0ClN0YXJ0aW5nIGNw
-dXNwZWVkOiBbICBPSyAgXQ0KRmluaXNoIGNsZWFudXAKCk5hdGl2ZSBHZXlzZXJ2aWxsZSBJSUkg
-U3VwcG9ydCAoUCBzdGF0ZSkgLSBEZW1hbmQgQmFzZWQgU3dpdGNoaW5nCiMjIyMjIyMjIyMjIyMj
-IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
-IyMjIyMjIyMKICAgICAgICAgICAgICAgICBHVjMvREJTIHZhbGlkYXRpb24gZm9yIEkzODYgYW5k
-IEVNNjRUCglHZXlzZXJ2aWxsZSBJSUkgaXMgYW4gZWZmaWNpZW50IG1lY2hhbmlzbSBmb3Igc3dp
-dGNoaW5nIHRvL2Zyb20gbG93Cgl2b2x0YWdlIG1vZGUgLSBFbmhhbmNlZCBTcGVlZFN0ZXAgVGVj
-aG5vbG9neS4gRGVwZW5kZW50IHVwb24gQUNQSS4KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpSZWQg
-RmxhZyBEZXNrdG9wIDUuMCBSVE0KS2VybmVsIFxyIG9uIGFuIFxtCkxpbnV4IGxvY2FsaG9zdC5s
-b2NhbGRvbWFpbiAyLjYuMTQtN0RUICMxIFR1ZSBKYW4gMTAgMTA6Mjg6MzcgQ1NUIDIwMDYgaTY4
-NiBpNjg2IGkzODYgR05VL0xpbnV4Ci0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KRGV0YWlsczoKLS0t
-LS0tLS0KcF9zdGF0ZXNfdGVzdF8xXzEJUEFTU0VECnBfc3RhdGVzX3Rlc3RfMl8xCVBBU1NFRApw
-X3N0YXRlc190ZXN0XzNfMQlQQVNTRUQKcF9zdGF0ZXNfdGVzdF8zXzIJUEFTU0VECnBfc3RhdGVz
-X3Rlc3RfNF8xCVBBU1NFRApwX3N0YXRlc190ZXN0XzRfMglQQVNTRUQKcF9zdGF0ZXNfdGVzdF80
-XzMJUEFTU0VECnBfc3RhdGVzX3Rlc3RfNF80CVBBU1NFRAoKVGVzdCBTdW1tYXJ5OgotLS0tLS0t
-LS0tLS0tClRPVEFMOgkJOApQQVNTOgkJOApGQUlMOgkJMApOT1RTVVBQT1JUOgkwClVOUkVTT0xW
-RUQ6CTAKVU5URVNURUQ6CTAKIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
-IyMjIyMjIyMjIyMjIyMjIyMjIyMKCgpUZXN0IHJlcG9ydCBpcyBpbiAvcm9vdC9hY3BpX2FiYXRf
-MC4yL3Bfc3RhdGVzL2xvZy9yZXN1bHRzL3Rlc3RfcmVwb3J0LCBsb2cgZmlsZSBpbiAvcm9vdC9h
-Y3BpX2FiYXRfMC4yL3Bfc3RhdGVzL2xvZy9zdGRvdXQKCgoKKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKgoqICAgICAgICAgICBUZXN0IEFDUEkg
-Qy1zdGF0ZXMgICAgICAgICAgICAgICAgICAgICAgICAqCioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioKCgpTdGFydCB0byB0ZXN0IC4uLgoKVGVz
-dCAxIC4uLgpDT05GSUdfQUNQST15CkNPTkZJR19BQ1BJX1BST0NFU1NPUj15CgpUZXN0MiAuLi4K
-CgotLS0tLS0tLS0tLS0KVGVzdCBTdW1tYXJ5OgotLS0tLS0tLS0tLS0tClRPVEFMOiAyClBBU1M6
-ICAyCkZBSUw6ICAwCk5PVFNVUFBPUlQ6IDAKVU5SRVNPTFZFRDogMApVTlRFU1RFRDogICAwCi0t
-LS0tLS0tLS0tLS0KCgoKCioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioKKiAgICAgICAgICAgVGVzdCBBQ1BJIFQtc3RhdGVzICAgICAgICAgICAg
-ICAgICAgICAgICAgKgoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqCgpTdGFydCB0byB0ZXN0IC4uLgoKVGVzdDEgLi4uCkNPTkZJR19BQ1BJPXkK
-Q09ORklHX0FDUElfUFJPQ0VTU09SPXkKClRlc3QyIC4uLgoKVGVzdDMgLi4uCgoKLS0tLS0tLS0t
-LS0tClRlc3QgU3VtbWFyeToKLS0tLS0tLS0tLS0tLQpUT1RBTDogMwpQQVNTOiAgMwpGQUlMOiAg
-MApOT1RTVVBQT1JUOiAwClVOUkVTT0xWRUQ6IDAKVU5URVNURUQ6ICAgMAotLS0tLS0tLS0tLS0t
-CgoKQUNQSSBBQkFUIGZpbmlzaGVkLi4uCg==
+Here's where it hung: (I got this by running the test suite as a normal 
+user instead of root.)
 
-------_=_NextPart_001_01C66290.7BAA8451--
+
+*******************************************************
+*           Test ACPI drivers                         *
+*******************************************************
+
+-------------------------------------------------------
+Driver      State       Action      Results
+ac          loaded      verifying   PASS
+
+
+
+By the way, I do not get a AC adapter event from acpid on this machine.  
+I do get a battery event and the battery information in /proc/acpi 
+yields the AC adapter status.
+
+I load the sony_acpi module and run the fsfn daemon for Fn key support.
+
+Before that, this might be of interest (*not* run as root):
+
+
+
+Driver      State       Device      Item         Information
+------      -----       ------      ----         -----------
+ac          loaded      NO
+battery     loaded      NO
+button      loaded      lid/LID0    info         type: Lid Switch
+                                    state        state: open
+                        power/PWRB  info         type: Power Button (CM)
+                        power/PWRF  info         type: Power Button (FF)
+ec          build-in    NO
+fan         build-in    NO
+power       build-in    NO
+processor   build-in    NO
+thermal     build-in    NO
+video       loaded      GFX0        DOS          DOS setting: <1>
+                                    POST         <not supported>
+                                    POST_info    <not supported>
+                                    ROM          <TODO>
+                                    info         Switching heads: yes
+                                                 Video ROM: yes
+                                                 Device to be POSTed on 
+                                                 boot:
+                                                    no
+                        GFX0/CRT    EDID         <not supported>
+                                    brightness   <not supported>
+                                    info         device_id: 0x0100
+                                                 type: CRT
+                                                 known by bios: no
+                                    state        state: 0x1d
+                                                 query: 0x00
+                        GFX0/DVI    EDID         <not supported>
+                                    brightness   <not supported>
+                                    info         device_id: 0x0320
+                                                 type: UNKNOWN
+                                                 known by bios: no
+                                    state        state: 0x1d
+                                                 query: 0x00
+                        GFX0/LCD    EDID         <not supported>
+                                    brightness   <not supported>
+                                    info         device_id: 0x0410
+                                                 type: UNKNOWN
+                                                 known by bios: no
+                                    state        state: 0x1f
+                                                 query: 0x00
+                        GFX0/TV     EDID         <not supported>
+                                    brightness   <not supported>
+                                    info         device_id: 0x0240
+                                                 type: UNKNOWN
+                                                 known by bios: no
+                                    state        state: 0x1d
+                                                 query: 0x00
+                        NGFX        DOS          DOS setting: <1>
+                                    POST         <not supported>
+                                    POST_info    <not supported>
+                                    ROM          <TODO>
+                                    info         Switching heads: yes
+                                                 Video ROM: no
+                                                 Device to be POSTed on 
+                                                 boot:
+                                                    no
+                        NGFX/CRT    EDID         <not supported>
+                                    brightness   <not supported>
+                                    info         device_id: 0x0100
+                                                 type: CRT
+                                                 known by bios: no
+                                    state        state: 0x0d
+                                                 query: 0x00
+                        NGFX/DVI    EDID         <not supported>
+                                    brightness   <not supported>
+                                    info         device_id: 0x0111
+                                                 type: UNKNOWN
+                                                 known by bios: no
+                                    state        state: 0x0d
+                                                 query: 0x00
+                        NGFX/LCD    EDID         <not supported>
+                                    brightness   <not supported>
+                                    info         device_id: 0x0118
+                                                 type: UNKNOWN
+                                                 known by bios: no
+                                    state        state: 0x0f
+                                                 query: 0x00
+                        NGFX/TV     EDID         <not supported>
+                                    brightness   <not supported>
+                                    info         device_id: 0x0200
+                                                 type: TVOUT
+                                                 known by bios: no
+                                    state        state: 0x0d
+                                                 query: 0x00
+-------------------------------------------------------
+
+
+
+Let me know, if you would like any additional information.
+
+-- 
+Garry T. Williams --- +1 678 656-4579
