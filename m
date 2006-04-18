@@ -1,142 +1,60 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: PATCH [3/3]: Provide generic backlight support in Toshiba ACPI driver
-Date: Tue, 18 Apr 2006 09:32:02 +0100
-Message-ID: <20060418083202.GB13846@srcf.ucam.org>
+From: Henrik Brix Andersen <brix@gentoo.org>
+Subject: Re: PATCH [2/3]: Provide generic backlight support in IBM ACPI driver
+Date: Tue, 18 Apr 2006 11:18:57 +0200
+Message-ID: <20060418091857.GB30628@osgiliath>
 References: <20060418082952.GA13811@srcf.ucam.org> <20060418083056.GA13846@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="1LKvkjL3sHcu1TtY"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:54490 "EHLO
-	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
-	id S1750810AbWDRIcG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Apr 2006 04:32:06 -0400
+Received: from smtp.gentoo.org ([134.68.220.30]:10183 "EHLO smtp.gentoo.org")
+	by vger.kernel.org with ESMTP id S932097AbWDRJTB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Apr 2006 05:19:01 -0400
 Content-Disposition: inline
 In-Reply-To: <20060418083056.GA13846@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-This patch provides support for altering Toshiba backlight brightness 
-via /sys/class/backlight. It does not remove the legacy /proc interface.
 
-Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
+--1LKvkjL3sHcu1TtY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff -urp drivers/acpi.bak/Kconfig drivers/acpi/Kconfig
---- drivers/acpi.bak/Kconfig	2006-04-18 08:51:49 +0100
-+++ a/drivers/acpi/Kconfig	2006-04-18 09:24:45 +0100
-@@ -219,7 +219,7 @@ config ACPI_IBM_DOCK
- 
- config ACPI_TOSHIBA
- 	tristate "Toshiba Laptop Extras"
--	depends on X86
-+	depends on X86 && BACKLIGHT_DEVICE
- 	---help---
- 	  This driver adds support for access to certain system settings
- 	  on "legacy free" Toshiba laptops.  These laptops can be recognized by
-diff -urp drivers/acpi.bak/toshiba_acpi.c drivers/acpi/toshiba_acpi.c
---- drivers/acpi.bak/toshiba_acpi.c	2006-04-03 04:22:10 +0100
-+++ a/drivers/acpi/toshiba_acpi.c	2006-04-18 09:26:41 +0100
-@@ -41,6 +41,7 @@
- #include <linux/init.h>
- #include <linux/types.h>
- #include <linux/proc_fs.h>
-+#include <linux/backlight.h>
- #include <asm/uaccess.h>
- 
- #include <acpi/acpi_drivers.h>
-@@ -97,6 +98,8 @@ MODULE_LICENSE("GPL");
- #define HCI_VIDEO_OUT_CRT		0x2
- #define HCI_VIDEO_OUT_TV		0x4
- 
-+static struct backlight_device *tosh_backlight_device;
-+
- /* utility
-  */
- 
-@@ -289,6 +292,19 @@ static char *read_lcd(char *p)
- 	return p;
- }
- 
-+static int tosh_get_brightness(struct backlight_device *bd)
-+{
-+	int brightness;
-+	u32 hci_result;
-+
-+	hci_read1(HCI_LCD_BRIGHTNESS, &brightness, &hci_result);
-+	if (hci_result == HCI_SUCCESS) {
-+		brightness = brightness >> HCI_LCD_BRIGHTNESS_SHIFT;
-+		return brightness;
-+	} else
-+		return 0;
-+}
-+
- static unsigned long write_lcd(const char *buffer, unsigned long count)
- {
- 	int value;
-@@ -307,6 +323,28 @@ static unsigned long write_lcd(const cha
- 	return count;
- }
- 
-+static int tosh_set_brightness(struct backlight_device *bd, int brightness)
-+{
-+	u32 hci_result;
-+
-+	if (brightness >= 0 && brightness < HCI_LCD_BRIGHTNESS_LEVELS) {
-+		brightness= brightness << HCI_LCD_BRIGHTNESS_SHIFT;
-+		hci_write1(HCI_LCD_BRIGHTNESS, brightness, &hci_result);
-+		if (hci_result != HCI_SUCCESS)
-+			return -EFAULT;
-+	} else {
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int tosh_update_brightness(struct backlight_device *bd)
-+{
-+	int value = bd->props->brightness;
-+	return tosh_set_brightness(bd, value);
-+}
-+
- static char *read_video(char *p)
- {
- 	u32 hci_result;
-@@ -477,6 +515,13 @@ static ProcItem proc_items[] = {
- 	{NULL}
- };
- 
-+static struct backlight_properties toshbl_data = {
-+	.owner          = THIS_MODULE,
-+	.get_brightness = tosh_get_brightness,
-+	.update_status  = tosh_update_brightness,
-+	.max_brightness = HCI_LCD_BRIGHTNESS_LEVELS,
-+};
-+
- static acpi_status __init add_device(void)
- {
- 	struct proc_dir_entry *proc;
-@@ -546,6 +591,12 @@ static int __init toshiba_acpi_init(void
- 			remove_proc_entry(PROC_TOSHIBA, acpi_root_dir);
- 	}
- 
-+	tosh_backlight_device = backlight_device_register ("tosh-bl", NULL,
-+							   &toshbl_data);
-+
-+	if (IS_ERR (tosh_backlight_device))
-+		printk("Failed to register Toshiba backlight device\n");
-+
- 	return (ACPI_SUCCESS(status)) ? 0 : -ENODEV;
- }
- 
-@@ -556,6 +607,8 @@ static void __exit toshiba_acpi_exit(voi
- 	if (toshiba_proc_dir)
- 		remove_proc_entry(PROC_TOSHIBA, acpi_root_dir);
- 
-+	backlight_device_unregister(tosh_backlight_device);
-+
- 	return;
- }
+On Tue, Apr 18, 2006 at 09:30:56AM +0100, Matthew Garrett wrote:
+> diff -urp drivers/acpi.bak/Kconfig drivers/acpi/Kconfig
+> --- drivers/acpi.bak/Kconfig	2006-04-18 08:51:49 +0100
+> +++ a/drivers/acpi/Kconfig	2006-04-18 09:13:09 +0100
+> @@ -195,7 +195,7 @@ config ACPI_ASUS
+>           =20
+>  config ACPI_IBM
+>  	tristate "IBM ThinkPad Laptop Extras"
+> -	depends on X86
+> +	depends on X86 && BACKLIGHT_DEVICE
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Wouldn't it be better to have ACPI_IBM and friends select
+BACKLIGHT_DEVICE?
+
+Regards,
+Brix
+--=20
+Henrik Brix Andersen <brix@gentoo.org>
+Gentoo Metadistribution | Mobile computing herd
+
+--1LKvkjL3sHcu1TtY
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2.2 (GNU/Linux)
+Comment: GnuPG signed
+
+iD8DBQFERK8Bv+Q4flTiePgRAmPrAKCa+dWrBOikaRt1m8O3hxg6BpcP+wCgv+cv
+PcVS80WBwLmAkIU9OYa0chQ=
+=4Bnj
+-----END PGP SIGNATURE-----
+
+--1LKvkjL3sHcu1TtY--
