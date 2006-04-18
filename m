@@ -1,21 +1,21 @@
 From: mochel@linux.intel.com
-Subject: [PATCH 5/24] Remove unneeded debugging macros in drivers/acpi/button.c
+Subject: [PATCH 10/24] Remove unneeded debugging macros in drivers/acpi/fan.c
 Date: Mon, 17 Apr 2006 18:21:53 -0700
-Message-ID: <11453233132637-git-send-email-mochel@linux.intel.com>
-References: <11453233121169-git-send-email-mochel@linux.intel.com>
+Message-ID: <11453233132362-git-send-email-mochel@linux.intel.com>
+References: <11453233131896-git-send-email-mochel@linux.intel.com>
 Reply-To: mochel@linux.intel.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr20.intel.com ([134.134.136.19]:25222 "EHLO
-	orsfmr005.jf.intel.com") by vger.kernel.org with ESMTP
-	id S932110AbWDRBZY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Apr 2006 21:25:24 -0400
-Received: from orsfmr100.jf.intel.com (orsfmr100.jf.intel.com [10.7.209.16])
-	by orsfmr005.jf.intel.com (8.12.10/8.12.10/d: major-outer.mc,v 1.1 2004/09/17 17:50:56 root Exp $) with ESMTP id k3I1PO6X013960
+Received: from fmr19.intel.com ([134.134.136.18]:64440 "EHLO
+	orsfmr004.jf.intel.com") by vger.kernel.org with ESMTP
+	id S932118AbWDRBZZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 17 Apr 2006 21:25:25 -0400
+Received: from orsfmr101.jf.intel.com (orsfmr101.jf.intel.com [10.7.209.17])
+	by orsfmr004.jf.intel.com (8.12.10/8.12.10/d: major-outer.mc,v 1.1 2004/09/17 17:50:56 root Exp $) with ESMTP id k3I1POlA026785
 	for <linux-acpi@vger.kernel.org>; Tue, 18 Apr 2006 01:25:24 GMT
-In-Reply-To: <11453233121169-git-send-email-mochel@linux.intel.com>
+In-Reply-To: <11453233131896-git-send-email-mochel@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
@@ -25,107 +25,102 @@ Signed-off-by: Patrick Mochel <mochel@linux.intel.com>
 
 ---
 
- drivers/acpi/button.c |   64 ++++++++++++++++---------------------------------
- 1 files changed, 21 insertions(+), 43 deletions(-)
+ drivers/acpi/fan.c |   53 ++++++++++++++++++----------------------------------
+ 1 files changed, 18 insertions(+), 35 deletions(-)
 
-applies-to: 8874c10f9ca6ee5536a19023aaca34509e89c46f
-96969246acf5a176a7fa5916999b377ea4d3a31b
-diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index a8717da..edccc8b 100644
---- a/drivers/acpi/button.c
-+++ b/drivers/acpi/button.c
-@@ -112,15 +112,13 @@ static int acpi_button_info_seq_show(str
- {
- 	struct acpi_button *button = (struct acpi_button *)seq->private;
+applies-to: c94bea86ad8c2fc4ba53c16055997112e6dedf86
+9a0a67e1e7dd58323362c2e05a1ecf4c0a02beea
+diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+index 1495b86..208f0e1 100644
+--- a/drivers/acpi/fan.c
++++ b/drivers/acpi/fan.c
+@@ -74,8 +74,6 @@ static int acpi_fan_read_state(struct se
+ 	struct acpi_fan *fan = seq->private;
+ 	int state = 0;
  
--	ACPI_FUNCTION_TRACE("acpi_button_info_seq_show");
+-	ACPI_FUNCTION_TRACE("acpi_fan_read_state");
 -
- 	if (!button || !button->device)
--		return_VALUE(0);
-+		return 0;
- 
- 	seq_printf(seq, "type:                    %s\n",
- 		   acpi_device_name(button->device));
- 
--	return_VALUE(0);
-+	return 0;
- }
- 
- static int acpi_button_info_open_fs(struct inode *inode, struct file *file)
-@@ -134,10 +132,8 @@ static int acpi_button_state_seq_show(st
- 	acpi_status status;
- 	unsigned long state;
- 
--	ACPI_FUNCTION_TRACE("acpi_button_state_seq_show");
--
- 	if (!button || !button->device)
--		return_VALUE(0);
-+		return 0;
- 
- 	status = acpi_evaluate_integer(button->handle, "_LID", NULL, &state);
- 	if (ACPI_FAILURE(status)) {
-@@ -147,7 +143,7 @@ static int acpi_button_state_seq_show(st
- 			   (state ? "open" : "closed"));
+ 	if (fan) {
+ 		if (acpi_bus_get_power(fan->handle, &state))
+ 			seq_printf(seq, "status:                  ERROR\n");
+@@ -83,7 +81,7 @@ static int acpi_fan_read_state(struct se
+ 			seq_printf(seq, "status:                  %s\n",
+ 				   !state ? "on" : "off");
  	}
- 
 -	return_VALUE(0);
 +	return 0;
  }
  
- static int acpi_button_state_open_fs(struct inode *inode, struct file *file)
-@@ -164,10 +160,8 @@ static int acpi_button_add_fs(struct acp
- 	struct proc_dir_entry *entry = NULL;
- 	struct acpi_button *button = NULL;
+ static int acpi_fan_state_open_fs(struct inode *inode, struct file *file)
+@@ -100,22 +98,20 @@ acpi_fan_write_state(struct file *file, 
+ 	struct acpi_fan *fan = (struct acpi_fan *)m->private;
+ 	char state_string[12] = { '\0' };
  
--	ACPI_FUNCTION_TRACE("acpi_button_add_fs");
+-	ACPI_FUNCTION_TRACE("acpi_fan_write_state");
 -
- 	if (!device || !acpi_driver_data(device))
+ 	if (!fan || (count > sizeof(state_string) - 1))
 -		return_VALUE(-EINVAL);
 +		return -EINVAL;
  
- 	button = acpi_driver_data(device);
+ 	if (copy_from_user(state_string, buffer, count))
+-		return_VALUE(-EFAULT);
++		return -EFAULT;
  
-@@ -195,19 +189,19 @@ static int acpi_button_add_fs(struct acp
+ 	state_string[count] = '\0';
+ 
+ 	result = acpi_bus_set_power(fan->handle,
+ 				    simple_strtoul(state_string, NULL, 0));
+ 	if (result)
+-		return_VALUE(result);
++		return result;
+ 
+-	return_VALUE(count);
++	return count;
+ }
+ 
+ static struct file_operations acpi_fan_state_ops = {
+@@ -131,16 +127,14 @@ static int acpi_fan_add_fs(struct acpi_d
+ {
+ 	struct proc_dir_entry *entry = NULL;
+ 
+-	ACPI_FUNCTION_TRACE("acpi_fan_add_fs");
+-
+ 	if (!device)
+-		return_VALUE(-EINVAL);
++		return -EINVAL;
+ 
+ 	if (!acpi_device_dir(device)) {
+ 		acpi_device_dir(device) = proc_mkdir(acpi_device_bid(device),
+ 						     acpi_fan_dir);
+ 		if (!acpi_device_dir(device))
+-			return_VALUE(-ENODEV);
++			return -ENODEV;
+ 		acpi_device_dir(device)->owner = THIS_MODULE;
  	}
  
- 	if (!entry)
--		return_VALUE(-ENODEV);
-+		return -ENODEV;
- 	entry->owner = THIS_MODULE;
- 
- 	acpi_device_dir(device) = proc_mkdir(acpi_device_bid(device), entry);
- 	if (!acpi_device_dir(device))
--		return_VALUE(-ENODEV);
-+		return -ENODEV;
- 	acpi_device_dir(device)->owner = THIS_MODULE;
- 
- 	/* 'info' [R] */
- 	entry = create_proc_entry(ACPI_BUTTON_FILE_INFO,
- 				  S_IRUGO, acpi_device_dir(device));
+@@ -149,27 +143,25 @@ static int acpi_fan_add_fs(struct acpi_d
+ 				  S_IFREG | S_IRUGO | S_IWUSR,
+ 				  acpi_device_dir(device));
  	if (!entry)
 -		return_VALUE(-ENODEV);
 +		return -ENODEV;
  	else {
- 		entry->proc_fops = &acpi_button_info_fops;
+ 		entry->proc_fops = &acpi_fan_state_ops;
  		entry->data = acpi_driver_data(device);
-@@ -227,15 +221,13 @@ static int acpi_button_add_fs(struct acp
- 		}
+ 		entry->owner = THIS_MODULE;
  	}
  
 -	return_VALUE(0);
 +	return 0;
  }
  
- static int acpi_button_remove_fs(struct acpi_device *device)
+ static int acpi_fan_remove_fs(struct acpi_device *device)
  {
- 	struct acpi_button *button = NULL;
- 
--	ACPI_FUNCTION_TRACE("acpi_button_remove_fs");
+-	ACPI_FUNCTION_TRACE("acpi_fan_remove_fs");
 -
- 	button = acpi_driver_data(device);
  	if (acpi_device_dir(device)) {
- 		if (button->type == ACPI_BUTTON_TYPE_LID)
-@@ -249,7 +241,7 @@ static int acpi_button_remove_fs(struct 
+ 		remove_proc_entry(ACPI_FAN_FILE_STATE, acpi_device_dir(device));
+ 		remove_proc_entry(acpi_device_bid(device), acpi_fan_dir);
  		acpi_device_dir(device) = NULL;
  	}
  
@@ -134,102 +129,66 @@ index a8717da..edccc8b 100644
  }
  
  /* --------------------------------------------------------------------------
-@@ -260,10 +252,8 @@ static void acpi_button_notify(acpi_hand
- {
- 	struct acpi_button *button = (struct acpi_button *)data;
+@@ -182,14 +174,12 @@ static int acpi_fan_add(struct acpi_devi
+ 	struct acpi_fan *fan = NULL;
+ 	int state = 0;
  
--	ACPI_FUNCTION_TRACE("acpi_button_notify");
--
- 	if (!button || !button->device)
--		return_VOID;
-+		return;
- 
- 	switch (event) {
- 	case ACPI_BUTTON_NOTIFY_STATUS:
-@@ -276,21 +266,18 @@ static void acpi_button_notify(acpi_hand
- 		break;
- 	}
- 
--	return_VOID;
- }
- 
- static acpi_status acpi_button_notify_fixed(void *data)
- {
- 	struct acpi_button *button = (struct acpi_button *)data;
- 
--	ACPI_FUNCTION_TRACE("acpi_button_notify_fixed");
--
- 	if (!button)
--		return_ACPI_STATUS(AE_BAD_PARAMETER);
-+		return AE_BAD_PARAMETER;
- 
- 	acpi_button_notify(button->handle, ACPI_BUTTON_NOTIFY_STATUS, button);
- 
--	return_ACPI_STATUS(AE_OK);
-+	return AE_OK;
- }
- 
- static int acpi_button_add(struct acpi_device *device)
-@@ -299,14 +286,12 @@ static int acpi_button_add(struct acpi_d
- 	acpi_status status = AE_OK;
- 	struct acpi_button *button = NULL;
- 
--	ACPI_FUNCTION_TRACE("acpi_button_add");
+-	ACPI_FUNCTION_TRACE("acpi_fan_add");
 -
  	if (!device)
 -		return_VALUE(-EINVAL);
 +		return -EINVAL;
  
- 	button = kmalloc(sizeof(struct acpi_button), GFP_KERNEL);
- 	if (!button)
+ 	fan = kmalloc(sizeof(struct acpi_fan), GFP_KERNEL);
+ 	if (!fan)
 -		return_VALUE(-ENOMEM);
 +		return -ENOMEM;
- 	memset(button, 0, sizeof(struct acpi_button));
+ 	memset(fan, 0, sizeof(struct acpi_fan));
  
- 	button->device = device;
-@@ -400,7 +385,7 @@ static int acpi_button_add(struct acpi_d
- 		kfree(button);
- 	}
+ 	fan->handle = device->handle;
+@@ -215,17 +205,15 @@ static int acpi_fan_add(struct acpi_devi
+ 	if (result)
+ 		kfree(fan);
  
 -	return_VALUE(result);
 +	return result;
  }
  
- static int acpi_button_remove(struct acpi_device *device, int type)
-@@ -408,10 +393,8 @@ static int acpi_button_remove(struct acp
- 	acpi_status status = 0;
- 	struct acpi_button *button = NULL;
+ static int acpi_fan_remove(struct acpi_device *device, int type)
+ {
+ 	struct acpi_fan *fan = NULL;
  
--	ACPI_FUNCTION_TRACE("acpi_button_remove");
+-	ACPI_FUNCTION_TRACE("acpi_fan_remove");
 -
  	if (!device || !acpi_driver_data(device))
 -		return_VALUE(-EINVAL);
 +		return -EINVAL;
  
- 	button = acpi_driver_data(device);
+ 	fan = (struct acpi_fan *)acpi_driver_data(device);
  
-@@ -438,32 +421,28 @@ static int acpi_button_remove(struct acp
+@@ -233,38 +221,33 @@ static int acpi_fan_remove(struct acpi_d
  
- 	kfree(button);
+ 	kfree(fan);
  
 -	return_VALUE(0);
 +	return 0;
  }
  
- static int __init acpi_button_init(void)
+ static int __init acpi_fan_init(void)
  {
  	int result = 0;
  
--	ACPI_FUNCTION_TRACE("acpi_button_init");
+-	ACPI_FUNCTION_TRACE("acpi_fan_init");
 -
- 	acpi_button_dir = proc_mkdir(ACPI_BUTTON_CLASS, acpi_root_dir);
- 	if (!acpi_button_dir)
+ 	acpi_fan_dir = proc_mkdir(ACPI_FAN_CLASS, acpi_root_dir);
+ 	if (!acpi_fan_dir)
 -		return_VALUE(-ENODEV);
 +		return -ENODEV;
- 	acpi_button_dir->owner = THIS_MODULE;
- 	result = acpi_bus_register_driver(&acpi_button_driver);
+ 	acpi_fan_dir->owner = THIS_MODULE;
+ 
+ 	result = acpi_bus_register_driver(&acpi_fan_driver);
  	if (result < 0) {
- 		remove_proc_entry(ACPI_BUTTON_CLASS, acpi_root_dir);
+ 		remove_proc_entry(ACPI_FAN_CLASS, acpi_root_dir);
 -		return_VALUE(-ENODEV);
 +		return -ENODEV;
  	}
@@ -238,21 +197,18 @@ index a8717da..edccc8b 100644
 +	return 0;
  }
  
- static void __exit acpi_button_exit(void)
+ static void __exit acpi_fan_exit(void)
  {
--	ACPI_FUNCTION_TRACE("acpi_button_exit");
+-	ACPI_FUNCTION_TRACE("acpi_fan_exit");
 -
- 	acpi_bus_unregister_driver(&acpi_button_driver);
+ 	acpi_bus_unregister_driver(&acpi_fan_driver);
  
- 	if (acpi_power_dir)
-@@ -474,7 +453,6 @@ static void __exit acpi_button_exit(void
- 		remove_proc_entry(ACPI_BUTTON_SUBCLASS_LID, acpi_button_dir);
- 	remove_proc_entry(ACPI_BUTTON_CLASS, acpi_root_dir);
+ 	remove_proc_entry(ACPI_FAN_CLASS, acpi_root_dir);
  
 -	return_VOID;
  }
  
- module_init(acpi_button_init);
+ module_init(acpi_fan_init);
 ---
 0.99.9.GIT
 
