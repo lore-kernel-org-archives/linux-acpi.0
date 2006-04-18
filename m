@@ -1,27 +1,55 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: PATCH [2/3]: Provide generic backlight support in IBM ACPI driver
-Date: Tue, 18 Apr 2006 10:26:01 +0100
-Message-ID: <20060418092601.GA14121@srcf.ucam.org>
-References: <20060418082952.GA13811@srcf.ucam.org> <20060418083056.GA13846@srcf.ucam.org> <20060418091857.GB30628@osgiliath>
+From: Iacopo Spalletti <avvisi@spalletti.it>
+Subject: Re: acpi function test suite 0.1 and test results
+Date: Tue, 18 Apr 2006 12:45:22 +0200
+Message-ID: <200604181245.35668.avvisi@spalletti.it>
+References: <D352FD896397D04482B87731BD4DBE7F4111E9@bjsmsx401nb>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed;
+  boundary="nextPart2706379.0FYRcUiso9";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:54691 "EHLO
-	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
-	id S1750724AbWDRJ0F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Apr 2006 05:26:05 -0400
-Content-Disposition: inline
-In-Reply-To: <20060418091857.GB30628@osgiliath>
+Received: from ercolino.iast.it ([62.48.34.168]:41362 "EHLO ercolino.iast.it")
+	by vger.kernel.org with ESMTP id S932177AbWDRKpz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Apr 2006 06:45:55 -0400
+In-Reply-To: <D352FD896397D04482B87731BD4DBE7F4111E9@bjsmsx401nb>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: "Yu, Ling L" <ling.l.yu@intel.com>
 
-On Tue, Apr 18, 2006 at 11:18:57AM +0200, Henrik Brix Andersen wrote:
+--nextPart2706379.0FYRcUiso9
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-> Wouldn't it be better to have ACPI_IBM and friends select
-> BACKLIGHT_DEVICE?
 
-Hmm. Probably, yes.
+This is the test results for my laptop:
+http://www.nephila.it/~yakky/acpitest0.1_v6v_ia32_2.6.17-rc1_testresults
+Hardware Platform: Asus V6V
+Kernel: 2.6.17-RC1
+I executed the tests with acpid disabled and no X=20
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+
+=2D-=20
+Regards
+IS
+Iacopo Spalletti
+
+PGP key block: http://www.spalletti.it/pgp
+
+--nextPart2706379.0FYRcUiso9
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.3 (GNU/Linux)
+
+iD8DBQBERMNPk0ioQz21a+8RAqSrAJ9hMRDjUmtdkCi+87IFcpvNCLeQqwCeNPih
+SQS1MvdHUj+LVb/6QZoJHOI=
+=uLMz
+-----END PGP SIGNATURE-----
+
+--nextPart2706379.0FYRcUiso9--
