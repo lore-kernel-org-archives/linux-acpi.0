@@ -1,14 +1,14 @@
 From: Andreas Mohr <andi@rhlx01.fht-esslingen.de>
-Subject: [PATCH] -mm: make pmtmr_ioport __read_mostly
-Date: Tue, 18 Apr 2006 20:44:13 +0200
-Message-ID: <20060418184413.GA23331@rhlx01.fht-esslingen.de>
+Subject: [PATCH] -mm: acpi idle __read_mostly and de-init static var
+Date: Tue, 18 Apr 2006 21:00:45 +0200
+Message-ID: <20060418190045.GA25749@rhlx01.fht-esslingen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rhlx01.fht-esslingen.de ([129.143.116.10]:1476 "EHLO
+Received: from rhlx01.fht-esslingen.de ([129.143.116.10]:20874 "EHLO
 	rhlx01.fht-esslingen.de") by vger.kernel.org with ESMTP
-	id S932244AbWDRSoP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Apr 2006 14:44:15 -0400
+	id S932283AbWDRTAr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Apr 2006 15:00:47 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -17,46 +17,48 @@ Cc: linux-acpi@vger.kernel.org, Dominik Brodowski <linux@dominikbrodowski.net>, 
 
 Hello all,
 
-- written on init only, accessed for every timer read --> __read_mostly
-- fix broken sentence
+- make pm_idle_save, nocst and bm_history __read_mostly
+- static first_run is initialized to 0 by default already
+- don't remove static init value of nocst and bm_history
+  since __read_mostly may be special
+  (see e.g. http://www.ussg.iu.edu/hypermail/linux/kernel/0010.0/0771.html)
 
 Patch tested on 2.6.17-rc1-mm2, rediffed against 2.6.17-rc1-mm3.
-I did not test the x86_64 part, though, for obvious reasons.
 
 Signed-off-by: Andreas Mohr <andi@lisas.de>
 
 
-diff -urN linux-2.6.17-rc1-mm3.orig/drivers/clocksource/acpi_pm.c linux-2.6.17-rc1-mm3/drivers/clocksource/acpi_pm.c
---- linux-2.6.17-rc1-mm3.orig/drivers/clocksource/acpi_pm.c	2006-04-18 20:06:57.000000000 +0200
-+++ linux-2.6.17-rc1-mm3/drivers/clocksource/acpi_pm.c	2006-04-18 20:08:19.000000000 +0200
-@@ -30,7 +30,7 @@
-  * The location is detected during setup_arch(),
-  * in arch/i386/acpi/boot.c
+diff -urN linux-2.6.17-rc1-mm3.orig/drivers/acpi/processor_idle.c linux-2.6.17-rc1-mm3/drivers/acpi/processor_idle.c
+--- linux-2.6.17-rc1-mm3.orig/drivers/acpi/processor_idle.c	2006-04-18 20:06:57.000000000 +0200
++++ linux-2.6.17-rc1-mm3/drivers/acpi/processor_idle.c	2006-04-18 20:11:16.000000000 +0200
+@@ -54,10 +54,10 @@
+ #define US_TO_PM_TIMER_TICKS(t)		((t * (PM_TIMER_FREQUENCY/1000)) / 1000)
+ #define C2_OVERHEAD			4	/* 1us (3.579 ticks per us) */
+ #define C3_OVERHEAD			4	/* 1us (3.579 ticks per us) */
+-static void (*pm_idle_save) (void);
++static void (*pm_idle_save) (void) __read_mostly;
+ module_param(max_cstate, uint, 0644);
+ 
+-static unsigned int nocst = 0;
++static unsigned int nocst __read_mostly = 0;
+ module_param(nocst, uint, 0000);
+ 
+ /*
+@@ -67,7 +67,7 @@
+  * 100 HZ: 0x0000000F: 4 jiffies = 40ms
+  * reduce history for more aggressive entry into C3
   */
--u32 pmtmr_ioport;
-+u32 pmtmr_ioport __read_mostly;
+-static unsigned int bm_history =
++static unsigned int bm_history __read_mostly =
+     (HZ >= 800 ? 0xFFFFFFFF : ((1U << (HZ / 25)) - 1));
+ module_param(bm_history, uint, 0644);
+ /* --------------------------------------------------------------------------
+@@ -1088,7 +1088,7 @@
+ 			      struct acpi_device *device)
+ {
+ 	acpi_status status = 0;
+-	static int first_run = 0;
++	static int first_run; /* static: = 0 */
+ 	struct proc_dir_entry *entry = NULL;
+ 	unsigned int i;
  
- #define ACPI_PM_MASK 0xFFFFFF /* limit it to 24 bits */
- 
-@@ -47,7 +47,7 @@
- 	/*
- 	 * It has been reported that because of various broken
- 	 * chipsets (ICH4, PIIX4 and PIIX4E) where the ACPI PM clock
--	 * source is not latched, so you must read it multiple
-+	 * source is not latched, you must read it multiple
- 	 * times to ensure a safe value is read:
- 	 */
- 	do {
-
-diff -urN linux-2.6.17-rc1-mm3.orig/arch/x86_64/kernel/pmtimer.c linux-2.6.17-rc1-mm3/arch/x86_64/kernel/pmtimer.c
---- linux-2.6.17-rc1-mm3.orig/arch/x86_64/kernel/pmtimer.c	2006-04-03 05:22:10.000000000 +0200
-+++ linux-2.6.17-rc1-mm3/arch/x86_64/kernel/pmtimer.c	2006-04-18 20:36:35.000000000 +0200
-@@ -27,7 +27,7 @@
- /* The I/O port the PMTMR resides at.
-  * The location is detected during setup_arch(),
-  * in arch/i386/kernel/acpi/boot.c */
--u32 pmtmr_ioport;
-+u32 pmtmr_ioport __read_mostly;
- 
- /* value of the Power timer at last timer interrupt */
- static u32 offset_delay;
