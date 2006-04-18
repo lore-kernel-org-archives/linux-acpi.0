@@ -1,21 +1,21 @@
 From: mochel@linux.intel.com
-Subject: [PATCH 8/24] Remove unneeded debugging macros in drivers/acpi/ec.c
+Subject: [PATCH 11/24] Remove unneeded debugging macros in drivers/acpi/hotkey.c
 Date: Mon, 17 Apr 2006 18:21:53 -0700
-Message-ID: <11453233132040-git-send-email-mochel@linux.intel.com>
-References: <1145323313872-git-send-email-mochel@linux.intel.com>
+Message-ID: <11453233132210-git-send-email-mochel@linux.intel.com>
+References: <11453233132362-git-send-email-mochel@linux.intel.com>
 Reply-To: mochel@linux.intel.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr17.intel.com ([134.134.136.16]:59791 "EHLO
-	orsfmr002.jf.intel.com") by vger.kernel.org with ESMTP
-	id S932116AbWDRBZZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+Received: from fmr20.intel.com ([134.134.136.19]:25734 "EHLO
+	orsfmr005.jf.intel.com") by vger.kernel.org with ESMTP
+	id S932120AbWDRBZZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Mon, 17 Apr 2006 21:25:25 -0400
-Received: from orsfmr101.jf.intel.com (orsfmr101.jf.intel.com [10.7.209.17])
-	by orsfmr002.jf.intel.com (8.12.10/8.12.10/d: major-outer.mc,v 1.1 2004/09/17 17:50:56 root Exp $) with ESMTP id k3I1POBH025141
-	for <linux-acpi@vger.kernel.org>; Tue, 18 Apr 2006 01:25:24 GMT
-In-Reply-To: <1145323313872-git-send-email-mochel@linux.intel.com>
+Received: from orsfmr100.jf.intel.com (orsfmr100.jf.intel.com [10.7.209.16])
+	by orsfmr005.jf.intel.com (8.12.10/8.12.10/d: major-outer.mc,v 1.1 2004/09/17 17:50:56 root Exp $) with ESMTP id k3I1PP6X013968
+	for <linux-acpi@vger.kernel.org>; Tue, 18 Apr 2006 01:25:25 GMT
+In-Reply-To: <11453233132362-git-send-email-mochel@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
@@ -25,583 +25,441 @@ Signed-off-by: Patrick Mochel <mochel@linux.intel.com>
 
 ---
 
- drivers/acpi/ec.c |  165 +++++++++++++++++++----------------------------------
- 1 files changed, 60 insertions(+), 105 deletions(-)
+ drivers/acpi/hotkey.c |  115 ++++++++++++++-----------------------------------
+ 1 files changed, 34 insertions(+), 81 deletions(-)
 
-applies-to: cf24a0e712f1477d5d680c4649c79c0c83e2885b
-98488685dd4e5edcb7b4cd83996082a5a9e7eaca
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 8745af7..943c382 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -207,8 +207,6 @@ static int acpi_ec_intr_wait(union acpi_
+applies-to: 7b8aca2a44864c5cde93e035b223a5317e749232
+8773774970d07b8f36e55150d58609de77a244c4
+diff --git a/drivers/acpi/hotkey.c b/drivers/acpi/hotkey.c
+index 37dcb1f..ed8a1ae 100644
+--- a/drivers/acpi/hotkey.c
++++ b/drivers/acpi/hotkey.c
+@@ -231,11 +231,9 @@ struct list_head hotkey_entries;	/* head
+ 
+ static int hotkey_info_seq_show(struct seq_file *seq, void *offset)
  {
- 	int result = 0;
- 
--	ACPI_FUNCTION_TRACE("acpi_ec_wait");
+-	ACPI_FUNCTION_TRACE("hotkey_info_seq_show");
 -
- 	ec->intr.expect_event = event;
- 	smp_mb();
+ 	seq_printf(seq, "Hotkey generic driver ver: %s\n", HOTKEY_ACPI_VERSION);
  
-@@ -216,7 +214,7 @@ static int acpi_ec_intr_wait(union acpi_
- 	case ACPI_EC_EVENT_IBE:
- 		if (~acpi_ec_read_status(ec) & event) {
- 			ec->intr.expect_event = 0;
--			return_VALUE(0);
-+			return 0;
- 		}
- 		break;
- 	default:
-@@ -238,16 +236,16 @@ static int acpi_ec_intr_wait(union acpi_
- 	switch (event) {
- 	case ACPI_EC_EVENT_OBF:
- 		if (acpi_ec_read_status(ec) & ACPI_EC_FLAG_OBF)
--			return_VALUE(0);
-+			return 0;
- 		break;
- 
- 	case ACPI_EC_EVENT_IBE:
- 		if (~acpi_ec_read_status(ec) & ACPI_EC_FLAG_IBF)
--			return_VALUE(0);
-+			return 0;
- 		break;
- 	}
- 
--	return_VALUE(-ETIME);
-+	return -ETIME;
+-	return_VALUE(0);
++	return 0;
  }
  
- #ifdef ACPI_FUTURE_USAGE
-@@ -260,8 +258,6 @@ int acpi_ec_enter_burst_mode(union acpi_
- 	u32 tmp = 0;
- 	int status = 0;
+ static int hotkey_info_open_fs(struct inode *inode, struct file *file)
+@@ -266,15 +264,13 @@ static int hotkey_polling_seq_show(struc
+ 	    (struct acpi_polling_hotkey *)seq->private;
+ 	char *buf;
  
--	ACPI_FUNCTION_TRACE("acpi_ec_enter_burst_mode");
+-	ACPI_FUNCTION_TRACE("hotkey_polling_seq_show");
 -
- 	status = acpi_ec_read_status(ec);
- 	if (status != -EINVAL && !(status & ACPI_EC_FLAG_BURST)) {
- 		status = acpi_ec_wait(ec, ACPI_EC_EVENT_IBE);
-@@ -272,23 +268,21 @@ int acpi_ec_enter_burst_mode(union acpi_
- 		status = acpi_ec_wait(ec, ACPI_EC_EVENT_OBF);
- 		acpi_hw_low_level_read(8, &tmp, &ec->common.data_addr);
- 		if (tmp != 0x90) {	/* Burst ACK byte */
--			return_VALUE(-EINVAL);
-+			return -EINVAL;
+ 	if (poll_hotkey->poll_result) {
+ 		buf = format_result(poll_hotkey->poll_result);
+ 		if (buf)
+ 			seq_printf(seq, "%s", buf);
+ 		kfree(buf);
+ 	}
+-	return_VALUE(0);
++	return 0;
+ }
+ 
+ static int hotkey_polling_open_fs(struct inode *inode, struct file *file)
+@@ -293,8 +289,6 @@ static int hotkey_get_internal_event(int
+ 	struct list_head *entries;
+ 	int val = -1;
+ 
+-	ACPI_FUNCTION_TRACE("hotkey_get_internal_event");
+-
+ 	list_for_each(entries, list->entries) {
+ 		union acpi_hotkey *key =
+ 		    container_of(entries, union acpi_hotkey, entries);
+@@ -305,7 +299,7 @@ static int hotkey_get_internal_event(int
  		}
  	}
  
- 	atomic_set(&ec->intr.leaving_burst, 0);
--	return_VALUE(0);
-+	return 0;
-       end:
- 	ACPI_EXCEPTION ((AE_INFO, status, "EC wait, burst mode");
--	return_VALUE(-1);
-+	return -1;
+-	return_VALUE(val);
++	return val;
  }
  
- int acpi_ec_leave_burst_mode(union acpi_ec *ec)
- {
- 	int status = 0;
+ static void
+@@ -314,15 +308,12 @@ acpi_hotkey_notify_handler(acpi_handle h
+ 	struct acpi_device *device = NULL;
+ 	u32 internal_event;
  
--	ACPI_FUNCTION_TRACE("acpi_ec_leave_burst_mode");
+-	ACPI_FUNCTION_TRACE("acpi_hotkey_notify_handler");
 -
- 	status = acpi_ec_read_status(ec);
- 	if (status != -EINVAL && (status & ACPI_EC_FLAG_BURST)){
- 		status = acpi_ec_wait(ec, ACPI_EC_FLAG_IBF);
-@@ -298,10 +292,10 @@ int acpi_ec_leave_burst_mode(union acpi_
- 		acpi_ec_wait(ec, ACPI_EC_FLAG_IBF);
- 	} 
- 	atomic_set(&ec->intr.leaving_burst, 1);
--	return_VALUE(0);
-+	return 0;
- end:
- 	ACPI_EXCEPTION((AE_INFO, status, "EC leave burst mode");
--	return_VALUE(-1);
-+	return -1;
- }
- #endif /* ACPI_FUTURE_USAGE */
- 
-@@ -326,17 +320,15 @@ static int acpi_ec_poll_read(union acpi_
- 	unsigned long flags = 0;
- 	u32 glk = 0;
- 
--	ACPI_FUNCTION_TRACE("acpi_ec_read");
--
- 	if (!ec || !data)
--		return_VALUE(-EINVAL);
-+		return -EINVAL;
- 
- 	*data = 0;
- 
- 	if (ec->common.global_lock) {
- 		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
- 		if (ACPI_FAILURE(status))
--			return_VALUE(-ENODEV);
-+			return -ENODEV;
- 	}
- 
- 	spin_lock_irqsave(&ec->poll.lock, flags);
-@@ -363,7 +355,7 @@ static int acpi_ec_poll_read(union acpi_
- 	if (ec->common.global_lock)
- 		acpi_release_global_lock(glk);
- 
--	return_VALUE(result);
-+	return result;
- }
- 
- static int acpi_ec_poll_write(union acpi_ec *ec, u8 address, u8 data)
-@@ -373,15 +365,13 @@ static int acpi_ec_poll_write(union acpi
- 	unsigned long flags = 0;
- 	u32 glk = 0;
- 
--	ACPI_FUNCTION_TRACE("acpi_ec_write");
--
- 	if (!ec)
--		return_VALUE(-EINVAL);
-+		return -EINVAL;
- 
- 	if (ec->common.global_lock) {
- 		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
- 		if (ACPI_FAILURE(status))
--			return_VALUE(-ENODEV);
-+			return -ENODEV;
- 	}
- 
- 	spin_lock_irqsave(&ec->poll.lock, flags);
-@@ -411,7 +401,7 @@ static int acpi_ec_poll_write(union acpi
- 	if (ec->common.global_lock)
- 		acpi_release_global_lock(glk);
- 
--	return_VALUE(result);
-+	return result;
- }
- 
- static int acpi_ec_intr_read(union acpi_ec *ec, u8 address, u32 * data)
-@@ -419,17 +409,15 @@ static int acpi_ec_intr_read(union acpi_
- 	int status = 0;
- 	u32 glk;
- 
--	ACPI_FUNCTION_TRACE("acpi_ec_read");
--
- 	if (!ec || !data)
--		return_VALUE(-EINVAL);
-+		return -EINVAL;
- 
- 	*data = 0;
- 
- 	if (ec->common.global_lock) {
- 		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
- 		if (ACPI_FAILURE(status))
--			return_VALUE(-ENODEV);
-+			return -ENODEV;
- 	}
- 
- 	WARN_ON(in_interrupt());
-@@ -463,7 +451,7 @@ static int acpi_ec_intr_read(union acpi_
- 	if (ec->common.global_lock)
- 		acpi_release_global_lock(glk);
- 
--	return_VALUE(status);
-+	return status;
- }
- 
- static int acpi_ec_intr_write(union acpi_ec *ec, u8 address, u8 data)
-@@ -471,15 +459,13 @@ static int acpi_ec_intr_write(union acpi
- 	int status = 0;
- 	u32 glk;
- 
--	ACPI_FUNCTION_TRACE("acpi_ec_write");
--
- 	if (!ec)
--		return_VALUE(-EINVAL);
-+		return -EINVAL;
- 
- 	if (ec->common.global_lock) {
- 		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
- 		if (ACPI_FAILURE(status))
--			return_VALUE(-ENODEV);
-+			return -ENODEV;
- 	}
- 
- 	WARN_ON(in_interrupt());
-@@ -512,7 +498,7 @@ static int acpi_ec_intr_write(union acpi
- 	if (ec->common.global_lock)
- 		acpi_release_global_lock(glk);
- 
--	return_VALUE(status);
-+	return status;
- }
- 
- /*
-@@ -571,17 +557,15 @@ static int acpi_ec_poll_query(union acpi
- 	unsigned long flags = 0;
- 	u32 glk = 0;
- 
--	ACPI_FUNCTION_TRACE("acpi_ec_query");
--
- 	if (!ec || !data)
--		return_VALUE(-EINVAL);
-+		return -EINVAL;
- 
- 	*data = 0;
- 
- 	if (ec->common.global_lock) {
- 		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
- 		if (ACPI_FAILURE(status))
--			return_VALUE(-ENODEV);
-+			return -ENODEV;
- 	}
- 
- 	/*
-@@ -607,23 +591,21 @@ static int acpi_ec_poll_query(union acpi
- 	if (ec->common.global_lock)
- 		acpi_release_global_lock(glk);
- 
--	return_VALUE(result);
-+	return result;
- }
- static int acpi_ec_intr_query(union acpi_ec *ec, u32 * data)
- {
- 	int status = 0;
- 	u32 glk;
- 
--	ACPI_FUNCTION_TRACE("acpi_ec_query");
--
- 	if (!ec || !data)
--		return_VALUE(-EINVAL);
-+		return -EINVAL;
- 	*data = 0;
- 
- 	if (ec->common.global_lock) {
- 		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
- 		if (ACPI_FAILURE(status))
--			return_VALUE(-ENODEV);
-+			return -ENODEV;
- 	}
- 
- 	down(&ec->intr.sem);
-@@ -656,7 +638,7 @@ static int acpi_ec_intr_query(union acpi
- 	if (ec->common.global_lock)
- 		acpi_release_global_lock(glk);
- 
--	return_VALUE(status);
-+	return status;
- }
- 
- /* --------------------------------------------------------------------------
-@@ -686,8 +668,6 @@ static void acpi_ec_gpe_poll_query(void 
- 		'8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
- 	};
- 
--	ACPI_FUNCTION_TRACE("acpi_ec_gpe_query");
--
- 	if (!ec_cxt)
- 		goto end;
- 
-@@ -727,8 +707,6 @@ static void acpi_ec_gpe_intr_query(void 
- 		'8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
- 	};
- 
--	ACPI_FUNCTION_TRACE("acpi_ec_gpe_query");
--
- 	if (acpi_ec_read_status(ec) & ACPI_EC_FLAG_SCI)
- 		result = acpi_ec_query(ec, &value);
- 
-@@ -840,15 +818,13 @@ acpi_ec_space_handler(u32 function,
- 	acpi_integer f_v = 0;
- 	int i = 0;
- 
--	ACPI_FUNCTION_TRACE("acpi_ec_space_handler");
--
- 	if ((address > 0xFF) || !value || !handler_context)
--		return_VALUE(AE_BAD_PARAMETER);
-+		return AE_BAD_PARAMETER;
- 
- 	if (bit_width != 8 && acpi_strict) {
- 		printk(KERN_WARNING PREFIX
- 		       "acpi_ec_space_handler: bit_width should be 8\n");
--		return_VALUE(AE_BAD_PARAMETER);
-+		return AE_BAD_PARAMETER;
- 	}
- 
- 	ec = (union acpi_ec *)handler_context;
-@@ -887,16 +863,16 @@ acpi_ec_space_handler(u32 function,
-       out:
- 	switch (result) {
- 	case -EINVAL:
--		return_VALUE(AE_BAD_PARAMETER);
-+		return AE_BAD_PARAMETER;
- 		break;
- 	case -ENODEV:
--		return_VALUE(AE_NOT_FOUND);
-+		return AE_NOT_FOUND;
- 		break;
- 	case -ETIME:
--		return_VALUE(AE_TIME);
-+		return AE_TIME;
- 		break;
- 	default:
--		return_VALUE(AE_OK);
-+		return AE_OK;
- 	}
- }
- 
-@@ -910,8 +886,6 @@ static int acpi_ec_read_info(struct seq_
- {
- 	union acpi_ec *ec = (union acpi_ec *)seq->private;
- 
--	ACPI_FUNCTION_TRACE("acpi_ec_read_info");
--
- 	if (!ec)
- 		goto end;
- 
-@@ -925,7 +899,7 @@ static int acpi_ec_read_info(struct seq_
- 	acpi_enable_gpe(NULL, ec->common.gpe_bit, ACPI_NOT_ISR);
- 
-       end:
--	return_VALUE(0);
-+	return 0;
- }
- 
- static int acpi_ec_info_open_fs(struct inode *inode, struct file *file)
-@@ -945,39 +919,35 @@ static int acpi_ec_add_fs(struct acpi_de
- {
- 	struct proc_dir_entry *entry = NULL;
- 
--	ACPI_FUNCTION_TRACE("acpi_ec_add_fs");
--
- 	if (!acpi_device_dir(device)) {
- 		acpi_device_dir(device) = proc_mkdir(acpi_device_bid(device),
- 						     acpi_ec_dir);
- 		if (!acpi_device_dir(device))
--			return_VALUE(-ENODEV);
-+			return -ENODEV;
- 	}
- 
- 	entry = create_proc_entry(ACPI_EC_FILE_INFO, S_IRUGO,
- 				  acpi_device_dir(device));
- 	if (!entry)
--		return_VALUE(-ENODEV);
-+		return -ENODEV;
- 	else {
- 		entry->proc_fops = &acpi_ec_info_ops;
- 		entry->data = acpi_driver_data(device);
- 		entry->owner = THIS_MODULE;
- 	}
- 
--	return_VALUE(0);
-+	return 0;
- }
- 
- static int acpi_ec_remove_fs(struct acpi_device *device)
- {
--	ACPI_FUNCTION_TRACE("acpi_ec_remove_fs");
--
- 	if (acpi_device_dir(device)) {
- 		remove_proc_entry(ACPI_EC_FILE_INFO, acpi_device_dir(device));
- 		remove_proc_entry(acpi_device_bid(device), acpi_ec_dir);
- 		acpi_device_dir(device) = NULL;
- 	}
- 
--	return_VALUE(0);
-+	return 0;
- }
- 
- /* --------------------------------------------------------------------------
-@@ -990,14 +960,12 @@ static int acpi_ec_poll_add(struct acpi_
- 	acpi_status status = AE_OK;
- 	union acpi_ec *ec = NULL;
- 
--	ACPI_FUNCTION_TRACE("acpi_ec_add");
--
- 	if (!device)
--		return_VALUE(-EINVAL);
-+		return -EINVAL;
- 
- 	ec = kmalloc(sizeof(union acpi_ec), GFP_KERNEL);
- 	if (!ec)
--		return_VALUE(-ENOMEM);
-+		return -ENOMEM;
- 	memset(ec, 0, sizeof(union acpi_ec));
- 
- 	ec->common.handle = device->handle;
-@@ -1050,7 +1018,7 @@ static int acpi_ec_poll_add(struct acpi_
- 	if (result)
- 		kfree(ec);
- 
--	return_VALUE(result);
-+	return result;
- }
- static int acpi_ec_intr_add(struct acpi_device *device)
- {
-@@ -1058,14 +1026,12 @@ static int acpi_ec_intr_add(struct acpi_
- 	acpi_status status = AE_OK;
- 	union acpi_ec *ec = NULL;
- 
--	ACPI_FUNCTION_TRACE("acpi_ec_add");
--
- 	if (!device)
--		return_VALUE(-EINVAL);
-+		return -EINVAL;
- 
- 	ec = kmalloc(sizeof(union acpi_ec), GFP_KERNEL);
- 	if (!ec)
--		return_VALUE(-ENOMEM);
-+		return -ENOMEM;
- 	memset(ec, 0, sizeof(union acpi_ec));
- 
- 	ec->common.handle = device->handle;
-@@ -1121,17 +1087,15 @@ static int acpi_ec_intr_add(struct acpi_
- 	if (result)
- 		kfree(ec);
- 
--	return_VALUE(result);
-+	return result;
- }
- 
- static int acpi_ec_remove(struct acpi_device *device, int type)
- {
- 	union acpi_ec *ec = NULL;
- 
--	ACPI_FUNCTION_TRACE("acpi_ec_remove");
--
- 	if (!device)
--		return_VALUE(-EINVAL);
-+		return -EINVAL;
- 
- 	ec = acpi_driver_data(device);
- 
-@@ -1139,7 +1103,7 @@ static int acpi_ec_remove(struct acpi_de
- 
- 	kfree(ec);
- 
--	return_VALUE(0);
-+	return 0;
- }
- 
- static acpi_status
-@@ -1178,15 +1142,13 @@ static int acpi_ec_start(struct acpi_dev
- 	acpi_status status = AE_OK;
- 	union acpi_ec *ec = NULL;
- 
--	ACPI_FUNCTION_TRACE("acpi_ec_start");
--
- 	if (!device)
--		return_VALUE(-EINVAL);
-+		return -EINVAL;
- 
- 	ec = acpi_driver_data(device);
- 
- 	if (!ec)
--		return_VALUE(-EINVAL);
-+		return -EINVAL;
- 
- 	/*
- 	 * Get I/O port addresses. Convert to GAS format.
-@@ -1196,7 +1158,7 @@ static int acpi_ec_start(struct acpi_dev
- 	if (ACPI_FAILURE(status)
- 	    || ec->common.command_addr.register_bit_width == 0) {
- 		ACPI_ERROR((AE_INFO, "Error getting I/O port addresses"));
--		return_VALUE(-ENODEV);
-+		return -ENODEV;
- 	}
- 
- 	ec->common.status_addr = ec->common.command_addr;
-@@ -1213,7 +1175,7 @@ static int acpi_ec_start(struct acpi_dev
- 					  ACPI_GPE_EDGE_TRIGGERED,
- 					  &acpi_ec_gpe_handler, ec);
- 	if (ACPI_FAILURE(status)) {
--		return_VALUE(-ENODEV);
-+		return -ENODEV;
- 	}
- 	acpi_set_gpe_type(NULL, ec->common.gpe_bit, ACPI_GPE_TYPE_RUNTIME);
- 	acpi_enable_gpe(NULL, ec->common.gpe_bit, ACPI_NOT_ISR);
-@@ -1225,10 +1187,10 @@ static int acpi_ec_start(struct acpi_dev
- 	if (ACPI_FAILURE(status)) {
- 		acpi_remove_gpe_handler(NULL, ec->common.gpe_bit,
- 					&acpi_ec_gpe_handler);
--		return_VALUE(-ENODEV);
-+		return -ENODEV;
- 	}
- 
--	return_VALUE(AE_OK);
-+	return AE_OK;
- }
- 
- static int acpi_ec_stop(struct acpi_device *device, int type)
-@@ -1236,10 +1198,8 @@ static int acpi_ec_stop(struct acpi_devi
- 	acpi_status status = AE_OK;
- 	union acpi_ec *ec = NULL;
- 
--	ACPI_FUNCTION_TRACE("acpi_ec_stop");
--
- 	if (!device)
--		return_VALUE(-EINVAL);
-+		return -EINVAL;
- 
- 	ec = acpi_driver_data(device);
- 
-@@ -1247,15 +1207,15 @@ static int acpi_ec_stop(struct acpi_devi
- 						   ACPI_ADR_SPACE_EC,
- 						   &acpi_ec_space_handler);
- 	if (ACPI_FAILURE(status))
--		return_VALUE(-ENODEV);
-+		return -ENODEV;
- 
- 	status =
- 	    acpi_remove_gpe_handler(NULL, ec->common.gpe_bit,
- 				    &acpi_ec_gpe_handler);
- 	if (ACPI_FAILURE(status))
--		return_VALUE(-ENODEV);
-+		return -ENODEV;
- 
--	return_VALUE(0);
-+	return 0;
- }
- 
- static acpi_status __init
-@@ -1525,23 +1485,21 @@ static int __init acpi_ec_init(void)
- {
- 	int result = 0;
- 
--	ACPI_FUNCTION_TRACE("acpi_ec_init");
--
- 	if (acpi_disabled)
--		return_VALUE(0);
-+		return 0;
- 
- 	acpi_ec_dir = proc_mkdir(ACPI_EC_CLASS, acpi_root_dir);
- 	if (!acpi_ec_dir)
--		return_VALUE(-ENODEV);
-+		return -ENODEV;
- 
- 	/* Now register the driver for the EC */
- 	result = acpi_bus_register_driver(&acpi_ec_driver);
- 	if (result < 0) {
- 		remove_proc_entry(ACPI_EC_CLASS, acpi_root_dir);
--		return_VALUE(-ENODEV);
-+		return -ENODEV;
- 	}
- 
--	return_VALUE(result);
-+	return result;
- }
- 
- subsys_initcall(acpi_ec_init);
-@@ -1550,13 +1508,10 @@ subsys_initcall(acpi_ec_init);
- #if 0
- static void __exit acpi_ec_exit(void)
- {
--	ACPI_FUNCTION_TRACE("acpi_ec_exit");
--
- 	acpi_bus_unregister_driver(&acpi_ec_driver);
- 
- 	remove_proc_entry(ACPI_EC_CLASS, acpi_root_dir);
+ 	if (acpi_bus_get_device(handle, &device))
+-		return_VOID;
++		return;
+ 
+ 	internal_event = hotkey_get_internal_event(event, &global_hotkey_list);
+ 	acpi_bus_generate_event(device, internal_event, 0);
  
 -	return_VOID;
  }
- #endif				/* 0 */
  
+ /* Need to invent automatically hotkey add method */
+@@ -344,10 +335,7 @@ static int create_polling_proc(union acp
+ {
+ 	struct proc_dir_entry *proc;
+ 	char proc_name[80];
+-	mode_t mode;
+-
+-	ACPI_FUNCTION_TRACE("create_polling_proc");
+-	mode = S_IFREG | S_IRUGO | S_IWUGO;
++	mode_t mode = S_IFREG | S_IRUGO | S_IWUGO;
+ 
+ 	sprintf(proc_name, "%d", device->link.hotkey_standard_num);
+ 	/*
+@@ -356,7 +344,7 @@ static int create_polling_proc(union acp
+ 	proc = create_proc_entry(proc_name, mode, hotkey_proc_dir);
+ 
+ 	if (!proc) {
+-		return_VALUE(-ENODEV);
++		return -ENODEV;
+ 	} else {
+ 		proc->proc_fops = &hotkey_polling_fops;
+ 		proc->owner = THIS_MODULE;
+@@ -365,7 +353,7 @@ static int create_polling_proc(union acp
+ 		proc->gid = 0;
+ 		device->poll_hotkey.proc = proc;
+ 	}
+-	return_VALUE(0);
++	return 0;
+ }
+ 
+ static int hotkey_add(union acpi_hotkey *device)
+@@ -373,8 +361,6 @@ static int hotkey_add(union acpi_hotkey 
+ 	int status = 0;
+ 	struct acpi_device *dev = NULL;
+ 
+-	ACPI_FUNCTION_TRACE("hotkey_add");
+-
+ 	if (device->link.hotkey_type == ACPI_HOTKEY_EVENT) {
+ 		acpi_bus_get_device(device->event_hotkey.bus_handle, &dev);
+ 		status = acpi_install_notify_handler(dev->handle,
+@@ -388,15 +374,13 @@ static int hotkey_add(union acpi_hotkey 
+ 
+ 	list_add_tail(&device->link.entries, global_hotkey_list.entries);
+ 
+-	return_VALUE(status);
++	return status;
+ }
+ 
+ static int hotkey_remove(union acpi_hotkey *device)
+ {
+ 	struct list_head *entries, *next;
+ 
+-	ACPI_FUNCTION_TRACE("hotkey_remove");
+-
+ 	list_for_each_safe(entries, next, global_hotkey_list.entries) {
+ 		union acpi_hotkey *key =
+ 		    container_of(entries, union acpi_hotkey, entries);
+@@ -409,15 +393,13 @@ static int hotkey_remove(union acpi_hotk
+ 		}
+ 	}
+ 	kfree(device);
+-	return_VALUE(0);
++	return 0;
+ }
+ 
+ static int hotkey_update(union acpi_hotkey *key)
+ {
+ 	struct list_head *entries;
+ 
+-	ACPI_FUNCTION_TRACE("hotkey_update");
+-
+ 	list_for_each(entries, global_hotkey_list.entries) {
+ 		union acpi_hotkey *tmp =
+ 		    container_of(entries, union acpi_hotkey, entries);
+@@ -458,20 +440,18 @@ static int hotkey_update(union acpi_hotk
+ 				 */
+ 				kfree(key);
+ 			}
+-			return_VALUE(0);
++			return 0;
+ 			break;
+ 		}
+ 	}
+ 
+-	return_VALUE(-ENODEV);
++	return -ENODEV;
+ }
+ 
+ static void free_hotkey_device(union acpi_hotkey *key)
+ {
+ 	struct acpi_device *dev;
+ 
+-	ACPI_FUNCTION_TRACE("free_hotkey_device");
+-
+ 	if (key->link.hotkey_type == ACPI_HOTKEY_EVENT) {
+ 		acpi_bus_get_device(key->event_hotkey.bus_handle, &dev);
+ 		if (dev->handle)
+@@ -490,7 +470,6 @@ static void free_hotkey_device(union acp
+ 		free_poll_hotkey_buffer(key);
+ 	}
+ 	kfree(key);
+-	return_VOID;
+ }
+ 
+ static void free_hotkey_buffer(union acpi_hotkey *key)
+@@ -511,8 +490,6 @@ init_hotkey_device(union acpi_hotkey *ke
+ 	acpi_handle tmp_handle;
+ 	acpi_status status = AE_OK;
+ 
+-	ACPI_FUNCTION_TRACE("init_hotkey_device");
+-
+ 	if (std_num < 0 || IS_POLL(std_num) || !key)
+ 		goto do_fail;
+ 
+@@ -538,9 +515,9 @@ init_hotkey_device(union acpi_hotkey *ke
+ 				 method, &tmp_handle);
+ 	if (ACPI_FAILURE(status))
+ 		goto do_fail;
+-	return_VALUE(AE_OK);
++	return AE_OK;
+       do_fail:
+-	return_VALUE(-ENODEV);
++	return -ENODEV;
+ }
+ 
+ static int
+@@ -552,8 +529,6 @@ init_poll_hotkey_device(union acpi_hotke
+ 	acpi_status status = AE_OK;
+ 	acpi_handle tmp_handle;
+ 
+-	ACPI_FUNCTION_TRACE("init_poll_hotkey_device");
+-
+ 	if (std_num < 0 || IS_EVENT(std_num) || !key)
+ 		goto do_fail;
+ 
+@@ -587,23 +562,19 @@ init_poll_hotkey_device(union acpi_hotke
+ 	    (union acpi_object *)kmalloc(sizeof(union acpi_object), GFP_KERNEL);
+ 	if (!key->poll_hotkey.poll_result)
+ 		goto do_fail;
+-	return_VALUE(AE_OK);
++	return AE_OK;
+       do_fail:
+-	return_VALUE(-ENODEV);
++	return -ENODEV;
+ }
+ 
+ static int hotkey_open_config(struct inode *inode, struct file *file)
+ {
+-	ACPI_FUNCTION_TRACE("hotkey_open_config");
+-	return_VALUE(single_open
+-		     (file, hotkey_config_seq_show, PDE(inode)->data));
++	return single_open(file, hotkey_config_seq_show, PDE(inode)->data);
+ }
+ 
+ static int hotkey_poll_open_config(struct inode *inode, struct file *file)
+ {
+-	ACPI_FUNCTION_TRACE("hotkey_poll_open_config");
+-	return_VALUE(single_open
+-		     (file, hotkey_poll_config_seq_show, PDE(inode)->data));
++	return single_open(file, hotkey_poll_config_seq_show, PDE(inode)->data);
+ }
+ 
+ static int hotkey_config_seq_show(struct seq_file *seq, void *offset)
+@@ -615,8 +586,6 @@ static int hotkey_config_seq_show(struct
+ 	struct acpi_buffer bus = { ACPI_PATHNAME_MAX, bus_name };
+ 	struct acpi_buffer act = { ACPI_PATHNAME_MAX, action_name };
+ 
+-	ACPI_FUNCTION_TRACE(("hotkey_config_seq_show"));
+-
+ 	list_for_each(entries, hotkey_list->entries) {
+ 		union acpi_hotkey *key =
+ 		    container_of(entries, union acpi_hotkey, entries);
+@@ -633,7 +602,7 @@ static int hotkey_config_seq_show(struct
+ 		}
+ 	}
+ 	seq_puts(seq, "\n");
+-	return_VALUE(0);
++	return 0;
+ }
+ 
+ static int hotkey_poll_config_seq_show(struct seq_file *seq, void *offset)
+@@ -645,8 +614,6 @@ static int hotkey_poll_config_seq_show(s
+ 	struct acpi_buffer bus = { ACPI_PATHNAME_MAX, bus_name };
+ 	struct acpi_buffer act = { ACPI_PATHNAME_MAX, action_name };
+ 
+-	ACPI_FUNCTION_TRACE(("hotkey_config_seq_show"));
+-
+ 	list_for_each(entries, hotkey_list->entries) {
+ 		union acpi_hotkey *key =
+ 		    container_of(entries, union acpi_hotkey, entries);
+@@ -663,7 +630,7 @@ static int hotkey_poll_config_seq_show(s
+ 		}
+ 	}
+ 	seq_puts(seq, "\n");
+-	return_VALUE(0);
++	return 0;
+ }
+ 
+ static int
+@@ -675,8 +642,6 @@ get_parms(char *config_record,
+ 	  char **method, int *internal_event_num, int *external_event_num)
+ {
+ 	char *tmp, *tmp1, count;
+-	ACPI_FUNCTION_TRACE(("get_parms"));
+-
+ 	sscanf(config_record, "%d", cmd);
+ 
+ 	if (*cmd == 1) {
+@@ -741,9 +706,9 @@ get_parms(char *config_record,
+ 	    0)
+ 		goto do_fail;
+ 
+-	return_VALUE(6);
++	return 6;
+       do_fail:
+-	return_VALUE(-1);
++	return -1;
+ }
+ 
+ /*  count is length for one input record */
+@@ -760,16 +725,14 @@ static ssize_t hotkey_write_config(struc
+ 	int ret = 0;
+ 	union acpi_hotkey *key = NULL;
+ 
+-	ACPI_FUNCTION_TRACE(("hotkey_write_config"));
+-
+ 	config_record = (char *)kmalloc(count + 1, GFP_KERNEL);
+ 	if (!config_record)
+-		return_VALUE(-ENOMEM);
++		return -ENOMEM;
+ 
+ 	if (copy_from_user(config_record, buffer, count)) {
+ 		kfree(config_record);
+ 		ACPI_ERROR((AE_INFO, "Invalid data"));
+-		return_VALUE(-EINVAL);
++		return -EINVAL;
+ 	}
+ 	config_record[count] = 0;
+ 
+@@ -790,7 +753,7 @@ static ssize_t hotkey_write_config(struc
+ 		kfree(action_handle);
+ 		kfree(method);
+ 		ACPI_ERROR((AE_INFO, "Invalid data format ret=%d", ret));
+-		return_VALUE(-EINVAL);
++		return -EINVAL;
+ 	}
+ 
+ 	key = kmalloc(sizeof(union acpi_hotkey), GFP_KERNEL);
+@@ -825,7 +788,7 @@ static ssize_t hotkey_write_config(struc
+ 			free_poll_hotkey_buffer(key);
+ 		kfree(key);
+ 		ACPI_ERROR((AE_INFO, "Invalid hotkey"));
+-		return_VALUE(-EINVAL);
++		return -EINVAL;
+ 	}
+ 
+       cont_cmd:
+@@ -851,7 +814,7 @@ static ssize_t hotkey_write_config(struc
+ 		goto fail_out;
+ 		break;
+ 	}
+-	return_VALUE(count);
++	return count;
+       fail_out:
+ 	if (IS_EVENT(internal_event_num))
+ 		free_hotkey_buffer(key);
+@@ -859,7 +822,7 @@ static ssize_t hotkey_write_config(struc
+ 		free_poll_hotkey_buffer(key);
+ 	kfree(key);
+ 	ACPI_ERROR((AE_INFO, "invalid key"));
+-	return_VALUE(-EINVAL);
++	return -EINVAL;
+ }
+ 
+ /*
+@@ -876,15 +839,13 @@ static int write_acpi_int(acpi_handle ha
+ 	union acpi_object in_obj;	/* the only param we use */
+ 	acpi_status status;
+ 
+-	ACPI_FUNCTION_TRACE("write_acpi_int");
+-	params.count = 1;
+ 	params.pointer = &in_obj;
+ 	in_obj.type = ACPI_TYPE_INTEGER;
+ 	in_obj.integer.value = val;
+ 
+ 	status = acpi_evaluate_object(handle, (char *)method, &params, output);
+ 
+-	return_VALUE(status == AE_OK);
++	return status == AE_OK;
+ }
+ 
+ static int read_acpi_int(acpi_handle handle, const char *method,
+@@ -894,8 +855,6 @@ static int read_acpi_int(acpi_handle han
+ 	union acpi_object out_obj;
+ 	acpi_status status;
+ 
+-	ACPI_FUNCTION_TRACE("read_acpi_int");
+-	output.length = sizeof(out_obj);
+ 	output.pointer = &out_obj;
+ 
+ 	status = acpi_evaluate_object(handle, (char *)method, NULL, &output);
+@@ -941,24 +900,22 @@ static ssize_t hotkey_execute_aml_method
+ 	int event, method_type, type, value;
+ 	union acpi_hotkey *key;
+ 
+-	ACPI_FUNCTION_TRACE("hotkey_execte_aml_method");
+-
+ 	arg = (char *)kmalloc(count + 1, GFP_KERNEL);
+ 	if (!arg)
+-		return_VALUE(-ENOMEM);
++		return -ENOMEM;
+ 	arg[count] = 0;
+ 
+ 	if (copy_from_user(arg, buffer, count)) {
+ 		kfree(arg);
+ 		ACPI_ERROR((AE_INFO, "Invalid argument 2"));
+-		return_VALUE(-EINVAL);
++		return -EINVAL;
+ 	}
+ 
+ 	if (sscanf(arg, "%d:%d:%d:%d", &event, &method_type, &type, &value) !=
+ 	    4) {
+ 		kfree(arg);
+ 		ACPI_ERROR((AE_INFO, "Invalid argument 3"));
+-		return_VALUE(-EINVAL);
++		return -EINVAL;
+ 	}
+ 	kfree(arg);
+ 	if (type == ACPI_TYPE_INTEGER) {
+@@ -984,11 +941,11 @@ static ssize_t hotkey_execute_aml_method
+ 		}
+ 	} else {
+ 		ACPI_WARNING((AE_INFO, "Not supported"));
+-		return_VALUE(-EINVAL);
++		return -EINVAL;
+ 	}
+-	return_VALUE(count);
++	return count;
+       do_fail:
+-	return_VALUE(-EINVAL);
++	return -EINVAL;
+ 
+ }
+ 
+@@ -997,8 +954,6 @@ static int __init hotkey_init(void)
+ 	int result;
+ 	mode_t mode = S_IFREG | S_IRUGO | S_IWUGO;
+ 
+-	ACPI_FUNCTION_TRACE("hotkey_init");
+-
+ 	if (acpi_disabled)
+ 		return -ENODEV;
+ 
+@@ -1084,8 +1039,6 @@ static void __exit hotkey_exit(void)
+ {
+ 	struct list_head *entries, *next;
+ 
+-	ACPI_FUNCTION_TRACE("hotkey_exit");
+-
+ 	list_for_each_safe(entries, next, global_hotkey_list.entries) {
+ 		union acpi_hotkey *key =
+ 		    container_of(entries, union acpi_hotkey, entries);
 ---
 0.99.9.GIT
 
