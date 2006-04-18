@@ -1,21 +1,21 @@
 From: mochel@linux.intel.com
-Subject: [PATCH 2/24] Remove unneeded debugging macros in drivers/acpi/acpi_memhotplug.c
-Date: Mon, 17 Apr 2006 18:21:52 -0700
-Message-ID: <11453233123014-git-send-email-mochel@linux.intel.com>
-References: <11453233122841-git-send-email-mochel@linux.intel.com>
+Subject: [PATCH 6/24] Remove unneeded debugging macros in drivers/acpi/container.c
+Date: Mon, 17 Apr 2006 18:21:53 -0700
+Message-ID: <11453233133413-git-send-email-mochel@linux.intel.com>
+References: <11453233132637-git-send-email-mochel@linux.intel.com>
 Reply-To: mochel@linux.intel.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr19.intel.com ([134.134.136.18]:63928 "EHLO
-	orsfmr004.jf.intel.com") by vger.kernel.org with ESMTP
-	id S932106AbWDRBZY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+Received: from fmr17.intel.com ([134.134.136.16]:59535 "EHLO
+	orsfmr002.jf.intel.com") by vger.kernel.org with ESMTP
+	id S932111AbWDRBZY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Mon, 17 Apr 2006 21:25:24 -0400
-Received: from orsfmr101.jf.intel.com (orsfmr101.jf.intel.com [10.7.209.17])
-	by orsfmr004.jf.intel.com (8.12.10/8.12.10/d: major-outer.mc,v 1.1 2004/09/17 17:50:56 root Exp $) with ESMTP id k3I1PNlA026777
-	for <linux-acpi@vger.kernel.org>; Tue, 18 Apr 2006 01:25:23 GMT
-In-Reply-To: <11453233122841-git-send-email-mochel@linux.intel.com>
+Received: from orsfmr100.jf.intel.com (orsfmr100.jf.intel.com [10.7.209.16])
+	by orsfmr002.jf.intel.com (8.12.10/8.12.10/d: major-outer.mc,v 1.1 2004/09/17 17:50:56 root Exp $) with ESMTP id k3I1POBH025137
+	for <linux-acpi@vger.kernel.org>; Tue, 18 Apr 2006 01:25:24 GMT
+In-Reply-To: <11453233132637-git-send-email-mochel@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
@@ -25,360 +25,148 @@ Signed-off-by: Patrick Mochel <mochel@linux.intel.com>
 
 ---
 
- drivers/acpi/acpi_memhotplug.c |   94 ++++++++++++++--------------------------
- 1 files changed, 32 insertions(+), 62 deletions(-)
+ drivers/acpi/container.c |   38 ++++++++++++--------------------------
+ 1 files changed, 12 insertions(+), 26 deletions(-)
 
-applies-to: f9df1b6ca25f80dc2ddb21f1f1deff1147a33789
-8a1cb494eab655073133b2dbc5c25880f97b49b3
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index e49d327..f43ddde 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -85,12 +85,10 @@ acpi_memory_get_device_resources(struct 
- 	struct acpi_resource *resource = NULL;
- 	struct acpi_resource_address64 address64;
+applies-to: 73d9b0c49efb5a10ba623dadd70e60b2b2b78e7b
+8aa5c2456d03e6bcdc829259e69f36e2977fcd06
+diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
+index 53625fc..f6fe32a 100644
+--- a/drivers/acpi/container.c
++++ b/drivers/acpi/container.c
+@@ -73,17 +73,15 @@ static int is_device_present(acpi_handle
+ 	acpi_status status;
+ 	unsigned long sta;
  
--	ACPI_FUNCTION_TRACE("acpi_memory_get_device_resources");
+-	ACPI_FUNCTION_TRACE("is_device_present");
 -
- 	/* Get the range from the _CRS */
- 	status = acpi_get_current_resources(mem_device->handle, &buffer);
+ 	status = acpi_get_handle(handle, "_STA", &temp);
  	if (ACPI_FAILURE(status))
--		return_VALUE(-EINVAL);
-+		return -EINVAL;
+-		return_VALUE(1);	/* _STA not found, assmue device present */
++		return 1;	/* _STA not found, assmue device present */
  
- 	resource = (struct acpi_resource *)buffer.pointer;
- 	status = acpi_resource_to_address64(resource, &address64);
-@@ -106,7 +104,7 @@ acpi_memory_get_device_resources(struct 
- 	}
- 
- 	acpi_os_free(buffer.pointer);
--	return_VALUE(0);
-+	return 0;
- }
- 
- static int
-@@ -118,22 +116,20 @@ acpi_memory_get_device(acpi_handle handl
- 	struct acpi_device *device = NULL;
- 	struct acpi_device *pdevice = NULL;
- 
--	ACPI_FUNCTION_TRACE("acpi_memory_get_device");
--
- 	if (!acpi_bus_get_device(handle, &device) && device)
- 		goto end;
- 
- 	status = acpi_get_parent(handle, &phandle);
- 	if (ACPI_FAILURE(status)) {
- 		ACPI_EXCEPTION((AE_INFO, status, "Cannot find acpi parent"));
--		return_VALUE(-EINVAL);
-+		return -EINVAL;
- 	}
- 
- 	/* Get the parent device */
- 	status = acpi_bus_get_device(phandle, &pdevice);
- 	if (ACPI_FAILURE(status)) {
- 		ACPI_EXCEPTION((AE_INFO, status, "Cannot get acpi bus device"));
--		return_VALUE(-EINVAL);
-+		return -EINVAL;
- 	}
- 
- 	/*
-@@ -143,29 +139,27 @@ acpi_memory_get_device(acpi_handle handl
- 	status = acpi_bus_add(&device, pdevice, handle, ACPI_BUS_TYPE_DEVICE);
- 	if (ACPI_FAILURE(status)) {
- 		ACPI_EXCEPTION((AE_INFO, status, "Cannot add acpi bus"));
--		return_VALUE(-EINVAL);
-+		return -EINVAL;
- 	}
- 
-       end:
- 	*mem_device = acpi_driver_data(device);
- 	if (!(*mem_device)) {
- 		printk(KERN_ERR "\n driver data not found");
--		return_VALUE(-ENODEV);
-+		return -ENODEV;
- 	}
- 
--	return_VALUE(0);
-+	return 0;
- }
- 
- static int acpi_memory_check_device(struct acpi_memory_device *mem_device)
- {
- 	unsigned long current_status;
- 
--	ACPI_FUNCTION_TRACE("acpi_memory_check_device");
--
- 	/* Get device present/absent information from the _STA */
- 	if (ACPI_FAILURE(acpi_evaluate_integer(mem_device->handle, "_STA",
- 					       NULL, &current_status)))
--		return_VALUE(-ENODEV);
-+		return -ENODEV;
- 	/*
- 	 * Check for device status. Device should be
- 	 * present/enabled/functioning.
-@@ -173,17 +167,15 @@ static int acpi_memory_check_device(stru
- 	if (!((current_status & ACPI_MEMORY_STA_PRESENT)
- 	      && (current_status & ACPI_MEMORY_STA_ENABLED)
- 	      && (current_status & ACPI_MEMORY_STA_FUNCTIONAL)))
--		return_VALUE(-ENODEV);
-+		return -ENODEV;
- 
--	return_VALUE(0);
-+	return 0;
- }
- 
- static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
- {
- 	int result;
- 
--	ACPI_FUNCTION_TRACE("acpi_memory_enable_device");
--
- 	/* Get the range from the _CRS */
- 	result = acpi_memory_get_device_resources(mem_device);
- 	if (result) {
-@@ -213,8 +205,6 @@ static int acpi_memory_powerdown_device(
- 	union acpi_object arg;
- 	unsigned long current_status;
- 
--	ACPI_FUNCTION_TRACE("acpi_memory_powerdown_device");
--
- 	/* Issue the _EJ0 command */
- 	arg_list.count = 1;
- 	arg_list.pointer = &arg;
-@@ -225,20 +215,20 @@ static int acpi_memory_powerdown_device(
- 	/* Return on _EJ0 failure */
- 	if (ACPI_FAILURE(status)) {
- 		ACPI_EXCEPTION((AE_INFO, status, "_EJ0 failed"));
--		return_VALUE(-ENODEV);
-+		return -ENODEV;
- 	}
- 
- 	/* Evalute _STA to check if the device is disabled */
- 	status = acpi_evaluate_integer(mem_device->handle, "_STA",
- 				       NULL, &current_status);
+ 	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
  	if (ACPI_FAILURE(status))
--		return_VALUE(-ENODEV);
-+		return -ENODEV;
+-		return_VALUE(0);	/* Firmware error */
++		return 0;	/* Firmware error */
  
- 	/* Check for device status.  Device should be disabled */
- 	if (current_status & ACPI_MEMORY_STA_ENABLED)
--		return_VALUE(-EINVAL);
-+		return -EINVAL;
- 
--	return_VALUE(0);
-+	return 0;
+-	return_VALUE((sta & ACPI_STA_PRESENT) == ACPI_STA_PRESENT);
++	return (sta & ACPI_STA_PRESENT) == ACPI_STA_PRESENT;
  }
  
- static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
-@@ -247,15 +237,13 @@ static int acpi_memory_disable_device(st
- 	u64 start = mem_device->start_addr;
- 	u64 len = mem_device->length;
+ /*******************************************************************/
+@@ -91,16 +89,14 @@ static int acpi_container_add(struct acp
+ {
+ 	struct acpi_container *container;
  
--	ACPI_FUNCTION_TRACE("acpi_memory_disable_device");
+-	ACPI_FUNCTION_TRACE("acpi_container_add");
 -
- 	/*
- 	 * Ask the VM to offline this memory range.
- 	 * Note: Assume that this function returns zero on success
- 	 */
- 	result = remove_memory(start, len);
- 	if (result)
--		return_VALUE(result);
-+		return result;
- 
- 	/* Power-off and eject the device */
- 	result = acpi_memory_powerdown_device(mem_device);
-@@ -274,8 +262,6 @@ static void acpi_memory_device_notify(ac
- 	struct acpi_memory_device *mem_device;
- 	struct acpi_device *device;
- 
--	ACPI_FUNCTION_TRACE("acpi_memory_device_notify");
--
- 	switch (event) {
- 	case ACPI_NOTIFY_BUS_CHECK:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-@@ -287,7 +273,7 @@ static void acpi_memory_device_notify(ac
- 					  "\nReceived DEVICE CHECK notification for device\n"));
- 		if (acpi_memory_get_device(handle, &mem_device)) {
- 			ACPI_ERROR((AE_INFO, "Cannot find driver data"));
--			return_VOID;
-+			return;
- 		}
- 
- 		if (!acpi_memory_check_device(mem_device)) {
-@@ -329,7 +315,6 @@ static void acpi_memory_device_notify(ac
- 		break;
+ 	if (!device) {
+ 		ACPI_ERROR((AE_INFO, "device is NULL"));
+-		return_VALUE(-EINVAL);
++		return -EINVAL;
  	}
  
--	return_VOID;
- }
- 
- static int acpi_memory_device_add(struct acpi_device *device)
-@@ -337,14 +322,12 @@ static int acpi_memory_device_add(struct
- 	int result;
- 	struct acpi_memory_device *mem_device = NULL;
- 
--	ACPI_FUNCTION_TRACE("acpi_memory_device_add");
--
- 	if (!device)
--		return_VALUE(-EINVAL);
-+		return -EINVAL;
- 
- 	mem_device = kmalloc(sizeof(struct acpi_memory_device), GFP_KERNEL);
- 	if (!mem_device)
+ 	container = kmalloc(sizeof(struct acpi_container), GFP_KERNEL);
+ 	if (!container)
 -		return_VALUE(-ENOMEM);
 +		return -ENOMEM;
- 	memset(mem_device, 0, sizeof(struct acpi_memory_device));
  
- 	mem_device->handle = device->handle;
-@@ -356,7 +339,7 @@ static int acpi_memory_device_add(struct
- 	result = acpi_memory_get_device_resources(mem_device);
- 	if (result) {
- 		kfree(mem_device);
--		return_VALUE(result);
-+		return result;
+ 	memset(container, 0, sizeof(struct acpi_container));
+ 	container->handle = device->handle;
+@@ -111,7 +107,7 @@ static int acpi_container_add(struct acp
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device <%s> bid <%s>\n",
+ 			  acpi_device_name(device), acpi_device_bid(device)));
+ 
+-	return_VALUE(0);
++	return 0;
+ }
+ 
+ static int acpi_container_remove(struct acpi_device *device, int type)
+@@ -130,23 +126,21 @@ static int container_device_add(struct a
+ 	struct acpi_device *pdev;
+ 	int result;
+ 
+-	ACPI_FUNCTION_TRACE("container_device_add");
+-
+ 	if (acpi_get_parent(handle, &phandle)) {
+-		return_VALUE(-ENODEV);
++		return -ENODEV;
  	}
  
- 	/* Set the device state */
-@@ -364,22 +347,20 @@ static int acpi_memory_device_add(struct
+ 	if (acpi_bus_get_device(phandle, &pdev)) {
+-		return_VALUE(-ENODEV);
++		return -ENODEV;
+ 	}
  
- 	printk(KERN_INFO "%s \n", acpi_device_name(device));
+ 	if (acpi_bus_add(device, pdev, handle, ACPI_BUS_TYPE_DEVICE)) {
+-		return_VALUE(-ENODEV);
++		return -ENODEV;
+ 	}
+ 
+ 	result = acpi_bus_start(*device);
  
 -	return_VALUE(result);
 +	return result;
  }
  
- static int acpi_memory_device_remove(struct acpi_device *device, int type)
- {
- 	struct acpi_memory_device *mem_device = NULL;
+ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
+@@ -156,8 +150,6 @@ static void container_notify_cb(acpi_han
+ 	int present;
+ 	acpi_status status;
  
--	ACPI_FUNCTION_TRACE("acpi_memory_device_remove");
+-	ACPI_FUNCTION_TRACE("container_notify_cb");
 -
- 	if (!device || !acpi_driver_data(device))
--		return_VALUE(-EINVAL);
-+		return -EINVAL;
+ 	present = is_device_present(handle);
  
- 	mem_device = (struct acpi_memory_device *)acpi_driver_data(device);
- 	kfree(mem_device);
- 
--	return_VALUE(0);
-+	return 0;
- }
- 
- /*
-@@ -392,16 +373,14 @@ static acpi_status is_memory_device(acpi
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 	struct acpi_device_info *info;
- 
--	ACPI_FUNCTION_TRACE("is_memory_device");
--
- 	status = acpi_get_object_info(handle, &buffer);
- 	if (ACPI_FAILURE(status))
--		return_ACPI_STATUS(status);
-+		return status;
- 
- 	info = buffer.pointer;
- 	if (!(info->valid & ACPI_VALID_HID)) {
- 		acpi_os_free(buffer.pointer);
--		return_ACPI_STATUS(AE_ERROR);
-+		return AE_ERROR;
+ 	switch (type) {
+@@ -192,7 +184,6 @@ static void container_notify_cb(acpi_han
+ 	default:
+ 		break;
  	}
- 
- 	hardware_id = info->hardware_id.value;
-@@ -410,7 +389,7 @@ static acpi_status is_memory_device(acpi
- 		status = AE_ERROR;
- 
- 	acpi_os_free(buffer.pointer);
--	return_ACPI_STATUS(status);
-+	return status;
+-	return_VOID;
  }
  
  static acpi_status
-@@ -419,18 +398,16 @@ acpi_memory_register_notify_handler(acpi
- {
+@@ -205,11 +196,9 @@ container_walk_namespace_cb(acpi_handle 
  	acpi_status status;
+ 	int *action = context;
  
--	ACPI_FUNCTION_TRACE("acpi_memory_register_notify_handler");
+-	ACPI_FUNCTION_TRACE("container_walk_namespace_cb");
 -
- 	status = is_memory_device(handle);
- 	if (ACPI_FAILURE(status)){
- 		ACPI_EXCEPTION((AE_INFO, status, "handle is no memory device"));
--		return_ACPI_STATUS(AE_OK);	/* continue */
-+		return AE_OK;	/* continue */
+ 	status = acpi_get_object_info(handle, &buffer);
+ 	if (ACPI_FAILURE(status) || !buffer.pointer) {
+-		return_ACPI_STATUS(AE_OK);
++		return AE_OK;
  	}
  
- 	status = acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
- 					     acpi_memory_device_notify, NULL);
- 	/* continue */
+ 	info = buffer.pointer;
+@@ -243,7 +232,7 @@ container_walk_namespace_cb(acpi_handle 
+       end:
+ 	acpi_os_free(buffer.pointer);
+ 
 -	return_ACPI_STATUS(AE_OK);
 +	return AE_OK;
  }
  
- static acpi_status
-@@ -439,19 +416,17 @@ acpi_memory_deregister_notify_handler(ac
+ static int __init acpi_container_init(void)
+@@ -269,8 +258,6 @@ static void __exit acpi_container_exit(v
  {
- 	acpi_status status;
+ 	int action = UNINSTALL_NOTIFY_HANDLER;
  
--	ACPI_FUNCTION_TRACE("acpi_memory_deregister_notify_handler");
+-	ACPI_FUNCTION_TRACE("acpi_container_exit");
 -
- 	status = is_memory_device(handle);
- 	if (ACPI_FAILURE(status)){
- 		ACPI_EXCEPTION((AE_INFO, status, "handle is no memory device"));
--		return_ACPI_STATUS(AE_OK);	/* continue */
-+		return AE_OK;	/* continue */
- 	}
+ 	acpi_walk_namespace(ACPI_TYPE_DEVICE,
+ 			    ACPI_ROOT_OBJECT,
+ 			    ACPI_UINT32_MAX,
+@@ -278,7 +265,6 @@ static void __exit acpi_container_exit(v
  
- 	status = acpi_remove_notify_handler(handle,
- 					    ACPI_SYSTEM_NOTIFY,
- 					    acpi_memory_device_notify);
- 
--	return_ACPI_STATUS(AE_OK);	/* continue */
-+	return AE_OK;	/* continue */
- }
- 
- static int __init acpi_memory_device_init(void)
-@@ -459,12 +434,10 @@ static int __init acpi_memory_device_ini
- 	int result;
- 	acpi_status status;
- 
--	ACPI_FUNCTION_TRACE("acpi_memory_device_init");
--
- 	result = acpi_bus_register_driver(&acpi_memory_device_driver);
- 
- 	if (result < 0)
--		return_VALUE(-ENODEV);
-+		return -ENODEV;
- 
- 	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
- 				     ACPI_UINT32_MAX,
-@@ -474,18 +447,16 @@ static int __init acpi_memory_device_ini
- 	if (ACPI_FAILURE(status)) {
- 		ACPI_EXCEPTION((AE_INFO, status, "walk_namespace failed"));
- 		acpi_bus_unregister_driver(&acpi_memory_device_driver);
--		return_VALUE(-ENODEV);
-+		return -ENODEV;
- 	}
- 
--	return_VALUE(0);
-+	return 0;
- }
- 
- static void __exit acpi_memory_device_exit(void)
- {
- 	acpi_status status;
- 
--	ACPI_FUNCTION_TRACE("acpi_memory_device_exit");
--
- 	/*
- 	 * Adding this to un-install notification handlers for all the device
- 	 * handles.
-@@ -500,7 +471,6 @@ static void __exit acpi_memory_device_ex
- 
- 	acpi_bus_unregister_driver(&acpi_memory_device_driver);
+ 	acpi_bus_unregister_driver(&acpi_container_driver);
  
 -	return_VOID;
  }
  
- module_init(acpi_memory_device_init);
+ module_init(acpi_container_init);
 ---
 0.99.9.GIT
 
