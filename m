@@ -1,28 +1,50 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: PATCH [1/3]: Provide generic backlight support in Asus ACPI driver
-Date: Wed, 19 Apr 2006 21:25:00 +0100
-Message-ID: <20060419202500.GB24318@srcf.ucam.org>
-References: <20060418082952.GA13811@srcf.ucam.org> <20060418161100.GA31763@linux.intel.com> <20060419184909.GB23513@srcf.ucam.org> <20060419201323.GA26861@osgiliath>
+From: Chris Ball <cjb@mrao.cam.ac.uk>
+Subject: Alienware m5500 wifi kill switch?
+Date: Wed, 19 Apr 2006 18:46:44 -0400
+Message-ID: <87fyk9i3or.fsf@mrao.cam.ac.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:30162 "EHLO
-	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
-	id S1751242AbWDSUZF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Apr 2006 16:25:05 -0400
-Content-Disposition: inline
-In-Reply-To: <20060419201323.GA26861@osgiliath>
+Received: from main.gmane.org ([80.91.229.2]:22944 "EHLO ciao.gmane.org")
+	by vger.kernel.org with ESMTP id S1751306AbWDSWuG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Apr 2006 18:50:06 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1FWLUo-0005NO-LN
+	for linux-acpi@vger.kernel.org; Thu, 20 Apr 2006 00:50:02 +0200
+Received: from pool-151-203-216-9.bos.east.verizon.net ([151.203.216.9])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Thu, 20 Apr 2006 00:50:02 +0200
+Received: from cjb by pool-151-203-216-9.bos.east.verizon.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Thu, 20 Apr 2006 00:50:02 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Patrick Mochel <mochel@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Wed, Apr 19, 2006 at 10:13:23PM +0200, Henrik Brix Andersen wrote:
+Hi,
 
-> Great stuff, I very much welcome these patches. Any plans for doing
-> the same for the sony_acpi.c driver found in -mm?
+I have a new Alienware m5500/Uniwill 259EN3 laptop with an ipw2200.
+ACPI works fine in general, including S3, but I can't get the wifi kill
+switch to turn off.  It uses a button next to the power button rather
+than a keyboard function key, but pressing that button makes the 
+"sleep" LED on the front panel come on, rather than the "wifi" LED!
 
-I have a half-finished one lying around - I'll check it against the -mm 
-code at some stage.
+I don't have a Windows install on the laptop; I'd like to see what
+happens in Windows, but the XP recovery CD I was given seems to hang
+during hardware detection.
 
+Does anyone have any ideas?  The mismatch between the button and which
+LED comes on makes me think ACPI might be involved, but on the other
+hand the button could be in pure hardware; I can't get a scancode out of
+it.  I'm happy to provide anything that could help to debug, of course.
+I see there are many drivers that provide software kill-switch support,
+but none of them seem to work on this AMIBIOS laptop.
+
+Many thanks,
+
+- Chris.
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Chris Ball   <cjb@mrao.cam.ac.uk>    <http://blog.printf.net/> 
+
