@@ -1,34 +1,28 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [RFC] [PATCH] Make ACPI button driver an input device
-Date: Wed, 19 Apr 2006 21:24:21 +0100
-Message-ID: <20060419202421.GA24318@srcf.ucam.org>
-References: <20060419195356.GA24122@srcf.ucam.org> <20060419200447.GA2459@isilmar.linta.de>
+Subject: Re: PATCH [1/3]: Provide generic backlight support in Asus ACPI driver
+Date: Wed, 19 Apr 2006 21:25:00 +0100
+Message-ID: <20060419202500.GB24318@srcf.ucam.org>
+References: <20060418082952.GA13811@srcf.ucam.org> <20060418161100.GA31763@linux.intel.com> <20060419184909.GB23513@srcf.ucam.org> <20060419201323.GA26861@osgiliath>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:27602 "EHLO
+Received: from cavan.codon.org.uk ([217.147.92.49]:30162 "EHLO
 	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
-	id S1751237AbWDSUY1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Apr 2006 16:24:27 -0400
+	id S1751242AbWDSUZF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Apr 2006 16:25:05 -0400
 Content-Disposition: inline
-In-Reply-To: <20060419200447.GA2459@isilmar.linta.de>
+In-Reply-To: <20060419201323.GA26861@osgiliath>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dominik Brodowski <linux@dominikbrodowski.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Patrick Mochel <mochel@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wed, Apr 19, 2006 at 10:04:47PM +0200, Dominik Brodowski wrote:
-> On Wed, Apr 19, 2006 at 08:53:58PM +0100, Matthew Garrett wrote:
-> > +++ a/include/linux/input.h	2006-04-19 20:49:18 +0100
-> > @@ -344,6 +344,7 @@
-> >  #define KEY_FORWARDMAIL		233
-> >  #define KEY_SAVE		234
-> >  #define KEY_DOCUMENTS		235
-> > +#define KEY_LID			237
-> 
-> What about 236?
+On Wed, Apr 19, 2006 at 10:13:23PM +0200, Henrik Brix Andersen wrote:
 
-I sent a patch last month that uses 236 for KEY_BATTERY, so decided not 
-to conflict with it.
+> Great stuff, I very much welcome these patches. Any plans for doing
+> the same for the sony_acpi.c driver found in -mm?
+
+I have a half-finished one lying around - I'll check it against the -mm 
+code at some stage.
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
