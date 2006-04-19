@@ -1,91 +1,58 @@
 From: Patrick Mochel <mochel@linux.intel.com>
 Subject: Re: [patch 1/3] acpi: dock driver
-Date: Wed, 19 Apr 2006 10:28:16 -0700
-Message-ID: <20060419172816.GA14304@linux.intel.com>
-References: <20060412221027.472109000@intel.com> <1144880322.11215.44.camel@whizzy> <20060412222735.38aa0f58.akpm@osdl.org> <1145054985.29319.51.camel@whizzy> <44410360.6090003@sgi.com> <1145383396.10783.32.camel@whizzy> <20060418225427.GE4556@linux.intel.com> <1145466537.21185.24.camel@whizzy>
+Date: Wed, 19 Apr 2006 10:36:34 -0700
+Message-ID: <20060419173634.GB14304@linux.intel.com>
+References: <B28E9812BAF6E2498B7EC5C427F293A4200AD4@orsmsx415.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr19.intel.com ([134.134.136.18]:1510 "EHLO
-	orsfmr004.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1750895AbWDSRcQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Apr 2006 13:32:16 -0400
+Received: from fmr20.intel.com ([134.134.136.19]:62377 "EHLO
+	orsfmr005.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1750984AbWDSRk0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Apr 2006 13:40:26 -0400
 Content-Disposition: inline
-In-Reply-To: <1145466537.21185.24.camel@whizzy>
+In-Reply-To: <B28E9812BAF6E2498B7EC5C427F293A4200AD4@orsmsx415.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kristen Accardi <kristen.c.accardi@intel.com>
-Cc: Prarit Bhargava <prarit@sgi.com>, Andrew Morton <akpm@osdl.org>, len.brown@intel.com, greg@kroah.com, linux-acpi@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, linux-kernel@vger.kernel.org, arjan@linux.intel.com, muneda.takahiro@jp.fujitsu.com, pavel@ucw.cz, temnota@kmv.ru
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "Accardi, Kristen C" <kristen.c.accardi@intel.com>, Prarit Bhargava <prarit@sgi.com>, Andrew Morton <akpm@osdl.org>, "Brown, Len" <len.brown@intel.com>, greg@kroah.com, linux-acpi@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, linux-kernel@vger.kernel.org, arjan@linux.intel.com, muneda.takahiro@jp.fujitsu.com, pavel@ucw.cz, temnota@kmv.ru
 
-On Wed, Apr 19, 2006 at 10:08:57AM -0700, Kristen Accardi wrote:
-> On Tue, 2006-04-18 at 15:54 -0700, Patrick Mochel wrote:
+On Wed, Apr 19, 2006 at 10:14:46AM -0700, Moore, Robert wrote:
+> This is something to think about before we rip out all the ACPI
+> core-style debug stuff.
 
-> > > +acpi_status
-> > > +register_hotplug_dock_device(acpi_handle handle, acpi_notify_handler handler,
-> > > +			     void *context)
+Not sure which part you're referring to, but maybe these: 
+
+> > > > --- /dev/null
+> > > > +++ 2.6-git-kca2/drivers/acpi/dock.c
+> > > > @@ -0,0 +1,652 @@
+> > >
+> > > > +#define ACPI_DOCK_COMPONENT 0x10000000
+> > > > +#define ACPI_DOCK_DRIVER_NAME "ACPI Dock Station Driver"
+> > > > +#define _COMPONENT		ACPI_DOCK_COMPONENT
+> > >
+> > > These aren't necessary for code that is outside of the ACPI-CA.
 > > 
-> > If this is called from outside drivers/acpi/, you should return an int with a 
-> > real errno value. The AE_* values shouldn't be used outside of the ACPI CA. 
-> > 
-> 
-> Really?  We use these all over the place in drivers/pci/hotplug.  In
-> fact, you kinda have to use them if you are calling certain acpi
-> symbols, since they return these types.
-> 
-> For example, here are some functions will return acpi_status that we use
-> in hotplug land.
-> 
-> pci_osc_control_set() 
-> acpi_run_oshp()
-> acpi_walk_namespace requires its use.
+> > Originally I did not include these, but it turns out if you wish to
+> use
+> > the ACPI_DEBUG macro, you need to have these things defined.  I did go
+> > ahead and use this macro in a couple places, mainly because I felt
+> that
+> > even though this isn't strictly an acpi driver (using the acpi driver
+> > model), it does live in drivers/acpi and perhaps people might expect
+> to
+> > be able to debug it the same way.
 
-Well, it's one thing to use a function that returns a non-standard error-value,
-but it's another to add more functions that do. :-) 
 
-> I felt that by returning acpi_status I was being consistent with how
-> other acpi calls acted.  Is this another example of the iceberg that Len
-> was talking about in a previous email?? (ugh.)
+Some of us have already thought about it. :-) 
 
-I believe so. 
-
-We have a standard, well-defined error namespace that lives in include/*/errno.h.
-ACPI defines its own error namespace because it must be portable, and even though
-most OSes will define the standard errno values, some do not, so it cannot 
-assume that it will be there. I'm not sure why the choice was to redefine similar
-error values instead of reusing the errno values, but that's moot at this point..
-
-The only place where the ACPI error values need to be used is in the ACPI CA. The
-functions exposed to the OS from the CA will return AE_* because the same source
-runs everywhere. However, Linux-specific code doesn't need to do that. It is free
-to use Linux-specific error reporting (except in the OSL layer that the CA uses,
-because it is expecting well-defined return values, as specified in the CA 
-Programmers Reference). 
-
-My standpoint is that Linux-specific code should not be using any ACPI CAisms at
-all because since the code is Linux-specific, it doesn't need to be portable in 
-the same manner that the CA is. This is true for all of drivers/acpi/*.c, with the
-exception of drivers/acpi/osl.c, but even some of that source can be cleaned up
-to be more Linux-friendly.
-
-Further rationale is that there is no way to enforce the CAisms in Linux-specific
-code. You will frequently find mixed return values. Sometimes a function is 
-declared as 
-
-	acpi_status acpi_foo()
-
-and return -1 and 0. Or vice versa. 
-
-The ACPI drivers were initially written in the same style that the CA was written,
-which makes it confusing when you look at them. But, they don't need to be that
-way. They can look like real Linux drivers and become a lot more palatable. 
-
-Eventually, all of the CAisms should be pushed down to the thin layer that sits 
-above the interpreter. All exported functions should return ints, and those that
-deal directly with the CA interface should simply translate the AE_* error
-values into an errno return. 
-
-Thanks,
+We have standard debugging macros that are used in many driver subsystems
+defined in include/linux/device.h (dev_printk(), dev_dbg(), dev_err(), and
+friends). The ACPI drivers are not very different than other Linux driver
+subsystems (at a very basic level). They are very Linux-specific (not 
+portable like the CA), and should be using Linux-specific constructs as
+much as possible to match the rest of the kernel. This makes it much 
+eaiser for people to understand exactly what those drivers are doing.. 
 
 
 	Pat
-
