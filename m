@@ -1,94 +1,134 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [patch 1/3] acpi: dock driver
-Date: Wed, 19 Apr 2006 12:17:49 -0700
-Message-ID: <B28E9812BAF6E2498B7EC5C427F293A4200CB5@orsmsx415.amr.corp.intel.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: [RFC] [PATCH] Make ACPI button driver an input device
+Date: Wed, 19 Apr 2006 20:53:58 +0100
+Message-ID: <20060419195356.GA24122@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:37436 "EHLO
-	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S1751189AbWDSTSG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Apr 2006 15:18:06 -0400
-Content-class: urn:content-classes:message
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751211AbWDSTyF@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Patrick Mochel <mochel@linux.intel.com>
-Cc: "Accardi, Kristen C" <kristen.c.accardi@intel.com>, Prarit Bhargava <prarit@sgi.com>, Andrew Morton <akpm@osdl.org>, "Brown, Len" <len.brown@intel.com>, greg@kroah.com, linux-acpi@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, linux-kernel@vger.kernel.org, arjan@linux.intel.com, muneda.takahiro@jp.fujitsu.com, pavel@ucw.cz, temnota@kmv.ru
 
-Whatever makes the most sense for the host OS.
+Sleep and power buttons are logically part of the keyboard, and it makes 
+for them to be exposed via an input device rather than an odd file in 
+/proc. This patch adds a keycode for lid switches (are we running out of 
+keycodes?) and allows the button driver to register an input device.
 
-I think the original linux/acpi drivers were developed and debugged at
-the same time we were debugging the ACPICA core code, and it became very
-convenient to use the ACPI tracing and debugging mechanism to grab
-information about everything that was going on, ACPI-wise. This may or
-may not be important today.
+Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
 
-Also, there may come a time when we will decide to remove the tracing
-mechanism in ACPICA. However, over the years, this mechanism has proven
-very useful in finding problems. The execution trace is very helpful
-because of the nature of the AML interpretation and internal state
-changes.
+diff -ur drivers/acpi.bak/button.c drivers/acpi/button.c
+--- drivers/acpi.bak/button.c	2006-04-03 04:22:10 +0100
++++ a/drivers/acpi/button.c	2006-04-19 20:36:05 +0100
+@@ -26,6 +26,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
++#include <linux/input.h>
+ #include <linux/types.h>
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
+@@ -102,6 +103,8 @@
+ 	.release = single_release,
+ };
+ 
++static struct input_dev *input_dev;
++
+ /* --------------------------------------------------------------------------
+                               FS Interface (/proc)
+    -------------------------------------------------------------------------- */
+@@ -260,6 +263,37 @@
+                                 Driver Interface
+    -------------------------------------------------------------------------- */
+ 
++static void acpi_button_report (struct acpi_button *button)
++{
++	int keycode = 0;
++
++	ACPI_FUNCTION_TRACE("acpi_button_report");
++
++	switch(button->type) {
++	case ACPI_BUTTON_TYPE_POWER:
++	case ACPI_BUTTON_TYPE_POWERF:
++		keycode = KEY_POWER;
++		break;
++	case ACPI_BUTTON_TYPE_SLEEP:
++	case ACPI_BUTTON_TYPE_SLEEPF:
++		keycode = KEY_SLEEP;
++		break;
++	case ACPI_BUTTON_TYPE_LID:
++		keycode = KEY_LID;
++		break;
++
++	}
++
++	if (keycode) {
++		input_report_key(input_dev, keycode, 1);
++		input_sync(input_dev);
++		input_report_key(input_dev, keycode, 0);
++		input_sync(input_dev);
++	}
++
++	return_VOID;
++}
++
+ static void acpi_button_notify(acpi_handle handle, u32 event, void *data)
+ {
+ 	struct acpi_button *button = (struct acpi_button *)data;
+@@ -273,6 +307,7 @@
+ 	case ACPI_BUTTON_NOTIFY_STATUS:
+ 		acpi_bus_generate_event(button->device, event,
+ 					++button->pushed);
++		acpi_button_report(button);		
+ 		break;
+ 	default:
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+@@ -467,6 +502,26 @@
+ 		return_VALUE(-ENODEV);
+ 	}
+ 
++	input_dev = input_allocate_device();
++
++	if (input_dev) {
++		int error;
++
++		input_dev->name = "ACPI button driver";
++		input_dev->phys = "acpi/input0";
++		input_dev->id.bustype = BUS_HOST;
++		input_dev->evbit[LONG(EV_KEY)] = BIT(EV_KEY);
++		set_bit(KEY_SLEEP, input_dev->keybit);
++		set_bit(KEY_POWER, input_dev->keybit);
++		set_bit(KEY_LID, input_dev->keybit);
++
++		error = input_register_device(input_dev);
++		if (error) {
++			printk(KERN_ERR "Unable to register ACPI input device\n");
++			input_free_device(input_dev);
++		}
++	}
++
+ 	return_VALUE(0);
+ }
+ 
+@@ -484,6 +539,9 @@
+ 		remove_proc_entry(ACPI_BUTTON_SUBCLASS_LID, acpi_button_dir);
+ 	remove_proc_entry(ACPI_BUTTON_CLASS, acpi_root_dir);
+ 
++	if (input_dev)
++		input_unregister_device(input_dev);
++
+ 	return_VOID;
+ }
+ 
+--- include/linux/input.h.bak	2006-04-19 20:47:58 +0100
++++ a/include/linux/input.h	2006-04-19 20:49:18 +0100
+@@ -344,6 +344,7 @@
+ #define KEY_FORWARDMAIL		233
+ #define KEY_SAVE		234
+ #define KEY_DOCUMENTS		235
++#define KEY_LID			237
+ 
+ #define KEY_UNKNOWN		240
 
-Bob
-
-
-> -----Original Message-----
-> From: Patrick Mochel [mailto:mochel@linux.intel.com]
-> Sent: Wednesday, April 19, 2006 10:37 AM
-> To: Moore, Robert
-> Cc: Accardi, Kristen C; Prarit Bhargava; Andrew Morton; Brown, Len;
-> greg@kroah.com; linux-acpi@vger.kernel.org; pcihpd-
-> discuss@lists.sourceforge.net; linux-kernel@vger.kernel.org;
-> arjan@linux.intel.com; muneda.takahiro@jp.fujitsu.com; pavel@ucw.cz;
-> temnota@kmv.ru
-> Subject: Re: [patch 1/3] acpi: dock driver
-> 
-> On Wed, Apr 19, 2006 at 10:14:46AM -0700, Moore, Robert wrote:
-> > This is something to think about before we rip out all the ACPI
-> > core-style debug stuff.
-> 
-> Not sure which part you're referring to, but maybe these:
-> 
-> > > > > --- /dev/null
-> > > > > +++ 2.6-git-kca2/drivers/acpi/dock.c
-> > > > > @@ -0,0 +1,652 @@
-> > > >
-> > > > > +#define ACPI_DOCK_COMPONENT 0x10000000
-> > > > > +#define ACPI_DOCK_DRIVER_NAME "ACPI Dock Station Driver"
-> > > > > +#define _COMPONENT		ACPI_DOCK_COMPONENT
-> > > >
-> > > > These aren't necessary for code that is outside of the ACPI-CA.
-> > >
-> > > Originally I did not include these, but it turns out if you wish
-to
-> > use
-> > > the ACPI_DEBUG macro, you need to have these things defined.  I
-did go
-> > > ahead and use this macro in a couple places, mainly because I felt
-> > that
-> > > even though this isn't strictly an acpi driver (using the acpi
-driver
-> > > model), it does live in drivers/acpi and perhaps people might
-expect
-> > to
-> > > be able to debug it the same way.
-> 
-> 
-> Some of us have already thought about it. :-)
-> 
-> We have standard debugging macros that are used in many driver
-subsystems
-> defined in include/linux/device.h (dev_printk(), dev_dbg(), dev_err(),
-and
-> friends). The ACPI drivers are not very different than other Linux
-driver
-> subsystems (at a very basic level). They are very Linux-specific (not
-> portable like the CA), and should be using Linux-specific constructs
-as
-> much as possible to match the rest of the kernel. This makes it much
-> eaiser for people to understand exactly what those drivers are doing..
-> 
-> 
-> 	Pat
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
