@@ -1,45 +1,37 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: acpi hotkey sysfs support
-Date: Wed, 19 Apr 2006 09:48:37 +0800
-Message-ID: <554C5F4C5BA7384EB2B412FD46A3BAD1331CCB@pdsmsx411.ccr.corp.intel.com>
+From: "Yu, Ling L" <ling.l.yu@intel.com>
+Subject: RE: acpi function test suite 0.1 and test results
+Date: Wed, 19 Apr 2006 10:19:40 +0800
+Message-ID: <D352FD896397D04482B87731BD4DBE7F411893@bjsmsx401>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:39482 "EHLO
-	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
-	id S1750712AbWDSBsm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Apr 2006 21:48:42 -0400
+Received: from mga03.intel.com ([143.182.124.21]:63834 "EHLO
+	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
+	id S1750720AbWDSCTw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Apr 2006 22:19:52 -0400
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Stelian Pop <stelian@popies.net>, thoenig@suse.de, borislav@users.sf.net, john@neggie.net, tauber@informatik.hu-berlin.de, sziwan@hell.org.pl, "Brown, Len" <len.brown@intel.com>
+To: "Garry T. Williams" <gtwilliams@gmail.com>
+Cc: linux-acpi@vger.kernel.org, "Zhang, Kexin" <kexin.zhang@intel.com>, "Luo, Zhenlin" <zhenlin.luo@intel.com>
 
-Hi Garrett,
+>Well, I decided to try to capture some information on this failure.  So
+>I shut down all my applications and tried again as root.  This time
+>there was no hang -- the tests ran to completion.  I did run an update
+>from Fedora update repositories before trying again.  This installed
+>several updates to GNOME.  Probably not related, but who knows?
+><shrug>
+>
+>Anyway, here's the output of the abat tests.
+Thanks, I tried to use non-root to run, failed too, it seems some
+commands invoked by test case need root privilege. 
 
-Since you have provided generic backlight support for ASUS/IBM/Toshiba
-acpi driver, which can reduce the unnecessary interface complexity in
-platform specific acpi driver for brightness control, do you plan to do
-same
-thing for Ouptput switch, sound volume control..?  Moreover, do you
-think the proposal below still make sense?
+>I now note that the tests apparently left my machine in a throttled
+>state.  Everything was running slower than usual. 
+This seems a test case bug, the throttling state need to be recovered to
+normal after the test finishes.
 
---Luming
- 
->Subject: acpi hotkey sysfs support
->
->Hello all,
->
->I have created a place under sysfs to have a unified place
->to gather user input for common hotkey features. 
->http://bugzilla.kernel.org/show_bug.cgi?id=5749#c10
->
->All of you are owner of a specific acpi hotkey driver. 
->Would you like to use that sysfs support to reduce the
->unnecessary interface complexity.
->
->Thanks a lot
->Luming
->-
+Thanks
+- Ling
