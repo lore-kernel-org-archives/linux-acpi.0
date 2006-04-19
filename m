@@ -1,39 +1,42 @@
-From: Roman Zippel <zippel@linux-m68k.org>
-Subject: Re: [PATCH] -mm: acpi idle __read_mostly and de-init static var
-Date: Wed, 19 Apr 2006 12:01:45 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0604191144380.32445@scrub.home>
-References: <20060418190045.GA25749@rhlx01.fht-esslingen.de>
- <20060418233041.272264b6.akpm@osdl.org>
+From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
+Subject: how to back from suspend without shutdown
+Date: Wed, 19 Apr 2006 14:49:37 +0100
+Message-ID: <1145454577.14935.13.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from scrub.xs4all.nl ([194.109.195.176]:30100 "EHLO scrub.xs4all.nl")
-	by vger.kernel.org with ESMTP id S1750872AbWDSKCB (ORCPT
+Received: from relay3.ptmail.sapo.pt ([212.55.154.23]:16594 "HELO sapo.pt")
+	by vger.kernel.org with SMTP id S1750744AbWDSNts (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Apr 2006 06:02:01 -0400
-In-Reply-To: <20060418233041.272264b6.akpm@osdl.org>
+	Wed, 19 Apr 2006 09:49:48 -0400
+Received: from unknown (HELO [172.16.31.84]) ([194.65.5.228])
+          (envelope-sender <sergio@sergiomb.no-ip.org>)
+          by mta4 (qmail-ldap-1.03) with SMTP
+          for <linux-acpi@vger.kernel.org>; 19 Apr 2006 13:49:38 -0000
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: Andreas Mohr <andi@rhlx01.fht-esslingen.de>, linux-acpi@vger.kernel.org, linux@dominikbrodowski.net, linux-kernel@vger.kernel.org
+To: acpi devel <linux-acpi@vger.kernel.org>
 
-Hi,
+Hi everybody,
+I have a new laptop one HP Compaq NX6110 , that works quite well with
+suspend and hibernation.
 
-On Tue, 18 Apr 2006, Andrew Morton wrote:
+But after suspend , how I bring back computer ?, the only key that I
+know is power button, but after press power button and laptop wake-up,
+Begins the shutdown process because is triggered the power button
+shutdown .
+any ideas ?
 
-> Andreas Mohr <andi@rhlx01.fht-esslingen.de> wrote:
-> >
-> > - don't remove static init value of nocst and bm_history
-> >    since __read_mostly may be special
-> >    (see e.g. http://www.ussg.iu.edu/hypermail/linux/kernel/0010.0/0771.html)
-> > 
-> 
-> hm, that was six years ago.  I'm vaguely surprised that the initialisation
-> was needed even then.  It isn't needed now.  Or if it is, we need to find
-> out why and fix it.
+Other question klaptop let me choose performance profile:
+ userspace or performance, which one is better ? and why ?
 
-I guess 2.7.2 was still a valid compiler then. :)
-All later versions don't behave like this, although it's still documented 
-like this: http://gcc.gnu.org/onlinedocs/gcc/Variable-Attributes.html
+Klaptop allows also to define CPU throttling which is in 00% but I can
+choose 0,12 25, 37, 50, 62, 75 and 87. What is the propose of this
+settings ? 
 
-bye, Roman
+thanks in advance , 
+
+-- 
+Sergio M. B.
+
