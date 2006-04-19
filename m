@@ -1,309 +1,166 @@
-From: "Therien, Guy" <guy.therien@intel.com>
-Subject: RE: [1/2] ACPI: make _OSI strings static
-Date: Wed, 19 Apr 2006 10:48:34 -0700
-Message-ID: <5389061B65D50446B1783B97DFDB392D58E020@orsmsx411.amr.corp.intel.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [patch 1/3] acpi: dock driver
+Date: Wed, 19 Apr 2006 10:51:18 -0700
+Message-ID: <B28E9812BAF6E2498B7EC5C427F293A4200B79@orsmsx415.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:39603 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1751022AbWDSRs5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Apr 2006 13:48:57 -0400
+Received: from mga01.intel.com ([192.55.52.88]:18299 "EHLO
+	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
+	id S1750999AbWDSRvU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Apr 2006 13:51:20 -0400
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>
+To: Patrick Mochel <mochel@linux.intel.com>, "Accardi, Kristen C" <kristen.c.accardi@intel.com>
+Cc: Prarit Bhargava <prarit@sgi.com>, Andrew Morton <akpm@osdl.org>, "Brown, Len" <len.brown@intel.com>, greg@kroah.com, linux-acpi@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, linux-kernel@vger.kernel.org, arjan@linux.intel.com, muneda.takahiro@jp.fujitsu.com, pavel@ucw.cz, temnota@kmv.ru
 
-My view has always been that _OSI strings  should be run time loadable.
-However, it is clear that drivers that may load the strings may not
-always be loaded before their positive evaluation is required. I had
-suggested a registration interface that means that the support exists on
-the system  i.e. it will be available later but certainly that has some
-caveats also.
-Guy
 
------Original Message-----
-From: Moore, Robert 
-Sent: Wednesday, April 19, 2006 8:37 AM
-To: Bjorn Helgaas
-Cc: Brown, Len; linux-acpi@vger.kernel.org; Andrew Morton; Therien, Guy
-Subject: RE: [1/2] ACPI: make _OSI strings static
+Architecturally, this was the design of ACPICA -- that anything
+OS-dependent would be written in whatever format/style/exception
+model/threading model/blah as the host OS.
 
-I'm thinking about defining a new OSL interface to let the host match
-the optional _OSI strings like "Module Device", "Processor Device", "3.0
-Thermal Model", etc.
+We even discussed having an interface layer in order to translate
+incoming requests (to ACPICA) from the host drivers to ACPICA requests,
+and then translate the output (such as exception codes) back to the host
+format, but we ended up deciding that this was overkill. 
 
-This seems to me to be the easiest way to configure these strings
-(rather than a bunch of #ifdefs), and is also much easier to expand as
-the host implements new features and new strings are added in future
-ACPI specifications.
+I certainly agree that it is not a good idea to mix exception code
+spaces.
 
 Bob
 
 
 > -----Original Message-----
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi- 
-> owner@vger.kernel.org] On Behalf Of Bjorn Helgaas
-> Sent: Tuesday, April 18, 2006 3:38 PM
-> To: Moore, Robert
-> Cc: Brown, Len; linux-acpi@vger.kernel.org; Andrew Morton
-> Subject: Re: [1/2] ACPI: make _OSI strings static
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> owner@vger.kernel.org] On Behalf Of Patrick Mochel
+> Sent: Wednesday, April 19, 2006 10:28 AM
+> To: Accardi, Kristen C
+> Cc: Prarit Bhargava; Andrew Morton; Brown, Len; greg@kroah.com; linux-
+> acpi@vger.kernel.org; pcihpd-discuss@lists.sourceforge.net; linux-
+> kernel@vger.kernel.org; arjan@linux.intel.com;
+> muneda.takahiro@jp.fujitsu.com; pavel@ucw.cz; temnota@kmv.ru
+> Subject: Re: [patch 1/3] acpi: dock driver
 > 
-> On Tuesday 18 April 2006 16:29, Moore, Robert wrote:
-> > While I'm certainly all for letting the compiler do such things, if 
-> > we are going to do something like this, I would like to convert all 
-> > similar instances all at once, not just onesey-twosey -- just to 
-> > keep everything consistent.
+> On Wed, Apr 19, 2006 at 10:08:57AM -0700, Kristen Accardi wrote:
+> > On Tue, 2006-04-18 at 15:54 -0700, Patrick Mochel wrote:
 > 
-> Sure, that sounds fine.  I don't want to get involved in that effort 
-> though, because any patches I would come up with would be against the 
-> Linux-ized source and hence less useful to you.
-> 
-> > As far as the "Module Device" string, would this support not be 
-> > appropriate for any OS that implements this feature? If so, it 
-> > should be an OS-specific header configuration option.
-> 
-> Yup, that sounds reasonable.  I confess I don't really know where 
-> options like that live.  include/acpi/platform/aclinux.h?  I can dream
-
-> up a patch for that if you want, but it would probably depend on 
-> something like my first patch and it'd probably be more work for you 
-> to integrate than for you to just do it yourself.
-> 
-> > Actually, I find this even more readable:
-> > #define ACPI_NUM_OSI_STRINGS    ACPI_ARRAY_SIZE
-(acpi_valid_osi_strings)
+> > > > +acpi_status
+> > > > +register_hotplug_dock_device(acpi_handle handle,
+> acpi_notify_handler handler,
+> > > > +			     void *context)
+> > >
+> > > If this is called from outside drivers/acpi/, you should return an
+int
+> with a
+> > > real errno value. The AE_* values shouldn't be used outside of the
+> ACPI CA.
+> > >
 > >
-> > and leave the existing code as:
-> > for (i = 0; i < ACPI_NUM_OSI_STRINGS; i++) {
-> 
-> OK.
-> 
-> > > -----Original Message-----
-> > > From: Bjorn Helgaas [mailto:bjorn.helgaas@hp.com]
-> > > Sent: Tuesday, April 18, 2006 3:18 PM
-> > > To: Moore, Robert
-> > > Cc: Brown, Len; linux-acpi@vger.kernel.org; Andrew Morton
-> > > Subject: Re: [1/2] ACPI: make _OSI strings static
-> > >
-> > > On Tuesday 18 April 2006 16:02, Moore, Robert wrote:
-> > > > This seems like an incredible long way around just to get rid of
-
-> > > > one configuration constant. Is it really that much hassle to 
-> > > > update NUM_OSI_STRINGS? There is a big comment about this in 
-> > > > front of the
-> > osi
-> > > > string declarations.
-> > >
-> > > No, it's not *that* much hassle.  But what's the point of 
-> > > mentioning acpi_gbl_valid_osi_strings[] in three files when it's 
-> > > only used in one?  And why define NUM_OSI_STRINGS when you can 
-> > > easily have the compiler compute it and remove the possibility for
-error?
-> > >
-> > > It might make more sense if you look at the second part of the 
-> > > patch, which adds "Module Device" to _OSI.  That's trivial, but 
-> > > without this first path, we'd have to do something like:
-> > >
-> > >     #ifdef CONFIG_ACPI_CONTAINER
-> > >     #define ACPI_NUM_OSI_STRINGS            11
-> > >     #else
-> > >     #define ACPI_NUM_OSI_STRINGS            10
-> > >     #endif
-> > >
-> > > which is ugly but maybe OK with only one CONFIG option involved.
-> > > But when we add another one or two options, and we want to handle 
-> > > all combinations of them being enabled, it would be unmanageable.
-> > >
-> > > > > -----Original Message-----
-> > > > > From: Bjorn Helgaas [mailto:bjorn.helgaas@hp.com]
-> > > > > Sent: Tuesday, April 18, 2006 2:57 PM
-> > > > > To: Brown, Len
-> > > > > Cc: linux-acpi@vger.kernel.org; Andrew Morton; Moore, Robert
-> > > > > Subject: [1/2] ACPI: make _OSI strings static
-> > > > >
-> > > > > Move acpi_gbl_valid_osi_strings[] from utglobal.c to uteval.c 
-> > > > > and make it static.  Then we can remove ACPI_NUM_OSI_STRINGS, 
-> > > > > which is a maintenance problem for OSPMs that want to change 
-> > > > > the features reported by _OSI.
-> > > > >
-> > > > > This patch is against the Linux-ized ACPI CA, since I don't 
-> > > > > have a good way to modify or test the original Intel version.
-
-> > > > > I hope it's small enough that you can easily make the 
-> > > > > corresponding
-> > change
-> > > > > to the Intel version.
-> > > > >
-> > > > > This modification may be used under either the GPL or the
-> > BSD-style
-> > > > > license used for the Intel ACPI CA.
-> > > > >
-> > > > > Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> > > > >
-> > > > > Index: work-mm5/drivers/acpi/utilities/uteval.c
-> > > > >
-> > ===================================================================
-> > > > > --- work-mm5.orig/drivers/acpi/utilities/uteval.c
-2006-04-03
-> > > > > 15:04:31.000000000 -0600
-> > > > > +++ work-mm5/drivers/acpi/utilities/uteval.c	2006-04-18
-> > > > > 15:31:22.000000000 -0600
-> > > > > @@ -48,6 +48,29 @@
-> > > > >  #define _COMPONENT          ACPI_UTILITIES
-> > > > >  ACPI_MODULE_NAME("uteval")
-> > > > >
-> > > > > +#define ACPI_ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
-> > > > > +
-> > > > > +/*
-> > > > > + * Strings supported by the _OSI predefined (internal)
-method.
-> > > > > + */
-> > > > > +static const char *acpi_valid_osi_strings[] = {
-> > > > > +	/* Operating System Vendor Strings */
-> > > > > +
-> > > > > +	"Linux",
-> > > > > +	"Windows 2000",
-> > > > > +	"Windows 2001",
-> > > > > +	"Windows 2001.1",
-> > > > > +	"Windows 2001 SP0",
-> > > > > +	"Windows 2001 SP1",
-> > > > > +	"Windows 2001 SP2",
-> > > > > +	"Windows 2001 SP3",
-> > > > > +	"Windows 2001 SP4",
-> > > > > +
-> > > > > +	/* Feature Group Strings */
-> > > > > +
-> > > > > +	"Extended Address Space Descriptor", };
-> > > > > +
-> > > > >  /* Local prototypes */
-> > > > >  static void
-> > > > >  acpi_ut_copy_id_string(char *destination, char *source, 
-> > > > > acpi_size max_length); @@ -93,10 +116,9 @@
-> > > > >
-> > > > >  	/* Compare input string to table of supported strings */
-> > > > >
-> > > > > -	for (i = 0; i < ACPI_NUM_OSI_STRINGS; i++) {
-> > > > > +	for (i = 0; i < ACPI_ARRAY_SIZE(acpi_valid_osi_strings);
-
-> > > > > +i++)
-> {
-> > > > >  		if (!ACPI_STRCMP(string_desc->string.pointer,
-> > > > > -				 ACPI_CAST_PTR(char,
-> > > > > -
-> > > > acpi_gbl_valid_osi_strings[i])))
-> > > > > +
-> > > > acpi_valid_osi_strings[i]))
-> > > > >  		{
-> > > > >
-> > > > >  			/* This string is supported */
-> > > > > Index: work-mm5/drivers/acpi/utilities/utglobal.c
-> > > > >
-> > ===================================================================
-> > > > > --- work-mm5.orig/drivers/acpi/utilities/utglobal.c
-> > 2006-04-18
-> > > > > 12:42:24.000000000 -0600
-> > > > > +++ work-mm5/drivers/acpi/utilities/utglobal.c
-2006-04-18
-> > > > > 12:55:24.000000000 -0600
-> > > > > @@ -184,28 +184,6 @@
-> > > > >  	"_S4D"
-> > > > >  };
-> > > > >
-> > > > > -/*
-> > > > > - * Strings supported by the _OSI predefined (internal)
-method.
-> > > > > - * When adding strings, be sure to update
-ACPI_NUM_OSI_STRINGS.
-> > > > > - */
-> > > > > -const char *acpi_gbl_valid_osi_strings[ACPI_NUM_OSI_STRINGS]
-= {
-> > > > > -	/* Operating System Vendor Strings */
-> > > > > -
-> > > > > -	"Linux",
-> > > > > -	"Windows 2000",
-> > > > > -	"Windows 2001",
-> > > > > -	"Windows 2001.1",
-> > > > > -	"Windows 2001 SP0",
-> > > > > -	"Windows 2001 SP1",
-> > > > > -	"Windows 2001 SP2",
-> > > > > -	"Windows 2001 SP3",
-> > > > > -	"Windows 2001 SP4",
-> > > > > -
-> > > > > -	/* Feature Group Strings */
-> > > > > -
-> > > > > -	"Extended Address Space Descriptor"
-> > > > > -};
-> > > > > -
-> > > > >
-> > > > >
-> > > >
-> > /*******************************************************************
-> > ****
-> > > > **
-> > > > > ******
-> > > > >   *
-> > > > >   * Namespace globals
-> > > > > Index: work-mm5/include/acpi/acconfig.h
-> > > > >
-> > ===================================================================
-> > > > > --- work-mm5.orig/include/acpi/acconfig.h	2006-04-18
-> > > > 12:42:24.000000000 -
-> > > > > 0600
-> > > > > +++ work-mm5/include/acpi/acconfig.h	2006-04-18
-> > 12:42:58.000000000 -
-> > > > > 0600
-> > > > > @@ -187,10 +187,6 @@
-> > > > >
-> > > > >  #define ACPI_SMBUS_BUFFER_SIZE          34
-> > > > >
-> > > > > -/* Number of strings associated with the _OSI reserved method
-
-> > > > > */
-> > > > > -
-> > > > > -#define ACPI_NUM_OSI_STRINGS            10
-> > > > > -
-> > > > >
-> > > > >
-> > > >
-> > /*******************************************************************
-> > ****
-> > > > **
-> > > > > *****
-> > > > >   *
-> > > > >   * ACPI AML Debugger
-> > > > > Index: work-mm5/include/acpi/acglobal.h
-> > > > >
-> > ===================================================================
-> > > > > --- work-mm5.orig/include/acpi/acglobal.h	2006-03-23
-> > > > 10:22:17.000000000 -
-> > > > > 0700
-> > > > > +++ work-mm5/include/acpi/acglobal.h	2006-04-18
-> > 15:24:33.000000000 -
-> > > > > 0600
-> > > > > @@ -244,7 +244,6 @@
-> > > > >  extern const char *acpi_gbl_highest_dstate_names[4];
-> > > > >  extern const struct acpi_opcode_info 
-> > > > > acpi_gbl_aml_op_info[AML_NUM_OPCODES];
-> > > > >  extern const char
-> > > > *acpi_gbl_region_types[ACPI_NUM_PREDEFINED_REGIONS];
-> > > > > -extern const char
-> > *acpi_gbl_valid_osi_strings[ACPI_NUM_OSI_STRINGS];
-> > > > >
-> > > > >
-> > > > >
-> > > >
-> > /*******************************************************************
-> > ****
-> > > > **
-> > > > > ****
-> > > > >   *
-> > > >
+> > Really?  We use these all over the place in drivers/pci/hotplug.  In
+> > fact, you kinda have to use them if you are calling certain acpi
+> > symbols, since they return these types.
 > >
+> > For example, here are some functions will return acpi_status that we
+use
+> > in hotplug land.
+> >
+> > pci_osc_control_set()
+> > acpi_run_oshp()
+> > acpi_walk_namespace requires its use.
+> 
+> Well, it's one thing to use a function that returns a non-standard
+error-
+> value,
+> but it's another to add more functions that do. :-)
+> 
+> > I felt that by returning acpi_status I was being consistent with how
+> > other acpi calls acted.  Is this another example of the iceberg that
+Len
+> > was talking about in a previous email?? (ugh.)
+> 
+> I believe so.
+> 
+> We have a standard, well-defined error namespace that lives in
+> include/*/errno.h.
+> ACPI defines its own error namespace because it must be portable, and
+even
+> though
+> most OSes will define the standard errno values, some do not, so it
+cannot
+> assume that it will be there. I'm not sure why the choice was to
+redefine
+> similar
+> error values instead of reusing the errno values, but that's moot at
+this
+> point..
+> 
+> The only place where the ACPI error values need to be used is in the
+ACPI
+> CA. The
+> functions exposed to the OS from the CA will return AE_* because the
+same
+> source
+> runs everywhere. However, Linux-specific code doesn't need to do that.
+It
+> is free
+> to use Linux-specific error reporting (except in the OSL layer that
+the CA
+> uses,
+> because it is expecting well-defined return values, as specified in
+the CA
+> Programmers Reference).
+> 
+> My standpoint is that Linux-specific code should not be using any ACPI
+> CAisms at
+> all because since the code is Linux-specific, it doesn't need to be
+> portable in
+> the same manner that the CA is. This is true for all of
+drivers/acpi/*.c,
+> with the
+> exception of drivers/acpi/osl.c, but even some of that source can be
+> cleaned up
+> to be more Linux-friendly.
+> 
+> Further rationale is that there is no way to enforce the CAisms in
+Linux-
+> specific
+> code. You will frequently find mixed return values. Sometimes a
+function
+> is
+> declared as
+> 
+> 	acpi_status acpi_foo()
+> 
+> and return -1 and 0. Or vice versa.
+> 
+> The ACPI drivers were initially written in the same style that the CA
+was
+> written,
+> which makes it confusing when you look at them. But, they don't need
+to be
+> that
+> way. They can look like real Linux drivers and become a lot more
+> palatable.
+> 
+> Eventually, all of the CAisms should be pushed down to the thin layer
+that
+> sits
+> above the interpreter. All exported functions should return ints, and
+> those that
+> deal directly with the CA interface should simply translate the AE_*
+error
+> values into an errno return.
+> 
+> Thanks,
+> 
+> 
+> 	Pat
+> 
 > -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" 
-> in the body of a message to majordomo@vger.kernel.org More majordomo 
-> info at  http://vger.kernel.org/majordomo-info.html
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
