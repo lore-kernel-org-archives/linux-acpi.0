@@ -1,50 +1,51 @@
-From: Chris Ball <cjb@mrao.cam.ac.uk>
-Subject: Alienware m5500 wifi kill switch?
-Date: Wed, 19 Apr 2006 18:46:44 -0400
-Message-ID: <87fyk9i3or.fsf@mrao.cam.ac.uk>
+From: Berthold Cogel <cogel@rrz.uni-koeln.de>
+Subject: Was: Re: UBUNTU - acpi battery on ACER TRAVELMATE 4000 WLMI
+Date: Thu, 20 Apr 2006 01:31:23 +0200
+Message-ID: <4446C84B.7020104@rrz.uni-koeln.de>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3005D98454@hdsmsx401.amr.corp.intel.com> <m21wytlwv3.fsf@phoenix.squirrel.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:22944 "EHLO ciao.gmane.org")
-	by vger.kernel.org with ESMTP id S1751306AbWDSWuG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Apr 2006 18:50:06 -0400
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1FWLUo-0005NO-LN
-	for linux-acpi@vger.kernel.org; Thu, 20 Apr 2006 00:50:02 +0200
-Received: from pool-151-203-216-9.bos.east.verizon.net ([151.203.216.9])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Thu, 20 Apr 2006 00:50:02 +0200
-Received: from cjb by pool-151-203-216-9.bos.east.verizon.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Thu, 20 Apr 2006 00:50:02 +0200
+Received: from smtp-out.rrz.uni-koeln.de ([134.95.19.53]:14259 "EHLO
+	smtp-out.rrz.uni-koeln.de") by vger.kernel.org with ESMTP
+	id S1751317AbWDSXb2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Apr 2006 19:31:28 -0400
+Received: from smtp-auth.rrz.uni-koeln.de (smtp-auth.rrz.uni-koeln.de [134.95.19.93])
+	by smtp-out.rrz.uni-koeln.de (8.13.6/8.13.5) with ESMTP id k3JNVQsg013398
+	for <linux-acpi@vger.kernel.org>; Thu, 20 Apr 2006 01:31:26 +0200
+Received: from [192.168.2.4] (p5087F3AC.dip.t-dialin.net [80.135.243.172])
+	(authenticated as user a0537 using CRAM-MD5 bits=0)
+	by smtp-auth.uni-koeln.de (8.13.6/8.13.5) with ESMTP id k3JNVHuS013376
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-acpi@vger.kernel.org>; Thu, 20 Apr 2006 01:31:26 +0200
+In-Reply-To: <m21wytlwv3.fsf@phoenix.squirrel.nl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-Hi,
+Johan Vromans wrote:
 
-I have a new Alienware m5500/Uniwill 259EN3 laptop with an ipw2200.
-ACPI works fine in general, including S3, but I can't get the wifi kill
-switch to turn off.  It uses a button next to the power button rather
-than a keyboard function key, but pressing that button makes the 
-"sleep" LED on the front panel come on, rather than the "wifi" LED!
+> I too run Linux (Fedora Core) on a TravelMate 4001WLMi[1]. I needed to
+> change the DSDT since it returned the wrong values for the processor
+> speeds (!) which, I have been assured, is not an uncommon problem. No
+> other changes were necessary. In fact, I could have continued using
+> the unmodified DSDT except for the frequencey scaling.
+> 
+> For the smart battery, I use the original, EC based implementation by
+> Rich Townsend, and it works like a charm.
+> 
+> Later (AFAIK) Rich went to a DSDT-based approach of the smart battery
+> problem. I personally prefer the EC based version.
+> 
 
-I don't have a Windows install on the laptop; I'd like to see what
-happens in Windows, but the XP recovery CD I was given seems to hang
-during hardware detection.
+Hello!
 
-Does anyone have any ideas?  The mismatch between the button and which
-LED comes on makes me think ACPI might be involved, but on the other
-hand the button could be in pure hardware; I can't get a scancode out of
-it.  I'm happy to provide anything that could help to debug, of course.
-I see there are many drivers that provide software kill-switch support,
-but none of them seem to work on this AMIBIOS laptop.
+The latest patch from the sbs-linux (Rich Townsend) project works only
+for kernel versions up to 2.6.15.x for my Acer Extensa 3002 WLMi.
 
-Many thanks,
+What is the recommended way to solve the problem with the smart battery
+for newer kernels?
 
-- Chris.
--- 
-Chris Ball   <cjb@mrao.cam.ac.uk>    <http://blog.printf.net/> 
-
+Regards
+Berthold
