@@ -1,23 +1,37 @@
 From: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
 Subject: Re: [RFC] [PATCH] Make ACPI button driver an input device
-Date: Thu, 20 Apr 2006 20:33:26 +0400
-Message-ID: <4447B7D6.4030401@linux.intel.com>
-References: <554C5F4C5BA7384EB2B412FD46A3BAD1332980@pdsmsx411.ccr.corp.intel.com>	 <20060420073713.GA25735@srcf.ucam.org> <4447AA59.8010300@linux.intel.com>	 <20060420153848.GA29726@srcf.ucam.org>  <4447AF4D.7030507@linux.intel.com> <1145549460.23837.156.camel@capoeira>
+Date: Thu, 20 Apr 2006 20:35:28 +0400
+Message-ID: <4447B850.7090108@linux.intel.com>
+References: <554C5F4C5BA7384EB2B412FD46A3BAD1332980@pdsmsx411.ccr.corp.intel.com> <20060420073713.GA25735@srcf.ucam.org> <4447AA59.8010300@linux.intel.com> <20060420153848.GA29726@srcf.ucam.org> <4447AF4D.7030507@linux.intel.com> <20060420161546.GB30021@srcf.ucam.org> <4447B692.3000704@linux.intel.com> <20060420163222.GA30197@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr18.intel.com ([134.134.136.17]:3817 "EHLO
-	orsfmr003.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1751043AbWDTQdf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Apr 2006 12:33:35 -0400
-In-Reply-To: <1145549460.23837.156.camel@capoeira>
+Received: from fmr19.intel.com ([134.134.136.18]:20864 "EHLO
+	orsfmr004.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1751081AbWDTQff (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Apr 2006 12:35:35 -0400
+In-Reply-To: <20060420163222.GA30197@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Xavier Bestel <xavier.bestel@free.fr>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "Yu, Luming" <luming.yu@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "Yu, Luming" <luming.yu@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Xavier Bestel wrote:
-> There are keyboards with power/sleep buttons. It makes sense they have
-> the same behavior than ACPI buttons.
-Agree, make them behave like ACPI buttons -- remove them from input stream, as they do not belong there...
+Matthew Garrett wrote:
+> On Thu, Apr 20, 2006 at 08:28:02PM +0400, Alexey Starikovskiy wrote:
+> 
+>> I don't quite understand your point... You want all buttons/switches in a 
+>> computer to send events to input layer, regardless if this make sense or 
+>> not, just to be consistent? May be you should go other way around and  if 
+>> keyboard has some strange key, send it on its strange way? 
+> 
+> There's a reason that KEY_POWER and KEY_SLEEP are already present in 
+> /usr/include/linux/input.h. It makes sense to expose keys that are on my 
+> keyboard in the same way as other keys on my keyboard. Just think of the 
+> ACPI events interface as a bus that a small keyboard with not many keys 
+> sits on.
+> 
+>>From the userspace point of view, it's *far* easier to deal with this 
+> stuff if the keys generate keycodes.
+Lid is a _switch_ with state, how many keys on keyboard have same behavior? Do you want to introduce special case just for that?
+ 
