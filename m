@@ -1,32 +1,56 @@
-From: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
-Subject: Re: [RFC] [PATCH] Make ACPI button driver an input device
-Date: Thu, 20 Apr 2006 21:06:32 +0400
-Message-ID: <4447BF98.4020806@linux.intel.com>
-References: <554C5F4C5BA7384EB2B412FD46A3BAD1332980@pdsmsx411.ccr.corp.intel.com> <20060420073713.GA25735@srcf.ucam.org> <4447AA59.8010300@linux.intel.com> <20060420153848.GA29726@srcf.ucam.org> <4447AF4D.7030507@linux.intel.com> <1145549460.23837.156.camel@capoeira> <4447B7D6.4030401@linux.intel.com> <20060420164419.GA30317@srcf.ucam.org> <4447BB2B.1060407@linux.intel.com> <20060420165515.GA30415@srcf.ucam.org>
+From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
+Subject: Re: how to back from suspend without shutdown
+Date: Thu, 20 Apr 2006 18:07:01 +0100
+Message-ID: <1145552821.2888.2.camel@localhost.localdomain>
+References: <1145454577.14935.13.camel@localhost.localdomain>
+	 <200604201121.03452.ncunningham@cyclades.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr19.intel.com ([134.134.136.18]:4739 "EHLO
-	orsfmr004.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1751163AbWDTRGm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Apr 2006 13:06:42 -0400
-In-Reply-To: <20060420165515.GA30415@srcf.ucam.org>
+Received: from relay1.ptmail.sapo.pt ([212.55.154.21]:59088 "HELO sapo.pt")
+	by vger.kernel.org with SMTP id S1751173AbWDTRHM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Apr 2006 13:07:12 -0400
+In-Reply-To: <200604201121.03452.ncunningham@cyclades.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Xavier Bestel <xavier.bestel@free.fr>, "Yu, Luming" <luming.yu@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Nigel Cunningham <ncunningham@cyclades.com>
+Cc: acpi devel <linux-acpi@vger.kernel.org>
 
-Matthew Garrett wrote:
-> On Thu, Apr 20, 2006 at 08:47:39PM +0400, Alexey Starikovskiy wrote:
+Hi,
+unload acpid (service acipd stop)  before suspend is more easy and
+works.
+
+thanks,
+
+On Thu, 2006-04-20 at 11:20 +1000, Nigel Cunningham wrote:
+> Hi.
 > 
->> Yes, this is why I mentioned using kevent and dbus before... Could it be 
->> the righter answer?
+> On Wednesday 19 April 2006 23:49, Sergio Monteiro Basto wrote:
+> > Hi everybody,
+> > I have a new laptop one HP Compaq NX6110 , that works quite well with
+> > suspend and hibernation.
+> >
+> > But after suspend , how I bring back computer ?, the only key that I
+> > know is power button, but after press power button and laptop wake-up,
+> > Begins the shutdown process because is triggered the power button
+> > shutdown .
+> > any ideas ?
+> >
+> > Other question klaptop let me choose performance profile:
+> >  userspace or performance, which one is better ? and why ?
+> >
+> > Klaptop allows also to define CPU throttling which is in 00% but I can
+> > choose 0,12 25, 37, 50, 62, 75 and 87. What is the propose of this
+> > settings ?
+> >
+> > thanks in advance ,
 > 
-> I think it makes sense for atkbd and usb hid power and sleep buttons to 
-> be treated like all other keys on those keyboard types. As a result, I 
-> think it makes sense for ACPI keys to behave in the same way. I wrote an 
-> addon for hal to take input events and put them on the system dbus some 
-> time ago, so that's already a solved problem.
+> Try building acpi button support as a module and unloading it during the 
+> cycle.
 > 
-So now you can do a shortcut and send ACPI events to dbus without involving input layer and hal.
+> Regards,
+> 
+> Nigel
+
