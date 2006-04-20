@@ -1,39 +1,31 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [1/2] ACPI: make _OSI strings static
-Date: Thu, 20 Apr 2006 08:48:09 -0600
-Message-ID: <200604200848.09050.bjorn.helgaas@hp.com>
-References: <B28E9812BAF6E2498B7EC5C427F293A4200553@orsmsx415.amr.corp.intel.com>
+From: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
+Subject: Re: [RFC] [PATCH] Make ACPI button driver an input device
+Date: Thu, 20 Apr 2006 19:35:53 +0400
+Message-ID: <4447AA59.8010300@linux.intel.com>
+References: <554C5F4C5BA7384EB2B412FD46A3BAD1332980@pdsmsx411.ccr.corp.intel.com> <20060420073713.GA25735@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel9.hp.com ([156.153.255.214]:56778 "EHLO atlrel9.hp.com")
-	by vger.kernel.org with ESMTP id S1750919AbWDTOsP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Apr 2006 10:48:15 -0400
-In-Reply-To: <B28E9812BAF6E2498B7EC5C427F293A4200553@orsmsx415.amr.corp.intel.com>
-Content-Disposition: inline
+Received: from fmr19.intel.com ([134.134.136.18]:46312 "EHLO
+	orsfmr004.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1751032AbWDTPgF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Apr 2006 11:36:05 -0400
+In-Reply-To: <20060420073713.GA25735@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: "Yu, Luming" <luming.yu@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tuesday 18 April 2006 16:29, Moore, Robert wrote:
-> Actually, I find this even more readable:
-> #define ACPI_NUM_OSI_STRINGS    ACPI_ARRAY_SIZE (acpi_valid_osi_strings)
+Matthew Garrett wrote:
+> On Thu, Apr 20, 2006 at 01:45:27PM +0800, Yu, Luming wrote:
 > 
-> and leave the existing code as: 
-> for (i = 0; i < ACPI_NUM_OSI_STRINGS; i++) {
-
-The typical Linux style is to use
-
-    for (i = 0; i < ARRAY_SIZE(acpi_valid_osi_strings); i++) {
-
-rather than
-
-    for (i = 0; i < ACPI_NUM_OSI_STRINGS; i++) {
-
-because you can easily verify the loop bounds without having
-to look up ACPI_NUM_OSI_STRINGS, which is defined elsewhere.
-But you have to use your own judgment.
+>> Do you plan to port the whole acpi event interface into input layer?
+>> If so,  keycode is NOT a right way.
+> 
+> Not really, though it would be one possibility. However, the input layer 
+> doesn't really provide the flexibility needed for certain events. I'm 
+> not sure what the right answer is for other events, but I'm pretty sure 
+> the button driver maps onto the input layer sensibly.
+> 
+Could it be more sensible to use kevent and dbus for sending all events from ACPI?
