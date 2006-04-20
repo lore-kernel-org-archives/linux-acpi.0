@@ -1,34 +1,55 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: Was: Re: UBUNTU - acpi battery on ACER TRAVELMATE 4000 WLMI
-Date: Thu, 20 Apr 2006 12:32:31 +0100
-Message-ID: <20060420113231.GA27965@srcf.ucam.org>
-References: <F7DC2337C7631D4386A2DF6E8FB22B3005D98454@hdsmsx401.amr.corp.intel.com> <m21wytlwv3.fsf@phoenix.squirrel.nl> <4446C84B.7020104@rrz.uni-koeln.de> <m2vet41q9n.fsf@phoenix.squirrel.nl>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [2/2] ACPI: report "Module Device" support via _OSI
+Date: Thu, 20 Apr 2006 08:42:05 -0600
+Message-ID: <200604200842.05123.bjorn.helgaas@hp.com>
+References: <200604181558.55296.bjorn.helgaas@hp.com> <200604191022.05016.bjorn.helgaas@hp.com> <44474758.6000208@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:62683 "EHLO
-	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
-	id S1750702AbWDTLcl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Apr 2006 07:32:41 -0400
+Received: from atlrel6.hp.com ([156.153.255.205]:31117 "EHLO atlrel6.hp.com")
+	by vger.kernel.org with ESMTP id S1750798AbWDTOmO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Apr 2006 10:42:14 -0400
+In-Reply-To: <44474758.6000208@jp.fujitsu.com>
 Content-Disposition: inline
-In-Reply-To: <m2vet41q9n.fsf@phoenix.squirrel.nl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Johan Vromans <jvromans@squirrel.nl>
-Cc: Berthold Cogel <cogel@rrz.uni-koeln.de>, linux-acpi@vger.kernel.org
+To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>, "Moore, Robert" <robert.moore@intel.com>, Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>, Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>, Motoyuki Ito <motoyuki@soft.fujitsu.com>
 
-On Thu, Apr 20, 2006 at 12:43:16PM +0200, Johan Vromans wrote:
-> Berthold Cogel <cogel@rrz.uni-koeln.de> writes:
+On Thursday 20 April 2006 02:33, Kenji Kaneshige wrote:
+> Bjorn Helgaas wrote:
+> > On Wednesday 19 April 2006 00:34, Kenji Kaneshige wrote:
+> > 
+> >>I have a question. The ACPI container driver can be build as a
+> >>kernel module. Should _OSI("Module Device") returns TRUE even
+> >>when container driver module is not loaded? (Typically, _OSI is
+> >>evaluated at _INI time, I think. So container driver module is
+> >>not loaded at _OSI("Module Device") time anyway.)
+> > 
+> > 
+> > Good question.  I think _OSI("Module Device") should return
+> > true even if the container driver isn't loaded.
+> > 
+> > Do you think that's a bad idea?
+> > 
+> > I think it's OK if the namespace contains container devices
+> > that we ignore until the driver is loaded.  Someday, the
+> > presence of those devices should be enough to cause udev
+> > to load the driver automatically.  But for now, I think we
+> > have to do it manually.
+> >
 > 
-> > What is the recommended way to solve the problem with the smart
-> > battery for newer kernels?
+> I see. I think you are right.
 > 
-> The right solution is hal, but I don't know whether it has been picked
-> up yet.
+> But now, I'm wondering why ACPI firmware needs _OSI("Module
+> Device") because I think module devices in the namespace will
+> be ignored by the OS if it doesn't support "Module Device"...
 
-No. There needs to be a kernel driver, regardless of how it provides 
-information. hal can only display what the kernel gives it - it's not a 
-set of drivers, and it can't read from a smart battery on its own.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+I think the intent is that firmware might choose to expose
+some devices differently (either using module devices or
+not) depending on whether the OS supports module devices.
+I guess the firmware might use the result of _OSI("Module
+Device") to decide which table to load.
