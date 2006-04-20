@@ -1,56 +1,30 @@
-From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
-Subject: Re: how to back from suspend without shutdown
-Date: Thu, 20 Apr 2006 18:07:01 +0100
-Message-ID: <1145552821.2888.2.camel@localhost.localdomain>
-References: <1145454577.14935.13.camel@localhost.localdomain>
-	 <200604201121.03452.ncunningham@cyclades.com>
+From: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
+Subject: Re: [RFC] [PATCH] Make ACPI button driver an input device
+Date: Thu, 20 Apr 2006 21:08:48 +0400
+Message-ID: <4447C020.3010003@linux.intel.com>
+References: <554C5F4C5BA7384EB2B412FD46A3BAD1332980@pdsmsx411.ccr.corp.intel.com> <20060420073713.GA25735@srcf.ucam.org> <4447AA59.8010300@linux.intel.com> <20060420153848.GA29726@srcf.ucam.org> <4447AF4D.7030507@linux.intel.com> <mj+md-20060420.165714.18107.albireo@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay1.ptmail.sapo.pt ([212.55.154.21]:59088 "HELO sapo.pt")
-	by vger.kernel.org with SMTP id S1751173AbWDTRHM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Apr 2006 13:07:12 -0400
-In-Reply-To: <200604201121.03452.ncunningham@cyclades.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751170AbWDTRJT@vger.kernel.org>
+In-Reply-To: <mj+md-20060420.165714.18107.albireo@ucw.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Martin Mares <mj@ucw.cz>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "Yu, Luming" <luming.yu@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Nigel Cunningham <ncunningham@cyclades.com>
-Cc: acpi devel <linux-acpi@vger.kernel.org>
 
-Hi,
-unload acpid (service acipd stop)  before suspend is more easy and
-works.
-
-thanks,
-
-On Thu, 2006-04-20 at 11:20 +1000, Nigel Cunningham wrote:
-> Hi.
+Martin Mares wrote:
+> Hello!
 > 
-> On Wednesday 19 April 2006 23:49, Sergio Monteiro Basto wrote:
-> > Hi everybody,
-> > I have a new laptop one HP Compaq NX6110 , that works quite well with
-> > suspend and hibernation.
-> >
-> > But after suspend , how I bring back computer ?, the only key that I
-> > know is power button, but after press power button and laptop wake-up,
-> > Begins the shutdown process because is triggered the power button
-> > shutdown .
-> > any ideas ?
-> >
-> > Other question klaptop let me choose performance profile:
-> >  userspace or performance, which one is better ? and why ?
-> >
-> > Klaptop allows also to define CPU throttling which is in 00% but I can
-> > choose 0,12 25, 37, 50, 62, 75 and 87. What is the propose of this
-> > settings ?
-> >
-> > thanks in advance ,
+>> Generic application does not need to know if power, sleep, or lid button is 
+>> pressed, so you will need to intercept them from input stream... I cannot 
+>> find any reason to mix these buttons into input, do you?
 > 
-> Try building acpi button support as a module and unloading it during the 
-> cycle.
+> Neither does a generic application need to know if the NumLock key is just
+> pressed. This doesn't mean anything.
 > 
-> Regards,
+> I don't see any reason for treating some keys or buttons differently.
+> A key is just a key.
 > 
-> Nigel
-
+> 				Have a nice fortnight
+There is one special key anyway -- reset...
