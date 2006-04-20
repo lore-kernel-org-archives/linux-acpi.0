@@ -1,69 +1,29 @@
-From: Nigel Cunningham <ncunningham@cyclades.com>
-Subject: Re: how to back from suspend without shutdown
-Date: Thu, 20 Apr 2006 11:20:59 +1000
-Message-ID: <200604201121.03452.ncunningham@cyclades.com>
-References: <1145454577.14935.13.camel@localhost.localdomain>
+From: "Yu, Luming" <luming.yu@intel.com>
+Subject: RE: [RFC] [PATCH] Make ACPI button driver an input device
+Date: Thu, 20 Apr 2006 13:45:27 +0800
+Message-ID: <554C5F4C5BA7384EB2B412FD46A3BAD1332980@pdsmsx411.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1261563.Mmq0F9tlP0";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from b3162.static.pacific.net.au ([203.143.238.98]:39814 "EHLO
-	cust8446.nsw01.dataco.com.au") by vger.kernel.org with ESMTP
-	id S1750713AbWDTBWq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Apr 2006 21:22:46 -0400
-In-Reply-To: <1145454577.14935.13.camel@localhost.localdomain>
+Received: from mga03.intel.com ([143.182.124.21]:64778 "EHLO
+	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
+	id S1751270AbWDTFph convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Apr 2006 01:45:37 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
-Cc: acpi devel <linux-acpi@vger.kernel.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
---nextPart1261563.Mmq0F9tlP0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+>Sleep and power buttons are logically part of the keyboard, 
+>and it makes 
+>for them to be exposed via an input device rather than an odd file in 
+>/proc. This patch adds a keycode for lid switches (are we 
+>running out of 
+>keycodes?) and allows the button driver to register an input device.
 
-Hi.
+Do you plan to port the whole acpi event interface into input layer?
+If so,  keycode is NOT a right way.
 
-On Wednesday 19 April 2006 23:49, Sergio Monteiro Basto wrote:
-> Hi everybody,
-> I have a new laptop one HP Compaq NX6110 , that works quite well with
-> suspend and hibernation.
->
-> But after suspend , how I bring back computer ?, the only key that I
-> know is power button, but after press power button and laptop wake-up,
-> Begins the shutdown process because is triggered the power button
-> shutdown .
-> any ideas ?
->
-> Other question klaptop let me choose performance profile:
->  userspace or performance, which one is better ? and why ?
->
-> Klaptop allows also to define CPU throttling which is in 00% but I can
-> choose 0,12 25, 37, 50, 62, 75 and 87. What is the propose of this
-> settings ?
->
-> thanks in advance ,
-
-Try building acpi button support as a module and unloading it during the=20
-cycle.
-
-Regards,
-
-Nigel
-
---nextPart1261563.Mmq0F9tlP0
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQBERuH/N0y+n1M3mo0RAi6sAJ9tPEulEgVYyn12OFySWtCEXnuFYgCg6OPl
-wF2vpCADCppjrGVDvxhDZnc=
-=O0u/
------END PGP SIGNATURE-----
-
---nextPart1261563.Mmq0F9tlP0--
+--Luming
