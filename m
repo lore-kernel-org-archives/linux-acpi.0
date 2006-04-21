@@ -1,23 +1,29 @@
-From: Dominik Brodowski <linux@dominikbrodowski.net>
+From: Thomas Renninger <trenn@suse.de>
 Subject: Re: Exit ACPI drivers immediately if acpi is disabled
-Date: Fri, 21 Apr 2006 18:58:42 +0200
-Message-ID: <20060421165842.GA20625@isilmar.linta.de>
+Date: Fri, 21 Apr 2006 19:18:12 +0200
+Message-ID: <200604211918.13025.trenn@suse.de>
 References: <200604211243.32276.trenn@suse.de> <200604210918.47337.bjorn.helgaas@hp.com> <200604211853.47117.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_VPRSE7RQHfACxFs"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from isilmar.linta.de ([213.239.214.66]:45453 "EHLO linta.de")
-	by vger.kernel.org with ESMTP id S932420AbWDUQ6n (ORCPT
+Received: from ns.suse.de ([195.135.220.2]:15020 "EHLO mx1.suse.de")
+	by vger.kernel.org with ESMTP id S1751334AbWDURSJ (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 21 Apr 2006 12:58:43 -0400
-Content-Disposition: inline
+	Fri, 21 Apr 2006 13:18:09 -0400
 In-Reply-To: <200604211853.47117.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>
 
-On Fri, Apr 21, 2006 at 06:53:46PM +0200, Thomas Renninger wrote:
+--Boundary-00=_VPRSE7RQHfACxFs
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+On Friday 21 April 2006 18:53, Thomas Renninger wrote:
 > On Friday 21 April 2006 17:18, Bjorn Helgaas wrote:
 > > On Friday 21 April 2006 04:43, Thomas Renninger wrote:
 > > > If booting with acpi=off and loading the processor module, it
@@ -45,26 +51,106 @@ On Fri, Apr 21, 2006 at 06:53:46PM +0200, Thomas Renninger wrote:
 > It's in unregister_driver.
 > > I wonder if that driver has a bug there.  It has a mysterious
 > > comment that "we keep the driver loaded even when ACPI is not
-> > running" for powernow-k8.   I don't understand that at all, but
-> > it sounds like it requires extra care to make sure everything
-> > works right.
-> AFAIK processor module has no functions if acpi=off.
-> Some cpufreq drivers still work. The ones which have the steps
-> for each CPU model compiled in and that should still work.
-> 
-> There should be no functions missing when booting acpi=off and processor
-> module cannot be loaded.
-> But I might be wrong here...
-> 
-> Hmm, as even proc is deleted, the module probably should not be loaded...
-> 
-> I think this one should go in then:
-> 
-> Subject: Exit ACPI processor module if acpi is disabled
+> > running" for powernow-k8.
+Arggh, I didn't see this.
+Next try:
 
-No. For example powernow-k8 and speedstep-centrino do have a dependency on a
-function which is exported by processor_perflib.c. THis means you cannot
-load these modules (which can run without ACPI support) if loading the
-processor module fails. Therefore its init function must not fail.
+Subject: Exit ACPI processor module gracefully if acpi is disabled
 
-	Dominik
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+
+ drivers/acpi/processor_core.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletion(-)
+
+Index: linux-2.6.16/drivers/acpi/processor_core.c
+===================================================================
+--- linux-2.6.16.orig/drivers/acpi/processor_core.c
++++ linux-2.6.16/drivers/acpi/processor_core.c
+@@ -906,6 +906,8 @@ void acpi_processor_uninstall_hotplug_no
+  * ACPI, but needs symbols from this driver
+  */
+ 
++static int driver_registered = 0;
++
+ static int __init acpi_processor_init(void)
+ {
+ 	int result = 0;
+@@ -926,6 +928,8 @@ static int __init acpi_processor_init(vo
+ 		return_VALUE(0);
+ 	}
+ 
++	driver_registered = 1;
++
+ 	acpi_processor_install_hotplug_notify();
+ 
+ 	acpi_thermal_cpufreq_init();
+@@ -943,12 +947,13 @@ static void __exit acpi_processor_exit(v
+ 
+ 	acpi_thermal_cpufreq_exit();
+ 
++	if (driver_registered){
+ 	acpi_processor_uninstall_hotplug_notify();
+ 
+ 	acpi_bus_unregister_driver(&acpi_processor_driver);
+ 
+ 	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+-
++	}
+ 	return_VOID;
+ }
+ 
+
+--Boundary-00=_VPRSE7RQHfACxFs
+Content-Type: text/x-diff;
+  charset="iso-8859-15";
+  name="acpi_exit_on_acpi_off"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="acpi_exit_on_acpi_off"
+
+Subject: Exit ACPI processor module gracefully if acpi is disabled
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+
+ drivers/acpi/processor_core.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletion(-)
+
+Index: linux-2.6.16/drivers/acpi/processor_core.c
+===================================================================
+--- linux-2.6.16.orig/drivers/acpi/processor_core.c
++++ linux-2.6.16/drivers/acpi/processor_core.c
+@@ -906,6 +906,8 @@ void acpi_processor_uninstall_hotplug_no
+  * ACPI, but needs symbols from this driver
+  */
+ 
++static int driver_registered = 0;
++
+ static int __init acpi_processor_init(void)
+ {
+ 	int result = 0;
+@@ -926,6 +928,8 @@ static int __init acpi_processor_init(vo
+ 		return_VALUE(0);
+ 	}
+ 
++	driver_registered = 1;
++
+ 	acpi_processor_install_hotplug_notify();
+ 
+ 	acpi_thermal_cpufreq_init();
+@@ -943,12 +947,13 @@ static void __exit acpi_processor_exit(v
+ 
+ 	acpi_thermal_cpufreq_exit();
+ 
++	if (driver_registered){
+ 	acpi_processor_uninstall_hotplug_notify();
+ 
+ 	acpi_bus_unregister_driver(&acpi_processor_driver);
+ 
+ 	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+-
++	}
+ 	return_VOID;
+ }
+ 
+
+--Boundary-00=_VPRSE7RQHfACxFs--
