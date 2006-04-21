@@ -1,42 +1,40 @@
-From: Andi Kleen <ak@suse.de>
-Subject: Re: [git Patch 1/1] avoid IRQ0 ioapic pin collision
-Date: Fri, 21 Apr 2006 04:17:58 +0200
-Message-ID: <200604210417.59028.ak@suse.de>
-References: <20060420230931.10317.38083.sendpatchset@dhcp83-97.boston.redhat.com>
+From: "Yu, Luming" <luming.yu@intel.com>
+Subject: RE: [RFC] [PATCH] Make ACPI button driver an input device
+Date: Fri, 21 Apr 2006 15:27:25 +0800
+Message-ID: <554C5F4C5BA7384EB2B412FD46A3BAD13787F2@pdsmsx411.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.suse.de ([195.135.220.2]:20133 "EHLO mx1.suse.de")
-	by vger.kernel.org with ESMTP id S1750716AbWDUCSr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Apr 2006 22:18:47 -0400
-In-Reply-To: <20060420230931.10317.38083.sendpatchset@dhcp83-97.boston.redhat.com>
-Content-Disposition: inline
+Received: from mga02.intel.com ([134.134.136.20]:3158 "EHLO
+	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1751267AbWDUH1n convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Apr 2006 03:27:43 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kimball Murray <kimball.murray@gmail.com>
-Cc: linux-kernel@vger.kernel.org, akpm@digeo.com, kmurray@redhat.com, natalie.protasevich@unisys.com, len.brown@intel.com, linux-acpi@vger.kernel.org
+To: dtor_core@ameritech.net, Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
+Cc: Xavier Bestel <xavier.bestel@free.fr>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Friday 21 April 2006 01:14, Kimball Murray wrote:
-> Hello!
-> 
-> I'm working on an x86_64 platfrom, where I've hit a problem that appears to
-> be caused by a patch that went into 2.6.13 some time ago.  (git details are
-> below).  Basically, that patch introduced a work-around for a VIA chipset
-> limitation (only 4 bits to store a PCI interrupt).  And that work-around
-> causes an unfortunate pin collision on our ioapic.
+>> > There are keyboards with power/sleep buttons. It makes 
+>sense they have
+>> > the same behavior than ACPI buttons.
+>> Agree, make them behave like ACPI buttons -- remove them 
+>from input stream, as they do not belong there...
+>
+>What if there is no ACPI? What if I want to remap the button to do
+>something else? Input layer is the proper place for them.
 
+If you define input layer as a universe place to all manual input 
+activity, then I agree to port some type of ACPI event into
+input layer.  But it shouldn't be a fake keyboard scancode,
+My suggestion is to have a separate input event type,e.g. EV_ACPI
+for acpi event layer.
 
-The patch looks reasonable except
+>
+>--
+>Dmitry
 
-- The variable should be __initdata
-- The externs belong in headers
-
-Actually I plan to garbage collect large parts of the x86-64 check_timer
-RSN (basically I want to eliminate all the non ACPI compliant routing
-support). That might simplify a bit. But I guess it would be still all 
-needed for i386 anyways, so it's ok to have it.
-
--Andi
+Thanks,
+Luming
