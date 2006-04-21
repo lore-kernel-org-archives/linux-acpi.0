@@ -1,66 +1,186 @@
-From: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
-Subject: Re: [RFC] [PATCH] Make ACPI button driver an input device
-Date: Fri, 21 Apr 2006 08:56:48 -0400
-Message-ID: <d120d5000604210556v5c5493f9g7676926c8f75bd8d@mail.gmail.com>
-References: <554C5F4C5BA7384EB2B412FD46A3BAD1332980@pdsmsx411.ccr.corp.intel.com>
-	 <20060420073713.GA25735@srcf.ucam.org>
-	 <4447AA59.8010300@linux.intel.com>
-	 <20060420153848.GA29726@srcf.ucam.org>
-	 <4447AF4D.7030507@linux.intel.com>
-	 <1145549460.23837.156.camel@capoeira>
-	 <4447B7D6.4030401@linux.intel.com>
-	 <d120d5000604201230y48493995l1bb13d01a8122e11@mail.gmail.com>
-	 <1145563624.14595.5.camel@bip.parateam.prv>
-	 <44489D58.3090209@linux.intel.com>
-Reply-To: dtor_core@ameritech.net
+From: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
+Subject: Re: Event handler for ACAD
+Date: Fri, 21 Apr 2006 18:19:39 +0400
+Message-ID: <4448E9FB.9010807@linux.intel.com>
+References: <e2agbt$jtd$2@sea.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nz-out-0102.google.com ([64.233.162.195]:45036 "EHLO
-	nz-out-0102.google.com") by vger.kernel.org with ESMTP
-	id S932219AbWDUM4s convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Apr 2006 08:56:48 -0400
-Received: by nz-out-0102.google.com with SMTP id 40so390770nzk
-        for <linux-acpi@vger.kernel.org>; Fri, 21 Apr 2006 05:56:48 -0700 (PDT)
-In-Reply-To: <44489D58.3090209@linux.intel.com>
-Content-Disposition: inline
+Received: from fmr19.intel.com ([134.134.136.18]:22506 "EHLO
+	orsfmr004.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1750876AbWDUOTp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Apr 2006 10:19:45 -0400
+Received: from orsfmr100.jf.intel.com (orsfmr100.jf.intel.com [10.7.209.16])
+	by orsfmr004.jf.intel.com (8.12.10/8.12.10/d: major-outer.mc,v 1.1 2004/09/17 17:50:56 root Exp $) with ESMTP id k3LEJinR015031
+	for <linux-acpi@vger.kernel.org>; Fri, 21 Apr 2006 14:19:44 GMT
+Received: from [10.125.152.230] (aystarik-mobl.ccr.corp.intel.com [10.125.152.230])
+	by orsfmr100.jf.intel.com (8.12.10/8.12.10/d: major-inner.mc,v 1.2 2004/09/17 18:05:01 root Exp $) with ESMTP id k3LEJeiP023862
+	for <linux-acpi@vger.kernel.org>; Fri, 21 Apr 2006 14:19:43 GMT
+In-Reply-To: <e2agbt$jtd$2@sea.gmane.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
-Cc: Xavier Bestel <xavier.bestel@free.fr>, Matthew Garrett <mjg59@srcf.ucam.org>, "Yu, Luming" <luming.yu@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-On 4/21/06, Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>=
- wrote:
-> Xavier Bestel wrote:
-> > Le jeudi 20 avril 2006 =E0 15:30 -0400, Dmitry Torokhov a =E9crit :
-> >> On 4/20/06, Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel=
-=2Ecom> wrote:
-> >>> Xavier Bestel wrote:
-> >>>> There are keyboards with power/sleep buttons. It makes sense the=
-y have
-> >>>> the same behavior than ACPI buttons.
-> >>> Agree, make them behave like ACPI buttons -- remove them from inp=
-ut stream, as they do not belong there...
-> >> What if there is no ACPI? What if I want to remap the button to do
-> >> something else? Input layer is the proper place for them.
-> >
-> > Err .. that's what I meant, sorry I was not clear. Matthew's soluti=
-on
-> > looks right.
-> If there is no ACPI, you don't have ACPI buttons to remap. Remapping =
-power/lid/sleep button is not wise at least, just because you boot once=
- with acpi=3Doff and get unclean shutdown instead of your intended rema=
-pped keystroke.
->
+1. ACPI names are 4 bytes long, so AC will be padded with _.
+2. Your output shows that there is no handler for AC event, do you have ACPI AC driver compiled and loaded?
 
-I can see that with power button but lid/sleep should be fine really.
-And even with power button - "doctor it hurts..."
 
---
-Dmitry
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Andriy Stepanov wrote:
+> Hello!
+> I have a notebook.
+> 
+> System doesn't change energy consumption policy when I unplug ACAD.
+> 
+> # service acpid stop
+> # cat /proc/acpi/event
+> processor CPU0 00000080 00000001   <----- unplug ACAD
+> processor CPU0 00000080 00000000
+> 
+> 
+> No any messages about ACAD.
+> 
+> My dsdt.dsl have two following interesting sections:
+> 1.
+> Device (AC)
+>         {
+>             Name (_HID, "ACPI0003")
+>             Name (_PCL, Package (0x01)
+>             {
+>                 \_SB
+>             })
+>             Method (_PSR, 0, NotSerialized)
+>             {
+>                 If (\_SB.PCI0.EC.ADP)
+>                 {
+>                     Store (0x03, \DBUG)
+>                     Store (Zero, \_PR.CPU0._PPC)
+>                 }
+>                 Else
+>                 {
+>                     Store (0x01, \DBUG)
+>                     Store (0x01, \_PR.CPU0._PPC)
+>                 }
+> 
+>                 Notify (\_PR.CPU0, 0x80)
+>                 If (\_SB.PCI0.EC.ECOK)
+>                 {
+>                     Return (\_SB.PCI0.EC.ADP)
+>                 }
+>             }
+> 
+> 2.
+> Method (_Q16, 0, NotSerialized)
+>                 {
+>                     Notify (\_SB.AC, 0x80)
+>                     If (\_SB.PCI0.EC.ADP)
+>                     {
+>                         Store (0x03, \DBUG)
+>                         Store (Zero, \_PR.CPU0._PPC)
+>                     }
+>                     Else
+>                     {
+>                         Store (0x01, \DBUG)
+>                         Store (0x01, \_PR.CPU0._PPC)
+>                     }
+> 
+>                     Notify (\_PR.CPU0, 0x80)
+>                 }
+> 
+> 
+> 
+> 
+> Method _Q16 always called when I unplug ACAD.
+> 
+> 
+> For instruction: Notify (\_SB.AC, 0x80)
+> ACPI debug subsystem print:
+> 
+> 
+> 
+> <4>  nsdump-0087 [33] ns_print_pathname     : [_SB_.AC__]
+> <4>nssearch-0104 [35] ns_search_node        : Searching \ (c0352bd0) For 
+> [_SB_] (Untyped)
+> <4>nssearch-0138 [35] ns_search_node        : Name [_SB_] (Device) 
+> cbf09ca8 found in scope ["\" ] c0352bd0
+> <4>nssearch-0104 [35] ns_search_node        : Searching \_SB_ (cbf09ca8) 
+> For [AC__] (Untyped)
+> <4>nssearch-0138 [35] ns_search_node        : Name [AC__] (Device) 
+> cbf092e8 found in scope [_SB_] cbf09ca8
+> <4>  psloop-0378 [30] ps_parse_loop         : Opcode 000A [ByteConst] Op 
+> cbba1250 Aml cc809a6a aml_offset 0000B
+> <4> psscope-0228 [31] ps_pop_scope          : Popped Op cbba1218 Args 0
+> <4>  psloop-0793 [30] ps_parse_loop         : Popped scope, Op=cbba1218
+> <4> dsutils-0475 [33] ds_create_operand     : Getting a name: Arg=cbba1234
+> <4> exnames-0276 [34] ex_get_name_string    : root_prefix(\) at cc809a5f
+> <4> exnames-0318 [34] ex_get_name_string    : dual_name_prefix at cc809a60
+> <4> exnames-0175 [35] ex_name_segment       : Bytes from stream:
+> <4> exnames-0181 [35] ex_name_segment       : _
+> <4> exnames-0181 [35] ex_name_segment       : S
+> <4> exnames-0181 [35] ex_name_segment       : B
+> <4> exnames-0181 [35] ex_name_segment       : _
+> <4> exnames-0194 [35] ex_name_segment       : Appended to - \._SB_
+> <4> exnames-0175 [35] ex_name_segment       : Bytes from stream:
+> <4> exnames-0181 [35] ex_name_segment       : A
+> <4> exnames-0181 [35] ex_name_segment       : C
+> <4> exnames-0181 [35] ex_name_segment       : _
+> <4> exnames-0181 [35] ex_name_segment       : _
+> <4> exnames-0194 [35] ex_name_segment       : Appended to - \._SB_AC__
+> <4>nsaccess-0403 [34] ns_lookup             : Path is absolute from root 
+> [c0352bd0]
+> <4>nsaccess-0489 [34] ns_lookup             : Dual Pathname (2 segments, 
+> Flags=3)
+> <4>  nsdump-0087 [34] ns_print_pathname     : [_SB_.AC__]
+> <4>nssearch-0104 [36] ns_search_node        : Searching \ (c0352bd0) For 
+> [_SB_] (Untyped)
+> <4>nssearch-0138 [36] ns_search_node        : Name [_SB_] (Device) 
+> cbf09ca8 found in scope ["\" ] c0352bd0
+> <4>nssearch-0104 [36] ns_search_node        : Searching \_SB_ (cbf09ca8) 
+> For [AC__] (Untyped)
+> <4>nssearch-0138 [36] ns_search_node        : Name [AC__] (Device) 
+> cbf092e8 found in scope [_SB_] cbf09ca8
+> <4>dswstate-0424 [33] ds_obj_stack_push     : Obj=cbf092e8 [Device] 
+> State=c1e6b828 #Ops=1
+> <4> dsutils-0712 [32] ds_create_operands    : Arg #0 (cbba1234) done, 
+> Arg1=cbba1234
+> <4>dswstate-0424 [33] ds_obj_stack_push     : Obj=cbd9bb8c [Integer] 
+> State=c1e6b828 #Ops=2
+> <4> dsutils-0712 [32] ds_create_operands    : Arg #1 (cbba1250) done, 
+> Arg1=cbba1234
+> <4>dswstate-0380 [31] ds_result_stack_pop   : Result=ca92e244 
+> remaining_results=0 State=c1e6b828
+> <4> exresop-0162 [32] ex_resolve_operands   : Opcode 86 [Notify] 
+> required_operand_types=000001A6
+> <4>exresolv-0119 [33] ex_resolve_to_value   : Resolved object cbd9bb8c
+> <4>  exdump-0792 [31] ex_dump_operands      : ************* Operand 
+> Stack Contents (Opcode [Notify], 2 Operands)
+> <4>  exdump-0494 [31] ex_dump_operand       : cbd9bb8c Integer 
+> 0000000000000080
+> <4>  exdump-0474 [31] ex_dump_operand       : cbf092e8 Namespace Node:  
+> 0  AC__ Device       cbf092e8 06
+> <4>  exdump-0806 [31] ex_dump_operands      : ************* Operand 
+> Stack dump from dswexec(426), after ex_resolve_operands
+> <4>  evmisc-0138 [32] ev_queue_notify_reques: Dispatching Notify(80) on 
+> node cbf092e8
+> <4>  evmisc-0146 [32] ev_queue_notify_reques: Notify value: 0x80 
+> **Device Specific**
+> <4>  evmisc-0208 [32] ev_queue_notify_reques: No notify handler for 
+> Notify(AC__, 80) node cbf092e8
+> 
+> 
+> 
+> Why there is string "No notify handler for Notify(AC__, 80) .... ???
+> 
+> Another notify (Notify (\_PR.CPU0, 0x80)) works fine!
+> 
+> Why there is "AC__" not "AC" ?
+> 
+> Thanks!
+> 
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
