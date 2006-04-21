@@ -1,152 +1,55 @@
-From: Andriy Stepanov <stanv@altlinux.ru>
-Subject: Event handler for ACAD
-Date: Fri, 21 Apr 2006 15:35:46 +0400
-Message-ID: <e2agbt$jtd$2@sea.gmane.org>
+From: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
+Subject: Re: [RFC] [PATCH] Make ACPI button driver an input device
+Date: Fri, 21 Apr 2006 08:21:03 -0400
+Message-ID: <d120d5000604210521h2946f4a8k34c43caa47705577@mail.gmail.com>
+References: <554C5F4C5BA7384EB2B412FD46A3BAD13787F2@pdsmsx411.ccr.corp.intel.com>
+Reply-To: dtor_core@ameritech.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:52926 "EHLO ciao.gmane.org")
-	by vger.kernel.org with ESMTP id S1751281AbWDULuZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 21 Apr 2006 07:50:25 -0400
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1FWu9C-0007gU-Fa
-	for linux-acpi@vger.kernel.org; Fri, 21 Apr 2006 13:50:02 +0200
-Received: from rider.balabanovo.ru ([195.112.97.85])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Fri, 21 Apr 2006 13:50:02 +0200
-Received: from stanv by rider.balabanovo.ru with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Fri, 21 Apr 2006 13:50:02 +0200
+Received: from nz-out-0102.google.com ([64.233.162.197]:55381 "EHLO
+	nz-out-0102.google.com") by vger.kernel.org with ESMTP
+	id S932168AbWDUMVE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Apr 2006 08:21:04 -0400
+Received: by nz-out-0102.google.com with SMTP id 40so384553nzk
+        for <linux-acpi@vger.kernel.org>; Fri, 21 Apr 2006 05:21:03 -0700 (PDT)
+In-Reply-To: <554C5F4C5BA7384EB2B412FD46A3BAD13787F2@pdsmsx411.ccr.corp.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Yu, Luming" <luming.yu@intel.com>
+Cc: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>, Xavier Bestel <xavier.bestel@free.fr>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hello!
-I have a notebook.
+On 4/21/06, Yu, Luming <luming.yu@intel.com> wrote:
+> >> > There are keyboards with power/sleep buttons. It makes
+> >sense they have
+> >> > the same behavior than ACPI buttons.
+> >> Agree, make them behave like ACPI buttons -- remove them
+> >from input stream, as they do not belong there...
+> >
+> >What if there is no ACPI? What if I want to remap the button to do
+> >something else? Input layer is the proper place for them.
+>
+> If you define input layer as a universe place to all manual input
+> activity,
 
-System doesn't change energy consumption policy when I unplug ACAD.
+Yes. If something is related to input it should be integrated into input layer.
 
-# service acpid stop
-# cat /proc/acpi/event
-processor CPU0 00000080 00000001   <----- unplug ACAD
-processor CPU0 00000080 00000000
+> then I agree to port some type of ACPI event into
+> input layer.  But it shouldn't be a fake keyboard scancode,
+> My suggestion is to have a separate input event type,e.g. EV_ACPI
+> for acpi event layer.
+>
 
+The point is that it is not a fake scancode. There are keyboards that
+have these keys that don't have anything to do with ACPI. That's why
+they belong to input layer. The same goes for lid switch - we have
+EV_SW that is used by some PDAs.
 
-No any messages about ACAD.
+Note that I am not saying that other ACPI events, like battery status
+or device insertion/removal, should be propagated through input layer.
+But things that exist even without ACPI should not be ACPI-specific.
 
-My dsdt.dsl have two following interesting sections:
-1.
-Device (AC)
-         {
-             Name (_HID, "ACPI0003")
-             Name (_PCL, Package (0x01)
-             {
-                 \_SB
-             })
-             Method (_PSR, 0, NotSerialized)
-             {
-                 If (\_SB.PCI0.EC.ADP)
-                 {
-                     Store (0x03, \DBUG)
-                     Store (Zero, \_PR.CPU0._PPC)
-                 }
-                 Else
-                 {
-                     Store (0x01, \DBUG)
-                     Store (0x01, \_PR.CPU0._PPC)
-                 }
-
-                 Notify (\_PR.CPU0, 0x80)
-                 If (\_SB.PCI0.EC.ECOK)
-                 {
-                     Return (\_SB.PCI0.EC.ADP)
-                 }
-             }
-
-2.
-Method (_Q16, 0, NotSerialized)
-                 {
-                     Notify (\_SB.AC, 0x80)
-                     If (\_SB.PCI0.EC.ADP)
-                     {
-                         Store (0x03, \DBUG)
-                         Store (Zero, \_PR.CPU0._PPC)
-                     }
-                     Else
-                     {
-                         Store (0x01, \DBUG)
-                         Store (0x01, \_PR.CPU0._PPC)
-                     }
-
-                     Notify (\_PR.CPU0, 0x80)
-                 }
-
-
-
-
-Method _Q16 always called when I unplug ACAD.
-
-
-For instruction: Notify (\_SB.AC, 0x80)
-ACPI debug subsystem print:
-
-
-
-<4>  nsdump-0087 [33] ns_print_pathname     : [_SB_.AC__]
-<4>nssearch-0104 [35] ns_search_node        : Searching \ (c0352bd0) For [_SB_] (Untyped)
-<4>nssearch-0138 [35] ns_search_node        : Name [_SB_] (Device) cbf09ca8 found in scope ["\" ] c0352bd0
-<4>nssearch-0104 [35] ns_search_node        : Searching \_SB_ (cbf09ca8) For [AC__] (Untyped)
-<4>nssearch-0138 [35] ns_search_node        : Name [AC__] (Device) cbf092e8 found in scope [_SB_] cbf09ca8
-<4>  psloop-0378 [30] ps_parse_loop         : Opcode 000A [ByteConst] Op cbba1250 Aml cc809a6a aml_offset 0000B
-<4> psscope-0228 [31] ps_pop_scope          : Popped Op cbba1218 Args 0
-<4>  psloop-0793 [30] ps_parse_loop         : Popped scope, Op=cbba1218
-<4> dsutils-0475 [33] ds_create_operand     : Getting a name: Arg=cbba1234
-<4> exnames-0276 [34] ex_get_name_string    : root_prefix(\) at cc809a5f
-<4> exnames-0318 [34] ex_get_name_string    : dual_name_prefix at cc809a60
-<4> exnames-0175 [35] ex_name_segment       : Bytes from stream:
-<4> exnames-0181 [35] ex_name_segment       : _
-<4> exnames-0181 [35] ex_name_segment       : S
-<4> exnames-0181 [35] ex_name_segment       : B
-<4> exnames-0181 [35] ex_name_segment       : _
-<4> exnames-0194 [35] ex_name_segment       : Appended to - \._SB_
-<4> exnames-0175 [35] ex_name_segment       : Bytes from stream:
-<4> exnames-0181 [35] ex_name_segment       : A
-<4> exnames-0181 [35] ex_name_segment       : C
-<4> exnames-0181 [35] ex_name_segment       : _
-<4> exnames-0181 [35] ex_name_segment       : _
-<4> exnames-0194 [35] ex_name_segment       : Appended to - \._SB_AC__
-<4>nsaccess-0403 [34] ns_lookup             : Path is absolute from root [c0352bd0]
-<4>nsaccess-0489 [34] ns_lookup             : Dual Pathname (2 segments, Flags=3)
-<4>  nsdump-0087 [34] ns_print_pathname     : [_SB_.AC__]
-<4>nssearch-0104 [36] ns_search_node        : Searching \ (c0352bd0) For [_SB_] (Untyped)
-<4>nssearch-0138 [36] ns_search_node        : Name [_SB_] (Device) cbf09ca8 found in scope ["\" ] c0352bd0
-<4>nssearch-0104 [36] ns_search_node        : Searching \_SB_ (cbf09ca8) For [AC__] (Untyped)
-<4>nssearch-0138 [36] ns_search_node        : Name [AC__] (Device) cbf092e8 found in scope [_SB_] cbf09ca8
-<4>dswstate-0424 [33] ds_obj_stack_push     : Obj=cbf092e8 [Device] State=c1e6b828 #Ops=1
-<4> dsutils-0712 [32] ds_create_operands    : Arg #0 (cbba1234) done, Arg1=cbba1234
-<4>dswstate-0424 [33] ds_obj_stack_push     : Obj=cbd9bb8c [Integer] State=c1e6b828 #Ops=2
-<4> dsutils-0712 [32] ds_create_operands    : Arg #1 (cbba1250) done, Arg1=cbba1234
-<4>dswstate-0380 [31] ds_result_stack_pop   : Result=ca92e244 remaining_results=0 State=c1e6b828
-<4> exresop-0162 [32] ex_resolve_operands   : Opcode 86 [Notify] required_operand_types=000001A6
-<4>exresolv-0119 [33] ex_resolve_to_value   : Resolved object cbd9bb8c
-<4>  exdump-0792 [31] ex_dump_operands      : ************* Operand Stack Contents (Opcode [Notify], 2 Operands)
-<4>  exdump-0494 [31] ex_dump_operand       : cbd9bb8c Integer 0000000000000080
-<4>  exdump-0474 [31] ex_dump_operand       : cbf092e8 Namespace Node:  0  AC__ Device       cbf092e8 06
-<4>  exdump-0806 [31] ex_dump_operands      : ************* Operand Stack dump from dswexec(426), after ex_resolve_operands
-<4>  evmisc-0138 [32] ev_queue_notify_reques: Dispatching Notify(80) on node cbf092e8
-<4>  evmisc-0146 [32] ev_queue_notify_reques: Notify value: 0x80 **Device Specific**
-<4>  evmisc-0208 [32] ev_queue_notify_reques: No notify handler for Notify(AC__, 80) node cbf092e8
-
-
-
-Why there is string "No notify handler for Notify(AC__, 80) .... ???
-
-Another notify (Notify (\_PR.CPU0, 0x80)) works fine!
-
-Why there is "AC__" not "AC" ?
-
-Thanks!
-
+--
+Dmitry
