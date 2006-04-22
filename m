@@ -1,40 +1,35 @@
-From: Johan Vromans <jvromans@squirrel.nl>
-Subject: Re: Was: Re: UBUNTU - acpi battery on ACER TRAVELMATE 4000 WLMI
-Date: Sat, 22 Apr 2006 22:53:02 +0200
-Message-ID: <m27j5h49jl.fsf@phoenix.squirrel.nl>
-References: <F7DC2337C7631D4386A2DF6E8FB22B3005D98454@hdsmsx401.amr.corp.intel.com>
-	<m21wytlwv3.fsf@phoenix.squirrel.nl>
-	<4446C84B.7020104@rrz.uni-koeln.de>
-	<m2vet41q9n.fsf@phoenix.squirrel.nl>
-	<20060420113231.GA27965@srcf.ucam.org>
+From: David Weinehall <tao@acc.umu.se>
+Subject: Re: [RFC] [PATCH] Make ACPI button driver an input device
+Date: Sat, 22 Apr 2006 22:59:32 +0200
+Message-ID: <20060422205932.GW23222@vasa.acc.umu.se>
+References: <554C5F4C5BA7384EB2B412FD46A3BAD1332980@pdsmsx411.ccr.corp.intel.com> <20060420073713.GA25735@srcf.ucam.org> <4447AA59.8010300@linux.intel.com> <20060420153848.GA29726@srcf.ucam.org> <4447AF4D.7030507@linux.intel.com> <1145549460.23837.156.camel@capoeira> <4447B7D6.4030401@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:38666 "EHLO
-	smtp-vbr6.xs4all.nl") by vger.kernel.org with ESMTP
-	id S1751172AbWDVUxF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 22 Apr 2006 16:53:05 -0400
-In-Reply-To: <20060420113231.GA27965@srcf.ucam.org> (Matthew Garrett's
- message of "Thu, 20 Apr 2006 12:32:31 +0100")
+Received: from mail.acc.umu.se ([130.239.18.156]:9180 "EHLO mail.acc.umu.se")
+	by vger.kernel.org with ESMTP id S1751195AbWDVU7f (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 22 Apr 2006 16:59:35 -0400
+Content-Disposition: inline
+In-Reply-To: <4447B7D6.4030401@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
+Cc: Xavier Bestel <xavier.bestel@free.fr>, Matthew Garrett <mjg59@srcf.ucam.org>, "Yu, Luming" <luming.yu@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Matthew Garrett <mjg59@srcf.ucam.org> writes:
+On Thu, Apr 20, 2006 at 08:33:26PM +0400, Alexey Starikovskiy wrote:
+> Xavier Bestel wrote:
+> >There are keyboards with power/sleep buttons. It makes sense they have
+> >the same behavior than ACPI buttons.
+> Agree, make them behave like ACPI buttons -- remove them from input stream, 
+> as they do not belong there...
 
-> On Thu, Apr 20, 2006 at 12:43:16PM +0200, Johan Vromans wrote:
->> Berthold Cogel <cogel@rrz.uni-koeln.de> writes:
->> 
->> > What is the recommended way to solve the problem with the smart
->> > battery for newer kernels?
->> 
->> The right solution is hal, but I don't know whether it has been picked
->> up yet.
->
-> No. There needs to be a kernel driver, regardless of how it provides 
-> information. 
+It's far more sane to have them as normal keys; you might want to remap
+them to do something else than to suspend your machine, for instance.
 
-Isn't that exactly what Rich Townsend's acpi_sbs implements?
 
--- Johan
+Regards: David
+-- 
+ /) David Weinehall <tao@acc.umu.se> /) Northern lights wander      (\
+//  Maintainer of the v2.0 kernel   //  Dance across the winter sky //
+\)  http://www.acc.umu.se/~tao/    (/   Full colour fire           (/
