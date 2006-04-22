@@ -1,52 +1,40 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [RFC] [PATCH] Make ACPI button driver an input device
-Date: Thu, 20 Apr 2006 22:10:06 +0000
-Message-ID: <20060420221006.GG2352@ucw.cz>
-References: <554C5F4C5BA7384EB2B412FD46A3BAD1332980@pdsmsx411.ccr.corp.intel.com> <20060420073713.GA25735@srcf.ucam.org> <4447AA59.8010300@linux.intel.com> <20060420153848.GA29726@srcf.ucam.org> <4447AF4D.7030507@linux.intel.com> <20060420161546.GB30021@srcf.ucam.org> <4447B692.3000704@linux.intel.com> <20060420163222.GA30197@srcf.ucam.org> <4447B850.7090108@linux.intel.com>
+From: Johan Vromans <jvromans@squirrel.nl>
+Subject: Re: Was: Re: UBUNTU - acpi battery on ACER TRAVELMATE 4000 WLMI
+Date: Sat, 22 Apr 2006 22:53:02 +0200
+Message-ID: <m27j5h49jl.fsf@phoenix.squirrel.nl>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3005D98454@hdsmsx401.amr.corp.intel.com>
+	<m21wytlwv3.fsf@phoenix.squirrel.nl>
+	<4446C84B.7020104@rrz.uni-koeln.de>
+	<m2vet41q9n.fsf@phoenix.squirrel.nl>
+	<20060420113231.GA27965@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:60937 "EHLO
-	spitz.ucw.cz") by vger.kernel.org with ESMTP id S1751079AbWDVT2B
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 22 Apr 2006 15:28:01 -0400
-Content-Disposition: inline
-In-Reply-To: <4447B850.7090108@linux.intel.com>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:38666 "EHLO
+	smtp-vbr6.xs4all.nl") by vger.kernel.org with ESMTP
+	id S1751172AbWDVUxF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 22 Apr 2006 16:53:05 -0400
+In-Reply-To: <20060420113231.GA27965@srcf.ucam.org> (Matthew Garrett's
+ message of "Thu, 20 Apr 2006 12:32:31 +0100")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "Yu, Luming" <luming.yu@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org
 
+Matthew Garrett <mjg59@srcf.ucam.org> writes:
 
-On Thu 20-04-06 20:35:28, Alexey Starikovskiy wrote:
-> Matthew Garrett wrote:
-> >On Thu, Apr 20, 2006 at 08:28:02PM +0400, Alexey 
-> >Starikovskiy wrote:
-> >
-> >>I don't quite understand your point... You want all 
-> >>buttons/switches in a computer to send events to input 
-> >>layer, regardless if this make sense or not, just to be 
-> >>consistent? May be you should go other way around and  
-> >>if keyboard has some strange key, send it on its 
-> >>strange way? 
-> >
-> >There's a reason that KEY_POWER and KEY_SLEEP are 
-> >already present in /usr/include/linux/input.h. It makes 
-> >sense to expose keys that are on my keyboard in the same 
-> >way as other keys on my keyboard. Just think of the ACPI 
-> >events interface as a bus that a small keyboard with not 
-> >many keys sits on.
-> >
-> >>From the userspace point of view, it's *far* easier to 
-> >>deal with this 
-> >stuff if the keys generate keycodes.
-> Lid is a _switch_ with state, how many keys on keyboard 
-> have same behavior? Do you want to introduce special case 
-> just for that?
+> On Thu, Apr 20, 2006 at 12:43:16PM +0200, Johan Vromans wrote:
+>> Berthold Cogel <cogel@rrz.uni-koeln.de> writes:
+>> 
+>> > What is the recommended way to solve the problem with the smart
+>> > battery for newer kernels?
+>> 
+>> The right solution is hal, but I don't know whether it has been picked
+>> up yet.
+>
+> No. There needs to be a kernel driver, regardless of how it provides 
+> information. 
 
-It is already there. Handhelds have lid switches controlled by input.
-Old capslock keys (around XT era) actually worked like that, too.
-(And input was actually _designed_ to handle them).
-						Pavel
--- 
-Thanks, Sharp!
+Isn't that exactly what Rich Townsend's acpi_sbs implements?
+
+-- Johan
