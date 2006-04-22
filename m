@@ -1,115 +1,78 @@
-From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
-Subject: RE: how to back from suspend without shutdown
-Date: Sat, 22 Apr 2006 00:06:11 +0100
-Message-ID: <1145660771.4129.14.camel@localhost.portugal>
-References: <554C5F4C5BA7384EB2B412FD46A3BAD11206C7@pdsmsx411.ccr.corp.intel.com>
-Reply-To: sergio@sergiomb.no-ip.orgcpi_during_suspend_resume
+From: Berthold Cogel <cogel@rrz.uni-koeln.de>
+Subject: Re: Was: Re: UBUNTU - acpi battery on ACER TRAVELMATE 4000 WLMI
+Date: Sat, 22 Apr 2006 20:02:45 +0200
+Message-ID: <444A6FC5.7050705@rrz.uni-koeln.de>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3005D98454@hdsmsx401.amr.corp.intel.com>	<m21wytlwv3.fsf@phoenix.squirrel.nl>	<4446C84B.7020104@rrz.uni-koeln.de>	<m2vet41q9n.fsf@phoenix.squirrel.nl>	<44480F0B.5020106@rrz.uni-koeln.de> <m2k69ji8c2.fsf@phoenix.squirrel.nl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-y66YWXVdAA2N+XCvXbhV"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.netcabo.pt ([212.113.174.29]:19726 "EHLO
-	exch01smtp09.hdi.tvcabo") by vger.kernel.org with ESMTP
-	id S932491AbWDUW0x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 21 Apr 2006 18:26:53 -0400
-In-Reply-To: <554C5F4C5BA7384EB2B412FD46A3BAD11206C7@pdsmsx411.ccr.corp.intel.com>
+Received: from smtp-out.rrz.uni-koeln.de ([134.95.19.53]:17563 "EHLO
+	smtp-out.rrz.uni-koeln.de") by vger.kernel.org with ESMTP
+	id S1750782AbWDVSCr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 22 Apr 2006 14:02:47 -0400
+In-Reply-To: <m2k69ji8c2.fsf@phoenix.squirrel.nl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Yu, Luming" <luming.yu@intel.com>
-Cc: acpi devel <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: Johan Vromans <jvromans@squirrel.nl>
+
+Johan Vromans wrote:
+> Berthold Cogel <cogel@rrz.uni-koeln.de> writes:
+> 
+>> Johan Vromans wrote:
+>>> https://sourceforge.net/project/showfiles.php?group_id=129330
+>> Thanks! I've overlooked the patches at Sourceforge.
+>> Is there any chance to get the patch into the kernel somehow?
+> 
+> There are two patches required. One patch is to allow a
+> custom-supplied DSDT in initrd. This is a harmless patch that would be
+> very nice to have in the kernel, and the feature could even be enabled
+> by default[1]. Several distro's already do this.
+
+I would appreciate this. I'm using this patch for my kernels. But there
+seems to be a problem with the latest ACPI patches with at least kernel
+2.6.16.9, which I tried yesterday.
+
+linux-2.6.16.9
+acpi-release-20060310-2.6.16.diff
+acpi-dsdt-initrd-v0.8.1-2.6.16.patch
 
 
---=-y66YWXVdAA2N+XCvXbhV
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+make bzImage
 
-On Wed, 2006-04-19 at 21:59 +0800, Yu, Luming wrote:
-> >Hi everybody,
-> >I have a new laptop one HP Compaq NX6110 , that works quite well with
-> >suspend and hibernation.
-> >
-> >But after suspend , how I bring back computer ?, the only key that I
-> >know is power button, but after press power button and laptop wake-up,
-> >Begins the shutdown process because is triggered the power button
-> >shutdown .
-> >any ideas ?
->=20
-> Maybe you need to write a patch:
->=20
-> acpi_button_notify:
-> 	if(acpi_during_suspend_resume)
-> 		don't generate power button event to confuse user space
-> daemon,
-I agree 100% , just  more simply  and more specific=20
-acpi_button_notify:
-	if (acpi_during_suspend_resume && power_button_event)
-		don't generate event to confuse user space daemon=20
+....
 
->=20
-> for acpi_during_suspend_ruesme definition please search title=20
-> "Power-button event after resume from S3" in acpi ML archive.
->=20
-so the patch is this
-http://marc.theaimsgroup.com/?l=3Dlinux-acpi&m=3D114472292910442&w=3D2
+  LD      init/built-in.o
+  LD      .tmp_vmlinux1
+drivers/built-in.o: In function `acpi_find_dsdt_initrd':
+(.text+0x2526d): undefined reference to `ACPI_MEM_ALLOCATE'
+drivers/built-in.o: In function `acpi_find_dsdt_initrd':
+(.text+0x252c8): undefined reference to `ACPI_MEM_FREE'
+drivers/built-in.o: In function `acpi_tb_get_table_body':
+(.text+0x3772e): undefined reference to `ACPI_MEM_FREE'
+make: *** [.tmp_vmlinux1] Fehler 1
 
-I don't agree with not sending other events than power_button_event.=20
+Building the kernel with the ACPI patches or with the initrd patch
+works. But the combination .....
 
-On my point of view, the perfect way, is have user space daemon
-receiving all events after suspend less the power_button_event, because
-this one was used to make machine wake up, simply like that.
+Seems that something has been changed in the ACPI patches.
 
 
-Thanks,
+> But the best solution would be to have a kernel module that deals with
+> this kind of smart batttery subsystems, and provide the correct
+> information for userland (hal?) to react upon. This is basically the
+> original approach taken by Pedro Venda, Bruno Ducrot and completed for
+> 2.6.10 (or so) by Rich Townsend[2]. Unfortunately, recent changes to
 
-> Thanks,
-> Luming
---=20
-S=E9rgio M. B.
+This was what I used in the first time with kernel 2.6.11 when I got my
+notebook.
 
---=-y66YWXVdAA2N+XCvXbhV
-Content-Type: application/x-pkcs7-signature; name=smime.p7s
-Content-Disposition: attachment; filename=smime.p7s
-Content-Transfer-Encoding: base64
+> the i2c drivers conflict with the changes required for this approach,
+> and I haven't been able to find out how to modify the patches for the
+> 2.6.16 kernel. (Help appreciated.)
 
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGSTCCAwIw
-ggJroAMCAQICAw/vkjANBgkqhkiG9w0BAQQFADBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhh
-d3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVt
-YWlsIElzc3VpbmcgQ0EwHhcNMDUxMTI4MjIyODU2WhcNMDYxMTI4MjIyODU2WjBLMR8wHQYDVQQD
-ExZUaGF3dGUgRnJlZW1haWwgTWVtYmVyMSgwJgYJKoZIhvcNAQkBFhlzZXJnaW9Ac2VyZ2lvbWIu
-bm8taXAub3JnMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApCNuKD3pz8GRKd1q+36r
-m0z7z+TBsbTrVa45UQsEeh9OQGZIASJMH5erC0u6KbKJ+km97RLOdsgSlKG6+5xuzsk+aqU7A0Gp
-kMjzIJT7UH/bbPnIFMQNnWJxluuYq1u+v8iIbfezQy1+SXyAyBv+OC7LnCOiOar/L9AD9zDy2fPX
-EqEDlbO3CJsoaR4Va8sgtoV0NmKnAt7DA0iZ2dmlsw6Qh+4euI+FgZ2WHPBQnfJ7PfSH5GIWl/Nx
-eUqnYpDaJafk/l94nX71UifdPXDMxJJlEOGqV9l4omhNlPmsZ/zrGXgLdBv9JuPjJ9mxhgwZsZbz
-VBc8emB0i3A7E6D6rwIDAQABo1kwVzAOBgNVHQ8BAf8EBAMCBJAwEQYJYIZIAYb4QgEBBAQDAgUg
-MCQGA1UdEQQdMBuBGXNlcmdpb0BzZXJnaW9tYi5uby1pcC5vcmcwDAYDVR0TAQH/BAIwADANBgkq
-hkiG9w0BAQQFAAOBgQBIVheRn3oHTU5rgIFHcBRxkIhOYPQHKk/oX4KakCrDCxp33XAqTG3aIG/v
-dsUT/OuFm5w0GlrUTrPaKYYxxfQ00+3d8y87aX22sUdj8oXJRYiPgQiE6lqu9no8axH6UXCCbKTi
-8383JcxReoXyuP000eUggq3tWr6fE/QmONUARzCCAz8wggKooAMCAQICAQ0wDQYJKoZIhvcNAQEF
-BQAwgdExCzAJBgNVBAYTAlpBMRUwEwYDVQQIEwxXZXN0ZXJuIENhcGUxEjAQBgNVBAcTCUNhcGUg
-VG93bjEaMBgGA1UEChMRVGhhd3RlIENvbnN1bHRpbmcxKDAmBgNVBAsTH0NlcnRpZmljYXRpb24g
-U2VydmljZXMgRGl2aXNpb24xJDAiBgNVBAMTG1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBDQTEr
-MCkGCSqGSIb3DQEJARYccGVyc29uYWwtZnJlZW1haWxAdGhhd3RlLmNvbTAeFw0wMzA3MTcwMDAw
-MDBaFw0xMzA3MTYyMzU5NTlaMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3Vs
-dGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWlu
-ZyBDQTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAxKY8VXNV+065yplaHmjAdQRwnd/p/6Me
-7L3N9VvyGna9fww6YfK/Uc4B1OVQCjDXAmNaLIkVcI7dyfArhVqqP3FWy688Cwfn8R+RNiQqE88r
-1fOCdz0Dviv+uxg+B79AgAJk16emu59l0cUqVIUPSAR/p7bRPGEEQB5kGXJgt/sCAwEAAaOBlDCB
-kTASBgNVHRMBAf8ECDAGAQH/AgEAMEMGA1UdHwQ8MDowOKA2oDSGMmh0dHA6Ly9jcmwudGhhd3Rl
-LmNvbS9UaGF3dGVQZXJzb25hbEZyZWVtYWlsQ0EuY3JsMAsGA1UdDwQEAwIBBjApBgNVHREEIjAg
-pB4wHDEaMBgGA1UEAxMRUHJpdmF0ZUxhYmVsMi0xMzgwDQYJKoZIhvcNAQEFBQADgYEASIzRUIPq
-Cy7MDaNmrGcPf6+svsIXoUOWlJ1/TCG4+DYfqi2fNi/A9BxQIJNwPP2t4WFiw9k6GX6EsZkbAMUa
-C4J0niVQlGLH2ydxVyWN3amcOY6MIE9lX5Xa9/eH1sYITq726jTlEBpbNU1341YheILcIRk13iSx
-0x1G/11fZU8xggHvMIIB6wIBATBpMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29u
-c3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNz
-dWluZyBDQQIDD++SMAkGBSsOAwIaBQCgXTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqG
-SIb3DQEJBTEPFw0wNjA0MjEyMzA2MDdaMCMGCSqGSIb3DQEJBDEWBBQJOzBB2iY8D6ztJvSPBSzO
-p8tL4DANBgkqhkiG9w0BAQEFAASCAQAmxGmqNcl1IZXidXDzYueGKR99PvVBJqsYHhSW9zGYZIWk
-qYkopTExal2Ip7F8snWTj8a9L2FrXbdBan1W3xYYJM4Gsi8WhayRsbkpdReI/MnWjPpxuOhDL+t2
-qBqCBPqliqGUd5cTsnyk8bS9o5cyOIPxX+SKt4AxgDawbnSugfDXauc2GxDn5iBA9y3L8iIWbU+8
-DvYyXeXzU/8EGOTxrEGu7pdkdvdoq0rOAHXSDB3jphNUNRdBChfm2AQzDKnEMubId3H2KQcEm99T
-PtytRjVBTzeqAfC+p+I0GNXI9HOPryAJQ1Tmh0TF73bUZWSSUPKMm1iK94hvW3zANbhmAAAAAAAA
+I haven't been much of a software developer myself and my C is rusty. I
+read LKML just out of curiosity. But I'm willing to do the testing part.
 
-
-
---=-y66YWXVdAA2N+XCvXbhV--
-
+Berthold
