@@ -1,95 +1,266 @@
-From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
-Subject: Re: [git Patch 1/1] avoid IRQ0 ioapic pin collision
-Date: Sun, 23 Apr 2006 06:02:24 +0100
-Message-ID: <1145768544.2858.8.camel@localhost.portugal>
-References: <20060420230931.10317.38083.sendpatchset@dhcp83-97.boston.redhat.com>
-Reply-To: sergio@sergiomb.no-ip.org
+From: "Roger Lucas" <roger@planbit.co.uk>
+Subject: LG-81 kernel fault in ACPI when over-temperature
+Date: Sun, 23 Apr 2006 17:28:43 +0100
+Message-ID: <20060423162841.A3B3512ED4@bluewhale.planbit.co.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-rBq9qIkagZvS0K14JEog"
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp4.netcabo.pt ([212.113.174.31]:58979 "EHLO
-	exch01smtp11.hdi.tvcabo") by vger.kernel.org with ESMTP
-	id S1751215AbWDWE75 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 23 Apr 2006 00:59:57 -0400
-In-Reply-To: <20060420230931.10317.38083.sendpatchset@dhcp83-97.boston.redhat.com>
+Received: from 82-71-36-240.dsl.in-addr.zen.co.uk ([82.71.36.240]:61824 "EHLO
+	bluewhale.planbit.co.uk") by vger.kernel.org with ESMTP
+	id S1751423AbWDWQ2o (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 23 Apr 2006 12:28:44 -0400
+Received: from wolverine (unknown [192.168.1.125])
+	by bluewhale.planbit.co.uk (Postfix) with ESMTP id A3B3512ED4
+	for <linux-acpi@vger.kernel.org>; Sun, 23 Apr 2006 17:28:41 +0100 (BST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kimball Murray <kimball.murray@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+
+All,
+
+I am setting up an Abit LG-81 motherboard with a 2.8GHz Inter Celeron CPU.
+The motherboard uses the W83627EHG sensors chip for fan, voltage and thermal
+monitoring.
+
+I have download, compiled and installed the latest 2.6.16.9 kernel from
+kernel.org and all seemed to be OK.  I could read the sensors information
+from the W83627EHG chip using the lm-sensors system with its W83627EHF
+driver (which is compatible, the 'EHG is just a lead-free variant) and the
+"sensors" utility.
+
+The current temperatures on the board are:
+	SYS	31C
+	CPU	48C
+	PSU	43C
+
+All seems fine.  I then tweaked the sensors.conf file to change the fan
+limts and temperature limits to check the alarms would get set correctly.
+When I artifically created a CPU over-temperature condition by setting the
+CPU high temperature threshold at just 40C, two things happended.  Firstly,
+I got a kernel dump for one of the ACPI processes.  Secondly, the machine
+ran unbelievably slowly until I changed the CPU high temperature limit back
+to a more reasonable 65C.
+
+The kernel dump is below:
+
+Pid: 9, comm:               kacpid
+EIP: 0060:[<c02351c9>] CPU: 0
+EIP is at acpi_ps_parse_loop+0x3b5/0x8c0
+ EFLAGS: 00000283    Not tainted  (2.6.16.9.rwl4rwl #1)
+EAX: 00000000 EBX: de5ed000 ECX: dd0ac330 EDX: c0226a73
+ESI: de5ed1ec EDI: 00000000 EBP: e000c7a7 DS: 007b ES: 007b
+CR0: 8005003b CR2: 080ee808 CR3: 1f4bf000 CR4: 000006d0
+ [<c0234c6d>] acpi_ps_parse_aml+0x4e/0x1f5
+ [<c0235cec>] acpi_ps_execute_pass+0x72/0x86
+ [<c0235c12>] acpi_ps_execute_method+0x54/0x7e
+ [<c0233100>] acpi_ns_execute_control_method+0x56/0x63
+ [<c0233096>] acpi_ns_evaluate_by_handle+0x74/0x88
+ [<c0232f95>] acpi_ns_evaluate_relative+0xa9/0xc5
+ [<c0232865>] acpi_evaluate_object+0x139/0x1fc
+ [<c02252fc>] acpi_os_release_object+0xd/0x12
+ [<c023b1df>] acpi_ut_acquire_mutex+0x2e/0x67
+ [<c0225643>] acpi_evaluate_integer+0x6b/0x93
+ [<e0033025>] acpi_thermal_get_temperature+0x25/0x36 [thermal]
+ [<e003360c>] acpi_thermal_check+0x21/0x232 [thermal]
+ [<e0034050>] acpi_thermal_notify+0x47/0x93 [thermal]
+ [<c0229b51>] acpi_ev_notify_dispatch+0x57/0x64
+ [<c022506b>] acpi_os_execute_deferred+0xe/0x1b
+ [<c0125c3f>] run_workqueue+0x5f/0xc0
+ [<c022505d>] acpi_os_execute_deferred+0x0/0x1b
+ [<c0125dc9>] worker_thread+0x129/0x150
+ [<c01152a0>] default_wake_function+0x0/0x20
+ [<c01152a0>] default_wake_function+0x0/0x20
+ [<c0125ca0>] worker_thread+0x0/0x150
+ [<c0128a67>] kthread+0xa7/0xb0
+ [<c01289c0>] kthread+0x0/0xb0
+ [<c010133d>] kernel_thread_helper+0x5/0x18
+BUG: soft lockup detected on CPU#0!
+
+Pid: 9, comm:               kacpid
+EIP: 0060:[<c0226e8f>] CPU: 0
+EIP is at acpi_ds_exec_end_op+0x303/0x370
+ EFLAGS: 00000246    Not tainted  (2.6.16.9.rwl4rwl #1)
+EAX: c0352ce0 EBX: 00000000 ECX: 00000000 EDX: 00000002
+ESI: de5ed000 EDI: dd0ac330 EBP: 0000000d DS: 007b ES: 007b
+CR0: 8005003b CR2: 08110188 CR3: 1e165000 CR4: 000006d0
+ [<c02353c7>] acpi_ps_parse_loop+0x5b3/0x8c0
+ [<c0234c6d>] acpi_ps_parse_aml+0x4e/0x1f5
+ [<c0235cec>] acpi_ps_execute_pass+0x72/0x86
+ [<c0235c12>] acpi_ps_execute_method+0x54/0x7e
+ [<c0233100>] acpi_ns_execute_control_method+0x56/0x63
+ [<c0233096>] acpi_ns_evaluate_by_handle+0x74/0x88
+ [<c0232f95>] acpi_ns_evaluate_relative+0xa9/0xc5
+ [<c0232865>] acpi_evaluate_object+0x139/0x1fc
+ [<c0225643>] acpi_evaluate_integer+0x6b/0x93
+ [<e0033025>] acpi_thermal_get_temperature+0x25/0x36 [thermal]
+ [<e003360c>] acpi_thermal_check+0x21/0x232 [thermal]
+ [<e0034050>] acpi_thermal_notify+0x47/0x93 [thermal]
+ [<c0229b51>] acpi_ev_notify_dispatch+0x57/0x64
+ [<c022506b>] acpi_os_execute_deferred+0xe/0x1b
+ [<c0125c3f>] run_workqueue+0x5f/0xc0
+ [<c022505d>] acpi_os_execute_deferred+0x0/0x1b
+ [<c0125dc9>] worker_thread+0x129/0x150
+ [<c01152a0>] default_wake_function+0x0/0x20
+ [<c01152a0>] default_wake_function+0x0/0x20
+ [<c0125ca0>] worker_thread+0x0/0x150
+ [<c0128a67>] kthread+0xa7/0xb0
+ [<c01289c0>] kthread+0x0/0xb0
+ [<c010133d>] kernel_thread_helper+0x5/0x18
+BUG: soft lockup detected on CPU#0!
+
+Pid: 9, comm:               kacpid
+EIP: 0060:[<c0224d5c>] CPU: 0
+EIP is at acpi_os_write_port+0x22/0x30
+ EFLAGS: 00000246    Not tainted  (2.6.16.9.rwl4rwl #1)
+EAX: 00000000 EBX: 00000008 ECX: 00000008 EDX: 00000296
+ESI: df609c78 EDI: c147031c EBP: c14702f4 DS: 007b ES: 007b
+CR0: 8005003b CR2: b7efde20 CR3: 1c873000 CR4: 000006d0
+ [<c02300c5>] acpi_ex_system_io_space_handler+0x40/0x4e
+ [<c0230085>] acpi_ex_system_io_space_handler+0x0/0x4e
+ [<c0230085>] acpi_ex_system_io_space_handler+0x0/0x4e
+ [<c0229126>] acpi_ev_address_space_dispatch+0x15a/0x1a2
+ [<c022d088>] acpi_ex_access_region+0x4b/0xad
+ [<c022d22a>] acpi_ex_field_datum_io+0x107/0x18f
+ [<c022d3b0>] acpi_ex_write_with_update_rule+0xfe/0x109
+ [<c022d871>] acpi_ex_insert_into_field+0x283/0x28e
+ [<c022be5a>] acpi_ex_write_data_to_field+0x1d7/0x1fd
+ [<c02304b3>] acpi_ex_store_object_to_node+0x6a/0xa7
+ [<c0230235>] acpi_ex_store+0x4a/0x132
+ [<c022de94>] acpi_ex_opcode_1A_1T_1R+0x4c8/0x651
+ [<c022e9e7>] acpi_ex_resolve_operands+0x26b/0x4c0
+ [<c0226c48>] acpi_ds_exec_end_op+0xbc/0x370
+ [<c02353c7>] acpi_ps_parse_loop+0x5b3/0x8c0
+ [<c0234c6d>] acpi_ps_parse_aml+0x4e/0x1f5
+ [<c0235cec>] acpi_ps_execute_pass+0x72/0x86
+ [<c0235c12>] acpi_ps_execute_method+0x54/0x7e
+ [<c0233100>] acpi_ns_execute_control_method+0x56/0x63
+ [<c0233096>] acpi_ns_evaluate_by_handle+0x74/0x88
+ [<c0232f95>] acpi_ns_evaluate_relative+0xa9/0xc5
+ [<c0232865>] acpi_evaluate_object+0x139/0x1fc
+ [<c0103d7a>] common_interrupt+0x1a/0x20
+ [<c0225643>] acpi_evaluate_integer+0x6b/0x93
+ [<e0033025>] acpi_thermal_get_temperature+0x25/0x36 [thermal]
+ [<e003360c>] acpi_thermal_check+0x21/0x232 [thermal]
+ [<e0034050>] acpi_thermal_notify+0x47/0x93 [thermal]
+ [<c0229b51>] acpi_ev_notify_dispatch+0x57/0x64
+ [<c022506b>] acpi_os_execute_deferred+0xe/0x1b
+ [<c0125c3f>] run_workqueue+0x5f/0xc0
+ [<c022505d>] acpi_os_execute_deferred+0x0/0x1b
+ [<c0125dc9>] worker_thread+0x129/0x150
+ [<c01152a0>] default_wake_function+0x0/0x20
+ [<c01152a0>] default_wake_function+0x0/0x20
+ [<c0125ca0>] worker_thread+0x0/0x150
+ [<c0128a67>] kthread+0xa7/0xb0
+ [<c01289c0>] kthread+0x0/0xb0
+ [<c010133d>] kernel_thread_helper+0x5/0x18
+BUG: soft lockup detected on CPU#0!
+
+Pid: 9, comm:               kacpid
+EIP: 0060:[<c0224d5c>] CPU: 0
+EIP is at acpi_os_write_port+0x22/0x30
+ EFLAGS: 00000246    Not tainted  (2.6.16.9.rwl4rwl #1)
+EAX: 0000004e EBX: 00000008 ECX: 00000008 EDX: 00000295
+ESI: df609c78 EDI: c147031c EBP: c14702f4 DS: 007b ES: 007b
+CR0: 8005003b CR2: b7f17cc0 CR3: 1c873000 CR4: 000006d0
+ [<c02300c5>] acpi_ex_system_io_space_handler+0x40/0x4e
+ [<c0230085>] acpi_ex_system_io_space_handler+0x0/0x4e
+ [<c0230085>] acpi_ex_system_io_space_handler+0x0/0x4e
+ [<c0229126>] acpi_ev_address_space_dispatch+0x15a/0x1a2
+ [<c022d088>] acpi_ex_access_region+0x4b/0xad
+ [<c022d22a>] acpi_ex_field_datum_io+0x107/0x18f
+ [<c022d3b0>] acpi_ex_write_with_update_rule+0xfe/0x109
+ [<c022d871>] acpi_ex_insert_into_field+0x283/0x28e
+ [<c022be5a>] acpi_ex_write_data_to_field+0x1d7/0x1fd
+ [<c02304b3>] acpi_ex_store_object_to_node+0x6a/0xa7
+ [<c0230235>] acpi_ex_store+0x4a/0x132
+ [<c022de94>] acpi_ex_opcode_1A_1T_1R+0x4c8/0x651
+ [<c022e9e7>] acpi_ex_resolve_operands+0x26b/0x4c0
+ [<c0226c48>] acpi_ds_exec_end_op+0xbc/0x370
+ [<c02353c7>] acpi_ps_parse_loop+0x5b3/0x8c0
+ [<c0234c6d>] acpi_ps_parse_aml+0x4e/0x1f5
+ [<c0235cec>] acpi_ps_execute_pass+0x72/0x86
+ [<c0235c12>] acpi_ps_execute_method+0x54/0x7e
+ [<c0233100>] acpi_ns_execute_control_method+0x56/0x63
+ [<c0233096>] acpi_ns_evaluate_by_handle+0x74/0x88
+ [<c0232f95>] acpi_ns_evaluate_relative+0xa9/0xc5
+ [<c0232865>] acpi_evaluate_object+0x139/0x1fc
+ [<c02252fc>] acpi_os_release_object+0xd/0x12
+ [<c023b1df>] acpi_ut_acquire_mutex+0x2e/0x67
+ [<c0225643>] acpi_evaluate_integer+0x6b/0x93
+ [<e0033025>] acpi_thermal_get_temperature+0x25/0x36 [thermal]
+ [<e003360c>] acpi_thermal_check+0x21/0x232 [thermal]
+ [<e0034050>] acpi_thermal_notify+0x47/0x93 [thermal]
+ [<c0229b51>] acpi_ev_notify_dispatch+0x57/0x64
+ [<c022506b>] acpi_os_execute_deferred+0xe/0x1b
+ [<c0125c3f>] run_workqueue+0x5f/0xc0
+ [<c022505d>] acpi_os_execute_deferred+0x0/0x1b
+ [<c0125dc9>] worker_thread+0x129/0x150
+ [<c01152a0>] default_wake_function+0x0/0x20
+ [<c01152a0>] default_wake_function+0x0/0x20
+ [<c0125ca0>] worker_thread+0x0/0x150
+ [<c0128a67>] kthread+0xa7/0xb0
+ [<c01289c0>] kthread+0x0/0xb0
+ [<c010133d>] kernel_thread_helper+0x5/0x18
+BUG: soft lockup detected on CPU#0!
+
+Pid: 9, comm:               kacpid
+EIP: 0060:[<c014c03c>] CPU: 0
+EIP is at kmem_cache_free+0xc/0x40
+ EFLAGS: 00000202    Not tainted  (2.6.16.9.rwl4rwl #1)
+EAX: dd0ac368 EBX: dd0ac368 ECX: 00000000 EDX: df7e7640
+ESI: 00000000 EDI: dd0ac368 EBP: dd0ac368 DS: 007b ES: 007b
+CR0: 8005003b CR2: b7f4b000 CR3: 1e43b000 CR4: 000006d0
+ [<c02252fc>] acpi_os_release_object+0xd/0x12
+ [<c0235a48>] acpi_ps_free_op+0x1f/0x22
+ [<c02357bc>] acpi_ps_delete_parse_tree+0x34/0x4c
+ [<c0234b00>] acpi_ps_complete_this_op+0x141/0x156
+ [<c0235407>] acpi_ps_parse_loop+0x5f3/0x8c0
+ [<c0234c6d>] acpi_ps_parse_aml+0x4e/0x1f5
+ [<c0235cec>] acpi_ps_execute_pass+0x72/0x86
+ [<c0235c12>] acpi_ps_execute_method+0x54/0x7e
+ [<c0233100>] acpi_ns_execute_control_method+0x56/0x63
+ [<c0233096>] acpi_ns_evaluate_by_handle+0x74/0x88
+ [<c0232f95>] acpi_ns_evaluate_relative+0xa9/0xc5
+ [<c0232865>] acpi_evaluate_object+0x139/0x1fc
+ [<c0225643>] acpi_evaluate_integer+0x6b/0x93
+ [<e0033025>] acpi_thermal_get_temperature+0x25/0x36 [thermal]
+ [<e003360c>] acpi_thermal_check+0x21/0x232 [thermal]
+ [<e0034050>] acpi_thermal_notify+0x47/0x93 [thermal]
+ [<c0229b51>] acpi_ev_notify_dispatch+0x57/0x64
+ [<c022506b>] acpi_os_execute_deferred+0xe/0x1b
+ [<c0125c3f>] run_workqueue+0x5f/0xc0
+ [<c022505d>] acpi_os_execute_deferred+0x0/0x1b
+ [<c0125dc9>] worker_thread+0x129/0x150
+ [<c01152a0>] default_wake_function+0x0/0x20
+ [<c01152a0>] default_wake_function+0x0/0x20
+ [<c0125ca0>] worker_thread+0x0/0x150
+ [<c0128a67>] kthread+0xa7/0xb0
+ [<c01289c0>] kthread+0x0/0xb0
+ [<c010133d>] kernel_thread_helper+0x5/0x18
 
 
---=-rBq9qIkagZvS0K14JEog
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, 2006-04-20 at 19:14 -0400, Kimball Murray wrote:
-> Our system uses an ACPI Interrupt Source Override to inform the OS
-> that the
-> 8254 timer (IRQ0) is on pin 1 of the ioapic.  On that same ioapic, pin
-> 0
-> handles an interrupt from a PCI device.  The work-around for the VIA
-> chipset
-> now causes pin 0 to get IRQ0 on our platform, which the timer also
-> claims.
-> The sad result is both pins 0 and 1 drive IRQ0, but pins 0 and 1 have
-> different triggering characterists (and polarity), so time learches
-> forward
-> in an IRQ0 interrupt storm.=20
+If I removed the "thermal" module and repeated the above temperature test, I
+got no kernel dump but I still got the very slow running of the system.
+According to some comments on the WWW, however, removing the thermal ACPI
+modules is not recommended.
 
-And how I now if my via motherboard suffers this problem ?
+When I rebooted the system with "acpi=off" and repeated the above
+temperature test, I got no kernel dump nor did the system run slowly.  I
+did, however, get a beeping sound from the motherboard when it thought the
+CPU was over-temperature.
 
-Could be something like this messages :
-Losing some ticks... checking if CPU frequency changed.
+There was a recommendation from the lm-sensors team that I disable the
+"OVT#" and "SMI#" outputs from the W83627EHG chip.  I modified the driver to
+(I think) make this change in accordance with the datasheet, but it didn't
+make any difference - I still got the kernel dump if the ACPI "thermal"
+process was running.
+
+Can anyone shed any light on what is happening here ?
 
 Thanks,
---=20
-S=E9rgio M. B.
 
---=-rBq9qIkagZvS0K14JEog
-Content-Type: application/x-pkcs7-signature; name=smime.p7s
-Content-Disposition: attachment; filename=smime.p7s
-Content-Transfer-Encoding: base64
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGSTCCAwIw
-ggJroAMCAQICAw/vkjANBgkqhkiG9w0BAQQFADBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhh
-d3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVt
-YWlsIElzc3VpbmcgQ0EwHhcNMDUxMTI4MjIyODU2WhcNMDYxMTI4MjIyODU2WjBLMR8wHQYDVQQD
-ExZUaGF3dGUgRnJlZW1haWwgTWVtYmVyMSgwJgYJKoZIhvcNAQkBFhlzZXJnaW9Ac2VyZ2lvbWIu
-bm8taXAub3JnMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApCNuKD3pz8GRKd1q+36r
-m0z7z+TBsbTrVa45UQsEeh9OQGZIASJMH5erC0u6KbKJ+km97RLOdsgSlKG6+5xuzsk+aqU7A0Gp
-kMjzIJT7UH/bbPnIFMQNnWJxluuYq1u+v8iIbfezQy1+SXyAyBv+OC7LnCOiOar/L9AD9zDy2fPX
-EqEDlbO3CJsoaR4Va8sgtoV0NmKnAt7DA0iZ2dmlsw6Qh+4euI+FgZ2WHPBQnfJ7PfSH5GIWl/Nx
-eUqnYpDaJafk/l94nX71UifdPXDMxJJlEOGqV9l4omhNlPmsZ/zrGXgLdBv9JuPjJ9mxhgwZsZbz
-VBc8emB0i3A7E6D6rwIDAQABo1kwVzAOBgNVHQ8BAf8EBAMCBJAwEQYJYIZIAYb4QgEBBAQDAgUg
-MCQGA1UdEQQdMBuBGXNlcmdpb0BzZXJnaW9tYi5uby1pcC5vcmcwDAYDVR0TAQH/BAIwADANBgkq
-hkiG9w0BAQQFAAOBgQBIVheRn3oHTU5rgIFHcBRxkIhOYPQHKk/oX4KakCrDCxp33XAqTG3aIG/v
-dsUT/OuFm5w0GlrUTrPaKYYxxfQ00+3d8y87aX22sUdj8oXJRYiPgQiE6lqu9no8axH6UXCCbKTi
-8383JcxReoXyuP000eUggq3tWr6fE/QmONUARzCCAz8wggKooAMCAQICAQ0wDQYJKoZIhvcNAQEF
-BQAwgdExCzAJBgNVBAYTAlpBMRUwEwYDVQQIEwxXZXN0ZXJuIENhcGUxEjAQBgNVBAcTCUNhcGUg
-VG93bjEaMBgGA1UEChMRVGhhd3RlIENvbnN1bHRpbmcxKDAmBgNVBAsTH0NlcnRpZmljYXRpb24g
-U2VydmljZXMgRGl2aXNpb24xJDAiBgNVBAMTG1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBDQTEr
-MCkGCSqGSIb3DQEJARYccGVyc29uYWwtZnJlZW1haWxAdGhhd3RlLmNvbTAeFw0wMzA3MTcwMDAw
-MDBaFw0xMzA3MTYyMzU5NTlaMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3Vs
-dGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWlu
-ZyBDQTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAxKY8VXNV+065yplaHmjAdQRwnd/p/6Me
-7L3N9VvyGna9fww6YfK/Uc4B1OVQCjDXAmNaLIkVcI7dyfArhVqqP3FWy688Cwfn8R+RNiQqE88r
-1fOCdz0Dviv+uxg+B79AgAJk16emu59l0cUqVIUPSAR/p7bRPGEEQB5kGXJgt/sCAwEAAaOBlDCB
-kTASBgNVHRMBAf8ECDAGAQH/AgEAMEMGA1UdHwQ8MDowOKA2oDSGMmh0dHA6Ly9jcmwudGhhd3Rl
-LmNvbS9UaGF3dGVQZXJzb25hbEZyZWVtYWlsQ0EuY3JsMAsGA1UdDwQEAwIBBjApBgNVHREEIjAg
-pB4wHDEaMBgGA1UEAxMRUHJpdmF0ZUxhYmVsMi0xMzgwDQYJKoZIhvcNAQEFBQADgYEASIzRUIPq
-Cy7MDaNmrGcPf6+svsIXoUOWlJ1/TCG4+DYfqi2fNi/A9BxQIJNwPP2t4WFiw9k6GX6EsZkbAMUa
-C4J0niVQlGLH2ydxVyWN3amcOY6MIE9lX5Xa9/eH1sYITq726jTlEBpbNU1341YheILcIRk13iSx
-0x1G/11fZU8xggHvMIIB6wIBATBpMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29u
-c3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNz
-dWluZyBDQQIDD++SMAkGBSsOAwIaBQCgXTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqG
-SIb3DQEJBTEPFw0wNjA0MjMwNTAyMTdaMCMGCSqGSIb3DQEJBDEWBBSt/qWVE/K7v3q0tTcfLKIe
-EDO76TANBgkqhkiG9w0BAQEFAASCAQBlnqMsJ7kdsvEQmWOe5XbI/ooFl6Fh1ml4/P/dV7fP+O1b
-5bDcQVUG7cQB4xVg5K41SFCKN9I6Vzj5cr3Gch8mQ0Iw9SfxyLvl2hLeLgWZzyR26B85gEq3q03f
-Ds6AGSP35Vhi3c6rRPSLOEB5kMee01PTTkE+BA+VRBIlnbaw2uoRZnJ+3qqtnrMt21VRcEb9FUDi
-CDpO0xF0Qu0NCtk1SlJLOfz+Wn8o0znh0djUtYdUVUgAJF+w/xm8dQGbmZHQ5VMEWYNmnFplvyzP
-KtBhv8p/f2DcD6j8Xs3Q0OuZtofzwRqwjZU9bOJ7upCM8riPSErAzrepbIVuEtyxn53bAAAAAAAA
-
-
-
---=-rBq9qIkagZvS0K14JEog--
+Roger
 
