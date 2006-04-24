@@ -1,53 +1,32 @@
-From: John L Fjellstad <john-acpi@fjellstad.org>
-Subject: problem compiling intel ASL compiler
-Date: Sun, 23 Apr 2006 21:19:54 -0700
-Message-ID: <87k69fppud.fsf@fjellstad.org>
+From: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
+Subject: Re: [RFC] [PATCH] Make ACPI button driver an input device
+Date: Mon, 24 Apr 2006 10:54:23 +0400
+Message-ID: <444C761F.6010603@linux.intel.com>
+References: <554C5F4C5BA7384EB2B412FD46A3BAD1332980@pdsmsx411.ccr.corp.intel.com> <20060420073713.GA25735@srcf.ucam.org> <4447AA59.8010300@linux.intel.com> <20060420153848.GA29726@srcf.ucam.org> <4447AF4D.7030507@linux.intel.com> <mj+md-20060420.165714.18107.albireo@ucw.cz> <4447C020.3010003@linux.intel.com> <20060420220731.GF2352@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=euc-jp
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:41118 "EHLO ciao.gmane.org")
-	by vger.kernel.org with ESMTP id S1750797AbWDXFkI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 24 Apr 2006 01:40:08 -0400
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1FXtnl-0008JL-Qv
-	for linux-acpi@vger.kernel.org; Mon, 24 Apr 2006 07:40:01 +0200
-Received: from mail.fjellstad.org ([209.128.86.70])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Mon, 24 Apr 2006 07:40:01 +0200
-Received: from john-acpi by mail.fjellstad.org with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Mon, 24 Apr 2006 07:40:01 +0200
+Received: from fmr18.intel.com ([134.134.136.17]:25556 "EHLO
+	orsfmr003.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1750781AbWDXGyd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 24 Apr 2006 02:54:33 -0400
+In-Reply-To: <20060420220731.GF2352@ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Martin Mares <mj@ucw.cz>, Matthew Garrett <mjg59@srcf.ucam.org>, "Yu, Luming" <luming.yu@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-I'm trying to compile Intel's ASL compiler dated 20060331, but have
-problems.  Get this error message:
-
-aslcompiler.l: In function =A1=C6comment=A1=C7:
-aslcompiler.l:848: error: =A1=C6yytext_ptr=A1=C7 undeclared (first use =
-in this function)
-aslcompiler.l:848: error: (Each undeclared identifier is reported only =
-once
-aslcompiler.l:848: error: for each function it appears in.)
-make: *** [aslcompilerlex.o] Error 1
-
-gcc version: gcc (GCC) 4.0.3 (Ubuntu 4.0.3-1ubuntu5)
-flex version: flex 2.5.31
-bison version: bison (GNU Bison) 2.1
-
-Don't really know enough about flex to fix the problem.  Anyone have an
-idea?
-
---=20
-John L. Fjellstad
-web: http://www.fjellstad.org/          Quis custodiet ipsos custodes
-
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Pavel Machek wrote:
+>>> I don't see any reason for treating some keys or buttons 
+>>> differently.
+>>> A key is just a key.
+> 
+>> There is one special key anyway -- reset...
+> 
+> Your point is? There's also hardware power button on many machines.
+> They are not controllable by software => they are not relevant to this
+> discussion.
+> 								Pavel
+> 
+Really? And you are what are you going to do with bugs about "my power button doesn't remap, and always shuts down my machine?"
