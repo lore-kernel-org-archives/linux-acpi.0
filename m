@@ -1,39 +1,72 @@
-From: Johan Vromans <jvromans@squirrel.nl>
-Subject: Re: Was: Re: UBUNTU - acpi battery on ACER TRAVELMATE 4000 WLMI
-Date: Mon, 24 Apr 2006 11:36:22 +0200
-Message-ID: <m2hd4j2u3t.fsf@phoenix.squirrel.nl>
-References: <F7DC2337C7631D4386A2DF6E8FB22B3005D98454@hdsmsx401.amr.corp.intel.com>
-	<m21wytlwv3.fsf@phoenix.squirrel.nl>
-	<4446C84B.7020104@rrz.uni-koeln.de>
-	<m23bg5ihym.fsf@phoenix.squirrel.nl>
-	<444BF809.3090000@rrz.uni-koeln.de>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: Exit ACPI drivers immediately if acpi is disabled
+Date: Mon, 24 Apr 2006 12:52:37 +0200
+Message-ID: <1145875957.3797.15.camel@queen.suse.de>
+References: <200604211243.32276.trenn@suse.de>
+	 <200604210918.47337.bjorn.helgaas@hp.com>
+	 <200604211853.47117.trenn@suse.de>  <200604211918.13025.trenn@suse.de>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:37903 "EHLO
-	smtp-vbr5.xs4all.nl") by vger.kernel.org with ESMTP id S932116AbWDXJg2
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 24 Apr 2006 05:36:28 -0400
-In-Reply-To: <444BF809.3090000@rrz.uni-koeln.de> (Berthold Cogel's message
- of "Sun, 23 Apr 2006 23:56:25 +0200")
+Received: from mx1.suse.de ([195.135.220.2]:18665 "EHLO mx1.suse.de")
+	by vger.kernel.org with ESMTP id S1750706AbWDXKwZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 24 Apr 2006 06:52:25 -0400
+In-Reply-To: <200604211918.13025.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Berthold Cogel <cogel@rrz.uni-koeln.de>
-Cc: Johan Vromans <jvromans@squirrel.nl>, linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>
 
-Berthold Cogel <cogel@rrz.uni-koeln.de> writes:
+Rethinking about this: driver_registered is a bit too general variable?
 
-> I don't know why I'm 'playing' this game.
+Is this OK, now?
 
-To get battery readings ...
+Subject: Exit ACPI processor module gracefully if acpi is disabled
 
-> I'm not sure if I can do the test before May, but I try.
+Signed-off-by: Thomas Renninger <trenn@suse.de>
 
-Okay, I've packed it up with the rest of Rich' sources in what I've
-shamelessly called acpi_sbs-20060422. You can fetch it from
-http://www.squirrel.nl/pub/xfer/acpi_sbs-20060422.tar.bz2
+ drivers/acpi/processor_core.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletion(-)
 
-Remember -- use at your own risk. I merely removed the code that
-didn't compile... But it seems to work for me.
+Index: linux-2.6.16/drivers/acpi/processor_core.c
+===================================================================
+--- linux-2.6.16.orig/drivers/acpi/processor_core.c
++++ linux-2.6.16/drivers/acpi/processor_core.c
+@@ -906,6 +906,8 @@ void acpi_processor_uninstall_hotplug_no
+  * ACPI, but needs symbols from this driver
+  */
+ 
++static int processor_driver_registered = 0;
++
+ static int __init acpi_processor_init(void)
+ {
+ 	int result = 0;
+@@ -926,6 +928,8 @@ static int __init acpi_processor_init(vo
+ 		return_VALUE(0);
+ 	}
+ 
++	processor_driver_registered = 1;
++
+ 	acpi_processor_install_hotplug_notify();
+ 
+ 	acpi_thermal_cpufreq_init();
+@@ -943,12 +947,13 @@ static void __exit acpi_processor_exit(v
+ 
+ 	acpi_thermal_cpufreq_exit();
+ 
++	if (processor_driver_registered){
+ 	acpi_processor_uninstall_hotplug_notify();
+ 
+ 	acpi_bus_unregister_driver(&acpi_processor_driver);
+ 
+ 	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+-
++	}
+ 	return_VOID;
+ }
+ 
 
--- Johan
+
