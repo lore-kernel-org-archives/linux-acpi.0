@@ -1,78 +1,52 @@
-From: Richard Purdie <rpurdie@rpsys.net>
+From: Pavel Machek <pavel@suse.cz>
 Subject: Re: [RFC] [PATCH] Make ACPI button driver an input device
-Date: Mon, 24 Apr 2006 21:59:31 +0100
-Message-ID: <1145912371.7155.220.camel@localhost.localdomain>
-References: <20060419195356.GA24122@srcf.ucam.org>
-	 <20060419200447.GA2459@isilmar.linta.de>
-	 <20060419202421.GA24318@srcf.ucam.org>
-	 <d120d5000604240745i71bd56b8n99b97130388d36f6@mail.gmail.com>
-	 <1145894731.7155.120.camel@localhost.localdomain>
-	 <d120d5000604240926u51fc06d6gbf4f23832064e0ad@mail.gmail.com>
-	 <1145898341.7155.145.camel@localhost.localdomain>
-	 <20060424203424.GE3386@elf.ucw.cz>
+Date: Mon, 24 Apr 2006 23:29:26 +0200
+Message-ID: <20060424212926.GO3386@elf.ucw.cz>
+References: <20060419195356.GA24122@srcf.ucam.org> <20060419200447.GA2459@isilmar.linta.de> <20060419202421.GA24318@srcf.ucam.org> <d120d5000604240745i71bd56b8n99b97130388d36f6@mail.gmail.com> <1145894731.7155.120.camel@localhost.localdomain> <d120d5000604240926u51fc06d6gbf4f23832064e0ad@mail.gmail.com> <1145898341.7155.145.camel@localhost.localdomain> <20060424203424.GE3386@elf.ucw.cz> <1145912371.7155.220.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tim.rpsys.net ([194.106.48.114]:52390 "EHLO tim.rpsys.net")
-	by vger.kernel.org with ESMTP id S1751270AbWDXU7q (ORCPT
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:22657 "EHLO amd.ucw.cz")
+	by vger.kernel.org with ESMTP id S1751298AbWDXVaG (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 24 Apr 2006 16:59:46 -0400
-In-Reply-To: <20060424203424.GE3386@elf.ucw.cz>
+	Mon, 24 Apr 2006 17:30:06 -0400
+Content-Disposition: inline
+In-Reply-To: <1145912371.7155.220.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@suse.cz>
+To: Richard Purdie <rpurdie@rpsys.net>
 Cc: dtor_core@ameritech.net, Matthew Garrett <mjg59@srcf.ucam.org>, Dominik Brodowski <linux@dominikbrodowski.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, vojtech@suse.cz
 
-On Mon, 2006-04-24 at 22:34 +0200, Pavel Machek wrote:
-> What is on the jack, BTW? Left headphone, right headphone, mic in? Can
-> all of them be used independently?
+Hi!
 
-> > It gets tricky. AC presence isn't a property of a battery for example
-> > and is in fact more like a switch (my handheld has a mechanical
-> > switch
+> >(Another interesting question is: is AC status 0/1 or is it number of
+> > milivolts?)
 > 
-> Oops, really? Mechanical switch to sense ac in? (What happens when you
-> plug in charger but that is not plugged to AC?)
+> I'd say millivolts except for the problem of what you do on systems that
+> don't support voltage readings. Use a very high value I guess. For a lot
+> of devices millivolts also means in kernel conversion tables. Do such
+> things belong in kernel or user space?
 
-Most of the Zaurus devices can measure the AC voltage and make sanity
-checks on it in the SharpSL Battery/PM code.
+We should probably return 0/-1 in such case (-1 = on, but voltage unknown).
 
-> I think that AC presence should be handled independently from
-> battery. There can be >1 battery in the system.
-
-Agreed. This is some of the leftover information I'm referring to below.
-
->(Another interesting question is: is AC status 0/1 or is it number of
-> milivolts?)
-
-I'd say millivolts except for the problem of what you do on systems that
-don't support voltage readings. Use a very high value I guess. For a lot
-of devices millivolts also means in kernel conversion tables. Do such
-things belong in kernel or user space?
-
-> > to detect when its plugged in) ;). The battery class would export some
-> > information but not all of it and I don't know where the leftover
-> > information should go. If I knew that, I'd write the class.
+> > > to detect when its plugged in) ;). The battery class would export some
+> > > information but not all of it and I don't know where the leftover
+> > > information should go. If I knew that, I'd write the class.
+> > 
+> > Leftover information?
 > 
-> Leftover information?
+> Where to put AC status and AC voltage readings amongst other things.
+> Another sysfs class? Also, how do you control suspend/resume
+> notifications to userspace if not using APM/ACPI?
 
-Where to put AC status and AC voltage readings amongst other things.
-Another sysfs class? Also, how do you control suspend/resume
-notifications to userspace if not using APM/ACPI?
+I'd say that AC status should go to separate class, I'm
+afraid. Potentially AC has more parameters (like current, current
+frequency, difference between phase of current and voltage, ...?) and
+UPSs even measure that.
 
-> I think we should create directory in sysfs, and populate it according
-> to battery's capabilities.
-> 
-> Zaurus' battery would have voltage and maybe percent fields.
-> 
-> ACPI battery would have all the usual fields.
-> 
-> Another important question is a way for user applications to avoid
-> polling... but I guess that should be solveable by enabling select on
-> one of those files.
+Does userspace need to be notified of suspend/resume? [I keep
+insisting that they do not, and I'm probably wrong, but... :-)]
 
-Agreed, this is something that would be needed.
-
-Richard
-
+								Pavel
+-- 
+Thanks for all the (sleeping) penguins.
