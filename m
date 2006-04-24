@@ -1,42 +1,39 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [RFC] [PATCH] Make ACPI button driver an input device
-Date: Mon, 24 Apr 2006 10:31:02 +0200
-Message-ID: <20060424083102.GE26345@elf.ucw.cz>
-References: <554C5F4C5BA7384EB2B412FD46A3BAD1332980@pdsmsx411.ccr.corp.intel.com> <20060420073713.GA25735@srcf.ucam.org> <4447AA59.8010300@linux.intel.com> <20060420153848.GA29726@srcf.ucam.org> <4447AF4D.7030507@linux.intel.com> <mj+md-20060420.165714.18107.albireo@ucw.cz> <4447C020.3010003@linux.intel.com> <20060420220731.GF2352@ucw.cz> <444C761F.6010603@linux.intel.com>
+From: Johan Vromans <jvromans@squirrel.nl>
+Subject: Re: Was: Re: UBUNTU - acpi battery on ACER TRAVELMATE 4000 WLMI
+Date: Mon, 24 Apr 2006 11:36:22 +0200
+Message-ID: <m2hd4j2u3t.fsf@phoenix.squirrel.nl>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3005D98454@hdsmsx401.amr.corp.intel.com>
+	<m21wytlwv3.fsf@phoenix.squirrel.nl>
+	<4446C84B.7020104@rrz.uni-koeln.de>
+	<m23bg5ihym.fsf@phoenix.squirrel.nl>
+	<444BF809.3090000@rrz.uni-koeln.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:18410 "EHLO amd.ucw.cz")
-	by vger.kernel.org with ESMTP id S1750763AbWDXIbi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 24 Apr 2006 04:31:38 -0400
-Content-Disposition: inline
-In-Reply-To: <444C761F.6010603@linux.intel.com>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:37903 "EHLO
+	smtp-vbr5.xs4all.nl") by vger.kernel.org with ESMTP id S932116AbWDXJg2
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 24 Apr 2006 05:36:28 -0400
+In-Reply-To: <444BF809.3090000@rrz.uni-koeln.de> (Berthold Cogel's message
+ of "Sun, 23 Apr 2006 23:56:25 +0200")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
-Cc: Martin Mares <mj@ucw.cz>, Matthew Garrett <mjg59@srcf.ucam.org>, "Yu, Luming" <luming.yu@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Berthold Cogel <cogel@rrz.uni-koeln.de>
+Cc: Johan Vromans <jvromans@squirrel.nl>, linux-acpi@vger.kernel.org
 
-On Po 24-04-06 10:54:23, Alexey Starikovskiy wrote:
-> Pavel Machek wrote:
-> >>>I don't see any reason for treating some keys or buttons 
-> >>>differently.
-> >>>A key is just a key.
-> >
-> >>There is one special key anyway -- reset...
-> >
-> >Your point is? There's also hardware power button on many machines.
-> >They are not controllable by software => they are not relevant to this
-> >discussion.
-> >
-> Really? And you are what are you going to do with bugs about "my power 
-> button doesn't remap, and always shuts down my machine?"
+Berthold Cogel <cogel@rrz.uni-koeln.de> writes:
 
-If they have hardware power button, I'll laugh at them (then
-CLOSE/INVALID). Feel free to reassign such bugs to me.
+> I don't know why I'm 'playing' this game.
 
-Anyway stripping useful functinality because very old (386-era!)
-machines don't support it is not a way to go.
-								Pavel
--- 
-Thanks for all the (sleeping) penguins.
+To get battery readings ...
+
+> I'm not sure if I can do the test before May, but I try.
+
+Okay, I've packed it up with the rest of Rich' sources in what I've
+shamelessly called acpi_sbs-20060422. You can fetch it from
+http://www.squirrel.nl/pub/xfer/acpi_sbs-20060422.tar.bz2
+
+Remember -- use at your own risk. I merely removed the code that
+didn't compile... But it seems to work for me.
+
+-- Johan
