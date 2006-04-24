@@ -1,38 +1,48 @@
-From: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
-Subject: Re: [RFC] [PATCH] Make ACPI button driver an input device
-Date: Mon, 24 Apr 2006 10:51:27 -0400
-Message-ID: <d120d5000604240751y7501d376p62904e149ccbf4b3@mail.gmail.com>
-References: <554C5F4C5BA7384EB2B412FD46A3BAD13787F2@pdsmsx411.ccr.corp.intel.com>
-	 <20060420215549.GA2352@ucw.cz>
-Reply-To: dtor_core@ameritech.net
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: Exit ACPI drivers immediately if acpi is disabled
+Date: Mon, 24 Apr 2006 08:59:08 -0600
+Message-ID: <200604240859.09012.bjorn.helgaas@hp.com>
+References: <200604211243.32276.trenn@suse.de> <200604211918.13025.trenn@suse.de> <1145875957.3797.15.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nz-out-0102.google.com ([64.233.162.194]:61170 "EHLO
-	nz-out-0102.google.com") by vger.kernel.org with ESMTP
-	id S1750753AbWDXOv2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Apr 2006 10:51:28 -0400
-Received: by nz-out-0102.google.com with SMTP id 40so987917nzk
-        for <linux-acpi@vger.kernel.org>; Mon, 24 Apr 2006 07:51:27 -0700 (PDT)
-In-Reply-To: <20060420215549.GA2352@ucw.cz>
+Received: from atlrel6.hp.com ([156.153.255.205]:44681 "EHLO atlrel6.hp.com")
+	by vger.kernel.org with ESMTP id S1750837AbWDXO7Q (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 24 Apr 2006 10:59:16 -0400
+In-Reply-To: <1145875957.3797.15.camel@queen.suse.de>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: "Yu, Luming" <luming.yu@intel.com>, Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>, Xavier Bestel <xavier.bestel@free.fr>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: trenn@suse.de
+Cc: linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>
 
-On 4/20/06, Pavel Machek <pavel@ucw.cz> wrote:
-> Having EV_ACPI might make sense for thermal/battery events, but not
-> for normal keys.
+On Monday 24 April 2006 04:52, Thomas Renninger wrote:
+> Rethinking about this: driver_registered is a bit too general variable?
+> 
+> Is this OK, now?
 
-No, I do not want EV_ACPI at all. If it does not map to standard
-key/button/switch abstraction it really does not belong in input
-layer. There could be a "battery" or "power" layers providing
-abstraction for ACPI/APM/whateverfor that kind of stuff, but not input
-layer.
+It's static, so I don't care either way.
 
-But KEY_SLEEP, KEY_POWER, etc are more than welcome.
+The powernow/speedstep/acpi code sharing seems a little strange, but
+I don't know anything about it.  And you're not changing that part
+of things anyway.
 
---
-Dmitry
+> @@ -943,12 +947,13 @@ static void __exit acpi_processor_exit(v
+>  
+>  	acpi_thermal_cpufreq_exit();
+>  
+> +	if (processor_driver_registered){
+>  	acpi_processor_uninstall_hotplug_notify();
+>  
+>  	acpi_bus_unregister_driver(&acpi_processor_driver);
+>  
+>  	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+> -
+> +	}
+
+Shouldn't the remove_proc_entry() be outside the "if (processor_driver_registered)"
+block?  The directory was created unconditionally, before the
+acpi_bus_register_driver() call.
