@@ -1,223 +1,151 @@
-From: Kimball Murray <kimball.murray@gmail.com>
-Subject: [(repost) git Patch 1/1] avoid IRQ0 ioapic pin collision
-Date: Tue, 25 Apr 2006 12:06:19 -0400
-Message-ID: <20060425160200.3424.89316.sendpatchset@dhcp83-97.boston.redhat.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: Faulty DSDT
+Date: Tue, 25 Apr 2006 09:36:12 -0700
+Message-ID: <B28E9812BAF6E2498B7EC5C427F293A42A7A7F@orsmsx415.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:27594 "EHLO mx1.redhat.com")
-	by vger.kernel.org with ESMTP id S1751135AbWDYQGd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Apr 2006 12:06:33 -0400
+Received: from mga01.intel.com ([192.55.52.88]:5504 "EHLO
+	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
+	id S1751596AbWDYQhM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Apr 2006 12:37:12 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Kimball Murray <kimball.murray@gmail.com>, akpm@digeo.com, ak@suse.de, kmurray@redhat.com, natalie.protasevich@unisys.com, len.brown@intel.com, linux-acpi@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>, =?iso-8859-1?Q?Iv=E1n=22_Gracia?= <izanmail@yahoo.com>
+Cc: linux-acpi@vger.kernel.org
 
-Per Andi Kleen's request, I have made slight changes to the patch I
-submitted last week.  Look for the "snip" further down if you don't
-want to re-read the original post.  Thanks!
+I would appreciate it if someone would send me both the binary DSDT or =
+acpixtract output and the disassembled file.
 
-------- Begin original post -----------------------
-
-Hello!
-
-I'm working on an x86_64 platfrom, where I've hit a problem that appears to
-be caused by a patch that went into 2.6.13 some time ago.  (git details are
-below).  Basically, that patch introduced a work-around for a VIA chipset
-limitation (only 4 bits to store a PCI interrupt).  And that work-around
-causes an unfortunate pin collision on our ioapic.
-
-Our system uses an ACPI Interrupt Source Override to inform the OS that the
-8254 timer (IRQ0) is on pin 1 of the ioapic.  On that same ioapic, pin 0
-handles an interrupt from a PCI device.  The work-around for the VIA chipset
-now causes pin 0 to get IRQ0 on our platform, which the timer also claims.
-The sad result is both pins 0 and 1 drive IRQ0, but pins 0 and 1 have
-different triggering characterists (and polarity), so time learches forward
-in an IRQ0 interrupt storm.
-
-I brought this up with Natalie, who provided the VIA patch.  What we came up
-with is a means of keeping the VIA work-around, but at the same time, avoiding
-the IRQ0 collision.  What I'm doing here is creating a flag in io_apic.c
-(timer_uses_ioapic_pin_0), which is checked in mpparse.c.  If the timer is
-not using pin 0, and we find a PCI-type interrupt for gsi 0, then I bump
-the gsi up to the current value of pci_irq.  Otherwise, it behaves as before.
-
-For reference, here are the git details for the patch that works around the
-VIA issue.
-
---------- original git patch (2.6.13) --------------------
-
-[PATCH] x86: avoid wasting IRQs patch update
-
-The patch addresses a problem with ACPI SCI interrupt entry, which gets
-re-used, and the IRQ is assigned to another unrelated device.  The patch
-corrects the code such that SCI IRQ is skipped and duplicate entry is
-avoided.  Second issue came up with VIA chipset, the problem was caused by
-original patch assigning IRQs starting 16 and up.  The VIA chipset uses
-4-bit IRQ register for internal interrupt routing, and therefore cannot
-handle IRQ numbers assigned to its devices.  The patch corrects this
-problem by allowing PCI IRQs below 16.
-
-Signed-off by: Natalie Protasevich <Natalie.Protasevich@unisys.com>
-
-Signed-off-by: Andrew Morton <akpm@osdl.org>
-Signed-off-by: Linus Torvalds <torvalds@osdl.org>
-
----
-commit e1afc3f522ed088405fc8932110d338330db82bb
-tree 944b79bef5f73bfe1ea7fc5e89cb9e36562d0929
-parent 80625942094b114d85811e5ff1fbc9e06dabe0ff
-author Natalie.Protasevich@unisys.com <Natalie.Protasevich@unisys.com> 
-Fri, 29 Jul 2005 14:03:32 -0700
-committer Linus Torvalds <torvalds@g5.osdl.org> Fri, 29 Jul 2005 15:01:13 
--0700
-
- arch/i386/kernel/mpparse.c |   10 +++++++++-
- 1 files changed, 9 insertions(+), 1 deletions(-)
-
-diff --git a/arch/i386/kernel/mpparse.c b/arch/i386/kernel/mpparse.c
-index af917f6..ce838ab 100644
---- a/arch/i386/kernel/mpparse.c
-+++ b/arch/i386/kernel/mpparse.c
-@@ -1116,7 +1116,15 @@ int mp_register_gsi (u32 gsi, int edge_l
-                 */
-                int irq = gsi;
-                if (gsi < MAX_GSI_NUM) {
--                       gsi = pci_irq++;
-+                       if (gsi > 15)
-+                               gsi = pci_irq++;
-+#ifdef CONFIG_ACPI_BUS
-+                       /*
-+                        * Don't assign IRQ used by ACPI SCI
-+                        */
-+                       if (gsi == acpi_fadt.sci_int)
-+                               gsi = pci_irq++;
-+#endif
-                        gsi_to_irq[irq] = gsi;
-                } else {
-                        printk(KERN_ERR "GSI %u is too high\n", gsi);
-
---------- end of original git patch (2.6.13) ----------
+Thanks,
+Bob
 
 
-------- End original post -----------------------
-
-And finally, here is my updated patch for both i386 and x86_64,
-generated from Linus' git tree. It incorporates Andi's suggsetions.
-
------------------ snip -----------------------------------
-diff --git a/arch/i386/kernel/io_apic.c b/arch/i386/kernel/io_apic.c
-index f8f132a..d70f2ad 100644
---- a/arch/i386/kernel/io_apic.c
-+++ b/arch/i386/kernel/io_apic.c
-@@ -2238,6 +2238,8 @@ static inline void unlock_ExtINT_logic(v
- 	spin_unlock_irqrestore(&ioapic_lock, flags);
- }
- 
-+int timer_uses_ioapic_pin_0;
-+
- /*
-  * This code may look a bit paranoid, but it's supposed to cooperate with
-  * a wide range of boards and BIOS bugs.  Fortunately only the timer IRQ
-@@ -2274,6 +2276,9 @@ static inline void check_timer(void)
- 	pin2  = ioapic_i8259.pin;
- 	apic2 = ioapic_i8259.apic;
- 
-+	if (pin1 == 0)
-+		timer_uses_ioapic_pin_0 = 1;
-+
- 	printk(KERN_INFO "..TIMER: vector=0x%02X apic1=%d pin1=%d apic2=%d pin2=%d\n",
- 		vector, apic1, pin1, apic2, pin2);
- 
-diff --git a/arch/i386/kernel/mpparse.c b/arch/i386/kernel/mpparse.c
-index 34d21e2..6b1392d 100644
---- a/arch/i386/kernel/mpparse.c
-+++ b/arch/i386/kernel/mpparse.c
-@@ -1130,7 +1130,17 @@ int mp_register_gsi (u32 gsi, int trigge
- 		 */
- 		int irq = gsi;
- 		if (gsi < MAX_GSI_NUM) {
--			if (gsi > 15)
-+			/*
-+			 * Retain the VIA chipset work-around (gsi > 15), but
-+			 * avoid a problem where the 8254 timer (IRQ0) is setup
-+			 * via an override (so it's not on pin 0 of the ioapic),
-+			 * and at the same time, the pin 0 interrupt is a PCI
-+			 * type.  The gsi > 15 test could cause these two pins
-+			 * to be shared as IRQ0, and they are not shareable.
-+			 * So test for this condition, and if necessary, avoid
-+			 * the pin collision.
-+			 */
-+			if (gsi > 15 || (gsi == 0 && !timer_uses_ioapic_pin_0))
- 				gsi = pci_irq++;
- 			/*
- 			 * Don't assign IRQ used by ACPI SCI
-diff --git a/arch/x86_64/kernel/io_apic.c b/arch/x86_64/kernel/io_apic.c
-index 77b4c60..0de3ea9 100644
---- a/arch/x86_64/kernel/io_apic.c
-+++ b/arch/x86_64/kernel/io_apic.c
-@@ -1777,6 +1777,8 @@ static inline void unlock_ExtINT_logic(v
- 	spin_unlock_irqrestore(&ioapic_lock, flags);
- }
- 
-+int timer_uses_ioapic_pin_0;
-+
- /*
-  * This code may look a bit paranoid, but it's supposed to cooperate with
-  * a wide range of boards and BIOS bugs.  Fortunately only the timer IRQ
-@@ -1814,6 +1816,9 @@ static inline void check_timer(void)
- 	pin2  = ioapic_i8259.pin;
- 	apic2 = ioapic_i8259.apic;
- 
-+	if (pin1 == 0)
-+		timer_uses_ioapic_pin_0 = 1;
-+
- 	apic_printk(APIC_VERBOSE,KERN_INFO "..TIMER: vector=0x%02X apic1=%d pin1=%d apic2=%d pin2=%d\n",
- 		vector, apic1, pin1, apic2, pin2);
- 
-diff --git a/arch/x86_64/kernel/mpparse.c b/arch/x86_64/kernel/mpparse.c
-index b17cf3e..083da7e 100644
---- a/arch/x86_64/kernel/mpparse.c
-+++ b/arch/x86_64/kernel/mpparse.c
-@@ -968,7 +968,17 @@ int mp_register_gsi(u32 gsi, int trigger
- 		 */
- 		int irq = gsi;
- 		if (gsi < MAX_GSI_NUM) {
--			if (gsi > 15)
-+			/*
-+			 * Retain the VIA chipset work-around (gsi > 15), but
-+			 * avoid a problem where the 8254 timer (IRQ0) is setup
-+			 * via an override (so it's not on pin 0 of the ioapic),
-+			 * and at the same time, the pin 0 interrupt is a PCI
-+			 * type.  The gsi > 15 test could cause these two pins
-+			 * to be shared as IRQ0, and they are not shareable.
-+			 * So test for this condition, and if necessary, avoid
-+			 * the pin collision.
-+			 */
-+			if (gsi > 15 || (gsi == 0 && !timer_uses_ioapic_pin_0))
- 				gsi = pci_irq++;
- 			/*
- 			 * Don't assign IRQ used by ACPI SCI
-diff --git a/include/asm-i386/io_apic.h b/include/asm-i386/io_apic.h
-index 51c4e5f..d92e253 100644
---- a/include/asm-i386/io_apic.h
-+++ b/include/asm-i386/io_apic.h
-@@ -200,6 +200,7 @@ extern int io_apic_get_unique_id (int io
- extern int io_apic_get_version (int ioapic);
- extern int io_apic_get_redir_entries (int ioapic);
- extern int io_apic_set_pci_routing (int ioapic, int pin, int irq, int edge_level, int active_high_low);
-+extern int timer_uses_ioapic_pin_0;
- #endif /* CONFIG_ACPI */
- 
- extern int (*ioapic_renumber_irq)(int ioapic, int irq);
-diff --git a/include/asm-x86_64/io_apic.h b/include/asm-x86_64/io_apic.h
-index ee1bc69..52484e8 100644
---- a/include/asm-x86_64/io_apic.h
-+++ b/include/asm-x86_64/io_apic.h
-@@ -205,6 +205,7 @@ extern int skip_ioapic_setup;
- extern int io_apic_get_version (int ioapic);
- extern int io_apic_get_redir_entries (int ioapic);
- extern int io_apic_set_pci_routing (int ioapic, int pin, int irq, int, int);
-+extern int timer_uses_ioapic_pin_0;
- #endif
- 
- extern int sis_apic_bug; /* dummy */ 
+> -----Original Message-----
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> owner@vger.kernel.org] On Behalf Of Brown, Len
+> Sent: Monday, April 24, 2006 2:33 PM
+> To: Iv=E1n" Gracia
+> Cc: linux-acpi@vger.kernel.org
+> Subject: RE: Faulty DSDT
+>=20
+> [adding linux-acpi@vger.kernel.org] to cc:
+>=20
+> >I have a Toshiba S3 laptop that comes with a falulty DSDT.
+> >These are the
+> >errors I get when trying to compile with iasl on both windows and li=
+nux
+> >machines
+>=20
+> What issue motivates you to compile the DSDT in the first place?
+>=20
+> >Intel ACPI Component Architecture
+> >ASL Optimizing Compiler version 20060317 [Mar 17 2006]
+>=20
+> probably good to get the very latest dis-assembler
+> and compiler from here:
+>=20
+> http://www.intel.com/technology/iapc/acpi/downloads.htm
+>=20
+> 20060331 is the latest on the web site at the moment.
+>=20
+> >Copyright (C) 2000 - 2006 Intel Corporation
+> >Supports ACPI Specification Revision 3.0a
+> >
+> >dsdt.dsl  3735:                     }
+> >Error    1094 -                     ^ parse error, expecting `'(''
+> >
+> >dsdt.dsl  3747:                             }
+> >Error    1094 -                             ^ parse error, expecting=
+ `'
+> >
+> >dsdt.dsl  3866:                 0x03
+> >Error    1094 -                    ^ parse error, expecting `'(''
+> >
+> >dsdt.dsl  4233: [*** iASL: Read error on source code temp file ***]
+> >Error    1094 -^ parse error
+> >
+> >ASL Input:  dsdt.dsl - 4234 lines, 139958 bytes, 1745 keywords
+> >Compilation complete. 4 Errors, 0 Warnings, 0 Remarks, 0 Optimizatio=
+ns
+> >
+> >
+> >*******
+> >If (LEqual (Local0, 0x02))
+> >{
+> >   PDVN  <<line: 3735 here is a parse error
+> >}
+>=20
+> looks like PDVN is missing the parameters.
+> eg. PVDN(a, b, c)
+> similar issues below.
+>=20
+> if the latest disassembler/compiler do not work, please open a bug
+> and attach the output from acpidump or the DSDT w/ no modifications.
+>=20
+> thanks,
+> -Len
+>=20
+> >Else
+> >{
+> >   If (LEqual (Local0, 0x08))
+> >   {
+> >      If (LAnd (LNot (LEqual (\_SB.MEM.VALF, 0x00)), LNot (LEqual
+> >(\_SB.MEM.HKRD, 0x00))))
+> >      {
+> >         Notify (\_SB.VALZ, 0x87)
+> >      }
+> >      Else
+> >      {
+> >          SDVN <<line: 3747 here is a parse error
+> >      }
+> >
+> >*******
+> >If (LEqual (SBTB, 0x01))
+> >{
+> >   SH1X
+> >   0x03 <<line: 3866 Here is the parse error
+> >}
+> >*******
+> >
+> >
+> >I was able to fix another error, but I have found no info about this
+> >errors on forums or pages, and www.acpi.info is down (or at
+> >least I can't
+> >access) so I can't download the specs. Could you please give
+> >me a hand, if
+> >it's not too many trouble? Otherwise, please let me know were I can =
+get
+> >some help. I've been fighting with these 4 errors for a couple of da=
+ys,
+> >and after comparing my dsdt with other dsdt's, I can't find any
+> >workarounds for these errors, and I get an "ACPI- Can't load
+> >DSDT" message
+> >with dmesg.
+> >
+> >Sorry for the trouble, and thank you in advance for any help
+> >you can give
+> >on this matter.
+> >
+> >Kind regards,
+> >Ivan Gracia
+> >
+> >
+> >
+> >__________________________________________________
+> >Do You Yahoo!?
+> >Tired of spam?  Yahoo! Mail has the best spam protection around
+> >http://mail.yahoo.com
+> >
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
