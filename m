@@ -1,121 +1,80 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: Faulty DSDT
-Date: Mon, 24 Apr 2006 17:33:22 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6420CA9@hdsmsx411.amr.corp.intel.com>
+From: "Yu, Luming" <luming.yu@intel.com>
+Subject: [PATCH] reverse pci config space restore order
+Date: Tue, 25 Apr 2006 14:50:57 +0800
+Message-ID: <554C5F4C5BA7384EB2B412FD46A3BAD13D48A5@pdsmsx411.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: multipart/mixed;
+	boundary="----_=_NextPart_001_01C66834.9B7A1282"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:60960 "EHLO
+Received: from mga03.intel.com ([143.182.124.21]:24699 "EHLO
 	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S1751307AbWDXVdb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Apr 2006 17:33:31 -0400
+	id S1751401AbWDYGvI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Apr 2006 02:51:08 -0400
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?iso-8859-1?Q?Iv=E1n=22_Gracia?= <izanmail@yahoo.com>
-Cc: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>, "Brown, Len" <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-[adding linux-acpi@vger.kernel.org] to cc:
+This is a multi-part message in MIME format.
 
->I have a Toshiba S3 laptop that comes with a falulty DSDT. 
->These are the
->errors I get when trying to compile with iasl on both windows and linux
->machines
+------_=_NextPart_001_01C66834.9B7A1282
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-What issue motivates you to compile the DSDT in the first place?
 
->Intel ACPI Component Architecture
->ASL Optimizing Compiler version 20060317 [Mar 17 2006]
+According to Intel ICH spec, there are several rules that
+Base Address should be programmed before IOSE=20
+(PCICMD register ) enabled.=20
 
-probably good to get the very latest dis-assembler
-and compiler from here:
+For example ICH7:
+12.1.3  SATA : the base address register for the bus=20
+master register should be programmed before this bit is set.
 
-http://www.intel.com/technology/iapc/acpi/downloads.htm
+11.1.3:  PCICMD (USB): The base address register for
+USB should be programmed before this bit is set.
+....
+To make sure kernel code follow this rule=20
+, and prevent unnecessary confusion. I proposal this
+patch.=20
 
-20060331 is the latest on the web site at the moment.
+Note:
+I'm sorry the patch is NOT in good format.
+If you want to apply please use the attached patch file.
+sorry for my email client.
 
->Copyright (C) 2000 - 2006 Intel Corporation
->Supports ACPI Specification Revision 3.0a
->
->dsdt.dsl  3735:                     }
->Error    1094 -                     ^ parse error, expecting `'(''
->
->dsdt.dsl  3747:                             }
->Error    1094 -                             ^ parse error, expecting `'
->
->dsdt.dsl  3866:                 0x03
->Error    1094 -                    ^ parse error, expecting `'(''
->
->dsdt.dsl  4233: [*** iASL: Read error on source code temp file ***]
->Error    1094 -^ parse error
->
->ASL Input:  dsdt.dsl - 4234 lines, 139958 bytes, 1745 keywords
->Compilation complete. 4 Errors, 0 Warnings, 0 Remarks, 0 Optimizations
->
->
->*******
->If (LEqual (Local0, 0x02))
->{
->   PDVN  <<line: 3735 here is a parse error
->}
 
-looks like PDVN is missing the parameters.
-eg. PVDN(a, b, c)
-similar issues below.
+Signed-off-by: Luming Yu <luming.yu@intel.com>
 
-if the latest disassembler/compiler do not work, please open a bug
-and attach the output from acpidump or the DSDT w/ no modifications.
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index bea1ad1..19a71a6 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -456,7 +456,7 @@ pci_restore_state(struct pci_dev *dev)
+ {
+ 	int i;
+=20
+-	for (i =3D 0; i < 16; i++)
++	for (i =3D 15; i >=3D 0 ; i--)
+ 		pci_write_config_dword(dev,i * 4,
+dev->saved_config_space[i]);
+ 	return 0;
+ }
 
-thanks,
--Len
+------_=_NextPart_001_01C66834.9B7A1282
+Content-Type: application/octet-stream;
+	name="reverse_pci_config_space_restore_order.patch"
+Content-Transfer-Encoding: base64
+Content-Description: reverse_pci_config_space_restore_order.patch
+Content-Disposition: attachment;
+	filename="reverse_pci_config_space_restore_order.patch"
 
->Else
->{
->   If (LEqual (Local0, 0x08))
->   {
->      If (LAnd (LNot (LEqual (\_SB.MEM.VALF, 0x00)), LNot (LEqual
->(\_SB.MEM.HKRD, 0x00))))
->      {
->         Notify (\_SB.VALZ, 0x87)
->      }
->      Else
->      {
->          SDVN <<line: 3747 here is a parse error
->      }
->
->*******
->If (LEqual (SBTB, 0x01))
->{
->   SH1X
->   0x03 <<line: 3866 Here is the parse error
->}
->*******
->
->
->I was able to fix another error, but I have found no info about this
->errors on forums or pages, and www.acpi.info is down (or at 
->least I can't
->access) so I can't download the specs. Could you please give 
->me a hand, if
->it's not too many trouble? Otherwise, please let me know were I can get
->some help. I've been fighting with these 4 errors for a couple of days,
->and after comparing my dsdt with other dsdt's, I can't find any
->workarounds for these errors, and I get an "ACPI- Can't load 
->DSDT" message
->with dmesg.
->
->Sorry for the trouble, and thank you in advance for any help 
->you can give
->on this matter.
->
->Kind regards,
->Ivan Gracia
->
->
->
->__________________________________________________
->Do You Yahoo!?
->Tired of spam?  Yahoo! Mail has the best spam protection around 
->http://mail.yahoo.com 
->
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvcGNpL3BjaS5jIGIvZHJpdmVycy9wY2kvcGNpLmMKaW5kZXgg
+YmVhMWFkMS4uMTlhNzFhNiAxMDA2NDQKLS0tIGEvZHJpdmVycy9wY2kvcGNpLmMKKysrIGIvZHJp
+dmVycy9wY2kvcGNpLmMKQEAgLTQ1Niw3ICs0NTYsNyBAQCBwY2lfcmVzdG9yZV9zdGF0ZShzdHJ1
+Y3QgcGNpX2RldiAqZGV2KQogewogCWludCBpOwogCi0JZm9yIChpID0gMDsgaSA8IDE2OyBpKysp
+CisJZm9yIChpID0gMTU7IGkgPj0gMCA7IGktLSkKIAkJcGNpX3dyaXRlX2NvbmZpZ19kd29yZChk
+ZXYsaSAqIDQsIGRldi0+c2F2ZWRfY29uZmlnX3NwYWNlW2ldKTsKIAlyZXR1cm4gMDsKIH0K
+
+------_=_NextPart_001_01C66834.9B7A1282--
