@@ -1,72 +1,35 @@
-From: abelay@MIT.EDU
-Subject: RE: [PATCH] reverse pci config space restore order
-Date: Tue, 25 Apr 2006 19:59:43 -0400
-Message-ID: <20060425195943.7a6apx4ci65ticos@webmail.mit.edu>
-References: <CFF307C98FEABE47A452B27C06B85BB6466300@hdsmsx411.amr.corp.intel.com>
+From: Andi Kleen <ak@suse.de>
+Subject: Re: [(repost) git Patch 1/1] avoid IRQ0 ioapic pin collision
+Date: Wed, 26 Apr 2006 13:27:29 +0200
+Message-ID: <200604261327.29694.ak@suse.de>
+References: <20060425160200.3424.89316.sendpatchset@dhcp83-97.boston.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset=ISO-8859-1;
-	format="flowed"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from BISCAYNE-ONE-STATION.MIT.EDU ([18.7.7.80]:4540 "EHLO
-	biscayne-one-station.mit.edu") by vger.kernel.org with ESMTP
-	id S932305AbWDZARJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Apr 2006 20:17:09 -0400
-In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB6466300@hdsmsx411.amr.corp.intel.com>
+Received: from mx2.suse.de ([195.135.220.15]:23766 "EHLO mx2.suse.de")
+	by vger.kernel.org with ESMTP id S932400AbWDZL3Y (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 26 Apr 2006 07:29:24 -0400
+In-Reply-To: <20060425160200.3424.89316.sendpatchset@dhcp83-97.boston.redhat.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>, Arjan van de Ven <arjan@infradead.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "Yu, Luming" <luming.yu@intel.com>, Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Kimball Murray <kimball.murray@gmail.com>
+Cc: linux-kernel@vger.kernel.org, akpm@digeo.com, kmurray@redhat.com, natalie.protasevich@unisys.com, len.brown@intel.com, linux-acpi@vger.kernel.org
 
-Quoting "Brown, Len" <len.brown@intel.com>:
+On Tuesday 25 April 2006 18:06, Kimball Murray wrote:
+> Per Andi Kleen's request, I have made slight changes to the patch I
+> submitted last week.  Look for the "snip" further down if you don't
+> want to re-read the original post.  Thanks!
 
->
->> On Tue, 2006-04-25 at 11:48 +0100, Matthew Garrett wrote:
->>> On Tue, Apr 25, 2006 at 02:50:57PM +0800, Yu, Luming wrote:
->>>
->>> > -	for (i = 0; i < 16; i++)
->>> > +	for (i = 15; i >= 0 ; i--)
->>>
->>> We certainly need to do /something/ here, but I'm not sure
->>> this is it.
->>> Adam Belay has code to limit PCI state restoration to the
->>> PCI-specified
->>> registers, with the idea being that individual drivers fix things up
->>> properly. While this has the obvious drawback that almost every PCI
->>> driver in the tree would then need fixing up, it's also probably the
->>> right thing.
->>
->> it has a second drawback: it assumes all devices HAVE a driver, which
->> isn't normally the case...
->
-> Adam mentioned earlier, and I agree, that it is probably a bad
-> idea for this code to blindly scribble on the BIST field at i=3.
-> Probably we should clear that field before restoring it.
->
-> Re: this patch
-> I think that this patch is likely a positive forward step.
-> It seems logical to restore the BARs before the CMD/STATUS in general,
-> nothing specific to the ICH here.
->
-> But yes, this is a helper routine and devices where it hurts
-> instead of helps should have their own routine.  Complex devices
-> need to handle the device-specific config space state above these
-> 1st 16 locations anyway.
+Added to my tree thanks.
 
-Right, and because we only restore the first 0x40 or so registers (they're all
-standard), I don't think implementing pci_save/restore_state() properly 
-is going
-to break much at all.  I'm planning to merge these changes with -mm, so
-hopefully it won't be difficult to tell. :)
+But next time please don't paste other patches in the introduction.
+It makes the patch merging scripts unhappy. Instead just resend the patch 
+with the full initial description again. I fixed it up.
 
-Re: devices without drivers
+Thanks,
 
-We can certainly call a generic save and restore function when there isn't a
-driver available, but beyond handling standard registers mentioned in 
-the spec,
-if important hardware context is lost there's really no way around it.
-
--Adam
-
+-Ando
