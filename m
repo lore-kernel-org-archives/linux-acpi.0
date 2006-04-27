@@ -1,47 +1,41 @@
 From: akpm@osdl.org
-Subject: [patch 16/16] acpi: suppress power button event on S3 resume
-Date: Thu, 27 Apr 2006 02:25:16 -0700
-Message-ID: <200604270926.k3R9QiaN025117@shell0.pdx.osdl.net>
+Subject: [patch 12/16] acpi: memory leakages in drivers/acpi/thermal.c
+Date: Thu, 27 Apr 2006 02:25:12 -0700
+Message-ID: <200604270926.k3R9QeLE025105@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:50637 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S965010AbWD0J0t (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:55501 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S965019AbWD0J1T (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Apr 2006 05:26:49 -0400
+	Thu, 27 Apr 2006 05:27:19 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, apatard@mandriva.com, luming.yu@intel.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, vvs@sw.ru
 
 
-From: "Arnaud Patard" <apatard@mandriva.com>
+From: Vasily Averin <vvs@sw.ru>
 
-Suppress POWER_BUTTON event on S3 resume.
+acpi_thermal_write_trip_points() and acpi_thermal_add() do not call kfree()
+for allocated memory on the error path.
 
-Signed-off-by: Arnaud Patard <apatard@mandriva.com>
-Acked-by: "Yu, Luming" <luming.yu@intel.com>
+Signed-off-by: Vasily Averin <vvs@sw.ru>
 Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/sleep/main.c |    8 ++++++++
- 1 files changed, 8 insertions(+)
+ drivers/acpi/thermal.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/sleep/main.c~acpi-suppress-power-button-event-on-s3-resume drivers/acpi/sleep/main.c
---- 25/drivers/acpi/sleep/main.c~acpi-suppress-power-button-event-on-s3-resume	Wed Apr 26 14:15:19 2006
-+++ 25-akpm/drivers/acpi/sleep/main.c	Wed Apr 26 14:15:19 2006
-@@ -105,6 +105,14 @@ static int acpi_pm_enter(suspend_state_t
- 	default:
- 		return -EINVAL;
- 	}
-+
-+	/* ACPI 3.0 specs (P62) says that it's the responsabilty
-+	 * of the OSPM to clear the status bit [ implying that the
-+	 * POWER_BUTTON event should not reach userspace ]
-+	 */
-+	if (ACPI_SUCCESS(status) && (acpi_state == ACPI_STATE_S3))
-+		acpi_clear_event(ACPI_EVENT_POWER_BUTTON);
-+
- 	local_irq_restore(flags);
- 	printk(KERN_DEBUG "Back to C!\n");
+diff -puN drivers/acpi/thermal.c~acpi-memory-leakages-in-drivers-acpi-thermalc drivers/acpi/thermal.c
+--- devel/drivers/acpi/thermal.c~acpi-memory-leakages-in-drivers-acpi-thermalc	2006-04-10 23:16:26.000000000 -0700
++++ devel-akpm/drivers/acpi/thermal.c	2006-04-10 23:16:26.000000000 -0700
+@@ -1329,7 +1329,7 @@ static int acpi_thermal_add(struct acpi_
+ 
+ 	result = acpi_thermal_add_fs(device);
+ 	if (result)
+-		return_VALUE(result);
++		goto end;
+ 
+ 	init_timer(&tz->timer);
  
 _
