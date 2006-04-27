@@ -1,47 +1,54 @@
-From: akpm@osdl.org
-Subject: [patch 11/16] acpi: memory leak in acpi_evaluate_integer()
-Date: Thu, 27 Apr 2006 02:25:09 -0700
-Message-ID: <200604270926.k3R9Qbg6025102@shell0.pdx.osdl.net>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: 2.6.17-rc2-mm1: ACPI_DOCK=n, HOTPLUG_PCI_ACPI=y compile error
+Date: Thu, 27 Apr 2006 17:01:56 +0200
+Message-ID: <20060427150156.GF3570@stusta.de>
+References: <20060427014141.06b88072.akpm@osdl.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:55245 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S965018AbWD0J1T (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Apr 2006 05:27:19 -0400
+Received: from mailout.stusta.mhn.de ([141.84.69.5]:29971 "HELO
+	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
+	id S965135AbWD0PB6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Apr 2006 11:01:58 -0400
+Content-Disposition: inline
+In-Reply-To: <20060427014141.06b88072.akpm@osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, vvs@sw.ru
+To: Andrew Morton <akpm@osdl.org>, Kristen Accardi <kristen.c.accardi@intel.com>
+Cc: linux-kernel@vger.kernel.org, gregkh@suse.de, len.brown@intel.com, linux-acpi@vger.kernel.org
 
+Although not mentioned in the changelog, acpi-dock-driver.patch was 
+updated in 2.6.17-rc2-mm1.
 
-From: Vasily Averin <vvs@sw.ru>
+The changes cause the following compile error with CONFIG_ACPI_DOCK=n, 
+CONFIG_HOTPLUG_PCI_ACPI=y:
 
-acpi_evaluate_integer() does not release allocated memory on the error path.
+<--  snip  -->
 
-(akpm: this is what happens when one uses multiple `return' statements...)
+...
+  LD      .tmp_vmlinux1
+drivers/built-in.o: In function 
+`is_pci_dock_device':acpiphp_glue.c:(.text+0x1a08a): undefined reference to `is_dock_device'
+drivers/built-in.o: In function `cleanup_bridge':
+acpiphp_glue.c:(.text+0x1a127): undefined reference to `is_dock_device'
+:acpiphp_glue.c:(.text+0x1a133): undefined reference to `unregister_hotplug_dock_device'
+:acpiphp_glue.c:(.text+0x1a13b): undefined reference to `unregister_dock_notifier'
+drivers/built-in.o: In function `register_slot':
+acpiphp_glue.c:(.text+0x1b545): undefined reference to `is_dock_device'
+:acpiphp_glue.c:(.text+0x1b742): undefined reference to `is_dock_device'
+:acpiphp_glue.c:(.text+0x1b759): undefined reference to `register_hotplug_dock_device'
+:acpiphp_glue.c:(.text+0x1b786): undefined reference to `register_dock_notifier'
+make: *** [.tmp_vmlinux1] Error 1
 
-Signed-off-by: Vasily Averin <vvs@sw.ru>
-Cc: "Brown, Len" <len.brown@intel.com>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
----
+<--  snip  -->
 
- drivers/acpi/utils.c |    2 ++
- 1 files changed, 2 insertions(+)
+cu
+Adrian
 
-diff -puN drivers/acpi/utils.c~memory-leak-in-acpi_evaluate_integer drivers/acpi/utils.c
---- devel/drivers/acpi/utils.c~memory-leak-in-acpi_evaluate_integer	2006-04-10 23:16:23.000000000 -0700
-+++ devel-akpm/drivers/acpi/utils.c	2006-04-10 23:16:23.000000000 -0700
-@@ -274,11 +274,13 @@ acpi_evaluate_integer(acpi_handle handle
- 	status = acpi_evaluate_object(handle, pathname, arguments, &buffer);
- 	if (ACPI_FAILURE(status)) {
- 		acpi_util_eval_error(handle, pathname, status);
-+		kfree(element);
- 		return_ACPI_STATUS(status);
- 	}
- 
- 	if (element->type != ACPI_TYPE_INTEGER) {
- 		acpi_util_eval_error(handle, pathname, AE_BAD_DATA);
-+		kfree(element);
- 		return_ACPI_STATUS(AE_BAD_DATA);
- 	}
- 
-_
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
+
