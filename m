@@ -1,50 +1,279 @@
-From: Andi Kleen <ak@suse.de>
-Subject: Re: [(repost) git Patch 1/1] avoid IRQ0 ioapic pin collision
-Date: Thu, 27 Apr 2006 21:13:24 +0200
-Message-ID: <200604272113.24705.ak@suse.de>
-References: <19D0D50E9B1D0A40A9F0323DBFA04ACC023B0B9F@USRV-EXCH4.na.uis.unisys.com>
+From: Peter Wainwright <prw@ceiriog.eclipse.co.uk>
+Subject: Re: Linux does not correctly implement the ACPI specification
+Date: Thu, 27 Apr 2006 20:23:52 +0100
+Message-ID: <1146165833.5309.12.camel@localhost.localdomain>
+References: <971FCB6690CD0E4898387DBF7552B90E04970A19@orsmsx403.amr.corp.intel.com>
+	 <1144493556.8409.0.camel@localhost.localdomain>
+	 <p73d5fm4trw.fsf@bragg.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-rbh56jjrUEBvw89WYMJQ"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns1.suse.de ([195.135.220.2]:28591 "EHLO mx1.suse.de")
-	by vger.kernel.org with ESMTP id S964919AbWD0TNl (ORCPT
+Received: from [82.153.68.2] ([82.153.68.2]:3720 "EHLO localhost.localdomain")
+	by vger.kernel.org with ESMTP id S1030204AbWD0TXL (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Apr 2006 15:13:41 -0400
-In-Reply-To: <19D0D50E9B1D0A40A9F0323DBFA04ACC023B0B9F@USRV-EXCH4.na.uis.unisys.com>
-Content-Disposition: inline
+	Thu, 27 Apr 2006 15:23:11 -0400
+In-Reply-To: <p73d5fm4trw.fsf@bragg.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Protasevich, Natalie" <Natalie.Protasevich@unisys.com>
-Cc: "Brown, Len" <len.brown@intel.com>, sergio@sergiomb.no-ip.org, Kimball Murray <kimball.murray@gmail.com>, linux-kernel@vger.kernel.org, akpm@digeo.com, kmurray@redhat.com, linux-acpi@vger.kernel.org
+To: Andi Kleen <ak@suse.de>
+Cc: linux-acpi@vger.kernel.org
 
-On Thursday 27 April 2006 21:10, Protasevich, Natalie wrote:
-> > 
-> > >There are probably better ways to control 224 possible IRQs by their 
-> > >total number instead of their range, and per-cpu IDTs are the better 
-> > >answer to the IRQ shortage altogether. But just going back 
-> > to the way 
-> > >it was wouldn't be right I think.
-> > >We were able to run 2 generations of
-> > >systems only because we had this compression, other big systems 
-> > >benefited from it as well.
-> > 
-> > I don't propose reverting the IRQ re-name patch and breaking 
-> > the big iron without replacing it with something else that works.
-> 
-> Len, maybe it sounds dramatic and/or extreme, but how about getting rid
-> of IRQs and just having GSI-vector pair.
-> I intuitively think that would be possible (not that I have all the
-> details lined up :)
-> And this would probably take away confusing IRQ abstraction out once and
-> for all? I think something like that is done in ia64.
 
-x86 users are attached to their interrupt numbers I think back from the bad old
-days with only 16 interrupts and interrupt sharing didn't work. We might have a revolt
-in the user base if /proc/interrupts didn't display them anymore @)
+--=-rbh56jjrUEBvw89WYMJQ
+Content-Type: multipart/mixed; boundary="=-EClqHpSAcOEgWl870+i7"
 
-But I guess using GSI/vector internally only would be fine.
 
--Andi
+--=-EClqHpSAcOEgWl870+i7
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+
+On Wed, 2006-04-12 at 18:56 +0200, Andi Kleen wrote:=20
+> Peter Wainwright <prw@ceiriog.eclipse.co.uk> writes:
+> > Instead of executing all the GPE and Notify handlers in the single
+> > kacpid thread, we create a pool of worker threads and hand over the
+> > work to them.
+>=20
+> You do this at boot - this means you waste a lot of memory for this
+> obscure case. Not a good idea. If anything create/destroy them
+> dynamically.
+
+Eh? the threads *are* created dynamically - and only if the user first
+enables this behaviour by writing to a /proc filesystem entry (e.g. in
+an init script).  NO additional memory (except for the code itself) is
+used unless the user explicitly enables this behaviour.
+
+Also, I don't regard this as an "obscure case". Even if this bug were
+never triggered by any current hardware, it represents a divergence
+from the ACPI spec which could potentially bite any new hardware.
+We can't claim that Linux supports the full ACPI spec without some
+similar
+patch.
+
+>=20
+> Also externs belong in header files.
+>=20
+
+You're thinking of the declaration of acpi_os_initialize2? Well, there
+was an existing extern declaration: acpi_os_initialize1 - I just added
+another one :-). I don't want to expose this in a header because it is
+a purely private interface. The neatest solution would be to make an
+__initcall entry. However, this wouldn't work at the moment, because
+acpi_os_initialize2 creates an entry in /proc/acpi which does not exist
+until the bus.c initialization stuff. Is it possible to
+swap the order
+of bus.c and osl.c in the link line (I assume this swaps the order of
+the
+__initcalls)?
+
+Anyway, here is the second version of my patch. It has been tested
+pretty thoroughly against 2.6.16.4, and applies cleanly to 2.6.16.11.
+
+As promised, the thread pool entries are now destroyed dynamically; if
+no ACPI events occur in 10 seconds, all the extra threads will
+disappear.
+
+I have added a kernel boot option "acpi_pool_size=3D". This is necessary
+because
+a thermal trip may occur between booting and running any init script
+which
+writes the /proc/acpi/pool_size (particularly if the system was warm to
+start
+with). Therefore, the thread pool needs to be enabled at boot time.
+
+I renamed /proc/acpi/poolsize to /proc/acpi/pool_size for greater
+readability and
+compatibility with other filenames.
+
+I downgraded the debugging messages to ACPI_DB_INFO level, so they are
+not printed
+by default. The patch is very robust for me now, so I don't think we
+should
+need them.
+
+Peter
+
+> -Andi
+
+
+Signed-off-by: Peter R Wainwright <prw@ceiriog.eclipse.co.uk>
+
+
+
+--=-EClqHpSAcOEgWl870+i7
+Content-Disposition: attachment; filename=acpi-osl2.patch
+Content-Type: text/x-patch; name=acpi-osl2.patch; charset=utf-8
+Content-Transfer-Encoding: base64
+
+ZGlmZiAtdSAtciBsaW51eC0yLjYuMTYuNC1wcnczLW9sZC9kcml2ZXJzL2FjcGkvYnVzLmMgbGlu
+dXgtMi42LjE2LjQtcHJ3My9kcml2ZXJzL2FjcGkvYnVzLmMNCi0tLSBsaW51eC0yLjYuMTYuNC1w
+cnczLW9sZC9kcml2ZXJzL2FjcGkvYnVzLmMJMjAwNi0wNC0yMSAxMjoxODoxMS4wMDAwMDAwMDAg
+KzAxMDANCisrKyBsaW51eC0yLjYuMTYuNC1wcnczL2RyaXZlcnMvYWNwaS9idXMuYwkyMDA2LTA0
+LTIxIDEyOjE4OjI0LjAwMDAwMDAwMCArMDEwMA0KQEAgLTY2NCw2ICs2NjQsNyBAQA0KIAlpbnQg
+cmVzdWx0ID0gMDsNCiAJYWNwaV9zdGF0dXMgc3RhdHVzID0gQUVfT0s7DQogCWV4dGVybiBhY3Bp
+X3N0YXR1cyBhY3BpX29zX2luaXRpYWxpemUxKHZvaWQpOw0KKwlleHRlcm4gYWNwaV9zdGF0dXMg
+YWNwaV9vc19pbml0aWFsaXplMih2b2lkKTsNCiANCiAJQUNQSV9GVU5DVElPTl9UUkFDRSgiYWNw
+aV9idXNfaW5pdCIpOw0KIA0KQEAgLTcyNyw2ICs3MjgsOCBAQA0KIAkgKi8NCiAJYWNwaV9yb290
+X2RpciA9IHByb2NfbWtkaXIoQUNQSV9CVVNfRklMRV9ST09ULCBOVUxMKTsNCiANCisJc3RhdHVz
+ID0gYWNwaV9vc19pbml0aWFsaXplMigpOw0KKw0KIAlyZXR1cm5fVkFMVUUoMCk7DQogDQogCS8q
+IE1pbWljIHN0cnVjdHVyZWQgZXhjZXB0aW9uIGhhbmRsaW5nICovDQpkaWZmIC11IC1yIGxpbnV4
+LTIuNi4xNi40LXBydzMtb2xkL2RyaXZlcnMvYWNwaS9vc2wuYyBsaW51eC0yLjYuMTYuNC1wcncz
+L2RyaXZlcnMvYWNwaS9vc2wuYw0KLS0tIGxpbnV4LTIuNi4xNi40LXBydzMtb2xkL2RyaXZlcnMv
+YWNwaS9vc2wuYwkyMDA2LTA0LTIxIDEyOjE4OjExLjAwMDAwMDAwMCArMDEwMA0KKysrIGxpbnV4
+LTIuNi4xNi40LXBydzMvZHJpdmVycy9hY3BpL29zbC5jCTIwMDYtMDQtMjcgMTg6NTg6MDcuMDAw
+MDAwMDAwICswMTAwDQpAQCAtNDYsNiArNDYsMTAgQEANCiANCiAjaW5jbHVkZSA8bGludXgvZWZp
+Lmg+DQogDQorI2luY2x1ZGUgPGxpbnV4L2t0aHJlYWQuaD4NCisjaW5jbHVkZSA8bGludXgvcHJv
+Y19mcy5oPg0KKyNpbmNsdWRlIDxsaW51eC9zZXFfZmlsZS5oPg0KKw0KICNkZWZpbmUgX0NPTVBP
+TkVOVAkJQUNQSV9PU19TRVJWSUNFUw0KIEFDUElfTU9EVUxFX05BTUUoIm9zbCIpDQogI2RlZmlu
+ZSBQUkVGSVgJCSJBQ1BJOiAiDQpAQCAtNzUsNiArNzksMjEzIEBADQogc3RhdGljIGFjcGlfb3Nk
+X2hhbmRsZXIgYWNwaV9pcnFfaGFuZGxlcjsNCiBzdGF0aWMgdm9pZCAqYWNwaV9pcnFfY29udGV4
+dDsNCiBzdGF0aWMgc3RydWN0IHdvcmtxdWV1ZV9zdHJ1Y3QgKmthY3BpZF93cTsNCitzdHJ1Y3Qg
+dGltZXJfbGlzdCBhY3BpX3JlYXBfdGltZXI7DQorDQorc3RhdGljIGludCByZWFwX2ludGVydmFs
+ID0gNTAwMDsNCisNCisvKiBUaGlzIHBhcmFtZXRlciBtYXkgYmUgY29uZmlndXJlZCBhdCBydW50
+aW1lIGJ5IHdyaXRpbmcgdG8NCisgICAvcHJvYy9hY3BpL3Bvb2xfc2l6ZSAqLw0KK3N0YXRpYyBp
+bnQgbWF4X3Bvb2xfc2l6ZSA9IDA7DQorc3RhdGljIGludCBfX2luaXQgYWNwaV9zZXRfcG9vbF9z
+aXplKGNoYXIgKnN0cikNCit7DQorCWdldF9vcHRpb24oJnN0ciwgJm1heF9wb29sX3NpemUpOw0K
+KwlyZXR1cm4gMDsNCit9DQorX19zZXR1cCgiYWNwaV9wb29sX3NpemU9IiwgYWNwaV9zZXRfcG9v
+bF9zaXplKTsNCisNCisvKiBIb3BlZnVsbHkgd2UgbmVlZCBubyBzcGVjaWFsIGxvY2tpbmcgaGVy
+ZSwgc2luY2UgdGhpcyBhbHdheXMNCisgICBleGVjdXRlcyBpbiBvbmUgdGhyZWFkOiBrYWNwaWQg
+Ki8NCitzdGF0aWMgaW50IGN1cnJlbnRfcG9vbF9zaXplID0gMDsNCitzdGF0aWMgc3RydWN0IGxp
+c3RfaGVhZCB0aHJlYWRfcG9vbCA9IExJU1RfSEVBRF9JTklUKHRocmVhZF9wb29sKTsNCisNCitz
+dHJ1Y3QgdGhyZWFkX3Bvb2xfZW50cnkgew0KKwlzdHJ1Y3QgdGFza19zdHJ1Y3QgKnRocmVhZDsN
+CisJaW50IGlkOw0KKwlpbnQgYWN0aXZlOw0KKwlhY3BpX29zZF9leGVjX2NhbGxiYWNrIGZ1bmN0
+aW9uOw0KKwl2b2lkICpjb250ZXh0Ow0KKwl1bnNpZ25lZCBsb25nIGppZmZpZXM7DQorCXdhaXRf
+cXVldWVfaGVhZF90IG1vcmVfd29yazsNCisJd2FpdF9xdWV1ZV9oZWFkX3Qgd29ya19kb25lOw0K
+KwlzdHJ1Y3QgbGlzdF9oZWFkIGxpc3Q7DQorfTsNCisNCitzdGF0aWMgaW50IGFjcGlfb3NsX3Bv
+b2xfc2l6ZV9yZWFkKHN0cnVjdCBzZXFfZmlsZSAqc2VxLCB2b2lkICpvZmZzZXQpDQorew0KKwlz
+dHJ1Y3QgbGlzdF9oZWFkICpsOw0KKw0KKwlBQ1BJX0ZVTkNUSU9OX1RSQUNFKCJhY3BpX29zbF9w
+b29sX3NpemVfcmVhZCIpOw0KKw0KKwlzZXFfcHJpbnRmKHNlcSwgIm1heF9wb29sX3NpemU9JWRc
+biIsIG1heF9wb29sX3NpemUpOw0KKwlzZXFfcHJpbnRmKHNlcSwgImN1cnJlbnRfcG9vbF9zaXpl
+PSVkXG4iLCBjdXJyZW50X3Bvb2xfc2l6ZSk7DQorCS8qIEZJWE1FOiBOZWVkIGxvY2s/ICovDQor
+CWxpc3RfZm9yX2VhY2gobCwgJnRocmVhZF9wb29sKSB7DQorCQlzdHJ1Y3QgdGhyZWFkX3Bvb2xf
+ZW50cnkgKmUgPSBsaXN0X2VudHJ5KGwsIHN0cnVjdCB0aHJlYWRfcG9vbF9lbnRyeSwgbGlzdCk7
+DQorCQlzZXFfcHJpbnRmKHNlcSwgImVudHJ5PSglcCwlZCwlcCwlcCwlbHUpXG4iLA0KKwkJCSAg
+IGUtPnRocmVhZCwgZS0+YWN0aXZlLCBlLT5mdW5jdGlvbiwgZS0+Y29udGV4dCwgZS0+amlmZmll
+cyk7DQorCX0NCisJcmV0dXJuX1ZBTFVFKDApOw0KK30NCisNCitzdGF0aWMgaW50IGFjcGlfb3Ns
+X3Bvb2xfc2l6ZV9vcGVuX2ZzKHN0cnVjdCBpbm9kZSAqaW5vZGUsIHN0cnVjdCBmaWxlICpmaWxl
+KQ0KK3sNCisJcmV0dXJuIHNpbmdsZV9vcGVuKGZpbGUsIGFjcGlfb3NsX3Bvb2xfc2l6ZV9yZWFk
+LCBQREUoaW5vZGUpLT5kYXRhKTsNCit9DQorDQorc3RhdGljIHNzaXplX3QNCithY3BpX29zbF9w
+b29sX3NpemVfd3JpdGUoc3RydWN0IGZpbGUgKmZpbGUsDQorCQkJICAgY29uc3QgY2hhciBfX3Vz
+ZXIgKiBidWZmZXIsDQorCQkJICAgc2l6ZV90IGNvdW50LCBsb2ZmX3QgKiBwcG9zKQ0KK3sNCisJ
+Y2hhciAqc2l6ZV9zdHJpbmc7DQorDQorCUFDUElfRlVOQ1RJT05fVFJBQ0UoImFjcGlfb3NsX3Bv
+b2xfc2l6ZV93cml0ZSIpOw0KKw0KKwlzaXplX3N0cmluZyA9IGttYWxsb2MoNDA5NiwgR0ZQX0tF
+Uk5FTCk7DQorCWlmICghc2l6ZV9zdHJpbmcpDQorCQlyZXR1cm5fVkFMVUUoLUVOT01FTSk7DQor
+DQorCW1lbXNldChzaXplX3N0cmluZywgMCwgNDA5Nik7DQorDQorCWlmIChjb3B5X2Zyb21fdXNl
+cihzaXplX3N0cmluZywgYnVmZmVyLCBjb3VudCkpIHsNCisJCUFDUElfREVCVUdfUFJJTlQoKEFD
+UElfREJfRVJST1IsICJJbnZhbGlkIGRhdGFcbiIpKTsNCisJCWNvdW50ID0gLUVGQVVMVDsNCisJ
+CWdvdG8gZW5kOw0KKwl9DQorDQorCXNpemVfc3RyaW5nW2NvdW50XSA9ICdcMCc7DQorCW1heF9w
+b29sX3NpemUgPSBzaW1wbGVfc3RydG9sKHNpemVfc3RyaW5nLCBOVUxMLCAxMCk7DQorCUFDUElf
+REVCVUdfUFJJTlQoKEFDUElfREJfSU5GTywgIlBvb2xfU2l6ZSBub3cgJWRcbiIsIG1heF9wb29s
+X3NpemUpKTsNCisNCitlbmQ6DQorCWtmcmVlKHNpemVfc3RyaW5nKTsNCisJcmV0dXJuX1ZBTFVF
+KGNvdW50KTsNCit9DQorDQorc3RhdGljIHN0cnVjdCBmaWxlX29wZXJhdGlvbnMgYWNwaV9vc2xf
+cG9vbF9zaXplX29wcyA9IHsNCisJLm9wZW4gPSBhY3BpX29zbF9wb29sX3NpemVfb3Blbl9mcywN
+CisJLnJlYWQgPSBzZXFfcmVhZCwNCisJLndyaXRlID0gYWNwaV9vc2xfcG9vbF9zaXplX3dyaXRl
+LA0KKwkubGxzZWVrID0gc2VxX2xzZWVrLA0KKwkucmVsZWFzZSA9IHNpbmdsZV9yZWxlYXNlLA0K
+K307DQorDQorLyogVGhpcyBpcyBiYXNlZCBvbiB3b3JrcXVldWUgd29ya2VyX3RocmVhZCAqLw0K
+K3N0YXRpYyBpbnQgYWNwaV9vc19leGVjdXRlX3dvcmtlcih2b2lkICpjb250ZXh0KQ0KK3sNCisJ
+c3RydWN0IHRocmVhZF9wb29sX2VudHJ5ICplID0gKHN0cnVjdCB0aHJlYWRfcG9vbF9lbnRyeSAq
+KWNvbnRleHQ7DQorCURFQ0xBUkVfV0FJVFFVRVVFKHdhaXQsIGN1cnJlbnQpOw0KKw0KKwlzZXRf
+dXNlcl9uaWNlKGN1cnJlbnQsIC01KTsNCisNCisJc2V0X2N1cnJlbnRfc3RhdGUoVEFTS19JTlRF
+UlJVUFRJQkxFKTsNCisNCisJQUNQSV9ERUJVR19QUklOVCgoQUNQSV9EQl9JTkZPLCAiWyVkOiVw
+XSBiZWZvcmUgbG9vcFxuIiwgZS0+aWQsIGUpKTsNCisJd2hpbGUgKCFrdGhyZWFkX3Nob3VsZF9z
+dG9wKCkpIHsNCisJCS8qIFdhaXQgdW50aWwgdGhlcmUgaXMgd29yayB0byBkbyBpbiB0aGlzIHRo
+cmVhZCAqLw0KKwkJYWRkX3dhaXRfcXVldWUoJmUtPm1vcmVfd29yaywgJndhaXQpOw0KKwkJaWYg
+KCFlLT5mdW5jdGlvbikgew0KKwkJCUFDUElfREVCVUdfUFJJTlQoKEFDUElfREJfSU5GTywgIlsl
+ZDolcF0gc2xlZXBpbmdcbiIsIGUtPmlkLCBlKSk7DQorCQkJc2NoZWR1bGUoKTsNCisJCX0NCisJ
+CWVsc2Ugew0KKwkJCV9fc2V0X2N1cnJlbnRfc3RhdGUoVEFTS19SVU5OSU5HKTsNCisJCX0NCisJ
+CXRyeV90b19mcmVlemUoKTsNCisJCXJlbW92ZV93YWl0X3F1ZXVlKCZlLT5tb3JlX3dvcmssICZ3
+YWl0KTsNCisJCWlmIChlLT5mdW5jdGlvbikgew0KKwkJCWFjcGlfb3NkX2V4ZWNfY2FsbGJhY2sg
+ZnVuY3Rpb24gPSBlLT5mdW5jdGlvbjsNCisJCQl2b2lkICpjb250ZXh0ID0gZS0+Y29udGV4dDsN
+CisJCQllLT5mdW5jdGlvbiA9IE5VTEw7DQorCQkJZS0+Y29udGV4dCA9IE5VTEw7DQorCQkJQUNQ
+SV9ERUJVR19QUklOVCgoQUNQSV9EQl9JTkZPLCAiWyVkOiVwXSBleGVjdXRpbmcgZnVuY3Rpb249
+JXAgY29udGV4dD0lcFxuIiwNCisJCQkJCSAgZS0+aWQsIGUsIGZ1bmN0aW9uLCBjb250ZXh0KSk7
+DQorCQkJZnVuY3Rpb24oY29udGV4dCk7DQorDQorCQkJZS0+YWN0aXZlID0gMDsNCisJCQllLT5q
+aWZmaWVzID0gamlmZmllczsNCisJCQlBQ1BJX0RFQlVHX1BSSU5UKChBQ1BJX0RCX0lORk8sICJb
+JWQ6JXBdIGV4aXQgZnVuY3Rpb249JXAgY29udGV4dD0lcCBhdCAlbHhcbiIsDQorCQkJCQkgIGUt
+PmlkLCBlLCBmdW5jdGlvbiwgY29udGV4dCwgZS0+amlmZmllcykpOw0KKw0KKwkJfQ0KKwkJc2V0
+X2N1cnJlbnRfc3RhdGUoVEFTS19JTlRFUlJVUFRJQkxFKTsNCisJfQ0KKwlBQ1BJX0RFQlVHX1BS
+SU5UKChBQ1BJX0RCX0lORk8sICJbJWQ6JXBdIHN0b3BwZWRcbiIsIGUtPmlkLCBlKSk7DQorDQor
+CXJldHVybiAwOw0KK30NCisNCitzdGF0aWMgc3RydWN0IHdvcmtfc3RydWN0IGFjcGlfcmVhcF90
+YXNrOw0KKw0KK3N0YXRpYyB2b2lkIGFjcGlfcXVldWVfcmVhcF90aHJlYWRzKHVuc2lnbmVkIGxv
+bmcgZGF0YSk7DQorDQorc3RhdGljIHZvaWQgYWNwaV9yZWFwX3RocmVhZHModm9pZCAqZGF0YSkN
+Cit7DQorCXN0cnVjdCBsaXN0X2hlYWQgKmwsICpuOw0KKw0KKwkvKiBGSVhNRTogTmVlZCBsb2Nr
+PyAqLw0KKwlsaXN0X2Zvcl9lYWNoX3NhZmUobCwgbiwgJnRocmVhZF9wb29sKSB7DQorCQlzdHJ1
+Y3QgdGhyZWFkX3Bvb2xfZW50cnkgKmUgPSBsaXN0X2VudHJ5KGwsIHN0cnVjdCB0aHJlYWRfcG9v
+bF9lbnRyeSwgbGlzdCk7DQorCQlpZiAoIWUtPmFjdGl2ZSAmJiAoamlmZmllcyAtIGUtPmppZmZp
+ZXMpID4gMTAqSFopIHsNCisJCQlpbnQgc3RhdHVzOw0KKwkJCUFDUElfREVCVUdfUFJJTlQoKEFD
+UElfREJfSU5GTywgImFjcGlfcmVhcF90aHJlYWRzIFJFQVAgWyVkOiVwXVxuIiwgZS0+aWQsIGUp
+KTsNCisJCQlsaXN0X2RlbChsKTsNCisJCQljdXJyZW50X3Bvb2xfc2l6ZS0tOw0KKwkJCXN0YXR1
+cyA9IGt0aHJlYWRfc3RvcChlLT50aHJlYWQpOw0KKwkJCUFDUElfREVCVUdfUFJJTlQoKEFDUElf
+REJfSU5GTywgImFjcGlfcmVhcF90aHJlYWRzIGt0aHJlYWRfc3RvcCByZXR1cm5lZCAlZFxuIiwg
+c3RhdHVzKSk7DQorCQkJa2ZyZWUoZSk7DQorCQl9DQorCX0NCisJaWYgKCF0aW1lcl9wZW5kaW5n
+KCZhY3BpX3JlYXBfdGltZXIpKSB7DQorCQlhY3BpX3JlYXBfdGltZXIuZnVuY3Rpb24gPSBhY3Bp
+X3F1ZXVlX3JlYXBfdGhyZWFkczsNCisJCWFjcGlfcmVhcF90aW1lci5kYXRhID0gMDsNCisJCWFj
+cGlfcmVhcF90aW1lci5leHBpcmVzID0gamlmZmllcyArIChIWiAqIHJlYXBfaW50ZXJ2YWwpIC8g
+MTAwMDsNCisJCWFkZF90aW1lcigmKGFjcGlfcmVhcF90aW1lcikpOw0KKwl9DQorfQ0KKw0KK3N0
+YXRpYyB2b2lkIGFjcGlfcXVldWVfcmVhcF90aHJlYWRzKHVuc2lnbmVkIGxvbmcgZGF0YSkNCit7
+DQorCXF1ZXVlX3dvcmsoa2FjcGlkX3dxLCAmYWNwaV9yZWFwX3Rhc2spOw0KK30NCisNCitzdGF0
+aWMgc3RydWN0IHRocmVhZF9wb29sX2VudHJ5ICpnZXRfcG9vbF90aHJlYWQodm9pZCkNCit7DQor
+CXN0cnVjdCBsaXN0X2hlYWQgKmw7DQorCWxpc3RfZm9yX2VhY2gobCwgJnRocmVhZF9wb29sKSB7
+DQorCQlzdHJ1Y3QgdGhyZWFkX3Bvb2xfZW50cnkgKmUgPSBsaXN0X2VudHJ5KGwsIHN0cnVjdCB0
+aHJlYWRfcG9vbF9lbnRyeSwgbGlzdCk7DQorCQlpZiAoIWUtPmFjdGl2ZSkgew0KKwkJCWUtPmFj
+dGl2ZSA9IDE7DQorCQkJcmV0dXJuIGU7DQorCQl9DQorCX0NCisJLyogTi5CLiBGb3IgdGhlIHRp
+bWUgYmVpbmcgd2UgaGF2ZSBhIHVzZXItY29uZmlndXJhYmxlIGxpbWl0DQorCSBvbiB0aGUgY3Vy
+cmVudF9wb29sX3NpemUuICBXZSBkb24ndCB3YW50IGEgYmFkIEJJT1MgdG8gY3JlYXRlDQorCSB1
+bmxpbWl0ZWQga3RocmVhZHMuICovDQorCWlmIChjdXJyZW50X3Bvb2xfc2l6ZSA8IG1heF9wb29s
+X3NpemUpIHsNCisJCXN0cnVjdCB0aHJlYWRfcG9vbF9lbnRyeSAqZTsNCisJCWUgPSBrbWFsbG9j
+KHNpemVvZihzdHJ1Y3QgdGhyZWFkX3Bvb2xfZW50cnkpLCBHRlBfS0VSTkVMKTsNCisJCWxpc3Rf
+YWRkX3RhaWwoJmUtPmxpc3QsICZ0aHJlYWRfcG9vbCk7DQorCQllLT5pZCA9IGN1cnJlbnRfcG9v
+bF9zaXplOw0KKwkJaW5pdF93YWl0cXVldWVfaGVhZCgmZS0+bW9yZV93b3JrKTsNCisJCWluaXRf
+d2FpdHF1ZXVlX2hlYWQoJmUtPndvcmtfZG9uZSk7DQorCQllLT5mdW5jdGlvbiA9IE5VTEw7DQor
+CQllLT5jb250ZXh0ID0gTlVMTDsNCisJCWUtPmFjdGl2ZSA9IDE7DQorCQkvKiBrdGhyZWFkX3J1
+biBkb2VzIGt0aHJlYWRfY3JlYXRlIGFuZCB3YWtlX3VwX3Byb2Nlc3MgKi8NCisJCWUtPnRocmVh
+ZCA9IGt0aHJlYWRfcnVuKGFjcGlfb3NfZXhlY3V0ZV93b3JrZXIsIGUsICJrYWNwaWQtd29yay0l
+ZCIsDQorCQkJCQljdXJyZW50X3Bvb2xfc2l6ZSk7DQorCQljdXJyZW50X3Bvb2xfc2l6ZSsrOw0K
+KwkJaWYgKCF0aW1lcl9wZW5kaW5nKCZhY3BpX3JlYXBfdGltZXIpKSB7DQorCQkJYWNwaV9yZWFw
+X3RpbWVyLmZ1bmN0aW9uID0gYWNwaV9xdWV1ZV9yZWFwX3RocmVhZHM7DQorCQkJYWNwaV9yZWFw
+X3RpbWVyLmRhdGEgPSAwOw0KKwkJCWFjcGlfcmVhcF90aW1lci5leHBpcmVzID0gamlmZmllcyAr
+IChIWiAqIHJlYXBfaW50ZXJ2YWwpIC8gMTAwMDsNCisJCQlhZGRfdGltZXIoJihhY3BpX3JlYXBf
+dGltZXIpKTsNCisJCX0NCisJCXJldHVybiBlOw0KKwl9DQorCXJldHVybiBOVUxMOw0KK30NCiAN
+CiBhY3BpX3N0YXR1cyBhY3BpX29zX2luaXRpYWxpemUodm9pZCkNCiB7DQpAQCAtOTgsNiArMzA5
+LDE4IEBADQogCXJldHVybiBBRV9PSzsNCiB9DQogDQorLyogZW5hYmxlIHBvb2xfc2l6ZSBtb2Rp
+ZmljYXRpb24gYnkgL3Byb2MgZmlsZXN5c3RlbSAqLw0KK2FjcGlfc3RhdHVzIGFjcGlfb3NfaW5p
+dGlhbGl6ZTIodm9pZCkNCit7DQorCXN0cnVjdCBwcm9jX2Rpcl9lbnRyeSAqZW50cnk7DQorCWVu
+dHJ5ID0gY3JlYXRlX3Byb2NfZW50cnkoInBvb2xfc2l6ZSIsIFNfSVJVU1J8U19JV1VTUiwgYWNw
+aV9yb290X2Rpcik7DQorCWlmIChlbnRyeSkNCisJCWVudHJ5LT5wcm9jX2ZvcHMgPSAmYWNwaV9v
+c2xfcG9vbF9zaXplX29wczsNCisJSU5JVF9XT1JLKCZhY3BpX3JlYXBfdGFzaywgYWNwaV9yZWFw
+X3RocmVhZHMsIE5VTEwpOw0KKwlpbml0X3RpbWVyKCZhY3BpX3JlYXBfdGltZXIpOw0KKwlyZXR1
+cm4gQUVfT0s7DQorfQ0KKw0KIGFjcGlfc3RhdHVzIGFjcGlfb3NfdGVybWluYXRlKHZvaWQpDQog
+ew0KIAlpZiAoYWNwaV9pcnFfaGFuZGxlcikgew0KQEAgLTY2MSw2ICs4ODQsNyBAQA0KIHN0YXRp
+YyB2b2lkIGFjcGlfb3NfZXhlY3V0ZV9kZWZlcnJlZCh2b2lkICpjb250ZXh0KQ0KIHsNCiAJc3Ry
+dWN0IGFjcGlfb3NfZHBjICpkcGMgPSBOVUxMOw0KKwlzdHJ1Y3QgdGhyZWFkX3Bvb2xfZW50cnkg
+KmUgPSBOVUxMOw0KIA0KIAlBQ1BJX0ZVTkNUSU9OX1RSQUNFKCJvc19leGVjdXRlX2RlZmVycmVk
+Iik7DQogDQpAQCAtNjcwLDggKzg5NCwxNyBAQA0KIAkJcmV0dXJuX1ZPSUQ7DQogCX0NCiANCi0J
+ZHBjLT5mdW5jdGlvbihkcGMtPmNvbnRleHQpOw0KLQ0KKwlpZiAobWF4X3Bvb2xfc2l6ZSA+IDAg
+JiYgKGUgPSBnZXRfcG9vbF90aHJlYWQoKSkpIHsNCisJCUFDUElfREVCVUdfUFJJTlQoKEFDUElf
+REJfSU5GTywgIlslZDolcF0gZnVuY3Rpb249JXAgY29udGV4dD0lcFxuIiwNCisJCQkJICBlLT5p
+ZCwgZSwgZHBjLT5mdW5jdGlvbiwgZHBjLT5jb250ZXh0KSk7DQorCQllLT5jb250ZXh0ID0gZHBj
+LT5jb250ZXh0Ow0KKwkJZS0+ZnVuY3Rpb24gPSBkcGMtPmZ1bmN0aW9uOw0KKwkJd2FrZV91cCgm
+ZS0+bW9yZV93b3JrKTsNCisJfQ0KKwllbHNlIHsNCisJCUFDUElfREVCVUdfUFJJTlQoKEFDUElf
+REJfSU5GTywgIltpbmxpbmVdIGZ1bmN0aW9uPSVwIGNvbnRleHQ9JXBcbiIsIGRwYy0+ZnVuY3Rp
+b24sIGRwYy0+Y29udGV4dCkpOw0KKwkJZHBjLT5mdW5jdGlvbihkcGMtPmNvbnRleHQpOw0KKwl9
+DQogCWtmcmVlKGRwYyk7DQogDQogCXJldHVybl9WT0lEOw0K
+
+
+--=-EClqHpSAcOEgWl870+i7--
+
+--=-rbh56jjrUEBvw89WYMJQ
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2.2 (GNU/Linux)
+
+iD8DBQBEURpIZlbFk+UVjRoRApaAAJ9Wd6qYjTLUhASF9H/wKOMrBUGI+QCgtnOF
+eYR7BZXtsXyvqag0j3I1Szo=
+=aE4c
+-----END PGP SIGNATURE-----
+
+--=-rbh56jjrUEBvw89WYMJQ--
 
