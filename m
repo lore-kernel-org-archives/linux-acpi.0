@@ -1,92 +1,66 @@
 From: akpm@osdl.org
-Subject: [patch 06/16] Catch notification of memory add event of ACPI via container driver. (register start func for memory device)
-Date: Thu, 27 Apr 2006 02:25:05 -0700
-Message-ID: <200604270926.k3R9QXIx025087@shell0.pdx.osdl.net>
+Subject: [patch 15/16] acpi idle __read_mostly and de-init static var
+Date: Thu, 27 Apr 2006 02:25:15 -0700
+Message-ID: <200604270926.k3R9Qhai025114@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:52429 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S965016AbWD0J07 (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:51405 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S965013AbWD0J0x (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Apr 2006 05:26:59 -0400
+	Thu, 27 Apr 2006 05:26:53 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, y-goto@jp.fujitsu.com, haveblue@us.ibm.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, andi@rhlx01.fht-esslingen.de, andi@lisas.de
 
 
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
+From: Andreas Mohr <andi@rhlx01.fht-esslingen.de>
 
-This is a patch to call add_memroy() when notify reaches for new node's add
-event.
+- make pm_idle_save, nocst and bm_history __read_mostly
+- static first_run is initialized to 0 by default already
+- don't remove static init value of nocst and bm_history
+  since __read_mostly may be special
+  (see e.g. http://www.ussg.iu.edu/hypermail/linux/kernel/0010.0/0771.html)
 
-When new node is added, notify of ACPI reaches container device which means
-the node.
-
-Container device driver calls acpi_bus_scan() to find and add belonging
-devices (which means cpu, memory and so on).  Its function calls add and
-start function of belonging devices's driver.
-
-Howevever, current memory hotplug driver just register add function to
-create sysfs file for its memory.  But, acpi_memory_enable_device() is not
-called because it is considered just the case that notify reaches memory
-device directly.  So, if notify reaches container device nothing can call
-add_memory().
-
-This is a patch to create start function which calls add_memory(). 
-add_memory() can be called by this when notify reaches container device.
-
-[akpm@osdl.org: coding cleanups]
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Signed-off-by: Andreas Mohr <andi@lisas.de>
 Cc: "Brown, Len" <len.brown@intel.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/acpi_memhotplug.c |   21 +++++++++++++++++++++
- 1 files changed, 21 insertions(+)
+ drivers/acpi/processor_idle.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/acpi/acpi_memhotplug.c~catch-notification-of-memory-add-event-of-acpi-via-container-driver-register-start-func-for-memory-device drivers/acpi/acpi_memhotplug.c
---- devel/drivers/acpi/acpi_memhotplug.c~catch-notification-of-memory-add-event-of-acpi-via-container-driver-register-start-func-for-memory-device	2006-04-10 23:16:20.000000000 -0700
-+++ devel-akpm/drivers/acpi/acpi_memhotplug.c	2006-04-10 23:16:20.000000000 -0700
-@@ -57,6 +57,7 @@ MODULE_LICENSE("GPL");
+diff -puN drivers/acpi/processor_idle.c~acpi-idle-__read_mostly-and-de-init-static-var drivers/acpi/processor_idle.c
+--- devel/drivers/acpi/processor_idle.c~acpi-idle-__read_mostly-and-de-init-static-var	2006-04-18 23:18:01.000000000 -0700
++++ devel-akpm/drivers/acpi/processor_idle.c	2006-04-18 23:18:01.000000000 -0700
+@@ -54,10 +54,10 @@ ACPI_MODULE_NAME("acpi_processor")
+ #define US_TO_PM_TIMER_TICKS(t)		((t * (PM_TIMER_FREQUENCY/1000)) / 1000)
+ #define C2_OVERHEAD			4	/* 1us (3.579 ticks per us) */
+ #define C3_OVERHEAD			4	/* 1us (3.579 ticks per us) */
+-static void (*pm_idle_save) (void);
++static void (*pm_idle_save) (void) __read_mostly;
+ module_param(max_cstate, uint, 0644);
  
- static int acpi_memory_device_add(struct acpi_device *device);
- static int acpi_memory_device_remove(struct acpi_device *device, int type);
-+static int acpi_memory_device_start(struct acpi_device *device);
+-static unsigned int nocst = 0;
++static unsigned int nocst __read_mostly;
+ module_param(nocst, uint, 0000);
  
- static struct acpi_driver acpi_memory_device_driver = {
- 	.name = ACPI_MEMORY_DEVICE_DRIVER_NAME,
-@@ -65,6 +66,7 @@ static struct acpi_driver acpi_memory_de
- 	.ops = {
- 		.add = acpi_memory_device_add,
- 		.remove = acpi_memory_device_remove,
-+		.start = acpi_memory_device_start,
- 		},
- };
- 
-@@ -428,6 +430,25 @@ static int acpi_memory_device_remove(str
- 	return_VALUE(0);
- }
- 
-+static int acpi_memory_device_start (struct acpi_device *device)
-+{
-+	struct acpi_memory_device *mem_device;
-+	int result = 0;
-+
-+	ACPI_FUNCTION_TRACE("acpi_memory_device_start");
-+
-+	mem_device = acpi_driver_data(device);
-+
-+	if (!acpi_memory_check_device(mem_device)) {
-+		/* call add_memory func */
-+		result = acpi_memory_enable_device(mem_device);
-+		if (result)
-+			ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-+				"Error in acpi_memory_enable_device\n"));
-+	}
-+	return_VALUE(result);
-+}
-+
  /*
-  * Helper function to check for memory device
+@@ -67,7 +67,7 @@ module_param(nocst, uint, 0000);
+  * 100 HZ: 0x0000000F: 4 jiffies = 40ms
+  * reduce history for more aggressive entry into C3
   */
+-static unsigned int bm_history =
++static unsigned int bm_history __read_mostly =
+     (HZ >= 800 ? 0xFFFFFFFF : ((1U << (HZ / 25)) - 1));
+ module_param(bm_history, uint, 0644);
+ /* --------------------------------------------------------------------------
+@@ -1079,7 +1079,7 @@ int acpi_processor_power_init(struct acp
+ 			      struct acpi_device *device)
+ {
+ 	acpi_status status = 0;
+-	static int first_run = 0;
++	static int first_run;
+ 	struct proc_dir_entry *entry = NULL;
+ 	unsigned int i;
+ 
 _
