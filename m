@@ -1,46 +1,168 @@
 From: akpm@osdl.org
-Subject: [patch 10/16] acpi_os_wait_semaphore(): don't complain about timeout
-Date: Thu, 27 Apr 2006 02:25:09 -0700
-Message-ID: <200604270926.k3R9QbLg025099@shell0.pdx.osdl.net>
+Subject: [patch 01/16] sem2mutex: drivers/acpi/
+Date: Thu, 27 Apr 2006 02:25:00 -0700
+Message-ID: <200604270926.k3R9QSc7025072@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:44749 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S965010AbWD0J0k (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:44493 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S965012AbWD0J0k (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
 	Thu, 27 Apr 2006 05:26:40 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, bjorn.helgaas@hp.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, arjan@infradead.org, mingo@elte.hu
 
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+From: Arjan van de Ven <arjan@infradead.org>
 
-The ASL Acquire operator (17.5.1 in ACPI 3.0 spec) is allowed to time out
-and return True without acquiring the semaphore.  There's no indication in
-the spec that this is an actual error, so this message should be
-debug-only, as the message for successful acquisition is.
+Semaphore to mutex conversion.
 
-This used to be an ACPI_DEBUG_PRINT, but it was mis-classified as
-ACPI_DB_ERROR rather than ACPI_DB_MUTEX, so it got swept up in Thomas'
-recent patch to enable ACPI error messages even without CONFIG_ACPI_DEBUG.
+The conversion was generated via scripts, and the result was validated
+automatically via a script as well.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Arjan van de Ven <arjan@infradead.org>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/osl.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/processor_perflib.c |   27 ++++++++++++++-------------
+ drivers/acpi/scan.c              |    3 ++-
+ 2 files changed, 16 insertions(+), 14 deletions(-)
 
-diff -puN drivers/acpi/osl.c~acpi_os_wait_semaphore-dont-complain-about-timeout drivers/acpi/osl.c
---- devel/drivers/acpi/osl.c~acpi_os_wait_semaphore-dont-complain-about-timeout	2006-04-10 23:16:23.000000000 -0700
-+++ devel-akpm/drivers/acpi/osl.c	2006-04-10 23:16:23.000000000 -0700
-@@ -817,7 +817,7 @@ acpi_status acpi_os_wait_semaphore(acpi_
+diff -puN drivers/acpi/processor_perflib.c~sem2mutex-drivers-acpi drivers/acpi/processor_perflib.c
+--- devel/drivers/acpi/processor_perflib.c~sem2mutex-drivers-acpi	2006-04-10 23:16:18.000000000 -0700
++++ devel-akpm/drivers/acpi/processor_perflib.c	2006-04-10 23:16:18.000000000 -0700
+@@ -34,6 +34,7 @@
+ #ifdef CONFIG_X86_ACPI_CPUFREQ_PROC_INTF
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
++#include <linux/mutex.h>
+ 
+ #include <asm/uaccess.h>
+ #endif
+@@ -48,7 +49,7 @@
+ #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
+ ACPI_MODULE_NAME("acpi_processor")
+ 
+-static DECLARE_MUTEX(performance_sem);
++static DEFINE_MUTEX(performance_mutex);
+ 
+ /*
+  * _PPC support is implemented as a CPUfreq policy notifier:
+@@ -72,7 +73,7 @@ static int acpi_processor_ppc_notifier(s
+ 	struct acpi_processor *pr;
+ 	unsigned int ppc = 0;
+ 
+-	down(&performance_sem);
++	mutex_lock(&performance_mutex);
+ 
+ 	if (event != CPUFREQ_INCOMPATIBLE)
+ 		goto out;
+@@ -93,7 +94,7 @@ static int acpi_processor_ppc_notifier(s
+ 				     core_frequency * 1000);
+ 
+       out:
+-	up(&performance_sem);
++	mutex_unlock(&performance_mutex);
+ 
+ 	return 0;
+ }
+@@ -620,7 +621,7 @@ int acpi_processor_preregister_performan
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_processor_preregister_performance");
+ 
+-	down(&performance_sem);
++	mutex_lock(&performance_mutex);
+ 
+ 	retval = 0;
+ 
+@@ -768,7 +769,7 @@ err_ret:
+ 		pr->performance = NULL; /* Will be set for real in register */
  	}
  
- 	if (ACPI_FAILURE(status)) {
--		ACPI_EXCEPTION((AE_INFO, status,
-+		ACPI_DEBUG_PRINT((ACPI_DB_MUTEX,
- 				  "Failed to acquire semaphore[%p|%d|%d], %s",
- 				  handle, units, timeout,
- 				  acpi_format_exception(status)));
+-	up(&performance_sem);
++	mutex_unlock(&performance_mutex);
+ 	return_VALUE(retval);
+ }
+ EXPORT_SYMBOL(acpi_processor_preregister_performance);
+@@ -785,16 +786,16 @@ acpi_processor_register_performance(stru
+ 	if (!(acpi_processor_ppc_status & PPC_REGISTERED))
+ 		return_VALUE(-EINVAL);
+ 
+-	down(&performance_sem);
++	mutex_lock(&performance_mutex);
+ 
+ 	pr = processors[cpu];
+ 	if (!pr) {
+-		up(&performance_sem);
++		mutex_unlock(&performance_mutex);
+ 		return_VALUE(-ENODEV);
+ 	}
+ 
+ 	if (pr->performance) {
+-		up(&performance_sem);
++		mutex_unlock(&performance_mutex);
+ 		return_VALUE(-EBUSY);
+ 	}
+ 
+@@ -802,13 +803,13 @@ acpi_processor_register_performance(stru
+ 
+ 	if (acpi_processor_get_performance_info(pr)) {
+ 		pr->performance = NULL;
+-		up(&performance_sem);
++		mutex_unlock(&performance_mutex);
+ 		return_VALUE(-EIO);
+ 	}
+ 
+ 	acpi_cpufreq_add_file(pr);
+ 
+-	up(&performance_sem);
++	mutex_unlock(&performance_mutex);
+ 	return_VALUE(0);
+ }
+ 
+@@ -822,11 +823,11 @@ acpi_processor_unregister_performance(st
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_processor_unregister_performance");
+ 
+-	down(&performance_sem);
++	mutex_lock(&performance_mutex);
+ 
+ 	pr = processors[cpu];
+ 	if (!pr) {
+-		up(&performance_sem);
++		mutex_unlock(&performance_mutex);
+ 		return_VOID;
+ 	}
+ 
+@@ -835,7 +836,7 @@ acpi_processor_unregister_performance(st
+ 
+ 	acpi_cpufreq_remove_file(pr);
+ 
+-	up(&performance_sem);
++	mutex_unlock(&performance_mutex);
+ 
+ 	return_VOID;
+ }
+diff -puN drivers/acpi/scan.c~sem2mutex-drivers-acpi drivers/acpi/scan.c
+--- devel/drivers/acpi/scan.c~sem2mutex-drivers-acpi	2006-04-10 23:16:18.000000000 -0700
++++ devel-akpm/drivers/acpi/scan.c	2006-04-10 23:16:18.000000000 -0700
+@@ -5,6 +5,7 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/acpi.h>
++#include <linux/mutex.h>
+ 
+ #include <acpi/acpi_drivers.h>
+ #include <acpi/acinterp.h>	/* for acpi_ex_eisa_id_to_string() */
+@@ -459,7 +460,7 @@ static int acpi_bus_get_perf_flags(struc
+    -------------------------------------------------------------------------- */
+ 
+ static LIST_HEAD(acpi_bus_drivers);
+-static DECLARE_MUTEX(acpi_bus_drivers_lock);
++static DEFINE_MUTEX(acpi_bus_drivers_lock);
+ 
+ /**
+  * acpi_bus_match - match device IDs to driver's supported IDs
 _
