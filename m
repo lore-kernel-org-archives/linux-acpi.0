@@ -1,54 +1,38 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: 2.6.17-rc2-mm1: ACPI_DOCK=n, HOTPLUG_PCI_ACPI=y compile error
-Date: Thu, 27 Apr 2006 17:01:56 +0200
-Message-ID: <20060427150156.GF3570@stusta.de>
-References: <20060427014141.06b88072.akpm@osdl.org>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: [(repost) git Patch 1/1] avoid IRQ0 ioapic pin collision
+Date: Thu, 27 Apr 2006 14:13:59 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB64A3EAB@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout.stusta.mhn.de ([141.84.69.5]:29971 "HELO
-	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
-	id S965135AbWD0PB6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Apr 2006 11:01:58 -0400
-Content-Disposition: inline
-In-Reply-To: <20060427014141.06b88072.akpm@osdl.org>
+Received: from mga02.intel.com ([134.134.136.20]:8367 "EHLO
+	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1750882AbWD0SON convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Apr 2006 14:14:13 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>, Kristen Accardi <kristen.c.accardi@intel.com>
-Cc: linux-kernel@vger.kernel.org, gregkh@suse.de, len.brown@intel.com, linux-acpi@vger.kernel.org
+To: "Protasevich, Natalie" <Natalie.Protasevich@UNISYS.com>, sergio@sergiomb.no-ip.org
+Cc: Kimball Murray <kimball.murray@gmail.com>, linux-kernel@vger.kernel.org, akpm@digeo.com, ak@suse.de, kmurray@redhat.com, linux-acpi@vger.kernel.org
 
-Although not mentioned in the changelog, acpi-dock-driver.patch was 
-updated in 2.6.17-rc2-mm1.
 
-The changes cause the following compile error with CONFIG_ACPI_DOCK=n, 
-CONFIG_HOTPLUG_PCI_ACPI=y:
+>There are probably better ways to control 224 possible IRQs by their
+>total number instead of their range, and per-cpu IDTs are the better
+>answer to the IRQ shortage altogether. But just going back to 
+>the way it was wouldn't be right I think.
+>We were able to run 2 generations of
+>systems only because we had this compression, other big systems
+>benefited from it as well.
 
-<--  snip  -->
+I don't propose reverting the IRQ re-name patch and breaking the
+big iron without replacing it with something else that works.
 
-...
-  LD      .tmp_vmlinux1
-drivers/built-in.o: In function 
-`is_pci_dock_device':acpiphp_glue.c:(.text+0x1a08a): undefined reference to `is_dock_device'
-drivers/built-in.o: In function `cleanup_bridge':
-acpiphp_glue.c:(.text+0x1a127): undefined reference to `is_dock_device'
-:acpiphp_glue.c:(.text+0x1a133): undefined reference to `unregister_hotplug_dock_device'
-:acpiphp_glue.c:(.text+0x1a13b): undefined reference to `unregister_dock_notifier'
-drivers/built-in.o: In function `register_slot':
-acpiphp_glue.c:(.text+0x1b545): undefined reference to `is_dock_device'
-:acpiphp_glue.c:(.text+0x1b742): undefined reference to `is_dock_device'
-:acpiphp_glue.c:(.text+0x1b759): undefined reference to `register_hotplug_dock_device'
-:acpiphp_glue.c:(.text+0x1b786): undefined reference to `register_dock_notifier'
-make: *** [.tmp_vmlinux1] Error 1
+My point is that the re-name patch has added unnecessary maintenance
+complexity to the 99.9% of systems that it runs on.  We pay that price
+in several ways, including mis-understandings about what devices
+are on what irqs, and mis-understandings about how the code is
+supposed to work.
 
-<--  snip  -->
-
-cu
-Adrian
-
--- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
-
+-Len
