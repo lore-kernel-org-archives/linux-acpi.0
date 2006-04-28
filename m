@@ -1,42 +1,40 @@
-From: "Protasevich, Natalie" <Natalie.Protasevich@UNISYS.com>
-Subject: RE: [(repost) git Patch 1/1] avoid IRQ0 ioapic pin collision
-Date: Thu, 27 Apr 2006 15:36:50 -0500
-Message-ID: <19D0D50E9B1D0A40A9F0323DBFA04ACC023B0BA3@USRV-EXCH4.na.uis.unisys.com>
+From: Teo <teo.ubuntu@yahoo.com>
+Subject: hello
+Date: Fri, 28 Apr 2006 01:06:19 -0700 (PDT)
+Message-ID: <20060428080619.14109.qmail@web38312.mail.mud.yahoo.com>
+References: <CFF307C98FEABE47A452B27C06B85BB64A3FE9@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usea-naimss1.unisys.com ([192.61.61.103]:6415 "EHLO
-	usea-naimss1.unisys.com") by vger.kernel.org with ESMTP
-	id S1751631AbWD0Ug7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Apr 2006 16:36:59 -0400
-Content-class: urn:content-classes:message
+Received: from web38312.mail.mud.yahoo.com ([209.191.125.28]:37283 "HELO
+	web38312.mail.mud.yahoo.com") by vger.kernel.org with SMTP
+	id S1030316AbWD1IGU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 28 Apr 2006 04:06:20 -0400
+In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB64A3FE9@hdsmsx411.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>, Andi Kleen <ak@suse.de>
-Cc: sergio@sergiomb.no-ip.org, Kimball Murray <kimball.murray@gmail.com>, linux-kernel@vger.kernel.org, akpm@digeo.com, kmurray@redhat.com, linux-acpi@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-> >But I guess using GSI/vector internally only would be fine.
-> 
-> The last time I tried to name a variable "gsi" instead of "irq",
-> Linus launched into a tirade that "GSI" doesn't mean anything to him,
-> or anybody else that googles it.  On the other hand "IRQ" means
-> something
-> to everybody, and if you google it you find all kinds of interesting
-> interrupt-related things.
-> 
-> My point was that "IRQ" means so many "interrupt related" things to
-> different people in different contexts, that it is effectively
-> meaningless.
-> 
-> But Linus was not swayed.
-> 
+Hi there!
 
-Oh Len, let's call this thing IRQ why not ;) I kind of agree that this
-is more popular and well-known term, like an old trade mark. I just see
-all those layers of code right now to map those to GSIs, pins, whatever
-it is, that can be replaced with... well, much smaller layers of code :)
-and maybe less "assumpti-ous" too.
+I signed to linux-acpi mailing list a day ago, because
+on my machine kernel was in panic. The main reason is
+somewhere in ACPI package. If I disable ACPI then it
+works.
 
---Natalie 
+Although I am relatively new to Linux world I might be
+able to help testing.
+
+In case you find my post off-topic or for any reason
+don't want seeing me around here please let me know.
+
+Kind regards,
+Teo
+
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
