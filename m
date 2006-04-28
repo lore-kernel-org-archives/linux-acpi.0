@@ -1,40 +1,49 @@
-From: Teo <teo.ubuntu@yahoo.com>
-Subject: hello
-Date: Fri, 28 Apr 2006 01:06:19 -0700 (PDT)
-Message-ID: <20060428080619.14109.qmail@web38312.mail.mud.yahoo.com>
-References: <CFF307C98FEABE47A452B27C06B85BB64A3FE9@hdsmsx411.amr.corp.intel.com>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: hello
+Date: Fri, 28 Apr 2006 04:36:43 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB64A432B@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from web38312.mail.mud.yahoo.com ([209.191.125.28]:37283 "HELO
-	web38312.mail.mud.yahoo.com") by vger.kernel.org with SMTP
-	id S1030316AbWD1IGU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 28 Apr 2006 04:06:20 -0400
-In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB64A3FE9@hdsmsx411.amr.corp.intel.com>
+Received: from mga01.intel.com ([192.55.52.88]:11624 "EHLO
+	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
+	id S1030371AbWD1Igr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Apr 2006 04:36:47 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
+To: Teo <teo.ubuntu@yahoo.com>
 Cc: linux-acpi@vger.kernel.org
 
-Hi there!
+ 
+>on my machine kernel was in panic. The main reason is
+>somewhere in ACPI package. If I disable ACPI then it
+>works.
 
-I signed to linux-acpi mailing list a day ago, because
-on my machine kernel was in panic. The main reason is
-somewhere in ACPI package. If I disable ACPI then it
-works.
+Teo,
+is is possible to capture the panic messages,
+either through a serial console capture or
+a digital picture of the screen?
 
-Although I am relatively new to Linux world I might be
-able to help testing.
+If yes, go ahead and open a bug and attach them to it here:
+http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
 
-In case you find my post off-topic or for any reason
-don't want seeing me around here please let me know.
+the output from dmesg -s64000 with the working "acpi=off"
+might also be useful.
+ 
+The first question we'll need to answer is if this is
+something that worked in an earlier version of Linux
+and has just broken, or if this has always not worked
+on this box.
 
-Kind regards,
-Teo
+Depending on how it fails, there may be some workarounds
+that will
+A) help make your system more useful
+B) help debug the failure.
 
+eg. try booting with "acpi=noirq" and seeing if that makes a difference.
 
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+thanks,
+-Len
