@@ -1,47 +1,44 @@
-From: Teo <teo.ubuntu@yahoo.com>
-Subject: RE: hello
-Date: Sun, 30 Apr 2006 04:49:56 -0700 (PDT)
-Message-ID: <20060430114956.49258.qmail@web38302.mail.mud.yahoo.com>
-References: <CFF307C98FEABE47A452B27C06B85BB64E8BD3@hdsmsx411.amr.corp.intel.com>
+From: Goswin von Brederlow <brederlo@informatik.uni-tuebingen.de>
+Subject: Re: [discuss] [RFC] make PC Speaker driver work on x86-64
+Date: Sun, 30 Apr 2006 16:32:47 +0200
+Message-ID: <878xpnt9ps.fsf@informatik.uni-tuebingen.de>
+References: <200604291830.k3TIUA23009336@harpo.it.uu.se>
+	<200604301046.22369.ak@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from web38302.mail.mud.yahoo.com ([209.191.125.18]:9609 "HELO
-	web38302.mail.mud.yahoo.com") by vger.kernel.org with SMTP
-	id S1751100AbWD3Lt5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 30 Apr 2006 07:49:57 -0400
-In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB64E8BD3@hdsmsx411.amr.corp.intel.com>
+Received: from mx5.Informatik.Uni-Tuebingen.De ([134.2.12.32]:4040 "EHLO
+	mx5.informatik.uni-tuebingen.de") by vger.kernel.org with ESMTP
+	id S1751138AbWD3Oeq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 30 Apr 2006 10:34:46 -0400
+In-Reply-To: <200604301046.22369.ak@suse.de> (Andi Kleen's message of "Sun,
+ 30 Apr 2006 10:46:22 +0200")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: Andi Kleen <ak@suse.de>
+Cc: discuss@x86-64.org, Mikael Pettersson <mikpe@it.uu.se>, linux-input@atrey.karlin.mff.cuni.cz, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi Len,
+Andi Kleen <ak@suse.de> writes:
 
-> > pci_mmcfg_read()
-> 
-> try "pci=nommconf"
-> 
-> if it works, then, then try the latest kernel from
-> kernel.org
-> to see if this is specific to ubuntu or generic to
-> Linux.
-I downloaded and compiled 2.6.16.11 kernel - no
-patches. The only change I did in configuration is
-selecting my processor type - EM64T.
+> On Saturday 29 April 2006 20:30, Mikael Pettersson wrote:
+>> I have a pair of Athlon64 machines that dual-boot 32-bit and
+>> 64-bit kernels. One annoying difference between the kernels
+>> is that the PC Speaker driver (CONFIG_INPUT_PCSPKR=y) only
+>> works in the 32-bit kernels. 
+>
+> Ah, I would consider this more a feature than a bug but ok :)
+>
+>> In the 64-bit kernels it remains 
+>> inactive and doesn't even generate any boot-time initialisation
+>> or error messages.
 
-This kernel is working. It doesn't panic while
-booting.
+That means that the system wouldn't beep on the console or when you
+call "beep", right?
 
-> If specific to ubuntu, looks like the bug you filed
-> there already covers it.
-Yes, but it doesn't get attention I feel.
+With 2.6.8 x86_64 that worked without problems. Since I updated to
+2.6.15 the system is silent.
 
-Thanks,
-Teo
+Could it be that this is a recent problem?
 
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+MfG
+        Goswin
