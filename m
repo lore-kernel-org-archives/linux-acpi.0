@@ -1,112 +1,48 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [(repost) git Patch 1/1] avoid IRQ0 ioapic pin collision
-Date: Sun, 30 Apr 2006 17:17:56 -0600
-Message-ID: <m1odyibql7.fsf@ebiederm.dsl.xmission.com>
-References: <19D0D50E9B1D0A40A9F0323DBFA04ACC023B0BA3@USRV-EXCH4.na.uis.unisys.com>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: [discuss] [RFC] make PC Speaker driver work on x86-64
+Date: Mon, 1 May 2006 09:09:28 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0605010906010.5353@yvahk01.tjqt.qr>
+References: <200604291830.k3TIUA23009336@harpo.it.uu.se> <200604301046.22369.ak@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ebiederm.dsl.xmission.com ([166.70.28.69]:52408 "EHLO
-	ebiederm.dsl.xmission.com") by vger.kernel.org with ESMTP
-	id S1751168AbWD3XSu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 30 Apr 2006 19:18:50 -0400
-In-Reply-To: <19D0D50E9B1D0A40A9F0323DBFA04ACC023B0BA3@USRV-EXCH4.na.uis.unisys.com> (Natalie
- Protasevich's message of "Thu, 27 Apr 2006 15:36:50 -0500")
+Received: from linux01.gwdg.de ([134.76.13.21]:22412 "EHLO linux01.gwdg.de")
+	by vger.kernel.org with ESMTP id S1751294AbWEAHJi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 May 2006 03:09:38 -0400
+In-Reply-To: <200604301046.22369.ak@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Protasevich, Natalie" <Natalie.Protasevich@UNISYS.com>
-Cc: "Brown, Len" <len.brown@intel.com>, Andi Kleen <ak@suse.de>, sergio@sergiomb.no-ip.org, Kimball Murray <kimball.murray@gmail.com>, linux-kernel@vger.kernel.org, akpm@digeo.com, kmurray@redhat.com, linux-acpi@vger.kernel.org
+To: Andi Kleen <ak@suse.de>
+Cc: discuss@x86-64.org, Mikael Pettersson <mikpe@it.uu.se>, linux-input@atrey.karlin.mff.cuni.cz, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-"Protasevich, Natalie" <Natalie.Protasevich@UNISYS.com> writes:
-
->> >But I guess using GSI/vector internally only would be fine.
->> 
->> The last time I tried to name a variable "gsi" instead of "irq",
->> Linus launched into a tirade that "GSI" doesn't mean anything to him,
->> or anybody else that googles it.  On the other hand "IRQ" means
->> something
->> to everybody, and if you google it you find all kinds of interesting
->> interrupt-related things.
->> 
->> My point was that "IRQ" means so many "interrupt related" things to
->> different people in different contexts, that it is effectively
->> meaningless.
->> 
->> But Linus was not swayed.
->> 
+>> Is there a better way to do this? ACPI?
 >
-> Oh Len, let's call this thing IRQ why not ;) I kind of agree that this
-> is more popular and well-known term, like an old trade mark. I just see
-> all those layers of code right now to map those to GSIs, pins, whatever
-> it is, that can be replaced with... well, much smaller layers of code :)
-> and maybe less "assumpti-ous" too.
+>Maybe. ACPI folks, any opinion? 
+>
+>-Andi (known to rip out the speaker cables in new machines) 
+>
 
-The original IRQ (on x86) was simply the enumeration of the input
-pins on the pair of i8259 interrupt controllers.
+Leave the cables, try this for ttyX:
 
-The ACPI global system interrrupts is the enumeration of the input
-pins on the ioapics in the system.
+diff --fast -Ndpru linux-2.6.16-rc1-git3-SUSE20060124/drivers/char/vt.c linux-2.6-AS24/drivers/char/vt.c
+--- linux-2.6.16-rc1-git3-SUSE20060124/drivers/char/vt.c	2006-01-28 19:01:17.000000000 +0100
++++ linux-2.6-AS24/drivers/char/vt.c	2006-01-28 19:01:18.860985000 +0100
+@@ -115,7 +115,7 @@ const struct consw *conswitchp;
+  * Here is the default bell parameters: 750HZ, 1/8th of a second
+  */
+ #define DEFAULT_BELL_PITCH	750
+-#define DEFAULT_BELL_DURATION	(HZ/8)
++#define DEFAULT_BELL_DURATION	0
+ 
+ extern void vcs_make_devfs(struct tty_struct *tty);
+ extern void vcs_remove_devfs(struct tty_struct *tty);
+#<<eof>>
 
-Therefore the GSI number is the IRQ number, by definition.
+X seems silent by default for me, if not, you can configure it too.
+But ttyX always get reset to HZ/8 when you make a tty reset, which is why I 
+put 0 as a default.
 
-However GSI is not a complete enumeration because it does not list
-MSI interrupt sources, and in general can not list MSI interrupt
-sources.  Further the term GSI is ACPI specific so it really
-doesn't make sense outside of that context while irq does.
 
-So the question is how do we solve the big system problem.
 
-Problem 1.
-  We have more GSIs than interrupt vectors on a cpu, so a simple
-  1-1 mapping will not work.
-  However as Natalie's patch showed many of the GSIs are not even
-  connected so if we only allocate vectors to GSIs that are use we should
-  not have a problem.
-
-Problem 2.
-  Some systems have more than 224 GSIs that are actually connected to devices.
-  There are three possible ways to handle this case. 
-  - Fail after we run out of vectors.
-  - Share a vector.
-  - Allow vectors of different cpus to handle different irqs.
-    The is the most elegant and scalable, and Natalie's suggestion.
-
-So what would be a path to get there from here?
-- Fix the irq set_affinity code so that it makes the changes to
-  irqs when the interrupt is actually disabled.
-  Calling desc->handler->disable, desc->handler->enable
-  does not work immediately so the current code is racy.
-  Which shows up very badly if you attempt to change the irq vector,
-  and may cause rare problems today
-
-- Modify the MSI code to allocate irqs and not vectors.
-  So we don't have two paths through the code, for no good reason.
-
-- Modify do_IRQ to get passed an interrupt vector# from the
-  interrupt vector instead of an irq number, and then lookup
-  the irq number in vector_irq.  This means we don't need
-  a code stub per irq, and allows us to handle more irqs
-  by simply increasing NR_IRQS.
-
-- Remove the current irq compression.
-
-- Move irq vector allocation/deallocation into request_irq, and free_irq.
-
-- Make vector_irq per_cpu.
-
-- Modify assign_irq to allocate different vectors on different cpus,
-  to fail if we cannot find a free irq vector somewhere in the
-  irqs cpu set, and call assign_irq from set_affinity so when we change
-  cpus we can allocate a different irq.
-
-I have proof of concept level patches for everything thing except making
-MSI actually allocate irqs, but that should be straight forward.
-
-Does anyone know if we record the maximum GSI number? That looks like
-my sticking point for being able to write a simple irq allocator.
-
-If I have a couple more free minutes I will see if I can post some
-preliminary patches.  This is issue play for me so I have limited time
-to work on it.
-
-Eric
+Jan
+-- 
