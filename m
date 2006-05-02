@@ -1,55 +1,84 @@
-From: Jiri Slaby <jirislaby@gmail.com>
-Subject: Re: [BUG] ACPI bug in 2.6.17-rc3
-Date: Tue, 02 May 2006 12:05:26 +0159
-Message-ID: <44572EFD.9070703@gmail.com>
-References: <1146549731.16874.5.camel@localhost>
+From: Norbert Preining <preining@logic.at>
+Subject: Bus hidden behind transparent bridge
+Date: Tue, 2 May 2006 13:09:43 +0200
+Message-ID: <20060502110943.GC7703@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nproxy.gmail.com ([64.233.182.188]:61410 "EHLO nproxy.gmail.com")
-	by vger.kernel.org with ESMTP id S1751272AbWEBKFf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 May 2006 06:05:35 -0400
-Received: by nproxy.gmail.com with SMTP id n29so2146617nfc
-        for <linux-acpi@vger.kernel.org>; Tue, 02 May 2006 03:05:34 -0700 (PDT)
-In-Reply-To: <1146549731.16874.5.camel@localhost>
+Received: from alpha.logic.tuwien.ac.at ([128.130.175.20]:36788 "EHLO
+	alpha.logic.tuwien.ac.at") by vger.kernel.org with ESMTP
+	id S932174AbWEBLJp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 2 May 2006 07:09:45 -0400
+Received: from gamma.logic.tuwien.ac.at ([128.130.175.3])
+	by alpha.logic.tuwien.ac.at with esmtp (Exim 3.35 #1)
+	id 1FaslD-0006da-00
+	for linux-acpi@vger.kernel.org; Tue, 02 May 2006 13:09:43 +0200
+Received: from preining by gamma.logic.tuwien.ac.at with local (Exim 3.35 #1)
+	id 1FaslD-0002Ls-00
+	for linux-acpi@vger.kernel.org; Tue, 02 May 2006 13:09:43 +0200
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kasper Sandberg <lkml@metanurb.dk>
-Cc: LKML Mailinglist <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi all!
 
-Cc: linux-acpi@vger.kernel.org
+This has been since long time like this without negative impact, but th=
+e
+message to report it to linux-kernel seems new, so here I am:
+PCI: Transparent bridge - 0000:00:1e.0
+PCI: Bus #03 (-#06) is hidden behind transparent bridge #02 (-#02) (try=
+ 'pci=3Dassign-busses')
+Please report the result to linux-kernel to fix this permanently
+PCI: Bus #07 (-#0a) is hidden behind transparent bridge #02 (-#02) (try=
+ 'pci=3Dassign-busses')
+Please report the result to linux-kernel to fix this permanently
 
-Kasper Sandberg napsal(a):
-> hello.. just tried out 2.6.17-rc3 on my amd64 system, and i got this
-> backtrace:
-> khelper pid 4
-> trace:
-> activate_task+319 try_to_wake_up+93
-> __wake_up_common+68 complete+38
-> run_workqueue+136 worker_thread+353
-> default_wake_function+0 worker_thread+0
-> kthread+219 worke_thead+0
-> child_rip+8 worker_thread+0
-> kthread+0 child_rip+0
-> 
-> this happened immediately after vesafb changed resolution, i tried
-> without vesafb, still the same..
-We need whole bug log, no just the trace. Is it possible to grab it?
+What can I send you?
 
-thanks,
-- --
-Jiri Slaby         www.fi.muni.cz/~xslaby
-\_.-^-._   jirislaby@gmail.com   _.-^-._/
-B67499670407CE62ACC8 22A032CC55C339D47A7E
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (GNU/Linux)
-Comment: Using GnuPG with Fedora - http://enigmail.mozdev.org
+Acer TM654LCi
+cat /proc/interrupts
+           CPU0      =20
+  0:     461771          XT-PIC  timer
+  1:       5335          XT-PIC  i8042
+  2:          0          XT-PIC  cascade
+  5:     114019          XT-PIC  uhci_hcd:usb2, eth0
+  7:          1          XT-PIC  parport0
+  8:          4          XT-PIC  rtc
+  9:      41606          XT-PIC  acpi
+ 10:     109813          XT-PIC  Intel 82801CA-ICH3 Modem, yenta, uhci_=
+hcd:usb1, yenta, uhci_hcd:usb3, uhci_hcd:usb4, ehci_hcd:usb5, Intel 828=
+01CA-ICH3, ohci1394, wifi0, radeon@pci:0000:01:00.0
+ 12:     289329          XT-PIC  i8042
+ 14:      33170          XT-PIC  ide0
+ 15:      16326          XT-PIC  ide1
+NMI:          0=20
+LOC:          0=20
+ERR:          0
+MIS:          0
 
-iD8DBQFEVy79MsxVwznUen4RAp6tAJ9RvSDGtglFtMUW912z3dJQY75mFwCgu5i5
-sKbi0EN6YYKmlUo6qcqvU5c=
-=CNZM
------END PGP SIGNATURE-----
+
+kernel 2.6.17-rc3-mm1
+
+
+Best wishes
+
+Norbert
+
+-----------------------------------------------------------------------=
+--------
+Dr. Norbert Preining <preining AT logic DOT at>             Universit=E0=
+ di Siena
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 0=
+9C5 B094
+-----------------------------------------------------------------------=
+--------
+WRITTLE (vb.)
+Of a steel ball, to settle into a hole.
+			--- Douglas Adams, The Meaning of Liff
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
