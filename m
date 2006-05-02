@@ -1,84 +1,58 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Bus hidden behind transparent bridge
-Date: Tue, 2 May 2006 13:09:43 +0200
-Message-ID: <20060502110943.GC7703@gamma.logic.tuwien.ac.at>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: [RFC][PATCH] Document what in IRQ is.
+Date: Tue, 02 May 2006 07:52:22 -0600
+Message-ID: <m1aca07cvd.fsf_-_@ebiederm.dsl.xmission.com>
+References: <CFF307C98FEABE47A452B27C06B85BB652DF16@hdsmsx411.amr.corp.intel.com>
+	<200605020946.46050.ak@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from alpha.logic.tuwien.ac.at ([128.130.175.20]:36788 "EHLO
-	alpha.logic.tuwien.ac.at") by vger.kernel.org with ESMTP
-	id S932174AbWEBLJp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 2 May 2006 07:09:45 -0400
-Received: from gamma.logic.tuwien.ac.at ([128.130.175.3])
-	by alpha.logic.tuwien.ac.at with esmtp (Exim 3.35 #1)
-	id 1FaslD-0006da-00
-	for linux-acpi@vger.kernel.org; Tue, 02 May 2006 13:09:43 +0200
-Received: from preining by gamma.logic.tuwien.ac.at with local (Exim 3.35 #1)
-	id 1FaslD-0002Ls-00
-	for linux-acpi@vger.kernel.org; Tue, 02 May 2006 13:09:43 +0200
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964822AbWEBNxO@vger.kernel.org>
+In-Reply-To: <200605020946.46050.ak@suse.de> (Andi Kleen's message of "Tue,
+ 2 May 2006 09:46:45 +0200")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andi Kleen <ak@suse.de>
+Cc: "Brown, Len" <len.brown@intel.com>, "Protasevich, Natalie" <Natalie.Protasevich@unisys.com>, sergio@sergiomb.no-ip.org, Kimball Murray <kimball.murray@gmail.com>, linux-kernel@vger.kernel.org, akpm@digeo.com, kmurray@redhat.com, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Hi all!
+Andi Kleen <ak@suse.de> writes:
 
-This has been since long time like this without negative impact, but th=
-e
-message to report it to linux-kernel seems new, so here I am:
-PCI: Transparent bridge - 0000:00:1e.0
-PCI: Bus #03 (-#06) is hidden behind transparent bridge #02 (-#02) (try=
- 'pci=3Dassign-busses')
-Please report the result to linux-kernel to fix this permanently
-PCI: Bus #07 (-#0a) is hidden behind transparent bridge #02 (-#02) (try=
- 'pci=3Dassign-busses')
-Please report the result to linux-kernel to fix this permanently
+> P.S.: There seems to be a lot of confusion about all this.
+> Maybe it would make sense to do a write up defining all the terms
+> and stick it into Documentation/* ? 
 
-What can I send you?
+How does this look?
 
-Acer TM654LCi
-cat /proc/interrupts
-           CPU0      =20
-  0:     461771          XT-PIC  timer
-  1:       5335          XT-PIC  i8042
-  2:          0          XT-PIC  cascade
-  5:     114019          XT-PIC  uhci_hcd:usb2, eth0
-  7:          1          XT-PIC  parport0
-  8:          4          XT-PIC  rtc
-  9:      41606          XT-PIC  acpi
- 10:     109813          XT-PIC  Intel 82801CA-ICH3 Modem, yenta, uhci_=
-hcd:usb1, yenta, uhci_hcd:usb3, uhci_hcd:usb4, ehci_hcd:usb5, Intel 828=
-01CA-ICH3, ohci1394, wifi0, radeon@pci:0000:01:00.0
- 12:     289329          XT-PIC  i8042
- 14:      33170          XT-PIC  ide0
- 15:      16326          XT-PIC  ide1
-NMI:          0=20
-LOC:          0=20
-ERR:          0
-MIS:          0
+I am pretty horrible when it comes to Documentation,
+but this seems to be the essence of what I was saying earlier.
+
+Eric
 
 
-kernel 2.6.17-rc3-mm1
-
-
-Best wishes
-
-Norbert
-
------------------------------------------------------------------------=
---------
-Dr. Norbert Preining <preining AT logic DOT at>             Universit=E0=
- di Siena
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 0=
-9C5 B094
------------------------------------------------------------------------=
---------
-WRITTLE (vb.)
-Of a steel ball, to settle into a hole.
-			--- Douglas Adams, The Meaning of Liff
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/Documentation/IRQ.txt b/Documentation/IRQ.txt
+new file mode 100644
+index 0000000..5340369
+--- /dev/null
++++ b/Documentation/IRQ.txt
+@@ -0,0 +1,22 @@
++What is an IRQ?
++
++An IRQ is an interrupt request from a device.
++Currently they can come in over a pin, or over a packet.
++IRQs at the source can be shared.
++
++An IRQ number is a kernel identifier used to talk about a hardware
++interrupt source.  Typically this is an index into the global irq_desc
++array, but except for what linux/interrupt.h implements the details
++are architecture specific.
++
++An IRQ number is an enumeration of the possible interrupt sources on a
++machine.  Typically what is enumerated is the number of input pins on
++all of the interrupt controller in the system.  In the case of ISA
++what is enumerated are the 16 input pins to the pair of i8259
++interrupt controllers.
++
++Architectures can assign additional meaning to the IRQ numbers, and
++are encouraged to in the case  where there is any manual configuration
++of the hardware involved.  The ISA IRQ case on x86 where anyone who
++has been around a while can tell you how the first 16 IRQs map to the
++input pins on a pair of i8259s is the classic example.
