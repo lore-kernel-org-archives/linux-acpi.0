@@ -1,51 +1,110 @@
-From: "Protasevich, Natalie" <Natalie.Protasevich@UNISYS.com>
-Subject: RE: [(repost) git Patch 1/1] avoid IRQ0 ioapic pin collision
-Date: Tue, 2 May 2006 18:52:35 -0500
-Message-ID: <19D0D50E9B1D0A40A9F0323DBFA04ACC023B0BB8@USRV-EXCH4.na.uis.unisys.com>
+From: Peter Wainwright <prw@ceiriog.eclipse.co.uk>
+Subject: [RFC] [PATCH 2/2] Multi-threaded execution of ACPI control methods
+	(continued)
+Date: Wed, 03 May 2006 21:57:47 +0100
+Message-ID: <1146689867.5202.23.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-PgRIINDRn48MkHDoeQ1A"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usea-naimss3.unisys.com ([192.61.61.105]:784 "EHLO
-	usea-naimss3.unisys.com") by vger.kernel.org with ESMTP
-	id S965038AbWEBXwk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 May 2006 19:52:40 -0400
-Content-class: urn:content-classes:message
+Received: from [82.153.65.35] ([82.153.65.35]:60819 "EHLO
+	localhost.localdomain") by vger.kernel.org with ESMTP
+	id S1751094AbWECU5b (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 3 May 2006 16:57:31 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Eric W. Biederman" <ebiederm@xmission.com>, Andi Kleen <ak@suse.de>, "Brown, Len" <len.brown@intel.com>, akpm@digeo.com
-Cc: sergio@sergiomb.no-ip.org, Kimball Murray <kimball.murray@gmail.com>, linux-kernel@vger.kernel.org, kmurray@redhat.com, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-> On Tuesday 02 May 2006 09:41, Brown, Len wrote:
-> 
-> > You are right.  This code is wrong.
-> > It makes absolutely no sense to reserve vectors in advance 
-> for every 
-> > RTE in the IOAPIC when we don't even know if they are going to be 
-> > used.
-> > 
-> > This is clearly a holdover from the early IOAPIC/MPS days 
-> when we were 
-> > talking about 4 to 8 non-legacy RTEs.
-> 
-> Yes I agree. A lot of the IO-APIC code could probably need 
-> some renovation.
->  
-> > This is where the big system vector shortage problem should be 
-> > addressed.
-> 
-> If we go to per CPU IDTs it will be much less pressing, but 
-> still a good idea.
-> 
 
-I've been trying to put together something on per-CPU IDTs also, and got
-entangled in all those issues that you just discussed... Dynamically
-assigning vectors to IRQs sounds like great improvement of the mechanism
-(why would they need to be static really), and vectors are right
-entities to manipulate with - while keeping IRQs stable and representing
-the interrupts sources clearly to the user.
-Len, I suppose it would make sense to accept the Kimball's timer fix for
-now, before the whole re-implementation happens?
+--=-PgRIINDRn48MkHDoeQ1A
+Content-Type: multipart/mixed; boundary="=-V2FdF+8G+tRot6mJGKPd"
 
---Natalie
+
+--=-V2FdF+8G+tRot6mJGKPd
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+
+This patch enables the maximum size of the ACPI thread pool to be
+configured by a /proc filesystem entry.
+
+This limit is imposed in case a rogue BIOS DSDT tries to create too
+many threads.
+
+Peter
+
+Signed-off-by: Peter Wainwright <prw@ceiriog.eclipse.co.uk>
+
+
+
+
+--=-V2FdF+8G+tRot6mJGKPd
+Content-Disposition: attachment; filename=acpi-osl4b.patch
+Content-Type: text/x-patch; name=acpi-osl4b.patch; charset=UTF-8
+Content-Transfer-Encoding: base64
+
+ZGlmZiAtdSAtciBsaW51eC0yLjYuMTYuMTEtcHJ3Mi1vbGQvZHJpdmVycy9hY3BpL29zbC5jIGxp
+bnV4LTIuNi4xNi4xMS1wcncyL2RyaXZlcnMvYWNwaS9vc2wuYw0KLS0tIGxpbnV4LTIuNi4xNi4x
+MS1wcncyLW9sZC9kcml2ZXJzL2FjcGkvb3NsLmMJMjAwNi0wNS0wMyAyMToxNDowNS4wMDAwMDAw
+MDAgKzAxMDANCisrKyBsaW51eC0yLjYuMTYuMTEtcHJ3Mi9kcml2ZXJzL2FjcGkvb3NsLmMJMjAw
+Ni0wNS0wMyAyMToxNjozMC4wMDAwMDAwMDAgKzAxMDANCkBAIC00Nyw2ICs0Nyw4IEBADQogI2lu
+Y2x1ZGUgPGxpbnV4L2VmaS5oPg0KIA0KICNpbmNsdWRlIDxsaW51eC9rdGhyZWFkLmg+DQorI2lu
+Y2x1ZGUgPGxpbnV4L3Byb2NfZnMuaD4NCisjaW5jbHVkZSA8bGludXgvc2VxX2ZpbGUuaD4NCiAN
+CiAjZGVmaW5lIF9DT01QT05FTlQJCUFDUElfT1NfU0VSVklDRVMNCiBBQ1BJX01PRFVMRV9OQU1F
+KCJvc2wiKQ0KQEAgLTEwOSw2ICsxMTEsNjYgQEANCiAJc3RydWN0IGxpc3RfaGVhZCBsaXN0Ow0K
+IH07DQogDQorc3RhdGljIGludCBhY3BpX29zbF9wb29sX3NpemVfcmVhZChzdHJ1Y3Qgc2VxX2Zp
+bGUgKnNlcSwgdm9pZCAqb2Zmc2V0KQ0KK3sNCisJc3RydWN0IGxpc3RfaGVhZCAqbDsNCisNCisJ
+QUNQSV9GVU5DVElPTl9UUkFDRSgiYWNwaV9vc2xfcG9vbF9zaXplX3JlYWQiKTsNCisNCisJc2Vx
+X3ByaW50ZihzZXEsICJtYXhfcG9vbF9zaXplPSVkXG4iLCBtYXhfcG9vbF9zaXplKTsNCisJc2Vx
+X3ByaW50ZihzZXEsICJjdXJyZW50X3Bvb2xfc2l6ZT0lZFxuIiwgY3VycmVudF9wb29sX3NpemUp
+Ow0KKwkvKiBGSVhNRTogTmVlZCBsb2NrPyAqLw0KKwlsaXN0X2Zvcl9lYWNoKGwsICZ0aHJlYWRf
+cG9vbCkgew0KKwkJc3RydWN0IHRocmVhZF9wb29sX2VudHJ5ICplID0gbGlzdF9lbnRyeShsLCBz
+dHJ1Y3QgdGhyZWFkX3Bvb2xfZW50cnksIGxpc3QpOw0KKwkJc2VxX3ByaW50ZihzZXEsICJlbnRy
+eT0oJXAsJWQsJXAsJXAsJWx1KVxuIiwNCisJCQkgICBlLT50aHJlYWQsIGUtPmFjdGl2ZSwgZS0+
+ZnVuY3Rpb24sIGUtPmNvbnRleHQsIGUtPmppZmZpZXMpOw0KKwl9DQorCXJldHVybl9WQUxVRSgw
+KTsNCit9DQorDQorc3RhdGljIGludCBhY3BpX29zbF9wb29sX3NpemVfb3Blbl9mcyhzdHJ1Y3Qg
+aW5vZGUgKmlub2RlLCBzdHJ1Y3QgZmlsZSAqZmlsZSkNCit7DQorCXJldHVybiBzaW5nbGVfb3Bl
+bihmaWxlLCBhY3BpX29zbF9wb29sX3NpemVfcmVhZCwgUERFKGlub2RlKS0+ZGF0YSk7DQorfQ0K
+Kw0KK3N0YXRpYyBzc2l6ZV90DQorYWNwaV9vc2xfcG9vbF9zaXplX3dyaXRlKHN0cnVjdCBmaWxl
+ICpmaWxlLA0KKwkJCSAgIGNvbnN0IGNoYXIgX191c2VyICogYnVmZmVyLA0KKwkJCSAgIHNpemVf
+dCBjb3VudCwgbG9mZl90ICogcHBvcykNCit7DQorCWNoYXIgKnNpemVfc3RyaW5nOw0KKw0KKwlB
+Q1BJX0ZVTkNUSU9OX1RSQUNFKCJhY3BpX29zbF9wb29sX3NpemVfd3JpdGUiKTsNCisNCisJc2l6
+ZV9zdHJpbmcgPSBrbWFsbG9jKDQwOTYsIEdGUF9LRVJORUwpOw0KKwlpZiAoIXNpemVfc3RyaW5n
+KQ0KKwkJcmV0dXJuX1ZBTFVFKC1FTk9NRU0pOw0KKw0KKwltZW1zZXQoc2l6ZV9zdHJpbmcsIDAs
+IDQwOTYpOw0KKw0KKwlpZiAoY29weV9mcm9tX3VzZXIoc2l6ZV9zdHJpbmcsIGJ1ZmZlciwgY291
+bnQpKSB7DQorCQlBQ1BJX0RFQlVHX1BSSU5UKChBQ1BJX0RCX0VSUk9SLCAiSW52YWxpZCBkYXRh
+XG4iKSk7DQorCQljb3VudCA9IC1FRkFVTFQ7DQorCQlnb3RvIGVuZDsNCisJfQ0KKw0KKwlzaXpl
+X3N0cmluZ1tjb3VudF0gPSAnXDAnOw0KKwltYXhfcG9vbF9zaXplID0gc2ltcGxlX3N0cnRvbChz
+aXplX3N0cmluZywgTlVMTCwgMTApOw0KKwlBQ1BJX0RFQlVHX1BSSU5UKChBQ1BJX0RCX0lORk8s
+ICJQb29sX1NpemUgbm93ICVkXG4iLCBtYXhfcG9vbF9zaXplKSk7DQorDQorZW5kOg0KKwlrZnJl
+ZShzaXplX3N0cmluZyk7DQorCXJldHVybl9WQUxVRShjb3VudCk7DQorfQ0KKw0KK3N0YXRpYyBz
+dHJ1Y3QgZmlsZV9vcGVyYXRpb25zIGFjcGlfb3NsX3Bvb2xfc2l6ZV9vcHMgPSB7DQorCS5vcGVu
+ID0gYWNwaV9vc2xfcG9vbF9zaXplX29wZW5fZnMsDQorCS5yZWFkID0gc2VxX3JlYWQsDQorCS53
+cml0ZSA9IGFjcGlfb3NsX3Bvb2xfc2l6ZV93cml0ZSwNCisJLmxsc2VlayA9IHNlcV9sc2VlaywN
+CisJLnJlbGVhc2UgPSBzaW5nbGVfcmVsZWFzZSwNCit9Ow0KKw0KIC8qIFRoaXMgaXMgYmFzZWQg
+b24gdGhlIHdvcmtxdWV1ZSB3b3JrZXJfdGhyZWFkICovDQogc3RhdGljIGludCBhY3BpX29zX2V4
+ZWN1dGVfd29ya2VyKHZvaWQgKmNvbnRleHQpDQogew0KQEAgLTI0Nyw5ICszMDksMTQgQEANCiAN
+CiAvKg0KICAqIEVuYWJsZSByZWFwaW5nIG9mIHVudXNlZCB0aHJlYWRzLg0KKyAqIEVuYWJsZSBw
+b29sIHNpemUgbW9kaWZpY2F0aW9uIGJ5IHByb2MgZmlsZXN5c3RlbSBlbnRyeS4NCiAgKi8NCiBh
+Y3BpX3N0YXR1cyBhY3BpX29zX2luaXRpYWxpemUyKHZvaWQpDQogew0KKwlzdHJ1Y3QgcHJvY19k
+aXJfZW50cnkgKmVudHJ5Ow0KKwllbnRyeSA9IGNyZWF0ZV9wcm9jX2VudHJ5KCJwb29sX3NpemUi
+LCBTX0lSVVNSfFNfSVdVU1IsIGFjcGlfcm9vdF9kaXIpOw0KKwlpZiAoZW50cnkpDQorCQllbnRy
+eS0+cHJvY19mb3BzID0gJmFjcGlfb3NsX3Bvb2xfc2l6ZV9vcHM7DQogCUlOSVRfV09SSygmYWNw
+aV9yZWFwX3Rhc2ssIGFjcGlfcmVhcF90aHJlYWRzLCBOVUxMKTsNCiAJaW5pdF90aW1lcigmYWNw
+aV9yZWFwX3RpbWVyKTsNCiAJcmV0dXJuIEFFX09LOw0K
+
+
+--=-V2FdF+8G+tRot6mJGKPd--
+
+--=-PgRIINDRn48MkHDoeQ1A
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2.2 (GNU/Linux)
+
+iD8DBQBEWRlLZlbFk+UVjRoRAisJAJwJeVwO9prU5PwFNyO76O1+DxbsMQCfSUbj
+MBcuhd/JYQgVTJuHL19asgc=
+=xaYb
+-----END PGP SIGNATURE-----
+
+--=-PgRIINDRn48MkHDoeQ1A--
+
