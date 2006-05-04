@@ -1,82 +1,105 @@
-From: "Randy.Dunlap" <rdunlap@xenotime.net>
+From: ebiederm@xmission.com (Eric W. Biederman)
 Subject: Re: [RFC][PATCH] Document what in IRQ is.
-Date: Wed, 3 May 2006 17:01:55 -0700
-Message-ID: <20060503170155.e8e9a92b.rdunlap@xenotime.net>
+Date: Wed, 03 May 2006 20:48:27 -0600
+Message-ID: <m1mzdy7bes.fsf@ebiederm.dsl.xmission.com>
 References: <CFF307C98FEABE47A452B27C06B85BB652DF16@hdsmsx411.amr.corp.intel.com>
 	<200605020946.46050.ak@suse.de>
 	<m1aca07cvd.fsf_-_@ebiederm.dsl.xmission.com>
+	<20060503170155.e8e9a92b.rdunlap@xenotime.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from xenotime.net ([66.160.160.81]:10926 "HELO xenotime.net")
-	by vger.kernel.org with SMTP id S1750827AbWECX7b (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 May 2006 19:59:31 -0400
-Received: from midway.site ([71.111.157.99]) by xenotime.net for <linux-acpi@vger.kernel.org>; Wed, 3 May 2006 16:59:30 -0700
-In-Reply-To: <m1aca07cvd.fsf_-_@ebiederm.dsl.xmission.com>
+Received: from ebiederm.dsl.xmission.com ([166.70.28.69]:45540 "EHLO
+	ebiederm.dsl.xmission.com") by vger.kernel.org with ESMTP
+	id S1750880AbWEDCtT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 3 May 2006 22:49:19 -0400
+In-Reply-To: <20060503170155.e8e9a92b.rdunlap@xenotime.net> (Randy Dunlap's
+ message of "Wed, 3 May 2006 17:01:55 -0700")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Eric W. Biederman" <ebiederm@xmission.com>
+To: "Randy.Dunlap" <rdunlap@xenotime.net>
 Cc: ak@suse.de, len.brown@intel.com, Natalie.Protasevich@unisys.com, sergio@sergiomb.no-ip.org, kimball.murray@gmail.com, linux-kernel@vger.kernel.org, akpm@digeo.com, kmurray@redhat.com, linux-acpi@vger.kernel.org
 
-On Tue, 02 May 2006 07:52:22 -0600 Eric W. Biederman wrote:
+"Randy.Dunlap" <rdunlap@xenotime.net> writes:
 
-> Andi Kleen <ak@suse.de> writes:
-> 
-> > P.S.: There seems to be a lot of confusion about all this.
-> > Maybe it would make sense to do a write up defining all the terms
-> > and stick it into Documentation/* ? 
-> 
-> How does this look?
-> 
-> I am pretty horrible when it comes to Documentation,
-> but this seems to be the essence of what I was saying earlier.
-> 
-> Eric
-> 
-> 
-> diff --git a/Documentation/IRQ.txt b/Documentation/IRQ.txt
-> new file mode 100644
-> index 0000000..5340369
-> --- /dev/null
-> +++ b/Documentation/IRQ.txt
-> @@ -0,0 +1,22 @@
-> +What is an IRQ?
-> +
-> +An IRQ is an interrupt request from a device.
-> +Currently they can come in over a pin, or over a packet.
+> On Tue, 02 May 2006 07:52:22 -0600 Eric W. Biederman wrote:
+>
+>> Andi Kleen <ak@suse.de> writes:
+>> 
+>> > P.S.: There seems to be a lot of confusion about all this.
+>> > Maybe it would make sense to do a write up defining all the terms
+>> > and stick it into Documentation/* ? 
+>> 
+>> How does this look?
+>> 
+>> I am pretty horrible when it comes to Documentation,
+>> but this seems to be the essence of what I was saying earlier.
+>> 
+>> Eric
+>> 
+>> 
+>> diff --git a/Documentation/IRQ.txt b/Documentation/IRQ.txt
+>> new file mode 100644
+>> index 0000000..5340369
+>> --- /dev/null
+>> +++ b/Documentation/IRQ.txt
+>> @@ -0,0 +1,22 @@
+>> +What is an IRQ?
+>> +
+>> +An IRQ is an interrupt request from a device.
+>> +Currently they can come in over a pin, or over a packet.
+>
+> No comma.  Change packet to message?
 
-No comma.  Change packet to message?
+Sounds good.
 
-> +IRQs at the source can be shared.
+>> +IRQs at the source can be shared.
+>
+> Huh?  That simple sentence confuses me.  Should "source" really be
+> "sink" or "destination"?  Or maybe say "IRQs at an interrupt controller
+> can be shared."  Or is that too hardware-specific?
+> Anyway, what source is meant here?  It doesn't mean that IRQs
+> at the producer device can be shared, right?  It's more at the
+> consumer device where they can be shared.
 
-Huh?  That simple sentence confuses me.  Should "source" really be
-"sink" or "destination"?  Or maybe say "IRQs at an interrupt controller
-can be shared."  Or is that too hardware-specific?
-Anyway, what source is meant here?  It doesn't mean that IRQs
-at the producer device can be shared, right?  It's more at the
-consumer device where they can be shared.
+By source I was thinking at the irq controller pin. 
 
-> +An IRQ number is a kernel identifier used to talk about a hardware
-> +interrupt source.  Typically this is an index into the global irq_desc
-> +array, but except for what linux/interrupt.h implements the details
-> +are architecture specific.
-> +
-> +An IRQ number is an enumeration of the possible interrupt sources on a
-> +machine.  Typically what is enumerated is the number of input pins on
-> +all of the interrupt controller in the system.  In the case of ISA
-                        controllers
-> +what is enumerated are the 16 input pins to the pair of i8259
-                      is
-> +interrupt controllers.
-> +
-> +Architectures can assign additional meaning to the IRQ numbers, and
-> +are encouraged to in the case  where there is any manual configuration
-> +of the hardware involved.  The ISA IRQ case on x86 where anyone who
-> +has been around a while can tell you how the first 16 IRQs map to the
-                   awhile
-> +input pins on a pair of i8259s is the classic example.
+Interrupts are usually thrown from interrupt controllers to
+something in the chipset that interrupts the cpu, giving the
+cpu a token (ie an interrupt vector) that uniquely identifies
+which interrupt source threw the interrupt.
 
+Linux does not have generic infrastructure to allow two interrupt
+sources to share the same token passed to the kernel. 
 
----
-~Randy
+In addition there are good reasons on some systems to change the 
+token dynamically, (say to point the IRQ at a different CPU).  So
+no generic code in the code should know about the token the cpu
+receives.  The fact that msi.c actually knows about that token
+today makes is inflexible and maintenance problem.
+
+I guess I need to figure out how to work this additional information
+into my documentation then.
+
+>> +An IRQ number is a kernel identifier used to talk about a hardware
+>> +interrupt source.  Typically this is an index into the global irq_desc
+>> +array, but except for what linux/interrupt.h implements the details
+>> +are architecture specific.
+>> +
+>> +An IRQ number is an enumeration of the possible interrupt sources on a
+>> +machine.  Typically what is enumerated is the number of input pins on
+>> +all of the interrupt controller in the system.  In the case of ISA
+>                         controllers
+>> +what is enumerated are the 16 input pins to the pair of i8259
+>                       is
+>> +interrupt controllers.
+>> +
+>> +Architectures can assign additional meaning to the IRQ numbers, and
+>> +are encouraged to in the case  where there is any manual configuration
+>> +of the hardware involved.  The ISA IRQ case on x86 where anyone who
+>> +has been around a while can tell you how the first 16 IRQs map to the
+>                    awhile
+>> +input pins on a pair of i8259s is the classic example.
+
+Eric
+
