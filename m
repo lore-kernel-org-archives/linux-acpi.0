@@ -1,105 +1,58 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [RFC][PATCH] Document what in IRQ is.
-Date: Wed, 03 May 2006 20:48:27 -0600
-Message-ID: <m1mzdy7bes.fsf@ebiederm.dsl.xmission.com>
-References: <CFF307C98FEABE47A452B27C06B85BB652DF16@hdsmsx411.amr.corp.intel.com>
-	<200605020946.46050.ak@suse.de>
-	<m1aca07cvd.fsf_-_@ebiederm.dsl.xmission.com>
-	<20060503170155.e8e9a92b.rdunlap@xenotime.net>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: [(repost) git Patch 1/1] avoid IRQ0 ioapic pin collision
+Date: Thu, 4 May 2006 01:07:29 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB656C800@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ebiederm.dsl.xmission.com ([166.70.28.69]:45540 "EHLO
-	ebiederm.dsl.xmission.com") by vger.kernel.org with ESMTP
-	id S1750880AbWEDCtT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 3 May 2006 22:49:19 -0400
-In-Reply-To: <20060503170155.e8e9a92b.rdunlap@xenotime.net> (Randy Dunlap's
- message of "Wed, 3 May 2006 17:01:55 -0700")
+Received: from mga02.intel.com ([134.134.136.20]:16508 "EHLO
+	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1751399AbWEDFHe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 May 2006 01:07:34 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Randy.Dunlap" <rdunlap@xenotime.net>
-Cc: ak@suse.de, len.brown@intel.com, Natalie.Protasevich@unisys.com, sergio@sergiomb.no-ip.org, kimball.murray@gmail.com, linux-kernel@vger.kernel.org, akpm@digeo.com, kmurray@redhat.com, linux-acpi@vger.kernel.org
+To: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "Protasevich, Natalie" <Natalie.Protasevich@UNISYS.com>, Andi Kleen <ak@suse.de>, sergio@sergiomb.no-ip.org, Kimball Murray <kimball.murray@gmail.com>, linux-kernel@vger.kernel.org, akpm@digeo.com, kmurray@redhat.com, linux-acpi@vger.kernel.org
 
-"Randy.Dunlap" <rdunlap@xenotime.net> writes:
+>>> We should never have had a problem with un-connected interrupt lines
+>>> consuming vectors, as the vectors are handed out at run-time
+>>> only when interrupts are requested by drivers.
+>>
+>>Incorrect.  By being requested by drivers I assume you mean by
+>>request_irq.  assign_irq_vector is called long before request_irq
+>>and in fact there is currently not a call from request_irq to
+>>assign_irq_vector.  Look where assign_irq_vector is called in 
+>io_apic.c
 
-> On Tue, 02 May 2006 07:52:22 -0600 Eric W. Biederman wrote:
->
->> Andi Kleen <ak@suse.de> writes:
->> 
->> > P.S.: There seems to be a lot of confusion about all this.
->> > Maybe it would make sense to do a write up defining all the terms
->> > and stick it into Documentation/* ? 
->> 
->> How does this look?
->> 
->> I am pretty horrible when it comes to Documentation,
->> but this seems to be the essence of what I was saying earlier.
->> 
->> Eric
->> 
->> 
->> diff --git a/Documentation/IRQ.txt b/Documentation/IRQ.txt
->> new file mode 100644
->> index 0000000..5340369
->> --- /dev/null
->> +++ b/Documentation/IRQ.txt
->> @@ -0,0 +1,22 @@
->> +What is an IRQ?
->> +
->> +An IRQ is an interrupt request from a device.
->> +Currently they can come in over a pin, or over a packet.
->
-> No comma.  Change packet to message?
+Hmmm, on Natalie's ping, I looked at this again.
 
-Sounds good.
+setup_IO_APIC_irqs() actually consumes only 16 vectors.
+This is because it only sets up the IRQs for pins
+found with find_irq_entry(), which searches mp_irqs[]
+which at this point contains only the legacy identify mappings.
 
->> +IRQs at the source can be shared.
->
-> Huh?  That simple sentence confuses me.  Should "source" really be
-> "sink" or "destination"?  Or maybe say "IRQs at an interrupt controller
-> can be shared."  Or is that too hardware-specific?
-> Anyway, what source is meant here?  It doesn't mean that IRQs
-> at the producer device can be shared, right?  It's more at the
-> consumer device where they can be shared.
+The PNP code then takes a swing at things, and it registers
+a handful of gsi's, but they are all duplicates of the legacy
+mappings already set-up, so no additional vectors are consumed.
 
-By source I was thinking at the irq controller pin. 
+So on a big system, the large quantity of vectors will not be consumed
+at
+IOAPIC initialization time, but later at device probe time.
+Not via request_irq(), but via pci_enable_device():
 
-Interrupts are usually thrown from interrupt controllers to
-something in the chipset that interrupts the cpu, giving the
-cpu a token (ie an interrupt vector) that uniquely identifies
-which interrupt source threw the interrupt.
+pci_enable_device()
+ pci_enable_device_bars()
+  pcibios_enable_device()
+   pcibios_enable_irq() -> acpi_pci_irq_enable()
+    acpi_register_gsi()
+     mp_register_gsi()
+      io_apic_set_pci_routing()
+       entry.vector = assign_irq_vector(irq)
 
-Linux does not have generic infrastructure to allow two interrupt
-sources to share the same token passed to the kernel. 
+So except for the legacy IRQs, we are already allocating the vectors
+on-demand, and that doesn't need to be fixed.
 
-In addition there are good reasons on some systems to change the 
-token dynamically, (say to point the IRQ at a different CPU).  So
-no generic code in the code should know about the token the cpu
-receives.  The fact that msi.c actually knows about that token
-today makes is inflexible and maintenance problem.
-
-I guess I need to figure out how to work this additional information
-into my documentation then.
-
->> +An IRQ number is a kernel identifier used to talk about a hardware
->> +interrupt source.  Typically this is an index into the global irq_desc
->> +array, but except for what linux/interrupt.h implements the details
->> +are architecture specific.
->> +
->> +An IRQ number is an enumeration of the possible interrupt sources on a
->> +machine.  Typically what is enumerated is the number of input pins on
->> +all of the interrupt controller in the system.  In the case of ISA
->                         controllers
->> +what is enumerated are the 16 input pins to the pair of i8259
->                       is
->> +interrupt controllers.
->> +
->> +Architectures can assign additional meaning to the IRQ numbers, and
->> +are encouraged to in the case  where there is any manual configuration
->> +of the hardware involved.  The ISA IRQ case on x86 where anyone who
->> +has been around a while can tell you how the first 16 IRQs map to the
->                    awhile
->> +input pins on a pair of i8259s is the classic example.
-
-Eric
-
+-Len
