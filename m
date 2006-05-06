@@ -1,18 +1,17 @@
 From: "Protasevich, Natalie" <Natalie.Protasevich@UNISYS.com>
-Subject: (unknown)
-Date: Sat, 6 May 2006 01:39:05 -0500
-Message-ID: <19D0D50E9B1D0A40A9F0323DBFA04ACC023B0BC8@USRV-EXCH4.na.uis.unisys.com>
+Subject: RE: [(repost) git Patch 1/1] avoid IRQ0 ioapic pin collision
+Date: Sat, 6 May 2006 01:42:04 -0500
+Message-ID: <19D0D50E9B1D0A40A9F0323DBFA04ACC023B0BC9@USRV-EXCH4.na.uis.unisys.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usea-naimss2.unisys.com ([192.61.61.104]:47117 "EHLO
-	usea-naimss2.unisys.com") by vger.kernel.org with ESMTP
-	id S1750884AbWEFGjK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 May 2006 02:39:10 -0400
+Received: from usea-naimss1.unisys.com ([192.61.61.103]:48910 "EHLO
+	usea-naimss1.unisys.com") by vger.kernel.org with ESMTP
+	id S1751242AbWEFGmJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 May 2006 02:42:09 -0400
 Content-class: urn:content-classes:message
-Subject: 
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Brown, Len" <len.brown@intel.com>, "Eric W. Biederman" <ebiederm@xmission.com>
@@ -76,6 +75,8 @@ Cc: Andi Kleen <ak@suse.de>, sergio@sergiomb.no-ip.org, Kimball Murray <kimball.
 > If we had done this, then we wouldn't have needed kimbal's patch.
 > If we do this, then we can delete that workaround on top of 
 > workaround.
+> 
+> thoughts?
 
 Sure sounds like a great idea. I just signed up for a large partition (>
 1700 GSIs) to try this over the weekend.
@@ -86,5 +87,4 @@ thinking that all the complexity is actually located on the first
 IO-APIC, this may have some potential for compression only coming into
 play on non-zero IO-APICs. But using the total number of IRQs used is
 definitely the most logical thing to try...I will test this shortly -
-Thanks,
---Natalie
+Thanks, --Natalie 
