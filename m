@@ -1,36 +1,73 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: [Bugme-new] [Bug 6519] New: Athlon XP runs hot: s2k disconnect
- power saving inoperative
-Date: Mon, 8 May 2006 14:41:09 -0700
-Message-ID: <20060508144109.152e45af.akpm@osdl.org>
-References: <200605082027.k48KRtq5031357@fire-2.osdl.org>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: [(repost) git Patch 1/1] avoid IRQ0 ioapic pin collision
+Date: Mon, 8 May 2006 17:51:35 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB65EAC04@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:5041 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1751119AbWEHVia (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 May 2006 17:38:30 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id k48LcTtH001840
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Mon, 8 May 2006 14:38:29 -0700
-Received: from akpm.pao.digeo.com (shell0.pdx.osdl.net [10.9.0.31])
-	by shell0.pdx.osdl.net (8.13.1/8.11.6) with SMTP id k48LcSs4022343
-	for <linux-acpi@vger.kernel.org>; Mon, 8 May 2006 14:38:28 -0700
-In-Reply-To: <200605082027.k48KRtq5031357@fire-2.osdl.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750876AbWEHVvn@vger.kernel.org>
+Content-class: urn:content-classes:message
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Protasevich, Natalie" <Natalie.Protasevich@UNISYS.com>, "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Andi Kleen <ak@suse.de>, sergio@sergiomb.no-ip.org, Kimball Murray <kimball.murray@gmail.com>, linux-kernel@vger.kernel.org, akpm@digeo.com, kmurray@redhat.com, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-bugme-daemon@bugzilla.kernel.org wrote:
+<6>IOAPIC[64]: apic_id 127, version 32, address 0xfec49000, GSI
+1728-1751
+
+wow, big box!
+
+>I have tested this algorithm and it worked just fine for me... I used
+>the following compression code in mp_register_gsi():
 >
-> http://bugzilla.kernel.org/show_bug.cgi?id=6519
-> 
+>
+>int     irqs_used = 0;
+>int     gsi_to_irq[NR_IRQS] = { [0 ... NR_IRQS-1] = -1 };
+>...
+>
+>        if (triggering == ACPI_LEVEL_SENSITIVE) {
+>                if (gsi > NR_IRQS) {
+>                        int i;
+>                        printk("NBP: looking for unused IRQ\n");
+>                        for (i = nr_ioapic_registers[0]; i < NR_IRQS;
+i++) {
+>                                if (gsi_to_irq[i] == -1) {
+>                                        gsi_to_irq[i] = gsi;
+>                                        gsi = i;
+>                                        break;
+>                                }
+>                        }
+>                        if (i >= NR_IRQS) {
+>                                printk(KERN_ERR "GSI %u is too high\n",
+...
+>                                return gsi;
+>                        }
+>                } else
+>                        gsi_to_irq[gsi] = gsi;
+>        }
 
-Guys, there's some mystification as to what subsystem could have caused
-this person's CPU Disconnect Control to break.  Andi thinks perhaps ACPI.
+the problem with this code as it stands is that acpi/mp_register_gsi()
+can be called with gsi in any order.  So it is possible
+for the compression code above to select gsi_to_irq[n]
+and later for the non-compression path to over-write gsi_to_irq[n].
 
-Can someone please confirm that and if so, assign the report?
+Also, I would prefer that this code be in ioapic_renumber_irq(), as I
+think
+it is unnecessarily complex to re-number, and then re-number again.
+(gsi_irq_sharing() is a separate discussion)
 
-Thanks.
+I think this should be model-specific, but if you feel that handling
+(gsi > NR_IRQS) here is important in the generic case, then I'm
+fine with this being a default ioapic_renumber_irq() handler
+that a platform can augment/override.
+
+Re: returning error
+At one point acpi_register_gsi() was able to return an error.
+However, that was broken when acpi_gsi_to_irq() was created,
+and then broken worse when that routine was modified
+with gsi_irq_sharing().  if you BUG() on i > NR_IRQS,
+that would be consistent wth gsi_irq_sharing().
+
+thanks,
+-Len
