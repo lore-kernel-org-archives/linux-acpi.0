@@ -1,73 +1,54 @@
 From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [(repost) git Patch 1/1] avoid IRQ0 ioapic pin collision
-Date: Mon, 8 May 2006 17:51:35 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB65EAC04@hdsmsx411.amr.corp.intel.com>
+Subject: RE: [PATCH] tpm: update module dependencies (PNPACPI)
+Date: Mon, 8 May 2006 18:26:05 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB65EAC3D@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750876AbWEHVvn@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:47445 "EHLO
+	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1750728AbWEHW0L convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 May 2006 18:26:11 -0400
 Content-class: urn:content-classes:message
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Protasevich, Natalie" <Natalie.Protasevich@UNISYS.com>, "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Andi Kleen <ak@suse.de>, sergio@sergiomb.no-ip.org, Kimball Murray <kimball.murray@gmail.com>, linux-kernel@vger.kernel.org, akpm@digeo.com, kmurray@redhat.com, linux-acpi@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Kylene Jo Hall <kjhall@us.ibm.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, akpm@osdl.org, TPM Device Driver List <tpmdd-devel@lists.sourceforge.net>, linux-acpi@vger.kernel.org
 
-<6>IOAPIC[64]: apic_id 127, version 32, address 0xfec49000, GSI
-1728-1751
+>On Mon, 2006-05-08 at 17:59 -0400, Brown, Len wrote:
+>> >The TIS driver is dependent upon information from the ACPI table for
+>> >device discovery thus it compiles but does no actual work 
+>with out this
+>> >dependency.
+>> >
+>> >Signed-off-by: Kylene Hall <kjhall@us.ibm.com>
+>> >---
+>> > drivers/char/tpm/Kconfig |    2 +-
+>> > 1 files changed, 1 insertion(+), 1 deletion(-)
+>> >
+>> >--- linux-2.6.17-rc3/drivers/char/tpm/Kconfig	2006-04-26 
+>> >21:19:25.000000000 -0500
+>> >+++ linux-2.6.17-rc3-tpm/drivers/char/tpm/Kconfig	
+>> >2006-05-08 16:11:03.707961750 -0500
+>> >@@ -22,7 +22,7 @@ config TCG_TPM
+>> > 
+>> > config TCG_TIS
+>> > 	tristate "TPM Interface Specification 1.2 Interface"
+>> >-	depends on TCG_TPM
+>> >+	depends on TCG_TPM && PNPACPI
+>> 
+>> I think you want simply "ACPI" rather than "PNPACPI" here, yes?
 
-wow, big box!
+>No I think I really want PNPACPI because I have a pnp_driver which
+>probes based on a CID value.  PNPACPI is dependent on ACPI.  Am I
+>misunderstanding something.  It works with PNPACPI on but turning off
+>only PNPACPI causes it to not work.
 
->I have tested this algorithm and it worked just fine for me... I used
->the following compression code in mp_register_gsi():
->
->
->int     irqs_used = 0;
->int     gsi_to_irq[NR_IRQS] = { [0 ... NR_IRQS-1] = -1 };
->...
->
->        if (triggering == ACPI_LEVEL_SENSITIVE) {
->                if (gsi > NR_IRQS) {
->                        int i;
->                        printk("NBP: looking for unused IRQ\n");
->                        for (i = nr_ioapic_registers[0]; i < NR_IRQS;
-i++) {
->                                if (gsi_to_irq[i] == -1) {
->                                        gsi_to_irq[i] = gsi;
->                                        gsi = i;
->                                        break;
->                                }
->                        }
->                        if (i >= NR_IRQS) {
->                                printk(KERN_ERR "GSI %u is too high\n",
-...
->                                return gsi;
->                        }
->                } else
->                        gsi_to_irq[gsi] = gsi;
->        }
-
-the problem with this code as it stands is that acpi/mp_register_gsi()
-can be called with gsi in any order.  So it is possible
-for the compression code above to select gsi_to_irq[n]
-and later for the non-compression path to over-write gsi_to_irq[n].
-
-Also, I would prefer that this code be in ioapic_renumber_irq(), as I
-think
-it is unnecessarily complex to re-number, and then re-number again.
-(gsi_irq_sharing() is a separate discussion)
-
-I think this should be model-specific, but if you feel that handling
-(gsi > NR_IRQS) here is important in the generic case, then I'm
-fine with this being a default ioapic_renumber_irq() handler
-that a platform can augment/override.
-
-Re: returning error
-At one point acpi_register_gsi() was able to return an error.
-However, that was broken when acpi_gsi_to_irq() was created,
-and then broken worse when that routine was modified
-with gsi_irq_sharing().  if you BUG() on i > NR_IRQS,
-that would be consistent wth gsi_irq_sharing().
+So if you boot with "pnpacpi=off" it fails to probe?
+Nice to have proof that PNPACPI finally obsoletes PNPBIOS
+on a real system in the field.
 
 thanks,
 -Len
