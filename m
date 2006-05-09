@@ -1,90 +1,74 @@
-From: "Protasevich, Natalie" <Natalie.Protasevich@UNISYS.com>
-Subject: RE: [(repost) git Patch 1/1] avoid IRQ0 ioapic pin collision
-Date: Tue, 9 May 2006 00:14:36 -0500
-Message-ID: <19D0D50E9B1D0A40A9F0323DBFA04ACC023B0BD0@USRV-EXCH4.na.uis.unisys.com>
+From: Kylene Jo Hall <kjhall@us.ibm.com>
+Subject: Re: [tpmdd-devel] RE: [PATCH] tpm: update module dependencies
+	(PNPACPI)
+Date: Tue, 09 May 2006 09:00:33 -0500
+Message-ID: <1147183233.29414.66.camel@localhost.localdomain>
+References: <CFF307C98FEABE47A452B27C06B85BB65EAC3D@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usea-naimss1.unisys.com ([192.61.61.103]:22790 "EHLO
-	usea-naimss1.unisys.com") by vger.kernel.org with ESMTP
-	id S1751384AbWEIFOk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 May 2006 01:14:40 -0400
-Content-class: urn:content-classes:message
+Received: from e32.co.us.ibm.com ([32.97.110.150]:36812 "EHLO
+	e32.co.us.ibm.com") by vger.kernel.org with ESMTP id S1751310AbWEIOCW
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 May 2006 10:02:22 -0400
+In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB65EAC3D@hdsmsx411.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>, "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Andi Kleen <ak@suse.de>, sergio@sergiomb.no-ip.org, Kimball Murray <kimball.murray@gmail.com>, linux-kernel@vger.kernel.org, akpm@digeo.com, kmurray@redhat.com, linux-acpi@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, akpm@osdl.org, TPM Device Driver List <tpmdd-devel@lists.sourceforge.net>, linux-acpi@vger.kernel.org
 
->> >I have tested this algorithm and it worked just fine for me... I 
-> >> >used the following compression code in mp_register_gsi():
+On Mon, 2006-05-08 at 18:26 -0400, Brown, Len wrote:
+> >On Mon, 2006-05-08 at 17:59 -0400, Brown, Len wrote:
+> >> >The TIS driver is dependent upon information from the ACPI table for
+> >> >device discovery thus it compiles but does no actual work 
+> >with out this
+> >> >dependency.
 > >> >
+> >> >Signed-off-by: Kylene Hall <kjhall@us.ibm.com>
+> >> >---
+> >> > drivers/char/tpm/Kconfig |    2 +-
+> >> > 1 files changed, 1 insertion(+), 1 deletion(-)
 > >> >
-> >> >int     irqs_used = 0;
-> >> >int     gsi_to_irq[NR_IRQS] = { [0 ... NR_IRQS-1] = -1 };
-> >> >...
-> >> >
-> >> >        if (triggering == ACPI_LEVEL_SENSITIVE) {
-> >> >                if (gsi > NR_IRQS) {
-> >> >                        int i;
-> >> >                        printk("NBP: looking for unused IRQ\n");
-> >> >                        for (i = nr_ioapic_registers[0]; i 
-> >< NR_IRQS;
-> >> i++) {
-> >> >                                if (gsi_to_irq[i] == -1) {
-> >> >                                        gsi_to_irq[i] = gsi;
-> >> >                                        gsi = i;
-> >> >                                        break;
-> >> >                                }
-> >> >                        }
-> >> >                        if (i >= NR_IRQS) {
-> >> >                                printk(KERN_ERR "GSI %u is 
-> >> too high\n",
-> >> ...
-> >> >                                return gsi;
-> >> >                        }
-> >> >                } else
-> >> >                        gsi_to_irq[gsi] = gsi;
-> >> >        }
+> >> >--- linux-2.6.17-rc3/drivers/char/tpm/Kconfig	2006-04-26 
+> >> >21:19:25.000000000 -0500
+> >> >+++ linux-2.6.17-rc3-tpm/drivers/char/tpm/Kconfig	
+> >> >2006-05-08 16:11:03.707961750 -0500
+> >> >@@ -22,7 +22,7 @@ config TCG_TPM
+> >> > 
+> >> > config TCG_TIS
+> >> > 	tristate "TPM Interface Specification 1.2 Interface"
+> >> >-	depends on TCG_TPM
+> >> >+	depends on TCG_TPM && PNPACPI
 > >> 
-> >> the problem with this code as it stands is that 
-> >> acpi/mp_register_gsi() can be called with gsi in any order.  
-> >> So it is possible for the compression code above to select 
-> >> gsi_to_irq[n] and later for the non-compression path to 
-> >> over-write gsi_to_irq[n].
-> >> 
-> >
-> >It should always find the entry it's done the first one around 
-> >actually, the first thing in mp_register_gsi() will check for it I
-> think.
+> >> I think you want simply "ACPI" rather than "PNPACPI" here, yes?
 > 
-> No, the top of mp_register_gsi() is based on the real GSI
-> (before re-numbering) and the real IOAPIC pin number.
-> It prevents re-programming the real IOAPIC pin (a dubious 
-> optimization,
-> IMHO).
-> Yes, if it finds a 2nd call results in the same pin, it returns
-> gsi_to_irq[i],
-> but that isn't the failure case here.
+> >No I think I really want PNPACPI because I have a pnp_driver which
+> >probes based on a CID value.  PNPACPI is dependent on ACPI.  Am I
+> >misunderstanding something.  It works with PNPACPI on but turning off
+> >only PNPACPI causes it to not work.
 > 
-> a failure case is like so:
-> say the 1st IOAPIC has 24 pins, so the 0th RTE of the 2nd APIC is #24,
-> and this happens:
-> 
-> mp_register_gsi(NR_IRQS+1);
-> 	gsi_to_irq[24] is free, so it will get claimed
-> 	by the IRQ that wants to talk to GSI NR_IRQS+1
-> 
-> mp_register_gsi(24);
-> 	gsi_to_irq[24] was not -1 here, it was NR_IRQS+1,
-> 	but that will get over-written to be 24.
-> 
-> So now you have multiple independent interrupt sources that think
-> they own IRQ 24.
+> So if you boot with "pnpacpi=off" it fails to probe?
+> Nice to have proof that PNPACPI finally obsoletes PNPBIOS
+> on a real system in the field.
 
-But if the first one was say 280, then gsi_to_irq[24]=280. The other one
-will be looking for gsi_to_irq[XX]=24. That should make differentiation
-I hope. Don't you think? I will go through this some more...
+Correct probe fails with pnpacpi=off.
 
---Natalie
+Thanks,
+Kylie
+
+> 
+> thanks,
+> -Len
+> 
+> 
+> -------------------------------------------------------
+> Using Tomcat but need to do more? Need to support web services, security?
+> Get stuff done quickly with pre-integrated technology to make your job easier
+> Download IBM WebSphere Application Server v.1.0.1 based on Apache Geronimo
+> http://sel.as-us.falkag.net/sel?cmd=lnk&kid0709&bid&3057&dat1642
+> _______________________________________________
+> tpmdd-devel mailing list
+> tpmdd-devel@lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/tpmdd-devel
+
