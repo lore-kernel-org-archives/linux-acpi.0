@@ -1,54 +1,46 @@
 From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [PATCH] tpm: update module dependencies (PNPACPI)
-Date: Mon, 8 May 2006 18:26:05 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB65EAC3D@hdsmsx411.amr.corp.intel.com>
+Subject: RE: Linux kernel PnPBIOS
+Date: Mon, 8 May 2006 22:29:36 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB65EAD16@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:47445 "EHLO
+Received: from mga02.intel.com ([134.134.136.20]:27927 "EHLO
 	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1750728AbWEHW0L convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 May 2006 18:26:11 -0400
+	id S1751348AbWEIC3k convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 May 2006 22:29:40 -0400
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kylene Jo Hall <kjhall@us.ibm.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, akpm@osdl.org, TPM Device Driver List <tpmdd-devel@lists.sourceforge.net>, linux-acpi@vger.kernel.org
+To: "Christian P. Schmidt" <schmidt@digadd.de>
+Cc: linux-acpi@vger.kernel.org
 
->On Mon, 2006-05-08 at 17:59 -0400, Brown, Len wrote:
->> >The TIS driver is dependent upon information from the ACPI table for
->> >device discovery thus it compiles but does no actual work 
->with out this
->> >dependency.
->> >
->> >Signed-off-by: Kylene Hall <kjhall@us.ibm.com>
->> >---
->> > drivers/char/tpm/Kconfig |    2 +-
->> > 1 files changed, 1 insertion(+), 1 deletion(-)
->> >
->> >--- linux-2.6.17-rc3/drivers/char/tpm/Kconfig	2006-04-26 
->> >21:19:25.000000000 -0500
->> >+++ linux-2.6.17-rc3-tpm/drivers/char/tpm/Kconfig	
->> >2006-05-08 16:11:03.707961750 -0500
->> >@@ -22,7 +22,7 @@ config TCG_TPM
->> > 
->> > config TCG_TIS
->> > 	tristate "TPM Interface Specification 1.2 Interface"
->> >-	depends on TCG_TPM
->> >+	depends on TCG_TPM && PNPACPI
->> 
->> I think you want simply "ACPI" rather than "PNPACPI" here, yes?
+>As the original author of the x86 pnp bios driver I recently received a
+>request to add the API to access the information related to the BIOS
+>Boot Specification (BBS), which is accessible through the PNP BIOS
+>interface with functions 0x60 through 0x66.
+>
+>Seeing that a) there apparently are only few protected mode compatible
+>versions out (both systems I tried a preliminary patch on 
+>required major
+>efforts and GPF fixing), and b) the PNP BIOS is basically obsolete I
+>wonder if this information is available via ACPI so I can point out
+>these facts and a better API to the interested person. Do you have any
+>information on this?
+>
+>For your short reference, the BBS is meant to allow userspace programs
+>request and set information on bootable devices and the order these
+>devices are tried on.
+>
+>Best regards,
+>Christian
 
->No I think I really want PNPACPI because I have a pnp_driver which
->probes based on a CID value.  PNPACPI is dependent on ACPI.  Am I
->misunderstanding something.  It works with PNPACPI on but turning off
->only PNPACPI causes it to not work.
+Christian,
+I'm not aware of specific ACPI hooks allowing a user to
+observe or select device boot priority.
 
-So if you boot with "pnpacpi=off" it fails to probe?
-Nice to have proof that PNPACPI finally obsoletes PNPBIOS
-on a real system in the field.
+cc-ing the list in case others know better than me.
 
-thanks,
 -Len
