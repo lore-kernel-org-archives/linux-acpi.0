@@ -1,52 +1,44 @@
-From: Corey Minyard <minyard@acm.org>
-Subject: Re: Extra ACPI objects from an acpi PNP device?
-Date: Wed, 10 May 2006 15:53:45 -0500
-Message-ID: <446252D9.7090407@acm.org>
-References: <CFF307C98FEABE47A452B27C06B85BB669C15D@hdsmsx411.amr.corp.intel.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: ACPI/PCI _PS3 slot power management
+Date: Wed, 10 May 2006 17:08:57 -0600
+Message-ID: <200605101708.57416.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rwcrmhc11.comcast.net ([216.148.227.151]:64158 "EHLO
-	rwcrmhc11.comcast.net") by vger.kernel.org with ESMTP
-	id S964868AbWEJUxr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 May 2006 16:53:47 -0400
-In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB669C15D@hdsmsx411.amr.corp.intel.com>
+Received: from atlrel8.hp.com ([156.153.255.206]:30675 "EHLO atlrel8.hp.com")
+	by vger.kernel.org with ESMTP id S965067AbWEJXJB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 May 2006 19:09:01 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org, ambx1@neo.rr.com, Matt Domsch <Matt_Domsch@dell.com>
+To: linux-acpi@vger.kernel.org
+Cc: David Shaohua Li <shaohua.li@intel.com>, Tom Long Nguyen <tom.l.nguyen@intel.com>
 
-Brown, Len wrote:
+pci_set_power_state() is a per-PCI-function interface, just like
+most of the other PCI interfaces.  On ACPI systems, it ultimately
+calls acpi_bus_set_power(), which evaluates the _PSx method of the
+ACPI function object.
 
->>I have a situation where I need to get an ACPI device.  The PNP system
->>seems like the way to go for this, but I need some extra objects from
->>the ACPI namespace for this device (_IFT and _SRV to be specific,
->>supposidly added in ACPI 3.0).  There doesn't seem to be a clean way to
->>do this right now.  What would be the best way to get these?
->>    
->>
->
->If your code knows about specific AML methods, then it is by-definition,
->ACPI-aware, and can't be hidden (completely) behind PNP.
->  
->
-True, but the PNP stuff does a lot of the work :)
+This: http://www.microsoft.com/whdc/system/pnppwr/hotadd/hotplugpci.mspx
+suggests that a system that supports ACPI hotplug and power control
+should supply an ACPI device for each PCI function that might exist
+in the slot.  The _PSx methods exist under one or more of these devices
+(the document above suggests that it's under each device; the HP systems
+I've seen have _PSx only under the device for function 0).
 
->Either that, or some ACPI-aware code needs to exist to intervene to
->allow your code to know know anything about ACPI.
->  
->
-I was thinking of some way  to determine if it is ACPI and get the
-handle, or a new call to get resources.
+In any case, the _PSx methods control power to the whole *slot*, not
+just a single function.  The result is that calling pci_set_power_state()
+on one PCI function turns off power to the entire slot, even though there
+may be other independent functions that shouldn't be turned off.
 
->So you could make it ACPI aware like 8250_acpi.c was, before it was
->deleted...
->  
->
-So just use ACPI directly.  This will bypass the PNP port reservation
-for that particular ACPI device, I assume.
+Do we need to be smarter in acpi_pci_set_power_state(), and collect
+up all the PCI per-function power requests, and only pass those
+down to acpi_bus_set_power() when all the functions agree?
 
-Thanks,
+Other than the Microsoft document above, I haven't seen a good spec
+that clarifies this issue.
 
--Corey
+Bjorn
