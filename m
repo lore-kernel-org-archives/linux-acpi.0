@@ -1,55 +1,39 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: ACPI/PCI _PS3 slot power management
-Date: Thu, 11 May 2006 10:11:04 +0800
-Message-ID: <1147313464.2760.130.camel@sli10-desk.sh.intel.com>
-References: <200605101708.57416.bjorn.helgaas@hp.com>
+From: Lukas Hejtmanek <xhejtman@mail.muni.cz>
+Subject: acpi4asus
+Date: Thu, 11 May 2006 15:07:43 +0200
+Message-ID: <20060511130743.GG15876__32927.6882730939$1147357382$gmane$org@mail.muni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:133 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1751405AbWEKCMU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 May 2006 22:12:20 -0400
-In-Reply-To: <200605101708.57416.bjorn.helgaas@hp.com>
+Received: from anubis.fi.muni.cz ([147.251.54.96]:28177 "EHLO
+	anubis.fi.muni.cz") by vger.kernel.org with ESMTP id S1751787AbWEKOW2
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 11 May 2006 10:22:28 -0400
+Received: from xhejtman by anubis.fi.muni.cz with local (Exim 4.62)
+	(envelope-from <xhejtman@fi.muni.cz>)
+	id 1FeC3q-0001BG-Rj
+	for linux-acpi@vger.kernel.org; Thu, 11 May 2006 16:22:39 +0200
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-acpi@vger.kernel.org, "Nguyen, Tom L" <tom.l.nguyen@intel.com>
+To: linux-acpi@vger.kernel.org
 
-On Thu, 2006-05-11 at 07:08 +0800, Bjorn Helgaas wrote:
-> pci_set_power_state() is a per-PCI-function interface, just like 
-> most of the other PCI interfaces.  On ACPI systems, it ultimately 
-> calls acpi_bus_set_power(), which evaluates the _PSx method of the 
-> ACPI function object.
-> 
-> This:
-> http://www.microsoft.com/whdc/system/pnppwr/hotadd/hotplugpci.mspx 
-> suggests that a system that supports ACPI hotplug and power control 
-> should supply an ACPI device for each PCI function that might exist 
-> in the slot.  The _PSx methods exist under one or more of these
-> devices 
-> (the document above suggests that it's under each device; the HP
-> systems 
-> I've seen have _PSx only under the device for function 0).
-> 
-> In any case, the _PSx methods control power to the whole *slot*, not 
-> just a single function.  The result is that calling
-> pci_set_power_state() 
-> on one PCI function turns off power to the entire slot, even though
-> there 
-> may be other independent functions that shouldn't be turned off.
-> 
-> Do we need to be smarter in acpi_pci_set_power_state(), and collect 
-> up all the PCI per-function power requests, and only pass those 
-> down to acpi_bus_set_power() when all the functions agree?
-> 
-> Other than the Microsoft document above, I haven't seen a good spec 
-> that clarifies this issue.
-The purpose of the callback is to allow architecture handle specific
-power management staff. But I didn't realize the _PSx method is for the
-whole slot. I checked some DSDT, you might be right. If this really
-breaks a system, please fix it.
+Hello,
 
-Thanks,
-Shaohua
+is project acpi4asus still alive? For me, it looks like this is somewha=
+t dead.
+
+I posted patch to include Asus M6A support to both lkm and acpi4asus li=
+st but no
+response. I only noticed, that Andrew once tried to include in -mm but =
+I did not
+see it there anyway.
+
+--=20
+Luk=E1=B9 Hejtm=E1nek
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
