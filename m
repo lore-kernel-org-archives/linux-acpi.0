@@ -1,63 +1,132 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: RFC: Output ACPI info via sysfs
-Date: Thu, 11 May 2006 09:45:17 -0600
-Message-ID: <200605110945.17187.bjorn.helgaas@hp.com>
-References: <446350DE.9010900@redhat.com>
+From: Paul Wagner <paul_spam@gmx.at>
+Subject: DSDT on Averatec 1050
+Date: Thu, 11 May 2006 17:55:54 +0200
+Message-ID: <44635E8A.406@gmx.at>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel8.hp.com ([156.153.255.206]:58020 "EHLO atlrel8.hp.com")
-	by vger.kernel.org with ESMTP id S1030285AbWEKPpU (ORCPT
+Received: from mail.gmx.de ([213.165.64.20]:28634 "HELO mail.gmx.net")
+	by vger.kernel.org with SMTP id S1030292AbWEKPz6 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 11 May 2006 11:45:20 -0400
-In-Reply-To: <446350DE.9010900@redhat.com>
-Content-Disposition: inline
+	Thu, 11 May 2006 11:55:58 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Prarit Bhargava <prarit@redhat.com>
-Cc: linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>
+To: linux-acpi@vger.kernel.org
 
-On Thursday 11 May 2006 08:57, Prarit Bhargava wrote:
-> Currently, after booting a system there is no way to tell what hardware 
-> is currently in the system.  The current output from sysfs only 
-> indicates what knowledge the kernel has of the system (ie, is limited by 
-> NR_CPUS, etc.).  However, during ACPI initialization a lot of data is 
-> output to the console about the precise number of CPUs, lapics, etc.
-> 
-> Having this information is useful to anyone (or any application) 
-> interested in querying the real system information.
+Hi Folks,
 
-Some of this we should get via "lspnp".  (But you need PNPACPI and
-somebody (/me looks around innocently) should fix lspnp to look in
-/sys/bus/pnp/devices.)
+tried to get Linux (Slackware 10.1 with Kernel 2.6.13) to run on my 
+Averatec 1050. Unfortunately, ACPI doesn't work as supposed: No thermal 
+zones, no fan, no CPU temperature, kernel error messages (see below).
 
-But I see your point about things that are often described in static
-tables, like CPUs and APICs, because those don't show up in the
-namespace.  Len's pmtools package[1] can already extract and decode
-most of the static tables.
+I disassembled the DSDT, and recompiled it using Intels iasl, and got a 
+bunch of error and warnings (see below). Unfortunately, I do not 
+understand a single bit of this ASL code, and the manual doesn't really 
+help me much. I figured out how to get rid of one error (the field 
+thing), but I do not have the slightest idea how to handle the others.
 
-Does this (from a 4-CPU Intel Tiger) have some of the information
-you need?
+Can anybody please help or point me to some source of help with this 
+damn DSDT thing? I googled a lot last night, but weren't too successful.
 
-# ./acpidump -b -t APIC | ../madt/madt 
-ACPI: APIC (v001 INTEL  SR870BN4 0x01072002 MSFT 0x00010013) @ 0x(nil)
-ACPI: LSAPIC (acpi_id[0x00] lsapic_id[0xc6] lsapic_eid[0x18] enabled)
-ACPI: LSAPIC (acpi_id[0x01] lsapic_id[0xc2] lsapic_eid[0x18] enabled)
-ACPI: LSAPIC (acpi_id[0x02] lsapic_id[0xc4] lsapic_eid[0x18] enabled)
-ACPI: LSAPIC (acpi_id[0x03] lsapic_id[0xc0] lsapic_eid[0x18] enabled)
-ACPI: IOSAPIC (id[0x0] global_irq_base[0x0] address[0xfec00000])
-ACPI: IOSAPIC (id[0x1] global_irq_base[0x18] address[0xfec10000])
-ACPI: IOSAPIC (id[0x2] global_irq_base[0x30] address[0xfec20000])
-ACPI: IOSAPIC (id[0x3] global_irq_base[0x48] address[0xfec30000])
-ACPI: IOSAPIC (id[0x4] global_irq_base[0x60] address[0xfec40000])
-ACPI: IOSAPIC (id[0x5] global_irq_base[0x78] address[0xfec50000])
-ACPI: IOSAPIC (id[0x6] global_irq_base[0x90] address[0xfec60000])
-ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 high level)
-ACPI: PLAT_INT_SRC (low level type[0x3] id[0x00c6] eid[0x18] iosapic_vector[0x1e] global_irq[0x16]
-Length 230 OK
-Checksum OK
+Thanks a lot,
 
+Paul
 
-[1] ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/pmtools-20051111.tar.bz2
+--------------------------- 8< ------------------------
+
+iasl -tc complains about:
+
+Intel ACPI Component Architecture
+ASL Optimizing Compiler version 20060421 [May 10 2006]
+Copyright (C) 2000 - 2006 Intel Corporation
+Supports ACPI Specification Revision 3.0a
+
+dsdt.dsl    20:     Name (_T04, 0x00)
+Warning  1097 -              ^ Unknown reserved name (_T04)
+
+dsdt.dsl    21:     Name (_T03, 0x00)
+Warning  1097 -              ^ Unknown reserved name (_T03)
+
+dsdt.dsl    22:     Name (_T02, 0x00)
+Warning  1097 -              ^ Unknown reserved name (_T02)
+
+dsdt.dsl    23:     Name (_T01, 0x00)
+Warning  1097 -              ^ Unknown reserved name (_T01)
+
+dsdt.dsl    24:     Name (_T00, 0x00)
+Warning  1097 -              ^ Unknown reserved name (_T00)
+
+dsdt.dsl   513:                         C0E0,   8,
+Error    4027 -                            ^ Access width of Field Unit 
+extends beyond region limit
+
+dsdt.dsl   514:                         C0E1,   8
+Error    4027 -                            ^ Access width of Field Unit 
+extends beyond region limit
+
+dsdt.dsl  1545:                             Acquire (\ECMX, 0xA000)
+Warning  1103 -             Possible operator timeout is ignored ^
+
+dsdt.dsl  1559:                             Acquire (\MUEC, 0x8000)
+Warning  1103 -             Possible operator timeout is ignored ^
+
+dsdt.dsl  1649:                         OperationRegion (IO, SystemIO, 
+DPRT, 0x05)
+Error    4094 -                                           ^ parse error, 
+unexpected PARSEOP_IO, expecting error or PARSEOP_NAMESEG or 
+PARSEOP_NAMESTRING
+
+dsdt.dsl  1650:                         Field (IO, ByteAcc, Lock, Preserve)
+Error    4094 -                                 ^ parse error, 
+unexpected PARSEOP_IO, expecting error or PARSEOP_NAMESEG or 
+PARSEOP_NAMESTRING
+
+dsdt.dsl  1657:                         Field (IO, ByteAcc, Lock, Preserve)
+Error    4094 -                                 ^ parse error, 
+unexpected PARSEOP_IO, expecting error or PARSEOP_NAMESEG or 
+PARSEOP_NAMESTRING
+
+dsdt.dsl  1666:                             Return (LNot (INPS))
+Error    4062 -                        Object does not exist ^  (INPS)
+
+dsdt.dsl  1671:                             Return (OUTS)
+Error    4062 -                  Object does not exist ^  (OUTS)
+
+dsdt.dsl  1917:                                 Store (DAT0, Local0)
+Error    4062 -                     Object does not exist ^  (DAT0)
+
+dsdt.dsl  1926:                                 Store (0x80, CMD0)
+Error    4062 -                           Object does not exist ^  (CMD0)
+
+dsdt.dsl  1929:                                     Store (Arg0, DAT0)
+Error    4062 -                               Object does not exist ^ 
+(DAT0)
+
+dsdt.dsl  1932:                                         Store (DAT0, Local0)
+Error    4062 -                             Object does not exist ^  (DAT0)
+
+dsdt.dsl  1947:                                 Store (0x81, CMD0)
+Error    4062 -                           Object does not exist ^  (CMD0)
+
+dsdt.dsl  1950:                                     Store (Arg0, DAT0)
+Error    4062 -                               Object does not exist ^ 
+(DAT0)
+
+dsdt.dsl  1953:                                         Store (Arg1, DAT0)
+Error    4062 -                                   Object does not exist 
+^  (DAT0)
+
+ASL Input:  dsdt.dsl - 4588 lines, 159794 bytes, 2285 keywords
+Compilation complete. 14 Errors, 7 Warnings, 0 Remarks, 791 Optimizations
+
+--------------------------- 8< ------------------------
+
+The kernel sometimes (at boot and during operation) says:
+
+     ACPI-0142: *** Error: Store into Alias - should never happen
+     ACPI-1172: *** Error: Method execution failed 
+[\_SB_.PCI0.SBRG.EC0_._Q0C] (Node c14b4c20), AE_AML_INTERNAL
+
+--------------------------- 8< ------------------------
+
