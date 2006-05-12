@@ -1,165 +1,86 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: DSDT on Averatec 1050
-Date: Thu, 11 May 2006 11:50:29 -0700
-Message-ID: <B28E9812BAF6E2498B7EC5C427F293A44246BF@orsmsx415.amr.corp.intel.com>
+From: Brian Dunn <job17and9@sbcglobal.net>
+Subject: Overheating on a Latitude C600
+Date: Thu, 11 May 2006 19:11:15 -0500
+Message-ID: <4463D2A3.3060409@sbcglobal.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:53106 "EHLO
-	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
-	id S932113AbWEKSuc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 May 2006 14:50:32 -0400
-Content-class: urn:content-classes:message
+Received: from smtp114.sbc.mail.mud.yahoo.com ([68.142.198.213]:59740 "HELO
+	smtp114.sbc.mail.mud.yahoo.com") by vger.kernel.org with SMTP
+	id S1750705AbWELALp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 11 May 2006 20:11:45 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Paul Wagner <paul_spam@gmx.at>, linux-acpi@vger.kernel.org
+To: linux-acpi <linux-acpi@vger.kernel.org>
 
-Please send the raw (undisassembled) DSDT.
+Hello all.
+I'm working on getting acpi working correctly on my latitude C600.  All 
+events work correctly, but the fan does not automaticaly come on when 
+the processor gets hot.  ( Luckily I have the i8k module and i8kutils 
+working, so I haven't melted my processor yet. and then the bios handles 
+the fan alright when I use apm, too. )  Can anyone tell me what i may 
+have broke?  When i jave PNPACPI enabled i get this:
+
+brian@grace ~ $ sudo modprobe thermal
+WARNING: Error inserting processor 
+(/lib/modules/2.6.16-gentoo-r6/kernel/drivers/acpi/processor.ko): 
+Invalid module format
+
+I found this in my dmesg:
+processor: exports duplicate symbol acpi_processor_set_thermal_limit 
+(owned by kernel)
+
+I have the kernel ( 2.6.16-gentoo-r6) configured like this:
+brian@grace /usr/src/linux $ cat .config | grep ACPI
+# Power management options (ACPI, APM)
+# ACPI (Advanced Configuration and Power Interface) Support
+CONFIG_ACPI=y
+CONFIG_ACPI_SLEEP=y
+CONFIG_ACPI_SLEEP_PROC_FS=y
+# CONFIG_ACPI_SLEEP_PROC_SLEEP is not set
+CONFIG_ACPI_AC=y
+CONFIG_ACPI_BATTERY=y
+CONFIG_ACPI_BUTTON=m
+CONFIG_ACPI_VIDEO=m
+# CONFIG_ACPI_HOTKEY is not set
+CONFIG_ACPI_FAN=m
+CONFIG_ACPI_PROCESSOR=m
+CONFIG_ACPI_THERMAL=m
+# CONFIG_ACPI_ASUS is not set
+# CONFIG_ACPI_IBM is not set
+# CONFIG_ACPI_TOSHIBA is not set
+CONFIG_ACPI_BLACKLIST_YEAR=0
+# CONFIG_ACPI_DEBUG is not set
+CONFIG_ACPI_EC=y
+CONFIG_ACPI_POWER=y
+CONFIG_ACPI_SYSTEM=y
+# CONFIG_ACPI_CONTAINER is not set
+CONFIG_X86_ACPI_CPUFREQ=m
+# CONFIG_X86_ACPI_CPUFREQ_PROC_INTF is not set
+CONFIG_PNPACPI=y
+# CONFIG_SERIAL_8250_ACPI is not set
+
+also i noticed that when i modprobe button, fan, or any of these modules 
+i get duplicate directories in /proc/acpi.
+
+without PNPACPI, the modules load fine, but the fans still don't ever 
+seem to come on by themselves, and i'm afraid to let the processor go 
+above 80C. 
+
+/proc/acpi/thermal_zone/THM $ cat *
+<setting not supported>
+cooling mode:   critical
+<polling disabled>
+state:                   ok
+temperature:             64 C
+critical (S5):           98 C
 
 
-> -----Original Message-----
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> owner@vger.kernel.org] On Behalf Of Paul Wagner
-> Sent: Thursday, May 11, 2006 8:56 AM
-> To: linux-acpi@vger.kernel.org
-> Subject: DSDT on Averatec 1050
-> 
-> Hi Folks,
-> 
-> tried to get Linux (Slackware 10.1 with Kernel 2.6.13) to run on my
-> Averatec 1050. Unfortunately, ACPI doesn't work as supposed: No
-thermal
-> zones, no fan, no CPU temperature, kernel error messages (see below).
-> 
-> I disassembled the DSDT, and recompiled it using Intels iasl, and got
-a
-> bunch of error and warnings (see below). Unfortunately, I do not
-> understand a single bit of this ASL code, and the manual doesn't
-really
-> help me much. I figured out how to get rid of one error (the field
-> thing), but I do not have the slightest idea how to handle the others.
-> 
-> Can anybody please help or point me to some source of help with this
-> damn DSDT thing? I googled a lot last night, but weren't too
-successful.
-> 
-> Thanks a lot,
-> 
-> Paul
-> 
-> --------------------------- 8< ------------------------
-> 
-> iasl -tc complains about:
-> 
-> Intel ACPI Component Architecture
-> ASL Optimizing Compiler version 20060421 [May 10 2006]
-> Copyright (C) 2000 - 2006 Intel Corporation
-> Supports ACPI Specification Revision 3.0a
-> 
-> dsdt.dsl    20:     Name (_T04, 0x00)
-> Warning  1097 -              ^ Unknown reserved name (_T04)
-> 
-> dsdt.dsl    21:     Name (_T03, 0x00)
-> Warning  1097 -              ^ Unknown reserved name (_T03)
-> 
-> dsdt.dsl    22:     Name (_T02, 0x00)
-> Warning  1097 -              ^ Unknown reserved name (_T02)
-> 
-> dsdt.dsl    23:     Name (_T01, 0x00)
-> Warning  1097 -              ^ Unknown reserved name (_T01)
-> 
-> dsdt.dsl    24:     Name (_T00, 0x00)
-> Warning  1097 -              ^ Unknown reserved name (_T00)
-> 
-> dsdt.dsl   513:                         C0E0,   8,
-> Error    4027 -                            ^ Access width of Field
-Unit
-> extends beyond region limit
-> 
-> dsdt.dsl   514:                         C0E1,   8
-> Error    4027 -                            ^ Access width of Field
-Unit
-> extends beyond region limit
-> 
-> dsdt.dsl  1545:                             Acquire (\ECMX, 0xA000)
-> Warning  1103 -             Possible operator timeout is ignored ^
-> 
-> dsdt.dsl  1559:                             Acquire (\MUEC, 0x8000)
-> Warning  1103 -             Possible operator timeout is ignored ^
-> 
-> dsdt.dsl  1649:                         OperationRegion (IO, SystemIO,
-> DPRT, 0x05)
-> Error    4094 -                                           ^ parse
-error,
-> unexpected PARSEOP_IO, expecting error or PARSEOP_NAMESEG or
-> PARSEOP_NAMESTRING
-> 
-> dsdt.dsl  1650:                         Field (IO, ByteAcc, Lock,
-> Preserve)
-> Error    4094 -                                 ^ parse error,
-> unexpected PARSEOP_IO, expecting error or PARSEOP_NAMESEG or
-> PARSEOP_NAMESTRING
-> 
-> dsdt.dsl  1657:                         Field (IO, ByteAcc, Lock,
-> Preserve)
-> Error    4094 -                                 ^ parse error,
-> unexpected PARSEOP_IO, expecting error or PARSEOP_NAMESEG or
-> PARSEOP_NAMESTRING
-> 
-> dsdt.dsl  1666:                             Return (LNot (INPS))
-> Error    4062 -                        Object does not exist ^  (INPS)
-> 
-> dsdt.dsl  1671:                             Return (OUTS)
-> Error    4062 -                  Object does not exist ^  (OUTS)
-> 
-> dsdt.dsl  1917:                                 Store (DAT0, Local0)
-> Error    4062 -                     Object does not exist ^  (DAT0)
-> 
-> dsdt.dsl  1926:                                 Store (0x80, CMD0)
-> Error    4062 -                           Object does not exist ^
-(CMD0)
-> 
-> dsdt.dsl  1929:                                     Store (Arg0, DAT0)
-> Error    4062 -                               Object does not exist ^
-> (DAT0)
-> 
-> dsdt.dsl  1932:                                         Store (DAT0,
-> Local0)
-> Error    4062 -                             Object does not exist ^
-> (DAT0)
-> 
-> dsdt.dsl  1947:                                 Store (0x81, CMD0)
-> Error    4062 -                           Object does not exist ^
-(CMD0)
-> 
-> dsdt.dsl  1950:                                     Store (Arg0, DAT0)
-> Error    4062 -                               Object does not exist ^
-> (DAT0)
-> 
-> dsdt.dsl  1953:                                         Store (Arg1,
-DAT0)
-> Error    4062 -                                   Object does not
-exist
-> ^  (DAT0)
-> 
-> ASL Input:  dsdt.dsl - 4588 lines, 159794 bytes, 2285 keywords
-> Compilation complete. 14 Errors, 7 Warnings, 0 Remarks, 791
-Optimizations
-> 
-> --------------------------- 8< ------------------------
-> 
-> The kernel sometimes (at boot and during operation) says:
-> 
->      ACPI-0142: *** Error: Store into Alias - should never happen
->      ACPI-1172: *** Error: Method execution failed
-> [\_SB_.PCI0.SBRG.EC0_._Q0C] (Node c14b4c20), AE_AML_INTERNAL
-> 
-> --------------------------- 8< ------------------------
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
-in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+so how can i get my automaic cooling back?
+if someone just wants to point me to the right docs, I don't mind 
+reading up on this stuff.
+
+Thanks much,
+brian
+
