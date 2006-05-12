@@ -1,86 +1,134 @@
-From: Brian Dunn <job17and9@sbcglobal.net>
-Subject: Overheating on a Latitude C600
-Date: Thu, 11 May 2006 19:11:15 -0500
-Message-ID: <4463D2A3.3060409@sbcglobal.net>
+From: Andrew Morton <akpm@osdl.org>
+Subject: git-acpi breakage, sym2
+Date: Thu, 11 May 2006 23:10:05 -0700
+Message-ID: <20060511231005.0bce3384.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp114.sbc.mail.mud.yahoo.com ([68.142.198.213]:59740 "HELO
-	smtp114.sbc.mail.mud.yahoo.com") by vger.kernel.org with SMTP
-	id S1750705AbWELALp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 11 May 2006 20:11:45 -0400
+Received: from smtp.osdl.org ([65.172.181.4]:10122 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1750982AbWELGNE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 12 May 2006 02:13:04 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi <linux-acpi@vger.kernel.org>
-
-Hello all.
-I'm working on getting acpi working correctly on my latitude C600.  All 
-events work correctly, but the fan does not automaticaly come on when 
-the processor gets hot.  ( Luckily I have the i8k module and i8kutils 
-working, so I haven't melted my processor yet. and then the bios handles 
-the fan alright when I use apm, too. )  Can anyone tell me what i may 
-have broke?  When i jave PNPACPI enabled i get this:
-
-brian@grace ~ $ sudo modprobe thermal
-WARNING: Error inserting processor 
-(/lib/modules/2.6.16-gentoo-r6/kernel/drivers/acpi/processor.ko): 
-Invalid module format
-
-I found this in my dmesg:
-processor: exports duplicate symbol acpi_processor_set_thermal_limit 
-(owned by kernel)
-
-I have the kernel ( 2.6.16-gentoo-r6) configured like this:
-brian@grace /usr/src/linux $ cat .config | grep ACPI
-# Power management options (ACPI, APM)
-# ACPI (Advanced Configuration and Power Interface) Support
-CONFIG_ACPI=y
-CONFIG_ACPI_SLEEP=y
-CONFIG_ACPI_SLEEP_PROC_FS=y
-# CONFIG_ACPI_SLEEP_PROC_SLEEP is not set
-CONFIG_ACPI_AC=y
-CONFIG_ACPI_BATTERY=y
-CONFIG_ACPI_BUTTON=m
-CONFIG_ACPI_VIDEO=m
-# CONFIG_ACPI_HOTKEY is not set
-CONFIG_ACPI_FAN=m
-CONFIG_ACPI_PROCESSOR=m
-CONFIG_ACPI_THERMAL=m
-# CONFIG_ACPI_ASUS is not set
-# CONFIG_ACPI_IBM is not set
-# CONFIG_ACPI_TOSHIBA is not set
-CONFIG_ACPI_BLACKLIST_YEAR=0
-# CONFIG_ACPI_DEBUG is not set
-CONFIG_ACPI_EC=y
-CONFIG_ACPI_POWER=y
-CONFIG_ACPI_SYSTEM=y
-# CONFIG_ACPI_CONTAINER is not set
-CONFIG_X86_ACPI_CPUFREQ=m
-# CONFIG_X86_ACPI_CPUFREQ_PROC_INTF is not set
-CONFIG_PNPACPI=y
-# CONFIG_SERIAL_8250_ACPI is not set
-
-also i noticed that when i modprobe button, fan, or any of these modules 
-i get duplicate directories in /proc/acpi.
-
-without PNPACPI, the modules load fine, but the fans still don't ever 
-seem to come on by themselves, and i'm afraid to let the processor go 
-above 80C. 
-
-/proc/acpi/thermal_zone/THM $ cat *
-<setting not supported>
-cooling mode:   critical
-<polling disabled>
-state:                   ok
-temperature:             64 C
-critical (S5):           98 C
+To: linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>, linux-scsi@vger.kernel.org, Matthew Wilcox <willy@debian.org>
 
 
-so how can i get my automaic cooling back?
-if someone just wants to point me to the right docs, I don't mind 
-reading up on this stuff.
+The latest
+git+ssh://master.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git#test
+kills my very vanilla P4 box.
 
-Thanks much,
-brian
+Without:
 
+Linux Plug and Play Support v0.97 (c) Adam Belay
+pnp: PnP ACPI init
+pnp: PnP ACPI: found 15 devices
+PnPBIOS: Disabled by ACPI PNP
+SCSI subsystem initialized
+PCI: Using ACPI for IRQ routing
+PCI: If a device doesn't work, try "pci=routeirq".  If it helps, post a report
+pnp: 00:02: ioport range 0x400-0x47f could not be reserved
+pnp: 00:02: ioport range 0x500-0x53f has been reserved
+pnp: 00:02: ioport range 0x800-0x87f has been reserved
+PCI: Bridge: 0000:00:01.0
+  IO window: disabled.
+  MEM window: fc900000-fe9fffff
+  PREFETCH window: e4500000-f46fffff
+PCI: Bridge: 0000:00:1e.0
+  IO window: d000-dfff
+  MEM window: fea00000-feafffff
+  PREFETCH window: f4700000-f47fffff
+
+
+With:
+
+Linux Plug and Play Support v0.97 (c) Adam Belay
+pnp: PnP ACPI: disabled
+PnPBIOS: Scanning system for PnP BIOS support...
+PnPBIOS: Found PnP BIOS installation structure at 0xc00f2500
+PnPBIOS: PnP BIOS version 1.0, entry 0xf0000:0x1e2a, dseg 0xf0000
+PnPBIOS: 18 nodes reported by PnP BIOS; 18 recorded by driver
+SCSI subsystem initialized
+PCI: Probing PCI hardware
+PCI quirk: region 0400-047f claimed by ICH4 ACPI/GPIO/TCO
+PCI quirk: region 0500-053f claimed by ICH4 GPIO
+PCI: Transparent bridge - 0000:00:1e.0
+PCI: Using IRQ router PIIX/ICH [8086/2440] at 0000:00:1f.0
+PCI BIOS passed nonexistent PCI bus 0!
+PCI BIOS passed nonexistent PCI bus 0!
+PCI BIOS passed nonexistent PCI bus 0!
+PCI BIOS passed nonexistent PCI bus 1!
+PCI BIOS passed nonexistent PCI bus 0!
+PCI BIOS passed nonexistent PCI bus 2!
+PCI BIOS passed nonexistent PCI bus 0!
+PCI BIOS passed nonexistent PCI bus 2!
+PCI BIOS passed nonexistent PCI bus 0!
+PCI BIOS passed nonexistent PCI bus 2!
+PCI BIOS passed nonexistent PCI bus 0!
+PCI BIOS passed nonexistent PCI bus 2!
+PCI BIOS passed nonexistent PCI bus 0!
+PCI BIOS passed nonexistent PCI bus 2!
+PCI BIOS passed nonexistent PCI bus 0!
+PCI BIOS passed nonexistent PCI bus 2!
+PCI BIOS passed nonexistent PCI bus 0!
+PCI BIOS passed nonexistent PCI bus 2!
+PCI BIOS passed nonexistent PCI bus 0!
+pnp: 00:09: ioport range 0x4d0-0x4d1 has been reserved
+pnp: 00:09: ioport range 0xcf8-0xcff has been reserved
+pnp: 00:0b: ioport range 0x800-0x87f has been reserved
+PCI: Bridge: 0000:00:01.0
+  IO window: disabled.
+  MEM window: fc900000-fe9fffff
+  PREFETCH window: e4500000-f46fffff
+PCI: Bridge: 0000:00:1e.0
+  IO window: d000-dfff
+  MEM window: fea00000-feafffff
+  PREFETCH window: f4700000-f47fffff
+NET: Registered protocol family 2
+
+
+So I'll temporarily drop that patch, along with the enormous shower of
+still-unmerged other acpi patches which are probably dependent upon it.  A
+swift fix would be really appreciated...
+
+
+
+The above bug appears to trigger a scsi or sym2 bug.  With git-acpi.patch
+present I get
+
+sym0: <895> rev 0x2 at pci 0000:02:0c.0 irq 9
+sym0: Symbios NVRAM, ID 7, Fast-40, SE, parity checking
+sym0: SCSI BUS has been reset.
+scsi0 : sym-2.2.3
+ target0:0:0: Multiple LUNs disabled in NVRAM
+ 0:0:0:0: ABORT operation started.
+ 0:0:0:0: ABORT operation timed-out.
+ 0:0:0:0: DEVICE RESET operation started.
+ 0:0:0:0: DEVICE RESET operation timed-out.
+ 0:0:0:0: BUS RESET operation started.
+ 0:0:0:0: BUS RESET operation timed-out.
+ 0:0:0:0: HOST RESET operation started.
+sym0: SCSI BUS has been reset.
+ 0:0:0:0: HOST RESET operation timed-out.
+ 0:0:0:0: scsi: Device offlined - not ready after error recovery
+ 0:0:1:0: ABORT operation started.
+ 0:0:1:0: ABORT operation timed-out.
+ 0:0:1:0: DEVICE RESET operation started.
+ 0:0:1:0: DEVICE RESET operation timed-out.
+ 0:0:1:0: BUS RESET operation started.
+ 0:0:1:0: BUS RESET operation timed-out.
+ 0:0:1:0: HOST RESET operation started.
+sym0: SCSI BUS has been reset.
+ 0:0:1:0: HOST RESET operation timed-out.
+ 0:0:1:0: scsi: Device offlined - not ready after error recovery
+ 0:0:2:0: ABORT operation started.
+ 0:0:2:0: ABORT operation timed-out.
+ 0:0:2:0: DEVICE RESET operation started.
+ 0:0:2:0: DEVICE RESET operation timed-out.
+ 0:0:2:0: BUS RESET operation started.
+ 0:0:2:0: BUS RESET operation timed-out.
+ 0:0:2:0: HOST RESET operation started.
+sym0: SCSI BUS has been reset.
+
+ad infinitum.  How come?
