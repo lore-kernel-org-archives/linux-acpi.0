@@ -1,64 +1,125 @@
-From: Jesper Juhl <jesper.juhl@gmail.com>
-Subject: [PATCH] mem-leak fix for acpi_thermal_write_trip_points()
-Date: Sun, 14 May 2006 02:28:58 +0200
-Message-ID: <200605140228.58460.jesper.juhl@gmail.com>
+From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
+Subject: Re: [patch 16/16] acpi: suppress power button event on S3 resume
+Date: Sun, 14 May 2006 01:33:30 +0100
+Message-ID: <1147566810.4544.8.camel@localhost.portugal>
+References: <200604270926.k3R9QiaN025117@shell0.pdx.osdl.net>
+Reply-To: sergio@sergiomb.no-ip.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-UK5l6TZ8/MaIuZT8pCoL"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.188]:23075 "EHLO
-	nf-out-0910.google.com") by vger.kernel.org with ESMTP
-	id S964828AbWENA2H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 13 May 2006 20:28:07 -0400
-Received: by nf-out-0910.google.com with SMTP id c31so192435nfb
-        for <linux-acpi@vger.kernel.org>; Sat, 13 May 2006 17:28:06 -0700 (PDT)
-Content-Disposition: inline
+Received: from smtp2.netcabo.pt ([212.113.174.29]:11567 "EHLO
+	exch01smtp09.hdi.tvcabo") by vger.kernel.org with ESMTP
+	id S1750973AbWENAdl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 13 May 2006 20:33:41 -0400
+In-Reply-To: <200604270926.k3R9QiaN025117@shell0.pdx.osdl.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Andy Grover <andrew.grover@intel.com>, Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Jesper Juhl <jesper.juhl@gmail.com>
-
-There's a memory leak in
- drivers/acpi/thermal.c::acpi_thermal_write_trip_points()
-found by the Coverity checker as bug #1243
-
-The problem is simply that if the allocation of 'active' fails, then we'll
-return from the function without freeing the memory previously allocated 
-to 'limit_string'.
-
-One fix would have been the insertion of kfree(limit_string); just before
-the return_VALUE(-ENOMEM); call, but I chose a different fix.
-Except for this one return the function only has a single exit point at 
-the end: label, and there it does proper cleanup of everything. So even 
-though setting the return value (the 'count' variable) and jumping there 
-results in a pointless kfree(NULL) call (since 'active' will be NULL), I 
-thought this was a small price to pay for the bennefit of having just a 
-single exit path for the function.
+To: akpm@osdl.org
+Cc: len.brown@intel.com, linux-acpi@vger.kernel.org, apatard@mandriva.com, luming.yu@intel.com
 
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
----
+--=-UK5l6TZ8/MaIuZT8pCoL
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
- drivers/acpi/thermal.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ok here it goes the state of applying this 16 patches against 2.6.17-rc4
 
-
---- linux-2.6.17-rc4-git2-orig/drivers/acpi/thermal.c	2006-03-20 06:53:29.000000000 +0100
-+++ linux-2.6.17-rc4-git2/drivers/acpi/thermal.c	2006-05-14 02:18:30.000000000 +0200
-@@ -942,8 +942,10 @@ acpi_thermal_write_trip_points(struct fi
- 	memset(limit_string, 0, ACPI_THERMAL_MAX_LIMIT_STR_LEN);
- 
- 	active = kmalloc(ACPI_THERMAL_MAX_ACTIVE * sizeof(int), GFP_KERNEL);
--	if (!active)
--		return_VALUE(-ENOMEM);
-+	if (!active) {
-+		count = -ENOMEM;
-+		goto end;
-+	}
- 
- 	if (!tz || (count > ACPI_THERMAL_MAX_LIMIT_STR_LEN - 1)) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid argument\n"));
+Patches=20
+1 2 out of date (n out of m hunks FAILED)
+3 4 ok
+5 out of date
+6 ok
+7 8 9 10 out of date=20
+11 12 13 ok
+14 out of date=20
+15 16 ok
 
 
 
+On Thu, 2006-04-27 at 02:25 -0700, akpm@osdl.org wrote:
+> From: "Arnaud Patard" <apatard@mandriva.com>
+>=20
+> Suppress POWER_BUTTON event on S3 resume.
+>=20
+> Signed-off-by: Arnaud Patard <apatard@mandriva.com>
+> Acked-by: "Yu, Luming" <luming.yu@intel.com>
+> Cc: "Brown, Len" <len.brown@intel.com>
+> Signed-off-by: Andrew Morton <akpm@osdl.org>
+> ---
+>=20
+>  drivers/acpi/sleep/main.c |    8 ++++++++
+>  1 files changed, 8 insertions(+)
+>=20
+> diff -puN drivers/acpi/sleep/main.c~acpi-suppress-power-button-event-on-s=
+3-resume drivers/acpi/sleep/main.c
+> --- 25/drivers/acpi/sleep/main.c~acpi-suppress-power-button-event-on-s3-r=
+esume	Wed Apr 26 14:15:19 2006
+> +++ 25-akpm/drivers/acpi/sleep/main.c	Wed Apr 26 14:15:19 2006
+> @@ -105,6 +105,14 @@ static int acpi_pm_enter(suspend_state_t
+>  	default:
+>  		return -EINVAL;
+>  	}
+> +
+> +	/* ACPI 3.0 specs (P62) says that it's the responsabilty
+> +	 * of the OSPM to clear the status bit [ implying that the
+> +	 * POWER_BUTTON event should not reach userspace ]
+> +	 */
+> +	if (ACPI_SUCCESS(status) && (acpi_state =3D=3D ACPI_STATE_S3))
+> +		acpi_clear_event(ACPI_EVENT_POWER_BUTTON);
+> +
+>  	local_irq_restore(flags);
+>  	printk(KERN_DEBUG "Back to C!\n");
+> =20
+> _
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--=-UK5l6TZ8/MaIuZT8pCoL
+Content-Type: application/x-pkcs7-signature; name=smime.p7s
+Content-Disposition: attachment; filename=smime.p7s
+Content-Transfer-Encoding: base64
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGSTCCAwIw
+ggJroAMCAQICAw/vkjANBgkqhkiG9w0BAQQFADBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhh
+d3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVt
+YWlsIElzc3VpbmcgQ0EwHhcNMDUxMTI4MjIyODU2WhcNMDYxMTI4MjIyODU2WjBLMR8wHQYDVQQD
+ExZUaGF3dGUgRnJlZW1haWwgTWVtYmVyMSgwJgYJKoZIhvcNAQkBFhlzZXJnaW9Ac2VyZ2lvbWIu
+bm8taXAub3JnMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApCNuKD3pz8GRKd1q+36r
+m0z7z+TBsbTrVa45UQsEeh9OQGZIASJMH5erC0u6KbKJ+km97RLOdsgSlKG6+5xuzsk+aqU7A0Gp
+kMjzIJT7UH/bbPnIFMQNnWJxluuYq1u+v8iIbfezQy1+SXyAyBv+OC7LnCOiOar/L9AD9zDy2fPX
+EqEDlbO3CJsoaR4Va8sgtoV0NmKnAt7DA0iZ2dmlsw6Qh+4euI+FgZ2WHPBQnfJ7PfSH5GIWl/Nx
+eUqnYpDaJafk/l94nX71UifdPXDMxJJlEOGqV9l4omhNlPmsZ/zrGXgLdBv9JuPjJ9mxhgwZsZbz
+VBc8emB0i3A7E6D6rwIDAQABo1kwVzAOBgNVHQ8BAf8EBAMCBJAwEQYJYIZIAYb4QgEBBAQDAgUg
+MCQGA1UdEQQdMBuBGXNlcmdpb0BzZXJnaW9tYi5uby1pcC5vcmcwDAYDVR0TAQH/BAIwADANBgkq
+hkiG9w0BAQQFAAOBgQBIVheRn3oHTU5rgIFHcBRxkIhOYPQHKk/oX4KakCrDCxp33XAqTG3aIG/v
+dsUT/OuFm5w0GlrUTrPaKYYxxfQ00+3d8y87aX22sUdj8oXJRYiPgQiE6lqu9no8axH6UXCCbKTi
+8383JcxReoXyuP000eUggq3tWr6fE/QmONUARzCCAz8wggKooAMCAQICAQ0wDQYJKoZIhvcNAQEF
+BQAwgdExCzAJBgNVBAYTAlpBMRUwEwYDVQQIEwxXZXN0ZXJuIENhcGUxEjAQBgNVBAcTCUNhcGUg
+VG93bjEaMBgGA1UEChMRVGhhd3RlIENvbnN1bHRpbmcxKDAmBgNVBAsTH0NlcnRpZmljYXRpb24g
+U2VydmljZXMgRGl2aXNpb24xJDAiBgNVBAMTG1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBDQTEr
+MCkGCSqGSIb3DQEJARYccGVyc29uYWwtZnJlZW1haWxAdGhhd3RlLmNvbTAeFw0wMzA3MTcwMDAw
+MDBaFw0xMzA3MTYyMzU5NTlaMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3Vs
+dGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWlu
+ZyBDQTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAxKY8VXNV+065yplaHmjAdQRwnd/p/6Me
+7L3N9VvyGna9fww6YfK/Uc4B1OVQCjDXAmNaLIkVcI7dyfArhVqqP3FWy688Cwfn8R+RNiQqE88r
+1fOCdz0Dviv+uxg+B79AgAJk16emu59l0cUqVIUPSAR/p7bRPGEEQB5kGXJgt/sCAwEAAaOBlDCB
+kTASBgNVHRMBAf8ECDAGAQH/AgEAMEMGA1UdHwQ8MDowOKA2oDSGMmh0dHA6Ly9jcmwudGhhd3Rl
+LmNvbS9UaGF3dGVQZXJzb25hbEZyZWVtYWlsQ0EuY3JsMAsGA1UdDwQEAwIBBjApBgNVHREEIjAg
+pB4wHDEaMBgGA1UEAxMRUHJpdmF0ZUxhYmVsMi0xMzgwDQYJKoZIhvcNAQEFBQADgYEASIzRUIPq
+Cy7MDaNmrGcPf6+svsIXoUOWlJ1/TCG4+DYfqi2fNi/A9BxQIJNwPP2t4WFiw9k6GX6EsZkbAMUa
+C4J0niVQlGLH2ydxVyWN3amcOY6MIE9lX5Xa9/eH1sYITq726jTlEBpbNU1341YheILcIRk13iSx
+0x1G/11fZU8xggHvMIIB6wIBATBpMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29u
+c3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNz
+dWluZyBDQQIDD++SMAkGBSsOAwIaBQCgXTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqG
+SIb3DQEJBTEPFw0wNjA1MTQwMDMzMjVaMCMGCSqGSIb3DQEJBDEWBBQCRg8U2SSsLQqDRI8QCJru
+AfoMoDANBgkqhkiG9w0BAQEFAASCAQCFtvDRGsf7fRFziWmImNasycedeTdtMdQ5wfCL7tmInc8M
+ht2astGdCJq2/yIUn1c5yz0v6A9FlKePAg0x7MPH0sCUx3yDmHurnUVR7NSble57rxRX0We5irOI
+dtdw8afdqhcNyjdrHYukId0RRx6b8wfPI0eP1aBSzykZQOBRFRLEu2yzqbpQzGA+t/QARm6bGO5c
+NtAMwpTODb14+2pAE+3jStfd+qECgNmprZovcN8Hjkblt5t3db55meSQGYuY4nW7AnAnNt7acuo8
+WA9W5b7b1nx6N/7+V9EX2S6uRK0JpaUqlQhsKCkkH2s/TYsopnf46gz6myaFNExeDP6vAAAAAAAA
+
+
+
+--=-UK5l6TZ8/MaIuZT8pCoL--
