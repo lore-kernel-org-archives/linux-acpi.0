@@ -1,23 +1,24 @@
 From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [patch 08/16] for_each_possible_cpu: under drivers/acpi
-Date: Sat, 13 May 2006 23:12:24 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB670F332@hdsmsx411.amr.corp.intel.com>
+Subject: RE: [patch 01/16] sem2mutex: drivers/acpi/
+Date: Sat, 13 May 2006 23:13:41 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB670F333@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:4379 "EHLO
+Received: from mga02.intel.com ([134.134.136.20]:61374 "EHLO
 	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S932344AbWENDM2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 13 May 2006 23:12:28 -0400
+	id S932318AbWENDNo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 13 May 2006 23:13:44 -0400
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: akpm@osdl.org
-Cc: linux-acpi@vger.kernel.org, kamezawa.hiroyu@jp.fujitsu.com, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Cc: linux-acpi@vger.kernel.org, arjan@infradead.org, mingo@elte.hu
 
-applied. (on top of bugzilla-5737)
+applied. (though I simply deleted the unused lock in scan.c
+rather than updating it)
 
 thanks,
 -Len 
@@ -27,96 +28,172 @@ thanks,
 >Sent: Thursday, April 27, 2006 5:25 AM
 >To: Brown, Len
 >Cc: linux-acpi@vger.kernel.org; akpm@osdl.org; 
->kamezawa.hiroyu@jp.fujitsu.com
->Subject: [patch 08/16] for_each_possible_cpu: under drivers/acpi
+>arjan@infradead.org; mingo@elte.hu
+>Subject: [patch 01/16] sem2mutex: drivers/acpi/
 >
 >
->From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+>From: Arjan van de Ven <arjan@infradead.org>
 >
->for_each_cpu() actually iterates across all possible CPUs.  
->We've had mistakes
->in the past where people were using for_each_cpu() where they 
->should have been
->iterating across only online or present CPUs.  This is inefficient and
->possibly buggy.
+>Semaphore to mutex conversion.
 >
->We're renaming for_each_cpu() to for_each_possible_cpu() to 
->avoid this in the
->future.
+>The conversion was generated via scripts, and the result was validated
+>automatically via a script as well.
 >
->This patch replaces for_each_cpu with for_each_possible_cpu.
->under drivers/acpi/
->
->Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+>Signed-off-by: Arjan van de Ven <arjan@infradead.org>
+>Signed-off-by: Ingo Molnar <mingo@elte.hu>
+>Cc: "Brown, Len" <len.brown@intel.com>
 >Signed-off-by: Andrew Morton <akpm@osdl.org>
 >---
 >
-> drivers/acpi/processor_perflib.c |   12 ++++++------
-> 1 files changed, 6 insertions(+), 6 deletions(-)
+> drivers/acpi/processor_perflib.c |   27 ++++++++++++++-------------
+> drivers/acpi/scan.c              |    3 ++-
+> 2 files changed, 16 insertions(+), 14 deletions(-)
 >
 >diff -puN 
->drivers/acpi/processor_perflib.c~for_each_possible_cpu-under-dr
->ivers-acpi drivers/acpi/processor_perflib.c
+>drivers/acpi/processor_perflib.c~sem2mutex-drivers-acpi 
+>drivers/acpi/processor_perflib.c
 >--- 
->devel/drivers/acpi/processor_perflib.c~for_each_possible_cpu-un
->der-drivers-acpi	2006-04-10 23:16:23.000000000 -0700
+>devel/drivers/acpi/processor_perflib.c~sem2mutex-drivers-acpi	
+>2006-04-10 23:16:18.000000000 -0700
 >+++ devel-akpm/drivers/acpi/processor_perflib.c	
->2006-04-10 23:16:23.000000000 -0700
->@@ -626,7 +626,7 @@ int acpi_processor_preregister_performan
+>2006-04-10 23:16:18.000000000 -0700
+>@@ -34,6 +34,7 @@
+> #ifdef CONFIG_X86_ACPI_CPUFREQ_PROC_INTF
+> #include <linux/proc_fs.h>
+> #include <linux/seq_file.h>
+>+#include <linux/mutex.h>
+> 
+> #include <asm/uaccess.h>
+> #endif
+>@@ -48,7 +49,7 @@
+> #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
+> ACPI_MODULE_NAME("acpi_processor")
+> 
+>-static DECLARE_MUTEX(performance_sem);
+>+static DEFINE_MUTEX(performance_mutex);
+> 
+> /*
+>  * _PPC support is implemented as a CPUfreq policy notifier:
+>@@ -72,7 +73,7 @@ static int acpi_processor_ppc_notifier(s
+> 	struct acpi_processor *pr;
+> 	unsigned int ppc = 0;
+> 
+>-	down(&performance_sem);
+>+	mutex_lock(&performance_mutex);
+> 
+> 	if (event != CPUFREQ_INCOMPATIBLE)
+> 		goto out;
+>@@ -93,7 +94,7 @@ static int acpi_processor_ppc_notifier(s
+> 				     core_frequency * 1000);
+> 
+>       out:
+>-	up(&performance_sem);
+>+	mutex_unlock(&performance_mutex);
+> 
+> 	return 0;
+> }
+>@@ -620,7 +621,7 @@ int acpi_processor_preregister_performan
+> 
+> 	ACPI_FUNCTION_TRACE("acpi_processor_preregister_performance");
+> 
+>-	down(&performance_sem);
+>+	mutex_lock(&performance_mutex);
+> 
 > 	retval = 0;
 > 
-> 	/* Call _PSD for all CPUs */
->-	for_each_cpu(i) {
->+	for_each_possible_cpu(i) {
-> 		pr = processors[i];
-> 		if (!pr) {
-> 			/* Look only at processors in ACPI namespace */
->@@ -657,7 +657,7 @@ int acpi_processor_preregister_performan
-> 	 * Now that we have _PSD data from all CPUs, lets setup P-state 
-> 	 * domain info.
-> 	 */
->-	for_each_cpu(i) {
->+	for_each_possible_cpu(i) {
-> 		pr = processors[i];
-> 		if (!pr)
-> 			continue;
->@@ -678,7 +678,7 @@ int acpi_processor_preregister_performan
+>@@ -768,7 +769,7 @@ err_ret:
+> 		pr->performance = NULL; /* Will be set for real 
+>in register */
 > 	}
 > 
-> 	cpus_clear(covered_cpus);
->-	for_each_cpu(i) {
->+	for_each_possible_cpu(i) {
-> 		pr = processors[i];
-> 		if (!pr)
-> 			continue;
->@@ -702,7 +702,7 @@ int acpi_processor_preregister_performan
-> 			pr->performance->shared_type = 
->CPUFREQ_SHARED_TYPE_ANY;
-> 		}
+>-	up(&performance_sem);
+>+	mutex_unlock(&performance_mutex);
+> 	return_VALUE(retval);
+> }
+> EXPORT_SYMBOL(acpi_processor_preregister_performance);
+>@@ -785,16 +786,16 @@ acpi_processor_register_performance(stru
+> 	if (!(acpi_processor_ppc_status & PPC_REGISTERED))
+> 		return_VALUE(-EINVAL);
 > 
->-		for_each_cpu(j) {
->+		for_each_possible_cpu(j) {
-> 			if (i == j)
-> 				continue;
+>-	down(&performance_sem);
+>+	mutex_lock(&performance_mutex);
 > 
->@@ -731,7 +731,7 @@ int acpi_processor_preregister_performan
-> 			count++;
-> 		}
-> 
->-		for_each_cpu(j) {
->+		for_each_possible_cpu(j) {
-> 			if (i == j)
-> 				continue;
-> 
->@@ -755,7 +755,7 @@ err_ret:
-> 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Error while 
->parsing _PSD domain information. Assuming no coordination\n"));
+> 	pr = processors[cpu];
+> 	if (!pr) {
+>-		up(&performance_sem);
+>+		mutex_unlock(&performance_mutex);
+> 		return_VALUE(-ENODEV);
 > 	}
 > 
->-	for_each_cpu(i) {
->+	for_each_possible_cpu(i) {
-> 		pr = processors[i];
-> 		if (!pr || !pr->performance)
-> 			continue;
+> 	if (pr->performance) {
+>-		up(&performance_sem);
+>+		mutex_unlock(&performance_mutex);
+> 		return_VALUE(-EBUSY);
+> 	}
+> 
+>@@ -802,13 +803,13 @@ acpi_processor_register_performance(stru
+> 
+> 	if (acpi_processor_get_performance_info(pr)) {
+> 		pr->performance = NULL;
+>-		up(&performance_sem);
+>+		mutex_unlock(&performance_mutex);
+> 		return_VALUE(-EIO);
+> 	}
+> 
+> 	acpi_cpufreq_add_file(pr);
+> 
+>-	up(&performance_sem);
+>+	mutex_unlock(&performance_mutex);
+> 	return_VALUE(0);
+> }
+> 
+>@@ -822,11 +823,11 @@ acpi_processor_unregister_performance(st
+> 
+> 	ACPI_FUNCTION_TRACE("acpi_processor_unregister_performance");
+> 
+>-	down(&performance_sem);
+>+	mutex_lock(&performance_mutex);
+> 
+> 	pr = processors[cpu];
+> 	if (!pr) {
+>-		up(&performance_sem);
+>+		mutex_unlock(&performance_mutex);
+> 		return_VOID;
+> 	}
+> 
+>@@ -835,7 +836,7 @@ acpi_processor_unregister_performance(st
+> 
+> 	acpi_cpufreq_remove_file(pr);
+> 
+>-	up(&performance_sem);
+>+	mutex_unlock(&performance_mutex);
+> 
+> 	return_VOID;
+> }
+>diff -puN drivers/acpi/scan.c~sem2mutex-drivers-acpi 
+>drivers/acpi/scan.c
+>--- devel/drivers/acpi/scan.c~sem2mutex-drivers-acpi	
+>2006-04-10 23:16:18.000000000 -0700
+>+++ devel-akpm/drivers/acpi/scan.c	2006-04-10 
+>23:16:18.000000000 -0700
+>@@ -5,6 +5,7 @@
+> #include <linux/module.h>
+> #include <linux/init.h>
+> #include <linux/acpi.h>
+>+#include <linux/mutex.h>
+> 
+> #include <acpi/acpi_drivers.h>
+> #include <acpi/acinterp.h>	/* for acpi_ex_eisa_id_to_string() */
+>@@ -459,7 +460,7 @@ static int acpi_bus_get_perf_flags(struc
+>    
+>---------------------------------------------------------------
+>----------- */
+> 
+> static LIST_HEAD(acpi_bus_drivers);
+>-static DECLARE_MUTEX(acpi_bus_drivers_lock);
+>+static DEFINE_MUTEX(acpi_bus_drivers_lock);
+> 
+> /**
+>  * acpi_bus_match - match device IDs to driver's supported IDs
 >_
 >
