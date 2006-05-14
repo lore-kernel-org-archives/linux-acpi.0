@@ -1,54 +1,64 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: ACPI_ALLOCATE and may sleep warning
-Date: Sat, 13 May 2006 00:35:59 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB670F22F@hdsmsx411.amr.corp.intel.com>
+From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: [PATCH] mem-leak fix for acpi_thermal_write_trip_points()
+Date: Sun, 14 May 2006 02:28:58 +0200
+Message-ID: <200605140228.58460.jesper.juhl@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:5784 "EHLO
-	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
-	id S932114AbWEMEgC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 13 May 2006 00:36:02 -0400
-Content-class: urn:content-classes:message
+Received: from nf-out-0910.google.com ([64.233.182.188]:23075 "EHLO
+	nf-out-0910.google.com") by vger.kernel.org with ESMTP
+	id S964828AbWENA2H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 13 May 2006 20:28:07 -0400
+Received: by nf-out-0910.google.com with SMTP id c31so192435nfb
+        for <linux-acpi@vger.kernel.org>; Sat, 13 May 2006 17:28:06 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Andy Grover <andrew.grover@intel.com>, Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Jesper Juhl <jesper.juhl@gmail.com>
 
->>Could we do something like this:
->>
->>#define ACPI_ALLOCATE(a)	kmalloc((a),
->(in_atomic())?GFP_ATOMIC:GFP_KERNEL)
->>#define ACPI_ALLOCATE_ZEROED(a)	kzalloc((a),
->(in_atomic())?GFP_ATOMIC:GFP_KERNEL)
->
->The question is if we allocate with interrupts off
->only on resume, or during normal operation.
->
->If it is only during resume, then I think we should
->be using the exact same mechanism that we use
->during boot, It must also apply to semaphores,
->not just kmalloc.
+There's a memory leak in
+ drivers/acpi/thermal.c::acpi_thermal_write_trip_points()
+found by the Coverity checker as bug #1243
 
-To clarify...
+The problem is simply that if the allocation of 'active' fails, then we'll
+return from the function without freeing the memory previously allocated 
+to 'limit_string'.
 
-kernel/sched.c
+One fix would have been the insertion of kfree(limit_string); just before
+the return_VALUE(-ENOMEM); call, but I chose a different fix.
+Except for this one return the function only has a single exit point at 
+the end: label, and there it does proper cleanup of everything. So even 
+though setting the return value (the 'count' variable) and jumping there 
+results in a pointless kfree(NULL) call (since 'active' will be NULL), I 
+thought this was a small price to pay for the bennefit of having just a 
+single exit path for the function.
 
-void __might_sleep(...) {
-   if (.... & (system_state == SYSTEM_RUNNING)...)
-	printk(KERN_ERROR "BUG: sleeping in fuction called from invalid
-context...
-	...
-	dump_stack
-}
 
-When we boot the system system_state == SYSTEM_BOOTING
-allocations do not sleep, they succeed, and thus the sleep
-check is disabled.
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+---
 
-It is likely we should do the same thing, or an analogous thing,
-on resume from suspend.
+ drivers/acpi/thermal.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
--Len
+
+--- linux-2.6.17-rc4-git2-orig/drivers/acpi/thermal.c	2006-03-20 06:53:29.000000000 +0100
++++ linux-2.6.17-rc4-git2/drivers/acpi/thermal.c	2006-05-14 02:18:30.000000000 +0200
+@@ -942,8 +942,10 @@ acpi_thermal_write_trip_points(struct fi
+ 	memset(limit_string, 0, ACPI_THERMAL_MAX_LIMIT_STR_LEN);
+ 
+ 	active = kmalloc(ACPI_THERMAL_MAX_ACTIVE * sizeof(int), GFP_KERNEL);
+-	if (!active)
+-		return_VALUE(-ENOMEM);
++	if (!active) {
++		count = -ENOMEM;
++		goto end;
++	}
+ 
+ 	if (!tz || (count > ACPI_THERMAL_MAX_LIMIT_STR_LEN - 1)) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid argument\n"));
+
+
+
