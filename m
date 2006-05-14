@@ -1,150 +1,74 @@
 From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [patch 02/16] sem2mutex: acpi, acpi_link_lock
-Date: Sat, 13 May 2006 23:13:42 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB670F335@hdsmsx411.amr.corp.intel.com>
+Subject: RE: [patch 10/16] acpi_os_wait_semaphore(): don't complain about timeout
+Date: Sat, 13 May 2006 23:33:30 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB670F338@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:37729 "EHLO
-	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S932362AbWENDNq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 13 May 2006 23:13:46 -0400
+Received: from mga02.intel.com ([134.134.136.20]:3925 "EHLO
+	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S932203AbWENDde convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 13 May 2006 23:33:34 -0400
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: akpm@osdl.org
-Cc: linux-acpi@vger.kernel.org, mingo@elte.hu
+Cc: linux-acpi@vger.kernel.org, bjorn.helgaas@hp.com, Thomas Renninger <trenn@suse.de>
 
 applied.
 
 thanks,
--Len 
+-Len
 
 >-----Original Message-----
 >From: akpm@osdl.org [mailto:akpm@osdl.org] 
 >Sent: Thursday, April 27, 2006 5:25 AM
 >To: Brown, Len
->Cc: linux-acpi@vger.kernel.org; akpm@osdl.org; mingo@elte.hu
->Subject: [patch 02/16] sem2mutex: acpi, acpi_link_lock
+>Cc: linux-acpi@vger.kernel.org; akpm@osdl.org; bjorn.helgaas@hp.com
+>Subject: [patch 10/16] acpi_os_wait_semaphore(): don't 
+>complain about timeout
 >
 >
->From: Ingo Molnar <mingo@elte.hu>
+>From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 >
->Semaphore to mutex conversion.
+>The ASL Acquire operator (17.5.1 in ACPI 3.0 spec) is allowed 
+>to time out
+>and return True without acquiring the semaphore.  There's no 
+>indication in
+>the spec that this is an actual error, so this message should be
+>debug-only, as the message for successful acquisition is.
 >
->The conversion was generated via scripts, and the result was validated
->automatically via a script as well.
+>This used to be an ACPI_DEBUG_PRINT, but it was mis-classified as
+>ACPI_DB_ERROR rather than ACPI_DB_MUTEX, so it got swept up in Thomas'
+>recent patch to enable ACPI error messages even without 
+>CONFIG_ACPI_DEBUG.
 >
->Signed-off-by: Ingo Molnar <mingo@elte.hu>
+>Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 >Signed-off-by: Andrew Morton <akpm@osdl.org>
 >---
 >
-> drivers/acpi/pci_link.c |   25 +++++++++++++------------
-> 1 files changed, 13 insertions(+), 12 deletions(-)
+> drivers/acpi/osl.c |    2 +-
+> 1 files changed, 1 insertion(+), 1 deletion(-)
 >
 >diff -puN 
->drivers/acpi/pci_link.c~sem2mutex-acpi-acpi_link_lock 
->drivers/acpi/pci_link.c
+>drivers/acpi/osl.c~acpi_os_wait_semaphore-dont-complain-about-t
+>imeout drivers/acpi/osl.c
 >--- 
->devel/drivers/acpi/pci_link.c~sem2mutex-acpi-acpi_link_lock	
->2006-04-10 23:16:19.000000000 -0700
->+++ devel-akpm/drivers/acpi/pci_link.c	2006-04-10 
->23:16:19.000000000 -0700
->@@ -38,6 +38,7 @@
-> #include <linux/spinlock.h>
-> #include <linux/pm.h>
-> #include <linux/pci.h>
->+#include <linux/mutex.h>
-> 
-> #include <acpi/acpi_bus.h>
-> #include <acpi/acpi_drivers.h>
->@@ -91,7 +92,7 @@ static struct {
-> 	int count;
-> 	struct list_head entries;
-> } acpi_link;
->-DECLARE_MUTEX(acpi_link_lock);
->+DEFINE_MUTEX(acpi_link_lock);
-> 
-> /* 
->---------------------------------------------------------------
->-----------
->                             PCI Link Device Management
->@@ -634,19 +635,19 @@ acpi_pci_link_allocate_irq(acpi_handle h
-> 		return_VALUE(-1);
+>devel/drivers/acpi/osl.c~acpi_os_wait_semaphore-dont-complain-a
+>bout-timeout	2006-04-10 23:16:23.000000000 -0700
+>+++ devel-akpm/drivers/acpi/osl.c	2006-04-10 
+>23:16:23.000000000 -0700
+>@@ -817,7 +817,7 @@ acpi_status acpi_os_wait_semaphore(acpi_
 > 	}
 > 
->-	down(&acpi_link_lock);
->+	mutex_lock(&acpi_link_lock);
-> 	if (acpi_pci_link_allocate(link)) {
->-		up(&acpi_link_lock);
->+		mutex_unlock(&acpi_link_lock);
-> 		return_VALUE(-1);
-> 	}
-> 
-> 	if (!link->irq.active) {
->-		up(&acpi_link_lock);
->+		mutex_unlock(&acpi_link_lock);
-> 		ACPI_ERROR((AE_INFO, "Link active IRQ is 0!"));
-> 		return_VALUE(-1);
-> 	}
-> 	link->refcnt++;
->-	up(&acpi_link_lock);
->+	mutex_unlock(&acpi_link_lock);
-> 
-> 	if (triggering)
-> 		*triggering = link->irq.triggering;
->@@ -684,9 +685,9 @@ int acpi_pci_link_free_irq(acpi_handle h
-> 		return_VALUE(-1);
-> 	}
-> 
->-	down(&acpi_link_lock);
->+	mutex_lock(&acpi_link_lock);
-> 	if (!link->irq.initialized) {
->-		up(&acpi_link_lock);
->+		mutex_unlock(&acpi_link_lock);
-> 		ACPI_ERROR((AE_INFO, "Link isn't initialized"));
-> 		return_VALUE(-1);
-> 	}
->@@ -709,7 +710,7 @@ int acpi_pci_link_free_irq(acpi_handle h
-> 	if (link->refcnt == 0) {
-> 		acpi_ut_evaluate_object(link->handle, "_DIS", 0, NULL);
-> 	}
->-	up(&acpi_link_lock);
->+	mutex_unlock(&acpi_link_lock);
-> 	return_VALUE(link->irq.active);
-> }
-> 
->@@ -740,7 +741,7 @@ static int acpi_pci_link_add(struct acpi
-> 	strcpy(acpi_device_class(device), ACPI_PCI_LINK_CLASS);
-> 	acpi_driver_data(device) = link;
-> 
->-	down(&acpi_link_lock);
->+	mutex_lock(&acpi_link_lock);
-> 	result = acpi_pci_link_get_possible(link);
-> 	if (result)
-> 		goto end;
->@@ -775,7 +776,7 @@ static int acpi_pci_link_add(struct acpi
->       end:
-> 	/* disable all links -- to be activated on use */
-> 	acpi_ut_evaluate_object(link->handle, "_DIS", 0, NULL);
->-	up(&acpi_link_lock);
->+	mutex_unlock(&acpi_link_lock);
-> 
-> 	if (result)
-> 		kfree(link);
->@@ -829,9 +830,9 @@ static int acpi_pci_link_remove(struct a
-> 
-> 	link = (struct acpi_pci_link *)acpi_driver_data(device);
-> 
->-	down(&acpi_link_lock);
->+	mutex_lock(&acpi_link_lock);
-> 	list_del(&link->node);
->-	up(&acpi_link_lock);
->+	mutex_unlock(&acpi_link_lock);
-> 
-> 	kfree(link);
-> 
+> 	if (ACPI_FAILURE(status)) {
+>-		ACPI_EXCEPTION((AE_INFO, status,
+>+		ACPI_DEBUG_PRINT((ACPI_DB_MUTEX,
+> 				  "Failed to acquire 
+>semaphore[%p|%d|%d], %s",
+> 				  handle, units, timeout,
+> 				  acpi_format_exception(status)));
 >_
 >
