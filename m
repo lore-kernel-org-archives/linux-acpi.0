@@ -1,99 +1,68 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: [patch 15/16] acpi idle __read_mostly and de-init static var
-Date: Sat, 13 May 2006 22:25:16 -0700
-Message-ID: <20060513222516.7cf42113.akpm@osdl.org>
-References: <CFF307C98FEABE47A452B27C06B85BB670F33D@hdsmsx411.amr.corp.intel.com>
+From: Balazs Ree <ree@ree.hu>
+Subject: Fujitsu-Siemens Amilo A1667G: low CPU speed on battery + S3
+Date: Sun, 14 May 2006 08:37:03 +0200
+Message-ID: <pan.2006.05.14.06.37.03.497588@ree.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:37528 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1751041AbWENF22 (ORCPT
+Received: from main.gmane.org ([80.91.229.2]:7092 "EHLO ciao.gmane.org")
+	by vger.kernel.org with ESMTP id S1751326AbWENGuF (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 14 May 2006 01:28:28 -0400
-In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB670F33D@hdsmsx411.amr.corp.intel.com>
+	Sun, 14 May 2006 02:50:05 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1FfAQU-0006LU-10
+	for linux-acpi@vger.kernel.org; Sun, 14 May 2006 08:50:02 +0200
+Received: from 3e44b65f.adsl.enternet.hu ([62.68.182.95])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Sun, 14 May 2006 08:50:02 +0200
+Received: from ree by 3e44b65f.adsl.enternet.hu with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Sun, 14 May 2006 08:50:02 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org, andi@rhlx01.fht-esslingen.de, andi@lisas.de
+To: linux-acpi@vger.kernel.org
 
-"Brown, Len" <len.brown@intel.com> wrote:
->
-> 
-> >From: Andreas Mohr <andi@rhlx01.fht-esslingen.de>
-> >
-> >- make pm_idle_save, nocst and bm_history __read_mostly
-> >- static first_run is initialized to 0 by default already
-> 
-> so far, so good.
-> 
-> >- don't remove static init value of nocst and bm_history
-> >  since __read_mostly may be special
-> >  (see e.g. 
-> >http://www.ussg.iu.edu/hypermail/linux/kernel/0010.0/0771.html)
-> 
-> bm_history has a no-zero init value, so if that value
-> were removed, the code wouldn't work as designed.
-> 
-> the comment appears backwards re: nocst, where the zero
-> init value was actually removed.
-> 
-> So, I'm fine with the patch, but the description seems
-> scrambled, and the URL above doesn't seem to un-scramble
-> the relationship with __read_mostly vs initialization.
-> 
+Hi,
 
-Yes, the third entry in the changelog is all irrenevant and/or wrong.  I
-deleted it all:
+I've got a Fujitsu-Siemens Amilo A1667G notebook and there are some issues
+with it. One of the most important ones is the way CPU speed control works.
 
+It all works perfectly with AC power on. Cpufreq control works right with
+both kernel and usespace utilities. Even the "fan" button works: if I
+press that, it fixes the frequency to the lowest 800Mhz and releases it
+after pressing the button again (although it sometimes looses events and
+the led status reverses in this cases.)
 
+However the problem is that when I am on battery, the speed is everytime
+fixed to the lowest 800 Mhz. Cpufreq just shows there is no higher
+frequency available and it cannot be set higher: just like when in AC mode
+I would press the fan button. This is annoying, because the on-demand
+frequency setting would be especially important when running on battery
+(although it is also useful on ac power, for reducing temperature.) 
 
-From: Andreas Mohr <andi@rhlx01.fht-esslingen.de>
+Seems to be kernel independent, I currently use 2.6.16.
 
-- make pm_idle_save, nocst and bm_history __read_mostly
-- static first_run is initialized to 0 by default already
+Another issue is about putting it to sleep (S3). The system goes properly
+to sleep but there is no button to wake it up. I can only press the power
+button for more seconds to poweroff. The syslog says at initial bootup:
 
-Signed-off-by: Andreas Mohr <andi@lisas.de>
-Cc: "Brown, Len" <len.brown@intel.com>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
----
+May 14 07:48:35 brumi kernel: ACPI wakeup devices: 
+May 14 07:48:35 brumi kernel: MC97  LAN MPC1 
 
- drivers/acpi/processor_idle.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+So maybe there are really no wakeup events. I could not experiment a lot
+with this, since I have other issues with wakeup (even from S4), due to
+the proprietary ATI video driver.
 
-diff -puN drivers/acpi/processor_idle.c~acpi-idle-__read_mostly-and-de-init-static-var drivers/acpi/processor_idle.c
---- devel/drivers/acpi/processor_idle.c~acpi-idle-__read_mostly-and-de-init-static-var	2006-05-13 22:24:06.000000000 -0700
-+++ devel-akpm/drivers/acpi/processor_idle.c	2006-05-13 22:24:06.000000000 -0700
-@@ -54,10 +54,10 @@ ACPI_MODULE_NAME("acpi_processor")
- #define US_TO_PM_TIMER_TICKS(t)		((t * (PM_TIMER_FREQUENCY/1000)) / 1000)
- #define C2_OVERHEAD			4	/* 1us (3.579 ticks per us) */
- #define C3_OVERHEAD			4	/* 1us (3.579 ticks per us) */
--static void (*pm_idle_save) (void);
-+static void (*pm_idle_save) (void) __read_mostly;
- module_param(max_cstate, uint, 0644);
- 
--static unsigned int nocst = 0;
-+static unsigned int nocst __read_mostly;
- module_param(nocst, uint, 0000);
- 
- /*
-@@ -67,7 +67,7 @@ module_param(nocst, uint, 0000);
-  * 100 HZ: 0x0000000F: 4 jiffies = 40ms
-  * reduce history for more aggressive entry into C3
-  */
--static unsigned int bm_history =
-+static unsigned int bm_history __read_mostly =
-     (HZ >= 800 ? 0xFFFFFFFF : ((1U << (HZ / 25)) - 1));
- module_param(bm_history, uint, 0644);
- /* --------------------------------------------------------------------------
-@@ -1059,7 +1059,7 @@ int acpi_processor_power_init(struct acp
- 			      struct acpi_device *device)
- {
- 	acpi_status status = 0;
--	static int first_run = 0;
-+	static int first_run;
- 	struct proc_dir_entry *entry = NULL;
- 	unsigned int i;
- 
-_
+I apologize for not being very practiced in debugging these things.
+I don't know what output I should include here. Please write me what
+information should I attach in addition, and I will send that in a
+followup mail.
+
+Thank you very much in advance,
+
+-- 
+Balazs Ree
+
 
