@@ -1,87 +1,71 @@
-From: Harald Dunkel <harald.dunkel@t-online.de>
-Subject: Re: acpi_power_off doesn't
-Date: Tue, 16 May 2006 07:13:11 +0200
-Message-ID: <44695F67.5030805@t-online.de>
-References: <CFF307C98FEABE47A452B27C06B85BB670FB98@hdsmsx411.amr.corp.intel.com>
+From: David Giddy <d.giddy@bigpond.com>
+Subject: Help request on S3 resume problems
+Date: Tue, 16 May 2006 05:13:16 +0000 (UTC)
+Message-ID: <loom.20060516T071205-244@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigA32014FBC63640D13A0C5E6C"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout06.sul.t-online.com ([194.25.134.19]:40358 "EHLO
-	mailout06.sul.t-online.com") by vger.kernel.org with ESMTP
-	id S1751300AbWEPFN3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 May 2006 01:13:29 -0400
-In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB670FB98@hdsmsx411.amr.corp.intel.com>
+Received: from main.gmane.org ([80.91.229.2]:16578 "EHLO ciao.gmane.org")
+	by vger.kernel.org with ESMTP id S1751406AbWEPFZJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 May 2006 01:25:09 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1Ffs3K-0005am-E0
+	for linux-acpi@vger.kernel.org; Tue, 16 May 2006 07:25:03 +0200
+Received: from CPE-155-143-208-3.vic.bigpond.net.au ([155.143.208.3])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Tue, 16 May 2006 07:25:02 +0200
+Received: from d.giddy by CPE-155-143-208-3.vic.bigpond.net.au with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Tue, 16 May 2006 07:25:02 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigA32014FBC63640D13A0C5E6C
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-Hi Len,
+I'm relatively new to ACPI and am having problems trying to get wake on LAN 
+working from S3. I have managed to successfully get the machine to resume from 
+S3 using the power button, and also to get the machine to wakeup using a magic 
+packet, but not to a working state.
 
-The problem does not exist, if I boot my PC and then
-halt it immediately. If I login and use it for some
-time, then acpi_power_off does not work.
+The machine is a small server running Debian Sarge with kernel version 
+2.6.16.16 and the corresponding ACPI patch set. It has two Gigabit LAN ports 
+(one on the motherboard - a Realtek 8110 and the other an Intel PRO 1000/MT 
+PCI card). The e1000 driver has been patched according to bugzilla bug 5609.
 
-Box 'X' is an Aopen MZ-915M, CPU is a 2 GHz Pentium
-M. It is running Debian Sid, kernel is vanilla
+The symptoms are that I put the machine to sleep 
+(echo -n mem >/sys/power/state), send it a magic packet, the machine comes to 
+life but there is no screen, no keyboard response and no response to ping. It 
+seems to be off with the fairys.
 
-Linux bugs 2.6.17-rc4 #1 PREEMPT Sat May 13 16:22:54 CEST 2006 i686 GNU/L=
-inux
+The video card is Nvidia, but I have used the latest nvidia drivers (version 
+1.0-8756), and these work fine for resume from S3 using the power button.
 
-Old kernels don't work on this PC due to missing
-hardware support. The first vanilla kernel that worked
-reliably on this box (except for acpi_power_off) was 2.6.16.
+The one question mark I have is that /proc/acpi/wakeup has the following 
+entries:
 
+Device	Sleep state		status
+PCI0			4		enabled
+HUB0			4		enabled
+USB0			3		disabled
+USB1			3		disabled
+USB2			3		disabled
+USB3			3		disabled
+USBE			3		disabled
 
-Regards
+Given I am trying to wake from S3, is this correct ? Do I need to/is it 
+possible to change the wakeup state to S3 for the PCI0/HUB0 lines ? Note that 
+enabling PCI0 enables HUB0 as well (not sure what the latter actually is, but 
+there is a message saying that they share the same GPE).
 
-Harri
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-Brown, Len wrote:
->> Sometimes when I run 'halt' my PC does not go off. Last
->> words are
->>
->> 	acpi_power_off called
->>
->> But the PC stays on.
->>
->> What is the story here? I've seen this problem come up
->> several times, but without solution, as it seems. Any
->> hint would be very helpfull.
->=20
-> Does this happen all the time, or just some of the time?
-> Has this always failed on box X, or did it used to
-> work in some release Y, and broke in some release Z?
->=20
-> Please supply X, Y, Z.
->=20
-> thanks,
-> -Len
->=20
+Any suggestions on what's going on and how to fix it would be appreciated.
+
+Regards,
+
+David.
+ 
 
 
-
---------------enigA32014FBC63640D13A0C5E6C
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFEaV9xUTlbRTxpHjcRArZmAJwNxcexbe0i1ES7COXZ9xT6YdEAjwCgh4VP
-S0SHsWy+s+9nn1p2Tyk9ZBA=
-=+Tp/
------END PGP SIGNATURE-----
-
---------------enigA32014FBC63640D13A0C5E6C--
