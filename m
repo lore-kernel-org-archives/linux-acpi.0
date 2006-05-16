@@ -1,71 +1,66 @@
-From: David Giddy <d.giddy@bigpond.com>
-Subject: Help request on S3 resume problems
-Date: Tue, 16 May 2006 05:13:16 +0000 (UTC)
-Message-ID: <loom.20060516T071205-244@post.gmane.org>
+From: Vladimir Florinski <vflorins@ucr.edu>
+Subject: External monitor switching problem on Lenovo Thinkpad X60s
+Date: Mon, 15 May 2006 22:52:35 -0700
+Message-ID: <1147758755.19165.20.camel@zeos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:16578 "EHLO ciao.gmane.org")
-	by vger.kernel.org with ESMTP id S1751406AbWEPFZJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 May 2006 01:25:09 -0400
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1Ffs3K-0005am-E0
-	for linux-acpi@vger.kernel.org; Tue, 16 May 2006 07:25:03 +0200
-Received: from CPE-155-143-208-3.vic.bigpond.net.au ([155.143.208.3])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Tue, 16 May 2006 07:25:02 +0200
-Received: from d.giddy by CPE-155-143-208-3.vic.bigpond.net.au with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Tue, 16 May 2006 07:25:02 +0200
+Received: from ylpvm01-ext.prodigy.net ([207.115.57.32]:29590 "EHLO
+	ylpvm01.prodigy.net") by vger.kernel.org with ESMTP
+	id S1751469AbWEPFwi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 May 2006 01:52:38 -0400
+Received: from pimout3-ext.prodigy.net (pimout3-int.prodigy.net [207.115.4.218])
+	by ylpvm01.prodigy.net (8.12.10 outbound/8.12.10) with ESMTP id k4G5qXpW027422
+	for <linux-acpi@vger.kernel.org>; Tue, 16 May 2006 01:52:33 -0400
+Received: from [192.168.0.2] (adsl-69-234-239-143.dsl.irvnca.pacbell.net [69.234.239.143])
+	by pimout3-ext.prodigy.net (8.13.6 out.dk/8.13.6) with ESMTP id k4G5qafm046606
+	for <linux-acpi@vger.kernel.org>; Tue, 16 May 2006 01:52:36 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Linux-ACPI mailing list <linux-acpi@vger.kernel.org>
 
-Hi,
+Folks,
 
-I'm relatively new to ACPI and am having problems trying to get wake on LAN 
-working from S3. I have managed to successfully get the machine to resume from 
-S3 using the power button, and also to get the machine to wakeup using a magic 
-packet, but not to a working state.
+Monitor switching does not work on my machine (Thinkpad X60s). The video
+is Intel 945GM, and I am running kernel 2.6.16 in Fedora Core 5. It is
+impossible to get a picture on an external monitor. Writing
+to /proc/acpi/ibm/video has no effect - I would write 'crt_enable' , but
+it is still shown as disabled:
 
-The machine is a small server running Debian Sarge with kernel version 
-2.6.16.16 and the corresponding ACPI patch set. It has two Gigabit LAN ports 
-(one on the motherboard - a Realtek 8110 and the other an Intel PRO 1000/MT 
-PCI card). The e1000 driver has been patched according to bugzilla bug 5609.
+$cat /proc/acpi/ibm/video
+status:         supported
+lcd:            enabled
+crt:            disabled
+dvi:            disabled
+auto:           enabled
+commands:       lcd_enable, lcd_disable
+commands:       crt_enable, crt_disable
+commands:       dvi_enable, dvi_disable
+commands:       auto_enable, auto_disable
+commands:       video_switch, expand_toggle
 
-The symptoms are that I put the machine to sleep 
-(echo -n mem >/sys/power/state), send it a magic packet, the machine comes to 
-life but there is no screen, no keyboard response and no response to ping. It 
-seems to be off with the fairys.
+(video switching hotkey Fn-F7 doesn't work either, although all others
+do).
 
-The video card is Nvidia, but I have used the latest nvidia drivers (version 
-1.0-8756), and these work fine for resume from S3 using the power button.
+dmesg shows there are two video output devices:
+ACPI: Video Device [VID] (multi-head: yes  rom: no  post: no)
+ACPI: Video Device [VID] (multi-head: yes  rom: no  post: no)
 
-The one question mark I have is that /proc/acpi/wakeup has the following 
-entries:
+and there are two /proc/acpi/video/VID directories. Could this be
+confusing the kernel? I looked in the decompiled DSDT code and, while I
+don't understand what it does (not being a developer) I can see that
+there are two VID devices there (_SB.PCI0.VID and _SB.PCI0.AGP.VID) and
+it looks like video switching routines are different for the two. This
+is just my guess, but could this be what causes the problem?
 
-Device	Sleep state		status
-PCI0			4		enabled
-HUB0			4		enabled
-USB0			3		disabled
-USB1			3		disabled
-USB2			3		disabled
-USB3			3		disabled
-USBE			3		disabled
+By the way, video switching works fine with IBM DOS v.5 (1991 version).
 
-Given I am trying to wake from S3, is this correct ? Do I need to/is it 
-possible to change the wakeup state to S3 for the PCI0/HUB0 lines ? Note that 
-enabling PCI0 enables HUB0 as well (not sure what the latter actually is, but 
-there is a message saying that they share the same GPE).
-
-Any suggestions on what's going on and how to fix it would be appreciated.
+Could someone shed some light on this issue? I would be happy to provide
+any additional info, DSDT tables, etc.
 
 Regards,
 
-David.
- 
-
+-- 
+Vladimir Florinski <vflorins@ucr.edu>
 
