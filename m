@@ -1,69 +1,87 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: Problem with Dual Core & ACPI
-Date: Mon, 15 May 2006 18:43:52 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB675A9F1@hdsmsx411.amr.corp.intel.com>
+From: Harald Dunkel <harald.dunkel@t-online.de>
+Subject: Re: acpi_power_off doesn't
+Date: Tue, 16 May 2006 07:13:11 +0200
+Message-ID: <44695F67.5030805@t-online.de>
+References: <CFF307C98FEABE47A452B27C06B85BB670FB98@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enigA32014FBC63640D13A0C5E6C"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:7059 "EHLO
-	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S1750702AbWEOWn4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 May 2006 18:43:56 -0400
-Content-class: urn:content-classes:message
+Received: from mailout06.sul.t-online.com ([194.25.134.19]:40358 "EHLO
+	mailout06.sul.t-online.com") by vger.kernel.org with ESMTP
+	id S1751300AbWEPFN3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 May 2006 01:13:29 -0400
+In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB670FB98@hdsmsx411.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David.Ronis@mcgill.ca, linux-acpi@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
->I'm trying to get a new dual-core Intel Pentium D box to work, but I'm
->having trouble getting SMP working.
->
->Here's where I am:
->
->1.  With the 2.6.12 kernel from the knoppix disk, things work.  Two
->processors are recognized at boot time.
->
->2.  With 2.6.16.16 things hang at boot time when ACPI is enabled (even
->when passing acip=ht at boot).  I see the following:
->
->Enabling IO-APIC IRQ's
->...TIMER:  vector=0x31 apic1=0 pin1=2 apic2=-1 pin2=-1
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigA32014FBC63640D13A0C5E6C
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 
-Is this the last thing printed before the hang?
-While this line is printed by horrible cruft that should
-have been deleted from the kernel years ago, it is
-actually nominal output.
+Hi Len,
 
-Any chance you can capture the console output with "debug"
-from the failure case?
+The problem does not exist, if I boot my PC and then
+halt it immediately. If I login and use it for some
+time, then acpi_power_off does not work.
 
->On another pentium 4 hyperthreaded box I see the same followed by:
->.
->.MP-BIOS bug: 8254 timer not connected to IO-APIC
->...trying to set up timer (IRQ0) through the 8259A ...  failed.
->...trying to set up timer as Virtual Wire IRQ... works.
->checking TSC synchronization across 2 CPUs: passed.
->Brought up 2 CPUs
->and the boot succeeds.
+Box 'X' is an Aopen MZ-915M, CPU is a 2 GHz Pentium
+M. It is running Debian Sid, kernel is vanilla
 
-This isn't a good model of "working" to follow.
-It is in MP mode, MP mode is broken, and a workaround is being invoked.
+Linux bugs 2.6.17-rc4 #1 PREEMPT Sat May 13 16:22:54 CEST 2006 i686 GNU/L=
+inux
 
->3.  Disabling ACPI (yes, ACPI, not APIC) either by passing acpi=off or
->in building the kernel, works; I boot, but only one processor is
->recognized.
+Old kernels don't work on this PC due to missing
+hardware support. The first vanilla kernel that worked
+reliably on this box (except for acpi_power_off) was 2.6.16.
 
-if you boot with "apic=off" (yes APIC, not ACPI:-), does the system
-come up in ACPI+PIC mode?
 
-how about if you boot with "maxcpus=1", does that come up in ACPI
-mode normally?
+Regards
 
-Please file a bugzilla here where you can attach the dmesg
-and /proc/interrupts from these cases.
+Harri
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+Brown, Len wrote:
+>> Sometimes when I run 'halt' my PC does not go off. Last
+>> words are
+>>
+>> 	acpi_power_off called
+>>
+>> But the PC stays on.
+>>
+>> What is the story here? I've seen this problem come up
+>> several times, but without solution, as it seems. Any
+>> hint would be very helpfull.
+>=20
+> Does this happen all the time, or just some of the time?
+> Has this always failed on box X, or did it used to
+> work in some release Y, and broke in some release Z?
+>=20
+> Please supply X, Y, Z.
+>=20
+> thanks,
+> -Len
+>=20
 
-http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
 
-thanks,
--Len
+
+--------------enigA32014FBC63640D13A0C5E6C
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.3 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFEaV9xUTlbRTxpHjcRArZmAJwNxcexbe0i1ES7COXZ9xT6YdEAjwCgh4VP
+S0SHsWy+s+9nn1p2Tyk9ZBA=
+=+Tp/
+-----END PGP SIGNATURE-----
+
+--------------enigA32014FBC63640D13A0C5E6C--
