@@ -1,122 +1,49 @@
-From: "Johnson, Charles F" <charles.f.johnson@intel.com>
+From: Vladimir Florinski <vflorins@ucr.edu>
 Subject: RE: External monitor switching problem on Lenovo Thinkpad X60s
-Date: Tue, 16 May 2006 08:43:49 -0700
-Message-ID: <4D6E93A290A3B348B3AD8B1758A1EA0C6F11DC@orsmsx413.amr.corp.intel.com>
+Date: Tue, 16 May 2006 09:49:22 -0700
+Message-ID: <1147798162.22724.6.camel@zeos>
+References: <4D6E93A290A3B348B3AD8B1758A1EA0C6F11DC@orsmsx413.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:47722 "EHLO
-	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S1751241AbWEPPoj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 May 2006 11:44:39 -0400
-Content-class: urn:content-classes:message
+Received: from ylpvm15-ext.prodigy.net ([207.115.57.46]:220 "EHLO
+	ylpvm15.prodigy.net") by vger.kernel.org with ESMTP
+	id S1751870AbWEPQtZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 May 2006 12:49:25 -0400
+Received: from pimout2-ext.prodigy.net (pimout2-int.prodigy.net [207.115.4.217])
+	by ylpvm15.prodigy.net (8.12.10 outbound/8.12.10) with ESMTP id k4GGnSg9024643
+	for <linux-acpi@vger.kernel.org>; Tue, 16 May 2006 12:49:28 -0400
+In-Reply-To: <4D6E93A290A3B348B3AD8B1758A1EA0C6F11DC@orsmsx413.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>, Vladimir Florinski <vflorins@ucr.edu>, Linux-ACPI mailing list <linux-acpi@vger.kernel.org>
+To: "Johnson, Charles F" <charles.f.johnson@intel.com>, Linux-ACPI mailing list <linux-acpi@vger.kernel.org>
 
-The X11 2D driver (i810) included in FC5 does not have 945GM support. 
+On Tue, 2006-05-16 at 08:43 -0700, Johnson, Charles F wrote:
+> The X11 2D driver (i810) included in FC5 does not have 945GM support. 
+> 
 
-By default SuSE is just enabling clone mode in the X11 config file.  Has
-nothing to do with ACPI or hotkey switching.
-It is likely in you /etc/X11/xorg.conf file, you add the following to
-the "Device" section where the "i810" driver parameters are set, then
-the external display will be enabled:
+Yes, but I updated to i810 driver v. 1.6 from the testing repository and
+it supports it fine. In any case, switching should work in console mode
+without using X at all.
 
-Option   "Clone" "yes"
-Option    "MonitorLayout" "CRT,LFP"
+> By default SuSE is just enabling clone mode in the X11 config file.  Has
+> nothing to do with ACPI or hotkey switching.
+> It is likely in you /etc/X11/xorg.conf file, you add the following to
+> the "Device" section where the "i810" driver parameters are set, then
+> the external display will be enabled:
+> 
+> Option   "Clone" "yes"
+> Option    "MonitorLayout" "CRT,LFP"
+> 
 
-I just copied this out of the xorg.conf from SLED 10 RC1.
+I should mention that I already tried this approach. Xorg says that both
+pipes A and B are enabled. However, not only switching does not work,
+but even reading from /proc/acpi/ibm/video immediately freezes up the
+machine and it has to be rebooted. I already contacted the i810
+maintainer about this and his response was that this is a kernel ACPI
+problem.
 
-Charles Johnson
-Channel Platform Solutions Group
-Intel Corporation
-charles.f.johnson@intel.com
-503-712-5181
- 
+-- 
+Vladimir Florinski <vflorins@ucr.edu>
 
->-----Original Message-----
->From: linux-acpi-owner@vger.kernel.org 
->[mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Brown, Len
->Sent: Monday, May 15, 2006 11:43 PM
->To: Vladimir Florinski; Linux-ACPI mailing list
->Subject: RE: External monitor switching problem on Lenovo Thinkpad X60s
->
->I have a Dell i6400 with the same hardware that works.
->I run SuSE Linux 10.1 on it, and X comes up by default
->with dual monitor support enabled.  I have not tried
->FC5 on it yet.
->
->-Len 
->
->>-----Original Message-----
->>From: linux-acpi-owner@vger.kernel.org 
->>[mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of 
->>Vladimir Florinski
->>Sent: Tuesday, May 16, 2006 1:53 AM
->>To: Linux-ACPI mailing list
->>Subject: External monitor switching problem on Lenovo Thinkpad X60s
->>
->>Folks,
->>
->>Monitor switching does not work on my machine (Thinkpad X60s). 
->>The video
->>is Intel 945GM, and I am running kernel 2.6.16 in Fedora Core 5. It is
->>impossible to get a picture on an external monitor. Writing
->>to /proc/acpi/ibm/video has no effect - I would write 
->>'crt_enable' , but
->>it is still shown as disabled:
->>
->>$cat /proc/acpi/ibm/video
->>status:         supported
->>lcd:            enabled
->>crt:            disabled
->>dvi:            disabled
->>auto:           enabled
->>commands:       lcd_enable, lcd_disable
->>commands:       crt_enable, crt_disable
->>commands:       dvi_enable, dvi_disable
->>commands:       auto_enable, auto_disable
->>commands:       video_switch, expand_toggle
->>
->>(video switching hotkey Fn-F7 doesn't work either, although all others
->>do).
->>
->>dmesg shows there are two video output devices:
->>ACPI: Video Device [VID] (multi-head: yes  rom: no  post: no)
->>ACPI: Video Device [VID] (multi-head: yes  rom: no  post: no)
->>
->>and there are two /proc/acpi/video/VID directories. Could this be
->>confusing the kernel? I looked in the decompiled DSDT code 
->and, while I
->>don't understand what it does (not being a developer) I can see that
->>there are two VID devices there (_SB.PCI0.VID and 
->_SB.PCI0.AGP.VID) and
->>it looks like video switching routines are different for the two. This
->>is just my guess, but could this be what causes the problem?
->>
->>By the way, video switching works fine with IBM DOS v.5 (1991 
->version).
->>
->>Could someone shed some light on this issue? I would be happy 
->>to provide
->>any additional info, DSDT tables, etc.
->>
->>Regards,
->>
->>-- 
->>Vladimir Florinski <vflorins@ucr.edu>
->>
->>-
->>To unsubscribe from this list: send the line "unsubscribe 
->>linux-acpi" in
->>the body of a message to majordomo@vger.kernel.org
->>More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->-
->To unsubscribe from this list: send the line "unsubscribe 
->linux-acpi" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
