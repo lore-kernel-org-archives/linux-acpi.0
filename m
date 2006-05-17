@@ -1,71 +1,140 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: kernel vs user power management
-Date: Wed, 17 May 2006 11:41:16 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB679BACB@hdsmsx411.amr.corp.intel.com>
+From: Joel Bretz <jbretz@rsn.hp.com>
+Subject: AcpiGetFirmwareTable
+Date: Wed, 17 May 2006 10:58:38 -0500
+Message-ID: <1147881519.20702.40.camel@zion.rsn.hp.com>
+References: <B28E9812BAF6E2498B7EC5C427F293A44BC7B5@orsmsx415.amr.corp.intel.com>
+Reply-To: joel.bretz@hp.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:63648 "EHLO
-	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S1750715AbWEQPmC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 May 2006 11:42:02 -0400
-Content-class: urn:content-classes:message
+Received: from atlrel6.hp.com ([156.153.255.205]:60632 "EHLO atlrel6.hp.com")
+	by vger.kernel.org with ESMTP id S1750774AbWEQP7V (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 17 May 2006 11:59:21 -0400
+Received: from mailb.rsn.hp.com (it4-3.rsn.hp.com [15.99.203.1])
+	by atlrel6.hp.com (Postfix) with ESMTP id AA8673486D
+	for <linux-acpi@vger.kernel.org>; Wed, 17 May 2006 11:58:40 -0400 (EDT)
+Received: from zion.rsn.hp.com (zion.rsn.hp.com [15.99.19.197])
+	by mailb.rsn.hp.com (8.11.1/8.9.3 SMKit7.0) with ESMTP id k4HFwdt29056
+	for <linux-acpi@vger.kernel.org>; Wed, 17 May 2006 10:58:39 -0500 (CDT)
+In-Reply-To: <B28E9812BAF6E2498B7EC5C427F293A44BC7B5@orsmsx415.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Holger Macht <hmacht@suse.de>
-Cc: thoenig@suse.de, linux-acpi@vger.kernel.org, linux-laptop@vger.kernel.org, Andi Kleen <ak@suse.de>
+To: linux-acpi@vger.kernel.org
 
- 
->> I installed SL10.1 today on a P3M laptop (Dell D600)
->> and it defaults to the "Powersave" scheme which includes
->> "Dynamic Frequency Scaling" (ondemand), so that is good.
->> 
->> However, by defaulit "Allow Throttling" is CHECKED
->> and Max %  is set to 50%.
->> 
->> Exactly what does this mean?
->> I looked in /proc/acpi/processor/*/throttling and the
->> laptop is still in T0.
->
->It means that the powersaved throttles your CPU if there is no load and
->dethrottles if there is load. It's that way already for 
->several years and
->I only got a report about performance loss on SMP systems, so 
->we don't do
->throttling by default on those systems.
 
-I see -- my test platform changed from dual-core to single-core,
-so I didn't see this issue before.
+Hmm something is wrong. :(
 
->> Is there an easy way for me to modify the kernel to
->> convince the powersaved application that the system
->> does not support throttling?  I'm thinking that we've
->> given user-space too much rope and it has proceeded
->> to hang itself.
->
->I'm currently working on a solution to allow throttling only on systems
->which don't support CPUfreq. At the point this thread came up, or a few
->days later as we talked about it, I completely agreed with you. But at
->that time we already had RC1 in regard to SUSE Linux 10.1, so 
->there was no
->possibility anymore to change such a default behaviour. For 
->the unstable
->powersave realeases, there will come up some changes soon, though.
 
-I understand, though I think it would be more practical to not
-enable throttling by default on any system; and for systems
-with cpufreq to not even advertise this option to users.
+Here's the code that I'm using to get the Debug Port:
+//----- <snip> -----
+    ACPI_STATUS Status;
+    ACPI_TABLE_HEADER *pAcpiTableHeader; 
 
-Also, I think something is broken today.
-If I use the GUI to disable throttling in the Powersave scheme
-and save, and then pull out the plug; a window with "watch
-.../throttling"
-shows that the system drops into T2, and then bounces back to T0.
+    printf("JOEL: Get DGBP\n")
+    Status = AcpiGetFirmwareTable("DBGP",1,ACPI_PHYSICAL_ADDRESSING,
+	    &pAcpiTableHeader);
+    if(ACPI_FAILURE(Status))
+    {
+	FAIL_STOP("AcpiGetFirmwareTable failed.\n"); //<
+    }
 
-I don't trust the application to keep its hands off this file,
-so I think that I need a way to disable/remove that file.
+//----- </snip> -----
 
-thanks,
--Len
+Here's the output from my system
+
+//----- <snip> -----
+I> JOEL: Get DBGP
+I> AcpiOsGetRootPointer 
+I> ACPI Error (tbget-0259): Invalid address flags X [X]
+I> ERROR: file: ../src/acpi.c, line: 846, func: GetAcpiDGBP, p:008d37e0:
+I>    AcpiGetFirmwareTable failed.
+I> There has been a failure.
+//----- </snip> -----
+
+I follow the error message and go take a look at
+acpica-unix-20060317/tables/tbget.c
+
+the error message comes from a switch statement on 
+Address->PointerType for which there are 3 handled cases:
+ ACPI_PHYSMODE_PHYSPTR
+ ACPI_LOGMODE_LOGPTR
+ ACPI_LOGMODE_PHYSPTR
+
+I should be executing the ACPI_PHYSMODE_PHYSMODE branch..
+since OsGetRootPointer returns a PHYSICAL_POINTER & I specified
+ACPI_PHYSICAL_ADDRESSING when I called AcpiGetFirmwareTable
+
+does anyone know what's going wrong here?
+Thanks,
+
+//--------------------------------
+Joel Bretz
+Hardware Engineer
+Hewlett Packard, Systems VLSI Lab
+email: joel.bretz@hp.com
+//--------------------------------
+
+
+
+On Tue, 2006-05-16 at 14:38 -0700, Moore, Robert wrote:
+> This is the interface that you want to use:
+> 
+> ACPI_STATUS
+> AcpiGetFirmwareTable (
+>     ACPI_STRING             Signature,
+>     UINT32                  Instance,
+>     UINT32                  Flags,
+>     ACPI_TABLE_HEADER       **TablePointer)
+> 
+> 
+> Also, we recently added support for DBGP in the table headers
+> 
+> 
+> 
+> > -----Original Message-----
+> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> > owner@vger.kernel.org] On Behalf Of Joel Bretz
+> > Sent: Tuesday, May 16, 2006 2:23 PM
+> > To: linux-acpi@vger.kernel.org
+> > Subject: AcpiGetTable( ? )
+> > 
+> > Hi,
+> > I need some information that lives in the DBGP and the HPET Tables.. I
+> > don't see a way that I can get either of those tables.
+> > 
+> > I'm guessing that
+> >    AcpiGetTable(ACPI_TABLE_TYPE,UINT32,ACPI_BUFFER*)
+> > provides the functionality that I need, but I can not find the correct
+> > table types for either of those.
+> > 
+> > I'm using a slightly older version of acpica (acpica-unix-20060317),
+> but
+> > I didn't see entries for
+> >   ACPI_TABLE_DGBP or ACPI_TABLE_HPET
+> > in actypes.h in the latest version either...
+> > 
+> > Is there a way that I can get the information from these 2 tables?
+> > 
+> > Thanks,
+> > Joel
+> > 
+> > //--------------------------------
+> > Joel Bretz
+> > Hardware Engineer
+> > Hewlett Packard, Systems VLSI Lab
+> > email: joel.bretz@hp.com
+> > //--------------------------------
+> > 
+> > -
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+> in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
