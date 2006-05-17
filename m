@@ -1,65 +1,74 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: kernel vs user power management
-Date: Wed, 17 May 2006 00:20:12 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB679B59B@hdsmsx411.amr.corp.intel.com>
+From: "David Giddy" <d.giddy@bigpond.com>
+Subject: RE: Help request on S3 resume problems
+Date: Wed, 17 May 2006 15:55:07 +1000
+Message-ID: <001101c67976$75f54d30$0400a8c0@vic.bigpond.net.au>
+References: <CFF307C98FEABE47A452B27C06B85BB675ABCB@hdsmsx411.amr.corp.intel.com>
+Reply-To: <d.giddy@bigpond.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-laptop-owner@vger.kernel.org>
-Content-class: urn:content-classes:message
-Sender: linux-laptop-owner@vger.kernel.org
-To: Holger Macht <hmacht@suse.de>
-Cc: thoenig@suse.de, linux-acpi@vger.kernel.org, linux-laptop@vger.kernel.org, Andi Kleen <ak@suse.de>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from omta05sl.mx.bigpond.com ([144.140.93.195]:15549 "EHLO
+	omta05sl.mx.bigpond.com") by vger.kernel.org with ESMTP
+	id S932162AbWEQFz1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 17 May 2006 01:55:27 -0400
+Received: from NewPC ([155.143.208.3]) by omta05sl.mx.bigpond.com with SMTP
+          id <20060517055525.ILGL25409.omta05sl.mx.bigpond.com@NewPC>
+          for <linux-acpi@vger.kernel.org>; Wed, 17 May 2006 05:55:25 +0000
+In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB675ABCB@hdsmsx411.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
- 
->> >> I'm happy to see that clock throttling is not enabled by
->> >> default in recent SuSE release, at least on my laptop
->> >> which supports P-states.
->> >> 
->> >> I'd like to see no option to enable clock-throttling on
->> >> systems that support real p-states.
->> >
->> >Yes, this is reasonable, indeen. Will do that. With p-states in this
->> >context, you mean cpufreq here?
->> 
->> throttling is always T-states.
->> cpufreq is usually p-states, but in the case of p4clockmod,
->> it is T-states also.  As I mentioned above, cpufreq is doing
->> you a dis-service by hiding the difference from you
->> and really need to be enhanced to know (and export)
->> the difference.
->
->Yes, this would be good, indeed. But what else drivers are currently
->affected? It's only p4clockmod I know of.
->
->> 
->> >> It is useful only for workloads which have an infinite
->> >> amount of non-idle computing which you don't care how
->> >> slow it computes.  For the vast majority of workloads
->> >> it just slows down the machine and delays the processor
->> >> from getting into idle where it can save a non-linear
->> >> amount of power.  Further, there exist today systems which
->> >> will consume MORE power in deep C-states when throttled
->> >> vs. when not throttled.
+Len,
 
-I installed SL10.1 today on a P3M laptop (Dell D600)
-and it defaults to the "Powersave" scheme which includes
-"Dynamic Frequency Scaling" (ondemand), so that is good.
+Thanks for the quick response. Unfortunately, I think in this instance that
+the failure on resume IS related to the method of waking. Here are the
+results of testing as you imply below:
 
-However, by defaulit "Allow Throttling" is CHECKED
-and Max %  is set to 50%.
+Resume from S3 using power button	  -> 100% functional, both ttyS0 serial
+console and NVIDIA video card console
+Resume from S3 using WOL magic packet -> Fans run, disk activity, NO NVIDIA
+video card console response, NO ttyS0 serial console response, NO ping
+response
+Resume from S5 using power button	  -> Normal boot
+Resume from S5 using WOL magic packet -> Normal boot
 
-Exactly what does this mean?
-I looked in /proc/acpi/processor/*/throttling and the
-laptop is still in T0.
+I haven't tried wake from S4 as I don't currently have a swap partition
+large enough to try it (1GB RAM).
 
-Is there an easy way for me to modify the kernel to
-convince the powersaved application that the system
-does not support throttling?  I'm thinking that we've
-given user-space too much rope and it has proceeded
-to hang itself.
+Regards,
 
-thanks,
+David.
+
+
+-----Original Message-----
+From: linux-acpi-owner@vger.kernel.org
+[mailto:linux-acpi-owner@vger.kernel.org]On Behalf Of Brown, Len
+Sent: Tuesday, 16 May 2006 4:35 PM
+To: David Giddy; linux-acpi@vger.kernel.org
+Subject: RE: Help request on S3 resume problems
+
+
+I expect that the method to wake the system
+and the fact that resume from S3 fails
+are independent problems.
+
+Likely you can use WOL from S5 and the system
+will boot normally from poweroff.  (same can
+be said for suspend-to-disk -- S4).
+
+Likely you can wake the system from S4/S5 via
+power or sleep button, and it will fail the same
+way as it fails via WOL.
+
+The way to debug an S3 resume with no video
+is to use a serial or a firewire console.
+
 -Len
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
