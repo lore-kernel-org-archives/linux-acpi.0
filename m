@@ -1,72 +1,99 @@
-From: "martin schneebacher" <martin.schneebacher@gmail.com>
-Subject: (unknown)
-Date: Fri, 19 May 2006 11:28:39 +0200
-Message-ID: <e30fb88b0605190228u76a14b9h94a8c32f9c7e5058@mail.gmail.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: RE: DSDT on Averatec 1050
+Date: Fri, 19 May 2006 15:02:46 +0200
+Message-ID: <1148043766.9319.419.camel@queen.suse.de>
+References: <B28E9812BAF6E2498B7EC5C427F293A44245D8@orsmsx415.amr.corp.intel.com>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-Subject: 
-Content-Disposition: inline
-Sender: linux-ide-owner@vger.kernel.org
-To: linux-acpi <linux-acpi@vger.kernel.org>, linux-ide <linux-ide@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="=-BbExzFfuTiZX4F1QvlR7"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ns2.suse.de ([195.135.220.15]:11481 "EHLO mx2.suse.de")
+	by vger.kernel.org with ESMTP id S1751100AbWESNAM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 19 May 2006 09:00:12 -0400
+In-Reply-To: <B28E9812BAF6E2498B7EC5C427F293A44245D8@orsmsx415.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: Paul Wagner <paul_spam@gmx.at>, linux-acpi@vger.kernel.org
 
-hi all.
 
-since 2.6.17-rc2 (maybe rc1 too) the resume from standby doesn't work
-anymore. the system hangs for a while, then it comes back but the sata
-drive doesn't work. i have to turn the power off and restart the
-computer. i don't know how to debug it, maybe you could give me a hint
-if it's necessary.
+--=-BbExzFfuTiZX4F1QvlR7
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-actual kernel: 2.6.17-rc4
-bootoptions:  libata.atapi_enabled=1 vga=791 quiet pci=assign-busses
+On Thu, 2006-05-11 at 10:56 -0700, Moore, Robert wrote:
+> May have gotten lost in the noise, please send to me.
 
-lspci:
-0000:00:00.0 Host bridge: Intel Corporation Mobile 915GM/PM/GMS/910GML
-Express Processor to DRAM Controller (rev 03)
-0000:00:01.0 PCI bridge: Intel Corporation Mobile 915GM/PM Express PCI
-Express Root Port (rev 03)
-0000:00:1c.0 PCI bridge: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6
-Family) PCI Express Port 1 (rev 04)
-0000:00: 1d.0 USB Controller: Intel Corporation 82801FB/FBM/FR/FW/FRW
-(ICH6 Family) USB UHCI #1 (rev 04)
-0000:00:1d.1 USB Controller: Intel Corporation 82801FB/FBM/FR/FW/FRW
-(ICH6 Family) USB UHCI #2 (rev 04)
-0000:00:1d.2 USB Controller: Intel Corporation 82801FB/FBM/FR/FW/FRW
-(ICH6 Family) USB UHCI #3 (rev 04)
-0000:00:1d.3 USB Controller: Intel Corporation 82801FB/FBM/FR/FW/FRW
-(ICH6 Family) USB UHCI #4 (rev 04)
-0000:00:1d.7 USB Controller: Intel Corporation 82801FB/FBM/FR/FW/FRW
-(ICH6 Family) USB2 EHCI Controller (rev 04)
-0000:00:1e.0 PCI bridge: Intel Corporation 82801 Mobile PCI Bridge (rev d4)
-0000:00:1e.2 Multimedia audio controller: Intel Corporation
-82801FB/FBM/FR/FW/FRW (ICH6 Family) AC'97 Audio Controller (rev 04)
-0000:00: 1e.3 Modem: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6
-Family) AC'97 Modem Controller (rev 04)
-0000:00:1f.0 ISA bridge: Intel Corporation 82801FBM (ICH6M) LPC
-Interface Bridge (rev 04)
-0000:00:1f.2 IDE interface: Intel Corporation 82801FBM (ICH6M) SATA
-Controller (rev 04)
-0000:00:1f.3 SMBus: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6
-Family) SMBus Controller (rev 04)
-0000:01:00.0 VGA compatible controller: nVidia Corporation NV43
-[GeForce Go 6600] (rev a2)
-0000:03:05.0 Ethernet controller: Atheros Communications, Inc. AR5212
-802.11abg NIC (rev 01)
-0000:03:07.0 Ethernet controller: Realtek Semiconductor Co., Ltd.
-RTL-8169 Gigabit Ethernet (rev 10)
-0000:03:09.0 CardBus bridge: Texas Instruments PCIxx21/x515 Cardbus Controller
-0000:03:09.2 FireWire (IEEE 1394): Texas Instruments OHCI Compliant
-IEEE 1394 Host Controller
-0000:03:09.3 Mass storage controller: Texas Instruments PCIxx21
-Integrated FlashMedia Controller
-0000:03:09.4 0805: Texas Instruments PCI6411, PCI6421, PCI6611,
-PCI6621, PCI7411, PCI7421, PCI7611, PCI7621 Secure Digital (SD)
-Controller
+Attached are two patches:
+ 1) Fixes compiler nameclash if IO keyword is used as field declaration
+ 2) If (generic, dsdt.dsl) output file is already created with
+insufficient
+    privileges to the current user, iasl -d dsdt segfaults.
+    This patch makes iasl to exit gracefully.
 
-hdd:
-hitachi travelstar  HTS541080G9SA00
+      Thomas
 
-bye...masc.
+
+--=-BbExzFfuTiZX4F1QvlR7
+Content-Disposition: attachment; filename=fix_IO_nameclash.patch
+Content-Type: text/x-patch; name=fix_IO_nameclash.patch; charset=utf-8
+Content-Transfer-Encoding: 7bit
+
+Fixes compiler nameclash if IO keyword is used as field declaration
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+
+--- acpica-unix-20050624/compiler/aslcompiler.y.orig	2005-09-06 16:46:21.000000000 +0200
++++ acpica-unix-20050624/compiler/aslcompiler.y	2005-09-06 15:40:37.000000000 +0200
+@@ -2951,6 +2951,7 @@
+ NameString
+     : NameSeg                       {}
+     | PARSEOP_NAMESTRING            {$$ = TrCreateValuedLeafNode (PARSEOP_NAMESTRING, (ACPI_NATIVE_INT) AslCompilerlval.s);}
++    | PARSEOP_IO                    {$$ = TrCreateValuedLeafNode (PARSEOP_IO, (ACPI_NATIVE_INT) "IO");}
+     ;
+ 
+ NameSeg
+
+--=-BbExzFfuTiZX4F1QvlR7
+Content-Disposition: attachment; filename=iasl_invalid_output_file.patch
+Content-Type: text/x-patch; name=iasl_invalid_output_file.patch; charset=utf-8
+Content-Transfer-Encoding: 7bit
+
+If (generic, dsdt.dsl) output file is already created with insufficient
+privileges to the current user, iasl -d xy segfaults.
+This patch fixes that.
+Reference: https://bugzilla.novell.com/show_bug.cgi?id=152112
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+
+ acpica-unix-20060127/common/adisasm.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+Index: acpica-unix-20060127/common/adisasm.c
+===================================================================
+--- acpica-unix-20060127/common/adisasm.c
++++ acpica-unix-20060127/common/adisasm.c
+@@ -125,6 +125,7 @@
+ #include "acapps.h"
+ 
+ #include <stdio.h>
++#include <stdlib.h>
+ #include <string.h>
+ #include <time.h>
+ 
+@@ -549,9 +550,8 @@ AdAmlDisassemble (
+         File = fopen (DisasmFilename, "w+");
+         if (!File)
+         {
+-            fprintf (stderr, "Could not open output file\n");
+-            Status = AE_ERROR;
+-            goto Cleanup;
++            fprintf (stderr, "Could not open output file %s\n", DisasmFilename);
++	    exit (EXIT_FAILURE);
+         }
+ 
+         AcpiOsRedirectOutput (File);
+
+--=-BbExzFfuTiZX4F1QvlR7--
+
