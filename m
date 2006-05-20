@@ -1,48 +1,66 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
-Date: Fri, 19 May 2006 15:44:17 +0200
-Message-ID: <1148046258.9319.441.camel@queen.suse.de>
-References: <E1FHa8k-00015b-M5@approximate.corpus.cam.ac.uk>
-Reply-To: trenn@suse.de
+From: Andreas Saur <saur@acmelabs.de>
+Subject: RE: Help request on S3 resume problems
+Date: Sat, 20 May 2006 00:13:01 +0000
+Message-ID: <446E5F0D.9080105@acmelabs.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:40414 "EHLO mx2.suse.de")
-	by vger.kernel.org with ESMTP id S932309AbWESNmO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 May 2006 09:42:14 -0400
-In-Reply-To: <E1FHa8k-00015b-M5@approximate.corpus.cam.ac.uk>
+Received: from natlemon.rzone.de ([81.169.145.170]:4766 "EHLO
+	natlemon.rzone.de") by vger.kernel.org with ESMTP id S1751445AbWETANP
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 19 May 2006 20:13:15 -0400
+Received: from server.zuhause.xx (p50813B59.dip0.t-ipconnect.de [80.129.59.89])
+	(authenticated bits=0)
+	by post.webmailer.de (8.13.6/8.13.6) with ESMTP id k4K0DCO9017938
+	for <linux-acpi@vger.kernel.org>; Sat, 20 May 2006 02:13:13 +0200 (MEST)
+Received: from [192.168.1.41] (helo=[192.168.1.41])
+	by server.zuhause.xx with esmtp (Exim 4.50)
+	id 1FhCK9-0004DL-G5
+	for linux-acpi@vger.kernel.org; Fri, 19 May 2006 23:15:53 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Cc: "Yu, Luming" <luming.yu@intel.com>, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, linux-input@atrey.karlin.mff.cuni.cz, Meelis Roos <mroos@linux.ee>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
+To: linux-acpi@vger.kernel.org
 
-On Fri, 2006-03-10 at 00:26 -0500, Sanjoy Mahajan wrote:
-> [Re: bugme #5989, head no longer hanging in shame]
-> 
-> From: "Yu, Luming" <luming.yu@intel.com>
-> > I suggest you to retest, and post dmesg with UN-modified BIOS.
-> 
-> I'm now running/testing an unmodified DSDT with 2.6.16-rc5.  For a while
-> I had no S3 hangs, but I just noticed them again.  The error is the same
-> as with the modified DSDT (with slightly different offsets):
-> 
-> exregion-0185 [36] ex_system_memory_space: system_memory 0 (32 width) Address=0000000023FDFFC0
-> exregion-0185 [36] ex_system_memory_space: system_memory 1 (32 width) Address=0000000023FDFFC0
-> exregion-0290 [36] ex_system_io_space_han: system_iO 1 (8 width) Address=00000000000000B2
-> 
-> repeated endlessly.
+Hello,
 
-This sounds like the problem Daniel had on his Samsung P35 recently.
-He could fix it by getting rid of some asus_unhide_smbus stuff or the
-otherway around, adding asus_unhide_smbus quirks in the S3 resume code.
+same here! (nForce2 chipset).
 
-This thread was recently posted on lkml:
-Re: [patch] smbus unhiding kills thermal management
+After many many trial and error scenarios, I cannot remember exactly what I've done to get it work (resume from s3 on WOL) at least partitially.
 
-Here are some more details, for me that sounds related...:
-https://bugzilla.novell.com/show_bug.cgi?id=173420
+1) In a sort of combination of using X86_UP_IOAPIC with USB turned off in BIOS, the system always woke up after sending the magic packet.
+2) After turning on USB in BIOS the system woke up exactly 3 times. The forth time always led to a dead keyboard and a black screen, no ping.
+3) Turning off X86_UP_IOAPIC in the kernel leads always to a dead keyboard and black screen, no ping.
 
-     Thomas
+Except WOL, S3 works fine here using the PowerButton or Keyboard.
+
+I've studied all the the logs I've turned on in kernel, but there is nothing of interest concerning this error, at least for me.
+Btw. It didn't make a difference whether doing the test in single user mode or not. Results were the same. I've also turned off all devices I could in the BIOS to minimize the IRQ impact. Didn't make a difference either.
+
+It's a pitty, I was so close to a very cool MediaCenterPC for my living-room. But at the moment I ran out of ideas. If anybody is interested in my specs, can look into a bugzilla report I've posted earlier (another problem), the hardware didn't change, except the kernel. It's 2.6.17-rc3 at the moment. the last three mm patches led to kernel panics. (here my specs: http://bugzilla.kernel.org/show_bug.cgi?id=6326)
+
+Regards,
+
+Andreas
+
+>Len,
+>
+>Thanks for the quick response. Unfortunately, I think in this instance that
+>the failure on resume IS related to the method of waking. Here are the
+>results of testing as you imply below:
+>
+>Resume from S3 using power button	  -> 100% functional, both ttyS0 serial
+>console and NVIDIA video card console
+>Resume from S3 using WOL magic packet -> Fans run, disk activity, NO NVIDIA
+>video card console response, NO ttyS0 serial console response, NO ping
+>response
+>Resume from S5 using power button	  -> Normal boot
+>Resume from S5 using WOL magic packet -> Normal boot
+>
+>I haven't tried wake from S4 as I don't currently have a swap partition
+>large enough to try it (1GB RAM).
+>
+>Regards,
+>
+>David.
 
