@@ -1,53 +1,76 @@
-From: Andreas Saur <saur@acmelabs.de>
-Subject: 2.6.17-rc4-mm2 - kernel panic
-Date: Sat, 20 May 2006 21:12:48 +0000
-Message-ID: <446F8650.2080201@acmelabs.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Subject: Re: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
+Date: Sun, 21 May 2006 01:12:52 +0100
+Message-ID: <E1FhbYy-0005jL-00@skye.ra.phy.cam.ac.uk>
+References: <1148046258.9319.441.camel@queen.suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from natfrord.rzone.de ([81.169.145.161]:7598 "EHLO
-	natfrord.rzone.de") by vger.kernel.org with ESMTP id S932353AbWETVMn
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 20 May 2006 17:12:43 -0400
-Received: from server.zuhause.xx (p50814843.dip0.t-ipconnect.de [80.129.72.67])
-	(authenticated bits=0)
-	by post.webmailer.de (8.13.6/8.13.6) with ESMTP id k4KLCfkM012236
-	for <linux-acpi@vger.kernel.org>; Sat, 20 May 2006 23:12:41 +0200 (MEST)
-Received: from [192.168.1.42] (helo=[192.168.1.42])
-	by server.zuhause.xx with esmtp (Exim 4.50)
-	id 1FhVzS-00076W-K1
-	for linux-acpi@vger.kernel.org; Sat, 20 May 2006 20:15:50 +0200
+Received: from mraos.ra.phy.cam.ac.uk ([131.111.48.8]:52684 "EHLO
+	mraos.ra.phy.cam.ac.uk") by vger.kernel.org with ESMTP
+	id S932234AbWEUAM6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 20 May 2006 20:12:58 -0400
+In-Reply-To: Your message of "Fri, 19 May 2006 15:44:17 +0200."
+             <1148046258.9319.441.camel@queen.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: trenn@suse.de
+Cc: "Yu, Luming" <luming.yu@intel.com>, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, linux-input@atrey.karlin.mff.cuni.cz, Meelis Roos <mroos@linux.ee>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
 
-Hello,
+> This sounds like the problem Daniel had on his Samsung P35 recently.
+> He could fix it by getting rid of some asus_unhide_smbus stuff or the
+> otherway around, adding asus_unhide_smbus quirks in the S3 resume code.
+> 
+> This thread was recently posted on lkml:
+> Re: [patch] smbus unhiding kills thermal management
+> 
 
-tried the 2.6.17-rc4-mm2, still kernel panic, like the last three 
-mm-patches. One screen-shot and sys-infos are here 
-http://as68.homeip.net/2.6.17-rc4-mm2/
-I think it's acpi-related, because there is something about 
-acpi-namespace or so.
+That seems likely, thanks for the pointer: Besides the ACPI sleep
+hangs, this machine (TP 600X) has fan troubles upon S3 resume.  The
+problems don't do harm (the damn fan keeps turning on when it
+shouldn't), but that's probably chance.  Various patches that I tested
+for S3 resume hangs reversed this fan behavior, making the fan refuse
+to turn on when it should have.  The same problem happened after
+resume from swsusp (bugzilla #5000).
 
-And another issue: I'm still using this ugly two-liner in order to be 
-able to resume from S3. Is there a clean solution for it?
+> https://bugzilla.novell.com/show_bug.cgi?id=173420
 
-####################
-/usr/src/linux/drivers/ide/ide.c - line 1483
-.
-.
--       return ide_do_drive_cmd(drive, &rq, ide_head_wait);
-+     (void) ide_do_drive_cmd(drive, &rq, ide_head_wait);
-+     return set_xfer_rate(drive, XFER_UDMA_6);
-.
-.
-####################
+>From Comment #30 at the above url: "The Linux ACPI code seems to
+actively prevent the fan from running and that worries me."
 
-Resume from S3 using WOL (magic packet) doesn't work reliably ( in 
-combination with USB(in BIOS) doesn't work at all).
+I saw that as well, and found the following recipe would work around
+the problem:
 
-Regards,
+1. Set the trip point to, say, 70 C -- well above the actual
+   temperature.
 
-Andreas
+2. Then set the trip to anything reasonable that's under the current
+   temperature (27 C always works).  Now the fan turns on, and behaves
+   fine from then.
 
+My explanation is that, before step 1, the fan is off but the OS
+thinks it's on.  So the dialogue goes something like:
+
+Hardware (from EC or BIOS?): Ack, I'm overheating, turn on the fan now!
+OS: There, there, take it easy.  I've checked bit fields in my
+     memory, and the fan is on.  So I don't have to do anything.
+Hardware: Ack, ...
+OS: There, there, ...
+[Hence the 100% kacpid CPU usage]
+
+Based on this explanation, I added a resume method to the fan driver.
+It would turn on the fan and mark it as on.  So then the internal OS
+state matched the actual state.  The fix didn't work for at least one
+reason: ACPI drivers didn't have suspend/resume methods (though now
+there are test patches to add those methods).
+
+Another fix, probably worth doing anyway, is to turn on the fan if the
+BIOS asks for it, whether or not the OS thinks it's on.  The chance of
+the two pieces of information getting out of synch, and the hardware
+damage it can cause, is enough to make it worthwhile.  The reverse
+case can try to optimize (if BIOS asks to shut off the fan, shut it
+off only if OS thinks it's on).  That creates no danger: just extra
+fan noise if the fan is on but the OS thinks it's off.
+
+-Sanjoy
+
+`Never underestimate the evil of which men of power are capable.'
+         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
