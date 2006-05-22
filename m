@@ -1,66 +1,98 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
-Date: Mon, 22 May 2006 11:55:31 +0200
-Message-ID: <20060522095531.GC25624@elf.ucw.cz>
-References: <1148046258.9319.441.camel@queen.suse.de> <E1FhbYy-0005jL-00@skye.ra.phy.cam.ac.uk>
+From: "Jaya Kumar" <jayakumar.acpi@gmail.com>
+Subject: Re: [PATCH/RFC 2.6.17-rc4 1/1] ACPI: Atlas ACPI driver v3
+Date: Mon, 22 May 2006 07:10:46 -0400
+Message-ID: <756b48450605220410w4623fda3p23ddc4b38e64516b@mail.gmail.com>
+References: <200605220333.k4M3Xkg6020638@localhost.localdomain>
+	 <20060522093301.GB25624@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII;
+	format=flowed
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:37344 "EHLO amd.ucw.cz")
-	by vger.kernel.org with ESMTP id S1751018AbWEVJ4a (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 22 May 2006 05:56:30 -0400
+Received: from wr-out-0506.google.com ([64.233.184.238]:6193 "EHLO
+	wr-out-0506.google.com") by vger.kernel.org with ESMTP
+	id S1750746AbWEVLKr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 May 2006 07:10:47 -0400
+Received: by wr-out-0506.google.com with SMTP id 68so1751485wra
+        for <linux-acpi@vger.kernel.org>; Mon, 22 May 2006 04:10:46 -0700 (PDT)
+In-Reply-To: <20060522093301.GB25624@elf.ucw.cz>
 Content-Disposition: inline
-In-Reply-To: <E1FhbYy-0005jL-00@skye.ra.phy.cam.ac.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Cc: trenn@suse.de, "Yu, Luming" <luming.yu@intel.com>, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, linux-input@atrey.karlin.mff.cuni.cz, Meelis Roos <mroos@linux.ee>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi!
+On 5/22/06, Pavel Machek <pavel@ucw.cz> wrote:
+> ACK, but I guess you should cc Dmitry (input maintainer) and possibly
+> Andrew Morton to get it in... Ok, few more nits.
 
-> > https://bugzilla.novell.com/show_bug.cgi?id=173420
-> 
-> >From Comment #30 at the above url: "The Linux ACPI code seems to
-> actively prevent the fan from running and that worries me."
-> 
-> I saw that as well, and found the following recipe would work around
-> the problem:
-> 
-> 1. Set the trip point to, say, 70 C -- well above the actual
->    temperature.
-> 
-> 2. Then set the trip to anything reasonable that's under the current
->    temperature (27 C always works).  Now the fan turns on, and behaves
->    fine from then.
-> 
-> My explanation is that, before step 1, the fan is off but the OS
-> thinks it's on.  So the dialogue goes something like:
-> 
-> Hardware (from EC or BIOS?): Ack, I'm overheating, turn on the fan now!
-> OS: There, there, take it easy.  I've checked bit fields in my
->      memory, and the fan is on.  So I don't have to do anything.
-> Hardware: Ack, ...
-> OS: There, there, ...
-> [Hence the 100% kacpid CPU usage]
-> 
-> Based on this explanation, I added a resume method to the fan driver.
-> It would turn on the fan and mark it as on.  So then the internal OS
-> state matched the actual state.  The fix didn't work for at least one
-> reason: ACPI drivers didn't have suspend/resume methods (though now
-> there are test patches to add those methods).
+Will do.
 
-Can you redo your patches with those methods?
+>
+> > +#else
+> > +#define atlas_free_input(...)
+> > +#define atlas_setup_input(...) 0
+> > +#define atlas_input_report(...)
+> > +#endif
+>
+> Does the driver actually do anything useful in this case?
 
-> Another fix, probably worth doing anyway, is to turn on the fan if the
-> BIOS asks for it, whether or not the OS thinks it's on.  The chance of
-> the two pieces of information getting out of synch, and the hardware
-> damage it can cause, is enough to make it worthwhile.  The reverse
+Depends on the application I guess. If CONFIG_INPUT is disabled, then
+only applications that read /proc/acpi/event will see the ASIM events.
 
-There should be 0% hardware damage chance. Fan failure means overheats
-mean emergency power cutoff. I even tested it with paper into fan
-blades several times. It mostly works.
-								Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+>
+> > +     }
+> > +
+> > +     return status ;
+>
+> Extra " " before ;.
+
+Sorry. Corrected.
+
+>
+> > +static struct acpi_driver atlas_acpi_driver = {
+> > +     .name = ACPI_ATLAS_NAME,
+> > +     .class = ACPI_ATLAS_CLASS,
+> > +     .ids = ACPI_ATLAS_BUTTON_HID,
+> > +     .ops = {
+> > +             .add = atlas_acpi_button_add,
+> > +             .remove = atlas_acpi_button_remove,
+> > +             },
+>
+> Extra tab before }.
+
+I hope I understood you correctly, the } on .ops after .remove should
+align with the . ops right?. I tried to conform with button.c and
+others. I will make the change I think you are suggesting anyway since
+it seems more natural.
+
+ 74 static struct acpi_driver acpi_button_driver = {
+ 75         .name = ACPI_BUTTON_DRIVER_NAME,
+ 76         .class = ACPI_BUTTON_CLASS,
+ 77         .ids = "ACPI_FPB,ACPI_FSB,PNP0C0D,PNP0C0C,PNP0C0E",
+ 78         .ops = {
+ 79                 .add = acpi_button_add,
+ 80                 .remove = acpi_button_remove,
+ 81                 },
+ 82 };
+
+ 71 static struct acpi_driver acpi_video_bus = {
+ 72         .name = ACPI_VIDEO_DRIVER_NAME,
+ 73         .class = ACPI_VIDEO_CLASS,
+ 74         .ops = {
+ 75                 .add = acpi_video_bus_add,
+ 76                 .remove = acpi_video_bus_remove,
+ 77                 .match = acpi_video_bus_match,
+ 78                 },
+ 79 };
+
+>
+> > +MODULE_SUPPORTED_DEVICE("Atlas ACPI");
+>
+> Are you sure this si good idea?
+
+You are right. It's a bad idea, none of the other drivers do it. I'll
+take it out.
+
+Thanks,
+jayakumar
