@@ -1,265 +1,120 @@
-From: jayakumar.acpi@gmail.com
-Subject: [PATCH/RFC 2.6.17-rc4 1/1] ACPI: Atlas ACPI driver v4
-Date: Mon, 22 May 2006 19:59:07 +0800
-Message-ID: <200605221159.k4MBx6So022178@localhost.localdomain>
+From: "David Giddy" <d.giddy@bigpond.com>
+Subject: RE: Help request on S3 resume problems
+Date: Mon, 22 May 2006 23:11:21 +1000
+Message-ID: <001301c67da1$3e95a900$0400a8c0@vic.bigpond.net.au>
+References: <446E5F0D.9080105@acmelabs.de>
+Reply-To: <d.giddy@bigpond.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [202.75.186.170] ([202.75.186.170]:32777 "EHLO
-	ns1.clipsalportal.com") by vger.kernel.org with ESMTP
-	id S1750787AbWEVMTx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 22 May 2006 08:19:53 -0400
+Received: from omta01ps.mx.bigpond.com ([144.140.82.153]:643 "EHLO
+	omta01ps.mx.bigpond.com") by vger.kernel.org with ESMTP
+	id S1750811AbWEVNLi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 22 May 2006 09:11:38 -0400
+Received: from NewPC ([155.143.208.3]) by omta01ps.mx.bigpond.com with SMTP
+          id <20060522131136.ZKOI4761.omta01ps.mx.bigpond.com@NewPC>
+          for <linux-acpi@vger.kernel.org>; Mon, 22 May 2006 13:11:36 +0000
+In-Reply-To: <446E5F0D.9080105@acmelabs.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, dmitry.torokhov@gmail.com, akpm@osdl.org
+To: linux-acpi@vger.kernel.org
 
-Hi Len, Dmitry, ACPI, and kernel folk,
+Andreas,
 
-Appended is v4 after further cleanup. Thanks again to Pavel Machek
-for the feedback.
+Thank you for the pointers below. This seems to have solved my problem!
+Enabling X86_UP_IOAPIC was sufficient in my case for success (it seems to
+work OK with USB enabled in the BIOS - haven't tried with connected USB
+devices yet though...)
 
-Please let me know if it looks okay and if you have any feedback
-or suggestions.
+Interesting that my hardware is quite different to yours, yet the symptoms
+were the same:
+- Gigabyte GA-8IPE1000-G motherboard (Intel 865PE chipset)
+- Realtek 8110 Gigabit LAN chip on board
+- Intel PRO1000/MT PCI card
+- NVIDIA AGP video card
+- Debian Sarge with kernel 2.6.16.16 latest ACPI patch set(with NVIDIA
+driver added and an e1000 module WOL patch)
 
-Thanks,
-Jaya Kumar
+Maybe something around the code related to X86_UP_IOAPIC needs looking at by
+ACPI experts ? Unfortunately I don't understand the kernel anywhere near
+well enough to help.
 
-Signed-off-by: Jaya Kumar <jayakumar.acpi@gmail.com>
+Works successfully with both on board and PCI LAN interfaces and now works
+from both S3 and S4 (using swsusp2).
 
----
+One happy camper!
 
- Kconfig      |   13 +++
- Makefile     |    1 
- atlas_acpi.c |  192 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 205 insertions(+), 1 deletion(-)
+Regards,
 
----
+David.
 
-diff -X linux-2.6.17-rc4/Documentation/dontdiff -X excludevid -X excludealsa -uprN linux-2.6.17-rc4-vanilla/drivers/acpi/atlas_acpi.c linux-2.6.17-rc4/drivers/acpi/atlas_acpi.c
---- linux-2.6.17-rc4-vanilla/drivers/acpi/atlas_acpi.c	1970-01-01 07:30:00.000000000 +0730
-+++ linux-2.6.17-rc4/drivers/acpi/atlas_acpi.c	2006-05-22 19:01:07.000000000 +0800
-@@ -0,0 +1,192 @@
-+/*
-+ *  atlas_acpi.c - Atlas Wallmount Touchscreen ACPI Extras
-+ *
-+ *  Copyright (C) 2006 Jaya Kumar
-+ *  Based on Toshiba ACPI by John Belmonte and ASUS ACPI
-+ *  This work was sponsored by CIS(M) Sdn Bhd.
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/input.h>
-+#include <linux/types.h>
-+#include <linux/proc_fs.h>
-+#include <asm/uaccess.h>
-+#include <acpi/acpi_drivers.h>
-+
-+#define ACPI_ATLAS_NAME			"Atlas ACPI"
-+#define ACPI_ATLAS_CLASS		"Atlas"
-+#define ACPI_ATLAS_BUTTON_HID		"ASIM0000"
-+
-+#ifdef CONFIG_INPUT
-+static struct input_dev *input_dev;
-+
-+static void atlas_input_report(u8 address)
-+{
-+	int keycode;
-+
-+	keycode = KEY_F1 + (address & 0x0F);
-+
-+	if (address & 0x10) 
-+		input_report_key(input_dev, keycode, 0);
-+	else
-+		input_report_key(input_dev, keycode, 1);
-+	input_sync(input_dev);
-+}
-+
-+static int atlas_setup_input(void)
-+{
-+	int err;
-+
-+	input_dev = input_allocate_device();
-+	if (!input_dev) {
-+		printk(KERN_ERR "atlas: insufficient mem to allocate input device\n");
-+		return -ENOMEM;
-+	}
-+
-+	input_dev->name = "Atlas ACPI button driver";
-+	input_dev->phys = "acpi/input0";
-+	input_dev->id.bustype = BUS_HOST;
-+	input_dev->evbit[LONG(EV_KEY)] = BIT(EV_KEY);
-+	set_bit(KEY_F1, input_dev->keybit);	
-+	set_bit(KEY_F2, input_dev->keybit);	
-+	set_bit(KEY_F3, input_dev->keybit);	
-+	set_bit(KEY_F4, input_dev->keybit);	
-+	set_bit(KEY_F5, input_dev->keybit);	
-+	set_bit(KEY_F6, input_dev->keybit);	
-+	set_bit(KEY_F7, input_dev->keybit);	
-+	set_bit(KEY_F8, input_dev->keybit);	
-+	set_bit(KEY_F9, input_dev->keybit);
-+
-+	err = input_register_device(input_dev);
-+	if (err) {
-+		printk(KERN_ERR "atlas: couldn't register input device\n");
-+		input_free_device(input_dev);
-+		return err;
-+	}
-+
-+	return 0;
-+}
-+
-+static void atlas_free_input(void)
-+{
-+	if (input_dev)
-+		input_unregister_device(input_dev);
-+
-+}
-+#else
-+#define atlas_free_input(...)
-+#define atlas_setup_input(...) 0
-+#define atlas_input_report(...) 
-+#endif
-+
-+/* button handling code */
-+static acpi_status acpi_atlas_button_setup(acpi_handle region_handle,
-+		    u32 function, void *handler_context, void **return_context)
-+{
-+	*return_context = 
-+		(function != ACPI_REGION_DEACTIVATE) ? handler_context : NULL;
-+
-+	return AE_OK;
-+}
-+
-+static acpi_status acpi_atlas_button_handler(u32 function,
-+		      acpi_physical_address address,
-+		      u32 bit_width, acpi_integer * value,
-+		      void *handler_context, void *region_context)
-+{
-+	acpi_status status;
-+	struct acpi_device *dev;
-+
-+	dev = (struct acpi_device *) handler_context;
-+	if (function == ACPI_WRITE) {
-+		status = acpi_bus_generate_event(dev, 0x80, address);
-+		atlas_input_report((u8) address);
-+	} else {
-+		printk(KERN_WARNING "atlas: shrugged on unexpected function"
-+			":function=%x,address=%x,value=%x\n",
-+			function, (u32)address, (u32)*value);
-+		status = -EINVAL;
-+	}
-+
-+	return status;
-+}
-+
-+static int atlas_acpi_button_add(struct acpi_device *device)
-+{
-+	int err;
-+
-+	err = atlas_setup_input();
-+	if (err)
-+		return err;
-+
-+	/* hookup button handler */
-+	return acpi_install_address_space_handler(device->handle,
-+				0x81, &acpi_atlas_button_handler,
-+				&acpi_atlas_button_setup, device);
-+}
-+
-+static int atlas_acpi_button_remove(struct acpi_device *device, int type)
-+{
-+	acpi_status status;
-+
-+	atlas_free_input();	
-+	status = acpi_remove_address_space_handler(device->handle,
-+				0x81, &acpi_atlas_button_handler);
-+	if (ACPI_FAILURE(status))
-+		printk(KERN_ERR "Atlas: Error removing addr spc handler\n");
-+
-+	return status;
-+}
-+
-+static struct acpi_driver atlas_acpi_driver = {
-+	.name = ACPI_ATLAS_NAME,
-+	.class = ACPI_ATLAS_CLASS,
-+	.ids = ACPI_ATLAS_BUTTON_HID,
-+	.ops = {
-+		.add = atlas_acpi_button_add,
-+		.remove = atlas_acpi_button_remove,
-+	},
-+};
-+
-+static int atlas_acpi_init(void)
-+{
-+	int result;
-+
-+	result = acpi_bus_register_driver(&atlas_acpi_driver);
-+	if (result < 0) {
-+		printk(KERN_ERR "Atlas ACPI: Unable to register driver\n");
-+		return -ENODEV;
-+	}
-+
-+	return 0;
-+}
-+
-+static void atlas_acpi_exit(void)
-+{
-+	acpi_bus_unregister_driver(&atlas_acpi_driver);
-+}
-+
-+module_init(atlas_acpi_init);
-+module_exit(atlas_acpi_exit);
-+
-+MODULE_AUTHOR("Jaya Kumar");
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("Atlas ACPI");
-+
-diff -X linux-2.6.17-rc4/Documentation/dontdiff -X excludevid -X excludealsa -uprN linux-2.6.17-rc4-vanilla/drivers/acpi/Kconfig linux-2.6.17-rc4/drivers/acpi/Kconfig
---- linux-2.6.17-rc4-vanilla/drivers/acpi/Kconfig	2006-05-17 08:11:25.000000000 +0800
-+++ linux-2.6.17-rc4/drivers/acpi/Kconfig	2006-05-22 11:20:46.000000000 +0800
-@@ -192,7 +192,18 @@ config ACPI_ASUS
-           driver is still under development, so if your laptop is unsupported or
-           something works not quite as expected, please use the mailing list
-           available on the above page (acpi4asus-user@lists.sourceforge.net)
--          
-+
-+config ACPI_ATLAS
-+	tristate "Atlas Wallmount Touchscreen Extras"
-+	depends on X86
-+	default n
-+         ---help---
-+          This driver is intended for Atlas wallmounted touchscreens. 
-+          The button events will show up in /proc/acpi/events and also
-+          as scancodes F1 through F9, and in X if you use evdev.
-+
-+          If you have an Atlas wallmounted touchscreen, say Y or M here. 
-+
- config ACPI_IBM
- 	tristate "IBM ThinkPad Laptop Extras"
- 	depends on X86
-diff -X linux-2.6.17-rc4/Documentation/dontdiff -X excludevid -X excludealsa -uprN linux-2.6.17-rc4-vanilla/drivers/acpi/Makefile linux-2.6.17-rc4/drivers/acpi/Makefile
---- linux-2.6.17-rc4-vanilla/drivers/acpi/Makefile	2006-05-17 08:11:25.000000000 +0800
-+++ linux-2.6.17-rc4/drivers/acpi/Makefile	2006-05-18 13:06:05.000000000 +0800
-@@ -53,6 +53,7 @@ obj-$(CONFIG_ACPI_SYSTEM)	+= system.o ev
- obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
- obj-$(CONFIG_ACPI_NUMA)		+= numa.o
- obj-$(CONFIG_ACPI_ASUS)		+= asus_acpi.o
-+obj-$(CONFIG_ACPI_ATLAS)	+= atlas_acpi.o
- obj-$(CONFIG_ACPI_IBM)		+= ibm_acpi.o
- obj-$(CONFIG_ACPI_TOSHIBA)	+= toshiba_acpi.o
- obj-y				+= scan.o motherboard.o
+
+-----Original Message-----
+From: linux-acpi-owner@vger.kernel.org
+[mailto:linux-acpi-owner@vger.kernel.org]On Behalf Of Andreas Saur
+Sent: Saturday, 20 May 2006 10:13 AM
+To: linux-acpi@vger.kernel.org
+Subject: RE: Help request on S3 resume problems
+
+
+Hello,
+
+same here! (nForce2 chipset).
+
+After many many trial and error scenarios, I cannot remember exactly what
+I've done to get it work (resume from s3 on WOL) at least partitially.
+
+1) In a sort of combination of using X86_UP_IOAPIC with USB turned off in
+BIOS, the system always woke up after sending the magic packet.
+2) After turning on USB in BIOS the system woke up exactly 3 times. The
+forth time always led to a dead keyboard and a black screen, no ping.
+3) Turning off X86_UP_IOAPIC in the kernel leads always to a dead keyboard
+and black screen, no ping.
+
+Except WOL, S3 works fine here using the PowerButton or Keyboard.
+
+I've studied all the the logs I've turned on in kernel, but there is nothing
+of interest concerning this error, at least for me.
+Btw. It didn't make a difference whether doing the test in single user mode
+or not. Results were the same. I've also turned off all devices I could in
+the BIOS to minimize the IRQ impact. Didn't make a difference either.
+
+It's a pitty, I was so close to a very cool MediaCenterPC for my
+living-room. But at the moment I ran out of ideas. If anybody is interested
+in my specs, can look into a bugzilla report I've posted earlier (another
+problem), the hardware didn't change, except the kernel. It's 2.6.17-rc3 at
+the moment. the last three mm patches led to kernel panics. (here my specs:
+http://bugzilla.kernel.org/show_bug.cgi?id=6326)
+
+Regards,
+
+Andreas
+
+>Len,
+>
+>Thanks for the quick response. Unfortunately, I think in this instance that
+>the failure on resume IS related to the method of waking. Here are the
+>results of testing as you imply below:
+>
+>Resume from S3 using power button	  -> 100% functional, both ttyS0 serial
+>console and NVIDIA video card console
+>Resume from S3 using WOL magic packet -> Fans run, disk activity, NO NVIDIA
+>video card console response, NO ttyS0 serial console response, NO ping
+>response
+>Resume from S5 using power button	  -> Normal boot
+>Resume from S5 using WOL magic packet -> Normal boot
+>
+>I haven't tried wake from S4 as I don't currently have a swap partition
+>large enough to try it (1GB RAM).
+>
+>Regards,
+>
+>David.
+
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
