@@ -1,42 +1,49 @@
-From: Andreas Saur <saur@acmelabs.de>
-Subject: 2.6.17-rc4-mm3 - kernel panic
-Date: Tue, 23 May 2006 20:24:36 +0000
-Message-ID: <44736F84.6030703@acmelabs.de>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: DSDT on Averatec 1050
+Date: Tue, 23 May 2006 13:33:29 -0700
+Message-ID: <B28E9812BAF6E2498B7EC5C427F293A45605AE@orsmsx415.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from natlemon.rzone.de ([81.169.145.170]:42685 "EHLO
-	natlemon.rzone.de") by vger.kernel.org with ESMTP id S932123AbWEWUYn
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 May 2006 16:24:43 -0400
-Received: from server.zuhause.xx (p50814C7D.dip0.t-ipconnect.de [80.129.76.125])
-	(authenticated bits=0)
-	by post.webmailer.de (8.13.6/8.13.6) with ESMTP id k4NKOeBd000636
-	for <linux-acpi@vger.kernel.org>; Tue, 23 May 2006 22:24:41 +0200 (MEST)
-Received: from [192.168.1.32] (helo=[192.168.1.32])
-	by server.zuhause.xx with esmtp (Exim 4.50)
-	id 1Fiagf-0005CK-VJ
-	for linux-acpi@vger.kernel.org; Tue, 23 May 2006 19:28:54 +0200
+Received: from mga03.intel.com ([143.182.124.21]:25867 "EHLO
+	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
+	id S932154AbWEWUee convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 May 2006 16:34:34 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: trenn@suse.de
+Cc: Paul Wagner <paul_spam@gmx.at>, linux-acpi@vger.kernel.org
 
-Hello,
++    | PARSEOP_IO                    {$$ = TrCreateValuedLeafNode
+(PARSEOP_IO, (ACPI_NATIVE_INT) "IO");}
 
-Still Kernel Panic in 2.6.17-rc4-mm3. Screen-shot here: 
-http://as68.homeip.net/2.6.17-rc4-mm3/
-Specs same as in here: http://as68.homeip.net/2.6.17-rc4-mm2/
-Just config changed a bit:
-#######
-CONFIG_X86_UP_APIC=y
-CONFIG_X86_UP_IOAPIC=y
-#######
-Again a namespacing thing with ACPI.
-What do I do wrong ?
+I would imagine that we would want to type the node as
+PARSEOP_NAMESTRING.
 
-Regards,
+I think there are a few more like this, "DMA" comes to mind immediately.
 
-Andreas
+Bob
 
 
+> -----Original Message-----
+> From: Thomas Renninger [mailto:trenn@suse.de]
+> Sent: Friday, May 19, 2006 6:03 AM
+> To: Moore, Robert
+> Cc: Paul Wagner; linux-acpi@vger.kernel.org
+> Subject: RE: DSDT on Averatec 1050
+> 
+> On Thu, 2006-05-11 at 10:56 -0700, Moore, Robert wrote:
+> > May have gotten lost in the noise, please send to me.
+> 
+> Attached are two patches:
+>  1) Fixes compiler nameclash if IO keyword is used as field
+declaration
+>  2) If (generic, dsdt.dsl) output file is already created with
+> insufficient
+>     privileges to the current user, iasl -d dsdt segfaults.
+>     This patch makes iasl to exit gracefully.
+> 
+>       Thomas
