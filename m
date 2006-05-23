@@ -1,45 +1,38 @@
-From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Subject: Re: 2.6.16-rc5: known regressions [TP 600X S3, vanilla DSDT]
-Date: Tue, 23 May 2006 18:12:53 +0100
-Message-ID: <E1FiaRB-00085Y-00@skye.ra.phy.cam.ac.uk>
-References: <554C5F4C5BA7384EB2B412FD46A3BAD11206E3@pdsmsx411.ccr.corp.intel.com>
+From: Andreas Mohr <andi@rhlx01.fht-esslingen.de>
+Subject: [PATCH] -mm: make ACPI errata __read_mostly
+Date: Tue, 23 May 2006 20:53:08 +0200
+Message-ID: <20060523185308.GA10827@rhlx01.fht-esslingen.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mraos.ra.phy.cam.ac.uk ([131.111.48.8]:31945 "EHLO
-	mraos.ra.phy.cam.ac.uk") by vger.kernel.org with ESMTP
-	id S1750811AbWEWRNM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 May 2006 13:13:12 -0400
-In-Reply-To: Your message of "Tue, 23 May 2006 21:29:36 +0800."
-             <554C5F4C5BA7384EB2B412FD46A3BAD11206E3@pdsmsx411.ccr.corp.intel.com>
+Received: from rhlx01.fht-esslingen.de ([129.143.116.10]:18616 "EHLO
+	rhlx01.fht-esslingen.de") by vger.kernel.org with ESMTP
+	id S932264AbWEWSxJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 23 May 2006 14:53:09 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Yu, Luming" <luming.yu@intel.com>
-Cc: trenn@suse.de, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Tom Seeley <redhat@tomseeley.co.uk>, Dave Jones <davej@redhat.com>, Jiri Slaby <jirislaby@gmail.com>, michael@mihu.de, mchehab@infradead.org, Brian Marete <bgmarete@gmail.com>, Ryan Phillips <rphillips@gentoo.org>, gregkh@suse.de, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Randy Dunlap <rdunlap@xenotime.net>, jgarzik@pobox.com, Duncan <1i5t5.duncan@cox.net>, Pavlik Vojtech <vojtech@suse.cz>, Meelis Roos <mroos@linux.ee>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
+To: Andrew Morton <akpm@osdl.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-[Trimmed lists that seemed unrelated: v4l-dvb-maintainer@linuxtv.org,
- video4linux-list@redhat.com, linux-usb-devel@lists.sourceforge.net,
- linux-ide@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz]
+Hello all,
 
-> But this Samsung P35 don't have _GLK. So, I think TP 600x has
-> a different problem with Samsung P35.
+this may be quite useful given frequent ACPI idle invocation...
 
-You're right.  I tried 2.6.16.18, which has the smbus patch, but it
-didn't help the resume.  I need to test more whether it helps the fan,
-but I doubt it will.
+i386 run-tested on 2.6.17-rc4-mm3.
 
-2.6.17-rc4 (with vanilla DSDT) does strange things to the fan.  At
-boot, the fan is often on.  The trip point is 37 C (the DSDT default)
-and temperature, say, 40 C.  That's fine and the fan should be on.
-But if I set the trip point to 45 C and the poll interval to 100
-seconds, the fan remains on.  I have to set the trip point and polling
-interval a second time for the fan to turn off.  With 2.6.16-rc5, it
-would turn off after the first setting.
+Signed-off-by: Andreas Mohr <andi@lisas.de>
 
-Also, and I need to check which kernel it is (either 2.6.16.18 or
-2.6.17-rc4), during S3 sleep, the right speaker made a quiet hiss.  I
-imagine that will run down the battery pretty quickly.  It's a new
-behavior since 2.6.16-rc5.
 
--Sanjoy
-
-`Never underestimate the evil of which men of power are capable.'
-         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
+diff -urN linux-2.6.17-rc4-mm3.orig/drivers/acpi/processor_core.c linux-2.6.17-rc4-mm3.my/drivers/acpi/processor_core.c
+--- linux-2.6.17-rc4-mm3.orig/drivers/acpi/processor_core.c	2006-05-23 19:14:14.000000000 +0200
++++ linux-2.6.17-rc4-mm3/drivers/acpi/processor_core.c	2006-05-22 15:47:05.000000000 +0200
+@@ -110,7 +110,7 @@
+ };
+ 
+ struct acpi_processor *processors[NR_CPUS];
+-struct acpi_processor_errata errata;
++struct acpi_processor_errata errata __read_mostly;
+ 
+ /* --------------------------------------------------------------------------
+                                 Errata Handling
