@@ -1,141 +1,154 @@
-From: Andreas Saur <saur@acmelabs.de>
-Subject: Double/Tripple lan0 entries in /proc/interrupts
-Date: Tue, 23 May 2006 22:45:36 +0000
-Message-ID: <44739090.9080807@acmelabs.de>
+From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
+Subject: back to discussion of VIA quirk fixup
+Date: Wed, 24 May 2006 02:12:26 +0100
+Message-ID: <1148433146.2885.41.camel@localhost.portugal>
+Reply-To: sergio@sergiomb.no-ip.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-oBofgayzHbuR94v9Bg8C"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nattrymon.rzone.de ([81.169.145.178]:29393 "EHLO
-	nattrymon.rzone.de") by vger.kernel.org with ESMTP id S932261AbWEWWpj
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 May 2006 18:45:39 -0400
-Received: from server.zuhause.xx (p50814C7D.dip0.t-ipconnect.de [80.129.76.125])
-	(authenticated bits=0)
-	by post.webmailer.de (8.13.6/8.13.6) with ESMTP id k4NMjaSF008179
-	for <linux-acpi@vger.kernel.org>; Wed, 24 May 2006 00:45:37 +0200 (MEST)
-Received: from [192.168.1.38] (helo=[192.168.1.38])
-	by server.zuhause.xx with esmtp (Exim 4.50)
-	id 1Fict7-0003Ld-T2
-	for linux-acpi@vger.kernel.org; Tue, 23 May 2006 21:49:53 +0200
+Received: from smtp4.netcabo.pt ([212.113.174.31]:20105 "EHLO
+	exch01smtp11.hdi.tvcabo") by vger.kernel.org with ESMTP
+	id S932512AbWEXBMo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 23 May 2006 21:12:44 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-
-Hello All,
-
-after getting kernel panics with the mm-patches, I've just patched the 
-kernel 2.6.17-rc4 only with the latest appropriate git-acpi patch.
-Question #1: Is this a valid option, to patch the kernel like that? (If 
-YES -> Next Question)
-Question #2: Is it bad to have two lan0 entries after a fresh boot in 
-/proc/interrupts, although there is just only one NIC in my system?
-Question #3: After suspend (S3) and wake up the system via PowerButton, 
-I have three lan0 in /proc/interrupts. Is this even worse?
-Question #4: Could this be an indicator for having problems with 
-resuming from S3 via WOL (magic packet)?
-
-With one older kernel (2.6.17-rc1) I've found a constellation where I at 
-least could WOL the system from S3 up to three times, the forth time it 
-died. The same kernel-config doesn't work here at all.
-
-Regards,
-
-Andreas.
-
-###### BEFORE S3###(have a look at lan0#)############
-           CPU0
-  0:    131157    IO-APIC-edge  timer
-  1:    93    IO-APIC-edge  i8042
-  8:    4    IO-APIC-edge  rtc
-  9:    0   IO-APIC-level  acpi
- 12:    3868    IO-APIC-edge  i8042
- 14:    14283    IO-APIC-edge  ide0
- 16:    49265   IO-APIC-level  ohci_hcd:usb1, lan0, lan0
- 17:    3680   IO-APIC-level  ohci_hcd:usb2, NVidia nForce2
- 18:    0   IO-APIC-level  ehci_hcd:usb3
- 19:    284529   IO-APIC-level  saa7146 (0)
- 20:    36053   IO-APIC-level  nvidia
-NMI:    0
-LOC:    130928
-ERR:    0
-MIS:    0
+To: linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
 
-####### AFTER RESUME FROM S3 VIA POWERBUTTON ########
-           CPU0
-  0:    359990    IO-APIC-edge  timer
-  1:    3029    IO-APIC-edge  i8042
-  8:    4    IO-APIC-edge  rtc
-  9:    0   IO-APIC-level  acpi
- 12:    19715    IO-APIC-edge  i8042
- 14:    18292    IO-APIC-edge  ide0
- 16:    140356   IO-APIC-level  lan0, lan0, lan0, ohci_hcd:usb2
- 17:    3680   IO-APIC-level  ohci_hcd:usb3, NVidia nForce2
- 18:    1   IO-APIC-level  ehci_hcd:usb1
- 20:    105779   IO-APIC-level  nvidia
-NMI:    0
-LOC:    359315
-ERR:    0
-MIS:    0
+--=-oBofgayzHbuR94v9Bg8C
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 
-###### lspci ##########
-0000:00:00.0 Host bridge: nVidia Corporation nForce2 AGP (different 
-version?) (rev c1)
-0000:00:00.1 RAM memory: nVidia Corporation nForce2 Memory Controller 1 
-(rev c1)
-0000:00:00.2 RAM memory: nVidia Corporation nForce2 Memory Controller 4 
-(rev c1)
-0000:00:00.3 RAM memory: nVidia Corporation nForce2 Memory Controller 3 
-(rev c1)
-0000:00:00.4 RAM memory: nVidia Corporation nForce2 Memory Controller 2 
-(rev c1)
-0000:00:00.5 RAM memory: nVidia Corporation nForce2 Memory Controller 5 
-(rev c1)
-0000:00:01.0 ISA bridge: nVidia Corporation nForce2 ISA Bridge (rev a4)
-0000:00:01.1 SMBus: nVidia Corporation nForce2 SMBus (MCP) (rev a2)
-0000:00:02.0 USB Controller: nVidia Corporation nForce2 USB Controller 
-(rev a4)
-0000:00:02.1 USB Controller: nVidia Corporation nForce2 USB Controller 
-(rev a4)
-0000:00:02.2 USB Controller: nVidia Corporation nForce2 USB Controller 
-(rev a4)
-0000:00:04.0 Ethernet controller: nVidia Corporation nForce2 Ethernet 
-Controller (rev a1)
-0000:00:06.0 Multimedia audio controller: nVidia Corporation nForce2 
-AC97 Audio Controler (MCP) (rev a1)
-0000:00:08.0 PCI bridge: nVidia Corporation nForce2 External PCI Bridge 
-(rev a3)
-0000:00:09.0 IDE interface: nVidia Corporation nForce2 IDE (rev a2)
-0000:00:1e.0 PCI bridge: nVidia Corporation nForce2 AGP (rev c1)
-0000:01:08.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-0000:02:00.0 VGA compatible controller: nVidia Corporation NV34 [GeForce 
-FX 5200] (rev a1)
+Hi,
+Before this matter getting cold, I'd like to tell this:
 
-####### ver_linux on a DEBIAN SID#########
-Gnu C                  4.0.4
-Gnu make               3.81rc1
-util-linux             2.12r
-mount                  2.12r
-modutils               3.2.2
-e2fsprogs              1.39-WIP
-jfsutils               1.1.8
-xfsprogs               2.7.14
-quota-tools            3.13.
-PPP                    2.4.4b1
-isdn4k-utils           3.8
-Linux C Library        2.3.6
-Dynamic linker (ldd)   2.3.6
-Procps                 3.2.6
-Net-tools              1.60
-Console-tools          0.2.3
-Sh-utils               5.94
-Modules Loaded         b2c2_flexcop_pci b2c2_flexcop mt352 mt312 bcm3510 
-nxt200x dvb_pll lgdt330x dvb_ttpci l64781 saa7146_vv video_buf saa7146 
-v4l1_compat v4l2_common videodev ves1820 tda8083 sp8870 ves1x93 
-ttpci_eeprom snd_intel8x0 snd_ac97_codec snd_ac97_bus snd_pcm_oss 
-snd_mixer_oss snd_pcm snd_timer snd soundcore snd_page_alloc sd_mod 
-ohci_hcd ehci_hcd usb_storage scsi_mod libusual usbhid usbcore stv0299 
-dvb_core stv0297 firmware_class nvidia cpufreq_nforce2 forcedeth rtc
+1=BA This quirk_via_irq function has been created originally by Bjorn
+Helgaas, so maybe he can tell better what patch does.
 
-more precise specs about my system: http://as68.homeip.net/2.6.17-rc4-mm2/
+2=BA This is need it on a Compaq presario 700 (laptop) that I bought on
+year 2002. After new ACPI get some stability and enter in kernel
+(2.4.22), some quirks could be deleted. And when Bjorn has being to
+introduction GSIs stuff, came with this patch that replace another bunch
+of quirks.
+
+3=BA On my new desktop, one Intel(R) Pentium(R) D ual, using lscpi -n, I
+see that I got :
+cat /usr/include/linux/pci_ids.h  | grep VIA | grep 3149
+#define PCI_DEVICE_ID_VIA_8237_SATA     0x3149
+PCI_DEVICE_ID_VIA_82C586_1      0x0571
+PCI_DEVICE_ID_VIA_82C586_2      0x3038
+
+But I think, I don't need this quirks, but with or without the quirks I
+still have one oops on my ethernet card, you can have more details on:
+http://bugme.osdl.org/show_bug.cgi?id=3D6419=20
+I think my system runs better without quirks, but I am not sure and I
+don't have a way to prove it !
+
+REFERENCES:
+http://lkml.org/lkml/2006/5/9/250
+
+Subject	Re: [PATCH] VIA quirk fixup, additional PCI IDs=09
+Dave Jones wrote:
+>
+> On Tue, May 09, 2006 at 12:59:16PM -0700, Andrew Morton wrote:
+>  > This looks like a 2.6.17-worthy fix, but it's not clear.  Help.  What
+>  > happens if 2.6.17 doesn't have this??
+>=20
+> We won't run the quirk on machines that used to have it run,
+> so we get buggered up irq routing.
+>=20
+and
+Andrew Morton wrote:
+OK..
+
+We used to have
+
+DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_ANY_ID, quirk_via_irq);
+
+and we now have
+
+DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C586_0, qui=
+rk_via_irq);
+DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C586_1, qui=
+rk_via_irq);
+DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C586_2, qui=
+rk_via_irq);
+DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C586_3, qui=
+rk_via_irq);
+DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C686, quirk=
+_via_irq);
+DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C686_4, qui=
+rk_via_irq);
+DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C686_5, qui=
+rk_via_irq);
+
+which is rather a step backwards, because we need to keep that list updated
+now, and we'll fail to catch new devices.
+
+What happens if we just revert 75cf7456dd87335f574dcd53c4ae616a2ad71a11?
+
+It says
+
+    Alan Cox pointed out that the VIA 'IRQ fixup' was erroneously running
+    on my system which has no VIA southbridge (but I do have a VIA IEEE
+    1394 device).
+
+but so what?  Did anything actually go wrong?  Is it likely to go wrong in
+the future?
+
+Is there was a problem, is there something we can do at runtime in
+quirk_via_irq() to avoid the problem, rather than expanding out the fixup
+list in this manner?
+
+Thanks,
+--=20
+S=E9rgio M. B.
+
+--=-oBofgayzHbuR94v9Bg8C
+Content-Type: application/x-pkcs7-signature; name=smime.p7s
+Content-Disposition: attachment; filename=smime.p7s
+Content-Transfer-Encoding: base64
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGSTCCAwIw
+ggJroAMCAQICAw/vkjANBgkqhkiG9w0BAQQFADBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhh
+d3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVt
+YWlsIElzc3VpbmcgQ0EwHhcNMDUxMTI4MjIyODU2WhcNMDYxMTI4MjIyODU2WjBLMR8wHQYDVQQD
+ExZUaGF3dGUgRnJlZW1haWwgTWVtYmVyMSgwJgYJKoZIhvcNAQkBFhlzZXJnaW9Ac2VyZ2lvbWIu
+bm8taXAub3JnMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApCNuKD3pz8GRKd1q+36r
+m0z7z+TBsbTrVa45UQsEeh9OQGZIASJMH5erC0u6KbKJ+km97RLOdsgSlKG6+5xuzsk+aqU7A0Gp
+kMjzIJT7UH/bbPnIFMQNnWJxluuYq1u+v8iIbfezQy1+SXyAyBv+OC7LnCOiOar/L9AD9zDy2fPX
+EqEDlbO3CJsoaR4Va8sgtoV0NmKnAt7DA0iZ2dmlsw6Qh+4euI+FgZ2WHPBQnfJ7PfSH5GIWl/Nx
+eUqnYpDaJafk/l94nX71UifdPXDMxJJlEOGqV9l4omhNlPmsZ/zrGXgLdBv9JuPjJ9mxhgwZsZbz
+VBc8emB0i3A7E6D6rwIDAQABo1kwVzAOBgNVHQ8BAf8EBAMCBJAwEQYJYIZIAYb4QgEBBAQDAgUg
+MCQGA1UdEQQdMBuBGXNlcmdpb0BzZXJnaW9tYi5uby1pcC5vcmcwDAYDVR0TAQH/BAIwADANBgkq
+hkiG9w0BAQQFAAOBgQBIVheRn3oHTU5rgIFHcBRxkIhOYPQHKk/oX4KakCrDCxp33XAqTG3aIG/v
+dsUT/OuFm5w0GlrUTrPaKYYxxfQ00+3d8y87aX22sUdj8oXJRYiPgQiE6lqu9no8axH6UXCCbKTi
+8383JcxReoXyuP000eUggq3tWr6fE/QmONUARzCCAz8wggKooAMCAQICAQ0wDQYJKoZIhvcNAQEF
+BQAwgdExCzAJBgNVBAYTAlpBMRUwEwYDVQQIEwxXZXN0ZXJuIENhcGUxEjAQBgNVBAcTCUNhcGUg
+VG93bjEaMBgGA1UEChMRVGhhd3RlIENvbnN1bHRpbmcxKDAmBgNVBAsTH0NlcnRpZmljYXRpb24g
+U2VydmljZXMgRGl2aXNpb24xJDAiBgNVBAMTG1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBDQTEr
+MCkGCSqGSIb3DQEJARYccGVyc29uYWwtZnJlZW1haWxAdGhhd3RlLmNvbTAeFw0wMzA3MTcwMDAw
+MDBaFw0xMzA3MTYyMzU5NTlaMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3Vs
+dGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWlu
+ZyBDQTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAxKY8VXNV+065yplaHmjAdQRwnd/p/6Me
+7L3N9VvyGna9fww6YfK/Uc4B1OVQCjDXAmNaLIkVcI7dyfArhVqqP3FWy688Cwfn8R+RNiQqE88r
+1fOCdz0Dviv+uxg+B79AgAJk16emu59l0cUqVIUPSAR/p7bRPGEEQB5kGXJgt/sCAwEAAaOBlDCB
+kTASBgNVHRMBAf8ECDAGAQH/AgEAMEMGA1UdHwQ8MDowOKA2oDSGMmh0dHA6Ly9jcmwudGhhd3Rl
+LmNvbS9UaGF3dGVQZXJzb25hbEZyZWVtYWlsQ0EuY3JsMAsGA1UdDwQEAwIBBjApBgNVHREEIjAg
+pB4wHDEaMBgGA1UEAxMRUHJpdmF0ZUxhYmVsMi0xMzgwDQYJKoZIhvcNAQEFBQADgYEASIzRUIPq
+Cy7MDaNmrGcPf6+svsIXoUOWlJ1/TCG4+DYfqi2fNi/A9BxQIJNwPP2t4WFiw9k6GX6EsZkbAMUa
+C4J0niVQlGLH2ydxVyWN3amcOY6MIE9lX5Xa9/eH1sYITq726jTlEBpbNU1341YheILcIRk13iSx
+0x1G/11fZU8xggHvMIIB6wIBATBpMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29u
+c3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNz
+dWluZyBDQQIDD++SMAkGBSsOAwIaBQCgXTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqG
+SIb3DQEJBTEPFw0wNjA1MjQwMTEyMjJaMCMGCSqGSIb3DQEJBDEWBBR/1r1Sz3yDPcoNM7bQNGyL
+mBItsDANBgkqhkiG9w0BAQEFAASCAQCVBBT6CS9x0uzYx8Bhto/T3t4/ZKYT2OqYIvL1k18eBjEI
+7svpWcLuW6eEeMlbH96V4p2VqH1FZGGFQCiS9IgKFZAMHQXVDcqaezYQTwVVR8XKWBmdzMQyFYSu
+5GBW5p0wdDws9cuLfDUFIAwe1d7xWJvIjUR3nvctTijvqsJT1zlJVdfirElPR5REyLc0ia6sZ/YD
+5FqGQ6KNQVPtrhjEKra8LIZHYc/YScyXDboUpbQlJttB6kb6MmZ1S/kuq9a7fmSCjsZFQdbCuJZx
+KnbYxAUz9xIzNaYoHgH7F0yhznwDn1KUEr1jk7lL0mSYrI7sQNGKJ12djxVsqQMwYg4IAAAAAAAA
+
+
+
+--=-oBofgayzHbuR94v9Bg8C--
