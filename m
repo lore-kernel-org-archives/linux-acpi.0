@@ -1,152 +1,74 @@
-From: Andreas Saur <saur@acmelabs.de>
-Subject: Re: Double/Tripple lan0 entries in /proc/interrupts
-Date: Wed, 24 May 2006 23:52:29 +0000
-Message-ID: <4474F1BD.5040404@acmelabs.de>
-References: <CFF307C98FEABE47A452B27C06B85BB68AD7DF@hdsmsx411.amr.corp.intel.com>
+From: "Alon Keren" <alon.keren@gmail.com>
+Subject: ACPI's 'thermal_zone' and 'fan' on XW6200, kernel 2.6.15
+Date: Thu, 25 May 2006 15:25:04 +0300
+Message-ID: <92c85b0e0605250525t2c66a81aqda2c498a2b9a3786@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII;
+	format=flowed
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from natlemon.rzone.de ([81.169.145.170]:8338 "EHLO
-	natlemon.rzone.de") by vger.kernel.org with ESMTP id S932375AbWEXXwZ
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 May 2006 19:52:25 -0400
-In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB68AD7DF@hdsmsx411.amr.corp.intel.com>
+Received: from wx-out-0102.google.com ([66.249.82.199]:10055 "EHLO
+	wx-out-0102.google.com") by vger.kernel.org with ESMTP
+	id S965130AbWEYMZE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 May 2006 08:25:04 -0400
+Received: by wx-out-0102.google.com with SMTP id s6so1292299wxc
+        for <linux-acpi@vger.kernel.org>; Thu, 25 May 2006 05:25:04 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, len.brown@intel.com
+To: linux-acpi@vger.kernel.org
+Cc: haizaar@gmail.com
 
-Hello Len,
+Hi,
+my machine is HP's XW6200 desktop, running LFS with a 2.6.15 kernel.
+When loading acpi's 'fan' and 'thermal' modules, the dircetories
+'/proc/acpi/{fan,thermal_zone}' appear, but contain nothing. No
+complaints appear on 'dmesg', and other modules ('button' and
+'processor') seem to behave well.
+I wish to find out whether the problem is due to hardware limitations,
+software limitations, or perhaps software configuration, and I'm not
+sure how to go about it. I write here as I failed to come up with much
+elsewhere online.
 
-1) Double lan0 entry persists, no matter if your patch (see your link) 
-is applied or not. I guess, the following is categorized for you now as 
-'not my job anymore', but just for your entertainment, lay back and enjoy:
+Some further information that could be helpful:
+> zgrep -i acpi /proc/config.gz
 
-2) After fresh boot there are still two lan0 entries (w/o your patch)
---> 
-http://as68.homeip.net/kernel/2.6.17-rc4-len2/interrupts-fresh-boot-2.6.17-rc4-len2
+# Power management options (ACPI, APM)
+# ACPI (Advanced Configuration and Power Interface) Support
+CONFIG_ACPI=y
+CONFIG_ACPI_SLEEP=y
+CONFIG_ACPI_SLEEP_PROC_FS=y
+# CONFIG_ACPI_SLEEP_PROC_SLEEP is not set
+CONFIG_ACPI_AC=m
+CONFIG_ACPI_BATTERY=m
+CONFIG_ACPI_BUTTON=m
+CONFIG_ACPI_VIDEO=m
+CONFIG_ACPI_HOTKEY=m
+CONFIG_ACPI_FAN=m
+CONFIG_ACPI_PROCESSOR=m
+CONFIG_ACPI_HOTPLUG_CPU=y
+CONFIG_ACPI_THERMAL=m
+CONFIG_ACPI_ASUS=m
+CONFIG_ACPI_IBM=m
+CONFIG_ACPI_TOSHIBA=m
+CONFIG_ACPI_BLACKLIST_YEAR=0
+CONFIG_ACPI_DEBUG=y
+CONFIG_ACPI_EC=y
+CONFIG_ACPI_POWER=y
+CONFIG_ACPI_SYSTEM=y
+CONFIG_ACPI_CONTAINER=m
+CONFIG_X86_ACPI_CPUFREQ=m
+CONFIG_X86_POWERNOW_K7_ACPI=y
+CONFIG_X86_POWERNOW_K8_ACPI=y
+CONFIG_X86_SPEEDSTEP_CENTRINO_ACPI=y
+# CONFIG_X86_ACPI_CPUFREQ_PROC_INTF is not set
+CONFIG_HOTPLUG_PCI_ACPI=m
+CONFIG_HOTPLUG_PCI_ACPI_IBM=m
+CONFIG_PNPACPI=y
+# CONFIG_SERIAL_8250_ACPI is not set
 
-3) After suspend(S3) and resume by KeyBoard there are three lan0 entries
---> 
-http://as68.homeip.net/kernel/2.6.17-rc4-len2/interrupts-after-S3-KBD-2.6.17-rc4-len2
+Thanks,
+ Alon
 
-4) After your suggested rmmod, the lan0 entries are replaced now by a 
-bunch of random characters.
---> 
-http://as68.homeip.net/kernel/2.6.17-rc4-len2/interrupts-after-rmmod_forcedeth-2.6.17-rc4-len2
-
-5) Doing a insmod and a '/etc/init.d/networking restart' provokes a 
-kernel panic. Btw.: insmoding does not trigger a dmesg output.
---> http://as68.homeip.net/kernel/2.6.17-rc4-len2/2006-05-24-221108.jpg
-
-6) If I leave out step 5, reloading the module is possible, this leads 
-to four lan0 entries in /proc/interrupts. But hey, guys, I don't really 
-need that much ;-)
-
-Len, You were completely right: 'Bad bad NIC' ;-) Thanks anyway!
-
-Regards,
-
-Andreas
-
--------------------------------------------
-SUMMERY (alway the same .config)
-
-2.6.17-rc1 --> always resuming(S3) w/o USB in BIOS using WOL, with USB 
-three times, forth time dead.
-2.6.17-rc3 --> resumes from S3 only with KeyBoard or PowerButton. WOL 
-not working. Interrupt entries for lan0 are OK.
-2.6.17-rc4 --> resumes from S3 only with KeyBoard or PowerButton and 
-this only once. WOL not working. Interrupt entries for lan0 are messed up.
-
-Since 2.6.17-rc2 all mm-patches are causing kernel panics. Standalone 
-ACPI-patches does not have any effects (OK, why should they, seems 
-something else is broken).
-I have the massive feeling something is developing not quite the way it 
-should.
--------------------------------------------
-
-
-Brown, Len schrieb:
-
->>after getting kernel panics with the mm-patches, I've just patched the 
->>kernel 2.6.17-rc4 only with the latest appropriate git-acpi patch.
->>Question #1: Is this a valid option, to patch the kernel like 
->>that? (If >YES -> Next Question)
->>    
->>
->
->Yes. the latest acpi patch is against Linus' tree.
->eg.
->http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/test/2.6
->.17/acpi-test-20060310-2.6.17-rc4.diff.bz2
->
->  
->
->>Question #2: Is it bad to have two lan0 entries after a fresh boot in 
->>/proc/interrupts, although there is just only one NIC in my system?
->>    
->>
->
->bad NIC, no packet for you.
->
->  
->
->>Question #3: After suspend (S3) and wake up the system via 
->>PowerButton, 
->>I have three lan0 in /proc/interrupts. Is this even worse?
->>    
->>
->
->bad bad NIC...
->
->  
->
->>Question #4: Could this be an indicator for having problems with 
->>resuming from S3 via WOL (magic packet)?
->>    
->>
->
->I doubt it, since something is very broken immediately after the fresh
->boot.
->
->  
->
->>With one older kernel (2.6.17-rc1) I've found a constellation 
->>where I at 
->>least could WOL the system from S3 up to three times, the 
->>forth time it 
->>died. The same kernel-config doesn't work here at all.
->>    
->>
->
->So this multiple lan0 thing goes away when you boot 2.6.17-rc4
->without the acpi patch?
->
->if you rmmod the driver, and the modprobe it again
->does it add an additional entry to /proc/interrupts?
->
->thanks,
->-Len
->
->
->  
->
->>###### BEFORE S3###(have a look at lan0#)############
->>    
->>
->
->  
->
->>16:    49265   IO-APIC-level  ohci_hcd:usb1, lan0, lan0
->>    
->>
->
->  
->
->>####### AFTER RESUME FROM S3 VIA POWERBUTTON ########
->>          CPU0
->>16:    140356   IO-APIC-level  lan0, lan0, lan0, ohci_hcd:usb2
->>    
->>
-
+P.S.
+Please CC me, as I'm not subscribed to this list.
