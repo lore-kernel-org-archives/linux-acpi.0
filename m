@@ -1,96 +1,45 @@
-From: "Karasyov, Konstantin A" <konstantin.a.karasyov@intel.com>
-Subject: RE: ACPI's 'thermal_zone' and 'fan' on XW6200, kernel 2.6.15
-Date: Thu, 25 May 2006 16:39:54 +0400
-Message-ID: <E124AAE027DA384D8B919F93E4D8C70801EB82E3@mssmsx402nb>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: Dell Inspiron 6000: Suspend with Fn + F1 keys using acpid
+Date: Thu, 25 May 2006 14:06:28 +0100
+Message-ID: <20060525130628.GA18414@srcf.ucam.org>
+References: <S932666AbWEXJol/20060524094441Z+163@vger.kernel.org> <200605241219.46413.sebastian.roeder@uni-bielefeld.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:14368 "EHLO
-	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S965136AbWEYMkE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 May 2006 08:40:04 -0400
-Content-class: urn:content-classes:message
+Received: from cavan.codon.org.uk ([217.147.92.49]:37842 "EHLO
+	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
+	id S965144AbWEYNGd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 May 2006 09:06:33 -0400
+Content-Disposition: inline
+In-Reply-To: <200605241219.46413.sebastian.roeder@uni-bielefeld.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Sebastian =?iso-8859-1?Q?R=F6der?= <sebastian.roeder@uni-bielefeld.de>
+Cc: linux-acpi@vger.kernel.org
 
-Hi,
+On Wed, May 24, 2006 at 12:19:46PM +0200, Sebastian R=F6der wrote:
 
->When loading acpi's 'fan' and 'thermal' modules, the dircetories
->'/proc/acpi/{fan,thermal_zone}' appear, but contain nothing. No
+> My question is how can I "workaround" this problem, e.g. create a ACP=
+I event=20
+> for this buttons (kernel patch?) or make acpid work with a normal key=
+code=20
+> rather than an ACPI event? I can not work on the kernel code myself c=
+ause I=20
+> am not skilled in C language :-(
 
-It looks like fan and thermal not present in DSDT on your system. 
-To make sure you should check for '_TZ' (thermal zone definition) and
-'PNP0C0B' (fan device h/w ID) entries in your DSDT.
-Look here for reference: http://acpi.sourceforge.net/dsdt/index.php
+You can't - at least, not in any trivial manner. If you're using recent=
+=20
+versions of hal, you'll get a dbus signal when the hibernate key is=20
+pressed (assuming your keymap is set up correctly), and then you can us=
+e=20
+something like gnome-power-manager or kpowersave to receive that and=20
+trigger the response you want.
 
-Regards.
-Konstantin.
->-----Original Message-----
->From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
->owner@vger.kernel.org] On Behalf Of Alon Keren
->Sent: Thursday, May 25, 2006 4:25 PM
->To: linux-acpi@vger.kernel.org
->Cc: haizaar@gmail.com
->Subject: ACPI's 'thermal_zone' and 'fan' on XW6200, kernel 2.6.15
->
->Hi,
->my machine is HP's XW6200 desktop, running LFS with a 2.6.15 kernel.
->When loading acpi's 'fan' and 'thermal' modules, the dircetories
->'/proc/acpi/{fan,thermal_zone}' appear, but contain nothing. No
->complaints appear on 'dmesg', and other modules ('button' and
->'processor') seem to behave well.
->I wish to find out whether the problem is due to hardware limitations,
->software limitations, or perhaps software configuration, and I'm not
->sure how to go about it. I write here as I failed to come up with much
->elsewhere online.
->
->Some further information that could be helpful:
->> zgrep -i acpi /proc/config.gz
->
-># Power management options (ACPI, APM)
-># ACPI (Advanced Configuration and Power Interface) Support
->CONFIG_ACPI=y
->CONFIG_ACPI_SLEEP=y
->CONFIG_ACPI_SLEEP_PROC_FS=y
-># CONFIG_ACPI_SLEEP_PROC_SLEEP is not set
->CONFIG_ACPI_AC=m
->CONFIG_ACPI_BATTERY=m
->CONFIG_ACPI_BUTTON=m
->CONFIG_ACPI_VIDEO=m
->CONFIG_ACPI_HOTKEY=m
->CONFIG_ACPI_FAN=m
->CONFIG_ACPI_PROCESSOR=m
->CONFIG_ACPI_HOTPLUG_CPU=y
->CONFIG_ACPI_THERMAL=m
->CONFIG_ACPI_ASUS=m
->CONFIG_ACPI_IBM=m
->CONFIG_ACPI_TOSHIBA=m
->CONFIG_ACPI_BLACKLIST_YEAR=0
->CONFIG_ACPI_DEBUG=y
->CONFIG_ACPI_EC=y
->CONFIG_ACPI_POWER=y
->CONFIG_ACPI_SYSTEM=y
->CONFIG_ACPI_CONTAINER=m
->CONFIG_X86_ACPI_CPUFREQ=m
->CONFIG_X86_POWERNOW_K7_ACPI=y
->CONFIG_X86_POWERNOW_K8_ACPI=y
->CONFIG_X86_SPEEDSTEP_CENTRINO_ACPI=y
-># CONFIG_X86_ACPI_CPUFREQ_PROC_INTF is not set
->CONFIG_HOTPLUG_PCI_ACPI=m
->CONFIG_HOTPLUG_PCI_ACPI_IBM=m
->CONFIG_PNPACPI=y
-># CONFIG_SERIAL_8250_ACPI is not set
->
->Thanks,
-> Alon
->
->P.S.
->Please CC me, as I'm not subscribed to this list.
->-
->To unsubscribe from this list: send the line "unsubscribe linux-acpi"
-in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+Matthew Garrett | mjg59@srcf.ucam.org
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
