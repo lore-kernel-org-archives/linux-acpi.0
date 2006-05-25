@@ -1,33 +1,33 @@
-From: "Brown, Len" <len.brown@intel.com>
+From: acme <saur@acmelabs.de>
 Subject: RE: 2.6.17-rc4-mm3 - kernel panic
-Date: Thu, 25 May 2006 14:55:37 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB68F03DB@hdsmsx411.amr.corp.intel.com>
+Date: Thu, 25 May 2006 20:05:34 +0000
+Message-ID: <44760E0E.90408@acmelabs.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:41838 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1030339AbWEYS4E convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 May 2006 14:56:04 -0400
-Content-class: urn:content-classes:message
+Received: from natsluvver.rzone.de ([81.169.145.176]:1506 "EHLO
+	natsluvver.rzone.de") by vger.kernel.org with ESMTP
+	id S1030380AbWEYUFX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 May 2006 16:05:23 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Accardi, Kristen C" <kristen.c.accardi@intel.com>
-Cc: Andreas Saur <saur@acmelabs.de>, linux-acpi@vger.kernel.org, pavel@suse.cz, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org, kristen.c.accardi@intel.com, len.brown@intel.com
 
->the possibility that the acpiphp driver may enter it's 
->module_init before the dock driver has completed it's init?
+Hello Kristen,
 
-Would there be a problem if the init for acpiphp ran
-before the init for dock started?
+does it make sense for me to patch? I meen, if you want me to dmesg, I 
+need a clean boot. But the panic occurs on boot. Since your patch makes 
+nothing but logging, this makes less sense for me.
+And what is that dock thing, could my WOL on S3 and NIC problem also 
+have something to do with that?
 
-(no, I don't think that use of acpi_walk_namespace
- would/could have any effect on the order)
+Btw.: Len, I've compiled the 2.6.16.18 kernel last night, with and 
+without your latest acpi-release. The result was, with patch the system 
+woke up one time and the second time it died, without your patch the 
+system died the very first time sending a magic packet. Funny, but 
+keyboard and powerbutton are always working.
 
-I don't know if we have tight controls on module load order.
-IIR it depends on the link order in the makefiles for
-static modules, and the init scripts for loadable modules.
+Regards,
 
--Len
+Andreas
