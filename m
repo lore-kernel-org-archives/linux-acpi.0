@@ -1,94 +1,52 @@
-From: Kristen Accardi <kristen.c.accardi@intel.com>
+From: Andreas Saur <saur@acmelabs.de>
 Subject: Re: 2.6.17-rc4-mm3 - kernel panic
-Date: Fri, 26 May 2006 11:29:35 -0700
-Message-ID: <1148668175.7600.11.camel@whizzy>
-References: <CFF307C98FEABE47A452B27C06B85BB68AD7E1@hdsmsx411.amr.corp.intel.com>
-	 <1148583675.3070.41.camel@whizzy> <20060525221222.GA1608@elf.ucw.cz>
-	 <20060525221744.GA1671@elf.ucw.cz> <1148601858.3070.62.camel@whizzy>
-	 <20060526071518.GC1699@elf.ucw.cz>
+Date: Fri, 26 May 2006 23:14:35 +0000
+Message-ID: <44778BDB.5010402@acmelabs.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:25902 "EHLO
-	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S1751232AbWEZSSL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 May 2006 14:18:11 -0400
-In-Reply-To: <20060526071518.GC1699@elf.ucw.cz>
+Received: from natnoddy.rzone.de ([81.169.145.166]:39844 "EHLO
+	natnoddy.rzone.de") by vger.kernel.org with ESMTP id S1751680AbWEZXNy
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 26 May 2006 19:13:54 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: "Brown, Len" <len.brown@intel.com>, Andreas Saur <saur@acmelabs.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org, kristen.c.accardi@intel.com
 
-On Fri, 2006-05-26 at 09:15 +0200, Pavel Machek wrote:
-> On =C4=8Ct 25-05-06 17:04:18, Kristen Accardi wrote:
-> > On Fri, 2006-05-26 at 00:17 +0200, Pavel Machek wrote:
-> > > On P=C3=A1 26-05-06 00:12:22, Pavel Machek wrote:
-> > > > Hi!
-> > > >=20
-> > > > > > Does the panic go away with CONFIG_ACPI_DOCK=3Dn?
-> > > >=20
-> > > > > Can either Pavel or Andreas please try this little debugging =
-patch and
-> > > > > send me the dmesg output?  Please enable the CONFIG_DEBUG_KER=
-NEL option
-> > > > > in your .config as well so that I can get additional info.
-> > > >=20
-> > > > Yep, you were right... this debugging patch helps.
-> > >=20
-> > > ...and docking +/- works, but it does not look like PCI in dockin=
-g
-> > > station is properly connected:
-> > >=20
-> >=20
-> > No, I would not expect PCI to work properly with the debug patch -
-> > basically all I did was prevent the oops and confirm that this is t=
-he
-> > issue, I did not actually solve the problem.
-> >=20
-> > I need some way to prevent acpiphp from loading before dock is comp=
-leted
-> > it's init.
-> >=20
-> > I guess I will think about this some more.
->=20
-> Using different _init levels? Like putting dock at subsys_initcall()
-> while acpiphp at late_initcall()?
-> 								Pavel
+Hello Kristen,
 
-Can you see if this works for you?  Revert the first debug patch I sent
-and apply this one instead (against -mm).
+your last patch booted fine. And I've also managed to compile nvidias 
+NVIDIA-Linux-x86-1.0-8756-pkg1 driver. There were two little patches 
+needed in order to compile against mm. But these patches seems to break 
+S3, now S3 doesn't work at all with nvidias closed source drivers.
+Even more bad news (well, only for me I guess ;) ). Resuming from S3 in 
+single user mode w/o nvidias driver, using video post works with 
+powerbutton and keyboard, but not with WOL. I've managed to wake up the 
+system up to eight times using magic packet, the nineth time the box 
+died. I wrote, that your first debugging patch seems to fix my WOL 
+problem, but now I think, that I've just been lucky.
+You ask me to activate the kernel-debugging option, well this could 
+changed the behaviour. Perhaps I do have a kind of race condition, that 
+just let my box die a little bit later now.
+How ever, I'm back now on 2.6.17-rc4 with Lens latest acpi-release 
+patch, and do have two lan0 entries in my /proc/interrupts again. Len 
+sais, this is bad ;) (w/o Lens apci-patch there are also two lan0 
+entries!). With 2.6.17-rc4-mm3 the two-lan0-entries problem was gone, 
+but seems not to fix the WOL problem.
 
-Thanks,
-Kristen
+Since I've enabled kernel-debugging, I resend my dmesg from the 
+2.6.17-rc4 with my two lan0 entries and a /proc/interrupts output. Here 
+it is:
+--> http://as68.homeip.net/kernel/2.6.17-rc4-len/
 
+Actually this thread ("2.6.17-rc4-mm3 - kernel panic") could be closed 
+with status "solved", since there is no more kernel panic with 
+2.6.17-rc4-mm3 anymore. Thank You Kristen!
 
----
- drivers/acpi/dock.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+Thank You all very much for Your support!
 
---- 2.6-mm.orig/drivers/acpi/dock.c
-+++ 2.6-mm/drivers/acpi/dock.c
-@@ -190,6 +190,9 @@ static int is_dock(acpi_handle handle)
-  */
- int is_dock_device(acpi_handle handle)
- {
-+	if (!dock_station)
-+		return 0;
-+
- 	if (is_dock(handle) || find_dock_dependent_device(dock_station, handl=
-e))
- 		return 1;
-=20
-@@ -674,5 +677,5 @@ static void __exit dock_exit(void)
- 	dock_remove();
- }
-=20
--module_init(dock_init);
-+postcore_initcall(dock_init);
- module_exit(dock_exit);
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+
+Andreas
+
