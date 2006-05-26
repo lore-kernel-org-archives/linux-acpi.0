@@ -1,66 +1,55 @@
-From: Pavel Machek <pavel@ucw.cz>
+From: Kristen Accardi <kristen.c.accardi@intel.com>
 Subject: Re: 2.6.17-rc4-mm3 - kernel panic
-Date: Fri, 26 May 2006 00:17:44 +0200
-Message-ID: <20060525221744.GA1671@elf.ucw.cz>
-References: <CFF307C98FEABE47A452B27C06B85BB68AD7E1@hdsmsx411.amr.corp.intel.com> <1148583675.3070.41.camel@whizzy> <20060525221222.GA1608@elf.ucw.cz>
+Date: Thu, 25 May 2006 17:04:18 -0700
+Message-ID: <1148601858.3070.62.camel@whizzy>
+References: <CFF307C98FEABE47A452B27C06B85BB68AD7E1@hdsmsx411.amr.corp.intel.com>
+	 <1148583675.3070.41.camel@whizzy> <20060525221222.GA1608@elf.ucw.cz>
+	 <20060525221744.GA1671@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1030501AbWEYWiO@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20060525221222.GA1608@elf.ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kristen Accardi <kristen.c.accardi@intel.com>
-Cc: "Brown, Len" <len.brown@intel.com>, Andreas Saur <saur@acmelabs.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:51863 "EHLO
+	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
+	id S965201AbWEYXw4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 May 2006 19:52:56 -0400
+In-Reply-To: <20060525221744.GA1671@elf.ucw.cz>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: "Brown, Len" <len.brown@intel.com>, Andreas Saur <saur@acmelabs.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On P=E1 26-05-06 00:12:22, Pavel Machek wrote:
-> Hi!
+On Fri, 2006-05-26 at 00:17 +0200, Pavel Machek wrote:
+> On P=C3=A1 26-05-06 00:12:22, Pavel Machek wrote:
+> > Hi!
+> >=20
+> > > > Does the panic go away with CONFIG_ACPI_DOCK=3Dn?
+> >=20
+> > > Can either Pavel or Andreas please try this little debugging patc=
+h and
+> > > send me the dmesg output?  Please enable the CONFIG_DEBUG_KERNEL =
+option
+> > > in your .config as well so that I can get additional info.
+> >=20
+> > Yep, you were right... this debugging patch helps.
 >=20
-> > > Does the panic go away with CONFIG_ACPI_DOCK=3Dn?
+> ...and docking +/- works, but it does not look like PCI in docking
+> station is properly connected:
 >=20
-> > Can either Pavel or Andreas please try this little debugging patch =
-and
-> > send me the dmesg output?  Please enable the CONFIG_DEBUG_KERNEL op=
-tion
-> > in your .config as well so that I can get additional info.
->=20
-> Yep, you were right... this debugging patch helps.
 
-=2E..and docking +/- works, but it does not look like PCI in docking
-station is properly connected:
+No, I would not expect PCI to work properly with the debug patch -
+basically all I did was prevent the oops and confirm that this is the
+issue, I did not actually solve the problem.
 
-May 26 00:13:25 amd log1n[1450]: ROOT LOGIN on `tty8'
-May 26 00:13:27 amd kernel: ipw2200: version magic
-'2.6.17-rc4-g81a95636-dirty SMP mod_unload PENTIUMIII REGPARM gcc-4.0'
-should be '2.6.17-rc4-mm3 SMP preempt mod_unload PENTIUMIII REGPARM
-gcc-4.0'
-May 26 00:13:28 amd postfix/postfix-script: fatal: the Postfix mail
-system is already running
-May 26 00:13:57 amd kernel: ACPI Exception (acpi_bus-0070):
-AE_NOT_FOUND, No context for object [f7fdc3d8] [20060310]
-May 26 00:13:57 amd kernel: ACPI: docking
-May 26 00:13:57 amd kernel: ACPI Exception (acpi_bus-0070):
-AE_NOT_FOUND, No context for object [f7fdc3d8] [20060310]
+I need some way to prevent acpiphp from loading before dock is complete=
+d
+it's init.
 
-(and that is it; I'd expect messages about detecting hp100 etc...)
+I guess I will think about this some more.
 
-I think my configuration is okay:
-
-#
-# PCI Hotplug Support
-#
-CONFIG_HOTPLUG_PCI=3Dy
-# CONFIG_HOTPLUG_PCI_FAKE is not set
-# CONFIG_HOTPLUG_PCI_COMPAQ is not set
-CONFIG_HOTPLUG_PCI_IBM=3Dy
-CONFIG_HOTPLUG_PCI_ACPI=3Dy
-CONFIG_HOTPLUG_PCI_ACPI_IBM=3Dy
-# CONFIG_HOTPLUG_PCI_CPCI is not set
-# CONFIG_HOTPLUG_PCI_SHPC is not set
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
-/blog.html
+Kristen
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
