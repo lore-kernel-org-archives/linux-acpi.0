@@ -1,55 +1,84 @@
-From: Kristen Accardi <kristen.c.accardi@intel.com>
-Subject: Re: 2.6.17-rc4-mm3 - kernel panic
-Date: Thu, 25 May 2006 17:04:18 -0700
-Message-ID: <1148601858.3070.62.camel@whizzy>
-References: <CFF307C98FEABE47A452B27C06B85BB68AD7E1@hdsmsx411.amr.corp.intel.com>
-	 <1148583675.3070.41.camel@whizzy> <20060525221222.GA1608@elf.ucw.cz>
-	 <20060525221744.GA1671@elf.ucw.cz>
+From: "Garry T. Williams" <gtwilliams@gmail.com>
+Subject: Sony Vaio FS640/W Failure to Wake From S3
+Date: Thu, 25 May 2006 20:34:50 -0400
+Message-ID: <200605252034.50903.gtwilliams@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:51863 "EHLO
-	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S965201AbWEYXw4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 May 2006 19:52:56 -0400
-In-Reply-To: <20060525221744.GA1671@elf.ucw.cz>
+Received: from wx-out-0102.google.com ([66.249.82.203]:34341 "EHLO
+	wx-out-0102.google.com") by vger.kernel.org with ESMTP
+	id S965212AbWEZAey (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 May 2006 20:34:54 -0400
+Received: by wx-out-0102.google.com with SMTP id s6so1401795wxc
+        for <linux-acpi@vger.kernel.org>; Thu, 25 May 2006 17:34:53 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: "Brown, Len" <len.brown@intel.com>, Andreas Saur <saur@acmelabs.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Fri, 2006-05-26 at 00:17 +0200, Pavel Machek wrote:
-> On P=C3=A1 26-05-06 00:12:22, Pavel Machek wrote:
-> > Hi!
-> >=20
-> > > > Does the panic go away with CONFIG_ACPI_DOCK=3Dn?
-> >=20
-> > > Can either Pavel or Andreas please try this little debugging patc=
-h and
-> > > send me the dmesg output?  Please enable the CONFIG_DEBUG_KERNEL =
-option
-> > > in your .config as well so that I can get additional info.
-> >=20
-> > Yep, you were right... this debugging patch helps.
->=20
-> ...and docking +/- works, but it does not look like PCI in docking
-> station is properly connected:
->=20
+My Fedora Core 5 (2.6.16-1.2122_FC5) system does not recover from
+suspend to memory.  This used to just work under FC4.  Unfortunately,
+I do not know what update caused the original failure.  I stopped
+carrying the laptop back and forth to work several months ago, so I
+didn't notice that S3 wasn't working since I didn't use it very often.
 
-No, I would not expect PCI to work properly with the debug patch -
-basically all I did was prevent the oops and confirm that this is the
-issue, I did not actually solve the problem.
+What can I do to get information on this failure?
 
-I need some way to prevent acpiphp from loading before dock is complete=
-d
-it's init.
+I have nothing in my system log to indicate what the problem is.  The
+power comes on, the disk light stays on for about 40 seconds then
+turns off, and then everything just hangs.  Everything is just stalled
+or frozen -- no network access, no messages in the log.  The only way
+to recover is to power down and then power up again.
 
-I guess I will think about this some more.
+Some more info:
 
-Kristen
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I suspend from an acpi lid switch handler.  It does this:
+
+    /usr/bin/dbus-send --system --print-reply \
+	--reply-timeout=2000 \
+	--dest=org.freedesktop.NetworkManager \
+	/org/freedesktop/NetworkManager \
+	org.freedesktop.NetworkManager.sleep
+    /sbin/hwclock --systohc
+    echo mem >/sys/power/state
+    /usr/bin/dbus-send --system \
+	--dest=org.freedesktop.NetworkManager \
+	/org/freedesktop/NetworkManager \
+	org.freedesktop.NetworkManager.wake
+    /sbin/hwclock --hctosys
+
+The acpid log file shows the go-to-sleep part of the above (I have
+some debugging messages in the lid handler script), but it does not
+indicate that control returned after wake-up.  I wake by striking the
+Ctrl key on the keyboard.
+
+acpid log:
+
+    [Thu May 25 20:12:29 2006] received event "button/lid LID0 00000080 00000001"
+    [Thu May 25 20:12:29 2006] notifying client 2193[68:68]
+    [Thu May 25 20:12:29 2006] executing action "/etc/acpi/actions/lid -d"
+    [Thu May 25 20:12:29 2006] BEGIN HANDLER MESSAGES
+    lid: entered
+    lid: 20:12:29 sending dbus sleep message to nm
+    [Thu May 25 20:15:28 2006] starting up
+
+My system log shows this:
+
+    NetworkManager: <information> Going to sleep.
+    avahi-daemon[2166]: Interface eth1.IPv4 no longer relevant for mDNS.
+    avahi-daemon[2166]: Leaving mDNS multicast group on interface eth1.IPv4 with address 192.168.0.51.
+    avahi-daemon[2166]: Withdrawing address record for 192.168.0.51 on eth1.
+    NetworkManagerDispatcher: ntpd is running, stop
+    dhclient: DHCPRELEASE on eth1 to 192.168.0.1 port 67
+    dhclient: send_packet: Network is unreachable
+    dhclient: send_packet: please consult README file regarding broadcast address.
+    named[2248]: D-BUS: dhclient for interface eth1 released lease - removing forwarders.
+    ntpd[2674]: ntpd exiting on signal 15
+    syslogd 1.4.1: restart.
+
+-- 
+Garry T. Williams --- +1 678 656-4579
+
+
