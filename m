@@ -1,31 +1,114 @@
-From: Mark Lord <lkml@rtr.ca>
-Subject: [BUG] Link problem on drivers/acpi/processor_idle.c
-Date: Sun, 28 May 2006 12:04:00 -0400
-Message-ID: <4479C9F0.9090807@rtr.ca>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: [PATCH] Remove acpi_os_create_lock(), acpi_os_delete_lock()
+Date: Sun, 28 May 2006 22:34:03 +0400
+Message-ID: <20060528183403.GA7266@martell.zuzino.mipt.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rtr.ca ([64.26.128.89]:27031 "EHLO mail.rtr.ca")
-	by vger.kernel.org with ESMTP id S1750783AbWE1QEB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 28 May 2006 12:04:01 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750857AbWE1Sdc@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Linux Kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, len.brown@intel.com
 
-In 2.6.17-rc5, the GNU linker gives me this message:
+Minimally intrusive patch to remove some overdesign in ACPI code. Based
+on hch rant.
 
-WARNING: drivers/acpi/processor.o - Section mismatch: reference to .init.data: from .text between 'acpi_processor_power_init' (at offset 0xec7) and 'acpi_processor_cst_has_changed'
+The only purpose of functions in question is to dynamically allocate
+one global spinlock -- acpi_gbl_gpe_lock. Instead, create it in .bss.
 
-It is basically pointing out a potential bug on from processor_idle.c,
-on this line of code:
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+---
 
-     dmi_check_system(processor_power_dmi_table);
+ It's tempting to shoot acpi_os_release_lock() et al too.
 
-The problem here, is that processor_power_dmi_table is declared as __cpuinitdata,
-and is not guaranteed to exist when invoked from code other than __init code.
+ drivers/acpi/osl.c               |   34 ----------------------------------
+ drivers/acpi/utilities/utmutex.c |    6 ++++--
+ include/acpi/acpiosxf.h          |    4 ----
+ 3 files changed, 4 insertions(+), 40 deletions(-)
 
-The acpi_processor_power_init() routine is NOT marked as __init code.
-
-Cheers
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -659,40 +659,6 @@ void acpi_os_wait_events_complete(void *
+ 
+ EXPORT_SYMBOL(acpi_os_wait_events_complete);
+ 
+-/*
+- * Allocate the memory for a spinlock and initialize it.
+- */
+-acpi_status acpi_os_create_lock(acpi_handle * out_handle)
+-{
+-	spinlock_t *lock_ptr;
+-
+-	ACPI_FUNCTION_TRACE("os_create_lock");
+-
+-	lock_ptr = acpi_os_allocate(sizeof(spinlock_t));
+-
+-	spin_lock_init(lock_ptr);
+-
+-	ACPI_DEBUG_PRINT((ACPI_DB_MUTEX, "Creating spinlock[%p].\n", lock_ptr));
+-
+-	*out_handle = lock_ptr;
+-
+-	return_ACPI_STATUS(AE_OK);
+-}
+-
+-/*
+- * Deallocate the memory for a spinlock.
+- */
+-void acpi_os_delete_lock(acpi_handle handle)
+-{
+-	ACPI_FUNCTION_TRACE("os_create_lock");
+-
+-	ACPI_DEBUG_PRINT((ACPI_DB_MUTEX, "Deleting spinlock[%p].\n", handle));
+-
+-	acpi_os_free(handle);
+-
+-	return_VOID;
+-}
+-
+ acpi_status
+ acpi_os_create_semaphore(u32 max_units, u32 initial_units, acpi_handle * handle)
+ {
+--- a/drivers/acpi/utilities/utmutex.c
++++ b/drivers/acpi/utilities/utmutex.c
+@@ -51,6 +51,8 @@ static acpi_status acpi_ut_create_mutex(
+ 
+ static acpi_status acpi_ut_delete_mutex(acpi_mutex_handle mutex_id);
+ 
++static spinlock_t __acpi_gbl_gpe_lock;
++
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_ut_mutex_initialize
+@@ -80,7 +82,8 @@ acpi_status acpi_ut_mutex_initialize(voi
+ 		}
+ 	}
+ 
+-	status = acpi_os_create_lock(&acpi_gbl_gpe_lock);
++	spin_lock_init(&__acpi_gbl_gpe_lock);
++	acpi_gbl_gpe_lock = &__acpi_gbl_gpe_lock;
+ 	return_ACPI_STATUS(status);
+ }
+ 
+@@ -109,7 +112,6 @@ void acpi_ut_mutex_terminate(void)
+ 		(void)acpi_ut_delete_mutex(i);
+ 	}
+ 
+-	acpi_os_delete_lock(acpi_gbl_gpe_lock);
+ 	return_VOID;
+ }
+ 
+--- a/include/acpi/acpiosxf.h
++++ b/include/acpi/acpiosxf.h
+@@ -104,10 +104,6 @@ acpi_status acpi_os_wait_semaphore(acpi_
+ 
+ acpi_status acpi_os_signal_semaphore(acpi_handle handle, u32 units);
+ 
+-acpi_status acpi_os_create_lock(acpi_handle * out_handle);
+-
+-void acpi_os_delete_lock(acpi_handle handle);
+-
+ acpi_cpu_flags acpi_os_acquire_lock(acpi_handle handle);
+ 
+ void acpi_os_release_lock(acpi_handle handle, acpi_cpu_flags flags);
