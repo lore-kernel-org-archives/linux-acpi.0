@@ -1,75 +1,102 @@
-From: Johannes Engel <j-engel@gmx.de>
-Subject: Error with ASUS V6V and Ricoh CardReader
-Date: Sun, 28 May 2006 12:22:55 +0200
-Message-ID: <447979FF.5010707@gmx.de>
+From: "Alon Keren" <alon.keren@gmail.com>
+Subject: Re: ACPI's 'thermal_zone' and 'fan' on XW6200, kernel 2.6.15
+Date: Sun, 28 May 2006 14:18:30 +0300
+Message-ID: <92c85b0e0605280418v319c3ffbtc7a20d968f3eb07@mail.gmail.com>
+References: <92c85b0e0605250525t2c66a81aqda2c498a2b9a3786@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII;
+	format=flowed
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.de ([213.165.64.20]:38551 "HELO mail.gmx.net")
-	by vger.kernel.org with SMTP id S1750700AbWE1KXL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 28 May 2006 06:23:11 -0400
+Received: from wx-out-0102.google.com ([66.249.82.205]:16982 "EHLO
+	wx-out-0102.google.com") by vger.kernel.org with ESMTP
+	id S1750731AbWE1LSc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 28 May 2006 07:18:32 -0400
+Received: by wx-out-0102.google.com with SMTP id h27so227654wxd
+        for <linux-acpi@vger.kernel.org>; Sun, 28 May 2006 04:18:31 -0700 (PDT)
+In-Reply-To: <92c85b0e0605250525t2c66a81aqda2c498a2b9a3786@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Pierre Ossman <drzeus-list@drzeus.cx>
+Cc: haizaar@gmail.com
 
-Good morning everyone here!
+(Please CC me any replies, since I'm not subscribed to this list)
 
-Beeing just new to this ml Pierre Ossman told me to forward my problem
-to you to ask if you know anything about what to do.
-The problem is that my ASUS V6V seems not to initialize the SD card
-reader in a proper way coming out of suspend. Since there is already an
-original dsdt posted on acpi.sf.net I won't add mine (also BIOS revision
-1201).
-Please let me know if you need any further information.
-
--------- Original-Nachricht --------
-Betreff: 	Re: [Sdhci-devel] Ricoh controller message after suspend and
-resume
-Datum: 	Sat, 27 May 2006 23:04:13 +0200
-Von: 	Johannes Engel <j-engel@gmx.de>
-An: 	Pierre Ossman <drzeus-list@drzeus.cx>
-CC: 	sdhci-devel@list.drzeus.cx
-Referenzen: 	<447889F3.1060704@gmx.de> <447891C8.3040406@drzeus.cx>
-
-
-
-Pierre Ossman schrieb:
-> Johannes Engel wrote:
->   
->> sdhci: Secure Digital Host Controller Interface driver, 0.12
->> sdhci: Copyright(c) Pierre Ossman
->> sdhci: SDHCI controller found at 0000:03:01.2 [1180:0822] (rev 17)
->> ACPI: PCI Interrupt 0000:03:01.2[C] -> GSI 18 (level, low) -> IRQ 209
->> : Reset 0x1 never completed. Please report this to
->> <sdhci-devel@list.drzeus.cx>.
->> sdhci: ============== REGISTER DUMP ==============
->> sdhci: Sys addr: 0xffffffff | Version:  0x0000ffff
->> sdhci: Blk size: 0x0000ffff | Blk cnt:  0x0000ffff
->> sdhci: Argument: 0xffffffff | Trn mode: 0x0000ffff
->> sdhci: Present:  0xffffffff | Host ctl: 0x000000ff
->> sdhci: Power:    0x000000ff | Blk gap:  0x000000ff
->> sdhci: Wake-up:  0x000000ff | Clock:    0x0000ffff
->> sdhci: Timeout:  0x000000ff | Int stat: 0xffffffff
->> sdhci: Int enab: 0xffffffff | Sig enab: 0xffffffff
->> sdhci: AC12 err: 0x0000ffff | Slot int: 0x0000ffff
->> sdhci: Caps:     0xffffffff | Max curr: 0xffffffff
->> sdhci: ===========================================
->> sdhci:slot0: Unknown controller version (255). Cowardly refusing to
->> continue.
->>     
+> Hi,
 >
-> I don't suppose this is an Asus machine? :)
+> >When loading acpi's 'fan' and 'thermal' modules, the dircetories
+> >'/proc/acpi/{fan,thermal_zone}' appear, but contain nothing. No
 >
-> The hardware isn't properly set up on resume, so ther isn't much the
-> driver can do. You'll have to talk to the guys at acpi.sf.net and see if
-> they have any ideas.
-This is in fact an ASUS machine: V6V. The problem persited a complete
-restart. Booting Windows and again Linux solved the problem.
+> It looks like fan and thermal not present in DSDT on your system.
+> To make sure you should check for '_TZ' (thermal zone definition) and
+> 'PNP0C0B' (fan device h/w ID) entries in your DSDT.
+> Look here for reference: http://acpi.sourceforge.net/dsdt/index.php
+>
+> Regards.
+> Konstantin.
+
+Thanks. Indeed, neither '_TZ' nor 'PNP0C0B' were present in the
+decompiled DSDT. I upgraded my BIOS to the latest version but nothing
+changed in those departments.
+My question now is: what's my next step, if any? Am I strictly at the
+mercy of the vendor - HP - or is there something that could be done?
+
+Alon
 
 
-Greetings, Johannes
-
-
+On 5/25/06, Alon Keren <alon.keren@gmail.com> wrote:
+> Hi,
+> my machine is HP's XW6200 desktop, running LFS with a 2.6.15 kernel.
+> When loading acpi's 'fan' and 'thermal' modules, the dircetories
+> '/proc/acpi/{fan,thermal_zone}' appear, but contain nothing. No
+> complaints appear on 'dmesg', and other modules ('button' and
+> 'processor') seem to behave well.
+> I wish to find out whether the problem is due to hardware limitations,
+> software limitations, or perhaps software configuration, and I'm not
+> sure how to go about it. I write here as I failed to come up with much
+> elsewhere online.
+>
+> Some further information that could be helpful:
+> > zgrep -i acpi /proc/config.gz
+>
+> # Power management options (ACPI, APM)
+> # ACPI (Advanced Configuration and Power Interface) Support
+> CONFIG_ACPI=y
+> CONFIG_ACPI_SLEEP=y
+> CONFIG_ACPI_SLEEP_PROC_FS=y
+> # CONFIG_ACPI_SLEEP_PROC_SLEEP is not set
+> CONFIG_ACPI_AC=m
+> CONFIG_ACPI_BATTERY=m
+> CONFIG_ACPI_BUTTON=m
+> CONFIG_ACPI_VIDEO=m
+> CONFIG_ACPI_HOTKEY=m
+> CONFIG_ACPI_FAN=m
+> CONFIG_ACPI_PROCESSOR=m
+> CONFIG_ACPI_HOTPLUG_CPU=y
+> CONFIG_ACPI_THERMAL=m
+> CONFIG_ACPI_ASUS=m
+> CONFIG_ACPI_IBM=m
+> CONFIG_ACPI_TOSHIBA=m
+> CONFIG_ACPI_BLACKLIST_YEAR=0
+> CONFIG_ACPI_DEBUG=y
+> CONFIG_ACPI_EC=y
+> CONFIG_ACPI_POWER=y
+> CONFIG_ACPI_SYSTEM=y
+> CONFIG_ACPI_CONTAINER=m
+> CONFIG_X86_ACPI_CPUFREQ=m
+> CONFIG_X86_POWERNOW_K7_ACPI=y
+> CONFIG_X86_POWERNOW_K8_ACPI=y
+> CONFIG_X86_SPEEDSTEP_CENTRINO_ACPI=y
+> # CONFIG_X86_ACPI_CPUFREQ_PROC_INTF is not set
+> CONFIG_HOTPLUG_PCI_ACPI=m
+> CONFIG_HOTPLUG_PCI_ACPI_IBM=m
+> CONFIG_PNPACPI=y
+> # CONFIG_SERIAL_8250_ACPI is not set
+>
+> Thanks,
+>  Alon
+>
+> P.S.
+> Please CC me, as I'm not subscribed to this list.
+>
