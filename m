@@ -1,64 +1,56 @@
-From: Andreas Saur <saur@acmelabs.de>
-Subject: 2.6.17-rc5 - S3 & WOL working
-Date: Mon, 29 May 2006 20:24:58 +0000
-Message-ID: <447B589A.2030004@acmelabs.de>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: 2.6.17-rc4-mm3 - kernel panic
+Date: Tue, 30 May 2006 12:25:39 +0200
+Message-ID: <20060530102538.GA1662@elf.ucw.cz>
+References: <CFF307C98FEABE47A452B27C06B85BB68AD7E1@hdsmsx411.amr.corp.intel.com> <1148583675.3070.41.camel@whizzy> <20060525221222.GA1608@elf.ucw.cz> <20060525221744.GA1671@elf.ucw.cz> <1148601858.3070.62.camel@whizzy> <20060526071518.GC1699@elf.ucw.cz> <1148668175.7600.11.camel@whizzy>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from natlemon.rzone.de ([81.169.145.170]:39100 "EHLO
-	natlemon.rzone.de") by vger.kernel.org with ESMTP id S1751276AbWE2USi
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 29 May 2006 16:18:38 -0400
-Received: from server.zuhause.xx (p5081012D.dip0.t-ipconnect.de [80.129.1.45])
-	(authenticated bits=0)
-	by post.webmailer.de (8.13.6/8.13.6) with ESMTP id k4TKIZHm016225
-	for <linux-acpi@vger.kernel.org>; Mon, 29 May 2006 22:18:35 +0200 (MEST)
-Received: from [192.168.1.38] (helo=[192.168.1.38])
-	by server.zuhause.xx with esmtp (Exim 4.50)
-	id 1FklUD-0004oR-Ox
-	for linux-acpi@vger.kernel.org; Mon, 29 May 2006 19:25:01 +0200
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:63714 "EHLO amd.ucw.cz")
+	by vger.kernel.org with ESMTP id S932231AbWE3K0X (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 May 2006 06:26:23 -0400
+Content-Disposition: inline
+In-Reply-To: <1148668175.7600.11.camel@whizzy>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Kristen Accardi <kristen.c.accardi@intel.com>
+Cc: "Brown, Len" <len.brown@intel.com>, Andreas Saur <saur@acmelabs.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi All,
+Hi!
 
-first of all a big thanks to all. I had a big problem to wake my system 
-from S3 via WOL (magig packet). I've installed kernel-2.6.17-rc5 and it 
-seems(*) all problems are gone.
-I confirm a working S3 in combination with wake on lan (WOL).
-My system is an Abit NF7 with an nVidia 5200. Driver is 
-'NVIDIA-Linux-x86-1.0-8762-pkg1.run'. NvAGP is set to "1" in xorg.conf, 
-Agpgart is turned on in kernel though. Don't know whether one still need 
-"CONFIG_X86_UP_IOAPIC=y" in kernel config, but if anybody has problems 
-with WOL and S3, this setting seems to help at least one person, as far 
-as I know. Btw. I've never managed to get a Radeon to work with S3 and 
-KDE. Once I saw a very weird method to wake up a Radeon, I decided to 
-buy an nNvidia.
+> > > No, I would not expect PCI to work properly with the debug patch -
+> > > basically all I did was prevent the oops and confirm that this is the
+> > > issue, I did not actually solve the problem.
+> > > 
+> > > I need some way to prevent acpiphp from loading before dock is completed
+> > > it's init.
+> > > 
+> > > I guess I will think about this some more.
+> > 
+> > Using different _init levels? Like putting dock at subsys_initcall()
+> > while acpiphp at late_initcall()?
+> > 								Pavel
+> 
+> Can you see if this works for you?  Revert the first debug patch I sent
+> and apply this one instead (against -mm).
 
-Well, since I don't know the reason why it's working now, my thanks goes 
-to Mr. Unknown.
+Tried it in 
 
-Thanks again. Regards,
+VERSION = 2
+PATCHLEVEL = 6
+SUBLEVEL = 17
+EXTRAVERSION =-rc4-mm3
 
-Andreas
+...and now kernel hangs, last messages being:
 
---------
-P.S. * have still to use this, else system is dead on resume from S3
+pci_hotplug: ... core version: 0.5
+ibmphpd: ... 0.6
+acpiphp: ... 0.5
+acpiphp: Slot [1] registered
 
-####ide-acpi-udma6 patch for kernel 2.6.17-rc5####
-
---- drivers/ide/ide.c.orig      2006-05-29 20:12:37.000000000 +0000
-+++ drivers/ide/ide.c   2006-05-29 20:14:04.000000000 +0000
-@@ -1248,7 +1248,8 @@
-        rqpm.pm_step = ide_pm_state_start_resume;
-        rqpm.pm_state = PM_EVENT_ON;
-
--       return ide_do_drive_cmd(drive, &rq, ide_head_wait);
-+       (void) ide_do_drive_cmd(drive, &rq, ide_head_wait);
-+       return set_xfer_rate(drive, XFER_UDMA_6);
-
- }
-
-#################################
+I tried hitting magic sysrq, but it did not seem to respond.
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
