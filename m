@@ -1,54 +1,47 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: [PATCH] Fix the memory leak in acpi_evaluate_integer()
-Date: Tue, 30 May 2006 18:03:31 +0100
-Message-ID: <20060530170331.401.43131.stgit@localhost.localdomain>
-References: <44797BEF.70206@gmail.com>
-Reply-To: catalin.marinas@gmail.com
-Content-Type: text/plain; charset=utf-8; format=fixed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932344AbWE3RDl@vger.kernel.org>
-In-Reply-To: <44797BEF.70206@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Jeremy Fitzhardinge <jeremy@xensource.com>
+Subject: Re: ThinkPad X60: PCI: BIOS Bug: MCFG area is not E820-reserved
+	(MCFG is in ACPI NVS)
+Date: Tue, 30 May 2006 14:47:01 -0700
+Message-ID: <1149025621.25497.9.camel@jeremy.eng.hq.xensource.com>
+References: <447C9F19.5000105@goop.org>
+	 <20060530204112.GA22031@andromeda.dapyr.net>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from 207.47.60.150.static.nextweb.net ([207.47.60.150]:40054 "EHLO
+	exch2.ad.xensource.com") by vger.kernel.org with ESMTP
+	id S932504AbWE3VrB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 May 2006 17:47:01 -0400
+In-Reply-To: <20060530204112.GA22031@andromeda.dapyr.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: konradr@us.ibm.com
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, arjan@linux.intel.com, linux-acpi@vger.kernel.org
 
-From: Catalin Marinas <catalin.marinas@arm.com>
+On Tue, 2006-05-30 at 16:41 -0400, konradr@us.ibm.com wrote:
+> On Tue, May 30, 2006 at 12:38:01PM -0700, Jeremy Fitzhardinge wrote:
+> > [snip]
+> >
+> > So the MCFG entry is in the ACPI NVS region of the E820 table.  Is this 
+> > bad? 
+> 
+> Not at all. The ACPI v3.0 specs mentions that:
+> 
+> "ACPI NVS Memory. This range of addresses is in use or reserve by
+> the system and must not be used by the operating system. This
+> range is required to be saved and restored across an NVS sleep."
 
-A leak can happen because of the early returns from this function.
+I actually misread the tables.  It appears that MCFG (at 0x7f6e2e36) is
+in ACPI Data (7f6d0000 - 7f6e3000).  include/asm-i386/e820.h says that
+memory marked as "E820_ACPI" can be reused as normal memory once the
+ACPI tables have been read.
 
-Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
----
+Doesn't this mean that the MCFG memory could end up being used as
+general system memory?  That seems bad if MCFG memory is some kind of
+MMIO space.  Or is the comment simply wrong?
 
- drivers/acpi/utils.c |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
+(I don't really know what this stuff is, so maybe I'm just pointlessly
+worrying.)
 
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index 6458c47..71afcd3 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -273,20 +273,22 @@ acpi_evaluate_integer(acpi_handle handle
- 	status = acpi_evaluate_object(handle, pathname, arguments, &buffer);
- 	if (ACPI_FAILURE(status)) {
- 		acpi_util_eval_error(handle, pathname, status);
--		return_ACPI_STATUS(status);
-+		goto out;
- 	}
- 
- 	if (element->type != ACPI_TYPE_INTEGER) {
- 		acpi_util_eval_error(handle, pathname, AE_BAD_DATA);
--		return_ACPI_STATUS(AE_BAD_DATA);
-+		status = AE_BAD_DATA;
-+		goto out;
- 	}
- 
- 	*data = element->integer.value;
-+ out:
- 	kfree(element);
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Return value [%lu]\n", *data));
- 
--	return_ACPI_STATUS(AE_OK);
-+	return_ACPI_STATUS(status);
- }
- 
- EXPORT_SYMBOL(acpi_evaluate_integer);
+	J
