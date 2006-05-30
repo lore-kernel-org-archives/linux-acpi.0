@@ -1,57 +1,61 @@
-From: Petr Vandrovec <vandrove@vc.cvut.cz>
-Subject: Re: ThinkPad X60: PCI: BIOS Bug: MCFG area is not E820-reserved	(MCFG
- is in ACPI NVS)
-Date: Wed, 31 May 2006 01:06:26 +0200
-Message-ID: <447CCFF2.30207@vc.cvut.cz>
-References: <447C9F19.5000105@goop.org>	 <20060530204112.GA22031@andromeda.dapyr.net> <1149025621.25497.9.camel@jeremy.eng.hq.xensource.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: ThinkPad X60: PCI: BIOS Bug: MCFG area is not E820-reserved	(MCFG is in ACPI NVS)
+Date: Tue, 30 May 2006 16:48:38 -0700
+Message-ID: <20060530234838.GA26478@kroah.com>
+References: <447C9F19.5000105@goop.org> <20060530204112.GA22031@andromeda.dapyr.net> <1149025621.25497.9.camel@jeremy.eng.hq.xensource.com> <447CCFF2.30207@vc.cvut.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailgw.cvut.cz ([147.32.3.235]:21713 "EHLO mailgw.cvut.cz")
-	by vger.kernel.org with ESMTP id S964808AbWE3XG2 (ORCPT
+Received: from mx2.suse.de ([195.135.220.15]:47248 "EHLO mx2.suse.de")
+	by vger.kernel.org with ESMTP id S932230AbWE3XvZ (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 May 2006 19:06:28 -0400
-In-Reply-To: <1149025621.25497.9.camel@jeremy.eng.hq.xensource.com>
+	Tue, 30 May 2006 19:51:25 -0400
+Content-Disposition: inline
+In-Reply-To: <447CCFF2.30207@vc.cvut.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: konradr@us.ibm.com, Jeremy Fitzhardinge <jeremy@goop.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, arjan@linux.intel.com, linux-acpi@vger.kernel.org
+To: Petr Vandrovec <vandrove@vc.cvut.cz>
+Cc: Jeremy Fitzhardinge <jeremy@xensource.com>, konradr@us.ibm.com, Jeremy Fitzhardinge <jeremy@goop.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, arjan@linux.intel.com, linux-acpi@vger.kernel.org
 
-Jeremy Fitzhardinge wrote:
-> On Tue, 2006-05-30 at 16:41 -0400, konradr@us.ibm.com wrote:
+On Wed, May 31, 2006 at 01:06:26AM +0200, Petr Vandrovec wrote:
+> Jeremy Fitzhardinge wrote:
+> >On Tue, 2006-05-30 at 16:41 -0400, konradr@us.ibm.com wrote:
+> >
+> >>On Tue, May 30, 2006 at 12:38:01PM -0700, Jeremy Fitzhardinge wrote:
+> >>
+> >>>[snip]
+> >>>
+> >>>So the MCFG entry is in the ACPI NVS region of the E820 table.  Is this 
+> >>>bad? 
+> >>
+> >>Not at all. The ACPI v3.0 specs mentions that:
+> >>
+> >>"ACPI NVS Memory. This range of addresses is in use or reserve by
+> >>the system and must not be used by the operating system. This
+> >>range is required to be saved and restored across an NVS sleep."
+> >
+> >
+> >I actually misread the tables.  It appears that MCFG (at 0x7f6e2e36) is
+> >in ACPI Data (7f6d0000 - 7f6e3000).  include/asm-i386/e820.h says that
+> >memory marked as "E820_ACPI" can be reused as normal memory once the
+> >ACPI tables have been read.
+> >
+> >Doesn't this mean that the MCFG memory could end up being used as
+> >general system memory?  That seems bad if MCFG memory is some kind of
+> >MMIO space.  Or is the comment simply wrong?
 > 
->>On Tue, May 30, 2006 at 12:38:01PM -0700, Jeremy Fitzhardinge wrote:
->>
->>>[snip]
->>>
->>>So the MCFG entry is in the ACPI NVS region of the E820 table.  Is this 
->>>bad? 
->>
->>Not at all. The ACPI v3.0 specs mentions that:
->>
->>"ACPI NVS Memory. This range of addresses is in use or reserve by
->>the system and must not be used by the operating system. This
->>range is required to be saved and restored across an NVS sleep."
+> Address where MCFG table lives is not important.  What is important (and 
+> checked) is address of MMCONFIG reported by MCFG table...  Unfortunately 
+> code does not bother with printing that address :-(
 > 
-> 
-> I actually misread the tables.  It appears that MCFG (at 0x7f6e2e36) is
-> in ACPI Data (7f6d0000 - 7f6e3000).  include/asm-i386/e820.h says that
-> memory marked as "E820_ACPI" can be reused as normal memory once the
-> ACPI tables have been read.
-> 
-> Doesn't this mean that the MCFG memory could end up being used as
-> general system memory?  That seems bad if MCFG memory is some kind of
-> MMIO space.  Or is the comment simply wrong?
+> Another problem is that code has hardcoded that MMCONFIG area is 256MB 
+> large. Unfortunately for the code PCI specification allows any power of two 
+> between 2MB and 256MB if vendor knows that such amount of busses (from 2 to 
+> 128) will be sufficient for system.  With notebook it is quite possible 
+> that not full 8 bits are implemented for MMCONFIG bus number.
 
-Address where MCFG table lives is not important.  What is important (and 
-checked) is address of MMCONFIG reported by MCFG table...  Unfortunately code 
-does not bother with printing that address :-(
+Patches to address this are always welcome :)
 
-Another problem is that code has hardcoded that MMCONFIG area is 256MB large. 
-Unfortunately for the code PCI specification allows any power of two between 2MB 
-and 256MB if vendor knows that such amount of busses (from 2 to 128) will be 
-sufficient for system.  With notebook it is quite possible that not full 8 bits 
-are implemented for MMCONFIG bus number.
-								Petr
+thanks,
 
+greg k-h
