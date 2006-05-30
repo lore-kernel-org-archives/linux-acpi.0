@@ -1,56 +1,39 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: 2.6.17-rc4-mm3 - kernel panic
-Date: Tue, 30 May 2006 12:25:39 +0200
-Message-ID: <20060530102538.GA1662@elf.ucw.cz>
-References: <CFF307C98FEABE47A452B27C06B85BB68AD7E1@hdsmsx411.amr.corp.intel.com> <1148583675.3070.41.camel@whizzy> <20060525221222.GA1608@elf.ucw.cz> <20060525221744.GA1671@elf.ucw.cz> <1148601858.3070.62.camel@whizzy> <20060526071518.GC1699@elf.ucw.cz> <1148668175.7600.11.camel@whizzy>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: Possible kernel memory leaks
+Date: Tue, 30 May 2006 18:00:55 +0100
+Message-ID: <tnxvernwipk.fsf@arm.com>
+References: <44797BEF.70206@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:63714 "EHLO amd.ucw.cz")
-	by vger.kernel.org with ESMTP id S932231AbWE3K0X (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 May 2006 06:26:23 -0400
-Content-Disposition: inline
-In-Reply-To: <1148668175.7600.11.camel@whizzy>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932338AbWE3RBE@vger.kernel.org>
+In-Reply-To: <44797BEF.70206@gmail.com> (Catalin Marinas's message of "Sun,
+ 28 May 2006 11:31:11 +0100")
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kristen Accardi <kristen.c.accardi@intel.com>
-Cc: "Brown, Len" <len.brown@intel.com>, Andreas Saur <saur@acmelabs.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi!
+Catalin Marinas <catalin.marinas@gmail.com> wrote:
+> - acpi_evaluate_integer in drivers/acpi/utils.c - "element" is not freed
+> on the error path (if Coverity hasn't seen this, it was probably
+> confused by the return_* macros)
 
-> > > No, I would not expect PCI to work properly with the debug patch -
-> > > basically all I did was prevent the oops and confirm that this is the
-> > > issue, I did not actually solve the problem.
-> > > 
-> > > I need some way to prevent acpiphp from loading before dock is completed
-> > > it's init.
-> > > 
-> > > I guess I will think about this some more.
-> > 
-> > Using different _init levels? Like putting dock at subsys_initcall()
-> > while acpiphp at late_initcall()?
-> > 								Pavel
-> 
-> Can you see if this works for you?  Revert the first debug patch I sent
-> and apply this one instead (against -mm).
+This is simpler. I'll send a separate patch for it.
 
-Tried it in 
+> - acpi_ev_execute_reg_method in drivers/acpi/events/evregion.c - I'm not
+> sure about this but kmemleak reports an orphan pointer on the following
+> allocation path:
+>   c0159372: <kmem_cache_alloc>
+>   c01ffa07: <acpi_os_acquire_object>
+>   c0215b3a: <acpi_ut_allocate_object_desc_dbg>
+>   c02159ce: <acpi_ut_create_internal_object_dbg>
+>   c0203784: <acpi_ev_execute_reg_method>
+>   c0203db4: <acpi_ev_reg_run>
+>   c020ed17: <acpi_ns_walk_namespace>
+>   c0203d6b: <acpi_ev_execute_reg_methods>
+> Is acpi_ut_remove_reference actually removing the params[0/1]?
 
-VERSION = 2
-PATCHLEVEL = 6
-SUBLEVEL = 17
-EXTRAVERSION =-rc4-mm3
+I'll need to enable the ACPI debug output as I can't find the leak by
+only looking at the code. I'll let you know if there is a leak.
 
-...and now kernel hangs, last messages being:
-
-pci_hotplug: ... core version: 0.5
-ibmphpd: ... 0.6
-acpiphp: ... 0.5
-acpiphp: Slot [1] registered
-
-I tried hitting magic sysrq, but it did not seem to respond.
-									Pavel
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Catalin
