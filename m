@@ -1,110 +1,50 @@
-From: John Keller <jpk@sgi.com>
-Subject: [PATCH 2/2] - Altix: Add initial ACPI support
-Date: Wed, 31 May 2006 16:23:40 -0500
-Message-ID: <20060531212340.32077.7712.sendpatchset@attica.americas.sgi.com>
+From: Greg KH <gregkh@suse.de>
+Subject: Re: [PATCH 1/2] - Altix: Add initial ACPI support
+Date: Wed, 31 May 2006 16:34:08 -0700
+Message-ID: <20060531233408.GA21244@suse.de>
+References: <20060531212320.32044.49013.sendpatchset@attica.americas.sgi.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from omx1-ext.sgi.com ([192.48.179.11]:7071 "EHLO
-	omx1.americas.sgi.com") by vger.kernel.org with ESMTP
-	id S965150AbWEaVYK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 31 May 2006 17:24:10 -0400
+Received: from ns2.suse.de ([195.135.220.15]:28302 "EHLO mx2.suse.de")
+	by vger.kernel.org with ESMTP id S965252AbWEaXh3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 31 May 2006 19:37:29 -0400
+Content-Disposition: inline
+In-Reply-To: <20060531212320.32044.49013.sendpatchset@attica.americas.sgi.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-ia64@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, gregkh@suse.de, John Keller <jpk@sgi.com>, pcihpd-discuss@lists.sourceforge.net
+To: John Keller <jpk@sgi.com>
+Cc: linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net
 
-This is part 2 of a two patch set.
-The patches are dependent on each other.
+On Wed, May 31, 2006 at 04:23:20PM -0500, John Keller wrote:
+> Index: acpi-support/arch/ia64/pci/pci.c
+> ===================================================================
+> --- acpi-support.orig/arch/ia64/pci/pci.c	2006-05-31 12:37:50.539921986 -0500
+> +++ acpi-support/arch/ia64/pci/pci.c	2006-05-31 14:10:50.889146925 -0500
+> @@ -470,10 +470,11 @@ pcibios_fixup_resources(struct pci_dev *
+>  	}
+>  }
+>  
+> -static void __devinit pcibios_fixup_device_resources(struct pci_dev *dev)
+> +void __devinit pcibios_fixup_device_resources(struct pci_dev *dev)
+>  {
+>  	pcibios_fixup_resources(dev, 0, PCI_BRIDGE_RESOURCES);
+>  }
+> +EXPORT_SYMBOL(pcibios_fixup_device_resources);
 
-First phase in introducing ACPI support to SN.
-In this phase, when running with an ACPI capable PROM,
-the DSDT will define the root busses and all SN nodes
-(SGIHUB, SGITIO). An acpi bus driver will be registered
-for the node devices, with the acpi_pci_root_driver being
-used for the root busses.
+EXPORT_SYMBOL_GPL() perhaps?
 
-Bus to resource ampping will no longer need to be done via
-platform specific 'fisxup' code, but by a call to
-pcibios_fixup_device_resources().
+> --- acpi-support.orig/include/linux/pci.h	2006-05-31 12:37:50.647911309 -0500
+> +++ acpi-support/include/linux/pci.h	2006-05-31 14:10:50.989137400 -0500
+> @@ -397,6 +397,7 @@ extern struct bus_type pci_bus_type;
+>  extern struct list_head pci_root_buses;	/* list of all known PCI buses */
+>  extern struct list_head pci_devices;	/* list of all devices */
+>  
+> +void __devinit pcibios_fixup_device_resources(struct pci_dev *);
 
-To maintain backward compatibility with non-ACPI capable PROMs,
-none of the current 'fixup' code has been deleted.
+Don't put __devinit on a function prototype.  It does nothing.
 
+thanks,
 
-Signed-off-by: John Keller <jpk@sgi.com>
-
-
-Index: acpi-support/drivers/pci/hotplug/sgi_hotplug.c
-===================================================================
---- acpi-support.orig/drivers/pci/hotplug/sgi_hotplug.c	2006-05-31 15:17:42.166108287 -0500
-+++ acpi-support/drivers/pci/hotplug/sgi_hotplug.c	2006-05-31 15:17:51.045242163 -0500
-@@ -205,21 +205,6 @@ static struct hotplug_slot * sn_hp_destr
- 	return bss_hotplug_slot;
- }
- 
--static void sn_bus_alloc_data(struct pci_dev *dev)
--{
--	struct pci_bus *subordinate_bus;
--	struct pci_dev *child;
--
--	sn_pci_fixup_slot(dev);
--
--	/* Recursively sets up the sn_irq_info structs */
--	if (dev->subordinate) {
--		subordinate_bus = dev->subordinate;
--		list_for_each_entry(child, &subordinate_bus->devices, bus_list)
--			sn_bus_alloc_data(child);
--	}
--}
--
- static void sn_bus_free_data(struct pci_dev *dev)
- {
- 	struct pci_bus *subordinate_bus;
-@@ -337,6 +322,11 @@ static int sn_slot_disable(struct hotplu
- 	return rc;
- }
- 
-+/*
-+ * Power up and configure the slot via a SAL call to PROM.
-+ * Scan slot (and any children), do any platform specific fixup,
-+ * and find device driver.
-+ */
- static int enable_slot(struct hotplug_slot *bss_hotplug_slot)
- {
- 	struct slot *slot = bss_hotplug_slot->private;
-@@ -367,9 +357,6 @@ static int enable_slot(struct hotplug_sl
- 		return -ENODEV;
- 	}
- 
--	sn_pci_controller_fixup(pci_domain_nr(slot->pci_bus),
--				slot->pci_bus->number,
--				slot->pci_bus);
- 	/*
- 	 * Map SN resources for all functions on the card
- 	 * to the Linux PCI interface and tell the drivers
-@@ -380,6 +367,13 @@ static int enable_slot(struct hotplug_sl
- 				   PCI_DEVFN(slot->device_num + 1,
- 					     PCI_FUNC(func)));
- 		if (dev) {
-+			/* Need to do slot fixup on PPB before fixup of children
-+			 * (PPB's pcidev_info needs to be in pcidev_info list
-+			 * before child's SN_PCIDEV_INFO() call to setup
-+			 * pdi_host_pcidev_info).
-+			 */
-+			pcibios_fixup_device_resources(dev);
-+			sn_pci_fixup_slot(dev);
- 			if (dev->hdr_type == PCI_HEADER_TYPE_BRIDGE) {
- 				unsigned char sec_bus;
- 				pci_read_config_byte(dev, PCI_SECONDARY_BUS,
-@@ -387,12 +381,8 @@ static int enable_slot(struct hotplug_sl
- 				new_bus = pci_add_new_bus(dev->bus, dev,
- 							  sec_bus);
- 				pci_scan_child_bus(new_bus);
--				sn_pci_controller_fixup(pci_domain_nr(new_bus),
--							new_bus->number,
--							new_bus);
- 				new_ppb = 1;
- 			}
--			sn_bus_alloc_data(dev);
- 			pci_dev_put(dev);
- 		}
- 	}
+greg k-h
