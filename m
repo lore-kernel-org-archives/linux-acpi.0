@@ -1,50 +1,31 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: [PATCH 1/2] - Altix: Add initial ACPI support
-Date: Wed, 31 May 2006 16:34:08 -0700
-Message-ID: <20060531233408.GA21244@suse.de>
-References: <20060531212320.32044.49013.sendpatchset@attica.americas.sgi.com>
+From: Jakub Szefer <jszefer2@uiuc.edu>
+Subject: Enabling ACPI on Asus P4B266
+Date: Wed, 31 May 2006 19:18:06 -0500
+Message-ID: <925f5bb3.c14b6d58.86ae000@expms4.cites.uiuc.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:28302 "EHLO mx2.suse.de")
-	by vger.kernel.org with ESMTP id S965252AbWEaXh3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 31 May 2006 19:37:29 -0400
-Content-Disposition: inline
-In-Reply-To: <20060531212320.32044.49013.sendpatchset@attica.americas.sgi.com>
+Received: from expredir4.cites.uiuc.edu ([128.174.5.187]:40694 "EHLO
+	expredir4.cites.uiuc.edu") by vger.kernel.org with ESMTP
+	id S965273AbWFAASN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 31 May 2006 20:18:13 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: John Keller <jpk@sgi.com>
-Cc: linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net
+To: linux-acpi@vger.kernel.org
 
-On Wed, May 31, 2006 at 04:23:20PM -0500, John Keller wrote:
-> Index: acpi-support/arch/ia64/pci/pci.c
-> ===================================================================
-> --- acpi-support.orig/arch/ia64/pci/pci.c	2006-05-31 12:37:50.539921986 -0500
-> +++ acpi-support/arch/ia64/pci/pci.c	2006-05-31 14:10:50.889146925 -0500
-> @@ -470,10 +470,11 @@ pcibios_fixup_resources(struct pci_dev *
->  	}
->  }
->  
-> -static void __devinit pcibios_fixup_device_resources(struct pci_dev *dev)
-> +void __devinit pcibios_fixup_device_resources(struct pci_dev *dev)
->  {
->  	pcibios_fixup_resources(dev, 0, PCI_BRIDGE_RESOURCES);
->  }
-> +EXPORT_SYMBOL(pcibios_fixup_device_resources);
+Hi,
 
-EXPORT_SYMBOL_GPL() perhaps?
+I have a Sony with an ASUS P4B266 motherboard which is on the
+blacklist for incompatible BIOSes.  dmesg shows "ASUS P4B266
+detected: force use of acpi=ht", if I understand correctly
+ACPI gets disabled because of the motherboard type and
+force=ht has to do with enabling support for hyperthreading?
 
-> --- acpi-support.orig/include/linux/pci.h	2006-05-31 12:37:50.647911309 -0500
-> +++ acpi-support/include/linux/pci.h	2006-05-31 14:10:50.989137400 -0500
-> @@ -397,6 +397,7 @@ extern struct bus_type pci_bus_type;
->  extern struct list_head pci_root_buses;	/* list of all known PCI buses */
->  extern struct list_head pci_devices;	/* list of all devices */
->  
-> +void __devinit pcibios_fixup_device_resources(struct pci_dev *);
+I would like to make use of ACPI to control my fan speed (it
+has two speeds, but right now keeps running at the highest all
+the time).  Can I force ACPI to stay on or would this cause
+some badness?
 
-Don't put __devinit on a function prototype.  It does nothing.
-
-thanks,
-
-greg k-h
+Thanks in advance for any advice you can offer,
+~ Jakub
