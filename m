@@ -1,126 +1,149 @@
-From: Jeremy Fitzhardinge <jeremy@goop.org>
-Subject: [PATCH REPOST] Support enable/disable of WAN module in ibm_acpi
-Date: Thu, 01 Jun 2006 14:40:46 -0700
-Message-ID: <447F5EDE.4010900@goop.org>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: ACPI locking
+Date: Thu, 1 Jun 2006 17:50:59 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB69D242E@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gw.goop.org ([64.81.55.164]:32723 "EHLO mail.goop.org")
-	by vger.kernel.org with ESMTP id S1751055AbWFAVkv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Jun 2006 17:40:51 -0400
+Received: from mga02.intel.com ([134.134.136.20]:11612 "EHLO
+	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1750705AbWFAVvV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Jun 2006 17:51:21 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Deianov <borislav@users.sf.net>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-New Lenovo Thinkpads have an optional WAN module (a Sierra Wireless
-MC5720 EV-DO modem), which can be turned on and off much like the
-Bluetooth module.  This patch adds a "wan" entry to /proc/acpi/ibm,
-which is pretty much a cut'n'paste of the corresponding bluetooth code.
 
-    J
+>It has been a while since we have looked at the ACPICA locking 
+>stuff, and I suppose now is as good a time as any. I am also 
+>concerned with the Linux-only implementation and deployment of 
+>the OsWaitEventsComplete interface, in terms of how the 
+>locking interacts with it. (I am also concerned with why only 
+>Linux has requested this interface.)
 
---
+I don't know why other OSs don't need
+acpi_os_wait_events_complete().  Maybe they don't do any
+deferred processing.  But in any case, that is a different issue
+than the (simpler) one at hand.
 
-Allow a WAN module to enabled/disabled on a Thinkpad X60.
+>The historical note on the OSL semaphore interfaces is that we 
+>felt that if a "mutex" object was available in the host OS, it 
+>could be used for the case where the OsCreateSemaphore() call 
+>specified a MaxUnits parameter of one (a binary semaphore) - 
+>rather than having an entirely separate "mutex" OSL interface. 
+>The OSL spinlock interfaces were added later and are currently 
+>only used in a limited way. Of course, when the day comes that 
+>the ACPICA code is fully integrated into the host OS, the OSL 
+>interfaces will probably be replaced by native OS calls, so we 
+>always thought of the OSL interface as a somewhat interim 
+>oil-slick, therefore we wanted to minimize the number of 
+>different interfaces to it.
 
-The WAN (Sierra Wireless EV-DO) module is very similar to the
-Bluetooth module.  It appears on the USB bus when enabled.  It can be
-controlled via hot key, or directly via ACPI.  This change enables
-direct control via ACPI.
+Linux just recently added dedicated
+mutex entry points to optimize the case where semaphores
+were used a mutexes.
 
-I have tested it on my Lenovo Thinkpad X60; I guess it will probably
-work on other Thinkpad models which come with this module installed.
+We can take advantate of the acpi_os_create_semaphore()
+trick without changing the ACPICA interface, but the problem
+is that the actual lock/unlock entry points are now different
+for mutexes and semaphores and would have to be handled
+at run-time.
 
-Signed-off-by: Jeremy Fitzhardinge <jeremy@goop.org>
+So if ACPICA wants a mutex, it would be best if it asked
+for one directly and used mutex entry/exit points too.
+On an OS where mutexes and semaphores are the same,
+the OSL can (continue to) map them to the same
+create/lock/unlock routines.
 
-diff -r 401a0868b8be drivers/acpi/ibm_acpi.c
---- a/drivers/acpi/ibm_acpi.c	Mon May 29 06:35:52 2006 +0700
-+++ b/drivers/acpi/ibm_acpi.c	Mon May 29 01:36:12 2006 -0700
-@@ -567,6 +567,69 @@ static int bluetooth_write(char *buf)
- 	return 0;
- }
+More interesting is if ACPICA actually only needs a spin-lock.
+
+The key semantic from the Linux side is that spin-locks can
+be called at interrupt context and can not be held for sleeping.
+On the other hand, mutexes and semaphores can NOT be invoked
+from interrupt context precicely because they DO support sleeping.
+
+It would be nice if the ACPICA/OS interface can encode those
+choices and the OS can choose the appropriate types of locks
+to use.
+
+>3) The list of global mutexes should be looked at. I suspect 
+>that a couple of them are obsolete and not used or could be 
+>merged with another. As far as spinlock vs. mutex, we 
+>certainly may be able to replace some mutexes with spinlocks, 
+>but certainly not all. The best example of where a mutex is 
+>required would be the Interpreter mutex, another example would 
+>be the Namespace mutex where we need to lock the namespace 
+>while possibly extensive allocations take place during a 
+>dynamic table load. Where we could possibly use a spinlock is 
+>to replace the ACPI hardware mutex.
+
+Agreed.  hardware mutex looks perfect for a spin-lock,
+and the others which involve memory allocation look like
+they want a mutex.  Unclear that anything needs an
+actual counting semaphore.  Looks like there are a couple
+that allocate a semaphore as locked by playing with the
+intial value, maybe these are really just mutexes too?
+
+>5.1) We may be able to delete the units parameter for 
+>OsWaitSemaphore, it's just there to match Signal.  We use the 
+>units parameter with signal during global lock operations.
+>
+>5.2) As far as the semaphore timeout code in the Linux OSL 
+>implementation, it is my understanding that this 
+>polled-timeout code was written because (at least at the 
+>time), Linux did not have a convenient interface to allow a 
+>semaphore wait for a specific amount of time. It is clearly 
+>very bad and should go away ASAP.
+
+Yeah, the polling scheme looks like an invitation to starvation.
+
+I think the solution is probably something like...
+
+Set up a timeout() on the maximum duration and invoke
+mutex_lock_interruptable().  If the timeout expires,
+the handler sends a signal to break the locked task out of
+mutex_lock_interruptable().  If the task gets the lock,
+then cancel the timeout.
+
+I'd imagine that there must be someplace else in the kernel that
+wants a mutex with a timeout, but a quick look and I don't see
+this scheme elsewhere, so maybe there is a simpler way?
  
-+static int wan_supported;
-+
-+static int wan_init(void)
-+{
-+	wan_supported = hkey_handle &&
-+	    acpi_evalf(hkey_handle, NULL, "GWAN", "qv");
-+
-+	return 0;
-+}
-+
-+static int wan_status(void)
-+{
-+	int status;
-+
-+	if (!wan_supported ||
-+	    !acpi_evalf(hkey_handle, &status, "GWAN", "d"))
-+		status = 0;
-+
-+	return status;
-+}
-+
-+static int wan_read(char *p)
-+{
-+	int len = 0;
-+	int status = wan_status();
-+
-+	if (!wan_supported)
-+		len += sprintf(p + len, "status:\t\tnot supported\n");
-+	else if (!(status & 1))
-+		len += sprintf(p + len, "status:\t\tnot installed\n");
-+	else {
-+		len += sprintf(p + len, "status:\t\t%s\n", enabled(status, 1));
-+		len += sprintf(p + len, "commands:\tenable, disable\n");
-+	}
-+
-+	return len;
-+}
-+
-+static int wan_write(char *buf)
-+{
-+	int status = wan_status();
-+	char *cmd;
-+	int do_cmd = 0;
-+
-+	if (!wan_supported)
-+		return -ENODEV;
-+
-+	while ((cmd = next_cmd(&buf))) {
-+		if (strlencmp(cmd, "enable") == 0) {
-+			status |= 2;
-+		} else if (strlencmp(cmd, "disable") == 0) {
-+			status &= ~2;
-+		} else
-+			return -EINVAL;
-+		do_cmd = 1;
-+	}
-+
-+	if (do_cmd && !acpi_evalf(hkey_handle, NULL, "SWAN", "vd", status))
-+		return -EIO;
-+
-+	return 0;
-+}
-+
- static int video_supported;
- static int video_orig_autosw;
- 
-@@ -1561,6 +1624,13 @@ static struct ibm_struct ibms[] = {
- 	 .init = bluetooth_init,
- 	 .read = bluetooth_read,
- 	 .write = bluetooth_write,
-+	 },
-+	{
-+	 .name = "wan",
-+	 .init = wan_init,
-+	 .read = wan_read,
-+	 .write = wan_write,
-+	 .experimental = 1,
- 	 },
- 	{
- 	 .name = "video",
+> Also, now that Linux has 
+>mutex interfaces in addition to semaphore interfaces, it would 
+>be best to migrate the use of binary semaphores to mutexes in 
+>the Linux OSL.
 
+The init is easy.  The question is if you want to look up in
+a list on every lock/unlock the type of lock you have.
+I think the answer is no, and that the code should ask
+for the appropriate init/lock/unlock for the 3 types of
+locks that are available:
 
+1. spin lock that can be at interrupt context, but can sleep with it
+2. mutex that can sleep, but illegal at interupt context
+3. counting semaphore that can sleep, but illegal at interrupt context
+
+>Hopefully, the new mutex interfaces in Linux 
+>allow a simple timeout, that may remove the need for a timeout 
+>on a semaphore wait entirely.
+
+I don't think the timeout on semaphore wait is the biggest problem here.
+The biggest problem is the lack of clarity between locks that can
+be called at interrupt level and locks that can sleep.  I think that
+distinction needs to be in the ACPICA/OS interface.
+
+The semaphore with timeout appears to be only needed to execute ASL
+Acquire().
+While it has to work and it would be nice if it were efficient and
+starvation and delay resistant, in practice it probably executes far
+less
+frequently than the other simple locks in the code which should 
+be implemented in the most efficient way possible.
+
+cheers,
+-Len
