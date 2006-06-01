@@ -1,92 +1,126 @@
-From: Daniel Drake <dsd@gentoo.org>
-Subject: Most interrupts are edge-triggered, non-APIC system
-Date: Thu, 01 Jun 2006 22:04:46 +0100
-Message-ID: <447F566E.4060502@gentoo.org>
+From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: [PATCH REPOST] Support enable/disable of WAN module in ibm_acpi
+Date: Thu, 01 Jun 2006 14:40:46 -0700
+Message-ID: <447F5EDE.4010900@goop.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mta09-winn.ispmail.ntl.com ([81.103.221.49]:43104 "EHLO
-	mtaout03-winn.ispmail.ntl.com") by vger.kernel.org with ESMTP
-	id S965304AbWFAVEy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 1 Jun 2006 17:04:54 -0400
+Received: from gw.goop.org ([64.81.55.164]:32723 "EHLO mail.goop.org")
+	by vger.kernel.org with ESMTP id S1751055AbWFAVkv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Jun 2006 17:40:51 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: joliveirinha@gmail.com
+To: Borislav Deianov <borislav@users.sf.net>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>
 
-Hi,
+New Lenovo Thinkpads have an optional WAN module (a Sierra Wireless
+MC5720 EV-DO modem), which can be turned on and off much like the
+Bluetooth module.  This patch adds a "wan" entry to /proc/acpi/ibm,
+which is pretty much a cut'n'paste of the corresponding bluetooth code.
 
-Jo=C3=A3o Oliveirinha reported a bug related to the sky2 network driver=
- on=20
-the Gentoo bugzilla. Stephen Hemminger (sky2 author) kindly helped=20
-diagnose the issues, and he believes that one of the reasons why things=
-=20
-are running sub-optimally is because the interrupt assigned to sky2 is=20
-edge-triggered (NAPI requires things to be level-triggered).
+    J
 
-The system is a bit odd in that even on the latest BIOS, APIC support i=
-s=20
-apparently completely non-functional (or maybe just non-existent?). Eve=
-n=20
-when the "lapic" parameter is used, ACPI appears to be used exclusively=
-=20
-for interrupt routing.
+--
 
-This is a Toshiba M40-298 laptop.
+Allow a WAN module to enabled/disabled on a Thinkpad X60.
 
-Here is the interrupts map:
+The WAN (Sierra Wireless EV-DO) module is very similar to the
+Bluetooth module.  It appears on the USB bus when enabled.  It can be
+controlled via hot key, or directly via ACPI.  This change enables
+direct control via ACPI.
 
-            CPU0
-   0:      47094          XT-PIC  timer
-   1:        541          XT-PIC  i8042
-   2:          0          XT-PIC  cascade
-   9:         13          XT-PIC  acpi
-  10:       5548          XT-PIC  ehci_hcd:usb1, uhci_hcd:usb2, Intel I=
-CH6
-  11:         27          XT-PIC  uhci_hcd:usb3, uhci_hcd:usb4,=20
-uhci_hcd:usb5, yenta, sdhci:slot0, sdhci:slot1, sdhci:slot2, ohci1394, =
-sky2
-  12:        618          XT-PIC  i8042
-  14:       7384          XT-PIC  libata
-  15:       1275          XT-PIC  libata
-NMI:          0
-LOC:          0
-ERR:          0
-MIS:          0
+I have tested it on my Lenovo Thinkpad X60; I guess it will probably
+work on other Thinkpad models which come with this module installed.
 
-And the ELCR register:
-	ACPI: setting ELCR to 0200 (from 0c20)
+Signed-off-by: Jeremy Fitzhardinge <jeremy@goop.org>
 
-0200 suggests that IRQ 9 is the only level-triggered interrupt. Also,=20
-the interrupts are heavily shared, I'm not sure if this is another=20
-reason for concern...
+diff -r 401a0868b8be drivers/acpi/ibm_acpi.c
+--- a/drivers/acpi/ibm_acpi.c	Mon May 29 06:35:52 2006 +0700
++++ b/drivers/acpi/ibm_acpi.c	Mon May 29 01:36:12 2006 -0700
+@@ -567,6 +567,69 @@ static int bluetooth_write(char *buf)
+ 	return 0;
+ }
+ 
++static int wan_supported;
++
++static int wan_init(void)
++{
++	wan_supported = hkey_handle &&
++	    acpi_evalf(hkey_handle, NULL, "GWAN", "qv");
++
++	return 0;
++}
++
++static int wan_status(void)
++{
++	int status;
++
++	if (!wan_supported ||
++	    !acpi_evalf(hkey_handle, &status, "GWAN", "d"))
++		status = 0;
++
++	return status;
++}
++
++static int wan_read(char *p)
++{
++	int len = 0;
++	int status = wan_status();
++
++	if (!wan_supported)
++		len += sprintf(p + len, "status:\t\tnot supported\n");
++	else if (!(status & 1))
++		len += sprintf(p + len, "status:\t\tnot installed\n");
++	else {
++		len += sprintf(p + len, "status:\t\t%s\n", enabled(status, 1));
++		len += sprintf(p + len, "commands:\tenable, disable\n");
++	}
++
++	return len;
++}
++
++static int wan_write(char *buf)
++{
++	int status = wan_status();
++	char *cmd;
++	int do_cmd = 0;
++
++	if (!wan_supported)
++		return -ENODEV;
++
++	while ((cmd = next_cmd(&buf))) {
++		if (strlencmp(cmd, "enable") == 0) {
++			status |= 2;
++		} else if (strlencmp(cmd, "disable") == 0) {
++			status &= ~2;
++		} else
++			return -EINVAL;
++		do_cmd = 1;
++	}
++
++	if (do_cmd && !acpi_evalf(hkey_handle, NULL, "SWAN", "vd", status))
++		return -EIO;
++
++	return 0;
++}
++
+ static int video_supported;
+ static int video_orig_autosw;
+ 
+@@ -1561,6 +1624,13 @@ static struct ibm_struct ibms[] = {
+ 	 .init = bluetooth_init,
+ 	 .read = bluetooth_read,
+ 	 .write = bluetooth_write,
++	 },
++	{
++	 .name = "wan",
++	 .init = wan_init,
++	 .read = wan_read,
++	 .write = wan_write,
++	 .experimental = 1,
+ 	 },
+ 	{
+ 	 .name = "video",
 
-Anyway, I'm not too familiar with ACPI or interrupt routing, so: do you=
-=20
-regard it as a bug that so many interrupts are level-triggered?
 
-If so, we can get it filed at the kernel bugzilla if appropriate.
-
-Here is some info that might be useful:
-
-dmesg dump with ACPI debugging enabled:
-http://bugs.gentoo.org/attachment.cgi?id=3D85619&action=3Dview
-
-dmesg with the lapic parameter used at boot:
-https://bugs.gentoo.org/attachment.cgi?id=3D85540&action=3Dview
-
-acpidump:
-https://bugs.gentoo.org/attachment.cgi?id=3D85685&action=3Dview
-
-The actual bug report:
-http://bugs.gentoo.org/show_bug.cgi?id=3D131274
-
-Thanks,
-Daniel
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
