@@ -1,58 +1,119 @@
 From: akpm@osdl.org
-Subject: [patch 04/13] Catch notification of memory add event of ACPI via container driver. (avoid redundant call add_memory)
-Date: Thu, 01 Jun 2006 20:18:45 -0700
-Message-ID: <200606020314.k523ERcQ028316@shell0.pdx.osdl.net>
+Subject: [patch 10/13] Remove acpi_os_create_lock(), acpi_os_delete_lock()
+Date: Thu, 01 Jun 2006 20:18:50 -0700
+Message-ID: <200606020314.k523EWVC028334@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:10673 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1751035AbWFBDOc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Jun 2006 23:14:32 -0400
+Received: from smtp.osdl.org ([65.172.181.4]:14257 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1751177AbWFBDOe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Jun 2006 23:14:34 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, y-goto@jp.fujitsu.com, haveblue@us.ibm.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, adobriyan@gmail.com
 
 
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-When acpi_memory_device_init() is called at boottime to register struct
-memory acpi_memory_device, acpi_bus_add() are called via
-acpi_driver_attach().
+Minimally intrusive patch to remove some overdesign in ACPI code. Based
+on hch rant.
 
-But it also calls ops->start() function.  It is called even if the memory
-blocks are initialized at early boottime.  In this case add_memory() return
--EEXIST, and the memory blocks becomes INVALID state even if it is normal.
+The only purpose of functions in question is to dynamically allocate one
+global spinlock -- acpi_gbl_gpe_lock.  Instead, create it in .bss.
 
-This is patch to avoid calling add_memory() for already available memory.
+It's tempting to shoot acpi_os_release_lock() et al too.
 
-[akpm@osdl.org: coding cleanups]
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: "Brown, Len" <len.brown@intel.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/acpi_memhotplug.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/acpi/osl.c               |   30 -----------------------------
+ drivers/acpi/utilities/utmutex.c |    6 +++--
+ include/acpi/acpiosxf.h          |    4 ---
+ 3 files changed, 4 insertions(+), 36 deletions(-)
 
-diff -puN drivers/acpi/acpi_memhotplug.c~catch-notification-of-memory-add-event-of-acpi-via-container-driveravoid-redundant-call-add_memory drivers/acpi/acpi_memhotplug.c
---- devel/drivers/acpi/acpi_memhotplug.c~catch-notification-of-memory-add-event-of-acpi-via-container-driveravoid-redundant-call-add_memory	2006-06-01 20:17:06.000000000 -0700
-+++ devel-akpm/drivers/acpi/acpi_memhotplug.c	2006-06-01 20:17:06.000000000 -0700
-@@ -225,6 +225,17 @@ static int acpi_memory_enable_device(str
-          * (i.e. memory-hot-remove function)
- 	 */
- 	list_for_each_entry(info, &mem_device->res_list, list) {
-+		u64 start_pfn, end_pfn;
+diff -puN drivers/acpi/osl.c~remove-acpi_os_create_lock-acpi_os_delete_lock drivers/acpi/osl.c
+--- devel/drivers/acpi/osl.c~remove-acpi_os_create_lock-acpi_os_delete_lock	2006-06-01 20:17:08.000000000 -0700
++++ devel-akpm/drivers/acpi/osl.c	2006-06-01 20:17:08.000000000 -0700
+@@ -668,36 +668,6 @@ void acpi_os_wait_events_complete(void *
+ 
+ EXPORT_SYMBOL(acpi_os_wait_events_complete);
+ 
+-/*
+- * Allocate the memory for a spinlock and initialize it.
+- */
+-acpi_status acpi_os_create_lock(acpi_handle * out_handle)
+-{
+-	spinlock_t *lock_ptr;
+-
+-	lock_ptr = kmalloc(sizeof(spinlock_t), GFP_KERNEL);
+-
+-	spin_lock_init(lock_ptr);
+-
+-	ACPI_DEBUG_PRINT((ACPI_DB_MUTEX, "Creating spinlock[%p].\n", lock_ptr));
+-
+-	*out_handle = lock_ptr;
+-
+-	return AE_OK;
+-}
+-
+-/*
+- * Deallocate the memory for a spinlock.
+- */
+-void acpi_os_delete_lock(acpi_handle handle)
+-{
+-	ACPI_DEBUG_PRINT((ACPI_DB_MUTEX, "Deleting spinlock[%p].\n", handle));
+-
+-	kfree(handle);
+-
+-	return;
+-}
+-
+ acpi_status
+ acpi_os_create_semaphore(u32 max_units, u32 initial_units, acpi_handle * handle)
+ {
+diff -puN drivers/acpi/utilities/utmutex.c~remove-acpi_os_create_lock-acpi_os_delete_lock drivers/acpi/utilities/utmutex.c
+--- devel/drivers/acpi/utilities/utmutex.c~remove-acpi_os_create_lock-acpi_os_delete_lock	2006-06-01 20:17:08.000000000 -0700
++++ devel-akpm/drivers/acpi/utilities/utmutex.c	2006-06-01 20:17:08.000000000 -0700
+@@ -51,6 +51,8 @@ static acpi_status acpi_ut_create_mutex(
+ 
+ static acpi_status acpi_ut_delete_mutex(acpi_mutex_handle mutex_id);
+ 
++static spinlock_t __acpi_gbl_gpe_lock;
 +
-+		start_pfn = info->start_addr >> PAGE_SHIFT;
-+		end_pfn = (info->start_addr + info->length - 1) >> PAGE_SHIFT;
-+
-+		if (pfn_valid(start_pfn) || pfn_valid(end_pfn)) {
-+			/* already enabled. try next area */
-+			num_enabled++;
-+			continue;
-+		}
-+
- 		result = add_memory(info->start_addr, info->length);
- 		if (result)
- 			continue;
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_ut_mutex_initialize
+@@ -80,7 +82,8 @@ acpi_status acpi_ut_mutex_initialize(voi
+ 		}
+ 	}
+ 
+-	status = acpi_os_create_lock(&acpi_gbl_gpe_lock);
++	spin_lock_init(&__acpi_gbl_gpe_lock);
++	acpi_gbl_gpe_lock = &__acpi_gbl_gpe_lock;
+ 	return_ACPI_STATUS(status);
+ }
+ 
+@@ -109,7 +112,6 @@ void acpi_ut_mutex_terminate(void)
+ 		(void)acpi_ut_delete_mutex(i);
+ 	}
+ 
+-	acpi_os_delete_lock(acpi_gbl_gpe_lock);
+ 	return_VOID;
+ }
+ 
+diff -puN include/acpi/acpiosxf.h~remove-acpi_os_create_lock-acpi_os_delete_lock include/acpi/acpiosxf.h
+--- devel/include/acpi/acpiosxf.h~remove-acpi_os_create_lock-acpi_os_delete_lock	2006-06-01 20:17:08.000000000 -0700
++++ devel-akpm/include/acpi/acpiosxf.h	2006-06-01 20:17:08.000000000 -0700
+@@ -108,10 +108,6 @@ acpi_status acpi_os_wait_semaphore(acpi_
+ 
+ acpi_status acpi_os_signal_semaphore(acpi_handle handle, u32 units);
+ 
+-acpi_status acpi_os_create_lock(acpi_handle * out_handle);
+-
+-void acpi_os_delete_lock(acpi_handle handle);
+-
+ acpi_cpu_flags acpi_os_acquire_lock(acpi_handle handle);
+ 
+ void acpi_os_release_lock(acpi_handle handle, acpi_cpu_flags flags);
 _
