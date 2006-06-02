@@ -1,119 +1,49 @@
 From: akpm@osdl.org
-Subject: [patch 10/13] Remove acpi_os_create_lock(), acpi_os_delete_lock()
-Date: Thu, 01 Jun 2006 20:18:50 -0700
-Message-ID: <200606020314.k523EWVC028334@shell0.pdx.osdl.net>
+Subject: [patch 07/13] acpiphp: prevent duplicate slot numbers when no _SUN
+Date: Thu, 01 Jun 2006 20:18:48 -0700
+Message-ID: <200606020314.k523ETxg028325@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:14257 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1751177AbWFBDOe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Jun 2006 23:14:34 -0400
+Received: from smtp.osdl.org ([65.172.181.4]:9905 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1751172AbWFBDOc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Jun 2006 23:14:32 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, adobriyan@gmail.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, kristen.c.accardi@intel.com
 
 
-From: Alexey Dobriyan <adobriyan@gmail.com>
+From: Kristen Accardi <kristen.c.accardi@intel.com>
 
-Minimally intrusive patch to remove some overdesign in ACPI code. Based
-on hch rant.
+Dock bridges generally do not implement _SUN, yet show up as ejectable
+slots.  If you have more than one ejectable slot that does not implement
+SUN, with the current code you will get duplicate slot numbers.  So, if
+there is no _SUN, use the current count of the number of slots found
+instead.
 
-The only purpose of functions in question is to dynamically allocate one
-global spinlock -- acpi_gbl_gpe_lock.  Instead, create it in .bss.
-
-It's tempting to shoot acpi_os_release_lock() et al too.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: "Brown, Len" <len.brown@intel.com>
+Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/osl.c               |   30 -----------------------------
- drivers/acpi/utilities/utmutex.c |    6 +++--
- include/acpi/acpiosxf.h          |    4 ---
- 3 files changed, 4 insertions(+), 36 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/osl.c~remove-acpi_os_create_lock-acpi_os_delete_lock drivers/acpi/osl.c
---- devel/drivers/acpi/osl.c~remove-acpi_os_create_lock-acpi_os_delete_lock	2006-06-01 20:17:08.000000000 -0700
-+++ devel-akpm/drivers/acpi/osl.c	2006-06-01 20:17:08.000000000 -0700
-@@ -668,36 +668,6 @@ void acpi_os_wait_events_complete(void *
+diff -puN drivers/pci/hotplug/acpiphp_glue.c~acpiphp-prevent-duplicate-slot-numbers-when-no-_sun drivers/pci/hotplug/acpiphp_glue.c
+--- devel/drivers/pci/hotplug/acpiphp_glue.c~acpiphp-prevent-duplicate-slot-numbers-when-no-_sun	2006-06-01 20:17:06.000000000 -0700
++++ devel-akpm/drivers/pci/hotplug/acpiphp_glue.c	2006-06-01 20:17:06.000000000 -0700
+@@ -218,8 +218,13 @@ register_slot(acpi_handle handle, u32 lv
+ 		newfunc->flags |= FUNC_HAS_DCK;
  
- EXPORT_SYMBOL(acpi_os_wait_events_complete);
+ 	status = acpi_evaluate_integer(handle, "_SUN", NULL, &sun);
+-	if (ACPI_FAILURE(status))
+-		sun = -1;
++	if (ACPI_FAILURE(status)) {
++		/*
++		 * use the count of the number of slots we've found
++		 * for the number of the slot
++		 */
++		sun = bridge->nr_slots+1;
++	}
  
--/*
-- * Allocate the memory for a spinlock and initialize it.
-- */
--acpi_status acpi_os_create_lock(acpi_handle * out_handle)
--{
--	spinlock_t *lock_ptr;
--
--	lock_ptr = kmalloc(sizeof(spinlock_t), GFP_KERNEL);
--
--	spin_lock_init(lock_ptr);
--
--	ACPI_DEBUG_PRINT((ACPI_DB_MUTEX, "Creating spinlock[%p].\n", lock_ptr));
--
--	*out_handle = lock_ptr;
--
--	return AE_OK;
--}
--
--/*
-- * Deallocate the memory for a spinlock.
-- */
--void acpi_os_delete_lock(acpi_handle handle)
--{
--	ACPI_DEBUG_PRINT((ACPI_DB_MUTEX, "Deleting spinlock[%p].\n", handle));
--
--	kfree(handle);
--
--	return;
--}
--
- acpi_status
- acpi_os_create_semaphore(u32 max_units, u32 initial_units, acpi_handle * handle)
- {
-diff -puN drivers/acpi/utilities/utmutex.c~remove-acpi_os_create_lock-acpi_os_delete_lock drivers/acpi/utilities/utmutex.c
---- devel/drivers/acpi/utilities/utmutex.c~remove-acpi_os_create_lock-acpi_os_delete_lock	2006-06-01 20:17:08.000000000 -0700
-+++ devel-akpm/drivers/acpi/utilities/utmutex.c	2006-06-01 20:17:08.000000000 -0700
-@@ -51,6 +51,8 @@ static acpi_status acpi_ut_create_mutex(
- 
- static acpi_status acpi_ut_delete_mutex(acpi_mutex_handle mutex_id);
- 
-+static spinlock_t __acpi_gbl_gpe_lock;
-+
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_ut_mutex_initialize
-@@ -80,7 +82,8 @@ acpi_status acpi_ut_mutex_initialize(voi
- 		}
- 	}
- 
--	status = acpi_os_create_lock(&acpi_gbl_gpe_lock);
-+	spin_lock_init(&__acpi_gbl_gpe_lock);
-+	acpi_gbl_gpe_lock = &__acpi_gbl_gpe_lock;
- 	return_ACPI_STATUS(status);
- }
- 
-@@ -109,7 +112,6 @@ void acpi_ut_mutex_terminate(void)
- 		(void)acpi_ut_delete_mutex(i);
- 	}
- 
--	acpi_os_delete_lock(acpi_gbl_gpe_lock);
- 	return_VOID;
- }
- 
-diff -puN include/acpi/acpiosxf.h~remove-acpi_os_create_lock-acpi_os_delete_lock include/acpi/acpiosxf.h
---- devel/include/acpi/acpiosxf.h~remove-acpi_os_create_lock-acpi_os_delete_lock	2006-06-01 20:17:08.000000000 -0700
-+++ devel-akpm/include/acpi/acpiosxf.h	2006-06-01 20:17:08.000000000 -0700
-@@ -108,10 +108,6 @@ acpi_status acpi_os_wait_semaphore(acpi_
- 
- acpi_status acpi_os_signal_semaphore(acpi_handle handle, u32 units);
- 
--acpi_status acpi_os_create_lock(acpi_handle * out_handle);
--
--void acpi_os_delete_lock(acpi_handle handle);
--
- acpi_cpu_flags acpi_os_acquire_lock(acpi_handle handle);
- 
- void acpi_os_release_lock(acpi_handle handle, acpi_cpu_flags flags);
+ 	/* search for objects that share the same slot */
+ 	for (slot = bridge->slots; slot; slot = slot->next)
 _
