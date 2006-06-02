@@ -1,85 +1,29 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [patch 10/13] Remove acpi_os_create_lock(), acpi_os_delete_lock()
-Date: Fri, 2 Jun 2006 15:39:42 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6A171C4@hdsmsx411.amr.corp.intel.com>
+From: Andi Kleen <ak@muc.de>
+Subject: Re: [patch 12/13] Fix HPET operation on 64-bit NVIDIA platforms
+Date: 2 Jun 2006 22:37:29 +0200
+Message-ID: <20060602203729.GA74096@muc.de>
+References: <8E5ACAE05E6B9E44A2903C693A5D4E8A15D0E508@hqemmail02.nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:22797 "EHLO
-	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S932483AbWFBTjq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Jun 2006 15:39:46 -0400
-Content-class: urn:content-classes:message
+Received: from colin.muc.de ([193.149.48.1]:20485 "EHLO mail.muc.de")
+	by vger.kernel.org with ESMTP id S932563AbWFBUhb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Jun 2006 16:37:31 -0400
+Date: Fri, 2 Jun 2006 22:37:29 +0200
+Content-Disposition: inline
+In-Reply-To: <8E5ACAE05E6B9E44A2903C693A5D4E8A15D0E508@hqemmail02.nvidia.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>, Andrew Morton <akpm@osdl.org>
-Cc: linux-acpi@vger.kernel.org, adobriyan@gmail.com
+To: Andy Currid <ACurrid@nvidia.com>
+Cc: akpm@osdl.org, len.brown@intel.com, linux-acpi@vger.kernel.org, luming.yu@intel.com
 
-Alexey,
+On Fri, Jun 02, 2006 at 11:22:00AM -0700, Andy Currid wrote:
+> 
+> As currently written, I think it's safe to call it. The sdt_entry table
+> will be empty if the user specified 'acpi=off', so the function will
+> return 0.
 
-This patch does the right thing, but I'm not going to apply it
-because it will just create work in terms of a conflict
-within dual-licensed ACPICA code that is already being
-cleaned up as we speak.
+Ok. I guess it's a 2.6.17 candidate then (are systems with this issue
+already shipping?) 
 
-I'm glad you brought this up, because the cleanup
-will be even cleaner now:-)
-
-thanks,
--Len
-
->-----Original Message-----
->From: Moore, Robert 
->Sent: Friday, June 02, 2006 3:35 PM
->To: Andrew Morton
->Cc: Brown, Len; linux-acpi@vger.kernel.org; adobriyan@gmail.com
->Subject: RE: [patch 10/13] Remove acpi_os_create_lock(), 
->acpi_os_delete_lock()
->
->Andrew,
->
->Thanks, you are absolutely correct. We have recently been 
->driving this kind of thing back up into the ACPICA core by 
->allowing the host to define types which are then compiled into 
->ACPICA (ACPI_CPU_FLAGS for example) to simplify the 
->ACPICA-to-host interfaces, and this is another OSL interface 
->we should change to allow this.
->
->Bob
->
->
->> -----Original Message-----
->> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
->> owner@vger.kernel.org] On Behalf Of Andrew Morton
->> Sent: Friday, June 02, 2006 12:24 PM
->> To: Moore, Robert
->> Cc: Brown, Len; linux-acpi@vger.kernel.org; adobriyan@gmail.com
->> Subject: Re: [patch 10/13] Remove acpi_os_create_lock(),
->> acpi_os_delete_lock()
->> 
->> On Fri, 2 Jun 2006 12:09:14 -0700
->> "Moore, Robert" <robert.moore@intel.com> wrote:
->> 
->> > This will not always be the case, in fact we are about to 
->expand the use
->> > of the spinlock interfaces.
->> 
->> Sure, but this function is absolutely crackers.  All it does is to
->> dynamically allocate and initialise a spinlock.  But the 
->storage for the
->> pointer-to-spinlock is the same as, or larger than the 
->spinlock itself.
->> 
->> This thing has to die - please kill it before it spreads.  
->The spinlock
->> should be aggregated by value into the containing structure.  Not by
->> reference.
->> 
->> -
->> To unsubscribe from this list: send the line "unsubscribe 
->linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+-Andi
