@@ -1,78 +1,59 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: Possible kernel memory leaks
-Date: Fri, 02 Jun 2006 10:41:37 +0100
-Message-ID: <tnx4pz3x5bi.fsf@arm.com>
-References: <44797BEF.70206@gmail.com> <tnxk682wbk8.fsf@arm.com>
-Reply-To: Catalin Marinas <catalin.marinas@gmail.com>
+From: "Yu, Luming" <luming.yu@intel.com>
+Subject: RE: [linux-pm] ACPI problem with ACER Aspire 3003LC laptop.
+Date: Fri, 2 Jun 2006 20:10:58 +0800
+Message-ID: <554C5F4C5BA7384EB2B412FD46A3BAD11206EE@pdsmsx411.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=gb2312
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([193.131.176.58]:63620 "EHLO
-	cam-admin0.cambridge.arm.com") by vger.kernel.org with ESMTP
-	id S1751370AbWFBJlp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 2 Jun 2006 05:41:45 -0400
-In-Reply-To: <tnxk682wbk8.fsf@arm.com> (Catalin Marinas's message of "Wed,
- 31 May 2006 14:47:35 +0100")
+Received: from mga03.intel.com ([143.182.124.21]:37934 "EHLO
+	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
+	id S1751213AbWFBMLL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Jun 2006 08:11:11 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: rasmit.ranjan@wipro.com, linux-pm@osdl.org
+Cc: linux-acpi@vger.kernel.org
 
-Catalin Marinas <catalin.marinas@arm.com> wrote:
-> Catalin Marinas <catalin.marinas@gmail.com> wrote:
->> There are some possible kernel memory leaks discovered by kmemleak.
-> [...]
->> - acpi_ev_execute_reg_method in drivers/acpi/events/evregion.c - I'm not
->> sure about this but kmemleak reports an orphan pointer on the following
->> allocation path:
->>   c0159372: <kmem_cache_alloc>
->>   c01ffa07: <acpi_os_acquire_object>
->>   c0215b3a: <acpi_ut_allocate_object_desc_dbg>
->>   c02159ce: <acpi_ut_create_internal_object_dbg>
->>   c0203784: <acpi_ev_execute_reg_method>
->>   c0203db4: <acpi_ev_reg_run>
->>   c020ed17: <acpi_ns_walk_namespace>
->>   c0203d6b: <acpi_ev_execute_reg_methods>
->> Is acpi_ut_remove_reference actually removing the params[0/1]?
->
-> After a quick check, the reference counts after the
-> acpi_ns_evaluate_by_handle() call in acpi_ev_execute_reg_method look
-> like this (they were both 1 before this call):
->
->   params[0]->common.reference_count = 1
->   params[1]->common.reference_count = 2
->
-> and therefore acpi_ut_remove_reference() doesn't free
-> params[1]. Kmemleak, however, cannot find the params[1] value while
-> scanning the memory and therefore reports it as a leak.
+Does latest base kernel work?
+If NOT, please file a bug on bugzilla.kernel.org
 
-I'll keep investigating this as I think its a real object
-leak. Looking at why params[1] has a different reference_count from
-params[0], led me to the following backtrace on the ref count
-increment (that's getting really complicated):
 
-  acpi_ut_add_reference
-  acpi_ds_method_data_get_value
-  acpi_ex_resolve_object_to_value
-  acpi_ex_resolve_to_value
-  acpi_ex_resolve_operands
-    (I have a suspicion that the above function should call
-     acpi_ut_remove_reference(obj_desc) on an error return path but it
-     actually doesn't and, therefore, the ref count remains
-     incremented. In this function, params[0] ref count is 3 but the
-     one for params[1] becomes 4)
-  acpi_ds_exec_end_op (called via walk_state->ascending_callback)
-  acpi_ps_parse_loop
-  acpi_ps_parse_aml
-  acpi_ps_execute_pass
-  acpi_ps_execute_method
-  acpi_ns_execute_control_method
-  acpi_ns_evaluate_by_handle
-  acpi_ev_execute_reg_method
+Thanks
+Luming=20
 
-Any suggestions/hints? I hope to get to the bottom of this in the next
-few days.
+________________________________
 
-Thanks.
-
--- 
-Catalin
+	From: linux-pm-bounces@lists.osdl.org [mailto:linux-pm-bounces@lists.o=
+sdl.org] On Behalf Of rasmit.ranjan@wipro.com
+	Sent: 2006=C4=EA6=D4=C22=C8=D5 12:27
+	To: linux-pm@osdl.org
+	Subject: [linux-pm] ACPI problem with ACER Aspire 3003LC laptop.
+=09
+=09
+	Hi all,
+	    I am using ACER Aspire 3003LC laptop for developing a Host control=
+ler driver for kernel version 2.6.15.4.
+	If i enable Power management support then my ethernet interface doesno=
+t work. Also i get the message: " Disabling IRQ#3"
+	This message comes from the kernel. And also i get following messages =
+from ACPI:
+	=20
+	    ACPI-0508: *** Error: Method execution failed[\_SB_.BAT1._BST] (No=
+de cbd80560), AE_NOT_FOUND
+	    ACPI-0339: *** Error: Looking uo[Z007] in namespace, AE_NOT_FOUND
+	=20
+	I recompiled my kernel without power management support. Now my ethern=
+et is working properly and obviously i don`t get any message from ACPI.=
+ This is the problem with the laptop. But I need Power management suppo=
+rt. so is there any patch available for this ? Please suggest.
+	=20
+	Thanks and regards,
+	Rasmit.
+	=20
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
