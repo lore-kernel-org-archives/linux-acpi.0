@@ -1,32 +1,43 @@
-From: "Bi" <delmir@aaanet.ru>
-Subject: Hello my Dear Stranger!
-Date: Fri, 02 Jun 2006 16:43:45 +0300
-Message-ID: <005801c6864a$79743a80$0100a8c0__3198.20450754396$1149255854$gmane$org@222.70.114.216>
+From: KENT ANDERSON <ken.anderson@laposte.net>
+Subject: EMPLOYMENT MAIL
+Date: Fri, 02 Jun 2006 08:59:46 -0600
+Message-ID: <E1FmB7q-0004Gi-EW@server.thevenusserver.com>
+Reply-To: ken.anderson@laposte.net
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="windows-1251"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [222.70.114.216] ([222.70.114.216]:16134 "EHLO 222.70.114.216")
-	by vger.kernel.org with ESMTP id S932111AbWFBNnP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Jun 2006 09:43:15 -0400
+Received: from 13-120-13-69.cust.propagation.net ([69.13.120.13]:55432 "EHLO
+	server.thevenusserver.com") by vger.kernel.org with ESMTP
+	id S1751141AbWFBO7z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 2 Jun 2006 10:59:55 -0400
+Received: from apache by server.thevenusserver.com with local (Exim 4.42)
+	id 1FmB7q-0004Gi-EW
+	for linux-acpi@vger.kernel.org; Fri, 02 Jun 2006 08:59:47 -0600
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Richard <bk-commits-head-owner@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-Greeting .	
+>From The Desk of:
 
-I'm a very young and energetic lady! I have very positive attitude to life and people. I do enjoy new experience life can offer me: to see new interesting places, to meet new people.
-I do try to enjoy every moment of life and accept everything the way it comes without complaining.
-Though my life seems to be quite enjoyable there's one important thing missing. It's LOVE!
-Without my beloved one, my soul mate, my King my life is not completed.
-I wish i coud find him very soon so that we could share together every momement of the life-time romance! 
-What about you? Could you be my King? If answer is "yes" - you can find more about me 
-http://XWWiQw3CwL.i-am-waiting4love.net/
+Kent Anderson PhD
+L. G. A. (Woodworking Machinery) Ltd,
+1 Rutland Court,EH3 8EY,
+London.
 
-Good-bye
 
-Bi M.
+Dear Sir/Madam,
+
+We will be very glad if you can be our representative in your country 
+and earn 10% of every payment made through you to us.
+
+For more information, contact us through email. Note that you shall not 
+be liable to make any upfront payment.
+
+Thanks in advance.
+
+Kind Regards,
+Kent Anderson (CEO)
 
 
 
