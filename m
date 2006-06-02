@@ -1,151 +1,38 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [PATCH REPOST] Support enable/disable of WAN module in ibm_acpi
-Date: Thu, 1 Jun 2006 20:42:37 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB69D2519@hdsmsx411.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: akpm@osdl.org
+Subject: [patch 01/13] asus_acpi_init: propagate correct return value
+Date: Thu, 01 Jun 2006 20:18:42 -0700
+Message-ID: <200606020314.k523ENus028307@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:570 "EHLO
-	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
-	id S1750791AbWFBAnL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Jun 2006 20:43:11 -0400
-Content-class: urn:content-classes:message
+Received: from smtp.osdl.org ([65.172.181.4]:8113 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1751031AbWFBDOb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Jun 2006 23:14:31 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Deianov <borislav@users.sf.net>, Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>
+To: len.brown@intel.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, bjorn.helgaas@hp.com, romieu@fr.zoreil.com
 
-applied to acpi-test.
 
-thanks,
--Len 
+From: Andrew Morton <akpm@osdl.org>
 
->-----Original Message-----
->From: Borislav Deianov [mailto:borislav@users.sf.net] 
->Sent: Thursday, June 01, 2006 6:25 PM
->To: Brown, Len; Jeremy Fitzhardinge
->Cc: linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org; 
->Andrew Morton
->Subject: Re: [PATCH REPOST] Support enable/disable of WAN 
->module in ibm_acpi
->
->On Thu, Jun 01, 2006 at 02:40:46PM -0700, Jeremy Fitzhardinge wrote:
->> New Lenovo Thinkpads have an optional WAN module (a Sierra Wireless
->> MC5720 EV-DO modem), which can be turned on and off much like the
->> Bluetooth module.  This patch adds a "wan" entry to /proc/acpi/ibm,
->> which is pretty much a cut'n'paste of the corresponding 
->bluetooth code.
->
->I'm not able to test this myself, but it looks good. Len, please
->apply.
->
->Thanks,
->Borislav
->
->--
->
->Allow a WAN module to enabled/disabled on a Thinkpad X60.
->
->The WAN (Sierra Wireless EV-DO) module is very similar to the
->Bluetooth module.  It appears on the USB bus when enabled.  It can be
->controlled via hot key, or directly via ACPI.  This change enables
->direct control via ACPI.
->
->I have tested it on my Lenovo Thinkpad X60; I guess it will probably
->work on other Thinkpad models which come with this module installed.
->
->Signed-off-by: Jeremy Fitzhardinge <jeremy@goop.org>
->
->diff -r 401a0868b8be drivers/acpi/ibm_acpi.c
->--- a/drivers/acpi/ibm_acpi.c	Mon May 29 06:35:52 2006 +0700
->+++ b/drivers/acpi/ibm_acpi.c	Mon May 29 01:36:12 2006 -0700
->@@ -567,6 +567,69 @@ static int bluetooth_write(char *buf)
->	return 0;
->}
->
->+static int wan_supported;
->+
->+static int wan_init(void)
->+{
->+	wan_supported = hkey_handle &&
->+	    acpi_evalf(hkey_handle, NULL, "GWAN", "qv");
->+
->+	return 0;
->+}
->+
->+static int wan_status(void)
->+{
->+	int status;
->+
->+	if (!wan_supported ||
->+	    !acpi_evalf(hkey_handle, &status, "GWAN", "d"))
->+		status = 0;
->+
->+	return status;
->+}
->+
->+static int wan_read(char *p)
->+{
->+	int len = 0;
->+	int status = wan_status();
->+
->+	if (!wan_supported)
->+		len += sprintf(p + len, "status:\t\tnot supported\n");
->+	else if (!(status & 1))
->+		len += sprintf(p + len, "status:\t\tnot installed\n");
->+	else {
->+		len += sprintf(p + len, "status:\t\t%s\n", 
->enabled(status, 
->1));
->+		len += sprintf(p + len, "commands:\tenable, disable\n");
->+	}
->+
->+	return len;
->+}
->+
->+static int wan_write(char *buf)
->+{
->+	int status = wan_status();
->+	char *cmd;
->+	int do_cmd = 0;
->+
->+	if (!wan_supported)
->+		return -ENODEV;
->+
->+	while ((cmd = next_cmd(&buf))) {
->+		if (strlencmp(cmd, "enable") == 0) {
->+			status |= 2;
->+		} else if (strlencmp(cmd, "disable") == 0) {
->+			status &= ~2;
->+		} else
->+			return -EINVAL;
->+		do_cmd = 1;
->+	}
->+
->+	if (do_cmd && !acpi_evalf(hkey_handle, NULL, "SWAN", 
->"vd", status))
->+		return -EIO;
->+
->+	return 0;
->+}
->+
->static int video_supported;
->static int video_orig_autosw;
->
->@@ -1561,6 +1624,13 @@ static struct ibm_struct ibms[] = {
->	 .init = bluetooth_init,
->	 .read = bluetooth_read,
->	 .write = bluetooth_write,
->+	 },
->+	{
->+	 .name = "wan",
->+	 .init = wan_init,
->+	 .read = wan_read,
->+	 .write = wan_write,
->+	 .experimental = 1,
->	 },
->	{
->	 .name = "video",
->
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: "Brown, Len" <len.brown@intel.com>
+Acked-by: Francois Romieu <romieu@fr.zoreil.com>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
+---
+
+ drivers/acpi/asus_acpi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff -puN drivers/acpi/asus_acpi.c~acpi-update-asus_acpi-driver-registration-fix drivers/acpi/asus_acpi.c
+--- devel/drivers/acpi/asus_acpi.c~acpi-update-asus_acpi-driver-registration-fix	2006-06-01 20:17:04.000000000 -0700
++++ devel-akpm/drivers/acpi/asus_acpi.c	2006-06-01 20:17:04.000000000 -0700
+@@ -1232,7 +1232,7 @@ static int __init asus_acpi_init(void)
+ 	result = acpi_bus_register_driver(&asus_hotk_driver);
+ 	if (result < 0) {
+ 		remove_proc_entry(PROC_ASUS, acpi_root_dir);
+-		return -ENODEV;
++		return result;
+ 	}
+ 
+ 	/*
+_
