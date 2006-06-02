@@ -1,59 +1,43 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: [linux-pm] ACPI problem with ACER Aspire 3003LC laptop.
-Date: Fri, 2 Jun 2006 20:10:58 +0800
-Message-ID: <554C5F4C5BA7384EB2B412FD46A3BAD11206EE@pdsmsx411.ccr.corp.intel.com>
+From: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
+Subject: Re: [patch 09/13] ACPI: Atlas ACPI driver
+Date: Fri, 2 Jun 2006 08:33:49 -0400
+Message-ID: <d120d5000606020533g431043a5r94e0ca7cce1799cc@mail.gmail.com>
+References: <200606020314.k523EVi4028331@shell0.pdx.osdl.net>
+Reply-To: dtor_core@ameritech.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset=gb2312
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:37934 "EHLO
-	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S1751213AbWFBMLL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Jun 2006 08:11:11 -0400
-Content-class: urn:content-classes:message
+Received: from wr-out-0506.google.com ([64.233.184.231]:7239 "EHLO
+	wr-out-0506.google.com") by vger.kernel.org with ESMTP
+	id S1750700AbWFBMdt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 2 Jun 2006 08:33:49 -0400
+Received: by wr-out-0506.google.com with SMTP id 50so492685wri
+        for <linux-acpi@vger.kernel.org>; Fri, 02 Jun 2006 05:33:49 -0700 (PDT)
+In-Reply-To: <200606020314.k523EVi4028331@shell0.pdx.osdl.net>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rasmit.ranjan@wipro.com, linux-pm@osdl.org
-Cc: linux-acpi@vger.kernel.org
+To: "akpm@osdl.org" <akpm@osdl.org>
+Cc: len.brown@intel.com, linux-acpi@vger.kernel.org, jayakumar.acpi@gmail.com, luming.yu@intel.com
 
-Does latest base kernel work?
-If NOT, please file a bug on bugzilla.kernel.org
+On 6/1/06, akpm@osdl.org <akpm@osdl.org> wrote:
+> +
+> +static int atlas_acpi_button_remove(struct acpi_device *device, int type)
+> +{
+> +       acpi_status status;
+> +
+> +       atlas_free_input();
+> +       status = acpi_remove_address_space_handler(device->handle,
+> +                               0x81, &acpi_atlas_button_handler);
+> +       if (ACPI_FAILURE(status))
+> +               printk(KERN_ERR "Atlas: Error removing addr spc handler\n");
+> +
 
+I think that you should free (unregister) input device only after
+button handler was unregistered, otherwise there is a risk that it
+will try to access already freed device. Other than that input part
+looks good.
 
-Thanks
-Luming=20
-
-________________________________
-
-	From: linux-pm-bounces@lists.osdl.org [mailto:linux-pm-bounces@lists.o=
-sdl.org] On Behalf Of rasmit.ranjan@wipro.com
-	Sent: 2006=C4=EA6=D4=C22=C8=D5 12:27
-	To: linux-pm@osdl.org
-	Subject: [linux-pm] ACPI problem with ACER Aspire 3003LC laptop.
-=09
-=09
-	Hi all,
-	    I am using ACER Aspire 3003LC laptop for developing a Host control=
-ler driver for kernel version 2.6.15.4.
-	If i enable Power management support then my ethernet interface doesno=
-t work. Also i get the message: " Disabling IRQ#3"
-	This message comes from the kernel. And also i get following messages =
-from ACPI:
-	=20
-	    ACPI-0508: *** Error: Method execution failed[\_SB_.BAT1._BST] (No=
-de cbd80560), AE_NOT_FOUND
-	    ACPI-0339: *** Error: Looking uo[Z007] in namespace, AE_NOT_FOUND
-	=20
-	I recompiled my kernel without power management support. Now my ethern=
-et is working properly and obviously i don`t get any message from ACPI.=
- This is the problem with the laptop. But I need Power management suppo=
-rt. so is there any patch available for this ? Please suggest.
-	=20
-	Thanks and regards,
-	Rasmit.
-	=20
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Dmitry
