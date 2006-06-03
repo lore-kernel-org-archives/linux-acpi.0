@@ -1,29 +1,34 @@
-From: Andi Kleen <ak@muc.de>
-Subject: Re: [patch 12/13] Fix HPET operation on 64-bit NVIDIA platforms
-Date: 2 Jun 2006 22:37:29 +0200
-Message-ID: <20060602203729.GA74096@muc.de>
-References: <8E5ACAE05E6B9E44A2903C693A5D4E8A15D0E508@hqemmail02.nvidia.com>
+From: "Jaya Kumar" <jayakumar.acpi@gmail.com>
+Subject: Re: [patch 09/13] ACPI: Atlas ACPI driver
+Date: Sat, 3 Jun 2006 19:48:12 +0800
+Message-ID: <756b48450606030448n2ae50dddv90befbf4a637a354@mail.gmail.com>
+References: <200606020314.k523EVi4028331@shell0.pdx.osdl.net>
+	 <d120d5000606020533g431043a5r94e0ca7cce1799cc@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from colin.muc.de ([193.149.48.1]:20485 "EHLO mail.muc.de")
-	by vger.kernel.org with ESMTP id S932563AbWFBUhb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Jun 2006 16:37:31 -0400
-Date: Fri, 2 Jun 2006 22:37:29 +0200
+Received: from wr-out-0506.google.com ([64.233.184.238]:17275 "EHLO
+	wr-out-0506.google.com") by vger.kernel.org with ESMTP
+	id S932615AbWFCLsM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 3 Jun 2006 07:48:12 -0400
+Received: by wr-out-0506.google.com with SMTP id 69so914745wri
+        for <linux-acpi@vger.kernel.org>; Sat, 03 Jun 2006 04:48:12 -0700 (PDT)
+In-Reply-To: <d120d5000606020533g431043a5r94e0ca7cce1799cc@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <8E5ACAE05E6B9E44A2903C693A5D4E8A15D0E508@hqemmail02.nvidia.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Currid <ACurrid@nvidia.com>
-Cc: akpm@osdl.org, len.brown@intel.com, linux-acpi@vger.kernel.org, luming.yu@intel.com
+To: dtor_core@ameritech.net
+Cc: "akpm@osdl.org" <akpm@osdl.org>, len.brown@intel.com, linux-acpi@vger.kernel.org, luming.yu@intel.com
 
-On Fri, Jun 02, 2006 at 11:22:00AM -0700, Andy Currid wrote:
-> 
-> As currently written, I think it's safe to call it. The sdt_entry table
-> will be empty if the user specified 'acpi=off', so the function will
-> return 0.
+On 6/2/06, Dmitry Torokhov <dmitry.torokhov@gmail.com> wrote:
+>
+> I think that you should free (unregister) input device only after
+> button handler was unregistered, otherwise there is a risk that it
+> will try to access already freed device. Other than that input part
+> looks good.
+>
 
-Ok. I guess it's a 2.6.17 candidate then (are systems with this issue
-already shipping?) 
+Oops. Sorry about that. Thanks for the fix akpm.
 
--Andi
+jaya
