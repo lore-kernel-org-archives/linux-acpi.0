@@ -1,112 +1,36 @@
-From: "Alon Keren" <alon.keren@gmail.com>
-Subject: Fwd: ACPI's 'thermal_zone' and 'fan' on XW6200, kernel 2.6.15
-Date: Mon, 5 Jun 2006 16:39:08 +0300
-Message-ID: <92c85b0e0606050639m64c8ede7m7c9673d69e995aeb@mail.gmail.com>
-References: <92c85b0e0605250525t2c66a81aqda2c498a2b9a3786@mail.gmail.com>
-	 <92c85b0e0605280418v319c3ffbtc7a20d968f3eb07@mail.gmail.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: back to discussion of VIA quirk fixup
+Date: Mon, 5 Jun 2006 10:41:06 -0600
+Message-ID: <200606051041.06738.bjorn.helgaas@hp.com>
+References: <1148433146.2885.41.camel@localhost.portugal>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wx-out-0102.google.com ([66.249.82.201]:1891 "EHLO
-	wx-out-0102.google.com") by vger.kernel.org with ESMTP
-	id S1751103AbWFENjJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Jun 2006 09:39:09 -0400
-Received: by wx-out-0102.google.com with SMTP id h28so714747wxd
-        for <linux-acpi@vger.kernel.org>; Mon, 05 Jun 2006 06:39:08 -0700 (PDT)
-In-Reply-To: <92c85b0e0605280418v319c3ffbtc7a20d968f3eb07@mail.gmail.com>
+Received: from atlrel7.hp.com ([156.153.255.213]:659 "EHLO atlrel7.hp.com")
+	by vger.kernel.org with ESMTP id S1750742AbWFEQlN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jun 2006 12:41:13 -0400
+In-Reply-To: <1148433146.2885.41.camel@localhost.portugal>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: haizaar@gmail.com
+To: sergio@sergiomb.no-ip.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>
 
-In hope for a reply:
+On Tuesday 23 May 2006 19:12, Sergio Monteiro Basto wrote:
+> 1=C2=BA This quirk_via_irq function has been created originally by Bj=
+orn
+> Helgaas, so maybe he can tell better what patch does.
 
----------- Forwarded message ----------
-From: Alon Keren <alon.keren@gmail.com>
-Date: May 28, 2006 2:18 PM
-Subject: Re: ACPI's 'thermal_zone' and 'fan' on XW6200, kernel 2.6.15
-To: linux-acpi@vger.kernel.org
-Cc: haizaar@gmail.com
+I didn't really create the function, I merely renamed it and
+tweaked it a bit based on some bug reports.  And I've never been
+able to match up this quirk with any VIA chipset documentation,
+so I vowed never to get involved with it again :-)
 
+Bjorn
 
-(Please CC me any replies, since I'm not subscribed to this list)
-
-> Hi,
->
-> >When loading acpi's 'fan' and 'thermal' modules, the dircetories
-> >'/proc/acpi/{fan,thermal_zone}' appear, but contain nothing. No
->
-> It looks like fan and thermal not present in DSDT on your system.
-> To make sure you should check for '_TZ' (thermal zone definition) and
-> 'PNP0C0B' (fan device h/w ID) entries in your DSDT.
-> Look here for reference: http://acpi.sourceforge.net/dsdt/index.php
->
-> Regards.
-> Konstantin.
-
-Thanks. Indeed, neither '_TZ' nor 'PNP0C0B' were present in the
-decompiled DSDT. I upgraded my BIOS to the latest version but nothing
-changed in those departments.
-My question now is: what's my next step, if any? Am I strictly at the
-mercy of the vendor - HP - or is there something that could be done?
-
-Alon
-
-
-On 5/25/06, Alon Keren <alon.keren@gmail.com> wrote:
-> Hi,
-> my machine is HP's XW6200 desktop, running LFS with a 2.6.15 kernel.
-> When loading acpi's 'fan' and 'thermal' modules, the dircetories
-> '/proc/acpi/{fan,thermal_zone}' appear, but contain nothing. No
-> complaints appear on 'dmesg', and other modules ('button' and
-> 'processor') seem to behave well.
-> I wish to find out whether the problem is due to hardware limitations,
-> software limitations, or perhaps software configuration, and I'm not
-> sure how to go about it. I write here as I failed to come up with much
-> elsewhere online.
->
-> Some further information that could be helpful:
-> > zgrep -i acpi /proc/config.gz
->
-> # Power management options (ACPI, APM)
-> # ACPI (Advanced Configuration and Power Interface) Support
-> CONFIG_ACPI=y
-> CONFIG_ACPI_SLEEP=y
-> CONFIG_ACPI_SLEEP_PROC_FS=y
-> # CONFIG_ACPI_SLEEP_PROC_SLEEP is not set
-> CONFIG_ACPI_AC=m
-> CONFIG_ACPI_BATTERY=m
-> CONFIG_ACPI_BUTTON=m
-> CONFIG_ACPI_VIDEO=m
-> CONFIG_ACPI_HOTKEY=m
-> CONFIG_ACPI_FAN=m
-> CONFIG_ACPI_PROCESSOR=m
-> CONFIG_ACPI_HOTPLUG_CPU=y
-> CONFIG_ACPI_THERMAL=m
-> CONFIG_ACPI_ASUS=m
-> CONFIG_ACPI_IBM=m
-> CONFIG_ACPI_TOSHIBA=m
-> CONFIG_ACPI_BLACKLIST_YEAR=0
-> CONFIG_ACPI_DEBUG=y
-> CONFIG_ACPI_EC=y
-> CONFIG_ACPI_POWER=y
-> CONFIG_ACPI_SYSTEM=y
-> CONFIG_ACPI_CONTAINER=m
-> CONFIG_X86_ACPI_CPUFREQ=m
-> CONFIG_X86_POWERNOW_K7_ACPI=y
-> CONFIG_X86_POWERNOW_K8_ACPI=y
-> CONFIG_X86_SPEEDSTEP_CENTRINO_ACPI=y
-> # CONFIG_X86_ACPI_CPUFREQ_PROC_INTF is not set
-> CONFIG_HOTPLUG_PCI_ACPI=m
-> CONFIG_HOTPLUG_PCI_ACPI_IBM=m
-> CONFIG_PNPACPI=y
-> # CONFIG_SERIAL_8250_ACPI is not set
->
-> Thanks,
->  Alon
->
-> P.S.
-> Please CC me, as I'm not subscribed to this list.
->
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
