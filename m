@@ -1,65 +1,112 @@
-From: Emiliano Grilli <emiliano.grilli@poste.it>
-Subject: Re: ACPI errors
-Date: Mon, 5 Jun 2006 15:08:02 +0200
-Message-ID: <20060605130802.GA3481@emillo.net>
-References: <554C5F4C5BA7384EB2B412FD46A3BAD11206F0@pdsmsx411.ccr.corp.intel.com>
-Reply-To: Emiliano Grilli <emiliano.grilli@poste.it>
+From: "Alon Keren" <alon.keren@gmail.com>
+Subject: Fwd: ACPI's 'thermal_zone' and 'fan' on XW6200, kernel 2.6.15
+Date: Mon, 5 Jun 2006 16:39:08 +0300
+Message-ID: <92c85b0e0606050639m64c8ede7m7c9673d69e995aeb@mail.gmail.com>
+References: <92c85b0e0605250525t2c66a81aqda2c498a2b9a3786@mail.gmail.com>
+	 <92c85b0e0605280418v319c3ffbtc7a20d968f3eb07@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out13.alice.it ([85.33.2.18]:47119 "EHLO out13.alice.it")
-	by vger.kernel.org with ESMTP id S1751090AbWFENIW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jun 2006 09:08:22 -0400
+Received: from wx-out-0102.google.com ([66.249.82.201]:1891 "EHLO
+	wx-out-0102.google.com") by vger.kernel.org with ESMTP
+	id S1751103AbWFENjJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 Jun 2006 09:39:09 -0400
+Received: by wx-out-0102.google.com with SMTP id h28so714747wxd
+        for <linux-acpi@vger.kernel.org>; Mon, 05 Jun 2006 06:39:08 -0700 (PDT)
+In-Reply-To: <92c85b0e0605280418v319c3ffbtc7a20d968f3eb07@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <554C5F4C5BA7384EB2B412FD46A3BAD11206F0@pdsmsx411.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Yu, Luming" <luming.yu@intel.com>
-Cc: Emiliano Grilli <emiliano.grilli@poste.it>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: haizaar@gmail.com
 
-luned=EC, 05 giugno 2006 alle 20:49:44, Yu, Luming ha scritto:
->=20
-> Sure, Please open a bug at bugzilla.kernel.org.
-> Please post acpidump output, and dmesg.
+In hope for a reply:
+
+---------- Forwarded message ----------
+From: Alon Keren <alon.keren@gmail.com>
+Date: May 28, 2006 2:18 PM
+Subject: Re: ACPI's 'thermal_zone' and 'fan' on XW6200, kernel 2.6.15
+To: linux-acpi@vger.kernel.org
+Cc: haizaar@gmail.com
 
 
-Done.
+(Please CC me any replies, since I'm not subscribed to this list)
 
-Bug number is 6649:
-http://bugzilla.kernel.org/show_bug.cgi?id=3D6649
+> Hi,
+>
+> >When loading acpi's 'fan' and 'thermal' modules, the dircetories
+> >'/proc/acpi/{fan,thermal_zone}' appear, but contain nothing. No
+>
+> It looks like fan and thermal not present in DSDT on your system.
+> To make sure you should check for '_TZ' (thermal zone definition) and
+> 'PNP0C0B' (fan device h/w ID) entries in your DSDT.
+> Look here for reference: http://acpi.sourceforge.net/dsdt/index.php
+>
+> Regards.
+> Konstantin.
 
-=20
+Thanks. Indeed, neither '_TZ' nor 'PNP0C0B' were present in the
+decompiled DSDT. I upgraded my BIOS to the latest version but nothing
+changed in those departments.
+My question now is: what's my next step, if any? Am I strictly at the
+mercy of the vendor - HP - or is there something that could be done?
+
+Alon
+
+
+On 5/25/06, Alon Keren <alon.keren@gmail.com> wrote:
+> Hi,
+> my machine is HP's XW6200 desktop, running LFS with a 2.6.15 kernel.
+> When loading acpi's 'fan' and 'thermal' modules, the dircetories
+> '/proc/acpi/{fan,thermal_zone}' appear, but contain nothing. No
+> complaints appear on 'dmesg', and other modules ('button' and
+> 'processor') seem to behave well.
+> I wish to find out whether the problem is due to hardware limitations,
+> software limitations, or perhaps software configuration, and I'm not
+> sure how to go about it. I write here as I failed to come up with much
+> elsewhere online.
+>
+> Some further information that could be helpful:
+> > zgrep -i acpi /proc/config.gz
+>
+> # Power management options (ACPI, APM)
+> # ACPI (Advanced Configuration and Power Interface) Support
+> CONFIG_ACPI=y
+> CONFIG_ACPI_SLEEP=y
+> CONFIG_ACPI_SLEEP_PROC_FS=y
+> # CONFIG_ACPI_SLEEP_PROC_SLEEP is not set
+> CONFIG_ACPI_AC=m
+> CONFIG_ACPI_BATTERY=m
+> CONFIG_ACPI_BUTTON=m
+> CONFIG_ACPI_VIDEO=m
+> CONFIG_ACPI_HOTKEY=m
+> CONFIG_ACPI_FAN=m
+> CONFIG_ACPI_PROCESSOR=m
+> CONFIG_ACPI_HOTPLUG_CPU=y
+> CONFIG_ACPI_THERMAL=m
+> CONFIG_ACPI_ASUS=m
+> CONFIG_ACPI_IBM=m
+> CONFIG_ACPI_TOSHIBA=m
+> CONFIG_ACPI_BLACKLIST_YEAR=0
+> CONFIG_ACPI_DEBUG=y
+> CONFIG_ACPI_EC=y
+> CONFIG_ACPI_POWER=y
+> CONFIG_ACPI_SYSTEM=y
+> CONFIG_ACPI_CONTAINER=m
+> CONFIG_X86_ACPI_CPUFREQ=m
+> CONFIG_X86_POWERNOW_K7_ACPI=y
+> CONFIG_X86_POWERNOW_K8_ACPI=y
+> CONFIG_X86_SPEEDSTEP_CENTRINO_ACPI=y
+> # CONFIG_X86_ACPI_CPUFREQ_PROC_INTF is not set
+> CONFIG_HOTPLUG_PCI_ACPI=m
+> CONFIG_HOTPLUG_PCI_ACPI_IBM=m
+> CONFIG_PNPACPI=y
+> # CONFIG_SERIAL_8250_ACPI is not set
+>
 > Thanks,
-
-Thanks to you :)
-
-> Luming
->=20
-> >I get a lot of these errors in dmesg:
-> >
-> > ACPI-0339: *** Error: Looking up [\_TZ_.THRM] in namespace,
-> >AE_NOT_FOUND
-> >search_node dfff7800 start_node dfff7800 return_node 00000000
-> >    ACPI-0508: *** Error: Method execution failed [\_GPE._L1C] (Node
-> >dfff7800), AE_NOT_FOUND
-> >    ACPI-0549: *** Error: AE_NOT_FOUND while evaluating method [_L1C=
-]
-> >for GPE[ 0]
-> >
-> >This happens with 2.6.14 and 2.6.16 kernels
-> >
-> >
-> >Can you help me?
-> >
-> >
-
---=20
-Emiliano Grilli
-Linux user #209089=20
-http://www.emillo.net
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  Alon
+>
+> P.S.
+> Please CC me, as I'm not subscribed to this list.
+>
