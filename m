@@ -1,53 +1,77 @@
 From: Andrew Morton <akpm@osdl.org>
-Subject: Re: 2.6.17-rc5-mm3 -- BUG: sleeping function called from invalid
- context at include/asm/semaphore.h:9 9 in_atomic():0, irqs_disabled():1
-Date: Sun, 4 Jun 2006 22:19:52 -0700
-Message-ID: <20060604221952.7e0835c3.akpm@osdl.org>
-References: <a44ae5cd0606042158t4448a6f5od12a032eeb215c15@mail.gmail.com>
+Subject: Re: 2.6.17-rc5-mm3: "BUG: scheduling while atomic" flood when
+ resuming from disk
+Date: Sun, 4 Jun 2006 22:51:40 -0700
+Message-ID: <20060604225140.cf87519f.akpm@osdl.org>
+References: <986ed62e0606042223l2381d877g4bc798ec64804d43@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:51418 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S932409AbWFEFT4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jun 2006 01:19:56 -0400
-In-Reply-To: <a44ae5cd0606042158t4448a6f5od12a032eeb215c15@mail.gmail.com>
+Received: from smtp.osdl.org ([65.172.181.4]:34785 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932400AbWFEFvr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jun 2006 01:51:47 -0400
+In-Reply-To: <986ed62e0606042223l2381d877g4bc798ec64804d43@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Miles Lane <miles.lane@gmail.com>
-Cc: linux-kernel@vger.kernel.org, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
+To: "Barry K. Nathan" <barryn@pobox.com>
+Cc: mingo@elte.hu, arjan@linux.intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>
 
-On Sun, 4 Jun 2006 21:58:29 -0700
-"Miles Lane" <miles.lane@gmail.com> wrote:
+On Sun, 4 Jun 2006 22:23:24 -0700
+"Barry K. Nathan" <barryn@pobox.com> wrote:
 
-> BUG: sleeping function called from invalid context at
-> include/asm/semaphore.h:9 9
-> in_atomic():0, irqs_disabled():1
->  [<c0104851>] show_trace+0xd/0x10
->  [<c010486b>] dump_stack+0x17/0x1c
->  [<c011448c>] __might_sleep+0x93/0x9d
->  [<c020077c>] acpi_os_wait_semaphore+0x68/0xba
->  [<c0215ef1>] acpi_ut_acquire_mutex+0x2a/0x69
->  [<c020c9d1>] acpi_set_register+0x5a/0x173
->  [<c0204eab>] acpi_clear_event+0x25/0x2b
->  [<c021652d>] acpi_pm_enter+0x91/0xb8
->  [<c0131607>] suspend_enter+0x33/0x46
->  [<c0131795>] enter_state+0x140/0x18c
->  [<c0131862>] state_store+0x81/0x97
->  [<c018d558>] subsys_attr_store+0x20/0x25
->  [<c018db8a>] sysfs_write_file+0xb5/0xda
->  [<c0158a11>] vfs_write+0xac/0x158
->  [<c015928d>] sys_write+0x3b/0x60
->  [<c03078a5>] sysenter_past_esp+0x56/0x79
+Please don't send word-wrapped emails.
 
-suspend_enter() does local_irq_disable(), after which ACPI mutex operations
-are a no-no.
+> [  355.081000] swsusp: Need to copy 59004 pages
+> [  355.081000] Intel machine check architecture supported.
+> [  355.081000] Intel machine check reporting enabled on CPU#0.
+> [  355.081000] swsusp: Restoring Highmem
+> [  487.081000] APIC error on CPU0: 00(00)
 
-acpi_pm_enter() also does local_irq_save() prior to calling
-acpi_clear_event(), so it's an acpi-only bug.
+What's this?
 
-acpi_clear_event() calls acpi_set_register() calls acpi_ut_acquire_mutex().
+> [  487.203000] ACPI Exception (acpi_bus-0070): AE_NOT_FOUND, No
+> context for object [c174d620] [20060310]
 
-But afaict the code has been this way for some time.  Is the above new
-behaviour for you?
+And this?
+
+> [  487.203000] PM: Writing back config space on device 0000:00:00.0 at
+> offset 1 (was 22300006, writing 32300006)
+> [  487.203000] PCI: Setting latency timer of device 0000:00:01.0 to 64
+> [  487.204000] PM: Writing back config space on device 0000:00:06.0 at
+> offset 1 (was 2100005, writing 2100000)
+> [  487.204000] BUG: scheduling while atomic: hibernate.sh/0x00000001/4681
+> [  487.204000]  [<c010465a>] show_trace_log_lvl+0x18a/0x190
+> [  487.205000]  [<c0105c3c>] show_trace+0x2c/0x30
+> [  487.205000]  [<c0105c6b>] dump_stack+0x2b/0x30
+> [  487.205000]  [<c033d4fa>] schedule+0x6fa/0xa30
+> [  487.205000]  [<c033e111>] schedule_timeout+0x51/0xc0
+> [  487.205000]  [<c033e19f>] schedule_timeout_uninterruptible+0x1f/0x30
+> [  487.206000]  [<c012aada>] msleep+0x2a/0x50
+> [  487.206000]  [<c022e55d>] pci_set_power_state+0x1bd/0x250
+> [  487.208000]  [<c022e617>] pci_enable_device_bars+0x27/0x80
+> [  487.209000]  [<c022e6a0>] pci_enable_device+0x30/0x40
+> [  487.211000]  [<e0a36ee0>] snd_cmipci_resume+0x30/0x110 [snd_cmipci]
+> [  487.211000]  [<c023045a>] pci_device_resume+0x2a/0x80
+> [  487.213000]  [<c02909a9>] resume_device+0x59/0xd0
+> [  487.215000]  [<c0290b5e>] dpm_resume+0x9e/0xb0
+> [  487.217000]  [<c0290b85>] device_resume+0x15/0x1f
+> [  487.219000]  [<c014d085>] pm_suspend_disk+0xb5/0x109
+> [  487.220000]  [<c014bcd5>] enter_state+0x145/0x190
+> [  487.220000]  [<c014bdb9>] state_store+0x99/0xb0
+> [  487.221000]  [<c01d1413>] subsys_attr_store+0x33/0x40
+> [  487.222000]  [<c01d1d14>] sysfs_write_file+0xa4/0xf0
+> [  487.223000]  [<c0182361>] vfs_write+0x101/0x1f0
+> [  487.224000]  [<c0182fec>] sys_write+0x4c/0x90
+> [  487.225000]  [<c0341a0a>] sysenter_past_esp+0x63/0xa1
+> [  487.225000]  [<b7f40410>] 0xb7f40410
+> [  487.227000] PCI: Enabling device 0000:00:06.0 (0000 -> 0001)
+> [  487.227000] ACPI: PCI Interrupt 0000:00:06.0[A] -> GSI 17 (level,
+
+The interesting thing is that we've done sleepy things like down() just
+prior to this.  Do you have CONFIG_PREEMPT and CONFIG_DEBUG_SPINLOCK_SLEEP
+enabled?  If not, please turn them on, see what happens.
+
+I don't see anything on that code path which would cause this.  Maybe I
+missed it.
 
