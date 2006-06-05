@@ -1,36 +1,40 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: back to discussion of VIA quirk fixup
-Date: Mon, 5 Jun 2006 10:41:06 -0600
-Message-ID: <200606051041.06738.bjorn.helgaas@hp.com>
-References: <1148433146.2885.41.camel@localhost.portugal>
+Subject: Re: ACPI screwing up USB ehci_hcd with kernel 2.6.16.18
+Date: Mon, 5 Jun 2006 10:45:10 -0600
+Message-ID: <200606051045.10447.bjorn.helgaas@hp.com>
+References: <200605282150.24428.surgpub@telkomsa.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel7.hp.com ([156.153.255.213]:659 "EHLO atlrel7.hp.com")
-	by vger.kernel.org with ESMTP id S1750742AbWFEQlN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jun 2006 12:41:13 -0400
-In-Reply-To: <1148433146.2885.41.camel@localhost.portugal>
+Received: from atlrel8.hp.com ([156.153.255.206]:46231 "EHLO atlrel8.hp.com")
+	by vger.kernel.org with ESMTP id S1750777AbWFEQpQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Jun 2006 12:45:16 -0400
+In-Reply-To: <200605282150.24428.surgpub@telkomsa.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: sergio@sergiomb.no-ip.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>
+To: Paul Surgeon <surgpub@telkomsa.net>
+Cc: linux-acpi@vger.kernel.org
 
-On Tuesday 23 May 2006 19:12, Sergio Monteiro Basto wrote:
-> 1=C2=BA This quirk_via_irq function has been created originally by Bj=
-orn
-> Helgaas, so maybe he can tell better what patch does.
+On Sunday 28 May 2006 13:50, Paul Surgeon wrote:
+> I had a problem with ACPI IRQ routing messing up the USB ehci module.
+> I have to disable the irq routing with apci=noirq in the bootloader config in 
+> order to use the ehci module.
+> 
+> Failing to do so results in :
+> usb 5-1: new high speed USB device using ehci_hcd and address 3
+> ehci_hcd 0000:00:10.4: Unlink after no-IRQ? Controller is probably using the 
+> wrong IRQ.
+> 
+> System :
+> Kernel 2.6.16.18
+> Chipset VIA KT400A
 
-I didn't really create the function, I merely renamed it and
-tweaked it a bit based on some bug reports.  And I've never been
-able to match up this quirk with any VIA chipset documentation,
-so I vowed never to get involved with it again :-)
+Can you open a bug report at http://bugzilla.kernel.org in the ACPI
+category?  Please attach the complete dmesg log both with and without
+"acpi=noirq".
 
-Bjorn
-
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+  Bjorn
