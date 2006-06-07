@@ -1,57 +1,36 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: [PATCH 2.6.17-rc6] Fix the memory leak in acpi_evaluate_integer()
-Date: Wed, 07 Jun 2006 12:33:54 +0100
-Message-ID: <20060607113354.9720.85323.stgit@localhost.localdomain>
-Reply-To: catalin.marinas@gmail.com
-Content-Type: text/plain; charset=utf-8; format=fixed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([193.131.176.58]:34725 "EHLO
-	cam-admin0.cambridge.arm.com") by vger.kernel.org with ESMTP
-	id S1750868AbWFGLeE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 7 Jun 2006 07:34:04 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: 2.6.17-rc5-mm3: oops when ejecting dock
+Date: Wed, 7 Jun 2006 12:42:53 +0100
+Message-ID: <20060607114253.GA15531@srcf.ucam.org>
+References: <4483EB38.30609@goop.org> <1149554579.6006.10.camel@whizzy> <4484D244.3010905@goop.org> <1149634494.13089.53.camel@whizzy> <44861109.7090502@goop.org> <1149639412.13089.85.camel@whizzy>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-ide-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1149639412.13089.85.camel@whizzy>
+Sender: linux-ide-owner@vger.kernel.org
+To: Kristen Accardi <kristen.c.accardi@intel.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>, linux-ide@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-From: Catalin Marinas <catalin.marinas@arm.com>
+On Tue, Jun 06, 2006 at 05:16:52PM -0700, Kristen Accardi wrote:
 
-A leak can happen because of the early returns from this function
-(discovered by kmemleak).
+> Using the eject file won't help for a couple of other reasons besides
+> just the name change.  First, it requires that the device be present at
+> boot.  Second, AFAIK it just calls the device's _EJ0 method, which I
+> don't think is really the only thing that is needed here.  I think we
+> also need a generic way to do this without using the ibm driver.  You
+> could scan the acpi namespace for IDE controllers based on checking for
+> some methods that are used only in IDE or SATA devices and write a acpi
+> driver to handle insert/remove events, but it seems like for device
+> hotplug though you'd still somehow need to rescan from ide.  To me it
+> seems unwise to do anything outside the ide subsystem other than notify
+> of an event and call some handler or something.
 
-Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
----
+Does ejecting/docking not generate an IDE bus rescan notification? I've 
+got hacky code to support that for SATA hardware, but it's not currently 
+usable for PATA. Once the PATA libata code has settled down a little, 
+I'll look into that.
 
- drivers/acpi/utils.c |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index 6458c47..71afcd3 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -273,20 +273,22 @@ acpi_evaluate_integer(acpi_handle handle
- 	status = acpi_evaluate_object(handle, pathname, arguments, &buffer);
- 	if (ACPI_FAILURE(status)) {
- 		acpi_util_eval_error(handle, pathname, status);
--		return_ACPI_STATUS(status);
-+		goto out;
- 	}
- 
- 	if (element->type != ACPI_TYPE_INTEGER) {
- 		acpi_util_eval_error(handle, pathname, AE_BAD_DATA);
--		return_ACPI_STATUS(AE_BAD_DATA);
-+		status = AE_BAD_DATA;
-+		goto out;
- 	}
- 
- 	*data = element->integer.value;
-+ out:
- 	kfree(element);
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Return value [%lu]\n", *data));
- 
--	return_ACPI_STATUS(AE_OK);
-+	return_ACPI_STATUS(status);
- }
- 
- EXPORT_SYMBOL(acpi_evaluate_integer);
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
