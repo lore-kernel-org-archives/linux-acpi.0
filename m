@@ -1,36 +1,70 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: 2.6.17-rc5-mm3: oops when ejecting dock
-Date: Wed, 7 Jun 2006 12:42:53 +0100
-Message-ID: <20060607114253.GA15531@srcf.ucam.org>
-References: <4483EB38.30609@goop.org> <1149554579.6006.10.camel@whizzy> <4484D244.3010905@goop.org> <1149634494.13089.53.camel@whizzy> <44861109.7090502@goop.org> <1149639412.13089.85.camel@whizzy>
+From: "Michal Piotrowski" <michal.k.k.piotrowski@gmail.com>
+Subject: Re: [PATCH 2.6.17-rc6] Fix the memory leak in acpi_evaluate_integer()
+Date: Wed, 7 Jun 2006 14:15:24 +0200
+Message-ID: <6bffcb0e0606070515j797d6cb2o66d055947550d48b@mail.gmail.com>
+References: <20060607113354.9720.85323.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ide-owner@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from wr-out-0506.google.com ([64.233.184.230]:26158 "EHLO
+	wr-out-0506.google.com") by vger.kernel.org with ESMTP
+	id S932228AbWFGMP0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 7 Jun 2006 08:15:26 -0400
+Received: by wr-out-0506.google.com with SMTP id i11so413490wra
+        for <linux-acpi@vger.kernel.org>; Wed, 07 Jun 2006 05:15:25 -0700 (PDT)
+In-Reply-To: <20060607113354.9720.85323.stgit@localhost.localdomain>
 Content-Disposition: inline
-In-Reply-To: <1149639412.13089.85.camel@whizzy>
-Sender: linux-ide-owner@vger.kernel.org
-To: Kristen Accardi <kristen.c.accardi@intel.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>, linux-ide@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: catalin.marinas@gmail.com
+Cc: linux-acpi@vger.kernel.org
 
-On Tue, Jun 06, 2006 at 05:16:52PM -0700, Kristen Accardi wrote:
+Hi Catalin,
 
-> Using the eject file won't help for a couple of other reasons besides
-> just the name change.  First, it requires that the device be present at
-> boot.  Second, AFAIK it just calls the device's _EJ0 method, which I
-> don't think is really the only thing that is needed here.  I think we
-> also need a generic way to do this without using the ibm driver.  You
-> could scan the acpi namespace for IDE controllers based on checking for
-> some methods that are used only in IDE or SATA devices and write a acpi
-> driver to handle insert/remove events, but it seems like for device
-> hotplug though you'd still somehow need to rescan from ide.  To me it
-> seems unwise to do anything outside the ide subsystem other than notify
-> of an event and call some handler or something.
+On 07/06/06, Catalin Marinas <catalin.marinas@arm.com> wrote:
+> From: Catalin Marinas <catalin.marinas@arm.com>
+>
+> A leak can happen because of the early returns from this function
+> (discovered by kmemleak).
+>
+> Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+> ---
 
-Does ejecting/docking not generate an IDE bus rescan notification? I've 
-got hacky code to support that for SATA hardware, but it's not currently 
-usable for PATA. Once the PATA libata code has settled down a little, 
-I'll look into that.
+all
+orphan pointer 0xf7e97654 (size 40):
+  c0151044: <kmem_cache_alloc>
+  c01e8656: <acpi_os_acquire_object>
+  c01fe087: <acpi_ut_allocate_object_desc_dbg>
+  c01fdf1b: <acpi_ut_create_internal_object_dbg>
+  c01ec2a0: <acpi_ev_execute_reg_method>
+  c01ec898: <acpi_ev_reg_run>
+  c01f7453: <acpi_ns_walk_namespace>
+  c01ec859: <acpi_ev_execute_reg_methods>
+
+are gone. But now I get a lot of
+
+orphan pointer 0xf7ea1654 (size 40):
+  c015208c: <kmem_cache_alloc>
+  c01eb6c2: <acpi_os_acquire_object>
+  c02010f7: <acpi_ut_allocate_object_desc_dbg>
+  c0200f8b: <acpi_ut_create_internal_object_dbg>
+  c01ef310: <acpi_ev_execute_reg_method>
+  c01ef908: <acpi_ev_reg_run>
+  c01fa4c3: <acpi_ns_walk_namespace>
+  c01ef8c9: <acpi_ev_execute_reg_methods>
+  c01ef293: <acpi_ev_initialize_op_regions>
+  c02000d4: <acpi_initialize_objects>
+  c03a0a37: <acpi_bus_init>
+  c03a0ada: <acpi_init>
+  c038e871: <do_initcalls>
+  c038e91e: <do_basic_setup>
+  c0100367: <init>
+
+Regards,
+Michal
 
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Michal K. K. Piotrowski
+LTG - Linux Testers Group
+(http://www.stardust.webpages.pl/ltg/wiki/)
