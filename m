@@ -1,114 +1,153 @@
-From: Orion Poplawski <orion@cora.nwra.com>
-Subject: ACPI Error (evevent-0312): No installed handler for fixed event [00000002]
- [20060127]
-Date: Wed, 07 Jun 2006 09:15:20 -0600
-Message-ID: <e66qi8$rrm$1@sea.gmane.org>
+From: Maurizio Bongini <maurizio.bongini@poste.it>
+Subject: toshiba satelli 1800-712
+Date: Wed, 7 Jun 2006 18:52:34 +0200
+Message-ID: <200606071852.34813.maurizio.bongini@poste.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:59877 "EHLO ciao.gmane.org")
-	by vger.kernel.org with ESMTP id S932246AbWFGPUF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jun 2006 11:20:05 -0400
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1FnzpD-0000Pq-3n
-	for linux-acpi@vger.kernel.org; Wed, 07 Jun 2006 17:20:03 +0200
-Received: from inferno.cora.nwra.com ([65.125.157.178])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Wed, 07 Jun 2006 17:20:03 +0200
-Received: from orion by inferno.cora.nwra.com with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Wed, 07 Jun 2006 17:20:03 +0200
+Received: from relay-pt2.poste.it ([62.241.5.253]:45963 "EHLO
+	relay-pt2.poste.it") by vger.kernel.org with ESMTP id S932264AbWFGQsb
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 7 Jun 2006 12:48:31 -0400
+Received: from host4-185.pool212171.interbusiness.it (212.171.185.4) by relay-pt2.poste.it (7.2.063) (authenticated as maurizio.bongini@poste.it)
+        id 4485AD7900005778 for linux-acpi@vger.kernel.org; Wed, 7 Jun 2006 18:48:30 +0200
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-Starting to see this on a Dell OptiPlex GX150 with FC5 kernel 
-2.6.16-1.2122_FC5.  Any idea what it means?
 
-  BIOS-e820: 000000001fef7000 - 000000001ff16000 (ACPI data)
-ACPI: RSDP (v000 DELL                                  ) @ 0x000fd6d0
-ACPI: RSDT (v001 DELL    GX150   0x00000005 ASL  0x00000061) @ 0x000fd6e4
-ACPI: FADT (v001 DELL    GX150   0x00000005 ASL  0x00000061) @ 0x000fd718
-ACPI: SSDT (v001   DELL    st_ex 0x00001000 MSFT 0x0100000b) @ 0xfffe7465
-ACPI: BOOT (v001 DELL    GX150   0x00000005 ASL  0x00000061) @ 0x000fd7e8
-ACPI: DSDT (v001   DELL    dt_ex 0x00001000 MSFT 0x0100000b) @ 0x00000000
-ACPI: PM-Timer IO Port: 0x808
-ACPI: setting ELCR to 0200 (from 0e00)
-ACPI: bus type pci registered
-ACPI: Subsystem revision 20060127
-ACPI: Interpreter enabled
-ACPI: Using PIC for interrupt routing
-ACPI: PCI Root Bridge [PCI0] (0000:00)
-ACPI: Assume root bridge [\_SB_.PCI0] bus is 0
-PCI quirk: region 0800-087f claimed by ICH4 ACPI/GPIO/TCO
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCI1._PRT]
-ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 9 10 *11 12 15)
-ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 7 9 *10 11 12 15)
-ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 6 7 9 10 *11 12 15)
-ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 6 7 9 10 *11 12 15)
-ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 7 9 10 11 12 15) *0, disabled.
-ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 7 9 10 11 12 15) *0, disabled.
-ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 6 7 9 10 11 12 15) *0, disabled.
-ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 6 7 *9 10 11 12 15)
-pnp: PnP ACPI init
-pnp: PnP ACPI: found 13 devices
-PCI: Using ACPI for IRQ routing
-apm: overridden by ACPI.
-ACPI wakeup devices:
-ACPI: (supports S0 S1 S3 S4 S5)
-ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 10
-ACPI: PCI Interrupt 0000:00:1f.5[B] -> Link [LNKB] -> GSI 10 (level, 
-low) -> IRQ 10
-ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 11
-ACPI: PCI Interrupt 0000:02:0c.0[A] -> Link [LNKC] -> GSI 11 (level, 
-low) -> IRQ 11
-ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 11
-ACPI: PCI Interrupt 0000:00:1f.2[D] -> Link [LNKD] -> GSI 11 (level, 
-low) -> IRQ 11
-ACPI: PCI Interrupt Link [LNKH] enabled at IRQ 9
-ACPI: PCI Interrupt 0000:00:1f.4[C] -> Link [LNKH] -> GSI 9 (level, low) 
--> IRQ 9
-ACPI: Power Button (FF) [PWRF]
-ACPI: Power Button (CM) [VBTN]
-ACPI: PCI Interrupt 0000:02:0c.0[A] -> Link [LNKC] -> GSI 11 (level, 
-low) -> IRQ 11
-ACPI: PCI Interrupt 0000:00:1f.2[D] -> Link [LNKD] -> GSI 11 (level, 
-low) -> IRQ 11
-ACPI: PCI Interrupt 0000:00:1f.4[C] -> Link [LNKH] -> GSI 9 (level, low) 
--> IRQ 9
-ACPI: PCI Interrupt 0000:00:1f.5[B] -> Link [LNKB] -> GSI 10 (level, 
-low) -> IRQ 10
-ACPI: PCI Interrupt 0000:02:0c.0[A] -> Link [LNKC] -> GSI 11 (level, 
-low) -> IRQ 11
-ACPI: PCI Interrupt 0000:02:0c.0[A] -> Link [LNKC] -> GSI 11 (level, 
-low) -> IRQ 11
-ACPI Error (evevent-0312): No installed handler for fixed event 
-[00000002] [20060127]
-ACPI: Power Button (FF) [PWRF]
-ACPI: Power Button (CM) [VBTN]
-ACPI: PCI Interrupt 0000:00:1f.2[D] -> Link [LNKD] -> GSI 11 (level, 
-low) -> IRQ 11
-ACPI: PCI Interrupt 0000:00:1f.4[C] -> Link [LNKH] -> GSI 9 (level, low) 
--> IRQ 9
-ACPI: PCI Interrupt 0000:00:1f.5[B] -> Link [LNKB] -> GSI 10 (level, 
-low) -> IRQ 10
-ACPI: PCI Interrupt 0000:02:0c.0[A] -> Link [LNKC] -> GSI 11 (level, 
-low) -> IRQ 11
-ACPI: PCI Interrupt 0000:02:0c.0[A] -> Link [LNKC] -> GSI 11 (level, 
-low) -> IRQ 11
-ACPI Error (evevent-0312): No installed handler for fixed event 
-[00000002] [20060127]
-ACPI: Power Button (FF) [PWRF]
-ACPI: Power Button (CM) [VBTN]
-ACPI: PCI Interrupt 0000:02:0c.0[A] -> Link [LNKC] -> GSI 11 (level, 
-low) -> IRQ 11
+Summary : Reboot hungs on Toshiba laptop  model: Satellite 1800-712
+Description: dual booting pc winxp & linux 
+the problem is during reboot processing 
+win xp is able to correctly shutdown and reboot , linux  not 
+to better inform i shortly describe the reboot process on both operating 
+systems
+toshiba satellite 1800-712  indications leds are : 
+ac volatage plugged - power on light - battery status - hard disk - removable 
+media  
+winxp :
+after closing applications finally the screen blanks ,the power on light is 
+turned off 
+for two seconds (only ac voltage and batery light are on ) ,then pc is turned 
+on again 
+the first screen apperas with the toshiba logo and the options to enter bios 
+setup  
+win xp uses acpi 
+linux:
+the system shutdowns correctly but reboot process is unable to turn off the 
+power on light,so the system hangs with the 3 leds (ac voltage - power on - 
+battery status ) on 
+and a blank screen : to exit from this situation i have to keep the power 
+on/off button pressed for 4 sec. to turn off the machine.
+(poweroff command correctly  works)
+linux uses acpi  
+so it seems that win xp reboots acting a power off/on process 
+linux not follow this path so power is still on and screen blanks (the toshiba 
+logo with
+bios setup option is not displayed)
 
--- 
-Orion Poplawski
-System Administrator                   303-415-9701 x222
-Colorado Research Associates/NWRA      FAX: 303-415-9702
-3380 Mitchell Lane, Boulder CO 80301   http://www.co-ra.com
+actions performed :
+i had this problem also with my first linux distro : mandrake 9.2 i had it 
+with mandrake 10.1 and now with mandriva 2006 .... i tried also to installal 
+suse 9.3 but the results are always the same    
+i tried many acpi options (force ,etc etc ) without success
+i tried to add reboot=b to lilo 
+iinstalled the last bios from toshiba site   
+i'm not the same with this problem...please google "reboot  toshiba satellite 
+1800-712"
+no one found a fix or a bypass for this 
 
+in my humble opinios this seems to be a new bug 
+i available to perform some test 
+if also in yours opinion this is a new bug,then please bring me in contact 
+with an acpi developer  
+
+thanks in advance 
+
+Maurizio 
+
+
+(here are some info i hope will be useful to debug)   
+
+
+ 
+kernel:Linux version 2.6.12-12mdk (apatard@n1.mandriva.com) (gcc version 4.0.1 
+(4.0.1-5mdk for Mandriva Linux release 2006.0)) #1 Fri Sep 9 18:15:22 CEST 
+2005
+Software:
+dual booting win xp & linux 
+bootmanager : lilo 22.6.1
+distribution: mandriva 2006
+kernel: 2.6.12-12ndk 
+acpi:  0.07
+acpid: 1.0.4
+/proc/acpi/info version:  20050309
+apm not used
+toshiba acpi enabled
+[root@localhost acpi]# ls  toshiba
+fan  keys  lcd  version  video
+
+Machine: toshiba satellite 1800-712 laptop  
+CPU:
+processor       : 0
+vendor_id       : GenuineIntel
+cpu family      : 6
+model           : 8
+model name      : Celeron (Coppermine)
+stepping        : 10
+cpu MHz         : 1095.784
+cache size      : 128 KB
+fdiv_bug        : no
+hlt_bug         : no
+f00f_bug        : no
+coma_bug        : no
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 2
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 sep mtrr pge mca cmov pat 
+pse36 mmx fxsr sse
+bogomips        : 2170.88
+
+# biosdecode 2.6
+ACPI 1.0 present.
+        OEM Identifier: TOSHIB
+        RSD Table 32-bit Address: 0x0EFF0000
+BIOS32 Service Directory present.
+        Revision: 0
+        Calling Interface Address: 0x000FAF93
+PCI Interrupt Routing 1.0 present.
+        Router ID: 00:07.0
+        Exclusive IRQs: None
+        Compatible Router: 10b9:1533
+        Slot Entry 1: ID 00:02, on-board
+        Slot Entry 2: ID 00:06, on-board
+        Slot Entry 3: ID 00:11, on-board
+        Slot Entry 4: ID 00:0a, on-board
+        Slot Entry 5: ID 01:00, on-board
+        Slot Entry 6: ID 00:10, on-board
+        Slot Entry 7: ID 00:0c, on-board
+PNP BIOS 1.0 present.
+        Event Notification: Polling
+        Event Notification Flag Address: 0x00000510
+        Real Mode 16-bit Code Address: F000:08B9
+        Real Mode 16-bit Data Address: 0000:0000
+        16-bit Protected Mode Code Address: 0x000F08D6
+        16-bit Protected Mode Data Address: 0x00000000
+        OEM Device Identifier: TOS3600
+SMBIOS 2.3 present.
+        Structure Table Length: 1394 bytes
+        Structure Table Address: 0x000EC000
+        Number Of Structures: 44
+        Maximum Structure Size: 101 bytes
+SYSID present.
+        Revision: 0
+        Structure Table Address: 0x000F0320
+        Number Of Structures: 1
+ 
+
+_____________________________________________________________
+Email with attachment's size more than 1 Mb will no more be received
