@@ -1,84 +1,70 @@
-From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
-Subject: what is MCFG area ?
-Date: Wed, 07 Jun 2006 00:45:49 +0100
-Message-ID: <1149637549.3057.4.camel@localhost.portugal>
-Reply-To: sergio@sergiomb.no-ip.org
+From: Kristen Accardi <kristen.c.accardi@intel.com>
+Subject: Re: 2.6.17-rc5-mm3: oops when ejecting dock
+Date: Tue, 06 Jun 2006 17:16:52 -0700
+Message-ID: <1149639412.13089.85.camel@whizzy>
+References: <4483EB38.30609@goop.org> <1149554579.6006.10.camel@whizzy>
+	 <4484D244.3010905@goop.org> <1149634494.13089.53.camel@whizzy>
+	 <44861109.7090502@goop.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-cJ+vSV1bsNeUQ04SRd1a"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.netcabo.pt ([212.113.174.28]:917 "EHLO
-	exch01smtp10.hdi.tvcabo") by vger.kernel.org with ESMTP
-	id S1751365AbWFFXqQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 Jun 2006 19:46:16 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <44861109.7090502@goop.org>
+Sender: linux-ide-owner@vger.kernel.org
+To: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>, linux-ide@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+
+On Tue, 2006-06-06 at 16:34 -0700, Jeremy Fitzhardinge wrote:
+> Kristen Accardi wrote:
+> > So, here is a patch which will fix the bug.  The problem that I found
+> > after I fixed the bug occurs in this circumstance:
+> > 1.  boot in ultrabase
+> > 2.  undock
+> >
+> > But not in this case:
+> > 1.  boot outside base
+> > 2.  dock/undock etc.
+> >
+> > The symptom of the problem is that you will undock and your machine will
+> > get a softlockup on a CPU and just hang.  Checking the log file (when
+> > possible) shows lots errors from hdc: and ide: (this ultrabase has a
+> > cdrom on it which would be hdc).  I am using an x40 to duplicate the
+> > issue, so you may have a different experience than I do.  The problem
+> > seems to be that the cdrom that is on the ultrabase is not unplugging
+> > gracefully.  I may have to hook up with whoever is working on the ide
+> > hotplug and see if this is something I can fix.
+> >
+> > Incidentally, the reason it works fine when you boot outside the base
+> > and then dock/undock is because the cdrom is also not getting properly
+> > inserted.  So, it appears to power it on, but it is not actually being
+> > hotplugged.
+> 
+> I've observed this without the acpi dock driver present.
+> 
+> I was wondering if the ibm acpi ultrabay file ("bay") entry could be 
+> used to "eject" the optical device.  It doesn't appear on the X60 
+> (listed as "not supported"), probably because the ACPI name changed to 
+> SATA from than IDE0; I haven't really looked into it yet.  But I think 
+> the basic problem is that the IDE layer doesn't seem to support hot 
+> add/remove of devices.
+> 
+
+Using the eject file won't help for a couple of other reasons besides
+just the name change.  First, it requires that the device be present at
+boot.  Second, AFAIK it just calls the device's _EJ0 method, which I
+don't think is really the only thing that is needed here.  I think we
+also need a generic way to do this without using the ibm driver.  You
+could scan the acpi namespace for IDE controllers based on checking for
+some methods that are used only in IDE or SATA devices and write a acpi
+driver to handle insert/remove events, but it seems like for device
+hotplug though you'd still somehow need to rescan from ide.  To me it
+seems unwise to do anything outside the ide subsystem other than notify
+of an event and call some handler or something.
 
 
---=-cJ+vSV1bsNeUQ04SRd1a
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
-
-http://lkml.org/lkml/2006/3/23/213
-
-On my buggy computer i get=20
-cat dmesg09 | grep  "MM\|MCFG"
-ACPI: MCFG (v001 A M I  OEMMCFG  0x05000602 MSFT 0x00000097) @ 0x000000003f=
-fb0410
-PCI: BIOS Bug: MCFG area is not E820-reserved
-PCI: Not using MMCONFIG.
-PCI-DMA: Disabling IOMMU.
-
-Should ACPI read MCFG area ?=20
-
-Thanks,=20
---=20
-S=E9rgio M. B.
-
---=-cJ+vSV1bsNeUQ04SRd1a
-Content-Type: application/x-pkcs7-signature; name=smime.p7s
-Content-Disposition: attachment; filename=smime.p7s
-Content-Transfer-Encoding: base64
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGSTCCAwIw
-ggJroAMCAQICAw/vkjANBgkqhkiG9w0BAQQFADBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhh
-d3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVt
-YWlsIElzc3VpbmcgQ0EwHhcNMDUxMTI4MjIyODU2WhcNMDYxMTI4MjIyODU2WjBLMR8wHQYDVQQD
-ExZUaGF3dGUgRnJlZW1haWwgTWVtYmVyMSgwJgYJKoZIhvcNAQkBFhlzZXJnaW9Ac2VyZ2lvbWIu
-bm8taXAub3JnMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApCNuKD3pz8GRKd1q+36r
-m0z7z+TBsbTrVa45UQsEeh9OQGZIASJMH5erC0u6KbKJ+km97RLOdsgSlKG6+5xuzsk+aqU7A0Gp
-kMjzIJT7UH/bbPnIFMQNnWJxluuYq1u+v8iIbfezQy1+SXyAyBv+OC7LnCOiOar/L9AD9zDy2fPX
-EqEDlbO3CJsoaR4Va8sgtoV0NmKnAt7DA0iZ2dmlsw6Qh+4euI+FgZ2WHPBQnfJ7PfSH5GIWl/Nx
-eUqnYpDaJafk/l94nX71UifdPXDMxJJlEOGqV9l4omhNlPmsZ/zrGXgLdBv9JuPjJ9mxhgwZsZbz
-VBc8emB0i3A7E6D6rwIDAQABo1kwVzAOBgNVHQ8BAf8EBAMCBJAwEQYJYIZIAYb4QgEBBAQDAgUg
-MCQGA1UdEQQdMBuBGXNlcmdpb0BzZXJnaW9tYi5uby1pcC5vcmcwDAYDVR0TAQH/BAIwADANBgkq
-hkiG9w0BAQQFAAOBgQBIVheRn3oHTU5rgIFHcBRxkIhOYPQHKk/oX4KakCrDCxp33XAqTG3aIG/v
-dsUT/OuFm5w0GlrUTrPaKYYxxfQ00+3d8y87aX22sUdj8oXJRYiPgQiE6lqu9no8axH6UXCCbKTi
-8383JcxReoXyuP000eUggq3tWr6fE/QmONUARzCCAz8wggKooAMCAQICAQ0wDQYJKoZIhvcNAQEF
-BQAwgdExCzAJBgNVBAYTAlpBMRUwEwYDVQQIEwxXZXN0ZXJuIENhcGUxEjAQBgNVBAcTCUNhcGUg
-VG93bjEaMBgGA1UEChMRVGhhd3RlIENvbnN1bHRpbmcxKDAmBgNVBAsTH0NlcnRpZmljYXRpb24g
-U2VydmljZXMgRGl2aXNpb24xJDAiBgNVBAMTG1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBDQTEr
-MCkGCSqGSIb3DQEJARYccGVyc29uYWwtZnJlZW1haWxAdGhhd3RlLmNvbTAeFw0wMzA3MTcwMDAw
-MDBaFw0xMzA3MTYyMzU5NTlaMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3Vs
-dGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWlu
-ZyBDQTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAxKY8VXNV+065yplaHmjAdQRwnd/p/6Me
-7L3N9VvyGna9fww6YfK/Uc4B1OVQCjDXAmNaLIkVcI7dyfArhVqqP3FWy688Cwfn8R+RNiQqE88r
-1fOCdz0Dviv+uxg+B79AgAJk16emu59l0cUqVIUPSAR/p7bRPGEEQB5kGXJgt/sCAwEAAaOBlDCB
-kTASBgNVHRMBAf8ECDAGAQH/AgEAMEMGA1UdHwQ8MDowOKA2oDSGMmh0dHA6Ly9jcmwudGhhd3Rl
-LmNvbS9UaGF3dGVQZXJzb25hbEZyZWVtYWlsQ0EuY3JsMAsGA1UdDwQEAwIBBjApBgNVHREEIjAg
-pB4wHDEaMBgGA1UEAxMRUHJpdmF0ZUxhYmVsMi0xMzgwDQYJKoZIhvcNAQEFBQADgYEASIzRUIPq
-Cy7MDaNmrGcPf6+svsIXoUOWlJ1/TCG4+DYfqi2fNi/A9BxQIJNwPP2t4WFiw9k6GX6EsZkbAMUa
-C4J0niVQlGLH2ydxVyWN3amcOY6MIE9lX5Xa9/eH1sYITq726jTlEBpbNU1341YheILcIRk13iSx
-0x1G/11fZU8xggHvMIIB6wIBATBpMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29u
-c3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNz
-dWluZyBDQQIDD++SMAkGBSsOAwIaBQCgXTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqG
-SIb3DQEJBTEPFw0wNjA2MDYyMzQ1NDVaMCMGCSqGSIb3DQEJBDEWBBSsYZVixKcghCBnFi7FbqGV
-yeDIZzANBgkqhkiG9w0BAQEFAASCAQBaOx3kr0+VnnL0bkw9aFLG3xi+8/f9+KuWVPH48TlFVUEy
-vnuxAUDTAZtNgpZK5XJjT5Uc7vTPeO68FbDhgsG6IwKSYz3W63MBKA6252qFBSwy0IbHnXfJuuUj
-3bbc4gV5kpdOmpqdLPOVwVxgPL7AcbZa86bpnoAvakfjAFm4LapuMd8wRzJjQC7tCAf4VE+tIy2/
-jSXPbOAKMra2BQvOu94QcH+vJsJLJYAzvYZle1Z+1vHvrMtfUL6V5bqH5bnvhl9OPFpptEkmCNGo
-Kp+OHslLBp+QZpodz59RLWw1VxBSfCRWxAHkxH/SvTVbnkUDicxuf8zbCqZrwcvyn/Y2AAAAAAAA
-
-
-
---=-cJ+vSV1bsNeUQ04SRd1a--
+> I guess that means that at present the acpi dock driver does nothing, 
+> but it at least gives us an event to hang the ata device events off once 
+> the subsystem supports hot (or even warm) device add/remove.
+> 
+>     J
