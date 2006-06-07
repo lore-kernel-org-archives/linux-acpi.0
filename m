@@ -1,70 +1,41 @@
-From: Kristen Accardi <kristen.c.accardi@intel.com>
-Subject: Re: 2.6.17-rc5-mm3: oops when ejecting dock
-Date: Tue, 06 Jun 2006 17:16:52 -0700
-Message-ID: <1149639412.13089.85.camel@whizzy>
-References: <4483EB38.30609@goop.org> <1149554579.6006.10.camel@whizzy>
-	 <4484D244.3010905@goop.org> <1149634494.13089.53.camel@whizzy>
-	 <44861109.7090502@goop.org>
+From: Pavel Troller <patrol@sinus.cz>
+Subject: Re: what is MCFG area ?
+Date: Wed, 7 Jun 2006 06:15:25 +0200
+Message-ID: <20060607041525.GA10931@tangens.sinus.cz>
+References: <1149637549.3057.4.camel@localhost.portugal>
+Reply-To: Pavel Troller <patrol@sinus.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <44861109.7090502@goop.org>
-Sender: linux-ide-owner@vger.kernel.org
-To: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>, linux-ide@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from tangens.sinus.cz ([195.39.17.8]:43427 "EHLO tangens.sinus.cz")
+	by vger.kernel.org with ESMTP id S1750818AbWFGEPc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Jun 2006 00:15:32 -0400
+Content-Disposition: inline
+In-Reply-To: <1149637549.3057.4.camel@localhost.portugal>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
+Cc: linux-acpi@vger.kernel.org
 
-On Tue, 2006-06-06 at 16:34 -0700, Jeremy Fitzhardinge wrote:
-> Kristen Accardi wrote:
-> > So, here is a patch which will fix the bug.  The problem that I found
-> > after I fixed the bug occurs in this circumstance:
-> > 1.  boot in ultrabase
-> > 2.  undock
-> >
-> > But not in this case:
-> > 1.  boot outside base
-> > 2.  dock/undock etc.
-> >
-> > The symptom of the problem is that you will undock and your machine will
-> > get a softlockup on a CPU and just hang.  Checking the log file (when
-> > possible) shows lots errors from hdc: and ide: (this ultrabase has a
-> > cdrom on it which would be hdc).  I am using an x40 to duplicate the
-> > issue, so you may have a different experience than I do.  The problem
-> > seems to be that the cdrom that is on the ultrabase is not unplugging
-> > gracefully.  I may have to hook up with whoever is working on the ide
-> > hotplug and see if this is something I can fix.
-> >
-> > Incidentally, the reason it works fine when you boot outside the base
-> > and then dock/undock is because the cdrom is also not getting properly
-> > inserted.  So, it appears to power it on, but it is not actually being
-> > hotplugged.
-> 
-> I've observed this without the acpi dock driver present.
-> 
-> I was wondering if the ibm acpi ultrabay file ("bay") entry could be 
-> used to "eject" the optical device.  It doesn't appear on the X60 
-> (listed as "not supported"), probably because the ACPI name changed to 
-> SATA from than IDE0; I haven't really looked into it yet.  But I think 
-> the basic problem is that the IDE layer doesn't seem to support hot 
-> add/remove of devices.
-> 
+> On my buggy computer i get 
+> cat dmesg09 | grep  "MM\|MCFG"
+> ACPI: MCFG (v001 A M I  OEMMCFG  0x05000602 MSFT 0x00000097) @ 0x000000003ffb0410
+> PCI: BIOS Bug: MCFG area is not E820-reserved
+> PCI: Not using MMCONFIG.
+> PCI-DMA: Disabling IOMMU.
 
-Using the eject file won't help for a couple of other reasons besides
-just the name change.  First, it requires that the device be present at
-boot.  Second, AFAIK it just calls the device's _EJ0 method, which I
-don't think is really the only thing that is needed here.  I think we
-also need a generic way to do this without using the ibm driver.  You
-could scan the acpi namespace for IDE controllers based on checking for
-some methods that are used only in IDE or SATA devices and write a acpi
-driver to handle insert/remove events, but it seems like for device
-hotplug though you'd still somehow need to rescan from ide.  To me it
-seems unwise to do anything outside the ide subsystem other than notify
-of an event and call some handler or something.
+I'm getting exactly the same messages, just the numbers in the MCFG line are
+different:
+root@arcus:~# dmesg | grep  "MM\|MCFG"
+ACPI: MCFG (v001 A M I  OEMMCFG  0x11000524 MSFT 0x00000097) @ 0x000000003f7d03f0
+PCI: BIOS Bug: MCFG area is not E820-reserved
+PCI: Not using MMCONFIG.
+PCI-DMA: Disabling IOMMU.
 
-
-> I guess that means that at present the acpi dock driver does nothing, 
-> but it at least gives us an event to hang the ata device events off once 
-> the subsystem supports hot (or even warm) device add/remove.
-> 
->     J
+It's on a MSI motherboard with Intel 945 chipset (MS-7210). The machine
+otherwise works very well.
+  The "Disabling IOMMU" message I'm getting also on another, Nvidia NF4/Opteron
+based board, without this MCFG bug. I think it's unrelated and because Linux
+properly detected the BIOS bug and probably fixed it, I think the MCFG message
+is harmless. 
+               With regards, Pavel Troller
