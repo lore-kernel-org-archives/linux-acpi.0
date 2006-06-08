@@ -1,153 +1,144 @@
-From: Maurizio Bongini <maurizio.bongini@poste.it>
-Subject: toshiba satelli 1800-712
-Date: Wed, 7 Jun 2006 18:52:34 +0200
-Message-ID: <200606071852.34813.maurizio.bongini@poste.it>
+From: "Miles Lane" <miles.lane@gmail.com>
+Subject: 2.6.17-rc6-mm1 -- acpi_processor-0731 [00] processor_preregister_: Error while parsing _PSD domain information. Assuming no coordination
+Date: Wed, 7 Jun 2006 22:32:17 -0700
+Message-ID: <a44ae5cd0606072232u40998475wd24c882b56f38f68@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay-pt2.poste.it ([62.241.5.253]:45963 "EHLO
-	relay-pt2.poste.it") by vger.kernel.org with ESMTP id S932264AbWFGQsb
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 7 Jun 2006 12:48:31 -0400
-Received: from host4-185.pool212171.interbusiness.it (212.171.185.4) by relay-pt2.poste.it (7.2.063) (authenticated as maurizio.bongini@poste.it)
-        id 4485AD7900005778 for linux-acpi@vger.kernel.org; Wed, 7 Jun 2006 18:48:30 +0200
+Received: from wx-out-0102.google.com ([66.249.82.194]:25415 "EHLO
+	wx-out-0102.google.com") by vger.kernel.org with ESMTP
+	id S932505AbWFHFcR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 8 Jun 2006 01:32:17 -0400
+Received: by wx-out-0102.google.com with SMTP id h28so246325wxd
+        for <linux-acpi@vger.kernel.org>; Wed, 07 Jun 2006 22:32:17 -0700 (PDT)
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>
+
+Hello,
+
+I am not sure whether this is an error that needs following up on.
+My machine is a HP dv1240us (Pavillion laptop).  I ran "dmesg | grep -i acpi":
+
+ BIOS-e820: 000000003dee0000 - 000000003deec000 (ACPI data)
+ BIOS-e820: 000000003deec000 - 000000003df00000 (ACPI NVS)
+ACPI: RSDP (v000 HP                                    ) @ 0x000f7e00
+ACPI: RSDT (v001 HP     09B8     0x06040000  LTP 0x00000000) @ 0x3dee76bb
+ACPI: FADT (v001 HP     09B8     0x06040000 PTL  0x00000050) @ 0x3deebe8c
+ACPI: HPET (v001 HP     09B8     0x06040000 PTL  0x00000000) @ 0x3deebf00
+ACPI: MADT (v001 HP     09B8     0x06040000 PTL  0x00000050) @ 0x3deebf38
+ACPI: MADT (v001 HP     09B8     0x06040000 PTL  0x00000000) @ 0x3deebf92
+ACPI: BOOT (v001 HP     09B8     0x06040000  LTP 0x00000001) @ 0x3deebfd8
+ACPI: SSDT (v001 HP     09B8     0x00000001 INTL 0x20030224) @ 0x3dee7afe
+ACPI: SSDT (v001 HP     09B8     0x00002000 INTL 0x20030224) @ 0x3dee76fb
+ACPI: DSDT (v001 HP     09B8     0x06040000 MSFT 0x0100000e) @ 0x00000000
+ACPI: PM-Timer IO Port: 0x1008
+ACPI: Local APIC address 0xfee00000
+ACPI: 2 duplicate APIC table ignored.
+ACPI: LAPIC (acpi_id[0x00] lapic_id[0x00] enabled)
+ACPI: LAPIC_NMI (acpi_id[0x00] high edge lint[0x1])
+ACPI: IOAPIC (id[0x01] address[0xfec00000] gsi_base[0])
+ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 high level)
+ACPI: IRQ0 used by override.
+ACPI: IRQ2 used by override.
+ACPI: IRQ9 used by override.
+ACPI: HPET id: 0x8086a201 base: 0x0
+Using ACPI (MADT) for SMP configuration information
+ tbxface-0107 [01] load_tables           : ACPI Tables successfully acquired
+ACPI Namespace successfully loaded at root c0682e58
+evxfevnt-0089 [02] enable                : Transition to ACPI mode successful
+ACPI: bus type pci registered
+ACPI: Subsystem revision 20060310
+ACPI: Interpreter enabled
+ACPI: Using IOAPIC for interrupt routing
+PM: Adding info for acpi:acpi
+ACPI: PCI Root Bridge [PCI0] (0000:00)
+PCI quirk: region 1000-107f claimed by ICH4 ACPI/GPIO/TCO
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCIB._PRT]
+ACPI: PCI Interrupt Link [LNKA] (IRQs *10)
+ACPI: PCI Interrupt Link [LNKB] (IRQs *5)
+ACPI: PCI Interrupt Link [LNKC] (IRQs *4)
+ACPI: PCI Interrupt Link [LNKD] (IRQs *3)
+ACPI: PCI Interrupt Link [LNKE] (IRQs *11)
+ACPI: PCI Interrupt Link [LNKF] (IRQs 3) *0, disabled.
+ACPI: PCI Interrupt Link [LNKG] (IRQs *4)
+ACPI: PCI Interrupt Link [LNKH] (IRQs *3)
+ACPI: Embedded Controller [H_EC] (gpe 29) interrupt mode.
+pnp: PnP ACPI init
+pnp: PnP ACPI: found 7 devices
+PCI: Using ACPI for IRQ routing
+ACPI (acpi_bus-0192): Device [CBUS] is not power manageable [20060310]
+ACPI: PCI Interrupt 0000:02:09.0[A] -> GSI 20 (level, low) -> IRQ 16
+apm: overridden by ACPI.
+ACPI (acpi_bus-0192): Device [GFX0] is not power manageable [20060310]
+ACPI: PCI Interrupt 0000:00:02.0[A] -> GSI 16 (level, low) -> IRQ 17
+ACPI (acpi_bus-0192): Device [MODM] is not power manageable [20060310]
+ACPI: PCI Interrupt 0000:00:1f.6[B] -> GSI 17 (level, low) -> IRQ 18
+ACPI: PCI interrupt for device 0000:00:1f.6 disabled
+ACPI (acpi_bus-0192): Device [LAN] is not power manageable [20060310]
+ACPI: PCI Interrupt 0000:02:00.0[A] -> GSI 16 (level, low) -> IRQ 17
+ACPI: PCI Interrupt 0000:00:1f.1[A] -> GSI 18 (level, low) -> IRQ 19
+ACPI: (supports S0 S3 S4 S5)
+ACPI: PCI Interrupt 0000:00:1d.0[A] -> GSI 16 (level, low) -> IRQ 17
+ACPI: PCI Interrupt 0000:00:1d.1[B] -> GSI 19 (level, low) -> IRQ 20
+ACPI: PCI Interrupt 0000:00:1d.2[C] -> GSI 18 (level, low) -> IRQ 19
+ACPI (acpi_bus-0192): Device [IEEE] is not power manageable [20060310]
+ACPI: PCI Interrupt 0000:02:09.2[C] -> GSI 22 (level, low) -> IRQ 21
+ACPI (acpi_bus-0192): Device [USB7] is not power manageable [20060310]
+ACPI: PCI Interrupt 0000:00:1d.7[D] -> GSI 23 (level, low) -> IRQ 22
+ACPI (acpi_bus-0192): Device [MINI] is not power manageable [20060310]
+ACPI: PCI Interrupt 0000:02:06.0[A] -> GSI 18 (level, low) -> IRQ 19
+ACPI (acpi_bus-0192): Device [AUD0] is not power manageable [20060310]
+ACPI: PCI Interrupt 0000:00:1f.5[B] -> GSI 17 (level, low) -> IRQ 18
+ACPI: AC Adapter [ACAD] (on-line)
+ACPI: Battery Slot [BAT0] (battery present)
+ACPI: Power Button (FF) [PWRF]
+ACPI: Lid Switch [LID0]
+ACPI: Sleep Button (CM) [SLPB]
+ACPI: CPU0 (power states: C1[C1] C2[C2] C3[C3])
+Time: acpi_pm clocksource has been installed.
 
 
-Summary : Reboot hungs on Toshiba laptop  model: Satellite 1800-712
-Description: dual booting pc winxp & linux 
-the problem is during reboot processing 
-win xp is able to correctly shutdown and reboot , linux  not 
-to better inform i shortly describe the reboot process on both operating 
-systems
-toshiba satellite 1800-712  indications leds are : 
-ac volatage plugged - power on light - battery status - hard disk - removable 
-media  
-winxp :
-after closing applications finally the screen blanks ,the power on light is 
-turned off 
-for two seconds (only ac voltage and batery light are on ) ,then pc is turned 
-on again 
-the first screen apperas with the toshiba logo and the options to enter bios 
-setup  
-win xp uses acpi 
-linux:
-the system shutdowns correctly but reboot process is unable to turn off the 
-power on light,so the system hangs with the 3 leds (ac voltage - power on - 
-battery status ) on 
-and a blank screen : to exit from this situation i have to keep the power 
-on/off button pressed for 4 sec. to turn off the machine.
-(poweroff command correctly  works)
-linux uses acpi  
-so it seems that win xp reboots acting a power off/on process 
-linux not follow this path so power is still on and screen blanks (the toshiba 
-logo with
-bios setup option is not displayed)
-
-actions performed :
-i had this problem also with my first linux distro : mandrake 9.2 i had it 
-with mandrake 10.1 and now with mandriva 2006 .... i tried also to installal 
-suse 9.3 but the results are always the same    
-i tried many acpi options (force ,etc etc ) without success
-i tried to add reboot=b to lilo 
-iinstalled the last bios from toshiba site   
-i'm not the same with this problem...please google "reboot  toshiba satellite 
-1800-712"
-no one found a fix or a bypass for this 
-
-in my humble opinios this seems to be a new bug 
-i available to perform some test 
-if also in yours opinion this is a new bug,then please bring me in contact 
-with an acpi developer  
-
-thanks in advance 
-
-Maurizio 
-
-
-(here are some info i hope will be useful to debug)   
-
-
- 
-kernel:Linux version 2.6.12-12mdk (apatard@n1.mandriva.com) (gcc version 4.0.1 
-(4.0.1-5mdk for Mandriva Linux release 2006.0)) #1 Fri Sep 9 18:15:22 CEST 
-2005
-Software:
-dual booting win xp & linux 
-bootmanager : lilo 22.6.1
-distribution: mandriva 2006
-kernel: 2.6.12-12ndk 
-acpi:  0.07
-acpid: 1.0.4
-/proc/acpi/info version:  20050309
-apm not used
-toshiba acpi enabled
-[root@localhost acpi]# ls  toshiba
-fan  keys  lcd  version  video
-
-Machine: toshiba satellite 1800-712 laptop  
-CPU:
-processor       : 0
-vendor_id       : GenuineIntel
-cpu family      : 6
-model           : 8
-model name      : Celeron (Coppermine)
-stepping        : 10
-cpu MHz         : 1095.784
-cache size      : 128 KB
-fdiv_bug        : no
-hlt_bug         : no
-f00f_bug        : no
-coma_bug        : no
-fpu             : yes
-fpu_exception   : yes
-cpuid level     : 2
-wp              : yes
-flags           : fpu vme de pse tsc msr pae mce cx8 sep mtrr pge mca cmov pat 
-pse36 mmx fxsr sse
-bogomips        : 2170.88
-
-# biosdecode 2.6
-ACPI 1.0 present.
-        OEM Identifier: TOSHIB
-        RSD Table 32-bit Address: 0x0EFF0000
-BIOS32 Service Directory present.
-        Revision: 0
-        Calling Interface Address: 0x000FAF93
-PCI Interrupt Routing 1.0 present.
-        Router ID: 00:07.0
-        Exclusive IRQs: None
-        Compatible Router: 10b9:1533
-        Slot Entry 1: ID 00:02, on-board
-        Slot Entry 2: ID 00:06, on-board
-        Slot Entry 3: ID 00:11, on-board
-        Slot Entry 4: ID 00:0a, on-board
-        Slot Entry 5: ID 01:00, on-board
-        Slot Entry 6: ID 00:10, on-board
-        Slot Entry 7: ID 00:0c, on-board
-PNP BIOS 1.0 present.
-        Event Notification: Polling
-        Event Notification Flag Address: 0x00000510
-        Real Mode 16-bit Code Address: F000:08B9
-        Real Mode 16-bit Data Address: 0000:0000
-        16-bit Protected Mode Code Address: 0x000F08D6
-        16-bit Protected Mode Data Address: 0x00000000
-        OEM Device Identifier: TOS3600
-SMBIOS 2.3 present.
-        Structure Table Length: 1394 bytes
-        Structure Table Address: 0x000EC000
-        Number Of Structures: 44
-        Maximum Structure Size: 101 bytes
-SYSID present.
-        Revision: 0
-        Structure Table Address: 0x000F0320
-        Number Of Structures: 1
- 
-
-_____________________________________________________________
-Email with attachment's size more than 1 Mb will no more be received
+0000:00:00.0 Host bridge: Intel Corporation 82852/82855 GM/GME/PM/GMV
+Processor to I/O Controller (rev 02)
+0000:00:00.1 System peripheral: Intel Corporation 82852/82855
+GM/GME/PM/GMV Processor to I/O Controller (rev 02)
+0000:00:00.3 System peripheral: Intel Corporation 82852/82855
+GM/GME/PM/GMV Processor to I/O Controller (rev 02)
+0000:00:02.0 VGA compatible controller: Intel Corporation 82852/855GM
+Integrated Graphics Device (rev 02)
+0000:00:02.1 Display controller: Intel Corporation 82852/855GM
+Integrated Graphics Device (rev 02)
+0000:00:1d.0 USB Controller: Intel Corporation 82801DB/DBL/DBM
+(ICH4/ICH4-L/ICH4-M) USB UHCI Controller #1 (rev 03)
+0000:00:1d.1 USB Controller: Intel Corporation 82801DB/DBL/DBM
+(ICH4/ICH4-L/ICH4-M) USB UHCI Controller #2 (rev 03)
+0000:00:1d.2 USB Controller: Intel Corporation 82801DB/DBL/DBM
+(ICH4/ICH4-L/ICH4-M) USB UHCI Controller #3 (rev 03)
+0000:00:1d.7 USB Controller: Intel Corporation 82801DB/DBM
+(ICH4/ICH4-M) USB2 EHCI Controller (rev 03)
+0000:00:1e.0 PCI bridge: Intel Corporation 82801 Mobile PCI Bridge (rev 83)
+0000:00:1f.0 ISA bridge: Intel Corporation 82801DBM (ICH4-M) LPC
+Interface Bridge (rev 03)
+0000:00:1f.1 IDE interface: Intel Corporation 82801DBM (ICH4-M) IDE
+Controller (rev 03)
+0000:00:1f.3 SMBus: Intel Corporation 82801DB/DBL/DBM
+(ICH4/ICH4-L/ICH4-M) SMBus Controller (rev 03)
+0000:00:1f.5 Multimedia audio controller: Intel Corporation
+82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) AC'97 Audio Controller (rev 03)
+0000:00:1f.6 Modem: Intel Corporation 82801DB/DBL/DBM
+(ICH4/ICH4-L/ICH4-M) AC'97 Modem Controller (rev 03)
+0000:02:00.0 Ethernet controller: Realtek Semiconductor Co., Ltd.
+RTL-8139/8139C/8139C+ (rev 10)0000:02:06.0 Network controller: Intel
+Corporation PRO/Wireless 2200BG (rev 05)
+0000:02:09.0 CardBus bridge: Texas Instruments PCIxx21/x515 Cardbus Controller
+0000:02:09.2 FireWire (IEEE 1394): Texas Instruments OHCI Compliant
+IEEE 1394 Host Controller
+0000:02:09.3 Mass storage controller: Texas Instruments PCIxx21
+Integrated FlashMedia Controller0000:02:09.4 0805: Texas Instruments
+PCI6411, PCI6421, PCI6611, PCI6621, PCI7411, PCI7421, PCI7611, PCI7621
+Secure Digital (SD) Controller
