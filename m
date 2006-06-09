@@ -1,89 +1,43 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: 2.6.17-rc6-mm1 -- acpi_processor-0731 [00]processor_preregister_: Error while parsing _PSD domain information.Assuming no coordination
-Date: Fri, 9 Jun 2006 13:31:13 -0700
-Message-ID: <B28E9812BAF6E2498B7EC5C427F293A46CD915@orsmsx415.amr.corp.intel.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: ACPI screwing up USB ehci_hcd with kernel 2.6.16.18
+Date: Fri, 9 Jun 2006 15:34:41 -0600
+Message-ID: <200606091534.41266.bjorn.helgaas@hp.com>
+References: <200605282150.24428.surgpub@telkomsa.net> <200606051045.10447.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:29499 "EHLO
-	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
-	id S932328AbWFIUeb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jun 2006 16:34:31 -0400
-Content-class: urn:content-classes:message
+Received: from atlrel9.hp.com ([156.153.255.214]:1174 "EHLO atlrel9.hp.com")
+	by vger.kernel.org with ESMTP id S1030278AbWFIVev (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jun 2006 17:34:51 -0400
+In-Reply-To: <200606051045.10447.bjorn.helgaas@hp.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>, trenn@suse.de, "Brown, Len" <len.brown@intel.com>
-Cc: Miles Lane <miles.lane@gmail.com>, linux-acpi@vger.kernel.org, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+To: Paul Surgeon <surgpub@telkomsa.net>
+Cc: linux-acpi@vger.kernel.org
 
-In this case, the raw SSDT is indeed either corrupted or ill-formed.
+On Monday 05 June 2006 10:45, Bjorn Helgaas wrote:
+> On Sunday 28 May 2006 13:50, Paul Surgeon wrote:
+> > I had a problem with ACPI IRQ routing messing up the USB ehci module.
+> > I have to disable the irq routing with apci=noirq in the bootloader config in 
+> > order to use the ehci module.
+> > 
+> > Failing to do so results in :
+> > usb 5-1: new high speed USB device using ehci_hcd and address 3
+> > ehci_hcd 0000:00:10.4: Unlink after no-IRQ? Controller is probably using the 
+> > wrong IRQ.
+> > 
+> > System :
+> > Kernel 2.6.16.18
+> > Chipset VIA KT400A
+> 
+> Can you open a bug report at http://bugzilla.kernel.org in the ACPI
+> category?  Please attach the complete dmesg log both with and without
+> "acpi=noirq".
 
-The internal package length of the _PSD is incorrect in both cases. The
-AML parser must terminate a "package" at the end specified in the AML.
-In this case, the length is wrong (too small) and parsing continues in
-the middle of the data of the actual package object, causing the errors.
+Did you resolve this problem?  If you can collect some information, we
+can probably fix the problem.
 
-Bob
-
-
-> -----Original Message-----
-> From: Moore, Robert
-> Sent: Friday, June 09, 2006 10:28 AM
-> To: 'trenn@suse.de'; Brown, Len
-> Cc: Andrew Morton; Miles Lane; linux-acpi@vger.kernel.org; Pallipadi,
-> Venkatesh
-> Subject: RE: 2.6.17-rc6-mm1 -- acpi_processor-0731
-> [00]processor_preregister_: Error while parsing _PSD domain
-> information.Assuming no coordination
-> 
-> 
-> Disassembly errors:
-> 
-> ACPI Error (psloop-0268): Found unknown opcode FD at AML address
-004C029B
-> offset C7, ignoring [20060608]
-> ACPI Error (psloop-0268): Found unknown opcode FD at AML address
-004C036B
-> offset 197, ignoring [20060608]
-> ACPI Error (psloop-0268): Found unknown opcode FD at AML address
-004C029B
-> offset C7, ignoring [20060608]
-> ACPI Error (psloop-0268): Found unknown opcode FD at AML address
-004C036B
-> offset 197, ignoring [20060608]
-> 
-> This looks very interesting, I'll look into it.
-> 
-> Any issues like this, please forward to me.
-> 
-> Thanks,
-> Bob
-> 
-> 
-> > -----Original Message-----
-> > From: Thomas Renninger [mailto:trenn@suse.de]
-> > Sent: Friday, June 09, 2006 7:48 AM
-> > To: Brown, Len
-> > Cc: Andrew Morton; Miles Lane; linux-acpi@vger.kernel.org;
-Pallipadi,
-> > Venkatesh; Moore, Robert
-> > Subject: RE: 2.6.17-rc6-mm1 -- acpi_processor-0731
-> > [00]processor_preregister_: Error while parsing _PSD domain
-> > information.Assuming no coordination
-> >
-> > On Thu, 2006-06-08 at 02:27 -0400, Brown, Len wrote:
-> > > This is -mm only (there is no _PSD parsing in Linus' tree)
-> > > It is benign.
-> > > We'll fix it before 2.6.18.
-> >
-> > This is probably the same I saw recently when trying to disassemble
-an
-> > SSDT (with ACPICA 27-01-2006).
-> >
-> > Here is the plain table, hopefully it helps to fix that.
-> > You should already get errors in the beginning of .dsl output file
-when
-> > trying to disassemble it.
-> >
-> >   Thomas
+Bjorn
