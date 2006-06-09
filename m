@@ -1,49 +1,58 @@
 From: akpm@osdl.org
-Subject: [patch 08/10] acpiphp: prevent duplicate slot numbers when no _SUN
-Date: Thu, 08 Jun 2006 22:06:30 -0700
-Message-ID: <200606090506.k5956UdN031327@shell0.pdx.osdl.net>
+Subject: [patch 04/10] Catch notification of memory add event of ACPI via container driver. (avoid redundant call add_memory)
+Date: Thu, 08 Jun 2006 22:06:27 -0700
+Message-ID: <200606090506.k5956RBv031315@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:11736 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S965188AbWFIFGc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jun 2006 01:06:32 -0400
+Received: from smtp.osdl.org ([65.172.181.4]:14552 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S965193AbWFIFGe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jun 2006 01:06:34 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, kristen.c.accardi@intel.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, y-goto@jp.fujitsu.com, haveblue@us.ibm.com
 
 
-From: Kristen Accardi <kristen.c.accardi@intel.com>
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-Dock bridges generally do not implement _SUN, yet show up as ejectable
-slots.  If you have more than one ejectable slot that does not implement
-SUN, with the current code you will get duplicate slot numbers.  So, if
-there is no _SUN, use the current count of the number of slots found
-instead.
+When acpi_memory_device_init() is called at boottime to register struct
+memory acpi_memory_device, acpi_bus_add() are called via
+acpi_driver_attach().
 
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+But it also calls ops->start() function.  It is called even if the memory
+blocks are initialized at early boottime.  In this case add_memory() return
+-EEXIST, and the memory blocks becomes INVALID state even if it is normal.
+
+This is patch to avoid calling add_memory() for already available memory.
+
+[akpm@osdl.org: coding cleanups]
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: "Brown, Len" <len.brown@intel.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/pci/hotplug/acpiphp_glue.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ drivers/acpi/acpi_memhotplug.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN drivers/pci/hotplug/acpiphp_glue.c~acpiphp-prevent-duplicate-slot-numbers-when-no-_sun drivers/pci/hotplug/acpiphp_glue.c
---- devel/drivers/pci/hotplug/acpiphp_glue.c~acpiphp-prevent-duplicate-slot-numbers-when-no-_sun	2006-06-01 20:17:06.000000000 -0700
-+++ devel-akpm/drivers/pci/hotplug/acpiphp_glue.c	2006-06-01 20:17:06.000000000 -0700
-@@ -218,8 +218,13 @@ register_slot(acpi_handle handle, u32 lv
- 		newfunc->flags |= FUNC_HAS_DCK;
- 
- 	status = acpi_evaluate_integer(handle, "_SUN", NULL, &sun);
--	if (ACPI_FAILURE(status))
--		sun = -1;
-+	if (ACPI_FAILURE(status)) {
-+		/*
-+		 * use the count of the number of slots we've found
-+		 * for the number of the slot
-+		 */
-+		sun = bridge->nr_slots+1;
-+	}
- 
- 	/* search for objects that share the same slot */
- 	for (slot = bridge->slots; slot; slot = slot->next)
+diff -puN drivers/acpi/acpi_memhotplug.c~catch-notification-of-memory-add-event-of-acpi-via-container-driveravoid-redundant-call-add_memory drivers/acpi/acpi_memhotplug.c
+--- devel/drivers/acpi/acpi_memhotplug.c~catch-notification-of-memory-add-event-of-acpi-via-container-driveravoid-redundant-call-add_memory	2006-06-01 20:17:06.000000000 -0700
++++ devel-akpm/drivers/acpi/acpi_memhotplug.c	2006-06-01 20:17:06.000000000 -0700
+@@ -225,6 +225,17 @@ static int acpi_memory_enable_device(str
+          * (i.e. memory-hot-remove function)
+ 	 */
+ 	list_for_each_entry(info, &mem_device->res_list, list) {
++		u64 start_pfn, end_pfn;
++
++		start_pfn = info->start_addr >> PAGE_SHIFT;
++		end_pfn = (info->start_addr + info->length - 1) >> PAGE_SHIFT;
++
++		if (pfn_valid(start_pfn) || pfn_valid(end_pfn)) {
++			/* already enabled. try next area */
++			num_enabled++;
++			continue;
++		}
++
+ 		result = add_memory(info->start_addr, info->length);
+ 		if (result)
+ 			continue;
 _
