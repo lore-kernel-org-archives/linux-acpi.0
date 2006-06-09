@@ -1,26 +1,36 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: 2.6.17-rc6-mm1 -- acpi_processor-0731 [00] processor_preregister_: Error while parsing _PSD domain information. Assuming no coordination
-Date: Thu, 8 Jun 2006 02:27:10 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6AAB19A@hdsmsx411.amr.corp.intel.com>
+From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: Re: 2.6.17-rc5-mm3: oops when ejecting dock
+Date: Thu, 08 Jun 2006 18:15:34 -0700
+Message-ID: <4488CBB6.6040003@goop.org>
+References: <4483EB38.30609@goop.org> <1149554579.6006.10.camel@whizzy>	 <4484D244.3010905@goop.org> <1149634494.13089.53.camel@whizzy>	 <44861109.7090502@goop.org> <1149639412.13089.85.camel@whizzy>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:32162 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S932525AbWFHG2I convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Jun 2006 02:28:08 -0400
-Content-class: urn:content-classes:message
+Received: from gw.goop.org ([64.81.55.164]:5761 "EHLO mail.goop.org")
+	by vger.kernel.org with ESMTP id S965137AbWFIEET (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jun 2006 00:04:19 -0400
+In-Reply-To: <1149639412.13089.85.camel@whizzy>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>, Miles Lane <miles.lane@gmail.com>
-Cc: linux-acpi@vger.kernel.org, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+To: Kristen Accardi <kristen.c.accardi@intel.com>
+Cc: linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>, linux-ide@vger.kernel.org
 
-This is -mm only (there is no _PSD parsing in Linus' tree)
-It is benign.
-We'll fix it before 2.6.18.
+Kristen Accardi wrote:
+> To me it
+> seems unwise to do anything outside the ide subsystem other than notify
+> of an event and call some handler or something.
+Sounds reasonable to me.
 
-thanks,
--Len
- 
+I presume what happens (or should happen?) is that pressing the "want to 
+undock" button would send an event to acpid to unmount any filesystems, 
+etc, and then once that had finishes you can pull the latch lever to 
+actually disconnect the dock. Does that work at present?
+
+I guess actually pulling the dock would cause PCI hot unplug events if 
+there were actual PCI devices behind it.  I don't think the X60 dock 
+does though.
+
+    J
+
+
