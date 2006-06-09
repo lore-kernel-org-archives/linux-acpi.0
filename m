@@ -1,80 +1,49 @@
 From: akpm@osdl.org
-Subject: [patch 09/10] asus_acpi: W3000 support
-Date: Thu, 08 Jun 2006 22:06:31 -0700
-Message-ID: <200606090506.k5956VRu031330@shell0.pdx.osdl.net>
+Subject: [patch 08/10] acpiphp: prevent duplicate slot numbers when no _SUN
+Date: Thu, 08 Jun 2006 22:06:30 -0700
+Message-ID: <200606090506.k5956UdN031327@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:13272 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S965189AbWFIFGd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jun 2006 01:06:33 -0400
+Received: from smtp.osdl.org ([65.172.181.4]:11736 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S965188AbWFIFGc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jun 2006 01:06:32 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, marekw1977@yahoo.com.au
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, kristen.c.accardi@intel.com
 
 
-From: Marek W <marekw1977@yahoo.com.au>
+From: Kristen Accardi <kristen.c.accardi@intel.com>
 
-Add support for W3000 (W3V) and indirectly fixes an issue with kmilo under
-KDE (it was triggering excessive LCD read error messages by querying
-asus_acpi module) allowing people (I am probably the only one who tested
-this) with W3000 to run kmilo.
+Dock bridges generally do not implement _SUN, yet show up as ejectable
+slots.  If you have more than one ejectable slot that does not implement
+SUN, with the current code you will get duplicate slot numbers.  So, if
+there is no _SUN, use the current count of the number of slots found
+instead.
 
-
+Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/asus_acpi.c |   19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/asus_acpi.c~asus_acpi-w3000-support drivers/acpi/asus_acpi.c
---- devel/drivers/acpi/asus_acpi.c~asus_acpi-w3000-support	2006-06-01 20:17:07.000000000 -0700
-+++ devel-akpm/drivers/acpi/asus_acpi.c	2006-06-01 20:17:07.000000000 -0700
-@@ -131,6 +131,7 @@ struct asus_hotk {
- 		P30,		//Samsung P30
- 		S1x,		//S1300A, but also L1400B and M2400A (L84F)
- 		S2x,		//S200 (J1 reported), Victor MP-XP7210
-+		W3V,            //W3030V
- 		xxN,		//M2400N, M3700N, M5200N, S1300N, S5200N, W1OOON
- 		//(Centrino)
- 		END_MODEL
-@@ -345,6 +346,17 @@ static struct model_data model_conf[END_
- 	 .brightness_down = S2x_PREFIX "_Q0A"},
+diff -puN drivers/pci/hotplug/acpiphp_glue.c~acpiphp-prevent-duplicate-slot-numbers-when-no-_sun drivers/pci/hotplug/acpiphp_glue.c
+--- devel/drivers/pci/hotplug/acpiphp_glue.c~acpiphp-prevent-duplicate-slot-numbers-when-no-_sun	2006-06-01 20:17:06.000000000 -0700
++++ devel-akpm/drivers/pci/hotplug/acpiphp_glue.c	2006-06-01 20:17:06.000000000 -0700
+@@ -218,8 +218,13 @@ register_slot(acpi_handle handle, u32 lv
+ 		newfunc->flags |= FUNC_HAS_DCK;
  
- 	{
-+	 .name = "W3V",
-+	 .mt_mled = "MLED",
-+	 .mt_wled = "WLED",
-+	 .mt_lcd_switch = xxN_PREFIX "_Q10",
-+	 .lcd_status = "\\BKLT",
-+	 .brightness_set = "SPLV",
-+	 .brightness_get = "GPLV",
-+	 .display_set = "SDSP",
-+	 .display_get = "\\INFB"},
-+
-+       {
- 	 .name = "xxN",
- 	 .mt_mled = "MLED",
- /* WLED present, but not controlled by ACPI */
-@@ -1066,6 +1078,8 @@ static int asus_hotk_get_info(void)
- 		hotk->model = S2x;
- 	else if (strncmp(model->string.pointer, "L5", 2) == 0)
- 		hotk->model = L5x;
-+	else if (strncmp(model->string.pointer, "W3V", 3) == 0)
-+		hotk->model = W3V;
+ 	status = acpi_evaluate_integer(handle, "_SUN", NULL, &sun);
+-	if (ACPI_FAILURE(status))
+-		sun = -1;
++	if (ACPI_FAILURE(status)) {
++		/*
++		 * use the count of the number of slots we've found
++		 * for the number of the slot
++		 */
++		sun = bridge->nr_slots+1;
++	}
  
- 	if (hotk->model == END_MODEL) {
- 		printk("unsupported, trying default values, supply the "
-@@ -1087,9 +1101,10 @@ static int asus_hotk_get_info(void)
- 		hotk->methods->mt_mled = NULL;
- 	/* S5N and M5N have no MLED */
- 	else if (strncmp(model->string.pointer, "M2N", 3) == 0 ||
--		 strncmp(model->string.pointer, "W1N", 3) == 0)
-+		 strncmp(model->string.pointer, "W1N", 3) == 0 ||
-+		 strncmp(model->string.pointer, "W3V", 3) == 0)
- 		hotk->methods->mt_wled = "WLED";
--	/* M2N and W1N have a usable WLED */
-+	/* M2N, W1N and W3V have a usable WLED */
- 	else if (asus_info) {
- 		if (strncmp(asus_info->oem_table_id, "L1", 2) == 0)
- 			hotk->methods->mled_status = NULL;
+ 	/* search for objects that share the same slot */
+ 	for (slot = bridge->slots; slot; slot = slot->next)
 _
