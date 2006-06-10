@@ -1,56 +1,114 @@
-From: Paul Surgeon <surgpub@telkomsa.net>
-Subject: Re: ACPI screwing up USB ehci_hcd with kernel 2.6.16.18
-Date: Sat, 10 Jun 2006 11:05:24 +0200
-Message-ID: <200606101105.24726.surgpub@telkomsa.net>
-References: <200605282150.24428.surgpub@telkomsa.net> <200606051045.10447.bjorn.helgaas@hp.com> <200606091534.41266.bjorn.helgaas@hp.com>
+From: Maurizio Bongini <maurizio.bongini@poste.it>
+Subject: Re: toshiba satelli 1800-712
+Date: Sat, 10 Jun 2006 11:41:41 +0200
+Message-ID: <200606101141.42832.maurizio.bongini@poste.it>
+References: <200606071852.34813.maurizio.bongini@poste.it> <1149862557.5124.92.camel@queen.suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ariel.telkomsa.net ([196.25.211.6]:51877 "EHLO
-	mail.telkomsa.net") by vger.kernel.org with ESMTP id S1750724AbWFJJEZ
+Received: from relay-pt2.poste.it ([62.241.5.253]:49078 "EHLO
+	relay-pt2.poste.it") by vger.kernel.org with ESMTP id S1750816AbWFJJhy
 	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 10 Jun 2006 05:04:25 -0400
-In-Reply-To: <200606091534.41266.bjorn.helgaas@hp.com>
+	Sat, 10 Jun 2006 05:37:54 -0400
+In-Reply-To: <1149862557.5124.92.camel@queen.suse.de>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-acpi@vger.kernel.org
+To: trenn@suse.de, linux-acpi@vger.kernel.org
 
-On Friday 09 June 2006 23:34, Bjorn Helgaas wrote:
-> On Monday 05 June 2006 10:45, Bjorn Helgaas wrote:
-> > On Sunday 28 May 2006 13:50, Paul Surgeon wrote:
-> > > I had a problem with ACPI IRQ routing messing up the USB ehci module.
-> > > I have to disable the irq routing with apci=noirq in the bootloader
-> > > config in order to use the ehci module.
-> > >
-> > > Failing to do so results in :
-> > > usb 5-1: new high speed USB device using ehci_hcd and address 3
-> > > ehci_hcd 0000:00:10.4: Unlink after no-IRQ? Controller is probably
-> > > using the wrong IRQ.
-> > >
-> > > System :
-> > > Kernel 2.6.16.18
-> > > Chipset VIA KT400A
-> >
-> > Can you open a bug report at http://bugzilla.kernel.org in the ACPI
-> > category?  Please attach the complete dmesg log both with and without
-> > "acpi=noirq".
->
-> Did you resolve this problem?  If you can collect some information, we
-> can probably fix the problem.
->
-> Bjorn
 
-Well my resolution is to run with "acpi=noirq". I'm not sure if you'd call 
-that a resolution but I can live with it. The main reason why I reported this 
-problem was in case someone else runs into it in the future.
+Hi Thomas
 
-I attached three sets of dmesg and interrupt logs to the bug tracker :
-http://bugzilla.kernel.org/show_bug.cgi?id=6654
-If you need more info let me know.
+i searched without results the bugzilla site ....
+my problem seems to be common to other people with my computer and other of 
+the
+same brand...   
+
+take a look to these links...
+
+http://www.ussg.iu.edu/hypermail/linux/kernel/0502.1/0946.html
+http://gentoo-wiki.com/HARDWARE_Gentoo_on_Toshiba_Satellite_3005-S403
+
+then this one..
+http://www.weizmann.ac.il/home/fesegre/Linux_on_a_Toshiba_Satellite_1800-712.html
+it is reported also by toshiba official  site !  
+http://linux.toshiba-dme.co.jp/linux/eng/pc/sat1800_memo.htm
+
+
+two years ago i added myself to the toshiba linux forum but the problem was 
+not
+resolved, as you can see by above links....
+
+are you in contact with some people  working in toshiba to obtain technical 
+data about ? IMHO this may truly help ,saving a lot of debugging time...
+if you cannot obtain any info ,then ...:            
+
+i need to ask you some little questions about your requirements:
+my laptop currently run  with a mandriva 2006 distribution:
+it is the same if i compile an alternate kernel with the existing mandriva
+ source,or you  absolutely need suse ?
+my laptop has a parallel port and i have an old  desktop running mandrake 10.1
+i have not a cross parallel cable...
+i have to find  one it or build it from a normal parallel cutting wires and 
+soldering it making a cross connection ( i already done the work in the past 
+with a lan cable). 
 
 Thanks
-Paul
+
+ Maurizio 
+
+ 
+
+On Friday 09 June 2006 16:15, Thomas Renninger wrote:
+> Does the laptop have a serial adapter?
+> If not, I don't know how to debug that (There will be firescope to
+> redirect kernel output over firewire, but that is future).
+>
+> If yes, connect the machine over a crossed serial cable with another
+> one. On the remote machine watch the serial output with e.g.
+> screen /dev/ttyS0 57600
+> On the machine that gets debugged add the kernel option
+> console=ttyS0,57600
+> You should now see the kernel messages popping up on the remote screen
+> session.
+>
+> Try to boot a SuSE debug kernel.
+> If it does not boot you have to compile the kernel yourself:
+>  - Install the kernel-source.rpm
+>  - cd /usr/src/linux
+>  - cp arch/i386/defconfig.default .config
+>  - Edit .config and search for ACPI_DEBUG and set this line to:
+>      ACPI_DEBUG=y
+>  - make
+>  - make install modules_install
+>  - mkinitrd
+>  - add a new boot entry for the kernel/initrd in /boot/grub/menu.lst
+>  - reboot
+>
+> Now you can enable extended ACPI debugging (carefully, not too high):
+> echo 0x1F >/proc/acpi/debug_level
+>
+> I wonder whether the machine hangs while processing some ACPI functions
+> and which.
+>
+> Best you first search on http://bugzilla.kernel.org whether a similar
+> bug exists and try to help there.
+> If there is none, create a new one describing your problem, assign it to
+> the ACPI component and take me into CC, please.
+>
+> Thanks,
+>
+>      Thomas
+>
+>
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+
+_____________________________________________________________
+Email with attachment's size more than 1 Mb will no more be received
