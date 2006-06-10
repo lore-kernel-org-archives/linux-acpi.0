@@ -1,43 +1,77 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: ACPI screwing up USB ehci_hcd with kernel 2.6.16.18
-Date: Fri, 9 Jun 2006 15:34:41 -0600
-Message-ID: <200606091534.41266.bjorn.helgaas@hp.com>
-References: <200605282150.24428.surgpub@telkomsa.net> <200606051045.10447.bjorn.helgaas@hp.com>
+From: Christian Trefzer <ctrefzer@gmx.de>
+Subject: Re: acpi dock test-drive
+Date: Sat, 10 Jun 2006 04:45:40 +0200
+Message-ID: <20060610024540.GA7681@hermes.uziel.local>
+References: <20060609144326.GA6093@hermes.uziel.local> <1149871538.4542.7.camel@whizzy>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="cNdxnHkX5QqsyA0e"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel9.hp.com ([156.153.255.214]:1174 "EHLO atlrel9.hp.com")
-	by vger.kernel.org with ESMTP id S1030278AbWFIVev (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jun 2006 17:34:51 -0400
-In-Reply-To: <200606051045.10447.bjorn.helgaas@hp.com>
+Received: from mail.gmx.net ([213.165.64.20]:10389 "HELO mail.gmx.net")
+	by vger.kernel.org with SMTP id S932257AbWFJCps (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jun 2006 22:45:48 -0400
 Content-Disposition: inline
+In-Reply-To: <1149871538.4542.7.camel@whizzy>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Paul Surgeon <surgpub@telkomsa.net>
-Cc: linux-acpi@vger.kernel.org
+To: Kristen Accardi <kristen.c.accardi@intel.com>
+Cc: Christian Trefzer <ctrefzer@gmx.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Monday 05 June 2006 10:45, Bjorn Helgaas wrote:
-> On Sunday 28 May 2006 13:50, Paul Surgeon wrote:
-> > I had a problem with ACPI IRQ routing messing up the USB ehci module.
-> > I have to disable the irq routing with apci=noirq in the bootloader config in 
-> > order to use the ehci module.
-> > 
-> > Failing to do so results in :
-> > usb 5-1: new high speed USB device using ehci_hcd and address 3
-> > ehci_hcd 0000:00:10.4: Unlink after no-IRQ? Controller is probably using the 
-> > wrong IRQ.
-> > 
-> > System :
-> > Kernel 2.6.16.18
-> > Chipset VIA KT400A
-> 
-> Can you open a bug report at http://bugzilla.kernel.org in the ACPI
-> category?  Please attach the complete dmesg log both with and without
-> "acpi=noirq".
 
-Did you resolve this problem?  If you can collect some information, we
-can probably fix the problem.
+--cNdxnHkX5QqsyA0e
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 
-Bjorn
+Hi Kristen,
+
+On Fri, Jun 09, 2006 at 09:45:38AM -0700, Kristen Accardi wrote:
+> What you are describing sounds like the bug I just fixed :).  Can you
+> please try 2.6.17-rc6-mm1 to see if this works any better?  I believe it
+> should resolve both the oops and the fact that your devices behind the
+> pci bridge are not found.  Thanks very much for continuing to test the
+> patches.
+
+after adding acpi-dock-driver-acpi_get_device_fix.patch the Oops is
+truly gone, although the current behaviour seems dangerous to me. AFAIR
+the undock button causes the disk to spin down and the backlight to be
+turned off e.g. when the boot manager is displayed and power management
+controlled entirely by the bios. What I got now was an endless loop that
+caused everything including sysrq keys to be all but interactive, but
+what bothers me more is the rythmic noise from the hard disk. It sounds
+as if it was attempting a spin-down, barely audible, and only for a
+fraction of a second. This happens about 1.5 times per second, and if
+this is what I guess it is, it won't prolong the disk's life : /
+
+Devices behind the PCI bridge are not yet discovered as well. Guess I'd
+have to build a debug kernel some time soon. Dmesg dumps will have to
+wait until "tomorrow", it's 4:45am and I feel like a dead piece of meat.
+
+
+Thanks for your work!
+
+Chris
+
+--cNdxnHkX5QqsyA0e
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.3 (GNU/Linux)
+
+iQIVAwUBRIoyU12m8MprmeOlAQIljRAAjK1D2DlvRd2XKAAWcawg787wYwac2TVO
+ZBRpFV1Xaalv8IWeXEFGUPcevjdxbasR881216ULYLNI4Drp80ajid0CVz+dS3Q4
+sWW9ZXYkvp32bEBYOr/N21DpGw3lPZSiRuZjw42I0SYWQYBI9TVm8ItwrVsIlH8+
+lECs7wyKlL68wiFNkJ61z/WGn+S/4/zpuQxR4TJWj/e2DZf6h5iOoiohLBnE+qZC
+SuO60LpgsLC4Ok4R7vTy7WJV1bD1cW6jl1PO3xAUZKeRshCuqwCmPGqLIPDr2fyF
+UyWq9+csm1DfItRqLa/GIFMpynyiX+FYGQZjUn8+pyvaWlXHAzjuF2dMImBUdaQw
+vMhrJwgrbTPD1gdbRbA0Q6Jxt8+Xmsjyv8KGFZgTNvw60A0NL7jerI8ZQiIvg6ef
+xqdJyeDdfKH8MrPut8LmgBoZbgTZRMmDanZvhIi+1S2WnNi2/uQ2/P68fXDxqCRz
+j7lWJwolgjPCdiXAodNiAg1wcmd/t4HCvWNmJ4nQCDixFXguUg0k3N31o1EhTFDu
+qF96Qn/O9Vbk/8Ww2j19LZp2geej+ogWUZBo4RlhReEQnLpgFnCsJoJ9oW98fFuf
+/dbkP0UVJygYzhiKk6FKeEfAjcIeIXp1FAeT/D082Hnbs6RC/XTL3Bnc28NJU3eh
+9H0FQQrVvyM=
+=aT0m
+-----END PGP SIGNATURE-----
+
+--cNdxnHkX5QqsyA0e--
+
