@@ -1,77 +1,56 @@
-From: Christian Trefzer <ctrefzer@gmx.de>
-Subject: Re: acpi dock test-drive
-Date: Sat, 10 Jun 2006 04:45:40 +0200
-Message-ID: <20060610024540.GA7681@hermes.uziel.local>
-References: <20060609144326.GA6093@hermes.uziel.local> <1149871538.4542.7.camel@whizzy>
+From: Frederic Riss <frederic.riss@gmail.com>
+Subject: Re: ACPI on Macbook
+Date: Sat, 10 Jun 2006 06:04:30 +0000 (UTC)
+Message-ID: <loom.20060610T075754-74@post.gmane.org>
+References: <1149576347.660.9.camel@moonpix.desrt.ca>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cNdxnHkX5QqsyA0e"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:10389 "HELO mail.gmx.net")
-	by vger.kernel.org with SMTP id S932257AbWFJCps (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Jun 2006 22:45:48 -0400
-Content-Disposition: inline
-In-Reply-To: <1149871538.4542.7.camel@whizzy>
+Received: from main.gmane.org ([80.91.229.2]:46996 "EHLO ciao.gmane.org")
+	by vger.kernel.org with ESMTP id S1030303AbWFJGKH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 10 Jun 2006 02:10:07 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1Fowfa-0006R3-Kt
+	for linux-acpi@vger.kernel.org; Sat, 10 Jun 2006 08:10:03 +0200
+Received: from pas38-3-82-229-199-15.fbx.proxad.net ([82.229.199.15])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Sat, 10 Jun 2006 08:10:02 +0200
+Received: from frederic.riss by pas38-3-82-229-199-15.fbx.proxad.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Sat, 10 Jun 2006 08:10:02 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kristen Accardi <kristen.c.accardi@intel.com>
-Cc: Christian Trefzer <ctrefzer@gmx.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
+Hi,
 
---cNdxnHkX5QqsyA0e
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+Ryan Lortie <desrt <at> desrt.ca> writes:
+> I have been working on getting my new Macbook working with Ubuntu dapper
+> for suspend.
+>[...]
+> After this fix I noticed that ACPI was non-functional after reboot.
+> This is because the irq9 handler gets disabled with the "nobody cared"
+> message.
+> 
+> This happens because when the machine comes up, irq9 is high
+> (level-triggered) but the ACPI code doesn't think it has anything to do.
+> It therefore returns IRQ_NONE instead of IRQ_HANDLED and the kernel
+> starts ignoring irq9 (preventing ACPI from working).
+> 
+> I found that the cause of this problem is that when the laptop returns
+> from sleep the SCI_EN bit has been cleared.  
+> [...]
+> Currently in my custom-patched kernel I have a quick outw(1, 0x404); as
+> soon as the system comes back from sleep (before re-enabling interrupts,
+> even).  This fixes the problem and no spurious irq9's are issued.
 
-Hi Kristen,
+Same symptoms for me on an Intel Core Duo Mac Mini (I had filed a bug about it
+http://bugzilla.kernel.org/show_bug.cgi?id=6670 ). Ryan's hack does fix it as
+well for me; anybody has any clue how to fix that properly ?
 
-On Fri, Jun 09, 2006 at 09:45:38AM -0700, Kristen Accardi wrote:
-> What you are describing sounds like the bug I just fixed :).  Can you
-> please try 2.6.17-rc6-mm1 to see if this works any better?  I believe it
-> should resolve both the oops and the fact that your devices behind the
-> pci bridge are not found.  Thanks very much for continuing to test the
-> patches.
+Fred.
 
-after adding acpi-dock-driver-acpi_get_device_fix.patch the Oops is
-truly gone, although the current behaviour seems dangerous to me. AFAIR
-the undock button causes the disk to spin down and the backlight to be
-turned off e.g. when the boot manager is displayed and power management
-controlled entirely by the bios. What I got now was an endless loop that
-caused everything including sysrq keys to be all but interactive, but
-what bothers me more is the rythmic noise from the hard disk. It sounds
-as if it was attempting a spin-down, barely audible, and only for a
-fraction of a second. This happens about 1.5 times per second, and if
-this is what I guess it is, it won't prolong the disk's life : /
-
-Devices behind the PCI bridge are not yet discovered as well. Guess I'd
-have to build a debug kernel some time soon. Dmesg dumps will have to
-wait until "tomorrow", it's 4:45am and I feel like a dead piece of meat.
-
-
-Thanks for your work!
-
-Chris
-
---cNdxnHkX5QqsyA0e
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (GNU/Linux)
-
-iQIVAwUBRIoyU12m8MprmeOlAQIljRAAjK1D2DlvRd2XKAAWcawg787wYwac2TVO
-ZBRpFV1Xaalv8IWeXEFGUPcevjdxbasR881216ULYLNI4Drp80ajid0CVz+dS3Q4
-sWW9ZXYkvp32bEBYOr/N21DpGw3lPZSiRuZjw42I0SYWQYBI9TVm8ItwrVsIlH8+
-lECs7wyKlL68wiFNkJ61z/WGn+S/4/zpuQxR4TJWj/e2DZf6h5iOoiohLBnE+qZC
-SuO60LpgsLC4Ok4R7vTy7WJV1bD1cW6jl1PO3xAUZKeRshCuqwCmPGqLIPDr2fyF
-UyWq9+csm1DfItRqLa/GIFMpynyiX+FYGQZjUn8+pyvaWlXHAzjuF2dMImBUdaQw
-vMhrJwgrbTPD1gdbRbA0Q6Jxt8+Xmsjyv8KGFZgTNvw60A0NL7jerI8ZQiIvg6ef
-xqdJyeDdfKH8MrPut8LmgBoZbgTZRMmDanZvhIi+1S2WnNi2/uQ2/P68fXDxqCRz
-j7lWJwolgjPCdiXAodNiAg1wcmd/t4HCvWNmJ4nQCDixFXguUg0k3N31o1EhTFDu
-qF96Qn/O9Vbk/8Ww2j19LZp2geej+ogWUZBo4RlhReEQnLpgFnCsJoJ9oW98fFuf
-/dbkP0UVJygYzhiKk6FKeEfAjcIeIXp1FAeT/D082Hnbs6RC/XTL3Bnc28NJU3eh
-9H0FQQrVvyM=
-=aT0m
------END PGP SIGNATURE-----
-
---cNdxnHkX5QqsyA0e--
 
