@@ -1,100 +1,70 @@
-From: Florian Manschwetus <florianmanschwetus@gmx.de>
-Subject: please verify this ibm_acpi patch
-Date: Sat, 10 Jun 2006 16:31:34 +0200
-Message-ID: <448AD7C6.7000603@gmx.de>
+From: Matthew Wilcox <matthew@wil.cx>
+Subject: [PATCH] pnpacpi mishandles port io ADDRESS resources
+Date: Sat, 10 Jun 2006 10:41:50 -0600
+Message-ID: <20060610164150.GR1651@parisc-linux.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms090208030407010401080106"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.de ([213.165.64.20]:62665 "HELO mail.gmx.net")
-	by vger.kernel.org with SMTP id S1030408AbWFJObg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 10 Jun 2006 10:31:36 -0400
+Received: from palinux.external.hp.com ([192.25.206.14]:40349 "EHLO
+	palinux.external.hp.com") by vger.kernel.org with ESMTP
+	id S1750763AbWFJQlv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 10 Jun 2006 12:41:51 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, ambx1@neo.rr.com
+Cc: linux-kernel@vger.kernel.org
 
-This is a cryptographically signed message in MIME format.
 
---------------ms090208030407010401080106
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+ACPI ADDRESSn resources can describe both memory and port io, but the
+current code assumes they're descibing memory, which isn't true for HP's
+ia64 systems.
 
-It is mentioned in this bug:
-http://bugs.gentoo.org/show_bug.cgi?id=136274
+Signed-off-by: Matthew Wilcox <matthew@wil.cx>
 
-regards
-Florian Manschwetus
-
---------------ms090208030407010401080106
-Content-Type: application/x-pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIKDDCC
-BQIwggLqoAMCAQICAwFAHTANBgkqhkiG9w0BAQQFADB5MRAwDgYDVQQKEwdSb290IENBMR4w
-HAYDVQQLExVodHRwOi8vd3d3LmNhY2VydC5vcmcxIjAgBgNVBAMTGUNBIENlcnQgU2lnbmlu
-ZyBBdXRob3JpdHkxITAfBgkqhkiG9w0BCQEWEnN1cHBvcnRAY2FjZXJ0Lm9yZzAeFw0wNTA2
-MjgxMTU3NDFaFw0wNjA2MjgxMTU3NDFaMEgxHDAaBgNVBAMTE0Zsb3JpYW4gTWFuc2Nod2V0
-dXMxKDAmBgkqhkiG9w0BCQEWGUZsb3JpYW5NYW5zY2h3ZXR1c0BnbXguZGUwggEiMA0GCSqG
-SIb3DQEBAQUAA4IBDwAwggEKAoIBAQC2GnTI54ujEGPHu7/5L3UePHT6bydUQAWsck9f44wc
-hURmyPxNMb228wpkIEaWOpsnxCYbKfxW7nIi0zP7eSAhGhXiI9jyLPgJ4NpG1OFT2Eyzjkkf
-25CtC1NO9ZbMacVieXjDw4ezPkuJvSyhsDcFAUERCWG9DT74tMdP9ADdMzI8h/eXjv6j4flz
-TD2WAsDe1hfdSTkzB7G3SMBtBu6J46CY6p93epais/x1CzFkzDJsh0r7dh0tHGhVCGkR1bN1
-5SB2QhIdCR3+Ji1F1W8/7ugak6utREUz4LxYPw/wfiIRaVHTVPjo5YwfD0gjcWSXx25gWf2J
-SEVBx+VDr3o1AgMBAAGjgcMwgcAwDAYDVR0TAQH/BAIwADBWBglghkgBhvhCAQ0ESRZHVG8g
-Z2V0IHlvdXIgb3duIGNlcnRpZmljYXRlIGZvciBGUkVFIGhlYWQgb3ZlciB0byBodHRwOi8v
-d3d3LkNBY2VydC5vcmcwMgYIKwYBBQUHAQEEJjAkMCIGCCsGAQUFBzABhhZodHRwOi8vb2Nz
-cC5jYWNlcnQub3JnMCQGA1UdEQQdMBuBGUZsb3JpYW5NYW5zY2h3ZXR1c0BnbXguZGUwDQYJ
-KoZIhvcNAQEEBQADggIBAHBO9tQ4oojmELHscRqzA96tYHC6YXC7a5pKanbAfVaGZaB7MmoY
-NWAjkfn7mznd7Q3+pfCJIE8cb472Llfs9lfOspHXs4Jztet01msXqnh8zt6bCiYZnOIF09hD
-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
-ZXJ0Lm9yZwIDAUAdMAkGBSsOAwIaBQCgggHbMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEw
-HAYJKoZIhvcNAQkFMQ8XDTA2MDYxMDE0MzEzNFowIwYJKoZIhvcNAQkEMRYEFIjRd1uAvyek
-VcO9wj0Vwr93alE+MFIGCSqGSIb3DQEJDzFFMEMwCgYIKoZIhvcNAwcwDgYIKoZIhvcNAwIC
-AgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMIGRBgkrBgEEAYI3
-EAQxgYMwgYAweTEQMA4GA1UEChMHUm9vdCBDQTEeMBwGA1UECxMVaHR0cDovL3d3dy5jYWNl
-cnQub3JnMSIwIAYDVQQDExlDQSBDZXJ0IFNpZ25pbmcgQXV0aG9yaXR5MSEwHwYJKoZIhvcN
-AQkBFhJzdXBwb3J0QGNhY2VydC5vcmcCAwFAHTCBkwYLKoZIhvcNAQkQAgsxgYOggYAweTEQ
-MA4GA1UEChMHUm9vdCBDQTEeMBwGA1UECxMVaHR0cDovL3d3dy5jYWNlcnQub3JnMSIwIAYD
-VQQDExlDQSBDZXJ0IFNpZ25pbmcgQXV0aG9yaXR5MSEwHwYJKoZIhvcNAQkBFhJzdXBwb3J0
-QGNhY2VydC5vcmcCAwFAHTANBgkqhkiG9w0BAQEFAASCAQCZjb0Y/nZgKv1d0+rNjcd1VZ3u
-S8paqaUiWRGC57xVgNJMzpoXXh+Ic1HbDBx3Q7JvWvMpgqWMG1rUaCJjj9nuZeczdrd5j72j
-9N+hUMt3PDfFJ8teqtdO7WrilWXkE8LxWIe+jRrNPUhtAlyJtPtZH79kbaWV2cAGFzzFYPiy
-w+3IBU5Kpp14kLX8t71drscosbmX1GshuiOwEKu2453zfIeIGSWwil+uiVzk/rex0ziXSUeV
-bhCeKzP+uKiJkNOQ4/GE4aS9h6afxhOWjbDbjO/uIiZa/Uj8oXv7WAAAwsKgtkhQv/lCmkZY
-1OCi2f0hvNdj8BqpjE+WcMtnLd6ZAAAAAAAA
---------------ms090208030407010401080106--
+--- a/drivers/pnp/pnpacpi/rsparser.c	4 Feb 2006 04:51:56 -0000	1.7
++++ b/drivers/pnp/pnpacpi/rsparser.c	10 Jun 2006 16:27:48 -0000
+@@ -221,19 +221,34 @@ static acpi_status pnpacpi_allocated_res
+ 				res->data.fixed_memory32.address_length);
+ 		break;
+ 	case ACPI_RESOURCE_TYPE_ADDRESS16:
+-		pnpacpi_parse_allocated_memresource(res_table,
+-				res->data.address16.minimum,
+-				res->data.address16.address_length);
++		if (res->data.address.resource_type == 0)
++			pnpacpi_parse_allocated_memresource(res_table,
++					res->data.address16.minimum,
++					res->data.address16.address_length);
++		else if (res->data.address.resource_type == 1)
++			pnpacpi_parse_allocated_ioresource(res_table,
++					res->data.address16.minimum,
++					res->data.address16.address_length);
+ 		break;
+ 	case ACPI_RESOURCE_TYPE_ADDRESS32:
+-		pnpacpi_parse_allocated_memresource(res_table,
+-				res->data.address32.minimum,
+-				res->data.address32.address_length);
++		if (res->data.address.resource_type == 0)
++			pnpacpi_parse_allocated_memresource(res_table,
++					res->data.address32.minimum,
++					res->data.address32.address_length);
++		else if (res->data.address.resource_type == 1)
++			pnpacpi_parse_allocated_ioresource(res_table,
++					res->data.address32.minimum,
++					res->data.address32.address_length);
+ 		break;
+ 	case ACPI_RESOURCE_TYPE_ADDRESS64:
+-		pnpacpi_parse_allocated_memresource(res_table,
+-		res->data.address64.minimum,
+-		res->data.address64.address_length);
++		if (res->data.address.resource_type == 0)
++			pnpacpi_parse_allocated_memresource(res_table,
++					res->data.address64.minimum,
++					res->data.address64.address_length);
++		else if (res->data.address.resource_type == 1)
++			pnpacpi_parse_allocated_ioresource(res_table,
++					res->data.address64.minimum,
++					res->data.address64.address_length);
+ 		break;
+ 
+ 	case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64:
