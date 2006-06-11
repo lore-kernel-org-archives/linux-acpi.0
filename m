@@ -1,30 +1,30 @@
-From: =?us-ascii?Q?Jakub=20Seidl?= <jakubseidl@seznam.cz>
-Subject: =?us-ascii?Q?DSDT=20for=20Toshiba=20Satellite=20L10=2D119?=
-Date: Sun, 11 Jun 2006 02:52:18 +0200 (CEST)
-Message-ID: <345.559-26730-922535871-1149987138@seznam.cz>
-Reply-To: =?us-ascii?Q?Jakub=20Seidl?= <jakubseidl@seznam.cz>
+From: Pilucco <monchiotto@libero.it>
+Subject: travelmate 4001
+Date: Sun, 11 Jun 2006 09:53:39 +0200
+Message-ID: <448BCC03.7050406@libero.it>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mxh.seznam.cz ([194.228.32.26]:45810 "HELO mxh.seznam.cz")
-	by vger.kernel.org with SMTP id S1161061AbWFKAwX (ORCPT
+Received: from smtp4.libero.it ([193.70.192.54]:3322 "EHLO smtp4.libero.it")
+	by vger.kernel.org with ESMTP id S1750794AbWFKHvh (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 10 Jun 2006 20:52:23 -0400
+	Sun, 11 Jun 2006 03:51:37 -0400
+Received: from localhost (172.16.1.82) by smtp4.libero.it (7.0.027-DD01)
+        id 4464C44D02A11450 for linux-acpi@vger.kernel.org; Sun, 11 Jun 2006 09:51:36 +0200
+Received: from smtp3.libero.it ([172.16.1.53])
+ by localhost (asav3.libero.it [193.70.192.152]) (amavisd-new, port 10024)
+ with ESMTP id 15859-05 for <linux-acpi@vger.kernel.org>;
+ Sun, 11 Jun 2006 09:51:36 +0200 (CEST)
+Received: from [192.168.0.2] (adsl-ull-180-184.41-151.net24.it [151.41.184.180])
+	by smtp3.libero.it (Postfix) with ESMTP id 11627ABE11
+	for <linux-acpi@vger.kernel.org>; Sun, 11 Jun 2006 09:51:36 +0200 (MEST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-Hello,
-
-I'd like to ask you,
-I'm running Mandrake linux 10.1 on my notebook Toshiba Satellite L10-119,
-but battery management does not work.
-
-I have solved this problem a time ago with patching dsdt.dsl with sbs-linux patch originally made fot Acer notebooks, also using Intel Compiler to create dsdt.aml; it worked, but I had to reinstall Madrake linux 10.1 and herefrom I can't run the battery management again.
-
-Can I get a complete repaired and working DSDT for my Toshiba Satellite L10-119 from you or is it possible to download such DSDT from a certain webaddress?
-
-Thanks, regards,
-Kuba
+Hi, I have a Acer travelmate 4001WLCi.
+At the site http://acpi.sourceforge.net/dsdt/view.php i don't find a
+table for my laptop.
+Can you help me?
+See you later  Paolo
