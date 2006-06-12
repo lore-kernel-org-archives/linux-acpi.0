@@ -1,69 +1,71 @@
-From: Kristen Accardi <kristen.c.accardi@intel.com>
-Subject: Re: acpi dock test-drive
-Date: Mon, 12 Jun 2006 11:37:16 -0700
-Message-ID: <1150137437.8064.4.camel@whizzy>
-References: <20060609144326.GA6093@hermes.uziel.local>
-	 <1149871538.4542.7.camel@whizzy> <20060610024540.GA7681@hermes.uziel.local>
+From: Norbert Preining <preining@logic.at>
+Subject: Various battery related problems
+Date: Mon, 12 Jun 2006 21:06:45 +0200
+Message-ID: <20060612190645.GO13197@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:10128 "EHLO
-	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S1751220AbWFLS02 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 Jun 2006 14:26:28 -0400
-In-Reply-To: <20060610024540.GA7681@hermes.uziel.local>
+Received: from alpha.logic.tuwien.ac.at ([128.130.175.20]:5595 "EHLO
+	alpha.logic.tuwien.ac.at") by vger.kernel.org with ESMTP
+	id S1752181AbWFLTGq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 Jun 2006 15:06:46 -0400
+Received: from gamma.logic.tuwien.ac.at ([128.130.175.3])
+	by alpha.logic.tuwien.ac.at with esmtp (Exim 3.35 #1)
+	id 1FprkL-0000nH-00
+	for linux-acpi@vger.kernel.org; Mon, 12 Jun 2006 21:06:45 +0200
+Received: from preining by gamma.logic.tuwien.ac.at with local (Exim 3.35 #1)
+	id 1FprkL-0005zV-00
+	for linux-acpi@vger.kernel.org; Mon, 12 Jun 2006 21:06:45 +0200
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Christian Trefzer <ctrefzer@gmx.de>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Sat, 2006-06-10 at 04:45 +0200, Christian Trefzer wrote:
-> Hi Kristen,
-> 
-> On Fri, Jun 09, 2006 at 09:45:38AM -0700, Kristen Accardi wrote:
-> > What you are describing sounds like the bug I just fixed :).  Can you
-> > please try 2.6.17-rc6-mm1 to see if this works any better?  I believe it
-> > should resolve both the oops and the fact that your devices behind the
-> > pci bridge are not found.  Thanks very much for continuing to test the
-> > patches.
-> 
-> after adding acpi-dock-driver-acpi_get_device_fix.patch the Oops is
-> truly gone, although the current behaviour seems dangerous to me. AFAIR
-> the undock button causes the disk to spin down and the backlight to be
-> turned off e.g. when the boot manager is displayed and power management
-> controlled entirely by the bios. What I got now was an endless loop that
-> caused everything including sysrq keys to be all but interactive, but
-> what bothers me more is the rythmic noise from the hard disk. It sounds
-> as if it was attempting a spin-down, barely audible, and only for a
-> fraction of a second. This happens about 1.5 times per second, and if
-> this is what I guess it is, it won't prolong the disk's life : /
-> 
+Hi all!
 
-Can you tell me if this happens when you boot up outside your dock
-station, and then dock/undock, or if it only happens when you boot
-inside the dock station and then attempt to undock?
+Quick overview: Now and then my kernel spits out this:
+ACPI Error (exmutex-0248): Cannot release Mutex [MUT1], not acquired [2=
+0060310]
+ACPI Error (psparse-0522): Method parse/execution failed [\_SB_.BAT1._B=
+ST] (Node f7c12a80), AE_AML_MUTEX_NOT_ACQUIRED
+ACPI Exception (acpi_battery-0201): AE_AML_MUTEX_NOT_ACQUIRED, Evaluati=
+ng _BST [20060310]
 
-> Devices behind the PCI bridge are not yet discovered as well. Guess I'd
-> have to build a debug kernel some time soon. Dmesg dumps will have to
-> wait until "tomorrow", it's 4:45am and I feel like a dead piece of meat.
 
-When you do get to this, please load acpiphp as a module with the
-debug=1 option and send me the output.  Do the following:
+this is:
+Acer TravelMate 3012WTMi
+kernel 2.6.17-rc6-mm2
+no custom dsdt table.
 
-1.  boot outside dock station
-2.  load acpiphp
-3.  attempt to dock - capture output of dmesg plus lspci -vv
-4.  reboot inside dock station
-5.  capture lspci -vv
+I found some references to similar problems in 2004 wrt to gnome
+applets, which seems a bit strange.
 
-Maybe we can focus on getting docking working right first, and then try
-to figure out what's going on with undocking.
+Do you have any other ideas? Do i have to care for this?
 
-Thanks,
-Kristen
+Otherwise the battery applet in xfce4 show the status and remaining tim=
+e
+without any problems.
 
-> 
-> Thanks for your work!
-> 
-> Chris
+Best wishes and thanks a lot
+
+Norbert
+
+-----------------------------------------------------------------------=
+--------
+Dr. Norbert Preining <preining AT logic DOT at>             Universit=E0=
+ di Siena
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 0=
+9C5 B094
+-----------------------------------------------------------------------=
+--------
+SNITTERBY (n.)
+Someone who pins snitters (q.v.) on to snitterfields (q.v.) and is
+also suspected of being responsible for the extinction of virginstows
+(q.v.)
+			--- Douglas Adams, The Meaning of Liff
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
