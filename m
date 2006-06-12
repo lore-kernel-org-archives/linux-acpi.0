@@ -1,71 +1,46 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Various battery related problems
-Date: Mon, 12 Jun 2006 21:06:45 +0200
-Message-ID: <20060612190645.GO13197@gamma.logic.tuwien.ac.at>
+From: "Toni Savage" <ToniSavage@1-host.com>
+Subject: Order status, new-bladed
+Date: Mon, 12 Jun 2006 23:18:17 +0000 (UTC)
+Message-ID: <662161c806040x3avpyelhh11xkcj0ieltzielthokchyyf@mail-10.name-services.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from alpha.logic.tuwien.ac.at ([128.130.175.20]:5595 "EHLO
-	alpha.logic.tuwien.ac.at") by vger.kernel.org with ESMTP
-	id S1752181AbWFLTGq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 Jun 2006 15:06:46 -0400
-Received: from gamma.logic.tuwien.ac.at ([128.130.175.3])
-	by alpha.logic.tuwien.ac.at with esmtp (Exim 3.35 #1)
-	id 1FprkL-0000nH-00
-	for linux-acpi@vger.kernel.org; Mon, 12 Jun 2006 21:06:45 +0200
-Received: from preining by gamma.logic.tuwien.ac.at with local (Exim 3.35 #1)
-	id 1FprkL-0005zV-00
-	for linux-acpi@vger.kernel.org; Mon, 12 Jun 2006 21:06:45 +0200
+Received: from p54847AE2.dip.t-dialin.net ([84.132.122.226]:41992 "EHLO u7o3i7")
+	by vger.kernel.org with ESMTP id S932235AbWFLXSG convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 Jun 2006 19:18:06 -0400
+Date: Sun, 22 Nov 2000 01:03:31 -0060
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-Hi all!
+Join and Play at the best Emperial zCASINOz!
+As a Special Welcome TODAY, we will DOUBL your 1 Deposit up to 200 bucks!
 
-Quick overview: Now and then my kernel spits out this:
-ACPI Error (exmutex-0248): Cannot release Mutex [MUT1], not acquired [2=
-0060310]
-ACPI Error (psparse-0522): Method parse/execution failed [\_SB_.BAT1._B=
-ST] (Node f7c12a80), AE_AML_MUTEX_NOT_ACQUIRED
-ACPI Exception (acpi_battery-0201): AE_AML_MUTEX_NOT_ACQUIRED, Evaluati=
-ng _BST [20060310]
+For example:
+Deposit 50 play with 100!
+Deposit 100 play with 200!
+And your FREE Bonuses will be INSTANTLY added to your acount!
+
+Try us, inhere: 
+
+http://T53AX8.erprost.com/d1/today
+
+=====
+Gray-feathered backs were turned upon Jonathan from  that  moment  onward,
+     "It's not the 'Borscht,' it's pronounced 'Borshch.' How many times do I
+are a very fast flier, aren't you?"
+and the lights twinkling on the water, throwing out  little  beacon-trails
+them. They're too simple, especially when you look close and finally believe
+=
+himself as trapped inside  a  limited  body  that  had  a  forty-two  inch
+web. I shut  my eyes. I went numb and the  only  thing I  heard was  the web
+still at high speeds - to flap up to fifty and then hold the wings still.
+=
+     In other words, we didn't touch on the subject again. Kirill phoned PPS
+from where he had been rooted for so long.
+understand? Herzog just had me up in his office."
 
 
-this is:
-Acer TravelMate 3012WTMi
-kernel 2.6.17-rc6-mm2
-no custom dsdt table.
-
-I found some references to similar problems in 2004 wrt to gnome
-applets, which seems a bit strange.
-
-Do you have any other ideas? Do i have to care for this?
-
-Otherwise the battery applet in xfce4 show the status and remaining tim=
-e
-without any problems.
-
-Best wishes and thanks a lot
-
-Norbert
-
------------------------------------------------------------------------=
---------
-Dr. Norbert Preining <preining AT logic DOT at>             Universit=E0=
- di Siena
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 0=
-9C5 B094
------------------------------------------------------------------------=
---------
-SNITTERBY (n.)
-Someone who pins snitters (q.v.) on to snitterfields (q.v.) and is
-also suspected of being responsible for the extinction of virginstows
-(q.v.)
-			--- Douglas Adams, The Meaning of Liff
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
