@@ -1,111 +1,69 @@
-From: Florian Manschwetus <florianmanschwetus@gmx.de>
-Subject: patch for ibm_acpi for t60* ultrabays
-Date: Mon, 12 Jun 2006 14:39:18 +0200
-Message-ID: <448D6076.3030201@gmx.de>
+From: Kristen Accardi <kristen.c.accardi@intel.com>
+Subject: Re: acpi dock test-drive
+Date: Mon, 12 Jun 2006 11:37:16 -0700
+Message-ID: <1150137437.8064.4.camel@whizzy>
+References: <20060609144326.GA6093@hermes.uziel.local>
+	 <1149871538.4542.7.camel@whizzy> <20060610024540.GA7681@hermes.uziel.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms090001020408080707020102"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.de ([213.165.64.20]:30624 "HELO mail.gmx.net")
-	by vger.kernel.org with SMTP id S1751926AbWFLMjX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 Jun 2006 08:39:23 -0400
+Received: from mga03.intel.com ([143.182.124.21]:10128 "EHLO
+	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
+	id S1751220AbWFLS02 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 Jun 2006 14:26:28 -0400
+In-Reply-To: <20060610024540.GA7681@hermes.uziel.local>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Christian Trefzer <ctrefzer@gmx.de>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This is a cryptographically signed message in MIME format.
+On Sat, 2006-06-10 at 04:45 +0200, Christian Trefzer wrote:
+> Hi Kristen,
+> 
+> On Fri, Jun 09, 2006 at 09:45:38AM -0700, Kristen Accardi wrote:
+> > What you are describing sounds like the bug I just fixed :).  Can you
+> > please try 2.6.17-rc6-mm1 to see if this works any better?  I believe it
+> > should resolve both the oops and the fact that your devices behind the
+> > pci bridge are not found.  Thanks very much for continuing to test the
+> > patches.
+> 
+> after adding acpi-dock-driver-acpi_get_device_fix.patch the Oops is
+> truly gone, although the current behaviour seems dangerous to me. AFAIR
+> the undock button causes the disk to spin down and the backlight to be
+> turned off e.g. when the boot manager is displayed and power management
+> controlled entirely by the bios. What I got now was an endless loop that
+> caused everything including sysrq keys to be all but interactive, but
+> what bothers me more is the rythmic noise from the hard disk. It sounds
+> as if it was attempting a spin-down, barely audible, and only for a
+> fraction of a second. This happens about 1.5 times per second, and if
+> this is what I guess it is, it won't prolong the disk's life : /
+> 
 
---------------ms090001020408080707020102
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Can you tell me if this happens when you boot up outside your dock
+station, and then dock/undock, or if it only happens when you boot
+inside the dock station and then attempt to undock?
 
-I managed to get my Ultrabay working with that but have to use 
-compatible sata mode because the ahci was unable to support my ultrabay 
-so i was forced to use ata_piix
+> Devices behind the PCI bridge are not yet discovered as well. Guess I'd
+> have to build a debug kernel some time soon. Dmesg dumps will have to
+> wait until "tomorrow", it's 4:45am and I feel like a dead piece of meat.
 
-Thx, Florian
+When you do get to this, please load acpiphp as a module with the
+debug=1 option and send me the output.  Do the following:
 
---- a/drivers/acpi/ibm_acpi.c.orig	2006-06-09 13:00:13.000000000 +0200
-+++ b/drivers/acpi/ibm_acpi.c	2006-06-09 13:02:16.000000000 +0200
-@@ -170,6 +170,7 @@
-  IBM_HANDLE(bay, root, "\\_SB.PCI.IDE.SECN.MAST",	/* 570 */
-  	   "\\_SB.PCI0.IDE0.IDES.IDSM",	/* 600e/x, 770e, 770x */
-  	   "\\_SB.PCI0.IDE0.SCND.MSTR",	/* all others */
-+	   "\\_SB.PCI0.SATA.SCND.MSTR",	/* perhaps T60? */
-      );				/* A21e, R30, R31 */
+1.  boot outside dock station
+2.  load acpiphp
+3.  attempt to dock - capture output of dmesg plus lspci -vv
+4.  reboot inside dock station
+5.  capture lspci -vv
 
-  IBM_HANDLE(bay_ej, bay, "_EJ3",	/* 600e/x, A2xm/p, A3x */
+Maybe we can focus on getting docking working right first, and then try
+to figure out what's going on with undocking.
 
---------------ms090001020408080707020102
-Content-Type: application/x-pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
+Thanks,
+Kristen
 
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIKDDCC
-BQIwggLqoAMCAQICAwFAHTANBgkqhkiG9w0BAQQFADB5MRAwDgYDVQQKEwdSb290IENBMR4w
-HAYDVQQLExVodHRwOi8vd3d3LmNhY2VydC5vcmcxIjAgBgNVBAMTGUNBIENlcnQgU2lnbmlu
-ZyBBdXRob3JpdHkxITAfBgkqhkiG9w0BCQEWEnN1cHBvcnRAY2FjZXJ0Lm9yZzAeFw0wNTA2
-MjgxMTU3NDFaFw0wNjA2MjgxMTU3NDFaMEgxHDAaBgNVBAMTE0Zsb3JpYW4gTWFuc2Nod2V0
-dXMxKDAmBgkqhkiG9w0BCQEWGUZsb3JpYW5NYW5zY2h3ZXR1c0BnbXguZGUwggEiMA0GCSqG
-SIb3DQEBAQUAA4IBDwAwggEKAoIBAQC2GnTI54ujEGPHu7/5L3UePHT6bydUQAWsck9f44wc
-hURmyPxNMb228wpkIEaWOpsnxCYbKfxW7nIi0zP7eSAhGhXiI9jyLPgJ4NpG1OFT2Eyzjkkf
-25CtC1NO9ZbMacVieXjDw4ezPkuJvSyhsDcFAUERCWG9DT74tMdP9ADdMzI8h/eXjv6j4flz
-TD2WAsDe1hfdSTkzB7G3SMBtBu6J46CY6p93epais/x1CzFkzDJsh0r7dh0tHGhVCGkR1bN1
-5SB2QhIdCR3+Ji1F1W8/7ugak6utREUz4LxYPw/wfiIRaVHTVPjo5YwfD0gjcWSXx25gWf2J
-SEVBx+VDr3o1AgMBAAGjgcMwgcAwDAYDVR0TAQH/BAIwADBWBglghkgBhvhCAQ0ESRZHVG8g
-Z2V0IHlvdXIgb3duIGNlcnRpZmljYXRlIGZvciBGUkVFIGhlYWQgb3ZlciB0byBodHRwOi8v
-d3d3LkNBY2VydC5vcmcwMgYIKwYBBQUHAQEEJjAkMCIGCCsGAQUFBzABhhZodHRwOi8vb2Nz
-cC5jYWNlcnQub3JnMCQGA1UdEQQdMBuBGUZsb3JpYW5NYW5zY2h3ZXR1c0BnbXguZGUwDQYJ
-KoZIhvcNAQEEBQADggIBAHBO9tQ4oojmELHscRqzA96tYHC6YXC7a5pKanbAfVaGZaB7MmoY
-NWAjkfn7mznd7Q3+pfCJIE8cb472Llfs9lfOspHXs4Jztet01msXqnh8zt6bCiYZnOIF09hD
-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
-ZXJ0Lm9yZwIDAUAdMAkGBSsOAwIaBQCgggHbMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEw
-HAYJKoZIhvcNAQkFMQ8XDTA2MDYxMjEyMzkxOFowIwYJKoZIhvcNAQkEMRYEFCVbN/OH8HBg
-4nyiwtCb603UQTRdMFIGCSqGSIb3DQEJDzFFMEMwCgYIKoZIhvcNAwcwDgYIKoZIhvcNAwIC
-AgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMIGRBgkrBgEEAYI3
-EAQxgYMwgYAweTEQMA4GA1UEChMHUm9vdCBDQTEeMBwGA1UECxMVaHR0cDovL3d3dy5jYWNl
-cnQub3JnMSIwIAYDVQQDExlDQSBDZXJ0IFNpZ25pbmcgQXV0aG9yaXR5MSEwHwYJKoZIhvcN
-AQkBFhJzdXBwb3J0QGNhY2VydC5vcmcCAwFAHTCBkwYLKoZIhvcNAQkQAgsxgYOggYAweTEQ
-MA4GA1UEChMHUm9vdCBDQTEeMBwGA1UECxMVaHR0cDovL3d3dy5jYWNlcnQub3JnMSIwIAYD
-VQQDExlDQSBDZXJ0IFNpZ25pbmcgQXV0aG9yaXR5MSEwHwYJKoZIhvcNAQkBFhJzdXBwb3J0
-QGNhY2VydC5vcmcCAwFAHTANBgkqhkiG9w0BAQEFAASCAQARrl3f5KQJ/OWMib/cavyt+4Wh
-6cJGL900NtXm0REo/6DHGhznt7C5TPBnJqQiGZIyoVIlS0Qr3J3KEQI3X36l7AxnsEqJ/nYx
-TwqKeRtAvmEXqdM7xteetuTiB3Bw7+KGfRS/9QHUhDSF5IMizJQNXfWhQSpjdrxyRgAv6i5V
-GEOUulufrgOFayrU36EWjRhArH87O4ttuctXxUboC7PUstQIq0hFMNu2JubTHkZahSk8GxXS
-PgGGkuIZHCC76+RdfKiYeGu/0/oohZyxbNX5EsCtdIJj80UCgISaTPwfncOfXZUvBFy1sBqF
-AfASDNc+oRVkY3QtdfkavnACRBp4AAAAAAAA
---------------ms090001020408080707020102--
+> 
+> Thanks for your work!
+> 
+> Chris
