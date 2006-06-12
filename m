@@ -1,28 +1,111 @@
-From: "Galinochka" <info@2angels.ru>
-Subject: Re[1]: hey from Galinochka B.
-Date: Mon, 12 Jun 2006 13:05:49 +0300
-Message-ID: <009701c68e07$c2c14880$0825000a@61.17.243.204.dynamic.vsnl.net.in>
+From: Florian Manschwetus <florianmanschwetus@gmx.de>
+Subject: patch for ibm_acpi for t60* ultrabays
+Date: Mon, 12 Jun 2006 14:39:18 +0200
+Message-ID: <448D6076.3030201@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="windows-1251"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms090001020408080707020102"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 61.17.243.204.dynamic.vsnl.net.in ([61.17.243.204]:9746 "EHLO
-	61.17.243.204.dynamic.vsnl.net.in") by vger.kernel.org with ESMTP
-	id S1751722AbWFLKFM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 Jun 2006 06:05:12 -0400
+Received: from mail.gmx.de ([213.165.64.20]:30624 "HELO mail.gmx.net")
+	by vger.kernel.org with SMTP id S1751926AbWFLMjX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 Jun 2006 08:39:23 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marcel <kanoj@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-Hi, Marcel
+This is a cryptographically signed message in MIME format.
 
-I am a lovely and lonely Lady who is looking for the man who will make me happy and whom I want to feel like in paradise with!
-If you want to be my beautiful Hero who will save me from this loneliness find me 
-http://www.2vTjW.im-waiting-4you.net/
-and wake me up with a warm kiss.
+--------------ms090001020408080707020102
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-talk to you soon!
-Galechka
+I managed to get my Ultrabay working with that but have to use 
+compatible sata mode because the ahci was unable to support my ultrabay 
+so i was forced to use ata_piix
 
+Thx, Florian
 
+--- a/drivers/acpi/ibm_acpi.c.orig	2006-06-09 13:00:13.000000000 +0200
++++ b/drivers/acpi/ibm_acpi.c	2006-06-09 13:02:16.000000000 +0200
+@@ -170,6 +170,7 @@
+  IBM_HANDLE(bay, root, "\\_SB.PCI.IDE.SECN.MAST",	/* 570 */
+  	   "\\_SB.PCI0.IDE0.IDES.IDSM",	/* 600e/x, 770e, 770x */
+  	   "\\_SB.PCI0.IDE0.SCND.MSTR",	/* all others */
++	   "\\_SB.PCI0.SATA.SCND.MSTR",	/* perhaps T60? */
+      );				/* A21e, R30, R31 */
+
+  IBM_HANDLE(bay_ej, bay, "_EJ3",	/* 600e/x, A2xm/p, A3x */
+
+--------------ms090001020408080707020102
+Content-Type: application/x-pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: S/MIME Cryptographic Signature
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIKDDCC
+BQIwggLqoAMCAQICAwFAHTANBgkqhkiG9w0BAQQFADB5MRAwDgYDVQQKEwdSb290IENBMR4w
+HAYDVQQLExVodHRwOi8vd3d3LmNhY2VydC5vcmcxIjAgBgNVBAMTGUNBIENlcnQgU2lnbmlu
+ZyBBdXRob3JpdHkxITAfBgkqhkiG9w0BCQEWEnN1cHBvcnRAY2FjZXJ0Lm9yZzAeFw0wNTA2
+MjgxMTU3NDFaFw0wNjA2MjgxMTU3NDFaMEgxHDAaBgNVBAMTE0Zsb3JpYW4gTWFuc2Nod2V0
+dXMxKDAmBgkqhkiG9w0BCQEWGUZsb3JpYW5NYW5zY2h3ZXR1c0BnbXguZGUwggEiMA0GCSqG
+SIb3DQEBAQUAA4IBDwAwggEKAoIBAQC2GnTI54ujEGPHu7/5L3UePHT6bydUQAWsck9f44wc
+hURmyPxNMb228wpkIEaWOpsnxCYbKfxW7nIi0zP7eSAhGhXiI9jyLPgJ4NpG1OFT2Eyzjkkf
+25CtC1NO9ZbMacVieXjDw4ezPkuJvSyhsDcFAUERCWG9DT74tMdP9ADdMzI8h/eXjv6j4flz
+TD2WAsDe1hfdSTkzB7G3SMBtBu6J46CY6p93epais/x1CzFkzDJsh0r7dh0tHGhVCGkR1bN1
+5SB2QhIdCR3+Ji1F1W8/7ugak6utREUz4LxYPw/wfiIRaVHTVPjo5YwfD0gjcWSXx25gWf2J
+SEVBx+VDr3o1AgMBAAGjgcMwgcAwDAYDVR0TAQH/BAIwADBWBglghkgBhvhCAQ0ESRZHVG8g
+Z2V0IHlvdXIgb3duIGNlcnRpZmljYXRlIGZvciBGUkVFIGhlYWQgb3ZlciB0byBodHRwOi8v
+d3d3LkNBY2VydC5vcmcwMgYIKwYBBQUHAQEEJjAkMCIGCCsGAQUFBzABhhZodHRwOi8vb2Nz
+cC5jYWNlcnQub3JnMCQGA1UdEQQdMBuBGUZsb3JpYW5NYW5zY2h3ZXR1c0BnbXguZGUwDQYJ
+KoZIhvcNAQEEBQADggIBAHBO9tQ4oojmELHscRqzA96tYHC6YXC7a5pKanbAfVaGZaB7MmoY
+NWAjkfn7mznd7Q3+pfCJIE8cb472Llfs9lfOspHXs4Jztet01msXqnh8zt6bCiYZnOIF09hD
+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
+ZXJ0Lm9yZwIDAUAdMAkGBSsOAwIaBQCgggHbMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEw
+HAYJKoZIhvcNAQkFMQ8XDTA2MDYxMjEyMzkxOFowIwYJKoZIhvcNAQkEMRYEFCVbN/OH8HBg
+4nyiwtCb603UQTRdMFIGCSqGSIb3DQEJDzFFMEMwCgYIKoZIhvcNAwcwDgYIKoZIhvcNAwIC
+AgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMIGRBgkrBgEEAYI3
+EAQxgYMwgYAweTEQMA4GA1UEChMHUm9vdCBDQTEeMBwGA1UECxMVaHR0cDovL3d3dy5jYWNl
+cnQub3JnMSIwIAYDVQQDExlDQSBDZXJ0IFNpZ25pbmcgQXV0aG9yaXR5MSEwHwYJKoZIhvcN
+AQkBFhJzdXBwb3J0QGNhY2VydC5vcmcCAwFAHTCBkwYLKoZIhvcNAQkQAgsxgYOggYAweTEQ
+MA4GA1UEChMHUm9vdCBDQTEeMBwGA1UECxMVaHR0cDovL3d3dy5jYWNlcnQub3JnMSIwIAYD
+VQQDExlDQSBDZXJ0IFNpZ25pbmcgQXV0aG9yaXR5MSEwHwYJKoZIhvcNAQkBFhJzdXBwb3J0
+QGNhY2VydC5vcmcCAwFAHTANBgkqhkiG9w0BAQEFAASCAQARrl3f5KQJ/OWMib/cavyt+4Wh
+6cJGL900NtXm0REo/6DHGhznt7C5TPBnJqQiGZIyoVIlS0Qr3J3KEQI3X36l7AxnsEqJ/nYx
+TwqKeRtAvmEXqdM7xteetuTiB3Bw7+KGfRS/9QHUhDSF5IMizJQNXfWhQSpjdrxyRgAv6i5V
+GEOUulufrgOFayrU36EWjRhArH87O4ttuctXxUboC7PUstQIq0hFMNu2JubTHkZahSk8GxXS
+PgGGkuIZHCC76+RdfKiYeGu/0/oohZyxbNX5EsCtdIJj80UCgISaTPwfncOfXZUvBFy1sBqF
+AfASDNc+oRVkY3QtdfkavnACRBp4AAAAAAAA
+--------------ms090001020408080707020102--
