@@ -1,31 +1,28 @@
-From: "Pekka Enberg" <penberg@cs.helsinki.fi>
-Subject: Re: [patch] ICH7 SCI_EN quirk required for Macbook
-Date: Sun, 11 Jun 2006 22:19:53 +0300
-Message-ID: <84144f020606111219nf60fc45rbd41b2f546bb2505@mail.gmail.com>
-References: <1150048812.11072.13.camel@moonpix.desrt.ca>
+From: "Galinochka" <info@2angels.ru>
+Subject: Re[1]: hey from Galinochka B.
+Date: Mon, 12 Jun 2006 13:05:49 +0300
+Message-ID: <009701c68e07$c2c14880$0825000a@61.17.243.204.dynamic.vsnl.net.in>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="windows-1251"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wx-out-0102.google.com ([66.249.82.205]:17000 "EHLO
-	wx-out-0102.google.com") by vger.kernel.org with ESMTP
-	id S1750846AbWFKTTy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 11 Jun 2006 15:19:54 -0400
-Received: by wx-out-0102.google.com with SMTP id h28so736688wxd
-        for <linux-acpi@vger.kernel.org>; Sun, 11 Jun 2006 12:19:53 -0700 (PDT)
-In-Reply-To: <1150048812.11072.13.camel@moonpix.desrt.ca>
-Content-Disposition: inline
+Received: from 61.17.243.204.dynamic.vsnl.net.in ([61.17.243.204]:9746 "EHLO
+	61.17.243.204.dynamic.vsnl.net.in") by vger.kernel.org with ESMTP
+	id S1751722AbWFLKFM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 Jun 2006 06:05:12 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ryan Lortie <desrt@desrt.ca>
-Cc: lkml@vger.kernel.org, linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Ben Collins <bcollins@ubuntu.com>, Frederic Riss <frederic.riss@gmail.com>
+To: Marcel <kanoj@vger.kernel.org>
 
-On 6/11/06, Ryan Lortie <desrt@desrt.ca> wrote:
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v1.4.2.2 (GNU/Linux)
->
-> iQG5AwUARIxaLJ96IjKvqm/2AQJcMA0eIQnj5Lm6YfYiHecouNsckBvBcZaCsYLd
-> Arzkg/lMV7UpXwuMbcoXo5/GHDqvGorjRfqfibmg82/gL/syS2kcv3xyPqGXTSsk
-> iyuxyP0qW442mbC8Dp1r9eps953D5--=-Yb3G0z+a1ZV00/YAUUh4--
+Hi, Marcel
 
-Where's the patch? Hmm?
+I am a lovely and lonely Lady who is looking for the man who will make me happy and whom I want to feel like in paradise with!
+If you want to be my beautiful Hero who will save me from this loneliness find me 
+http://www.2vTjW.im-waiting-4you.net/
+and wake me up with a warm kiss.
+
+talk to you soon!
+Galechka
+
+
