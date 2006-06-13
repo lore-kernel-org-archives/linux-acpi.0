@@ -1,17 +1,17 @@
-From: "Toni Savage" <ToniSavage@1-host.com>
-Subject: Order status, new-bladed
-Date: Mon, 12 Jun 2006 23:18:17 +0000 (UTC)
-Message-ID: <662161c806040x3avpyelhh11xkcj0ieltzielthokchyyf@mail-10.name-services.com>
+From: "Marvin Felton" <MarvinFelton@0451.com>
+Subject: Your cash, oat-producing
+Date: Tue, 13 Jun 2006 01:16:20 +0000 (UTC)
+Message-ID: <6257901589.20060613011604@0451.com>
+Reply-To: "Marvin Felton" <MarvinFelton@0451.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from p54847AE2.dip.t-dialin.net ([84.132.122.226]:41992 "EHLO u7o3i7")
-	by vger.kernel.org with ESMTP id S932235AbWFLXSG convert rfc822-to-8bit
+Received: from 201-27-27-60.dsl.telesp.net.br ([201.27.27.60]:3600 "EHLO
+	well-041f47a1f2") by vger.kernel.org with ESMTP id S932718AbWFMBQJ
 	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 Jun 2006 19:18:06 -0400
-Date: Sun, 22 Nov 2000 01:03:31 -0060
-Content-Disposition: inline
+	Mon, 12 Jun 2006 21:16:09 -0400
+Date: Tue, 13 Jun 2006 01:16:04 +0180
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
@@ -26,21 +26,21 @@ And your FREE Bonuses will be INSTANTLY added to your acount!
 
 Try us, inhere: 
 
-http://T53AX8.erprost.com/d1/today
+http://39K7CN.erprost.com/d1/today
 
-=====
-Gray-feathered backs were turned upon Jonathan from  that  moment  onward,
-     "It's not the 'Borscht,' it's pronounced 'Borshch.' How many times do I
-are a very fast flier, aren't you?"
-and the lights twinkling on the water, throwing out  little  beacon-trails
-them. They're too simple, especially when you look close and finally believe
-=
-himself as trapped inside  a  limited  body  that  had  a  forty-two  inch
-web. I shut  my eyes. I went numb and the  only  thing I  heard was  the web
-still at high speeds - to flap up to fifty and then hold the wings still.
-=
-     In other words, we didn't touch on the subject again. Kirill phoned PPS
-from where he had been rooted for so long.
-understand? Herzog just had me up in his office."
+==========
+hour above stall. The two radiant birds slowed with him, smoothly,  locked
+was  at our backs, yet its shadow was stretching toward us. Well, all right,
+Gobi or Newfoundland seemed more likely than Harmont."
+night is on shore, and from this moment forth, he vowed,  he  would  be  a
+the whole thing-just  emptiness and more emptiness,  thin  air. And for  all
+==
+and the speed was joy, and the speed was pure beauty.
+jump, he  says. It was clear  how to get to the hillock. And  then we'd stay
+the first, but probably not the last, of your contributions to our knowledge
+==
+hundred feet of clear space either on your left or your right. So, we can go
+pushed over into a blazing steep dive toward the waves,  and  learned  why
+Canada  do they find these  guys? Have they  been sent out here to breed? In
 
 
