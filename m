@@ -1,111 +1,73 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: FW: [Bug 194897] New: acpi_cpufreq prevents suspend (Could not power down device <NULL>)
-Date: Tue, 13 Jun 2006 15:11:53 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6B89B43@hdsmsx411.amr.corp.intel.com>
+From: Andreas Mohr <andi@rhlx01.fht-esslingen.de>
+Subject: [PATCH -mm] ACPI lock: cpu_relax() (was: [RFC -mm] more cpu_relax() places?)
+Date: Tue, 13 Jun 2006 21:54:18 +0200
+Message-ID: <20060613195418.GB24167@rhlx01.fht-esslingen.de>
+References: <20060612183743.GA28610@rhlx01.fht-esslingen.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:22352 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1751168AbWFMTMQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Jun 2006 15:12:16 -0400
-Content-class: urn:content-classes:message
+Received: from rhlx01.fht-esslingen.de ([129.143.116.10]:991 "EHLO
+	rhlx01.fht-esslingen.de") by vger.kernel.org with ESMTP
+	id S932127AbWFMTyU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 Jun 2006 15:54:20 -0400
+Content-Disposition: inline
+In-Reply-To: <20060612183743.GA28610@rhlx01.fht-esslingen.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: len.brown@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-volunteers?
+Hi all,
 
------Original Message-----
-From: bugzilla@redhat.com [mailto:bugzilla@redhat.com] 
-Sent: Monday, June 12, 2006 1:34 PM
-To: davej@redhat.com
-Subject: [Bug 194897] New: acpi_cpufreq prevents suspend (Could not
-power down device <NULL>)
+On Mon, Jun 12, 2006 at 08:37:43PM +0200, Andreas Mohr wrote:
+> Hi all,
+> 
+> while reviewing 2.6.17-rc6-mm1, I found some places that might
+> want to make use of cpu_relax() in order to not block secondary
+> pipelines while busy-polling (probably especially useful on SMT CPUs):
 
-Please do not reply directly to this email. All additional
-comments should be made in the comments box of this bug report.
+Patch no. 2 of 3.
 
+This could be considered overkill given the previous unlikely(),
+but it is busy-looping on failure after all...
 
-
-
-https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=194897
-
-           Summary: acpi_cpufreq prevents suspend (Could not power down
-                    device <NULL>)
-           Product: Fedora Core
-           Version: fc5
-          Platform: All
-        OS/Version: Linux
-            Status: NEW
-          Severity: normal
-          Priority: normal
-         Component: cpuspeed
-        AssignedTo: davej@redhat.com
-        ReportedBy: sitsofe@yahoo.com
-   Estimated Hours: 0.0
+Signed-off-by: Andreas Mohr <andi@lisas.de>
 
 
-Description of problem:
-Attempts to suspend some desktops we have were being vetoed my a
-mysterious
-device <NULL>. Iterative investigation traced it to the acpi_cpufreq
-module as
-loaded by the cpuspeed initscript.
-
-Version-Release number of selected component (if applicable):
-cpuspeed-1.2.1-1.33
-
-How reproducible:
-Reproducible every time.
-
-Steps to Reproduce:
-1. Boot computer to runlevel 1.
-2. Run pm-suspend.
-  
-Actual results:
-Computer turns off monitor and disk then turns them straight back on
-again.
-Following message is in the logs:
-Jun  5 18:10:23 x kernel: Shrinking memory... done (29166 pages freed)
-Jun  5 18:10:23 x kernel: pnp: Device 00:08 disabled.
-Jun  5 18:10:23 x kernel: pnp: Device 00:07 disabled.
-Jun  5 18:10:23 x kernel: skge eth0: disabling interface
-Jun  5 18:10:23 x kernel: Class driver suspend failed for cpu0
-Jun  5 18:10:23 x kernel: Could not power down device <NULL>: error -22
-Jun  5 18:10:23 x kernel: Some devices failed to power down, aborting
-suspend
-
-Expected results:
-Computer to stay powered down until ACPI wake up event (e.g. mouse,
-keyboard,
-RTC etc).
-
-Additional info:
-Using:
-modprobe -r acpi_cpufreq
-allows the suspension to happen successfully. Atempting to disable the
-cpuspeed
-initscript using
-/sbin/chkconfig cpuspeed off
-left it on in runlevel 1.
-
-The contents of /proc/acpi/processor/CPU0/throttling is:
-state count:             2
-active state:            T0
-states:
-   *T0:                  00%
-    T1:                  50%
-
-That is the only CPU in the machine. The BIOS is the last revision
-available to
-the best of my knowledge. Motherboard is a GA-7DX+ (with a VIA chipset)
-according to dmidecode. Probably dates from around 2002.
-
--- 
-Configure bugmail:
-https://bugzilla.redhat.com/bugzilla/userprefs.cgi?tab=email
-------- You are receiving this mail because: -------
-You are the assignee for the bug, or are watching the assignee.
+diff -urN linux-2.6.17-rc6-mm2.orig/include/asm-i386/acpi.h linux-2.6.17-rc6-mm2.my/include/asm-i386/acpi.h
+--- linux-2.6.17-rc6-mm2.orig/include/asm-i386/acpi.h	2006-06-08 10:38:10.000000000 +0200
++++ linux-2.6.17-rc6-mm2.my/include/asm-i386/acpi.h	2006-06-13 19:35:41.000000000 +0200
+@@ -61,11 +61,14 @@
+ __acpi_acquire_global_lock (unsigned int *lock)
+ {
+ 	unsigned int old, new, val;
+-	do {
++	while (1) {
+ 		old = *lock;
+ 		new = (((old & ~0x3) + 2) + ((old >> 1) & 0x1));
+ 		val = cmpxchg(lock, old, new);
+-	} while (unlikely (val != old));
++		if (likely(val == old))
++			break;
++		cpu_relax();
++	}
+ 	return (new < 3) ? -1 : 0;
+ }
+ 
+@@ -73,11 +76,14 @@
+ __acpi_release_global_lock (unsigned int *lock)
+ {
+ 	unsigned int old, new, val;
+-	do {
++	while (1) {
+ 		old = *lock;
+ 		new = old & ~0x3;
+ 		val = cmpxchg(lock, old, new);
+-	} while (unlikely (val != old));
++		if (likely(val == old))
++			break;
++		cpu_relax();
++	}
+ 	return old & 0x1;
+ }
+ 
