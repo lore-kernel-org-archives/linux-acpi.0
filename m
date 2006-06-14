@@ -1,73 +1,48 @@
-From: Andreas Mohr <andi@rhlx01.fht-esslingen.de>
-Subject: [PATCH -mm] ACPI lock: cpu_relax() (was: [RFC -mm] more cpu_relax() places?)
-Date: Tue, 13 Jun 2006 21:54:18 +0200
-Message-ID: <20060613195418.GB24167@rhlx01.fht-esslingen.de>
-References: <20060612183743.GA28610@rhlx01.fht-esslingen.de>
+From: "Barry K. Nathan" <barryn@pobox.com>
+Subject: Re: 2.6.17-rc5-mm3: "BUG: scheduling while atomic" flood when resuming from disk
+Date: Tue, 13 Jun 2006 20:57:12 -0700
+Message-ID: <986ed62e0606132057l3fe9ab9as2d512132cf203a5e@mail.gmail.com>
+References: <986ed62e0606042223l2381d877g4bc798ec64804d43@mail.gmail.com>
+	 <20060604225140.cf87519f.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rhlx01.fht-esslingen.de ([129.143.116.10]:991 "EHLO
-	rhlx01.fht-esslingen.de") by vger.kernel.org with ESMTP
-	id S932127AbWFMTyU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Jun 2006 15:54:20 -0400
+Received: from nz-out-0102.google.com ([64.233.162.201]:27330 "EHLO
+	nz-out-0102.google.com") by vger.kernel.org with ESMTP
+	id S1751149AbWFND5N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 Jun 2006 23:57:13 -0400
+Received: by nz-out-0102.google.com with SMTP id s18so56081nze
+        for <linux-acpi@vger.kernel.org>; Tue, 13 Jun 2006 20:57:12 -0700 (PDT)
+In-Reply-To: <20060604225140.cf87519f.akpm@osdl.org>
 Content-Disposition: inline
-In-Reply-To: <20060612183743.GA28610@rhlx01.fht-esslingen.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andrew Morton <akpm@osdl.org>
-Cc: len.brown@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: mingo@elte.hu, arjan@linux.intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>
 
-Hi all,
+On 6/4/06, Andrew Morton <akpm@osdl.org> wrote:
+> > [  487.203000] ACPI Exception (acpi_bus-0070): AE_NOT_FOUND, No
+> > context for object [c174d620] [20060310]
+>
+> And this?
 
-On Mon, Jun 12, 2006 at 08:37:43PM +0200, Andreas Mohr wrote:
-> Hi all,
-> 
-> while reviewing 2.6.17-rc6-mm1, I found some places that might
-> want to make use of cpu_relax() in order to not block secondary
-> pipelines while busy-polling (probably especially useful on SMT CPUs):
+FWIW, I just found out that there was a new BIOS released for this
+motherboard (MSI K8T Neo), and I just applied the update. The version
+number jumped from 2.2 to 7.1, and judging from the appearance of the
+BIOS screens, you would think that I had completely replaced the
+motherboard. Anyway, so far, the new BIOS is now autodetecting the
+memory timings correctly (previously it used to think my memory was
+CAS3, not the CAS2 that it actually is), and I've just managed to
+resume from S3 using the Ubuntu kernel without the computer
+spontaneously rebooting and without experiencing video corruption or a
+blank screen. (The S3 video problems used to happen under Windows XP
+too, but I haven't yet tried that OS after the BIOS update.)
 
-Patch no. 2 of 3.
-
-This could be considered overkill given the previous unlikely(),
-but it is busy-looping on failure after all...
-
-Signed-off-by: Andreas Mohr <andi@lisas.de>
-
-
-diff -urN linux-2.6.17-rc6-mm2.orig/include/asm-i386/acpi.h linux-2.6.17-rc6-mm2.my/include/asm-i386/acpi.h
---- linux-2.6.17-rc6-mm2.orig/include/asm-i386/acpi.h	2006-06-08 10:38:10.000000000 +0200
-+++ linux-2.6.17-rc6-mm2.my/include/asm-i386/acpi.h	2006-06-13 19:35:41.000000000 +0200
-@@ -61,11 +61,14 @@
- __acpi_acquire_global_lock (unsigned int *lock)
- {
- 	unsigned int old, new, val;
--	do {
-+	while (1) {
- 		old = *lock;
- 		new = (((old & ~0x3) + 2) + ((old >> 1) & 0x1));
- 		val = cmpxchg(lock, old, new);
--	} while (unlikely (val != old));
-+		if (likely(val == old))
-+			break;
-+		cpu_relax();
-+	}
- 	return (new < 3) ? -1 : 0;
- }
- 
-@@ -73,11 +76,14 @@
- __acpi_release_global_lock (unsigned int *lock)
- {
- 	unsigned int old, new, val;
--	do {
-+	while (1) {
- 		old = *lock;
- 		new = old & ~0x3;
- 		val = cmpxchg(lock, old, new);
--	} while (unlikely (val != old));
-+		if (likely(val == old))
-+			break;
-+		cpu_relax();
-+	}
- 	return old & 0x1;
- }
- 
+I probably won't be able to test an mm kernel again on this box for
+several days (right now I'm dealing with both final exams for the
+school quarter *and* hardware failures on other boxes). Once all that
+is over with, I'll have to retest with the latest mm kernel at that
+point.
+-- 
+-Barry K. Nathan <barryn@pobox.com>
