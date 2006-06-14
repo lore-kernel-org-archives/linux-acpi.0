@@ -1,48 +1,43 @@
-From: "Barry K. Nathan" <barryn@pobox.com>
-Subject: Re: 2.6.17-rc5-mm3: "BUG: scheduling while atomic" flood when resuming from disk
-Date: Tue, 13 Jun 2006 20:57:12 -0700
-Message-ID: <986ed62e0606132057l3fe9ab9as2d512132cf203a5e@mail.gmail.com>
-References: <986ed62e0606042223l2381d877g4bc798ec64804d43@mail.gmail.com>
-	 <20060604225140.cf87519f.akpm@osdl.org>
+From: "Lula Parsons" <LulaParsons@0451.com>
+Subject: Your health, Pan-germany
+Date: Wed, 14 Jun 2006 09:53:24 +0000 (UTC)
+Message-ID: <662161c80604wb2feljm9nv29vj7xio59t35ytam6gbdo@mail.0451.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nz-out-0102.google.com ([64.233.162.201]:27330 "EHLO
-	nz-out-0102.google.com") by vger.kernel.org with ESMTP
-	id S1751149AbWFND5N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Jun 2006 23:57:13 -0400
-Received: by nz-out-0102.google.com with SMTP id s18so56081nze
-        for <linux-acpi@vger.kernel.org>; Tue, 13 Jun 2006 20:57:12 -0700 (PDT)
-In-Reply-To: <20060604225140.cf87519f.akpm@osdl.org>
+Received: from Ta4cf.t.pppool.de ([89.55.164.207]:46866 "EHLO diamanta-47q54k")
+	by vger.kernel.org with ESMTP id S964882AbWFNJxR convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 Jun 2006 05:53:17 -0400
+Date: Wed, 14 Jun 2006 09:53:20 -0060
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: mingo@elte.hu, arjan@linux.intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>
+To: linux-acpi@vger.kernel.org
 
-On 6/4/06, Andrew Morton <akpm@osdl.org> wrote:
-> > [  487.203000] ACPI Exception (acpi_bus-0070): AE_NOT_FOUND, No
-> > context for object [c174d620] [20060310]
->
-> And this?
+Even if you have no erectin problems SOFT CIAzLIS 
+would help you to make BETTER SE  X MORE OFTEN!
+and to bring  unimagnable plesure to her.
 
-FWIW, I just found out that there was a new BIOS released for this
-motherboard (MSI K8T Neo), and I just applied the update. The version
-number jumped from 2.2 to 7.1, and judging from the appearance of the
-BIOS screens, you would think that I had completely replaced the
-motherboard. Anyway, so far, the new BIOS is now autodetecting the
-memory timings correctly (previously it used to think my memory was
-CAS3, not the CAS2 that it actually is), and I've just managed to
-resume from S3 using the Ubuntu kernel without the computer
-spontaneously rebooting and without experiencing video corruption or a
-blank screen. (The S3 video problems used to happen under Windows XP
-too, but I haven't yet tried that OS after the BIOS update.)
+Just disolve half a pil under your tongue 
+and get ready for action in 15 minutes. 
 
-I probably won't be able to test an mm kernel again on this box for
-several days (right now I'm dealing with both final exams for the
-school quarter *and* hardware failures on other boxes). Once all that
-is over with, I'll have to retest with the latest mm kernel at that
-point.
--- 
--Barry K. Nathan <barryn@pobox.com>
+The tests showed that the majority of men 
+after taking this medic ation were able to have 
+PERFECT ER ECTI ON during 36 hours!
+
+VISIT US, AND GET OUR SPECIAL 70% DISC OUNT OFER!
+
+http://mqrkic.shoutflat.com/?18411414
+
+=====
+forty miles per hour! And under control! If I dive from five thousand feet
+turned around  without being noticed  and  spit over my left shoulder. I saw
+     No limits, Jonathan? he thought. Well, then, the time's  not  distant
+made believe he was dead.  Thank God, they finally  believed  it and left. I
+left to the dozens of postgraduate theses being written  on the  subject and
+of you. I've had it up  to here with these risk-takers. He can't wait: let's
+
+     He began his pullout  at  a  thousand  feet,  wingtips  thudding  and
+make my appearance.  His office was on the third floor,  a nice office, with
