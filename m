@@ -1,42 +1,65 @@
-From: "Patrica Gilliam" <PatricaGilliam@10-10-net.com>
-Subject: Your future, moss-green
-Date: Thu, 15 Jun 2006 02:12:09 -0540
-Message-ID: <7592959206.20060615021209@10-10-net.com>
-Reply-To: "Patrica Gilliam" <PatricaGilliam@10-10-net.com>
+From: karsten wiese <annabellesgarden@yahoo.de>
+Subject: [PATCH] Resume a K8T800 Mainboard from S3
+Date: Thu, 15 Jun 2006 16:45:21 +0200 (CEST)
+Message-ID: <20060615144521.42691.qmail@web26503.mail.ukl.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="0-1182695020-1150382721=:41990"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [58.224.168.218] ([58.224.168.218]:40715 "EHLO
-	aa-0cqjbxcyw9v0.hananet.net") by vger.kernel.org with ESMTP
-	id S932422AbWFOCMC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 14 Jun 2006 22:12:02 -0400
+Received: from web26503.mail.ukl.yahoo.com ([217.146.176.40]:1396 "HELO
+	web26503.mail.ukl.yahoo.com") by vger.kernel.org with SMTP
+	id S1030455AbWFOOpW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Jun 2006 10:45:22 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: len.brown@intel.com
+Cc: linux-acpi@vger.kernel.org
 
-Even if you have no erectin problems SOFT CIAzLIS 
-would help you to make BETTER SE  X MORE OFTEN!
-and to bring  unimagnable plesure to her.
+--0-1182695020-1150382721=:41990
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Content-Id: 
+Content-Disposition: inline
 
-Just disolve half a pil under your tongue 
-and get ready for action in 15 minutes. 
+ 
+ 
 
-The tests showed that the majority of men 
-after taking this medic ation were able to have 
-PERFECT ER ECTI ON during 36 hours!
+__________________________________________________
+Do You Yahoo!?
+Sie sind Spam leid? Yahoo! Mail verfügt über einen herausragenden Schutz gegen Massenmails. 
+http://mail.yahoo.com 
+--0-1182695020-1150382721=:41990
+Content-Type: text/x-diff; name="resume_K8T800.patch"
+Content-Description: 737575855-resume_K8T800.patch
+Content-Disposition: inline; filename="resume_K8T800.patch"
 
-VISIT US, AND GET OUR SPECIAL 70% DISC OUNT OFER!
+Resume an AMD64@K8T800 Mainboard from S3
 
-http://jtbjvd.valvecedar.net/?18287793
+Make an AMD64@K8T800 Mainboard (MS-6702) resume succesfully
+reseting "Abnormal Power-OFF" Bit.
+BIOS here doesn't vector back to OS if not done.
 
-==========
-     A word of appreciation must  be extended to Ms.  Antonina W. Bouis, the
-Well, we're going to do it in reverse. Watch!" I  threw the first  nut.  Not
-for sure as long as you make that pullup so hard. Fletcher, you lost forty
-back there toward the automobile graveyard.
-     "At last you've got the idea," Chiang said, "but your control needs a
-     "Listen," I said, "Kirill! What if you had a full empty, huh?"
+Signed-off-by: <annabellesgarden@yahoo.de>
 
-and Scandinavia, increasingly in Spain, Portugal,  and Latin America, and is
-you don't  manage in one night,  you spend the  whole day face down  on  the
+
+diff -upr rc6-mm2/drivers/acpi/sleep/main.c rc6-mm2-kw/drivers/acpi/sleep/main.c
+--- rc6-mm2/drivers/acpi/sleep/main.c	2006-06-10 13:12:46.000000000 +0200
++++ rc6-mm2-kw/drivers/acpi/sleep/main.c	2006-06-15 16:21:55.000000000 +0200
+@@ -91,6 +91,15 @@ static int acpi_pm_enter(suspend_state_t
+ 		break;
+ 
+ 	case PM_SUSPEND_MEM:
++		if (acpi_state == ACPI_STATE_S3)
++			/* Make an AMD64@K8T800 Mainboard (MS-6702) resume succesfully
++			   reseting "Abnormal Power-OFF" Bit.
++			   BIOS doesn't vector back to OS if not done.
++			   FIXME: Better move this to PCI-Quirks ?
++			*/
++			acpi_hw_register_write(ACPI_MTX_DO_NOT_LOCK,
++						ACPI_REGISTER_PM1_STATUS,
++					       (u16)0x800);
+ 		do_suspend_lowlevel();
+ 		break;
+ 
+
+--0-1182695020-1150382721=:41990--
