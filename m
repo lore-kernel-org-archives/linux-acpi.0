@@ -1,28 +1,67 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] Resume a K8T800 Mainboard from S3
-Date: Sun, 18 Jun 2006 18:47:00 +0100
-Message-ID: <20060618174700.GA14888@srcf.ucam.org>
-References: <20060615144521.42691.qmail@web26503.mail.ukl.yahoo.com>
+Subject: [PATCH] Clear abnormal poweroff flag on VIA southbridges, fix resume
+Date: Sun, 18 Jun 2006 20:14:22 +0100
+Message-ID: <20060618191421.GA15358@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:32730 "EHLO
+Received: from cavan.codon.org.uk ([217.147.92.49]:55704 "EHLO
 	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
-	id S932268AbWFRRrE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 18 Jun 2006 13:47:04 -0400
+	id S932288AbWFRTOZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 18 Jun 2006 15:14:25 -0400
 Content-Disposition: inline
-In-Reply-To: <20060615144521.42691.qmail@web26503.mail.ukl.yahoo.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: karsten wiese <annabellesgarden@yahoo.de>
-Cc: len.brown@intel.com, linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-(patch that clears the abnormal power-off status on a VIA chipset)
+Some VIA southbridges contain a flag in the ACPI register space that 
+indicates whether an abnormal poweroff has occured, presumably with the 
+intention that it can be cleared on clean shutdown. Some BIOSes check 
+this flag at resume time, and will re-POST the system rather than jump 
+back to the OS if it's set. Clearing it at boot time appears to be 
+sufficient. I'm not sure if drivers/pci/quirks.c is the right place to 
+do it, but I'm not sure where would be cleaner.
 
-This works for fixing suspend on the ECS G320 (which has a different 
-southbridge) as well. A quick scan of what datasheets I can get my hands 
-on suggest that the same register is used for the purpose on all VIA 
-southbridges, so a more generic quirk might be helpful.
+Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
+
+diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
+index 7537260..2f9f996 100644
+--- a/drivers/pci/quirks.c
++++ b/drivers/pci/quirks.c
+@@ -660,6 +660,33 @@ static void __devinit quirk_vt82c598_id(
+ }
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_82C597_0,	quirk_vt82c598_id );
+ 
++#ifdef CONFIG_ACPI
++
++/* Some VIA systems boot with the abnormal status flag set. This can cause
++ * the BIOS to re-POST the system on resume rather than passing control 
++ * back to the OS. Clear the flag on boot
++ */
++
++static void __devinit quirk_via_abnormal_poweroff(struct pci_dev *dev)
++{
++	u32 register;
++
++	acpi_hw_register_read (ACPI_MTX_DO_NOT_LOCK, ACPI_REGISTER_PM1_STATUS,
++			       &register);
++
++	if (register & 0x800) {
++		printk ("Clearing abnormal poweroff flag\n");
++		acpi_hw_register_write (ACPI_MTX_DO_NOT_LOCK,
++					ACPI_REGISTER_PM1_STATUS,
++					(u16)0x800);
++	}
++}
++
++DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_VIA, PCI_DEVICE_ID_VIA_8235, quirk_via_abnormal_poweroff);
++DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_VIA, PCI_DEVICE_ID_VIA_8237, quirk_via_abnormal_poweroff);
++
++#endif
++
+ /*
+  * CardBus controllers have a legacy base address that enables them
+  * to respond as i82365 pcmcia controllers.  We don't want them to
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
