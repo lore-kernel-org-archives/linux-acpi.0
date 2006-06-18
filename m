@@ -1,36 +1,28 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: ACPI for Toshiba TECRA M5
-Date: Sun, 18 Jun 2006 14:27:05 +0100
-Message-ID: <20060618132705.GB13697@srcf.ucam.org>
-References: <44930BF8.3020300@triumf.ca>
+Subject: Re: [PATCH] Resume a K8T800 Mainboard from S3
+Date: Sun, 18 Jun 2006 18:47:00 +0100
+Message-ID: <20060618174700.GA14888@srcf.ucam.org>
+References: <20060615144521.42691.qmail@web26503.mail.ukl.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:53720 "EHLO
+Received: from cavan.codon.org.uk ([217.147.92.49]:32730 "EHLO
 	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
-	id S932227AbWFRN1J (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 18 Jun 2006 09:27:09 -0400
+	id S932268AbWFRRrE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 18 Jun 2006 13:47:04 -0400
 Content-Disposition: inline
-In-Reply-To: <44930BF8.3020300@triumf.ca>
+In-Reply-To: <20060615144521.42691.qmail@web26503.mail.ukl.yahoo.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zaher Salman <zaher@triumf.ca>
-Cc: linux-acpi@vger.kernel.org
+To: karsten wiese <annabellesgarden@yahoo.de>
+Cc: len.brown@intel.com, linux-acpi@vger.kernel.org
 
-On Fri, Jun 16, 2006 at 03:52:24PM -0400, Zaher Salman wrote:
+(patch that clears the abnormal power-off status on a VIA chipset)
 
-> I have a fairly new Toshiba Tecra M5 (Core duo) running Mandriva 2006 
-> with kernel 2.6.16. ACPI support for this laptop is quite good including 
-> battery, fan, thermal zone, cpu frequency, lid and power buttons etc. 
-> The problem is that /sys/power/state has only standby and mem (no disk) 
-> and I cannot figure out why. I also cannot get all the function buttons 
-> to work (only the scree brightness and mute). Attached is the dmesg output.
+This works for fixing suspend on the ECS G320 (which has a different 
+southbridge) as well. A quick scan of what datasheets I can get my hands 
+on suggest that the same register is used for the purpose on all VIA 
+southbridges, so a more generic quirk might be helpful.
 
-suspend to disk isn't handled via ACPI - you need to make sure that 
-CONFIG_SOFTWARE_SUSPEND is set and that you're passing a resume= 
-parameter to the kernel.
-
-Recent Toshibas don't use the same mechanism as before to trigger hotkey 
-events. I don't think anyone's reverse engineered them yet.
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
