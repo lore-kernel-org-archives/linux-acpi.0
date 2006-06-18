@@ -1,38 +1,62 @@
-From: Linus Torvalds <torvalds@osdl.org>
-Subject: Re: Resume on Apple Mac Mini
-Date: Sat, 17 Jun 2006 17:35:51 -0700 (PDT)
-Message-ID: <Pine.LNX.4.64.0606171732370.5498@g5.osdl.org>
-References: <CFF307C98FEABE47A452B27C06B85BB670F3C4@hdsmsx411.amr.corp.intel.com>
- <44677056.1080004@gmail.com> <Pine.LNX.4.64.0606171408230.5498@g5.osdl.org>
+From: "WLBGchambers" <WLBGchambers@yahoo.co.uk>
+Subject: INFO FROM WLBG CHAMBERS.
+Date: Sun, 18 Jun 2006 06:49:36 +0000 (UTC)
+Message-ID: <200606180649.k5I6n9Js014139@zeus2.kernel.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/mixed;boundary= "----=_NextPart_000_0089_1EBFD340.BBABEF24"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:11997 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1751085AbWFRAfz (ORCPT
+Received: from zeus2.kernel.org ([204.152.191.36]:63898 "EHLO zeus2.kernel.org")
+	by vger.kernel.org with ESMTP id S1751108AbWFRGtc (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 17 Jun 2006 20:35:55 -0400
-In-Reply-To: <Pine.LNX.4.64.0606171408230.5498@g5.osdl.org>
+	Sun, 18 Jun 2006 02:49:32 -0400
+Date: Sun, 18 Jun 06 07:41:47 W. Central Africa Standard Tim
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiri Slaby <jirislaby@gmail.com>, "Brown, Len" <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: linux-kernel <linux-kernel@vger.kernel.org>
 
+------=_NextPart_000_0089_1EBFD340.BBABEF24
+Content-Type: text/plain; charset= "US-ASCII"
+Content-Transfer-Encoding: base64
 
-
-On Sat, 17 Jun 2006, Linus Torvalds wrote:
->
-> It turns out that the Apple Mac Mini comes back from suspend in legacy 
-> mode.
-
-Actually, that wasn't it. My debugging patches use the RTC to save off 
-information, and that causing a test-kernel to not compile the test, or 
-just normal incompetence on my part, made me "confirm" this as working, 
-when it isn't.
-
-The thing that does work is to literally just set the SCI_ENABLE bit:
-
-	acpi_set_register(ACPI_BITREG_SCI_ENABLE, 1, ACPI_MTX_DO_NOT_LOCK);
-
-after resume, _not_ the "acpi_enable()".
-
-		Linus
+IA0KRlJPTTogUGhpbGlwcyBXcmlnaHQgKEZPUiBUUlVTVEVFUykNClByaW5jaXBhbCBQYXJ0
+bmVyIChXZWQgbGFrZSBCZWxsIEd1ZXJuc2V5IENoYW1iZXJzKQ0KUCBPIEJveCAyNTEsIEZh
+cm5sZXkgSG91c2UNCkxhIENoYXJyb3RlcmllIFN0IFBldGVyIFBvcnQsIEd1ZXJuc2V5LCBH
+WSAxIDRMRw0KVGVsOiArNDQgNzAzIDE5MDg3NTEgIEZheDogKzQ0IDg3MCA5MTIzOTUxDQpF
+TUFJTDpXTEJHY2hhbWJlcnNAYWltLmNvbQ0KIA0KICAgICBOT1RJRklDQVRJT04gT0YgQkVR
+VUVTVC4NCiANCkRlYXIgU2lyLCANCiANCk9uIGJlaGFsZiBvZiB0aGUgVHJ1c3RlZXMgYW5k
+IEV4ZWN1dG9yIG9mIHRoZSBFc3RhdGUgb2YgTGF0ZSBNci4gRWR3aW4gR2FicmllbCwgSSBv
+bmNlIGFnYWluIHRyeSB0byBub3RpZnkgeW91IGFzIG15IGVhcmxpZXIgbGV0dGVyIHdlcmUg
+cmV0dXJuZWQgdW5kZWxpdmVyZWQuDQogDQpJIGhlcmVieSwgYXR0ZW1wdGVkIHRvIHJlYWNo
+IHlvdSBhZ2FpbiBieSB0aGlzIHNhbWUgZW1haWwgYWRkcmVzcyBvbiB0aGUgV0lMTCBidXQg
+Y291bGQgbm90IHlldCBnbyB0aHJvdWdoIGhlbmNlIEkgZGVjaWRlZCB0byByZWFjaCB5b3Ug
+YnkgZW1haWwgcHJvYmFibHkgaWYgeW91IGNvdWxkIHJlY2VpdmUgaXQgdGhpcyB0aW1lLiAN
+CiANCk1heSwgSSBub3RpZnkgeW91IHRoYXQgbGF0ZSBNci4gRWR3aW4gR2FicmllbCBtYWRl
+IHlvdSBhIGJlbmVmaWNpYXJ5IHRvIGhpcyBXSUxMLiBIZW5jZSwgaGUgbGVmdCB0aGUgc3Vt
+IG9mIE5pbmUgTWlsbGlvbiBPbmUgSHVuZHJlZCBUaG91c2FuZCBEb2xsYXJzIChVU0QkOSwx
+MDAuMDAwLjAwKSB0byB5b3UgaW4gdGhlIGNvZGljaWwgYW5kIGxhc3QgdGVzdGFtZW50IHRv
+IGhpcyB3aWxsLiANCiANClRoaXMgbWF5IHNvdW5kIHN0cmFuZ2UgYW5kIHVuYmVsaWV2YWJs
+ZSB0byB5b3UsIGJ1dCBpdCBpcyByZWFsIGFuZCB0cnVlLiBCZWluZyBhIHdpZGVseSByYXZl
+bGVkIG1hbiwgaGUgbXVzdCBoYXZlIGJlZW4gaW4gY29udGFjdCB3aXRoIHlvdSBpbiB0aGUg
+cGFzdCBvciBzaW1wbHkgeW91IHdlcmUgbm9taW5hdGVkIHRvIGhpbSBieSBvbmUgb2YgaGlz
+IG51bWVyb3VzIGZyaWVuZHMgYWJyb2FkIHdobyB3aXNoZWQgeW91IGdvb2QuDQogDQpNci4g
+RWR3aW4gR2FicmllbCB1bnRpbCBoaXMgZGVhdGggd2FzIGEgbWVtYmVyIG9mIHRoZSBIZWxp
+Y29wdGVyIFNvY2lldHkgYW5kIHRoZSBJbnN0aXR1dGUgb2YgRWxlY3Ryb25pYyAmIEVsZWN0
+cmljYWwgRW5naW5lZXJzLiBIZSB3YXMgYSB2ZXJ5IGRlZGljYXRlZCBDaHJpc3RpYW4gYW5k
+IGhlIGFsc28gbG92ZXMgTXVzbGltIGJyb3RoZXJzIHdobyBsb3ZlZCB0byBnaXZlIG91dC4g
+SGlzIGdyZWF0IHBoaWxhbnRocm9weSBlYXJuZWQgaGltIG51bWVyb3VzIGF3YXJkcyBkdXJp
+bmcgaGlzIGxpZmV0aW1lLiBMYXRlIE1yLiBFZHdpbiBHYWJyaWVsIGRpZWQgb24gdGhlIDE2
+dGggZGF5IG9mIEZlYnJ1YXJ5IDIwMDUgYXQgdGhlIGFnZSBvZiA5MCB5ZWFycywgYW5kIGhp
+cyBXSUxMIGlzIG5vdyByZWFkeSBmb3IgZXhlY3V0aW9uLg0KIA0KQWNjb3JkaW5nIHRvIGhp
+bSwgdGhpcyBtb25leSBpcyB0byBzdXBwb3J0IHlvdXIgQ2hyaXN0aWFuIGFjdGl2aXRpZXMg
+YW5kIHRvIGhlbHAgdGhlIHBvb3IgYW5kIHRoZSBuZWVkeSwgYXMgSSBoYXZlIG1hZGUgYW4g
+YXJyYW5nZW1lbnQgd2l0aCBhIGRpcGxvbWF0LCBhdHRhY2hlZCB0byBteSBPZmZpY2UsIHRv
+IGhlbHAgeW91IGRlbGl2ZXIgdGhpcyBmdW5kIGRpcmVjdGx5IGF0IHlvdXIgZG9vcnN0ZXAs
+IHNpbmNlIHRyYW5zZmVycmluZyB0aGUgZnVuZCB0aHJvdWdoIGJhbmstdG8tYmFuayB0cmFu
+c2ZlciBtaWdodCBkZW1hbmQgZm9yIGEgbG90IG9mIG1vbmV5IHdoaWNoIHlvdSBoYXZlIHNw
+ZW50IGFuZCBhbG1vc3QgZ29uZSBiYW5rcnVwdCwgeWV0LCB0byBubyBhdmFpbC4gDQogDQog
+DQpQbGVhc2UgaWYgSSByZWFjaCB5b3UgYXMgSSBhbSBob3BlZnVsLCBlbmRlYXZvciB0byBn
+ZXQgYmFjayB0byBtZSBhcyBzb29uIGFzIHBvc3NpYmxlIHRvIGVuYWJsZSBtZSBjb25jbHVk
+ZSBteSBqb2IsIGFzIEkgaG9wZSB0byBoZWFyIGZyb20geW91IGluIG5vIGRpc3RhbnQgdGlt
+ZS4NCg0KWW91cnMgaW4gSGlzIHNlcnZpY2UhIA0KIA0KUGhpbGlwcyBXcmlnaHQgRXNxLg0K
+IA0KICAgIA==
+------=_NextPart_000_0089_1EBFD340.BBABEF24--
