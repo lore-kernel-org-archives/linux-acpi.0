@@ -1,62 +1,185 @@
-From: "WLBGchambers" <WLBGchambers@yahoo.co.uk>
-Subject: INFO FROM WLBG CHAMBERS.
-Date: Sun, 18 Jun 2006 06:49:36 +0000 (UTC)
-Message-ID: <200606180649.k5I6n9Js014139@zeus2.kernel.org>
+From: Johny <kernel@agotnes.com>
+Subject: Re: [Linux-usb-users] Fwd: Re: 2.6.17-rc6-mm2 -
+	USB issues
+Date: Sun, 18 Jun 2006 21:37:00 +1000
+Message-ID: <44953ADC.2080305@agotnes.com>
+References: <Pine.LNX.4.44L0.0606151102220.6879-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;boundary= "----=_NextPart_000_0089_1EBFD340.BBABEF24"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zeus2.kernel.org ([204.152.191.36]:63898 "EHLO zeus2.kernel.org")
-	by vger.kernel.org with ESMTP id S1751108AbWFRGtc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 18 Jun 2006 02:49:32 -0400
-Date: Sun, 18 Jun 06 07:41:47 W. Central Africa Standard Tim
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-usb-devel-bounces@lists.sourceforge.net>
+In-Reply-To: <Pine.LNX.4.44L0.0606151102220.6879-100000@iolanthe.rowland.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
+	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-usb-devel>
+List-Post: <mailto:linux-usb-devel@lists.sourceforge.net>
+List-Help: <mailto:linux-usb-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
+	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=subscribe>
+Sender: linux-usb-devel-bounces@lists.sourceforge.net
+Errors-To: linux-usb-devel-bounces@lists.sourceforge.net
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: akpm@osdl.org, kernel list <linux-kernel@vger.kernel.org>, linux-acpi@kernel.org, Johny <kernel@agotnes.com>, USB development list <linux-usb-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel <linux-kernel@vger.kernel.org>
 
-------=_NextPart_000_0089_1EBFD340.BBABEF24
-Content-Type: text/plain; charset= "US-ASCII"
-Content-Transfer-Encoding: base64
+All,
 
-IA0KRlJPTTogUGhpbGlwcyBXcmlnaHQgKEZPUiBUUlVTVEVFUykNClByaW5jaXBhbCBQYXJ0
-bmVyIChXZWQgbGFrZSBCZWxsIEd1ZXJuc2V5IENoYW1iZXJzKQ0KUCBPIEJveCAyNTEsIEZh
-cm5sZXkgSG91c2UNCkxhIENoYXJyb3RlcmllIFN0IFBldGVyIFBvcnQsIEd1ZXJuc2V5LCBH
-WSAxIDRMRw0KVGVsOiArNDQgNzAzIDE5MDg3NTEgIEZheDogKzQ0IDg3MCA5MTIzOTUxDQpF
-TUFJTDpXTEJHY2hhbWJlcnNAYWltLmNvbQ0KIA0KICAgICBOT1RJRklDQVRJT04gT0YgQkVR
-VUVTVC4NCiANCkRlYXIgU2lyLCANCiANCk9uIGJlaGFsZiBvZiB0aGUgVHJ1c3RlZXMgYW5k
-IEV4ZWN1dG9yIG9mIHRoZSBFc3RhdGUgb2YgTGF0ZSBNci4gRWR3aW4gR2FicmllbCwgSSBv
-bmNlIGFnYWluIHRyeSB0byBub3RpZnkgeW91IGFzIG15IGVhcmxpZXIgbGV0dGVyIHdlcmUg
-cmV0dXJuZWQgdW5kZWxpdmVyZWQuDQogDQpJIGhlcmVieSwgYXR0ZW1wdGVkIHRvIHJlYWNo
-IHlvdSBhZ2FpbiBieSB0aGlzIHNhbWUgZW1haWwgYWRkcmVzcyBvbiB0aGUgV0lMTCBidXQg
-Y291bGQgbm90IHlldCBnbyB0aHJvdWdoIGhlbmNlIEkgZGVjaWRlZCB0byByZWFjaCB5b3Ug
-YnkgZW1haWwgcHJvYmFibHkgaWYgeW91IGNvdWxkIHJlY2VpdmUgaXQgdGhpcyB0aW1lLiAN
-CiANCk1heSwgSSBub3RpZnkgeW91IHRoYXQgbGF0ZSBNci4gRWR3aW4gR2FicmllbCBtYWRl
-IHlvdSBhIGJlbmVmaWNpYXJ5IHRvIGhpcyBXSUxMLiBIZW5jZSwgaGUgbGVmdCB0aGUgc3Vt
-IG9mIE5pbmUgTWlsbGlvbiBPbmUgSHVuZHJlZCBUaG91c2FuZCBEb2xsYXJzIChVU0QkOSwx
-MDAuMDAwLjAwKSB0byB5b3UgaW4gdGhlIGNvZGljaWwgYW5kIGxhc3QgdGVzdGFtZW50IHRv
-IGhpcyB3aWxsLiANCiANClRoaXMgbWF5IHNvdW5kIHN0cmFuZ2UgYW5kIHVuYmVsaWV2YWJs
-ZSB0byB5b3UsIGJ1dCBpdCBpcyByZWFsIGFuZCB0cnVlLiBCZWluZyBhIHdpZGVseSByYXZl
-bGVkIG1hbiwgaGUgbXVzdCBoYXZlIGJlZW4gaW4gY29udGFjdCB3aXRoIHlvdSBpbiB0aGUg
-cGFzdCBvciBzaW1wbHkgeW91IHdlcmUgbm9taW5hdGVkIHRvIGhpbSBieSBvbmUgb2YgaGlz
-IG51bWVyb3VzIGZyaWVuZHMgYWJyb2FkIHdobyB3aXNoZWQgeW91IGdvb2QuDQogDQpNci4g
-RWR3aW4gR2FicmllbCB1bnRpbCBoaXMgZGVhdGggd2FzIGEgbWVtYmVyIG9mIHRoZSBIZWxp
-Y29wdGVyIFNvY2lldHkgYW5kIHRoZSBJbnN0aXR1dGUgb2YgRWxlY3Ryb25pYyAmIEVsZWN0
-cmljYWwgRW5naW5lZXJzLiBIZSB3YXMgYSB2ZXJ5IGRlZGljYXRlZCBDaHJpc3RpYW4gYW5k
-IGhlIGFsc28gbG92ZXMgTXVzbGltIGJyb3RoZXJzIHdobyBsb3ZlZCB0byBnaXZlIG91dC4g
-SGlzIGdyZWF0IHBoaWxhbnRocm9weSBlYXJuZWQgaGltIG51bWVyb3VzIGF3YXJkcyBkdXJp
-bmcgaGlzIGxpZmV0aW1lLiBMYXRlIE1yLiBFZHdpbiBHYWJyaWVsIGRpZWQgb24gdGhlIDE2
-dGggZGF5IG9mIEZlYnJ1YXJ5IDIwMDUgYXQgdGhlIGFnZSBvZiA5MCB5ZWFycywgYW5kIGhp
-cyBXSUxMIGlzIG5vdyByZWFkeSBmb3IgZXhlY3V0aW9uLg0KIA0KQWNjb3JkaW5nIHRvIGhp
-bSwgdGhpcyBtb25leSBpcyB0byBzdXBwb3J0IHlvdXIgQ2hyaXN0aWFuIGFjdGl2aXRpZXMg
-YW5kIHRvIGhlbHAgdGhlIHBvb3IgYW5kIHRoZSBuZWVkeSwgYXMgSSBoYXZlIG1hZGUgYW4g
-YXJyYW5nZW1lbnQgd2l0aCBhIGRpcGxvbWF0LCBhdHRhY2hlZCB0byBteSBPZmZpY2UsIHRv
-IGhlbHAgeW91IGRlbGl2ZXIgdGhpcyBmdW5kIGRpcmVjdGx5IGF0IHlvdXIgZG9vcnN0ZXAs
-IHNpbmNlIHRyYW5zZmVycmluZyB0aGUgZnVuZCB0aHJvdWdoIGJhbmstdG8tYmFuayB0cmFu
-c2ZlciBtaWdodCBkZW1hbmQgZm9yIGEgbG90IG9mIG1vbmV5IHdoaWNoIHlvdSBoYXZlIHNw
-ZW50IGFuZCBhbG1vc3QgZ29uZSBiYW5rcnVwdCwgeWV0LCB0byBubyBhdmFpbC4gDQogDQog
-DQpQbGVhc2UgaWYgSSByZWFjaCB5b3UgYXMgSSBhbSBob3BlZnVsLCBlbmRlYXZvciB0byBn
-ZXQgYmFjayB0byBtZSBhcyBzb29uIGFzIHBvc3NpYmxlIHRvIGVuYWJsZSBtZSBjb25jbHVk
-ZSBteSBqb2IsIGFzIEkgaG9wZSB0byBoZWFyIGZyb20geW91IGluIG5vIGRpc3RhbnQgdGlt
-ZS4NCg0KWW91cnMgaW4gSGlzIHNlcnZpY2UhIA0KIA0KUGhpbGlwcyBXcmlnaHQgRXNxLg0K
-IA0KICAgIA==
-------=_NextPart_000_0089_1EBFD340.BBABEF24--
+I've now tested the following;
+
+2.6.17-rc6-mm2 with the following patch applied;
+---
+git-acpi.patch from =
+
+ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.17-rc6/2.=
+6.17-rc6-mm2/broken-out/
+---
+
+With no difference to the end-result.
+
+Next I stripped out 802.11 generic support and acx111 drivers from the =
+
+kernel (including the acpi patches) to check if it clashes, but the same =
+
+errors occur....
+
+Thirdly, I booted with acpi=3Doff on the command line with two kernels, =
+
+the stock 2.6.17-rc6-mm2 (no acpi patch and including acx111) and the =
+
+one including the acpi patch and no acx111, the results were;
+
+acpi_patch;
+works a treat, picks up USB devices as expected.
+
+stock;
+works a treat, picks up USB devices as expected, and my acx111 card =
+
+works too :)
+
+
+Now I'm looking for good suggestions again, this definitely looks like =
+
+it is related to ACPI, hence the cc' to that list too, as requested by =
+
+Andrew M.
+
+I'm happy to apply patches / config changes as appropriate and for those =
+
+who may ask for my .config files, please see;
+
+http://www.agotnes.com/kernelStuff/config-2.6.17-rc6-mm2
+
+http://www.agotnes.com/kernelStuff/config-2.6.17-rc6-mm2git-acpi_patch
+
+Also, I left the output of lspci there for reference;
+
+http://www.agotnes.com/kernelStuff/lspci
+
+Cheers,
+
+:)Johny
+
+Alan Stern wrote:
+> [Moved to linux-usb-devel in the hope of getting additional help]
+> =
+
+> On Thu, 15 Jun 2006, Johny wrote:
+> =
+
+>> Alan,
+>>
+>> See comments interspersed, thanks for your assistance :)
+>>
+>> Alan Stern wrote:
+>>> On Tue, 13 Jun 2006, Johny wrote:
+>>>
+>>>> Is this best suited to this mailing list?
+>>> It's appropriate.
+>>>
+>>>> I tried the kernel list with zero responses (so far ;), let me know if=
+ there is
+>>>> anywhere else this should go.
+>>> ...
+>>>
+>>>> Johny =C5gotnes wrote:
+>>>>> All,
+>>>>>
+>>>>> My USB hub isn't recognised with the latest -mm series, whereas with
+>>>>> 2.6.16 vanilla it is picked up & used immediately.
+>>>>>
+>>>>> The error I get in dmesg is;
+>>>>>
+>>>>> hub 4-0:1.0: USB hub found
+>>>>> hub 4-0:1.0: 2 ports detected
+>>>>> usb 1-4: new high speed USB device using ehci_hcd and address 3
+>>>>> ehci_hcd 0000:00:10.3: Unlink after no-IRQ?  Controller is probably
+>>>>> using the wrong IRQ.
+>>> That last line is a clue.  What interrupt numbers are assigned under
+>>> 2.6.16?  If you unplug the SonyEricsson DCU-11 Cable before booting (and
+>>> leave it unplugged), what shows up in /proc/interrupts for both versions
+>>> of the kernel?
+>> See attached, both with the DCU-11 cable disconnected.
+> =
+
+> From 2.6.16:
+>            CPU0       =
+
+>   0:      16101          XT-PIC  timer
+>   1:        148          XT-PIC  i8042
+>   2:          0          XT-PIC  cascade
+>   7:          0          XT-PIC  parport0
+>   9:          0          XT-PIC  acpi
+>  10:        151          XT-PIC  ehci_hcd:usb1, uhci_hcd:usb4
+>  11:          0          XT-PIC  uhci_hcd:usb2, uhci_hcd:usb3
+>  12:        138          XT-PIC  i8042
+>  14:        172          XT-PIC  ide0
+>  15:       2458          XT-PIC  ide1
+> NMI:          0 =
+
+> ERR:          0
+> =
+
+> From 2.6.17:
+>            CPU0       =
+
+>   0:      35651    XT-PIC-level    timer
+>   1:        129    XT-PIC-level    i8042
+>   2:          0    XT-PIC-level    cascade
+>   6:          3    XT-PIC-level    floppy
+>   7:          0    XT-PIC-level    parport0
+>   9:          0    XT-PIC-level    acpi
+>  10:          0    XT-PIC-level    ehci_hcd:usb1, uhci_hcd:usb4
+>  11:       1940    XT-PIC-level    uhci_hcd:usb2, uhci_hcd:usb3, wlan0
+>  12:        162    XT-PIC-level    i8042
+>  14:        171    XT-PIC-level    ide0
+>  15:       4251    XT-PIC-level    ide1
+> NMI:          0 =
+
+> ERR:          0
+> =
+
+> There's nothing obviously wrong.
+> =
+
+>>> Most likely this is a problem with the ACPI subsystem, not a USB proble=
+m.
+>>>
+>> I guessed USB due to the number of USB changes in the -mm series and, =
+
+>> obviously, my USB devices stopped registering, however, I'd not know one =
+
+>> from the other ;)
+> =
+
+> What happens if you boot with "acpi=3Doff" on the boot command line?
+> =
+
+> Alan Stern
+> =
+
+
+
+_______________________________________________
+linux-usb-devel@lists.sourceforge.net
+To unsubscribe, use the last form field at:
+https://lists.sourceforge.net/lists/listinfo/linux-usb-devel
