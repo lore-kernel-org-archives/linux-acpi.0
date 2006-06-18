@@ -1,57 +1,38 @@
 From: Linus Torvalds <torvalds@osdl.org>
-Subject: Resume on Apple Mac Mini
-Date: Sat, 17 Jun 2006 14:18:57 -0700 (PDT)
-Message-ID: <Pine.LNX.4.64.0606171408230.5498@g5.osdl.org>
+Subject: Re: Resume on Apple Mac Mini
+Date: Sat, 17 Jun 2006 17:35:51 -0700 (PDT)
+Message-ID: <Pine.LNX.4.64.0606171732370.5498@g5.osdl.org>
 References: <CFF307C98FEABE47A452B27C06B85BB670F3C4@hdsmsx411.amr.corp.intel.com>
- <44677056.1080004@gmail.com>
+ <44677056.1080004@gmail.com> <Pine.LNX.4.64.0606171408230.5498@g5.osdl.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:50361 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1750906AbWFQVTB (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:11997 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1751085AbWFRAfz (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 17 Jun 2006 17:19:01 -0400
-In-Reply-To: <44677056.1080004@gmail.com>
+	Sat, 17 Jun 2006 20:35:55 -0400
+In-Reply-To: <Pine.LNX.4.64.0606171408230.5498@g5.osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Jiri Slaby <jirislaby@gmail.com>, "Brown, Len" <len.brown@intel.com>
 Cc: linux-acpi@vger.kernel.org
 
 
-It turns out that the Apple Mac Mini comes back from suspend in legacy 
-mode.
 
-The simplest and most obvious fix would seem to be the following trivial 
-one-liner, which just enables ACPI mode after any suspend event.
+On Sat, 17 Jun 2006, Linus Torvalds wrote:
+>
+> It turns out that the Apple Mac Mini comes back from suspend in legacy 
+> mode.
 
-Comments? Can anybody see any downsides to just doing something this 
-obvious, and doing it unconditionally?  I've seen a much more complicated 
-patch that only does this for Apple hardware, but I wouldn't be surprised 
-at all if this is more common.
+Actually, that wasn't it. My debugging patches use the RTC to save off 
+information, and that causing a test-kernel to not compile the test, or 
+just normal incompetence on my part, made me "confirm" this as working, 
+when it isn't.
 
-In fact, googling for the symptoms ("nobody cared" and "acpi_irq" and 
-"suspend") gives quite a number of hits, so I would not be surprised at 
-all if this is not Apple-related at all, but that we should always have 
-done this.
+The thing that does work is to literally just set the SCI_ENABLE bit:
 
-Comments? 
+	acpi_set_register(ACPI_BITREG_SCI_ENABLE, 1, ACPI_MTX_DO_NOT_LOCK);
+
+after resume, _not_ the "acpi_enable()".
 
 		Linus
-
----
-diff --git a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
-index 56f861e..7b6c146 100644
---- a/drivers/acpi/sleep/main.c
-+++ b/drivers/acpi/sleep/main.c
-@@ -109,6 +108,11 @@ static int acpi_pm_enter(suspend_state_t
- 	local_irq_restore(flags);
- 	printk(KERN_DEBUG "Back to C!\n");
- 
-+	/*
-+	 * Make sure we're back in ACPI mode!
-+	 */
-+	acpi_enable();		
-+
- 	/* restore processor state
- 	 * We should only be here if we're coming back from STR or STD.
- 	 * And, in the case of the latter, the memory image should have already
