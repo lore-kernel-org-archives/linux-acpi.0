@@ -1,44 +1,40 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: ACPI control method battery question
-Date: Mon, 19 Jun 2006 14:28:32 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6C665D2@hdsmsx411.amr.corp.intel.com>
+From: k.healy@student.ucc.ie
+Subject: Power management support for the Nvidia Nforce2 AGP controller
+Date: Mon, 19 Jun 2006 18:56:46 GMT
+Message-ID: <4496f36e.bb.57e9.471125523@student.ucc.ie>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:50066 "EHLO
-	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
-	id S932321AbWFSS3O convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Jun 2006 14:29:14 -0400
-Content-class: urn:content-classes:message
+Received: from mail4.ucc.ie ([143.239.1.34]:45525 "EHLO mail4.ucc.ie")
+	by vger.kernel.org with ESMTP id S964850AbWFSS61 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 Jun 2006 14:58:27 -0400
+Received: from student.ucc.ie (stu2.ucc.ie [143.239.1.40])
+	by mail4.ucc.ie (8.13.6/8.13.6) with ESMTP id k5JIwLoT004368
+	for <linux-acpi@vger.kernel.org>; Mon, 19 Jun 2006 19:58:26 +0100
+Received: from student.ucc.ie (unverified [127.0.0.1])
+	by student.ucc.ie (SurgeMail 3.7c) with ESMTP id 182347
+	for <linux-acpi@vger.kernel.org>; Mon, 19 Jun 2006 19:56:46 +0100
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matt Mullins <matt.mullins@gdc4s.com>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-[added linux-acpi@vger.kernel.org, deleted acpi@linux.intel.com from
-cc:]
+Hello,
 
->I'm trying to develop a Linux module to communicate with an 
->ACPI control
->method battery under the 2.4.21 kernel (only need read access to _BST),
+Hopefully this is the right place to post this (if not, let
+me know)
 
-/proc/acpi/battery doesn't tell you want you need to know?
+While troubleshooting a suspend/resume problem, I found
+(courtesy of some of the Nvidia support people), that the
+kernel's nforce agpgart driver (see
+http://www.kernelhq.cc/browse.py?css=taichi&version=600)
+does not include any power management support.
 
->but I'm not allowed to recompile the kernel due to government
->certification.  I've compiled the Intel pm tools and have dumped the
->ACPI table, and the battery is seen correctly.
+Could anyone advise on what would be necessary to add this
+support, and possibly suggest a starting point - e.g. is
+there an implementation for another chipset that would be a
+good reference?
 
-Is this 2.4.21 kernel running the system in ACPI mode?
+Best regards,
+Ken
 
->Is there a way to get around using the interpreter, and talk to the
->battery directly through direct reads and writes to the embedded
->controller?  If not, is what I'm looking to accomplish doable without
->modifying the kernel?
-
-Sure, boot with "acpi=off" and the interpreter will not be in your
-way:-)
-
-cheers,
--Len
