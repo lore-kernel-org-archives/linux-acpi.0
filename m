@@ -1,50 +1,61 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: [PATCH 0/25] Decouple IRQ issues (MSI, i386, x86_64, ia64)
-Date: Tue, 20 Jun 2006 16:24:35 -0600
-Message-ID: <m1ac87ea8s.fsf@ebiederm.dsl.xmission.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ebiederm.dsl.xmission.com ([166.70.28.69]:49636 "EHLO
-	ebiederm.dsl.xmission.com") by vger.kernel.org with ESMTP
-	id S1751321AbWFTW2v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Jun 2006 18:28:51 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+From: "Eric W. Biederman" <ebiederm@xmission.com>
+Subject: [PATCH 10/25] ia64 irq:  Dynamic irq support
+Date: Tue, 20 Jun 2006 16:28:23 -0600
+Message-ID: <11508425213795-git-send-email-ebiederm@xmission.com>
+References: <m1ac87ea8s.fsf@ebiederm.dsl.xmission.com> <11508425183073-git-send-email-ebiederm@xmission.com> <11508425191381-git-send-email-ebiederm@xmission.com> <11508425192220-git-send-email-ebiederm@xmission.com> <11508425191063-git-send-email-ebiederm@xmission.com> <1150842520235-git-send-email-ebiederm@xmission.com> <11508425201406-git-send-email-ebiederm@xmission.com> <1150842520775-git-send-email-ebiederm@xmission.com> <11508425213394-git-send-email-ebiederm@xmission.com> <115084252131-git-send-email-ebiederm@xmission.com>
+Reply-To: "Eric W. Biederman" <ebiederm@xmission.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751371AbWFTW3X@vger.kernel.org>
+In-Reply-To: <115084252131-git-send-email-ebiederm@xmission.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Andrew Morton <akpm@osdl.org>
 Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, discuss@x86-64.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Andi Kleen <ak@suse.de>, Natalie Protasevich <Natalie.Protasevich@UNISYS.com>, Len Brown <len.brown@intel.com>, Kimball Murray <kimball.murray@gmail.com>, Brice Goglin <brice@myri.com>, Greg Lindahl <greg.lindahl@qlogic.com>, Dave Olson <olson@unixfolk.com>, Jeff Garzik <jeff@garzik.org>, Greg KH <gregkh@suse.de>, Grant Grundler <iod00d@hp.com>, "bibo,mao" <bibo.mao@intel.com>, Rajesh Shah <rajesh.shah@intel.com>, Mark Maule <maule@sgi.com>, Jesper Juhl <jesper.juhl@gmail.com>, Shaohua Li <shaohua.li@intel.com>, Matthew Wilcox <matthew@wil.cx>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Ashok Raj <ashok.raj@intel.com>, Randy Dunlap <rdunlap@xenotime.net>Roland Dreier <rd>
+List-Id: linux-acpi@vger.kernel.org
 
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+---
+ arch/ia64/kernel/irq_ia64.c |   23 +++++++++++++++++++++++
+ 1 files changed, 23 insertions(+), 0 deletions(-)
 
-The following patchset is against 2.6.17-rc6-mm2.
-It was the only easy place I could get everyones work who has been
-touching relevant code.
-
-The primary aim of this patch is to remove maintenances problems caused
-by the irq infrastructure.  The two big issues I address are an
-artificially small cap on the number of irqs, and that MSI assumes
-vector == irq.  My primary focus is on x86_64 but I have touched
-other architectures where necessary to keep them from breaking.
-
-- To increase the number of irqs I modify the code to look at
-  the (cpu, vector) pair instead of just  looking at the vector.
-
-  With a large number of irqs available systems with a large irq
-  count no longer need to compress their irq numbers to fit.
-  Removing a lot of brittle special cases.
-
-  For acpi guys the result is that irq == gsi.
-
-- Addressing the fact that MSI assumes irq == vector takes a few more
-  patches.  But suffice it to say when I am done none of the generic
-  irq code even knows what a vector is.
-
-In quick testing on a large Unisys x86_64 machine we stumbled over at
-least one driver that assumed that NR_IRQS could always fit into an 8
-bit number.  This driver is clearly buggy today.  But this has become
-a class of bugs that it is now much easier to hit. 
-
-I've done my best but if this patchset wasn't perfect it won't
-surprise me.  But I'm pretty certain I have succeeded in decoupling
-any fixes should be small and well contained.
-
-Eric
+diff --git a/arch/ia64/kernel/irq_ia64.c b/arch/ia64/kernel/irq_ia64.c
+index f503530..b0189c7 100644
+--- a/arch/ia64/kernel/irq_ia64.c
++++ b/arch/ia64/kernel/irq_ia64.c
+@@ -31,6 +31,7 @@ #include <linux/smp.h>
+ #include <linux/smp_lock.h>
+ #include <linux/threads.h>
+ #include <linux/bitops.h>
++#include <linux/irq.h>
+ 
+ #include <asm/delay.h>
+ #include <asm/intrinsics.h>
+@@ -106,6 +107,28 @@ reserve_irq_vector (int vector)
+ 	return test_and_set_bit(pos, ia64_vector_mask);
+ }
+ 
++/*
++ * Dynamic irq allocate and deallocation for MSI
++ */
++int create_irq(void)
++{
++	int vector;
++	unsigned long flags;
++
++	vector = assign_irq_vector(AUTO_ASSIGN);
++
++	if (vector >= 0)
++		dynamic_irq_init(irq);
++
++	return vector;
++}
++
++void destroy_irq(unsigned int irq)
++{
++	dynamic_irq_cleanup(irq);
++	free_irq_vector(irq);
++}
++
+ #ifdef CONFIG_SMP
+ #	define IS_RESCHEDULE(vec)	(vec == IA64_IPI_RESCHEDULE)
+ #else
+-- 
+1.4.0.gc07e
