@@ -1,47 +1,70 @@
-From: "Randy.Dunlap" <rdunlap@xenotime.net>
-Subject: Re: [Ubuntu PATCH] acpi: Add IBM R60E laptop to proc-idle blacklist
-Date: Mon, 19 Jun 2006 22:16:39 -0700
-Message-ID: <20060619221639.3adbbf34.rdunlap@xenotime.net>
-References: <4491BC6B.5000704@oracle.com>
-	<20060619203333.5e897ead.akpm@osdl.org>
-	<87lkrstrgy.fsf@benpfaff.org>
+From: Andrew Morton <akpm@osdl.org>
+Subject: Re: [PATCH] Clear abnormal poweroff flag on VIA southbridges, fix
+ resume
+Date: Mon, 19 Jun 2006 23:01:44 -0700
+Message-ID: <20060619230144.155bc938.akpm@osdl.org>
+References: <20060618191421.GA15358@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from xenotime.net ([66.160.160.81]:42645 "HELO xenotime.net")
-	by vger.kernel.org with SMTP id S1751219AbWFTFNw (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:8149 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S965065AbWFTGBr (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Jun 2006 01:13:52 -0400
-Received: from midway.site ([71.245.102.105]) by xenotime.net for <linux-acpi@vger.kernel.org>; Mon, 19 Jun 2006 22:13:51 -0700
-In-Reply-To: <87lkrstrgy.fsf@benpfaff.org>
+	Tue, 20 Jun 2006 02:01:47 -0400
+In-Reply-To: <20060618191421.GA15358@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: blp@cs.stanford.edu, bcollins@ubuntu.com
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, 19 Jun 2006 20:51:09 -0700 Ben Pfaff wrote:
+On Sun, 18 Jun 2006 20:14:22 +0100
+Matthew Garrett <mjg59@srcf.ucam.org> wrote:
 
-> Andrew Morton <akpm@osdl.org> writes:
+> Some VIA southbridges contain a flag in the ACPI register space that 
+> indicates whether an abnormal poweroff has occured, presumably with the 
+> intention that it can be cleared on clean shutdown. Some BIOSes check 
+> this flag at resume time, and will re-POST the system rather than jump 
+> back to the OS if it's set. Clearing it at boot time appears to be 
+> sufficient. I'm not sure if drivers/pci/quirks.c is the right place to 
+> do it, but I'm not sure where would be cleaner.
 > 
-> > On Thu, 15 Jun 2006 13:00:43 -0700
-> > Randy Dunlap <randy.dunlap@oracle.com> wrote:
-> >
-> >> [UBUNTU:acpi] Add IBM R60E laptop to proc-idle blacklist.
+> Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
 > 
-> >> +	{ set_max_cstate, "IBM ThinkPad R40e", {
-> >> +	  DMI_MATCH(DMI_BIOS_VENDOR, "IBM"),
-> >> +	  DMI_MATCH(DMI_BIOS_VERSION, "1SET70WW") }, (void*)1},
-> >
-> > It seems that every R40e in the world is in that table.
-> 
-> The email says R60e.
-> The string says R40e.
-> Which is correct?
+> diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
+> index 7537260..2f9f996 100644
+> --- a/drivers/pci/quirks.c
+> +++ b/drivers/pci/quirks.c
+> @@ -660,6 +660,33 @@ static void __devinit quirk_vt82c598_id(
+>  }
+>  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_82C597_0,	quirk_vt82c598_id );
+>  
+> +#ifdef CONFIG_ACPI
+> +
+> +/* Some VIA systems boot with the abnormal status flag set. This can cause
+> + * the BIOS to re-POST the system on resume rather than passing control 
+> + * back to the OS. Clear the flag on boot
+> + */
+> +
+> +static void __devinit quirk_via_abnormal_poweroff(struct pci_dev *dev)
+> +{
+> +	u32 register;
+> +
+> +	acpi_hw_register_read (ACPI_MTX_DO_NOT_LOCK, ACPI_REGISTER_PM1_STATUS,
+> +			       &register);
+> +
+> +	if (register & 0x800) {
+> +		printk ("Clearing abnormal poweroff flag\n");
+> +		acpi_hw_register_write (ACPI_MTX_DO_NOT_LOCK,
+> +					ACPI_REGISTER_PM1_STATUS,
+> +					(u16)0x800);
+> +	}
+> +}
+> +
+> +DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_VIA, PCI_DEVICE_ID_VIA_8235, quirk_via_abnormal_poweroff);
+> +DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_VIA, PCI_DEVICE_ID_VIA_8237, quirk_via_abnormal_poweroff);
+> +
+> +#endif
 
-Good question for Ben.  Ben??
-
-Current ubuntu-dapper git is still like this.
-
----
-~Randy
+Is CONFIG_ACPI the right thing to use here?  As opposed to, say, CONFIG_PM?
+Or CONFIG_ACPI_SLEEP??
