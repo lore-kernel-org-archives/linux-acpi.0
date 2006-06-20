@@ -1,85 +1,41 @@
-From: Sergey Vlasov <vsu@altlinux.ru>
-Subject: Re: [Fwd: Re: [Linux-usb-users] Fwd: Re:
-	2.6.17-rc6-mm2 - USB issues]
-Date: Tue, 20 Jun 2006 17:59:38 +0400
-Message-ID: <20060620135938.GS3206@master.mivlgu.local>
-References: <44953B4B.9040108@agotnes.com> <4497DA3F.80302@agotnes.com>
-	<20060620120937.GR3206@master.mivlgu.local>
-	<1150810206.7194.33.camel@localhost.localdomain>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: [Ubuntu PATCH] acpi: Add IBM R60E laptop to proc-idle blacklist
+Date: Tue, 20 Jun 2006 12:56:34 -0700
+Message-ID: <449852F2.7000704@oracle.com>
+References: <4491BC6B.5000704@oracle.com> <20060619203333.5e897ead.akpm@osdl.org> <20060620093016.GA27807@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0841291066=="
-Return-path: <linux-usb-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <1150810206.7194.33.camel@localhost.localdomain>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
-	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-usb-devel>
-List-Post: <mailto:linux-usb-devel@lists.sourceforge.net>
-List-Help: <mailto:linux-usb-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
-	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=subscribe>
-Sender: linux-usb-devel-bounces@lists.sourceforge.net
-Errors-To: linux-usb-devel-bounces@lists.sourceforge.net
-To: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
-Cc: Andrew Morton <akpm@osdl.org>, USB development list <linux-usb-devel@lists.sourceforge.net>, Chris Wedgwood <cw@f00f.org>, kernel list <linux-kernel@vger.kernel.org>, linux-usb-users@lists.sourceforge.net, linux-acpi@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, Johny <kernel@agotnes.com>
-List-Id: linux-acpi@vger.kernel.org
-
-
---===============0841291066==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3sseE1tnmEs+TkKq"
-Content-Disposition: inline
-
-
---3sseE1tnmEs+TkKq
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Jun 20, 2006 at 02:30:06PM +0100, Sergio Monteiro Basto wrote:
-> someone has it has a case similar and said that won't work without
-> acpi=3Dnoirq
->=20
-> http://bugzilla.kernel.org/show_bug.cgi?id=3D6654
-
-Yes, acpi=3Dnoirq will work around this bug in many cases, because Linux
-will not try to reassign IRQs set up by BIOS.
-
-BTW, the problem may be considered as an ACPI BIOS bug, because
-reconfiguring a PCI Interrupt Link should set up IRQ routing, but it
-obviously does not.  Unfortunately, this problem seems to be widespread,
-so a workaround in kernel is needed.
-
---3sseE1tnmEs+TkKq
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFEl/9KW82GfkQfsqIRAmD3AJ4sokTGVa1Jg0XoPrz7ZuUFzLh4TgCfde79
-hF9ih77uaAMgGPCHj+8nd/o=
-=FerS
------END PGP SIGNATURE-----
-
---3sseE1tnmEs+TkKq--
-
-
---===============0841291066==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from rgminet01.oracle.com ([148.87.113.118]:45170 "EHLO
+	rgminet01.oracle.com") by vger.kernel.org with ESMTP
+	id S1750827AbWFTTzS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Jun 2006 15:55:18 -0400
+In-Reply-To: <20060620093016.GA27807@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, len.brown@intel.com, linux-acpi@vger.kernel.org
 
+Matthew Garrett wrote:
+> On Mon, Jun 19, 2006 at 08:33:33PM -0700, Andrew Morton wrote:
+>>> +	{ set_max_cstate, "IBM ThinkPad R40e", {
+>>> +	  DMI_MATCH(DMI_BIOS_VENDOR, "IBM"),
+>>> +	  DMI_MATCH(DMI_BIOS_VERSION, "1SET70WW") }, (void*)1},
+> 
+>> It seems that every R40e in the world is in that table.
+>>
+>> Can/should we wildcard it?  From my reading of dmi_check_system(), we can use
+>> "" in place of the "1SET..." string and it'll dtrt?
+> 
+> Wouldn't that result in every machine with "IBM" as the BIOS vendor 
+> having their maximum c-state limited?
 
---===============0841291066==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Yes.  DMI_MATCH() specifies substring matching, so _if we knew_
+that any BIOS version that began with "1SET4", "1SET5", "1SET6",
+or "1SET7" needed C-state limiting, the table could be made a lot
+smaller.  But then it may need some exceptions, so just sticking
+with full version strings seems reasonable to me.
 
-_______________________________________________
-linux-usb-devel@lists.sourceforge.net
-To unsubscribe, use the last form field at:
-https://lists.sourceforge.net/lists/listinfo/linux-usb-devel
+~Randy
 
---===============0841291066==--
