@@ -1,70 +1,86 @@
 From: "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: [PATCH 20/25] irq: Generalize the check for HARDIRQ_BITS.
-Date: Tue, 20 Jun 2006 16:28:33 -0600
-Message-ID: <11508425253581-git-send-email-ebiederm@xmission.com>
+Subject: [PATCH 19/25] irq: Remove msi hacks
+Date: Tue, 20 Jun 2006 16:28:32 -0600
+Message-ID: <11508425251099-git-send-email-ebiederm@xmission.com>
 References: <m1ac87ea8s.fsf@ebiederm.dsl.xmission.com> <11508425183073-git-send-email-ebiederm@xmission.com> <11508425191381-git-send-email-ebiederm@xmission.com> <11508425192220-git-send-email-ebiederm@xmission.com> <11508425191063-git-send-email-ebiederm@xmission.com> <1150842520235-git-send-email-ebiederm@xmission.com> <11508425201406-git-send-email-ebiederm@xmission.com> <1150842520775-git-send-email-ebiederm@xmission.com> <11508425213394-git-send-email-ebiederm@xmission.com> <115084252131-git-send-email-ebiederm@xmission.com> <11508425213795-git-send-email-ebiederm@xmission.com> <11508425222427-git-send-email-ebiederm@xmission.com> <11508425221394-git-send-email-ebiederm@xmission.com> <11508425223015-git-send-email-ebiederm@xmission.com> <1150842523493-git-send-email-ebiederm@xmission.com> <11508425231168-git-send-email-ebiederm@xmission.com> <1150842524863-git-send-email-ebiederm@x
  mission.com> <1150842524755-git-send-email-ebiederm@xmission.com> <115084252460-git-send-!
- email-ebiederm@xmission.com> <11508425251099-git-send-email-ebiederm@xmission.com>
+ email-ebiederm@xmission.com>
 Reply-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751379AbWFTW3g@vger.kernel.org>
-In-Reply-To: <11508425251099-git-send-email-ebiederm@xmission.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751378AbWFTWaG@vger.kernel.org>
+In-Reply-To: <115084252460-git-send-email-ebiederm@xmission.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Andrew Morton <akpm@osdl.org>
 Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, discuss@x86-64.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Andi Kleen <ak@suse.de>, Natalie Protasevich <Natalie.Protasevich@UNISYS.com>, Len Brown <len.brown@intel.com>, Kimball Murray <kimball.murray@gmail.com>, Brice Goglin <brice@myri.com>, Greg Lindahl <greg.lindahl@qlogic.com>, Dave Olson <olson@unixfolk.com>, Jeff Garzik <jeff@garzik.org>, Greg KH <gregkh@suse.de>, Grant Grundler <iod00d@hp.com>, "bibo,mao" <bibo.mao@intel.com>, Rajesh Shah <rajesh.shah@intel.com>, Mark Maule <maule@sgi.com>, Jesper Juhl <jesper.juhl@gmail.com>, Shaohua Li <shaohua.li@intel.com>, Matthew Wilcox <matthew@wil.cx>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Ashok Raj <ashok.raj@intel.com>, Randy Dunlap <rdunlap@xenotime.net>Roland Dreier <rd>
 List-Id: linux-acpi@vger.kernel.org
 
-This patch adds support for systems that cannot receive every interrupt
-on a single cpu simultaneously, in the check to see if we have enough HARDIRQ_BITS.
-
-MAX_HARDIRQS_PER_CPU becomes the count of the maximum number of hardare
-generated interrupts per cpu.
-
-On architectures that support per cpu interrupt delivery this can be a
-significant space savings and scalability bonus.
-
-This patch adds support for systems that cannot receive every interrupt on
+Because of the nasty way that CONFIG_PCI_MSI was implemented
+we wound up with set_irq_info and set_native_irq_info, with move_irq and
+move_native_irq.  Both functions did the same thing but they were
+built and called under different circumstances.  Now that the msi hacks
+are gone we can kill move_irq and set_irq_info.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 ---
- include/asm-x86_64/hardirq.h |    3 +++
- include/linux/hardirq.h      |    7 ++++++-
- 2 files changed, 9 insertions(+), 1 deletions(-)
+ include/linux/irq.h |   36 ------------------------------------
+ 1 files changed, 0 insertions(+), 36 deletions(-)
 
-diff --git a/include/asm-x86_64/hardirq.h b/include/asm-x86_64/hardirq.h
-index 64a65ce..95d5e09 100644
---- a/include/asm-x86_64/hardirq.h
-+++ b/include/asm-x86_64/hardirq.h
-@@ -6,6 +6,9 @@ #include <linux/irq.h>
- #include <asm/pda.h>
- #include <asm/apic.h>
+diff --git a/include/linux/irq.h b/include/linux/irq.h
+index 6d1ad88..cfd2f31 100644
+--- a/include/linux/irq.h
++++ b/include/linux/irq.h
+@@ -202,36 +202,6 @@ void set_pending_irq(unsigned int irq, c
+ void move_native_irq(int irq);
+ void move_masked_irq(int irq);
  
-+/* We can have at most NR_VECTORS irqs routed to a cpu at a time */
-+#define MAX_HARDIRQS_PER_CPU NR_VECTORS
-+
- #define __ARCH_IRQ_STAT 1
+-#ifdef CONFIG_PCI_MSI
+-/*
+- * Wonder why these are dummies?
+- * For e.g the set_ioapic_affinity_vector() calls the set_ioapic_affinity_irq()
+- * counter part after translating the vector to irq info. We need to perform
+- * this operation on the real irq, when we dont use vector, i.e when
+- * pci_use_vector() is false.
+- */
+-static inline void move_irq(int irq)
+-{
+-}
+-
+-static inline void set_irq_info(int irq, cpumask_t mask)
+-{
+-}
+-
+-#else /* CONFIG_PCI_MSI */
+-
+-static inline void move_irq(int irq)
+-{
+-	move_native_irq(irq);
+-}
+-
+-static inline void set_irq_info(int irq, cpumask_t mask)
+-{
+-	set_native_irq_info(irq, mask);
+-}
+-
+-#endif /* CONFIG_PCI_MSI */
+-
+ #else /* CONFIG_GENERIC_PENDING_IRQ || CONFIG_IRQBALANCE */
  
- #define local_softirq_pending() read_pda(__softirq_pending)
-diff --git a/include/linux/hardirq.h b/include/linux/hardirq.h
-index ccabda7..f60b8c3 100644
---- a/include/linux/hardirq.h
-+++ b/include/linux/hardirq.h
-@@ -27,11 +27,16 @@ #define SOFTIRQ_BITS	8
+ static inline void move_irq(int irq)
+@@ -250,16 +220,10 @@ static inline void set_pending_irq(unsig
+ {
+ }
  
- #ifndef HARDIRQ_BITS
- #define HARDIRQ_BITS	12
-+
-+#ifndef MAX_HARDIRQS_PER_CPU
-+#define MAX_HARDIRQS_PER_CPU NR_IRQS
-+#endif
-+
- /*
-  * The hardirq mask has to be large enough to have space for potentially
-  * all IRQ sources in the system nesting on a single CPU.
-  */
--#if (1 << HARDIRQ_BITS) < NR_IRQS
-+#if (1 << HARDIRQ_BITS) < MAX_HARDIRQS_PER_CPU
- # error HARDIRQ_BITS is too low!
- #endif
- #endif
+-static inline void set_irq_info(int irq, cpumask_t mask)
+-{
+-	set_native_irq_info(irq, mask);
+-}
+-
+ #endif /* CONFIG_GENERIC_PENDING_IRQ */
+ 
+ #else /* CONFIG_SMP */
+ 
+-#define move_irq(x)
+ #define move_native_irq(x)
+ #define move_masked_irq(x)
+ 
 -- 
 1.4.0.gc07e
