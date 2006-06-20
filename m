@@ -1,70 +1,110 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: [PATCH] Clear abnormal poweroff flag on VIA southbridges, fix
- resume
-Date: Mon, 19 Jun 2006 23:01:44 -0700
-Message-ID: <20060619230144.155bc938.akpm@osdl.org>
-References: <20060618191421.GA15358@srcf.ucam.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: akpm@osdl.org
+Subject: + acpi-c-states-accounting-of-sleep-states.patch added to -mm tree
+Date: Tue, 20 Jun 2006 00:49:06 -0700
+Message-ID: <200606200749.k5K7n6MB000427@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:8149 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S965065AbWFTGBr (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:48521 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932087AbWFTHtK (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Jun 2006 02:01:47 -0400
-In-Reply-To: <20060618191421.GA15358@srcf.ucam.org>
+	Tue, 20 Jun 2006 03:49:10 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: linux@dominikbrodowski.net, linux-acpi@vger.kernel.org
 
-On Sun, 18 Jun 2006 20:14:22 +0100
-Matthew Garrett <mjg59@srcf.ucam.org> wrote:
 
-> Some VIA southbridges contain a flag in the ACPI register space that 
-> indicates whether an abnormal poweroff has occured, presumably with the 
-> intention that it can be cleared on clean shutdown. Some BIOSes check 
-> this flag at resume time, and will re-POST the system rather than jump 
-> back to the OS if it's set. Clearing it at boot time appears to be 
-> sufficient. I'm not sure if drivers/pci/quirks.c is the right place to 
-> do it, but I'm not sure where would be cleaner.
-> 
-> Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
-> 
-> diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-> index 7537260..2f9f996 100644
-> --- a/drivers/pci/quirks.c
-> +++ b/drivers/pci/quirks.c
-> @@ -660,6 +660,33 @@ static void __devinit quirk_vt82c598_id(
->  }
->  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_82C597_0,	quirk_vt82c598_id );
->  
-> +#ifdef CONFIG_ACPI
-> +
-> +/* Some VIA systems boot with the abnormal status flag set. This can cause
-> + * the BIOS to re-POST the system on resume rather than passing control 
-> + * back to the OS. Clear the flag on boot
-> + */
-> +
-> +static void __devinit quirk_via_abnormal_poweroff(struct pci_dev *dev)
-> +{
-> +	u32 register;
-> +
-> +	acpi_hw_register_read (ACPI_MTX_DO_NOT_LOCK, ACPI_REGISTER_PM1_STATUS,
-> +			       &register);
-> +
-> +	if (register & 0x800) {
-> +		printk ("Clearing abnormal poweroff flag\n");
-> +		acpi_hw_register_write (ACPI_MTX_DO_NOT_LOCK,
-> +					ACPI_REGISTER_PM1_STATUS,
-> +					(u16)0x800);
-> +	}
-> +}
-> +
-> +DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_VIA, PCI_DEVICE_ID_VIA_8235, quirk_via_abnormal_poweroff);
-> +DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_VIA, PCI_DEVICE_ID_VIA_8237, quirk_via_abnormal_poweroff);
-> +
-> +#endif
+The patch titled
 
-Is CONFIG_ACPI the right thing to use here?  As opposed to, say, CONFIG_PM?
-Or CONFIG_ACPI_SLEEP??
+     ACPI C-States: accounting of sleep states
+
+has been added to the -mm tree.  Its filename is
+
+     acpi-c-states-accounting-of-sleep-states.patch
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
+
+------------------------------------------------------
+Subject: ACPI C-States: accounting of sleep states
+From: Dominik Brodowski <linux@dominikbrodowski.net>
+
+
+Track the actual time spent in C-States (C2 upwards, we can't determine this
+for C1), not only the number of invocations.  This is especially useful for
+dynamic ticks / "tickless systems", but is also of interest on normal systems,
+as any interrupt activity leads to C-States being exited, not only the timer
+interrupt.
+
+The time is being measured in PM timer ticks, so an increase by one equals 279
+nanoseconds.
+
+Signed-off-by: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: <linux-acpi@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
+---
+
+ drivers/acpi/processor_idle.c |   10 ++++++----
+ include/acpi/processor.h      |    1 +
+ 2 files changed, 7 insertions(+), 4 deletions(-)
+
+diff -puN drivers/acpi/processor_idle.c~acpi-c-states-accounting-of-sleep-states drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~acpi-c-states-accounting-of-sleep-states
++++ a/drivers/acpi/processor_idle.c
+@@ -325,8 +325,6 @@ static void acpi_processor_idle(void)
+ 		cx = &pr->power.states[ACPI_STATE_C1];
+ #endif
+ 
+-	cx->usage++;
+-
+ 	/*
+ 	 * Sleep:
+ 	 * ------
+@@ -424,6 +422,9 @@ static void acpi_processor_idle(void)
+ 		local_irq_enable();
+ 		return;
+ 	}
++	cx->usage++;
++	if ((cx->type != ACPI_STATE_C1) && (sleep_ticks > 0))
++		cx->time += sleep_ticks;
+ 
+ 	next_state = pr->power.state;
+ 
+@@ -1058,9 +1059,10 @@ static int acpi_processor_power_seq_show
+ 		else
+ 			seq_puts(seq, "demotion[--] ");
+ 
+-		seq_printf(seq, "latency[%03d] usage[%08d]\n",
++		seq_printf(seq, "latency[%03d] usage[%08d] duration[%020llu]\n",
+ 			   pr->power.states[i].latency,
+-			   pr->power.states[i].usage);
++			   pr->power.states[i].usage,
++			   pr->power.states[i].time);
+ 	}
+ 
+       end:
+diff -puN include/acpi/processor.h~acpi-c-states-accounting-of-sleep-states include/acpi/processor.h
+--- a/include/acpi/processor.h~acpi-c-states-accounting-of-sleep-states
++++ a/include/acpi/processor.h
+@@ -63,6 +63,7 @@ struct acpi_processor_cx {
+ 	u32 latency_ticks;
+ 	u32 power;
+ 	u32 usage;
++	u64 time;
+ 	struct acpi_processor_cx_policy promotion;
+ 	struct acpi_processor_cx_policy demotion;
+ };
+_
+
+Patches currently in -mm which might be from linux@dominikbrodowski.net are
+
+acpi-c-states-accounting-of-sleep-states.patch
+acpi-c-states-bm_activity-improvements.patch
+acpi-c-states-only-demote-on-current-bus-mastering-activity.patch
+git-cpufreq.patch
+git-pcmcia.patch
+com20020_cs-more-device-support.patch
+kill-open-coded-offsetof-in-cm4000_csc-zero_dev.patch
+insert-identical-resources-above-existing-resources.patch
+make-sure-nobodys-leaking-resources.patch
+random-remove-bogus-sa_sample_random-from-at91-compact-flash-driver.patch
+
