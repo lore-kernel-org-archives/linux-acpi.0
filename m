@@ -1,41 +1,50 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: [Ubuntu PATCH] acpi: Add IBM R60E laptop to proc-idle blacklist
-Date: Tue, 20 Jun 2006 12:56:34 -0700
-Message-ID: <449852F2.7000704@oracle.com>
-References: <4491BC6B.5000704@oracle.com> <20060619203333.5e897ead.akpm@osdl.org> <20060620093016.GA27807@srcf.ucam.org>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: [PATCH 0/25] Decouple IRQ issues (MSI, i386, x86_64, ia64)
+Date: Tue, 20 Jun 2006 16:24:35 -0600
+Message-ID: <m1ac87ea8s.fsf@ebiederm.dsl.xmission.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rgminet01.oracle.com ([148.87.113.118]:45170 "EHLO
-	rgminet01.oracle.com") by vger.kernel.org with ESMTP
-	id S1750827AbWFTTzS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Jun 2006 15:55:18 -0400
-In-Reply-To: <20060620093016.GA27807@srcf.ucam.org>
+Received: from ebiederm.dsl.xmission.com ([166.70.28.69]:49636 "EHLO
+	ebiederm.dsl.xmission.com") by vger.kernel.org with ESMTP
+	id S1751321AbWFTW2v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Jun 2006 18:28:51 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, len.brown@intel.com, linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, discuss@x86-64.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Andi Kleen <ak@suse.de>, Natalie Protasevich <Natalie.Protasevich@UNISYS.com>, Len Brown <len.brown@intel.com>, Kimball Murray <kimball.murray@gmail.com>, Brice Goglin <brice@myri.com>, Greg Lindahl <greg.lindahl@qlogic.com>, Dave Olson <olson@unixfolk.com>, Jeff Garzik <jeff@garzik.org>, Greg KH <gregkh@suse.de>, Grant Grundler <iod00d@hp.com>, "bibo,mao" <bibo.mao@intel.com>, Rajesh Shah <rajesh.shah@intel.com>, Mark Maule <maule@sgi.com>, Jesper Juhl <jesper.juhl@gmail.com>, Shaohua Li <shaohua.li@intel.com>, Matthew Wilcox <matthew@wil.cx>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Ashok Raj <ashok.raj@intel.com>, Randy Dunlap <rdunlap@xenotime.net>Roland Dreier <rd>
 
-Matthew Garrett wrote:
-> On Mon, Jun 19, 2006 at 08:33:33PM -0700, Andrew Morton wrote:
->>> +	{ set_max_cstate, "IBM ThinkPad R40e", {
->>> +	  DMI_MATCH(DMI_BIOS_VENDOR, "IBM"),
->>> +	  DMI_MATCH(DMI_BIOS_VERSION, "1SET70WW") }, (void*)1},
-> 
->> It seems that every R40e in the world is in that table.
->>
->> Can/should we wildcard it?  From my reading of dmi_check_system(), we can use
->> "" in place of the "1SET..." string and it'll dtrt?
-> 
-> Wouldn't that result in every machine with "IBM" as the BIOS vendor 
-> having their maximum c-state limited?
 
-Yes.  DMI_MATCH() specifies substring matching, so _if we knew_
-that any BIOS version that began with "1SET4", "1SET5", "1SET6",
-or "1SET7" needed C-state limiting, the table could be made a lot
-smaller.  But then it may need some exceptions, so just sticking
-with full version strings seems reasonable to me.
+The following patchset is against 2.6.17-rc6-mm2.
+It was the only easy place I could get everyones work who has been
+touching relevant code.
 
-~Randy
+The primary aim of this patch is to remove maintenances problems caused
+by the irq infrastructure.  The two big issues I address are an
+artificially small cap on the number of irqs, and that MSI assumes
+vector == irq.  My primary focus is on x86_64 but I have touched
+other architectures where necessary to keep them from breaking.
 
+- To increase the number of irqs I modify the code to look at
+  the (cpu, vector) pair instead of just  looking at the vector.
+
+  With a large number of irqs available systems with a large irq
+  count no longer need to compress their irq numbers to fit.
+  Removing a lot of brittle special cases.
+
+  For acpi guys the result is that irq == gsi.
+
+- Addressing the fact that MSI assumes irq == vector takes a few more
+  patches.  But suffice it to say when I am done none of the generic
+  irq code even knows what a vector is.
+
+In quick testing on a large Unisys x86_64 machine we stumbled over at
+least one driver that assumed that NR_IRQS could always fit into an 8
+bit number.  This driver is clearly buggy today.  But this has become
+a class of bugs that it is now much easier to hit. 
+
+I've done my best but if this patchset wasn't perfect it won't
+surprise me.  But I'm pretty certain I have succeeded in decoupling
+any fixes should be small and well contained.
+
+Eric
