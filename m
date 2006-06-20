@@ -1,201 +1,146 @@
 From: "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: [PATCH 15/25] i386 irq: Move msi message composition into io_apic.c
-Date: Tue, 20 Jun 2006 16:28:28 -0600
-Message-ID: <11508425231168-git-send-email-ebiederm@xmission.com>
-References: <m1ac87ea8s.fsf@ebiederm.dsl.xmission.com> <11508425183073-git-send-email-ebiederm@xmission.com> <11508425191381-git-send-email-ebiederm@xmission.com> <11508425192220-git-send-email-ebiederm@xmission.com> <11508425191063-git-send-email-ebiederm@xmission.com> <1150842520235-git-send-email-ebiederm@xmission.com> <11508425201406-git-send-email-ebiederm@xmission.com> <1150842520775-git-send-email-ebiederm@xmission.com> <11508425213394-git-send-email-ebiederm@xmission.com> <115084252131-git-send-email-ebiederm@xmission.com> <11508425213795-git-send-email-ebiederm@xmission.com> <11508425222427-git-send-email-ebiederm@xmission.com> <11508425221394-git-send-email-ebiederm@xmission.com> <11508425223015-git-send-email-ebiederm@xmission.com> <1150842523493-git-send-email-ebiederm@xmission.com>
+Subject: [PATCH 9/25] irq: Add a dynamic irq creation API
+Date: Tue, 20 Jun 2006 16:28:22 -0600
+Message-ID: <115084252131-git-send-email-ebiederm@xmission.com>
+References: <m1ac87ea8s.fsf@ebiederm.dsl.xmission.com> <11508425183073-git-send-email-ebiederm@xmission.com> <11508425191381-git-send-email-ebiederm@xmission.com> <11508425192220-git-send-email-ebiederm@xmission.com> <11508425191063-git-send-email-ebiederm@xmission.com> <1150842520235-git-send-email-ebiederm@xmission.com> <11508425201406-git-send-email-ebiederm@xmission.com> <1150842520775-git-send-email-ebiederm@xmission.com> <11508425213394-git-send-email-ebiederm@xmission.com>
 Reply-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751468AbWFTWhQ@vger.kernel.org>
-In-Reply-To: <1150842523493-git-send-email-ebiederm@xmission.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751326AbWFTWiz@vger.kernel.org>
+In-Reply-To: <11508425213394-git-send-email-ebiederm@xmission.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Andrew Morton <akpm@osdl.org>
 Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, discuss@x86-64.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Andi Kleen <ak@suse.de>, Natalie Protasevich <Natalie.Protasevich@UNISYS.com>, Len Brown <len.brown@intel.com>, Kimball Murray <kimball.murray@gmail.com>, Brice Goglin <brice@myri.com>, Greg Lindahl <greg.lindahl@qlogic.com>, Dave Olson <olson@unixfolk.com>, Jeff Garzik <jeff@garzik.org>, Greg KH <gregkh@suse.de>, Grant Grundler <iod00d@hp.com>, "bibo,mao" <bibo.mao@intel.com>, Rajesh Shah <rajesh.shah@intel.com>, Mark Maule <maule@sgi.com>, Jesper Juhl <jesper.juhl@gmail.com>, Shaohua Li <shaohua.li@intel.com>, Matthew Wilcox <matthew@wil.cx>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Ashok Raj <ashok.raj@intel.com>, Randy Dunlap <rdunlap@xenotime.net>Roland Dreier <rd>
 List-Id: linux-acpi@vger.kernel.org
 
-This removes the hardcoded assumption that irq == vector in the
-msi composition code, and it allows the msi message composition
-to setup logical mode, or lowest priorirty delivery mode as we
-do for other apic interrupts, and with the same selection criteria.
+With the msi support comes a new concept in irq handling,
+irqs that are created dynamically at run time.
 
-Basically this moves the problem of what is in the msi message into
-the architecture irq management code where it belongs.  Not in
-a generic layer that doesn't have enough information to compose
-msi messages properly.
+Currently the msi code allocates irqs backwards.  First it
+allocates a platform dependent routing value for an
+interrupt the ``vector'' and then it figures out from the
+vector which irq you are on.
+
+This msi backwards allocator suffers from two basic
+problems.  The allocator suffers because it is trying
+to do something that is architecture specific in a generic
+way making it brittle, inflexible, and tied to tightly
+to the architecture implementation.  The alloctor also
+suffers from it's very backwards nature as it has tied
+things together that should have no dependencies.
+
+To solve the basic dynamic irq allocation problem two
+new architecture specific functions are added:
+create_irq and destroy_irq.
+
+create_irq takes no input and returns an unused irq number,
+that won't be reused until it is returned to the free
+poll with destroy_irq.  The irq then can be used for
+any purpose although the only initial consumer is
+the msi code.
+
+destroy_irq takes an irq number allocated with create_irq
+and returns it to the free pool.
+
+Making this functionality per architecture increases
+the simplicity of the irq allocation code and increases
+it's flexibility.
+
+dynamic_irq_init() and dynamic_irq_cleanup() are added
+to automate the irq_desc initializtion that should happen
+for dynamic irqs.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 ---
- arch/i386/kernel/io_apic.c |   70 ++++++++++++++++++++++++++++++++++++++++++++
- include/asm-i386/msi.h     |    7 +---
- include/asm-i386/msidef.h  |   47 ++++++++++++++++++++++++++++++
- 3 files changed, 119 insertions(+), 5 deletions(-)
+ include/linux/irq.h |    9 +++++++-
+ kernel/irq/chip.c   |   56 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 64 insertions(+), 1 deletions(-)
 
-diff --git a/arch/i386/kernel/io_apic.c b/arch/i386/kernel/io_apic.c
-index 04f78ff..68af125 100644
---- a/arch/i386/kernel/io_apic.c
-+++ b/arch/i386/kernel/io_apic.c
-@@ -32,6 +32,7 @@ #include <linux/compiler.h>
- #include <linux/acpi.h>
- #include <linux/module.h>
- #include <linux/sysdev.h>
-+#include <linux/pci.h>
- 
- #include <asm/io.h>
- #include <asm/smp.h>
-@@ -39,6 +40,7 @@ #include <asm/desc.h>
- #include <asm/timer.h>
- #include <asm/i8259.h>
- #include <asm/nmi.h>
-+#include <asm/msidef.h>
- 
- #include <mach_apic.h>
- #include <mach_apicdef.h>
-@@ -2545,6 +2547,74 @@ void destroy_irq(unsigned int irq)
- }
- #endif /* CONFIG_PCI_MSI */
- 
-+/*
-+ * MSI mesage composition
-+ */
-+#ifdef CONFIG_PCI_MSI
-+static int msi_msg_setup(struct pci_dev *pdev, unsigned int irq, struct msi_msg *msg)
-+{
-+	/* For now always this code always uses physical delivery
-+	 * mode.
-+	 */
-+	int vector;
-+	unsigned dest;
-+
-+	vector = assign_irq_vector(irq);
-+	if (vector >= 0) {
-+		dest = cpu_mask_to_apicid(TARGET_CPUS);
-+
-+		msg->address_hi = MSI_ADDR_BASE_HI;
-+		msg->address_lo =
-+			MSI_ADDR_BASE_LO |
-+			((INT_DEST_MODE == 0) ?
-+				MSI_ADDR_DEST_MODE_PHYSICAL:
-+				MSI_ADDR_DEST_MODE_LOGICAL) |
-+			((INT_DELIVERY_MODE != dest_LowestPrio) ?
-+				MSI_ADDR_REDIRECTION_CPU:
-+				MSI_ADDR_REDIRECTION_LOWPRI) |
-+			MSI_ADDR_DEST_ID(dest);
-+
-+		msg->data = 
-+			MSI_DATA_TRIGGER_EDGE |	
-+			MSI_DATA_LEVEL_ASSERT |
-+			((INT_DELIVERY_MODE != dest_LowestPrio) ?
-+				MSI_DATA_DELIVERY_FIXED:
-+				MSI_DATA_DELIVERY_LOWPRI) |
-+			MSI_DATA_VECTOR(vector); 
-+	}
-+	return vector;
-+}
-+
-+static void msi_msg_teardown(unsigned int irq)
-+{
-+	return;
-+}
-+
-+static void msi_msg_set_affinity(unsigned int irq, cpumask_t mask, struct msi_msg *msg)
-+{
-+	int vector;
-+	unsigned dest;
-+
-+	vector = assign_irq_vector(irq);
-+	if (vector > 0) {
-+		dest = cpu_mask_to_apicid(mask);
-+
-+		msg->data &= ~MSI_DATA_VECTOR_MASK;
-+		msg->data |= MSI_DATA_VECTOR(vector);
-+		msg->address_lo &= ~MSI_ADDR_DEST_ID_MASK;
-+		msg->address_lo |= MSI_ADDR_DEST_ID(dest);
-+	}
-+}
-+
-+struct msi_ops arch_msi_ops = {
-+	.needs_64bit_address = 0,
-+	.setup = msi_msg_setup,
-+	.teardown = msi_msg_teardown,
-+	.target = msi_msg_set_affinity,
-+};
-+
-+#endif /* CONFIG_PCI_MSI */
-+
- /* --------------------------------------------------------------------------
-                           ACPI-based IOAPIC Configuration
-    -------------------------------------------------------------------------- */
-diff --git a/include/asm-i386/msi.h b/include/asm-i386/msi.h
-index b11c4b7..7368a89 100644
---- a/include/asm-i386/msi.h
-+++ b/include/asm-i386/msi.h
-@@ -9,14 +9,11 @@ #define ASM_MSI_H
- #include <asm/desc.h>
- #include <mach_apic.h>
- 
--#define LAST_DEVICE_VECTOR	(FIRST_SYSTEM_VECTOR - 1)
--#define MSI_TARGET_CPU_SHIFT	12
--
--extern struct msi_ops msi_apic_ops;
-+extern struct msi_ops arch_msi_ops;
- 
- static inline int msi_arch_init(void)
- {
--	msi_register(&msi_apic_ops);
-+	msi_register(&arch_msi_ops);
- 	return 0;
+diff --git a/include/linux/irq.h b/include/linux/irq.h
+index b79d178..6d1ad88 100644
+--- a/include/linux/irq.h
++++ b/include/linux/irq.h
+@@ -392,8 +392,15 @@ set_irq_chained_handler(unsigned int irq
+ 	__set_irq_handler(irq, handle, 1);
  }
  
-diff --git a/include/asm-i386/msidef.h b/include/asm-i386/msidef.h
-new file mode 100644
-index 0000000..4667f1a
---- /dev/null
-+++ b/include/asm-i386/msidef.h
-@@ -0,0 +1,47 @@
-+#ifndef ASM_MSIDEF_H
-+#define ASM_MSIDEF_H
+-/* Set/get chip/data for an IRQ: */
++/* Handle dynamic irq creation and destruction */
++extern int create_irq(void);
++extern void destroy_irq(unsigned int irq);
 +
-+/*
-+ * Constants for Intel APIC based MSI messages.
++/* Dynamic irq helper functions */
++extern void dynamic_irq_init(unsigned int irq);
++extern void dynamic_irq_cleanup(unsigned int irq);
+ 
++/* Set/get chip/data for an IRQ: */
+ extern int set_irq_chip(unsigned int irq, struct irq_chip *chip);
+ extern int set_irq_data(unsigned int irq, void *data);
+ extern int set_irq_chip_data(unsigned int irq, void *data);
+diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
+index 431e9d5..9c01e48 100644
+--- a/kernel/irq/chip.c
++++ b/kernel/irq/chip.c
+@@ -18,6 +18,62 @@ #include <linux/kernel_stat.h>
+ #include "internals.h"
+ 
+ /**
++ *	dynamic_irq_init - initialize a dynamically allocated irq
++ *	@irq:	irq number to initialize
 + */
++void dynamic_irq_init(unsigned int irq)
++{
++	struct irq_desc *desc;
++	unsigned long flags;
 +
-+/*
-+ * Shifts for MSI data
++	if (irq >= NR_IRQS) {
++		printk(KERN_ERR "Trying to initialize invalid IRQ%d\n", irq);
++		WARN_ON(1);
++		return;
++	}
++
++	/* Ensure we don't have left over values from a previous use of this irq */
++	desc = irq_desc + irq;
++	spin_lock_irqsave(&desc->lock, flags);
++	desc->status = IRQ_DISABLED;
++	desc->chip = &no_irq_chip;
++	desc->handle_irq = handle_bad_irq;
++	desc->depth = 1;
++	desc->handler_data = NULL;
++	desc->chip_data = NULL;
++	desc->action = NULL;
++	desc->irq_count = 0;
++	desc->irqs_unhandled = 0;
++#ifdef CONFIG_SMP
++	desc->affinity = CPU_MASK_ALL;
++#endif
++	spin_unlock_irqrestore(&desc->lock, flags);
++}
++
++/**
++ *	dynamic_irq_cleanup - cleanup a dynamically allocated irq
++ *	@irq:	irq number to initialize
 + */
++void dynamic_irq_cleanup(unsigned int irq)
++{
++	struct irq_desc *desc;
++	unsigned long flags;
 +
-+#define MSI_DATA_VECTOR_SHIFT		0
-+#define  MSI_DATA_VECTOR_MASK		0x000000ff
-+#define	 MSI_DATA_VECTOR(v)		(((v) << MSI_DATA_VECTOR_SHIFT) & MSI_DATA_VECTOR_MASK)
-+
-+#define MSI_DATA_DELIVERY_MODE_SHIFT	8
-+#define  MSI_DATA_DELIVERY_FIXED	(0 << MSI_DATA_DELIVERY_MODE_SHIFT)
-+#define  MSI_DATA_DELIVERY_LOWPRI	(1 << MSI_DATA_DELIVERY_MODE_SHIFT)
-+
-+#define MSI_DATA_LEVEL_SHIFT		14
-+#define	 MSI_DATA_LEVEL_DEASSERT	(0 << MSI_DATA_LEVEL_SHIFT)
-+#define	 MSI_DATA_LEVEL_ASSERT		(1 << MSI_DATA_LEVEL_SHIFT)
-+
-+#define MSI_DATA_TRIGGER_SHIFT		15
-+#define  MSI_DATA_TRIGGER_EDGE		(0 << MSI_DATA_TRIGGER_SHIFT)
-+#define  MSI_DATA_TRIGGER_LEVEL		(1 << MSI_DATA_TRIGGER_SHIFT)
-+
-+/*
-+ * Shift/mask fields for msi address
-+ */
-+
-+#define MSI_ADDR_BASE_HI		0
-+#define MSI_ADDR_BASE_LO		0xfee00000
-+
-+#define MSI_ADDR_DEST_MODE_SHIFT	2
-+#define  MSI_ADDR_DEST_MODE_PHYSICAL	(0 << MSI_ADDR_DEST_MODE_SHIFT)
-+#define	 MSI_ADDR_DEST_MODE_LOGICAL	(1 << MSI_ADDR_DEST_MODE_SHIFT)
++	if (irq >= NR_IRQS) {
++		printk(KERN_ERR "Trying to cleanup invalid IRQ%d\n", irq);
++		WARN_ON(1);
++		return;
++	}
 +	
-+#define MSI_ADDR_REDIRECTION_SHIFT	3
-+#define  MSI_ADDR_REDIRECTION_CPU	(0 << MSI_ADDR_REDIRECTION_SHIFT) /* dedicated cpu */
-+#define  MSI_ADDR_REDIRECTION_LOWPRI	(1 << MSI_ADDR_REDIRECTION_SHIFT) /* lowest priority */
++	desc = irq_desc + irq;
++	spin_lock_irqsave(&desc->lock, flags);
++	desc->handle_irq = handle_bad_irq;
++	desc->chip = &no_irq_chip;
++	spin_unlock_irqrestore(&desc->lock, flags);
++}
 +
-+#define MSI_ADDR_DEST_ID_SHIFT		12
-+#define	 MSI_ADDR_DEST_ID_MASK		0x00ffff0
-+#define  MSI_ADDR_DEST_ID(dest)		(((dest) << MSI_ADDR_DEST_ID_SHIFT) & MSI_ADDR_DEST_ID_MASK)
 +
-+#endif /* ASM_MSIDEF_H */
++/**
+  *	set_irq_chip - set the irq chip for an irq
+  *	@irq:	irq number
+  *	@chip:	pointer to irq chip description structure
 -- 
 1.4.0.gc07e
