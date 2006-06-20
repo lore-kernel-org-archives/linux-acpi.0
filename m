@@ -1,484 +1,373 @@
 From: "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: [PATCH 18/25] i386 irq: Remove the msi assumption that irq == vector
-Date: Tue, 20 Jun 2006 16:28:31 -0600
-Message-ID: <115084252460-git-send-email-ebiederm@xmission.com>
-References: <m1ac87ea8s.fsf@ebiederm.dsl.xmission.com> <11508425183073-git-send-email-ebiederm@xmission.com> <11508425191381-git-send-email-ebiederm@xmission.com> <11508425192220-git-send-email-ebiederm@xmission.com> <11508425191063-git-send-email-ebiederm@xmission.com> <1150842520235-git-send-email-ebiederm@xmission.com> <11508425201406-git-send-email-ebiederm@xmission.com> <1150842520775-git-send-email-ebiederm@xmission.com> <11508425213394-git-send-email-ebiederm@xmission.com> <115084252131-git-send-email-ebiederm@xmission.com> <11508425213795-git-send-email-ebiederm@xmission.com> <11508425222427-git-send-email-ebiederm@xmission.com> <11508425221394-git-send-email-ebiederm@xmission.com> <11508425223015-git-send-email-ebiederm@xmission.com> <1150842523493-git-send-email-ebiederm@xmission.com> <11508425231168-git-send-email-ebiederm@xmission.com> <1150842524863-git-send-email-ebiederm@x
- mission.com> <1150842524755-git-send-email-ebiederm@xmission.com>
+Subject: [PATCH 6/25] msi: Implement helper functions read_msi_msg and write_msi_msg.
+Date: Tue, 20 Jun 2006 16:28:19 -0600
+Message-ID: <11508425201406-git-send-email-ebiederm@xmission.com>
+References: <m1ac87ea8s.fsf@ebiederm.dsl.xmission.com> <11508425183073-git-send-email-ebiederm@xmission.com> <11508425191381-git-send-email-ebiederm@xmission.com> <11508425192220-git-send-email-ebiederm@xmission.com> <11508425191063-git-send-email-ebiederm@xmission.com> <1150842520235-git-send-email-ebiederm@xmission.com>
 Reply-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751336AbWFTWcM@vger.kernel.org>
-In-Reply-To: <1150842524755-git-send-email-ebiederm@xmission.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751380AbWFTWbi@vger.kernel.org>
+In-Reply-To: <1150842520235-git-send-email-ebiederm@xmission.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Andrew Morton <akpm@osdl.org>
 Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, discuss@x86-64.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Andi Kleen <ak@suse.de>, Natalie Protasevich <Natalie.Protasevich@UNISYS.com>, Len Brown <len.brown@intel.com>, Kimball Murray <kimball.murray@gmail.com>, Brice Goglin <brice@myri.com>, Greg Lindahl <greg.lindahl@qlogic.com>, Dave Olson <olson@unixfolk.com>, Jeff Garzik <jeff@garzik.org>, Greg KH <gregkh@suse.de>, Grant Grundler <iod00d@hp.com>, "bibo,mao" <bibo.mao@intel.com>, Rajesh Shah <rajesh.shah@intel.com>, Mark Maule <maule@sgi.com>, Jesper Juhl <jesper.juhl@gmail.com>, Shaohua Li <shaohua.li@intel.com>, Matthew Wilcox <matthew@wil.cx>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Ashok Raj <ashok.raj@intel.com>, Randy Dunlap <rdunlap@xenotime.net>Roland Dreier <rd>
 List-Id: linux-acpi@vger.kernel.org
 
-This patch removes the change in behavior of the irq allocation
-code when CONFIG_PCI_MSI is defined.  Removing all instances
-of the assumption that irq == vector.
+In support of this I also add a struct msi_msg that captures
+the the two address and one data field ina typical msi message,
+and I remember the pos and if the address is 64bit in
+struct msi_desc.
 
-create_irq is rewritten to first allocate a free irq and then to
-assign that irq a vector.
-
-assign_irq_vector is made static and the AUTO_ASSIGN case which
-allocates an vector not bound to an irq is removed.
-
-The ioapic vector methods are removed, and everything now
-works with irqs.
-
-The definition of NR_IRQS no longer depends on CONFIG_PCI_MSI
+This makes the code a little more readable and easier to maintain,
+and paves the way to further simplfications.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 ---
- arch/i386/kernel/acpi/boot.c                       |    7 -
- arch/i386/kernel/io_apic.c                         |  171 +++++---------------
- arch/i386/pci/irq.c                                |    4 
- include/asm-i386/hw_irq.h                          |    1 
- include/asm-i386/io_apic.h                         |   42 -----
- include/asm-i386/mach-default/irq_vectors_limits.h |    5 -
- include/asm-x86_64/io_apic.h                       |    2 
- 7 files changed, 47 insertions(+), 185 deletions(-)
+ drivers/pci/msi.c   |  195 +++++++++++++++++++++++++--------------------------
+ drivers/pci/msi.h   |    9 +-
+ include/linux/pci.h |    6 ++
+ 3 files changed, 104 insertions(+), 106 deletions(-)
 
-diff --git a/arch/i386/kernel/acpi/boot.c b/arch/i386/kernel/acpi/boot.c
-index 107018b..6e7edc0 100644
---- a/arch/i386/kernel/acpi/boot.c
-+++ b/arch/i386/kernel/acpi/boot.c
-@@ -459,12 +459,7 @@ void __init acpi_pic_sci_set_trigger(uns
- 
- int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
- {
--#ifdef CONFIG_X86_IO_APIC
--	if (use_pci_vector() && !platform_legacy_irq(gsi))
--		*irq = IO_APIC_VECTOR(gsi);
--	else
--#endif
--		*irq = gsi_irq_sharing(gsi);
-+	*irq = gsi_irq_sharing(gsi);
- 	return 0;
+diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
+index c1c93f0..e9db6c5 100644
+--- a/drivers/pci/msi.c
++++ b/drivers/pci/msi.c
+@@ -94,63 +94,100 @@ static void msi_set_mask_bit(unsigned in
+ 	}
  }
  
-diff --git a/arch/i386/kernel/io_apic.c b/arch/i386/kernel/io_apic.c
-index 68af125..18a5c2a 100644
---- a/arch/i386/kernel/io_apic.c
-+++ b/arch/i386/kernel/io_apic.c
-@@ -89,14 +89,6 @@ static struct irq_pin_list {
- 	int apic, pin, next;
- } irq_2_pin[PIN_MAP_SIZE];
- 
--int vector_irq[NR_VECTORS] __read_mostly = { [0 ... NR_VECTORS - 1] = -1};
--#ifdef CONFIG_PCI_MSI
--#define vector_to_irq(vector) 	\
--	(platform_legacy_irq(vector) ? vector : vector_irq[vector])
--#else
--#define vector_to_irq(vector)	(vector)
--#endif
--
- /*
-  * The common case is 1:1 IRQ<->pin mappings. Sometimes there are
-  * shared ISA-space IRQs, so we have to support them. We are super
-@@ -262,7 +254,7 @@ static void set_ioapic_affinity_irq(unsi
- 			break;
- 		entry = irq_2_pin + entry->next;
- 	}
--	set_irq_info(irq, cpumask);
-+	set_native_irq_info(irq, cpumask);
- 	spin_unlock_irqrestore(&ioapic_lock, flags);
- }
- 
-@@ -1163,18 +1155,14 @@ static inline int IO_APIC_irq_trigger(in
- /* irq_vectors is indexed by the sum of all RTEs in all I/O APICs. */
- u8 irq_vector[NR_IRQ_VECTORS] __read_mostly = { FIRST_DEVICE_VECTOR , 0 };
- 
--int assign_irq_vector(int irq)
-+static int __assign_irq_vector(int irq)
+-#ifdef CONFIG_SMP
+-static void set_msi_affinity(unsigned int vector, cpumask_t cpu_mask)
++static void read_msi_msg(struct msi_desc *entry, struct msi_msg *msg)
  {
- 	static int current_vector = FIRST_DEVICE_VECTOR, offset = 0;
--	unsigned long flags;
- 	int vector;
- 
--	BUG_ON(irq != AUTO_ASSIGN && (unsigned)irq >= NR_IRQ_VECTORS);
+-	struct msi_desc *entry;
+-	u32 address_hi, address_lo;
+-	unsigned int irq = vector;
+-	unsigned int dest_cpu = first_cpu(cpu_mask);
 -
--	spin_lock_irqsave(&vector_lock, flags);
-+	BUG_ON((unsigned)irq >= NR_IRQ_VECTORS);
- 
--	if (irq != AUTO_ASSIGN && IO_APIC_VECTOR(irq) > 0) {
--		spin_unlock_irqrestore(&vector_lock, flags);
-+	if (IO_APIC_VECTOR(irq) > 0) {
- 		return IO_APIC_VECTOR(irq);
- 	}
- next:
-@@ -1192,15 +1180,22 @@ next:
- 	}
- 
- 	vector = current_vector;
--	vector_irq[vector] = irq;
--	if (irq != AUTO_ASSIGN)
--		IO_APIC_VECTOR(irq) = vector;
-+	IO_APIC_VECTOR(irq) = vector;
- 
-+	return vector;
-+}
+-	entry = (struct msi_desc *)msi_desc[vector];
+-	if (!entry || !entry->dev)
+-		return;
++	switch(entry->msi_attrib.type) {
++	case PCI_CAP_ID_MSI:
++	{
++		struct pci_dev *dev = entry->dev;
++		int pos = entry->msi_attrib.pos;
++		u16 data;
 +
-+static int assign_irq_vector(int irq)
-+{
-+	unsigned long flags;
-+	int vector;
-+
-+	spin_lock_irqsave(&vector_lock, flags);
-+	vector = __assign_irq_vector(irq);
- 	spin_unlock_irqrestore(&vector_lock, flags);
- 
- 	return vector;
- }
--
- static struct irq_chip ioapic_chip;
- 
- #define IOAPIC_AUTO	-1
-@@ -1209,18 +1204,14 @@ #define IOAPIC_LEVEL	1
- 
- static void ioapic_register_intr(int irq, int vector, unsigned long trigger)
- {
--	unsigned idx;
--
--	idx = use_pci_vector() && !platform_legacy_irq(irq) ? vector : irq;
--
- 	if ((trigger == IOAPIC_AUTO && IO_APIC_irq_trigger(irq)) ||
- 			trigger == IOAPIC_LEVEL)
--		set_irq_chip_and_handler(idx, &ioapic_chip,
-+		set_irq_chip_and_handler(irq, &ioapic_chip,
- 					 handle_fasteoi_irq);
- 	else
--		set_irq_chip_and_handler(idx, &ioapic_chip,
-+		set_irq_chip_and_handler(irq, &ioapic_chip,
- 					 handle_edge_irq);
--	set_intr_gate(vector, interrupt[idx]);
-+	set_intr_gate(vector, interrupt[irq]);
- }
- 
- static void __init setup_IO_APIC_irqs(void)
-@@ -1473,17 +1464,12 @@ void __init print_IO_APIC(void)
- 		);
- 	}
- 	}
--	if (use_pci_vector())
--		printk(KERN_INFO "Using vector-based indexing\n");
- 	printk(KERN_DEBUG "IRQ to pin mappings:\n");
- 	for (i = 0; i < NR_IRQS; i++) {
- 		struct irq_pin_list *entry = irq_2_pin + i;
- 		if (entry->pin < 0)
- 			continue;
-- 		if (use_pci_vector() && !platform_legacy_irq(i))
--			printk(KERN_DEBUG "IRQ%d ", IO_APIC_VECTOR(i));
--		else
--			printk(KERN_DEBUG "IRQ%d ", i);
-+		printk(KERN_DEBUG "IRQ%d ", i);
- 		for (;;) {
- 			printk("-> %d:%d", entry->apic, entry->pin);
- 			if (!entry->next)
-@@ -1950,7 +1936,7 @@ static unsigned int startup_ioapic_irq(u
- 
- static void ack_ioapic_irq(unsigned int irq)
- {
--	move_irq(irq);
-+	move_native_irq(irq);
- 	ack_APIC_irq();
- }
- 
-@@ -1959,7 +1945,7 @@ static void ack_ioapic_quirk_irq(unsigne
- 	unsigned long v;
- 	int i;
- 
--	move_irq(irq);
-+	move_native_irq(irq);
- /*
-  * It appears there is an erratum which affects at least version 0x11
-  * of I/O APIC (that's the 82093AA and cores integrated into various
-@@ -1994,63 +1980,8 @@ static void ack_ioapic_quirk_irq(unsigne
- 	}
- }
- 
--static unsigned int startup_ioapic_vector(unsigned int vector)
--{
--	int irq = vector_to_irq(vector);
--
--	return startup_ioapic_irq(irq);
--}
--
--static void ack_ioapic_vector(unsigned int vector)
--{
--	int irq = vector_to_irq(vector);
--
--	move_native_irq(vector);
--	ack_ioapic_irq(irq);
--}
--
--static void ack_ioapic_quirk_vector(unsigned int vector)
--{
--	int irq = vector_to_irq(vector);
--
--	move_native_irq(vector);
--	ack_ioapic_quirk_irq(irq);
--}
--
--static void mask_IO_APIC_vector (unsigned int vector)
--{
--	int irq = vector_to_irq(vector);
--
--	mask_IO_APIC_irq(irq);
--}
--
--static void unmask_IO_APIC_vector (unsigned int vector)
-+static int ioapic_retrigger_irq(unsigned int irq)
- {
--	int irq = vector_to_irq(vector);
--
--	unmask_IO_APIC_irq(irq);
--}
--
--/*
-- * Oh just glorious.  If CONFIG_PCI_MSI we've done
-- * #define set_ioapic_affinity set_ioapic_affinity_vector
-- */
--#if defined (CONFIG_SMP) && defined(CONFIG_X86_IO_APIC) && \
--		defined(CONFIG_PCI_MSI)
--static void set_ioapic_affinity_vector (unsigned int vector,
--					cpumask_t cpu_mask)
--{
--	int irq = vector_to_irq(vector);
--
--	set_native_irq_info(vector, cpu_mask);
--	set_ioapic_affinity_irq(irq, cpu_mask);
--}
--#endif
--
--static int ioapic_retrigger_vector(unsigned int vector)
--{
--	int irq = vector_to_irq(vector);
--
- 	send_IPI_self(IO_APIC_VECTOR(irq));
- 
- 	return 1;
-@@ -2058,15 +1989,15 @@ static int ioapic_retrigger_vector(unsig
- 
- static struct irq_chip ioapic_chip __read_mostly = {
- 	.name 		= "IO-APIC",
--	.startup 	= startup_ioapic_vector,
--	.mask	 	= mask_IO_APIC_vector,
--	.unmask	 	= unmask_IO_APIC_vector,
--	.ack 		= ack_ioapic_vector,
--	.eoi 		= ack_ioapic_quirk_vector,
-+	.startup 	= startup_ioapic_irq,
-+	.mask	 	= mask_IO_APIC_irq,
-+	.unmask	 	= unmask_IO_APIC_irq,
-+	.ack 		= ack_ioapic_irq,
-+	.eoi 		= ack_ioapic_quirk_irq,
- #ifdef CONFIG_SMP
--	.set_affinity 	= set_ioapic_affinity,
-+	.set_affinity 	= set_ioapic_affinity_irq,
- #endif
--	.retrigger	= ioapic_retrigger_vector,
-+	.retrigger	= ioapic_retrigger_irq,
- };
- 
- 
-@@ -2087,11 +2018,6 @@ static inline void init_IO_APIC_traps(vo
- 	 */
- 	for (irq = 0; irq < NR_IRQS ; irq++) {
- 		int tmp = irq;
--		if (use_pci_vector()) {
--			if (!platform_legacy_irq(tmp))
--				if ((tmp = vector_to_irq(tmp)) == -1)
--					continue;
--		}
- 		if (IO_APIC_IRQ(tmp) && !IO_APIC_VECTOR(tmp)) {
- 			/*
- 			 * Hmm.. We don't have an entry for this,
-@@ -2505,28 +2431,26 @@ #ifdef CONFIG_PCI_MSI
-  */
- int create_irq(void)
- {
--	/* Hack of the day: irq == vector.
--	 *
--	 * Ultimately this will be be more general,
--	 * and not depend on the irq to vector identity mapping.
--	 * But this version is needed until msi.c can cope with
--	 * the more general form.
--	 */
--	int irq, vector;
-+	/* Allocate an unused irq */
-+	int irq, new, vector;
- 	unsigned long flags;
--	vector = assign_irq_vector(AUTO_ASSIGN);
--	irq = vector;
- 
--	if (vector >= 0) {
--		struct irq_desc *desc;
-+	irq = -ENOSPC;
-+	spin_lock_irqsave(&vector_lock, flags);
-+	for (new = (NR_IRQS - 1); new >= 0; new--) {
-+		if (platform_legacy_irq(new))
-+			continue;
-+		if (irq_vector[new] != 0)
-+			continue;
-+		vector = __assign_irq_vector(new);
-+		if (likely(vector > 0))
-+			irq = new;
++		pci_read_config_dword(dev, msi_lower_address_reg(pos),
++					&msg->address_lo);
++		if (entry->msi_attrib.is_64) {
++			pci_read_config_dword(dev, msi_upper_address_reg(pos),
++						&msg->address_hi);
++			pci_read_config_word(dev, msi_data_reg(pos, 1), &data);
++		} else {
++			msg->address_hi = 0;
++			pci_read_config_word(dev, msi_data_reg(pos, 1), &data);
++		}
++		msg->data = data;
 +		break;
 +	}
-+	spin_unlock_irqrestore(&vector_lock, flags);
++	case PCI_CAP_ID_MSIX:
++	{
++		void __iomem *base;
++		base = entry->mask_base + 
++			entry->msi_attrib.entry_nr * PCI_MSIX_ENTRY_SIZE;
++ 
++		msg->address_lo = readl(base + PCI_MSIX_ENTRY_LOWER_ADDR_OFFSET);
++		msg->address_hi = readl(base + PCI_MSIX_ENTRY_UPPER_ADDR_OFFSET);
++		msg->data = readl(base + PCI_MSIX_ENTRY_DATA_OFFSET);
++ 		break;
++ 	}
++ 	default:
++		BUG();
++	}
++}
  
--		spin_lock_irqsave(&vector_lock, flags);
--		vector_irq[vector] = irq;
--		irq_vector[irq] = vector;
--		spin_unlock_irqrestore(&vector_lock, flags);
--		
-+	if (irq >= 0) {
- 		set_intr_gate(vector, interrupt[irq]);
++static void write_msi_msg(struct msi_desc *entry, struct msi_msg *msg)
++{
+ 	switch (entry->msi_attrib.type) {
+ 	case PCI_CAP_ID_MSI:
+ 	{
+-		int pos = pci_find_capability(entry->dev, PCI_CAP_ID_MSI);
 -
- 		dynamic_irq_init(irq);
+-		if (!pos)
+-			return;
+-
+-		pci_read_config_dword(entry->dev, msi_upper_address_reg(pos),
+-			&address_hi);
+-		pci_read_config_dword(entry->dev, msi_lower_address_reg(pos),
+-			&address_lo);
+-
+-		msi_ops->target(vector, dest_cpu, &address_hi, &address_lo);
+-
+-		pci_write_config_dword(entry->dev, msi_upper_address_reg(pos),
+-			address_hi);
+-		pci_write_config_dword(entry->dev, msi_lower_address_reg(pos),
+-			address_lo);
+-		set_native_irq_info(irq, cpu_mask);
++		struct pci_dev *dev = entry->dev;
++		int pos = entry->msi_attrib.pos;
++
++		pci_write_config_dword(dev, msi_lower_address_reg(pos), 
++					msg->address_lo);
++		if (entry->msi_attrib.is_64) {
++			pci_write_config_dword(dev, msi_upper_address_reg(pos), 
++						msg->address_hi);
++			pci_write_config_word(dev, msi_data_reg(pos, 1), 
++						msg->data);
++		} else {
++			pci_write_config_word(dev, msi_data_reg(pos, 0), 
++						msg->data);
++		}
+ 		break;
  	}
- 	return irq;
-@@ -2535,13 +2459,10 @@ int create_irq(void)
- void destroy_irq(unsigned int irq)
- {
- 	unsigned long flags;
--	unsigned int vector;
- 
- 	dynmic_irq_cleanup(irq);
- 
- 	spin_lock_irqsave(&vector_lock, flags);
--	vector = irq_vector[irq];
--	vector_irq[vector] = -1;
- 	irq_vector[irq] = 0;
- 	spin_unlock_irqrestore(&vector_lock, flags);
+ 	case PCI_CAP_ID_MSIX:
+ 	{
+-		int offset_hi =
+-			entry->msi_attrib.entry_nr * PCI_MSIX_ENTRY_SIZE +
+-				PCI_MSIX_ENTRY_UPPER_ADDR_OFFSET;
+-		int offset_lo =
+-			entry->msi_attrib.entry_nr * PCI_MSIX_ENTRY_SIZE +
+-				PCI_MSIX_ENTRY_LOWER_ADDR_OFFSET;
+-
+-		address_hi = readl(entry->mask_base + offset_hi);
+-		address_lo = readl(entry->mask_base + offset_lo);
+-
+-		msi_ops->target(vector, dest_cpu, &address_hi, &address_lo);
+-
+-		writel(address_hi, entry->mask_base + offset_hi);
+-		writel(address_lo, entry->mask_base + offset_lo);
+-		set_native_irq_info(irq, cpu_mask);
++		void __iomem *base;
++		base = entry->mask_base + 
++			entry->msi_attrib.entry_nr * PCI_MSIX_ENTRY_SIZE;
++
++		writel(msg->address_lo,
++			base + PCI_MSIX_ENTRY_LOWER_ADDR_OFFSET);
++		writel(msg->address_hi,
++			base + PCI_MSIX_ENTRY_UPPER_ADDR_OFFSET);
++		writel(msg->data, base + PCI_MSIX_ENTRY_DATA_OFFSET);
+ 		break;
+ 	}
+ 	default:
+-		break;
++		BUG();
+ 	}
  }
-@@ -2769,7 +2690,7 @@ int io_apic_set_pci_routing (int ioapic,
- 	spin_lock_irqsave(&ioapic_lock, flags);
- 	io_apic_write(ioapic, 0x11+2*pin, *(((int *)&entry)+1));
- 	io_apic_write(ioapic, 0x10+2*pin, *(((int *)&entry)+0));
--	set_native_irq_info(use_pci_vector() ? entry.vector : irq, TARGET_CPUS);
-+	set_native_irq_info(irq, TARGET_CPUS);
- 	spin_unlock_irqrestore(&ioapic_lock, flags);
++
++#ifdef CONFIG_SMP
++static void set_msi_affinity(unsigned int vector, cpumask_t cpu_mask)
++{
++	struct msi_desc *entry;
++	struct msi_msg msg;
++	unsigned int irq = vector;
++	unsigned int dest_cpu = first_cpu(cpu_mask);
++
++	entry = (struct msi_desc *)msi_desc[vector];
++	if (!entry || !entry->dev)
++		return;
++
++	read_msi_msg(entry, &msg);
++	msi_ops->target(vector, dest_cpu, &msg.address_hi, &msg.address_lo);
++	write_msi_msg(entry, &msg);
++	set_native_irq_info(irq, cpu_mask);
++}
+ #else
+ #define set_msi_affinity NULL
+ #endif /* CONFIG_SMP */
+@@ -614,23 +651,10 @@ int pci_save_msix_state(struct pci_dev *
  
- 	return 0;
-diff --git a/arch/i386/pci/irq.c b/arch/i386/pci/irq.c
-index 768584d..54a72ca 100644
---- a/arch/i386/pci/irq.c
-+++ b/arch/i386/pci/irq.c
-@@ -982,10 +982,6 @@ #ifdef CONFIG_X86_IO_APIC
- 							pci_name(bridge), 'A' + pin, irq);
- 				}
- 				if (irq >= 0) {
--					if (use_pci_vector() &&
--						!platform_legacy_irq(irq))
--						irq = IO_APIC_VECTOR(irq);
+ 	vector = head = dev->irq;
+ 	while (head != tail) {
+-		int j;
+-		void __iomem *base;
+ 		struct msi_desc *entry;
+ 
+ 		entry = msi_desc[vector];
+-		base = entry->mask_base;
+-		j = entry->msi_attrib.entry_nr;
 -
- 					printk(KERN_INFO "PCI->APIC IRQ transform: %s[%c] -> IRQ %d\n",
- 						pci_name(dev), 'A' + pin, irq);
- 					dev->irq = irq;
-diff --git a/include/asm-i386/hw_irq.h b/include/asm-i386/hw_irq.h
-index 00988e8..5a72436 100644
---- a/include/asm-i386/hw_irq.h
-+++ b/include/asm-i386/hw_irq.h
-@@ -26,7 +26,6 @@ #include <asm/sections.h>
+-		entry->address_lo_save =
+-			readl(base + j * PCI_MSIX_ENTRY_SIZE +
+-			      PCI_MSIX_ENTRY_LOWER_ADDR_OFFSET);
+-		entry->address_hi_save =
+-			readl(base + j * PCI_MSIX_ENTRY_SIZE +
+-			      PCI_MSIX_ENTRY_UPPER_ADDR_OFFSET);
+-		entry->data_save =
+-			readl(base + j * PCI_MSIX_ENTRY_SIZE +
+-			      PCI_MSIX_ENTRY_DATA_OFFSET);
++		read_msi_msg(entry, &entry->msg_save);
  
- extern u8 irq_vector[NR_IRQ_VECTORS];
- #define IO_APIC_VECTOR(irq)	(irq_vector[irq])
--#define AUTO_ASSIGN		-1
- 
- extern void (*interrupt[NR_IRQS])(void);
- 
-diff --git a/include/asm-i386/io_apic.h b/include/asm-i386/io_apic.h
-index 5092e81..3909524 100644
---- a/include/asm-i386/io_apic.h
-+++ b/include/asm-i386/io_apic.h
-@@ -12,46 +12,6 @@ #include <asm/mpspec.h>
- 
- #ifdef CONFIG_X86_IO_APIC
- 
--#ifdef CONFIG_PCI_MSI
--static inline int use_pci_vector(void)	{return 1;}
--static inline void disable_edge_ioapic_vector(unsigned int vector) { }
--static inline void mask_and_ack_level_ioapic_vector(unsigned int vector) { }
--static inline void end_edge_ioapic_vector (unsigned int vector) { }
--#define startup_level_ioapic	startup_level_ioapic_vector
--#define shutdown_level_ioapic	mask_IO_APIC_vector
--#define enable_level_ioapic	unmask_IO_APIC_vector
--#define disable_level_ioapic	mask_IO_APIC_vector
--#define mask_and_ack_level_ioapic mask_and_ack_level_ioapic_vector
--#define end_level_ioapic	end_level_ioapic_vector
--#define set_ioapic_affinity	set_ioapic_affinity_vector
+ 		tail = msi_desc[vector]->link.tail;
+ 		vector = tail;
+@@ -647,8 +671,6 @@ void pci_restore_msix_state(struct pci_d
+ 	u16 save;
+ 	int pos;
+ 	int vector, head, tail = 0;
+-	void __iomem *base;
+-	int j;
+ 	struct msi_desc *entry;
+ 	int temp;
+ 	struct pci_cap_saved_state *save_state;
+@@ -671,18 +693,7 @@ void pci_restore_msix_state(struct pci_d
+ 	vector = head = dev->irq;
+ 	while (head != tail) {
+ 		entry = msi_desc[vector];
+-		base = entry->mask_base;
+-		j = entry->msi_attrib.entry_nr;
 -
--#define startup_edge_ioapic 	startup_edge_ioapic_vector
--#define shutdown_edge_ioapic 	disable_edge_ioapic_vector
--#define enable_edge_ioapic 	unmask_IO_APIC_vector
--#define disable_edge_ioapic 	disable_edge_ioapic_vector
--#define ack_edge_ioapic 	ack_edge_ioapic_vector
--#define end_edge_ioapic 	end_edge_ioapic_vector
--#else
--static inline int use_pci_vector(void)	{return 0;}
--static inline void disable_edge_ioapic_irq(unsigned int irq) { }
--static inline void mask_and_ack_level_ioapic_irq(unsigned int irq) { }
--static inline void end_edge_ioapic_irq (unsigned int irq) { }
--#define startup_level_ioapic	startup_level_ioapic_irq
--#define shutdown_level_ioapic	mask_IO_APIC_irq
--#define enable_level_ioapic	unmask_IO_APIC_irq
--#define disable_level_ioapic	mask_IO_APIC_irq
--#define mask_and_ack_level_ioapic mask_and_ack_level_ioapic_irq
--#define end_level_ioapic	end_level_ioapic_irq
--#define set_ioapic_affinity	set_ioapic_affinity_irq
+-		writel(entry->address_lo_save,
+-			base + j * PCI_MSIX_ENTRY_SIZE +
+-			PCI_MSIX_ENTRY_LOWER_ADDR_OFFSET);
+-		writel(entry->address_hi_save,
+-			base + j * PCI_MSIX_ENTRY_SIZE +
+-			PCI_MSIX_ENTRY_UPPER_ADDR_OFFSET);
+-		writel(entry->data_save,
+-			base + j * PCI_MSIX_ENTRY_SIZE +
+-			PCI_MSIX_ENTRY_DATA_OFFSET);
++		write_msi_msg(entry, &entry->msg_save);
+ 
+ 		tail = msi_desc[vector]->link.tail;
+ 		vector = tail;
+@@ -697,29 +708,19 @@ #endif
+ static int msi_register_init(struct pci_dev *dev, struct msi_desc *entry)
+ {
+ 	int status;
+-	u32 address_hi;
+-	u32 address_lo;
+-	u32 data;
++	struct msi_msg msg;
+ 	int pos, vector = dev->irq;
+ 	u16 control;
+ 
+-   	pos = pci_find_capability(dev, PCI_CAP_ID_MSI);
++	pos = entry->msi_attrib.pos;
+ 	pci_read_config_word(dev, msi_control_reg(pos), &control);
+ 
+ 	/* Configure MSI capability structure */
+-	status = msi_ops->setup(dev, vector, &address_hi, &address_lo, &data);
++	status = msi_ops->setup(dev, vector, &msg.address_hi, &msg.address_lo, &msg.data);
+ 	if (status < 0)
+ 		return status;
+ 
+-	pci_write_config_dword(dev, msi_lower_address_reg(pos), address_lo);
+-	if (is_64bit_address(control)) {
+-		pci_write_config_dword(dev,
+-			msi_upper_address_reg(pos), address_hi);
+-		pci_write_config_word(dev,
+-			msi_data_reg(pos, 1), data);
+-	} else
+-		pci_write_config_word(dev,
+-			msi_data_reg(pos, 0), data);
++	write_msi_msg(entry, &msg);
+ 	if (entry->msi_attrib.maskbit) {
+ 		unsigned int maskbits, temp;
+ 		/* All MSIs are unmasked by default, Mask them all */
+@@ -769,9 +770,11 @@ static int msi_capability_init(struct pc
+ 	entry->link.tail = vector;
+ 	entry->msi_attrib.type = PCI_CAP_ID_MSI;
+ 	entry->msi_attrib.state = 0;			/* Mark it not active */
++	entry->msi_attrib.is_64 = is_64bit_address(control);
+ 	entry->msi_attrib.entry_nr = 0;
+ 	entry->msi_attrib.maskbit = is_mask_bit_support(control);
+ 	entry->msi_attrib.default_vector = dev->irq;	/* Save IOAPIC IRQ */
++	entry->msi_attrib.pos = pos;
+ 	dev->irq = vector;
+ 	entry->dev = dev;
+ 	if (is_mask_bit_support(control)) {
+@@ -809,9 +812,7 @@ static int msix_capability_init(struct p
+ 				struct msix_entry *entries, int nvec)
+ {
+ 	struct msi_desc *head = NULL, *tail = NULL, *entry = NULL;
+-	u32 address_hi;
+-	u32 address_lo;
+-	u32 data;
++	struct msi_msg msg;
+ 	int status;
+ 	int vector, pos, i, j, nr_entries, temp = 0;
+ 	unsigned long phys_addr;
+@@ -848,9 +849,11 @@ static int msix_capability_init(struct p
+  		entries[i].vector = vector;
+ 		entry->msi_attrib.type = PCI_CAP_ID_MSIX;
+  		entry->msi_attrib.state = 0;		/* Mark it not active */
++		entry->msi_attrib.is_64 = 1;
+ 		entry->msi_attrib.entry_nr = j;
+ 		entry->msi_attrib.maskbit = 1;
+ 		entry->msi_attrib.default_vector = dev->irq;
++		entry->msi_attrib.pos = pos;
+ 		entry->dev = dev;
+ 		entry->mask_base = base;
+ 		if (!head) {
+@@ -869,21 +872,13 @@ static int msix_capability_init(struct p
+ 		irq_handler_init(PCI_CAP_ID_MSIX, vector, 1);
+ 		/* Configure MSI-X capability structure */
+ 		status = msi_ops->setup(dev, vector,
+-					&address_hi,
+-					&address_lo,
+-					&data);
++					&msg.address_hi,
++					&msg.address_lo,
++					&msg.data);
+ 		if (status < 0)
+ 			break;
+ 
+-		writel(address_lo,
+-			base + j * PCI_MSIX_ENTRY_SIZE +
+-			PCI_MSIX_ENTRY_LOWER_ADDR_OFFSET);
+-		writel(address_hi,
+-			base + j * PCI_MSIX_ENTRY_SIZE +
+-			PCI_MSIX_ENTRY_UPPER_ADDR_OFFSET);
+-		writel(data,
+-			base + j * PCI_MSIX_ENTRY_SIZE +
+-			PCI_MSIX_ENTRY_DATA_OFFSET);
++		write_msi_msg(entry, &msg);
+ 		attach_msi_entry(entry, vector);
+ 	}
+ 	if (i != nvec) {
+diff --git a/drivers/pci/msi.h b/drivers/pci/msi.h
+index 9b31d4c..62f61b6 100644
+--- a/drivers/pci/msi.h
++++ b/drivers/pci/msi.h
+@@ -130,10 +130,10 @@ struct msi_desc {
+ 		__u8	type	: 5; 	/* {0: unused, 5h:MSI, 11h:MSI-X} */
+ 		__u8	maskbit	: 1; 	/* mask-pending bit supported ?   */
+ 		__u8	state	: 1; 	/* {0: free, 1: busy}		  */
+-		__u8	reserved: 1; 	/* reserved			  */
++		__u8	is_64	: 1;	/* Address size: 0=32bit 1=64bit  */
+ 		__u8	entry_nr;    	/* specific enabled entry 	  */
+ 		__u8	default_vector; /* default pre-assigned vector    */
+-		__u8	unused; 	/* formerly unused destination cpu*/
++		__u8	pos;	 	/* Location of the msi capability */
+ 	}msi_attrib;
+ 
+ 	struct {
+@@ -146,10 +146,7 @@ struct msi_desc {
+ 
+ #ifdef CONFIG_PM
+ 	/* PM save area for MSIX address/data */
 -
--#define startup_edge_ioapic 	startup_edge_ioapic_irq
--#define shutdown_edge_ioapic 	disable_edge_ioapic_irq
--#define enable_edge_ioapic 	unmask_IO_APIC_irq
--#define disable_edge_ioapic 	disable_edge_ioapic_irq
--#define ack_edge_ioapic 	ack_edge_ioapic_irq
--#define end_edge_ioapic 	end_edge_ioapic_irq
--#endif
--
- #define IO_APIC_BASE(idx) \
- 		((volatile int *)(__fix_to_virt(FIX_IO_APIC_BASE_0 + idx) \
- 		+ (mp_ioapics[idx].mpc_apicaddr & ~PAGE_MASK)))
-@@ -208,6 +168,4 @@ #else  /* !CONFIG_X86_IO_APIC */
- #define io_apic_assign_pci_irqs 0
+-	u32	address_hi_save;
+-	u32	address_lo_save;
+-	u32	data_save;
++	struct msi_msg msg_save;
  #endif
+ };
  
--extern int assign_irq_vector(int irq);
--
- #endif
-diff --git a/include/asm-i386/mach-default/irq_vectors_limits.h b/include/asm-i386/mach-default/irq_vectors_limits.h
-index b330026..7f161e7 100644
---- a/include/asm-i386/mach-default/irq_vectors_limits.h
-+++ b/include/asm-i386/mach-default/irq_vectors_limits.h
-@@ -1,10 +1,6 @@
- #ifndef _ASM_IRQ_VECTORS_LIMITS_H
- #define _ASM_IRQ_VECTORS_LIMITS_H
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index e36e3d5..c7be27b 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -591,6 +591,12 @@ struct msix_entry {
+ 	u16	entry;	/* driver uses to specify entry, OS writes */
+ };
  
--#ifdef CONFIG_PCI_MSI
--#define NR_IRQS FIRST_SYSTEM_VECTOR
--#define NR_IRQ_VECTORS NR_IRQS
--#else
- #ifdef CONFIG_X86_IO_APIC
- #define NR_IRQS 224
- # if (224 >= 32 * NR_CPUS)
-@@ -16,6 +12,5 @@ #else
- #define NR_IRQS 16
- #define NR_IRQ_VECTORS NR_IRQS
- #endif
--#endif
- 
- #endif /* _ASM_IRQ_VECTORS_LIMITS_H */
-diff --git a/include/asm-x86_64/io_apic.h b/include/asm-x86_64/io_apic.h
-index 2885bea..06806b1 100644
---- a/include/asm-x86_64/io_apic.h
-+++ b/include/asm-x86_64/io_apic.h
-@@ -12,8 +12,6 @@ #include <asm/mpspec.h>
- 
- #ifdef CONFIG_X86_IO_APIC
- 
--static inline int use_pci_vector(void)	{return 0;}
--
- #define APIC_MISMATCH_DEBUG
- 
- #define IO_APIC_BASE(idx) \
++struct msi_msg {
++	u32	address_lo;	/* low 32 bits of msi message address */
++	u32	address_hi;	/* high 32 bits of msi message address */
++	u32	data;		/* 16 bits of msi message data */
++};
++
+ #ifndef CONFIG_PCI_MSI
+ static inline void pci_scan_msi_device(struct pci_dev *dev) {}
+ static inline int pci_enable_msi(struct pci_dev *dev) {return -1;}
 -- 
 1.4.0.gc07e
