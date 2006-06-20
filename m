@@ -1,150 +1,201 @@
 From: "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: [PATCH 23/25] x86_64 irq: Kill gsi_irq_sharing.
-Date: Tue, 20 Jun 2006 16:28:36 -0600
-Message-ID: <11508425263761-git-send-email-ebiederm@xmission.com>
-References: <m1ac87ea8s.fsf@ebiederm.dsl.xmission.com> <11508425183073-git-send-email-ebiederm@xmission.com> <11508425191381-git-send-email-ebiederm@xmission.com> <11508425192220-git-send-email-ebiederm@xmission.com> <11508425191063-git-send-email-ebiederm@xmission.com> <1150842520235-git-send-email-ebiederm@xmission.com> <11508425201406-git-send-email-ebiederm@xmission.com> <1150842520775-git-send-email-ebiederm@xmission.com> <11508425213394-git-send-email-ebiederm@xmission.com> <115084252131-git-send-email-ebiederm@xmission.com> <11508425213795-git-send-email-ebiederm@xmission.com> <11508425222427-git-send-email-ebiederm@xmission.com> <11508425221394-git-send-email-ebiederm@xmission.com> <11508425223015-git-send-email-ebiederm@xmission.com> <1150842523493-git-send-email-ebiederm@xmission.com> <11508425231168-git-send-email-ebiederm@xmission.com> <1150842524863-git-send-email-ebiederm@x
- mission.com> <1150842524755-git-send-email-ebiederm@xmission.com> <115084252460-git-send-!
- email-ebiederm@xmission.com> <11508425251099-git-send-email-ebiederm@xmission.com> <11508425253581-git-send-email-ebiederm@xmission.com> <11508425254020-git-send-email-ebiederm@xmission.com> <11508425262259-git-send-email-ebiederm@xmission.com>
+Subject: [PATCH 15/25] i386 irq: Move msi message composition into io_apic.c
+Date: Tue, 20 Jun 2006 16:28:28 -0600
+Message-ID: <11508425231168-git-send-email-ebiederm@xmission.com>
+References: <m1ac87ea8s.fsf@ebiederm.dsl.xmission.com> <11508425183073-git-send-email-ebiederm@xmission.com> <11508425191381-git-send-email-ebiederm@xmission.com> <11508425192220-git-send-email-ebiederm@xmission.com> <11508425191063-git-send-email-ebiederm@xmission.com> <1150842520235-git-send-email-ebiederm@xmission.com> <11508425201406-git-send-email-ebiederm@xmission.com> <1150842520775-git-send-email-ebiederm@xmission.com> <11508425213394-git-send-email-ebiederm@xmission.com> <115084252131-git-send-email-ebiederm@xmission.com> <11508425213795-git-send-email-ebiederm@xmission.com> <11508425222427-git-send-email-ebiederm@xmission.com> <11508425221394-git-send-email-ebiederm@xmission.com> <11508425223015-git-send-email-ebiederm@xmission.com> <1150842523493-git-send-email-ebiederm@xmission.com>
 Reply-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751459AbWFTWhR@vger.kernel.org>
-In-Reply-To: <11508425262259-git-send-email-ebiederm@xmission.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751468AbWFTWhQ@vger.kernel.org>
+In-Reply-To: <1150842523493-git-send-email-ebiederm@xmission.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Andrew Morton <akpm@osdl.org>
 Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, discuss@x86-64.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Andi Kleen <ak@suse.de>, Natalie Protasevich <Natalie.Protasevich@UNISYS.com>, Len Brown <len.brown@intel.com>, Kimball Murray <kimball.murray@gmail.com>, Brice Goglin <brice@myri.com>, Greg Lindahl <greg.lindahl@qlogic.com>, Dave Olson <olson@unixfolk.com>, Jeff Garzik <jeff@garzik.org>, Greg KH <gregkh@suse.de>, Grant Grundler <iod00d@hp.com>, "bibo,mao" <bibo.mao@intel.com>, Rajesh Shah <rajesh.shah@intel.com>, Mark Maule <maule@sgi.com>, Jesper Juhl <jesper.juhl@gmail.com>, Shaohua Li <shaohua.li@intel.com>, Matthew Wilcox <matthew@wil.cx>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Ashok Raj <ashok.raj@intel.com>, Randy Dunlap <rdunlap@xenotime.net>Roland Dreier <rd>
 List-Id: linux-acpi@vger.kernel.org
 
-After raising the number of irqs the system supports this
-function is no longer necessary.
+This removes the hardcoded assumption that irq == vector in the
+msi composition code, and it allows the msi message composition
+to setup logical mode, or lowest priorirty delivery mode as we
+do for other apic interrupts, and with the same selection criteria.
+
+Basically this moves the problem of what is in the msi message into
+the architecture irq management code where it belongs.  Not in
+a generic layer that doesn't have enough information to compose
+msi messages properly.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 ---
- arch/i386/kernel/acpi/boot.c |    5 +--
- arch/x86_64/kernel/io_apic.c |   62 ------------------------------------------
- 2 files changed, 1 insertions(+), 66 deletions(-)
+ arch/i386/kernel/io_apic.c |   70 ++++++++++++++++++++++++++++++++++++++++++++
+ include/asm-i386/msi.h     |    7 +---
+ include/asm-i386/msidef.h  |   47 ++++++++++++++++++++++++++++++
+ 3 files changed, 119 insertions(+), 5 deletions(-)
 
-diff --git a/arch/i386/kernel/acpi/boot.c b/arch/i386/kernel/acpi/boot.c
-index 6e7edc0..74fd53c 100644
---- a/arch/i386/kernel/acpi/boot.c
-+++ b/arch/i386/kernel/acpi/boot.c
-@@ -42,7 +42,6 @@ #ifdef	CONFIG_X86_64
+diff --git a/arch/i386/kernel/io_apic.c b/arch/i386/kernel/io_apic.c
+index 04f78ff..68af125 100644
+--- a/arch/i386/kernel/io_apic.c
++++ b/arch/i386/kernel/io_apic.c
+@@ -32,6 +32,7 @@ #include <linux/compiler.h>
+ #include <linux/acpi.h>
+ #include <linux/module.h>
+ #include <linux/sysdev.h>
++#include <linux/pci.h>
  
- extern void __init clustered_apic_check(void);
+ #include <asm/io.h>
+ #include <asm/smp.h>
+@@ -39,6 +40,7 @@ #include <asm/desc.h>
+ #include <asm/timer.h>
+ #include <asm/i8259.h>
+ #include <asm/nmi.h>
++#include <asm/msidef.h>
  
--extern int gsi_irq_sharing(int gsi);
- #include <asm/proto.h>
+ #include <mach_apic.h>
+ #include <mach_apicdef.h>
+@@ -2545,6 +2547,74 @@ void destroy_irq(unsigned int irq)
+ }
+ #endif /* CONFIG_PCI_MSI */
  
- static inline int acpi_madt_oem_check(char *oem_id, char *oem_table_id) { return 0; }
-@@ -55,8 +54,6 @@ #include <mach_apic.h>
- #include <mach_mpparse.h>
- #endif				/* CONFIG_X86_LOCAL_APIC */
++/*
++ * MSI mesage composition
++ */
++#ifdef CONFIG_PCI_MSI
++static int msi_msg_setup(struct pci_dev *pdev, unsigned int irq, struct msi_msg *msg)
++{
++	/* For now always this code always uses physical delivery
++	 * mode.
++	 */
++	int vector;
++	unsigned dest;
++
++	vector = assign_irq_vector(irq);
++	if (vector >= 0) {
++		dest = cpu_mask_to_apicid(TARGET_CPUS);
++
++		msg->address_hi = MSI_ADDR_BASE_HI;
++		msg->address_lo =
++			MSI_ADDR_BASE_LO |
++			((INT_DEST_MODE == 0) ?
++				MSI_ADDR_DEST_MODE_PHYSICAL:
++				MSI_ADDR_DEST_MODE_LOGICAL) |
++			((INT_DELIVERY_MODE != dest_LowestPrio) ?
++				MSI_ADDR_REDIRECTION_CPU:
++				MSI_ADDR_REDIRECTION_LOWPRI) |
++			MSI_ADDR_DEST_ID(dest);
++
++		msg->data = 
++			MSI_DATA_TRIGGER_EDGE |	
++			MSI_DATA_LEVEL_ASSERT |
++			((INT_DELIVERY_MODE != dest_LowestPrio) ?
++				MSI_DATA_DELIVERY_FIXED:
++				MSI_DATA_DELIVERY_LOWPRI) |
++			MSI_DATA_VECTOR(vector); 
++	}
++	return vector;
++}
++
++static void msi_msg_teardown(unsigned int irq)
++{
++	return;
++}
++
++static void msi_msg_set_affinity(unsigned int irq, cpumask_t mask, struct msi_msg *msg)
++{
++	int vector;
++	unsigned dest;
++
++	vector = assign_irq_vector(irq);
++	if (vector > 0) {
++		dest = cpu_mask_to_apicid(mask);
++
++		msg->data &= ~MSI_DATA_VECTOR_MASK;
++		msg->data |= MSI_DATA_VECTOR(vector);
++		msg->address_lo &= ~MSI_ADDR_DEST_ID_MASK;
++		msg->address_lo |= MSI_ADDR_DEST_ID(dest);
++	}
++}
++
++struct msi_ops arch_msi_ops = {
++	.needs_64bit_address = 0,
++	.setup = msi_msg_setup,
++	.teardown = msi_msg_teardown,
++	.target = msi_msg_set_affinity,
++};
++
++#endif /* CONFIG_PCI_MSI */
++
+ /* --------------------------------------------------------------------------
+                           ACPI-based IOAPIC Configuration
+    -------------------------------------------------------------------------- */
+diff --git a/include/asm-i386/msi.h b/include/asm-i386/msi.h
+index b11c4b7..7368a89 100644
+--- a/include/asm-i386/msi.h
++++ b/include/asm-i386/msi.h
+@@ -9,14 +9,11 @@ #define ASM_MSI_H
+ #include <asm/desc.h>
+ #include <mach_apic.h>
  
--static inline int gsi_irq_sharing(int gsi) { return gsi; }
+-#define LAST_DEVICE_VECTOR	(FIRST_SYSTEM_VECTOR - 1)
+-#define MSI_TARGET_CPU_SHIFT	12
 -
- #endif				/* X86 */
+-extern struct msi_ops msi_apic_ops;
++extern struct msi_ops arch_msi_ops;
  
- #define BAD_MADT_ENTRY(entry, end) (					    \
-@@ -459,7 +456,7 @@ void __init acpi_pic_sci_set_trigger(uns
- 
- int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
+ static inline int msi_arch_init(void)
  {
--	*irq = gsi_irq_sharing(gsi);
-+	*irq = gsi;
+-	msi_register(&msi_apic_ops);
++	msi_register(&arch_msi_ops);
  	return 0;
  }
  
-diff --git a/arch/x86_64/kernel/io_apic.c b/arch/x86_64/kernel/io_apic.c
-index f818d64..a904ba7 100644
---- a/arch/x86_64/kernel/io_apic.c
-+++ b/arch/x86_64/kernel/io_apic.c
-@@ -164,8 +164,6 @@ static void set_ioapic_affinity_irq(unsi
- }
- #endif
- 
--static u8 gsi_2_irq[NR_IRQ_VECTORS] = { [0 ... NR_IRQ_VECTORS-1] = 0xFF };
--
- /*
-  * The common case is 1:1 IRQ<->pin mappings. Sometimes there are
-  * shared ISA-space IRQs, so we have to support them. We are super
-@@ -721,64 +719,6 @@ static inline int irq_trigger(int idx)
- 	return MPBIOS_trigger(idx);
- }
- 
--static int next_irq = 16;
--
--/*
-- * gsi_irq_sharing -- Name overload!  "irq" can be either a legacy IRQ
-- * in the range 0-15, a linux IRQ in the range 0-223, or a GSI number
-- * from ACPI, which can reach 800 in large boxen.
-- *
-- * Compact the sparse GSI space into a sequential IRQ series and reuse
-- * vectors if possible.
-- */
--int gsi_irq_sharing(int gsi)
--{
--	int i, tries, vector;
--
--	BUG_ON(gsi >= NR_IRQ_VECTORS);
--
--	if (platform_legacy_irq(gsi))
--		return gsi;
--
--	if (gsi_2_irq[gsi] != 0xFF)
--		return (int)gsi_2_irq[gsi];
--
--	tries = NR_IRQS;
--  try_again:
--	vector = assign_irq_vector(gsi, TARGET_CPUS);
--
--	/*
--	 * Sharing vectors means sharing IRQs, so scan irq_vectors for previous
--	 * use of vector and if found, return that IRQ.  However, we never want
--	 * to share legacy IRQs, which usually have a different trigger mode
--	 * than PCI.
--	 */
--	for (i = 0; i < NR_IRQS; i++)
--		if (IO_APIC_VECTOR(i) == vector)
--			break;
--	if (platform_legacy_irq(i)) {
--		if (--tries >= 0) {
--			IO_APIC_VECTOR(i) = 0;
--			goto try_again;
--		}
--		panic("gsi_irq_sharing: didn't find an IRQ using vector 0x%02X for GSI %d", vector, gsi);
--	}
--	if (i < NR_IRQS) {
--		gsi_2_irq[gsi] = i;
--		printk(KERN_INFO "GSI %d sharing vector 0x%02X and IRQ %d\n",
--				gsi, vector, i);
--		return i;
--	}
--
--	i = next_irq++;
--	BUG_ON(i >= NR_IRQS);
--	gsi_2_irq[gsi] = i;
--	IO_APIC_VECTOR(i) = vector;
--	printk(KERN_INFO "GSI %d assigned vector 0x%02X and IRQ %d\n",
--			gsi, vector, i);
--	return i;
--}
--
- static int pin_2_irq(int idx, int apic, int pin)
- {
- 	int irq, i;
-@@ -808,7 +748,6 @@ static int pin_2_irq(int idx, int apic, 
- 			while (i < apic)
- 				irq += nr_ioapic_registers[i++];
- 			irq += pin;
--			irq = gsi_irq_sharing(irq);
- 			break;
- 		}
- 		default:
-@@ -2202,7 +2141,6 @@ int io_apic_set_pci_routing (int ioapic,
- 		return -EINVAL;
- 	}
- 
--	irq = gsi_irq_sharing(irq);
- 	/*
- 	 * IRQs < 16 are already in the irq_2_pin[] map
- 	 */
+diff --git a/include/asm-i386/msidef.h b/include/asm-i386/msidef.h
+new file mode 100644
+index 0000000..4667f1a
+--- /dev/null
++++ b/include/asm-i386/msidef.h
+@@ -0,0 +1,47 @@
++#ifndef ASM_MSIDEF_H
++#define ASM_MSIDEF_H
++
++/*
++ * Constants for Intel APIC based MSI messages.
++ */
++
++/*
++ * Shifts for MSI data
++ */
++
++#define MSI_DATA_VECTOR_SHIFT		0
++#define  MSI_DATA_VECTOR_MASK		0x000000ff
++#define	 MSI_DATA_VECTOR(v)		(((v) << MSI_DATA_VECTOR_SHIFT) & MSI_DATA_VECTOR_MASK)
++
++#define MSI_DATA_DELIVERY_MODE_SHIFT	8
++#define  MSI_DATA_DELIVERY_FIXED	(0 << MSI_DATA_DELIVERY_MODE_SHIFT)
++#define  MSI_DATA_DELIVERY_LOWPRI	(1 << MSI_DATA_DELIVERY_MODE_SHIFT)
++
++#define MSI_DATA_LEVEL_SHIFT		14
++#define	 MSI_DATA_LEVEL_DEASSERT	(0 << MSI_DATA_LEVEL_SHIFT)
++#define	 MSI_DATA_LEVEL_ASSERT		(1 << MSI_DATA_LEVEL_SHIFT)
++
++#define MSI_DATA_TRIGGER_SHIFT		15
++#define  MSI_DATA_TRIGGER_EDGE		(0 << MSI_DATA_TRIGGER_SHIFT)
++#define  MSI_DATA_TRIGGER_LEVEL		(1 << MSI_DATA_TRIGGER_SHIFT)
++
++/*
++ * Shift/mask fields for msi address
++ */
++
++#define MSI_ADDR_BASE_HI		0
++#define MSI_ADDR_BASE_LO		0xfee00000
++
++#define MSI_ADDR_DEST_MODE_SHIFT	2
++#define  MSI_ADDR_DEST_MODE_PHYSICAL	(0 << MSI_ADDR_DEST_MODE_SHIFT)
++#define	 MSI_ADDR_DEST_MODE_LOGICAL	(1 << MSI_ADDR_DEST_MODE_SHIFT)
++	
++#define MSI_ADDR_REDIRECTION_SHIFT	3
++#define  MSI_ADDR_REDIRECTION_CPU	(0 << MSI_ADDR_REDIRECTION_SHIFT) /* dedicated cpu */
++#define  MSI_ADDR_REDIRECTION_LOWPRI	(1 << MSI_ADDR_REDIRECTION_SHIFT) /* lowest priority */
++
++#define MSI_ADDR_DEST_ID_SHIFT		12
++#define	 MSI_ADDR_DEST_ID_MASK		0x00ffff0
++#define  MSI_ADDR_DEST_ID(dest)		(((dest) << MSI_ADDR_DEST_ID_SHIFT) & MSI_ADDR_DEST_ID_MASK)
++
++#endif /* ASM_MSIDEF_H */
 -- 
 1.4.0.gc07e
