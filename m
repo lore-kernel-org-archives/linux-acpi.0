@@ -1,29 +1,33 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: [PATCH] Clear abnormal poweroff flag on VIA southbridges, fix
- resume
-Date: Tue, 20 Jun 2006 02:07:13 -0700
-Message-ID: <20060620020713.84bddbb4.akpm@osdl.org>
-References: <20060618191421.GA15358@srcf.ucam.org>
-	<20060619230144.155bc938.akpm@osdl.org>
-	<20060620085429.GB27362@srcf.ucam.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [Ubuntu PATCH] acpi: Add IBM R60E laptop to proc-idle blacklist
+Date: Tue, 20 Jun 2006 10:30:16 +0100
+Message-ID: <20060620093016.GA27807@srcf.ucam.org>
+References: <4491BC6B.5000704@oracle.com> <20060619203333.5e897ead.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:49059 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1030187AbWFTJHR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Jun 2006 05:07:17 -0400
-In-Reply-To: <20060620085429.GB27362@srcf.ucam.org>
+Received: from cavan.codon.org.uk ([217.147.92.49]:29364 "EHLO
+	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
+	id S1030206AbWFTJa1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Jun 2006 05:30:27 -0400
+Content-Disposition: inline
+In-Reply-To: <20060619203333.5e897ead.akpm@osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>, linux-kernel@vger.kernel.org, len.brown@intel.com, linux-acpi@vger.kernel.org
 
-On Tue, 20 Jun 2006 09:54:29 +0100
-Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+On Mon, Jun 19, 2006 at 08:33:33PM -0700, Andrew Morton wrote:
+> > +	{ set_max_cstate, "IBM ThinkPad R40e", {
+> > +	  DMI_MATCH(DMI_BIOS_VENDOR, "IBM"),
+> > +	  DMI_MATCH(DMI_BIOS_VERSION, "1SET70WW") }, (void*)1},
 
-> CONFIG_ACPI_SLEEP might be a better choice than CONFIG_ACPI, 
-> yes.
+> It seems that every R40e in the world is in that table.
+> 
+> Can/should we wildcard it?  From my reading of dmi_check_system(), we can use
+> "" in place of the "1SET..." string and it'll dtrt?
 
-OK, I diddled the diff to use CONFIG_ACPI_SLEEP, thanks.
+Wouldn't that result in every machine with "IBM" as the BIOS vendor 
+having their maximum c-state limited?
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
