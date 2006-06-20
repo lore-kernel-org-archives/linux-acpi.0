@@ -1,130 +1,225 @@
 From: "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: [PATCH 24/25] x86_64 irq: Kill irq compression.
-Date: Tue, 20 Jun 2006 16:28:37 -0600
-Message-ID: <1150842527127-git-send-email-ebiederm@xmission.com>
-References: <m1ac87ea8s.fsf@ebiederm.dsl.xmission.com> <11508425183073-git-send-email-ebiederm@xmission.com> <11508425191381-git-send-email-ebiederm@xmission.com> <11508425192220-git-send-email-ebiederm@xmission.com> <11508425191063-git-send-email-ebiederm@xmission.com> <1150842520235-git-send-email-ebiederm@xmission.com> <11508425201406-git-send-email-ebiederm@xmission.com> <1150842520775-git-send-email-ebiederm@xmission.com> <11508425213394-git-send-email-ebiederm@xmission.com> <115084252131-git-send-email-ebiederm@xmission.com> <11508425213795-git-send-email-ebiederm@xmission.com> <11508425222427-git-send-email-ebiederm@xmission.com> <11508425221394-git-send-email-ebiederm@xmission.com> <11508425223015-git-send-email-ebiederm@xmission.com> <1150842523493-git-send-email-ebiederm@xmission.com> <11508425231168-git-send-email-ebiederm@xmission.com> <1150842524863-git-send-email-ebiederm@x
- mission.com> <1150842524755-git-send-email-ebiederm@xmission.com> <115084252460-git-send-!
- email-ebiederm@xmission.com> <11508425251099-git-send-email-ebiederm@xmission.com> <11508425253581-git-send-email-ebiederm@xmission.com> <11508425254020-git-send-email-ebiederm@xmission.com> <11508425262259-git-send-email-ebiederm@xmission.com> <11508425263761-git-send-email-ebiederm@xmission.com>
+Subject: [PATCH 8/25] msi: Simplify the msi irq limit policy.
+Date: Tue, 20 Jun 2006 16:28:21 -0600
+Message-ID: <11508425213394-git-send-email-ebiederm@xmission.com>
+References: <m1ac87ea8s.fsf@ebiederm.dsl.xmission.com> <11508425183073-git-send-email-ebiederm@xmission.com> <11508425191381-git-send-email-ebiederm@xmission.com> <11508425192220-git-send-email-ebiederm@xmission.com> <11508425191063-git-send-email-ebiederm@xmission.com> <1150842520235-git-send-email-ebiederm@xmission.com> <11508425201406-git-send-email-ebiederm@xmission.com> <1150842520775-git-send-email-ebiederm@xmission.com>
 Reply-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751359AbWFTWem@vger.kernel.org>
-In-Reply-To: <11508425263761-git-send-email-ebiederm@xmission.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751329AbWFTWge@vger.kernel.org>
+In-Reply-To: <1150842520775-git-send-email-ebiederm@xmission.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Andrew Morton <akpm@osdl.org>
 Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, discuss@x86-64.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Andi Kleen <ak@suse.de>, Natalie Protasevich <Natalie.Protasevich@UNISYS.com>, Len Brown <len.brown@intel.com>, Kimball Murray <kimball.murray@gmail.com>, Brice Goglin <brice@myri.com>, Greg Lindahl <greg.lindahl@qlogic.com>, Dave Olson <olson@unixfolk.com>, Jeff Garzik <jeff@garzik.org>, Greg KH <gregkh@suse.de>, Grant Grundler <iod00d@hp.com>, "bibo,mao" <bibo.mao@intel.com>, Rajesh Shah <rajesh.shah@intel.com>, Mark Maule <maule@sgi.com>, Jesper Juhl <jesper.juhl@gmail.com>, Shaohua Li <shaohua.li@intel.com>, Matthew Wilcox <matthew@wil.cx>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Ashok Raj <ashok.raj@intel.com>, Randy Dunlap <rdunlap@xenotime.net>Roland Dreier <rd>
 List-Id: linux-acpi@vger.kernel.org
 
-With more irqs in the system we don't need this.
+Currently we attempt to predict how many irqs we will be
+able to allocate with msi using pci_vector_resources and some
+complicated accounting, and then we only allow each device
+as many irqs as we think are available on average.
+
+Only the s2io driver even takes advantage of this feature
+all other drivers have a fixed number of irqs they need and
+bail if they can't get them.
+
+pci_vector_resources is inaccurate if anyone ever frees an irq.
+The whole implmentation is racy.  The current irq limit policy
+does not appear to make sense with current drivers.  So I have
+simplified things.  We can revisit this we we need a more sophisticated
+policy.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 ---
- arch/x86_64/kernel/io_apic.c |    5 -----
- arch/x86_64/kernel/mpparse.c |   42 +-----------------------------------------
- include/asm-x86_64/io_apic.h |    1 -
- 3 files changed, 1 insertions(+), 47 deletions(-)
+ arch/i386/pci/irq.c |   30 -----------------------------
+ arch/ia64/pci/pci.c |    9 ---------
+ drivers/pci/msi.c   |   53 ++++++++-------------------------------------------
+ drivers/pci/msi.h   |   11 -----------
+ 4 files changed, 8 insertions(+), 95 deletions(-)
 
-diff --git a/arch/x86_64/kernel/io_apic.c b/arch/x86_64/kernel/io_apic.c
-index a904ba7..c4be89e 100644
---- a/arch/x86_64/kernel/io_apic.c
-+++ b/arch/x86_64/kernel/io_apic.c
-@@ -1722,8 +1722,6 @@ static inline void unlock_ExtINT_logic(v
- 	spin_unlock_irqrestore(&ioapic_lock, flags);
- }
- 
--int timer_uses_ioapic_pin_0;
--
- /*
-  * This code may look a bit paranoid, but it's supposed to cooperate with
-  * a wide range of boards and BIOS bugs.  Fortunately only the timer IRQ
-@@ -1760,9 +1758,6 @@ static inline void check_timer(void)
- 	pin2  = ioapic_i8259.pin;
- 	apic2 = ioapic_i8259.apic;
- 
--	if (pin1 == 0)
--		timer_uses_ioapic_pin_0 = 1;
--
- 	apic_printk(APIC_VERBOSE,KERN_INFO "..TIMER: vector=0x%02X apic1=%d pin1=%d apic2=%d pin2=%d\n",
- 		vector, apic1, pin1, apic2, pin2);
- 
-diff --git a/arch/x86_64/kernel/mpparse.c b/arch/x86_64/kernel/mpparse.c
-index 083da7e..304cef6 100644
---- a/arch/x86_64/kernel/mpparse.c
-+++ b/arch/x86_64/kernel/mpparse.c
-@@ -910,20 +910,11 @@ void __init mp_config_acpi_legacy_irqs (
- 	return;
- }
- 
--#define MAX_GSI_NUM	4096
--
- int mp_register_gsi(u32 gsi, int triggering, int polarity)
- {
- 	int			ioapic = -1;
- 	int			ioapic_pin = 0;
- 	int			idx, bit = 0;
--	static int		pci_irq = 16;
--	/*
--	 * Mapping between Global System Interrupts, which
--	 * represent all possible interrupts, to the IRQs
--	 * assigned to actual devices.
--	 */
--	static int		gsi_to_irq[MAX_GSI_NUM];
- 
- 	if (acpi_irq_model != ACPI_IRQ_MODEL_IOAPIC)
- 		return gsi;
-@@ -956,42 +947,11 @@ int mp_register_gsi(u32 gsi, int trigger
- 	if ((1<<bit) & mp_ioapic_routing[ioapic].pin_programmed[idx]) {
- 		Dprintk(KERN_DEBUG "Pin %d-%d already programmed\n",
- 			mp_ioapic_routing[ioapic].apic_id, ioapic_pin);
--		return gsi_to_irq[gsi];
-+		return gsi;
+diff --git a/arch/i386/pci/irq.c b/arch/i386/pci/irq.c
+index 8ce6950..768584d 100644
+--- a/arch/i386/pci/irq.c
++++ b/arch/i386/pci/irq.c
+@@ -1170,33 +1170,3 @@ #endif
  	}
- 
- 	mp_ioapic_routing[ioapic].pin_programmed[idx] |= (1<<bit);
- 
--	if (triggering == ACPI_LEVEL_SENSITIVE) {
--		/*
--		 * For PCI devices assign IRQs in order, avoiding gaps
--		 * due to unused I/O APIC pins.
--		 */
--		int irq = gsi;
--		if (gsi < MAX_GSI_NUM) {
--			/*
--			 * Retain the VIA chipset work-around (gsi > 15), but
--			 * avoid a problem where the 8254 timer (IRQ0) is setup
--			 * via an override (so it's not on pin 0 of the ioapic),
--			 * and at the same time, the pin 0 interrupt is a PCI
--			 * type.  The gsi > 15 test could cause these two pins
--			 * to be shared as IRQ0, and they are not shareable.
--			 * So test for this condition, and if necessary, avoid
--			 * the pin collision.
--			 */
--			if (gsi > 15 || (gsi == 0 && !timer_uses_ioapic_pin_0))
--				gsi = pci_irq++;
--			/*
--			 * Don't assign IRQ used by ACPI SCI
--			 */
--			if (gsi == acpi_fadt.sci_int)
--				gsi = pci_irq++;
--			gsi_to_irq[irq] = gsi;
--		} else {
--			printk(KERN_ERR "GSI %u is too high\n", gsi);
--			return gsi;
+ 	return 0;
+ }
+-
+-int pci_vector_resources(int last, int nr_released)
+-{
+-	int count = nr_released;
+-
+-	int next = last;
+-	int offset = (last % 8);
+-
+-	while (next < FIRST_SYSTEM_VECTOR) {
+-		next += 8;
+-#ifdef CONFIG_X86_64
+-		if (next == IA32_SYSCALL_VECTOR)
+-			continue;
+-#else
+-		if (next == SYSCALL_VECTOR)
+-			continue;
+-#endif
+-		count++;
+-		if (next >= FIRST_SYSTEM_VECTOR) {
+-			if (offset%8) {
+-				next = FIRST_DEVICE_VECTOR + offset;
+-				offset++;
+-				continue;
+-			}
+-			count--;
 -		}
 -	}
 -
- 	io_apic_set_pci_routing(ioapic, ioapic_pin, gsi,
- 		triggering == ACPI_EDGE_SENSITIVE ? 0 : 1,
- 		polarity == ACPI_ACTIVE_HIGH ? 0 : 1);
-diff --git a/include/asm-x86_64/io_apic.h b/include/asm-x86_64/io_apic.h
-index 06806b1..c5235d6 100644
---- a/include/asm-x86_64/io_apic.h
-+++ b/include/asm-x86_64/io_apic.h
-@@ -164,7 +164,6 @@ #ifdef CONFIG_ACPI
- extern int io_apic_get_version (int ioapic);
- extern int io_apic_get_redir_entries (int ioapic);
- extern int io_apic_set_pci_routing (int ioapic, int pin, int irq, int, int);
--extern int timer_uses_ioapic_pin_0;
- #endif
+-	return count;
+-}
+diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
+index 5bef0e3..b0028fd 100644
+--- a/arch/ia64/pci/pci.c
++++ b/arch/ia64/pci/pci.c
+@@ -810,12 +810,3 @@ pcibios_prep_mwi (struct pci_dev *dev)
+ 	}
+ 	return rc;
+ }
+-
+-int pci_vector_resources(int last, int nr_released)
+-{
+-	int count = nr_released;
+-
+-	count += (IA64_LAST_DEVICE_VECTOR - last);
+-
+-	return count;
+-}
+diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
+index 40499c0..772f5b6 100644
+--- a/drivers/pci/msi.c
++++ b/drivers/pci/msi.c
+@@ -30,8 +30,6 @@ static kmem_cache_t* msi_cachep;
+ static int pci_msi_enable = 1;
+ static int last_alloc_vector;
+ static int nr_released_vectors;
+-static int nr_reserved_vectors = NR_HP_RESERVED_VECTORS;
+-static int nr_msix_devices;
  
- extern int sis_apic_bug; /* dummy */ 
+ #ifndef CONFIG_X86_IO_APIC
+ int vector_irq[NR_VECTORS] = { [0 ... NR_VECTORS - 1] = -1};
+@@ -542,11 +540,6 @@ void pci_scan_msi_device(struct pci_dev 
+ {
+ 	if (!dev)
+ 		return;
+-
+-   	if (pci_find_capability(dev, PCI_CAP_ID_MSIX) > 0)
+-		nr_msix_devices++;
+-	else if (pci_find_capability(dev, PCI_CAP_ID_MSI) > 0)
+-		nr_reserved_vectors++;
+ }
+ 
+ #ifdef CONFIG_PM
+@@ -877,13 +870,19 @@ static int msix_capability_init(struct p
+ 		attach_msi_entry(entry, vector);
+ 	}
+ 	if (i != nvec) {
++		int avail = i - 1;
+ 		i--;
+ 		for (; i >= 0; i--) {
+ 			vector = (entries + i)->vector;
+ 			msi_free_vector(dev, vector, 0);
+ 			(entries + i)->vector = 0;
+ 		}
+-		return -EBUSY;
++		/* If we had some success report the number of irqs
++		 * we succeeded in setting up.
++		 */
++		if (avail <= 0)
++			avail = -EBUSY;
++		return avail;
+ 	}
+ 	/* Set MSI-X enabled bits */
+ 	enable_msi_mode(dev, pos, PCI_CAP_ID_MSIX);
+@@ -943,14 +942,6 @@ int pci_enable_msi(struct pci_dev* dev)
+ 			return -EINVAL;
+ 	}
+ 	status = msi_capability_init(dev);
+-	if (!status) {
+-   		if (!pos)
+-			nr_reserved_vectors--;	/* Only MSI capable */
+-		else if (nr_msix_devices > 0)
+-			nr_msix_devices--;	/* Both MSI and MSI-X capable,
+-						   but choose enabling MSI */
+-	}
+-
+ 	return status;
+ }
+ 
+@@ -1060,10 +1051,9 @@ static int msi_free_vector(struct pci_de
+ int pci_enable_msix(struct pci_dev* dev, struct msix_entry *entries, int nvec)
+ {
+ 	struct pci_bus *bus;
+-	int status, pos, nr_entries, free_vectors;
++	int status, pos, nr_entries;
+ 	int i, j, temp;
+ 	u16 control;
+-	unsigned long flags;
+ 
+ 	if (!pci_msi_enable || !dev || !entries)
+  		return -EINVAL;
+@@ -1109,34 +1099,7 @@ int pci_enable_msix(struct pci_dev* dev,
+ 		dev->irq = temp;
+ 		return -EINVAL;
+ 	}
+-
+-	spin_lock_irqsave(&msi_lock, flags);
+-	/*
+-	 * msi_lock is provided to ensure that enough vectors resources are
+-	 * available before granting.
+-	 */
+-	free_vectors = pci_vector_resources(last_alloc_vector,
+-				nr_released_vectors);
+-	/* Ensure that each MSI/MSI-X device has one vector reserved by
+-	   default to avoid any MSI-X driver to take all available
+- 	   resources */
+-	free_vectors -= nr_reserved_vectors;
+-	/* Find the average of free vectors among MSI-X devices */
+-	if (nr_msix_devices > 0)
+-		free_vectors /= nr_msix_devices;
+-	spin_unlock_irqrestore(&msi_lock, flags);
+-
+-	if (nvec > free_vectors) {
+-		if (free_vectors > 0)
+-			return free_vectors;
+-		else
+-			return -EBUSY;
+-	}
+-
+ 	status = msix_capability_init(dev, entries, nvec);
+-	if (!status && nr_msix_devices > 0)
+-		nr_msix_devices--;
+-
+ 	return status;
+ }
+ 
+diff --git a/drivers/pci/msi.h b/drivers/pci/msi.h
+index 3519eca..6793241 100644
+--- a/drivers/pci/msi.h
++++ b/drivers/pci/msi.h
+@@ -8,19 +8,8 @@ #define MSI_H
+ 
+ #include <asm/msi.h>
+ 
+-/*
+- * Assume the maximum number of hot plug slots supported by the system is about
+- * ten. The worstcase is that each of these slots is hot-added with a device,
+- * which has two MSI/MSI-X capable functions. To avoid any MSI-X driver, which
+- * attempts to request all available vectors, NR_HP_RESERVED_VECTORS is defined
+- * as below to ensure at least one message is assigned to each detected MSI/
+- * MSI-X device function.
+- */
+-#define NR_HP_RESERVED_VECTORS 	20
+-
+ extern int vector_irq[NR_VECTORS];
+ extern void (*interrupt[NR_IRQS])(void);
+-extern int pci_vector_resources(int last, int nr_released);
+ 
+ /*
+  * MSI-X Address Register
 -- 
 1.4.0.gc07e
