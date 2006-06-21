@@ -1,34 +1,68 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: (unknown)
-Date: Wed, 21 Jun 2006 11:27:35 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6CAB9DB@hdsmsx411.amr.corp.intel.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH 0/25] Decouple IRQ issues (MSI, i386, x86_64, ia64)
+Date: Wed, 21 Jun 2006 09:25:37 -0700
+Message-ID: <20060621162537.GC25961@kroah.com>
+References: <m1ac87ea8s.fsf@ebiederm.dsl.xmission.com> <20060621102407.GA18447@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:56412 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S932118AbWFUP3b convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jun 2006 11:29:31 -0400
-Content-class: urn:content-classes:message
-Subject: 
+Received: from ns.suse.de ([195.135.220.2]:54162 "EHLO mx1.suse.de")
+	by vger.kernel.org with ESMTP id S932230AbWFUQ31 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Jun 2006 12:29:27 -0400
+Content-Disposition: inline
+In-Reply-To: <20060621102407.GA18447@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Yu, Ling L" <ling.l.yu@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>, Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, discuss@x86-64.org, Thomas Gleixner <tglx@linutronix.de>, Andi Kleen <ak@suse.de>, Natalie Protasevich <Natalie.Protasevich@UNISYS.com>, Len Brown <len.brown@intel.com>, Kimball Murray <kimball.murray@gmail.com>, Brice Goglin <brice@myri.com>, Greg Lindahl <greg.lindahl@qlogic.com>, Dave Olson <olson@unixfolk.com>, Jeff Garzik <jeff@garzik.org>, Greg KH <gregkh@suse.de>, Grant Grundler <iod00d@hp.com>, "bibo,mao" <bibo.mao@intel.com>, Rajesh Shah <rajesh.shah@intel.com>, Mark Maule <maule@sgi.com>, Jesper Juhl <jesper.juhl@gmail.com>, Shaohua Li <shaohua.li@intel.com>, Matthew Wilcox <matthew@wil.cx>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Ashok Raj <ashok.raj@intel.com>, Randy Dunlap <rdunlap>
 
-Ling,
-The sourceforge mailing list archives seem to be down (surprise,
-surprise...)
+On Wed, Jun 21, 2006 at 12:24:07PM +0200, Ingo Molnar wrote:
+> 
+> * Eric W. Biederman <ebiederm@xmission.com> wrote:
+> 
+> > The following patchset is against 2.6.17-rc6-mm2. It was the only easy 
+> > place I could get everyones work who has been touching relevant code.
+> > 
+> > The primary aim of this patch is to remove maintenances problems 
+> > caused by the irq infrastructure.  The two big issues I address are an 
+> > artificially small cap on the number of irqs, and that MSI assumes 
+> > vector == irq.  My primary focus is on x86_64 but I have touched other 
+> > architectures where necessary to keep them from breaking.
+> 
+> Very nice! Your queue addresses all of the remaining grievances i had 
+> about the x86_64/i386 IRQ code (MSI/balancing) and does this ontop of 
+> genirq, which is very good. This is much more than i hoped for when you 
+> told us about your project! :)
+> 
+> The only open bigger issue i guess (besides all the smaller code details 
+> that i'm sure we'll sort out) is timing. Your queue, as tempting as it 
+> is, is probably not 2.6.18 material. _I_ would certainly dare this for 
+> 2.6.18, but Andrew/Linus would kill me i guess.
 
-On http://acpi.sourceforge.net/mailinglists.html
-please list this additional archive for
-acpi-bugzilla@lists.sourceforge.net
+No, it needs to sit in -mm for a while.  All of the new 2.6.18 stuff
+already has been in there, this is a bit too late for it.  I have no
+problem with taking this and letting it get beat on for a few months and
+then go into 2.6.19.
 
-http://www.mail-archive.com/acpi-bugzilla@lists.sourceforge.net/
+> So the question is - are we brave/confident enough to try to stabilize 
+> this in the next couple of days and drop it into 2.6.18 together with 
+> the other bits of genirq?
 
-Gotta love an archive that contains 0% spam:-)
+No, see above please.
+
+> I strongly suspect that the bugs this patchset will introduce is
+> roughly equal to the bugs we already have due to the existing MSI and
+> irq-balancing unrobustnesses, so we might as well go for that, instead
+> of prolonging the pain by doing a two-stage (or 3-stage) process.
+> (which would be to introduce genirq stage #1 now, then introduce
+> genirq stage #2 in 2.6.19) Delaying genirq to 2.6.19 altogether would
+> be messy i think and would interfere with ben's (and others') platform
+> plans. Hm?
+
+I don't object to genirq to go in now for 2.6.18, but this series is too
+new.  Incremental changes please :)
 
 thanks,
--Len
+
+greg k-h
