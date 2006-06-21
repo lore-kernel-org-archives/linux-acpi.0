@@ -1,76 +1,70 @@
-From: "Michal Piotrowski" <michal.k.k.piotrowski@gmail.com>
-Subject: Re: 2.6.17-mm1
-Date: Wed, 21 Jun 2006 14:06:25 +0200
-Message-ID: <6bffcb0e0606210506w14388eb6ke3ba97e001706f90@mail.gmail.com>
-References: <20060621034857.35cfe36f.akpm@osdl.org>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: [PATCH 11/25] i386 irq:  Dynamic irq support
+Date: Wed, 21 Jun 2006 08:07:49 -0600
+Message-ID: <m1lkrq7gay.fsf@ebiederm.dsl.xmission.com>
+References: <11508425191063-git-send-email-ebiederm@xmission.com>
+	<1150842520235-git-send-email-ebiederm@xmission.com>
+	<11508425201406-git-send-email-ebiederm@xmission.com>
+	<1150842520775-git-send-email-ebiederm@xmission.com>
+	<11508425213394-git-send-email-ebiederm@xmission.com>
+	<115084252131-git-send-email-ebiederm@xmission.com>
+	<11508425213795-git-send-email-ebiederm@xmission.com>
+	<11508425222427-git-send-email-ebiederm@xmission.com>
+	<20060620185015.F10402@unix-os.sc.intel.com>
+	<m1mzc79rlf.fsf@ebiederm.dsl.xmission.com>
+	<20060620192734.G10402@unix-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wr-out-0506.google.com ([64.233.184.235]:62770 "EHLO
-	wr-out-0506.google.com") by vger.kernel.org with ESMTP
-	id S1751514AbWFUMG0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Jun 2006 08:06:26 -0400
-Received: by wr-out-0506.google.com with SMTP id 36so160838wra
-        for <linux-acpi@vger.kernel.org>; Wed, 21 Jun 2006 05:06:25 -0700 (PDT)
-In-Reply-To: <20060621034857.35cfe36f.akpm@osdl.org>
-Content-Disposition: inline
+Received: from ebiederm.dsl.xmission.com ([166.70.28.69]:33507 "EHLO
+	ebiederm.dsl.xmission.com") by vger.kernel.org with ESMTP
+	id S1750719AbWFUOJQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Jun 2006 10:09:16 -0400
+In-Reply-To: <20060620192734.G10402@unix-os.sc.intel.com> (Rajesh Shah's
+	message of "Tue, 20 Jun 2006 19:27:34 -0700")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: Len Brown <len.brown@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Rajesh Shah <rajesh.shah@intel.com>
+Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, discuss@x86-64.org, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Andi Kleen <ak@suse.de>, Natalie Protasevich <Natalie.Protasevich@UNISYS.com>, Len Brown <len.brown@intel.com>, Kimball Murray <kimball.murray@gmail.com>, Brice Goglin <brice@myri.com>, Greg Lindahl <greg.lindahl@qlogic.com>, Dave Olson <olson@unixfolk.com>, Jeff Garzik <jeff@garzik.org>, Greg KH <gregkh@suse.de>, Grant Grundler <iod00d@hp.com>, "bibo,mao" <bibo.mao@intel.com>, Jesper Juhl <jesper.juhl@gmail.com>, Shaohua Li <shaohua.li@intel.com>, Matthew Wilcox <matthew@wil.cx>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Ashok Raj <ashok.raj@intel.com>, Randy Dunlap <rdunlap@xenotime.net>, Roland Dreier <rdreier@cisco.com>, Tony Luck <tony.luck@intel.com>
 
-Hi,
+Rajesh Shah <rajesh.shah@intel.com> writes:
 
-On 21/06/06, Andrew Morton <akpm@osdl.org> wrote:
->
-> ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.17/2.6.17-mm1/
->
+> On Tue, Jun 20, 2006 at 08:21:00PM -0600, Eric W. Biederman wrote:
+>> Rajesh Shah <rajesh.shah@intel.com> writes:
+>> 
+>> > It would be really good to decouple MSI implementation from IO
+>> > APICs, since there's really no real hardware dependence here.
+>> > This code can actually go to arch/xxx/pci/msi-apic.c
+>> 
+>> I agree in theory.  In practice however msi interrupts look like io_apics.
+>> with a different register set and the use all of the same support facilities.
+>> So until that part of the architecture is refactored it doesn't make much
+>> sense.  There is a slightly better case for moving the code into a separate
+>> file.  Namely I think I know of a second common implementation for x86_64.
+>> At which point the files will probably be named msi-intel.c and msi-amd.c
+>> Or something like that.  
+>> 
+> Actually, I meant just the vector tracking code could be in a
+> separate file and the ioapic and msi code could both assign
+> vectors from a common routine. I had the patch below in my
+> patchkit, plus another patch for x86_64 to do the same thing
+> in io_apic.c and share the same intrvec.c file between the 
+> two archs. Once you have this, the MSI callbacks in arch
+> code can be moved out of io_apic.c
 
-It looks like an ACPI problem.
+Well irq.c is probably the obvious place to put it.
 
-Setting up standard PCI resources
-=============================================
-[ INFO: possible recursive locking detected ]
----------------------------------------------
-idle/1 is trying to acquire lock:
- (lock_ptr){....}, at: [<c021cbd2>] acpi_os_acquire_lock+0x8/0xa
+But that goes way beyond small obviously correct steps.
+So there is no way I'm going to include a change like
+that in the middle of my patchset because it is unnecessary.
 
-but task is already holding lock:
- (lock_ptr){....}, at: [<c021cbd2>] acpi_os_acquire_lock+0x8/0xa
+Doing this kind of thing later is certainly sane.
 
-other info that might help us debug this:
-1 lock held by idle/1:
- #0:  (lock_ptr){....}, at: [<c021cbd2>] acpi_os_acquire_lock+0x8/0xa
+I guess this is a difference in focus.  You have been focused
+on code cleanup.  I have been focused on breaking the unnatural tying
+between parts of the code.
 
-stack backtrace:
- [<c0103e89>] show_trace+0xd/0x10
- [<c0104483>] dump_stack+0x19/0x1b
- [<c01395fa>] __lock_acquire+0x7d9/0xa50
- [<c0139a98>] lock_acquire+0x71/0x91
- [<c02f0beb>] _spin_lock_irqsave+0x2c/0x3c
- [<c021cbd2>] acpi_os_acquire_lock+0x8/0xa
- [<c0222d95>] acpi_ev_gpe_detect+0x4d/0x10e
- [<c02215c3>] acpi_ev_sci_xrupt_handler+0x15/0x1d
- [<c021c8b1>] acpi_irq+0xe/0x18
- [<c014d36e>] request_irq+0xbe/0x10c
- [<c021cf33>] acpi_os_install_interrupt_handler+0x59/0x87
- [<c02215e7>] acpi_ev_install_sci_handler+0x1c/0x21
- [<c0220d41>] acpi_ev_install_xrupt_handlers+0x9/0x50
- [<c0231772>] acpi_enable_subsystem+0x7d/0x9a
- [<c0416656>] acpi_init+0x3f/0x170
- [<c01003ae>] _stext+0x116/0x26c
- [<c0101005>] kernel_thread_helper+0x5/0xb
-ACPI: Interpreter enabled
+As for this specific patch it makes no sense to only move half
+of assign_irq_vector to a different file.
 
-Here is a dmesg log http://www.stardust.webpages.pl/files/mm/2.6.17-mm1/mm-dmesg
-Here is a config file
-http://www.stardust.webpages.pl/files/mm/2.6.17-mm1/mm-config
-
-Regards,
-Michal
-
--- 
-Michal K. K. Piotrowski
-LTG - Linux Testers Group
-(http://www.stardust.webpages.pl/ltg/wiki/)
+Eric
