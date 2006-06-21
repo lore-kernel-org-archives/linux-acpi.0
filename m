@@ -1,57 +1,219 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH 0/25] Decouple IRQ issues (MSI, i386, x86_64, ia64)
-Date: Wed, 21 Jun 2006 12:24:07 +0200
-Message-ID: <20060621102407.GA18447@elte.hu>
-References: <m1ac87ea8s.fsf@ebiederm.dsl.xmission.com>
+From: Johny <kernel@agotnes.com>
+Subject: Re: [Fwd: Re: [Linux-usb-users] Fwd: Re: 2.6.17-rc6-mm2 - USB issues]
+Date: Wed, 21 Jun 2006 20:50:04 +1000
+Message-ID: <4499245C.8040207@agotnes.com>
+References: <44953B4B.9040108@agotnes.com>	<4497DA3F.80302@agotnes.com> <20060620044003.4287426d.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+ boundary="------------010105060508010309020303"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx3.mail.elte.hu ([157.181.1.138]:16529 "EHLO mx3.mail.elte.hu")
-	by vger.kernel.org with ESMTP id S1751481AbWFUKaA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Jun 2006 06:30:00 -0400
-Content-Disposition: inline
-In-Reply-To: <m1ac87ea8s.fsf@ebiederm.dsl.xmission.com>
+Received: from munin.agotnes.com ([202.173.149.60]:61409 "EHLO
+	mail.agotnes.com") by vger.kernel.org with ESMTP id S1751498AbWFUKuV
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Jun 2006 06:50:21 -0400
+In-Reply-To: <20060620044003.4287426d.akpm@osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, discuss@x86-64.org, Thomas Gleixner <tglx@linutronix.de>, Andi Kleen <ak@suse.de>, Natalie Protasevich <Natalie.Protasevich@UNISYS.com>, Len Brown <len.brown@intel.com>, Kimball Murray <kimball.murray@gmail.com>, Brice Goglin <brice@myri.com>, Greg Lindahl <greg.lindahl@qlogic.com>, Dave Olson <olson@unixfolk.com>, Jeff Garzik <jeff@garzik.org>, Greg KH <gregkh@suse.de>, Grant Grundler <iod00d@hp.com>, "bibo,mao" <bibo.mao@intel.com>, Rajesh Shah <rajesh.shah@intel.com>, Mark Maule <maule@sgi.com>, Jesper Juhl <jesper.juhl@gmail.com>, Shaohua Li <shaohua.li@intel.com>, Matthew Wilcox <matthew@wil.cx>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Ashok Raj <ashok.raj@intel.com>, Randy Dunlap <rdunlap@xenotime.net>, Roland Dreier <rdreier@cisco.>
+To: Andrew Morton <akpm@osdl.org>
+Cc: Johny <kernel@agotnes.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb-users@lists.sourceforge.net, linux-usb-devel@lists.sourceforge.net, stern@rowland.harvard.edu, Chris Wedgwood <cw@f00f.org>, sergio@sergiomb.no-ip.org, vsu@altlinux.ru
 
+This is a multi-part message in MIME format.
+--------------010105060508010309020303
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-* Eric W. Biederman <ebiederm@xmission.com> wrote:
+Andrew,
 
-> The following patchset is against 2.6.17-rc6-mm2. It was the only easy 
-> place I could get everyones work who has been touching relevant code.
+Success :)
+
+I've attached the patches used vs 2.6.17-rc4 (stock) and 2.6.17-rc6-mm2 
+(as the VIA include lists were different). I simply made the change 
+manually, based on your and others' inputs (it seemed the simpler option).
+
+Both kernels now boot, and all USB devices are recognised correctly.
+
+Sergio, you can find attached lspci -n output as requested, and indeed, 
+I run in XT_PIC mode for interrupts.
+
+I did NOT run the setpci command as requested by Sergey, let me know if 
+that helps anyone considering the fix sorted this out.
+
+Where to from here I'll leave with you guys, an entry in the quirks.c 
+file certainly is warranted for my motherboard...
+
+I'm happy to test further patches if required on this, for now I'm on 
+rc6-mm2 with my attached patch to have both ACX111 networking and USB 
+working good :)
+
+Cheers!
+
+:)Johny
+
+Andrew Morton wrote:
+> On Tue, 20 Jun 2006 21:21:35 +1000
+> Johny <kernel@agotnes.com> wrote:
 > 
-> The primary aim of this patch is to remove maintenances problems 
-> caused by the irq infrastructure.  The two big issues I address are an 
-> artificially small cap on the number of irqs, and that MSI assumes 
-> vector == irq.  My primary focus is on x86_64 but I have touched other 
-> architectures where necessary to keep them from breaking.
+>> Firstly, apologies for a) the massive x-post and b) the time taken to 
+>> get back to people... Please let me know where this is most 
+>> appropriately dealt with and I'll keep it off other lists, considering 
+>> the latest information;
+>>
+>> Andrew - please note - this is not a problem exclusive to the -mm 
+>> series, on testing various combos I found it in the stock series too.
+> 
+> Thanks for persisting with this.
+> 
+>> Stock kernels break for me starting with 2.6.17-rc4 (I tested all rcs 
+>> and also .17 itself), rc3 works a treat for using USB. I suspect the 
+>> following line missing in dmesg for rc4 is the reason;
+>>
+>> -PCI: Via IRQ fixup for 0000:00:11.1, from 255 to 11
+> 
+> yes, that looks suspicious.
+> 
+>> See the following dmesg files for details;
+>>
+>> http://www.agotnes.com/kernelStuff/dmesg-2.6.17-rc3-working
+>> http://www.agotnes.com/kernelStuff/dmesg-2.6.17-rc4-not-working
+>>
+>> And the diff, for convenience;
+>>
+>> http://www.agotnes.com/kernelStuff/diff-rc3_rc4
+>>
+>> I have a Via chipset motherboard (for my sins), further details 
+>> available on request, again, for convenience, the lspci;
+>>
+>> http://www.agotnes.com/kernelStuff/lspci
+>>
+>> A couple of possible suspect patches introduced in the changelog for rc4 
+>> were (with the first one looking particularly interesting, the others 
+>> less interesting as I go down the list);
+>>
+>> [PATCH] PCI quirk: VIA IRQ fixup should only run for VIA southbridges
+> 
+> This one, I'd expect.
+> 
+>> [PATCH] x86_64: avoid IRQ0 ioapic pin collision
+>> [PATCH] PCI: fix via irq SATA patch
+>> [ALSA] via82xx - Use DXS_SRC as default for VIA8235/8237/8251 chips
+>> [ALSA] via82xx: tweak VT8251 workaround
+>> [ALSA] via82xx: add support for VIA VT8251 (AC'97)
+>>
+> 
+> You could try a `patch -R' of the below.
+> 
+> commit 75cf7456dd87335f574dcd53c4ae616a2ad71a11
+> Author: Chris Wedgwood <cw@f00f.org>
+> Date:   Tue Apr 18 23:57:09 2006 -0700
+> 
+>     [PATCH] PCI quirk: VIA IRQ fixup should only run for VIA southbridges
+>     
+>     Alan Cox pointed out that the VIA 'IRQ fixup' was erroneously running
+>     on my system which has no VIA southbridge (but I do have a VIA IEEE
+>     1394 device).
+>     
+>     This should address that.  I also changed "Via IRQ" to "VIA IRQ"
+>     (initially I read Via as a capitalized via (by way/means of).
+>     
+>     Signed-off-by: Chris Wedgwood <cw@f00f.org>
+>     Acked-by: Jeff Garzik <jeff@garzik.org>
+>     Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+> 
+> diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
+> index c42ae2c..19e2b17 100644
+> --- a/drivers/pci/quirks.c
+> +++ b/drivers/pci/quirks.c
+> @@ -642,13 +642,15 @@ static void quirk_via_irq(struct pci_dev
+>  	new_irq = dev->irq & 0xf;
+>  	pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &irq);
+>  	if (new_irq != irq) {
+> -		printk(KERN_INFO "PCI: Via IRQ fixup for %s, from %d to %d\n",
+> +		printk(KERN_INFO "PCI: VIA IRQ fixup for %s, from %d to %d\n",
+>  			pci_name(dev), irq, new_irq);
+>  		udelay(15);	/* unknown if delay really needed */
+>  		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, new_irq);
+>  	}
+>  }
+> -DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_ANY_ID, quirk_via_irq);
+> +DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C686, quirk_via_irq);
+> +DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C686_4, quirk_via_irq);
+> +DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C686_5, quirk_via_irq);
+>  
+>  /*
+>   * VIA VT82C598 has its device ID settable and many BIOSes
+> 
+> 
+> If you have trouble getting it to apply, just manually replace all the
+> DECLARE_PCI_FIXUP_ENABLE lines at the end of quirk_via_irq() with the
+> single line
+> 
+> DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_ANY_ID, quirk_via_irq);
+> 
 
-Very nice! Your queue addresses all of the remaining grievances i had 
-about the x86_64/i386 IRQ code (MSI/balancing) and does this ontop of 
-genirq, which is very good. This is much more than i hoped for when you 
-told us about your project! :)
+--------------010105060508010309020303
+Content-Type: text/plain;
+ name="via.patch-rc4stock"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="via.patch-rc4stock"
 
-The only open bigger issue i guess (besides all the smaller code details 
-that i'm sure we'll sort out) is timing. Your queue, as tempting as it 
-is, is probably not 2.6.18 material. _I_ would certainly dare this for 
-2.6.18, but Andrew/Linus would kill me i guess.
+--- usb/drivers/pci/quirks.c	2006-06-21 20:18:56.000000000 +1000
++++ linux-2.6.17-rc4/drivers/pci/quirks.c	2006-06-21 20:13:15.000000000 +1000
+@@ -648,9 +648,7 @@
+ 		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, new_irq);
+ 	}
+ }
+-DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C686, quirk_via_irq);
+-DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C686_4, quirk_via_irq);
+-DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C686_5, quirk_via_irq);
++DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_ANY_ID, quirk_via_irq);
+ 
+ /*
+  * VIA VT82C598 has its device ID settable and many BIOSes
 
-So the question is - are we brave/confident enough to try to stabilize 
-this in the next couple of days and drop it into 2.6.18 together with 
-the other bits of genirq? I strongly suspect that the bugs this patchset 
-will introduce is roughly equal to the bugs we already have due to the 
-existing MSI and irq-balancing unrobustnesses, so we might as well go 
-for that, instead of prolonging the pain by doing a two-stage (or 
-3-stage) process. (which would be to introduce genirq stage #1 now, then 
-introduce genirq stage #2 in 2.6.19) Delaying genirq to 2.6.19 
-altogether would be messy i think and would interfere with ben's (and 
-others') platform plans. Hm?
+--------------010105060508010309020303
+Content-Type: text/plain;
+ name="via.patch-rc6-mm2"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="via.patch-rc6-mm2"
 
-One big point of confidence would be if ia64 built and booted fine with 
-these changes. Somehow ia64 seems to be the most sensitive to MSI (and 
-genirq) changes.
+--- usb/drivers/pci/quirks.c	2006-06-21 20:25:41.000000000 +1000
++++ linux-2.6.17-rc6-mm2/drivers/pci/quirks.c	2006-06-21 20:25:08.000000000 +1000
+@@ -662,13 +662,7 @@
+ 		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, new_irq);
+ 	}
+ }
+-DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C586_0, quirk_via_irq);
+-DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C586_1, quirk_via_irq);
+-DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C586_2, quirk_via_irq);
+-DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C586_3, quirk_via_irq);
+-DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C686, quirk_via_irq);
+-DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C686_4, quirk_via_irq);
+-DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C686_5, quirk_via_irq);
++DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_ANY_ID, quirk_via_irq);
+ 
+ /*
+  * VIA VT82C598 has its device ID settable and many BIOSes
 
-	Ingo
+--------------010105060508010309020303
+Content-Type: text/plain;
+ name="lspci-n"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="lspci-n"
+
+00:00.0 0600: 1106:3205
+00:01.0 0604: 1106:b198
+00:08.0 0280: 104c:9066
+00:10.0 0c03: 1106:3038 (rev 80)
+00:10.1 0c03: 1106:3038 (rev 80)
+00:10.2 0c03: 1106:3038 (rev 80)
+00:10.3 0c03: 1106:3104 (rev 82)
+00:11.0 0601: 1106:3177
+00:11.1 0101: 1106:0571 (rev 06)
+00:11.5 0401: 1106:3059 (rev 50)
+00:12.0 0200: 1106:3065 (rev 74)
+01:00.0 0300: 1106:7205 (rev 01)
+
+--------------010105060508010309020303--
