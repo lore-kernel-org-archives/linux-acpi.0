@@ -1,7 +1,7 @@
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Subject: Re: [Lhms-devel] [RFC] Patch [1/2] for acpi_memhotplug.c
-Date: Thu, 22 Jun 2006 15:11:04 +0900
-Message-ID: <20060622151104.3790703c.kamezawa.hiroyu@jp.fujitsu.com>
+Date: Thu, 22 Jun 2006 16:01:25 +0900
+Message-ID: <20060622160125.35f7df54.kamezawa.hiroyu@jp.fujitsu.com>
 References: <971FCB6690CD0E4898387DBF7552B90E0378BEE7@orsmsx403.amr.corp.intel.com>
 	<437F1766.8090705@jp.fujitsu.com>
 	<1150853300.5873.49.camel@keithlap>
@@ -21,34 +21,86 @@ Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:8424 "EHLO
-	fgwmail7.fujitsu.co.jp") by vger.kernel.org with ESMTP
-	id S1751645AbWFVGL4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 Jun 2006 02:11:56 -0400
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:40879 "EHLO
+	fgwmail5.fujitsu.co.jp") by vger.kernel.org with ESMTP
+	id S932287AbWFVG7C (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 Jun 2006 02:59:02 -0400
 In-Reply-To: <20060622142038.86ec6472.kamezawa.hiroyu@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: kmannth@us.ibm.com, prarit@redhat.com, linux-acpi@vger.kernel.org, darnok@us.ibm.com, robert.moore@intel.com, lhms-devel@lists.sourceforge.net
+To: kmannth@us.ibm.com
+Cc: prarit@redhat.com, linux-acpi@vger.kernel.org, lhms-devel@lists.sourceforge.net, darnok@us.ibm.com, robert.moore@intel.com
 
 On Thu, 22 Jun 2006 14:20:38 +0900
 KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com> wrote:
-> - acpi_memory_device_init() -> acpi_memory_register_notify_handler()
->   installs notify handler for memory hotplug against device handle of memory
->   This doesn't check _CID.
+> I'll try to write a patch.
 > 
-> - acpi_bus_add() attachs motherboard driver because of CID.
->   Above _CID is 32bit compressed EISA-type ID (HID is string but..),
->   it is PNP0C01...motherboad driver is called before PNP0C80 driver.
->   (to covert 32bit ID to string, see acpi_ex_eisa_id_to_string(),
->    I attached program.)
-> 
-> Then what we should do here is...call HID:PNP0C80 driver instead if CID:PNP0C01 driver.
-> Because it has driver for HID, calling driver for CID looks not good.
-> (But we have to ask acpi people about this..)
-> 
-Ah... BTW, why PNP0C80(memory) and PNP0C01(motherboard) are described as 
-"compatible device" ? Are they compatible ?
 
+This is a patch. (against 2.6.17-mm1 but maybe okay to other kernels.)
+Could you try this ?
+But I'm not sure this is sane way or not..
+
+Regards,
 -Kame
+=====
+Index: linux-2.6.17-mm1/drivers/acpi/scan.c
+===================================================================
+--- linux-2.6.17-mm1.orig/drivers/acpi/scan.c
++++ linux-2.6.17-mm1/drivers/acpi/scan.c
+@@ -231,6 +231,14 @@ static int acpi_bus_get_power_flags(stru
+ 	return_VALUE(0);
+ }
+ 
++static int acpi_match_hid(struct acpi_device *device, char *id)
++{
++	if (device->flags.hardware_id)
++		if (strstr(id, device->pnp.hardware_id))
++			return 0;
++	return -ENOENT;
++}
++
+ int acpi_match_ids(struct acpi_device *device, char *ids)
+ {
+ 	if (device->flags.hardware_id)
+@@ -476,6 +484,14 @@ acpi_bus_match(struct acpi_device *devic
+ 	return acpi_match_ids(device, driver->ids);
+ }
+ 
++static int
++acpi_bus_hid_match(struct acpi_device *device, struct acpi_driver *driver)
++{
++	if (driver && driver->ops.match)
++		return driver->ops.match(device, driver);
++	return acpi_match_hid(device, driver->ids);
++}
++
+ /**
+  * acpi_bus_driver_init - add a device to a driver
+  * @device: the device to add and initialize
+@@ -647,8 +663,24 @@ static int acpi_bus_find_driver(struct a
+ 	struct list_head *node, *next;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_bus_find_driver");
+-
+ 	spin_lock(&acpi_device_lock);
++
++	/* At first, find driver for HID */
++	list_for_each_safe(node, next, &acpi_bus_drivers) {
++		struct acpi_driver *driver =
++		    container_of(node, struct acpi_driver, node);
++
++		atomic_inc(&driver->references);
++		spin_unlock(&acpi_device_lock);
++		if (!acpi_bus_hid_match(device, driver)) {
++			result = acpi_bus_driver_init(device, driver);
++			if (!result)
++				goto Done;
++		}
++		atomic_dec(&driver->references);
++		spin_lock(&acpi_device_lock);
++	}
++	/* find driver for all IDs */
+ 	list_for_each_safe(node, next, &acpi_bus_drivers) {
+ 		struct acpi_driver *driver =
+ 		    container_of(node, struct acpi_driver, node);
 
