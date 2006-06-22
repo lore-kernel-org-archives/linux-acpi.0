@@ -1,7 +1,7 @@
 From: keith mannthey <kmannth@us.ibm.com>
 Subject: Re: [Lhms-devel] [RFC] Patch [1/2] for acpi_memhotplug.c
-Date: Wed, 21 Jun 2006 19:19:58 -0700
-Message-ID: <1150942799.10001.30.camel@keithlap>
+Date: Wed, 21 Jun 2006 19:28:29 -0700
+Message-ID: <1150943309.10001.31.camel@keithlap>
 References: <971FCB6690CD0E4898387DBF7552B90E0378BEE7@orsmsx403.amr.corp.intel.com>
 	 <437F1766.8090705@jp.fujitsu.com> <1150853300.5873.49.camel@keithlap>
 	 <20060621114334.1b954854.kamezawa.hiroyu@jp.fujitsu.com>
@@ -16,21 +16,21 @@ Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e33.co.us.ibm.com ([32.97.110.151]:21392 "EHLO
-	e33.co.us.ibm.com") by vger.kernel.org with ESMTP id S1751537AbWFVCUD
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Jun 2006 22:20:03 -0400
-Received: from westrelay02.boulder.ibm.com (westrelay02.boulder.ibm.com [9.17.195.11])
-	by e33.co.us.ibm.com (8.12.11.20060308/8.12.11) with ESMTP id k5M2K2NX016289
+Received: from e34.co.us.ibm.com ([32.97.110.152]:7562 "EHLO e34.co.us.ibm.com")
+	by vger.kernel.org with ESMTP id S1030534AbWFVC2c (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Jun 2006 22:28:32 -0400
+Received: from d03relay04.boulder.ibm.com (d03relay04.boulder.ibm.com [9.17.195.106])
+	by e34.co.us.ibm.com (8.12.11.20060308/8.12.11) with ESMTP id k5M2SWdZ015909
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-acpi@vger.kernel.org>; Wed, 21 Jun 2006 22:20:02 -0400
+	for <linux-acpi@vger.kernel.org>; Wed, 21 Jun 2006 22:28:32 -0400
 Received: from d03av02.boulder.ibm.com (d03av02.boulder.ibm.com [9.17.195.168])
-	by westrelay02.boulder.ibm.com (8.13.6/NCO/VER7.0) with ESMTP id k5M2JcZY280546
+	by d03relay04.boulder.ibm.com (8.13.6/NCO/VER7.0) with ESMTP id k5M2Shho101906
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Wed, 21 Jun 2006 20:19:38 -0600
+	for <linux-acpi@vger.kernel.org>; Wed, 21 Jun 2006 20:28:43 -0600
 Received: from d03av02.boulder.ibm.com (loopback [127.0.0.1])
-	by d03av02.boulder.ibm.com (8.12.11.20060308/8.13.3) with ESMTP id k5M2K0F2010020
-	for <linux-acpi@vger.kernel.org>; Wed, 21 Jun 2006 20:20:02 -0600
+	by d03av02.boulder.ibm.com (8.12.11.20060308/8.13.3) with ESMTP id k5M2SUsT000598
+	for <linux-acpi@vger.kernel.org>; Wed, 21 Jun 2006 20:28:31 -0600
 In-Reply-To: <20060622105854.18fa1f16.kamezawa.hiroyu@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -53,27 +53,10 @@ On Thu, 2006-06-22 at 10:58 +0900, KAMEZAWA Hiroyuki wrote:
 > > If I print out in acpi_bus_driver_init
 > >  printk(" device_add() about %s\n",acpi_device_name(device));
 > >  result = driver->ops.add(device);
-> > 
-> Good Catch :)
-> 
-> Then, could you print driver name ? like this
-> ==
-> printk("Call Add driver for name %s/class %s/id %s\n",driver->name,driver->class,driver->id);
-> ==
 
-Good idea!
-During the hot add I see. 
-Call Add driver for name motherboard/class /id PNP0C01
+Looks like this motherboard driver always returns 0. 
+I am going see about fixing this driver. 
 
-That is the wrong driver for sure. 
-> 
-> > Maybe I am picking the wrong driver from list_for_each_safe(node, next, &acpi_bus_drivers) 
-> > in acpi_bus_find_driver?
-> > 
-> looks so...BTW, your acpi_memhotplug driver is a module or built-in ?
-Built-in. 
-
-Thanks. 
 -- 
 keith mannthey <kmannth@us.ibm.com>
 Linux Technology Center IBM
