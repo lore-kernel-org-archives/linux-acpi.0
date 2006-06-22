@@ -1,51 +1,30 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH -mm 5/6] cpu_relax(): use in ACPI lock
-Date: Wed, 21 Jun 2006 15:17:02 -0700
-Message-ID: <B28E9812BAF6E2498B7EC5C427F293A47CBF37@orsmsx415.amr.corp.intel.com>
+From: Andrew Morton <akpm@osdl.org>
+Subject: Re: [Ubuntu PATCH] disable ACPI on some Phoenix BIOS
+Date: Wed, 21 Jun 2006 18:46:35 -0700
+Message-ID: <20060621184635.22ed5276.akpm@osdl.org>
+References: <4498DA03.2020001@oracle.com>
+	<20060621105208.GB6416@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:6430 "EHLO
-	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
-	id S1030484AbWFVBlB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Jun 2006 21:41:01 -0400
-Content-class: urn:content-classes:message
+Received: from smtp.osdl.org ([65.172.181.4]:37535 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1030492AbWFVBqo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Jun 2006 21:46:44 -0400
+In-Reply-To: <20060621105208.GB6416@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>, Andreas Mohr <andi@rhlx01.fht-esslingen.de>
-Cc: "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: randy.dunlap@oracle.com, linux-acpi@vger.kernel.org, len.brown@intel.com
 
-Loop may be correctly waiting for the owner/pending bit to be set, just
-checking, I don't remember all the bit values.
+On Wed, 21 Jun 2006 11:52:08 +0100
+Matthew Garrett <mjg59@srcf.ucam.org> wrote:
 
-> -----Original Message-----
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> owner@vger.kernel.org] On Behalf Of Moore, Robert
-> Sent: Wednesday, June 21, 2006 2:09 PM
-> To: Andreas Mohr; Andrew Morton
-> Cc: Brown, Len; linux-acpi@vger.kernel.org;
-linux-kernel@vger.kernel.org
-> Subject: RE: [PATCH -mm 5/6] cpu_relax(): use in ACPI lock
+> On Tue, Jun 20, 2006 at 10:32:51PM -0700, Randy Dunlap wrote:
+> > Disable ACPI on some Phoenix BIOS, or the system will freeze.
 > 
-> I may be interpreting this incorrectly, but are you busy-waiting on
-the
-> ACPI Global Lock to become free?
-> 
-> Bob
-> 
-> 
-> > -----Original Message-----
-> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> > owner@vger.kernel.org] On Behalf Of Andreas Mohr
-> > Sent: Wednesday, June 21, 2006 2:01 PM
-> > To: Andrew Morton
-> > Cc: Brown, Len; linux-acpi@vger.kernel.org;
-> linux-kernel@vger.kernel.org
-> > Subject: [PATCH -mm 5/6] cpu_relax(): use in ACPI lock
-> >
-> >
-> > Use cpu_relax() in __acpi_acquire_global_lock() etc.
-> >
-> >
+> Yeah, this was a quick workaround. I think we'd probably be better off 
+> figuring out /why/ the system was freezing, but, well.
+
+How do we find out whose machine had the problem?
