@@ -1,40 +1,57 @@
-From: Sergiy Kolesnikov <kolesnik@fmi.uni-passau.de>
-Subject: not ACPI-aware installer
-Date: Thu, 22 Jun 2006 12:27:43 +0200
-Message-ID: <449A709F.5010002@fmi.uni-passau.de>
+From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
+Subject: Re: how I know if a interrupt is ioapic_edge_type or
+	ioapic_level_type? [Was Re: [Fwd: Re: [Linux-usb-users] Fwd: Re:
+	2.6.17-rc6-mm2 - USB issues]]
+Date: Thu, 22 Jun 2006 12:56:25 +0100
+Message-ID: <1150977386.2859.34.camel@localhost.localdomain>
+References: <44953B4B.9040108@agotnes.com> <4497DA3F.80302@agotnes.com>
+	 <20060620044003.4287426d.akpm@osdl.org> <4499245C.8040207@agotnes.com>
+	 <1150936606.2855.21.camel@localhost.portugal>
+	 <20060621174754.159bb1d0.rdunlap@xenotime.net>
+	 <1150938288.3221.2.camel@localhost.portugal>
+	 <20060621210817.74b6b2bc.rdunlap@xenotime.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vader.fmi.uni-passau.de ([132.231.1.31]:4741 "EHLO
-	mail.fmi.uni-passau.de") by vger.kernel.org with ESMTP
-	id S1161033AbWFVK1s (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 Jun 2006 06:27:48 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by mail.fmi.uni-passau.de (Postfix) with ESMTP id BE24CDE9
-	for <linux-acpi@vger.kernel.org>; Thu, 22 Jun 2006 12:27:46 +0200 (CEST)
-Received: from mail.fmi.uni-passau.de ([127.0.0.1])
- by localhost (vader [127.0.0.1]) (amavisd-new, port 10024) with ESMTP
- id 08281-07 for <linux-acpi@vger.kernel.org>;
- Thu, 22 Jun 2006 12:27:43 +0200 (CEST)
-Received: from [132.231.1.109] (starfish [132.231.1.109])
-	by mail.fmi.uni-passau.de (Postfix) with ESMTP id B6CBADBE
-	for <linux-acpi@vger.kernel.org>; Thu, 22 Jun 2006 12:27:43 +0200 (CEST)
+Received: from relay1.ptmail.sapo.pt ([212.55.154.21]:40363 "HELO sapo.pt")
+	by vger.kernel.org with SMTP id S1161089AbWFVL4g (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 Jun 2006 07:56:36 -0400
+In-Reply-To: <20060621210817.74b6b2bc.rdunlap@xenotime.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: kernel@agotnes.com, akpm@osdl.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb-users@lists.sourceforge.net, linux-usb-devel@lists.sourceforge.net, stern@rowland.harvard.edu, cw@f00f.org, vsu@altlinux.ru
 
-Hallow All,
+On Wed, 2006-06-21 at 21:08 -0700, Randy.Dunlap wrote:
+>=20
+> If you have a specific issue/problem, it would probably be
+> better just to focus on that.=20
 
-if an OS knowing nothing about ACPI will be installed on a ACPI equiped 
-computer, can it cause a hardware damage?
+on linux-2.6.17/drivers/pci/quirks.c=09
 
-I mean if it's true than an installer from some GNU/Linux distribution 
-that can't process thermal events from ACPI can lead to a hardware 
-damage during installation of the distribution. Am I thinking right?
+  * we must mask the PCI_INTERRUPT_LINE value versus 0xf to get
+  * interrupts delivered properly.
+  */
 
-Best regards,
-Sergiy Kolesnikov
----
-Please avoid sending me Word or PowerPoint attachments.
-See http://www.gnu.org/philosophy/no-word-attachments.html
+ static void quirk_via_irq(struct pci_dev *dev)
+ {
+ 	u8 irq, new_irq;
+
+I want here put something like:  if ( dev->irq !=3D XT-PIC) return and =
+don't quirk this dev.
+ 	else=20
+
+	new_irq =3D dev->irq & 0xf;
+ 	pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &irq);
+=20
+
+--
+S=C3=A9rgio M. B.
+
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
