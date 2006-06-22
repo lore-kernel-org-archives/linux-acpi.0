@@ -1,57 +1,68 @@
-From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
-Subject: Re: how I know if a interrupt is ioapic_edge_type or
-	ioapic_level_type? [Was Re: [Fwd: Re: [Linux-usb-users] Fwd: Re:
-	2.6.17-rc6-mm2 - USB issues]]
-Date: Thu, 22 Jun 2006 12:56:25 +0100
-Message-ID: <1150977386.2859.34.camel@localhost.localdomain>
-References: <44953B4B.9040108@agotnes.com> <4497DA3F.80302@agotnes.com>
-	 <20060620044003.4287426d.akpm@osdl.org> <4499245C.8040207@agotnes.com>
-	 <1150936606.2855.21.camel@localhost.portugal>
-	 <20060621174754.159bb1d0.rdunlap@xenotime.net>
-	 <1150938288.3221.2.camel@localhost.portugal>
-	 <20060621210817.74b6b2bc.rdunlap@xenotime.net>
+From: "Michal Piotrowski" <michal.k.k.piotrowski@gmail.com>
+Subject: Re: [patch] ACPI: reduce code size, clean up, fix validator message
+Date: Thu, 22 Jun 2006 16:31:30 +0200
+Message-ID: <6bffcb0e0606220731m53af3114t85be11f4de148035@mail.gmail.com>
+References: <CFF307C98FEABE47A452B27C06B85BB6CF0CF1@hdsmsx411.amr.corp.intel.com>
+	 <20060621215946.5d27e1f1.akpm@osdl.org>
+	 <20060622072029.GA19228@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay1.ptmail.sapo.pt ([212.55.154.21]:40363 "HELO sapo.pt")
-	by vger.kernel.org with SMTP id S1161089AbWFVL4g (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 Jun 2006 07:56:36 -0400
-In-Reply-To: <20060621210817.74b6b2bc.rdunlap@xenotime.net>
+Received: from py-out-1112.google.com ([64.233.166.180]:26825 "EHLO
+	py-out-1112.google.com") by vger.kernel.org with ESMTP
+	id S1161149AbWFVObb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 Jun 2006 10:31:31 -0400
+Received: by py-out-1112.google.com with SMTP id z74so352346pyg
+        for <linux-acpi@vger.kernel.org>; Thu, 22 Jun 2006 07:31:30 -0700 (PDT)
+In-Reply-To: <20060622072029.GA19228@elte.hu>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Randy.Dunlap" <rdunlap@xenotime.net>
-Cc: kernel@agotnes.com, akpm@osdl.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb-users@lists.sourceforge.net, linux-usb-devel@lists.sourceforge.net, stern@rowland.harvard.edu, cw@f00f.org, vsu@altlinux.ru
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Andrew Morton <akpm@osdl.org>, "Brown, Len" <len.brown@intel.com>, arjan@linux.intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.moore@intel.com, Arjan van de Ven <arjan@infradead.org>
 
-On Wed, 2006-06-21 at 21:08 -0700, Randy.Dunlap wrote:
->=20
-> If you have a specific issue/problem, it would probably be
-> better just to focus on that.=20
+Hi Ingo,
 
-on linux-2.6.17/drivers/pci/quirks.c=09
+On 22/06/06, Ingo Molnar <mingo@elte.hu> wrote:
+>
+> * Andrew Morton <akpm@osdl.org> wrote:
+>
+> > > It complains about this only the 1st time, even though
+> > > this same code sequence runs for every (subsequent) ACPI interrupt.
+>
+> that is because the lock validator turns itself off after the first
+> complaint.
+>
+> > Yes, lockdep uses the callsite of spin_lock_init() to detect the
+> > "type" of a lock.
+> >
+> > But the ACPI obfuscation layers use the same spin_lock_init() site to
+> > initialise two not-the-same locks, so lockdep decides those two locks
+> > are of the same "type" and gets confused.
+> >
+> > We had earlier decided to remove that ACPI code which kmallocs a
+> > single spinlock.  When that's done, lockdep will become unconfused.
+> >
+> > AFACIT it's all used for just two statically allocated locks anwyay.
+>
+> Ok, great! Find below the (tested) cleanup that also fixes the validator
+> problem.
 
-  * we must mask the PCI_INTERRUPT_LINE value versus 0xf to get
-  * interrupts delivered properly.
-  */
+Problem fixed, thanks.
 
- static void quirk_via_irq(struct pci_dev *dev)
- {
- 	u8 irq, new_irq;
+>
+> (if ACPI wants to turn this into platform-independent code it should be
+> a build-time and type-correct translation layer that understands things
+> like DEFINE_SPINLOCK as well.)
+>
+>         Ingo
+>
 
-I want here put something like:  if ( dev->irq !=3D XT-PIC) return and =
-don't quirk this dev.
- 	else=20
+Regards,
+Michal
 
-	new_irq =3D dev->irq & 0xf;
- 	pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &irq);
-=20
-
---
-S=C3=A9rgio M. B.
-
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Michal K. K. Piotrowski
+LTG - Linux Testers Group
+(http://www.stardust.webpages.pl/ltg/wiki/)
