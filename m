@@ -1,68 +1,94 @@
-From: "Michal Piotrowski" <michal.k.k.piotrowski@gmail.com>
-Subject: Re: [patch] ACPI: reduce code size, clean up, fix validator message
-Date: Thu, 22 Jun 2006 16:31:30 +0200
-Message-ID: <6bffcb0e0606220731m53af3114t85be11f4de148035@mail.gmail.com>
-References: <CFF307C98FEABE47A452B27C06B85BB6CF0CF1@hdsmsx411.amr.corp.intel.com>
-	 <20060621215946.5d27e1f1.akpm@osdl.org>
-	 <20060622072029.GA19228@elte.hu>
+From: keith mannthey <kmannth@us.ibm.com>
+Subject: Re: [Lhms-devel] [RFC] Patch [1/2] for acpi_memhotplug.c
+Date: Thu, 22 Jun 2006 10:25:24 -0700
+Message-ID: <1150997124.5880.2.camel@keithlap>
+References: <971FCB6690CD0E4898387DBF7552B90E0378BEE7@orsmsx403.amr.corp.intel.com>
+	 <437F1766.8090705@jp.fujitsu.com> <1150853300.5873.49.camel@keithlap>
+	 <20060621114334.1b954854.kamezawa.hiroyu@jp.fujitsu.com>
+	 <1150863525.7865.6.camel@keithlap>
+	 <20060621194832.37124aae.kamezawa.hiroyu@jp.fujitsu.com>
+	 <1150915426.5830.21.camel@keithlap> <1150932228.9235.6.camel@keithlap>
+	 <20060622091336.be46e7a6.kamezawa.hiroyu@jp.fujitsu.com>
+	 <1150940220.10001.11.camel@keithlap>
+	 <20060622105854.18fa1f16.kamezawa.hiroyu@jp.fujitsu.com>
+	 <1150942799.10001.30.camel@keithlap>
+	 <20060622121356.6326e4a2.kamezawa.hiroyu@jp.fujitsu.com>
+	 <1150948503.10001.60.camel@keithlap>
+	 <20060622142038.86ec6472.kamezawa.hiroyu@jp.fujitsu.com>
+Reply-To: kmannth@us.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.180]:26825 "EHLO
-	py-out-1112.google.com") by vger.kernel.org with ESMTP
-	id S1161149AbWFVObb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 Jun 2006 10:31:31 -0400
-Received: by py-out-1112.google.com with SMTP id z74so352346pyg
-        for <linux-acpi@vger.kernel.org>; Thu, 22 Jun 2006 07:31:30 -0700 (PDT)
-In-Reply-To: <20060622072029.GA19228@elte.hu>
-Content-Disposition: inline
+Received: from e32.co.us.ibm.com ([32.97.110.150]:62953 "EHLO
+	e32.co.us.ibm.com") by vger.kernel.org with ESMTP id S1751844AbWFVRZ2
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 Jun 2006 13:25:28 -0400
+Received: from d03relay04.boulder.ibm.com (d03relay04.boulder.ibm.com [9.17.195.106])
+	by e32.co.us.ibm.com (8.12.11.20060308/8.12.11) with ESMTP id k5MHPQJH010920
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-acpi@vger.kernel.org>; Thu, 22 Jun 2006 13:25:26 -0400
+Received: from d03av02.boulder.ibm.com (d03av02.boulder.ibm.com [9.17.195.168])
+	by d03relay04.boulder.ibm.com (8.13.6/NCO/VER7.0) with ESMTP id k5MHPbF4093322
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-acpi@vger.kernel.org>; Thu, 22 Jun 2006 11:25:37 -0600
+Received: from d03av02.boulder.ibm.com (loopback [127.0.0.1])
+	by d03av02.boulder.ibm.com (8.12.11.20060308/8.13.3) with ESMTP id k5MHPOcU005605
+	for <linux-acpi@vger.kernel.org>; Thu, 22 Jun 2006 11:25:25 -0600
+In-Reply-To: <20060622142038.86ec6472.kamezawa.hiroyu@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Andrew Morton <akpm@osdl.org>, "Brown, Len" <len.brown@intel.com>, arjan@linux.intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.moore@intel.com, Arjan van de Ven <arjan@infradead.org>
+To: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Prarit Bhargava--redhat <prarit@redhat.com>, linux acpi <linux-acpi@vger.kernel.org>, lhms-devel <lhms-devel@lists.sourceforge.net>, konrad <darnok@us.ibm.com>, robert.moore@intel.com
 
-Hi Ingo,
+On Thu, 2006-06-22 at 14:20 +0900, KAMEZAWA Hiroyuki wrote:
+> On Wed, 21 Jun 2006 20:55:02 -0700
+> keith mannthey <kmannth@us.ibm.com> wrote:
+> > > Hmm....curious..but no idead..
+> > > Then, could try this ? 
+> > 
+> > I am trying to make the motherboard driver fail with it looks for
+> > resources and finds node.  The motherboard add function alway returns
+> > AE_OK which is why the algorithm fails. See attached patch it allows the
+> > hot-add event to happen. 
+> > 
+> > With the event happening and I see 
+> > 
+> Um...my concern is
+> - When notify comes, memory hotplug driver is called.
+> - but at acpi_bus_add(), PNP0C01 motherboad driver is attached to the device.
 
-On 22/06/06, Ingo Molnar <mingo@elte.hu> wrote:
->
-> * Andrew Morton <akpm@osdl.org> wrote:
->
-> > > It complains about this only the 1st time, even though
-> > > this same code sequence runs for every (subsequent) ACPI interrupt.
->
-> that is because the lock validator turns itself off after the first
-> complaint.
->
-> > Yes, lockdep uses the callsite of spin_lock_init() to detect the
-> > "type" of a lock.
-> >
-> > But the ACPI obfuscation layers use the same spin_lock_init() site to
-> > initialise two not-the-same locks, so lockdep decides those two locks
-> > are of the same "type" and gets confused.
-> >
-> > We had earlier decided to remove that ACPI code which kmallocs a
-> > single spinlock.  When that's done, lockdep will become unconfused.
-> >
-> > AFACIT it's all used for just two statically allocated locks anwyay.
->
-> Ok, great! Find below the (tested) cleanup that also fixes the validator
-> problem.
+The patch I sent keeps the motherboard driver from attaching and allows
+the  PNP0C80 device to attach. 
 
-Problem fixed, thanks.
+> I think something is wrong....from your SSDT, ME00 and ME01 memory device has
+> valid HID, PNP0C80.
+> ==
+>         Device (ME01)
+>         {
+>             Name (_HID, EisaId ("PNP0C80"))
+>             Name (_CID, 0x010CD041)
+> ==
+> What I imagine now is.
+> 
+> - acpi_memory_device_init() -> acpi_memory_register_notify_handler()
+>   installs notify handler for memory hotplug against device handle of memory
+>   This doesn't check _CID.
+> 
+> - acpi_bus_add() attachs motherboard driver because of CID.
+>   Above _CID is 32bit compressed EISA-type ID (HID is string but..),
+>   it is PNP0C01...motherboad driver is called before PNP0C80 driver.
+>   (to covert 32bit ID to string, see acpi_ex_eisa_id_to_string(),
+>    I attached program.)
+This is a bug in the motherboard driver where it attached to any device
+it is presented to. 
 
->
-> (if ACPI wants to turn this into platform-independent code it should be
-> a build-time and type-correct translation layer that understands things
-> like DEFINE_SPINLOCK as well.)
->
->         Ingo
->
+> Then what we should do here is...call HID:PNP0C80 driver instead if CID:PNP0C01 driver.
+> Because it has driver for HID, calling driver for CID looks not good.
+> (But we have to ask acpi people about this..)
 
-Regards,
-Michal
-
+The patch allows PNP0C80 driver to be used. 
 -- 
-Michal K. K. Piotrowski
-LTG - Linux Testers Group
-(http://www.stardust.webpages.pl/ltg/wiki/)
+keith mannthey <kmannth@us.ibm.com>
+Linux Technology Center IBM
+
