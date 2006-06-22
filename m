@@ -1,101 +1,65 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: 2.6.17-mm1 - possible recursive locking detected
-Date: Thu, 22 Jun 2006 00:28:56 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6CF0CF1@hdsmsx411.amr.corp.intel.com>
+From: Andrew Morton <akpm@osdl.org>
+Subject: Re: 2.6.17-mm1 - possible recursive locking detected
+Date: Wed, 21 Jun 2006 21:59:46 -0700
+Message-ID: <20060621215946.5d27e1f1.akpm@osdl.org>
+References: <CFF307C98FEABE47A452B27C06B85BB6CF0CF1@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:48647 "EHLO
-	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S932787AbWFVE3D convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jun 2006 00:29:03 -0400
-Content-class: urn:content-classes:message
+Received: from smtp.osdl.org ([65.172.181.4]:24785 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932796AbWFVFAA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 Jun 2006 01:00:00 -0400
+In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB6CF0CF1@hdsmsx411.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, Andrew Morton <akpm@osdl.org>, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Moore, Robert" <robert.moore@intel.com>
+To: "Brown, Len" <len.brown@intel.com>
+Cc: michal.k.k.piotrowski@gmail.com, mingo@elte.hu, arjan@linux.intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.moore@intel.com
 
->It looks like an ACPI problem.
+On Thu, 22 Jun 2006 00:28:56 -0400
+"Brown, Len" <len.brown@intel.com> wrote:
 
-Thanks for the note, and the .config, I reproduced it here.
+> >It looks like an ACPI problem.
+> 
+> Thanks for the note, and the .config, I reproduced it here.
+> 
+> CONFIG_LOCKDEP complains about this sequence:
+> 
+> ...
+> 	<presumed previous acquire/release acpi_gbl_hardware_lock>
+> ...
+> acpi_ev_gpe_detect()
+> 	spin_lock_irqsave(acpi_gbl_gpe_lock,)
+> 
+> 	spin_lock_irqsave(acpi_gbl_hardware_lock,) <stack trace is on
+> this acquire>
+> 	spin_lock_irqrestore(acpi_gbl_hardware_lock,)
+> 
+> 	...
+> 
+> 	spin_lock_irqrestore(acpi_gbl_gpe_lock)
+> 
+> It complains about this only the 1st time, even though
+> this same code sequence runs for every (subsequent) ACPI interrupt.
+> 
+> The intent of the arrangement is that acpi_gbl_hardware_lock is for very
+> small critical sections around RMW hardware register access.
+> It can be acquired with or without other locks held, but
+> nothing else is acquired when it is held.
+> 
+> Nothing jumps out at me as incorrect above, so 
+> at this point it looks like a CONFIG_LOCKDEP artifact --
+> but lets ask the experts:-)
 
-CONFIG_LOCKDEP complains about this sequence:
+Yes, lockdep uses the callsite of spin_lock_init() to detect the "type" of
+a lock.
 
-...
-	<presumed previous acquire/release acpi_gbl_hardware_lock>
-...
-acpi_ev_gpe_detect()
-	spin_lock_irqsave(acpi_gbl_gpe_lock,)
+But the ACPI obfuscation layers use the same spin_lock_init() site to
+initialise two not-the-same locks, so lockdep decides those two locks are
+of the same "type" and gets confused.
 
-	spin_lock_irqsave(acpi_gbl_hardware_lock,) <stack trace is on
-this acquire>
-	spin_lock_irqrestore(acpi_gbl_hardware_lock,)
+We had earlier decided to remove that ACPI code which kmallocs a single
+spinlock.  When that's done, lockdep will become unconfused.
 
-	...
-
-	spin_lock_irqrestore(acpi_gbl_gpe_lock)
-
-It complains about this only the 1st time, even though
-this same code sequence runs for every (subsequent) ACPI interrupt.
-
-The intent of the arrangement is that acpi_gbl_hardware_lock is for very
-small critical sections around RMW hardware register access.
-It can be acquired with or without other locks held, but
-nothing else is acquired when it is held.
-
-Nothing jumps out at me as incorrect above, so 
-at this point it looks like a CONFIG_LOCKDEP artifact --
-but lets ask the experts:-)
-
--Len
-
-
->Setting up standard PCI resources
->=============================================
->[ INFO: possible recursive locking detected ]
->---------------------------------------------
->idle/1 is trying to acquire lock:
-> (lock_ptr){....}, at: [<c021cbd2>] acpi_os_acquire_lock+0x8/0xa
->
->but task is already holding lock:
-> (lock_ptr){....}, at: [<c021cbd2>] acpi_os_acquire_lock+0x8/0xa
->
->other info that might help us debug this:
->1 lock held by idle/1:
-> #0:  (lock_ptr){....}, at: [<c021cbd2>] acpi_os_acquire_lock+0x8/0xa
->
->stack backtrace:
-> [<c0103e89>] show_trace+0xd/0x10
-> [<c0104483>] dump_stack+0x19/0x1b
-> [<c01395fa>] __lock_acquire+0x7d9/0xa50
-> [<c0139a98>] lock_acquire+0x71/0x91
-> [<c02f0beb>] _spin_lock_irqsave+0x2c/0x3c
-> [<c021cbd2>] acpi_os_acquire_lock+0x8/0xa
-> [<c0222d95>] acpi_ev_gpe_detect+0x4d/0x10e
-> [<c02215c3>] acpi_ev_sci_xrupt_handler+0x15/0x1d
-> [<c021c8b1>] acpi_irq+0xe/0x18
-> [<c014d36e>] request_irq+0xbe/0x10c
-> [<c021cf33>] acpi_os_install_interrupt_handler+0x59/0x87
-> [<c02215e7>] acpi_ev_install_sci_handler+0x1c/0x21
-> [<c0220d41>] acpi_ev_install_xrupt_handlers+0x9/0x50
-> [<c0231772>] acpi_enable_subsystem+0x7d/0x9a
-> [<c0416656>] acpi_init+0x3f/0x170
-> [<c01003ae>] _stext+0x116/0x26c
-> [<c0101005>] kernel_thread_helper+0x5/0xb
->ACPI: Interpreter enabled
->
->Here is a dmesg log 
->http://www.stardust.webpages.pl/files/mm/2.6.17-mm1/mm-dmesg
->Here is a config file
->http://www.stardust.webpages.pl/files/mm/2.6.17-mm1/mm-config
->
->Regards,
->Michal
->
->-- 
->Michal K. K. Piotrowski
->LTG - Linux Testers Group
->(http://www.stardust.webpages.pl/ltg/wiki/)
->
+AFACIT it's all used for just two statically allocated locks anwyay.
