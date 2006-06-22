@@ -1,47 +1,40 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [patch] ACPI: reduce code size, clean up, fix validator message
-Date: Thu, 22 Jun 2006 04:00:37 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6CF0D04@hdsmsx411.amr.corp.intel.com>
+From: Sergiy Kolesnikov <kolesnik@fmi.uni-passau.de>
+Subject: not ACPI-aware installer
+Date: Thu, 22 Jun 2006 12:27:43 +0200
+Message-ID: <449A709F.5010002@fmi.uni-passau.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:37496 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S932307AbWFVIAm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Jun 2006 04:00:42 -0400
-Content-class: urn:content-classes:message
+Received: from vader.fmi.uni-passau.de ([132.231.1.31]:4741 "EHLO
+	mail.fmi.uni-passau.de") by vger.kernel.org with ESMTP
+	id S1161033AbWFVK1s (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 Jun 2006 06:27:48 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by mail.fmi.uni-passau.de (Postfix) with ESMTP id BE24CDE9
+	for <linux-acpi@vger.kernel.org>; Thu, 22 Jun 2006 12:27:46 +0200 (CEST)
+Received: from mail.fmi.uni-passau.de ([127.0.0.1])
+ by localhost (vader [127.0.0.1]) (amavisd-new, port 10024) with ESMTP
+ id 08281-07 for <linux-acpi@vger.kernel.org>;
+ Thu, 22 Jun 2006 12:27:43 +0200 (CEST)
+Received: from [132.231.1.109] (starfish [132.231.1.109])
+	by mail.fmi.uni-passau.de (Postfix) with ESMTP id B6CBADBE
+	for <linux-acpi@vger.kernel.org>; Thu, 22 Jun 2006 12:27:43 +0200 (CEST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@osdl.org>
-Cc: michal.k.k.piotrowski@gmail.com, arjan@linux.intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Moore, Robert" <robert.moore@intel.com>, Arjan van de Ven <arjan@infradead.org>
+To: linux-acpi@vger.kernel.org
 
-Ingo,
-Thanks for the quick reply.
+Hallow All,
 
-An Andrew's advice a while back, Bob already got rid
-of the allocate part -- it just isn't upstream yet.
+if an OS knowing nothing about ACPI will be installed on a ACPI equiped 
+computer, can it cause a hardware damage?
 
-Re: changing ACPICA code (sub-directories of drivers/acpi/) like this:
+I mean if it's true than an installer from some GNU/Linux distribution 
+that can't process thermal events from ACPI can lead to a hardware 
+damage during installation of the distribution. Am I thinking right?
 
->-	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
->+	spin_lock_irqsave(&acpi_gbl_gpe_lock, flags);
-
-I can't do that without either
-1. diverging between Linux and ACPICA
-or
-2. getting a license back from you to Intel such that Intel can
-   re-distrubute such a change under the Intel license on the file
-   and
-   inventing spin_lock_irqsave() on about 9 other operating systems.
-
-#1 is all pain and no gain, unless the 244 net fewer bytes counts as
-gain.
-#2 wouldn't make sense either.
-
-If this code were performance or size critical, I would still delete
-acpi_os_acquire_lock from osl.c, but would inline it in aclinux.h.
-
-thanks,
--Len
+Best regards,
+Sergiy Kolesnikov
+---
+Please avoid sending me Word or PowerPoint attachments.
+See http://www.gnu.org/philosophy/no-word-attachments.html
