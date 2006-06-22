@@ -1,81 +1,106 @@
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: Re: [Lhms-devel] [RFC] Patch [1/2] for acpi_memhotplug.c
-Date: Thu, 22 Jun 2006 09:13:36 +0900
-Message-ID: <20060622091336.be46e7a6.kamezawa.hiroyu@jp.fujitsu.com>
-References: <971FCB6690CD0E4898387DBF7552B90E0378BEE7@orsmsx403.amr.corp.intel.com>
-	<437F1766.8090705@jp.fujitsu.com>
-	<1150853300.5873.49.camel@keithlap>
-	<20060621114334.1b954854.kamezawa.hiroyu@jp.fujitsu.com>
-	<1150863525.7865.6.camel@keithlap>
-	<20060621194832.37124aae.kamezawa.hiroyu@jp.fujitsu.com>
-	<1150915426.5830.21.camel@keithlap>
-	<1150932228.9235.6.camel@keithlap>
+From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
+Subject: who I do know if a interrupt is ioapic_edge_type or
+	ioapic_level_type? [Was Re: [Fwd: Re: [Linux-usb-users] Fwd: Re:
+	2.6.17-rc6-mm2 - USB issues]]
+Date: Thu, 22 Jun 2006 01:36:46 +0100
+Message-ID: <1150936606.2855.21.camel@localhost.portugal>
+References: <44953B4B.9040108@agotnes.com>	<4497DA3F.80302@agotnes.com>
+	 <20060620044003.4287426d.akpm@osdl.org>  <4499245C.8040207@agotnes.com>
+Reply-To: sergio@sergiomb.no-ip.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-qwdcODCZdPSo1fW86WTM"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:18075 "EHLO
-	fgwmail7.fujitsu.co.jp") by vger.kernel.org with ESMTP
-	id S1751244AbWFVAMi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Jun 2006 20:12:38 -0400
-In-Reply-To: <1150932228.9235.6.camel@keithlap>
+Received: from smtp1.netcabo.pt ([212.113.174.28]:13212 "EHLO
+	exch01smtp10.hdi.tvcabo") by vger.kernel.org with ESMTP
+	id S1030462AbWFVAhJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Jun 2006 20:37:09 -0400
+In-Reply-To: <4499245C.8040207@agotnes.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: kmannth@us.ibm.com
-Cc: prarit@redhat.com, linux-acpi@vger.kernel.org, robert.moore@intel.com, darnok@us.ibm.com, lhms-devel@lists.sourceforge.net
-
-On Wed, 21 Jun 2006 16:23:47 -0700
-keith mannthey <kmannth@us.ibm.com> wrote:
-> Update.  I have moved to 2.6.17-rc6-mm2 to work with the development
-> acpi_memhotplug driver there. I have added various debug statements and
-> this is what I know. 
-> 
-Thanks, looks informative.
-
->   acpi_memory_get_device calls acpi_bus_add
->   acpi_bus_add calls acpi_add_single_object (fails)
->   acpi_add_single_object passes acpi_bus_get_flags
-> 				finds the device present
-> 				passes acpi_device_set_context
-> 				calls acpi_device_register
-> 				after calling acpi_bus_find_driver
-> 				ends up 
-> 				if (!result) *child = device;
-> 				and returns. 
->    
-
-Then, "acpi_device" itself is added, but no driver data.
-acpi_add_single_object doesn't check return value of acpi_bus_find_driver(), 
-as you know. So...
-===
-static int acpi_bus_find_driver(struct acpi_device *device)
-{
-<snip>
-        list_for_each_safe(node, next, &acpi_bus_drivers) {
-<snip>
-                if (!acpi_bus_match(device, driver)) {
-(*)-----------      result = acpi_bus_driver_init(device, driver);
-                        if (!result)
-                                goto Done;
-                }
-....
-}
-===
-Next check point is:
-- acpi_bus_driver_init() is called or not
-- what acpi_bus_driver_init() returns
-
-in acpi_bus_driver_init()
-- driver->ops.add() is called or not
-- what it retruns
-
-int acpi_memory_device_add()
-- it is called or not
-- why this  fails.
-
-If we can find why acpi_bus_driver_init() fails or is not called,
-we can find the problem , I think.
-
--Kame
+To: Johny <kernel@agotnes.com>
+Cc: Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb-users@lists.sourceforge.net, linux-usb-devel@lists.sourceforge.net, stern@rowland.harvard.edu, Chris Wedgwood <cw@f00f.org>, vsu@altlinux.ru
 
 
+--=-qwdcODCZdPSo1fW86WTM
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
+
+who I do know if a interrupt is ioapic_edge_type or ioapic_edge_type ?=20
+
+On Wed, 2006-06-21 at 20:50 +1000, Johny wrote:
+> Success :)
+>=20
+> I simply made the change=20
+> manually, based on your and others' inputs (it seemed the simpler
+> option).
+>=20
+> Both kernels now boot, and all USB devices are recognised correctly.
+>=20
+
+> I run in XT_PIC mode for interrupts.
+>=20
+
+Hi, thanks for your positive test on "my" theory.
+
+Here it goes the link that I talked about on last email=20
+http://lkml.org/lkml/2005/8/18/92 (you can read the previous messages on
+this thread)=20
+
+The patch of this link doesn't compile (at least for me), but have a
+simple idea, which is just quirk the VIA_PCIs if they are in XT_PIC mode
+and I think that is the way of this quirks should go.
+
+So someone help me out and do a patch that recognize if the interrupt is
+in XT-PIC mode or not ?=20
+
+Thanks, =20
+--=20
+S=E9rgio M. B.
+
+--=-qwdcODCZdPSo1fW86WTM
+Content-Type: application/x-pkcs7-signature; name=smime.p7s
+Content-Disposition: attachment; filename=smime.p7s
+Content-Transfer-Encoding: base64
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGSTCCAwIw
+ggJroAMCAQICAw/vkjANBgkqhkiG9w0BAQQFADBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhh
+d3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVt
+YWlsIElzc3VpbmcgQ0EwHhcNMDUxMTI4MjIyODU2WhcNMDYxMTI4MjIyODU2WjBLMR8wHQYDVQQD
+ExZUaGF3dGUgRnJlZW1haWwgTWVtYmVyMSgwJgYJKoZIhvcNAQkBFhlzZXJnaW9Ac2VyZ2lvbWIu
+bm8taXAub3JnMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApCNuKD3pz8GRKd1q+36r
+m0z7z+TBsbTrVa45UQsEeh9OQGZIASJMH5erC0u6KbKJ+km97RLOdsgSlKG6+5xuzsk+aqU7A0Gp
+kMjzIJT7UH/bbPnIFMQNnWJxluuYq1u+v8iIbfezQy1+SXyAyBv+OC7LnCOiOar/L9AD9zDy2fPX
+EqEDlbO3CJsoaR4Va8sgtoV0NmKnAt7DA0iZ2dmlsw6Qh+4euI+FgZ2WHPBQnfJ7PfSH5GIWl/Nx
+eUqnYpDaJafk/l94nX71UifdPXDMxJJlEOGqV9l4omhNlPmsZ/zrGXgLdBv9JuPjJ9mxhgwZsZbz
+VBc8emB0i3A7E6D6rwIDAQABo1kwVzAOBgNVHQ8BAf8EBAMCBJAwEQYJYIZIAYb4QgEBBAQDAgUg
+MCQGA1UdEQQdMBuBGXNlcmdpb0BzZXJnaW9tYi5uby1pcC5vcmcwDAYDVR0TAQH/BAIwADANBgkq
+hkiG9w0BAQQFAAOBgQBIVheRn3oHTU5rgIFHcBRxkIhOYPQHKk/oX4KakCrDCxp33XAqTG3aIG/v
+dsUT/OuFm5w0GlrUTrPaKYYxxfQ00+3d8y87aX22sUdj8oXJRYiPgQiE6lqu9no8axH6UXCCbKTi
+8383JcxReoXyuP000eUggq3tWr6fE/QmONUARzCCAz8wggKooAMCAQICAQ0wDQYJKoZIhvcNAQEF
+BQAwgdExCzAJBgNVBAYTAlpBMRUwEwYDVQQIEwxXZXN0ZXJuIENhcGUxEjAQBgNVBAcTCUNhcGUg
+VG93bjEaMBgGA1UEChMRVGhhd3RlIENvbnN1bHRpbmcxKDAmBgNVBAsTH0NlcnRpZmljYXRpb24g
+U2VydmljZXMgRGl2aXNpb24xJDAiBgNVBAMTG1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBDQTEr
+MCkGCSqGSIb3DQEJARYccGVyc29uYWwtZnJlZW1haWxAdGhhd3RlLmNvbTAeFw0wMzA3MTcwMDAw
+MDBaFw0xMzA3MTYyMzU5NTlaMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3Vs
+dGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWlu
+ZyBDQTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAxKY8VXNV+065yplaHmjAdQRwnd/p/6Me
+7L3N9VvyGna9fww6YfK/Uc4B1OVQCjDXAmNaLIkVcI7dyfArhVqqP3FWy688Cwfn8R+RNiQqE88r
+1fOCdz0Dviv+uxg+B79AgAJk16emu59l0cUqVIUPSAR/p7bRPGEEQB5kGXJgt/sCAwEAAaOBlDCB
+kTASBgNVHRMBAf8ECDAGAQH/AgEAMEMGA1UdHwQ8MDowOKA2oDSGMmh0dHA6Ly9jcmwudGhhd3Rl
+LmNvbS9UaGF3dGVQZXJzb25hbEZyZWVtYWlsQ0EuY3JsMAsGA1UdDwQEAwIBBjApBgNVHREEIjAg
+pB4wHDEaMBgGA1UEAxMRUHJpdmF0ZUxhYmVsMi0xMzgwDQYJKoZIhvcNAQEFBQADgYEASIzRUIPq
+Cy7MDaNmrGcPf6+svsIXoUOWlJ1/TCG4+DYfqi2fNi/A9BxQIJNwPP2t4WFiw9k6GX6EsZkbAMUa
+C4J0niVQlGLH2ydxVyWN3amcOY6MIE9lX5Xa9/eH1sYITq726jTlEBpbNU1341YheILcIRk13iSx
+0x1G/11fZU8xggHvMIIB6wIBATBpMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29u
+c3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNz
+dWluZyBDQQIDD++SMAkGBSsOAwIaBQCgXTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqG
+SIb3DQEJBTEPFw0wNjA2MjIwMDM2MzlaMCMGCSqGSIb3DQEJBDEWBBQzt3z7OSrygfNfBcbIBUr0
+vi48uTANBgkqhkiG9w0BAQEFAASCAQAr9rR+ijN3aoTbp1yMBi9O51oN7GbDtDEbYw6vrrqQYO8h
+aE6sU/Mm9+F2/gBZfgHxQ4SAKog6tEL2CIxeKm9cznk8zcYS+hzPs4h38Ev2BA+WlVGFsq3fiY2c
+yPcq3qikU/Kuhj/0ZC5XumRE/aU2rrtMhCA+HPYP5VtCVwkEcQVg4a0YEKGlQSXpvckM8NnyC/2v
+x6dJbirBpb9k1P5hNaWoAdjNFlDXfG9xG4kHWzQu2hwqyXrFKRKwkHOC7JlcBMwNY1iEh1BCUwPf
+OOMUCyP+3igMVA3oQ6LEd2WffVulS6dL8NgaePlifI4CRuEXovbfU+JNXsfEad/knU7QAAAAAAAA
+
+
+
+--=-qwdcODCZdPSo1fW86WTM--
