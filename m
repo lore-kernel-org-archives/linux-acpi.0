@@ -1,30 +1,33 @@
-From: Linus Torvalds <torvalds@osdl.org>
-Subject: Re: [GIT PATCH] ACPI for 2.6.18
-Date: Fri, 23 Jun 2006 07:54:06 -0700 (PDT)
-Message-ID: <Pine.LNX.4.64.0606230753240.6483@g5.osdl.org>
-References: <200606230437.50845.len.brown@intel.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [linux-usb-devel] who I do know if a interrupt is ioapic_edge_type or ioapic_level_type? [Was Re: [Fwd: Re: [Linux-usb-users] Fwd: Re:	2.6.17-rc6-mm2 - USB issues]]
+Date: Fri, 23 Jun 2006 08:31:04 -0700
+Message-ID: <200606230831.05832.david-b@pacbell.net>
+References: <44953B4B.9040108@agotnes.com> <4499245C.8040207@agotnes.com> <1150936606.2855.21.camel@localhost.portugal>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:10924 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1750807AbWFWOyK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 23 Jun 2006 10:54:10 -0400
-In-Reply-To: <200606230437.50845.len.brown@intel.com>
+Received: from smtp110.sbc.mail.mud.yahoo.com ([68.142.198.209]:13237 "HELO
+	smtp110.sbc.mail.mud.yahoo.com") by vger.kernel.org with SMTP
+	id S1751465AbWFWPjF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 23 Jun 2006 11:39:05 -0400
+In-Reply-To: <1150936606.2855.21.camel@localhost.portugal>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <len.brown@intel.com>
-Cc: akpm@osdl.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-usb-devel@lists.sourceforge.net, sergio@sergiomb.no-ip.org
+Cc: Johny <kernel@agotnes.com>, Andrew Morton <akpm@osdl.org>, vsu@altlinux.ru, Chris Wedgwood <cw@f00f.org>, linux-kernel@vger.kernel.org, linux-usb-users@lists.sourceforge.net, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu
 
+This isn't quite the same as "how to handle the VIA quirks correctly",
+but it does seem like the IRQ API should probably have a call to get
+the IRQ trigger mode, just like it has ways to set it.  I've seen
+drivers that need to try multiple trigger modes before they find one
+that will work on the target platform.
 
+The actual details of _how_ that trigger mode is set -- APIC, PIC and
+so on for x86; or other IRQ controllers on other hardware -- should
+not matter to drivers, since they're platform-specific.  The quirk
+handling code is platform-specific though, and might care.
 
-On Fri, 23 Jun 2006, Len Brown wrote:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
-
-Pulled. 
-
-I had some fairly trivial conflicts to resolve, can you check that it all 
-looks sane?
-
-		Linus
+- Dave
