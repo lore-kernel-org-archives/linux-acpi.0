@@ -1,92 +1,103 @@
 From: akpm@osdl.org
-Subject: [patch 03/18] Catch notification of memory add event of ACPI via container driver. (register start func for memory device)
-Date: Sat, 24 Jun 2006 16:36:18 -0700
-Message-ID: <200606242336.k5ONaIcY008031@shell0.pdx.osdl.net>
+Subject: [patch 18/18] cpu_relax(): use in ACPI lock
+Date: Sat, 24 Jun 2006 16:37:28 -0700
+Message-ID: <200606242337.k5ONbTS3008134@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:36764 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1751250AbWFXXpI (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:33436 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1751244AbWFXXpF (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 24 Jun 2006 19:45:08 -0400
+	Sat, 24 Jun 2006 19:45:05 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, y-goto@jp.fujitsu.com, haveblue@us.ibm.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, andi@rhlx01.fht-esslingen.de, andi@lisas.de
 
 
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
+From: Andreas Mohr <andi@rhlx01.fht-esslingen.de>
 
-This is a patch to call add_memroy() when notify reaches for new node's add
-event.
+Use cpu_relax() in __acpi_acquire_global_lock() etc.
 
-When new node is added, notify of ACPI reaches container device which means
-the node.
-
-Container device driver calls acpi_bus_scan() to find and add belonging
-devices (which means cpu, memory and so on).  Its function calls add and
-start function of belonging devices's driver.
-
-Howevever, current memory hotplug driver just register add function to
-create sysfs file for its memory.  But, acpi_memory_enable_device() is not
-called because it is considered just the case that notify reaches memory
-device directly.  So, if notify reaches container device nothing can call
-add_memory().
-
-This is a patch to create start function which calls add_memory(). 
-add_memory() can be called by this when notify reaches container device.
-
-[akpm@osdl.org: coding cleanups]
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Signed-off-by: Andreas Mohr <andi@lisas.de>
 Cc: "Brown, Len" <len.brown@intel.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/acpi_memhotplug.c |   21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ include/asm-i386/acpi.h   |   14 ++++++++++----
+ include/asm-x86_64/acpi.h |   14 ++++++++++----
+ 2 files changed, 20 insertions(+), 8 deletions(-)
 
-diff -puN drivers/acpi/acpi_memhotplug.c~catch-notification-of-memory-add-event-of-acpi-via-container-driver-register-start-func-for-memory-device drivers/acpi/acpi_memhotplug.c
---- a/drivers/acpi/acpi_memhotplug.c~catch-notification-of-memory-add-event-of-acpi-via-container-driver-register-start-func-for-memory-device
-+++ a/drivers/acpi/acpi_memhotplug.c
-@@ -57,6 +57,7 @@ MODULE_LICENSE("GPL");
- 
- static int acpi_memory_device_add(struct acpi_device *device);
- static int acpi_memory_device_remove(struct acpi_device *device, int type);
-+static int acpi_memory_device_start(struct acpi_device *device);
- 
- static struct acpi_driver acpi_memory_device_driver = {
- 	.name = ACPI_MEMORY_DEVICE_DRIVER_NAME,
-@@ -65,6 +66,7 @@ static struct acpi_driver acpi_memory_de
- 	.ops = {
- 		.add = acpi_memory_device_add,
- 		.remove = acpi_memory_device_remove,
-+		.start = acpi_memory_device_start,
- 		},
- };
- 
-@@ -433,6 +435,25 @@ static int acpi_memory_device_remove(str
- 	return_VALUE(0);
+diff -puN include/asm-i386/acpi.h~cpu_relax-use-in-acpi-lock include/asm-i386/acpi.h
+--- a/include/asm-i386/acpi.h~cpu_relax-use-in-acpi-lock
++++ a/include/asm-i386/acpi.h
+@@ -61,11 +61,14 @@ static inline int
+ __acpi_acquire_global_lock (unsigned int *lock)
+ {
+ 	unsigned int old, new, val;
+-	do {
++	while (1) {
+ 		old = *lock;
+ 		new = (((old & ~0x3) + 2) + ((old >> 1) & 0x1));
+ 		val = cmpxchg(lock, old, new);
+-	} while (unlikely (val != old));
++		if (likely(val == old))
++			break;
++		cpu_relax();
++	}
+ 	return (new < 3) ? -1 : 0;
  }
  
-+static int acpi_memory_device_start (struct acpi_device *device)
-+{
-+	struct acpi_memory_device *mem_device;
-+	int result = 0;
-+
-+	ACPI_FUNCTION_TRACE("acpi_memory_device_start");
-+
-+	mem_device = acpi_driver_data(device);
-+
-+	if (!acpi_memory_check_device(mem_device)) {
-+		/* call add_memory func */
-+		result = acpi_memory_enable_device(mem_device);
-+		if (result)
-+			ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-+				"Error in acpi_memory_enable_device\n"));
+@@ -73,11 +76,14 @@ static inline int
+ __acpi_release_global_lock (unsigned int *lock)
+ {
+ 	unsigned int old, new, val;
+-	do {
++	while (1) {
+ 		old = *lock;
+ 		new = old & ~0x3;
+ 		val = cmpxchg(lock, old, new);
+-	} while (unlikely (val != old));
++		if (likely(val == old))
++			break;
++		cpu_relax();
 +	}
-+	return_VALUE(result);
-+}
-+
- /*
-  * Helper function to check for memory device
-  */
+ 	return old & 0x1;
+ }
+ 
+diff -puN include/asm-x86_64/acpi.h~cpu_relax-use-in-acpi-lock include/asm-x86_64/acpi.h
+--- a/include/asm-x86_64/acpi.h~cpu_relax-use-in-acpi-lock
++++ a/include/asm-x86_64/acpi.h
+@@ -59,11 +59,14 @@ static inline int
+ __acpi_acquire_global_lock (unsigned int *lock)
+ {
+ 	unsigned int old, new, val;
+-	do {
++	while (1) {
+ 		old = *lock;
+ 		new = (((old & ~0x3) + 2) + ((old >> 1) & 0x1));
+ 		val = cmpxchg(lock, old, new);
+-	} while (unlikely (val != old));
++		if (likely(val == old))
++			break;
++		cpu_relax();
++	}
+ 	return (new < 3) ? -1 : 0;
+ }
+ 
+@@ -71,11 +74,14 @@ static inline int
+ __acpi_release_global_lock (unsigned int *lock)
+ {
+ 	unsigned int old, new, val;
+-	do {
++	while (1) {
+ 		old = *lock;
+ 		new = old & ~0x3;
+ 		val = cmpxchg(lock, old, new);
+-	} while (unlikely (val != old));
++		if (likely(val == old))
++			break;
++		cpu_relax();
++	}
+ 	return old & 0x1;
+ }
+ 
 _
