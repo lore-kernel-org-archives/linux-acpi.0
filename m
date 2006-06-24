@@ -1,82 +1,55 @@
 From: akpm@osdl.org
-Subject: [patch 13/18] ACPI C-States: accounting of sleep states
-Date: Sat, 24 Jun 2006 16:37:06 -0700
-Message-ID: <200606242337.k5ONb6ne008083@shell0.pdx.osdl.net>
+Subject: [patch 05/18] KEVENT: add new uevent
+Date: Sat, 24 Jun 2006 16:36:26 -0700
+Message-ID: <200606242336.k5ONaRAT008037@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:23708 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1751220AbWFXXou (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:28572 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1751221AbWFXXo5 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 24 Jun 2006 19:44:50 -0400
+	Sat, 24 Jun 2006 19:44:57 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, linux@dominikbrodowski.net
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, kristen.c.accardi@intel.com, gregkh@suse.de
 
 
-From: Dominik Brodowski <linux@dominikbrodowski.net>
+From: Kristen Accardi <kristen.c.accardi@intel.com>
 
-Track the actual time spent in C-States (C2 upwards, we can't determine this
-for C1), not only the number of invocations.  This is especially useful for
-dynamic ticks / "tickless systems", but is also of interest on normal systems,
-as any interrupt activity leads to C-States being exited, not only the timer
-interrupt.
+Add dock uevents so that userspace can be notified of dock and undock events.
 
-The time is being measured in PM timer ticks, so an increase by one equals 279
-nanoseconds.
-
-Signed-off-by: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: <linux-acpi@vger.kernel.org>
+Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/processor_idle.c |   10 ++++++----
- include/acpi/processor.h      |    1 +
- 2 files changed, 7 insertions(+), 4 deletions(-)
+ include/linux/kobject.h |    2 ++
+ lib/kobject_uevent.c    |    4 ++++
+ 2 files changed, 6 insertions(+)
 
-diff -puN drivers/acpi/processor_idle.c~acpi-c-states-accounting-of-sleep-states drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-c-states-accounting-of-sleep-states
-+++ a/drivers/acpi/processor_idle.c
-@@ -325,8 +325,6 @@ static void acpi_processor_idle(void)
- 		cx = &pr->power.states[ACPI_STATE_C1];
- #endif
- 
--	cx->usage++;
--
- 	/*
- 	 * Sleep:
- 	 * ------
-@@ -424,6 +422,9 @@ static void acpi_processor_idle(void)
- 		local_irq_enable();
- 		return;
- 	}
-+	cx->usage++;
-+	if ((cx->type != ACPI_STATE_C1) && (sleep_ticks > 0))
-+		cx->time += sleep_ticks;
- 
- 	next_state = pr->power.state;
- 
-@@ -1058,9 +1059,10 @@ static int acpi_processor_power_seq_show
- 		else
- 			seq_puts(seq, "demotion[--] ");
- 
--		seq_printf(seq, "latency[%03d] usage[%08d]\n",
-+		seq_printf(seq, "latency[%03d] usage[%08d] duration[%020llu]\n",
- 			   pr->power.states[i].latency,
--			   pr->power.states[i].usage);
-+			   pr->power.states[i].usage,
-+			   pr->power.states[i].time);
- 	}
- 
-       end:
-diff -puN include/acpi/processor.h~acpi-c-states-accounting-of-sleep-states include/acpi/processor.h
---- a/include/acpi/processor.h~acpi-c-states-accounting-of-sleep-states
-+++ a/include/acpi/processor.h
-@@ -62,6 +62,7 @@ struct acpi_processor_cx {
- 	u32 latency_ticks;
- 	u32 power;
- 	u32 usage;
-+	u64 time;
- 	struct acpi_processor_cx_policy promotion;
- 	struct acpi_processor_cx_policy demotion;
+diff -puN include/linux/kobject.h~kevent-add-new-uevent include/linux/kobject.h
+--- devel/include/linux/kobject.h~kevent-add-new-uevent	2006-06-03 17:34:41.000000000 -0700
++++ devel-akpm/include/linux/kobject.h	2006-06-03 17:34:41.000000000 -0700
+@@ -46,6 +46,8 @@ enum kobject_action {
+ 	KOBJ_UMOUNT	= (__force kobject_action_t) 0x05,	/* umount event for block devices (broken) */
+ 	KOBJ_OFFLINE	= (__force kobject_action_t) 0x06,	/* device offline */
+ 	KOBJ_ONLINE	= (__force kobject_action_t) 0x07,	/* device online */
++	KOBJ_UNDOCK	= (__force kobject_action_t) 0x08, 	/* undocking */
++	KOBJ_DOCK	= (__force kobject_action_t) 0x09,	/* dock */
  };
+ 
+ struct kobject {
+diff -puN lib/kobject_uevent.c~kevent-add-new-uevent lib/kobject_uevent.c
+--- devel/lib/kobject_uevent.c~kevent-add-new-uevent	2006-06-03 17:34:41.000000000 -0700
++++ devel-akpm/lib/kobject_uevent.c	2006-06-03 17:34:41.000000000 -0700
+@@ -50,6 +50,10 @@ static char *action_to_string(enum kobje
+ 		return "offline";
+ 	case KOBJ_ONLINE:
+ 		return "online";
++	case KOBJ_DOCK:
++		return "dock";
++	case KOBJ_UNDOCK:
++		return "undock";
+ 	default:
+ 		return NULL;
+ 	}
 _
