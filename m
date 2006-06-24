@@ -1,103 +1,217 @@
 From: akpm@osdl.org
-Subject: [patch 18/18] cpu_relax(): use in ACPI lock
-Date: Sat, 24 Jun 2006 16:37:28 -0700
-Message-ID: <200606242337.k5ONbTS3008134@shell0.pdx.osdl.net>
+Subject: [patch 02/18] acpi memory hotplug cannot manage _CRS with plural resoureces
+Date: Sat, 24 Jun 2006 16:36:13 -0700
+Message-ID: <200606242336.k5ONaD1I008028@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:33436 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1751244AbWFXXpF (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:35996 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1751243AbWFXXpH (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 24 Jun 2006 19:45:05 -0400
+	Sat, 24 Jun 2006 19:45:07 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, andi@rhlx01.fht-esslingen.de, andi@lisas.de
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, kamezawa.hiroyu@jp.fujitsu.com, kaneshige.kenji@jp.fujitsu.com
 
 
-From: Andreas Mohr <andi@rhlx01.fht-esslingen.de>
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Use cpu_relax() in __acpi_acquire_global_lock() etc.
+Current acpi memory hotplug just looks into the first entry of resources in
+_CRS.  But, _CRS can contain plural resources.  So, if _CRS contains plural
+resoureces, acpi memory hot add cannot add all memory.
 
-Signed-off-by: Andreas Mohr <andi@lisas.de>
+With this patch, acpi memory hotplug can deal with Memory Device, whose
+_CRS contains plural resources.
+
+Tested on ia64 memory hotplug test envrionment (not emulation, uses alpha
+version firmware which supports dynamic reconfiguration of NUMA.)
+
+Note: Microsoft's Windows Server 2003 requires big (>4G)resoureces to be
+      divided into small (<4G) resources. looks crazy, but not invalid.
+      (See http://www.microsoft.com/whdc/system/pnppwr/hotadd/hotaddmem.mspx)
+      For this reason, a firmware vendor who supports Windows writes plural
+      resources in a _CRS even if they are contiguous.
+
+Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/asm-i386/acpi.h   |   14 ++++++++++----
- include/asm-x86_64/acpi.h |   14 ++++++++++----
- 2 files changed, 20 insertions(+), 8 deletions(-)
+ drivers/acpi/acpi_memhotplug.c |  112 +++++++++++++++++++++----------
+ 1 file changed, 77 insertions(+), 35 deletions(-)
 
-diff -puN include/asm-i386/acpi.h~cpu_relax-use-in-acpi-lock include/asm-i386/acpi.h
---- a/include/asm-i386/acpi.h~cpu_relax-use-in-acpi-lock
-+++ a/include/asm-i386/acpi.h
-@@ -61,11 +61,14 @@ static inline int
- __acpi_acquire_global_lock (unsigned int *lock)
- {
- 	unsigned int old, new, val;
--	do {
-+	while (1) {
- 		old = *lock;
- 		new = (((old & ~0x3) + 2) + ((old >> 1) & 0x1));
- 		val = cmpxchg(lock, old, new);
--	} while (unlikely (val != old));
-+		if (likely(val == old))
-+			break;
-+		cpu_relax();
+diff -puN drivers/acpi/acpi_memhotplug.c~acpi-memory-hotplug-cannot-manage-_crs-with-plural-resoureces drivers/acpi/acpi_memhotplug.c
+--- a/drivers/acpi/acpi_memhotplug.c~acpi-memory-hotplug-cannot-manage-_crs-with-plural-resoureces
++++ a/drivers/acpi/acpi_memhotplug.c
+@@ -68,45 +68,75 @@ static struct acpi_driver acpi_memory_de
+ 		},
+ };
+ 
++struct acpi_memory_info {
++	struct list_head list;
++	u64 start_addr;		/* Memory Range start physical addr */
++	u64 length;		/* Memory Range length */
++	unsigned short caching;	/* memory cache attribute */
++	unsigned short write_protect;	/* memory read/write attribute */
++	unsigned int enabled:1;
++};
++
+ struct acpi_memory_device {
+ 	acpi_handle handle;
+ 	unsigned int state;	/* State of the memory device */
+-	unsigned short caching;	/* memory cache attribute */
+-	unsigned short write_protect;	/* memory read/write attribute */
+-	u64 start_addr;		/* Memory Range start physical addr */
+-	u64 length;		/* Memory Range length */
++	struct list_head res_list;
+ };
+ 
++static acpi_status
++acpi_memory_get_resource(struct acpi_resource *resource, void *context)
++{
++	struct acpi_memory_device *mem_device = context;
++	struct acpi_resource_address64 address64;
++	struct acpi_memory_info *info, *new;
++	acpi_status status;
++
++	status = acpi_resource_to_address64(resource, &address64);
++	if (ACPI_FAILURE(status) ||
++	    (address64.resource_type != ACPI_MEMORY_RANGE))
++		return AE_OK;
++
++	list_for_each_entry(info, &mem_device->res_list, list) {
++		/* Can we combine the resource range information? */
++		if ((info->caching == address64.info.mem.caching) &&
++		    (info->write_protect == address64.info.mem.write_protect) &&
++		    (info->start_addr + info->length == address64.minimum)) {
++			info->length += address64.address_length;
++			return AE_OK;
++		}
 +	}
- 	return (new < 3) ? -1 : 0;
++
++	new = kzalloc(sizeof(struct acpi_memory_info), GFP_KERNEL);
++	if (!new)
++		return AE_ERROR;
++
++	INIT_LIST_HEAD(&new->list);
++	new->caching = address64.info.mem.caching;
++	new->write_protect = address64.info.mem.write_protect;
++	new->start_addr = address64.minimum;
++	new->length = address64.address_length;
++	list_add_tail(&new->list, &mem_device->res_list);
++
++	return AE_OK;
++}
++
+ static int
+ acpi_memory_get_device_resources(struct acpi_memory_device *mem_device)
+ {
+ 	acpi_status status;
+-	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+-	struct acpi_resource *resource = NULL;
+-	struct acpi_resource_address64 address64;
++	struct acpi_memory_info *info, *n;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_memory_get_device_resources");
+ 
+-	/* Get the range from the _CRS */
+-	status = acpi_get_current_resources(mem_device->handle, &buffer);
+-	if (ACPI_FAILURE(status))
+-		return_VALUE(-EINVAL);
+-
+-	resource = (struct acpi_resource *)buffer.pointer;
+-	status = acpi_resource_to_address64(resource, &address64);
+-	if (ACPI_SUCCESS(status)) {
+-		if (address64.resource_type == ACPI_MEMORY_RANGE) {
+-			/* Populate the structure */
+-			mem_device->caching = address64.info.mem.caching;
+-			mem_device->write_protect =
+-			    address64.info.mem.write_protect;
+-			mem_device->start_addr = address64.minimum;
+-			mem_device->length = address64.address_length;
+-		}
++	status = acpi_walk_resources(mem_device->handle, METHOD_NAME__CRS,
++				     acpi_memory_get_resource, mem_device);
++	if (ACPI_FAILURE(status)) {
++		list_for_each_entry_safe(info, n, &mem_device->res_list, list)
++			kfree(info);
++		return -EINVAL;
+ 	}
+ 
+-	acpi_os_free(buffer.pointer);
+-	return_VALUE(0);
++	return 0;
  }
  
-@@ -73,11 +76,14 @@ static inline int
- __acpi_release_global_lock (unsigned int *lock)
- {
- 	unsigned int old, new, val;
--	do {
-+	while (1) {
- 		old = *lock;
- 		new = old & ~0x3;
- 		val = cmpxchg(lock, old, new);
--	} while (unlikely (val != old));
-+		if (likely(val == old))
-+			break;
-+		cpu_relax();
-+	}
- 	return old & 0x1;
- }
+ static int
+@@ -181,7 +211,8 @@ static int acpi_memory_check_device(stru
  
-diff -puN include/asm-x86_64/acpi.h~cpu_relax-use-in-acpi-lock include/asm-x86_64/acpi.h
---- a/include/asm-x86_64/acpi.h~cpu_relax-use-in-acpi-lock
-+++ a/include/asm-x86_64/acpi.h
-@@ -59,11 +59,14 @@ static inline int
- __acpi_acquire_global_lock (unsigned int *lock)
+ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
  {
- 	unsigned int old, new, val;
--	do {
-+	while (1) {
- 		old = *lock;
- 		new = (((old & ~0x3) + 2) + ((old >> 1) & 0x1));
- 		val = cmpxchg(lock, old, new);
--	} while (unlikely (val != old));
-+		if (likely(val == old))
-+			break;
-+		cpu_relax();
-+	}
- 	return (new < 3) ? -1 : 0;
- }
+-	int result;
++	int result, num_enabled = 0;
++	struct acpi_memory_info *info;
  
-@@ -71,11 +74,14 @@ static inline int
- __acpi_release_global_lock (unsigned int *lock)
+ 	ACPI_FUNCTION_TRACE("acpi_memory_enable_device");
+ 
+@@ -197,12 +228,20 @@ static int acpi_memory_enable_device(str
+ 	/*
+ 	 * Tell the VM there is more memory here...
+ 	 * Note: Assume that this function returns zero on success
++	 * We don't have memory-hot-add rollback function,now.
++	 * (i.e. memory-hot-remove function)
+ 	 */
+-	result = add_memory(mem_device->start_addr, mem_device->length);
+-	if (result) {
++	list_for_each_entry(info, &mem_device->res_list, list) {
++		result = add_memory(info->start_addr, info->length);
++		if (result)
++			continue;
++		info->enabled = 1;
++		num_enabled++;
++	}
++	if (!num_enabled) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "\nadd_memory failed\n"));
+ 		mem_device->state = MEMORY_INVALID_STATE;
+-		return result;
++		return -EINVAL;
+ 	}
+ 
+ 	return result;
+@@ -246,8 +285,7 @@ static int acpi_memory_powerdown_device(
+ static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
  {
- 	unsigned int old, new, val;
--	do {
-+	while (1) {
- 		old = *lock;
- 		new = old & ~0x3;
- 		val = cmpxchg(lock, old, new);
--	} while (unlikely (val != old));
-+		if (likely(val == old))
-+			break;
-+		cpu_relax();
-+	}
- 	return old & 0x1;
- }
+ 	int result;
+-	u64 start = mem_device->start_addr;
+-	u64 len = mem_device->length;
++	struct acpi_memory_info *info, *n;
  
+ 	ACPI_FUNCTION_TRACE("acpi_memory_disable_device");
+ 
+@@ -255,10 +293,13 @@ static int acpi_memory_disable_device(st
+ 	 * Ask the VM to offline this memory range.
+ 	 * Note: Assume that this function returns zero on success
+ 	 */
+-	result = remove_memory(start, len);
+-	if (result) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Hot-Remove failed.\n"));
+-		return_VALUE(result);
++	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
++		if (info->enabled) {
++			result = remove_memory(info->start_addr, info->length);
++			if (result)
++				return result;
++		}
++		kfree(info);
+ 	}
+ 
+ 	/* Power-off and eject the device */
+@@ -356,6 +397,7 @@ static int acpi_memory_device_add(struct
+ 		return_VALUE(-ENOMEM);
+ 	memset(mem_device, 0, sizeof(struct acpi_memory_device));
+ 
++	INIT_LIST_HEAD(&mem_device->res_list);
+ 	mem_device->handle = device->handle;
+ 	sprintf(acpi_device_name(device), "%s", ACPI_MEMORY_DEVICE_NAME);
+ 	sprintf(acpi_device_class(device), "%s", ACPI_MEMORY_DEVICE_CLASS);
 _
