@@ -1,55 +1,39 @@
 From: akpm@osdl.org
-Subject: [patch 05/18] KEVENT: add new uevent
-Date: Sat, 24 Jun 2006 16:36:26 -0700
-Message-ID: <200606242336.k5ONaRAT008037@shell0.pdx.osdl.net>
+Subject: [patch 01/18] asus_acpi_init: propagate correct return value
+Date: Sat, 24 Jun 2006 16:36:07 -0700
+Message-ID: <200606242336.k5ONa8DT008025@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:28572 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1751221AbWFXXo5 (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:24476 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1751221AbWFXXou (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 24 Jun 2006 19:44:57 -0400
+	Sat, 24 Jun 2006 19:44:50 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, kristen.c.accardi@intel.com, gregkh@suse.de
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, bjorn.helgaas@hp.com, romieu@fr.zoreil.com
 
 
-From: Kristen Accardi <kristen.c.accardi@intel.com>
+From: Andrew Morton <akpm@osdl.org>
 
-Add dock uevents so that userspace can be notified of dock and undock events.
-
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: "Brown, Len" <len.brown@intel.com>
+Acked-by: Francois Romieu <romieu@fr.zoreil.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/kobject.h |    2 ++
- lib/kobject_uevent.c    |    4 ++++
- 2 files changed, 6 insertions(+)
+ drivers/acpi/asus_acpi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/kobject.h~kevent-add-new-uevent include/linux/kobject.h
---- devel/include/linux/kobject.h~kevent-add-new-uevent	2006-06-03 17:34:41.000000000 -0700
-+++ devel-akpm/include/linux/kobject.h	2006-06-03 17:34:41.000000000 -0700
-@@ -46,6 +46,8 @@ enum kobject_action {
- 	KOBJ_UMOUNT	= (__force kobject_action_t) 0x05,	/* umount event for block devices (broken) */
- 	KOBJ_OFFLINE	= (__force kobject_action_t) 0x06,	/* device offline */
- 	KOBJ_ONLINE	= (__force kobject_action_t) 0x07,	/* device online */
-+	KOBJ_UNDOCK	= (__force kobject_action_t) 0x08, 	/* undocking */
-+	KOBJ_DOCK	= (__force kobject_action_t) 0x09,	/* dock */
- };
- 
- struct kobject {
-diff -puN lib/kobject_uevent.c~kevent-add-new-uevent lib/kobject_uevent.c
---- devel/lib/kobject_uevent.c~kevent-add-new-uevent	2006-06-03 17:34:41.000000000 -0700
-+++ devel-akpm/lib/kobject_uevent.c	2006-06-03 17:34:41.000000000 -0700
-@@ -50,6 +50,10 @@ static char *action_to_string(enum kobje
- 		return "offline";
- 	case KOBJ_ONLINE:
- 		return "online";
-+	case KOBJ_DOCK:
-+		return "dock";
-+	case KOBJ_UNDOCK:
-+		return "undock";
- 	default:
- 		return NULL;
+diff -puN drivers/acpi/asus_acpi.c~acpi-update-asus_acpi-driver-registration-fix drivers/acpi/asus_acpi.c
+--- devel/drivers/acpi/asus_acpi.c~acpi-update-asus_acpi-driver-registration-fix	2006-06-01 20:17:04.000000000 -0700
++++ devel-akpm/drivers/acpi/asus_acpi.c	2006-06-01 20:17:04.000000000 -0700
+@@ -1232,7 +1232,7 @@ static int __init asus_acpi_init(void)
+ 	result = acpi_bus_register_driver(&asus_hotk_driver);
+ 	if (result < 0) {
+ 		remove_proc_entry(PROC_ASUS, acpi_root_dir);
+-		return -ENODEV;
++		return result;
  	}
+ 
+ 	/*
 _
