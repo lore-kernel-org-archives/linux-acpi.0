@@ -1,91 +1,117 @@
-From: Hing David <hing_david@virgilio.it>
-Subject: CHARITY PROJECT
-Date: Sun, 25 Jun 2006 18:23:04 +0100 (GMT+01:00)
-Message-ID: <10c0c374890.hing_david@virgilio.it>
-Reply-To: hingd_swiss1@yahoo.com
+From: "Miles Lane" <miles.lane@gmail.com>
+Subject: Re: 2.6.17-mm2 -- Slab corruption, plus invalid opcode: 0000 [#1] -- 4K_STACKS PREEMPT -- last sysfs file: /block/md0/dev
+Date: Sun, 25 Jun 2006 11:53:22 -0700
+Message-ID: <a44ae5cd0606251153j1220f8f5rd5fc6ab85027e3d0@mail.gmail.com>
+References: <a44ae5cd0606241628u18fc9530g9dfbbfca441309fc@mail.gmail.com>
+	 <20060624212940.ea8976ae.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain;charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vsmtp4.tin.it ([212.216.176.224]:6338 "EHLO vsmtp4.tin.it")
-	by vger.kernel.org with ESMTP id S1751335AbWFYR1f (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 25 Jun 2006 13:27:35 -0400
+Received: from py-out-1112.google.com ([64.233.166.182]:28138 "EHLO
+	py-out-1112.google.com") by vger.kernel.org with ESMTP
+	id S932139AbWFYSxX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 25 Jun 2006 14:53:23 -0400
+Received: by py-out-1112.google.com with SMTP id i49so1346889pyi
+        for <linux-acpi@vger.kernel.org>; Sun, 25 Jun 2006 11:53:23 -0700 (PDT)
+In-Reply-To: <20060624212940.ea8976ae.akpm@osdl.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hello Friend,
+Hi Andrew,
 
+> Do you have CONFIG_HOTPLUG_CPU=y?
 
-  My name is Mrs. Hing David I am a dying woman who has 
-decided
- to donate what I have to charity through you.You may be 
-wondering why I
- chose you. But someone has to be chosen. I am 59 years 
-old and was
- diagnosed for cancer about 2 years ago,immediately after 
-the death of
- my husband who had left me everything he worked for.I 
-have been touched by
- the lord to donate from what I have inherited 
-from my late husband to
- charity through you for the good work of 
-humanity,rather than allow my
- relatives to use my husband's hard 
-earned funds inappropriately.
- I have asked the lord to forgive me all 
-my sins and I believe he
- has,because He is merciful. I will be going 
-in for an operation,and I
- pray that I survive the operation.
+I rebuilt with all the PCI hotplug stuff enabled.
+dmesg output suggests I don't have this hardware:
 
- I have 
-decided to WILL/Donate the sum of $5.5 Million (Five Million
- five 
-Hundred thousand Dollars) to charity through you for the good work
- of 
-the lord, and to help the motherless,less privileged and also for the
- 
-assistance of the widows. At the moment I cannot take any telephone
- 
-calls, due to the fact that my relatives are around me and I have been
- 
-restricted by my doctor from taking telephone calls because I deserve
- 
-all the rest I can get.
+pci_hotplug: PCI Hot Plug PCI Core version: 0.5
+fakephp: Fake PCI Hot Plug Controller Driver
+cpqphp: Compaq Hot Plug PCI Controller Driver version: 0.9.8
+acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5
+acpiphp_ibm: ibm_find_acpi_device:  Failed to get device
+information<3>acpiphp_ibm: ibm_find_acpi_device:  Failed to get device
+information<3>acpiphp_ibm: ibm_acpiphp_init: acpi_walk_namespace
+failed
+cpcihp_generic: Generic port I/O CompactPCI Hot Plug Driver version: 0.1
+cpcihp_generic: not configured, disabling.
+shpchp: Standard Hot Plug PCI Controller Driver version: 0.4
 
- Presently,I have informed my lawyer about my 
-decision in WILLING this
- fund to charity through you. I wish you all 
-the best and may the good
- Lord bless you abundantly, and please use 
-the funds well and always
- extend the good work to others.
+I still get:
 
- If you are 
-interested in carrying out this task,i will inform my Family
- Lawyer so 
-that he can arrange the release of the funds to you.
-
- I know i have 
-never met you but my mind tells me to do this,and I hope
- you act 
-sincerely.I will pay you 30% of this money if you will assist
- me 
-because I am now too weak and frigile to do things myself because of
- 
-my cancer.
-
- NB: I will appreciate your utmost confidentiaality in this 
-matter until
- the task is accomplished,as I don't want anything that 
-will Jeopardize
- my last wish, due to the fact that I do not want 
-relatives or family
- members standing in the away of my last wish.
-
- 
-Love,
- Mrs Hing David
-
- 
+BUG: unable to handle kernel paging request at virtual address 9e82ee96
+ printing eip:
+c13d029f
+*pde = 00000000
+Oops: 0002 [#1]
+4K_STACKS PREEMPT
+last sysfs file: /block/md0/dev
+Modules linked in: speedstep_centrino cpufreq_stats freq_table
+cpufreq_powersave cpufreq_performance cpufreq_conservative video
+thermal sony_acpi processor fan container button battery asus_acpi ac
+vfat fat nls_utf8 ntfs dm_mod sr_mod sbp2 parport_pc lp parport
+snd_intel8x0 snd_ac97_codec snd_ac97_bus snd_pcm_oss snd_mixer_oss
+snd_pcm snd_timer ipw2200 snd soundcore rtc ata_piix libata 8139cp
+8139too mii ieee80211 ieee80211_crypt snd_page_alloc sdhci mmc_core
+ohci1394 ieee1394 scsi_mod pcspkr ehci_hcd uhci_hcd joydev
+CPU:    0
+EIP:    0060:[<c13d029f>]    Not tainted VLI
+EFLAGS: 00010203   (2.6.17-mm2 #4)
+EIP is at cpufreq_register_driver+0x16/0x129
+eax: f8acefe0   ebx: c1f9edbc   ecx: f76bd000   edx: 00000000
+esi: f8acf380   edi: f8acf380   ebp: f76bded4   esp: f76bded0
+ds: 007b   es: 007b   ss: 0068
+Process modprobe (pid: 2589, ti=f76bd000 task=f7bd4370 task.ti=f76bd000)
+Stack: f8a97053 f76bdfb4 c1030e07 00000016 00000370 c1231564 c1231564 00000530
+       00000000 00000003 f8acf380 f8c1a308 f8c1a1f0 f8c1a2e0 f7790b94 f8c1ae48
+       00000017 00000015 00000000 00000000 00000000 00000000 00000000 00000000
+Call Trace:
+ <c10036b9> show_stack_log_lvl+0x8b/0x96  <c1003807> show_registers+0x143/0x1af
+ <c1003cb9> die+0x176/0x251  <c1010f7e> do_page_fault+0x3c2/0x4b4
+ <c1002ec9> error_code+0x39/0x40  <c1030e07> sys_init_module+0x1425/0x1586
+ <c1002c91> sysenter_past_esp+0x56/0x79
+Code: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 <00>
+a5 c2 0f 17 a7 47 0e c1 a5 c2 0f 17 02 00 00 00 01 00 00 00
+EIP: [<c13d029f>] cpufreq_register_driver+0x16/0x129 SS:ESP 0068:f76bded0
+ acpi_processor-0758 [97] processor_preregister_: Error while parsing
+_PSD domain information. Assuming no coordination
+BUG: unable to handle kernel paging request at virtual address 9e7c2e96
+ printing eip:
+c13d029f
+*pde = 00000000
+Oops: 0002 [#2]
+4K_STACKS PREEMPT
+last sysfs file: /block/md0/dev
+Modules linked in: acpi_cpufreq speedstep_centrino cpufreq_stats
+freq_table cpufreq_powersave cpufreq_performance cpufreq_conservative
+video thermal sony_acpi processor fan container button battery
+asus_acpi ac vfat fat nls_utf8 ntfs dm_mod sr_mod sbp2 parport_pc lp
+parport snd_intel8x0 snd_ac97_codec snd_ac97_bus snd_pcm_oss
+snd_mixer_oss snd_pcm snd_timer ipw2200 snd soundcore rtc ata_piix
+libata 8139cp 8139too mii ieee80211 ieee80211_crypt snd_page_alloc
+sdhci mmc_core ohci1394 ieee1394 scsi_mod pcspkr ehci_hcd uhci_hcd
+joydev
+CPU:    0
+EIP:    0060:[<c13d029f>]    Not tainted VLI
+EFLAGS: 00010203   (2.6.17-mm2 #4)
+EIP is at cpufreq_register_driver+0x16/0x129
+eax: f8c1dd60   ebx: c1f9e9b0   ecx: f7651000   edx: 00000000
+esi: f8c1de00   edi: f8c1de00   ebp: f7651ed4   esp: f7651ed0
+ds: 007b   es: 007b   ss: 0068
+Process modprobe (pid: 2591, ti=f7651000 task=c1ed9930 task.ti=f7651000)
+Stack: f8c2006f f7651fb4 c1030e07 00000017 00000398 c1231564 c1231564 00000500
+       00000001 00000002 f8c1de00 f8c19e34 f8c19d1c f8c19e0c f75ef404 f8c1a7a4
+       00000018 00000016 00000008 00000000 00000000 00000000 00000000 00000000
+Call Trace:
+ <c10036b9> show_stack_log_lvl+0x8b/0x96  <c1003807> show_registers+0x143/0x1af
+ <c1003cb9> die+0x176/0x251  <c1010f7e> do_page_fault+0x3c2/0x4b4
+ <c1002ec9> error_code+0x39/0x40  <c1030e07> sys_init_module+0x1425/0x1586
+ <c1002c91> sysenter_past_esp+0x56/0x79
+Code: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 <00>
+a5 c2 0f 17 a7 47 0e c1 a5 c2 0f 17 02 00 00 00 01 00 00 00
+EIP: [<c13d029f>] cpufreq_register_driver+0x16/0x129 SS:ESP 0068:f7651ed0
