@@ -1,22 +1,18 @@
 From: Fengguang Wu <fengguang.wu@gmail.com>
 Subject: 2.6.17-mm2 ACPI warnings: unexpected IRQ trap at vector 05
 Date: Sun, 25 Jun 2006 14:46:18 +0800
-Message-ID: <351217973.30417@ustc.edu.cn>
+Message-ID: <20060625064618.GA6149__18987.4923941263$1151218117$gmane$org@mail.ustc.edu.cn>
 References: <a44ae5cd0606050124h4c82f45aq27f68f9d07956642@mail.gmail.com> <20060605015922.0defacbc.akpm@osdl.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.ustc.edu.cn ([202.38.64.16]:46302 "HELO ustc.edu.cn")
-	by vger.kernel.org with SMTP id S932074AbWFYGqS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 25 Jun 2006 02:46:18 -0400
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932080AbWFYGqX@vger.kernel.org>
 Message-ID: <20060625064618.GA6149@mail.ustc.edu.cn>
 Content-Disposition: inline
 In-Reply-To: <20060605015922.0defacbc.akpm@osdl.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
 Hi,
 
