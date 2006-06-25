@@ -1,69 +1,52 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: 2.6.17-mm2 -- Slab corruption, plus invalid opcode: 0000 [#1]
- -- 4K_STACKS PREEMPT -- last sysfs file: /block/md0/dev
-Date: Sun, 25 Jun 2006 12:00:26 -0700
-Message-ID: <20060625120026.513a6076.akpm@osdl.org>
-References: <a44ae5cd0606241628u18fc9530g9dfbbfca441309fc@mail.gmail.com>
-	<20060624212940.ea8976ae.akpm@osdl.org>
-	<a44ae5cd0606251153j1220f8f5rd5fc6ab85027e3d0@mail.gmail.com>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [patch] ACPI: reduce code size, clean up, fix validator message
+Date: Sun, 25 Jun 2006 21:54:40 +0200
+Message-ID: <20060625195440.GC11494@elte.hu>
+References: <CFF307C98FEABE47A452B27C06B85BB6CF0D04@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:51870 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S932439AbWFYTAa (ORCPT
+Received: from mx3.mail.elte.hu ([157.181.1.138]:30931 "EHLO mx3.mail.elte.hu")
+	by vger.kernel.org with ESMTP id S965512AbWFYT7e (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 25 Jun 2006 15:00:30 -0400
-In-Reply-To: <a44ae5cd0606251153j1220f8f5rd5fc6ab85027e3d0@mail.gmail.com>
+	Sun, 25 Jun 2006 15:59:34 -0400
+Content-Disposition: inline
+In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB6CF0D04@hdsmsx411.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Miles Lane <miles.lane@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: Andrew Morton <akpm@osdl.org>, michal.k.k.piotrowski@gmail.com, arjan@linux.intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Moore, Robert" <robert.moore@intel.com>, Arjan van de Ven <arjan@infradead.org>
 
-On Sun, 25 Jun 2006 11:53:22 -0700
-"Miles Lane" <miles.lane@gmail.com> wrote:
 
-> Hi Andrew,
-> 
-> > Do you have CONFIG_HOTPLUG_CPU=y?
-> 
-> I rebuilt with all the PCI hotplug stuff enabled.
-> dmesg output suggests I don't have this hardware:
-> 
-> pci_hotplug: PCI Hot Plug PCI Core version: 0.5
-> fakephp: Fake PCI Hot Plug Controller Driver
-> cpqphp: Compaq Hot Plug PCI Controller Driver version: 0.9.8
-> acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5
-> acpiphp_ibm: ibm_find_acpi_device:  Failed to get device
-> information<3>acpiphp_ibm: ibm_find_acpi_device:  Failed to get device
-> information<3>acpiphp_ibm: ibm_acpiphp_init: acpi_walk_namespace
-> failed
-> cpcihp_generic: Generic port I/O CompactPCI Hot Plug Driver version: 0.1
-> cpcihp_generic: not configured, disabling.
-> shpchp: Standard Hot Plug PCI Controller Driver version: 0.4
-> 
-> I still get:
-> 
-> BUG: unable to handle kernel paging request at virtual address 9e82ee96
->  printing eip:
-> c13d029f
-> *pde = 00000000
-> Oops: 0002 [#1]
-> 4K_STACKS PREEMPT
-> last sysfs file: /block/md0/dev
-> Modules linked in: speedstep_centrino cpufreq_stats freq_table
-> cpufreq_powersave cpufreq_performance cpufreq_conservative video
-> thermal sony_acpi processor fan container button battery asus_acpi ac
-> vfat fat nls_utf8 ntfs dm_mod sr_mod sbp2 parport_pc lp parport
-> snd_intel8x0 snd_ac97_codec snd_ac97_bus snd_pcm_oss snd_mixer_oss
-> snd_pcm snd_timer ipw2200 snd soundcore rtc ata_piix libata 8139cp
-> 8139too mii ieee80211 ieee80211_crypt snd_page_alloc sdhci mmc_core
-> ohci1394 ieee1394 scsi_mod pcspkr ehci_hcd uhci_hcd joydev
-> CPU:    0
-> EIP:    0060:[<c13d029f>]    Not tainted VLI
-> EFLAGS: 00010203   (2.6.17-mm2 #4)
-> EIP is at cpufreq_register_driver+0x16/0x129
+* Brown, Len <len.brown@intel.com> wrote:
 
-Do you have
-ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.17/2.6.17-mm2/hot-fixes/cpufreq_register_driver-section-fix.patch
-applied?
+> Ingo,
+> Thanks for the quick reply.
+> 
+> An Andrew's advice a while back, Bob already got rid
+> of the allocate part -- it just isn't upstream yet.
+> 
+> Re: changing ACPICA code (sub-directories of drivers/acpi/) like this:
+> 
+> >-	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
+> >+	spin_lock_irqsave(&acpi_gbl_gpe_lock, flags);
+> 
+> I can't do that without either
+> 1. diverging between Linux and ACPICA
+> or
+> 2. getting a license back from you to Intel such that Intel can
+>    re-distrubute such a change under the Intel license on the file and 
+>    inventing spin_lock_irqsave() on about 9 other operating systems.
+
+btw., regarding #2 i hereby put my patch (which i wrote in my free time) 
+into the public domain - feel free to reuse it in any way, shape or 
+form, under any license. (but it's trivial enough so i guess the only 
+copyrightable element is my changelog entry anyway ;)
+
+> If this code were performance or size critical, I would still delete 
+> acpi_os_acquire_lock from osl.c, but would inline it in aclinux.h.
+
+well its in the kernel so it's size critical by definition. But it's 
+certainly not a highprio thing.
+
+	Ingo
