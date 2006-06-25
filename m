@@ -1,117 +1,71 @@
-From: "Miles Lane" <miles.lane@gmail.com>
-Subject: Re: 2.6.17-mm2 -- Slab corruption, plus invalid opcode: 0000 [#1] -- 4K_STACKS PREEMPT -- last sysfs file: /block/md0/dev
-Date: Sun, 25 Jun 2006 11:53:22 -0700
-Message-ID: <a44ae5cd0606251153j1220f8f5rd5fc6ab85027e3d0@mail.gmail.com>
-References: <a44ae5cd0606241628u18fc9530g9dfbbfca441309fc@mail.gmail.com>
-	 <20060624212940.ea8976ae.akpm@osdl.org>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: Issues with the ACPI subsystem?
+Date: Sun, 25 Jun 2006 14:59:05 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB6D35554@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.182]:28138 "EHLO
-	py-out-1112.google.com") by vger.kernel.org with ESMTP
-	id S932139AbWFYSxX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 25 Jun 2006 14:53:23 -0400
-Received: by py-out-1112.google.com with SMTP id i49so1346889pyi
-        for <linux-acpi@vger.kernel.org>; Sun, 25 Jun 2006 11:53:23 -0700 (PDT)
-In-Reply-To: <20060624212940.ea8976ae.akpm@osdl.org>
-Content-Disposition: inline
+Received: from mga02.intel.com ([134.134.136.20]:12435 "EHLO
+	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S932438AbWFYS70 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Jun 2006 14:59:26 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Ionic <ionic@root24.de>
+Cc: linux-acpi@vger.kernel.org
 
-Hi Andrew,
+>I started installing Gentoo Linux 2006.0 with Kernel 2.6.16.x (Vanilla,
+>but with vesafb-tng, later also suspend2). With this Kernel, I 
+>was never
+>able to power off my Notebook properply. After running `shutdown -h
+>now', init was called and everything went down without any problems.
+>Then, there was written "Power off.". However, the Notebook was never
+>powered off anyway. I had to do it myself every time.
+>
+>Well, this changed with Kernel 2.6.17. I'm using Kernel 2.6.17.1 with
+>the ACPI patchset, vesafb-tng, suspend2 and SquashFS3 now.
+>My actual problem is, that the Notebook powers down without any
+>problems, when I did not start any Desktop Environments.
+>But after starting any DE (I tried Fluxbox, GNOME, KDE, XFCE and
+>BlackBox so far), the Notebook is not powering down anymore and I have
+>to do it manually again. This seems very strange to me. I also disabled
+>any ACPI features in the DE (like a battery-applet or something like
+>this; Black- and FluxBox doesn't even have such) without any luck.
 
-> Do you have CONFIG_HOTPLUG_CPU=y?
+So the latest kernel powers down properly, but only if you don't start
+X?
+With older kernels it would not power down even without X?
 
-I rebuilt with all the PCI hotplug stuff enabled.
-dmesg output suggests I don't have this hardware:
+Sounds like an issue with the video driver/BIOS.
 
-pci_hotplug: PCI Hot Plug PCI Core version: 0.5
-fakephp: Fake PCI Hot Plug Controller Driver
-cpqphp: Compaq Hot Plug PCI Controller Driver version: 0.9.8
-acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5
-acpiphp_ibm: ibm_find_acpi_device:  Failed to get device
-information<3>acpiphp_ibm: ibm_find_acpi_device:  Failed to get device
-information<3>acpiphp_ibm: ibm_acpiphp_init: acpi_walk_namespace
-failed
-cpcihp_generic: Generic port I/O CompactPCI Hot Plug Driver version: 0.1
-cpcihp_generic: not configured, disabling.
-shpchp: Standard Hot Plug PCI Controller Driver version: 0.4
+>Well, my question is, whether this could be an ACPI problem? 
+>If yes, how
+>could it be fixed? I'm using a costum DSDT table already. Not, that
+>there were many errors or warnings I found with the INTEL(r) ACPI tool,
+>the only warning was about the _WAK function, which I could 
+>remove using
+>a workaround in the Gentoo Forum
+>(http://forums.gentoo.org/viewtopic.php?t=122145).
+>Apart from this, the table is clean. The compiler says, that there are
+>36 optimizations, but I do not understand this, though. Are that
+>optimizations, that can be done while compiling the table to a *.hex
+>table? Although I'm running the new, clean table, the IASL says
+>everytime something about 36 optimizations.
 
-I still get:
+Actually, I'd prefer that you not modify your DSDT at all.
+Verify that you have the latest BIOS from the vendor,
+and if Windows can deal with it and Linux can not,
+then it is a Linux bug that we need to know about --
+not something you want to hide by modifying the firmware.
 
-BUG: unable to handle kernel paging request at virtual address 9e82ee96
- printing eip:
-c13d029f
-*pde = 00000000
-Oops: 0002 [#1]
-4K_STACKS PREEMPT
-last sysfs file: /block/md0/dev
-Modules linked in: speedstep_centrino cpufreq_stats freq_table
-cpufreq_powersave cpufreq_performance cpufreq_conservative video
-thermal sony_acpi processor fan container button battery asus_acpi ac
-vfat fat nls_utf8 ntfs dm_mod sr_mod sbp2 parport_pc lp parport
-snd_intel8x0 snd_ac97_codec snd_ac97_bus snd_pcm_oss snd_mixer_oss
-snd_pcm snd_timer ipw2200 snd soundcore rtc ata_piix libata 8139cp
-8139too mii ieee80211 ieee80211_crypt snd_page_alloc sdhci mmc_core
-ohci1394 ieee1394 scsi_mod pcspkr ehci_hcd uhci_hcd joydev
-CPU:    0
-EIP:    0060:[<c13d029f>]    Not tainted VLI
-EFLAGS: 00010203   (2.6.17-mm2 #4)
-EIP is at cpufreq_register_driver+0x16/0x129
-eax: f8acefe0   ebx: c1f9edbc   ecx: f76bd000   edx: 00000000
-esi: f8acf380   edi: f8acf380   ebp: f76bded4   esp: f76bded0
-ds: 007b   es: 007b   ss: 0068
-Process modprobe (pid: 2589, ti=f76bd000 task=f7bd4370 task.ti=f76bd000)
-Stack: f8a97053 f76bdfb4 c1030e07 00000016 00000370 c1231564 c1231564 00000530
-       00000000 00000003 f8acf380 f8c1a308 f8c1a1f0 f8c1a2e0 f7790b94 f8c1ae48
-       00000017 00000015 00000000 00000000 00000000 00000000 00000000 00000000
-Call Trace:
- <c10036b9> show_stack_log_lvl+0x8b/0x96  <c1003807> show_registers+0x143/0x1af
- <c1003cb9> die+0x176/0x251  <c1010f7e> do_page_fault+0x3c2/0x4b4
- <c1002ec9> error_code+0x39/0x40  <c1030e07> sys_init_module+0x1425/0x1586
- <c1002c91> sysenter_past_esp+0x56/0x79
-Code: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 <00>
-a5 c2 0f 17 a7 47 0e c1 a5 c2 0f 17 02 00 00 00 01 00 00 00
-EIP: [<c13d029f>] cpufreq_register_driver+0x16/0x129 SS:ESP 0068:f76bded0
- acpi_processor-0758 [97] processor_preregister_: Error while parsing
-_PSD domain information. Assuming no coordination
-BUG: unable to handle kernel paging request at virtual address 9e7c2e96
- printing eip:
-c13d029f
-*pde = 00000000
-Oops: 0002 [#2]
-4K_STACKS PREEMPT
-last sysfs file: /block/md0/dev
-Modules linked in: acpi_cpufreq speedstep_centrino cpufreq_stats
-freq_table cpufreq_powersave cpufreq_performance cpufreq_conservative
-video thermal sony_acpi processor fan container button battery
-asus_acpi ac vfat fat nls_utf8 ntfs dm_mod sr_mod sbp2 parport_pc lp
-parport snd_intel8x0 snd_ac97_codec snd_ac97_bus snd_pcm_oss
-snd_mixer_oss snd_pcm snd_timer ipw2200 snd soundcore rtc ata_piix
-libata 8139cp 8139too mii ieee80211 ieee80211_crypt snd_page_alloc
-sdhci mmc_core ohci1394 ieee1394 scsi_mod pcspkr ehci_hcd uhci_hcd
-joydev
-CPU:    0
-EIP:    0060:[<c13d029f>]    Not tainted VLI
-EFLAGS: 00010203   (2.6.17-mm2 #4)
-EIP is at cpufreq_register_driver+0x16/0x129
-eax: f8c1dd60   ebx: c1f9e9b0   ecx: f7651000   edx: 00000000
-esi: f8c1de00   edi: f8c1de00   ebp: f7651ed4   esp: f7651ed0
-ds: 007b   es: 007b   ss: 0068
-Process modprobe (pid: 2591, ti=f7651000 task=c1ed9930 task.ti=f7651000)
-Stack: f8c2006f f7651fb4 c1030e07 00000017 00000398 c1231564 c1231564 00000500
-       00000001 00000002 f8c1de00 f8c19e34 f8c19d1c f8c19e0c f75ef404 f8c1a7a4
-       00000018 00000016 00000008 00000000 00000000 00000000 00000000 00000000
-Call Trace:
- <c10036b9> show_stack_log_lvl+0x8b/0x96  <c1003807> show_registers+0x143/0x1af
- <c1003cb9> die+0x176/0x251  <c1010f7e> do_page_fault+0x3c2/0x4b4
- <c1002ec9> error_code+0x39/0x40  <c1030e07> sys_init_module+0x1425/0x1586
- <c1002c91> sysenter_past_esp+0x56/0x79
-Code: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 <00>
-a5 c2 0f 17 a7 47 0e c1 a5 c2 0f 17 02 00 00 00 01 00 00 00
-EIP: [<c13d029f>] cpufreq_register_driver+0x16/0x129 SS:ESP 0068:f7651ed0
+
+So check your BIOS.
+Check your video driver version, and the version of X in general.
+
+Yes, the issue is probably an interaction with ACPI, but
+is quite possibly a firmware or video software platform-specific issue.
+
+-Len
