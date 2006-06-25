@@ -1,44 +1,70 @@
-From: "Miles Lane" <miles.lane@gmail.com>
-Subject: Re: 2.6.17-mm2 -- Slab corruption, plus invalid opcode: 0000 [#1] -- 4K_STACKS PREEMPT -- last sysfs file: /block/md0/dev
-Date: Sun, 25 Jun 2006 13:08:01 -0700
-Message-ID: <a44ae5cd0606251308k258eafdfpfc23ca2ad96fc3ad@mail.gmail.com>
-References: <a44ae5cd0606241628u18fc9530g9dfbbfca441309fc@mail.gmail.com>
-	 <20060624212940.ea8976ae.akpm@osdl.org>
-	 <a44ae5cd0606251153j1220f8f5rd5fc6ab85027e3d0@mail.gmail.com>
-	 <20060625120026.513a6076.akpm@osdl.org>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: Re: 2.6.17-mm2 -- drivers/built-in.o: In function `is_pci_dock_device':acpiphp_glue.c:(.text+0x12364): undefined reference to `is_dock_device'
+Date: Sun, 25 Jun 2006 22:09:53 +0200
+Message-ID: <20060625200953.GF23314@stusta.de>
+References: <a44ae5cd0606251256m74182e7fw4eb2692c89b0e2f8@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.182]:49759 "EHLO
-	py-out-1112.google.com") by vger.kernel.org with ESMTP
-	id S932239AbWFYUIC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 25 Jun 2006 16:08:02 -0400
-Received: by py-out-1112.google.com with SMTP id t32so1239657pyc
-        for <linux-acpi@vger.kernel.org>; Sun, 25 Jun 2006 13:08:01 -0700 (PDT)
-In-Reply-To: <20060625120026.513a6076.akpm@osdl.org>
+Received: from emailhub.stusta.mhn.de ([141.84.69.5]:42769 "HELO
+	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
+	id S932241AbWFYUJz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 25 Jun 2006 16:09:55 -0400
 Content-Disposition: inline
+In-Reply-To: <a44ae5cd0606251256m74182e7fw4eb2692c89b0e2f8@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Miles Lane <miles.lane@gmail.com>, Kristen Accardi <kristen.c.accardi@intel.com>, Dave Hansen <haveblue@us.ibm.com>
+Cc: Andrew Morton <akpm@osdl.org>, LKML <linux-kernel@vger.kernel.org>, gregkh@suse.de, len.brown@intel.com, linux-acpi@vger.kernel.org
 
-On 6/25/06, Andrew Morton <akpm@osdl.org> wrote:
+On Sun, Jun 25, 2006 at 12:56:44PM -0700, Miles Lane wrote:
+> drivers/built-in.o: In function
+> `is_pci_dock_device':acpiphp_glue.c:(.text+0x12364): undefined
+> reference to `is_dock_device'
+> drivers/built-in.o: In function
+> `cleanup_bridge':acpiphp_glue.c:(.text+0x12bc4): undefined reference
+> to `is_dock_device'
+> :acpiphp_glue.c:(.text+0x12bd3): undefined reference to
+> `unregister_hotplug_dock_device'
+> :acpiphp_glue.c:(.text+0x12bdb): undefined reference to
+> `unregister_dock_notifier'
+> drivers/built-in.o: In function
+> `register_slot':acpiphp_glue.c:(.text+0x13ac0): undefined reference to
+> `is_dock_device'
+> :acpiphp_glue.c:(.text+0x13cd9): undefined reference to `is_dock_device'
+> :acpiphp_glue.c:(.text+0x13cf0): undefined reference to
+> `register_hotplug_dock_device'
+> :acpiphp_glue.c:(.text+0x13d1d): undefined reference to 
+> `register_dock_notifier'
+> make: *** [.tmp_vmlinux1] Error 1
+> 
+> #
+> # PCI Hotplug Support
+> #
+> CONFIG_HOTPLUG_PCI=y
+> CONFIG_HOTPLUG_PCI_FAKE=y
+> CONFIG_HOTPLUG_PCI_COMPAQ=y
+> # CONFIG_HOTPLUG_PCI_COMPAQ_NVRAM is not set
+> CONFIG_HOTPLUG_PCI_ACPI=y
+> CONFIG_HOTPLUG_PCI_ACPI_IBM=y
+> CONFIG_HOTPLUG_PCI_CPCI=y
+> # CONFIG_HOTPLUG_PCI_CPCI_ZT5550 is not set
+> CONFIG_HOTPLUG_PCI_CPCI_GENERIC=y
+> CONFIG_HOTPLUG_PCI_SHPC=y
+> # CONFIG_HOTPLUG_PCI_SHPC_POLL_EVENT_MODE is not set
 
-> Do you have
-> ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.17/2.6.17-mm2/hot-fixes/cpufreq_register_driver-section-fix.patch
-> applied?
 
-Great!  That fixed it.  Thanks.
+You hadn't attached your complete .config, but is it correct when I 
+assume you have CONFIG_ACPI_DOCK=m? This would explain the problem.
 
-I still have this showing up:
 
-Slab corruption: start=f021ed10, len=1424
-030: 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 56 9f fb 54
-060: 6b 6b 6b 6b 05 00 00 00 6b 6b 6b 6b 6b 6b 6b 6b
-Prev obj: start=f021e780, len=1424
-000: 02 00 00 00 00 c0 82 f4 02 00 00 00 00 00 40 00
-010: 00 00 00 00 ff ff ff ff 80 00 00 00 76 00 00 00
-Next obj: start=f021f2a0, len=1424
-000: 00 00 00 00 00 50 01 f3 02 00 00 00 40 20 40 00
-010: 00 00 00 00 ff ff ff ff 80 00 00 00 75 00 00 00
+cu
+Adrian
+
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
+
