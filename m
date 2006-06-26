@@ -1,87 +1,29 @@
-From: "Moore, Robert" <robert.moore@intel.com>
+From: "Brown, Len" <len.brown@intel.com>
 Subject: RE: [patch] ACPI: reduce code size, clean up, fix validator message
-Date: Mon, 26 Jun 2006 13:42:11 -0700
-Message-ID: <B28E9812BAF6E2498B7EC5C427F293A48379C2@orsmsx415.amr.corp.intel.com>
+Date: Mon, 26 Jun 2006 17:58:08 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB6D8C62C@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:25727 "EHLO
+Received: from mga03.intel.com ([143.182.124.21]:20121 "EHLO
 	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S1751254AbWFZUrp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Jun 2006 16:47:45 -0400
+	id S933080AbWFZWCk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Jun 2006 18:02:40 -0400
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>
-Cc: Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@osdl.org>, michal.k.k.piotrowski@gmail.com, arjan@linux.intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Arjan van de Ven <arjan@infradead.org>
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@osdl.org>, michal.k.k.piotrowski@gmail.com, arjan@linux.intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Moore, Robert" <robert.moore@intel.com>, Arjan van de Ven <arjan@infradead.org>
 
-Everyone should keep in mind that eventually, the ACPICA code can be
-fully integrated into each host operating system and then maintained by
-the individual OS projects.
+ 
+>( for example the ACPI practice of allocating opaque 'handler' 
+> pointers that carry no type at [they are void *] is playing with fire.
+It in 
+> essence disables the remaining little bit of type-safety 
+> that C has. )
 
-During the time that Intel is actively developing and supporting the
-ACPICA code, we need the OS-independent interfaces to provide
-portability across the dozen or so host operating systems that are
-currently supported.
+I agree 100%.
 
-Yes, of course there is some inefficiency in not using the native OS
-interfaces. However, this is really the only sane way to support so many
-different hosts, and all OS projects get the benefit of debugging help
-and feedback from the many different operating systems.
-
-Bob
-
-
-> -----Original Message-----
-> From: Brown, Len
-> Sent: Monday, June 26, 2006 10:40 AM
-> To: Pavel Machek
-> Cc: Ingo Molnar; Andrew Morton; michal.k.k.piotrowski@gmail.com;
-> arjan@linux.intel.com; linux-kernel@vger.kernel.org; linux-
-> acpi@vger.kernel.org; Moore, Robert; Arjan van de Ven
-> Subject: RE: [patch] ACPI: reduce code size, clean up, fix validator
-> message
-> 
-> 
-> >Well, gain here is that code actually becomes readable/linux
-> >like/something.
-> >
-> >Feel free to put GPL/BSD license in ACPICA code, saying that by
-> >default contributed code is under both licenses.... or something, but
-> >having linux-like code under drivers/acpi would be great.
-> 
-> There is drivers/acpi/*.c
-> This is pure GPL and can be as "Linux like" as any purist wants it to
-be.
-> Indeed, we have several patches in the queue to do just that in
-2.6.18.
-> 
-> and there is drivers/acpi/*/*.c, which is from ACPICA.
-> Linux, along with a bunch of other OS's, is downstream.
-> 
-> The license on ACPICA is not the issue.
-> The issue is when we make a syntax change to ACPICA in Linux,
-> then it adds to (my) workload to keep Linux up to date with the
-upstream
-> ACPICA.
-> 
-> (note that the previous Linux/ACPI maintainer dealt with this issue
->  by simply over-writing the ACPICA files in Linux upon every update.
->  I allow divergence, but I have to track it, it causes merge
-conflicts,
->  and Bob and I actively work to change ACPICA upstream to minimize
-it.)
-> 
-> If you have specific feedback on what can be improved,
-> I'm certainly willing to listen.  As you may be aware,
-> I translate every ACPICA change into Linux format, and
-> it is possible that this process can be enhanced.
-> 
-> Keep in perspective, however, that we have over 200
-> functional issues unresolved in bugzilla.kernel.org,
-> and spending time on syntax changes is generally
-> a lower priority.
-> 
-> -Len
+-Len
