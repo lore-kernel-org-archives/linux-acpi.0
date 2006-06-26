@@ -1,59 +1,41 @@
-From: Andreas Mohr <andi@rhlx01.fht-esslingen.de>
-Subject: [PATCH -mm] ACPI: re-add important comment about P_LVLx register
-Date: Mon, 26 Jun 2006 21:57:39 +0200
-Message-ID: <20060626195739.GA12401@rhlx01.fht-esslingen.de>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [patch] ACPI: reduce code size, clean up, fix validator message
+Date: Mon, 26 Jun 2006 21:59:58 +0200
+Message-ID: <20060626195958.GB15038@elte.hu>
+References: <CFF307C98FEABE47A452B27C06B85BB6D8C286@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rhlx01.fht-esslingen.de ([129.143.116.10]:13200 "EHLO
-	rhlx01.fht-esslingen.de") by vger.kernel.org with ESMTP
-	id S932988AbWFZT5k (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 Jun 2006 15:57:40 -0400
+Received: from mx3.mail.elte.hu ([157.181.1.138]:17375 "EHLO mx3.mail.elte.hu")
+	by vger.kernel.org with ESMTP id S932987AbWFZUE5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Jun 2006 16:04:57 -0400
 Content-Disposition: inline
+In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB6D8C286@hdsmsx411.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: len.brown@intel.com, linux-acpi@vger.kernel.org
-
-Hi all,
-
-- re-add explanatory comment to P_LVLx invocation that had been removed
-  a while ago
-
-While trying to look for superfluous I/O accesses that can be optimized
-away, I stumbled upon this ACPI sleep I/O access and couldn't figure out
-why the hell this dummy op was necessary.
-After more than one hour of internet research, I had collected a sufficient
-number of documents (among those very old kernel versions) that finally
-told me what this dummy read was about: STPCLK# doesn't get asserted in time
-on (some) chipsets, which is why we need to have a dummy I/O read to delay
-further instruction processing until the CPU is fully stopped.
-
-Compile-tested on 2.6.17-mm1.
-
-Signed-off-by: Andreas Mohr <andi@lisas.de>
+To: "Brown, Len" <len.brown@intel.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@osdl.org>, michal.k.k.piotrowski@gmail.com, arjan@linux.intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Moore, Robert" <robert.moore@intel.com>, Arjan van de Ven <arjan@infradead.org>
 
 
-diff -urN linux-2.6.17-mm2.orig/drivers/acpi/processor_idle.c linux-2.6.17-mm2.my/drivers/acpi/processor_idle.c
---- linux-2.6.17-mm2.orig/drivers/acpi/processor_idle.c	2006-06-26 11:18:52.000000000 +0200
-+++ linux-2.6.17-mm2.my/drivers/acpi/processor_idle.c	2006-06-26 18:06:18.000000000 +0200
-@@ -361,7 +361,9 @@
- 		t1 = inl(acpi_fadt.xpm_tmr_blk.address);
- 		/* Invoke C2 */
- 		inb(cx->address);
--		/* Dummy op - must do something useless after P_LVL2 read */
-+		/* Dummy wait op - must do something useless after P_LVL2 read
-+		   because chipsets cannot guarantee that STPCLK# signal
-+		   gets asserted in time to freeze execution properly. */
- 		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
- 		/* Get end time (ticks) */
- 		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
-@@ -399,7 +401,7 @@
- 		t1 = inl(acpi_fadt.xpm_tmr_blk.address);
- 		/* Invoke C3 */
- 		inb(cx->address);
--		/* Dummy op - must do something useless after P_LVL3 read */
-+		/* Dummy wait op (see above) */
- 		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
- 		/* Get end time (ticks) */
- 		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
+* Brown, Len <len.brown@intel.com> wrote:
+
+> Keep in perspective, however, that we have over 200 functional issues 
+> unresolved in bugzilla.kernel.org, and spending time on syntax changes 
+> is generally a lower priority.
+
+well, it's your baby and they are your priorities (and i'm really not 
+trying to interfere), but still - my personal experience is that syntax 
+and functional correctness are strongly connected. I dont claim that 
+this particular issue of lock initialization and abstraction is a big 
+deal in itself, but cruft does add up over time and becomes a real 
+obstacle. I usually spend alot of quality time cleaning up my own code, 
+because i know that it directly results in a better ability to improve, 
+extend or debug the code in the future. [ Then again, i dont write code 
+for 9 platforms :-) ]
+
+( for example the ACPI practice of allocating opaque 'handler' pointers 
+  that carry no type at [they are void *] is playing with fire. It in 
+  essence disables the remaining little bit of type-safety that C has. )
+
+	Ingo
