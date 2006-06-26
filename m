@@ -1,29 +1,34 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [patch] ACPI: reduce code size, clean up, fix validator message
-Date: Mon, 26 Jun 2006 17:58:08 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6D8C62C@hdsmsx411.amr.corp.intel.com>
+From: Roman Zippel <zippel@linux-m68k.org>
+Subject: Re: 2.6.17-mm2 -- drivers/built-in.o: In function
+ `is_pci_dock_device':acpiphp_glue.c:(.text+0x12364): undefined reference to
+ `is_dock_device'
+Date: Tue, 27 Jun 2006 00:15:10 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0606270013220.17704@scrub.home>
+References: <15233.1151302967@kao2.melbourne.sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:20121 "EHLO
-	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S933080AbWFZWCk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Jun 2006 18:02:40 -0400
-Content-class: urn:content-classes:message
+Received: from scrub.xs4all.nl ([194.109.195.176]:22253 "EHLO scrub.xs4all.nl")
+	by vger.kernel.org with ESMTP id S1751105AbWFZWWY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Jun 2006 18:22:24 -0400
+In-Reply-To: <15233.1151302967@kao2.melbourne.sgi.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@osdl.org>, michal.k.k.piotrowski@gmail.com, arjan@linux.intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Moore, Robert" <robert.moore@intel.com>, Arjan van de Ven <arjan@infradead.org>
+To: Keith Owens <kaos@ocs.com.au>
+Cc: Miles Lane <miles.lane@gmail.com>, Adrian Bunk <bunk@stusta.de>, Kristen Accardi <kristen.c.accardi@intel.com>, Dave Hansen <haveblue@us.ibm.com>, Andrew Morton <akpm@osdl.org>, LKML <linux-kernel@vger.kernel.org>, gregkh@suse.de, len.brown@intel.com, linux-acpi@vger.kernel.org
 
- 
->( for example the ACPI practice of allocating opaque 'handler' 
-> pointers that carry no type at [they are void *] is playing with fire.
-It in 
-> essence disables the remaining little bit of type-safety 
-> that C has. )
+Hi,
 
-I agree 100%.
+On Mon, 26 Jun 2006, Keith Owens wrote:
 
--Len
+> and it turns out that this no longer works.  It used to work with the
+> old config system, but Kconfig gets confused by choices if the input
+> .config only has the selected choice and is missing the alternates.
+> For example, Kconfig accepts this
+
+Choices are not so much the problem, the problems are default. Once the 
+setting is gone, it will fall back to the default, which is not always 
+'n'.
+
+bye, Roman
