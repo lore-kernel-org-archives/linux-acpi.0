@@ -1,56 +1,59 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [patch] ACPI: reduce code size, clean up, fix validator message
-Date: Mon, 26 Jun 2006 13:39:33 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6D8C286@hdsmsx411.amr.corp.intel.com>
+From: Andreas Mohr <andi@rhlx01.fht-esslingen.de>
+Subject: [PATCH -mm] ACPI: re-add important comment about P_LVLx register
+Date: Mon, 26 Jun 2006 21:57:39 +0200
+Message-ID: <20060626195739.GA12401@rhlx01.fht-esslingen.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:29740 "EHLO
-	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S932099AbWFZRvn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Jun 2006 13:51:43 -0400
-Content-class: urn:content-classes:message
+Received: from rhlx01.fht-esslingen.de ([129.143.116.10]:13200 "EHLO
+	rhlx01.fht-esslingen.de") by vger.kernel.org with ESMTP
+	id S932988AbWFZT5k (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Jun 2006 15:57:40 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Ingo Molnar <mingo@elte.hu>, Andrew Morton <akpm@osdl.org>, michal.k.k.piotrowski@gmail.com, arjan@linux.intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Moore, Robert" <robert.moore@intel.com>, Arjan van de Ven <arjan@infradead.org>
+To: Andrew Morton <akpm@osdl.org>
+Cc: len.brown@intel.com, linux-acpi@vger.kernel.org
 
- 
->Well, gain here is that code actually becomes readable/linux
->like/something.
->
->Feel free to put GPL/BSD license in ACPICA code, saying that by
->default contributed code is under both licenses.... or something, but
->having linux-like code under drivers/acpi would be great.
+Hi all,
 
-There is drivers/acpi/*.c
-This is pure GPL and can be as "Linux like" as any purist wants it to
-be.
-Indeed, we have several patches in the queue to do just that in 2.6.18.
+- re-add explanatory comment to P_LVLx invocation that had been removed
+  a while ago
 
-and there is drivers/acpi/*/*.c, which is from ACPICA.
-Linux, along with a bunch of other OS's, is downstream.
+While trying to look for superfluous I/O accesses that can be optimized
+away, I stumbled upon this ACPI sleep I/O access and couldn't figure out
+why the hell this dummy op was necessary.
+After more than one hour of internet research, I had collected a sufficient
+number of documents (among those very old kernel versions) that finally
+told me what this dummy read was about: STPCLK# doesn't get asserted in time
+on (some) chipsets, which is why we need to have a dummy I/O read to delay
+further instruction processing until the CPU is fully stopped.
 
-The license on ACPICA is not the issue.   
-The issue is when we make a syntax change to ACPICA in Linux,
-then it adds to (my) workload to keep Linux up to date with the upstream
-ACPICA.
+Compile-tested on 2.6.17-mm1.
 
-(note that the previous Linux/ACPI maintainer dealt with this issue
- by simply over-writing the ACPICA files in Linux upon every update.
- I allow divergence, but I have to track it, it causes merge conflicts,
- and Bob and I actively work to change ACPICA upstream to minimize it.)
+Signed-off-by: Andreas Mohr <andi@lisas.de>
 
-If you have specific feedback on what can be improved,
-I'm certainly willing to listen.  As you may be aware,
-I translate every ACPICA change into Linux format, and
-it is possible that this process can be enhanced.
 
-Keep in perspective, however, that we have over 200
-functional issues unresolved in bugzilla.kernel.org,
-and spending time on syntax changes is generally
-a lower priority.
-
--Len
+diff -urN linux-2.6.17-mm2.orig/drivers/acpi/processor_idle.c linux-2.6.17-mm2.my/drivers/acpi/processor_idle.c
+--- linux-2.6.17-mm2.orig/drivers/acpi/processor_idle.c	2006-06-26 11:18:52.000000000 +0200
++++ linux-2.6.17-mm2.my/drivers/acpi/processor_idle.c	2006-06-26 18:06:18.000000000 +0200
+@@ -361,7 +361,9 @@
+ 		t1 = inl(acpi_fadt.xpm_tmr_blk.address);
+ 		/* Invoke C2 */
+ 		inb(cx->address);
+-		/* Dummy op - must do something useless after P_LVL2 read */
++		/* Dummy wait op - must do something useless after P_LVL2 read
++		   because chipsets cannot guarantee that STPCLK# signal
++		   gets asserted in time to freeze execution properly. */
+ 		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
+ 		/* Get end time (ticks) */
+ 		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
+@@ -399,7 +401,7 @@
+ 		t1 = inl(acpi_fadt.xpm_tmr_blk.address);
+ 		/* Invoke C3 */
+ 		inb(cx->address);
+-		/* Dummy op - must do something useless after P_LVL3 read */
++		/* Dummy wait op (see above) */
+ 		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
+ 		/* Get end time (ticks) */
+ 		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
