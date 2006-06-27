@@ -1,21 +1,21 @@
 From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [patch 07/18] acpiphp: use new dock driver
-Date: Tue, 27 Jun 2006 02:12:31 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6D8C7C2@hdsmsx411.amr.corp.intel.com>
+Subject: RE: [patch 06/18] acpi: dock driver
+Date: Tue, 27 Jun 2006 02:12:13 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB6D8C7C1@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:6508 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1030627AbWF0GMe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Jun 2006 02:12:34 -0400
+Received: from mga01.intel.com ([192.55.52.88]:26745 "EHLO
+	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
+	id S1030631AbWF0GMh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Jun 2006 02:12:37 -0400
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: akpm@osdl.org
-Cc: linux-acpi@vger.kernel.org, "Accardi, Kristen C" <kristen.c.accardi@intel.com>, bunk@stusta.de, gregkh@suse.de
+Cc: linux-acpi@vger.kernel.org, "Accardi, Kristen C" <kristen.c.accardi@intel.com>, haveblue@us.ibm.com
 
 applied to acpi-test 
 
@@ -24,803 +24,929 @@ applied to acpi-test
 >Sent: Saturday, June 24, 2006 7:37 PM
 >To: Brown, Len
 >Cc: linux-acpi@vger.kernel.org; akpm@osdl.org; Accardi, 
->Kristen C; bunk@stusta.de
->Subject: [patch 07/18] acpiphp: use new dock driver
+>Kristen C; haveblue@us.ibm.com
+>Subject: [patch 06/18] acpi: dock driver
 >
 >
 >From: Kristen Accardi <kristen.c.accardi@intel.com>
 >
->Modify the acpiphp driver to use the acpi dock driver for dock
->notifications.  Only load the acpiphp driver if we find we 
->have pci dock
->devices
+>Create a driver which lives in the acpi subsystem to handle 
+>dock events. 
+>This driver is not an acpi driver, because acpi drivers 
+>require that the
+>object be present when the driver is loaded.
 >
->[bunk@stusta.de: handle_hotplug_event_func() can now become static]
 >Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
->Signed-off-by: Adrian Bunk <bunk@stusta.de>
+>Cc: Dave Hansen <haveblue@us.ibm.com>
 >Signed-off-by: Andrew Morton <akpm@osdl.org>
 >---
 >
-> drivers/pci/hotplug/Makefile       |    3 
-> drivers/pci/hotplug/acpiphp.h      |   35 --
-> drivers/pci/hotplug/acpiphp_core.c |   19 -
-> drivers/pci/hotplug/acpiphp_dock.c |  438 ---------------------------
-> drivers/pci/hotplug/acpiphp_glue.c |  111 +++++-
-> 5 files changed, 87 insertions(+), 519 deletions(-)
+> drivers/acpi/Kconfig        |    7 
+> drivers/acpi/Makefile       |    1 
+> drivers/acpi/dock.c         |  739 ++++++++++++++++++++++++++++++++++
+> drivers/acpi/scan.c         |   23 +
+> include/acpi/acpi_bus.h     |    2 
+> include/acpi/acpi_drivers.h |   17 
+> 6 files changed, 788 insertions(+), 1 deletion(-)
 >
->diff -puN 
->drivers/pci/hotplug/acpiphp_core.c~acpiphp-use-new-dock-driver 
->drivers/pci/hotplug/acpiphp_core.c
->--- a/drivers/pci/hotplug/acpiphp_core.c~acpiphp-use-new-dock-driver
->+++ a/drivers/pci/hotplug/acpiphp_core.c
->@@ -416,27 +416,12 @@ void acpiphp_unregister_hotplug_slot(str
-> 
-> static int __init acpiphp_init(void)
-> {
->-	int retval;
->-	int docking_station;
->-
-> 	info(DRIVER_DESC " version: " DRIVER_VERSION "\n");
-> 
-> 	acpiphp_debug = debug;
-> 
->-	docking_station = find_dock_station();
->-
-> 	/* read all the ACPI info from the system */
->-	retval = init_acpi();
->-
->-	/* if we have found a docking station, we should
->-	 * go ahead and load even if init_acpi has found
->-	 * no slots.  This handles the case when the _DCK
->-	 * method not defined under the actual dock bridge
->-	 */
->-	if (docking_station)
->-		return 0;
->-	else
->-		return retval;
->+	return init_acpi();
-> }
-> 
-> 
->@@ -444,8 +429,6 @@ static void __exit acpiphp_exit(void)
-> {
-> 	/* deallocate internal data structures etc. */
-> 	acpiphp_glue_exit();
->-
->-	remove_dock_station();
-> }
-> 
-> module_init(acpiphp_init);
->diff -puN 
->drivers/pci/hotplug/acpiphp_dock.c~acpiphp-use-new-dock-driver 
->/dev/null
->--- a/drivers/pci/hotplug/acpiphp_dock.c
->+++ /dev/null
->@@ -1,438 +0,0 @@
->-/*
->- * ACPI PCI HotPlug dock functions to ACPI CA subsystem
->- *
->- * Copyright (C) 2006 Kristen Carlson Accardi 
->(kristen.c.accardi@intel.com)
->- * Copyright (C) 2006 Intel Corporation
->- *
->- * All rights reserved.
->- *
->- * This program is free software; you can redistribute it 
+>diff -puN /dev/null drivers/acpi/dock.c
+>--- /dev/null
+>+++ a/drivers/acpi/dock.c
+>@@ -0,0 +1,739 @@
+>+/*
+>+ *  dock.c - ACPI dock station driver
+>+ *
+>+ *  Copyright (C) 2006 Kristen Carlson Accardi 
+><kristen.c.accardi@intel.com>
+>+ *
+>+ * 
+>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>~~~~~~~~~~~
+>+ *
+>+ *  This program is free software; you can redistribute it 
 >and/or modify
->- * it under the terms of the GNU General Public License as 
+>+ *  it under the terms of the GNU General Public License as 
 >published by
->- * the Free Software Foundation; either version 2 of the 
+>+ *  the Free Software Foundation; either version 2 of the 
 >License, or (at
->- * your option) any later version.
->- *
->- * This program is distributed in the hope that it will be useful, but
->- * WITHOUT ANY WARRANTY; without even the implied warranty of
->- * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, GOOD TITLE or
->- * NON INFRINGEMENT.  See the GNU General Public License for more
->- * details.
->- *
->- * You should have received a copy of the GNU General Public License
->- * along with this program; if not, write to the Free Software
->- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
->- *
->- * Send feedback to <kristen.c.accardi@intel.com>
->- *
->- */
->-#include <linux/init.h>
->-#include <linux/module.h>
->-
->-#include <linux/kernel.h>
->-#include <linux/pci.h>
->-#include <linux/smp_lock.h>
->-#include <linux/mutex.h>
->-
->-#include "../pci.h"
->-#include "pci_hotplug.h"
->-#include "acpiphp.h"
->-
->-static struct acpiphp_dock_station *ds;
->-#define MY_NAME "acpiphp_dock"
->-
->-
->-int is_dependent_device(acpi_handle handle)
->-{
->-	return (get_dependent_device(handle) ? 1 : 0);
->-}
->-
->-
->-static acpi_status
->-find_dependent_device(acpi_handle handle, u32 lvl, void 
->*context, void **rv)
->-{
->-	int *count = (int *)context;
->-
->-	if (is_dependent_device(handle)) {
->-		(*count)++;
->-		return AE_CTRL_TERMINATE;
->-	} else {
->-		return AE_OK;
->-	}
->-}
->-
->-
->-
->-
->-void add_dependent_device(struct dependent_device *new_dd)
->-{
->-	list_add_tail(&new_dd->device_list, &ds->dependent_devices);
->-}
->-
->-
->-void add_pci_dependent_device(struct dependent_device *new_dd)
->-{
->-	list_add_tail(&new_dd->pci_list, &ds->pci_dependent_devices);
->-}
->-
->-
->-
->-struct dependent_device * get_dependent_device(acpi_handle handle)
->-{
->-	struct dependent_device *dd;
->-
->-	if (!ds)
->-		return NULL;
->-
->-	list_for_each_entry(dd, &ds->dependent_devices, device_list) {
->-		if (handle == dd->handle)
->-			return dd;
->-	}
->-	return NULL;
->-}
->-
->-
->-
->-struct dependent_device *alloc_dependent_device(acpi_handle handle)
->-{
->-	struct dependent_device *dd;
->-
->-	dd = kzalloc(sizeof(*dd), GFP_KERNEL);
->-	if (dd) {
->-		INIT_LIST_HEAD(&dd->pci_list);
->-		INIT_LIST_HEAD(&dd->device_list);
->-		dd->handle = handle;
->-	}
->-	return dd;
->-}
->-
->-
->-
->-static int is_dock(acpi_handle handle)
->-{
->-	acpi_status status;
->-	acpi_handle tmp;
->-
->-	status = acpi_get_handle(handle, "_DCK", &tmp);
->-	if (ACPI_FAILURE(status)) {
->-		return 0;
->-	}
->-	return 1;
->-}
->-
->-
->-
->-static int dock_present(void)
->-{
->-	unsigned long sta;
->-	acpi_status status;
->-
->-	if (ds) {
->-		status = acpi_evaluate_integer(ds->handle, 
+>+ *  your option) any later version.
+>+ *
+>+ *  This program is distributed in the hope that it will be 
+>useful, but
+>+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
+>+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+>+ *  General Public License for more details.
+>+ *
+>+ *  You should have received a copy of the GNU General Public 
+>License along
+>+ *  with this program; if not, write to the Free Software 
+>Foundation, Inc.,
+>+ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+>+ *
+>+ * 
+>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>~~~~~~~~~~~
+>+ */
+>+
+>+#include <linux/kernel.h>
+>+#include <linux/module.h>
+>+#include <linux/init.h>
+>+#include <linux/types.h>
+>+#include <linux/notifier.h>
+>+#include <acpi/acpi_bus.h>
+>+#include <acpi/acpi_drivers.h>
+>+
+>+#define ACPI_DOCK_DRIVER_NAME "ACPI Dock Station Driver"
+>+
+>+ACPI_MODULE_NAME("dock")
+>+MODULE_AUTHOR("Kristen Carlson Accardi");
+>+MODULE_DESCRIPTION(ACPI_DOCK_DRIVER_NAME);
+>+MODULE_LICENSE("GPL");
+>+
+>+static struct atomic_notifier_head dock_notifier_list;
+>+
+>+struct dock_station {
+>+	acpi_handle handle;
+>+	unsigned long last_dock_time;
+>+	u32 flags;
+>+	spinlock_t dd_lock;
+>+	spinlock_t hp_lock;
+>+	struct list_head dependent_devices;
+>+	struct list_head hotplug_devices;
+>+};
+>+
+>+struct dock_dependent_device {
+>+	struct list_head list;
+>+	struct list_head hotplug_list;
+>+	acpi_handle handle;
+>+	acpi_notify_handler handler;
+>+	void *context;
+>+};
+>+
+>+#define DOCK_DOCKING	0x00000001
+>+#define DOCK_EVENT	KOBJ_DOCK
+>+#define UNDOCK_EVENT	KOBJ_UNDOCK
+>+
+>+static struct dock_station *dock_station;
+>+
+>+/*************************************************************
+>****************
+>+ *                         Dock Dependent device functions    
+>               *
+>+ 
+>***************************************************************
+>**************/
+>+/**
+>+ *  alloc_dock_dependent_device - allocate and init a dependent device
+>+ *  @handle: the acpi_handle of the dependent device
+>+ *
+>+ *  Allocate memory for a dependent device structure for a 
+>device referenced
+>+ *  by the acpi handle
+>+ */
+>+static struct dock_dependent_device *
+>+alloc_dock_dependent_device(acpi_handle handle)
+>+{
+>+	struct dock_dependent_device *dd;
+>+
+>+	dd = kzalloc(sizeof(*dd), GFP_KERNEL);
+>+	if (dd) {
+>+		dd->handle = handle;
+>+		INIT_LIST_HEAD(&dd->list);
+>+		INIT_LIST_HEAD(&dd->hotplug_list);
+>+	}
+>+	return dd;
+>+}
+>+
+>+/**
+>+ * add_dock_dependent_device - associate a device with the 
+>dock station
+>+ * @ds: The dock station
+>+ * @dd: The dependent device
+>+ *
+>+ * Add the dependent device to the dock's dependent device list.
+>+ */
+>+static void
+>+add_dock_dependent_device(struct dock_station *ds,
+>+			  struct dock_dependent_device *dd)
+>+{
+>+	spin_lock(&ds->dd_lock);
+>+	list_add_tail(&dd->list, &ds->dependent_devices);
+>+	spin_unlock(&ds->dd_lock);
+>+}
+>+
+>+/**
+>+ * dock_add_hotplug_device - associate a hotplug handler with 
+>the dock station
+>+ * @ds: The dock station
+>+ * @dd: The dependent device struct
+>+ *
+>+ * Add the dependent device to the dock's hotplug device list
+>+ */
+>+static void
+>+dock_add_hotplug_device(struct dock_station *ds,
+>+			struct dock_dependent_device *dd)
+>+{
+>+	spin_lock(&ds->hp_lock);
+>+	list_add_tail(&dd->hotplug_list, &ds->hotplug_devices);
+>+	spin_unlock(&ds->hp_lock);
+>+}
+>+
+>+/**
+>+ * dock_del_hotplug_device - remove a hotplug handler from 
+>the dock station
+>+ * @ds: The dock station
+>+ * @dd: the dependent device struct
+>+ *
+>+ * Delete the dependent device from the dock's hotplug device list
+>+ */
+>+static void
+>+dock_del_hotplug_device(struct dock_station *ds,
+>+			struct dock_dependent_device *dd)
+>+{
+>+	spin_lock(&ds->hp_lock);
+>+	list_del(&dd->hotplug_list);
+>+	spin_unlock(&ds->hp_lock);
+>+}
+>+
+>+/**
+>+ * find_dock_dependent_device - get a device dependent on this dock
+>+ * @ds: the dock station
+>+ * @handle: the acpi_handle of the device we want
+>+ *
+>+ * iterate over the dependent device list for this dock.  If the
+>+ * dependent device matches the handle, return.
+>+ */
+>+static struct dock_dependent_device *
+>+find_dock_dependent_device(struct dock_station *ds, 
+>acpi_handle handle)
+>+{
+>+	struct dock_dependent_device *dd;
+>+
+>+	spin_lock(&ds->dd_lock);
+>+	list_for_each_entry(dd, &ds->dependent_devices, list) {
+>+		if (handle == dd->handle) {
+>+			spin_unlock(&ds->dd_lock);
+>+			return dd;
+>+		}
+>+	}
+>+	spin_unlock(&ds->dd_lock);
+>+	return NULL;
+>+}
+>+
+>+/*************************************************************
+>****************
+>+ *                         Dock functions                     
+>               *
+>+ 
+>***************************************************************
+>**************/
+>+/**
+>+ * is_dock - see if a device is a dock station
+>+ * @handle: acpi handle of the device
+>+ *
+>+ * If an acpi object has a _DCK method, then it is by 
+>definition a dock
+>+ * station, so return true.
+>+ */
+>+static int is_dock(acpi_handle handle)
+>+{
+>+	acpi_status status;
+>+	acpi_handle tmp;
+>+
+>+	status = acpi_get_handle(handle, "_DCK", &tmp);
+>+	if (ACPI_FAILURE(status))
+>+		return 0;
+>+	return 1;
+>+}
+>+
+>+/**
+>+ * is_dock_device - see if a device is on a dock station
+>+ * @handle: acpi handle of the device
+>+ *
+>+ * If this device is either the dock station itself,
+>+ * or is a device dependent on the dock station, then it
+>+ * is a dock device
+>+ */
+>+int is_dock_device(acpi_handle handle)
+>+{
+>+	if (!dock_station)
+>+		return 0;
+>+
+>+	if (is_dock(handle) || 
+>find_dock_dependent_device(dock_station, handle))
+>+		return 1;
+>+
+>+	return 0;
+>+}
+>+
+>+EXPORT_SYMBOL_GPL(is_dock_device);
+>+
+>+/**
+>+ * dock_present - see if the dock station is present.
+>+ * @ds: the dock station
+>+ *
+>+ * execute the _STA method.  note that present does not
+>+ * imply that we are docked.
+>+ */
+>+static int dock_present(struct dock_station *ds)
+>+{
+>+	unsigned long sta;
+>+	acpi_status status;
+>+
+>+	if (ds) {
+>+		status = acpi_evaluate_integer(ds->handle, 
 >"_STA", NULL, &sta);
->-		if (ACPI_SUCCESS(status) && sta)
->-			return 1;
->-	}
->-	return 0;
->-}
->-
->-
->-
->-static void eject_dock(void)
->-{
->-	struct acpi_object_list arg_list;
->-	union acpi_object arg;
->-
->-	arg_list.count = 1;
->-	arg_list.pointer = &arg;
->-	arg.type = ACPI_TYPE_INTEGER;
->-	arg.integer.value = 1;
->-
->-	if (ACPI_FAILURE(acpi_evaluate_object(ds->handle, "_EJ0",
->-					&arg_list, NULL)) || 
->dock_present())
->-		warn("%s: failed to eject dock!\n", __FUNCTION__);
->-
->-	return;
->-}
->-
->-
->-
->-
->-static acpi_status handle_dock(int dock)
->-{
->-	acpi_status status;
->-	struct acpi_object_list arg_list;
->-	union acpi_object arg;
->-	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
->-
->-	dbg("%s: %s\n", __FUNCTION__, dock ? "docking" : "undocking");
->-
->-	/* _DCK method has one argument */
->-	arg_list.count = 1;
->-	arg_list.pointer = &arg;
->-	arg.type = ACPI_TYPE_INTEGER;
->-	arg.integer.value = dock;
->-	status = acpi_evaluate_object(ds->handle, "_DCK",
->-					&arg_list, &buffer);
->-	if (ACPI_FAILURE(status))
->-		err("%s: failed to execute _DCK\n", __FUNCTION__);
->-	acpi_os_free(buffer.pointer);
->-
->-	return status;
->-}
->-
->-
->-
->-static inline void dock(void)
->-{
->-	handle_dock(1);
->-}
->-
->-
->-
->-static inline void undock(void)
->-{
->-	handle_dock(0);
->-}
->-
->-
->-
->-/*
->- * the _DCK method can do funny things... and sometimes not
->- * hah-hah funny.
->- *
->- * TBD - figure out a way to only call fixups for
->- * systems that require them.
->- */
->-static void post_dock_fixups(void)
->-{
->-	struct pci_bus *bus;
->-	u32 buses;
->-	struct dependent_device *dd;
->-
->-	list_for_each_entry(dd, &ds->pci_dependent_devices, pci_list) {
->-		bus = dd->func->slot->bridge->pci_bus;
->-
->-		/* fixup bad _DCK function that rewrites
->-	 	 * secondary bridge on slot
->-	 	 */
->-		pci_read_config_dword(bus->self,
->-				PCI_PRIMARY_BUS,
->-				&buses);
->-
->-		if (((buses >> 8) & 0xff) != bus->secondary) {
->-			buses = (buses & 0xff000000)
->-	     			| ((unsigned int)(bus->primary) 
->    <<  0)
->-	     			| ((unsigned 
->int)(bus->secondary)   <<  8)
->-	     			| ((unsigned 
->int)(bus->subordinate) << 16);
->-			pci_write_config_dword(bus->self,
->-					PCI_PRIMARY_BUS,
->-					buses);
->-		}
->-	}
->-}
->-
->-
->-
->-static void hotplug_pci(u32 type)
->-{
->-	struct dependent_device *dd;
->-
->-	list_for_each_entry(dd, &ds->pci_dependent_devices, pci_list)
->-		handle_hotplug_event_func(dd->handle, type, dd->func);
->-}
->-
->-
->-
->-static inline void begin_dock(void)
->-{
->-	ds->flags |= DOCK_DOCKING;
->-}
->-
->-
->-static inline void complete_dock(void)
->-{
->-	ds->flags &= ~(DOCK_DOCKING);
->-	ds->last_dock_time = jiffies;
->-}
->-
->-
->-static int dock_in_progress(void)
->-{
->-	if (ds->flags & DOCK_DOCKING ||
->-		ds->last_dock_time == jiffies) {
->-		dbg("dock in progress\n");
->-		return 1;
->-	}
->-	return 0;
->-}
->-
->-
->-
->-static void
->-handle_hotplug_event_dock(acpi_handle handle, u32 type, void *context)
->-{
->-	dbg("%s: enter\n", __FUNCTION__);
->-
->-	switch (type) {
->-		case ACPI_NOTIFY_BUS_CHECK:
->-			dbg("BUS Check\n");
->-			if (!dock_in_progress() && dock_present()) {
->-				begin_dock();
->-				dock();
->-				if (!dock_present()) {
->-					err("Unable to dock!\n");
->-					break;
->-				}
->-				post_dock_fixups();
->-				hotplug_pci(type);
->-				complete_dock();
->-			}
->-			break;
->-		case ACPI_NOTIFY_EJECT_REQUEST:
->-			dbg("EJECT request\n");
->-			if (!dock_in_progress() && dock_present()) {
->-				hotplug_pci(type);
->-				undock();
->-				eject_dock();
->-				if (dock_present())
->-					err("Unable to undock!\n");
->-			}
->-			break;
->-	}
->-}
->-
->-
->-
->-
->-static acpi_status
->-find_dock_ejd(acpi_handle handle, u32 lvl, void *context, void **rv)
->-{
->-	acpi_status status;
->-	acpi_handle tmp;
->-	acpi_handle dck_handle = (acpi_handle) context;
->-	char objname[64];
->-	struct acpi_buffer buffer = { .length = sizeof(objname),
->-				      .pointer = objname };
->-	struct acpi_buffer ejd_buffer = {ACPI_ALLOCATE_BUFFER, NULL};
->-	union acpi_object *ejd_obj;
->-
->-	status = acpi_get_handle(handle, "_EJD", &tmp);
->-	if (ACPI_FAILURE(status))
->-		return AE_OK;
->-
->-	/* make sure we are dependent on the dock device,
->-	 * by executing the _EJD method, then getting a handle
->-	 * to the device referenced by that name.  If that
->-	 * device handle is the same handle as the dock station
->-	 * handle, then we are a device dependent on the dock station
->-	 */
->-	acpi_get_name(dck_handle, ACPI_FULL_PATHNAME, &buffer);
->-	status = acpi_evaluate_object(handle, "_EJD", NULL, 
->&ejd_buffer);
->-	if (ACPI_FAILURE(status)) {
->-		err("Unable to execute _EJD!\n");
->-		goto find_ejd_out;
->-	}
->-	ejd_obj = ejd_buffer.pointer;
->-	status = acpi_get_handle(NULL, ejd_obj->string.pointer, &tmp);
->-	if (ACPI_FAILURE(status))
->-		goto find_ejd_out;
->-
->-	if (tmp == dck_handle) {
->-		struct dependent_device *dd;
->-		dbg("%s: found device dependent on dock\n", 
->__FUNCTION__);
->-		dd = alloc_dependent_device(handle);
->-		if (!dd) {
->-			err("Can't allocate memory for 
->dependent device!\n");
->-			goto find_ejd_out;
->-		}
->-		add_dependent_device(dd);
->-	}
->-
->-find_ejd_out:
->-	acpi_os_free(ejd_buffer.pointer);
->-	return AE_OK;
->-}
->-
->-
->-
->-int detect_dependent_devices(acpi_handle *bridge_handle)
->-{
->-	acpi_status status;
->-	int count;
->-
->-	count = 0;
->-
->-	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, bridge_handle,
->-					(u32)1, find_dependent_device,
->-					(void *)&count, NULL);
->-
->-	return count;
->-}
->-
->-
->-
->-
->-
->-static acpi_status
->-find_dock(acpi_handle handle, u32 lvl, void *context, void **rv)
->-{
->-	int *count = (int *)context;
->-
->-	if (is_dock(handle)) {
->-		dbg("%s: found dock\n", __FUNCTION__);
->-		ds = kzalloc(sizeof(*ds), GFP_KERNEL);
->-		ds->handle = handle;
->-		INIT_LIST_HEAD(&ds->dependent_devices);
->-		INIT_LIST_HEAD(&ds->pci_dependent_devices);
->-
->-		/* look for devices dependent on dock station */
->-		acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
->-			ACPI_UINT32_MAX, find_dock_ejd, handle, NULL);
->-
->-		acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
->-			handle_hotplug_event_dock, ds);
->-		(*count)++;
->-	}
->-
->-	return AE_OK;
->-}
->-
->-
->-
->-
->-int find_dock_station(void)
->-{
->-	int num = 0;
->-
->-	ds = NULL;
->-
->-	/* start from the root object, because some laptops define
->-	 * _DCK methods outside the scope of PCI (IBM x-series laptop)
->-	 */
->-	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
->-			ACPI_UINT32_MAX, find_dock, &num, NULL);
->-
->-	return num;
->-}
->-
->-
->-
->-void remove_dock_station(void)
->-{
->-	struct dependent_device *dd, *tmp;
->-	if (ds) {
->-		if (ACPI_FAILURE(acpi_remove_notify_handler(ds->handle,
->-			ACPI_SYSTEM_NOTIFY, handle_hotplug_event_dock)))
->-			err("failed to remove dock notify handler\n");
->-
->-		/* free all dependent devices */
->-		list_for_each_entry_safe(dd, tmp, 
->&ds->dependent_devices,
->-				device_list)
->-			kfree(dd);
->-
->-		/* no need to touch the pci_dependent_device list,
->-		 * cause all memory was freed above
->-		 */
->-		kfree(ds);
->-	}
->-}
->-
->-
->diff -puN 
->drivers/pci/hotplug/acpiphp_glue.c~acpiphp-use-new-dock-driver 
->drivers/pci/hotplug/acpiphp_glue.c
->--- a/drivers/pci/hotplug/acpiphp_glue.c~acpiphp-use-new-dock-driver
->+++ a/drivers/pci/hotplug/acpiphp_glue.c
->@@ -116,6 +116,59 @@ is_ejectable_slot(acpi_handle handle, u3
-> 	}
-> }
-> 
->+/* callback routine to check for the existance of a pci dock device */
+>+		if (ACPI_SUCCESS(status) && sta)
+>+			return 1;
+>+	}
+>+	return 0;
+>+}
+>+
+>+
+>+
+>+/**
+>+ * dock_create_acpi_device - add new devices to acpi
+>+ * @handle - handle of the device to add
+>+ *
+>+ *  This function will create a new acpi_device for the given
+>+ *  handle if one does not exist already.  This should cause
+>+ *  acpi to scan for drivers for the given devices, and call
+>+ *  matching driver's add routine.
+>+ *
+>+ *  Returns a pointer to the acpi_device corresponding to the handle.
+>+ */
+>+static struct acpi_device * 
+>dock_create_acpi_device(acpi_handle handle)
+>+{
+>+	struct acpi_device *device = NULL;
+>+	struct acpi_device *parent_device;
+>+	acpi_handle parent;
+>+	int ret;
+>+
+>+	if (acpi_bus_get_device(handle, &device)) {
+>+		/*
+>+		 * no device created for this object,
+>+		 * so we should create one.
+>+		 */
+>+		acpi_get_parent(handle, &parent);
+>+		if (acpi_bus_get_device(parent, &parent_device))
+>+			parent_device = NULL;
+>+
+>+		ret = acpi_bus_add(&device, parent_device, handle,
+>+			ACPI_BUS_TYPE_DEVICE);
+>+		if (ret) {
+>+			pr_debug("error adding bus, %x\n",
+>+				-ret);
+>+			return NULL;
+>+		}
+>+	}
+>+	return device;
+>+}
+>+
+>+/**
+>+ * dock_remove_acpi_device - remove the acpi_device struct from acpi
+>+ * @handle - the handle of the device to remove
+>+ *
+>+ *  Tell acpi to remove the acpi_device.  This should cause any loaded
+>+ *  driver to have it's remove routine called.
+>+ */
+>+static void dock_remove_acpi_device(acpi_handle handle)
+>+{
+>+	struct acpi_device *device;
+>+	int ret;
+>+
+>+	if (!acpi_bus_get_device(handle, &device)) {
+>+		ret = acpi_bus_trim(device, 1);
+>+		if (ret)
+>+			pr_debug("error removing bus, %x\n", -ret);
+>+	}
+>+}
+>+
+>+
+>+/**
+>+ * hotplug_dock_devices - insert or remove devices on the dock station
+>+ * @ds: the dock station
+>+ * @event: either bus check or eject request
+>+ *
+>+ * Some devices on the dock station need to have drivers called
+>+ * to perform hotplug operations after a dock event has occurred.
+>+ * Traverse the list of dock devices that have registered a
+>+ * hotplug handler, and call the handler.
+>+ */
+>+static void hotplug_dock_devices(struct dock_station *ds, u32 event)
+>+{
+>+	struct dock_dependent_device *dd;
+>+
+>+	spin_lock(&ds->hp_lock);
+>+
+>+	/*
+>+	 * First call driver specific hotplug functions
+>+	 */
+>+	list_for_each_entry(dd, &ds->hotplug_devices, hotplug_list) {
+>+		if (dd->handler)
+>+			dd->handler(dd->handle, event, dd->context);
+>+	}
+>+
+>+	/*
+>+	 * Now make sure that an acpi_device is created for each
+>+	 * dependent device, or removed if this is an eject request.
+>+	 * This will cause acpi_drivers to be stopped/started if they
+>+	 * exist
+>+	 */
+>+	list_for_each_entry(dd, &ds->dependent_devices, list) {
+>+		if (event == ACPI_NOTIFY_EJECT_REQUEST)
+>+			dock_remove_acpi_device(dd->handle);
+>+		else
+>+			dock_create_acpi_device(dd->handle);
+>+	}
+>+	spin_unlock(&ds->hp_lock);
+>+}
+>+
+>+static void dock_event(struct dock_station *ds, u32 event, int num)
+>+{
+>+	struct acpi_device *device;
+>+
+>+	device = dock_create_acpi_device(ds->handle);
+>+	if (device)
+>+		kobject_uevent(&device->kobj, num);
+>+}
+>+
+>+/**
+>+ * eject_dock - respond to a dock eject request
+>+ * @ds: the dock station
+>+ *
+>+ * This is called after _DCK is called, to execute the dock station's
+>+ * _EJ0 method.
+>+ */
+>+static void eject_dock(struct dock_station *ds)
+>+{
+>+	struct acpi_object_list arg_list;
+>+	union acpi_object arg;
+>+	acpi_status status;
+>+	acpi_handle tmp;
+>+
+>+	/* all dock devices should have _EJ0, but check anyway */
+>+	status = acpi_get_handle(ds->handle, "_EJ0", &tmp);
+>+	if (ACPI_FAILURE(status)) {
+>+		pr_debug("No _EJ0 support for dock device\n");
+>+		return;
+>+	}
+>+
+>+	arg_list.count = 1;
+>+	arg_list.pointer = &arg;
+>+	arg.type = ACPI_TYPE_INTEGER;
+>+	arg.integer.value = 1;
+>+
+>+	if (ACPI_FAILURE(acpi_evaluate_object(ds->handle, "_EJ0",
+>+					      &arg_list, NULL)))
+>+		pr_debug("Failed to evaluate _EJ0!\n");
+>+}
+>+
+>+/**
+>+ * handle_dock - handle a dock event
+>+ * @ds: the dock station
+>+ * @dock: to dock, or undock - that is the question
+>+ *
+>+ * Execute the _DCK method in response to an acpi event
+>+ */
+>+static void handle_dock(struct dock_station *ds, int dock)
+>+{
+>+	acpi_status status;
+>+	struct acpi_object_list arg_list;
+>+	union acpi_object arg;
+>+	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+>+	struct acpi_buffer name_buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+>+	union acpi_object *obj;
+>+
+>+	acpi_get_name(ds->handle, ACPI_FULL_PATHNAME, &name_buffer);
+>+	obj = name_buffer.pointer;
+>+
+>+	printk(KERN_INFO PREFIX "%s\n", dock ? "docking" : "undocking");
+>+
+>+	/* _DCK method has one argument */
+>+	arg_list.count = 1;
+>+	arg_list.pointer = &arg;
+>+	arg.type = ACPI_TYPE_INTEGER;
+>+	arg.integer.value = dock;
+>+	status = acpi_evaluate_object(ds->handle, "_DCK", 
+>&arg_list, &buffer);
+>+	if (ACPI_FAILURE(status))
+>+		pr_debug("%s: failed to execute _DCK\n", 
+>obj->string.pointer);
+>+	kfree(buffer.pointer);
+>+	kfree(name_buffer.pointer);
+>+}
+>+
+>+static inline void dock(struct dock_station *ds)
+>+{
+>+	handle_dock(ds, 1);
+>+}
+>+
+>+static inline void undock(struct dock_station *ds)
+>+{
+>+	handle_dock(ds, 0);
+>+}
+>+
+>+static inline void begin_dock(struct dock_station *ds)
+>+{
+>+	ds->flags |= DOCK_DOCKING;
+>+}
+>+
+>+static inline void complete_dock(struct dock_station *ds)
+>+{
+>+	ds->flags &= ~(DOCK_DOCKING);
+>+	ds->last_dock_time = jiffies;
+>+}
+>+
+>+/**
+>+ * dock_in_progress - see if we are in the middle of handling 
+>a dock event
+>+ * @ds: the dock station
+>+ *
+>+ * Sometimes while docking, false dock events can be sent to 
+>the driver
+>+ * because good connections aren't made or some other reason. 
+> Ignore these
+>+ * if we are in the middle of doing something.
+>+ */
+>+static int dock_in_progress(struct dock_station *ds)
+>+{
+>+	if ((ds->flags & DOCK_DOCKING) ||
+>+	    time_before(jiffies, (ds->last_dock_time + HZ)))
+>+		return 1;
+>+	return 0;
+>+}
+>+
+>+/**
+>+ * register_dock_notifier - add yourself to the dock notifier list
+>+ * @nb: the callers notifier block
+>+ *
+>+ * If a driver wishes to be notified about dock events, they can
+>+ * use this function to put a notifier block on the dock 
+>notifier list.
+>+ * this notifier call chain will be called after a dock event, but
+>+ * before hotplugging any new devices.
+>+ */
+>+int register_dock_notifier(struct notifier_block *nb)
+>+{
+>+	return atomic_notifier_chain_register(&dock_notifier_list, nb);
+>+}
+>+
+>+EXPORT_SYMBOL_GPL(register_dock_notifier);
+>+
+>+/**
+>+ * unregister_dock_notifier - remove yourself from the dock 
+>notifier list
+>+ * @nb: the callers notifier block
+>+ */
+>+void unregister_dock_notifier(struct notifier_block *nb)
+>+{
+>+	atomic_notifier_chain_unregister(&dock_notifier_list, nb);
+>+}
+>+
+>+EXPORT_SYMBOL_GPL(unregister_dock_notifier);
+>+
+>+/**
+>+ * register_hotplug_dock_device - register a hotplug function
+>+ * @handle: the handle of the device
+>+ * @handler: the acpi_notifier_handler to call after docking
+>+ * @context: device specific data
+>+ *
+>+ * If a driver would like to perform a hotplug operation after a dock
+>+ * event, they can register an acpi_notifiy_handler to be called by
+>+ * the dock driver after _DCK is executed.
+>+ */
+>+int
+>+register_hotplug_dock_device(acpi_handle handle, 
+>acpi_notify_handler handler,
+>+			     void *context)
+>+{
+>+	struct dock_dependent_device *dd;
+>+
+>+	if (!dock_station)
+>+		return -ENODEV;
+>+
+>+	/*
+>+	 * make sure this handle is for a device dependent on the dock,
+>+	 * this would include the dock station itself
+>+	 */
+>+	dd = find_dock_dependent_device(dock_station, handle);
+>+	if (dd) {
+>+		dd->handler = handler;
+>+		dd->context = context;
+>+		dock_add_hotplug_device(dock_station, dd);
+>+		return 0;
+>+	}
+>+
+>+	return -EINVAL;
+>+}
+>+
+>+EXPORT_SYMBOL_GPL(register_hotplug_dock_device);
+>+
+>+/**
+>+ * unregister_hotplug_dock_device - remove yourself from the 
+>hotplug list
+>+ * @handle: the acpi handle of the device
+>+ */
+>+void unregister_hotplug_dock_device(acpi_handle handle)
+>+{
+>+	struct dock_dependent_device *dd;
+>+
+>+	if (!dock_station)
+>+		return;
+>+
+>+	dd = find_dock_dependent_device(dock_station, handle);
+>+	if (dd)
+>+		dock_del_hotplug_device(dock_station, dd);
+>+}
+>+
+>+EXPORT_SYMBOL_GPL(unregister_hotplug_dock_device);
+>+
+>+/**
+>+ * dock_notify - act upon an acpi dock notification
+>+ * @handle: the dock station handle
+>+ * @event: the acpi event
+>+ * @data: our driver data struct
+>+ *
+>+ * If we are notified to dock, then check to see if the dock is
+>+ * present and then dock.  Notify all drivers of the dock event,
+>+ * and then hotplug and devices that may need hotplugging.  For undock
+>+ * check to make sure the dock device is still present, then undock
+>+ * and hotremove all the devices that may need removing.
+>+ */
+>+static void dock_notify(acpi_handle handle, u32 event, void *data)
+>+{
+>+	struct dock_station *ds = (struct dock_station *)data;
+>+
+>+	switch (event) {
+>+	case ACPI_NOTIFY_BUS_CHECK:
+>+		if (!dock_in_progress(ds) && dock_present(ds)) {
+>+			begin_dock(ds);
+>+			dock(ds);
+>+			if (!dock_present(ds)) {
+>+				printk(KERN_ERR PREFIX "Unable 
+>to dock!\n");
+>+				break;
+>+			}
+>+			atomic_notifier_call_chain(&dock_notifier_list,
+>+						   event, NULL);
+>+			hotplug_dock_devices(ds, event);
+>+			complete_dock(ds);
+>+			dock_event(ds, event, DOCK_EVENT);
+>+		}
+>+		break;
+>+	case ACPI_NOTIFY_DEVICE_CHECK:
+>+	/*
+>+         * According to acpi spec 3.0a, if a DEVICE_CHECK notification
+>+         * is sent and _DCK is present, it is assumed to mean an
+>+         * undock request.  This notify routine will only be called
+>+         * for objects defining _DCK, so we will fall through to eject
+>+         * request here.  However, we will pass an eject 
+>request through
+>+	 * to the driver who wish to hotplug.
+>+         */
+>+	case ACPI_NOTIFY_EJECT_REQUEST:
+>+		if (!dock_in_progress(ds) && dock_present(ds)) {
+>+			/*
+>+			 * here we need to generate the undock
+>+			 * event prior to actually doing the undock
+>+			 * so that the device struct still exists.
+>+			 */
+>+			dock_event(ds, event, UNDOCK_EVENT);
+>+			hotplug_dock_devices(ds, 
+>ACPI_NOTIFY_EJECT_REQUEST);
+>+			undock(ds);
+>+			eject_dock(ds);
+>+			if (dock_present(ds))
+>+				printk(KERN_ERR PREFIX "Unable 
+>to undock!\n");
+>+		}
+>+		break;
+>+	default:
+>+		printk(KERN_ERR PREFIX "Unknown dock event 
+>%d\n", event);
+>+	}
+>+}
+>+
+>+/**
+>+ * find_dock_devices - find devices on the dock station
+>+ * @handle: the handle of the device we are examining
+>+ * @lvl: unused
+>+ * @context: the dock station private data
+>+ * @rv: unused
+>+ *
+>+ * This function is called by acpi_walk_namespace.  It will
+>+ * check to see if an object has an _EJD method.  If it does, then it
+>+ * will see if it is dependent on the dock station.
+>+ */
 >+static acpi_status
->+is_pci_dock_device(acpi_handle handle, u32 lvl, void 
->*context, void **rv)
+>+find_dock_devices(acpi_handle handle, u32 lvl, void *context, 
+>void **rv)
+>+{
+>+	acpi_status status;
+>+	acpi_handle tmp;
+>+	struct dock_station *ds = (struct dock_station *)context;
+>+	struct dock_dependent_device *dd;
+>+
+>+	status = acpi_bus_get_ejd(handle, &tmp);
+>+	if (ACPI_FAILURE(status))
+>+		return AE_OK;
+>+
+>+	if (tmp == ds->handle) {
+>+		dd = alloc_dock_dependent_device(handle);
+>+		if (dd)
+>+			add_dock_dependent_device(ds, dd);
+>+	}
+>+
+>+	return AE_OK;
+>+}
+>+
+>+/**
+>+ * dock_add - add a new dock station
+>+ * @handle: the dock station handle
+>+ *
+>+ * allocated and initialize a new dock station device.  Find 
+>all devices
+>+ * that are on the dock station, and register for dock event 
+>notifications.
+>+ */
+>+static int dock_add(acpi_handle handle)
+>+{
+>+	int ret;
+>+	acpi_status status;
+>+	struct dock_dependent_device *dd;
+>+
+>+	/* allocate & initialize the dock_station private data */
+>+	dock_station = kzalloc(sizeof(*dock_station), GFP_KERNEL);
+>+	if (!dock_station)
+>+		return -ENOMEM;
+>+	dock_station->handle = handle;
+>+	dock_station->last_dock_time = jiffies - HZ;
+>+	INIT_LIST_HEAD(&dock_station->dependent_devices);
+>+	INIT_LIST_HEAD(&dock_station->hotplug_devices);
+>+	spin_lock_init(&dock_station->dd_lock);
+>+	spin_lock_init(&dock_station->hp_lock);
+>+
+>+	/* Find dependent devices */
+>+	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
+>+			    ACPI_UINT32_MAX, find_dock_devices, 
+>dock_station,
+>+			    NULL);
+>+
+>+	/* add the dock station as a device dependent on itself */
+>+	dd = alloc_dock_dependent_device(handle);
+>+	if (!dd) {
+>+		kfree(dock_station);
+>+		return -ENOMEM;
+>+	}
+>+	add_dock_dependent_device(dock_station, dd);
+>+
+>+	/* register for dock events */
+>+	status = acpi_install_notify_handler(dock_station->handle,
+>+					     ACPI_SYSTEM_NOTIFY,
+>+					     dock_notify, dock_station);
+>+
+>+	if (ACPI_FAILURE(status)) {
+>+		printk(KERN_ERR PREFIX "Error installing notify 
+>handler\n");
+>+		ret = -ENODEV;
+>+		goto dock_add_err;
+>+	}
+>+
+>+	printk(KERN_INFO PREFIX "%s \n", ACPI_DOCK_DRIVER_NAME);
+>+
+>+	return 0;
+>+
+>+dock_add_err:
+>+	kfree(dock_station);
+>+	kfree(dd);
+>+	return ret;
+>+}
+>+
+>+/**
+>+ * dock_remove - free up resources related to the dock station
+>+ */
+>+static int dock_remove(void)
+>+{
+>+	struct dock_dependent_device *dd, *tmp;
+>+	acpi_status status;
+>+
+>+	if (!dock_station)
+>+		return 0;
+>+
+>+	/* remove dependent devices */
+>+	list_for_each_entry_safe(dd, tmp, 
+>&dock_station->dependent_devices,
+>+				 list)
+>+	    kfree(dd);
+>+
+>+	/* remove dock notify handler */
+>+	status = acpi_remove_notify_handler(dock_station->handle,
+>+					    ACPI_SYSTEM_NOTIFY,
+>+					    dock_notify);
+>+	if (ACPI_FAILURE(status))
+>+		printk(KERN_ERR "Error removing notify handler\n");
+>+
+>+	/* free dock station memory */
+>+	kfree(dock_station);
+>+	return 0;
+>+}
+>+
+>+/**
+>+ * find_dock - look for a dock station
+>+ * @handle: acpi handle of a device
+>+ * @lvl: unused
+>+ * @context: counter of dock stations found
+>+ * @rv: unused
+>+ *
+>+ * This is called by acpi_walk_namespace to look for dock stations.
+>+ */
+>+static acpi_status
+>+find_dock(acpi_handle handle, u32 lvl, void *context, void **rv)
 >+{
 >+	int *count = (int *)context;
+>+	acpi_status status = AE_OK;
 >+
->+	if (is_dock_device(handle)) {
->+		(*count)++;
->+		return AE_CTRL_TERMINATE;
->+	} else {
->+		return AE_OK;
+>+	if (is_dock(handle)) {
+>+		if (dock_add(handle) >= 0) {
+>+			(*count)++;
+>+			status = AE_CTRL_TERMINATE;
+>+		}
 >+	}
+>+	return status;
 >+}
 >+
->+
->+
->+
->+/*
->+ * the _DCK method can do funny things... and sometimes not
->+ * hah-hah funny.
->+ *
->+ * TBD - figure out a way to only call fixups for
->+ * systems that require them.
->+ */
->+static int post_dock_fixups(struct notifier_block *nb, 
->unsigned long val,
->+	void *v)
+>+static int __init dock_init(void)
 >+{
->+	struct acpiphp_func *func = container_of(nb, struct 
->acpiphp_func, nb);
->+	struct pci_bus *bus = func->slot->bridge->pci_bus;
->+	u32 buses;
+>+	int num = 0;
 >+
->+	if (!bus->self)
->+		return  NOTIFY_OK;
+>+	dock_station = NULL;
 >+
->+	/* fixup bad _DCK function that rewrites
->+	 * secondary bridge on slot
->+	 */
->+	pci_read_config_dword(bus->self,
->+			PCI_PRIMARY_BUS,
->+			&buses);
+>+	/* look for a dock station */
+>+	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
+>+			    ACPI_UINT32_MAX, find_dock, &num, NULL);
 >+
->+	if (((buses >> 8) & 0xff) != bus->secondary) {
->+		buses = (buses & 0xff000000)
->+	     		| ((unsigned int)(bus->primary)     <<  0)
->+	     		| ((unsigned int)(bus->secondary)   <<  8)
->+	     		| ((unsigned int)(bus->subordinate) << 16);
->+		pci_write_config_dword(bus->self, 
->PCI_PRIMARY_BUS, buses);
->+	}
->+	return NOTIFY_OK;
+>+	if (!num)
+>+		return -ENODEV;
+>+
+>+	return 0;
 >+}
 >+
+>+static void __exit dock_exit(void)
+>+{
+>+	dock_remove();
+>+}
 >+
->+
+>+postcore_initcall(dock_init);
+>+module_exit(dock_exit);
+>diff -puN drivers/acpi/Kconfig~acpi-dock-driver drivers/acpi/Kconfig
+>--- a/drivers/acpi/Kconfig~acpi-dock-driver
+>+++ a/drivers/acpi/Kconfig
+>@@ -133,6 +133,13 @@ config ACPI_FAN
+> 	  This driver adds support for ACPI fan devices, 
+>allowing user-mode 
+> 	  applications to perform basic fan control (on, off, status).
 > 
-> /* callback routine to register each ACPI PCI slot object */
-> static acpi_status
->@@ -124,7 +177,6 @@ register_slot(acpi_handle handle, u32 lv
-> 	struct acpiphp_bridge *bridge = (struct acpiphp_bridge 
->*)context;
-> 	struct acpiphp_slot *slot;
-> 	struct acpiphp_func *newfunc;
->-	struct dependent_device *dd;
-> 	acpi_handle tmp;
+>+config ACPI_DOCK
+>+	tristate "Dock"
+>+	depends on !ACPI_IBM_DOCK
+>+	default y
+>+	help
+>+	  This driver adds support for ACPI controlled docking stations
+>+
+> config ACPI_PROCESSOR
+> 	tristate "Processor"
+> 	default y
+>diff -puN drivers/acpi/Makefile~acpi-dock-driver drivers/acpi/Makefile
+>--- a/drivers/acpi/Makefile~acpi-dock-driver
+>+++ a/drivers/acpi/Makefile
+>@@ -42,6 +42,7 @@ obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
+> obj-$(CONFIG_ACPI_BUTTON)	+= button.o
+> obj-$(CONFIG_ACPI_EC)		+= ec.o
+> obj-$(CONFIG_ACPI_FAN)		+= fan.o
+>+obj-$(CONFIG_ACPI_DOCK)		+= dock.o
+> obj-$(CONFIG_ACPI_VIDEO)	+= video.o 
+> obj-$(CONFIG_ACPI_HOTKEY)	+= hotkey.o
+> obj-y				+= pci_root.o pci_link.o 
+>pci_irq.o pci_bind.o
+>diff -puN drivers/acpi/scan.c~acpi-dock-driver drivers/acpi/scan.c
+>--- a/drivers/acpi/scan.c~acpi-dock-driver
+>+++ a/drivers/acpi/scan.c
+>@@ -673,6 +673,29 @@ static int acpi_bus_find_driver(struct a
+>                                  Device Enumeration
+>    
+>---------------------------------------------------------------
+>----------- */
+> 
+>+acpi_status
+>+acpi_bus_get_ejd(acpi_handle handle, acpi_handle *ejd)
+>+{
+>+	acpi_status status;
+>+	acpi_handle tmp;
+>+	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
+>+	union acpi_object *obj;
+>+
+>+	status = acpi_get_handle(handle, "_EJD", &tmp);
+>+	if (ACPI_FAILURE(status))
+>+		return status;
+>+
+>+	status = acpi_evaluate_object(handle, "_EJD", NULL, &buffer);
+>+	if (ACPI_SUCCESS(status)) {
+>+		obj = buffer.pointer;
+>+		status = acpi_get_handle(NULL, 
+>obj->string.pointer, ejd);
+>+		kfree(buffer.pointer);
+>+	}
+>+	return status;
+>+}
+>+EXPORT_SYMBOL_GPL(acpi_bus_get_ejd);
+>+
+>+
+> static int acpi_bus_get_flags(struct acpi_device *device)
+> {
 > 	acpi_status status = AE_OK;
-> 	unsigned long adr, sun;
->@@ -137,7 +189,7 @@ register_slot(acpi_handle handle, u32 lv
-> 
-> 	status = acpi_get_handle(handle, "_EJ0", &tmp);
-> 
->-	if (ACPI_FAILURE(status) && !(is_dependent_device(handle)))
->+	if (ACPI_FAILURE(status) && !(is_dock_device(handle)))
-> 		return AE_OK;
-> 
-> 	device = (adr >> 16) & 0xffff;
->@@ -162,18 +214,8 @@ register_slot(acpi_handle handle, u32 lv
-> 	if (ACPI_SUCCESS(acpi_get_handle(handle, "_PS3", &tmp)))
-> 		newfunc->flags |= FUNC_HAS_PS3;
-> 
->-	if (ACPI_SUCCESS(acpi_get_handle(handle, "_DCK", &tmp))) {
->+	if (ACPI_SUCCESS(acpi_get_handle(handle, "_DCK", &tmp)))
-> 		newfunc->flags |= FUNC_HAS_DCK;
->-		/* add to devices dependent on dock station,
->-		 * because this may actually be the dock bridge
->-		 */
->-		dd = alloc_dependent_device(handle);
->-                if (!dd)
->-                        err("Can't allocate memory for "
->-				"new dependent device!\n");
->-		else
->-			add_dependent_device(dd);
->-	}
-> 
-> 	status = acpi_evaluate_integer(handle, "_SUN", NULL, &sun);
-> 	if (ACPI_FAILURE(status))
->@@ -225,20 +267,23 @@ register_slot(acpi_handle handle, u32 lv
-> 		slot->flags |= (SLOT_ENABLED | SLOT_POWEREDON);
-> 	}
-> 
->-	/* if this is a device dependent on a dock station,
->-	 * associate the acpiphp_func to the dependent_device
->- 	 * struct.
->-	 */
->-	if ((dd = get_dependent_device(handle))) {
->-		newfunc->flags |= FUNC_IS_DD;
->-		/*
->-		 * we don't want any devices which is dependent
->-		 * on the dock to have it's _EJ0 method executed.
->-		 * because we need to run _DCK first.
->+	if (is_dock_device(handle)) {
->+		/* we don't want to call this device's _EJ0
->+		 * because we want the dock notify handler
->+		 * to call it after it calls _DCK
-> 		 */
-> 		newfunc->flags &= ~FUNC_HAS_EJ0;
->-		dd->func = newfunc;
->-		add_pci_dependent_device(dd);
->+		if (register_hotplug_dock_device(handle,
->+			handle_hotplug_event_func, newfunc))
->+			dbg("failed to register dock device\n");
->+
->+		/* we need to be notified when dock events happen
->+		 * outside of the hotplug operation, since we may
->+		 * need to do fixups before we can hotplug.
->+		 */
->+		newfunc->nb.notifier_call = post_dock_fixups;
->+		if (register_dock_notifier(&newfunc->nb))
->+			dbg("failed to register a dock notifier");
-> 	}
-> 
-> 	/* install notify handler */
->@@ -277,6 +322,15 @@ static int detect_ejectable_slots(acpi_h
-> 	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, 
->bridge_handle, (u32)1,
-> 				     is_ejectable_slot, (void 
->*)&count, NULL);
-> 
->+	/*
->+	 * we also need to add this bridge if there is a dock bridge or
->+	 * other pci device on a dock station (removable)
->+	 */
->+	if (!count)
->+		status = acpi_walk_namespace(ACPI_TYPE_DEVICE, 
->bridge_handle,
->+				(u32)1, is_pci_dock_device, 
->(void *)&count,
->+				NULL);
->+
-> 	return count;
-> }
-> 
->@@ -413,8 +467,7 @@ find_p2p_bridge(acpi_handle handle, u32 
-> 		goto out;
-> 
-> 	/* check if this bridge has ejectable slots */
->-	if ((detect_ejectable_slots(handle) > 0) ||
->-		(detect_dependent_devices(handle) > 0)) {
->+	if ((detect_ejectable_slots(handle) > 0)) {
-> 		dbg("found PCI-to-PCI bridge at PCI %s\n", 
->pci_name(dev));
-> 		add_p2p_bridge(handle, dev);
-> 	}
->@@ -522,6 +575,10 @@ static void cleanup_bridge(struct acpiph
-> 		list_for_each_safe (list, tmp, &slot->funcs) {
-> 			struct acpiphp_func *func;
-> 			func = list_entry(list, struct 
->acpiphp_func, sibling);
->+			if (is_dock_device(func->handle)) {
->+				
->unregister_hotplug_dock_device(func->handle);
->+				unregister_dock_notifier(&func->nb);
->+			}
-> 			if (!(func->flags & FUNC_HAS_DCK)) {
-> 				status = 
->acpi_remove_notify_handler(func->handle,
-> 						ACPI_SYSTEM_NOTIFY,
->diff -puN 
->drivers/pci/hotplug/acpiphp.h~acpiphp-use-new-dock-driver 
->drivers/pci/hotplug/acpiphp.h
->--- a/drivers/pci/hotplug/acpiphp.h~acpiphp-use-new-dock-driver
->+++ a/drivers/pci/hotplug/acpiphp.h
->@@ -125,7 +125,7 @@ struct acpiphp_func {
-> 
-> 	struct list_head sibling;
-> 	struct pci_dev *pci_dev;
+>diff -puN include/acpi/acpi_bus.h~acpi-dock-driver 
+>include/acpi/acpi_bus.h
+>--- a/include/acpi/acpi_bus.h~acpi-dock-driver
+>+++ a/include/acpi/acpi_bus.h
+>@@ -334,7 +334,7 @@ int acpi_bus_add(struct acpi_device **ch
+> 		 acpi_handle handle, int type);
+> int acpi_bus_trim(struct acpi_device *start, int rmdevice);
+> int acpi_bus_start(struct acpi_device *device);
 >-
->+	struct notifier_block nb;
-> 	acpi_handle	handle;
+>+acpi_status acpi_bus_get_ejd(acpi_handle handle, acpi_handle *ejd);
+> int acpi_match_ids(struct acpi_device *device, char *ids);
+> int acpi_create_dir(struct acpi_device *);
+> void acpi_remove_dir(struct acpi_device *);
+>diff -puN include/acpi/acpi_drivers.h~acpi-dock-driver 
+>include/acpi/acpi_drivers.h
+>--- a/include/acpi/acpi_drivers.h~acpi-dock-driver
+>+++ a/include/acpi/acpi_drivers.h
+>@@ -110,4 +110,21 @@ int acpi_processor_set_thermal_limit(acp
 > 
-> 	u8		function;	/* pci function# */
->@@ -146,24 +146,6 @@ struct acpiphp_attention_info
-> };
+> extern int acpi_specific_hotkey_enabled;
 > 
-> 
->-struct dependent_device {
->-	struct list_head device_list;
->-	struct list_head pci_list;
->-	acpi_handle handle;
->-	struct acpiphp_func *func;
->-};
->-
->-
->-struct acpiphp_dock_station {
->-	acpi_handle handle;
->-	u32 last_dock_time;
->-	u32 flags;
->-	struct acpiphp_func *dock_bridge;
->-	struct list_head dependent_devices;
->-	struct list_head pci_dependent_devices;
->-};
->-
->-
-> /* PCI bus bridge HID */
-> #define ACPI_PCI_HOST_HID		"PNP0A03"
-> 
->@@ -202,11 +184,6 @@ struct acpiphp_dock_station {
-> #define FUNC_HAS_PS2		(0x00000040)
-> #define FUNC_HAS_PS3		(0x00000080)
-> #define FUNC_HAS_DCK            (0x00000100)
->-#define FUNC_IS_DD              (0x00000200)
->-
->-/* dock station flags */
->-#define DOCK_DOCKING            (0x00000001)
->-#define DOCK_HAS_BRIDGE         (0x00000002)
-> 
-> /* function prototypes */
-> 
->@@ -231,16 +208,6 @@ extern u8 acpiphp_get_latch_status (stru
-> extern u8 acpiphp_get_adapter_status (struct acpiphp_slot *slot);
-> extern u32 acpiphp_get_address (struct acpiphp_slot *slot);
-> 
->-/* acpiphp_dock.c */
->-extern int find_dock_station(void);
->-extern void remove_dock_station(void);
->-extern void add_dependent_device(struct dependent_device *new_dd);
->-extern void add_pci_dependent_device(struct dependent_device *new_dd);
->-extern struct dependent_device 
->*get_dependent_device(acpi_handle handle);
->-extern int is_dependent_device(acpi_handle handle);
->-extern int detect_dependent_devices(acpi_handle *bridge_handle);
->-extern struct dependent_device 
->*alloc_dependent_device(acpi_handle handle);
->-
-> /* variables */
-> extern int acpiphp_debug;
-> 
->diff -puN 
->drivers/pci/hotplug/Makefile~acpiphp-use-new-dock-driver 
->drivers/pci/hotplug/Makefile
->--- a/drivers/pci/hotplug/Makefile~acpiphp-use-new-dock-driver
->+++ a/drivers/pci/hotplug/Makefile
->@@ -40,8 +40,7 @@ ibmphp-objs		:=	ibmphp_core.o	\
-> 				ibmphp_hpc.o
-> 
-> acpiphp-objs		:=	acpiphp_core.o	\
->-				acpiphp_glue.o  \
->-				acpiphp_dock.o
->+				acpiphp_glue.o
-> 
-> rpaphp-objs		:=	rpaphp_core.o	\
-> 				rpaphp_pci.o	\
+>+/*------------------------------------------------------------
+>--------------
+>+                                  Dock Station
+>+  
+>---------------------------------------------------------------
+>----------- */
+>+#if defined(CONFIG_ACPI_DOCK) || defined(CONFIG_ACPI_DOCK_MODULE)
+>+extern int is_dock_device(acpi_handle handle);
+>+extern int register_dock_notifier(struct notifier_block *nb);
+>+extern void unregister_dock_notifier(struct notifier_block *nb);
+>+extern int register_hotplug_dock_device(acpi_handle handle,
+>+	acpi_notify_handler handler, void *context);
+>+extern void unregister_hotplug_dock_device(acpi_handle handle);
+>+#else
+>+#define is_dock_device(h)			(0)
+>+#define register_dock_notifier(nb) 		(-ENODEV)
+>+#define unregister_dock_notifier(nb)           	do { } while(0)
+>+#define register_hotplug_dock_device(h1, h2, c)	(-ENODEV)
+>+#define unregister_hotplug_dock_device(h)       do { } while(0)
+>+#endif
+> #endif /*__ACPI_DRIVERS_H__*/
 >_
 >
