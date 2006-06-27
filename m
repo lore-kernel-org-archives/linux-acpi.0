@@ -1,33 +1,46 @@
-From: Johan Vromans <jvromans@squirrel.nl>
-Subject: Re: Acer smart battery: acpi_sbs and linux-2.6.17
-Date: Tue, 27 Jun 2006 17:17:48 +0200
-Message-ID: <m2veqmy6eb.fsf@phoenix.squirrel.nl>
-References: <449F18D9.7060507@rrz.uni-koeln.de>
-	<m2zmfyykrz.fsf@phoenix.squirrel.nl>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [patch 11/18] pnpacpi: reject ACPI_PRODUCER resources
+Date: Tue, 27 Jun 2006 10:03:12 -0600
+Message-ID: <200606271003.12579.bjorn.helgaas@hp.com>
+References: <CFF307C98FEABE47A452B27C06B85BB6D8C7C7@hdsmsx411.amr.corp.intel.com> <1151393390.21189.59.camel@sli10-desk.sh.intel.com> <1151409746.44a11e52e7002@imp8-g19.free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:34571 "EHLO
-	smtp-vbr7.xs4all.nl") by vger.kernel.org with ESMTP
-	id S1161083AbWF0PRv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 Jun 2006 11:17:51 -0400
-Received: from phoenix.squirrel.nl (sioban.xs4all.nl [82.92.147.177])
-	by smtp-vbr7.xs4all.nl (8.13.6/8.13.6) with ESMTP id k5RFHnhT018926
-	for <linux-acpi@vger.kernel.org>; Tue, 27 Jun 2006 17:17:49 +0200 (CEST)
-	(envelope-from jv@squirrel.nl)
-In-Reply-To: <m2zmfyykrz.fsf@phoenix.squirrel.nl> (Johan Vromans's message
- of "Tue, 27 Jun 2006 12:07:12 +0200")
+Received: from atlrel7.hp.com ([156.153.255.213]:63200 "EHLO atlrel7.hp.com")
+	by vger.kernel.org with ESMTP id S932493AbWF0QE0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 27 Jun 2006 12:04:26 -0400
+In-Reply-To: <1151409746.44a11e52e7002@imp8-g19.free.fr>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: castet.matthieu@free.fr
+Cc: Shaohua Li <shaohua.li@intel.com>, Adam Belay <ambx1@neo.rr.com>, Andrew Morton <akpm@osdl.org>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, uwe.bugla@gmx.de
 
-Johan Vromans <jvromans@squirrel.nl> writes:
+On Tuesday 27 June 2006 06:02, castet.matthieu@free.fr wrote:
+> Selon Shaohua Li <shaohua.li@intel.com>:
+> http://www.kernel.org/git/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=c4bb6f5ad968540d7f9619565bacd18d7419b85f
+> > Thanks and sorry I didn't find the issue before. We'd better blacklist
+> > root bridge. I saw at lest one BIOS (IA64 box) didn't assign correct
+> > producer/consumer flag to root bridge resources. Blacklist it is much
+> > safer.
 
-> Hmm. I've yet to see this problem, but I'll be careful (and save
-> often) for a while.
+If there's a specific broken BIOS, I'd prefer a quirk-type
+mechanism to work around it.
 
-But I seem to have lost the ability to hibernate/resume. I consistently
-get "swsusp: not enough free memory". Does 2.6.17 take so much more
-memory than 2.6.16?
+> Is only PNP0A03 is producer type in __all__ ACPI possible devices ?
+> If not we will have the same problem with others devices...
+> 
+> I don't think blacklist is the solution : pnpacpi should be able to handle all
+> ressources types : we should complete the implementation instead of blacklist
+> devices our implementation doesn't support.
 
--- Johan
+I agree.  I don't think blacklisting PNP0A03 is the correct solution.
+Any ACPI device can have a producer resource.  The next time we
+find a non-PNP0A03 bridge device with a producer resource, we'll
+just trip over the same problem again.
+
+Adam, Len, or Shaohua, can you explain the reason for preferring
+a blacklist entry?
