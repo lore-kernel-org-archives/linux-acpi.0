@@ -1,79 +1,95 @@
-From: Andreas Mohr <andi@rhlx01.fht-esslingen.de>
-Subject: Re: [PATCH -mm] ACPI: re-add important comment about P_LVLx register
-Date: Wed, 28 Jun 2006 09:54:29 +0200
-Message-ID: <20060628075429.GA8832@rhlx01.fht-esslingen.de>
-References: <CFF307C98FEABE47A452B27C06B85BB6DCECEC@hdsmsx411.amr.corp.intel.com>
+From: "Uwe Bugla" <uwe.bugla@gmx.de>
+Subject: Re: Re: [patch 11/18] pnpacpi: reject ACPI_PRODUCER resources
+Date: Wed, 28 Jun 2006 10:57:44 +0200
+Message-ID: <20060628085744.74730@gmx.net>
+References: <CFF307C98FEABE47A452B27C06B85BB6D8C7C7@hdsmsx411.amr.corp.intel.com>
+	 <20060627000324.b9457fb4.akpm@osdl.org> <20060627073704.GD3438@neo.rr.com>	
+ <1151393390.21189.59.camel@sli10-desk.sh.intel.com>	
+ <1151409746.44a11e52e7002@imp8-g19.free.fr>
+ <1151456568.21189.84.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rhlx01.fht-esslingen.de ([129.143.116.10]:63653 "EHLO
-	rhlx01.fht-esslingen.de") by vger.kernel.org with ESMTP
-	id S1030471AbWF1Hya (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Jun 2006 03:54:30 -0400
-Content-Disposition: inline
-In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB6DCECEC@hdsmsx411.amr.corp.intel.com>
+Received: from mail.gmx.de ([213.165.64.21]:23957 "HELO mail.gmx.net")
+	by vger.kernel.org with SMTP id S1161012AbWF1I5q (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Jun 2006 04:57:46 -0400
+In-Reply-To: <1151456568.21189.84.camel@sli10-desk.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>, castet.matthieu@free.fr
+Cc: bjorn.helgaas@hp.com, linux-acpi@vger.kernel.org, len.brown@intel.com, akpm@osdl.org, ambx1@neo.rr.com
 
-Hi,
 
-On Wed, Jun 28, 2006 at 03:27:00AM -0400, Brown, Len wrote:
-> applied.
-> thanks,
-> -Len 
+-------- Original-Nachricht --------
+Datum: Wed, 28 Jun 2006 09:02:48 +0800
+Von: Shaohua Li <shaohua.li@intel.com>
+An: castet.matthieu@free.fr
+Betreff: Re: [patch 11/18] pnpacpi: reject ACPI_PRODUCER resources
 
-Very fast, thanks!
+> On Tue, 2006-06-27 at 14:02 +0200, castet.matthieu@free.fr wrote:
+> > Selon Shaohua Li <shaohua.li@intel.com>:
+> >=20
+> > >
+> >
+> http://www.kernel.org/git/?p=3Dlinux/kernel/git/torvalds/linux-2.6.gi=
+t;a=3Dcommit;h=3Dc4bb6f5ad968540d7f9619565bacd18d7419b85f
+> > > Thanks and sorry I didn't find the issue before. We'd better blac=
+klist
+> > > root bridge. I saw at lest one BIOS (IA64 box) didn't assign corr=
+ect
+> > > producer/consumer flag to root bridge resources. Blacklist it is =
+much
+> > > safer.
+> >=20
+> > Is only PNP0A03 is producer type in __all__ ACPI possible devices ?
+> > If not we will have the same problem with others devices...
+> >=20
+> > I don't think blacklist is the solution : pnpacpi should be able to
+> handle all
+> > ressources types : we should complete the implementation instead of
+> blacklist
+> > devices our implementation doesn't support.
+> >=20
+> > If there are broken ACPI bios, there should be firmware update, a
+> patched dsdt
+> > or a quirk, but no "quirk and no generic solution".
+> >>From my understanding, if the device is really a PNP device its res=
+ource
+> should not be producer.
+> Or could we take this way, merge both patches (both patches are good =
+to
+> me), which should be safer. Anyway, it doesn't make sense to export r=
+oot
+> bridge to pnp layer to me.
+>=20
+> Thanks,
+> Shaohua
 
-However I was not looking at it for nothing: I've come up with an idea
-to optimize away this dummy wait I/O access (one I/O access results
-in a timer increase of 2 or 3 ticks on my systems, i.e. about 1us and thus
-about 700 wasted CPU cycles on my P3/700).
+I tested the patch without blacklisting the PNP resource at the same ti=
+me under 2.6.17-rc6-mm*, and did not find any regression.
+And I am sure there is a solution also for IA64 architectures without g=
+oing  the blacklist path which sounds a bit strange after having done s=
+uch a big effort of real good work.
+Unfortunately I do not own an IA64 architecture, so I neither cannot te=
+st nor understand Shaohua=B4s criticism on that.
+Under latest mm-patches (mm1, mm2, mm3 for official release of 2.6.17) =
+it is at least impossible for me to give any positive feedback, as all =
+three mm-versions are simply unusable. I will feature this in another m=
+ail to Andrew.
 
-The theory is as follows:
-I'm looking at the value read directly after asserting STPCLK#, and if this
-value is only slightly (e.g. up to 5 * C2_OVERHEAD) different from the
-t1 value, then I'm assuming that I may have caught a pre-sleep value
-and in this case read the I/O port again to make sure I managed to read
-a value *after* resuming.
-Thus in many cases I'm saving the dummy read since I'm taking into account
-an incorrectly small (pre-sleep) value due to delayed STPCLK# operation
-and only re-read the I/O port if this happens.
+Cheers
 
-HOWEVER, this means that I have to rely on a correct readout
-of the timer value, no matter whether it was being read pre-freeze,
-mid-freeze or post-freeze. And I'm not sure whether this is always true
-on all chipsets (i.e. whether the read operation is fully atomic and *always*
-returns valid tick values with a fully valid 32-bit word).
+Uwe
 
-Benefits: a nice chunk of better wakeup latency (700 CPU cycles, minus some
-decision logic cycles loss of about 100 cycles, so about 600 cycles).
+--=20
 
-The usual pattern of tick values is:
 
-t1	t2	t3
-
-x	x+4000	x+4000+3	(no activity: extremely long sleeps)
-x	x+300	x+300+3		(medium activity, mid-range sleeps)
-x	x+8	x+8+3		(the ultra-short sleep wasn't really worth it)
-
-Thus I would double-read the I/O value in the third case only, since the
-difference (8) is less than 5 * C2_OVERHEAD.
-
-This would mean that with my method overhead is larger for systems in an 80%
-busy state (which thus touch ACPI C2 just marginally) and provides real
-wakeup latency benefits for quite idle systems only, but OTOH the overhead
-would vanish for entirely busy systems (due to no ACPI C2 activity at all),
-so I think it's no problem.
-
-...PROVIDED that the tick value read *anywhere* during STPCLK# freeze
-*is* reliable!!
-(I don't see a tick value problem on my Intel 815 P3/700 and my
-VIA Athlon @1200, but haven't tested other systems yet).
-
-Comments?
-
-(I've got a preliminary patch ready for this)
-
-Andreas Mohr
+Echte DSL-Flatrate dauerhaft f=FCr 0,- Euro*!
+"Feel free" mit GMX DSL! http://www.gmx.net/de/go/dsl
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
