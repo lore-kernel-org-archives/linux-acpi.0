@@ -1,56 +1,61 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: [-mm patch] include/asm-i386/acpi.h should #include <asm/processor.h>
-Date: Wed, 28 Jun 2006 18:54:18 +0200
-Message-ID: <20060628165418.GJ13915@stusta.de>
-References: <20060624061914.202fbfb5.akpm@osdl.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [patch 11/18] pnpacpi: reject ACPI_PRODUCER resources
+Date: Wed, 28 Jun 2006 10:55:26 -0600
+Message-ID: <200606281055.26887.bjorn.helgaas@hp.com>
+References: <CFF307C98FEABE47A452B27C06B85BB6D8C7C7@hdsmsx411.amr.corp.intel.com> <1151409746.44a11e52e7002@imp8-g19.free.fr> <1151456568.21189.84.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751412AbWF1QyV@vger.kernel.org>
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from atlrel9.hp.com ([156.153.255.214]:33511 "EHLO atlrel9.hp.com")
+	by vger.kernel.org with ESMTP id S1751453AbWF1Qzc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Jun 2006 12:55:32 -0400
+In-Reply-To: <1151456568.21189.84.camel@sli10-desk.sh.intel.com>
 Content-Disposition: inline
-In-Reply-To: <20060624061914.202fbfb5.akpm@osdl.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>, Andreas Mohr <andi@rhlx01.fht-esslingen.de>
-Cc: linux-kernel@vger.kernel.org, len.brown@intel.com, linux-acpi@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: castet.matthieu@free.fr, Adam Belay <ambx1@neo.rr.com>, Andrew Morton <akpm@osdl.org>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, uwe.bugla@gmx.de
 
-On Sat, Jun 24, 2006 at 06:19:14AM -0700, Andrew Morton wrote:
->...
-> Changes since 2.6.17-mm1:
->...
-> +cpu_relax-use-in-acpi-lock.patch
->...
->  ACPI stuff
->...
+On Tuesday 27 June 2006 19:02, Shaohua Li wrote:
+> On Tue, 2006-06-27 at 14:02 +0200, castet.matthieu@free.fr wrote:
+> > Is only PNP0A03 is producer type in __all__ ACPI possible devices ?
+> > If not we will have the same problem with others devices...
+> > 
+> > I don't think blacklist is the solution : pnpacpi should be able to handle all
+> > ressources types : we should complete the implementation instead of blacklist
+> > devices our implementation doesn't support.
+> > 
+> > If there are broken ACPI bios, there should be firmware update, a patched dsdt
+> > or a quirk, but no "quirk and no generic solution".
 
-This patch fixes the following issue:
+> From my understanding, if the device is really a PNP device its resource
+> should not be producer.
 
-<--  snip  -->
+I know PNP as currently implemented doesn't support resource producers.
+But I don't think of that as a restriction of PNP itself.  I think of
+it as an area where a new back end (PNPACPI) added functionality, and
+PNP should be enhanced to comprehend it.
 
-=2E..
-  CC      arch/i386/mach-visws/mpparse.o
-In file included from include/asm/fixmap.h:26,
-                 from include/asm/smp.h:15,
-                 from arch/i386/mach-visws/mpparse.c:6:
-include/asm/acpi.h: In function =E2=80=98__acpi_acquire_global_lock=E2=80=
-=99:
-include/asm/acpi.h:70: warning: implicit declaration of function =E2=80=
-=98cpu_relax=E2=80=99
-=2E..
+I think the current scheme where some devices are claimed using
+PNPACPI and pnp_register_driver(), and others are claimed using
+acpi_bus_register_driver() directly, is confusing at best.
 
-<--  snip  -->
+I'd rather have ALL devices handled by PNPACPI, and either extend
+the PNP infrastructure to comprehend the new functionality of ACPI
+(e.g., new resource types like PCI bus numbers, ACPI events), or
+maybe just provide a "to_acpi_dev()" that takes a PNP device and
+returns the corresponding ACPI device.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+> Or could we take this way, merge both patches (both patches are good to
+> me), which should be safer. Anyway, it doesn't make sense to export root
+> bridge to pnp layer to me.
 
---- linux-2.6.17-mm2/include/asm-i386/acpi.h.old	2006-06-26 23:00:40.00=
-0000000 +0200
-+++ linux-2.6.17-mm2/include/asm-i386/acpi.h	2006-06-26 23:01:04.000000=
-000 +0200
-@@ -31,6 +31,7 @@
- #include <acpi/pdc_intel.h>
-=20
- #include <asm/system.h>		/* defines cmpxchg */
-+#include <asm/processor.h>
-=20
- #define COMPILER_DEPENDENT_INT64   long long
- #define COMPILER_DEPENDENT_UINT64  unsigned long long
+One reason I don't like the blacklist is because it just papers over
+the problem without leaving a clue about how to really solve it.
+For example, if PNP is enhanced later to comprehend resource producers,
+we won't know to go back and remove things from the blacklist.
+
+Bjorn
