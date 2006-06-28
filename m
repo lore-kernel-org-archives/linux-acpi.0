@@ -1,59 +1,56 @@
-From: Johan Vromans <jvromans@squirrel.nl>
-Subject: Re: Acer smart battery: acpi_sbs and linux-2.6.17
-Date: Wed, 28 Jun 2006 11:43:50 +0200
-Message-ID: <m23bdpeht5.fsf@phoenix.squirrel.nl>
-References: <449F18D9.7060507@rrz.uni-koeln.de>
-	<m2zmfyykrz.fsf@phoenix.squirrel.nl>
-	<m2veqmy6eb.fsf@phoenix.squirrel.nl>
-	<44A1AF40.3020701@rrz.uni-koeln.de>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: [-mm patch] include/asm-i386/acpi.h should #include <asm/processor.h>
+Date: Wed, 28 Jun 2006 18:54:18 +0200
+Message-ID: <20060628165418.GJ13915@stusta.de>
+References: <20060624061914.202fbfb5.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:47368 "EHLO
-	smtp-vbr16.xs4all.nl") by vger.kernel.org with ESMTP
-	id S1030499AbWF1Jnw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Jun 2006 05:43:52 -0400
-Received: from phoenix.squirrel.nl (sioban.xs4all.nl [82.92.147.177])
-	by smtp-vbr16.xs4all.nl (8.13.6/8.13.6) with ESMTP id k5S9ho5K054186
-	for <linux-acpi@vger.kernel.org>; Wed, 28 Jun 2006 11:43:51 +0200 (CEST)
-	(envelope-from jv@squirrel.nl)
-In-Reply-To: <44A1AF40.3020701@rrz.uni-koeln.de> (Berthold Cogel's message
- of "Wed, 28 Jun 2006 00:20:48 +0200")
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751412AbWF1QyV@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20060624061914.202fbfb5.akpm@osdl.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>, Andreas Mohr <andi@rhlx01.fht-esslingen.de>
+Cc: linux-kernel@vger.kernel.org, len.brown@intel.com, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Berthold Cogel <cogel@rrz.uni-koeln.de> writes:
+On Sat, Jun 24, 2006 at 06:19:14AM -0700, Andrew Morton wrote:
+>...
+> Changes since 2.6.17-mm1:
+>...
+> +cpu_relax-use-in-acpi-lock.patch
+>...
+>  ACPI stuff
+>...
 
->> But I seem to have lost the ability to hibernate/resume. I consistently
->> get "swsusp: not enough free memory". Does 2.6.17 take so much more
->> memory than 2.6.16?
->
-> For my System it's only about 1 MB difference in runlevel 1 with
-> 2.6.17.1 compared with 2.6.16.20.
+This patch fixes the following issue:
 
-I've gone back to 2.6.16, and didn't notice a significant difference
-in 'free' figures so the size increment is probably neglectible.
-But I can only hibernate when I stop X first, while with 2.6.16 I'm
-could hibernate with a fully loaded (X, WM, Emacs, Xterms) system.
+<--  snip  -->
 
-BTW I hibernate with 
+=2E..
+  CC      arch/i386/mach-visws/mpparse.o
+In file included from include/asm/fixmap.h:26,
+                 from include/asm/smp.h:15,
+                 from arch/i386/mach-visws/mpparse.c:6:
+include/asm/acpi.h: In function =E2=80=98__acpi_acquire_global_lock=E2=80=
+=99:
+include/asm/acpi.h:70: warning: implicit declaration of function =E2=80=
+=98cpu_relax=E2=80=99
+=2E..
 
-  cd /sys/power; echo shutdown > disk; echo disk > state
+<--  snip  -->
 
-I don't use the pm-hibernate program (doesn't seem to make a
-difference, except that I cannot choose a kernel upon boot).
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
-> But I'm using suspend to disk with suspend2.
-
-I've been told that swsusp2 and swsusp share the same memory
-limitation: at least half of the memory must be freeable for suspend
-to be able to continue. But it could be a problem with swsusp that it
-somehow isn't able to free enough memory.
-
-Since 2.6.16 swsusp does everything I need, I never tried swsusp2.
-Last time I looked it seemed work in fast progress, much like a moving
-target. Besides I'd like to stick as closely as possible to my
-standard Fedora kernel so I can still use the prebuilt kernel modules.
-
--- Johan
+--- linux-2.6.17-mm2/include/asm-i386/acpi.h.old	2006-06-26 23:00:40.00=
+0000000 +0200
++++ linux-2.6.17-mm2/include/asm-i386/acpi.h	2006-06-26 23:01:04.000000=
+000 +0200
+@@ -31,6 +31,7 @@
+ #include <acpi/pdc_intel.h>
+=20
+ #include <asm/system.h>		/* defines cmpxchg */
++#include <asm/processor.h>
+=20
+ #define COMPILER_DEPENDENT_INT64   long long
+ #define COMPILER_DEPENDENT_UINT64  unsigned long long
