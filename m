@@ -1,74 +1,37 @@
-From: Pavel Machek <pavel@suse.cz>
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 Subject: Re: 2.6.17-mm3: swsusp fails when process is debugged by ptrace
-Date: Wed, 28 Jun 2006 23:26:16 +0200
-Message-ID: <20060628212616.GB30373@elf.ucw.cz>
-References: <44A2B9AF.50803@goop.org>
+Date: Wed, 28 Jun 2006 14:52:32 -0700
+Message-ID: <44A2FA20.3020809@goop.org>
+References: <44A2B9AF.50803@goop.org> <20060628212616.GB30373@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:8129 "EHLO amd.ucw.cz")
-	by vger.kernel.org with ESMTP id S1751543AbWF1V0c (ORCPT
+Received: from gw.goop.org ([64.81.55.164]:50340 "EHLO mail.goop.org")
+	by vger.kernel.org with ESMTP id S1751563AbWF1Vw2 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Jun 2006 17:26:32 -0400
-Content-Disposition: inline
-In-Reply-To: <44A2B9AF.50803@goop.org>
+	Wed, 28 Jun 2006 17:52:28 -0400
+In-Reply-To: <20060628212616.GB30373@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Fitzhardinge <jeremy@goop.org>
+To: Pavel Machek <pavel@suse.cz>
 Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>
 
-Hi!
+Pavel Machek wrote:
+> Does it also happen when you do strace? ...I remember trying to solve
+> that, but 2.6.17-mm3 is very recent...?
 
-> If I try to suspend the machine while a process debug-stopped by ptrace, 
-> suspend fails:
-> 
-> PM: Preparing system for mem sleep
-> Freezing cpus ...
-> Breaking affinity for irq 0
-> Breaking affinity for irq 1
-> Breaking affinity for irq 12
-> Breaking affinity for irq 23
-> CPU 1 is now offline
-> SMP alternatives: switching to UP code
-> CPU1 is down
-> Stopping tasks: 
-> ==========================================================================================================================================================
-> stopping tasks timed out after 20 seconds (13 tasks remaining):
->  khubd
->  kseriod
->  pdflush
->  pdflush
->  kswapd0
->  kprefetchd
->  pccardd
->  kirqd
->  kjournald
->  kauditd
->  knodemgrd_0
->  kjournald
->  test-vsnprintf
-> Restarting tasks...<6> Strange, khubd not stopped
-> Strange, kseriod not stopped
-> Strange, pdflush not stopped
-> Strange, pdflush not stopped
-> Strange, kswapd0 not stopped
-> Strange, kprefetchd not stopped
-> Strange, pccardd not stopped
-> Strange, kirqd not stopped
-> Strange, kjournald not stopped
-> Strange, kauditd not stopped
-> Strange, knodemgrd_0 not stopped
-> Strange, kjournald not stopped
-> Strange, test-vsnprintf not stopped
-> done
-> Thawing cpus ...
-> 
-> In this case, test-vsnprintf is stopped in a breakpoint in gdb.  If I 
-> quit it, then suspend works as expected.
+I could suspend while running "strace sleep 100" without any problem.
 
-Does it also happen when you do strace? ...I remember trying to solve
-that, but 2.6.17-mm3 is very recent...?
-								Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+I think the issue is when the process is blocked in T state,
+freeze_process() tries to kick the process with signal_wake_up(p, /*
+resume=0 */ 0), but with resume=0 it will only wake processes in
+TASK_INTERRUPTIBLE state.  With resume=1, it will also kick STOPPED and
+TRACED processes.  I also tried suspending while I had a process in T
+state caused by kill -STOP, and that worked, so some part of the puzzle
+is still missing.
+
+I noticed that when I ran sleep 100 under strace over the suspend/resume
+cycle, its nanosleep() syscall was interrupted and not restarted.
+
+    J
