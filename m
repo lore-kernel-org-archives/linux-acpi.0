@@ -1,95 +1,59 @@
-From: "Uwe Bugla" <uwe.bugla@gmx.de>
-Subject: Re: Re: [patch 11/18] pnpacpi: reject ACPI_PRODUCER resources
-Date: Wed, 28 Jun 2006 10:57:44 +0200
-Message-ID: <20060628085744.74730@gmx.net>
-References: <CFF307C98FEABE47A452B27C06B85BB6D8C7C7@hdsmsx411.amr.corp.intel.com>
-	 <20060627000324.b9457fb4.akpm@osdl.org> <20060627073704.GD3438@neo.rr.com>	
- <1151393390.21189.59.camel@sli10-desk.sh.intel.com>	
- <1151409746.44a11e52e7002@imp8-g19.free.fr>
- <1151456568.21189.84.camel@sli10-desk.sh.intel.com>
+From: Johan Vromans <jvromans@squirrel.nl>
+Subject: Re: Acer smart battery: acpi_sbs and linux-2.6.17
+Date: Wed, 28 Jun 2006 11:43:50 +0200
+Message-ID: <m23bdpeht5.fsf@phoenix.squirrel.nl>
+References: <449F18D9.7060507@rrz.uni-koeln.de>
+	<m2zmfyykrz.fsf@phoenix.squirrel.nl>
+	<m2veqmy6eb.fsf@phoenix.squirrel.nl>
+	<44A1AF40.3020701@rrz.uni-koeln.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.de ([213.165.64.21]:23957 "HELO mail.gmx.net")
-	by vger.kernel.org with SMTP id S1161012AbWF1I5q (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Jun 2006 04:57:46 -0400
-In-Reply-To: <1151456568.21189.84.camel@sli10-desk.sh.intel.com>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:47368 "EHLO
+	smtp-vbr16.xs4all.nl") by vger.kernel.org with ESMTP
+	id S1030499AbWF1Jnw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Jun 2006 05:43:52 -0400
+Received: from phoenix.squirrel.nl (sioban.xs4all.nl [82.92.147.177])
+	by smtp-vbr16.xs4all.nl (8.13.6/8.13.6) with ESMTP id k5S9ho5K054186
+	for <linux-acpi@vger.kernel.org>; Wed, 28 Jun 2006 11:43:51 +0200 (CEST)
+	(envelope-from jv@squirrel.nl)
+In-Reply-To: <44A1AF40.3020701@rrz.uni-koeln.de> (Berthold Cogel's message
+ of "Wed, 28 Jun 2006 00:20:48 +0200")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>, castet.matthieu@free.fr
-Cc: bjorn.helgaas@hp.com, linux-acpi@vger.kernel.org, len.brown@intel.com, akpm@osdl.org, ambx1@neo.rr.com
+To: linux-acpi@vger.kernel.org
 
+Berthold Cogel <cogel@rrz.uni-koeln.de> writes:
 
--------- Original-Nachricht --------
-Datum: Wed, 28 Jun 2006 09:02:48 +0800
-Von: Shaohua Li <shaohua.li@intel.com>
-An: castet.matthieu@free.fr
-Betreff: Re: [patch 11/18] pnpacpi: reject ACPI_PRODUCER resources
+>> But I seem to have lost the ability to hibernate/resume. I consistently
+>> get "swsusp: not enough free memory". Does 2.6.17 take so much more
+>> memory than 2.6.16?
+>
+> For my System it's only about 1 MB difference in runlevel 1 with
+> 2.6.17.1 compared with 2.6.16.20.
 
-> On Tue, 2006-06-27 at 14:02 +0200, castet.matthieu@free.fr wrote:
-> > Selon Shaohua Li <shaohua.li@intel.com>:
-> >=20
-> > >
-> >
-> http://www.kernel.org/git/?p=3Dlinux/kernel/git/torvalds/linux-2.6.gi=
-t;a=3Dcommit;h=3Dc4bb6f5ad968540d7f9619565bacd18d7419b85f
-> > > Thanks and sorry I didn't find the issue before. We'd better blac=
-klist
-> > > root bridge. I saw at lest one BIOS (IA64 box) didn't assign corr=
-ect
-> > > producer/consumer flag to root bridge resources. Blacklist it is =
-much
-> > > safer.
-> >=20
-> > Is only PNP0A03 is producer type in __all__ ACPI possible devices ?
-> > If not we will have the same problem with others devices...
-> >=20
-> > I don't think blacklist is the solution : pnpacpi should be able to
-> handle all
-> > ressources types : we should complete the implementation instead of
-> blacklist
-> > devices our implementation doesn't support.
-> >=20
-> > If there are broken ACPI bios, there should be firmware update, a
-> patched dsdt
-> > or a quirk, but no "quirk and no generic solution".
-> >>From my understanding, if the device is really a PNP device its res=
-ource
-> should not be producer.
-> Or could we take this way, merge both patches (both patches are good =
-to
-> me), which should be safer. Anyway, it doesn't make sense to export r=
-oot
-> bridge to pnp layer to me.
->=20
-> Thanks,
-> Shaohua
+I've gone back to 2.6.16, and didn't notice a significant difference
+in 'free' figures so the size increment is probably neglectible.
+But I can only hibernate when I stop X first, while with 2.6.16 I'm
+could hibernate with a fully loaded (X, WM, Emacs, Xterms) system.
 
-I tested the patch without blacklisting the PNP resource at the same ti=
-me under 2.6.17-rc6-mm*, and did not find any regression.
-And I am sure there is a solution also for IA64 architectures without g=
-oing  the blacklist path which sounds a bit strange after having done s=
-uch a big effort of real good work.
-Unfortunately I do not own an IA64 architecture, so I neither cannot te=
-st nor understand Shaohua=B4s criticism on that.
-Under latest mm-patches (mm1, mm2, mm3 for official release of 2.6.17) =
-it is at least impossible for me to give any positive feedback, as all =
-three mm-versions are simply unusable. I will feature this in another m=
-ail to Andrew.
+BTW I hibernate with 
 
-Cheers
+  cd /sys/power; echo shutdown > disk; echo disk > state
 
-Uwe
+I don't use the pm-hibernate program (doesn't seem to make a
+difference, except that I cannot choose a kernel upon boot).
 
---=20
+> But I'm using suspend to disk with suspend2.
 
+I've been told that swsusp2 and swsusp share the same memory
+limitation: at least half of the memory must be freeable for suspend
+to be able to continue. But it could be a problem with swsusp that it
+somehow isn't able to free enough memory.
 
-Echte DSL-Flatrate dauerhaft f=FCr 0,- Euro*!
-"Feel free" mit GMX DSL! http://www.gmx.net/de/go/dsl
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Since 2.6.16 swsusp does everything I need, I never tried swsusp2.
+Last time I looked it seemed work in fast progress, much like a moving
+target. Besides I'd like to stick as closely as possible to my
+standard Fedora kernel so I can still use the prebuilt kernel modules.
+
+-- Johan
