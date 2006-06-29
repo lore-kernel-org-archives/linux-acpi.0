@@ -1,71 +1,105 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: [patch 11/18] pnpacpi: reject ACPI_PRODUCER resources
-Date: Thu, 29 Jun 2006 09:13:36 +0800
-Message-ID: <1151543616.21189.99.camel@sli10-desk.sh.intel.com>
-References: <CFF307C98FEABE47A452B27C06B85BB6D8C7C7@hdsmsx411.amr.corp.intel.com>
-	 <1151409746.44a11e52e7002@imp8-g19.free.fr>
-	 <1151456568.21189.84.camel@sli10-desk.sh.intel.com>
-	 <200606281055.26887.bjorn.helgaas@hp.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+From: akpm@osdl.org
+Subject: - acpi-c-states-accounting-of-sleep-states.patch removed from -mm tree
+Date: Wed, 28 Jun 2006 23:10:36 -0700
+Message-ID: <200606290610.k5T6Aawi010522@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:13607 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1751851AbWF2BQL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Jun 2006 21:16:11 -0400
-In-Reply-To: <200606281055.26887.bjorn.helgaas@hp.com>
+Received: from smtp.osdl.org ([65.172.181.4]:12726 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932357AbWF2GKk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 29 Jun 2006 02:10:40 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: castet.matthieu@free.fr, Adam Belay <ambx1@neo.rr.com>, Andrew Morton <akpm@osdl.org>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, uwe.bugla@gmx.de
+To: linux@dominikbrodowski.net, linux-acpi@vger.kernel.org, mm-commits@vger.kernel.org
 
-On Wed, 2006-06-28 at 10:55 -0600, Bjorn Helgaas wrote:
-> On Tuesday 27 June 2006 19:02, Shaohua Li wrote:
-> > On Tue, 2006-06-27 at 14:02 +0200, castet.matthieu@free.fr wrote:
-> > > Is only PNP0A03 is producer type in __all__ ACPI possible devices ?
-> > > If not we will have the same problem with others devices...
-> > > 
-> > > I don't think blacklist is the solution : pnpacpi should be able to handle all
-> > > ressources types : we should complete the implementation instead of blacklist
-> > > devices our implementation doesn't support.
-> > > 
-> > > If there are broken ACPI bios, there should be firmware update, a patched dsdt
-> > > or a quirk, but no "quirk and no generic solution".
-> 
-> > From my understanding, if the device is really a PNP device its resource
-> > should not be producer.
-> 
-> I know PNP as currently implemented doesn't support resource producers.
-> But I don't think of that as a restriction of PNP itself.  I think of
-> it as an area where a new back end (PNPACPI) added functionality, and
-> PNP should be enhanced to comprehend it.
-Ok, it's fine ACPI PNP handles resource producers.
 
-> I think the current scheme where some devices are claimed using
-> PNPACPI and pnp_register_driver(), and others are claimed using
-> acpi_bus_register_driver() directly, is confusing at best.
-> 
-> I'd rather have ALL devices handled by PNPACPI, and either extend
-> the PNP infrastructure to comprehend the new functionality of ACPI
-> (e.g., new resource types like PCI bus numbers, ACPI events), or
-> maybe just provide a "to_acpi_dev()" that takes a PNP device and
-> returns the corresponding ACPI device.
-That's a big deal. We had a lot of discussions about this like
-introducing ACPI bus, but frankly there isn't a solid direction which
-bus ACPI devices should belong to.
+The patch titled
 
-> > Or could we take this way, merge both patches (both patches are good to
-> > me), which should be safer. Anyway, it doesn't make sense to export root
-> > bridge to pnp layer to me.
-> 
-> One reason I don't like the blacklist is because it just papers over
-> the problem without leaving a clue about how to really solve it.
-> For example, if PNP is enhanced later to comprehend resource producers,
-> we won't know to go back and remove things from the blacklist.
-So lets have a note there. It (no blacklist) is meaningful to have all
-ACPI devices handled by PNP layer, but currently not. We don't expect a
-PNP driver for root bridge. And we will take risk of buggy BIOS.
+     ACPI C-States: accounting of sleep states
 
-Thanks,
-Shaohua
+has been removed from the -mm tree.  Its filename is
+
+     acpi-c-states-accounting-of-sleep-states.patch
+
+This patch was dropped because it was merged into mainline or a subsystem tree
+
+------------------------------------------------------
+Subject: ACPI C-States: accounting of sleep states
+From: Dominik Brodowski <linux@dominikbrodowski.net>
+
+Track the actual time spent in C-States (C2 upwards, we can't determine this
+for C1), not only the number of invocations.  This is especially useful for
+dynamic ticks / "tickless systems", but is also of interest on normal systems,
+as any interrupt activity leads to C-States being exited, not only the timer
+interrupt.
+
+The time is being measured in PM timer ticks, so an increase by one equals 279
+nanoseconds.
+
+Signed-off-by: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: <linux-acpi@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
+---
+
+ drivers/acpi/processor_idle.c |   10 ++++++----
+ include/acpi/processor.h      |    1 +
+ 2 files changed, 7 insertions(+), 4 deletions(-)
+
+diff -puN drivers/acpi/processor_idle.c~acpi-c-states-accounting-of-sleep-states drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~acpi-c-states-accounting-of-sleep-states
++++ a/drivers/acpi/processor_idle.c
+@@ -325,8 +325,6 @@ static void acpi_processor_idle(void)
+ 		cx = &pr->power.states[ACPI_STATE_C1];
+ #endif
+ 
+-	cx->usage++;
+-
+ 	/*
+ 	 * Sleep:
+ 	 * ------
+@@ -433,6 +431,9 @@ static void acpi_processor_idle(void)
+ 		local_irq_enable();
+ 		return;
+ 	}
++	cx->usage++;
++	if ((cx->type != ACPI_STATE_C1) && (sleep_ticks > 0))
++		cx->time += sleep_ticks;
+ 
+ 	next_state = pr->power.state;
+ 
+@@ -1067,9 +1068,10 @@ static int acpi_processor_power_seq_show
+ 		else
+ 			seq_puts(seq, "demotion[--] ");
+ 
+-		seq_printf(seq, "latency[%03d] usage[%08d]\n",
++		seq_printf(seq, "latency[%03d] usage[%08d] duration[%020llu]\n",
+ 			   pr->power.states[i].latency,
+-			   pr->power.states[i].usage);
++			   pr->power.states[i].usage,
++			   pr->power.states[i].time);
+ 	}
+ 
+       end:
+diff -puN include/acpi/processor.h~acpi-c-states-accounting-of-sleep-states include/acpi/processor.h
+--- a/include/acpi/processor.h~acpi-c-states-accounting-of-sleep-states
++++ a/include/acpi/processor.h
+@@ -62,6 +62,7 @@ struct acpi_processor_cx {
+ 	u32 latency_ticks;
+ 	u32 power;
+ 	u32 usage;
++	u64 time;
+ 	struct acpi_processor_cx_policy promotion;
+ 	struct acpi_processor_cx_policy demotion;
+ };
+_
+
+Patches currently in -mm which might be from linux@dominikbrodowski.net are
+
+origin.patch
+git-acpi.patch
+git-pcmcia.patch
+kill-open-coded-offsetof-in-cm4000_csc-zero_dev.patch
+com20020_cs-more-device-support.patch
+git-pcmcia-xirc2ps_cs-fix-ooops-not-a-creditcard.patch
+insert-identical-resources-above-existing-resources.patch
+make-sure-nobodys-leaking-resources.patch
+
