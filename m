@@ -1,82 +1,58 @@
-From: akpm@osdl.org
-Subject: - acpi-c-states-only-demote-on-current-bus-mastering-activity.patch removed from -mm tree
-Date: Wed, 28 Jun 2006 23:10:41 -0700
-Message-ID: <200606290610.k5T6Afs5010547@shell0.pdx.osdl.net>
+From: Rathgeb Markus <maggu2810@web.de>
+Subject: Re: amd64 brightness has lowest value after boot
+Date: Thu, 29 Jun 2006 09:14:47 +0000
+Message-ID: <44A39A07.20408@web.de>
+References: <449FBAC8.1060509@web.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:17078 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S932379AbWF2GKr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 29 Jun 2006 02:10:47 -0400
+Received: from fmmailgate02.web.de ([217.72.192.227]:34688 "EHLO
+	fmmailgate02.web.de") by vger.kernel.org with ESMTP
+	id S1751624AbWF2HPX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 29 Jun 2006 03:15:23 -0400
+Received: from smtp08.web.de (fmsmtp08.dlan.cinetic.de [172.20.5.216])
+	by fmmailgate02.web.de (Postfix) with ESMTP id AFD8253C548
+	for <linux-acpi@vger.kernel.org>; Thu, 29 Jun 2006 09:15:22 +0200 (CEST)
+Received: from [84.157.215.45] (helo=[192.168.0.100])
+	by smtp08.web.de with asmtp (TLSv1:AES256-SHA:256)
+	(WEB.DE 4.107 #114)
+	id 1FvqkE-0005Qb-00
+	for linux-acpi@vger.kernel.org; Thu, 29 Jun 2006 09:15:22 +0200
+In-Reply-To: <449FBAC8.1060509@web.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux@dominikbrodowski.net, linux-acpi@vger.kernel.org, mm-commits@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
+Hi!
+I find out (via acpi debug) that this are the execution methods:
+decrease brightness: \_SB_.PCI0.EC__._Q12
+increase brightness: \_SB_.PCI0.EC__._Q13
 
-The patch titled
+Can i execute this methods from hand? whitout press the keys?
 
-     ACPI C-States: only demote on current bus mastering activity
-
-has been removed from the -mm tree.  Its filename is
-
-     acpi-c-states-only-demote-on-current-bus-mastering-activity.patch
-
-This patch was dropped because it was merged into mainline or a subsystem tree
-
-------------------------------------------------------
-Subject: ACPI C-States: only demote on current bus mastering activity
-From: Dominik Brodowski <linux@dominikbrodowski.net>
-
-
-Only if bus master activity is going on at the present, we should avoid
-entering C3-type sleep, as it might be a faulty transition.  As long as the
-bm_activity bitmask was based on the number of calls to the ACPI idle
-function, looking at previous moments made sense.  Now, with it being based on
-what happened this jiffy, looking at this jiffy should be sufficient.
-
-Signed-off-by: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: <linux-acpi@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
----
-
- drivers/acpi/processor_idle.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
-
-diff -puN drivers/acpi/processor_idle.c~acpi-c-states-only-demote-on-current-bus-mastering-activity drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-c-states-only-demote-on-current-bus-mastering-activity
-+++ a/drivers/acpi/processor_idle.c
-@@ -290,10 +290,10 @@ static void acpi_processor_idle(void)
- 		pr->power.bm_check_timestamp = jiffies;
- 
- 		/*
--		 * Apply bus mastering demotion policy.  Automatically demote
-+		 * If bus mastering is or was active this jiffy, demote
- 		 * to avoid a faulty transition.  Note that the processor
- 		 * won't enter a low-power state during this call (to this
--		 * funciton) but should upon the next.
-+		 * function) but should upon the next.
- 		 *
- 		 * TBD: A better policy might be to fallback to the demotion
- 		 *      state (use it for this quantum only) istead of
-@@ -301,7 +301,8 @@ static void acpi_processor_idle(void)
- 		 *      qualification.  This may, however, introduce DMA
- 		 *      issues (e.g. floppy DMA transfer overrun/underrun).
- 		 */
--		if (pr->power.bm_activity & cx->demotion.threshold.bm) {
-+		if ((pr->power.bm_activity & 0x1) &&
-+		    cx->demotion.threshold.bm) {
- 			local_irq_enable();
- 			next_state = cx->demotion.state;
- 			goto end;
-_
-
-Patches currently in -mm which might be from linux@dominikbrodowski.net are
-
-origin.patch
-git-acpi.patch
-git-pcmcia.patch
-kill-open-coded-offsetof-in-cm4000_csc-zero_dev.patch
-com20020_cs-more-device-support.patch
-git-pcmcia-xirc2ps_cs-fix-ooops-not-a-creditcard.patch
-insert-identical-resources-above-existing-resources.patch
-make-sure-nobodys-leaking-resources.patch
+Rathgeb Markus wrote:
+> Hi!
+> I have read the mailinglist for over a year and never heard about a
+> similar problem till last month. But there was no answer given.
+> If i use a 32 BIT linux the problem DO NOT occur, but for a few month I
+> have changed again to a 64 bit linux system (I used 64 bit a year before
+> and there was the same problem).
+> Everytime after the message "Booting the Kernel" (all versions I
+> prepared till 2.6.16) the displays brightness changes to the
+> lowest value, so I have to press the hotkeys till the brightness has an
+> acceptable value. (this also happens by an ordinary boot without resume.
+> I notice that because in the attached email the person writes "My
+> problem is that after resume".)
+>>From time to time the hotkeys "are confused" (or do not work), too. I
+> press the key to
+> increase the value and it go hell, dark, hell, hell, dark etc. (it does
+> what it want *g*).
+> Please help me ;-)
+> and excuse my english.
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
