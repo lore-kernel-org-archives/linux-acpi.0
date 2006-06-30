@@ -1,30 +1,42 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [patch 2/6] ACPI: Atlas ACPI driver
-Date: Fri, 30 Jun 2006 14:39:27 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6E16BE4@hdsmsx411.amr.corp.intel.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH 2/2] SERIAL: allow shared 8250_pnp interrupts
+Date: Fri, 30 Jun 2006 12:58:37 -0600
+Message-ID: <200606301258.37204.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:1193 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S933001AbWF3Sjh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Jun 2006 14:39:37 -0400
-Content-class: urn:content-classes:message
+Received: from atlrel9.hp.com ([156.153.255.214]:55775 "EHLO atlrel9.hp.com")
+	by vger.kernel.org with ESMTP id S1751840AbWF3S6w (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 30 Jun 2006 14:58:52 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@osdl.org
-Cc: linux-acpi@vger.kernel.org, jayakumar.acpi@gmail.com, dtor_core@ameritech.net, "Yu, Luming" <luming.yu@intel.com>
+To: Andrew Morton <akpm@osdl.org>
+Cc: Adam Belay <ambx1@neo.rr.com>, Matthieu Castet <castet.matthieu@free.fr>, Li Shaohua <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Russell King <rmk+serial@arm.linux.org.uk>, linux-serial@vger.kernel.org
 
-> +	if (function == ACPI_WRITE) {
-> +		status = acpi_bus_generate_event(dev, 0x80, address);
-> +		atlas_input_report((u8) address);
+PNP devices can use shared interrupts, so check to see whether
+we'll need SA_SHIRQ for request_irq().
 
-What is the reasoning to simultaneously report the same event
-via both ACPI and input?
+The builtin PDH UART on the HP rx8640 is an example of an ACPI/PNP
+device that uses a shareable level-triggered, active-low interrupt.
+The interrupt can be shared in very large I/O configurations or by
+artificially lowering IA64_DEF_LAST_DEVICE_VECTOR.
 
-Is there a volunteer to maintain this driver?
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-thanks,
--Len
+Index: as3877/drivers/serial/8250_pnp.c
+===================================================================
+--- as3877.orig/drivers/serial/8250_pnp.c	2006-06-30 10:44:09.000000000 -0600
++++ as3877/drivers/serial/8250_pnp.c	2006-06-30 11:44:18.000000000 -0600
+@@ -431,6 +431,8 @@
+ #endif
+ 
+ 	port.flags |= UPF_SKIP_TEST | UPF_BOOT_AUTOCONF;
++	if (pnp_irq_flags(dev, 0) & IORESOURCE_IRQ_SHAREABLE)
++		port.flags |= UPF_SHARE_IRQ;
+ 	port.uartclk = 1843200;
+ 	port.dev = &dev->dev;
+ 
