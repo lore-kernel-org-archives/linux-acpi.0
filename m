@@ -1,57 +1,33 @@
-From: Daniel Knabl <daniel@tirolinux.net>
-Subject: Toshiba Satellite L10-101 smart battery
-Date: Fri, 30 Jun 2006 18:51:46 +0200
-Message-ID: <20060630185146.4c3eb333@dklap.tirolinux.net>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: swsusp problems with 2.6.17-1.2139_FC5
+Date: Fri, 30 Jun 2006 20:01:41 +0200
+Message-ID: <20060630180141.GC9225@elf.ucw.cz>
+References: <m2irmj9937.fsf@phoenix.squirrel.nl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary=Sig_YB2kC0.fCFcuoaJJ.7pAfEW;
- protocol="application/pgp-signature"; micalg=PGP-SHA1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from chello080109167165.static.tirol.surfer.at ([80.109.167.165]:65472
-	"EHLO tirolinux.net") by vger.kernel.org with ESMTP
-	id S1751173AbWF3Qvx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 30 Jun 2006 12:51:53 -0400
-Received: from dklapw ([192.168.0.120] helo=dklap.tirolinux.net)
-	by tirolinux.net with esmtpa (Exim 4.62)
-	(envelope-from <daniel@tirolinux.net>)
-	id 1FwMDd-0008RE-N3
-	for linux-acpi@vger.kernel.org; Fri, 30 Jun 2006 18:51:51 +0200
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:36064 "EHLO amd.ucw.cz")
+	by vger.kernel.org with ESMTP id S932986AbWF3SDA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 30 Jun 2006 14:03:00 -0400
+Content-Disposition: inline
+In-Reply-To: <m2irmj9937.fsf@phoenix.squirrel.nl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Johan Vromans <jvromans@squirrel.nl>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
---Sig_YB2kC0.fCFcuoaJJ.7pAfEW
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hi!
 
-Hi,
+> swsusp has problems resumeing after upgrading my Acer Travelmate
+> 4001WLMi from 2.6.16 to 2.6.17. Note that I'm running a Fedora 5
+> kernel, with the ATI proprietary video driver.
 
-after searching for a while, I have one question:
+Stop right here. Can you reproduce the problem without ATI driver?
+Reproducing it on vanilla kernel (not -FC5) would be nice, too.
 
-Is there anyone using this laptop/mainboard actually with working
-battery and ac-adaptor support? If there is a working DSDT somwhere
-available, could you please tell me where to get it? Or even better,
-could someone of you tell me how to make one myself?
+								Pavel
 
-Many thanks and all the best whishes
-
-Daniel
-
---=20
-Daniel Knabl
-www.tirolinux.net             daniel@tirolinux.net
-PGP/GPG Fingerprint - please send signed mail only
-A069 671B 39F2 E9B9 FB34  68BB 4BEC 1344 C8A4 3F0B
-
---Sig_YB2kC0.fCFcuoaJJ.7pAfEW
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (GNU/Linux)
-
-iD8DBQFEpValS+wTRMikPwsRArT6AJ9DBlw0Xpa4Z9VnBhf/jkYS5i63JwCfZKCM
-tTXQ5WDoGQuGofq8VHJ7Eng=
-=jews
------END PGP SIGNATURE-----
-
---Sig_YB2kC0.fCFcuoaJJ.7pAfEW--
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
