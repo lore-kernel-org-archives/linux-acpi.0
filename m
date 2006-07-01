@@ -1,68 +1,85 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: 2.6.17-mm5 -  ACPI Exception (acpi_processor-0272): AE_BAD_PARAMETER, Invalid _PSS data [20060623]
-Date: Sat, 1 Jul 2006 15:08:05 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6E58B72@hdsmsx411.amr.corp.intel.com>
+From: Ralf Hildebrandt <Ralf.Hildebrandt@charite.de>
+Subject: Re: 2.6.17-mm5 -  ACPI Exception (acpi_processor-0272): AE_BAD_PARAMETER, Invalid _PSS data [20060623]
+Date: Sat, 1 Jul 2006 22:32:56 +0200
+Message-ID: <20060701203256.GD13558@charite.de>
+References: <CFF307C98FEABE47A452B27C06B85BB6E58B72@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:7842 "EHLO
-	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S932079AbWGATI5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 1 Jul 2006 15:08:57 -0400
-Content-class: urn:content-classes:message
+Received: from mail.charite.de ([160.45.207.131]:15832 "EHLO mail.charite.de")
+	by vger.kernel.org with ESMTP id S1751539AbWGAUc6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 1 Jul 2006 16:32:58 -0400
+Content-Disposition: inline
+In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB6E58B72@hdsmsx411.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ralf Hildebrandt <Ralf.Hildebrandt@charite.de>, linux-kernel@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+To: "Brown, Len" <len.brown@intel.com>
+Cc: Ralf Hildebrandt <Ralf.Hildebrandt@charite.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
 
+* Brown, Len <len.brown@intel.com>:
+> 1. message was always there, but was disabled before.
+>=20
+> 	Please build a previous kernel that doesn't show
+> 	this message (say 2.6.17) with CONFIG_ACPI_DEBUG=3Dy
+> 	and report if you see the same message.
+>=20
+> 	Note that the patch that enabled these messages
+> 	had been in mm before for several months
+> 	and just dropped out for a bit before -mm4,
+> 	so you might see this in earlier -mm's too.
 
->Starting with -mm4 and now with -mm5 I see:
->
->> Jul  1 19:54:29 knarzkiste kernel: powernow-k8: Found 1 AMD 
->Turion(tm) 64 Mobile Technology ML-30 processors (version 2.00.00)
->> Jul  1 19:54:29 knarzkiste kernel: ACPI: Invalid package argument
->> Jul  1 19:54:29 knarzkiste kernel: ACPI Exception 
->(acpi_processor-0272): AE_BAD_PARAMETER, Invalid _PSS data [20060623]
->> Jul  1 19:54:29 knarzkiste kernel: powernow-k8:    0 : fid 
->0x0 (800 MHz), vid 0x12
->> Jul  1 19:54:29 knarzkiste kernel: powernow-k8:    1 : fid 
->0x8 (1600 MHz), vid 0x4
->> Jul  1 19:54:29 knarzkiste kernel: powernow-k8: ph2 null fid 
->transition 0x8
->
->I'm not sure if The "ACPI: Invalid package argument" and "ACPI 
->Exception" are indicative of a real problem.
->
->> Jul  1 19:54:15 knarzkiste kernel: CPU: AMD Turion(tm) 64 
->Mobile Technology ML-30 stepping 02
+2.6.17.3:
 
-Two things could be happening:
+Jul  1 22:23:40 knarzkiste kernel: powernow-k8: Found 1 AMD Athlon 64 /=
+ Opteron processors (version 1.60.2)
+Jul  1 22:23:40 knarzkiste kernel: acpi_utils-0066 [04] extract_package=
+       : Invalid 'package' argument
+Jul  1 22:23:40 knarzkiste kernel: acpi_processor-0277 [03] processor_g=
+et_performa: Invalid _PSS data
+Jul  1 22:23:40 knarzkiste kernel: powernow-k8:    0 : fid 0x0 (800 MHz=
+), vid 0x12 (1100 mV)
+Jul  1 22:23:40 knarzkiste kernel: powernow-k8:    1 : fid 0x8 (1600 MH=
+z), vid 0x4 (1450 mV)
+Jul  1 22:23:40 knarzkiste kernel: cpu_init done, current fid 0x8, vid =
+0x2
+Jul  1 22:23:40 knarzkiste kernel: powernow-k8: ph2 null fid transition=
+ 0x8
 
-1. message was always there, but was disabled before.
+So you were right.
 
-	Please build a previous kernel that doesn't show
-	this message (say 2.6.17) with CONFIG_ACPI_DEBUG=y
-	and report if you see the same message.
+> 2. Some other regression
+>=20
+> 	Lets hope not.
+>=20
+> In any case, it would be good to get to the root cause.
+> Please open a bugzilla here:
+> http://bugzilla.kernel.org/enter_bug.cgi?product=3DACPI
+> and attach the output from acpidump found in the
+> latest pmtools here:
+> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
 
-	Note that the patch that enabled these messages
-	had been in mm before for several months
-	and just dropped out for a bit before -mm4,
-	so you might see this in earlier -mm's too.
+Done
+=20
+> After the above, you might also check for an updated BIOS.
 
-2. Some other regression
+Updates are a bit hard, without windows :(
 
-	Lets hope not.
+--=20
+_________________________________________________
 
-In any case, it would be good to get to the root cause.
-Please open a bugzilla here:
-http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
-and attach the output from acpidump found in the
-latest pmtools here:
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
+  Charit=E9 - Universit=E4tsmedizin Berlin
+_________________________________________________
 
-After the above, you might also check for an updated BIOS.
-
-thanks,
--Len
+  Ralf Hildebrandt
+   i.A. Gesch=E4ftsbereich Informationsmanagement
+   Campus Benjamin Franklin
+   Hindenburgdamm 30 | Berlin
+   Tel. +49 30 450 570155 | Fax +49 30 450 570962
+   Ralf.Hildebrandt@charite.de
+   http://www.charite.de
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
