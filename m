@@ -1,85 +1,72 @@
-From: Ralf Hildebrandt <Ralf.Hildebrandt@charite.de>
-Subject: Re: 2.6.17-mm5 -  ACPI Exception (acpi_processor-0272): AE_BAD_PARAMETER, Invalid _PSS data [20060623]
-Date: Sat, 1 Jul 2006 22:32:56 +0200
-Message-ID: <20060701203256.GD13558@charite.de>
-References: <CFF307C98FEABE47A452B27C06B85BB6E58B72@hdsmsx411.amr.corp.intel.com>
+From: "Randy.Dunlap" <rdunlap@xenotime.net>
+Subject: Re: SMBus access
+Date: Sat, 1 Jul 2006 14:10:15 -0700
+Message-ID: <20060701141015.a4922e86.rdunlap@xenotime.net>
+References: <m2irmhjb5t.fsf@phoenix.squirrel.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.charite.de ([160.45.207.131]:15832 "EHLO mail.charite.de")
-	by vger.kernel.org with ESMTP id S1751539AbWGAUc6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 1 Jul 2006 16:32:58 -0400
-Content-Disposition: inline
-In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB6E58B72@hdsmsx411.amr.corp.intel.com>
+Received: from xenotime.net ([66.160.160.81]:51908 "HELO xenotime.net")
+	by vger.kernel.org with SMTP id S1751924AbWGAVHi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 1 Jul 2006 17:07:38 -0400
+Received: from midway.site ([71.245.108.25]) by xenotime.net for <linux-acpi@vger.kernel.org>; Sat, 1 Jul 2006 14:07:28 -0700
+In-Reply-To: <m2irmhjb5t.fsf@phoenix.squirrel.nl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: Ralf Hildebrandt <Ralf.Hildebrandt@charite.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+To: Johan Vromans <jvromans@squirrel.nl>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-* Brown, Len <len.brown@intel.com>:
-> 1. message was always there, but was disabled before.
->=20
-> 	Please build a previous kernel that doesn't show
-> 	this message (say 2.6.17) with CONFIG_ACPI_DEBUG=3Dy
-> 	and report if you see the same message.
->=20
-> 	Note that the patch that enabled these messages
-> 	had been in mm before for several months
-> 	and just dropped out for a bit before -mm4,
-> 	so you might see this in earlier -mm's too.
+On Sat, 01 Jul 2006 22:57:34 +0200 Johan Vromans wrote:
 
-2.6.17.3:
+> To get battery readings on some laptops it is necessary to interface
+> with the SMBus that hangs of the EC. However, the current
+> implementation of the EC driver does not permit other modules 
+> read/write access. 
+> 
+> A trivial solution is to change acpi_ec_read/write from static to
+> nonstatic, and export the symbols so other modules can use them.
+> 
+> Would there be any objections to apply this change?
 
-Jul  1 22:23:40 knarzkiste kernel: powernow-k8: Found 1 AMD Athlon 64 /=
- Opteron processors (version 1.60.2)
-Jul  1 22:23:40 knarzkiste kernel: acpi_utils-0066 [04] extract_package=
-       : Invalid 'package' argument
-Jul  1 22:23:40 knarzkiste kernel: acpi_processor-0277 [03] processor_g=
-et_performa: Invalid _PSS data
-Jul  1 22:23:40 knarzkiste kernel: powernow-k8:    0 : fid 0x0 (800 MHz=
-), vid 0x12 (1100 mV)
-Jul  1 22:23:40 knarzkiste kernel: powernow-k8:    1 : fid 0x8 (1600 MH=
-z), vid 0x4 (1450 mV)
-Jul  1 22:23:40 knarzkiste kernel: cpu_init done, current fid 0x8, vid =
-0x2
-Jul  1 22:23:40 knarzkiste kernel: powernow-k8: ph2 null fid transition=
- 0x8
+a.  patch should also be sent to linux-acpi@vger.kernel.org (cc-ed)
+b.  patch does not apply cleanly to latest kernel
+c.  missing Signed-off-by: line (see Documentation/SubmittingPatches)
+d.  incorrect patch filename directory level (see SubmittingPatches)
 
-So you were right.
 
-> 2. Some other regression
->=20
-> 	Lets hope not.
->=20
-> In any case, it would be good to get to the root cause.
-> Please open a bugzilla here:
-> http://bugzilla.kernel.org/enter_bug.cgi?product=3DACPI
-> and attach the output from acpidump found in the
-> latest pmtools here:
-> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
 
-Done
-=20
-> After the above, you might also check for an updated BIOS.
+> -- Johan
+> 
+> --- drivers/acpi/ec.c~	2006-04-17 13:40:49.000000000 +0200
+> +++ drivers/acpi/ec.c	2006-04-22 17:49:13.000000000 +0200
+> @@ -305,20 +305,22 @@
+>  }
+>  #endif /* ACPI_FUTURE_USAGE */
+>  
+> -static int acpi_ec_read(union acpi_ec *ec, u8 address, u32 * data)
+> +int acpi_ec_read(union acpi_ec *ec, u8 address, u32 * data)
+>  {
+>  	if (acpi_ec_poll_mode)
+>  		return acpi_ec_poll_read(ec, address, data);
+>  	else
+>  		return acpi_ec_intr_read(ec, address, data);
+>  }
+> -static int acpi_ec_write(union acpi_ec *ec, u8 address, u8 data)
+> +EXPORT_SYMBOL(acpi_ec_read);
+> +int acpi_ec_write(union acpi_ec *ec, u8 address, u8 data)
+>  {
+>  	if (acpi_ec_poll_mode)
+>  		return acpi_ec_poll_write(ec, address, data);
+>  	else
+>  		return acpi_ec_intr_write(ec, address, data);
+>  }
+> +EXPORT_SYMBOL(acpi_ec_write);
+>  static int acpi_ec_poll_read(union acpi_ec *ec, u8 address, u32 * data)
+>  {
+>  	acpi_status status = AE_OK;
+> -
 
-Updates are a bit hard, without windows :(
 
---=20
-_________________________________________________
-
-  Charit=E9 - Universit=E4tsmedizin Berlin
-_________________________________________________
-
-  Ralf Hildebrandt
-   i.A. Gesch=E4ftsbereich Informationsmanagement
-   Campus Benjamin Franklin
-   Hindenburgdamm 30 | Berlin
-   Tel. +49 30 450 570155 | Fax +49 30 450 570962
-   Ralf.Hildebrandt@charite.de
-   http://www.charite.de
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+---
+~Randy
