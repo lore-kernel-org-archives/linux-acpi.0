@@ -1,46 +1,65 @@
-From: Karol Kozimor <sziwan@hell.org.pl>
-Subject: [PATCH 10/10] add S1N WLED control
-Date: Sat, 1 Jul 2006 01:14:40 +0200
-Message-ID: <20060630231440.GL31642@hell.org.pl>
-References: <20060118212110.GA7199@hell.org.pl>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: [PATCH 0/10] drivers/acpi/asus_acpi.c updates [RESEND]
+Date: Fri, 30 Jun 2006 20:49:05 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB6E16D9D@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hell.org.pl ([62.233.239.4]:25874 "HELO hell.org.pl")
-	by vger.kernel.org with SMTP id S932233AbWF3XOo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 30 Jun 2006 19:14:44 -0400
-Content-Disposition: inline
-In-Reply-To: <20060630225905.GB31642@hell.org.pl>
+Received: from mga03.intel.com ([143.182.124.21]:3739 "EHLO
+	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
+	id S1751201AbWGAAtJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Jun 2006 20:49:09 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
+To: Karol Kozimor <sziwan@hell.org.pl>
 Cc: linux-acpi@vger.kernel.org
 
-This patch switches back the display nodes for M6R and M6N -- this happened
-a while ago when a patch was misapplied (only the in-tree version was
-affected).
+W3000 patch reverted
+1-10 from this series applied.
 
-Signed-off-by: Karol Kozimor <sziwan@hell.org.pl>
+Karol,
+Shall I expect an updated W3000 patch from you?
 
---- a/drivers/acpi/asus_acpi.c	2006-07-01 00:39:12.000000000 +0200
-+++ b/drivers/acpi/asus_acpi.c	2006-07-01 00:51:14.000000000 +0200
-@@ -310,7 +310,8 @@
- 	 .brightness_set = "SPLV",
- 	 .brightness_get = "GPLV",
- 	 .display_set = "SDSP",
--	 .display_get = "\\_SB.PCI0.P0P1.VGA.GETD"},
-+	 .display_get = "\\SSTE"},
-+
- 	{
- 	 .name = "M6R",
- 	 .mt_mled = "MLED",
-@@ -320,7 +321,7 @@
- 	 .brightness_set = "SPLV",
- 	 .brightness_get = "GPLV",
- 	 .display_set = "SDSP",
--	 .display_get = "\\SSTE"},
-+	 .display_get = "\\_SB.PCI0.P0P1.VGA.GETD"},
- 
- 	{
- 	 .name = "P30",
+thanks,
+-Len
+
+>-----Original Message-----
+>From: Karol Kozimor [mailto:sziwan@hell.org.pl]=20
+>Sent: Friday, June 30, 2006 6:59 PM
+>To: Brown, Len
+>Cc: linux-acpi@vger.kernel.org
+>Subject: [PATCH 0/10] drivers/acpi/asus_acpi.c updates [RESEND]
+>
+>Hi,
+>
+>The following batch of patches update the asus_acpi driver to=20
+>version 0.30
+>through the following changes:
+>
+>Readd WLED for S1N
+>Rework model detection for more flexibility and less oopses
+>Resolve confusion, "bluetooth" entry controls both the internal adapte=
+r
+>  *and* its LED
+>Added support for L5D
+>Added support for W5A (patch from Fernando A. P. Gomes)
+>Added support for A4759GUH (A4G, patch from Giuseppe Rota)
+>Added support for W3400N
+>Added support for W1N LED display (thx =C9ric BURGHARD)
+>Added support for A3000G
+>Fix M6R/M6N mismerge
+>
+>Please apply.
+>Best regards,
+>
+>--=20
+>Karol 'sziwan' Kozimor
+>sziwan@hell.org.pl
+>
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
