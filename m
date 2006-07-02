@@ -1,38 +1,41 @@
-From: Timo Hoenig <thoenig@suse.de>
-Subject: Re: [Acpi4asus-user] [patch 1/6] asus_acpi: W3000 support
-Date: Sun, 02 Jul 2006 12:35:23 +0200
-Message-ID: <1151836523.25852.17.camel@nouse.suse.de>
-References: <CFF307C98FEABE47A452B27C06B85BB6E16B8A@hdsmsx411.amr.corp.intel.com>
-	 <20060630193130.GA11609@hell.org.pl>
-	 <1151765434.30054.9.camel@nouse.suse.de>	<1151793983.27214.4.camel@frolic>
-	 <1151795155.30054.25.camel@nouse.suse.de>
-	 <20060701163502.6a87e01a.akpm@osdl.org>  <44A79604.5010108@gmx.de>
+From: "Jaya Kumar" <jayakumar.acpi@gmail.com>
+Subject: Re: [patch 2/6] ACPI: Atlas ACPI driver
+Date: Sun, 2 Jul 2006 19:43:53 +0800
+Message-ID: <756b48450607020443i3e2c6c16m2b3f8666b53fd5c@mail.gmail.com>
+References: <CFF307C98FEABE47A452B27C06B85BB6E16BE4@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:35037 "EHLO mx2.suse.de")
-	by vger.kernel.org with ESMTP id S932232AbWGBKfg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Jul 2006 06:35:36 -0400
-In-Reply-To: <44A79604.5010108@gmx.de>
+Received: from ug-out-1314.google.com ([66.249.92.168]:31074 "EHLO
+	ug-out-1314.google.com") by vger.kernel.org with ESMTP
+	id S964877AbWGBLny (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 2 Jul 2006 07:43:54 -0400
+Received: by ug-out-1314.google.com with SMTP id a2so1246664ugf
+        for <linux-acpi@vger.kernel.org>; Sun, 02 Jul 2006 04:43:53 -0700 (PDT)
+In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB6E16BE4@hdsmsx411.amr.corp.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Johannes Engel <j-engel@gmx.de>
-Cc: sziwan@hell.org.pl, len.brown@intel.com, acpi4asus-user@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: akpm@osdl.org, linux-acpi@vger.kernel.org, dtor_core@ameritech.net, "Yu, Luming" <luming.yu@intel.com>
 
-Hi Johannes,
+Hi Len,
 
-On Sun, 2006-07-02 at 11:46 +0200, Johannes Engel wrote:
+On 7/1/06, Brown, Len <len.brown@intel.com> wrote:
+> > +     if (function == ACPI_WRITE) {
+> > +             status = acpi_bus_generate_event(dev, 0x80, address);
+> > +             atlas_input_report((u8) address);
+>
+> What is the reasoning to simultaneously report the same event
+> via both ACPI and input?
 
-> OK, then, may I ask for my V6V patch again, too? It already ships with
-> SuSE Linux 10.1 and as far as I know there is no known bug until now,
-> isn't it, Timo?
+The event is reported to ACPI because there are legacy apps that read
+/proc/acpi/event for this ASIM event. Newer apps can use the F1...
+events that they can get via evdev. btw, if CONFIG_INPUT is disabled,
+atlas_input_report gets dummied out and it's reported only to ACPI.
 
-No, your patch for the V6V is absolutely fine, no worries.  I'll re-diff
-your patch to apply on top of Len's tree and the other model updates and
-send it to Karol.
+I can remove the acpi_bus_generate_event if that's the consensus.
 
-> Greetings, Johannes
-
-   Timo
-
+Thanks,
+jaya
