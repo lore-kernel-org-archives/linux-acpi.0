@@ -1,61 +1,34 @@
-From: Johan Vromans <jvromans@squirrel.nl>
-Subject: RFC [PATCH] acpi: allow SMBus access
-Date: Sun, 2 Jul 2006 23:12:21 +0200
-Message-ID: <17576.14005.767262.868190@phoenix.squirrel.nl>
+From: Yu Luming <luming.yu@intel.com>
+Subject: Re: RFC [PATCH] acpi: allow SMBus access
+Date: Mon, 3 Jul 2006 09:51:29 +0800
+Message-ID: <200607030951.29345.luming.yu@intel.com>
+References: <17576.14005.767262.868190@phoenix.squirrel.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:52239 "EHLO
-	smtp-vbr3.xs4all.nl") by vger.kernel.org with ESMTP
-	id S1750843AbWGBVMX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 2 Jul 2006 17:12:23 -0400
+Received: from mga02.intel.com ([134.134.136.20]:60511 "EHLO
+	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1750885AbWGCBq2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 2 Jul 2006 21:46:28 -0400
+In-Reply-To: <17576.14005.767262.868190@phoenix.squirrel.nl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Johan Vromans <jvromans@squirrel.nl>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-From: Johan Vromans <jvromans@squirrel.nl>
+On Monday 03 July 2006 05:12, Johan Vromans wrote:
+> From: Johan Vromans <jvromans@squirrel.nl>
+>
+> To get battery readings on some laptops it is necessary to interface
+> with the SMBus that hangs of the EC. However, the current
+> implementation of the EC driver does not permit other modules
+> read/write access.
 
-To get battery readings on some laptops it is necessary to interface
-with the SMBus that hangs of the EC. However, the current
-implementation of the EC driver does not permit other modules
-read/write access.
-
-A trivial solution is to change acpi_ec_read/write from static to
-nonstatic, and export the symbols so other modules can use them.
-
-This patch is based on the current 2.6.17 kernel sources.
-
-Signed-off-by: Johan Vromans <jvromans@squirrel.nl>
----
-
---- linux-2.6.17.i686/drivers/acpi/ec.c.orig	2006-07-02 22:46:35.000000000 +0200
-+++ linux-2.6.17.i686/drivers/acpi/ec.c	2006-06-27 10:03:19.000000000 +0200
-@@ -305,20 +305,22 @@ end:
- }
- #endif /* ACPI_FUTURE_USAGE */
- 
--static int acpi_ec_read(union acpi_ec *ec, u8 address, u32 * data)
-+int acpi_ec_read(union acpi_ec *ec, u8 address, u32 * data)
- {
- 	if (acpi_ec_poll_mode)
- 		return acpi_ec_poll_read(ec, address, data);
- 	else
- 		return acpi_ec_intr_read(ec, address, data);
- }
--static int acpi_ec_write(union acpi_ec *ec, u8 address, u8 data)
-+EXPORT_SYMBOL(acpi_ec_read);
-+int acpi_ec_write(union acpi_ec *ec, u8 address, u8 data)
- {
- 	if (acpi_ec_poll_mode)
- 		return acpi_ec_poll_write(ec, address, data);
- 	else
- 		return acpi_ec_intr_write(ec, address, data);
- }
-+EXPORT_SYMBOL(acpi_ec_write);
- static int acpi_ec_poll_read(union acpi_ec *ec, u8 address, u32 * data)
- {
- 	acpi_status status = AE_OK;
+why NOT use ec_read/ec_write?
 
 -- 
-Johan
+Thanks,
+Luming
