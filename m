@@ -1,52 +1,79 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Battery-related regression between 2.6.17-git3 and 2.6.17-git6
-Date: Mon, 3 Jul 2006 13:16:45 +0200
-Message-ID: <200607031316.46034.rjw@sisk.pl>
-References: <200607020021.15040.rjw@sisk.pl> <200607021115.44739.rjw@sisk.pl>
+From: Bruno Ducrot <ducrot@poupinou.org>
+Subject: Re: RFC [PATCH] acpi: allow SMBus access
+Date: Mon, 3 Jul 2006 14:51:56 +0200
+Message-ID: <20060703125156.GD17014@poupinou.org>
+References: <17576.14005.767262.868190@phoenix.squirrel.nl> <20060703082217.GB17014@poupinou.org> <m2mzbrj5yp.fsf@phoenix.squirrel.nl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:2705 "EHLO ogre.sisk.pl")
-	by vger.kernel.org with ESMTP id S1750853AbWGCLQH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Jul 2006 07:16:07 -0400
-In-Reply-To: <200607021115.44739.rjw@sisk.pl>
+Received: from poup.poupinou.org ([195.101.94.96]:51734 "EHLO
+	poup.poupinou.org") by vger.kernel.org with ESMTP id S1750913AbWGCMv7
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 3 Jul 2006 08:51:59 -0400
 Content-Disposition: inline
+In-Reply-To: <m2mzbrj5yp.fsf@phoenix.squirrel.nl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, Greg KH <greg@kroah.com>
+To: Johan Vromans <jvromans@squirrel.nl>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi,
-
-On Sunday 02 July 2006 11:15, Rafael J. Wysocki wrote:
-> On Sunday 02 July 2006 00:21, Rafael J. Wysocki wrote:
-> > With the recent -git on my box (Asus L5D, x86_64 SUSE 10) the powersave
-> > demon is apparently unable to get the battery status, although the data in
-> > /proc/acpi/battery/BAT0 seem to be correct.  As a result, battery status
-> > notification via kpowersave doesn't work and it's hard to notice when the
-> > battery is low/critical.
-> > 
-> > So far I have verified that this feature works fine with 2.6.17-git3 and
-> > doesn't work with 2.6.17-git6 (-git5 doesn't compile here).
-> > 
-> > I'll try to get more information tomorrow (unless someone in the know has
-> > an idea of what's up ;-) ).
+On Mon, Jul 03, 2006 at 01:14:22PM +0200, Johan Vromans wrote:
+> Bruno Ducrot <ducrot@poupinou.org> writes:
 > 
-> I've verified that the problem first appeared in 2.6.17-git4.
+> > I don't think this patch is correct, or else I would have already
+> > asked this patch being added to mainline.
+> 
+> You've been standing at the origins of where this patch came from. Can
+> you provide a better alternative?
+> 
 
-Apparently this happens because powersaved takes the battery status
-information from hald and the following kernel changes make hald crash on
-my system:
+If you want this patch to be applied, I think you should at least
+mark ec_read/ec_write being obsolete and maybe provide a
+solution for drivers who use those functions, as for example
+sonypi.  Having two very same kind of access for the EC is
+not good IMHO.
 
-http://kernel.org/git/gitweb.cgi?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=43104f1da88f5335e9a45695df92a735ad550dda
-http://kernel.org/git/gitweb.cgi?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=bd00949647ddcea47ce4ea8bb2cfcfc98ebf9f2a
-http://kernel.org/git/gitweb.cgi?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=c182274ffe1277f4e7c564719a696a37cacf74ea
-http://kernel.org/git/gitweb.cgi?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=9bde7497e0b54178c317fac47a18be7f948dd471
-http://kernel.org/git/gitweb.cgi?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=36679ea59846d8f34a48f71ca1a37671ca0ad3c5
+In fact why I didn't submitted this patch myself is because
+I wanted to provide a real bus access via the EC driver, including
+the interrupt driven ones.
 
-(ie. after reverting them hald works again).
+Something like that :
 
-Greetings,
-Rafael
+int acpi_ec_register(struct acpi_ec_driver *child);
+int acpi_ec_unregister(struct acpi_ec_driver *child);
+
+The struct acpi_ec_driver should be something like that:
+
+struct acpi_ec_driver {
+	acpi_handle	ec_handle;
+	acpi_handle	handle;
+	unsigned long	uid;
+	unsigned long	query;
+	int (*acpi_ec_query_handler) (???);
+	...
+	/* maybe a private space somewhere */
+	void *private;
+}
+
+
+reading/writing may pass perhaps via an exported acpi_ec_(read|write)()
+functions, but the real key would have to be able to register a function
+in order to trigger the acpi_ec_query_handler function member when the EC
+receive the interrupt for the query number ->query instead of the _Qxx
+method provided by the OEM.  Please look at ACPI 3.0 specification,
+more precisely "5.6.2.2.2 Dispatching to an ACPI-aware Device Driver",
+and the whole chapter 12 (ACPI Embedded Controller Interface Specification).
+
+We may have then an access to the ACPI EC HC SMbus with a interrupt
+driven driver, which imho is the correct approach: we will be sure
+a _Qxx method provided by the bios writer will interferre with our
+SMbus driver.
+
+Unfortunately I don't have anymore the time to provide this support
+for Linux.
+
+-- 
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
