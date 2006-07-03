@@ -1,85 +1,46 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: Battery-related regression between 2.6.17-git3 and 2.6.17-git6
-Date: Mon, 3 Jul 2006 13:45:19 -0700
-Message-ID: <20060703204519.GA11289@kroah.com>
-References: <200607020021.15040.rjw@sisk.pl> <200607032139.22488.rjw@sisk.pl> <20060703194440.GA10461@kroah.com> <200607032226.04094.rjw@sisk.pl>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: 2.6.17-mm3: swsusp fails when process is debugged by ptrace
+Date: Mon, 3 Jul 2006 23:33:53 +0200
+Message-ID: <20060703213353.GC1674@elf.ucw.cz>
+References: <44A2B9AF.50803@goop.org> <20060628212616.GB30373@elf.ucw.cz> <44A2FA20.3020809@goop.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:58804 "EHLO mx2.suse.de")
-	by vger.kernel.org with ESMTP id S932102AbWGCUtQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Jul 2006 16:49:16 -0400
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:27284 "EHLO amd.ucw.cz")
+	by vger.kernel.org with ESMTP id S1750775AbWGCVeE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Jul 2006 17:34:04 -0400
 Content-Disposition: inline
-In-Reply-To: <200607032226.04094.rjw@sisk.pl>
+In-Reply-To: <44A2FA20.3020809@goop.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>
+To: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>
 
-On Mon, Jul 03, 2006 at 10:26:03PM +0200, Rafael J. Wysocki wrote:
-> On Monday 03 July 2006 21:44, Greg KH wrote:
-> > On Mon, Jul 03, 2006 at 09:39:22PM +0200, Rafael J. Wysocki wrote:
-> > > On Monday 03 July 2006 20:00, Greg KH wrote:
-> > > > On Mon, Jul 03, 2006 at 01:16:45PM +0200, Rafael J. Wysocki wrote:
-> > > > > Hi,
-> > > > > 
-> > > > > On Sunday 02 July 2006 11:15, Rafael J. Wysocki wrote:
-> > > > > > On Sunday 02 July 2006 00:21, Rafael J. Wysocki wrote:
-> > > > > > > With the recent -git on my box (Asus L5D, x86_64 SUSE 10) the powersave
-> > > > > > > demon is apparently unable to get the battery status, although the data in
-> > > > > > > /proc/acpi/battery/BAT0 seem to be correct.  As a result, battery status
-> > > > > > > notification via kpowersave doesn't work and it's hard to notice when the
-> > > > > > > battery is low/critical.
-> > > > > > > 
-> > > > > > > So far I have verified that this feature works fine with 2.6.17-git3 and
-> > > > > > > doesn't work with 2.6.17-git6 (-git5 doesn't compile here).
-> > > > > > > 
-> > > > > > > I'll try to get more information tomorrow (unless someone in the know has
-> > > > > > > an idea of what's up ;-) ).
-> > > > > > 
-> > > > > > I've verified that the problem first appeared in 2.6.17-git4.
-> > > > > 
-> > > > > Apparently this happens because powersaved takes the battery status
-> > > > > information from hald and the following kernel changes make hald crash on
-> > > > > my system:
-> > > > > 
-> > > > > http://kernel.org/git/gitweb.cgi?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=43104f1da88f5335e9a45695df92a735ad550dda
-> > > > > http://kernel.org/git/gitweb.cgi?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=bd00949647ddcea47ce4ea8bb2cfcfc98ebf9f2a
-> > > > > http://kernel.org/git/gitweb.cgi?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=c182274ffe1277f4e7c564719a696a37cacf74ea
-> > > > > http://kernel.org/git/gitweb.cgi?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=9bde7497e0b54178c317fac47a18be7f948dd471
-> > > > > http://kernel.org/git/gitweb.cgi?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=36679ea59846d8f34a48f71ca1a37671ca0ad3c5
-> > > > > 
-> > > > > (ie. after reverting them hald works again).
-> > > > 
-> > > > Ick, that should not cause any problems, as sysfs should look identical
-> > > > to how it was before those patches.  Except that the /sys/class/usb/
-> > > > stuff is now symlinks instead of real directories, but HAL has had to
-> > > > handle that for a long time now (and it's even documented in
-> > > > Documentation/ABI/testing/sysfs-class)
-> > > 
-> > > Well, apparently one of them happens to trigger a buffer overflow in "my"
-> > > version of hal. ;-)
-> > > 
-> > > > Can you tell me exactly which of the above patches breaks HAL?
-> > > 
-> > > That would be quite a bit of testing and now I'm sure it's a hal issue.
-> > 
-> > git bisect would help out a lot.  Or just ask the HAL developers, they
-> > might know.
+Hi!
+
+> >Does it also happen when you do strace? ...I remember trying to solve
+> >that, but 2.6.17-mm3 is very recent...?
 > 
-> Anyway I'd have to compile and test at least a couple of kernels.
-> [For the record: I'm quite sure that 36679ea59846d8f34a48f71ca1a37671ca0ad3c5
-> and 9bde7497e0b54178c317fac47a18be7f948dd471 together break hal on
-> my system; this seems to be related to endpoints' paths in sysfs.]
+> I could suspend while running "strace sleep 100" without any problem.
+> 
+> I think the issue is when the process is blocked in T state,
+> freeze_process() tries to kick the process with signal_wake_up(p, /*
+> resume=0 */ 0), but with resume=0 it will only wake processes in
+> TASK_INTERRUPTIBLE state.  With resume=1, it will also kick STOPPED and
+> TRACED processes.  I also tried suspending while I had a process in T
+> state caused by kill -STOP, and that worked, so some part of the puzzle
+> is still missing.
 
-I don't understand why that would break HAL, we are just adding new
-devices to the sysfs device tree, which the kernel is free to do at any
-time.  HAL should not care about that.
+So... does signal_wake_up(p, 1) fix it?
 
-Oh, and 36679ea59846d8f34a48f71ca1a37671ca0ad3c5 is just an internal api
-change, it does not affect userspace in any way.  So I don't see how
-that would have anything to do with HAL at all.
+> I noticed that when I ran sleep 100 under strace over the suspend/resume
+> cycle, its nanosleep() syscall was interrupted and not restarted.
 
-thanks,
+I'm afraid there may be more problems lurking in the refrigerator.
 
-greg k-h
+(If this is going to take more than few mail iterations... perhaps you
+should start bug at bugzilla.kernel.org?)
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
