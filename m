@@ -1,29 +1,52 @@
-From: Johan Vromans <jvromans@squirrel.nl>
-Subject: Re: RFC [PATCH] acpi: allow SMBus access
-Date: Mon, 03 Jul 2006 13:14:22 +0200
-Message-ID: <m2mzbrj5yp.fsf@phoenix.squirrel.nl>
-References: <17576.14005.767262.868190@phoenix.squirrel.nl>
-	<20060703082217.GB17014@poupinou.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Battery-related regression between 2.6.17-git3 and 2.6.17-git6
+Date: Mon, 3 Jul 2006 13:16:45 +0200
+Message-ID: <200607031316.46034.rjw@sisk.pl>
+References: <200607020021.15040.rjw@sisk.pl> <200607021115.44739.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:34319 "EHLO
-	smtp-vbr10.xs4all.nl") by vger.kernel.org with ESMTP
-	id S1750810AbWGCLOZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 3 Jul 2006 07:14:25 -0400
-In-Reply-To: <20060703082217.GB17014@poupinou.org> (Bruno Ducrot's message
- of "Mon, 3 Jul 2006 10:22:17 +0200")
+Received: from ogre.sisk.pl ([217.79.144.158]:2705 "EHLO ogre.sisk.pl")
+	by vger.kernel.org with ESMTP id S1750853AbWGCLQH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Jul 2006 07:16:07 -0400
+In-Reply-To: <200607021115.44739.rjw@sisk.pl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bruno Ducrot <ducrot@poupinou.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, Greg KH <greg@kroah.com>
 
-Bruno Ducrot <ducrot@poupinou.org> writes:
+Hi,
 
-> I don't think this patch is correct, or else I would have already
-> asked this patch being added to mainline.
+On Sunday 02 July 2006 11:15, Rafael J. Wysocki wrote:
+> On Sunday 02 July 2006 00:21, Rafael J. Wysocki wrote:
+> > With the recent -git on my box (Asus L5D, x86_64 SUSE 10) the powersave
+> > demon is apparently unable to get the battery status, although the data in
+> > /proc/acpi/battery/BAT0 seem to be correct.  As a result, battery status
+> > notification via kpowersave doesn't work and it's hard to notice when the
+> > battery is low/critical.
+> > 
+> > So far I have verified that this feature works fine with 2.6.17-git3 and
+> > doesn't work with 2.6.17-git6 (-git5 doesn't compile here).
+> > 
+> > I'll try to get more information tomorrow (unless someone in the know has
+> > an idea of what's up ;-) ).
+> 
+> I've verified that the problem first appeared in 2.6.17-git4.
 
-You've been standing at the origins of where this patch came from. Can
-you provide a better alternative?
+Apparently this happens because powersaved takes the battery status
+information from hald and the following kernel changes make hald crash on
+my system:
 
--- Johan
+http://kernel.org/git/gitweb.cgi?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=43104f1da88f5335e9a45695df92a735ad550dda
+http://kernel.org/git/gitweb.cgi?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=bd00949647ddcea47ce4ea8bb2cfcfc98ebf9f2a
+http://kernel.org/git/gitweb.cgi?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=c182274ffe1277f4e7c564719a696a37cacf74ea
+http://kernel.org/git/gitweb.cgi?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=9bde7497e0b54178c317fac47a18be7f948dd471
+http://kernel.org/git/gitweb.cgi?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=36679ea59846d8f34a48f71ca1a37671ca0ad3c5
+
+(ie. after reverting them hald works again).
+
+Greetings,
+Rafael
