@@ -1,56 +1,41 @@
-From: Valdis.Kletnieks@vt.edu
-Subject: Re: Battery-related regression between 2.6.17-git3 and 2.6.17-git6
-Date: Tue, 04 Jul 2006 22:51:02 -0400
-Message-ID: <200607050251.k652p2dg006729@turing-police.cc.vt.edu>
-References: <200607020021.15040.rjw@sisk.pl> <200607032226.04094.rjw@sisk.pl> <20060703204519.GA11289@kroah.com> <200607041355.43361.rjw@sisk.pl> <20060704214824.GC23762@kroah.com>
-            <1152051262.19701.11.camel@pim.off.vrfy.org>
+From: "Galia S." <lexyc@3ka.mipt.ru>
+Subject: Re[1]: hello from Galinka
+Date: Wed, 05 Jul 2006 12:39:46 +0300
+Message-ID: <00b901c6a016$e8143180$090d000a__12353.174822829$1152092401$gmane$org@dialup-mum-203.94.232.32.mtnl.net.in>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="==_Exmh_1152067862_2945P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="windows-1251"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from turing-police.cc.vt.edu ([128.173.14.107]:25002 "EHLO
-	turing-police.cc.vt.edu") by vger.kernel.org with ESMTP
-	id S932389AbWGECvo (ORCPT <RFC822;linux-acpi@vger.kernel.org>);
-	Tue, 4 Jul 2006 22:51:44 -0400
-In-Reply-To: Your message of "Wed, 05 Jul 2006 00:14:22 +0200."
-             <1152051262.19701.11.camel@pim.off.vrfy.org>
+Received: from dialup-mum-203.94.232.32.mtnl.net.in ([203.94.232.32]:9223 "EHLO
+	dialup-mum-203.94.232.32.mtnl.net.in") by vger.kernel.org with ESMTP
+	id S964783AbWGEJjd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 5 Jul 2006 05:39:33 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, hal@freedesktop.org, Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>
+To: Arthur <linux-8086@vger.kernel.org>
 
---==_Exmh_1152067862_2945P
-Content-Type: text/plain; charset=us-ascii
+Hi, Arthur
 
-On Wed, 05 Jul 2006 00:14:22 +0200, Kay Sievers said:
-> On Tue, 2006-07-04 at 14:48 -0700, Greg KH wrote:
-> > On Tue, Jul 04, 2006 at 01:55:43PM +0200, Rafael J. Wysocki wrote:
-> > > On Monday 03 July 2006 22:45, Greg KH wrote:
-> > > > On Mon, Jul 03, 2006 at 10:26:03PM +0200, Rafael J. Wysocki wrote:
-> > > > > On Monday 03 July 2006 21:44, Greg KH wrote:
-> > > > > > On Mon, Jul 03, 2006 at 09:39:22PM +0200, Rafael J. Wysocki wrote:
-> > > > > > > On Monday 03 July 2006 20:00, Greg KH wrote:
-> > > > > > > > On Mon, Jul 03, 2006 at 01:16:45PM +0200, Rafael J. Wysocki wrote:
-> > > > > > > > > Hi,
-> > > > > > > > > 
-> > > > > > > > > On Sunday 02 July 2006 11:15, Rafael J. Wysocki wrote:
-> > > > > > > > > > On Sunday 02 July 2006 00:21, Rafael J. Wysocki wrote:
-> > > > > > > > > > > With the recent -git on my box (Asus L5D, x86_64 SUSE 10)
+I think we had correspondence a long time ago if it was not you I am sorry.
+If it was I could not answer you because my Mozilla mail manager was down for a 
+long time and I could not fix it only with my friend's help I got the emails 
+address out for me ..:)
+I hope it was whom we were corresponded with you are still interested, as I am, 
+though I realize much time has passed since then...
+I really don't know where to start ....
+Maybe you could tell me a little about yourself since I lost our early letters, 
+your appearance,age , hobbies, and are you still in the search?
+If it was you I wrote to and you are interested to get to know me better, I have 
+a profile at :
+http://foryou-mydestiny.com/
 
-14 lines and 23 columns of quoting.  Geez guys. *TRIM*.  Those "> " alone are
-probably enough to cause a noticable traffic spike on vger....
+Don't really know what else to say for now I hope this is the right address
 
---==_Exmh_1152067862_2945P
-Content-Type: application/pgp-signature
+Let me know if you are interested, And I hope
+you won't run when you see my picture :-)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.4 (GNU/Linux)
-Comment: Exmh version 2.5 07/13/2001
+Yourth faithfully,
+Galechka S.
 
-iD8DBQFEqykVcC3lWbTT17ARApEqAKCMdkRiMGBNREoT27iYnyMfdNXRcgCgtbIX
-Hv11oasnhK037sYSQmw5N/o=
-=Exly
------END PGP SIGNATURE-----
 
---==_Exmh_1152067862_2945P--
