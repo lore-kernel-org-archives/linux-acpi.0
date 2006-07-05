@@ -1,43 +1,42 @@
-From: Henrique de Moraes Holschuh <hmh@debian.org>
-Subject: ACPI 20060623 patches do not apply cleanly to 2.6.17
-Date: Wed, 5 Jul 2006 14:48:58 -0300
-Message-ID: <20060705174858.GC8452@khazad-dum.debian.net>
+From: "Anand Kumria" <wildfire@progsoc.org>
+Subject: Mutex not acquired on Dell 700m
+Date: Wed, 5 Jul 2006 09:07:36 +0000 (UTC)
+Message-ID: <e8fvgo$n73$1@sea.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out3.smtp.messagingengine.com ([66.111.4.27]:25061 "EHLO
-	out3.smtp.messagingengine.com") by vger.kernel.org with ESMTP
-	id S964926AbWGERtF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 5 Jul 2006 13:49:05 -0400
-Received: from frontend3.internal (frontend3.internal [10.202.2.152])
-	by frontend1.messagingengine.com (Postfix) with ESMTP id B8AB4D8D15F
-	for <linux-acpi@vger.kernel.org>; Wed,  5 Jul 2006 13:49:03 -0400 (EDT)
-Received: from khazad-dum.debian.net (c91fc7f8.cps.virtua.com.br [201.31.199.248])
-	by mail.messagingengine.com (Postfix) with ESMTP id 9EFD2AA9B
-	for <linux-acpi@vger.kernel.org>; Wed,  5 Jul 2006 13:49:05 -0400 (EDT)
-Received: from localhost (localhost [127.0.0.1])
-	by localhost.khazad-dum.debian.net (Postfix) with ESMTP id 6F42528125
-	for <linux-acpi@vger.kernel.org>; Wed,  5 Jul 2006 14:48:59 -0300 (BRT)
-Received: from khazad-dum.debian.net ([127.0.0.1])
-	by localhost (khazad-dum.debian.net [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id nWies+ibQrQE for <linux-acpi@vger.kernel.org>;
-	Wed,  5 Jul 2006 14:48:58 -0300 (BRT)
-Content-Disposition: inline
+Received: from main.gmane.org ([80.91.229.2]:23001 "EHLO ciao.gmane.org")
+	by vger.kernel.org with ESMTP id S964929AbWGERuG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Jul 2006 13:50:06 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1FyBVi-0005Qg-9Y
+	for linux-acpi@vger.kernel.org; Wed, 05 Jul 2006 19:50:02 +0200
+Received: from mail.globalcapital.cc ([80.85.66.210])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Wed, 05 Jul 2006 19:50:02 +0200
+Received: from wildfire by mail.globalcapital.cc with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Wed, 05 Jul 2006 19:50:02 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-The 20060623 patches available at:
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.17/
+Hi,
 
-Do not apply cleanly on a 2.6.17 mainline tree.  Both bz2 and gz-packed
-patchsets tested.
+When I suspend/resume my laptop (to memory) I get the following messages
+(via dmesg):
 
-On top of which tree should they be applied?   20060608 applies just fine on
-top of 2.6.17.
+ACPI Error (exmutex-0248): Cannot release Mutex [MUTX], not acquired [20060608]
+ACPI Error (psparse-0523): Method parse/execution failed [\_SB_.PCI0.LPCB.EC0_.RAMR] (Node b18b59dc), AE_AML_MUTEX_NOT_ACQUIRED
+ACPI Error (psparse-0523): Method parse/execution failed [\_TZ_.THRC._TMP] (Node b18bd93c), AE_AML_MUTEX_NOT_ACQUIRED
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Whilst I have a Dell 700m, I have the had the motherboard replaced to
+correct for the sound design flaw (so the motherboard self-identifies as a
+710m).  Otherwise this is stock BIOS and 2.6.17 - let me know (via a CC)
+if any further information is required to track this done.
+
+Cheers,
+Anand
+
