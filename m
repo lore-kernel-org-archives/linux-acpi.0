@@ -1,39 +1,63 @@
-From: Daniel Ritz <daniel.ritz-ml@swissonline.ch>
-Subject: [PATCH] ACPI: fix memleak in drivers/acpi/utils.c
-Date: Wed, 5 Jul 2006 22:18:11 +0200
-Message-ID: <200607052218.12328.daniel.ritz-ml@swissonline.ch>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: ACPIPNP and too large IO resources
+Date: Wed, 5 Jul 2006 15:36:30 -0600
+Message-ID: <200607051536.30771.bjorn.helgaas@hp.com>
+References: <44AB608F.1060903@drzeus.cx> <200607051047.40734.bjorn.helgaas@hp.com> <44AC26DA.1010901@drzeus.cx>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mxout.hispeed.ch ([62.2.95.247]:46045 "EHLO smtp.hispeed.ch")
-	by vger.kernel.org with ESMTP id S965018AbWGEUQy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Jul 2006 16:16:54 -0400
+Received: from atlrel6.hp.com ([156.153.255.205]:53218 "EHLO atlrel6.hp.com")
+	by vger.kernel.org with ESMTP id S964929AbWGEVgf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Jul 2006 17:36:35 -0400
+In-Reply-To: <44AC26DA.1010901@drzeus.cx>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <len.brown@intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>
+To: Pierre Ossman <drzeus-list@drzeus.cx>, Andrew Morton <akpm@osdl.org>
+Cc: Len Brown <len.brown@intel.com>, LKML <linux-kernel@vger.kernel.org>, Adam Belay <ambx1@neo.rr.com>, Shaohua Li <shaohua.li@intel.com>, castet.matthieu@free.fr, linux-acpi@vger.kernel.org, uwe.bugla@gmx.de
 
-[PATCH] ACPI: fix memleak in drivers/acpi/utils.c
+On Wednesday 05 July 2006 14:53, Pierre Ossman wrote:
+> Bjorn Helgaas wrote:
+> > It sounds like this might be the same problem as
+> >     http://bugzilla.kernel.org/show_bug.cgi?id=6292
+> >
+> > In short, you probably have a bridge device that consumes the
+> > entire 0x0-0xffff I/O port range and produces some or all of that
+> > range for downstream PNP devices.  PNP doesn't know what to do
+> > with these windows that are both consumed by the bridge and made
+> > available to downstream devices, so it just marks them as being
+> > already reserved.
+> 
+> Ah, that explains things.
+> 
+> > Matthieu Castet wrote a nice patch (attached) that makes PNP just
+> > ignore those windows.  Can you try it and see whether it fixes
+> > the problem you're seeing?  This patch is already in -mm, but not
+> > yet in mainline.  We might need to consider this patch as
+> > 2.6.18 material if it resolves your problem.  I suspect many
+> > people will see the same problem.
+> 
+> The patch works nicely and removes all memory and io regions for the PCI
+> bridge but for the range 0xcf8-0xcff.
 
-Signed-off-by: Daniel Ritz <daniel.ritz@gmx.ch>
+Andrew, I think we should try again to push
+pnpacpi-reject-acpi_producer-resources.patch to the mainline.
 
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index f48227f..7b74b5b 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -386,7 +386,11 @@ acpi_evaluate_reference(acpi_handle hand
- 	}
- 
- 	if (package->package.count > ACPI_MAX_HANDLES) {
--		return AE_NO_MEMORY;
-+		printk(KERN_ERR PREFIX "[Package] has elements > ACPI_MAX_HANDLES (%p)\n",
-+			    package);
-+		status = AE_NO_MEMORY;
-+		acpi_util_eval_error(handle, pathname, status);
-+		goto end;
- 	}
- 	list->count = package->package.count;
- 
+Pierre's report (starts here: http://lkml.org/lkml/2006/7/5/20)
+is another instance of http://bugzilla.kernel.org/show_bug.cgi?id=6292.
+
+I suspect that many PNP devices are broken in 2.6.17 because of
+this problem.  Probably the only reason we haven't seen more
+reports is that PNPACPI isn't turned on by default.  (Maybe
+we should do that in -mm?)
+
+You recently proposed pushing it:
+    http://marc.theaimsgroup.com/?l=linux-acpi&m=115119275408021&w=2
+Len initially nacked it, but I think the outcome of the discussion
+is that Shaohua doesn't object to this patch.  He probably would
+still like to blacklist PNP0A03, but that's an additional step we
+don't have to take at the same time.
+
+Bjorn
