@@ -1,89 +1,51 @@
-From: Peter Carlsson <maillist.peter@home.se>
-Subject: Suspend to RAM
-Date: Wed, 05 Jul 2006 20:16:27 +0200
-Message-ID: <44AC01FB.7080908@home.se>
+From: Henrique de Moraes Holschuh <hmh@debian.org>
+Subject: Re: ACPI 20060623 patches do not apply cleanly to 2.6.17
+Date: Wed, 5 Jul 2006 15:25:37 -0300
+Message-ID: <20060705182537.GE8452@khazad-dum.debian.net>
+References: <CFF307C98FEABE47A452B27C06B85BB6E59120@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mxfep02.bredband.com ([195.54.107.73]:36258 "EHLO
-	mxfep02.bredband.com") by vger.kernel.org with ESMTP
-	id S964954AbWGESQc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 5 Jul 2006 14:16:32 -0400
-Received: from [192.168.0.3] ([82.182.68.99] [82.182.68.99])
-          by mxfep02.bredband.com with ESMTP
-          id <20060705181629.IHCR1253.mxfep02.bredband.com@[192.168.0.3]>
-          for <linux-acpi@vger.kernel.org>; Wed, 5 Jul 2006 20:16:29 +0200
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:26038 "EHLO
+	out3.smtp.messagingengine.com") by vger.kernel.org with ESMTP
+	id S964973AbWGESZm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 5 Jul 2006 14:25:42 -0400
+Content-Disposition: inline
+In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB6E59120@hdsmsx411.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-Hello!
+On Wed, 05 Jul 2006, Brown, Len wrote:
+> We asked Linus to change the name in the Makefile during this period,
+> but he declined.  I'm open to suggestions.
 
-I'm trying to get suspend to RAM working on my Gigabyte
-GA-K8N51PVMT-9 running Debian (testing).
+A simple README.txt in the release/ directory which explains this would be
+enough, I suppose.  Renaming these patches to -2.6.17-git would also give us
+the hint, but that might not be desireable since the Linus tree it applies
+to is still called 2.6.17.
 
-What I initially want to manage is to have the system
-suspend and then wake up on a specific date/time.
+> But in any case, these patches are not really for the purpose of
+> "gee, I'm running old rlease X, so lets look for the latest patch
+> that is named X-acpi".  These patches are snapshots of the release
+> and test patches vs. Linus tree of that name on the date the patch
+> was published.
 
-I was thinking that the suspend was done by:
+I see.   I wanted the patches for bug reporting.  I am right now at least
+testing every bug I find that is ACPI related with stock 2.6.17, and
+2.6.17+20060608 so that I can provide information on whether a bug was fixed
+in 20060608 or not when reporting it to bugzilla.
 
-- Create a file /etc/acpi/events/suspend containing:
-event=suspend
-action=/etc/acpi/suspend.sh
+Given the ammount of trouble debugging ACPI and S3 suspend is (especially
+when the bug is subtly hosing the running kernel instead of making it go up
+in flames with a noticeable bang), I am not really too fond of the idea of
+trying to run something that isn't even a -rc kernel yet... we shall see.
 
-The /etc/acpi/suspend.sh will contain necessary actions
-to unload modules etcetera and the following line:
+Thanks for the quick reply.
 
-echo '2006-07-05 20:27:00' > /proc/acpi/alarm
-
-The wake up will then take place when the date/time is.
-
-What else is necessary for the wake up?
-
-Is it possible to trigger an event with for example:
-
-echo 'suspend' > /proc/acpi/event
-
-I can't get this to work which makes me feel I am wrong
-with my understanding of how ACPI works. Any help or
-information would be greatly appreciated.
-
-Below are some information that might be helpful.
-
-dmesg | grep ACPI
-ACPI: PCI Interrupt Link [APCZ] (IRQs 20 21 22 23) *0, disabled.
-ACPI: PCI Interrupt Link [APSI] (IRQs 20 21 22 23) *0, disabled.
-ACPI: PCI Interrupt Link [APSJ] (IRQs 20 21 22 23) *0, disabled.
-pnp: PnP ACPI init
-pnp: PnP ACPI: found 11 devices
-PnPBIOS: Disabled by ACPI PNP
-PCI: Using ACPI for IRQ routing
-ACPI wakeup devices:
-ACPI: (supports S0 S3 S4 S5)
-ACPI: PCI Interrupt Link [APC3] enabled at IRQ 18
-ACPI: PCI Interrupt 0000:01:0e.0[A] -> Link [APC3] -> GSI 18 (level, low) -> IRQ 177
-ACPI: PCI Interrupt Link [APCH] enabled at IRQ 23
-ACPI: PCI Interrupt 0000:00:14.0[A] -> Link [APCH] -> GSI 23 (level, low) -> IRQ 185
-ACPI: PCI Interrupt Link [APCF] enabled at IRQ 22
-ACPI: PCI Interrupt 0000:00:0b.0[A] -> Link [APCF] -> GSI 22 (level, low) -> IRQ 193
-ACPI: PCI Interrupt Link [APCL] enabled at IRQ 21
-ACPI: PCI Interrupt 0000:00:0b.1[B] -> Link [APCL] -> GSI 21 (level, low) -> IRQ 201
-ACPI: PCI Interrupt Link [APSI] enabled at IRQ 20
-ACPI: PCI Interrupt 0000:00:0e.0[A] -> Link [APSI] -> GSI 20 (level, low) -> IRQ 209
-ACPI: PCI Interrupt Link [APSJ] enabled at IRQ 23
-ACPI: PCI Interrupt 0000:00:0f.0[A] -> Link [APSJ] -> GSI 23 (level, low) -> IRQ 185
-ACPI: PCI Interrupt Link [APC1] enabled at IRQ 16
-ACPI: PCI Interrupt 0000:01:06.0[A] -> Link [APC1] -> GSI 16 (level, low) -> IRQ 217
-ACPI: PCI Interrupt Link [AAZA] enabled at IRQ 22
-ACPI: PCI Interrupt 0000:00:10.1[B] -> Link [AAZA] -> GSI 22 (level, low) -> IRQ 193
-ACPI: Power Button (FF) [PWRF]
-ACPI: Power Button (CM) [PWRB]
-ACPI: PCI Interrupt Link [APC7] enabled at IRQ 16
-ACPI: PCI Interrupt 0000:00:05.0[A] -> Link [APC7] -> GSI 16 (level, low) -> IRQ 217
-ACPI: PCI interrupt for device 0000:01:06.0 disabled
-ACPI: PCI Interrupt 0000:01:06.0[A] -> Link [APC1] -> GSI 16 (level, low) -> IRQ 217
-
-
-Best regards,
-Peter Carlsson
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
