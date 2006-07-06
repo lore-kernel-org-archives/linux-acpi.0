@@ -1,82 +1,77 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: Linux v2.6.18-rc1
-Date: Thu, 6 Jul 2006 12:25:37 -0700
-Message-ID: <B28E9812BAF6E2498B7EC5C427F293A48DFCEA@orsmsx415.amr.corp.intel.com>
+From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: [PATCH]Missing newline in acpi messes up dmesg output
+Date: Thu, 6 Jul 2006 23:40:22 +0200
+Message-ID: <200607062340.23137.jesper.juhl@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:16940 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1750759AbWGFThh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Jul 2006 15:37:37 -0400
-Content-class: urn:content-classes:message
+Received: from nf-out-0910.google.com ([64.233.182.191]:51249 "EHLO
+	nf-out-0910.google.com") by vger.kernel.org with ESMTP
+	id S1750779AbWGFVjN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 6 Jul 2006 17:39:13 -0400
+Received: by nf-out-0910.google.com with SMTP id y38so306808nfb
+        for <linux-acpi@vger.kernel.org>; Thu, 06 Jul 2006 14:39:11 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alistair John Strachan <s0348365@sms.ed.ac.uk>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>
+To: linux-kernel@vger.kernel.org
+Cc: Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-I've tracked this down, it's a bug and I believe I have it fixed. It's
-related to "serialized" control methods which are rather rare in
-comparison to non-serialized methods.
+Hi,
 
-Bob
+There's a tiny bug in 2.6.18-rc1.
+In drivers/acpi/bus.c::acpi_bus_set_power() there's a check to see if
+the device is power_manageable and if not then print a debug message
+and return -ENODEV. The debug printk() is missing a \n.
+
+The printk statement looks like this : 
+
+          printk(KERN_DEBUG "Device `[%s]' is not power manageable",
+                          device->kobj.name);
+
+As you can see, there's no newline at the end, and that causes 
+problems for the next message to be printed.
+
+On my system the above results in this in dmesg : 
+
+...
+Device `[PEB1]' is not power manageable<6>ACPI: PCI Interrupt 0000:00:01.0[A] -> GSI 29 (level, low) -> IRQ 16
+PCI: Setting latency timer of device 0000:00:01.0 to 64
+Device `[PEB2]' is not power manageable<6>ACPI: PCI Interrupt 0000:00:02.0[A] -> GSI 34 (level, low) -> IRQ 17
+...
+
+Adding a newline (as the patch below does) turns this into
+
+...
+Device `[PEB1]' is not power manageable
+ACPI: PCI Interrupt 0000:00:01.0[A] -> GSI 29 (level, low) -> IRQ 16
+PCI: Setting latency timer of device 0000:00:01.0 to 64
+Device `[PEB2]' is not power manageable
+ACPI: PCI Interrupt 0000:00:02.0[A] -> GSI 34 (level, low) -> IRQ 17
+...
+
+Which is much nicer :-)
 
 
-> -----Original Message-----
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> owner@vger.kernel.org] On Behalf Of Alistair John Strachan
-> Sent: Thursday, July 06, 2006 5:35 AM
-> To: Linus Torvalds
-> Cc: Linux Kernel Mailing List; linux-acpi@vger.kernel.org; Brown, Len
-> Subject: Re: Linux v2.6.18-rc1
-> 
-> On Thursday 06 July 2006 05:26, Linus Torvalds wrote:
-> > Ok,
-> >  the merge window for 2.6.18 is closed, and -rc1 is out there (git
-trees
-> > updated, the tar-ball and patches are still uploading over my
-pitiful
-> DSL
-> > line - and as usual it may take a short while before mirroring takes
-> > place and distributes things across the globe).
-> >
-> > The changes are too big for the mailing list, even just the
-shortlog. As
-> > usual, lots of stuff happened. Most architectures got updated, ACPI
-> > updates, networking, SCSI and sound, IDE, infiniband, input, DVB etc
-etc
-> > etc.
-> 
-> ACPI problem here. Doesn't seem to actively break anything, but the
-> messages
-> look bad (HP NC6000 notebook). Haven't tried suspending. The error
-popped
-> up roughly 90 minutes after booting. Laptop has been on AC power
-> throughout.
-> 
-> ACPI Error (exmutex-0248): Cannot release Mutex [C0E8], not acquired
-> [20060623]
-> ACPI Error (psparse-0537): Method parse/execution failed
-> [\_SB_.C044.C057.C0E7.C12F] (Node c1aeca40), AE_AML_MUTEX_NOT_ACQUIRED
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.C12F]
-> (Node c1aeecfc), AE_AML_MUTEX_NOT_ACQUIRED
-> ACPI Error (psparse-0537): Method parse/execution failed
-[\_SB_.C137._BST]
-> (Node c1aeec84), AE_AML_MUTEX_NOT_ACQUIRED
-> ACPI Exception (acpi_battery-0206): AE_AML_MUTEX_NOT_ACQUIRED,
-Evaluating
-> _BST [20060623]
-> 
-> --
-> Cheers,
-> Alistair.
-> 
-> Third year Computer Science undergraduate.
-> 1F2 55 South Clerk Street, Edinburgh, UK.
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
-in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+---
+
+ drivers/acpi/bus.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
+
+--- linux-2.6.18-rc1-orig/drivers/acpi/bus.c	2006-07-06 19:39:29.000000000 +0200
++++ linux-2.6.18-rc1/drivers/acpi/bus.c	2006-07-06 23:23:12.000000000 +0200
+@@ -192,7 +192,7 @@ int acpi_bus_set_power(acpi_handle handl
+ 	/* Make sure this is a valid target state */
+ 
+ 	if (!device->flags.power_manageable) {
+-		printk(KERN_DEBUG "Device `[%s]' is not power manageable",
++		printk(KERN_DEBUG "Device `[%s]' is not power manageable\n",
+ 				device->kobj.name);
+ 		return -ENODEV;
+ 	}
+
+
+
