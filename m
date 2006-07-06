@@ -1,32 +1,50 @@
-From: Johan Vromans <jvromans@squirrel.nl>
-Subject: Re: RFC [PATCH] acpi: allow SMBus access
-Date: Thu, 06 Jul 2006 15:58:05 +0200
-Message-ID: <m21wsyomxe.fsf@phoenix.squirrel.nl>
-References: <17576.14005.767262.868190@phoenix.squirrel.nl>
-	<20060703082217.GB17014@poupinou.org>
-	<m2mzbrj5yp.fsf@phoenix.squirrel.nl>
-	<20060703125156.GD17014@poupinou.org>
-	<m2d5cln659.fsf@phoenix.squirrel.nl>
-	<20060704093510.GG17014@poupinou.org>
-	<m24pxxmw5m.fsf@phoenix.squirrel.nl>
+From: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH] ACPI: disable SBS by default
+Date: Thu, 6 Jul 2006 11:27:23 -0400
+Message-ID: <d120d5000607060827s71b4b003l99d9000c90211f23@mail.gmail.com>
+References: <200607052346.04966.dtor@insightbb.com>
+	 <20060706075604.66b33036.freetz@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:13832 "EHLO
-	smtp-vbr10.xs4all.nl") by vger.kernel.org with ESMTP
-	id S1030278AbWGFN6J (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 6 Jul 2006 09:58:09 -0400
-In-Reply-To: <m24pxxmw5m.fsf@phoenix.squirrel.nl> (Johan Vromans's message
- of "Tue, 04 Jul 2006 13:44:53 +0200")
+Received: from ug-out-1314.google.com ([66.249.92.175]:54413 "EHLO
+	ug-out-1314.google.com") by vger.kernel.org with ESMTP
+	id S1030329AbWGFP1Y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 6 Jul 2006 11:27:24 -0400
+Received: by ug-out-1314.google.com with SMTP id a2so2713012ugf
+        for <linux-acpi@vger.kernel.org>; Thu, 06 Jul 2006 08:27:23 -0700 (PDT)
+In-Reply-To: <20060706075604.66b33036.freetz@gmx.net>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Johan Vromans <jvromans@squirrel.nl>
-Cc: Bruno Ducrot <ducrot@poupinou.org>, Rich Townsend <rhdt@bartol.udel.edu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Fryderyk Dziarmagowski <freetz@gmx.net>
+Cc: len.brown@intel.com, linux-acpi@vger.kernel.org, akpm@osdl.org
 
-Johan Vromans <jvromans@squirrel.nl> writes:
+On 7/6/06, Fryderyk Dziarmagowski <freetz@gmx.net> wrote:
+> --- Dmitry Torokhov <dtor@insightbb.com> wrote:
+>
+> > From: Dmitry Torokhov <dtor@insightbb.com>
+> >
+> > ACPI: disable SBS by default
+> >
+> > Kconfig help even says that SBS is pretty rare and already
+> > obsolete so it does not make sence to keep it enabled.
+>
+> it is not rare (see SBS related trafic on this list in last weeks and
+> even months).
+> How can it be already obsolete? What is a replacement for that driver?
+>
 
-Progress!
+I am relying on author's description here. Here is what Kconfig help says:
 
-http://lkml.org/lkml/2006/7/1/76
+"This driver adds support for the Smart Battery System. Depends on I2C
+(Device Drivers ---> I2C support). A "Smart Battery" is quite old and
+quite rare compared to today's ACPI "Control Method" battery."
 
--- Johan
+Note that "quite old and rare". Besides, the patch does not remove the
+driver, it just makes it not enabled in default build as not every box
+has an SBS.
+
+-- 
+Dmitry
