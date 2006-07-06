@@ -1,50 +1,112 @@
-From: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH] ACPI: disable SBS by default
-Date: Thu, 6 Jul 2006 11:27:23 -0400
-Message-ID: <d120d5000607060827s71b4b003l99d9000c90211f23@mail.gmail.com>
-References: <200607052346.04966.dtor@insightbb.com>
-	 <20060706075604.66b33036.freetz@gmx.net>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: ACPIPNP and too large IO resources
+Date: Thu, 6 Jul 2006 09:29:04 -0600
+Message-ID: <200607060929.04787.bjorn.helgaas@hp.com>
+References: <44AB608F.1060903@drzeus.cx> <200607051536.30771.bjorn.helgaas@hp.com> <20060705151803.5841e91d.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.175]:54413 "EHLO
-	ug-out-1314.google.com") by vger.kernel.org with ESMTP
-	id S1030329AbWGFP1Y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 6 Jul 2006 11:27:24 -0400
-Received: by ug-out-1314.google.com with SMTP id a2so2713012ugf
-        for <linux-acpi@vger.kernel.org>; Thu, 06 Jul 2006 08:27:23 -0700 (PDT)
-In-Reply-To: <20060706075604.66b33036.freetz@gmx.net>
+Received: from atlrel7.hp.com ([156.153.255.213]:26845 "EHLO atlrel7.hp.com")
+	by vger.kernel.org with ESMTP id S1030341AbWGFP3J (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Jul 2006 11:29:09 -0400
+In-Reply-To: <20060705151803.5841e91d.akpm@osdl.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Fryderyk Dziarmagowski <freetz@gmx.net>
-Cc: len.brown@intel.com, linux-acpi@vger.kernel.org, akpm@osdl.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: drzeus-list@drzeus.cx, len.brown@intel.com, linux-kernel@vger.kernel.org, ambx1@neo.rr.com, shaohua.li@intel.com, castet.matthieu@free.fr, linux-acpi@vger.kernel.org, uwe.bugla@gmx.de
 
-On 7/6/06, Fryderyk Dziarmagowski <freetz@gmx.net> wrote:
-> --- Dmitry Torokhov <dtor@insightbb.com> wrote:
->
-> > From: Dmitry Torokhov <dtor@insightbb.com>
-> >
-> > ACPI: disable SBS by default
-> >
-> > Kconfig help even says that SBS is pretty rare and already
-> > obsolete so it does not make sence to keep it enabled.
->
-> it is not rare (see SBS related trafic on this list in last weeks and
-> even months).
-> How can it be already obsolete? What is a replacement for that driver?
->
+On Wednesday 05 July 2006 16:18, Andrew Morton wrote:
+> Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+> > You recently proposed pushing it:
+> >     http://marc.theaimsgroup.com/?l=linux-acpi&m=115119275408021&w=2
+> > Len initially nacked it, but I think the outcome of the discussion
+> > is that Shaohua doesn't object to this patch.  He probably would
+> > still like to blacklist PNP0A03, but that's an additional step we
+> > don't have to take at the same time.
+> 
+> OK, well let's please push this up the priority list and work out what want
+> to do.  If Len's now OK with merging it then I think all lights are green?
 
-I am relying on author's description here. Here is what Kconfig help says:
+My opinion is that we don't need to blacklist PNP0A03 unless
+we discover a problem.  
 
-"This driver adds support for the Smart Battery System. Depends on I2C
-(Device Drivers ---> I2C support). A "Smart Battery" is quite old and
-quite rare compared to today's ACPI "Control Method" battery."
+Len, Shaohua, can you ack this?
 
-Note that "quite old and rare". Besides, the patch does not remove the
-driver, it just makes it not enabled in default build as not every box
-has an SBS.
-
--- 
-Dmitry
+> pnpacpi-reject-acpi_producer-resources.patch:
+> 
+> From: matthieu castet <castet.matthieu@free.fr>
+> 
+> A patch in -mm kernel correct the parsing of "address resources" of pnpacpi. 
+> Before we assumed it was memory only, but it could be also IO.
+> 
+> But this change show an hidden bug : some resources could be producer type
+> that are not handled by pnp layer.  So we should ignore the producer
+> resources.
+> 
+> This patch fixes bug 6292 (http://bugzilla.kernel.org/show_bug.cgi?id=6292).
+> Some devices like PNP0A03 have 0xd00-0xffff and 0x0-0xcf7 as IO producer 
+> resources.
+> 
+> Before correcting "address resources" parsing, it was seen as memory and was
+> harmless, because nobody tried to reserve this memory range as it should be
+> IO.
+> 
+> With the correction it become IO resources, and make failed all others device
+> that want to register IO in this range and use pnp layer (like a ISA sound
+> card).
+> 
+> The solution is to ignore producer resources
+> 
+> Signed-off-by: Matthieu CASTET <castet.matthieu@free.fr>
+> Signed-off-by: Uwe Bugla <uwe.bugla@gmx.de>
+> Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> Cc: Adam Belay <ambx1@neo.rr.com>
+> Cc: "Brown, Len" <len.brown@intel.com>
+> 
+> akpm: previously nacked, as per comment #26.  But am hanging onto it until the
+> thing gets fixed for real.
+> 
+> Signed-off-by: Andrew Morton <akpm@osdl.org>
+> ---
+> 
+>  drivers/pnp/pnpacpi/rsparser.c |    8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff -puN drivers/pnp/pnpacpi/rsparser.c~pnpacpi-reject-acpi_producer-resources drivers/pnp/pnpacpi/rsparser.c
+> --- a/drivers/pnp/pnpacpi/rsparser.c~pnpacpi-reject-acpi_producer-resources
+> +++ a/drivers/pnp/pnpacpi/rsparser.c
+> @@ -173,6 +173,9 @@ pnpacpi_parse_allocated_address_space(st
+>  		return;
+>  	}
+>  
+> +	if (p->producer_consumer == ACPI_PRODUCER)
+> +		return;
+> +
+>  	if (p->resource_type == ACPI_MEMORY_RANGE)
+>  		pnpacpi_parse_allocated_memresource(res_table,
+>  				p->minimum, p->address_length);
+> @@ -252,9 +255,14 @@ static acpi_status pnpacpi_allocated_res
+>  		break;
+>  
+>  	case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64:
+> +		if (res->data.ext_address64.producer_consumer == ACPI_PRODUCER)
+> +			return AE_OK;
+>  		break;
+>  
+>  	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+> +		if (res->data.extended_irq.producer_consumer == ACPI_PRODUCER)
+> +			return AE_OK;
+> +
+>  		for (i = 0; i < res->data.extended_irq.interrupt_count; i++) {
+>  			pnpacpi_parse_allocated_irqresource(res_table,
+>  				res->data.extended_irq.interrupts[i],
+> _
+> 
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
