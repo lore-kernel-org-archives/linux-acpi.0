@@ -1,72 +1,82 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [PATCH] [6/8] x86_64: Fix up bogus defaults in ACPI Kconfig
-Date: Thu, 6 Jul 2006 14:08:39 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6E59877@hdsmsx411.amr.corp.intel.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: Linux v2.6.18-rc1
+Date: Thu, 6 Jul 2006 12:25:37 -0700
+Message-ID: <B28E9812BAF6E2498B7EC5C427F293A48DFCEA@orsmsx415.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:60249 "EHLO
-	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
-	id S1750846AbWGFSJA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Jul 2006 14:09:00 -0400
+Received: from mga02.intel.com ([134.134.136.20]:16940 "EHLO
+	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1750759AbWGFThh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Jul 2006 15:37:37 -0400
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <ak@suse.de>, torvalds@osdl.org
-Cc: akpm@osdl.org, discuss@x86-64.org, linux-acpi@vger.kernel.org
+To: Alistair John Strachan <s0348365@sms.ed.ac.uk>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>
 
-Acked-by: Len Brown <len.brown@intel.com> 
+I've tracked this down, it's a bug and I believe I have it fixed. It's
+related to "serialized" control methods which are rather rare in
+comparison to non-serialized methods.
 
->-----Original Message-----
->From: Andi Kleen [mailto:ak@suse.de] 
->Sent: Thursday, July 06, 2006 12:14 PM
->To: torvalds@osdl.org
->Cc: akpm@osdl.org; discuss@x86-64.org; 
->linux-acpi@vger.kernel.org; Brown, Len
->Subject: [PATCH] [6/8] x86_64: Fix up bogus defaults in ACPI Kconfig
->
->
->No need for video to be always in
->No need for ACPI dock driver to be always in
->No need for smart battery driver to be always in
->
->Cc: len.brown@intel.com
->Cc: linux-acpi@vger.kernel.org
->Signed-off-by: Andi Kleen <ak@suse.de>
->
->---
-> drivers/acpi/Kconfig |    3 ---
-> 1 files changed, 3 deletions(-)
->
->Index: linux/drivers/acpi/Kconfig
->===================================================================
->--- linux.orig/drivers/acpi/Kconfig
->+++ linux/drivers/acpi/Kconfig
->@@ -107,7 +107,6 @@ config ACPI_BUTTON
-> config ACPI_VIDEO
-> 	tristate "Video"
-> 	depends on X86
->-	default y
-> 	help
-> 	  This driver implement the ACPI Extensions For Display Adapters
-> 	  for integrated graphics devices on motherboard, as 
->specified in
->@@ -136,7 +135,6 @@ config ACPI_FAN
-> config ACPI_DOCK
-> 	tristate "Dock"
-> 	depends on !ACPI_IBM_DOCK
->-	default y
-> 	help
-> 	  This driver adds support for ACPI controlled docking stations
+Bob
+
+
+> -----Original Message-----
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> owner@vger.kernel.org] On Behalf Of Alistair John Strachan
+> Sent: Thursday, July 06, 2006 5:35 AM
+> To: Linus Torvalds
+> Cc: Linux Kernel Mailing List; linux-acpi@vger.kernel.org; Brown, Len
+> Subject: Re: Linux v2.6.18-rc1
 > 
->@@ -357,7 +355,6 @@ config ACPI_SBS
-> 	tristate "Smart Battery System (EXPERIMENTAL)"
-> 	depends on X86 && I2C
-> 	depends on EXPERIMENTAL
->-	default y
-> 	help
-> 	  This driver adds support for the Smart Battery System.
-> 	  Depends on I2C (Device Drivers ---> I2C support)
->
+> On Thursday 06 July 2006 05:26, Linus Torvalds wrote:
+> > Ok,
+> >  the merge window for 2.6.18 is closed, and -rc1 is out there (git
+trees
+> > updated, the tar-ball and patches are still uploading over my
+pitiful
+> DSL
+> > line - and as usual it may take a short while before mirroring takes
+> > place and distributes things across the globe).
+> >
+> > The changes are too big for the mailing list, even just the
+shortlog. As
+> > usual, lots of stuff happened. Most architectures got updated, ACPI
+> > updates, networking, SCSI and sound, IDE, infiniband, input, DVB etc
+etc
+> > etc.
+> 
+> ACPI problem here. Doesn't seem to actively break anything, but the
+> messages
+> look bad (HP NC6000 notebook). Haven't tried suspending. The error
+popped
+> up roughly 90 minutes after booting. Laptop has been on AC power
+> throughout.
+> 
+> ACPI Error (exmutex-0248): Cannot release Mutex [C0E8], not acquired
+> [20060623]
+> ACPI Error (psparse-0537): Method parse/execution failed
+> [\_SB_.C044.C057.C0E7.C12F] (Node c1aeca40), AE_AML_MUTEX_NOT_ACQUIRED
+> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.C12F]
+> (Node c1aeecfc), AE_AML_MUTEX_NOT_ACQUIRED
+> ACPI Error (psparse-0537): Method parse/execution failed
+[\_SB_.C137._BST]
+> (Node c1aeec84), AE_AML_MUTEX_NOT_ACQUIRED
+> ACPI Exception (acpi_battery-0206): AE_AML_MUTEX_NOT_ACQUIRED,
+Evaluating
+> _BST [20060623]
+> 
+> --
+> Cheers,
+> Alistair.
+> 
+> Third year Computer Science undergraduate.
+> 1F2 55 South Clerk Street, Edinburgh, UK.
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
