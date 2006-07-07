@@ -1,37 +1,84 @@
-From: "Jaya Kumar" <jayakumar.acpi@gmail.com>
-Subject: Re: [patch 2/6] ACPI: Atlas ACPI driver
-Date: Fri, 7 Jul 2006 11:49:21 -0400
-Message-ID: <756b48450607070849v68a5495dg2b4503e9b9b5ba37@mail.gmail.com>
-References: <CFF307C98FEABE47A452B27C06B85BB6E16BE4@hdsmsx411.amr.corp.intel.com>
-	 <756b48450607020443i3e2c6c16m2b3f8666b53fd5c@mail.gmail.com>
-	 <d120d5000607070844n41bdd00fkad5bd3c996b699f@mail.gmail.com>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: [BUG] sleeping function called from invalid context during resume
+Date: Fri, 7 Jul 2006 12:32:41 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB6ECF5EB@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.175]:59370 "EHLO
-	ug-out-1314.google.com") by vger.kernel.org with ESMTP
-	id S932114AbWGGPtX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Jul 2006 11:49:23 -0400
-Received: by ug-out-1314.google.com with SMTP id a2so3138399ugf
-        for <linux-acpi@vger.kernel.org>; Fri, 07 Jul 2006 08:49:22 -0700 (PDT)
-In-Reply-To: <d120d5000607070844n41bdd00fkad5bd3c996b699f@mail.gmail.com>
-Content-Disposition: inline
+Received: from mga01.intel.com ([192.55.52.88]:32302 "EHLO
+	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
+	id S932208AbWGGQdU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Jul 2006 12:33:20 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: "Brown, Len" <len.brown@intel.com>, akpm@osdl.org, linux-acpi@vger.kernel.org, "Yu, Luming" <luming.yu@intel.com>
+To: Andrew Morton <akpm@osdl.org>
+Cc: johnstul@us.ibm.com, linux-kernel@vger.kernel.org, pavel@suse.cz, linux-acpi@vger.kernel.org
 
-On 7/7/06, Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> I think because the driver would be new for the mainline we should
-> remove the old way of  reporting events and rely on input layer (and
-> make the driver depend on CONFIG_INPUT).
+ 
+>> >I got the following on my laptop w/ 2.6.18-rc1.
+>> >
+>> >thanks
+>> >-john
+>> >
+>> >Stopping tasks:
+>> >================================================================
+>> >=======================|
+>> >pnp: Device 00:0b disabled.
+>> >ACPI: PCI interrupt for device 0000:02:01.0 disabled
+>> >ACPI: PCI interrupt for device 0000:00:1f.5 disabled
+>> >ACPI: PCI interrupt for device 0000:00:1d.7 disabled
+>> >ACPI: PCI interrupt for device 0000:00:1d.2 disabled
+>> >ACPI: PCI interrupt for device 0000:00:1d.1 disabled
+>> >ACPI: PCI interrupt for device 0000:00:1d.0 disabled
+>> >Intel machine check architecture supported.
+>> >Intel machine check reporting enabled on CPU#0.
+>> >Back to C!
+>> >BUG: sleeping function called from invalid context at mm/slab.c:2882
+>> >in_atomic():0, irqs_disabled():1
+>> > [<c0103d59>] show_trace_log_lvl+0x149/0x170
+>> > [<c01052ab>] show_trace+0x1b/0x20
+>> > [<c01052d4>] dump_stack+0x24/0x30
+>> > [<c0116e51>] __might_sleep+0xa1/0xc0
+>> > [<c0165cb5>] kmem_cache_zalloc+0xa5/0xc0
+>> > [<c0264b5a>] acpi_os_acquire_object+0x11/0x41
+>> 
+>> yep, the new slab for objects makes this path immune to
+>> the acpi_in_resume hack in acpi_os_allocate()
 >
-> Also, could you please change phys from "acpi/input0" to something
-> like "ASIM0000/atlas/input0" to make it more unique?
+>hm.  Linus's new suspend/resume thing seems to have a 
+>two-phase suspend,
+>but not, afaict, a two-phase resume.  If it did, and if the 
+>second resume
+>phase were to run with IRQs enabled then we should be able to 
+>address this
+>appropriately.
 >
+>> I think we need to get rid of the acpi_in_resume hack
+>> and use system_state != SYSTEM_RUNNING to address this.
+>
+>Well if hacks are OK it'd actually be reliable to do
+>
+>	/* comment goes here */
+>	kmalloc(size, irqs_disabled() ? GFP_ATOMIC : GFP_KERNEL);
+>
+>because the irqs_disabled() thing happens for well-defined reasons. 
+>Certainly that's better than looking at system_state (and I 
+>don't think we
+>leave SYSTEM_RUNNING during suspend/resume anyway).
 
-Agreed. Will do all three.
+If system_state != SYSTEM_RUNNING on resume, theen __might_sleep()
+would not have spit out the dump_stack() above.
 
-Thanks,
-jaya
+This is exactly like boot -- we are bringing up the system
+and we need to configure interrupts, which runs AML,
+which calls kmalloc in a variety of ways, all of which call
+__might_sleep.
+
+It seems simplest to have resume admit that it is like boot
+and that the early allocations with interrupts off simply
+must succeed or it is game-off.
+
+-Len
