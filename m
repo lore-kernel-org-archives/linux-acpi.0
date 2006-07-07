@@ -1,87 +1,143 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: Linux v2.6.18-rc1
-Date: Thu, 6 Jul 2006 17:11:01 -0700
-Message-ID: <20060706171101.20cf7bc1.akpm@osdl.org>
-References: <Pine.LNX.4.64.0607052115210.12404@g5.osdl.org>
-	<200607061334.57282.s0348365@sms.ed.ac.uk>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: ACPIPNP and too large IO resources
+Date: Fri, 07 Jul 2006 09:03:09 +0800
+Message-ID: <1152234189.21189.139.camel@sli10-desk.sh.intel.com>
+References: <44AB608F.1060903@drzeus.cx>
+	 <200607051536.30771.bjorn.helgaas@hp.com>
+	 <20060705151803.5841e91d.akpm@osdl.org>
+	 <200607060929.04787.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:12247 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1751097AbWGGAIe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Jul 2006 20:08:34 -0400
-In-Reply-To: <200607061334.57282.s0348365@sms.ed.ac.uk>
+Received: from mga02.intel.com ([134.134.136.20]:10353 "EHLO
+	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1751123AbWGGBGD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 6 Jul 2006 21:06:03 -0400
+In-Reply-To: <200607060929.04787.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alistair John Strachan <s0348365@sms.ed.ac.uk>
-Cc: torvalds@osdl.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Andrew Morton <akpm@osdl.org>, drzeus-list@drzeus.cx, "Brown, Len" <len.brown@intel.com>, linux-kernel@vger.kernel.org, ambx1@neo.rr.com, castet.matthieu@free.fr, linux-acpi@vger.kernel.org, uwe.bugla@gmx.de
 
-Alistair John Strachan <s0348365@sms.ed.ac.uk> wrote:
->
-> On Thursday 06 July 2006 05:26, Linus Torvalds wrote:
-> > Ok,
-> >  the merge window for 2.6.18 is closed, and -rc1 is out there (git trees
-> > updated, the tar-ball and patches are still uploading over my pitiful DSL
-> > line - and as usual it may take a short while before mirroring takes
-> > place and distributes things across the globe).
+On Thu, 2006-07-06 at 23:29 +0800, Bjorn Helgaas wrote:
+> On Wednesday 05 July 2006 16:18, Andrew Morton wrote: 
+> > Bjorn Helgaas <bjorn.helgaas@hp.com> wrote: 
+> > > You recently proposed pushing it: 
+> > >
+> http://marc.theaimsgroup.com/?l=linux-acpi&m=115119275408021&w=2 
+> > > Len initially nacked it, but I think the outcome of the
+> discussion 
+> > > is that Shaohua doesn't object to this patch.  He probably would 
+> > > still like to blacklist PNP0A03, but that's an additional step we 
+> > > don't have to take at the same time. 
+> >  
+> > OK, well let's please push this up the priority list and work out
+> what want 
+> > to do.  If Len's now OK with merging it then I think all lights are
+> green?
+> 
+> My opinion is that we don't need to blacklist PNP0A03 unless 
+> we discover a problem.  
+> 
+> Len, Shaohua, can you ack this?
+Sure. Please merge the patch Bjorn pointed out.
+
+Thanks,
+Shaohua
+
+> 
+> > pnpacpi-reject-acpi_producer-resources.patch: 
+> >  
+> > From: matthieu castet <castet.matthieu@free.fr> 
+> >  
+> > A patch in -mm kernel correct the parsing of "address resources" of
+> pnpacpi.  
+> > Before we assumed it was memory only, but it could be also IO. 
+> >  
+> > But this change show an hidden bug : some resources could be
+> producer type 
+> > that are not handled by pnp layer.  So we should ignore the
+> producer 
+> > resources. 
+> >  
+> > This patch fixes bug 6292
+> (http://bugzilla.kernel.org/show_bug.cgi?id=6292). 
+> > Some devices like PNP0A03 have 0xd00-0xffff and 0x0-0xcf7 as IO
+> producer  
+> > resources. 
+> >  
+> > Before correcting "address resources" parsing, it was seen as memory
+> and was 
+> > harmless, because nobody tried to reserve this memory range as it
+> should be 
+> > IO. 
+> >  
+> > With the correction it become IO resources, and make failed all
+> others device 
+> > that want to register IO in this range and use pnp layer (like a ISA
+> sound 
+> > card). 
+> >  
+> > The solution is to ignore producer resources 
+> >  
+> > Signed-off-by: Matthieu CASTET <castet.matthieu@free.fr> 
+> > Signed-off-by: Uwe Bugla <uwe.bugla@gmx.de> 
+> > Cc: Bjorn Helgaas <bjorn.helgaas@hp.com> 
+> > Cc: Adam Belay <ambx1@neo.rr.com> 
+> > Cc: "Brown, Len" <len.brown@intel.com> 
+> >  
+> > akpm: previously nacked, as per comment #26.  But am hanging onto it
+> until the 
+> > thing gets fixed for real. 
+> >  
+> > Signed-off-by: Andrew Morton <akpm@osdl.org> 
+> > --- 
+> >  
+> >  drivers/pnp/pnpacpi/rsparser.c |    8 ++++++++ 
+> >  1 file changed, 8 insertions(+) 
+> >  
+> > diff -puN
+> drivers/pnp/pnpacpi/rsparser.c~pnpacpi-reject-acpi_producer-resources
+> drivers/pnp/pnpacpi/rsparser.c 
+> > ---
+> a/drivers/pnp/pnpacpi/rsparser.c~pnpacpi-reject-acpi_producer-resources 
+> > +++ a/drivers/pnp/pnpacpi/rsparser.c 
+> > @@ -173,6 +173,9 @@ pnpacpi_parse_allocated_address_space(st 
+> >               return; 
+> >       } 
+> >   
+> > +     if (p->producer_consumer == ACPI_PRODUCER) 
+> > +             return; 
+> > + 
+> >       if (p->resource_type == ACPI_MEMORY_RANGE) 
+> >               pnpacpi_parse_allocated_memresource(res_table, 
+> >                               p->minimum, p->address_length); 
+> > @@ -252,9 +255,14 @@ static acpi_status pnpacpi_allocated_res 
+> >               break; 
+> >   
+> >       case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64: 
+> > +             if (res->data.ext_address64.producer_consumer ==
+> ACPI_PRODUCER) 
+> > +                     return AE_OK; 
+> >               break; 
+> >   
+> >       case ACPI_RESOURCE_TYPE_EXTENDED_IRQ: 
+> > +             if (res->data.extended_irq.producer_consumer ==
+> ACPI_PRODUCER) 
+> > +                     return AE_OK; 
+> > + 
+> >               for (i = 0; i <
+> res->data.extended_irq.interrupt_count; i++) { 
 > >
-> > The changes are too big for the mailing list, even just the shortlog. As
-> > usual, lots of stuff happened. Most architectures got updated, ACPI
-> > updates, networking, SCSI and sound, IDE, infiniband, input, DVB etc etc
-> > etc.
+> pnpacpi_parse_allocated_irqresource(res_table, 
+> >                               res->data.extended_irq.interrupts[i], 
+> > _ 
+> >  
+> > - 
+> > To unsubscribe from this list: send the line "unsubscribe
+> linux-acpi" in 
+> > the body of a message to majordomo@vger.kernel.org 
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html 
+> > 
 > 
-> ACPI problem here. Doesn't seem to actively break anything, but the messages
-> look bad (HP NC6000 notebook). Haven't tried suspending. The error popped
-> up roughly 90 minutes after booting. Laptop has been on AC power throughout.
-> 
-> ACPI Error (exmutex-0248): Cannot release Mutex [C0E8], not acquired [20060623]
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.C044.C057.C0E7.C12F] (Node c1aeca40), AE_AML_MUTEX_NOT_ACQUIRED
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.C12F] (Node c1aeecfc), AE_AML_MUTEX_NOT_ACQUIRED
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.C137._BST] (Node c1aeec84), AE_AML_MUTEX_NOT_ACQUIRED
-> ACPI Exception (acpi_battery-0206): AE_AML_MUTEX_NOT_ACQUIRED, Evaluating _BST [20060623]
-> 
-
-I've queued the below for sending via Len.  Whether it is
-correct/sufficient I do not know.  The comment from Alexey:
-
-  It seems that there is an error in our code, that either releases ASL
-  mutex twice, etc.  In either case the correct behavior seems to not abort
-  execution.  Error seems to vanish in 2.6.17, so we should just apply this
-  patch.  
-
-is discouraging.
-
-
-
-From:  Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
-
-See http://bugme.osdl.org/show_bug.cgi?id=6687
-Closes: #50088
-
-patch location:
-http://www.kernel.org/git/?p=linux/kernel/git/bcollins/ubuntu-dapper.git;a=commitdiff;h=202ddb5b6498af53e110f78edd41a217587c1ffb
-
-Signed-off-by: Chuck Short <zulcss@gmail.com>
-Signed-off-by: Ben Collins <bcollins@ubuntu.com>
-Cc: "Brown, Len" <len.brown@intel.com>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
----
-
- drivers/acpi/executer/exmutex.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff -puN drivers/acpi/executer/exmutex.c~acpi-do-not-abort-method-execution-if-asked-to-release drivers/acpi/executer/exmutex.c
---- a/drivers/acpi/executer/exmutex.c~acpi-do-not-abort-method-execution-if-asked-to-release
-+++ a/drivers/acpi/executer/exmutex.c
-@@ -246,7 +246,7 @@ acpi_ex_release_mutex(union acpi_operand
- 		ACPI_ERROR((AE_INFO,
- 			    "Cannot release Mutex [%4.4s], not acquired",
- 			    acpi_ut_get_node_name(obj_desc->mutex.node)));
--		return_ACPI_STATUS(AE_AML_MUTEX_NOT_ACQUIRED);
-+		return_ACPI_STATUS(AE_OK);
- 	}
- 
- 	/* Sanity check -- we must have a valid thread ID */
-_
-
