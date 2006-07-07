@@ -1,35 +1,23 @@
-From: Kristen Accardi <kristen.c.accardi@intel.com>
-Subject: [patch] acpi: init dock notifier list
-Date: Fri, 07 Jul 2006 15:06:27 -0700
-Message-ID: <1152309987.8695.24.camel@whizzy>
+From: thermal@o2.pl
+Subject: (unknown)
+Date: Sat, 8 Jul 2006 00:51:27 +0200
+Message-ID: <200607080051.27676.thermal@o2.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:50022 "EHLO
-	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S932325AbWGGVwP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Jul 2006 17:52:15 -0400
+Received: from mx10.go2.pl ([193.17.41.74]:17053 "EHLO poczta.o2.pl")
+	by vger.kernel.org with ESMTP id S932358AbWGGW0J (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Jul 2006 18:26:09 -0400
+Received: from newhope.mordornet (beg1.neoplus.adsl.tpnet.pl [83.28.18.1])
+	(using TLSv1 with cipher RC4-MD5 (128/128 bits))
+	(No client certificate requested)
+	by poczta.o2.pl (Postfix) with ESMTP id 4B39458093
+	for <linux-acpi@vger.kernel.org>; Sat,  8 Jul 2006 00:26:08 +0200 (CEST)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: len.brown@intel.com, akpm@osdl.org, linux-kernel@vger.kernel.org
 
-Initialize the atomic notifier list
-
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-
----
- drivers/acpi/dock.c |    1 +
- 1 file changed, 1 insertion(+)
-
---- 2.6-mm.orig/drivers/acpi/dock.c
-+++ 2.6-mm/drivers/acpi/dock.c
-@@ -627,6 +627,7 @@ static int dock_add(acpi_handle handle)
- 	INIT_LIST_HEAD(&dock_station->hotplug_devices);
- 	spin_lock_init(&dock_station->dd_lock);
- 	spin_lock_init(&dock_station->hp_lock);
-+	ATOMIC_INIT_NOTIFIER_HEAD(&dock_notifier_list);
- 
- 	/* Find dependent devices */
- 	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
+subscribe linux-acpi
