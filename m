@@ -1,54 +1,122 @@
-From: "=?ISO-8859-1?Q?Rusl=E1n_Ledesma_Garza?="
-	<ruslanledesmagarza@gmail.com>
-Subject: ACPI not working on DELL Inspiron 1150
-Date: Sat, 8 Jul 2006 16:18:49 -0500
-Message-ID: <9d90148c0607081418j6d58d49eo3cb6830305610266@mail.gmail.com>
+From: thermal@o2.pl
+Subject: [PATCH] ACPI devices _HID export through sysfs
+Date: Sun, 9 Jul 2006 00:24:19 +0200
+Message-ID: <200607090024.19776.thermal@o2.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_TCDsEXVGvAwrtu/"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.181]:60367 "EHLO
-	py-out-1112.google.com") by vger.kernel.org with ESMTP
-	id S1030395AbWGHVSu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 8 Jul 2006 17:18:50 -0400
-Received: by py-out-1112.google.com with SMTP id 57so513180pya
-        for <linux-acpi@vger.kernel.org>; Sat, 08 Jul 2006 14:18:49 -0700 (PDT)
-Content-Disposition: inline
+Received: from mx2.go2.pl ([193.17.41.42]:50323 "EHLO poczta.o2.pl")
+	by vger.kernel.org with ESMTP id S1751311AbWGHWYj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 8 Jul 2006 18:24:39 -0400
+Received: from newhope.mordornet (beu167.neoplus.adsl.tpnet.pl [83.28.32.167])
+	(using TLSv1 with cipher RC4-MD5 (128/128 bits))
+	(No client certificate requested)
+	by poczta.o2.pl (Postfix) with ESMTP id 70FFB748079
+	for <linux-acpi@vger.kernel.org>; Sun,  9 Jul 2006 00:24:37 +0200 (CEST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-Hi. I'm a newbie to linux, but I've been getting this problem ever
-since I installed it on my computer (I've already tested Fedora Core 5
-and Ubuntu 6, both having the same problem).
+--Boundary-00=_TCDsEXVGvAwrtu/
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-1) I first discovered that my laptop display didn't turn off when the
-lid was closed (I can tell because I can see the glare of the display
-through a gap). So I started investigating and found that the lid
-event is not triggered whenever I close/open the lid (using
-acpi_listen). But the weirdest part is that the event is reported when
-doing "cat /proc/acpi/button/lid/LID/state".
+Hi
 
-2) Then I realized no events are reported through acpi_listen, except
-for "ac_adapter" event which occurs after resuming the laptop from
-hibernation.
+I recently thought about using coldplug (/etc/hotplug/*.rc) scripts to 
+automagically load modules responsible for ACPI-controlled devices such 
+as button, battery, laptop extras. To accomplish this I wrote a trivial 
+kernel patch which exports the ACPI device _HID and _CID attributes in 
+the corresponding sysfs node. I also wrote a script for /etc/hotplug 
+which scans the /sys tree and loads modules according to HIDs exported.
 
-3) I've also found that sometimes the computer freezes when resuming
-from hibernation (I can only confirm this under Ubuntu, I can't
-remember what happens with Fedora).
+Patch is an attachment because my mail client has a maximum line length 
+limit. The patch is against 2.6.17.
 
-4) Finally, for some reason gnome power manager doesn't put into
-hibernation my computer when battery is too low (the only time I
-tested this was under Ubuntu) and simply runs out of battery.
+-- 
+|   ******* Maciek Grela RV409b *********
+|        JID: thermal@jabber.wroc.pl
+| Linux user #319794 ++ There is no spoon ...
 
-Since #'s 1 & 2 have ocurred under Fedora and Ubuntu, I assume there
-is some low level problem/incompatibility of ACPI with my computer's
-hardware. Everything works fine under WinXP, and to me power
-management is a must for my laptop.
+--Boundary-00=_TCDsEXVGvAwrtu/
+Content-Type: text/x-diff;
+  charset="iso-8859-2";
+  name="sysfs-acpi-hid.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="sysfs-acpi-hid.patch"
 
-I've read some stuff about DST's, but sincerelly I didn't undestand
-much (ie. where does this DST reside? Is it a firmware?), but I wonder
-if the fact that my DST says "MSFT" could be the cause of ACPI not
-working propertly.
+diff -rup --exclude-from=patch.exclude linux-2.6.17/drivers/acpi/scan.c linux-2.6.17-th/drivers/acpi/scan.c
+--- linux-2.6.17/drivers/acpi/scan.c	2006-06-18 01:49:35.000000000 +0000
++++ linux-2.6.17-th/drivers/acpi/scan.c	2006-07-09 00:16:05.423442000 +0000
+@@ -351,11 +351,19 @@ static int acpi_bus_get_wakeup_device_fl
+ static ssize_t acpi_eject_store(struct acpi_device *device,
+ 				const char *buf, size_t count);
+ 
++static ssize_t acpi_hid_show(struct acpi_device *device,
++				char *buf);
++
++static ssize_t acpi_cid_show(struct acpi_device *device,
++				char *buf);
++
+ #define ACPI_DEVICE_ATTR(_name,_mode,_show,_store) \
+ static struct acpi_device_attribute acpi_device_attr_##_name = \
+ 		__ATTR(_name, _mode, _show, _store)
+ 
+ ACPI_DEVICE_ATTR(eject, 0200, NULL, acpi_eject_store);
++ACPI_DEVICE_ATTR(hid, 0400, acpi_hid_show, NULL);
++ACPI_DEVICE_ATTR(cid, 0400, acpi_cid_show, NULL);
+ 
+ /**
+  * setup_sys_fs_device_files - sets up the device files under device namespace
+@@ -376,6 +384,15 @@ setup_sys_fs_device_files(struct acpi_de
+ 	status = acpi_get_handle(dev->handle, "_EJ0", &temp);
+ 	if (ACPI_SUCCESS(status))
+ 		(*(func)) (&dev->kobj, &acpi_device_attr_eject.attr);
++
++	if ( dev->pnp.cid_list ) {
++		(*(func)) (&dev->kobj, &acpi_device_attr_cid.attr);
++	}
++
++	if ( dev->pnp.hardware_id[0] != 0 ) {
++		(*(func)) (&dev->kobj, &acpi_device_attr_hid.attr);
++	}
++
+ }
+ 
+ static int acpi_eject_operation(acpi_handle handle, int lockable)
+@@ -456,6 +473,29 @@ acpi_eject_store(struct acpi_device *dev
+ 	return ret;
+ }
+ 
++static ssize_t acpi_hid_show(struct acpi_device *device,
++				char *buf)
++{
++	return snprintf(buf, PAGE_SIZE, "%s\n",device->pnp.hardware_id);
++}
++
++static ssize_t acpi_cid_show(struct acpi_device *device,
++				char *buf)
++{
++	int ret = 0;
++	int buflen = PAGE_SIZE;
++	int i,w;
++	
++	for (i = 0; i < device->pnp.cid_list->count; i++, ret+=w, buflen-=w, buf+=w ) {
++		w = snprintf(buf, buflen, "%s ", device->pnp.cid_list->id[i].value);
++	}
++
++	ret += snprintf(buf, buflen, "\n");
++	
++	return ret;
++}
++
++
+ /* --------------------------------------------------------------------------
+                               Performance Management
+    -------------------------------------------------------------------------- */
 
-Thanks in advance.
+--Boundary-00=_TCDsEXVGvAwrtu/--
