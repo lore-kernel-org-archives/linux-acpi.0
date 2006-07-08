@@ -1,79 +1,56 @@
-From: Jesper Juhl <jesper.juhl@gmail.com>
-Subject: [PATCH][TRIVIAL]Missing newline in acpi messes up dmesg output
-Date: Sun, 9 Jul 2006 00:43:26 +0200
-Message-ID: <200607090043.27121.jesper.juhl@gmail.com>
+From: "=?ISO-8859-1?Q?Rusl=E1n_Ledesma_Garza?="
+	<ruslanledesmagarza@gmail.com>
+Subject: ACPI not working on DELL Inspiron 1150
+Date: Sat, 8 Jul 2006 18:15:21 -0500
+Message-ID: <9d90148c0607081615q3505d896xb42ac7e6b4cac96f@mail.gmail.com>
+References: <9d90148c0607081418j6d58d49eo3cb6830305610266@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.184]:9035 "EHLO
-	nf-out-0910.google.com") by vger.kernel.org with ESMTP
-	id S1751319AbWGHWos (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 8 Jul 2006 18:44:48 -0400
-Received: by nf-out-0910.google.com with SMTP id k26so158481nfc
-        for <linux-acpi@vger.kernel.org>; Sat, 08 Jul 2006 15:44:47 -0700 (PDT)
+Received: from py-out-1112.google.com ([64.233.166.176]:12906 "EHLO
+	py-out-1112.google.com") by vger.kernel.org with ESMTP
+	id S1030421AbWGHXPV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 8 Jul 2006 19:15:21 -0400
+Received: by py-out-1112.google.com with SMTP id 57so528017pya
+        for <linux-acpi@vger.kernel.org>; Sat, 08 Jul 2006 16:15:21 -0700 (PDT)
+In-Reply-To: <9d90148c0607081418j6d58d49eo3cb6830305610266@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, akpm@osdl.org, Jesper Juhl <jesper.juhl@gmail.com>
+To: linux-acpi@vger.kernel.org
 
-(This was already send once on July 6'th but got no response, so resending)
+Hi. I'm a newbie to linux, but I've been getting this problem ever
+since I installed it on my computer (I've already tested Fedora Core 5
+and Ubuntu 6, both having the same problem).
 
-Hi,
+1) I first discovered that my laptop display didn't turn off when the
+lid was closed (I can tell because I can see the glare of the display
+through a gap). So I started investigating and found that the lid
+event is not triggered whenever I close/open the lid (using
+acpi_listen). But the weirdest part is that the event is reported when
+doing "cat /proc/acpi/button/lid/LID/state".
 
-There's a tiny bug in 2.6.18-rc1.
-In drivers/acpi/bus.c::acpi_bus_set_power() there's a check to see if
-the device is power_manageable and if not then print a debug message
-and return -ENODEV. The debug printk() is missing a \n.
+2) Then I realized no events are reported through acpi_listen, except
+for "ac_adapter" event which occurs after resuming the laptop from
+hibernation.
 
-The printk statement looks like this : 
+3) I've also found that sometimes the computer freezes when resuming
+from hibernation (I can only confirm this under Ubuntu, I can't
+remember what happens with Fedora).
 
-          printk(KERN_DEBUG "Device `[%s]' is not power manageable",
-                          device->kobj.name);
+4) Finally, for some reason gnome power manager doesn't put into
+hibernation my computer when battery is too low (the only time I
+tested this was under Ubuntu) and simply runs out of battery.
 
-As you can see, there's no newline at the end, and that causes 
-problems for the next message to be printed.
+Since #'s 1 & 2 have ocurred under Fedora and Ubuntu, I assume there
+is some low level problem/incompatibility of ACPI with my computer's
+hardware. Everything works fine under WinXP, and to me power
+management is a must for my laptop.
 
-On my system the above results in this in dmesg : 
+I've read some stuff about DST's, but sincerelly I didn't undestand
+much (ie. where does this DST reside? Is it a firmware?), but I wonder
+if the fact that my DST says "MSFT" could be the cause of ACPI not
+working propertly.
 
-...
-Device `[PEB1]' is not power manageable<6>ACPI: PCI Interrupt 0000:00:01.0[A] -> GSI 29 (level, low) -> IRQ 16
-PCI: Setting latency timer of device 0000:00:01.0 to 64
-Device `[PEB2]' is not power manageable<6>ACPI: PCI Interrupt 0000:00:02.0[A] -> GSI 34 (level, low) -> IRQ 17
-...
-
-Adding a newline (as the patch below does) turns this into
-
-...
-Device `[PEB1]' is not power manageable
-ACPI: PCI Interrupt 0000:00:01.0[A] -> GSI 29 (level, low) -> IRQ 16
-PCI: Setting latency timer of device 0000:00:01.0 to 64
-Device `[PEB2]' is not power manageable
-ACPI: PCI Interrupt 0000:00:02.0[A] -> GSI 34 (level, low) -> IRQ 17
-...
-
-Which is much nicer :-)
-
-
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
----
-
- drivers/acpi/bus.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
-
---- linux-2.6.18-rc1-orig/drivers/acpi/bus.c	2006-07-06 19:39:29.000000000 +0200
-+++ linux-2.6.18-rc1/drivers/acpi/bus.c	2006-07-06 23:23:12.000000000 +0200
-@@ -192,7 +192,7 @@ int acpi_bus_set_power(acpi_handle handl
- 	/* Make sure this is a valid target state */
- 
- 	if (!device->flags.power_manageable) {
--		printk(KERN_DEBUG "Device `[%s]' is not power manageable",
-+		printk(KERN_DEBUG "Device `[%s]' is not power manageable\n",
- 				device->kobj.name);
- 		return -ENODEV;
- 	}
-
-
-
+Thanks in advance.
