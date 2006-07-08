@@ -1,49 +1,55 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Subject: [PATCH] Add missing '\n' to printk in ACPI code
-Date: Sat, 8 Jul 2006 21:24:31 +0200
-Message-ID: <20060708192431.GA23511@dreamland.darkstar.lan>
+From: "=?ISO-8859-1?Q?Rusl=E1n_Ledesma_Garza?="
+	<ruslanledesmagarza@gmail.com>
+Subject: ACPI not working on DELL Inspiron 1150
+Date: Sat, 8 Jul 2006 16:16:30 -0500
+Message-ID: <9d90148c0607081416m792fa2a3p8818da06082ef8f7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.185]:42181 "EHLO
-	nf-out-0910.google.com") by vger.kernel.org with ESMTP
-	id S1030236AbWGHTYR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 8 Jul 2006 15:24:17 -0400
-Received: by nf-out-0910.google.com with SMTP id p77so138653nfc
-        for <linux-acpi@vger.kernel.org>; Sat, 08 Jul 2006 12:24:16 -0700 (PDT)
+Received: from py-out-1112.google.com ([64.233.166.176]:61900 "EHLO
+	py-out-1112.google.com") by vger.kernel.org with ESMTP
+	id S1030394AbWGHVQb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 8 Jul 2006 17:16:31 -0400
+Received: by py-out-1112.google.com with SMTP id 57so512871pya
+        for <linux-acpi@vger.kernel.org>; Sat, 08 Jul 2006 14:16:30 -0700 (PDT)
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: len.brown@intel.com, linux-acpi@vger.kernel.org, akpm@osdl.org
+To: linux-acpi@vger.kernel.org
 
-Hi,
-I found out that a printk() in ACPI code is missing the newline; the
-next kernel message is then appended on the same line (and priority is
-not stripped), eg:
+Hi. I'm a newbie to linux, but I've been getting this problem ever
+since I installed it on my computer (I've already tested Fedora Core 5
+and Ubuntu 6, both having the same problem).
 
-Device `[FAN0]' is not power manageable<6>ACPI: Fan [FAN0] (on)
+1) I first discovered that my laptop display didn't turn off when the
+lid was closed (I can tell because I can see the glare of the display
+through a gap). So I started investigating and found that the lid
+event is not triggered whenever I close/open the lid (using
+acpi_listen). But the weirdest part is that the event is reported when
+doing "cat /proc/acpi/button/lid/LID
+/state".
 
-This trivial patch (against 2.6.18-rc1) fixes it.
+2) Then I realized no events are reported through acpi_listen, except
+for "ac_adapter" event which occurs after resuming the laptop from
+hibernation.
 
-Signed-Off-By: Luca Tettamanti <kronos.it@gmail.com>
+3) I've also found that sometimes the computer freezes when resuming
+from hibernation (I can only confirm this under Ubuntu, I can't
+remember what happens with Fedora).
 
---- a/drivers/acpi/bus.c	2006-07-08 15:12:32.855837715 +0200
-+++ b/drivers/acpi/bus.c	2006-07-08 15:12:46.848712215 +0200
-@@ -192,7 +192,7 @@
- 	/* Make sure this is a valid target state */
- 
- 	if (!device->flags.power_manageable) {
--		printk(KERN_DEBUG "Device `[%s]' is not power manageable",
-+		printk(KERN_DEBUG "Device `[%s]' is not power manageable\n",
- 				device->kobj.name);
- 		return -ENODEV;
- 	}
+4) Finally, for some reason gnome power manager doesn't put into
+hibernation my computer when battery is too low (the only time I
+tested this was under Ubuntu) and simply runs out of battery.
 
+Since #'s 1 & 2 have ocurred under Fedora and Ubuntu, I assume there
+is some low level problem/incompatibility of ACPI with my computer's
+hardware. Everything works fine under WinXP, and to me power
+management is a must for my laptop.
 
+I've read some stuff about DST's, but sincerelly I didn't undestand
+much (ie. where does this DST reside? Is it a firmware?), but I wonder
+if the fact that my DST says "MSFT" could be the cause of ACPI not
+working propertly.
 
-Luca
--- 
-Home: http://kronoz.cjb.net
-Il piu` bel momento dell'amore e` quando ci si illude che duri per 
-sempre; il piu` brutto, quando ci si accorge che dura da troppo.
+Thanks in advance.
