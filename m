@@ -1,18 +1,18 @@
 From: "=?ISO-8859-1?Q?Rusl=E1n_Ledesma_Garza?="
 	<ruslanledesmagarza@gmail.com>
 Subject: ACPI not working on DELL Inspiron 1150
-Date: Sat, 8 Jul 2006 16:16:30 -0500
-Message-ID: <9d90148c0607081416m792fa2a3p8818da06082ef8f7@mail.gmail.com>
+Date: Sat, 8 Jul 2006 16:18:49 -0500
+Message-ID: <9d90148c0607081418j6d58d49eo3cb6830305610266@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.176]:61900 "EHLO
+Received: from py-out-1112.google.com ([64.233.166.181]:60367 "EHLO
 	py-out-1112.google.com") by vger.kernel.org with ESMTP
-	id S1030394AbWGHVQb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 8 Jul 2006 17:16:31 -0400
-Received: by py-out-1112.google.com with SMTP id 57so512871pya
-        for <linux-acpi@vger.kernel.org>; Sat, 08 Jul 2006 14:16:30 -0700 (PDT)
+	id S1030395AbWGHVSu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 8 Jul 2006 17:18:50 -0400
+Received: by py-out-1112.google.com with SMTP id 57so513180pya
+        for <linux-acpi@vger.kernel.org>; Sat, 08 Jul 2006 14:18:49 -0700 (PDT)
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -27,8 +27,7 @@ lid was closed (I can tell because I can see the glare of the display
 through a gap). So I started investigating and found that the lid
 event is not triggered whenever I close/open the lid (using
 acpi_listen). But the weirdest part is that the event is reported when
-doing "cat /proc/acpi/button/lid/LID
-/state".
+doing "cat /proc/acpi/button/lid/LID/state".
 
 2) Then I realized no events are reported through acpi_listen, except
 for "ac_adapter" event which occurs after resuming the laptop from
