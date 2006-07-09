@@ -1,43 +1,89 @@
-From: Andi Kleen <ak@muc.de>
-Subject: Re: 2.6.18-rc1-mm1
-Date: 9 Jul 2006 20:35:38 +0200
-Message-ID: <20060709183538.GB88036@muc.de>
-References: <20060709021106.9310d4d1.akpm@osdl.org> <44B0E6E6.6070904@reub.net> <20060709052252.8c95202a.akpm@osdl.org>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: ACPI_DOCK bug: noone cares
+Date: Sun, 9 Jul 2006 15:59:03 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB6ECF9CF@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from colin.muc.de ([193.149.48.1]:17417 "EHLO mail.muc.de")
-	by vger.kernel.org with ESMTP id S932404AbWGISfj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Jul 2006 14:35:39 -0400
-Date: Sun, 9 Jul 2006 20:35:38 +0200
-Content-Disposition: inline
-In-Reply-To: <20060709052252.8c95202a.akpm@osdl.org>
+Received: from mga03.intel.com ([143.182.124.21]:18593 "EHLO
+	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
+	id S1161100AbWGIT7H convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Jul 2006 15:59:07 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: Reuben Farrelly <reuben-lkml@reub.net>, linux-kernel@vger.kernel.org, alan@lxorguk.ukuu.org.uk, linux-acpi@vger.kernel.org, rdunlap@xenotime.net, greg@kroah.com, john stultz <johnstul@us.ibm.com>, gregkh@suse.de
+To: Linus Torvalds <torvalds@osdl.org>, Adrian Bunk <bunk@stusta.de>
+Cc: "Accardi, Kristen C" <kristen.c.accardi@intel.com>, Dave Hansen <haveblue@us.ibm.com>, Andrew Morton <akpm@osdl.org>, LKML <linux-kernel@vger.kernel.org>, gregkh@suse.de, linux-acpi@vger.kernel.org, Miles Lane <miles.lane@gmail.com>
 
-On Sun, Jul 09, 2006 at 05:22:52AM -0700, Andrew Morton wrote:
-> > ACPI: bus type pci registered
-> > PCI: BIOS Bug: MCFG area at f0000000 is not E820-reserved
-> > PCI: Not using MMCONFIG.
-> > PCI: Using configuration type 1
-> > ACPI: Interpreter enabled
-> > 
-> > Is there any way to verify that there really is a BIOS bug there?  If it is, is 
-> > there anyone within Intel or are there any known contacts who can push and poke 
-> > to get this looked at/fixed?  (It's a new Intel board, I'd hope they could get 
-> > it right..).
-> > 
-> > Plus we're not using MMCONFIG - even though I have it enabled.
-> 
-> Andi stuff.
+>> Two weeks ago, we had:
+>> - a bug report
+>> - a detailed description how to possibly fix this issue
+>> 
+>> What we did NOT have was:
+>> - any reaction by the patch author or any maintainer
+>>   (although with the exception of Linus, the recipients of 
+>the problem
+>>    description were exactly the same as the ones in this email)
 
-Greg has patches to relax the checking a bit. 
+Yes, I'm on this list.
+No, I don't see all patches or comments unless they get sent directly
+to: or cc: to me.
 
-I don't know when he intends to merge them.
+>> A few days later, the patch that includes this bug was included in 
+>> Linus' tree.
+>> 
+>> Two weeks later, the bug is still present in both latest -mm 
+>and Linus' 
+>> tree.
+>> 
+>> Linus, please do a
+>>   git-revert a5e1b94008f2a96abf4a0c0371a55a56b320c13e
+>
+>Fair enough. Reverted.
 
-Anyways it should be completely harmless - mmconfig does nothing
-essential right now.
+I disagree with this decision, and would like to know what
+is necessary to reverse it.
 
--Andi
+>I think I'll stop accepting any ACPI patches at all that add 
+>new features, as long as there doesn't seem to be anybody who reacts to
+
+>bug-reports. We  don't need ACPI features.
+
+If it is a requirement that I see every patch sent to the list
+and not directly to me during weekends in July, then I agree
+with your decision -- because I can't give you that level of service.
+But surely:
+
+1. You can e-mail me directly when you are asking me to do something.
+2. deleting the driver is a somewhat Draconian response to what appears
+ to be a simple Kconfig issue in rc1.
+
+>We need somebody who answers when people like Andrew asks 
+>about patches to support things like memory hotplug (which was also a
+problem 
+>over the last weeks). Here's a quote from Andrew from a week or so ago:
+
+>"repeat seven times over three months with zero response.".
+
+The memhotplug patches first hit the list March 21st -- the 1st day of
+the 2.6.17 integration window.
+
+I would have queued them for 2.6.18-rc1, but they depended
+on other patches in -mm that Andrew did not send me.
+
+Yes, I Should have mentioned that to Andrew, and acked
+the patches so he could have sorted that out.
+
+However, the only way they could have got into 2.6.18-rc1 any
+earlier would be if the 2.6.17 cycle were shorter.
+
+>It's not worth it to accept new stuff if we know it's not 
+>going to get any attention ever afterwards.
+
+If you address me directly when you are asking me to do something,
+that would really help me help you.
+
+thanks,
+-Len
