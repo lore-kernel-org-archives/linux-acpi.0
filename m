@@ -1,37 +1,134 @@
-From: Jeff Garzik <jeff@garzik.org>
+From: "Randy.Dunlap" <rdunlap@xenotime.net>
 Subject: Re: 2.6.18-rc1-mm1
-Date: Sun, 09 Jul 2006 12:29:10 -0400
-Message-ID: <44B12ED6.10000@garzik.org>
-References: <20060709021106.9310d4d1.akpm@osdl.org>	 <44B0E6E6.6070904@reub.net>  <20060709052252.8c95202a.akpm@osdl.org> <1152449805.27368.57.camel@localhost.localdomain>
+Date: Sun, 9 Jul 2006 10:33:12 -0700
+Message-ID: <20060709103312.5f78ad38.rdunlap@xenotime.net>
+References: <20060709021106.9310d4d1.akpm@osdl.org>
+	<44B0E6E6.6070904@reub.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <1152449805.27368.57.camel@localhost.localdomain>
-Sender: linux-ide-owner@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Andrew Morton <akpm@osdl.org>, Reuben Farrelly <reuben-lkml@reub.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rdunlap@xenotime.net, greg@kroah.com, john stultz <johnstul@us.ibm.com>, Andi Kleen <ak@muc.de>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from xenotime.net ([66.160.160.81]:35237 "HELO xenotime.net")
+	by vger.kernel.org with SMTP id S1751333AbWGIRa1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Jul 2006 13:30:27 -0400
+Received: from midway.site ([71.117.253.75]) by xenotime.net for <linux-acpi@vger.kernel.org>; Sun, 9 Jul 2006 10:30:25 -0700
+In-Reply-To: <44B0E6E6.6070904@reub.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Reuben Farrelly <reuben-lkml@reub.net>, mingo@redhat.com
+Cc: akpm@osdl.org, linux-kernel@vger.kernel.org, alan@lxorguk.ukuu.org.uk, linux-acpi@vger.kernel.org, greg@kroah.com
 
-Alan Cox wrote:
-> The old drivers/ide code uses much longer delays than the spec for some
-> ATAPI commands, and it looks as if there is a good reason for doing
-> so ...
+On Sun, 09 Jul 2006 23:22:14 +1200 Reuben Farrelly wrote:
+
+> On 9/07/2006 9:11 p.m., Andrew Morton wrote:
+> > ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.18-rc1/2.6.18-rc1-mm1/
+> > 
+> > - We're getting a relatively large number of crash reports coming out of the
+> >   core sysfs/kobject/driver/bus code, and they're all really hard to diagnose.
+> > 
+> >   I am suspecting that what's happening is that some registration functions
+> >   are failing and the caller is ignoring that failure.  The code proceeds and
+> >   crashes much later, in obscure ways.
+> > 
+> >   All these functions return error codes, and we're not checking them.  We
+> >   should.  So there's a patch which marks all these things as __must_check,
+> >   which causes around 1,500 new warnings.
+> > 
+> >   These are all bugs and they all need to be fixed.
+> 
+> Works.  Well, it boots without crashing here and has been up for 30 or so 
+> minutes without incident or so much as a log entry.
+> 
+> I assume that the bulk of those warnings about the return error codes will be 
+> largely dealt with by individual maintainers as there are far too many to post here?
+
+Yeah, right.  (quoting Kathy Mallory with her usual sarcasm)
 
 
-FWIW, the code that ATADRVR (http://www.ata-atapi.com/) uses to issue 
-commands does something like
+> Some minor problems noted - possibly PCI/ACPI related (read on past the IDE bit 
+> if that's not your cup of tea).
+> 
+> 2. Onto some more minor warnings:
+> 
+> ACPI: bus type pci registered
+> PCI: BIOS Bug: MCFG area at f0000000 is not E820-reserved
+> PCI: Not using MMCONFIG.
+> PCI: Using configuration type 1
+> ACPI: Interpreter enabled
+> 
+> Is there any way to verify that there really is a BIOS bug there?  If it is, is 
+> there anyone within Intel or are there any known contacts who can push and poke 
+> to get this looked at/fixed?  (It's a new Intel board, I'd hope they could get 
+> it right..).
+> 
+> Plus we're not using MMCONFIG - even though I have it enabled.
+> 
+> Based on previous postings to lkml, I believe Randy Dunlap may have one of these 
+> boards too - Randy are you seeing this and the next bunch of warnings I am seeing?
 
-	write Command register to start command
-	if (device == ATAPI)			# i.e. not ATA
-		delay(150 msec)
-	pound Status / AltStatus, kick DMA engine, whatever else
-
-ATADRVR is open code (for an MS-DOS-level driver), and really worth a 
-read.  Between ATADRVR and drivers/ide, you get a pretty good idea about 
-what __field experience__ has shown is needed for ATAPI devices.
-
-	Jeff
+I just found 2.6.18-rc1-mm1.  I'll build + check.
+I have an Intel ICH7 motherboard with SATA.
+Is that close to what you have?
 
 
+> 3. Power Management warnings, been there ages, but I've had bigger things to 
+> worry about (like fatal oopses) so haven't bothered asking:
+> 
+> Device `[PEX0]' is not power manageable
+> ACPI: PCI Interrupt 0000:00:1c.0[A] -> GSI 17 (level, low) -> IRQ 17
+> PCI: Setting latency timer of device 0000:00:1c.0 to 64
+> Device `[PEX2]' is not power manageable
+> ACPI: PCI Interrupt 0000:00:1c.2[C] -> GSI 18 (level, low) -> IRQ 18
+> PCI: Setting latency timer of device 0000:00:1c.2 to 64
+> Device `[PEX3]' is not power manageable
+> ACPI: PCI Interrupt 0000:00:1c.3[D] -> GSI 19 (level, low) -> IRQ 19
+> PCI: Setting latency timer of device 0000:00:1c.3 to 64
+> Device `[PEX4]' is not power manageable
+> ACPI: PCI Interrupt 0000:00:1c.4[A] -> GSI 17 (level, low) -> IRQ 17
+> PCI: Setting latency timer of device 0000:00:1c.4 to 64
+> Device `[PEX5]' is not power manageable
+> ACPI: PCI Interrupt 0000:00:1c.5[B] -> GSI 16 (level, low) -> IRQ 16
+> 
+> and
+> 
+> Device `[IDES]' is not power manageable
 
+I guess that's from here:
+
+/sys/firmware/acpi/namespace/ACPI/_SB/PCI0/IDES
+
+which contains 2 directories:  PRID and SECD.
+Apparently ATA/IDE primary and secondary controllers,
+but I'm not sure.  Those empty directory structures
+don't tell me much.
+
+
+> [root@tornado ~]# cat /proc/interrupts
+>             CPU0       CPU1
+>    0:     258266          0   IO-APIC-edge     timer
+>    4:        355          0   IO-APIC-edge     serial
+>    6:          5          0   IO-APIC-edge     floppy
+>    8:          1          0   IO-APIC-edge     rtc
+>    9:          0          0   IO-APIC-fasteoi  acpi
+>   14:         28          0   IO-APIC-edge     libata
+>   15:          0          0   IO-APIC-edge     libata
+>   16:          0          0   IO-APIC-fasteoi  uhci_hcd:usb5
+>   18:          0          0   IO-APIC-fasteoi  uhci_hcd:usb4
+>   19:        980          0   IO-APIC-fasteoi  uhci_hcd:usb3, serial
+>   23:        105          0   IO-APIC-fasteoi  ehci_hcd:usb1, uhci_hcd:usb2
+> 313:      82513          0   PCI-MSI-<NULL>  eth0
+> 314:      57370          0   PCI-MSI-<NULL>  libata
+
+"We" need to fix that <NULL> there.
+
+> NMI:        217        188
+> LOC:     258118     257890
+> ERR:          0
+> MIS:          0
+> [root@tornado ~]#
+> 
+> The full dmesg is up at http://www.reub.net/files/kernel/2.6.18-rc1-mm1.dmesg 
+> and config is up at http://www.reub.net/files/kernel/2.6.18-rc1-mm1.config
+
+---
+~Randy
