@@ -1,73 +1,241 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: ACPI_DOCK bug: noone cares
-Date: Sun, 9 Jul 2006 02:06:01 +0200
-Message-ID: <20060709000601.GA13938@stusta.de>
-References: <a44ae5cd0606251256m74182e7fw4eb2692c89b0e2f8@mail.gmail.com> <20060625200953.GF23314@stusta.de> <a44ae5cd0606251313n5e7654f3t652df65e811325b5@mail.gmail.com> <20060625204039.GG23314@stusta.de>
+From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: 2.6.17-mm6: BUG: spinlock wrong CPU on CPU#1, kacpid_notify/7105
+Date: Sat, 08 Jul 2006 22:08:15 -0700
+Message-ID: <44B08F3F.1080704@goop.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emailhub.stusta.mhn.de ([141.84.69.5]:44553 "HELO
-	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
-	id S1030423AbWGIAGD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 8 Jul 2006 20:06:03 -0400
-Content-Disposition: inline
-In-Reply-To: <20060625204039.GG23314@stusta.de>
+Received: from gw.goop.org ([64.81.55.164]:11493 "EHLO mail.goop.org")
+	by vger.kernel.org with ESMTP id S964983AbWGIFIS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Jul 2006 01:08:18 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@osdl.org>
-Cc: Kristen Accardi <kristen.c.accardi@intel.com>, Dave Hansen <haveblue@us.ibm.com>, Andrew Morton <akpm@osdl.org>, LKML <linux-kernel@vger.kernel.org>, gregkh@suse.de, len.brown@intel.com, linux-acpi@vger.kernel.org, Miles Lane <miles.lane@gmail.com>
+To: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kristen Accardi <kristen.c.accardi@intel.com>
 
-On Sun, Jun 25, 2006 at 10:40:39PM +0200, Adrian Bunk wrote:
-> On Sun, Jun 25, 2006 at 01:13:04PM -0700, Miles Lane wrote:
-> 
-> > Should I attach my entire .config file in the future?  It's large enough 
-> > that
-> > I try to trim it to avoid bloating people's inboxes.
-> 
-> I'm often trying to reproduce compile errors, and it's always a pain in 
-> the ass when I have to construct a complete .config based on such a 
-> fragment instead of simply using the complete .config of the reporter.
-> 
-> And people for whom a few kB would matter wouldn't subscribe to 
-> linux-kernel...
-> 
-> > Yes, that's right.  It is compiled as a module.  So this just needs
-> > a tweaked config rule, right?
-> 
-> It would be a solution to let HOTPLUG_PCI_ACPI depend on
-> (ACPI_DOCK || ACPI_DOCK=n), or the #if in 
-> include/acpi/acpi_drivers.h could be changed to
-> #if defined(CONFIG_ACPI_DOCK) || (defined(CONFIG_ACPI_DOCK_MODULE) && defined(MODULE))
-> 
-> Which one suits better the intention is better is a question Kristen has 
-> to answer.
+[ Repost: got linux-acpi's address wrong. ]
 
+I just got this while undocking my machine.  Thinkpad X60, Core Duo CPU.
 
-Two weeks ago, we had:
-- a bug report
-- a detailed description how to possibly fix this issue
-
-What we did NOT have was:
-- any reaction by the patch author or any maintainer
-  (although with the exception of Linus, the recipients of the problem
-   description were exactly the same as the ones in this email)
-
-A few days later, the patch that includes this bug was included in 
-Linus' tree.
-
-Two weeks later, the bug is still present in both latest -mm and Linus' 
-tree.
-
-Linus, please do a
-  git-revert a5e1b94008f2a96abf4a0c0371a55a56b320c13e
-
-cu
-Adrian
-
--- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec4d74] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec4d60] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec4d4c] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec4d38] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec4d24] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec4d10] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec4cfc] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec4ce8] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec4cd4] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec4cc0] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec4cac] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec4c98] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec4c84] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec55b8] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ed0fa4] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ed0f90] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ed0f7c] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec4c5c] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec4c48] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec4c34] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec4c20] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec575c] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec5748] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec5734] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec5720] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec570c] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec56f8] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec56e4] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec56d0] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec56bc] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec55a4] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ed0f68] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ed0f54] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ed0f40] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ed0f2c] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec56a8] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec884c] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ec8fe0] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecbb80] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecbb6c] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecbb58] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecbb44] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecbb30] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecbb1c] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecbb08] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecbaf4] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecbae0] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecbacc] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecbab8] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecbaa4] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecba90] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecf48c] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ed9658] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ed9644] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ed9630] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ed961c] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ed9608] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd504] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecf450] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd388] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecf43c] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd93c] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd928] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd914] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd900] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd8ec] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd8d8] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd8c4] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd8b0] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd89c] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd888] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd874] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd860] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd84c] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd838] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd824] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd810] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd7fc] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd7e8] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd7d4] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd7c0] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd7ac] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd798] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd784] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecd770] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecdfe0] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecdfcc] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecdfb8] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecdfa4] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecdf68] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecdf54] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecdf40] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecdf2c] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecdf18] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecdf04] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecdef0] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecdedc] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecdec8] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecdeb4] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecdea0] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecde8c] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecde78] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecde64] [20060623]
+ACPI Exception (acpi_bus-0071): AE_NOT_FOUND, No context for object 
+[f7ecde50] [20060623]
+BUG: spinlock wrong CPU on CPU#1, kacpid_notify/7105
+lock: f7e9ad9c, .magic: dead4ead, .owner: kacpid_notify/7105, .owner_cpu: 0
+[<c01d6ee8>] _raw_spin_unlock+0x5d/0x70
+[<c020d52a>] hotplug_dock_devices+0x8a/0x91
+[<c01f302c>] acpi_os_execute_thread+0x0/0x1a
+[<c020d638>] dock_notify+0xd2/0x15d
+[<c020b2f5>] acpi_bus_notify+0x17/0x46
+[<c01f85aa>] acpi_ev_notify_dispatch+0x4c/0x55
+[<c01f3038>] acpi_os_execute_thread+0xc/0x1a
+[<c01301bc>] kthread+0xc2/0xed
+[<c01300fa>] kthread+0x0/0xed
+[<c0101005>] kernel_thread_helper+0x5/0xb
+ACPI: undocking
 
