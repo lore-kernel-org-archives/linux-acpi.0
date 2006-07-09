@@ -1,48 +1,43 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: 2.6.18-rc1-mm1
-Date: Sun, 9 Jul 2006 14:40:35 -0700
-Message-ID: <20060709144035.5ec1c451.akpm@osdl.org>
-References: <20060709021106.9310d4d1.akpm@osdl.org>
-	<44B0E6E6.6070904@reub.net>
-	<20060709103312.5f78ad38.rdunlap@xenotime.net>
+From: Linus Torvalds <torvalds@osdl.org>
+Subject: RE: ACPI_DOCK bug: noone cares
+Date: Sun, 9 Jul 2006 15:05:44 -0700 (PDT)
+Message-ID: <Pine.LNX.4.64.0607091456020.5623@g5.osdl.org>
+References: <CFF307C98FEABE47A452B27C06B85BB6ECF9CF@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:60051 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1161170AbWGIVlD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Jul 2006 17:41:03 -0400
-In-Reply-To: <20060709103312.5f78ad38.rdunlap@xenotime.net>
+Received: from smtp.osdl.org ([65.172.181.4]:15260 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1161179AbWGIWJF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Jul 2006 18:09:05 -0400
+In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB6ECF9CF@hdsmsx411.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Randy.Dunlap" <rdunlap@xenotime.net>
-Cc: reuben-lkml@reub.net, mingo@redhat.com, linux-kernel@vger.kernel.org, alan@lxorguk.ukuu.org.uk, linux-acpi@vger.kernel.org, greg@kroah.com, Thomas Gleixner <tglx@linutronix.de>
+To: "Brown, Len" <len.brown@intel.com>
+Cc: Adrian Bunk <bunk@stusta.de>, "Accardi, Kristen C" <kristen.c.accardi@intel.com>, Dave Hansen <haveblue@us.ibm.com>, Andrew Morton <akpm@osdl.org>, LKML <linux-kernel@vger.kernel.org>, gregkh@suse.de, linux-acpi@vger.kernel.org, Miles Lane <miles.lane@gmail.com>
 
-On Sun, 9 Jul 2006 10:33:12 -0700
-"Randy.Dunlap" <rdunlap@xenotime.net> wrote:
 
-> > [root@tornado ~]# cat /proc/interrupts
-> >             CPU0       CPU1
-> >    0:     258266          0   IO-APIC-edge     timer
-> >    4:        355          0   IO-APIC-edge     serial
-> >    6:          5          0   IO-APIC-edge     floppy
-> >    8:          1          0   IO-APIC-edge     rtc
-> >    9:          0          0   IO-APIC-fasteoi  acpi
-> >   14:         28          0   IO-APIC-edge     libata
-> >   15:          0          0   IO-APIC-edge     libata
-> >   16:          0          0   IO-APIC-fasteoi  uhci_hcd:usb5
-> >   18:          0          0   IO-APIC-fasteoi  uhci_hcd:usb4
-> >   19:        980          0   IO-APIC-fasteoi  uhci_hcd:usb3, serial
-> >   23:        105          0   IO-APIC-fasteoi  ehci_hcd:usb1, uhci_hcd:usb2
-> > 313:      82513          0   PCI-MSI-<NULL>  eth0
-> > 314:      57370          0   PCI-MSI-<NULL>  libata
+
+On Sun, 9 Jul 2006, Brown, Len wrote:
+> >
+> >Fair enough. Reverted.
 > 
-> "We" need to fix that <NULL> there.
+> I disagree with this decision, and would like to know what
+> is necessary to reverse it.
 
-Seems that irq_desc[i].handle_irq is msi_irq_wo_maskbit_type or
-msi_irq_w_maskbit_type and kernel/irq/chip.c:handle_irq_name() doesn't know
-about that.
+Mistakes happen. Fair enough. They happen all the time. This time around, 
+for the 2.6.18-rc1 thing, I had heard more than the usual "nobody even 
+reacted", as Andrew had held up two patch-series of his because of that 
+issue..
 
-handle_irq_name() is a bit of a crock - this info should be in the irq_desc
-struct or somewhere like that.
+So that makes me like it even less than usual when I'm told that a problem 
+with something I merged was apparently known BEFORE IT WAS MERGED.
 
+So Adrian's report on its own wouldn't have caused a revert. 
+
+> If you address me directly when you are asking me to do something,
+> that would really help me help you.
+
+As far as I can tell, you were cc'd on all of these things, along with 
+the linux-acpi mailing list.
+
+			Linus
