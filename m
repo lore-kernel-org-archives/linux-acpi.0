@@ -1,66 +1,43 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: Linux/ACPI vs ACPICA audit -- ACPICA 20060707
-Date: Sun, 9 Jul 2006 14:10:10 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6ECF9C6@hdsmsx411.amr.corp.intel.com>
+From: Andi Kleen <ak@muc.de>
+Subject: Re: 2.6.18-rc1-mm1
+Date: 9 Jul 2006 20:35:38 +0200
+Message-ID: <20060709183538.GB88036@muc.de>
+References: <20060709021106.9310d4d1.akpm@osdl.org> <44B0E6E6.6070904@reub.net> <20060709052252.8c95202a.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:3518 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1161033AbWGISKO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Jul 2006 14:10:14 -0400
-Content-class: urn:content-classes:message
+Received: from colin.muc.de ([193.149.48.1]:17417 "EHLO mail.muc.de")
+	by vger.kernel.org with ESMTP id S932404AbWGISfj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Jul 2006 14:35:39 -0400
+Date: Sun, 9 Jul 2006 20:35:38 +0200
+Content-Disposition: inline
+In-Reply-To: <20060709052252.8c95202a.akpm@osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Randy.Dunlap" <rdunlap@xenotime.net>
-Cc: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: Reuben Farrelly <reuben-lkml@reub.net>, linux-kernel@vger.kernel.org, alan@lxorguk.ukuu.org.uk, linux-acpi@vger.kernel.org, rdunlap@xenotime.net, greg@kroah.com, john stultz <johnstul@us.ibm.com>, gregkh@suse.de
 
->> For the files that Linux gets from ACPICA, this diff shows how Linux
->> has diverged from upstream.
->> 
->> acpica-unix-20060707.audit.diff:# 42 files changed, 211 
->insertions(+), 92 deletions(-)
->
->300+ lines in 42 files.  That doesn't look huge,
->but then I'm not trying to maintain it.
+On Sun, Jul 09, 2006 at 05:22:52AM -0700, Andrew Morton wrote:
+> > ACPI: bus type pci registered
+> > PCI: BIOS Bug: MCFG area at f0000000 is not E820-reserved
+> > PCI: Not using MMCONFIG.
+> > PCI: Using configuration type 1
+> > ACPI: Interpreter enabled
+> > 
+> > Is there any way to verify that there really is a BIOS bug there?  If it is, is 
+> > there anyone within Intel or are there any known contacts who can push and poke 
+> > to get this looked at/fixed?  (It's a new Intel board, I'd hope they could get 
+> > it right..).
+> > 
+> > Plus we're not using MMCONFIG - even though I have it enabled.
+> 
+> Andi stuff.
 
-It isn't huge because we continuously work to minimize it.
+Greg has patches to relax the checking a bit. 
 
->Is there supposed to be some kind of value judgment (implied)
->in this diff-from-upstream?  Is the Linux code worse/better
->or just "fixed" to work with Linux?
+I don't know when he intends to merge them.
 
-We want to be in a place where there is 0 divergence necessary
-for Linux (and other OS's) to use ACPICA.  This is a measure
-of how successful we are for each snapshot on Linux.
+Anyways it should be completely harmless - mmconfig does nothing
+essential right now.
 
-Andy Grover didn't allow divergence in the old days.
-Some other OSs use ACPICA with zero changes.
-I allow divergence, but for it not to drive me insane with
-patch conflicts, it needs to be managed.
-
->Is the diff-from-upstream a maintainer headache?
-
-Yes, but not a large one, on the grand scale of headaches --
-as long as we keep it under control.
-
->What is the purpose of these audit reports?
-
-What is measured, improves.  Bob is the primary customer of these
-and he looks to see if he can massage ACPICA such that we don't
-need to touch it to integrate it -- or he pings me on why I
-made a change, or allowed a change, when I didn't have to.
-
-It also notifies the list that a new ACPICA version is
-available in a Linux patch.  Though we're working towards
-a different release process such that we'll integrate
-individual patches rather than "releases".
-
-cheers,
--Len
-
-ps. 20060707 is up as a plain patch, but I didn't push it
-to the git tree (and thus mm) b/c I didn't have time to test
-it Friday, which I'm doing now.
+-Andi
