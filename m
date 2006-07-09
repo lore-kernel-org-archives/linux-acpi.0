@@ -1,91 +1,66 @@
-From: "Randy.Dunlap" <rdunlap@xenotime.net>
-Subject: Re: Linux/ACPI vs ACPICA audit -- ACPICA 20060707
-Date: Sun, 9 Jul 2006 10:56:58 -0700
-Message-ID: <20060709105658.e1c0bad4.rdunlap@xenotime.net>
-References: <200606280108.28321.len.brown@intel.com>
-	<200607072057.27329.len.brown@intel.com>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: Linux/ACPI vs ACPICA audit -- ACPICA 20060707
+Date: Sun, 9 Jul 2006 14:10:10 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB6ECF9C6@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from xenotime.net ([66.160.160.81]:50871 "HELO xenotime.net")
-	by vger.kernel.org with SMTP id S1161030AbWGIRyM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Jul 2006 13:54:12 -0400
-Received: from midway.site ([71.117.253.75]) by xenotime.net for <linux-acpi@vger.kernel.org>; Sun, 9 Jul 2006 10:54:10 -0700
-In-Reply-To: <200607072057.27329.len.brown@intel.com>
+Received: from mga02.intel.com ([134.134.136.20]:3518 "EHLO
+	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1161033AbWGISKO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Jul 2006 14:10:14 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <len.brown@intel.com>
+To: "Randy.Dunlap" <rdunlap@xenotime.net>
 Cc: linux-acpi@vger.kernel.org
 
-On Fri, 7 Jul 2006 20:57:27 -0400 Len Brown wrote:
+>> For the files that Linux gets from ACPICA, this diff shows how Linux
+>> has diverged from upstream.
+>> 
+>> acpica-unix-20060707.audit.diff:# 42 files changed, 211 
+>insertions(+), 92 deletions(-)
+>
+>300+ lines in 42 files.  That doesn't look huge,
+>but then I'm not trying to maintain it.
 
-> For the files that Linux gets from ACPICA, this diff shows how Linux
-> has diverged from upstream.
-> 
-> acpica-unix-20060707.audit.diff:# 42 files changed, 211 insertions(+), 92 deletions(-)
+It isn't huge because we continuously work to minimize it.
 
-300+ lines in 42 files.  That doesn't look huge,
-but then I'm not trying to maintain it.
+>Is there supposed to be some kind of value judgment (implied)
+>in this diff-from-upstream?  Is the Linux code worse/better
+>or just "fixed" to work with Linux?
 
-Is there supposed to be some kind of value judgment (implied)
-in this diff-from-upstream?  Is the Linux code worse/better
-or just "fixed" to work with Linux?
-Is the diff-from-upstream a maintainer headache?
+We want to be in a place where there is 0 divergence necessary
+for Linux (and other OS's) to use ACPICA.  This is a measure
+of how successful we are for each snapshot on Linux.
 
-What is the purpose of these audit reports?
+Andy Grover didn't allow divergence in the old days.
+Some other OSs use ACPICA with zero changes.
+I allow divergence, but for it not to drive me insane with
+patch conflicts, it needs to be managed.
 
+>Is the diff-from-upstream a maintainer headache?
 
-> acpica-unix-20060623.audit.diff:# 37 files changed, 198 insertions(+), 78 deletions(-)
-> acpica-unix-20060608.audit.diff:# 35 files changed, 190 insertions(+), 70 deletions(-)
-> acpica-unix-20060526.audit.diff:# 34 files changed, 162 insertions(+), 53 deletions(-)
-> acpica-unix-20060512.audit.diff:# 34 files changed, 163 insertions(+), 53 deletions(-)
-> 
-> # 142 ACPICA files
-> # drivers/acpi/dispatcher/dswstate.c |    2 
-> # drivers/acpi/events/evxface.c      |   83 +++++++++++++----
-> # drivers/acpi/events/evxfevnt.c     |    2 
-> # drivers/acpi/executer/excreate.c   |    2 
-> # drivers/acpi/hardware/hwgpe.c      |    2 
-> # drivers/acpi/hardware/hwsleep.c    |   24 ----
-> # drivers/acpi/namespace/nsdump.c    |    6 -
-> # drivers/acpi/namespace/nsxfeval.c  |    4 
-> # drivers/acpi/parser/pstree.c       |    2 
-> # drivers/acpi/parser/psutils.c      |    4 
-> # drivers/acpi/resources/rsinfo.c    |    2 
-> # drivers/acpi/resources/rslist.c    |    2 
-> # drivers/acpi/resources/rsutils.c   |    2 
-> # drivers/acpi/resources/rsxface.c   |    4 
-> # drivers/acpi/tables/tbconvrt.c     |   11 +-
-> # drivers/acpi/tables/tbxface.c      |    2 
-> # drivers/acpi/utilities/utalloc.c   |    4 
-> # drivers/acpi/utilities/utcache.c   |    2 
-> # drivers/acpi/utilities/utdebug.c   |    4 
-> # drivers/acpi/utilities/utglobal.c  |   11 --
-> # drivers/acpi/utilities/utmisc.c    |    3 
-> # drivers/acpi/utilities/utmutex.c   |   15 +--
-> # drivers/acpi/utilities/utobject.c  |    1 
-> # drivers/acpi/utilities/utresrc.c   |    6 -
-> # drivers/acpi/utilities/utstate.c   |    1 
-> # drivers/acpi/utilities/utxface.c   |    2 
-> # include/acpi/acdebug.h             |    2 
-> # include/acpi/acdispat.h            |    2 
-> # include/acpi/acglobal.h            |    6 -
-> # include/acpi/achware.h             |    4 
-> # include/acpi/acinterp.h            |    2 
-> # include/acpi/aclocal.h             |    2 
-> # include/acpi/acmacros.h            |    2 
-> # include/acpi/acnamesp.h            |    4 
-> # include/acpi/acparser.h            |    4 
-> # include/acpi/acpiosxf.h            |   17 ++-
-> # include/acpi/acpixf.h              |   24 ++++
-> # include/acpi/acresrc.h             |    3 
-> # include/acpi/actbl.h               |    2 
-> # include/acpi/actbl1.h              |    2 
-> # include/acpi/acutils.h             |    8 +
-> # include/acpi/platform/aclinux.h    |   16 ++-
-> # 42 files changed, 211 insertions(+), 92 deletions(-)
+Yes, but not a large one, on the grand scale of headaches --
+as long as we keep it under control.
 
+>What is the purpose of these audit reports?
 
----
-~Randy
+What is measured, improves.  Bob is the primary customer of these
+and he looks to see if he can massage ACPICA such that we don't
+need to touch it to integrate it -- or he pings me on why I
+made a change, or allowed a change, when I didn't have to.
+
+It also notifies the list that a new ACPICA version is
+available in a Linux patch.  Though we're working towards
+a different release process such that we'll integrate
+individual patches rather than "releases".
+
+cheers,
+-Len
+
+ps. 20060707 is up as a plain patch, but I didn't push it
+to the git tree (and thus mm) b/c I didn't have time to test
+it Friday, which I'm doing now.
