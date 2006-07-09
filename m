@@ -1,38 +1,48 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: ACPI not working on DELL Inspiron 1150
-Date: Sun, 9 Jul 2006 17:19:25 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6ECF9E1@hdsmsx411.amr.corp.intel.com>
+From: Andrew Morton <akpm@osdl.org>
+Subject: Re: 2.6.18-rc1-mm1
+Date: Sun, 9 Jul 2006 14:40:35 -0700
+Message-ID: <20060709144035.5ec1c451.akpm@osdl.org>
+References: <20060709021106.9310d4d1.akpm@osdl.org>
+	<44B0E6E6.6070904@reub.net>
+	<20060709103312.5f78ad38.rdunlap@xenotime.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:43825 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1161160AbWGIVT2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Jul 2006 17:19:28 -0400
-Content-class: urn:content-classes:message
+Received: from smtp.osdl.org ([65.172.181.4]:60051 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1161170AbWGIVlD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Jul 2006 17:41:03 -0400
+In-Reply-To: <20060709103312.5f78ad38.rdunlap@xenotime.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?iso-8859-1?Q?Rusl=E1n_Ledesma_Garza?= <ruslanledesmag@hotmail.com>, linux-acpi@vger.kernel.org
+To: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: reuben-lkml@reub.net, mingo@redhat.com, linux-kernel@vger.kernel.org, alan@lxorguk.ukuu.org.uk, linux-acpi@vger.kernel.org, greg@kroah.com, Thomas Gleixner <tglx@linutronix.de>
 
- 
->>but I wonder
->>if the fact that my DST says "MSFT" could be the cause of ACPI not
->>working propertly.
->
->:-)  This means it was built with the MSFT ASL compiler.  Sometimes
->that is an issue, but we try to handle those issues and re-building
->the firmwarwe with Intel's compiler is okay for debugging, but not
->supportable.
+On Sun, 9 Jul 2006 10:33:12 -0700
+"Randy.Dunlap" <rdunlap@xenotime.net> wrote:
 
-oof, don't want to get quoted on that one out of context:-)
-If the VENDOR uses Intel's compiler, that is goodness,
-and it means that the ASL interpreter used in Linux will
-not trip over various implementation issues in other compilers.
+> > [root@tornado ~]# cat /proc/interrupts
+> >             CPU0       CPU1
+> >    0:     258266          0   IO-APIC-edge     timer
+> >    4:        355          0   IO-APIC-edge     serial
+> >    6:          5          0   IO-APIC-edge     floppy
+> >    8:          1          0   IO-APIC-edge     rtc
+> >    9:          0          0   IO-APIC-fasteoi  acpi
+> >   14:         28          0   IO-APIC-edge     libata
+> >   15:          0          0   IO-APIC-edge     libata
+> >   16:          0          0   IO-APIC-fasteoi  uhci_hcd:usb5
+> >   18:          0          0   IO-APIC-fasteoi  uhci_hcd:usb4
+> >   19:        980          0   IO-APIC-fasteoi  uhci_hcd:usb3, serial
+> >   23:        105          0   IO-APIC-fasteoi  ehci_hcd:usb1, uhci_hcd:usb2
+> > 313:      82513          0   PCI-MSI-<NULL>  eth0
+> > 314:      57370          0   PCI-MSI-<NULL>  libata
+> 
+> "We" need to fix that <NULL> there.
 
-However, if the USER re-builds their firmware, with Intel's compiler
-(or any other, for that matter), their system can not be supported
-by the system vendor, or any Linux vendor either.
+Seems that irq_desc[i].handle_irq is msi_irq_wo_maskbit_type or
+msi_irq_w_maskbit_type and kernel/irq/chip.c:handle_irq_name() doesn't know
+about that.
 
-cheers,
--Len
+handle_irq_name() is a bit of a crock - this info should be in the irq_desc
+struct or somewhere like that.
+
