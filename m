@@ -1,56 +1,73 @@
-From: "=?ISO-8859-1?Q?Rusl=E1n_Ledesma_Garza?="
-	<ruslanledesmagarza@gmail.com>
-Subject: ACPI not working on DELL Inspiron 1150
-Date: Sat, 8 Jul 2006 18:15:21 -0500
-Message-ID: <9d90148c0607081615q3505d896xb42ac7e6b4cac96f@mail.gmail.com>
-References: <9d90148c0607081418j6d58d49eo3cb6830305610266@mail.gmail.com>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: ACPI_DOCK bug: noone cares
+Date: Sun, 9 Jul 2006 02:06:01 +0200
+Message-ID: <20060709000601.GA13938@stusta.de>
+References: <a44ae5cd0606251256m74182e7fw4eb2692c89b0e2f8@mail.gmail.com> <20060625200953.GF23314@stusta.de> <a44ae5cd0606251313n5e7654f3t652df65e811325b5@mail.gmail.com> <20060625204039.GG23314@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.176]:12906 "EHLO
-	py-out-1112.google.com") by vger.kernel.org with ESMTP
-	id S1030421AbWGHXPV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 8 Jul 2006 19:15:21 -0400
-Received: by py-out-1112.google.com with SMTP id 57so528017pya
-        for <linux-acpi@vger.kernel.org>; Sat, 08 Jul 2006 16:15:21 -0700 (PDT)
-In-Reply-To: <9d90148c0607081418j6d58d49eo3cb6830305610266@mail.gmail.com>
+Received: from emailhub.stusta.mhn.de ([141.84.69.5]:44553 "HELO
+	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
+	id S1030423AbWGIAGD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 8 Jul 2006 20:06:03 -0400
 Content-Disposition: inline
+In-Reply-To: <20060625204039.GG23314@stusta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@osdl.org>
+Cc: Kristen Accardi <kristen.c.accardi@intel.com>, Dave Hansen <haveblue@us.ibm.com>, Andrew Morton <akpm@osdl.org>, LKML <linux-kernel@vger.kernel.org>, gregkh@suse.de, len.brown@intel.com, linux-acpi@vger.kernel.org, Miles Lane <miles.lane@gmail.com>
 
-Hi. I'm a newbie to linux, but I've been getting this problem ever
-since I installed it on my computer (I've already tested Fedora Core 5
-and Ubuntu 6, both having the same problem).
+On Sun, Jun 25, 2006 at 10:40:39PM +0200, Adrian Bunk wrote:
+> On Sun, Jun 25, 2006 at 01:13:04PM -0700, Miles Lane wrote:
+> 
+> > Should I attach my entire .config file in the future?  It's large enough 
+> > that
+> > I try to trim it to avoid bloating people's inboxes.
+> 
+> I'm often trying to reproduce compile errors, and it's always a pain in 
+> the ass when I have to construct a complete .config based on such a 
+> fragment instead of simply using the complete .config of the reporter.
+> 
+> And people for whom a few kB would matter wouldn't subscribe to 
+> linux-kernel...
+> 
+> > Yes, that's right.  It is compiled as a module.  So this just needs
+> > a tweaked config rule, right?
+> 
+> It would be a solution to let HOTPLUG_PCI_ACPI depend on
+> (ACPI_DOCK || ACPI_DOCK=n), or the #if in 
+> include/acpi/acpi_drivers.h could be changed to
+> #if defined(CONFIG_ACPI_DOCK) || (defined(CONFIG_ACPI_DOCK_MODULE) && defined(MODULE))
+> 
+> Which one suits better the intention is better is a question Kristen has 
+> to answer.
 
-1) I first discovered that my laptop display didn't turn off when the
-lid was closed (I can tell because I can see the glare of the display
-through a gap). So I started investigating and found that the lid
-event is not triggered whenever I close/open the lid (using
-acpi_listen). But the weirdest part is that the event is reported when
-doing "cat /proc/acpi/button/lid/LID/state".
 
-2) Then I realized no events are reported through acpi_listen, except
-for "ac_adapter" event which occurs after resuming the laptop from
-hibernation.
+Two weeks ago, we had:
+- a bug report
+- a detailed description how to possibly fix this issue
 
-3) I've also found that sometimes the computer freezes when resuming
-from hibernation (I can only confirm this under Ubuntu, I can't
-remember what happens with Fedora).
+What we did NOT have was:
+- any reaction by the patch author or any maintainer
+  (although with the exception of Linus, the recipients of the problem
+   description were exactly the same as the ones in this email)
 
-4) Finally, for some reason gnome power manager doesn't put into
-hibernation my computer when battery is too low (the only time I
-tested this was under Ubuntu) and simply runs out of battery.
+A few days later, the patch that includes this bug was included in 
+Linus' tree.
 
-Since #'s 1 & 2 have ocurred under Fedora and Ubuntu, I assume there
-is some low level problem/incompatibility of ACPI with my computer's
-hardware. Everything works fine under WinXP, and to me power
-management is a must for my laptop.
+Two weeks later, the bug is still present in both latest -mm and Linus' 
+tree.
 
-I've read some stuff about DST's, but sincerelly I didn't undestand
-much (ie. where does this DST reside? Is it a firmware?), but I wonder
-if the fact that my DST says "MSFT" could be the cause of ACPI not
-working propertly.
+Linus, please do a
+  git-revert a5e1b94008f2a96abf4a0c0371a55a56b320c13e
 
-Thanks in advance.
+cu
+Adrian
+
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
+
