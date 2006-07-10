@@ -1,230 +1,92 @@
 From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [BUG] sleeping function called from invalid context during resume
-Date: Mon, 10 Jul 2006 01:48:13 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6ECFA44@hdsmsx411.amr.corp.intel.com>
+Subject: RE: [patch] fix boot with acpi=off
+Date: Mon, 10 Jul 2006 02:15:57 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB6ECFA46@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:34232 "EHLO
+Received: from mga03.intel.com ([143.182.124.21]:12150 "EHLO
 	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S1751346AbWGJFsu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jul 2006 01:48:50 -0400
+	id S1751354AbWGJGQH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jul 2006 02:16:07 -0400
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@osdl.org>
-Cc: johnstul@us.ibm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.osdl.org
+To: Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, "Lebedev, Vladimir P" <vladimir.p.lebedev@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-Okay, if system_state is off limits, there here is what I've got
-(interesting part is the last 20 lines)
+[adding linux-acpi@vger.kernel.org to cc]
 
-ACPI: acpi_os_allocate() fixes
+acpi=off used to be handled by acpi_bus_register_driver()
+for these drivers.
 
-Replace acpi_in_resume with a more general hack
-to check irqs_disabled() on any kmalloc() from ACPI.
-While setting (system_state != SYSTEM_RUNNING) on resume
-seemed more general, Andrew Morton preferred this approach.
+But now acpi_lock_ac_dir() and acpi_lock_battery_dir()
+for procfs are inserted before that in the _init functions.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=3469
+This will be a problem for sbs.c also.
 
-Make acpi_os_allocate() into an inline function to
-allow /proc/slab_allocators to work.
+Vladimir,
+Any reason that the procfs stuff can't be after the
+acpi_bus_register_driver()
+calls?  Under what conditions could these lock functions fail?
 
-Delete some memset() that could fault on allocation failure.
-
-Signed-off-by: Len Brown <len.brown@intel.com>
-
- drivers/acpi/osl.c               |   30 ------------------------------
- drivers/acpi/parser/psutils.c    |    2 --
- drivers/acpi/pci_link.c          |    7 -------
- drivers/acpi/utilities/utalloc.c |    2 ++
- include/acpi/acmacros.h          |    8 +++++++-
- include/acpi/platform/aclinux.h  |   21 +++++++++++++++++++++
- 6 files changed, 30 insertions(+), 40 deletions(-)
+-Len
 
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index eedb05c..47dfde9 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -136,16 +136,6 @@ #else
- #endif
- }
- 
--
--extern int acpi_in_resume;
--void *acpi_os_allocate(acpi_size size)
--{
--	if (acpi_in_resume)
--		return kmalloc(size, GFP_ATOMIC);
--	else
--		return kmalloc(size, GFP_KERNEL);
--}
--
- acpi_status acpi_os_get_root_pointer(u32 flags, struct acpi_pointer
-*addr)
- {
- 	if (efi_enabled) {
-@@ -1115,26 +1105,6 @@ acpi_status acpi_os_release_object(acpi_
- 	return (AE_OK);
- }
- 
--/**********************************************************************
-*********
-- *
-- * FUNCTION:    acpi_os_acquire_object
-- *
-- * PARAMETERS:  Cache           - Handle to cache object
-- *              ReturnObject    - Where the object is returned
-- *
-- * RETURN:      Status
-- *
-- * DESCRIPTION: Return a zero-filled object.
-- *
--
-************************************************************************
-******/
--
--void *acpi_os_acquire_object(acpi_cache_t * cache)
--{
--	void *object = kmem_cache_zalloc(cache, GFP_KERNEL);
--	WARN_ON(!object);
--	return object;
--}
--
- 
-/***********************************************************************
-*******
-  *
-  * FUNCTION:    acpi_os_validate_interface
-diff --git a/drivers/acpi/parser/psutils.c
-b/drivers/acpi/parser/psutils.c
-index 182474a..d405387 100644
---- a/drivers/acpi/parser/psutils.c
-+++ b/drivers/acpi/parser/psutils.c
-@@ -139,12 +139,10 @@ union acpi_parse_object *acpi_ps_alloc_o
- 		/* The generic op (default) is by far the most common
-(16 to 1) */
- 
- 		op = acpi_os_acquire_object(acpi_gbl_ps_node_cache);
--		memset(op, 0, sizeof(struct acpi_parse_obj_common));
- 	} else {
- 		/* Extended parseop */
- 
- 		op = acpi_os_acquire_object(acpi_gbl_ps_node_ext_cache);
--		memset(op, 0, sizeof(struct acpi_parse_obj_named));
- 	}
- 
- 	/* Initialize the Op */
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index 8197c0e..7f3e7e7 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -780,11 +780,6 @@ static int acpi_pci_link_resume(struct a
- 		return 0;
- }
- 
--/*
-- * FIXME: this is a workaround to avoid nasty warning.  It will be
-removed
-- * after every device calls pci_disable_device in .resume.
-- */
--int acpi_in_resume;
- static int irqrouter_resume(struct sys_device *dev)
- {
- 	struct list_head *node = NULL;
-@@ -794,7 +789,6 @@ static int irqrouter_resume(struct sys_d
- 	/* Make sure SCI is enabled again (Apple firmware bug?) */
- 	acpi_set_register(ACPI_BITREG_SCI_ENABLE, 1,
-ACPI_MTX_DO_NOT_LOCK);
- 
--	acpi_in_resume = 1;
- 	list_for_each(node, &acpi_link.entries) {
- 		link = list_entry(node, struct acpi_pci_link, node);
- 		if (!link) {
-@@ -803,7 +797,6 @@ static int irqrouter_resume(struct sys_d
- 		}
- 		acpi_pci_link_resume(link);
- 	}
--	acpi_in_resume = 0;
- 	return 0;
- }
- 
-diff --git a/drivers/acpi/utilities/utalloc.c
-b/drivers/acpi/utilities/utalloc.c
-index 5cff17d..f6cbc0b 100644
---- a/drivers/acpi/utilities/utalloc.c
-+++ b/drivers/acpi/utilities/utalloc.c
-@@ -285,6 +285,7 @@ acpi_ut_initialize_buffer(struct acpi_bu
- 	return (status);
- }
- 
-+#ifdef NOT_USED_BY_LINUX
- 
-/***********************************************************************
-********
-  *
-  * FUNCTION:    acpi_ut_allocate
-@@ -360,3 +361,4 @@ void *acpi_ut_allocate_zeroed(acpi_size 
- 
- 	return (allocation);
- }
-+#endif
-diff --git a/include/acpi/acmacros.h b/include/acpi/acmacros.h
-index f1ac610..192fa09 100644
---- a/include/acpi/acmacros.h
-+++ b/include/acpi/acmacros.h
-@@ -724,9 +724,15 @@ #ifndef ACPI_DBG_TRACK_ALLOCATIONS
- 
- /* Memory allocation */
- 
-+#ifndef ACPI_ALLOCATE
- #define ACPI_ALLOCATE(a)
-acpi_ut_allocate((acpi_size)(a),_COMPONENT,_acpi_module_name,__LINE__)
-+#endif
-+#ifndef ACPI_ALLOCATE_ZEROED
- #define ACPI_ALLOCATE_ZEROED(a)
-acpi_ut_allocate_zeroed((acpi_size)(a),
-_COMPONENT,_acpi_module_name,__LINE__)
--#define ACPI_FREE(a)                kfree(a)
-+#endif
-+#ifndef ACPI_FREE
-+#define ACPI_FREE(a)                acpio_os_free(a)
-+#endif
- #define ACPI_MEM_TRACKING(a)
- 
- #else
-diff --git a/include/acpi/platform/aclinux.h
-b/include/acpi/platform/aclinux.h
-index 3f853ca..e0eacfa 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -104,4 +104,25 @@ #define acpi_thread_id u32
- 
- static inline acpi_thread_id acpi_os_get_thread_id(void) { return 0; }
- 
-+/*
-+ * The irqs_disabled() check is for resume from RAM.
-+ * Interrupts are off during resume, just like they are for boot.
-+ * However, boot has  (system_state != SYSTEM_RUNNING)
-+ * to quiet __might_sleep() in kmalloc() and resume does not.
-+ */
-+static inline void *acpi_os_allocate(acpi_size size) {
-+	return kmalloc(size, irqs_disabled() ? GFP_ATOMIC : GFP_KERNEL);
-+}
-+static inline void *acpi_os_allocate_zeroed(acpi_size size) {
-+	return kzalloc(size, irqs_disabled() ? GFP_ATOMIC : GFP_KERNEL);
-+}
-+
-+static inline void *acpi_os_acquire_object(acpi_cache_t * cache) {
-+        return kmem_cache_zalloc(cache, irqs_disabled() ? GFP_ATOMIC :
-GFP_KERNEL);
-+}
-+
-+#define ACPI_ALLOCATE(a)	acpi_os_allocate(a)
-+#define ACPI_ALLOCATE_ZEROED(a)	acpi_os_allocate_zeroed(a)
-+#define ACPI_FREE(a)		kfree(a)
-+
- #endif				/* __ACLINUX_H__ */
+>-----Original Message-----
+>From: Pavel Machek [mailto:pavel@ucw.cz] 
+>Sent: Saturday, July 08, 2006 8:44 AM
+>To: kernel list; Andrew Morton; Brown, Len
+>Subject: [patch] fix boot with acpi=off
+>
+>With acpi=off and acpi_ac/battery compiled into kernel, acpi breaks
+>boot. This fixes it.
+>
+>Signed-off-by: Pavel Machek <pavel@suse.cz>
+>
+>---
+>commit 30b8ecda788b096fbd7088808f9af65c41c3a83d
+>tree 3c28088018932f9ceb18bcf980507474d4a50c4e
+>parent 05f70501240c6ad5f852f13c187ee55579ad7bb8
+>author <pavel@amd.ucw.cz> Sat, 08 Jul 2006 14:43:13 +0200
+>committer <pavel@amd.ucw.cz> Sat, 08 Jul 2006 14:43:13 +0200
+>
+> drivers/acpi/ac.c      |    2 ++
+> drivers/acpi/battery.c |    3 +++
+> 2 files changed, 5 insertions(+), 0 deletions(-)
+>
+>diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+>index 24ccf81..432b6b7 100644
+>--- a/drivers/acpi/ac.c
+>+++ b/drivers/acpi/ac.c
+>@@ -285,6 +285,8 @@ static int __init acpi_ac_init(void)
+> {
+> 	int result;
+> 
+>+	if (acpi_disabled)
+>+		return -ENODEV;
+> 
+> 	acpi_ac_dir = acpi_lock_ac_dir();
+> 	if (!acpi_ac_dir)
+>diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+>index 2ce9b35..5af1f64 100644
+>--- a/drivers/acpi/battery.c
+>+++ b/drivers/acpi/battery.c
+>@@ -764,6 +764,9 @@ static int __init acpi_battery_init(void
+> {
+> 	int result;
+> 
+>+	if (acpi_disabled)
+>+		return -ENODEV;
+>+
+> 	acpi_battery_dir = acpi_lock_battery_dir();
+> 	if (!acpi_battery_dir)
+> 		return -ENODEV;
+>
+>-- 
+>(english) http://www.livejournal.com/~pavelmachek
+>(cesky, pictures) 
+>http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+>
