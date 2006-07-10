@@ -1,18 +1,20 @@
 From: =?iso-8859-1?B?UnVzbOFuIExlZGVzbWEgR2FyemE=?=
 	<ruslanledesmag@hotmail.com>
 Subject: ACPI not working on DELL Inspiron 1150
-Date: Sun, 09 Jul 2006 22:33:51 -0500
-Message-ID: <BAY116-F22DC4C67177879F5F3288AC86B0@phx.gbl>
+Date: Sun, 09 Jul 2006 23:19:50 -0500
+Message-ID: <BAY116-F284BEAFB104C54B0EBD12AC86B0@phx.gbl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1; format=flowed
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bay2-f252.bay2.hotmail.com ([65.54.246.77]:24935 "EHLO
-	bay0-omc1-s5.bay0.hotmail.com") by vger.kernel.org with ESMTP
-	id S1161322AbWGJDdy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 9 Jul 2006 23:33:54 -0400
+Received: from bay0-omc1-s30.bay0.hotmail.com ([65.54.246.102]:45157 "EHLO
+	bay0-omc1-s30.bay0.hotmail.com") by vger.kernel.org with ESMTP
+	id S1161326AbWGJETy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 Jul 2006 00:19:54 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
+
+Can anyone give me a hint on how to fix this? Anything would be useful.
 
 > >Hi. I'm a newbie to linux, but I've been getting this problem ever
 > >since I installed it on my computer (I've already tested Fedora Core 5
@@ -82,6 +84,6 @@ What can I do?
 >-Len
 
 _________________________________________________________________
-Prodigy/MSN Search. Todo lo que buscas ahora más rapido  
-http://search.t1msn.com.mx/
+Platica con tus amigos en linea con MSN Messenger 
+http://messenger.t1msn.com.mx/
 
