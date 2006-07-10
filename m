@@ -1,89 +1,48 @@
-From: =?iso-8859-1?B?UnVzbOFuIExlZGVzbWEgR2FyemE=?=
-	<ruslanledesmag@hotmail.com>
-Subject: ACPI not working on DELL Inspiron 1150
-Date: Sun, 09 Jul 2006 23:19:50 -0500
-Message-ID: <BAY116-F284BEAFB104C54B0EBD12AC86B0@phx.gbl>
+From: "Randy.Dunlap" <rdunlap@xenotime.net>
+Subject: Re: 2.6.18-rc1-mm1
+Date: Sun, 9 Jul 2006 22:35:16 -0700
+Message-ID: <20060709223516.f70827e1.rdunlap@xenotime.net>
+References: <20060709021106.9310d4d1.akpm@osdl.org>
+	<44B0E6E6.6070904@reub.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bay0-omc1-s30.bay0.hotmail.com ([65.54.246.102]:45157 "EHLO
-	bay0-omc1-s30.bay0.hotmail.com") by vger.kernel.org with ESMTP
-	id S1161326AbWGJETy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 10 Jul 2006 00:19:54 -0400
+Received: from xenotime.net ([66.160.160.81]:11686 "HELO xenotime.net")
+	by vger.kernel.org with SMTP id S1751079AbWGJFca (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 Jul 2006 01:32:30 -0400
+Received: from midway.site ([71.117.253.75]) by xenotime.net for <linux-acpi@vger.kernel.org>; Sun, 9 Jul 2006 22:32:28 -0700
+In-Reply-To: <44B0E6E6.6070904@reub.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Reuben Farrelly <reuben-lkml@reub.net>
+Cc: akpm@osdl.org, linux-kernel@vger.kernel.org, alan@lxorguk.ukuu.org.uk, linux-acpi@vger.kernel.org, greg@kroah.com
 
-Can anyone give me a hint on how to fix this? Anything would be useful.
+On Sun, 09 Jul 2006 23:22:14 +1200 Reuben Farrelly wrote:
 
-> >Hi. I'm a newbie to linux, but I've been getting this problem ever
-> >since I installed it on my computer (I've already tested Fedora Core 5
-> >and Ubuntu 6, both having the same problem).
-> >
-> >1) I first discovered that my laptop display didn't turn off when the
-> >lid was closed (I can tell because I can see the glare of the display
-> >through a gap). So I started investigating and found that the lid
-> >event is not triggered whenever I close/open the lid (using
-> >acpi_listen). But the weirdest part is that the event is reported when
-> >doing "cat /proc/acpi/button/lid/LID/state".
->
->is the video driver loaded (drivers/acpi/video.c)
-When doing "lsmod", response is "video                  16260  0", so I
-think answer is yes.
->
-> >2) Then I realized no events are reported through acpi_listen, except
-> >for "ac_adapter" event which occurs after resuming the laptop from
-> >hibernation.
->
->How about power button events?
-No other events rather than ac_adapter are reported, including button
-events.
->
-> >3) I've also found that sometimes the computer freezes when resuming
-> >from hibernation (I can only confirm this under Ubuntu, I can't
-> >remember what happens with Fedora).
-> >
-> >4) Finally, for some reason gnome power manager doesn't put into
-> >hibernation my computer when battery is too low (the only time I
-> >tested this was under Ubuntu) and simply runs out of battery.
-> >
-> >Since #'s 1 & 2 have ocurred under Fedora and Ubuntu, I assume there
-> >is some low level problem/incompatibility of ACPI with my computer's
-> >hardware. Everything works fine under WinXP, and to me power
-> >management is a must for my laptop.
-> >
-> >I've read some stuff about DST's, but sincerelly I didn't undestand
-> >much (ie. where does this DST reside? Is it a firmware?),
->
->modified DSDT's are a debugging tool only -- not a path to a "real fix".
->Linux should work properly on your laptop without any modifications
->to the firmware.  (though it might be a good idea to check with Dell
->to make sure you're running the latest).
-Last time I checked (about 3 weeks ago) the bios firmware was the latest
-("A07"). By the way, are DSDT's firmwares then?
->
-> >but I wonder
-> >if the fact that my DST says "MSFT" could be the cause of ACPI not
-> >working propertly.
->
->:-)  This means it was built with the MSFT ASL compiler.  Sometimes
->that is an issue, but we try to handle those issues and re-building
->the firmwarwe with Intel's compiler is okay for debugging, but not
->supportable.
->
->build with  CONFIG_ACPI_DEBUG=y and see if any new dmesg come out.
->You can also boot with "acpi=strict" if you want to see if
->Linux is already working around issues in your DSDT.
-I've already tried to build my DSDT using Intel's compiler. It showed
-several errors (can't remember which ones, but I can do it again if this can
-help). I think I fixed them, but could never get to install the modified
-DSDT.
+> 2. Onto some more minor warnings:
+> 
+> ACPI: bus type pci registered
+> PCI: BIOS Bug: MCFG area at f0000000 is not E820-reserved
+> PCI: Not using MMCONFIG.
+> PCI: Using configuration type 1
 
-What can I do?
->
->-Len
+Yes, I have all of those.
 
-_________________________________________________________________
-Platica con tus amigos en linea con MSN Messenger 
-http://messenger.t1msn.com.mx/
+> ACPI: Interpreter enabled
+> 
+> Is there any way to verify that there really is a BIOS bug there?  If it is, is 
+> there anyone within Intel or are there any known contacts who can push and poke 
+> to get this looked at/fixed?  (It's a new Intel board, I'd hope they could get 
+> it right..).
+> 
+> Plus we're not using MMCONFIG - even though I have it enabled.
+> 
+> Based on previous postings to lkml, I believe Randy Dunlap may have one of these 
+> boards too - Randy are you seeing this and the next bunch of warnings I am seeing?
 
+Yes, but Len says that they (*/namespace/*) will be going away.
+
+---
+~Randy
