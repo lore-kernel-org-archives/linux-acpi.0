@@ -1,101 +1,87 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH] ACPI devices _HID export through sysfs
-Date: Sun, 9 Jul 2006 21:32:12 -0600
-Message-ID: <200607092132.12818.bjorn.helgaas@hp.com>
-References: <200607090024.19776.thermal@o2.pl>
+From: =?iso-8859-1?B?UnVzbOFuIExlZGVzbWEgR2FyemE=?=
+	<ruslanledesmag@hotmail.com>
+Subject: ACPI not working on DELL Inspiron 1150
+Date: Sun, 09 Jul 2006 22:33:51 -0500
+Message-ID: <BAY116-F22DC4C67177879F5F3288AC86B0@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel6.hp.com ([156.153.255.205]:32441 "EHLO atlrel6.hp.com")
-	by vger.kernel.org with ESMTP id S1161320AbWGJDcU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Jul 2006 23:32:20 -0400
-In-Reply-To: <200607090024.19776.thermal@o2.pl>
-Content-Disposition: inline
+Received: from bay2-f252.bay2.hotmail.com ([65.54.246.77]:24935 "EHLO
+	bay0-omc1-s5.bay0.hotmail.com") by vger.kernel.org with ESMTP
+	id S1161322AbWGJDdy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 9 Jul 2006 23:33:54 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: thermal@o2.pl
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Saturday 08 July 2006 16:24, thermal@o2.pl wrote:
-> I recently thought about using coldplug (/etc/hotplug/*.rc) scripts to 
-> automagically load modules responsible for ACPI-controlled devices such 
-> as button, battery, laptop extras. To accomplish this I wrote a trivial 
-> kernel patch which exports the ACPI device _HID and _CID attributes in 
-> the corresponding sysfs node. I also wrote a script for /etc/hotplug 
-> which scans the /sys tree and loads modules according to HIDs exported.
+> >Hi. I'm a newbie to linux, but I've been getting this problem ever
+> >since I installed it on my computer (I've already tested Fedora Core 5
+> >and Ubuntu 6, both having the same problem).
+> >
+> >1) I first discovered that my laptop display didn't turn off when the
+> >lid was closed (I can tell because I can see the glare of the display
+> >through a gap). So I started investigating and found that the lid
+> >event is not triggered whenever I close/open the lid (using
+> >acpi_listen). But the weirdest part is that the event is reported when
+> >doing "cat /proc/acpi/button/lid/LID/state".
+>
+>is the video driver loaded (drivers/acpi/video.c)
+When doing "lsmod", response is "video                  16260  0", so I
+think answer is yes.
+>
+> >2) Then I realized no events are reported through acpi_listen, except
+> >for "ac_adapter" event which occurs after resuming the laptop from
+> >hibernation.
+>
+>How about power button events?
+No other events rather than ac_adapter are reported, including button
+events.
+>
+> >3) I've also found that sometimes the computer freezes when resuming
+> >from hibernation (I can only confirm this under Ubuntu, I can't
+> >remember what happens with Fedora).
+> >
+> >4) Finally, for some reason gnome power manager doesn't put into
+> >hibernation my computer when battery is too low (the only time I
+> >tested this was under Ubuntu) and simply runs out of battery.
+> >
+> >Since #'s 1 & 2 have ocurred under Fedora and Ubuntu, I assume there
+> >is some low level problem/incompatibility of ACPI with my computer's
+> >hardware. Everything works fine under WinXP, and to me power
+> >management is a must for my laptop.
+> >
+> >I've read some stuff about DST's, but sincerelly I didn't undestand
+> >much (ie. where does this DST reside? Is it a firmware?),
+>
+>modified DSDT's are a debugging tool only -- not a path to a "real fix".
+>Linux should work properly on your laptop without any modifications
+>to the firmware.  (though it might be a good idea to check with Dell
+>to make sure you're running the latest).
+Last time I checked (about 3 weeks ago) the bios firmware was the latest
+("A07"). By the way, are DSDT's firmwares then?
+>
+> >but I wonder
+> >if the fact that my DST says "MSFT" could be the cause of ACPI not
+> >working propertly.
+>
+>:-)  This means it was built with the MSFT ASL compiler.  Sometimes
+>that is an issue, but we try to handle those issues and re-building
+>the firmwarwe with Intel's compiler is okay for debugging, but not
+>supportable.
+>
+>build with  CONFIG_ACPI_DEBUG=y and see if any new dmesg come out.
+>You can also boot with "acpi=strict" if you want to see if
+>Linux is already working around issues in your DSDT.
+I've already tried to build my DSDT using Intel's compiler. It showed
+several errors (can't remember which ones, but I can do it again if this can
+help). I think I fixed them, but could never get to install the modified
+DSDT.
 
-Funny, I was just thinking about this, too :-)  I think it's a good
-idea to be able to automatically load the correct drivers for ACPI
-devices.
+What can I do?
+>
+>-Len
 
-But I think it'd be better for the kernel to expose ACPI devices to
-user-space as PNP devices, and to use uevents for PNP devices just
-like we do for PCI devices.  I don't like the idea of having separate
-user-space stuff for PNPBIOS vs PNPACPI devices.
+_________________________________________________________________
+Prodigy/MSN Search. Todo lo que buscas ahora más rapido  
+http://search.t1msn.com.mx/
 
-I don't know very much about udev.  Would the following patch, in
-combination with CONFIG_PNPACPI, be enough to do what you want?
-
-Index: work-mm7/drivers/pnp/driver.c
-===================================================================
---- work-mm7.orig/drivers/pnp/driver.c	2006-07-09 20:51:31.000000000 -0600
-+++ work-mm7/drivers/pnp/driver.c	2006-07-09 20:55:09.000000000 -0600
-@@ -191,9 +191,56 @@
- 	return 0;
- }
- 
-+static int pnp_uevent(struct device *dev, char **envp, int num_envp,
-+		      char *buffer, int buffer_size)
-+{
-+	struct pnp_dev *pdev;
-+	struct pnp_id *pos;
-+	int i = 0;
-+	int length = 0;
-+	int ids = 0;
-+	char *id_buffer, *p;
-+
-+	if (!dev)
-+		return -ENODEV;
-+
-+	pdev = to_pnp_dev(dev);
-+	if (!pdev)
-+		return -ENODEV;
-+
-+	for (pos = pdev->id; pos; pos = pos->next)
-+		ids++;
-+
-+	id_buffer = kmalloc(ids * 9, GFP_KERNEL);
-+	if (!id_buffer)
-+		return -ENOMEM;
-+
-+	p = id_buffer;
-+	for (pos = pdev->id; pos; pos = pos->next)
-+		p += scnprintf(p, 9, "%s%c", pos->id, pos->next ? ':' : '\0');
-+
-+	if (add_uevent_var(envp, num_envp, &i,
-+			   buffer, buffer_size, &length,
-+			   "PNP_ID=%s", id_buffer)) {
-+		kfree(id_buffer);
-+		return -ENOMEM;
-+	}
-+
-+	kfree(id_buffer);
-+
-+	if (add_uevent_var(envp, num_envp, &i,
-+			   buffer, buffer_size, &length,
-+			   "PNP_DEVICE_NODE=%s", dev->bus_id))
-+		return -ENOMEM;
-+
-+	envp[i] = NULL;
-+	return 0;
-+}
-+
- struct bus_type pnp_bus_type = {
- 	.name	= "pnp",
- 	.match	= pnp_bus_match,
-+	.uevent = pnp_uevent,
- 	.probe	= pnp_device_probe,
- 	.remove	= pnp_device_remove,
- 	.suspend = pnp_bus_suspend,
