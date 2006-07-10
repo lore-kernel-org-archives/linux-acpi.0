@@ -1,35 +1,33 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [GIT PATCH] ACPI for 2.6.18-rc1
-Date: Mon, 10 Jul 2006 10:23:05 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6ECFC49@hdsmsx411.amr.corp.intel.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [linux-pm] [BUG] sleeping function called from invalid context
+ during resume
+Date: Mon, 10 Jul 2006 11:21:30 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0607101118270.7513-100000@iolanthe.rowland.org>
+References: <CFF307C98FEABE47A452B27C06B85BB6ECFA44@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:44911 "EHLO
-	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S1161161AbWGJOX5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jul 2006 10:23:57 -0400
-Content-class: urn:content-classes:message
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1422656AbWGJPVg@vger.kernel.org>
+In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB6ECFA44@hdsmsx411.amr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@osdl.org>, johnstul@us.ibm.com, linux-pm@lists.osdl.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mike Galbraith <efault@gmx.de>
-Cc: torvalds@osdl.org, akpm@osdl.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
+On Mon, 10 Jul 2006, Brown, Len wrote:
 
->Do you have a plain old patch (scm impaired) lying around?
+> Okay, if system_state is off limits, there here is what I've got
+> (interesting part is the last 20 lines)
+> 
+> ACPI: acpi_os_allocate() fixes
+> 
+> Replace acpi_in_resume with a more general hack
+> to check irqs_disabled() on any kmalloc() from ACPI.
+> While setting (system_state != SYSTEM_RUNNING) on resume
+> seemed more general, Andrew Morton preferred this approach.
 
-Yes:
+I'm not sure how you would like to handle this, but a similar fix needs to 
+be made in drivers/acpi/osl.c:acpi_os_wait_semaphore().  If interrupts are 
+disabled the timeout argument should be set to 0, so that the routine will 
+call down_trylock() instead of down() or schedule_timeout_interruptible().
 
->> ps. a plain patch is also available here:
->>
-ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2
-.6.18/acpi-release-20060707-2.6.18-rc1.diff.gz
-
-Perhaps it hadn't hit the mirror when you looked -- it is there now.
-Note that it would apply best against the latest git snapshot on
-kernel.org.
-
-cheers,
--Len
+Alan Stern
