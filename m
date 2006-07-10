@@ -1,53 +1,138 @@
-From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Subject: Re: S3 suspend fails with lockdep BUG warning (TP T60, 2.6.18-rc1)
-Date: Mon, 10 Jul 2006 18:23:51 +0100
-Message-ID: <E1FzzU7-0004PA-00@skye.ra.phy.cam.ac.uk>
-References: <20060710110336.GC7172@atrey.karlin.mff.cuni.cz>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mraos.ra.phy.cam.ac.uk ([131.111.48.8]:40171 "EHLO
-	mraos.ra.phy.cam.ac.uk") by vger.kernel.org with ESMTP
-	id S1422703AbWGJRX5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 10 Jul 2006 13:23:57 -0400
-In-Reply-To: Your message of "Mon, 10 Jul 2006 13:03:37 +0200."
-             <20060710110336.GC7172@atrey.karlin.mff.cuni.cz>
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Lebedev, Vladimir P" <vladimir.p.lebedev@intel.com>
+Subject: RE: [patch] fix boot with acpi=off
+Date: Mon, 10 Jul 2006 22:08:19 +0400
+Message-ID: <8E389A5F2FEABA4CB1DEC35A25CB39CE0C4F5C@mssmsx411>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S965199AbWGJSOJ@vger.kernel.org>
+Content-class: urn:content-classes:message
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>
+Cc: linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 
->> > I just did that, but found no /sys/power/state file (or anything under
->> > /sys).  
+> acpi=off used to be handled by acpi_bus_register_driver()
+> for these drivers.
 
-> You need to mount /sys, first...?!
+> But now acpi_lock_ac_dir() and acpi_lock_battery_dir()
+> for procfs are inserted before that in the _init functions.
+This is fragment from SBS patch. 
+-----------------------------------------
+ 	ACPI_FUNCTION_TRACE("acpi_ac_init");
+ 
+-	acpi_ac_dir = proc_mkdir(ACPI_AC_CLASS, acpi_root_dir);
++	acpi_ac_dir = acpi_lock_ac_dir();
+ 	if (!acpi_ac_dir)
+ 		return_VALUE(-ENODEV);
+-	acpi_ac_dir->owner = THIS_MODULE;
+ 
+ 	result = acpi_bus_register_driver(&acpi_ac_driver);
+ 	if (result < 0) {
+-		remove_proc_entry(ACPI_AC_CLASS, acpi_root_dir);
++		acpi_unlock_ac_dir(acpi_ac_dir);
+ 		return_VALUE(-ENODEV);
+ 	}
+------------------------------------------
+Order of proc_mkdir and acpi_bus_register_driver is the same as order of
+acpi_lock_ac_dir. Could you explain what you meant?
 
-Right.  But /proc was also not there, so I just rebooted to runlevel 1
-to get both.
+>Vladimir,
+>Any reason that the procfs stuff can't be after the
+>acpi_bus_register_driver()
+>calls?
 
-> > >   $ echo mem > /sys/power/state
-> > >   bash: echo: write error: Operation not permitted
+If we move it after acpi_bus_register_driver(), calls to create files
+inside battery/ac directories (called from acpi_bus_register_driver via
+acpi_{battery,ac}_add()) will fail. 
 
-> Anything in dmesg?
 
-This one was solved in my later email to linux-acpi: I hadn't enabled 
-hotpluggable CPUs, which is needed for SMP to suspend.  So I did that,
-which helped but it failed with a locking problem and a failure to
-stop tasks.  See this linux-acpi msg:
+>Under what conditions could these lock functions fail?
+If there is no /proc/acpi directory in which to create ac/battery
+directories.
 
-Date:   Sat, 08 Jul 2006 12:22:45 EDT
-Subject: Re: S3 suspend fails with lockdep BUG warning (TP T60, 2.6.18-rc1) 
 
-> > > By the way, I'm not sure why standby is included as a possible
-> > > /sys/power/state, since the boot messages don't include S1:
-> > > 
-> > >   [17179570.492000] ACPI: (supports S0 S3 S4 S5)
+
+
+
+-----Original Message-----
+From: Brown, Len 
+Sent: Monday, July 10, 2006 10:16 AM
+To: Pavel Machek; kernel list; Andrew Morton; Lebedev, Vladimir P
+Cc: linux-acpi@vger.kernel.org
+Subject: RE: [patch] fix boot with acpi=off
+
+[adding linux-acpi@vger.kernel.org to cc]
+
+acpi=off used to be handled by acpi_bus_register_driver()
+for these drivers.
+
+But now acpi_lock_ac_dir() and acpi_lock_battery_dir()
+for procfs are inserted before that in the _init functions.
+
+This will be a problem for sbs.c also.
+
+Vladimir,
+Any reason that the procfs stuff can't be after the
+acpi_bus_register_driver()
+calls?  Under what conditions could these lock functions fail?
+
+-Len
+
+
+>-----Original Message-----
+>From: Pavel Machek [mailto:pavel@ucw.cz] 
+>Sent: Saturday, July 08, 2006 8:44 AM
+>To: kernel list; Andrew Morton; Brown, Len
+>Subject: [patch] fix boot with acpi=off
+>
+>With acpi=off and acpi_ac/battery compiled into kernel, acpi breaks
+>boot. This fixes it.
+>
+>Signed-off-by: Pavel Machek <pavel@suse.cz>
+>
+>---
+>commit 30b8ecda788b096fbd7088808f9af65c41c3a83d
+>tree 3c28088018932f9ceb18bcf980507474d4a50c4e
+>parent 05f70501240c6ad5f852f13c187ee55579ad7bb8
+>author <pavel@amd.ucw.cz> Sat, 08 Jul 2006 14:43:13 +0200
+>committer <pavel@amd.ucw.cz> Sat, 08 Jul 2006 14:43:13 +0200
+>
+> drivers/acpi/ac.c      |    2 ++
+> drivers/acpi/battery.c |    3 +++
+> 2 files changed, 5 insertions(+), 0 deletions(-)
+>
+>diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+>index 24ccf81..432b6b7 100644
+>--- a/drivers/acpi/ac.c
+>+++ b/drivers/acpi/ac.c
+>@@ -285,6 +285,8 @@ static int __init acpi_ac_init(void)
+> {
+> 	int result;
 > 
-> Now, that's really strange. My /sys/power/state does not include
-> standby... Ask on acpi list...
-
-I did, in the email that you're responding to (which went to
-linux-acpi), but this reply can be taken as my asking again :-)
-
--Sanjoy
-
-`Never underestimate the evil of which men of power are capable.'
-         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
+>+	if (acpi_disabled)
+>+		return -ENODEV;
+> 
+> 	acpi_ac_dir = acpi_lock_ac_dir();
+> 	if (!acpi_ac_dir)
+>diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+>index 2ce9b35..5af1f64 100644
+>--- a/drivers/acpi/battery.c
+>+++ b/drivers/acpi/battery.c
+>@@ -764,6 +764,9 @@ static int __init acpi_battery_init(void
+> {
+> 	int result;
+> 
+>+	if (acpi_disabled)
+>+		return -ENODEV;
+>+
+> 	acpi_battery_dir = acpi_lock_battery_dir();
+> 	if (!acpi_battery_dir)
+> 		return -ENODEV;
+>
+>-- 
+>(english) http://www.livejournal.com/~pavelmachek
+>(cesky, pictures) 
+>http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+>
