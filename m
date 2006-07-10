@@ -1,92 +1,324 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [patch] fix boot with acpi=off
-Date: Mon, 10 Jul 2006 02:15:57 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6ECFA46@hdsmsx411.amr.corp.intel.com>
+From: Len Brown <len.brown@intel.com>
+Subject: [GIT PATCH] ACPI for 2.6.18-rc1
+Date: Mon, 10 Jul 2006 03:01:58 -0400
+Message-ID: <200607100301.58861.len.brown@intel.com>
+References: <200606230437.50845.len.brown@intel.com> <200606300220.39405.len.brown@intel.com> <200607011730.24361.len.brown@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:12150 "EHLO
-	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S1751354AbWGJGQH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jul 2006 02:16:07 -0400
-Content-class: urn:content-classes:message
+Received: from mga01.intel.com ([192.55.52.88]:33436 "EHLO
+	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
+	id S1161358AbWGJG7y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 Jul 2006 02:59:54 -0400
+In-Reply-To: <200607011730.24361.len.brown@intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, "Lebedev, Vladimir P" <vladimir.p.lebedev@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: torvalds@osdl.org
+Cc: akpm@osdl.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-[adding linux-acpi@vger.kernel.org to cc]
+Hi Linus,
 
-acpi=off used to be handled by acpi_bus_register_driver()
-for these drivers.
+please pull from: 
 
-But now acpi_lock_ac_dir() and acpi_lock_battery_dir()
-for procfs are inserted before that in the _init functions.
+git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
 
-This will be a problem for sbs.c also.
+This will restore the ACPI_DOCK driver, plus other fixes below.
 
-Vladimir,
-Any reason that the procfs stuff can't be after the
-acpi_bus_register_driver()
-calls?  Under what conditions could these lock functions fail?
+thanks!
 
 -Len
 
+ps. a plain patch is also available here:
+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.18/acpi-release-20060707-2.6.18-rc1.diff.gz
 
->-----Original Message-----
->From: Pavel Machek [mailto:pavel@ucw.cz] 
->Sent: Saturday, July 08, 2006 8:44 AM
->To: kernel list; Andrew Morton; Brown, Len
->Subject: [patch] fix boot with acpi=off
->
->With acpi=off and acpi_ac/battery compiled into kernel, acpi breaks
->boot. This fixes it.
->
->Signed-off-by: Pavel Machek <pavel@suse.cz>
->
->---
->commit 30b8ecda788b096fbd7088808f9af65c41c3a83d
->tree 3c28088018932f9ceb18bcf980507474d4a50c4e
->parent 05f70501240c6ad5f852f13c187ee55579ad7bb8
->author <pavel@amd.ucw.cz> Sat, 08 Jul 2006 14:43:13 +0200
->committer <pavel@amd.ucw.cz> Sat, 08 Jul 2006 14:43:13 +0200
->
-> drivers/acpi/ac.c      |    2 ++
-> drivers/acpi/battery.c |    3 +++
-> 2 files changed, 5 insertions(+), 0 deletions(-)
->
->diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
->index 24ccf81..432b6b7 100644
->--- a/drivers/acpi/ac.c
->+++ b/drivers/acpi/ac.c
->@@ -285,6 +285,8 @@ static int __init acpi_ac_init(void)
-> {
-> 	int result;
-> 
->+	if (acpi_disabled)
->+		return -ENODEV;
-> 
-> 	acpi_ac_dir = acpi_lock_ac_dir();
-> 	if (!acpi_ac_dir)
->diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
->index 2ce9b35..5af1f64 100644
->--- a/drivers/acpi/battery.c
->+++ b/drivers/acpi/battery.c
->@@ -764,6 +764,9 @@ static int __init acpi_battery_init(void
-> {
-> 	int result;
-> 
->+	if (acpi_disabled)
->+		return -ENODEV;
->+
-> 	acpi_battery_dir = acpi_lock_battery_dir();
-> 	if (!acpi_battery_dir)
-> 		return -ENODEV;
->
->-- 
->(english) http://www.livejournal.com/~pavelmachek
->(cesky, pictures) 
->http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
->
+ drivers/acpi/Kconfig               |    9 
+ drivers/acpi/Makefile              |    1 
+ drivers/acpi/ac.c                  |    2 
+ drivers/acpi/battery.c             |    6 
+ drivers/acpi/bus.c                 |    4 
+ drivers/acpi/button.c              |    4 
+ drivers/acpi/cm_sbs.c              |   46 -
+ drivers/acpi/dispatcher/dsinit.c   |   10 
+ drivers/acpi/dispatcher/dsmethod.c |   23 
+ drivers/acpi/dispatcher/dswexec.c  |    4 
+ drivers/acpi/dock.c                |  739 +++++++++++++++++++++++++
+ drivers/acpi/ec.c                  |    2 
+ drivers/acpi/event.c               |    2 
+ drivers/acpi/events/evregion.c     |   44 -
+ drivers/acpi/events/evxface.c      |   44 -
+ drivers/acpi/events/evxfregn.c     |   13 
+ drivers/acpi/executer/exconfig.c   |    1 
+ drivers/acpi/executer/exconvrt.c   |    3 
+ drivers/acpi/executer/exmutex.c    |    4 
+ drivers/acpi/executer/exsystem.c   |    8 
+ drivers/acpi/fan.c                 |    2 
+ drivers/acpi/hotkey.c              |   10 
+ drivers/acpi/namespace/nsalloc.c   |   13 
+ drivers/acpi/osl.c                 |   30 -
+ drivers/acpi/parser/psutils.c      |    2 
+ drivers/acpi/pci_link.c            |    7 
+ drivers/acpi/power.c               |    2 
+ drivers/acpi/processor_core.c      |    2 
+ drivers/acpi/processor_idle.c      |    2 
+ drivers/acpi/scan.c                |   23 
+ drivers/acpi/sleep/proc.c          |    6 
+ drivers/acpi/system.c              |    6 
+ drivers/acpi/tables/tbget.c        |   12 
+ drivers/acpi/tables/tbinstal.c     |   21 
+ drivers/acpi/tables/tbrsdt.c       |   27 
+ drivers/acpi/tables/tbxface.c      |   32 -
+ drivers/acpi/thermal.c             |   10 
+ drivers/acpi/utilities/utalloc.c   |    2 
+ drivers/acpi/utilities/utdebug.c   |    4 
+ drivers/acpi/utilities/utdelete.c  |   13 
+ drivers/acpi/utilities/utmisc.c    |   25 
+ drivers/acpi/utilities/utmutex.c   |    8 
+ drivers/acpi/utilities/utstate.c   |    7 
+ drivers/pci/hotplug/Kconfig        |    2 
+ include/acpi/acconfig.h            |    2 
+ include/acpi/acinterp.h            |   10 
+ include/acpi/aclocal.h             |    4 
+ include/acpi/acmacros.h            |    8 
+ include/acpi/acpi_bus.h            |    2 
+ include/acpi/acpi_drivers.h        |   17 
+ include/acpi/acresrc.h             |    8 
+ include/acpi/platform/aclinux.h    |   27 
+ 52 files changed, 1085 insertions(+), 230 deletions(-)
+
+through these commits:
+
+Andi Kleen:
+      ACPI: delete some defaults from ACPI Kconfig
+
+Andrew Morton:
+      ACPI: SBS: fix initialization, sem2mutex
+
+Arjan van de Ven:
+      ACPI: add 'const' to several ACPI file_operations
+
+Bob Moore:
+      ACPI: ACPICA 20060707
+
+Len Brown:
+      ACPI: acpi_os_get_thread_id() returns current
+      Revert "Revert "ACPI: dock driver""
+      ACPI: ACPI_DOCK Kconfig
+      ACPI: "Device `[%s]' is not power manageable" make message debug only
+      ACPI: acpi_os_allocate() fixes
+
+with this log:
+
+commit c0dc250e89cb8af77c5689b36eda851158e8573e
+Merge: 0f12b15... e21c1ca...
+Author: Len Brown <len.brown@intel.com>
+Date:   Mon Jul 10 02:39:47 2006 -0400
+
+    Pull acpi_os_allocate into test branch
+
+commit 0f12b15ebcedce115a5d8e5ff741e49a7993f67c
+Merge: 20b499a... f6dd922...
+Author: Len Brown <len.brown@intel.com>
+Date:   Mon Jul 10 02:39:41 2006 -0400
+
+    Pull acpica-20060707 into test branch
+
+commit 20b499aa06edf59fa2d21f29d42d36586c6c058e
+Merge: dece75b... ab8aa06...
+Author: Len Brown <len.brown@intel.com>
+Date:   Mon Jul 10 02:39:36 2006 -0400
+
+    Pull bugzilla-6687 into test branch
+
+commit dece75b3a288fa49b3aab685543ec2f5c94b8cfc
+Merge: 1a39ed5... 8d7bff6...
+Author: Len Brown <len.brown@intel.com>
+Date:   Mon Jul 10 02:39:33 2006 -0400
+
+    Pull dock into test branch
+
+commit 1a39ed5888a8336ed2762d5b367195b14b878850
+Merge: 1b045e5... d750803...
+Author: Len Brown <len.brown@intel.com>
+Date:   Mon Jul 10 02:39:26 2006 -0400
+
+    Pull trivial into test branch
+
+commit 1b045e5d207fc65e6708e303c2ab4249bf619982
+Merge: b3cf257... 8970bfe...
+Author: Len Brown <len.brown@intel.com>
+Date:   Mon Jul 10 02:39:23 2006 -0400
+
+    Pull battery into test branch
+
+commit e21c1ca3f98529921c829a792dfdbfc5a5dc393b
+Author: Len Brown <len.brown@intel.com>
+Date:   Mon Jul 10 01:35:51 2006 -0400
+
+    ACPI: acpi_os_allocate() fixes
+    
+    Replace acpi_in_resume with a more general hack
+    to check irqs_disabled() on any kmalloc() from ACPI.
+    While setting (system_state != SYSTEM_RUNNING) on resume
+    seemed more general, Andrew Morton preferred this approach.
+    
+    http://bugzilla.kernel.org/show_bug.cgi?id=3469
+    
+    Make acpi_os_allocate() into an inline function to
+    allow /proc/slab_allocators to work.
+    
+    Delete some memset() that could fault on allocation failure.
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 8970bfe706345223d39d33bfce5f8b29750ab716
+Author: Andrew Morton <akpm@osdl.org>
+Date:   Mon Jul 10 02:34:45 2006 -0400
+
+    ACPI: SBS: fix initialization, sem2mutex
+    
+    cm_sbs_sem is being downed (via acpi_ac_init->acpi_lock_ac_dir) before it is
+    initialised, with grave results.
+    
+    - Make it a mutex
+    
+    - Initialise it
+    
+    - Make it static
+    
+    - Clean other stuff up.
+    
+    Thanks to Paul Drynoff <pauldrynoff@gmail.com> for reporting and testing.
+    
+    Cc: Rich Townsend <rhdt@bartol.udel.edu>
+    Signed-off-by: Andrew Morton <akpm@osdl.org>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit d75080328affb4b268da430b7074cc8139cc662a
+Author: Arjan van de Ven <arjan@infradead.org>
+Date:   Tue Jul 4 13:06:00 2006 -0400
+
+    ACPI: add 'const' to several ACPI file_operations
+    
+    Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit e26a2b8f68dca28c734d857517788e3b40b8691d
+Author: Andi Kleen <ak@suse.de>
+Date:   Thu Jul 6 12:14:00 2006 -0400
+
+    ACPI: delete some defaults from ACPI Kconfig
+    
+    No need for video to be always in
+    No need for ACPI dock driver to be always in
+    No need for smart battery driver to be always in
+    
+    Signed-off-by: Andi Kleen <ak@suse.de>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit af4f949c6b4ffa5119aad980626e5b04daca961b
+Author: Len Brown <len.brown@intel.com>
+Date:   Sun Jul 9 16:33:26 2006 -0400
+
+    ACPI: "Device `[%s]' is not power manageable" make message debug only
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 8d7bff6c0896feba2fbd5ce37062c212aee13870
+Author: Len Brown <len.brown@intel.com>
+Date:   Sun Jul 9 22:09:57 2006 -0400
+
+    ACPI: ACPI_DOCK Kconfig
+    
+    HOTPLUG_PCI_ACPI depends on ACPI_DOCK
+    ACPI_IBM_DOCK depends on ACPI_DOCK=n
+    ACPI_DOCK is EXPERIMENTAL, though that doesn't seem to mean much
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit c8f7a62cdde461914c6457d5f4362538ed810bf4
+Author: Len Brown <len.brown@intel.com>
+Date:   Sun Jul 9 17:22:28 2006 -0400
+
+    Revert "Revert "ACPI: dock driver""
+    
+    This reverts 953969ddf5b049361ed1e8471cc43dc4134d2a6f commit.
+
+commit ab8aa06a5c0b75974fb1949365cbb20a15cedf14
+Author: Len Brown <len.brown@intel.com>
+Date:   Fri Jul 7 20:11:07 2006 -0400
+
+    ACPI: acpi_os_get_thread_id() returns current
+    
+    Linux mutexes and the debug code that that reference
+    acpi_os_get_thread_id() are happy with 0.
+    But the AML mutexes in exmutex.c expect a unique non-zero
+    number for each thread - as they track this thread_id
+    to permit the mutex re-entrancy defined by the ACPI spec.
+    
+    http://bugzilla.kernel.org/show_bug.cgi?id=6687
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit f6dd9221dddb3550e60d32aee688588ec208312c
+Author: Bob Moore <robert.moore@intel.com>
+Date:   Fri Jul 7 20:44:38 2006 -0400
+
+    ACPI: ACPICA 20060707
+    
+    Added the ACPI_PACKED_POINTERS_NOT_SUPPORTED macro to
+    support C compilers that do not allow the initialization
+    of address pointers within packed structures - even though
+    the hardware itself may support misaligned transfers. Some
+    of the debug data structures are packed by default to
+    minimize size.
+    
+    Added an error message for the case where
+    acpi_os_get_thread_id() returns zero. A non-zero value is
+    required by the core ACPICA code to ensure the proper
+    operation of AML mutexes and recursive control methods.
+    
+    The DSDT is now the only ACPI table that determines whether
+    the AML interpreter is in 32-bit or 64-bit mode. Not really
+    a functional change, but the hooks for per-table 32/64
+    switching have been removed from the code. A clarification
+    to the ACPI specification is forthcoming in ACPI 3.0B.
+    
+    Fixed a possible leak of an Owner ID in the error
+    path of tbinstal.c acpi_tb_init_table_descriptor() and
+    migrated all table OwnerID deletion to a single place in
+    acpi_tb_uninstall_table() to correct possible leaks when using
+    the acpi_tb_delete_tables_by_type() interface (with assistance
+    from Lance Ortiz.)
+    
+    Fixed a problem with Serialized control methods where the
+    semaphore associated with the method could be over-signaled
+    after multiple method invocations.
+    
+    Fixed two issues with the locking of the internal
+    namespace data structure. Both the Unload() operator and
+    acpi_unload_table() interface now lock the namespace during
+    the namespace deletion associated with the table unload
+    (with assistance from Linn Crosetto.)
+    
+    Fixed problem reports (Valery Podrezov) integrated: -
+    Eliminate unnecessary memory allocation for CreateXxxxField
+    http://bugzilla.kernel.org/show_bug.cgi?id=5426
+    
+    Fixed problem reports (Fiodor Suietov) integrated: -
+    Incomplete cleanup branches in AcpiTbGetTableRsdt (BZ 369)
+    - On Address Space handler deletion, needless deactivation
+    call (BZ 374) - AcpiRemoveAddressSpaceHandler: validate
+    Device handle parameter (BZ 375) - Possible memory leak,
+    Notify sub-objects of Processor, Power, ThermalZone (BZ
+    376) - AcpiRemoveAddressSpaceHandler: validate Handler
+    parameter (BZ 378) - Minimum Length of RSDT should be
+    validated (BZ 379) - AcpiRemoveNotifyHandler: return
+    AE_NOT_EXIST if Processor Obj has no Handler (BZ (380)
+    - AcpiUnloadTable: return AE_NOT_EXIST if no table of
+    specified type loaded (BZ 381)
+    
+    Signed-off-by: Bob Moore <robert.moore@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
