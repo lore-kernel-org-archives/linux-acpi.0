@@ -1,90 +1,73 @@
-From: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
-Subject: Re: acpi stopped working for me sometime after 2.6.11
-Date: Mon, 10 Jul 2006 12:59:32 +0400
-Message-ID: <44B216F4.50500@linux.intel.com>
-References: <44B00222.2080700@pacbell.net>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: S3 suspend fails with lockdep BUG warning (TP T60, 2.6.18-rc1)
+Date: Mon, 10 Jul 2006 13:03:37 +0200
+Message-ID: <20060710110336.GC7172@atrey.karlin.mff.cuni.cz>
+References: <E1FzDIm-0003Zc-00@skye.ra.phy.cam.ac.uk> <200607082033.32579.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmr18.intel.com ([134.134.136.17]:202 "EHLO
-	orsfmr003.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1751376AbWGJI7j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 10 Jul 2006 04:59:39 -0400
-In-Reply-To: <44B00222.2080700@pacbell.net>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:37321 "EHLO
+	atrey.karlin.mff.cuni.cz") by vger.kernel.org with ESMTP
+	id S964798AbWGJLDK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 Jul 2006 07:03:10 -0400
+Content-Disposition: inline
+In-Reply-To: <200607082033.32579.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Philip Walden <pwaldenlinux@pacbell.net>
-Cc: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>, linux-acpi@vger.kernel.org
 
-Please open bug in bugzilla.kernel.org and attach full dmesg to it.
+Hi!
 
-Regards,
-	Alex.
-Philip Walden wrote:
-> I just upgraded from RH9 to FC4. The the distribution CDs I used 
-> provided 2.6.11-1.1369_FC4.
-> 
-> The upgrade was successful and I was happy to see ACPI actually power 
-> off my machine when I did a shut down. Something I had missed when I 
-> went from XP to RH9.
-> 
-> My next step was to upgrade using yum. This jumped me to 
-> 2.6.17-1.2139_FC4. ACPI was now disabled in boot up.
-> 
-> After several days of poking araound doing before and after compares I 
-> found something that works.
-> 
-> I added an acpi=force kernel parameter. ACPI loaded and shutdown now 
-> powers off the box.
-> 
-> Yeah!
-> 
-> I spotted the work-around in another thread where it is used to get 
-> around the ACPI BIOS age cutoff.
-> 
-> Not sure what happen after 2.6.11, though.
-> 
-> Does anyone care what happened? Should this be reported as a bug?
-> 
-> The motherboard, I am not sure what it is. The box is a HP Pavilion 
-> 9695C. The closest I can get to a specification for the motherboard is: 
-> http://h10025.www1.hp.com/ewfrf/wc/genericDocument?cc=us&docname=bph05885&lc=en&jumpid=reg_R1002_USEN  
-> Generically described as "Motherboard and Jumper Settings for Systems 
-> with AMD Athlon Processor and an AMD Irongate (AMD-751) Chipset".
-> 
-> Here is a dmesg excerpt showing the dissabling message.
-> 
-> Jul  3 09:15:43 walden4 kernel: klogd 1.4.1, log source = /proc/kmsg 
-> started.
-> Jul  3 09:15:43 walden4 kernel: Linux version 2.6.17-1.2139_FC4 
-> (bhcompile@hs20-bc1-5.build.redhat.com) (gcc version 4.0.2 20051125 (Red 
-> Hat 4.0.2-8)) #1 Fri Jun 23 20:56:41 EDT 2006
-> Jul  3 09:15:43 walden4 kernel: BIOS-provided physical RAM map:
-> Jul  3 09:15:43 walden4 kernel:  BIOS-e820: 0000000000000000 - 
-> 000000000009f800 (usable)
-> Jul  3 09:15:43 walden4 kernel:  BIOS-e820: 000000000009f800 - 
-> 00000000000a0000 (reserved)
-> Jul  3 09:15:43 walden4 kernel:  BIOS-e820: 00000000000e9400 - 
-> 0000000000100000 (reserved)
-> Jul  3 09:15:43 walden4 kernel:  BIOS-e820: 0000000000100000 - 
-> 000000000fff0000 (usable)
-> Jul  3 09:15:43 walden4 kernel:  BIOS-e820: 000000000fff0000 - 
-> 000000000ffffc00 (ACPI data)
-> Jul  3 09:15:43 walden4 kernel:  BIOS-e820: 000000000ffffc00 - 
-> 0000000010000000 (ACPI NVS)
-> Jul  3 09:15:43 walden4 kernel:  BIOS-e820: 00000000fffc0000 - 
-> 0000000100000000 (reserved)
-> Jul  3 09:15:43 walden4 kernel: 0MB HIGHMEM available.
-> Jul  3 09:15:43 walden4 kernel: 255MB LOWMEM available.
-> Jul  3 09:15:43 walden4 kernel: Using x86 segment limits to approximate 
-> NX protection
-> Jul  3 09:15:43 walden4 kernel: DMI not present or invalid.
-> Jul  3 09:15:43 walden4 kernel: ACPI: Disabling ACPI support
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+s2ram works okay here -- 2.6.18-rc1-mm1, but I'm not using /sys
+activation.
 
+> > I just did that, but found no /sys/power/state file (or anything under
+> > /sys).  
+
+You need to mount /sys, first...?!
+
+> > So I rebooted with "init=/sbin/init 1" and got
+> > 
+> >   $ echo mem > /sys/power/state
+> >   bash: echo: write error: Operation not permitted
+
+Anything in dmesg?
+
+> > As a sanity check:
+> > 
+> >   $ ls -l /sys/power/state
+> >   -rw-r--r-- 1 root root 4096 2006-07-08 09:51 /sys/power/state
+> > 
+> > So I retried both with the regular boot and got the same error.  The
+> > state file is at least half working:
+> > 
+> >   $ cat /sys/power/state
+> >   standby mem 
+> > 
+> > strace shows that the write(1,"mem\n",4) fails with EPERM.  So I'm
+> > pretty sure that's what happens to the S3 suspend (with Fn-F4): it
+> > bounces back after failing to write to /sys/power/state
+> > 
+> > The above is with the same kernel as in my original report
+> > (SMP+PREEMPT kernel and lock validation code).  Worth retrying without
+> > those options, or is this error simple enough to track down with this
+> > kernel?
+
+Do you have config_acpi_sleep compiled in?
+
+
+> Hm, there seems to be something fishy in sysfs on this kernel.  I'm not
+> sure what, though, because I've just tested suspend to disk on it and
+> there haven't been any problems like that.
+> 
+> > By the way, I'm not sure why standby is included as a possible
+> > /sys/power/state, since the boot messages don't include S1:
+> > 
+> >   [17179570.492000] ACPI: (supports S0 S3 S4 S5)
+
+Now, that's really strange. My /sys/power/state does not include
+standby... Ask on acpi list...
+							Pavel
+-- 
+Thanks, Sharp!
