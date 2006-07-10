@@ -1,69 +1,54 @@
 From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [patch] fix boot with acpi=off
-Date: Mon, 10 Jul 2006 14:37:53 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6ED0026@hdsmsx411.amr.corp.intel.com>
+Subject: RE: [linux-pm] [BUG] sleeping function called from invalid context during resume
+Date: Mon, 10 Jul 2006 14:44:22 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB6ED003F@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:27689 "EHLO
-	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
-	id S1422756AbWGJSiD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jul 2006 14:38:03 -0400
+Received: from mga03.intel.com ([143.182.124.21]:61264 "EHLO
+	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
+	id S1422764AbWGJSsB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Jul 2006 14:48:01 -0400
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Lebedev, Vladimir P" <vladimir.p.lebedev@intel.com>, Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>
-Cc: linux-acpi@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@osdl.org>, johnstul@us.ibm.com, linux-pm@lists.osdl.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
  
-
->-----Original Message-----
->From: Lebedev, Vladimir P 
->Sent: Monday, July 10, 2006 2:08 PM
->To: Brown, Len; 'Pavel Machek'; 'kernel list'; 'Andrew Morton'
->Cc: 'linux-acpi@vger.kernel.org'
->Subject: RE: [patch] fix boot with acpi=off
+>> ACPI: acpi_os_allocate() fixes
+>> 
+>> Replace acpi_in_resume with a more general hack
+>> to check irqs_disabled() on any kmalloc() from ACPI.
+>> While setting (system_state != SYSTEM_RUNNING) on resume
+>> seemed more general, Andrew Morton preferred this approach.
+>> 
+>> http://bugzilla.kernel.org/show_bug.cgi?id=3469
+>> 
+>> Make acpi_os_allocate() into an inline function to
+>> allow /proc/slab_allocators to work.
 >
->> acpi=off used to be handled by acpi_bus_register_driver()
->> for these drivers.
+>Another problem with this patch; it doesn't compile.
 >
->> But now acpi_lock_ac_dir() and acpi_lock_battery_dir()
->> for procfs are inserted before that in the _init functions.
->This is fragment from SBS patch. 
->-----------------------------------------
-> 	ACPI_FUNCTION_TRACE("acpi_ac_init");
-> 
->-	acpi_ac_dir = proc_mkdir(ACPI_AC_CLASS, acpi_root_dir);
->+	acpi_ac_dir = acpi_lock_ac_dir();
-> 	if (!acpi_ac_dir)
-> 		return_VALUE(-ENODEV);
->-	acpi_ac_dir->owner = THIS_MODULE;
-> 
-> 	result = acpi_bus_register_driver(&acpi_ac_driver);
-> 	if (result < 0) {
->-		remove_proc_entry(ACPI_AC_CLASS, acpi_root_dir);
->+		acpi_unlock_ac_dir(acpi_ac_dir);
-> 		return_VALUE(-ENODEV);
-> 	}
->------------------------------------------
->Order of proc_mkdir and acpi_bus_register_driver is the same 
->as order of acpi_lock_ac_dir. Could you explain what you meant?
->
->>Vladimir,
->>Any reason that the procfs stuff can't be after the 
->>acpi_bus_register_driver()
->>calls?
->
->If we move it after acpi_bus_register_driver(), calls to 
->create files inside battery/ac directories (called from 
->acpi_bus_register_driver via acpi_{battery,ac}_add()) will fail. 
+>Along with the other changes to 
+>include/acpi/platform/aclinux.h, you need 
+>to define acpi_size.  The easiest way is to #include 
+><acpi/actypes.h> and then remove the unneeded definitions of
+acpi_cpu_flags and 
+>acpi_thread_id.
 
-ic.
+oops, looks like I e-mailed and attached a diff that was
+from before I built and tested.  The version in git
+has one line different -- includes actypes.h as you suggest.
+I've updated the attachment in the bug report above to match git.
 
-Dunno why acpi_lock_ac_dir() makes pavel's box fail w/ acpi=off.
-maybe we should simply extend his patch to cover sbs.c and
-check acpi_disabled at the start of init of these drivers?
+note that the definitions of acpi_cpu_flags
+and acpi_thread_id are not un-needed.  Indeed,
+they must occur in aclinux.h above where actypes.h
+is included or the ACPICA defaults would be used
+and that would break the Linux build.
 
+thanks,
 -Len
