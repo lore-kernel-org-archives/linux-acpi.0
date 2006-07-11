@@ -1,45 +1,50 @@
-From: Greg KH <gregkh@suse.de>
+From: Greg KH <greg@kroah.com>
 Subject: Re: 2.6.18-rc1-mm1
-Date: Tue, 11 Jul 2006 12:37:42 -0700
-Message-ID: <20060711193742.GD32146@suse.de>
-References: <20060709021106.9310d4d1.akpm@osdl.org> <44B0E6E6.6070904@reub.net> <20060709052252.8c95202a.akpm@osdl.org> <20060709183538.GB88036@muc.de>
+Date: Tue, 11 Jul 2006 16:00:55 -0700
+Message-ID: <20060711230055.GL18838@kroah.com>
+References: <CFF307C98FEABE47A452B27C06B85BB6ECF9C0@hdsmsx411.amr.corp.intel.com> <1152521329.4874.3.camel@laptopd505.fenrus.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.suse.de ([195.135.220.2]:54450 "EHLO mx1.suse.de")
-	by vger.kernel.org with ESMTP id S932100AbWGKTmU (ORCPT
+Received: from mail.kroah.org ([69.55.234.183]:5544 "EHLO perch.kroah.org")
+	by vger.kernel.org with ESMTP id S932232AbWGKXW4 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 Jul 2006 15:42:20 -0400
+	Tue, 11 Jul 2006 19:22:56 -0400
 Content-Disposition: inline
-In-Reply-To: <20060709183538.GB88036@muc.de>
+In-Reply-To: <1152521329.4874.3.camel@laptopd505.fenrus.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <ak@muc.de>
-Cc: Andrew Morton <akpm@osdl.org>, Reuben Farrelly <reuben-lkml@reub.net>, linux-kernel@vger.kernel.org, alan@lxorguk.ukuu.org.uk, linux-acpi@vger.kernel.org, rdunlap@xenotime.net, greg@kroah.com, john stultz <johnstul@us.ibm.com>
+To: Arjan van de Ven <arjan@linux.intel.com>
+Cc: "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, alan@lxorguk.ukuu.org.uk, linux-kernel@vger.kernel.org, akpm@osdl.org, mingo@redhat.com, Reuben Farrelly <reuben-lkml@reub.net>, "Randy.Dunlap" <rdunlap@xenotime.net>
 
-On Sun, Jul 09, 2006 at 08:35:38PM +0200, Andi Kleen wrote:
-> On Sun, Jul 09, 2006 at 05:22:52AM -0700, Andrew Morton wrote:
-> > > ACPI: bus type pci registered
-> > > PCI: BIOS Bug: MCFG area at f0000000 is not E820-reserved
-> > > PCI: Not using MMCONFIG.
-> > > PCI: Using configuration type 1
-> > > ACPI: Interpreter enabled
-> > > 
-> > > Is there any way to verify that there really is a BIOS bug there?  If it is, is 
-> > > there anyone within Intel or are there any known contacts who can push and poke 
-> > > to get this looked at/fixed?  (It's a new Intel board, I'd hope they could get 
-> > > it right..).
-> > > 
-> > > Plus we're not using MMCONFIG - even though I have it enabled.
+On Mon, Jul 10, 2006 at 10:48:49AM +0200, Arjan van de Ven wrote:
+> On Sun, 2006-07-09 at 13:47 -0400, Brown, Len wrote:
+> > >> 2. Onto some more minor warnings:
+> > >> 
+> > >> ACPI: bus type pci registered
+> > >> PCI: BIOS Bug: MCFG area at f0000000 is not E820-reserved
+> > >> PCI: Not using MMCONFIG.
+> > >> PCI: Using configuration type 1
+> > >> ACPI: Interpreter enabled
+> > >> 
+> > >> Is there any way to verify that there really is a BIOS bug 
+> > >there?  If it is, is there anyone within Intel or are there any
+> > >known contacts 
+> > >who can push and poke > to get this looked at/fixed?
+> > >(It's a new Intel board, I'd hope they could get it right..).
 > > 
-> > Andi stuff.
+> > Arjan should probably comment on that one.
 > 
-> Greg has patches to relax the checking a bit. 
+> I could.. but please next time if you want to CC me use an email address
+> I actually read ;)
 > 
-> I don't know when he intends to merge them.
+> Greg has a patch to relax this check, and Rajesh has a further patch to
+> relax it more.
 
-I think they are all merged into 2.6.18-rc1, as I do't see any MMCONFIG
-patches in my tree right now, nor in my queue.
+Hm, no, my patch should already be in 2.6.18-rc1, I don't have any
+pending MMCONFIG patches in my queue or tree.
+
+So if you think I'm missing one, please resend it to me.
 
 thanks,
 
