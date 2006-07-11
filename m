@@ -1,27 +1,46 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: 2.6.17-mm6: BUG: spinlock wrong CPU on CPU#1, kacpid_notify/7105
-Date: Tue, 11 Jul 2006 15:36:30 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6F3153D@hdsmsx411.amr.corp.intel.com>
+From: Greg KH <gregkh@suse.de>
+Subject: Re: 2.6.18-rc1-mm1
+Date: Tue, 11 Jul 2006 12:37:42 -0700
+Message-ID: <20060711193742.GD32146@suse.de>
+References: <20060709021106.9310d4d1.akpm@osdl.org> <44B0E6E6.6070904@reub.net> <20060709052252.8c95202a.akpm@osdl.org> <20060709183538.GB88036@muc.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:9016 "EHLO
-	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
-	id S1751143AbWGKTgg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Jul 2006 15:36:36 -0400
-Content-class: urn:content-classes:message
+Received: from mail.suse.de ([195.135.220.2]:54450 "EHLO mx1.suse.de")
+	by vger.kernel.org with ESMTP id S932100AbWGKTmU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Jul 2006 15:42:20 -0400
+Content-Disposition: inline
+In-Reply-To: <20060709183538.GB88036@muc.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Accardi, Kristen C" <kristen.c.accardi@intel.com>, Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andi Kleen <ak@muc.de>
+Cc: Andrew Morton <akpm@osdl.org>, Reuben Farrelly <reuben-lkml@reub.net>, linux-kernel@vger.kernel.org, alan@lxorguk.ukuu.org.uk, linux-acpi@vger.kernel.org, rdunlap@xenotime.net, greg@kroah.com, john stultz <johnstul@us.ibm.com>
 
+On Sun, Jul 09, 2006 at 08:35:38PM +0200, Andi Kleen wrote:
+> On Sun, Jul 09, 2006 at 05:22:52AM -0700, Andrew Morton wrote:
+> > > ACPI: bus type pci registered
+> > > PCI: BIOS Bug: MCFG area at f0000000 is not E820-reserved
+> > > PCI: Not using MMCONFIG.
+> > > PCI: Using configuration type 1
+> > > ACPI: Interpreter enabled
+> > > 
+> > > Is there any way to verify that there really is a BIOS bug there?  If it is, is 
+> > > there anyone within Intel or are there any known contacts who can push and poke 
+> > > to get this looked at/fixed?  (It's a new Intel board, I'd hope they could get 
+> > > it right..).
+> > > 
+> > > Plus we're not using MMCONFIG - even though I have it enabled.
+> > 
+> > Andi stuff.
+> 
+> Greg has patches to relax the checking a bit. 
+> 
+> I don't know when he intends to merge them.
 
->I think the patch I posted on Friday will solve this issue:
->
->http://marc.theaimsgroup.com/?l=linux-kernel&m=115230920629981&w=2
->
->It is included in 2.6.18-rc1-mm1.
+I think they are all merged into 2.6.18-rc1, as I do't see any MMCONFIG
+patches in my tree right now, nor in my queue.
 
-FYI, this is included in 2.6.18-rc1-git4
+thanks,
+
+greg k-h
