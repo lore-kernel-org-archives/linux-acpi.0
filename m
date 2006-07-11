@@ -1,66 +1,38 @@
-From: Janosch Machowinski <scotch@tzi.de>
-Subject: Re: Please help: ACPI not working on DELL Inspiron 1150
-Date: Tue, 11 Jul 2006 17:15:13 +0200
-Message-ID: <44B3C081.6060104@tzi.de>
-References: <BAY116-F990288CF0C74028ADFE5FC86B0@phx.gbl>
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: Re: 2.6.17-mm6: BUG: spinlock wrong CPU on CPU#1,
+ kacpid_notify/7105
+Date: Tue, 11 Jul 2006 12:26:07 -0700
+Message-ID: <20060711122607.a290f3e6.kristen.c.accardi@intel.com>
+References: <44B08F3F.1080704@goop.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailhost.informatik.uni-bremen.de ([134.102.201.18]:22516 "EHLO
-	informatik.uni-bremen.de") by vger.kernel.org with ESMTP
-	id S1750990AbWGKPPA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 Jul 2006 11:15:00 -0400
-In-Reply-To: <BAY116-F990288CF0C74028ADFE5FC86B0@phx.gbl>
+Received: from fmr18.intel.com ([134.134.136.17]:983 "EHLO
+	orsfmr003.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1751192AbWGKT0L (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Jul 2006 15:26:11 -0400
+In-Reply-To: <44B08F3F.1080704@goop.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?ISO-8859-1?Q?Rusl=E1n_Ledesma_Garza?= <ruslanledesmag@hotmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
+On Sat, 08 Jul 2006 22:08:15 -0700
+Jeremy Fitzhardinge <jeremy@goop.org> wrote:
 
+> [ Repost: got linux-acpi's address wrong. ]
+> 
+> I just got this while undocking my machine.  Thinkpad X60, Core Duo CPU.
+>
 
-Rusl=E1n Ledesma Garza wrote:
->=20
-> There is no mailloop. I thought the mail hadn't reached the mailing l=
-ist
-> because no one had answered me anything.
-This is a maillist, pleas do not expect, that you get an answer within
-hours... I would say if you didn't get an answer within 2 days it's ok,
-to ask again... But if you ask again, please do not just resend your ol=
-d
-email. Think about why nobody answered...
->=20
-> I thought I could get some little help but it seems as if I'm not in =
-the
-> right place or no one seems interested in making ACPI work on some De=
-ll
-> laptops. From what I've researched, I've discovered this is not an
-> isolated malfunction.
->=20
-> What I ask is some feedback. What should I do first in order to get t=
-his
-> thing fixed?
->=20
-> Besides I've been asking a few questions which I feel have not been
-> answered very well.
-> -Is the DSDT a firmware?
-Sort of (for more information go to www.acpi.info)
-> -If it is so where does it reside?
-In the bios
-> -I found a tutorial on how to "fix" the DSDT. They talked about loadi=
-ng
-> the DSDT on startup through an image file. What does this mean?
+Hi Jeremy,
+I think the patch I posted on Friday will solve this issue:
 
-The DSDT can be be replaced by the host OS a patch for this purpose can
-be found at :
-http://gaugusch.at/kernel.shtml.
-In general it is not the right way to replace the DSDT. Linux should
-work on any box without replacing the DSDT...
+http://marc.theaimsgroup.com/?l=linux-kernel&m=115230920629981&w=2
 
-Greetings
-   Janosch
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It is included in 2.6.18-rc1-mm1.
+
+Let me know if this works for you.
+
+Kristen
