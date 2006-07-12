@@ -1,72 +1,89 @@
-From: "Randy.Dunlap" <rdunlap@xenotime.net>
-Subject: [PATCH -mm] acpi/scan: handle kset/kobject errors
-Date: Tue, 11 Jul 2006 23:08:11 -0700
-Message-ID: <20060711230811.9e1167e5.rdunlap@xenotime.net>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: [PATCH -mm] acpi/scan: handle kset/kobject errors
+Date: Wed, 12 Jul 2006 02:40:03 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB6F31867@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from xenotime.net ([66.160.160.81]:43444 "HELO xenotime.net")
-	by vger.kernel.org with SMTP id S932438AbWGLGFX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Jul 2006 02:05:23 -0400
-Received: from midway.site ([71.117.253.75]) by xenotime.net for <linux-acpi@vger.kernel.org>; Tue, 11 Jul 2006 23:05:21 -0700
+Received: from mga01.intel.com ([192.55.52.88]:30783 "EHLO
+	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
+	id S1750924AbWGLGkH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jul 2006 02:40:07 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
-Cc: len.brown@intel.com, akpm <akpm@osdl.org>
+To: "Randy.Dunlap" <rdunlap@xenotime.net>, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+Cc: akpm <akpm@osdl.org>
 
-From: Randy Dunlap <rdunlap@xenotime.net>
+applied,
+my only nitpick is that in the subject capital "ACPI:" is what we use --
+as it is an acronym.
 
-Check and handle kset_register() and kobject_register() init errors.
+thanks,
+-Len 
 
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
----
- drivers/acpi/scan.c |   12 ++++++++++--
- 1 files changed, 10 insertions(+), 2 deletions(-)
-
---- linux-2618-rc1mm1.orig/drivers/acpi/scan.c
-+++ linux-2618-rc1mm1/drivers/acpi/scan.c
-@@ -4,6 +4,7 @@
- 
- #include <linux/module.h>
- #include <linux/init.h>
-+#include <linux/kernel.h>
- #include <linux/acpi.h>
- 
- #include <acpi/acpi_drivers.h>
-@@ -113,6 +114,8 @@ static struct kset acpi_namespace_kset =
- static void acpi_device_register(struct acpi_device *device,
- 				 struct acpi_device *parent)
- {
-+	int err;
-+
- 	/*
- 	 * Linkage
- 	 * -------
-@@ -138,7 +141,10 @@ static void acpi_device_register(struct 
- 		device->kobj.parent = &parent->kobj;
- 	device->kobj.ktype = &ktype_acpi_ns;
- 	device->kobj.kset = &acpi_namespace_kset;
--	kobject_register(&device->kobj);
-+	err = kobject_register(&device->kobj);
-+	if (err < 0)
-+		printk(KERN_WARNING "%s: kobject_register error: %d\n",
-+			__FUNCTION__, err);
- 	create_sysfs_device_files(device);
- }
- 
-@@ -1450,7 +1456,9 @@ static int __init acpi_scan_init(void)
- 	if (acpi_disabled)
- 		return 0;
- 
--	kset_register(&acpi_namespace_kset);
-+	result = kset_register(&acpi_namespace_kset);
-+	if (result < 0)
-+		printk(KERN_ERR PREFIX "kset_register error: %d\n", result);
- 
- 	result = bus_register(&acpi_bus_type);
- 	if (result) {
-
-
----
+>-----Original Message-----
+>From: Randy.Dunlap [mailto:rdunlap@xenotime.net] 
+>Sent: Wednesday, July 12, 2006 2:08 AM
+>To: lkml; linux-acpi@vger.kernel.org
+>Cc: Brown, Len; akpm
+>Subject: [PATCH -mm] acpi/scan: handle kset/kobject errors
+>
+>From: Randy Dunlap <rdunlap@xenotime.net>
+>
+>Check and handle kset_register() and kobject_register() init errors.
+>
+>Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+>---
+> drivers/acpi/scan.c |   12 ++++++++++--
+> 1 files changed, 10 insertions(+), 2 deletions(-)
+>
+>--- linux-2618-rc1mm1.orig/drivers/acpi/scan.c
+>+++ linux-2618-rc1mm1/drivers/acpi/scan.c
+>@@ -4,6 +4,7 @@
+> 
+> #include <linux/module.h>
+> #include <linux/init.h>
+>+#include <linux/kernel.h>
+> #include <linux/acpi.h>
+> 
+> #include <acpi/acpi_drivers.h>
+>@@ -113,6 +114,8 @@ static struct kset acpi_namespace_kset =
+> static void acpi_device_register(struct acpi_device *device,
+> 				 struct acpi_device *parent)
+> {
+>+	int err;
+>+
+> 	/*
+> 	 * Linkage
+> 	 * -------
+>@@ -138,7 +141,10 @@ static void acpi_device_register(struct 
+> 		device->kobj.parent = &parent->kobj;
+> 	device->kobj.ktype = &ktype_acpi_ns;
+> 	device->kobj.kset = &acpi_namespace_kset;
+>-	kobject_register(&device->kobj);
+>+	err = kobject_register(&device->kobj);
+>+	if (err < 0)
+>+		printk(KERN_WARNING "%s: kobject_register error: %d\n",
+>+			__FUNCTION__, err);
+> 	create_sysfs_device_files(device);
+> }
+> 
+>@@ -1450,7 +1456,9 @@ static int __init acpi_scan_init(void)
+> 	if (acpi_disabled)
+> 		return 0;
+> 
+>-	kset_register(&acpi_namespace_kset);
+>+	result = kset_register(&acpi_namespace_kset);
+>+	if (result < 0)
+>+		printk(KERN_ERR PREFIX "kset_register error: 
+>%d\n", result);
+> 
+> 	result = bus_register(&acpi_bus_type);
+> 	if (result) {
+>
+>
+>---
+>
