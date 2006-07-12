@@ -1,51 +1,62 @@
-From: Pierre Ossman <drzeus@drzeus.cx>
-Subject: [PATCH] Fix section for CPU init functions
-Date: Wed, 12 Jul 2006 11:09:51 +0200
-Message-ID: <20060712090951.13209.74561.stgit@poseidon.drzeus.cx>
+From: Andrew Morton <akpm@osdl.org>
+Subject: Re: evxfevnt glitch
+Date: Wed, 12 Jul 2006 02:18:09 -0700
+Message-ID: <20060712021809.683437f3.akpm@osdl.org>
+References: <554C5F4C5BA7384EB2B412FD46A3BAD1D28E81@pdsmsx411.ccr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 85.8.24.16.se.wasadata.net ([85.8.24.16]:21120 "EHLO
-	smtp.drzeus.cx") by vger.kernel.org with ESMTP id S1751001AbWGLJJq
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Jul 2006 05:09:46 -0400
+Received: from smtp.osdl.org ([65.172.181.4]:10213 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1751003AbWGLJSO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Jul 2006 05:18:14 -0400
+In-Reply-To: <554C5F4C5BA7384EB2B412FD46A3BAD1D28E81@pdsmsx411.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Pierre Ossman <drzeus-list@drzeus.cx>, linux-kernel@vger.kernel.org
+To: "Yu, Luming" <luming.yu@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-The ACPI processor init functions should be marked as __cpuinit as they
-use structures marked with __cpuinitdata.
+On Wed, 12 Jul 2006 15:58:52 +0800
+"Yu, Luming" <luming.yu@intel.com> wrote:
 
-Signed-off-by: Pierre Ossman <drzeus@drzeus.cx>
----
+> what kernel you are using?
+> 
+> Is it due to a patch to reboot box with ACPI FADT reset register?
+> 
 
- drivers/acpi/processor_core.c |    2 +-
- drivers/acpi/processor_idle.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Actually, it's due to your patch ;)
 
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index b13d644..1908e0d 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -519,7 +519,7 @@ #endif
- 
- static void *processor_device_array[NR_CPUS];
- 
--static int acpi_processor_start(struct acpi_device *device)
-+static int __cpuinit acpi_processor_start(struct acpi_device *device)
+
+See http://bugzilla.kernel.org/show_bug.cgi?id=6655
+
+--- a/arch/i386/kernel/reboot.c~acpi-asus-s3-resume-fix
++++ a/arch/i386/kernel/reboot.c
+@@ -30,6 +30,12 @@ static int reboot_thru_bios;
+ #ifdef CONFIG_SMP
+ static int reboot_cpu = -1;
+ #endif
++#ifdef CONFIG_ACPI
++extern u32 acpi_disable(void);
++#else
++static u32 acpi_disable(void){};
++#endif
++
+ static int __init reboot_setup(char *str)
  {
- 	int result = 0;
- 	acpi_status status = AE_OK;
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 7106606..1ecd3a7 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -1077,7 +1077,7 @@ static const struct file_operations acpi
- 	.release = single_release,
- };
+ 	while(1) {
+@@ -321,6 +327,8 @@ void machine_shutdown(void)
  
--int acpi_processor_power_init(struct acpi_processor *pr,
-+int __cpuinit acpi_processor_power_init(struct acpi_processor *pr,
- 			      struct acpi_device *device)
+ void machine_emergency_restart(void)
  {
- 	acpi_status status = 0;
++
++	acpi_disable();
+ 	if (!reboot_thru_bios) {
+ 		if (efi_enabled) {
+ 			efi.reset_system(EFI_RESET_COLD, EFI_SUCCESS, 0, NULL);
+_
+
+
+We're calling acpi_disable() even if acpi is not enabled and it gets upset.
+
 
