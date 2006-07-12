@@ -1,30 +1,49 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: evxfevnt glitch
-Date: Wed, 12 Jul 2006 00:52:57 -0700
-Message-ID: <20060712005257.9e5421ed.akpm@osdl.org>
+From: "Yu, Luming" <luming.yu@intel.com>
+Subject: RE: evxfevnt glitch
+Date: Wed, 12 Jul 2006 15:58:52 +0800
+Message-ID: <554C5F4C5BA7384EB2B412FD46A3BAD1D28E81@pdsmsx411.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=gb2312
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:34764 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1750788AbWGLHw6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Jul 2006 03:52:58 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id k6C7qvnW030153
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Wed, 12 Jul 2006 00:52:58 -0700
-Received: from box (shell0.pdx.osdl.net [10.9.0.31])
-	by shell0.pdx.osdl.net (8.13.1/8.11.6) with SMTP id k6C7qvNI031015
-	for <linux-acpi@vger.kernel.org>; Wed, 12 Jul 2006 00:52:57 -0700
+Received: from mga03.intel.com ([143.182.124.21]:18341 "EHLO
+	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
+	id S1750809AbWGLH7c convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jul 2006 03:59:32 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org
+
+what kernel you are using?
+
+Is it due to a patch to reboot box with ACPI FADT reset register?
+
+Thanks,
+Luming=20
+
+-----Original Message-----
+=46rom: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.=
+kernel.org] On Behalf Of Andrew Morton
+Sent: 2006=C4=EA7=D4=C212=C8=D5 15:53
 To: linux-acpi@vger.kernel.org
+Subject: evxfevnt glitch
 
 
-I have an old machine which doesn't use ACPI.  During a reboot (sysrq-B)
+I have an old machine which doesn't use ACPI.  During a reboot (sysrq-B=
+)
 I get
 
 ACPI Warning (evxfevnt-0115): No FADT information present! [20060707]
 
 It shouldn't print that if ACPI has disabled itself.
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
