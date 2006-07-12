@@ -1,40 +1,22 @@
-From: Linus Torvalds <torvalds@osdl.org>
+From: "Brown, Len" <len.brown@intel.com>
 Subject: RE: kacpi_notify?
-Date: Wed, 12 Jul 2006 15:37:42 -0700 (PDT)
-Message-ID: <Pine.LNX.4.64.0607121534070.5623@g5.osdl.org>
-References: <CFF307C98FEABE47A452B27C06B85BB6F7630D@hdsmsx411.amr.corp.intel.com>
- <Pine.LNX.4.64.0607121509180.5623@g5.osdl.org> <Pine.LNX.4.64.0607121520150.5623@g5.osdl.org>
+Date: Wed, 12 Jul 2006 18:39:02 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB6F76362@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:44427 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S932191AbWGLWhp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Jul 2006 18:37:45 -0400
-In-Reply-To: <Pine.LNX.4.64.0607121520150.5623@g5.osdl.org>
+Received: from mga03.intel.com ([143.182.124.21]:51208 "EHLO
+	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
+	id S932227AbWGLWjK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Jul 2006 18:39:10 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org, "Moore, Robert" <robert.moore@intel.com>
+To: Linus Torvalds <torvalds@osdl.org>
+Cc: Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org, "Moore, Robert" <robert.moore@intel.com>, "Starikovskiy, Alexey Y" <alexey.y.starikovskiy@intel.com>
 
+Likely related to bugzilla-5534
 
-
-On Wed, 12 Jul 2006, Linus Torvalds wrote:
-> 
-> I've got a hundred-odd commits to go, but the next bisection test happens 
-> to be the parent of my merge (your "merge linus into release branch" 
-> merge: ae6c859b7dcd708efadf1c76279c33db213e3506), so if I'm right, I'd 
-> expect that to be a bad tree.
-
-Yup.
-
-And yes, the problem seems to co-incide with getting about 300 acpi 
-interrupts per second. After about 9500 interrupts (each of which seems to 
-create one of these things), the machine is basically dead.
-
-Ten thousand kacpid_notify threads is too much. Regardless of what brought 
-on this bug, I think there's something wrong in anything that keeps on 
-notifying things without keeping track of how many outstanding 
-notifications it already has.
-
-		Linus
+-Len 
