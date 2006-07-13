@@ -1,143 +1,44 @@
-From: Linus Torvalds <torvalds@osdl.org>
+From: Len Brown <len.brown@intel.com>
 Subject: RE: kacpi_notify?
-Date: Wed, 12 Jul 2006 17:14:32 -0700 (PDT)
-Message-ID: <Pine.LNX.4.64.0607121632310.5623@g5.osdl.org>
-References: <CFF307C98FEABE47A452B27C06B85BB6F76393@hdsmsx411.amr.corp.intel.com>
+Date: Wed, 12 Jul 2006 22:46:42 -0400
+Message-ID: <200607122246.42669.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:52135 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S932284AbWGMAOh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Jul 2006 20:14:37 -0400
-In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB6F76393@hdsmsx411.amr.corp.intel.com>
+Received: from mga02.intel.com ([134.134.136.20]:28577 "EHLO
+	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S932327AbWGMCod (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Jul 2006 22:44:33 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org, "Moore, Robert" <robert.moore@intel.com>, "Starikovskiy, Alexey Y" <alexey.y.starikovskiy@intel.com>
+To: torvalds@osdl.org
+Cc: akpm@osdl.org, linux-acpi@vger.kernel.org, robert.moore@intel.com
 
+>Here's a suggested revert.
 
+Please try this smaller revert to just osl.c.
+(it builds and boots for me)
 
-On Wed, 12 Jul 2006, Brown, Len wrote:
-> 
-> Ugh, ACPICA starts depending on on acpi_os_execute() at that time,
-> so a simple revert will break the build -- needs to be tweaked.
+It reverts acpi_os_queue_for_execution() to exactly
+as it was in 2.6.17, except it changes the name to
+acpi_os_execute() to match ACPICA 20060512.
 
-Yeah, I just noticed.
+(yes, it is okay we ignore the 1st parameter,
+ it wasn't used until the 5534 fix we are reverting)
 
-Those "ACPICA" commits are crap. Crap, crap, crap. They do more than one 
-thing, and are clearly just patches applied from a system that probably 
-does have finer-grained granularity of tracking the changes.
+thanks,
+-Len
 
-Here's a suggested revert. This boots, and seems to have the problem 
-fixed. At least I can now recompile the kernel on that machine again, 
-without the machine crashing.
-
-		Linus
-
-----
-Revert "ACPI: execute Notify() handlers on new thread"
-
-This reverts commit b8d35192c55fb055792ff0641408eaaec7c88988 (and parts
-of commit 958dd242b691f64ab4632b4903dbb1e16fee8269: "ACPI: ACPICA
-20060512", which were intertwined, along with some Smart Battery logic
-that had already started using the broken routines).
-
-The thread execution doesn't actually solve the bug it set out to solve
-(see
-
-	http://bugzilla.kernel.org/show_bug.cgi?id=5534
-
-for more details) because the new events can get caught behind the AML
-semaphore or other serialization.  And when that happens, the notify
-threads keep on pilin gup until the system dies.
-
-Signed-off-by: Linus Torvalds <torvalds@osdl.org>
-
+Signed-off-by: Len Brown <len.brown@intel.com>
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index e5d7963..bdf3e12 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -759,7 +759,8 @@ static u32 acpi_ec_gpe_poll_handler(void
- 
- 	acpi_disable_gpe(NULL, ec->common.gpe_bit, ACPI_ISR);
- 
--	status = acpi_os_execute(OSL_EC_POLL_HANDLER, acpi_ec_gpe_query, ec);
-+	status = acpi_os_queue_for_execution(OSD_PRIORITY_GPE,
-+					     acpi_ec_gpe_query, ec);
- 
- 	if (status == AE_OK)
- 		return ACPI_INTERRUPT_HANDLED;
-@@ -797,7 +798,7 @@ static u32 acpi_ec_gpe_intr_handler(void
- 
- 	if (value & ACPI_EC_FLAG_SCI) {
- 		atomic_add(1, &ec->intr.pending_gpe);
--		status = acpi_os_execute(OSL_EC_BURST_HANDLER,
-+		status = acpi_os_queue_for_execution(OSD_PRIORITY_GPE,
- 						     acpi_ec_gpe_query, ec);
- 		return status == AE_OK ?
- 		    ACPI_INTERRUPT_HANDLED : ACPI_INTERRUPT_NOT_HANDLED;
 diff --git a/drivers/acpi/events/evgpe.c b/drivers/acpi/events/evgpe.c
-index c76c058..aad17dd 100644
---- a/drivers/acpi/events/evgpe.c
-+++ b/drivers/acpi/events/evgpe.c
-@@ -495,8 +495,8 @@ u32 acpi_ev_gpe_detect(struct acpi_gpe_x
-  * RETURN:      None
-  *
-  * DESCRIPTION: Perform the actual execution of a GPE control method. This
-- *              function is called from an invocation of acpi_os_execute and
-- *              therefore does NOT execute at interrupt level - so that
-+ *              function is called from an invocation of acpi_os_queue_for_execution
-+ *              (and therefore does NOT execute at interrupt level) so that
-  *              the control method itself is not executed in the context of
-  *              an interrupt handler.
-  *
-@@ -692,9 +692,9 @@ acpi_ev_gpe_dispatch(struct acpi_gpe_eve
- 		 * Execute the method associated with the GPE
- 		 * NOTE: Level-triggered GPEs are cleared after the method completes.
- 		 */
--		status = acpi_os_execute(OSL_GPE_HANDLER,
--					 acpi_ev_asynch_execute_gpe_method,
--					 gpe_event_info);
-+		status = acpi_os_queue_for_execution(OSD_PRIORITY_GPE,
-+						     acpi_ev_asynch_execute_gpe_method,
-+						     gpe_event_info);
- 		if (ACPI_FAILURE(status)) {
- 			ACPI_EXCEPTION((AE_INFO, status,
- 					"Unable to queue handler for GPE[%2X] - event disabled",
 diff --git a/drivers/acpi/events/evmisc.c b/drivers/acpi/events/evmisc.c
-index 6eef4ef..625dd3b 100644
---- a/drivers/acpi/events/evmisc.c
-+++ b/drivers/acpi/events/evmisc.c
-@@ -192,9 +192,9 @@ acpi_ev_queue_notify_request(struct acpi
- 		notify_info->notify.value = (u16) notify_value;
- 		notify_info->notify.handler_obj = handler_obj;
- 
--		status =
--		    acpi_os_execute(OSL_NOTIFY_HANDLER, acpi_ev_notify_dispatch,
--				    notify_info);
-+		status = acpi_os_queue_for_execution(OSD_PRIORITY_HIGH,
-+						     acpi_ev_notify_dispatch,
-+						     notify_info);
- 		if (ACPI_FAILURE(status)) {
- 			acpi_ut_delete_generic_state(notify_info);
- 		}
-@@ -347,9 +347,9 @@ static u32 acpi_ev_global_lock_handler(v
- 
- 		/* Run the Global Lock thread which will signal all waiting threads */
- 
--		status =
--		    acpi_os_execute(OSL_GLOBAL_LOCK_HANDLER,
--				    acpi_ev_global_lock_thread, context);
-+		status = acpi_os_queue_for_execution(OSD_PRIORITY_HIGH,
-+						     acpi_ev_global_lock_thread,
-+						     context);
- 		if (ACPI_FAILURE(status)) {
- 			ACPI_EXCEPTION((AE_INFO, status,
- 					"Could not queue Global Lock thread"));
 diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 47dfde9..8eb3ab6 100644
+index 47dfde9..b7d1514 100644
 --- a/drivers/acpi/osl.c
 +++ b/drivers/acpi/osl.c
 @@ -36,7 +36,6 @@ #include <linux/kmod.h>
@@ -148,7 +49,7 @@ index 47dfde9..8eb3ab6 100644
  #include <acpi/acpi.h>
  #include <asm/io.h>
  #include <acpi/acpi_bus.h>
-@@ -583,41 +582,23 @@ static void acpi_os_execute_deferred(voi
+@@ -583,16 +582,6 @@ static void acpi_os_execute_deferred(voi
  	return;
  }
  
@@ -162,26 +63,10 @@ index 47dfde9..8eb3ab6 100644
 -	do_exit(0);
 -}
 -
--/*******************************************************************************
-- *
-- * FUNCTION:    acpi_os_execute
-- *
-- * PARAMETERS:  Type               - Type of the callback
-- *              Function           - Function to be executed
-- *              Context            - Function parameters
-- *
-- * RETURN:      Status
-- *
-- * DESCRIPTION: Depending on type, either queues function for deferred execution or
-- *              immediately executes function on a separate thread.
-- *
-- ******************************************************************************/
--
--acpi_status acpi_os_execute(acpi_execute_type type,
-+acpi_status
-+acpi_os_queue_for_execution(u32 priority,
- 			    acpi_osd_exec_callback function, void *context)
- {
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_os_execute
+@@ -614,10 +603,16 @@ acpi_status acpi_os_execute(acpi_execute
  	acpi_status status = AE_OK;
  	struct acpi_os_dpc *dpc;
  	struct work_struct *task;
@@ -200,7 +85,7 @@ index 47dfde9..8eb3ab6 100644
  	/*
  	 * Allocate/initialize DPC structure.  Note that this memory will be
  	 * freed by the callee.  The kernel handles the tq_struct list  in a
-@@ -628,37 +609,30 @@ acpi_status acpi_os_execute(acpi_execute
+@@ -628,34 +623,27 @@ acpi_status acpi_os_execute(acpi_execute
  	 * We can save time and code by allocating the DPC and tq_structs
  	 * from the same memory.
  	 */
@@ -250,86 +135,4 @@ index 47dfde9..8eb3ab6 100644
 +	return_ACPI_STATUS(status);
  }
  
--EXPORT_SYMBOL(acpi_os_execute);
-+EXPORT_SYMBOL(acpi_os_queue_for_execution);
- 
- void acpi_os_wait_events_complete(void *context)
- {
-diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-index db7b350..87d7800 100644
---- a/drivers/acpi/sbs.c
-+++ b/drivers/acpi/sbs.c
-@@ -1366,7 +1366,7 @@ static void acpi_ac_remove(struct acpi_s
- 
- static void acpi_sbs_update_queue_run(unsigned long data)
- {
--	acpi_os_execute(OSL_GPE_HANDLER, acpi_sbs_update_queue, (void *)data);
-+	acpi_os_queue_for_execution(OSD_PRIORITY_GPE, acpi_sbs_update_queue, (void *)data);
- }
- 
- static int acpi_sbs_update_run(struct acpi_sbs *sbs, int data_type)
-@@ -1658,11 +1658,11 @@ static int acpi_sbs_add(struct acpi_devi
- 
- 	init_timer(&sbs->update_timer);
- 	if (update_mode == QUEUE_UPDATE_MODE) {
--		status = acpi_os_execute(OSL_GPE_HANDLER,
-+		status = acpi_os_queue_for_execution(OSD_PRIORITY_GPE,
- 					 acpi_sbs_update_queue, (void *)sbs);
- 		if (status != AE_OK) {
- 			ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
--					  "acpi_os_execute() failed\n"));
-+					  "acpi_os_queue_for_execution() failed\n"));
- 		}
- 	}
- 	sbs->update_time = update_time;
-diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index 5753d06..e16e69a 100644
---- a/drivers/acpi/thermal.c
-+++ b/drivers/acpi/thermal.c
-@@ -657,7 +657,8 @@ static void acpi_thermal_run(unsigned lo
- {
- 	struct acpi_thermal *tz = (struct acpi_thermal *)data;
- 	if (!tz->zombie)
--		acpi_os_execute(OSL_GPE_HANDLER, acpi_thermal_check, (void *)data);
-+		acpi_os_queue_for_execution(OSD_PRIORITY_GPE,
-+					    acpi_thermal_check, (void *)data);
- }
- 
- static void acpi_thermal_check(void *data)
-diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
-index 0cd63bc..8040084 100644
---- a/include/acpi/acpiosxf.h
-+++ b/include/acpi/acpiosxf.h
-@@ -50,16 +50,12 @@ #define __ACPIOSXF_H__
- #include "platform/acenv.h"
- #include "actypes.h"
- 
--/* Types for acpi_os_execute */
-+/* Priorities for acpi_os_queue_for_execution */
- 
--typedef enum {
--	OSL_GLOBAL_LOCK_HANDLER,
--	OSL_NOTIFY_HANDLER,
--	OSL_GPE_HANDLER,
--	OSL_DEBUGGER_THREAD,
--	OSL_EC_POLL_HANDLER,
--	OSL_EC_BURST_HANDLER
--} acpi_execute_type;
-+#define OSD_PRIORITY_GPE            1
-+#define OSD_PRIORITY_HIGH           2
-+#define OSD_PRIORITY_MED            3
-+#define OSD_PRIORITY_LO             4
- 
- #define ACPI_NO_UNIT_LIMIT          ((u32) -1)
- #define ACPI_MUTEX_SEM              1
-@@ -188,8 +184,8 @@ acpi_os_remove_interrupt_handler(u32 gsi
- acpi_thread_id acpi_os_get_thread_id(void);
- 
- acpi_status
--acpi_os_execute(acpi_execute_type type,
--		acpi_osd_exec_callback function, void *context);
-+acpi_os_queue_for_execution(u32 priority,
-+			    acpi_osd_exec_callback function, void *context);
- 
- void acpi_os_wait_events_complete(void *context);
- 
+ EXPORT_SYMBOL(acpi_os_execute);
