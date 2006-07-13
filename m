@@ -1,31 +1,44 @@
-From: Berthold Cogel <cogel@rrz.uni-koeln.de>
-Subject: ACPI: SBS in linux-2.6.18-rc1 - Works for me!
-Date: Thu, 13 Jul 2006 09:57:32 +0200
-Message-ID: <44B5FCEC.8040903@rrz.uni-koeln.de>
+From: Johan Vromans <jvromans@squirrel.nl>
+Subject: Re: ACPI: SBS in linux-2.6.18-rc1 - Works for me!
+Date: Thu, 13 Jul 2006 10:20:44 +0200
+Message-ID: <m21wspj4pv.fsf@phoenix.squirrel.nl>
+References: <44B5FCEC.8040903@rrz.uni-koeln.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out.rrz.uni-koeln.de ([134.95.19.53]:64469 "EHLO
-	smtp-out.rrz.uni-koeln.de") by vger.kernel.org with ESMTP
-	id S964848AbWGMH6C (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Jul 2006 03:58:02 -0400
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:13075 "EHLO
+	smtp-vbr2.xs4all.nl") by vger.kernel.org with ESMTP id S932227AbWGMIUv
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Jul 2006 04:20:51 -0400
+In-Reply-To: <44B5FCEC.8040903@rrz.uni-koeln.de> (Berthold Cogel's message
+ of "Thu, 13 Jul 2006 09:57:32 +0200")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Berthold Cogel <cogel@rrz.uni-koeln.de>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hello!
+Berthold Cogel <cogel@rrz.uni-koeln.de> writes:
 
-I've tested linux-2.6.18-rc1 with Smart Battery System enabled. It works 
-for my Acer Extensa 3002 WLMi. No compile errors or bugs at first sight.
+> I've tested linux-2.6.18-rc1 with Smart Battery System enabled. It
+> works for my Acer Extensa 3002 WLMi.
 
-Perhaps there should be some logic in the configuration to disable the 
-ac and battery modules. They are not needed if SBS is active.
+That's good to hear!
 
-Is it possible to load sbs and i2c-ec automatically together with the 
-other ACPI modules? On my Debian system I had to load the modules via 
-/etc/modules.conf.
+> Is it possible to load sbs and i2c-ec automatically together with the
+> other ACPI modules? On my Debian system I had to load the modules via
+> /etc/modules.conf.
 
+I use a similar approach (for the 'old style' SBS) in /etc/rc.local:
 
-Regards,
-Berthold
+  /sbin/modprobe -r battery
+  /sbin/modprobe -r ac
+  /sbin/modprobe i2c-acpi-ec
+  /sbin/modprobe acpi-sbs
+
+W.r.t. enabling/disabling ac&battery when sbs is selected: I'm not so
+sure if that would be a good idea. You build a kernel with modules,
+and at some later stage it is selected which modules will be actually
+be used.
+
+-- Johan
+
