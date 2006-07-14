@@ -1,57 +1,62 @@
-From: Roman Zippel <zippel@linux-m68k.org>
-Subject: RE: [patch 4/5] ACPI: disable SBS by default
-Date: Fri, 14 Jul 2006 00:11:54 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0607132330320.12900@scrub.home>
-References: <CFF307C98FEABE47A452B27C06B85BB6ECFA23@hdsmsx411.amr.corp.intel.com>
+From: "Jaya Kumar" <jayakumar.acpi@gmail.com>
+Subject: Re: [patch 1/5] ACPI: Atlas ACPI driver
+Date: Fri, 14 Jul 2006 08:24:26 +0800
+Message-ID: <756b48450607131724w236d8e0bka47fbfc3743305fa@mail.gmail.com>
+References: <CFF307C98FEABE47A452B27C06B85BB6F76C15@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from scrub.xs4all.nl ([194.109.195.176]:43693 "EHLO scrub.xs4all.nl")
-	by vger.kernel.org with ESMTP id S1030425AbWGMWMP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Jul 2006 18:12:15 -0400
-In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB6ECFA23@hdsmsx411.amr.corp.intel.com>
+Received: from ug-out-1314.google.com ([66.249.92.174]:52173 "EHLO
+	ug-out-1314.google.com") by vger.kernel.org with ESMTP
+	id S1161153AbWGNAY1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Jul 2006 20:24:27 -0400
+Received: by ug-out-1314.google.com with SMTP id u40so560619ugc
+        for <linux-acpi@vger.kernel.org>; Thu, 13 Jul 2006 17:24:26 -0700 (PDT)
+In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB6F76C15@hdsmsx411.amr.corp.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Brown, Len" <len.brown@intel.com>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>, akpm@osdl.org, linux-acpi@vger.kernel.org, dtor@insightbb.com, dtor@mail.ru
+Cc: akpm@osdl.org, linux-acpi@vger.kernel.org, dtor_core@ameritech.net, "Yu, Luming" <luming.yu@intel.com>
 
-Hi,
+On 7/14/06, Brown, Len <len.brown@intel.com> wrote:
+> Note that this driver can not be accepted into the kernel without
+> an entry being added to the MAINTAINERS file showing who is
+> going to look after it.
 
-On Sun, 9 Jul 2006, Brown, Len wrote:
+Ok. I'll add a maintainers entry for myself.
 
-> >Default is 'n' when omitted...
-> 
-> This default stuff seems to be make-work
-> without any real value.
-> 
-> At one time we had default =m to try to show
-> what a reasonable usable configuration was.
-> These got globally replaced to =y because
-> apparently it is taboo to have default =m.
-> 
-> But =y defaults don't make much sense either,
-> particularly if you use =m like most people do.
-> 
-> The last time we discussed this, Roman suggested
-> deleting all the defaults that require human interaction.
-> 
-> As the concept appears to be meaningless, I'm inclined to agree.
+> Yes, I know that you were following the existing examples of
+> platform-specific drivers in /drivers/acpi, but those examples
+> need to change (and they are a little more complex than this one
+> b/c they scribble in their own unique ways /proc/acpi...)
+> But think sonypi, instead.
 
-The problem with using defaults is, if something should be enabled, maybe 
-it shouldn't be a config option at all or at least be hidden.
-In the future this should all be part of an autoconfiguration process, 
-where a base configuration is generated from different sources (e.g. a 
-script which looks at the current kernel or machine specific default 
-config).
-The point is that the defaults can depend on a lot of parameters, one of 
-which is the user himself and every user likes different defaults. So 
-until we have a better autoconfiguration it's better to avoid abusing the 
-defaults. The current configuration system is not ready for aunt Tilly 
-yet, it would be far better to provide useful help texts to allow the user 
-to make reasonable a decision and the majority of the defaults should come 
-from a different source anyway (the current kernel configuration) and for 
-any new configuration option which can cause a kernel to be unbootable 
-should maybe not an option.
+Ok. Will do. I'll move it to drivers/input/touchscreen/ as per
+Dmitry's suggestion.
 
-bye, Roman
+> So when this does make it upstream, it will have to live outside
+> the /drivers/acpi/ directory, and acpi should not be part of
+> the driver name.  It should build depending on CONFIG_ACPI,
+> and should load depending on acpi_disabled, and should use
+> ACPI routines that are exported by the ACPI sub-system (it does,
+> though the headers are so incestuous at this point that it isn't
+> enforced)
+
+Ok. Will do.
+
+>
+> thanks,
+> -Len
+>
+> ps.
+> I believe that you want to delete the reference below to
+> /proc/acpi/event, yes?
+
+Yes, I did. That one was posted here:
+
+http://marc.theaimsgroup.com/?l=linux-acpi&m=115233799829220&w=2
+
+Thanks,
+jaya
