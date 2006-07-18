@@ -1,42 +1,43 @@
-From: "Uwe Bugla" <uwe.bugla@gmx.de>
-Subject: non functionable snd-ad1816a in Kernel 2.6.18-rc2
-Date: Tue, 18 Jul 2006 11:34:34 +0200
-Message-ID: <20060718093434.60450@gmx.net>
+From: "Beulah Dickerson" <BeulahDickerson@mail.ru>
+Subject: Your money, mouse-color
+Date: Tue, 18 Jul 2006 12:24:35 +0000 (UTC)
+Message-ID: <095586549.20060717211737@mail.ru>
+Reply-To: "Beulah Dickerson" <BeulahDickerson@mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.de ([213.165.64.21]:38565 "HELO mail.gmx.net")
-	by vger.kernel.org with SMTP id S932105AbWGRJef (ORCPT
+Received: from zeus1.kernel.org ([204.152.191.4]:20707 "EHLO zeus1.kernel.org")
+	by vger.kernel.org with ESMTP id S1751334AbWGRMYE (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Jul 2006 05:34:35 -0400
+	Tue, 18 Jul 2006 08:24:04 -0400
+Date: Mon, 17 Jul 2006 21:17:37 +0180
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: castet.matthieu@free.fr, bjorn.helgaas@hp.com, linux-acpi@vger.kernel.org, len.brown@intel.com, akpm@osdl.org, ambx1@neo.rr.com
+To: linux-gcc@vger.kernel.org
 
-Hi everybody,
+Even if you have no erectin problems SOFT CIA7LIS 
+would help you to make BETTER SEVX MORE OFTEN!
+and to bring  unimagnable plesure to her.
 
-Just a reminder for everybody listening:
-My soundcard (snd-ad1816a) does not work in Kernel 2.6.18-rc2.
-I guess the reason for this is that Matthieu=B4s material is still resi=
-ding in the mm-branch. Can I please have a constructive feedback where =
-things are hanging after all that immense amount of time I spent to for=
-ward this issue?
-A thousands of thanks for Matthieu=B4s work one more time!
-The bug ID is 6292, and the ACPI_PRODUCER reject patch is still missing=
- in the main vanilla tree.
+Just disolve half a pil under your tongue 
+and get ready for action in 15 minutes. 
 
-Regards
+The tests showed that the majority of men 
+after taking this medic ation were able to have 
+PERFECT ERNECTION during 36 hours!
 
-Uwe
+VISIT US, AND GET OUR SPECIAL 70% DISCQOUNT OFER!
 
---=20
+http://507Sr9xieiw9fmf2sr92err2e9rr.fillablefe.com/
 
+==========
+     "That's something," Jonathan said rolling to  glide  inverted  for  a
+back there toward the automobile graveyard.
+anchovy to a hungry old gull chasing him. I could  be  spending  all  this
+was hot.  There was a haze over  the garage. Every- thing seemed  all right,
+     He couldn't stop; he didn't know yet even how to turn at that speed.
+     In other words, we didn't touch on the subject again. Kirill phoned PPS
 
-Echte DSL-Flatrate dauerhaft f=FCr 0,- Euro*!
-"Feel free" mit GMX DSL! http://www.gmx.net/de/go/dsl
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+touch perfect speed. And that isn't flying a thousand miles an hour, or  a
+cotton. As soon as the helicopter pulled at it, there was a pssst! We looked
