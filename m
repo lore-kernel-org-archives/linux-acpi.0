@@ -1,51 +1,50 @@
-From: "Kari Conn" <KariConn@1000editions.com>
-Subject: Success, well-circumstanced
-Date: Wed, 19 Jul 2006 02:55:03 +0000 (UTC)
-Message-ID: <662161c80604qob0vod462o9dfknomti7um7gnzd5relj__44213.6769103401$1153277703$gmane$org@inbound.1000editions.com.emailmx.com>
+From: "Cruz Boyer" <CruzBoyer@mail.ru>
+Subject: Success, world-populating
+Date: Wed, 19 Jul 2006 14:04:31 -0120
+Message-ID: <662161c80604oz64x66ih1hka9t816b8t9czq7894mi0__16813.5498920039$1153317958$gmane$org@mxs.mail.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zeus2.kernel.org ([204.152.191.36]:40862 "EHLO zeus2.kernel.org")
-	by vger.kernel.org with ESMTP id S932466AbWGSCyv convert rfc822-to-8bit
+Received: from [85.103.242.109] ([85.103.242.109]:30735 "EHLO mx.usa.net")
+	by vger.kernel.org with ESMTP id S964830AbWGSOEa convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Jul 2006 22:54:51 -0400
-Date: Wed, 19 Jul 2006 02:55:59 -0480
+	Wed, 19 Jul 2006 10:04:30 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-laptop@vger.kernel.org
+To: linux-fsdevel@vger.kernel.org
 
 Your cre dit doesn't matter to us! If you OWN real est ate
-and want IMMEDIATE9 cash to spend ANY way you like, or simply wish 
+and want IMMEDIATE7 cash to spend ANY way you like, or simply wish 
 to LOWER your monthly paym ents by a third or more, here are the dea ls
 we have TODAY (hurry, these ofers will expre TONIGHT):
 
-$488,000.00 at a 3.67,% fixed-rateK
-$372,000.00 at a 3.90,% variable-rateZ
-$492,000.00 at a 3.21,% interest-onlyH
-$248,000.00 at a 3.36,% fixed-rateN
-$198,000.00 at a 3.55,% variable-rateT
+$488,000.00 at a 3.67,% fixed-rateG
+$372,000.00 at a 3.90,% variable-rateC
+$492,000.00 at a 3.21,% interest-onlyI
+$248,000.00 at a 3.36,% fixed-rateE
+$198,000.00 at a 3.55,% variable-rateY
 
 Hurry, when these deals are gone, they are gone Simply fill out this one-min ute form... 
 
 Don't worry about approval, your cre dit will not disqualify you! 
 
-http://BX8II53E.jokip.com
+http://W0Y3AJSG.foorests.net
 
 
 
-muscles  to the weight  of the heavy backpack. He  watched Arthur out of the
-backpack, crawl over to  Arthur, who was  still lying motionless some thirty
+     All  the  reference   points   corresponded,   but   Redrick  felt   no
+and inconveniently located. He took out  his  address book, flipped  through
 
-reached inside his jacket.
-each other  over, blending, tumbling, mingling with the white hot world that
-go anyway. He had nowhere  else to go. He'd go. And Arthur went. He wandered
+face was drained white.
+bed by the window. Guta woke up, too, and took Redrick's hand. He could feel
+     Arthur,  walking five paces  ahead,  wiped  the sweat  from  his  brow.
 
-it's getting light!"
-     They were up to their waists in fog,  and then up to their necks. A few
-thought that while he had the time he  should take care of whatever could be
-     He  fell silent and looked at the old man. A shudder  crossed his face,
+     First we go  this way." Redrick  waved sharply in the direction of  the
+     "That's what they deserve, the bloodsuckers. I hope they all choke."
+up.  Maybe  we'll have to  shoot it  out  with  the patrol  guards. However,
+and it  was even  nicer to drink  now  than alcohol. It smelled of home.  Of
 
-all no good! My father ... but he can't take me now!" Redrick forced himself
-hot mound of  ore in the car. You couldn't see the quarry from  here--it was
+song. And  the repairs would be  almost free,  because he  could  apply  for
+     "And me, too." Arthur said. "Me too."
