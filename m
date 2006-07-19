@@ -1,50 +1,51 @@
-From: "Cruz Boyer" <CruzBoyer@mail.ru>
-Subject: Success, world-populating
-Date: Wed, 19 Jul 2006 14:04:31 -0120
-Message-ID: <662161c80604oz64x66ih1hka9t816b8t9czq7894mi0__16813.5498920039$1153317958$gmane$org@mxs.mail.ru>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: FW: ACPIPnP, part 2
+Date: Wed, 19 Jul 2006 10:40:51 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB601053709@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [85.103.242.109] ([85.103.242.109]:30735 "EHLO mx.usa.net")
-	by vger.kernel.org with ESMTP id S964830AbWGSOEa convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Jul 2006 10:04:30 -0400
-Content-Disposition: inline
+Received: from mga03.intel.com ([143.182.124.21]:59053 "EHLO
+	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
+	id S964851AbWGSOqb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Jul 2006 10:46:31 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-fsdevel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Your cre dit doesn't matter to us! If you OWN real est ate
-and want IMMEDIATE7 cash to spend ANY way you like, or simply wish 
-to LOWER your monthly paym ents by a third or more, here are the dea ls
-we have TODAY (hurry, these ofers will expre TONIGHT):
+ 
 
-$488,000.00 at a 3.67,% fixed-rateG
-$372,000.00 at a 3.90,% variable-rateC
-$492,000.00 at a 3.21,% interest-onlyI
-$248,000.00 at a 3.36,% fixed-rateE
-$198,000.00 at a 3.55,% variable-rateY
+-----Original Message-----
+From: Vojtech Pavlik [mailto:vojtech@suse.cz] 
+Sent: Tuesday, July 18, 2006 4:20 PM
+To: Brown, Len
+Subject: ACPIPnP, part 2
 
-Hurry, when these deals are gone, they are gone Simply fill out this one-min ute form... 
+Hi Len,
 
-Don't worry about approval, your cre dit will not disqualify you! 
+The previous patch fixed some (most) machines in ECP mode. However,
+there are still some machines where 'rmmod parport; modprobe parport'
+doesn't work because of PnPACPI, resulting in this:
 
-http://W0Y3AJSG.foorests.net
+parport: PnPBIOS parport detected.
+parport0: PC-style at 0x378, irq 7 [PCSPP]
+parport0: Printer, EPSON Stylus COLOR 640
+lp0: using parport0 (interrupt-driven).
+parport 0x378 (WARNING): CTR: wrote 0x0c, read 0xff
+parport 0x378 (WARNING): DATA: wrote 0xaa, read 0xff
+parport 0x378: You gave this address, but there is probably no parallel
+port there!
 
+This means that the i/o port doesn't get enabled correctly, the same way
+that DMA didn't work before. 
 
+I'll have to recheck that the problem still persists with the latest git
+snapshot, because now that I looked at the relevant functions, I see
+significant changes there.
 
-     All  the  reference   points   corresponded,   but   Redrick  felt   no
-and inconveniently located. He took out  his  address book, flipped  through
-
-face was drained white.
-bed by the window. Guta woke up, too, and took Redrick's hand. He could feel
-     Arthur,  walking five paces  ahead,  wiped  the sweat  from  his  brow.
-
-     First we go  this way." Redrick  waved sharply in the direction of  the
-     "That's what they deserve, the bloodsuckers. I hope they all choke."
-up.  Maybe  we'll have to  shoot it  out  with  the patrol  guards. However,
-and it  was even  nicer to drink  now  than alcohol. It smelled of home.  Of
-
-song. And  the repairs would be  almost free,  because he  could  apply  for
-     "And me, too." Arthur said. "Me too."
+-- 
+Vojtech Pavlik
+Director SuSE Labs
