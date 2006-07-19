@@ -1,139 +1,93 @@
-From: =?iso-8859-2?q?=A3ukasz_Jachymczyk?= <lfx@tlen.pl>
-Subject: Linux kernel rebooting
-Date: Wed, 19 Jul 2006 12:52:49 +0200
-Message-ID: <pan.2006.07.19.10.52.49.399303@tlen.pl>
+From: Jaroslaw Gorny <jaroslav@aster.pl>
+Subject: Re: dock problem - Dell Latitude+2.6.18-rc2
+Date: Wed, 19 Jul 2006 21:41:01 +0200
+Message-ID: <200607192141.10429.jaroslav@aster.pl>
+References: <200607181957.21224.jaroslav@aster.pl> <20060718110917.1f35ca8c.kristen.c.accardi@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed;
+  boundary="nextPart9379276.fVV0b3B0rv";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:3233 "EHLO ciao.gmane.org")
-	by vger.kernel.org with ESMTP id S1030198AbWGSQzR (ORCPT
+Received: from mail2.aster.pl ([212.76.33.47]:39546 "EHLO mail2.astercity.net")
+	by vger.kernel.org with ESMTP id S1030235AbWGSTkL (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Jul 2006 12:55:17 -0400
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1G3FKA-0001qi-1e
-	for linux-acpi@vger.kernel.org; Wed, 19 Jul 2006 18:55:02 +0200
-Received: from awj146.internetdsl.tpnet.pl ([83.18.61.146])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Wed, 19 Jul 2006 18:55:02 +0200
-Received: from lfx by awj146.internetdsl.tpnet.pl with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Wed, 19 Jul 2006 18:55:02 +0200
+	Wed, 19 Jul 2006 15:40:11 -0400
+In-Reply-To: <20060718110917.1f35ca8c.kristen.c.accardi@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-Hello
+--nextPart9379276.fVV0b3B0rv
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-I've got a problem with rebooting my linux on laptop hp nx6310 (centrin=
-o
-core duo). After restarting, bios hangs for a while and it runs slower
-then usual (up to 15 seconds until grub loads). After that, my linux wo=
-rks
-quite fine, however I'm not able to achieve maximym cpu speed with cpuf=
-req
-and acpi doesn't show actual information about battery left (it shows a=
-ll
-the time 2:30 hours left) - simply, acpi hangs in the moment of booting=
-=2E
+Hi Kristen,
 
-But there is also ms windows on the same laptop. It reboots smoothly an=
-d
-quickly. There is no bios hanging effect. And after such reboot from
-windows, when I boot linux, everything works fine!
+Dnia wtorek, 18 lipca 2006 20:09, napisa=C5=82e=C5=9B:
+> On Tue, 18 Jul 2006 19:57:12 +0200
+>
+> Jaroslaw Gorny <jaroslav@aster.pl> wrote:
+> > Hi,
+> > I've got one Dell Latitude D505 with a dock-station, like this:
+> > http://laptoptravel.com/product.aspx?pc=3DDELLDPORT&V=3DDT
+>
+> Hi!  Can you please run an experiment in which you boot your laptop
+> undocked, and then dock and then try undocking again and let me know
+> if you still encounter the problem.
 
-I guess it's the problem of the way how linux' kernel with acpi reboots=
-=2E
-Can somebody tell me what can I do with it? Maybe it's some kind of a b=
-ug
-in acpi or kernel?
-
-Piece of my kernel (2.6.17.4) .config:
-#
-# ACPI (Advanced Configuration and Power Interface) Support
-#
-CONFIG_ACPI=3Dy
-CONFIG_ACPI_AC=3Dy
-CONFIG_ACPI_BATTERY=3Dy
-CONFIG_ACPI_BUTTON=3Dy
-CONFIG_ACPI_VIDEO=3Dy
-# CONFIG_ACPI_HOTKEY is not set
-CONFIG_ACPI_FAN=3Dy
-CONFIG_ACPI_PROCESSOR=3Dy
-CONFIG_ACPI_THERMAL=3Dy
-# CONFIG_ACPI_ASUS is not set
-# CONFIG_ACPI_IBM is not set
-# CONFIG_ACPI_TOSHIBA is not set
-CONFIG_ACPI_BLACKLIST_YEAR=3D0
-CONFIG_ACPI_DEBUG=3Dy
-CONFIG_ACPI_EC=3Dy
-CONFIG_ACPI_POWER=3Dy
-CONFIG_ACPI_SYSTEM=3Dy
-CONFIG_X86_PM_TIMER=3Dy
-# CONFIG_ACPI_CONTAINER is not set
+I've tried this, with no success. The result was the same as previously wit=
+h=20
+small exception: something appeared in /var/log/acpid (see link below)
 
 
-// without APM it also fails.
-#
-# APM (Advanced Power Management) BIOS Support
-#
-CONFIG_APM=3Dy
-# CONFIG_APM_IGNORE_USER_SUSPEND is not set
-# CONFIG_APM_DO_ENABLE is not set
-# CONFIG_APM_CPU_IDLE is not set
-# CONFIG_APM_DISPLAY_BLANK is not set
-# CONFIG_APM_RTC_IS_GMT is not set
-# CONFIG_APM_ALLOW_INTS is not set
-CONFIG_APM_REAL_MODE_POWER_OFF=3Dy
+> Also, can you send me your=20
+> acpi dsdt table, as well as the output of lspci -vv with your laptop
+> booted in the dock station, and also with it booted outside of the
+> dock station.  I'd also like a copy of your dmesg output from your
+> laptop when you boot docked, as well as when you boot undocked.
 
-#
-# CPU Frequency scaling
-#
-CONFIG_CPU_FREQ=3Dy
-CONFIG_CPU_FREQ_TABLE=3Dy
-# CONFIG_CPU_FREQ_DEBUG is not set
-CONFIG_CPU_FREQ_STAT=3Dy
-CONFIG_CPU_FREQ_STAT_DETAILS=3Dy
-CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE=3Dy
-# CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE is not set
-CONFIG_CPU_FREQ_GOV_PERFORMANCE=3Dy
-CONFIG_CPU_FREQ_GOV_POWERSAVE=3Dy
-CONFIG_CPU_FREQ_GOV_USERSPACE=3Dy
-CONFIG_CPU_FREQ_GOV_ONDEMAND=3Dy
-CONFIG_CPU_FREQ_GOV_CONSERVATIVE=3Dy
+All done.
+Requested logs and dumps are here:
+http://rmrmg.com/jaroslav/acpi-dock/2.6.18-rc2-20060719/
 
-#
-# CPUFreq processor drivers
-#
-CONFIG_X86_ACPI_CPUFREQ=3Dy
-# CONFIG_X86_POWERNOW_K6 is not set
-# CONFIG_X86_POWERNOW_K7 is not set
-# CONFIG_X86_POWERNOW_K8 is not set
-# CONFIG_X86_GX_SUSPMOD is not set
-CONFIG_X86_SPEEDSTEP_CENTRINO=3Dy
-CONFIG_X86_SPEEDSTEP_CENTRINO_ACPI=3Dy
-CONFIG_X86_SPEEDSTEP_CENTRINO_TABLE=3Dy
-CONFIG_X86_SPEEDSTEP_ICH=3Dy
-CONFIG_X86_SPEEDSTEP_SMI=3Dy
-# CONFIG_X86_P4_CLOCKMOD is not set
-# CONFIG_X86_CPUFREQ_NFORCE2 is not set
-# CONFIG_X86_LONGRUN is not set
+(with some explanations of how they were collected, hope I did it correctly=
+).
 
-#
-# shared options
-#
-# CONFIG_X86_ACPI_CPUFREQ_PROC_INTF is not set
-CONFIG_X86_SPEEDSTEP_LIB=3Dy
-# CONFIG_X86_SPEEDSTEP_RELAXED_CAP_CHECK is not set
+>
+> I am travelling this week and will probably not be available to
+> work on this problem till next week, but if in the meantime you can
+> collect this information that would be helpful.
 
---=20
-=A3ukasz Jachymczyk
-http://fatcat.ftj.agh.edu.pl/~lfx/
+Of course. If there's something more I can do, I'll do my best.
+
+Regards,
+
+=2D-=20
+Jaroslaw Gorny
+jaroslav@aster.pl
 
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+=2D----BEGIN GEEK CODE BLOCK-----
+Version: 3.12
+GMU/E/CS d+/-- s+: a- c++ UL++/US P+>++ L+++>++++
+E>++ W N++ o? K w--- !O M V- PS+++ PE++ Y PGP>++ t 5
+X- R- tv--/!tv b++ DI-- D G- e++>+++ h-- r+++ z+++
+=2D----END GEEK CODE BLOCK-----
+
+--nextPart9379276.fVV0b3B0rv
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.4 (GNU/Linux)
+
+iD8DBQBEvorW6haYWsLTFVgRAsnOAJ0bTNPA8Yp1iZ6k5ihUzU0K2/9+aQCgsWvt
+tjzAg2X0A/jqFw1Zv6AC+48=
+=wTux
+-----END PGP SIGNATURE-----
+
+--nextPart9379276.fVV0b3B0rv--
