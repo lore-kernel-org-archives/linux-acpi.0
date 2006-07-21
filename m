@@ -1,35 +1,40 @@
-From: "Margo" <m_vlad@aaanet.ru>
-Subject: Re[1]: Ave...
-Date: Thu, 20 Jul 2006 10:59:06 +0300
-Message-ID: <00be01c6abd2$5d186700$3510000a__42929.1081535213$1153382345$gmane$org@61-64-101-92-adsl-tpe.dynamic.so-net.net.tw>
+From: "Nigel Curtis" <NigelCurtis@mail.ru>
+Subject: Your health, Non-homeric
+Date: Fri, 21 Jul 2006 15:38:27 +0000 (UTC)
+Message-ID: <1689314407.20060721153833__15409.1868586422$1153496307$gmane$org@mail.ru>
+Reply-To: "Nigel Curtis" <NigelCurtis@mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="windows-1251"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 61-64-101-92-adsl-tpe.dynamic.so-net.net.tw ([61.64.101.92]:34312
-	"EHLO 61-64-101-92-adsl-tpe.dynamic.so-net.net.tw") by vger.kernel.org
-	with ESMTP id S932571AbWGTH6Z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Jul 2006 03:58:25 -0400
+Received: from zeus2.kernel.org ([204.152.191.36]:26284 "EHLO zeus2.kernel.org")
+	by vger.kernel.org with ESMTP id S1750767AbWGUPiM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Jul 2006 11:38:12 -0400
+Date: Fri, 21 Jul 2006 15:38:33 -0060
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Walter <linux-8086@vger.kernel.org>
+To: linux-fsdevel@vger.kernel.org
 
-Hi, Walter
+Genuine Swiss made Role2x repilcas are as close to the real thing 
+as a repilca watch can be. Sometimes even the professional jewelers 
+are unable to tell the difference from the real Role5x watch.
 
-I'm a very young and energetic lady! I have very positive attitude to life and people. I do enjoy new experience life can offer me: to see new interesting places, to meet new people.
-I do try to enjoy every moment of life and accept everything the way it comes without complaining.
-Though my life seems to be quite enjoyable there's one important thing missing. It's LOVE!
-Without my beloved one, my soul mate, my King my life is not completed.
-I wish i coud find him very soon so that we could share together every momement of the life-time romance! 
-What about you? Could you be my King? If answer is "yes" - you can find more about me 
-http://iamsearching-forlove.com/
+Why spend thousands of dollars on the real deal when 
+a repilca watch looks so much alike that only an expert could tell the difference...
+And you only pay a fractoin of the price.
 
-see you later
-Maria
+VISIT US, AND GET OUR SPECIL 370% DIS6COUNT OFER!
 
-If you think that you were subscribed by mistake for this mail
-delivery or if your email has been added without your permission,
-please, visit http://iamsearching-forlove.com/ and unsubscribe from our mails.
+http://UE2I69Qdt06iwj311joevdtidvtivvd.lieshag.com/
 
+==========
+     And so they flew in from the west that morning, eight of  them  in  a
+in cone-shaped mounds, blast furnaces gleaming in the sun, rails, rails, and
+toward the light?"
+today. Nor tomorrow, nor the day  after. It meant that those toads had their
+himself if he'd just spend a little time practicing? Why should that be so
+there was a bunch of  pebbles that didn't seem too cozy, but I  was ready to
 
+     But Jonathan Livingston  Seagull,  unashamed,  stretching  his  wings
+trying to raise my price.
