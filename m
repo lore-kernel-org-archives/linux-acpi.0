@@ -1,481 +1,87 @@
-From: jayakumar.acpi@gmail.com
-Subject: [PATCH 2.6.17.4 1/1] ACPI,INPUT: Move atlas to input
-Date: Tue, 25 Jul 2006 17:09:01 +0800
-Message-ID: <200607250909.k6P991HK011003@localhost.localdomain>
+From: Aleksandar Markovic <acojlo@gmail.com>
+Subject: Suspend - FS Amilo Pro 2030
+Date: Tue, 25 Jul 2006 12:16:52 +0200
+Message-ID: <200607251216.52159.acojlo@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [202.75.186.170] ([202.75.186.170]:15364 "EHLO
-	localhost.localdomain") by vger.kernel.org with ESMTP
-	id S1751535AbWGYJbG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Jul 2006 05:31:06 -0400
+Received: from nz-out-0102.google.com ([64.233.162.197]:14862 "EHLO
+	nz-out-0102.google.com") by vger.kernel.org with ESMTP
+	id S1751561AbWGYKRL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Jul 2006 06:17:11 -0400
+Received: by nz-out-0102.google.com with SMTP id l1so530566nzf
+        for <linux-acpi@vger.kernel.org>; Tue, 25 Jul 2006 03:17:11 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, len.brown@intel.com, dmitry.torokhov@gmail.com, akpm@osdl.org, akpm@kernel.org, linux-input@atrey.karlin.mff.cuni.cz
+To: linux-acpi@vger.kernel.org
 
-This patch moves the Atlas driver from acpi over to input/misc and adds
-check for acpi_disabled. Added maintainer entry as per Len's request. 
+Hi to everyone out in the working world of open source society :)
 
-Signed-off-by: Jaya Kumar <jayakumar.acpi@gmail.com>
+I want to enable s3 suspend resume and suspend to disk functionality on my 
+laptop. I think this will benefit the linux community.
 
----
+Let me first argue about hardware. It is a laptop, sold under Fujitsu Siemens 
+brand by Amilo Pro 2030 name. It is very cheap laptop (around 600 euros in 
+Serbia) in this part of the world - Europe, and therefore it will enable many 
+people of benefiting by using laptops. The model is sold all around the 
+world, so if we succeed in S3, S4 operations many will benefith. Actualy, 
+Laptop is sold with Linux on the live CD and with no operating system 
+preinstalled on the hard disk. Little more hardware facts: 
 
- MAINTAINERS                     |    5 +
- drivers/acpi/Kconfig            |   11 --
- drivers/acpi/Makefile           |    1 
- drivers/acpi/atlas_acpi.c       |  181 ---------------------------------------
- drivers/input/misc/Kconfig      |   10 ++
- drivers/input/misc/Makefile     |    1 
- drivers/input/misc/atlas_btns.c |  184 ++++++++++++++++++++++++++++++++++++++++
- 7 files changed, 200 insertions(+), 193 deletions(-)
+VIA Technologies, Inc. CN700/VN800/P4M800CE/Pro Host Bridge
+VIA Technologies, Inc. PT890 Host Bridge
+VIA Technologies, Inc. VT8237 PCI Bridge
+Broadcom Corporation BCM4318 WLAN
+Texas Instruments PCIxx21/x515 Cardbus Controller
+Texas Instruments OHCI Compliant IEEE 1394 Host Controller
+VIA VT6420 SATA RAID Controller
+VT82C586A/B/VT82C686/A/B/VT823x/A/C PIPC Bus Master IDE
+VT82xxxxx UHCI USB 1.1 Controller
+VIA Technologies, Inc. USB 2.0
+Inc. VT8237 ISA bridge [KT600/K8T800/K8T890 South]
+VT8233/A/8235/8237 AC97 Audio Controller
+Inc. AC'97 Modem Controller
+Inc. VT6102 [Rhine-II]
+VIA Technologies, Inc. UniChrome Pro IGP
 
----
+Maybe you consider this facts unimportant, but I'm not so much educated in 
+technical sciences. Actually, I'm a law student :)
 
-diff -X linux-2.6.17.4/Documentation/dontdiff -uprN linux-2.6.17.4-a1/drivers/acpi/atlas_acpi.c linux-2.6.17.4/drivers/acpi/atlas_acpi.c
---- linux-2.6.17.4-a1/drivers/acpi/atlas_acpi.c	2006-07-24 18:21:46.000000000 +0800
-+++ linux-2.6.17.4/drivers/acpi/atlas_acpi.c	1970-01-01 07:30:00.000000000 +0730
-@@ -1,181 +0,0 @@
--/*
-- *  atlas_acpi.c - Atlas Wallmount Touchscreen ACPI Extras
-- *
-- *  Copyright (C) 2006 Jaya Kumar
-- *  Based on Toshiba ACPI by John Belmonte and ASUS ACPI
-- *  This work was sponsored by CIS(M) Sdn Bhd.
-- *
-- *  This program is free software; you can redistribute it and/or modify
-- *  it under the terms of the GNU General Public License as published by
-- *  the Free Software Foundation; either version 2 of the License, or
-- *  (at your option) any later version.
-- *
-- *  This program is distributed in the hope that it will be useful,
-- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- *  GNU General Public License for more details.
-- *
-- *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-- *
-- */
--
--#include <linux/kernel.h>
--#include <linux/module.h>
--#include <linux/init.h>
--#include <linux/input.h>
--#include <linux/types.h>
--#include <asm/uaccess.h>
--#include <acpi/acpi_drivers.h>
--
--#define ACPI_ATLAS_NAME			"Atlas ACPI"
--#define ACPI_ATLAS_CLASS		"Atlas"
--#define ACPI_ATLAS_BUTTON_HID		"ASIM0000"
--
--static struct input_dev *input_dev;
--
--static void atlas_input_report(u8 address)
--{
--	int keycode;
--
--	keycode = KEY_F1 + (address & 0x0F);
--
--	if (address & 0x10)
--		input_report_key(input_dev, keycode, 0);
--	else
--		input_report_key(input_dev, keycode, 1);
--	input_sync(input_dev);
--}
--
--static int atlas_setup_input(void)
--{
--	int err;
--
--	input_dev = input_allocate_device();
--	if (!input_dev) {
--		printk(KERN_ERR "atlas: insufficient mem to allocate input "
--				"device\n");
--		return -ENOMEM;
--	}
--
--	input_dev->name = "Atlas ACPI button driver";
--	input_dev->phys = "ASIM0000/atlas/input0";
--	input_dev->id.bustype = BUS_HOST;
--	input_dev->evbit[LONG(EV_KEY)] = BIT(EV_KEY);
--	set_bit(KEY_F1, input_dev->keybit);
--	set_bit(KEY_F2, input_dev->keybit);
--	set_bit(KEY_F3, input_dev->keybit);
--	set_bit(KEY_F4, input_dev->keybit);
--	set_bit(KEY_F5, input_dev->keybit);
--	set_bit(KEY_F6, input_dev->keybit);
--	set_bit(KEY_F7, input_dev->keybit);
--	set_bit(KEY_F8, input_dev->keybit);
--	set_bit(KEY_F9, input_dev->keybit);
--
--	err = input_register_device(input_dev);
--	if (err) {
--		printk(KERN_ERR "atlas: couldn't register input device\n");
--		input_free_device(input_dev);
--		return err;
--	}
--
--	return 0;
--}
--
--static void atlas_free_input(void)
--{
--	if (input_dev)
--		input_unregister_device(input_dev);
--}
--
--/* button handling code */
--static acpi_status acpi_atlas_button_setup(acpi_handle region_handle,
--		    u32 function, void *handler_context, void **return_context)
--{
--	*return_context =
--		(function != ACPI_REGION_DEACTIVATE) ? handler_context : NULL;
--
--	return AE_OK;
--}
--
--static acpi_status acpi_atlas_button_handler(u32 function,
--		      acpi_physical_address address,
--		      u32 bit_width, acpi_integer *value,
--		      void *handler_context, void *region_context)
--{
--	acpi_status status;
--
--	if (function == ACPI_WRITE) 
--		atlas_input_report((u8) address);
--	else {
--		printk(KERN_WARNING "atlas: shrugged on unexpected function"
--			":function=%x,address=%lx,value=%x\n",
--			function, (unsigned long)address, (u32)*value);
--		status = -EINVAL;
--	}
--
--	return status;
--}
--
--static int atlas_acpi_button_add(struct acpi_device *device)
--{
--	int err;
--
--	err = atlas_setup_input();
--	if (err)
--		return err;
--
--	/* hookup button handler */
--	return acpi_install_address_space_handler(device->handle,
--				0x81, &acpi_atlas_button_handler,
--				&acpi_atlas_button_setup, device);
--}
--
--static int atlas_acpi_button_remove(struct acpi_device *device, int type)
--{
--	acpi_status status;
--
--	status = acpi_remove_address_space_handler(device->handle,
--				0x81, &acpi_atlas_button_handler);
--	if (ACPI_FAILURE(status))
--		printk(KERN_ERR "Atlas: Error removing addr spc handler\n");
--	atlas_free_input();
--	return status;
--}
--
--static struct acpi_driver atlas_acpi_driver = {
--	.name = ACPI_ATLAS_NAME,
--	.class = ACPI_ATLAS_CLASS,
--	.ids = ACPI_ATLAS_BUTTON_HID,
--	.ops = {
--		.add = atlas_acpi_button_add,
--		.remove = atlas_acpi_button_remove,
--	},
--};
--
--static int atlas_acpi_init(void)
--{
--	int result;
--
--	result = acpi_bus_register_driver(&atlas_acpi_driver);
--	if (result < 0) {
--		printk(KERN_ERR "Atlas ACPI: Unable to register driver\n");
--		return -ENODEV;
--	}
--
--	return 0;
--}
--
--static void atlas_acpi_exit(void)
--{
--	acpi_bus_unregister_driver(&atlas_acpi_driver);
--}
--
--module_init(atlas_acpi_init);
--module_exit(atlas_acpi_exit);
--
--MODULE_AUTHOR("Jaya Kumar");
--MODULE_LICENSE("GPL");
--MODULE_DESCRIPTION("Atlas ACPI");
--
-diff -X linux-2.6.17.4/Documentation/dontdiff -uprN linux-2.6.17.4-a1/drivers/acpi/Kconfig linux-2.6.17.4/drivers/acpi/Kconfig
---- linux-2.6.17.4-a1/drivers/acpi/Kconfig	2006-07-24 18:21:40.000000000 +0800
-+++ linux-2.6.17.4/drivers/acpi/Kconfig	2006-07-24 18:32:19.000000000 +0800
-@@ -193,17 +193,6 @@ config ACPI_ASUS
-           something works not quite as expected, please use the mailing list
-           available on the above page (acpi4asus-user@lists.sourceforge.net)
- 
--config ACPI_ATLAS
--	tristate "Atlas Wallmount Touchscreen Extras"
--	depends on X86 && INPUT
--	default n
--         ---help---
--          This driver is intended for Atlas wallmounted touchscreens.
--          The button events will show up as scancodes F1 through F9 via
--          evdev. 
--
--          If you have an Atlas wallmounted touchscreen, say Y or M here.
--
- config ACPI_IBM
- 	tristate "IBM ThinkPad Laptop Extras"
- 	depends on X86
-diff -X linux-2.6.17.4/Documentation/dontdiff -uprN linux-2.6.17.4-a1/drivers/acpi/Makefile linux-2.6.17.4/drivers/acpi/Makefile
---- linux-2.6.17.4-a1/drivers/acpi/Makefile	2006-07-24 18:21:40.000000000 +0800
-+++ linux-2.6.17.4/drivers/acpi/Makefile	2006-07-25 16:44:45.000000000 +0800
-@@ -53,7 +53,6 @@ obj-$(CONFIG_ACPI_SYSTEM)	+= system.o ev
- obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
- obj-$(CONFIG_ACPI_NUMA)		+= numa.o
- obj-$(CONFIG_ACPI_ASUS)		+= asus_acpi.o
--obj-$(CONFIG_ACPI_ATLAS)	+= atlas_acpi.o
- obj-$(CONFIG_ACPI_IBM)		+= ibm_acpi.o
- obj-$(CONFIG_ACPI_TOSHIBA)	+= toshiba_acpi.o
- obj-y				+= scan.o motherboard.o
-diff -X linux-2.6.17.4/Documentation/dontdiff -uprN linux-2.6.17.4-a1/drivers/input/misc/atlas_btns.c linux-2.6.17.4/drivers/input/misc/atlas_btns.c
---- linux-2.6.17.4-a1/drivers/input/misc/atlas_btns.c	1970-01-01 07:30:00.000000000 +0730
-+++ linux-2.6.17.4/drivers/input/misc/atlas_btns.c	2006-07-25 17:04:38.000000000 +0800
-@@ -0,0 +1,184 @@
-+/*
-+ *  atlas_btns.c - Atlas Wallmount Touchscreen ACPI Extras
-+ *
-+ *  Copyright (C) 2006 Jaya Kumar
-+ *  Based on Toshiba ACPI by John Belmonte and ASUS ACPI
-+ *  This work was sponsored by CIS(M) Sdn Bhd.
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/input.h>
-+#include <linux/types.h>
-+#include <asm/uaccess.h>
-+#include <acpi/acpi_drivers.h>
-+
-+#define ACPI_ATLAS_NAME			"Atlas ACPI"
-+#define ACPI_ATLAS_CLASS		"Atlas"
-+#define ACPI_ATLAS_BUTTON_HID		"ASIM0000"
-+
-+static struct input_dev *input_dev;
-+
-+static void atlas_input_report(u8 address)
-+{
-+	int keycode;
-+
-+	keycode = KEY_F1 + (address & 0x0F);
-+
-+	if (address & 0x10)
-+		input_report_key(input_dev, keycode, 0);
-+	else
-+		input_report_key(input_dev, keycode, 1);
-+	input_sync(input_dev);
-+}
-+
-+static int atlas_setup_input(void)
-+{
-+	int err;
-+
-+	input_dev = input_allocate_device();
-+	if (!input_dev) {
-+		printk(KERN_ERR "atlas: insufficient mem to allocate input "
-+				"device\n");
-+		return -ENOMEM;
-+	}
-+
-+	input_dev->name = "Atlas ACPI button driver";
-+	input_dev->phys = "ASIM0000/atlas/input0";
-+	input_dev->id.bustype = BUS_HOST;
-+	input_dev->evbit[LONG(EV_KEY)] = BIT(EV_KEY);
-+	set_bit(KEY_F1, input_dev->keybit);
-+	set_bit(KEY_F2, input_dev->keybit);
-+	set_bit(KEY_F3, input_dev->keybit);
-+	set_bit(KEY_F4, input_dev->keybit);
-+	set_bit(KEY_F5, input_dev->keybit);
-+	set_bit(KEY_F6, input_dev->keybit);
-+	set_bit(KEY_F7, input_dev->keybit);
-+	set_bit(KEY_F8, input_dev->keybit);
-+	set_bit(KEY_F9, input_dev->keybit);
-+
-+	err = input_register_device(input_dev);
-+	if (err) {
-+		printk(KERN_ERR "atlas: couldn't register input device\n");
-+		input_free_device(input_dev);
-+		return err;
-+	}
-+
-+	return 0;
-+}
-+
-+static void atlas_free_input(void)
-+{
-+	if (input_dev)
-+		input_unregister_device(input_dev);
-+}
-+
-+/* button handling code */
-+static acpi_status acpi_atlas_button_setup(acpi_handle region_handle,
-+		    u32 function, void *handler_context, void **return_context)
-+{
-+	*return_context =
-+		(function != ACPI_REGION_DEACTIVATE) ? handler_context : NULL;
-+
-+	return AE_OK;
-+}
-+
-+static acpi_status acpi_atlas_button_handler(u32 function,
-+		      acpi_physical_address address,
-+		      u32 bit_width, acpi_integer *value,
-+		      void *handler_context, void *region_context)
-+{
-+	acpi_status status;
-+
-+	if (function == ACPI_WRITE) 
-+		atlas_input_report((u8) address);
-+	else {
-+		printk(KERN_WARNING "atlas: shrugged on unexpected function"
-+			":function=%x,address=%lx,value=%x\n",
-+			function, (unsigned long)address, (u32)*value);
-+		status = -EINVAL;
-+	}
-+
-+	return status;
-+}
-+
-+static int atlas_acpi_button_add(struct acpi_device *device)
-+{
-+	int err;
-+
-+	err = atlas_setup_input();
-+	if (err)
-+		return err;
-+
-+	/* hookup button handler */
-+	return acpi_install_address_space_handler(device->handle,
-+				0x81, &acpi_atlas_button_handler,
-+				&acpi_atlas_button_setup, device);
-+}
-+
-+static int atlas_acpi_button_remove(struct acpi_device *device, int type)
-+{
-+	acpi_status status;
-+
-+	status = acpi_remove_address_space_handler(device->handle,
-+				0x81, &acpi_atlas_button_handler);
-+	if (ACPI_FAILURE(status))
-+		printk(KERN_ERR "Atlas: Error removing addr spc handler\n");
-+	atlas_free_input();
-+	return status;
-+}
-+
-+static struct acpi_driver atlas_acpi_driver = {
-+	.name = ACPI_ATLAS_NAME,
-+	.class = ACPI_ATLAS_CLASS,
-+	.ids = ACPI_ATLAS_BUTTON_HID,
-+	.ops = {
-+		.add = atlas_acpi_button_add,
-+		.remove = atlas_acpi_button_remove,
-+	},
-+};
-+
-+static int atlas_acpi_init(void)
-+{
-+	int result;
-+
-+	if (acpi_disabled)
-+		return -ENODEV;
-+
-+	result = acpi_bus_register_driver(&atlas_acpi_driver);
-+	if (result < 0) {
-+		printk(KERN_ERR "Atlas ACPI: Unable to register driver\n");
-+		return -ENODEV;
-+	}
-+
-+	return 0;
-+}
-+
-+static void atlas_acpi_exit(void)
-+{
-+	acpi_bus_unregister_driver(&atlas_acpi_driver);
-+}
-+
-+module_init(atlas_acpi_init);
-+module_exit(atlas_acpi_exit);
-+
-+MODULE_AUTHOR("Jaya Kumar");
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("Atlas button driver");
-+
-diff -X linux-2.6.17.4/Documentation/dontdiff -uprN linux-2.6.17.4-a1/drivers/input/misc/Kconfig linux-2.6.17.4/drivers/input/misc/Kconfig
---- linux-2.6.17.4-a1/drivers/input/misc/Kconfig	2006-07-24 18:21:49.000000000 +0800
-+++ linux-2.6.17.4/drivers/input/misc/Kconfig	2006-07-25 16:42:44.000000000 +0800
-@@ -50,6 +50,16 @@ config INPUT_WISTRON_BTNS
- 	  To compile this driver as a module, choose M here: the module will
- 	  be called wistron_btns.
- 
-+config INPUT_ATLAS_BTNS
-+	tristate "x86 Atlas button interface"
-+	depends on X86 && ACPI
-+	help
-+	  Say Y here for support of Atlas wallmount touchscreen buttons. 
-+	  The events will show up as scancodes F1 through F9 via evdev.
-+
-+	  To compile this driver as a module, choose M here: the module will
-+	  be called atlas_btns.
-+
- config INPUT_IXP4XX_BEEPER
- 	tristate "IXP4XX Beeper support"
- 	depends on ARCH_IXP4XX
-diff -X linux-2.6.17.4/Documentation/dontdiff -uprN linux-2.6.17.4-a1/drivers/input/misc/Makefile linux-2.6.17.4/drivers/input/misc/Makefile
---- linux-2.6.17.4-a1/drivers/input/misc/Makefile	2006-07-24 18:21:49.000000000 +0800
-+++ linux-2.6.17.4/drivers/input/misc/Makefile	2006-07-25 16:45:28.000000000 +0800
-@@ -9,5 +9,6 @@ obj-$(CONFIG_INPUT_PCSPKR)		+= pcspkr.o
- obj-$(CONFIG_INPUT_M68K_BEEP)		+= m68kspkr.o
- obj-$(CONFIG_INPUT_UINPUT)		+= uinput.o
- obj-$(CONFIG_INPUT_WISTRON_BTNS)	+= wistron_btns.o
-+obj-$(CONFIG_INPUT_ATLAS_BTNS)		+= atlas_btns.o
- obj-$(CONFIG_HP_SDC_RTC)		+= hp_sdc_rtc.o
- obj-$(CONFIG_INPUT_IXP4XX_BEEPER)	+= ixp4xx-beeper.o
-diff -X linux-2.6.17.4/Documentation/dontdiff -uprN linux-2.6.17.4-a1/MAINTAINERS linux-2.6.17.4/MAINTAINERS
---- linux-2.6.17.4-a1/MAINTAINERS	2006-07-24 18:21:31.000000000 +0800
-+++ linux-2.6.17.4/MAINTAINERS	2006-07-25 16:51:03.000000000 +0800
-@@ -394,6 +394,11 @@ M:	ecashin@coraid.com
- W:	http://www.coraid.com/support/linux
- S:	Supported
- 
-+ATLAS INPUT DRIVER
-+P:	Jaya Kumar
-+M:	jayakumar.acpi@gmail.com
-+S:	Maintained
-+
- ATM
- P:	Chas Williams
- M:	chas@cmf.nrl.navy.mil
+At this point there was some problems with fan control, but I've solved that 
+by replacing DSDT. 
+
+I have a (K)ubuntu distribution with kernel upgraded at 2.6.18-rc2 and 
+configured for this hardware (hd support (via_sata) is precompiled in 
+kernel - not in module).
+
+So, here is the description of suspend / resume problems:
+
+1. S3: System goes into S3 - everything becomes quiet - just  power led is 
+blinking - normal. Pressing the power button - to resume - fans start 
+spinning, cd make some noise, there is some activity by hard disk but - 
+keyboard does not react - caps lock pressing does not change led light, 
+pressing wlan hotkey does not change it's led light,hd led is off, screen is 
+off. Power led continues to blink. Only solution is to power off the system 
+by pressing the power button.
+
+2. Suspend to disk: Screen becomes off and system freezes - keyboard is still 
+active. It lasts for few minutes after what I allways turned it off.
+
+
+So, is anyone willing to support me on this? I have no problem in trying to 
+diagnose the problem, but I need someone experienced to guide me.
+
+Sincerely,
+Aleksandar Markovic
+
+
+--
+What if God decides, in very next moment, to sacrifice all of us and leave 
+just you and your wife or girl? Are you capable of thinking about future and 
+realising the past is not anymore important. Are you at the level of being 
+able to cope with everyday problems? Will you be at the level of producing 
+the whole new brave world? Have you grown inaf to be not anymore green? Do 
+you live the love, hope, faith and good?
