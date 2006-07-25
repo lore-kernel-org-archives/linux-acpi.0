@@ -1,75 +1,69 @@
-From: George Nychis <gnychis@cmu.edu>
-Subject: Re: ACPI bombing, ACPI Exception (acpi_bus-0071): AE_NOT_FOUND
-Date: Tue, 25 Jul 2006 14:37:43 -0400
-Message-ID: <44C664F7.2050604@cmu.edu>
-References: <CFF307C98FEABE47A452B27C06B85BB6010E42CF@hdsmsx411.amr.corp.intel.com> <20060725110434.06408186.kristen.c.accardi@intel.com>
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: [patch] pci/hotplug acpiphp: fix Kconfig for Dock dependencies
+Date: Tue, 25 Jul 2006 16:18:54 -0700
+Message-ID: <20060725161854.79f9cc1b.kristen.c.accardi@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.andrew.cmu.edu ([128.2.10.83]:2508 "EHLO
-	smtp.andrew.cmu.edu") by vger.kernel.org with ESMTP
-	id S1751481AbWGYShz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Jul 2006 14:37:55 -0400
-In-Reply-To: <20060725110434.06408186.kristen.c.accardi@intel.com>
+Received: from mga02.intel.com ([134.134.136.20]:30510 "EHLO
+	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1030247AbWGYXTB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Jul 2006 19:19:01 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: "Brown, Len" <len.brown@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@osdl.org
+To: linux-acpi@vger.kernel.org
+Cc: len.brown@intel.com, akpm@osdl.org, zippel@linux-m68k.org, rdunlap@xenotime.net, linux-kernel@vger.kernel.org, greg@kroah.com, pcihpd-discuss@lists.sourceforge.net
 
+---
+the build options submitted for 2.6.18-rcX for acpiphp and the dock
+module are not quite right.  Can you please review this patch and 
+make sure this makes sense?  I'd like this pushed to Linus as 
+soon as possible.  
 
+Change the build options for acpiphp so that it may build without
+being dependent on the ACPI_DOCK option, but yet does not allow
+the option of acpiphp being built-in when dock is built as a 
+module.
 
-Kristen Carlson Accardi wrote:
-> On Tue, 25 Jul 2006 09:44:06 -0700
-> "Brown, Len" <len.brown@intel.com> wrote:
-> 
->>>> Hey guys,
->>>>
->>>> I am running a 2.6.18-rc1-git7 kernel on my IBM Thinkpad x60s, with
->>>> CONFIG_ACPI_DOCK=y
->>>>
->>>> Whenever the computer is inserted into the dock, ACPI seems to bomb:
->>>> http://rafb.net/paste/results/GW5E8747.html
->>>>
->>>> I was wondering if anyone could help me solve this problem, 
->>> I believe it
->>>> is keeping me from using my cdrom drive on the dock since it does not
->>>> show up in /dev.  I have also contacted Kristen Accardi 
->>> about it, who I
->>>> believe wrote the dock code... but I wasn't sure if this is a further
->>>> problem in ACPI somewhere.
->>>>
->>>> Here is my full config:
->>>> http://rafb.net/paste/results/o2gSVu90.html
->>>>
->>>> Thanks!
->>>> George
->>> Hello everyone,
->>> I am working on getting an x60 to duplicate the cdrom issue 
->>> this week.  However, I was wondering if there was anything we 
->>> could do about these AE_NOT_FOUND messages.  A lot of people 
->>> believe that they are errors, but in fact they are normal for 
->>> hotplugging.  Would it be ok if I just get rid of that error 
->>> message?  It generates unneccessary consternation.
->> In 2.6.17, this was a DEBUG message.
->> I'll return it to being a DEBUG message for 2.6.18.
->>
->> BTW. I can't follow the URLs above, hopefully you can.
->> stashing logs in a bugzilla entry is generally a better method,
->> because "bugzilla never forgets".
->>
->> thanks,
->> -Len
-> 
-> I can't follow them either, but I had looked at them earlier in the week when George contacted me privately. Of course, I stupidly didn't save them then. George, can you make sure you have all this information stored in a bugzilla entry, and the bugzilla can be assigned to me.
-> 
-> Thanks,
-> Kristen
-> 
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+---
+ drivers/pci/hotplug/Kconfig |   17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
-Ahhh, i thought nopaste was forever.  I will definitely put this in a
-bugzilla entry and regenerate it.  My dock is at my apartment, when I
-get there tonight I will do it.
-
-Thanks!
-George
+--- 2.6-git.orig/drivers/pci/hotplug/Kconfig
++++ 2.6-git/drivers/pci/hotplug/Kconfig
+@@ -74,9 +74,10 @@ config HOTPLUG_PCI_IBM
+ 
+ 	  When in doubt, say N.
+ 
++if ACPI_DOCK=n
+ config HOTPLUG_PCI_ACPI
+ 	tristate "ACPI PCI Hotplug driver"
+-	depends on ACPI_DOCK && HOTPLUG_PCI
++	depends on ACPI && HOTPLUG_PCI
+ 	help
+ 	  Say Y here if you have a system that supports PCI Hotplug using
+ 	  ACPI.
+@@ -85,6 +86,20 @@ config HOTPLUG_PCI_ACPI
+ 	  module will be called acpiphp.
+ 
+ 	  When in doubt, say N.
++endif
++if ACPI_DOCK!=n
++config HOTPLUG_PCI_ACPI
++	tristate "ACPI PCI Hotplug driver"
++	depends on HOTPLUG_PCI && ACPI_DOCK
++	help
++	  Say Y here if you have a system that supports PCI Hotplug using
++	  ACPI.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called acpiphp.
++
++	  When in doubt, say N.
++endif
+ 
+ config HOTPLUG_PCI_ACPI_IBM
+ 	tristate "ACPI PCI Hotplug driver IBM extensions"
