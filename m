@@ -1,41 +1,51 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: msi s271 (1058)
-Date: Tue, 25 Jul 2006 09:14:12 -0600
-Message-ID: <200607250914.12836.bjorn.helgaas@hp.com>
-References: <44BB64DC.50804@guetl.net>
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: Re: ACPI bombing, ACPI Exception (acpi_bus-0071): AE_NOT_FOUND
+Date: Tue, 25 Jul 2006 08:17:37 -0700
+Message-ID: <20060725081737.edb715c6.kristen.c.accardi@intel.com>
+References: <44C13563.4010307@cmu.edu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel6.hp.com ([156.153.255.205]:29859 "EHLO atlrel6.hp.com")
-	by vger.kernel.org with ESMTP id S932402AbWGYPOY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Jul 2006 11:14:24 -0400
-In-Reply-To: <44BB64DC.50804@guetl.net>
-Content-Disposition: inline
+Received: from mga01.intel.com ([192.55.52.88]:46889 "EHLO
+	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
+	id S964777AbWGYP06 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Jul 2006 11:26:58 -0400
+In-Reply-To: <44C13563.4010307@cmu.edu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: andreas guetl <andreas@guetl.net>
-Cc: linux-acpi@vger.kernel.org
+To: George Nychis <gnychis@cmu.edu>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@osdl.org
 
-On Monday 17 July 2006 04:22, andreas guetl wrote:
-> i recently bought a msi s271 barebone and stuffed it with an amd turion
-> x1 tl-56, 2gb ram and a harddisk. but linux won't start on it when acpi
-> is enabled. i tried tons of kernel-configuration (both 64 and 32bit),
-> boot-parameters and bios-versions. no success. only if acpi=off is
-> appended. so i can't even dump its dsdt table.
+On Fri, 21 Jul 2006 16:13:23 -0400
+George Nychis <gnychis@cmu.edu> wrote:
+
+> Hey guys,
 > 
-> does anyone know a method to get the dsdt table on windows? (windows x64
-> that is).
+> I am running a 2.6.18-rc1-git7 kernel on my IBM Thinkpad x60s, with
+> CONFIG_ACPI_DOCK=y
+> 
+> Whenever the computer is inserted into the dock, ACPI seems to bomb:
+> http://rafb.net/paste/results/GW5E8747.html
+> 
+> I was wondering if anyone could help me solve this problem, I believe it
+> is keeping me from using my cdrom drive on the dock since it does not
+> show up in /dev.  I have also contacted Kristen Accardi about it, who I
+> believe wrote the dock code... but I wasn't sure if this is a further
+> problem in ACPI somewhere.
+> 
+> Here is my full config:
+> http://rafb.net/paste/results/o2gSVu90.html
+> 
+> Thanks!
+> George
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 
-Sorry, I don't know how to get the DSDT on Windows.
+Hello everyone,
+I am working on getting an x60 to duplicate the cdrom issue this week.  However, I was wondering if there was anything we could do about these AE_NOT_FOUND messages.  A lot of people believe that they are errors, but in fact they are normal for hotplugging.  Would it be ok if I just get rid of that error message?  It generates unneccessary consternation.
 
-Can you open a report at http://bugzilla.kernel.org with the
-information above and attach the dmesg log with "acpi=off".  If
-you can use a serial console, net console, or digital camera to
-capture the output when things fail, attach that, too.
-
-What is the failure mode when ACPI is enabled?
-
-Bjorn
+Kristen
