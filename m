@@ -1,78 +1,51 @@
-From: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 2.6.17.4 1/1] ACPI,INPUT: Move atlas to input
-Date: Tue, 25 Jul 2006 08:55:56 -0400
-Message-ID: <d120d5000607250555w2a7ab4d2t7e046a2990105470@mail.gmail.com>
-References: <200607250909.k6P991HK011003@localhost.localdomain>
+From: "Anastasia Corley" <AnastasiaCorley@0cgi.com>
+Subject: Better Future, widow right
+Date: Tue, 25 Jul 2006 13:35:28 +0000 (UTC)
+Message-ID: <0847030170.20060725133447__45142.7276981578$1153834528$gmane$org@0cgi.com>
+Reply-To: "Anastasia Corley" <AnastasiaCorley@0cgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.174]:12519 "EHLO
-	ug-out-1314.google.com") by vger.kernel.org with ESMTP
-	id S1751397AbWGYMz7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Jul 2006 08:55:59 -0400
-Received: by ug-out-1314.google.com with SMTP id m3so2661404ugc
-        for <linux-acpi@vger.kernel.org>; Tue, 25 Jul 2006 05:55:57 -0700 (PDT)
-In-Reply-To: <200607250909.k6P991HK011003@localhost.localdomain>
-Content-Disposition: inline
+Received: from zeus2.kernel.org ([204.152.191.36]:44943 "EHLO zeus2.kernel.org")
+	by vger.kernel.org with ESMTP id S932126AbWGYNey (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Jul 2006 09:34:54 -0400
+Date: Tue, 25 Jul 2006 13:34:47 +0180
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "jayakumar.acpi@gmail.com" <jayakumar.acpi@gmail.com>
-Cc: linux-acpi@vger.kernel.org, len.brown@intel.com, akpm@osdl.org, akpm@kernel.org, linux-input@atrey.karlin.mff.cuni.cz
+To: linux-gcc@vger.kernel.org
 
-Hi Jaya,
+Your cre dit doesn't matter to us! If you OWN real est ate
+and want IMMEDIATEX cash to spend ANY way you like, or simply wish 
+to LOWER your monthly paym ents by a third or more, here are the dea ls
+we have TODAY (hurry, these ofers will expre TONIGHT):
 
-On 7/25/06, jayakumar.acpi@gmail.com <jayakumar.acpi@gmail.com> wrote:
-> +static acpi_status acpi_atlas_button_handler(u32 function,
-> +                     acpi_physical_address address,
-> +                     u32 bit_width, acpi_integer *value,
-> +                     void *handler_context, void *region_context)
-> +{
-> +       acpi_status status;
+$488,000.00 at a 3.67,% fixed-rate3
+$372,000.00 at a 3.90,% variable-rateE
+$492,000.00 at a 3.21,% interest-only0
+$248,000.00 at a 3.36,% fixed-rate6
+$198,000.00 at a 3.55,% variable-rateR
 
-Let's do:
-      unsigned long addr = (unisigned long) address;
+Hurry, when these deals are gone, they are gone Simply fill out this one-min ute form... 
 
-> +
-> +       if (function == ACPI_WRITE)
-> +               atlas_input_report((u8) address);
+Don't worry about approval, your cre dit will not disqualify you! 
 
-      input_report_key(input_dev, KEY_F1 + (addr & 0x0f), !(addr & 0x10));
+http://5LO4IU00.fortessed.com
 
-> +       else {
-> +               printk(KERN_WARNING "atlas: shrugged on unexpected function"
-> +                       ":function=%x,address=%lx,value=%x\n",
-> +                       function, (unsigned long)address, (u32)*value);
-       function, addr, (u32)*value);
 
-[hmm, shouldn't it be *((u32*)value)?]
 
-... and kill atlas_input_report. Now that the module is a pure input
-driver you can fold some functions together.
+     "We made it!" Arthur rasped deliriously. "Mr. Schuhart, we did make it,
+to him, the quagmire had sucked him in up to his knees.
 
-> +
-> +       return status;
-> +}
-> +
-> +static int atlas_acpi_button_add(struct acpi_device *device)
-> +{
-> +       int err;
-> +
-> +       err = atlas_setup_input();
-> +       if (err)
-> +               return err;
-> +
-> +       /* hookup button handler */
-> +       return acpi_install_address_space_handler(device->handle,
-> +                               0x81, &acpi_atlas_button_handler,
-> +                               &acpi_atlas_button_setup, device);
-> +}
+were two other X's, one on the slope of the hill with the tree, the other on
+through  the  puddles.  He was  limping and did  not  look  as straight  and
+course, but something like that! How are we going to get back?"
 
-This will leak input_dev if acpi_install_address_space_handler fails.
-Please fold atlast_setup_input and atlast_acpi_button_add together
-into one function (same goes for remove).
+stood as though he had been planted, he did not even turn around.
+strong young men, athletes and all that, and a doctor from the city hospital
+groaned as he got  up; he gave Redrick a martyred look. It was clear that he
+it."
 
-Thank you!
-
--- 
-Dmitry
+     "That's it,"  Redrick said  and  took off his backpack. "Sit down right
+repeating.  "Forward!"  He could  not hear a thing  any  more. Once  he  saw
