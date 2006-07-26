@@ -1,56 +1,45 @@
-From: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 2.6.17.4 1/1] ACPI,INPUT: Move atlas to input v2
-Date: Wed, 26 Jul 2006 09:35:01 -0400
-Message-ID: <d120d5000607260635x7b46a1ah78e56cd2eec7e4d5@mail.gmail.com>
-References: <200607261039.k6QAdwUS012519@localhost.localdomain>
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: Re: [patch] pci/hotplug acpiphp: fix Kconfig for Dock dependencies
+Date: Wed, 26 Jul 2006 10:32:26 -0700
+Message-ID: <20060726103226.69aa79c1.kristen.c.accardi@intel.com>
+References: <20060725161854.79f9cc1b.kristen.c.accardi@intel.com>
+	<20060725164125.A15861@unix-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.170]:7021 "EHLO
-	ug-out-1314.google.com") by vger.kernel.org with ESMTP
-	id S1750709AbWGZNfC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 26 Jul 2006 09:35:02 -0400
-Received: by ug-out-1314.google.com with SMTP id m3so3158470ugc
-        for <linux-acpi@vger.kernel.org>; Wed, 26 Jul 2006 06:35:01 -0700 (PDT)
-In-Reply-To: <200607261039.k6QAdwUS012519@localhost.localdomain>
-Content-Disposition: inline
+Received: from mga02.intel.com ([134.134.136.20]:45743 "EHLO
+	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1751723AbWGZRcp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 26 Jul 2006 13:32:45 -0400
+In-Reply-To: <20060725164125.A15861@unix-os.sc.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "jayakumar.acpi@gmail.com" <jayakumar.acpi@gmail.com>
-Cc: linux-acpi@vger.kernel.org, len.brown@intel.com, akpm@osdl.org, akpm@kernel.org, linux-input@atrey.karlin.mff.cuni.cz
+To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
+Cc: linux-acpi@vger.kernel.org, len.brown@intel.com, akpm@osdl.org, zippel@linux-m68k.org, rdunlap@xenotime.net, linux-kernel@vger.kernel.org, greg@kroah.com, pcihpd-discuss@lists.sourceforge.net
 
-Hi,
+---
+I confirmed that Anil's patch will work, here is a proper patch with
+Anil's changes.
 
-On 7/26/06, jayakumar.acpi@gmail.com <jayakumar.acpi@gmail.com> wrote:
-> +       err = input_register_device(input_dev);
-> +       if (err) {
-> +               printk(KERN_ERR "atlas: couldn't register input device\n");
-> +               input_free_device(input_dev);
-> +               return err;
-> +       }
-> +
-> +       /* hookup button handler */
-> +       status = acpi_install_address_space_handler(device->handle,
-> +                               0x81, &acpi_atlas_button_handler,
-> +                               &acpi_atlas_button_setup, device);
-> +       if (ACPI_FAILURE(status)) {
-> +               printk(KERN_ERR "Atlas: Error installing addr spc handler\n");
-> +               input_unregister_device(input_dev);
-> +       }
-> +
-> +       return status;
+Change the build options for acpiphp so that it may build without being
+dependent on the ACPI_DOCK option, but yet does not allow the option of
+acpiphp being built-in when dock is built as a module.
 
-This is not a complaint about the driver but more a generic question -
-how valid is it to mix error values from 2 different sets? I mean
-input_register_device signals standard -EXXXX while
-acpi_install_address_space_handler signals ACPI-specific error codes,
-so result is some kind of monster error ;) ACPI' acpi_op_add defines
-return value siimply as int which leads me to believe that -EXXXX is
-more suitable here.
+Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+---
+ drivers/pci/hotplug/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Overall it is unfortunate that ACPI has its own set of errors and that
-they "seep" through to upper layers.
-
--- 
-Dmitry
+--- 2.6-git.orig/drivers/pci/hotplug/Kconfig
++++ 2.6-git/drivers/pci/hotplug/Kconfig
+@@ -76,7 +76,7 @@ config HOTPLUG_PCI_IBM
+ 
+ config HOTPLUG_PCI_ACPI
+ 	tristate "ACPI PCI Hotplug driver"
+-	depends on ACPI_DOCK && HOTPLUG_PCI
++	depends on (!ACPI_DOCK && ACPI && HOTPLUG_PCI) || (ACPI_DOCK && HOTPLUG_PCI)
+ 	help
+ 	  Say Y here if you have a system that supports PCI Hotplug using
+ 	  ACPI.
