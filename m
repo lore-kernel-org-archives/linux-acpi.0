@@ -1,86 +1,73 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] Kernel panic after resuming from S4 on Napa dual-core.
-Date: Wed, 26 Jul 2006 08:19:36 +0200
-Message-ID: <200607260819.37012.rjw@sisk.pl>
-References: <076F541A621E59428B837DCEA0AEDB5887C0C1@bjsmsx401>
+From: "Jaya Kumar" <jayakumar.acpi@gmail.com>
+Subject: Re: [PATCH 2.6.17.4 1/1] ACPI,INPUT: Move atlas to input
+Date: Wed, 26 Jul 2006 18:13:05 +0800
+Message-ID: <756b48450607260313h7cf7168dg764d1e14d5d2ab72@mail.gmail.com>
+References: <200607250909.k6P991HK011003@localhost.localdomain>
+	 <d120d5000607250555w2a7ab4d2t7e046a2990105470@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:16336 "EHLO ogre.sisk.pl")
-	by vger.kernel.org with ESMTP id S1030395AbWGZGUM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 26 Jul 2006 02:20:12 -0400
-In-Reply-To: <076F541A621E59428B837DCEA0AEDB5887C0C1@bjsmsx401>
+Received: from ug-out-1314.google.com ([66.249.92.175]:15303 "EHLO
+	ug-out-1314.google.com") by vger.kernel.org with ESMTP
+	id S932086AbWGZKNG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 26 Jul 2006 06:13:06 -0400
+Received: by ug-out-1314.google.com with SMTP id m3so3089093ugc
+        for <linux-acpi@vger.kernel.org>; Wed, 26 Jul 2006 03:13:05 -0700 (PDT)
+In-Reply-To: <d120d5000607250555w2a7ab4d2t7e046a2990105470@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pm@lists.osdl.org
-Cc: "Hu, Fenghua" <fenghua.hu@intel.com>, Pavel Machek <pavel@suse.cz>, linux-acpi@vger.kernel.org, lhcs-devel@lists.sourceforge.net
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-acpi@vger.kernel.org, len.brown@intel.com, akpm@osdl.org, akpm@kernel.org, linux-input@atrey.karlin.mff.cuni.cz
 
-On Wednesday 26 July 2006 07:45, Hu, Fenghua wrote:
-> Here is the message:
-> 
-> Linux version 2.6.16.9-9-s4-hufh (root@localhost.localdomain) (gcc version 3.4.3 20041212 (Asianux 2.0 3.4.3-9.EL4.2)) #24 SMP Thu Jul 27 11:36:08 CST 2006
-]--snip--[
-> Thawing cpus ...
-> Booting processor 1/1 eip 3000
-> Not responding.
-> Inquiring remote APIC #1...
-> ... APIC #1 ID: failed
-> ... APIC #1 VERSION: failed
-> ... APIC #1 SPIV: failed
-> Error taking cpu 1 up: -22
-> Kernel panic - not syncing: Not enough cpus
->  <0>Rebooting in 10 seconds. 
+On 7/25/06, Dmitry Torokhov <dmitry.torokhov@gmail.com> wrote:
+> Hi Jaya,
+>
+> On 7/25/06, jayakumar.acpi@gmail.com <jayakumar.acpi@gmail.com> wrote:
+> > +static acpi_status acpi_atlas_button_handler(u32 function,
+> > +                     acpi_physical_address address,
+> > +                     u32 bit_width, acpi_integer *value,
+> > +                     void *handler_context, void *region_context)
+> > +{
+> > +       acpi_status status;
+>
+> Let's do:
+>      unsigned long addr = (unisigned long) address;
 
-This is a problem related to the CPU hotplug, but the panic is from
-kernel/power/smp.c#enable_nonboot_cpus().
+Ok. I'll take out the casting. It's not needed except for the printk.
 
-I don't think we should be panicking here.  It's better to just continue with
-one CPU online IMHO.
+>
+> > +
+> > +       if (function == ACPI_WRITE)
+> > +               atlas_input_report((u8) address);
+>
+>      input_report_key(input_dev, KEY_F1 + (addr & 0x0f), !(addr & 0x10));
 
-Please apply the appended patch.  It should prevent the system from panicking,
-but you will run on one CPU after resume.  Then, please check what's in the
-file /sys/devices/system/cup/cpu1/online.  If 0, please do
+Ok. Will do.
 
-# cat 1 >  /sys/devices/system/cup/cpu1/online
+>
+> > +       else {
+> > +               printk(KERN_WARNING "atlas: shrugged on unexpected function"
+> > +                       ":function=%x,address=%lx,value=%x\n",
+> > +                       function, (unsigned long)address, (u32)*value);
+>       function, addr, (u32)*value);
+>
+> [hmm, shouldn't it be *((u32*)value)?]
 
-and see what happens.  If it doesn't go online, in which case
-/sys/devices/system/cup/cpu1/online will contain 1, there should be some
-error messages in dmesg.
+The original looks ok to me because I just want to cast the value to a u32.
 
-Also after a fresh boot please try doing:
+>
+> ... and kill atlas_input_report. Now that the module is a pure input
+> driver you can fold some functions together.
 
-# cat 0 >  /sys/devices/system/cup/cpu1/online
-# cat /proc/interrupts
-(there should be no cpu1 in the output)
-# cat 1 >  /sys/devices/system/cup/cpu1/online
-# cat /proc/interrupts
-(cpu1 should be present again)
+Yup, you are right. I'll clean it up.
 
-If this doesn't work, CPU hotplug is totally broken on your system.
-Otherwise, something in the suspend/resume code paths breaks it and we'll
-have to figure out what it is.
+>
+> This will leak input_dev if acpi_install_address_space_handler fails.
+> Please fold atlast_setup_input and atlast_acpi_button_add together
+> into one function (same goes for remove).
 
-Greetings,
-Rafael
+Oops, I see that now. Will do. Thanks for the feedback.
 
-
---
- kernel/power/smp.c |    1 -
- 1 files changed, 1 deletion(-)
-
-Index: linux-2.6.18-rc1-mm2/kernel/power/smp.c
-===================================================================
---- linux-2.6.18-rc1-mm2.orig/kernel/power/smp.c
-+++ linux-2.6.18-rc1-mm2/kernel/power/smp.c
-@@ -55,7 +55,6 @@ void enable_nonboot_cpus(void)
- 			continue;
- 		}
- 		printk("Error taking cpu %d up: %d\n", cpu, error);
--		panic("Not enough cpus");
- 	}
- 	cpus_clear(frozen_cpus);
- }
+jaya
