@@ -1,30 +1,26 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: ACPI Errors for Dimension 8250
-Date: Tue, 25 Jul 2006 22:17:26 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB601124ABA@hdsmsx411.amr.corp.intel.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: VBETool 0.7
+Date: Wed, 26 Jul 2006 03:28:40 +0100
+Message-ID: <20060726022840.GA2367@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:38700 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1030361AbWGZCRc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Jul 2006 22:17:32 -0400
-Content-class: urn:content-classes:message
+Received: from cavan.codon.org.uk ([217.147.92.49]:22751 "EHLO
+	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
+	id S1030364AbWGZC2p (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Jul 2006 22:28:45 -0400
+Received: from mjg59 by vavatch.codon.org.uk with local (Exim 4.52)
+	id 1G5Z8a-0000dK-Ff
+	for linux-acpi@vger.kernel.org; Wed, 26 Jul 2006 03:28:40 +0100
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: John Altobelli <acocaracha@gmail.com>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
+Not strictly acpi, but I've just uploaded vbetool 0.7 to 
+http://www.srcf.ucam.org/~mjg59/vbetool/ . It has a small number of 
+bugfixes, one of which should improve functionality with some ATI 
+BIOSes.
 
->I have a dell dimension 8250 and after compiling the dsdt.dsl file I
->get the following errors:
-...
->ASL Input:  dsdt.dsl - 2907 lines, 98364 bytes, 902 keywords
->Compilation complete. 34 Errors, 1 Warnings, 0 Remarks, 188 
->Optimizations
-
-Why are you compiling the DSDT?
-Does Linux on the system fail in some way?
-
--Len
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
