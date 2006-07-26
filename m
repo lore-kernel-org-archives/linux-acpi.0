@@ -1,203 +1,50 @@
-From: "John Altobelli" <acocaracha@gmail.com>
-Subject: ACPI Errors for Dimension 8250
-Date: Tue, 25 Jul 2006 20:54:57 -0400
-Message-ID: <4be0d0b30607251754t1bd64bbs65b344023b34997f@mail.gmail.com>
+From: "Leroy Miller" <LeroyMiller@mail.ru>
+Subject: Better Future, world-reviving
+Date: Wed, 26 Jul 2006 01:23:52 -0120
+Message-ID: <2412486540.20060726012352@mail.ru>
+Reply-To: "Leroy Miller" <LeroyMiller@mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.173]:23384 "EHLO
-	ug-out-1314.google.com") by vger.kernel.org with ESMTP
-	id S1030301AbWGZAy7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Jul 2006 20:54:59 -0400
-Received: by ug-out-1314.google.com with SMTP id m3so2948549ugc
-        for <linux-acpi@vger.kernel.org>; Tue, 25 Jul 2006 17:54:58 -0700 (PDT)
-Content-Disposition: inline
+Received: from zeus2.kernel.org ([204.152.191.36]:485 "EHLO zeus2.kernel.org")
+	by vger.kernel.org with ESMTP id S1030316AbWGZBX6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Jul 2006 21:23:58 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: linux-gcc@vger.kernel.org
 
-Hello,
+Your cre dit doesn't matter to us! If you OWN real est ate
+and want IMMEDIATEJ cash to spend ANY way you like, or simply wish 
+to LOWER your monthly paym ents by a third or more, here are the dea ls
+we have TODAY (hurry, these ofers will expre TONIGHT):
 
-I have a dell dimension 8250 and after compiling the dsdt.dsl file I
-get the following errors:
+$488,000.00 at a 3.67,% fixed-rateS
+$372,000.00 at a 3.90,% variable-rate1
+$492,000.00 at a 3.21,% interest-onlyR
+$248,000.00 at a 3.36,% fixed-rate0
+$198,000.00 at a 3.55,% variable-rateN
 
-Intel ACPI Component Architecture
-ASL Optimizing Compiler version 20060512 [Jul 15 2006]
-Copyright (C) 2000 - 2006 Intel Corporation
-Supports ACPI Specification Revision 3.0a
+Hurry, when these deals are gone, they are gone Simply fill out this one-min ute form... 
 
-dsdt.dsl   356:         Notify (\_SB.PCI0.ISA.KBD, 0x02)
-Error    4062 -           Object does not exist ^  (\_SB.PCI0.ISA.KBD)
+Don't worry about approval, your cre dit will not disqualify you! 
 
-dsdt.dsl   666:                 Method (_S5D, 0, NotSerialized)
-Warning  1097 -      Unknown reserved name ^  (_S5D)
-
-dsdt.dsl  1331:                 Device (DMA)
-Error    4094 -                           ^ syntax error, unexpected
-PARSEOP_DMA, expecting PARSEOP_NAMESEG or PARSEOP_NAMESTRING
-
-dsdt.dsl  1504:                 Field (\_SB.PCI0.ISA.COM, ByteAcc,
-NoLock, Preserve)
-Error    4062 -                  Object does not exist ^  (\_SB.PCI0.ISA.COM)
-
-dsdt.dsl  1513:                 Field (\_SB.PCI0.ISA.FDPA, ByteAcc,
-NoLock, Preserve)
-Error    4062 -                   Object does not exist ^  (\_SB.PCI0.ISA.FDPA)
-
-dsdt.dsl  1598:                         CreateByteField (FDB0,
-\_SB.PCI0.ISA.FDC._CRS._X03._MIN, IOL0)
-Error    4062 -
- Object does not exist ^  (\_SB.PCI0.ISA.FDC._CRS._X03._MIN)
-
-dsdt.dsl  1600:                         CreateByteField (FDB0,
-\_SB.PCI0.ISA.FDC._CRS._X03._MAX, IOL1)
-Error    4062 -
- Object does not exist ^  (\_SB.PCI0.ISA.FDC._CRS._X03._MAX)
-
-dsdt.dsl  1602:                         CreateByteField (FDB0,
-\_SB.PCI0.ISA.FDC._CRS._X04._MIN, I2L0)
-Error    4062 -
- Object does not exist ^  (\_SB.PCI0.ISA.FDC._CRS._X04._MIN)
-
-dsdt.dsl  1604:                         CreateByteField (FDB0,
-\_SB.PCI0.ISA.FDC._CRS._X04._MAX, I2L1)
-Error    4062 -
- Object does not exist ^  (\_SB.PCI0.ISA.FDC._CRS._X04._MAX)
-
-dsdt.dsl  1606:                         CreateWordField (FDB0,
-\_SB.PCI0.ISA.FDC._CRS._X05._INT, IQR)
-Error    4062 -
- Object does not exist ^  (\_SB.PCI0.ISA.FDC._CRS._X05._INT)
-
-dsdt.dsl  1607:                         CreateByteField (FDB0,
-\_SB.PCI0.ISA.FDC._CRS._X06._DMA, DAM)
-Error    4062 -
- Object does not exist ^  (\_SB.PCI0.ISA.FDC._CRS._X06._DMA)
-
-dsdt.dsl  1873:                         CreateByteField (CMA0,
-\_SB.PCI0.ISA.COMA._CRS._X07._MIN, IOL0)
-Error    4062 -
- Object does not exist ^  (\_SB.PCI0.ISA.COMA._CRS._X07._MIN)
-
-dsdt.dsl  1875:                         CreateByteField (CMA0,
-\_SB.PCI0.ISA.COMA._CRS._X07._MAX, IOL1)
-Error    4062 -
- Object does not exist ^  (\_SB.PCI0.ISA.COMA._CRS._X07._MAX)
-
-dsdt.dsl  1877:                         CreateWordField (CMA0,
-\_SB.PCI0.ISA.COMA._CRS._X08._INT, IQR)
-Error    4062 -
- Object does not exist ^  (\_SB.PCI0.ISA.COMA._CRS._X08._INT)
-
-dsdt.dsl  2037:                         CreateByteField (PTB0,
-\_SB.PCI0.ISA.PRT._CRS._X09._MIN, IOL0)
-Error    4062 -
- Object does not exist ^  (\_SB.PCI0.ISA.PRT._CRS._X09._MIN)
-
-dsdt.dsl  2039:                         CreateByteField (PTB0,
-\_SB.PCI0.ISA.PRT._CRS._X09._MAX, IOL1)
-Error    4062 -
- Object does not exist ^  (\_SB.PCI0.ISA.PRT._CRS._X09._MAX)
-
-dsdt.dsl  2041:                         CreateByteField (PTB0,
-\_SB.PCI0.ISA.PRT._CRS._X09._ALN, LALN)
-Error    4062 -
- Object does not exist ^  (\_SB.PCI0.ISA.PRT._CRS._X09._ALN)
-
-dsdt.dsl  2042:                         CreateByteField (PTB0,
-\_SB.PCI0.ISA.PRT._CRS._X09._LEN, LLEN)
-Error    4062 -
- Object does not exist ^  (\_SB.PCI0.ISA.PRT._CRS._X09._LEN)
-
-dsdt.dsl  2043:                         CreateByteField (PTB0,
-\_SB.PCI0.ISA.PRT._CRS._X0A._MIN, I2L0)
-Error    4062 -
- Object does not exist ^  (\_SB.PCI0.ISA.PRT._CRS._X0A._MIN)
-
-dsdt.dsl  2045:                         CreateByteField (PTB0,
-\_SB.PCI0.ISA.PRT._CRS._X0A._MAX, I2L1)
-Error    4062 -
- Object does not exist ^  (\_SB.PCI0.ISA.PRT._CRS._X0A._MAX)
-
-dsdt.dsl  2047:                         CreateByteField (PTB0,
-\_SB.PCI0.ISA.PRT._CRS._X0A._ALN, HALN)
-Error    4062 -
- Object does not exist ^  (\_SB.PCI0.ISA.PRT._CRS._X0A._ALN)
-
-dsdt.dsl  2048:                         CreateByteField (PTB0,
-\_SB.PCI0.ISA.PRT._CRS._X0A._LEN, HLEN)
-Error    4062 -
- Object does not exist ^  (\_SB.PCI0.ISA.PRT._CRS._X0A._LEN)
-
-dsdt.dsl  2049:                         CreateWordField (PTB0,
-\_SB.PCI0.ISA.PRT._CRS._X0B._INT, IQR)
-Error    4062 -
- Object does not exist ^  (\_SB.PCI0.ISA.PRT._CRS._X0B._INT)
-
-dsdt.dsl  2050:                         CreateByteField (PTB0,
-\_SB.PCI0.ISA.PRT._CRS._X0C._DMA, DAM)
-Error    4062 -
- Object does not exist ^  (\_SB.PCI0.ISA.PRT._CRS._X0C._DMA)
-
-dsdt.dsl  2450:         Field (\_SB.PCI0.ISA.P40C, ByteAcc, NoLock, Preserve)
-Error    4062 -           Object does not exist ^  (\_SB.PCI0.ISA.P40C)
-
-dsdt.dsl  2458:         Field (\_SB.PCI0.ISA.P41C, ByteAcc, NoLock, Preserve)
-Error    4062 -           Object does not exist ^  (\_SB.PCI0.ISA.P41C)
-
-dsdt.dsl  2498:                 CreateWordField (PRR0,
-\_SB.LNKA._CRS._X0D._INT, IQR)
-Error    4062 -                                         Object does
-not exist ^  (\_SB.LNKA._CRS._X0D._INT)
-
-dsdt.dsl  2553:                 CreateWordField (PRR1,
-\_SB.LNKB._CRS._X0E._INT, IQR)
-Error    4062 -                                         Object does
-not exist ^  (\_SB.LNKB._CRS._X0E._INT)
-
-dsdt.dsl  2608:                 CreateWordField (PRR2,
-\_SB.LNKC._CRS._X0F._INT, IQR)
-Error    4062 -                                         Object does
-not exist ^  (\_SB.LNKC._CRS._X0F._INT)
-
-dsdt.dsl  2663:                 CreateWordField (PRR3,
-\_SB.LNKD._CRS._X10._INT, IQR)
-Error    4062 -                                         Object does
-not exist ^  (\_SB.LNKD._CRS._X10._INT)
-
-dsdt.dsl  2718:                 CreateWordField (PRR4,
-\_SB.LNKE._CRS._X11._INT, IQR)
-Error    4062 -                                         Object does
-not exist ^  (\_SB.LNKE._CRS._X11._INT)
-
-dsdt.dsl  2773:                 CreateWordField (PRR5,
-\_SB.LNKF._CRS._X12._INT, IQR)
-Error    4062 -                                         Object does
-not exist ^  (\_SB.LNKF._CRS._X12._INT)
-
-dsdt.dsl  2828:                 CreateWordField (PRR6,
-\_SB.LNKG._CRS._X13._INT, IQR)
-Error    4062 -                                         Object does
-not exist ^  (\_SB.LNKG._CRS._X13._INT)
-
-dsdt.dsl  2883:                 CreateWordField (PRR7,
-\_SB.LNKH._CRS._X14._INT, IQR)
-Error    4062 -                                         Object does
-not exist ^  (\_SB.LNKH._CRS._X14._INT)
-
-dsdt.dsl  2906: }
-Error    4094 - ^ syntax error, unexpected '}', expecting $end
-
-ASL Input:  dsdt.dsl - 2907 lines, 98364 bytes, 902 keywords
-Compilation complete. 34 Errors, 1 Warnings, 0 Remarks, 188 Optimizations
+http://5BL91NO6.doolies.net
 
 
-I do have a very modularized kernel so I have the following loaded on startup:
 
-processor
-thermal
-fan
+     "The backpack. You forgot the backpack, Mr. Schuhart."
+     "Lie there,  you toad, lie still, or I'll  kill you."  Tons and tons of
 
-Any help would be greatly appriciated,
-John
+life. And then he pictured  Buzzard's  face when he  discovered that Arthur,
+got themselves some jelly...."
+In the  east the  mountains looked  black, and over them  the familiar green
+
+luck to guide them.
+hurry  to hide in some faraway corner and watch in  fear  as his father tore
+face, trying  to press  the boy into the ground, holding his long hair  with
+against  Noonan's  and  said:  "We're  off, we're off."  Then Noonan nodded,
+
+     "That's it, brother! jail will never see me again. If you only knew how
+and leave all  his filth  behind. That's what you deserve,  he told himself.
