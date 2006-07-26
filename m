@@ -1,35 +1,42 @@
-From: Roman Zippel <zippel@linux-m68k.org>
-Subject: Re: [patch] pci/hotplug acpiphp: fix Kconfig for Dock dependencies
-Date: Thu, 27 Jul 2006 02:23:15 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0607270218190.6761@scrub.home>
-References: <20060725161854.79f9cc1b.kristen.c.accardi@intel.com>
- <20060725164125.A15861@unix-os.sc.intel.com> <20060726103226.69aa79c1.kristen.c.accardi@intel.com>
+From: "Lenora Murillo" <LenoraMurillo@mail.ru>
+Subject: Your health, office furniture
+Date: Wed, 26 Jul 2006 16:13:22 -0540
+Message-ID: <662161c80604ph5vvx87igxynffvgxhtk4sjxkw36631__49520.4985993498$1153973371$gmane$org@mxs.mail.ru>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from scrub.xs4all.nl ([194.109.195.176]:35300 "EHLO scrub.xs4all.nl")
-	by vger.kernel.org with ESMTP id S1751833AbWG0A0z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 26 Jul 2006 20:26:55 -0400
-In-Reply-To: <20060726103226.69aa79c1.kristen.c.accardi@intel.com>
+Received: from zeus1.kernel.org ([204.152.191.4]:29615 "EHLO zeus1.kernel.org")
+	by vger.kernel.org with ESMTP id S1161059AbWG0EJA convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Jul 2006 00:09:00 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>, linux-acpi@vger.kernel.org, len.brown@intel.com, akpm@osdl.org, rdunlap@xenotime.net, linux-kernel@vger.kernel.org, greg@kroah.com, pcihpd-discuss@lists.sourceforge.net
+To: linux-gcc@vger.kernel.org
 
-Hi,
+Even if you have no erectin problems SOFT CIASLIS 
+would help you to make BETTER SEOX MORE OFTEN!
+and to bring  unimagnable plesure to her.
 
-On Wed, 26 Jul 2006, Kristen Carlson Accardi wrote:
+Just disolve half a pil under your tongue 
+and get ready for action in 15 minutes. 
 
->  config HOTPLUG_PCI_ACPI
->  	tristate "ACPI PCI Hotplug driver"
-> -	depends on ACPI_DOCK && HOTPLUG_PCI
-> +	depends on (!ACPI_DOCK && ACPI && HOTPLUG_PCI) || (ACPI_DOCK && HOTPLUG_PCI)
->  	help
+The tests showed that the majority of men 
+after taking this medic ation were able to have 
+PERFECT ER8ECTION during 36 hours!
 
-If you keep the HOTPLUG_PCI separate, it won't break the menu, e.g. 
-((!ACPI_DOCK && ACPI) || ACPI_DOCK) && HOTPLUG_PCI
-BTW most of this file could be put into a "if HOTPLUG_PCI" group, so all 
-the HOTPLUG_PCI dependencies don't have to be repeated.
+VISIT US, AND GET OUR SPECIAL 70% DISCPOUNT OFER!
 
-bye, Roman
+http://lbghsf.fluffsleep.com/?76285093
+
+=====
+of the Visitation!"
+didn't understand a thing.
+here,  or  where  they disappeared  to since.  The  important  thing is that
+thanks.
+for structure, characterization,  pacing, and  its  perceptive statements of
+     Then,  we can  hope that one fine  day Harmonites will see their famous
+
+surrealistic and the absurd. The cumulative effect is Kafkaesque horror. The
+he was and what maternal line he was descended  from.  He spat on the floor,
