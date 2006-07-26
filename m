@@ -1,50 +1,30 @@
-From: "Leroy Miller" <LeroyMiller@mail.ru>
-Subject: Better Future, world-reviving
-Date: Wed, 26 Jul 2006 01:23:52 -0120
-Message-ID: <2412486540.20060726012352@mail.ru>
-Reply-To: "Leroy Miller" <LeroyMiller@mail.ru>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: ACPI Errors for Dimension 8250
+Date: Tue, 25 Jul 2006 22:17:26 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB601124ABA@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zeus2.kernel.org ([204.152.191.36]:485 "EHLO zeus2.kernel.org")
-	by vger.kernel.org with ESMTP id S1030316AbWGZBX6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Jul 2006 21:23:58 -0400
+Received: from mga02.intel.com ([134.134.136.20]:38700 "EHLO
+	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1030361AbWGZCRc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Jul 2006 22:17:32 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-gcc@vger.kernel.org
-
-Your cre dit doesn't matter to us! If you OWN real est ate
-and want IMMEDIATEJ cash to spend ANY way you like, or simply wish 
-to LOWER your monthly paym ents by a third or more, here are the dea ls
-we have TODAY (hurry, these ofers will expre TONIGHT):
-
-$488,000.00 at a 3.67,% fixed-rateS
-$372,000.00 at a 3.90,% variable-rate1
-$492,000.00 at a 3.21,% interest-onlyR
-$248,000.00 at a 3.36,% fixed-rate0
-$198,000.00 at a 3.55,% variable-rateN
-
-Hurry, when these deals are gone, they are gone Simply fill out this one-min ute form... 
-
-Don't worry about approval, your cre dit will not disqualify you! 
-
-http://5BL91NO6.doolies.net
+To: John Altobelli <acocaracha@gmail.com>, linux-acpi@vger.kernel.org
 
 
+>I have a dell dimension 8250 and after compiling the dsdt.dsl file I
+>get the following errors:
+...
+>ASL Input:  dsdt.dsl - 2907 lines, 98364 bytes, 902 keywords
+>Compilation complete. 34 Errors, 1 Warnings, 0 Remarks, 188 
+>Optimizations
 
-     "The backpack. You forgot the backpack, Mr. Schuhart."
-     "Lie there,  you toad, lie still, or I'll  kill you."  Tons and tons of
+Why are you compiling the DSDT?
+Does Linux on the system fail in some way?
 
-life. And then he pictured  Buzzard's  face when he  discovered that Arthur,
-got themselves some jelly...."
-In the  east the  mountains looked  black, and over them  the familiar green
-
-luck to guide them.
-hurry  to hide in some faraway corner and watch in  fear  as his father tore
-face, trying  to press  the boy into the ground, holding his long hair  with
-against  Noonan's  and  said:  "We're  off, we're off."  Then Noonan nodded,
-
-     "That's it, brother! jail will never see me again. If you only knew how
-and leave all  his filth  behind. That's what you deserve,  he told himself.
+-Len
