@@ -1,94 +1,97 @@
-From: Josh Triplett <josht@us.ibm.com>
-Subject: [PATCH] acpi: Add lock annotations to acpi_os_acquire_lock and
-	acpi_os_release_lock
-Date: Thu, 27 Jul 2006 11:52:15 -0700
-Message-ID: <1154026335.12517.111.camel@josh-work.beaverton.ibm.com>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: Generic battery interface
+Date: Thu, 27 Jul 2006 16:06:20 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e36.co.us.ibm.com ([32.97.110.154]:58534 "EHLO
-	e36.co.us.ibm.com") by vger.kernel.org with ESMTP id S1751944AbWG0SwO
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Jul 2006 14:52:14 -0400
+Received: from mga01.intel.com ([192.55.52.88]:12581 "EHLO
+	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
+	id S1751968AbWG0UGp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Jul 2006 16:06:45 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Andrew Morton <akpm@osdl.org>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
+To: Shem Multinymous <multinymous@gmail.com>
+Cc: Pavel Machek <pavel@suse.cz>, Matthew Garrett <mjg59@srcf.ucam.org>, vojtech@suse.cz, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
 
-acpi_os_acquire_lock acquires an acpi_spinlock (AKA spinlock_t *), and
-acpi_os_release_lock releases it.  Add lock annotations to these two functions
-so that sparse can check callers for lock pairing, and so that sparse will not
-complain about these functions since they intentionally use locks in this
-manner.  Since some of these annotations fall in OS-independent header files,
-modify the OS abstraction layer to define empty macros for __acquires and
-__releases if not already defined.
+>On 7/27/06, Brown, Len <len.brown@intel.com> wrote:
+>> Path names and file names in sysfs are an API, so it is important
+>> to choose them wisely.  The string "acpi" should not appear in
+>> any path-name or file-name in sysfs that is intended to be generic,
+>> as it would make no sense on a non-ACPI system.
+>>
+>> Neither the ACPI /proc/acpi/battery API or
+>> the tp_smapi /sys/devices/platform/smapi API qualify as generic.
+>> It it a historical artifact that /proc/acpi exists, I'd delete it
+>> immediately if that wouldn't instantly break every distro on earth.
+>
+>Yes. But it looks like we'll have a hard time finding this common
+>interface, due to overlaps and omissions between battery drivers.
 
-Signed-off-by: Josh Triplett <josh@freedesktop.org>
----
- drivers/acpi/osl.c      |    2 ++
- include/acpi/acpiosxf.h |    6 ++++--
- include/acpi/actypes.h  |   10 ++++++++++
- 3 files changed, 16 insertions(+), 2 deletions(-)
+Why not just specify the union of the different sets,
+and those that don't implement parts leave those parts out?
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index b7d1514..d042862 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -994,6 +994,7 @@ EXPORT_SYMBOL(max_cstate);
-  */
- 
- acpi_cpu_flags acpi_os_acquire_lock(acpi_spinlock lockp)
-+	__acquires(*lockp)
- {
- 	acpi_cpu_flags flags;
- 	spin_lock_irqsave(lockp, flags);
-@@ -1005,6 +1006,7 @@ acpi_cpu_flags acpi_os_acquire_lock(acpi
-  */
- 
- void acpi_os_release_lock(acpi_spinlock lockp, acpi_cpu_flags flags)
-+	__releases(*lockp)
- {
- 	spin_unlock_irqrestore(lockp, flags);
- }
-diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
-index 0cd63bc..f7b391e 100644
---- a/include/acpi/acpiosxf.h
-+++ b/include/acpi/acpiosxf.h
-@@ -102,9 +102,11 @@ acpi_status acpi_os_create_lock(acpi_spi
- 
- void acpi_os_delete_lock(acpi_spinlock handle);
- 
--acpi_cpu_flags acpi_os_acquire_lock(acpi_spinlock handle);
-+acpi_cpu_flags acpi_os_acquire_lock(acpi_spinlock handle)
-+	__acquires(*handle);
- 
--void acpi_os_release_lock(acpi_spinlock handle, acpi_cpu_flags flags);
-+void acpi_os_release_lock(acpi_spinlock handle, acpi_cpu_flags flags)
-+	__releases(*handle);
- 
- /*
-  * Semaphore primitives
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index 64b603c..d13352f 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -261,6 +261,16 @@ #ifndef acpi_spinlock
- #define acpi_spinlock                   void *
- #endif
- 
-+/* Macros providing lock annotations for static analysis tools */
-+
-+#ifndef __acquires
-+#define __acquires(x)
-+#endif
-+
-+#ifndef __releases
-+#define __releases(x)
-+#endif
-+
- /* Flags for acpi_os_acquire_lock/acpi_os_release_lock */
- 
- #ifndef acpi_cpu_flags
+>So I've proposed /sys/class/battery/{acpi,apm,thinkpad}/BAT?/* 
+>as a comrpromise:
+>A userspace app that only needs a generic voltage readout will try
+>(all of) /sys/class/battery/*/BAT0/voltage. This is your generic
+>interface.
 
+If we have to export all these totally different implementations
+via totally different paths, then we failed.
 
+>A specialized app can be more specific and access
+>/sys/class/battery/thinkpad/BAT0/force_discharge.
+>
+>And a complex system monitor like GKrellM will  let you configure a
+>list of paths, e.g., /sys/class/battery/acpi/BAT0 +
+>/sys/class/battery/mustek/UPS0.
+>
+>The only drawback I see is the inelegant userspace code for
+>enumerating /sys/class/battery/* in languages like C. I suppose this
+>could be wrapped by a trivial userspace library.
+
+sysfs is great for demos from a shell prompt,
+but isn't such a great programming interface, either
+from inside the kernel or from user-space.
+
+>> Vojtech suggested that we create a virtual battery interface,
+>> just like the input layer has virtual input devices.
+>[snip]
+>> In either case, user-space would look for a well known set
+>> of device file names, such as /dev/battery0, /dev/battery1
+>> or some such, do a select on the file and get events that way.
+>
+>Isn't this an overkill? Battery status changes very slowly, so it
+>seems perfectly adequate to have the usual userspace daemons poll the
+>kernel every few seconds. No need for extra kernal event mechanisms,
+>device file allocation, IOCTLs...
+
+No need to poll for status that hasn't even changed.
+This is what events are for.
+
+Also, critical battery alarms are important events.
+
+Please do not add more polling to user-space, else DaveJ
+will be putting it up as a further example of "Why userspace sucks"
+at the next OLS:-)
+
+>> Drivers such as above could conjur up devices, and user-space
+>> could also create what look like batteries, say through a
+>> utility that knows how to talk to a UPS.
+>
+>Excellent idea, but it's orthogonal to the API issue. You might as
+>well have  /sys/class/battery/usespace-battery/UPS0.
+
+I think the question is where the GUI is going to go look for it.
+I could imagine it would be simple for userspace to look for
+/dev/battery0
+/dev/battery1
+/dev/battery2
+until it finds no more, and then present the capacity of each
+if it wants to.
+
+-Len
