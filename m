@@ -1,85 +1,54 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: ACPI Errors for Dimension 8250
-Date: Thu, 27 Jul 2006 08:09:20 +0200
-Message-ID: <1153980560.4302.138.camel@queen.suse.de>
-References: <4be0d0b30607251754t1bd64bbs65b344023b34997f@mail.gmail.com>
-Reply-To: trenn@suse.de
+From: "Jaya Kumar" <jayakumar.acpi@gmail.com>
+Subject: Re: [PATCH 2.6.17.4 1/1] ACPI,INPUT: Move atlas to input v2
+Date: Thu, 27 Jul 2006 18:37:21 +0800
+Message-ID: <756b48450607270337ibaa4fe8t443be1734127d8b@mail.gmail.com>
+References: <200607261039.k6QAdwUS012519@localhost.localdomain>
+	 <d120d5000607260635x7b46a1ah78e56cd2eec7e4d5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.suse.de ([195.135.220.2]:37849 "EHLO mx1.suse.de")
-	by vger.kernel.org with ESMTP id S932515AbWG0GG3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Jul 2006 02:06:29 -0400
-In-Reply-To: <4be0d0b30607251754t1bd64bbs65b344023b34997f@mail.gmail.com>
+Received: from ug-out-1314.google.com ([66.249.92.172]:46474 "EHLO
+	ug-out-1314.google.com") by vger.kernel.org with ESMTP
+	id S1751129AbWG0KhX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Jul 2006 06:37:23 -0400
+Received: by ug-out-1314.google.com with SMTP id m3so188142ugc
+        for <linux-acpi@vger.kernel.org>; Thu, 27 Jul 2006 03:37:22 -0700 (PDT)
+In-Reply-To: <d120d5000607260635x7b46a1ah78e56cd2eec7e4d5@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: John Altobelli <acocaracha@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-acpi@vger.kernel.org, len.brown@intel.com, akpm@osdl.org, akpm@kernel.org, linux-input@atrey.karlin.mff.cuni.cz
 
-On Tue, 2006-07-25 at 20:54 -0400, John Altobelli wrote:
-> Hello,
-> 
-> I have a dell dimension 8250 and after compiling the dsdt.dsl file I
-> get the following errors:
-> 
-> Intel ACPI Component Architecture
-> ASL Optimizing Compiler version 20060512 [Jul 15 2006]
-> Copyright (C) 2000 - 2006 Intel Corporation
-> Supports ACPI Specification Revision 3.0a
-> 
-> dsdt.dsl   356:         Notify (\_SB.PCI0.ISA.KBD, 0x02)
-> Error    4062 -           Object does not exist ^  (\_SB.PCI0.ISA.KBD)
-These are probably all declared in a SSDT.
-> 
-> dsdt.dsl   666:                 Method (_S5D, 0, NotSerialized)
-> Warning  1097 -      Unknown reserved name ^  (_S5D)
-Uncritical
-> 
-> dsdt.dsl  1331:                 Device (DMA)
-> Error    4094 -                           ^ syntax error, unexpected
-> PARSEOP_DMA, expecting PARSEOP_NAMESEG or PARSEOP_NAMESTRING
-iasl error... somewhat ugly, I reask whether these nameclashes can be
-fixed somewhat more generic than adding fixed string tokens to device
-method declarations in yacc.
-Renaming all DMA to e.g. _DMA_ (beside the ones where the DMA keyword
-should be used, not sure if there is case in your DSDT) should work
-around that.
-> 
-> dsdt.dsl  1504:                 Field (\_SB.PCI0.ISA.COM, ByteAcc,
-> NoLock, Preserve)
-> Error    4062 -                  Object does not exist ^  (\_SB.PCI0.ISA.COM)
-see above
-...
-> dsdt.dsl  2906: }
-> Error    4094 - ^ syntax error, unexpected '}', expecting $end
-Don't know, follow up error from above?
+On 7/26/06, Dmitry Torokhov <dmitry.torokhov@gmail.com> wrote:
+>
+> This is not a complaint about the driver but more a generic question -
+> how valid is it to mix error values from 2 different sets? I mean
+> input_register_device signals standard -EXXXX while
+> acpi_install_address_space_handler signals ACPI-specific error codes,
+> so result is some kind of monster error ;) ACPI' acpi_op_add defines
+> return value siimply as int which leads me to believe that -EXXXX is
+> more suitable here.
 
-Better get the latest acpica-unix from:
-http://developer.intel.com/technology/iapc/acpi/downloads.htm
+You are right. There is an issue to be fixed there.
 
-Use acpidump, do not cp /proc/acpi/dsdt (this one is going to vanish
-sooner or later).
-Then use the compiled acpixtract from acpica-unix (not the perl one from
-pmtools, that one gets obsolete). You now should get several tables
-DSDT.dat SSDT1.dat SSDT2.dat ...
+>
+> Overall it is unfortunate that ACPI has its own set of errors and that
+> they "seep" through to upper layers.
+>
 
-If you cut of the header (and closing '}' at the end of the table) of
-the SSDTs and C&P them to the end of the DSDT (inside the last closing
-'}') everything should compile fine.
+Agreed.
 
-The latest iasl compiler should add External statements at the beginning
-of the disassembled table, but this does not work perfectly yet.
-You can:
-iasl -e TABLE_WITH_EXTERNAL_DECLARATIONS.aml -d TABLE_TO_DISASSEMBLE.aml
-to let iasl resolve External symbols correctly.
-But this is also not fully (not at all..) implemented.
+Here's what I see for example:
+in atlas_acpi_button_remove, I have to call
+acpi_remove_address_space_handler which could return at least:
+AE_BAD_PARAMETER
+AE_NOT_EXIST
 
-I am currently playing with that, can you send me your acpidump output,
-please.
+I guess I could at least convert those into -EINVAL, -ENODEV. But
+maybe it's better if there was a best effort convert_acpi_to_errno
+function? Is that appropriate?
 
 Thanks,
-
-     Thomas
-
+jaya
