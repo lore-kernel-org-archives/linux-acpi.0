@@ -1,98 +1,82 @@
-From: Pavel Machek <pavel@suse.cz>
+From: "Shem Multinymous" <multinymous@gmail.com>
 Subject: Re: Generic battery interface
-Date: Fri, 28 Jul 2006 00:16:32 +0200
-Message-ID: <20060727221632.GE3797@elf.ucw.cz>
+Date: Fri, 28 Jul 2006 01:56:03 +0300
+Message-ID: <41840b750607271556n1901af3by2e4d046d68abcb94@mail.gmail.com>
 References: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com>
+	 <20060727221632.GE3797@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:45548 "EHLO amd.ucw.cz")
-	by vger.kernel.org with ESMTP id S1751375AbWG0WQr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Jul 2006 18:16:47 -0400
+Received: from ug-out-1314.google.com ([66.249.92.169]:7413 "EHLO
+	ug-out-1314.google.com") by vger.kernel.org with ESMTP
+	id S1751409AbWG0W4F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Jul 2006 18:56:05 -0400
+Received: by ug-out-1314.google.com with SMTP id m3so519127ugc
+        for <linux-acpi@vger.kernel.org>; Thu, 27 Jul 2006 15:56:03 -0700 (PDT)
+In-Reply-To: <20060727221632.GE3797@elf.ucw.cz>
 Content-Disposition: inline
-In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: Shem Multinymous <multinymous@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, vojtech@suse.cz, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@suse.cz>
+Cc: "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, vojtech@suse.cz, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org, Greg KH <greg@kroah.com>
 
-Hi!
+On 7/28/06, Pavel Machek <pavel@suse.cz> wrote:
 
-> >So I've proposed /sys/class/battery/{acpi,apm,thinkpad}/BAT?/* 
-> >as a comrpromise:
-> >A userspace app that only needs a generic voltage readout will try
-> >(all of) /sys/class/battery/*/BAT0/voltage. This is your generic
-> >interface.
-> 
-> If we have to export all these totally different implementations
-> via totally different paths, then we failed.
+> Event interface suits PC world where BIOS already does the
+> polling...
 
-Agreed.
+The BIOS does polling only for its internal tasks. It doesn't generate
+events when readouts change unless something important happened. So if
+you want readouts you need to poll the SMBIOS or hardware, like on the
+Zaurus.
 
-> sysfs is great for demos from a shell prompt,
-> but isn't such a great programming interface, either
-> from inside the kernel or from user-space.
 
-Well, we have prior examples for /dev/XXX style interface (input), and
-we have examples for /sys/XXX interface (LED subsystem). Each has its
-advantages and disadvantages, and both are okay for programming
-AFAICT.
+> + perhaps it would not need explicit maintainer, just assign names
+>         carefully
 
-> Please do not add more polling to user-space, else DaveJ
-> will be putting it up as a further example of "Why userspace sucks"
-> at the next OLS:-)
+We also need to decide on clear convention about units. Are they in
+the output and/or filename? Filename is best, I think, since it's
+impossible to miss and works nicely for input attributes too.
 
-Let me clarify this: zaurus-style systems can read battery status as
-often as someone asks, and do not really have events. If someone asks,
-they read the status. If noone asks, they do not have to read status
-_at all_. Event interface suits PC world where BIOS already does the
-polling...
 
-Anyway, let's compare /dev/XXX vs. /sys/XXX
+> - does not suit PC-style batteries which trigger events when data
+>         change (can be fixed by /sys/XXX/anything-new, which gives one
+>         byte when something changes)
 
-/sys/XXX:
-+ existing code uses similar scheme
-+ easy to add very obscure features, such as 
-	do_not_charge_battery_for_X_minutes
-+ perhaps it would not need explicit maintainer, just assign names 
-	carefully
-- lack of maintainer mean people will probably not assign names
-	carefully
-- does not suit PC-style batteries which trigger events when data
-	change (can be fixed by /sys/XXX/anything-new, which gives one
-	byte when something changes)
-- you are not getting atomic snapshot of battery state. For example
-	you could read battery status okay, voltage 9.5V; while real
-	states were (okay, 10.5V), (critical, 9.5V) and update
-	happened between you reading status and voltage. (Is it
-	problem?)
-+ userspace UPS daemons can just create files somewhere else, battery
-	applets can scan two directories easily
+Changed since last poll? That doesn't work with multiple clients.
+Changed for the last X seconds? That requires everybody to poll that
+frequenty, and risks missing events due to system load.
 
-/dev/XXX
-+ battery layer will need to be invented
-- that layer will need maintainer
-+ maintainer ensures this is not a mess, allocates numbers
-- does not quite suit zaurus-style batteries, that can _only_ be
-	polled. Can be worked-around by polling from kernel (and we
-	are often doing that, anyway)
-+ userspace backdoor interface will need to be invented, /dev/uinput style
-- hard to handle obscure features
-	(do_not_charge_battery_for_X_minutes), and we'll probably want
-	to unify batteries a bit, probably loosing precision.
+Wild thought: how about adding a generic "event source" mechanism into
+sysfs, at the same level as attributes? Maybe even make them textual,
+in keeping with sysfs philosophy:
 
-So... I'm not sure which one I prefer. If I had to do one _myself_,
-I'd do /sys/XXX version, because it requires less maintainance, and
-I'm lazy.
+while read TYPE PARAM  < /sys/class/battery/BAT0/criticl_events; do
+  echo "battery 0 generated ctitical event $TYPE with parameters $PARAM"
+done
 
-If I could clone vojtech, I'd prefer just doing that, then letting him
-do /dev/XXX interface. It will be more work and painful transition.
+The simpler solution is to convert events into state (e.g.,
+critical=0/1) and present them as normal attributes which userspace
+can poll, as Greg KH suggested (did I get that right?). I'm not sure
+it's always easy, e.g., does ACPI genereate an explicit
+no-longer-critical event?
 
-Anyone volunteers write battery layer? If so, I'd go with /dev/XXX,
-otherwise I'd go with /sys/XXX, because it is simpler to code, and I
-believe it is also good enough...
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+
+> - you are not getting atomic snapshot of battery state. For example
+>         you could read battery status okay, voltage 9.5V; while real
+>         states were (okay, 10.5V), (critical, 9.5V) and update
+>         happened between you reading status and voltage. (Is it
+>         problem?)
+
+I can't think of a realistic scenario where it's a problem. The latest
+readout is always the best one to look at.
+
+
+> - hard to handle obscure features
+>         (do_not_charge_battery_for_X_minutes)
+
+So where does that go in the /dev scheme?
+
+
+  Shem
