@@ -1,64 +1,98 @@
-From: "COMPREMICRO" <vendas@compremicro.com.br>
-Subject: SUPER  =?ISO-8859-1?Q?=20PROMO=C7=C30?= DE C0MPUTAD0RES
-Date: Thu, 27 Jul 2006 18:05:36 -0300
-Message-ID: <20060727220341.13F2D30FC2C@mail.compremicro.com.br>
-Reply-To: "COMPREMICRO" <vendas@compremicro.com.br>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: Generic battery interface
+Date: Fri, 28 Jul 2006 00:16:32 +0200
+Message-ID: <20060727221632.GE3797@elf.ucw.cz>
+References: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 200-189-82-95-sne.pme.vivax.com.br ([200.189.82.95]:33680 "EHLO
-	mail.compremicro.com.br") by vger.kernel.org with ESMTP
-	id S1751216AbWG0VCZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Jul 2006 17:02:25 -0400
-Received: from compremicro.com.br (unknown [192.168.0.221])
-	by mail.compremicro.com.br (Postfix) with SMTP id 13F2D30FC2C
-	for <linux-acpi@vger.kernel.org>; Thu, 27 Jul 2006 19:03:41 -0300 (BRT)
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:45548 "EHLO amd.ucw.cz")
+	by vger.kernel.org with ESMTP id S1751375AbWG0WQr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Jul 2006 18:16:47 -0400
+Content-Disposition: inline
+In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: Shem Multinymous <multinymous@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, vojtech@suse.cz, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
 
-SE ESTE EMAIL ESTIVER INCOMODANDO NOS AVISE QUE REMOVEMOS DA LISTA
-------------------------------------------------------------------
+Hi!
 
-- AMD - Sempron 2400+(462),  sem monitor --> 849,00
-- INTEL Celeron 2.66 /533 (478),  sem monitor --> 874,00
-- AMD - Sempron 64 2600+(754),  sem monitor --> 913,00
-- INTEL Celeron 3.2 /533 (478),  sem monitor --> 947,00
-- AMD - Sempron 64 2800+(754),  sem monitor --> 955,00
-- INTEL Pentium 4 2.4 1Mb/533 (478),  sem monitor --> 1.030,00
-- AMD - Athlon 64 3200+(939),  sem monitor --> 1.155,00
-- INTEL Pentium 4 3.0 1Mb/533 (775),  sem monitor --> 1.162,00
-- AMD - Athlon 64 x2 4200+(Dual-Core),  sem monitor --> 1.530,00
+> >So I've proposed /sys/class/battery/{acpi,apm,thinkpad}/BAT?/* 
+> >as a comrpromise:
+> >A userspace app that only needs a generic voltage readout will try
+> >(all of) /sys/class/battery/*/BAT0/voltage. This is your generic
+> >interface.
+> 
+> If we have to export all these totally different implementations
+> via totally different paths, then we failed.
 
-- Monitor 15" Samsung Lcd 540N (preto/prata) --> R$ 600,00=20
-- Notebook Gateway 4026GL Celeron M 1.3 --> R$ 2.110,00 - ( 6 meses
-garantia )
-- Notebook Gateway 4026GL Celeron M 1.3 --> R$ 2.400,00 - ( 1 ano garan=
-tia )
-- C=E2mera digital HP E317 ( 5.0 MP ) --> R$ 455,00=20
+Agreed.
 
-Confira estas e outras ofertas em nosso site:
-www.compremicro.com.br
+> sysfs is great for demos from a shell prompt,
+> but isn't such a great programming interface, either
+> from inside the kernel or from user-space.
 
------------------------------------------------------------------------=
------
-------------------
-=46INANCIAMENTO PARA TODO O BRASIL
-AT=C9 25X NO CHEQUE.....com juros a partir de 3% / M=EAs !
-TEMOS PRE=C7OS ESPECIAIS PARA COMPRA ACIMA DE 2 MICROS
------------------------------------------------------------------------=
------
-------------------
+Well, we have prior examples for /dev/XXX style interface (input), and
+we have examples for /sys/XXX interface (LED subsystem). Each has its
+advantages and disadvantages, and both are okay for programming
+AFAICT.
 
+> Please do not add more polling to user-space, else DaveJ
+> will be putting it up as a further example of "Why userspace sucks"
+> at the next OLS:-)
 
-INFSERV Inform=E1tica ( 15 anos no ramo de manuten=E7=E3o e vendas )
-S=E3o Caetano do Sul - SP
-(11) 4239-4756  /  6835-2191  /  9135-1817  /  9357-7593
+Let me clarify this: zaurus-style systems can read battery status as
+often as someone asks, and do not really have events. If someone asks,
+they read the status. If noone asks, they do not have to read status
+_at all_. Event interface suits PC world where BIOS already does the
+polling...
 
+Anyway, let's compare /dev/XXX vs. /sys/XXX
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+/sys/XXX:
++ existing code uses similar scheme
++ easy to add very obscure features, such as 
+	do_not_charge_battery_for_X_minutes
++ perhaps it would not need explicit maintainer, just assign names 
+	carefully
+- lack of maintainer mean people will probably not assign names
+	carefully
+- does not suit PC-style batteries which trigger events when data
+	change (can be fixed by /sys/XXX/anything-new, which gives one
+	byte when something changes)
+- you are not getting atomic snapshot of battery state. For example
+	you could read battery status okay, voltage 9.5V; while real
+	states were (okay, 10.5V), (critical, 9.5V) and update
+	happened between you reading status and voltage. (Is it
+	problem?)
++ userspace UPS daemons can just create files somewhere else, battery
+	applets can scan two directories easily
+
+/dev/XXX
++ battery layer will need to be invented
+- that layer will need maintainer
++ maintainer ensures this is not a mess, allocates numbers
+- does not quite suit zaurus-style batteries, that can _only_ be
+	polled. Can be worked-around by polling from kernel (and we
+	are often doing that, anyway)
++ userspace backdoor interface will need to be invented, /dev/uinput style
+- hard to handle obscure features
+	(do_not_charge_battery_for_X_minutes), and we'll probably want
+	to unify batteries a bit, probably loosing precision.
+
+So... I'm not sure which one I prefer. If I had to do one _myself_,
+I'd do /sys/XXX version, because it requires less maintainance, and
+I'm lazy.
+
+If I could clone vojtech, I'd prefer just doing that, then letting him
+do /dev/XXX interface. It will be more work and painful transition.
+
+Anyone volunteers write battery layer? If so, I'd go with /dev/XXX,
+otherwise I'd go with /sys/XXX, because it is simpler to code, and I
+believe it is also good enough...
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
