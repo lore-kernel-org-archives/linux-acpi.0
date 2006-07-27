@@ -1,67 +1,51 @@
 From: Vojtech Pavlik <vojtech@suse.cz>
 Subject: Re: Generic battery interface
-Date: Fri, 28 Jul 2006 01:24:27 +0200
-Message-ID: <20060727232427.GA4907@suse.cz>
-References: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com> <41840b750607271332q5dea0848y2284b30a48f78ea7@mail.gmail.com>
+Date: Fri, 28 Jul 2006 01:31:54 +0200
+Message-ID: <20060727233154.GB4907@suse.cz>
+References: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com> <20060727221632.GE3797@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from styx.suse.cz ([82.119.242.94]:12497 "EHLO mail.suse.cz")
-	by vger.kernel.org with ESMTP id S1750823AbWG0XYv (ORCPT
+Received: from styx.suse.cz ([82.119.242.94]:25809 "EHLO mail.suse.cz")
+	by vger.kernel.org with ESMTP id S1750707AbWG0XcI (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Jul 2006 19:24:51 -0400
+	Thu, 27 Jul 2006 19:32:08 -0400
 Content-Disposition: inline
-In-Reply-To: <41840b750607271332q5dea0848y2284b30a48f78ea7@mail.gmail.com>
+In-Reply-To: <20060727221632.GE3797@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shem Multinymous <multinymous@gmail.com>
-Cc: "Brown, Len" <len.brown@intel.com>, Pavel Machek <pavel@suse.cz>, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@suse.cz>
+Cc: "Brown, Len" <len.brown@intel.com>, Shem Multinymous <multinymous@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
 
-On Thu, Jul 27, 2006 at 11:32:39PM +0300, Shem Multinymous wrote:
+On Fri, Jul 28, 2006 at 12:16:32AM +0200, Pavel Machek wrote:
 
-> >Also, critical battery alarms are important events.
-> 
-> Yes, but not time-sensitive.
 
-They well can be. And it'd be pretty stupid to just throw away the
-events the hardware offers to us and use polling from userspace, too.
+> /dev/XXX
+> + battery layer will need to be invented
+> - that layer will need maintainer
+> + maintainer ensures this is not a mess, allocates numbers
 
-> >Please do not add more polling to user-space, else DaveJ
-> >will be putting it up as a further example of "Why userspace sucks"
-> >at the next OLS:-)
-> 
-> Battery polling is already used extensively, and its overhead is
-> completely negligible.
+  and figures out which features are identical, which not, etc. This
+  	will actually be a lot easier than with keyboards: The number of
+	different battery drivers/types is rather limited fortunately.
 
-You're joking, right? On quite a number of laptops, it takes quite a
-while to read the battery, spent in BIOS through SMI, polling the I2C
-bus while talking to the battery. The less often this is done, the
-better.
+  note: It's absolutely necessary to limit the API to a well usable
+	SUBSET of a superset of the features of all drivers/devices,
+	even sacrificing obscure features to keep the API sane. One
+	example would be the HID Power spec, which simply can't be
+	supported to full extent by any sane API.
 
-> I'm yet to see any deployed userspace code
-> trying to query battery status more than once per second.
+> - does not quite suit zaurus-style batteries, that can _only_ be
+> 	polled. Can be worked-around by polling from kernel (and we
+> 	are often doing that, anyway)
 
-The applets that were doing it (yes, up to 100 times per second)
-corrected their ways pretty quickly, because some machines became
-unusable with the applet enabled.
+  + and the kernel can change the polling frequency based on power
+	saving state changes
 
-> On the other hand, if you send an event whenever the voltage or
-> current change, you'll flood userspace with junk. So you'll need to
-> have a "fuzz" like in the input device code; but this may be
-> client-specific or hardware-specific.
-
-You could, trivially, mirror the behavior of current applets: Not report
-the changes to the battery status more often than each N seconds, except
-for critical events.
-
-Said that, there haven't been many problems reported in the input layer
-that I could attibute to bad default selection of fuzz.
-
-> And you'll need to identify devices in a useful way, a problem that's
-> not yet solved even for input devices... You see where it's going.
-
-May you be more specific here? I'm not aware of any problems in this
-area. This may be my fault: What needs to be fixed there?
+> + userspace backdoor interface will need to be invented, /dev/uinput style
+> - hard to handle obscure features
+> 	(do_not_charge_battery_for_X_minutes), and we'll probably want
+> 	to unify batteries a bit, probably loosing precision.
 
 -- 
 Vojtech Pavlik
