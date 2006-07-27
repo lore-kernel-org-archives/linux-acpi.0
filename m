@@ -1,42 +1,59 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: non functionable snd-ad1816a in Kernel 2.6.18-rc2
-Date: Thu, 27 Jul 2006 09:11:36 -0600
-Message-ID: <200607270911.37236.bjorn.helgaas@hp.com>
-References: <20060718093434.60450@gmx.net> <200607241340.56353.bjorn.helgaas@hp.com> <20060727134555.235500@gmx.net>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: Generic battery interface
+Date: Thu, 27 Jul 2006 11:40:43 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB6011259C4@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel9.hp.com ([156.153.255.214]:7639 "EHLO atlrel9.hp.com")
-	by vger.kernel.org with ESMTP id S1751647AbWG0PLm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Jul 2006 11:11:42 -0400
-In-Reply-To: <20060727134555.235500@gmx.net>
-Content-Disposition: inline
+Received: from mga01.intel.com ([192.55.52.88]:22202 "EHLO
+	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
+	id S1750802AbWG0PoE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Jul 2006 11:44:04 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Uwe Bugla <uwe.bugla@gmx.de>
-Cc: ambx1@neo.rr.com, len.brown@intel.com, linux-acpi@vger.kernel.org, castet.matthieu@free.fr, akpm@osdl.org
+To: Shem Multinymous <multinymous@gmail.com>, Pavel Machek <pavel@suse.cz>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, vojtech@suse.cz, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
 
-On Thursday 27 July 2006 07:45, Uwe Bugla wrote:
-> But how can we make sure that it does not break somebody
-> else=B4s system while fixing mine when anything deriving
-> from the two Intel guys is NAK?
+> ... need a consistent interface to common functionality.
 
-I don't understand.  The idea is that people will test
-the -mm kernel and report any problems. =20
+Agreed.
 
-> If they would be a bit more cooperative things would go
-> forward much faster I think.=20
+Path names and file names in sysfs are an API, so it is important
+to choose them wisely.  The string "acpi" should not appear in
+any path-name or file-name in sysfs that is intended to be generic,
+as it would make no sense on a non-ACPI system.
 
-I think it's going about the right pace.  Usually things
-stay in -mm for at least a month before we think about
-putting them upstream.  And of course we don't push minor
-bugfixes upstream when we're close to an upstream release.
+Neither the ACPI /proc/acpi/battery API or
+the tp_smapi /sys/devices/platform/smapi API qualify as generic.
+It it a historical artifact that /proc/acpi exists, I'd delete it
+immediately if that wouldn't instantly break every distro on earth.
 
-Bjorn
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Re: battery events
+
+Vojtech suggested that we create a virtual battery interface,
+just like the input layer has virtual input devices.
+Drivers such as above could conjur up devices, and user-space
+could also create what look like batteries, say through a
+utility that knows how to talk to a UPS.
+
+In either case, user-space would look for a well known set
+of device file names, such as /dev/battery0, /dev/battery1
+or some such, do a select on the file and get events that way.
+
+With a /dev/battery0, and IOCTLS to get information from it,
+the question becomes redundancy between that file and sysfs
+text files.
+
+Re: sysfs or /dev
+
+It is tempting to claim that sysfs is extensible, but note
+that whenever you create a sysfs file, you are creating an API,
+which is a decision of exactly the same magnitude as defining
+an IOCTL -- in either case, user-space needs to react to it
+to understand it -- just that you can do that from the shell
+with sysfs.
+
+-Len
