@@ -1,52 +1,42 @@
-From: Vojtech Pavlik <vojtech@suse.cz>
+From: Pavel Machek <pavel@suse.cz>
 Subject: Re: Generic battery interface
-Date: Fri, 28 Jul 2006 12:11:53 +0200
-Message-ID: <20060728101153.GC25372@suse.cz>
-References: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com> <20060727221632.GE3797@elf.ucw.cz> <20060727233154.GB4907@suse.cz> <41840b750607271735v4330fd62yf37fdd418cab97e4@mail.gmail.com>
+Date: Fri, 28 Jul 2006 14:21:12 +0200
+Message-ID: <20060728122112.GB4158@elf.ucw.cz>
+References: <CFF307C98FEABE47A452B27C06B85BB601168B34@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from styx.suse.cz ([82.119.242.94]:5354 "EHLO mail.suse.cz")
-	by vger.kernel.org with ESMTP id S932607AbWG1KL5 (ORCPT
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:31686 "EHLO amd.ucw.cz")
+	by vger.kernel.org with ESMTP id S1161130AbWG1MV1 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 28 Jul 2006 06:11:57 -0400
+	Fri, 28 Jul 2006 08:21:27 -0400
 Content-Disposition: inline
-In-Reply-To: <41840b750607271735v4330fd62yf37fdd418cab97e4@mail.gmail.com>
+In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB601168B34@hdsmsx411.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shem Multinymous <multinymous@gmail.com>
-Cc: Pavel Machek <pavel@suse.cz>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: Shem Multinymous <multinymous@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, vojtech@suse.cz, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
 
-On Fri, Jul 28, 2006 at 03:35:10AM +0300, Shem Multinymous wrote:
-> On 7/28/06, Vojtech Pavlik <vojtech@suse.cz> wrote:
-> >  note: It's absolutely necessary to limit the API to a well usable
-> >        SUBSET of a superset of the features of all drivers/devices,
-> >        even sacrificing obscure features to keep the API sane. One
-> >        example would be the HID Power spec, which simply can't be
-> >        supported to full extent by any sane API.
+Hi!
+
+> > textual
 > 
-> Non-standard functions must be handled reasonably within the
-> framework, otherwise drivers will have to build duplicate interfaces.
+> good for shell scripts, not clear it is better for C programs
+> that have to open a bunch of files by name.
 > 
-> How about
->  /sys/whatever/battery0/voltage for standard attributes
-> and
->  /sys/whatever/battery0/thinkpad/inhibit-charge-minutes
-> for non-standard ones?
-
-I think the thinkpad features actually fall into the 'standard API', if
-not for any other reason, then because some 80% of kernel developers use
-ThinkPads. ;)
-
-> >  + and the kernel can change the polling frequency based on power
-> >        saving state changes
+> > sysfs was great for develping tp_smapi
 > 
-> Likewise for cached attributes (query hardware only if N jiffies
-> passed since last querry, other return cached value). And that way,
-> hardware query frequency is never higher than what userspace actually
-> needs.
- 
+> Wonderful, but isn't the key here how simple it is for HAL
+> or X to understand and use the kernel API rather than the
+> developers of the kernel driver that implements the API?
+> 
+> If X were a shell script, I'd say a file per value would
+> clearly be the way to go, but it isn't.
 
+Well, lets say "if we go the /dev/XXX way, maintainer will probably
+have to create small utility to make battery info available from the
+shell".
+									Pavel
 -- 
-Vojtech Pavlik
-Director SuSE Labs
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
