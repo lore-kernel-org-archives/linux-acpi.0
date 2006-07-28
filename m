@@ -1,51 +1,45 @@
-From: Valdis.Kletnieks@vt.edu
+From: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
 Subject: Re: Generic battery interface
-Date: Fri, 28 Jul 2006 11:57:49 -0400
-Message-ID: <200607281557.k6SFvn09022794@turing-police.cc.vt.edu>
-References: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com> <41840b750607271332q5dea0848y2284b30a48f78ea7@mail.gmail.com> <20060727232427.GA4907@suse.cz> <41840b750607271727q7efc0bb2q706a17654004cbbc@mail.gmail.com> <20060728074202.GA4757@suse.cz> <20060728122508.GC4158@elf.ucw.cz> <20060728134307.GD29217@suse.cz>
-            <41840b750607280838s3678299fm8a5d2b46c5b2af06@mail.gmail.com>
+Date: Fri, 28 Jul 2006 12:10:43 -0400
+Message-ID: <d120d5000607280910t458fb6e0hdb81367b888a46db@mail.gmail.com>
+References: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com>
+	 <41840b750607271332q5dea0848y2284b30a48f78ea7@mail.gmail.com>
+	 <20060727232427.GA4907@suse.cz>
+	 <41840b750607271727q7efc0bb2q706a17654004cbbc@mail.gmail.com>
+	 <20060728074202.GA4757@suse.cz>
+	 <d120d5000607280525x447e6821t734a735197481c18@mail.gmail.com>
+	 <41840b750607280819t71f55ea7off89aa917421cc33@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="==_Exmh_1154102269_3484P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from turing-police.cc.vt.edu ([128.173.14.107]:40860 "EHLO
-	turing-police.cc.vt.edu") by vger.kernel.org with ESMTP
-	id S1752016AbWG1P7L (ORCPT <RFC822;linux-acpi@vger.kernel.org>);
-	Fri, 28 Jul 2006 11:59:11 -0400
-In-Reply-To: Your message of "Fri, 28 Jul 2006 18:38:13 +0300."
-             <41840b750607280838s3678299fm8a5d2b46c5b2af06@mail.gmail.com>
+Received: from ug-out-1314.google.com ([66.249.92.175]:64631 "EHLO
+	ug-out-1314.google.com") by vger.kernel.org with ESMTP
+	id S1752027AbWG1QKs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 28 Jul 2006 12:10:48 -0400
+Received: by ug-out-1314.google.com with SMTP id m3so835129ugc
+        for <linux-acpi@vger.kernel.org>; Fri, 28 Jul 2006 09:10:43 -0700 (PDT)
+In-Reply-To: <41840b750607280819t71f55ea7off89aa917421cc33@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Shem Multinymous <multinymous@gmail.com>
-Cc: Vojtech Pavlik <vojtech@suse.cz>, Pavel Machek <pavel@suse.cz>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
+Cc: Vojtech Pavlik <vojtech@suse.cz>, "Brown, Len" <len.brown@intel.com>, Pavel Machek <pavel@suse.cz>, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
 
---==_Exmh_1154102269_3484P
-Content-Type: text/plain; charset=us-ascii
-
-On Fri, 28 Jul 2006 18:38:13 +0300, Shem Multinymous said:
+On 7/28/06, Shem Multinymous <multinymous@gmail.com> wrote:
+> On 7/28/06, Dmitry Torokhov <dmitry.torokhov@gmail.com> wrote:
+> > 4) sysfs - all capabilities, IDs, etc for input devices exported there as well.
 >
-> Another example: on my ThinkPad, the readouts provided by the EC
-> change only every 2 seconds, regardless of how much you poll it.
-> 
-> Hence my proposal for a polling-based interface with kernel-side
-> caching. This way, the hardware query rate is the minimum of two
-> rates: what the application can use and what the kernel thinks is the
-> hardware's change rate.
+> Forgive my ignorance, but how do I conncet a sysfs directory with a /dev device?
+> So far the only way I found is to compare /sys/whatever/dev with the
+> major+minor of the dev file, which requires brute-force enumeration on
+> at least one side.
+>
 
-Is there a reliable (or hack-worthy) way for the kernel to determine how
-often the values are re-posted by the hardware?
+Can't we have udev make a symlink when it creates device node? Kernel
+can't provide this link since it knows nothing about naming. You could
+either have a symlink from /sys/ or maybe /dev/enum/<name matching
+print_dev_t() output>
 
---==_Exmh_1154102269_3484P
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.4 (GNU/Linux)
-Comment: Exmh version 2.5 07/13/2001
-
-iD8DBQFEyjP9cC3lWbTT17ARAkq6AKD9/vK+FaPluHo2o0/tmEfrBIsXOQCfcKpR
-+qD+P4b9eEyK2nPOqAlYtug=
-=0V+b
------END PGP SIGNATURE-----
-
---==_Exmh_1154102269_3484P--
+-- 
+Dmitry
