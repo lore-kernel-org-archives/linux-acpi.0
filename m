@@ -1,52 +1,36 @@
-From: Vojtech Pavlik <vojtech@suse.cz>
+From: "Shem Multinymous" <multinymous@gmail.com>
 Subject: Re: Generic battery interface
-Date: Fri, 28 Jul 2006 01:31:54 +0200
-Message-ID: <20060727233154.GB4907@suse.cz>
-References: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com> <20060727221632.GE3797@elf.ucw.cz>
+Date: Fri, 28 Jul 2006 03:10:56 +0300
+Message-ID: <41840b750607271710r6b3cfffdjc5ca60d0f1618284@mail.gmail.com>
+References: <CFF307C98FEABE47A452B27C06B85BB601168A85@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from styx.suse.cz ([82.119.242.94]:25809 "EHLO mail.suse.cz")
-	by vger.kernel.org with ESMTP id S1750707AbWG0XcI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Jul 2006 19:32:08 -0400
+Received: from ug-out-1314.google.com ([66.249.92.173]:30840 "EHLO
+	ug-out-1314.google.com") by vger.kernel.org with ESMTP
+	id S1750749AbWG1AK5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Jul 2006 20:10:57 -0400
+Received: by ug-out-1314.google.com with SMTP id m3so539291ugc
+        for <linux-acpi@vger.kernel.org>; Thu, 27 Jul 2006 17:10:56 -0700 (PDT)
+In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB601168A85@hdsmsx411.amr.corp.intel.com>
 Content-Disposition: inline
-In-Reply-To: <20060727221632.GE3797@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@suse.cz>
-Cc: "Brown, Len" <len.brown@intel.com>, Shem Multinymous <multinymous@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: Pavel Machek <pavel@suse.cz>, Matthew Garrett <mjg59@srcf.ucam.org>, vojtech@suse.cz, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
 
-On Fri, Jul 28, 2006 at 12:16:32AM +0200, Pavel Machek wrote:
+On 7/28/06, Brown, Len <len.brown@intel.com> wrote:
+> I'm not religious about /dev vs. /sys.
 
+I would greatly prefer a sysfs interface.
+Having a clean, textual sysfs API that's easily accessed from shell
+has been extremely conductive for the development of the tp_smapi
+driver -- users can easily test and script the driver without extra
+programming and userspace components. Since tp_smapi is (AFAIK) the
+most feature-rich battery driver we now have, this is some to
+consider.
 
-> /dev/XXX
-> + battery layer will need to be invented
-> - that layer will need maintainer
-> + maintainer ensures this is not a mess, allocates numbers
+(If you're not convinced yet, let me say one word: udev.)
 
-  and figures out which features are identical, which not, etc. This
-  	will actually be a lot easier than with keyboards: The number of
-	different battery drivers/types is rather limited fortunately.
-
-  note: It's absolutely necessary to limit the API to a well usable
-	SUBSET of a superset of the features of all drivers/devices,
-	even sacrificing obscure features to keep the API sane. One
-	example would be the HID Power spec, which simply can't be
-	supported to full extent by any sane API.
-
-> - does not quite suit zaurus-style batteries, that can _only_ be
-> 	polled. Can be worked-around by polling from kernel (and we
-> 	are often doing that, anyway)
-
-  + and the kernel can change the polling frequency based on power
-	saving state changes
-
-> + userspace backdoor interface will need to be invented, /dev/uinput style
-> - hard to handle obscure features
-> 	(do_not_charge_battery_for_X_minutes), and we'll probably want
-> 	to unify batteries a bit, probably loosing precision.
-
--- 
-Vojtech Pavlik
-Director SuSE Labs
+  Shem
