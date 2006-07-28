@@ -1,43 +1,49 @@
-From: Pavel Machek <pavel@suse.cz>
+From: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
 Subject: Re: Generic battery interface
-Date: Fri, 28 Jul 2006 14:25:08 +0200
-Message-ID: <20060728122508.GC4158@elf.ucw.cz>
-References: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com> <41840b750607271332q5dea0848y2284b30a48f78ea7@mail.gmail.com> <20060727232427.GA4907@suse.cz> <41840b750607271727q7efc0bb2q706a17654004cbbc@mail.gmail.com> <20060728074202.GA4757@suse.cz>
+Date: Fri, 28 Jul 2006 08:25:35 -0400
+Message-ID: <d120d5000607280525x447e6821t734a735197481c18@mail.gmail.com>
+References: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com>
+	 <41840b750607271332q5dea0848y2284b30a48f78ea7@mail.gmail.com>
+	 <20060727232427.GA4907@suse.cz>
+	 <41840b750607271727q7efc0bb2q706a17654004cbbc@mail.gmail.com>
+	 <20060728074202.GA4757@suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:6346 "EHLO amd.ucw.cz")
-	by vger.kernel.org with ESMTP id S1161131AbWG1MZY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 28 Jul 2006 08:25:24 -0400
-Content-Disposition: inline
+Received: from ug-out-1314.google.com ([66.249.92.168]:6199 "EHLO
+	ug-out-1314.google.com") by vger.kernel.org with ESMTP
+	id S1161134AbWG1MZh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 28 Jul 2006 08:25:37 -0400
+Received: by ug-out-1314.google.com with SMTP id m3so734713ugc
+        for <linux-acpi@vger.kernel.org>; Fri, 28 Jul 2006 05:25:35 -0700 (PDT)
 In-Reply-To: <20060728074202.GA4757@suse.cz>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Vojtech Pavlik <vojtech@suse.cz>
-Cc: Shem Multinymous <multinymous@gmail.com>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
+Cc: Shem Multinymous <multinymous@gmail.com>, "Brown, Len" <len.brown@intel.com>, Pavel Machek <pavel@suse.cz>, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
 
-Hi!
+On 7/28/06, Vojtech Pavlik <vojtech@suse.cz> wrote:
+> On Fri, Jul 28, 2006 at 03:27:00AM +0300, Shem Multinymous wrote:
+> >
+> > "Generic interface for accelerometers (AMS, HDAPS, ...)" on LKML, a
+> > few weeks ago, about moving accelerator-based hard disk parking from
+> > sysfs polling to the the input infrastructure. One unresolved issue
+> > was how to find which input device happens to be the relevant
+> > accelerometer.
+>
+> The current well known methods are:
+>
+>        1) udev/hotplug. It can create device nodes and symlinks based on the
+>                capabilities and IDs of an input device.
+>        1a) HAL. It has all the info from hotplug as well.
+>        2) open them all and do the capability checks / IDs yourself.
+>        3) (obsolete, deprecated) parse /proc/bus/input/devices, which
+>                lists all the input devices
+>
 
-> > >The applets that were doing it (yes, up to 100 times per second)
-> > >corrected their ways pretty quickly, because some machines became
-> > >unusable with the applet enabled.
-> > 
-> > Exactly -- and they've been working merrily ever since.
-> > And if you don't want to trust applet developers, cache the latest
-> > reads and refresh them only if X jiffies have passed.
-> 
-> The timer interrupt still has to happen every time their select() or
-> sleep() expires, with the system having to wake up, even when nothing
-> happened. Polling from userspace is bad.
+4) sysfs - all capabilities, IDs, etc for input devices exported there as well.
 
-I do not understand this. Any polling (in kernel or in userspace) will
-wake the CPU, wasting power.
-
-OTOH "high/low/very low" battery applet can reasonably query battery
-every 5 minutes, while detailed, graphical thingie displaying the
-current power consumption will probably poll every 10 seconds...
-									Pavel
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Dmitry
