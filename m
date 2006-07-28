@@ -1,41 +1,42 @@
 From: Pavel Machek <pavel@suse.cz>
 Subject: Re: Generic battery interface
-Date: Fri, 28 Jul 2006 14:21:12 +0200
-Message-ID: <20060728122112.GB4158@elf.ucw.cz>
-References: <CFF307C98FEABE47A452B27C06B85BB601168B34@hdsmsx411.amr.corp.intel.com>
+Date: Fri, 28 Jul 2006 14:25:08 +0200
+Message-ID: <20060728122508.GC4158@elf.ucw.cz>
+References: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com> <41840b750607271332q5dea0848y2284b30a48f78ea7@mail.gmail.com> <20060727232427.GA4907@suse.cz> <41840b750607271727q7efc0bb2q706a17654004cbbc@mail.gmail.com> <20060728074202.GA4757@suse.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:31686 "EHLO amd.ucw.cz")
-	by vger.kernel.org with ESMTP id S1161130AbWG1MV1 (ORCPT
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:6346 "EHLO amd.ucw.cz")
+	by vger.kernel.org with ESMTP id S1161131AbWG1MZY (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 28 Jul 2006 08:21:27 -0400
+	Fri, 28 Jul 2006 08:25:24 -0400
 Content-Disposition: inline
-In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB601168B34@hdsmsx411.amr.corp.intel.com>
+In-Reply-To: <20060728074202.GA4757@suse.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: Shem Multinymous <multinymous@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, vojtech@suse.cz, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
+To: Vojtech Pavlik <vojtech@suse.cz>
+Cc: Shem Multinymous <multinymous@gmail.com>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
 
 Hi!
 
-> > textual
+> > >The applets that were doing it (yes, up to 100 times per second)
+> > >corrected their ways pretty quickly, because some machines became
+> > >unusable with the applet enabled.
+> > 
+> > Exactly -- and they've been working merrily ever since.
+> > And if you don't want to trust applet developers, cache the latest
+> > reads and refresh them only if X jiffies have passed.
 > 
-> good for shell scripts, not clear it is better for C programs
-> that have to open a bunch of files by name.
-> 
-> > sysfs was great for develping tp_smapi
-> 
-> Wonderful, but isn't the key here how simple it is for HAL
-> or X to understand and use the kernel API rather than the
-> developers of the kernel driver that implements the API?
-> 
-> If X were a shell script, I'd say a file per value would
-> clearly be the way to go, but it isn't.
+> The timer interrupt still has to happen every time their select() or
+> sleep() expires, with the system having to wake up, even when nothing
+> happened. Polling from userspace is bad.
 
-Well, lets say "if we go the /dev/XXX way, maintainer will probably
-have to create small utility to make battery info available from the
-shell".
+I do not understand this. Any polling (in kernel or in userspace) will
+wake the CPU, wasting power.
+
+OTOH "high/low/very low" battery applet can reasonably query battery
+every 5 minutes, while detailed, graphical thingie displaying the
+current power consumption will probably poll every 10 seconds...
 									Pavel
 -- 
 (english) http://www.livejournal.com/~pavelmachek
