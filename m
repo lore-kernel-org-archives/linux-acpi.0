@@ -1,33 +1,31 @@
-From: Johan Vromans <jvromans@squirrel.nl>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: Generic battery interface
-Date: Fri, 28 Jul 2006 10:22:03 +0200
-Message-ID: <m2k65ykul0.fsf@phoenix.squirrel.nl>
+Date: Fri, 28 Jul 2006 10:58:06 +0100
+Message-ID: <20060728095806.GA2046@srcf.ucam.org>
 References: <CFF307C98FEABE47A452B27C06B85BB601168B34@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:63759 "EHLO
-	smtp-vbr1.xs4all.nl") by vger.kernel.org with ESMTP id S932593AbWG1IWY
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 28 Jul 2006 04:22:24 -0400
-In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB601168B34@hdsmsx411.amr.corp.intel.com> (Len
- Brown's message of "Fri, 28 Jul 2006 00:05:35 -0400")
+Received: from cavan.codon.org.uk ([217.147.92.49]:39068 "EHLO
+	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
+	id S932602AbWG1J6T (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 28 Jul 2006 05:58:19 -0400
+Content-Disposition: inline
+In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB601168B34@hdsmsx411.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Brown, Len" <len.brown@intel.com>
-Cc: Shem Multinymous <multinymous@gmail.com>, Pavel Machek <pavel@suse.cz>, Matthew Garrett <mjg59@srcf.ucam.org>, vojtech@suse.cz, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
+Cc: Shem Multinymous <multinymous@gmail.com>, Pavel Machek <pavel@suse.cz>, vojtech@suse.cz, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
 
-"Brown, Len" <len.brown@intel.com> writes:
+On Fri, Jul 28, 2006 at 12:05:35AM -0400, Brown, Len wrote:
 
-> good for shell scripts, not clear it is better for C programs
-> that have to open a bunch of files by name.
+> Wonderful, but isn't the key here how simple it is for HAL
+> or X to understand and use the kernel API rather than the
+> developers of the kernel driver that implements the API?
 
-Moreover, it means that the factual data is only made available as a
-nice textual string, that then has to be parsed by shell scripts and
-other programs to get the factual data again.
+HAL currently gets most of its information from sysfs, and managed to 
+deal with parsing the existing /proc/acpi/battery stuff. I don't think 
+there's any real difficulty there.
 
-So I feel much for /dev/xxx approach, together with the already
-mentioned small utilities like 'batstat' for shell scripts.
-
--- Johan
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
