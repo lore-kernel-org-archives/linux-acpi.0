@@ -1,92 +1,26 @@
-From: keith mannthey <kmannth@us.ibm.com>
-Subject: [Patch] 5/5 in support of hot-add memory x86_64 fix acpi
-	motherboard.c
-Date: Fri, 28 Jul 2006 19:53:00 -0700
-Message-ID: <1154141580.5874.149.camel@keithlap>
-Reply-To: kmannth@us.ibm.com
+From: Alessandro Guido <alessandro.guido.box@gmail.com>
+Subject: Sony ACPI extras mainline inclusion
+Date: Sat, 29 Jul 2006 11:21:14 +0200
+Message-ID: <44CB288A.1010702@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-EL4KP72q0a2jQ2ieyVv8"
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1161408AbWG2Cxf@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: lkml <linux-kernel@vger.kernel.org>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, Patrick Mochel <mochel@linux.intel.com>, lhms-devel <lhms-devel@lists.sourceforge.net>, discuss <discuss@x86-64.org>, andrew <akpm@osdl.org>, Andi Kleen <ak@suse.de>, dave hansen <haveblue@us.ibm.com>, kame <kamezawa.hiroyu@jp.fujitsu.com>, konrad <darnok@us.ibm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from wr-out-0506.google.com ([64.233.184.228]:15944 "EHLO
+	wr-out-0506.google.com") by vger.kernel.org with ESMTP
+	id S1750749AbWG2JTh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 29 Jul 2006 05:19:37 -0400
+Received: by wr-out-0506.google.com with SMTP id i21so40185wra
+        for <linux-acpi@vger.kernel.org>; Sat, 29 Jul 2006 02:19:37 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org
 
+Dear kernel developers,
+I own a Sony VAIO laptop that uses ACPI for setting screen brightness
+through the "2.6-sony_acpi4.patch" patch that has been living in -mm for a while.
+I'd like this patch to be merged in mainline, so that I won't be forced anymore to patch
+the kernel by hand or to use the -mm patchset.
+Is there something that prevents this to happen?
 
---=-EL4KP72q0a2jQ2ieyVv8
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-
-Hello All,
-  This patch fixes an issue I encountered while doing hot-add memroy on
-my platform (IBM Summit).     
-
-  My system loads to acpi memory hot plug driver just fine during boot.
-It installs and registers acpi_memory_device_driver and it's handler.
-When the hot add memory event occurs the handler is called. this is the
-relevant call path
-
-acpi_memory_get_device
-acpi_bus_add
-acpi_add_single_object
-acpi_bus_find_driver
-acpi_bus_driver_init
-driver->ops.add
-
-  The algorithm it try to match devices from acpi_bus_drivers.  It looks
-for drivers that are on the right bus and calls acpi_bus_driver_init.
-If it gets a good return value for acpi_bus_driver_init it thinks it
-found the device and returns.  The problem is the motherboard driver
-driver->ops.add is getting called and it ALWAYS returns AE_OK. 
-
-  The device that is passed back up the call chain is the wrong one (the
-motherboard device) and whole things break down. 
-
-  My solution is the make the motherboard value fail to return a AE_OK
-for devices it does not expect (like my hot-add memory event).  
-
-Without this patch I cannot do real hot-add memory with my hardware.  
-
-Thanks to KAMEZAWA Hiroyuki for helping to debug the issue and Patrick
-Mochel for providing input.   
-
-This was built against 2.6.18-rc2.
-
-Signed-off-by:  Keith Mannthey <kmannth@us.ibm.com>
-
---=-EL4KP72q0a2jQ2ieyVv8
-Content-Disposition: attachment; filename=patch-2.6.18-rc2-motherboard
-Content-Type: text/x-patch; name=patch-2.6.18-rc2-motherboard; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-diff -urN orig/drivers/acpi/motherboard.c work/drivers/acpi/motherboard.c
---- orig/drivers/acpi/motherboard.c	2006-07-28 13:57:35.000000000 -0400
-+++ work/drivers/acpi/motherboard.c	2006-07-28 16:39:22.000000000 -0400
-@@ -87,6 +87,7 @@
- 		}
- 	} else {
- 		/* Memory mapped IO? */
-+		 return -EINVAL;
- 	}
- 
- 	if (requested_res)
-@@ -96,11 +97,16 @@
- 
- static int acpi_motherboard_add(struct acpi_device *device)
- {
-+	acpi_status status;
- 	if (!device)
- 		return -EINVAL;
--	acpi_walk_resources(device->handle, METHOD_NAME__CRS,
-+
-+	status = acpi_walk_resources(device->handle, METHOD_NAME__CRS,
- 			    acpi_reserve_io_ranges, NULL);
- 
-+	if (ACPI_FAILURE(status)) 
-+		return -ENODEV;
-+	
- 	return 0;
- }
- 
-
---=-EL4KP72q0a2jQ2ieyVv8--
