@@ -1,54 +1,142 @@
-From: Vojtech Pavlik <vojtech@suse.cz>
+From: "Shem Multinymous" <multinymous@gmail.com>
 Subject: Re: Generic battery interface
-Date: Sat, 29 Jul 2006 15:42:25 +0200
-Message-ID: <20060729134225.GA4882@suse.cz>
-References: <20060727232427.GA4907@suse.cz> <41840b750607271727q7efc0bb2q706a17654004cbbc@mail.gmail.com> <20060728074202.GA4757@suse.cz> <41840b750607280814x50db03erb30d833802ae983e@mail.gmail.com> <20060728202359.GB5313@suse.cz> <41840b750607281548h5ee2219eka1de6745b692c092@mail.gmail.com> <20060729103613.GB7438@suse.cz> <41840b750607290432m6d302cdoae7f3eef869279d4@mail.gmail.com> <20060729120411.GA8285@suse.cz> <41840b750607290551kae4a7c7k9402c96e5b67e6a5@mail.gmail.com>
+Date: Sun, 30 Jul 2006 00:06:17 +0300
+Message-ID: <41840b750607291406p2f843054rc89fa1c3c467688d@mail.gmail.com>
+References: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com>
+	 <41840b750607271332q5dea0848y2284b30a48f78ea7@mail.gmail.com>
+	 <20060727232427.GA4907@suse.cz>
+	 <41840b750607271727q7efc0bb2q706a17654004cbbc@mail.gmail.com>
+	 <20060728074202.GA4757@suse.cz>
+	 <41840b750607280814x50db03erb30d833802ae983e@mail.gmail.com>
+	 <20060728202359.GB5313@suse.cz>
+	 <41840b750607281548h5ee2219eka1de6745b692c092@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932141AbWG2Nmf@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ug-out-1314.google.com ([66.249.92.170]:29351 "EHLO
+	ug-out-1314.google.com") by vger.kernel.org with ESMTP
+	id S932243AbWG2VGT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 29 Jul 2006 17:06:19 -0400
+Received: by ug-out-1314.google.com with SMTP id m3so209751ugc
+        for <linux-acpi@vger.kernel.org>; Sat, 29 Jul 2006 14:06:18 -0700 (PDT)
+In-Reply-To: <41840b750607281548h5ee2219eka1de6745b692c092@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <41840b750607290551kae4a7c7k9402c96e5b67e6a5@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Shem Multinymous <multinymous@gmail.com>
-Cc: "Brown, Len" <len.brown@intel.com>, Pavel Machek <pavel@suse.cz>, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@debian.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Vojtech Pavlik <vojtech@suse.cz>
+Cc: "Brown, Len" <len.brown@intel.com>, Pavel Machek <pavel@suse.cz>, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@debian.org>, Mark Underwood <basicmark@yahoo.com>
 
-On Sat, Jul 29, 2006 at 03:51:45PM +0300, Shem Multinymous wrote:
+On 7/29/06, Shem Multinymous <multinymous@gmail.com> wrote:
 
-> >IMO the right way here would be to have a nice GUI for configuring udev
-> >included with the distro, that'd let you browse the sysfs tree and
-> >point'n'click to create the rule you need.
-> 
-> That's still an extra level of indirection. You have to use the nice
-> GUI to create a new /dev/something, and then point your at at dev
-> /dev/something. And you have to be root to do that, whereas some sysfs
-> stuff is world-readable.
+> There's a pattern here. Maybe what we need is a generic scheme for
+> publishing continuous readouts, that will work for both hdaps and
+> batteries (despite a X100 difference in typical time magnitudes).
+> Doubtless there are other uses for such a scheme. We want it to
+> support clients with different desired rates, data sources with
+> different update frequencies, use minimum CPU and avoid unnecesary
+> timer interrupts on tickless kernels.
+>
+> Here's one approach: use a syscall (e.g., ioctl) saying "block until
+> there's new data on this fd, or N milliseconds have passed, whichever
+> is *later*". This way each client declares the update rate it wants
+> and can change it on the fly. The driver sees all the requests and can
+> perform the minimum hardware quering -- for example, it won't query
+> the hardware at all if no client has submitted a request with
+> parameter N more than N milliseconds go. And there's no excessive work
+> or interrupts. Some (simple) kernel code infrastructure is needed to
+> help drivers manage the pending requests.
 
-If that app opens /dev/something by default, which is usually the case,
-there is only one step.
+Here's a rough sketch for the userspace side of a continuous function
+sampling interface. It handles the blocking a bit better than the
+above proposal, in that it lets you easily handle multiple readouts.
+It's agnostic about /dev vs. /sys.
 
-> >The reason behind this was to force people NOT use sysfs directly when
-> >interfacing to the OS. ;)
-> >
-> >Because sysfs wasn't intended to be an API you can rely on, one that's
-> >fixed in stone and cannot be changed for compatibility reasons. I
-> >believe it failed in that respect.
-> 
-> Is sysfs supposed to be a private" API that only "special services
-> services" look at? It has definitely failed in this respect -- It's
-> just too convenient and attractive. I'm not sure that's a bad thing...
+As always, we have a file handing out readouts obtained from the
+hardware - either a device file or a sysfs attribute. The file has the
+following properties:
 
-I believe it was originally intended as a cleaner replacement for procfs
-- to allow the kernel export information about itself in a clean, safe,
-and consistent way. It wasn't intended for data delivery. 
+1. A new ioctl, SYSFS_DELAYED_UPDATE, meaning: "I want an a fresh
+   readout in N milliseconds, or whenver it's ready, whichever is later.
+   If I poll this FD with POLLIN, wait until the new readout is ready.
+   Likewise for select."
+2. When the file is opened in O_NONBLOCKing mode, read() always return
+   the latest cached readout rather than querying the hardware
+   (unless the latter has negligible cost).
+3. When the file is opened in normal (blocking) mode, read() blocks
+   until a fresh readout is available and returns this readout; see
+   below.
 
-I don't know whether the current state of things is good or bad.
+To illustrte, here's an example of a proper polling loop (sans error
+checking). This app wants updates at most every second, but obviously
+not more frequently than the hardware has to offer. If no readout ca
+be obtained for 20 seconds, it warns the user that the data is stale.
 
-> Given the current usage pattern of sysfs, is it still a bad idea for
-> it to carry device inodes?
- 
-That remains an open question.
+--------------------------
+/* Open attribute file with O_NONBLOCK so that all reads will
+ * return cached values instead of blocking:
+ */
+int fd = open("/whatever/voltage", O_NONBLOCK|O_RDONLY);
 
--- 
-Vojtech Pavlik
-Director SuSE Labs
+/* Read and process latest cached attribute value: */
+read(fd, ...);
+...
+
+while (1) {
+	struct pollfd ufds = { .fd=fd, events=POLLIN };
+
+	/* Tell driver we want a fresh readout but no sooner than 1sec
+	 * from now:
+	 */
+	ioctl(fd, SYSFS_DELAYED_UPDATE, 1000);
+
+	/* Wait for an update for at most 5 seconds. Nominally this will
+	 * block for at least 1 second, because of the above ioct. If we
+	 * were reading multiple attributes, we could poll them all
+	 * simultaneously.
+	 */
+	poll(&ufds, 1, 20000);
+	... warn user if timed out ...
+
+	/* Read and process latest cached attribute value: */
+	read(fd, ...);
+	... handle readout ...
+}
+--------------------------
+
+Note that the above does not ensure minimal separation between
+readouts:  you're guaranteed a fresh readout at every iteration, but
+it might have been taken at the beginning of the >1sec poll period. If
+you need to ensure that all readouts are at least (700ms apart, add a
+sleep(700) at the end of the loop and decrease 1000 to 300 in the
+ioctl().I think most apps won't need this.
+
+Legacy and lightweight applications (e.g., cat from shell) will open
+the file in blocking mode. In this case, a "read(fd, ...)" has
+semantics equivalent to the following O_NONBLOCK-mode code:
+
+--------------------------
+	/* Tell driver we want an immediate update: */
+	ioctl(fd, ATTR_DELAY_UPDATE, 0);
+
+	/* Wait indefinitely for an update: */
+	poll(&ufds, 1, -1);
+
+	/* Read the latest cached attribute value: */
+	read(fd, ...);
+--------------------------
+
+Similarly, select() and poll() on non-blocking files acts like you did
+"ioctl(fd, ATTR_DELAY_UPDATE, 0);" and then wait for a refresh or timeout.
+
+If we want to penalize people not using nonblocking mode and delayed
+updates, we can replace two "0" above with a sufficiently nasty
+(driver-dependent?) constant.
+
+How does this look?
+
+I'm not getting into the kernel side for now; it's doable, and with
+proper infrastructure (e.g., at the sysfs level) can be elegant and
+efficient.
+
+  Shem
