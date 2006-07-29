@@ -1,142 +1,55 @@
-From: "Shem Multinymous" <multinymous@gmail.com>
-Subject: Re: Generic battery interface
-Date: Sun, 30 Jul 2006 00:06:17 +0300
-Message-ID: <41840b750607291406p2f843054rc89fa1c3c467688d@mail.gmail.com>
-References: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com>
-	 <41840b750607271332q5dea0848y2284b30a48f78ea7@mail.gmail.com>
-	 <20060727232427.GA4907@suse.cz>
-	 <41840b750607271727q7efc0bb2q706a17654004cbbc@mail.gmail.com>
-	 <20060728074202.GA4757@suse.cz>
-	 <41840b750607280814x50db03erb30d833802ae983e@mail.gmail.com>
-	 <20060728202359.GB5313@suse.cz>
-	 <41840b750607281548h5ee2219eka1de6745b692c092@mail.gmail.com>
+From: "Randy.Dunlap" <rdunlap@xenotime.net>
+Subject: [PATCH -mm] ACPI: fix printk format warnings
+Date: Sat, 29 Jul 2006 15:20:57 -0700
+Message-ID: <20060729152057.01e13d4e.rdunlap@xenotime.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.170]:29351 "EHLO
-	ug-out-1314.google.com") by vger.kernel.org with ESMTP
-	id S932243AbWG2VGT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 29 Jul 2006 17:06:19 -0400
-Received: by ug-out-1314.google.com with SMTP id m3so209751ugc
-        for <linux-acpi@vger.kernel.org>; Sat, 29 Jul 2006 14:06:18 -0700 (PDT)
-In-Reply-To: <41840b750607281548h5ee2219eka1de6745b692c092@mail.gmail.com>
-Content-Disposition: inline
+Received: from xenotime.net ([66.160.160.81]:7836 "HELO xenotime.net")
+	by vger.kernel.org with SMTP id S1750700AbWG2WSP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 29 Jul 2006 18:18:15 -0400
+Received: from midway.site ([71.117.253.75]) by xenotime.net for <linux-acpi@vger.kernel.org>; Sat, 29 Jul 2006 15:18:12 -0700
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vojtech Pavlik <vojtech@suse.cz>
-Cc: "Brown, Len" <len.brown@intel.com>, Pavel Machek <pavel@suse.cz>, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@debian.org>, Mark Underwood <basicmark@yahoo.com>
+To: linux-acpi@vger.kernel.org
+Cc: len.brown@intel.com, akpm <akpm@osdl.org>
 
-On 7/29/06, Shem Multinymous <multinymous@gmail.com> wrote:
+From: Randy Dunlap <rdunlap@xenotime.net>
 
-> There's a pattern here. Maybe what we need is a generic scheme for
-> publishing continuous readouts, that will work for both hdaps and
-> batteries (despite a X100 difference in typical time magnitudes).
-> Doubtless there are other uses for such a scheme. We want it to
-> support clients with different desired rates, data sources with
-> different update frequencies, use minimum CPU and avoid unnecesary
-> timer interrupts on tickless kernels.
->
-> Here's one approach: use a syscall (e.g., ioctl) saying "block until
-> there's new data on this fd, or N milliseconds have passed, whichever
-> is *later*". This way each client declares the update rate it wants
-> and can change it on the fly. The driver sees all the requests and can
-> perform the minimum hardware quering -- for example, it won't query
-> the hardware at all if no client has submitted a request with
-> parameter N more than N milliseconds go. And there's no excessive work
-> or interrupts. Some (simple) kernel code infrastructure is needed to
-> help drivers manage the pending requests.
+Fix printk format warnings in drivers/acpi:
+drivers/acpi/tables/tbget.c:326: warning: format '%X' expects type 'unsigned int', but argument 5 has type 'long unsigned int'
+drivers/acpi/tables/tbrsdt.c:189: warning: format '%X' expects type 'unsigned int', but argument 5 has type 'long unsigned int'
 
-Here's a rough sketch for the userspace side of a continuous function
-sampling interface. It handles the blocking a bit better than the
-above proposal, in that it lets you easily handle multiple readouts.
-It's agnostic about /dev vs. /sys.
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+---
+ drivers/acpi/tables/tbget.c  |    2 +-
+ drivers/acpi/tables/tbrsdt.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-As always, we have a file handing out readouts obtained from the
-hardware - either a device file or a sysfs attribute. The file has the
-following properties:
+--- linux-2618-rc2mm1.orig/drivers/acpi/tables/tbget.c
++++ linux-2618-rc2mm1/drivers/acpi/tables/tbget.c
+@@ -324,7 +324,7 @@ acpi_tb_get_this_table(struct acpi_point
+ 
+ 	if (header->length < sizeof(struct acpi_table_header)) {
+ 		ACPI_ERROR((AE_INFO,
+-			    "Table length (%X) is smaller than minimum (%X)",
++			    "Table length (%X) is smaller than minimum (%ZX)",
+ 			    header->length, sizeof(struct acpi_table_header)));
+ 
+ 		return_ACPI_STATUS(AE_INVALID_TABLE_LENGTH);
+--- linux-2618-rc2mm1.orig/drivers/acpi/tables/tbrsdt.c
++++ linux-2618-rc2mm1/drivers/acpi/tables/tbrsdt.c
+@@ -187,7 +187,7 @@ acpi_status acpi_tb_validate_rsdt(struct
+ 
+ 	if (table_ptr->length < sizeof(struct acpi_table_header)) {
+ 		ACPI_ERROR((AE_INFO,
+-			    "RSDT/XSDT length (%X) is smaller than minimum (%X)",
++			    "RSDT/XSDT length (%X) is smaller than minimum (%ZX)",
+ 			    table_ptr->length,
+ 			    sizeof(struct acpi_table_header)));
+ 
 
-1. A new ioctl, SYSFS_DELAYED_UPDATE, meaning: "I want an a fresh
-   readout in N milliseconds, or whenver it's ready, whichever is later.
-   If I poll this FD with POLLIN, wait until the new readout is ready.
-   Likewise for select."
-2. When the file is opened in O_NONBLOCKing mode, read() always return
-   the latest cached readout rather than querying the hardware
-   (unless the latter has negligible cost).
-3. When the file is opened in normal (blocking) mode, read() blocks
-   until a fresh readout is available and returns this readout; see
-   below.
 
-To illustrte, here's an example of a proper polling loop (sans error
-checking). This app wants updates at most every second, but obviously
-not more frequently than the hardware has to offer. If no readout ca
-be obtained for 20 seconds, it warns the user that the data is stale.
-
---------------------------
-/* Open attribute file with O_NONBLOCK so that all reads will
- * return cached values instead of blocking:
- */
-int fd = open("/whatever/voltage", O_NONBLOCK|O_RDONLY);
-
-/* Read and process latest cached attribute value: */
-read(fd, ...);
-...
-
-while (1) {
-	struct pollfd ufds = { .fd=fd, events=POLLIN };
-
-	/* Tell driver we want a fresh readout but no sooner than 1sec
-	 * from now:
-	 */
-	ioctl(fd, SYSFS_DELAYED_UPDATE, 1000);
-
-	/* Wait for an update for at most 5 seconds. Nominally this will
-	 * block for at least 1 second, because of the above ioct. If we
-	 * were reading multiple attributes, we could poll them all
-	 * simultaneously.
-	 */
-	poll(&ufds, 1, 20000);
-	... warn user if timed out ...
-
-	/* Read and process latest cached attribute value: */
-	read(fd, ...);
-	... handle readout ...
-}
---------------------------
-
-Note that the above does not ensure minimal separation between
-readouts:  you're guaranteed a fresh readout at every iteration, but
-it might have been taken at the beginning of the >1sec poll period. If
-you need to ensure that all readouts are at least (700ms apart, add a
-sleep(700) at the end of the loop and decrease 1000 to 300 in the
-ioctl().I think most apps won't need this.
-
-Legacy and lightweight applications (e.g., cat from shell) will open
-the file in blocking mode. In this case, a "read(fd, ...)" has
-semantics equivalent to the following O_NONBLOCK-mode code:
-
---------------------------
-	/* Tell driver we want an immediate update: */
-	ioctl(fd, ATTR_DELAY_UPDATE, 0);
-
-	/* Wait indefinitely for an update: */
-	poll(&ufds, 1, -1);
-
-	/* Read the latest cached attribute value: */
-	read(fd, ...);
---------------------------
-
-Similarly, select() and poll() on non-blocking files acts like you did
-"ioctl(fd, ATTR_DELAY_UPDATE, 0);" and then wait for a refresh or timeout.
-
-If we want to penalize people not using nonblocking mode and delayed
-updates, we can replace two "0" above with a sufficiently nasty
-(driver-dependent?) constant.
-
-How does this look?
-
-I'm not getting into the kernel side for now; it's doable, and with
-proper infrastructure (e.g., at the sysfs level) can be elegant and
-efficient.
-
-  Shem
+---
