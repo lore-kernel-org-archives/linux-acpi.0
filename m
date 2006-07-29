@@ -1,42 +1,92 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: Generic battery interface
-Date: Sat, 29 Jul 2006 01:17:56 +0200
-Message-ID: <20060728231756.GA4230@elf.ucw.cz>
-References: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com> <41840b750607271332q5dea0848y2284b30a48f78ea7@mail.gmail.com> <20060727232427.GA4907@suse.cz> <41840b750607271727q7efc0bb2q706a17654004cbbc@mail.gmail.com> <20060728074202.GA4757@suse.cz> <41840b750607280814x50db03erb30d833802ae983e@mail.gmail.com> <20060728202359.GB5313@suse.cz> <41840b750607281548h5ee2219eka1de6745b692c092@mail.gmail.com>
+From: keith mannthey <kmannth@us.ibm.com>
+Subject: [Patch] 5/5 in support of hot-add memory x86_64 fix acpi
+	motherboard.c
+Date: Fri, 28 Jul 2006 19:53:00 -0700
+Message-ID: <1154141580.5874.149.camel@keithlap>
+Reply-To: kmannth@us.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:5557 "EHLO amd.ucw.cz")
-	by vger.kernel.org with ESMTP id S1161365AbWG1XSL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 28 Jul 2006 19:18:11 -0400
-Content-Disposition: inline
-In-Reply-To: <41840b750607281548h5ee2219eka1de6745b692c092@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="=-EL4KP72q0a2jQ2ieyVv8"
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1161408AbWG2Cxf@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: lkml <linux-kernel@vger.kernel.org>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, Patrick Mochel <mochel@linux.intel.com>, lhms-devel <lhms-devel@lists.sourceforge.net>, discuss <discuss@x86-64.org>, andrew <akpm@osdl.org>, Andi Kleen <ak@suse.de>, dave hansen <haveblue@us.ibm.com>, kame <kamezawa.hiroyu@jp.fujitsu.com>, konrad <darnok@us.ibm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Shem Multinymous <multinymous@gmail.com>
-Cc: Vojtech Pavlik <vojtech@suse.cz>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@debian.org>
 
-Hi!
 
-> >> And then we have to maintain both a kernel side and a userspace side.
-> >> And what do I, poor author of tp_smapi, do if I want to add a
-> >> non-standard attribute? Tell people to patch and overwrite their
-> >> disto's batstate binary too?
-> >
-> >How often do you plan to do that?
-> 
-> With tp_smapi, I did it about 10 times over half a year. And there's
-> probably more to come.
+--=-EL4KP72q0a2jQ2ieyVv8
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-I still like /sys approach a bit more, but a word of warning: "it is
-hard to change kernel<->user interface" is actually a feature.
+Hello All,
+  This patch fixes an issue I encountered while doing hot-add memroy on
+my platform (IBM Summit).     
 
-It sucks when you are the one doing the work, but maybe it will mean
-reusing interfaces where possible.
+  My system loads to acpi memory hot plug driver just fine during boot.
+It installs and registers acpi_memory_device_driver and it's handler.
+When the hot add memory event occurs the handler is called. this is the
+relevant call path
 
-								Pavel
+acpi_memory_get_device
+acpi_bus_add
+acpi_add_single_object
+acpi_bus_find_driver
+acpi_bus_driver_init
+driver->ops.add
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+  The algorithm it try to match devices from acpi_bus_drivers.  It looks
+for drivers that are on the right bus and calls acpi_bus_driver_init.
+If it gets a good return value for acpi_bus_driver_init it thinks it
+found the device and returns.  The problem is the motherboard driver
+driver->ops.add is getting called and it ALWAYS returns AE_OK. 
+
+  The device that is passed back up the call chain is the wrong one (the
+motherboard device) and whole things break down. 
+
+  My solution is the make the motherboard value fail to return a AE_OK
+for devices it does not expect (like my hot-add memory event).  
+
+Without this patch I cannot do real hot-add memory with my hardware.  
+
+Thanks to KAMEZAWA Hiroyuki for helping to debug the issue and Patrick
+Mochel for providing input.   
+
+This was built against 2.6.18-rc2.
+
+Signed-off-by:  Keith Mannthey <kmannth@us.ibm.com>
+
+--=-EL4KP72q0a2jQ2ieyVv8
+Content-Disposition: attachment; filename=patch-2.6.18-rc2-motherboard
+Content-Type: text/x-patch; name=patch-2.6.18-rc2-motherboard; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+diff -urN orig/drivers/acpi/motherboard.c work/drivers/acpi/motherboard.c
+--- orig/drivers/acpi/motherboard.c	2006-07-28 13:57:35.000000000 -0400
++++ work/drivers/acpi/motherboard.c	2006-07-28 16:39:22.000000000 -0400
+@@ -87,6 +87,7 @@
+ 		}
+ 	} else {
+ 		/* Memory mapped IO? */
++		 return -EINVAL;
+ 	}
+ 
+ 	if (requested_res)
+@@ -96,11 +97,16 @@
+ 
+ static int acpi_motherboard_add(struct acpi_device *device)
+ {
++	acpi_status status;
+ 	if (!device)
+ 		return -EINVAL;
+-	acpi_walk_resources(device->handle, METHOD_NAME__CRS,
++
++	status = acpi_walk_resources(device->handle, METHOD_NAME__CRS,
+ 			    acpi_reserve_io_ranges, NULL);
+ 
++	if (ACPI_FAILURE(status)) 
++		return -ENODEV;
++	
+ 	return 0;
+ }
+ 
+
+--=-EL4KP72q0a2jQ2ieyVv8--
