@@ -1,59 +1,55 @@
-From: "Shem Multinymous" <multinymous@gmail.com>
+From: Valdis.Kletnieks@vt.edu
 Subject: Re: Generic battery interface
-Date: Sun, 30 Jul 2006 14:33:01 +0300
-Message-ID: <41840b750607300433t7a0c3708q1bd1ccbcfca9c31d@mail.gmail.com>
-References: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com>
-	 <41840b750607271332q5dea0848y2284b30a48f78ea7@mail.gmail.com>
-	 <20060727232427.GA4907@suse.cz>
-	 <41840b750607271727q7efc0bb2q706a17654004cbbc@mail.gmail.com>
-	 <20060728074202.GA4757@suse.cz> <20060728122508.GC4158@elf.ucw.cz>
-	 <20060728134307.GD29217@suse.cz> <20060730091848.GC3801@elf.ucw.cz>
-	 <41840b750607300314t3280fd04ne17bb663c385fd6b@mail.gmail.com>
+Date: Sun, 30 Jul 2006 04:35:57 -0400
+Message-ID: <200607300835.k6U8ZvSB016669@turing-police.cc.vt.edu>
+References: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com> <20060727232427.GA4907@suse.cz> <41840b750607271727q7efc0bb2q706a17654004cbbc@mail.gmail.com> <20060728074202.GA4757@suse.cz> <20060728122508.GC4158@elf.ucw.cz> <20060728134307.GD29217@suse.cz> <41840b750607280838s3678299fm8a5d2b46c5b2af06@mail.gmail.com> <200607281557.k6SFvn09022794@turing-police.cc.vt.edu> <41840b750607281510j2c5babf8x9fac51fe6910aeda@mail.gmail.com> <200607282314.k6SNESSg019274@turing-police.cc.vt.edu>
+            <41840b750607290248r5999d1fen41f9d3044d385857@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: multipart/signed; boundary="==_Exmh_1154248557_2988P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.171]:41546 "EHLO
-	ug-out-1314.google.com") by vger.kernel.org with ESMTP
-	id S932270AbWG3LdD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 30 Jul 2006 07:33:03 -0400
-Received: by ug-out-1314.google.com with SMTP id m3so343169ugc
-        for <linux-acpi@vger.kernel.org>; Sun, 30 Jul 2006 04:33:01 -0700 (PDT)
-In-Reply-To: <41840b750607300314t3280fd04ne17bb663c385fd6b@mail.gmail.com>
-Content-Disposition: inline
+Received: from pool-72-66-202-44.ronkva.east.verizon.net ([72.66.202.44]:65478
+	"EHLO turing-police.cc.vt.edu") by vger.kernel.org with ESMTP
+	id S932268AbWG3Lhv (ORCPT <RFC822;linux-acpi@vger.kernel.org>);
+	Sun, 30 Jul 2006 07:37:51 -0400
+In-Reply-To: Your message of "Sat, 29 Jul 2006 12:48:51 +0300."
+             <41840b750607290248r5999d1fen41f9d3044d385857@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@suse.cz>
-Cc: Vojtech Pavlik <vojtech@suse.cz>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org, Greg KH <greg@kroah.com>, Jean Delvare <khali@linux-fr.org>
+To: Shem Multinymous <multinymous@gmail.com>
+Cc: Vojtech Pavlik <vojtech@suse.cz>, Pavel Machek <pavel@suse.cz>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
 
-On 7/30/06, Shem Multinymous <multinymous@gmail.com> wrote:
-> Alternatively, we can add an extra parameter to that new
-> syscall/ioctl: "block until the time is T+N and you have a refresh
-> that was received from the hardware at time T+M, whichever is later"
-> (where T is the current time and N>M).
->
-> That's semantically equivalent to an msleep(M) followed by the
-> original delayed_update(N-M),  but will save one timer interrupt per
-> iteration in some cases (e.g., an event-based hardware data source).
+--==_Exmh_1154248557_2988P
+Content-Type: text/plain; charset=us-ascii
 
-No, wait, the explicit two-parameter version is far superior.
+On Sat, 29 Jul 2006 12:48:51 +0300, Shem Multinymous said:
 
-First, it makes it easier to poll multiple attributes. How'd you do
-that with the one-parameter version, if you need to sleep separately
-for each attribute?
+> The lazy polling approach I described in my last post to Vojtech
+> ("block until there's  a new readout or N milliseconds have passed,
+> whichever is later") looks like a more general, accurate and efficient
+> interface.
 
-Second, it gives the driver (or its sysfs support infrastructure) a
-better picture of the future, which it can use to optimize the
-hardware query scheduling. No, I don't think anyone will implement
-*that* soon, but it's good to have an API that lets us add it later
-without affecting userspace.
+That's not good.
 
+If the program says '100ms' because it knows it will need to do a GUI update
+then, and you block it for 5 seconds because that's when the next value
+update happens, the user is stuck looking at their gkrellm or whatever not
+doing anything at all for 4.9 seconds....
 
-Is anyone interested in adding this "delayed updates" support to
-sysfs, for the benefit of hwmon, tp_smapi and probably numerous other
-drivers?
-I have some ideas for how to do it so that that per-driver support is
-really easy (or even free), but I don't know sysfs well enough to
-implement it and don't have the resources.
+This almost forces the use of multiple threads if the program wants to do
+its own timer management.
 
-  Shem
+--==_Exmh_1154248557_2988P
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.4 (GNU/Linux)
+Comment: Exmh version 2.5 07/13/2001
+
+iD8DBQFEzG9tcC3lWbTT17ARAll2AKC9dchdZ+nlNVMYZPXZWbu/6jibMACeOWXZ
+EnK1wp9plSXKWkYhCIz/CpU=
+=q5MV
+-----END PGP SIGNATURE-----
+
+--==_Exmh_1154248557_2988P--
