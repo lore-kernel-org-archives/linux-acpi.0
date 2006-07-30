@@ -1,36 +1,39 @@
-From: Greg KH <greg@kroah.com>
+From: Pavel Machek <pavel@suse.cz>
 Subject: Re: Generic battery interface
-Date: Sun, 30 Jul 2006 02:00:59 -0700
-Message-ID: <20060730090059.GC17759@kroah.com>
-References: <41840b750607271727q7efc0bb2q706a17654004cbbc@mail.gmail.com> <20060728074202.GA4757@suse.cz> <41840b750607280814x50db03erb30d833802ae983e@mail.gmail.com> <20060728202359.GB5313@suse.cz> <41840b750607281548h5ee2219eka1de6745b692c092@mail.gmail.com> <20060729103613.GB7438@suse.cz> <41840b750607290432m6d302cdoae7f3eef869279d4@mail.gmail.com> <20060729120411.GA8285@suse.cz> <41840b750607290551kae4a7c7k9402c96e5b67e6a5@mail.gmail.com> <20060729134225.GA4882@suse.cz>
+Date: Sun, 30 Jul 2006 11:18:48 +0200
+Message-ID: <20060730091848.GC3801@elf.ucw.cz>
+References: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com> <41840b750607271332q5dea0848y2284b30a48f78ea7@mail.gmail.com> <20060727232427.GA4907@suse.cz> <41840b750607271727q7efc0bb2q706a17654004cbbc@mail.gmail.com> <20060728074202.GA4757@suse.cz> <20060728122508.GC4158@elf.ucw.cz> <20060728134307.GD29217@suse.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:48555 "EHLO mx2.suse.de")
-	by vger.kernel.org with ESMTP id S932076AbWG3JFR (ORCPT
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:31142 "EHLO amd.ucw.cz")
+	by vger.kernel.org with ESMTP id S932110AbWG3JTo (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 30 Jul 2006 05:05:17 -0400
+	Sun, 30 Jul 2006 05:19:44 -0400
 Content-Disposition: inline
-In-Reply-To: <20060729134225.GA4882@suse.cz>
+In-Reply-To: <20060728134307.GD29217@suse.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Vojtech Pavlik <vojtech@suse.cz>
-Cc: Shem Multinymous <multinymous@gmail.com>, "Brown, Len" <len.brown@intel.com>, Pavel Machek <pavel@suse.cz>, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@debian.org>
+Cc: Shem Multinymous <multinymous@gmail.com>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
 
-On Sat, Jul 29, 2006 at 03:42:25PM +0200, Vojtech Pavlik wrote:
-> On Sat, Jul 29, 2006 at 03:51:45PM +0300, Shem Multinymous wrote:
-> > Given the current usage pattern of sysfs, is it still a bad idea for
-> > it to carry device inodes?
->  
-> That remains an open question.
+Hi!
 
-No, that's a closed question.  It simply will not happen.  Linus vetoed
-this years ago, for lots of different reasons that I can't recall at the
-moment (namespaces, permissions, groups, and other things from what I
-remember.)
+> > I do not understand this. Any polling (in kernel or in userspace) will
+> > wake the CPU, wasting power.
+> 
+> The kernel, however, has all the gory details at hand, and can decide
+> much better about the polling frequency, than the (hopefully) hardware
+> agnostic userspace.
+> 
+> Imagine your Zaurus: You don't need to poll very often when you are on
+> the flat part of the LiIon discharge curve, you probably want more
+> detailed info near the end.
 
-Search the lkml archives if you are really curious...
-
-thanks,
-
-greg k-h
+OTOH some applications just want more frequent polling than
+others. Shem's "first update after N msec" solution looks most
+flexible here.
+								Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
