@@ -1,49 +1,52 @@
 From: "Shem Multinymous" <multinymous@gmail.com>
 Subject: Re: Generic battery interface
-Date: Sun, 30 Jul 2006 13:14:10 +0300
-Message-ID: <41840b750607300314t3280fd04ne17bb663c385fd6b@mail.gmail.com>
+Date: Sun, 30 Jul 2006 13:34:06 +0300
+Message-ID: <41840b750607300334g2e9cbd56i2b4e5bad285e09c0@mail.gmail.com>
 References: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com>
 	 <41840b750607271332q5dea0848y2284b30a48f78ea7@mail.gmail.com>
 	 <20060727232427.GA4907@suse.cz>
 	 <41840b750607271727q7efc0bb2q706a17654004cbbc@mail.gmail.com>
-	 <20060728074202.GA4757@suse.cz> <20060728122508.GC4158@elf.ucw.cz>
-	 <20060728134307.GD29217@suse.cz> <20060730091848.GC3801@elf.ucw.cz>
+	 <20060728074202.GA4757@suse.cz>
+	 <41840b750607280814x50db03erb30d833802ae983e@mail.gmail.com>
+	 <20060728202359.GB5313@suse.cz>
+	 <41840b750607281548h5ee2219eka1de6745b692c092@mail.gmail.com>
+	 <41840b750607291406p2f843054rc89fa1c3c467688d@mail.gmail.com>
+	 <20060730100559.GA1920@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.171]:33256 "EHLO
+Received: from ug-out-1314.google.com ([66.249.92.173]:776 "EHLO
 	ug-out-1314.google.com") by vger.kernel.org with ESMTP
-	id S932207AbWG3KOM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 30 Jul 2006 06:14:12 -0400
-Received: by ug-out-1314.google.com with SMTP id m3so330471ugc
-        for <linux-acpi@vger.kernel.org>; Sun, 30 Jul 2006 03:14:10 -0700 (PDT)
-In-Reply-To: <20060730091848.GC3801@elf.ucw.cz>
+	id S932241AbWG3KeI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 30 Jul 2006 06:34:08 -0400
+Received: by ug-out-1314.google.com with SMTP id m3so333653ugc
+        for <linux-acpi@vger.kernel.org>; Sun, 30 Jul 2006 03:34:06 -0700 (PDT)
+In-Reply-To: <20060730100559.GA1920@elf.ucw.cz>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Pavel Machek <pavel@suse.cz>
-Cc: Vojtech Pavlik <vojtech@suse.cz>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org, Greg KH <greg@kroah.com>
+Cc: Vojtech Pavlik <vojtech@suse.cz>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@debian.org>, Mark Underwood <basicmark@yahoo.com>, Jean Delvare <khali@linux-fr.org>
 
 On 7/30/06, Pavel Machek <pavel@suse.cz> wrote:
-> OTOH some applications just want more frequent polling than
-> others. Shem's "first update after N msec" solution looks most
-> flexible here.
 
-Actually my solution was "any update but no sooner than N msecs". So
-you might be getting a readout that's N-1 msecs old, which was
-meanwhile cached by the driver. If you care about that, you need to
-use interleave those polls with msleep()s; see my recent detailed
-post. You'll still doing at most one msleep() per fetched readout,
-regardless of how frequently the driver provides them.
+> Are there any plans at merging tp_smapi, BTW? After fixing few minor
+> details (like removing " mV" from files)... it looks like it would fit
+> into hwmon infrastructure rather nicely.
 
-Alternatively, we can add an extra parameter to that new
-syscall/ioctl: "block until the time is T+N and you have a refresh
-that was received from the hardware at time T+M, whichever is later"
-(where T is the current time and N>M).
+Yes, it will definitely be submitted once stable. We're still tweaking
+some stuff, such as whitelisting (see "[PATCH] DMI: Decode and save
+OEM String information").
 
-That's semantically equivalent to an msleep(M) followed by the
-original delayed_update(N-M),  but will save one timer interrupt per
-iteration in some cases (e.g., an event-based hardware data source).
+BTW, I'll rename the modules to "thinkpad_ec" for basic EC functions
+(also used by the patched hdaps), and probably "thinkpad_battery" or
+"thinkpad_hwmon" for the rest. Not sure about the latter: we happen to
+be doing only battery stuff at the moment but this is likely to change
+in the future.
+
+Is "hwmon" suitable for something that *contols* battery charging too,
+and might have extra attributes tacked on as we unravel additional
+ThinkPad firmware capabilities?
 
   Shem
