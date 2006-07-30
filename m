@@ -1,75 +1,50 @@
 From: Pavel Machek <pavel@suse.cz>
-Subject: Re: ACPI-related problem with resuming from RAM
-Date: Sun, 30 Jul 2006 11:52:42 +0200
-Message-ID: <20060730095242.GD3801@elf.ucw.cz>
-References: <200607301140.09836.rjw@sisk.pl>
+Subject: Re: Generic battery interface
+Date: Sun, 30 Jul 2006 12:05:59 +0200
+Message-ID: <20060730100559.GA1920@elf.ucw.cz>
+References: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com> <41840b750607271332q5dea0848y2284b30a48f78ea7@mail.gmail.com> <20060727232427.GA4907@suse.cz> <41840b750607271727q7efc0bb2q706a17654004cbbc@mail.gmail.com> <20060728074202.GA4757@suse.cz> <41840b750607280814x50db03erb30d833802ae983e@mail.gmail.com> <20060728202359.GB5313@suse.cz> <41840b750607281548h5ee2219eka1de6745b692c092@mail.gmail.com> <41840b750607291406p2f843054rc89fa1c3c467688d@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932171AbWG3Jw5@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:22662 "EHLO amd.ucw.cz")
+	by vger.kernel.org with ESMTP id S1751386AbWG3KGP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 30 Jul 2006 06:06:15 -0400
 Content-Disposition: inline
-In-Reply-To: <200607301140.09836.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+In-Reply-To: <41840b750607291406p2f843054rc89fa1c3c467688d@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Shem Multinymous <multinymous@gmail.com>
+Cc: Vojtech Pavlik <vojtech@suse.cz>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@debian.org>, Mark Underwood <basicmark@yahoo.com>
 
 Hi!
 
-> To make my box (Asus L5D, x86_64) resume from RAM, I have to unload all of the
-> ACPI-related modules and the ohci_hcd module before the suspend.
+> >Here's one approach: use a syscall (e.g., ioctl) saying "block until
+> >there's new data on this fd, or N milliseconds have passed, whichever
+> >is *later*". This way each client declares the update rate it wants
+> >and can change it on the fly. The driver sees all the requests and can
+> >perform the minimum hardware quering -- for example, it won't query
+> >the hardware at all if no client has submitted a request with
+> >parameter N more than N milliseconds go. And there's no excessive work
+> >or interrupts. Some (simple) kernel code infrastructure is needed to
+> >help drivers manage the pending requests.
 > 
-> Also, I can't reload the ohci_hcd module after the resume, because if I try,
-> the system crashes with the appended trace.
+> Here's a rough sketch for the userspace side of a continuous function
+> sampling interface. It handles the blocking a bit better than the
+> above proposal, in that it lets you easily handle multiple readouts.
+> It's agnostic about /dev vs. /sys.
 
-> irq 11: nobody cared (try booting with the "irqpoll" option)
+Looks good to me.
 
-Heh, does it work with irqpoll? :-).
+> I'm not getting into the kernel side for now; it's doable, and with
+> proper infrastructure (e.g., at the sysfs level) can be elegant and
+> efficient.
 
-> Pid: 4908, comm: modprobe Tainted: G   M  2.6.18-rc2-mm1 #20
+I guess that hwmon people would like this, anyway...
 
-What is "tainted: M"?
-
-Strange, it seems that "screaming interrupt" detection went crazy and
-dump_stack() caused it to oops? Can you stub-out show_trace and see
-what happens?
-
-> RIP: 0010:[<ffffffff8020b362>]  [<ffffffff8020b362>] show_trace+0x2c2/0x330
-> RSP: 0018:ffffffff8061ecb0  EFLAGS: 00010002
-> RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
-> RDX: 0000000000000000 RSI: 0000000000000001 RDI: 0000000000000001
-> RBP: ffffffff8061ed90 R08: 0000000000000002 R09: 0000000000000001
-> R10: 0000000000000000 R11: 0000000000000000 R12: ffffffff827ffffd
-> R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
-> FS:  00002b41c0925b00(0000) GS:ffffffff808c0000(0000) knlGS:0000000000000000
-> CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-> CR2: ffffffff82800000 CR3: 0000000056fc0000 CR4: 00000000000006e0
-> Process modprobe (pid: 4908, threadinfo ffff810056a46000, task ffff81005b88f040)
-> Stack:  0000000000000000 ffffffff880a6580 000000000000000a ffffffff8066a240
->  ffffffff8061eeb0 0000000000000022 0000000000000000 0000000000000000
->  0000000000000000 0000000000000000 0000000000000000 0000000000000000
-> Call Trace:
->  [<ffffffff8020b6b5>] dump_stack+0x15/0x20
->  [<ffffffff80263b48>] __report_bad_irq+0x38/0x90
->  [<ffffffff80263dca>] note_interrupt+0x22a/0x280
->  [<ffffffff80264a00>] handle_level_irq+0xf0/0x140
->  [<ffffffff8020ccdd>] do_IRQ+0x11d/0x140
->  [<ffffffff8020a23d>] ret_from_intr+0x0/0xf
-> DWARF2 unwinder stuck at ret_from_intr+0x0/0xf
-> Leftover inexact backtrace:
->  <IRQ> [<ffffffff8020ab82>] call_softirq+0x1e/0x28
->  [<ffffffff8023389a>] __do_softirq+0x5a/0xf0
->  [<ffffffff8020ab82>] call_softirq+0x1e/0x28
->  [<ffffffff8020cb4d>] do_softirq+0x3d/0xb0
->  [<ffffffff8023370e>] irq_exit+0x4e/0x60
->  [<ffffffff8020ccf5>] do_IRQ+0x135/0x140
->  [<ffffffff8020a23d>] ret_from_intr+0x0/0xf
->  <EOI><1>Unable to handle kernel paging request at ffffffff82800000 RIP:
->  [<ffffffff8020b362>] show_trace+0x2c2/0x330
-> PGD 203027 PUD 205027 PMD 0
-> Oops: 0000 [2] PREEMPT
-> last sysfs file: /devices/pci0000:00/0000:00:02.0/usb2/serial
-> CPU 0
-
+Are there any plans at merging tp_smapi, BTW? After fixing few minor
+details (like removing " mV" from files)... it looks like it would fit
+into hwmon infrastructure rather nicely.
 								Pavel
 -- 
 (english) http://www.livejournal.com/~pavelmachek
