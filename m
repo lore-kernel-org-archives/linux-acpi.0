@@ -1,242 +1,151 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: ACPI Errors for Dimension 8250
-Date: Mon, 31 Jul 2006 15:10:56 -0700
-Message-ID: <B28E9812BAF6E2498B7EC5C427F293A4AF6AA8@orsmsx415.amr.corp.intel.com>
+From: "Shem Multinymous" <multinymous@gmail.com>
+Subject: Re: Generic battery interface
+Date: Tue, 1 Aug 2006 01:34:30 +0300
+Message-ID: <41840b750607311534n31e45ca4xbbf98bf4c8085cea@mail.gmail.com>
+References: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com>
+	 <20060727232427.GA4907@suse.cz>
+	 <41840b750607271727q7efc0bb2q706a17654004cbbc@mail.gmail.com>
+	 <20060728074202.GA4757@suse.cz>
+	 <41840b750607280814x50db03erb30d833802ae983e@mail.gmail.com>
+	 <20060728202359.GB5313@suse.cz>
+	 <41840b750607281548h5ee2219eka1de6745b692c092@mail.gmail.com>
+	 <41840b750607291406p2f843054rc89fa1c3c467688d@mail.gmail.com>
+	 <41840b750607301137t1e10fe88o3a1c73e7a4b4bf44@mail.gmail.com>
+	 <20060731233536.92b39035.khali@linux-fr.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:5705 "EHLO
-	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
-	id S1751389AbWGaWL0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 31 Jul 2006 18:11:26 -0400
-Content-class: urn:content-classes:message
+Received: from ug-out-1314.google.com ([66.249.92.173]:55615 "EHLO
+	ug-out-1314.google.com") by vger.kernel.org with ESMTP
+	id S1030358AbWGaWec (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 31 Jul 2006 18:34:32 -0400
+Received: by ug-out-1314.google.com with SMTP id m3so1017343ugc
+        for <linux-acpi@vger.kernel.org>; Mon, 31 Jul 2006 15:34:30 -0700 (PDT)
+In-Reply-To: <20060731233536.92b39035.khali@linux-fr.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: John Altobelli <acocaracha@gmail.com>, linux-acpi@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Vojtech Pavlik <vojtech@suse.cz>, "Brown, Len" <len.brown@intel.com>, Pavel Machek <pavel@suse.cz>, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@debian.org>, Mark Underwood <basicmark@yahoo.com>, Greg KH <greg@kroah.com>
 
-> dsdt.dsl  1331:                 Device (DMA)
-> Error    4094 -                           ^ syntax error, unexpected
-> PARSEOP_DMA, expecting PARSEOP_NAMESEG or PARSEOP_NAMESTRING
+Hi Jean,
 
-Most of the errors probably come from this. Newer versions of the iASL
-compiler can handle DMA as a device name (it is a reserved word in other
-contexts)
+On 8/1/06, Jean Delvare <khali@linux-fr.org> wrote:
+> Disclaimer: I have no idea how the input interface works currently. And
+> I don't know what problem you are trying to solve. I just thought my
+> hwmon-oriented comments might help.
 
+Your comments are highly relevant! Almost everything said in this
+thread, apart from "where should we put battery readouts", is
+applicable to hwmon.
 
-26 May 2006. Summary of changes for version 20060526:
-
-2) iASL Compiler/Disassembler and Tools:
-
-Modified the parser to allow the names IO, DMA, and IRQ to be used as
-namespace identifiers with no collision with existing resource
-descriptor macro names. This provides compatibility with other ASL
-compilers and is most useful for disassembly/recompilation of existing
-tables without parse errors. (With assistance from Thomas Renninger)
+The problem we're trying to solve is minimizing system load and timer
+interrupts caused by apps that track kernel-issued readouts (e.g.,
+hwmon's), without the application making unnecessary assumptions about
+the driver or vice versa.
 
 
-> -----Original Message-----
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> owner@vger.kernel.org] On Behalf Of John Altobelli
-> Sent: Tuesday, July 25, 2006 5:55 PM
-> To: linux-acpi@vger.kernel.org
-> Subject: ACPI Errors for Dimension 8250
-> 
-> Hello,
-> 
-> I have a dell dimension 8250 and after compiling the dsdt.dsl file I
-> get the following errors:
-> 
-> Intel ACPI Component Architecture
-> ASL Optimizing Compiler version 20060512 [Jul 15 2006]
-> Copyright (C) 2000 - 2006 Intel Corporation
-> Supports ACPI Specification Revision 3.0a
-> 
-> dsdt.dsl   356:         Notify (\_SB.PCI0.ISA.KBD, 0x02)
-> Error    4062 -           Object does not exist ^  (\_SB.PCI0.ISA.KBD)
-> 
-> dsdt.dsl   666:                 Method (_S5D, 0, NotSerialized)
-> Warning  1097 -      Unknown reserved name ^  (_S5D)
-> 
-> dsdt.dsl  1331:                 Device (DMA)
-> Error    4094 -                           ^ syntax error, unexpected
-> PARSEOP_DMA, expecting PARSEOP_NAMESEG or PARSEOP_NAMESTRING
-> 
-> dsdt.dsl  1504:                 Field (\_SB.PCI0.ISA.COM, ByteAcc,
-> NoLock, Preserve)
-> Error    4062 -                  Object does not exist ^
-> (\_SB.PCI0.ISA.COM)
-> 
-> dsdt.dsl  1513:                 Field (\_SB.PCI0.ISA.FDPA, ByteAcc,
-> NoLock, Preserve)
-> Error    4062 -                   Object does not exist ^
-> (\_SB.PCI0.ISA.FDPA)
-> 
-> dsdt.dsl  1598:                         CreateByteField (FDB0,
-> \_SB.PCI0.ISA.FDC._CRS._X03._MIN, IOL0)
-> Error    4062 -
->  Object does not exist ^  (\_SB.PCI0.ISA.FDC._CRS._X03._MIN)
-> 
-> dsdt.dsl  1600:                         CreateByteField (FDB0,
-> \_SB.PCI0.ISA.FDC._CRS._X03._MAX, IOL1)
-> Error    4062 -
->  Object does not exist ^  (\_SB.PCI0.ISA.FDC._CRS._X03._MAX)
-> 
-> dsdt.dsl  1602:                         CreateByteField (FDB0,
-> \_SB.PCI0.ISA.FDC._CRS._X04._MIN, I2L0)
-> Error    4062 -
->  Object does not exist ^  (\_SB.PCI0.ISA.FDC._CRS._X04._MIN)
-> 
-> dsdt.dsl  1604:                         CreateByteField (FDB0,
-> \_SB.PCI0.ISA.FDC._CRS._X04._MAX, I2L1)
-> Error    4062 -
->  Object does not exist ^  (\_SB.PCI0.ISA.FDC._CRS._X04._MAX)
-> 
-> dsdt.dsl  1606:                         CreateWordField (FDB0,
-> \_SB.PCI0.ISA.FDC._CRS._X05._INT, IQR)
-> Error    4062 -
->  Object does not exist ^  (\_SB.PCI0.ISA.FDC._CRS._X05._INT)
-> 
-> dsdt.dsl  1607:                         CreateByteField (FDB0,
-> \_SB.PCI0.ISA.FDC._CRS._X06._DMA, DAM)
-> Error    4062 -
->  Object does not exist ^  (\_SB.PCI0.ISA.FDC._CRS._X06._DMA)
-> 
-> dsdt.dsl  1873:                         CreateByteField (CMA0,
-> \_SB.PCI0.ISA.COMA._CRS._X07._MIN, IOL0)
-> Error    4062 -
->  Object does not exist ^  (\_SB.PCI0.ISA.COMA._CRS._X07._MIN)
-> 
-> dsdt.dsl  1875:                         CreateByteField (CMA0,
-> \_SB.PCI0.ISA.COMA._CRS._X07._MAX, IOL1)
-> Error    4062 -
->  Object does not exist ^  (\_SB.PCI0.ISA.COMA._CRS._X07._MAX)
-> 
-> dsdt.dsl  1877:                         CreateWordField (CMA0,
-> \_SB.PCI0.ISA.COMA._CRS._X08._INT, IQR)
-> Error    4062 -
->  Object does not exist ^  (\_SB.PCI0.ISA.COMA._CRS._X08._INT)
-> 
-> dsdt.dsl  2037:                         CreateByteField (PTB0,
-> \_SB.PCI0.ISA.PRT._CRS._X09._MIN, IOL0)
-> Error    4062 -
->  Object does not exist ^  (\_SB.PCI0.ISA.PRT._CRS._X09._MIN)
-> 
-> dsdt.dsl  2039:                         CreateByteField (PTB0,
-> \_SB.PCI0.ISA.PRT._CRS._X09._MAX, IOL1)
-> Error    4062 -
->  Object does not exist ^  (\_SB.PCI0.ISA.PRT._CRS._X09._MAX)
-> 
-> dsdt.dsl  2041:                         CreateByteField (PTB0,
-> \_SB.PCI0.ISA.PRT._CRS._X09._ALN, LALN)
-> Error    4062 -
->  Object does not exist ^  (\_SB.PCI0.ISA.PRT._CRS._X09._ALN)
-> 
-> dsdt.dsl  2042:                         CreateByteField (PTB0,
-> \_SB.PCI0.ISA.PRT._CRS._X09._LEN, LLEN)
-> Error    4062 -
->  Object does not exist ^  (\_SB.PCI0.ISA.PRT._CRS._X09._LEN)
-> 
-> dsdt.dsl  2043:                         CreateByteField (PTB0,
-> \_SB.PCI0.ISA.PRT._CRS._X0A._MIN, I2L0)
-> Error    4062 -
->  Object does not exist ^  (\_SB.PCI0.ISA.PRT._CRS._X0A._MIN)
-> 
-> dsdt.dsl  2045:                         CreateByteField (PTB0,
-> \_SB.PCI0.ISA.PRT._CRS._X0A._MAX, I2L1)
-> Error    4062 -
->  Object does not exist ^  (\_SB.PCI0.ISA.PRT._CRS._X0A._MAX)
-> 
-> dsdt.dsl  2047:                         CreateByteField (PTB0,
-> \_SB.PCI0.ISA.PRT._CRS._X0A._ALN, HALN)
-> Error    4062 -
->  Object does not exist ^  (\_SB.PCI0.ISA.PRT._CRS._X0A._ALN)
-> 
-> dsdt.dsl  2048:                         CreateByteField (PTB0,
-> \_SB.PCI0.ISA.PRT._CRS._X0A._LEN, HLEN)
-> Error    4062 -
->  Object does not exist ^  (\_SB.PCI0.ISA.PRT._CRS._X0A._LEN)
-> 
-> dsdt.dsl  2049:                         CreateWordField (PTB0,
-> \_SB.PCI0.ISA.PRT._CRS._X0B._INT, IQR)
-> Error    4062 -
->  Object does not exist ^  (\_SB.PCI0.ISA.PRT._CRS._X0B._INT)
-> 
-> dsdt.dsl  2050:                         CreateByteField (PTB0,
-> \_SB.PCI0.ISA.PRT._CRS._X0C._DMA, DAM)
-> Error    4062 -
->  Object does not exist ^  (\_SB.PCI0.ISA.PRT._CRS._X0C._DMA)
-> 
-> dsdt.dsl  2450:         Field (\_SB.PCI0.ISA.P40C, ByteAcc, NoLock,
-> Preserve)
-> Error    4062 -           Object does not exist ^
-(\_SB.PCI0.ISA.P40C)
-> 
-> dsdt.dsl  2458:         Field (\_SB.PCI0.ISA.P41C, ByteAcc, NoLock,
-> Preserve)
-> Error    4062 -           Object does not exist ^
-(\_SB.PCI0.ISA.P41C)
-> 
-> dsdt.dsl  2498:                 CreateWordField (PRR0,
-> \_SB.LNKA._CRS._X0D._INT, IQR)
-> Error    4062 -                                         Object does
-> not exist ^  (\_SB.LNKA._CRS._X0D._INT)
-> 
-> dsdt.dsl  2553:                 CreateWordField (PRR1,
-> \_SB.LNKB._CRS._X0E._INT, IQR)
-> Error    4062 -                                         Object does
-> not exist ^  (\_SB.LNKB._CRS._X0E._INT)
-> 
-> dsdt.dsl  2608:                 CreateWordField (PRR2,
-> \_SB.LNKC._CRS._X0F._INT, IQR)
-> Error    4062 -                                         Object does
-> not exist ^  (\_SB.LNKC._CRS._X0F._INT)
-> 
-> dsdt.dsl  2663:                 CreateWordField (PRR3,
-> \_SB.LNKD._CRS._X10._INT, IQR)
-> Error    4062 -                                         Object does
-> not exist ^  (\_SB.LNKD._CRS._X10._INT)
-> 
-> dsdt.dsl  2718:                 CreateWordField (PRR4,
-> \_SB.LNKE._CRS._X11._INT, IQR)
-> Error    4062 -                                         Object does
-> not exist ^  (\_SB.LNKE._CRS._X11._INT)
-> 
-> dsdt.dsl  2773:                 CreateWordField (PRR5,
-> \_SB.LNKF._CRS._X12._INT, IQR)
-> Error    4062 -                                         Object does
-> not exist ^  (\_SB.LNKF._CRS._X12._INT)
-> 
-> dsdt.dsl  2828:                 CreateWordField (PRR6,
-> \_SB.LNKG._CRS._X13._INT, IQR)
-> Error    4062 -                                         Object does
-> not exist ^  (\_SB.LNKG._CRS._X13._INT)
-> 
-> dsdt.dsl  2883:                 CreateWordField (PRR7,
-> \_SB.LNKH._CRS._X14._INT, IQR)
-> Error    4062 -                                         Object does
-> not exist ^  (\_SB.LNKH._CRS._X14._INT)
-> 
-> dsdt.dsl  2906: }
-> Error    4094 - ^ syntax error, unexpected '}', expecting $end
-> 
-> ASL Input:  dsdt.dsl - 2907 lines, 98364 bytes, 902 keywords
-> Compilation complete. 34 Errors, 1 Warnings, 0 Remarks, 188
-Optimizations
-> 
-> 
-> I do have a very modularized kernel so I have the following loaded on
-> startup:
-> 
-> processor
-> thermal
-> fan
-> 
-> Any help would be greatly appriciated,
-> John
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
-in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 1. A new ioctl DELAYED_UPDATE, with parameters min_wait and
+> >    min_fresh, meaning: "I want an a fresh readout. If I poll() this FD
+> >    with POLLIN then send an input-ready event at time is T+min_wait, or
+> >    when you have a readout that was received from the hardware at  time
+> >    T+min_fresh, whichever is *later*. Likewise if I select()".
+> >    Here T is the time of the ioctl call and min_wait>=min_fresh.
+>
+> "A or B, whichever is later", effectively means "A and B". Or am I
+> missing something?
+
+The equivlent phrasing using "and" is s follows:
+
+"as soon as the current time is at least T+min_wait *and* you have a
+readout that was received from the hardware at  time at least
+T+min_fresh."
+
+
+> I fail to see the difference between min_wait and min_fresh.
+
+Here's an example illustrating all parameters.
+
+Suppose the app does a DELAYED_UPDATE with min_wait=700 and
+min_fresh=1000 at time T, and then poll()s with a timeout of 9999.
+
+At time T+600 the driver receives update events (yeah, it' that kind
+of driver). If this is all that happens, the app will remain blocked
+for 9999ms -- the requirement for a readout fresher than T+700 is
+never fulfilled.
+
+If the driver get a second event at time T+800, the app will be
+unblocked at time T+1000. If, instead, the driver gets the second
+event at time T+1200, the app will be unblocked immediately.
+
+
+> The hwmon interface (sysfs now, procfs before) has been returning
+> cached values by defaut for years. Changing this at this point might be
+> confusing.
+
+Yes. All those should be told to use O_NONBLOCK, or be delayed by one
+readout cycle whenever they poll an attribute. How serious is this?
+
+The essential problem is that we don't want drivers to query the
+hardware and cause timer interrups when nobody's listening, so cached
+values can get arbitrarily stale. Thus, an out-of-the-blue read by a
+*must* wait for a refresh (i.e., hardware query). I don't see a
+non-kludgy way out of it.
+
+
+> I don't see much benefit in waiting for updated values
+> compared to reading them from the cache. The driver knows better how
+> frequently it can read from the chip.
+
+Yes, but the driver doesn't know how frequently apps *need* it to read
+from the chip.
+
+Take the hdaps driver, for example. The hardware can provide fresh
+readouts at a rate of 500Hz. Some apps (e.g., hdapsd) actually need a
+high poll rate. Others (e.g., joystick emulation and hdaps-gl) work
+nicely with 20Hz. And the tp-theft app will be useful even with 1Hz,
+and may change its poll rate depending on circumstances. So, what is
+the driver supposed to do?
+
+In my proposal, the the driver and all app (implicitly) negotiate a
+poll rate which makes sense for all parties involved.
+
+
+> And no hardware monitoring chip I
+> know of can tell when the monitored value has changed - you have to read
+> the chip registers to know.
+
+Yes, this may not be relevant for traditional hwmon chips, but we're
+trying to handle event-based data sources too. You might get an ACPI
+event on temperature change, or a "critical temperature" interrupt
+(which flips a boolean sysfs attr) , etc. I can't think of a really
+convincing example, but we certainly want an interface that will
+support such drivers transparently to userspace.
+
+
+> > To illustrate, here's an example of a proper polling loop (sans error
+> > checking). This app wants to refresh its display when the data has
+> > changed, but not more often than once per second. It wants the
+> > readouts to be reasonly spaced: they should be obtained at least 700ms
+> > apart. And it needs to update its GUI every 3 seconds regardless of
+> > readouts.
+>
+> I don't see the point in the 700ms rule. If you don't want new data
+> more often than once per second, the readouts will be spaced by one
+> second, which implies > 700ms already.
+
+Only on average. If you use min_wait=1000 and min_fresh=0, you might
+be seeing cached readouts that were obtained at times
+999,1001,2999,3001,4999,5001,...
+which is probably not what you want.
+
+
+> No seek(fd, ..., 0) here? sysfs files are supposed to be simple text
+> files, aren't they?
+
+Yes, for sysfs there's a seek(fd, ..., 0). There isn't one if you use
+the input infrastructure's approach, where read()s return a stream of
+event records.
+
+  Shem
