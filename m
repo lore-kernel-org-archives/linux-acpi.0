@@ -1,149 +1,65 @@
-From: "Shem Multinymous" <multinymous@gmail.com>
+From: Valdis.Kletnieks@vt.edu
 Subject: Re: Generic battery interface
-Date: Sun, 30 Jul 2006 21:37:23 +0300
-Message-ID: <41840b750607301137t1e10fe88o3a1c73e7a4b4bf44@mail.gmail.com>
-References: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com>
-	 <41840b750607271332q5dea0848y2284b30a48f78ea7@mail.gmail.com>
-	 <20060727232427.GA4907@suse.cz>
-	 <41840b750607271727q7efc0bb2q706a17654004cbbc@mail.gmail.com>
-	 <20060728074202.GA4757@suse.cz>
-	 <41840b750607280814x50db03erb30d833802ae983e@mail.gmail.com>
-	 <20060728202359.GB5313@suse.cz>
-	 <41840b750607281548h5ee2219eka1de6745b692c092@mail.gmail.com>
-	 <41840b750607291406p2f843054rc89fa1c3c467688d@mail.gmail.com>
+Date: Sun, 30 Jul 2006 20:58:34 -0400
+Message-ID: <200607310058.k6V0wYj2004593@turing-police.cc.vt.edu>
+References: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com> <20060728074202.GA4757@suse.cz> <20060728122508.GC4158@elf.ucw.cz> <20060728134307.GD29217@suse.cz> <41840b750607280838s3678299fm8a5d2b46c5b2af06@mail.gmail.com> <200607281557.k6SFvn09022794@turing-police.cc.vt.edu> <41840b750607281510j2c5babf8x9fac51fe6910aeda@mail.gmail.com> <200607282314.k6SNESSg019274@turing-police.cc.vt.edu> <41840b750607290248r5999d1fen41f9d3044d385857@mail.gmail.com> <200607300835.k6U8ZvSB016669@turing-police.cc.vt.edu>
+            <41840b750607300448u353a3276o8c30d7d880da6329@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: multipart/signed; boundary="==_Exmh_1154307514_2988P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.174]:18835 "EHLO
-	ug-out-1314.google.com") by vger.kernel.org with ESMTP
-	id S932422AbWG3ShZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 30 Jul 2006 14:37:25 -0400
-Received: by ug-out-1314.google.com with SMTP id m3so429908ugc
-        for <linux-acpi@vger.kernel.org>; Sun, 30 Jul 2006 11:37:23 -0700 (PDT)
-In-Reply-To: <41840b750607291406p2f843054rc89fa1c3c467688d@mail.gmail.com>
-Content-Disposition: inline
+Received: from pool-72-66-202-44.ronkva.east.verizon.net ([72.66.202.44]:46278
+	"EHLO turing-police.cc.vt.edu") by vger.kernel.org with ESMTP
+	id S932496AbWGaBAJ (ORCPT <RFC822;linux-acpi@vger.kernel.org>);
+	Sun, 30 Jul 2006 21:00:09 -0400
+In-Reply-To: Your message of "Sun, 30 Jul 2006 14:48:07 +0300."
+             <41840b750607300448u353a3276o8c30d7d880da6329@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vojtech Pavlik <vojtech@suse.cz>
-Cc: "Brown, Len" <len.brown@intel.com>, Pavel Machek <pavel@suse.cz>, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@debian.org>, Mark Underwood <basicmark@yahoo.com>, Greg KH <greg@kroah.com>, Jean Delvare <khali@linux-fr.org>
+To: Shem Multinymous <multinymous@gmail.com>
+Cc: Vojtech Pavlik <vojtech@suse.cz>, Pavel Machek <pavel@suse.cz>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
 
-Hi all,
+--==_Exmh_1154307514_2988P
+Content-Type: text/plain; charset=us-ascii
 
-Here's an updated rough proto-spec for the userspace side of the
-continuous-parameter polling interface, intended for hwmon, batteries
-and their ilk, and maybe even the input infrastructure.
+On Sun, 30 Jul 2006 14:48:07 +0300, Shem Multinymous said:
+> On 7/30/06, Valdis.Kletnieks@vt.edu <Valdis.Kletnieks@vt.edu> wrote:
+> > If the program says '100ms' because it knows it will need to do a GUI update
+> > then, and you block it for 5 seconds because that's when the next value
+> > update happens, the user is stuck looking at their gkrellm or whatever not
+> > doing anything at all for 4.9 seconds....
 
-Compared to the parent post, this version adds a second parameter to
-the ioctl (see discussion elsewhere in this thread), and corrects a
-few inaccuracies.
+> Please read my detailed proposal, posted (and resivsed) later.
 
-With an event-based data source, this interface allows polling with no
-time interrupts on tickless kernels. With a polling-based data source
-and a bit of luck, the frequency of polling = frequency of induced
-timer interrupts will be the minimum that satisfies the greediest
-client (even if there are many). In general, complicated data sources
-can be handled optimally by custom driver+infrastructure code. All of
-this is completely transparent  to userspace, which just states its
-needs and has its every desire fulfilled.
+OK, if you meant this one (that hadn't shown up here before I hit 'send'):
 
-Hardware readouts are obtained from a dedicated file - a sysfs
-attribute (as in hwmon and tp_smapi) or a device file (as in the input
-infrastructure). The file has the following properties:
+On Sun, 30 Jul 2006 13:14:10 +0300, Shem Multinymous said:
+> Actually my solution was "any update but no sooner than N msecs". So
+> you might be getting a readout that's N-1 msecs old, which was
+> meanwhile cached by the driver. If you care about that, you need to
+> use interleave those polls with msleep()s; see my recent detailed
+> post. You'll still doing at most one msleep() per fetched readout,
+> regardless of how frequently the driver provides them.
 
-1. A new ioctl DELAYED_UPDATE, with parameters min_wait and
-   min_fresh, meaning: "I want an a fresh readout. If I poll() this FD
-   with POLLIN then send an input-ready event at time is T+min_wait, or
-   when you have a readout that was received from the hardware at  time
-   T+min_fresh, whichever is *later*. Likewise if I select()".
-   Here T is the time of the ioctl call and min_wait>=min_fresh.
-2. When the file is opened in O_NONBLOCKing mode, read() always return
-   the latest cached readout rather than querying the hardware
-   (unless the latter has negligible cost).
-3. When the file is opened in normal (blocking) mode, read() blocks
-   until a fresh readout is available and returns this readout; see
-   below.
+That has slightly different semantics indeed, and avoids the issue I
+was commenting about.  A gkrellm-ish program can query every 100ms and
+get a cached value 49 times out of 50 for a value that's hardware-updated
+every 5 seconds, and all will be well (of course, there's room for some
+added optimization, but I suspect trying to add that will end up more
+expensive than just re-reading the same cached value, unless the kernel has
+a good way to pass back a good hint of when the next update will be...)
 
-To illustrate, here's an example of a proper polling loop (sans error
-checking). This app wants to refresh its display when the data has
-changed, but not more often than once per second. It wants the
-readouts to be reasonly spaced: they should be obtained at least 700ms
-apart. And it needs to update its GUI every 3 seconds regardless of
-readouts.
+--==_Exmh_1154307514_2988P
+Content-Type: application/pgp-signature
 
-In some linux/foo.h:
---------------------------
-struct delayed_update_req {
-	int min_wait;
-	int min_fresh;
-};
---------------------------
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.4 (GNU/Linux)
+Comment: Exmh version 2.5 07/13/2001
 
-Application code:
---------------------------
-/* Open attribute file with O_NONBLOCK so that all reads will
-* return cached values instead of blocking:
-*/
-int fd = open("/whatever/voltage", O_NONBLOCK|O_RDONLY);
+iD8DBQFEzVW6cC3lWbTT17ARAsCEAKClFzQFGLORbD/7Kf+zx65ekej/VACdFtst
+UQgPDm8bdpHwYRiAxim+1sY=
+=J8Ki
+-----END PGP SIGNATURE-----
 
-/* Read and process latest cached attribute value: */
-read(fd, ...);
-...
-
-while (1) {
-	const struct delayed_update_req dureq =
-		{ .min_wait=1000, min_fresh=700 };
-	struct pollfd ufds = { .fd=fd, events=POLLIN };
-
-	/* Tell the driver we want a fresh readout, but no sooner than
-	 * 1sec from now, and we want the readout to reflect reality no
-	 * sooner than 700ms now:
-	 */
-	ioctl(fd, DELAYED_UPDATE, &dureq);
-
-	/* Wait for an update for at most 3 seconds. Nominally this will
-	* block for at least 1 second, because of the above ioct. If we
-	* were reading multiple attributes, we could poll them all
-	* simultaneously.
-	*/
-	poll(&ufds, 1, 3000);
-
-	/* Read latest cached attribute value: */
-	read(fd, ...);
-
-	... handle readout, update GUI ...
-}
---------------------------
-
-Legacy and lightweight applications (e.g., cat from shell) will open
-the file in blocking mode. In this case, a "read(fd, ...)" has
-semantics equivalent to the following O_NONBLOCK-mode code:
-
---------------------------
-	const struct delayed_update_req dureq =
-		{ .min_wait=0, min_fresh=0 };
-
-	/* Tell driver we want an immediate update: */
-	ioctl(fd, DELAYED_UPDATE, &dureq);
-
-	/* Wait indefinitely for an update: */
-	poll(&ufds, 1, -1);
-
-	/* Read the latest cached attribute value: */
-	read(fd, ...);
---------------------------
-
-Similarly, select() and poll() on non-blocking files acts like you did
-"ioctl(fd, DELAYED_UPDATE, &dureq)" with dureq={0,0} and then waited
-for a refresh or timeout.
-
-If we want to penalize code which doesn't use nonblocking mode and
-delayed updates, we can increase the implicit dureq.min_wait above
-from 0 to a sufficiently nasty (driver-dependent?) delay.
-
-
-Comments?
-
-(I still can't implement this myself. Just trying to elucidate my suggestion.)
-
-  Shem
+--==_Exmh_1154307514_2988P--
