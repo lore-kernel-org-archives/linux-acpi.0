@@ -1,129 +1,65 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH] Repost: acpi_ibm_notify.patch
-Date: Tue, 01 Aug 2006 15:26:11 +0200
-Message-ID: <1154438772.4302.367.camel@queen.suse.de>
-Reply-To: trenn@suse.de
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: [PATCH](memory hotplug) Fix acpi_get_node() when _PXM is not defined.
+Date: Tue, 01 Aug 2006 22:34:41 +0900
+Message-ID: <20060801222852.156A.Y-GOTO@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-IJWfm0WUiLK3Nsp1MJsc"
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.suse.de ([195.135.220.2]:36575 "EHLO mx1.suse.de")
-	by vger.kernel.org with ESMTP id S932544AbWHANWu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Aug 2006 09:22:50 -0400
+Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:55478 "EHLO
+	fgwmail7.fujitsu.co.jp") by vger.kernel.org with ESMTP
+	id S932677AbWHANfa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 1 Aug 2006 09:35:30 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi <linux-acpi@vger.kernel.org>
-Cc: "Brown, Len" <len.brown@intel.com>
+To: Andrew Morton <akpm@osdl.org>
+Cc: ACPI-ML <linux-acpi@vger.kernel.org>, Linux Hotplug Memory Support <lhms-devel@lists.sourceforge.net>, keith mannthey <kmannth@us.ibm.com>, Andi Kleen <ak@suse.de>
 
 
---=-IJWfm0WUiLK3Nsp1MJsc
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Hello.
 
-This one already got the OK of Borislav (ibm_acpi author)
-See mail:
-	Subject: Re: [PATCH] Fix Thinkpad A21m shutdown
-	Date: Wed, 12 Apr 2006
-on this list.
+This patch is to avoid returning negative value for node id if _PXM is not
+defined in ACPI's DSDT. There are 2 possible cases.
 
-Fix Thinkpad A21m shutdown
+  1) The hot-add code is executed with NUMA kernel on NON-NUMA box.
+  2) Firmware expects only SRAT table's information to find pxm,
+     and it doesn't expect DSDT.
 
-The A21m Thinkpad (maybe also be others, T21,..) have an ACPI GDCK method
-and an ACPI DOCK device.
-It seems that on others machines the GDCK is the docking device.
-Installing the notify handler for a GDCK fails if it is a method
-an not a device.
-When module is unloaded it is tried to remove the never installed
-notify handler for the GDCK method which seems to freeze the machine.
-Fix: Do not set notify_installed when installing the notify handler fails.
+If -1 is returned for node id, kernel will touch no-pgdat address
+when hot-add is executed.
 
-Reference: https://bugzilla.novell.org/show_bug.cgi?id=150851
+To fix case 2) exactly, kernel should search memory block information
+which cames from SRAT at boottime. But, it will be arch dependent code
+and it is not written for i386 and ia64 yet. And it will be post later.
+So, at least, kernel panic should be avoided on 2.6.18 by this patch.
 
-Signed-off-by: Thomas Renninger <mail@renninger.de>
+This patch is for 2.6.18-rc3. And I tested this patch on my Tiger4 with
+hot-add emulation.
 
- drivers/acpi/ibm_acpi.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+Please apply.
 
-Index: linux-2.6.18-rc2/drivers/acpi/ibm_acpi.c
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+
+ drivers/acpi/numa.c |    4 ++++
+ 1 files changed, 4 insertions(+)
+
+Index: hotmemtest1/drivers/acpi/numa.c
 ===================================================================
---- linux-2.6.18-rc2.orig/drivers/acpi/ibm_acpi.c
-+++ linux-2.6.18-rc2/drivers/acpi/ibm_acpi.c
-@@ -1789,12 +1789,12 @@ static int __init setup_notify(struct ib
- 	int ret;
+--- hotmemtest1.orig/drivers/acpi/numa.c	2006-08-01 20:13:24.000000000 +0900
++++ hotmemtest1/drivers/acpi/numa.c	2006-08-01 20:14:27.000000000 +0900
+@@ -263,6 +263,10 @@ int acpi_get_node(acpi_handle *handle)
+ 	if (pxm >= 0)
+ 		node = acpi_map_pxm_to_node(pxm);
  
- 	if (!*ibm->handle)
--		return 0;
-+		return 1;
- 
- 	ret = acpi_bus_get_device(*ibm->handle, &ibm->device);
- 	if (ret < 0) {
- 		printk(IBM_ERR "%s device not present\n", ibm->name);
--		return 0;
-+		return 1;
- 	}
- 
- 	acpi_driver_data(ibm->device) = ibm;
-@@ -1884,6 +1884,8 @@ static int __init ibm_init(struct ibm_st
- 		ret = setup_notify(ibm);
- 		if (ret < 0)
- 			return ret;
-+		if (ret > 0)
-+			return 0;
- 		ibm->notify_installed = 1;
- 	}
- 
++	/* _PXM might not be defined by firmware. */
++	if (node < 0)
++		node = first_online_node;
++
+ 	return node;
+ }
+ EXPORT_SYMBOL(acpi_get_node);
 
+-- 
+Yasunori Goto 
 
---=-IJWfm0WUiLK3Nsp1MJsc
-Content-Disposition: attachment; filename=acpi_ibm_notify.patch
-Content-Type: text/x-patch; name=acpi_ibm_notify.patch; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-Fix Thinkpad A21m shutdown
-
-The A21m Thinkpad (maybe also be others, T21,..) have an ACPI GDCK method
-and an ACPI DOCK device.
-It seems that on others machines the GDCK is the docking device.
-Installing the notify handler for a GDCK fails if it is a method
-an not a device.
-When module is unloaded it is tried to remove the never installed
-notify handler for the GDCK method which seems to freeze the machine.
-Fix: Do not set notify_installed when installing the notify handler fails.
-
-Reference: https://bugzilla.novell.org/show_bug.cgi?id=150851
-
-Signed-off-by: Thomas Renninger <mail@renninger.de>
-
- drivers/acpi/ibm_acpi.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
-
-Index: linux-2.6.18-rc2/drivers/acpi/ibm_acpi.c
-===================================================================
---- linux-2.6.18-rc2.orig/drivers/acpi/ibm_acpi.c
-+++ linux-2.6.18-rc2/drivers/acpi/ibm_acpi.c
-@@ -1789,12 +1789,12 @@ static int __init setup_notify(struct ib
- 	int ret;
- 
- 	if (!*ibm->handle)
--		return 0;
-+		return 1;
- 
- 	ret = acpi_bus_get_device(*ibm->handle, &ibm->device);
- 	if (ret < 0) {
- 		printk(IBM_ERR "%s device not present\n", ibm->name);
--		return 0;
-+		return 1;
- 	}
- 
- 	acpi_driver_data(ibm->device) = ibm;
-@@ -1884,6 +1884,8 @@ static int __init ibm_init(struct ibm_st
- 		ret = setup_notify(ibm);
- 		if (ret < 0)
- 			return ret;
-+		if (ret > 0)
-+			return 0;
- 		ibm->notify_installed = 1;
- 	}
- 
-
---=-IJWfm0WUiLK3Nsp1MJsc--
 
