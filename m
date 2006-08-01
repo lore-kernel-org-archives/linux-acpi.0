@@ -1,32 +1,154 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: Generic battery interface
-Date: Tue, 1 Aug 2006 01:01:45 +0200
-Message-ID: <20060731230145.GF3612@elf.ucw.cz>
-References: <41840b750607271332q5dea0848y2284b30a48f78ea7@mail.gmail.com> <20060727232427.GA4907@suse.cz> <41840b750607271727q7efc0bb2q706a17654004cbbc@mail.gmail.com> <20060728074202.GA4757@suse.cz> <41840b750607280814x50db03erb30d833802ae983e@mail.gmail.com> <20060728202359.GB5313@suse.cz> <41840b750607281548h5ee2219eka1de6745b692c092@mail.gmail.com> <41840b750607291406p2f843054rc89fa1c3c467688d@mail.gmail.com> <41840b750607301137t1e10fe88o3a1c73e7a4b4bf44@mail.gmail.com> <20060731233536.92b39035.khali@linux-fr.org>
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH] Repost: asus strict model checking
+Date: Tue, 01 Aug 2006 15:15:22 +0200
+Message-ID: <1154438122.4302.354.camel@queen.suse.de>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="=-5iW3OYKfNlsBwOovnhRt"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:2449 "EHLO amd.ucw.cz")
-	by vger.kernel.org with ESMTP id S1030377AbWGaXDj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 31 Jul 2006 19:03:39 -0400
-Content-Disposition: inline
-In-Reply-To: <20060731233536.92b39035.khali@linux-fr.org>
+Received: from mx2.suse.de ([195.135.220.15]:37782 "EHLO mx2.suse.de")
+	by vger.kernel.org with ESMTP id S1751293AbWHANMB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Aug 2006 09:12:01 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Shem Multinymous <multinymous@gmail.com>, Vojtech Pavlik <vojtech@suse.cz>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@debian.org>, Mark Underwood <basicmark@yahoo.com>, Greg KH <greg@kroah.com>
+To: linux-acpi@vger.kernel.org
+Cc: "Brown, Len" <len.brown@intel.com>, acpi4asus-user@lists.sourceforge.net
 
-Hi!
 
-> frequently it can read from the chip. And no hardware monitoring chip I
-> know of can tell when the monitored value has changed - you have to read
-> the chip registers to know.
+--=-5iW3OYKfNlsBwOovnhRt
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-ACPI battery can tell when values change in significant way. (Like
-battery becoming critical).
+These are some minor patches I already posted...
+All are patched against 2.6.18-rc2.
 
-								Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Do only load asus acpi module when model is listed
+
+Description: There are machines that have a device with HID: ATK0100
+(Asus) and a device with HID SNY5001 (Sony). Bad things happen if sony
+and asus driver are loaded there.
+
+Reference: https://bugzilla.novell.org/show_bug.cgi?id=166920
+
+Signed-off-by: Timo Hoenig <thoenig@suse.de>
+Signed-off-by: Thomas Renninger<mail@renninger.de>
+
+
+ drivers/acpi/asus_acpi.c |   25 ++++++++++++++++++++-----
+ 1 files changed, 20 insertions(+), 5 deletions(-)
+
+Index: linux-2.6.18-rc2/drivers/acpi/asus_acpi.c
+===================================================================
+--- linux-2.6.18-rc2.orig/drivers/acpi/asus_acpi.c
++++ linux-2.6.18-rc2/drivers/acpi/asus_acpi.c
+@@ -77,10 +77,14 @@ MODULE_LICENSE("GPL");
+ 
+ static uid_t asus_uid;
+ static gid_t asus_gid;
++static int force;
+ module_param(asus_uid, uint, 0);
+ MODULE_PARM_DESC(asus_uid, "UID for entries in /proc/acpi/asus.\n");
+ module_param(asus_gid, uint, 0);
+ MODULE_PARM_DESC(asus_gid, "GID for entries in /proc/acpi/asus.\n");
++module_param(force, int, 0);
++MODULE_PARM_DESC(force, "Force loading of the module even if the laptop"
++		 "model is not listed.\n");
+ 
+ /* For each model, all features implemented, 
+  * those marked with R are relative to HOTK, A for absolute */
+@@ -1171,11 +1175,22 @@ static int asus_hotk_get_info(void)
+ 			printk(KERN_NOTICE
+ 			       "  Samsung P30 detected, supported\n");
+ 		} else {
+-			hotk->model = M2E;
+-			printk(KERN_NOTICE "  unsupported model %s, trying "
+-			       "default values\n", string);
+-			printk(KERN_NOTICE
+-			       "  send /proc/acpi/dsdt to the developers\n");
++			if (force){
++				hotk->model = M2E;
++				printk(KERN_NOTICE "  unsupported model"
++				       "%s, trying default values\n",
++				       string);
++				printk(KERN_NOTICE
++				       "  send /proc/acpi/dsdt"
++				       " to the developers\n");
++			}
++			else{
++				printk(KERN_NOTICE "  %s unsupported model %s,"
++				       " aborting.\nForce loading with force=1"
++				       " parameter\n",
++				       ACPI_HOTK_NAME, string);
++				return -ENODEV;
++			}
+ 		}
+ 		hotk->methods = &model_conf[hotk->model];
+ 		return AE_OK;
+
+
+--=-5iW3OYKfNlsBwOovnhRt
+Content-Disposition: attachment; filename=acpi_asus_strict_model_check.patch
+Content-Type: text/x-patch; name=acpi_asus_strict_model_check.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Do only load asus acpi module when model is listed
+
+Reference: https://bugzilla.novell.org/show_bug.cgi?id=166920
+
+Signed-off-by: Timo Hoenig <thoenig@suse.de>
+Signed-off-by: Thomas Renninger<mail@renninger.de>
+
+
+ drivers/acpi/asus_acpi.c |   25 ++++++++++++++++++++-----
+ 1 files changed, 20 insertions(+), 5 deletions(-)
+
+Index: linux-2.6.18-rc2/drivers/acpi/asus_acpi.c
+===================================================================
+--- linux-2.6.18-rc2.orig/drivers/acpi/asus_acpi.c
++++ linux-2.6.18-rc2/drivers/acpi/asus_acpi.c
+@@ -77,10 +77,14 @@ MODULE_LICENSE("GPL");
+ 
+ static uid_t asus_uid;
+ static gid_t asus_gid;
++static int force;
+ module_param(asus_uid, uint, 0);
+ MODULE_PARM_DESC(asus_uid, "UID for entries in /proc/acpi/asus.\n");
+ module_param(asus_gid, uint, 0);
+ MODULE_PARM_DESC(asus_gid, "GID for entries in /proc/acpi/asus.\n");
++module_param(force, int, 0);
++MODULE_PARM_DESC(force, "Force loading of the module even if the laptop"
++		 "model is not listed.\n");
+ 
+ /* For each model, all features implemented, 
+  * those marked with R are relative to HOTK, A for absolute */
+@@ -1171,11 +1175,22 @@ static int asus_hotk_get_info(void)
+ 			printk(KERN_NOTICE
+ 			       "  Samsung P30 detected, supported\n");
+ 		} else {
+-			hotk->model = M2E;
+-			printk(KERN_NOTICE "  unsupported model %s, trying "
+-			       "default values\n", string);
+-			printk(KERN_NOTICE
+-			       "  send /proc/acpi/dsdt to the developers\n");
++			if (force){
++				hotk->model = M2E;
++				printk(KERN_NOTICE "  unsupported model"
++				       "%s, trying default values\n",
++				       string);
++				printk(KERN_NOTICE
++				       "  send /proc/acpi/dsdt"
++				       " to the developers\n");
++			}
++			else{
++				printk(KERN_NOTICE "  %s unsupported model %s,"
++				       " aborting.\nForce loading with force=1"
++				       " parameter\n",
++				       ACPI_HOTK_NAME, string);
++				return -ENODEV;
++			}
+ 		}
+ 		hotk->methods = &model_conf[hotk->model];
+ 		return AE_OK;
+
+--=-5iW3OYKfNlsBwOovnhRt--
+
