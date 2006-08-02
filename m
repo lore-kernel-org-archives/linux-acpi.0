@@ -1,38 +1,37 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [PATCH] Repost: asus strict model checking
-Date: Wed, 2 Aug 2006 16:12:58 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB601214FA2@hdsmsx411.amr.corp.intel.com>
+From: David Abrahams <dave@boost-consulting.com>
+Subject: Boot stalls for minutes
+Date: Wed, 02 Aug 2006 16:06:46 -0400
+Message-ID: <umzamhpgp.fsf@boost-consulting.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:53820 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S932187AbWHBUNE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Aug 2006 16:13:04 -0400
-Content-class: urn:content-classes:message
+Received: from main.gmane.org ([80.91.229.2]:44984 "EHLO ciao.gmane.org")
+	by vger.kernel.org with ESMTP id S932218AbWHBUUU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Aug 2006 16:20:20 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1G8NCE-0004Lt-BX
+	for linux-acpi@vger.kernel.org; Wed, 02 Aug 2006 22:20:04 +0200
+Received: from 216-15-125-177.c3-0.smr-ubr3.sbo-smr.ma.cable.rcn.com ([216.15.125.177])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Wed, 02 Aug 2006 22:20:02 +0200
+Received: from dave by 216-15-125-177.c3-0.smr-ubr3.sbo-smr.ma.cable.rcn.com with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Wed, 02 Aug 2006 22:20:02 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>, trenn@suse.de
-Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net
+To: linux-acpi@vger.kernel.org
 
-> As long as this is not officially specified (by ACPI consortium and/or
-vendors)
-> and such special Devices exist, it is the best we can do.
 
-Platform specific methods will never be in the APCI spec --
-by the virtue that they are non-standard and platform specific by
-definition.
+Hi,
 
-The vendors should be using vendor-specific PNP ID's. eg, IBM0068
-when they put vendor specific devices in the DSDT.
+I don't know whether this is a known problem, but it appears to be
+ACPI-related: https://launchpad.net/distros/ubuntu/+bug/52689
 
-When that is not available, Linux is going very far out on a limb
-when it mines the name space to match specific internal variables,
-as there is no reason they could not match some totally different
-machine.
-Certainly the platform specific drivers that the vendors ship
-on Windows does not do this.  I don't know what they do -- maybe DMI?
+Can anyone offer a fix?  Do I need to build a new kernel?
 
--Len
+-- 
+Dave Abrahams
+Boost Consulting
+www.boost-consulting.com
+
