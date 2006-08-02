@@ -1,36 +1,28 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: Sony ACPI extras mainline inclusion
-Date: Wed, 2 Aug 2006 16:34:50 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0608021634370.13053@yvahk01.tjqt.qr>
-References: <44CB288A.1010702@gmail.com> <20060802100314.GF7601@ucw.cz>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH] Repost: asus strict model checking
+Date: Wed, 2 Aug 2006 10:00:20 -0600
+Message-ID: <200608021000.20930.bjorn.helgaas@hp.com>
+References: <1154438122.4302.354.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailer.gwdg.de ([134.76.10.26]:5567 "EHLO mailer.gwdg.de")
-	by vger.kernel.org with ESMTP id S1750922AbWHBOgZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Aug 2006 10:36:25 -0400
-In-Reply-To: <20060802100314.GF7601@ucw.cz>
+Received: from atlrel9.hp.com ([156.153.255.214]:27794 "EHLO atlrel9.hp.com")
+	by vger.kernel.org with ESMTP id S932071AbWHBQAZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Aug 2006 12:00:25 -0400
+In-Reply-To: <1154438122.4302.354.camel@queen.suse.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@suse.cz>
-Cc: Alessandro Guido <alessandro.guido.box@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: trenn@suse.de
+Cc: linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>, acpi4asus-user@lists.sourceforge.net
 
+On Tuesday 01 August 2006 07:15, Thomas Renninger wrote:
+> Description: There are machines that have a device with HID: ATK0100
+> (Asus) and a device with HID SNY5001 (Sony). Bad things happen if sony
+> and asus driver are loaded there.
+> 
+> Reference: https://bugzilla.novell.org/show_bug.cgi?id=166920
 
->> I own a Sony VAIO laptop that uses ACPI for setting 
->> screen brightness
->> through the "2.6-sony_acpi4.patch" patch that has been 
->> living in -mm for a while.
->> I'd like this patch to be merged in mainline, so that I 
->> won't be forced anymore to patch
->> the kernel by hand or to use the -mm patchset.
->> Is there something that prevents this to happen?
->
->Wrong interface?
->
->Convert it to use /sys/class/backlight sysfs interface...
-
-FWIW, the patch works without having to apply all of -mm.
-
-
-Jan Engelhardt
--- 
+Nit: should be novell.com, not norvell.org.
