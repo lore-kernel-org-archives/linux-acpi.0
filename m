@@ -1,84 +1,44 @@
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: Re: [Lhms-devel] [PATCH](memory hotplug) Fix acpi_get_node() when _PXM is not defined.
-Date: Wed, 02 Aug 2006 10:47:07 +0900
-Message-ID: <20060802095647.C821.Y-GOTO@jp.fujitsu.com>
-References: <20060801222852.156A.Y-GOTO@jp.fujitsu.com> <1154456573.6249.11.camel@keithlap>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: Generic battery interface
+Date: Wed, 2 Aug 2006 09:18:41 +0200
+Message-ID: <20060802091841.8585a72a.khali@linux-fr.org>
+References: <41840b750607271332q5dea0848y2284b30a48f78ea7@mail.gmail.com>
+	<20060727232427.GA4907@suse.cz>
+	<41840b750607271727q7efc0bb2q706a17654004cbbc@mail.gmail.com>
+	<20060728074202.GA4757@suse.cz>
+	<41840b750607280814x50db03erb30d833802ae983e@mail.gmail.com>
+	<20060728202359.GB5313@suse.cz>
+	<41840b750607281548h5ee2219eka1de6745b692c092@mail.gmail.com>
+	<41840b750607291406p2f843054rc89fa1c3c467688d@mail.gmail.com>
+	<41840b750607301137t1e10fe88o3a1c73e7a4b4bf44@mail.gmail.com>
+	<20060731233536.92b39035.khali@linux-fr.org>
+	<20060731230145.GF3612@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:10442 "EHLO
-	fgwmail5.fujitsu.co.jp") by vger.kernel.org with ESMTP
-	id S1750994AbWHBBs1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 1 Aug 2006 21:48:27 -0400
-In-Reply-To: <1154456573.6249.11.camel@keithlap>
+Received: from smtp-103-wednesday.nerim.net ([62.4.16.103]:16652 "EHLO
+	kraid.nerim.net") by vger.kernel.org with ESMTP id S1751307AbWHBHSg
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 2 Aug 2006 03:18:36 -0400
+In-Reply-To: <20060731230145.GF3612@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: kmannth@us.ibm.com
-Cc: Andrew Morton <akpm@osdl.org>, ACPI-ML <linux-acpi@vger.kernel.org>, Andi Kleen <ak@suse.de>, Linux Hotplug Memory Support <lhms-devel@lists.sourceforge.net>
+To: Pavel Machek <pavel@suse.cz>
+Cc: Shem Multinymous <multinymous@gmail.com>, Vojtech Pavlik <vojtech@suse.cz>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@debian.org>, Mark Underwood <basicmark@yahoo.com>, Greg KH <greg@kroah.com>
 
+Hi Pavel,
 
-> I don't think Linux should require the ACPI add event to contain the
-> _pxm information. (I don't see it required in the spec).
-
-Agree.
-
-> acpi_get_node
-> is only going to work with systems that implement the acpi table in this
-> way.  
-
-This cause is just I didn't know that there is a box without _PXM
-in DSDT. :-P
-I prefer that acpi_get_node() should include your case.
-Then caller of it can get node without knowledge about SRAT or
-DSDT by one call. So, my idea was like followings.
-
-acpi_get_node()
-{
-       :
-	if (node < 0)
-		node = arch_search_srat_info(handle);
-	if (node < 0) /* NUMA kernel executed on non NUMA box */
-		node = 0;
-
-	return node;
-}
-
-arch_search_srat_info() must be made for each arch
-(i386, x86-64, ia64). And I don't know that all of them can be
-posted by publish of 2.6.18. So, I would like to rescue
-againt panic.
-
-However, I might make sense one more by your patch....
-
->  I think something like this might be better...
-
-Why do you enter memory_add_physaddr_to_nid() IN the loop of
-searching mem_device? This implies, there is a _CRS which have multiple
-memory block entries, and each entries might belong DIFFERENT node 
-each other. If so, above my idea is not appropriate. :-(
-
-BTW, memory_add_physaddr_to_nid() is not defined for ia64's NUMA box and
-i386's NUMA box. 
-
-Thanks.
-
+> > frequently it can read from the chip. And no hardware monitoring chip I
+> > know of can tell when the monitored value has changed - you have to read
+> > the chip registers to know.
 > 
-> diff -urN linux-2.6.18-rc3-stock/drivers/acpi/acpi_memhotplug.c linux-2.6.17/drivers/acpi/acpi_memhotplug.c
-> --- linux-2.6.18-rc3-stock/drivers/acpi/acpi_memhotplug.c	2006-07-31 19:59:05.000000000 -0400
-> +++ linux-2.6.17/drivers/acpi/acpi_memhotplug.c	2006-08-01 13:56:03.000000000 -0400
-> @@ -241,6 +241,9 @@
->  			continue;
->  		}
->  
-> +		if (node < 0)
-> +			node = memory_add_physaddr_to_nid(info->start_addr);
-> +
->  		result = add_memory(node, info->start_addr, info->length);
->  		if (result)
->  			continue;
+> ACPI battery can tell when values change in significant way. (Like
+> battery becoming critical).
+
+Ah, good to know. But is there a practical use for this? I'd suspect
+that the user wants to know the battery charge% all the time anyway,
+critical or not.
 
 -- 
-Yasunori Goto 
-
-
+Jean Delvare
