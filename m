@@ -1,54 +1,61 @@
-From: Marek Wawrzyczny <marekw1977@yahoo.com.au>
-Subject: Re: Generic battery interface
-Date: Wed, 2 Aug 2006 17:46:13 +1000
-Message-ID: <200608021746.13612.marekw1977@yahoo.com.au>
-References: <41840b750607271332q5dea0848y2284b30a48f78ea7@mail.gmail.com> <20060731230145.GF3612@elf.ucw.cz> <20060802091841.8585a72a.khali@linux-fr.org>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH] Repost: asus strict model checking
+Date: Wed, 02 Aug 2006 12:00:20 +0200
+Message-ID: <1154512820.4302.444.camel@queen.suse.de>
+References: <1154438122.4302.354.camel@queen.suse.de>
+	 <44CF5DF6.9090603@linux.intel.com>
+	 <1154446149.4302.386.camel@queen.suse.de>
+	 <44CF7D26.5050208@linux.intel.com>
+	 <1154452931.4302.407.camel@queen.suse.de>
+	 <44CF92EB.4010801@linux.intel.com>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bld-mail01.adl2.internode.on.net ([203.16.214.65]:63632 "EHLO
-	mail.internode.on.net") by vger.kernel.org with ESMTP
-	id S1751358AbWHBHqc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 2 Aug 2006 03:46:32 -0400
-In-Reply-To: <20060802091841.8585a72a.khali@linux-fr.org>
-Content-Disposition: inline
+Received: from ns1.suse.de ([195.135.220.2]:10407 "EHLO mx1.suse.de")
+	by vger.kernel.org with ESMTP id S1750704AbWHBJ4y (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Aug 2006 05:56:54 -0400
+In-Reply-To: <44CF92EB.4010801@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Jean Delvare <khali@linux-fr.org>, Pavel Machek <pavel@suse.cz>, Shem Multinymous <multinymous@gmail.com>, Vojtech Pavlik <vojtech@suse.cz>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@debian.org>, Mark Underwood <basicmark@yahoo.com>, Greg KH <greg@kroah.com>
+To: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>, acpi4asus-user@lists.sourceforge.net
 
-On Wednesday 02 August 2006 17:18, Jean Delvare wrote:
-> Hi Pavel,
->
-> > > frequently it can read from the chip. And no hardware monitoring chip I
-> > > know of can tell when the monitored value has changed - you have to
-> > > read the chip registers to know.
-> >
-> > ACPI battery can tell when values change in significant way. (Like
-> > battery becoming critical).
->
-> Ah, good to know. But is there a practical use for this? I'd suspect
-> that the user wants to know the battery charge% all the time anyway,
-> critical or not.
+On Tue, 2006-08-01 at 21:44 +0400, Alexey Starikovskiy wrote:
+> Thomas Renninger wrote:
+> > On Tue, 2006-08-01 at 20:11 +0400, Alexey Starikovskiy wrote:
+> >> Checks for Samsung P30/P35 are real hacks IMHO.
+> > Why?
+> Because this DSDT signature could appear on any machine, and has nothing to do
+> with ASUS or Samsung.
 
-Yes, the user may want to know the battery state all the time, but will not 
-notice the difference between the system reporting battery changes every 100 
-microseconds or every 10 seconds, unless the hardware eats its battery 
-sources for breakfast? 
+The string seems to define how the ATKD ACPI device has to be used.
+If this Device pops up on other machines than Asus it's fine.
+AFAIK the mappings from the string returned by ATKD.INIT and how the
+device has to be used then works fine.
 
-The system cares though, very much so in fact:
+It's probably much better than the way done on Thinkpads:
+If we have ACPI func xy we assume to have an A21 or similar and use this
+set of function/variables.
 
-If the battery becomes critical the system should either shut down or suspend 
-to disk (if this is supported). 
-This obviously would be triggered by some sort of daemon (powersaved comes to 
-mind).
-Ideally the suspend to disk or shutdown event triggers another event that 
-allows any desktop to save it's state or possibly unmount shares that could 
-otherwise be corrupted.
+I consider this an ugly hack:
+IBM_HANDLE(ec, root, "\\_SB.PCI0.ISA.EC0",	/* 240, 240x */
+	   "\\_SB.PCI.ISA.EC",	/* 570 */
+	   "\\_SB.PCI0.ISA0.EC0",	/* 600e/x, 770e, 770x */
+	   "\\_SB.PCI0.ISA.EC",	/* A21e, A2xm/p, T20-22, X20-21 */
+	   "\\_SB.PCI0.AD4S.EC0",	/* i1400, R30 */
+	   "\\_SB.PCI0.ICH3.EC0",	/* R31 */
+	   "\\_SB.PCI0.LPC.EC",	/* all others */
 
-This scenario is quite different to an application reading the battery level.
+On Asus we should be happy ATKD.INIT is returning something useful and
+one can guess (be sure?) which ACPI functions to use for what.
+Checking for that string and making use of different ACPI
+variable/method names seems to be intended and looks like the defined
+way this should be used. As long as this is not officially specified (by
+ACPI consortium and/or vendors) and such special Devices exist, it is
+the best we can do.
+
+   Thomas
 
 
-Marek Wawrzyczny
