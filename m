@@ -1,40 +1,38 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: Generic battery interface
-Date: Wed, 2 Aug 2006 21:51:07 +0200
-Message-ID: <20060802195107.GB8124@elf.ucw.cz>
-References: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com> <20060727221632.GE3797@elf.ucw.cz> <41840b750607271556n1901af3by2e4d046d68abcb94@mail.gmail.com> <20060727230801.GA30619@kroah.com> <20060727232426.GI3797@elf.ucw.cz> <20060730142943.2537124e.khali@linux-fr.org>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: [PATCH] Repost: asus strict model checking
+Date: Wed, 2 Aug 2006 16:12:58 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB601214FA2@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:61153 "EHLO amd.ucw.cz")
-	by vger.kernel.org with ESMTP id S932170AbWHBTvY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Aug 2006 15:51:24 -0400
-Content-Disposition: inline
-In-Reply-To: <20060730142943.2537124e.khali@linux-fr.org>
+Received: from mga02.intel.com ([134.134.136.20]:53820 "EHLO
+	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S932187AbWHBUNE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Aug 2006 16:13:04 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Greg KH <greg@kroah.com>, lm-sensors@lm-sensors.org, Shem Multinymous <multinymous@gmail.com>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, vojtech@suse.cz, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>, trenn@suse.de
+Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net
 
-Hi!
+> As long as this is not officially specified (by ACPI consortium and/or
+vendors)
+> and such special Devices exist, it is the best we can do.
 
-> > Actually I do not see "hwmon infrastructure" to exist. Every driver
-> > just uses sysfs directly. I'm not sure that the best option --
-> > "input-like" infrastructure can make drivers even shorter -- but
-> > perhaps just directly using sysfs is best for simple task like a battery?
-> > 
-> > Jean, any ideas?
-> 
-> I guess we never felt any need for an "infrastructure", else we would
-> have created it. I have no idea what the "input infrastructure" looks
-> like so I can't compare. If you have something to propose which would
-> refactor some code amongst the hardware monitoring drivers or would
-> otherwise makes thing better, speak up :)
+Platform specific methods will never be in the APCI spec --
+by the virtue that they are non-standard and platform specific by
+definition.
 
-I'm not sure if it is practical for hwmon, but having
-report_voltage(x,y) is probably easier than coding sysfs stuff by
-hand.
-								Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+The vendors should be using vendor-specific PNP ID's. eg, IBM0068
+when they put vendor specific devices in the DSDT.
+
+When that is not available, Linux is going very far out on a limb
+when it mines the name space to match specific internal variables,
+as there is no reason they could not match some totally different
+machine.
+Certainly the platform specific drivers that the vendors ship
+on Windows does not do this.  I don't know what they do -- maybe DMI?
+
+-Len
