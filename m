@@ -1,37 +1,43 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] Repost: asus strict model checking
-Date: Thu, 03 Aug 2006 10:40:13 +0200
-Message-ID: <1154594413.4302.452.camel@queen.suse.de>
-References: <1154438122.4302.354.camel@queen.suse.de>
-	 <44CF5DF6.9090603@linux.intel.com>
-	 <1154446149.4302.386.camel@queen.suse.de>
-	 <44CF7D26.5050208@linux.intel.com>
-	 <1154452931.4302.407.camel@queen.suse.de>
-	 <44CF92EB.4010801@linux.intel.com>
-	 <1154512820.4302.444.camel@queen.suse.de>
-	 <44D0F3A7.4020405@linux.intel.com>
-Reply-To: trenn@suse.de
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: Generic battery interface
+Date: Thu, 3 Aug 2006 11:20:54 +0200
+Message-ID: <20060803112054.54d2b591.khali@linux-fr.org>
+References: <CFF307C98FEABE47A452B27C06B85BB6011688D8@hdsmsx411.amr.corp.intel.com>
+	<20060727221632.GE3797@elf.ucw.cz>
+	<41840b750607271556n1901af3by2e4d046d68abcb94@mail.gmail.com>
+	<20060727230801.GA30619@kroah.com>
+	<20060727232426.GI3797@elf.ucw.cz>
+	<20060730142943.2537124e.khali@linux-fr.org>
+	<20060802195107.GB8124@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:18155 "EHLO mx2.suse.de")
-	by vger.kernel.org with ESMTP id S932398AbWHCIgn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Aug 2006 04:36:43 -0400
-In-Reply-To: <44D0F3A7.4020405@linux.intel.com>
+Received: from smtp-104-thursday.nerim.net ([62.4.16.104]:62989 "EHLO
+	kraid.nerim.net") by vger.kernel.org with ESMTP id S932409AbWHCJUq
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 3 Aug 2006 05:20:46 -0400
+In-Reply-To: <20060802195107.GB8124@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>, acpi4asus-user@lists.sourceforge.net
+To: Pavel Machek <pavel@suse.cz>
+Cc: Greg KH <greg@kroah.com>, lm-sensors@lm-sensors.org, Shem Multinymous <multinymous@gmail.com>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, vojtech@suse.cz, kernel list <linux-kernel@vger.kernel.org>, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
 
-On Wed, 2006-08-02 at 22:49 +0400, Alexey Starikovskiy wrote:
-> I was referring to this peace of artwork(asus_info is pointer to DSDT header):
-> ------------------------------------------------------------------------------
->         if (hotk->model == END_MODEL) { /* match failed */
->                 if (asus_info &&
->                     strncmp(asus_info->oem_table_id, "ODEM", 4) == 0) {
->                         hotk->model = P30;
-Oh yes, you are right this is awful.
+Hi Pavel,
 
-   Thomas
+> > I guess we never felt any need for an "infrastructure", else we would
+> > have created it. I have no idea what the "input infrastructure" looks
+> > like so I can't compare. If you have something to propose which would
+> > refactor some code amongst the hardware monitoring drivers or would
+> > otherwise makes thing better, speak up :)
+> 
+> I'm not sure if it is practical for hwmon, but having
+> report_voltage(x,y) is probably easier than coding sysfs stuff by
+> hand.
 
+I can't figure out what it would look like in practice. Do you have
+some code to show?
+
+Thanks,
+-- 
+Jean Delvare
