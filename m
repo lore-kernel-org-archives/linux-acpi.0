@@ -1,45 +1,63 @@
-From: Dave Jones <davej@redhat.com>
-Subject: Re: [PATCH] Check battery after resume
-Date: Thu, 3 Aug 2006 15:02:20 -0400
-Message-ID: <20060803190220.GD11577@redhat.com>
-References: <1154625457.4302.556.camel@queen.suse.de>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: Options depending on STANDALONE
+Date: Thu, 3 Aug 2006 22:25:43 +0200
+Message-ID: <20060803202543.GH25692@stusta.de>
+References: <44D1CC7D.4010600@vmware.com> <1154603822.2965.18.camel@laptopd505.fenrus.org> <44D23B84.6090605@vmware.com> <20060803190327.GA14237@kroah.com> <44D24B31.2080802@vmware.com> <20060803193600.GA14858@kroah.com> <20060803195617.GD16927@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:6017 "EHLO mx1.redhat.com")
-	by vger.kernel.org with ESMTP id S964863AbWHCTC1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Aug 2006 15:02:27 -0400
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964882AbWHCUZr@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1154625457.4302.556.camel@queen.suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20060803195617.GD16927@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dave Jones <davej@redhat.com>, Greg KH <greg@kroah.com>, Zachary Amsden <zach@vmware.com>, Arjan van de Ven <arjan@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Christoph Hellwig <hch@infradead.org>, Rusty Russell <rusty@rustcorp.com.au>, Jack Lo <jlo@vmware.com>, v4l-dvb-maintainer@linuxtv.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>
 
-On Thu, Aug 03, 2006 at 07:17:37PM +0200, Thomas Renninger wrote:
+On Thu, Aug 03, 2006 at 03:56:17PM -0400, Dave Jones wrote:
+> On Thu, Aug 03, 2006 at 12:36:00PM -0700, Greg Kroah-Hartman wrote:
+> 
+>  > > That is good to know.  But there is a kernel option which doesn't make 
+>  > > much sense in that case:
+>  > > 
+>  > > [*] Select only drivers that don't need compile-time external firmware
+>  > 
+>  > No, that is very different.  That option is present if you don't want to
+>  > build some firmware images from the source that is present in the kernel
+>  > tree, and instead, use the pre-built stuff that is also present in the
+>  > kernel tree.
+> 
+> You're describing PREVENT_FIRMWARE_BUILD.  The text Zach quoted is from
+> STANDALONE, which is something else completely.  That allows us to not
+> build drivers that pull in things from /etc and the like during compile.
+> (Whoever thought that was a good idea?)
 
- > +/* 
- > + * returns:
- > + *   0 on success
- > + *  <0 on failure
- > + *   1 if new battery found
- > + *   2 if battery got removed
- > + */
+We should also look at what drivers do depend on STANDALONE:
+- some OSS drivers
+- one DVB driver option (DVB_AV7110_FIRMWARE)
+- ACPI_CUSTOM_DSDT
 
-Why make this so complicated...
+The OSS drivers are more or less RIP, so let's ignore them.
 
- > +	result = acpi_battery_check(battery);
- > +	if (result > 0){
- > +		acpi_bus_generate_event(device,
- > +					ACPI_NOTIFY_DEVICE_CHECK,
- > +					battery->flags.present);
- > +	}
- > +	return 0;
- > +}
+Is DVB_AV7110_FIRMWARE really still required?
+ALL other drivers work without such an option.
 
-When we simply treat the result as a boolean ?
+ACPI_CUSTOM_DSDT seems to be the most interesting case.
+It's anyway not usable for distribution kernels, and AFAIR the ACPI 
+people prefer to get the kernel working with all original DSDTs
+(which usually work with at least one other OS) than letting the people 
+workaround the problem by using a custom DSDT.
 
-		Dave
+It might therefore be possile simply getting rid of CONFIG_STANDALONE?
+
+> 		Dave
+
+cu
+Adrian
 
 -- 
-http://www.codemonkey.org.uk
+
+    Gentoo kernels are 42 times more popular than SUSE kernels among
+    KLive users  (a service by SUSE contractor Andrea Arcangeli that
+    gathers data about kernels from many users worldwide).
+
+       There are three kinds of lies: Lies, Damn Lies, and Statistics.
+                                                    Benjamin Disraeli
