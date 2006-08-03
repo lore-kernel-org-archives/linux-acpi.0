@@ -1,42 +1,53 @@
-From: Dave Jones <davej@redhat.com>
-Subject: Re: Options depending on STANDALONE
-Date: Thu, 3 Aug 2006 16:41:35 -0400
-Message-ID: <20060803204135.GH16927@redhat.com>
-References: <44D1CC7D.4010600@vmware.com> <1154603822.2965.18.camel@laptopd505.fenrus.org> <44D23B84.6090605@vmware.com> <20060803190327.GA14237@kroah.com> <44D24B31.2080802@vmware.com> <20060803193600.GA14858@kroah.com> <20060803195617.GD16927@redhat.com> <20060803202543.GH25692@stusta.de> <20060803202807.GA7712@kroah.com>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: Options depending on STANDALONE
+Date: Thu, 3 Aug 2006 16:49:08 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB601260CC7@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:36032 "EHLO mx1.redhat.com")
-	by vger.kernel.org with ESMTP id S1751322AbWHCUm4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Aug 2006 16:42:56 -0400
-Content-Disposition: inline
-In-Reply-To: <20060803202807.GA7712@kroah.com>
+Received: from mga01.intel.com ([192.55.52.88]:12822 "EHLO
+	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
+	id S1751362AbWHCUtw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Aug 2006 16:49:52 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Adrian Bunk <bunk@stusta.de>, Zachary Amsden <zach@vmware.com>, Arjan van de Ven <arjan@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Christoph Hellwig <hch@infradead.org>, Rusty Russell <rusty@rustcorp.com.au>, Jack Lo <jlo@vmware.com>, v4l-dvb-maintainer@linuxtv.org, linux-acpi@vger.kernel.org
+To: Greg KH <greg@kroah.com>, Adrian Bunk <bunk@stusta.de>
+Cc: Dave Jones <davej@redhat.com>, Zachary Amsden <zach@vmware.com>, Arjan van de Ven <arjan@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Christoph Hellwig <hch@infradead.org>, Rusty Russell <rusty@rustcorp.com.au>, Jack Lo <jlo@vmware.com>, v4l-dvb-maintainer@linuxtv.org, linux-acpi@vger.kernel.org
 
-On Thu, Aug 03, 2006 at 01:28:07PM -0700, Greg Kroah-Hartman wrote:
- > On Thu, Aug 03, 2006 at 10:25:43PM +0200, Adrian Bunk wrote:
- > > ACPI_CUSTOM_DSDT seems to be the most interesting case.
- > > It's anyway not usable for distribution kernels, and AFAIR the ACPI 
- > > people prefer to get the kernel working with all original DSDTs
- > > (which usually work with at least one other OS) than letting the people 
- > > workaround the problem by using a custom DSDT.
- > 
- > Not true at all.  For SuSE kernels, we have a patch that lets people
- > load a new DSDT from initramfs due to broken machines requiring a
- > replacement in order to work properly.
+>On Thu, Aug 03, 2006 at 10:25:43PM +0200, Adrian Bunk wrote:
+>> ACPI_CUSTOM_DSDT seems to be the most interesting case.
+>> It's anyway not usable for distribution kernels, and AFAIR the ACPI 
+>> people prefer to get the kernel working with all original DSDTs
+>> (which usually work with at least one other OS) than letting 
+>> the people workaround the problem by using a custom DSDT.
+>
+>Not true at all.  For SuSE kernels, we have a patch that lets people
+>load a new DSDT from initramfs due to broken machines requiring a
+>replacement in order to work properly.
 
-Whilst this is a quick fix for users who either know how to hack DSDTs
-themselves, or know where to get a fixed one, it doesn't solve the bigger
-problem, that the interpretor doesn't get fixed.
-And by 'fixed', I mean we aren't bug for bug compatible with that
-other OS.  We need to be adding workarounds to the ACPI interpretor
-so this stuff 'just works', not hiding from the problem and creating
-"but it works in $otherdistro when I do this" scenarios.
+CONFIG_ACPI_CUSTOM_DSDT allows hackers to debug their system
+by building a modified DSDT into the kernel to over-ride what
+came with the system.  It would make no sense for a distro
+to use it, unless the distro were shipping only on 1 model machine.
+This technique is necessary for debugging, but makes no
+sense for production.
 
-		Dave
+The initramfs method shipped by SuSE is more flexible, allowing
+the hacker to stick the DSDT image in the initrd and use it
+without re-compiling the kernel.
 
--- 
-http://www.codemonkey.org.uk
+I have refused to accept the initrd patch into Linux many times,
+and always will.
+
+I've advised SuSE many times that they should not be shipping it,
+as it means that their supported OS is running on modified firmware --
+which, by definition, they can not support.  Indeed, one could view
+this method as couter-productive to the evolution of Linux --
+since it is our stated goal to run on the same machines that Windows
+runs on -- without requiring customers to modify those machines
+to run Linux.
+
+-Len
