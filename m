@@ -1,51 +1,43 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: Options depending on STANDALONE
-Date: Thu, 3 Aug 2006 14:41:47 -0700
-Message-ID: <20060803214147.GA20468@kroah.com>
-References: <CFF307C98FEABE47A452B27C06B85BB601260CC7@hdsmsx411.amr.corp.intel.com> <20060803205127.GC10935@kroah.com> <20060803210130.GJ16927@redhat.com>
+From: Trent Piepho <xyzzy@speakeasy.org>
+Subject: Re: [v4l-dvb-maintainer] Options depending on STANDALONE
+Date: Thu, 3 Aug 2006 16:40:25 -0700 (PDT)
+Message-ID: <Pine.LNX.4.58.0608031610110.9178@shell2.speakeasy.net>
+References: <44D1CC7D.4010600@vmware.com> <1154603822.2965.18.camel@laptopd505.fenrus.org>
+ <44D23B84.6090605@vmware.com> <20060803190327.GA14237@kroah.com>
+ <44D24B31.2080802@vmware.com> <20060803193600.GA14858@kroah.com>
+ <20060803195617.GD16927@redhat.com> <20060803202543.GH25692@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.suse.de ([195.135.220.2]:57256 "EHLO mx1.suse.de")
-	by vger.kernel.org with ESMTP id S1030183AbWHCVqj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Aug 2006 17:46:39 -0400
-Content-Disposition: inline
-In-Reply-To: <20060803210130.GJ16927@redhat.com>
+Received: from mail6.sea5.speakeasy.net ([69.17.117.8]:3310 "EHLO
+	mail6.sea5.speakeasy.net") by vger.kernel.org with ESMTP
+	id S1751399AbWHCXk0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 3 Aug 2006 19:40:26 -0400
+In-Reply-To: <20060803202543.GH25692@stusta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dave Jones <davej@redhat.com>, "Brown, Len" <len.brown@intel.com>, Adrian Bunk <bunk@stusta.de>, Zachary Amsden <zach@vmware.com>, Arjan van de Ven <arjan@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Christoph Hellwig <hch@infradead.org>, Rusty Russell <rusty@rustcorp.com.au>, Jack Lo <jlo@vmware.com>, v4l-dvb-maintainer@linuxtv.org, linux-acpi@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Dave Jones <davej@redhat.com>, Greg KH <greg@kroah.com>, Zachary Amsden <zach@vmware.com>, Arjan van de Ven <arjan@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Christoph Hellwig <hch@infradead.org>, Rusty Russell <rusty@rustcorp.com.au>, Jack Lo <jlo@vmware.com>, v4l-dvb-maintainer@linuxtv.org, linux-acpi@vger.kernel.org
 
-On Thu, Aug 03, 2006 at 05:01:30PM -0400, Dave Jones wrote:
-> On Thu, Aug 03, 2006 at 01:51:27PM -0700, Greg Kroah-Hartman wrote:
->  > On Thu, Aug 03, 2006 at 04:49:08PM -0400, Brown, Len wrote:
->  > > I've advised SuSE many times that they should not be shipping it,
->  > > as it means that their supported OS is running on modified firmware --
->  > > which, by definition, they can not support.  Indeed, one could view
->  > > this method as couter-productive to the evolution of Linux --
->  > > since it is our stated goal to run on the same machines that Windows
->  > > runs on -- without requiring customers to modify those machines
->  > > to run Linux.
->  > 
->  > Ok, if it's your position that we should not support this, I'll see what
->  > I can do to remove it from our kernel tree...
->  > 
->  > If there are any other patches that we are carrying that you (or anyone
->  > else) feel we should not be, please let me know.
-> 
-> It's somewhat hard to tell when the source rpm's don't match the binaries.
-> See ftp://ftp.suse.com/pub/projects/kernel/kotd/x86_64/HEAD for example,
-> and notice the lack of 2.6.18rc3 source, just 2.6.16.  Or am I looking
-> in the wrong place ? (The other arch's all seem to suffer this curious problem).
+On Thu, 3 Aug 2006, Adrian Bunk wrote:
+> On Thu, Aug 03, 2006 at 03:56:17PM -0400, Dave Jones wrote:
+> > You're describing PREVENT_FIRMWARE_BUILD.  The text Zach quoted is from
+> > STANDALONE, which is something else completely.  That allows us to not
+> > build drivers that pull in things from /etc and the like during compile.
+> > (Whoever thought that was a good idea?)
+>
+>
+> Is DVB_AV7110_FIRMWARE really still required?
+> ALL other drivers work without such an option.
 
-Bleah, our KOTD build is still broken...
+The other DVB drivers that need firmware load it when the device is opened
+or used (ie.  a channel is tuned).  At least for the ones I'm familiar
+with.  If they are compiled directly into the kernel, they can still use
+FW_LOADER since the loading won't happen until utill well after booting is
+done.
 
-We do have a 2.6.18rc3 kernel, and everything rebased on that, but it's
-not getting out to the world just yet for some odd reason.  It will show
-up in the next Opensuse 10.2 Alpha release some time next week, but it
-should be mirroring nightly too.
+For AV7110, it looks like the firmware loading is done when the driver is
+first initialized.  If AV7110 is compiled into the kernel, FW_LOADER can
+not be used.  The filesystem with the firmware won't be mounted yet.
 
-/me goes off to kick the build system
-
-thanks,
-
-greg k-h
+So AV7110 has an option to compile a firmware file into the driver.
