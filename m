@@ -1,69 +1,55 @@
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: [PATCH](memory hotplug) remove useless message at boot time from 2.6.18-rc3.
-Date: Fri, 04 Aug 2006 21:37:34 +0900
-Message-ID: <20060804213230.D5D4.Y-GOTO@jp.fujitsu.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH] Check battery after resume
+Date: Fri, 04 Aug 2006 15:46:31 +0200
+Message-ID: <1154699191.4302.610.camel@queen.suse.de>
+References: <1154625457.4302.556.camel@queen.suse.de>
+	 <20060803190220.GD11577@redhat.com>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1161192AbWHDMiZ@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: akpm@osdl.org
-Cc: keith mannthey <kmannth@us.ibm.com>, ACPI-ML <linux-acpi@vger.kernel.org>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Linux Hotplug Memory Support <lhms-devel@lists.sourceforge.net>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.suse.de ([195.135.220.2]:63416 "EHLO mx1.suse.de")
+	by vger.kernel.org with ESMTP id S1161181AbWHDNm7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Aug 2006 09:42:59 -0400
+In-Reply-To: <20060803190220.GD11577@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dave Jones <davej@redhat.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>
 
-This is to remove noisy useless message at boot time from 2.6.18-rc3.
-(-mm doesn't shows this message. I don't know why.)
+On Thu, 2006-08-03 at 15:02 -0400, Dave Jones wrote:
+> On Thu, Aug 03, 2006 at 07:17:37PM +0200, Thomas Renninger wrote:
+> 
+>  > +/* 
+>  > + * returns:
+>  > + *   0 on success
+>  > + *  <0 on failure
+>  > + *   1 if new battery found
+>  > + *   2 if battery got removed
+>  > + */
+> 
+> Why make this so complicated...
+> 
+>  > +	result = acpi_battery_check(battery);
+>  > +	if (result > 0){
+>  > +		acpi_bus_generate_event(device,
+>  > +					ACPI_NOTIFY_DEVICE_CHECK,
+>  > +					battery->flags.present);
+>  > +	}
+>  > +	return 0;
+>  > +}
+> 
+> When we simply treat the result as a boolean ?
 
-The message is a ton of 
-"ACPI Exception (acpi_memory-0492): AE_ERROR, handle is no memory device"
+The return value is used to:
+   check for error                       <0
+   success, no battery insertion/removal 0
+   battery insertion/removal             >0  (1/2)
 
-It is showed by acpi_memory_register_notify_handler() which
-is called by acpi_walk_namespace().
+The latter one is needed to inform userspace to reread complete battery
+information (possibly from other BATx dir) if battery has been
+inserted/removed.
 
-acpi_walk_namespace() parses all of ACPI's namespace and 
-executes acpi_memory_register_notify_handler(). So, it is called for
-all of the device which is defined in namespace. Even if
-the parsing device is not memory, it is normal route.
-So, this message is useless.
+   Thomas
 
-I tested this patch for 2.6.18-rc3 on my box with hot-add emulation.
-
-Please apply.
-
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-------
-
- drivers/acpi/acpi_memhotplug.c |    8 ++------
- 1 files changed, 2 insertions(+), 6 deletions(-)
-
-Index: hotmemtest1/drivers/acpi/acpi_memhotplug.c
-===================================================================
---- hotmemtest1.orig/drivers/acpi/acpi_memhotplug.c	2006-08-03 20:00:58.000000000 +0900
-+++ hotmemtest1/drivers/acpi/acpi_memhotplug.c	2006-08-04 21:06:52.000000000 +0900
-@@ -487,10 +487,8 @@ acpi_memory_register_notify_handler(acpi
- 
- 
- 	status = is_memory_device(handle);
--	if (ACPI_FAILURE(status)){
--		ACPI_EXCEPTION((AE_INFO, status, "handle is no memory device"));
-+	if (ACPI_FAILURE(status))
- 		return AE_OK;	/* continue */
--	}
- 
- 	status = acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
- 					     acpi_memory_device_notify, NULL);
-@@ -506,10 +504,8 @@ acpi_memory_deregister_notify_handler(ac
- 
- 
- 	status = is_memory_device(handle);
--	if (ACPI_FAILURE(status)){
--		ACPI_EXCEPTION((AE_INFO, status, "handle is no memory device"));
-+	if (ACPI_FAILURE(status))
- 		return AE_OK;	/* continue */
--	}
- 
- 	status = acpi_remove_notify_handler(handle,
- 					    ACPI_SYSTEM_NOTIFY,
-
--- 
-Yasunori Goto 
