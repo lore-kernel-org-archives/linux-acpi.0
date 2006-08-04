@@ -1,45 +1,69 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: [ltp] ACPI suspend works once, then fails. (A22p)
-Date: Fri, 4 Aug 2006 09:07:32 +0800
-Message-ID: <554C5F4C5BA7384EB2B412FD46A3BAD1F85E56@pdsmsx411.ccr.corp.intel.com>
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: [PATCH](memory hotplug) remove useless message at boot time from 2.6.18-rc3.
+Date: Fri, 04 Aug 2006 21:37:34 +0900
+Message-ID: <20060804213230.D5D4.Y-GOTO@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=gb2312
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:12311 "EHLO
-	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S1751410AbWHDBHq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Aug 2006 21:07:46 -0400
-Content-class: urn:content-classes:message
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1161192AbWHDMiZ@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: akpm@osdl.org
+Cc: keith mannthey <kmannth@us.ibm.com>, ACPI-ML <linux-acpi@vger.kernel.org>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Linux Hotplug Memory Support <lhms-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-thinkpad@linux-thinkpad.org
-Cc: linux-acpi@vger.kernel.org
 
-=20
-Please try patch at http://bugzilla.kernel.org/show_bug.cgi?id=3D6749#c=
-8
+This is to remove noisy useless message at boot time from 2.6.18-rc3.
+(-mm doesn't shows this message. I don't know why.)
 
------Original Message-----
-=46rom: linux-thinkpad-admin@linux-thinkpad.org [mailto:linux-thinkpad-=
-admin@linux-thinkpad.org] On Behalf Of Daniel Maier
-Sent: 2006=C4=EA8=D4=C24=C8=D5 4:40
-To: linux-thinkpad@linux-thinkpad.org
-Subject: Re: [ltp] ACPI suspend works once, then fails. (A22p)
+The message is a ton of 
+"ACPI Exception (acpi_memory-0492): AE_ERROR, handle is no memory device"
 
-On Thu, Aug 03, 2006 at 07:39:42AM +0100, Richard Neill wrote:
->=20
-> I've repeated this multiple times, with different kernels (2.6.16.20 =
-and=20
-> 2.6.17.7). Each time, the first suspend-resume cycle is perfectly OK,=
-=20
->
-I have a similiar problem with all kernels after 2.6.15.7, so you
-might want to try a 2.6.15.
+It is showed by acpi_memory_register_notify_handler() which
+is called by acpi_walk_namespace().
 
-Regards, nusse.
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+acpi_walk_namespace() parses all of ACPI's namespace and 
+executes acpi_memory_register_notify_handler(). So, it is called for
+all of the device which is defined in namespace. Even if
+the parsing device is not memory, it is normal route.
+So, this message is useless.
+
+I tested this patch for 2.6.18-rc3 on my box with hot-add emulation.
+
+Please apply.
+
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+------
+
+ drivers/acpi/acpi_memhotplug.c |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
+
+Index: hotmemtest1/drivers/acpi/acpi_memhotplug.c
+===================================================================
+--- hotmemtest1.orig/drivers/acpi/acpi_memhotplug.c	2006-08-03 20:00:58.000000000 +0900
++++ hotmemtest1/drivers/acpi/acpi_memhotplug.c	2006-08-04 21:06:52.000000000 +0900
+@@ -487,10 +487,8 @@ acpi_memory_register_notify_handler(acpi
+ 
+ 
+ 	status = is_memory_device(handle);
+-	if (ACPI_FAILURE(status)){
+-		ACPI_EXCEPTION((AE_INFO, status, "handle is no memory device"));
++	if (ACPI_FAILURE(status))
+ 		return AE_OK;	/* continue */
+-	}
+ 
+ 	status = acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
+ 					     acpi_memory_device_notify, NULL);
+@@ -506,10 +504,8 @@ acpi_memory_deregister_notify_handler(ac
+ 
+ 
+ 	status = is_memory_device(handle);
+-	if (ACPI_FAILURE(status)){
+-		ACPI_EXCEPTION((AE_INFO, status, "handle is no memory device"));
++	if (ACPI_FAILURE(status))
+ 		return AE_OK;	/* continue */
+-	}
+ 
+ 	status = acpi_remove_notify_handler(handle,
+ 					    ACPI_SYSTEM_NOTIFY,
+
+-- 
+Yasunori Goto 
