@@ -1,43 +1,45 @@
-From: Trent Piepho <xyzzy@speakeasy.org>
-Subject: Re: [v4l-dvb-maintainer] Options depending on STANDALONE
-Date: Thu, 3 Aug 2006 16:40:25 -0700 (PDT)
-Message-ID: <Pine.LNX.4.58.0608031610110.9178@shell2.speakeasy.net>
-References: <44D1CC7D.4010600@vmware.com> <1154603822.2965.18.camel@laptopd505.fenrus.org>
- <44D23B84.6090605@vmware.com> <20060803190327.GA14237@kroah.com>
- <44D24B31.2080802@vmware.com> <20060803193600.GA14858@kroah.com>
- <20060803195617.GD16927@redhat.com> <20060803202543.GH25692@stusta.de>
+From: "Yu, Luming" <luming.yu@intel.com>
+Subject: RE: [ltp] ACPI suspend works once, then fails. (A22p)
+Date: Fri, 4 Aug 2006 09:07:32 +0800
+Message-ID: <554C5F4C5BA7384EB2B412FD46A3BAD1F85E56@pdsmsx411.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=gb2312
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail6.sea5.speakeasy.net ([69.17.117.8]:3310 "EHLO
-	mail6.sea5.speakeasy.net") by vger.kernel.org with ESMTP
-	id S1751399AbWHCXk0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 Aug 2006 19:40:26 -0400
-In-Reply-To: <20060803202543.GH25692@stusta.de>
+Received: from mga03.intel.com ([143.182.124.21]:12311 "EHLO
+	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
+	id S1751410AbWHDBHq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Aug 2006 21:07:46 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Dave Jones <davej@redhat.com>, Greg KH <greg@kroah.com>, Zachary Amsden <zach@vmware.com>, Arjan van de Ven <arjan@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Christoph Hellwig <hch@infradead.org>, Rusty Russell <rusty@rustcorp.com.au>, Jack Lo <jlo@vmware.com>, v4l-dvb-maintainer@linuxtv.org, linux-acpi@vger.kernel.org
+To: linux-thinkpad@linux-thinkpad.org
+Cc: linux-acpi@vger.kernel.org
 
-On Thu, 3 Aug 2006, Adrian Bunk wrote:
-> On Thu, Aug 03, 2006 at 03:56:17PM -0400, Dave Jones wrote:
-> > You're describing PREVENT_FIRMWARE_BUILD.  The text Zach quoted is from
-> > STANDALONE, which is something else completely.  That allows us to not
-> > build drivers that pull in things from /etc and the like during compile.
-> > (Whoever thought that was a good idea?)
+=20
+Please try patch at http://bugzilla.kernel.org/show_bug.cgi?id=3D6749#c=
+8
+
+-----Original Message-----
+=46rom: linux-thinkpad-admin@linux-thinkpad.org [mailto:linux-thinkpad-=
+admin@linux-thinkpad.org] On Behalf Of Daniel Maier
+Sent: 2006=C4=EA8=D4=C24=C8=D5 4:40
+To: linux-thinkpad@linux-thinkpad.org
+Subject: Re: [ltp] ACPI suspend works once, then fails. (A22p)
+
+On Thu, Aug 03, 2006 at 07:39:42AM +0100, Richard Neill wrote:
+>=20
+> I've repeated this multiple times, with different kernels (2.6.16.20 =
+and=20
+> 2.6.17.7). Each time, the first suspend-resume cycle is perfectly OK,=
+=20
 >
->
-> Is DVB_AV7110_FIRMWARE really still required?
-> ALL other drivers work without such an option.
+I have a similiar problem with all kernels after 2.6.15.7, so you
+might want to try a 2.6.15.
 
-The other DVB drivers that need firmware load it when the device is opened
-or used (ie.  a channel is tuned).  At least for the ones I'm familiar
-with.  If they are compiled directly into the kernel, they can still use
-FW_LOADER since the loading won't happen until utill well after booting is
-done.
-
-For AV7110, it looks like the firmware loading is done when the driver is
-first initialized.  If AV7110 is compiled into the kernel, FW_LOADER can
-not be used.  The filesystem with the firmware won't be mounted yet.
-
-So AV7110 has an option to compile a firmware file into the driver.
+Regards, nusse.
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
