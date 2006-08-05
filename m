@@ -1,45 +1,60 @@
-From: Alessandro Guido <alessandro.guido.box@gmail.com>
-Subject: Re: Sony ACPI extras mainline inclusion
-Date: Sat, 05 Aug 2006 12:43:45 +0200
-Message-ID: <44D47661.8080000@gmail.com>
-References: <44CB288A.1010702@gmail.com> <20060802100314.GF7601@ucw.cz>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: Re: [v4l-dvb-maintainer] Options depending on STANDALONE
+Date: Sat, 5 Aug 2006 12:51:22 +0200
+Message-ID: <20060805105122.GT25692@stusta.de>
+References: <44D1CC7D.4010600@vmware.com> <1154603822.2965.18.camel@laptopd505.fenrus.org> <44D23B84.6090605@vmware.com> <20060803190327.GA14237@kroah.com> <44D24B31.2080802@vmware.com> <20060803193600.GA14858@kroah.com> <20060803195617.GD16927@redhat.com> <20060803202543.GH25692@stusta.de> <Pine.LNX.4.58.0608031610110.9178@shell2.speakeasy.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.190]:216 "EHLO
-	nf-out-0910.google.com") by vger.kernel.org with ESMTP
-	id S1751439AbWHEKmC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 5 Aug 2006 06:42:02 -0400
-Received: by nf-out-0910.google.com with SMTP id k26so167206nfc
-        for <linux-acpi@vger.kernel.org>; Sat, 05 Aug 2006 03:42:01 -0700 (PDT)
-In-Reply-To: <20060802100314.GF7601@ucw.cz>
+Received: from emailhub.stusta.mhn.de ([141.84.69.5]:61966 "HELO
+	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
+	id S1161329AbWHEKv0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 5 Aug 2006 06:51:26 -0400
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.58.0608031610110.9178@shell2.speakeasy.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@suse.cz>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: Dave Jones <davej@redhat.com>, Greg KH <greg@kroah.com>, Zachary Amsden <zach@vmware.com>, Arjan van de Ven <arjan@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Christoph Hellwig <hch@infradead.org>, Rusty Russell <rusty@rustcorp.com.au>, Jack Lo <jlo@vmware.com>, v4l-dvb-maintainer@linuxtv.org, linux-acpi@vger.kernel.org
 
-Pavel Machek wrote:
-> Hi!
+On Thu, Aug 03, 2006 at 04:40:25PM -0700, Trent Piepho wrote:
+> On Thu, 3 Aug 2006, Adrian Bunk wrote:
+> > On Thu, Aug 03, 2006 at 03:56:17PM -0400, Dave Jones wrote:
+> > > You're describing PREVENT_FIRMWARE_BUILD.  The text Zach quoted is from
+> > > STANDALONE, which is something else completely.  That allows us to not
+> > > build drivers that pull in things from /etc and the like during compile.
+> > > (Whoever thought that was a good idea?)
+> >
+> >
+> > Is DVB_AV7110_FIRMWARE really still required?
+> > ALL other drivers work without such an option.
 > 
->> I own a Sony VAIO laptop that uses ACPI for setting 
->> screen brightness
->> through the "2.6-sony_acpi4.patch" patch that has been 
->> living in -mm for a while.
->> I'd like this patch to be merged in mainline, so that I 
->> won't be forced anymore to patch
->> the kernel by hand or to use the -mm patchset.
->> Is there something that prevents this to happen?
+> The other DVB drivers that need firmware load it when the device is opened
+> or used (ie.  a channel is tuned).  At least for the ones I'm familiar
+> with.  If they are compiled directly into the kernel, they can still use
+> FW_LOADER since the loading won't happen until utill well after booting is
+> done.
 > 
-> Wrong interface?
+> For AV7110, it looks like the firmware loading is done when the driver is
+> first initialized.  If AV7110 is compiled into the kernel, FW_LOADER can
+> not be used.  The filesystem with the firmware won't be mounted yet.
 > 
-> Convert it to use /sys/class/backlight sysfs interface...
-> 
-> 						Pavel
+> So AV7110 has an option to compile a firmware file into the driver.
 
-Thank you for repling!
+But is there a technical reason why this has to be done this way?
 
-I found a patch that does it in the mailing list archives,
-although I've not tested if it can be still applied correctly:
+This is the onle (non-OSS) driver doing it this way, and Zach has a 
+point that this is legally questionable.
 
-http://marc.theaimsgroup.com/?l=linux-acpi&m=113950408508944&w=2
+cu
+Adrian
+
+-- 
+
+    Gentoo kernels are 42 times more popular than SUSE kernels among
+    KLive users  (a service by SUSE contractor Andrea Arcangeli that
+    gathers data about kernels from many users worldwide).
+
+       There are three kinds of lies: Lies, Damn Lies, and Statistics.
+                                                    Benjamin Disraeli
+
