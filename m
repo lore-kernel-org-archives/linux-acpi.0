@@ -1,28 +1,51 @@
-From: Pierre Ossman <drzeus-list@drzeus.cx>
-Subject: Re: ACPIPNP and too large IO resources
-Date: Sat, 05 Aug 2006 02:19:46 +0200
-Message-ID: <44D3E422.5060805@drzeus.cx>
-References: <44AB608F.1060903@drzeus.cx>	 <200607051536.30771.bjorn.helgaas@hp.com>	 <20060705151803.5841e91d.akpm@osdl.org>	 <200607060929.04787.bjorn.helgaas@hp.com> <1152234189.21189.139.camel@sli10-desk.sh.intel.com>
+From: Eric Anderson <anderse@hpl.hp.com>
+Subject: Proper way to enable ACPI_DEBUGGER; debugging lack of ac online/offline updates
+Date: Fri, 4 Aug 2006 17:22:27 -0700
+Message-ID: <17619.58563.987172.727039@cello.hpl.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 85.8.24.16.se.wasadata.net ([85.8.24.16]:37765 "EHLO
-	smtp.drzeus.cx") by vger.kernel.org with ESMTP id S932483AbWHEATr
+Received: from gundega.hpl.hp.com ([192.6.19.190]:57571 "EHLO
+	gundega.hpl.hp.com") by vger.kernel.org with ESMTP id S1422671AbWHEAWg
 	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 4 Aug 2006 20:19:47 -0400
-In-Reply-To: <1152234189.21189.139.camel@sli10-desk.sh.intel.com>
+	Fri, 4 Aug 2006 20:22:36 -0400
+Received: from cello.hpl.hp.com (cello.hpl.hp.com [15.4.89.103])
+	by gundega.hpl.hp.com (8.13.7/8.13.7/HPL-PA Relay) with ESMTP id k750MSOU007101
+	for <linux-acpi@vger.kernel.org>; Fri, 4 Aug 2006 17:22:28 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Andrew Morton <akpm@osdl.org>, "Brown, Len" <len.brown@intel.com>, linux-kernel@vger.kernel.org, ambx1@neo.rr.com, castet.matthieu@free.fr, linux-acpi@vger.kernel.org, uwe.bugla@gmx.de
+To: linux-acpi@vger.kernel.org
 
-Shaohua Li wrote:
-> Sure. Please merge the patch Bjorn pointed out.
->   
+I've been trying to figure out what is going wrong with Linux ACPI
+support on the HP nw9440.  One of the problems that I've had is that
+when the AC adapter is removed, the acpi status doesn't get updated.
+I have discovered that if I boot with 2.6.14, wait for it to hang, and
+then reboot with 2.6.17.7, I have functional notification of the AC
+adapter state changes.
 
-So? What's the status of this? Still not in Linus' tree.
+I'm attempting to work out what the difference is between these two
+runs, and I have found a first difference that in the non-working
+case, acpi_ex_opcode_2A_0T_0R is called which queues a deferred
+execution, and prints out the message "bus_get_device: No context for
+object [...]".  In the working case, that path is never executed.
 
-Rgds
-Pierre
+I'm trying to figure out what the difference is between the AML that
+gets executed along the two paths, and near as I can tell, if I could
+enable ACPI_DEBUGGER, I would get the trace of executed AML, and I
+could start working out what is going wrong.  However, I can't find
+any kernel config option to enable ACPI_DEBUGGER, and all of my google
+searches around that haven't found anything that describes how it
+should work, nor has wandering around the acpi4linux wiki, other
+acpi4linux web pages, nor the mailing list archives.
+
+I therefore have three questions: 
+  a) what is the proper way to enable ACPI_DEBUGGER option
+  b) will it print out a trace of executed AML as I'm expecting
+  c) is there some other debugging path that I should be trying to get
+     this to work?
+
+Thanks, please CC me directly as I'm not subscribed to the linux-acpi
+mailing list.
+	-Eric
 
