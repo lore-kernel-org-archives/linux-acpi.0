@@ -1,62 +1,28 @@
-From: Dave Jones <davej@redhat.com>
-Subject: Re: [PATCH] Check battery after resume
-Date: Fri, 4 Aug 2006 13:09:19 -0400
-Message-ID: <20060804170919.GL7265@redhat.com>
-References: <1154625457.4302.556.camel@queen.suse.de> <20060803190220.GD11577@redhat.com> <1154699191.4302.610.camel@queen.suse.de>
+From: Pierre Ossman <drzeus-list@drzeus.cx>
+Subject: Re: ACPIPNP and too large IO resources
+Date: Sat, 05 Aug 2006 02:19:46 +0200
+Message-ID: <44D3E422.5060805@drzeus.cx>
+References: <44AB608F.1060903@drzeus.cx>	 <200607051536.30771.bjorn.helgaas@hp.com>	 <20060705151803.5841e91d.akpm@osdl.org>	 <200607060929.04787.bjorn.helgaas@hp.com> <1152234189.21189.139.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:46245 "EHLO mx1.redhat.com")
-	by vger.kernel.org with ESMTP id S1161328AbWHDRJZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Aug 2006 13:09:25 -0400
-Content-Disposition: inline
-In-Reply-To: <1154699191.4302.610.camel@queen.suse.de>
+Received: from 85.8.24.16.se.wasadata.net ([85.8.24.16]:37765 "EHLO
+	smtp.drzeus.cx") by vger.kernel.org with ESMTP id S932483AbWHEATr
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 4 Aug 2006 20:19:47 -0400
+In-Reply-To: <1152234189.21189.139.camel@sli10-desk.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Andrew Morton <akpm@osdl.org>, "Brown, Len" <len.brown@intel.com>, linux-kernel@vger.kernel.org, ambx1@neo.rr.com, castet.matthieu@free.fr, linux-acpi@vger.kernel.org, uwe.bugla@gmx.de
 
-On Fri, Aug 04, 2006 at 03:46:31PM +0200, Thomas Renninger wrote:
- > On Thu, 2006-08-03 at 15:02 -0400, Dave Jones wrote:
- > > On Thu, Aug 03, 2006 at 07:17:37PM +0200, Thomas Renninger wrote:
- > > 
- > >  > +/* 
- > >  > + * returns:
- > >  > + *   0 on success
- > >  > + *  <0 on failure
- > >  > + *   1 if new battery found
- > >  > + *   2 if battery got removed
- > >  > + */
- > > 
- > > Why make this so complicated...
- > > 
- > >  > +	result = acpi_battery_check(battery);
- > >  > +	if (result > 0){
- > >  > +		acpi_bus_generate_event(device,
- > >  > +					ACPI_NOTIFY_DEVICE_CHECK,
- > >  > +					battery->flags.present);
- > >  > +	}
- > >  > +	return 0;
- > >  > +}
- > > 
- > > When we simply treat the result as a boolean ?
- > 
- > The return value is used to:
- >    check for error                       <0
- >    success, no battery insertion/removal 0
- >    battery insertion/removal             >0  (1/2)
- > 
- > The latter one is needed to inform userspace to reread complete battery
- > information (possibly from other BATx dir) if battery has been
- > inserted/removed.
+Shaohua Li wrote:
+> Sure. Please merge the patch Bjorn pointed out.
+>   
 
-The code cares about 2 possible states 'is there a battery added/removed'.
-Yet there are 4 possible states for no obvious reason.
-acpi_battery_check code could just as easily return
-0=nothing changed, 1=battery added/removed, as you don't distinguish
-between states '1' and '2' anyway.
+So? What's the status of this? Still not in Linus' tree.
 
-		Dave
+Rgds
+Pierre
 
--- 
-http://www.codemonkey.org.uk
