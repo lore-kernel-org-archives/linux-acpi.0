@@ -1,52 +1,84 @@
-From: Brannon Barrett Klopfer <bklopfer@stanford.edu>
-Subject: hp dv8000t dead on resume from RAM
-Date: Tue,  8 Aug 2006 10:15:11 -0700
-Message-ID: <1155057311.44d8c69f3f2fc@webmail.stanford.edu>
+From: "Jordan Crouse" <jordan.crouse@amd.com>
+Subject: [PATCH] ACPI: Clear GPE before disabling it
+Date: Tue, 8 Aug 2006 13:19:03 -0600
+Message-ID: <20060808191903.GA10816@cosmic.amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp3.Stanford.EDU ([171.67.20.26]:2962 "EHLO
-	smtp3.stanford.edu") by vger.kernel.org with ESMTP id S964955AbWHHRPN
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 8 Aug 2006 13:15:13 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary=M9NhX3UHpAaciwkO
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1030205AbWHHTRT@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: acpi@linux.intel.com
+Cc: linux-kernel@vger.kernel.org, william.morrow@amd.com
+List-Id: linux-acpi@vger.kernel.org
 
-Howdy,
 
-My hp dv8000t (core duo) is completely dead on resume from RAM (no caps
-lock, sysrq, netconsole,
-nothing). I've tried a recent (2.6.18-rc4) kernel running almost entirely
-naked, so to speak (~990K) -- no support for:
+--M9NhX3UHpAaciwkO
+Content-Type: text/plain;
+ charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 
-SMP
-preempt
-modules
-networking (+ enet drivers, unless running netconsole)
-USB and SATA (not at same time; rootfs is either usb drive or SATA [ext2/3])
-FireWire
-cpufreq
-framebuffer (vga=0)
-audio
-PCMCIA
-IDE (for cdrom)
+On AMD Geode BIOSen, we have problems with GPE interrupt storms.  The
+attached patch resolves that.  This should be fine for all implementations,
+though.
 
-I've tried both native SATA (ahci) and legacy (ata_piix), but same result
-w/both -- completely dead on resume from RAM. Blindly entering commands
-does nothing, and running "$suspend ; $shutdown" does nothing either. I've
-also tried with and without noapic, and a number of other kernel
-paramaters, but nothing seems to work.
+Jordan
+-- 
+Jordan Crouse
+Senior Linux Engineer
+Advanced Micro Devices, Inc.
+<www.amd.com/embeddedprocessors>
 
-Be more than happy to try out patches, etc. to get this thing working.
-Additionally, if someone could point me to that "beep on resume" patch,
-that'd be great.
+--M9NhX3UHpAaciwkO
+Content-Type: text/plain;
+ charset=us-ascii
+Content-Disposition: inline;
+ filename=acpi-s1-fix.patch
+Content-Transfer-Encoding: 7bit
 
-Some machine/debugging info (cpuinfo, messages, lspci, etc.) at:
+[PATCH] ACPI:  Clear GPE before disabling it
 
-http://www.stanford.edu/~bklopfer/wontsuspend/
+From: William Morrow <william.morrow@amd.com>
 
-Thanks,
-Brannon Klopfer
+On some BIOSen, the GPE bit will remain set even if it is disabled, 
+resulting in a interrupt storm.  This patch clears the bit before 
+disabling it.
+
+Signed-off-by:  William Morrow <william.morrow@amd.com>
+Signed-off-by:  Jordan Crouse <jordan.crouse@amd.com>
+---
+
+ drivers/acpi/events/evgpe.c |   14 +++++++++++++-
+ 1 files changed, 13 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/acpi/events/evgpe.c b/drivers/acpi/events/evgpe.c
+index c76c058..1f93b23 100644
+--- a/drivers/acpi/events/evgpe.c
++++ b/drivers/acpi/events/evgpe.c
+@@ -677,10 +677,22 @@ acpi_ev_gpe_dispatch(struct acpi_gpe_eve
+ 	case ACPI_GPE_DISPATCH_METHOD:
+ 
+ 		/*
+-		 * Disable GPE, so it doesn't keep firing before the method has a
++		 * Clear GPE, so it doesn't keep firing before the method has a
+ 		 * chance to run.
+ 		 */
++		status = acpi_hw_clear_gpe(gpe_event_info);
++		if (ACPI_FAILURE(status)) {
++			ACPI_EXCEPTION((AE_INFO, status,
++					"Unable to clear GPE[%2X]",
++					gpe_number));
++			return_UINT32(ACPI_INTERRUPT_NOT_HANDLED);
++		}
++		/*
++		 * Disable GPE, so it doesn't keep happen again.
++		 */
++
+ 		status = acpi_ev_disable_gpe(gpe_event_info);
++
+ 		if (ACPI_FAILURE(status)) {
+ 			ACPI_EXCEPTION((AE_INFO, status,
+ 					"Unable to disable GPE[%2X]",
+
+--M9NhX3UHpAaciwkO--
