@@ -1,125 +1,39 @@
-From: "Daniel Smertnig" <daniel.smertnig@gmail.com>
-Subject: C4 state missing on T60p (Intel Core Duo)
-Date: Wed, 9 Aug 2006 19:29:58 +0200
-Message-ID: <18dd01ff0608091029n4777966qc9588cf262db432e@mail.gmail.com>
+From: john stultz <johnstul@us.ibm.com>
+Subject: Re: 2.6.18-rc4 (and earlier): CMOS clock corruption during suspend
+	to disk on i386
+Date: Wed, 09 Aug 2006 10:44:00 -0700
+Message-ID: <1155145440.5418.21.camel@localhost.localdomain>
+References: <200608091426.31762.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.169]:21719 "EHLO
-	ug-out-1314.google.com") by vger.kernel.org with ESMTP
-	id S1751275AbWHIR37 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 9 Aug 2006 13:29:59 -0400
-Received: by ug-out-1314.google.com with SMTP id m3so193533ugc
-        for <linux-acpi@vger.kernel.org>; Wed, 09 Aug 2006 10:29:58 -0700 (PDT)
-Content-Disposition: inline
+Received: from e4.ny.us.ibm.com ([32.97.182.144]:12936 "EHLO e4.ny.us.ibm.com")
+	by vger.kernel.org with ESMTP id S1751280AbWHIRoE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Aug 2006 13:44:04 -0400
+In-Reply-To: <200608091426.31762.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@osdl.org>
 
-Hi,
+On Wed, 2006-08-09 at 14:26 +0200, Rafael J. Wysocki wrote:
+> It looks like the CMOS clock gets corrupted during the suspend to disk
+> on i386.  I've observed this on 2 different boxes.  Moreover, one of them is
+> AMD64-based and the x86_64 kernel doesn't have this problem on it.
+> 
+> Also, I've done some tests that indicate the corruption doesn't occur before
+> saving the suspend image.  It rather happens when the box is powered off
+> or rebooted (tested both cases).
 
-I have recently noticed that my Thinkpad T60p doesn't expose a C4
-state via ACPI, even when on battery, but instead shows a different
-latency for C3:
+Hmmm. Could you better describe the corruption you're seeing? 
 
-AC:
-daniel-mobile% cat /proc/acpi/processor/*/power
-active state:            C2
-max_cstate:              C8
-bus master activity:     000c0000
-states:
-    C1:                  type[C1] promotion[C2] demotion[--]
-latency[000] usage[00000010]
-   *C2:                  type[C2] promotion[C3] demotion[C1]
-latency[001] usage[04378697]
-    C3:                  type[C3] promotion[--] demotion[C2]
-latency[017] usage[02945663]
-active state:            C3
-max_cstate:              C8
-bus master activity:     00000000
-states:
-    C1:                  type[C1] promotion[C2] demotion[--]
-latency[000] usage[00000010]
-    C2:                  type[C2] promotion[C3] demotion[C1]
-latency[001] usage[04745508]
-   *C3:                  type[C3] promotion[--] demotion[C2]
-latency[017] usage[05832946]
+I've just gotten a report about uptime reporting odd values after resume
+when the CMOS clock was set to the past during a suspend to disk, but
+that's somewhat expected and I would think it would occur on x86_64 as
+well.
 
-battery:
-daniel-mobile% cat /proc/acpi/processor/*/power
-active state:            C2
-max_cstate:              C8
-bus master activity:     ffffff40
-states:
-    C1:                  type[C1] promotion[C2] demotion[--]
-latency[000] usage[00000010]
-   *C2:                  type[C2] promotion[C3] demotion[C1]
-latency[001] usage[00000119]
-    C3:                  type[C3] promotion[--] demotion[C2]
-latency[057] usage[00000000]
-active state:            C2
-max_cstate:              C8
-bus master activity:     ffffffec
-states:
-    C1:                  type[C1] promotion[C2] demotion[--]
-latency[000] usage[00000010]
-   *C2:                  type[C2] promotion[C3] demotion[C1]
-latency[001] usage[00000158]
-    C3:                  type[C3] promotion[--] demotion[C2]
-latency[057] usage[00000000]
+thanks
+-john
 
 
-I've tracked this down to the ACPI which does not ever seem to return
-a package for the C4-state from the _CST method [*].
-
-I'm now wondering whether the C4 state will ever be used, i.e. will
-the CPU/BIOS promote to it by itself from C3 or does Linux need to
-actually know about C4 (and deep C4, I assume on the Intel Core
-processors) to make use of it. What's strange is, that older models
-seem to expose C4 as I've found out while browsing some DSDTs on
-acpi.sf.net.
-
-I would be very grateful to get clarification about this.
-
-Thanks,
-Daniel
-
-[*] The relevant SSDT containing the _CST method is loaded by ACPI
-code from a magic address with a Load() statement.
-
-Schematically it looks something like this, note that the relevant
-"CST4" definition only contains three packages:
-
-Scope(\_PR.CPU0)
-{
-   Name (CST1, ...)
-   {
-       Package (...) {...}
-   }
-   Name (CST2, ...)
-   {
-       Package (...)  {...},
-       Package (...)  {...}
-   }
-   Name (CST3, ...)
-   {
-       Package (...)  {...},
-       Package (...)  {...},
-       Package (...)  {...} // latency 17
-   }
-   Name (CST4, ...)
-   {
-       Package (...)  {...},
-       Package (...)  {...},
-       Package (...)  {...} // latency 57
-   }
-
-   Method(_CST,...)
-   {
-      if (\C2NA) { return CST1 }
-      if (\C3NA) { return CST2 }
-      if (\C4NA) { return CST3 }
-      return CST4
-   }
-}
