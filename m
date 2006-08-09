@@ -1,50 +1,83 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 2.6.18-rc4 (and earlier): CMOS clock corruption during suspend to disk on i386
-Date: Wed, 9 Aug 2006 22:51:57 +0200
-Message-ID: <200608092251.58062.rjw@sisk.pl>
-References: <200608091426.31762.rjw@sisk.pl> <200608092201.42885.rjw@sisk.pl> <20060809131232.75a260e1.akpm@osdl.org>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: C4 state missing on T60p (Intel Core Duo)
+Date: Wed, 9 Aug 2006 18:28:27 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB60133D600@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:28132 "EHLO ogre.sisk.pl")
-	by vger.kernel.org with ESMTP id S1751368AbWHIUw5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Aug 2006 16:52:57 -0400
-In-Reply-To: <20060809131232.75a260e1.akpm@osdl.org>
-Content-Disposition: inline
+Received: from mga09.intel.com ([134.134.136.24]:58116 "EHLO
+	orsmga102-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1751407AbWHIW2c convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Aug 2006 18:28:32 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: Pavel Machek <pavel@ucw.cz>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: Daniel Smertnig <daniel.smertnig@gmail.com>, linux-acpi@vger.kernel.org
 
-On Wednesday 09 August 2006 22:12, Andrew Morton wrote:
-> On Wed, 9 Aug 2006 22:01:42 +0200
-> "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
-> 
-> > On Wednesday 09 August 2006 14:30, Pavel Machek wrote:
-> > > Hi!
-> > > > 
-> > > > It looks like the CMOS clock gets corrupted during the suspend to disk
-> > > > on i386.  I've observed this on 2 different boxes.  Moreover, one of them is
-> > > > AMD64-based and the x86_64 kernel doesn't have this problem on it.
-> > > > 
-> > > > Also, I've done some tests that indicate the corruption doesn't occur before
-> > > > saving the suspend image.  It rather happens when the box is powered off
-> > > > or rebooted (tested both cases).
-> > > > 
-> > > > Unfortunately, I have no more time to debug it further right now.
-> > > 
-> > > Do you have Linus' "please corrupt my cmos for debuggin" hack enabled?
-> > 
-> > Well, I know nothing about that. ;-)
-> > 
-> 
-> CONFIG_PM_TRACE=y will scrog your CMOS clock each time you suspend.
+For this system...
 
-Oh dear.  Of course it's set in my .config.  Thanks a lot for this hint. :-)
+On DC: OS C3 = HW C4
+On AC: OS C3 = HW C3
 
-BTW, it's a dangerous setting, because some drivers get mad if the time after
-the resume appears to be earlier than the time before the suspend.  Also the
-timer .suspend/.resume routines aren't prepared for that.
+This is a common BIOS implementation choice.
+The reasoning is that on AC you are more interested in lower
+latency than you are interested in increased power savings.
 
+They could have equally decided to expose 4 C-states no matter
+AC or DC, but a popular binary OS would just ignore C3 in that
+case and use only C4.
+ 
+On AC/DC events, _CST is re-evaluated and the BIOS
+gives the OS a different answer.  We don't print out the
+IO address used to enter the state, but if we did,
+you'd find that it changes along with the reported latency.
+
+> AC:
+>    C3:                  type[C3] promotion[--] demotion[C2]
+>latency[017] usage[02945663]
+>active state:            C3
+>max_cstate:              C8
+>bus master activity:     00000000
+>states:
+>    C1:                  type[C1] promotion[C2] demotion[--]
+>latency[000] usage[00000010]
+>    C2:                  type[C2] promotion[C3] demotion[C1]
+>latency[001] usage[04745508]
+>   *C3:                  type[C3] promotion[--] demotion[C2]
+>latency[017] usage[05832946]
+>
+>battery:
+>daniel-mobile% cat /proc/acpi/processor/*/power
+>active state:            C2
+>max_cstate:              C8
+>bus master activity:     ffffff40
+>states:
+>    C1:                  type[C1] promotion[C2] demotion[--]
+>latency[000] usage[00000010]
+>   *C2:                  type[C2] promotion[C3] demotion[C1]
+>latency[001] usage[00000119]
+>    C3:                  type[C3] promotion[--] demotion[C2]
+>latency[057] usage[00000000]
+>active state:            C2
+>max_cstate:              C8
+>bus master activity:     ffffffec
+
+The reason you are not entering  OS C3 when on DC is because
+of bus master activity.
+
+To ignore it, do this:
+
+# echo 0 > /sys/module/processor/parameters/bm_history
+
+cheers,
+-Len
+
+>states:
+>    C1:                  type[C1] promotion[C2] demotion[--]
+>latency[000] usage[00000010]
+>   *C2:                  type[C2] promotion[C3] demotion[C1]
+>latency[001] usage[00000158]
+>    C3:                  type[C3] promotion[--] demotion[C2]
+>latency[057] usage[00000000]
