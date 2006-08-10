@@ -1,57 +1,97 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 2.6.18-rc4 (and earlier): CMOS clock corruption during suspend to disk on i386
-Date: Thu, 10 Aug 2006 14:15:21 +0200
-Message-ID: <200608101415.21505.rjw@sisk.pl>
-References: <200608091426.31762.rjw@sisk.pl> <200608092251.58062.rjw@sisk.pl> <20060810001232.GB4249@ucw.cz>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: [PATCH 2/2] acpi,backlight: MSI S270 laptop support - driver
+Date: Thu, 10 Aug 2006 12:15:52 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB60133DB99@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:18922 "EHLO ogre.sisk.pl")
-	by vger.kernel.org with ESMTP id S1161204AbWHJMQ3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Aug 2006 08:16:29 -0400
-In-Reply-To: <20060810001232.GB4249@ucw.cz>
-Content-Disposition: inline
+Received: from mga01.intel.com ([192.55.52.88]:10763 "EHLO
+	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
+	id S1161411AbWHJQQX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Aug 2006 12:16:23 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@suse.cz>
-Cc: Andrew Morton <akpm@osdl.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: Lennart Poettering <mzxreary@0pointer.de>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi,
 
-On Thursday 10 August 2006 02:12, Pavel Machek wrote:
-> > > > > > It looks like the CMOS clock gets corrupted during the suspend to disk
-> > > > > > on i386.  I've observed this on 2 different boxes.  Moreover, one of them is
-> > > > > > AMD64-based and the x86_64 kernel doesn't have this problem on it.
-> > > > > > 
-> > > > > > Also, I've done some tests that indicate the corruption doesn't occur before
-> > > > > > saving the suspend image.  It rather happens when the box is powered off
-> > > > > > or rebooted (tested both cases).
-> > > > > > 
-> > > > > > Unfortunately, I have no more time to debug it further right now.
-> > > > > 
-> > > > > Do you have Linus' "please corrupt my cmos for debuggin" hack enabled?
-> > > > 
-> > > > Well, I know nothing about that. ;-)
-> > > 
-> > > CONFIG_PM_TRACE=y will scrog your CMOS clock each time you suspend.
-> > 
-> > Oh dear.  Of course it's set in my .config.  Thanks a lot for this hint. :-)
-> > 
-> > BTW, it's a dangerous setting, because some drivers get mad if the time after
-> > the resume appears to be earlier than the time before the suspend.  Also the
-> > timer .suspend/.resume routines aren't prepared for that.
-> 
-> Its config option should just go away. People comfortable using *that*
-> should just edit some header file. Rafael, could you do patch doing
-> something like that?
+>If you look closely you'll see that the patch already adds a new
+>entry to MAINTAINERS.
 
-Just remove the option from Kconfig or the whole setting?
+Excellent.
 
-Shouldn't we also change the timer .resume() routines to check if the time
-after the resume is later than (or at least the same as) the time before the
-suspend and set the "sleep length" to 0 if not?
+>I put the the driver in drivers/acpi/ because it relies heavily on the
+>ACPI EC stuff. But OK, what is a better place for the driver? 
 
-Rafael
+It is possible that parts of it should live in different places,
+but I agree that it is also desireable to keep the compnents of a
+platform
+specific driver together in as few files as possible.
+
+>drivers/char/ 
+>  It doesn't even register any character device.
+
+I believe that is okay, and that creating a /dev file isn't a
+requirement.
+
+>drivers/video/backlight/
+>  It doesn't just do backlight control.
+
+Perhaps the backlight part should live there.
+
+>drivers/misc/
+>  Seems to be the last resort for everything that doesn't fit it
+>  otherwise.
+>
+>Unless anyone has a better idea I will move it to drivers/misc/, then.
+
+Yeah, there is probably a better place than misc.
+
+The only thing I can say for sure is that it implements
+platform-dependent
+features rather than standard features in the ACPI spec,
+and thus it must live outside of drivers/acpi/.
+
+>> lcd brightness platform support should talk to the existing
+>> backlight stuff under sysfs.
+>
+>It already does exactly that, you can find the backlight class driver
+>in /sys/class/backlight/s270/.
+
+Excellent.
+
+>I cannot map the "automatic brightness control" feature to the
+>backlight class driver, that's why I duplicated the brightness stuff
+>in /proc/acpi/s270/.
+
+Better to extend the backlight code so that it can handle the
+special features of this platform than to duplicate brightness
+control in multiple places.
+
+>> wlan and bluetooth indicators/controls need to appear under
+>> generic places under sysfs -- not under platform specific
+>> files under /proc/acpi.
+>
+>What are those "generic" places? I cannot think of any besides a
+>"platform" device.
+
+They should appear as properties under their associated
+devices in /sys/devices tree rather than invening a new place.
+
+>Any ideas on that ec_transaction() patch I sent earlier?
+
+I agree 100% that ec.c needs to be whacked.  Unfortunately
+there seem to be 3 people doing it at the same time,
+so we'll have to sort that out.
+
+thanks,
+-Len
+
+ps. Lennart, please understand that I didn't intend to be gruff.
+I figured that by the quality of your work -- which is better than most
+--
+that I'd go for an immediate reply, even though I was still holding a
+sharp pointed stick at the end of a 6-hour bug scrub marathon.
