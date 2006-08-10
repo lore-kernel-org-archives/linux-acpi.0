@@ -1,62 +1,51 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 2.6.18-rc4 (and earlier): CMOS clock corruption during suspend to disk on i386
-Date: Thu, 10 Aug 2006 22:51:20 +0200
-Message-ID: <200608102251.20707.rjw@sisk.pl>
-References: <200608091426.31762.rjw@sisk.pl> <20060810001232.GB4249@ucw.cz> <200608101415.21505.rjw@sisk.pl>
+From: Len Brown <len.brown@intel.com>
+Subject: Re: [PATCH](memory hotplug) Repost remove useless message at boot time from 2.6.18-rc4.
+Date: Thu, 10 Aug 2006 16:54:57 -0400
+Message-ID: <200608101654.58358.len.brown@intel.com>
+References: <20060804213230.D5D4.Y-GOTO@jp.fujitsu.com> <20060810142329.EB03.Y-GOTO@jp.fujitsu.com> <44DB965A.3050208@redhat.com>
+Reply-To: Len Brown <lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:36994 "EHLO ogre.sisk.pl")
-	by vger.kernel.org with ESMTP id S1750971AbWHJUwW (ORCPT
+Received: from hera.kernel.org ([140.211.167.34]:27611 "EHLO hera.kernel.org")
+	by vger.kernel.org with ESMTP id S932150AbWHJUxl (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Aug 2006 16:52:22 -0400
-In-Reply-To: <200608101415.21505.rjw@sisk.pl>
+	Thu, 10 Aug 2006 16:53:41 -0400
+In-Reply-To: <44DB965A.3050208@redhat.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@suse.cz>
-Cc: Andrew Morton <akpm@osdl.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: Prarit Bhargava <prarit@redhat.com>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>, akpm@osdl.org, keith mannthey <kmannth@us.ibm.com>, ACPI-ML <linux-acpi@vger.kernel.org>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Linux Hotplug Memory Support <lhms-devel@lists.sourceforge.net>
 
-Hi,
-
-On Thursday 10 August 2006 14:15, Rafael J. Wysocki wrote:
-> On Thursday 10 August 2006 02:12, Pavel Machek wrote:
-> > > > > > > It looks like the CMOS clock gets corrupted during the suspend to disk
-> > > > > > > on i386.  I've observed this on 2 different boxes.  Moreover, one of them is
-> > > > > > > AMD64-based and the x86_64 kernel doesn't have this problem on it.
-> > > > > > > 
-> > > > > > > Also, I've done some tests that indicate the corruption doesn't occur before
-> > > > > > > saving the suspend image.  It rather happens when the box is powered off
-> > > > > > > or rebooted (tested both cases).
-> > > > > > > 
-> > > > > > > Unfortunately, I have no more time to debug it further right now.
-> > > > > > 
-> > > > > > Do you have Linus' "please corrupt my cmos for debuggin" hack enabled?
-> > > > > 
-> > > > > Well, I know nothing about that. ;-)
-> > > > 
-> > > > CONFIG_PM_TRACE=y will scrog your CMOS clock each time you suspend.
-> > > 
-> > > Oh dear.  Of course it's set in my .config.  Thanks a lot for this hint. :-)
-> > > 
-> > > BTW, it's a dangerous setting, because some drivers get mad if the time after
-> > > the resume appears to be earlier than the time before the suspend.  Also the
-> > > timer .suspend/.resume routines aren't prepared for that.
-> > 
-> > Its config option should just go away. People comfortable using *that*
-> > should just edit some header file. Rafael, could you do patch doing
-> > something like that?
+On Thursday 10 August 2006 16:26, Prarit Bhargava wrote:
 > 
-> Just remove the option from Kconfig or the whole setting?
+> Yasunori Goto wrote:
+> > Hello.
+> >
+> > I would like to repost this patch to remove noisy useless message at boot
+> > time from 2.6.18-rc4.
+> > (I said "-mm doesn't shows this message in previous post", but it was wrong.
+> >  This messages are shown by -mm too.)
+> >
+> > -------------------------
+> > This is to remove noisy useless message at boot time from 2.6.18-rc4.
+> > The message is a ton of
+> > "ACPI Exception (acpi_memory-0492): AE_ERROR, handle is no memory device"
+> >
+> >   
+> I'm seeing this on some of my ia64 boxes, however, I see
 > 
-> Shouldn't we also change the timer .resume() routines to check if the time
-> after the resume is later than (or at least the same as) the time before the
-> suspend and set the "sleep length" to 0 if not?
+> ACPI Exception (acpi_memory-0491): AE_ERROR, handle is no memory device 
+> [20060707]
+> 
+> What's interesting is that last little bit looks an awful lot like a 
+> date.... It's almost as if we were
+> reading beyond the end of the ACPI table?
 
-Hm, I'm thinking it may actually be useful to have in Kconfig and if we change
-the timer resume to detect the dangerous situation and prevent it from
-happening, that should be sufficient.
+[20060707] is the version (yes, it is a date) of the ACPICA core.
+The ACPI_EXCEPTION() macro appends it to the exception message.
 
-Rafael
+-Len
