@@ -1,99 +1,125 @@
-From: Lennart Poettering <mzxreary@0pointer.de>
-Subject: Re: [PATCH 2/2] acpi,backlight: MSI S270 laptop support - driver
-Date: Thu, 10 Aug 2006 18:48:40 +0200
-Message-ID: <20060810164839.GA29324@tango.0pointer.de>
-References: <CFF307C98FEABE47A452B27C06B85BB60133DB99@hdsmsx411.amr.corp.intel.com>
+From: Brannon Barrett Klopfer <bklopfer@stanford.edu>
+Subject: Re: hp dv8000t dead on resume from RAM
+Date: Thu, 10 Aug 2006 11:29:54 -0700
+Message-ID: <1155234594.44db7b221296f@webmail.stanford.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tango.0pointer.de ([217.160.223.3]:12549 "EHLO
-	tango.0pointer.de") by vger.kernel.org with ESMTP id S1161441AbWHJQsm
+Received: from smtp3.Stanford.EDU ([171.67.20.26]:17610 "EHLO
+	smtp3.stanford.edu") by vger.kernel.org with ESMTP id S1751453AbWHJS37
 	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Aug 2006 12:48:42 -0400
-Content-Disposition: inline
-In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB60133DB99@hdsmsx411.amr.corp.intel.com>
+	Thu, 10 Aug 2006 14:29:59 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, acpi@linux.intel.com, pavel@suse.cz
 
-On Thu, 10.08.06 12:15, Brown, Len (len.brown@intel.com) wrote:
+Quoting "Rafael J. Wysocki" <rjw@sisk.pl>:
 
-Len,
+> On Wednesday 09 August 2006 20:01, Brannon Klopfer wrote:
+> > Rafael J. Wysocki wrote:
+> > > On Tuesday 08 August 2006 19:15, Brannon Barrett Klopfer wrote:
+> > >
+> > >> Howdy,
+> > >>
+> > >> My hp dv8000t (core duo) is completely dead on resume from RAM (no
+> caps
+> > >> lock, sysrq, netconsole,
+> > >> nothing). I've tried a recent (2.6.18-rc4) kernel running almost
+> entirely
+> > >> naked, so to speak (~990K) -- no support for:
+> > >>
+> > >> SMP
+> > >> preempt
+> > >> modules
+> > >> networking (+ enet drivers, unless running netconsole)
+> > >> USB and SATA (not at same time; rootfs is either usb drive or SATA
+> [ext2/3])
+> > >> FireWire
+> > >> cpufreq
+> > >> framebuffer (vga=0)
+> > >> audio
+> > >> PCMCIA
+> > >> IDE (for cdrom)
+> > >>
+> > >> I've tried both native SATA (ahci) and legacy (ata_piix), but same
+> result
+> > >> w/both -- completely dead on resume from RAM. Blindly entering
+> commands
+> > >> does nothing, and running "$suspend ; $shutdown" does nothing
+> either. I've
+> > >> also tried with and without noapic, and a number of other kernel
+> > >> paramaters, but nothing seems to work.
+> > >>
+> > >> Be more than happy to try out patches, etc. to get this thing
+> working.
+> > >> Additionally, if someone could point me to that "beep on resume"
+> patch,
+> > >> that'd be great.
+> > >>
+> > >
+> > > First, please apply the appended patch and try the following:
+> > >
+> > > (1)
+> > > # echo testproc > /sys/power/disk
+> > > # echo disk > /sys/power/state
+> > >
+> > > This should turn off the non-boot CPU, freeze all processes, wait for
+> 5
+> > > seconds and then thaw the processes and the CPU.
+> > >
+> > Works fine. FWIW, after applying the patchs (so as to have
+> > 2.6.18-rc3-mm2), my internal keyboard didn't work, so I used a USB one.
+>
+> That is specific to 2.6.18-rc3-mm2 and has nothing to do with the
+> suspend.
+> There should be a patch for that in hot-fixes.
+>
+> > It could be my simple .config'ing error, didn't spend much time with
+> it,
+> > but know that I did use a USB keyboard, hence USB support in the
+> kernel.
+> > > (2)
+> > > # echo test > /sys/power/disk
+> > > # echo disk > /sys/power/state
+> > >
+> > > This should turn off the non-boot CPU, freeze all processes, shrink
+> > > memory, suspend all devices, wait for 5 seconds, resume the devices
+> etc.
+> > > IOW it does everything that's needed for a suspend except for
+> actually
+> > > suspending.
+> > >
+> > With *legacy* ata_piix, it works fine, as does a "real"
+> suspend-to-disk.
+> > It still *will not* resume properly from suspend-to-RAM, with and
+> > without noapic.
+>
+> I think I know what the problem is, but unfortunately I have no patch for
+> that.  Please look at
+> http://www.ussg.iu.edu/hypermail/linux/kernel/0607.3/1566.html
+> but the fix discussed there is for AMD/NVidia only.
 
-> >drivers/video/backlight/
-> >  It doesn't just do backlight control.
-> 
-> Perhaps the backlight part should live there.
+Hmmm...I did try a kernel with *no* SATA or IDE support, and used a pen
+drive for my root; would that rule out that sort of problem, or does the
+hardware freak out regardless of whether or not there's a driver for it?
 
-Mhmm, that would mean I'd had to split up the driver. That would mean
-duplicate code to a certain degree and two separate mini drivers with
-very connected features. 
 
-> >drivers/misc/
-> >  Seems to be the last resort for everything that doesn't fit it
-> >  otherwise.
-> >
-> >Unless anyone has a better idea I will move it to drivers/misc/, then.
-> 
-> Yeah, there is probably a better place than misc.
+> > Using native ahci and the "test" suspend-to-disk, the system hangs. I
+> > did this from init=/bin/bash with vga=794 (so I could see all output),
+> > however, at least the last few lines match w/vga=0 (i.e., fb didn't
+> > affect problem). The hand-copied (pardon any typos) output is:
+>
+> Some additional patches are needed for the AHCI suspend, AFAIK.
+> I thought they were on the way to the mainline, but it looks like I was
+> wrong.  See:
+> http://www.ussg.iu.edu/hypermail/linux/kernel/0607.2/0885.html
 
-Hmm. As you might have noticed I already posted an updated driver a
-few minutes ago which resides in drivers/misc. Is there any need to
-move it once again?
-
-> >I cannot map the "automatic brightness control" feature to the
-> >backlight class driver, that's why I duplicated the brightness stuff
-> >in /proc/acpi/s270/.
-> 
-> Better to extend the backlight code so that it can handle the
-> special features of this platform than to duplicate brightness
-> control in multiple places.
-
-Hmm. Better not. That "automatic brightness control" feature and its
-behaviour are very specific to this laptop. I don't see any value in
-abstracting that. That would be quite a lot of overdesigning in my
-eyes. In fact the driver disables this feature on load by default,
-assuming that it was probably loaded to do the control in
-software. 
-
-> >> wlan and bluetooth indicators/controls need to appear under
-> >> generic places under sysfs -- not under platform specific
-> >> files under /proc/acpi.
-> >
-> >What are those "generic" places? I cannot think of any besides a
-> >"platform" device.
-> 
-> They should appear as properties under their associated
-> devices in /sys/devices tree rather than invening a new place.
-
-My updated driver does this now. The attributes appear in
-/sys/devices/platform/s270pf/.
-
-> >Any ideas on that ec_transaction() patch I sent earlier?
-> 
-> I agree 100% that ec.c needs to be whacked.  Unfortunately
-> there seem to be 3 people doing it at the same time,
-> so we'll have to sort that out.
-
-Whoever works on that: please make sure to offer a generic EC access
-function similar to my ec_transaction() patch! Thanks!
-
-Is there any timeframe for this EC rework? Is there any chance to get
-my patch merged in the meantime? (Hmm, I guess i am little unpatient...)
-
-> ps. Lennart, please understand that I didn't intend to be gruff.  I
-> figured that by the quality of your work -- which is better than
-> most -- that I'd go for an immediate reply, even though I was still
-> holding a sharp pointed stick at the end of a 6-hour bug scrub
-> marathon.
-
-Oh, that's OK. I value a quick reply quite a lot. Thank you very much
-for your quick review!
+I tried to patch the kernel with the "test/testproc" suspend to disk trick,
+but it didn't apply cleanly; I applied it cleanly to 2.6.18-rc4 and then
+copied drivers/scsi/ahci.c to the "test/testproc" kernel, but it didn't
+seem to make a difference.
 
 Thanks,
-        Lennart
-
--- 
-Lennart Poettering; lennart [at] poettering [dot] net
-ICQ# 11060553; GPG 0x1A015CC4; http://0pointer.net/lennart/
+Brannon
