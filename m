@@ -1,79 +1,57 @@
-From: Lennart Poettering <mzxreary@0pointer.de>
-Subject: Re: [PATCH 2/2] acpi,backlight: MSI S270 laptop support - driver
-Date: Thu, 10 Aug 2006 13:46:47 +0200
-Message-ID: <20060810114647.GA18242@tango.0pointer.de>
-References: <CFF307C98FEABE47A452B27C06B85BB60133D741@hdsmsx411.amr.corp.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: 2.6.18-rc4 (and earlier): CMOS clock corruption during suspend to disk on i386
+Date: Thu, 10 Aug 2006 14:15:21 +0200
+Message-ID: <200608101415.21505.rjw@sisk.pl>
+References: <200608091426.31762.rjw@sisk.pl> <200608092251.58062.rjw@sisk.pl> <20060810001232.GB4249@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tango.0pointer.de ([217.160.223.3]:8456 "EHLO tango.0pointer.de")
-	by vger.kernel.org with ESMTP id S1161089AbWHJLqt (ORCPT
+Received: from ogre.sisk.pl ([217.79.144.158]:18922 "EHLO ogre.sisk.pl")
+	by vger.kernel.org with ESMTP id S1161204AbWHJMQ3 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Aug 2006 07:46:49 -0400
+	Thu, 10 Aug 2006 08:16:29 -0400
+In-Reply-To: <20060810001232.GB4249@ucw.cz>
 Content-Disposition: inline
-In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB60133D741@hdsmsx411.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@suse.cz>
+Cc: Andrew Morton <akpm@osdl.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Thu, 10.08.06 05:36, Brown, Len (len.brown@intel.com) wrote:
+Hi,
 
-> Lennart,
-
-Hi!
-
+On Thursday 10 August 2006 02:12, Pavel Machek wrote:
+> > > > > > It looks like the CMOS clock gets corrupted during the suspend to disk
+> > > > > > on i386.  I've observed this on 2 different boxes.  Moreover, one of them is
+> > > > > > AMD64-based and the x86_64 kernel doesn't have this problem on it.
+> > > > > > 
+> > > > > > Also, I've done some tests that indicate the corruption doesn't occur before
+> > > > > > saving the suspend image.  It rather happens when the box is powered off
+> > > > > > or rebooted (tested both cases).
+> > > > > > 
+> > > > > > Unfortunately, I have no more time to debug it further right now.
+> > > > > 
+> > > > > Do you have Linus' "please corrupt my cmos for debuggin" hack enabled?
+> > > > 
+> > > > Well, I know nothing about that. ;-)
+> > > 
+> > > CONFIG_PM_TRACE=y will scrog your CMOS clock each time you suspend.
+> > 
+> > Oh dear.  Of course it's set in my .config.  Thanks a lot for this hint. :-)
+> > 
+> > BTW, it's a dangerous setting, because some drivers get mad if the time after
+> > the resume appears to be earlier than the time before the suspend.  Also the
+> > timer .suspend/.resume routines aren't prepared for that.
 > 
-> Your s270 platform driver needs a different home in the source tree
-> outside of drivers/acpi/, and the patch that adds it must add an entry
-> to MAINTAINERS.
+> Its config option should just go away. People comfortable using *that*
+> should just edit some header file. Rafael, could you do patch doing
+> something like that?
 
-If you look closely you'll see that the patch already adds a new
-entry to MAINTAINERS.
+Just remove the option from Kconfig or the whole setting?
 
-I put the the driver in drivers/acpi/ because it relies heavily on the
-ACPI EC stuff. But OK, what is a better place for the driver? 
+Shouldn't we also change the timer .resume() routines to check if the time
+after the resume is later than (or at least the same as) the time before the
+suspend and set the "sleep length" to 0 if not?
 
-drivers/char/ 
-  It doesn't even register any character device.
-
-drivers/video/backlight/
-  It doesn't just do backlight control.
-
-drivers/misc/
-  Seems to be the last resort for everything that doesn't fit it
-  otherwise.
-
-Unless anyone has a better idea I will move it to drivers/misc/, then.
-
-> lcd brightness platform support should talk to the existing
-> backlight stuff under sysfs.
-
-It already does exactly that, you can find the backlight class driver
-in /sys/class/backlight/s270/.
-
-I cannot map the "automatic brightness control" feature to the
-backlight class driver, that's why I duplicated the brightness stuff
-in /proc/acpi/s270/.
-
-> wlan and bluetooth indicators/controls need to appear under
-> generic places under sysfs -- not under platform specific
-> files under /proc/acpi.
-
-What are those "generic" places? I cannot think of any besides a
-"platform" device.
-
-> Yes, the existing platform specific drivers such as asus, toshiba, and
-> ibm
-> are bad examples.
-
-Ok, I will move the /proc/acpi/s270/ stuff to a sysfs platform device,
-then. I will cook up another patch shortly.
-
-Any ideas on that ec_transaction() patch I sent earlier?
-
-Lennart
-
--- 
-Lennart Poettering; lennart [at] poettering [dot] net
-ICQ# 11060553; GPG 0x1A015CC4; http://0pointer.net/lennart/
+Rafael
