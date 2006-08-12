@@ -1,58 +1,98 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: IRQ Mis-matches in 2.6.17.7
-Date: Fri, 11 Aug 2006 10:05:58 -0600
-Message-ID: <200608111005.59434.bjorn.helgaas@hp.com>
-References: <Pine.LNX.4.63.0608110945510.15208@illythia.matthew.ath.cx> <200608111144.36751.len.brown@intel.com>
+From: Florian Manschwetus <florianmanschwetus@gmx.de>
+Subject: T60 UltraBay location
+Date: Sat, 12 Aug 2006 09:26:29 +0200
+Message-ID: <44DD82A5.2050403@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms050501080701020107090503"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel8.hp.com ([156.153.255.206]:10677 "EHLO atlrel8.hp.com")
-	by vger.kernel.org with ESMTP id S932176AbWHKQGa (ORCPT
+Received: from mail.gmx.net ([213.165.64.20]:7341 "HELO mail.gmx.net")
+	by vger.kernel.org with SMTP id S1751370AbWHLH0T (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 Aug 2006 12:06:30 -0400
-In-Reply-To: <200608111144.36751.len.brown@intel.com>
-Content-Disposition: inline
+	Sat, 12 Aug 2006 03:26:19 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Matthew Johnson <matt@matthew.ath.cx>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Friday 11 August 2006 09:44, Len Brown wrote:
-> On Friday 11 August 2006 04:53, Matthew Johnson wrote:
-> 
-> ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 4
-> PCI: setting IRQ 4 as level-triggered
-> ACPI: PCI Interrupt 0000:00:0f.0[A] -> Link [LNKC] -> GSI 4 (level, low) -> IRQ 4
-> 3c59x: Donald Becker and others. www.scyld.com/network/vortex.html
-> 0000:00:0f.0: 3Com PCI 3c905B Cyclone 100baseTx at e0802000.
-> 
-> setup_irq: irq handler mismatch
->  <c0135b3e> setup_irq+0x10d/0x11a  <e2024b74> irq_handler+0x0/0x4e0 [lirc_serial]
->  <c0135bba> request_irq+0x6f/0x8b  <e202410a> set_use_inc+0xab/0x1b9 [lirc_serial]
->  <e201f467> irctl_open+0x155/0x1e8 [lirc_dev]  <c015678b> chrdev_open+0x15e/0x17a
->  <c015662d> chrdev_open+0x0/0x17a  <c014e9d7> __dentry_open+0xe0/0x1cf
->  <c014eb2a> nameidata_to_filp+0x19/0x28  <c014eb64> do_filp_open+0x2b/0x31
->  <c014ec4a> do_sys_open+0x3c/0xae  <c014ece9> sys_open+0x16/0x18
->  <c0102a5f> syscall_call+0x7/0xb 
-> lirc_serial: IRQ 4 busy
+This is a cryptographically signed message in MIME format.
 
-Is this problem new with 2.6.17.7?  On the face of it, it looks
-like every kernel should have this problem if you have other
-devices on IRQ 4.
+--------------ms050501080701020107090503
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Other devices (ehci_hcd:usb1  eth0  ohci1394) are already using
-IRQ 4.  lirc_serial doesn't request a shared IRQ unless you use
-the "share_irq" module parameter.  A request for exclusive use
-of IRQ 4 will fail if it's already in use.  So I suspect that if
-you use the "share_irq" parameter, it will work.
+Is IBMAcpi for 2.6.18 now patched with the new path to the UltraBay for 
+T60 and similar?
+florian
 
-I recently fixed a similar bug in the 8250_pnp driver:
-  http://kernel.org/git/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=cb6358eb69d9854f65f2979c0ce9280eee041828
+--------------ms050501080701020107090503
+Content-Type: application/x-pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: S/MIME Cryptographic Signature
 
-It would be nice if lirc_serial used PNP to discover its resources.
-Then we should be able to handle this automatically, without any
-module parameters.
-
-Bjorn
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIKDDCC
+BQIwggLqoAMCAQICAwJsyDANBgkqhkiG9w0BAQUFADB5MRAwDgYDVQQKEwdSb290IENBMR4w
+HAYDVQQLExVodHRwOi8vd3d3LmNhY2VydC5vcmcxIjAgBgNVBAMTGUNBIENlcnQgU2lnbmlu
+ZyBBdXRob3JpdHkxITAfBgkqhkiG9w0BCQEWEnN1cHBvcnRAY2FjZXJ0Lm9yZzAeFw0wNjA3
+MDQwODM3MDNaFw0wNzA3MDQwODM3MDNaMEgxHDAaBgNVBAMTE0Zsb3JpYW4gTWFuc2Nod2V0
+dXMxKDAmBgkqhkiG9w0BCQEWGUZsb3JpYW5NYW5zY2h3ZXR1c0BnbXguZGUwggEiMA0GCSqG
+SIb3DQEBAQUAA4IBDwAwggEKAoIBAQC2GnTI54ujEGPHu7/5L3UePHT6bydUQAWsck9f44wc
+hURmyPxNMb228wpkIEaWOpsnxCYbKfxW7nIi0zP7eSAhGhXiI9jyLPgJ4NpG1OFT2Eyzjkkf
+25CtC1NO9ZbMacVieXjDw4ezPkuJvSyhsDcFAUERCWG9DT74tMdP9ADdMzI8h/eXjv6j4flz
+TD2WAsDe1hfdSTkzB7G3SMBtBu6J46CY6p93epais/x1CzFkzDJsh0r7dh0tHGhVCGkR1bN1
+5SB2QhIdCR3+Ji1F1W8/7ugak6utREUz4LxYPw/wfiIRaVHTVPjo5YwfD0gjcWSXx25gWf2J
+SEVBx+VDr3o1AgMBAAGjgcMwgcAwDAYDVR0TAQH/BAIwADBWBglghkgBhvhCAQ0ESRZHVG8g
+Z2V0IHlvdXIgb3duIGNlcnRpZmljYXRlIGZvciBGUkVFIGhlYWQgb3ZlciB0byBodHRwOi8v
+d3d3LkNBY2VydC5vcmcwMgYIKwYBBQUHAQEEJjAkMCIGCCsGAQUFBzABhhZodHRwOi8vb2Nz
+cC5jYWNlcnQub3JnMCQGA1UdEQQdMBuBGUZsb3JpYW5NYW5zY2h3ZXR1c0BnbXguZGUwDQYJ
+KoZIhvcNAQEFBQADggIBAEWB3PGEGRaPY1owD28EJCte+WuYsF+fIGslM6+XJI8aN8i2WkCL
+p04pKgrBiNBUe71WXYqbgOgQAAQ36s6Z4HwlCKmn4hyRKAtFDwRa3qGtpSSeyX6jE4BUewXV
+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
+ZXJ0Lm9yZwIDAmzIMAkGBSsOAwIaBQCgggHbMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEw
+HAYJKoZIhvcNAQkFMQ8XDTA2MDgxMjA3MjYyOVowIwYJKoZIhvcNAQkEMRYEFNk1+3hZ020G
+mRlQnpRnO8D8/wkLMFIGCSqGSIb3DQEJDzFFMEMwCgYIKoZIhvcNAwcwDgYIKoZIhvcNAwIC
+AgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMIGRBgkrBgEEAYI3
+EAQxgYMwgYAweTEQMA4GA1UEChMHUm9vdCBDQTEeMBwGA1UECxMVaHR0cDovL3d3dy5jYWNl
+cnQub3JnMSIwIAYDVQQDExlDQSBDZXJ0IFNpZ25pbmcgQXV0aG9yaXR5MSEwHwYJKoZIhvcN
+AQkBFhJzdXBwb3J0QGNhY2VydC5vcmcCAwJsyDCBkwYLKoZIhvcNAQkQAgsxgYOggYAweTEQ
+MA4GA1UEChMHUm9vdCBDQTEeMBwGA1UECxMVaHR0cDovL3d3dy5jYWNlcnQub3JnMSIwIAYD
+VQQDExlDQSBDZXJ0IFNpZ25pbmcgQXV0aG9yaXR5MSEwHwYJKoZIhvcNAQkBFhJzdXBwb3J0
+QGNhY2VydC5vcmcCAwJsyDANBgkqhkiG9w0BAQEFAASCAQBSrUff1ABC33PumUcJveKIm9+R
+G0TjpfgC7NDNim434VOtsdMSnDOaaJ2+6ADIl4BCxsT/GDqJH6abvliCcOloeqI7cCFp9F6B
+3u5zwYA0M1UYP6z2iHQxndZk1A9c1dQWQ5Cd9J1gy/CD7oKirLe7DovJ+pLxZmLGCubYehyn
+aBk6IO7+/n/FfCOeT8JnX+dtjREWwQTsB1ah0jbTs2rf30w/EtkjETql0SmfA5QjSN8iQSaJ
+npOnlO1bEUJqgMxHEkagqHZPjG7eVDVaeds9zmYD8iWfVfcsvk/xdoXtgrRYk8SuV8Yffx7d
+ylJJ5YhKMO2Um/nRTt8lhnSStzWgAAAAAAAA
+--------------ms050501080701020107090503--
