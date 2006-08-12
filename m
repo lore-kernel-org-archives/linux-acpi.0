@@ -1,29 +1,48 @@
 From: Florian Manschwetus <florianmanschwetus@gmx.de>
-Subject: T60 UltraBay location
-Date: Sat, 12 Aug 2006 09:26:29 +0200
-Message-ID: <44DD82A5.2050403@gmx.de>
+Subject: Re: T60 UltraBay location [PATCH]
+Date: Sat, 12 Aug 2006 11:14:34 +0200
+Message-ID: <44DD9BFA.2090606@gmx.de>
+References: <44DD82A5.2050403@gmx.de>
+Reply-To: linux-acpi@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms050501080701020107090503"
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms010002000304010103060600"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:7341 "HELO mail.gmx.net")
-	by vger.kernel.org with SMTP id S1751370AbWHLH0T (ORCPT
+Received: from mail.gmx.de ([213.165.64.20]:679 "HELO mail.gmx.net")
+	by vger.kernel.org with SMTP id S1751161AbWHLJOZ (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 12 Aug 2006 03:26:19 -0400
+	Sat, 12 Aug 2006 05:14:25 -0400
+In-Reply-To: <44DD82A5.2050403@gmx.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
 This is a cryptographically signed message in MIME format.
 
---------------ms050501080701020107090503
+--------------ms010002000304010103060600
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Is IBMAcpi for 2.6.18 now patched with the new path to the UltraBay for 
-T60 and similar?
+Florian Manschwetus wrote:
+> Is IBMAcpi for 2.6.18 now patched with the new path to the UltraBay for 
+> T60 and similar?
+> florian
+ok, this is the Patch for 2.6.16 and 2.6.17 (works on both):
+-------------------------------------------------------------------------
+--- a/drivers/acpi/ibm_acpi.c.orig      2006-06-09 13:00:13.000000000 +0200
++++ b/drivers/acpi/ibm_acpi.c   2006-06-09 13:02:16.000000000 +0200
+@@ -170,6 +170,7 @@
+   IBM_HANDLE(bay, root, "\\_SB.PCI.IDE.SECN.MAST",       /* 570 */
+             "\\_SB.PCI0.IDE0.IDES.IDSM", /* 600e/x, 770e, 770x */
+             "\\_SB.PCI0.IDE0.SCND.MSTR", /* all others */
++          "\\_SB.PCI0.SATA.SCND.MSTR", /* T60 and similar */
+       );                         /* A21e, R30, R31 */
+
+   IBM_HANDLE(bay_ej, bay, "_EJ3",        /* 600e/x, A2xm/p, A3x */
+-------------------------------------------------------------------------
+yes, it is just adding this line.
 florian
 
---------------ms050501080701020107090503
+--------------ms010002000304010103060600
 Content-Type: application/x-pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -81,18 +100,18 @@ dtXu1ube4J1WCu9gAaWKhusnEtaW7z/F0E0j5YWG73MxggOHMIIDgwIBATCBgDB5MRAwDgYD
 VQQKEwdSb290IENBMR4wHAYDVQQLExVodHRwOi8vd3d3LmNhY2VydC5vcmcxIjAgBgNVBAMT
 GUNBIENlcnQgU2lnbmluZyBBdXRob3JpdHkxITAfBgkqhkiG9w0BCQEWEnN1cHBvcnRAY2Fj
 ZXJ0Lm9yZwIDAmzIMAkGBSsOAwIaBQCgggHbMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEw
-HAYJKoZIhvcNAQkFMQ8XDTA2MDgxMjA3MjYyOVowIwYJKoZIhvcNAQkEMRYEFNk1+3hZ020G
-mRlQnpRnO8D8/wkLMFIGCSqGSIb3DQEJDzFFMEMwCgYIKoZIhvcNAwcwDgYIKoZIhvcNAwIC
+HAYJKoZIhvcNAQkFMQ8XDTA2MDgxMjA5MTQzNFowIwYJKoZIhvcNAQkEMRYEFBAfiNiaOgcL
+b4ppOIgbQ7j1kjzmMFIGCSqGSIb3DQEJDzFFMEMwCgYIKoZIhvcNAwcwDgYIKoZIhvcNAwIC
 AgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMIGRBgkrBgEEAYI3
 EAQxgYMwgYAweTEQMA4GA1UEChMHUm9vdCBDQTEeMBwGA1UECxMVaHR0cDovL3d3dy5jYWNl
 cnQub3JnMSIwIAYDVQQDExlDQSBDZXJ0IFNpZ25pbmcgQXV0aG9yaXR5MSEwHwYJKoZIhvcN
 AQkBFhJzdXBwb3J0QGNhY2VydC5vcmcCAwJsyDCBkwYLKoZIhvcNAQkQAgsxgYOggYAweTEQ
 MA4GA1UEChMHUm9vdCBDQTEeMBwGA1UECxMVaHR0cDovL3d3dy5jYWNlcnQub3JnMSIwIAYD
 VQQDExlDQSBDZXJ0IFNpZ25pbmcgQXV0aG9yaXR5MSEwHwYJKoZIhvcNAQkBFhJzdXBwb3J0
-QGNhY2VydC5vcmcCAwJsyDANBgkqhkiG9w0BAQEFAASCAQBSrUff1ABC33PumUcJveKIm9+R
-G0TjpfgC7NDNim434VOtsdMSnDOaaJ2+6ADIl4BCxsT/GDqJH6abvliCcOloeqI7cCFp9F6B
-3u5zwYA0M1UYP6z2iHQxndZk1A9c1dQWQ5Cd9J1gy/CD7oKirLe7DovJ+pLxZmLGCubYehyn
-aBk6IO7+/n/FfCOeT8JnX+dtjREWwQTsB1ah0jbTs2rf30w/EtkjETql0SmfA5QjSN8iQSaJ
-npOnlO1bEUJqgMxHEkagqHZPjG7eVDVaeds9zmYD8iWfVfcsvk/xdoXtgrRYk8SuV8Yffx7d
-ylJJ5YhKMO2Um/nRTt8lhnSStzWgAAAAAAAA
---------------ms050501080701020107090503--
+QGNhY2VydC5vcmcCAwJsyDANBgkqhkiG9w0BAQEFAASCAQCe9qc/pQWRIJXP6fxBJEWLFBRZ
+Hkc7DuQ8z4SOYpYVYMXBsLVUozSkmnBBldagA0NL0adMJl5g/4Sif5Ds5Q/DoV1NViMlP3YC
+1lE8TimwiGiw5Z2O3SKmEeJN+G56d3gsh09Tjga/4QrJ3Brq/CbPJx8U4SPcRY7ysM9miPGN
+NDRotQjKokxjsv52zZdAnWkNB6Gg6J5xovKgp0A6qMNAfwa1xV32/tI/zf7lOWPwoIyDYS4/
+3q8UFgaV70DQBhiK/1OUmdZjCI6PaA3QbmoJrANb5lGQnnLbC4MqaGFn5WGl1XNccDJtQSJS
+GoSNuRm1AiD0eu7c9+b8hEPd4SHQAAAAAAAA
+--------------ms010002000304010103060600--
