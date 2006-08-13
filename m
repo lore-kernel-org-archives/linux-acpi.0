@@ -1,34 +1,23 @@
-From: NewsAlert <hitchcock@letterbox.org>
-Subject: Mortgage Servicing News Sun, 13 Aug 2006 12:14:10 +0200
-Date: Sun, 13 Aug 2006 05:15:10 -0500
-Message-ID: <spew.auxiliary@akin>
+From: "Brandon Romano" <Emanuel.Rose@agensys.com>
+Subject: compellable unit not workaday
+Date: Sat, 12 Aug 2006 23:32:18 -0300
+Message-ID: <848BRPC7.Q7C78P9@agensys.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pool-70-110-44-232.sea.dsl-w.verizon.net ([70.110.44.232]:42756
-	"HELO pool-70-110-44-232.sea.dsl-w.verizon.net") by vger.kernel.org
-	with SMTP id S1750766AbWHMJLd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 13 Aug 2006 05:11:33 -0400
+Received: from cpe.atm2-0-72250.0x535a4c82.kjnxx7.customer.tele.dk ([83.90.76.130]:18632
+	"EHLO eurostar.as") by vger.kernel.org with ESMTP id S1750992AbWHMLdZ
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 13 Aug 2006 07:33:25 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-ide@vger.kernel.org
+To: dxvuksg@zraw.com
+Cc: markenp@umkc.edu, squallsha@163.com, linux-acpi@vger.kernel.org, anehong@56.com, mccormic@mc.edu, naturalizer-shoes@mail.com, gails202@metrocast.net, shark@echonyc.com, cfeast@tigerden.com, postmay@riseup.net, valtteri@hattijahunen.com, michaeljdale@bigpond.com, small.celeb-vids@celeb-vids.com
 
-Hello,
+Minimize your monthly rent.mort payments by more than 500 bucks.
+We will beat your current, below is the average we've given all year.
 
-We tried contacting you awhile ago about your low interest mor/tag rate.
+$553,000.00 at 3.95% int.
 
-You have qualified for the lowest rate in years...
-
-You could get over 380,000 for as little as 500 a month!
-
-B ad credit? Doesn't matter, low rates are fixed no matter what!
-
-To get a free, no oblig-ation consultation click below:
-
-http://neckerchiefloving.com/
-
-Regards,
-Vicki Brooks
-
-
+http://simurl.com/nepfop
