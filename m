@@ -1,51 +1,39 @@
-From: "Mr. Garcia Duarte." <duarte22@katamail.com>
-Subject: Get Back To Me Very Urgent Please....
-Date: Sun, 13 Aug 2006 21:47:28 +0200
-Message-ID: <200608131947.k7DJlShY022981@ducky.eatserver.nl>
-Reply-To: duarte22@katamail.com
+From: Andrew Morton <akpm@osdl.org>
+Subject: Re: [Bug 6997] insmod of tg3 gives IRQ handler type mismatch on HP
+ nc6220 notebook
+Date: Sun, 13 Aug 2006 13:46:32 -0700
+Message-ID: <20060813134632.8879a2c5.akpm@osdl.org>
+References: <200608132030.k7DKUQ6e008416@fire-2.osdl.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ducky.eatserver.nl ([212.203.14.99]:31137 "EHLO
-	ducky.eatserver.nl") by vger.kernel.org with ESMTP id S1751390AbWHMTrb
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 13 Aug 2006 15:47:31 -0400
-Received: from ducky.eatserver.nl (localhost [127.0.0.1])
-	by ducky.eatserver.nl (8.12.10/8.12.10/SuSE Linux 0.7) with ESMTP id k7DJlT9n022982
-	for <linux-acpi@vger.kernel.org>; Sun, 13 Aug 2006 21:47:29 +0200
+Received: from smtp.osdl.org ([65.172.181.4]:1453 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1751418AbWHMUqu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 13 Aug 2006 16:46:50 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id k7DKklnW009075
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <linux-acpi@vger.kernel.org>; Sun, 13 Aug 2006 13:46:49 -0700
+Received: from box (shell0.pdx.osdl.net [10.9.0.31])
+	by shell0.pdx.osdl.net (8.13.1/8.11.6) with SMTP id k7DKkWR3026277
+	for <linux-acpi@vger.kernel.org>; Sun, 13 Aug 2006 13:46:32 -0700
+In-Reply-To: <200608132030.k7DKUQ6e008416@fire-2.osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
+On Sun, 13 Aug 2006 13:30:26 -0700
+bugme-daemon@bugzilla.kernel.org wrote:
 
-Kindest Attention:
+> http://bugzilla.kernel.org/show_bug.cgi?id=6997
 
+Could someone please take a look at this bug from an ACPI POV?  I _think_
+what's happened is that APCI decided to move his tg3 NIC onto a different
+interrupt, causing it to collide with an i2c driver which doesn't share
+interrupts.
 
-My name is Mr. Garcia Duarte, I am from Portugal
-Please take this serious. I have been diagnosed with Esophageal cancer.
-It has defied all forms of medical treatment, and right now I have only about a few months to live,according to medical experts. I have not particularly lived my life so well, as I never really cared for anyone (not even myself) but my business.Though I am very rich, I was never 
-generous, I was always hostile to people and only focused on my business as that was the only thing I cared for.But now I regret all this as I now know that there is more to life than just wanting to have or make all the money in the world. I believe when God gives me a second chance 
-to come to this world I would live my life a different way from how I have lived it.
+I don't know what part of the kernel is at fault here, but it's a dead box.
 
-Now that God has called me, I have willed and given most of my property and assets to my immediate and extended family members as well as few close friends .I want God to be merciful to me and accept my soul so, I have decided to give alms to charity organizations, as I want this to 
-be one of the last good deeds I do on earth. So far, I have Distributed money to some charity 
-organizations in the U.A.E, Somalia and Malaysia.
-
-Now that my health has deteriorated so badly, I cannot do this myself anymore. I once asked members of my family to close one of my accounts and distribute the money which I have there to charity organization in Bulgaria and Pakistan, they refused and kept the money to themselves.
-
-Hence, I do not trust them anymore, as they seem not to be contended with what I have left for them. The last of my money which no one knows of is the huge cash deposit of Thirty Million United States Dollars ($30,000,000,00) that I have with an Finance Vaulting Unit Abroad. I will 
-want you to help me collect this deposit and dispatch it to charity organizations.
-
-N/B:
-
-Kindly note that 35% of this funds must go to the tsunami victims,55% to other Charity Organization and 10% for your effort and time.
-
-I cannot talk with you on the phone due to my health situation, as I am using my Lap Top Computer to communicate with you. You should respond to this e-mail if you are interested in carrying out this assignment on my behalf.
-
-God be with you.
-
-Mr. Garcia Duarte.
-
-
-
+Thanks.
