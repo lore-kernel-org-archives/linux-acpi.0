@@ -1,89 +1,51 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: Re: [v4l-dvb-maintainer] Options depending on STANDALONE
-Date: Sun, 13 Aug 2006 18:36:03 +0200
-Message-ID: <20060813163603.GE3543@stusta.de>
-References: <44D1CC7D.4010600@vmware.com> <Pine.LNX.4.58.0608031610110.9178@shell2.speakeasy.net> <20060805105122.GT25692@stusta.de> <200608061319.00085@orion.escape-edv.de>
+From: "Mr. Garcia Duarte." <duarte22@katamail.com>
+Subject: Get Back To Me Very Urgent Please....
+Date: Sun, 13 Aug 2006 21:47:28 +0200
+Message-ID: <200608131947.k7DJlShY022981@ducky.eatserver.nl>
+Reply-To: duarte22@katamail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout.stusta.mhn.de ([141.84.69.5]:41740 "HELO
-	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
-	id S1751312AbWHMQgF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 13 Aug 2006 12:36:05 -0400
-Content-Disposition: inline
-In-Reply-To: <200608061319.00085@orion.escape-edv.de>
+Received: from ducky.eatserver.nl ([212.203.14.99]:31137 "EHLO
+	ducky.eatserver.nl") by vger.kernel.org with ESMTP id S1751390AbWHMTrb
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 13 Aug 2006 15:47:31 -0400
+Received: from ducky.eatserver.nl (localhost [127.0.0.1])
+	by ducky.eatserver.nl (8.12.10/8.12.10/SuSE Linux 0.7) with ESMTP id k7DJlT9n022982
+	for <linux-acpi@vger.kernel.org>; Sun, 13 Aug 2006 21:47:29 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: v4l-dvb-maintainer@linuxtv.org
-Cc: Trent Piepho <xyzzy@speakeasy.org>, Zachary Amsden <zach@vmware.com>, Andrew Morton <akpm@osdl.org>, Jack Lo <jlo@vmware.com>, Greg KH <greg@kroah.com>, Rusty Russell <rusty@rustcorp.com.au>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@infradead.org>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Dave Jones <davej@redhat.com>, Arjan van de Ven <arjan@infradead.org>
+To: linux-acpi@vger.kernel.org
 
-On Sun, Aug 06, 2006 at 01:18:59PM +0200, Oliver Endriss wrote:
-> Adrian Bunk wrote:
-> > On Thu, Aug 03, 2006 at 04:40:25PM -0700, Trent Piepho wrote:
-> > > On Thu, 3 Aug 2006, Adrian Bunk wrote:
-> > > > On Thu, Aug 03, 2006 at 03:56:17PM -0400, Dave Jones wrote:
-> > > > > You're describing PREVENT_FIRMWARE_BUILD.  The text Zach quoted is from
-> > > > > STANDALONE, which is something else completely.  That allows us to not
-> > > > > build drivers that pull in things from /etc and the like during compile.
-> > > > > (Whoever thought that was a good idea?)
-> > > >
-> > > > Is DVB_AV7110_FIRMWARE really still required?
-> > > > ALL other drivers work without such an option.
-> > > 
-> > > The other DVB drivers that need firmware load it when the device is opened
-> > > or used (ie.  a channel is tuned).  At least for the ones I'm familiar
-> > > with.  If they are compiled directly into the kernel, they can still use
-> > > FW_LOADER since the loading won't happen until utill well after booting is
-> > > done.
-> > > 
-> > > For AV7110, it looks like the firmware loading is done when the driver is
-> > > first initialized.  If AV7110 is compiled into the kernel, FW_LOADER can
-> > > not be used.  The filesystem with the firmware won't be mounted yet.
-> > > 
-> > > So AV7110 has an option to compile a firmware file into the driver.
-> > 
-> > But is there a technical reason why this has to be done this way?
-> > 
-> > This is the onle (non-OSS) driver doing it this way, and Zach has a 
-> > point that this is legally questionable.
-> 
-> This option _is_ useful because it allows allows a user to build an
-> av7110 driver without hotplug etc. I NAK any attempt to remove it.
 
-If you look at the dependencies of DVB_AV7110 and the code in av7110.c 
-you'll note that your statement "it allows allows a user to build an 
-av7110 driver without hotplug" is not true.
+Kindest Attention:
 
-> Sorry, a kernel option cannot cause a legal issue. Only the user does.
-> For non-distribution kernels there is no difference whether firmware is
-> loaded at run-time or compiled-in.
-> 
-> Obviously, there might be a difference for distribution kernels if you
-> are not allowed to distribute the firmware (imho not a problem in this
-> case, but IANAL). Simple solution: Do not enable the option.
 
-The general direction in Linux kernel development is to load the 
-firmware at runtime.
+My name is Mr. Garcia Duarte, I am from Portugal
+Please take this serious. I have been diagnosed with Esophageal cancer.
+It has defied all forms of medical treatment, and right now I have only about a few months to live,according to medical experts. I have not particularly lived my life so well, as I never really cared for anyone (not even myself) but my business.Though I am very rich, I was never 
+generous, I was always hostile to people and only focused on my business as that was the only thing I cared for.But now I regret all this as I now know that there is more to life than just wanting to have or make all the money in the world. I believe when God gives me a second chance 
+to come to this world I would live my life a different way from how I have lived it.
 
-> I have no problem if you want to remove STANDALONE: Simply remove the
-> dependency to STANDALONE, but keep DVB_AV7110_FIRMWARE with default 'n'.
+Now that God has called me, I have willed and given most of my property and assets to my immediate and extended family members as well as few close friends .I want God to be merciful to me and accept my soul so, I have decided to give alms to charity organizations, as I want this to 
+be one of the last good deeds I do on earth. So far, I have Distributed money to some charity 
+organizations in the U.A.E, Somalia and Malaysia.
 
-The point of STANDALONE are working allmodconfig/allyesconfig compiles.
+Now that my health has deteriorated so badly, I cannot do this myself anymore. I once asked members of my family to close one of my accounts and distribute the money which I have there to charity organization in Bulgaria and Pakistan, they refused and kept the money to themselves.
 
-Removing the dependency on STANDALONE therefore implies that it compiles.
+Hence, I do not trust them anymore, as they seem not to be contended with what I have left for them. The last of my money which no one knows of is the huge cash deposit of Thirty Million United States Dollars ($30,000,000,00) that I have with an Finance Vaulting Unit Abroad. I will 
+want you to help me collect this deposit and dispatch it to charity organizations.
 
-> CU
-> Oliver
+N/B:
 
-cu
-Adrian
+Kindly note that 35% of this funds must go to the tsunami victims,55% to other Charity Organization and 10% for your effort and time.
 
--- 
+I cannot talk with you on the phone due to my health situation, as I am using my Lap Top Computer to communicate with you. You should respond to this e-mail if you are interested in carrying out this assignment on my behalf.
 
-    Gentoo kernels are 42 times more popular than SUSE kernels among
-    KLive users  (a service by SUSE contractor Andrea Arcangeli that
-    gathers data about kernels from many users worldwide).
+God be with you.
 
-       There are three kinds of lies: Lies, Damn Lies, and Statistics.
-                                                    Benjamin Disraeli
+Mr. Garcia Duarte.
+
+
 
