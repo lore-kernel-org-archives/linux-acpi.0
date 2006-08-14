@@ -1,34 +1,67 @@
-From: "Bjorn Helgaas" <bjorn.helgaas@hp.com>
-Subject: Re: [Bug 6997] insmod of tg3 gives IRQ handler type mismatch on HP
-          nc6220 notebook
-Date: Mon, 14 Aug 2006 10:02:03 -0600 (MDT)
-Message-ID: <1939.24.9.204.52.1155571323.squirrel@mail.cce.hp.com>
-References: <200608132030.k7DKUQ6e008416@fire-2.osdl.org>   
-    <20060813134632.8879a2c5.akpm@osdl.org>
-    <1897.24.9.204.52.1155566160.squirrel@mail.cce.hp.com>
+From: Trent Piepho <xyzzy@speakeasy.org>
+Subject: Re: [v4l-dvb-maintainer] Options depending on STANDALONE
+Date: Mon, 14 Aug 2006 14:15:26 -0700 (PDT)
+Message-ID: <Pine.LNX.4.58.0608141400450.11273@shell3.speakeasy.net>
+References: <44D1CC7D.4010600@vmware.com> <Pine.LNX.4.58.0608031610110.9178@shell2.speakeasy.net>
+ <20060805105122.GT25692@stusta.de> <200608061319.00085@orion.escape-edv.de>
+ <20060813163603.GE3543@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ccerelrim02.cce.hp.com ([161.114.21.23]:5658 "EHLO
-	ccerelrim02.cce.hp.com") by vger.kernel.org with ESMTP
-	id S1751474AbWHNQCF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Aug 2006 12:02:05 -0400
-In-Reply-To: <1897.24.9.204.52.1155566160.squirrel@mail.cce.hp.com>
+Received: from mail4.sea5.speakeasy.net ([69.17.117.6]:23434 "EHLO
+	mail4.sea5.speakeasy.net") by vger.kernel.org with ESMTP
+	id S964902AbWHNVP1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Aug 2006 17:15:27 -0400
+In-Reply-To: <20060813163603.GE3543@stusta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: v4l-dvb-maintainer@linuxtv.org, Zachary Amsden <zach@vmware.com>, Andrew Morton <akpm@osdl.org>, Jack Lo <jlo@vmware.com>, Greg KH <greg@kroah.com>, Rusty Russell <rusty@rustcorp.com.au>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@infradead.org>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Dave Jones <davej@redhat.com>, Arjan van de Ven <arjan@infradead.org>
 
->>> http://bugzilla.kernel.org/show_bug.cgi?id=6997
+On Sun, 13 Aug 2006, Adrian Bunk wrote:
+> On Sun, Aug 06, 2006 at 01:18:59PM +0200, Oliver Endriss wrote:
+> > Adrian Bunk wrote:
+> > > On Thu, Aug 03, 2006 at 04:40:25PM -0700, Trent Piepho wrote:
+> > > > On Thu, 3 Aug 2006, Adrian Bunk wrote:
+> > > > > On Thu, Aug 03, 2006 at 03:56:17PM -0400, Dave Jones wrote:
+> > > > > > You're describing PREVENT_FIRMWARE_BUILD.  The text Zach quoted is from
+> > > > > > STANDALONE, which is something else completely.  That allows us to not
+> > > > > > build drivers that pull in things from /etc and the like during compile.
+> > > > > > (Whoever thought that was a good idea?)
+> > > > >
+> > > > > Is DVB_AV7110_FIRMWARE really still required?
+> > > > > ALL other drivers work without such an option.
+> > > >
+> > > > The other DVB drivers that need firmware load it when the device is opened
+> > > > or used (ie.  a channel is tuned).  At least for the ones I'm familiar
+> > > > with.  If they are compiled directly into the kernel, they can still use
+> > > > FW_LOADER since the loading won't happen until utill well after booting is
+> > > > done.
+> > > >
+> > > > For AV7110, it looks like the firmware loading is done when the driver is
+> > > > first initialized.  If AV7110 is compiled into the kernel, FW_LOADER can
+> > > > not be used.  The filesystem with the firmware won't be mounted yet.
+> > > >
+> > > > So AV7110 has an option to compile a firmware file into the driver.
+> > >
+> > > But is there a technical reason why this has to be done this way?
 
-> If there's no such thing as i2c-pca-isa on ACPI boxes, maybe its driver
-> should just exit early if ACPI is enabled, instead of claiming a random
-> IRQ that isn't connected to anything and nobody else in the system
-> knows about.
+Is there another way to load firmware in a driver compiled into the kernel?
 
-On second thought, it seems addled that a non-ACPI driver should have
-anything to do with checking whether ACPI is enabled.  Maybe there is
-or could be a way for ACPI to notice that IRQ 10 is already in use
-exclusively and avoid it.
+> > > This is the onle (non-OSS) driver doing it this way, and Zach has a
+> > > point that this is legally questionable.
 
+I know there are other DVB drivers that can have firmware compiled in
+instead of using FW_LOADER.  They just don't show that ability in Kconfig,
+you have to edit the driver to enable compiled in firmware.
+
+> > This option _is_ useful because it allows allows a user to build an
+> > av7110 driver without hotplug etc. I NAK any attempt to remove it.
+>
+> If you look at the dependencies of DVB_AV7110 and the code in av7110.c
+> you'll note that your statement "it allows allows a user to build an
+> av7110 driver without hotplug" is not true.
+
+Looks like a mistake in the Kconfig file:
+-	select FW_LOADER
++	select FW_LOADER if DVB_AV7110_FIRMWARE=n
