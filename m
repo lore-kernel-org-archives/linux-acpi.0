@@ -1,65 +1,47 @@
-From: "Mrs.Teressa Stevens." <sealed@kaixo.com>
-Subject: Mrs Teressa Stevens.
-Date: Mon, 14 Aug 2006 16:14:01 +0200
-Message-ID: <1155564841.44e0852921e1f__44074.0881640979$1155564875$gmane$org@imp6-g19.free.fr>
-Reply-To: mrs_teressastevens@myway.com
+From: "Bjorn Helgaas" <bjorn.helgaas@hp.com>
+Subject: Re: [Bug 6997] insmod of tg3 gives IRQ handler type mismatch on HP
+     nc6220 notebook
+Date: Mon, 14 Aug 2006 08:36:00 -0600 (MDT)
+Message-ID: <1897.24.9.204.52.1155566160.squirrel@mail.cce.hp.com>
+References: <200608132030.k7DKUQ6e008416@fire-2.osdl.org>
+    <20060813134632.8879a2c5.akpm@osdl.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp5-g19.free.fr ([212.27.42.35]:9646 "EHLO smtp5-g19.free.fr")
-	by vger.kernel.org with ESMTP id S1751890AbWHNOOI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Aug 2006 10:14:08 -0400
+Received: from ccerelrim03.cce.hp.com ([161.114.21.24]:19330 "EHLO
+	ccerelrim03.cce.hp.com") by vger.kernel.org with ESMTP
+	id S932257AbWHNOgC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Aug 2006 10:36:02 -0400
+In-Reply-To: <20060813134632.8879a2c5.akpm@osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: linux-acpi@vger.kernel.org
 
-My Dear Friend in the Lord,
+> On Sun, 13 Aug 2006 13:30:26 -0700
+> bugme-daemon@bugzilla.kernel.org wrote:
+>
+>> http://bugzilla.kernel.org/show_bug.cgi?id=6997
+>
+> Could someone please take a look at this bug from an ACPI POV?  I _think_
+> what's happened is that APCI decided to move his tg3 NIC onto a different
+> interrupt, causing it to collide with an i2c driver which doesn't share
+> interrupts.
 
-In a brief, I am Mrs Teressa Stevens, Wife of late Mr Stevens James, a white
-farmer, murdered by unknown assailants 2003 in Zimbabwe.
+i2c-pca-isa requests IRQ 10 exclusively (non-shared).  It has no
+mechanism for detecting whether its hardware is actually present,
+so I see no path where it will ever release IRQ 10.
 
-My husband was a white farmer in Zimbabwe who was brutally murdered in the land
-dispute in Zimbabwe by the agents of the ruling government of President ROBERT
-MUGABE for his alleged support and sympathy for the opposition MDC PARTY led by
-the minority white farmers. My husband was among the few white rich farmers
-murdered in cold blood by the war veterans backed by the government. Before the
-death of my husband, he deposit the sum of US$20.5M (Twenty Million Five hundred
-thousand United State Dollars) with one of the Financial Institution, as if he
-knew the looming danger in ZIMBABWE. We were married for twelve years and God
-blessed us with two children.
+ACPI might have moved the tg3 IRQ to collide with the i2c-pca-isa one,
+but I don't know what it could do differently.  If the i2c-pca-isa
+thing were described as an ACPI device (which it should be, if it
+appears on modern boxes), the driver could be fixed to pay attention
+to what the BIOS is trying to tell it.  8250_pnp.c is a good example
+of how to do that.
 
-Presently this money is still with the Financial Institution. Recently, my
-Doctor told me that I might not last for the next Eight months due to an
-inflammation of my liver. This has led to my being on 24 hours intensive care,
-in a private clinic here in Cotonou Rep. of Benin. I am tired of living like
-this.
-
-I have decided to donate part of this fund to an individual, group or a charity
-organisation that will utilize this money the way I am going to instruct herein
-while half of the money shall be kept for the betterment of my children. I want
-an individual, or Charity Organisation that will use this fund for orphanages,
-widows, and helping land mine victims worldwide.
-
-I took this decision because my husband's relatives are Trouble Makers and I
-don't want my husband's efforts to be used for trivialities I do not want a
-situation where my husband's sweat will be used in material pursuits. This is
-why I am taking this decision.
-
-As soon as I receive your reply I shall give you the contact name of my lawyer,
-telephone number and email address who will issue you a letter of authority
-that will prove you the present beneficiary of this fund.
-
-Please ensure to contact me immediately to enable me direct you to my lawyer.
-
-Any delay in your reply will give me room in sourcing another person for this
-same purpose. Please assure me that you will act accordingly as I stated
-herein.
-
-Hope to receive your reply.
-
-Remain blessed.
-
-Yours Sister,
-Mrs Teressa Stevens.
+If there's no such thing as i2c-pca-isa on ACPI boxes, maybe its driver
+should just exit early if ACPI is enabled, instead of claiming a random
+IRQ that isn't connected to anything and nobody else in the system
+knows about.
 
