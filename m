@@ -1,52 +1,53 @@
 From: akpm@osdl.org
-Subject: [patch 07/14] acpi: fix section for CPU init functions
-Date: Mon, 14 Aug 2006 22:37:25 -0700
-Message-ID: <200608150537.k7F5bPhw011548@shell0.pdx.osdl.net>
+Subject: [patch 11/14] ACPI: change GFP_ATOMIC to GFP_KERNEL for non-atomic  allocation
+Date: Mon, 14 Aug 2006 22:37:29 -0700
+Message-ID: <200608150537.k7F5bTu8011560@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:47497 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S965089AbWHOFhd (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:49545 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S965095AbWHOFhh (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Aug 2006 01:37:33 -0400
+	Tue, 15 Aug 2006 01:37:37 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, drzeus@drzeus.cx
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, jikos@jikos.cz
 
-From: Pierre Ossman <drzeus@drzeus.cx>
+From: Jiri Kosina <jikos@jikos.cz>
 
-The ACPI processor init functions should be marked as __cpuinit as they use
-structures marked with __cpuinitdata.
+acpi_pci_link_set() allocates with GFP_ATOMIC. On resume from suspend,
+this is called with interrupts off, otherwise GFP_KERNEL is safe.
 
-Signed-off-by: Pierre Ossman <drzeus@drzeus.cx>
+On the other hand, when resuming from suspend with interrupts off, the
+following callchain allocates with GFP_KERNEL, which is wrong:
+
+acpi_pci_link_resume -> acpi_pci_link_set -> acpi_set_current_resources ->
+acpi_rs_set_srs_method_data -> acpi_ut_create_internal_object_dbg ->
+acpi_ut_allocate_object_desc_dbg -> acpi_os_acquire_object ->
+kmem_cache_alloc(GFP_KERNEL) flag.
+
+Signed-off-by: Jiri Kosina <jikos@jikos.cz>
+Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/processor_core.c |    2 +-
- drivers/acpi/processor_idle.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/pci_link.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/acpi/processor_core.c~acpi-fix-section-for-cpu-init-functions drivers/acpi/processor_core.c
---- a/drivers/acpi/processor_core.c~acpi-fix-section-for-cpu-init-functions
-+++ a/drivers/acpi/processor_core.c
-@@ -519,7 +519,7 @@ static int acpi_processor_get_info(struc
+diff -puN drivers/acpi/pci_link.c~acpi-change-gfp_atomic-to-gfp_kernel-for-non-atomic drivers/acpi/pci_link.c
+--- a/drivers/acpi/pci_link.c~acpi-change-gfp_atomic-to-gfp_kernel-for-non-atomic
++++ a/drivers/acpi/pci_link.c
+@@ -307,7 +307,12 @@ static int acpi_pci_link_set(struct acpi
+ 	if (!link || !irq)
+ 		return -EINVAL;
  
- static void *processor_device_array[NR_CPUS];
+-	resource = kmalloc(sizeof(*resource) + 1, GFP_ATOMIC);
++	/* irqs could be disabled when resuming from suspend */
++	if (irqs_disabled())
++		resource = kmalloc(sizeof(*resource) + 1, GFP_ATOMIC);
++	else
++		resource = kmalloc(sizeof(*resource) + 1, GFP_KERNEL);
++
+ 	if (!resource)
+ 		return -ENOMEM;
  
--static int acpi_processor_start(struct acpi_device *device)
-+static int __cpuinit acpi_processor_start(struct acpi_device *device)
- {
- 	int result = 0;
- 	acpi_status status = AE_OK;
-diff -puN drivers/acpi/processor_idle.c~acpi-fix-section-for-cpu-init-functions drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-fix-section-for-cpu-init-functions
-+++ a/drivers/acpi/processor_idle.c
-@@ -1077,7 +1077,7 @@ static const struct file_operations acpi
- 	.release = single_release,
- };
- 
--int acpi_processor_power_init(struct acpi_processor *pr,
-+int __cpuinit acpi_processor_power_init(struct acpi_processor *pr,
- 			      struct acpi_device *device)
- {
- 	acpi_status status = 0;
 _
