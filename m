@@ -1,59 +1,51 @@
-From: John Keller <jpk@sgi.com>
-Subject: PCI ROM Shadowing/Copy question
-Date: Tue, 15 Aug 2006 12:01:08 -0500 (CDT)
-Message-ID: <200608151701.k7FH18Tc194363@fcbayern.americas.sgi.com>
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: Re: [PATCH](memory hotplug) Repost remove useless message at boot time from 2.6.18-rc4.
+Date: Tue, 15 Aug 2006 23:36:46 +0200
+Message-ID: <20060815233557.7F99.Y-GOTO@jp.fujitsu.com>
+References: <20060810142329.EB03.Y-GOTO@jp.fujitsu.com> <1155643418.4302.1154.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from omx1-ext.sgi.com ([192.48.179.11]:52870 "EHLO
-	omx1.americas.sgi.com") by vger.kernel.org with ESMTP
-	id S1030373AbWHORBS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Aug 2006 13:01:18 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750735AbWHOVl3@vger.kernel.org>
+In-Reply-To: <1155643418.4302.1154.camel@queen.suse.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: trenn@suse.de
+Cc: akpm@osdl.org, "Brown, Len" <len.brown@intel.com>, keith mannthey <kmannth@us.ibm.com>, ACPI-ML <linux-acpi@vger.kernel.org>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Linux Hotplug Memory Support <lhms-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net
-Cc: jpk@sgi.com, ayoung@sgi.com
 
-All,
+> On Thu, 2006-08-10 at 14:32 +0900, Yasunori Goto wrote:
+> > Hello.
+> > 
+> > I would like to repost this patch to remove noisy useless message at boot
+> > time from 2.6.18-rc4.
+> > (I said "-mm doesn't shows this message in previous post", but it was wrong.
+> >  This messages are shown by -mm too.)
+> > 
+> > -------------------------
+> > This is to remove noisy useless message at boot time from 2.6.18-rc4.
+> > The message is a ton of
+> > "ACPI Exception (acpi_memory-0492): AE_ERROR, handle is no memory device"
+> 
+> I sent a patch a while ago that gets rid of the whole namespace walking
+> by making acpi_memoryhotplug an acpi device and making use of the .add
+> callback function and the acpi_bus_register_driver call.
+> 
+> I am not sure whether this is possible if you have multiple memory
+> devices, though (if not maybe it should be made possible?)...
+> 
+> Yasunori even tested the patch and sent an Ok:
+> http://marc.theaimsgroup.com/?t=114065312400001&r=1&w=2
+> 
+> If this is acceptable I can rebase the patch on a current kernel.
 
- I'm looking for some input on how ROM shadowing
-is handled in the kernel. In particular,
-the case where the PROM/BIOS has shadowed the ROM
-and needs to pass the shadowed copy to the kernel.
+Ahhhhh. Yes. Indeed.
+I had forgotten it.
 
-I have not seen any generic code that handles
-this situation. pci_map_rom_copy() allows the kernel to
-make its own copy (assumming the ROM is still readable,
-which is not the case for us), but I have not seen
-anything that provides for a way to pass a PROM created
-ROM shadow buffer to the kernel.
+But, I can't test it in this week due to I'm in vacation.
+(Now, I'm writting this mail at hotel in vacation.)
+Please wait until next week. :-P
 
-Is there such a mechanism?
+Thanks.
 
-I've seen the thread "Ignore disabled ROM resources at setup"
-that briefly touches on this...
-
-http://marc.theaimsgroup.com/?l=linux-kernel&m=112537706223050&w=2
-
-If not, is there a preferred way of doing this?
-
-The SN PROM shadows all valid ROM images, and the kernel 'fixup'
-code, via SAL call, currently obtains these shadowed buffer addresses
-and updates the pci_dev.resource[].
-
-Along with an upcoming patch that adds base ACPI support,
-and cleans up related code, we're looking to remove as much
-additional 'fixup' code as possible, by having the generic
-path handle as much as possible.
-
-Should we just simply stuff our PROM address into dev->resource
-and create a new IORESOURCE_ROM_BIOS_COPY flag, which will
-work much the same way as IORESOURCE_ROM_COPY does, and in addition
-prevent pci_cleanup_rom() from attempting to free it?
-
-Thanks for any input,
-
-John
-jpk@sgi.com
-
+-- 
+Yasunori Goto 
