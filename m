@@ -1,36 +1,54 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: [2.6 patch] drivers/acpi/osl.c: fix a NULL check
-Date: Tue, 15 Aug 2006 02:41:57 +0200
-Message-ID: <20060815004157.GF3543@stusta.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: akpm@osdl.org
+Subject: [patch 08/14] ACPI: fix printk format warnings
+Date: Mon, 14 Aug 2006 22:37:26 -0700
+Message-ID: <200608150537.k7F5bQU2011551@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout.stusta.mhn.de ([141.84.69.5]:59655 "HELO
-	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
-	id S932765AbWHOAl6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Aug 2006 20:41:58 -0400
-Content-Disposition: inline
+Received: from smtp.osdl.org ([65.172.181.4]:42889 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S965090AbWHOFh3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Aug 2006 01:37:29 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bob Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: len.brown@intel.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, rdunlap@xenotime.net
 
-This patch fixes a non-working NULL check introduced by commit 
-b229cf92eee616c7cb5ad8cdb35a19b119f00bc8.
+From: Randy Dunlap <rdunlap@xenotime.net>
 
-Spotted by the Coverity checker.
+Fix printk format warnings in drivers/acpi:
+drivers/acpi/tables/tbget.c:326: warning: format '%X' expects type 'unsigned int', but argument 5 has type 'long unsigned int'
+drivers/acpi/tables/tbrsdt.c:189: warning: format '%X' expects type 'unsigned int', but argument 5 has type 'long unsigned int'
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: "Brown, Len" <len.brown@intel.com>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
+---
 
---- linux-2.6.18-rc4-mm1/drivers/acpi/osl.c.old	2006-08-15 00:43:30.000000000 +0200
-+++ linux-2.6.18-rc4-mm1/drivers/acpi/osl.c	2006-08-15 00:43:55.000000000 +0200
-@@ -1030,7 +1030,7 @@
- acpi_os_create_cache(char *name, u16 size, u16 depth, acpi_cache_t ** cache)
- {
- 	*cache = kmem_cache_create(name, size, 0, 0, NULL, NULL);
--	if (cache == NULL)
-+	if (*cache == NULL)
- 		return AE_ERROR;
- 	else
- 		return AE_OK;
+ drivers/acpi/tables/tbget.c  |    2 +-
+ drivers/acpi/tables/tbrsdt.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
+diff -puN drivers/acpi/tables/tbget.c~acpi-fix-printk-format-warnings drivers/acpi/tables/tbget.c
+--- a/drivers/acpi/tables/tbget.c~acpi-fix-printk-format-warnings
++++ a/drivers/acpi/tables/tbget.c
+@@ -324,7 +324,7 @@ acpi_tb_get_this_table(struct acpi_point
+ 
+ 	if (header->length < sizeof(struct acpi_table_header)) {
+ 		ACPI_ERROR((AE_INFO,
+-			    "Table length (%X) is smaller than minimum (%X)",
++			    "Table length (%X) is smaller than minimum (%ZX)",
+ 			    header->length, sizeof(struct acpi_table_header)));
+ 
+ 		return_ACPI_STATUS(AE_INVALID_TABLE_LENGTH);
+diff -puN drivers/acpi/tables/tbrsdt.c~acpi-fix-printk-format-warnings drivers/acpi/tables/tbrsdt.c
+--- a/drivers/acpi/tables/tbrsdt.c~acpi-fix-printk-format-warnings
++++ a/drivers/acpi/tables/tbrsdt.c
+@@ -187,7 +187,7 @@ acpi_status acpi_tb_validate_rsdt(struct
+ 
+ 	if (table_ptr->length < sizeof(struct acpi_table_header)) {
+ 		ACPI_ERROR((AE_INFO,
+-			    "RSDT/XSDT length (%X) is smaller than minimum (%X)",
++			    "RSDT/XSDT length (%X) is smaller than minimum (%ZX)",
+ 			    table_ptr->length,
+ 			    sizeof(struct acpi_table_header)));
+ 
+_
