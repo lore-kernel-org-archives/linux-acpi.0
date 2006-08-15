@@ -1,54 +1,54 @@
 From: akpm@osdl.org
-Subject: [patch 08/14] ACPI: fix printk format warnings
-Date: Mon, 14 Aug 2006 22:37:26 -0700
-Message-ID: <200608150537.k7F5bQU2011551@shell0.pdx.osdl.net>
+Subject: [patch 03/14] acpi: fix boot with acpi=off
+Date: Mon, 14 Aug 2006 22:37:22 -0700
+Message-ID: <200608150537.k7F5bM6t011533@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:42889 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S965090AbWHOFh3 (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:43657 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S965088AbWHOFha (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Aug 2006 01:37:29 -0400
+	Tue, 15 Aug 2006 01:37:30 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, rdunlap@xenotime.net
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, pavel@ucw.cz, pavel@suse.cz
 
-From: Randy Dunlap <rdunlap@xenotime.net>
+From: Pavel Machek <pavel@ucw.cz>
 
-Fix printk format warnings in drivers/acpi:
-drivers/acpi/tables/tbget.c:326: warning: format '%X' expects type 'unsigned int', but argument 5 has type 'long unsigned int'
-drivers/acpi/tables/tbrsdt.c:189: warning: format '%X' expects type 'unsigned int', but argument 5 has type 'long unsigned int'
+With acpi=off and acpi_ac/battery compiled into kernel, acpi breaks
+boot. This fixes it.
 
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Signed-off-by: Pavel Machek <pavel@suse.cz>
 Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/tables/tbget.c  |    2 +-
- drivers/acpi/tables/tbrsdt.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/ac.c      |    2 ++
+ drivers/acpi/battery.c |    3 +++
+ 2 files changed, 5 insertions(+)
 
-diff -puN drivers/acpi/tables/tbget.c~acpi-fix-printk-format-warnings drivers/acpi/tables/tbget.c
---- a/drivers/acpi/tables/tbget.c~acpi-fix-printk-format-warnings
-+++ a/drivers/acpi/tables/tbget.c
-@@ -324,7 +324,7 @@ acpi_tb_get_this_table(struct acpi_point
+diff -puN drivers/acpi/ac.c~acpi-fix-boot-with-acpi=off drivers/acpi/ac.c
+--- a/drivers/acpi/ac.c~acpi-fix-boot-with-acpi=off
++++ a/drivers/acpi/ac.c
+@@ -285,6 +285,8 @@ static int __init acpi_ac_init(void)
+ {
+ 	int result;
  
- 	if (header->length < sizeof(struct acpi_table_header)) {
- 		ACPI_ERROR((AE_INFO,
--			    "Table length (%X) is smaller than minimum (%X)",
-+			    "Table length (%X) is smaller than minimum (%ZX)",
- 			    header->length, sizeof(struct acpi_table_header)));
++	if (acpi_disabled)
++		return -ENODEV;
  
- 		return_ACPI_STATUS(AE_INVALID_TABLE_LENGTH);
-diff -puN drivers/acpi/tables/tbrsdt.c~acpi-fix-printk-format-warnings drivers/acpi/tables/tbrsdt.c
---- a/drivers/acpi/tables/tbrsdt.c~acpi-fix-printk-format-warnings
-+++ a/drivers/acpi/tables/tbrsdt.c
-@@ -187,7 +187,7 @@ acpi_status acpi_tb_validate_rsdt(struct
+ 	acpi_ac_dir = acpi_lock_ac_dir();
+ 	if (!acpi_ac_dir)
+diff -puN drivers/acpi/battery.c~acpi-fix-boot-with-acpi=off drivers/acpi/battery.c
+--- a/drivers/acpi/battery.c~acpi-fix-boot-with-acpi=off
++++ a/drivers/acpi/battery.c
+@@ -757,6 +757,9 @@ static int __init acpi_battery_init(void
+ {
+ 	int result;
  
- 	if (table_ptr->length < sizeof(struct acpi_table_header)) {
- 		ACPI_ERROR((AE_INFO,
--			    "RSDT/XSDT length (%X) is smaller than minimum (%X)",
-+			    "RSDT/XSDT length (%X) is smaller than minimum (%ZX)",
- 			    table_ptr->length,
- 			    sizeof(struct acpi_table_header)));
- 
++	if (acpi_disabled)
++		return -ENODEV;
++
+ 	acpi_battery_dir = acpi_lock_battery_dir();
+ 	if (!acpi_battery_dir)
+ 		return -ENODEV;
 _
