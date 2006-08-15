@@ -1,50 +1,52 @@
 From: akpm@osdl.org
-Subject: [patch 13/14] ACPI: Correctly recover from a failed S3 attempt
-Date: Mon, 14 Aug 2006 22:37:31 -0700
-Message-ID: <200608150537.k7F5bVsB011566@shell0.pdx.osdl.net>
+Subject: [patch 07/14] acpi: fix section for CPU init functions
+Date: Mon, 14 Aug 2006 22:37:25 -0700
+Message-ID: <200608150537.k7F5bPhw011548@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:49289 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S965094AbWHOFhg (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:47497 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S965089AbWHOFhd (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Aug 2006 01:37:36 -0400
+	Tue, 15 Aug 2006 01:37:33 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, william.morrow@amd.com, jordan.crouse@amd.com, luming.yu@intel.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, drzeus@drzeus.cx
 
-From: William Morrrow <william.morrow@amd.com>
+From: Pierre Ossman <drzeus@drzeus.cx>
 
-This was discovered on a broken BIOS that simply returned from its suspend
-procedure, appearing to the OS as a failed S3 attempt.
+The ACPI processor init functions should be marked as __cpuinit as they use
+structures marked with __cpuinitdata.
 
-It is possible to invoke the protected mode register restore routine (which
-would normally restore the sysenter registers) when the bios returns from
-S3.  This has no effect on a correctly running system and repairs the
-damage from broken BIOS.
-
-Signed-off-by: William Morrow <william.morrow@amd.com>
-Signed-off-by: Jordan Crouse <jordan.crouse@amd.com>
-Cc: "Yu, Luming" <luming.yu@intel.com>
-Cc: "Brown, Len" <len.brown@intel.com>
+Signed-off-by: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/acpi/wakeup.S |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/acpi/processor_core.c |    2 +-
+ drivers/acpi/processor_idle.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/kernel/acpi/wakeup.S~acpi-correctly-recover-from-a-failed-s3-attempt arch/i386/kernel/acpi/wakeup.S
---- a/arch/i386/kernel/acpi/wakeup.S~acpi-correctly-recover-from-a-failed-s3-attempt
-+++ a/arch/i386/kernel/acpi/wakeup.S
-@@ -292,7 +292,10 @@ ENTRY(do_suspend_lowlevel)
- 	pushl	$3
- 	call	acpi_enter_sleep_state
- 	addl	$4, %esp
--	ret
-+
-+#	In case of S3 failure, we'll emerge here.  Jump
-+# 	to ret_point to recover
-+	jmp	ret_point
- 	.p2align 4,,7
- ret_point:
- 	call	restore_registers
+diff -puN drivers/acpi/processor_core.c~acpi-fix-section-for-cpu-init-functions drivers/acpi/processor_core.c
+--- a/drivers/acpi/processor_core.c~acpi-fix-section-for-cpu-init-functions
++++ a/drivers/acpi/processor_core.c
+@@ -519,7 +519,7 @@ static int acpi_processor_get_info(struc
+ 
+ static void *processor_device_array[NR_CPUS];
+ 
+-static int acpi_processor_start(struct acpi_device *device)
++static int __cpuinit acpi_processor_start(struct acpi_device *device)
+ {
+ 	int result = 0;
+ 	acpi_status status = AE_OK;
+diff -puN drivers/acpi/processor_idle.c~acpi-fix-section-for-cpu-init-functions drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~acpi-fix-section-for-cpu-init-functions
++++ a/drivers/acpi/processor_idle.c
+@@ -1077,7 +1077,7 @@ static const struct file_operations acpi
+ 	.release = single_release,
+ };
+ 
+-int acpi_processor_power_init(struct acpi_processor *pr,
++int __cpuinit acpi_processor_power_init(struct acpi_processor *pr,
+ 			      struct acpi_device *device)
+ {
+ 	acpi_status status = 0;
 _
