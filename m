@@ -1,121 +1,71 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [patch 12/14] ACPI: Clear GPE before disabling it
-Date: Wed, 16 Aug 2006 14:53:44 -0700
-Message-ID: <B28E9812BAF6E2498B7EC5C427F293A4C772DC@orsmsx415.amr.corp.intel.com>
+From: Len Brown <len.brown@intel.com>
+Subject: Re: [patch 13/14] ACPI: Correctly recover from a failed S3 attempt
+Date: Wed, 16 Aug 2006 18:00:45 -0400
+Message-ID: <200608161800.45712.len.brown@intel.com>
+References: <200608150537.k7F5bVsB011566@shell0.pdx.osdl.net>
+Reply-To: Len Brown <lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:51816 "EHLO
-	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
-	id S932274AbWHPV5m convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Aug 2006 17:57:42 -0400
-Content-class: urn:content-classes:message
+Received: from hera.kernel.org ([140.211.167.34]:41910 "EHLO hera.kernel.org")
+	by vger.kernel.org with ESMTP id S932276AbWHPV7C (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Aug 2006 17:59:02 -0400
+In-Reply-To: <200608150537.k7F5bVsB011566@shell0.pdx.osdl.net>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>, akpm@osdl.org, "Brown, Len" <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org, william.morrow@amd.com, jordan.crouse@amd.com, "Yu, Luming" <luming.yu@intel.com>
+To: akpm@osdl.org
+Cc: linux-acpi@vger.kernel.org, william.morrow@amd.com, jordan.crouse@amd.com, luming.yu@intel.com
 
-Worse, the GPE is already cleared in the edge case, at the start of the
-GPE dispatch function:
+Applied.
 
-    /*
-     * If edge-triggered, clear the GPE status bit now.  Note that
-     * level-triggered events are cleared after the GPE is serviced.
-     */
-    if ((GpeEventInfo->Flags & ACPI_GPE_XRUPT_TYPE_MASK) ==
-            ACPI_GPE_EDGE_TRIGGERED)
-    {
-        Status = AcpiHwClearGpe (GpeEventInfo);
-        if (ACPI_FAILURE (Status))
-        {
-            ACPI_EXCEPTION ((AE_INFO, Status,
-                "Unable to clear GPE[%2X]", GpeNumber));
-            return_UINT32 (ACPI_INTERRUPT_NOT_HANDLED);
-        }
-    }
+This may be the start of unlocking the door to a new class of S3 resume failures.
 
+thanks,
+-Len
 
-
-
-> -----Original Message-----
-> From: Moore, Robert
-> Sent: Wednesday, August 16, 2006 2:50 PM
-> To: 'akpm@osdl.org'; Brown, Len
-> Cc: linux-acpi@vger.kernel.org; william.morrow@amd.com;
-> jordan.crouse@amd.com; Yu, Luming
-> Subject: RE: [patch 12/14] ACPI: Clear GPE before disabling it
+On Tuesday 15 August 2006 01:37, akpm@osdl.org wrote:
+> From: William Morrrow <william.morrow@amd.com>
 > 
-> How does this patch relate to level-triggered GPEs, where we have the
-> following comment in the code just after the patch:
+> This was discovered on a broken BIOS that simply returned from its suspend
+> procedure, appearing to the OS as a failed S3 attempt.
 > 
->         /*
->          * Execute the method associated with the GPE
->          * NOTE: Level-triggered GPEs are cleared after the method
-> completes.
->          */
->         Status = AcpiOsExecute (OSL_GPE_HANDLER,
->                     AcpiEvAsynchExecuteGpeMethod, GpeEventInfo);
+> It is possible to invoke the protected mode register restore routine (which
+> would normally restore the sysenter registers) when the bios returns from
+> S3.  This has no effect on a correctly running system and repairs the
+> damage from broken BIOS.
 > 
-> > -----Original Message-----
-> > From: akpm@osdl.org [mailto:akpm@osdl.org]
-> > Sent: Monday, August 14, 2006 10:38 PM
-> > To: Brown, Len
-> > Cc: linux-acpi@vger.kernel.org; akpm@osdl.org;
-william.morrow@amd.com;
-> > jordan.crouse@amd.com; Yu, Luming; Moore, Robert
-> > Subject: [patch 12/14] ACPI: Clear GPE before disabling it
-> >
-> > From: William Morrow <william.morrow@amd.com>
-> >
-> > On some BIOSen, the GPE bit will remain set even if it is disabled,
-> > resulting in a interrupt storm.  This patch clears the bit before
-> > disabling
-> > it.
-> >
-> > Signed-off-by: William Morrow <william.morrow@amd.com>
-> > Signed-off-by: Jordan Crouse <jordan.crouse@amd.com>
-> > Cc: "Yu, Luming" <luming.yu@intel.com>
-> > Cc: "Brown, Len" <len.brown@intel.com>
-> > Cc: "Moore, Robert" <robert.moore@intel.com>
-> > Signed-off-by: Andrew Morton <akpm@osdl.org>
-> > ---
-> >
-> >  drivers/acpi/events/evgpe.c |   14 +++++++++++++-
-> >  1 file changed, 13 insertions(+), 1 deletion(-)
-> >
-> > diff -puN
-drivers/acpi/events/evgpe.c~acpi-clear-gpe-before-disabling-it
-> > drivers/acpi/events/evgpe.c
-> > --- a/drivers/acpi/events/evgpe.c~acpi-clear-gpe-before-disabling-it
-> > +++ a/drivers/acpi/events/evgpe.c
-> > @@ -677,10 +677,22 @@ acpi_ev_gpe_dispatch(struct acpi_gpe_eve
-> >  	case ACPI_GPE_DISPATCH_METHOD:
-> >
-> >  		/*
-> > -		 * Disable GPE, so it doesn't keep firing before the
-method
-> > has a
-> > +		 * Clear GPE, so it doesn't keep firing before the
-method has
-> > a
-> >  		 * chance to run.
-> >  		 */
-> > +		status = acpi_hw_clear_gpe(gpe_event_info);
-> > +		if (ACPI_FAILURE(status)) {
-> > +			ACPI_EXCEPTION((AE_INFO, status,
-> > +					"Unable to clear GPE[%2X]",
-> > +					gpe_number));
-> > +			return_UINT32(ACPI_INTERRUPT_NOT_HANDLED);
-> > +		}
-> > +		/*
-> > +		 * Disable GPE, so it doesn't keep happen again.
-> > +		 */
-> > +
-> >  		status = acpi_ev_disable_gpe(gpe_event_info);
-> > +
-> >  		if (ACPI_FAILURE(status)) {
-> >  			ACPI_EXCEPTION((AE_INFO, status,
-> >  					"Unable to disable GPE[%2X]",
-> > _
+> Signed-off-by: William Morrow <william.morrow@amd.com>
+> Signed-off-by: Jordan Crouse <jordan.crouse@amd.com>
+> Cc: "Yu, Luming" <luming.yu@intel.com>
+> Cc: "Brown, Len" <len.brown@intel.com>
+> Signed-off-by: Andrew Morton <akpm@osdl.org>
+> ---
+> 
+>  arch/i386/kernel/acpi/wakeup.S |    5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+> 
+> diff -puN arch/i386/kernel/acpi/wakeup.S~acpi-correctly-recover-from-a-failed-s3-attempt arch/i386/kernel/acpi/wakeup.S
+> --- a/arch/i386/kernel/acpi/wakeup.S~acpi-correctly-recover-from-a-failed-s3-attempt
+> +++ a/arch/i386/kernel/acpi/wakeup.S
+> @@ -292,7 +292,10 @@ ENTRY(do_suspend_lowlevel)
+>  	pushl	$3
+>  	call	acpi_enter_sleep_state
+>  	addl	$4, %esp
+> -	ret
+> +
+> +#	In case of S3 failure, we'll emerge here.  Jump
+> +# 	to ret_point to recover
+> +	jmp	ret_point
+>  	.p2align 4,,7
+>  ret_point:
+>  	call	restore_registers
+> _
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
