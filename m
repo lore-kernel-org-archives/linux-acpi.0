@@ -1,88 +1,63 @@
-From: Len Brown <len.brown@intel.com>
-Subject: Re: [patch 06/14] acpi/scan: handle kset/kobject errors
-Date: Tue, 15 Aug 2006 23:32:40 -0400
-Message-ID: <200608152332.40706.len.brown@intel.com>
-References: <200608150537.k7F5bOdJ011545@shell0.pdx.osdl.net>
-Reply-To: Len Brown <lenb@kernel.org>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: [patch] pci/hotplug acpiphp: fix Kconfig for Dock dependencies
+Date: Wed, 16 Aug 2006 00:59:09 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB6013DE0BC@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:45453 "EHLO hera.kernel.org")
-	by vger.kernel.org with ESMTP id S1750883AbWHPDbJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Aug 2006 23:31:09 -0400
-In-Reply-To: <200608150537.k7F5bOdJ011545@shell0.pdx.osdl.net>
-Content-Disposition: inline
+Received: from mga03.intel.com ([143.182.124.21]:53821 "EHLO
+	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
+	id S1750733AbWHPE7S convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Aug 2006 00:59:18 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@osdl.org
-Cc: linux-acpi@vger.kernel.org, rdunlap@xenotime.net
+To: "Accardi, Kristen C" <kristen.c.accardi@intel.com>, "Keshavamurthy, Anil S" <anil.s.keshavamurthy@intel.com>
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, zippel@linux-m68k.org, rdunlap@xenotime.net, linux-kernel@vger.kernel.org, greg@kroah.com, pcihpd-discuss@lists.sourceforge.net
 
-applied.
+Applied.
 
 thanks,
--len
+-Len 
 
-On Tuesday 15 August 2006 01:37, akpm@osdl.org wrote:
-> From: Randy Dunlap <rdunlap@xenotime.net>
+>-----Original Message-----
+>From: Kristen Carlson Accardi [mailto:kristen.c.accardi@intel.com] 
+>Sent: Wednesday, July 26, 2006 1:32 PM
+>To: Keshavamurthy, Anil S
+>Cc: linux-acpi@vger.kernel.org; Brown, Len; akpm@osdl.org; 
+>zippel@linux-m68k.org; rdunlap@xenotime.net; 
+>linux-kernel@vger.kernel.org; greg@kroah.com; 
+>pcihpd-discuss@lists.sourceforge.net
+>Subject: Re: [patch] pci/hotplug acpiphp: fix Kconfig for Dock 
+>dependencies
+>
+>---
+>I confirmed that Anil's patch will work, here is a proper patch with
+>Anil's changes.
+>
+>Change the build options for acpiphp so that it may build without being
+>dependent on the ACPI_DOCK option, but yet does not allow the option of
+>acpiphp being built-in when dock is built as a module.
+>
+>Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+>Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+>---
+> drivers/pci/hotplug/Kconfig |    2 +-
+> 1 file changed, 1 insertion(+), 1 deletion(-)
+>
+>--- 2.6-git.orig/drivers/pci/hotplug/Kconfig
+>+++ 2.6-git/drivers/pci/hotplug/Kconfig
+>@@ -76,7 +76,7 @@ config HOTPLUG_PCI_IBM
 > 
-> Check and handle kset_register() and kobject_register() init errors.
-> 
-> Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-> Signed-off-by: Andrew Morton <akpm@osdl.org>
-> ---
-> 
->  drivers/acpi/scan.c |   12 ++++++++++--
->  1 file changed, 10 insertions(+), 2 deletions(-)
-> 
-> diff -puN drivers/acpi/scan.c~acpi-scan-handle-kset-kobject-errors drivers/acpi/scan.c
-> --- a/drivers/acpi/scan.c~acpi-scan-handle-kset-kobject-errors
-> +++ a/drivers/acpi/scan.c
-> @@ -4,6 +4,7 @@
->  
->  #include <linux/module.h>
->  #include <linux/init.h>
-> +#include <linux/kernel.h>
->  #include <linux/acpi.h>
->  
->  #include <acpi/acpi_drivers.h>
-> @@ -113,6 +114,8 @@ static struct kset acpi_namespace_kset =
->  static void acpi_device_register(struct acpi_device *device,
->  				 struct acpi_device *parent)
->  {
-> +	int err;
-> +
->  	/*
->  	 * Linkage
->  	 * -------
-> @@ -138,7 +141,10 @@ static void acpi_device_register(struct 
->  		device->kobj.parent = &parent->kobj;
->  	device->kobj.ktype = &ktype_acpi_ns;
->  	device->kobj.kset = &acpi_namespace_kset;
-> -	kobject_register(&device->kobj);
-> +	err = kobject_register(&device->kobj);
-> +	if (err < 0)
-> +		printk(KERN_WARNING "%s: kobject_register error: %d\n",
-> +			__FUNCTION__, err);
->  	create_sysfs_device_files(device);
->  }
->  
-> @@ -1450,7 +1456,9 @@ static int __init acpi_scan_init(void)
->  	if (acpi_disabled)
->  		return 0;
->  
-> -	kset_register(&acpi_namespace_kset);
-> +	result = kset_register(&acpi_namespace_kset);
-> +	if (result < 0)
-> +		printk(KERN_ERR PREFIX "kset_register error: %d\n", result);
->  
->  	result = bus_register(&acpi_bus_type);
->  	if (result) {
-> _
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> config HOTPLUG_PCI_ACPI
+> 	tristate "ACPI PCI Hotplug driver"
+>-	depends on ACPI_DOCK && HOTPLUG_PCI
+>+	depends on (!ACPI_DOCK && ACPI && HOTPLUG_PCI) || 
+>(ACPI_DOCK && HOTPLUG_PCI)
+> 	help
+> 	  Say Y here if you have a system that supports PCI 
+>Hotplug using
+> 	  ACPI.
+>
