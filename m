@@ -1,511 +1,120 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: [patch 09/14] acpi: cleanup, fix for potential crash of hotkey.c
-Date: Wed, 16 Aug 2006 16:14:57 +0800
-Message-ID: <554C5F4C5BA7384EB2B412FD46A3BAD1011089E9@pdsmsx411.ccr.corp.intel.com>
+From: Florian Manschwetus <florianmanschwetus@gmx.de>
+Subject: Re: T60 UltraBay location [PATCH]
+Date: Wed, 16 Aug 2006 12:31:23 +0200
+Message-ID: <44E2F3FB.90809@gmx.de>
+References: <44DD82A5.2050403@gmx.de> <44DD9BFA.2090606@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=gb2312
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms090509020507080107040503"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:50500 "EHLO
-	orsmga102-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1750866AbWHPIP3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Aug 2006 04:15:29 -0400
-Content-class: urn:content-classes:message
+Received: from mail.gmx.de ([213.165.64.20]:49116 "HELO mail.gmx.net")
+	by vger.kernel.org with SMTP id S1750914AbWHPKb0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Aug 2006 06:31:26 -0400
+In-Reply-To: <44DD9BFA.2090606@gmx.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@osdl.org, "Brown, Len" <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org, xhandle@gmail.com
+To: linux-acpi@vger.kernel.org
 
- Acked!
+This is a cryptographically signed message in MIME format.
 
------Original Message-----
-=46rom: akpm@osdl.org [mailto:akpm@osdl.org]=20
-Sent: 2006=C4=EA8=D4=C215=C8=D5 13:37
-To: Brown, Len
-Cc: linux-acpi@vger.kernel.org; akpm@osdl.org; xhandle@gmail.com; Yu, L=
-uming
-Subject: [patch 09/14] acpi: cleanup, fix for potential crash of hotkey=
-=2Ec
+--------------ms090509020507080107040503
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-=46rom: "Handle X" <xhandle@gmail.com>
+Florian Manschwetus wrote:
+> Florian Manschwetus wrote:
+>> Is IBMAcpi for 2.6.18 now patched with the new path to the UltraBay 
+>> for T60 and similar?
+>> florian
+> ok, this is the Patch for 2.6.16 and 2.6.17 (works on both):
+> -------------------------------------------------------------------------
+> --- a/drivers/acpi/ibm_acpi.c.orig      2006-06-09 13:00:13.000000000 +0200
+> +++ b/drivers/acpi/ibm_acpi.c   2006-06-09 13:02:16.000000000 +0200
+> @@ -170,6 +170,7 @@
+>   IBM_HANDLE(bay, root, "\\_SB.PCI.IDE.SECN.MAST",       /* 570 */
+>             "\\_SB.PCI0.IDE0.IDES.IDSM", /* 600e/x, 770e, 770x */
+>             "\\_SB.PCI0.IDE0.SCND.MSTR", /* all others */
+> +          "\\_SB.PCI0.SATA.SCND.MSTR", /* T60 and similar */
+>       );                         /* A21e, R30, R31 */
+> 
+>   IBM_HANDLE(bay_ej, bay, "_EJ3",        /* 600e/x, A2xm/p, A3x */
+> -------------------------------------------------------------------------
+> yes, it is just adding this line.
+> florian
+has someone checked it?
+Is it on list for include?
+florian
 
-While going through the code, I found out some memory leaks and potenti=
-al
-crashes in drivers/acpi/hotkey.c Please find the patch to fix them.
+--------------ms090509020507080107040503
+Content-Type: application/x-pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: S/MIME Cryptographic Signature
 
-This patch does the following,
-
-1. Fixes memory leaks in error paths of hotkey_write_config
-
-2. Fixes freeing unallocated pointers in the error paths of hotkey_writ=
-e_config
-
-3. Uses a loop instead of linear searching for parsing the userspace
-   input in get_params
-
-4. Uses array of char * instead of passing 4 pointer parameters
-   explicitly into the init_{poll_}hotkey_* static functions
-
-Cc: Luming Yu <luming.yu@intel.com>
-Cc: Len Brown <len.brown@intel.com>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
----
-
- drivers/acpi/hotkey.c |  281 ++++++++++++++++------------------------
- 1 file changed, 119 insertions(+), 162 deletions(-)
-
-diff -puN drivers/acpi/hotkey.c~cleanup-fix-for-potential-crash-of-hotk=
-eyc drivers/acpi/hotkey.c
---- a/drivers/acpi/hotkey.c~cleanup-fix-for-potential-crash-of-hotkeyc
-+++ a/drivers/acpi/hotkey.c
-@@ -91,6 +91,14 @@ enum {
- 	HK_EVENT_ENTERRING_S5,
- };
-=20
-+enum conf_entry_enum {
-+	bus_handle =3D 0,
-+	bus_method =3D 1,
-+	action_handle =3D 2,
-+	method =3D 3,
-+	LAST_CONF_ENTRY
-+};
-+
- /*  procdir we use */
- static struct proc_dir_entry *hotkey_proc_dir;
- static struct proc_dir_entry *hotkey_config;
-@@ -244,19 +252,15 @@ static int hotkey_info_open_fs(struct in
-=20
- static char *format_result(union acpi_object *object)
- {
--	char *buf =3D NULL;
--
--	buf =3D (char *)kmalloc(RESULT_STR_LEN, GFP_KERNEL);
--	if (buf)
--		memset(buf, 0, RESULT_STR_LEN);
--	else
--		goto do_fail;
-+	char *buf;
-=20
-+	buf =3D kzalloc(RESULT_STR_LEN, GFP_KERNEL);
-+	if (!buf)
-+		return NULL;
- 	/* Now, just support integer type */
- 	if (object->type =3D=3D ACPI_TYPE_INTEGER)
- 		sprintf(buf, "%d\n", (u32) object->integer.value);
--      do_fail:
--	return (buf);
-+	return buf;
- }
-=20
- static int hotkey_polling_seq_show(struct seq_file *seq, void *offset)
-@@ -486,98 +490,102 @@ static void free_hotkey_device(union acp
-=20
- static void free_hotkey_buffer(union acpi_hotkey *key)
- {
-+	/* key would never be null, action method could be */
- 	kfree(key->event_hotkey.action_method);
- }
-=20
- static void free_poll_hotkey_buffer(union acpi_hotkey *key)
- {
-+	/* key would never be null, others could be*/
- 	kfree(key->poll_hotkey.action_method);
- 	kfree(key->poll_hotkey.poll_method);
- 	kfree(key->poll_hotkey.poll_result);
- }
- static int
--init_hotkey_device(union acpi_hotkey *key, char *bus_str, char *action=
-_str,
--		   char *method, int std_num, int external_num)
-+init_hotkey_device(union acpi_hotkey *key, char **config_entry,
-+		   int std_num, int external_num)
- {
- 	acpi_handle tmp_handle;
- 	acpi_status status =3D AE_OK;
-=20
--
- 	if (std_num < 0 || IS_POLL(std_num) || !key)
- 		goto do_fail;
-=20
--	if (!bus_str || !action_str || !method)
-+	if (!config_entry[bus_handle] || !config_entry[action_handle]
-+			|| !config_entry[method])
- 		goto do_fail;
-=20
- 	key->link.hotkey_type =3D ACPI_HOTKEY_EVENT;
- 	key->link.hotkey_standard_num =3D std_num;
- 	key->event_hotkey.flag =3D 0;
--	key->event_hotkey.action_method =3D method;
-+	key->event_hotkey.action_method =3D config_entry[method];
-=20
--	status =3D
--	    acpi_get_handle(NULL, bus_str, &(key->event_hotkey.bus_handle));
-+	status =3D acpi_get_handle(NULL, config_entry[bus_handle],
-+			   &(key->event_hotkey.bus_handle));
- 	if (ACPI_FAILURE(status))
--		goto do_fail;
-+		goto do_fail_zero;
- 	key->event_hotkey.external_hotkey_num =3D external_num;
--	status =3D
--	    acpi_get_handle(NULL, action_str,
-+	status =3D acpi_get_handle(NULL, config_entry[action_handle],
- 			    &(key->event_hotkey.action_handle));
- 	if (ACPI_FAILURE(status))
--		goto do_fail;
-+		goto do_fail_zero;
- 	status =3D acpi_get_handle(key->event_hotkey.action_handle,
--				 method, &tmp_handle);
-+				 config_entry[method], &tmp_handle);
- 	if (ACPI_FAILURE(status))
--		goto do_fail;
-+		goto do_fail_zero;
- 	return AE_OK;
--      do_fail:
-+do_fail_zero:
-+	key->event_hotkey.action_method =3D NULL;
-+do_fail:
- 	return -ENODEV;
- }
-=20
- static int
--init_poll_hotkey_device(union acpi_hotkey *key,
--			char *poll_str,
--			char *poll_method,
--			char *action_str, char *action_method, int std_num)
-+init_poll_hotkey_device(union acpi_hotkey *key, char **config_entry,
-+			int std_num)
- {
- 	acpi_status status =3D AE_OK;
- 	acpi_handle tmp_handle;
-=20
--
- 	if (std_num < 0 || IS_EVENT(std_num) || !key)
- 		goto do_fail;
--
--	if (!poll_str || !poll_method || !action_str || !action_method)
-+	if (!config_entry[bus_handle] ||!config_entry[bus_method] ||
-+		!config_entry[action_handle] || !config_entry[method])
- 		goto do_fail;
-=20
- 	key->link.hotkey_type =3D ACPI_HOTKEY_POLLING;
- 	key->link.hotkey_standard_num =3D std_num;
- 	key->poll_hotkey.flag =3D 0;
--	key->poll_hotkey.poll_method =3D poll_method;
--	key->poll_hotkey.action_method =3D action_method;
-+	key->poll_hotkey.poll_method =3D config_entry[bus_method];
-+	key->poll_hotkey.action_method =3D config_entry[method];
-=20
--	status =3D
--	    acpi_get_handle(NULL, poll_str, &(key->poll_hotkey.poll_handle));
-+	status =3D acpi_get_handle(NULL, config_entry[bus_handle],
-+		      &(key->poll_hotkey.poll_handle));
- 	if (ACPI_FAILURE(status))
--		goto do_fail;
-+		goto do_fail_zero;
- 	status =3D acpi_get_handle(key->poll_hotkey.poll_handle,
--				 poll_method, &tmp_handle);
-+				 config_entry[bus_method], &tmp_handle);
- 	if (ACPI_FAILURE(status))
--		goto do_fail;
-+		goto do_fail_zero;
- 	status =3D
--	    acpi_get_handle(NULL, action_str,
-+	    acpi_get_handle(NULL, config_entry[action_handle],
- 			    &(key->poll_hotkey.action_handle));
- 	if (ACPI_FAILURE(status))
--		goto do_fail;
-+		goto do_fail_zero;
- 	status =3D acpi_get_handle(key->poll_hotkey.action_handle,
--				 action_method, &tmp_handle);
-+				 config_entry[method], &tmp_handle);
- 	if (ACPI_FAILURE(status))
--		goto do_fail;
-+		goto do_fail_zero;
- 	key->poll_hotkey.poll_result =3D
- 	    (union acpi_object *)kmalloc(sizeof(union acpi_object), GFP_KERNE=
-L);
- 	if (!key->poll_hotkey.poll_result)
--		goto do_fail;
-+		goto do_fail_zero;
- 	return AE_OK;
--      do_fail:
-+
-+do_fail_zero:
-+	key->poll_hotkey.poll_method =3D NULL;
-+	key->poll_hotkey.action_method =3D NULL;
-+do_fail:
- 	return -ENODEV;
- }
-=20
-@@ -652,17 +660,18 @@ static int hotkey_poll_config_seq_show(s
- }
-=20
- static int
--get_parms(char *config_record,
--	  int *cmd,
--	  char **bus_handle,
--	  char **bus_method,
--	  char **action_handle,
--	  char **method, int *internal_event_num, int *external_event_num)
-+get_parms(char *config_record, int *cmd, char **config_entry,
-+	       int *internal_event_num, int *external_event_num)
- {
-+/* the format of *config_record =3D
-+ * "1:\d+:*" : "cmd:internal_event_num"
-+ * "\d+:\w+:\w+:\w+:\w+:\d+:\d+" :
-+ * "cmd:bus_handle:bus_method:action_handle:method:internal_event_num:=
-external_event_num"
-+ */
- 	char *tmp, *tmp1, count;
-+	int i;
-=20
- 	sscanf(config_record, "%d", cmd);
--
- 	if (*cmd =3D=3D 1) {
- 		if (sscanf(config_record, "%d:%d", cmd, internal_event_num) !=3D
- 		    2)
-@@ -674,59 +683,27 @@ get_parms(char *config_record,
- 	if (!tmp)
- 		goto do_fail;
- 	tmp++;
--	tmp1 =3D strchr(tmp, ':');
--	if (!tmp1)
--		goto do_fail;
--
--	count =3D tmp1 - tmp;
--	*bus_handle =3D (char *)kmalloc(count + 1, GFP_KERNEL);
--	if (!*bus_handle)
--		goto do_fail;
--	strncpy(*bus_handle, tmp, count);
--	*(*bus_handle + count) =3D 0;
--
--	tmp =3D tmp1;
--	tmp++;
--	tmp1 =3D strchr(tmp, ':');
--	if (!tmp1)
--		goto do_fail;
--	count =3D tmp1 - tmp;
--	*bus_method =3D (char *)kmalloc(count + 1, GFP_KERNEL);
--	if (!*bus_method)
--		goto do_fail;
--	strncpy(*bus_method, tmp, count);
--	*(*bus_method + count) =3D 0;
--
--	tmp =3D tmp1;
--	tmp++;
--	tmp1 =3D strchr(tmp, ':');
--	if (!tmp1)
--		goto do_fail;
--	count =3D tmp1 - tmp;
--	*action_handle =3D (char *)kmalloc(count + 1, GFP_KERNEL);
--	if (!*action_handle)
--		goto do_fail;
--	strncpy(*action_handle, tmp, count);
--	*(*action_handle + count) =3D 0;
--
--	tmp =3D tmp1;
--	tmp++;
--	tmp1 =3D strchr(tmp, ':');
--	if (!tmp1)
--		goto do_fail;
--	count =3D tmp1 - tmp;
--	*method =3D (char *)kmalloc(count + 1, GFP_KERNEL);
--	if (!*method)
--		goto do_fail;
--	strncpy(*method, tmp, count);
--	*(*method + count) =3D 0;
--
--	if (sscanf(tmp1 + 1, "%d:%d", internal_event_num, external_event_num)=
- <=3D
--	    0)
--		goto do_fail;
--
--	return 6;
--      do_fail:
-+	for (i =3D 0; i < LAST_CONF_ENTRY; i++) {
-+		tmp1 =3D strchr(tmp, ':');
-+		if (!tmp1) {
-+			goto do_fail;
-+		}
-+		count =3D tmp1 - tmp;
-+		config_entry[i] =3D kzalloc(count + 1, GFP_KERNEL);
-+		if (!config_entry[i])
-+			goto handle_failure;
-+		strncpy(config_entry[i], tmp, count);
-+		tmp =3D tmp1 + 1;
-+	}
-+	if (sscanf(tmp, "%d:%d", internal_event_num, external_event_num) <=3D=
- 0)
-+		goto handle_failure;
-+	if (!IS_OTHERS(*internal_event_num)) {
-+		return 6;
-+	}
-+handle_failure:
-+	while (i-- > 0)
-+		kfree(config_entry[i]);
-+do_fail:
- 	return -1;
- }
-=20
-@@ -736,50 +713,34 @@ static ssize_t hotkey_write_config(struc
- 				   size_t count, loff_t * data)
- {
- 	char *config_record =3D NULL;
--	char *bus_handle =3D NULL;
--	char *bus_method =3D NULL;
--	char *action_handle =3D NULL;
--	char *method =3D NULL;
-+	char *config_entry[LAST_CONF_ENTRY];
- 	int cmd, internal_event_num, external_event_num;
- 	int ret =3D 0;
--	union acpi_hotkey *key =3D NULL;
-+	union acpi_hotkey *key =3D kzalloc(sizeof(union acpi_hotkey), GFP_KER=
-NEL);
-=20
-+	if (!key)
-+		return -ENOMEM;
-=20
--	config_record =3D (char *)kmalloc(count + 1, GFP_KERNEL);
--	if (!config_record)
-+	config_record =3D kzalloc(count + 1, GFP_KERNEL);
-+	if (!config_record) {
-+		kfree(key);
- 		return -ENOMEM;
-+	}
-=20
- 	if (copy_from_user(config_record, buffer, count)) {
- 		kfree(config_record);
-+		kfree(key);
- 		printk(KERN_ERR PREFIX "Invalid data\n");
- 		return -EINVAL;
- 	}
--	config_record[count] =3D 0;
--
--	ret =3D get_parms(config_record,
--			&cmd,
--			&bus_handle,
--			&bus_method,
--			&action_handle,
--			&method, &internal_event_num, &external_event_num);
--
-+	ret =3D get_parms(config_record, &cmd, config_entry,
-+		       &internal_event_num, &external_event_num);
- 	kfree(config_record);
--	if (IS_OTHERS(internal_event_num))
--		goto do_fail;
- 	if (ret !=3D 6) {
--	      do_fail:
--		kfree(bus_handle);
--		kfree(bus_method);
--		kfree(action_handle);
--		kfree(method);
- 		printk(KERN_ERR PREFIX "Invalid data format ret=3D%d\n", ret);
- 		return -EINVAL;
- 	}
-=20
--	key =3D kmalloc(sizeof(union acpi_hotkey), GFP_KERNEL);
--	if (!key)
--		goto do_fail;
--	memset(key, 0, sizeof(union acpi_hotkey));
- 	if (cmd =3D=3D 1) {
- 		union acpi_hotkey *tmp =3D NULL;
- 		tmp =3D get_hotkey_by_event(&global_hotkey_list,
-@@ -791,34 +752,19 @@ static ssize_t hotkey_write_config(struc
- 		goto cont_cmd;
- 	}
- 	if (IS_EVENT(internal_event_num)) {
--		kfree(bus_method);
--		ret =3D init_hotkey_device(key, bus_handle, action_handle, method,
--					 internal_event_num,
--					 external_event_num);
--	} else
--		ret =3D init_poll_hotkey_device(key, bus_handle, bus_method,
--					      action_handle, method,
--					      internal_event_num);
--	if (ret) {
--		kfree(bus_handle);
--		kfree(action_handle);
--		if (IS_EVENT(internal_event_num))
--			free_hotkey_buffer(key);
--		else
--			free_poll_hotkey_buffer(key);
--		kfree(key);
--		printk(KERN_ERR PREFIX "Invalid hotkey\n");
--		return -EINVAL;
-+		if (init_hotkey_device(key, config_entry,
-+			internal_event_num, external_event_num))
-+			goto init_hotkey_fail;
-+	} else {
-+		if (init_poll_hotkey_device(key, config_entry,
-+			       internal_event_num))
-+			goto init_poll_hotkey_fail;
- 	}
--
--      cont_cmd:
--	kfree(bus_handle);
--	kfree(action_handle);
--
-+cont_cmd:
- 	switch (cmd) {
- 	case 0:
--		if (get_hotkey_by_event
--		    (&global_hotkey_list, key->link.hotkey_standard_num))
-+		if (get_hotkey_by_event(&global_hotkey_list,
-+				key->link.hotkey_standard_num))
- 			goto fail_out;
- 		else
- 			hotkey_add(key);
-@@ -827,6 +773,7 @@ static ssize_t hotkey_write_config(struc
- 		hotkey_remove(key);
- 		break;
- 	case 2:
-+		/* key is kfree()ed if matched*/
- 		if (hotkey_update(key))
- 			goto fail_out;
- 		break;
-@@ -835,11 +782,22 @@ static ssize_t hotkey_write_config(struc
- 		break;
- 	}
- 	return count;
--      fail_out:
--	if (IS_EVENT(internal_event_num))
--		free_hotkey_buffer(key);
--	else
--		free_poll_hotkey_buffer(key);
-+
-+init_poll_hotkey_fail:		/* failed init_poll_hotkey_device */
-+	kfree(config_entry[bus_method]);
-+	config_entry[bus_method] =3D NULL;
-+init_hotkey_fail:		/* failed init_hotkey_device */
-+	kfree(config_entry[method]);
-+fail_out:
-+	kfree(config_entry[bus_handle]);
-+	kfree(config_entry[action_handle]);
-+	/* No double free since elements =3DNULL for error cases */
-+	if (IS_EVENT(internal_event_num)) {
-+		if (config_entry[bus_method])
-+			kfree(config_entry[bus_method]);
-+		free_hotkey_buffer(key);	/* frees [method] */
-+	} else
-+		free_poll_hotkey_buffer(key);  /* frees [bus_method]+[method] */
- 	kfree(key);
- 	printk(KERN_ERR PREFIX "invalid key\n");
- 	return -EINVAL;
-@@ -923,10 +881,9 @@ static ssize_t hotkey_execute_aml_method
- 	union acpi_hotkey *key;
-=20
-=20
--	arg =3D (char *)kmalloc(count + 1, GFP_KERNEL);
-+	arg =3D kzalloc(count + 1, GFP_KERNEL);
- 	if (!arg)
- 		return -ENOMEM;
--	arg[count] =3D 0;
-=20
- 	if (copy_from_user(arg, buffer, count)) {
- 		kfree(arg);
-_
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIKDDCC
+BQIwggLqoAMCAQICAwJsyDANBgkqhkiG9w0BAQUFADB5MRAwDgYDVQQKEwdSb290IENBMR4w
+HAYDVQQLExVodHRwOi8vd3d3LmNhY2VydC5vcmcxIjAgBgNVBAMTGUNBIENlcnQgU2lnbmlu
+ZyBBdXRob3JpdHkxITAfBgkqhkiG9w0BCQEWEnN1cHBvcnRAY2FjZXJ0Lm9yZzAeFw0wNjA3
+MDQwODM3MDNaFw0wNzA3MDQwODM3MDNaMEgxHDAaBgNVBAMTE0Zsb3JpYW4gTWFuc2Nod2V0
+dXMxKDAmBgkqhkiG9w0BCQEWGUZsb3JpYW5NYW5zY2h3ZXR1c0BnbXguZGUwggEiMA0GCSqG
+SIb3DQEBAQUAA4IBDwAwggEKAoIBAQC2GnTI54ujEGPHu7/5L3UePHT6bydUQAWsck9f44wc
+hURmyPxNMb228wpkIEaWOpsnxCYbKfxW7nIi0zP7eSAhGhXiI9jyLPgJ4NpG1OFT2Eyzjkkf
+25CtC1NO9ZbMacVieXjDw4ezPkuJvSyhsDcFAUERCWG9DT74tMdP9ADdMzI8h/eXjv6j4flz
+TD2WAsDe1hfdSTkzB7G3SMBtBu6J46CY6p93epais/x1CzFkzDJsh0r7dh0tHGhVCGkR1bN1
+5SB2QhIdCR3+Ji1F1W8/7ugak6utREUz4LxYPw/wfiIRaVHTVPjo5YwfD0gjcWSXx25gWf2J
+SEVBx+VDr3o1AgMBAAGjgcMwgcAwDAYDVR0TAQH/BAIwADBWBglghkgBhvhCAQ0ESRZHVG8g
+Z2V0IHlvdXIgb3duIGNlcnRpZmljYXRlIGZvciBGUkVFIGhlYWQgb3ZlciB0byBodHRwOi8v
+d3d3LkNBY2VydC5vcmcwMgYIKwYBBQUHAQEEJjAkMCIGCCsGAQUFBzABhhZodHRwOi8vb2Nz
+cC5jYWNlcnQub3JnMCQGA1UdEQQdMBuBGUZsb3JpYW5NYW5zY2h3ZXR1c0BnbXguZGUwDQYJ
+KoZIhvcNAQEFBQADggIBAEWB3PGEGRaPY1owD28EJCte+WuYsF+fIGslM6+XJI8aN8i2WkCL
+p04pKgrBiNBUe71WXYqbgOgQAAQ36s6Z4HwlCKmn4hyRKAtFDwRa3qGtpSSeyX6jE4BUewXV
+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
+ZXJ0Lm9yZwIDAmzIMAkGBSsOAwIaBQCgggHbMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEw
+HAYJKoZIhvcNAQkFMQ8XDTA2MDgxNjEwMzEyM1owIwYJKoZIhvcNAQkEMRYEFG58Szl/3kVr
+Bv1bpJWvYHlGJq24MFIGCSqGSIb3DQEJDzFFMEMwCgYIKoZIhvcNAwcwDgYIKoZIhvcNAwIC
+AgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMIGRBgkrBgEEAYI3
+EAQxgYMwgYAweTEQMA4GA1UEChMHUm9vdCBDQTEeMBwGA1UECxMVaHR0cDovL3d3dy5jYWNl
+cnQub3JnMSIwIAYDVQQDExlDQSBDZXJ0IFNpZ25pbmcgQXV0aG9yaXR5MSEwHwYJKoZIhvcN
+AQkBFhJzdXBwb3J0QGNhY2VydC5vcmcCAwJsyDCBkwYLKoZIhvcNAQkQAgsxgYOggYAweTEQ
+MA4GA1UEChMHUm9vdCBDQTEeMBwGA1UECxMVaHR0cDovL3d3dy5jYWNlcnQub3JnMSIwIAYD
+VQQDExlDQSBDZXJ0IFNpZ25pbmcgQXV0aG9yaXR5MSEwHwYJKoZIhvcNAQkBFhJzdXBwb3J0
+QGNhY2VydC5vcmcCAwJsyDANBgkqhkiG9w0BAQEFAASCAQABgKp01ijl3PnRATW+etzfsJYu
+e1LYP8OJHTxQmVxKQA128tztqdyRNSYl2CBaW0uupaaKowcsXXKUDrUYatb7on3fC9kvuppJ
+B6Z2jAGEsQ5HLpgy4zOFuzEpU8hVA4EB3wQ1EhJxdtCELHteXrQm4DPC1D0FtTALLR4bejlw
+qy8lmStqWu9/2LsCczH0CAg0pJgL8UZXZclE3XPIRybUJMgBO1y93trtXMdMnXjD5ZPbmC8j
+2Uio2mL6dqJ9qeo8K8B8UjDHTJ0mdqZWF0O6e3PIOljiQy7apGigEhKk3DL5pOgqoBivW8Hr
+Q7Qq4wUv0g1IEgoBvWa9BgIYBOq5AAAAAAAA
+--------------ms090509020507080107040503--
