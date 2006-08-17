@@ -1,81 +1,215 @@
-From: Lennart Poettering <mzxreary@0pointer.de>
-Subject: Re: [PATCH,RFC]: acpi,backlight: MSI S270 - driver, second try
-Date: Thu, 17 Aug 2006 18:03:39 +0200
-Message-ID: <20060817160338.GA19502@tango.0pointer.de>
-References: <20060810162329.GA11603@curacao> <20060817152101.GD5950@ucw.cz>
+From: "William Morrow" <William.Morrow@amd.com>
+Subject: Re: [patch 12/14] ACPI: Clear GPE before disabling it
+Date: Thu, 17 Aug 2006 10:39:07 -0600
+Message-ID: <44E49BAB.1030706@amd.com>
+References: <B28E9812BAF6E2498B7EC5C427F293A4C772DC@orsmsx415.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+ charset=iso-8859-1;
+ format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tango.0pointer.de ([217.160.223.3]:58633 "EHLO
-	tango.0pointer.de") by vger.kernel.org with ESMTP id S932557AbWHQQDl
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Aug 2006 12:03:41 -0400
-Content-Disposition: inline
-In-Reply-To: <20060817152101.GD5950@ucw.cz>
+Received: from mail-fra.bigfish.com ([62.209.45.166]:8488 "EHLO
+	mail54-fra-R.bigfish.com") by vger.kernel.org with ESMTP
+	id S964912AbWHQQaX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Aug 2006 12:30:23 -0400
+In-Reply-To: <B28E9812BAF6E2498B7EC5C427F293A4C772DC@orsmsx415.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@suse.cz>
-Cc: len.brown@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: akpm@osdl.org, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, jordan.crouse@amd.com, "Yu, Luming" <luming.yu@intel.com>
 
-On Thu, 17.08.06 15:21, Pavel Machek (pavel@suse.cz) wrote:
+Moore, Robert wrote:
 
-> > This patch applies to 2.6.17 and requires the ACPI ec_transaction()
-> > patch I posted earlier:
-> > 
-> > http://marc.theaimsgroup.com/?l=linux-acpi&m=115517193511970&w=2
-> > 
-> > Please comment and/or apply!
-> 
-> Looks ok to me...
+>Worse, the GPE is already cleared in the edge case, at the start of the
+>GPE dispatch function:
+>
+>    /*
+>     * If edge-triggered, clear the GPE status bit now.  Note that
+>     * level-triggered events are cleared after the GPE is serviced.
+>     */
+>    if ((GpeEventInfo->Flags & ACPI_GPE_XRUPT_TYPE_MASK) ==
+>            ACPI_GPE_EDGE_TRIGGERED)
+>    {
+>        Status = AcpiHwClearGpe (GpeEventInfo);
+>        if (ACPI_FAILURE (Status))
+>        {
+>            ACPI_EXCEPTION ((AE_INFO, Status,
+>                "Unable to clear GPE[%2X]", GpeNumber));
+>            return_UINT32 (ACPI_INTERRUPT_NOT_HANDLED);
+>        }
+>    }
+>
+>  
+>
+Sorry for the late reply, but I have not looked at this for some time.
+I had to re-examine this issue.
 
-Thanks!
+The interrupt type is tagged as level triggered in this case.
 
-> 
-> > +static int auto_brightness;
-> > +module_param(auto_brightness, int, 0);
-> > +MODULE_PARM_DESC(auto_brightness, "Enable automatic brightness control (0: disabled; 1: enabled; 2: don't touch)");
-> > +
-> > +/*** Hardware access ***/
-> > +
-> > +static const uint8_t lcd_table[MSI_LCD_LEVEL_MAX] = {
-> > +        0x00, 0x1f, 0x3e, 0x5d, 0x7c, 0x9b, 0xba, 0xd9, 0xf8
-> > +};
-> 
-> Can we get 0xf8 levels and simplify code while we are at it?
+The dispatch handler is ACPI_GPE_DISPATCH_METHOD and so the
+method is queued, but the interrupt is not cleared (it is disabled instead).
+In this hw, that is all that happens.  It is disabled but not cleared.
+The original comment would lead me to think that the prevailing thought
+was that disabling the gpe implied clearing the interrupt status.  That is
+not the case in this hw environment, and the result is the interrupt storm.
 
-Unfortunately not. The hardware only supports 9 levels of
-brightness. 
+Although this handler is artfully done,  the architecture of this
+handler is unusual in that most interrupt handlers field status
+and clear the offending event at once, then process the new input.
+This handler is coded in a way that seems to indicate that interrupt
+status is possible when events are not enabled, but is not willing to
+clear them - again indicating that the hw design is required to block
+interrupts if the event has been disabled, but the interrupt status is
+not clear.  If that is true - then this code has no effect, or is another
+case which can result in an interrupt storm.
 
-However, I guess I could multiply the brightness level with 31 instead
-of using the translation table above. 
+    /* Check if there is anything active at all in this register */
 
-I will fix that.
+    enabled_status_byte = (u8) (status_reg & enable_reg);
+    if (!enabled_status_byte) {
+      /* No active GPEs in this register, move on */
+      continue;
+    }
 
-> > +        if ((result = ec_transaction(MSI_EC_COMMAND_LCD_LEVEL, &wdata, 1, &rdata, 1)) < 0)
-> > +                return result;
-> 
-> Please split this into two lines.
-> 
-> result = ...;
-> if (result.....)
+Additionally, any error return which prevents the interrupt
+source from being cleared will result in an interrupt storm.
+This occurs several times.
 
-Will do.
+The comment:
 
-> > +static DEVICE_ATTR(bluetooth, 0444, show_bluetooth, NULL);
-> > +static DEVICE_ATTR(wlan, 0444, show_wlan, NULL);
-> 
-> So bluetooth and wlan basically mirror physical switch state? Should
-> we make these switches available through input subsystem one day?
+/*
+ * Execute the method associated with the GPE
+ * NOTE: Level-triggered GPEs are cleared after the method completes.
+ */
+ Status = AcpiOsExecute (OSL_GPE_HANDLER,
+             AcpiEvAsynchExecuteGpeMethod, GpeEventInfo);
 
-Yes. Actually I've already been discussing with Ivo how to extend the
-rfkill API to tell userspace whether an rfkill device is actually for
-Bluetooth, for wlan, for uwb and so on. I will update my S270 code as
-soon as rfkill enters the kernel to support this new API properly. The
-driver will then register two rfkill devices, one for Bluetooth and
-one for WLAN.
+is alarming, since it documents that the interrupt is active and
+expects the OS to be able to schedule with pending interrupts.
 
-Lennart
+My personal preference is that the code be modified to work in
+the more traditional way, but since that would be a large change
+and this produced the desired result - I opted for the minimum
+coding distance change.
 
--- 
-Lennart Poettering; lennart [at] poettering [dot] net
-ICQ# 11060553; GPG 0x1A015CC4; http://0pointer.net/lennart/
+
+If there are any other materials you need to evaluate this change, let 
+me know.
+I hope this addresses your point.  I am sort of renowned for being a 
+little askew
+when trying to explain myself.
+
+Thanks for your attention!
+morrow
+
+>
+>  
+>
+>>-----Original Message-----
+>>From: Moore, Robert
+>>Sent: Wednesday, August 16, 2006 2:50 PM
+>>To: 'akpm@osdl.org'; Brown, Len
+>>Cc: linux-acpi@vger.kernel.org; william.morrow@amd.com;
+>>jordan.crouse@amd.com; Yu, Luming
+>>Subject: RE: [patch 12/14] ACPI: Clear GPE before disabling it
+>>
+>>How does this patch relate to level-triggered GPEs, where we have the
+>>following comment in the code just after the patch:
+>>
+>>        /*
+>>         * Execute the method associated with the GPE
+>>         * NOTE: Level-triggered GPEs are cleared after the method
+>>completes.
+>>         */
+>>        Status = AcpiOsExecute (OSL_GPE_HANDLER,
+>>                    AcpiEvAsynchExecuteGpeMethod, GpeEventInfo);
+>>
+>>    
+>>
+>>>-----Original Message-----
+>>>From: akpm@osdl.org [mailto:akpm@osdl.org]
+>>>Sent: Monday, August 14, 2006 10:38 PM
+>>>To: Brown, Len
+>>>Cc: linux-acpi@vger.kernel.org; akpm@osdl.org;
+>>>      
+>>>
+>william.morrow@amd.com;
+>  
+>
+>>>jordan.crouse@amd.com; Yu, Luming; Moore, Robert
+>>>Subject: [patch 12/14] ACPI: Clear GPE before disabling it
+>>>
+>>>From: William Morrow <william.morrow@amd.com>
+>>>
+>>>On some BIOSen, the GPE bit will remain set even if it is disabled,
+>>>resulting in a interrupt storm.  This patch clears the bit before
+>>>disabling
+>>>it.
+>>>
+>>>Signed-off-by: William Morrow <william.morrow@amd.com>
+>>>Signed-off-by: Jordan Crouse <jordan.crouse@amd.com>
+>>>Cc: "Yu, Luming" <luming.yu@intel.com>
+>>>Cc: "Brown, Len" <len.brown@intel.com>
+>>>Cc: "Moore, Robert" <robert.moore@intel.com>
+>>>Signed-off-by: Andrew Morton <akpm@osdl.org>
+>>>---
+>>>
+>>> drivers/acpi/events/evgpe.c |   14 +++++++++++++-
+>>> 1 file changed, 13 insertions(+), 1 deletion(-)
+>>>
+>>>diff -puN
+>>>      
+>>>
+>drivers/acpi/events/evgpe.c~acpi-clear-gpe-before-disabling-it
+>  
+>
+>>>drivers/acpi/events/evgpe.c
+>>>--- a/drivers/acpi/events/evgpe.c~acpi-clear-gpe-before-disabling-it
+>>>+++ a/drivers/acpi/events/evgpe.c
+>>>@@ -677,10 +677,22 @@ acpi_ev_gpe_dispatch(struct acpi_gpe_eve
+>>> 	case ACPI_GPE_DISPATCH_METHOD:
+>>>
+>>> 		/*
+>>>-		 * Disable GPE, so it doesn't keep firing before the
+>>>      
+>>>
+>method
+>  
+>
+>>>has a
+>>>+		 * Clear GPE, so it doesn't keep firing before the
+>>>      
+>>>
+>method has
+>  
+>
+>>>a
+>>> 		 * chance to run.
+>>> 		 */
+>>>+		status = acpi_hw_clear_gpe(gpe_event_info);
+>>>+		if (ACPI_FAILURE(status)) {
+>>>+			ACPI_EXCEPTION((AE_INFO, status,
+>>>+					"Unable to clear GPE[%2X]",
+>>>+					gpe_number));
+>>>+			return_UINT32(ACPI_INTERRUPT_NOT_HANDLED);
+>>>+		}
+>>>+		/*
+>>>+		 * Disable GPE, so it doesn't keep happen again.
+>>>+		 */
+>>>+
+>>> 		status = acpi_ev_disable_gpe(gpe_event_info);
+>>>+
+>>> 		if (ACPI_FAILURE(status)) {
+>>> 			ACPI_EXCEPTION((AE_INFO, status,
+>>> 					"Unable to disable GPE[%2X]",
+>>>_
+>>>      
+>>>
+>
+>
+>  
+>
+
+
+
