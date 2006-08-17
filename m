@@ -1,63 +1,81 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [RFC/PATCH] ACPI:  Correctly recover from a failed S3 attempt
-Date: Thu, 17 Aug 2006 15:48:06 +0000
-Message-ID: <20060817154805.GA6450@ucw.cz>
-References: <20060808200434.GJ14539@cosmic.amd.com>
+From: Lennart Poettering <mzxreary@0pointer.de>
+Subject: Re: [PATCH,RFC]: acpi,backlight: MSI S270 - driver, second try
+Date: Thu, 17 Aug 2006 18:03:39 +0200
+Message-ID: <20060817160338.GA19502@tango.0pointer.de>
+References: <20060810162329.GA11603@curacao> <20060817152101.GD5950@ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:55058 "EHLO
-	spitz.ucw.cz") by vger.kernel.org with ESMTP id S932516AbWHQPsU
+Received: from tango.0pointer.de ([217.160.223.3]:58633 "EHLO
+	tango.0pointer.de") by vger.kernel.org with ESMTP id S932557AbWHQQDl
 	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Aug 2006 11:48:20 -0400
+	Thu, 17 Aug 2006 12:03:41 -0400
 Content-Disposition: inline
-In-Reply-To: <20060808200434.GJ14539@cosmic.amd.com>
+In-Reply-To: <20060817152101.GD5950@ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jordan Crouse <jordan.crouse@amd.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, william.morrow@amd.com
+To: Pavel Machek <pavel@suse.cz>
+Cc: len.brown@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi!
+On Thu, 17.08.06 15:21, Pavel Machek (pavel@suse.cz) wrote:
 
-> We have a poorly behaving BIOS that simply returns from its suspend
-> procedure, rather then jumping to the restart routine indicated by
-> the FACS.  This appears to Linux as a failed S3 attempt.
+> > This patch applies to 2.6.17 and requires the ACPI ec_transaction()
+> > patch I posted earlier:
+> > 
+> > http://marc.theaimsgroup.com/?l=linux-acpi&m=115517193511970&w=2
+> > 
+> > Please comment and/or apply!
 > 
-> This would normally succeed, but the sysenter msrs are not
-> restored and the restart fails.  It is not clear if this is the only
-> omission, but if the sysenter msrs are manually entered in the debugger, 
-> the OS resumes.
+> Looks ok to me...
+
+Thanks!
+
 > 
-> The attached patch would invoke the register restore function on failure.
-> This has absolutely no effect on correct systems, and, "does the right thing"
-> for failed or stupid BIOSes, at least as far as I am concerned.
+> > +static int auto_brightness;
+> > +module_param(auto_brightness, int, 0);
+> > +MODULE_PARM_DESC(auto_brightness, "Enable automatic brightness control (0: disabled; 1: enabled; 2: don't touch)");
+> > +
+> > +/*** Hardware access ***/
+> > +
+> > +static const uint8_t lcd_table[MSI_LCD_LEVEL_MAX] = {
+> > +        0x00, 0x1f, 0x3e, 0x5d, 0x7c, 0x9b, 0xba, 0xd9, 0xf8
+> > +};
+> 
+> Can we get 0xf8 levels and simplify code while we are at it?
 
-Can we get fixed bios, too?
+Unfortunately not. The hardware only supports 9 levels of
+brightness. 
 
-What machines are affected?
+However, I guess I could multiply the brightness level with 31 instead
+of using the translation table above. 
 
-> --- a/arch/i386/kernel/acpi/wakeup.S
-> +++ b/arch/i386/kernel/acpi/wakeup.S
-> @@ -292,7 +292,10 @@ ENTRY(do_suspend_lowlevel)
->  	pushl	$3
->  	call	acpi_enter_sleep_state
->  	addl	$4, %esp
-> -	ret
-> +
-> +#	In case of S3 failure, we'll emerge here.  Jump
-> +# 	to ret_point to recover
-> +	jmp	ret_point
->  	.p2align 4,,7
+I will fix that.
 
-%esp manipulation is now unneccessary?
+> > +        if ((result = ec_transaction(MSI_EC_COMMAND_LCD_LEVEL, &wdata, 1, &rdata, 1)) < 0)
+> > +                return result;
+> 
+> Please split this into two lines.
+> 
+> result = ...;
+> if (result.....)
 
-Can we somehow propagate the error condition?
+Will do.
 
-Why jmp when ret_point is next instruction?
+> > +static DEVICE_ATTR(bluetooth, 0444, show_bluetooth, NULL);
+> > +static DEVICE_ATTR(wlan, 0444, show_wlan, NULL);
+> 
+> So bluetooth and wlan basically mirror physical switch state? Should
+> we make these switches available through input subsystem one day?
 
->  ret_point:
->  	call	restore_registers
+Yes. Actually I've already been discussing with Ivo how to extend the
+rfkill API to tell userspace whether an rfkill device is actually for
+Bluetooth, for wlan, for uwb and so on. I will update my S270 code as
+soon as rfkill enters the kernel to support this new API properly. The
+driver will then register two rfkill devices, one for Bluetooth and
+one for WLAN.
 
+Lennart
 
 -- 
-Thanks for all the (sleeping) penguins.
+Lennart Poettering; lennart [at] poettering [dot] net
+ICQ# 11060553; GPG 0x1A015CC4; http://0pointer.net/lennart/
