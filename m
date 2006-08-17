@@ -1,116 +1,250 @@
-From: Ben B <kernel@bb.cactii.net>
-Subject: DSDT/ASL compiler error
-Date: Thu, 17 Aug 2006 19:03:03 +0200
-Message-ID: <20060817170303.GA3592@cactii.net>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [patch 12/14] ACPI: Clear GPE before disabling it
+Date: Thu, 17 Aug 2006 16:36:43 -0700
+Message-ID: <B28E9812BAF6E2498B7EC5C427F293A4CA7ED0@orsmsx415.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from us.cactii.net ([66.160.141.151]:62986 "EHLO us.cactii.net")
-	by vger.kernel.org with ESMTP id S964784AbWHQRD2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 Aug 2006 13:03:28 -0400
-Received: from cactii.net ([IPv6:2001:bd8:face:0:211:2fff:fe49:c0d8])
-	by us.cactii.net (8.13.4/8.13.4/Debian-4) with ESMTP id k7HH3OGi011918
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-acpi@vger.kernel.org>; Thu, 17 Aug 2006 17:03:27 GMT
-Received: from erebus.cactii.net (localhost.localdomain [127.0.0.1])
-	by cactii.net (8.13.4/8.11.6) with ESMTP id k7HH34kQ003953
-	(using TLSv1/SSLv3 with cipher DHE-RSA-AES256-SHA (256 bits) verified NO)
-	for <linux-acpi@vger.kernel.org>; Thu, 17 Aug 2006 19:03:04 +0200
-Received: (from bb@localhost)
-	by erebus.cactii.net (8.13.4/8.12.8/Submit) id k7HH33V7003952
-	for linux-acpi@vger.kernel.org; Thu, 17 Aug 2006 19:03:03 +0200
-Content-Disposition: inline
+Received: from mga09.intel.com ([134.134.136.24]:23970 "EHLO
+	orsmga102-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1030397AbWHQXgo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Aug 2006 19:36:44 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: William Morrow <William.Morrow@amd.com>
+Cc: akpm@osdl.org, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, jordan.crouse@amd.com, "Yu, Luming" <luming.yu@intel.com>
+
+Here is the required software behavior, from the ACPI spec version 3.0A,
+page 138, section 5.6.2.2:
+
+When OSPM receives a general-purpose event (the event is from a GPEx_BLK
+STS bit), OSPM does the following:
+1.	Disables the interrupt source (GPEx_BLK EN bit).
+2.	If an edge event, clears the status bit.
+3.	Performs one of the following:
+*	Dispatches to an ACPI-aware device driver.
+*	Queues the matching control method for execution.
+*	Manages a wake event using device _PRW objects.
+4.	If a level event, clears the status bit.
+5.	Enables the interrupt source.
+
+This is essentially what is implemented today in ACPICA. (It appears
+that 1 and 2 are transposed in the code, this may or may not be a
+problem.)
+
+Note that edge GPEs are cleared before dispatch, but level GPEs are
+cleared after dispatch.
+
+Bob
 
 
-Wondering if any ASL experts can help me here. I'm trying to recompile
-the DSDT on my HP NC6400 laptop, to hopefully get some better acpi
-functionality, and I'm seeing the following error:
-
-$ iasl -tc dsdt.dsl            
-
-Intel ACPI Component Architecture
-ASL Optimizing Compiler version 20060608 [Jun 29 2006]
-Copyright (C) 2000 - 2006 Intel Corporation
-Supports ACPI Specification Revision 3.0a
-
-dsdt.dsl  3275:                                         And (Local1, 0xFFFF)
-Warning  1104 -        Result is not used, operator has no effect ^ 
-
-dsdt.dsl  4672:                     Method (_DSM, 4, NotSerialized)
-Warning  1086 -                                ^ Not all control paths return a value (_DSM)
-
-dsdt.dsl  4672:                     Method (_DSM, 4, NotSerialized)
-Warning  1079 -                                ^ Reserved method must return a value (_DSM)
-
-dsdt.dsl 12767:                 CreateByteField (C1D3, \_SB.C002.C003._X0F._LEN, C08F)
-Error    4062 -                                         Object does not exist ^  (\_SB.C002.C003._X0F._LEN)
-
-ASL Input:  dsdt.dsl - 13280 lines, 478523 bytes, 6207 keywords
-Compilation complete. 1 Errors, 3 Warnings, 0 Remarks, 2052 Optimizations
-
-The relevent section around line 12767 is this:
-
-    Device (\_SB.C002.C003.C334)
-    {
-        Name (_HID, EisaId ("PNP0C02"))
-        Name (_UID, 0x02)
-        Name (\_SB.C002.C003.C1D3, ResourceTemplate ()
-        {
-            IO (Decode16,
-                0x0010,             // Range Minimum
-                0x0010,             // Range Maximum
-                0x01,               // Alignment
-                0x10,               // Length
-                )
-[... skipping some defs ..]
-            IO (Decode16,
-                0x00A4,             // Range Minimum
-                0x00A4,             // Range Maximum
-                0x01,               // Alignment
-                0x1A,               // Length
-                )
-            IO (Decode16,
-                0x0500,             // Range Minimum
-                0x0500,             // Range Maximum
-                0x01,               // Alignment
-                0x80,               // Length
-                _X0F)
-            IO (Decode16,
-                0x0800,             // Range Minimum
-                0x0800,             // Range Maximum
-                0x01,               // Alignment
-                0x10,               // Length
-                )
-            Memory32Fixed (ReadOnly,
-                0xFFB00000,         // Address Base
-                0x00100000,         // Address Length
-                )
-            Memory32Fixed (ReadOnly,
-                0xFFF00000,         // Address Base
-                0x00100000,         // Address Length
-                )
-        })
-        Method (_CRS, 0, NotSerialized)
-        {
-            If (LEqual (\_SB.C002.C003.C1FC._STA (), 0x0F))
-            {
-                CreateByteField (C1D3, \_SB.C002.C003.C1D3._X0F._LEN,
-C08F)
-                Store (0x60, C08F)
-            }
-
-            Return (^^C1AD.C1D2 ())
-        }
-    }
-
-
-What suggestions does anyone have on fixing this?
-
-Thanks,
-BB
-
-
+> -----Original Message-----
+> From: William Morrow [mailto:William.Morrow@amd.com]
+> Sent: Thursday, August 17, 2006 9:39 AM
+> To: Moore, Robert
+> Cc: akpm@osdl.org; Brown, Len; linux-acpi@vger.kernel.org;
+> jordan.crouse@amd.com; Yu, Luming
+> Subject: Re: [patch 12/14] ACPI: Clear GPE before disabling it
+> 
+> Moore, Robert wrote:
+> 
+> >Worse, the GPE is already cleared in the edge case, at the start of
+the
+> >GPE dispatch function:
+> >
+> >    /*
+> >     * If edge-triggered, clear the GPE status bit now.  Note that
+> >     * level-triggered events are cleared after the GPE is serviced.
+> >     */
+> >    if ((GpeEventInfo->Flags & ACPI_GPE_XRUPT_TYPE_MASK) ==
+> >            ACPI_GPE_EDGE_TRIGGERED)
+> >    {
+> >        Status = AcpiHwClearGpe (GpeEventInfo);
+> >        if (ACPI_FAILURE (Status))
+> >        {
+> >            ACPI_EXCEPTION ((AE_INFO, Status,
+> >                "Unable to clear GPE[%2X]", GpeNumber));
+> >            return_UINT32 (ACPI_INTERRUPT_NOT_HANDLED);
+> >        }
+> >    }
+> >
+> >
+> >
+> Sorry for the late reply, but I have not looked at this for some time.
+> I had to re-examine this issue.
+> 
+> The interrupt type is tagged as level triggered in this case.
+> 
+> The dispatch handler is ACPI_GPE_DISPATCH_METHOD and so the
+> method is queued, but the interrupt is not cleared (it is disabled
+> instead).
+> In this hw, that is all that happens.  It is disabled but not cleared.
+> The original comment would lead me to think that the prevailing
+thought
+> was that disabling the gpe implied clearing the interrupt status.
+That is
+> not the case in this hw environment, and the result is the interrupt
+> storm.
+> 
+> Although this handler is artfully done,  the architecture of this
+> handler is unusual in that most interrupt handlers field status
+> and clear the offending event at once, then process the new input.
+> This handler is coded in a way that seems to indicate that interrupt
+> status is possible when events are not enabled, but is not willing to
+> clear them - again indicating that the hw design is required to block
+> interrupts if the event has been disabled, but the interrupt status is
+> not clear.  If that is true - then this code has no effect, or is
+another
+> case which can result in an interrupt storm.
+> 
+>     /* Check if there is anything active at all in this register */
+> 
+>     enabled_status_byte = (u8) (status_reg & enable_reg);
+>     if (!enabled_status_byte) {
+>       /* No active GPEs in this register, move on */
+>       continue;
+>     }
+> 
+> Additionally, any error return which prevents the interrupt
+> source from being cleared will result in an interrupt storm.
+> This occurs several times.
+> 
+> The comment:
+> 
+> /*
+>  * Execute the method associated with the GPE
+>  * NOTE: Level-triggered GPEs are cleared after the method completes.
+>  */
+>  Status = AcpiOsExecute (OSL_GPE_HANDLER,
+>              AcpiEvAsynchExecuteGpeMethod, GpeEventInfo);
+> 
+> is alarming, since it documents that the interrupt is active and
+> expects the OS to be able to schedule with pending interrupts.
+> 
+> My personal preference is that the code be modified to work in
+> the more traditional way, but since that would be a large change
+> and this produced the desired result - I opted for the minimum
+> coding distance change.
+> 
+> 
+> If there are any other materials you need to evaluate this change, let
+> me know.
+> I hope this addresses your point.  I am sort of renowned for being a
+> little askew
+> when trying to explain myself.
+> 
+> Thanks for your attention!
+> morrow
+> 
+> >
+> >
+> >
+> >>-----Original Message-----
+> >>From: Moore, Robert
+> >>Sent: Wednesday, August 16, 2006 2:50 PM
+> >>To: 'akpm@osdl.org'; Brown, Len
+> >>Cc: linux-acpi@vger.kernel.org; william.morrow@amd.com;
+> >>jordan.crouse@amd.com; Yu, Luming
+> >>Subject: RE: [patch 12/14] ACPI: Clear GPE before disabling it
+> >>
+> >>How does this patch relate to level-triggered GPEs, where we have
+the
+> >>following comment in the code just after the patch:
+> >>
+> >>        /*
+> >>         * Execute the method associated with the GPE
+> >>         * NOTE: Level-triggered GPEs are cleared after the method
+> >>completes.
+> >>         */
+> >>        Status = AcpiOsExecute (OSL_GPE_HANDLER,
+> >>                    AcpiEvAsynchExecuteGpeMethod, GpeEventInfo);
+> >>
+> >>
+> >>
+> >>>-----Original Message-----
+> >>>From: akpm@osdl.org [mailto:akpm@osdl.org]
+> >>>Sent: Monday, August 14, 2006 10:38 PM
+> >>>To: Brown, Len
+> >>>Cc: linux-acpi@vger.kernel.org; akpm@osdl.org;
+> >>>
+> >>>
+> >william.morrow@amd.com;
+> >
+> >
+> >>>jordan.crouse@amd.com; Yu, Luming; Moore, Robert
+> >>>Subject: [patch 12/14] ACPI: Clear GPE before disabling it
+> >>>
+> >>>From: William Morrow <william.morrow@amd.com>
+> >>>
+> >>>On some BIOSen, the GPE bit will remain set even if it is disabled,
+> >>>resulting in a interrupt storm.  This patch clears the bit before
+> >>>disabling
+> >>>it.
+> >>>
+> >>>Signed-off-by: William Morrow <william.morrow@amd.com>
+> >>>Signed-off-by: Jordan Crouse <jordan.crouse@amd.com>
+> >>>Cc: "Yu, Luming" <luming.yu@intel.com>
+> >>>Cc: "Brown, Len" <len.brown@intel.com>
+> >>>Cc: "Moore, Robert" <robert.moore@intel.com>
+> >>>Signed-off-by: Andrew Morton <akpm@osdl.org>
+> >>>---
+> >>>
+> >>> drivers/acpi/events/evgpe.c |   14 +++++++++++++-
+> >>> 1 file changed, 13 insertions(+), 1 deletion(-)
+> >>>
+> >>>diff -puN
+> >>>
+> >>>
+> >drivers/acpi/events/evgpe.c~acpi-clear-gpe-before-disabling-it
+> >
+> >
+> >>>drivers/acpi/events/evgpe.c
+> >>>---
+a/drivers/acpi/events/evgpe.c~acpi-clear-gpe-before-disabling-it
+> >>>+++ a/drivers/acpi/events/evgpe.c
+> >>>@@ -677,10 +677,22 @@ acpi_ev_gpe_dispatch(struct acpi_gpe_eve
+> >>> 	case ACPI_GPE_DISPATCH_METHOD:
+> >>>
+> >>> 		/*
+> >>>-		 * Disable GPE, so it doesn't keep firing before the
+> >>>
+> >>>
+> >method
+> >
+> >
+> >>>has a
+> >>>+		 * Clear GPE, so it doesn't keep firing before the
+> >>>
+> >>>
+> >method has
+> >
+> >
+> >>>a
+> >>> 		 * chance to run.
+> >>> 		 */
+> >>>+		status = acpi_hw_clear_gpe(gpe_event_info);
+> >>>+		if (ACPI_FAILURE(status)) {
+> >>>+			ACPI_EXCEPTION((AE_INFO, status,
+> >>>+					"Unable to clear GPE[%2X]",
+> >>>+					gpe_number));
+> >>>+			return_UINT32(ACPI_INTERRUPT_NOT_HANDLED);
+> >>>+		}
+> >>>+		/*
+> >>>+		 * Disable GPE, so it doesn't keep happen again.
+> >>>+		 */
+> >>>+
+> >>> 		status = acpi_ev_disable_gpe(gpe_event_info);
+> >>>+
+> >>> 		if (ACPI_FAILURE(status)) {
+> >>> 			ACPI_EXCEPTION((AE_INFO, status,
+> >>> 					"Unable to disable GPE[%2X]",
+> >>>_
+> >>>
+> >>>
+> >
+> >
+> >
+> >
