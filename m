@@ -1,40 +1,600 @@
-From: Dave Jones <davej@redhat.com>
-Subject: Re: acpi-cpufreq oddness
-Date: Fri, 18 Aug 2006 17:09:27 -0400
-Message-ID: <20060818210926.GB28979@redhat.com>
-References: <EB12A50964762B4D8111D55B764A84547771E4@scsmsx413.amr.corp.intel.com> <20060818190454.GB18750@redhat.com> <20060818134517.A22660@unix-os.sc.intel.com>
+From: "William Morrow" <William.Morrow@amd.com>
+Subject: Re: [patch 12/14] ACPI: Clear GPE before disabling it
+Date: Fri, 18 Aug 2006 16:01:29 -0600
+Message-ID: <44E638B9.4000502@amd.com>
+References: <B28E9812BAF6E2498B7EC5C427F293A4CA8527@orsmsx415.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+ boundary=------------050608080807050402030903
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from c-66-30-195-131.hsd1.ma.comcast.net ([66.30.195.131]:39817 "EHLO
-	nwo.kernelslacker.org") by vger.kernel.org with ESMTP
-	id S964929AbWHRVKG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 Aug 2006 17:10:06 -0400
-Content-Disposition: inline
-In-Reply-To: <20060818134517.A22660@unix-os.sc.intel.com>
+Received: from mail-fra.bigfish.com ([62.209.45.166]:22373 "EHLO
+	mail49-fra-R.bigfish.com") by vger.kernel.org with ESMTP
+	id S1750943AbWHRVw0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 Aug 2006 17:52:26 -0400
+In-Reply-To: <B28E9812BAF6E2498B7EC5C427F293A4CA8527@orsmsx415.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, cpufreq@lists.linux.org.uk
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: akpm@osdl.org, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, jordan.crouse@amd.com, "Yu, Luming" <luming.yu@intel.com>
 
-On Fri, Aug 18, 2006 at 01:45:17PM -0700, Venkatesh Pallipadi wrote:
+This is a multi-part message in MIME format.
+--------------050608080807050402030903
+Content-Type: text/plain;
+ charset=iso-8859-1;
+ format=flowed
+Content-Transfer-Encoding: 7bit
 
- > EINVAL is actually coming from early_init call and the return value of that
- > call should be ignored. Attached patch resolves the issue.
+Moore, Robert wrote:
+
+>Here is an explanation from one of the ACPI experts:
+>
+>  
+>
+>>In most cases, it cannot be cleared until after the method is
+>>    
+>>
+>executed.
+>  
+>
+>>The method usually talks to the hardware that is holding the input
+>>signal low to tell it to "let go". If you try to clear before the
+>>    
+>>
+>method
+>  
+>
+>>is executed, it won't work because the GPE will still be held low.
+>>    
+>>
+I still don't see how the background method can execute with an interrupt
+pending.   I suggest that the handler should disable the pending event,
+schedule the background method to deal with the hardware, and clear the
+event status.  The event/interrupt wont be refired because it is disabled.
+The background task will have to deal with the hardware to remove the event
+assertion.  This would simplify the suggested fix.  To that end, I have
+created another patch which is attached.
+
+I notice that in all cases, it should be that the interrupt status should be
+cleared or a storm may be possible.  I suggest moving the acpi_hw_clear_gpe
+call in the dispatch handler to the end of the acpi_ev_gpe_dispatch routine.
+This gives the code more strength (is cleared in any case) and provides
+good bracketing - although it is not clear why the status should be cleared
+later rather than sooner.  It also sort of resembles the spec.
+
+This does alter the hw status presented in the ctrl when the background
+hander runs.  But since that is asynchronous, if that data is important
+it should be captured in the isr and forwarded via the handler parameter
+interface.
+
+morrow
+
+>
+>  
+>
+>>-----Original Message-----
+>>From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+>>owner@vger.kernel.org] On Behalf Of William Morrow
+>>Sent: Friday, August 18, 2006 11:15 AM
+>>To: Moore, Robert
+>>Cc: akpm@osdl.org; Brown, Len; linux-acpi@vger.kernel.org;
+>>jordan.crouse@amd.com; Yu, Luming
+>>Subject: Re: [patch 12/14] ACPI: Clear GPE before disabling it
+>>
+>>Moore, Robert wrote:
+>>
+>>    
+>>
+>>>Here is the required software behavior, from the ACPI spec version
+>>>      
+>>>
+>3.0A,
+>  
+>
+>>>page 138, section 5.6.2.2:
+>>>
+>>>When OSPM receives a general-purpose event (the event is from a
+>>>      
+>>>
+>GPEx_BLK
+>  
+>
+>>>STS bit), OSPM does the following:
+>>>1.	Disables the interrupt source (GPEx_BLK EN bit).
+>>>2.	If an edge event, clears the status bit.
+>>>3.	Performs one of the following:
+>>>*	Dispatches to an ACPI-aware device driver.
+>>>*	Queues the matching control method for execution.
+>>>*	Manages a wake event using device _PRW objects.
+>>>4.	If a level event, clears the status bit.
+>>>5.	Enables the interrupt source.
+>>>
+>>>
+>>>      
+>>>
+>>I have to admit, I dont see how step 4 is supposed to be occurring.
+>>If any unclearable interrupt source is active here, then the storm
+>>    
+>>
+>will
+>  
+>
+>>ensue.
+>>The background execution of a method will never happen to clear it.
+>>
+>>I have to plead ignorance when it comes to the full understanding of
+>>the acpi system.  On re-reading your email, I think I may have missed
+>>your point on clearing the events in other cases.  If you are
+>>    
+>>
+>advocating
+>  
+>
+>>that the fix should be conditioned to only clear the bit in the level
+>>    
+>>
+>case
+>  
+>
+>>then I have to agree.  Like I said, I frequently seem to miss the
+>>    
+>>
+>point.
+>  
+>
+>>morrow
+>>
+>>    
+>>
+>>>This is essentially what is implemented today in ACPICA. (It appears
+>>>that 1 and 2 are transposed in the code, this may or may not be a
+>>>problem.)
+>>>
+>>>Note that edge GPEs are cleared before dispatch, but level GPEs are
+>>>cleared after dispatch.
+>>>
+>>>Bob
+>>>
+>>>
+>>>
+>>>
+>>>      
+>>>
+>>>>-----Original Message-----
+>>>>From: William Morrow [mailto:William.Morrow@amd.com]
+>>>>Sent: Thursday, August 17, 2006 9:39 AM
+>>>>To: Moore, Robert
+>>>>Cc: akpm@osdl.org; Brown, Len; linux-acpi@vger.kernel.org;
+>>>>jordan.crouse@amd.com; Yu, Luming
+>>>>Subject: Re: [patch 12/14] ACPI: Clear GPE before disabling it
+>>>>
+>>>>Moore, Robert wrote:
+>>>>
+>>>>
+>>>>
+>>>>        
+>>>>
+>>>>>Worse, the GPE is already cleared in the edge case, at the start of
+>>>>>
+>>>>>
+>>>>>          
+>>>>>
+>>>the
+>>>
+>>>
+>>>      
+>>>
+>>>>>GPE dispatch function:
+>>>>>
+>>>>>  /*
+>>>>>   * If edge-triggered, clear the GPE status bit now.  Note that
+>>>>>   * level-triggered events are cleared after the GPE is serviced.
+>>>>>   */
+>>>>>  if ((GpeEventInfo->Flags & ACPI_GPE_XRUPT_TYPE_MASK) ==
+>>>>>          ACPI_GPE_EDGE_TRIGGERED)
+>>>>>  {
+>>>>>      Status = AcpiHwClearGpe (GpeEventInfo);
+>>>>>      if (ACPI_FAILURE (Status))
+>>>>>      {
+>>>>>          ACPI_EXCEPTION ((AE_INFO, Status,
+>>>>>              "Unable to clear GPE[%2X]", GpeNumber));
+>>>>>          return_UINT32 (ACPI_INTERRUPT_NOT_HANDLED);
+>>>>>      }
+>>>>>  }
+>>>>>
+>>>>>
+>>>>>
+>>>>>
+>>>>>
+>>>>>          
+>>>>>
+>>>>Sorry for the late reply, but I have not looked at this for some
+>>>>        
+>>>>
+>time.
+>  
+>
+>>>>I had to re-examine this issue.
+>>>>
+>>>>The interrupt type is tagged as level triggered in this case.
+>>>>
+>>>>The dispatch handler is ACPI_GPE_DISPATCH_METHOD and so the
+>>>>method is queued, but the interrupt is not cleared (it is disabled
+>>>>instead).
+>>>>In this hw, that is all that happens.  It is disabled but not
+>>>>        
+>>>>
+>cleared.
+>  
+>
+>>>>The original comment would lead me to think that the prevailing
+>>>>
+>>>>
+>>>>        
+>>>>
+>>>thought
+>>>
+>>>
+>>>      
+>>>
+>>>>was that disabling the gpe implied clearing the interrupt status.
+>>>>
+>>>>
+>>>>        
+>>>>
+>>>That is
+>>>
+>>>
+>>>      
+>>>
+>>>>not the case in this hw environment, and the result is the interrupt
+>>>>storm.
+>>>>
+>>>>Although this handler is artfully done,  the architecture of this
+>>>>handler is unusual in that most interrupt handlers field status
+>>>>and clear the offending event at once, then process the new input.
+>>>>This handler is coded in a way that seems to indicate that interrupt
+>>>>status is possible when events are not enabled, but is not willing
+>>>>        
+>>>>
+>to
+>  
+>
+>>>>clear them - again indicating that the hw design is required to
+>>>>        
+>>>>
+>block
+>  
+>
+>>>>interrupts if the event has been disabled, but the interrupt status
+>>>>        
+>>>>
+>is
+>  
+>
+>>>>not clear.  If that is true - then this code has no effect, or is
+>>>>
+>>>>
+>>>>        
+>>>>
+>>>another
+>>>
+>>>
+>>>      
+>>>
+>>>>case which can result in an interrupt storm.
+>>>>
+>>>>   /* Check if there is anything active at all in this register */
+>>>>
+>>>>   enabled_status_byte = (u8) (status_reg & enable_reg);
+>>>>   if (!enabled_status_byte) {
+>>>>     /* No active GPEs in this register, move on */
+>>>>     continue;
+>>>>   }
+>>>>
+>>>>Additionally, any error return which prevents the interrupt
+>>>>source from being cleared will result in an interrupt storm.
+>>>>This occurs several times.
+>>>>
+>>>>The comment:
+>>>>
+>>>>/*
+>>>>* Execute the method associated with the GPE
+>>>>* NOTE: Level-triggered GPEs are cleared after the method
+>>>>        
+>>>>
+>completes.
+>  
+>
+>>>>*/
+>>>>Status = AcpiOsExecute (OSL_GPE_HANDLER,
+>>>>            AcpiEvAsynchExecuteGpeMethod, GpeEventInfo);
+>>>>
+>>>>is alarming, since it documents that the interrupt is active and
+>>>>expects the OS to be able to schedule with pending interrupts.
+>>>>
+>>>>My personal preference is that the code be modified to work in
+>>>>the more traditional way, but since that would be a large change
+>>>>and this produced the desired result - I opted for the minimum
+>>>>coding distance change.
+>>>>
+>>>>
+>>>>If there are any other materials you need to evaluate this change,
+>>>>        
+>>>>
+>let
+>  
+>
+>>>>me know.
+>>>>I hope this addresses your point.  I am sort of renowned for being a
+>>>>little askew
+>>>>when trying to explain myself.
+>>>>
+>>>>Thanks for your attention!
+>>>>morrow
+>>>>
+>>>>
+>>>>
+>>>>        
+>>>>
+>>>>>
+>>>>>          
+>>>>>
+>>>>>>-----Original Message-----
+>>>>>>From: Moore, Robert
+>>>>>>Sent: Wednesday, August 16, 2006 2:50 PM
+>>>>>>To: 'akpm@osdl.org'; Brown, Len
+>>>>>>Cc: linux-acpi@vger.kernel.org; william.morrow@amd.com;
+>>>>>>jordan.crouse@amd.com; Yu, Luming
+>>>>>>Subject: RE: [patch 12/14] ACPI: Clear GPE before disabling it
+>>>>>>
+>>>>>>How does this patch relate to level-triggered GPEs, where we have
+>>>>>>
+>>>>>>
+>>>>>>            
+>>>>>>
+>>>the
+>>>
+>>>
+>>>      
+>>>
+>>>>>>following comment in the code just after the patch:
+>>>>>>
+>>>>>>      /*
+>>>>>>       * Execute the method associated with the GPE
+>>>>>>       * NOTE: Level-triggered GPEs are cleared after the method
+>>>>>>completes.
+>>>>>>       */
+>>>>>>      Status = AcpiOsExecute (OSL_GPE_HANDLER,
+>>>>>>                  AcpiEvAsynchExecuteGpeMethod, GpeEventInfo);
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>>            
+>>>>>>
+>>>>>>>-----Original Message-----
+>>>>>>>From: akpm@osdl.org [mailto:akpm@osdl.org]
+>>>>>>>Sent: Monday, August 14, 2006 10:38 PM
+>>>>>>>To: Brown, Len
+>>>>>>>Cc: linux-acpi@vger.kernel.org; akpm@osdl.org;
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>>              
+>>>>>>>
+>>>>>william.morrow@amd.com;
+>>>>>
+>>>>>
+>>>>>
+>>>>>
+>>>>>          
+>>>>>
+>>>>>>>jordan.crouse@amd.com; Yu, Luming; Moore, Robert
+>>>>>>>Subject: [patch 12/14] ACPI: Clear GPE before disabling it
+>>>>>>>
+>>>>>>>From: William Morrow <william.morrow@amd.com>
+>>>>>>>
+>>>>>>>On some BIOSen, the GPE bit will remain set even if it is
+>>>>>>>              
+>>>>>>>
+>disabled,
+>  
+>
+>>>>>>>resulting in a interrupt storm.  This patch clears the bit before
+>>>>>>>disabling
+>>>>>>>it.
+>>>>>>>
+>>>>>>>Signed-off-by: William Morrow <william.morrow@amd.com>
+>>>>>>>Signed-off-by: Jordan Crouse <jordan.crouse@amd.com>
+>>>>>>>Cc: "Yu, Luming" <luming.yu@intel.com>
+>>>>>>>Cc: "Brown, Len" <len.brown@intel.com>
+>>>>>>>Cc: "Moore, Robert" <robert.moore@intel.com>
+>>>>>>>Signed-off-by: Andrew Morton <akpm@osdl.org>
+>>>>>>>---
+>>>>>>>
+>>>>>>>drivers/acpi/events/evgpe.c |   14 +++++++++++++-
+>>>>>>>1 file changed, 13 insertions(+), 1 deletion(-)
+>>>>>>>
+>>>>>>>diff -puN
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>>              
+>>>>>>>
+>>>>>drivers/acpi/events/evgpe.c~acpi-clear-gpe-before-disabling-it
+>>>>>
+>>>>>
+>>>>>
+>>>>>
+>>>>>          
+>>>>>
+>>>>>>>drivers/acpi/events/evgpe.c
+>>>>>>>---
+>>>>>>>
+>>>>>>>
+>>>>>>>              
+>>>>>>>
+>>>a/drivers/acpi/events/evgpe.c~acpi-clear-gpe-before-disabling-it
+>>>
+>>>
+>>>      
+>>>
+>>>>>>>+++ a/drivers/acpi/events/evgpe.c
+>>>>>>>@@ -677,10 +677,22 @@ acpi_ev_gpe_dispatch(struct acpi_gpe_eve
+>>>>>>>	case ACPI_GPE_DISPATCH_METHOD:
+>>>>>>>
+>>>>>>>		/*
+>>>>>>>-		 * Disable GPE, so it doesn't keep firing before
+>>>>>>>              
+>>>>>>>
+>the
+>  
+>
+>>>>>>>
+>>>>>>>
+>>>>>>>              
+>>>>>>>
+>>>>>method
+>>>>>
+>>>>>
+>>>>>
+>>>>>
+>>>>>          
+>>>>>
+>>>>>>>has a
+>>>>>>>+		 * Clear GPE, so it doesn't keep firing before
+>>>>>>>              
+>>>>>>>
+>the
+>  
+>
+>>>>>>>
+>>>>>>>
+>>>>>>>              
+>>>>>>>
+>>>>>method has
+>>>>>
+>>>>>
+>>>>>
+>>>>>
+>>>>>          
+>>>>>
+>>>>>>>a
+>>>>>>>		 * chance to run.
+>>>>>>>		 */
+>>>>>>>+		status = acpi_hw_clear_gpe(gpe_event_info);
+>>>>>>>+		if (ACPI_FAILURE(status)) {
+>>>>>>>+			ACPI_EXCEPTION((AE_INFO, status,
+>>>>>>>+					"Unable to clear
+>>>>>>>              
+>>>>>>>
+>GPE[%2X]",
+>  
+>
+>>>>>>>+					gpe_number));
+>>>>>>>+
+>>>>>>>              
+>>>>>>>
+>return_UINT32(ACPI_INTERRUPT_NOT_HANDLED);
+>  
+>
+>>>>>>>+		}
+>>>>>>>+		/*
+>>>>>>>+		 * Disable GPE, so it doesn't keep happen again.
+>>>>>>>+		 */
+>>>>>>>+
+>>>>>>>		status = acpi_ev_disable_gpe(gpe_event_info);
+>>>>>>>+
+>>>>>>>		if (ACPI_FAILURE(status)) {
+>>>>>>>			ACPI_EXCEPTION((AE_INFO, status,
+>>>>>>>					"Unable to disable GPE[%2X]",
+>>>>>>>_
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>>              
+>>>>>>>
+>>>>>
+>>>>>
+>>>>>          
+>>>>>
+>>>
+>>>
+>>>      
+>>>
+>>
+>>-
+>>To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+>>    
+>>
+>in
+>  
+>
+>>the body of a message to majordomo@vger.kernel.org
+>>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>    
+>>
+>
+>
+>  
+>
+
+
+--------------050608080807050402030903
+Content-Type: text/plain;
+ name=acpi3.patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename=acpi3.patch
+
+--- drivers/acpi/events/evgpe.c.orig	2006-08-03 18:52:32.000000000 -0600
++++ drivers/acpi/events/evgpe.c	2006-08-18 15:17:03.000000000 -0600
+@@ -637,18 +637,6 @@
+ 								handler->
+ 								context);
  
-Ok, that'll do the trick :)
+-		/* It is now safe to clear level-triggered events. */
+-
+-		if ((gpe_event_info->flags & ACPI_GPE_XRUPT_TYPE_MASK) ==
+-		    ACPI_GPE_LEVEL_TRIGGERED) {
+-			status = acpi_hw_clear_gpe(gpe_event_info);
+-			if (ACPI_FAILURE(status)) {
+-				ACPI_EXCEPTION((AE_INFO, status,
+-						"Unable to clear GPE[%2X]",
+-						gpe_number));
+-				return_UINT32(ACPI_INTERRUPT_NOT_HANDLED);
+-			}
+-		}
+ 		break;
+ 
+ 	case ACPI_GPE_DISPATCH_METHOD:
+@@ -701,6 +689,21 @@
+ 		break;
+ 	}
+ 
++	/* It is now safe to clear level-triggered events. */
++	if ((gpe_event_info->flags & ACPI_GPE_XRUPT_TYPE_MASK) ==
++	    ACPI_GPE_LEVEL_TRIGGERED) {
++		/*
++		 * Clear GPE, so interrupt doesn't storm
++		 */
++		status = acpi_hw_clear_gpe(gpe_event_info);
++		if (ACPI_FAILURE(status)) {
++			ACPI_EXCEPTION((AE_INFO, status,
++					"Unable to clear GPE[%2X]",
++					gpe_number));
++			return_UINT32(ACPI_INTERRUPT_NOT_HANDLED);
++		}
++	}
++
+ 	return_UINT32(ACPI_INTERRUPT_HANDLED);
+ }
+ 
 
-The -EINVAL actually came from this bit..
+--------------050608080807050402030903--
 
-                pr->performance = performance[i];
-                cpu_set(i, pr->performance->shared_cpu_map);
-                if (acpi_processor_get_psd(pr)) {
-                        retval = -EINVAL;
-                        continue;
-                }
 
-I'll push this on tonight..
-
-		Dave
--- 
-http://www.codemonkey.org.uk
