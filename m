@@ -1,65 +1,27 @@
 From: Bruno Ducrot <ducrot@poupinou.org>
 Subject: Re: DSDT/ASL compiler error
-Date: Fri, 18 Aug 2006 22:17:59 +0200
-Message-ID: <20060818201759.GC4945@poupinou.org>
-References: <20060817170303.GA3592@cactii.net> <1155897211.4302.1318.camel@queen.suse.de> <20060818112517.GB4945@poupinou.org> <20060818121048.GA1579@cactii.net>
+Date: Fri, 18 Aug 2006 22:18:58 +0200
+Message-ID: <20060818201858.GD4945@poupinou.org>
+References: <20060817170303.GA3592@cactii.net> <1155897211.4302.1318.camel@queen.suse.de> <20060818112517.GB4945@poupinou.org> <1155906597.4302.1339.camel@queen.suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from poup.poupinou.org ([195.101.94.96]:23339 "EHLO
-	poup.poupinou.org") by vger.kernel.org with ESMTP id S932270AbWHRUSN
+Received: from poup.poupinou.org ([195.101.94.96]:24363 "EHLO
+	poup.poupinou.org") by vger.kernel.org with ESMTP id S932496AbWHRUTy
 	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 Aug 2006 16:18:13 -0400
+	Fri, 18 Aug 2006 16:19:54 -0400
 Content-Disposition: inline
-In-Reply-To: <20060818121048.GA1579@cactii.net>
+In-Reply-To: <1155906597.4302.1339.camel@queen.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ben B <kernel@bb.cactii.net>
-Cc: Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Ben B <kernel@bb.cactii.net>, linux-acpi@vger.kernel.org
 
-On Fri, Aug 18, 2006 at 02:10:48PM +0200, Ben B wrote:
-> Bruno Ducrot <ducrot@poupinou.org> uttered the following thing:
-> > On Fri, Aug 18, 2006 at 12:33:30PM +0200, Thomas Renninger wrote:
-> > > > 
-> > > > dsdt.dsl  3275:                                         And (Local1, 0xFFFF)
-> > > > Warning  1104 -        Result is not used, operator has no effect ^ 
-> > > > 
-> > I'm not sure if that's one is harmless:
-> > > > dsdt.dsl  3275:                                         And (Local1, 0xFFFF)
-> > It's as if the asl writter wanted to clear the upper bits of Local1, but forgot to
-> > assign it back to Local1.  It might be something like this:
-> > 	And(Local1, 0xFFFF, Local1)
-> > 
-> > It's only a rough guess though, and wihtout knowing what was the
-> > original intention, and without the source of the ASL, it's hard
-> > to tell for sure.
-> 
-> This is the context around there. I can send the whole asl if you'd like
-> also:
-> 
->                                 Store (C15B, Local1)
->                                 If (Local1)
->                                 {
->                                     If (And (C165, 0x40))
->                                     {
->                                         Add (Not (Local1), 0x01, Local1)
->                                         And (Local1, 0xFFFF)
->                                     }
->                                 }
-> 
->                                 Store (Local1, Index (DerefOf (Index (Local0, 0x02)), 0x0E))
+On Fri, Aug 18, 2006 at 03:09:56PM +0200, Thomas Renninger wrote:
+> (unfortunately, I hoped that was the missing hint to fix some things on
+> this system).
 
-Sound like it really should be And(Local1, 0xFFFF, Local1).
-
-> accelerometer, which I only discovered browsing the ASL:
-> 
->             Device (ACEL)
->             {
->                 Name (_HID, EisaId ("HPQ0004"))
-> 
-> "HP Mobile Data Protection Sensor"....but that's for another project. :)
-
-Indeed.
+What things need to be fixed?  I'm just curious.
 
 -- 
 Bruno Ducrot
