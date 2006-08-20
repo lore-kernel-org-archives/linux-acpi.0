@@ -1,494 +1,517 @@
 From: Lennart Poettering <mzxreary@0pointer.de>
-Subject: [PATCH] acpi: ec_transaction(), second try
-Date: Mon, 21 Aug 2006 00:27:59 +0200
-Message-ID: <20060820222759.GA5369@curacao>
+Subject: [PATCH] misc,acpi,backlight: MSI S270 Laptop support, third try
+Date: Mon, 21 Aug 2006 00:52:09 +0200
+Message-ID: <20060820225209.GA5453@curacao>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tango.0pointer.de ([217.160.223.3]:9490 "EHLO tango.0pointer.de")
-	by vger.kernel.org with ESMTP id S1751667AbWHTW2E (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 20 Aug 2006 18:28:04 -0400
+Received: from tango.0pointer.de ([217.160.223.3]:46088 "EHLO
+	tango.0pointer.de") by vger.kernel.org with ESMTP id S1751765AbWHTWwM
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 20 Aug 2006 18:52:12 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com
+To: len.brown@intel.com, rubini@ipvvis.unipv.it, pavel@suse.cz
 Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
 From: Lennart Poettering <mzxreary@0pointer.de>
 
-This is the second version of my patch which unifies the logic of
-ec_read() and ec_write() into ec_transaction(). Most things I wrote
-about the first version are still true:
+This is the third version of my MSI S270 Laptop driver. Most things I
+wrote about the first two versions are still true:
 
-http://marc.theaimsgroup.com/?l=linux-kernel&m=115517205307700&w=2
+http://marc.theaimsgroup.com/?l=linux-acpi&m=115517193510912&w=2
+http://marc.theaimsgroup.com/?l=linux-kernel&m=115522739203174&w=2
 
-The changes are:
+Changes from the second version are:
 
-- Updated for Kernel 2.6.18pre (Linus' GIT tree as of today)
+- Added a new DMI entry for a supported laptop model
 
-- Fix a bad argument validity check in acpi_ec_poll_transaction() as
-  pointed out by Yu Luming.
+- Renamed to "msi-laptop.c" (originally s270.c). This driver probably
+  works on more MSI laptops than just the S270. (On request of Thomas
+  Renninger)
 
-- I unified the code in acpi_ec_poll_transaction() and
-  acpi_ec_intr_transaction() a little more. Both functions are now just
-  wrappers around the new acpi_ec_transaction_unlocked() function. The
-  latter contains the EC access logic, the two original
-  function now just do their special way of locking and call the the
-  new function for the actual work.
+- Don't use a static brightness level translation table, instead just
+  multiply/divide by 31 to convert from harware to software brightness
+  levels (On request of Pavel Machek)
 
-This patch is required for my MSI laptop support patch.
+- Split up "if" lines (on request of Pavel Machek)
 
-Based on Linus' GIT tree and should also apply to the current ACPI
-tree. 
+- Fix the maximum brightness level passed to the backlight control
+  subsystem. 
 
-Please merge!
+Applies to Linus' current GIT tree. (2.6.18pre)
 
-Lennart
+Requires the ec_transaction patch I posted earlier.
+
+Please merge! 
+
+I wonder who's the right one to ask for merging, since this driver
+sits in drivers/misc/. According to MAINTAINERS Alessandro Rubini
+maintains that directory. However it's somewhat based on the ACPI EC
+access stuff I posted earlier, hence the APCI tree might be another
+path to get this merged. Len, Alessandro, which one of you shall I
+bug to get this driver commited?
+
+Thanks,
+        Lennart
 
 Signed-off-by: Lennart Poettering <mzxreary@0pointer.de>
 ---
- drivers/acpi/ec.c    |  331 +++++++++++++++-----------------------------------
- include/linux/acpi.h |    3 
- 2 files changed, 101 insertions(+), 233 deletions(-)
+ MAINTAINERS               |    7 +
+ drivers/misc/Kconfig      |   19 ++
+ drivers/misc/Makefile     |    1 
+ drivers/misc/msi-laptop.c |  386 +++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 413 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index e5d7963..fb750fb 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -122,12 +122,12 @@ union acpi_ec {
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 21116cc..6210002 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -1949,6 +1949,13 @@ M:	rubini@ipvvis.unipv.it
+ L:	linux-kernel@vger.kernel.org
+ S:	Maintained
  
- static int acpi_ec_poll_wait(union acpi_ec *ec, u8 event);
- static int acpi_ec_intr_wait(union acpi_ec *ec, unsigned int event);
--static int acpi_ec_poll_read(union acpi_ec *ec, u8 address, u32 * data);
--static int acpi_ec_intr_read(union acpi_ec *ec, u8 address, u32 * data);
--static int acpi_ec_poll_write(union acpi_ec *ec, u8 address, u8 data);
--static int acpi_ec_intr_write(union acpi_ec *ec, u8 address, u8 data);
--static int acpi_ec_poll_query(union acpi_ec *ec, u32 * data);
--static int acpi_ec_intr_query(union acpi_ec *ec, u32 * data);
-+static int acpi_ec_poll_transaction(union acpi_ec *ec, u8 command,
-+                                    const u8 *wdata, unsigned wdata_len,
-+                                    u8 *rdata, unsigned rdata_len);
-+static int acpi_ec_intr_transaction(union acpi_ec *ec, u8 command,
-+                                    const u8 *wdata, unsigned wdata_len,
-+                                    u8 *rdata, unsigned rdata_len);
- static void acpi_ec_gpe_poll_query(void *ec_cxt);
- static void acpi_ec_gpe_intr_query(void *ec_cxt);
- static u32 acpi_ec_gpe_poll_handler(void *data);
-@@ -302,127 +302,114 @@ end:
- }
- #endif /* ACPI_FUTURE_USAGE */
- 
--static int acpi_ec_read(union acpi_ec *ec, u8 address, u32 * data)
-+static int acpi_ec_transaction(union acpi_ec *ec, u8 command,
-+                               const u8 *wdata, unsigned wdata_len,
-+                               u8 *rdata, unsigned rdata_len)
- {
- 	if (acpi_ec_poll_mode)
--		return acpi_ec_poll_read(ec, address, data);
-+		return acpi_ec_poll_transaction(ec, command, wdata, wdata_len, rdata, rdata_len);
- 	else
--		return acpi_ec_intr_read(ec, address, data);
-+		return acpi_ec_intr_transaction(ec, command, wdata, wdata_len, rdata, rdata_len);
- }
--static int acpi_ec_write(union acpi_ec *ec, u8 address, u8 data)
-+static int acpi_ec_read(union acpi_ec *ec, u8 address, u32 * data)
- {
--	if (acpi_ec_poll_mode)
--		return acpi_ec_poll_write(ec, address, data);
--	else
--		return acpi_ec_intr_write(ec, address, data);
-+        int result;
-+        u8 d;
-+        result = acpi_ec_transaction(ec, ACPI_EC_COMMAND_READ, &address, 1, &d, 1);
-+        *data = d;
-+        return result;
- }
--static int acpi_ec_poll_read(union acpi_ec *ec, u8 address, u32 * data)
-+static int acpi_ec_write(union acpi_ec *ec, u8 address, u8 data)
- {
--	acpi_status status = AE_OK;
--	int result = 0;
--	u32 glk = 0;
-+        u8 wdata[2] = { address, data };
-+        return acpi_ec_transaction(ec, ACPI_EC_COMMAND_WRITE, wdata, 2, NULL, 0);
-+}
- 
-+static int acpi_ec_transaction_unlocked(union acpi_ec *ec, u8 command,
-+                                             const u8 *wdata, unsigned wdata_len,
-+                                             u8 *rdata, unsigned rdata_len)
-+{
-+	int result;
-+        
-+	acpi_hw_low_level_write(8, command, &ec->common.command_addr);
- 
--	if (!ec || !data)
--		return -EINVAL;
-+        result = acpi_ec_wait(ec, ACPI_EC_EVENT_IBE);
-+	if (result)
-+		return result;
- 
--	*data = 0;
-+        for (; wdata_len > 0; wdata_len --) {
- 
--	if (ec->common.global_lock) {
--		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
--		if (ACPI_FAILURE(status))
--			return -ENODEV;
--	}
-+                acpi_hw_low_level_write(8, *(wdata++), &ec->common.data_addr);
- 
--	if (down_interruptible(&ec->poll.sem)) {
--		result = -ERESTARTSYS;
--		goto end_nosem;
--	}
--	
--	acpi_hw_low_level_write(8, ACPI_EC_COMMAND_READ,
--				&ec->common.command_addr);
--	result = acpi_ec_wait(ec, ACPI_EC_EVENT_IBE);
--	if (result)
--		goto end;
-+                result = acpi_ec_wait(ec, ACPI_EC_EVENT_IBE);
-+                if (result)
-+                        return result;
-+        }
- 
--	acpi_hw_low_level_write(8, address, &ec->common.data_addr);
--	result = acpi_ec_wait(ec, ACPI_EC_EVENT_OBF);
--	if (result)
--		goto end;
- 
--	acpi_hw_low_level_read(8, data, &ec->common.data_addr);
-+        for (; rdata_len > 0; rdata_len --) {
-+                u32 d;
- 
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Read [%02x] from address [%02x]\n",
--			  *data, address));
-+                result = acpi_ec_wait(ec, ACPI_EC_EVENT_OBF);
-+                if (result)
-+                        return result;
- 
--      end:
--	up(&ec->poll.sem);
--end_nosem:
--	if (ec->common.global_lock)
--		acpi_release_global_lock(glk);
-+                acpi_hw_low_level_read(8, &d, &ec->common.data_addr);
-+                *(rdata++) = (u8) d;
-+        }
- 
--	return result;
-+        return 0;
- }
- 
--static int acpi_ec_poll_write(union acpi_ec *ec, u8 address, u8 data)
-+static int acpi_ec_poll_transaction(union acpi_ec *ec, u8 command,
-+                                    const u8 *wdata, unsigned wdata_len,
-+                                    u8 *rdata, unsigned rdata_len)
- {
--	int result = 0;
- 	acpi_status status = AE_OK;
-+	int result;
- 	u32 glk = 0;
- 
--
--	if (!ec)
-+	if (!ec || (wdata_len && !wdata) || (rdata_len && !rdata))
- 		return -EINVAL;
- 
-+        if (rdata)
-+                memset(rdata, 0, rdata_len);
++MSI LAPTOP SUPPORT
++P:	Lennart Poettering
++M:	mzxreary@0pointer.de
++L:	https://tango.0pointer.de/mailman/listinfo/s270-linux
++W:	http://0pointer.de/lennart/tchibo.html
++S:	Maintained
 +
- 	if (ec->common.global_lock) {
- 		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
- 		if (ACPI_FAILURE(status))
- 			return -ENODEV;
--	}
-+        }
+ MTRR AND SIMILAR SUPPORT [i386]
+ P:	Richard Gooch
+ M:	rgooch@atnf.csiro.au
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index 7fc692a..d25b0db 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -28,5 +28,24 @@ config IBM_ASM
  
- 	if (down_interruptible(&ec->poll.sem)) {
- 		result = -ERESTARTSYS;
- 		goto end_nosem;
- 	}
--	
--	acpi_hw_low_level_write(8, ACPI_EC_COMMAND_WRITE,
--				&ec->common.command_addr);
--	result = acpi_ec_wait(ec, ACPI_EC_EVENT_IBE);
--	if (result)
--		goto end;
--
--	acpi_hw_low_level_write(8, address, &ec->common.data_addr);
--	result = acpi_ec_wait(ec, ACPI_EC_EVENT_IBE);
--	if (result)
--		goto end;
--
--	acpi_hw_low_level_write(8, data, &ec->common.data_addr);
--	result = acpi_ec_wait(ec, ACPI_EC_EVENT_IBE);
--	if (result)
--		goto end;
+ 	  If unsure, say N.
  
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Wrote [%02x] to address [%02x]\n",
--			  data, address));
--
--      end:
-+        result = acpi_ec_transaction_unlocked(ec, command,
-+                                              wdata, wdata_len,
-+                                              rdata, rdata_len);
- 	up(&ec->poll.sem);
++config MSI_LAPTOP
++        tristate "MSI Laptop Extras"
++        depends on X86
++        depends on ACPI_EC
++        depends on BACKLIGHT_CLASS_DEVICE
++        ---help---
++          This is a driver for laptops built by MSI (MICRO-STAR 
++	  INTERNATIONAL):
++	      
++	      MSI MegaBook S270 (MS-1013)
++	      Cytron/TCM/Medion/Tchibo MD96100/SAM2000
++	   
++	  It adds support for Bluetooth, WLAN and LCD brightness control.
++
++          More information about this driver is available at
++          <http://0pointer.de/lennart/tchibo.html>.
++
++          If you have an MSI S270 laptop, say Y or M here.
++
+ endmenu
+ 
+diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
+index 19c2b85..1328c5f 100644
+--- a/drivers/misc/Makefile
++++ b/drivers/misc/Makefile
+@@ -5,3 +5,4 @@ obj- := misc.o	# Dummy rule to force bui
+ 
+ obj-$(CONFIG_IBM_ASM)	+= ibmasm/
+ obj-$(CONFIG_HDPU_FEATURES)	+= hdpuftrs/
++obj-$(CONFIG_MSI_LAPTOP)     += msi-laptop.o
+diff --git a/drivers/misc/msi-laptop.c b/drivers/misc/msi-laptop.c
+new file mode 100644
+index 0000000..450c800
+--- /dev/null
++++ b/drivers/misc/msi-laptop.c
+@@ -0,0 +1,386 @@
++/*-*-linux-c-*-*/
++
++/* $Id: msi-laptop.c 115 2006-08-20 20:02:54Z lennart $ */
++
++/***
++  Copyright (C) 2006 Lennart Poettering <mzxreary (at) 0pointer (dot) de>
++
++  This program is free software; you can redistribute it and/or modify
++  it under the terms of the GNU General Public License as published by
++  the Free Software Foundation; either version 2 of the License, or
++  (at your option) any later version.
++
++  This program is distributed in the hope that it will be useful, but
++  WITHOUT ANY WARRANTY; without even the implied warranty of
++  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++  General Public License for more details.
++
++  You should have received a copy of the GNU General Public License
++  along with this program; if not, write to the Free Software
++  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
++  02110-1301, USA.
++***/
++
++/*
++ * msi-laptop.c - MSI S270 laptop support. This laptop is sold under
++ * various brands, including "Cytron/TCM/Medion/Tchibo MD96100".
++ *
++ * This driver exports a few files in /sys/devices/platform/msi-laptop-pf/:
++ *
++ *   lcd_level - Screen brightness: contains a single integer in the
++ *   range 0..8. (rw)
++ * 
++ *   auto_brightness - Enable automatic brightness control: contains
++ *   either 0 or 1. If set to 1 the hardware adjusts the screen
++ *   brightness automatically when the power cord is
++ *   plugged/unplugged. (rw)
++ *
++ *   wlan - WLAN subsystem enabled: contains either 0 or 1. (ro)
++ *
++ *   bluetooth - Bluetooth subsystem enabled: contains either 0 or 1
++ *   Please note that this file is constantly 0 if no Bluetooth
++ *   hardware is available. (ro)
++ *
++ * In addition to these platform device attributes the driver
++ * registers itself in the Linux backlight control subsystem and is
++ * available to userspace under /sys/class/backlight/msi-laptop-bl/.
++ *
++ * This driver might work on other laptops produced by MSI. If you
++ * want to try it you can pass force=1 as argument to the module which
++ * will force it to load even when the DMI data doesn't identify the
++ * laptop as MSI S270. YMMV.
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/acpi.h>
++#include <linux/dmi.h>
++#include <linux/backlight.h>
++#include <linux/platform_device.h>
++#include <linux/autoconf.h>
++
++#define MSI_DRIVER_VERSION "0.3"
++
++#define MSI_LCD_LEVEL_MAX 9
++
++#define MSI_EC_COMMAND_WIRELESS 0x10
++#define MSI_EC_COMMAND_LCD_LEVEL 0x11
++
++static int force;
++module_param(force, bool, 0);
++MODULE_PARM_DESC(force, "Force driver load, ignore DMI data");
++
++static int auto_brightness;
++module_param(auto_brightness, int, 0);
++MODULE_PARM_DESC(auto_brightness, "Enable automatic brightness control (0: disabled; 1: enabled; 2: don't touch)");
++
++/*** Hardware access ***/
++
++static int set_lcd_level(int level) {
++        u8 buf[2];
 +        
- end_nosem:
- 	if (ec->common.global_lock)
- 		acpi_release_global_lock(glk);
- 
--	return result;
-+	return result;        
- }
- 
--static int acpi_ec_intr_read(union acpi_ec *ec, u8 address, u32 * data)
-+static int acpi_ec_intr_transaction(union acpi_ec *ec, u8 command,
-+                                    const u8 *wdata, unsigned wdata_len,
-+                                    u8 *rdata, unsigned rdata_len)
- {
--	int status = 0;
-+	int status;
- 	u32 glk;
- 
--
--	if (!ec || !data)
-+	if (!ec || (wdata_len && !wdata) || (rdata_len && !rdata))
- 		return -EINVAL;
- 
--	*data = 0;
-+        if (rdata)
-+                memset(rdata, 0, rdata_len);
- 
- 	if (ec->common.global_lock) {
- 		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
-@@ -438,72 +425,12 @@ static int acpi_ec_intr_read(union acpi_
- 		printk(KERN_DEBUG PREFIX "read EC, IB not empty\n");
- 		goto end;
- 	}
--	acpi_hw_low_level_write(8, ACPI_EC_COMMAND_READ,
--				&ec->common.command_addr);
--	status = acpi_ec_wait(ec, ACPI_EC_EVENT_IBE);
--	if (status) {
--		printk(KERN_DEBUG PREFIX "read EC, IB not empty\n");
--	}
--
--	acpi_hw_low_level_write(8, address, &ec->common.data_addr);
--	status = acpi_ec_wait(ec, ACPI_EC_EVENT_OBF);
--	if (status) {
--		printk(KERN_DEBUG PREFIX "read EC, OB not full\n");
--		goto end;
--	}
--	acpi_hw_low_level_read(8, data, &ec->common.data_addr);
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Read [%02x] from address [%02x]\n",
--			  *data, address));
--
--      end:
--	up(&ec->intr.sem);
--
--	if (ec->common.global_lock)
--		acpi_release_global_lock(glk);
--
--	return status;
--}
--
--static int acpi_ec_intr_write(union acpi_ec *ec, u8 address, u8 data)
--{
--	int status = 0;
--	u32 glk;
--
--
--	if (!ec)
--		return -EINVAL;
--
--	if (ec->common.global_lock) {
--		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
--		if (ACPI_FAILURE(status))
--			return -ENODEV;
--	}
--
--	WARN_ON(in_interrupt());
--	down(&ec->intr.sem);
--
--	status = acpi_ec_wait(ec, ACPI_EC_EVENT_IBE);
--	if (status) {
--		printk(KERN_DEBUG PREFIX "write EC, IB not empty\n");
--	}
--	acpi_hw_low_level_write(8, ACPI_EC_COMMAND_WRITE,
--				&ec->common.command_addr);
--	status = acpi_ec_wait(ec, ACPI_EC_EVENT_IBE);
--	if (status) {
--		printk(KERN_DEBUG PREFIX "write EC, IB not empty\n");
--	}
--
--	acpi_hw_low_level_write(8, address, &ec->common.data_addr);
--	status = acpi_ec_wait(ec, ACPI_EC_EVENT_IBE);
--	if (status) {
--		printk(KERN_DEBUG PREFIX "write EC, IB not empty\n");
--	}
- 
--	acpi_hw_low_level_write(8, data, &ec->common.data_addr);
--
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Wrote [%02x] to address [%02x]\n",
--			  data, address));
-+        status = acpi_ec_transaction_unlocked(ec, command,
-+                                              wdata, wdata_len,
-+                                              rdata, rdata_len);
- 
-+end:
- 	up(&ec->intr.sem);
- 
- 	if (ec->common.global_lock)
-@@ -554,106 +481,44 @@ int ec_write(u8 addr, u8 val)
- 
- EXPORT_SYMBOL(ec_write);
- 
--static int acpi_ec_query(union acpi_ec *ec, u32 * data)
--{
--	if (acpi_ec_poll_mode)
--		return acpi_ec_poll_query(ec, data);
--	else
--		return acpi_ec_intr_query(ec, data);
--}
--static int acpi_ec_poll_query(union acpi_ec *ec, u32 * data)
-+extern int ec_transaction(u8 command,
-+                          const u8 *wdata, unsigned wdata_len,
-+                          u8 *rdata, unsigned rdata_len)
- {
--	int result = 0;
--	acpi_status status = AE_OK;
--	u32 glk = 0;
--
--
--	if (!ec || !data)
--		return -EINVAL;
--
--	*data = 0;
--
--	if (ec->common.global_lock) {
--		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
--		if (ACPI_FAILURE(status))
--			return -ENODEV;
--	}
--
--	/*
--	 * Query the EC to find out which _Qxx method we need to evaluate.
--	 * Note that successful completion of the query causes the ACPI_EC_SCI
--	 * bit to be cleared (and thus clearing the interrupt source).
--	 */
--	if (down_interruptible(&ec->poll.sem)) {
--		result = -ERESTARTSYS;
--		goto end_nosem;
--	}
--	
--	acpi_hw_low_level_write(8, ACPI_EC_COMMAND_QUERY,
--				&ec->common.command_addr);
--	result = acpi_ec_wait(ec, ACPI_EC_EVENT_OBF);
--	if (result)
--		goto end;
-+	union acpi_ec *ec;
- 
--	acpi_hw_low_level_read(8, data, &ec->common.data_addr);
--	if (!*data)
--		result = -ENODATA;
-+	if (!first_ec)
-+		return -ENODEV;
- 
--      end:
--	up(&ec->poll.sem);
--end_nosem:
--	if (ec->common.global_lock)
--		acpi_release_global_lock(glk);
-+	ec = acpi_driver_data(first_ec);
- 
--	return result;
-+	return acpi_ec_transaction(ec, command, wdata, wdata_len, rdata, rdata_len);
- }
--static int acpi_ec_intr_query(union acpi_ec *ec, u32 * data)
--{
--	int status = 0;
--	u32 glk;
--
--
--	if (!ec || !data)
--		return -EINVAL;
--	*data = 0;
--
--	if (ec->common.global_lock) {
--		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
--		if (ACPI_FAILURE(status))
--			return -ENODEV;
--	}
- 
--	down(&ec->intr.sem);
-+EXPORT_SYMBOL(ec_transaction);
- 
--	status = acpi_ec_wait(ec, ACPI_EC_EVENT_IBE);
--	if (status) {
--		printk(KERN_DEBUG PREFIX "query EC, IB not empty\n");
--		goto end;
--	}
--	/*
--	 * Query the EC to find out which _Qxx method we need to evaluate.
--	 * Note that successful completion of the query causes the ACPI_EC_SCI
--	 * bit to be cleared (and thus clearing the interrupt source).
--	 */
--	acpi_hw_low_level_write(8, ACPI_EC_COMMAND_QUERY,
--				&ec->common.command_addr);
--	status = acpi_ec_wait(ec, ACPI_EC_EVENT_OBF);
--	if (status) {
--		printk(KERN_DEBUG PREFIX "query EC, OB not full\n");
--		goto end;
--	}
-+static int acpi_ec_query(union acpi_ec *ec, u32 * data) {
-+        int result;
-+        u8 d;
- 
--	acpi_hw_low_level_read(8, data, &ec->common.data_addr);
--	if (!*data)
--		status = -ENODATA;
-+        if (!ec || !data)
++        if (level < 0 || level >= MSI_LCD_LEVEL_MAX)
 +                return -EINVAL;
 +        
-+        /*
-+         * Query the EC to find out which _Qxx method we need to evaluate.
-+         * Note that successful completion of the query causes the ACPI_EC_SCI
-+         * bit to be cleared (and thus clearing the interrupt source).
-+         */
- 
--      end:
--	up(&ec->intr.sem);
-+        result = acpi_ec_transaction(ec, ACPI_EC_COMMAND_QUERY, NULL, 0, &d, 1);
-+        if (result)
++        buf[0] = 0x80;
++        buf[1] = (u8) (level*31);
++        
++        return ec_transaction(MSI_EC_COMMAND_LCD_LEVEL, buf, sizeof(buf), NULL, 0);
++}
++
++static int get_lcd_level(void) {
++        u8 wdata = 0, rdata;
++        int result;
++
++        result = ec_transaction(MSI_EC_COMMAND_LCD_LEVEL, &wdata, 1, &rdata, 1);
++        if (result < 0)
 +                return result;
- 
--	if (ec->common.global_lock)
--		acpi_release_global_lock(glk);
-+        if (!d)
-+                return -ENODATA;
- 
--	return status;
-+        *data = d;
++
++        return (int) rdata / 31;
++}
++
++static int get_auto_brightness(void) {
++        u8 wdata = 4, rdata;
++        int result;
++
++        result = ec_transaction(MSI_EC_COMMAND_LCD_LEVEL, &wdata, 1, &rdata, 1);
++        if (result < 0)
++                return result;
++
++        return !!(rdata & 8);
++}
++
++static int set_auto_brightness(int enable) {
++        u8 wdata[2], rdata;
++        int result;
++        
++        wdata[0] = 4;
++
++        result = ec_transaction(MSI_EC_COMMAND_LCD_LEVEL, wdata, 1, &rdata, 1);
++        if (result < 0)
++                return result;
++            
++        wdata[0] = 0x84;
++        wdata[1] = (rdata & 0xF7) | (enable ? 8 : 0);
++
++        return ec_transaction(MSI_EC_COMMAND_LCD_LEVEL, wdata, 2, NULL, 0);
++}
++
++static int get_wireless_state(int *wlan, int *bluetooth) {
++        u8 wdata = 0, rdata;
++        int result;
++
++        result = ec_transaction(MSI_EC_COMMAND_WIRELESS, &wdata, 1, &rdata, 1);
++        if (result < 0)
++                return -1;
++
++        if (wlan)
++                *wlan = !!(rdata & 8);
++
++        if (bluetooth)
++                *bluetooth = !!(rdata & 128);
++        
 +        return 0;
- }
- 
- /* --------------------------------------------------------------------------
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 88b5dfd..2b0c955 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -494,6 +494,9 @@ #ifdef CONFIG_ACPI_EC
- 
- extern int ec_read(u8 addr, u8 *val);
- extern int ec_write(u8 addr, u8 val);
-+extern int ec_transaction(u8 command,
-+                          const u8 *wdata, unsigned wdata_len,
-+                          u8 *rdata, unsigned rdata_len);
- 
- #endif /*CONFIG_ACPI_EC*/
- 
++}
++
++/*** Backlight device stuff ***/
++
++static int bl_get_brightness(struct backlight_device *b) {
++        return get_lcd_level();
++}
++
++
++static int bl_update_status(struct backlight_device *b) {
++        return set_lcd_level(b->props->brightness);
++}
++
++static struct backlight_properties msibl_props = {
++        .owner		= THIS_MODULE,
++	.get_brightness = bl_get_brightness,
++        .update_status  = bl_update_status,
++	.max_brightness = MSI_LCD_LEVEL_MAX-1,
++};
++
++static struct backlight_device *msibl_device;
++
++/*** Platform device ***/
++
++static ssize_t show_wlan(
++        struct device *dev,
++        struct device_attribute *attr,
++        char *buf) {
++
++        int ret, enabled;
++
++        ret = get_wireless_state(&enabled, NULL);
++        if (ret < 0)
++                return ret;
++
++        return sprintf(buf, "%i\n", enabled);
++}
++
++static ssize_t show_bluetooth(
++        struct device *dev,
++        struct device_attribute *attr,
++        char *buf) {
++
++        int ret, enabled;
++
++        ret = get_wireless_state(NULL, &enabled);
++        if (ret < 0)
++                return ret;
++
++        return sprintf(buf, "%i\n", enabled);
++}
++
++static ssize_t show_lcd_level(
++        struct device *dev,
++        struct device_attribute *attr,
++        char *buf) {
++
++        int ret;
++
++        ret = get_lcd_level();
++        if (ret < 0)
++                return ret;
++        
++        return sprintf(buf, "%i\n", ret);
++}
++
++static ssize_t store_lcd_level(
++        struct device *dev,
++        struct device_attribute *attr,
++        const char *buf, size_t count) {
++        
++        int level, ret;
++
++        if (sscanf(buf, "%i", &level) != 1 || (level < 0 || level > 8))
++                return -EINVAL;
++
++        ret = set_lcd_level(level);
++        if (ret < 0)
++                return ret;
++        
++        return count;
++}
++
++static ssize_t show_auto_brightness(
++        struct device *dev,
++        struct device_attribute *attr,
++        char *buf) {
++
++        int ret;
++
++        ret = get_auto_brightness();
++        if (ret < 0)
++                return ret;
++        
++        return sprintf(buf, "%i\n", ret);
++}
++
++static ssize_t store_auto_brightness(
++        struct device *dev,
++        struct device_attribute *attr,
++        const char *buf, size_t count) {
++        
++        int enable, ret;
++
++        if (sscanf(buf, "%i", &enable) != 1 || (enable != (enable & 1)))
++                return -EINVAL;
++
++        ret = set_auto_brightness(enable);
++        if (ret < 0)
++                return ret;
++        
++        return count;
++}
++
++static DEVICE_ATTR(lcd_level, 0644, show_lcd_level, store_lcd_level);
++static DEVICE_ATTR(auto_brightness, 0644, show_auto_brightness, store_auto_brightness);
++static DEVICE_ATTR(bluetooth, 0444, show_bluetooth, NULL);
++static DEVICE_ATTR(wlan, 0444, show_wlan, NULL);
++
++static struct attribute *msipf_attributes[] = {
++	&dev_attr_lcd_level.attr,
++	&dev_attr_auto_brightness.attr,
++	&dev_attr_bluetooth.attr,
++	&dev_attr_wlan.attr,
++	NULL
++};
++
++static struct attribute_group msipf_attribute_group = {
++	.attrs = msipf_attributes
++};
++
++static struct platform_driver msipf_driver = {
++	.driver = {
++		.name = "msi-laptop-pf",
++		.owner = THIS_MODULE,
++	}
++};
++
++static struct platform_device *msipf_device;
++
++/*** Initialization ***/
++
++static struct dmi_system_id __initdata msi_dmi_table[] = {
++        {
++                .ident = "MSI S270",
++                .matches = {
++                        DMI_MATCH(DMI_SYS_VENDOR, "MICRO-STAR INT'L CO.,LTD"),
++                        DMI_MATCH(DMI_PRODUCT_NAME, "MS-1013"),
++                }
++        },
++        {
++                .ident = "Medion MD96100",
++                .matches = {
++                        DMI_MATCH(DMI_SYS_VENDOR, "NOTEBOOK"),
++                        DMI_MATCH(DMI_PRODUCT_NAME, "SAM2000"),
++                }
++        },
++        { }
++};
++
++
++static int __init msi_init(void) {
++        int ret;
++
++        if (acpi_disabled)
++                return -ENODEV;
++
++        if (!force && !dmi_check_system(msi_dmi_table))
++                return -ENODEV;
++
++        if (auto_brightness < 0 || auto_brightness > 2)
++                return -EINVAL;
++
++        /* Register backlight stuff */
++        
++        msibl_device = backlight_device_register("msi-laptop-bl", NULL, &msibl_props);
++        if (IS_ERR(msibl_device))
++                return PTR_ERR(msibl_device);
++
++        ret = platform_driver_register(&msipf_driver);
++        if (ret)
++                goto fail_backlight;
++
++        /* Register platform stuff */
++        
++        msipf_device = platform_device_register_simple("msi-laptop-pf", -1, NULL, 0);
++	if (IS_ERR(msipf_device)) {
++		ret = PTR_ERR(msipf_device);
++		goto fail_platform_driver;
++	}
++
++        ret = sysfs_create_group(&msipf_device->dev.kobj, &msipf_attribute_group);
++        if (ret)
++                goto fail_platform_device;
++
++        /* Disable automatic brightness control by default because
++         * this module was probably loaded to do brightness control in
++         * software. */
++
++        if (auto_brightness != 2)
++                set_auto_brightness(auto_brightness);
++        
++        printk(KERN_INFO "msi-laptop: driver "MSI_DRIVER_VERSION" successfully loaded.\n");
++        
++        return 0;
++
++fail_platform_device:
++        
++        platform_device_unregister(msipf_device);
++
++fail_platform_driver:
++
++        platform_driver_unregister(&msipf_driver);
++        
++fail_backlight:
++
++        backlight_device_unregister(msibl_device);
++        
++        return ret;
++}
++
++static void __exit msi_cleanup(void) {
++
++        sysfs_remove_group(&msipf_device->dev.kobj, &msipf_attribute_group);
++        platform_device_unregister(msipf_device);
++        platform_driver_unregister(&msipf_driver);
++        backlight_device_unregister(msibl_device);
++
++        /* Enable automatic brightness control again */
++        if (auto_brightness != 2)
++                set_auto_brightness(1);     
++
++        printk(KERN_INFO "msi-laptop: driver unloaded.\n");
++}
++
++module_init(msi_init);
++module_exit(msi_cleanup);
++
++MODULE_AUTHOR("Lennart Poettering");
++MODULE_DESCRIPTION("MSI Laptop Support");
++MODULE_VERSION(MSI_DRIVER_VERSION);
++MODULE_LICENSE("GPL");
 -- 
 1.4.1
 
