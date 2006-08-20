@@ -1,103 +1,74 @@
-From: Karol Kozimor <sziwan@hell.org.pl>
-Subject: Re: Fwd: [patch 01/14] asus_acpi: W3000 support
-Date: Sun, 20 Aug 2006 18:25:07 +0200
-Message-ID: <20060820162507.GC7469@hell.org.pl>
-References: <200608152311.30989.len.brown@intel.com>
+From: MRS SUZZAN SAINOVIC <hb3000@tsamail.co.za>
+Subject: MUTUAL TRUST
+Date: Sun, 20 Aug 2006 19:26:32 +0200 (CEST)
+Message-ID: <20060820172632.6899181329E@a15186114.alturo-server.de>
+Reply-To: hb3000@tsamail.co.za
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hell.org.pl ([62.233.239.4]:61450 "HELO hell.org.pl")
-	by vger.kernel.org with SMTP id S1750864AbWHTQZL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 20 Aug 2006 12:25:11 -0400
-Content-Disposition: inline
-In-Reply-To: <200608152311.30989.len.brown@intel.com>
+Received: from a15186114.alturo-server.de ([217.160.140.85]:384 "EHLO
+	a15186114.alturo-server.de") by vger.kernel.org with ESMTP
+	id S1750993AbWHTR0d (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 20 Aug 2006 13:26:33 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, marekw1977@yahoo.com.au
-
-Thus wrote Len Brown:
-> Karol,
-> What shall we do with this?
-> 
-> If you want it applied, you can simply reply-all to akpm's e-mail and say "please apply".
-> If you want me to put it in the batch for 2.6.19, i can do that too.
+To: linux-acpi@vger.kernel.org
 
 
-Hi,
-Sorry for the delay, I've been traveling for 2 weeks and will be for 2
-more. The patch *looks* OK, but I can't verify all the method nodes here.
-Please put it in the test tree, but don't apply to mainline yet, I'll try
-to verify this ASAP.
 
--- 
-Karol 'sziwan' Kozimor
-sziwan@hell.org.pl
+MUTUAL TRUST
 
---------------
-From: Marek W <marekw1977@yahoo.com.au>
+Dear Sir/Madam
 
-Add support for W3000 (W3V) and indirectly fixes an issue with kmilo under KDE
-(it was triggering excessive LCD read error messages by querying asus_acpi
-module) allowing people (I am probably the only one who tested this) with
-W3000 to run kmilo.
+RE: YOUR ASSISTANCE IS HIGHLY NEEDED
 
-Cc: Karol Kozimor <sziwan@hell.org.pl>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
----
+I am very sure that this mail will bring lots of surprises and curiosity to you since there was no previous correspondence before now between us.
 
- drivers/acpi/asus_acpi.c |   17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+I am a widow of one of the top rulers in Chechnya, My husband died along side with the Chenchan president who was killed in a bomb attack early this year in a parade ground.
 
-diff -puN drivers/acpi/asus_acpi.c~asus_acpi-w3000-support drivers/acpi/asus_acpi.c
---- a/drivers/acpi/asus_acpi.c~asus_acpi-w3000-support
-+++ a/drivers/acpi/asus_acpi.c
-@@ -138,6 +138,7 @@ struct asus_hotk {
- 		S2x,		//S200 (J1 reported), Victor MP-XP7210
- 		W1N,		//W1000N
- 		W5A,		//W5A
-+		W3V,            //W3030V
- 		xxN,		//M2400N, M3700N, M5200N, M6800N, S1300N, S5200N
- 		//(Centrino)
- 		END_MODEL
-@@ -376,6 +377,17 @@ static struct model_data model_conf[END_
- 	 .display_get = "\\ADVG"},
- 
- 	{
-+	 .name = "W3V",
-+	 .mt_mled = "MLED",
-+	 .mt_wled = "WLED",
-+	 .mt_lcd_switch = xxN_PREFIX "_Q10",
-+	 .lcd_status = "\\BKLT",
-+	 .brightness_set = "SPLV",
-+	 .brightness_get = "GPLV",
-+	 .display_set = "SDSP",
-+	 .display_get = "\\INFB"},
-+
-+       {
- 	 .name = "xxN",
- 	 .mt_mled = "MLED",
- /* WLED present, but not controlled by ACPI */
-@@ -1097,6 +1109,8 @@ static int asus_model_match(char *model)
- 		return A4G;
- 	else if (strncmp(model, "W1N", 3) == 0)
- 		return W1N;
-+	else if (strncmp(model, "W3V", 3) == 0)
-+		return W3V;
- 	else if (strncmp(model, "W5A", 3) == 0)
- 		return W5A;
- 	else
-@@ -1200,9 +1214,10 @@ static int asus_hotk_get_info(void)
- 		hotk->methods->mt_wled = NULL;
- 	/* L5D's WLED is not controlled by ACPI */
- 	else if (strncmp(string, "M2N", 3) == 0 ||
-+		 strncmp(string, "W3V", 3) == 0 ||
- 		 strncmp(string, "S1N", 3) == 0)
- 		hotk->methods->mt_wled = "WLED";
--	/* M2N and S1N have a usable WLED */
-+	/* M2N, S1N and W3V have a usable WLED */
- 	else if (asus_info) {
- 		if (strncmp(asus_info->oem_table_id, "L1", 2) == 0)
- 			hotk->methods->mled_status = NULL;
+My husband told me before his death that he has a credit of $45M USD which he deposited overseas and handed to me all the documents which my lawyer has confirmed with the authority concerned.
+
+Right now I am looking for an Investor who will help me to invest the total sum in the west and after which I will relocate to your country.
+
+The security situation in Chechnya does not warrant me to do much from
+
+here,therefore I have designated my family lawyers who will co ordinate
+
+every aspect of the fund transfer and the investment with your
+
+assistance.
+
+I am ready to concede up to 25% of the funds to you as your share if
+
+you will help me to pull the funds and invest it in your country which has a stable economy.
+
+Upon receipt of your acceptance letter to my private mail box quoted
+
+below,I will introduce you to my family lawyer for details on
+
+how the transfer can be done in the shortest possible time.
+
+NOTE: The main assistant is after the money has been transfered into
+
+your personal/company account,you are going to assist us in investing the money in your country and supervise the total investment over there.
+
+For security reasons all other information will reach you through my
+
+direct email:mrssuzzan_555@yahoo.com
+
+Awaiting your Urgent response via my direct email
+
+address.
+
+Regards,
+
+Mrs.Suzzan Sainovic
+
+mrssuzzan_555@yahoo.com
+
+
+
+
+
 
