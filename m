@@ -1,74 +1,103 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: DSDT/ASL compiler error
-Date: Sun, 20 Aug 2006 16:34:49 +0200 (CEST)
-Message-ID: <7359733.1156084489259.SLOX.WebMail.wwwrun@imap-dhs.suse.de>
-References: <20060817170303.GA3592@cactii.net> <1155897211.4302.1318.camel@queen.suse.de> <20060818112517.GB4945@poupinou.org> <1155906597.4302.1339.camel@queen.suse.de> <20060818201858.GD4945@poupinou.org> <1155991812.4302.1357.camel@queen.suse.de> <20060820102212.GF4945@poupinou.org>
+From: Karol Kozimor <sziwan@hell.org.pl>
+Subject: Re: Fwd: [patch 01/14] asus_acpi: W3000 support
+Date: Sun, 20 Aug 2006 18:25:07 +0200
+Message-ID: <20060820162507.GC7469@hell.org.pl>
+References: <200608152311.30989.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:43151 "EHLO mx2.suse.de")
-	by vger.kernel.org with ESMTP id S1750801AbWHTOfF convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 20 Aug 2006 10:35:05 -0400
-In-Reply-To: <20060820102212.GF4945@poupinou.org>
+Received: from hell.org.pl ([62.233.239.4]:61450 "HELO hell.org.pl")
+	by vger.kernel.org with SMTP id S1750864AbWHTQZL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 20 Aug 2006 12:25:11 -0400
+Content-Disposition: inline
+In-Reply-To: <200608152311.30989.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bruno Ducrot <ducrot@poupinou.org>
-Cc: Ben B <kernel@bb.cactii.net>, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, marekw1977@yahoo.com.au
 
-Am So 20.08.2006 12:22 schrieb Bruno Ducrot <ducrot@poupinou.org>:
->
->> On Sat, Aug 19, 2006 at 02:50:12PM +0200, Thomas Renninger wrote:
->> > On Fri, 2006-08-18 at 22:18 +0200, Bruno Ducrot wrote:
->> > > On Fri, Aug 18, 2006 at 03:09:56PM +0200, Thomas Renninger wrote=
-:
->> > > > (unfortunately, I hoped that was the missing hint to fix some
->> > > > things on
->> > > > this system).
->> > >
->> > > What things need to be fixed? I'm just curious.
->> >
->> > - _PPC always returns 1, therefore highest freq cannot be set
->> > (also reported recently on cpufreq list)
->> > https://bugzilla.novell.com/show_bug.cgi?id=3D179702
->> >
->> > - The other one could be an EC issue:
->> > battery and AC status is not updated.
->> > May be an interference with the mouse driver from the comments,
->> > no idea yet.
->> > https://bugzilla.novell.com/show_bug.cgi?id=3D200169
->> >
->> > Any hints are greatly appreciated...
->> > AFAIK both (at least first on several Core Duo models) phenomenons
->> > seem
->> > to happen on several (all?) new HP models.
->> >
->>
->> Also I'm wondering why there is a _PR.CPU0.INI() method. I'm
->> wondering
->> if it should be a _INI instead. But it seems it's a workaround for
->> some
->> others OSs and I'm not sure if we have to call the SMM implied by
->> that
->> _INI in order to fix that since Linux should have done something
->> similar
->> already?
->>
->> Strange.
->
->The _INI funcs are declared in SSDT(s) just invoking INI().
->The SMM stuff in _INI seems to be called if _OSI function only returns
->true for "Windows 2001" (don't have the table here right now, but it
->was for a specific _OSI string setting C014 to 0x4 which is checked
->there). It didn't help, it even made things worse, slowing the whole
->system down extremly.
->
->=C2=A0=C2=A0=C2=A0=C2=A0Thomas
->
+Thus wrote Len Brown:
+> Karol,
+> What shall we do with this?
+> 
+> If you want it applied, you can simply reply-all to akpm's e-mail and say "please apply".
+> If you want me to put it in the batch for 2.6.19, i can do that too.
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Hi,
+Sorry for the delay, I've been traveling for 2 weeks and will be for 2
+more. The patch *looks* OK, but I can't verify all the method nodes here.
+Please put it in the test tree, but don't apply to mainline yet, I'll try
+to verify this ASAP.
+
+-- 
+Karol 'sziwan' Kozimor
+sziwan@hell.org.pl
+
+--------------
+From: Marek W <marekw1977@yahoo.com.au>
+
+Add support for W3000 (W3V) and indirectly fixes an issue with kmilo under KDE
+(it was triggering excessive LCD read error messages by querying asus_acpi
+module) allowing people (I am probably the only one who tested this) with
+W3000 to run kmilo.
+
+Cc: Karol Kozimor <sziwan@hell.org.pl>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
+---
+
+ drivers/acpi/asus_acpi.c |   17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
+
+diff -puN drivers/acpi/asus_acpi.c~asus_acpi-w3000-support drivers/acpi/asus_acpi.c
+--- a/drivers/acpi/asus_acpi.c~asus_acpi-w3000-support
++++ a/drivers/acpi/asus_acpi.c
+@@ -138,6 +138,7 @@ struct asus_hotk {
+ 		S2x,		//S200 (J1 reported), Victor MP-XP7210
+ 		W1N,		//W1000N
+ 		W5A,		//W5A
++		W3V,            //W3030V
+ 		xxN,		//M2400N, M3700N, M5200N, M6800N, S1300N, S5200N
+ 		//(Centrino)
+ 		END_MODEL
+@@ -376,6 +377,17 @@ static struct model_data model_conf[END_
+ 	 .display_get = "\\ADVG"},
+ 
+ 	{
++	 .name = "W3V",
++	 .mt_mled = "MLED",
++	 .mt_wled = "WLED",
++	 .mt_lcd_switch = xxN_PREFIX "_Q10",
++	 .lcd_status = "\\BKLT",
++	 .brightness_set = "SPLV",
++	 .brightness_get = "GPLV",
++	 .display_set = "SDSP",
++	 .display_get = "\\INFB"},
++
++       {
+ 	 .name = "xxN",
+ 	 .mt_mled = "MLED",
+ /* WLED present, but not controlled by ACPI */
+@@ -1097,6 +1109,8 @@ static int asus_model_match(char *model)
+ 		return A4G;
+ 	else if (strncmp(model, "W1N", 3) == 0)
+ 		return W1N;
++	else if (strncmp(model, "W3V", 3) == 0)
++		return W3V;
+ 	else if (strncmp(model, "W5A", 3) == 0)
+ 		return W5A;
+ 	else
+@@ -1200,9 +1214,10 @@ static int asus_hotk_get_info(void)
+ 		hotk->methods->mt_wled = NULL;
+ 	/* L5D's WLED is not controlled by ACPI */
+ 	else if (strncmp(string, "M2N", 3) == 0 ||
++		 strncmp(string, "W3V", 3) == 0 ||
+ 		 strncmp(string, "S1N", 3) == 0)
+ 		hotk->methods->mt_wled = "WLED";
+-	/* M2N and S1N have a usable WLED */
++	/* M2N, S1N and W3V have a usable WLED */
+ 	else if (asus_info) {
+ 		if (strncmp(asus_info->oem_table_id, "L1", 2) == 0)
+ 			hotk->methods->mled_status = NULL;
+
