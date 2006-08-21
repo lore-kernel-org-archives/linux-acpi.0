@@ -1,31 +1,39 @@
-From: Andi Kleen <ak@suse.de>
-Subject: Re: Freeing ACPI tables after parsing
-Date: Mon, 21 Aug 2006 22:03:51 +0200
-Message-ID: <20060821220351.233815d0.ak@suse.de>
-References: <200608211146.53379.ak@suse.de>
-	<44E9E68D.2020505@linux.intel.com>
+From: Maciej Rutecki <maciej.rutecki@gmail.com>
+Subject: Re: 2.6.18-rc4-mm2
+Date: Mon, 21 Aug 2006 22:20:21 +0200
+Message-ID: <44EA1585.8020303@gmail.com>
+References: <20060819220008.843d2f64.akpm@osdl.org>	<44E97AF9.2040009@gmail.com> <20060821064411.20e61aa0.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.suse.de ([195.135.220.2]:34708 "EHLO mx1.suse.de")
-	by vger.kernel.org with ESMTP id S1750913AbWHUUED (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Aug 2006 16:04:03 -0400
-In-Reply-To: <44E9E68D.2020505@linux.intel.com>
+Received: from ug-out-1314.google.com ([66.249.92.169]:19023 "EHLO
+	ug-out-1314.google.com") by vger.kernel.org with ESMTP
+	id S1750946AbWHUUU0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Aug 2006 16:20:26 -0400
+Received: by ug-out-1314.google.com with SMTP id m3so1714889ugc
+        for <linux-acpi@vger.kernel.org>; Mon, 21 Aug 2006 13:20:24 -0700 (PDT)
+In-Reply-To: <20060821064411.20e61aa0.akpm@osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, len.brown@intel.com, Natalie.Protasevich@unisys.com
+To: Andrew Morton <akpm@osdl.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, 21 Aug 2006 20:59:57 +0400
-Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com> wrote:
+Andrew Morton napisa=C5=82(a):
 
-> Andy,
-> We are about to release new table code, which will not allocate memory for any tables,
-> but just map them from their physical location, does it solve the problem you describe?
+>=20
+> Can you try reverting git-acpi.patch please?
+>=20
 
-No. In fact it makes it worse. My point was to allocate memory for the tables,
-copy them and then free the physical location after it is read.
+I have the same error.
 
--Andi
+--=20
+Maciej Rutecki <maciej.rutecki@gmail.com>
+http://www.unixy.pl
+LTG - Linux Testers Group
+(http://www.stardust.webpages.pl/ltg/wiki/)
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
