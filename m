@@ -1,74 +1,31 @@
-From: Len Brown <len.brown@intel.com>
+From: Andi Kleen <ak@suse.de>
 Subject: Re: Freeing ACPI tables after parsing
-Date: Mon, 21 Aug 2006 18:22:14 -0400
-Message-ID: <200608211822.14928.len.brown@intel.com>
-References: <200608211146.53379.ak@suse.de> <200608211752.16616.len.brown@intel.com> <20060822000647.2b117f6c.ak@suse.de>
-Reply-To: Len Brown <lenb@kernel.org>
+Date: Tue, 22 Aug 2006 00:26:36 +0200
+Message-ID: <20060822002636.ec4b4298.ak@suse.de>
+References: <200608211146.53379.ak@suse.de>
+	<200608211752.16616.len.brown@intel.com>
+	<20060822000647.2b117f6c.ak@suse.de>
+	<200608211822.14928.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:16842 "EHLO hera.kernel.org")
-	by vger.kernel.org with ESMTP id S1751245AbWHUWU1 (ORCPT
+Received: from ns1.suse.de ([195.135.220.2]:25262 "EHLO mx1.suse.de")
+	by vger.kernel.org with ESMTP id S1751249AbWHUW0l (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Aug 2006 18:20:27 -0400
-In-Reply-To: <20060822000647.2b117f6c.ak@suse.de>
-Content-Disposition: inline
+	Mon, 21 Aug 2006 18:26:41 -0400
+In-Reply-To: <200608211822.14928.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <ak@suse.de>
-Cc: linux-acpi@vger.kernel.org, Natalie.Protasevich@unisys.com
+To: Len Brown <lenb@kernel.org>
+Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Natalie.Protasevich@unisys.com
 
-On Monday 21 August 2006 18:06, Andi Kleen wrote:
 
-> > Why does the kexec kernel care what physical memory it is loaded into,
-> 
-> At least the one in SLES10 was linked to a fixed address (64MB@64MB)
-> In the future it will be relocatable, but still there will be defaults
-> passed in advance.
-> 
-> Unisys ended up fixing it with a new BIOS, but I can well see this
-> happening again.
+> I expect that if Windows tests that the BIOS marks the region properly
+> and frees it, then Linux will be able to also. 
 
-Okay, good to know this is not urgent.  I think we should proceed with our
-1-copy-of-the-tables change, and we can independently change it later to
-copy them and reclaim the original space if that turns out to work.
- 
-> > and how can it be guaranteed that address is not reserved by the platform firmware?
-> 
-> I don't think there is a fool proof method right now, just heuristics
-> However freeing ACPI would avoid some of the potential problems.
-> 
-> > > Also on other systems the ACPI tables are not 
-> > > exactly at the end but in the middle of the memory map and for some applications
-> > > it might be better to have a lot of physical continuous memory.
-> > > 
-> > > So are there any plans to free the BIOS supplied ACPI tables after parsing
-> > > or is there some obstacle to that that I'm missing?
-> > 
-> > As Alexey wrote, he and Bob have already deleted the kernel's new copy
-> > of the tables in favor of using them 'in place'.
-> > 
-> > I guess I'm not clear on the requirement here.
-> > If we were to alter that plan to make a kernel copy -- and release the original BIOS memory --
-> > assuming it is marked such that we can release it -- how do we know that
-> > we are not dropping the new copy someplace that kexec doesn't want it?
-> 
-> There are other allocations anyways and the allocators tend to cluster, so one would
-> assume it ends up being ok. If there are conflicts they can be handled in
-> one single place in Linux. But Linux can't affect the BIOS' choice of table
-> placement.
-> 
-> Also I suspect the kernel can store it more efficiently in memory. When the tables
-> are reserved in memory they will be always rounded up/down to page boundaries,
-> while a kernel allocation can fit it better. At least for some of them (like fadt)
-> the kernel seems to use globals already too, so the original mapping wouldn't be 
-> needed.
+Yes agreed. Before changing it it would be good to find out if Windows
+frees it or not. If not there might be BIOS assumptions that they're still 
+there.
 
-This  trade-off may not be risk-free.
-I expect that if Windows tests that the BIOS marks the region properly
-and frees it, then Linux will be able to also.  Otherwise Linux will fight
-a BIOS battle it can't win w/o Windows acting as a BIOS validation test for us.
-
--Len
+-Andi
