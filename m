@@ -1,34 +1,56 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [GIT PATCH] ACPI for 2.6.18-rc4
-Date: Sun, 20 Aug 2006 21:35:48 -0700
-Message-ID: <20060821043548.GA10844@kroah.com>
-References: <200606230437.50845.len.brown@intel.com> <200608202302.35229.len.brown@intel.com>
+From: Yu Luming <luming.yu@intel.com>
+Subject: Re: double proc entries
+Date: Mon, 21 Aug 2006 16:49:12 +0800
+Message-ID: <200608211649.13421.luming.yu@intel.com>
+References: <20060821044915.B18790@luna.ellen.dexterslabs.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns.suse.de ([195.135.220.2]:39616 "EHLO mx1.suse.de")
-	by vger.kernel.org with ESMTP id S964945AbWHUEhU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Aug 2006 00:37:20 -0400
+Received: from mga09.intel.com ([134.134.136.24]:64887 "EHLO
+	orsmga102-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1030364AbWHUIn1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Aug 2006 04:43:27 -0400
+In-Reply-To: <20060821044915.B18790@luna.ellen.dexterslabs.com>
 Content-Disposition: inline
-In-Reply-To: <200608202302.35229.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: torvalds@osdl.org, akpm@osdl.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: danny@mailmij.org
+Cc: linux-acpi@vger.kernel.org, "Brown, Len" <lenb@hera.kernel.org>
 
-On Sun, Aug 20, 2006 at 11:02:34PM -0400, Len Brown wrote:
-> Hi Linus,
-> 
-> please pull from: 
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
-> 
-> This is a batch of low-risk patches that are appropriate for 2.6.18-final.
-> They have all been through -mm.
+On Monday 21 August 2006 10:49, danny@mailmij.org wrote:
+> Hi,
+>  Recently I noticed that unloading video.ko causes a warning from
+> remove_proc_entry because the subdir is not empty. This is related to the
+> fact that I have 2 VID entries in /proc/acpi/video, and this messes up
+> things a bit. The cause of this is that the VID entry appears both on the
+> PCI and on the AGP bus, sysfs handles this nicely:
+>  ./firmware/acpi/namespace/ACPI/_SB/PCI0/AGP/VID
+>...
 
-Pulled from, and pushed out.
+Yes,  This is a problem.
 
-thanks,
+>  More information can be found here:
+>  http://qa.mandriva.com/show_bug.cgi?id=22249
+>
+>  proc/acpi/video/ does not know about AGP or PCI. Attached patch fixes the
+> problem but is not so beautiful. Maybe it's better to make another subdir
+> in video for the parent of the device, but I thought this would be more
+> likely to break userland apps. Perhaps someone can do better.
+>
 
-greg k-h
+The beautiful way is to completely delete /proc/acpi, and turn to sysfs. :-)
+But we still have to live with /proc/acpi for some times.
+So, I think your patch is right thing.
+
+>+        strcpy(proc_dir_name, acpi_device_bid(device));
+>+        strcat(proc_dir_name, "_");
+>+        strcat(proc_dir_name, acpi_device_bid(device->parent));
+ 
+but, when you are using acpi_device_bid(device->parent), you 
+should have checked  device->parent is NOT NULL.
+
+-- 
+Thanks,
+Luming
