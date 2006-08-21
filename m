@@ -1,72 +1,70 @@
-From: Len Brown <len.brown@intel.com>
-Subject: Re: double proc entries
-Date: Mon, 21 Aug 2006 18:02:30 -0400
-Message-ID: <200608211802.30792.len.brown@intel.com>
-References: <20060821044915.B18790@luna.ellen.dexterslabs.com> <200608211649.13421.luming.yu@intel.com> <20060821105042.C22067@luna.ellen.dexterslabs.com>
-Reply-To: Len Brown <lenb@kernel.org>
+From: Andi Kleen <ak@suse.de>
+Subject: Re: Freeing ACPI tables after parsing
+Date: Tue, 22 Aug 2006 00:06:47 +0200
+Message-ID: <20060822000647.2b117f6c.ak@suse.de>
+References: <200608211146.53379.ak@suse.de>
+	<200608211752.16616.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:52965 "EHLO hera.kernel.org")
-	by vger.kernel.org with ESMTP id S1751226AbWHUWAl (ORCPT
+Received: from cantor2.suse.de ([195.135.220.15]:11999 "EHLO mx2.suse.de")
+	by vger.kernel.org with ESMTP id S1751238AbWHUWG5 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Aug 2006 18:00:41 -0400
-In-Reply-To: <20060821105042.C22067@luna.ellen.dexterslabs.com>
-Content-Disposition: inline
+	Mon, 21 Aug 2006 18:06:57 -0400
+In-Reply-To: <200608211752.16616.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: danny@mailmij.org
-Cc: Yu Luming <luming.yu@intel.com>, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Natalie.Protasevich@unisys.com
 
-On Monday 21 August 2006 04:50, danny@mailmij.org wrote:
-> On Mon, Aug 21, 2006 at 04:49:12PM +0800, Yu Luming wrote:
-> > On Monday 21 August 2006 10:49, danny@mailmij.org wrote:
-> > > Hi,
-> > >  Recently I noticed that unloading video.ko causes a warning from
-> > > remove_proc_entry because the subdir is not empty. This is related to the
-> > > fact that I have 2 VID entries in /proc/acpi/video, and this messes up
-> > > things a bit. The cause of this is that the VID entry appears both on the
-> > > PCI and on the AGP bus, sysfs handles this nicely:
-> > >  ./firmware/acpi/namespace/ACPI/_SB/PCI0/AGP/VID
-> > >...
-> >
-> > Yes,  This is a problem.
-> >
-> > >  More information can be found here:
-> > >  http://qa.mandriva.com/show_bug.cgi?id=22249
-> > >
-> > >  proc/acpi/video/ does not know about AGP or PCI. Attached patch fixes the
-> > > problem but is not so beautiful. Maybe it's better to make another subdir
-> > > in video for the parent of the device, but I thought this would be more
-> > > likely to break userland apps. Perhaps someone can do better.
-> > >
-> >
-> > The beautiful way is to completely delete /proc/acpi, and turn to sysfs. :-)
-> > But we still have to live with /proc/acpi for some times.
-> > So, I think your patch is right thing.
-> >
-> > >+        strcpy(proc_dir_name, acpi_device_bid(device));
-> > >+        strcat(proc_dir_name, "_");
-> > >+        strcat(proc_dir_name, acpi_device_bid(device->parent));
-> >
-> > but, when you are using acpi_device_bid(device->parent), you
-> > should have checked  device->parent is NOT NULL.
-> >
-> Yes I considered this, but then I thought, if there is actually a VID bus, it always has a parent. You cannot have a bus that correctly passes the checks for being
-> the acpi video device and not have a parent bus. Or can you?
+On Mon, 21 Aug 2006 17:52:16 -0400
+Len Brown <len.brown@intel.com> wrote:
+
+
+> > During SLES10 testing we had some problems with the ACPI 
+> > tables on some Unisys systems being in a area where the kexec kernel
+> > wanted to be loaded too. 
 > 
-> Second question is the size of proc_dir_name: is 32 big enough? Should I have used strncat. I really have no idea at the maximum possible size of the names we get
-> from the dsdt.
+> Why does the kexec kernel care what physical memory it is loaded into,
 
-Ugh, I'd rather be deleting /proc/acpi than fixing bugs in it...
+At least the one in SLES10 was linked to a fixed address (64MB@64MB)
+In the future it will be relocatable, but still there will be defaults
+passed in advance.
 
-but I think you're looking for this:
+Unisys ended up fixing it with a new BIOS, but I can well see this
+happening again.
 
-#define ACPI_NAME_SIZE 4
-or, more specifically,
-typedef char acpi_bus_id[5];
-is the type returned from acpi-device_bid()
+> and how can it be guaranteed that address is not reserved by the platform firmware?
 
--Len
+I don't think there is a fool proof method right now, just heuristics
+However freeing ACPI would avoid some of the potential problems.
+
+> > Also on other systems the ACPI tables are not 
+> > exactly at the end but in the middle of the memory map and for some applications
+> > it might be better to have a lot of physical continuous memory.
+> > 
+> > So are there any plans to free the BIOS supplied ACPI tables after parsing
+> > or is there some obstacle to that that I'm missing?
+> 
+> As Alexey wrote, he and Bob have already deleted the kernel's new copy
+> of the tables in favor of using them 'in place'.
+> 
+> I guess I'm not clear on the requirement here.
+> If we were to alter that plan to make a kernel copy -- and release the original BIOS memory --
+> assuming it is marked such that we can release it -- how do we know that
+> we are not dropping the new copy someplace that kexec doesn't want it?
+
+There are other allocations anyways and the allocators tend to cluster, so one would
+assume it ends up being ok. If there are conflicts they can be handled in
+one single place in Linux. But Linux can't affect the BIOS' choice of table
+placement.
+
+Also I suspect the kernel can store it more efficiently in memory. When the tables
+are reserved in memory they will be always rounded up/down to page boundaries,
+while a kernel allocation can fit it better. At least for some of them (like fadt)
+the kernel seems to use globals already too, so the original mapping wouldn't be 
+needed.
+
+-Andi
+ 
