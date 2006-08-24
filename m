@@ -1,63 +1,51 @@
-From: Tom Kirkpatrick <stv@kirkconsulting.co.uk>
-Subject: USB wakeup
-Date: Thu, 24 Aug 2006 20:33:38 +0100
-Message-ID: <12E5FB73-D7F1-4AD8-8C0F-71A8830986A5@kirkconsulting.co.uk>
-Mime-Version: 1.0 (Apple Message framework v752.2)
-Content-Type: text/plain; charset=US-ASCII; delsp=yes; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Subject: Re: the role of the dstd
+Date: Thu, 24 Aug 2006 21:13:29 +0100
+Message-ID: <E1GGLZx-00037U-00@skye.ra.phy.cam.ac.uk>
+References: <44EDFDD9.5030504@student.kuleuven.be>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from red.mydnspages.com ([207.150.176.20]:45130 "EHLO
-	red.mydnspages.com") by vger.kernel.org with ESMTP id S1751675AbWHXTdq
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 24 Aug 2006 15:33:46 -0400
-Received: from 81-179-24-207.dsl.pipex.com ([81.179.24.207] helo=tom-kirkpatricks-powerbook-g4-15.local)
-	by red.mydnspages.com with esmtpa (Exim 4.52)
-	id 1GGKxN-0005TB-NV
-	for linux-acpi@vger.kernel.org; Thu, 24 Aug 2006 15:33:37 -0400
+Received: from mraos.ra.phy.cam.ac.uk ([131.111.48.8]:13505 "EHLO
+	mraos.ra.phy.cam.ac.uk") by vger.kernel.org with ESMTP
+	id S1422631AbWHXUNb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 24 Aug 2006 16:13:31 -0400
+In-Reply-To: Your message of "Thu, 24 Aug 2006 21:28:25 +0200."
+             <44EDFDD9.5030504@student.kuleuven.be>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Joeri Hendrickx <joeri.hendrickx@student.kuleuven.be>
+Cc: linux-acpi@vger.kernel.org
 
-I have ACPI USB wakeup working on an X86 box. I'm running the stock  
-2.6.12 kernel. My end goal is to be able to wake the machine up from  
-S3 by pressing a button on my remote control (ATI Remote Wonder).  
-This device has a usb transiever.  I have enabled USB wakeup:
+> For one, if the DSTD is part of the BIOS, how come windows does
+> work, while it must rely on the same data
 
-echo "EUSB" > /proc/acpi/wakeup
-echo "USB" > /proc/acpi/wakeup
-echo "USB2" > /proc/acpi/wakeup
-echo "USB3" > /proc/acpi/wakeup
+I'm not an ACPI expert but here is my understanding.  Hopefully it's
+close enough to reality that the experts need to make only minor
+corrections and can keep hacking.
 
-root@STV:~$ cat /proc/acpi/wakeup
-Device  Sleep state     Status
-PCI0       4            disabled
-UAR1       4            disabled
-UAR2       4            disabled
-UAR3       4            disabled
-UAR4       4            disabled
-PS2K       4            disabled
-EUSB       4             enabled
-USB       4             enabled
-USB2       4             enabled
-USB3       4             enabled
-S139       4            disabled
-AC97       4            disabled
-MC97       4            disabled
-LAN0       4            disabled
-PWRB       4            *enabled
+Often, or rather always, the manufacturer tests the DSDT only with
+Windows.  If Windows makes assumptions about how the DSDT code should
+be interpreted that are different from what Linux assumes, even if
+Linux's assumptions are compatible with the ACPI spec, then the DSDT
+might fail when run with Linux.
 
-and after doing this, I can wake the machine up by either unplugging  
-or plugging in a USB device, but pressing the buttons on the remote  
-do not seem to wake the machine up. I also tried with a USB mouse,  
-and either moving the mouse or clicking any of it's buttons will wake  
-the machine up (although unplugging it or plugging it in does). I  
-have "Resume from USB" enabled in my BIOS (although I think this is  
-actually reffering to APM). The machine is a mini-itx NXS7M mobo with  
-an AMIBIOS (from 1999 I think).
+For example, Windows serializes (runs in one thread) procedures
+automatically, even if a procedure is labelled NotSerialized.  But
+Linux ACPI, unless you pass a boot option to tell it to act like
+Windows, will not serialize those procedures, and each one can run in
+its own thread.
 
-I won't go into too much more detail here as my first question is a  
-simple one... Is it possible to achieve what I am trying to achieve?  
-Do I need a later kernel? or some patches perhaps?
+Therefore, race conditions from a sloppy DSDT, which might be hidden
+in Windows, are often exposed in Linux.  And so S3 suspend might hang
+because of one of those races or locking problems.  My old Thinkpad
+600X improved its S3 suspend behavior somewhat when booting with the
+"Act like Windows" option.
 
-thanks in advance
-Tom
+ACPI development on Linux is often: "My laptop doesn't suspend in
+Linux" (for a modern laptop it's almost certain that it suspends in
+Windows) and then people finding what bug needs to be introduced into
+the Linux DSDT interpreter so that Linux can act just like Windows.
+
+-Sanjoy
+
+`Never underestimate the evil of which men of power are capable.'
+         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
