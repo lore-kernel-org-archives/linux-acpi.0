@@ -1,37 +1,63 @@
-From: Joeri Hendrickx <joeri.hendrickx@student.kuleuven.be>
-Subject: the role of the dstd
-Date: Thu, 24 Aug 2006 21:28:25 +0200
-Message-ID: <44EDFDD9.5030504@student.kuleuven.be>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+From: Tom Kirkpatrick <stv@kirkconsulting.co.uk>
+Subject: USB wakeup
+Date: Thu, 24 Aug 2006 20:33:38 +0100
+Message-ID: <12E5FB73-D7F1-4AD8-8C0F-71A8830986A5@kirkconsulting.co.uk>
+Mime-Version: 1.0 (Apple Message framework v752.2)
+Content-Type: text/plain; charset=US-ASCII; delsp=yes; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from assei1bl6.telenet-ops.be ([195.130.133.68]:14252 "EHLO
-	assei1bl6.telenet-ops.be") by vger.kernel.org with ESMTP
-	id S1751660AbWHXT1j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 24 Aug 2006 15:27:39 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by assei1bl6.telenet-ops.be (Postfix) with SMTP id 6065C22011A
-	for <linux-acpi@vger.kernel.org>; Thu, 24 Aug 2006 21:27:38 +0200 (CEST)
-Received: from [192.168.1.2] (d54C094DC.access.telenet.be [84.192.148.220])
-	by assei1bl6.telenet-ops.be (Postfix) with ESMTP id 52E8D2200E0
-	for <linux-acpi@vger.kernel.org>; Thu, 24 Aug 2006 21:27:38 +0200 (CEST)
+Received: from red.mydnspages.com ([207.150.176.20]:45130 "EHLO
+	red.mydnspages.com") by vger.kernel.org with ESMTP id S1751675AbWHXTdq
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 24 Aug 2006 15:33:46 -0400
+Received: from 81-179-24-207.dsl.pipex.com ([81.179.24.207] helo=tom-kirkpatricks-powerbook-g4-15.local)
+	by red.mydnspages.com with esmtpa (Exim 4.52)
+	id 1GGKxN-0005TB-NV
+	for linux-acpi@vger.kernel.org; Thu, 24 Aug 2006 15:33:37 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-Hi
+I have ACPI USB wakeup working on an X86 box. I'm running the stock  
+2.6.12 kernel. My end goal is to be able to wake the machine up from  
+S3 by pressing a button on my remote control (ATI Remote Wonder).  
+This device has a usb transiever.  I have enabled USB wakeup:
 
-Since my asus laptop's acpi won't work decently in Linux (lid close 
-won't generate event and such) I've been reading up and I've come to the 
-conclusion that the problem must be a messed up DSTD.
+echo "EUSB" > /proc/acpi/wakeup
+echo "USB" > /proc/acpi/wakeup
+echo "USB2" > /proc/acpi/wakeup
+echo "USB3" > /proc/acpi/wakeup
 
-I do have some questions about it, though.
+root@STV:~$ cat /proc/acpi/wakeup
+Device  Sleep state     Status
+PCI0       4            disabled
+UAR1       4            disabled
+UAR2       4            disabled
+UAR3       4            disabled
+UAR4       4            disabled
+PS2K       4            disabled
+EUSB       4             enabled
+USB       4             enabled
+USB2       4             enabled
+USB3       4             enabled
+S139       4            disabled
+AC97       4            disabled
+MC97       4            disabled
+LAN0       4            disabled
+PWRB       4            *enabled
 
-For one, if the DSTD is part of the BIOS, how come windows does work, 
-while it must rely on the same data (I haven't installed any drivers for 
-power mgt yet lid close does work, and so do the volume butons)  If 
-windows knows something we don't, can't we get the correct data from there?
+and after doing this, I can wake the machine up by either unplugging  
+or plugging in a USB device, but pressing the buttons on the remote  
+do not seem to wake the machine up. I also tried with a USB mouse,  
+and either moving the mouse or clicking any of it's buttons will wake  
+the machine up (although unplugging it or plugging it in does). I  
+have "Resume from USB" enabled in my BIOS (although I think this is  
+actually reffering to APM). The machine is a mini-itx NXS7M mobo with  
+an AMIBIOS (from 1999 I think).
 
-Kind regards,
-J. Hendrickx, hoping to see my suspend to ram working someday
+I won't go into too much more detail here as my first question is a  
+simple one... Is it possible to achieve what I am trying to achieve?  
+Do I need a later kernel? or some patches perhaps?
+
+thanks in advance
+Tom
