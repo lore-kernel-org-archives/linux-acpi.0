@@ -1,117 +1,104 @@
 From: Len Brown <len.brown@intel.com>
-Subject: Re: Fwd: [patch 01/14] asus_acpi: W3000 support
-Date: Thu, 24 Aug 2006 01:05:53 -0400
-Message-ID: <200608240105.53689.len.brown@intel.com>
-References: <200608152311.30989.len.brown@intel.com> <20060820162507.GC7469@hell.org.pl>
+Subject: Re: [patch 11/14] ACPI: change GFP_ATOMIC to GFP_KERNEL for non-atomic allocation
+Date: Thu, 24 Aug 2006 02:43:11 -0400
+Message-ID: <200608240243.12218.len.brown@intel.com>
+References: <200608150537.k7F5bTu8011560@shell0.pdx.osdl.net> <200608161902.02221.len.brown@intel.com> <Pine.LNX.4.58.0608171104390.28168@twin.jikos.cz>
 Reply-To: Len Brown <lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-2"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:51634 "EHLO hera.kernel.org")
-	by vger.kernel.org with ESMTP id S1030341AbWHXGlU (ORCPT
+Received: from hera.kernel.org ([140.211.167.34]:52658 "EHLO hera.kernel.org")
+	by vger.kernel.org with ESMTP id S1030347AbWHXGlY (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 24 Aug 2006 02:41:20 -0400
-In-Reply-To: <20060820162507.GC7469@hell.org.pl>
+	Thu, 24 Aug 2006 02:41:24 -0400
+In-Reply-To: <Pine.LNX.4.58.0608171104390.28168@twin.jikos.cz>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Karol Kozimor <sziwan@hell.org.pl>
-Cc: akpm@osdl.org, linux-acpi@vger.kernel.org, marekw1977@yahoo.com.au
+To: Jiri Kosina <jikos@jikos.cz>
+Cc: akpm@osdl.org, linux-acpi@vger.kernel.org
 
-Applied to acpi-test.
+On Thursday 17 August 2006 05:15, Jiri Kosina wrote:
+> On Wed, 16 Aug 2006, Len Brown wrote:
+> 
+> > > acpi_pci_link_set() allocates with GFP_ATOMIC. On resume from suspend,
+> > > this is called with interrupts off, otherwise GFP_KERNEL is safe.
+> > So you are suggesting this?
+> > diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> > index 7f3e7e7..d53bd98 100644
+> > --- a/drivers/acpi/pci_link.c
+> > +++ b/drivers/acpi/pci_link.c
+> > @@ -307,7 +307,7 @@ static int acpi_pci_link_set(struct acpi
+> >  	if (!link || !irq)
+> >  		return -EINVAL;
+> >  
+> > -	resource = kmalloc(sizeof(*resource) + 1, GFP_ATOMIC);
+> > +	resource = kmalloc(sizeof(*resource) + 1, irqs_disabled() ? GFP_ATOMIC: GFP_KERNEL);
+> >  	if (!resource)
+> >  		return -ENOMEM;
+> >  
+> > 
+> 
+> Yes, exactly.
+
+Applied.
+
+> > > acpi_pci_link_resume -> acpi_pci_link_set -> acpi_set_current_resources ->
+> > > acpi_rs_set_srs_method_data -> acpi_ut_create_internal_object_dbg ->
+> > > acpi_ut_allocate_object_desc_dbg -> acpi_os_acquire_object ->
+> > > kmem_cache_alloc(GFP_KERNEL) flag.
+> > I don't understand this comment.
+> > acpi_os_acquire_object is implemented in aclinux.h:
+> > static inline void *acpi_os_acquire_object(acpi_cache_t * cache) {
+> >         return kmem_cache_zalloc(cache, irqs_disabled() ? GFP_ATOMIC : GFP_KERNEL);
+> > }
+> 
+> This happened in some -rc of 2.6.18 (can be seen at
+> http://www.kernel.org/diff/diffview.cgi?file=%2Fpub%2Flinux%2Fkernel%2Fv2.6%2Ftesting%2Fpatch-2.6.18-rc4.bz2;z=2727)  
+> - the acpi_os_acquire_object() was renamed to acpi_os_validate_interface()  
+> ... which allocates solely with GFP_KERNEL, but this may be OK, I haven't
+> checked.
+
+Look at that diff more closely.
+acpi_os_acquire_object() was removed -- and the kmalloc() went away with it.
+acpi_os_validate_interface() is an empty stub right now, with no kmalloc at all. 
+
+yes, reading flat diffs can get confusing.
+
+> Anyway ...
+> 
+> Unfortunately, looking at the refactorized ACPI code in
+> 2.6.18-rc4, there are still issues with sleeping functions called with
+> disabled interrupts (during resume), in ACPI code.
+>
+> Two random examples:
+> 
+> - when acpi_pci_link_set() is called during resume (local irqs off), the
+> following callchain happens, which is bad: acpi_pci_link_resume ->
+> acpi_pci_link_set -> acpi_set_current_resources ->
+> acpi_rs_set_srs_method_data -> acpi_ns_evaluate -> acpi_ns_get_node ..
+> here the mutex is acquired. Not good.
+
+This uses acpi_os_acquire_semaphore(), which is fixed in my tree
+and greg's tree -- post -rc4.
+
+> - device_power_up -> sysdev_resume -> __sysdev_resume -> cpufreq_resume ->
+> blocking_notifier_call_chain -> down on semaphore. Not good.
+
+contact the cpufreq list about this one.
+
+> Is there any general idea for solution?
+
+This is exactly like when the system boots -- single threaded, interrupts off,
+allocations and mutexes are assumed to be guaranteed to succeeded w/o sleeping.
+
+to address this on boot, Linux uses system-state.
+I suggested doing the same for resume, but Andrew didn't like it, so here we
+are chasing a bunch of spurious warning messages.
+
+Got any random examples that are still valid in greg's tree, my tree, or the latest mm?
 
 thanks,
 -Len
-
-On Sunday 20 August 2006 12:25, Karol Kozimor wrote:
-> Thus wrote Len Brown:
-> > Karol,
-> > What shall we do with this?
-> > 
-> > If you want it applied, you can simply reply-all to akpm's e-mail and say "please apply".
-> > If you want me to put it in the batch for 2.6.19, i can do that too.
-> 
-> 
-> Hi,
-> Sorry for the delay, I've been traveling for 2 weeks and will be for 2
-> more. The patch *looks* OK, but I can't verify all the method nodes here.
-> Please put it in the test tree, but don't apply to mainline yet, I'll try
-> to verify this ASAP.
-> 
-> -- 
-> Karol 'sziwan' Kozimor
-> sziwan@hell.org.pl
-> 
-> --------------
-> From: Marek W <marekw1977@yahoo.com.au>
-> 
-> Add support for W3000 (W3V) and indirectly fixes an issue with kmilo under KDE
-> (it was triggering excessive LCD read error messages by querying asus_acpi
-> module) allowing people (I am probably the only one who tested this) with
-> W3000 to run kmilo.
-> 
-> Cc: Karol Kozimor <sziwan@hell.org.pl>
-> Signed-off-by: Andrew Morton <akpm@osdl.org>
-> ---
-> 
->  drivers/acpi/asus_acpi.c |   17 ++++++++++++++++-
->  1 file changed, 16 insertions(+), 1 deletion(-)
-> 
-> diff -puN drivers/acpi/asus_acpi.c~asus_acpi-w3000-support drivers/acpi/asus_acpi.c
-> --- a/drivers/acpi/asus_acpi.c~asus_acpi-w3000-support
-> +++ a/drivers/acpi/asus_acpi.c
-> @@ -138,6 +138,7 @@ struct asus_hotk {
->  		S2x,		//S200 (J1 reported), Victor MP-XP7210
->  		W1N,		//W1000N
->  		W5A,		//W5A
-> +		W3V,            //W3030V
->  		xxN,		//M2400N, M3700N, M5200N, M6800N, S1300N, S5200N
->  		//(Centrino)
->  		END_MODEL
-> @@ -376,6 +377,17 @@ static struct model_data model_conf[END_
->  	 .display_get = "\\ADVG"},
->  
->  	{
-> +	 .name = "W3V",
-> +	 .mt_mled = "MLED",
-> +	 .mt_wled = "WLED",
-> +	 .mt_lcd_switch = xxN_PREFIX "_Q10",
-> +	 .lcd_status = "\\BKLT",
-> +	 .brightness_set = "SPLV",
-> +	 .brightness_get = "GPLV",
-> +	 .display_set = "SDSP",
-> +	 .display_get = "\\INFB"},
-> +
-> +       {
->  	 .name = "xxN",
->  	 .mt_mled = "MLED",
->  /* WLED present, but not controlled by ACPI */
-> @@ -1097,6 +1109,8 @@ static int asus_model_match(char *model)
->  		return A4G;
->  	else if (strncmp(model, "W1N", 3) == 0)
->  		return W1N;
-> +	else if (strncmp(model, "W3V", 3) == 0)
-> +		return W3V;
->  	else if (strncmp(model, "W5A", 3) == 0)
->  		return W5A;
->  	else
-> @@ -1200,9 +1214,10 @@ static int asus_hotk_get_info(void)
->  		hotk->methods->mt_wled = NULL;
->  	/* L5D's WLED is not controlled by ACPI */
->  	else if (strncmp(string, "M2N", 3) == 0 ||
-> +		 strncmp(string, "W3V", 3) == 0 ||
->  		 strncmp(string, "S1N", 3) == 0)
->  		hotk->methods->mt_wled = "WLED";
-> -	/* M2N and S1N have a usable WLED */
-> +	/* M2N, S1N and W3V have a usable WLED */
->  	else if (asus_info) {
->  		if (strncmp(asus_info->oem_table_id, "L1", 2) == 0)
->  			hotk->methods->mled_status = NULL;
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
