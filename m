@@ -1,48 +1,61 @@
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: Re: [PATCH](memory hotplug) Repost remove useless message at boot time from 2.6.18-rc4.
-Date: Fri, 25 Aug 2006 20:59:33 +0900
-Message-ID: <20060825205423.0778.Y-GOTO@jp.fujitsu.com>
-References: <20060810142329.EB03.Y-GOTO@jp.fujitsu.com> <1155643418.4302.1154.camel@queen.suse.de>
+From: Jiri Kosina <jikos@jikos.cz>
+Subject: Re: [patch 11/14] ACPI: change GFP_ATOMIC to GFP_KERNEL for non-atomic
+ allocation
+Date: Fri, 25 Aug 2006 16:27:04 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0608251622430.29284@twin.jikos.cz>
+References: <200608150537.k7F5bTu8011560@shell0.pdx.osdl.net>
+ <200608161902.02221.len.brown@intel.com> <Pine.LNX.4.58.0608171104390.28168@twin.jikos.cz>
+ <200608240243.12218.len.brown@intel.com> <Pine.LNX.4.58.0608251057310.29284@twin.jikos.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:48583 "EHLO
-	fgwmail5.fujitsu.co.jp") by vger.kernel.org with ESMTP
-	id S1751158AbWHYMAK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 25 Aug 2006 08:00:10 -0400
-In-Reply-To: <1155643418.4302.1154.camel@queen.suse.de>
+Received: from twin.jikos.cz ([213.151.79.26]:64488 "EHLO twin.jikos.cz")
+	by vger.kernel.org with ESMTP id S1750907AbWHYO1l (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 25 Aug 2006 10:27:41 -0400
+In-Reply-To: <Pine.LNX.4.58.0608251057310.29284@twin.jikos.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: akpm@osdl.org, "Brown, Len" <len.brown@intel.com>, keith mannthey <kmannth@us.ibm.com>, ACPI-ML <linux-acpi@vger.kernel.org>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Linux Hotplug Memory Support <lhms-devel@lists.sourceforge.net>
+To: Len Brown <lenb@kernel.org>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
+On Fri, 25 Aug 2006, Jiri Kosina wrote:
 
-> I sent a patch a while ago that gets rid of the whole namespace walking
-> by making acpi_memoryhotplug an acpi device and making use of the .add
-> callback function and the acpi_bus_register_driver call.
-> 
-> I am not sure whether this is possible if you have multiple memory
-> devices, though (if not maybe it should be made possible?)...
-> 
-> Yasunori even tested the patch and sent an Ok:
-> http://marc.theaimsgroup.com/?t=114065312400001&r=1&w=2
-> 
-> If this is acceptable I can rebase the patch on a current kernel.
+> > to address this on boot, Linux uses system-state. I suggested doing the
+> > same for resume, but Andrew didn't like it, so here we are chasing a
+> > bunch of spurious warning messages. Got any random examples that are
+> > still valid in greg's tree, my tree, or the latest mm?
+> Actually I just pulled from the acpi git tree, and with this kernel my IBM 
+> T42p hangs approximately 10s after the kernel is started (hard lockup, no 
+> caps/numlock). Will investigate.
 
-Hi. Thomas-san.
-Did you rebase your patch?
+Bisection shows that it is caused by commit 
+f62d31ee2f2f453b07107465fea54540cab418eb ACPI: Support Processor Native 
+C-state using Intel "mwait" instruction. 
 
-I'm trying to do it now too. 
-But, current code (2.6.18-rc4) seems to register handler for
-only enable status devices at boot time.
-So, notification is -discarded- due to no handler for new memory
-device when hot-add event occurs. Hmmm. :-(
+I guess that the detection whether current CPU supports mwait insn does 
+not work, but I am not too familiar with this.
 
+cpuinfo:
 
-Bye.
+processor	: 0
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 13
+model name	: Intel(R) Pentium(R) M processor 1.80GHz
+stepping	: 6
+cpu MHz		: 1800.000
+cache size	: 2048 KB
+fdiv_bug	: no
+hlt_bug		: no
+f00f_bug	: no
+coma_bug	: no
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 2
+wp		: yes
+flags		: fpu vme de pse tsc msr mce cx8 sep mtrr pge mca cmov pat clflush dts acpi mmx fxsr sse sse2 ss tm pbe est tm2
+bogomips	: 3590.77
 
 -- 
-Yasunori Goto 
-
-
+JiKos.
