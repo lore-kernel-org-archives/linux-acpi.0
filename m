@@ -1,51 +1,90 @@
-From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Subject: Re: the role of the dstd
-Date: Thu, 24 Aug 2006 21:13:29 +0100
-Message-ID: <E1GGLZx-00037U-00@skye.ra.phy.cam.ac.uk>
-References: <44EDFDD9.5030504@student.kuleuven.be>
+From: Julius Schulz-Zander <lists@fazzepullis.de>
+Subject: ACPI: How to Suspend a PCIe Network Card
+Date: Fri, 25 Aug 2006 04:39:32 +0200
+Message-ID: <200608250439.44482.lists@fazzepullis.de>
+Mime-Version: 1.0
+Content-Type: multipart/signed;
+  boundary="nextPart6709385.5QrSvf7yQx";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mraos.ra.phy.cam.ac.uk ([131.111.48.8]:13505 "EHLO
-	mraos.ra.phy.cam.ac.uk") by vger.kernel.org with ESMTP
-	id S1422631AbWHXUNb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 24 Aug 2006 16:13:31 -0400
-In-Reply-To: Your message of "Thu, 24 Aug 2006 21:28:25 +0200."
-             <44EDFDD9.5030504@student.kuleuven.be>
+Received: from a15185716.alturo-server.de ([217.160.128.177]:10509 "EHLO
+	fazzepullis.de") by vger.kernel.org with ESMTP id S1751394AbWHYCju
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 24 Aug 2006 22:39:50 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Joeri Hendrickx <joeri.hendrickx@student.kuleuven.be>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-> For one, if the DSTD is part of the BIOS, how come windows does
-> work, while it must rely on the same data
+--nextPart6709385.5QrSvf7yQx
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-I'm not an ACPI expert but here is my understanding.  Hopefully it's
-close enough to reality that the experts need to make only minor
-corrections and can keep hacking.
+Hi,
 
-Often, or rather always, the manufacturer tests the DSDT only with
-Windows.  If Windows makes assumptions about how the DSDT code should
-be interpreted that are different from what Linux assumes, even if
-Linux's assumptions are compatible with the ACPI spec, then the DSDT
-might fail when run with Linux.
+i would like zu suspend my pci-express Atheros Wifi-Card in my MacBook.
 
-For example, Windows serializes (runs in one thread) procedures
-automatically, even if a procedure is labelled NotSerialized.  But
-Linux ACPI, unless you pass a boot option to tell it to act like
-Windows, will not serialize those procedures, and each one can run in
-its own thread.
+All the Kernel-Methods want to get the Device Pointer. But how do i get thi=
+s?
 
-Therefore, race conditions from a sloppy DSDT, which might be hidden
-in Windows, are often exposed in Linux.  And so S3 suspend might hang
-because of one of those races or locking problems.  My old Thinkpad
-600X improved its S3 suspend behavior somewhat when booting with the
-"Act like Windows" option.
+These functions are intended for use by individual drivers, and are defined=
+ in=20
+struct pci_driver:
+        int  (*save_state) (struct pci_dev *dev, u32 state);
+        int  (*suspend)(struct pci_dev *dev, u32 state);
+        int  (*resume) (struct pci_dev *dev);
+        int  (*enable_wake) (struct pci_dev *dev, u32 state, int enable);
 
-ACPI development on Linux is often: "My laptop doesn't suspend in
-Linux" (for a modern laptop it's almost certain that it suspends in
-Windows) and then people finding what bug needs to be introduced into
-the Linux DSDT interpreter so that Linux can act just like Windows.
+Suspend in general, in every pci driver, has to implement:
+pci_disable_device(dev);
+and
+pci_set_power_state(dev,state);
+These are implemented in "/usr/src/linux-2.6.17-gentoo-r4/drivers/pci/pci.c=
+".
 
--Sanjoy
+Hence, suspend in in the madwifi pci driver is using these two funktions in=
+=20
+the file "/root/madwifi-0.9.2/madwifi-0.9.2/ath/if_ath_pci.c"
+ath_pci_suspend(struct pci_dev *pdev, pm_message_t state)
+is using
+	struct net_device *dev =3D pci_get_drvdata(pdev);
+        ath_suspend(dev);
+        PCI_SAVE_STATE(pdev, ((struct ath_pci_softc*)dev->priv)->aps_pmstat=
+e);
+        pci_disable_device(pdev);
+        return pci_set_power_state(pdev, PCI_D3hot);
 
-`Never underestimate the evil of which men of power are capable.'
-         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
+
+but there is also a acpi-methods like this in the=20
+file "/usr/src/linux-2.6.17-gentoo-r4/drivers/pci/pci-acpi.c"
+static int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
+Maybe i can use this one?=20
+
+So now i think that it must be possible, to suspend my Atheros Wifi-Card, w=
+hen=20
+running "ath_pci_suspend" with the correct device Pointer! Is that correct?
+But how do i get this Pointer?
+
+Does anyone has experiences setting the Power-State of PCI Devices?
+
+Greetings,
+Julius
+
+=2D-=20
+get my public gpg-key: http://julius.fazzepullis.de/key.asc
+
+--nextPart6709385.5QrSvf7yQx
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (GNU/Linux)
+
+iD8DBQBE7mLwyqSoqMnnOn8RAhesAKCJi/Kns+1Nl+KvlJU/WH3EmOqfrgCeOtdy
+fmWaWWxBR+WZaAcqK0KB2GM=
+=N0w6
+-----END PGP SIGNATURE-----
+
+--nextPart6709385.5QrSvf7yQx--
