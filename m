@@ -1,23 +1,22 @@
 From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
 Subject: RE: [patch 11/14] ACPI: change GFP_ATOMIC to GFP_KERNEL for non-atomic allocation
-Date: Fri, 25 Aug 2006 07:48:25 -0700
-Message-ID: <EB12A50964762B4D8111D55B764A84548005C1@scsmsx413.amr.corp.intel.com>
+Date: Fri, 25 Aug 2006 18:39:31 -0700
+Message-ID: <EB12A50964762B4D8111D55B764A8454800AF0@scsmsx413.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:36114 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1030184AbWHYOtW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Aug 2006 10:49:22 -0400
+Received: from mga01.intel.com ([192.55.52.88]:18871 "EHLO
+	fmsmga101-1.fm.intel.com") by vger.kernel.org with ESMTP
+	id S1751501AbWHZBjd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Aug 2006 21:39:33 -0400
 Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Jiri Kosina <jikos@jikos.cz>, Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
 
- 
 
 >-----Original Message-----
 >From: Jiri Kosina [mailto:jikos@jikos.cz] 
@@ -73,12 +72,13 @@ Cc: linux-acpi@vger.kernel.org
 >mca cmov pat clflush dts acpi mmx fxsr sse sse2 ss tm pbe est tm2
 >bogomips	: 3590.77
 >
->-- 
->JiKos.
 
-Interesting. Let me try to reproduce the problem on a similar system
-locally and look at what is happening. I should have more update by the
-end of the day.
+I don't seem to be able to reproduce this on my T40 laptop. 
+
+Can you please send me the following:
+1) Output of acpidump (from latest pmtools here:
+http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/ )
+2) dmesg and cat /proc/acpi/processor/*/* output without this patch.
 
 Thanks,
 Venki
