@@ -1,97 +1,44 @@
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: Re: [PATCH](memory hotplug) Repost remove useless message at boot time from 2.6.18-rc4.
-Date: Mon, 28 Aug 2006 23:12:34 +0900
-Message-ID: <20060828223538.F622.Y-GOTO@jp.fujitsu.com>
-References: <20060825205423.0778.Y-GOTO@jp.fujitsu.com> <223978.1156683050640.SLOX.WebMail.wwwrun@imap-dhs.suse.de>
+From: "Zachariah Boykin" <bader@03productions.com>
+Subject: Stock promotion group is in search of new partners
+Date: Mon, 28 Aug 2006 16:29:02 +0000 (UTC)
+Message-ID: <11835637.20060828162835@03productions.com>
+Reply-To: "Zachariah Boykin" <bader@03productions.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:27069 "EHLO
-	fgwmail7.fujitsu.co.jp") by vger.kernel.org with ESMTP
-	id S1750856AbWH1ONc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Aug 2006 10:13:32 -0400
-In-Reply-To: <223978.1156683050640.SLOX.WebMail.wwwrun@imap-dhs.suse.de>
+Received: from host16-214.pool8289.interbusiness.it ([82.89.214.16]:23347 "EHLO
+	host16-214.pool8289.interbusiness.it") by vger.kernel.org with ESMTP
+	id S1751082AbWH1Q2j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Aug 2006 12:28:39 -0400
+Date: Mon, 28 Aug 2006 16:28:35 -0060
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: akpm@osdl.org, "Brown, Len" <len.brown@intel.com>, keith mannthey <kmannth@us.ibm.com>, ACPI-ML <linux-acpi@vger.kernel.org>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Linux Hotplug Memory Support <lhms-devel@lists.sourceforge.net>, naveen.b.s@intel.com
+To: linux-alpha-approval@vger.kernel.org
 
-> Am Fr 25.08.2006 13:59 schrieb Yasunori Goto <y-goto@jp.fujitsu.com>:
-> >
-> >>
-> >> > I sent a patch a while ago that gets rid of the whole namespace
-> >> > walking
-> >> > by making acpi_memoryhotplug an acpi device and making use of the
-> >> > .add
-> >> > callback function and the acpi_bus_register_driver call.
-> >> >
-> >> > I am not sure whether this is possible if you have multiple memory
-> >> > devices, though (if not maybe it should be made possible?)...
-> >> >
-> >> > Yasunori even tested the patch and sent an Ok:
-> >> > http://marc.theaimsgroup.com/?t=114065312400001&r=1&w=2
-> >> >
-> >> > If this is acceptable I can rebase the patch on a current kernel.
-> >>
-> >> Hi. Thomas-san.
-> >> Did you rebase your patch?
-> >>
-> >> I'm trying to do it now too.
-> >> But, current code (2.6.18-rc4) seems to register handler for
-> >> only enable status devices at boot time.
-> >> So, notification is -discarded- due to no handler for new memory
-> >> device when hot-add event occurs. Hmmm. :-(
-> >No, what I see the notify handler is always installed.
+Hello Investor/Stock owner,
 
-Hmm.
-Ok. Followings are current my understanding of sequence
-with your patch.
+We are a stock promotion company and we can promote any kind of stocks. We are in search of serious partners with whom we can make bussines together.That proposal is for you if you are:
 
-At boot time, acpi_memory_device_init() is called.
+Stock owner
 
-acpi_memory_device_init()
-   |
-   +---> acpi_bus_register_driver()
-           |
-           +---> acpi_driver_attach()
-                   |
-                   +---> acpi_bus_driver_init()
-                           |
-                           +---> acpi_memory_device_add()
-                                    |
-                                    +---> acpi_install_notify_handler().
+You own an underrated stock and the market price of your stock is from 0.001 to 1$
+
+We can increase the price of your stock and we can increase average day trading volume. We can increase price up to 200-250% in 2-3 weeks and also we can increase volume by 10 times each trading day. You don't have to pay anything in advance. First we increase the price and the volume, then you pay. We will prove it for 1 day for free.
+
+Payment: Our price for that is 6% from the daily volume. We count it by the following formula: (prev. close price + today open price)/2 * daily volume. 
+
+WE GUARANTY LONG TERM GROWTH 
+
+WE PROMOTE THE COMPANY AND IT'S BUSINESS
 
 
-The problem is in acpi_driver_attach(). This function is using
-"acpi_device_list" to call acpi_bus_driver_init().
+Investor
 
-This list is registered by acpi_device_register() which is called by
-acpi_add_single_object().
-However, acpi_add_single_object() skips calling it if _STA is not on.
+You want to invest some money and you want to make big profits? Our company can help you in that. We know exactly which stocks will increase in price and wich will be falling down. We will give you advices and according to that advices you will make decisions. We will prove it for 1 day for free. We will tell you the price of the stock in advance and you will see that our stock promotion group works hard in order to make your investment portfolio grow.
 
-1015         switch (type) {
-1016         case ACPI_BUS_TYPE_PROCESSOR:
-1017         case ACPI_BUS_TYPE_DEVICE:
-1018                 result = acpi_bus_get_status(device);
-1019                 if (ACPI_FAILURE(result) || !device->status.present) {
-1020                         result = -ENOENT;
-1021                         goto end;
-1022                 }
-1023                 break;
+Payment: Our price for that is 25-30% from your income. Before the deal you are telling us on which ammount of money you are buying/selling stock and we are counting the future profit and take 30% from that profit. You don't have to pay anything in advance, you pay only then you receive your profit.
 
-So, notify handler is registered just for memory device which is enable
-at boot time.
-If notify event occurs for new memory device, there is no notify handler
-for it....
 
-Old code registers handler for all of memory devices even if it is not
-enabled.
-
-If my understanding is wrong, please let me know. ;-)
-Bye.
-
--- 
-Yasunori Goto 
-
+If you are interested in our proposal please write me back to the following email: J O B (at) thesecpay4. i n f o
 
