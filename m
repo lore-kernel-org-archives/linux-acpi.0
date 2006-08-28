@@ -1,49 +1,95 @@
 From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: Re: [PATCH 2/2] acpi hotplug cleanups, move install notifier to add function
-Date: Mon, 28 Aug 2006 17:08:39 +0900
-Message-ID: <20060828165449.F61C.Y-GOTO@jp.fujitsu.com>
-References: <20060825205423.0778.Y-GOTO@jp.fujitsu.com> <1156701501.1852.20.camel@linux-1vxn.site>
+Subject: Re: [PATCH](memory hotplug) Repost remove useless message at boot time from 2.6.18-rc4.
+Date: Mon, 28 Aug 2006 23:12:34 +0900
+Message-ID: <20060828223538.F622.Y-GOTO@jp.fujitsu.com>
+References: <20060825205423.0778.Y-GOTO@jp.fujitsu.com> <223978.1156683050640.SLOX.WebMail.wwwrun@imap-dhs.suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:46251 "EHLO
-	fgwmail6.fujitsu.co.jp") by vger.kernel.org with ESMTP
-	id S1751418AbWH1IKJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Aug 2006 04:10:09 -0400
-In-Reply-To: <1156701501.1852.20.camel@linux-1vxn.site>
+Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:27069 "EHLO
+	fgwmail7.fujitsu.co.jp") by vger.kernel.org with ESMTP
+	id S1750856AbWH1ONc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Aug 2006 10:13:32 -0400
+In-Reply-To: <223978.1156683050640.SLOX.WebMail.wwwrun@imap-dhs.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: mail@renninger.de
-Cc: trenn@suse.de, akpm@osdl.org, "Brown, Len" <len.brown@intel.com>, keith mannthey <kmannth@us.ibm.com>, ACPI-ML <linux-acpi@vger.kernel.org>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Linux Hotplug Memory Support <lhms-devel@lists.sourceforge.net>, naveen.b.s@intel.com
+To: Thomas Renninger <trenn@suse.de>
+Cc: akpm@osdl.org, "Brown, Len" <len.brown@intel.com>, keith mannthey <kmannth@us.ibm.com>, ACPI-ML <linux-acpi@vger.kernel.org>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Linux Hotplug Memory Support <lhms-devel@lists.sourceforge.net>, naveen.b.s@intel.com
 
-> @@ -390,6 +296,13 @@ static int acpi_memory_device_add(struct
->  	if (!device)
->  		return -EINVAL;
->  
-> +	/* Check for _STA and EJ0 func */
-> +	if (!device->flags.dynamic_status || !device->flags.ejectable){
-> +		printk(KERN_INFO PREFIX "Memory device %s has no _STA or"
-> +		       "EJ0/EJD function", acpi_device_bid(device));
-> +		return -ENODEV;
-> +	}
-> +
->  	mem_device = kmalloc(sizeof(struct acpi_memory_device), GFP_KERNEL);
->  	if (!mem_device)
->  		return -ENOMEM;
+> Am Fr 25.08.2006 13:59 schrieb Yasunori Goto <y-goto@jp.fujitsu.com>:
+> >
+> >>
+> >> > I sent a patch a while ago that gets rid of the whole namespace
+> >> > walking
+> >> > by making acpi_memoryhotplug an acpi device and making use of the
+> >> > .add
+> >> > callback function and the acpi_bus_register_driver call.
+> >> >
+> >> > I am not sure whether this is possible if you have multiple memory
+> >> > devices, though (if not maybe it should be made possible?)...
+> >> >
+> >> > Yasunori even tested the patch and sent an Ok:
+> >> > http://marc.theaimsgroup.com/?t=114065312400001&r=1&w=2
+> >> >
+> >> > If this is acceptable I can rebase the patch on a current kernel.
+> >>
+> >> Hi. Thomas-san.
+> >> Did you rebase your patch?
+> >>
+> >> I'm trying to do it now too.
+> >> But, current code (2.6.18-rc4) seems to register handler for
+> >> only enable status devices at boot time.
+> >> So, notification is -discarded- due to no handler for new memory
+> >> device when hot-add event occurs. Hmmm. :-(
+> >No, what I see the notify handler is always installed.
 
-One comment.
+Hmm.
+Ok. Followings are current my understanding of sequence
+with your patch.
 
-Memory device might not have _EJ0/_EJD, but parent device
-(like one NUMA node) might be able to be ejectable.
-In this case, only the parent device has _EJ0/_EJD.
-So, one more check is necessary.
+At boot time, acpi_memory_device_init() is called.
 
-(If a node is hot-added, container driver of acpi calls acpi_memhotplug
- driver.)
+acpi_memory_device_init()
+   |
+   +---> acpi_bus_register_driver()
+           |
+           +---> acpi_driver_attach()
+                   |
+                   +---> acpi_bus_driver_init()
+                           |
+                           +---> acpi_memory_device_add()
+                                    |
+                                    +---> acpi_install_notify_handler().
 
 
-Thanks.
+The problem is in acpi_driver_attach(). This function is using
+"acpi_device_list" to call acpi_bus_driver_init().
+
+This list is registered by acpi_device_register() which is called by
+acpi_add_single_object().
+However, acpi_add_single_object() skips calling it if _STA is not on.
+
+1015         switch (type) {
+1016         case ACPI_BUS_TYPE_PROCESSOR:
+1017         case ACPI_BUS_TYPE_DEVICE:
+1018                 result = acpi_bus_get_status(device);
+1019                 if (ACPI_FAILURE(result) || !device->status.present) {
+1020                         result = -ENOENT;
+1021                         goto end;
+1022                 }
+1023                 break;
+
+So, notify handler is registered just for memory device which is enable
+at boot time.
+If notify event occurs for new memory device, there is no notify handler
+for it....
+
+Old code registers handler for all of memory devices even if it is not
+enabled.
+
+If my understanding is wrong, please let me know. ;-)
+Bye.
 
 -- 
 Yasunori Goto 
