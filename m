@@ -1,54 +1,101 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: one more ACPI Error (utglobal-0125): Unknown exception code: 0xFFFFFFEA [Re: 2.6.18-rc4-mm3]
-Date: Mon, 28 Aug 2006 22:24:13 +0200
-Message-ID: <20060828202412.GA5151@inferi.kami.home>
-References: <20060826160922.3324a707.akpm@osdl.org>
+From: Thomas Renninger <mail@renninger.de>
+Subject: Re: [PATCH](memory hotplug) Repost remove useless message at boot
+	time from 2.6.18-rc4.
+Date: Mon, 28 Aug 2006 23:16:58 +0200
+Message-ID: <1156799818.12158.9.camel@linux-1vxn.site>
+References: <20060825205423.0778.Y-GOTO@jp.fujitsu.com>
+	 <223978.1156683050640.SLOX.WebMail.wwwrun@imap-dhs.suse.de>
+	 <20060828223538.F622.Y-GOTO@jp.fujitsu.com>
+Reply-To: mail@renninger.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aa003msr.fastwebnet.it ([85.18.95.66]:30689 "EHLO
-	aa003msr.fastwebnet.it") by vger.kernel.org with ESMTP
-	id S1751463AbWH1UZQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Aug 2006 16:25:16 -0400
-Content-Disposition: inline
-In-Reply-To: <20060826160922.3324a707.akpm@osdl.org>
+Received: from mx02.qsc.de ([213.148.130.14]:9681 "EHLO mx02.qsc.de")
+	by vger.kernel.org with ESMTP id S1750806AbWH1VQ6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Aug 2006 17:16:58 -0400
+In-Reply-To: <20060828223538.F622.Y-GOTO@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Thomas Renninger <trenn@suse.de>, akpm@osdl.org, "Brown, Len" <len.brown@intel.com>, keith mannthey <kmannth@us.ibm.com>, ACPI-ML <linux-acpi@vger.kernel.org>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Linux Hotplug Memory Support <lhms-devel@lists.sourceforge.net>, naveen.b.s@intel.com
 
-On Sat, Aug 26, 2006 at 04:09:22PM -0700, Andrew Morton wrote:
+On Mon, 2006-08-28 at 23:12 +0900, Yasunori Goto wrote: 
+> Hmm.
+> Ok. Followings are current my understanding of sequence
+> with your patch.
 > 
-> ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.18-rc4/2.6.18-rc4-mm3/
-[...]
->  git-acpi.patch
+> At boot time, acpi_memory_device_init() is called.
+> 
+> acpi_memory_device_init()
+>    |
+>    +---> acpi_bus_register_driver()
+>            |
+>            +---> acpi_driver_attach()
+>                    |
+>                    +---> acpi_bus_driver_init()
+>                            |
+>                            +---> acpi_memory_device_add()
+>                                     |
+>                                     +---> acpi_install_notify_handler().
+> 
+> 
+> The problem is in acpi_driver_attach(). This function is using
+> "acpi_device_list" to call acpi_bus_driver_init().
+> 
+> This list is registered by acpi_device_register() which is called by
+> acpi_add_single_object().
+> However, acpi_add_single_object() skips calling it if _STA is not on.
+> 
+> 1015         switch (type) {
+> 1016         case ACPI_BUS_TYPE_PROCESSOR:
+> 1017         case ACPI_BUS_TYPE_DEVICE:
+> 1018                 result = acpi_bus_get_status(device);
+> 1019                 if (ACPI_FAILURE(result) || !device->status.present) {
+> 1020                         result = -ENOENT;
+> 1021                         goto end;
+> 1022                 }
+> 1023                 break;
+> 
+> So, notify handler is registered just for memory device which is enable
+> at boot time.
+> If notify event occurs for new memory device, there is no notify handler
+> for it....
+> 
+Ah, good point. That should also be the reason why a battery inserted
+after module loading won't get noticed (I didn't try right now, but I
+remember complains about that).
+I wonder whether the "!device->status.present" condition can just be
+deleted here or checking for device HIDs that potentially can be
+ejected/inserted, not sure. Hopefully someone else could comment on that
+one.
 
-Sorry for reporting separately, I deleted the other thread on the issue.
-Here we go:
-[    9.386644] PCI: Using ACPI for IRQ routing
-[    9.386688] PCI: If a device doesn't work, try "pci=routeirq".  If it helps, post a report
-[    9.391209] ACPI Error (utglobal-0125): Unknown exception code: 0xFFFFFFEA [20060707]
-[    9.391521]  [<c0103a9f>] dump_trace+0x1ef/0x230
-[    9.391626]  [<c0103b06>] show_trace_log_lvl+0x26/0x40
-[    9.391724]  [<c01042bb>] show_trace+0x1b/0x20
-[    9.391820]  [<c01043a4>] dump_stack+0x24/0x30
-[    9.391918]  [<c0249f15>] acpi_format_exception+0xa3/0xb0
-[    9.392729]  [<c0246fb6>] acpi_ut_status_exit+0x31/0x5e
-[    9.393453]  [<c0243352>] acpi_walk_resources+0x10e/0x11b
-[    9.394174]  [<c025697e>] acpi_motherboard_add+0x22/0x31
-[    9.394977]  [<c0255890>] acpi_bus_driver_init+0x2b/0x7c
-[    9.395742]  [<c02568da>] acpi_bus_register_driver+0xa1/0x123
-[    9.396507]  [<c0418adb>] acpi_motherboard_init+0x17/0xfb
-[    9.397268]  [<c01003d0>] init+0x80/0x290
-[    9.397343]  [<c0103593>] kernel_thread_helper+0x7/0x14
-[    9.397439]  =======================
+> Old code registers handler for all of memory devices even if it is not
+> enabled.
+Yeah, therefore the mem_device cannot be passed as callback data as it
+might get generated in the notify handler func and all the additional
+stuff is needed..., ouch.
+> 
+> If my understanding is wrong, please let me know. ;-)
+It's me who is wrong, thanks a lot for checking!
 
-full dmesg: http://oioio.altervista.org/linux/dmesg-2.6.18-rc4-mm3-1
-config: http://oioio.altervista.org/linux/config-2.6.18-rc4-mm3-1
-DSDT: http://oioio.altervista.org/linux/DSDT.aml
-      http://oioio.altervista.org/linux/DSDT.dsl
-lspci: http://oioio.altervista.org/linux/lspci-v
+> Memory device might not have _EJ0/_EJD, but parent device 
+> (like one NUMA node) might be able to be ejectable.
+> In this case, only the parent device has _EJ0/_EJD.
+> So, one more check is necessary.
 
--- 
-mattia
-:wq!
+I feared something like that (should have add a comment...), as the EJ0
+and _STA functions are only used on the device itself I thought checking
+for them makes sense, but for a missing EJ0 func powering down the
+device just fails and it should not be harmful.
+So the only useful thing from my patch (as long as .add is only invoked
+if device is present) is using the general acpi_bus_get_status() func. 
+Hmm, it must be used if the _STA function on the memory device is also
+missing and the parent _STA must be used then? Could make sense on a
+machine where a whole node must be inserted/ejected? The
+acpi_bus_get_status() function already contains the checking for the
+parent's _STA function and uses this one if the device itself has none.
+
+  Thomas
+
