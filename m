@@ -1,30 +1,51 @@
-From: Yu Luming <luming.yu@intel.com>
-Subject: acpi button event to input layer (was [RFC] [PATCH] Make ACPI button driver an input device)
-Date: Mon, 28 Aug 2006 15:06:50 +0800
-Message-ID: <200608281506.50738.luming.yu@intel.com>
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: Re: [PATCH 2/2] acpi hotplug cleanups, move install notifier to add function
+Date: Mon, 28 Aug 2006 17:08:39 +0900
+Message-ID: <20060828165449.F61C.Y-GOTO@jp.fujitsu.com>
+References: <20060825205423.0778.Y-GOTO@jp.fujitsu.com> <1156701501.1852.20.camel@linux-1vxn.site>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:2727 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S932401AbWH1HA7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Aug 2006 03:00:59 -0400
-Content-Disposition: inline
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:46251 "EHLO
+	fgwmail6.fujitsu.co.jp") by vger.kernel.org with ESMTP
+	id S1751418AbWH1IKJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Aug 2006 04:10:09 -0400
+In-Reply-To: <1156701501.1852.20.camel@linux-1vxn.site>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>, Dmitry Torokhov <dtor@insightbb.com>
-Cc: linux-acpi@vger.kernel.org
+To: mail@renninger.de
+Cc: trenn@suse.de, akpm@osdl.org, "Brown, Len" <len.brown@intel.com>, keith mannthey <kmannth@us.ibm.com>, ACPI-ML <linux-acpi@vger.kernel.org>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Linux Hotplug Memory Support <lhms-devel@lists.sourceforge.net>, naveen.b.s@intel.com
 
-Matthew / Dmitry,
+> @@ -390,6 +296,13 @@ static int acpi_memory_device_add(struct
+>  	if (!device)
+>  		return -EINVAL;
+>  
+> +	/* Check for _STA and EJ0 func */
+> +	if (!device->flags.dynamic_status || !device->flags.ejectable){
+> +		printk(KERN_INFO PREFIX "Memory device %s has no _STA or"
+> +		       "EJ0/EJD function", acpi_device_bid(device));
+> +		return -ENODEV;
+> +	}
+> +
+>  	mem_device = kmalloc(sizeof(struct acpi_memory_device), GFP_KERNEL);
+>  	if (!mem_device)
+>  		return -ENOMEM;
 
-I recall there was a patch to make acpi button driver as input device.
-Do you have any update patch? Because we want to transition acpi event
-mechanism from /proc/acpi/event to input layer. I guess the acpi button driver
-would be the first one to complete such transition.
+One comment.
 
-http://www.gatago.com/linux/kernel/11320641.html
+Memory device might not have _EJ0/_EJD, but parent device
+(like one NUMA node) might be able to be ejectable.
+In this case, only the parent device has _EJ0/_EJD.
+So, one more check is necessary.
+
+(If a node is hot-added, container driver of acpi calls acpi_memhotplug
+ driver.)
+
+
+Thanks.
+
 -- 
-Thanks,
-Luming
+Yasunori Goto 
+
+
