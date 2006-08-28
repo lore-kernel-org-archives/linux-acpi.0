@@ -1,88 +1,46 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: Re: [v4l-dvb-maintainer] Options depending on STANDALONE
-Date: Sun, 27 Aug 2006 23:45:02 +0200
-Message-ID: <20060827214502.GC3574@stusta.de>
-References: <44D1CC7D.4010600@vmware.com> <Pine.LNX.4.58.0608031610110.9178@shell2.speakeasy.net> <20060805105122.GT25692@stusta.de> <200608061319.00085@orion.escape-edv.de> <20060813163603.GE3543@stusta.de> <Pine.LNX.4.58.0608141400450.11273@shell3.speakeasy.net>
+From: "John Stoffel" <john@stoffel.org>
+Subject: Re: 2.6.18-rc4-mm3 -- ACPI Error (utglobal-0125): Unknown exception
+ code: 0xFFFFFFEA [20060707]
+Date: Sun, 27 Aug 2006 21:44:09 -0400
+Message-ID: <17650.19049.326213.978165@stoffel.org>
+References: <a44ae5cd0608262356j29c0234cl198fb207bcad383d@mail.gmail.com>
+	<20060827001437.ec4f7a7a.akpm@osdl.org>
+	<17649.47572.627874.371564@stoffel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emailhub.stusta.mhn.de ([141.84.69.5]:60688 "HELO
-	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
-	id S932209AbWH0VpD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 27 Aug 2006 17:45:03 -0400
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0608141400450.11273@shell3.speakeasy.net>
+Received: from mxsf38.cluster1.charter.net ([209.225.28.165]:48573 "EHLO
+	mxsf38.cluster1.charter.net") by vger.kernel.org with ESMTP
+	id S932154AbWH1BoM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 27 Aug 2006 21:44:12 -0400
+In-Reply-To: <17649.47572.627874.371564@stoffel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Trent Piepho <xyzzy@speakeasy.org>
-Cc: v4l-dvb-maintainer@linuxtv.org, Zachary Amsden <zach@vmware.com>, Andrew Morton <akpm@osdl.org>, Jack Lo <jlo@vmware.com>, Greg KH <greg@kroah.com>, Rusty Russell <rusty@rustcorp.com.au>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@infradead.org>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, Dave Jones <davej@redhat.com>, Arjan van de Ven <arjan@infradead.org>
+To: John Stoffel <john@stoffel.org>
+Cc: Andrew Morton <akpm@osdl.org>, Miles Lane <miles.lane@gmail.com>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>
 
-On Mon, Aug 14, 2006 at 02:15:26PM -0700, Trent Piepho wrote:
-> On Sun, 13 Aug 2006, Adrian Bunk wrote:
-> > On Sun, Aug 06, 2006 at 01:18:59PM +0200, Oliver Endriss wrote:
-> > > Adrian Bunk wrote:
-> > > > On Thu, Aug 03, 2006 at 04:40:25PM -0700, Trent Piepho wrote:
-> > > > > On Thu, 3 Aug 2006, Adrian Bunk wrote:
-> > > > > > On Thu, Aug 03, 2006 at 03:56:17PM -0400, Dave Jones wrote:
-> > > > > > > You're describing PREVENT_FIRMWARE_BUILD.  The text Zach quoted is from
-> > > > > > > STANDALONE, which is something else completely.  That allows us to not
-> > > > > > > build drivers that pull in things from /etc and the like during compile.
-> > > > > > > (Whoever thought that was a good idea?)
-> > > > > >
-> > > > > > Is DVB_AV7110_FIRMWARE really still required?
-> > > > > > ALL other drivers work without such an option.
-> > > > >
-> > > > > The other DVB drivers that need firmware load it when the device is opened
-> > > > > or used (ie.  a channel is tuned).  At least for the ones I'm familiar
-> > > > > with.  If they are compiled directly into the kernel, they can still use
-> > > > > FW_LOADER since the loading won't happen until utill well after booting is
-> > > > > done.
-> > > > >
-> > > > > For AV7110, it looks like the firmware loading is done when the driver is
-> > > > > first initialized.  If AV7110 is compiled into the kernel, FW_LOADER can
-> > > > > not be used.  The filesystem with the firmware won't be mounted yet.
-> > > > >
-> > > > > So AV7110 has an option to compile a firmware file into the driver.
-> > > >
-> > > > But is there a technical reason why this has to be done this way?
-> 
-> Is there another way to load firmware in a driver compiled into the kernel?
+>>>>> "John" == John Stoffel <john@stoffel.org> writes:
 
-The CONFIG_DVB_AV7110_FIRMWARE=n code should work fine.
+Just to give some more information, I tried upping the BIOS on my
+Rocket 133 (HPT302) card from 1.21 to 1.22, and it's taken me most of
+the day to recover.  The system would boot, then hang at the HPT
+BIOS... and it looked like to toasted my Dell's bios as well.  So I
+ended up a) upping the DELL Precision 610 Dual Xeon 550mhz from A10 to
+A11 BIOS, and b) moving the HPT302 card to another system and booting
+of flopyy and downgrading from 1.22 to 1.21, where it then started
+working again for me.
 
-> > > > This is the onle (non-OSS) driver doing it this way, and Zach has a
-> > > > point that this is legally questionable.
-> 
-> I know there are other DVB drivers that can have firmware compiled in
-> instead of using FW_LOADER.  They just don't show that ability in Kconfig,
-> you have to edit the driver to enable compiled in firmware.
-> 
-> > > This option _is_ useful because it allows allows a user to build an
-> > > av7110 driver without hotplug etc. I NAK any attempt to remove it.
-> >
-> > If you look at the dependencies of DVB_AV7110 and the code in av7110.c
-> > you'll note that your statement "it allows allows a user to build an
-> > av7110 driver without hotplug" is not true.
-> 
-> Looks like a mistake in the Kconfig file:
-> -	select FW_LOADER
-> +	select FW_LOADER if DVB_AV7110_FIRMWARE=n
+Sigh... looks like for now that I'm going to steer clear of the libata
+drivers.  Oh well, let me know when to try them again, since
+2.6.18-rc4-mm3 doesn't do the trick.  Why, I dunno, but it looks like
+some sort of IRQ handling conflicts.  
 
-Sure, it could be fixed.
+Maybe I'll try pulling all my USB drivers and seeing how that works,
+since it looks like it was a conflict in there somewhere.  
 
-But the fact that it didn't work doesn't create a strong reason for 
-keeping it.
+Please let me know if I can provide more details.  I've dropped back
+to 2.6.17, since that's the only recent version which seems to work
+for me, none of the 2.6.18-rc* have so far.
 
-And the whole "kernel without hotplug" is anyway no longer possible in 
-the usual CONFIG_EMBEDDED=n case.
-
-cu
-Adrian
-
--- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
-
+John
