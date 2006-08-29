@@ -1,109 +1,112 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: one more ACPI Error (utglobal-0125): Unknown exception code: 0xFFFFFFEA [Re: 2.6.18-rc4-mm3]
-Date: Tue, 29 Aug 2006 13:04:09 -0700
-Message-ID: <B28E9812BAF6E2498B7EC5C427F293A4D850BB@orsmsx415.amr.corp.intel.com>
+From: Adam Belay <abelay@novell.com>
+Subject: [RFC][PATCH 2/2] ACPI: handle timer ticks proactively
+Date: Tue, 29 Aug 2006 16:51:52 -0400
+Message-ID: <1156884713.1781.122.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:13681 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1751420AbWH2UE3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Aug 2006 16:04:29 -0400
-Content-class: urn:content-classes:message
+Received: from peabody.ximian.com ([130.57.169.10]:28824 "EHLO
+	peabody.ximian.com") by vger.kernel.org with ESMTP id S965342AbWH2Uu1
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Aug 2006 16:50:27 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Li, Shaohua" <shaohua.li@intel.com>, Mattia Dongili <malattia@linux.it>, Andrew Morton <akpm@osdl.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Len Brown <len.brown@intel.com>
+Cc: ACPI-ML <linux-acpi@vger.kernel.org>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>, Arjan van de Ven <arjan@linux.intel.com>
 
-As far as the unknown exception,
+Hi All,
 
->[    9.392729]  [<c0246fb6>] acpi_ut_status_exit+0x31/0x5e
->[    9.393453]  [<c0243352>] acpi_walk_resources+0x10e/0x11b
->[    9.394174]  [<c025697e>] acpi_motherboard_add+0x22/0x31
+This patch takes advantage of the infrastructure introduced in the last
+patch, and allows the processor idle algorithm to proactively choose a
+c-state based on the time the next timer interrupt is expected to occur.
+It preserves the residency metric, so the algorithm should, in theory,
+remain effective against bursts of activity from other interrupt
+sources.
 
-I would guess that the callback routine for walk_resources is returning
-a non-zero status value which is causing an immediate abort of the walk
-with that value -- and the value is bogus.
+This patch is mostly intended to be illustrative.  There may be some
+"#ifdef CONFIG_ACPI" issues, and I would appreciate any advice on
+implementing this more cleanly.
 
-Bob
+Cheers,
+Adam
+
+Patch is against 2.6.18-rc4.
+Signed-off-by: Adam Belay <abelay@novell.com>
+
+---
+ drivers/acpi/processor_idle.c |   17 +++++++++++++++++
+ include/acpi/processor.h      |    2 ++
+ kernel/timer.c                |    7 +++++++
+ 3 files changed, 26 insertions(+)
 
 
-> -----Original Message-----
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> owner@vger.kernel.org] On Behalf Of Li, Shaohua
-> Sent: Monday, August 28, 2006 7:06 PM
-> To: Mattia Dongili; Andrew Morton
-> Cc: linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org
-> Subject: RE: one more ACPI Error (utglobal-0125): Unknown exception
-code:
-> 0xFFFFFFEA [Re: 2.6.18-rc4-mm3]
-> 
-> 
-> 
-> >-----Original Message-----
-> >From: linux-kernel-owner@vger.kernel.org [mailto:linux-kernel-
-> >owner@vger.kernel.org] On Behalf Of Mattia Dongili
-> >Sent: Tuesday, August 29, 2006 4:24 AM
-> >To: Andrew Morton
-> >Cc: linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org
-> >Subject: one more ACPI Error (utglobal-0125): Unknown exception code:
-> >0xFFFFFFEA [Re: 2.6.18-rc4-mm3]
-> >
-> >On Sat, Aug 26, 2006 at 04:09:22PM -0700, Andrew Morton wrote:
-> >>
-> >>
-ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.18-
-> >rc4/2.6.18-rc4-mm3/
-> >[...]
-> >>  git-acpi.patch
-> >
-> >Sorry for reporting separately, I deleted the other thread on the
-> issue.
-> >Here we go:
-> >[    9.386644] PCI: Using ACPI for IRQ routing
-> >[    9.386688] PCI: If a device doesn't work, try "pci=routeirq".  If
-> it
-> >helps, post a report
-> >[    9.391209] ACPI Error (utglobal-0125): Unknown exception code:
-> >0xFFFFFFEA [20060707]
-> >[    9.391521]  [<c0103a9f>] dump_trace+0x1ef/0x230
-> >[    9.391626]  [<c0103b06>] show_trace_log_lvl+0x26/0x40
-> >[    9.391724]  [<c01042bb>] show_trace+0x1b/0x20
-> >[    9.391820]  [<c01043a4>] dump_stack+0x24/0x30
-> >[    9.391918]  [<c0249f15>] acpi_format_exception+0xa3/0xb0
-> >[    9.392729]  [<c0246fb6>] acpi_ut_status_exit+0x31/0x5e
-> >[    9.393453]  [<c0243352>] acpi_walk_resources+0x10e/0x11b
-> >[    9.394174]  [<c025697e>] acpi_motherboard_add+0x22/0x31
-> >[    9.394977]  [<c0255890>] acpi_bus_driver_init+0x2b/0x7c
-> >[    9.395742]  [<c02568da>] acpi_bus_register_driver+0xa1/0x123
-> >[    9.396507]  [<c0418adb>] acpi_motherboard_init+0x17/0xfb
-> >[    9.397268]  [<c01003d0>] init+0x80/0x290
-> >[    9.397343]  [<c0103593>] kernel_thread_helper+0x7/0x14
-> >[    9.397439]  =======================
-> >
-> >full dmesg: http://oioio.altervista.org/linux/dmesg-2.6.18-rc4-mm3-1
-> >config: http://oioio.altervista.org/linux/config-2.6.18-rc4-mm3-1
-> >DSDT: http://oioio.altervista.org/linux/DSDT.aml
-> >      http://oioio.altervista.org/linux/DSDT.dsl
-> >lspci: http://oioio.altervista.org/linux/lspci-v
-> Below patch is the root cause.
->
-http://www.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.18-rc
->
-4/2.6.18-rc4-mm3/broken-out/hot-add-mem-x86_64-acpi-motherboard-fix.patc
-> h
-> 
-> motherboard driver is expected to reserve resources used by
-motherboard,
-> so hotplug will not fail. I don't know why memory hotplug guys change
-> it.
-> 
-> Thanks,
-> Shaohua
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
-in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--- a/drivers/acpi/processor_idle.c	2006-08-28 17:14:54.000000000 -0400
++++ b/drivers/acpi/processor_idle.c	2006-08-28 17:29:21.000000000 -0400
+@@ -64,6 +64,7 @@
+  * Currently, we aim for the entry/exit latency to be 20% of measured residency.
+  */
+ #define RESIDENCY_TO_LATENCY_RATIO	5
++#define TIMER_TICKS (PM_TIMER_FREQUENCY / HZ)
+ 
+ /* --------------------------------------------------------------------------
+                                 Power Management
+@@ -271,6 +272,22 @@
+ 		int count = min(pr->power.count, (int) max_cstate);
+ 		cx = &pr->power.states[state_idx];
+ 
++		/*
++		 * We are proactive with timer interrupts.  After a timer
++		 * interrupt has occurred the previous sleep_ticks value is
++		 * restored.
++		 */
++		if (pr->power.pretimer_last_ticks) {
++			sleep_ticks = pr->power.pretimer_last_ticks;
++			pr->power.pretimer_last_ticks = 0;
++		}
++		t1 = inl(acpi_fadt.xpm_tmr_blk.address);
++		i = TIMER_TICKS - t1 + pr->power.timer_tick;
++		if (i < sleep_ticks) {
++			pr->power.pretimer_last_ticks = sleep_ticks;
++			sleep_ticks = i;
++		}
++
+ 		if (cx->target_ticks < sleep_ticks) { /* promotion */
+ 			for (i = state_idx + 1; i <= count; i++) {
+ 				cx = &pr->power.states[i];
+--- a/kernel/timer.c	2006-08-03 13:39:22.000000000 -0400
++++ b/kernel/timer.c	2006-08-28 17:16:36.000000000 -0400
+@@ -41,6 +41,9 @@
+ #include <asm/timex.h>
+ #include <asm/io.h>
+ 
++#include <acpi/acpi_bus.h>
++#include <acpi/processor.h>
++
+ #ifdef CONFIG_TIME_INTERPOLATION
+ static void time_interpolator_update(long delta_nsec);
+ #else
+@@ -1175,6 +1178,10 @@
+ {
+ 	struct task_struct *p = current;
+ 	int cpu = smp_processor_id();
++	struct acpi_processor *pr = processors[cpu];
++
++	if (pr)
++		pr->power.timer_tick = inl(acpi_fadt.xpm_tmr_blk.address);
+ 
+ 	/* Note: this timer irq context must be accounted for as well. */
+ 	if (user_tick)
+--- a/include/acpi/processor.h	2006-08-28 17:14:54.000000000 -0400
++++ b/include/acpi/processor.h	2006-08-28 17:20:25.000000000 -0400
+@@ -60,6 +60,8 @@
+ 	u32 bm_activity;
+ 	u32 bm_veto_state;
+ 	u32 last_ticks;
++	u32 timer_tick;
++	u32 pretimer_last_ticks;
+ 	int count;
+ 	struct acpi_processor_cx states[ACPI_PROCESSOR_MAX_POWER];
+ };
+
+
