@@ -1,101 +1,62 @@
-From: Thomas Renninger <mail@renninger.de>
-Subject: Re: [PATCH](memory hotplug) Repost remove useless message at boot
-	time from 2.6.18-rc4.
-Date: Mon, 28 Aug 2006 23:16:58 +0200
-Message-ID: <1156799818.12158.9.camel@linux-1vxn.site>
-References: <20060825205423.0778.Y-GOTO@jp.fujitsu.com>
-	 <223978.1156683050640.SLOX.WebMail.wwwrun@imap-dhs.suse.de>
-	 <20060828223538.F622.Y-GOTO@jp.fujitsu.com>
-Reply-To: mail@renninger.de
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: Re: [PATCH](memory hotplug) Repost remove useless message at boot time from 2.6.18-rc4.
+Date: Tue, 29 Aug 2006 10:57:23 +0900
+Message-ID: <20060829102200.FC1D.Y-GOTO@jp.fujitsu.com>
+References: <20060828223538.F622.Y-GOTO@jp.fujitsu.com> <1156799818.12158.9.camel@linux-1vxn.site>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx02.qsc.de ([213.148.130.14]:9681 "EHLO mx02.qsc.de")
-	by vger.kernel.org with ESMTP id S1750806AbWH1VQ6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Aug 2006 17:16:58 -0400
-In-Reply-To: <20060828223538.F622.Y-GOTO@jp.fujitsu.com>
+Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:23528 "EHLO
+	fgwmail7.fujitsu.co.jp") by vger.kernel.org with ESMTP
+	id S1750974AbWH2B63 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Aug 2006 21:58:29 -0400
+In-Reply-To: <1156799818.12158.9.camel@linux-1vxn.site>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasunori Goto <y-goto@jp.fujitsu.com>
+To: mail@renninger.de
 Cc: Thomas Renninger <trenn@suse.de>, akpm@osdl.org, "Brown, Len" <len.brown@intel.com>, keith mannthey <kmannth@us.ibm.com>, ACPI-ML <linux-acpi@vger.kernel.org>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Linux Hotplug Memory Support <lhms-devel@lists.sourceforge.net>, naveen.b.s@intel.com
 
-On Mon, 2006-08-28 at 23:12 +0900, Yasunori Goto wrote: 
-> Hmm.
-> Ok. Followings are current my understanding of sequence
-> with your patch.
+> > Old code registers handler for all of memory devices even if it is not
+> > enabled.
+> Yeah, therefore the mem_device cannot be passed as callback data as it
+> might get generated in the notify handler func and all the additional
+> stuff is needed..., ouch.
+> > 
+> > If my understanding is wrong, please let me know. ;-)
+> It's me who is wrong, thanks a lot for checking!
 > 
-> At boot time, acpi_memory_device_init() is called.
+> > Memory device might not have _EJ0/_EJD, but parent device 
+> > (like one NUMA node) might be able to be ejectable.
+> > In this case, only the parent device has _EJ0/_EJD.
+> > So, one more check is necessary.
 > 
-> acpi_memory_device_init()
->    |
->    +---> acpi_bus_register_driver()
->            |
->            +---> acpi_driver_attach()
->                    |
->                    +---> acpi_bus_driver_init()
->                            |
->                            +---> acpi_memory_device_add()
->                                     |
->                                     +---> acpi_install_notify_handler().
-> 
-> 
-> The problem is in acpi_driver_attach(). This function is using
-> "acpi_device_list" to call acpi_bus_driver_init().
-> 
-> This list is registered by acpi_device_register() which is called by
-> acpi_add_single_object().
-> However, acpi_add_single_object() skips calling it if _STA is not on.
-> 
-> 1015         switch (type) {
-> 1016         case ACPI_BUS_TYPE_PROCESSOR:
-> 1017         case ACPI_BUS_TYPE_DEVICE:
-> 1018                 result = acpi_bus_get_status(device);
-> 1019                 if (ACPI_FAILURE(result) || !device->status.present) {
-> 1020                         result = -ENOENT;
-> 1021                         goto end;
-> 1022                 }
-> 1023                 break;
-> 
-> So, notify handler is registered just for memory device which is enable
-> at boot time.
-> If notify event occurs for new memory device, there is no notify handler
-> for it....
-> 
-Ah, good point. That should also be the reason why a battery inserted
-after module loading won't get noticed (I didn't try right now, but I
-remember complains about that).
-I wonder whether the "!device->status.present" condition can just be
-deleted here or checking for device HIDs that potentially can be
-ejected/inserted, not sure. Hopefully someone else could comment on that
-one.
+> I feared something like that (should have add a comment...), as the EJ0
+> and _STA functions are only used on the device itself I thought checking
+> for them makes sense, but for a missing EJ0 func powering down the
+> device just fails and it should not be harmful.
+> So the only useful thing from my patch (as long as .add is only invoked
+> if device is present) is using the general acpi_bus_get_status() func. 
+> Hmm, it must be used if the _STA function on the memory device is also
+> missing and the parent _STA must be used then? Could make sense on a
+> machine where a whole node must be inserted/ejected? The
+> acpi_bus_get_status() function already contains the checking for the
+> parent's _STA function and uses this one if the device itself has none.
 
-> Old code registers handler for all of memory devices even if it is not
-> enabled.
-Yeah, therefore the mem_device cannot be passed as callback data as it
-might get generated in the notify handler func and all the additional
-stuff is needed..., ouch.
-> 
-> If my understanding is wrong, please let me know. ;-)
-It's me who is wrong, thanks a lot for checking!
+I don't have any report like "no _STA on memory device" so far.
+Current code assume each memory device has _STA.
+I suppose each memory device should have _STA method. For example,
+if a memory device is broken, its _STA should return disable status. 
+So, basically checking _STA of only memory device should be ok now.
 
-> Memory device might not have _EJ0/_EJD, but parent device 
-> (like one NUMA node) might be able to be ejectable.
-> In this case, only the parent device has _EJ0/_EJD.
-> So, one more check is necessary.
+However I'm not sure that every vendor will do it in the future.
+If there is no _STA on memory device, parents, grand-parents or
+more ancestor might have _STA for it.
+(See acpi_get_pxm() in driver/acpi/numa.c. It searches ancestor's _PXM.
+ If insane vendor make like it, it will be good reference.)
 
-I feared something like that (should have add a comment...), as the EJ0
-and _STA functions are only used on the device itself I thought checking
-for them makes sense, but for a missing EJ0 func powering down the
-device just fails and it should not be harmful.
-So the only useful thing from my patch (as long as .add is only invoked
-if device is present) is using the general acpi_bus_get_status() func. 
-Hmm, it must be used if the _STA function on the memory device is also
-missing and the parent _STA must be used then? Could make sense on a
-machine where a whole node must be inserted/ejected? The
-acpi_bus_get_status() function already contains the checking for the
-parent's _STA function and uses this one if the device itself has none.
+Bye.
+-- 
+Yasunori Goto 
 
-  Thomas
 
