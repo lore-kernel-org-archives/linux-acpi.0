@@ -1,47 +1,34 @@
-From: newhren <colimit@gmail.com>
-Subject: Re: DSDT on Averatec 1050
-Date: Wed, 30 Aug 2006 19:07:26 +0000 (UTC)
-Message-ID: <loom.20060830T210051-499@post.gmane.org>
-References: <44635E8A.406@gmx.at>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [RFC][PATCH 1/2] ACPI: Idle Processor PM Improvements
+Date: Wed, 30 Aug 2006 20:43:17 +0100
+Message-ID: <20060830194317.GA9116@srcf.ucam.org>
+References: <EB12A50964762B4D8111D55B764A845484D316@scsmsx413.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:36551 "EHLO ciao.gmane.org")
-	by vger.kernel.org with ESMTP id S1751334AbWH3TH7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Aug 2006 15:07:59 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1GIVPZ-0002i4-A4
-	for linux-acpi@vger.kernel.org; Wed, 30 Aug 2006 21:07:41 +0200
-Received: from ip68-1-168-140.ri.ri.cox.net ([68.1.168.140])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Wed, 30 Aug 2006 21:07:41 +0200
-Received: from colimit by ip68-1-168-140.ri.ri.cox.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Wed, 30 Aug 2006 21:07:41 +0200
+Received: from cavan.codon.org.uk ([217.147.92.49]:61836 "EHLO
+	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
+	id S1751396AbWH3ToG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 Aug 2006 15:44:06 -0400
+Content-Disposition: inline
+In-Reply-To: <EB12A50964762B4D8111D55B764A845484D316@scsmsx413.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Cc: Adam Belay <abelay@novell.com>, "Brown, Len" <len.brown@intel.com>, ACPI ML <linux-acpi@vger.kernel.org>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>, Arjan van de Ven <arjan@linux.intel.com>, devel@laptop.org
 
-Paul Wagner <paul_spam <at> gmx.at> writes:
+On Wed, Aug 30, 2006 at 11:40:16AM -0700, Pallipadi, Venkatesh wrote:
 
-> 
-> Hi Folks,
-> 
-> tried to get Linux (Slackware 10.1 with Kernel 2.6.13) to run on my 
-> Averatec 1050. Unfortunately, ACPI doesn't work as supposed: No thermal 
-> zones, no fan, no CPU temperature, kernel error messages (see below).
->
+(Added devel@laptop.org to the Cc:)
 
-Hi, Paul
+> While we are at cleaning up the code, I think it will be much better to 
+> move out C-state policy out of this acpi code altogether. We should have
 
-I also recently faced the same problem when trying to compile DSDT for
-Averatec 1020. I fixed all the errors (unfortunately, before I found
-this thread). The patched DSDT is posted at
-http://acpi.sourceforge.net/dsdt/view.php?id=667 . For the record, can
-you also post your original raw (non-decompiled) DSDT for av1050 there?
+That would be helpful. For the One Laptop Per Child project (or whatever 
+it's called today), it would be advantageous to run without acpi. At the 
+moment that would cost us deeper C states, so an interface to allow a 
+platform driver to register and provide the same functionality without 
+code duplication would be helpful.
 
-
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
