@@ -1,55 +1,34 @@
-From: Mark Ferguson <mark_ferguson4@virgilio.it>
-Subject: I AWAIT YOUR RESPONSE
-Date: Wed, 30 Aug 2006 09:56:09 +0100 (GMT+01:00)
-Message-ID: <10d5e4ae441.mark_ferguson4@virgilio.it>
-Reply-To: mark7ferguson@yahoo.co.uk
+From: Jiri Kosina <jikos@jikos.cz>
+Subject: RE: [patch 11/14] ACPI: change GFP_ATOMIC to GFP_KERNEL for non-atomic
+ allocation
+Date: Wed, 30 Aug 2006 12:28:45 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0608301228100.31711@twin.jikos.cz>
+References: <EB12A50964762B4D8111D55B764A845480122D@scsmsx413.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vsmtp2.tin.it ([212.216.176.222]:34454 "EHLO vsmtp2.tin.it")
-	by vger.kernel.org with ESMTP id S1750751AbWH3JL5 (ORCPT
+Received: from twin.jikos.cz ([213.151.79.26]:28823 "EHLO twin.jikos.cz")
+	by vger.kernel.org with ESMTP id S1750700AbWH3K31 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Aug 2006 05:11:57 -0400
+	Wed, 30 Aug 2006 06:29:27 -0400
+In-Reply-To: <EB12A50964762B4D8111D55B764A845480122D@scsmsx413.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-Dear Friend, 
-I write to you based on a request by an investor and his 
-need for investment/funding in your country. My name is Mark Ferguson, 
-a financial consultant and I work with a reputable financial services 
-firm.
+On Mon, 28 Aug 2006, Pallipadi, Venkatesh wrote:
 
-My company most times represents the interests of very wealthy 
-investors. Due to the sensitivity of the position they hold in thier 
-society and the unstable investment environment of their country, they 
-evacuate majority of their funds into more stable economies and 
-developed nations where they can get good yield for their money. 
+> >http://www.jikos.cz/jikos/junk/ACPIDUMP
+> >http://www.jikos.cz/jikos/junk/DMESG
+> >http://www.jikos.cz/jikos/junk/PROC_ACPI
+> Thanks Jiri for identifying the problem with this patch and reporting
+> it. I was able to reproduce it on a system locally and I have tracked
+> down the problem. I will send out the updated patch soon and cc it to
+> you.
 
-I 
-was recently approached by a Reserved Client, whom I had personally 
-worked with a few years ago with a proposal.What he request is an 
-individual such as yourself, who will be willing to receive money on 
-his behalf abroad, and put it to good use for a period not exceeding 6 
-years for a start.
+OK, thanks, as soon as you provide the updated patch, I will give it a try 
+on my HW.
 
-The client has offered these terms:
-
-1. 30% 
-commission paid to me and my foreign partner of the total funds 
-successfully evacuated. The funds in question are over 13.2Million 
-USDollars.
-2. The funds will be used by the foreign partner for six 
-years as a loan without any interest. That is, you do not pay any 
-interest on the money but you give the client 50% of all profits after 
-tax that accrued from the use of the funds.
-
-If these terms are 
-agreeable to you, kindly let me know and I will provide you with all 
-necessary information and procedures involved. 
-Looking forward for 
-your prompt response. 
-Sincerely yours, 
-Mark Ferguson. 
-
-
+-- 
+JiKos.
