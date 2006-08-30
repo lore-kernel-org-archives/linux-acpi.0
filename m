@@ -1,101 +1,47 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Subject: RE: [RFC][PATCH 1/2] ACPI: Idle Processor PM Improvements
-Date: Wed, 30 Aug 2006 11:40:16 -0700
-Message-ID: <EB12A50964762B4D8111D55B764A845484D316@scsmsx413.amr.corp.intel.com>
+From: newhren <colimit@gmail.com>
+Subject: Re: DSDT on Averatec 1050
+Date: Wed, 30 Aug 2006 19:07:26 +0000 (UTC)
+Message-ID: <loom.20060830T210051-499@post.gmane.org>
+References: <44635E8A.406@gmx.at>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:33470 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1751274AbWH3Ssp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Aug 2006 14:48:45 -0400
-Content-class: urn:content-classes:message
+Received: from main.gmane.org ([80.91.229.2]:36551 "EHLO ciao.gmane.org")
+	by vger.kernel.org with ESMTP id S1751334AbWH3TH7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 Aug 2006 15:07:59 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1GIVPZ-0002i4-A4
+	for linux-acpi@vger.kernel.org; Wed, 30 Aug 2006 21:07:41 +0200
+Received: from ip68-1-168-140.ri.ri.cox.net ([68.1.168.140])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Wed, 30 Aug 2006 21:07:41 +0200
+Received: from colimit by ip68-1-168-140.ri.ri.cox.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Wed, 30 Aug 2006 21:07:41 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adam Belay <abelay@novell.com>, "Brown, Len" <len.brown@intel.com>
-Cc: ACPI ML <linux-acpi@vger.kernel.org>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>, Arjan van de Ven <arjan@linux.intel.com>
+To: linux-acpi@vger.kernel.org
 
- 
+Paul Wagner <paul_spam <at> gmx.at> writes:
 
->-----Original Message-----
->From: linux-kernel-owner@vger.kernel.org 
->[mailto:linux-kernel-owner@vger.kernel.org] On Behalf Of Adam Belay
->Sent: Tuesday, August 29, 2006 1:51 PM
->To: Brown, Len
->Cc: ACPI ML; Linux Kernel ML; Dominik Brodowski; Arjan van de Ven
->Subject: [RFC][PATCH 1/2] ACPI: Idle Processor PM Improvements
->
->Hi All,
->
->This patch improves the ACPI c-state selection algorithm.  It also
->includes a major cleanup and simplification of the processor idle code.
->
->The new implementation considers the full menu of available c-states.
->Just as the previous implementation, decisions are primarily based on
->the residency time of the last c-state entry.  This is generally an
->effective metric because it allows for detection of interrupt activity.
->However, the new algorithm differs in that it does not promote 
->or demote
->through the c-states in succession.  Rather, it immediately jumps to
->whatever c-state has the best expected power consumption advantage for
->the predicted residency time (i.e. the previously measured residency).
->If the residency time is too short during a deep c-state 
->entry, then the
->cost of entering the state outweighs any power consumption advantage.
->Similarly, if a shallow c-state is entered and resident for an
->excessively long duration, then a potential opportunity to save more
->power is missed.
->
->The changes in this patch allow the ACPI idle processor mechanism to
->react more quickly to sudden bursts of activity because it can jump
->directly to whatever c-state is appropriate.  However, because of the
->"menu" nature of c-state selection, the code works best when ACPI
->implementations expose all of the c-states supported by hardware.
->
->The bus master activity mechanism has undergone similar improvements.
->During capability detection, the deepest c-state that allows bus master
->activity is determined.  BM_STS is then polled each time the ACPI code
->prepares to enter a c-state.  If bus master activity is detected, then
->the previously mentioned bus master capable c-state becomes the deepest
->c-state allowed for that quantum.  In contrast, the old implementation
->would permit bus master activity to cause a promotion from one C3-type
->state to the next shallower C3-type state, imposing 
->unnecessary latency.
->As a further optimization, BM_STS is cleared each time
->acpi_processor_idle() is entered.  This prevents any stale bus master
->status from affecting c-state policy, as it may have occurred long ago
->during scheduled work.
->
->Finally, it's worth mentioning that the bulk of c-state policy
->calculations have been moved to take place before c-states are entered.
->This should further reduce exit latency when returning from a c-state.
->
->This algorithm has not yet been carefully benchmarked (e.g. bltk or
->power meters).  However, I can say with some confidence that it saves a
->small amount more power during an idle workload and a larger 
->amount more
->power during typical user-input oriented workloads such as word
->processing.
->
->I would really appreciate any comments, suggestions, or testing.
+> 
+> Hi Folks,
+> 
+> tried to get Linux (Slackware 10.1 with Kernel 2.6.13) to run on my 
+> Averatec 1050. Unfortunately, ACPI doesn't work as supposed: No thermal 
+> zones, no fan, no CPU temperature, kernel error messages (see below).
 >
 
-Nice changes. Will test and let you know how it goes.
+Hi, Paul
 
-While we are at cleaning up the code, I think it will be much better to 
-move out C-state policy out of this acpi code altogether. We should have
+I also recently faced the same problem when trying to compile DSDT for
+Averatec 1020. I fixed all the errors (unfortunately, before I found
+this thread). The patched DSDT is posted at
+http://acpi.sourceforge.net/dsdt/view.php?id=667 . For the record, can
+you also post your original raw (non-decompiled) DSDT for av1050 there?
 
-just a generic interface, where any low level driver (acpi) can 
-register/unregister a idle routine with latency, power and other 
-characteristics (BM_STS). That way the policy can be generic and 
-out of ACPI code. We had a patch earlier that does something like this
-here:
-http://www.mail-archive.com/linux-acpi@vger.kernel.org/msg00129.html
-http://www.mail-archive.com/linux-acpi@vger.kernel.org/msg00130.html
-But, that did not go anywhere at that time. Probably we can do some 
-cleanup like that, along with this patch....
 
-Thanks,
-Venki
+
