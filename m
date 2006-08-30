@@ -1,303 +1,55 @@
-From: Yu Luming <luming.yu@intel.com>
-Subject: [RFC PATCH]: video output sysfs class and acpi video driver support
-Date: Wed, 30 Aug 2006 15:42:15 +0800
-Message-ID: <200608301542.16035.luming.yu@intel.com>
+From: Mark Ferguson <mark_ferguson4@virgilio.it>
+Subject: I AWAIT YOUR RESPONSE
+Date: Wed, 30 Aug 2006 09:56:09 +0100 (GMT+01:00)
+Message-ID: <10d5e4ae441.mark_ferguson4@virgilio.it>
+Reply-To: mark7ferguson@yahoo.co.uk
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain;charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:30341 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1750844AbWH3HgZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Aug 2006 03:36:25 -0400
-Content-Disposition: inline
+Received: from vsmtp2.tin.it ([212.216.176.222]:34454 "EHLO vsmtp2.tin.it")
+	by vger.kernel.org with ESMTP id S1750751AbWH3JL5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 Aug 2006 05:11:57 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Hi,
+Dear Friend, 
+I write to you based on a request by an investor and his 
+need for investment/funding in your country. My name is Mark Ferguson, 
+a financial consultant and I work with a reputable financial services 
+firm.
 
-This is a proposal for a unified sysfs interface to control
-video output device switch. The patch includes two parts:
-1. output sysfs class.  2. acpi video driver support.
-Any comments are appreciated.
+My company most times represents the interests of very wealthy 
+investors. Due to the sensitivity of the position they hold in thier 
+society and the unstable investment environment of their country, they 
+evacuate majority of their funds into more stable economies and 
+developed nations where they can get good yield for their money. 
 
-Thanks,
-Luming
+I 
+was recently approached by a Reserved Client, whom I had personally 
+worked with a few years ago with a proposal.What he request is an 
+individual such as yourself, who will be willing to receive money on 
+his behalf abroad, and put it to good use for a period not exceeding 6 
+years for a start.
 
-diff -BruN 2.6/drivers/acpi/Kconfig edited/drivers/acpi/Kconfig
---- 2.6/drivers/acpi/Kconfig	2006-08-30 15:10:05.000000000 +0800
-+++ edited/drivers/acpi/Kconfig	2006-08-30 15:19:09.000000000 +0800
-@@ -106,7 +106,7 @@
- 
- config ACPI_VIDEO
- 	tristate "Video"
--	depends on X86 && BACKLIGHT_DEVICE
-+	depends on X86 && ( BACKLIGHT_CLASS_DEVICE || VIDEO_OUTPUT_CONTROL)
- 	help
- 	  This driver implement the ACPI Extensions For Display Adapters
- 	  for integrated graphics devices on motherboard, as specified in
-diff -BruN 2.6/drivers/acpi/video.c edited/drivers/acpi/video.c
---- 2.6/drivers/acpi/video.c	2006-08-30 15:10:05.000000000 +0800
-+++ edited/drivers/acpi/video.c	2006-08-30 15:19:09.000000000 +0800
-@@ -31,6 +31,7 @@
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- #include <linux/backlight.h>
-+#include <linux/output.h>
- 
- #include <asm/uaccess.h>
- 
-@@ -163,6 +164,7 @@
- 	struct acpi_video_bus *video;
- 	struct acpi_device *dev;
- 	struct acpi_video_device_brightness *brightness;
-+	struct output_device *output_dev;
- };
- 
- /* bus */
-@@ -266,6 +268,10 @@
- /*backlight device sysfs support*/
- static int acpi_video_get_brightness(struct backlight_device *bd);
- static int acpi_video_set_brightness(struct backlight_device *bd);
-+static int acpi_video_output_get(struct output_device *);
-+static int acpi_video_output_set(struct output_device *);
-+static int acpi_video_device_get_state(struct acpi_video_device *, unsigned long *);
-+static int acpi_video_device_set_state(struct acpi_video_device *, int);
- 
- static struct backlight_device *acpi_video_backlight;
- static struct acpi_video_device *backlight_acpi_device;
-@@ -275,6 +281,10 @@
- 	.get_brightness = acpi_video_get_brightness,
- 	.update_status  = acpi_video_set_brightness,
- };
-+static struct output_properties acpi_output_properties = {
-+	.set_state = acpi_video_output_set,
-+	.get_status = acpi_video_output_get,
-+};
- static int acpi_video_get_brightness(struct backlight_device *bd)
- {
- 	unsigned long cur_level;
-@@ -289,6 +299,20 @@
- 	return 0;
- }
- 
-+static int acpi_video_output_get(struct output_device *od)
-+{
-+	unsigned long state;
-+	struct acpi_video_device *vd = (struct acpi_video_device *)class_get_devdata(&od->class_dev);
-+	acpi_video_device_get_state(vd, &state);
-+	return (int)state;
-+}
-+
-+static int acpi_video_output_set(struct output_device *od)
-+{
-+	unsigned long state = od->request_state;
-+	struct acpi_video_device *vd = (struct acpi_video_device *)class_get_devdata(&od->class_dev);
-+	return acpi_video_device_set_state(vd, state);
-+}
- 
- /* --------------------------------------------------------------------------
-                                Video Management
-@@ -614,6 +638,13 @@
- 		backlight_acpi_device = device;
- 	}
- 
-+	if (device->cap._DCS && device->cap._DSS){
-+		char name[16];
-+		strcat(name, acpi_device_bid(device->dev->parent));
-+		strcat(name, "_");
-+		strcpy(name, acpi_device_bid(device->dev));
-+		device->output_dev = video_output_register(name, device, &acpi_output_properties);
-+	}
- 	return;
- }
- 
-@@ -1617,6 +1648,8 @@
- 	if (device == backlight_acpi_device)
- 		backlight_device_unregister(acpi_video_backlight);
- 
-+	video_output_unregister(device->output_dev);
-+
- 	return 0;
- }
- 
-diff -BruN 2.6/drivers/video/Kconfig edited/drivers/video/Kconfig
---- 2.6/drivers/video/Kconfig	2006-08-28 11:41:48.000000000 +0800
-+++ edited/drivers/video/Kconfig	2006-08-30 15:19:09.000000000 +0800
-@@ -1616,5 +1616,13 @@
- 	source "drivers/video/backlight/Kconfig"
- endif
- 
-+
-+config VIDEO_OUTPUT_CONTROL
-+	tristate "video output device switch control"
-+	depends on SYSFS
-+	---help---
-+	  sysfs support for video output device switching.
-+
-+
- endmenu
- 
-diff -BruN 2.6/drivers/video/Makefile edited/drivers/video/Makefile
---- 2.6/drivers/video/Makefile	2006-08-28 11:41:48.000000000 +0800
-+++ edited/drivers/video/Makefile	2006-08-30 15:19:09.000000000 +0800
-@@ -12,7 +12,7 @@
- 
- obj-$(CONFIG_VT)		  += console/
- obj-$(CONFIG_LOGO)		  += logo/
--obj-$(CONFIG_SYSFS)		  += backlight/
-+obj-$(CONFIG_SYSFS)		  += backlight/ 
- 
- obj-$(CONFIG_FB_CFB_FILLRECT)  += cfbfillrect.o
- obj-$(CONFIG_FB_CFB_COPYAREA)  += cfbcopyarea.o
-@@ -107,3 +107,4 @@
- 
- # the test framebuffer is last
- obj-$(CONFIG_FB_VIRTUAL)          += vfb.o
-+obj-$(CONFIG_VIDEO_OUTPUT_CONTROL) += output.o
-diff -BruN 2.6/drivers/video/output.c edited/drivers/video/output.c
---- 2.6/drivers/video/output.c	1970-01-01 08:00:00.000000000 +0800
-+++ edited/drivers/video/output.c	2006-08-30 15:20:04.000000000 +0800
-@@ -0,0 +1,109 @@
-+/*
-+ * Video output switch support
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/output.h>
-+#include <linux/err.h>
-+#include <linux/ctype.h>
-+
-+
-+MODULE_DESCRIPTION("Backlight Lowlevel Control Abstraction");
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Luming Yu <luming.yu@intel.com>");
-+
-+static ssize_t video_output_show_state (struct class_device *dev, char *buf)
-+{
-+	ssize_t ret_size = 0;
-+	struct output_device *od = to_output_device(dev);
-+	
-+	if(od->props)
-+		ret_size = sprintf(buf, "%.8x\n", od->props->get_status(od));	
-+
-+	return ret_size;
-+}
-+
-+static ssize_t video_output_store_state (struct class_device *dev, const char *buf, size_t count)
-+{
-+	char *endp;
-+	struct output_device *od = to_output_device(dev);
-+	int request_state = simple_strtoul(buf, &endp, 0);
-+	size_t size = endp -buf;
-+	
-+	printk("in video_output_store_state %.8x\n", request_state);
-+        if (*endp && isspace(*endp))
-+                size++;
-+        if (size != count)
-+                return -EINVAL;
-+
-+	if(od->props){
-+		od->request_state = request_state;
-+		od->props->set_state(od);
-+	}
-+	return count;
-+} 
-+
-+static void video_output_class_release(struct class_device *dev)
-+{
-+        struct output_device *od = to_output_device(dev);
-+        kfree(od);
-+}
-+
-+static struct class_device_attribute video_output_attributes[] = {
-+	__ATTR(state, 0644, video_output_show_state, video_output_store_state),
-+	__ATTR_NULL,
-+};
-+
-+static struct class video_output_class = {
-+	.name = "video_output",
-+	.release = video_output_class_release,
-+	.class_dev_attrs = video_output_attributes,
-+};
-+
-+
-+struct output_device *video_output_register(const char *name, void *devdata, struct output_properties *op)
-+{
-+	struct output_device *new_dev;
-+	int	ret_code = 0;
-+
-+	new_dev = (struct output_device *) kzalloc( sizeof(struct output_device), GFP_KERNEL);
-+	if (!new_dev) {
-+		ret_code = -ENOMEM;
-+		goto error_return;
-+	}
-+	new_dev->props = op;
-+	new_dev->class_dev.class = &video_output_class;
-+	strlcpy(new_dev->class_dev.class_id, name, KOBJ_NAME_LEN);
-+	class_set_devdata(&new_dev->class_dev, devdata);
-+	ret_code = class_device_register(&new_dev->class_dev); 
-+	if (ret_code){
-+		kfree (new_dev);
-+		goto error_return;
-+	}
-+	return new_dev;
-+
-+error_return:
-+	return ERR_PTR(ret_code);
-+}
-+EXPORT_SYMBOL(video_output_register);
-+
-+void video_output_unregister(struct output_device *dev)
-+{
-+	if (!dev)
-+		return;
-+	class_device_unregister(&dev->class_dev);
-+}
-+EXPORT_SYMBOL(video_output_unregister);
-+
-+static void __exit video_output_class_exit(void)
-+{
-+	class_unregister(&video_output_class);
-+}
-+
-+static int __init video_output_class_init(void)
-+{
-+	return class_register(&video_output_class);
-+}
-+
-+postcore_initcall(video_output_class_init);
-+module_exit(video_output_class_exit);
-diff -BruN 2.6/include/linux/output.h edited/include/linux/output.h
---- 2.6/include/linux/output.h	1970-01-01 08:00:00.000000000 +0800
-+++ edited/include/linux/output.h	2006-08-30 15:19:38.000000000 +0800
-@@ -0,0 +1,23 @@
-+#ifndef _LINUX_OUTPUT_H
-+#define _LINUX_OUTPUT_H
-+
-+#include <linux/device.h>
-+
-+struct output_device;
-+
-+struct output_properties {
-+	int (*set_state)(struct output_device *);
-+	int (*get_status)(struct output_device *);
-+};
-+
-+struct output_device {
-+	int request_state;
-+	struct output_properties *props;
-+	struct class_device class_dev;
-+};
-+
-+#define to_output_device(obj) container_of(obj, struct output_device, class_dev)
-+
-+struct output_device *video_output_register(const char *, void *, struct output_properties *);
-+void video_output_unregister(struct output_device *);
-+#endif
+The client has offered these terms:
 
--- 
-Thanks,
-Luming
+1. 30% 
+commission paid to me and my foreign partner of the total funds 
+successfully evacuated. The funds in question are over 13.2Million 
+USDollars.
+2. The funds will be used by the foreign partner for six 
+years as a loan without any interest. That is, you do not pay any 
+interest on the money but you give the client 50% of all profits after 
+tax that accrued from the use of the funds.
+
+If these terms are 
+agreeable to you, kindly let me know and I will provide you with all 
+necessary information and procedures involved. 
+Looking forward for 
+your prompt response. 
+Sincerely yours, 
+Mark Ferguson. 
+
+
