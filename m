@@ -1,66 +1,57 @@
-From: Todd Pytel <tppytel@sophrosune.org>
-Subject: Hang on S3 resume with Acer TravelMate 222X
-Date: Thu, 31 Aug 2006 18:29:04 -0500
-Message-ID: <1157066944.1826.62.camel@timaeus.sophrosune.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: [OLPC-devel] Re: [RFC][PATCH 1/2] ACPI: Idle Processor PM
+	Improvements
+Date: Fri, 1 Sep 2006 00:27:14 +0100
+Message-ID: <20060831232714.GA9892@srcf.ucam.org>
+References: <EB12A50964762B4D8111D55B764A845484D316@scsmsx413.amr.corp.intel.com>
+	<20060830194317.GA9116@srcf.ucam.org>
+	<200608311713.21618.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aristotle.sophrosune.org ([66.167.100.107]:9839 "EHLO
-	aristotle.sophrosune.org") by vger.kernel.org with ESMTP
-	id S932418AbWHaX1T (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 31 Aug 2006 19:27:19 -0400
-Received: from timaeus.sophrosune.org (timaeus.sophrosune.org [192.168.0.1])
-	by aristotle.sophrosune.org (8.13.4/8.13.4) with ESMTP id k7VNRIuS011622
-	for <linux-acpi@vger.kernel.org>; Thu, 31 Aug 2006 18:27:18 -0500 (CDT)
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devel-bounces@laptop.org>
+Content-Disposition: inline
+In-Reply-To: <200608311713.21618.bjorn.helgaas@hp.com>
+List-Unsubscribe: <http://mailman.laptop.org/mailman/listinfo/devel>,
+	<mailto:devel-request@laptop.org?subject=unsubscribe>
+List-Archive: <http://mailman.laptop.org/pipermail/devel>
+List-Post: <mailto:devel@laptop.org>
+List-Help: <mailto:devel-request@laptop.org?subject=help>
+List-Subscribe: <http://mailman.laptop.org/mailman/listinfo/devel>,
+	<mailto:devel-request@laptop.org?subject=subscribe>
+Sender: devel-bounces@laptop.org
+Errors-To: devel-bounces@laptop.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: "Brown, Len" <len.brown@intel.com>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>, ACPI ML <linux-acpi@vger.kernel.org>, Adam Belay <abelay@novell.com>, "Pallipadi,
+	Venkatesh" <venkatesh.pallipadi@intel.com>, Arjan van de Ven <arjan@linux.intel.com>, devel@laptop.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-I've got a rather old Acer TravelMate 222X for which I would *really*
-like to get proper S3 support. Right now, doing an 
+On Thu, Aug 31, 2006 at 05:13:20PM -0600, Bjorn Helgaas wrote:
 
-echo -n "mem" > /sys/power/state
+> Out of curiosity, what is the motivation for running without acpi?
+> It costs a lot to diverge from the mainstream in areas like that,
+> so there must be a big payoff.  But maybe if OLPC depends on acpi
+> being smarter about power or code size or whatever, those improvements
+> could be made and everybody would benefit.
 
-suspends the machine to RAM OK. But when it tries to resume, it shows a
-bit of disk activity and then hard locks - nothing on the screen, no
-keyboard input is accepted, and it doesn't respond to pings. This is
-using 2.6.17, entirely from text mode with no framebuffer. I've tried
-various combinations of acpi_sleep parameters and noapic/lapic with no
-visible effect.
+The current issues are probably the code size and the somewhat 
+specialised needs of OLPC. The hardware is interesting in that the 
+framebuffer is designed to carry on reading from memory even if the rest 
+of the system is in S3. The aim here is to allow the machine to suspend 
+when idle while still giving the impression of being alive. It's 
+therefore important that the system come out of suspend as quickly as 
+possible in order to avoid spoiling that impression, and suspend as 
+quickly as possible in order to maximise the power savings. The 
+assumption is that parsing AML is something that would add to these time 
+periods without providing any significant extra benefit.
 
-I've been reading through many of the ACPI docs on the net, and have
-fixed my DSDT and added it to the kernel according to those
-instructions. This had no visible effect on the resume behavior. Most of
-the fixes were pretty obvious, but one I wasn't sure about - perhaps
-it's related to my problem. I received the error "Method local variable
-is not initialized (Local0)" for the statement "Store (Local0,
-\_SB.PCI0.PCI1.OBLN.PMES" in the following code block:
+Of course, the other main issue is that providing an ACPI platform would 
+require us to actually write a set of ACPI tables. The system is running 
+Linuxbios, and every kilobyte that's not used by a static table in the 
+BIOS is space that could be used for extra functionality.
 
-Method (_L0B, 0, NotSerialized)
-{
-  Store (0x0B, PX80)
-  And (\_SB.PCI0.PCI1.OZ68.PWRS, 0xFC, \_SB.PCI0.PCI1.OZ68.PWRS)
-  Or (\_SB.PCI0.PCI1.OZ68.PMES, 0x80, \_SB.PCI0.PCI1.OZ68.PMES)
-  Store (Local0, \_SB.PCI0.PCI1.OBLN.PMES)
-  Notify (\_SB.SLPB, 0x02)
-}
-
-Well, yeah... it's not initialized. I assumed that the second Store
-statement was just a sloppy way to zero out the variable. So I replaced
-"Local0" with "0x00". That compiles without error, but I don't know if
-it makes sense - is there a way that Local0 can be used as something
-like a global variable in this specification? 
-
-Other than that, I'm not sure what information is helpful to fix this
-problem, but I'm *more* than happy to do whatever diagnostics will shed
-better light on the problem. I really want to get this working! There's
-nothing of obvious interest in my logs - the machine doesn't get far
-enough when it tries to resume to write anything to syslog, and nothing
-during bootup looks particularly suspicious. But maybe I just don't what
-I should be looking for. 
-
-Thanks for any help you can provide,
-Todd
-
-
+I think the basic consensus was that ACPI bought us fairly little other 
+than the ability to use the existing suspend/resume code, C state 
+transitions and battery monitoring, and that replacing the first was 
+probably desirable in any case.
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
