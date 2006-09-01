@@ -1,51 +1,39 @@
-From: "Jordan Crouse" <jordan.crouse@amd.com>
-Subject: Re: ACPI: Idle Processor PM Improvements
-Date: Fri, 1 Sep 2006 09:51:17 -0600
-Message-ID: <20060901155117.GD18448@cosmic.amd.com>
-References: <EB12A50964762B4D8111D55B764A845484D316@scsmsx413.amr.corp.intel.com>
- <200608311713.21618.bjorn.helgaas@hp.com>
- <1157070616.7974.232.camel@localhost.localdomain>
- <200608312353.05337.len.brown@intel.com>
- <20060901041221.GA15330@srcf.ucam.org>
-Mime-Version: 1.0
-Content-Type: text/plain;
- charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: John Keller <jpk@sgi.com>
+Subject: [PATCH 0/3] - Altix: Add initial ACPI IO support
+Date: Fri, 1 Sep 2006 11:01:20 -0500 (CDT)
+Message-ID: <20060901160120.30625.14877.92881@attica.americas.sgi.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-kan.frontbridge.com ([63.161.60.23]:49887 "EHLO
-	outbound1-kan-R.bigfish.com") by vger.kernel.org with ESMTP
-	id S932097AbWIAPvO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 1 Sep 2006 11:51:14 -0400
-In-Reply-To: <20060901041221.GA15330@srcf.ucam.org>
-Content-Disposition: inline
+Received: from omx1-ext.sgi.com ([192.48.179.11]:7321 "EHLO
+	omx1.americas.sgi.com") by vger.kernel.org with ESMTP
+	id S932261AbWIAQB3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 1 Sep 2006 12:01:29 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Len Brown <lenb@kernel.org>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>, ACPI ML <linux-acpi@vger.kernel.org>, Adam Belay <abelay@novell.com>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Arjan van de Ven <arjan@linux.intel.com>, devel@laptop.org, Bjorn Helgaas <bjorn.helgaas@hp.com>
+To: linux-ia64@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, ayoung@sgi.com, linux-kernel@vger.kernel.org, John Keller <jpk@sgi.com>, pcihpd-discuss@lists.sourceforge.net
 
-On 01/09/06 05:12 +0100, Matthew Garrett wrote:
-> On Thu, Aug 31, 2006 at 11:53:04PM -0400, Len Brown wrote:
-> 
-> > The Geode doesn't suport any C-states -- so ACPI wouldn't help them there anyway.
-> 
-> Are you sure of that? The docs I have here suggest C1 and C2, but it's 
-> possible that that's just the companion chip and they aren't implemented 
-> in the CPU.
+Patch set to add initial ACPI IO support to Altix.
 
-C1 is essentially suspend on hlt.  We have something called Automatic Hardware
-Clock Gating that kicks in when the blocks go unused, so that saves a bit
-more power (especially in the south bridge) then we would with just a simple
-hlt.  In any event, this already happens without the assistance of ACPI.
+1/3 acpi-base-support.patch
+      When booting with an ACPI capable PROM, the
+      DSDT will now define the system nodes and root
+      PCI busses. An Altix specific ACPI driver will be
+      registered for the node devices, while the
+      standard acpi_pci_root_driver can now scan
+      the PCI busses, eliminating the need for the current
+      fixup code to manually initiate the scan. Multiple SAL
+      calls are no longer needed, as platform specific info
+      is now passed via the ACPI vendor resource descriptor
+      (though all the old fixup code still remains due
+      to backward compatability requirements).
 
-The 5536 has support for a C2 state as well, but I don't know if that
-has any effect on the GX or not.
+      A new platform vector for bus_fixup is created.
+      The size of io_space[] is increased to support large
+      IO configurations.
 
-Jordan
+2/3 acpi-hotplug.patch
+      Make necessary changes to hotplug code now that
+      bus fixup is done via platform vector.
 
--- 
-Jordan Crouse
-Senior Linux Engineer
-Advanced Micro Devices, Inc.
-<www.amd.com/embeddedprocessors>
-
-
+3/3 acpi-rom-shadow.patch
+      Provide support for PROM shadowing of a ROM image.
