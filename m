@@ -1,29 +1,105 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [OLPC-devel] Re: [RFC][PATCH 1/2] ACPI: Idle Processor PM Improvements
-Date: Fri, 1 Sep 2006 05:12:21 +0100
-Message-ID: <20060901041221.GA15330@srcf.ucam.org>
-References: <EB12A50964762B4D8111D55B764A845484D316@scsmsx413.amr.corp.intel.com> <200608311713.21618.bjorn.helgaas@hp.com> <1157070616.7974.232.camel@localhost.localdomain> <200608312353.05337.len.brown@intel.com>
+From: Andi Kleen <ak@suse.de>
+Subject: Re: [PATCH] i386/x86_64: add HPET(s) into resource map
+Date: Fri, 1 Sep 2006 10:21:25 +0200
+Message-ID: <200609011021.25737.ak@suse.de>
+References: <20060831235245.GC21338@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:2986 "EHLO
-	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
-	id S932070AbWIAEMf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 1 Sep 2006 00:12:35 -0400
+Received: from ns2.suse.de ([195.135.220.15]:8128 "EHLO mx2.suse.de")
+	by vger.kernel.org with ESMTP id S1751271AbWIAIVf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Sep 2006 04:21:35 -0400
+In-Reply-To: <20060831235245.GC21338@google.com>
 Content-Disposition: inline
-In-Reply-To: <200608312353.05337.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: jg@laptop.org, Bjorn Helgaas <bjorn.helgaas@hp.com>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>, ACPI ML <linux-acpi@vger.kernel.org>, Adam Belay <abelay@novell.com>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Arjan van de Ven <arjan@linux.intel.com>, devel@laptop.org
+To: adurbin@google.com
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com
 
-On Thu, Aug 31, 2006 at 11:53:04PM -0400, Len Brown wrote:
+On Friday 01 September 2006 01:52, adurbin@google.com wrote:
+> 
+> Add HPET(s) into resource map. This will allow for the HPET(s) to be
+> visibile within /proc/iomem.
 
-> The Geode doesn't suport any C-states -- so ACPI wouldn't help them there anyway.
+Applied thanks.
 
-Are you sure of that? The docs I have here suggest C1 and C2, but it's 
-possible that that's just the companion chip and they aren't implemented 
-in the CPU.
+Actually it would be more for Len Brown/linux-acpi (cc'ed with full quote) but I'll take
+it for now.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+-Andi
+
+> 
+> Signed-off-by: Aaron Durbin <adurbin@google.com>
+> 
+> ---
+> 
+> diff --git a/arch/i386/kernel/acpi/boot.c b/arch/i386/kernel/acpi/boot.c
+> index ee003bc..d3fafb2 100644
+> --- a/arch/i386/kernel/acpi/boot.c
+> +++ b/arch/i386/kernel/acpi/boot.c
+> @@ -29,6 +29,8 @@ #include <linux/efi.h>
+>  #include <linux/module.h>
+>  #include <linux/dmi.h>
+>  #include <linux/irq.h>
+> +#include <linux/bootmem.h>
+> +#include <linux/ioport.h>
+>  
+>  #include <asm/pgtable.h>
+>  #include <asm/io_apic.h>
+> @@ -579,6 +581,8 @@ #ifdef CONFIG_HPET_TIMER
+>  static int __init acpi_parse_hpet(unsigned long phys, unsigned long size)
+>  {
+>  	struct acpi_table_hpet *hpet_tbl;
+> +	struct resource *hpet_res;
+> +	resource_size_t res_start;
+>  
+>  	if (!phys || !size)
+>  		return -EINVAL;
+> @@ -594,12 +598,26 @@ static int __init acpi_parse_hpet(unsign
+>  		       "memory.\n");
+>  		return -1;
+>  	}
+> +
+> +#define HPET_RESOURCE_NAME_SIZE 9
+> +	hpet_res = alloc_bootmem(sizeof(*hpet_res) + HPET_RESOURCE_NAME_SIZE);
+> +	if (hpet_res) {
+> +		memset(hpet_res, 0, sizeof(*hpet_res));
+> +		hpet_res->name = (void *)&hpet_res[1];
+> +		hpet_res->flags = IORESOURCE_MEM | IORESOURCE_BUSY;
+> +		snprintf((char *)hpet_res->name, HPET_RESOURCE_NAME_SIZE, 
+> +			 "HPET %u", hpet_tbl->number);
+> +		hpet_res->end = (1 * 1024) - 1;
+> +	}
+> +
+>  #ifdef	CONFIG_X86_64
+>  	vxtime.hpet_address = hpet_tbl->addr.addrl |
+>  	    ((long)hpet_tbl->addr.addrh << 32);
+>  
+>  	printk(KERN_INFO PREFIX "HPET id: %#x base: %#lx\n",
+>  	       hpet_tbl->id, vxtime.hpet_address);
+> +
+> +	res_start = vxtime.hpet_address;
+>  #else				/* X86 */
+>  	{
+>  		extern unsigned long hpet_address;
+> @@ -607,9 +625,17 @@ #else				/* X86 */
+>  		hpet_address = hpet_tbl->addr.addrl;
+>  		printk(KERN_INFO PREFIX "HPET id: %#x base: %#lx\n",
+>  		       hpet_tbl->id, hpet_address);
+> +
+> +		res_start = hpet_address;
+>  	}
+>  #endif				/* X86 */
+>  
+> +	if (hpet_res) {
+> +		hpet_res->start = res_start;
+> +		hpet_res->end += res_start;
+> +		insert_resource(&iomem_resource, hpet_res);
+> +	}
+> +
+>  	return 0;
+>  }
+>  #else
+> 
