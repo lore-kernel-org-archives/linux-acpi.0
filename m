@@ -1,39 +1,98 @@
 From: John Keller <jpk@sgi.com>
-Subject: [PATCH 0/3] - Altix: Add initial ACPI IO support
-Date: Fri, 1 Sep 2006 11:01:20 -0500 (CDT)
-Message-ID: <20060901160120.30625.14877.92881@attica.americas.sgi.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from omx1-ext.sgi.com ([192.48.179.11]:7321 "EHLO
-	omx1.americas.sgi.com") by vger.kernel.org with ESMTP
-	id S932261AbWIAQB3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 1 Sep 2006 12:01:29 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH 2/3] - Altix: Add initial ACPI IO support
+Date: Fri, 1 Sep 2006 11:02:08 -0500 (CDT)
+Message-ID: <20060901160208.31826.69050.77712@attica.americas.sgi.com>
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Sender: linux-ia64-owner@vger.kernel.org
 To: linux-ia64@vger.kernel.org
 Cc: linux-acpi@vger.kernel.org, ayoung@sgi.com, linux-kernel@vger.kernel.org, John Keller <jpk@sgi.com>, pcihpd-discuss@lists.sourceforge.net
+List-Id: linux-acpi@vger.kernel.org
 
-Patch set to add initial ACPI IO support to Altix.
+SN ACPI hotplug support.
 
-1/3 acpi-base-support.patch
-      When booting with an ACPI capable PROM, the
-      DSDT will now define the system nodes and root
-      PCI busses. An Altix specific ACPI driver will be
-      registered for the node devices, while the
-      standard acpi_pci_root_driver can now scan
-      the PCI busses, eliminating the need for the current
-      fixup code to manually initiate the scan. Multiple SAL
-      calls are no longer needed, as platform specific info
-      is now passed via the ACPI vendor resource descriptor
-      (though all the old fixup code still remains due
-      to backward compatability requirements).
+A few minor changes to the way slot/device fixup is done.
 
-      A new platform vector for bus_fixup is created.
-      The size of io_space[] is increased to support large
-      IO configurations.
+No need to be calling sn_pci_controller_fixup(), as
+a root bus cannot be hotplugged.
 
-2/3 acpi-hotplug.patch
-      Make necessary changes to hotplug code now that
-      bus fixup is done via platform vector.
+Signed-off-by: John Keller <jpk@sgi.com>
 
-3/3 acpi-rom-shadow.patch
-      Provide support for PROM shadowing of a ROM image.
+ sgi_hotplug.c |   34 ++++++++++++----------------------
+ 1 file changed, 12 insertions(+), 22 deletions(-)
+
+
+Index: linux-2.6/drivers/pci/hotplug/sgi_hotplug.c
+===================================================================
+--- linux-2.6.orig/drivers/pci/hotplug/sgi_hotplug.c	2006-08-31 13:48:37.041468566 -0500
++++ linux-2.6/drivers/pci/hotplug/sgi_hotplug.c	2006-08-31 14:27:13.326389685 -0500
+@@ -205,21 +205,6 @@ static struct hotplug_slot * sn_hp_destr
+ 	return bss_hotplug_slot;
+ }
+ 
+-static void sn_bus_alloc_data(struct pci_dev *dev)
+-{
+-	struct pci_bus *subordinate_bus;
+-	struct pci_dev *child;
+-
+-	sn_pci_fixup_slot(dev);
+-
+-	/* Recursively sets up the sn_irq_info structs */
+-	if (dev->subordinate) {
+-		subordinate_bus = dev->subordinate;
+-		list_for_each_entry(child, &subordinate_bus->devices, bus_list)
+-			sn_bus_alloc_data(child);
+-	}
+-}
+-
+ static void sn_bus_free_data(struct pci_dev *dev)
+ {
+ 	struct pci_bus *subordinate_bus;
+@@ -337,6 +322,11 @@ static int sn_slot_disable(struct hotplu
+ 	return rc;
+ }
+ 
++/*
++ * Power up and configure the slot via a SAL call to PROM.
++ * Scan slot (and any children), do any platform specific fixup,
++ * and find device driver.
++ */
+ static int enable_slot(struct hotplug_slot *bss_hotplug_slot)
+ {
+ 	struct slot *slot = bss_hotplug_slot->private;
+@@ -367,9 +357,6 @@ static int enable_slot(struct hotplug_sl
+ 		return -ENODEV;
+ 	}
+ 
+-	sn_pci_controller_fixup(pci_domain_nr(slot->pci_bus),
+-				slot->pci_bus->number,
+-				slot->pci_bus);
+ 	/*
+ 	 * Map SN resources for all functions on the card
+ 	 * to the Linux PCI interface and tell the drivers
+@@ -380,6 +367,13 @@ static int enable_slot(struct hotplug_sl
+ 				   PCI_DEVFN(slot->device_num + 1,
+ 					     PCI_FUNC(func)));
+ 		if (dev) {
++			/* Need to do slot fixup on PPB before fixup of children
++			 * (PPB's pcidev_info needs to be in pcidev_info list
++			 * before child's SN_PCIDEV_INFO() call to setup
++			 * pdi_host_pcidev_info).
++			 */
++			pcibios_fixup_device_resources(dev);
++			sn_pci_fixup_slot(dev);
+ 			if (dev->hdr_type == PCI_HEADER_TYPE_BRIDGE) {
+ 				unsigned char sec_bus;
+ 				pci_read_config_byte(dev, PCI_SECONDARY_BUS,
+@@ -387,12 +381,8 @@ static int enable_slot(struct hotplug_sl
+ 				new_bus = pci_add_new_bus(dev->bus, dev,
+ 							  sec_bus);
+ 				pci_scan_child_bus(new_bus);
+-				sn_pci_controller_fixup(pci_domain_nr(new_bus),
+-							new_bus->number,
+-							new_bus);
+ 				new_ppb = 1;
+ 			}
+-			sn_bus_alloc_data(dev);
+ 			pci_dev_put(dev);
+ 		}
+ 	}
