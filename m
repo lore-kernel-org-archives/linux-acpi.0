@@ -1,7 +1,7 @@
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 Subject: Re: 2.6.18-rc5-mm1
-Date: Sat, 02 Sep 2006 02:47:24 -0700
-Message-ID: <44F9532C.2020802@goop.org>
+Date: Sat, 02 Sep 2006 02:56:50 -0700
+Message-ID: <44F95562.2060909@goop.org>
 References: <20060901015818.42767813.akpm@osdl.org> <1157158847.20509.10.camel@mhcln03> <20060901183028.1c6da4df.akpm@osdl.org> <44F93EB3.8050500@goop.org> <44F942B9.6050102@goop.org> <20060902084440.GA13361@suse.de> <44F9452F.8090306@goop.org> <20060902085254.GA14123@suse.de> <44F950A3.1000206@goop.org> <44F95110.6010500@garzik.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
@@ -14,26 +14,16 @@ Cc: Greg KH <gregkh@suse.de>, Andrew Morton <akpm@osdl.org>, Matthias Hentges <o
 List-Id: linux-acpi@vger.kernel.org
 
 Jeff Garzik wrote:
->>
->> Reverting them makes the machine work, with basically the same effect 
->> as disabling CONFIG_PCI_MSI: no MSI interrupts appear in 
->> /proc/interrupts, and e1000 & libata are using IO-APIC-fasteoi.  So, 
->> a reasonable result for now.
->
 > Did you re-enable CONFIG_PCI_MSI, after reverting the patches?
 
-Yes.  Er.  Hm, perhaps not, it didn't build:
+Hm, still doesn't link with The GregKH Nine removed but CONFIG_MSI:
 
-  CC      drivers/pci/htirq.o
-drivers/pci/htirq.c: In function 'ht_create_irq':
-drivers/pci/htirq.c:126: error: 'PCI_CAP_ID_HT' undeclared (first use in this function)
-drivers/pci/htirq.c:126: error: (Each undeclared identifier is reported only once
-drivers/pci/htirq.c:126: error: for each function it appears in.)
+drivers/built-in.o: In function `pci_enable_msix':
+drivers/pci/msi.c:956: undefined reference to `pci_msi_supported'
 
-I'll try again with CONFIG_HT_IRQ disabled...
+I'll just do without for now.
 
     J
-
 
 -- 
 VGER BF report: H 0
