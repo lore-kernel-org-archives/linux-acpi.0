@@ -1,66 +1,44 @@
-From: Matthias Hentges <oe@hentges.net>
-Subject: Re: 2.6.18-rc5-mm1
-Date: Mon, 04 Sep 2006 13:52:05 +0200
-Message-ID: <1157370725.18988.13.camel@mhcln03>
-References: <EB12A50964762B4D8111D55B764A84548839C0@scsmsx413.amr.corp.intel.com>
-	 <20060903175048.6fed40ab.akpm@osdl.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [RFC][PATCH 1/2] ACPI: Idle Processor PM Improvements
+Date: Mon, 4 Sep 2006 12:59:21 +0000
+Message-ID: <20060904125921.GB6279@ucw.cz>
+References: <1156884681.1781.120.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-NEMlyYkzFfvjJ5kpUdwn"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hentges.net ([81.169.178.128]:26277 "EHLO
-	h6563.serverkompetenz.net") by vger.kernel.org with ESMTP
-	id S964822AbWIDLvF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 4 Sep 2006 07:51:05 -0400
-In-Reply-To: <20060903175048.6fed40ab.akpm@osdl.org>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:59919 "EHLO
+	spitz.ucw.cz") by vger.kernel.org with ESMTP id S964838AbWIDNAh
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 4 Sep 2006 09:00:37 -0400
+Content-Disposition: inline
+In-Reply-To: <1156884681.1781.120.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Jeremy Fitzhardinge <jeremy@goop.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Adam Belay <abelay@novell.com>
+Cc: Len Brown <len.brown@intel.com>, ACPI ML <linux-acpi@vger.kernel.org>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>, Arjan van de Ven <arjan@linux.intel.com>
 
+Hi!
 
---=-NEMlyYkzFfvjJ5kpUdwn
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+> This patch improves the ACPI c-state selection algorithm.  It also
+> includes a major cleanup and simplification of the processor idle code.
 
-Am Sonntag, den 03.09.2006, 17:50 -0700 schrieb Andrew Morton:
+Nice!
 
-> Spose so.
->=20
-> But what _did_ cause it?  Looks like we took an IRQ and then leapt into
-> outer space, when do_IRQ() called desc->handle_irq().
->=20
-> Matthias, could you please test with CONFIG_4KSTACKS=3Dn?
->=20
-> Also, one cause of this might be a module which fails to clean up when it=
-'s
-> removed.  And the trace indicates that some module has previously
-> been unloaded.  Can you work out which module(s) that might be?
->=20
+> @@ -1009,7 +883,7 @@
+>  
+>  	seq_printf(seq, "active state:            C%zd\n"
+>  		   "max_cstate:              C%d\n"
+> -		   "bus master activity:     %08x\n",
+> +		   "bus master activity:     %d\n",
+>  		   pr->power.state ? pr->power.state - pr->power.states : 0,
+>  		   max_cstate, (unsigned)pr->power.bm_activity);
+>  
 
-I'll try CONFIG_4KSTACKS=3Dn when I get back from work (~10hrs...) and
-report back.
---=20
-Matthias 'CoreDump' Hentges=20
+This changes kernel - user interface. You should change the field
+description, or keep it in hex...
 
-Webmaster of hentges.net and OpenZaurus developer.
-You can reach me in #openzaurus on Freenode.
+BTW will you be on september's labs conference?
 
-My OS: Debian SID. Geek by Nature, Linux by Choice
-
---=-NEMlyYkzFfvjJ5kpUdwn
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Dies ist ein digital signierter Nachrichtenteil
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (GNU/Linux)
-
-iD8DBQBE/BNlAq2P5eLUP5IRAj8DAKDdJ86AQlB25PFNMtccYmHBU494jQCgjlGV
-IQqaucGsxx6P0g7mt0NWz1M=
-=MINV
------END PGP SIGNATURE-----
-
---=-NEMlyYkzFfvjJ5kpUdwn--
-
-
+							Pavel
 -- 
-VGER BF report: H 9.00946e-14
+Thanks for all the (sleeping) penguins.
