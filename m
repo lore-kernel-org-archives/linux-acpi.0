@@ -1,55 +1,42 @@
-From: Pavel Machek <pavel@ucw.cz>
+From: Andreas Mohr <andi@rhlx01.fht-esslingen.de>
 Subject: Re: x60 - spontaneous thermal shutdown
-Date: Tue, 5 Sep 2006 00:35:20 +0200
-Message-ID: <20060904223520.GB1958@elf.ucw.cz>
-References: <20060904214059.GA1702@elf.ucw.cz> <20060904222614.GA1614@rhlx01.fht-esslingen.de>
+Date: Tue, 5 Sep 2006 00:53:03 +0200
+Message-ID: <20060904225303.GB1614@rhlx01.fht-esslingen.de>
+References: <20060904214059.GA1702@elf.ucw.cz> <20060904222614.GA1614@rhlx01.fht-esslingen.de> <20060904223520.GB1958@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:13992 "EHLO amd.ucw.cz")
-	by vger.kernel.org with ESMTP id S932169AbWIDWgO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Sep 2006 18:36:14 -0400
+Received: from rhlx01.fht-esslingen.de ([129.143.116.10]:36584 "EHLO
+	rhlx01.fht-esslingen.de") by vger.kernel.org with ESMTP
+	id S932222AbWIDWxE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 4 Sep 2006 18:53:04 -0400
 Content-Disposition: inline
-In-Reply-To: <20060904222614.GA1614@rhlx01.fht-esslingen.de>
+In-Reply-To: <20060904223520.GB1958@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andreas Mohr <andi@rhlx01.fht-esslingen.de>
+To: Pavel Machek <pavel@ucw.cz>
 Cc: ACPI mailing list <linux-acpi@vger.kernel.org>, kernel list <linux-kernel@vger.kernel.org>
 
-Hi!
+Hi,
 
-> > x60 shut down after quite a while of uptime, in period of quite heavy
-> > load:
-> > 
-> > Sep  4 23:33:01 amd kernel: ACPI: Critical trip point
-> > Sep  4 23:33:01 amd kernel: Critical temperature reached (128 C), shutting down.
-> > Sep  4 23:33:01 amd shutdown[32585]: shutting down for system halt
-> > Sep  4 23:34:42 amd init: Switching to runlevel: 0
-> > 
-> > I do not think cpu reached 128C, as I still have my machine... Did
-> > anyone else see that?
-> 
-> Could this be in any way related to the (in)famous Random Shutdown issues
-> on a little too many Apple MacBooks?
-> (since the x60 incidentally just happens to be Core Duo
- > architecture, too)
+On Tue, Sep 05, 2006 at 12:35:20AM +0200, Pavel Machek wrote:
+> Well, but those macbooks were really overheating, no? This seems like
+> sensor failure, because I do not think cpu had 128 Celsius, without
+> going through 100 Celsius, first.
 
-Well, but those macbooks were really overheating, no? This seems like
-sensor failure, because I do not think cpu had 128 Celsius, without
-going through 100 Celsius, first.
+No, in several cases it was a problem with a broken/damaged sensor cable.
+But it seems there are a number of different problems with thermal
+management, a non-working sensor cable only being (albeit a significant)
+one of those.
+Google "MacBook random shutdown" will provide tons of information.
 
-> Those Random Shutdown issues at least in several cases appear to happen
-> due to trouble with the temperature sensor or mainboard issues.
-> Thermal management is in quite some trouble there, judging from
-> the rather diverse aspects of machine shutdown failure...
-> (fan not working, CPU overheating, NOT overheating but shutting down
-> directly after boot, ...)
+> I had fan working at the time of shutdown, and machine was able to
+> boot immediately afterwards. That means that 128 celsius was sensor
+> error.
 
-I had fan working at the time of shutdown, and machine was able to
-boot immediately afterwards. That means that 128 celsius was sensor
-error.
+Let's hope people get that braindamage resolved, either via BIOS updates
+(hmm, but probably not helpful in case of ACPI?) or by shipping/repairing
+into working hardware (an astonishing amount of people already had their
+2nd or 3rd non-working repair).
 
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Andreas Mohr
