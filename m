@@ -1,112 +1,102 @@
-From: Dieter Jurzitza <dieter.jurzitza@t-online.de>
-Subject: Blacklisted system / blacklisting bad
-Date: Sun, 3 Sep 2006 11:34:32 +0200
-Message-ID: <200609031134.33024.dieter.jurzitza@t-online.de>
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Subject: RE: 2.6.18-rc5-mm1
+Date: Sun, 3 Sep 2006 17:22:17 -0700
+Message-ID: <EB12A50964762B4D8111D55B764A84548839C0@scsmsx413.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout06.sul.t-online.com ([194.25.134.19]:11201 "EHLO
-	mailout06.sul.t-online.com") by vger.kernel.org with ESMTP
-	id S1751201AbWICKhB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Sep 2006 06:37:01 -0400
-Content-Disposition: inline
+Received: from mga03.intel.com ([143.182.124.21]:55580 "EHLO
+	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
+	id S1751157AbWIDAWU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Sep 2006 20:22:20 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux ACPI <linux-acpi@vger.kernel.org>
+To: Andrew Morton <akpm@osdl.org>, Matthias Hentges <oe@hentges.net>, Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Dear listmembers,
-I recently got a HP VISUALIZE NT workstation, using 2x 1GHz PIII proces=
-sors=20
-(no racing car, but that's not the point). After installation ACPI was =
-always=20
-disabled, the on board USB interface did not work (kernel 2.6.11.4 (SuS=
-E=20
-linux 9.3)
+ 
 
-I tested using acpi=3Dforce on the commandline and that solved two prob=
-lems:
+>-----Original Message-----
+>From: Andrew Morton [mailto:akpm@osdl.org] 
+>Sent: Friday, September 01, 2006 6:30 PM
+>To: Matthias Hentges
+>Cc: linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org; 
+>Pallipadi, Venkatesh
+>Subject: Re: 2.6.18-rc5-mm1
+>
+>On Sat, 02 Sep 2006 03:00:47 +0200
+>Matthias Hentges <oe@hentges.net> wrote:
+>
+>> 2.6.18-rc5-mm1 oopses on an Asus P5W DH Deluxe board, full dmesg
+>> attached.
+>> This did not happen in 2.6.18-rc4-mm3.
+>> 
+>> 
+>> BUG: unable to handle kernel NULL pointer dereference at 
+>virtual address
+>> 00000000
+>>  printing eip:
+>> 00000000
+>> *pde = 00000000
+>> Oops: 0000 [#1]
+>> 4K_STACKS SMP 
+>> last sysfs file: 
+>> Modules linked in:
+>> CPU:    0
+>> EIP:    0060:[<00000000>]    Not tainted VLI
+>> EFLAGS: 00010087   (2.6.18-rc5-mm1 #1) 
+>> EIP is at rest_init+0x3feffd78/0x20
+>> eax: 000000da   ebx: c04d5f78   ecx: c04d5f94   edx: c04d2f00
+>> esi: 000000da   edi: 00000000   ebp: c04d2f00   esp: c0516ffc
+>> ds: 007b   es: 007b   ss: 0068
+>> Process swapper (pid: 0, ti=c0516000 task=c045c200 task.ti=c04d5000)
+>> Stack: c0105027 
+>> Call Trace:
+>>  [<c0105027>] do_IRQ+0x8a/0xac
+>>  [<c01035a6>] common_interrupt+0x1a/0x20
+>>  [<c0101a72>] mwait_idle_with_hints+0x36/0x3b
+>>  [<c0101a83>] mwait_idle+0xc/0x1b
+>>  [<c0101a26>] cpu_idle+0x5e/0x74
+>>  [<c04db6fa>] start_kernel+0x363/0x36a
+>>  =======================
+>> Code:  Bad EIP value.
+>> EIP: [<00000000>] rest_init+0x3feffd78/0x20 SS:ESP 0068:c0516ffc
+>>  <0>Kernel panic - not syncing: Fatal exception in interrupt
+>>  BUG: warning at arch/i386/kernel/smp.c:547/smp_call_function()
+>>  [<c010ca45>] smp_call_function+0x54/0xff
+>>  [<c011a270>] printk+0x12/0x16
+>>  [<c010cb03>] smp_send_stop+0x13/0x1c
+>>  [<c0119480>] panic+0x49/0xd3
+>>  [<c010410c>] die+0x273/0x28a
+>>  [<c01126d4>] do_page_fault+0x40d/0x4db
+>>  [<c01122c7>] do_page_fault+0x0/0x4db
+>>  [<c03d1231>] error_code+0x39/0x40
+>>  [<c013007b>] free_module+0x89/0xc3
+>>  [<c0105027>] do_IRQ+0x8a/0xac
+>>  [<c01035a6>] common_interrupt+0x1a/0x20
+>>  [<c0101a72>] mwait_idle_with_hints+0x36/0x3b
+>>  [<c0101a83>] mwait_idle+0xc/0x1b
+>>  [<c0101a26>] cpu_idle+0x5e/0x74
+>>  [<c04db6fa>] start_kernel+0x363/0x36a
+>>  =======================
+>
+>OK, thanks.  That'll be acpi-mwait-c-state-fixes.patch.  I've 
+>uploaded the
+>below revert patch to
+>ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2
+>.6.18-rc5/2.6.18-rc5-mm1/hot-fixes/
+>
 
-1.) shutdown -h now switches the machine off (should be expected :-):-)=
- )
-2.) much more important: the onboard USB interface works now.
+Andrew,
 
-After patching dmi_scan.c and removing the blacklist-entry I get the fo=
-llowing=20
-message at boot time:
+As this patch doesn't seem to be the issue here, can you un-revert the
+patch in mm...
 
-<4>PCI: Probing PCI hardware (bus 00)
-<7>ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-<4> =A0 =A0ACPI-0234: *** Warning: Wrong _BBN value, please reboot and =
-using=20
-option 'pci=3Dnoacpi'
-<6>ACPI: PCI _CRS 2 overrides _BBN 0
-<6>ACPI: PCI Root Bridge [PCI1] (00:02)
-<4>PCI: Probing PCI hardware (bus 02)
+Thanks,
+Venki
 
-If I du so (pci=3Dnoacpi at boottime) the on board USB interface gets s=
-tuck=20
-again and refuses to work.
-
-So, blacklisting seems to be malicious for this machine and this kernel=
- (I=20
-know that for many of you 2.6.11 might be outdated, but that's not the=20
-point). Even pci=3Dnoacpi is bad.
-
-If either pci=3Dnoacpi or acpi=3Dht is given, I get the following messa=
-ge=20
-in /var/log/messages:
-
-Sep  2 13:04:06 linux kernel: ohci_hcd: 2004 Nov 08 USB 1.1 'Open' Host=
-=20
-Controller (OHCI) Driver (PCI)
-Sep  2 13:04:06 linux kernel: PCI->APIC IRQ transform: 0000:00:0f.2[A] =
--> IRQ=20
-0
-Sep  2 13:04:06 linux kernel: ohci_hcd 0000:00:0f.2: Found HC with no I=
-RQ. =20
-Check BIOS/PCI 0000:00:0f.2 setup!
-
-I assume this is why the onboard USB-controller is disfunctional as soo=
-n as I=20
-do what is recommended, i. e. keep the blacklisting / boot with pci=3Dn=
-oirq.
-
-Therefore I suggest patching dmi_scan.c and remove the entry for HP VIS=
-UALIZE.=20
-With a freshly built kernel without the blacklisting the machine has ha=
-ppily=20
-been building kernels for hours now without a single problem.
-
-If there is anything I should test on top of this to verify whatever sh=
-ould be=20
-verified, please let me know! Any hints are highly appreciated.
-
-To whom this might concern,
-take care
-
-
-Dieter Jurzitza
---=20
------------------------------------------------------------
-
-                               |
-                                \
-                 /\_/\           |
-                | ~x~ |/-----\   /
-                 \   /-       \_/
-  ^^__   _        /  _  ____   /
- <=B0=B0__ \- \_/     |  |/    |  |
-  ||  ||         _| _|    _| _|
-
-if you really want to see the pictures above - use some font
-with constant spacing like courier! :-)
------------------------------------------------------------
-
---=20
-VGER BF report: U 0.508633
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+VGER BF report: H 2.25892e-12
