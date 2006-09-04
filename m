@@ -1,42 +1,67 @@
-From: Andreas Mohr <andi@rhlx01.fht-esslingen.de>
-Subject: Re: x60 - spontaneous thermal shutdown
-Date: Tue, 5 Sep 2006 00:53:03 +0200
-Message-ID: <20060904225303.GB1614@rhlx01.fht-esslingen.de>
-References: <20060904214059.GA1702@elf.ucw.cz> <20060904222614.GA1614@rhlx01.fht-esslingen.de> <20060904223520.GB1958@elf.ucw.cz>
+From: Matthias Hentges <oe@hentges.net>
+Subject: Re: 2.6.18-rc5-mm1
+Date: Tue, 05 Sep 2006 01:39:02 +0200
+Message-ID: <1157413142.18988.17.camel@mhcln03>
+References: <EB12A50964762B4D8111D55B764A84548839C0@scsmsx413.amr.corp.intel.com>
+	 <20060903175048.6fed40ab.akpm@osdl.org> <1157370725.18988.13.camel@mhcln03>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-yTGQXw2LnrN2Prsb+lGZ"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rhlx01.fht-esslingen.de ([129.143.116.10]:36584 "EHLO
-	rhlx01.fht-esslingen.de") by vger.kernel.org with ESMTP
-	id S932222AbWIDWxE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 4 Sep 2006 18:53:04 -0400
-Content-Disposition: inline
-In-Reply-To: <20060904223520.GB1958@elf.ucw.cz>
+Received: from hentges.net ([81.169.178.128]:8119 "EHLO
+	h6563.serverkompetenz.net") by vger.kernel.org with ESMTP
+	id S965046AbWIDXh7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 4 Sep 2006 19:37:59 -0400
+In-Reply-To: <1157370725.18988.13.camel@mhcln03>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: ACPI mailing list <linux-acpi@vger.kernel.org>, kernel list <linux-kernel@vger.kernel.org>
+To: Andrew Morton <akpm@osdl.org>
+Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Jeremy Fitzhardinge <jeremy@goop.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi,
 
-On Tue, Sep 05, 2006 at 12:35:20AM +0200, Pavel Machek wrote:
-> Well, but those macbooks were really overheating, no? This seems like
-> sensor failure, because I do not think cpu had 128 Celsius, without
-> going through 100 Celsius, first.
+--=-yTGQXw2LnrN2Prsb+lGZ
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-No, in several cases it was a problem with a broken/damaged sensor cable.
-But it seems there are a number of different problems with thermal
-management, a non-working sensor cable only being (albeit a significant)
-one of those.
-Google "MacBook random shutdown" will provide tons of information.
+Am Montag, den 04.09.2006, 13:52 +0200 schrieb Matthias Hentges:
+> Am Sonntag, den 03.09.2006, 17:50 -0700 schrieb Andrew Morton:
+>=20
+> > Spose so.
+> >=20
+> > But what _did_ cause it?  Looks like we took an IRQ and then leapt into
+> > outer space, when do_IRQ() called desc->handle_irq().
+> >=20
+> > Matthias, could you please test with CONFIG_4KSTACKS=3Dn?
+> >=20
+> > Also, one cause of this might be a module which fails to clean up when =
+it's
+> > removed.  And the trace indicates that some module has previously
+> > been unloaded.  Can you work out which module(s) that might be?
+> >=20
+>=20
+> I'll try CONFIG_4KSTACKS=3Dn when I get back from work (~10hrs...) and
+> report back.
 
-> I had fan working at the time of shutdown, and machine was able to
-> boot immediately afterwards. That means that 128 celsius was sensor
-> error.
+Just tried CONFIG_4KSTACKS=3Dn but as Jeremy Fitzhardinge suggested, it
+didn't change anything ;)
+--=20
+Matthias 'CoreDump' Hentges=20
 
-Let's hope people get that braindamage resolved, either via BIOS updates
-(hmm, but probably not helpful in case of ACPI?) or by shipping/repairing
-into working hardware (an astonishing amount of people already had their
-2nd or 3rd non-working repair).
+Webmaster of hentges.net and OpenZaurus developer.
+You can reach me in #openzaurus on Freenode.
 
-Andreas Mohr
+My OS: Debian SID. Geek by Nature, Linux by Choice
+
+--=-yTGQXw2LnrN2Prsb+lGZ
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Dies ist ein digital signierter Nachrichtenteil
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.3 (GNU/Linux)
+
+iD8DBQBE/LkWAq2P5eLUP5IRAh0CAKDkPzKtq/fdv/6NgGBYYvoYAllUWACfXJME
+PRNvufy/TrQj1v7Acrxazvo=
+=bZhG
+-----END PGP SIGNATURE-----
+
+--=-yTGQXw2LnrN2Prsb+lGZ--
+
