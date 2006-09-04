@@ -1,44 +1,46 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [RFC][PATCH 1/2] ACPI: Idle Processor PM Improvements
-Date: Mon, 4 Sep 2006 12:59:21 +0000
-Message-ID: <20060904125921.GB6279@ucw.cz>
-References: <1156884681.1781.120.camel@localhost.localdomain>
+Subject: Re: [OLPC-devel] Re: [RFC][PATCH 1/2] ACPI: Idle Processor PM Improvements
+Date: Mon, 4 Sep 2006 13:09:33 +0000
+Message-ID: <20060904130933.GC6279@ucw.cz>
+References: <EB12A50964762B4D8111D55B764A845484D316@scsmsx413.amr.corp.intel.com> <20060830194317.GA9116@srcf.ucam.org> <200608311713.21618.bjorn.helgaas@hp.com> <1157070616.7974.232.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:59919 "EHLO
-	spitz.ucw.cz") by vger.kernel.org with ESMTP id S964838AbWIDNAh
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:36614 "EHLO
+	spitz.ucw.cz") by vger.kernel.org with ESMTP id S964905AbWIDNJw
 	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 4 Sep 2006 09:00:37 -0400
+	Mon, 4 Sep 2006 09:09:52 -0400
 Content-Disposition: inline
-In-Reply-To: <1156884681.1781.120.camel@localhost.localdomain>
+In-Reply-To: <1157070616.7974.232.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adam Belay <abelay@novell.com>
-Cc: Len Brown <len.brown@intel.com>, ACPI ML <linux-acpi@vger.kernel.org>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>, Arjan van de Ven <arjan@linux.intel.com>
+To: Jim Gettys <jg@laptop.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "Brown, Len" <len.brown@intel.com>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>, ACPI ML <linux-acpi@vger.kernel.org>, Adam Belay <abelay@novell.com>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Arjan van de Ven <arjan@linux.intel.com>, devel@laptop.org
 
 Hi!
 
-> This patch improves the ACPI c-state selection algorithm.  It also
-> includes a major cleanup and simplification of the processor idle code.
+> In short, we have novel hardware: we can have our screen on, and suspend
+> the processor to RAM, and use a half a watt.  We can have our wireless
+> forwarding packets in our mesh networks, with the processor suspended,
+> consuming under 400mw (we hope 300mw by the time we ship).  Both on, and
+> we're still under one watt.
+> 
+> For keyboard activity, human perception is in the 100-200 millisecond
+> range; for some other stuff, it is even less much than that.  So that's
+> the necessity; now the invention.
+> 
+> I've done a straw pole among kernel gurus at OLS and elsewhere on how
+> fast Linux might be able to resume. I've gotten answers of typically
+> "one second".
+> 
+> But, on other platforms (see attached), I have data I've measured myself
+> showing Linux going from resume from RAM to *scheduling user level
+> processes* 100 times faster than that, on a wimpy 200mhz ARM processor.
+> Yes, Matilda, Linux can, on non-braindead hardware, resume all the way
+> to scheduling user processes in 10 milliseconds on a 200mhz processor.
 
-Nice!
-
-> @@ -1009,7 +883,7 @@
->  
->  	seq_printf(seq, "active state:            C%zd\n"
->  		   "max_cstate:              C%d\n"
-> -		   "bus master activity:     %08x\n",
-> +		   "bus master activity:     %d\n",
->  		   pr->power.state ? pr->power.state - pr->power.states : 0,
->  		   max_cstate, (unsigned)pr->power.bm_activity);
->  
-
-This changes kernel - user interface. You should change the field
-description, or keep it in hex...
-
-BTW will you be on september's labs conference?
-
+2.4 and 2.6 are *very* different here. You'll probably need to optimize freezer
+in 2.6 a bit...
 							Pavel
 -- 
 Thanks for all the (sleeping) penguins.
