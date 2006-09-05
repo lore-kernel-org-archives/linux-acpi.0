@@ -1,50 +1,47 @@
-From: Yu Luming <luming.yu@intel.com>
-Subject: Re: Fw: PROBLEM: HP dv6000z Laptop ACPI/nVidia/bcm43xx issues
-Date: Tue, 5 Sep 2006 13:50:34 +0800
-Message-ID: <200609051350.35296.luming.yu@intel.com>
-References: <20060902111324.102387ea.akpm@osdl.org>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: x60 - spontaneous thermal shutdown
+Date: Tue, 5 Sep 2006 08:10:23 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0609050808570.17126@yvahk01.tjqt.qr>
+References: <20060904214059.GA1702@elf.ucw.cz> <20060904222614.GA1614@rhlx01.fht-esslingen.de>
+ <20060904223520.GB1958@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:50795 "EHLO
-	orsmga102-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S965163AbWIEFof (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 Sep 2006 01:44:35 -0400
-In-Reply-To: <20060902111324.102387ea.akpm@osdl.org>
-Content-Disposition: inline
+Received: from emailer.gwdg.de ([134.76.10.24]:59868 "EHLO emailer.gwdg.de")
+	by vger.kernel.org with ESMTP id S965172AbWIEGMS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2006 02:12:18 -0400
+In-Reply-To: <20060904223520.GB1958@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: M W <wumarkus@hotmail.com>
-Cc: linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Andreas Mohr <andi@rhlx01.fht-esslingen.de>, ACPI mailing list <linux-acpi@vger.kernel.org>, kernel list <linux-kernel@vger.kernel.org>
 
-On Sunday 03 September 2006 02:13, Andrew Morton wrote:
-> Begin forwarded message:
+
+>> > Sep  4 23:33:01 amd kernel: ACPI: Critical trip point
+>> > Sep  4 23:33:01 amd kernel: Critical temperature reached (128 C), shutting down.
+>> > Sep  4 23:33:01 amd shutdown[32585]: shutting down for system halt
+>> > Sep  4 23:34:42 amd init: Switching to runlevel: 0
+>> > 
+>> > I do not think cpu reached 128C, as I still have my machine... Did
+>> > anyone else see that?
+>> 
+>> Could this be in any way related to the (in)famous Random Shutdown issues
+>> on a little too many Apple MacBooks?
+>> (since the x60 incidentally just happens to be Core Duo
+>> architecture, too)
 >
->  Date: Sat, 2 Sep 2006 14:04:51 -0400
->  From: "M W" <wumarkus@hotmail.com>
->  To: <linux-kernel@vger.kernel.org>
->  Subject: PROBLEM: HP dv6000z Laptop ACPI/nVidia/bcm43xx issues
+>Well, but those macbooks were really overheating, no? This seems like
+>sensor failure, because I do not think cpu had 128 Celsius, without
+>going through 100 Celsius, first.
 >
+>I had fan working at the time of shutdown, and machine was able to
+>boot immediately afterwards. That means that 128 celsius was sensor
+>error.
 
-Please file a bug on bugziila.kernel.org in acpi Category.
->
->  Upon boot-up, I am seeing the following error message on both 2.16 and
-> 2.17 kernels (32 or 64 bit):
-Please try 2.6.18-rc6.
-
->
->  PCI: Failed to allocate mem resource #6:20000@e0000000 for 0000:05:00.0
-Please cat /proc/iomem.
-
->
->  I am also unable to boot the system properly unless I boot with "acpi=off"
->  This may be related to my bcm43xx wireless card that I have been unable to
->  get working properly both with the native driver or ndiswrapper.
-Please cat /proc/interrupts, and post acpidump output on bugzilla.
+If it was near 128 C for some time, the plastic case the mainboard is 
+housed in would have been extremely hot and one would have probably burned 
+his fingers.
 
 
+Jan Engelhardt
 -- 
-Thanks,
-Luming
