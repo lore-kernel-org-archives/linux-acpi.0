@@ -1,41 +1,40 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: 2.6.18-rc5-mm1
-Date: Tue, 5 Sep 2006 10:16:39 -0600
-Message-ID: <200609051016.40468.bjorn.helgaas@hp.com>
-References: <20060901015818.42767813.akpm@osdl.org> <44F86282.9010809@gmail.com>
+Subject: Re: [2.6.18-rc5-mm1 ACPI] Unknown exception code: 0xFFFFFFEA
+Date: Tue, 5 Sep 2006 10:18:42 -0600
+Message-ID: <200609051018.43141.bjorn.helgaas@hp.com>
+References: <20060901015818.42767813.akpm@osdl.org> <1157274585.6304.6.camel@Homer.simpson.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel8.hp.com ([156.153.255.206]:62173 "EHLO atlrel8.hp.com")
-	by vger.kernel.org with ESMTP id S965103AbWIEQQk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2006 12:16:40 -0400
-In-Reply-To: <44F86282.9010809@gmail.com>
+Received: from atlrel6.hp.com ([156.153.255.205]:23443 "EHLO atlrel6.hp.com")
+	by vger.kernel.org with ESMTP id S965186AbWIEQS7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2006 12:18:59 -0400
+In-Reply-To: <1157274585.6304.6.camel@Homer.simpson.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Maciej Rutecki <maciej.rutecki@gmail.com>
-Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Mike Galbraith <efault@gmx.de>
+Cc: LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Friday 01 September 2006 10:40, Maciej Rutecki wrote:
-> ACPI error (similar like in 2.6.18-rc4-mm3):
+On Sunday 03 September 2006 03:09, Mike Galbraith wrote:
+> My single P4/HT box tossed the below on boot.
 > 
-> [   23.790140] ACPI Error (utglobal-0125): Unknown exception code:
-> 0xFFFFFFEA [20060707]
-> [   23.790318]  [<c0221ba9>] acpi_format_exception+0x9f/0xa9
-> [   23.790445]  [<c021edf9>] acpi_ut_status_exit+0x2e/0x56
-> [   23.790554]  [<c021b3ac>] acpi_walk_resources+0x103/0x10d
-> [   23.790661]  [<c022901c>] acpi_reserve_io_ranges+0x0/0xfc
-> [   23.790774]  [<c022900f>] acpi_motherboard_add+0x1f/0x2c
-> [   23.790880]  [<c0228154>] acpi_bus_driver_init+0x2c/0x78
-> [   23.790987]  [<c02285b0>] acpi_bus_register_driver+0x60/0xb1
-> [   23.791094]  [<c038a8da>] acpi_motherboard_init+0xa/0xf5
-> [   23.791205]  [<c01002b0>] init+0x70/0x280
-> [   23.791309]  [<c0102db2>] ret_from_fork+0x6/0x14
-> [   23.791420]  [<c0100240>] init+0x0/0x280
-> [   23.791520]  [<c0100240>] init+0x0/0x280
-> [   23.791621]  [<c0103997>] kernel_thread_helper+0x7/0x10
+> ACPI Error (utglobal-0125): Unknown exception code: 0xFFFFFFEA [20060707]
+>  [<c1004089>] dump_trace+0x1d7/0x206
+>  [<c10040d2>] show_trace_log_lvl+0x1a/0x30
+>  [<c100484c>] show_trace+0x12/0x14
+>  [<c100496d>] dump_stack+0x19/0x1b
+>  [<c1229702>] acpi_format_exception+0xa2/0xaf
+>  [<c1226824>] acpi_ut_status_exit+0x2b/0x58
+>  [<c1222cbc>] acpi_walk_resources+0xfd/0x109
+>  [<c12393ca>] acpi_motherboard_add+0x22/0x32
+>  [<c123848e>] acpi_bus_driver_init+0x2a/0x7a
+>  [<c123892c>] acpi_bus_register_driver+0x8b/0xfb
+>  [<c15ebd20>] acpi_motherboard_init+0xd/0xf9
+>  [<c10003b1>] init+0x108/0x300
+>  [<c1003c93>] kernel_thread_helper+0x7/0x14
 
 This ACPI "unknown exception code" problem is the same one reported here:
   http://www.mail-archive.com/linux-acpi%40vger.kernel.org/msg02873.html
