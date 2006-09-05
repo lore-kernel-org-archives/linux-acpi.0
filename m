@@ -1,73 +1,50 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Problem with resuming ATI SATA on HPC nx6325
-Date: Tue, 5 Sep 2006 08:24:50 +0200
-Message-ID: <20060905062438.GD1958@elf.ucw.cz>
-References: <200609041332.19780.rjw@sisk.pl>
+From: Todd Pytel <tppytel@sophrosune.org>
+Subject: Re: Hang on S3 resume with Acer TravelMate 222X
+Date: Tue, 05 Sep 2006 01:41:06 -0500
+Message-ID: <1157438466.19942.35.camel@timaeus.sophrosune.org>
+References: <1157066944.1826.62.camel@timaeus.sophrosune.org>
+	 <1157424745.19942.2.camel@timaeus.sophrosune.org>
+	 <20060905061608.GA16903@cactii.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:8673 "EHLO amd.ucw.cz")
-	by vger.kernel.org with ESMTP id S965167AbWIEGZF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2006 02:25:05 -0400
-Content-Disposition: inline
-In-Reply-To: <200609041332.19780.rjw@sisk.pl>
+Received: from aristotle.sophrosune.org ([66.167.100.107]:565 "EHLO
+	aristotle.sophrosune.org") by vger.kernel.org with ESMTP
+	id S1750708AbWIEGkS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Sep 2006 02:40:18 -0400
+In-Reply-To: <20060905061608.GA16903@cactii.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Ben B <kernel@bb.cactii.net>
+Cc: linux-acpi@vger.kernel.org
 
-Hi!
+Ben,
 
-> I've just installed SUSE 10.1 on a HPC 6325 notebook (x86_64, dual_core) with
-> an ATI chipset.  It generally works just fine (well, except for some minor
-> glitches), but I'm having problems with suspending it which seem to be ACPI
-> related.
-> 
-> Namely, on the 2.6.18-rc5-mm1 kernel the hard drive is not accessible after
-> a resume of device drivers (eg. in the resume-during-suspend phase of swsusp).
-> On 2.6.18-rc5 swsusp works with the following drivers loaded:
-> 
-> cpufreq_ondemand
-> powernow_k8
-> freq_table
-> af_packet
-> ip6t_REJECT
-> xt_tcpudp
-> ipt_REJECT
-> xt_state
-> iptable_filter
-> ip_conntrack
-> nfnetlink
-> ip_tables
-> ip6table_filter
-> ip6_tables
-> x_tables
-> ipv6
-> ext3
-> jbd
-> fan
-> thermal
-> processor
-> sg
-> atiixp
-> sata_sil
-> libata
-> ide_disk
-> ide_core
-> 
-> but if ohci_hcd and ehci_hcd are loaded additionally, the SATA thing doesn't
-> resume properly (if only one of ehci_hcd or ohci_hcd is loaded, it works).
+On Tue, 2006-09-05 at 08:16 +0200, Ben B wrote:
+> Try unloading various modules before suspend. On many machines, at least
+> the usb host drivers need to be unloaded.
 
-So situation is:
+OK, I'll give that a try. I don't have the machine with me to check at
+the moment.
 
-2.6.18-rc5: works in any config
+> Video's another possibility. Look at vbetool, it might be able to
+> restore video and get things on track again.
 
-2.6.18-rc5-mm1: if ohci+ehci+sata are loaded, SATA breaks during
-resume
+Hmm... I read about vbetool in video.txt, but maybe I was
+misunderstanding. From what I read, vbetool's restore function only
+works after the resume gets back to userland. Since my machine is
+hard-locking after the resume, I was assuming that vbetool would never
+even get a chance to do its thing. Is it possible for the machine to get
+back to running user processes and *then* hard lock?
 
-, right? How does it breaks? Are interrupts shared between the two?
+> Also, do your suspend from a shell script, and have this script log
+> debugging info after resume (remembering to sync in case you have to
+> hard boot).
 
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Similar questions as those about vbetool. But I'll give it a shot. 
+
+Thanks for the suggestions.
+
+--Todd
+
