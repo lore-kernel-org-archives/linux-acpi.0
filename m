@@ -1,72 +1,69 @@
 From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: [RFC][PATCH 2/2] ACPI: handle timer ticks proactively
-Date: Tue, 5 Sep 2006 11:03:28 +0200
-Message-ID: <20060905090328.GA4888@elf.ucw.cz>
-References: <20060904131027.GD6279@ucw.cz> <20060905082855.GC5082@elf.ucw.cz> <20060905085319.GA2237@elf.ucw.cz>
+Date: Tue, 5 Sep 2006 10:53:19 +0200
+Message-ID: <20060905085319.GA2237@elf.ucw.cz>
+References: <20060904131027.GD6279@ucw.cz> <20060905082855.GC5082@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:64490 "EHLO amd.ucw.cz")
-	by vger.kernel.org with ESMTP id S1750988AbWIEKCO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2006 06:02:14 -0400
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:43452 "EHLO amd.ucw.cz")
+	by vger.kernel.org with ESMTP id S1750792AbWIEKSs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2006 06:18:48 -0400
 Content-Disposition: inline
-In-Reply-To: <20060905085319.GA2237@elf.ucw.cz>
+In-Reply-To: <20060905082855.GC5082@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: abelay@novell.com, len.brown@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux@dominikbrodowski.net, arjan@linux.intel.com
 
 Hi!
 
-> > > This patch takes advantage of the infrastructure introduced in the last
-> > > patch, and allows the processor idle algorithm to proactively choose a
-> > > c-state based on the time the next timer interrupt is expected to occur.
-> > > It preserves the residency metric, so the algorithm should, in theory,
-> > > remain effective against bursts of activity from other interrupt
-> > > sources.
-> > > 
-> > > This patch is mostly intended to be illustrative.  There may be some
-> > > "#ifdef CONFIG_ACPI" issues, and I would appreciate any advice on
-> > > implementing this more cleanly.
-> 
-> Okay, just to get you some feedback:
-> 
-> It seems to change things a _lot_. Power consumption with usb modules
-> loaded went from 14315mW to 13800mW -- that is huge
-> deal. Unfortunately something strange is going on: with stock kernel,
-> power consumption is mostly constant. With your patch, it varies a
-> lot, at 2 second timescale.
-> 
-> Power consumption with usb unloaded (only way to get reasonable power
-> on x60) went from stable 10450mW to  something rapidly changing, and
-> probably even worse than original:
+> > This patch takes advantage of the infrastructure introduced in the last
+> > patch, and allows the processor idle algorithm to proactively choose a
+> > c-state based on the time the next timer interrupt is expected to occur.
+> > It preserves the residency metric, so the algorithm should, in theory,
+> > remain effective against bursts of activity from other interrupt
+> > sources.
+> > 
+> > This patch is mostly intended to be illustrative.  There may be some
+> > "#ifdef CONFIG_ACPI" issues, and I would appreciate any advice on
+> > implementing this more cleanly.
 
-I also noticed that with your patch, bus master activity tends to be constant?!
+Okay, just to get you some feedback:
 
-root@amd:/data/l/tp/tp_smapi-0.22# cat /proc/acpi/processor/CPU0/power
-active state:            C3
-max_cstate:              C8
-bus master activity:     37244
-states:
-    C1:                  type[C1] latency[000] usage[00000067]
-duration[00000000000000000067]
-    C2:                  type[C2] latency[001] usage[00042173]
-duration[00000000000454647687]
-   *C3:                  type[C3] latency[057] usage[00290242]
-duration[00000000003402855375]
-root@amd:/data/l/tp/tp_smapi-0.22# cat /proc/acpi/processor/CPU0/power
-active state:            C3
-max_cstate:              C8
-bus master activity:     37244
-states:
-    C1:                  type[C1] latency[000] usage[00000067]
-duration[00000000000000000067]
-    C2:                  type[C2] latency[001] usage[00042274]
-duration[00000000000454688808]
-   *C3:                  type[C3] latency[057] usage[00305466]
-duration[00000000003595077816]
-root@amd:/data/l/tp/tp_smapi-0.22#
-								Pavel
+It seems to change things a _lot_. Power consumption with usb modules
+loaded went from 14315mW to 13800mW -- that is huge
+deal. Unfortunately something strange is going on: with stock kernel,
+power consumption is mostly constant. With your patch, it varies a
+lot, at 2 second timescale.
 
+Power consumption with usb unloaded (only way to get reasonable power
+on x60) went from stable 10450mW to  something rapidly changing, and
+probably even worse than original:
+
+current       average
+-11200 mW avg -11274 mW
+-10505 mW avg -11251 mW
+-11701 mW avg -11238 mW
+-11975 mW avg -11348 mW
+-10432 mW avg -11313 mW
+-11944 mW avg -11422 mW
+-10683 mW avg -11504 mW
+-10682 mW avg -11457 mW
+-10402 mW avg -11432 mW
+-11913 mW avg -11317 mW
+-12004 mW avg -11541 mW
+-12004 mW avg -11661 mW
+-11945 mW avg -11781 mW
+-11943 mW avg -11824 mW
+-12577 mW avg -11891 mW
+-12004 mW avg -11930 mW
+-12019 mW avg -11944 mW
+-11972 mW avg -12002 mW
+-12004 mW avg -11990 mW
+-11913 mW avg -12032 mW
+-11083 mW avg -11903 mW
+
+									Pavel
 -- 
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
