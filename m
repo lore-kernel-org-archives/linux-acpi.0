@@ -1,74 +1,50 @@
-From: Todd Pytel <tppytel@sophrosune.org>
-Subject: Re: Hang on S3 resume with Acer TravelMate 222X
-Date: Mon, 04 Sep 2006 21:52:25 -0500
-Message-ID: <1157424745.19942.2.camel@timaeus.sophrosune.org>
-References: <1157066944.1826.62.camel@timaeus.sophrosune.org>
+From: Yu Luming <luming.yu@intel.com>
+Subject: Re: Fw: PROBLEM: HP dv6000z Laptop ACPI/nVidia/bcm43xx issues
+Date: Tue, 5 Sep 2006 13:50:34 +0800
+Message-ID: <200609051350.35296.luming.yu@intel.com>
+References: <20060902111324.102387ea.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aristotle.sophrosune.org ([66.167.100.107]:40989 "EHLO
-	aristotle.sophrosune.org") by vger.kernel.org with ESMTP
-	id S965103AbWIECuS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 4 Sep 2006 22:50:18 -0400
-Received: from timaeus.sophrosune.org (timaeus.sophrosune.org [192.168.0.1])
-	by aristotle.sophrosune.org (8.13.4/8.13.4) with ESMTP id k852oHWh023287
-	for <linux-acpi@vger.kernel.org>; Mon, 4 Sep 2006 21:50:17 -0500 (CDT)
-In-Reply-To: <1157066944.1826.62.camel@timaeus.sophrosune.org>
+Received: from mga09.intel.com ([134.134.136.24]:50795 "EHLO
+	orsmga102-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S965163AbWIEFof (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Sep 2006 01:44:35 -0400
+In-Reply-To: <20060902111324.102387ea.akpm@osdl.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: M W <wumarkus@hotmail.com>
+Cc: linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>
 
-Please? Anybody? Just some Google fodder or pointers on how to generate
-better debugging information for the list would be greatly appreciated.
+On Sunday 03 September 2006 02:13, Andrew Morton wrote:
+> Begin forwarded message:
+>
+>  Date: Sat, 2 Sep 2006 14:04:51 -0400
+>  From: "M W" <wumarkus@hotmail.com>
+>  To: <linux-kernel@vger.kernel.org>
+>  Subject: PROBLEM: HP dv6000z Laptop ACPI/nVidia/bcm43xx issues
+>
 
---Todd
+Please file a bug on bugziila.kernel.org in acpi Category.
+>
+>  Upon boot-up, I am seeing the following error message on both 2.16 and
+> 2.17 kernels (32 or 64 bit):
+Please try 2.6.18-rc6.
 
-On Thu, 2006-08-31 at 18:29 -0500, Todd Pytel wrote:
-> I've got a rather old Acer TravelMate 222X for which I would *really*
-> like to get proper S3 support. Right now, doing an 
-> 
-> echo -n "mem" > /sys/power/state
-> 
-> suspends the machine to RAM OK. But when it tries to resume, it shows a
-> bit of disk activity and then hard locks - nothing on the screen, no
-> keyboard input is accepted, and it doesn't respond to pings. This is
-> using 2.6.17, entirely from text mode with no framebuffer. I've tried
-> various combinations of acpi_sleep parameters and noapic/lapic with no
-> visible effect.
-> 
-> I've been reading through many of the ACPI docs on the net, and have
-> fixed my DSDT and added it to the kernel according to those
-> instructions. This had no visible effect on the resume behavior. Most of
-> the fixes were pretty obvious, but one I wasn't sure about - perhaps
-> it's related to my problem. I received the error "Method local variable
-> is not initialized (Local0)" for the statement "Store (Local0,
-> \_SB.PCI0.PCI1.OBLN.PMES" in the following code block:
-> 
-> Method (_L0B, 0, NotSerialized)
-> {
->   Store (0x0B, PX80)
->   And (\_SB.PCI0.PCI1.OZ68.PWRS, 0xFC, \_SB.PCI0.PCI1.OZ68.PWRS)
->   Or (\_SB.PCI0.PCI1.OZ68.PMES, 0x80, \_SB.PCI0.PCI1.OZ68.PMES)
->   Store (Local0, \_SB.PCI0.PCI1.OBLN.PMES)
->   Notify (\_SB.SLPB, 0x02)
-> }
-> 
-> Well, yeah... it's not initialized. I assumed that the second Store
-> statement was just a sloppy way to zero out the variable. So I replaced
-> "Local0" with "0x00". That compiles without error, but I don't know if
-> it makes sense - is there a way that Local0 can be used as something
-> like a global variable in this specification? 
-> 
-> Other than that, I'm not sure what information is helpful to fix this
-> problem, but I'm *more* than happy to do whatever diagnostics will shed
-> better light on the problem. I really want to get this working! There's
-> nothing of obvious interest in my logs - the machine doesn't get far
-> enough when it tries to resume to write anything to syslog, and nothing
-> during bootup looks particularly suspicious. But maybe I just don't what
-> I should be looking for. 
-> 
-> Thanks for any help you can provide,
-> Todd
+>
+>  PCI: Failed to allocate mem resource #6:20000@e0000000 for 0000:05:00.0
+Please cat /proc/iomem.
+
+>
+>  I am also unable to boot the system properly unless I boot with "acpi=off"
+>  This may be related to my bcm43xx wireless card that I have been unable to
+>  get working properly both with the native driver or ndiswrapper.
+Please cat /proc/interrupts, and post acpidump output on bugzilla.
 
 
+-- 
+Thanks,
+Luming
