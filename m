@@ -1,69 +1,55 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [RFC][PATCH 2/2] ACPI: handle timer ticks proactively
-Date: Tue, 5 Sep 2006 10:53:19 +0200
-Message-ID: <20060905085319.GA2237@elf.ucw.cz>
-References: <20060904131027.GD6279@ucw.cz> <20060905082855.GC5082@elf.ucw.cz>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: 2.6.18-rc5 -rc5-mm1: kacpid continuously generating 4% CPU load on HPC nx6325 w/ SUSE 10.1
+Date: Tue, 5 Sep 2006 13:13:24 +0200
+Message-ID: <200609051313.24716.rjw@sisk.pl>
+References: <200609031123.02237.rjw@sisk.pl> <200609051447.24820.luming.yu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:43452 "EHLO amd.ucw.cz")
-	by vger.kernel.org with ESMTP id S1750792AbWIEKSs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2006 06:18:48 -0400
+Received: from ogre.sisk.pl ([217.79.144.158]:48775 "EHLO ogre.sisk.pl")
+	by vger.kernel.org with ESMTP id S1751179AbWIELJ4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2006 07:09:56 -0400
+In-Reply-To: <200609051447.24820.luming.yu@intel.com>
 Content-Disposition: inline
-In-Reply-To: <20060905082855.GC5082@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: abelay@novell.com, len.brown@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux@dominikbrodowski.net, arjan@linux.intel.com
+To: Yu Luming <luming.yu@intel.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Stefan Seyfried <seife@suse.de>
 
-Hi!
+On Tuesday, 5 September 2006 08:47, Yu Luming wrote:
+> On Sunday 03 September 2006 17:23, Rafael J. Wysocki wrote:
+> > Hi,
+> >
+> >  I'm having a strange issue with the 2.6.18-rc5 and -rc5-mm1 kernels and
+> >  SUSE 10.1 on HPC nx6325 that kacpid is generating 4% of CPU load (on one
+> > core) in a continuous manner.
+> Please try to unload thermal module.
 
-> > This patch takes advantage of the infrastructure introduced in the last
-> > patch, and allows the processor idle algorithm to proactively choose a
-> > c-state based on the time the next timer interrupt is expected to occur.
-> > It preserves the residency metric, so the algorithm should, in theory,
-> > remain effective against bursts of activity from other interrupt
-> > sources.
-> > 
-> > This patch is mostly intended to be illustrative.  There may be some
-> > "#ifdef CONFIG_ACPI" issues, and I would appreciate any advice on
-> > implementing this more cleanly.
+albercik:~ # rmmod thermal
 
-Okay, just to get you some feedback:
+[hanging? On another console:]
+albercik:~ # ps ax
+...
+4864 pts/0    D+     0:00 rmmod thermal
+...
 
-It seems to change things a _lot_. Power consumption with usb modules
-loaded went from 14315mW to 13800mW -- that is huge
-deal. Unfortunately something strange is going on: with stock kernel,
-power consumption is mostly constant. With your patch, it varies a
-lot, at 2 second timescale.
+> >  It sometimes helps if powersaved is restarted, but only for a short time.
+> >  However, after restarting powersaved the kacpid-generated load sometimes
+> > jumps to 100% (on one core) and stays on this level.
+> >
+> >  At the same time the battery is never reported to be 100% full (it stops
+> > at ~98% full and loading) and when I tried to unload the battery module,
+> > rmmod ended up in the D state.
+> what do you mean by "in the D state"?
 
-Power consumption with usb unloaded (only way to get reasonable power
-on x60) went from stable 10450mW to  something rapidly changing, and
-probably even worse than original:
+TASK_UNINTERRUPTIBLE (like above).
 
-current       average
--11200 mW avg -11274 mW
--10505 mW avg -11251 mW
--11701 mW avg -11238 mW
--11975 mW avg -11348 mW
--10432 mW avg -11313 mW
--11944 mW avg -11422 mW
--10683 mW avg -11504 mW
--10682 mW avg -11457 mW
--10402 mW avg -11432 mW
--11913 mW avg -11317 mW
--12004 mW avg -11541 mW
--12004 mW avg -11661 mW
--11945 mW avg -11781 mW
--11943 mW avg -11824 mW
--12577 mW avg -11891 mW
--12004 mW avg -11930 mW
--12019 mW avg -11944 mW
--11972 mW avg -12002 mW
--12004 mW avg -11990 mW
--11913 mW avg -12032 mW
--11083 mW avg -11903 mW
+Greetings,
+Rafael
 
-									Pavel
+
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+You never change things by fighting the existing reality.
+		R. Buckminster Fuller
