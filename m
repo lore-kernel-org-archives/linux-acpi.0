@@ -1,47 +1,34 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: x60 - spontaneous thermal shutdown
-Date: Tue, 5 Sep 2006 08:10:23 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0609050808570.17126@yvahk01.tjqt.qr>
-References: <20060904214059.GA1702@elf.ucw.cz> <20060904222614.GA1614@rhlx01.fht-esslingen.de>
- <20060904223520.GB1958@elf.ucw.cz>
+From: Ben B <kernel@bb.cactii.net>
+Subject: Re: Hang on S3 resume with Acer TravelMate 222X
+Date: Tue, 5 Sep 2006 08:16:08 +0200
+Message-ID: <20060905061608.GA16903@cactii.net>
+References: <1157066944.1826.62.camel@timaeus.sophrosune.org> <1157424745.19942.2.camel@timaeus.sophrosune.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emailer.gwdg.de ([134.76.10.24]:59868 "EHLO emailer.gwdg.de")
-	by vger.kernel.org with ESMTP id S965172AbWIEGMS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2006 02:12:18 -0400
-In-Reply-To: <20060904223520.GB1958@elf.ucw.cz>
+Received: from us.cactii.net ([66.160.141.151]:59656 "EHLO us.cactii.net")
+	by vger.kernel.org with ESMTP id S965174AbWIEGQr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2006 02:16:47 -0400
+Content-Disposition: inline
+In-Reply-To: <1157424745.19942.2.camel@timaeus.sophrosune.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Andreas Mohr <andi@rhlx01.fht-esslingen.de>, ACPI mailing list <linux-acpi@vger.kernel.org>, kernel list <linux-kernel@vger.kernel.org>
+To: Todd Pytel <tppytel@sophrosune.org>
+Cc: linux-acpi@vger.kernel.org
 
+Todd Pytel <tppytel@sophrosune.org> uttered the following thing:
+> Please? Anybody? Just some Google fodder or pointers on how to generate
+> better debugging information for the list would be greatly appreciated.
 
->> > Sep  4 23:33:01 amd kernel: ACPI: Critical trip point
->> > Sep  4 23:33:01 amd kernel: Critical temperature reached (128 C), shutting down.
->> > Sep  4 23:33:01 amd shutdown[32585]: shutting down for system halt
->> > Sep  4 23:34:42 amd init: Switching to runlevel: 0
->> > 
->> > I do not think cpu reached 128C, as I still have my machine... Did
->> > anyone else see that?
->> 
->> Could this be in any way related to the (in)famous Random Shutdown issues
->> on a little too many Apple MacBooks?
->> (since the x60 incidentally just happens to be Core Duo
->> architecture, too)
->
->Well, but those macbooks were really overheating, no? This seems like
->sensor failure, because I do not think cpu had 128 Celsius, without
->going through 100 Celsius, first.
->
->I had fan working at the time of shutdown, and machine was able to
->boot immediately afterwards. That means that 128 celsius was sensor
->error.
+Try unloading various modules before suspend. On many machines, at least
+the usb host drivers need to be unloaded.
 
-If it was near 128 C for some time, the plastic case the mainboard is 
-housed in would have been extremely hot and one would have probably burned 
-his fingers.
+Video's another possibility. Look at vbetool, it might be able to
+restore video and get things on track again.
 
+Also, do your suspend from a shell script, and have this script log
+debugging info after resume (remembering to sync in case you have to
+hard boot).
 
-Jan Engelhardt
--- 
+Ben
+
