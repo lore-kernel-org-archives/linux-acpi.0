@@ -1,50 +1,33 @@
-From: Todd Pytel <tppytel@sophrosune.org>
-Subject: Re: Hang on S3 resume with Acer TravelMate 222X
-Date: Tue, 05 Sep 2006 01:48:32 -0500
-Message-ID: <1157438912.19942.43.camel@timaeus.sophrosune.org>
-References: <1157066944.1826.62.camel@timaeus.sophrosune.org>
-	 <1157424745.19942.2.camel@timaeus.sophrosune.org>
-	 <200609051428.32974.luming.yu@intel.com>
+From: Yu Luming <luming.yu@intel.com>
+Subject: Re: power down regression: 2.6.18-rc5 against 2.6.18-rc4 on i386,  82371AB/EB/MB PIIX4
+Date: Tue, 5 Sep 2006 15:09:55 +0800
+Message-ID: <200609051509.56013.luming.yu@intel.com>
+References: <44F854C2.50607@ntlworld.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aristotle.sophrosune.org ([66.167.100.107]:13128 "EHLO
-	aristotle.sophrosune.org") by vger.kernel.org with ESMTP
-	id S965182AbWIEGqb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 Sep 2006 02:46:31 -0400
-In-Reply-To: <200609051428.32974.luming.yu@intel.com>
+Received: from mga02.intel.com ([134.134.136.20]:52328 "EHLO
+	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S965186AbWIEHDz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Sep 2006 03:03:55 -0400
+In-Reply-To: <44F854C2.50607@ntlworld.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yu Luming <luming.yu@intel.com>
+To: ael <law_ence.dev@ntlworld.com>
 Cc: linux-acpi@vger.kernel.org
 
-On Tue, 2006-09-05 at 14:28 +0800, Yu Luming wrote:
-> Not sure if this can help you. http://acpi.sourceforge.net/
+On Friday 01 September 2006 23:41, ael wrote:
+> On 2.6.18-rc4 and all earlier versions, power-down is called when the
+>  system is shutdown: the last message on screen is Power down & shutdown.
+>
+>  On 2.6.18-rc5, there is no call to power down: the last message is
+>  "System Halted" and power remains on.
 
-I've checked out the site quite a bit - that's where I got a lot of the
-DSDT info. But I didn't see anything specific to hard-locks on resume.
+Sounds like a regression.  Please file a bug on bugzilla.kernel.org
+if it is ACPI related, please put it in ACPI category.
 
-> Does windows work?
-
-Of course. (Sadly...)
-
-> If you think this is a ACPI bug , please file it on bugzilla.kernel.org in 
-> ACPI category.
-
-Well, I don't really know enough to say whether it's an ACPI bug or not.
->From what I've read, ACPI often needs a lot of troubleshooting because
-the hardware and DSDT's don't follow the standard as strictly as
-Linux-ACPI itself. If the regulars here think is a genuine Linux-ACPI
-bug, then I can certainly file it.
-
-> The first step, please take a close look at Documentation/power/video.txt
-
-I've read it. But from what I understood, the various video tricks only
-help after the kernel has resumed far enough to run processes. I'm not
-getting that far. Maybe I'm not understanding...
-
-Thank you for your suggestions.
-
---Todd
-
+Thanks,
+Luming
