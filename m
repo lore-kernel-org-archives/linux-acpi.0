@@ -1,36 +1,56 @@
-From: Jim Gettys <jg@laptop.org>
-Subject: Re: [OLPC-devel] Re: [RFC][PATCH 1/2] ACPI: Idle Processor PM
-	Improvements
-Date: Tue, 05 Sep 2006 10:31:50 -0400
-Message-ID: <1157466710.6011.262.camel@localhost.localdomain>
-References: <EB12A50964762B4D8111D55B764A845484D316@scsmsx413.amr.corp.intel.com>
-	 <20060830194317.GA9116@srcf.ucam.org>
-	 <200608311713.21618.bjorn.helgaas@hp.com>
-	 <1157070616.7974.232.camel@localhost.localdomain>
-	 <20060904130933.GC6279@ucw.cz>
-Reply-To: jg@laptop.org
+From: Adam Belay <abelay@novell.com>
+Subject: Re: [RFC][PATCH 2/2] ACPI: handle timer ticks proactively
+Date: Tue, 05 Sep 2006 11:16:00 -0400
+Message-ID: <1157469360.3420.14.camel@localhost.localdomain>
+References: <20060904131027.GD6279@ucw.cz>
+	 <20060905082855.GC5082@elf.ucw.cz> <20060905085319.GA2237@elf.ucw.cz>
+	 <20060905090328.GA4888@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S965052AbWIEOcP@vger.kernel.org>
-In-Reply-To: <20060904130933.GC6279@ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "Brown, Len" <len.brown@intel.com>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>, ACPI ML <linux-acpi@vger.kernel.org>, Adam Belay <abelay@novell.com>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Arjan van de Ven <arjan@linux.intel.com>, devel@laptop.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from peabody.ximian.com ([130.57.169.10]:31429 "EHLO
+	peabody.ximian.com") by vger.kernel.org with ESMTP id S965101AbWIEPNX
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Sep 2006 11:13:23 -0400
+In-Reply-To: <20060905090328.GA4888@elf.ucw.cz>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: len.brown@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux@dominikbrodowski.net, arjan@linux.intel.com
 
-On Mon, 2006-09-04 at 13:09 +0000, Pavel Machek wrote:
-
+On Tue, 2006-09-05 at 11:03 +0200, Pavel Machek wrote:
+> Hi!
 > 
-> 2.4 and 2.6 are *very* different here. You'll probably need to optimize freezer
-> in 2.6 a bit...
-> 						
+> > > > This patch takes advantage of the infrastructure introduced in the last
+> > > > patch, and allows the processor idle algorithm to proactively choose a
+> > > > c-state based on the time the next timer interrupt is expected to occur.
+> > > > It preserves the residency metric, so the algorithm should, in theory,
+> > > > remain effective against bursts of activity from other interrupt
+> > > > sources.
+> > > > 
+> > > > This patch is mostly intended to be illustrative.  There may be some
+> > > > "#ifdef CONFIG_ACPI" issues, and I would appreciate any advice on
+> > > > implementing this more cleanly.
+> > 
+> > Okay, just to get you some feedback:
+> > 
+> > It seems to change things a _lot_. Power consumption with usb modules
+> > loaded went from 14315mW to 13800mW -- that is huge
+> > deal. Unfortunately something strange is going on: with stock kernel,
+> > power consumption is mostly constant. With your patch, it varies a
+> > lot, at 2 second timescale.
+> > 
+> > Power consumption with usb unloaded (only way to get reasonable power
+> > on x60) went from stable 10450mW to  something rapidly changing, and
+> > probably even worse than original:
+> 
+> I also noticed that with your patch, bus master activity tends to be constant?!
 
-Among other problems: e.g. 2.4 did not automatically do a VT switch; 2.6
-does; we'll have to have a way to signal "we're a sane display driver;
-don't switch away from me on suspend".
-                                 - Jim
+Is this the case even when userspace touches the disk?  On my hardware I
+see a constant flow of short BM activity bursts.
 
--- 
-Jim Gettys
-One Laptop Per Child
+Thanks,
+Adam
+
+
