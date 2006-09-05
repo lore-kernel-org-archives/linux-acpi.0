@@ -1,50 +1,60 @@
-From: Todd Pytel <tppytel@sophrosune.org>
-Subject: Re: Hang on S3 resume with Acer TravelMate 222X
-Date: Tue, 05 Sep 2006 01:41:06 -0500
-Message-ID: <1157438466.19942.35.camel@timaeus.sophrosune.org>
-References: <1157066944.1826.62.camel@timaeus.sophrosune.org>
-	 <1157424745.19942.2.camel@timaeus.sophrosune.org>
-	 <20060905061608.GA16903@cactii.net>
+From: Yu Luming <luming.yu@intel.com>
+Subject: Re: Blacklisted system / blacklisting bad
+Date: Tue, 5 Sep 2006 14:43:46 +0800
+Message-ID: <200609051443.47032.luming.yu@intel.com>
+References: <200609031134.33024.dieter.jurzitza@t-online.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aristotle.sophrosune.org ([66.167.100.107]:565 "EHLO
-	aristotle.sophrosune.org") by vger.kernel.org with ESMTP
-	id S1750708AbWIEGkS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 Sep 2006 02:40:18 -0400
-In-Reply-To: <20060905061608.GA16903@cactii.net>
+Received: from mga09.intel.com ([134.134.136.24]:29470 "EHLO
+	orsmga102-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1750756AbWIEGmr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2006 02:42:47 -0400
+In-Reply-To: <200609031134.33024.dieter.jurzitza@t-online.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ben B <kernel@bb.cactii.net>
-Cc: linux-acpi@vger.kernel.org
+To: Dieter Jurzitza <dieter.jurzitza@t-online.de>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>
 
-Ben,
+On Sunday 03 September 2006 17:34, Dieter Jurzitza wrote:
+> Dear listmembers,
+>  I recently got a HP VISUALIZE NT workstation, using 2x 1GHz PIII
+> processors (no racing car, but that's not the point). After installat=
+ion
+> ACPI was always disabled, the on board USB interface did not work (ke=
+rnel
+> 2.6.11.4 (SuSE linux 9.3)
+>
+>  I tested using acpi=3Dforce on the commandline and that solved two p=
+roblems:
+>
+I guess this is a pretty old box, and acpi just happen to work.
 
-On Tue, 2006-09-05 at 08:16 +0200, Ben B wrote:
-> Try unloading various modules before suspend. On many machines, at least
-> the usb host drivers need to be unloaded.
+>  1.) shutdown -h now switches the machine off (should be expected :-)=
+:-) )
+>  2.) much more important: the onboard USB interface works now.
+>
+>  After patching dmi_scan.c and removing the blacklist-entry I get the
+> following message at boot time:
+>
+>  <4>PCI: Probing PCI hardware (bus 00)
+>  <7>ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+>  <4> =A0 =A0ACPI-0234: *** Warning: Wrong _BBN value, please reboot a=
+nd using
+>  option 'pci=3Dnoacpi'
+>  <6>ACPI: PCI _CRS 2 overrides _BBN 0
 
-OK, I'll give that a try. I don't have the machine with me to check at
-the moment.
+You are hitting this issue:=20
+http://bugzilla.kernel.org/show_bug.cgi?id=3D1662#c42
 
-> Video's another possibility. Look at vbetool, it might be able to
-> restore video and get things on track again.
+If everything works fine, please don't  ignore the warning message.
 
-Hmm... I read about vbetool in video.txt, but maybe I was
-misunderstanding. From what I read, vbetool's restore function only
-works after the resume gets back to userland. Since my machine is
-hard-locking after the resume, I was assuming that vbetool would never
-even get a chance to do its thing. Is it possible for the machine to get
-back to running user processes and *then* hard lock?
-
-> Also, do your suspend from a shell script, and have this script log
-> debugging info after resume (remembering to sync in case you have to
-> hard boot).
-
-Similar questions as those about vbetool. But I'll give it a shot. 
-
-Thanks for the suggestions.
-
---Todd
-
+Thanks,
+Luming
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
