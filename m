@@ -1,56 +1,63 @@
-From: Yu Luming <luming.yu@intel.com>
-Subject: Re: acpi button event to input layer (was [RFC] [PATCH] Make ACPI button driver an input device)
-Date: Tue, 5 Sep 2006 16:15:56 +0800
-Message-ID: <200609051615.56245.luming.yu@intel.com>
-References: <200608281506.50738.luming.yu@intel.com> <200608302257.25382.dtor@insightbb.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [RFC][PATCH 2/2] ACPI: handle timer ticks proactively
+Date: Tue, 5 Sep 2006 10:28:57 +0200
+Message-ID: <20060905082855.GC5082@elf.ucw.cz>
+References: <20060904131027.GD6279@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:4623 "EHLO
-	orsmga101-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S932178AbWIEINO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2006 04:13:14 -0400
-In-Reply-To: <200608302257.25382.dtor@insightbb.com>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:59616 "EHLO amd.ucw.cz")
+	by vger.kernel.org with ESMTP id S964943AbWIEI3N (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2006 04:29:13 -0400
 Content-Disposition: inline
+In-Reply-To: <20060904131027.GD6279@ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dtor@insightbb.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org
+To: abelay@novell.com, len.brown@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux@dominikbrodowski.net, arjan@linux.intel.com
 
-On Thursday 31 August 2006 10:57, Dmitry Torokhov wrote:
-> On Monday 28 August 2006 03:06, Yu Luming wrote:
->  > Matthew / Dmitry,
->  >
->  > I recall there was a patch to make acpi button driver as input dev=
-ice.
->  > Do you have any update patch? Because we want to transition acpi e=
-vent
->  > mechanism from /proc/acpi/event to input layer. I guess the acpi b=
-utton
->  > driver would be the first one to complete such transition.
->  >
->  > http://www.gatago.com/linux/kernel/11320641.html
+Hi!
+
+> This patch takes advantage of the infrastructure introduced in the last
+> patch, and allows the processor idle algorithm to proactively choose a
+> c-state based on the time the next timer interrupt is expected to occur.
+> It preserves the residency metric, so the algorithm should, in theory,
+> remain effective against bursts of activity from other interrupt
+> sources.
+> 
+> This patch is mostly intended to be illustrative.  There may be some
+> "#ifdef CONFIG_ACPI" issues, and I would appreciate any advice on
+> implementing this more cleanly.
+> 
+> Cheers,
+> Adam
+
+> --- a/kernel/timer.c	2006-08-03 13:39:22.000000000 -0400
+> +++ b/kernel/timer.c	2006-08-28 17:16:36.000000000 -0400
+> @@ -41,6 +41,9 @@
+>  #include <asm/timex.h>
+>  #include <asm/io.h>
+>  
+> +#include <acpi/acpi_bus.h>
+> +#include <acpi/processor.h>
+> +
+
+I sense a problem here, like broken compilation for all non-x86
+platforms.
+
+> @@ -1175,6 +1178,10 @@
+>  {
+>  	struct task_struct *p = current;
+>  	int cpu = smp_processor_id();
+> +	struct acpi_processor *pr = processors[cpu];
+> +
+> +	if (pr)
+> +		pr->power.timer_tick = inl(acpi_fadt.xpm_tmr_blk.address);
 >
->  I sent the following patch to Len some time ago. It needs the attach=
-ed
-> cleanup patch.
 
-Hi Dmitry,
+This probably needs to be encapsulated, somehow.
 
-The patch doesn't apply. It is somehow changed by email client or serve=
-r.
-And, I got :
-patching file drivers/acpi/button.c
-patch: **** malformed patch at line 4: =C2=A0#include <linux/types.h>
+									Pavel
 
-Could you please send the patch as attachment to me.
-
---=20
-Thanks,
-Luming
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
