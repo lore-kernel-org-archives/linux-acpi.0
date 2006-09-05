@@ -1,56 +1,54 @@
-From: Adam Belay <abelay@novell.com>
-Subject: Re: [RFC][PATCH 2/2] ACPI: handle timer ticks proactively
-Date: Tue, 05 Sep 2006 11:16:00 -0400
-Message-ID: <1157469360.3420.14.camel@localhost.localdomain>
-References: <20060904131027.GD6279@ucw.cz>
-	 <20060905082855.GC5082@elf.ucw.cz> <20060905085319.GA2237@elf.ucw.cz>
-	 <20060905090328.GA4888@elf.ucw.cz>
+From: "Lebedev, Vladimir P" <vladimir.p.lebedev@intel.com>
+Subject: [PATCH]: acpi sbs driver
+Date: Tue, 5 Sep 2006 19:49:13 +0400
+Message-ID: <8E389A5F2FEABA4CB1DEC35A25CB39CE3DBB26@mssmsx411>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="----_=_NextPart_001_01C6D102.D7754907"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from peabody.ximian.com ([130.57.169.10]:31429 "EHLO
-	peabody.ximian.com") by vger.kernel.org with ESMTP id S965101AbWIEPNX
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 Sep 2006 11:13:23 -0400
-In-Reply-To: <20060905090328.GA4888@elf.ucw.cz>
+Received: from mga03.intel.com ([143.182.124.21]:2887 "EHLO
+	azsmga101-1.ch.intel.com") by vger.kernel.org with ESMTP
+	id S965142AbWIEPtp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Sep 2006 11:49:45 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: len.brown@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux@dominikbrodowski.net, arjan@linux.intel.com
+To: "Brown, Len" <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Tue, 2006-09-05 at 11:03 +0200, Pavel Machek wrote:
-> Hi!
-> 
-> > > > This patch takes advantage of the infrastructure introduced in the last
-> > > > patch, and allows the processor idle algorithm to proactively choose a
-> > > > c-state based on the time the next timer interrupt is expected to occur.
-> > > > It preserves the residency metric, so the algorithm should, in theory,
-> > > > remain effective against bursts of activity from other interrupt
-> > > > sources.
-> > > > 
-> > > > This patch is mostly intended to be illustrative.  There may be some
-> > > > "#ifdef CONFIG_ACPI" issues, and I would appreciate any advice on
-> > > > implementing this more cleanly.
-> > 
-> > Okay, just to get you some feedback:
-> > 
-> > It seems to change things a _lot_. Power consumption with usb modules
-> > loaded went from 14315mW to 13800mW -- that is huge
-> > deal. Unfortunately something strange is going on: with stock kernel,
-> > power consumption is mostly constant. With your patch, it varies a
-> > lot, at 2 second timescale.
-> > 
-> > Power consumption with usb unloaded (only way to get reasonable power
-> > on x60) went from stable 10450mW to  something rapidly changing, and
-> > probably even worse than original:
-> 
-> I also noticed that with your patch, bus master activity tends to be constant?!
+This is a multi-part message in MIME format.
 
-Is this the case even when userspace touches the disk?  On my hardware I
-see a constant flow of short BM activity bursts.
-
-Thanks,
-Adam
+------_=_NextPart_001_01C6D102.D7754907
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
 
+Unchecked pointer dereference is fixed.
+
+
+
+------_=_NextPart_001_01C6D102.D7754907
+Content-Type: application/octet-stream;
+	name="sbs_patch"
+Content-Transfer-Encoding: base64
+Content-Description: sbs_patch
+Content-Disposition: attachment;
+	filename="sbs_patch"
+
+U3ViamVjdDogZml4IHVuY2hlY2tlZCBwb2ludGVyIGRlcmVmZXJlbmNlCgotLS0KIGRyaXZlcnMv
+YWNwaS9zYnMuYyB8ICAgMTAgKysrKysrKystLQogMSBmaWxlcyBjaGFuZ2VkLCA4IGluc2VydGlv
+bnMoKyksIDIgZGVsZXRpb25zKC0pCgpJbmRleDogbGludXgtMi42LjE4LXJjNS1kZWZhdWx0L2Ry
+aXZlcnMvYWNwaS9zYnMuYwo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci0tLSBsaW51eC0yLjYuMTgtcmM1LWRlZmF1bHQu
+b3JpZy9kcml2ZXJzL2FjcGkvc2JzLmMKKysrIGxpbnV4LTIuNi4xOC1yYzUtZGVmYXVsdC9kcml2
+ZXJzL2FjcGkvc2JzLmMKQEAgLTE2ODUsMTAgKzE2ODUsMTYgQEAgc3RhdGljIGludCBhY3BpX3Ni
+c19hZGQoc3RydWN0IGFjcGlfZGV2aQogCiBpbnQgYWNwaV9zYnNfcmVtb3ZlKHN0cnVjdCBhY3Bp
+X2RldmljZSAqZGV2aWNlLCBpbnQgdHlwZSkKIHsKLQlzdHJ1Y3QgYWNwaV9zYnMgKnNicyA9IChz
+dHJ1Y3QgYWNwaV9zYnMgKilhY3BpX2RyaXZlcl9kYXRhKGRldmljZSk7CisJc3RydWN0IGFjcGlf
+c2JzICpzYnMgPSBOVUxMOwogCWludCBpZDsKIAotCWlmICghZGV2aWNlIHx8ICFzYnMpIHsKKwlp
+ZiAoIWRldmljZSkgeworCQlyZXR1cm4gLUVJTlZBTDsKKwl9CisKKwlzYnMgPSAoc3RydWN0IGFj
+cGlfc2JzICopYWNwaV9kcml2ZXJfZGF0YShkZXZpY2UpOworCisJaWYgKCFzYnMpIHsKIAkJcmV0
+dXJuIC1FSU5WQUw7CiAJfQogCg==
+
+------_=_NextPart_001_01C6D102.D7754907--
