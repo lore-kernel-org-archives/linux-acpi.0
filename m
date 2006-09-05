@@ -1,58 +1,47 @@
-From: "Lebedev, Vladimir P" <vladimir.p.lebedev@intel.com>
-Subject: [PATCH]: acpi sbs driver
-Date: Tue, 5 Sep 2006 19:59:22 +0400
-Message-ID: <8E389A5F2FEABA4CB1DEC35A25CB39CE3DBB2A@mssmsx411>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: 2.6.18-rc5-mm1
+Date: Tue, 5 Sep 2006 10:16:39 -0600
+Message-ID: <200609051016.40468.bjorn.helgaas@hp.com>
+References: <20060901015818.42767813.akpm@osdl.org> <44F86282.9010809@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----_=_NextPart_001_01C6D104.41B79045"
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:62725 "EHLO
-	orsmga102-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S965127AbWIEQEi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 Sep 2006 12:04:38 -0400
-Content-class: urn:content-classes:message
+Received: from atlrel8.hp.com ([156.153.255.206]:62173 "EHLO atlrel8.hp.com")
+	by vger.kernel.org with ESMTP id S965103AbWIEQQk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Sep 2006 12:16:40 -0400
+In-Reply-To: <44F86282.9010809@gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: Maciej Rutecki <maciej.rutecki@gmail.com>
+Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+On Friday 01 September 2006 10:40, Maciej Rutecki wrote:
+> ACPI error (similar like in 2.6.18-rc4-mm3):
+> 
+> [   23.790140] ACPI Error (utglobal-0125): Unknown exception code:
+> 0xFFFFFFEA [20060707]
+> [   23.790318]  [<c0221ba9>] acpi_format_exception+0x9f/0xa9
+> [   23.790445]  [<c021edf9>] acpi_ut_status_exit+0x2e/0x56
+> [   23.790554]  [<c021b3ac>] acpi_walk_resources+0x103/0x10d
+> [   23.790661]  [<c022901c>] acpi_reserve_io_ranges+0x0/0xfc
+> [   23.790774]  [<c022900f>] acpi_motherboard_add+0x1f/0x2c
+> [   23.790880]  [<c0228154>] acpi_bus_driver_init+0x2c/0x78
+> [   23.790987]  [<c02285b0>] acpi_bus_register_driver+0x60/0xb1
+> [   23.791094]  [<c038a8da>] acpi_motherboard_init+0xa/0xf5
+> [   23.791205]  [<c01002b0>] init+0x70/0x280
+> [   23.791309]  [<c0102db2>] ret_from_fork+0x6/0x14
+> [   23.791420]  [<c0100240>] init+0x0/0x280
+> [   23.791520]  [<c0100240>] init+0x0/0x280
+> [   23.791621]  [<c0103997>] kernel_thread_helper+0x7/0x10
 
-------_=_NextPart_001_01C6D104.41B79045
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+This ACPI "unknown exception code" problem is the same one reported here:
+  http://www.mail-archive.com/linux-acpi%40vger.kernel.org/msg02873.html
 
+Basically, we just need to revert this:
+  http://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.18-rc4/2.6.18-rc4-mm3/broken-out/hot-add-mem-x86_64-acpi-motherboard-fix.patch
 
-Invalid module_param() call is fixed.
-
-
-------_=_NextPart_001_01C6D104.41B79045
-Content-Type: application/octet-stream;
-	name="sbs_patch-2"
-Content-Transfer-Encoding: base64
-Content-Description: sbs_patch-2
-Content-Disposition: attachment;
-	filename="sbs_patch-2"
-
-U3ViamVjdDogRml4IG1vZHVsZV9wYXJhbSgpIGNhbGwgYXJndW1lbnRzCgotLS0KIGRyaXZlcnMv
-YWNwaS9zYnMuYyB8ICAgMTAgKysrKystLS0tLQogMSBmaWxlcyBjaGFuZ2VkLCA1IGluc2VydGlv
-bnMoKyksIDUgZGVsZXRpb25zKC0pCgpJbmRleDogbGludXgtMi42LjE4LXJjNS1kZWZhdWx0L2Ry
-aXZlcnMvYWNwaS9zYnMuYwo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci0tLSBsaW51eC0yLjYuMTgtcmM1LWRlZmF1bHQu
-b3JpZy9kcml2ZXJzL2FjcGkvc2JzLmMKKysrIGxpbnV4LTIuNi4xOC1yYzUtZGVmYXVsdC9kcml2
-ZXJzL2FjcGkvc2JzLmMKQEAgLTk4LDExICs5OCwxMSBAQCBzdGF0aWMgaW50IHVwZGF0ZV9pbmZv
-X21vZGUgPSBVUERBVEVfSU5GCiBzdGF0aWMgaW50IHVwZGF0ZV90aW1lID0gVVBEQVRFX1RJTUU7
-CiBzdGF0aWMgaW50IHVwZGF0ZV90aW1lMiA9IFVQREFURV9USU1FMjsKIAotbW9kdWxlX3BhcmFt
-KGNhcGFjaXR5X21vZGUsIGludCwgQ0FQQUNJVFlfVU5JVCk7Ci1tb2R1bGVfcGFyYW0odXBkYXRl
-X21vZGUsIGludCwgVVBEQVRFX01PREUpOwotbW9kdWxlX3BhcmFtKHVwZGF0ZV9pbmZvX21vZGUs
-IGludCwgVVBEQVRFX0lORk9fTU9ERSk7Ci1tb2R1bGVfcGFyYW0odXBkYXRlX3RpbWUsIGludCwg
-VVBEQVRFX1RJTUUpOwotbW9kdWxlX3BhcmFtKHVwZGF0ZV90aW1lMiwgaW50LCBVUERBVEVfVElN
-RTIpOworbW9kdWxlX3BhcmFtKGNhcGFjaXR5X21vZGUsIGludCwgMCk7Cittb2R1bGVfcGFyYW0o
-dXBkYXRlX21vZGUsIGludCwgMCk7Cittb2R1bGVfcGFyYW0odXBkYXRlX2luZm9fbW9kZSwgaW50
-LCAwKTsKK21vZHVsZV9wYXJhbSh1cGRhdGVfdGltZSwgaW50LCAwKTsKK21vZHVsZV9wYXJhbSh1
-cGRhdGVfdGltZTIsIGludCwgMCk7CiAKIHN0YXRpYyBpbnQgYWNwaV9zYnNfYWRkKHN0cnVjdCBh
-Y3BpX2RldmljZSAqZGV2aWNlKTsKIHN0YXRpYyBpbnQgYWNwaV9zYnNfcmVtb3ZlKHN0cnVjdCBh
-Y3BpX2RldmljZSAqZGV2aWNlLCBpbnQgdHlwZSk7Cg==
-
-------_=_NextPart_001_01C6D104.41B79045--
+The above patch happened to fix a hot-add memory problem, but it was
+the wrong fix, and we're working out a better one.
