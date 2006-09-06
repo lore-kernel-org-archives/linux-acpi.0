@@ -1,66 +1,110 @@
-From: Jim Gettys <jg@laptop.org>
-Subject: Re: [OLPC-devel] Re: [RFC][PATCH 1/2] ACPI: Idle Processor PM
-	Improvements
-Date: Wed, 06 Sep 2006 11:19:09 -0400
-Message-ID: <1157555949.6011.516.camel@localhost.localdomain>
-References: <EB12A50964762B4D8111D55B764A845484D316@scsmsx413.amr.corp.intel.com>
-	 <20060830194317.GA9116@srcf.ucam.org>
-	 <200608311713.21618.bjorn.helgaas@hp.com>
-	 <1157070616.7974.232.camel@localhost.localdomain>
-	 <20060904130933.GC6279@ucw.cz>
-	 <1157466710.6011.262.camel@localhost.localdomain>
-	 <20060906103725.GA4987@atrey.karlin.mff.cuni.cz>
-Reply-To: jg@laptop.org
+From: Maciej Rutecki <maciej.rutecki@gmail.com>
+Subject: Re: 2.6.18-rc5-mm1
+Date: Wed, 06 Sep 2006 18:55:11 +0200
+Message-ID: <44FEFD6F.4020203@gmail.com>
+References: <20060901015818.42767813.akpm@osdl.org> <44F86282.9010809@gmail.com> <200609051016.40468.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms050606020401030802000704"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from alnrmhc11.comcast.net ([204.127.225.91]:38025 "EHLO
-	alnrmhc11.comcast.net") by vger.kernel.org with ESMTP
-	id S1751408AbWIFPTd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 Sep 2006 11:19:33 -0400
-In-Reply-To: <20060906103725.GA4987@atrey.karlin.mff.cuni.cz>
+Received: from ug-out-1314.google.com ([66.249.92.175]:19524 "EHLO
+	ug-out-1314.google.com") by vger.kernel.org with ESMTP
+	id S1751694AbWIFQzT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 Sep 2006 12:55:19 -0400
+Received: by ug-out-1314.google.com with SMTP id m3so2363822ugc
+        for <linux-acpi@vger.kernel.org>; Wed, 06 Sep 2006 09:55:17 -0700 (PDT)
+In-Reply-To: <200609051016.40468.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "Brown, Len" <len.brown@intel.com>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>, ACPI ML <linux-acpi@vger.kernel.org>, Adam Belay <abelay@novell.com>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Arjan van de Ven <arjan@linux.intel.com>, devel@laptop.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wed, 2006-09-06 at 12:37 +0200, Pavel Machek wrote:
-> Hi!
+This is a cryptographically signed message in MIME format.
+
+--------------ms050606020401030802000704
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Bjorn Helgaas napisał(a):
 > 
-> > > 2.4 and 2.6 are *very* different here. You'll probably need to optimize freezer
-> > > in 2.6 a bit...
-> > > 						
-> > 
-> > Among other problems: e.g. 2.4 did not automatically do a VT switch; 2.6
-> > does; we'll have to have a way to signal "we're a sane display driver;
-> > don't switch away from me on suspend".
+> This ACPI "unknown exception code" problem is the same one reported here:
+>   http://www.mail-archive.com/linux-acpi%40vger.kernel.org/msg02873.html
 > 
-> Not like that, please.
+> Basically, we just need to revert this:
+>   http://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.18-rc4/2.6.18-rc4-mm3/broken-out/hot-add-mem-x86_64-acpi-motherboard-fix.patch
 > 
-> You are using X running over framebuffer, right? So that kernel is
-> controlling the graphics hardware. In such case it is safe to avoid VT
-> switch.
-
-It should be perfectly safe.
-
-The Geode has significantly more than dumb frame buffer support, even
-though it can't support 3D in hardware (we do get blit and alpha
-blending, and YUV->RGB support in hardware).
-
-We have an fbdev driver for the hardware (in fact, have to finally have
-a decent driver in general, as the transfer to and from DCON controlled
-display has to happen at interrupt time).  We won't be doing thing evil
-in X behind the operating system's back the way most XF86 drivers do,
-but very much the way display drivers supported X before the strange
-notion of completely OS independent drivers without any kernel support
-twisted the way XF86 drivers usually work.  Ah, back to the future
-(past)....
-                                        - Jim
-
+Thanks it works.
 
 -- 
-Jim Gettys
-One Laptop Per Child
+Maciej Rutecki <maciej.rutecki@gmail.com>
+http://www.unixy.pl
+LTG - Linux Testers Group
+(http://www.stardust.webpages.pl/ltg/wiki/)
 
+--------------ms050606020401030802000704
+Content-Type: application/x-pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: S/MIME Cryptographic Signature
 
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIJHzCC
+AuowggJToAMCAQICEE6xoJMcyW54m7Gt6FEjF3swDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UE
+BhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMT
+I1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA2MDgyODEyMzAwNloX
+DTA3MDgyODEyMzAwNlowSjEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjEnMCUG
+CSqGSIb3DQEJARYYbWFjaWVqLnJ1dGVja2lAZ21haWwuY29tMIIBIjANBgkqhkiG9w0BAQEF
+AAOCAQ8AMIIBCgKCAQEAxmrZ/vMNBQsTG+9oNg9WeFTNtluscxhg5oBwudmsZhsoDdtQYPlK
+ZsRSZnkKTdEWR9w8dwi0JBxmq1XHumBA6/rFfAfhbOV1SBH3ktZ9foamMjpJTjO3+3gF9ocT
+wj1GzfReeGZuPgr4qVVvOT5FfD/PkAJzvur7fyLnviiZokQz8R3c+VhJlW3HurhlOlK0ItUu
+UuVtCdJosQRepYdPQ6H3Mvn74UxVttDeVxWNlQ2DaS7cy8wTmtc5CTNMVctbJkzFz0a/7wCJ
+JHdmqKTgjMBm+ry/IC50jvwkLKAumSJBLWhoIB+LxkJlMwgn69jc0KJkrdkpsUjPdo+zDgff
+iQIDAQABozUwMzAjBgNVHREEHDAagRhtYWNpZWoucnV0ZWNraUBnbWFpbC5jb20wDAYDVR0T
+AQH/BAIwADANBgkqhkiG9w0BAQUFAAOBgQC2O4xAuM7DplCDsgJuaMKz3uR25rq9ucMqVtCW
+CAfCyORrFaxN8LFF9KcYx6M4AK1fQ36JVPtMER2VzGMF74gXgrFQ4A9tno6rKzi/QpzwWoPE
+4I1hcOKz/YxOK0sRjSDR3p5s2XrKVxgUe+TEeJ6/y1iv52o41oYVmilsUovvHzCCAuowggJT
+oAMCAQICEE6xoJMcyW54m7Gt6FEjF3swDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UEBhMCWkEx
+JTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0
+ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA2MDgyODEyMzAwNloXDTA3MDgy
+ODEyMzAwNlowSjEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjEnMCUGCSqGSIb3
+DQEJARYYbWFjaWVqLnJ1dGVja2lAZ21haWwuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A
+MIIBCgKCAQEAxmrZ/vMNBQsTG+9oNg9WeFTNtluscxhg5oBwudmsZhsoDdtQYPlKZsRSZnkK
+TdEWR9w8dwi0JBxmq1XHumBA6/rFfAfhbOV1SBH3ktZ9foamMjpJTjO3+3gF9ocTwj1GzfRe
+eGZuPgr4qVVvOT5FfD/PkAJzvur7fyLnviiZokQz8R3c+VhJlW3HurhlOlK0ItUuUuVtCdJo
+sQRepYdPQ6H3Mvn74UxVttDeVxWNlQ2DaS7cy8wTmtc5CTNMVctbJkzFz0a/7wCJJHdmqKTg
+jMBm+ry/IC50jvwkLKAumSJBLWhoIB+LxkJlMwgn69jc0KJkrdkpsUjPdo+zDgffiQIDAQAB
+ozUwMzAjBgNVHREEHDAagRhtYWNpZWoucnV0ZWNraUBnbWFpbC5jb20wDAYDVR0TAQH/BAIw
+ADANBgkqhkiG9w0BAQUFAAOBgQC2O4xAuM7DplCDsgJuaMKz3uR25rq9ucMqVtCWCAfCyORr
+FaxN8LFF9KcYx6M4AK1fQ36JVPtMER2VzGMF74gXgrFQ4A9tno6rKzi/QpzwWoPE4I1hcOKz
+/YxOK0sRjSDR3p5s2XrKVxgUe+TEeJ6/y1iv52o41oYVmilsUovvHzCCAz8wggKooAMCAQIC
+AQ0wDQYJKoZIhvcNAQEFBQAwgdExCzAJBgNVBAYTAlpBMRUwEwYDVQQIEwxXZXN0ZXJuIENh
+cGUxEjAQBgNVBAcTCUNhcGUgVG93bjEaMBgGA1UEChMRVGhhd3RlIENvbnN1bHRpbmcxKDAm
+BgNVBAsTH0NlcnRpZmljYXRpb24gU2VydmljZXMgRGl2aXNpb24xJDAiBgNVBAMTG1RoYXd0
+ZSBQZXJzb25hbCBGcmVlbWFpbCBDQTErMCkGCSqGSIb3DQEJARYccGVyc29uYWwtZnJlZW1h
+aWxAdGhhd3RlLmNvbTAeFw0wMzA3MTcwMDAwMDBaFw0xMzA3MTYyMzU5NTlaMGIxCzAJBgNV
+BAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQD
+EyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQTCBnzANBgkqhkiG9w0BAQEF
+AAOBjQAwgYkCgYEAxKY8VXNV+065yplaHmjAdQRwnd/p/6Me7L3N9VvyGna9fww6YfK/Uc4B
+1OVQCjDXAmNaLIkVcI7dyfArhVqqP3FWy688Cwfn8R+RNiQqE88r1fOCdz0Dviv+uxg+B79A
+gAJk16emu59l0cUqVIUPSAR/p7bRPGEEQB5kGXJgt/sCAwEAAaOBlDCBkTASBgNVHRMBAf8E
+CDAGAQH/AgEAMEMGA1UdHwQ8MDowOKA2oDSGMmh0dHA6Ly9jcmwudGhhd3RlLmNvbS9UaGF3
+dGVQZXJzb25hbEZyZWVtYWlsQ0EuY3JsMAsGA1UdDwQEAwIBBjApBgNVHREEIjAgpB4wHDEa
+MBgGA1UEAxMRUHJpdmF0ZUxhYmVsMi0xMzgwDQYJKoZIhvcNAQEFBQADgYEASIzRUIPqCy7M
+DaNmrGcPf6+svsIXoUOWlJ1/TCG4+DYfqi2fNi/A9BxQIJNwPP2t4WFiw9k6GX6EsZkbAMUa
+C4J0niVQlGLH2ydxVyWN3amcOY6MIE9lX5Xa9/eH1sYITq726jTlEBpbNU1341YheILcIRk1
+3iSx0x1G/11fZU8xggNkMIIDYAIBATB2MGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3
+dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJl
+ZW1haWwgSXNzdWluZyBDQQIQTrGgkxzJbnibsa3oUSMXezAJBgUrDgMCGgUAoIIBwzAYBgkq
+hkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0wNjA5MDYxNjU1MTFaMCMG
+CSqGSIb3DQEJBDEWBBS8/JIW2Fa8OcbIfP2DJfYcMlUOPzBSBgkqhkiG9w0BCQ8xRTBDMAoG
+CCqGSIb3DQMHMA4GCCqGSIb3DQMCAgIAgDANBggqhkiG9w0DAgIBQDAHBgUrDgMCBzANBggq
+hkiG9w0DAgIBKDCBhQYJKwYBBAGCNxAEMXgwdjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMc
+VGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFs
+IEZyZWVtYWlsIElzc3VpbmcgQ0ECEE6xoJMcyW54m7Gt6FEjF3swgYcGCyqGSIb3DQEJEAIL
+MXigdjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhhd3RlIENvbnN1bHRpbmcgKFB0eSkg
+THRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVtYWlsIElzc3VpbmcgQ0ECEE6x
+oJMcyW54m7Gt6FEjF3swDQYJKoZIhvcNAQEBBQAEggEAVpn7K2VLg2xfEMV4mpg+oR0LX601
+tz4QfdNkPJgkHfcT9fp8/QNGKpc0CLrZg48gCc0hnwYcOwlaoFDmWHiFnQuaxaR+DqkyTMiP
+ivxyGp/csYS4DAZwnBlAndOteYhM5dOKZveFUVF9lJbQBN+sJtY8bOMknxl/padN/N31sm8H
+2EGcEBUHZ4qBUWmcMRzTht9LvwRZD6nOOOStXmDJX8L3EHtsr2IRuhGkW7/Df7oy6TvcNd/v
+EmsS+sjWOC+VLSXqrOo7NvTDNpKcHMdXiCa5NcOFgWGpHWg1TTfwyYBxIf/k00dV122A4MJa
+ZgLogazCszi84k+qw5IRgljT0QAAAAAAAA==
+--------------ms050606020401030802000704--
