@@ -1,105 +1,97 @@
-From: Dmitry Torokhov <dtor@insightbb.com>
-Subject: Re: acpi button event to input layer (was [RFC] [PATCH] Make ACPI button driver an input device)
-Date: Wed, 6 Sep 2006 08:43:40 -0400
-Message-ID: <200609060843.41559.dtor@insightbb.com>
-References: <200608281506.50738.luming.yu@intel.com> <200609060115.50348.dtor@insightbb.com> <200609061733.58222.luming.yu@intel.com>
+From: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
+Subject: Re: 2.6.18-rc5 -rc5-mm1: kacpid continuously generating 4% CPU load
+ on HPC nx6325 w/ SUSE 10.1
+Date: Wed, 06 Sep 2006 18:53:41 +0400
+Message-ID: <44FEE0F5.9090404@linux.intel.com>
+References: <200609031123.02237.rjw@sisk.pl> <200609051313.24716.rjw@sisk.pl> <44FDA39F.3060302@linux.intel.com> <200609052224.58749.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gateway.insightbb.com ([74.128.0.19]:36439 "EHLO
-	asav07.insightbb.com") by vger.kernel.org with ESMTP
-	id S1750818AbWIFMnn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Sep 2006 08:43:43 -0400
-In-Reply-To: <200609061733.58222.luming.yu@intel.com>
-Content-Disposition: inline
+Received: from mga09.intel.com ([134.134.136.24]:50854 "EHLO
+	orsmga102-1.jf.intel.com") by vger.kernel.org with ESMTP
+	id S1751220AbWIFOxp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 Sep 2006 10:53:45 -0400
+In-Reply-To: <200609052224.58749.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yu Luming <luming.yu@intel.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Yu Luming <luming.yu@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Stefan Seyfried <seife@suse.de>
 
-On Wednesday 06 September 2006 05:33, Yu Luming wrote:
-> >
-> >  Here they are, with 2 changes:
-> >
-> >  =C3=82=C2=A0- button module now depends on CONFIG_INPUT (per discu=
-ssion with Len)
-> >  =C3=82=C2=A0- if "_LID" evaluation fails SW__LID event is not deli=
-vered to userspace
-> >
-> >  acpi-button-as-input is on top of acpi-button-cleanup...
-> >
->=20
-> Thanks for the patch. The attached one is the update patch against  2=
-=2E6.18-rc6 git tree, including the 2 patches.=20
->=20
-> >+                       if (!ACPI_FAILURE(acpi_evaluate_integer(hand=
-le, "_LID",
-> >+                                                               NULL=
-, &state)))
-> >+                               input_report_switch(input, SW_LID, !=
-state);
->=20
-> why it needs to report !state , NOT just state?
-> Ps. ACPI defines 0 as closed,  non-0 as open.
->=20
+There is an infinite loop in thermal GPE handler of these HP machines,
+which could only be interrupted by thermal device poll. In this loop handler
+sends Notify() to thermal zone, which, if executed, will cause the needed poll.
+Problem is that this Notify() will be queued in the same kacpid workqueue,
+which executes loop of the handler, so it has no chance to run -- we have a dead lock.
+SUSE sets all thermal zones into polling mode, thus breaking the above
+loop every 2-3 seconds or so (polling interval). At this moment all queued notifies
+for thermal zone are free to run, and you see your 4% of cpu usage by kacpid.
+There are several attempts to remove the above deadlock by either having a pool of threads (up to 10),
+stealing work from single kacpid workqueue thread (Peters' patch), or executing notify()
+events on separate kernel thread (my patch).
+Peters' patch is already shipped in Ubuntu 6.06 kernel, mine was removed from -rc2 after
+it broke Linus' Compaq n620c, which has slightly different loop in DSDT (global locks this time).
+Peters' patch seems dangerous as it tampers with workqueue interface and solves the problem by brute force methods,
+while mine had problem of possibly creating a classical fork DoS atack and creating threads during work of
+suspend/resume -thus breaking it.
+I just did one more attempt to solve this problem -- there is already patch to not defer execution of global lock
+release (thus removing it from dead lock scenario of n620c), so the only dead lock could happen between execution of
+Notify and whatever is on kacpid workqueue. Creation of second workqueue for notifies seems to solve problem with my
+nx6125, while not breaking suspend and not creating threads dynamically.
 
-Arbitrary decision on my part. I consider switch be active when lid is
-closed; when lid is open it is "normal" state.
-
-> >@@ -304,6 +365,12 @@ static int acpi_button_add(struct acpi_d
-> >        button->device =3D device;
-> >        acpi_driver_data(device) =3D button;
-> >
-> >+       button->input =3D input =3D input_allocate_device();
->=20
-> On my test box, I got=20
-> drwxr-xr-x 5 root root 0 2006-09-19 18:04 input3
-> drwxr-xr-x 5 root root 0 2006-09-19 18:04 input4
-> drwxr-xr-x 5 root root 0 2006-09-19 18:04 input5
->=20
-> input 3 is power button, input4 is lid switch,=20
-> input 5  is CM power button.
->=20
-> why these buttons/switch need to have their own input device and even=
-t interface?
-> Can one input device for all acpi button/lid work?
-
-Right now it naturally ties up in the way corresponding acpi
-devices get registered and bound with button driver. It also
-better represents real picture, isn't it? After all they are
-separate devices as presented by ACPI.
-
->=20
-> >+       input->name =3D acpi_device_name(device);
-> Can I get more useful name under  /sys/class/input, rather than input=
-3,4,5...
-
-Not in sysfs. All core input devices in sysfs registered as inputX.
-Handlers add their own names (mouseX, eventX). Having uniform name
-allows to avoid clashes (if you add a custom name for a power button
-what happen when you have 2 of these?). Cusom names belong to /dev
-(either statically created or via udev rules). You can see what each
-inputX is by looking at "name" sttribute in sysfs.
-
-> >+       error =3D input_register_device(input);
-> Shouldn't input_register_device be called before acpi_button_install_=
-notify_handlers?
-> Probably, we need to make sure input_report_switch/key can be invoked=
- only after
-> input _register_device has been invoked and succeeded.
-
-It does not really matter. As long as input device was allocated with
-input_allocate_device it can withstand input_event calls even if it
-is not finished registration with the input core. The events will
-be simply dropped (since there are no handles attached to the device
-yet).
+Hope that explanation is usefull,
+Regards,
+	Alex.
 
 
---=20
-Dmitry
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Rafael J. Wysocki wrote:
+> On Tuesday, 5 September 2006 18:19, Alexey Starikovskiy wrote:
+>> Please try a patch from #5534 bug report, it seems you have the same deadlock as all other HP users.
+> 
+> Well, could you please tell me which comments are you referring to?
+> 
+> The fans seem to work correctly on this box.
+> 
+> Greetings,
+> Rafael
+> 
+> 
+>> Rafael J. Wysocki wrote:
+>>> On Tuesday, 5 September 2006 08:47, Yu Luming wrote:
+>>>> On Sunday 03 September 2006 17:23, Rafael J. Wysocki wrote:
+>>>>> Hi,
+>>>>>
+>>>>>  I'm having a strange issue with the 2.6.18-rc5 and -rc5-mm1 kernels and
+>>>>>  SUSE 10.1 on HPC nx6325 that kacpid is generating 4% of CPU load (on one
+>>>>> core) in a continuous manner.
+>>>> Please try to unload thermal module.
+>>> albercik:~ # rmmod thermal
+>>>
+>>> [hanging? On another console:]
+>>> albercik:~ # ps ax
+>>> ...
+>>> 4864 pts/0    D+     0:00 rmmod thermal
+>>> ...
+>>>
+>>>>>  It sometimes helps if powersaved is restarted, but only for a short time.
+>>>>>  However, after restarting powersaved the kacpid-generated load sometimes
+>>>>> jumps to 100% (on one core) and stays on this level.
+>>>>>
+>>>>>  At the same time the battery is never reported to be 100% full (it stops
+>>>>> at ~98% full and loading) and when I tried to unload the battery module,
+>>>>> rmmod ended up in the D state.
+>>>> what do you mean by "in the D state"?
+>>> TASK_UNINTERRUPTIBLE (like above).
+>>>
+>>> Greetings,
+>>> Rafael
+>>>
+>>>
+>> -
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+> 
