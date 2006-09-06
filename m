@@ -1,97 +1,57 @@
-From: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
-Subject: Re: 2.6.18-rc5 -rc5-mm1: kacpid continuously generating 4% CPU load
- on HPC nx6325 w/ SUSE 10.1
-Date: Wed, 06 Sep 2006 18:53:41 +0400
-Message-ID: <44FEE0F5.9090404@linux.intel.com>
-References: <200609031123.02237.rjw@sisk.pl> <200609051313.24716.rjw@sisk.pl> <44FDA39F.3060302@linux.intel.com> <200609052224.58749.rjw@sisk.pl>
+From: "Jordan Crouse" <jordan.crouse@amd.com>
+Subject: Re: ACPI: Idle Processor PM Improvements
+Date: Wed, 6 Sep 2006 08:58:49 -0600
+Message-ID: <20060906145849.GE2623@cosmic.amd.com>
+References: <EB12A50964762B4D8111D55B764A845484D316@scsmsx413.amr.corp.intel.com>
+ <20060830194317.GA9116@srcf.ucam.org>
+ <200608311713.21618.bjorn.helgaas@hp.com>
+ <1157070616.7974.232.camel@localhost.localdomain>
+ <20060904130933.GC6279@ucw.cz>
+ <1157466710.6011.262.camel@localhost.localdomain>
+ <20060906103725.GA4987@atrey.karlin.mff.cuni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
+Content-Type: text/plain;
+ charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:50854 "EHLO
-	orsmga102-1.jf.intel.com") by vger.kernel.org with ESMTP
-	id S1751220AbWIFOxp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 Sep 2006 10:53:45 -0400
-In-Reply-To: <200609052224.58749.rjw@sisk.pl>
+Received: from outbound-kan.frontbridge.com ([63.161.60.23]:39299 "EHLO
+	outbound1-kan-R.bigfish.com") by vger.kernel.org with ESMTP
+	id S1751243AbWIFO5Z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 Sep 2006 10:57:25 -0400
+In-Reply-To: <20060906103725.GA4987@atrey.karlin.mff.cuni.cz>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Yu Luming <luming.yu@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Stefan Seyfried <seife@suse.de>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Jim Gettys <jg@laptop.org>, "Brown, Len" <len.brown@intel.com>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>, ACPI ML <linux-acpi@vger.kernel.org>, Adam Belay <abelay@novell.com>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Arjan van de Ven <arjan@linux.intel.com>, devel@laptop.org, Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-There is an infinite loop in thermal GPE handler of these HP machines,
-which could only be interrupted by thermal device poll. In this loop handler
-sends Notify() to thermal zone, which, if executed, will cause the needed poll.
-Problem is that this Notify() will be queued in the same kacpid workqueue,
-which executes loop of the handler, so it has no chance to run -- we have a dead lock.
-SUSE sets all thermal zones into polling mode, thus breaking the above
-loop every 2-3 seconds or so (polling interval). At this moment all queued notifies
-for thermal zone are free to run, and you see your 4% of cpu usage by kacpid.
-There are several attempts to remove the above deadlock by either having a pool of threads (up to 10),
-stealing work from single kacpid workqueue thread (Peters' patch), or executing notify()
-events on separate kernel thread (my patch).
-Peters' patch is already shipped in Ubuntu 6.06 kernel, mine was removed from -rc2 after
-it broke Linus' Compaq n620c, which has slightly different loop in DSDT (global locks this time).
-Peters' patch seems dangerous as it tampers with workqueue interface and solves the problem by brute force methods,
-while mine had problem of possibly creating a classical fork DoS atack and creating threads during work of
-suspend/resume -thus breaking it.
-I just did one more attempt to solve this problem -- there is already patch to not defer execution of global lock
-release (thus removing it from dead lock scenario of n620c), so the only dead lock could happen between execution of
-Notify and whatever is on kacpid workqueue. Creation of second workqueue for notifies seems to solve problem with my
-nx6125, while not breaking suspend and not creating threads dynamically.
+On 06/09/06 12:37 +0200, Pavel Machek wrote:
+> Hi!
+> 
+> > > 2.4 and 2.6 are *very* different here. You'll probably need to optimize freezer
+> > > in 2.6 a bit...
+> > > 						
+> > 
+> > Among other problems: e.g. 2.4 did not automatically do a VT switch; 2.6
+> > does; we'll have to have a way to signal "we're a sane display driver;
+> > don't switch away from me on suspend".
+> 
+> Not like that, please.
+> 
+> You are using X running over framebuffer, right? So that kernel is
+> controlling the graphics hardware. In such case it is safe to avoid VT
+> switch.
 
-Hope that explanation is usefull,
-Regards,
-	Alex.
+Actually not - the Geode GX has full 2D hardware acceleration with a complete
+X driver to match.  No Xfbdev here.
+
+Jordan
+
+Pavel
+-- 
+Jordan Crouse
+Senior Linux Engineer
+Advanced Micro Devices, Inc.
+<www.amd.com/embeddedprocessors>
 
 
-
-Rafael J. Wysocki wrote:
-> On Tuesday, 5 September 2006 18:19, Alexey Starikovskiy wrote:
->> Please try a patch from #5534 bug report, it seems you have the same deadlock as all other HP users.
-> 
-> Well, could you please tell me which comments are you referring to?
-> 
-> The fans seem to work correctly on this box.
-> 
-> Greetings,
-> Rafael
-> 
-> 
->> Rafael J. Wysocki wrote:
->>> On Tuesday, 5 September 2006 08:47, Yu Luming wrote:
->>>> On Sunday 03 September 2006 17:23, Rafael J. Wysocki wrote:
->>>>> Hi,
->>>>>
->>>>>  I'm having a strange issue with the 2.6.18-rc5 and -rc5-mm1 kernels and
->>>>>  SUSE 10.1 on HPC nx6325 that kacpid is generating 4% of CPU load (on one
->>>>> core) in a continuous manner.
->>>> Please try to unload thermal module.
->>> albercik:~ # rmmod thermal
->>>
->>> [hanging? On another console:]
->>> albercik:~ # ps ax
->>> ...
->>> 4864 pts/0    D+     0:00 rmmod thermal
->>> ...
->>>
->>>>>  It sometimes helps if powersaved is restarted, but only for a short time.
->>>>>  However, after restarting powersaved the kacpid-generated load sometimes
->>>>> jumps to 100% (on one core) and stays on this level.
->>>>>
->>>>>  At the same time the battery is never reported to be 100% full (it stops
->>>>> at ~98% full and loading) and when I tried to unload the battery module,
->>>>> rmmod ended up in the D state.
->>>> what do you mean by "in the D state"?
->>> TASK_UNINTERRUPTIBLE (like above).
->>>
->>> Greetings,
->>> Rafael
->>>
->>>
->> -
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
-> 
