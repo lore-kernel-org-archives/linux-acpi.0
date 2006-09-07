@@ -1,55 +1,45 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: RE: one more ACPI Error (utglobal-0125): Unknown exception
-	code:0xFFFFFFEA [Re: 2.6.18-rc4-mm3]
-Date: Thu, 07 Sep 2006 10:03:44 +0800
-Message-ID: <1157594624.2782.45.camel@sli10-desk.sh.intel.com>
-References: <B28E9812BAF6E2498B7EC5C427F293A4E38B52@orsmsx415.amr.corp.intel.com>
-	 <1157573069.5713.24.camel@keithlap>
+From: Andrew Morton <akpm@osdl.org>
+Subject: Re: 2.6.18-rc5-mm1
+Date: Wed, 6 Sep 2006 20:08:24 -0700
+Message-ID: <20060906200824.4f74f221.akpm@osdl.org>
+References: <20060901015818.42767813.akpm@osdl.org>
+	<44F86282.9010809@gmail.com>
+	<200609051016.40468.bjorn.helgaas@hp.com>
+	<44FEFD6F.4020203@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:18722 "EHLO mga09.intel.com")
-	by vger.kernel.org with ESMTP id S1422637AbWIGCHf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Sep 2006 22:07:35 -0400
-In-Reply-To: <1157573069.5713.24.camel@keithlap>
+Received: from smtp.osdl.org ([65.172.181.4]:31937 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1751807AbWIGDJN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Sep 2006 23:09:13 -0400
+In-Reply-To: <44FEFD6F.4020203@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: kmannth@us.ibm.com
-Cc: "Moore, Robert" <robert.moore@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Len Brown <lenb@kernel.org>, Mattia Dongili <malattia@linux.it>, Andrew Morton <akpm@osdl.org>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+To: Maciej Rutecki <maciej.rutecki@gmail.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Keith Mannthey <kmannth@us.ibm.com>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-On Thu, 2006-09-07 at 04:04 +0800, keith mannthey wrote:
-> On Wed, 2006-09-06 at 11:59 -0700, Moore, Robert wrote: 
-> > From one of the ACPI guys: 
-> >  
-> > > Get hid 
-> > > Look for driver 
-> > > If you find a match, load it 
-> > > If no match, get CID 
-> > > Look for driver 
-> > > If you find a match, load it 
-> > > If you did not find an hid or cid match, punt
-> 
-> I think this is what my patch is doing.
-> 
-> when looking for a driver: (acpi_bus_find_driver) 
-> I check against the HID  
-> return if found  
-> Then I check against the CID 
-> return if found 
-> else 
-> punt 
-> 
-> Any objections to pushing this into -mm and dropping the motherboard 
-> change?
-I'd prefer not take this way. The ACPI driver model is already mess
-enough, let's don't make it worse. We are converting the ACPI driver
-model to Linux driver model, this will make the attempt difficult.
+On Wed, 06 Sep 2006 18:55:11 +0200
+Maciej Rutecki <maciej.rutecki@gmail.com> wrote:
 
-We can let the motherboard driver not bind to your device (say we didn't
-register the motherboard driver, but just reserve the resource of the
-deivce). Is it ok to you? (I remember Bjorn said he wants to reserve the
-mem region of the device too).
+> Bjorn Helgaas napisa=C5=82(a):
+> >=20
+> > This ACPI "unknown exception code" problem is the same one reported=
+ here:
+> >   http://www.mail-archive.com/linux-acpi%40vger.kernel.org/msg02873=
+=2Ehtml
+> >=20
+> > Basically, we just need to revert this:
+> >   http://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.=
+6.18-rc4/2.6.18-rc4-mm3/broken-out/hot-add-mem-x86_64-acpi-motherboard-=
+fix.patch
+> >=20
+> Thanks it works.
+>=20
 
-Thanks,
-Shaohua
+So...  should I drop that patch?
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
