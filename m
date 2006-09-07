@@ -1,45 +1,36 @@
 From: Andrew Morton <akpm@osdl.org>
-Subject: Re: 2.6.18-rc5-mm1
-Date: Wed, 6 Sep 2006 20:08:24 -0700
-Message-ID: <20060906200824.4f74f221.akpm@osdl.org>
+Subject: Re: [-mm patch] ACPI_SONY shouldn't default m
+Date: Wed, 6 Sep 2006 20:30:03 -0700
+Message-ID: <20060906203003.95ad130a.akpm@osdl.org>
 References: <20060901015818.42767813.akpm@osdl.org>
-	<44F86282.9010809@gmail.com>
-	<200609051016.40468.bjorn.helgaas@hp.com>
-	<44FEFD6F.4020203@gmail.com>
+	<20060906230700.GE12157@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:31937 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1751807AbWIGDJN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Sep 2006 23:09:13 -0400
-In-Reply-To: <44FEFD6F.4020203@gmail.com>
+Received: from smtp.osdl.org ([65.172.181.4]:56006 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1422688AbWIGDdt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Sep 2006 23:33:49 -0400
+In-Reply-To: <20060906230700.GE12157@stusta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Maciej Rutecki <maciej.rutecki@gmail.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Keith Mannthey <kmannth@us.ibm.com>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Stelian Pop <stelian@popies.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wed, 06 Sep 2006 18:55:11 +0200
-Maciej Rutecki <maciej.rutecki@gmail.com> wrote:
+On Thu, 7 Sep 2006 01:07:00 +0200
+Adrian Bunk <bunk@stusta.de> wrote:
 
-> Bjorn Helgaas napisa=C5=82(a):
-> >=20
-> > This ACPI "unknown exception code" problem is the same one reported=
- here:
-> >   http://www.mail-archive.com/linux-acpi%40vger.kernel.org/msg02873=
-=2Ehtml
-> >=20
-> > Basically, we just need to revert this:
-> >   http://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.=
-6.18-rc4/2.6.18-rc4-mm3/broken-out/hot-add-mem-x86_64-acpi-motherboard-=
-fix.patch
-> >=20
-> Thanks it works.
->=20
+> Drivers should default to n.
+> 
+> Signed-off-by: Adrian Bunk <bunk@stusta.de>
+> 
+> --- linux-2.6.18-rc5-mm1/drivers/acpi/Kconfig.old	2006-09-07 00:49:37.000000000 +0200
+> +++ linux-2.6.18-rc5-mm1/drivers/acpi/Kconfig	2006-09-07 00:50:01.000000000 +0200
+> @@ -251,7 +251,6 @@
+>  config ACPI_SONY
+>  	tristate "Sony Laptop Extras"
+>  	depends on X86 && ACPI
+> -	default m
 
-So...  should I drop that patch?
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Not this one - I need it on my Vaio and I get sick of the option vanishing.
+Make it depend on CONFIG_AKPM?
