@@ -1,72 +1,59 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: one more ACPI Error (utglobal-0125): Unknown exception code:0xFFFFFFEA [Re: 2.6.18-rc4-mm3]
-Date: Thu, 7 Sep 2006 09:25:49 -0600
-Message-ID: <200609070925.50145.bjorn.helgaas@hp.com>
-References: <B28E9812BAF6E2498B7EC5C427F293A4E38B52@orsmsx415.amr.corp.intel.com> <1157573069.5713.24.camel@keithlap> <1157594624.2782.45.camel@sli10-desk.sh.intel.com>
+From: keith mannthey <kmannth@us.ibm.com>
+Subject: Re: 2.6.18-rc5-mm1
+Date: Thu, 07 Sep 2006 10:33:14 -0700
+Message-ID: <1157650394.5653.21.camel@keithlap>
+References: <20060901015818.42767813.akpm@osdl.org>
+	 <44F86282.9010809@gmail.com> <200609051016.40468.bjorn.helgaas@hp.com>
+	 <44FEFD6F.4020203@gmail.com>  <20060906200824.4f74f221.akpm@osdl.org>
+Reply-To: kmannth@us.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel6.hp.com ([156.153.255.205]:43724 "EHLO atlrel6.hp.com")
-	by vger.kernel.org with ESMTP id S932092AbWIGPZ5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Sep 2006 11:25:57 -0400
-In-Reply-To: <1157594624.2782.45.camel@sli10-desk.sh.intel.com>
-Content-Disposition: inline
+Received: from e33.co.us.ibm.com ([32.97.110.151]:23470 "EHLO
+	e33.co.us.ibm.com") by vger.kernel.org with ESMTP id S1751779AbWIGRdS
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Sep 2006 13:33:18 -0400
+In-Reply-To: <20060906200824.4f74f221.akpm@osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: kmannth@us.ibm.com, "Moore, Robert" <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, Mattia Dongili <malattia@linux.it>, Andrew Morton <akpm@osdl.org>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+To: Andrew Morton <akpm@osdl.org>
+Cc: Maciej Rutecki <maciej.rutecki@gmail.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-On Wednesday 06 September 2006 20:03, Shaohua Li wrote:
-> On Thu, 2006-09-07 at 04:04 +0800, keith mannthey wrote:
-> > On Wed, 2006-09-06 at 11:59 -0700, Moore, Robert wrote: 
-> > > From one of the ACPI guys: 
-> > >  
-> > > > Get hid 
-> > > > Look for driver 
-> > > > If you find a match, load it 
-> > > > If no match, get CID 
-> > > > Look for driver 
-> > > > If you find a match, load it 
-> > > > If you did not find an hid or cid match, punt
-> > 
-> > I think this is what my patch is doing.
-> > 
-> > when looking for a driver: (acpi_bus_find_driver) 
-> > I check against the HID  
-> > return if found  
-> > Then I check against the CID 
-> > return if found 
-> > else 
-> > punt 
-> > 
-> > Any objections to pushing this into -mm and dropping the motherboard 
-> > change?
+On Wed, 2006-09-06 at 20:08 -0700, Andrew Morton wrote:
+> On Wed, 06 Sep 2006 18:55:11 +0200
+> Maciej Rutecki <maciej.rutecki@gmail.com> wrote:
+>=20
+> > Bjorn Helgaas napisa=C5=82(a):
+> > >=20
+> > > This ACPI "unknown exception code" problem is the same one report=
+ed here:
+> > >   http://www.mail-archive.com/linux-acpi%40vger.kernel.org/msg028=
+73.html
+> > >=20
+> > > Basically, we just need to revert this:
+> > >   http://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/=
+2.6.18-rc4/2.6.18-rc4-mm3/broken-out/hot-add-mem-x86_64-acpi-motherboar=
+d-fix.patch
+> > >=20
+> > Thanks it works.
+> >=20
+>=20
+> So...  should I drop that patch?
 
-> I'd prefer not take this way. The ACPI driver model is already mess
-> enough, let's don't make it worse. We are converting the ACPI driver
-> model to Linux driver model, this will make the attempt difficult.
+Yes please drop this patch. =20
+  I dislike breaking my boxes functionality without a consensus for the
+right fix is but it appears to be breaking others.  The discussion abou=
+t
+what the right fix is ongoing with no definitive direction. At a minimu=
+m
+this patch will need to be updated.=20
 
-I see that driver_bind() and driver_probe_device() don't mesh well
-with the idea that multiple drivers might be able to claim a device,
-because there doesn't seem to be a way to prioritize one driver
-over another.  Is that the problem you're referring to?
+Thanks,
+  Keith=20
 
-If we decide that "try HID first, then try CID" is the right thing,
-I think we should figure out how to make that work.  Maybe that
-means extending the driver model somehow.
-
-> We can let the motherboard driver not bind to your device (say we didn't
-> register the motherboard driver, but just reserve the resource of the
-> deivce). Is it ok to you? (I remember Bjorn said he wants to reserve the
-> mem region of the device too).
-
-My point was that ACPI tells us what resources the device uses,
-and we should reserve all of them so we accurately model the system.
-
-Reserving resources without registering the driver sounds like a hack
-to work around broken behavior elsewhere, so I don't think it's a
-good idea.
-
-Bjorn
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
