@@ -1,34 +1,53 @@
-From: "Miles Lane" <miles.lane@gmail.com>
-Subject: Re: 2.6.18-rc4-mm3 -- ACPI Error (utglobal-0125): Unknown exception code: 0xFFFFFFEA [20060707]
-Date: Thu, 7 Sep 2006 20:25:35 -0700
-Message-ID: <a44ae5cd0609072025i136f9a04ib01ba9c01f332b29@mail.gmail.com>
-References: <a44ae5cd0608262356j29c0234cl198fb207bcad383d@mail.gmail.com>
-	 <20060827001437.ec4f7a7a.akpm@osdl.org>
-	 <17649.47572.627874.371564@stoffel.org> <44F1C336.50304@free.fr>
-	 <a44ae5cd0608270927w62216a00i70966f1e8a190878@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Problem with resuming ATI SATA on HPC nx6325
+Date: Fri, 8 Sep 2006 16:14:32 +0200
+Message-ID: <200609081614.33112.rjw@sisk.pl>
+References: <200609041332.19780.rjw@sisk.pl> <20060907220837.GI29890@elf.ucw.cz> <200609080022.26726.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.183]:45147 "EHLO
-	py-out-1112.google.com") by vger.kernel.org with ESMTP
-	id S1752066AbWIHDZg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Sep 2006 23:25:36 -0400
-Received: by py-out-1112.google.com with SMTP id n25so585359pyg
-        for <linux-acpi@vger.kernel.org>; Thu, 07 Sep 2006 20:25:36 -0700 (PDT)
-In-Reply-To: <a44ae5cd0608270927w62216a00i70966f1e8a190878@mail.gmail.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:934 "EHLO ogre.sisk.pl")
+	by vger.kernel.org with ESMTP id S1751135AbWIHONE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Sep 2006 10:13:04 -0400
+In-Reply-To: <200609080022.26726.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>, Andrew Morton <akpm@osdl.org>
+To: Pavel Machek <pavel@suse.cz>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Takashi Iwai <tiwai@suse.de>
 
-Ping...
+On Friday, 8 September 2006 00:22, Rafael J. Wysocki wrote:
+> Hi,
+> 
+> On Friday, 8 September 2006 00:08, Pavel Machek wrote:
+> > Hi!
+> > 
+> > > > > (Just for the record, suspend with snd_hda_intel seems to work
+> > > > > here...)
+> > > > 
+> > > > The problem seems to be related to the MSI.  Andrew and Greg KH say the
+> > > > MSI code have been rewritten recently, so there's some hope.
+> > > 
+> > > I've just learnt that it's possible to disable the MSI in snd_hda_intel and I
+> > > can suspend and resume the box now (with the non-preemptible 2.6.18-rc5-mm1
+> > > :-) ).
+> > 
+> > So result is
+> > 
+> > 1) we have preempt problem
+> 
+> Probably.  I have to investigate it a bit more, though.
 
-I just reproduced this ACPI error with 2.6.18-rc5-mm1 + all hotfixes +
-a crypto patch from Herbert + two nodemgr patched from Stefan + a max
-trace depth patch from Ingo.
+2.6.18-rc6-mm1 preemptible works too, up to the thermal management problem
+after the resume described at http://bugzilla.kernel.org/show_bug.cgi?id=7122
 
-Any additional debug information needed?  Any progress?
+I think the Linus' suspending of consoles makes it work ...
 
-Thanks,
-         Miles
+Rafael
+
+
+-- 
+You never change things by fighting the existing reality.
+		R. Buckminster Fuller
