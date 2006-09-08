@@ -1,77 +1,30 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: one more ACPI Error (utglobal-0125): Unknown exception
-	code:0xFFFFFFEA [Re: 2.6.18-rc4-mm3]
-Date: Fri, 08 Sep 2006 08:57:08 +0800
-Message-ID: <1157677028.2782.64.camel@sli10-desk.sh.intel.com>
-References: <B28E9812BAF6E2498B7EC5C427F293A4E38B52@orsmsx415.amr.corp.intel.com>
-	 <1157573069.5713.24.camel@keithlap>
-	 <1157594624.2782.45.camel@sli10-desk.sh.intel.com>
-	 <200609070925.50145.bjorn.helgaas@hp.com>
+From: Nigel Cunningham <ncunningham@linuxmail.org>
+Subject: Re: patch [0/2]: acpi: add generic removable drive bay support
+Date: Fri, 08 Sep 2006 11:34:16 +1000
+Message-ID: <1157679256.3474.48.camel@nigel.suspend2.net>
+References: <20060907161305.67804d14.kristen.c.accardi@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751997AbWIHBBE@vger.kernel.org>
-In-Reply-To: <200609070925.50145.bjorn.helgaas@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: kmannth@us.ibm.com, "Moore, Robert" <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, Mattia Dongili <malattia@linux.it>, Andrew Morton <akpm@osdl.org>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from pop5-1.us4.outblaze.com ([205.158.62.125]:17113 "HELO
+	pop5-1.us4.outblaze.com") by vger.kernel.org with SMTP
+	id S1752020AbWIHBeU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Sep 2006 21:34:20 -0400
+In-Reply-To: <20060907161305.67804d14.kristen.c.accardi@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com
 
-On Thu, 2006-09-07 at 09:25 -0600, Bjorn Helgaas wrote:
-> On Wednesday 06 September 2006 20:03, Shaohua Li wrote:
-> > On Thu, 2006-09-07 at 04:04 +0800, keith mannthey wrote:
-> > > On Wed, 2006-09-06 at 11:59 -0700, Moore, Robert wrote: 
-> > > > From one of the ACPI guys: 
-> > > >  
-> > > > > Get hid 
-> > > > > Look for driver 
-> > > > > If you find a match, load it 
-> > > > > If no match, get CID 
-> > > > > Look for driver 
-> > > > > If you find a match, load it 
-> > > > > If you did not find an hid or cid match, punt
-> > > 
-> > > I think this is what my patch is doing.
-> > > 
-> > > when looking for a driver: (acpi_bus_find_driver) 
-> > > I check against the HID  
-> > > return if found  
-> > > Then I check against the CID 
-> > > return if found 
-> > > else 
-> > > punt 
-> > > 
-> > > Any objections to pushing this into -mm and dropping the motherboard 
-> > > change?
-> 
-> > I'd prefer not take this way. The ACPI driver model is already mess
-> > enough, let's don't make it worse. We are converting the ACPI driver
-> > model to Linux driver model, this will make the attempt difficult.
-> 
-> I see that driver_bind() and driver_probe_device() don't mesh well
-> with the idea that multiple drivers might be able to claim a device,
-> because there doesn't seem to be a way to prioritize one driver
-> over another.  Is that the problem you're referring to?
-Yes.
+Hi Kristen.
 
-> If we decide that "try HID first, then try CID" is the right thing,
-> I think we should figure out how to make that work.  Maybe that
-> means extending the driver model somehow.
-Don't think it's easy, especially no other bus needs it I guess.
+Great to see this!
 
-> > We can let the motherboard driver not bind to your device (say we didn't
-> > register the motherboard driver, but just reserve the resource of the
-> > deivce). Is it ok to you? (I remember Bjorn said he wants to reserve the
-> > mem region of the device too).
-> 
-> My point was that ACPI tells us what resources the device uses,
-> and we should reserve all of them so we accurately model the system.
-> 
-> Reserving resources without registering the driver sounds like a hack
-> to work around broken behavior elsewhere, so I don't think it's a
-> good idea.
-Do we really need the memory hotplug device returns pnp0c01/pnp0c02?
-What's the purpose?
+Allow me to anticipate a question I'm sure will come: will this play
+well with (say) suspending while docked and resuming undocked?
 
-Thanks,
-Shaohua
+Regards,
+
+Nigel
+
