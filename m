@@ -1,35 +1,44 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: 2.6.18-rc4-mm3 -- ACPI Error (utglobal-0125): Unknown exception code: 0xFFFFFFEA [20060707]
-Date: Fri, 8 Sep 2006 10:10:57 -0600
-Message-ID: <200609081010.58186.bjorn.helgaas@hp.com>
-References: <a44ae5cd0608262356j29c0234cl198fb207bcad383d@mail.gmail.com> <a44ae5cd0608270927w62216a00i70966f1e8a190878@mail.gmail.com> <a44ae5cd0609072025i136f9a04ib01ba9c01f332b29@mail.gmail.com>
+From: Len Brown <len.brown@intel.com>
+Subject: Re: DSDT database
+Date: Fri, 8 Sep 2006 12:38:54 -0400
+Message-ID: <200609081238.54362.len.brown@intel.com>
+References: <45019486.2030407@embedded-zone.com>
+Reply-To: Len Brown <lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel6.hp.com ([156.153.255.205]:51143 "EHLO atlrel6.hp.com")
-	by vger.kernel.org with ESMTP id S1750767AbWIHQLI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Sep 2006 12:11:08 -0400
-In-Reply-To: <a44ae5cd0609072025i136f9a04ib01ba9c01f332b29@mail.gmail.com>
+Received: from hera.kernel.org ([140.211.167.34]:15065 "EHLO hera.kernel.org")
+	by vger.kernel.org with ESMTP id S1750738AbWIHQhB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Sep 2006 12:37:01 -0400
+In-Reply-To: <45019486.2030407@embedded-zone.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Miles Lane <miles.lane@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>, Andrew Morton <akpm@osdl.org>
+To: "Thomas W. Carley" <tcarley@embedded-zone.com>
+Cc: linux-acpi@vger.kernel.org, ling.l.yu@intel.com
 
-On Thursday 07 September 2006 21:25, Miles Lane wrote:
-> Ping...
+On Friday 08 September 2006 12:04, Thomas W. Carley wrote:
+> ACPI list,
 > 
-> I just reproduced this ACPI error with 2.6.18-rc5-mm1 + all hotfixes +
-> a crypto patch from Herbert + two nodemgr patched from Stefan + a max
-> trace depth patch from Ingo.
-> 
-> Any additional debug information needed?  Any progress?
+> I am looking into the level of SMBus support in ACPI implementations. I
+> see that the sourceforge project has 652 DSDT's in its database. I would
+> like to run some automated scripts over these to get some statistics
+> about the level of SMBus support. However, downloading them one at a
+> time will take forever. Is the DSDT database available in whole? Can
+> someone send me a link, or send the files directly?
 
-We identified the patch that causes the ACPI unknown exception,
-and I think Andrew will be removing it from the next -mm release.
+Maybe Yu Ling knows how to get "behind the mirrors" of the web server
+and can run something for you there?
 
-If you want to try reverting it yourself, here's the patch:
+Another possibility is that you supply the script you want to run
+and folks on the list can mail you the output.  While I've never
+submitted a DSDT to the web site because I fundamentally do not
+believe it modifying DSDTs as a solution for Linux problems,
+I do have a couple DSDTs on hand.
 
-http://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.18-rc4/2.6.18-rc4-mm3/broken-out/hot-add-mem-x86_64-acpi-motherboard-fix.patch
+BTW. exactly what is it that you are trying to learn?
+
+cheers,
+-Len
