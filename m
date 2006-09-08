@@ -1,65 +1,59 @@
-From: "Thomas W. Carley" <tcarley@embedded-zone.com>
-Subject: Re: DSDT database
-Date: Fri, 08 Sep 2006 14:37:32 -0400
-Message-ID: <4501B86C.8010204@embedded-zone.com>
-References: <D352FD896397D04482B87731BD4DBE7FD7C142@bjsmsx401>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: patch [0/2]: acpi: add generic removable drive bay support
+Date: Fri, 8 Sep 2006 20:58:42 +0100
+Message-ID: <20060908195842.GA17220@srcf.ucam.org>
+References: <20060907161305.67804d14.kristen.c.accardi@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sccrmhc11.comcast.net ([63.240.77.81]:19634 "EHLO
-	sccrmhc11.comcast.net") by vger.kernel.org with ESMTP
-	id S1750712AbWIHShm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Sep 2006 14:37:42 -0400
-In-Reply-To: <D352FD896397D04482B87731BD4DBE7FD7C142@bjsmsx401>
+Received: from cavan.codon.org.uk ([217.147.92.49]:13747 "EHLO
+	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
+	id S1751131AbWIHUDT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Sep 2006 16:03:19 -0400
+Content-Disposition: inline
+In-Reply-To: <20060907161305.67804d14.kristen.c.accardi@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Yu, Ling L" <ling.l.yu@intel.com>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Thu, Sep 07, 2006 at 04:13:05PM -0700, Kristen Carlson Accardi wrote:
 
-Never mind bundling them for me, I hacked up a little script to get them
-all.
+Firstly, thanks for this - I wrote some related code a while ago. A 
+couple of questions...
 
-FYI, I used the following script to make a web page with links to all of
-the DSDT files.
+> can then be used by udev to unmount or rescan depending on the event.  It will
+> create a proc entry under /proc/acpi/bay for "eject" and for "status".  Writing 
 
-for ((i=0;i<=1000;i+=1));
-do
-	echo '<A href="http://acpi.sourceforge.net/dsdt/dl.php?id='$i'"> DSDT
-'$i'</A>' >> links.html;
-done
+Do we really want it under /proc? It would seem to make more sense for 
+it to be under /sys.
 
-The I loaded links.html into firefox and used the down them all
-extension to download all of the links. Some of them are not valid, and
-result in files named "---custom.gz". Once these are erased I am left
-with 652 files.
+> a 1 to the eject call will cause the drive bays acpi eject method to be called, 
+> and should be done prior to removing the device.  Reading the "status" entry
+> will tell you either "present" or "removed" depending on the state of the
+> device.  User space scripts can use the status entry to determine if a device
+> has been either inserted or removed in the case of some laptops who generate
+> the exact same event for either insertion or removal (i.e. the Dell M65 for
+> example).  Same scripts for using these events and udev can be found on the
+> thinkwiki website:
 
-Yu, Ling L wrote:
->>> I am looking into the level of SMBus support in ACPI implementations.
-> I
->>> see that the sourceforge project has 652 DSDT's in its database. I
-> would
->>> like to run some automated scripts over these to get some statistics
->>> about the level of SMBus support. However, downloading them one at a
->>> time will take forever. Is the DSDT database available in whole? Can
->>> someone send me a link, or send the files directly?
->> Maybe Yu Ling knows how to get "behind the mirrors" of the web server
->> and can run something for you there?
-> Thomas, 
-> Do you really need all DSDTs on sourceforge web?
-> If yes, I will try to export them and make a whole tarball, put
-> somewhere to let you download.
-> 
-> Thanks
-> - Ling
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (MingW32)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+What gets generated if I rip a drive out without notifying the system 
+beforehand? Dell hardware doesn't appear to send any event when poking 
+the eject lever.
 
-iD8DBQFFAbhsM+ThSqsPpFsRAv8kAKDfqaXFcJY+jiCPD0LXwRl3eqVZ+gCgoBet
-dfEiIamd2Sp+fGZOLYyMCss=
-=QHcE
------END PGP SIGNATURE-----
+The way I originally implemented this was to tie it into the libata 
+layer directly. With a small amount of glue it's possible to tie a 
+hotswap bay to a specific sata port, and use the event to trigger a 
+hotplug rescan. Doing it in kernel space means that the device can be 
+destroyed the moment it's removed, reducing the possibility that further 
+writes will be made. There was some amount of resistance to acpi 
+integration in the scsi layer, though I think we eventually reached a 
+compromise about providing support for platform firmware hooks.
+
+Doing it this way also means that the bay itself can be represented in 
+sysfs as an attribute under the appropriate port. That seems more 
+natural than having the bay be entirely separate, despite ACPI providing 
+us with the information for them to be tied together.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
