@@ -1,35 +1,38 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Problem with resuming ATI SATA on HPC nx6325
-Date: Fri, 8 Sep 2006 17:49:14 +0200
-Message-ID: <20060908154914.GH17680@elf.ucw.cz>
-References: <200609041332.19780.rjw@sisk.pl> <200609071234.21782.rjw@sisk.pl> <20060907220837.GI29890@elf.ucw.cz> <200609080022.26726.rjw@sisk.pl>
+From: "Thomas W. Carley" <tcarley@embedded-zone.com>
+Subject: DSDT database
+Date: Fri, 08 Sep 2006 12:04:22 -0400
+Message-ID: <45019486.2030407@embedded-zone.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:9146 "EHLO amd.ucw.cz")
-	by vger.kernel.org with ESMTP id S1750861AbWIHPtk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Sep 2006 11:49:40 -0400
-Content-Disposition: inline
-In-Reply-To: <200609080022.26726.rjw@sisk.pl>
+Received: from alnrmhc12.comcast.net ([204.127.225.92]:28385 "EHLO
+	alnrmhc12.comcast.net") by vger.kernel.org with ESMTP
+	id S1750804AbWIHQEd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Sep 2006 12:04:33 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Takashi Iwai <tiwai@suse.de>
+To: linux-acpi@vger.kernel.org
 
-Hi!
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> > ? Do we have powernow-k8 problem?
-> 
-> No. :-)
-> 
-> Please also have a look at Bug #5534, comments #153-#164.
+ACPI list,
 
-Okay, ACPI people should fix fan driver ;-).
+I am looking into the level of SMBus support in ACPI implementations. I
+see that the sourceforge project has 652 DSDT's in its database. I would
+like to run some automated scripts over these to get some statistics
+about the level of SMBus support. However, downloading them one at a
+time will take forever. Is the DSDT database available in whole? Can
+someone send me a link, or send the files directly?
 
-Hmm.. fan driver actually seems to be okay.... perhaps
-acpi_thermal_resume needs some more care?
-									Pavel
+Thank you,
+	Tom Carley
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.3 (MingW32)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+iD8DBQFFAZSGM+ThSqsPpFsRAghDAJ9MZsWH7t4QrkzQTiABKPnClv7o/wCdFpgB
+tLBaydvmnshYrkhmj0OHtNE=
+=BXSk
+-----END PGP SIGNATURE-----
