@@ -1,98 +1,39 @@
-From: "Yu, Ling L" <ling.l.yu@intel.com>
-Subject: RE: DSDT database
-Date: Sat, 9 Sep 2006 15:47:43 +0800
-Message-ID: <D352FD896397D04482B87731BD4DBE7FD7C182@bjsmsx401>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: patch [0/2]: acpi: add generic removable drive bay support
+Date: Sat, 09 Sep 2006 16:15:44 +0100
+Message-ID: <1157814944.6877.35.camel@localhost.localdomain>
+References: <20060907161305.67804d14.kristen.c.accardi@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=gb2312
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:26693 "EHLO mga03.intel.com")
-	by vger.kernel.org with ESMTP id S1751394AbWIIHtG convert rfc822-to-8bit
+Received: from outpipe-village-512-1.bc.nu ([81.2.110.250]:25226 "EHLO
+	lxorguk.ukuu.org.uk") by vger.kernel.org with ESMTP id S932235AbWIIOwg
 	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 9 Sep 2006 03:49:06 -0400
-Content-class: urn:content-classes:message
+	Sat, 9 Sep 2006 10:52:36 -0400
+In-Reply-To: <20060907161305.67804d14.kristen.c.accardi@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Thomas W. Carley" <tcarley@embedded-zone.com>, "Moore, Robert" <robert.moore@intel.com>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com
 
-This bundle for the total 652 DSDT files is available here: http://acpi=
-=2Esourceforge.net/dsdt/dsdtall.tar.gz=20
+Ar Iau, 2006-09-07 am 16:13 -0700, ysgrifennodd Kristen Carlson Accardi:
+> the exact same event for either insertion or removal (i.e. the Dell M65 for
+> example).  Same scripts for using these events and udev can be found on the
+> thinkwiki website:
+> 
+> http://www.thinkwiki.org/wiki/How_to_hotswap_UltraBay_devices#When_using_the_ata
+> _piix_driver
 
-Thanks
-- Ling
+drivers/ide/piix does not support hotplug of any kind. drivers/ide does
+not support hotplug of any kind. There is an ioctl hack that vaguely
+works now and then for some interfaces but it too is completely unsafe
+in 2.6 except for RHEL4. If people keep trying to post suggestions to
+use them for anything but debugging I'm going to have to send Andrew
+patches to remove them entirely before more people lose their data.
 
->-----Original Message-----
->From: linux-acpi-owner@vger.kernel.org
->[mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Thomas W. Carle=
-y
->Sent: 2006=C4=EA9=D4=C28=C8=D5 11:38
->To: Yu, Ling L
->Cc: linux-acpi@vger.kernel.org; Len Brown
->Subject: Re: DSDT database
->
->-----BEGIN PGP SIGNED MESSAGE-----
->Hash: SHA1
->
->Never mind bundling them for me, I hacked up a little script to get th=
-em
->all.
->
->FYI, I used the following script to make a web page with links to all =
-of
->the DSDT files.
->
->for ((i=3D0;i<=3D1000;i+=3D1));
->do
->	echo '<A href=3D"http://acpi.sourceforge.net/dsdt/dl.php?id=3D'$i'"> =
-DSDT
->'$i'</A>' >> links.html;
->done
->
->The I loaded links.html into firefox and used the down them all
->extension to download all of the links. Some of them are not valid, an=
-d
->result in files named "---custom.gz". Once these are erased I am left
->with 652 files.
->
->Yu, Ling L wrote:
->>>> I am looking into the level of SMBus support in ACPI implementatio=
-ns.
->> I
->>>> see that the sourceforge project has 652 DSDT's in its database. I
->> would
->>>> like to run some automated scripts over these to get some statisti=
-cs
->>>> about the level of SMBus support. However, downloading them one at=
- a
->>>> time will take forever. Is the DSDT database available in whole? C=
-an
->>>> someone send me a link, or send the files directly?
->>> Maybe Yu Ling knows how to get "behind the mirrors" of the web serv=
-er
->>> and can run something for you there?
->> Thomas,
->> Do you really need all DSDTs on sourceforge web?
->> If yes, I will try to export them and make a whole tarball, put
->> somewhere to let you download.
->>
->> Thanks
->> - Ling
->-----BEGIN PGP SIGNATURE-----
->Version: GnuPG v1.4.3 (MingW32)
->Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
->
->iD8DBQFFAbhsM+ThSqsPpFsRAv8kAKDfqaXFcJY+jiCPD0LXwRl3eqVZ+gCgoBet
->dfEiIamd2Sp+fGZOLYyMCss=3D
->=3DQHcE
->-----END PGP SIGNATURE-----
->-
->To unsubscribe from this list: send the line "unsubscribe linux-acpi" =
-in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+RHEL4 has a set of locking changes/patches to support some basic hotplug
+cases, they were refused upstream so upstream simply doesn't support it.
+
+Alan
+
