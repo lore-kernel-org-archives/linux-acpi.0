@@ -1,52 +1,30 @@
-From: Matthias Hentges <oe@hentges.net>
-Subject: Re: 2.6.18-rc5-mm1
-Date: Sun, 10 Sep 2006 18:24:15 +0200
-Message-ID: <1157905455.8827.12.camel@mhcln03>
-References: <20060901015818.42767813.akpm@osdl.org>
-	 <1157158847.20509.10.camel@mhcln03> <20060901183028.1c6da4df.akpm@osdl.org>
-	 <44F93EB3.8050500@goop.org> <44F942B9.6050102@goop.org>
-	 <20060902084440.GA13361@suse.de>  <45035286.8070209@goop.org>
+From: Martin Zuther <mz_mail@mzuther.de>
+Subject: Yet another DSDT problem
+Date: Sun, 10 Sep 2006 22:16:43 +0200
+Message-ID: <450472AB.6060703@mzuther.de>
+References: <200609041332.19780.rjw@sisk.pl> <200609071234.21782.rjw@sisk.pl> <20060907220837.GI29890@elf.ucw.cz> <200609080022.26726.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-qe8EuXSeOYeH/DUvCXXG"
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <45035286.8070209@goop.org>
-Sender: linux-ide-owner@vger.kernel.org
-To: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: Greg KH <gregkh@suse.de>, Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, linux-ide@vger.kernel.org, Jeff Garzik <jeff@garzik.org>, "Eric W. Biederman" <ebiederm@xmission.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail2.dbdserver.de ([212.88.144.29]:60322 "EHLO
+	mail2.dbdserver.de") by vger.kernel.org with ESMTP id S964863AbWIJUN1
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 10 Sep 2006 16:13:27 -0400
+Received: from [145.254.183.38] (dialin-145-254-183-038.pools.arcor-ip.net [145.254.183.38])
+	by mail2.dbdserver.de (Postfix) with ESMTP id 9E8E6278174
+	for <linux-acpi@vger.kernel.org>; Sun, 10 Sep 2006 22:13:22 +0200 (CEST)
+In-Reply-To: <200609080022.26726.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
+Hi,
 
---=-qe8EuXSeOYeH/DUvCXXG
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+this is a test, as I'm having real problems sending my problem and it's
+probably a single word that keeps my message from being sent to this list.
 
-Am Samstag, den 09.09.2006, 16:47 -0700 schrieb Jeremy Fitzhardinge:
-> Greg KH wrote:
-> > There are 9 MSI patches in my tree that you can just remove.  They were
-> > just recently (a few hours ago) replaced with a total rewrite due to a
-> > number of different problems that were found.  So I'd suggest just
-> > waiting till the next -mm release to see if it works properly or not.
-> >  =20
->=20
-> I'm seeing exactly the same oops with CONFIG_MSI on 2.6.18-rc6-mm1.
+In case it works I'll try to send my message again.
 
-Same here.
---=20
-Matthias 'CoreDump' Hentges=20
-
-My OS: Debian SID. Geek by Nature, Linux by Choice
-
---=-qe8EuXSeOYeH/DUvCXXG
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Dies ist ein digital signierter Nachrichtenteil
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (GNU/Linux)
-
-iD8DBQBFBDwvAq2P5eLUP5IRAtyhAJ4uRRSidxA1o8kd/cvog+XpXV2gTgCcDOnv
-WRYyy+4POYu8Ize8iQ4mMbc=
-=iAnH
------END PGP SIGNATURE-----
-
---=-qe8EuXSeOYeH/DUvCXXG--
+Martin
 
