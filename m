@@ -1,27 +1,27 @@
 From: Martin Zuther <mz_mail@mzuther.de>
 Subject: Yet another DSDL problem
-Date: Sun, 10 Sep 2006 20:31:36 +0200
-Message-ID: <45045A08.80506@mzuther.de>
+Date: Sun, 10 Sep 2006 20:55:32 +0200
+Message-ID: <45045FA4.9070905@mzuther.de>
 References: <200609041332.19780.rjw@sisk.pl> <200609071234.21782.rjw@sisk.pl> <20060907220837.GI29890@elf.ucw.cz> <200609080022.26726.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail1.dbdserver.de ([212.88.144.28]:34739 "EHLO
-	mail1.dbdserver.de") by vger.kernel.org with ESMTP id S932383AbWIJS3A
+Received: from mail1.dbdserver.de ([212.88.144.28]:26040 "EHLO
+	mail1.dbdserver.de") by vger.kernel.org with ESMTP id S932470AbWIJSwU
 	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 10 Sep 2006 14:29:00 -0400
+	Sun, 10 Sep 2006 14:52:20 -0400
 Received: from [212.144.62.25] (dialin-212-144-062-025.pools.arcor-ip.net [212.144.62.25])
-	by mail1.dbdserver.de (Postfix) with ESMTP id 7E94B6812F
-	for <linux-acpi@vger.kernel.org>; Sun, 10 Sep 2006 20:28:56 +0200 (CEST)
+	by mail1.dbdserver.de (Postfix) with ESMTP id A47E46812F
+	for <linux-acpi@vger.kernel.org>; Sun, 10 Sep 2006 20:52:16 +0200 (CEST)
 In-Reply-To: <200609080022.26726.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-Hello everybody!
+Hi!
 
-My system
+My system doesn't shut down properly.
 
   Kubuntu Dapper 6.06 LTS (packages updated regularly)
   Current kernel image of 2.6.15-26-686
@@ -34,7 +34,7 @@ My system
   Keyboard: Logitech iTouch Internet
   Graphics tablet: Wacom Intuos A5
 
-doesn't shut down properly. I remember having the same problem under
+I remember having the same problem under
 Debian 3.0, but as that encounter was somewhat short and is about a year
 ago, the only thing I can remember is that it was a 2.6 kernel as well.
 
@@ -130,7 +130,7 @@ knowledge is based on the Z80 and was lost somewhere years ago, I'd like
 to ask for your help. I also checked the WWW and the ACPI spec for
 ideas, but couldn't come up with anything useful.
 
-Thanks for any help, as I don't seem to get any further on my own...
+Any help is deeply appreciated!
 
 Martin
 Germany
