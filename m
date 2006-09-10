@@ -1,28 +1,142 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: io-apic breaks suspend unless acpi_skip_timer_override
-Date: Sun, 10 Sep 2006 22:20:45 +0100
-Message-ID: <20060910212045.GA9278@srcf.ucam.org>
-References: <20060910141533.GA6594@srcf.ucam.org> <20060910205803.GA1966@elf.ucw.cz>
+From: Martin Zuther <mz_mail@mzuther.de>
+Subject: Re: Problem with resuming ATI SATA on HPC nx6325
+Date: Sun, 10 Sep 2006 18:01:14 +0200
+Message-ID: <450436CA.8000301@mzuther.de>
+References: <200609041332.19780.rjw@sisk.pl> <200609071234.21782.rjw@sisk.pl> <20060907220837.GI29890@elf.ucw.cz> <200609080022.26726.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:2233 "EHLO
-	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
-	id S1751028AbWIJVUt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 10 Sep 2006 17:20:49 -0400
-Content-Disposition: inline
-In-Reply-To: <20060910205803.GA1966@elf.ucw.cz>
+Received: from mail1.dbdserver.de ([212.88.144.28]:22160 "EHLO
+	mail1.dbdserver.de") by vger.kernel.org with ESMTP id S932259AbWIJP6n
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 10 Sep 2006 11:58:43 -0400
+Received: from [145.254.183.45] (dialin-145-254-183-045.pools.arcor-ip.net [145.254.183.45])
+	by mail1.dbdserver.de (Postfix) with ESMTP id 38B7968126
+	for <linux-acpi@vger.kernel.org>; Sun, 10 Sep 2006 17:58:39 +0200 (CEST)
+In-Reply-To: <200609080022.26726.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Sun, Sep 10, 2006 at 10:58:03PM +0200, Pavel Machek wrote:
+Hi everybody!
 
-> Do you mean suspend-to-RAM? Can you try beeping patch?
+My system
 
-Yes, suspend to RAM. I'll look at trying to work out where it blows up, 
-though I suspect it's successfully getting back into C code.
+  Kubuntu Dapper 6.06 LTS (packages updated regularly)
+  Current kernel image of 2.6.15-26-686
 
+  Mainboard: MSI 865PE Neo2-P
+  Processor: Intel Pentium 4 2.8E GHz 800 MHz (Box)
+  RAM: 3 x 512 MB DDR
+  Video card: NVidia GeForce 5200 FX
+
+  Keyboard: Logitech iTouch Internet
+  Graphics tablet: Wacom Intuos A5
+
+doesn't shut down properly. I remember having the same problem under
+Debian 3.0, but as that encounter was somewhat short and is about a year
+ago, the only thing I can remember is that it was a 2.6 kernel as well.
+
+Kubuntu also claims that I have a partial ACPI installation ("not fully
+installed" or something the like in "System Settings -> Laptop and Power
+-> Laptop Battery -> Power Control").
+
+This is probably related to "acpi -V" producing the error message "No
+support for device type: thermal" and having almost no useful entries in
+"/proc/acpi/...".
+
+When I remove the boot option "quiet splash" I get the following
+messages during shutdown:
+
+  * Will now halt.
+  [...] md: stopping all md devices
+  [...] usb 4-2: new full speed USB device using uhci_hcd and address 3
+  [...] usb 4-2: not running at top speed; connect to a high speed hub
+  [...] Shutdown: hda
+  [...]     ACPI-0517: *** Error: Method parse/execution failed
+  [\SB_.PCI0.IDE0.GTM_] (Node dffe5d60), AE_AML_PACKAGE_LIMIT
+  [...]     ACPI-0517: *** Error: Method parse/execution failed
+  [\_SB_.PCI0.IDE0.CHN0._GTM] (Node dffe5fa0), AE_AML_PACKAGE_LIMIT
+  [...]     Power down.
+  [...]     acpi_power_off called
+
+Then there's a click as my hard drives shut down, and that's about as
+near as I ever get to shutting down my computer. The only thing working
+at this stage are pressing the power button (for unusual 4 seconds) or
+the reset button.
+
+Also, when I reboot the computer from KDE, it does as told, but when in
+the BIOS routines, there's a noticeable pause and a click when my two
+S-ATA drives are checked. I don't have a problem like that when
+rebooting Win XP (I have a dual boot system).
+
+I had a look at several forums and had a go at fixing my DSDT.dsl (you
+can find the original file at
+http://www.ubuntuusers.de/paste/2441/?format=txt). As running the
+recommended
+
+  cp /boot/initrd.img-`uname -r` /boot/initrd.img-`uname -r`-acpifix
+  echo -n "INITRDDSDT123DSDT123" >> /boot/initrd.img-`uname -r`-acpifix
+  cat /boot/DSDT.aml >> /boot/initrd.img-`uname -r`-acpifix
+
+failed to produce a bootable image, a found a workaround (and I'm a
+little proud, being still new to Linux... <g>):
+
+  sudo cp ~/DSDT.aml /etc/mkinitramfs/DSDT.aml
+  sudo mkinitramfs -o /boot/initrd.img-`uname -r`-acpifix
+
+After rebooting with such an image I find this in the syslog:
+
+  [...] ACPI-0284: *** Info: Table [DSDT] replaced by host OS
+  [...] ACPI: Looking for DSDT in initramfs... found /DSDT.aml ...
+  successfully read 13614 bytes from /DSDT.aml
+  [...] ACPI: Using customized DSDT
+
+As this message vanishes when I run an original image, I think it has
+worked.
+
+Es scheint also geklapt zu haben. Zeit, sich dem Problem zuzuwenden -
+ein Lauf von iasl -sa DSDT.sdl ergibt die folgende Meldung:
+
+So here are the warnings I found when recompiling the DSDT:
+
+  Intel ACPI Component Architecture
+  ASL Optimizing Compiler version 20060707 [Jul 25 2006]
+  Copyright (C) 2000 - 2006 Intel Corporation
+  Supports ACPI Specification Revision 3.0a
+
+  DSDT.dsl  4034:                 Method (STM, 0, Serialized)
+  Warning  1086 -                           ^ Not all control
+    paths return a value (STM_)
+
+  DSDT.dsl  4359:     Method (_WAK, 1, NotSerialized)
+  Warning  1079 -                ^ Reserved method must return a
+    value (_WAK)
+
+  ASL Input:  DSDT.dsl - 4458 lines, 150438 bytes, 1514 keywords
+  AML Output: DSDT.aml - 13606 bytes 500 named objects 1014
+    executable opcodes
+
+  Compilation complete. 0 Errors, 2 Warnings, 0 Remarks,
+    462 Optimizations
+
+For the second warning I use the googled "standard solution"
+
+  Return(Package(0x02){0x00, 0x00})
+
+So the problem seems to lie within the first warning. As my machine code
+knowledge is based on the Z80 and was lost somewhere years ago, I'd like
+to ask for your help. I also checked the WWW and the ACPI spec for
+ideas, but couldn't come up with anything useful.
+
+Thanks for any help, as I don't seem to get any further on my own...
+
+Martin
+Germany
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+mz_mail@mzuther.de
+www.mzuther.de
+www.radix-musik.de
+
+
