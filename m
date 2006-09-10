@@ -1,27 +1,28 @@
 From: Martin Zuther <mz_mail@mzuther.de>
-Subject: Yet another DSDL problem
-Date: Sun, 10 Sep 2006 20:55:32 +0200
-Message-ID: <45045FA4.9070905@mzuther.de>
+Subject: Yet another DSDT problem
+Date: Sun, 10 Sep 2006 21:37:19 +0200
+Message-ID: <4504696F.6050506@mzuther.de>
 References: <200609041332.19780.rjw@sisk.pl> <200609071234.21782.rjw@sisk.pl> <20060907220837.GI29890@elf.ucw.cz> <200609080022.26726.rjw@sisk.pl>
+Reply-To: mz_mail@mzuther.de
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail1.dbdserver.de ([212.88.144.28]:26040 "EHLO
-	mail1.dbdserver.de") by vger.kernel.org with ESMTP id S932470AbWIJSwU
+Received: from mail2.dbdserver.de ([212.88.144.29]:16283 "EHLO
+	mail2.dbdserver.de") by vger.kernel.org with ESMTP id S932554AbWIJTeD
 	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 10 Sep 2006 14:52:20 -0400
-Received: from [212.144.62.25] (dialin-212-144-062-025.pools.arcor-ip.net [212.144.62.25])
-	by mail1.dbdserver.de (Postfix) with ESMTP id A47E46812F
-	for <linux-acpi@vger.kernel.org>; Sun, 10 Sep 2006 20:52:16 +0200 (CEST)
+	Sun, 10 Sep 2006 15:34:03 -0400
+Received: from [145.254.183.38] (dialin-145-254-183-038.pools.arcor-ip.net [145.254.183.38])
+	by mail2.dbdserver.de (Postfix) with ESMTP id 3A13F278002
+	for <linux-acpi@vger.kernel.org>; Sun, 10 Sep 2006 21:33:59 +0200 (CEST)
 In-Reply-To: <200609080022.26726.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-Hi!
+Dear list members,
 
-My system doesn't shut down properly.
+my system doesn't shut down properly.
 
   Kubuntu Dapper 6.06 LTS (packages updated regularly)
   Current kernel image of 2.6.15-26-686
@@ -38,9 +39,9 @@ I remember having the same problem under
 Debian 3.0, but as that encounter was somewhat short and is about a year
 ago, the only thing I can remember is that it was a 2.6 kernel as well.
 
-Kubuntu also claims that I have a partial ACPI installation ("not fully
-installed" or something the like in "System Settings -> Laptop and Power
--> Laptop Battery -> Power Control").
+Kubuntu also hints that I have a partial ACPI installation in "System
+Settings - Laptop and Power
+- Laptop Battery - Power Control".
 
 This is probably related to "acpi -V" producing the error message "No
 support for device type: thermal" and having almost no useful entries in
@@ -133,7 +134,7 @@ ideas, but couldn't come up with anything useful.
 Any help is deeply appreciated!
 
 Martin
-Germany
+
 -- 
 mz_mail@mzuther.de
 www.mzuther.de
