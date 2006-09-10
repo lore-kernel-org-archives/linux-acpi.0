@@ -1,28 +1,25 @@
-From: Jeremy Fitzhardinge <jeremy@goop.org>
-Subject: Re: 2.6.18-rc5-mm1
-Date: Sat, 09 Sep 2006 16:47:18 -0700
-Message-ID: <45035286.8070209@goop.org>
-References: <20060901015818.42767813.akpm@osdl.org> <1157158847.20509.10.camel@mhcln03> <20060901183028.1c6da4df.akpm@osdl.org> <44F93EB3.8050500@goop.org> <44F942B9.6050102@goop.org> <20060902084440.GA13361@suse.de>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: io-apic breaks suspend unless acpi_skip_timer_override
+Date: Sun, 10 Sep 2006 15:15:34 +0100
+Message-ID: <20060910141533.GA6594@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gw.goop.org ([64.81.55.164]:64412 "EHLO mail.goop.org")
-	by vger.kernel.org with ESMTP id S965048AbWIJAPr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 9 Sep 2006 20:15:47 -0400
-In-Reply-To: <20060902084440.GA13361@suse.de>
+Received: from cavan.codon.org.uk ([217.147.92.49]:59015 "EHLO
+	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
+	id S932172AbWIJOPg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 10 Sep 2006 10:15:36 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@suse.de>
-Cc: Andrew Morton <akpm@osdl.org>, Matthias Hentges <oe@hentges.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, linux-ide@vger.kernel.org, Jeff Garzik <jeff@garzik.org>, "Eric W. Biederman" <ebiederm@xmission.com>
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Greg KH wrote:
-> There are 9 MSI patches in my tree that you can just remove.  They were
-> just recently (a few hours ago) replaced with a total rewrite due to a
-> number of different problems that were found.  So I'd suggest just
-> waiting till the next -mm release to see if it works properly or not.
->   
+ACPI suspend/resume fails on my HP nx6125 unless I either:
 
-I'm seeing exactly the same oops with CONFIG_MSI on 2.6.18-rc6-mm1.
+a) boot with noapic, or
+b) boot with acpi_skip_timer_override
 
-    J
+Does anyone have the faintest idea how to debug this?
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
