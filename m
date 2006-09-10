@@ -1,25 +1,25 @@
 From: Martin Zuther <mz_mail@mzuther.de>
-Subject: Re: Problem with resuming ATI SATA on HPC nx6325
-Date: Sun, 10 Sep 2006 18:01:14 +0200
-Message-ID: <450436CA.8000301@mzuther.de>
+Subject: Yet another DSDL problem
+Date: Sun, 10 Sep 2006 20:31:36 +0200
+Message-ID: <45045A08.80506@mzuther.de>
 References: <200609041332.19780.rjw@sisk.pl> <200609071234.21782.rjw@sisk.pl> <20060907220837.GI29890@elf.ucw.cz> <200609080022.26726.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail1.dbdserver.de ([212.88.144.28]:22160 "EHLO
-	mail1.dbdserver.de") by vger.kernel.org with ESMTP id S932259AbWIJP6n
+Received: from mail1.dbdserver.de ([212.88.144.28]:34739 "EHLO
+	mail1.dbdserver.de") by vger.kernel.org with ESMTP id S932383AbWIJS3A
 	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 10 Sep 2006 11:58:43 -0400
-Received: from [145.254.183.45] (dialin-145-254-183-045.pools.arcor-ip.net [145.254.183.45])
-	by mail1.dbdserver.de (Postfix) with ESMTP id 38B7968126
-	for <linux-acpi@vger.kernel.org>; Sun, 10 Sep 2006 17:58:39 +0200 (CEST)
+	Sun, 10 Sep 2006 14:29:00 -0400
+Received: from [212.144.62.25] (dialin-212-144-062-025.pools.arcor-ip.net [212.144.62.25])
+	by mail1.dbdserver.de (Postfix) with ESMTP id 7E94B6812F
+	for <linux-acpi@vger.kernel.org>; Sun, 10 Sep 2006 20:28:56 +0200 (CEST)
 In-Reply-To: <200609080022.26726.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-Hi everybody!
+Hello everybody!
 
 My system
 
@@ -138,5 +138,4 @@ Germany
 mz_mail@mzuther.de
 www.mzuther.de
 www.radix-musik.de
-
 
