@@ -1,24 +1,27 @@
-From: Martin Zuther <mz_mail@mzuther.de>
+From: Martin Zuther <mzuther@mzuther.de>
 Subject: Yet another DSDT problem
-Date: Sun, 10 Sep 2006 21:37:19 +0200
-Message-ID: <4504696F.6050506@mzuther.de>
+Date: Sun, 10 Sep 2006 22:19:26 +0200
+Message-ID: <4504734E.6000501@mzuther.de>
 References: <200609041332.19780.rjw@sisk.pl> <200609071234.21782.rjw@sisk.pl> <20060907220837.GI29890@elf.ucw.cz> <200609080022.26726.rjw@sisk.pl>
 Reply-To: mz_mail@mzuther.de
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail2.dbdserver.de ([212.88.144.29]:16283 "EHLO
-	mail2.dbdserver.de") by vger.kernel.org with ESMTP id S932554AbWIJTeD
+Received: from mail2.dbdserver.de ([212.88.144.29]:7332 "EHLO
+	mail2.dbdserver.de") by vger.kernel.org with ESMTP id S964862AbWIJUQK
 	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 10 Sep 2006 15:34:03 -0400
+	Sun, 10 Sep 2006 16:16:10 -0400
 Received: from [145.254.183.38] (dialin-145-254-183-038.pools.arcor-ip.net [145.254.183.38])
-	by mail2.dbdserver.de (Postfix) with ESMTP id 3A13F278002
-	for <linux-acpi@vger.kernel.org>; Sun, 10 Sep 2006 21:33:59 +0200 (CEST)
+	by mail2.dbdserver.de (Postfix) with ESMTP id 32341278010
+	for <linux-acpi@vger.kernel.org>; Sun, 10 Sep 2006 22:16:05 +0200 (CEST)
 In-Reply-To: <200609080022.26726.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
 Dear list members,
 
@@ -41,7 +44,7 @@ ago, the only thing I can remember is that it was a 2.6 kernel as well.
 
 Kubuntu also hints that I have a partial ACPI installation in "System
 Settings - Laptop and Power
-- Laptop Battery - Power Control".
+- - Laptop Battery - Power Control".
 
 This is probably related to "acpi -V" producing the error message "No
 support for device type: thermal" and having almost no useful entries in
@@ -51,16 +54,16 @@ When I remove the boot option "quiet splash" I get the following
 messages during shutdown:
 
   * Will now halt.
-  [...] md: stopping all md devices
-  [...] usb 4-2: new full speed USB device using uhci_hcd and address 3
-  [...] usb 4-2: not running at top speed; connect to a high speed hub
-  [...] Shutdown: hda
-  [...]     ACPI-0517: *** Error: Method parse/execution failed
-  [\SB_.PCI0.IDE0.GTM_] (Node dffe5d60), AE_AML_PACKAGE_LIMIT
-  [...]     ACPI-0517: *** Error: Method parse/execution failed
-  [\_SB_.PCI0.IDE0.CHN0._GTM] (Node dffe5fa0), AE_AML_PACKAGE_LIMIT
-  [...]     Power down.
-  [...]     acpi_power_off called
+  md: stopping all md devices
+  usb 4-2: new full speed USB device using uhci_hcd and address 3
+  usb 4-2: not running at top speed; connect to a high speed hub
+  Shutdown: hda
+  ACPI-0517: *** Error: Method parse/execution failed
+  [SB_.PCI0.IDE0.GTM_] (Node dffe5d60), AE_AML_PACKAGE_LIMIT
+  ACPI-0517: *** Error: Method parse/execution failed
+  [_SB_.PCI0.IDE0.CHN0._GTM (Node dffe5fa0), AE_AML_PACKAGE_LIMIT
+  Power down.
+  acpi_power_off called
 
 Then there's a click as my hard drives shut down, and that's about as
 near as I ever get to shutting down my computer. The only thing working
@@ -75,24 +78,19 @@ rebooting Win XP (I have a dual boot system).
 I had a look at several forums and had a go at fixing my DSDT.dsl (you
 can find the original file at
 http://www.ubuntuusers.de/paste/2441/?format=txt). As running the
-recommended
-
-  cp /boot/initrd.img-`uname -r` /boot/initrd.img-`uname -r`-acpifix
-  echo -n "INITRDDSDT123DSDT123" >> /boot/initrd.img-`uname -r`-acpifix
-  cat /boot/DSDT.aml >> /boot/initrd.img-`uname -r`-acpifix
-
-failed to produce a bootable image, a found a workaround (and I'm a
-little proud, being still new to Linux... <g>):
+recommended method for including a new DSDT failed to produce a bootable
+image, a found a workaround (and I'm a little proud, being still new to
+Linux... <g>):
 
   sudo cp ~/DSDT.aml /etc/mkinitramfs/DSDT.aml
   sudo mkinitramfs -o /boot/initrd.img-`uname -r`-acpifix
 
 After rebooting with such an image I find this in the syslog:
 
-  [...] ACPI-0284: *** Info: Table [DSDT] replaced by host OS
-  [...] ACPI: Looking for DSDT in initramfs... found /DSDT.aml ...
+  ACPI-0284: *** Info: Table [DSDT] replaced by host OS
+  ACPI: Looking for DSDT in initramfs... found /DSDT.aml ...
   successfully read 13614 bytes from /DSDT.aml
-  [...] ACPI: Using customized DSDT
+  ACPI: Using customized DSDT
 
 As this message vanishes when I run an original image, I think it has
 worked.
@@ -101,11 +99,6 @@ Es scheint also geklapt zu haben. Zeit, sich dem Problem zuzuwenden -
 ein Lauf von iasl -sa DSDT.sdl ergibt die folgende Meldung:
 
 So here are the warnings I found when recompiling the DSDT:
-
-  Intel ACPI Component Architecture
-  ASL Optimizing Compiler version 20060707 [Jul 25 2006]
-  Copyright (C) 2000 - 2006 Intel Corporation
-  Supports ACPI Specification Revision 3.0a
 
   DSDT.dsl  4034:                 Method (STM, 0, Serialized)
   Warning  1086 -                           ^ Not all control
@@ -134,9 +127,12 @@ ideas, but couldn't come up with anything useful.
 Any help is deeply appreciated!
 
 Martin
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2.2 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
--- 
-mz_mail@mzuther.de
-www.mzuther.de
-www.radix-musik.de
+iD8DBQFFBHNOx8z6qIGmGv0RAsFfAJ90hHJN7Wbvntht5JUtY03smP+4TQCeObZB
+zoCa37FxWn2A/+VmdwrdeiE=
+=n1LD
+-----END PGP SIGNATURE-----
 
