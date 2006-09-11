@@ -1,32 +1,50 @@
-From: Andi Kleen <ak@suse.de>
-Subject: Re: io-apic - no timer ticks after resume on IXP200
-Date: Mon, 11 Sep 2006 07:46:58 +0200
-Message-ID: <200609110746.58548.ak@suse.de>
-References: <20060910141533.GA6594@srcf.ucam.org> <20060910223308.GA1691@elf.ucw.cz> <20060911003129.GA10600@srcf.ucam.org>
+From: Bret Comstock Waldow <bcw1000@yahoo.com>
+Subject: no /proc/acpi/fan on Fujitsu ST5032D
+Date: Mon, 11 Sep 2006 08:48:27 +0800
+Message-ID: <4504B25B.8060800@yahoo.com>
+Reply-To: bwaldow@alum.mit.edu
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:35794 "EHLO mx2.suse.de")
-	by vger.kernel.org with ESMTP id S964900AbWIKF5H (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 Sep 2006 01:57:07 -0400
-In-Reply-To: <20060911003129.GA10600@srcf.ucam.org>
-Content-Disposition: inline
+Received: from smtp106.plus.mail.mud.yahoo.com ([68.142.206.239]:22175 "HELO
+	smtp106.plus.mail.mud.yahoo.com") by vger.kernel.org with SMTP
+	id S964858AbWIKAs3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 10 Sep 2006 20:48:29 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Pavel Machek <pavel@ucw.cz>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Monday 11 September 2006 02:31, Matthew Garrett wrote:
-> (Cc:ing Andi because I seem to remember him reworking the code for this
-> chipset)
+A new Gentoo install from 2006.1 Live. I've installed the latest 
+'gentoo-sources', compiled and it boots ok.
 
-You forgot to mention on which kernel version you're seeing this?
-In particular did it work in some kernel version and then stop in another?
+Neither the liveCD nor the new kernels show any entries at all in 
+/proc/acpi/fan or /proc/acpi/thermal.
 
-BTW here suspend/resume works fine on a IXP200, so it's something
-specific to your board.
+Other acpi entries are present.
 
--Andi
+I have tried every distro's live CD I can find - same results. Full 
+installs of Kubuntu Dapper 6.06 the same. I could read CPU speed and 
+battery, but the thermal stuff doesn't exist. The machine gets hot, and 
+I can't risk Linux on it until the fan turns on. It never does.
+
+Hardware is a Fujitsu Stylistic ST5032D tablet:
+1.2G Centrino ULV
+Intel 915 video
+2G RAM
+
+Native OS is XP Pro TabletPC, and the fan runs properly with that OS, so 
+I know it works.
+
+I get the same behavior with a Fujitsu ST3400s tablet with Xubuntu 
+(didn't test with XP - I mean the same symptoms with Linux - no fan, no 
+entries).  However, the thermal zone & temperature do appear on the ST3400s.
+
+The default LiveCD kernel has all the ACPI stuff, I load the modules by 
+hand, the new kernel has ACPI entries, the same, no devices, no fan, no 
+temperatures.
+
+Help please?  I would like to get on with making tablets usable with Linux.
+
+Thanks,
+Bret
