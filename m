@@ -1,53 +1,28 @@
-From: Stefan Seyfried <seife@suse.de>
-Subject: Re: x60 - spontaneous thermal shutdown
-Date: Mon, 11 Sep 2006 11:46:07 +0200
-Message-ID: <20060911094607.GA14095@suse.de>
-References: <20060904214059.GA1702@elf.ucw.cz>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: io-apic - no timer ticks after resume on IXP200
+Date: Mon, 11 Sep 2006 12:05:30 +0100
+Message-ID: <20060911110530.GA15320@srcf.ucam.org>
+References: <20060910141533.GA6594@srcf.ucam.org> <20060910223308.GA1691@elf.ucw.cz> <20060911003129.GA10600@srcf.ucam.org> <200609110746.58548.ak@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:15085 "EHLO mx2.suse.de")
-	by vger.kernel.org with ESMTP id S932179AbWIKJqZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 Sep 2006 05:46:25 -0400
+Received: from cavan.codon.org.uk ([217.147.92.49]:51385 "EHLO
+	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
+	id S1750782AbWIKLFi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 11 Sep 2006 07:05:38 -0400
 Content-Disposition: inline
-In-Reply-To: <20060904214059.GA1702@elf.ucw.cz>
+In-Reply-To: <200609110746.58548.ak@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: ACPI mailing list <linux-acpi@vger.kernel.org>, kernel list <linux-kernel@vger.kernel.org>
+To: Andi Kleen <ak@suse.de>
+Cc: Pavel Machek <pavel@ucw.cz>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, Sep 04, 2006 at 11:40:59PM +0200, Pavel Machek wrote:
-> Hi!
->=20
-> x60 shut down after quite a while of uptime, in period of quite heavy
-> load:
->=20
-> Sep  4 23:33:01 amd kernel: ACPI: Critical trip point
-> Sep  4 23:33:01 amd kernel: Critical temperature reached (128 C), shu=
-tting down.
-> Sep  4 23:33:01 amd shutdown[32585]: shutting down for system halt
-> Sep  4 23:34:42 amd init: Switching to runlevel: 0
->=20
-> I do not think cpu reached 128C, as I still have my machine... Did
-> anyone else see that?
+On Mon, Sep 11, 2006 at 07:46:58AM +0200, Andi Kleen wrote:
 
-my usual suspect: use ec_intr=3D0. I have seen this rather often on HP =
-machines.
-I attributed it to "communication problems with embedded controller" an=
-d
-ec_intr=3D0 seemed to help somehow. But then, this was some kernel vers=
-ions
-ago and i did not encounter it recently.
---=20
-Stefan Seyfried                  \ "I didn't want to write for pay. I
-QA / R&D Team Mobile Devices      \ wanted to be paid for what I write.=
-"
-SUSE LINUX Products GmbH, N=FCrnberg \                    -- Leonard Co=
-hen
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> You forgot to mention on which kernel version you're seeing this?
+> In particular did it work in some kernel version and then stop in another?
+
+Oops, sorry. I'm using 2.6.17.11, but the problem appears to persist in 
+the latest 2.6.18-rc. Does your board have a timer override?
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
