@@ -1,94 +1,34 @@
-From: akpm@osdl.org
-Subject: + fix-incorrect-handling-of-pci-express-root-bridge-_hid.patch added to -mm tree
-Date: Mon, 11 Sep 2006 12:48:10 -0700
-Message-ID: <200609111948.k8BJmAaj024182@shell0.pdx.osdl.net>
+From: Andi Kleen <ak@suse.de>
+Subject: Re: io-apic - no timer ticks after resume on IXP200
+Date: Mon, 11 Sep 2006 22:02:50 +0200
+Message-ID: <200609112202.50756.ak@suse.de>
+References: <20060910141533.GA6594@srcf.ucam.org> <200609110746.58548.ak@suse.de> <20060911110530.GA15320@srcf.ucam.org>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:38814 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1751343AbWIKTsO (ORCPT
+Received: from ns2.suse.de ([195.135.220.15]:26069 "EHLO mx2.suse.de")
+	by vger.kernel.org with ESMTP id S965050AbWIKVSd (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 Sep 2006 15:48:14 -0400
+	Mon, 11 Sep 2006 17:18:33 -0400
+In-Reply-To: <20060911110530.GA15320@srcf.ucam.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: eiichiro.oiwa.nm@hitachi.com, len.brown@intel.com, linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Pavel Machek <pavel@ucw.cz>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
+On Monday 11 September 2006 13:05, Matthew Garrett wrote:
+> On Mon, Sep 11, 2006 at 07:46:58AM +0200, Andi Kleen wrote:
+> > You forgot to mention on which kernel version you're seeing this?
+> > In particular did it work in some kernel version and then stop in
+> > another?
+>
+> Oops, sorry. I'm using 2.6.17.11, but the problem appears to persist in
+> the latest 2.6.18-rc. 
 
-The patch titled
+And did it work with a earlier kernel?
 
-     Fix incorrect handling PCI-Express Root Bridge _HID
-
-has been added to the -mm tree.  Its filename is
-
-     fix-incorrect-handling-of-pci-express-root-bridge-_hid.patch
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
-
-------------------------------------------------------
-Subject: Fix incorrect handling PCI-Express Root Bridge _HID
-From: <eiichiro.oiwa.nm@hitachi.com>
-
-Lifted from http://bugzilla.kernel.org/show_bug.cgi?id=7145
-
-PCI Bus Topology:
-
-[CPU] [CPU]        [CPU]  [CPU]
-  |      |BUS        |     |   BUS
---+--+---+---      --+--+--+------
-     |                  |
- [Root Bridge]*1-----[Root Bridge]*1
-     |      |           \        \
- [Bridge]   |        [PCI-e slot] [PCI-e slot]
-    | |    [PCI-e slot]
-    | \
-    | [PCI-e slot]
-    |
-    |
- [PCI Bridge]
-    |     \
-    |      [PCI-X slot]
-    |
- [PCI-X slot]
-
-*1: PCI Express Root Bridge.
-
-I could not get correct PCI Express BUS number from the structure of
-acpi_object_extra.  I always get zero as BUS number regardless of BUS
-location.  I found that there is incorrect comparison with _HID (PNP0A08)
-in acpi/events/evrgnini.c and PCI Express _BBN method always fail. 
-Therefore, we get always get zero as PCI Express bus number.
-
-I suggest the following patch.
-
-Cc: "Brown, Len" <len.brown@intel.com>
-Cc: <linux-acpi@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
----
-
- drivers/acpi/events/evrgnini.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff -puN drivers/acpi/events/evrgnini.c~fix-incorrect-handling-of-pci-express-root-bridge-_hid drivers/acpi/events/evrgnini.c
---- a/drivers/acpi/events/evrgnini.c~fix-incorrect-handling-of-pci-express-root-bridge-_hid
-+++ a/drivers/acpi/events/evrgnini.c
-@@ -225,12 +225,12 @@ acpi_ev_pci_config_region_setup(acpi_han
- 				if (!
- 				    (ACPI_STRNCMP
- 				     (object_hID.value, PCI_ROOT_HID_STRING,
--				      sizeof(PCI_ROOT_HID_STRING))
-+				      sizeof(PCI_ROOT_HID_STRING)))
- 				     ||
- 				     !(ACPI_STRNCMP
- 				       (object_hID.value,
- 					PCI_EXPRESS_ROOT_HID_STRING,
--					sizeof(PCI_EXPRESS_ROOT_HID_STRING)))))
-+					sizeof(PCI_EXPRESS_ROOT_HID_STRING))))
- 				{
- 
- 					/* Install a handler for this PCI root bridge */
-_
-
-Patches currently in -mm which might be from eiichiro.oiwa.nm@hitachi.com are
-
-fix-incorrect-handling-of-pci-express-root-bridge-_hid.patch
+-Andi
 
