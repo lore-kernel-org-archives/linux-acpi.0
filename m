@@ -1,44 +1,33 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [OLPC-devel] Re: [RFC][PATCH 1/2] ACPI: Idle Processor PM Improvements
-Date: Tue, 12 Sep 2006 11:21:43 +0200
-Message-ID: <20060912092143.GD19482@elf.ucw.cz>
-References: <EB12A50964762B4D8111D55B764A845484D316@scsmsx413.amr.corp.intel.com> <20060830194317.GA9116@srcf.ucam.org> <200608311713.21618.bjorn.helgaas@hp.com> <1157070616.7974.232.camel@localhost.localdomain> <20060904130933.GC6279@ucw.cz> <1157466710.6011.262.camel@localhost.localdomain> <20060906103725.GA4987@atrey.karlin.mff.cuni.cz> <1157555949.6011.516.camel@localhost.localdomain>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] - restore i8259A eoi status on resume
+Date: Tue, 12 Sep 2006 13:47:42 +0100
+Message-ID: <20060912124742.GB31344@srcf.ucam.org>
+References: <20060910141533.GA6594@srcf.ucam.org> <200609110746.58548.ak@suse.de> <20060911110530.GA15320@srcf.ucam.org> <200609112202.50756.ak@suse.de> <20060911222351.GA23679@srcf.ucam.org> <20060911230745.GA24001@srcf.ucam.org> <20060912091906.GB19482@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:49831 "EHLO
-	atrey.karlin.mff.cuni.cz") by vger.kernel.org with ESMTP
-	id S965156AbWILJVo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Sep 2006 05:21:44 -0400
+Received: from cavan.codon.org.uk ([217.147.92.49]:9681 "EHLO
+	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
+	id S965242AbWILMrq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Sep 2006 08:47:46 -0400
 Content-Disposition: inline
-In-Reply-To: <1157555949.6011.516.camel@localhost.localdomain>
+In-Reply-To: <20060912091906.GB19482@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jim Gettys <jg@laptop.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Matthew Garrett <mjg59@srcf.ucam.org>, "Brown, Len" <len.brown@intel.com>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>, ACPI ML <linux-acpi@vger.kernel.org>, Adam Belay <abelay@novell.com>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Arjan van de Ven <arjan@linux.intel.com>, devel@laptop.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Andi Kleen <ak@suse.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wed 2006-09-06 11:19:09, Jim Gettys wrote:
-> On Wed, 2006-09-06 at 12:37 +0200, Pavel Machek wrote:
-> > Hi!
-> > 
-> > > > 2.4 and 2.6 are *very* different here. You'll probably need to optimize freezer
-> > > > in 2.6 a bit...
-> > > > 						
-> > > 
-> > > Among other problems: e.g. 2.4 did not automatically do a VT switch; 2.6
-> > > does; we'll have to have a way to signal "we're a sane display driver;
-> > > don't switch away from me on suspend".
-> > 
-> > Not like that, please.
-> > 
-> > You are using X running over framebuffer, right? So that kernel is
-> > controlling the graphics hardware. In such case it is safe to avoid VT
-> > switch.
+On Tue, Sep 12, 2006 at 11:19:06AM +0200, Pavel Machek wrote:
+> Hi!
 > 
-> It should be perfectly safe.
+> > Got it. i8259A_resume calls init_8259A(0) unconditionally, even if 
+> > auto_eoi has been set. Keep track of the current status and restore that 
+> > on resume. This fixes it for AMD64 and i386.
+> 
+> Patch looks okay to me...
 
-Okay, but per-driver flag is wrong way to go (see the other mail).
-									Pavel
+Cool. Andi, does it look sane to you? I'm not really sure who to wave 
+8259 code at...
+
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Matthew Garrett | mjg59@srcf.ucam.org
