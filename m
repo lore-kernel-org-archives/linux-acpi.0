@@ -1,67 +1,66 @@
-From: "Jordan Crouse" <jordan.crouse@amd.com>
-Subject: Re: ACPI: Idle Processor PM Improvements
-Date: Tue, 12 Sep 2006 14:18:05 -0600
-Message-ID: <20060912201805.GK14885@cosmic.amd.com>
-References: <EB12A50964762B4D8111D55B764A845484D316@scsmsx413.amr.corp.intel.com>
- <20060830194317.GA9116@srcf.ucam.org>
- <200608311713.21618.bjorn.helgaas@hp.com>
- <1157070616.7974.232.camel@localhost.localdomain>
- <20060904130933.GC6279@ucw.cz>
- <1157466710.6011.262.camel@localhost.localdomain>
- <20060906103725.GA4987@atrey.karlin.mff.cuni.cz>
- <20060906145849.GE2623@cosmic.amd.com>
- <20060912092100.GC19482@elf.ucw.cz>
- <1158084871.28991.489.camel@localhost.localdomain>
+From: keith mannthey <kmannth@us.ibm.com>
+Subject: Re: one more ACPI Error (utglobal-0125): Unknown exception
+	code:0xFFFFFFEA [Re: 2.6.18-rc4-mm3]
+Date: Tue, 12 Sep 2006 18:27:39 -0700
+Message-ID: <1158110859.6047.27.camel@keithlap>
+References: <B28E9812BAF6E2498B7EC5C427F293A4E38B52@orsmsx415.amr.corp.intel.com>
+	 <1157573069.5713.24.camel@keithlap>
+	 <1157594624.2782.45.camel@sli10-desk.sh.intel.com>
+	 <200609070925.50145.bjorn.helgaas@hp.com>
+	 <1157677028.2782.64.camel@sli10-desk.sh.intel.com>
+	 <4132.24.9.204.52.1157682479.squirrel@mail.cce.hp.com>
+Reply-To: kmannth@us.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-res.frontbridge.com ([63.161.60.49]:44729 "EHLO
-	outbound1-res-R.bigfish.com") by vger.kernel.org with ESMTP
-	id S1030399AbWILUOw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Sep 2006 16:14:52 -0400
-In-Reply-To: <1158084871.28991.489.camel@localhost.localdomain>
-Content-Disposition: inline
+Received: from e34.co.us.ibm.com ([32.97.110.152]:11751 "EHLO
+	e34.co.us.ibm.com") by vger.kernel.org with ESMTP id S1751423AbWIMB1m
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Sep 2006 21:27:42 -0400
+In-Reply-To: <4132.24.9.204.52.1157682479.squirrel@mail.cce.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jim Gettys <jg@laptop.org>
-Cc: Pavel Machek <pavel@ucw.cz>, "Brown, Len" <len.brown@intel.com>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>, ACPI ML <linux-acpi@vger.kernel.org>, Adam Belay <abelay@novell.com>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Arjan van de Ven <arjan@linux.intel.com>, devel@laptop.org, Bjorn Helgaas <bjorn.helgaas@hp.com>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Shaohua Li <shaohua.li@intel.com>, "Moore, Robert" <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, Mattia Dongili <malattia@linux.it>, Andrew Morton <akpm@osdl.org>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-On 12/09/06 14:14 -0400, Jim Gettys wrote:
-> > Alternatively, hack kernel to take control from X without actually
-> > switching consoles. That should be possible even with current
-> > interface.
+On Thu, 2006-09-07 at 20:27 -0600, Bjorn Helgaas wrote:
+> > On Thu, 2006-09-07 at 09:25 -0600, Bjorn Helgaas wrote:
+> >> If we decide that "try HID first, then try CID" is the right thing,
+> >> I think we should figure out how to make that work.  Maybe that
+> >> means extending the driver model somehow.
+> > Don't think it's easy, especially no other bus needs it I guess.
 > 
-> This would require saving/restoring all graphics state in the kernel
-> (and X already has that state internally).  Feasible, but seems like
-> duplication of effort.  I haven't checked if there are any write-only
-> registers in the Geode (though, thankfully, this kind of brain damage is
-> rarer than it once was).  This then begs interesting kernel/X
-> synchronization issues, of course.
+> I agree it's probably not easy, but I think having the right
+> semantics is more important than fitting cleanly into the
+> driver model.  But I know that without code, I'm just venting
+> hot air, not contributing to a solution.
+> 
+> How's the ACPI driver model integration going, anyway?  I seem
+> to recall some patches a while back, but I don't think they're
+> in the tree yet.
+> 
+> > Do we really need the memory hotplug device returns pnp0c01/pnp0c02?
+> > What's the purpose?
+> 
+> I don't know.  But I think Keith already determined that a BIOS change
+> is not likely.  I hate to ask for BIOS changes like this because it
+> feels like asking them to avoid broken things in Linux.
 
-We don't need any kernel output during suspend or resume.  Thus, if the VT
-doesn't change, then the kernel doesn't need worry about saving or restoring 
-the graphics state, and thats the way it should be, IMHO.
-Whoever owns the current VT should be in charge of saving and restoring 
-the registers.
+  Ok my motherboard patch was dropped from -mm so I am broken again but
+others are fixed. Is the answer that we do nothing about this issues?   
 
-So, we would need some way of indicating the "ownership" of the VT.  And
-in reality, we really only to know if the framebuffer console owns it or
-not, so a boolean would suffice.  In the past, I've used KD_TEXT and 
-KD_GRAPHICS for this purpose.  As an example, on the Geode LX, I assume
-that if the vc_mode is KD_GRAPHICS, then we don't own it, and we don't
-do 2D accelerations.  If the mode is KD_TEXT then we are free to use the
-2D engine.   All I needed to add ws a notifier chain to let the framebuffer
-know when the mode switched, and I was happy.  I'm not sure if thats the
-smartest way to handle it permanently, but it works in a pinch.
+  I am pretty sure my SSDT table is valid if someone *cannot* point out
+in the spec where my device is malformed  by having both HID and CID I
+will not be able even start the request to change the BIOS (it would be
+a waste of my time).  Sure having the CID of the memory device may be
+overkill but is it wrong?  
 
-Jordan
+  Unless someone can show me a alternate solution I am going to push the
+check HID before CID patch to -mm in the next day or two. 
 
--- 
-Jordan Crouse
-Senior Linux Engineer
-Advanced Micro Devices, Inc.
-<www.amd.com/embeddedprocessors>
+Thanks,
+  Keith 
+
 
 
