@@ -1,56 +1,55 @@
 From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: ACPI: Idle Processor PM Improvements
-Date: Thu, 14 Sep 2006 11:18:49 +0200
-Message-ID: <20060914091849.GA15102@elf.ucw.cz>
-References: <EB12A50964762B4D8111D55B764A845484D316@scsmsx413.amr.corp.intel.com> <20060830194317.GA9116@srcf.ucam.org> <200608311713.21618.bjorn.helgaas@hp.com> <1157070616.7974.232.camel@localhost.localdomain> <20060904130933.GC6279@ucw.cz> <1157466710.6011.262.camel@localhost.localdomain> <20060906103725.GA4987@atrey.karlin.mff.cuni.cz> <20060906145849.GE2623@cosmic.amd.com> <20060912092100.GC19482@elf.ucw.cz> <1158084871.28991.489.camel@localhost.localdomain>
+Date: Thu, 14 Sep 2006 11:20:49 +0200
+Message-ID: <20060914092049.GB15102@elf.ucw.cz>
+References: <20060830194317.GA9116@srcf.ucam.org> <200608311713.21618.bjorn.helgaas@hp.com> <1157070616.7974.232.camel@localhost.localdomain> <20060904130933.GC6279@ucw.cz> <1157466710.6011.262.camel@localhost.localdomain> <20060906103725.GA4987@atrey.karlin.mff.cuni.cz> <20060906145849.GE2623@cosmic.amd.com> <20060912092100.GC19482@elf.ucw.cz> <1158084871.28991.489.camel@localhost.localdomain> <20060912201805.GK14885@cosmic.amd.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:7622 "EHLO
+Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:19654 "EHLO
 	atrey.karlin.mff.cuni.cz") by vger.kernel.org with ESMTP
-	id S1751493AbWINJSj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Sep 2006 05:18:39 -0400
+	id S1751495AbWINJUm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 Sep 2006 05:20:42 -0400
 Content-Disposition: inline
-In-Reply-To: <1158084871.28991.489.camel@localhost.localdomain>
+In-Reply-To: <20060912201805.GK14885@cosmic.amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jim Gettys <jg@laptop.org>
-Cc: Jordan Crouse <jordan.crouse@amd.com>, "Brown, Len" <len.brown@intel.com>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>, ACPI ML <linux-acpi@vger.kernel.org>, Adam Belay <abelay@novell.com>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Arjan van de Ven <arjan@linux.intel.com>, devel@laptop.org, Bjorn Helgaas <bjorn.helgaas@hp.com>
+To: Jordan Crouse <jordan.crouse@amd.com>
+Cc: Jim Gettys <jg@laptop.org>, "Brown, Len" <len.brown@intel.com>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>, ACPI ML <linux-acpi@vger.kernel.org>, Adam Belay <abelay@novell.com>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Arjan van de Ven <arjan@linux.intel.com>, devel@laptop.org, Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-On Tue 2006-09-12 14:14:30, Jim Gettys wrote:
-> On Tue, 2006-09-12 at 11:21 +0200, Pavel Machek wrote:
+On Tue 2006-09-12 14:18:05, Jordan Crouse wrote:
+> On 12/09/06 14:14 -0400, Jim Gettys wrote:
+> > > Alternatively, hack kernel to take control from X without actually
+> > > switching consoles. That should be possible even with current
+> > > interface.
+> > 
+> > This would require saving/restoring all graphics state in the kernel
+> > (and X already has that state internally).  Feasible, but seems like
+> > duplication of effort.  I haven't checked if there are any write-only
+> > registers in the Geode (though, thankfully, this kind of brain damage is
+> > rarer than it once was).  This then begs interesting kernel/X
+> > synchronization issues, of course.
 > 
-> > Ok, so what is needed is message to X "we are suspending", and X needs
-> > to respond "okay, I'm ready, no need for console switch".
+> We don't need any kernel output during suspend or resume.  Thus, if the VT
+> doesn't change, then the kernel doesn't need worry about saving or restoring 
+> the graphics state, and thats the way it should be, IMHO.
+> Whoever owns the current VT should be in charge of saving and restoring 
+> the registers.
 > 
-> This presumes an external agent to X controlling the fast
-> suspend/resume, with messages having to flow to and from X, and to and
-> from the kernel, with the kernel in the middle.
-> 
-> Another simpler option is X itself just telling the kernel to suspend
-> without console switch, as the handoff of the display to the DCON chip
-> has to be done with X and with an interrupt signaling completion of the
-> handoff.  This would be triggered by an inactivity timeout in the X
-> server.
+> So, we would need some way of indicating the "ownership" of the VT.  And
+> in reality, we really only to know if the framebuffer console owns it or
+> not, so a boolean would suffice.  In the past, I've used KD_TEXT and 
+> KD_GRAPHICS for this purpose.  As an example, on the Geode LX, I assume
+> that if the vc_mode is KD_GRAPHICS, then we don't own it, and we don't
+> do 2D accelerations.  If the mode is KD_TEXT then we are free to use the
+> 2D engine.   All I needed to add ws a notifier chain to let the framebuffer
+> know when the mode switched, and I was happy.  I'm not sure if thats the
+> smartest way to handle it permanently, but it works in a pinch.
 
-Whoa... that's a hack.. but yes, you can probably do that, and I think
-kernel even has neccessary interfaces already. (They were needed for
-uswsusp).
-
-> > Alternatively, hack kernel to take control from X without actually
-> > switching consoles. That should be possible even with current
-> > interface.
-> 
-> This would require saving/restoring all graphics state in the kernel
-> (and X already has that state internally).  Feasible, but seems like
-
-Hmm, save/restore graphics state from the kernel would of course be
-clean solution, but you should have that anyway... what if someone
-suspends without X running?
-
-And of course you can just cheat, and not do kernel save-state on your
-system.
-
+KD_TEXT vs. KD_GRAPHICS looks like the way to go. Just tell X you want
+console back, but then don't actually redraw/switch consoles. We
+probably want that on normal PCs, too... console switch for
+suspend-to-RAM looks ugly.
 									Pavel
 -- 
 (english) http://www.livejournal.com/~pavelmachek
