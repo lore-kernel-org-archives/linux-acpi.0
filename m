@@ -1,91 +1,36 @@
-From: Jim Gettys <jg@laptop.org>
-Subject: Re: ACPI: Idle Processor PM Improvements
-Date: Thu, 14 Sep 2006 07:29:55 -0400
-Message-ID: <1158233396.5871.169.camel@localhost.localdomain>
-References: <EB12A50964762B4D8111D55B764A845484D316@scsmsx413.amr.corp.intel.com>
-	 <20060830194317.GA9116@srcf.ucam.org>
-	 <200608311713.21618.bjorn.helgaas@hp.com>
-	 <1157070616.7974.232.camel@localhost.localdomain>
-	 <20060904130933.GC6279@ucw.cz>
-	 <1157466710.6011.262.camel@localhost.localdomain>
-	 <20060906103725.GA4987@atrey.karlin.mff.cuni.cz>
-	 <20060906145849.GE2623@cosmic.amd.com> <20060912092100.GC19482@elf.ucw.cz>
-	 <1158084871.28991.489.camel@localhost.localdomain>
-	 <20060914091849.GA15102@elf.ucw.cz>
-Reply-To: jg@laptop.org
+From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
+Subject: ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 11
+Date: Thu, 14 Sep 2006 17:26:01 +0100
+Message-ID: <1158251161.21753.2.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rwcrmhc15.comcast.net ([204.127.192.85]:32670 "EHLO
-	rwcrmhc15.comcast.net") by vger.kernel.org with ESMTP
-	id S1751198AbWINLaK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Sep 2006 07:30:10 -0400
-In-Reply-To: <20060914091849.GA15102@elf.ucw.cz>
+Received: from relay3.ptmail.sapo.pt ([212.55.154.23]:59618 "HELO sapo.pt")
+	by vger.kernel.org with SMTP id S1750984AbWINQ0B (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 Sep 2006 12:26:01 -0400
+Received: from unknown (HELO [172.28.230.85]) (sergiomb@sapo.pt@[194.65.5.235])
+          (envelope-sender <sergio@sergiomb.no-ip.org>)
+          by mta10 (qmail-ldap-1.03) with SMTP
+          for <linux-acpi@vger.kernel.org>; 14 Sep 2006 16:25:58 -0000
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Jordan Crouse <jordan.crouse@amd.com>, "Brown, Len" <len.brown@intel.com>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>, ACPI ML <linux-acpi@vger.kernel.org>, Adam Belay <abelay@novell.com>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Arjan van de Ven <arjan@linux.intel.com>, devel@laptop.org, Bjorn Helgaas <bjorn.helgaas@hp.com>
+To: acpi devel <linux-acpi@vger.kernel.org>
 
-On Thu, 2006-09-14 at 11:18 +0200, Pavel Machek wrote:
-> On Tue, 2006-09-12 at 11:21 +0200, Pavel Machek wrote:
-> > 
-> > > Ok, so what is needed is message to X "we are suspending", and X
-> needs
-> > > to respond "okay, I'm ready, no need for console switch".
-> > 
-> > This presumes an external agent to X controlling the fast
-> > suspend/resume, with messages having to flow to and from X, and to
-> and
-> > from the kernel, with the kernel in the middle.
-> > 
-> > Another simpler option is X itself just telling the kernel to suspend
-> > without console switch, as the handoff of the display to the DCON chip
-> > has to be done with X and with an interrupt signaling completion of the
-> > handoff.  This would be triggered by an inactivity timeout in the X
-> > server.
-> 
-> Whoa... that's a hack.. but yes, you can probably do that, and I think
-> kernel even has neccessary interfaces already. (They were needed for
-> uswsusp).
+ok , quick question what file in kernel do the dmesg line :=20
 
-Glad you like it ;-).  Dunno which way we'll go yet, though it will get
-to the top of the pile to implement this fall.  I suspect we may go this
-route to get going, but explore the more general solution as we get more
-sophisticated power management policies and standards in place.
+ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 11
 
-> 
-> > > Alternatively, hack kernel to take control from X without actually
-> > > switching consoles. That should be possible even with current
-> > > interface.
-> > 
-> > This would require saving/restoring all graphics state in the kernel
-> > (and X already has that state internally).  Feasible, but seems like
-> 
-> Hmm, save/restore graphics state from the kernel would of course be
-> clean solution, but you should have that anyway... what if someone
-> suspends without X running?
+drivers/pci/quirks.c ?=20
 
-X knows its graphics state; it has to remember it all to know when it
-has to be changed; on resume, resume can reinit the graphics state to
-what the console wants/needs.
-
-If you VT switch back to X, X can restore the graphics state to what it
-remembers.
-
-> 
-> And of course you can just cheat, and not do kernel save-state on your
-> system.
-
-Yup, though it isn't clear to me I'd call it cheating.  In some ways,
-what I just described to handle suspends when X is not running is really
-robust and simple.  And you don't have divided responsibility for
-remembering the state. Simple == good in my book.
-
-                                  - Jim
-
--- 
-Jim Gettys
-One Laptop Per Child
+Thanks,
+--
+S=C3=A9rgio M. B.=20
 
 
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
