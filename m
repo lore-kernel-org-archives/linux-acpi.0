@@ -1,36 +1,66 @@
-From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
-Subject: ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 11
-Date: Thu, 14 Sep 2006 17:26:01 +0100
-Message-ID: <1158251161.21753.2.camel@localhost.localdomain>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: one more ACPI Error (utglobal-0125): Unknown exception  code:0xFFFFFFEA [Re: 2.6.18-rc4-mm3]
+Date: Thu, 14 Sep 2006 10:36:06 -0600
+Message-ID: <200609141036.07599.bjorn.helgaas@hp.com>
+References: <B28E9812BAF6E2498B7EC5C427F293A4E38B52@orsmsx415.amr.corp.intel.com> <200609130851.16028.bjorn.helgaas@hp.com> <1158202876.20560.14.camel@sli10-conroe.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay3.ptmail.sapo.pt ([212.55.154.23]:59618 "HELO sapo.pt")
-	by vger.kernel.org with SMTP id S1750984AbWINQ0B (ORCPT
+Received: from atlrel8.hp.com ([156.153.255.206]:152 "EHLO atlrel8.hp.com")
+	by vger.kernel.org with ESMTP id S1750993AbWINQgN (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Sep 2006 12:26:01 -0400
-Received: from unknown (HELO [172.28.230.85]) (sergiomb@sapo.pt@[194.65.5.235])
-          (envelope-sender <sergio@sergiomb.no-ip.org>)
-          by mta10 (qmail-ldap-1.03) with SMTP
-          for <linux-acpi@vger.kernel.org>; 14 Sep 2006 16:25:58 -0000
+	Thu, 14 Sep 2006 12:36:13 -0400
+In-Reply-To: <1158202876.20560.14.camel@sli10-conroe.sh.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: acpi devel <linux-acpi@vger.kernel.org>
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: kmannth@us.ibm.com, "Moore, Robert" <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, Mattia Dongili <malattia@linux.it>, Andrew Morton <akpm@osdl.org>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-ok , quick question what file in kernel do the dmesg line :=20
+On Wednesday 13 September 2006 21:01, Shaohua Li wrote:
+> On Wed, 2006-09-13 at 22:51 +0800, Bjorn Helgaas wrote:
+> > I think that your SSDT is valid.  I can't point to a specific
+> > reference in the spec, but I think the "try _HID first, then try
+> > _CID" strategy is clearly the intent.  Otherwise, there would be
+> > no reason to separate _HID from _CID.
 
-ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 11
+> The spec actually doesn't mention PNP0C01/PNP0C02. It's hard to say this
+> is valid or invalid. 
 
-drivers/pci/quirks.c ?=20
+This problem is more general than just Keith's situation.  This
+could happen with any device that has both _HID and _CID.  As
+soon as you have both _HID and _CID, you can have a driver that
+claims the _HID and another that claims the _CID.
 
-Thanks,
---
-S=C3=A9rgio M. B.=20
+The spec obviously anticipates this situation, which is why I
+think the SSDT is valid from the ACPI spec point of view.
 
+Now, if you have some definition of the programming model of
+PNP0C01/PNP0C02, and the memory device doesn't conform to that
+model, then I would agree that the SSDT is invalid.  But I
+don't know where a PNP0C01/PNP0C02 programming model is defined.
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The linux driver does nothing more than reserve the resources
+of the device, so it doesn't use any programming model at all.
+The memory device (in fact, any ACPI device at all) trivially
+conforms to this "null programming model."
+
+> The 'try _HID first then _CID' has another downside. It highly depends
+> on the driver is loaded first and then load the device. See motherboard
+> driver loads first and the mem hotplug driver isn't loaded, in this
+> situation if you scan the mem hotplug device, the mechanism will fail as
+> the two pass search will still bind motherboard driver to the device.
+
+I agree, this is a problem that will have to be resolved.  And it's
+really not just an ACPI problem.  A PCI driver can claim devices based
+on a class or a vendor/device/subvendor/subdevice with wildcards.
+Another driver can claim devices with a specific vendor/device/etc.
+Some devices may match with both drivers.
+
+PCI has a /sys/bus/pci/driver/XXX/{bind,unbind} mechanism to cause a
+driver to release a device and bind another driver to it.  Maybe we
+could do something similar for ACPI. 
+
+Bjorn
