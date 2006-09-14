@@ -1,89 +1,57 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: one more ACPI Error (utglobal-0125): Unknown exception
-	code:0xFFFFFFEA [Re: 2.6.18-rc4-mm3]
-Date: Thu, 14 Sep 2006 11:01:16 +0800
-Message-ID: <1158202876.20560.14.camel@sli10-conroe.sh.intel.com>
-References: <B28E9812BAF6E2498B7EC5C427F293A4E38B52@orsmsx415.amr.corp.intel.com>
-	 <4132.24.9.204.52.1157682479.squirrel@mail.cce.hp.com>
-	 <1158110859.6047.27.camel@keithlap>
-	 <200609130851.16028.bjorn.helgaas@hp.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: ACPI: Idle Processor PM Improvements
+Date: Thu, 14 Sep 2006 11:18:49 +0200
+Message-ID: <20060914091849.GA15102@elf.ucw.cz>
+References: <EB12A50964762B4D8111D55B764A845484D316@scsmsx413.amr.corp.intel.com> <20060830194317.GA9116@srcf.ucam.org> <200608311713.21618.bjorn.helgaas@hp.com> <1157070616.7974.232.camel@localhost.localdomain> <20060904130933.GC6279@ucw.cz> <1157466710.6011.262.camel@localhost.localdomain> <20060906103725.GA4987@atrey.karlin.mff.cuni.cz> <20060906145849.GE2623@cosmic.amd.com> <20060912092100.GC19482@elf.ucw.cz> <1158084871.28991.489.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:47779 "EHLO mga01.intel.com")
-	by vger.kernel.org with ESMTP id S1751056AbWINDCL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 13 Sep 2006 23:02:11 -0400
-In-Reply-To: <200609130851.16028.bjorn.helgaas@hp.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:7622 "EHLO
+	atrey.karlin.mff.cuni.cz") by vger.kernel.org with ESMTP
+	id S1751493AbWINJSj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 Sep 2006 05:18:39 -0400
+Content-Disposition: inline
+In-Reply-To: <1158084871.28991.489.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: kmannth@us.ibm.com, "Moore, Robert" <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, Mattia Dongili <malattia@linux.it>, Andrew Morton <akpm@osdl.org>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+To: Jim Gettys <jg@laptop.org>
+Cc: Jordan Crouse <jordan.crouse@amd.com>, "Brown, Len" <len.brown@intel.com>, Linux Kernel ML <linux-kernel@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>, ACPI ML <linux-acpi@vger.kernel.org>, Adam Belay <abelay@novell.com>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Arjan van de Ven <arjan@linux.intel.com>, devel@laptop.org, Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-On Wed, 2006-09-13 at 22:51 +0800, Bjorn Helgaas wrote:
-> On Tuesday 12 September 2006 19:27, keith mannthey wrote:
-> > On Thu, 2006-09-07 at 20:27 -0600, Bjorn Helgaas wrote:
-> > > > On Thu, 2006-09-07 at 09:25 -0600, Bjorn Helgaas wrote:
-> > > >> If we decide that "try HID first, then try CID" is the right
-> thing,
-> > > >> I think we should figure out how to make that work.  Maybe that
-> > > >> means extending the driver model somehow.
-> > > > Don't think it's easy, especially no other bus needs it I guess.
-> > >
-> > > I agree it's probably not easy, but I think having the right
-> > > semantics is more important than fitting cleanly into the
-> > > driver model.  But I know that without code, I'm just venting
-> > > hot air, not contributing to a solution.
-> > >
-> > > How's the ACPI driver model integration going, anyway?  I seem
-> > > to recall some patches a while back, but I don't think they're
-> > > in the tree yet.
-> > >
-> > > > Do we really need the memory hotplug device returns
-> pnp0c01/pnp0c02?
-> > > > What's the purpose?
-> > >
-> > > I don't know.  But I think Keith already determined that a BIOS
-> change
-> > > is not likely.  I hate to ask for BIOS changes like this because
-> it
-> > > feels like asking them to avoid broken things in Linux.
-> >
-> >   Ok my motherboard patch was dropped from -mm so I am broken again
-> but
-> > others are fixed. Is the answer that we do nothing about this
-> issues?  
-> >
-> >   I am pretty sure my SSDT table is valid if someone *cannot* point
-> out
-> > in the spec where my device is malformed  by having both HID and CID
-> I
-> > will not be able even start the request to change the BIOS (it would
-> be
-> > a waste of my time).  Sure having the CID of the memory device may
-> be
-> > overkill but is it wrong? 
+On Tue 2006-09-12 14:14:30, Jim Gettys wrote:
+> On Tue, 2006-09-12 at 11:21 +0200, Pavel Machek wrote:
 > 
-> I think that your SSDT is valid.  I can't point to a specific
-> reference in the spec, but I think the "try _HID first, then try
-> _CID" strategy is clearly the intent.  Otherwise, there would be
-> no reason to separate _HID from _CID.
-The spec actually doesn't mention PNP0C01/PNP0C02. It's hard to say this
-is valid or invalid. 
+> > Ok, so what is needed is message to X "we are suspending", and X needs
+> > to respond "okay, I'm ready, no need for console switch".
+> 
+> This presumes an external agent to X controlling the fast
+> suspend/resume, with messages having to flow to and from X, and to and
+> from the kernel, with the kernel in the middle.
+> 
+> Another simpler option is X itself just telling the kernel to suspend
+> without console switch, as the handoff of the display to the DCON chip
+> has to be done with X and with an interrupt signaling completion of the
+> handoff.  This would be triggered by an inactivity timeout in the X
+> server.
 
-The 'try _HID first then _CID' has another downside. It highly depends
-on the driver is loaded first and then load the device. See motherboard
-driver loads first and the mem hotplug driver isn't loaded, in this
-situation if you scan the mem hotplug device, the mechanism will fail as
-the two pass search will still bind motherboard driver to the device.
+Whoa... that's a hack.. but yes, you can probably do that, and I think
+kernel even has neccessary interfaces already. (They were needed for
+uswsusp).
 
-If you take the two pass search, I have a feeling this will make acpi
-never be able to convert Linux driver model.
+> > Alternatively, hack kernel to take control from X without actually
+> > switching consoles. That should be possible even with current
+> > interface.
+> 
+> This would require saving/restoring all graphics state in the kernel
+> (and X already has that state internally).  Feasible, but seems like
 
-If you really want to workaround the issue, I prefer have a blacklist or
-something to let ACPI not use the _CID for your device, but please don't
-mess the ACPI core itself.
+Hmm, save/restore graphics state from the kernel would of course be
+clean solution, but you should have that anyway... what if someone
+suspends without X running?
 
-Thanks,
-Shaohua
+And of course you can just cheat, and not do kernel save-state on your
+system.
+
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
