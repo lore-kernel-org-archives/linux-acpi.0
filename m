@@ -1,29 +1,59 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: one more ACPI Error (utglobal-0125): Unknown exception  code:0xFFFFFFEA [Re: 2.6.18-rc4-mm3]
-Date: Tue, 19 Sep 2006 04:22:09 -0600
-Message-ID: <200609190422.10370.bjorn.helgaas@hp.com>
-References: <B28E9812BAF6E2498B7EC5C427F293A4E38B52@orsmsx415.amr.corp.intel.com> <200609141036.07599.bjorn.helgaas@hp.com> <1158284395.20560.30.camel@sli10-conroe.sh.intel.com>
+From: Andrew Morton <akpm@osdl.org>
+Subject: Fw: 2.6.18-rc7 boot only with acpi=off
+Date: Tue, 19 Sep 2006 12:10:02 -0700
+Message-ID: <20060919121002.9b73fcd8.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel9.hp.com ([156.153.255.214]:64183 "EHLO atlrel9.hp.com")
-	by vger.kernel.org with ESMTP id S1751878AbWISKWP (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:50150 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1751946AbWISTKK (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Sep 2006 06:22:15 -0400
-In-Reply-To: <1158284395.20560.30.camel@sli10-conroe.sh.intel.com>
-Content-Disposition: inline
+	Tue, 19 Sep 2006 15:10:10 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: kmannth@us.ibm.com, "Moore, Robert" <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, Mattia Dongili <malattia@linux.it>, Andrew Morton <akpm@osdl.org>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+To: linux-acpi@vger.kernel.org
+Cc: Kyle Wong <kylewong1974@hotmail.com>
 
-On Thursday 14 September 2006 19:39, Shaohua Li wrote:
-> > PCI has a /sys/bus/pci/driver/XXX/{bind,unbind} mechanism to cause a
-> > driver to release a device and bind another driver to it.  Maybe we
-> > could do something similar for ACPI. 
-> After we convert acpi core to Linux driver model, we have the
-> capability. But not sure if this can help Keith.
 
-When will the conversion to the Linux driver model happen?
+
+Begin forwarded message:
+
+Date: Tue, 19 Sep 2006 22:07:00 +0800
+From: "Kyle Wong" <kylewong1974@hotmail.com>
+To: linux-kernel@vger.kernel.org
+Subject: 2.6.18-rc7 boot only with acpi=off
+
+
+Hi,
+
+My new Intel E6300 with Intel DQ965GF motherboard does not boot 2.6.18-rc7, 
+it just freeze at:
+...........
+...........
+PCI: Using MMConfig at f0000000
+ACPI: Interpeter enabled
+ACPI: Using IOAPIC for interrupt routing
+ACPI: PCI Root Bridge [PCI0[ (0000:00)
+ACPI: Assume root bridge [\_SB_.PCI0] bus is 0
+
+then nothing more. It boots with "acpi=off" option, but it will lose one 
+core and EIST! Fedora 5 stock kernel 2.6.15.x also have the same behavier.
+
+The motherboard is already updated with latest BIOS.
+
+Vanilla kernel 2.6.17.13 boot well without the "acpi=off" option.
+
+Please cc me if possible. Thank you
+
+Kyle
+
+_________________________________________________________________
+Get 10Mb extra storage for MSN Hotmail. Subscribe Now! 
+http://join.msn.com/?pgmarket=en-hk
+
+-
+To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at  http://www.tux.org/lkml/
