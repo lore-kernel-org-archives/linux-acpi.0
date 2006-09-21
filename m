@@ -1,72 +1,130 @@
-From: "Sylvain Bertrand" <sylvain.bertrand@gmail.com>
-Subject: Re: ACPI Exception (acpi_thermal-0412)
-Date: Thu, 21 Sep 2006 00:52:43 +0200
-Message-ID: <d512a4f30609201552t388734aby3863aacf6617465d@mail.gmail.com>
-References: <200609141951_MC3-1-CB3C-3653@compuserve.com>
-	 <1158715360.3098.22.camel@localhost.portugal>
+From: keith mannthey <kmannth@us.ibm.com>
+Subject: Re: one more ACPI Error (utglobal-0125): Unknown exception
+	code:0xFFFFFFEA [Re: 2.6.18-rc4-mm3]
+Date: Wed, 20 Sep 2006 17:27:05 -0700
+Message-ID: <1158798426.5659.23.camel@keithlap>
+References: <B28E9812BAF6E2498B7EC5C427F293A4E38B52@orsmsx415.amr.corp.intel.com>
+	 <4132.24.9.204.52.1157682479.squirrel@mail.cce.hp.com>
+	 <1158110859.6047.27.camel@keithlap>
+	 <200609130851.16028.bjorn.helgaas@hp.com>
+	 <1158202876.20560.14.camel@sli10-conroe.sh.intel.com>
+	 <1158256505.5660.22.camel@keithlap>
+	 <1158285122.20560.38.camel@sli10-conroe.sh.intel.com>
+Reply-To: kmannth@us.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/mixed; boundary="=-Cg3WmT7nt0Bh7PTBHrnM"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.169]:45835 "EHLO
-	ug-out-1314.google.com") by vger.kernel.org with ESMTP
-	id S932440AbWITWwp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Sep 2006 18:52:45 -0400
-Received: by ug-out-1314.google.com with SMTP id o38so59559ugd
-        for <linux-acpi@vger.kernel.org>; Wed, 20 Sep 2006 15:52:44 -0700 (PDT)
-In-Reply-To: <1158715360.3098.22.camel@localhost.portugal>
-Content-Disposition: inline
+Received: from e36.co.us.ibm.com ([32.97.110.154]:9917 "EHLO e36.co.us.ibm.com")
+	by vger.kernel.org with ESMTP id S1750818AbWIUA1J (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Sep 2006 20:27:09 -0400
+In-Reply-To: <1158285122.20560.38.camel@sli10-conroe.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, "Moore, Robert" <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, Mattia Dongili <malattia@linux.it>, Andrew Morton <akpm@osdl.org>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Hi,
-Sorry to interfere, but I have the same issue. After code
-investigation and ACPI specs reading, it seems that it could be
-related to a bug in your ACPI dsdt.
-On my laptop, I have only _AC0(hardcoded to rougthly 70=B0). I miss its
-mandatory  sibling _AL0 which generates the message when my temp is
-going above the threshold it holds.
 
-Regards,
+--=-Cg3WmT7nt0Bh7PTBHrnM
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-   Sylvain
+On Fri, 2006-09-15 at 09:52 +0800, Shaohua Li wrote:
+> On Thu, 2006-09-14 at 10:55 -0700, keith mannthey wrote:
+> > On Thu, 2006-09-14 at 11:01 +0800, Shaohua Li wrote:
+> > > On Wed, 2006-09-13 at 22:51 +0800, Bjorn Helgaas wrote:
+> > > > On Tuesday 12 September 2006 19:27, keith mannthey wrote:
+> > > > > On Thu, 2006-09-07 at 20:27 -0600, Bjorn Helgaas wrote:
+> > > > > > > On Thu, 2006-09-07 at 09:25 -0600, Bjorn Helgaas wrote:
+> > 
+> > > > I think that your SSDT is valid.  I can't point to a specific
+> > > > reference in the spec, but I think the "try _HID first, then try
+> > > > _CID" strategy is clearly the intent.  Otherwise, there would be
+> > > > no reason to separate _HID from _CID.
+> > > The spec actually doesn't mention PNP0C01/PNP0C02. It's hard to say this
+> > > is valid or invalid. 
+> > 
+> > Lets work on the assumption it is valid until someone points out in a
+> > spec that says it isn't. 
+> > 
+> > > The 'try _HID first then _CID' has another downside. It highly depends
+> > > on the driver is loaded first and then load the device. See motherboard
+> > > driver loads first and the mem hotplug driver isn't loaded, in this
+> > > situation if you scan the mem hotplug device, the mechanism will fail as
+> > > the two pass search will still bind motherboard driver to the device.
+> > Any solution depends on the mem hotplug device being loaded.  This
+> > doesn't appear to be _HID before _CID specific issue .  
+> > 
+> > > If you take the two pass search, I have a feeling this will make acpi
+> > > never be able to convert Linux driver model.
+> > 
+> > I am not trying to break forward work but what I do want is a solution
+> > to my problem. 
+> > 
+> > > If you really want to workaround the issue, I prefer have a blacklist or
+> > > something to let ACPI not use the _CID for your device, but please don't
+> > > mess the ACPI core itself.
+> > 
+> > My fist pass to fix the problem was I guess a hack of sorts that caused
+> > others problems (motherboard add return != 0 on unknown devices).  I
+> > don't want another Keith grown hack that breaks other people. 
+> > 
+> > Can you elaborate on what you think would be safe way to do what you
+> > propose since the ACPI core (can't/won't?) be fixed? I can imagine a
+> > couple of different ways to fix this but I would like some feedback
+> > before I go off and work on the 3rd pass of this fix. 
 
-2006/9/20, Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>:
-> Hi, I think this should be reported on
-> ACPI mailing list , so I am Forwarding to this list
->
-> On Thu, 2006-09-14 at 19:47 -0400, Chuck Ebbert wrote:
-> > I get this message at boot on 2.6.18-rc6:
-> >
-> >  ACPI Exception (acpi_thermal-0412): AE_NOT_FOUND, Invalid active t=
-hreshold [0] [20060707]
-> >
-> > Followed by:
-> >
-> >  ACPI: Thermal Zone [THRM] (47 C)
-> >
-> > And looking in /proc/acpi/thermal_zone/THRM/cooling_mode, I see:
-> >
-> > <setting not supported>
-> > cooling mode:   passive
-> >
-> > The fan seems to run at low speed even when CPU temp is stable at 3=
-7C,
-> > and speeds up when it gets warmer, so there seems to be no overheat=
-ing
-> > problem (highest temp seen under full load is 60C.)
-> >
-> > Is this normal?
-> >
-> --
-> S=E9rgio M.B.
->
->
->
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ok off I went.... 
+
+> > 1.  Make the memory device get scanned before the motherboard device
+> > somehow.  Implicitly reorder the devices in the list. Perhaps a priority
+> > sorted of sorts to have _HID device always before _CID devices during
+> > the scan? 
+> This will change the scan order of ACPI device, and sounds too hack to me.
+
+  ACPI driver only has name with no _HID _CID contest.  The handle reads
+the name space to fill in the device.    There is no way to explicitly
+order the list correctly for all cases as we are trying to reorder the
+driver list.
+  
+  I looked into making the memory device dynamically change itself to
+not contain a _CID (thus changing the namespace) but it got pretty ugly.
+This is perhaps doable but a little on the ugly side.  
+
+  So I just flip the order of the device list for all cases in a simple
+patch.  This is a total hack and workaround for just my current
+situation.   
+
+
+> > 3.  Some special blacklist of the motherboard device on my specific
+> > system. 
+
+Uhh this looks to require a whole new black list infrastructure?
+
+Any more ideas????
+
+Thanks,
+  Keith 
+
+Signed-off-by: Keith Mannthey <kmannth@us.ibm.com>
+
+
+--=-Cg3WmT7nt0Bh7PTBHrnM
+Content-Disposition: attachment; filename=patch-acpi-scanfix-v2
+Content-Type: text/plain; name=patch-acpi-scanfix-v2; charset=utf-8
+Content-Transfer-Encoding: 7bit
+
+--- linux-2.6.17/drivers/acpi/scan.c	2006-09-20 13:58:06.000000000 -0700
++++ linux-2.6.18-rc6-mm2-works/drivers/acpi/scan.c	2006-09-20 11:31:33.000000000 -0700
+@@ -601,7 +601,7 @@
+ 		return -ENODEV;
+ 
+ 	spin_lock(&acpi_device_lock);
+-	list_add_tail(&driver->node, &acpi_bus_drivers);
++	list_add(&driver->node, &acpi_bus_drivers);
+ 	spin_unlock(&acpi_device_lock);
+ 	acpi_driver_attach(driver);
+ 
+
+--=-Cg3WmT7nt0Bh7PTBHrnM--
+
