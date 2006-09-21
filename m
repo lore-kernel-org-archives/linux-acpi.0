@@ -1,130 +1,119 @@
-From: keith mannthey <kmannth@us.ibm.com>
-Subject: Re: one more ACPI Error (utglobal-0125): Unknown exception
-	code:0xFFFFFFEA [Re: 2.6.18-rc4-mm3]
-Date: Wed, 20 Sep 2006 17:27:05 -0700
-Message-ID: <1158798426.5659.23.camel@keithlap>
-References: <B28E9812BAF6E2498B7EC5C427F293A4E38B52@orsmsx415.amr.corp.intel.com>
-	 <4132.24.9.204.52.1157682479.squirrel@mail.cce.hp.com>
-	 <1158110859.6047.27.camel@keithlap>
-	 <200609130851.16028.bjorn.helgaas@hp.com>
-	 <1158202876.20560.14.camel@sli10-conroe.sh.intel.com>
-	 <1158256505.5660.22.camel@keithlap>
-	 <1158285122.20560.38.camel@sli10-conroe.sh.intel.com>
-Reply-To: kmannth@us.ibm.com
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: [PATCH 2.6.18 1/1] ACPI: limit cstate on noisy thinkpad t43/p models
+Date: Thu, 21 Sep 2006 18:05:36 -0400
+Message-ID: <CFF307C98FEABE47A452B27C06B85BB6018F099A@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-Cg3WmT7nt0Bh7PTBHrnM"
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e36.co.us.ibm.com ([32.97.110.154]:9917 "EHLO e36.co.us.ibm.com")
-	by vger.kernel.org with ESMTP id S1750818AbWIUA1J (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Sep 2006 20:27:09 -0400
-In-Reply-To: <1158285122.20560.38.camel@sli10-conroe.sh.intel.com>
+Received: from mga01.intel.com ([192.55.52.88]:12101 "EHLO mga01.intel.com")
+	by vger.kernel.org with ESMTP id S1751659AbWIUWGo convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Sep 2006 18:06:44 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, "Moore, Robert" <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, Mattia Dongili <malattia@linux.it>, Andrew Morton <akpm@osdl.org>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+To: shadow@serverart.org
+Cc: linux-acpi@vger.kernel.org
+
+Eric,
+Do you hear this noise for both AC and battery modes?
+
+Do you still get this noise when you run with HZ=100
+or HZ=1000?
+
+Are there any T43 users who do not hear this noise?
+
+Turning off C3 is a pretty big hammer...
+
+thanks,
+-Len
 
 
---=-Cg3WmT7nt0Bh7PTBHrnM
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-
-On Fri, 2006-09-15 at 09:52 +0800, Shaohua Li wrote:
-> On Thu, 2006-09-14 at 10:55 -0700, keith mannthey wrote:
-> > On Thu, 2006-09-14 at 11:01 +0800, Shaohua Li wrote:
-> > > On Wed, 2006-09-13 at 22:51 +0800, Bjorn Helgaas wrote:
-> > > > On Tuesday 12 September 2006 19:27, keith mannthey wrote:
-> > > > > On Thu, 2006-09-07 at 20:27 -0600, Bjorn Helgaas wrote:
-> > > > > > > On Thu, 2006-09-07 at 09:25 -0600, Bjorn Helgaas wrote:
-> > 
-> > > > I think that your SSDT is valid.  I can't point to a specific
-> > > > reference in the spec, but I think the "try _HID first, then try
-> > > > _CID" strategy is clearly the intent.  Otherwise, there would be
-> > > > no reason to separate _HID from _CID.
-> > > The spec actually doesn't mention PNP0C01/PNP0C02. It's hard to say this
-> > > is valid or invalid. 
-> > 
-> > Lets work on the assumption it is valid until someone points out in a
-> > spec that says it isn't. 
-> > 
-> > > The 'try _HID first then _CID' has another downside. It highly depends
-> > > on the driver is loaded first and then load the device. See motherboard
-> > > driver loads first and the mem hotplug driver isn't loaded, in this
-> > > situation if you scan the mem hotplug device, the mechanism will fail as
-> > > the two pass search will still bind motherboard driver to the device.
-> > Any solution depends on the mem hotplug device being loaded.  This
-> > doesn't appear to be _HID before _CID specific issue .  
-> > 
-> > > If you take the two pass search, I have a feeling this will make acpi
-> > > never be able to convert Linux driver model.
-> > 
-> > I am not trying to break forward work but what I do want is a solution
-> > to my problem. 
-> > 
-> > > If you really want to workaround the issue, I prefer have a blacklist or
-> > > something to let ACPI not use the _CID for your device, but please don't
-> > > mess the ACPI core itself.
-> > 
-> > My fist pass to fix the problem was I guess a hack of sorts that caused
-> > others problems (motherboard add return != 0 on unknown devices).  I
-> > don't want another Keith grown hack that breaks other people. 
-> > 
-> > Can you elaborate on what you think would be safe way to do what you
-> > propose since the ACPI core (can't/won't?) be fixed? I can imagine a
-> > couple of different ways to fix this but I would like some feedback
-> > before I go off and work on the 3rd pass of this fix. 
-
-Ok off I went.... 
-
-> > 1.  Make the memory device get scanned before the motherboard device
-> > somehow.  Implicitly reorder the devices in the list. Perhaps a priority
-> > sorted of sorts to have _HID device always before _CID devices during
-> > the scan? 
-> This will change the scan order of ACPI device, and sounds too hack to me.
-
-  ACPI driver only has name with no _HID _CID contest.  The handle reads
-the name space to fill in the device.    There is no way to explicitly
-order the list correctly for all cases as we are trying to reorder the
-driver list.
-  
-  I looked into making the memory device dynamically change itself to
-not contain a _CID (thus changing the namespace) but it got pretty ugly.
-This is perhaps doable but a little on the ugly side.  
-
-  So I just flip the order of the device list for all cases in a simple
-patch.  This is a total hack and workaround for just my current
-situation.   
-
-
-> > 3.  Some special blacklist of the motherboard device on my specific
-> > system. 
-
-Uhh this looks to require a whole new black list infrastructure?
-
-Any more ideas????
-
-Thanks,
-  Keith 
-
-Signed-off-by: Keith Mannthey <kmannth@us.ibm.com>
-
-
---=-Cg3WmT7nt0Bh7PTBHrnM
-Content-Disposition: attachment; filename=patch-acpi-scanfix-v2
-Content-Type: text/plain; name=patch-acpi-scanfix-v2; charset=utf-8
-Content-Transfer-Encoding: 7bit
-
---- linux-2.6.17/drivers/acpi/scan.c	2006-09-20 13:58:06.000000000 -0700
-+++ linux-2.6.18-rc6-mm2-works/drivers/acpi/scan.c	2006-09-20 11:31:33.000000000 -0700
-@@ -601,7 +601,7 @@
- 		return -ENODEV;
- 
- 	spin_lock(&acpi_device_lock);
--	list_add_tail(&driver->node, &acpi_bus_drivers);
-+	list_add(&driver->node, &acpi_bus_drivers);
- 	spin_unlock(&acpi_device_lock);
- 	acpi_driver_attach(driver);
- 
-
---=-Cg3WmT7nt0Bh7PTBHrnM--
-
+>-----Original Message-----
+>From: Eric Shattow [mailto:shadow@serverart.org] 
+>Sent: Thursday, September 21, 2006 1:37 PM
+>To: Brown, Len
+>Subject: [PATCH 2.6.18 1/1] ACPI: limit cstate on noisy 
+>thinkpad t43/p models
+>
+>IBM T43/p laptops exhibit a high pitched noise at higher ACPI 
+>C-states. Making
+>C3 the max state reduces this noise greatly.
+>
+>diff -uprN linux-2.6.18/drivers/acpi/processor_idle.c
+>linux-2.6.18~ibm_t43p_limit_max_cstate/drivers/acpi/processor_idle.c
+>--- linux-2.6.18/drivers/acpi/processor_idle.c    2006-09-19
+>22:42:06.000000000 -0500
+>+++ 
+>linux-2.6.18~ibm_t43p_limit_max_cstate/drivers/acpi/processor_idle.c   
+>2006-09-21 12:20:59.000000000 -0500
+>@@ -78,6 +78,9 @@ module_param(bm_history, uint, 0644);
+>  * IBM ThinkPad R40e crashes mysteriously when going into C2 or C3.
+>  * For now disable this. Probably a bug somewhere else.
+>  *
+>+ * IBM ThinkPad T43/p exhibits strange CPU noises at higher wait
+>+ * states. Forcing a wait state of C3 or less keeps things quiet.
+>+ *
+>  * To skip this limit, boot/load with a large max_cstate limit.
+>  */
+> static int set_max_cstate(struct dmi_system_id *id)
+>@@ -145,6 +148,48 @@ static struct dmi_system_id __cpuinitdat
+>     { set_max_cstate, "IBM ThinkPad R40e", {
+>       DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+>       DMI_MATCH(DMI_BIOS_VERSION,"1SET68WW") }, (void*)1},
+>+    { set_max_cstate, "IBM ThinkPad T43/p", {
+>+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+>+      DMI_MATCH(DMI_BIOS_VERSION,"1YET37WW") }, (void*)3},
+>+    { set_max_cstate, "IBM ThinkPad T43/p", {
+>+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+>+      DMI_MATCH(DMI_BIOS_VERSION,"1YET38WW") }, (void*)3},
+>+    { set_max_cstate, "IBM ThinkPad T43/p", {
+>+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+>+      DMI_MATCH(DMI_BIOS_VERSION,"1YET39WW") }, (void*)3},
+>+    { set_max_cstate, "IBM ThinkPad T43/p", {
+>+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+>+      DMI_MATCH(DMI_BIOS_VERSION,"1YET41WW") }, (void*)3},
+>+    { set_max_cstate, "IBM ThinkPad T43/p", {
+>+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+>+      DMI_MATCH(DMI_BIOS_VERSION,"1YET42WW") }, (void*)3},
+>+    { set_max_cstate, "IBM ThinkPad T43/p", {
+>+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+>+      DMI_MATCH(DMI_BIOS_VERSION,"1YET43WW") }, (void*)3},
+>+    { set_max_cstate, "IBM ThinkPad T43/p", {
+>+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+>+      DMI_MATCH(DMI_BIOS_VERSION,"1YET45WW") }, (void*)3},
+>+    { set_max_cstate, "IBM ThinkPad T43/p", {
+>+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+>+      DMI_MATCH(DMI_BIOS_VERSION,"1YET46WW") }, (void*)3},
+>+    { set_max_cstate, "IBM ThinkPad T43/p", {
+>+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+>+      DMI_MATCH(DMI_BIOS_VERSION,"1YET47WW") }, (void*)3},
+>+    { set_max_cstate, "IBM ThinkPad T43/p", {
+>+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+>+      DMI_MATCH(DMI_BIOS_VERSION,"1YET56WW") }, (void*)3},
+>+    { set_max_cstate, "IBM ThinkPad T43/p", {
+>+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+>+      DMI_MATCH(DMI_BIOS_VERSION,"1YET57WW") }, (void*)3},
+>+    { set_max_cstate, "IBM ThinkPad T43/p", {
+>+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+>+      DMI_MATCH(DMI_BIOS_VERSION,"1YET58WW") }, (void*)3},
+>+    { set_max_cstate, "IBM ThinkPad T43/p", {
+>+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+>+      DMI_MATCH(DMI_BIOS_VERSION,"1YET59WW") }, (void*)3},
+>+    { set_max_cstate, "IBM ThinkPad T43/p", {
+>+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+>+      DMI_MATCH(DMI_BIOS_VERSION,"1YET60WW") }, (void*)3},
+>     { set_max_cstate, "Medion 41700", {
+>       DMI_MATCH(DMI_BIOS_VENDOR,"Phoenix Technologies LTD"),
+>       DMI_MATCH(DMI_BIOS_VERSION,"R01-A1J")}, (void *)1},
+>
+>Signed-off by: Eric J Shattow <shadow@serverart.org>
+>
+>
+>
+>------------------------------------------------------------------
+>  This email was checked by AMaViS anti-virus system !
+>  Get yourself a free email address at http://mail.serverart.org
+>
