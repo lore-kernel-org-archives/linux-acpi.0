@@ -1,44 +1,56 @@
-From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Subject: Re: [PATCH 2.6.18 1/1] ACPI: limit cstate on noisy thinkpad t43/p models
-Date: Fri, 22 Sep 2006 14:13:50 +0100
-Message-ID: <E1GQkqk-0003Rh-00@skye.ra.phy.cam.ac.uk>
-References: <CFF307C98FEABE47A452B27C06B85BB6018F099A@hdsmsx411.amr.corp.intel.com>
+From: John Keller <jpk@sgi.com>
+Subject: [PATCH 0/3] - Altix: Add initial ACPI IO support
+Date: Fri, 22 Sep 2006 09:51:09 -0500
+Message-ID: <20060922145109.12407.58547.sendpatchset@attica.americas.sgi.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mraos.ra.phy.cam.ac.uk ([131.111.48.8]:17568 "EHLO
-	mraos.ra.phy.cam.ac.uk") by vger.kernel.org with ESMTP
-	id S932399AbWIVNOF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Sep 2006 09:14:05 -0400
-In-Reply-To: Your message of "Thu, 21 Sep 2006 18:05:36 EDT."
-             <CFF307C98FEABE47A452B27C06B85BB6018F099A@hdsmsx411.amr.corp.intel.com>
+Received: from omx1-ext.sgi.com ([192.48.179.11]:16552 "EHLO
+	omx1.americas.sgi.com") by vger.kernel.org with ESMTP
+	id S932555AbWIVOvT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Sep 2006 10:51:19 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: shadow@serverart.org, linux-acpi@vger.kernel.org
+To: akpm@osdl.org
+Cc: linux-ia64@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ayoung@sgi.com, John Keller <jpk@sgi.com>
 
-Interesting!
+Andrew,
+ This patchset was sent out more than a few weeks ago and
+there have been no comments or discussion on it.
+Can you (or Greg, if that is more appropriate) take this
+set of patches?
 
-> Are there any T43 users who do not hear this noise?
+Regards,
 
-Not sure about a T43 but I hear a high-pitched noise on my T60.
+John
 
-> Do you hear this noise for both AC and battery modes?
+------------
 
-It happens as soon as I pull out the AC power.  Well, more like half a
-second after.  It comes from the lower left corner of the laptop as
-you are looking at the keyboard, underneath the "Intel centrino duo"
-sticker.  For a while I thought it was the wireless card, but
-switching it off with the radio kill switch didn't stop the noise.
 
-But if I pull out the AC power while running this shell script:
+Patch set to add initial ACPI IO support to Altix.
 
-  while true ; do true ; done
+1/3 acpi-base-support.patch
+     - When booting with an ACPI capable PROM, the
+       DSDT will now define the system nodes and root
+       PCI busses. An Altix specific ACPI driver will be
+       registered for the node devices, while the
+       standard acpi_pci_root_driver can now scan
+       the PCI busses, eliminating the need for the current
+       fixup code to manually initiate the scan. Multiple SAL
+       calls are no longer needed, as platform specific info
+       is now passed via the ACPI vendor resource descriptor
+       (though all the old fixup code still remains due
+       to backward compatability requirements).
 
-then the noise doesn't start.
+      - A new platform vector for bus_fixup is created.
+      - The size of io_space[] is increased to support large
+        IO configurations.
+      - Export pcibios_fixup_device_resources() for use by Altix hotplug
+        code.
 
-Kernel: 2.6.15-25-386 (Ubuntu), UP version (SMP fails on S3)
-Hardware: T60, model 1951-C2U (T2400, Intel graphics and wireless)
+2/3 acpi-hotplug.patch
+      Make necessary changes to hotplug code now that
+      bus fixup is done via platform vector.
+      Note: This patch is dependent on above patch due to
+            pcibios_fixup_device_resources() reference.
 
--Sanjoy
-
-`Never underestimate the evil of which men of power are capable.'
-         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
+3/3 acpi-rom-shadow.patch
+      Provide support for PROM shadowing of a ROM image.
