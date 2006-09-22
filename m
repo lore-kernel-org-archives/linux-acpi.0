@@ -1,15 +1,15 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [09/12] acpi: add acpi_bus_removal_type in acpi_device
-Date: Fri, 22 Sep 2006 17:47:47 +0800
-Message-ID: <1158918467.11985.80.camel@localhost.localdomain>
+Subject: [10/12] acpi: motherboard driver
+Date: Fri, 22 Sep 2006 17:49:27 +0800
+Message-ID: <1158918567.11985.82.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:44940 "EHLO mga01.intel.com")
-	by vger.kernel.org with ESMTP id S1751138AbWIVJq2 (ORCPT
+Received: from mga01.intel.com ([192.55.52.88]:10815 "EHLO mga01.intel.com")
+	by vger.kernel.org with ESMTP id S1751136AbWIVJsk (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Sep 2006 05:46:28 -0400
+	Fri, 22 Sep 2006 05:48:40 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
@@ -17,60 +17,59 @@ Cc: len.brown@intel.com
 
 From: Li Shaohua <shaohua.li@intel.com>
 
-Add removal_type in structure acpi_device for hot removal.
-
-ACPI_BUS_REMOVAL_EJECT is used for ACPI device hot removal.
-Only one parameter is allowed in .remove method due to driver model.
-So removal_type is added to indicate different removal type.
+Consolidate motherboard1 and motherboard2 drivers into one
+so that driver core doesn't complain that two drivers have 
+the same name.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 
 ---
- drivers/acpi/scan.c     |    6 ++++--
- include/acpi/acpi_bus.h |    1 +
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ drivers/acpi/motherboard.c |   19 ++++---------------
+ 1 files changed, 4 insertions(+), 15 deletions(-)
 
-Index: linux-2.6.18/drivers/acpi/scan.c
+Index: linux-2.6.18-rc5/drivers/acpi/motherboard.c
 ===================================================================
---- linux-2.6.18.orig/drivers/acpi/scan.c	2006-09-21 21:15:34.000000000 +0800
-+++ linux-2.6.18/drivers/acpi/scan.c	2006-09-21 21:15:39.000000000 +0800
-@@ -229,9 +229,9 @@ static int acpi_device_remove(struct dev
+--- linux-2.6.18-rc5.orig/drivers/acpi/motherboard.c	2006-09-13 14:52:04.000000000 +0800
++++ linux-2.6.18-rc5/drivers/acpi/motherboard.c	2006-09-13 17:28:19.000000000 +0800
+@@ -33,8 +33,7 @@
+ ACPI_MODULE_NAME("acpi_motherboard")
  
- 	if (acpi_drv) {
- 		if (acpi_drv->ops.stop)
--			acpi_drv->ops.stop(acpi_dev, ACPI_BUS_REMOVAL_NORMAL);
-+			acpi_drv->ops.stop(acpi_dev, acpi_dev->removal_type);
- 		if (acpi_drv->ops.remove)
--			acpi_drv->ops.remove(acpi_dev, ACPI_BUS_REMOVAL_NORMAL);
-+			acpi_drv->ops.remove(acpi_dev, acpi_dev->removal_type);
- 	}
- 	acpi_dev->driver = NULL;
- 	acpi_driver_data(dev) = NULL;
-@@ -294,6 +294,7 @@ static void acpi_device_register(struct 
- 	device_add(&device->dev);
- 
- 	acpi_device_setup_files(device);
-+	device->removal_type = ACPI_BUS_REMOVAL_NORMAL;
+ /* Dell use PNP0C01 instead of PNP0C02 */
+-#define ACPI_MB_HID1			"PNP0C01"
+-#define ACPI_MB_HID2			"PNP0C02"
++#define ACPI_MB_HID			"PNP0C01,PNP0C02"
+ /**
+  * Doesn't care about legacy IO ports, only IO ports beyond 0x1000 are reserved
+  * Doesn't care about the failure of 'request_region', since other may reserve
+@@ -104,19 +103,10 @@ static int acpi_motherboard_add(struct a
+ 	return 0;
  }
  
- static void acpi_device_unregister(struct acpi_device *device, int type)
-@@ -859,6 +860,7 @@ static int acpi_bus_remove(struct acpi_d
- 	if (!dev)
- 		return -EINVAL;
+-static struct acpi_driver acpi_motherboard_driver1 = {
++static struct acpi_driver acpi_motherboard_driver = {
+ 	.name = "motherboard",
+ 	.class = "",
+-	.ids = ACPI_MB_HID1,
+-	.ops = {
+-		.add = acpi_motherboard_add,
+-		},
+-};
+-
+-static struct acpi_driver acpi_motherboard_driver2 = {
+-	.name = "motherboard",
+-	.class = "",
+-	.ids = ACPI_MB_HID2,
++	.ids = ACPI_MB_HID,
+ 	.ops = {
+ 		.add = acpi_motherboard_add,
+ 		},
+@@ -167,8 +157,7 @@ static void __init acpi_reserve_resource
  
-+	dev->removal_type = ACPI_BUS_REMOVAL_EJECT;
- 	device_release_driver(&dev->dev);
- 
- 	if (!rmdevice)
-Index: linux-2.6.18/include/acpi/acpi_bus.h
-===================================================================
---- linux-2.6.18.orig/include/acpi/acpi_bus.h	2006-09-21 21:15:34.000000000 +0800
-+++ linux-2.6.18/include/acpi/acpi_bus.h	2006-09-21 21:15:39.000000000 +0800
-@@ -301,6 +301,7 @@ struct acpi_device {
- 	void *driver_data;
- 	struct device dev;
- 	struct acpi_bus_ops bus_ops;	/* workaround for different code path for hotplug */
-+	enum acpi_bus_removal_type removal_type; /* indicate for different removal type */
- };
- 
- #define acpi_driver_data(d)	((d)->driver_data)
+ static int __init acpi_motherboard_init(void)
+ {
+-	acpi_bus_register_driver(&acpi_motherboard_driver1);
+-	acpi_bus_register_driver(&acpi_motherboard_driver2);
++	acpi_bus_register_driver(&acpi_motherboard_driver);
+ 	/*
+ 	 * Guarantee motherboard IO reservation first
+ 	 * This module must run after scan.c
