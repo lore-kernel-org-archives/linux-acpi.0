@@ -1,119 +1,99 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [PATCH 2.6.18 1/1] ACPI: limit cstate on noisy thinkpad t43/p models
-Date: Thu, 21 Sep 2006 18:05:36 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6018F099A@hdsmsx411.amr.corp.intel.com>
+From: Stian Jordet <liste@jordet.net>
+Subject: Re: ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 11, why not in
+	9 ?
+Date: Fri, 22 Sep 2006 02:32:11 +0200
+Message-ID: <1158885131.8360.17.camel@localhost>
+References: <1158262993.4200.14.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:12101 "EHLO mga01.intel.com")
-	by vger.kernel.org with ESMTP id S1751659AbWIUWGo convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Sep 2006 18:06:44 -0400
-Content-class: urn:content-classes:message
+Received: from buick.jordet.net ([193.91.240.190]:40122 "EHLO buick.jordet.net")
+	by vger.kernel.org with ESMTP id S932144AbWIVAcQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Sep 2006 20:32:16 -0400
+In-Reply-To: <1158262993.4200.14.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: shadow@serverart.org
-Cc: linux-acpi@vger.kernel.org
+To: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
+Cc: acpi devel <linux-acpi@vger.kernel.org>
 
-Eric,
-Do you hear this noise for both AC and battery modes?
+tor, 14,.09.2006 kl. 20.43 +0100, skrev Sergio Monteiro Basto:
+> drivers/acpi/pci_link.c, line #583
+> acpi_irq_penalty[link->irq.active] += PIRQ_PENALTY_PCI_USING;
+>         printk(PREFIX "%s [%s] enabled at IRQ %d\n",
+>                acpi_device_name(link->device),
+>                acpi_device_bid(link->device), link->irq.active);
+> 
+> any clue about this problem ? 
 
-Do you still get this noise when you run with HZ=100
-or HZ=1000?
+I think you might be on to something here, but doesn't seem like anyone
+with the right skills has anything to add :( But it seems obvious that
+it's somewhat related to the fact that LNKD is enabled on irq11, even
+though it seems like it should have been irq9. Weird, but I don't
+understand nada :(
 
-Are there any T43 users who do not hear this noise?
+Thanks for looking into it, though.
 
-Turning off C3 is a pretty big hammer...
-
-thanks,
--Len
+-Stian
 
 
->-----Original Message-----
->From: Eric Shattow [mailto:shadow@serverart.org] 
->Sent: Thursday, September 21, 2006 1:37 PM
->To: Brown, Len
->Subject: [PATCH 2.6.18 1/1] ACPI: limit cstate on noisy 
->thinkpad t43/p models
->
->IBM T43/p laptops exhibit a high pitched noise at higher ACPI 
->C-states. Making
->C3 the max state reduces this noise greatly.
->
->diff -uprN linux-2.6.18/drivers/acpi/processor_idle.c
->linux-2.6.18~ibm_t43p_limit_max_cstate/drivers/acpi/processor_idle.c
->--- linux-2.6.18/drivers/acpi/processor_idle.c    2006-09-19
->22:42:06.000000000 -0500
->+++ 
->linux-2.6.18~ibm_t43p_limit_max_cstate/drivers/acpi/processor_idle.c   
->2006-09-21 12:20:59.000000000 -0500
->@@ -78,6 +78,9 @@ module_param(bm_history, uint, 0644);
->  * IBM ThinkPad R40e crashes mysteriously when going into C2 or C3.
->  * For now disable this. Probably a bug somewhere else.
->  *
->+ * IBM ThinkPad T43/p exhibits strange CPU noises at higher wait
->+ * states. Forcing a wait state of C3 or less keeps things quiet.
->+ *
->  * To skip this limit, boot/load with a large max_cstate limit.
->  */
-> static int set_max_cstate(struct dmi_system_id *id)
->@@ -145,6 +148,48 @@ static struct dmi_system_id __cpuinitdat
->     { set_max_cstate, "IBM ThinkPad R40e", {
->       DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
->       DMI_MATCH(DMI_BIOS_VERSION,"1SET68WW") }, (void*)1},
->+    { set_max_cstate, "IBM ThinkPad T43/p", {
->+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
->+      DMI_MATCH(DMI_BIOS_VERSION,"1YET37WW") }, (void*)3},
->+    { set_max_cstate, "IBM ThinkPad T43/p", {
->+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
->+      DMI_MATCH(DMI_BIOS_VERSION,"1YET38WW") }, (void*)3},
->+    { set_max_cstate, "IBM ThinkPad T43/p", {
->+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
->+      DMI_MATCH(DMI_BIOS_VERSION,"1YET39WW") }, (void*)3},
->+    { set_max_cstate, "IBM ThinkPad T43/p", {
->+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
->+      DMI_MATCH(DMI_BIOS_VERSION,"1YET41WW") }, (void*)3},
->+    { set_max_cstate, "IBM ThinkPad T43/p", {
->+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
->+      DMI_MATCH(DMI_BIOS_VERSION,"1YET42WW") }, (void*)3},
->+    { set_max_cstate, "IBM ThinkPad T43/p", {
->+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
->+      DMI_MATCH(DMI_BIOS_VERSION,"1YET43WW") }, (void*)3},
->+    { set_max_cstate, "IBM ThinkPad T43/p", {
->+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
->+      DMI_MATCH(DMI_BIOS_VERSION,"1YET45WW") }, (void*)3},
->+    { set_max_cstate, "IBM ThinkPad T43/p", {
->+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
->+      DMI_MATCH(DMI_BIOS_VERSION,"1YET46WW") }, (void*)3},
->+    { set_max_cstate, "IBM ThinkPad T43/p", {
->+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
->+      DMI_MATCH(DMI_BIOS_VERSION,"1YET47WW") }, (void*)3},
->+    { set_max_cstate, "IBM ThinkPad T43/p", {
->+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
->+      DMI_MATCH(DMI_BIOS_VERSION,"1YET56WW") }, (void*)3},
->+    { set_max_cstate, "IBM ThinkPad T43/p", {
->+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
->+      DMI_MATCH(DMI_BIOS_VERSION,"1YET57WW") }, (void*)3},
->+    { set_max_cstate, "IBM ThinkPad T43/p", {
->+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
->+      DMI_MATCH(DMI_BIOS_VERSION,"1YET58WW") }, (void*)3},
->+    { set_max_cstate, "IBM ThinkPad T43/p", {
->+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
->+      DMI_MATCH(DMI_BIOS_VERSION,"1YET59WW") }, (void*)3},
->+    { set_max_cstate, "IBM ThinkPad T43/p", {
->+      DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
->+      DMI_MATCH(DMI_BIOS_VERSION,"1YET60WW") }, (void*)3},
->     { set_max_cstate, "Medion 41700", {
->       DMI_MATCH(DMI_BIOS_VENDOR,"Phoenix Technologies LTD"),
->       DMI_MATCH(DMI_BIOS_VERSION,"R01-A1J")}, (void *)1},
->
->Signed-off by: Eric J Shattow <shadow@serverart.org>
->
->
->
->------------------------------------------------------------------
->  This email was checked by AMaViS anti-virus system !
->  Get yourself a free email address at http://mail.serverart.org
->
+> -------- Forwarded Message --------
+> From: Sergio Monteiro Basto 
+> Subject: Re: [PATCH V3] VIA IRQ quirk behaviour change
+> Date: Wed, 13 Sep 2006 01:48:28 +0100
+> 
+> On Tue, 2006-09-12 at 23:38 +0200, Stian Jordet wrote:
+> > On tir, 2006-09-12 at 13:37 +0100, Sergio Monteiro Basto wrote:
+> > > Ok, as a quick answer, you have a very primitive VIA SMP board, which
+> > > make me remember my old laptop. 
+> > > I maintain what a had write in previous emails about this system. 
+> > > Seeing the configuration of irqs on windows, USB are in 9, so could be a
+> > > clue.
+> > > If I had your board, I'll try not quirk USB (cause quirk put USB in 11)
+> > > and make USB interrupts work as IO-APIC-edge.
+> > > 9:       nnnn       nnnn   IO-APIC-edge  uhci_hcd:usb1, uhci_hcd:usb2,
+> > > uhci_hcd:usb3
+> > 
+> > The point is, that even when I do not quirk (just insert return at the
+> > top of the quirk-function), usb still uses irq 11 (as I wrote here:
+> > http://lkml.org/lkml/2006/9/6/49 ), but won't work. And acpi (on
+> > interrupt 9) gets an interrupt storm, and gets disabled.
+> > 
+> 
+> Good point , you got on your dmesg of kernel 2.6.18-rc6
+> (http://lkml.org/lkml/2006/9/10/120)
+> 
+> USB Universal Host Controller Interface driver v3.0
+> ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 11
+> ACPI: PCI Interrupt 0000:00:11.2[D] -> Link [LNKD] -> GSI 11 (level, low) -> IRQ 11
+> PCI: VIA IRQ fixup for 0000:00:11.2, from 9 to 11
+> uhci_hcd 0000:00:11.2: UHCI Host Controller
+> uhci_hcd 0000:00:11.2: new USB bus registered, assigned bus number 1
+> uhci_hcd 0000:00:11.2: irq 11, io base 0x00009800
+> usb usb1: configuration #1 chosen from 1 choice
+> hub 1-0:1.0: USB hub found
+> hub 1-0:1.0: 2 ports detected
+> 
+> but before 
+> 
+> ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 9 10 *11 12 14 15)
+> ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 7 9 *10 11 12 14 15)
+> ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 *5 6 7 9 10 11 12 14 15)
+> ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 6 7 *9 10 11 12 14 15)
+> 
+> LNKD was on 9, so may be the bug is on ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 11
+> you have to investigate :) 
+> 
+> Further more, your interrupts have 4 steps  
+> ACPI: PCI Interrupt 0000:00:11.2[D] -> Link [LNKD] -> GSI 11 (level, low) -> IRQ 11
+> and mine just got 3 
+> ACPI: PCI Interrupt 0000:00:10.1[A] -> GSI 21 (level, low) -> IRQ 201
+> 
+> > But if I somehow got usb using irq 9, all my problems might vanish...
+> > 
+> > -Stian
+> > 
+> 
+> 
+
