@@ -1,160 +1,78 @@
-From: John Keller <jpk@sgi.com>
-Subject: [PATCH 3/3] - Altix: Initial ACPI support - ROM shadowing.
-Date: Fri, 22 Sep 2006 09:51:43 -0500
-Message-ID: <20060922145143.12442.70075.sendpatchset@attica.americas.sgi.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from omx1-ext.sgi.com ([192.48.179.11]:30888 "EHLO
-	omx1.americas.sgi.com") by vger.kernel.org with ESMTP
-	id S932563AbWIVOvt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Sep 2006 10:51:49 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Stefan Schmidt <stefan@datenfreihafen.org>
+Subject: [Patch 2/3] ibm-acpi: Update documentation for brightness and volume.
+Date: Fri, 22 Sep 2006 12:19:15 +0200
+Message-ID: <20060922101944.826924436@datenfreihafen.org>
+References: <20060922101913.276298370@datenfreihafen.org>
+Reply-To: linux-thinkpad@linux-thinkpad.org
+Return-path: <linux-thinkpad-admin@linux-thinkpad.org>
+Content-Disposition: inline; filename=ibm-acpi-get-rid-of-experimental-status-doc.patch
+Sender: linux-thinkpad-admin@linux-thinkpad.org
+Errors-To: linux-thinkpad-admin@linux-thinkpad.org
+List-Help: <mailto:linux-thinkpad-request@linux-thinkpad.org?subject=help>
+List-Post: <mailto:linux-thinkpad@linux-thinkpad.org>
+List-Subscribe: <http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad>,
+	<mailto:linux-thinkpad-request@linux-thinkpad.org?subject=subscribe>
+List-Unsubscribe: <http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad>,
+	<mailto:linux-thinkpad-request@linux-thinkpad.org?subject=unsubscribe>
+List-Archive: <http://mailman.linux-thinkpad.org/pipermail/linux-thinkpad/>
+To: borislav@users.sf.net
+Cc: linux-acpi@vger.kernel.org, linux-thinkpad@linux-thinkpad.org, jeremy@goop.org, multinymous@gmail.com, hmh@hmh.eng.br
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@osdl.org
-Cc: linux-ia64@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ayoung@sgi.com, John Keller <jpk@sgi.com>
 
-Support a shadowed ROM when running with an ACPI capable PROM.
+Document the change of the experimental flag for brightness and volume.
 
-Define a new dev.resource flag IORESOURCE_ROM_BIOS_COPY to
-describe the case of a BIOS shadowed ROM, which can then
-be used to avoid pci_map_rom() making an unneeded call to
-pci_enable_rom().
-
-
-Signed-off-by: John Keller <jpk@sgi.com>
-
- arch/ia64/sn/kernel/io_acpi_init.c |   33 +++++++++++++++++++++++++++++++++
- arch/ia64/sn/kernel/io_common.c    |    5 +++--
- arch/ia64/sn/kernel/io_init.c      |    3 +++
- drivers/pci/rom.c                  |    9 ++++++---
- include/linux/ioport.h             |    1 +
- 5 files changed, 46 insertions(+), 5 deletions(-)
-
-
-Index: linux-2.6/arch/ia64/sn/kernel/io_common.c
+Signed-off-by: Stefan Schmidt <stefan@datenfreihafen.org>
+---
+Index: linux-2.6.18-ibm-acpi/Documentation/ibm-acpi.txt
 ===================================================================
---- linux-2.6.orig/arch/ia64/sn/kernel/io_common.c	2006-09-22 08:13:28.039809797 -0500
-+++ linux-2.6/arch/ia64/sn/kernel/io_common.c	2006-09-22 08:14:36.792373640 -0500
-@@ -286,9 +286,10 @@ void sn_pci_fixup_slot(struct pci_dev *d
- 	list_add_tail(&pcidev_info->pdi_list,
- 		      &(SN_PLATFORM_DATA(dev->bus)->pcidev_info));
+--- linux-2.6.18-ibm-acpi.orig/Documentation/ibm-acpi.txt	2006-09-21 20:56:16.000000000 +0200
++++ linux-2.6.18-ibm-acpi/Documentation/ibm-acpi.txt	2006-09-21 20:59:22.000000000 +0200
+@@ -30,8 +30,8 @@
+ 	- ACPI sounds
+ 	- temperature sensors
+ 	- Experimental: embedded controller register dump
+-	- Experimental: LCD brightness control
+-	- Experimental: volume control
++	- LCD brightness control
++	- Volume control
+ 	- Experimental: fan speed, fan enable/disable
  
--	if (!SN_ACPI_BASE_SUPPORT())
-+	if (SN_ACPI_BASE_SUPPORT())
-+		sn_acpi_slot_fixup(dev, pcidev_info);
-+	else
- 		sn_more_slot_fixup(dev, pcidev_info);
+ A compatibility table by model and feature is maintained on the web
+@@ -523,13 +523,8 @@
+ with this, do send me your results (including some complete dumps with
+ a description of the conditions when they were taken.)
+ 
+-EXPERIMENTAL: LCD brightness control -- /proc/acpi/ibm/brightness
+------------------------------------------------------------------
 -
- 	/*
- 	 * Using the PROMs values for the PCI host bus, get the Linux
-  	 * PCI host_pci_dev struct and set up host bus linkages
-Index: linux-2.6/drivers/pci/rom.c
-===================================================================
---- linux-2.6.orig/drivers/pci/rom.c	2006-09-21 17:09:09.167729932 -0500
-+++ linux-2.6/drivers/pci/rom.c	2006-09-22 08:14:36.800374635 -0500
-@@ -77,7 +77,8 @@ void __iomem *pci_map_rom(struct pci_dev
- 		start = (loff_t)0xC0000;
- 		*size = 0x20000; /* cover C000:0 through E000:0 */
- 	} else {
--		if (res->flags & IORESOURCE_ROM_COPY) {
-+		if (res->flags &
-+			(IORESOURCE_ROM_COPY | IORESOURCE_ROM_BIOS_COPY)) {
- 			*size = pci_resource_len(pdev, PCI_ROM_RESOURCE);
- 			return (void __iomem *)(unsigned long)
- 				pci_resource_start(pdev, PCI_ROM_RESOURCE);
-@@ -161,7 +162,8 @@ void __iomem *pci_map_rom_copy(struct pc
- 	if (!rom)
- 		return NULL;
+-This feature is marked EXPERIMENTAL because the implementation
+-directly accesses hardware registers and may not work as expected. USE
+-WITH CAUTION! To use this feature, you need to supply the
+-experimental=1 parameter when loading the module.
++LCD brightness control -- /proc/acpi/ibm/brightness
++---------------------------------------------------
  
--	if (res->flags & (IORESOURCE_ROM_COPY | IORESOURCE_ROM_SHADOW))
-+	if (res->flags & (IORESOURCE_ROM_COPY | IORESOURCE_ROM_SHADOW |
-+			  IORESOURCE_ROM_BIOS_COPY))
- 		return rom;
+ This feature allows software control of the LCD brightness on ThinkPad
+ models which don't have a hardware brightness slider. The available
+@@ -542,13 +537,8 @@
+ The <level> number range is 0 to 7, although not all of them may be
+ distinct. The current brightness level is shown in the file.
  
- 	res->start = (unsigned long)kmalloc(*size, GFP_KERNEL);
-@@ -187,7 +189,7 @@ void pci_unmap_rom(struct pci_dev *pdev,
- {
- 	struct resource *res = &pdev->resource[PCI_ROM_RESOURCE];
+-EXPERIMENTAL: Volume control -- /proc/acpi/ibm/volume
+------------------------------------------------------
+-
+-This feature is marked EXPERIMENTAL because the implementation
+-directly accesses hardware registers and may not work as expected. USE
+-WITH CAUTION! To use this feature, you need to supply the
+-experimental=1 parameter when loading the module.
++Volume control -- /proc/acpi/ibm/volume
++---------------------------------------
  
--	if (res->flags & IORESOURCE_ROM_COPY)
-+	if (res->flags & (IORESOURCE_ROM_COPY | IORESOURCE_ROM_BIOS_COPY))
- 		return;
- 
- 	iounmap(rom);
-@@ -211,6 +213,7 @@ void pci_remove_rom(struct pci_dev *pdev
- 		sysfs_remove_bin_file(&pdev->dev.kobj, pdev->rom_attr);
- 	if (!(res->flags & (IORESOURCE_ROM_ENABLE |
- 			    IORESOURCE_ROM_SHADOW |
-+			    IORESOURCE_ROM_BIOS_COPY |
- 			    IORESOURCE_ROM_COPY)))
- 		pci_disable_rom(pdev);
- }
-Index: linux-2.6/include/linux/ioport.h
-===================================================================
---- linux-2.6.orig/include/linux/ioport.h	2006-09-21 17:09:09.167729932 -0500
-+++ linux-2.6/include/linux/ioport.h	2006-09-22 08:14:36.808375629 -0500
-@@ -89,6 +89,7 @@ struct resource_list {
- #define IORESOURCE_ROM_ENABLE		(1<<0)	/* ROM is enabled, same as PCI_ROM_ADDRESS_ENABLE */
- #define IORESOURCE_ROM_SHADOW		(1<<1)	/* ROM is copy at C000:0 */
- #define IORESOURCE_ROM_COPY		(1<<2)	/* ROM is alloc'd copy, resource field overlaid */
-+#define IORESOURCE_ROM_BIOS_COPY	(1<<3)	/* ROM is BIOS copy, resource field overlaid */
- 
- /* PC/ISA/whatever - the normal PC address spaces: IO and memory */
- extern struct resource ioport_resource;
-Index: linux-2.6/arch/ia64/sn/kernel/io_acpi_init.c
-===================================================================
---- linux-2.6.orig/arch/ia64/sn/kernel/io_acpi_init.c	2006-09-22 08:13:28.039809797 -0500
-+++ linux-2.6/arch/ia64/sn/kernel/io_acpi_init.c	2006-09-22 08:14:36.808375629 -0500
-@@ -169,6 +169,39 @@ sn_acpi_bus_fixup(struct pci_bus *bus)
- 	}
- }
- 
-+/*
-+ * sn_acpi_slot_fixup - Perform any SN specific slot fixup.
-+ *			At present there does not appear to be
-+ *			any generic way to handle a ROM image
-+ *			that has been shadowed by the PROM, so
-+ *			we pass a pointer to it	within the
-+ *			pcidev_info structure.
-+ */
-+
-+void
-+sn_acpi_slot_fixup(struct pci_dev *dev, struct pcidev_info *pcidev_info)
-+{
-+	void __iomem *addr;
-+	size_t size;
-+
-+	if (pcidev_info->pdi_pio_mapped_addr[PCI_ROM_RESOURCE]) {
-+		/*
-+		 * A valid ROM image exists and has been shadowed by the
-+		 * PROM. Setup the pci_dev ROM resource to point to
-+		 * the shadowed copy.
-+		 */
-+		size = dev->resource[PCI_ROM_RESOURCE].end -
-+				dev->resource[PCI_ROM_RESOURCE].start;
-+		addr =
-+		     ioremap(pcidev_info->pdi_pio_mapped_addr[PCI_ROM_RESOURCE],
-+			     size);
-+		dev->resource[PCI_ROM_RESOURCE].start = (unsigned long) addr;
-+		dev->resource[PCI_ROM_RESOURCE].end =
-+						(unsigned long) addr + size;
-+		dev->resource[PCI_ROM_RESOURCE].flags |= IORESOURCE_ROM_BIOS_COPY;
-+	}
-+}
-+
- static struct acpi_driver acpi_sn_hubdev_driver = {
- 	.name = "SGI HUBDEV Driver",
- 	.ids = "SGIHUB,SGITIO",
-Index: linux-2.6/arch/ia64/sn/kernel/io_init.c
-===================================================================
---- linux-2.6.orig/arch/ia64/sn/kernel/io_init.c	2006-09-22 08:13:28.027808294 -0500
-+++ linux-2.6/arch/ia64/sn/kernel/io_init.c	2006-09-22 08:14:36.808375629 -0500
-@@ -210,6 +210,9 @@ sn_more_slot_fixup(struct pci_dev *dev, 
- 			dev->resource[idx].parent = &ioport_resource;
- 		else
- 			dev->resource[idx].parent = &iomem_resource;
-+		/* If ROM, mark as shadowed in PROM */
-+		if (idx == PCI_ROM_RESOURCE)
-+			dev->resource[idx].flags |= IORESOURCE_ROM_BIOS_COPY;
- 	}
- 	/* Create a pci_window in the pci_controller struct for
- 	 * each device resource.
+ This feature allows volume control on ThinkPad models which don't have
+ a hardware volume knob. The available commands are:
+
+--
+
+-- 
+The linux-thinkpad mailing list home page is at:
+http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad
