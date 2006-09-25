@@ -1,529 +1,652 @@
 From: akpm@osdl.org
-Subject: [patch 07/10] acpi: mwait/C-state support
-Date: Mon, 25 Sep 2006 16:28:13 -0700
-Message-ID: <200609252328.k8PNSDfK002185@shell0.pdx.osdl.net>
+Subject: [patch 09/10] acpi: add removable drive bay support
+Date: Mon, 25 Sep 2006 16:28:15 -0700
+Message-ID: <200609252328.k8PNSF5o002191@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:26797 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1751676AbWIYX2w (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:52141 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1751680AbWIYX3a (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Sep 2006 19:28:52 -0400
+	Mon, 25 Sep 2006 19:29:30 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, venkatesh.pallipadi@intel.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, kristen.c.accardi@intel.com
 
-From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-Background:
-Newer Intel processors (eg: Core Duo), support processor native C-state using
-mwait instructions.
-Refer: Intel Architecture Software Developer's Manual
-http://www.intel.com/design/Pentium4/manuals/253668.htm
+This driver adds generic removable drive bay support.
 
-Platform firmware exports the support for Native C-state to OS using
-ACPI _PDC and _CST methods.
-Refer: Intel Processor Vendor-Specific ACPI: Interface Specification
-http://www.intel.com/technology/iapc/acpi/downloads/302223.htm
-
-With Processor Native C-state, we use 'mwait' instruction on the processor
-to enter different C-states (C1, C2, C3).  We won't use the special IO
-ports to enter C-state and no SMM mode etc required to enter C-state. 
-Overall this will mean better C-state support.
-
-One major advantage of using mwait for all C-states is, with this and
-"treat interrupt as break event" feature of mwait, we can now get accurate
-timing for the time spent in C1, C2, ..  states.
-
-The patch below adds support for both i386 and x86-64 kernels.
-
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- arch/i386/kernel/acpi/cstate.c |  122 ++++++++++++++++++++++++++++++-
- arch/i386/kernel/process.c     |   22 +++--
- arch/x86_64/kernel/process.c   |   22 +++--
- drivers/acpi/processor_idle.c  |   97 +++++++++++++++---------
- include/acpi/pdc_intel.h       |    9 +-
- include/acpi/processor.h       |   18 ++++
- include/asm-i386/processor.h   |    2 
- include/asm-x86_64/processor.h |    2 
- 8 files changed, 240 insertions(+), 54 deletions(-)
+ drivers/acpi/Kconfig  |    7 
+ drivers/acpi/Makefile |    1 
+ drivers/acpi/bay.c    |  592 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 600 insertions(+)
 
-diff -puN arch/i386/kernel/acpi/cstate.c~acpi-mwait-c-state-fixes arch/i386/kernel/acpi/cstate.c
---- a/arch/i386/kernel/acpi/cstate.c~acpi-mwait-c-state-fixes
-+++ a/arch/i386/kernel/acpi/cstate.c
-@@ -10,6 +10,7 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/acpi.h>
-+#include <linux/cpu.h>
+diff -puN drivers/acpi/Kconfig~acpi-add-removable-drive-bay-support drivers/acpi/Kconfig
+--- a/drivers/acpi/Kconfig~acpi-add-removable-drive-bay-support
++++ a/drivers/acpi/Kconfig
+@@ -138,6 +138,13 @@ config ACPI_DOCK
+ 	help
+ 	  This driver adds support for ACPI controlled docking stations
  
- #include <acpi/processor.h>
- #include <asm/acpi.h>
-@@ -41,5 +42,124 @@ void acpi_processor_power_init_bm_check(
- 		flags->bm_check = 1;
- 	}
- }
--
- EXPORT_SYMBOL(acpi_processor_power_init_bm_check);
++config ACPI_BAY
++	tristate "Removable Drive Bay"
++	depends on EXPERIMENTAL
++	help
++	  This driver adds support for ACPI controlled removable drive
++	  bays such as the IBM ultrabay or the Dell Module Bay.
 +
-+/* The code below handles cstate entry with monitor-mwait pair on Intel*/
+ config ACPI_PROCESSOR
+ 	tristate "Processor"
+ 	default y
+diff -puN drivers/acpi/Makefile~acpi-add-removable-drive-bay-support drivers/acpi/Makefile
+--- a/drivers/acpi/Makefile~acpi-add-removable-drive-bay-support
++++ a/drivers/acpi/Makefile
+@@ -43,6 +43,7 @@ obj-$(CONFIG_ACPI_BUTTON)	+= button.o
+ obj-$(CONFIG_ACPI_EC)		+= ec.o
+ obj-$(CONFIG_ACPI_FAN)		+= fan.o
+ obj-$(CONFIG_ACPI_DOCK)		+= dock.o
++obj-$(CONFIG_ACPI_BAY)		+= bay.o
+ obj-$(CONFIG_ACPI_VIDEO)	+= video.o 
+ obj-$(CONFIG_ACPI_HOTKEY)	+= hotkey.o
+ obj-y				+= pci_root.o pci_link.o pci_irq.o pci_bind.o
+diff -puN /dev/null drivers/acpi/bay.c
+--- /dev/null
++++ a/drivers/acpi/bay.c
+@@ -0,0 +1,592 @@
++/*
++ *  bay.c - ACPI removable drive bay driver
++ *
++ *  Copyright (C) 2006 Kristen Carlson Accardi <kristen.c.accardi@intel.com>
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or (at
++ *  your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful, but
++ *  WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ *  General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ */
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/types.h>
++#include <linux/notifier.h>
++#include <acpi/acpi_bus.h>
++#include <acpi/acpi_drivers.h>
++#include <linux/proc_fs.h>
++#include <linux/seq_file.h>
++#include <asm/uaccess.h>
 +
-+struct cstate_entry_s {
-+	struct {
-+		unsigned int eax;
-+		unsigned int ecx;
-+	} states[ACPI_PROCESSOR_MAX_POWER];
++#define ACPI_BAY_DRIVER_NAME "ACPI Removable Drive Bay Driver"
++
++ACPI_MODULE_NAME("bay")
++MODULE_AUTHOR("Kristen Carlson Accardi");
++MODULE_DESCRIPTION(ACPI_BAY_DRIVER_NAME);
++MODULE_LICENSE("GPL");
++#define ACPI_BAY_CLASS "bay"
++#define ACPI_BAY_COMPONENT	0x10000000
++#define _COMPONENT ACPI_BAY_COMPONENT
++#define bay_dprintk(h,s) {\
++	char prefix[80] = {'\0'};\
++	struct acpi_buffer buffer = {sizeof(prefix), prefix};\
++	acpi_get_name(h, ACPI_FULL_PATHNAME, &buffer);\
++	printk(KERN_DEBUG PREFIX "%s: %s\n", prefix, s); }
++
++static void bay_notify(acpi_handle handle, u32 event, void *data);
++static int acpi_bay_add(struct acpi_device *device);
++static int acpi_bay_remove(struct acpi_device *device, int type);
++static int acpi_bay_match(struct acpi_device *device,
++				struct acpi_driver *driver);
++
++static struct acpi_driver acpi_bay_driver = {
++	.name = ACPI_BAY_DRIVER_NAME,
++	.class = ACPI_BAY_CLASS,
++	.ops = {
++		.add = acpi_bay_add,
++		.remove = acpi_bay_remove,
++		.match = acpi_bay_match,
++		},
 +};
-+static struct cstate_entry_s *cpu_cstate_entry;	/* per CPU ptr */
 +
-+static short mwait_supported[ACPI_PROCESSOR_MAX_POWER];
++struct bay {
++	acpi_handle handle;
++	char *name;
++	struct list_head list;
++	struct proc_dir_entry *proc;
++};
 +
-+#define MWAIT_SUBSTATE_MASK	(0xf)
-+#define MWAIT_SUBSTATE_SIZE	(4)
++LIST_HEAD(drive_bays);
 +
-+#define CPUID_MWAIT_LEAF (5)
-+#define CPUID5_ECX_EXTENSIONS_SUPPORTED (0x1)
-+#define CPUID5_ECX_INTERRUPT_BREAK	(0x2)
++static struct proc_dir_entry *acpi_bay_dir;
 +
-+#define MWAIT_ECX_INTERRUPT_BREAK	(0x1)
-+
-+#define NATIVE_CSTATE_BEYOND_HALT	(2)
-+
-+int acpi_processor_ffh_cstate_probe(unsigned int cpu,
-+		struct acpi_processor_cx *cx, struct acpi_power_register *reg)
++/*****************************************************************************
++ *                         Drive Bay functions                               *
++ *****************************************************************************/
++/**
++ * is_ejectable - see if a device is ejectable
++ * @handle: acpi handle of the device
++ *
++ * If an acpi object has a _EJ0 method, then it is ejectable
++ */
++static int is_ejectable(acpi_handle handle)
 +{
-+	struct cstate_entry_s *percpu_entry;
-+	struct cpuinfo_x86 *c = cpu_data + cpu;
++	acpi_status status;
++	acpi_handle tmp;
 +
-+	cpumask_t saved_mask;
-+	int retval;
-+	unsigned int eax, ebx, ecx, edx;
-+	unsigned int edx_part;
-+	unsigned int cstate_type; /* C-state type and not ACPI C-state type */
-+	unsigned int num_cstate_subtype;
-+
-+	if (!cpu_cstate_entry || c->cpuid_level < CPUID_MWAIT_LEAF )
-+		return -1;
-+
-+	if (reg->bit_offset != NATIVE_CSTATE_BEYOND_HALT)
-+		return -1;
-+
-+	percpu_entry = per_cpu_ptr(cpu_cstate_entry, cpu);
-+	percpu_entry->states[cx->index].eax = 0;
-+	percpu_entry->states[cx->index].ecx = 0;
-+
-+	/* Make sure we are running on right CPU */
-+	saved_mask = current->cpus_allowed;
-+	retval = set_cpus_allowed(current, cpumask_of_cpu(cpu));
-+	if (retval)
-+		return -1;
-+
-+	cpuid(CPUID_MWAIT_LEAF, &eax, &ebx, &ecx, &edx);
-+
-+	/* Check whether this particular cx_type (in CST) is supported or not */
-+	cstate_type = (cx->address >> MWAIT_SUBSTATE_SIZE) + 1;
-+	edx_part = edx >> (cstate_type * MWAIT_SUBSTATE_SIZE);
-+	num_cstate_subtype = edx_part & MWAIT_SUBSTATE_MASK;
-+
-+	retval = 0;
-+	if (num_cstate_subtype < (cx->address & MWAIT_SUBSTATE_MASK)) {
-+		retval = -1;
-+		goto out;
-+	}
-+
-+	/* mwait ecx extensions INTERRUPT_BREAK should be supported for C2/C3 */
-+	if (!(ecx & CPUID5_ECX_EXTENSIONS_SUPPORTED) ||
-+	    !(ecx & CPUID5_ECX_INTERRUPT_BREAK)) {
-+		retval = -1;
-+		goto out;
-+	}
-+	percpu_entry->states[cx->index].ecx = MWAIT_ECX_INTERRUPT_BREAK;
-+
-+	/* Use the hint in CST */
-+	percpu_entry->states[cx->index].eax = cx->address;
-+
-+	if (!mwait_supported[cstate_type]) {
-+		mwait_supported[cstate_type] = 1;
-+		printk(KERN_DEBUG "Monitor-Mwait will be used to enter C-%d "
-+		       "state\n", cx->type);
-+	}
-+
-+out:
-+	set_cpus_allowed(current, saved_mask);
-+	return retval;
++	status = acpi_get_handle(handle, "_EJ0", &tmp);
++	if (ACPI_FAILURE(status))
++		return 0;
++	return 1;
 +}
-+EXPORT_SYMBOL_GPL(acpi_processor_ffh_cstate_probe);
 +
-+void acpi_processor_ffh_cstate_enter(struct acpi_processor_cx *cx)
++/**
++ * bay_present - see if the bay device is present
++ * @bay: the drive bay
++ *
++ * execute the _STA method.
++ */
++static int bay_present(struct bay *bay)
 +{
-+	unsigned int cpu = smp_processor_id();
-+	struct cstate_entry_s *percpu_entry;
++	unsigned long sta;
++	acpi_status status;
 +
-+	percpu_entry = per_cpu_ptr(cpu_cstate_entry, cpu);
-+	mwait_idle_with_hints(percpu_entry->states[cx->index].eax,
-+	                      percpu_entry->states[cx->index].ecx);
-+}
-+EXPORT_SYMBOL_GPL(acpi_processor_ffh_cstate_enter);
-+
-+static int __init ffh_cstate_init(void)
-+{
-+	struct cpuinfo_x86 *c = &boot_cpu_data;
-+	if (c->x86_vendor != X86_VENDOR_INTEL)
-+		return -1;
-+
-+	cpu_cstate_entry = alloc_percpu(struct cstate_entry_s);
++	if (bay) {
++		status = acpi_evaluate_integer(bay->handle, "_STA", NULL, &sta);
++		if (ACPI_SUCCESS(status) && sta)
++			return 1;
++	}
 +	return 0;
 +}
 +
-+static void __exit ffh_cstate_exit(void)
-+{
-+	if (cpu_cstate_entry) {
-+		free_percpu(cpu_cstate_entry);
-+		cpu_cstate_entry = NULL;
-+	}
-+}
-+
-+arch_initcall(ffh_cstate_init);
-+__exitcall(ffh_cstate_exit);
-diff -puN arch/i386/kernel/process.c~acpi-mwait-c-state-fixes arch/i386/kernel/process.c
---- a/arch/i386/kernel/process.c~acpi-mwait-c-state-fixes
-+++ a/arch/i386/kernel/process.c
-@@ -235,20 +235,28 @@ EXPORT_SYMBOL_GPL(cpu_idle_wait);
-  * We execute MONITOR against need_resched and enter optimized wait state
-  * through MWAIT. Whenever someone changes need_resched, we would be woken
-  * up from MWAIT (without an IPI).
++/**
++ * eject_device - respond to an eject request
++ * @handle - the device to eject
 + *
-+ * New with Core Duo processors, MWAIT can take some hints based on CPU
-+ * capability.
-  */
--static void mwait_idle(void)
-+void mwait_idle_with_hints(unsigned long eax, unsigned long ecx)
- {
--	local_irq_enable();
--
--	while (!need_resched()) {
-+	if (!need_resched()) {
- 		__monitor((void *)&current_thread_info()->flags, 0, 0);
- 		smp_mb();
--		if (need_resched())
--			break;
--		__mwait(0, 0);
-+		if (!need_resched())
-+			__mwait(eax, ecx);
- 	}
- }
- 
-+/* Default MONITOR/MWAIT with no hints, used for default C1 state */
-+static void mwait_idle(void)
++ * Call this devices _EJ0 method.
++ */
++static void eject_device(acpi_handle handle)
 +{
-+	local_irq_enable();
-+	while (!need_resched())
-+		mwait_idle_with_hints(0, 0);
++	struct acpi_object_list arg_list;
++	union acpi_object arg;
++
++	bay_dprintk(handle, "Ejecting device");
++
++	arg_list.count = 1;
++	arg_list.pointer = &arg;
++	arg.type = ACPI_TYPE_INTEGER;
++	arg.integer.value = 1;
++
++	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_EJ0",
++					      &arg_list, NULL)))
++		pr_debug("Failed to evaluate _EJ0!\n");
 +}
 +
- void __devinit select_idle_routine(const struct cpuinfo_x86 *c)
- {
- 	if (cpu_has(c, X86_FEATURE_MWAIT)) {
-diff -puN arch/x86_64/kernel/process.c~acpi-mwait-c-state-fixes arch/x86_64/kernel/process.c
---- a/arch/x86_64/kernel/process.c~acpi-mwait-c-state-fixes
-+++ a/arch/x86_64/kernel/process.c
-@@ -235,20 +235,28 @@ void cpu_idle (void)
-  * We execute MONITOR against need_resched and enter optimized wait state
-  * through MWAIT. Whenever someone changes need_resched, we would be woken
-  * up from MWAIT (without an IPI).
++
++/**
++ * is_ata - see if a device is an ata device
++ * @handle: acpi handle of the device
 + *
-+ * New with Core Duo processors, MWAIT can take some hints based on CPU
-+ * capability.
-  */
--static void mwait_idle(void)
-+void mwait_idle_with_hints(unsigned long eax, unsigned long ecx)
- {
--	local_irq_enable();
--
--	while (!need_resched()) {
-+	if (!need_resched()) {
- 		__monitor((void *)&current_thread_info()->flags, 0, 0);
- 		smp_mb();
--		if (need_resched())
--			break;
--		__mwait(0, 0);
-+		if (!need_resched())
-+			__mwait(eax, ecx);
- 	}
- }
- 
-+/* Default MONITOR/MWAIT with no hints, used for default C1 state */
-+static void mwait_idle(void)
++ * If an acpi object has one of 4 ATA ACPI methods defined,
++ * then it is an ATA device
++ */
++static int is_ata(acpi_handle handle)
 +{
-+	local_irq_enable();
-+	while (!need_resched())
-+		mwait_idle_with_hints(0,0);
++	acpi_handle tmp;
++
++	if ((ACPI_SUCCESS(acpi_get_handle(handle, "_GTF", &tmp))) ||
++	   (ACPI_SUCCESS(acpi_get_handle(handle, "_GTM", &tmp))) ||
++	   (ACPI_SUCCESS(acpi_get_handle(handle, "_STM", &tmp))) ||
++	   (ACPI_SUCCESS(acpi_get_handle(handle, "_SDD", &tmp))))
++		return 1;
++
++	return 0;
 +}
 +
- void __cpuinit select_idle_routine(const struct cpuinfo_x86 *c)
- {
- 	static int printed;
-diff -puN drivers/acpi/processor_idle.c~acpi-mwait-c-state-fixes drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-mwait-c-state-fixes
-+++ a/drivers/acpi/processor_idle.c
-@@ -218,6 +218,23 @@ static void acpi_safe_halt(void)
- 
- static atomic_t c3_cpu_count;
- 
-+/* Common C-state entry for C2, C3, .. */
-+static void acpi_cstate_enter(struct acpi_processor_cx *cstate)
++/**
++ * parent_is_ata(acpi_handle handle)
++ *
++ */
++static int parent_is_ata(acpi_handle handle)
 +{
-+	if (cstate->space_id == ACPI_CSTATE_FFH) {
-+		/* Call into architectural FFH based C-state */
-+		acpi_processor_ffh_cstate_enter(cstate);
++	acpi_handle phandle;
++
++	if (acpi_get_parent(handle, &phandle))
++		return 0;
++
++	return is_ata(phandle);
++}
++
++/**
++ * is_ejectable_bay - see if a device is an ejectable drive bay
++ * @handle: acpi handle of the device
++ *
++ * If an acpi object is ejectable and has one of the ACPI ATA
++ * methods defined, then we can safely call it an ejectable
++ * drive bay
++ */
++static int is_ejectable_bay(acpi_handle handle)
++{
++	if ((is_ata(handle) || parent_is_ata(handle)) && is_ejectable(handle))
++		return 1;
++	return 0;
++}
++
++/**
++ * eject_removable_drive - try to eject this drive
++ * @dev : the device structure of the drive
++ *
++ * If a device is a removable drive that requires an _EJ0 method
++ * to be executed in order to safely remove from the system, do
++ * it.  ATM - always returns success
++ */
++int eject_removable_drive(struct device *dev)
++{
++	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
++
++	if (handle) {
++		bay_dprintk(handle, "Got device handle");
++		if (is_ejectable_bay(handle))
++			eject_device(handle);
 +	} else {
-+		int unused;
-+		/* IO port based C-state */
-+		inb(cstate->address);
-+		/* Dummy wait op - must do something useless after P_LVL2 read
-+		   because chipsets cannot guarantee that STPCLK# signal
-+		   gets asserted in time to freeze execution properly. */
-+		unused = inl(acpi_fadt.xpm_tmr_blk.address);
++		printk("No acpi handle for device\n");
++	}
++
++	/* should I return an error code? */
++	return 0;
++}
++EXPORT_SYMBOL_GPL(eject_removable_drive);
++
++static int acpi_bay_add(struct acpi_device *device)
++{
++	bay_dprintk(device->handle, "adding bay device");
++	strcpy(acpi_device_name(device), "Dockable Bay");
++	strcpy(acpi_device_class(device), "bay");
++	return 0;
++}
++
++static int acpi_bay_status_seq_show(struct seq_file *seq, void *offset)
++{
++	struct bay *bay = (struct bay *)seq->private;
++
++	if (!bay)
++		return 0;
++
++	if (bay_present(bay))
++		seq_printf(seq, "present\n");
++	else
++		seq_printf(seq, "removed\n");
++
++	return 0;
++}
++
++static ssize_t
++acpi_bay_write_eject(struct file *file,
++		      const char __user * buffer,
++		      size_t count, loff_t * data)
++{
++	struct seq_file *m = (struct seq_file *)file->private_data;
++	struct bay *bay = (struct bay *)m->private;
++	char str[12] = { 0 };
++	u32 state = 0;
++
++	/* FIXME - our only valid value here is 1 */
++	if (!bay || count + 1 > sizeof str)
++		return -EINVAL;
++
++	if (copy_from_user(str, buffer, count))
++		return -EFAULT;
++
++	str[count] = 0;
++	state = simple_strtoul(str, NULL, 0);
++	if (state)
++		eject_device(bay->handle);
++
++	return count;
++}
++
++static int
++acpi_bay_status_open_fs(struct inode *inode, struct file *file)
++{
++	return single_open(file, acpi_bay_status_seq_show,
++			   PDE(inode)->data);
++}
++
++static int
++acpi_bay_eject_open_fs(struct inode *inode, struct file *file)
++{
++	return single_open(file, acpi_bay_status_seq_show,
++			   PDE(inode)->data);
++}
++
++static struct file_operations acpi_bay_status_fops = {
++	.open = acpi_bay_status_open_fs,
++	.read = seq_read,
++	.llseek = seq_lseek,
++	.release = single_release,
++};
++
++static struct file_operations acpi_bay_eject_fops = {
++	.open = acpi_bay_eject_open_fs,
++	.read = seq_read,
++	.write = acpi_bay_write_eject,
++	.llseek = seq_lseek,
++	.release = single_release,
++};
++#if 0
++static struct file_operations acpi_bay_insert_fops = {
++	.open = acpi_bay_insert_open_fs,
++	.read = seq_read,
++	.llseek = seq_lseek,
++	.release = single_release,
++};
++#endif
++static int acpi_bay_add_fs(struct bay *bay)
++{
++	struct proc_dir_entry *entry = NULL;
++
++	if (!bay)
++		return -EINVAL;
++
++	/*
++	 * create a proc entry for this device
++	 * we need to do this a little bit differently than normal
++  	 * acpi device drivers because our device may not be present
++	 * at the moment, and therefore we have no acpi_device struct
++	 */
++
++	bay->proc = proc_mkdir(bay->name, acpi_bay_dir);
++
++	/* 'status' [R] */
++	entry = create_proc_entry("status",
++				  S_IRUGO, bay->proc);
++	if (!entry)
++		return -EIO;
++	else {
++		entry->proc_fops = &acpi_bay_status_fops;
++		entry->data = bay;
++		entry->owner = THIS_MODULE;
++	}
++	/* 'eject' [W] */
++	entry = create_proc_entry("eject",
++				  S_IWUGO, bay->proc);
++	if (!entry)
++		return -EIO;
++	else {
++		entry->proc_fops = &acpi_bay_eject_fops;
++		entry->data = bay;
++		entry->owner = THIS_MODULE;
++	}
++#if 0
++	/* 'insert' [W] */
++	entry = create_proc_entry("insert",
++				  S_IWUGO, bay->proc);
++	if (!entry)
++		return -EIO;
++	else {
++		entry->proc_fops = &acpi_bay_insert_fops;
++		entry->data = bay;
++		entry->owner = THIS_MODULE;
++	}
++#endif
++	return 0;
++}
++
++static void acpi_bay_remove_fs(struct bay *bay)
++{
++	if (!bay)
++		return;
++
++	if (bay->proc) {
++		remove_proc_entry("status", bay->proc);
++		remove_proc_entry("eject", bay->proc);
++#if 0
++		remove_proc_entry("insert", bay->proc);
++#endif
++		remove_proc_entry(bay->name, acpi_bay_dir);
++		bay->proc = NULL;
 +	}
 +}
 +
- static void acpi_processor_idle(void)
- {
- 	struct acpi_processor *pr = NULL;
-@@ -360,11 +377,7 @@ static void acpi_processor_idle(void)
- 		/* Get start time (ticks) */
- 		t1 = inl(acpi_fadt.xpm_tmr_blk.address);
- 		/* Invoke C2 */
--		inb(cx->address);
--		/* Dummy wait op - must do something useless after P_LVL2 read
--		   because chipsets cannot guarantee that STPCLK# signal
--		   gets asserted in time to freeze execution properly. */
--		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
-+		acpi_cstate_enter(cx);
- 		/* Get end time (ticks) */
- 		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
- 
-@@ -400,9 +413,7 @@ static void acpi_processor_idle(void)
- 		/* Get start time (ticks) */
- 		t1 = inl(acpi_fadt.xpm_tmr_blk.address);
- 		/* Invoke C3 */
--		inb(cx->address);
--		/* Dummy wait op (see above) */
--		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
-+		acpi_cstate_enter(cx);
- 		/* Get end time (ticks) */
- 		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
- 		if (pr->flags.bm_check) {
-@@ -624,20 +635,16 @@ static int acpi_processor_get_power_info
- 	return 0;
- }
- 
--static int acpi_processor_get_power_info_default_c1(struct acpi_processor *pr)
-+static int acpi_processor_get_power_info_default(struct acpi_processor *pr)
- {
--
--	/* Zero initialize all the C-states info. */
--	memset(pr->power.states, 0, sizeof(pr->power.states));
--
--	/* set the first C-State to C1 */
--	pr->power.states[ACPI_STATE_C1].type = ACPI_STATE_C1;
--
--	/* the C0 state only exists as a filler in our array,
--	 * and all processors need to support C1 */
-+	if (!pr->power.states[ACPI_STATE_C1].valid) {
-+		/* set the first C-State to C1 */
-+		/* all processors need to support C1 */
-+		pr->power.states[ACPI_STATE_C1].type = ACPI_STATE_C1;
-+		pr->power.states[ACPI_STATE_C1].valid = 1;
++static int bay_is_dock_device(acpi_handle handle)
++{
++	acpi_handle parent;
++
++	acpi_get_parent(handle, &parent);
++
++	/* if the device or it's parent is dependent on the
++	 * dock, then we are a dock device
++	 */
++	return (is_dock_device(handle) || is_dock_device(parent));
++}
++
++static int bay_add(acpi_handle handle)
++{
++	acpi_status status;
++	struct bay *new_bay;
++	struct acpi_buffer nbuffer = {ACPI_ALLOCATE_BUFFER, NULL};
++	acpi_get_name(handle, ACPI_FULL_PATHNAME, &nbuffer);
++
++	bay_dprintk(handle, "Adding notify handler");
++
++	/*
++	 * if this is the first bay device found, make the root
++	 * proc entry
++	 */
++	if (acpi_bay_dir == NULL)
++		acpi_bay_dir = proc_mkdir(ACPI_BAY_CLASS, acpi_root_dir);
++
++	/*
++	 * Initialize bay device structure
++	 */
++	new_bay = kmalloc(GFP_ATOMIC, sizeof(*new_bay));
++	INIT_LIST_HEAD(&new_bay->list);
++	new_bay->handle = handle;
++	new_bay->name = (char *)nbuffer.pointer;
++	list_add(&new_bay->list, &drive_bays);
++	acpi_bay_add_fs(new_bay);
++
++	/* register for events on this device */
++	status = acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
++			bay_notify, new_bay);
++	if (ACPI_FAILURE(status)) {
++		printk(KERN_ERR PREFIX "Error installing bay notify handler\n");
 +	}
-+	/* the C0 state only exists as a filler in our array */
- 	pr->power.states[ACPI_STATE_C0].valid = 1;
--	pr->power.states[ACPI_STATE_C1].valid = 1;
--
- 	return 0;
- }
- 
-@@ -654,12 +661,7 @@ static int acpi_processor_get_power_info
- 	if (nocst)
- 		return -ENODEV;
- 
--	current_count = 1;
--
--	/* Zero initialize C2 onwards and prepare for fresh CST lookup */
--	for (i = 2; i < ACPI_PROCESSOR_MAX_POWER; i++)
--		memset(&(pr->power.states[i]), 0, 
--				sizeof(struct acpi_processor_cx));
-+	current_count = 0;
- 
- 	status = acpi_evaluate_object(pr->handle, "_CST", NULL, &buffer);
- 	if (ACPI_FAILURE(status)) {
-@@ -714,22 +716,39 @@ static int acpi_processor_get_power_info
- 		    (reg->space_id != ACPI_ADR_SPACE_FIXED_HARDWARE))
- 			continue;
- 
--		cx.address = (reg->space_id == ACPI_ADR_SPACE_FIXED_HARDWARE) ?
--		    0 : reg->address;
--
- 		/* There should be an easy way to extract an integer... */
- 		obj = (union acpi_object *)&(element->package.elements[1]);
- 		if (obj->type != ACPI_TYPE_INTEGER)
- 			continue;
- 
- 		cx.type = obj->integer.value;
++
++	/* if we are on a dock station, we should register for dock
++	 * notifications.
++	 */
++	if (bay_is_dock_device(handle)) {
++		bay_dprintk(handle, "Is dependent on dock\n");
++		register_hotplug_dock_device(handle, bay_notify, new_bay);
++	}
++	printk(KERN_INFO PREFIX "Bay [%s] Added\n", new_bay->name);
++	return 0;
++}
++
++static int acpi_bay_remove(struct acpi_device *device, int type)
++{
++	/*** FIXME: do something here */
++	return 0;
++}
++
++static int acpi_bay_match(struct acpi_device *device,
++				struct acpi_driver *driver)
++{
++	if (!device || !driver)
++		return -EINVAL;
++
++	if (is_ejectable_bay(device->handle)) {
++		bay_dprintk(device->handle, "matching bay device");
++		return 0;
++	}
++
++	return -ENODEV;
++}
++
++/**
++ * bay_create_acpi_device - add new devices to acpi
++ * @handle - handle of the device to add
++ *
++ *  This function will create a new acpi_device for the given
++ *  handle if one does not exist already.  This should cause
++ *  acpi to scan for drivers for the given devices, and call
++ *  matching driver's add routine.
++ *
++ *  Returns a pointer to the acpi_device corresponding to the handle.
++ */
++static struct acpi_device * bay_create_acpi_device(acpi_handle handle)
++{
++	struct acpi_device *device = NULL;
++	struct acpi_device *parent_device;
++	acpi_handle parent;
++	int ret;
++
++	bay_dprintk(handle, "Trying to get device");
++	if (acpi_bus_get_device(handle, &device)) {
 +		/*
-+		 * Some buggy BIOSes won't list C1 in _CST -
-+		 * Let acpi_processor_get_power_info_default() handle them later
++		 * no device created for this object,
++		 * so we should create one.
 +		 */
-+		if (i == 1 && cx.type != ACPI_STATE_C1)
-+			current_count++;
- 
--		if ((cx.type != ACPI_STATE_C1) &&
--		    (reg->space_id != ACPI_ADR_SPACE_SYSTEM_IO))
--			continue;
-+		cx.address = reg->address;
-+		cx.index = current_count + 1;
- 
--		if ((cx.type < ACPI_STATE_C2) || (cx.type > ACPI_STATE_C3))
--			continue;
-+		cx.space_id = ACPI_CSTATE_SYSTEMIO;
-+		if (reg->space_id == ACPI_ADR_SPACE_FIXED_HARDWARE) {
-+			if (acpi_processor_ffh_cstate_probe
-+					(pr->id, &cx, reg) == 0) {
-+				cx.space_id = ACPI_CSTATE_FFH;
-+			} else if (cx.type != ACPI_STATE_C1) {
-+				/*
-+				 * C1 is a special case where FIXED_HARDWARE
-+				 * can be handled in non-MWAIT way as well.
-+				 * In that case, save this _CST entry info.
-+				 * That is, we retain space_id of SYSTEM_IO for
-+				 * halt based C1.
-+				 * Otherwise, ignore this info and continue.
-+				 */
-+				continue;
-+			}
++		bay_dprintk(handle, "No device for handle");
++		acpi_get_parent(handle, &parent);
++		if (acpi_bus_get_device(parent, &parent_device))
++			parent_device = NULL;
++
++		ret = acpi_bus_add(&device, parent_device, handle,
++			ACPI_BUS_TYPE_DEVICE);
++		if (ret) {
++			pr_debug("error adding bus, %x\n",
++				-ret);
++			return NULL;
 +		}
- 
- 		obj = (union acpi_object *)&(element->package.elements[2]);
- 		if (obj->type != ACPI_TYPE_INTEGER)
-@@ -934,12 +953,18 @@ static int acpi_processor_get_power_info
- 	/* NOTE: the idle thread may not be running while calling
- 	 * this function */
- 
--	/* Adding C1 state */
--	acpi_processor_get_power_info_default_c1(pr);
-+	/* Zero initialize all the C-states info. */
-+	memset(pr->power.states, 0, sizeof(pr->power.states));
-+
- 	result = acpi_processor_get_power_info_cst(pr);
- 	if (result == -ENODEV)
- 		acpi_processor_get_power_info_fadt(pr);
- 
-+	if (result)
-+		return result;
-+
-+	acpi_processor_get_power_info_default(pr);
-+
- 	pr->power.count = acpi_processor_power_verify(pr);
- 
- 	/*
-diff -puN include/acpi/pdc_intel.h~acpi-mwait-c-state-fixes include/acpi/pdc_intel.h
---- a/include/acpi/pdc_intel.h~acpi-mwait-c-state-fixes
-+++ a/include/acpi/pdc_intel.h
-@@ -13,6 +13,7 @@
- #define ACPI_PDC_SMP_C_SWCOORD		(0x0040)
- #define ACPI_PDC_SMP_T_SWCOORD		(0x0080)
- #define ACPI_PDC_C_C1_FFH		(0x0100)
-+#define ACPI_PDC_C_C2C3_FFH		(0x0200)
- 
- #define ACPI_PDC_EST_CAPABILITY_SMP	(ACPI_PDC_SMP_C1PT | \
- 					 ACPI_PDC_C_C1_HALT | \
-@@ -23,8 +24,10 @@
- 					 ACPI_PDC_SMP_P_SWCOORD | \
- 					 ACPI_PDC_P_FFH)
- 
--#define ACPI_PDC_C_CAPABILITY_SMP	(ACPI_PDC_SMP_C2C3 | \
--					 ACPI_PDC_SMP_C1PT | \
--					 ACPI_PDC_C_C1_HALT)
-+#define ACPI_PDC_C_CAPABILITY_SMP	(ACPI_PDC_SMP_C2C3  | \
-+					 ACPI_PDC_SMP_C1PT  | \
-+					 ACPI_PDC_C_C1_HALT | \
-+					 ACPI_PDC_C_C1_FFH  | \
-+					 ACPI_PDC_C_C2C3_FFH)
- 
- #endif				/* __PDC_INTEL_H__ */
-diff -puN include/acpi/processor.h~acpi-mwait-c-state-fixes include/acpi/processor.h
---- a/include/acpi/processor.h~acpi-mwait-c-state-fixes
-+++ a/include/acpi/processor.h
-@@ -29,6 +29,9 @@
- #define DOMAIN_COORD_TYPE_SW_ANY	0xfd
- #define DOMAIN_COORD_TYPE_HW_ALL	0xfe
- 
-+#define ACPI_CSTATE_SYSTEMIO	(0)
-+#define ACPI_CSTATE_FFH		(1)
-+
- /* Power Management */
- 
- struct acpi_processor_cx;
-@@ -58,6 +61,8 @@ struct acpi_processor_cx {
- 	u8 valid;
- 	u8 type;
- 	u32 address;
-+	u8 space_id;
-+	u8 index;
- 	u32 latency;
- 	u32 latency_ticks;
- 	u32 power;
-@@ -206,6 +211,9 @@ void arch_acpi_processor_init_pdc(struct
- #ifdef ARCH_HAS_POWER_INIT
- void acpi_processor_power_init_bm_check(struct acpi_processor_flags *flags,
- 					unsigned int cpu);
-+int acpi_processor_ffh_cstate_probe(unsigned int cpu,
-+		struct acpi_processor_cx *cx, struct acpi_power_register *reg);
-+void acpi_processor_ffh_cstate_enter(struct acpi_processor_cx *cstate);
- #else
- static inline void acpi_processor_power_init_bm_check(struct
- 						      acpi_processor_flags
-@@ -214,6 +222,16 @@ static inline void acpi_processor_power_
- 	flags->bm_check = 1;
- 	return;
- }
-+static inline int acpi_processor_ffh_cstate_probe(unsigned int cpu,
-+		struct acpi_processor_cx *cx, struct acpi_power_register *reg)
-+{
-+	return -1;
++	}
++	return device;
 +}
-+static inline void acpi_processor_ffh_cstate_enter(
-+		struct acpi_processor_cx *cstate)
++
++/**
++ * bay_notify - act upon an acpi bay notification
++ * @handle: the bay handle
++ * @event: the acpi event
++ * @data: our driver data struct
++ *
++ */
++static void bay_notify(acpi_handle handle, u32 event, void *data)
 +{
-+	return;
++	struct acpi_device *dev;
++	struct bay *bay = data;
++
++	bay_dprintk(handle, "Bay event");
++
++	switch(event) {
++	case ACPI_NOTIFY_BUS_CHECK:
++		printk("Bus Check\n");
++	case ACPI_NOTIFY_DEVICE_CHECK:
++		printk("Device Check\n");
++		dev = bay_create_acpi_device(handle);
++		if (dev)
++			acpi_bus_generate_event(dev, event, 0);
++		else
++			printk("No device for generating event\n");
++		/* wouldn't it be a good idea to just rescan SATA
++		 * right here?
++		 */
++		break;
++	case ACPI_NOTIFY_EJECT_REQUEST:
++		printk("Eject request\n");
++		dev = bay_create_acpi_device(handle);
++		if (dev)
++			acpi_bus_generate_event(dev, event, 0);
++		else
++			printk("No device for generating eventn");
++
++		/* wouldn't it be a good idea to just call the
++		 * eject_device here if we were a SATA device?
++		 */
++		break;
++	default:
++		printk("unknown event %d\n", event);
++	}
 +}
- #endif
- 
- /* in processor_perflib.c */
-diff -puN include/asm-i386/processor.h~acpi-mwait-c-state-fixes include/asm-i386/processor.h
---- a/include/asm-i386/processor.h~acpi-mwait-c-state-fixes
-+++ a/include/asm-i386/processor.h
-@@ -312,6 +312,8 @@ static inline void __mwait(unsigned long
- 		: :"a" (eax), "c" (ecx));
- }
- 
-+extern void mwait_idle_with_hints(unsigned long eax, unsigned long ecx);
 +
- /* from system description table in BIOS.  Mostly for MCA use, but
- others may find it useful. */
- extern unsigned int machine_id;
-diff -puN include/asm-x86_64/processor.h~acpi-mwait-c-state-fixes include/asm-x86_64/processor.h
---- a/include/asm-x86_64/processor.h~acpi-mwait-c-state-fixes
-+++ a/include/asm-x86_64/processor.h
-@@ -475,6 +475,8 @@ static inline void __mwait(unsigned long
- 		: :"a" (eax), "c" (ecx));
- }
- 
-+extern void mwait_idle_with_hints(unsigned long eax, unsigned long ecx);
++static acpi_status
++find_bay(acpi_handle handle, u32 lvl, void *context, void **rv)
++{
++	int *count = (int *)context;
 +
- #define stack_current() \
- ({								\
- 	struct thread_info *ti;					\
++	/*
++	 * there could be more than one ejectable bay.
++	 * so, just return AE_OK always so that every object
++	 * will be checked.
++	 */
++	if (is_ejectable_bay(handle)) {
++		bay_dprintk(handle, "found ejectable bay");
++		bay_add(handle);
++		(*count)++;
++	}
++	return AE_OK;
++}
++
++static int __init bay_init(void)
++{
++	int bays = 0;
++
++	acpi_bay_dir = NULL;
++	INIT_LIST_HEAD(&drive_bays);
++
++	/* look for dockable drive bays */
++	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
++		ACPI_UINT32_MAX, find_bay, &bays, NULL);
++
++	if (bays) {
++		if ((acpi_bus_register_driver(&acpi_bay_driver) < 0)) {
++			printk(KERN_ERR "Unable to register bay driver\n");
++			if (acpi_bay_dir)
++				remove_proc_entry(ACPI_BAY_CLASS,
++					acpi_root_dir);
++		}
++	}
++
++	if (!bays)
++		return -ENODEV;
++
++	return 0;
++}
++
++static void __exit bay_exit(void)
++{
++	struct bay *bay, *tmp;
++
++	list_for_each_entry_safe(bay, tmp, &drive_bays, list) {
++		if (is_dock_device(bay->handle))
++			unregister_hotplug_dock_device(bay->handle);
++		acpi_bay_remove_fs(bay);
++		acpi_remove_notify_handler(bay->handle, ACPI_SYSTEM_NOTIFY,
++			bay_notify);
++		kfree(bay->name);
++		kfree(bay);
++	}
++
++	if (acpi_bay_dir)
++		remove_proc_entry(ACPI_BAY_CLASS, acpi_root_dir);
++
++	acpi_bus_unregister_driver(&acpi_bay_driver);
++}
++
++postcore_initcall(bay_init);
++module_exit(bay_exit);
++
 _
