@@ -1,61 +1,50 @@
-From: Timo Hoenig <thoenig@nouse.net>
-Subject: Re: [PATCH 2.6.18 1/1] ACPI: limit cstate on noisy thinkpad t43/p
-	models
-Date: Mon, 25 Sep 2006 15:50:08 +0200
-Message-ID: <1159192208.4475.9.camel@nouse.suse.de>
-References: <CFF307C98FEABE47A452B27C06B85BB6018F099A@hdsmsx411.amr.corp.intel.com>
-	 <1159097883.5437.12.camel@nouse.suse.de>
-	 <200609250306.31350.len.brown@intel.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [12/12] acpi: set fake hid
+Date: Mon, 25 Sep 2006 17:31:22 +0800
+Message-ID: <1159176682.5351.11.camel@localhost.localdomain>
+References: <1158918880.11985.88.camel@localhost.localdomain>
+	 <4513D02A.8020106@kolumbus.fi>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns1.suse.de ([195.135.220.2]:23438 "EHLO mx1.suse.de")
-	by vger.kernel.org with ESMTP id S1750817AbWIYJFB (ORCPT
+Received: from mga01.intel.com ([192.55.52.88]:22618 "EHLO mga01.intel.com")
+	by vger.kernel.org with ESMTP id S1750817AbWIYJ3z (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Sep 2006 05:05:01 -0400
-In-Reply-To: <200609250306.31350.len.brown@intel.com>
+	Mon, 25 Sep 2006 05:29:55 -0400
+In-Reply-To: <4513D02A.8020106@kolumbus.fi>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: shadow@serverart.org, linux-acpi@vger.kernel.org
+To: Mika =?ISO-8859-1?Q?Penttil=E4?= <mika.penttila@kolumbus.fi>
+Cc: linux-acpi@vger.kernel.org, len.brown@intel.com, shaohua.li@intel.com
 
-Hi,
+On Fri, 2006-09-22 at 14:59 +0300, Mika Penttil=C3=A4 wrote:=20
+> +static int acpi_pci_bridge_match(struct acpi_device *device)
+> +{
+> +       acpi_status status;
+> +       acpi_handle handle;
+> +
+> +       /* pci bridge has _PRT but isn't PNP0A03 */
+> +       status =3D acpi_get_handle(device->handle, METHOD_NAME__PRT, =
+&handle);
+> +       if (ACPI_FAILURE(status))
+> +               return -ENODEV;
+> +       if (!acpi_match_ids(device, "PNP0A03"))
+> +               return -ENODEV;
+> +       return 0;
+> +}
+> +
+>=20
+>=20
+> You seem to handle pci-pci bridge here incorrectly (returns -ENODEV f=
+rom match to PNP0A03)
+>
+Is there any pci-pci bridge that has a _HID of "PNP0A03"?
 
-On Mon, 2006-09-25 at 03:06 -0400, Len Brown wrote:
-
-> On Sunday 24 September 2006 07:38, Timo Hoenig wrote:
-> 
-> > I think it is a more general problem.  The systems with Intel Core Duo I
-> > got my hands on all show the symptom:  Once the system is idle, the
-> > second core begins to whine.  It's annoying in quiet environments.
-> > 
-> >       * Turning off the second core makes the whining stop.
-> >       * Booting with processor.max_cstate=2 does also make the whining
-> >         go away; but it's a bad idea on laptops if once wants to gain a
-> >         long run on batteries.
-> > 
-> > Tested with HZ=250; I'll check whether HZ=100/1000 helps.
-> 
-> Curious, I have not noticed this on the Core Duo systems I have.
-> 
-> In the past this has been traced to the voltage switching on the motherboard
-> causing the capacitors to vibrate and the motherboard to resonate.
-> That is why changing HZ will likely have an effect on the problem.
-
-Yes, that's what I have found to be the culprit, too.  Sorry that I do
-not have yet been able to check with different HZ than 250 so far.
-
-> Exactly what model system do you have that is making noise?
-
-* Lenovo ThinkPad T60, several different models
-* Fujitsu Siemens e8110
-
-Also, I just got my hands on a Lenovo ThinkPad X60 and ran the same test
-[1] as on the other machines but did not hear any noise.
-
-   Timo
-
-[1] Test with Linux 2.6.18-rc6 (with pwd /sys/devices/system/cpu/cpu1)
-    while (true); do echo 0 > online; sleep 1; echo 1 > online; sleep 1; done;
-
+thanks,
+--Rui
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
