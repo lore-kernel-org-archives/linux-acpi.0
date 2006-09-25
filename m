@@ -1,59 +1,54 @@
 From: akpm@osdl.org
-Subject: [patch 04/10] ACPI: Clear GPE before disabling it
-Date: Mon, 25 Sep 2006 16:28:09 -0700
-Message-ID: <200609252328.k8PNS94J002176@shell0.pdx.osdl.net>
+Subject: [patch 02/10] ACPI: fix printk format warnings
+Date: Mon, 25 Sep 2006 16:28:07 -0700
+Message-ID: <200609252328.k8PNS7Uo002170@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:56236 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1751656AbWIYX2Q (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:52140 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1751336AbWIYX2N (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Sep 2006 19:28:16 -0400
+	Mon, 25 Sep 2006 19:28:13 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, william.morrow@amd.com, jordan.crouse@amd.com, luming.yu@intel.com, robert.moore@intel.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, rdunlap@xenotime.net
 
-From: William Morrow <william.morrow@amd.com>
+From: Randy Dunlap <rdunlap@xenotime.net>
 
-On some BIOSen, the GPE bit will remain set even if it is disabled,
-resulting in a interrupt storm.  This patch clears the bit before disabling
-it.
+Fix printk format warnings in drivers/acpi:
+drivers/acpi/tables/tbget.c:326: warning: format '%X' expects type 'unsigned int', but argument 5 has type 'long unsigned int'
+drivers/acpi/tables/tbrsdt.c:189: warning: format '%X' expects type 'unsigned int', but argument 5 has type 'long unsigned int'
 
-Signed-off-by: William Morrow <william.morrow@amd.com>
-Signed-off-by: Jordan Crouse <jordan.crouse@amd.com>
-Cc: "Yu, Luming" <luming.yu@intel.com>
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
 Cc: "Brown, Len" <len.brown@intel.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/events/evgpe.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ drivers/acpi/tables/tbget.c  |    2 +-
+ drivers/acpi/tables/tbrsdt.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/events/evgpe.c~acpi-clear-gpe-before-disabling-it drivers/acpi/events/evgpe.c
---- a/drivers/acpi/events/evgpe.c~acpi-clear-gpe-before-disabling-it
-+++ a/drivers/acpi/events/evgpe.c
-@@ -677,10 +677,22 @@ acpi_ev_gpe_dispatch(struct acpi_gpe_eve
- 	case ACPI_GPE_DISPATCH_METHOD:
+diff -puN drivers/acpi/tables/tbget.c~acpi-fix-printk-format-warnings drivers/acpi/tables/tbget.c
+--- a/drivers/acpi/tables/tbget.c~acpi-fix-printk-format-warnings
++++ a/drivers/acpi/tables/tbget.c
+@@ -324,7 +324,7 @@ acpi_tb_get_this_table(struct acpi_point
  
- 		/*
--		 * Disable GPE, so it doesn't keep firing before the method has a
-+		 * Clear GPE, so it doesn't keep firing before the method has a
- 		 * chance to run.
- 		 */
-+		status = acpi_hw_clear_gpe(gpe_event_info);
-+		if (ACPI_FAILURE(status)) {
-+			ACPI_EXCEPTION((AE_INFO, status,
-+					"Unable to clear GPE[%2X]",
-+					gpe_number));
-+			return_UINT32(ACPI_INTERRUPT_NOT_HANDLED);
-+		}
-+		/*
-+		 * Disable GPE, so it doesn't keep happen again.
-+		 */
-+
- 		status = acpi_ev_disable_gpe(gpe_event_info);
-+
- 		if (ACPI_FAILURE(status)) {
- 			ACPI_EXCEPTION((AE_INFO, status,
- 					"Unable to disable GPE[%2X]",
+ 	if (header->length < sizeof(struct acpi_table_header)) {
+ 		ACPI_ERROR((AE_INFO,
+-			    "Table length (%X) is smaller than minimum (%X)",
++			    "Table length (%X) is smaller than minimum (%ZX)",
+ 			    header->length, sizeof(struct acpi_table_header)));
+ 
+ 		return_ACPI_STATUS(AE_INVALID_TABLE_LENGTH);
+diff -puN drivers/acpi/tables/tbrsdt.c~acpi-fix-printk-format-warnings drivers/acpi/tables/tbrsdt.c
+--- a/drivers/acpi/tables/tbrsdt.c~acpi-fix-printk-format-warnings
++++ a/drivers/acpi/tables/tbrsdt.c
+@@ -187,7 +187,7 @@ acpi_status acpi_tb_validate_rsdt(struct
+ 
+ 	if (table_ptr->length < sizeof(struct acpi_table_header)) {
+ 		ACPI_ERROR((AE_INFO,
+-			    "RSDT/XSDT length (%X) is smaller than minimum (%X)",
++			    "RSDT/XSDT length (%X) is smaller than minimum (%ZX)",
+ 			    table_ptr->length,
+ 			    sizeof(struct acpi_table_header)));
+ 
 _
