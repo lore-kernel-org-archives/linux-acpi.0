@@ -1,52 +1,75 @@
 From: akpm@osdl.org
-Subject: [patch 01/10] acpi: fix section for CPU init functions
-Date: Mon, 25 Sep 2006 16:28:06 -0700
-Message-ID: <200609252328.k8PNS6DF002167@shell0.pdx.osdl.net>
+Subject: [patch 10/10] Fix incorrect handling PCI-Express Root Bridge _HID
+Date: Mon, 25 Sep 2006 16:28:16 -0700
+Message-ID: <200609252328.k8PNSGca002194@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:3245 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1751665AbWIYX2Z (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:3757 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1751668AbWIYX2Z (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
 	Mon, 25 Sep 2006 19:28:25 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, drzeus@drzeus.cx
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, eiichiro.oiwa.nm@hitachi.com
 
-From: Pierre Ossman <drzeus@drzeus.cx>
+From: <eiichiro.oiwa.nm@hitachi.com>
 
-The ACPI processor init functions should be marked as __cpuinit as they use
-structures marked with __cpuinitdata.
+Lifted from http://bugzilla.kernel.org/show_bug.cgi?id=7145
 
-Signed-off-by: Pierre Ossman <drzeus@drzeus.cx>
+PCI Bus Topology:
+
+[CPU] [CPU]        [CPU]  [CPU]
+  |      |BUS        |     |   BUS
+--+--+---+---      --+--+--+------
+     |                  |
+ [Root Bridge]*1-----[Root Bridge]*1
+     |      |           \        \
+ [Bridge]   |        [PCI-e slot] [PCI-e slot]
+    | |    [PCI-e slot]
+    | \
+    | [PCI-e slot]
+    |
+    |
+ [PCI Bridge]
+    |     \
+    |      [PCI-X slot]
+    |
+ [PCI-X slot]
+
+*1: PCI Express Root Bridge.
+
+I could not get correct PCI Express BUS number from the structure of
+acpi_object_extra.  I always get zero as BUS number regardless of BUS
+location.  I found that there is incorrect comparison with _HID (PNP0A08)
+in acpi/events/evrgnini.c and PCI Express _BBN method always fail. 
+Therefore, we get always get zero as PCI Express bus number.
+
+I suggest the following patch.
+
+Cc: "Brown, Len" <len.brown@intel.com>
+Cc: <linux-acpi@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/processor_core.c |    2 +-
- drivers/acpi/processor_idle.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/events/evrgnini.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/processor_core.c~acpi-fix-section-for-cpu-init-functions drivers/acpi/processor_core.c
---- a/drivers/acpi/processor_core.c~acpi-fix-section-for-cpu-init-functions
-+++ a/drivers/acpi/processor_core.c
-@@ -519,7 +519,7 @@ static int acpi_processor_get_info(struc
+diff -puN drivers/acpi/events/evrgnini.c~fix-incorrect-handling-of-pci-express-root-bridge-_hid drivers/acpi/events/evrgnini.c
+--- a/drivers/acpi/events/evrgnini.c~fix-incorrect-handling-of-pci-express-root-bridge-_hid
++++ a/drivers/acpi/events/evrgnini.c
+@@ -225,12 +225,12 @@ acpi_ev_pci_config_region_setup(acpi_han
+ 				if (!
+ 				    (ACPI_STRNCMP
+ 				     (object_hID.value, PCI_ROOT_HID_STRING,
+-				      sizeof(PCI_ROOT_HID_STRING))
++				      sizeof(PCI_ROOT_HID_STRING)))
+ 				     ||
+ 				     !(ACPI_STRNCMP
+ 				       (object_hID.value,
+ 					PCI_EXPRESS_ROOT_HID_STRING,
+-					sizeof(PCI_EXPRESS_ROOT_HID_STRING)))))
++					sizeof(PCI_EXPRESS_ROOT_HID_STRING))))
+ 				{
  
- static void *processor_device_array[NR_CPUS];
- 
--static int acpi_processor_start(struct acpi_device *device)
-+static int __cpuinit acpi_processor_start(struct acpi_device *device)
- {
- 	int result = 0;
- 	acpi_status status = AE_OK;
-diff -puN drivers/acpi/processor_idle.c~acpi-fix-section-for-cpu-init-functions drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-fix-section-for-cpu-init-functions
-+++ a/drivers/acpi/processor_idle.c
-@@ -1077,7 +1077,7 @@ static const struct file_operations acpi
- 	.release = single_release,
- };
- 
--int acpi_processor_power_init(struct acpi_processor *pr,
-+int __cpuinit acpi_processor_power_init(struct acpi_processor *pr,
- 			      struct acpi_device *device)
- {
- 	acpi_status status = 0;
+ 					/* Install a handler for this PCI root bridge */
 _
