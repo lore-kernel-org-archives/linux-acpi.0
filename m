@@ -1,35 +1,81 @@
-From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
-Subject: Re: ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 11, why not in 9 ?
-Date: Mon, 25 Sep 2006 11:22:01 +0100
-Message-ID: <200609251122.01811.sergio@sergiomb.no-ip.org>
-References: <1158262993.4200.14.camel@localhost.localdomain> <1158885131.8360.17.camel@localhost> <20060924204252.26cc3839.rdunlap@xenotime.net>
+From: Soenke Huels <huels@ph4.physik.uni-goettingen.de>
+Subject: ACPI Problem on resuming from disk on Samsung X05
+Date: Mon, 25 Sep 2006 13:31:29 +0200
+Message-ID: <4517BE11.2080302@ph4.physik.uni-goettingen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay2.ptmail.sapo.pt ([212.55.154.22]:55199 "HELO sapo.pt")
-	by vger.kernel.org with SMTP id S1751000AbWIYKWA convert rfc822-to-8bit
+Received: from enterprise.noxa.de ([212.60.197.71]:57026 "EHLO
+	enterprise.noxa.de") by vger.kernel.org with ESMTP id S1751403AbWIYLbr
 	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Sep 2006 06:22:00 -0400
-In-Reply-To: <20060924204252.26cc3839.rdunlap@xenotime.net>
-Content-Disposition: inline
+	Mon, 25 Sep 2006 07:31:47 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Stian Jordet <liste@jordet.net>, acpi devel <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On Monday 25 September 2006 04:42, Randy Dunlap wrote:
-> You should probably file a bug in the kernel bugzilla at
-> http://kernel.bugzilla.org and provides lots of info.
+Hi!
 
-Is already in bubzilla
-http://bugzilla.kernel.org/show_bug.cgi?id=3D2874#c22
+For some time, I have had some problems with suspend to disk on my
+laptop (Samsung X05 XTC 1400c).
+When suspending to disk (tried suspend2 as well as in-kernel swsusp),
+ACPI gives the following error after resume (PM debug enabled):
 
-Thanks,
---=20
-S=E9rgio M. B.
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sep 22 19:46:49 paula kernel:      osl-0822 [30] os_wait_semaphore     :
+Failed to acquire semaphore[c145e6a0|1|0], AE_TIME
+
+Sep 22 19:46:49 paula kernel:      osl-0822 [30] os_wait_semaphore     :
+Failed to acquire semaphore[c145e6a0|1|1000], AE_TIME
+
+Sep 22 19:46:49 paula kernel:      osl-0822 [30] os_wait_semaphore     :
+Failed to acquire semaphore[c145e6a0|1|0], AE_TIME
+
+Sep 22 19:46:49 paula kernel:      osl-0822 [30] os_wait_semaphore     :
+Failed to acquire semaphore[c145e6a0|1|1000], AE_TIME
+
+Sep 22 19:46:49 paula kernel:      osl-0822 [30] os_wait_semaphore     :
+Failed to acquire semaphore[c145e6a0|1|0], AE_TIME
+
+Sep 22 19:46:49 paula kernel:      osl-0822 [30] os_wait_semaphore     :
+Failed to acquire semaphore[c145e6a0|1|1000], AE_TIME
+
+Sep 22 19:46:49 paula kernel:      osl-0822 [30] os_wait_semaphore     :
+Failed to acquire semaphore[c145e6a0|1|0], AE_TIME
+
+Sep 22 19:46:49 paula kernel:      osl-0822 [30] os_wait_semaphore     :
+Failed to acquire semaphore[c145e6a0|1|1000], AE_TIME
+
+Sep 22 19:46:49 paula kernel: ACPI Exception (evregion-0409):
+AE_NOT_FOUND, Returned by Handler for [EmbeddedControl] [20060127]
+
+Sep 22 19:46:49 paula kernel: ACPI Exception (dswexec-0458):
+AE_NOT_FOUND, While resolving operands for [ShiftRight] [20060127]
+
+Sep 22 19:46:49 paula kernel: ACPI Error (psparse-0517): Method
+parse/execution failed [\_WAK] (Node df6d5168), AE_NOT_FOUND
+
+
+
+After this error, it is not possible to read the battery state. Also,
+the system hangs on shutdown while disabling the laptop-mode.
+
+Suspend to RAM works very well on this machine. Also it seems that if
+the system is put into S3, woken up and suspended to disk later, the
+error does sometimes not occur.
+
+The error is reproducible with several kernel versions from 2.6.15 to
+2.6.18-rc7. I tried the DSDT for the most recent bios (11QK) from
+acpi.sf.net, but without success.
+
+I also filed a bug report with more information (complete dmesg,
+acpidump) here:
+http://bugzilla.kernel.org/show_bug.cgi?id=7185
+
+Suspend to disk used to work some time ago, but I don't recall with
+which kernel version.
+Any help with this is appreciated. If more info is needed, I will gladly
+supply it.
+
+Regards,
+
+Soenke
