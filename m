@@ -1,92 +1,50 @@
-From: <eiichiro.oiwa.nm@hitachi.com>
-Subject: Re:[patch 10/10] Fix incorrect handling PCI-Express Root Bridge _HID
-Date: Tue, 26 Sep 2006 13:41:16 +0900
-Message-ID: <XNM1$9$0$4$$3$3$7$A$9002679U4518af61@hitachi.com>
-References: <200609252328.k8PNSGca002194@shell0.pdx.osdl.net>
+From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: [PATCH] acpi: cm_sbs: use NULL instead of 0 for ptr
+Date: Mon, 25 Sep 2006 21:47:20 -0700
+Message-ID: <20060925214720.2f9778f9.rdunlap@xenotime.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail9.hitachi.co.jp ([133.145.228.44]:27023 "EHLO
-	mail9.hitachi.co.jp") by vger.kernel.org with ESMTP
-	id S1750742AbWIZElf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Sep 2006 00:41:35 -0400
-Received: from mlsv10.hitachi.co.jp (unknown [133.145.228.16])
-	by mail9.hitachi.co.jp (Postfix) with ESMTP id D675337C95
-	for <linux-acpi@vger.kernel.org>; Tue, 26 Sep 2006 13:41:33 +0900 (JST)
+Received: from xenotime.net ([66.160.160.81]:61158 "HELO xenotime.net")
+	by vger.kernel.org with SMTP id S1750758AbWIZEul (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Sep 2006 00:50:41 -0400
+Received: from midway.site ([71.117.233.155]) by xenotime.net for <linux-acpi@vger.kernel.org>; Mon, 25 Sep 2006 21:50:36 -0700
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@osdl.org
-Cc: len.brown@intel.com, linux-acpi@vger.kernel.org
+To: len.brown@intel.com, akpm <akpm@osdl.org>
+Cc: linux-acpi@vger.kernel.org, viro <viro@zeniv.linux.org.uk>
 
-Hi Andrew,
+From: Randy Dunlap <rdunlap@xenotime.net>
 
-We need this patch for APCI hotplug because APCI parser gets bus number from acpi_object_extra. I already tested this patch by ACPI hotplug, and confirmed there is no problem on our box has described PCI topology.
-I don't have git rights.
-Could you merge this patch into Linus's tree?
+Use NULL instead of 0 for pointer value, eliminate sparse warnings.
 
-Thanks,
-Eiichiro Oiwa
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+---
+ drivers/acpi/cm_sbs.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
->From: <eiichiro.oiwa.nm@hitachi.com>
->
->Lifted from http://bugzilla.kernel.org/show_bug.cgi?id=7145
->
->PCI Bus Topology:
->
->[CPU] [CPU]        [CPU]  [CPU]
->  |      |BUS        |     |   BUS
->--+--+---+---      --+--+--+------
->     |                  |
-> [Root Bridge]*1-----[Root Bridge]*1
->     |      |           \        \
-> [Bridge]   |        [PCI-e slot] [PCI-e slot]
->    | |    [PCI-e slot]
->    | \
->    | [PCI-e slot]
->    |
->    |
-> [PCI Bridge]
->    |     \
->    |      [PCI-X slot]
->    |
-> [PCI-X slot]
->
->*1: PCI Express Root Bridge.
->
->I could not get correct PCI Express BUS number from the structure of
->acpi_object_extra.  I always get zero as BUS number regardless of BUS
->location.  I found that there is incorrect comparison with _HID (PNP0A08)
->in acpi/events/evrgnini.c and PCI Express _BBN method always fail. 
->Therefore, we get always get zero as PCI Express bus number.
->
->I suggest the following patch.
->
->Cc: "Brown, Len" <len.brown@intel.com>
->Cc: <linux-acpi@vger.kernel.org>
->Signed-off-by: Andrew Morton <akpm@osdl.org>
->---
->
-> drivers/acpi/events/evrgnini.c |    4 ++--
-> 1 file changed, 2 insertions(+), 2 deletions(-)
->
->diff -puN drivers/acpi/events/evrgnini.c~fix-incorrect-handling-of-pci-express-root-bridge-_hid drivers/acpi/events/evrgnini.c
->--- a/drivers/acpi/events/evrgnini.c~fix-incorrect-handling-of-pci-express-root-bridge-_hid
->+++ a/drivers/acpi/events/evrgnini.c
->@@ -225,12 +225,12 @@ acpi_ev_pci_config_region_setup(acpi_han
-> 				if (!
-> 				    (ACPI_STRNCMP
-> 				     (object_hID.value, PCI_ROOT_HID_STRING,
->-				      sizeof(PCI_ROOT_HID_STRING))
->+				      sizeof(PCI_ROOT_HID_STRING)))
-> 				     ||
-> 				     !(ACPI_STRNCMP
-> 				       (object_hID.value,
-> 					PCI_EXPRESS_ROOT_HID_STRING,
->-					sizeof(PCI_EXPRESS_ROOT_HID_STRING)))))
->+					sizeof(PCI_EXPRESS_ROOT_HID_STRING))))
-> 				{
-> 
-> 					/* Install a handler for this PCI root bridge */
->_
->
+--- linux-2618-g4.orig/drivers/acpi/cm_sbs.c
++++ linux-2618-g4/drivers/acpi/cm_sbs.c
+@@ -67,7 +67,7 @@ void acpi_unlock_ac_dir(struct proc_dir_
+ 		lock_ac_dir_cnt--;
+ 	if (lock_ac_dir_cnt == 0 && acpi_ac_dir_param && acpi_ac_dir) {
+ 		remove_proc_entry(ACPI_AC_CLASS, acpi_root_dir);
+-		acpi_ac_dir = 0;
++		acpi_ac_dir = NULL;
+ 	}
+ 	mutex_unlock(&cm_sbs_mutex);
+ }
+@@ -99,7 +99,7 @@ void acpi_unlock_battery_dir(struct proc
+ 	if (lock_battery_dir_cnt == 0 && acpi_battery_dir_param
+ 	    && acpi_battery_dir) {
+ 		remove_proc_entry(ACPI_BATTERY_CLASS, acpi_root_dir);
+-		acpi_battery_dir = 0;
++		acpi_battery_dir = NULL;
+ 	}
+ 	mutex_unlock(&cm_sbs_mutex);
+ 	return;
+
+
+---
