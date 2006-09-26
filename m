@@ -1,53 +1,45 @@
-From: Stefan Schmidt <stefan@datenfreihafen.org>
-Subject: Re: [ltp] [Patch 0/3] ibm-acpi: Remove experimental flag from brightness and volume. Update documentation
-Date: Tue, 26 Sep 2006 19:42:10 +0200
-Message-ID: <20060926174210.GA28390@susi>
-References: <20060922101913.276298370@datenfreihafen.org>
+From: Peter Pregler <Peter_Pregler@email.com>
+Subject: Re: S3 on acer travelmate 3022WTMi
+Date: Tue, 26 Sep 2006 21:01:11 +0200
+Message-ID: <efbtdo$s4f$1@sea.gmane.org>
+References: <966a04530609260106y2bea58del50732ba061cdc9a9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sirius.lasnet.de ([62.75.240.18]:31874 "EHLO sirius.lasnet.de")
-	by vger.kernel.org with ESMTP id S932212AbWIZRxd (ORCPT
+Received: from main.gmane.org ([80.91.229.2]:27018 "EHLO ciao.gmane.org")
+	by vger.kernel.org with ESMTP id S932476AbWIZTK0 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Sep 2006 13:53:33 -0400
-Content-Disposition: inline
-In-Reply-To: <20060922101913.276298370@datenfreihafen.org>
+	Tue, 26 Sep 2006 15:10:26 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1GSIJe-0007qQ-8M
+	for linux-acpi@vger.kernel.org; Tue, 26 Sep 2006 21:10:03 +0200
+Received: from 85-124-175-159.dynamic.xdsl-line.inode.at ([85.124.175.159])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Tue, 26 Sep 2006 21:10:02 +0200
+Received: from Peter_Pregler by 85-124-175-159.dynamic.xdsl-line.inode.at with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Tue, 26 Sep 2006 21:10:02 +0200
+In-Reply-To: <966a04530609260106y2bea58del50732ba061cdc9a9@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com
-Cc: borislav@users.sf.net, linux-acpi@vger.kernel.org, jeremy@goop.org, multinymous@gmail.com, hmh@hmh.eng.br, linux-thinkpad@linux-thinkpad.org
+To: linux-acpi@vger.kernel.org
 
-Hello Len.
-
-On Fri, 2006-09-22 at 12:19, Stefan Schmidt wrote:
+Arto Pastinen wrote:
+> Hi,
 > 
-> Since version 0.11 ecdump, brightness, volume and fan a available in
-> ibm-acpi, but only if you set experimental=1 on loading.
+> Has anyone got Suspend to Ram work on Acer TravelMate 3022WTMi?
 > 
-> You released this version at 2005-03-17. So this is quit some time to
-> see if some of these features make problems.
-> 
-> I think it's ok to make ecdump and fan only available, if loaded with
-> experimental. As ecdump is only for debugging and explore new features
-> and fan stop can damage the hardware.
-> 
-> Both features were tested with various scripts and application for a long 
-> time without problems.
-> 
-> Second patch updates the documentation for the first patch.
-> 
-> Third one documents the new wan feature from Jeremy Fitzhardinge. Please review
-> this, as I don't have a device to test this.
+> I even fixed DSDT, but it still freezes on return from sleep, the hard
+> disc shows little action, but then everything is blank..
 
-Any comments about this patches?
+I think this describes the problem with all Acer TM 3xxx. I have a
+TM3201 and have the same problem. Additional symptons: display backlight
+is off, fan is running. I tried about all the tricks including all
+debugging that is possible without a serial console with no success.
+And since I have no docking station, i.e. no chance for a serial
+console, I simply gave up.
 
-The first try of the first patch I sent to Borislav at 2006-08-24,
-only linux-thinkpad cc'ed this time:
+-Peter
 
-http://marc.theaimsgroup.com/?l=linux-thinkpad&m=115643103426795&w=2
-
-Unfortunately it is not the first time Borislav don't reply on
-patches. What's the way to go here?
-
-regards
-Stefan Schmidt
