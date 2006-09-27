@@ -1,56 +1,85 @@
-From: Linus Torvalds <torvalds@osdl.org>
+From: Andi Kleen <ak@suse.de>
 Subject: Re: [BUG] Oops on boot (probably ACPI related)
-Date: Wed, 27 Sep 2006 13:35:47 -0700 (PDT)
-Message-ID: <Pine.LNX.4.64.0609271329080.3952@g5.osdl.org>
-References: <200609271424.47824.eike-kernel@sf-tec.de>
- <pan.2006.09.27.17.56.13.80913@automagically.de> <20060927184037.GA3306@athena.road.mcmartin.ca>
- <p73fyedje0f.fsf@verdi.suse.de> <Pine.LNX.4.64.0609271320580.3952@g5.osdl.org>
+Date: Wed, 27 Sep 2006 22:50:21 +0200
+Message-ID: <200609272250.21925.ak@suse.de>
+References: <200609271424.47824.eike-kernel@sf-tec.de> <Pine.LNX.4.64.0609271320580.3952@g5.osdl.org> <Pine.LNX.4.64.0609271329080.3952@g5.osdl.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:45286 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1030780AbWI0Ufy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 27 Sep 2006 16:35:54 -0400
-In-Reply-To: <Pine.LNX.4.64.0609271320580.3952@g5.osdl.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S965165AbWI0Uua@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.64.0609271329080.3952@g5.osdl.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@osdl.org>
+Cc: Kyle McMartin <kyle@parisc-linux.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@osdl.org, jbeulich@novell.com
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <ak@suse.de>
-Cc: Kyle McMartin <kyle@parisc-linux.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@osdl.org
 
-
-
-On Wed, 27 Sep 2006, Linus Torvalds wrote:
+On Wednesday 27 September 2006 22:35, Linus Torvalds wrote:
 > 
-> On Wed, 27 Sep 2006, Andi Kleen wrote:
+> On Wed, 27 Sep 2006, Linus Torvalds wrote:
 > > 
-> > I expect this patch to fix it.
+> > On Wed, 27 Sep 2006, Andi Kleen wrote:
+> > > 
+> > > I expect this patch to fix it.
+> > 
+> > Andrew, Kyle, can you verify?
 > 
-> Andrew, Kyle, can you verify?
+> Not that it really matters. Andi sure as hell pinpointed a real problem 
+> with the new and broken inline asm. That's almost certainly the bug that 
+> crept in during the recent rewrite.
+> 
+> HOWEVER, now that I look more closely at the rewrite, I'm really wondering 
+> whether the rewrite was worth it at all. It generates smaller code, but at 
+> the expense of
+> 
+>  - the actual cache-footprint is bigger
+>  - the branch will now be mis-predicted by default
 
-Not that it really matters. Andi sure as hell pinpointed a real problem 
-with the new and broken inline asm. That's almost certainly the bug that 
-crept in during the recent rewrite.
+It doesn't matter much because these days this stuff is all out of lined
+anyways and in a single function. And the dynamic branch predictor
+in all modern CPUs will usually cache the decision (unlocked) there.
 
-HOWEVER, now that I look more closely at the rewrite, I'm really wondering 
-whether the rewrite was worth it at all. It generates smaller code, but at 
-the expense of
+(Actually there is something dumb  left -- on a non preempt kernel
+spin_unlock caller is larger than doing it inline. But that is left
+for fixing later)
+ 
+> The fact that rewinders have problems is fairly immaterial. Maybe we 
+> should just take this as a hint that all the stupid rewinding code was 
+> wrong in the first place, and we should stop doing that? We can go back 
+> to just printing out our stacktrace guesse
 
- - the actual cache-footprint is bigger
- - the branch will now be mis-predicted by default
+> 
+> 		Linus
+> 
+s, that has worked for us for a 
+> long time, and the stack unwinding simply looks _fundamentally_ flawed.
 
-Since the "smaller code" really only tends to matter from a cache 
-usage standpoint, I don't know if I'm at all convinced.
+Unfortunately Linux is a lot more complex than it was in the early days.
+ 
+> So I have a real urge to just revert that change anyway.
+> 
+> Are there any _real_ advantages to this broken unwinding code that has had 
+> more bugs that Windows XP?
 
-The fact that rewinders have problems is fairly immaterial. Maybe we 
-should just take this as a hint that all the stupid rewinding code was 
-wrong in the first place, and we should stop doing that? We can go back 
-to just printing out our stacktrace guesses, that has worked for us for a 
-long time, and the stack unwinding simply looks _fundamentally_ flawed.
+I thought for a long time we didn't need it either, but these days with all 
+these callbacks in some parts of the kernel (driver model, others) and you 
+get a oops with 60+ entries it is just too much trouble to figure it out manually.
 
-So I have a real urge to just revert that change anyway.
+I admit when I took the code I didn't realize that dwarf2 has these
+problems (not supporting out of line sections is clearly a spec
+bug and would even hit gcc generated code). But we don't have 
+that many out of line sections anyways, so it's not that big an issue. 
 
-Are there any _real_ advantages to this broken unwinding code that has had 
-more bugs that Windows XP?
+And all the people who process a lot of oopses (e.g. Andrew, Ingo, others) tend
+to use frame pointers by default anyways. They already voted with their feet.
+And the unwinder certainly gives better code than frame pointers. The mispredicted
+branches you're worrying about are nothing against frame pointers 
+(e.g. on K8 FP tends to stall the CPU on each function call slightly)
 
-		Linus
+Anyways, in theory it would be possible to keep the out of line sections
+and define some own dwarf2 extension that allows us to express them.
+Jan might have some thoughts on it. But I didn't think it was worth
+it for these cases due to the reasons above.
+
+-Andi
