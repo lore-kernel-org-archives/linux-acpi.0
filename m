@@ -1,67 +1,92 @@
-From: stelian@popies.net
-Subject: Re: sonypc with Sony Vaio VGN-SZ1VP
-Date: Wed, 27 Sep 2006 13:51:46 +0200 (CEST)
-Message-ID: <49814.213.30.172.234.1159357906.squirrel@webmail.popies.net>
+From: Rolf Eike Beer <eike-kernel@sf-tec.de>
+Subject: [BUG] Oops on boot (probably ACPI related)
+Date: Wed, 27 Sep 2006 14:24:47 +0200
+Message-ID: <200609271424.47824.eike-kernel@sf-tec.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: multipart/signed;
+  boundary="nextPart1555872.S9lg5xpVnW";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sd291.sivit.org ([194.146.225.122]:25872 "EHLO sd291.sivit.org")
-	by vger.kernel.org with ESMTP id S1751121AbWI0Lvt (ORCPT
+Received: from mail.sf-mail.de ([62.27.20.61]:57756 "EHLO mail.sf-mail.de")
+	by vger.kernel.org with ESMTP id S1030217AbWI0MYG (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 27 Sep 2006 07:51:49 -0400
+	Wed, 27 Sep 2006 08:24:06 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Andrew Morton <akpm@osdl.org>, Ismail Donmez <ismail@pardus.org.tr>, Stelian Pop <stelian@popies.net>, Andrea Gelmini <gelma@gelma.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: len.brown@intel.com, linux-acpi@vger.kernel.org
 
->> > Will sony_acpi ever make it to the mainline? Its very useful for new
->> Vaio
->> > models.
->
-> Nope, not as it is.  Useful != supportable.
->
-> 1. It must not create any files under /proc/acpi
->     This is creating a machine-specific API, which
->     is exactly what we don't want  Nobody can maintain
->     50 machine specific APIs.
->
->     These objects must appear generic and under sysfs
->     as if acpi were not involved in providing them.
->
-> 2. its source code shall not live in drivers/acpi
->     it is not part of the ACPI implementation after all --
->     it is a platform specific driver.
+--nextPart1555872.S9lg5xpVnW
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-In this case, would a patch ripping off asus_acpi, ibm_acpi and
-toshiba_acpi  from the kernel be accepted ?
+I get this on my machine. SMP kernel, linus git from this morning. .config =
+and=20
+test available on request.
 
-I don't really care much about sony_acpi (since I'm not maintaining it
-anymore, even if I still answer support requests about it), but this is
-just silly. This has been going on for more than one and a half year now.
+Eike
 
-Meanwhile (at least from what I've seen), the ACPI subsystem still doesn't
-provide this "generic" API which platform specific driver need to
-implement. drivers/acpi/{hotkey.c,video.c} are just rudimentary, and there
-is no indication that this is going forward:
+BUG: unable to handle kernel paging request at virtual address f0003504
+ printing eip:
+c102d804
+*pde =3D 00000000
+Oops: 0000 [#1]
+SMP
+Modules linked in:
+CPU:    0
+EIP:    0060:[<c102d804>]    Not tainted VLI
+EFLAGS: 00010086   (2.6.18 #3)
+EIP is at mark_lock+0x24/0x34c
+eax: f00034ec   ebx: c126a674   ecx: 00000001   edx: 00000001
+esi: c126a140   edi: 00000000   ebp: c1380e88   esp: c1380e78
+ds: 007b   es: 007b   ss: 0068
+Process swapper (pid: 0, ti=3Dc1380000 task=3Dc126a140 task.ti=3Dc1380000)
+Stack: 00000001 f00034ec 00000018 0000ffff c1380ec4 c102e5ee c11ee67a 00000=
+000
+       00000000 00000018 c126a140 c126a674 00000000 c126a674 00000000 00000=
+001
+       00000046 00000018 0000ffff c1380ee4 c102f03a 00000000 00000002 00000=
+001
+Call Trace:
+ [<c102e5ee>] __lock_acquire+0x45e/0x967
+ [<c102f03a>] lock_acquire+0x4b/0x6d
+ [<c11f15ef>] _spin_lock_irqsave+0x22/0x32
+ [<c11ee67a>] __down_trylock+0x12/0x48
+ [<c11f0e76>] __down_failed_trylock+0xa/0x10
+DWARF2 unwinder stuck at __down_failed_trylock+0xa/0x10
 
-In March 2005 you (Len) said:
+Leftover inexact backtrace:
 
-> The goal is to DELETE ibm, toshiba, and asus drivers -- or at least the
-> duplicated functions in them.
->
-> platform specific drivers make it harder, not easier, to support more
-> hardware -- there are a zillion vendors out there, implementing special
-> drivers for each of them is a strategy of last resort.
+ [<c10e9362>] acpi_os_wait_semaphore+0x38/0xd7
+ [<c10ff1e6>] acpi_ut_acquire_mutex+0x39/0x77
+ [<c10f768e>] acpi_ns_get_node+0x42/0x84
+ [<c10f64e1>] acpi_ns_root_initialize+0x276/0x2ad
+ [<c10fdd23>] acpi_initialize_subsystem+0x38/0x5d
+ [<c1397f64>] acpi_early_init+0x4e/0x108
+ [<c1384747>] start_kernel+0x376/0x383
+ [<00000000>] 0x0
+ =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+Code: 8d 65 f8 5b 5e 5d c3 55 89 e5 57 56 53 83 ec 04 89 c6 89 d3 89 cf c7 =
+45=20
+f0 01 00 00 00 d3 65 f0 8b 42 08 ba 01 00 00 00 8b 4d f0 <85> 48 18 0f 85 1=
+5=20
+03 00 00 f0 fe 0d 9c f8 26 c1 79 0d f3 90 80
+EIP: [<c102d804>] mark_lock+0x24/0x34c SS:ESP 0068:c1380e78
+ <0>Kernel panic - not syncing: Attempted to kill the idle task!
 
-and
+--nextPart1555872.S9lg5xpVnW
+Content-Type: application/pgp-signature
 
-> I'd like to keep this driver out-of-tree
-> until we prove that we can't enhance the
-> generic code to handle this hardware
-> without the addition of a new driver.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
 
-How long is this going to take ?
+iD8DBQBFGm2PXKSJPmm5/E4RAl3bAJ90nDi1/6z0uVGon1BlnQpnSeSxsACeOc3S
+8ZUse6+0z/DQkd1zGjjHm0M=
+=7FCK
+-----END PGP SIGNATURE-----
 
-Stelian.
-
+--nextPart1555872.S9lg5xpVnW--
