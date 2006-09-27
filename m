@@ -1,92 +1,38 @@
-From: Rolf Eike Beer <eike-kernel@sf-tec.de>
-Subject: [BUG] Oops on boot (probably ACPI related)
-Date: Wed, 27 Sep 2006 14:24:47 +0200
-Message-ID: <200609271424.47824.eike-kernel@sf-tec.de>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: T30 boot hang with CONFIG_PM_LEGACY=n
+Date: Wed, 27 Sep 2006 15:47:31 +0100
+Message-ID: <20060927144731.GA3641@srcf.ucam.org>
+References: <20060927024628.GA29182@redhat.com> <200609270000.40760.len.brown@intel.com> <20060927042029.GA3571@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1555872.S9lg5xpVnW";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.sf-mail.de ([62.27.20.61]:57756 "EHLO mail.sf-mail.de")
-	by vger.kernel.org with ESMTP id S1030217AbWI0MYG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 27 Sep 2006 08:24:06 -0400
+Received: from cavan.codon.org.uk ([217.147.92.49]:58855 "EHLO
+	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
+	id S932418AbWI0OsH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 27 Sep 2006 10:48:07 -0400
+Content-Disposition: inline
+In-Reply-To: <20060927042029.GA3571@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: len.brown@intel.com, linux-acpi@vger.kernel.org
+To: Dave Jones <davej@redhat.com>
+Cc: Len Brown <lenb@kernel.org>, Jeff Garzik <jeff@garzik.org>, linux-acpi@vger.kernel.org, Linux-pm mailing list <linux-pm@lists.osdl.org>
 
---nextPart1555872.S9lg5xpVnW
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+On Wed, Sep 27, 2006 at 12:20:29AM -0400, Dave Jones wrote:
 
-I get this on my machine. SMP kernel, linus git from this morning. .config =
-and=20
-test available on request.
+> Good question.  There's no real replacement for pm_active in the non-legacy
+> config afaik. Perhaps the cleanest alternative is to undeprecate that macro?
+> The only other option I can think of is doing something like this in apm.c ...
+> 
+> +#ifdef CONFIG_ACPI
+> -        if (PM_IS_ACTIVE()) {
+>                  printk(KERN_NOTICE "apm: overridden by ACPI.\n");
+>                  apm_info.disabled = 1;
+>                  return -ENODEV;
+> -         }
+> +#endif
 
-Eike
+That's not a good choice - it needs to be a runtime check, not a 
+compile-time one. Don't we have an acpi_enabled() function?
 
-BUG: unable to handle kernel paging request at virtual address f0003504
- printing eip:
-c102d804
-*pde =3D 00000000
-Oops: 0000 [#1]
-SMP
-Modules linked in:
-CPU:    0
-EIP:    0060:[<c102d804>]    Not tainted VLI
-EFLAGS: 00010086   (2.6.18 #3)
-EIP is at mark_lock+0x24/0x34c
-eax: f00034ec   ebx: c126a674   ecx: 00000001   edx: 00000001
-esi: c126a140   edi: 00000000   ebp: c1380e88   esp: c1380e78
-ds: 007b   es: 007b   ss: 0068
-Process swapper (pid: 0, ti=3Dc1380000 task=3Dc126a140 task.ti=3Dc1380000)
-Stack: 00000001 f00034ec 00000018 0000ffff c1380ec4 c102e5ee c11ee67a 00000=
-000
-       00000000 00000018 c126a140 c126a674 00000000 c126a674 00000000 00000=
-001
-       00000046 00000018 0000ffff c1380ee4 c102f03a 00000000 00000002 00000=
-001
-Call Trace:
- [<c102e5ee>] __lock_acquire+0x45e/0x967
- [<c102f03a>] lock_acquire+0x4b/0x6d
- [<c11f15ef>] _spin_lock_irqsave+0x22/0x32
- [<c11ee67a>] __down_trylock+0x12/0x48
- [<c11f0e76>] __down_failed_trylock+0xa/0x10
-DWARF2 unwinder stuck at __down_failed_trylock+0xa/0x10
-
-Leftover inexact backtrace:
-
- [<c10e9362>] acpi_os_wait_semaphore+0x38/0xd7
- [<c10ff1e6>] acpi_ut_acquire_mutex+0x39/0x77
- [<c10f768e>] acpi_ns_get_node+0x42/0x84
- [<c10f64e1>] acpi_ns_root_initialize+0x276/0x2ad
- [<c10fdd23>] acpi_initialize_subsystem+0x38/0x5d
- [<c1397f64>] acpi_early_init+0x4e/0x108
- [<c1384747>] start_kernel+0x376/0x383
- [<00000000>] 0x0
- =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-Code: 8d 65 f8 5b 5e 5d c3 55 89 e5 57 56 53 83 ec 04 89 c6 89 d3 89 cf c7 =
-45=20
-f0 01 00 00 00 d3 65 f0 8b 42 08 ba 01 00 00 00 8b 4d f0 <85> 48 18 0f 85 1=
-5=20
-03 00 00 f0 fe 0d 9c f8 26 c1 79 0d f3 90 80
-EIP: [<c102d804>] mark_lock+0x24/0x34c SS:ESP 0068:c1380e78
- <0>Kernel panic - not syncing: Attempted to kill the idle task!
-
---nextPart1555872.S9lg5xpVnW
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQBFGm2PXKSJPmm5/E4RAl3bAJ90nDi1/6z0uVGon1BlnQpnSeSxsACeOc3S
-8ZUse6+0z/DQkd1zGjjHm0M=
-=7FCK
------END PGP SIGNATURE-----
-
---nextPart1555872.S9lg5xpVnW--
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
