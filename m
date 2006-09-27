@@ -1,42 +1,49 @@
-From: Dave Jones <davej@redhat.com>
-Subject: Re: T30 boot hang with CONFIG_PM_LEGACY=n
-Date: Wed, 27 Sep 2006 13:15:12 -0400
-Message-ID: <20060927171512.GF997@redhat.com>
-References: <20060927024628.GA29182@redhat.com> <200609270000.40760.len.brown@intel.com> <20060927042029.GA3571@redhat.com> <20060927144731.GA3641@srcf.ucam.org>
+From: Markus Dahms <mad@automagically.de>
+Subject: Re: [BUG] Oops on boot (probably ACPI related)
+Date: Wed, 27 Sep 2006 19:56:13 +0200
+Message-ID: <pan.2006.09.27.17.56.13.80913@automagically.de>
+References: <200609271424.47824.eike-kernel@sf-tec.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:10476 "EHLO mx1.redhat.com")
-	by vger.kernel.org with ESMTP id S1030417AbWI0RP7 (ORCPT
+Received: from main.gmane.org ([80.91.229.2]:39315 "EHLO ciao.gmane.org")
+	by vger.kernel.org with ESMTP id S1030516AbWI0SAO (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 27 Sep 2006 13:15:59 -0400
-Content-Disposition: inline
-In-Reply-To: <20060927144731.GA3641@srcf.ucam.org>
+	Wed, 27 Sep 2006 14:00:14 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1GSdhS-0007Og-2o
+	for linux-acpi@vger.kernel.org; Wed, 27 Sep 2006 20:00:02 +0200
+Received: from pd9529ec8.dip0.t-ipconnect.de ([217.82.158.200])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Wed, 27 Sep 2006 20:00:02 +0200
+Received: from mad by pd9529ec8.dip0.t-ipconnect.de with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Wed, 27 Sep 2006 20:00:02 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Len Brown <lenb@kernel.org>, Jeff Garzik <jeff@garzik.org>, linux-acpi@vger.kernel.org, Linux-pm mailing list <linux-pm@lists.osdl.org>
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-On Wed, Sep 27, 2006 at 03:47:31PM +0100, Matthew Garrett wrote:
- > On Wed, Sep 27, 2006 at 12:20:29AM -0400, Dave Jones wrote:
- > 
- > > Good question.  There's no real replacement for pm_active in the non-legacy
- > > config afaik. Perhaps the cleanest alternative is to undeprecate that macro?
- > > The only other option I can think of is doing something like this in apm.c ...
- > > 
- > > +#ifdef CONFIG_ACPI
- > > -        if (PM_IS_ACTIVE()) {
- > >                  printk(KERN_NOTICE "apm: overridden by ACPI.\n");
- > >                  apm_info.disabled = 1;
- > >                  return -ENODEV;
- > > -         }
- > > +#endif
- > 
- > That's not a good choice - it needs to be a runtime check, not a 
- > compile-time one. Don't we have an acpi_enabled() function?
- 
-You're right, the above would break if booted with acpi=off.
+Am Wed, 27 Sep 2006 14:24:47 +0200 schrieb Rolf Eike Beer:
 
-Hmm.
+> I get this on my machine. SMP kernel, linus git from this morning. .config
+> and test available on request.
 
-	Dave 
+I encountered a similar bug, but a lot earlier. It seems to be a locking
+problem, as it is lockdep which does the BUG() for me.
+It's also an SMP machine in my case, acpi_os_wait_semaphore() is in the
+call chain, too. No textual output (no serial connection attached, too
+early for netconsole), but a screenshot:
+
+http://automagically.de/images/linux-2.6.18+-acpi-lockup.jpg (154kB)
+
+2.6.18 works for me, newer git versions explode.
+
+Maybe it's an SMP-related problem, but it does BUG() before initialization
+of the second CPU.
+
+Markus
+
+
