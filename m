@@ -1,49 +1,47 @@
-From: Markus Dahms <mad@automagically.de>
-Subject: Re: [BUG] Oops on boot (probably ACPI related)
-Date: Wed, 27 Sep 2006 19:56:13 +0200
-Message-ID: <pan.2006.09.27.17.56.13.80913@automagically.de>
-References: <200609271424.47824.eike-kernel@sf-tec.de>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: S3 on acer travelmate 3022WTMi
+Date: Wed, 27 Sep 2006 20:48:55 +0200
+Message-ID: <1159382935.3610.399.camel@queen.suse.de>
+References: <966a04530609260106y2bea58del50732ba061cdc9a9@mail.gmail.com>
+	 <efbtdo$s4f$1@sea.gmane.org>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:39315 "EHLO ciao.gmane.org")
-	by vger.kernel.org with ESMTP id S1030516AbWI0SAO (ORCPT
+Received: from ns2.suse.de ([195.135.220.15]:34731 "EHLO mx2.suse.de")
+	by vger.kernel.org with ESMTP id S1030525AbWI0Sj6 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 27 Sep 2006 14:00:14 -0400
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1GSdhS-0007Og-2o
-	for linux-acpi@vger.kernel.org; Wed, 27 Sep 2006 20:00:02 +0200
-Received: from pd9529ec8.dip0.t-ipconnect.de ([217.82.158.200])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Wed, 27 Sep 2006 20:00:02 +0200
-Received: from mad by pd9529ec8.dip0.t-ipconnect.de with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Wed, 27 Sep 2006 20:00:02 +0200
+	Wed, 27 Sep 2006 14:39:58 -0400
+In-Reply-To: <efbtdo$s4f$1@sea.gmane.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+To: Peter Pregler <Peter_Pregler@email.com>
+Cc: linux-acpi@vger.kernel.org, bk <bk@suse.de>
 
-Am Wed, 27 Sep 2006 14:24:47 +0200 schrieb Rolf Eike Beer:
+On Tue, 2006-09-26 at 21:01 +0200, Peter Pregler wrote:
+> Arto Pastinen wrote:
+> > Hi,
+> > 
+> > Has anyone got Suspend to Ram work on Acer TravelMate 3022WTMi?
+> > 
+> > I even fixed DSDT, but it still freezes on return from sleep, the hard
+> > disc shows little action, but then everything is blank..
+> 
+> I think this describes the problem with all Acer TM 3xxx. I have a
+> TM3201 and have the same problem. Additional symptons: display backlight
+> is off, fan is running. I tried about all the tricks including all
+> debugging that is possible without a serial console with no success.
+> And since I have no docking station, i.e. no chance for a serial
+> console, I simply gave up.
+There is firescope, setting up the kernel console output over firewire:
+http://marc.theaimsgroup.com/?l=linux-kernel&m=114412300502236&w=2
+There might be some machines having problems with it (all you need is a
+cable and your firewire device must be OHCI1394 compliant AFAIK), but I
+tried it out once and it worked fine.
 
-> I get this on my machine. SMP kernel, linus git from this morning. .config
-> and test available on request.
+There is even something additional to set up kgdb over firewire,
+Bernhard knows more about this...
 
-I encountered a similar bug, but a lot earlier. It seems to be a locking
-problem, as it is lockdep which does the BUG() for me.
-It's also an SMP machine in my case, acpi_os_wait_semaphore() is in the
-call chain, too. No textual output (no serial connection attached, too
-early for netconsole), but a screenshot:
-
-http://automagically.de/images/linux-2.6.18+-acpi-lockup.jpg (154kB)
-
-2.6.18 works for me, newer git versions explode.
-
-Maybe it's an SMP-related problem, but it does BUG() before initialization
-of the second CPU.
-
-Markus
-
+    Thomas
 
