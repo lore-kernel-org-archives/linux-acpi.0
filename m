@@ -1,47 +1,28 @@
-From: Linus Torvalds <torvalds@osdl.org>
-Subject: Re: [BUG] Oops on boot (probably ACPI related)
-Date: Wed, 27 Sep 2006 14:38:36 -0700 (PDT)
-Message-ID: <Pine.LNX.4.64.0609271436310.3952@g5.osdl.org>
-References: <200609271424.47824.eike-kernel@sf-tec.de>
- <Pine.LNX.4.64.0609271320580.3952@g5.osdl.org> <Pine.LNX.4.64.0609271329080.3952@g5.osdl.org>
- <200609272250.21925.ak@suse.de>
+From: Andrea Gelmini <gelma@gelma.net>
+Subject: Re: sonypc with Sony Vaio VGN-SZ1VP
+Date: Wed, 27 Sep 2006 18:26:52 +0200
+Message-ID: <20060927162652.GA5691@jnb.gelma.net>
+References: <20060926135659.GA3685@jnb.gelma.net> <45195583.4090500@popies.net> <200609262056.32052.ismail@pardus.org.tr> <20060926221400.5da1b796.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:13200 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1030903AbWI0Vis (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 27 Sep 2006 17:38:48 -0400
-In-Reply-To: <200609272250.21925.ak@suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1030881AbWI0VxF@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20060926221400.5da1b796.akpm@osdl.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: Stelian Pop <stelian@popies.net>, Andrea Gelmini <gelma@gelma.net>, linux-kernel@vger.kernel.org, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org, Ismail Donmez <ismail@pardus.org.tr>
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <ak@suse.de>
-Cc: Kyle McMartin <kyle@parisc-linux.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@osdl.org, jbeulich@novell.com
 
+On Tue, Sep 26, 2006 at 10:14:00PM -0700, Andrew Morton wrote:
+> I'm inclined to slip it in, but Len has good-sounding reasons for not
+> merging this sort of driver, and I always forget what they are?
 
+well, for us, users/owners of newest vaio, there's no choice. with default
+brightness it's impossibile, really impossibile, to read even the
+characters of the console, in daylight.
 
-On Wed, 27 Sep 2006, Andi Kleen wrote:
-> 
-> It doesn't matter much because these days this stuff is all out of lined
-> anyways and in a single function. And the dynamic branch predictor
-> in all modern CPUs will usually cache the decision (unlocked) there.
+carrie would say: "is it better to have sex with so-so partner, or not
+having sex at all?".
 
-Ahh, good point. Once there's only one copy, the branch predictor will get 
-it right (and the code size won't much matter)
-
-> > Are there any _real_ advantages to this broken unwinding code that has had 
-> > more bugs that Windows XP?
-> 
-> I thought for a long time we didn't need it either, but these days with all 
-> these callbacks in some parts of the kernel (driver model, others) and you 
-> get a oops with 60+ entries it is just too much trouble to figure it out manually.
-
-Ok, fair enough. I'll apply your fix (which in itself is obviously 
-correct).
-
-I just wanted to bring up the possibility that we should just remove the 
-(fragile) unwinder.
-
-But let's leave it for another day, if it keeps being problematic.
-
-		Linus
+Thanks a lot for your time,
+Andrea
