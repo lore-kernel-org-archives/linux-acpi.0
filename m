@@ -1,36 +1,58 @@
-From: Kyle McMartin <kyle@parisc-linux.org>
+From: Andi Kleen <ak@suse.de>
 Subject: Re: [BUG] Oops on boot (probably ACPI related)
-Date: Wed, 27 Sep 2006 14:40:37 -0400
-Message-ID: <20060927184037.GA3306@athena.road.mcmartin.ca>
-References: <200609271424.47824.eike-kernel@sf-tec.de> <pan.2006.09.27.17.56.13.80913@automagically.de>
+Date: 27 Sep 2006 21:38:03 +0200
+Message-ID: <p73k63pje1w.fsf@verdi.suse.de>
+References: <200609271424.47824.eike-kernel@sf-tec.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from stout.engsoc.carleton.ca ([134.117.69.22]:20683 "EHLO
-	stout.engsoc.carleton.ca") by vger.kernel.org with ESMTP
-	id S1030524AbWI0Skl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 27 Sep 2006 14:40:41 -0400
-Content-Disposition: inline
-In-Reply-To: <pan.2006.09.27.17.56.13.80913@automagically.de>
+Received: from ns2.suse.de ([195.135.220.15]:26546 "EHLO mx2.suse.de")
+	by vger.kernel.org with ESMTP id S1030704AbWI0TiJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 27 Sep 2006 15:38:09 -0400
+In-Reply-To: <200609271424.47824.eike-kernel@sf-tec.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Markus Dahms <mad@automagically.de>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@osdl.org, torvalds@osdl.org
+To: Rolf Eike Beer <eike-kernel@sf-tec.de>
+Cc: len.brown@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@osdl.org
 
-On Wed, Sep 27, 2006 at 07:56:13PM +0200, Markus Dahms wrote:
-> > I get this on my machine. SMP kernel, linus git from this morning. .config
-> > and test available on request.
-> 
+Rolf Eike Beer <eike-kernel@sf-tec.de> writes:
 
-I saw this as well.
+> I get this on my machine. SMP kernel, linus git from this morning. .config and 
+> test available on request.
 
-Reverting,
->       i386: Remove lock section support in semaphore.h
+What gcc do you use?
 
-Fixes it for me (and apparently akpm too from Message-Id:
-<20060926224114.5ca873ec.akpm@osdl.org>)
+Anyways, does this patch fix it? This might have been Andrew's vaio problem too.
 
-Linus, please revert 01215ad8d83e18321d99e9b5750a6f21cac243a2 for now...
+-Andi
 
-Cheers,
-	Kyle McMartin
+i386: Use early clobbers for semaphores now
+
+The new code does clobber the result early, so make sure to tell
+gcc to not put it into the same register as a input argument
+
+Signed-off-by: Andi Kleen <ak@suse.de>
+
+Index: linux/include/asm-i386/semaphore.h
+===================================================================
+--- linux.orig/include/asm-i386/semaphore.h
++++ linux/include/asm-i386/semaphore.h
+@@ -126,7 +126,7 @@ static inline int down_interruptible(str
+ 		"lea %1,%%eax\n\t"
+ 		"call __down_failed_interruptible\n"
+ 		"2:"
+-		:"=a" (result), "+m" (sem->count)
++		:"=&a" (result), "+m" (sem->count)
+ 		:
+ 		:"memory");
+ 	return result;
+@@ -148,7 +148,7 @@ static inline int down_trylock(struct se
+ 		"lea %1,%%eax\n\t"
+ 		"call __down_failed_trylock\n\t"
+ 		"2:\n"
+-		:"=a" (result), "+m" (sem->count)
++		:"=&a" (result), "+m" (sem->count)
+ 		:
+ 		:"memory");
+ 	return result;
