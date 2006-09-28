@@ -1,36 +1,27 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: updated bugzilla categories for ACPI
-Date: Thu, 28 Sep 2006 17:09:45 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB6019B4C63@hdsmsx411.amr.corp.intel.com>
+From: Andi Kleen <ak@suse.de>
+Subject: Re: fadt.boot_flags.MSI_not_supported
+Date: 29 Sep 2006 00:45:38 +0200
+Message-ID: <p73psdfip9p.fsf@verdi.suse.de>
+References: <CFF307C98FEABE47A452B27C06B85BB6019B425D@hdsmsx411.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:55195 "EHLO mga01.intel.com")
-	by vger.kernel.org with ESMTP id S1750895AbWI1VJw convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 Sep 2006 17:09:52 -0400
-Content-class: urn:content-classes:message
+Received: from mx2.suse.de ([195.135.220.15]:42650 "EHLO mx2.suse.de")
+	by vger.kernel.org with ESMTP id S932536AbWI1Wpl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 28 Sep 2006 18:45:41 -0400
+In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB6019B425D@hdsmsx411.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-FYI,
-Clarified two of the categories by re-naming them,
-and updating their descriptions.
+"Brown, Len" <len.brown@intel.com> writes:
 
+> sifting through ACPI 3.0a I just noticed a bit (3)
+> in the FADT boot_flag to indicate the platform
+> does not support MSI.
 
-> old: ACPI/AML Interpreter
-> 	AML specific issues
-> new: ACPI/ACPICA Core
-> 	Issues related to the ACPICA Core,
-> 	including the AML interpreter.
-> 
-> 
-> old: ACPI/Hotkeys
-> 	Issues related to hotkeys
-> new: ACPI/Platform Drivers
-> 	Issues related to platform specific drivers
-> 	that use ACPI for non-standardized features
-> 	such as hotkeys.
+Implementing that is on my todo list. We definitely should.
+
+-Andi
