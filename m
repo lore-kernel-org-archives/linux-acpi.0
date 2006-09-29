@@ -1,27 +1,39 @@
-From: Andi Kleen <ak@suse.de>
-Subject: Re: fadt.boot_flags.MSI_not_supported
-Date: 29 Sep 2006 00:45:38 +0200
-Message-ID: <p73psdfip9p.fsf@verdi.suse.de>
-References: <CFF307C98FEABE47A452B27C06B85BB6019B425D@hdsmsx411.amr.corp.intel.com>
+From: "Zhao Forrest" <forrest.zhao@gmail.com>
+Subject: Help on a ACPI error message during kernel boot
+Date: Thu, 28 Sep 2006 19:45:16 -0700
+Message-ID: <ac8af0be0609281945y7eb5129bp61e9fc7b489cf838@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:42650 "EHLO mx2.suse.de")
-	by vger.kernel.org with ESMTP id S932536AbWI1Wpl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 Sep 2006 18:45:41 -0400
-In-Reply-To: <CFF307C98FEABE47A452B27C06B85BB6019B425D@hdsmsx411.amr.corp.intel.com>
+Received: from ug-out-1314.google.com ([66.249.92.170]:58255 "EHLO
+	ug-out-1314.google.com") by vger.kernel.org with ESMTP
+	id S1751201AbWI2CpV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 28 Sep 2006 22:45:21 -0400
+Received: by ug-out-1314.google.com with SMTP id o38so237823ugd
+        for <linux-acpi@vger.kernel.org>; Thu, 28 Sep 2006 19:45:16 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-"Brown, Len" <len.brown@intel.com> writes:
+Hi list,
 
-> sifting through ACPI 3.0a I just noticed a bit (3)
-> in the FADT boot_flag to indicate the platform
-> does not support MSI.
+When booting the linux on my hardware, ACPI output some error messages
+like this:
 
-Implementing that is on my todo list. We definitely should.
+PCI: Using configuration type 1
+    ACPI-1121: *** Error: Method execution failed [\_SB_.LNKA._STA]
+(Node 0000010011dcb6c0), AE_AML_REGION_LIMIT
+    ACPI-0098: *** Error: Method execution failed [\_SB_.LNKA._STA]
+(Node 0000010011dcb6c0), AE_AML_REGION_LIMIT
+    ACPI-1121: *** Error: Method execution failed [\_SB_.LNKB._STA]
+(Node 0000010011dcb8c0), AE_AML_REGION_LIMIT
+    ACPI-0098: *** Error: Method execution failed [\_SB_.LNKB._STA]
+(Node 0000010011dcb8c0), AE_AML_REGION_LIMIT
 
--Andi
+Anyone has met the similar problems? Could you share some experience
+of how to debug this problem? Now I'm totally clueless......
+
+Thanks,
+Forrest
