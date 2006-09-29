@@ -1,66 +1,44 @@
-From: Randy Dunlap <rdunlap@xenotime.net>
+From: Andrew Morton <akpm@osdl.org>
 Subject: Re: [PATCH] Fix up a multitude of ACPI compiler warnings on x86_64
-Date: Fri, 29 Sep 2006 16:18:52 -0700
-Message-ID: <20060929161852.4b6ae44a.rdunlap@xenotime.net>
+Date: Fri, 29 Sep 2006 16:38:27 -0700
+Message-ID: <20060929163827.d77a12c8.akpm@osdl.org>
 References: <451D9236.6040902@google.com>
 	<20060929150526.38eec941.akpm@osdl.org>
+	<20060929161852.4b6ae44a.rdunlap@xenotime.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from xenotime.net ([66.160.160.81]:7116 "HELO xenotime.net")
-	by vger.kernel.org with SMTP id S932077AbWI2XR1 (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:5516 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1030200AbWI2Xid (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 29 Sep 2006 19:17:27 -0400
-Received: from midway.site ([71.245.102.242]) by xenotime.net for <linux-acpi@vger.kernel.org>; Fri, 29 Sep 2006 16:17:25 -0700
-In-Reply-To: <20060929150526.38eec941.akpm@osdl.org>
+	Fri, 29 Sep 2006 19:38:33 -0400
+In-Reply-To: <20060929161852.4b6ae44a.rdunlap@xenotime.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>, len.brown@intel.com
-Cc: Martin Bligh <mbligh@google.com>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Randy Dunlap <rdunlap@xenotime.net>
+Cc: len.brown@intel.com, Martin Bligh <mbligh@google.com>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Fri, 29 Sep 2006 15:05:26 -0700 Andrew Morton wrote:
+On Fri, 29 Sep 2006 16:18:52 -0700
+Randy Dunlap <rdunlap@xenotime.net> wrote:
 
-> On Fri, 29 Sep 2006 14:37:58 -0700
-> Martin Bligh <mbligh@google.com> wrote:
-> 
-> > 32bit vs 64 bit issues. sizeof(sizeof) and sizeof(pointer) is variable,
-> > but we're trying to shove it into unsigned int or u32.
-> >
-> > ...
-> >
-> > -	"RSDT/XSDT length (%X) is smaller than minimum (%X)",
-> > +	"RSDT/XSDT length (%X) is smaller than minimum (%lX)",
-> >  	table_ptr->length,
-> > -	sizeof(struct acpi_table_header)));
-> > +	(unsigned long) sizeof(struct acpi_table_header)));
 > > 
+> > acpi-fix-printk-format-warnings.patch was submitted to the ACPI developers
+> > on August 14 and on September 25 but remains unmerged.
 > 
-> These two sizeof()s have already been fixed by Randy in -mm's
-> acpi-fix-printk-format-warnings.patch.
+> Len and I discussed that patch some.  The question about it is:
+> why does gcc report this at all?  Is this a gcc problem or are
+> we misreading it somehow?
 > 
-> Randy's fix is the preferred one: sizeof() returns size_t and size_t's are
-> printed with %z - there's no need to use a typecast.
+>  drivers/acpi/tables/tbget.c: In function 'acpi_tb_get_this_table':
+> drivers/acpi/tables/tbget.c:326: warning: format '%X' expects type 'unsigned int', but argument 5 has type 'long unsigned int'
 > 
-> (Actually Randy used %Z which avoids the warning which old gcc emitted with
-> %z, but is old-fashioned.  I'll switch that to %z).
+> drivers/acpi/tables/tbrsdt.c: In function 'acpi_tb_validate_rsdt':
+> drivers/acpi/tables/tbrsdt.c:189: warning: format '%X' expects type 'unsigned int', but argument 5 has type 'long unsigned int'
 > 
-> 
-> acpi-fix-printk-format-warnings.patch was submitted to the ACPI developers
-> on August 14 and on September 25 but remains unmerged.
+> Why does it think that sizeof(struct X) is long unsigned int?
+> (and only on 64-bit)
 
-Len and I discussed that patch some.  The question about it is:
-why does gcc report this at all?  Is this a gcc problem or are
-we misreading it somehow?
+hm, strange.  No warning at all on 32-bit.
 
- drivers/acpi/tables/tbget.c: In function 'acpi_tb_get_this_table':
-drivers/acpi/tables/tbget.c:326: warning: format '%X' expects type 'unsigned int', but argument 5 has type 'long unsigned int'
-
-drivers/acpi/tables/tbrsdt.c: In function 'acpi_tb_validate_rsdt':
-drivers/acpi/tables/tbrsdt.c:189: warning: format '%X' expects type 'unsigned int', but argument 5 has type 'long unsigned int'
-
-Why does it think that sizeof(struct X) is long unsigned int?
-(and only on 64-bit)
-
----
-~Randy
+Don't know.  But the patch is correct.
