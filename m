@@ -1,147 +1,1327 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Fw: [Bugme-new] [Bug 7237] New: desktop doesn't want to standby
-Date: Sat, 30 Sep 2006 13:01:31 -0700
-Message-ID: <20060930130131.eb30afb9.akpm@osdl.org>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: [PATCH] Cast removal
+Date: Sun, 1 Oct 2006 00:28:50 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0610010026050.32229@yvahk01.tjqt.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:64746 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1751864AbWI3UBj (ORCPT
+Received: from emailer.gwdg.de ([134.76.10.24]:20168 "EHLO emailer.gwdg.de")
+	by vger.kernel.org with ESMTP id S1751515AbWI3Wa2 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 30 Sep 2006 16:01:39 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id k8UK1WaX010209
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Sat, 30 Sep 2006 13:01:32 -0700
-Received: from box (shell0.pdx.osdl.net [10.9.0.31])
-	by shell0.pdx.osdl.net (8.13.1/8.11.6) with SMTP id k8UK1VC9030309
-	for <linux-acpi@vger.kernel.org>; Sat, 30 Sep 2006 13:01:31 -0700
+	Sat, 30 Sep 2006 18:30:28 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Len Brown <len.brown@intel.com>, ACPI List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@osdl.org>
+
+Hello,
 
 
-I suspect this one is miscategorised.
+enclosed is a patch that does...
 
-Begin forwarded message:
+Remove unnecessary from/to-void* and to-void (which is really
+anachronistic) casts. I wonder why the ACPI code is still full of them.
+GCC should have an option to forbid casting in places where the absence
+of a cast does not produce a warning.
 
-Date: Sat, 30 Sep 2006 09:32:03 -0700
-From: bugme-daemon@bugzilla.kernel.org
-To: bugme-new@lists.osdl.org
-Subject: [Bugme-new] [Bug 7237] New: desktop doesn't want to standby
+Also, the acpi code uses {} in single-statement if()s.
 
+Some places now read a = acpi_driver_data(x); kfree(a); maybe
+these could be consolidated into kfree(acpi_driver_data(x));
 
-http://bugzilla.kernel.org/show_bug.cgi?id=7237
+I am also seeing kmalloc+memset -> kzalloc potential.
 
-           Summary: desktop doesn't want to standby
-    Kernel Version: 2.6.18 vanilla from kernel.org without patches or
-                    external modul
-            Status: NEW
-          Severity: normal
-             Owner: power-management_other@kernel-bugs.osdl.org
-         Submitter: mailinux@no-log.org
+But these last three will be addressed in another patch another
+day, and probably by someone else.
 
 
-Most recent kernel where this bug did not occur:
-Distribution:gentoo
-Hardware Environment:sempron 2500+,256 ram,
-# lspci
-00:00.0 Host bridge: VIA Technologies, Inc. VT8377 [KT400/KT600 AGP] Host Bridge
-(rev 80)
-00:01.0 PCI bridge: VIA Technologies, Inc. VT8237 PCI Bridge
-00:09.0 RAID bus controller: Triones Technologies, Inc. HPT374 (rev 07)
-00:09.1 RAID bus controller: Triones Technologies, Inc. HPT374 (rev 07)
-00:0a.0 Ethernet controller: D-Link System Inc Unknown device 4b01 (rev 11)
-00:0b.0 Network controller: RaLink RT2500 802.11g Cardbus/mini-PCI (rev 01)
-00:0d.0 SCSI storage controller: Initio Corporation 360P (rev 02)
-00:0f.0 RAID bus controller: VIA Technologies, Inc. VIA VT6420 SATA RAID
-Controller (rev 80)
-00:0f.1 IDE interface: VIA Technologies, Inc.
-VT82C586A/B/VT82C686/A/B/VT823x/A/C PIPC Bus Master IDE (rev 06)
-00:10.0 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller
-(rev 81)
-00:10.1 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller
-(rev 81)
-00:10.2 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller
-(rev 81)
-00:10.3 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller
-(rev 81)
-00:10.4 USB Controller: VIA Technologies, Inc. USB 2.0 (rev 86)
-00:11.0 ISA bridge: VIA Technologies, Inc. VT8237 ISA bridge
-[KT600/K8T800/K8T890 South]
-00:11.5 Multimedia audio controller: VIA Technologies, Inc. VT8233/A/8235/8237
-AC97 Audio Controller (rev 60)
-00:12.0 Ethernet controller: VIA Technologies, Inc. VT6102 [Rhine-II] (rev 78)
-01:00.0 VGA compatible controller: ATI Technologies Inc RV280 [Radeon 9200 SE]
-(rev 01)
-01:00.1 Display controller: ATI Technologies Inc RV280 [Radeon 9200 SE]
-(Secondary) (rev 01)
-Software Environment:
-# emerge --info
-Portage 2.1.1 (default-linux/x86/2006.1, gcc-4.1.1, glibc-2.4-r3,
-2.6.18-gentoo_sempron_2500 i686)
-=================================================================
-System uname: 2.6.18-gentoo_sempron_2500 i686 AMD Sempron(tm) 2500+
-Gentoo Base System version 1.6.13
-Last Sync: Fri, 29 Sep 2006 19:00:01 +0000
-app-admin/eselect-compiler: [Not Present]
-dev-java/java-config: 1.2.11-r1
-dev-lang/python:     2.3.5-r2
-dev-python/pycrypto: 2.0.1-r5
-dev-util/ccache:     [Not Present]
-dev-util/confcache:  [Not Present]
-sys-apps/sandbox:    1.2.17
-sys-devel/autoconf:  2.13, 2.59-r6
-sys-devel/automake:  1.4_p6, 1.5, 1.6.3, 1.7.9-r1, 1.8.5-r3, 1.9.6-r1
-sys-devel/binutils:  2.16.1-r3
-sys-devel/gcc-config: 1.3.13-r2
-sys-devel/libtool:   1.5.18-r1
-virtual/os-headers:  2.6.11-r2
-ACCEPT_KEYWORDS="x86"
-AUTOCLEAN="yes"
-CBUILD="i686-pc-linux-gnu"
-CFLAGS="-O2 -march=athlon-xp -pipe"
-CHOST="i686-pc-linux-gnu"
-CONFIG_PROTECT="/etc /usr/kde/3.4/env /usr/kde/3.4/share/config
-/usr/kde/3.4/shutdown /usr/kde/3.5/env /usr/kde/3.5/share/config
-/usr/kde/3.5/shutdown /usr/share/X11/xkb /usr/share/config"
-CONFIG_PROTECT_MASK="/etc/env.d /etc/gconf /etc/revdep-rebuild /etc/terminfo"
-CXXFLAGS="-O2 -march=athlon-xp -pipe"
-DISTDIR="/usr/portage/distfiles"
-FEATURES="autoconfig distlocks metadata-transfer sandbox sfperms strict"
-GENTOO_MIRRORS="http://distfiles.gentoo.org
-http://distro.ibiblio.org/pub/linux/distributions/gentoo"
-LINGUAS=""
-PKGDIR="/usr/portage/packages"
-PORTAGE_RSYNC_OPTS="--recursive --links --safe-links --perms --times --compress
---force --whole-file --delete --delete-after --stats --timeout=180
---exclude='/distfiles' --exclude='/local' --exclude='/packages'"
-PORTAGE_TMPDIR="/var/tmp"
-PORTDIR="/usr/portage"
-PORTDIR_OVERLAY="/usr/overlay"
-SYNC="rsync://rsync.gentoo.org/gentoo-portage"
-USE="x86 3dnow 7zip X a52 aac acl ada alsa audacious avahi berkdb bitmap-fonts
-cddb cli crypt css cups dedicated dlloader dri dv dvd dvdread elibc_glibc encode
-fame fat ffmpeg flac fortran gcj gdbm gif gimp gimpprint gimpprint-mng gphoto2
-gpm graphviz gs gtk haskell hfs imagemagick input_devices_evdev
-input_devices_keyboard input_devices_mouse isdnlog jfs jpeg jpeg2k kde kerberos
-kernel_linux lcms libfpx libg++ lzo matroska mjpeg mmx mng modplug mp3 mpeg
-musepack musicbrainz ncurses network nls nodrm nptl nptlonly ntfs ogg
-on-the-fly-crypt opengl pam pascal pcre perl php png ppds pppd python qt3 quotas
-readline reflection reiser4 reiserfs rle ruby samba sdl session skins sndfile
-speex spl sql sse ssl stream svg swat tcpd theora tiff timidity truetype
-truetype-fonts type1-fonts udev unicode usb userland_GNU v4l vcd
-video_cards_radeon vlm vorbis wma wmf wxwindows xfs xorg xvid yv12 zeroconf zlib"
-Unset:  CTARGET, EMERGE_DEFAULT_OPTS, INSTALL_MASK, LANG, LC_ALL, LDFLAGS,
-MAKEOPTS, PORTAGE_RSYNC_EXTRA_OPTS
+--
 
-Problem Description:
-1st try:the computer doesn't want to standby
-2nd try:the computer freeze
+Remove unnecessary from/to-void* and to-void casts in drivers/acpi/.
 
-Steps to reproduce:
-echo standby>/sys/power/state
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
 
-------- You are receiving this mail because: -------
-You are on the CC list for the bug, or are watching someone who is.
+Index: linux-2.6.18/drivers/acpi/ac.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/ac.c
++++ linux-2.6.18/drivers/acpi/ac.c
+@@ -109,7 +109,7 @@ static struct proc_dir_entry *acpi_ac_di
+ 
+ static int acpi_ac_seq_show(struct seq_file *seq, void *offset)
+ {
+-	struct acpi_ac *ac = (struct acpi_ac *)seq->private;
++	struct acpi_ac *ac = seq->private;
+ 
+ 
+ 	if (!ac)
+@@ -187,7 +187,7 @@ static int acpi_ac_remove_fs(struct acpi
+ 
+ static void acpi_ac_notify(acpi_handle handle, u32 event, void *data)
+ {
+-	struct acpi_ac *ac = (struct acpi_ac *)data;
++	struct acpi_ac *ac = data;
+ 	struct acpi_device *device = NULL;
+ 
+ 
+@@ -269,7 +269,7 @@ static int acpi_ac_remove(struct acpi_de
+ 	if (!device || !acpi_driver_data(device))
+ 		return -EINVAL;
+ 
+-	ac = (struct acpi_ac *)acpi_driver_data(device);
++	ac = acpi_driver_data(device);
+ 
+ 	status = acpi_remove_notify_handler(device->handle,
+ 					    ACPI_ALL_NOTIFY, acpi_ac_notify);
+Index: linux-2.6.18/drivers/acpi/acpi_memhotplug.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/acpi_memhotplug.c
++++ linux-2.6.18/drivers/acpi/acpi_memhotplug.c
+@@ -423,7 +423,7 @@ static int acpi_memory_device_remove(str
+ 	if (!device || !acpi_driver_data(device))
+ 		return -EINVAL;
+ 
+-	mem_device = (struct acpi_memory_device *)acpi_driver_data(device);
++	mem_device = acpi_driver_data(device);
+ 	kfree(mem_device);
+ 
+ 	return 0;
+Index: linux-2.6.18/drivers/acpi/asus_acpi.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/asus_acpi.c
++++ linux-2.6.18/drivers/acpi/asus_acpi.c
+@@ -1128,7 +1128,7 @@ static int asus_hotk_get_info(void)
+ 	if (ACPI_FAILURE(status))
+ 		printk(KERN_WARNING "  Couldn't get the DSDT table header\n");
+ 	else
+-		asus_info = (struct acpi_table_header *)dsdt.pointer;
++		asus_info = dsdt.pointer;
+ 
+ 	/* We have to write 0 on init this far for all ASUS models */
+ 	if (!write_acpi_int(hotk->handle, "INIT", 0, &buffer)) {
+@@ -1150,7 +1150,7 @@ static int asus_hotk_get_info(void)
+ 	 * asus_model_match() and try something completely different.
+ 	 */
+ 	if (buffer.pointer) {
+-		model = (union acpi_object *)buffer.pointer;
++		model = buffer.pointer;
+ 		switch (model->type) {
+ 		case ACPI_TYPE_STRING:
+ 			string = model->string.pointer;
+@@ -1245,8 +1245,7 @@ static int asus_hotk_add(struct acpi_dev
+ 	printk(KERN_NOTICE "Asus Laptop ACPI Extras version %s\n",
+ 	       ASUS_ACPI_VERSION);
+ 
+-	hotk =
+-	    (struct asus_hotk *)kmalloc(sizeof(struct asus_hotk), GFP_KERNEL);
++	hotk = kmalloc(sizeof(struct asus_hotk), GFP_KERNEL);
+ 	if (!hotk)
+ 		return -ENOMEM;
+ 	memset(hotk, 0, sizeof(struct asus_hotk));
+Index: linux-2.6.18/drivers/acpi/battery.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/battery.c
++++ linux-2.6.18/drivers/acpi/battery.c
+@@ -147,7 +147,7 @@ acpi_battery_get_info(struct acpi_batter
+ 		return -ENODEV;
+ 	}
+ 
+-	package = (union acpi_object *)buffer.pointer;
++	package = buffer.pointer;
+ 
+ 	/* Extract Package Data */
+ 
+@@ -177,7 +177,7 @@ acpi_battery_get_info(struct acpi_batter
+ 	kfree(buffer.pointer);
+ 
+ 	if (!result)
+-		(*bif) = (struct acpi_battery_info *)data.pointer;
++		(*bif) = data.pointer;
+ 
+ 	return result;
+ }
+@@ -207,7 +207,7 @@ acpi_battery_get_status(struct acpi_batt
+ 		return -ENODEV;
+ 	}
+ 
+-	package = (union acpi_object *)buffer.pointer;
++	package = buffer.pointer;
+ 
+ 	/* Extract Package Data */
+ 
+@@ -237,7 +237,7 @@ acpi_battery_get_status(struct acpi_batt
+ 	kfree(buffer.pointer);
+ 
+ 	if (!result)
+-		(*bst) = (struct acpi_battery_status *)data.pointer;
++		(*bst) = data.pointer;
+ 
+ 	return result;
+ }
+@@ -332,7 +332,7 @@ static struct proc_dir_entry *acpi_batte
+ static int acpi_battery_read_info(struct seq_file *seq, void *offset)
+ {
+ 	int result = 0;
+-	struct acpi_battery *battery = (struct acpi_battery *)seq->private;
++	struct acpi_battery *battery = seq->private;
+ 	struct acpi_battery_info *bif = NULL;
+ 	char *units = "?";
+ 
+@@ -416,7 +416,7 @@ static int acpi_battery_info_open_fs(str
+ static int acpi_battery_read_state(struct seq_file *seq, void *offset)
+ {
+ 	int result = 0;
+-	struct acpi_battery *battery = (struct acpi_battery *)seq->private;
++	struct acpi_battery *battery = seq->private;
+ 	struct acpi_battery_status *bst = NULL;
+ 	char *units = "?";
+ 
+@@ -492,7 +492,7 @@ static int acpi_battery_state_open_fs(st
+ 
+ static int acpi_battery_read_alarm(struct seq_file *seq, void *offset)
+ {
+-	struct acpi_battery *battery = (struct acpi_battery *)seq->private;
++	struct acpi_battery *battery = seq->private;
+ 	char *units = "?";
+ 
+ 
+@@ -529,8 +529,8 @@ acpi_battery_write_alarm(struct file *fi
+ {
+ 	int result = 0;
+ 	char alarm_string[12] = { '\0' };
+-	struct seq_file *m = (struct seq_file *)file->private_data;
+-	struct acpi_battery *battery = (struct acpi_battery *)m->private;
++	struct seq_file *m = file->private_data;
++	struct acpi_battery *battery = m->private;
+ 
+ 
+ 	if (!battery || (count > sizeof(alarm_string) - 1))
+@@ -656,7 +656,7 @@ static int acpi_battery_remove_fs(struct
+ 
+ static void acpi_battery_notify(acpi_handle handle, u32 event, void *data)
+ {
+-	struct acpi_battery *battery = (struct acpi_battery *)data;
++	struct acpi_battery *battery = data;
+ 	struct acpi_device *device = NULL;
+ 
+ 
+@@ -740,7 +740,7 @@ static int acpi_battery_remove(struct ac
+ 	if (!device || !acpi_driver_data(device))
+ 		return -EINVAL;
+ 
+-	battery = (struct acpi_battery *)acpi_driver_data(device);
++	battery = acpi_driver_data(device);
+ 
+ 	status = acpi_remove_notify_handler(device->handle,
+ 					    ACPI_ALL_NOTIFY,
+Index: linux-2.6.18/drivers/acpi/button.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/button.c
++++ linux-2.6.18/drivers/acpi/button.c
+@@ -109,7 +109,7 @@ static struct proc_dir_entry *acpi_butto
+ 
+ static int acpi_button_info_seq_show(struct seq_file *seq, void *offset)
+ {
+-	struct acpi_button *button = (struct acpi_button *)seq->private;
++	struct acpi_button *button = seq->private;
+ 
+ 
+ 	if (!button || !button->device)
+@@ -128,7 +128,7 @@ static int acpi_button_info_open_fs(stru
+ 
+ static int acpi_button_state_seq_show(struct seq_file *seq, void *offset)
+ {
+-	struct acpi_button *button = (struct acpi_button *)seq->private;
++	struct acpi_button *button = seq->private;
+ 	acpi_status status;
+ 	unsigned long state;
+ 
+@@ -253,7 +253,7 @@ static int acpi_button_remove_fs(struct 
+ 
+ static void acpi_button_notify(acpi_handle handle, u32 event, void *data)
+ {
+-	struct acpi_button *button = (struct acpi_button *)data;
++	struct acpi_button *button = data;
+ 
+ 
+ 	if (!button || !button->device)
+@@ -275,7 +275,7 @@ static void acpi_button_notify(acpi_hand
+ 
+ static acpi_status acpi_button_notify_fixed(void *data)
+ {
+-	struct acpi_button *button = (struct acpi_button *)data;
++	struct acpi_button *button = data;
+ 
+ 
+ 	if (!button)
+Index: linux-2.6.18/drivers/acpi/container.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/container.c
++++ linux-2.6.18/drivers/acpi/container.c
+@@ -117,7 +117,7 @@ static int acpi_container_remove(struct 
+ 	acpi_status status = AE_OK;
+ 	struct acpi_container *pc = NULL;
+ 
+-	pc = (struct acpi_container *)acpi_driver_data(device);
++	pc = acpi_driver_data(device);
+ 	kfree(pc);
+ 	return status;
+ }
+Index: linux-2.6.18/drivers/acpi/dock.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/dock.c
++++ linux-2.6.18/drivers/acpi/dock.c
+@@ -524,7 +524,7 @@ EXPORT_SYMBOL_GPL(unregister_hotplug_doc
+  */
+ static void dock_notify(acpi_handle handle, u32 event, void *data)
+ {
+-	struct dock_station *ds = (struct dock_station *)data;
++	struct dock_station *ds = data;
+ 
+ 	switch (event) {
+ 	case ACPI_NOTIFY_BUS_CHECK:
+@@ -587,7 +587,7 @@ find_dock_devices(acpi_handle handle, u3
+ {
+ 	acpi_status status;
+ 	acpi_handle tmp;
+-	struct dock_station *ds = (struct dock_station *)context;
++	struct dock_station *ds = context;
+ 	struct dock_dependent_device *dd;
+ 
+ 	status = acpi_bus_get_ejd(handle, &tmp);
+@@ -702,7 +702,7 @@ static int dock_remove(void)
+ static acpi_status
+ find_dock(acpi_handle handle, u32 lvl, void *context, void **rv)
+ {
+-	int *count = (int *)context;
++	int *count = context;
+ 	acpi_status status = AE_OK;
+ 
+ 	if (is_dock(handle)) {
+Index: linux-2.6.18/drivers/acpi/ec.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/ec.c
++++ linux-2.6.18/drivers/acpi/ec.c
+@@ -716,7 +716,7 @@ static void acpi_ec_gpe_poll_query(void 
+ }
+ static void acpi_ec_gpe_intr_query(void *ec_cxt)
+ {
+-	union acpi_ec *ec = (union acpi_ec *)ec_cxt;
++	union acpi_ec *ec = ec_cxt;
+ 	u32 value;
+ 	int result = -ENODATA;
+ 	static char object_name[5] = { '_', 'Q', '0', '0', '\0' };
+@@ -752,7 +752,7 @@ static u32 acpi_ec_gpe_handler(void *dat
+ static u32 acpi_ec_gpe_poll_handler(void *data)
+ {
+ 	acpi_status status = AE_OK;
+-	union acpi_ec *ec = (union acpi_ec *)data;
++	union acpi_ec *ec = data;
+ 
+ 	if (!ec)
+ 		return ACPI_INTERRUPT_NOT_HANDLED;
+@@ -770,7 +770,7 @@ static u32 acpi_ec_gpe_intr_handler(void
+ {
+ 	acpi_status status = AE_OK;
+ 	u32 value;
+-	union acpi_ec *ec = (union acpi_ec *)data;
++	union acpi_ec *ec = data;
+ 
+ 	if (!ec)
+ 		return ACPI_INTERRUPT_NOT_HANDLED;
+@@ -848,7 +848,7 @@ acpi_ec_space_handler(u32 function,
+ 		return AE_BAD_PARAMETER;
+ 	}
+ 
+-	ec = (union acpi_ec *)handler_context;
++	ec = handler_context;
+ 
+       next_byte:
+ 	switch (function) {
+@@ -905,7 +905,7 @@ static struct proc_dir_entry *acpi_ec_di
+ 
+ static int acpi_ec_read_info(struct seq_file *seq, void *offset)
+ {
+-	union acpi_ec *ec = (union acpi_ec *)seq->private;
++	union acpi_ec *ec = seq->private;
+ 
+ 
+ 	if (!ec)
+@@ -1136,7 +1136,7 @@ static int acpi_ec_remove(struct acpi_de
+ static acpi_status
+ acpi_ec_io_ports(struct acpi_resource *resource, void *context)
+ {
+-	union acpi_ec *ec = (union acpi_ec *)context;
++	union acpi_ec *ec = context;
+ 	struct acpi_generic_address *addr;
+ 
+ 	if (resource->type != ACPI_RESOURCE_TYPE_IO) {
+Index: linux-2.6.18/drivers/acpi/fan.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/fan.c
++++ linux-2.6.18/drivers/acpi/fan.c
+@@ -99,8 +99,8 @@ acpi_fan_write_state(struct file *file, 
+ 		     size_t count, loff_t * ppos)
+ {
+ 	int result = 0;
+-	struct seq_file *m = (struct seq_file *)file->private_data;
+-	struct acpi_fan *fan = (struct acpi_fan *)m->private;
++	struct seq_file *m = file->private_data;
++	struct acpi_fan *fan = m->private;
+ 	char state_string[12] = { '\0' };
+ 
+ 
+@@ -229,7 +229,7 @@ static int acpi_fan_remove(struct acpi_d
+ 	if (!device || !acpi_driver_data(device))
+ 		return -EINVAL;
+ 
+-	fan = (struct acpi_fan *)acpi_driver_data(device);
++	fan = acpi_driver_data(device);
+ 
+ 	acpi_fan_remove_fs(device);
+ 
+Index: linux-2.6.18/drivers/acpi/glue.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/glue.c
++++ linux-2.6.18/drivers/acpi/glue.c
+@@ -96,7 +96,7 @@ struct acpi_find_pci_root {
+ static acpi_status
+ do_root_bridge_busnr_callback(struct acpi_resource *resource, void *data)
+ {
+-	unsigned long *busnr = (unsigned long *)data;
++	unsigned long *busnr = data;
+ 	struct acpi_resource_address64 address;
+ 
+ 	if (resource->type != ACPI_RESOURCE_TYPE_ADDRESS16 &&
+@@ -217,7 +217,7 @@ do_acpi_find_child(acpi_handle handle, u
+ 	acpi_status status;
+ 	struct acpi_device_info *info;
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+-	struct acpi_find_child *find = (struct acpi_find_child *)context;
++	struct acpi_find_child *find = context;
+ 
+ 	status = acpi_get_object_info(handle, &buffer);
+ 	if (ACPI_SUCCESS(status)) {
+Index: linux-2.6.18/drivers/acpi/hotkey.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/hotkey.c
++++ linux-2.6.18/drivers/acpi/hotkey.c
+@@ -265,8 +265,7 @@ static char *format_result(union acpi_ob
+ 
+ static int hotkey_polling_seq_show(struct seq_file *seq, void *offset)
+ {
+-	struct acpi_polling_hotkey *poll_hotkey =
+-	    (struct acpi_polling_hotkey *)seq->private;
++	struct acpi_polling_hotkey *poll_hotkey = seq->private;
+ 	char *buf;
+ 
+ 
+@@ -577,7 +576,7 @@ init_poll_hotkey_device(union acpi_hotke
+ 	if (ACPI_FAILURE(status))
+ 		goto do_fail_zero;
+ 	key->poll_hotkey.poll_result =
+-	    (union acpi_object *)kmalloc(sizeof(union acpi_object), GFP_KERNEL);
++	    kmalloc(sizeof(union acpi_object), GFP_KERNEL);
+ 	if (!key->poll_hotkey.poll_result)
+ 		goto do_fail_zero;
+ 	return AE_OK;
+Index: linux-2.6.18/drivers/acpi/i2c_ec.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/i2c_ec.c
++++ linux-2.6.18/drivers/acpi/i2c_ec.c
+@@ -393,7 +393,7 @@ static void __exit acpi_ec_hc_exit(void)
+ 
+ struct acpi_ec_hc *acpi_get_ec_hc(struct acpi_device *device)
+ {
+-	return ((struct acpi_ec_hc *)acpi_driver_data(device->parent));
++	return acpi_driver_data(device->parent);
+ }
+ 
+ EXPORT_SYMBOL(acpi_get_ec_hc);
+Index: linux-2.6.18/drivers/acpi/ibm_acpi.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/ibm_acpi.c
++++ linux-2.6.18/drivers/acpi/ibm_acpi.c
+@@ -1721,7 +1721,7 @@ static struct ibm_struct ibms[] = {
+ static int dispatch_read(char *page, char **start, off_t off, int count,
+ 			 int *eof, void *data)
+ {
+-	struct ibm_struct *ibm = (struct ibm_struct *)data;
++	struct ibm_struct *ibm = data;
+ 	int len;
+ 
+ 	if (!ibm || !ibm->read)
+@@ -1746,7 +1746,7 @@ static int dispatch_read(char *page, cha
+ static int dispatch_write(struct file *file, const char __user * userbuf,
+ 			  unsigned long count, void *data)
+ {
+-	struct ibm_struct *ibm = (struct ibm_struct *)data;
++	struct ibm_struct *ibm = data;
+ 	char *kernbuf;
+ 	int ret;
+ 
+@@ -1775,7 +1775,7 @@ static int dispatch_write(struct file *f
+ 
+ static void dispatch_notify(acpi_handle handle, u32 event, void *data)
+ {
+-	struct ibm_struct *ibm = (struct ibm_struct *)data;
++	struct ibm_struct *ibm = data;
+ 
+ 	if (!ibm || !ibm->notify)
+ 		return;
+Index: linux-2.6.18/drivers/acpi/numa.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/numa.c
++++ linux-2.6.18/drivers/acpi/numa.c
+@@ -248,7 +248,7 @@ int acpi_get_pxm(acpi_handle h)
+ 		handle = phandle;
+ 		status = acpi_evaluate_integer(handle, "_PXM", NULL, &pxm);
+ 		if (ACPI_SUCCESS(status))
+-			return (int)pxm;
++			return pxm;
+ 		status = acpi_get_parent(handle, &phandle);
+ 	} while (ACPI_SUCCESS(status));
+ 	return -1;
+Index: linux-2.6.18/drivers/acpi/osl.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/osl.c
++++ linux-2.6.18/drivers/acpi/osl.c
+@@ -569,7 +569,7 @@ static void acpi_os_execute_deferred(voi
+ 	struct acpi_os_dpc *dpc = NULL;
+ 
+ 
+-	dpc = (struct acpi_os_dpc *)context;
++	dpc = context;
+ 	if (!dpc) {
+ 		printk(KERN_ERR PREFIX "Invalid (NULL) context\n");
+ 		return;
+@@ -1060,7 +1060,7 @@ acpi_os_create_cache(char *name, u16 siz
+ 
+ acpi_status acpi_os_purge_cache(acpi_cache_t * cache)
+ {
+-	(void)kmem_cache_shrink(cache);
++	kmem_cache_shrink(cache);
+ 	return (AE_OK);
+ }
+ 
+@@ -1079,7 +1079,7 @@ acpi_status acpi_os_purge_cache(acpi_cac
+ 
+ acpi_status acpi_os_delete_cache(acpi_cache_t * cache)
+ {
+-	(void)kmem_cache_destroy(cache);
++	kmem_cache_destroy(cache);
+ 	return (AE_OK);
+ }
+ 
+Index: linux-2.6.18/drivers/acpi/pci_bind.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/pci_bind.c
++++ linux-2.6.18/drivers/acpi/pci_bind.c
+@@ -281,7 +281,7 @@ int acpi_pci_unbind(struct acpi_device *
+ 	if (!device || !device->parent)
+ 		return -EINVAL;
+ 
+-	pathname = (char *)kmalloc(ACPI_PATHNAME_MAX, GFP_KERNEL);
++	pathname = kmalloc(ACPI_PATHNAME_MAX, GFP_KERNEL);
+ 	if (!pathname)
+ 		return -ENOMEM;
+ 	memset(pathname, 0, ACPI_PATHNAME_MAX);
+@@ -332,7 +332,7 @@ acpi_pci_bind_root(struct acpi_device *d
+ 	struct acpi_buffer buffer = { 0, NULL };
+ 
+ 
+-	pathname = (char *)kmalloc(ACPI_PATHNAME_MAX, GFP_KERNEL);
++	pathname = kmalloc(ACPI_PATHNAME_MAX, GFP_KERNEL);
+ 	if (!pathname)
+ 		return -ENOMEM;
+ 	memset(pathname, 0, ACPI_PATHNAME_MAX);
+Index: linux-2.6.18/drivers/acpi/pci_irq.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/pci_irq.c
++++ linux-2.6.18/drivers/acpi/pci_irq.c
+@@ -161,7 +161,7 @@ int acpi_pci_irq_add_prt(acpi_handle han
+ 	static int first_time = 1;
+ 
+ 
+-	pathname = (char *)kmalloc(ACPI_PATHNAME_MAX, GFP_KERNEL);
++	pathname = kmalloc(ACPI_PATHNAME_MAX, GFP_KERNEL);
+ 	if (!pathname)
+ 		return -ENOMEM;
+ 	memset(pathname, 0, ACPI_PATHNAME_MAX);
+Index: linux-2.6.18/drivers/acpi/pci_link.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/pci_link.c
++++ linux-2.6.18/drivers/acpi/pci_link.c
+@@ -103,7 +103,7 @@ DEFINE_MUTEX(acpi_link_lock);
+ static acpi_status
+ acpi_pci_link_check_possible(struct acpi_resource *resource, void *context)
+ {
+-	struct acpi_pci_link *link = (struct acpi_pci_link *)context;
++	struct acpi_pci_link *link = context;
+ 	u32 i = 0;
+ 
+ 
+@@ -613,7 +613,7 @@ acpi_pci_link_allocate_irq(acpi_handle h
+ 		return -1;
+ 	}
+ 
+-	link = (struct acpi_pci_link *)acpi_driver_data(device);
++	link = acpi_driver_data(device);
+ 	if (!link) {
+ 		printk(KERN_ERR PREFIX "Invalid link context\n");
+ 		return -1;
+@@ -668,7 +668,7 @@ int acpi_pci_link_free_irq(acpi_handle h
+ 		return -1;
+ 	}
+ 
+-	link = (struct acpi_pci_link *)acpi_driver_data(device);
++	link = acpi_driver_data(device);
+ 	if (!link) {
+ 		printk(KERN_ERR PREFIX "Invalid link context\n");
+ 		return -1;
+@@ -808,7 +808,7 @@ static int acpi_pci_link_remove(struct a
+ 	if (!device || !acpi_driver_data(device))
+ 		return -EINVAL;
+ 
+-	link = (struct acpi_pci_link *)acpi_driver_data(device);
++	link = acpi_driver_data(device);
+ 
+ 	mutex_lock(&acpi_link_lock);
+ 	list_del(&link->node);
+Index: linux-2.6.18/drivers/acpi/pci_root.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/pci_root.c
++++ linux-2.6.18/drivers/acpi/pci_root.c
+@@ -119,7 +119,7 @@ EXPORT_SYMBOL(acpi_pci_unregister_driver
+ static acpi_status
+ get_root_bridge_busnr_callback(struct acpi_resource *resource, void *data)
+ {
+-	int *busnr = (int *)data;
++	int *busnr = data;
+ 	struct acpi_resource_address64 address;
+ 
+ 	if (resource->type != ACPI_RESOURCE_TYPE_ADDRESS16 &&
+@@ -331,7 +331,7 @@ static int acpi_pci_root_remove(struct a
+ 	if (!device || !acpi_driver_data(device))
+ 		return -EINVAL;
+ 
+-	root = (struct acpi_pci_root *)acpi_driver_data(device);
++	root = acpi_driver_data(device);
+ 
+ 	kfree(root);
+ 
+Index: linux-2.6.18/drivers/acpi/power.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/power.c
++++ linux-2.6.18/drivers/acpi/power.c
+@@ -108,7 +108,7 @@ acpi_power_get_context(acpi_handle handl
+ 		return result;
+ 	}
+ 
+-	*resource = (struct acpi_power_resource *)acpi_driver_data(device);
++	*resource = acpi_driver_data(device);
+ 	if (!resource)
+ 		return -ENODEV;
+ 
+@@ -445,7 +445,7 @@ static int acpi_power_seq_show(struct se
+ 	struct acpi_power_resource *resource = NULL;
+ 
+ 
+-	resource = (struct acpi_power_resource *)seq->private;
++	resource = seq->private;
+ 
+ 	if (!resource)
+ 		goto end;
+@@ -593,7 +593,7 @@ static int acpi_power_remove(struct acpi
+ 	if (!device || !acpi_driver_data(device))
+ 		return -EINVAL;
+ 
+-	resource = (struct acpi_power_resource *)acpi_driver_data(device);
++	resource = acpi_driver_data(device);
+ 
+ 	acpi_power_remove_fs(device);
+ 
+Index: linux-2.6.18/drivers/acpi/processor_core.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/processor_core.c
++++ linux-2.6.18/drivers/acpi/processor_core.c
+@@ -277,7 +277,7 @@ static struct proc_dir_entry *acpi_proce
+ 
+ static int acpi_processor_info_seq_show(struct seq_file *seq, void *offset)
+ {
+-	struct acpi_processor *pr = (struct acpi_processor *)seq->private;
++	struct acpi_processor *pr = seq->private;
+ 
+ 
+ 	if (!pr)
+@@ -542,12 +542,12 @@ static int acpi_processor_start(struct a
+ 	 * Don't trust it blindly
+ 	 */
+ 	if (processor_device_array[pr->id] != NULL &&
+-	    processor_device_array[pr->id] != (void *)device) {
++	    processor_device_array[pr->id] != device) {
+ 		printk(KERN_WARNING "BIOS reported wrong ACPI id"
+ 			"for the processor\n");
+ 		return -ENODEV;
+ 	}
+-	processor_device_array[pr->id] = (void *)device;
++	processor_device_array[pr->id] = device;
+ 
+ 	processors[pr->id] = pr;
+ 
+@@ -578,7 +578,7 @@ static int acpi_processor_start(struct a
+ 
+ static void acpi_processor_notify(acpi_handle handle, u32 event, void *data)
+ {
+-	struct acpi_processor *pr = (struct acpi_processor *)data;
++	struct acpi_processor *pr = data;
+ 	struct acpi_device *device = NULL;
+ 
+ 
+@@ -637,7 +637,7 @@ static int acpi_processor_remove(struct 
+ 	if (!device || !acpi_driver_data(device))
+ 		return -EINVAL;
+ 
+-	pr = (struct acpi_processor *)acpi_driver_data(device);
++	pr = acpi_driver_data(device);
+ 
+ 	if (pr->id >= NR_CPUS) {
+ 		kfree(pr);
+Index: linux-2.6.18/drivers/acpi/processor_idle.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/processor_idle.c
++++ linux-2.6.18/drivers/acpi/processor_idle.c
+@@ -667,7 +667,7 @@ static int acpi_processor_get_power_info
+ 		return -ENODEV;
+ 	}
+ 
+-	cst = (union acpi_object *)buffer.pointer;
++	cst = buffer.pointer;
+ 
+ 	/* There must be at least 2 elements */
+ 	if (!cst || (cst->type != ACPI_TYPE_PACKAGE) || cst->package.count < 2) {
+@@ -696,14 +696,14 @@ static int acpi_processor_get_power_info
+ 
+ 		memset(&cx, 0, sizeof(cx));
+ 
+-		element = (union acpi_object *)&(cst->package.elements[i]);
++		element = &(cst->package.elements[i]);
+ 		if (element->type != ACPI_TYPE_PACKAGE)
+ 			continue;
+ 
+ 		if (element->package.count != 4)
+ 			continue;
+ 
+-		obj = (union acpi_object *)&(element->package.elements[0]);
++		obj = &(element->package.elements[0]);
+ 
+ 		if (obj->type != ACPI_TYPE_BUFFER)
+ 			continue;
+@@ -718,7 +718,7 @@ static int acpi_processor_get_power_info
+ 		    0 : reg->address;
+ 
+ 		/* There should be an easy way to extract an integer... */
+-		obj = (union acpi_object *)&(element->package.elements[1]);
++		obj = &(element->package.elements[1]);
+ 		if (obj->type != ACPI_TYPE_INTEGER)
+ 			continue;
+ 
+@@ -731,13 +731,13 @@ static int acpi_processor_get_power_info
+ 		if ((cx.type < ACPI_STATE_C2) || (cx.type > ACPI_STATE_C3))
+ 			continue;
+ 
+-		obj = (union acpi_object *)&(element->package.elements[2]);
++		obj = &(element->package.elements[2]);
+ 		if (obj->type != ACPI_TYPE_INTEGER)
+ 			continue;
+ 
+ 		cx.latency = obj->integer.value;
+ 
+-		obj = (union acpi_object *)&(element->package.elements[3]);
++		obj = &(element->package.elements[3]);
+ 		if (obj->type != ACPI_TYPE_INTEGER)
+ 			continue;
+ 
+@@ -1000,7 +1000,7 @@ int acpi_processor_cst_has_changed(struc
+ 
+ static int acpi_processor_power_seq_show(struct seq_file *seq, void *offset)
+ {
+-	struct acpi_processor *pr = (struct acpi_processor *)seq->private;
++	struct acpi_processor *pr = seq->private;
+ 	unsigned int i;
+ 
+ 
+Index: linux-2.6.18/drivers/acpi/processor_perflib.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/processor_perflib.c
++++ linux-2.6.18/drivers/acpi/processor_perflib.c
+@@ -238,7 +238,7 @@ static int acpi_processor_get_performanc
+ 		return -ENODEV;
+ 	}
+ 
+-	pss = (union acpi_object *)buffer.pointer;
++	pss = buffer.pointer;
+ 	if (!pss || (pss->type != ACPI_TYPE_PACKAGE)) {
+ 		printk(KERN_ERR PREFIX "Invalid _PSS data\n");
+ 		result = -EFAULT;
+@@ -412,7 +412,7 @@ static struct file_operations acpi_proce
+ 
+ static int acpi_processor_perf_seq_show(struct seq_file *seq, void *offset)
+ {
+-	struct acpi_processor *pr = (struct acpi_processor *)seq->private;
++	struct acpi_processor *pr = seq->private;
+ 	int i;
+ 
+ 
+@@ -453,8 +453,8 @@ acpi_processor_write_performance(struct 
+ 				 size_t count, loff_t * data)
+ {
+ 	int result = 0;
+-	struct seq_file *m = (struct seq_file *)file->private_data;
+-	struct acpi_processor *pr = (struct acpi_processor *)m->private;
++	struct seq_file *m = file->private_data;
++	struct acpi_processor *pr = m->private;
+ 	struct acpi_processor_performance *perf;
+ 	char state_string[12] = { '\0' };
+ 	unsigned int new_state = 0;
+@@ -553,7 +553,7 @@ static int acpi_processor_get_psd(struct
+ 		return -ENODEV;
+ 	}
+ 
+-	psd = (union acpi_object *) buffer.pointer;
++	psd = buffer.pointer;
+ 	if (!psd || (psd->type != ACPI_TYPE_PACKAGE)) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _PSD data\n"));
+ 		result = -EFAULT;
+Index: linux-2.6.18/drivers/acpi/processor_thermal.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/processor_thermal.c
++++ linux-2.6.18/drivers/acpi/processor_thermal.c
+@@ -208,7 +208,7 @@ int acpi_processor_set_thermal_limit(acp
+ 	if (result)
+ 		return result;
+ 
+-	pr = (struct acpi_processor *)acpi_driver_data(device);
++	pr = acpi_driver_data(device);
+ 	if (!pr)
+ 		return -ENODEV;
+ 
+@@ -348,8 +348,8 @@ static ssize_t acpi_processor_write_limi
+ 					  size_t count, loff_t * data)
+ {
+ 	int result = 0;
+-	struct seq_file *m = (struct seq_file *)file->private_data;
+-	struct acpi_processor *pr = (struct acpi_processor *)m->private;
++	struct seq_file *m = file->private_data;
++	struct acpi_processor *pr = m->private;
+ 	char limit_string[25] = { '\0' };
+ 	int px = 0;
+ 	int tx = 0;
+Index: linux-2.6.18/drivers/acpi/processor_throttling.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/processor_throttling.c
++++ linux-2.6.18/drivers/acpi/processor_throttling.c
+@@ -259,7 +259,7 @@ int acpi_processor_get_throttling_info(s
+ static int acpi_processor_throttling_seq_show(struct seq_file *seq,
+ 					      void *offset)
+ {
+-	struct acpi_processor *pr = (struct acpi_processor *)seq->private;
++	struct acpi_processor *pr = seq->private;
+ 	int i = 0;
+ 	int result = 0;
+ 
+@@ -307,8 +307,8 @@ static ssize_t acpi_processor_write_thro
+ 					       size_t count, loff_t * data)
+ {
+ 	int result = 0;
+-	struct seq_file *m = (struct seq_file *)file->private_data;
+-	struct acpi_processor *pr = (struct acpi_processor *)m->private;
++	struct seq_file *m = file->private_data;
++	struct acpi_processor *pr = m->private;
+ 	char state_string[12] = { '\0' };
+ 
+ 
+Index: linux-2.6.18/drivers/acpi/sbs.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/sbs.c
++++ linux-2.6.18/drivers/acpi/sbs.c
+@@ -923,7 +923,7 @@ static struct proc_dir_entry *acpi_batte
+ 
+ static int acpi_battery_read_info(struct seq_file *seq, void *offset)
+ {
+-	struct acpi_battery *battery = (struct acpi_battery *)seq->private;
++	struct acpi_battery *battery = seq->private;
+ 	int cscale;
+ 	int result = 0;
+ 
+@@ -1076,7 +1076,7 @@ static int acpi_battery_state_open_fs(st
+ 
+ static int acpi_battery_read_alarm(struct seq_file *seq, void *offset)
+ {
+-	struct acpi_battery *battery = (struct acpi_battery *)seq->private;
++	struct acpi_battery *battery = seq->private;
+ 	int result = 0;
+ 	int cscale;
+ 
+@@ -1125,8 +1125,8 @@ static ssize_t
+ acpi_battery_write_alarm(struct file *file, const char __user * buffer,
+ 			 size_t count, loff_t * ppos)
+ {
+-	struct seq_file *seq = (struct seq_file *)file->private_data;
+-	struct acpi_battery *battery = (struct acpi_battery *)seq->private;
++	struct seq_file *seq = file->private_data;
++	struct acpi_battery *battery = seq->private;
+ 	char alarm_string[12] = { '\0' };
+ 	int result, old_alarm, new_alarm;
+ 
+@@ -1160,14 +1160,14 @@ acpi_battery_write_alarm(struct file *fi
+ 	if (result) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
+ 				  "acpi_battery_set_alarm() failed\n"));
+-		(void)acpi_battery_set_alarm(battery, old_alarm);
++		acpi_battery_set_alarm(battery, old_alarm);
+ 		goto end;
+ 	}
+ 	result = acpi_battery_get_alarm(battery);
+ 	if (result) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
+ 				  "acpi_battery_get_alarm() failed\n"));
+-		(void)acpi_battery_set_alarm(battery, old_alarm);
++		acpi_battery_set_alarm(battery, old_alarm);
+ 		goto end;
+ 	}
+ 
+@@ -1217,7 +1217,7 @@ static struct proc_dir_entry *acpi_ac_di
+ 
+ static int acpi_ac_read_state(struct seq_file *seq, void *offset)
+ {
+-	struct acpi_sbs *sbs = (struct acpi_sbs *)seq->private;
++	struct acpi_sbs *sbs = seq->private;
+ 	int result;
+ 
+ 	if (sbs->zombie) {
+@@ -1302,7 +1302,7 @@ static int acpi_battery_add(struct acpi_
+ 		battery->init_state = 1;
+ 	}
+ 
+-	(void)sprintf(dir_name, ACPI_BATTERY_DIR_NAME, id);
++	sprintf(dir_name, ACPI_BATTERY_DIR_NAME, id);
+ 
+ 	result = acpi_sbs_generic_add_fs(&battery->battery_entry,
+ 					 acpi_battery_dir,
+@@ -1485,7 +1485,7 @@ static int acpi_sbs_update_run(struct ac
+ 		}
+ 
+ 		if (old_battery_present != new_battery_present) {
+-			(void)sprintf(dir_name, ACPI_BATTERY_DIR_NAME, id);
++			sprintf(dir_name, ACPI_BATTERY_DIR_NAME, id);
+ 			result = acpi_sbs_generate_event(sbs->device,
+ 							 ACPI_SBS_BATTERY_NOTIFY_STATUS,
+ 							 new_battery_present,
+@@ -1498,7 +1498,7 @@ static int acpi_sbs_update_run(struct ac
+ 			}
+ 		}
+ 		if (old_remaining_capacity != battery->state.remaining_capacity) {
+-			(void)sprintf(dir_name, ACPI_BATTERY_DIR_NAME, id);
++			sprintf(dir_name, ACPI_BATTERY_DIR_NAME, id);
+ 			result = acpi_sbs_generate_event(sbs->device,
+ 							 ACPI_SBS_BATTERY_NOTIFY_STATUS,
+ 							 new_battery_present,
+@@ -1659,7 +1659,7 @@ static int acpi_sbs_add(struct acpi_devi
+ 	init_timer(&sbs->update_timer);
+ 	if (update_mode == QUEUE_UPDATE_MODE) {
+ 		status = acpi_os_execute(OSL_GPE_HANDLER,
+-					 acpi_sbs_update_queue, (void *)sbs);
++					 acpi_sbs_update_queue, sbs);
+ 		if (status != AE_OK) {
+ 			ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
+ 					  "acpi_os_execute() failed\n"));
+@@ -1685,7 +1685,7 @@ static int acpi_sbs_add(struct acpi_devi
+ 
+ int acpi_sbs_remove(struct acpi_device *device, int type)
+ {
+-	struct acpi_sbs *sbs = (struct acpi_sbs *)acpi_driver_data(device);
++	struct acpi_sbs *sbs = acpi_driver_data(device);
+ 	int id;
+ 
+ 	if (!device || !sbs) {
+Index: linux-2.6.18/drivers/acpi/tables.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/tables.c
++++ linux-2.6.18/drivers/acpi/tables.c
+@@ -228,7 +228,7 @@ void acpi_table_print_madt_entry(acpi_ta
+ static int
+ acpi_table_compute_checksum(void *table_pointer, unsigned long length)
+ {
+-	u8 *p = (u8 *) table_pointer;
++	u8 *p = table_pointer;
+ 	unsigned long remains = length;
+ 	unsigned long sum = 0;
+ 
+Index: linux-2.6.18/drivers/acpi/thermal.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/thermal.c
++++ linux-2.6.18/drivers/acpi/thermal.c
+@@ -663,7 +663,7 @@ static void acpi_thermal_run(unsigned lo
+ static void acpi_thermal_check(void *data)
+ {
+ 	int result = 0;
+-	struct acpi_thermal *tz = (struct acpi_thermal *)data;
++	struct acpi_thermal *tz = data;
+ 	unsigned long sleep_time = 0;
+ 	int i = 0;
+ 	struct acpi_thermal_state state;
+@@ -778,7 +778,7 @@ static struct proc_dir_entry *acpi_therm
+ 
+ static int acpi_thermal_state_seq_show(struct seq_file *seq, void *offset)
+ {
+-	struct acpi_thermal *tz = (struct acpi_thermal *)seq->private;
++	struct acpi_thermal *tz = seq->private;
+ 
+ 
+ 	if (!tz)
+@@ -813,7 +813,7 @@ static int acpi_thermal_state_open_fs(st
+ static int acpi_thermal_temp_seq_show(struct seq_file *seq, void *offset)
+ {
+ 	int result = 0;
+-	struct acpi_thermal *tz = (struct acpi_thermal *)seq->private;
++	struct acpi_thermal *tz = seq->private;
+ 
+ 
+ 	if (!tz)
+@@ -837,7 +837,7 @@ static int acpi_thermal_temp_open_fs(str
+ 
+ static int acpi_thermal_trip_seq_show(struct seq_file *seq, void *offset)
+ {
+-	struct acpi_thermal *tz = (struct acpi_thermal *)seq->private;
++	struct acpi_thermal *tz = seq->private;
+ 	int i = 0;
+ 	int j = 0;
+ 
+@@ -893,8 +893,8 @@ acpi_thermal_write_trip_points(struct fi
+ 			       const char __user * buffer,
+ 			       size_t count, loff_t * ppos)
+ {
+-	struct seq_file *m = (struct seq_file *)file->private_data;
+-	struct acpi_thermal *tz = (struct acpi_thermal *)m->private;
++	struct seq_file *m = file->private_data;
++	struct acpi_thermal *tz = m->private;
+ 
+ 	char *limit_string;
+ 	int num, critical, hot, passive;
+@@ -953,7 +953,7 @@ acpi_thermal_write_trip_points(struct fi
+ 
+ static int acpi_thermal_cooling_seq_show(struct seq_file *seq, void *offset)
+ {
+-	struct acpi_thermal *tz = (struct acpi_thermal *)seq->private;
++	struct acpi_thermal *tz = seq->private;
+ 
+ 
+ 	if (!tz)
+@@ -984,8 +984,8 @@ acpi_thermal_write_cooling_mode(struct f
+ 				const char __user * buffer,
+ 				size_t count, loff_t * ppos)
+ {
+-	struct seq_file *m = (struct seq_file *)file->private_data;
+-	struct acpi_thermal *tz = (struct acpi_thermal *)m->private;
++	struct seq_file *m = file->private_data;
++	struct acpi_thermal *tz = m->private;
+ 	int result = 0;
+ 	char mode_string[12] = { '\0' };
+ 
+@@ -1014,7 +1014,7 @@ acpi_thermal_write_cooling_mode(struct f
+ 
+ static int acpi_thermal_polling_seq_show(struct seq_file *seq, void *offset)
+ {
+-	struct acpi_thermal *tz = (struct acpi_thermal *)seq->private;
++	struct acpi_thermal *tz = seq->private;
+ 
+ 
+ 	if (!tz)
+@@ -1043,8 +1043,8 @@ acpi_thermal_write_polling(struct file *
+ 			   const char __user * buffer,
+ 			   size_t count, loff_t * ppos)
+ {
+-	struct seq_file *m = (struct seq_file *)file->private_data;
+-	struct acpi_thermal *tz = (struct acpi_thermal *)m->private;
++	struct seq_file *m = file->private_data;
++	struct acpi_thermal *tz = m->private;
+ 	int result = 0;
+ 	char polling_string[12] = { '\0' };
+ 	int seconds = 0;
+@@ -1170,7 +1170,7 @@ static int acpi_thermal_remove_fs(struct
+ 
+ static void acpi_thermal_notify(acpi_handle handle, u32 event, void *data)
+ {
+-	struct acpi_thermal *tz = (struct acpi_thermal *)data;
++	struct acpi_thermal *tz = data;
+ 	struct acpi_device *device = NULL;
+ 
+ 
+@@ -1324,7 +1324,7 @@ static int acpi_thermal_remove(struct ac
+ 	if (!device || !acpi_driver_data(device))
+ 		return -EINVAL;
+ 
+-	tz = (struct acpi_thermal *)acpi_driver_data(device);
++	tz = acpi_driver_data(device);
+ 
+ 	/* avoid timer adding new defer task */
+ 	tz->zombie = 1;
+@@ -1364,7 +1364,7 @@ static int acpi_thermal_resume(struct ac
+ 	if (!device || !acpi_driver_data(device))
+ 		return -EINVAL;
+ 
+-	tz = (struct acpi_thermal *)acpi_driver_data(device);
++	tz = acpi_driver_data(device);
+ 
+ 	acpi_thermal_get_temperature(tz);
+ 
+Index: linux-2.6.18/drivers/acpi/utils.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/utils.c
++++ linux-2.6.18/drivers/acpi/utils.c
+@@ -83,7 +83,7 @@ acpi_extract_package(union acpi_object *
+ 		return AE_BAD_DATA;
+ 	}
+ 
+-	format_string = (char *)format->pointer;
++	format_string = format->pointer;
+ 
+ 	/*
+ 	 * Calculate size_required.
+@@ -361,7 +361,7 @@ acpi_evaluate_reference(acpi_handle hand
+ 	if (ACPI_FAILURE(status))
+ 		goto end;
+ 
+-	package = (union acpi_object *)buffer.pointer;
++	package = buffer.pointer;
+ 
+ 	if ((buffer.length == 0) || !package) {
+ 		printk(KERN_ERR PREFIX "No return object (len %X ptr %p)\n",
+Index: linux-2.6.18/drivers/acpi/video.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/video.c
++++ linux-2.6.18/drivers/acpi/video.c
+@@ -386,7 +386,7 @@ acpi_video_device_EDID(struct acpi_video
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
+ 
+-	obj = (union acpi_object *)buffer.pointer;
++	obj = buffer.pointer;
+ 
+ 	if (obj && obj->type == ACPI_TYPE_BUFFER)
+ 		*edid = obj;
+@@ -654,8 +654,7 @@ static struct proc_dir_entry *acpi_video
+ 
+ static int acpi_video_device_info_seq_show(struct seq_file *seq, void *offset)
+ {
+-	struct acpi_video_device *dev =
+-	    (struct acpi_video_device *)seq->private;
++	struct acpi_video_device *dev = seq->private;
+ 
+ 
+ 	if (!dev)
+@@ -688,8 +687,7 @@ acpi_video_device_info_open_fs(struct in
+ static int acpi_video_device_state_seq_show(struct seq_file *seq, void *offset)
+ {
+ 	int status;
+-	struct acpi_video_device *dev =
+-	    (struct acpi_video_device *)seq->private;
++	struct acpi_video_device *dev = seq->private;
+ 	unsigned long state;
+ 
+ 
+@@ -727,8 +725,8 @@ acpi_video_device_write_state(struct fil
+ 			      size_t count, loff_t * data)
+ {
+ 	int status;
+-	struct seq_file *m = (struct seq_file *)file->private_data;
+-	struct acpi_video_device *dev = (struct acpi_video_device *)m->private;
++	struct seq_file *m = file->private_data;
++	struct acpi_video_device *dev = m->private;
+ 	char str[12] = { 0 };
+ 	u32 state = 0;
+ 
+@@ -754,8 +752,7 @@ acpi_video_device_write_state(struct fil
+ static int
+ acpi_video_device_brightness_seq_show(struct seq_file *seq, void *offset)
+ {
+-	struct acpi_video_device *dev =
+-	    (struct acpi_video_device *)seq->private;
++	struct acpi_video_device *dev = seq->private;
+ 	int i;
+ 
+ 
+@@ -784,8 +781,8 @@ acpi_video_device_write_brightness(struc
+ 				   const char __user * buffer,
+ 				   size_t count, loff_t * data)
+ {
+-	struct seq_file *m = (struct seq_file *)file->private_data;
+-	struct acpi_video_device *dev = (struct acpi_video_device *)m->private;
++	struct seq_file *m = file->private_data;
++	struct acpi_video_device *dev = m->private;
+ 	char str[4] = { 0 };
+ 	unsigned int level = 0;
+ 	int i;
+@@ -817,8 +814,7 @@ acpi_video_device_write_brightness(struc
+ 
+ static int acpi_video_device_EDID_seq_show(struct seq_file *seq, void *offset)
+ {
+-	struct acpi_video_device *dev =
+-	    (struct acpi_video_device *)seq->private;
++	struct acpi_video_device *dev = seq->private;
+ 	int status;
+ 	int i;
+ 	union acpi_object *edid = NULL;
+@@ -866,7 +862,7 @@ static int acpi_video_device_add_fs(stru
+ 	if (!device)
+ 		return -ENODEV;
+ 
+-	vid_dev = (struct acpi_video_device *)acpi_driver_data(device);
++	vid_dev = acpi_driver_data(device);
+ 	if (!vid_dev)
+ 		return -ENODEV;
+ 
+@@ -931,7 +927,7 @@ static int acpi_video_device_remove_fs(s
+ {
+ 	struct acpi_video_device *vid_dev;
+ 
+-	vid_dev = (struct acpi_video_device *)acpi_driver_data(device);
++	vid_dev = acpi_driver_data(device);
+ 	if (!vid_dev || !vid_dev->video || !vid_dev->video->dir)
+ 		return -ENODEV;
+ 
+@@ -950,7 +946,7 @@ static int acpi_video_device_remove_fs(s
+ /* video bus */
+ static int acpi_video_bus_info_seq_show(struct seq_file *seq, void *offset)
+ {
+-	struct acpi_video_bus *video = (struct acpi_video_bus *)seq->private;
++	struct acpi_video_bus *video = seq->private;
+ 
+ 
+ 	if (!video)
+@@ -975,7 +971,7 @@ static int acpi_video_bus_info_open_fs(s
+ 
+ static int acpi_video_bus_ROM_seq_show(struct seq_file *seq, void *offset)
+ {
+-	struct acpi_video_bus *video = (struct acpi_video_bus *)seq->private;
++	struct acpi_video_bus *video = seq->private;
+ 
+ 
+ 	if (!video)
+@@ -995,7 +991,7 @@ static int acpi_video_bus_ROM_open_fs(st
+ 
+ static int acpi_video_bus_POST_info_seq_show(struct seq_file *seq, void *offset)
+ {
+-	struct acpi_video_bus *video = (struct acpi_video_bus *)seq->private;
++	struct acpi_video_bus *video = seq->private;
+ 	unsigned long options;
+ 	int status;
+ 
+@@ -1033,7 +1029,7 @@ acpi_video_bus_POST_info_open_fs(struct 
+ 
+ static int acpi_video_bus_POST_seq_show(struct seq_file *seq, void *offset)
+ {
+-	struct acpi_video_bus *video = (struct acpi_video_bus *)seq->private;
++	struct acpi_video_bus *video = seq->private;
+ 	int status;
+ 	unsigned long id;
+ 
+@@ -1054,7 +1050,7 @@ static int acpi_video_bus_POST_seq_show(
+ 
+ static int acpi_video_bus_DOS_seq_show(struct seq_file *seq, void *offset)
+ {
+-	struct acpi_video_bus *video = (struct acpi_video_bus *)seq->private;
++	struct acpi_video_bus *video = seq->private;
+ 
+ 
+ 	seq_printf(seq, "DOS setting: <%d>\n", video->dos_setting);
+@@ -1079,8 +1075,8 @@ acpi_video_bus_write_POST(struct file *f
+ 			  size_t count, loff_t * data)
+ {
+ 	int status;
+-	struct seq_file *m = (struct seq_file *)file->private_data;
+-	struct acpi_video_bus *video = (struct acpi_video_bus *)m->private;
++	struct seq_file *m = file->private_data;
++	struct acpi_video_bus *video = m->private;
+ 	char str[12] = { 0 };
+ 	unsigned long opt, options;
+ 
+@@ -1119,8 +1115,8 @@ acpi_video_bus_write_DOS(struct file *fi
+ 			 size_t count, loff_t * data)
+ {
+ 	int status;
+-	struct seq_file *m = (struct seq_file *)file->private_data;
+-	struct acpi_video_bus *video = (struct acpi_video_bus *)m->private;
++	struct seq_file *m = file->private_data;
++	struct acpi_video_bus *video = m->private;
+ 	char str[12] = { 0 };
+ 	unsigned long opt;
+ 
+@@ -1150,7 +1146,7 @@ static int acpi_video_bus_add_fs(struct 
+ 	struct acpi_video_bus *video;
+ 
+ 
+-	video = (struct acpi_video_bus *)acpi_driver_data(device);
++	video = acpi_driver_data(device);
+ 
+ 	if (!acpi_device_dir(device)) {
+ 		acpi_device_dir(device) = proc_mkdir(acpi_device_bid(device),
+@@ -1226,7 +1222,7 @@ static int acpi_video_bus_remove_fs(stru
+ 	struct acpi_video_bus *video;
+ 
+ 
+-	video = (struct acpi_video_bus *)acpi_driver_data(device);
++	video = acpi_driver_data(device);
+ 
+ 	if (acpi_device_dir(device)) {
+ 		remove_proc_entry("info", acpi_device_dir(device));
+@@ -1403,7 +1399,7 @@ static int acpi_video_device_enumerate(s
+ 		return status;
+ 	}
+ 
+-	dod = (union acpi_object *)buffer.pointer;
++	dod = buffer.pointer;
+ 	if (!dod || (dod->type != ACPI_TYPE_PACKAGE)) {
+ 		ACPI_EXCEPTION((AE_INFO, status, "Invalid _DOD data"));
+ 		status = -EFAULT;
+@@ -1426,7 +1422,7 @@ static int acpi_video_device_enumerate(s
+ 
+ 	count = 0;
+ 	for (i = 0; i < dod->package.count; i++) {
+-		obj = (union acpi_object *)&dod->package.elements[i];
++		obj = &dod->package.elements[i];
+ 
+ 		if (obj->type != ACPI_TYPE_INTEGER) {
+ 			printk(KERN_ERR PREFIX "Invalid _DOD data\n");
+@@ -1612,7 +1608,7 @@ static int acpi_video_bus_stop_devices(s
+ 
+ static void acpi_video_bus_notify(acpi_handle handle, u32 event, void *data)
+ {
+-	struct acpi_video_bus *video = (struct acpi_video_bus *)data;
++	struct acpi_video_bus *video = data;
+ 	struct acpi_device *device = NULL;
+ 
+ 	printk("video bus notify\n");
+@@ -1654,8 +1650,7 @@ static void acpi_video_bus_notify(acpi_h
+ 
+ static void acpi_video_device_notify(acpi_handle handle, u32 event, void *data)
+ {
+-	struct acpi_video_device *video_device =
+-	    (struct acpi_video_device *)data;
++	struct acpi_video_device *video_device = data;
+ 	struct acpi_device *device = NULL;
+ 
+ 
+@@ -1757,7 +1752,7 @@ static int acpi_video_bus_remove(struct 
+ 	if (!device || !acpi_driver_data(device))
+ 		return -EINVAL;
+ 
+-	video = (struct acpi_video_bus *)acpi_driver_data(device);
++	video = acpi_driver_data(device);
+ 
+ 	acpi_video_bus_stop_devices(video);
+ 
+#<EOF>
+
+Jan Engelhardt
+-- 
