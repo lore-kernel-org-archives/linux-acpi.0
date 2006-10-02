@@ -1,49 +1,33 @@
 From: Andrew Morton <akpm@osdl.org>
-Subject: Re: [PATCH 1/3] - Altix: Add initial ACPI IO support
-Date: Sun, 1 Oct 2006 00:15:11 -0700
-Message-ID: <20061001001511.ae77d6b1.akpm@osdl.org>
-References: <20060922145123.12414.81897.sendpatchset@attica.americas.sgi.com>
+Subject: Re: [PATCH 2.6.18-mm2] acpi: add backlight support to the sony_acpi
+ driver
+Date: Sun, 1 Oct 2006 17:19:12 -0700
+Message-ID: <20061001171912.b7aac1d8.akpm@osdl.org>
+References: <20060930190810.30b8737f.alessandro.guido@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <20060922145123.12414.81897.sendpatchset@attica.americas.sgi.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: John Keller <jpk@sgi.com>
-Cc: linux-ia64@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ayoung@sgi.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.osdl.org ([65.172.181.4]:47490 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932515AbWJBAT0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 1 Oct 2006 20:19:26 -0400
+In-Reply-To: <20060930190810.30b8737f.alessandro.guido@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alessandro Guido <alessandro.guido@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr
 
-On Fri, 22 Sep 2006 09:51:23 -0500
-John Keller <jpk@sgi.com> wrote:
+On Sat, 30 Sep 2006 19:08:10 +0200
+Alessandro Guido <alessandro.guido@gmail.com> wrote:
 
-> First phase in introducing ACPI support to SN.
+> Make the sony_acpi use the backlight subsystem to adjust brightness value
+> instead of using the /proc/sony/brightness file.
+> (Other settings will still have a /proc/sony/... entry)
 
-This:
+umm, OK, but now how do I adjust my screen brightness? ;)
 
---- gregkh-2.6.orig/include/linux/pci.h
-+++ gregkh-2.6/include/linux/pci.h
-@@ -405,6 +405,7 @@ extern struct bus_type pci_bus_type;
- extern struct list_head pci_root_buses;        /* list of all known PCI buses */
- extern struct list_head pci_devices;   /* list of all devices */
- 
-+void pcibios_fixup_device_resources(struct pci_dev *);
- void pcibios_fixup_bus(struct pci_bus *);
- int __must_check pcibios_enable_device(struct pci_dev *, int mask);
- char *pcibios_setup (char *str);
+I assume that cute userspace applications for controlling backlight
+brightness via the generic backlight driver either exist or are in
+progress?  What is the status of that?
 
-breaks a bunch of architectures.
-
-For example alpha has
-
-void __init
-pcibios_fixup_device_resources(struct pci_dev *dev, struct pci_bus *bus)
-
-box:/usr/src/linux-2.6.18> grep -rl pcibios_fixup_device_resources .
-./arch/alpha/kernel/pci.c
-./arch/ia64/pci/pci.c
-./arch/mips/pci/pci.c
-./arch/powerpc/kernel/pci_64.c
-./arch/powerpc/platforms/pseries/pci_dlpar.c
-./include/asm-powerpc/pci.h
-
-It needs work...
+Thanks.
