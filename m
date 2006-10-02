@@ -1,61 +1,44 @@
-From: John Keller <jpk@sgi.com>
-Subject: Re: [PATCH 1/3] - Altix: Add initial ACPI IO support
-Date: Mon, 2 Oct 2006 14:02:42 -0500 (CDT)
-Message-ID: <200610021902.k92J2hEP124945@fcbayern.americas.sgi.com>
-References: <20061001001511.ae77d6b1.akpm@osdl.org>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: Help on a ACPI error message during kernel boot
+Date: Mon, 02 Oct 2006 22:43:25 +0200
+Message-ID: <1159821805.3610.461.camel@queen.suse.de>
+References: <ac8af0be0609281945y7eb5129bp61e9fc7b489cf838@mail.gmail.com>
+	 <200609291315.24865.luming.yu@intel.com>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <20061001001511.ae77d6b1.akpm@osdl.org> from "Andrew Morton" at Oct 01, 2006 12:15:11 AM
-Sender: linux-ia64-owner@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: John Keller <jpk@sgi.com>, linux-ia64@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ayoung@sgi.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ns2.suse.de ([195.135.220.15]:51386 "EHLO mx2.suse.de")
+	by vger.kernel.org with ESMTP id S964996AbWJBUeA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Oct 2006 16:34:00 -0400
+In-Reply-To: <200609291315.24865.luming.yu@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhao Forrest <forrest.zhao@gmail.com>, linux-acpi@vger.kernel.org
 
+On Fri, 2006-09-29 at 13:15 +0800, Yu Luming wrote:
+> >  When booting the linux on my hardware, ACPI output some error messages
+> >  like this:
+> >
+> >  PCI: Using configuration type 1
+> >      ACPI-1121: *** Error: Method execution failed [\_SB_.LNKA._STA]
+> >  (Node 0000010011dcb6c0), AE_AML_REGION_LIMIT
+> >      ACPI-0098: *** Error: Method execution failed [\_SB_.LNKA._STA]
+> >  (Node 0000010011dcb6c0), AE_AML_REGION_LIMIT
+> >      ACPI-1121: *** Error: Method execution failed [\_SB_.LNKB._STA]
+> >  (Node 0000010011dcb8c0), AE_AML_REGION_LIMIT
+> >      ACPI-0098: *** Error: Method execution failed [\_SB_.LNKB._STA]
+> >  (Node 0000010011dcb8c0), AE_AML_REGION_LIMIT
 > 
-> On Fri, 22 Sep 2006 09:51:23 -0500
-> John Keller <jpk@sgi.com> wrote:
-> 
-> > First phase in introducing ACPI support to SN.
-> 
-> This:
-> 
-> --- gregkh-2.6.orig/include/linux/pci.h
-> +++ gregkh-2.6/include/linux/pci.h
-> @@ -405,6 +405,7 @@ extern struct bus_type pci_bus_type;
->  extern struct list_head pci_root_buses;        /* list of all known PCI buses */
->  extern struct list_head pci_devices;   /* list of all devices */
->  
-> +void pcibios_fixup_device_resources(struct pci_dev *);
->  void pcibios_fixup_bus(struct pci_bus *);
->  int __must_check pcibios_enable_device(struct pci_dev *, int mask);
->  char *pcibios_setup (char *str);
-> 
-> breaks a bunch of architectures.
-> 
-> For example alpha has
-> 
-> void __init
-> pcibios_fixup_device_resources(struct pci_dev *dev, struct pci_bus *bus)
-> 
-> box:/usr/src/linux-2.6.18> grep -rl pcibios_fixup_device_resources .
-> ./arch/alpha/kernel/pci.c
-> ./arch/ia64/pci/pci.c
-> ./arch/mips/pci/pci.c
-> ./arch/powerpc/kernel/pci_64.c
-> ./arch/powerpc/platforms/pseries/pci_dlpar.c
-> ./include/asm-powerpc/pci.h
-> 
-> It needs work...
-> 
+> what's kernel version?
+> Looks like a AML interpreter issue.
+> Please open a bug on bugzilla.kernel.org,
+> and post acpidump output.
 
-Interesting. Looks like I made a bad assumption thinking
-the definitions would be the same for all archs.
+Could you pls CC me if you open a bug.
 
-I'll fix and resend.
+Thanks,
 
-John
-
-
+   Thomas
 
