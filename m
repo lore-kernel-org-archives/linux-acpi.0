@@ -1,59 +1,61 @@
-From: Alessandro Guido <alessandro.guido@gmail.com>
-Subject: Re: [PATCH 2.6.18-mm2] acpi: add backlight support to the sony_acpi
- driver
-Date: Mon, 2 Oct 2006 13:25:49 +0200
-Message-ID: <20061002132549.9d164061.alessandro.guido@gmail.com>
-References: <20060930190810.30b8737f.alessandro.guido@gmail.com>
-	<20061001171912.b7aac1d8.akpm@osdl.org>
+From: John Keller <jpk@sgi.com>
+Subject: Re: [PATCH 1/3] - Altix: Add initial ACPI IO support
+Date: Mon, 2 Oct 2006 14:02:42 -0500 (CDT)
+Message-ID: <200610021902.k92J2hEP124945@fcbayern.americas.sgi.com>
+References: <20061001001511.ae77d6b1.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.178]:36872 "EHLO
-	py-out-1112.google.com") by vger.kernel.org with ESMTP
-	id S1750922AbWJBLX1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 2 Oct 2006 07:23:27 -0400
-Received: by py-out-1112.google.com with SMTP id n25so2464864pyg
-        for <linux-acpi@vger.kernel.org>; Mon, 02 Oct 2006 04:23:26 -0700 (PDT)
-In-Reply-To: <20061001171912.b7aac1d8.akpm@osdl.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <20061001001511.ae77d6b1.akpm@osdl.org> from "Andrew Morton" at Oct 01, 2006 12:15:11 AM
+Sender: linux-ia64-owner@vger.kernel.org
 To: Andrew Morton <akpm@osdl.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr
+Cc: John Keller <jpk@sgi.com>, linux-ia64@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ayoung@sgi.com
+List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 1 Oct 2006 17:19:12 -0700
-Andrew Morton <akpm@osdl.org> wrote:
 > 
-> umm, OK, but now how do I adjust my screen brightness? ;)
+> On Fri, 22 Sep 2006 09:51:23 -0500
+> John Keller <jpk@sgi.com> wrote:
 > 
-> I assume that cute userspace applications for controlling backlight
-> brightness via the generic backlight driver either exist or are in
-> progress?  What is the status of that?
+> > First phase in introducing ACPI support to SN.
+> 
+> This:
+> 
+> --- gregkh-2.6.orig/include/linux/pci.h
+> +++ gregkh-2.6/include/linux/pci.h
+> @@ -405,6 +405,7 @@ extern struct bus_type pci_bus_type;
+>  extern struct list_head pci_root_buses;        /* list of all known PCI buses */
+>  extern struct list_head pci_devices;   /* list of all devices */
+>  
+> +void pcibios_fixup_device_resources(struct pci_dev *);
+>  void pcibios_fixup_bus(struct pci_bus *);
+>  int __must_check pcibios_enable_device(struct pci_dev *, int mask);
+>  char *pcibios_setup (char *str);
+> 
+> breaks a bunch of architectures.
+> 
+> For example alpha has
+> 
+> void __init
+> pcibios_fixup_device_resources(struct pci_dev *dev, struct pci_bus *bus)
+> 
+> box:/usr/src/linux-2.6.18> grep -rl pcibios_fixup_device_resources .
+> ./arch/alpha/kernel/pci.c
+> ./arch/ia64/pci/pci.c
+> ./arch/mips/pci/pci.c
+> ./arch/powerpc/kernel/pci_64.c
+> ./arch/powerpc/platforms/pseries/pci_dlpar.c
+> ./include/asm-powerpc/pci.h
+> 
+> It needs work...
 > 
 
-I use this tool: http://www.xs4all.nl/~bsamwel/laptop_mode/tools/
-that automagically fires up whenever needed
+Interesting. Looks like I made a bad assumption thinking
+the definitions would be the same for all archs.
 
-$ cat /etc/laptop-mode/batt-start/brightness 
-#!/bin/sh
-echo -n CHOOSE_A_LOW_VALUE > /sys/class/backlight/sony/brightness
+I'll fix and resend.
 
-and
+John
 
-$ cat /etc/laptop-mode/batt-stop/brightness 
-#!/bin/sh
-let val="`</proc/acpi/sony/brightness_default` - 1"
-echo -n "$val" > /sys/class/backlight/sony/brightness
 
-But I seldom use my laptop in battery mode.
 
-> I assume that cute userspace applications for controlling backlight
-> brightness via the generic backlight driver either exist or are in
-> progress?  What is the status of that?
-> 
-
-I think the new gnome-power-manager does it, but I'm not sure since I use Xfce.
-
-> Thanks.
-
-Thank you.
