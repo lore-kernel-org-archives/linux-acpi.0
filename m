@@ -1,66 +1,57 @@
-From: Enrico =?UTF-8?Q?Tr=C3=B6ger?= <enrico.troeger@uvena.de>
-Subject: Many ACPI errors while booting
-Date: Tue, 3 Oct 2006 19:30:46 +0200
-Message-ID: <20061003193046.ff0d5fcf.enrico.troeger@uvena.de>
+From: Dennis Buehler <dennisbuehler@gmx.de>
+Subject: Problems with the Intel IASL Compiler
+Date: Tue, 03 Oct 2006 22:14:24 +0200
+Message-ID: <4522C4A0.9040800@gmx.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Tue__3_Oct_2006_19_30_46_+0200_wk/vaWfGsyHYvr04"
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from uvena.de ([83.151.31.51]:15001 "EHLO m34s17.vlinux.de")
-	by vger.kernel.org with ESMTP id S1030350AbWJCRar (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Oct 2006 13:30:47 -0400
-Received: from ukio.lan.eht (p50901C01.dip0.t-ipconnect.de [80.144.28.1])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by m34s17.vlinux.de (Postfix) with ESMTP id 1D76713A34
-	for <linux-acpi@vger.kernel.org>; Tue,  3 Oct 2006 17:29:01 +0000 (UTC)
+Received: from mail.gmx.net ([213.165.64.20]:18320 "HELO mail.gmx.net")
+	by vger.kernel.org with SMTP id S1030236AbWJCUO3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Oct 2006 16:14:29 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
---Signature=_Tue__3_Oct_2006_19_30_46_+0200_wk/vaWfGsyHYvr04
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
+Hello members of the ACPI-devel-mailing-list,
 
-Hi,
+in hope to connect to the right point of contact i send this message.
 
-while booting my system I get the following error message 27 times:
-ACPI Error (evgpe-0711): No handler or method for GPE[ 0], disabling
-event [20060707]
-
-Does anybody know this and know how to remove this error message?
-Google didn't really helped me.
-
-I put my DSDT on http://acpi.sourceforge.net/dsdt/view.php?id=681,
-perhaps this helps.
-System information:
-IBM Thinkpad R51e
-Kernel 2.6.18, 2.6.17.13 also tested with same result
-Debian testing
-
-And possibly related to this: if I type
-acpi
-to get some information about my battery, it takes some time(about 6
-seconds) to query the information. Is this normal?
-
-Regards,
-Enrico
-
---
-Get my GPG key from http://www.uvena.de/pub.key
+When i try to compile my dsdt.dsl i get the error message 1061.
 
 
---Signature=_Tue__3_Oct_2006_19_30_46_+0200_wk/vaWfGsyHYvr04
-Content-Type: application/pgp-signature
+$ sudo iasl -sa dsdt.dsl
+$
+$ Intel ACPI Component Architecture
+$ ASL Optimizing Compiler version 20051216 [Jan  9 2006]
+$ Copyright (C) 2000 - 2005 Intel Corporation
+$ Supports ACPI Specification Revision 3.0
+$
+$ dsdt.dsl  1742:                                     Store
+$ (\_SB.PCI0.SBRG.EC0.ACIN, Local0)
+$ Error    1061 - Object does not exist ^  (\_SB.PCI0.SBRG.EC0.ACIN)
+$
+$ ASL Input:  dsdt.dsl - 3456 lines, 120805 bytes, 1551 keywords
+$ Compilation complete. 1 Errors, 0 Warnings, 0 Remarks, 473
+$ Optimizations
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (GNU/Linux)
+After many hours of searching i could not find a solution for this problem.
+Is there anybody who knows this error and can tell me what to do to fix it?
 
-iD8DBQFFIp5GzANjP3AJkPIRAqtOAJ9/fsOjVVFla34YzWR0a5alrzOv9ACgmIj3
-nikfd5xISBsJ9mS8Nvv1EBY=
-=GDxr
------END PGP SIGNATURE-----
+I used:
 
---Signature=_Tue__3_Oct_2006_19_30_46_+0200_wk/vaWfGsyHYvr04--
+kernel
+linux 2.6.17-5-386
+
+compiler
+Intel ACPI Component Architecture
+ASL Optimizing Compiler version 20051216 [Jan  9 2006]
+Copyright (C) 2000 - 2005 Intel Corporation
+Supports ACPI Specification Revision 3.0
+
+bison is installed and there was a test with flex even then flex-old
+which should be recommended/needed (says the ubuntu wiki)
+
+hopefully
+
+dennis from berlin
