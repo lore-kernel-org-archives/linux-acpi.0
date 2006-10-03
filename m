@@ -1,44 +1,36 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: Help on a ACPI error message during kernel boot
-Date: Mon, 02 Oct 2006 22:43:25 +0200
-Message-ID: <1159821805.3610.461.camel@queen.suse.de>
-References: <ac8af0be0609281945y7eb5129bp61e9fc7b489cf838@mail.gmail.com>
-	 <200609291315.24865.luming.yu@intel.com>
-Reply-To: trenn@suse.de
+From: Dominik Brodowski <linux@dominikbrodowski.net>
+Subject: Re: [PATCH] Disallow writing to /proc/acpi/processor/xy/performance
+Date: Mon, 2 Oct 2006 20:29:18 -0400
+Message-ID: <20061003002918.GK9748@dominikbrodowski.de>
+References: <1155826287.4302.1284.camel@queen.suse.de>
+	<1155826886.4302.1286.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:51386 "EHLO mx2.suse.de")
-	by vger.kernel.org with ESMTP id S964996AbWJBUeA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Oct 2006 16:34:00 -0400
-In-Reply-To: <200609291315.24865.luming.yu@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <cpufreq-bounces+glkc-cpufreq=gmane.org@lists.linux.org.uk>
+Content-Disposition: inline
+In-Reply-To: <1155826886.4302.1286.camel@queen.suse.de>
+List-Unsubscribe: <http://lists.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@lists.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://lists.linux.org.uk/mailman/private/cpufreq>
+List-Post: <mailto:cpufreq@lists.linux.org.uk>
+List-Help: <mailto:cpufreq-request@lists.linux.org.uk?subject=help>
+List-Subscribe: <http://lists.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@lists.linux.org.uk?subject=subscribe>
+Sender: cpufreq-bounces@lists.linux.org.uk
+Errors-To: cpufreq-bounces+glkc-cpufreq=gmane.org+glkc-cpufreq=gmane.org@lists.linux.org.uk
+To: Thomas Renninger <trenn@suse.de>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, cpufreq <cpufreq@lists.linux.org.uk>
 List-Id: linux-acpi@vger.kernel.org
-To: Zhao Forrest <forrest.zhao@gmail.com>, linux-acpi@vger.kernel.org
 
-On Fri, 2006-09-29 at 13:15 +0800, Yu Luming wrote:
-> >  When booting the linux on my hardware, ACPI output some error messages
-> >  like this:
-> >
-> >  PCI: Using configuration type 1
-> >      ACPI-1121: *** Error: Method execution failed [\_SB_.LNKA._STA]
-> >  (Node 0000010011dcb6c0), AE_AML_REGION_LIMIT
-> >      ACPI-0098: *** Error: Method execution failed [\_SB_.LNKA._STA]
-> >  (Node 0000010011dcb6c0), AE_AML_REGION_LIMIT
-> >      ACPI-1121: *** Error: Method execution failed [\_SB_.LNKB._STA]
-> >  (Node 0000010011dcb8c0), AE_AML_REGION_LIMIT
-> >      ACPI-0098: *** Error: Method execution failed [\_SB_.LNKB._STA]
-> >  (Node 0000010011dcb8c0), AE_AML_REGION_LIMIT
-> 
-> what's kernel version?
-> Looks like a AML interpreter issue.
-> Please open a bug on bugzilla.kernel.org,
-> and post acpidump output.
+Hi,
 
-Could you pls CC me if you open a bug.
+On Thu, Aug 17, 2006 at 05:01:26PM +0200, Thomas Renninger wrote:
+> On Thu, 2006-08-17 at 16:51 +0200, Thomas Renninger wrote:
+> > Makes the cpufreq stuff at least a bit easier...
+> > 
+> > Compile tested, patched against 2.6.18-rc2
+
+Somehow I like this patch. What's the status on it?
 
 Thanks,
-
-   Thomas
-
+	Dominik
