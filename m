@@ -1,29 +1,82 @@
-From: "Richard Hughes" <hughsient@gmail.com>
-Subject: Re: Lenovo 3000 N100: no battery rate
-Date: Wed, 4 Oct 2006 22:16:08 +0100
-Message-ID: <15e53e180610041416g2d92df43tcc5903a5e9eaea12@mail.gmail.com>
-References: <1159994141.2821.12.camel@hughsie-laptop.localdomain>
-	 <45241FC9.2070806@linux.intel.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: Problems with the Intel IASL Compiler
+Date: Wed, 4 Oct 2006 14:36:55 -0700
+Message-ID: <B28E9812BAF6E2498B7EC5C427F293A40111D32F@orsmsx415.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wx-out-0506.google.com ([66.249.82.226]:45238 "EHLO
-	wx-out-0506.google.com") by vger.kernel.org with ESMTP
-	id S1751133AbWJDVQJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 4 Oct 2006 17:16:09 -0400
-Received: by wx-out-0506.google.com with SMTP id s14so291731wxc
-        for <linux-acpi@vger.kernel.org>; Wed, 04 Oct 2006 14:16:08 -0700 (PDT)
-In-Reply-To: <45241FC9.2070806@linux.intel.com>
-Content-Disposition: inline
+Received: from mga01.intel.com ([192.55.52.88]:48186 "EHLO mga01.intel.com")
+	by vger.kernel.org with ESMTP id S1751154AbWJDVg5 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 4 Oct 2006 17:36:57 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: Dennis Buehler <dennisbuehler@gmx.de>, linux-acpi@vger.kernel.org
 
-On 04/10/06, Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com> wrote:
-> Please open bug at bugzilla.kernel.org against ACPI/battery and attach output from acpidump to it.
+Try adding
+External (\_SB.PCI0.SBRG.EC0.ACIN)
 
-Done: http://bugzilla.kernel.org/show_bug.cgi?id=7263 - thanks for the pointer.
+Newer versions of the disassembler will automatically emit this
+external.
 
-Richard.
+
+> -----Original Message-----
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> owner@vger.kernel.org] On Behalf Of Dennis Buehler
+> Sent: Tuesday, October 03, 2006 1:14 PM
+> To: linux-acpi@vger.kernel.org
+> Subject: Problems with the Intel IASL Compiler
+> 
+> Hello members of the ACPI-devel-mailing-list,
+> 
+> in hope to connect to the right point of contact i send this message.
+> 
+> When i try to compile my dsdt.dsl i get the error message 1061.
+> 
+> 
+> $ sudo iasl -sa dsdt.dsl
+> $
+> $ Intel ACPI Component Architecture
+> $ ASL Optimizing Compiler version 20051216 [Jan  9 2006]
+> $ Copyright (C) 2000 - 2005 Intel Corporation
+> $ Supports ACPI Specification Revision 3.0
+> $
+> $ dsdt.dsl  1742:                                     Store
+> $ (\_SB.PCI0.SBRG.EC0.ACIN, Local0)
+> $ Error    1061 - Object does not exist ^  (\_SB.PCI0.SBRG.EC0.ACIN)
+> $
+> $ ASL Input:  dsdt.dsl - 3456 lines, 120805 bytes, 1551 keywords
+> $ Compilation complete. 1 Errors, 0 Warnings, 0 Remarks, 473
+> $ Optimizations
+> 
+> After many hours of searching i could not find a solution for this
+> problem.
+> Is there anybody who knows this error and can tell me what to do to
+fix
+> it?
+> 
+> I used:
+> 
+> kernel
+> linux 2.6.17-5-386
+> 
+> compiler
+> Intel ACPI Component Architecture
+> ASL Optimizing Compiler version 20051216 [Jan  9 2006]
+> Copyright (C) 2000 - 2005 Intel Corporation
+> Supports ACPI Specification Revision 3.0
+> 
+> bison is installed and there was a test with flex even then flex-old
+> which should be recommended/needed (says the ubuntu wiki)
+> 
+> hopefully
+> 
+> dennis from berlin
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
