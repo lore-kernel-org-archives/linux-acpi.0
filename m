@@ -1,47 +1,63 @@
-From: "Shem Multinymous" <multinymous@gmail.com>
-Subject: Re: [patch 2/2]: acpi: add removable drive bay support
-Date: Wed, 4 Oct 2006 01:49:41 +0200
-Message-ID: <41840b750610031649n5db15a0bq4834420b51974562@mail.gmail.com>
-References: <20060907161319.5495fc65.kristen.c.accardi@intel.com>
+From: Lennart Poettering <mzxreary@0pointer.de>
+Subject: Re: [PATCH] misc,acpi,backlight: MSI S270 Laptop support
+Date: Wed, 4 Oct 2006 03:28:32 +0200
+Message-ID: <20061004012832.GA5171@tango.0pointer.de>
+References: <20061003011056.GA28731@ecstasy.ring2.lan> <200610022227.10087.dtor@insightbb.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.171]:21259 "EHLO
-	ug-out-1314.google.com") by vger.kernel.org with ESMTP
-	id S1751035AbWJCXtm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 3 Oct 2006 19:49:42 -0400
-Received: by ug-out-1314.google.com with SMTP id o38so710594ugd
-        for <linux-acpi@vger.kernel.org>; Tue, 03 Oct 2006 16:49:41 -0700 (PDT)
-In-Reply-To: <20060907161319.5495fc65.kristen.c.accardi@intel.com>
+Received: from tango.0pointer.de ([217.160.223.3]:23560 "EHLO
+	tango.0pointer.de") by vger.kernel.org with ESMTP id S1030383AbWJDB2e
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 3 Oct 2006 21:28:34 -0400
 Content-Disposition: inline
+In-Reply-To: <200610022227.10087.dtor@insightbb.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com
+To: Dmitry Torokhov <dtor@insightbb.com>
+Cc: len.brown@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi Kristen,
+On Mon, 02.10.06 22:27, Dmitry Torokhov (dtor@insightbb.com) wrote:
 
-On 9/8/06, Kristen Carlson Accardi <kristen.c.accardi@intel.com> wrote:
+> > +        ret = sysfs_create_group(&msipf_device->dev.kobj, &msipf_attribute_group);
+> > +        if (ret)
+> > +                goto fail_platform_device;
+> > +
+> > +
+> > +        /* Enable automatic brightness control again */
+> > +        if (auto_brightness != 2)
+> > +                set_auto_brightness(1);     
+> > +
+> 
+> What happens if auto_brightness is 2 but userspace messed up with it
+> through device's sysfs attribute? 
 
-> +static void bay_notify(acpi_handle handle, u32 event, void *data)
-[...]
-> +       case ACPI_NOTIFY_EJECT_REQUEST:
-[...]
-> +               /* wouldn't it be a good idea to just call the
-> +                * eject_device here if we were a SATA device?
-> +                */
+If auto_brightness is 2 we assume that the user doesn't want the
+module to fiddle with the automatic brightness control
+automatically. So we don't do it, neither when loading nor when
+unloading the module. However, if the user wants to fiddle with the
+setting through sysfs he may do so and we will not reset his changes
+when unloading the module. This allows the user to do something like
+this to disable the brightness control without having the the driver
+loaded the whole time:
 
-No, bay eject should go through userspace so that it gets a chance to
-do cleanup (e.g., unmount filesystems) or to tell the user to abort
-the eject (e.g., filesystems in use, or system running on bay battery
-power).
+  modprobe msi-laptop auto_brightness=2 && echo 0 > /sys/devices/platform/msi-laptop-pf/auto_brightness && modprobe -r msi-laptop
 
-And the driver of whatever is in the bay should be informed before
-power is removed so it can do its own cleanup (e.g., spin down disk).
-This can also be done by userspace.
+If auto_brightness is 1 or 0, we do as requested but reset the control
+to the bootup default when unloading. (i.e. enable it again)
 
-So your current code is fine, and the comment should probably be
-removed lest someone tries to follow it.
+Sounds like a reasonable policy to me, doesn't it to you?
 
-  Shem
+> Overall brightness controll interface (module vs. per-device) needs
+> to be tightened up.
+
+Hmm, I am sorry? I don't understand what you mean? 
+
+There's only a single device of this type available in a system at
+maximum. Hence "per-device" and "per-module" is mostly the same here.
+
+Lennart
+
+-- 
+Lennart Poettering; lennart [at] poettering [dot] net
+ICQ# 11060553; GPG 0x1A015CC4; http://0pointer.net/lennart/
