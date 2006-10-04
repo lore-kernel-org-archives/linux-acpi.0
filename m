@@ -1,49 +1,29 @@
-From: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
+From: "Richard Hughes" <hughsient@gmail.com>
 Subject: Re: Lenovo 3000 N100: no battery rate
-Date: Thu, 05 Oct 2006 00:55:37 +0400
-Message-ID: <45241FC9.2070806@linux.intel.com>
+Date: Wed, 4 Oct 2006 22:16:08 +0100
+Message-ID: <15e53e180610041416g2d92df43tcc5903a5e9eaea12@mail.gmail.com>
 References: <1159994141.2821.12.camel@hughsie-laptop.localdomain>
+	 <45241FC9.2070806@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:30751 "EHLO
-	fmsmga101.fm.intel.com") by vger.kernel.org with ESMTP
-	id S1751111AbWJDUzn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 4 Oct 2006 16:55:43 -0400
-In-Reply-To: <1159994141.2821.12.camel@hughsie-laptop.localdomain>
+Received: from wx-out-0506.google.com ([66.249.82.226]:45238 "EHLO
+	wx-out-0506.google.com") by vger.kernel.org with ESMTP
+	id S1751133AbWJDVQJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 4 Oct 2006 17:16:09 -0400
+Received: by wx-out-0506.google.com with SMTP id s14so291731wxc
+        for <linux-acpi@vger.kernel.org>; Wed, 04 Oct 2006 14:16:08 -0700 (PDT)
+In-Reply-To: <45241FC9.2070806@linux.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: hughsient@gmail.com
+To: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
 Cc: linux-acpi@vger.kernel.org
 
-Please open bug at bugzilla.kernel.org against ACPI/battery and attach output from acpidump to it.
+On 04/10/06, Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com> wrote:
+> Please open bug at bugzilla.kernel.org against ACPI/battery and attach output from acpidump to it.
 
-Thanks,
-	Alex
-Richard Hughes wrote:
-> Hey,
-> 
-> My new Lenovo 3000 N100 works great with ACPI Linux of the box -- with
-> one exception.
-> 
-> "cat /proc/acpi/battery/BAT1/state" *always* reports "present rate: 0
-> mA" - which means I get no rate information for gnome-power-manager, and
-> hence no graphs or data on the power usage.
-> 
-> As the author of gnome-power-manager this is a bad thing :-)
-> 
-> I've checked out my DSDT with iasl and there are no reported problems.
-> I'm also running 2.6.18 and using the latest (1.02 bios) I don't know
-> where or how to start debugging this so I'm asking for advice.
-> 
-> Thanks guys,
-> 
-> Richard Hughes
-> 
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Done: http://bugzilla.kernel.org/show_bug.cgi?id=7263 - thanks for the pointer.
+
+Richard.
