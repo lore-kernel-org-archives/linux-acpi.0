@@ -1,30 +1,41 @@
-From: "Michael S. Tsirkin" <mst@mellanox.co.il>
-Subject: T60 ACPI events on 78b656b8
-Date: Wed, 4 Oct 2006 23:53:53 +0200
-Message-ID: <20061004215352.GG9723@mellanox.co.il>
-References: <20060830144646.GC1923@elf.ucw.cz>
-Reply-To: "Michael S. Tsirkin" <mst@mellanox.co.il>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [Pcihpd-discuss] [PATCH 1/3] - Altix: Add initial ACPI IO support
+Date: Wed, 4 Oct 2006 15:56:49 -0700
+Message-ID: <20061004225649.GB14395@kroah.com>
+References: <20061004214925.3193.26724.sendpatchset@attica.americas.sgi.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from dev.mellanox.co.il ([194.90.237.44]:62615 "EHLO
-	dev.mellanox.co.il") by vger.kernel.org with ESMTP id S1751175AbWJDVwe
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 4 Oct 2006 17:52:34 -0400
+Received: from ns.suse.de ([195.135.220.2]:6843 "EHLO mx1.suse.de")
+	by vger.kernel.org with ESMTP id S1751210AbWJDW4v (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Oct 2006 18:56:51 -0400
 Content-Disposition: inline
-In-Reply-To: <20060830144646.GC1923@elf.ucw.cz>
+In-Reply-To: <20061004214925.3193.26724.sendpatchset@attica.americas.sgi.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Glanzmann <sithglan@stud.uni-erlangen.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, len.brown@intel.com, linux-acpi@vger.kernel.org, Borislav Deianov <borislav@users.sourceforge.net>
+To: John Keller <jpk@sgi.com>
+Cc: akpm@osdl.org, linux-ia64@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Just tested the latest Linux git, and I see a weird issue:
-after some use, my T60 stops triggering any ACPI events:
-tail -f /var/log/acpid
-does not show anything, even on Fn/F4 which is supposed ot be always enabled.
-Restarting the acpid doesn't do anything either - ACPI starts working
-again, for a while, only after reboot.
+On Wed, Oct 04, 2006 at 04:49:25PM -0500, John Keller wrote:
+> First phase in introducing ACPI support to SN.
+> In this phase, when running with an ACPI capable PROM,
+> the DSDT will define the root busses and all SN nodes
+> (SGIHUB, SGITIO). An ACPI bus driver will be registered
+> for the node devices, with the acpi_pci_root_driver being
+> used for the root busses. An ACPI vendor descriptor is
+> now used to pass platform specific information for both
+> nodes and busses, eliminating the need for the current
+> SAL calls. Also, with ACPI support, SN fixup code is no longer
+> needed to initiate the PCI bus scans, as the acpi_pci_root_driver
+> does that.
 
-This worked fine in 2.6.18 - any ideas? How to debug this?
+How do these three patches differ from the ones I added to my tree
+yesterday?
 
--- 
-MST
+> Resend #2 - resync with TOT
+
+"TOT"?
+
+thanks,
+
+greg k-h
