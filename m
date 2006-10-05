@@ -1,54 +1,49 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [PATCH] Cast removal
-Date: Thu, 5 Oct 2006 18:23:06 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB601AB59A0@hdsmsx411.amr.corp.intel.com>
+From: Andrew Morton <akpm@osdl.org>
+Subject: Re: [PATCH] Cast removal
+Date: Thu, 5 Oct 2006 15:26:08 -0700
+Message-ID: <20061005152608.b6a7fb27.akpm@osdl.org>
+References: <B28E9812BAF6E2498B7EC5C427F293A40114A6CB@orsmsx415.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:17418 "EHLO mga03.intel.com")
-	by vger.kernel.org with ESMTP id S932367AbWJEWXK convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 5 Oct 2006 18:23:10 -0400
-Content-class: urn:content-classes:message
+Received: from smtp.osdl.org ([65.172.181.4]:2233 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932377AbWJEW04 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Oct 2006 18:26:56 -0400
+In-Reply-To: <B28E9812BAF6E2498B7EC5C427F293A40114A6CB@orsmsx415.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>, Jan Engelhardt <jengelh@linux01.gwdg.de>, Andrew Morton <akpm@osdl.org>
-Cc: Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI List <linux-acpi@vger.kernel.org>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: Jan Engelhardt <jengelh@linux01.gwdg.de>, Len Brown <lenb@kernel.org>, "Brown, Len" <len.brown@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI List <linux-acpi@vger.kernel.org>
 
+On Thu, 5 Oct 2006 15:14:02 -0700
+"Moore, Robert" <robert.moore@intel.com> wrote:
 
->If you're discussing this type of thing, I agree wholeheartedly:
->
->static void acpi_processor_notify(acpi_handle handle, u32 
->event, void *data)  {
->-	struct acpi_processor *pr = (struct acpi_processor *)data;
->+	struct acpi_processor *pr = data;
->
->
->I find this one interesting, as we've put a number of them 
->into the ACPICA core:
->
->-	(void) kmem_cache_destroy(cache);
->+	kmem_cache_destroy(cache);
->
->I believe that the point of the (void) is to prevent lint from 
->squawking, and perhaps some picky ANSI-C compilers. What is 
->the overall Linux policy on this?
+> If you're discussing this type of thing, I agree wholeheartedly:
+> 
+> static void acpi_processor_notify(acpi_handle handle, u32 event, void
+> *data)  {
+> -	struct acpi_processor *pr = (struct acpi_processor *)data;
+> +	struct acpi_processor *pr = data;
+> 
 
-Back when I started on Linux I was told that (void) foo()
-was just extra characters and somehow made the code "hard to read"
-and was thus not the "Linux way".
+OK, thanks.  I would expect all compilers to be happy with that.  However a
+bit of googling I did indicated that lint (or some flavour thereof)
+complains about the missing cast.  Which is dumb of it.
 
-I think I did it because in a previous life kernel code needed to be
-lint-free
-to get checked in, and lint complained about return values getting
-ignored.
-I happen to agree with lint because I think it uncovers real bugs -- in
-this case ignored error return values -- something that is rarely tested
-at run-time until you need it:-)  But I have no interest in a style
-debate.
-I expect the custom will get changed when Linus decides that it is
-useful, and not before.
+> I find this one interesting, as we've put a number of them into the
+> ACPICA core:
+> 
+> -	(void) kmem_cache_destroy(cache);
+> +	kmem_cache_destroy(cache);
+> 
+> I believe that the point of the (void) is to prevent lint from
+> squawking, and perhaps some picky ANSI-C compilers. What is the overall
+> Linux policy on this?
 
--Len
+policy = not;
+
+But there's quite a lot of it in the tree.
+
+Actually..  kmem_cache_destroy() returns void, so any checker which complains
+about the missing cast needs a stern talking to.
