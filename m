@@ -1,77 +1,78 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: 2.6.19-rc1: known regressions
-Date: Thu, 5 Oct 2006 06:28:16 +0200
-Message-ID: <20061005042816.GD16812@stusta.de>
-References: <Pine.LNX.4.64.0610042017340.3952@g5.osdl.org>
+From: Len Brown <len.brown@intel.com>
+Subject: Re: [PATCH] Cast removal
+Date: Thu, 5 Oct 2006 00:43:41 -0400
+Message-ID: <200610050043.41997.len.brown@intel.com>
+References: <Pine.LNX.4.61.0610010026050.32229@yvahk01.tjqt.qr> <200610042356.03348.len.brown@intel.com> <20061004211259.8274db49.akpm@osdl.org>
+Reply-To: Len Brown <lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emailhub.stusta.mhn.de ([141.84.69.5]:273 "HELO
-	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
-	id S1750780AbWJEE2T (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 5 Oct 2006 00:28:19 -0400
+Received: from hera.kernel.org ([140.211.167.34]:63198 "EHLO hera.kernel.org")
+	by vger.kernel.org with ESMTP id S1750805AbWJEEl7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Oct 2006 00:41:59 -0400
+In-Reply-To: <20061004211259.8274db49.akpm@osdl.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0610042017340.3952@g5.osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@osdl.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Klaus Knopper <knopper@knopper.net>, Andi Kleen <ak@suse.de>, Luca Tettamanti <kronos.it@gmail.com>, gregkh@suse.de, linux-pci@atrey.karlin.mff.cuni.cz, discuss@x86-64.org, Thierry Vignaud <tvignaud@mandriva.com>, jgarzik@pobox.com, linux-ide@vger.kernel.org, "Michael S. Tsirkin" <mst@mellanox.co.il>, len.brown@intel.com, linux-acpi@vger.kernel.org, Olaf Hering <olaf@aepfle.de>, Jens Axboe <axboe@suse.de>
+To: Andrew Morton <akpm@osdl.org>
+Cc: Jan Engelhardt <jengelh@linux01.gwdg.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI List <linux-acpi@vger.kernel.org>
 
-Contrary to popular belief, there are people who test -rc kernels
-and report bugs.
+On Thursday 05 October 2006 00:12, Andrew Morton wrote:
+> On Wed, 4 Oct 2006 23:56:02 -0400
+> Len Brown <len.brown@intel.com> wrote:
+> 
+> > I'm okay applying this patch it touches the linux-specific
+> > drivers/acpi/* files only, no ACPICA files.
+> 
+> Why?
 
-And there are even people who test -git kernels.
+Why am I okay with it?
+I'm okay with it because it touches files in drivers/acpi/*.c
+Those files are Linux specific, and thus no problem
+doing with them what we do with any other
+Linux file.
 
-This email lists some known regressions in 2.6.19-rc1 compared to 2.6.18.
+> Would it help if it was split into two?
 
-If you find your name in the Cc header, you are either submitter of one
-of the bugs, maintainer of an affectected subsystem or driver, a patch
-of you was declared guilty for a breakage or I'm considering you in any
-other way possibly involved with one or more of these issues.
+no need to, as the patch didn't touch ACPICA files.
 
-Due to the huge amount of recipients, please trim the Cc when answering.
+> How do mortals distinguish ACPICA files from Linux files?
 
+the sub-directories under drivers/acpi are ACPICA files.
+They have a dual BSD/GPL license on them.
+I've though of making an acpica sub-directory
+to make this really clear, but there never seems to be
+a good time to do stuff like that...
+ 
+> > But I don't know if Linus will want changes like this post -rc1.
+> > It might be a pain to have in the tree all the way to 2.6.20 opens b/c
+> > it is sure to cause merge conflicts
+> 
+> Should be OK - the acpi tree is very slow-changing at present.  Or did you
+> have big changes planned?
 
-Subject    : CONFIG_M386=y rwsem compile error
-References : http://lkml.org/lkml/2006/10/3/240
-Submitter  : Klaus Knopper <knopper@knopper.net>
-Guilty     : Andi Kleen <ak@suse.de>
-             commit add659bf8aa92f8b3f01a8c0220557c959507fb1
-Status     : unknown
+Okay, I've applied it, dealt with the conflicts,
+and I'll send an -rc1 batch this week.
 
+> Or I can maintain it externally along with the 10-20 other acpi patches I
+> seem to be regularly stuck with (hint ;)
 
-Subject    : Lost all PCI devices
-References : http://lkml.org/lkml/2006/9/30/128
-Submitter  : Luca Tettamanti <kronos.it@gmail.com>
-Guilty     : Andi Kleen <ak@suse.de>
-             commit 5e544d618f0fb21011f36f28d5e3952b9dc109d2
-Handled-By : Andi Kleen <ak@suse.de>
-Status     : patch available (might not completely fix the problem?)
+no need to.
 
+If maintaining individual ACPI-related patches in -mm is a burden,
+then refuse to.  While I'll never be able to match your latency,
+I'm okay with it either way -- as I think either way the the
+right thing happens in the long run.
 
-Subject    : SMP x86_64 boot problem
-References : http://lkml.org/lkml/2006/9/28/330
-Submitter  : art@usfltd.com
-Status     : unknown
+> > -- and at the end of the day
+> > the benefit of this patch is what?  A few less characters in the source... 
+> >
+> 
+> yes, cleanups are a pain, and we do a lot of them.  And we merge just about
+> all of them.  But I think it's best in the long run; and we are in this for
+> the long run.  
 
-
-Subject    : sata-via doesn't detect anymore disks attached to VIA vt6421
-References : http://bugzilla.kernel.org/show_bug.cgi?id=7255
-Submitter  : Thierry Vignaud <tvignaud@mandriva.com>
-Status     : unknown
-
-
-Subject    : T60 stops triggering any ACPI events
-References : http://lkml.org/lkml/2006/10/4/425
-Submitter  : "Michael S. Tsirkin" <mst@mellanox.co.il>
-Status     : unknown
-
-
-Subject    : DVD drive lost DVD capabilities
-References : http://lkml.org/lkml/2006/10/1/45
-Submitter  : Olaf Hering <olaf@aepfle.de>
-Guilty     : Jens Axboe <axboe@suse.de>
-             commit 4aff5e2333c9a1609662f2091f55c3f6fffdad36
-Handled-By : Jens Axboe <axboe@suse.de>
-Status     : Jens is working on a fix
-
+Okay, thanks,
+-Len
