@@ -1,45 +1,69 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: [PATCH] Cast removal
-Date: Thu, 5 Oct 2006 10:00:19 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0610050954370.4847@yvahk01.tjqt.qr>
-References: <Pine.LNX.4.61.0610010026050.32229@yvahk01.tjqt.qr>
- <200610042356.03348.len.brown@intel.com> <20061004211259.8274db49.akpm@osdl.org>
- <200610050043.41997.len.brown@intel.com> <20061004221914.0811b28a.akpm@osdl.org>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: [patch] x86, fix rwsem build bug on CONFIG_M386=y
+Date: Thu, 5 Oct 2006 10:27:58 +0200
+Message-ID: <20061005082757.GA27120@elte.hu>
+References: <Pine.LNX.4.64.0610042017340.3952@g5.osdl.org> <20061005042816.GD16812@stusta.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emailer.gwdg.de ([134.76.10.24]:37819 "EHLO emailer.gwdg.de")
-	by vger.kernel.org with ESMTP id S1751191AbWJEIFP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Oct 2006 04:05:15 -0400
-In-Reply-To: <20061004221914.0811b28a.akpm@osdl.org>
+Received: from mx2.mail.elte.hu ([157.181.151.9]:39138 "EHLO mx2.mail.elte.hu")
+	by vger.kernel.org with ESMTP id S1751236AbWJEIgn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Oct 2006 04:36:43 -0400
+Content-Disposition: inline
+In-Reply-To: <20061005042816.GD16812@stusta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI List <linux-acpi@vger.kernel.org>
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Linus Torvalds <torvalds@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Klaus Knopper <knopper@knopper.net>, Andi Kleen <ak@suse.de>, Luca Tettamanti <kronos.it@gmail.com>, gregkh@suse.de, linux-pci@atrey.karlin.mff.cuni.cz, discuss@x86-64.org, Thierry Vignaud <tvignaud@mandriva.com>, jgarzik@pobox.com, linux-ide@vger.kernel.org, "Michael S. Tsirkin" <mst@mellanox.co.il>, len.brown@intel.com, linux-acpi@vger.kernel.org, Olaf Hering <olaf@aepfle.de>, Jens Axboe <axboe@suse.de>, Andrew Morton <akpm@osdl.org>
 
 
->> > > I'm okay applying this patch it touches the linux-specific
->> > > drivers/acpi/* files only, no ACPICA files.
->> > 
->> > Why?
->> 
->> Why am I okay with it?
->
->No, I meant why not clean up ACPICA too?
+* Adrian Bunk <bunk@stusta.de> wrote:
 
-I was about to go through the whole kernel base for anti-casting. Sounds 
-like a big task, and probably is. I just did not want to do it all at 
-once and send a mega-patch. Instead, a per-directory walk seems best to 
-me, and granted, "dispatcher events executer hardware namespace" and all 
-the other directories under drivers/acpi/ were supposed to be the next 
-to be examined for casts.
-    Though if you have problems with that because compiling with ugh, 
-old or broken, compilers, be my guest. 
-http://www.velocityreviews.com/forums/t313918-void-casting.html
-"""If your compiler requires a cast, you are using a C++ compiler."""
-Is that the case?
+> This email lists some known regressions in 2.6.19-rc1 compared to 
+> 2.6.18.
 
+thanks Adrian - this list is extremely useful in my opinion! Please keep 
+up the good work.
 
+> Subject    : CONFIG_M386=y rwsem compile error
+> References : http://lkml.org/lkml/2006/10/3/240
+> Submitter  : Klaus Knopper <knopper@knopper.net>
+> Guilty     : Andi Kleen <ak@suse.de>
+>              commit add659bf8aa92f8b3f01a8c0220557c959507fb1
+> Status     : unknown
 
-	-`J'
--- 
+find the fix below.
+
+-------------------->
+Subject: [patch] x86, fix rwsem build bug on CONFIG_M386=y
+From: Ingo Molnar <mingo@elte.hu>
+
+CONFIG_M386 turns on spinlock-based generic rwsems - which surprises the 
+semaphore.S rwsem stubs. Tested both with and without CONFIG_M386.
+
+Reported-by: Klaus Knopper <knopper@knopper.net>
+Triaged-by: Adrian Bunk <bunk@stusta.de>
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+---
+ arch/i386/lib/semaphore.S |    3 +++
+ 1 file changed, 3 insertions(+)
+
+Index: linux/arch/i386/lib/semaphore.S
+===================================================================
+--- linux.orig/arch/i386/lib/semaphore.S
++++ linux/arch/i386/lib/semaphore.S
+@@ -152,6 +152,8 @@ ENTRY(__read_lock_failed)
+ 
+ #endif
+ 
++#ifdef CONFIG_RWSEM_XCHGADD_ALGORITHM
++
+ /* Fix up special calling conventions */
+ ENTRY(call_rwsem_down_read_failed)
+ 	CFI_STARTPROC
+@@ -214,3 +216,4 @@ ENTRY(call_rwsem_downgrade_wake)
+ 	CFI_ENDPROC
+ 	END(call_rwsem_downgrade_wake)
+ 
++#endif
