@@ -1,40 +1,35 @@
-From: Muli Ben-Yehuda <muli@il.ibm.com>
-Subject: Re: [PATCH] Cast removal
-Date: Fri, 6 Oct 2006 16:35:55 +0200
-Message-ID: <20061006143555.GC14186@rhun.haifa.ibm.com>
-References: <B28E9812BAF6E2498B7EC5C427F293A40114A6CB@orsmsx415.amr.corp.intel.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 2.6.18-mm2] acpi: add backlight support to the sony_acpi driver
+Date: Thu, 5 Oct 2006 10:36:57 +0000
+Message-ID: <20061005103657.GA4474@ucw.cz>
+References: <20060930190810.30b8737f.alessandro.guido@gmail.com> <20061001171912.b7aac1d8.akpm@osdl.org> <20061002003908.GA18707@lists.us.dell.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932368AbWJFOgB@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:39945 "EHLO
+	spitz.ucw.cz") by vger.kernel.org with ESMTP id S1161018AbWJFOvj
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 6 Oct 2006 10:51:39 -0400
 Content-Disposition: inline
-In-Reply-To: <B28E9812BAF6E2498B7EC5C427F293A40114A6CB@orsmsx415.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: Jan Engelhardt <jengelh@linux01.gwdg.de>, Andrew Morton <akpm@osdl.org>, Len Brown <lenb@kernel.org>, "Brown, Len" <len.brown@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI List <linux-acpi@vger.kernel.org>
+In-Reply-To: <20061002003908.GA18707@lists.us.dell.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matt Domsch <Matt_Domsch@dell.com>
+Cc: Andrew Morton <akpm@osdl.org>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr
 
-On Thu, Oct 05, 2006 at 03:14:02PM -0700, Moore, Robert wrote:
-> If you're discussing this type of thing, I agree wholeheartedly:
-> 
-> static void acpi_processor_notify(acpi_handle handle, u32 event, void
-> *data)  {
-> -	struct acpi_processor *pr = (struct acpi_processor *)data;
-> +	struct acpi_processor *pr = data;
-> 
-> 
-> I find this one interesting, as we've put a number of them into the
-> ACPICA core:
-> 
-> -	(void) kmem_cache_destroy(cache);
-> +	kmem_cache_destroy(cache);
-> 
-> I believe that the point of the (void) is to prevent lint from
-> squawking, and perhaps some picky ANSI-C compilers. What is the overall
-> Linux policy on this?
+Hi!
 
-IMHO there's another reason to do this which is much more relevant: it
-tells the reader that whoever wrote it knows that it returns a value
-and ignores it on purpose.
+> > I assume that cute userspace applications for controlling backlight
+> > brightness via the generic backlight driver either exist or are in
+> > progress?  What is the status of that?
+> 
+> For Dell laptops, the dellLcdBrightness app is included in the
+> libsmbios-bin package (http://linux.dell.com/libsmbios/main/ and
+> http://linux.dell.com/libsmbios/main/yum.html for the yum repo).  It's
+> entirely userspace.
 
-Cheers,
-Muli
+Please move it into the kernel where it belongs, and use lcd
+brightness subsystem like everyone else.
+							Pavel
+-- 
+Thanks for all the (sleeping) penguins.
