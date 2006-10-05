@@ -1,44 +1,30 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: [Pcihpd-discuss] [PATCH 1/3] - Altix: Add initial ACPI IO
- support
-Date: Wed, 4 Oct 2006 17:36:33 -0700
-Message-ID: <20061004173633.c193eafd.akpm@osdl.org>
-References: <20061004214925.3193.26724.sendpatchset@attica.americas.sgi.com>
-	<20061004225649.GB14395@kroah.com>
+From: Len Brown <len.brown@intel.com>
+Subject: Re: [PATCH] Cast removal
+Date: Wed, 4 Oct 2006 23:56:02 -0400
+Message-ID: <200610042356.03348.len.brown@intel.com>
+References: <Pine.LNX.4.61.0610010026050.32229@yvahk01.tjqt.qr>
+Reply-To: Len Brown <lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <20061004225649.GB14395@kroah.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: John Keller <jpk@sgi.com>, linux-ia64@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:10932 "EHLO hera.kernel.org")
+	by vger.kernel.org with ESMTP id S1751430AbWJEDyC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Oct 2006 23:54:02 -0400
+In-Reply-To: <Pine.LNX.4.61.0610010026050.32229@yvahk01.tjqt.qr>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI List <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@osdl.org>
 
-On Wed, 4 Oct 2006 15:56:49 -0700
-Greg KH <greg@kroah.com> wrote:
+I'm okay applying this patch it touches the linux-specific
+drivers/acpi/* files only, no ACPICA files.
 
-> On Wed, Oct 04, 2006 at 04:49:25PM -0500, John Keller wrote:
-> > First phase in introducing ACPI support to SN.
-> > In this phase, when running with an ACPI capable PROM,
-> > the DSDT will define the root busses and all SN nodes
-> > (SGIHUB, SGITIO). An ACPI bus driver will be registered
-> > for the node devices, with the acpi_pci_root_driver being
-> > used for the root busses. An ACPI vendor descriptor is
-> > now used to pass platform specific information for both
-> > nodes and busses, eliminating the need for the current
-> > SAL calls. Also, with ACPI support, SN fixup code is no longer
-> > needed to initiate the PCI bus scans, as the acpi_pci_root_driver
-> > does that.
-> 
-> How do these three patches differ from the ones I added to my tree
-> yesterday?
+But I don't know if Linus will want changes like this post -rc1.
+It might be a pain to have in the tree all the way to 2.6.20 opens b/c
+it is sure to cause merge conflicts -- and at the end of the day
+the benefit of this patch is what?  A few less characters in the source...
 
-A bunch of other stuff got merged out of order this morning and broke your
-tree.  I asked John for a rediff.  Check your inbox ;)
-
-> > Resend #2 - resync with TOT
-> 
-> "TOT"?
-
-tip-of-tree.
+-Len
