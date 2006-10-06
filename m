@@ -1,49 +1,32 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: [PATCH] Cast removal
-Date: Thu, 5 Oct 2006 15:26:08 -0700
-Message-ID: <20061005152608.b6a7fb27.akpm@osdl.org>
-References: <B28E9812BAF6E2498B7EC5C427F293A40114A6CB@orsmsx415.amr.corp.intel.com>
+From: Len Brown <len.brown@intel.com>
+Subject: Re: [PATCH] misc,acpi,backlight: MSI S270 Laptop support, fifth try
+Date: Fri, 6 Oct 2006 01:23:14 -0400
+Message-ID: <200610060123.15013.len.brown@intel.com>
+References: <20061004024927.GA27716@ecstasy.ring2.lan> <45235042.4090201@l4x.org>
+Reply-To: Len Brown <lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:2233 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S932377AbWJEW04 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Oct 2006 18:26:56 -0400
-In-Reply-To: <B28E9812BAF6E2498B7EC5C427F293A40114A6CB@orsmsx415.amr.corp.intel.com>
+Received: from hera.kernel.org ([140.211.167.34]:14237 "EHLO hera.kernel.org")
+	by vger.kernel.org with ESMTP id S932584AbWJFFVw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Oct 2006 01:21:52 -0400
+In-Reply-To: <45235042.4090201@l4x.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: Jan Engelhardt <jengelh@linux01.gwdg.de>, Len Brown <lenb@kernel.org>, "Brown, Len" <len.brown@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI List <linux-acpi@vger.kernel.org>
+To: Jan Dittmer <jdi@l4x.org>
+Cc: Lennart Poettering <mzxreary@0pointer.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, dtor@insightbb.com, akpm@osdl.org
 
-On Thu, 5 Oct 2006 15:14:02 -0700
-"Moore, Robert" <robert.moore@intel.com> wrote:
+On Wednesday 04 October 2006 02:10, Jan Dittmer wrote:
+> Lennart Poettering wrote:
 
-> If you're discussing this type of thing, I agree wholeheartedly:
-> 
-> static void acpi_processor_notify(acpi_handle handle, u32 event, void
-> *data)  {
-> -	struct acpi_processor *pr = (struct acpi_processor *)data;
-> +	struct acpi_processor *pr = data;
-> 
+> > diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
 
-OK, thanks.  I would expect all compilers to be happy with that.  However a
-bit of googling I did indicated that lint (or some flavour thereof)
-complains about the missing cast.  Which is dumb of it.
+> This part is still spaces only. The help text should be indented
+> by tab + 2 spaces.
 
-> I find this one interesting, as we've put a number of them into the
-> ACPICA core:
-> 
-> -	(void) kmem_cache_destroy(cache);
-> +	kmem_cache_destroy(cache);
-> 
-> I believe that the point of the (void) is to prevent lint from
-> squawking, and perhaps some picky ANSI-C compilers. What is the overall
-> Linux policy on this?
-
-policy = not;
-
-But there's quite a lot of it in the tree.
-
-Actually..  kmem_cache_destroy() returns void, so any checker which complains
-about the missing cast needs a stern talking to.
+fixed.
+thanks,
+-Len
