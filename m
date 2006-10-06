@@ -1,53 +1,53 @@
-From: Arjan van de Ven <arjan@infradead.org>
-Subject: Re: [PATCH] Cast removal
-Date: Fri, 06 Oct 2006 22:39:13 +0200
-Message-ID: <1160167153.3000.118.camel@laptopd505.fenrus.org>
-References: <B28E9812BAF6E2498B7EC5C427F293A40114A6CB@orsmsx415.amr.corp.intel.com>
-	 <20061006143555.GC14186@rhun.haifa.ibm.com>
-	 <Pine.LNX.4.61.0610062211220.30417@yvahk01.tjqt.qr>
+From: Matt Domsch <Matt_Domsch@dell.com>
+Subject: Re: [PATCH 2.6.18-mm2] acpi: add backlight support to the sony_acpi driver
+Date: Fri, 6 Oct 2006 16:17:51 -0500
+Message-ID: <20061006211751.GA31887@lists.us.dell.com>
+References: <20060930190810.30b8737f.alessandro.guido@gmail.com> <20061001171912.b7aac1d8.akpm@osdl.org> <20061002003908.GA18707@lists.us.dell.com> <20061005103657.GA4474@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pentafluge.infradead.org ([213.146.154.40]:721 "EHLO
-	pentafluge.infradead.org") by vger.kernel.org with ESMTP
-	id S932612AbWJFUj2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 6 Oct 2006 16:39:28 -0400
-In-Reply-To: <Pine.LNX.4.61.0610062211220.30417@yvahk01.tjqt.qr>
+Received: from ausc60ps301.us.dell.com ([143.166.148.206]:25872 "EHLO
+	ausc60ps301.us.dell.com") by vger.kernel.org with ESMTP
+	id S1422971AbWJFVS2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 6 Oct 2006 17:18:28 -0400
+Content-Disposition: inline
+In-Reply-To: <20061005103657.GA4474@ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Cc: Muli Ben-Yehuda <muli@il.ibm.com>, "Moore, Robert" <robert.moore@intel.com>, Andrew Morton <akpm@osdl.org>, Len Brown <lenb@kernel.org>, "Brown, Len" <len.brown@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI List <linux-acpi@vger.kernel.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Andrew Morton <akpm@osdl.org>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr
 
-On Fri, 2006-10-06 at 22:18 +0200, Jan Engelhardt wrote:
-> >> -	(void) kmem_cache_destroy(cache);
-> >> +	kmem_cache_destroy(cache);
-> >>=20
-> >> I believe that the point of the (void) is to prevent lint from
-> >> squawking, and perhaps some picky ANSI-C compilers. What is the ov=
-erall
-> >> Linux policy on this?
-> >
-> >IMHO there's another reason to do this which is much more relevant: =
-it
-> >tells the reader that whoever wrote it knows that it returns a value
-> >and ignores it on purpose.
->=20
-> And GCC does not care about that, i.e. it still prints foritfy warnin=
-gs,=20
-> as in:
->=20
-> $ svn co https://svn.sourceforge.net/svnroot/ttyrpld/trunk a && cd a
-> $ make user/rpld.o EXT_CFLAGS=3D"-D_FORTIFY_SOURCE=3D2"
-> user/rpld.c:425: warning: ignoring return value of =E2=80=98write=E2=80=
-=99, declared=20
-> with attribute warn_unused_result
+On Thu, Oct 05, 2006 at 10:36:57AM +0000, Pavel Machek wrote:
+> Hi!
+> 
+> > > I assume that cute userspace applications for controlling backlight
+> > > brightness via the generic backlight driver either exist or are in
+> > > progress?  What is the status of that?
+> > 
+> > For Dell laptops, the dellLcdBrightness app is included in the
+> > libsmbios-bin package (http://linux.dell.com/libsmbios/main/ and
+> > http://linux.dell.com/libsmbios/main/yum.html for the yum repo).  It's
+> > entirely userspace.
+> 
+> Please move it into the kernel where it belongs, and use lcd
+> brightness subsystem like everyone else.
 
-this is by design. __must_check means you MUST do it.
+We've been through this before.
+http://marc.theaimsgroup.com/?l=linux-kernel&m=114067198323596&w=2
 
+In addition, the SMI call used to change the backlight level *may*
+require (if configured by the sysadmin in BIOS), a password be
+entered.
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This begs for a common userspace app that can grok libsmbios and
+kernel interfaces both, and use the appropriate method on each, rather
+than just putting it all in the kernel.
+
+Thanks,
+Matt
+
+-- 
+Matt Domsch
+Software Architect
+Dell Linux Solutions linux.dell.com & www.dell.com/linux
+Linux on Dell mailing lists @ http://lists.us.dell.com
