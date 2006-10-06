@@ -1,32 +1,48 @@
-From: Len Brown <len.brown@intel.com>
-Subject: Re: [PATCH] misc,acpi,backlight: MSI S270 Laptop support, fifth try
-Date: Fri, 6 Oct 2006 01:23:14 -0400
-Message-ID: <200610060123.15013.len.brown@intel.com>
-References: <20061004024927.GA27716@ecstasy.ring2.lan> <45235042.4090201@l4x.org>
-Reply-To: Len Brown <lenb@kernel.org>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: [PATCH] Cast removal
+Date: Fri, 6 Oct 2006 07:34:05 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0610060728360.12702@yvahk01.tjqt.qr>
+References: <B28E9812BAF6E2498B7EC5C427F293A40114A6CB@orsmsx415.amr.corp.intel.com>
+ <20061005152608.b6a7fb27.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:14237 "EHLO hera.kernel.org")
-	by vger.kernel.org with ESMTP id S932584AbWJFFVw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Oct 2006 01:21:52 -0400
-In-Reply-To: <45235042.4090201@l4x.org>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932599AbWJFFie@vger.kernel.org>
+In-Reply-To: <20061005152608.b6a7fb27.akpm@osdl.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: "Moore, Robert" <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "Brown, Len" <len.brown@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Jan Dittmer <jdi@l4x.org>
-Cc: Lennart Poettering <mzxreary@0pointer.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, dtor@insightbb.com, akpm@osdl.org
 
-On Wednesday 04 October 2006 02:10, Jan Dittmer wrote:
-> Lennart Poettering wrote:
 
-> > diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+>> I find this one interesting, as we've put a number of them into the
+>> ACPICA core:
+>> 
+>> -	(void) kmem_cache_destroy(cache);
+>> +	kmem_cache_destroy(cache);
+>> 
+>> I believe that the point of the (void) is to prevent lint from
+>> squawking, and perhaps some picky ANSI-C compilers. What is the overall
+>> Linux policy on this?
+>
+>policy = not;
+>
+>But there's quite a lot of it in the tree.
 
-> This part is still spaces only. The help text should be indented
-> by tab + 2 spaces.
+So what to do? GCC does not squawk, and instead has 
+__attribute__((warn_unused_result)) in case someone should be made aware 
+that a certain return value really needs to be examined.
 
-fixed.
-thanks,
--Len
+Not even the Turbo C/C++ compiler from 1990 requires either of 
+from/to-void* or to-void casts.
+
+>Actually..  kmem_cache_destroy() returns void, so any checker which complains
+>about the missing cast needs a stern talking to.
+
+Ok, so the (void) can definitely go away for functions that actually 
+return void, but what for the others? I am inclined that all lints 
+should be fixed, or be sort-of discarded, since linting is slowly going 
+back into [at least one] compiler.
+
+
+	-`J'
+-- 
