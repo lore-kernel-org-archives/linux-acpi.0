@@ -1,56 +1,51 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+From: Muli Ben-Yehuda <muli@il.ibm.com>
 Subject: Re: [PATCH] Cast removal
-Date: Fri, 6 Oct 2006 22:18:57 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0610062211220.30417@yvahk01.tjqt.qr>
-References: <B28E9812BAF6E2498B7EC5C427F293A40114A6CB@orsmsx415.amr.corp.intel.com>
- <20061006143555.GC14186@rhun.haifa.ibm.com>
+Date: Fri, 6 Oct 2006 22:30:42 +0200
+Message-ID: <20061006203042.GK14186@rhun.haifa.ibm.com>
+References: <B28E9812BAF6E2498B7EC5C427F293A40114A6CB@orsmsx415.amr.corp.intel.com> <20061006143555.GC14186@rhun.haifa.ibm.com> <Pine.LNX.4.61.0610062211220.30417@yvahk01.tjqt.qr>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="1283855629-2141548496-1160165937=:30417"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emailer.gwdg.de ([134.76.10.24]:12188 "EHLO emailer.gwdg.de")
-	by vger.kernel.org with ESMTP id S1422926AbWJFUZN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Oct 2006 16:25:13 -0400
-In-Reply-To: <20061006143555.GC14186@rhun.haifa.ibm.com>
+Received: from mtagate4.uk.ibm.com ([195.212.29.137]:21064 "EHLO
+	mtagate4.uk.ibm.com") by vger.kernel.org with ESMTP id S932591AbWJFUbN
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 6 Oct 2006 16:31:13 -0400
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.61.0610062211220.30417@yvahk01.tjqt.qr>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Muli Ben-Yehuda <muli@il.ibm.com>
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
 Cc: "Moore, Robert" <robert.moore@intel.com>, Andrew Morton <akpm@osdl.org>, Len Brown <lenb@kernel.org>, "Brown, Len" <len.brown@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI List <linux-acpi@vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Fri, Oct 06, 2006 at 10:18:57PM +0200, Jan Engelhardt wrote:
+=20
+> >IMHO there's another reason to do this which is much more relevant: =
+it
+> >tells the reader that whoever wrote it knows that it returns a value
+> >and ignores it on purpose.
+>=20
+> And GCC does not care about that, i.e. it still prints foritfy warnin=
+gs,=20
+> as in:
+>=20
+> $ svn co https://svn.sourceforge.net/svnroot/ttyrpld/trunk a && cd a
+> $ make user/rpld.o EXT_CFLAGS=3D"-D_FORTIFY_SOURCE=3D2"
+> user/rpld.c:425: warning: ignoring return value of =E2=80=98write=E2=80=
+=99, declared=20
+> with attribute warn_unused_result
 
---1283855629-2141548496-1160165937=:30417
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Sure, if an interface is decalred with warn_unused_result gcc should
+warn, even if the caller casts it to void. But in the normal case,
+casting the result of the function to void tells the reader that you
+know that it returns something, and you don't care.
 
-
->> -	(void) kmem_cache_destroy(cache);
->> +	kmem_cache_destroy(cache);
->> 
->> I believe that the point of the (void) is to prevent lint from
->> squawking, and perhaps some picky ANSI-C compilers. What is the overall
->> Linux policy on this?
->
->IMHO there's another reason to do this which is much more relevant: it
->tells the reader that whoever wrote it knows that it returns a value
->and ignores it on purpose.
-
-And GCC does not care about that, i.e. it still prints foritfy warnings, 
-as in:
-
-$ svn co https://svn.sourceforge.net/svnroot/ttyrpld/trunk a && cd a
-$ make user/rpld.o EXT_CFLAGS="-D_FORTIFY_SOURCE=2"
-user/rpld.c:425: warning: ignoring return value of ‘write’, declared 
-with attribute warn_unused_result
-
-Adding (void) to the front to line 425 does not get rid of the warning. 
-So doing so does not seem to be the right way to let others know you 
-intentionally want to discard the return value. Plus, on top, many 
-(sometimes older) C books advise to cast to (void) just because 
-something does not return it.
+Cheers,
+Muli
 
 
-
-	-`J'
--- 
---1283855629-2141548496-1160165937=:30417--
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
