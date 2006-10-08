@@ -1,40 +1,49 @@
-From: Trond Myklebust <Trond.Myklebust@netapp.com>
-Subject: Re: 2.6.19-rc1: known regressions (v2)
-Date: 7 Oct 2006 21:43:51 -0700
-Message-ID: <EXSVLRB01xe0ymQ1WE900000265__28659.1491116726$1160282652$gmane$org@exsvlrb01.hq.netapp.com>
+From: Pavel Machek <pavel@suse.cz>
+Subject: x60 backlight Re: [discuss] 2.6.19-rc1: known regressions (v2)
+Date: Sun, 8 Oct 2006 07:12:54 +0000
+Message-ID: <20061008071254.GA5672@ucw.cz>
+References: <Pine.LNX.4.64.0610042017340.3952@g5.osdl.org> <20061007214620.GB8810@stusta.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.netapp.com ([216.240.18.37]:32262 "EHLO mx2.netapp.com")
-	by vger.kernel.org with ESMTP id S1750718AbWJHEn5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 8 Oct 2006 00:43:57 -0400
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:57351 "EHLO
+	spitz.ucw.cz") by vger.kernel.org with ESMTP id S1750853AbWJHHNI
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 8 Oct 2006 03:13:08 -0400
+Content-Disposition: inline
+In-Reply-To: <20061007214620.GB8810@stusta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Adrian Bunk <bunk@stusta.de>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, len.brown@intel.com, linux-acpi@vger.kernel.org, linux-pm@osdl.org
 
-Cc: Linus Torvalds <torvalds@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, art@usfltd.com, ak@suse.de, discuss@x86-64.org,  Prakash Punnoor <prakash@punnoor.de>, perex@suse.cz, alsa-devel@alsa-project.org, Steve Fox <drfickle@us.ibm.com>,  netdev@vger.kernel.org, "Michael S. Tsirkin" <mst@mellanox.co.il>,  len.brown@intel.com, linux-acpi@vger.kernel.org, Pavel Machek <pavel@ucw.cz>,  Olaf Hering <olaf@aepfle.de>, Antonino Daplas <adaplas@pol.net>, linux-fbdev-devel@lists.sourceforge.net,  Thierry Vignaud <tvignaud@mandriva.com>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Ernst Herzberg <list-lkml@net4u.de>, Matthieu Castet <castet.matthieu@free.fr>,  linux-usb-devel@lists.sourceforge.net, Jens Axboe <axboe@oracle.com>,  Benjamin Herrenschmidt <benh@kernel.crashing.org>, linux-pm@osdl.org, linuxppc-dev@ozlabs.org, Andreas Schwab <schwab@suse.de>,  Mel Gorman <mel
- @skynet.ie>, Alex Romosan <romosan@sycorax.lbl.gov>, Sukadev Bhattiprolu <sukadev@us.ibm.!
- com>, Dave Kleikamp <shaggy@austin.ibm.com>, Torsten Kaiser <kernel@bardioc.dyndns.org>, Magnus Damm <magnus.damm@gmail.com>, Vivek Goyal <vgoyal@in.ibm.com>, ebiederm@xmission.com, fastboot@osdl.org, Alistair John Strachan <s0348365@sms.ed.ac.uk>, Stefan Richter <stefanr@s5r6.in-berlin.de>,  linux1394-devel@lists.sourceforge.net
-In-Reply-To: <20061007214620.GB8810@stusta.de>
-References: <Pine.LNX.4.64.0610042017340.3952@g5.osdl.org>
-	 <20061007214620.GB8810@stusta.de>
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Organization: Network Appliance Inc
-Date: Sun, 08 Oct 2006 00:43:35 -0400
-Message-Id: <1160282615.5506.9.camel@lade.trondhjem.org>
-Mime-Version: 1.0
-X-Mailer: Evolution 2.8.1 
 
-On Sat, 2006-10-07 at 23:46 +0200, Adrian Bunk wrote:
+On Sat 07-10-06 23:46:21, Adrian Bunk wrote:
+> This email lists some known regressions in 2.6.19-rc1 compared to 2.6.18
+> that are not yet fixed Linus' tree.
+> 
+> If you find your name in the Cc header, you are either submitter of one
+> of the bugs, maintainer of an affectected subsystem or driver, a patch
+> of you was declared guilty for a breakage or I'm considering you in any
+> other way possibly involved with one or more of these issues.
+> 
+> Due to the huge amount of recipients, please trim the Cc when answering.
+...
+> Subject    : T60 stops triggering any ACPI events
+> References : http://lkml.org/lkml/2006/10/4/425
+> Submitter  : "Michael S. Tsirkin" <mst@mellanox.co.il>
+> Status     : unknown
+> 
+> 
+> Subject    : thinkpad x60: brightness no longer adjustable in 2.6.18-git
+> References : http://lkml.org/lkml/2006/10/2/300
+> Submitter  : Pavel Machek <pavel@ucw.cz>
+> Status     : unknown, related to the issue above?
 
-> Subject    : NFSv4 fails to mount (timeout)
-> References : http://bugzilla.kernel.org/show_bug.cgi?id=7274
-> Submitter  : Torsten Kaiser <kernel@bardioc.dyndns.org>
-> Guilty     : Trond Myklebust <Trond.Myklebust@netapp.com>
->              commit 51b6ded4d9a94a61035deba1d8f51a54e3a3dd86
-> Handled-By : Trond Myklebust <Trond.Myklebust@netapp.com>
-> Patch      : http://bugzilla.kernel.org/show_bug.cgi?id=7274
-> Status     : patch available
+Strange, problem went away after reboot. I guess I'll write it off as
+an acpi glitch... there's definitely something strange going on with
+backlight around s2ram: during normal operation, backlight changes are
+fast. After s2ram, backlight change from keyboard takes 300msec or so.
 
-Thanks... Always nice to hear that you have been judged and found
-guilty. Now go and reread that fucking bug report...
-
+-- 
+Thanks for all the (sleeping) penguins.
