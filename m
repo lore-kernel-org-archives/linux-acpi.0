@@ -1,54 +1,30 @@
-From: Adrian Bunk <bunk@stusta.de>
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 Subject: Re: x60 backlight Re: [discuss] 2.6.19-rc1: known regressions (v2)
-Date: Sun, 8 Oct 2006 21:30:05 +0200
-Message-ID: <20061008193005.GJ6755@stusta.de>
-References: <20061008173809.GE6755@stusta.de> <20061008175958.GA30377@mellanox.co.il>
+Date: Sun, 08 Oct 2006 16:44:37 -0700
+Message-ID: <45298D65.8090503@goop.org>
+References: <Pine.LNX.4.64.0610042017340.3952@g5.osdl.org> <20061007214620.GB8810@stusta.de> <20061008071254.GA5672@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emailhub.stusta.mhn.de ([141.84.69.5]:8976 "HELO
-	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
-	id S1751364AbWJHTaK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 8 Oct 2006 15:30:10 -0400
-Content-Disposition: inline
-In-Reply-To: <20061008175958.GA30377@mellanox.co.il>
+Received: from gw.goop.org ([64.81.55.164]:705 "EHLO mail.goop.org")
+	by vger.kernel.org with ESMTP id S932108AbWJHXod (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 8 Oct 2006 19:44:33 -0400
+In-Reply-To: <20061008071254.GA5672@ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Michael S. Tsirkin" <mst@mellanox.co.il>
-Cc: Pavel Machek <pavel@suse.cz>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, len.brown@intel.com, linux-acpi@vger.kernel.org, linux-pm@osdl.org
+To: Pavel Machek <pavel@suse.cz>
+Cc: Adrian Bunk <bunk@stusta.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, len.brown@intel.com, linux-acpi@vger.kernel.org, linux-pm@osdl.org
 
-On Sun, Oct 08, 2006 at 07:59:58PM +0200, Michael S. Tsirkin wrote:
-> Quoting r. Adrian Bunk <bunk@stusta.de>:
-> > Subject: Re: x60 backlight Re: [discuss] 2.6.19-rc1: known regressions (v2)
-> > 
-> > On Sun, Oct 08, 2006 at 07:12:54AM +0000, Pavel Machek wrote:
-> > > 
-> > > On Sat 07-10-06 23:46:21, Adrian Bunk wrote:
-> > > > This email lists some known regressions in 2.6.19-rc1 compared to 2.6.18
-> > > > that are not yet fixed Linus' tree.
-> > > > 
-> > > ...
-> > > > Subject    : T60 stops triggering any ACPI events
-> > > > References : http://lkml.org/lkml/2006/10/4/425
-> > > > Submitter  : "Michael S. Tsirkin" <mst@mellanox.co.il>
-> > > > Status     : unknown
-> 
-> This was on a pre -rc1 git tree.
-> I've been using -rc1 since it's out and does not happen to me anymore.
-> So we probably can write this off as a memory corruption
-> issue that got fixed in between.
+Pavel Machek wrote:
+> Strange, problem went away after reboot. I guess I'll write it off as
+> an acpi glitch... there's definitely something strange going on with
+> backlight around s2ram: during normal operation, backlight changes are
+> fast. After s2ram, backlight change from keyboard takes 300msec or so.
+>   
 
-Thanks for the information, I've removed it from the list.
+Yes, I'm seeing that too.  It's not just keyboard brightness changes; 
+gnome does some fadeup effect, which takes ~300ms/step as well.
 
-> MST
-
-cu
-Adrian
-
--- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
+    J
 
