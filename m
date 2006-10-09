@@ -1,30 +1,180 @@
-From: Jeremy Fitzhardinge <jeremy@goop.org>
-Subject: Re: x60 backlight Re: [discuss] 2.6.19-rc1: known regressions (v2)
-Date: Sun, 08 Oct 2006 16:44:37 -0700
-Message-ID: <45298D65.8090503@goop.org>
-References: <Pine.LNX.4.64.0610042017340.3952@g5.osdl.org> <20061007214620.GB8810@stusta.de> <20061008071254.GA5672@ucw.cz>
+From: Holger Macht <hmacht@suse.de>
+Subject: [PATCH] Add support for the generic backlight device to the IBM ACPI driver
+Date: Mon, 9 Oct 2006 13:32:35 +0200
+Message-ID: <20061009113235.GA4444@homac.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gw.goop.org ([64.81.55.164]:705 "EHLO mail.goop.org")
-	by vger.kernel.org with ESMTP id S932108AbWJHXod (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 8 Oct 2006 19:44:33 -0400
-In-Reply-To: <20061008071254.GA5672@ucw.cz>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932448AbWJILcz@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, len.brown@intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@suse.cz>
-Cc: Adrian Bunk <bunk@stusta.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, len.brown@intel.com, linux-acpi@vger.kernel.org, linux-pm@osdl.org
 
-Pavel Machek wrote:
-> Strange, problem went away after reboot. I guess I'll write it off as
-> an acpi glitch... there's definitely something strange going on with
-> backlight around s2ram: during normal operation, backlight changes are
-> fast. After s2ram, backlight change from keyboard takes 300msec or so.
->   
+Add support for the generic backlight interface below
+/sys/class/backlight. The patch keeps the procfs brightness handling for
+backward compatibility. For this to archive, the patch adds two generic
+functions brightness_get and brightness_set to be used both by the procfs
+related and the sysfs related methods.
 
-Yes, I'm seeing that too.  It's not just keyboard brightness changes; 
-gnome does some fadeup effect, which takes ~300ms/step as well.
+Signed-off-by: Holger Macht <hmacht@suse.de>
+---
 
-    J
-
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 0f9d4be..6e47501 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -200,6 +200,7 @@ config ACPI_ASUS
+ config ACPI_IBM
+ 	tristate "IBM ThinkPad Laptop Extras"
+ 	depends on X86
++	select BACKLIGHT
+ 	---help---
+ 	  This is a Linux ACPI driver for the IBM ThinkPad laptops. It adds
+ 	  support for Fn-Fx key combinations, Bluetooth control, video
+diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
+index 15fc124..1160f92 100644
+--- a/drivers/acpi/ibm_acpi.c
++++ b/drivers/acpi/ibm_acpi.c
+@@ -78,6 +78,7 @@ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
+ #include <linux/proc_fs.h>
++#include <linux/backlight.h>
+ #include <asm/uaccess.h>
+ 
+ #include <acpi/acpi_drivers.h>
+@@ -243,6 +244,8 @@ struct ibm_struct {
+ 
+ static struct proc_dir_entry *proc_dir = NULL;
+ 
++static struct backlight_device *ibm_backlight_device;
++
+ #define onoff(status,bit) ((status) & (1 << (bit)) ? "on" : "off")
+ #define enabled(status,bit) ((status) & (1 << (bit)) ? "enabled" : "disabled")
+ #define strlencmp(a,b) (strncmp((a), (b), strlen(b)))
+@@ -1381,12 +1384,22 @@ static int ecdump_write(char *buf)
+ 
+ static int brightness_offset = 0x31;
+ 
++static int brightness_get(struct backlight_device *bd)
++{
++       u8 level;
++       if (!acpi_ec_read(brightness_offset, &level))
++               return -EIO;
++       
++       level &= 0x7;
++       return level;
++}
++
+ static int brightness_read(char *p)
+ {
+ 	int len = 0;
+-	u8 level;
++	int level;
+ 
+-	if (!acpi_ec_read(brightness_offset, &level)) {
++	if ((level = brightness_get(NULL)) < 0) {
+ 		len += sprintf(p + len, "level:\t\tunreadable\n");
+ 	} else {
+ 		len += sprintf(p + len, "level:\t\t%d\n", level & 0x7);
+@@ -1401,16 +1414,34 @@ static int brightness_read(char *p)
+ #define BRIGHTNESS_UP	4
+ #define BRIGHTNESS_DOWN	5
+ 
+-static int brightness_write(char *buf)
++static int brightness_set(int value)
+ {
+ 	int cmos_cmd, inc, i;
+-	u8 level;
++	int current_value = brightness_get(NULL);
++	
++	value &= 7;
++	
++	cmos_cmd = value > current_value ? BRIGHTNESS_UP : BRIGHTNESS_DOWN;
++	inc = value > current_value ? 1 : -1;
++	for (i = current_value; i != value; i += inc) {
++		if (!cmos_eval(cmos_cmd))
++			return -EIO;
++		if (!acpi_ec_write(brightness_offset, i + inc))
++			return -EIO;
++	}
++	
++	return 0;
++}
++
++static int brightness_write(char *buf)
++{
++	int level;
+ 	int new_level;
+ 	char *cmd;
+ 
+ 	while ((cmd = next_cmd(&buf))) {
+-		if (!acpi_ec_read(brightness_offset, &level))
+-			return -EIO;
++		if ((level = brightness_get(NULL)) < 0)
++			return level;
+ 		level &= 7;
+ 
+ 		if (strlencmp(cmd, "up") == 0) {
+@@ -1423,19 +1454,17 @@ static int brightness_write(char *buf)
+ 		} else
+ 			return -EINVAL;
+ 
+-		cmos_cmd = new_level > level ? BRIGHTNESS_UP : BRIGHTNESS_DOWN;
+-		inc = new_level > level ? 1 : -1;
+-		for (i = level; i != new_level; i += inc) {
+-			if (!cmos_eval(cmos_cmd))
+-				return -EIO;
+-			if (!acpi_ec_write(brightness_offset, i + inc))
+-				return -EIO;
+-		}
++		brightness_set(new_level);
+ 	}
+ 
+ 	return 0;
+ }
+ 
++static int brightness_update_status(struct backlight_device *bd)
++{
++	return brightness_set(bd->props->brightness);
++}
++
+ static int volume_offset = 0x30;
+ 
+ static int volume_read(char *p)
+@@ -1965,10 +1994,20 @@ IBM_PARAM(brightness);
+ IBM_PARAM(volume);
+ IBM_PARAM(fan);
+ 
++static struct backlight_properties ibm_backlight_data = {
++        .owner          = THIS_MODULE,
++        .get_brightness = brightness_get,
++        .update_status  = brightness_update_status,
++        .max_brightness = 7,
++};
++
+ static void acpi_ibm_exit(void)
+ {
+ 	int i;
+ 
++	if (ibm_backlight_device)
++		backlight_device_unregister(ibm_backlight_device);
++
+ 	for (i = ARRAY_SIZE(ibms) - 1; i >= 0; i--)
+ 		ibm_exit(&ibms[i]);
+ 
+@@ -2036,6 +2075,14 @@ #endif
+ 		}
+ 	}
+ 
++	ibm_backlight_device = backlight_device_register("ibm", NULL,
++							 &ibm_backlight_data);
++        if (IS_ERR(ibm_backlight_device)) {
++		printk(IBM_ERR "Could not register ibm backlight device\n");
++		ibm_backlight_device = NULL;
++		acpi_ibm_exit();
++	}
++	
+ 	return 0;
+ }
