@@ -1,180 +1,187 @@
-From: Holger Macht <hmacht@suse.de>
-Subject: [PATCH] Add support for the generic backlight device to the IBM ACPI driver
-Date: Mon, 9 Oct 2006 13:32:35 +0200
-Message-ID: <20061009113235.GA4444@homac.suse.de>
+From: Andrew Morton <akpm@osdl.org>
+Subject: Re: [BUG]: can not compile 2.6.19-rc1: 'boot_cpu_data' undeclared
+Date: Mon, 9 Oct 2006 10:45:27 -0700
+Message-ID: <20061009104527.079fe63b.akpm@osdl.org>
+References: <20061009135441.1ae38233.pauldrynoff@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932448AbWJILcz@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, len.brown@intel.com
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.osdl.org ([65.172.181.4]:56032 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932922AbWJIRpi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Oct 2006 13:45:38 -0400
+In-Reply-To: <20061009135441.1ae38233.pauldrynoff@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Paul Drynoff <pauldrynoff@gmail.com>
+Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-Add support for the generic backlight interface below
-/sys/class/backlight. The patch keeps the procfs brightness handling for
-backward compatibility. For this to archive, the patch adds two generic
-functions brightness_get and brightness_set to be used both by the procfs
-related and the sysfs related methods.
+On Mon, 9 Oct 2006 13:54:41 +0400
+Paul Drynoff <pauldrynoff@gmail.com> wrote:
 
-Signed-off-by: Holger Macht <hmacht@suse.de>
+> I update kernel to patch-2.6.19-rc1-git, but problem still here.
+> __acpi_acquire_global_lock uses cmpxchg it uses struct cpuinfo_x86,
+> but it not defined, and if include asmp/processor.h where it defined,
+> this cause another problems of compilation. Any ideas?
+> 
+> 
+> 
+> Date: Sun, 8 Oct 2006 20:28:01 +0400
+> From: Paul Drynoff <pauldrynoff@gmail.com>
+> To: linux-kernel@vger.kernel.org
+> Subject: [BUG]: can not compile 2.6.19-rc1: 'boot_cpu_data' undeclared
+> 
+> 
+> $ make
+>  CHK     include/linux/version.h
+>  CHK     include/linux/utsrelease.h
+>  CHK     include/linux/compile.h
+>  CC      arch/i386/mach-generic/probe.o
+> In file included from include/asm/fixmap.h:30,
+>                 from arch/i386/mach-generic/probe.c:13:
+> include/asm/acpi.h: In function '__acpi_acquire_global_lock':
+> include/asm/acpi.h:67: error: 'boot_cpu_data' undeclared (first use
+> in this function)
+> include/asm/acpi.h:67: error: (Each undeclared identifier is reported
+> only once
+> include/asm/acpi.h:67: error: for each function it appears in.)
+> include/asm/acpi.h: In function '__acpi_release_global_lock':
+> include/asm/acpi.h:79: error: 'boot_cpu_data' undeclared (first use
+> in this function)
+
+I suspect the problem is:
+
+CONFIG_M386=y
+
+which makes the support of cmpxchg do complex things.  But it _should_
+work.
+
+Still, it makes sense to uninline those ACPI locking functions.  I haven't
+yet checked to see if these functions need exporting to modules.
+
+Note that with this patch and your .config, we get
+
+arch/i386/kernel/acpi/boot.c:91:2: warning: #warning ACPI uses CMPXCHG, i486 and later hardware
+
+
+From: Andrew Morton <akpm@osdl.org>
+
+- Fixes a build problem with CONFIG_M386=y (include file dependenciers get
+  messy).
+
+- Share the implementation between x86 and x86_64
+
+- These are too big to inline anyway.
+
+Cc: "Brown, Len" <len.brown@intel.com>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 0f9d4be..6e47501 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -200,6 +200,7 @@ config ACPI_ASUS
- config ACPI_IBM
- 	tristate "IBM ThinkPad Laptop Extras"
- 	depends on X86
-+	select BACKLIGHT
- 	---help---
- 	  This is a Linux ACPI driver for the IBM ThinkPad laptops. It adds
- 	  support for Fn-Fx key combinations, Bluetooth control, video
-diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
-index 15fc124..1160f92 100644
---- a/drivers/acpi/ibm_acpi.c
-+++ b/drivers/acpi/ibm_acpi.c
-@@ -78,6 +78,7 @@ #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/types.h>
- #include <linux/proc_fs.h>
-+#include <linux/backlight.h>
- #include <asm/uaccess.h>
- 
- #include <acpi/acpi_drivers.h>
-@@ -243,6 +244,8 @@ struct ibm_struct {
- 
- static struct proc_dir_entry *proc_dir = NULL;
- 
-+static struct backlight_device *ibm_backlight_device;
-+
- #define onoff(status,bit) ((status) & (1 << (bit)) ? "on" : "off")
- #define enabled(status,bit) ((status) & (1 << (bit)) ? "enabled" : "disabled")
- #define strlencmp(a,b) (strncmp((a), (b), strlen(b)))
-@@ -1381,12 +1384,22 @@ static int ecdump_write(char *buf)
- 
- static int brightness_offset = 0x31;
- 
-+static int brightness_get(struct backlight_device *bd)
-+{
-+       u8 level;
-+       if (!acpi_ec_read(brightness_offset, &level))
-+               return -EIO;
-+       
-+       level &= 0x7;
-+       return level;
-+}
-+
- static int brightness_read(char *p)
- {
- 	int len = 0;
--	u8 level;
-+	int level;
- 
--	if (!acpi_ec_read(brightness_offset, &level)) {
-+	if ((level = brightness_get(NULL)) < 0) {
- 		len += sprintf(p + len, "level:\t\tunreadable\n");
- 	} else {
- 		len += sprintf(p + len, "level:\t\t%d\n", level & 0x7);
-@@ -1401,16 +1414,34 @@ static int brightness_read(char *p)
- #define BRIGHTNESS_UP	4
- #define BRIGHTNESS_DOWN	5
- 
--static int brightness_write(char *buf)
-+static int brightness_set(int value)
- {
- 	int cmos_cmd, inc, i;
--	u8 level;
-+	int current_value = brightness_get(NULL);
-+	
-+	value &= 7;
-+	
-+	cmos_cmd = value > current_value ? BRIGHTNESS_UP : BRIGHTNESS_DOWN;
-+	inc = value > current_value ? 1 : -1;
-+	for (i = current_value; i != value; i += inc) {
-+		if (!cmos_eval(cmos_cmd))
-+			return -EIO;
-+		if (!acpi_ec_write(brightness_offset, i + inc))
-+			return -EIO;
-+	}
-+	
-+	return 0;
-+}
-+
-+static int brightness_write(char *buf)
-+{
-+	int level;
- 	int new_level;
- 	char *cmd;
- 
- 	while ((cmd = next_cmd(&buf))) {
--		if (!acpi_ec_read(brightness_offset, &level))
--			return -EIO;
-+		if ((level = brightness_get(NULL)) < 0)
-+			return level;
- 		level &= 7;
- 
- 		if (strlencmp(cmd, "up") == 0) {
-@@ -1423,19 +1454,17 @@ static int brightness_write(char *buf)
- 		} else
- 			return -EINVAL;
- 
--		cmos_cmd = new_level > level ? BRIGHTNESS_UP : BRIGHTNESS_DOWN;
--		inc = new_level > level ? 1 : -1;
--		for (i = level; i != new_level; i += inc) {
--			if (!cmos_eval(cmos_cmd))
--				return -EIO;
--			if (!acpi_ec_write(brightness_offset, i + inc))
--				return -EIO;
--		}
-+		brightness_set(new_level);
- 	}
- 
+ arch/i386/kernel/acpi/boot.c |   22 ++++++++++++++++++++++
+ include/asm-i386/acpi.h      |   26 ++------------------------
+ include/asm-x86_64/acpi.h    |   26 ++------------------------
+ 3 files changed, 26 insertions(+), 48 deletions(-)
+
+diff -puN arch/i386/kernel/acpi/boot.c~i386-acpi-build-fix arch/i386/kernel/acpi/boot.c
+--- a/arch/i386/kernel/acpi/boot.c~i386-acpi-build-fix
++++ a/arch/i386/kernel/acpi/boot.c
+@@ -1319,3 +1319,25 @@ static int __init setup_acpi_sci(char *s
  	return 0;
  }
- 
-+static int brightness_update_status(struct backlight_device *bd)
+ early_param("acpi_sci", setup_acpi_sci);
++
++int __acpi_acquire_global_lock(unsigned int *lock)
 +{
-+	return brightness_set(bd->props->brightness);
++	unsigned int old, new, val;
++	do {
++		old = *lock;
++		new = (((old & ~0x3) + 2) + ((old >> 1) & 0x1));
++		val = cmpxchg(lock, old, new);
++	} while (unlikely (val != old));
++	return (new < 3) ? -1 : 0;
 +}
 +
- static int volume_offset = 0x30;
++int __acpi_release_global_lock(unsigned int *lock)
++{
++	unsigned int old, new, val;
++	do {
++		old = *lock;
++		new = old & ~0x3;
++		val = cmpxchg(lock, old, new);
++	} while (unlikely (val != old));
++	return old & 0x1;
++}
+diff -puN include/asm-i386/acpi.h~i386-acpi-build-fix include/asm-i386/acpi.h
+--- a/include/asm-i386/acpi.h~i386-acpi-build-fix
++++ a/include/asm-i386/acpi.h
+@@ -56,30 +56,8 @@
+ #define ACPI_ENABLE_IRQS()  local_irq_enable()
+ #define ACPI_FLUSH_CPU_CACHE()	wbinvd()
  
- static int volume_read(char *p)
-@@ -1965,10 +1994,20 @@ IBM_PARAM(brightness);
- IBM_PARAM(volume);
- IBM_PARAM(fan);
+-
+-static inline int
+-__acpi_acquire_global_lock (unsigned int *lock)
+-{
+-	unsigned int old, new, val;
+-	do {
+-		old = *lock;
+-		new = (((old & ~0x3) + 2) + ((old >> 1) & 0x1));
+-		val = cmpxchg(lock, old, new);
+-	} while (unlikely (val != old));
+-	return (new < 3) ? -1 : 0;
+-}
+-
+-static inline int
+-__acpi_release_global_lock (unsigned int *lock)
+-{
+-	unsigned int old, new, val;
+-	do {
+-		old = *lock;
+-		new = old & ~0x3;
+-		val = cmpxchg(lock, old, new);
+-	} while (unlikely (val != old));
+-	return old & 0x1;
+-}
++int __acpi_acquire_global_lock(unsigned int *lock);
++int __acpi_release_global_lock(unsigned int *lock);
  
-+static struct backlight_properties ibm_backlight_data = {
-+        .owner          = THIS_MODULE,
-+        .get_brightness = brightness_get,
-+        .update_status  = brightness_update_status,
-+        .max_brightness = 7,
-+};
-+
- static void acpi_ibm_exit(void)
- {
- 	int i;
+ #define ACPI_ACQUIRE_GLOBAL_LOCK(GLptr, Acq) \
+ 	((Acq) = __acpi_acquire_global_lock((unsigned int *) GLptr))
+diff -puN include/asm-x86_64/acpi.h~i386-acpi-build-fix include/asm-x86_64/acpi.h
+--- a/include/asm-x86_64/acpi.h~i386-acpi-build-fix
++++ a/include/asm-x86_64/acpi.h
+@@ -54,30 +54,8 @@
+ #define ACPI_ENABLE_IRQS()  local_irq_enable()
+ #define ACPI_FLUSH_CPU_CACHE()	wbinvd()
  
-+	if (ibm_backlight_device)
-+		backlight_device_unregister(ibm_backlight_device);
-+
- 	for (i = ARRAY_SIZE(ibms) - 1; i >= 0; i--)
- 		ibm_exit(&ibms[i]);
+-
+-static inline int
+-__acpi_acquire_global_lock (unsigned int *lock)
+-{
+-	unsigned int old, new, val;
+-	do {
+-		old = *lock;
+-		new = (((old & ~0x3) + 2) + ((old >> 1) & 0x1));
+-		val = cmpxchg(lock, old, new);
+-	} while (unlikely (val != old));
+-	return (new < 3) ? -1 : 0;
+-}
+-
+-static inline int
+-__acpi_release_global_lock (unsigned int *lock)
+-{
+-	unsigned int old, new, val;
+-	do {
+-		old = *lock;
+-		new = old & ~0x3;
+-		val = cmpxchg(lock, old, new);
+-	} while (unlikely (val != old));
+-	return old & 0x1;
+-}
++int __acpi_acquire_global_lock(unsigned int *lock);
++int __acpi_release_global_lock(unsigned int *lock);
  
-@@ -2036,6 +2075,14 @@ #endif
- 		}
- 	}
- 
-+	ibm_backlight_device = backlight_device_register("ibm", NULL,
-+							 &ibm_backlight_data);
-+        if (IS_ERR(ibm_backlight_device)) {
-+		printk(IBM_ERR "Could not register ibm backlight device\n");
-+		ibm_backlight_device = NULL;
-+		acpi_ibm_exit();
-+	}
-+	
- 	return 0;
- }
+ #define ACPI_ACQUIRE_GLOBAL_LOCK(GLptr, Acq) \
+ 	((Acq) = __acpi_acquire_global_lock((unsigned int *) GLptr))
+_
+
