@@ -1,110 +1,86 @@
 From: akpm@osdl.org
-Subject: [patch 07/12] acpi: check if parent is on dock
-Date: Tue, 10 Oct 2006 14:20:38 -0700
-Message-ID: <200610102120.k9ALKcF3024284@shell0.pdx.osdl.net>
+Subject: [patch 10/12] acpi: preserve correct battery state through suspend/resume cycles
+Date: Tue, 10 Oct 2006 14:20:41 -0700
+Message-ID: <200610102120.k9ALKfDU024293@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:19618 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1030540AbWJJVus (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:46754 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1030554AbWJJVvT (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 10 Oct 2006 17:50:48 -0400
+	Tue, 10 Oct 2006 17:51:19 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, kristen.c.accardi@intel.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, jikos@jikos.cz, pavel@ucw.cz, seife@suse.de
 
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+From: Jiri Kosina <jikos@jikos.cz>
 
-Ever since I put out the docking station patches people have been asking me if
-I could get removable drive bays to work as well.  These are devices such as
-the IBM/Lenovo Ultrabay, or the Dell Module Bay - basically removable disk
-drives.  There is an IBM platform specific solution that works with some IBM
-laptops, but nothing generic.  In addition, the ibm_acpi driver had the
-limitation that it would not correctly identify ultrabay devices that had been
-inserted after the OS booted.  This driver implements bay handling using ACPI
-to safely power off the drive.  It works similarly to the ibm_acpi driver, in
-that it will simply generate an acpi event which can then be used by udev to
-unmount or rescan depending on the event.  It will create a proc entry under
-/proc/acpi/bay for "eject" and for "status".  Writing a 1 to the eject call
-will cause the drive bays acpi eject method to be called, and should be done
-prior to removing the device.  Reading the "status" entry will tell you either
-"present" or "removed" depending on the state of the device.  User space
-scripts can use the status entry to determine if a device has been either
-inserted or removed in the case of some laptops who generate the exact same
-event for either insertion or removal (i.e.  the Dell M65 for example).  Same
-scripts for using these events and udev can be found on the thinkwiki website:
+There is a problem in th following scenario(s):
 
-http://www.thinkwiki.org/wiki/How_to_hotswap_UltraBay_devices#When_using_the_ata
-_piix_driver
+boot -> suspend -> (un)plug battery -> resume
 
-Note that due to the lack of hotplug PATA, this driver will only work with
-SATA devices, or with ata_piix driver.  Hopefully if/when hotplug PATA support
-gets into libata, we can support that as well.
+The problem arises in both cases - i.e.  suspend with battery plugged in,
+and resume with battery unplugged, or vice versa.
 
-Note that this driver does not have the same limitations that the ibm_acpi
-driver had with regard to device insertion after booting.  i.e.  - if you boot
-the laptop without a drive bay inserted, and then insert the drive bay later
-on, this driver will still detect the insertion and send an event to user
-space.  The bay driver will also register with the dock station driver so that
-if the removeable drive bay is on a dock station, an event will be sent to
-userspace upon dock/undock that will allow any udev scripts specifically for
-bay handling to still be executed.
+After resume, when the battery status has changed (plugged in -> unplegged
+or unplugged -> plugged in) during the time when the system was sleeping,
+the /proc/acpi/battery/*/* is wrong (showing the state before suspend, not
+the current state).
 
-The driver still needs more testing, and I still have a little bit of
-funkiness to sort out with the Lenovo X60 with the SATA controller in
-compatibility mode - but I think it is ready for you to experiment with if you
-like and I hope that you will give it a try and send me any feedback you have.
+The following patch adds ->resume method to the ACPI battery handler, which
+has the only aim - to check whether the battery state has changed during
+sleep, and if so, update the ACPI internal data structures, so that
+information published through /proc/acpi/battery/*/* is correct even after
+suspend/resume cycle, during which the battery was removed/inserted.
 
-patch 1 is just a bug fix to the dock driver that will allow devices who's
-parents are listed as being on the dock to also be recognized as being on a
-dock station.  patch 2 is the driver.
+The patch is against current ACPI git tree, but applies cleanly also
+against -mm and probably other trees. Please apply.
 
-
-This patch:
-
-When determining if a device is on a dock station, we should
-check the parent of the device as well.
-
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Signed-off-by: Jiri Kosina <jikos@jikos.cz>
+Cc: "Brown, Len" <len.brown@intel.com>
+Cc: Stefan Seyfried <seife@suse.de>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/dock.c |   16 ++++++++++++----
- 1 files changed, 12 insertions(+), 4 deletions(-)
+ drivers/acpi/battery.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+)
 
-diff -puN drivers/acpi/dock.c~acpi-check-if-parent-is-on-dock drivers/acpi/dock.c
---- a/drivers/acpi/dock.c~acpi-check-if-parent-is-on-dock
-+++ a/drivers/acpi/dock.c
-@@ -586,20 +586,28 @@ static acpi_status
- find_dock_devices(acpi_handle handle, u32 lvl, void *context, void **rv)
- {
- 	acpi_status status;
--	acpi_handle tmp;
-+	acpi_handle tmp, parent;
- 	struct dock_station *ds = context;
- 	struct dock_dependent_device *dd;
+diff -puN drivers/acpi/battery.c~acpi-preserve-correct-battery-state-through-suspend-resume-cycles drivers/acpi/battery.c
+--- a/drivers/acpi/battery.c~acpi-preserve-correct-battery-state-through-suspend-resume-cycles
++++ a/drivers/acpi/battery.c
+@@ -64,6 +64,7 @@ extern void *acpi_unlock_battery_dir(str
  
- 	status = acpi_bus_get_ejd(handle, &tmp);
--	if (ACPI_FAILURE(status))
--		return AE_OK;
-+	if (ACPI_FAILURE(status)) {
-+		/* try the parent device as well */
-+		status = acpi_get_parent(handle, &parent);
-+		if (ACPI_FAILURE(status))
-+			goto fdd_out;
-+		/* see if parent is dependent on dock */
-+		status = acpi_bus_get_ejd(parent, &tmp);
-+		if (ACPI_FAILURE(status))
-+			goto fdd_out;
-+	}
+ static int acpi_battery_add(struct acpi_device *device);
+ static int acpi_battery_remove(struct acpi_device *device, int type);
++static int acpi_battery_resume(struct acpi_device *device, int status);
  
- 	if (tmp == ds->handle) {
- 		dd = alloc_dock_dependent_device(handle);
- 		if (dd)
- 			add_dock_dependent_device(ds, dd);
- 	}
--
-+ fdd_out:
- 	return AE_OK;
+ static struct acpi_driver acpi_battery_driver = {
+ 	.name = ACPI_BATTERY_DRIVER_NAME,
+@@ -71,6 +72,7 @@ static struct acpi_driver acpi_battery_d
+ 	.ids = ACPI_BATTERY_HID,
+ 	.ops = {
+ 		.add = acpi_battery_add,
++		.resume = acpi_battery_resume,
+ 		.remove = acpi_battery_remove,
+ 		},
+ };
+@@ -753,6 +755,18 @@ static int acpi_battery_remove(struct ac
+ 	return 0;
  }
  
++/* this is needed to learn about changes made in suspended state */
++static int acpi_battery_resume(struct acpi_device *device, int state)
++{
++	struct acpi_battery *battery;
++
++	if (!device)
++		return -EINVAL;
++
++	battery = device->driver_data;
++	return acpi_battery_check(battery);
++}
++
+ static int __init acpi_battery_init(void)
+ {
+ 	int result;
 _
