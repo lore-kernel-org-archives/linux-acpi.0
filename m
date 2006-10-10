@@ -1,63 +1,134 @@
 From: akpm@osdl.org
-Subject: [patch 06/12] asus_acpi: don't printk on writing garbage to proc files
-Date: Tue, 10 Oct 2006 14:20:36 -0700
-Message-ID: <200610102120.k9ALKa9G024281@shell0.pdx.osdl.net>
+Subject: [patch 12/12] i386: uninline acpi locking functions
+Date: Tue, 10 Oct 2006 14:20:46 -0700
+Message-ID: <200610102120.k9ALKkKa024299@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:16546 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1030542AbWJJVup (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:9122 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1030539AbWJJVui (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 10 Oct 2006 17:50:45 -0400
+	Tue, 10 Oct 2006 17:50:38 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, adobriyan@gmail.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org
 
-From: Alexey Dobriyan <adobriyan@gmail.com>
+From: Andrew Morton <akpm@osdl.org>
 
-* This reporting is useless (you get errno anyway).
-* This reporting is already inconsistent in driver.
-* Looks like created files in proc are rw-rw-rw- by default.
+- Fixes a build problem with CONFIG_M386=y (include file dependenciers get
+  messy).
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+- Share the implementation between x86 and x86_64
+
+- These are too big to inline anyway.
+
+Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/asus_acpi.c |   10 +---------
- 1 files changed, 1 insertion(+), 9 deletions(-)
+ arch/i386/kernel/acpi/boot.c |   22 ++++++++++++++++++++++
+ include/asm-i386/acpi.h      |   26 ++------------------------
+ include/asm-x86_64/acpi.h    |   26 ++------------------------
+ 3 files changed, 26 insertions(+), 48 deletions(-)
 
-diff -puN drivers/acpi/asus_acpi.c~asus_acpi-dont-printk-on-writing-garbage-to-proc-files drivers/acpi/asus_acpi.c
---- a/drivers/acpi/asus_acpi.c~asus_acpi-dont-printk-on-writing-garbage-to-proc-files
-+++ a/drivers/acpi/asus_acpi.c
-@@ -629,9 +629,7 @@ proc_write_ledd(struct file *file, const
- 			       "Asus ACPI: LED display write failed\n");
- 		else
- 			hotk->ledd_status = (u32) value;
--	} else if (rv < 0)
--		printk(KERN_WARNING "Asus ACPI: Error reading user input\n");
--
-+	}
- 	return rv;
+diff -puN arch/i386/kernel/acpi/boot.c~i386-acpi-build-fix arch/i386/kernel/acpi/boot.c
+--- a/arch/i386/kernel/acpi/boot.c~i386-acpi-build-fix
++++ a/arch/i386/kernel/acpi/boot.c
+@@ -1319,3 +1319,25 @@ static int __init setup_acpi_sci(char *s
+ 	return 0;
  }
+ early_param("acpi_sci", setup_acpi_sci);
++
++int __acpi_acquire_global_lock(unsigned int *lock)
++{
++	unsigned int old, new, val;
++	do {
++		old = *lock;
++		new = (((old & ~0x3) + 2) + ((old >> 1) & 0x1));
++		val = cmpxchg(lock, old, new);
++	} while (unlikely (val != old));
++	return (new < 3) ? -1 : 0;
++}
++
++int __acpi_release_global_lock(unsigned int *lock)
++{
++	unsigned int old, new, val;
++	do {
++		old = *lock;
++		new = old & ~0x3;
++		val = cmpxchg(lock, old, new);
++	} while (unlikely (val != old));
++	return old & 0x1;
++}
+diff -puN include/asm-i386/acpi.h~i386-acpi-build-fix include/asm-i386/acpi.h
+--- a/include/asm-i386/acpi.h~i386-acpi-build-fix
++++ a/include/asm-i386/acpi.h
+@@ -56,30 +56,8 @@
+ #define ACPI_ENABLE_IRQS()  local_irq_enable()
+ #define ACPI_FLUSH_CPU_CACHE()	wbinvd()
  
-@@ -849,10 +847,7 @@ proc_write_brn(struct file *file, const 
- 		value = (0 < value) ? ((15 < value) ? 15 : value) : 0;
- 		/* 0 <= value <= 15 */
- 		set_brightness(value);
--	} else if (rv < 0) {
--		printk(KERN_WARNING "Asus ACPI: Error reading user input\n");
- 	}
 -
- 	return rv;
- }
- 
-@@ -897,9 +892,6 @@ proc_write_disp(struct file *file, const
- 	rv = parse_arg(buffer, count, &value);
- 	if (rv > 0)
- 		set_display(value);
--	else if (rv < 0)
--		printk(KERN_WARNING "Asus ACPI: Error reading user input\n");
+-static inline int
+-__acpi_acquire_global_lock (unsigned int *lock)
+-{
+-	unsigned int old, new, val;
+-	do {
+-		old = *lock;
+-		new = (((old & ~0x3) + 2) + ((old >> 1) & 0x1));
+-		val = cmpxchg(lock, old, new);
+-	} while (unlikely (val != old));
+-	return (new < 3) ? -1 : 0;
+-}
 -
- 	return rv;
- }
+-static inline int
+-__acpi_release_global_lock (unsigned int *lock)
+-{
+-	unsigned int old, new, val;
+-	do {
+-		old = *lock;
+-		new = old & ~0x3;
+-		val = cmpxchg(lock, old, new);
+-	} while (unlikely (val != old));
+-	return old & 0x1;
+-}
++int __acpi_acquire_global_lock(unsigned int *lock);
++int __acpi_release_global_lock(unsigned int *lock);
  
+ #define ACPI_ACQUIRE_GLOBAL_LOCK(GLptr, Acq) \
+ 	((Acq) = __acpi_acquire_global_lock((unsigned int *) GLptr))
+diff -puN include/asm-x86_64/acpi.h~i386-acpi-build-fix include/asm-x86_64/acpi.h
+--- a/include/asm-x86_64/acpi.h~i386-acpi-build-fix
++++ a/include/asm-x86_64/acpi.h
+@@ -54,30 +54,8 @@
+ #define ACPI_ENABLE_IRQS()  local_irq_enable()
+ #define ACPI_FLUSH_CPU_CACHE()	wbinvd()
+ 
+-
+-static inline int
+-__acpi_acquire_global_lock (unsigned int *lock)
+-{
+-	unsigned int old, new, val;
+-	do {
+-		old = *lock;
+-		new = (((old & ~0x3) + 2) + ((old >> 1) & 0x1));
+-		val = cmpxchg(lock, old, new);
+-	} while (unlikely (val != old));
+-	return (new < 3) ? -1 : 0;
+-}
+-
+-static inline int
+-__acpi_release_global_lock (unsigned int *lock)
+-{
+-	unsigned int old, new, val;
+-	do {
+-		old = *lock;
+-		new = old & ~0x3;
+-		val = cmpxchg(lock, old, new);
+-	} while (unlikely (val != old));
+-	return old & 0x1;
+-}
++int __acpi_acquire_global_lock(unsigned int *lock);
++int __acpi_release_global_lock(unsigned int *lock);
+ 
+ #define ACPI_ACQUIRE_GLOBAL_LOCK(GLptr, Acq) \
+ 	((Acq) = __acpi_acquire_global_lock((unsigned int *) GLptr))
 _
