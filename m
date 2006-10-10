@@ -1,187 +1,81 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: [BUG]: can not compile 2.6.19-rc1: 'boot_cpu_data' undeclared
-Date: Mon, 9 Oct 2006 10:45:27 -0700
-Message-ID: <20061009104527.079fe63b.akpm@osdl.org>
-References: <20061009135441.1ae38233.pauldrynoff@gmail.com>
+From: Matthias Hentges <oe@hentges.net>
+Subject: cpufreq frequencies off for Core 2 Duo E6600 "Conroe"
+Date: Tue, 10 Oct 2006 02:41:03 +0200
+Message-ID: <1160440863.4575.69.camel@mhcln03>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-aaYvEHuJ0WPiz/DXt/0D"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:56032 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S932922AbWJIRpi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Oct 2006 13:45:38 -0400
-In-Reply-To: <20061009135441.1ae38233.pauldrynoff@gmail.com>
+Received: from hentges.net ([81.169.178.128]:17886 "EHLO
+	h6563.serverkompetenz.net") by vger.kernel.org with ESMTP
+	id S1751919AbWJJAlC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 9 Oct 2006 20:41:02 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by h6563.serverkompetenz.net (Postfix) with ESMTP id 9E3C53081E9
+	for <linux-acpi@vger.kernel.org>; Tue, 10 Oct 2006 02:41:00 +0200 (CEST)
+Received: from h6563.serverkompetenz.net ([127.0.0.1])
+	by localhost (h6563 [127.0.0.1]) (amavisd-new, port 10024) with ESMTP
+	id 22070-10 for <linux-acpi@vger.kernel.org>;
+	Tue, 10 Oct 2006 02:40:56 +0200 (CEST)
+Received: from mhcln03.hentges.priv (xdsl-213-196-220-48.netcologne.de [213.196.220.48])
+	by h6563.serverkompetenz.net (Postfix) with ESMTP id B3F023081E6
+	for <linux-acpi@vger.kernel.org>; Tue, 10 Oct 2006 02:40:55 +0200 (CEST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Paul Drynoff <pauldrynoff@gmail.com>
-Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
-
-On Mon, 9 Oct 2006 13:54:41 +0400
-Paul Drynoff <pauldrynoff@gmail.com> wrote:
-
-> I update kernel to patch-2.6.19-rc1-git, but problem still here.
-> __acpi_acquire_global_lock uses cmpxchg it uses struct cpuinfo_x86,
-> but it not defined, and if include asmp/processor.h where it defined,
-> this cause another problems of compilation. Any ideas?
-> 
-> 
-> 
-> Date: Sun, 8 Oct 2006 20:28:01 +0400
-> From: Paul Drynoff <pauldrynoff@gmail.com>
-> To: linux-kernel@vger.kernel.org
-> Subject: [BUG]: can not compile 2.6.19-rc1: 'boot_cpu_data' undeclared
-> 
-> 
-> $ make
->  CHK     include/linux/version.h
->  CHK     include/linux/utsrelease.h
->  CHK     include/linux/compile.h
->  CC      arch/i386/mach-generic/probe.o
-> In file included from include/asm/fixmap.h:30,
->                 from arch/i386/mach-generic/probe.c:13:
-> include/asm/acpi.h: In function '__acpi_acquire_global_lock':
-> include/asm/acpi.h:67: error: 'boot_cpu_data' undeclared (first use
-> in this function)
-> include/asm/acpi.h:67: error: (Each undeclared identifier is reported
-> only once
-> include/asm/acpi.h:67: error: for each function it appears in.)
-> include/asm/acpi.h: In function '__acpi_release_global_lock':
-> include/asm/acpi.h:79: error: 'boot_cpu_data' undeclared (first use
-> in this function)
-
-I suspect the problem is:
-
-CONFIG_M386=y
-
-which makes the support of cmpxchg do complex things.  But it _should_
-work.
-
-Still, it makes sense to uninline those ACPI locking functions.  I haven't
-yet checked to see if these functions need exporting to modules.
-
-Note that with this patch and your .config, we get
-
-arch/i386/kernel/acpi/boot.c:91:2: warning: #warning ACPI uses CMPXCHG, i486 and later hardware
+To: linux-acpi@vger.kernel.org
 
 
-From: Andrew Morton <akpm@osdl.org>
+--=-aaYvEHuJ0WPiz/DXt/0D
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-- Fixes a build problem with CONFIG_M386=y (include file dependenciers get
-  messy).
+Hi all,
 
-- Share the implementation between x86 and x86_64
+I'm the happy user of a shiny new C2D E6600 CPU. While cpufreq works, it
+only offers support for the lowest possible frequency (1596MHz)
 
-- These are too big to inline anyway.
+(Linux mhcln01 2.6.19-rc1-git5-mh02 #3 SMP Tue Oct 10 01:35:05 CEST 2006
+i686 GNU/Linux )
 
-Cc: "Brown, Len" <len.brown@intel.com>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
----
+root@mhcln01:../system/cpu/cpu0/cpufreq >cat
+scaling_available_frequencies=20
+2394000 2394000 2394000 2394000 2394000 2394000 2394000 2394000 2394000
+1596000=20
 
- arch/i386/kernel/acpi/boot.c |   22 ++++++++++++++++++++++
- include/asm-i386/acpi.h      |   26 ++------------------------
- include/asm-x86_64/acpi.h    |   26 ++------------------------
- 3 files changed, 26 insertions(+), 48 deletions(-)
+As I understand it, the command above should list all possible "steps"
+for this CPU. The E6600 supports a multiplicator change between 6 and 9.
+For a default FSB of 266 this would mean the valid steps for the CPU
+are:
 
-diff -puN arch/i386/kernel/acpi/boot.c~i386-acpi-build-fix arch/i386/kernel/acpi/boot.c
---- a/arch/i386/kernel/acpi/boot.c~i386-acpi-build-fix
-+++ a/arch/i386/kernel/acpi/boot.c
-@@ -1319,3 +1319,25 @@ static int __init setup_acpi_sci(char *s
- 	return 0;
- }
- early_param("acpi_sci", setup_acpi_sci);
-+
-+int __acpi_acquire_global_lock(unsigned int *lock)
-+{
-+	unsigned int old, new, val;
-+	do {
-+		old = *lock;
-+		new = (((old & ~0x3) + 2) + ((old >> 1) & 0x1));
-+		val = cmpxchg(lock, old, new);
-+	} while (unlikely (val != old));
-+	return (new < 3) ? -1 : 0;
-+}
-+
-+int __acpi_release_global_lock(unsigned int *lock)
-+{
-+	unsigned int old, new, val;
-+	do {
-+		old = *lock;
-+		new = old & ~0x3;
-+		val = cmpxchg(lock, old, new);
-+	} while (unlikely (val != old));
-+	return old & 0x1;
-+}
-diff -puN include/asm-i386/acpi.h~i386-acpi-build-fix include/asm-i386/acpi.h
---- a/include/asm-i386/acpi.h~i386-acpi-build-fix
-+++ a/include/asm-i386/acpi.h
-@@ -56,30 +56,8 @@
- #define ACPI_ENABLE_IRQS()  local_irq_enable()
- #define ACPI_FLUSH_CPU_CACHE()	wbinvd()
- 
--
--static inline int
--__acpi_acquire_global_lock (unsigned int *lock)
--{
--	unsigned int old, new, val;
--	do {
--		old = *lock;
--		new = (((old & ~0x3) + 2) + ((old >> 1) & 0x1));
--		val = cmpxchg(lock, old, new);
--	} while (unlikely (val != old));
--	return (new < 3) ? -1 : 0;
--}
--
--static inline int
--__acpi_release_global_lock (unsigned int *lock)
--{
--	unsigned int old, new, val;
--	do {
--		old = *lock;
--		new = old & ~0x3;
--		val = cmpxchg(lock, old, new);
--	} while (unlikely (val != old));
--	return old & 0x1;
--}
-+int __acpi_acquire_global_lock(unsigned int *lock);
-+int __acpi_release_global_lock(unsigned int *lock);
- 
- #define ACPI_ACQUIRE_GLOBAL_LOCK(GLptr, Acq) \
- 	((Acq) = __acpi_acquire_global_lock((unsigned int *) GLptr))
-diff -puN include/asm-x86_64/acpi.h~i386-acpi-build-fix include/asm-x86_64/acpi.h
---- a/include/asm-x86_64/acpi.h~i386-acpi-build-fix
-+++ a/include/asm-x86_64/acpi.h
-@@ -54,30 +54,8 @@
- #define ACPI_ENABLE_IRQS()  local_irq_enable()
- #define ACPI_FLUSH_CPU_CACHE()	wbinvd()
- 
--
--static inline int
--__acpi_acquire_global_lock (unsigned int *lock)
--{
--	unsigned int old, new, val;
--	do {
--		old = *lock;
--		new = (((old & ~0x3) + 2) + ((old >> 1) & 0x1));
--		val = cmpxchg(lock, old, new);
--	} while (unlikely (val != old));
--	return (new < 3) ? -1 : 0;
--}
--
--static inline int
--__acpi_release_global_lock (unsigned int *lock)
--{
--	unsigned int old, new, val;
--	do {
--		old = *lock;
--		new = old & ~0x3;
--		val = cmpxchg(lock, old, new);
--	} while (unlikely (val != old));
--	return old & 0x1;
--}
-+int __acpi_acquire_global_lock(unsigned int *lock);
-+int __acpi_release_global_lock(unsigned int *lock);
- 
- #define ACPI_ACQUIRE_GLOBAL_LOCK(GLptr, Acq) \
- 	((Acq) = __acpi_acquire_global_lock((unsigned int *) GLptr))
-_
+2394000 2128000 1862000 1596000=20
+
+There is another thing bugging me with cpufreq:
++root@mhcln01:../system/cpu/cpu0/cpufreq >cat scaling_cur_freq=20
+1596000
++root@mhcln01:../system/cpu/cpu0/cpufreq >cat cpuinfo_cur_freq=20
+1596000
+
+Since the machine is overclocked to FSB301 (2.7GHz), the output above is
+clearly wrong (should read 6 x 301 =3D 1806MHz). I wonder if it would be
+possible to replace the output with the real frequency, not some
+hard-wired frequency/vcore value?
+
+Thanks for your time.
+--=20
+Matthias 'CoreDump' Hentges=20
+
+My OS: Debian SID. Geek by Nature, Linux by Choice
+
+--=-aaYvEHuJ0WPiz/DXt/0D
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Dies ist ein digital signierter Nachrichtenteil
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (GNU/Linux)
+
+iD8DBQBFKuwfAq2P5eLUP5IRAn2/AJ9KxfX+3dZgjR2vhJ1Cff19oYzRzACfYzya
+9qAqtXi6pOnjJQ8SFi0uCK0=
+=d86o
+-----END PGP SIGNATURE-----
+
+--=-aaYvEHuJ0WPiz/DXt/0D--
 
