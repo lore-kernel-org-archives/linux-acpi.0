@@ -1,34 +1,66 @@
-From: Richard Hughes <hughsient@gmail.com>
-Subject: Re: [PATCH 2.6.18-mm2] acpi: add backlight support to the
-	sony_acpi driver
-Date: Tue, 10 Oct 2006 16:22:10 +0100
-Message-ID: <1160493730.19004.1.camel@hughsie-laptop>
-References: <20060930190810.30b8737f.alessandro.guido@gmail.com>
-	 <20061001171912.b7aac1d8.akpm@osdl.org>
-	 <20061002132549.9d164061.alessandro.guido@gmail.com>
-	 <200610102317.24310.luming.yu@gmail.com>
+From: Matt Domsch <Matt_Domsch@dell.com>
+Subject: Re: [PATCH 2.6.18-mm2] acpi: add backlight support to the sony_acpi driver
+Date: Tue, 10 Oct 2006 11:10:13 -0500
+Message-ID: <20061010161012.GA18847@lists.us.dell.com>
+References: <20060930190810.30b8737f.alessandro.guido@gmail.com> <20061005103657.GA4474@ucw.cz> <20061006211751.GA31887@lists.us.dell.com> <200610102232.46627.luming.yu@gmail.com> <1160491646.6174.36.camel@hughsie-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.171]:5715 "EHLO
-	ug-out-1314.google.com") by vger.kernel.org with ESMTP
-	id S1750876AbWJJPWN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 10 Oct 2006 11:22:13 -0400
-Received: by ug-out-1314.google.com with SMTP id o38so765816ugd
-        for <linux-acpi@vger.kernel.org>; Tue, 10 Oct 2006 08:22:12 -0700 (PDT)
-In-Reply-To: <200610102317.24310.luming.yu@gmail.com>
+Received: from ausc60pc101.us.dell.com ([143.166.85.206]:58283 "EHLO
+	ausc60pc101.us.dell.com") by vger.kernel.org with ESMTP
+	id S932198AbWJJQKK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Oct 2006 12:10:10 -0400
+Content-Disposition: inline
+In-Reply-To: <1160491646.6174.36.camel@hughsie-laptop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yu Luming <luming.yu@gmail.com>
-Cc: Alessandro Guido <alessandro.guido@gmail.com>, Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr
+To: Richard Hughes <hughsient@gmail.com>
+Cc: Yu Luming <luming.yu@gmail.com>, Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@osdl.org>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr
 
-On Tue, 2006-10-10 at 23:17 +0800, Yu Luming wrote:
-> It should be mapped to KEY_BRIGHTNESSDOWN/UP (linux/input.h)
+On Tue, Oct 10, 2006 at 03:47:26PM +0100, Richard Hughes wrote:
+> On Tue, 2006-10-10 at 22:32 +0800, Yu Luming wrote:
+> > >From my understanding, a cute userspace App shouldn't have this kind
+> > of logic:
+> >         if (is  DELL )
+> >                 invoke libsmbios
+> >         if (is  foo)
+> >                 invoke libfoo,
+> >         if (is bar)
+> >                 invoke libbar,
+> >         ....
+> >         else
+> >                 operate on /sys/class/backlight/ ,.,..
+> 
+> This is what HAL has at the moment[1]. And it's hell to maintain, but
+> works for a lot of users.
 
-Completely agree. Then userspace (like gnome-power-manager or
-powersaved) can change the brightness based on policy and user-lockdown.
+This is slightly different.  This shows that there are a number of
+slightly different kernel implementations:
 
-Richard.
+/proc/acpi/toshiba/lcd
+/proc/acpi/asus/brn
+/proc/acpi/pcc/brightness
+/proc/acpi/ibm/brightness
+/proc/acpi/sony/brightness
+/proc/omnibook/lcd
 
+which is indeed nasty. I'd agree all in-kernel solutions should use
+the same kernel<->user interface.  I'd also expect the kernel to have
+a generic ACPI driver that exports the _BCL and _BCM method
+implementations via that same interface, so that systems providing
+that will "just work".  drivers/acpi/video.c currently exports this
+via /proc/acpi/video/$DEVICE/brightness, which isn't the same as
+/sys/class/backlight. :-(
 
+There's also at least one more userspace option for the sonypi using
+spiictrl.  This is where I expected libsmbios to plug in also, as a
+fallback to the ACPI _BCL/_BCM methods above.
+
+Thanks,
+Matt
+
+-- 
+Matt Domsch
+Software Architect
+Dell Linux Solutions linux.dell.com & www.dell.com/linux
+Linux on Dell mailing lists @ http://lists.us.dell.com
