@@ -1,42 +1,47 @@
-From: Dmitry Torokhov <dtor@insightbb.com>
-Subject: Re: [PATCH 2.6.18-mm2] acpi: add backlight support to the sony_acpi driver
-Date: Tue, 10 Oct 2006 23:20:08 -0400
-Message-ID: <200610102320.13952.dtor@insightbb.com>
-References: <20060930190810.30b8737f.alessandro.guido@gmail.com> <200610102317.24310.luming.yu@gmail.com> <20061010212341.GA31972@srcf.ucam.org>
+From: Arjan van de Ven <arjan@infradead.org>
+Subject: Re: [PATCH 2.6.18-mm2] acpi: add backlight support to the
+	sony_acpi driver
+Date: Wed, 11 Oct 2006 08:59:04 +0200
+Message-ID: <1160549944.3000.347.camel@laptopd505.fenrus.org>
+References: <20060930190810.30b8737f.alessandro.guido@gmail.com>
+	 <20061005103657.GA4474@ucw.cz> <20061006211751.GA31887@lists.us.dell.com>
+	 <200610102232.46627.luming.yu@gmail.com>
+	 <20061010212615.GB31972@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gateway.insightbb.com ([74.128.0.19]:39211 "EHLO
-	asav00.insightbb.com") by vger.kernel.org with ESMTP
-	id S1030768AbWJKDU3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 10 Oct 2006 23:20:29 -0400
-In-Reply-To: <20061010212341.GA31972@srcf.ucam.org>
-Content-Disposition: inline
+Received: from pentafluge.infradead.org ([213.146.154.40]:48552 "EHLO
+	pentafluge.infradead.org") by vger.kernel.org with ESMTP
+	id S932445AbWJKG72 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Oct 2006 02:59:28 -0400
+In-Reply-To: <20061010212615.GB31972@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Yu Luming <luming.yu@gmail.com>, Alessandro Guido <alessandro.guido@gmail.com>, Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr
+Cc: Yu Luming <luming.yu@gmail.com>, Matt Domsch <Matt_Domsch@dell.com>, Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@osdl.org>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr
 
-On Tuesday 10 October 2006 17:23, Matthew Garrett wrote:
-> On Tue, Oct 10, 2006 at 11:17:23PM +0800, Yu Luming wrote:
+On Tue, 2006-10-10 at 22:26 +0100, Matthew Garrett wrote:
+> On Tue, Oct 10, 2006 at 10:32:46PM +0800, Yu Luming wrote:
 > 
-> > Also, we need to make hot-key events  have similar handling code .
-> > For example, Fn+F5 and Fn+F6 are brightness down and up key on my sony laptop.  
-> > There is a driver called sonypi.c can map Fn+F5/F6 to KEY_FN_F5/F6. But I 
-> > think It should be mapped to KEY_BRIGHTNESSDOWN/UP (linux/input.h)
-> > Although, sonypi.c is NOT so clean, but , if it can report right event to 
-> > input layer for all sony laptop(it works for me), and all related functions 
-> > can be controlled through generic sysfs interface, then I would say sony has 
-> > the best hot-key solution I have even seen so far for linux.
+> > >From my understanding, a cute userspace App shouldn't have this kind
+> > of logic:
 > 
-> It would have to be DMI-based to some extent - not all Sonys use the 
-> same keys for the same purpose. Misery ensues.
+> (snip switching on hardware type)
 > 
+> > It should be:
+> > 	just write/read  file in  /sys/class/backlight ,....
+> 
+> Yup, but to do that on Dell hardware is basically impossible. It'd be 
+> nice if they implemented the ACPI video extension properly for future 
+> hardware.
 
-Then we need to add keymap table to the sonypi's input device so that
-keymap can be changed from userspace.
+it'd also be nice if the linux-ready firmware developer kit had a test
+for this, so that we can offer 1) a way to test this to the bios guys
+and 2) encourage adding/note the lack easily
 
+
+> 
 -- 
-Dmitry
+if you want to mail me at work (you don't), use arjan (at) linux.intel.com
+
