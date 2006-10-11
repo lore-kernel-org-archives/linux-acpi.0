@@ -1,31 +1,68 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 2.6.18-mm2] acpi: add backlight support to the sony_acpi driver
-Date: Wed, 11 Oct 2006 09:12:44 +0100
-Message-ID: <20061011081244.GA6915@srcf.ucam.org>
-References: <20060930190810.30b8737f.alessandro.guido@gmail.com> <1160549944.3000.347.camel@laptopd505.fenrus.org> <20061011070412.GA6128@srcf.ucam.org> <200610111104.50563.ismail@pardus.org.tr>
+From: "Lebedev, Vladimir P" <vladimir.p.lebedev@intel.com>
+Subject: RE: Battery & cpufreq problems with HP nc6320
+Date: Wed, 11 Oct 2006 13:46:57 +0400
+Message-ID: <8E389A5F2FEABA4CB1DEC35A25CB39CE5930AF@mssmsx411>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:26544 "EHLO
-	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
-	id S1161024AbWJKIM5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Oct 2006 04:12:57 -0400
-Content-Disposition: inline
-In-Reply-To: <200610111104.50563.ismail@pardus.org.tr>
+Received: from mga01.intel.com ([192.55.52.88]:48202 "EHLO mga01.intel.com")
+	by vger.kernel.org with ESMTP id S1750925AbWJKJrU convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Oct 2006 05:47:20 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ismail Donmez <ismail@pardus.org.tr>
-Cc: Arjan van de Ven <arjan@infradead.org>, Yu Luming <luming.yu@gmail.com>, Matt Domsch <Matt_Domsch@dell.com>, Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@osdl.org>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com, jengelh@linux01.gwdg.de, gelma@gelma.net
+To: Peter Clifton <pcjc2@cam.ac.uk>
+Cc: linux-acpi@vger.kernel.org
 
-On Wed, Oct 11, 2006 at 11:04:48AM +0300, Ismail Donmez wrote:
 
-> device_id:    0x0410
-> type:         UNKNOWN
-> known by bios: no
+Peter,
 
-This one's an LCD, according to the spec. The id spec was changed 
-slightly in 3.0 of the acpi spec (in a backwards compatible way) - I'd 
-guess that the acpi video driver just hasn't been updated.
+Please look at 
+http://bugzilla.kernel.org/show_bug.cgi?id=6455
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+At least this patch works on nx6125.
+
+Vladimir.
+
+-----Original Message-----
+From: linux-acpi-owner@vger.kernel.org
+[mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Peter Clifton
+Sent: Tuesday, October 10, 2006 11:36 PM
+To: linux-acpi@vger.kernel.org
+Subject: Battery & cpufreq problems with HP nc6320
+
+Hi,
+
+I've deliberatly used the same title as a previous message I saw in the
+archives from Mike Kasick, Thu, 25 May 2006 11:17:33 -0700.
+
+(I've BCC'd Mike, although I apologise if I got the wrong Mike Kasick!)
+
+I'm in a similar situation with my HP / Compaq nc6320, with battery
+status "hanging" after a little while of laptop use. (And speedstep
+issues, but that is another problem)
+
+I discovered the patch at:
+
+http://librarian.launchpad.net/3435574/the-patch.txt
+
+Unfortunately I can't remember its origin. Some Ubuntu support forum I
+think.
+
+I'm interested to know if this is an acceptable solution to fix the
+problem, or if it simply a workaround to a problem elsewhere.
+
+Perhaps some ACPI guru might have some insight.
+
+Regards
+
+Peter Clifton
+
+
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
