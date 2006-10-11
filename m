@@ -1,47 +1,35 @@
-From: Arjan van de Ven <arjan@infradead.org>
-Subject: Re: [PATCH 2.6.18-mm2] acpi: add backlight support to the
-	sony_acpi driver
-Date: Wed, 11 Oct 2006 08:59:04 +0200
-Message-ID: <1160549944.3000.347.camel@laptopd505.fenrus.org>
-References: <20060930190810.30b8737f.alessandro.guido@gmail.com>
-	 <20061005103657.GA4474@ucw.cz> <20061006211751.GA31887@lists.us.dell.com>
-	 <200610102232.46627.luming.yu@gmail.com>
-	 <20061010212615.GB31972@srcf.ucam.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 2.6.18-mm2] acpi: add backlight support to the sony_acpi driver
+Date: Wed, 11 Oct 2006 08:04:12 +0100
+Message-ID: <20061011070412.GA6128@srcf.ucam.org>
+References: <20060930190810.30b8737f.alessandro.guido@gmail.com> <20061005103657.GA4474@ucw.cz> <20061006211751.GA31887@lists.us.dell.com> <200610102232.46627.luming.yu@gmail.com> <20061010212615.GB31972@srcf.ucam.org> <1160549944.3000.347.camel@laptopd505.fenrus.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pentafluge.infradead.org ([213.146.154.40]:48552 "EHLO
-	pentafluge.infradead.org") by vger.kernel.org with ESMTP
-	id S932445AbWJKG72 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Oct 2006 02:59:28 -0400
-In-Reply-To: <20061010212615.GB31972@srcf.ucam.org>
+Received: from cavan.codon.org.uk ([217.147.92.49]:14555 "EHLO
+	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
+	id S1161000AbWJKHEU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Oct 2006 03:04:20 -0400
+Content-Disposition: inline
+In-Reply-To: <1160549944.3000.347.camel@laptopd505.fenrus.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
+To: Arjan van de Ven <arjan@infradead.org>
 Cc: Yu Luming <luming.yu@gmail.com>, Matt Domsch <Matt_Domsch@dell.com>, Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@osdl.org>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr
 
-On Tue, 2006-10-10 at 22:26 +0100, Matthew Garrett wrote:
-> On Tue, Oct 10, 2006 at 10:32:46PM +0800, Yu Luming wrote:
-> 
-> > >From my understanding, a cute userspace App shouldn't have this kind
-> > of logic:
-> 
-> (snip switching on hardware type)
-> 
-> > It should be:
-> > 	just write/read  file in  /sys/class/backlight ,....
-> 
-> Yup, but to do that on Dell hardware is basically impossible. It'd be 
-> nice if they implemented the ACPI video extension properly for future 
-> hardware.
+On Wed, Oct 11, 2006 at 08:59:04AM +0200, Arjan van de Ven wrote:
 
-it'd also be nice if the linux-ready firmware developer kit had a test
-for this, so that we can offer 1) a way to test this to the bios guys
-and 2) encourage adding/note the lack easily
+> it'd also be nice if the linux-ready firmware developer kit had a test
+> for this, so that we can offer 1) a way to test this to the bios guys
+> and 2) encourage adding/note the lack easily
 
+Sure. Reading /proc/acpi/video/*/*/info should tell you whether a device 
+is an LCD or not. The brightness file should then contain a list of 
+available brightnesses, and writing one into there should change the 
+screen value. There's a patch somewhere that ports this to the 
+/sys/class/backlight infrastructure, but I don't think it's applied yet.
 
-> 
+I'd write a test up for you, but I don't actually seem to have any 
+hardware that implements this properly. Tch.
 -- 
-if you want to mail me at work (you don't), use arjan (at) linux.intel.com
-
+Matthew Garrett | mjg59@srcf.ucam.org
