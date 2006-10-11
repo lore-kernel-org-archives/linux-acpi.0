@@ -1,68 +1,34 @@
-From: "Lebedev, Vladimir P" <vladimir.p.lebedev@intel.com>
-Subject: RE: Battery & cpufreq problems with HP nc6320
-Date: Wed, 11 Oct 2006 13:46:57 +0400
-Message-ID: <8E389A5F2FEABA4CB1DEC35A25CB39CE5930AF@mssmsx411>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] Add support for the generic backlight device to the IBM ACPI driver
+Date: Wed, 11 Oct 2006 11:30:42 +0000
+Message-ID: <20061011113042.GA4725@ucw.cz>
+References: <20061009113235.GA4444@homac.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:48202 "EHLO mga01.intel.com")
-	by vger.kernel.org with ESMTP id S1750925AbWJKJrU convert rfc822-to-8bit
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:54033 "EHLO
+	spitz.ucw.cz") by vger.kernel.org with ESMTP id S1030349AbWJKLaz
 	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Oct 2006 05:47:20 -0400
-Content-class: urn:content-classes:message
+	Wed, 11 Oct 2006 07:30:55 -0400
+Content-Disposition: inline
+In-Reply-To: <20061009113235.GA4444@homac.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Clifton <pcjc2@cam.ac.uk>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, len.brown@intel.com
 
+Hi!
 
-Peter,
+> Add support for the generic backlight interface below
+> /sys/class/backlight. The patch keeps the procfs brightness handling for
+> backward compatibility. For this to archive, the patch adds two generic
+> functions brightness_get and brightness_set to be used both by the procfs
+> related and the sysfs related methods.
+> 
+> Signed-off-by: Holger Macht <hmacht@suse.de>
 
-Please look at 
-http://bugzilla.kernel.org/show_bug.cgi?id=6455
+Looks okay to me. It would be nice to get this in, so that we teach
+people to use generic interface, and so that we can remove crappy
+interfaces in future...
 
-At least this patch works on nx6125.
-
-Vladimir.
-
------Original Message-----
-From: linux-acpi-owner@vger.kernel.org
-[mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Peter Clifton
-Sent: Tuesday, October 10, 2006 11:36 PM
-To: linux-acpi@vger.kernel.org
-Subject: Battery & cpufreq problems with HP nc6320
-
-Hi,
-
-I've deliberatly used the same title as a previous message I saw in the
-archives from Mike Kasick, Thu, 25 May 2006 11:17:33 -0700.
-
-(I've BCC'd Mike, although I apologise if I got the wrong Mike Kasick!)
-
-I'm in a similar situation with my HP / Compaq nc6320, with battery
-status "hanging" after a little while of laptop use. (And speedstep
-issues, but that is another problem)
-
-I discovered the patch at:
-
-http://librarian.launchpad.net/3435574/the-patch.txt
-
-Unfortunately I can't remember its origin. Some Ubuntu support forum I
-think.
-
-I'm interested to know if this is an acceptable solution to fix the
-problem, or if it simply a workaround to a problem elsewhere.
-
-Perhaps some ACPI guru might have some insight.
-
-Regards
-
-Peter Clifton
-
-
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Thanks for all the (sleeping) penguins.
