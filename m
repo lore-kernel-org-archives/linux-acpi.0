@@ -1,64 +1,30 @@
 From: Yu Luming <luming.yu@gmail.com>
 Subject: Re: [PATCH 2.6.18-mm2] acpi: add backlight support to the sony_acpi driver
-Date: Thu, 12 Oct 2006 00:31:13 +0800
-Message-ID: <200610120031.13449.luming.yu@gmail.com>
-References: <20060930190810.30b8737f.alessandro.guido@gmail.com> <20061011070412.GA6128@srcf.ucam.org> <200610111104.50563.ismail@pardus.org.tr>
+Date: Thu, 12 Oct 2006 00:37:11 +0800
+Message-ID: <200610120037.11933.luming.yu@gmail.com>
+References: <20060930190810.30b8737f.alessandro.guido@gmail.com> <20061010212615.GB31972@srcf.ucam.org> <20061011030232.GA27693@lists.us.dell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1161121AbWJKQb0@vger.kernel.org>
-In-Reply-To: <200610111104.50563.ismail@pardus.org.tr>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from py-out-1112.google.com ([64.233.166.179]:42839 "EHLO
+	py-out-1112.google.com") by vger.kernel.org with ESMTP
+	id S1161123AbWJKQhY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Oct 2006 12:37:24 -0400
+Received: by py-out-1112.google.com with SMTP id z74so236504pyg
+        for <linux-acpi@vger.kernel.org>; Wed, 11 Oct 2006 09:37:23 -0700 (PDT)
+In-Reply-To: <20061011030232.GA27693@lists.us.dell.com>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ismail Donmez <ismail@pardus.org.tr>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Arjan van de Ven <arjan@infradead.org>, Matt Domsch <Matt_Domsch@dell.com>, Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@osdl.org>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com, jengelh@linux01.gwdg.de, gelma@gelma.net
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matt Domsch <Matt_Domsch@dell.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@osdl.org>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, len.brown@intel.com, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr
 
-On Wednesday 11 October 2006 16:04, Ismail Donmez wrote:
-> 11 Eki 2006 =C3=87ar 10:04 tarihinde, Matthew Garrett =C5=9Funlar=C4=B1=
- yazm=C4=B1=C5=9Ft=C4=B1:
-> > On Wed, Oct 11, 2006 at 08:59:04AM +0200, Arjan van de Ven wrote:
-> > > it'd also be nice if the linux-ready firmware developer kit had a=
- test
-> > > for this, so that we can offer 1) a way to test this to the bios =
-guys
-> > > and 2) encourage adding/note the lack easily
-> >
-> > Sure. Reading /proc/acpi/video/*/*/info should tell you whether a d=
-evice
-> > is an LCD or not.
->
-> On my Sony Vaio with latest linux-2.6 git kernel it says its a CRT :
->
-> [~]> cat  /proc/acpi/video/*/*/info
-> device_id:    0x0100
-> type:         CRT
-> known by bios: no
-> device_id:    0x0320
-> type:         UNKNOWN
-> known by bios: no
-> device_id:    0x0410
-> type:         UNKNOWN
-> known by bios: no
-> device_id:    0x0240
-> type:         UNKNOWN
-> known by bios: no
-> device_id:    0x0100
-> type:         CRT
-> known by bios: no
-> device_id:    0x0111
-> type:         UNKNOWN
-> known by bios: no
-> device_id:    0x0118
-> type:         UNKNOWN
-> known by bios: no
-> device_id:    0x0200
-> type:         TVOUT
-> known by bios: no
->
-> So I don't think its reliable.
-Please open a bug on bugzilla.kernel.org,
-and post acpidump output.=20
+> Yes, our BIOS teams are looking to do exactly that.  I wouldn't expect
+> such a change to be propogated back to earlier released systems though.
+Wow!  This is a really good news! Please just notify me when it ready.
+Because, I'd like to have one. :-)
 
 Thanks,
 Luming
