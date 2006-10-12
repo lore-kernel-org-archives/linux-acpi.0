@@ -1,44 +1,43 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Preventing ACPI from Damaging Your CPU
-Date: Thu, 12 Oct 2006 16:46:19 +0200
-Message-ID: <200610121646.19668.rjw@sisk.pl>
-References: <1160663160.13196.273175261@webmail.messagingengine.com>
+Subject: Re: HP Compaq nc6320
+Date: Thu, 12 Oct 2006 16:53:02 +0200
+Message-ID: <200610121653.02622.rjw@sisk.pl>
+References: <1160604516.5349.14.camel@pcjc2lap> <1160610784.7763.3.camel@pcjc2lap> <1160611737.5429.4.camel@pcjc2lap>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:61366 "EHLO ogre.sisk.pl")
-	by vger.kernel.org with ESMTP id S932516AbWJLOq3 (ORCPT
+Received: from ogre.sisk.pl ([217.79.144.158]:2487 "EHLO ogre.sisk.pl")
+	by vger.kernel.org with ESMTP id S932117AbWJLOwk (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 Oct 2006 10:46:29 -0400
-In-Reply-To: <1160663160.13196.273175261@webmail.messagingengine.com>
+	Thu, 12 Oct 2006 10:52:40 -0400
+In-Reply-To: <1160611737.5429.4.camel@pcjc2lap>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mathew Brown <mathewbrown@fastmail.fm>
+To: Peter Clifton <pcjc2@cam.ac.uk>
 Cc: linux-acpi@vger.kernel.org
 
-On Thursday, 12 October 2006 16:26, Mathew Brown wrote:
-> Hi,
->   I've been reading an alarming article on getting Gentoo to work on the
->   HP Compaq nx6325
->   (http://gentoo-wiki.com/HARDWARE_Gentoo_on_HP_Compaq_nx6325) and the
->   serious ACPI problems that were encountered.  The author states after
->   mentioning how to apply certain patches, "Without that, the CPU might
->   overheat and get damaged during heavy load (such as compiling a Gentoo
->   stage ...)!"
+On Thursday, 12 October 2006 02:08, Peter Clifton wrote:
 > 
->   What would be the safest way to ensure that ACPI doesn't do this to
->   your machine / laptop without disabling ACPI?  Would recompiling the
->   DSDT using the Intel compiler and re-inserting it be enough to ensure
->   that ACPI doesn't cause your CPU to overheat or get damaged?  Thanks
->   for your help.
+> > Wierdly, I've lost the Battery/AC adapter status monitoring again, with
+> > or without ec_intr=0.
+> 
+> > Gets odder!
+> 
+> Ok,
+> 
+> Nearing completion of this tale I think..
+> 
+> Turns out there is a known problem with psmouse, which leaves the
+> system / ACPI / something in a bad state if psmouse is loaded before
+> shutdown or reboot. Googling tells me that either removing batteries, AC
+> etc.. before powering up, booting Windows, or shutting down Linux with
+> psmouse removed, will "fix" the symptoms.
 
-Please see http://bugzilla.kernel.org/show_bug.cgi?id=7122, especially
-http://bugzilla.kernel.org/show_bug.cgi?id=7122#c27 and below.
+Do you remember any URLs?
 
-Greetings,
 Rafael
 
 
