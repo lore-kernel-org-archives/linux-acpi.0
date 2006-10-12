@@ -1,57 +1,72 @@
-From: Randy Dunlap <rdunlap@xenotime.net>
-Subject: Re: [PATCH] ACPI header length printk format warning
-Date: Thu, 12 Oct 2006 13:40:40 -0700
-Message-ID: <20061012134040.a64eda8a.rdunlap@xenotime.net>
-References: <20061012110345.1d9da93a@dxpl.pdx.osdl.net>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: HP Compaq nc6320
+Date: Thu, 12 Oct 2006 23:08:23 +0200
+Message-ID: <200610122308.24557.rjw@sisk.pl>
+References: <1160604516.5349.14.camel@pcjc2lap> <1160671089.2096.225.camel@queen.suse.de> <1160671170.13557.25.camel@pcjc2lap>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from xenotime.net ([66.160.160.81]:13010 "HELO xenotime.net")
-	by vger.kernel.org with SMTP id S1750755AbWJLUjS (ORCPT
+Received: from ogre.sisk.pl ([217.79.144.158]:7610 "EHLO ogre.sisk.pl")
+	by vger.kernel.org with ESMTP id S1750952AbWJLVIa (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 Oct 2006 16:39:18 -0400
-Received: from midway.site ([71.117.236.95]) by xenotime.net for <linux-acpi@vger.kernel.org>; Thu, 12 Oct 2006 13:39:13 -0700
-In-Reply-To: <20061012110345.1d9da93a@dxpl.pdx.osdl.net>
+	Thu, 12 Oct 2006 17:08:30 -0400
+In-Reply-To: <1160671170.13557.25.camel@pcjc2lap>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stephen Hemminger <shemminger@osdl.org>
-Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
+To: Peter Clifton <pcjc2@cam.ac.uk>
+Cc: trenn@suse.de, linux-acpi@vger.kernel.org, Vojtech Pavlik <vojtech@suse.cz>, Dmitry Torokhov <dtor@insightbb.com>, Pavel Machek <pavel@ucw.cz>
 
-On Thu, 12 Oct 2006 11:03:45 -0700 Stephen Hemminger wrote:
+On Thursday, 12 October 2006 18:39, Peter Clifton wrote:
+> [snip]
+> 
+> > I got several reports that compiling psmouse as module and unload it
+> > explicitly on shutdown helps to fix things on newer HPs.
+> > 
+> > E.g. this report:
+> > About the fan and battery issue, there are three workaround:
+> >  - Turn off the machine and quit battery, Place the battery again.
+> >  - Next time you turn on the machine, turn it off during post.
+> >  - "modprobe -r psmouse" (after compiling psmouse as a module) before
+> > shutdown the machine.
+> > Next time you turn on the machine, battery status is working. Not sure
+> > about the fans...
+> 
+> My fans seemed to work ok most of the time before, it was the battery
+> status which hung, and the speedstep would never go to full speed.
+> 
+> Everything is happy with Ubuntu's kernel 2.6.17-10 and when unloading
+> psmouse as part of the shutdown and reboot scripts.
+> 
+> I did dig though psmouse a little, but being a non-expert, couldn't see
+> anything odd.
+> 
+> It could be the synaptics driver part I guess, as most people have
+> laptops.
 
-> Get rid of warning from printk arguments on 64 bit platforms.
+Well, on the HPC nx6325 I'm using psmouse is apparently interfering with
+ACPI during resume from disk in a destructive way.  Namely, with the
+2.6.19-rc1-mm1 kernel the temperature in one of the thermal zones
+is way off during the resume, so ACPI thinks the critical thermal
+point has been passed and it tries to power off the system, which makes
+it hang.  Unloading psmouse before the suspend apparently helps.
 
-size_t (sizeof) should use %zd or %zu or %zx or %zX.
+I think it's synaptics too, because it spits reset failure messages during the
+resume, if not unloaded before.
 
-http://www.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.19-rc1/2.6.19-rc1-mm1/broken-out/acpi-fix-printk-format-warnings.patch
+> It could be that psmouse keeps a serial driver of some sort alive, or a
+> bus active. Perhaps it is still receiving and processing interrupts as
+> the bios tries to reboot? Does someone need to open a kernel bug for
+> this, and where should it go?
 
-Yes, it would be nice if some patch could be merged for this.
+Well I guess so, and it looks like ACPI is the right place to start from.
 
-> --- orig/drivers/acpi/tables/tbget.c
-> +++ new/drivers/acpi/tables/tbget.c
-> @@ -324,8 +324,9 @@ acpi_tb_get_this_table(struct acpi_point
->  
->  	if (header->length < sizeof(struct acpi_table_header)) {
->  		ACPI_ERROR((AE_INFO,
-> -			    "Table length (%X) is smaller than minimum (%X)",
-> -			    header->length, sizeof(struct acpi_table_header)));
-> +			    "Table length (%lx) is smaller than minimum (%zx)",
-> +			    (unsigned long) header->length,
-> +			    sizeof(struct acpi_table_header)));
->  
->  		return_ACPI_STATUS(AE_INVALID_TABLE_LENGTH);
->  	}
-> @@ -343,8 +344,8 @@ acpi_tb_get_this_table(struct acpi_point
->  		full_table = ACPI_ALLOCATE(header->length);
->  		if (!full_table) {
->  			ACPI_ERROR((AE_INFO,
-> -				    "Could not allocate table memory for [%4.4s] length %X",
-> -				    header->signature, header->length));
-> +				    "Could not allocate table memory for [%4.4s] length %lx",
-> +				    header->signature, (unsigned long) header->length));
->  			return_ACPI_STATUS(AE_NO_MEMORY);
->  		}
+Greetings,
+Rafael
 
----
-~Randy
+
+-- 
+You never change things by fighting the existing reality.
+		R. Buckminster Fuller
