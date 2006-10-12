@@ -1,56 +1,65 @@
-From: Peter Clifton <pcjc2@cam.ac.uk>
-Subject: Re: HP Compaq nc6320
-Date: Thu, 12 Oct 2006 17:39:30 +0100
-Message-ID: <1160671170.13557.25.camel@pcjc2lap>
-References: <1160604516.5349.14.camel@pcjc2lap>
-	 <1160610784.7763.3.camel@pcjc2lap> <1160611737.5429.4.camel@pcjc2lap>
-	 <200610121653.02622.rjw@sisk.pl>  <1160671089.2096.225.camel@queen.suse.de>
+From: "Mathew Brown" <mathewbrown@fastmail.fm>
+Subject: Re: Preventing ACPI from Damaging Your CPU
+Date: Thu, 12 Oct 2006 09:51:13 -0700
+Message-ID: <1160671873.29653.273188134@webmail.messagingengine.com>
+References: <1160663160.13196.273175261@webmail.messagingengine.com>
+   <200610121646.19668.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ppsw-0.csi.cam.ac.uk ([131.111.8.130]:52951 "EHLO
-	ppsw-0.csi.cam.ac.uk") by vger.kernel.org with ESMTP
-	id S932669AbWJLQjr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 Oct 2006 12:39:47 -0400
-In-Reply-To: <1160671089.2096.225.camel@queen.suse.de>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:63709 "EHLO
+	out1.smtp.messagingengine.com") by vger.kernel.org with ESMTP
+	id S932689AbWJLQvM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 Oct 2006 12:51:12 -0400
+Content-Disposition: inline
+In-Reply-To: <200610121646.19668.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Vojtech Pavlik <vojtech@suse.cz>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org
 
-[snip]
+Thanks for your reply Rafael.  However, I was looking for a generic
+solution.  I don't have an nx6325 but was thinking of purchasing a
+laptop and was afraid that ACPI could damage / overheat by CPUs.  I
+think the link you provided is specific to the nx6325 unless I'm
+mistaken.  Is there any generic solution?  Would recompiling the DSDT
+and re-inserting it guarantee that no overheat / damage happens
+regardless of the laptop / machine?  Thanks.
 
-> I got several reports that compiling psmouse as module and unload it
-> explicitly on shutdown helps to fix things on newer HPs.
+
+On Thu, 12 Oct 2006 16:46:19 +0200, "Rafael J. Wysocki" <rjw@sisk.pl>
+said:
+> On Thursday, 12 October 2006 16:26, Mathew Brown wrote:
+> > Hi,
+> >   I've been reading an alarming article on getting Gentoo to work on the
+> >   HP Compaq nx6325
+> >   (http://gentoo-wiki.com/HARDWARE_Gentoo_on_HP_Compaq_nx6325) and the
+> >   serious ACPI problems that were encountered.  The author states after
+> >   mentioning how to apply certain patches, "Without that, the CPU might
+> >   overheat and get damaged during heavy load (such as compiling a Gentoo
+> >   stage ...)!"
+> > 
+> >   What would be the safest way to ensure that ACPI doesn't do this to
+> >   your machine / laptop without disabling ACPI?  Would recompiling the
+> >   DSDT using the Intel compiler and re-inserting it be enough to ensure
+> >   that ACPI doesn't cause your CPU to overheat or get damaged?  Thanks
+> >   for your help.
 > 
-> E.g. this report:
-> About the fan and battery issue, there are three workaround:
->  - Turn off the machine and quit battery, Place the battery again.
->  - Next time you turn on the machine, turn it off during post.
->  - "modprobe -r psmouse" (after compiling psmouse as a module) before
-> shutdown the machine.
-> Next time you turn on the machine, battery status is working. Not sure
-> about the fans...
+> Please see http://bugzilla.kernel.org/show_bug.cgi?id=7122, especially
+> http://bugzilla.kernel.org/show_bug.cgi?id=7122#c27 and below.
+> 
+> Greetings,
+> Rafael
+> 
+> 
+> -- 
+> You never change things by fighting the existing reality.
+> 		R. Buckminster Fuller
+-- 
+  Mathew Brown
+  mathewbrown@fastmail.fm
 
-My fans seemed to work ok most of the time before, it was the battery
-status which hung, and the speedstep would never go to full speed.
-
-Everything is happy with Ubuntu's kernel 2.6.17-10 and when unloading
-psmouse as part of the shutdown and reboot scripts.
-
-I did dig though psmouse a little, but being a non-expert, couldn't see
-anything odd.
-
-It could be the synaptics driver part I guess, as most people have
-laptops.
-
-It could be that psmouse keeps a serial driver of some sort alive, or a
-bus active. Perhaps it is still receiving and processing interrupts as
-the bios tries to reboot? Does someone need to open a kernel bug for
-this, and where should it go?
-
-Regards
-
-Peter Clifton.
+-- 
+http://www.fastmail.fm - A fast, anti-spam email service.
 
