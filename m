@@ -1,104 +1,72 @@
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Subject: Re: USB resume problem with IBM dock
-Date: Thu, 12 Oct 2006 10:51:49 -0700
-Message-ID: <20061012105149.e01ffc29.kristen.c.accardi@intel.com>
-References: <87lknmnpul.fsf@pereiro.luannocracy.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Preventing ACPI from Damaging Your CPU
+Date: Thu, 12 Oct 2006 21:34:30 +0200
+Message-ID: <200610122134.30975.rjw@sisk.pl>
+References: <1160663160.13196.273175261@webmail.messagingengine.com> <200610121646.19668.rjw@sisk.pl> <1160671873.29653.273188134@webmail.messagingengine.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:14968 "EHLO mga01.intel.com")
-	by vger.kernel.org with ESMTP id S1750806AbWJLSbI (ORCPT
+Received: from ogre.sisk.pl ([217.79.144.158]:33465 "EHLO ogre.sisk.pl")
+	by vger.kernel.org with ESMTP id S1750964AbWJLTef (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 Oct 2006 14:31:08 -0400
-In-Reply-To: <87lknmnpul.fsf@pereiro.luannocracy.com>
+	Thu, 12 Oct 2006 15:34:35 -0400
+In-Reply-To: <1160671873.29653.273188134@webmail.messagingengine.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Abrahams <dave@boost-consulting.com>
+To: Mathew Brown <mathewbrown@fastmail.fm>
 Cc: linux-acpi@vger.kernel.org
 
-On Thu, 12 Oct 2006 00:02:42 -0400
-David Abrahams <dave@boost-consulting.com> wrote:
+On Thursday, 12 October 2006 18:51, Mathew Brown wrote:
+> Thanks for your reply Rafael.  However, I was looking for a generic
+> solution.  I don't have an nx6325 but was thinking of purchasing a
+> laptop and was afraid that ACPI could damage / overheat by CPUs.  I
+> think the link you provided is specific to the nx6325 unless I'm
+> mistaken.  Is there any generic solution?  Would recompiling the DSDT
+> and re-inserting it guarantee that no overheat / damage happens
+> regardless of the laptop / machine?
 
-> 
-> Hi,
-> 
-> I hope I've come to the right place; I'm going based on the
-> information in my kernel's MAINTAINERS file.
-> 
-> I have been using suspend2 with a 2.6.18 kernel, my Thinkpad T60p, and
-> a Thinkpad Advanced dock.  When resuming (from disk), suspend2 puts
-> all the USB devices into a suspended state so they're consistent with
-> the state at suspend time.  If I have any devices plugged into the
-> dock's USB ports, it's very common that the devices fail to enter a
-> suspended state (or so the APIs report).  When that happens, suspend2
-> forces a segfault and all heck breaks loose (log excerpt appended) --
-> suffice it to say I lose my suspended state, all the filesystems need
-> to be checked, and often it takes an additional reboot just to make
-> everything healthy again -- so it's really important to me to address
-> this problem.  Please let me know if there's anything I can do to help
-> track this down.
-> 
-> 
-> Thanks,
-> Dave
-> 
+No, it wouldn't, AFAICT.
 
-Hi Dave,
-Does this happen when you have booted inside the dock station and
-then suspend to disk, then resume?  Or is it something like, boot
-outside the dock station suspend to disk, resume inside dock?  Can
-you be more specific about how to duplicate the problem?
+Greetings,
+Rafael
 
-Thanks,
-Kristen
 
-> --- /var/log/syslog excerpt ---
-> 
->   Oct 11 22:11:40 pereiro kernel: [    7.004000] Atomic restore preparation
->   Oct 11 22:11:40 pereiro kernel: [    7.008000] Freezing cpus ...
->   Oct 11 22:11:40 pereiro kernel: [    7.080000] usb 5-6.1: new low speed USB device using ehci_hcd and address 5
->   Oct 11 22:11:40 pereiro kernel: [    7.128000] CPU 1 is now offline
->   Oct 11 22:11:40 pereiro kernel: [    7.128000] SMP alternatives: switching to UP code
->   Oct 11 22:11:40 pereiro kernel: [    7.128000] CPU1 is down
->   Oct 11 22:11:40 pereiro kernel: [    7.192000] usb 5-6.1: configuration #1 chosen from 1 choice
->   Oct 11 22:11:40 pereiro kernel: [    7.392000] usb 5-6.2: new full speed USB device using ehci_hcd and address 6
->   Oct 11 22:11:40 pereiro kernel: [    7.484000] usb 5-6.2: configuration #1 chosen from 1 choice
->   Oct 11 22:11:40 pereiro kernel: [    7.484000] suspend_device(): usb_generic_suspend+0x0/0x15c [usbcore]() returns -16
->   Oct 11 22:11:40 pereiro kernel: [    7.484000] usbcore: registered new driver hiddev
->   Oct 11 22:11:40 pereiro kernel: [    7.484000] Could not suspend device 5-6: error -16
->   Oct 11 22:11:40 pereiro kernel: [    7.492000] Some devices failed to suspend
->   Oct 11 22:11:40 pereiro kernel: [    7.492000] ------------[ cut here ]------------
->   Oct 11 22:11:40 pereiro kernel: [    7.492000] kernel BUG at kernel/power/atomic_copy.c:496!
->   Oct 11 22:11:40 pereiro kernel: [    7.492000] invalid opcode: 0000 [#1]
->   Oct 11 22:11:40 pereiro kernel: [    7.492000] PREEMPT SMP 
->   Oct 11 22:11:40 pereiro kernel: [    7.492000] Modules linked in: usbhid dm_mod ide_generic ehci_hcd uhci_hcd usbcore piix generic sd_mod thermal processor fan fbcon tileblit font bitblit softcursor
->   Oct 11 22:11:40 pereiro kernel: [    7.492000] CPU:    0
->   Oct 11 22:11:40 pereiro kernel: [    7.492000] EIP:    0060:[suspend_atomic_restore+487/544]    Not tainted VLI
->   Oct 11 22:11:40 pereiro kernel: [    7.492000] EFLAGS: 00010246   (2.6.18-local-20060823 #2) 
->   Oct 11 22:11:40 pereiro kernel: [    7.492000] EIP is at suspend_atomic_restore+0x1e7/0x220
->   Oct 11 22:11:40 pereiro kernel: [    7.492000] eax: 00004010   ebx: 00000000   ecx: 00000000   edx: 00000002
->   Oct 11 22:11:40 pereiro kernel: [    7.492000] esi: 00000001   edi: 00000001   ebp: c0393270   esp: dfcadef0
->   Oct 11 22:11:40 pereiro kernel: [    7.492000] ds: 007b   es: 007b   ss: 0068
->   Oct 11 22:11:40 pereiro kernel: [    7.492000] Process busybox (pid: 2428, ti=dfcac000 task=c21ed290 task.ti=dfcac000)
->   Oct 11 22:11:40 pereiro kernel: [    7.492000] Stack: c034fc04 c034cd8f 00000001 00000001 c014c6ee 00000000 c014c921 00000000 
->   Oct 11 22:11:40 pereiro kernel: [    7.492000]        c014c7a7 c014e9f3 00000000 c13fb860 fffa8278 00000000 00000000 00000001 
->   Oct 11 22:11:40 pereiro kernel: [    7.492000]        df802a40 00000001 00000001 df802a54 c01cc84c c03931b8 c0393270 dfdc3000 
->   Oct 11 22:11:40 pereiro kernel: [    7.492000] Call Trace:
->   Oct 11 22:11:40 pereiro kernel: [    7.492000]  [suspend_resume+110/272] suspend_resume+0x6e/0x110
->   Oct 11 22:11:40 pereiro kernel: [    7.492000]  [suspend_start_anything+81/192] suspend_start_anything+0x51/0xc0
->   Oct 11 22:11:40 pereiro kernel: [    7.492000]  [__suspend_try_resume+23/48] __suspend_try_resume+0x17/0x30
->   Oct 11 22:11:40 pereiro kernel: [    7.492000]  [suspend2_attr_store+99/688] suspend2_attr_store+0x63/0x2b0
->   Oct 11 22:11:40 pereiro kernel: [    7.492000]  [sysfs_write_file+156/240] sysfs_write_file+0x9c/0xf0
->   Oct 11 22:11:40 pereiro kernel: [    7.492000]  [vfs_write+222/448] vfs_write+0xde/0x1c0
->   Oct 11 22:11:40 pereiro kernel: [    7.492000]  [sys_write+75/128] sys_write+0x4b/0x80
->   Oct 11 22:11:40 pereiro kernel: [    7.492000]  [syscall_call+7/11] syscall_call+0x7/0xb
->   Oct 11 22:11:40 pereiro kernel: [    7.492000] Code: 16 00 0f 0b 13 02 74 cd 34 c0 83 c4 08 b8 01 00 00 00 5e 5f c3 c7 04 24 04 fc 34 c0 e8 23 5f fd ff a1 04 2d 39 c0 f6 c4 10 75 17 <0f> 0b f0 01 74 cd 34 c0 e9 6a fe ff ff e8 37 82 ff ff e9 47 fe 
->   Oct 11 22:11:40 pereiro kernel: [    7.492000] EIP: [suspend_atomic_restore+487/544] suspend_atomic_restore+0x1e7/0x220 SS:ESP 0068:dfcadef0
->   Oct 11 22:11:40 pereiro kernel: [    7.492000]  <6>JFS: nTxBlock = 8192, nTxLock = 65536
-> 
-> 
+> On Thu, 12 Oct 2006 16:46:19 +0200, "Rafael J. Wysocki" <rjw@sisk.pl>
+> said:
+> > On Thursday, 12 October 2006 16:26, Mathew Brown wrote:
+> > > Hi,
+> > >   I've been reading an alarming article on getting Gentoo to work on the
+> > >   HP Compaq nx6325
+> > >   (http://gentoo-wiki.com/HARDWARE_Gentoo_on_HP_Compaq_nx6325) and the
+> > >   serious ACPI problems that were encountered.  The author states after
+> > >   mentioning how to apply certain patches, "Without that, the CPU might
+> > >   overheat and get damaged during heavy load (such as compiling a Gentoo
+> > >   stage ...)!"
+> > > 
+> > >   What would be the safest way to ensure that ACPI doesn't do this to
+> > >   your machine / laptop without disabling ACPI?  Would recompiling the
+> > >   DSDT using the Intel compiler and re-inserting it be enough to ensure
+> > >   that ACPI doesn't cause your CPU to overheat or get damaged?  Thanks
+> > >   for your help.
+> > 
+> > Please see http://bugzilla.kernel.org/show_bug.cgi?id=7122, especially
+> > http://bugzilla.kernel.org/show_bug.cgi?id=7122#c27 and below.
+> > 
+> > Greetings,
+> > Rafael
+> > 
+> > 
+> > -- 
+> > You never change things by fighting the existing reality.
+> > 		R. Buckminster Fuller
 > -- 
-> Dave Abrahams
-> Boost Consulting
-> www.boost-consulting.com
+>   Mathew Brown
+>   mathewbrown@fastmail.fm
+> 
+
+-- 
+You never change things by fighting the existing reality.
+		R. Buckminster Fuller
