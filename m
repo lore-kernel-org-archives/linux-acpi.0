@@ -1,47 +1,57 @@
-From: David Abrahams <dave@boost-consulting.com>
-Subject: Re: USB resume problem with IBM dock
-Date: Thu, 12 Oct 2006 15:17:03 -0400
-Message-ID: <87d58xtkcw.fsf@pereiro.luannocracy.com>
-References: <87lknmnpul.fsf@pereiro.luannocracy.com>
-	<20061012105149.e01ffc29.kristen.c.accardi@intel.com>
+From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: Re: [PATCH] ACPI header length printk format warning
+Date: Thu, 12 Oct 2006 13:40:40 -0700
+Message-ID: <20061012134040.a64eda8a.rdunlap@xenotime.net>
+References: <20061012110345.1d9da93a@dxpl.pdx.osdl.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from stlport.com ([64.39.31.56]:30472 "EHLO stlport.com")
-	by vger.kernel.org with ESMTP id S1750806AbWJLTRM (ORCPT
+Received: from xenotime.net ([66.160.160.81]:13010 "HELO xenotime.net")
+	by vger.kernel.org with SMTP id S1750755AbWJLUjS (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 Oct 2006 15:17:12 -0400
-In-Reply-To: <20061012105149.e01ffc29.kristen.c.accardi@intel.com> (Kristen Carlson Accardi's message of "Thu, 12 Oct 2006 10:51:49 -0700")
+	Thu, 12 Oct 2006 16:39:18 -0400
+Received: from midway.site ([71.117.236.95]) by xenotime.net for <linux-acpi@vger.kernel.org>; Thu, 12 Oct 2006 13:39:13 -0700
+In-Reply-To: <20061012110345.1d9da93a@dxpl.pdx.osdl.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: Stephen Hemminger <shemminger@osdl.org>
+Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-Kristen Carlson Accardi <kristen.c.accardi@intel.com> writes:
+On Thu, 12 Oct 2006 11:03:45 -0700 Stephen Hemminger wrote:
 
-> Hi Dave,
+> Get rid of warning from printk arguments on 64 bit platforms.
 
-Hi Kristen,
+size_t (sizeof) should use %zd or %zu or %zx or %zX.
 
-> Does this happen when you have booted inside the dock station and
-> then suspend to disk, then resume?  
+http://www.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.19-rc1/2.6.19-rc1-mm1/broken-out/acpi-fix-printk-format-warnings.patch
 
-Yes.
+Yes, it would be nice if some patch could be merged for this.
 
-As a matter of fact, I can get resume to succeed by first unplugging
-all the USB devices while the machine is suspended.
+> --- orig/drivers/acpi/tables/tbget.c
+> +++ new/drivers/acpi/tables/tbget.c
+> @@ -324,8 +324,9 @@ acpi_tb_get_this_table(struct acpi_point
+>  
+>  	if (header->length < sizeof(struct acpi_table_header)) {
+>  		ACPI_ERROR((AE_INFO,
+> -			    "Table length (%X) is smaller than minimum (%X)",
+> -			    header->length, sizeof(struct acpi_table_header)));
+> +			    "Table length (%lx) is smaller than minimum (%zx)",
+> +			    (unsigned long) header->length,
+> +			    sizeof(struct acpi_table_header)));
+>  
+>  		return_ACPI_STATUS(AE_INVALID_TABLE_LENGTH);
+>  	}
+> @@ -343,8 +344,8 @@ acpi_tb_get_this_table(struct acpi_point
+>  		full_table = ACPI_ALLOCATE(header->length);
+>  		if (!full_table) {
+>  			ACPI_ERROR((AE_INFO,
+> -				    "Could not allocate table memory for [%4.4s] length %X",
+> -				    header->signature, header->length));
+> +				    "Could not allocate table memory for [%4.4s] length %lx",
+> +				    header->signature, (unsigned long) header->length));
+>  			return_ACPI_STATUS(AE_NO_MEMORY);
+>  		}
 
-> Or is it something like, boot outside the dock station suspend to
-> disk, resume inside dock?  Can you be more specific about how to
-> duplicate the problem?
-
-Tried above.  If you want more specificity than that, I think I'll
-need some more specific questions, because at this point I don't know
-what more to tell you.
-
-I very much appreciate your attention to this issue :)
-
--- 
-Dave Abrahams
-Boost Consulting
-www.boost-consulting.com
+---
+~Randy
