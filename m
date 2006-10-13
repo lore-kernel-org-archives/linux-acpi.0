@@ -1,33 +1,46 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: RE: USB suspend/resume in linux
-Date: Fri, 13 Oct 2006 11:13:37 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0610131110550.6612-100000@iolanthe.rowland.org>
-References: <0FB24CC078F78248B19595A43F00E01FD92DF3@fmsmsx413.amr.corp.intel.com>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: Re: X60s w/t kern 2.6.19-rc1-git: two BUG warnings
+Date: Fri, 13 Oct 2006 17:47:56 +0200
+Message-ID: <20061013154756.GT721@stusta.de>
+References: <20061010062826.GC9895@gimli>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:3595 "HELO
-	iolanthe.rowland.org") by vger.kernel.org with SMTP
-	id S1751151AbWJMPNi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 13 Oct 2006 11:13:38 -0400
-In-Reply-To: <0FB24CC078F78248B19595A43F00E01FD92DF3@fmsmsx413.amr.corp.intel.com>
+Received: from emailhub.stusta.mhn.de ([141.84.69.5]:3336 "HELO
+	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
+	id S1751344AbWJMPr6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 13 Oct 2006 11:47:58 -0400
+Content-Disposition: inline
+In-Reply-To: <20061010062826.GC9895@gimli>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Kaburlasos, Nikos" <nikos.kaburlasos@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, trenn@suse.de, linux-acpi@vger.kernel.org
+To: linux-thinkpad@linux-thinkpad.org, linux-kernel@vger.kernel.org, len.brown@intel.com
+Cc: linux-acpi@vger.kernel.org
 
-On Fri, 13 Oct 2006, Kaburlasos, Nikos wrote:
+On Tue, Oct 10, 2006 at 08:28:26AM +0200, Martin Lorenz wrote:
+> Dear kernel gurus,
+> 
+> whatever I do and whic problem I seem to get fixed new ones arise:
+> 
+> now I loose ACPI events after suspend/resume. not every time, but roughly 
+> 3 out of 4 times.
+> 
+> the only errornous things I see in the logs are those: 
+>...
 
-> Alan, will the 2.6.19-rc1 fix you mention also place USB controllers in
-> D3 (after all the ports under them are in suspend) to save a bit of
-> extra power?
+Which was the last working kernel?
 
-No.  My work affects only the USB stack.  The controllers belong to the 
-PCI stack.
+> gruss
+>   mlo
+>...
 
-There's another reason not to do this: Power Management Event handling for
-PCI devices isn't working.  So the controller would not automatically go
-back into D0 when you plugged in a new USB device.
+cu
+Adrian
 
-Alan Stern
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
 
