@@ -1,51 +1,119 @@
-From: "Mathew Brown" <mathewbrown@fastmail.fm>
-Subject: Re: Preventing ACPI from Damaging Your CPU
-Date: Thu, 12 Oct 2006 21:41:15 -0700
-Message-ID: <1160714475.18692.273233665@webmail.messagingengine.com>
-References: <1160663160.13196.273175261@webmail.messagingengine.com>
-   <20061013012430.GA31911@srcf.ucam.org>
+From: Len Brown <len.brown@intel.com>
+Subject: Re: Strange entries in /proc/acpi/thermal_zone for Thinkpad X60
+Date: Fri, 13 Oct 2006 00:53:10 -0400
+Message-ID: <200610130053.10437.len.brown@intel.com>
+References: <452EBF7C.3000409@goop.org>
+Reply-To: Len Brown <lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:56737 "EHLO
-	out1.smtp.messagingengine.com") by vger.kernel.org with ESMTP
-	id S1750783AbWJMElP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 13 Oct 2006 00:41:15 -0400
+Received: from hera.kernel.org ([140.211.167.34]:57780 "EHLO hera.kernel.org")
+	by vger.kernel.org with ESMTP id S1750699AbWJMEu7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 13 Oct 2006 00:50:59 -0400
+In-Reply-To: <452EBF7C.3000409@goop.org>
 Content-Disposition: inline
-In-Reply-To: <20061013012430.GA31911@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org
+To: cpufreq@lists.linux.org.uk
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Thanks Matthew.  Just out of curiosity, how did you find out about this
-feature (forcing the fan at 80C)?  Also, is this specific to HP or do
-other vendors also support this?  Finally, is 80C safe for the CPU
-(Intel or AMD?)?  I read that Opteron chips could be damaged if their
-temperature reaches 70C.  Thanks for your help.
-
-On Fri, 13 Oct 2006 02:24:30 +0100, "Matthew Garrett"
-<mjg59@srcf.ucam.org> said:
-> On Thu, Oct 12, 2006 at 07:26:00AM -0700, Mathew Brown wrote:
+On Thursday 12 October 2006 18:19, Jeremy Fitzhardinge wrote:
+> I have a Thinkpad X60 with an Intel Core Duo T2400.  In 
+> /proc/acpi/thermal_zone, I'm getting two subdirectories, each with their 
+> own set of files:
 > 
-> >   I've been reading an alarming article on getting Gentoo to work on the
-> >   HP Compaq nx6325
-> >   (http://gentoo-wiki.com/HARDWARE_Gentoo_on_HP_Compaq_nx6325) and the
-> >   serious ACPI problems that were encountered.  The author states after
-> >   mentioning how to apply certain patches, "Without that, the CPU might
-> >   overheat and get damaged during heavy load (such as compiling a Gentoo
-> >   stage ...)!"
+> /proc/acpi/thermal_zone/THM0/cooling_mode:
+> <setting not supported>
+> cooling mode:   critical
 > 
-> The author is wrong. Recent HP laptops all have hardcoded support in the 
-> fan control hardware, which will force the fan on if the temperature 
-> rises above 80 degrees.
-> -- 
-> Matthew Garrett | mjg59@srcf.ucam.org
--- 
-  Mathew Brown
-  mathewbrown@fastmail.fm
+> /proc/acpi/thermal_zone/THM0/polling_frequency:
+> <polling disabled>
+> 
+> /proc/acpi/thermal_zone/THM0/state:
+> state:                   ok
+> 
+> /proc/acpi/thermal_zone/THM0/temperature:
+> temperature:             53 C
+> 
+> /proc/acpi/thermal_zone/THM0/trip_points:
+> critical (S5):           127 C
 
--- 
-http://www.fastmail.fm - mmm... Fastmail...
 
+This means that if THM0 reaches 127, your system will shut down.
+You don't have much control over this one -- but you could probably
+lower the temperature  to do a critical shut-down earlier with something like this:
+
+echo -n "126:125:124:123:122" >trip_points
+note that the 1st is the critical one, and the others are hot:passive:active:active place holders.
+
+> 
+> /proc/acpi/thermal_zone/THM1/cooling_mode:
+> <setting not supported>
+> cooling mode:   passive
+> 
+> /proc/acpi/thermal_zone/THM1/polling_frequency:
+> <polling disabled>
+> 
+> /proc/acpi/thermal_zone/THM1/state:
+> state:                   ok
+> 
+> /proc/acpi/thermal_zone/THM1/temperature:
+> temperature:             53 C
+> 
+> /proc/acpi/thermal_zone/THM1/trip_points:
+> critical (S5):           97 C
+> passive:                 93 C: tc1=5 tc2=4 tsp=600 devices=0xf7eaa264 0xf7eaa244 
+
+You are not given the opportunity to set the active trip points here.
+Looks like you have just a passive trip point at 93 and we would
+expect to throttle when we go above 93.
+Presumably some other method should be kicking in the fans before
+this passive point is reached.
+
+The theory is that...
+If the fans kicked in earlier than you liked, you should be able to lower
+the passive trip point to below that temperature to make the system
+throttle before the fans kick in.
+
+But probably the root cause of your issue is that the fans are _not_ kicking in...
+
+for grins you can probably raise the passive point with something like this
+
+# echo -n "98:97:96:53:45" > trip_points
+
+but it seems that you are doing passive cooling way before  you
+get anywhere near 93, so that is the mystery.
+
+-Len
+
+> 
+> 
+> The interesting thing is that the two sets of files are not consistent - 
+> sometimes they don't even show the same temperature.
+> 
+> The reason I'm interested in this is that I think it's behind some of my 
+> cpufreq problems.  Sometimes the kernel decides that I just can't raise 
+> the max frequency above 1GHz, because its been thermally limited (I've 
+> put printks in to confirm that its the ACPI thermal limit on the policy 
+> notifier chain which is limiting the max speed).  It seems to me that 
+> having a thermal zone for each core is a BIOS bug, since they're really 
+> the same chip, but the THM1 entries should be ignored.  I don't believe 
+> the CPU has ever approached either 97 C, let alone 127; while I put it 
+> under a fair amount of load, it is sitting on a desktop with no airflow 
+> obstructions, so if it really is overheating it suggests a serious 
+> design problem with the hardware.
+> 
+> But I'm just speculating; I'm not really sure what all this means.  Any 
+> clues?
+> 
+> Thanks,
+>     J
+> 
+> _______________________________________________
+> Cpufreq mailing list
+> Cpufreq@lists.linux.org.uk
+> http://lists.linux.org.uk/mailman/listinfo/cpufreq
+> 
