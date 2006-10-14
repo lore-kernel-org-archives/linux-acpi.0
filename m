@@ -1,24 +1,24 @@
 From: Len Brown <len.brown@intel.com>
-Subject: Re: [patch 02/12] ACPI: fix printk format warnings
-Date: Sat, 14 Oct 2006 04:07:33 -0400
-Message-ID: <200610140407.33934.len.brown@intel.com>
-References: <200610102120.k9ALKWWE024269@shell0.pdx.osdl.net>
+Subject: Re: [patch 05/12] asus_acpi: fix proc files parsing
+Date: Sat, 14 Oct 2006 04:07:41 -0400
+Message-ID: <200610140407.42070.len.brown@intel.com>
+References: <200610102120.k9ALKZKZ024278@shell0.pdx.osdl.net>
 Reply-To: Len Brown <lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:54215 "EHLO hera.kernel.org")
-	by vger.kernel.org with ESMTP id S1160998AbWJNIFK (ORCPT
+Received: from hera.kernel.org ([140.211.167.34]:57799 "EHLO hera.kernel.org")
+	by vger.kernel.org with ESMTP id S1160997AbWJNIFO (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 14 Oct 2006 04:05:10 -0400
-In-Reply-To: <200610102120.k9ALKWWE024269@shell0.pdx.osdl.net>
+	Sat, 14 Oct 2006 04:05:14 -0400
+In-Reply-To: <200610102120.k9ALKZKZ024278@shell0.pdx.osdl.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: akpm@osdl.org
-Cc: linux-acpi@vger.kernel.org, rdunlap@xenotime.net
+Cc: linux-acpi@vger.kernel.org, darrenrjenkins@gmail.com, adobriyan@gmail.com
 
 Applied.
 
@@ -26,45 +26,136 @@ thanks,
 -Len
 
 On Tuesday 10 October 2006 17:20, akpm@osdl.org wrote:
-> From: Randy Dunlap <rdunlap@xenotime.net>
+> From: Darren Jenkins <darrenrjenkins@gmail.com>
 > 
-> Fix printk format warnings in drivers/acpi:
-> drivers/acpi/tables/tbget.c:326: warning: format '%X' expects type 'unsigned int', but argument 5 has type 'long unsigned int'
-> drivers/acpi/tables/tbrsdt.c:189: warning: format '%X' expects type 'unsigned int', but argument 5 has type 'long unsigned int'
+> ICC complains about a "Pointless comparsion of unsigned interger with zero"
+> @ line 760 & 808 of asus_acpi.c
 > 
-> Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-> Cc: "Brown, Len" <len.brown@intel.com>
+> parse_arg() mentioned below returns -E but it's copied into unsigned variable...
+> 
+> Signed-off-by: Darren Jenkins <darrenrjenkins@gmail.com>
+> Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 > Signed-off-by: Andrew Morton <akpm@osdl.org>
 > ---
 > 
->  drivers/acpi/tables/tbget.c  |    2 +-
->  drivers/acpi/tables/tbrsdt.c |    2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
+>  drivers/acpi/asus_acpi.c |   46 ++++++++++++++++++-------------------
+>  1 files changed, 23 insertions(+), 23 deletions(-)
 > 
-> diff -puN drivers/acpi/tables/tbget.c~acpi-fix-printk-format-warnings drivers/acpi/tables/tbget.c
-> --- a/drivers/acpi/tables/tbget.c~acpi-fix-printk-format-warnings
-> +++ a/drivers/acpi/tables/tbget.c
-> @@ -324,7 +324,7 @@ acpi_tb_get_this_table(struct acpi_point
+> diff -puN drivers/acpi/asus_acpi.c~asus_acpi-fix-proc-files-parsing drivers/acpi/asus_acpi.c
+> --- a/drivers/acpi/asus_acpi.c~asus_acpi-fix-proc-files-parsing
+> +++ a/drivers/acpi/asus_acpi.c
+> @@ -567,11 +567,11 @@ static int
+>  write_led(const char __user * buffer, unsigned long count,
+>  	  char *ledname, int ledmask, int invert)
+>  {
+> -	int value;
+> +	int rv, value;
+>  	int led_out = 0;
 >  
->  	if (header->length < sizeof(struct acpi_table_header)) {
->  		ACPI_ERROR((AE_INFO,
-> -			    "Table length (%X) is smaller than minimum (%X)",
-> +			    "Table length (%X) is smaller than minimum (%zX)",
->  			    header->length, sizeof(struct acpi_table_header)));
+> -	count = parse_arg(buffer, count, &value);
+> -	if (count > 0)
+> +	rv = parse_arg(buffer, count, &value);
+> +	if (rv > 0)
+>  		led_out = value ? 1 : 0;
 >  
->  		return_ACPI_STATUS(AE_INVALID_TABLE_LENGTH);
-> diff -puN drivers/acpi/tables/tbrsdt.c~acpi-fix-printk-format-warnings drivers/acpi/tables/tbrsdt.c
-> --- a/drivers/acpi/tables/tbrsdt.c~acpi-fix-printk-format-warnings
-> +++ a/drivers/acpi/tables/tbrsdt.c
-> @@ -187,7 +187,7 @@ acpi_status acpi_tb_validate_rsdt(struct
+>  	hotk->status =
+> @@ -584,7 +584,7 @@ write_led(const char __user * buffer, un
+>  		printk(KERN_WARNING "Asus ACPI: LED (%s) write failed\n",
+>  		       ledname);
 >  
->  	if (table_ptr->length < sizeof(struct acpi_table_header)) {
->  		ACPI_ERROR((AE_INFO,
-> -			    "RSDT/XSDT length (%X) is smaller than minimum (%X)",
-> +			    "RSDT/XSDT length (%X) is smaller than minimum (%zX)",
->  			    table_ptr->length,
->  			    sizeof(struct acpi_table_header)));
+> -	return count;
+> +	return rv;
+>  }
 >  
+>  /*
+> @@ -619,20 +619,20 @@ static int
+>  proc_write_ledd(struct file *file, const char __user * buffer,
+>  		unsigned long count, void *data)
+>  {
+> -	int value;
+> +	int rv, value;
+>  
+> -	count = parse_arg(buffer, count, &value);
+> -	if (count > 0) {
+> +	rv = parse_arg(buffer, count, &value);
+> +	if (rv > 0) {
+>  		if (!write_acpi_int
+>  		    (hotk->handle, hotk->methods->mt_ledd, value, NULL))
+>  			printk(KERN_WARNING
+>  			       "Asus ACPI: LED display write failed\n");
+>  		else
+>  			hotk->ledd_status = (u32) value;
+> -	} else if (count < 0)
+> +	} else if (rv < 0)
+>  		printk(KERN_WARNING "Asus ACPI: Error reading user input\n");
+>  
+> -	return count;
+> +	return rv;
+>  }
+>  
+>  /*
+> @@ -773,12 +773,12 @@ static int
+>  proc_write_lcd(struct file *file, const char __user * buffer,
+>  	       unsigned long count, void *data)
+>  {
+> -	int value;
+> +	int rv, value;
+>  
+> -	count = parse_arg(buffer, count, &value);
+> -	if (count > 0)
+> +	rv = parse_arg(buffer, count, &value);
+> +	if (rv > 0)
+>  		set_lcd_state(value);
+> -	return count;
+> +	return rv;
+>  }
+>  
+>  static int read_brightness(void)
+> @@ -842,18 +842,18 @@ static int
+>  proc_write_brn(struct file *file, const char __user * buffer,
+>  	       unsigned long count, void *data)
+>  {
+> -	int value;
+> +	int rv, value;
+>  
+> -	count = parse_arg(buffer, count, &value);
+> -	if (count > 0) {
+> +	rv = parse_arg(buffer, count, &value);
+> +	if (rv > 0) {
+>  		value = (0 < value) ? ((15 < value) ? 15 : value) : 0;
+>  		/* 0 <= value <= 15 */
+>  		set_brightness(value);
+> -	} else if (count < 0) {
+> +	} else if (rv < 0) {
+>  		printk(KERN_WARNING "Asus ACPI: Error reading user input\n");
+>  	}
+>  
+> -	return count;
+> +	return rv;
+>  }
+>  
+>  static void set_display(int value)
+> @@ -892,15 +892,15 @@ static int
+>  proc_write_disp(struct file *file, const char __user * buffer,
+>  		unsigned long count, void *data)
+>  {
+> -	int value;
+> +	int rv, value;
+>  
+> -	count = parse_arg(buffer, count, &value);
+> -	if (count > 0)
+> +	rv = parse_arg(buffer, count, &value);
+> +	if (rv > 0)
+>  		set_display(value);
+> -	else if (count < 0)
+> +	else if (rv < 0)
+>  		printk(KERN_WARNING "Asus ACPI: Error reading user input\n");
+>  
+> -	return count;
+> +	return rv;
+>  }
+>  
+>  typedef int (proc_readfunc) (char *page, char **start, off_t off, int count,
 > _
 > -
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
