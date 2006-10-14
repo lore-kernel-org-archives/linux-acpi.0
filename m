@@ -1,95 +1,63 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 24/28] ACPI: SCI interrupt source override
-Date: Sat, 14 Oct 2006 04:06:05 -0400
-Message-ID: <11608132003550-git-send-email-len.brown@intel.com>
+Subject: [PATCH 27/28] ACPICA: Fix incorrect handling of PCI Express Root Bridge _HID
+Date: Sat, 14 Oct 2006 04:06:08 -0400
+Message-ID: <1160813204734-git-send-email-len.brown@intel.com>
 References: <11608131691346-git-send-email-len.brown@intel.com>
 Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:15632 "EHLO mga03.intel.com")
-	by vger.kernel.org with ESMTP id S1752139AbWJNIDT (ORCPT
+Received: from mga03.intel.com ([143.182.124.21]:61957 "EHLO mga03.intel.com")
+	by vger.kernel.org with ESMTP id S1752129AbWJNIDY (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 14 Oct 2006 04:03:19 -0400
+	Sat, 14 Oct 2006 04:03:24 -0400
 In-Reply-To: <11608131691346-git-send-email-len.brown@intel.com>
-Message-Id: <281ea49b0c294649a6de47a6f8fbe5611137726b.1160812999.git.len.brown@intel.com>
+Message-Id: <aeb1104814e1177b865eec4f4b364602f5fcb6d1.1160812999.git.len.brown@intel.com>
 In-Reply-To: <288f3ad406460f03642a41bb945826891a7b866f.1160812999.git.len.brown@intel.com>
 References: <288f3ad406460f03642a41bb945826891a7b866f.1160812999.git.len.brown@intel.com>
-Date: Tue, 10 Oct 2006 14:20:33 -0700
+Date: Mon, 2 Oct 2006 19:18:03 +0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Kimball Murray <kimball.murray@gmail.com>, David Bulkow <david.bulkow@stratus.com>, Andrew Morton <akpm@osdl.org>, Len Brown <len.brown@intel.com>
+Cc: Eiichiro Oiwa <eiichiro.oiwa.nm@hitachi.com>, Bob Moore <robert.moore@intel.com>, Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Kimball Murray <kimball.murray@gmail.com>
+From: Eiichiro Oiwa <eiichiro.oiwa.nm@hitachi.com>
 
-The Linux group at Stratus Technologies has come across an issue with SCI
-routing under ACPI.  We were bitten by this when we made an x86_64 platform
-whose BIOS provides an Interrupt Source Override for the SCI itself.
-Apparently the override has no effect for the System Control Interrupt, and
-this appears to be because of the way the SCI is setup in the ACPI code.
-It does not handle the case where busirq != gsi.
+I could not get correct PCI Express bus number from the structure of
+acpi_object_extra. I always get zero as bus number regardless of bus
+location. I found that there is incorrect comparison with _HID (PNP0A08) in
+acpi/events/evrgnini.c and PCI Express _BBN method always fail.
+Therefore, we always get zero as PCI Express bus number.
+http://bugzilla.kernel.org/show_bug.cgi?id=7145
 
-The code that sets up the SCI routing assumes that bus irq == global irq.
-So there is simply no provision for telling it otherwise.  The attached
-patch provides this mechanism.
-
-This patch provided by David Bulkow, was tested on an i386 platform, which
-does not use the SCI override, and also on an x86_64 platform which does
-use an override.
-
-Signed-off-by: David Bulkow <david.bulkow@stratus.com>
-Cc: Andi Kleen <ak@muc.de>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- arch/i386/kernel/acpi/boot.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/acpi/events/evrgnini.c |   13 ++++++-------
+ 1 files changed, 6 insertions(+), 7 deletions(-)
 
-diff --git a/arch/i386/kernel/acpi/boot.c b/arch/i386/kernel/acpi/boot.c
-index 92f79cd..ab974ff 100644
---- a/arch/i386/kernel/acpi/boot.c
-+++ b/arch/i386/kernel/acpi/boot.c
-@@ -332,7 +332,7 @@ acpi_parse_ioapic(acpi_table_entry_heade
- /*
-  * Parse Interrupt Source Override for the ACPI SCI
-  */
--static void acpi_sci_ioapic_setup(u32 gsi, u16 polarity, u16 trigger)
-+static void acpi_sci_ioapic_setup(u32 bus_irq, u32 gsi, u16 polarity, u16 trigger)
- {
- 	if (trigger == 0)	/* compatible SCI trigger is level */
- 		trigger = 3;
-@@ -352,13 +352,13 @@ static void acpi_sci_ioapic_setup(u32 gs
- 	 * If GSI is < 16, this will update its flags,
- 	 * else it will create a new mp_irqs[] entry.
- 	 */
--	mp_override_legacy_irq(gsi, polarity, trigger, gsi);
-+	mp_override_legacy_irq(bus_irq, polarity, trigger, gsi);
+diff --git a/drivers/acpi/events/evrgnini.c b/drivers/acpi/events/evrgnini.c
+index 5b3c7a8..203d135 100644
+--- a/drivers/acpi/events/evrgnini.c
++++ b/drivers/acpi/events/evrgnini.c
+@@ -225,13 +225,12 @@ acpi_ev_pci_config_region_setup(acpi_han
+ 				if (!
+ 				    (ACPI_STRNCMP
+ 				     (object_hID.value, PCI_ROOT_HID_STRING,
+-				      sizeof(PCI_ROOT_HID_STRING))
+-				     ||
+-				     !(ACPI_STRNCMP
+-				       (object_hID.value,
+-					PCI_EXPRESS_ROOT_HID_STRING,
+-					sizeof(PCI_EXPRESS_ROOT_HID_STRING)))))
+-				{
++				      sizeof(PCI_ROOT_HID_STRING)))
++				    ||
++				    !(ACPI_STRNCMP
++				      (object_hID.value,
++				       PCI_EXPRESS_ROOT_HID_STRING,
++				       sizeof(PCI_EXPRESS_ROOT_HID_STRING)))) {
  
- 	/*
- 	 * stash over-ride to indicate we've been here
- 	 * and for later update of acpi_fadt
- 	 */
--	acpi_sci_override_gsi = gsi;
-+	acpi_sci_override_gsi = bus_irq;
- 	return;
- }
+ 					/* Install a handler for this PCI root bridge */
  
-@@ -376,7 +376,7 @@ acpi_parse_int_src_ovr(acpi_table_entry_
- 	acpi_table_print_madt_entry(header);
- 
- 	if (intsrc->bus_irq == acpi_fadt.sci_int) {
--		acpi_sci_ioapic_setup(intsrc->global_irq,
-+		acpi_sci_ioapic_setup(intsrc->bus_irq, intsrc->global_irq,
- 				      intsrc->flags.polarity,
- 				      intsrc->flags.trigger);
- 		return 0;
-@@ -879,7 +879,7 @@ static int __init acpi_parse_madt_ioapic
- 	 * pretend we got one so we can set the SCI flags.
- 	 */
- 	if (!acpi_sci_override_gsi)
--		acpi_sci_ioapic_setup(acpi_fadt.sci_int, 0, 0);
-+		acpi_sci_ioapic_setup(acpi_fadt.sci_int, acpi_fadt.sci_int, 0, 0);
- 
- 	/* Fill in identity legacy mapings where no override */
- 	mp_config_acpi_legacy_irqs();
 -- 
 1.4.3.rc2.g23bed-dirty
