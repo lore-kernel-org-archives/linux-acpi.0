@@ -1,544 +1,501 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 7/28] ACPI: Processor native C-states using MWAIT
-Date: Sat, 14 Oct 2006 04:05:48 -0400
-Message-ID: <1160813176952-git-send-email-len.brown@intel.com>
+Subject: [PATCH 8/28] ACPI: consolidate functions in acpi ec driver
+Date: Sat, 14 Oct 2006 04:05:49 -0400
+Message-ID: <11608131774195-git-send-email-len.brown@intel.com>
 References: <11608131691346-git-send-email-len.brown@intel.com>
 Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:47917 "EHLO mga03.intel.com")
-	by vger.kernel.org with ESMTP id S1752128AbWJNICz (ORCPT
+Received: from mga03.intel.com ([143.182.124.21]:47642 "EHLO mga03.intel.com")
+	by vger.kernel.org with ESMTP id S1752127AbWJNIC4 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 14 Oct 2006 04:02:55 -0400
+	Sat, 14 Oct 2006 04:02:56 -0400
 In-Reply-To: <11608131691346-git-send-email-len.brown@intel.com>
-Message-Id: <991528d7348667924176f3e29addea0675298944.1160812999.git.len.brown@intel.com>
+Message-Id: <d7a76e4cb3b4469b1eccb6204c053e3ebcd4c196.1160812999.git.len.brown@intel.com>
 In-Reply-To: <288f3ad406460f03642a41bb945826891a7b866f.1160812999.git.len.brown@intel.com>
 References: <288f3ad406460f03642a41bb945826891a7b866f.1160812999.git.len.brown@intel.com>
-Date: Mon, 25 Sep 2006 16:28:13 -0700
+Date: Tue, 5 Sep 2006 12:12:24 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Andrew Morton <akpm@osdl.org>, Len Brown <len.brown@intel.com>
+Cc: Lennart Poettering <mzxreary@0pointer.de>, Andrew Morton <akpm@osdl.org>, Len Brown <len.brown@intel.com>
 
-From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+From: Lennart Poettering <mzxreary@0pointer.de>
 
-Intel processors starting with the Core Duo support
-support processor native C-state using the MWAIT instruction.
-Refer: Intel Architecture Software Developer's Manual
-http://www.intel.com/design/Pentium4/manuals/253668.htm
+Unify the following functions:
 
-Platform firmware exports the support for Native C-state to OS using
-ACPI _PDC and _CST methods.
-Refer: Intel Processor Vendor-Specific ACPI: Interface Specification
-http://www.intel.com/technology/iapc/acpi/downloads/302223.htm
+    acpi_ec_poll_read()
+    acpi_ec_poll_write()
+    acpi_ec_poll_query()
+    acpi_ec_intr_read()
+    acpi_ec_intr_write()
+    acpi_ec_intr_query()
 
-With Processor Native C-state, we use 'MWAIT' instruction on the processor
-to enter different C-states (C1, C2, C3).  We won't use the special IO
-ports to enter C-state and no SMM mode etc required to enter C-state.
-Overall this will mean better C-state support.
+into:
 
-One major advantage of using MWAIT for all C-states is, with this and
-"treat interrupt as break event" feature of MWAIT, we can now get accurate
-timing for the time spent in C1, C2, ..  states.
+    acpi_ec_poll_transaction()
+    acpi_ec_intr_transaction()
 
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+These new functions take as arguments an ACPI EC command, a few bytes
+to write to the EC data register and a buffer for a few bytes to read
+from the EC data register. The old _read(), _write(), _query() are
+just special cases of these functions.
+
+Then unified the code in acpi_ec_poll_transaction() and
+acpi_ec_intr_transaction() a little more. Both functions are now just
+wrappers around the new acpi_ec_transaction_unlocked() function. The
+latter contains the EC access logic, the two original
+function now just do their special way of locking and call the the
+new function for the actual work.
+
+This saves a lot of very similar code. The primary reason for doing
+this, however, is that my driver for MSI 270 laptops needs to issue
+some non-standard EC commands in a safe way. Due to this I added a new
+exported function similar to ec_write()/ec_write() which is called
+ec_transaction() and is essentially just a wrapper around
+acpi_ec_{poll,intr}_transaction().
+
+Signed-off-by: Lennart Poettering <mzxreary@0pointer.de>
+Acked-by: Luming Yu <luming.yu@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- arch/i386/kernel/acpi/cstate.c |  122 +++++++++++++++++++++++++++++++++++++++-
- arch/i386/kernel/process.c     |   22 +++++--
- arch/x86_64/kernel/process.c   |   22 +++++--
- drivers/acpi/processor_idle.c  |  101 ++++++++++++++++++++------------
- include/acpi/pdc_intel.h       |    9 ++-
- include/acpi/processor.h       |   18 ++++++
- include/asm-i386/processor.h   |    2 +
- include/asm-x86_64/processor.h |    2 +
- 8 files changed, 242 insertions(+), 56 deletions(-)
+ drivers/acpi/ec.c    |  325 +++++++++++++++-----------------------------------
+ include/linux/acpi.h |    3 +
+ 2 files changed, 98 insertions(+), 230 deletions(-)
 
-diff --git a/arch/i386/kernel/acpi/cstate.c b/arch/i386/kernel/acpi/cstate.c
-index 25db49e..20563e5 100644
---- a/arch/i386/kernel/acpi/cstate.c
-+++ b/arch/i386/kernel/acpi/cstate.c
-@@ -10,6 +10,7 @@ #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/acpi.h>
-+#include <linux/cpu.h>
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index e5d7963..a0dcbad 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -122,12 +122,12 @@ union acpi_ec {
  
- #include <acpi/processor.h>
- #include <asm/acpi.h>
-@@ -41,5 +42,124 @@ void acpi_processor_power_init_bm_check(
- 		flags->bm_check = 1;
- 	}
+ static int acpi_ec_poll_wait(union acpi_ec *ec, u8 event);
+ static int acpi_ec_intr_wait(union acpi_ec *ec, unsigned int event);
+-static int acpi_ec_poll_read(union acpi_ec *ec, u8 address, u32 * data);
+-static int acpi_ec_intr_read(union acpi_ec *ec, u8 address, u32 * data);
+-static int acpi_ec_poll_write(union acpi_ec *ec, u8 address, u8 data);
+-static int acpi_ec_intr_write(union acpi_ec *ec, u8 address, u8 data);
+-static int acpi_ec_poll_query(union acpi_ec *ec, u32 * data);
+-static int acpi_ec_intr_query(union acpi_ec *ec, u32 * data);
++static int acpi_ec_poll_transaction(union acpi_ec *ec, u8 command,
++                                    const u8 *wdata, unsigned wdata_len,
++                                    u8 *rdata, unsigned rdata_len);
++static int acpi_ec_intr_transaction(union acpi_ec *ec, u8 command,
++                                    const u8 *wdata, unsigned wdata_len,
++                                    u8 *rdata, unsigned rdata_len);
+ static void acpi_ec_gpe_poll_query(void *ec_cxt);
+ static void acpi_ec_gpe_intr_query(void *ec_cxt);
+ static u32 acpi_ec_gpe_poll_handler(void *data);
+@@ -302,110 +302,95 @@ end:
  }
--
- EXPORT_SYMBOL(acpi_processor_power_init_bm_check);
-+
-+/* The code below handles cstate entry with monitor-mwait pair on Intel*/
-+
-+struct cstate_entry_s {
-+	struct {
-+		unsigned int eax;
-+		unsigned int ecx;
-+	} states[ACPI_PROCESSOR_MAX_POWER];
-+};
-+static struct cstate_entry_s *cpu_cstate_entry;	/* per CPU ptr */
-+
-+static short mwait_supported[ACPI_PROCESSOR_MAX_POWER];
-+
-+#define MWAIT_SUBSTATE_MASK	(0xf)
-+#define MWAIT_SUBSTATE_SIZE	(4)
-+
-+#define CPUID_MWAIT_LEAF (5)
-+#define CPUID5_ECX_EXTENSIONS_SUPPORTED (0x1)
-+#define CPUID5_ECX_INTERRUPT_BREAK	(0x2)
-+
-+#define MWAIT_ECX_INTERRUPT_BREAK	(0x1)
-+
-+#define NATIVE_CSTATE_BEYOND_HALT	(2)
-+
-+int acpi_processor_ffh_cstate_probe(unsigned int cpu,
-+		struct acpi_processor_cx *cx, struct acpi_power_register *reg)
-+{
-+	struct cstate_entry_s *percpu_entry;
-+	struct cpuinfo_x86 *c = cpu_data + cpu;
-+
-+	cpumask_t saved_mask;
-+	int retval;
-+	unsigned int eax, ebx, ecx, edx;
-+	unsigned int edx_part;
-+	unsigned int cstate_type; /* C-state type and not ACPI C-state type */
-+	unsigned int num_cstate_subtype;
-+
-+	if (!cpu_cstate_entry || c->cpuid_level < CPUID_MWAIT_LEAF )
-+		return -1;
-+
-+	if (reg->bit_offset != NATIVE_CSTATE_BEYOND_HALT)
-+		return -1;
-+
-+	percpu_entry = per_cpu_ptr(cpu_cstate_entry, cpu);
-+	percpu_entry->states[cx->index].eax = 0;
-+	percpu_entry->states[cx->index].ecx = 0;
-+
-+	/* Make sure we are running on right CPU */
-+	saved_mask = current->cpus_allowed;
-+	retval = set_cpus_allowed(current, cpumask_of_cpu(cpu));
-+	if (retval)
-+		return -1;
-+
-+	cpuid(CPUID_MWAIT_LEAF, &eax, &ebx, &ecx, &edx);
-+
-+	/* Check whether this particular cx_type (in CST) is supported or not */
-+	cstate_type = (cx->address >> MWAIT_SUBSTATE_SIZE) + 1;
-+	edx_part = edx >> (cstate_type * MWAIT_SUBSTATE_SIZE);
-+	num_cstate_subtype = edx_part & MWAIT_SUBSTATE_MASK;
-+
-+	retval = 0;
-+	if (num_cstate_subtype < (cx->address & MWAIT_SUBSTATE_MASK)) {
-+		retval = -1;
-+		goto out;
-+	}
-+
-+	/* mwait ecx extensions INTERRUPT_BREAK should be supported for C2/C3 */
-+	if (!(ecx & CPUID5_ECX_EXTENSIONS_SUPPORTED) ||
-+	    !(ecx & CPUID5_ECX_INTERRUPT_BREAK)) {
-+		retval = -1;
-+		goto out;
-+	}
-+	percpu_entry->states[cx->index].ecx = MWAIT_ECX_INTERRUPT_BREAK;
-+
-+	/* Use the hint in CST */
-+	percpu_entry->states[cx->index].eax = cx->address;
-+
-+	if (!mwait_supported[cstate_type]) {
-+		mwait_supported[cstate_type] = 1;
-+		printk(KERN_DEBUG "Monitor-Mwait will be used to enter C-%d "
-+		       "state\n", cx->type);
-+	}
-+
-+out:
-+	set_cpus_allowed(current, saved_mask);
-+	return retval;
-+}
-+EXPORT_SYMBOL_GPL(acpi_processor_ffh_cstate_probe);
-+
-+void acpi_processor_ffh_cstate_enter(struct acpi_processor_cx *cx)
-+{
-+	unsigned int cpu = smp_processor_id();
-+	struct cstate_entry_s *percpu_entry;
-+
-+	percpu_entry = per_cpu_ptr(cpu_cstate_entry, cpu);
-+	mwait_idle_with_hints(percpu_entry->states[cx->index].eax,
-+	                      percpu_entry->states[cx->index].ecx);
-+}
-+EXPORT_SYMBOL_GPL(acpi_processor_ffh_cstate_enter);
-+
-+static int __init ffh_cstate_init(void)
-+{
-+	struct cpuinfo_x86 *c = &boot_cpu_data;
-+	if (c->x86_vendor != X86_VENDOR_INTEL)
-+		return -1;
-+
-+	cpu_cstate_entry = alloc_percpu(struct cstate_entry_s);
-+	return 0;
-+}
-+
-+static void __exit ffh_cstate_exit(void)
-+{
-+	if (cpu_cstate_entry) {
-+		free_percpu(cpu_cstate_entry);
-+		cpu_cstate_entry = NULL;
-+	}
-+}
-+
-+arch_initcall(ffh_cstate_init);
-+__exitcall(ffh_cstate_exit);
-diff --git a/arch/i386/kernel/process.c b/arch/i386/kernel/process.c
-index b0a0780..57d3759 100644
---- a/arch/i386/kernel/process.c
-+++ b/arch/i386/kernel/process.c
-@@ -236,20 +236,28 @@ EXPORT_SYMBOL_GPL(cpu_idle_wait);
-  * We execute MONITOR against need_resched and enter optimized wait state
-  * through MWAIT. Whenever someone changes need_resched, we would be woken
-  * up from MWAIT (without an IPI).
-+ *
-+ * New with Core Duo processors, MWAIT can take some hints based on CPU
-+ * capability.
-  */
--static void mwait_idle(void)
-+void mwait_idle_with_hints(unsigned long eax, unsigned long ecx)
+ #endif /* ACPI_FUTURE_USAGE */
+ 
+-static int acpi_ec_read(union acpi_ec *ec, u8 address, u32 * data)
++static int acpi_ec_transaction(union acpi_ec *ec, u8 command,
++                               const u8 *wdata, unsigned wdata_len,
++                               u8 *rdata, unsigned rdata_len)
  {
--	local_irq_enable();
--
--	while (!need_resched()) {
-+	if (!need_resched()) {
- 		__monitor((void *)&current_thread_info()->flags, 0, 0);
- 		smp_mb();
--		if (need_resched())
--			break;
--		__mwait(0, 0);
-+		if (!need_resched())
-+			__mwait(eax, ecx);
- 	}
+ 	if (acpi_ec_poll_mode)
+-		return acpi_ec_poll_read(ec, address, data);
++		return acpi_ec_poll_transaction(ec, command, wdata, wdata_len, rdata, rdata_len);
+ 	else
+-		return acpi_ec_intr_read(ec, address, data);
++		return acpi_ec_intr_transaction(ec, command, wdata, wdata_len, rdata, rdata_len);
++}
++static int acpi_ec_read(union acpi_ec *ec, u8 address, u32 * data)
++{
++        int result;
++        u8 d;
++        result = acpi_ec_transaction(ec, ACPI_EC_COMMAND_READ, &address, 1, &d, 1);
++        *data = d;
++        return result;
  }
- 
-+/* Default MONITOR/MWAIT with no hints, used for default C1 state */
-+static void mwait_idle(void)
-+{
-+	local_irq_enable();
-+	while (!need_resched())
-+		mwait_idle_with_hints(0, 0);
-+}
-+
- void __devinit select_idle_routine(const struct cpuinfo_x86 *c)
+ static int acpi_ec_write(union acpi_ec *ec, u8 address, u8 data)
  {
- 	if (cpu_has(c, X86_FEATURE_MWAIT)) {
-diff --git a/arch/x86_64/kernel/process.c b/arch/x86_64/kernel/process.c
-index 5e95b25..49f7fac 100644
---- a/arch/x86_64/kernel/process.c
-+++ b/arch/x86_64/kernel/process.c
-@@ -238,20 +238,28 @@ void cpu_idle (void)
-  * We execute MONITOR against need_resched and enter optimized wait state
-  * through MWAIT. Whenever someone changes need_resched, we would be woken
-  * up from MWAIT (without an IPI).
-+ *
-+ * New with Core Duo processors, MWAIT can take some hints based on CPU
-+ * capability.
-  */
--static void mwait_idle(void)
-+void mwait_idle_with_hints(unsigned long eax, unsigned long ecx)
- {
--	local_irq_enable();
--
--	while (!need_resched()) {
-+	if (!need_resched()) {
- 		__monitor((void *)&current_thread_info()->flags, 0, 0);
- 		smp_mb();
--		if (need_resched())
--			break;
--		__mwait(0, 0);
-+		if (!need_resched())
-+			__mwait(eax, ecx);
- 	}
+-	if (acpi_ec_poll_mode)
+-		return acpi_ec_poll_write(ec, address, data);
+-	else
+-		return acpi_ec_intr_write(ec, address, data);
++        u8 wdata[2] = { address, data };
++        return acpi_ec_transaction(ec, ACPI_EC_COMMAND_WRITE, wdata, 2, NULL, 0);
  }
- 
-+/* Default MONITOR/MWAIT with no hints, used for default C1 state */
-+static void mwait_idle(void)
-+{
-+	local_irq_enable();
-+	while (!need_resched())
-+		mwait_idle_with_hints(0,0);
-+}
+-static int acpi_ec_poll_read(union acpi_ec *ec, u8 address, u32 * data)
 +
- void __cpuinit select_idle_routine(const struct cpuinfo_x86 *c)
++static int acpi_ec_transaction_unlocked(union acpi_ec *ec, u8 command,
++                                             const u8 *wdata, unsigned wdata_len,
++                                             u8 *rdata, unsigned rdata_len)
  {
- 	static int printed;
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 0a395fc..429a39d 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -219,6 +219,23 @@ static void acpi_safe_halt(void)
+-	acpi_status status = AE_OK;
+-	int result = 0;
+-	u32 glk = 0;
++	int result;
  
- static atomic_t c3_cpu_count;
++	acpi_hw_low_level_write(8, command, &ec->common.command_addr);
  
-+/* Common C-state entry for C2, C3, .. */
-+static void acpi_cstate_enter(struct acpi_processor_cx *cstate)
-+{
-+	if (cstate->space_id == ACPI_CSTATE_FFH) {
-+		/* Call into architectural FFH based C-state */
-+		acpi_processor_ffh_cstate_enter(cstate);
-+	} else {
-+		int unused;
-+		/* IO port based C-state */
-+		inb(cstate->address);
-+		/* Dummy wait op - must do something useless after P_LVL2 read
-+		   because chipsets cannot guarantee that STPCLK# signal
-+		   gets asserted in time to freeze execution properly. */
-+		unused = inl(acpi_fadt.xpm_tmr_blk.address);
-+	}
-+}
-+
- static void acpi_processor_idle(void)
- {
- 	struct acpi_processor *pr = NULL;
-@@ -361,11 +378,7 @@ #endif
- 		/* Get start time (ticks) */
- 		t1 = inl(acpi_fadt.xpm_tmr_blk.address);
- 		/* Invoke C2 */
--		inb(cx->address);
--		/* Dummy wait op - must do something useless after P_LVL2 read
--		   because chipsets cannot guarantee that STPCLK# signal
--		   gets asserted in time to freeze execution properly. */
--		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
-+		acpi_cstate_enter(cx);
- 		/* Get end time (ticks) */
- 		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
- 
-@@ -401,9 +414,7 @@ #endif
- 		/* Get start time (ticks) */
- 		t1 = inl(acpi_fadt.xpm_tmr_blk.address);
- 		/* Invoke C3 */
--		inb(cx->address);
--		/* Dummy wait op (see above) */
--		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
-+		acpi_cstate_enter(cx);
- 		/* Get end time (ticks) */
- 		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
- 		if (pr->flags.bm_check) {
-@@ -628,20 +639,16 @@ #endif
- 	return 0;
- }
- 
--static int acpi_processor_get_power_info_default_c1(struct acpi_processor *pr)
-+static int acpi_processor_get_power_info_default(struct acpi_processor *pr)
- {
--
--	/* Zero initialize all the C-states info. */
--	memset(pr->power.states, 0, sizeof(pr->power.states));
--
--	/* set the first C-State to C1 */
--	pr->power.states[ACPI_STATE_C1].type = ACPI_STATE_C1;
--
--	/* the C0 state only exists as a filler in our array,
--	 * and all processors need to support C1 */
-+	if (!pr->power.states[ACPI_STATE_C1].valid) {
-+		/* set the first C-State to C1 */
-+		/* all processors need to support C1 */
-+		pr->power.states[ACPI_STATE_C1].type = ACPI_STATE_C1;
-+		pr->power.states[ACPI_STATE_C1].valid = 1;
-+	}
-+	/* the C0 state only exists as a filler in our array */
- 	pr->power.states[ACPI_STATE_C0].valid = 1;
--	pr->power.states[ACPI_STATE_C1].valid = 1;
--
- 	return 0;
- }
- 
-@@ -658,12 +665,7 @@ static int acpi_processor_get_power_info
- 	if (nocst)
- 		return -ENODEV;
- 
--	current_count = 1;
--
--	/* Zero initialize C2 onwards and prepare for fresh CST lookup */
--	for (i = 2; i < ACPI_PROCESSOR_MAX_POWER; i++)
--		memset(&(pr->power.states[i]), 0, 
--				sizeof(struct acpi_processor_cx));
-+	current_count = 0;
- 
- 	status = acpi_evaluate_object(pr->handle, "_CST", NULL, &buffer);
- 	if (ACPI_FAILURE(status)) {
-@@ -718,22 +720,39 @@ static int acpi_processor_get_power_info
- 		    (reg->space_id != ACPI_ADR_SPACE_FIXED_HARDWARE))
- 			continue;
- 
--		cx.address = (reg->space_id == ACPI_ADR_SPACE_FIXED_HARDWARE) ?
--		    0 : reg->address;
--
- 		/* There should be an easy way to extract an integer... */
- 		obj = (union acpi_object *)&(element->package.elements[1]);
- 		if (obj->type != ACPI_TYPE_INTEGER)
- 			continue;
- 
- 		cx.type = obj->integer.value;
--
--		if ((cx.type != ACPI_STATE_C1) &&
--		    (reg->space_id != ACPI_ADR_SPACE_SYSTEM_IO))
--			continue;
--
--		if ((cx.type < ACPI_STATE_C2) || (cx.type > ACPI_STATE_C3))
--			continue;
-+		/*
-+		 * Some buggy BIOSes won't list C1 in _CST -
-+		 * Let acpi_processor_get_power_info_default() handle them later
-+		 */
-+		if (i == 1 && cx.type != ACPI_STATE_C1)
-+			current_count++;
-+
-+		cx.address = reg->address;
-+		cx.index = current_count + 1;
-+
-+		cx.space_id = ACPI_CSTATE_SYSTEMIO;
-+		if (reg->space_id == ACPI_ADR_SPACE_FIXED_HARDWARE) {
-+			if (acpi_processor_ffh_cstate_probe
-+					(pr->id, &cx, reg) == 0) {
-+				cx.space_id = ACPI_CSTATE_FFH;
-+			} else if (cx.type != ACPI_STATE_C1) {
-+				/*
-+				 * C1 is a special case where FIXED_HARDWARE
-+				 * can be handled in non-MWAIT way as well.
-+				 * In that case, save this _CST entry info.
-+				 * That is, we retain space_id of SYSTEM_IO for
-+				 * halt based C1.
-+				 * Otherwise, ignore this info and continue.
-+				 */
-+				continue;
-+			}
-+		}
- 
- 		obj = (union acpi_object *)&(element->package.elements[2]);
- 		if (obj->type != ACPI_TYPE_INTEGER)
-@@ -938,12 +957,18 @@ static int acpi_processor_get_power_info
- 	/* NOTE: the idle thread may not be running while calling
- 	 * this function */
- 
--	/* Adding C1 state */
--	acpi_processor_get_power_info_default_c1(pr);
-+	/* Zero initialize all the C-states info. */
-+	memset(pr->power.states, 0, sizeof(pr->power.states));
-+
- 	result = acpi_processor_get_power_info_cst(pr);
- 	if (result == -ENODEV)
- 		acpi_processor_get_power_info_fadt(pr);
- 
+-	if (!ec || !data)
+-		return -EINVAL;
++        result = acpi_ec_wait(ec, ACPI_EC_EVENT_IBE);
 +	if (result)
 +		return result;
-+
-+	acpi_processor_get_power_info_default(pr);
-+
- 	pr->power.count = acpi_processor_power_verify(pr);
  
- 	/*
-diff --git a/include/acpi/pdc_intel.h b/include/acpi/pdc_intel.h
-index c5472be..e72bfdd 100644
---- a/include/acpi/pdc_intel.h
-+++ b/include/acpi/pdc_intel.h
-@@ -13,6 +13,7 @@ #define ACPI_PDC_SMP_P_SWCOORD		(0x0020)
- #define ACPI_PDC_SMP_C_SWCOORD		(0x0040)
- #define ACPI_PDC_SMP_T_SWCOORD		(0x0080)
- #define ACPI_PDC_C_C1_FFH		(0x0100)
-+#define ACPI_PDC_C_C2C3_FFH		(0x0200)
+-	*data = 0;
++        for (; wdata_len > 0; wdata_len --) {
  
- #define ACPI_PDC_EST_CAPABILITY_SMP	(ACPI_PDC_SMP_C1PT | \
- 					 ACPI_PDC_C_C1_HALT | \
-@@ -23,8 +24,10 @@ #define ACPI_PDC_EST_CAPABILITY_SWSMP	(A
- 					 ACPI_PDC_SMP_P_SWCOORD | \
- 					 ACPI_PDC_P_FFH)
+-	if (ec->common.global_lock) {
+-		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
+-		if (ACPI_FAILURE(status))
+-			return -ENODEV;
+-	}
++                acpi_hw_low_level_write(8, *(wdata++), &ec->common.data_addr);
  
--#define ACPI_PDC_C_CAPABILITY_SMP	(ACPI_PDC_SMP_C2C3 | \
--					 ACPI_PDC_SMP_C1PT | \
--					 ACPI_PDC_C_C1_HALT)
-+#define ACPI_PDC_C_CAPABILITY_SMP	(ACPI_PDC_SMP_C2C3  | \
-+					 ACPI_PDC_SMP_C1PT  | \
-+					 ACPI_PDC_C_C1_HALT | \
-+					 ACPI_PDC_C_C1_FFH  | \
-+					 ACPI_PDC_C_C2C3_FFH)
+-	if (down_interruptible(&ec->poll.sem)) {
+-		result = -ERESTARTSYS;
+-		goto end_nosem;
+-	}
+-	
+-	acpi_hw_low_level_write(8, ACPI_EC_COMMAND_READ,
+-				&ec->common.command_addr);
+-	result = acpi_ec_wait(ec, ACPI_EC_EVENT_IBE);
+-	if (result)
+-		goto end;
++                result = acpi_ec_wait(ec, ACPI_EC_EVENT_IBE);
++                if (result)
++                        return result;
++        }
  
- #endif				/* __PDC_INTEL_H__ */
-diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index 9dd5b75..7798d2a 100644
---- a/include/acpi/processor.h
-+++ b/include/acpi/processor.h
-@@ -29,6 +29,9 @@ #define DOMAIN_COORD_TYPE_SW_ALL	0xfc
- #define DOMAIN_COORD_TYPE_SW_ANY	0xfd
- #define DOMAIN_COORD_TYPE_HW_ALL	0xfe
+-	acpi_hw_low_level_write(8, address, &ec->common.data_addr);
+-	result = acpi_ec_wait(ec, ACPI_EC_EVENT_OBF);
+-	if (result)
+-		goto end;
  
-+#define ACPI_CSTATE_SYSTEMIO	(0)
-+#define ACPI_CSTATE_FFH		(1)
-+
- /* Power Management */
+-	acpi_hw_low_level_read(8, data, &ec->common.data_addr);
++        for (; rdata_len > 0; rdata_len --) {
++                u32 d;
  
- struct acpi_processor_cx;
-@@ -58,6 +61,8 @@ struct acpi_processor_cx {
- 	u8 valid;
- 	u8 type;
- 	u32 address;
-+	u8 space_id;
-+	u8 index;
- 	u32 latency;
- 	u32 latency_ticks;
- 	u32 power;
-@@ -206,6 +211,9 @@ void arch_acpi_processor_init_pdc(struct
- #ifdef ARCH_HAS_POWER_INIT
- void acpi_processor_power_init_bm_check(struct acpi_processor_flags *flags,
- 					unsigned int cpu);
-+int acpi_processor_ffh_cstate_probe(unsigned int cpu,
-+		struct acpi_processor_cx *cx, struct acpi_power_register *reg);
-+void acpi_processor_ffh_cstate_enter(struct acpi_processor_cx *cstate);
- #else
- static inline void acpi_processor_power_init_bm_check(struct
- 						      acpi_processor_flags
-@@ -214,6 +222,16 @@ static inline void acpi_processor_power_
- 	flags->bm_check = 1;
- 	return;
- }
-+static inline int acpi_processor_ffh_cstate_probe(unsigned int cpu,
-+		struct acpi_processor_cx *cx, struct acpi_power_register *reg)
-+{
-+	return -1;
-+}
-+static inline void acpi_processor_ffh_cstate_enter(
-+		struct acpi_processor_cx *cstate)
-+{
-+	return;
-+}
- #endif
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Read [%02x] from address [%02x]\n",
+-			  *data, address));
++                result = acpi_ec_wait(ec, ACPI_EC_EVENT_OBF);
++                if (result)
++                        return result;
  
- /* in processor_perflib.c */
-diff --git a/include/asm-i386/processor.h b/include/asm-i386/processor.h
-index 2277127..e0ddca9 100644
---- a/include/asm-i386/processor.h
-+++ b/include/asm-i386/processor.h
-@@ -306,6 +306,8 @@ static inline void __mwait(unsigned long
- 		: :"a" (eax), "c" (ecx));
+-      end:
+-	up(&ec->poll.sem);
+-end_nosem:
+-	if (ec->common.global_lock)
+-		acpi_release_global_lock(glk);
++                acpi_hw_low_level_read(8, &d, &ec->common.data_addr);
++                *(rdata++) = (u8) d;
++        }
+ 
+-	return result;
++        return 0;
  }
  
-+extern void mwait_idle_with_hints(unsigned long eax, unsigned long ecx);
+-static int acpi_ec_poll_write(union acpi_ec *ec, u8 address, u8 data)
++static int acpi_ec_poll_transaction(union acpi_ec *ec, u8 command,
++                                    const u8 *wdata, unsigned wdata_len,
++                                    u8 *rdata, unsigned rdata_len)
+ {
+-	int result = 0;
+ 	acpi_status status = AE_OK;
++	int result;
+ 	u32 glk = 0;
+ 
+-
+-	if (!ec)
++	if (!ec || (wdata_len && !wdata) || (rdata_len && !rdata))
+ 		return -EINVAL;
+ 
++        if (rdata)
++                memset(rdata, 0, rdata_len);
 +
- /* from system description table in BIOS.  Mostly for MCA use, but
- others may find it useful. */
- extern unsigned int machine_id;
-diff --git a/include/asm-x86_64/processor.h b/include/asm-x86_64/processor.h
-index de9c314..cef17e0 100644
---- a/include/asm-x86_64/processor.h
-+++ b/include/asm-x86_64/processor.h
-@@ -475,6 +475,8 @@ static inline void __mwait(unsigned long
- 		: :"a" (eax), "c" (ecx));
+ 	if (ec->common.global_lock) {
+ 		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
+ 		if (ACPI_FAILURE(status))
+ 			return -ENODEV;
+-	}
++        }
+ 
+ 	if (down_interruptible(&ec->poll.sem)) {
+ 		result = -ERESTARTSYS;
+ 		goto end_nosem;
+ 	}
+-	
+-	acpi_hw_low_level_write(8, ACPI_EC_COMMAND_WRITE,
+-				&ec->common.command_addr);
+-	result = acpi_ec_wait(ec, ACPI_EC_EVENT_IBE);
+-	if (result)
+-		goto end;
+ 
+-	acpi_hw_low_level_write(8, address, &ec->common.data_addr);
+-	result = acpi_ec_wait(ec, ACPI_EC_EVENT_IBE);
+-	if (result)
+-		goto end;
+-
+-	acpi_hw_low_level_write(8, data, &ec->common.data_addr);
+-	result = acpi_ec_wait(ec, ACPI_EC_EVENT_IBE);
+-	if (result)
+-		goto end;
+-
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Wrote [%02x] to address [%02x]\n",
+-			  data, address));
+-
+-      end:
++        result = acpi_ec_transaction_unlocked(ec, command,
++                                              wdata, wdata_len,
++                                              rdata, rdata_len);
+ 	up(&ec->poll.sem);
++
+ end_nosem:
+ 	if (ec->common.global_lock)
+ 		acpi_release_global_lock(glk);
+@@ -413,16 +398,18 @@ end_nosem:
+ 	return result;
  }
  
-+extern void mwait_idle_with_hints(unsigned long eax, unsigned long ecx);
-+
- #define stack_current() \
- ({								\
- 	struct thread_info *ti;					\
+-static int acpi_ec_intr_read(union acpi_ec *ec, u8 address, u32 * data)
++static int acpi_ec_intr_transaction(union acpi_ec *ec, u8 command,
++                                    const u8 *wdata, unsigned wdata_len,
++                                    u8 *rdata, unsigned rdata_len)
+ {
+-	int status = 0;
++	int status;
+ 	u32 glk;
+ 
+-
+-	if (!ec || !data)
++	if (!ec || (wdata_len && !wdata) || (rdata_len && !rdata))
+ 		return -EINVAL;
+ 
+-	*data = 0;
++        if (rdata)
++                memset(rdata, 0, rdata_len);
+ 
+ 	if (ec->common.global_lock) {
+ 		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
+@@ -438,72 +425,12 @@ static int acpi_ec_intr_read(union acpi_
+ 		printk(KERN_DEBUG PREFIX "read EC, IB not empty\n");
+ 		goto end;
+ 	}
+-	acpi_hw_low_level_write(8, ACPI_EC_COMMAND_READ,
+-				&ec->common.command_addr);
+-	status = acpi_ec_wait(ec, ACPI_EC_EVENT_IBE);
+-	if (status) {
+-		printk(KERN_DEBUG PREFIX "read EC, IB not empty\n");
+-	}
+-
+-	acpi_hw_low_level_write(8, address, &ec->common.data_addr);
+-	status = acpi_ec_wait(ec, ACPI_EC_EVENT_OBF);
+-	if (status) {
+-		printk(KERN_DEBUG PREFIX "read EC, OB not full\n");
+-		goto end;
+-	}
+-	acpi_hw_low_level_read(8, data, &ec->common.data_addr);
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Read [%02x] from address [%02x]\n",
+-			  *data, address));
+-
+-      end:
+-	up(&ec->intr.sem);
+-
+-	if (ec->common.global_lock)
+-		acpi_release_global_lock(glk);
+-
+-	return status;
+-}
+-
+-static int acpi_ec_intr_write(union acpi_ec *ec, u8 address, u8 data)
+-{
+-	int status = 0;
+-	u32 glk;
+-
+-
+-	if (!ec)
+-		return -EINVAL;
+-
+-	if (ec->common.global_lock) {
+-		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
+-		if (ACPI_FAILURE(status))
+-			return -ENODEV;
+-	}
+-
+-	WARN_ON(in_interrupt());
+-	down(&ec->intr.sem);
+-
+-	status = acpi_ec_wait(ec, ACPI_EC_EVENT_IBE);
+-	if (status) {
+-		printk(KERN_DEBUG PREFIX "write EC, IB not empty\n");
+-	}
+-	acpi_hw_low_level_write(8, ACPI_EC_COMMAND_WRITE,
+-				&ec->common.command_addr);
+-	status = acpi_ec_wait(ec, ACPI_EC_EVENT_IBE);
+-	if (status) {
+-		printk(KERN_DEBUG PREFIX "write EC, IB not empty\n");
+-	}
+-
+-	acpi_hw_low_level_write(8, address, &ec->common.data_addr);
+-	status = acpi_ec_wait(ec, ACPI_EC_EVENT_IBE);
+-	if (status) {
+-		printk(KERN_DEBUG PREFIX "write EC, IB not empty\n");
+-	}
+ 
+-	acpi_hw_low_level_write(8, data, &ec->common.data_addr);
+-
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Wrote [%02x] to address [%02x]\n",
+-			  data, address));
++        status = acpi_ec_transaction_unlocked(ec, command,
++                                              wdata, wdata_len,
++                                              rdata, rdata_len);
+ 
++end:
+ 	up(&ec->intr.sem);
+ 
+ 	if (ec->common.global_lock)
+@@ -554,106 +481,44 @@ int ec_write(u8 addr, u8 val)
+ 
+ EXPORT_SYMBOL(ec_write);
+ 
+-static int acpi_ec_query(union acpi_ec *ec, u32 * data)
+-{
+-	if (acpi_ec_poll_mode)
+-		return acpi_ec_poll_query(ec, data);
+-	else
+-		return acpi_ec_intr_query(ec, data);
+-}
+-static int acpi_ec_poll_query(union acpi_ec *ec, u32 * data)
++extern int ec_transaction(u8 command,
++                          const u8 *wdata, unsigned wdata_len,
++                          u8 *rdata, unsigned rdata_len)
+ {
+-	int result = 0;
+-	acpi_status status = AE_OK;
+-	u32 glk = 0;
+-
+-
+-	if (!ec || !data)
+-		return -EINVAL;
+-
+-	*data = 0;
+-
+-	if (ec->common.global_lock) {
+-		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
+-		if (ACPI_FAILURE(status))
+-			return -ENODEV;
+-	}
+-
+-	/*
+-	 * Query the EC to find out which _Qxx method we need to evaluate.
+-	 * Note that successful completion of the query causes the ACPI_EC_SCI
+-	 * bit to be cleared (and thus clearing the interrupt source).
+-	 */
+-	if (down_interruptible(&ec->poll.sem)) {
+-		result = -ERESTARTSYS;
+-		goto end_nosem;
+-	}
+-	
+-	acpi_hw_low_level_write(8, ACPI_EC_COMMAND_QUERY,
+-				&ec->common.command_addr);
+-	result = acpi_ec_wait(ec, ACPI_EC_EVENT_OBF);
+-	if (result)
+-		goto end;
++	union acpi_ec *ec;
+ 
+-	acpi_hw_low_level_read(8, data, &ec->common.data_addr);
+-	if (!*data)
+-		result = -ENODATA;
++	if (!first_ec)
++		return -ENODEV;
+ 
+-      end:
+-	up(&ec->poll.sem);
+-end_nosem:
+-	if (ec->common.global_lock)
+-		acpi_release_global_lock(glk);
++	ec = acpi_driver_data(first_ec);
+ 
+-	return result;
++	return acpi_ec_transaction(ec, command, wdata, wdata_len, rdata, rdata_len);
+ }
+-static int acpi_ec_intr_query(union acpi_ec *ec, u32 * data)
+-{
+-	int status = 0;
+-	u32 glk;
+ 
++EXPORT_SYMBOL(ec_transaction);
+ 
+-	if (!ec || !data)
+-		return -EINVAL;
+-	*data = 0;
++static int acpi_ec_query(union acpi_ec *ec, u32 * data) {
++        int result;
++        u8 d;
+ 
+-	if (ec->common.global_lock) {
+-		status = acpi_acquire_global_lock(ACPI_EC_UDELAY_GLK, &glk);
+-		if (ACPI_FAILURE(status))
+-			return -ENODEV;
+-	}
++        if (!ec || !data)
++                return -EINVAL;
+ 
+-	down(&ec->intr.sem);
++        /*
++         * Query the EC to find out which _Qxx method we need to evaluate.
++         * Note that successful completion of the query causes the ACPI_EC_SCI
++         * bit to be cleared (and thus clearing the interrupt source).
++         */
+ 
+-	status = acpi_ec_wait(ec, ACPI_EC_EVENT_IBE);
+-	if (status) {
+-		printk(KERN_DEBUG PREFIX "query EC, IB not empty\n");
+-		goto end;
+-	}
+-	/*
+-	 * Query the EC to find out which _Qxx method we need to evaluate.
+-	 * Note that successful completion of the query causes the ACPI_EC_SCI
+-	 * bit to be cleared (and thus clearing the interrupt source).
+-	 */
+-	acpi_hw_low_level_write(8, ACPI_EC_COMMAND_QUERY,
+-				&ec->common.command_addr);
+-	status = acpi_ec_wait(ec, ACPI_EC_EVENT_OBF);
+-	if (status) {
+-		printk(KERN_DEBUG PREFIX "query EC, OB not full\n");
+-		goto end;
+-	}
+-
+-	acpi_hw_low_level_read(8, data, &ec->common.data_addr);
+-	if (!*data)
+-		status = -ENODATA;
++        result = acpi_ec_transaction(ec, ACPI_EC_COMMAND_QUERY, NULL, 0, &d, 1);
++        if (result)
++                return result;
+ 
+-      end:
+-	up(&ec->intr.sem);
++        if (!d)
++                return -ENODATA;
+ 
+-	if (ec->common.global_lock)
+-		acpi_release_global_lock(glk);
+-
+-	return status;
++        *data = d;
++        return 0;
+ }
+ 
+ /* --------------------------------------------------------------------------
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 88b5dfd..2b0c955 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -494,6 +494,9 @@ #ifdef CONFIG_ACPI_EC
+ 
+ extern int ec_read(u8 addr, u8 *val);
+ extern int ec_write(u8 addr, u8 val);
++extern int ec_transaction(u8 command,
++                          const u8 *wdata, unsigned wdata_len,
++                          u8 *rdata, unsigned rdata_len);
+ 
+ #endif /*CONFIG_ACPI_EC*/
+ 
 -- 
 1.4.3.rc2.g23bed-dirty
