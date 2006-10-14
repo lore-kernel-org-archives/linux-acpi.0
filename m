@@ -1,63 +1,62 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 27/28] ACPICA: Fix incorrect handling of PCI Express Root Bridge _HID
-Date: Sat, 14 Oct 2006 04:06:08 -0400
-Message-ID: <1160813204734-git-send-email-len.brown@intel.com>
+Subject: [PATCH 22/28] ACPI: fix section for CPU init functions
+Date: Sat, 14 Oct 2006 04:06:03 -0400
+Message-ID: <1160813198620-git-send-email-len.brown@intel.com>
 References: <11608131691346-git-send-email-len.brown@intel.com>
 Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:61957 "EHLO mga03.intel.com")
-	by vger.kernel.org with ESMTP id S1752129AbWJNIDY (ORCPT
+Received: from mga03.intel.com ([143.182.124.21]:15632 "EHLO mga03.intel.com")
+	by vger.kernel.org with ESMTP id S1752142AbWJNIDR (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 14 Oct 2006 04:03:24 -0400
+	Sat, 14 Oct 2006 04:03:17 -0400
 In-Reply-To: <11608131691346-git-send-email-len.brown@intel.com>
-Message-Id: <aeb1104814e1177b865eec4f4b364602f5fcb6d1.1160812999.git.len.brown@intel.com>
+Message-Id: <7af8b66004fa827958b4871112e59a07db5b3f6b.1160812999.git.len.brown@intel.com>
 In-Reply-To: <288f3ad406460f03642a41bb945826891a7b866f.1160812999.git.len.brown@intel.com>
 References: <288f3ad406460f03642a41bb945826891a7b866f.1160812999.git.len.brown@intel.com>
-Date: Mon, 2 Oct 2006 19:18:03 +0400
+Date: Tue, 10 Oct 2006 14:20:31 -0700
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Eiichiro Oiwa <eiichiro.oiwa.nm@hitachi.com>, Bob Moore <robert.moore@intel.com>, Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Pierre Ossman <drzeus@drzeus.cx>, Andrew Morton <akpm@osdl.org>, Len Brown <len.brown@intel.com>
 
-From: Eiichiro Oiwa <eiichiro.oiwa.nm@hitachi.com>
+From: Pierre Ossman <drzeus@drzeus.cx>
 
-I could not get correct PCI Express bus number from the structure of
-acpi_object_extra. I always get zero as bus number regardless of bus
-location. I found that there is incorrect comparison with _HID (PNP0A08) in
-acpi/events/evrgnini.c and PCI Express _BBN method always fail.
-Therefore, we always get zero as PCI Express bus number.
-http://bugzilla.kernel.org/show_bug.cgi?id=7145
+The ACPI processor init functions should be marked as __cpuinit as they use
+structures marked with __cpuinitdata.
 
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
+Signed-off-by: Pierre Ossman <drzeus@drzeus.cx>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/events/evrgnini.c |   13 ++++++-------
- 1 files changed, 6 insertions(+), 7 deletions(-)
+ drivers/acpi/processor_core.c |    2 +-
+ drivers/acpi/processor_idle.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/events/evrgnini.c b/drivers/acpi/events/evrgnini.c
-index 5b3c7a8..203d135 100644
---- a/drivers/acpi/events/evrgnini.c
-+++ b/drivers/acpi/events/evrgnini.c
-@@ -225,13 +225,12 @@ acpi_ev_pci_config_region_setup(acpi_han
- 				if (!
- 				    (ACPI_STRNCMP
- 				     (object_hID.value, PCI_ROOT_HID_STRING,
--				      sizeof(PCI_ROOT_HID_STRING))
--				     ||
--				     !(ACPI_STRNCMP
--				       (object_hID.value,
--					PCI_EXPRESS_ROOT_HID_STRING,
--					sizeof(PCI_EXPRESS_ROOT_HID_STRING)))))
--				{
-+				      sizeof(PCI_ROOT_HID_STRING)))
-+				    ||
-+				    !(ACPI_STRNCMP
-+				      (object_hID.value,
-+				       PCI_EXPRESS_ROOT_HID_STRING,
-+				       sizeof(PCI_EXPRESS_ROOT_HID_STRING)))) {
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index b13d644..1908e0d 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -519,7 +519,7 @@ #endif
  
- 					/* Install a handler for this PCI root bridge */
+ static void *processor_device_array[NR_CPUS];
  
+-static int acpi_processor_start(struct acpi_device *device)
++static int __cpuinit acpi_processor_start(struct acpi_device *device)
+ {
+ 	int result = 0;
+ 	acpi_status status = AE_OK;
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 0a395fc..8537c42 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -1105,7 +1105,7 @@ static struct notifier_block acpi_proces
+ 	.notifier_call = acpi_processor_latency_notify,
+ };
+ 
+-int acpi_processor_power_init(struct acpi_processor *pr,
++int __cpuinit acpi_processor_power_init(struct acpi_processor *pr,
+ 			      struct acpi_device *device)
+ {
+ 	acpi_status status = 0;
 -- 
 1.4.3.rc2.g23bed-dirty
