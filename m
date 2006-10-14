@@ -1,86 +1,14 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 1/28] ACPI: asus_acpi: W3000 support
-Date: Sat, 14 Oct 2006 04:05:42 -0400
-Message-ID: <11608131702709-git-send-email-len.brown@intel.com>
-References: <11608131691346-git-send-email-len.brown@intel.com>
-Reply-To: Len Brown <lenb@kernel.org>
+Subject: ACPI patches pushed to linux-2.6.19-rc2
+Date: Sat, 14 Oct 2006 04:05:41 -0400
+Message-ID: <11608131691346-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga03.intel.com ([143.182.124.21]:14872 "EHLO mga03.intel.com")
-	by vger.kernel.org with ESMTP id S1752121AbWJNICt (ORCPT
+	by vger.kernel.org with ESMTP id S1752117AbWJNICs (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 14 Oct 2006 04:02:49 -0400
-In-Reply-To: <11608131691346-git-send-email-len.brown@intel.com>
-Message-Id: <288f3ad406460f03642a41bb945826891a7b866f.1160812999.git.len.brown@intel.com>
-Date: Mon, 14 Aug 2006 22:37:20 -0700
+	Sat, 14 Oct 2006 04:02:48 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Marek W <marekw1977@yahoo.com.au>, Andrew Morton <akpm@osdl.org>, Len Brown <len.brown@intel.com>
 
-From: Marek W <marekw1977@yahoo.com.au>
-
-Add support for W3000 (W3V) and indirectly fixes an issue with kmilo under KDE
-(it was triggering excessive LCD read error messages by querying asus_acpi
-module) allowing people (I am probably the only one who tested this) with
-W3000 to run kmilo.
-
-Cc: Karol Kozimor <sziwan@hell.org.pl>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/acpi/asus_acpi.c |   17 ++++++++++++++++-
- 1 files changed, 16 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/acpi/asus_acpi.c b/drivers/acpi/asus_acpi.c
-index e9ee4c5..ebc033f 100644
---- a/drivers/acpi/asus_acpi.c
-+++ b/drivers/acpi/asus_acpi.c
-@@ -138,6 +138,7 @@ struct asus_hotk {
- 		S2x,		//S200 (J1 reported), Victor MP-XP7210
- 		W1N,		//W1000N
- 		W5A,		//W5A
-+		W3V,            //W3030V
- 		xxN,		//M2400N, M3700N, M5200N, M6800N, S1300N, S5200N
- 		//(Centrino)
- 		END_MODEL
-@@ -376,6 +377,17 @@ static struct model_data model_conf[END_
- 	 .display_get = "\\ADVG"},
- 
- 	{
-+	 .name = "W3V",
-+	 .mt_mled = "MLED",
-+	 .mt_wled = "WLED",
-+	 .mt_lcd_switch = xxN_PREFIX "_Q10",
-+	 .lcd_status = "\\BKLT",
-+	 .brightness_set = "SPLV",
-+	 .brightness_get = "GPLV",
-+	 .display_set = "SDSP",
-+	 .display_get = "\\INFB"},
-+
-+       {
- 	 .name = "xxN",
- 	 .mt_mled = "MLED",
- /* WLED present, but not controlled by ACPI */
-@@ -1097,6 +1109,8 @@ static int asus_model_match(char *model)
- 		return A4G;
- 	else if (strncmp(model, "W1N", 3) == 0)
- 		return W1N;
-+	else if (strncmp(model, "W3V", 3) == 0)
-+		return W3V;
- 	else if (strncmp(model, "W5A", 3) == 0)
- 		return W5A;
- 	else
-@@ -1200,9 +1214,10 @@ static int asus_hotk_get_info(void)
- 		hotk->methods->mt_wled = NULL;
- 	/* L5D's WLED is not controlled by ACPI */
- 	else if (strncmp(string, "M2N", 3) == 0 ||
-+		 strncmp(string, "W3V", 3) == 0 ||
- 		 strncmp(string, "S1N", 3) == 0)
- 		hotk->methods->mt_wled = "WLED";
--	/* M2N and S1N have a usable WLED */
-+	/* M2N, S1N and W3V have a usable WLED */
- 	else if (asus_info) {
- 		if (strncmp(asus_info->oem_table_id, "L1", 2) == 0)
- 			hotk->methods->mled_status = NULL;
--- 
-1.4.3.rc2.g23bed-dirty
+Here are individual patches from the git pull request for 2.6.19-rc2
