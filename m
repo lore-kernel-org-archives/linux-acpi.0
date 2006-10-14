@@ -1,24 +1,24 @@
 From: Len Brown <len.brown@intel.com>
-Subject: Re: [patch 03/12] ACPI: SCI interrupt source override
-Date: Sat, 14 Oct 2006 04:07:37 -0400
-Message-ID: <200610140407.37897.len.brown@intel.com>
-References: <200610102120.k9ALKXcK024272@shell0.pdx.osdl.net>
+Subject: Re: [patch 10/12] acpi: preserve correct battery state through suspend/resume cycles
+Date: Sat, 14 Oct 2006 04:07:53 -0400
+Message-ID: <200610140407.53973.len.brown@intel.com>
+References: <200610102120.k9ALKfDU024293@shell0.pdx.osdl.net>
 Reply-To: Len Brown <lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:61383 "EHLO hera.kernel.org")
-	by vger.kernel.org with ESMTP id S1160999AbWJNIFW (ORCPT
+Received: from hera.kernel.org ([140.211.167.34]:62151 "EHLO hera.kernel.org")
+	by vger.kernel.org with ESMTP id S1161003AbWJNIFY (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 14 Oct 2006 04:05:22 -0400
-In-Reply-To: <200610102120.k9ALKXcK024272@shell0.pdx.osdl.net>
+	Sat, 14 Oct 2006 04:05:24 -0400
+In-Reply-To: <200610102120.k9ALKfDU024293@shell0.pdx.osdl.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: akpm@osdl.org
-Cc: linux-acpi@vger.kernel.org, kimball.murray@gmail.com, ak@muc.de, david.bulkow@stratus.com, luming.yu@intel.com
+Cc: linux-acpi@vger.kernel.org, jikos@jikos.cz, pavel@ucw.cz, seife@suse.de
 
 Applied.
 
@@ -26,79 +26,77 @@ thanks,
 -Len
 
 On Tuesday 10 October 2006 17:20, akpm@osdl.org wrote:
-> From: Kimball Murray <kimball.murray@gmail.com>
+> From: Jiri Kosina <jikos@jikos.cz>
 > 
-> The Linux group at Stratus Technologies has come across an issue with SCI
-> routing under ACPI.  We were bitten by this when we made an x86_64 platform
-> whose BIOS provides an Interrupt Source Override for the SCI itself. 
-> Apparently the override has no effect for the System Control Interrupt, and
-> this appears to be because of the way the SCI is setup in the ACPI code. 
-> It does not handle the case where busirq != gsi.
+> There is a problem in th following scenario(s):
 > 
-> The code that sets up the SCI routing assumes that bus irq == global irq. 
-> So there is simply no provision for telling it otherwise.  The attached
-> patch provides this mechanism.
+> boot -> suspend -> (un)plug battery -> resume
 > 
-> This patch provided by David Bulkow, was tested on an i386 platform, which
-> does not use the SCI override, and also on an x86_64 platform which does
-> use an override.
+> The problem arises in both cases - i.e.  suspend with battery plugged in,
+> and resume with battery unplugged, or vice versa.
 > 
-> Signed-off-by: David Bulkow <david.bulkow@stratus.com>
+> After resume, when the battery status has changed (plugged in -> unplegged
+> or unplugged -> plugged in) during the time when the system was sleeping,
+> the /proc/acpi/battery/*/* is wrong (showing the state before suspend, not
+> the current state).
+> 
+> The following patch adds ->resume method to the ACPI battery handler, which
+> has the only aim - to check whether the battery state has changed during
+> sleep, and if so, update the ACPI internal data structures, so that
+> information published through /proc/acpi/battery/*/* is correct even after
+> suspend/resume cycle, during which the battery was removed/inserted.
+> 
+> The patch is against current ACPI git tree, but applies cleanly also
+> against -mm and probably other trees. Please apply.
+> 
+> Signed-off-by: Jiri Kosina <jikos@jikos.cz>
 > Cc: "Brown, Len" <len.brown@intel.com>
-> Cc: "Yu, Luming" <luming.yu@intel.com>
-> Cc: Andi Kleen <ak@muc.de>
+> Cc: Stefan Seyfried <seife@suse.de>
+> Acked-by: Pavel Machek <pavel@ucw.cz>
 > Signed-off-by: Andrew Morton <akpm@osdl.org>
 > ---
 > 
->  arch/i386/kernel/acpi/boot.c |   10 +++++-----
->  1 files changed, 5 insertions(+), 5 deletions(-)
+>  drivers/acpi/battery.c |   14 ++++++++++++++
+>  1 files changed, 14 insertions(+)
 > 
-> diff -puN arch/i386/kernel/acpi/boot.c~acpi-sci-interrupt-source-override arch/i386/kernel/acpi/boot.c
-> --- a/arch/i386/kernel/acpi/boot.c~acpi-sci-interrupt-source-override
-> +++ a/arch/i386/kernel/acpi/boot.c
-> @@ -332,7 +332,7 @@ acpi_parse_ioapic(acpi_table_entry_heade
->  /*
->   * Parse Interrupt Source Override for the ACPI SCI
->   */
-> -static void acpi_sci_ioapic_setup(u32 gsi, u16 polarity, u16 trigger)
-> +static void acpi_sci_ioapic_setup(u32 bus_irq, u32 gsi, u16 polarity, u16 trigger)
->  {
->  	if (trigger == 0)	/* compatible SCI trigger is level */
->  		trigger = 3;
-> @@ -352,13 +352,13 @@ static void acpi_sci_ioapic_setup(u32 gs
->  	 * If GSI is < 16, this will update its flags,
->  	 * else it will create a new mp_irqs[] entry.
->  	 */
-> -	mp_override_legacy_irq(gsi, polarity, trigger, gsi);
-> +	mp_override_legacy_irq(bus_irq, polarity, trigger, gsi);
+> diff -puN drivers/acpi/battery.c~acpi-preserve-correct-battery-state-through-suspend-resume-cycles drivers/acpi/battery.c
+> --- a/drivers/acpi/battery.c~acpi-preserve-correct-battery-state-through-suspend-resume-cycles
+> +++ a/drivers/acpi/battery.c
+> @@ -64,6 +64,7 @@ extern void *acpi_unlock_battery_dir(str
 >  
->  	/*
->  	 * stash over-ride to indicate we've been here
->  	 * and for later update of acpi_fadt
->  	 */
-> -	acpi_sci_override_gsi = gsi;
-> +	acpi_sci_override_gsi = bus_irq;
->  	return;
+>  static int acpi_battery_add(struct acpi_device *device);
+>  static int acpi_battery_remove(struct acpi_device *device, int type);
+> +static int acpi_battery_resume(struct acpi_device *device, int status);
+>  
+>  static struct acpi_driver acpi_battery_driver = {
+>  	.name = ACPI_BATTERY_DRIVER_NAME,
+> @@ -71,6 +72,7 @@ static struct acpi_driver acpi_battery_d
+>  	.ids = ACPI_BATTERY_HID,
+>  	.ops = {
+>  		.add = acpi_battery_add,
+> +		.resume = acpi_battery_resume,
+>  		.remove = acpi_battery_remove,
+>  		},
+>  };
+> @@ -753,6 +755,18 @@ static int acpi_battery_remove(struct ac
+>  	return 0;
 >  }
 >  
-> @@ -376,7 +376,7 @@ acpi_parse_int_src_ovr(acpi_table_entry_
->  	acpi_table_print_madt_entry(header);
->  
->  	if (intsrc->bus_irq == acpi_fadt.sci_int) {
-> -		acpi_sci_ioapic_setup(intsrc->global_irq,
-> +		acpi_sci_ioapic_setup(intsrc->bus_irq, intsrc->global_irq,
->  				      intsrc->flags.polarity,
->  				      intsrc->flags.trigger);
->  		return 0;
-> @@ -879,7 +879,7 @@ static int __init acpi_parse_madt_ioapic
->  	 * pretend we got one so we can set the SCI flags.
->  	 */
->  	if (!acpi_sci_override_gsi)
-> -		acpi_sci_ioapic_setup(acpi_fadt.sci_int, 0, 0);
-> +		acpi_sci_ioapic_setup(acpi_fadt.sci_int, acpi_fadt.sci_int, 0, 0);
->  
->  	/* Fill in identity legacy mapings where no override */
->  	mp_config_acpi_legacy_irqs();
+> +/* this is needed to learn about changes made in suspended state */
+> +static int acpi_battery_resume(struct acpi_device *device, int state)
+> +{
+> +	struct acpi_battery *battery;
+> +
+> +	if (!device)
+> +		return -EINVAL;
+> +
+> +	battery = device->driver_data;
+> +	return acpi_battery_check(battery);
+> +}
+> +
+>  static int __init acpi_battery_init(void)
+>  {
+>  	int result;
 > _
 > -
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
