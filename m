@@ -1,24 +1,24 @@
 From: Len Brown <len.brown@intel.com>
-Subject: Re: [patch 05/12] asus_acpi: fix proc files parsing
-Date: Sat, 14 Oct 2006 04:07:41 -0400
-Message-ID: <200610140407.42070.len.brown@intel.com>
-References: <200610102120.k9ALKZKZ024278@shell0.pdx.osdl.net>
+Subject: Re: [patch 01/12] acpi: fix section for CPU init functions
+Date: Sat, 14 Oct 2006 04:07:28 -0400
+Message-ID: <200610140407.28793.len.brown@intel.com>
+References: <200610102120.k9ALKVwM024266@shell0.pdx.osdl.net>
 Reply-To: Len Brown <lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:57799 "EHLO hera.kernel.org")
-	by vger.kernel.org with ESMTP id S1160997AbWJNIFO (ORCPT
+Received: from hera.kernel.org ([140.211.167.34]:59079 "EHLO hera.kernel.org")
+	by vger.kernel.org with ESMTP id S1161002AbWJNIFR (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 14 Oct 2006 04:05:14 -0400
-In-Reply-To: <200610102120.k9ALKZKZ024278@shell0.pdx.osdl.net>
+	Sat, 14 Oct 2006 04:05:17 -0400
+In-Reply-To: <200610102120.k9ALKVwM024266@shell0.pdx.osdl.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: akpm@osdl.org
-Cc: linux-acpi@vger.kernel.org, darrenrjenkins@gmail.com, adobriyan@gmail.com
+Cc: linux-acpi@vger.kernel.org, drzeus@drzeus.cx
 
 Applied.
 
@@ -26,136 +26,43 @@ thanks,
 -Len
 
 On Tuesday 10 October 2006 17:20, akpm@osdl.org wrote:
-> From: Darren Jenkins <darrenrjenkins@gmail.com>
+> From: Pierre Ossman <drzeus@drzeus.cx>
 > 
-> ICC complains about a "Pointless comparsion of unsigned interger with zero"
-> @ line 760 & 808 of asus_acpi.c
+> The ACPI processor init functions should be marked as __cpuinit as they use
+> structures marked with __cpuinitdata.
 > 
-> parse_arg() mentioned below returns -E but it's copied into unsigned variable...
-> 
-> Signed-off-by: Darren Jenkins <darrenrjenkins@gmail.com>
-> Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+> Signed-off-by: Pierre Ossman <drzeus@drzeus.cx>
 > Signed-off-by: Andrew Morton <akpm@osdl.org>
 > ---
 > 
->  drivers/acpi/asus_acpi.c |   46 ++++++++++++++++++-------------------
->  1 files changed, 23 insertions(+), 23 deletions(-)
+>  drivers/acpi/processor_core.c |    2 +-
+>  drivers/acpi/processor_idle.c |    2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff -puN drivers/acpi/asus_acpi.c~asus_acpi-fix-proc-files-parsing drivers/acpi/asus_acpi.c
-> --- a/drivers/acpi/asus_acpi.c~asus_acpi-fix-proc-files-parsing
-> +++ a/drivers/acpi/asus_acpi.c
-> @@ -567,11 +567,11 @@ static int
->  write_led(const char __user * buffer, unsigned long count,
->  	  char *ledname, int ledmask, int invert)
+> diff -puN drivers/acpi/processor_core.c~acpi-fix-section-for-cpu-init-functions drivers/acpi/processor_core.c
+> --- a/drivers/acpi/processor_core.c~acpi-fix-section-for-cpu-init-functions
+> +++ a/drivers/acpi/processor_core.c
+> @@ -519,7 +519,7 @@ static int acpi_processor_get_info(struc
+>  
+>  static void *processor_device_array[NR_CPUS];
+>  
+> -static int acpi_processor_start(struct acpi_device *device)
+> +static int __cpuinit acpi_processor_start(struct acpi_device *device)
 >  {
-> -	int value;
-> +	int rv, value;
->  	int led_out = 0;
+>  	int result = 0;
+>  	acpi_status status = AE_OK;
+> diff -puN drivers/acpi/processor_idle.c~acpi-fix-section-for-cpu-init-functions drivers/acpi/processor_idle.c
+> --- a/drivers/acpi/processor_idle.c~acpi-fix-section-for-cpu-init-functions
+> +++ a/drivers/acpi/processor_idle.c
+> @@ -1130,7 +1130,7 @@ static struct notifier_block acpi_proces
+>  	.notifier_call = acpi_processor_latency_notify,
+>  };
 >  
-> -	count = parse_arg(buffer, count, &value);
-> -	if (count > 0)
-> +	rv = parse_arg(buffer, count, &value);
-> +	if (rv > 0)
->  		led_out = value ? 1 : 0;
->  
->  	hotk->status =
-> @@ -584,7 +584,7 @@ write_led(const char __user * buffer, un
->  		printk(KERN_WARNING "Asus ACPI: LED (%s) write failed\n",
->  		       ledname);
->  
-> -	return count;
-> +	return rv;
->  }
->  
->  /*
-> @@ -619,20 +619,20 @@ static int
->  proc_write_ledd(struct file *file, const char __user * buffer,
->  		unsigned long count, void *data)
+> -int acpi_processor_power_init(struct acpi_processor *pr,
+> +int __cpuinit acpi_processor_power_init(struct acpi_processor *pr,
+>  			      struct acpi_device *device)
 >  {
-> -	int value;
-> +	int rv, value;
->  
-> -	count = parse_arg(buffer, count, &value);
-> -	if (count > 0) {
-> +	rv = parse_arg(buffer, count, &value);
-> +	if (rv > 0) {
->  		if (!write_acpi_int
->  		    (hotk->handle, hotk->methods->mt_ledd, value, NULL))
->  			printk(KERN_WARNING
->  			       "Asus ACPI: LED display write failed\n");
->  		else
->  			hotk->ledd_status = (u32) value;
-> -	} else if (count < 0)
-> +	} else if (rv < 0)
->  		printk(KERN_WARNING "Asus ACPI: Error reading user input\n");
->  
-> -	return count;
-> +	return rv;
->  }
->  
->  /*
-> @@ -773,12 +773,12 @@ static int
->  proc_write_lcd(struct file *file, const char __user * buffer,
->  	       unsigned long count, void *data)
->  {
-> -	int value;
-> +	int rv, value;
->  
-> -	count = parse_arg(buffer, count, &value);
-> -	if (count > 0)
-> +	rv = parse_arg(buffer, count, &value);
-> +	if (rv > 0)
->  		set_lcd_state(value);
-> -	return count;
-> +	return rv;
->  }
->  
->  static int read_brightness(void)
-> @@ -842,18 +842,18 @@ static int
->  proc_write_brn(struct file *file, const char __user * buffer,
->  	       unsigned long count, void *data)
->  {
-> -	int value;
-> +	int rv, value;
->  
-> -	count = parse_arg(buffer, count, &value);
-> -	if (count > 0) {
-> +	rv = parse_arg(buffer, count, &value);
-> +	if (rv > 0) {
->  		value = (0 < value) ? ((15 < value) ? 15 : value) : 0;
->  		/* 0 <= value <= 15 */
->  		set_brightness(value);
-> -	} else if (count < 0) {
-> +	} else if (rv < 0) {
->  		printk(KERN_WARNING "Asus ACPI: Error reading user input\n");
->  	}
->  
-> -	return count;
-> +	return rv;
->  }
->  
->  static void set_display(int value)
-> @@ -892,15 +892,15 @@ static int
->  proc_write_disp(struct file *file, const char __user * buffer,
->  		unsigned long count, void *data)
->  {
-> -	int value;
-> +	int rv, value;
->  
-> -	count = parse_arg(buffer, count, &value);
-> -	if (count > 0)
-> +	rv = parse_arg(buffer, count, &value);
-> +	if (rv > 0)
->  		set_display(value);
-> -	else if (count < 0)
-> +	else if (rv < 0)
->  		printk(KERN_WARNING "Asus ACPI: Error reading user input\n");
->  
-> -	return count;
-> +	return rv;
->  }
->  
->  typedef int (proc_readfunc) (char *page, char **start, off_t off, int count,
+>  	acpi_status status = 0;
 > _
 > -
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
