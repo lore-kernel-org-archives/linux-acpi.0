@@ -1,105 +1,69 @@
-From: Len Brown <len.brown@intel.com>
-Subject: Re: [patch 10/12] acpi: preserve correct battery state through suspend/resume cycles
-Date: Sat, 14 Oct 2006 04:07:53 -0400
-Message-ID: <200610140407.53973.len.brown@intel.com>
-References: <200610102120.k9ALKfDU024293@shell0.pdx.osdl.net>
-Reply-To: Len Brown <lenb@kernel.org>
+From: "Mathew Brown" <mathewbrown@fastmail.fm>
+Subject: Re: Preventing ACPI from Damaging Your CPU
+Date: Sun, 15 Oct 2006 07:16:48 -0700
+Message-ID: <1160921808.22526.273369924@webmail.messagingengine.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:62151 "EHLO hera.kernel.org")
-	by vger.kernel.org with ESMTP id S1161003AbWJNIFY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 14 Oct 2006 04:05:24 -0400
-In-Reply-To: <200610102120.k9ALKfDU024293@shell0.pdx.osdl.net>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:44750 "EHLO
+	out1.smtp.messagingengine.com") by vger.kernel.org with ESMTP
+	id S1160995AbWJOOQs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 15 Oct 2006 10:16:48 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@osdl.org
-Cc: linux-acpi@vger.kernel.org, jikos@jikos.cz, pavel@ucw.cz, seife@suse.de
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org
 
-Applied.
+So just to re-iterate, even if you recompile the DSDT so that it
+compiles without any errors, there's no guarantee that ACPI won't
+kill/damage your processor unless the vendor has something special that
+can't be over-ridden by ACPI (such as is the case with HP's newer
+motherboards/processors).  So how does Windows manage to get around this
+issue?  From my limited understanding of ACPI, the problems seem to be
+due to the compilation of the DSDT with the Microsoft Compiler which
+Linux would have trouble dealing with because it's too lack on what gets
+through.  Am I understanding this issue properly?  Thanks for your help.
 
-thanks,
--Len
+Rafael J. Wysocki wrote:
+> On Friday, 13 October 2006 06:56, Mathew Brown wrote:
+>> Thanks.  But is 80C safe for a CPU?  As I mentioned, 70C is considered
+>> dangerous for an Opteron chip.  What type of temperatures can the
+>> Turions and the C2D support?
+>
+> I think HP would force the fan at lower temperatures if 80C were considered
+> as dangerous ....
+>
+> Greetings,
+> Rafael
+>
+>
+>> On Fri, 13 Oct 2006 05:53:39 +0100, "Matthew Garrett"
+>> <mjg59@srcf.ucam.org> said:
+>>> On Thu, Oct 12, 2006 at 09:41:15PM -0700, Mathew Brown wrote:
+>>>> Thanks Matthew.  Just out of curiosity, how did you find out about this
+>>>> feature (forcing the fan at 80C)?  Also, is this specific to HP or do
+>>>> other vendors also support this?  Finally, is 80C safe for the CPU
+>>>> (Intel or AMD?)?  I read that Opteron chips could be damaged if their
+>>>> temperature reaches 70C.  Thanks for your help.
+>>> A certain amount of reverse engineering of HP hardware while I was 
+>>> trying to diagnose some fan problems before. The fan control chip that 
+>>> HP use is pretty standard, so I think there are docs around somewhere.
+>>>
+>>> -- 
+>>> Matthew Garrett | mjg59@srcf.ucam.org
+>> -- 
+>>   Mathew Brown
+>>   mathewbrown@fastmail.fm
+>>
+>
 
-On Tuesday 10 October 2006 17:20, akpm@osdl.org wrote:
-> From: Jiri Kosina <jikos@jikos.cz>
-> 
-> There is a problem in th following scenario(s):
-> 
-> boot -> suspend -> (un)plug battery -> resume
-> 
-> The problem arises in both cases - i.e.  suspend with battery plugged in,
-> and resume with battery unplugged, or vice versa.
-> 
-> After resume, when the battery status has changed (plugged in -> unplegged
-> or unplugged -> plugged in) during the time when the system was sleeping,
-> the /proc/acpi/battery/*/* is wrong (showing the state before suspend, not
-> the current state).
-> 
-> The following patch adds ->resume method to the ACPI battery handler, which
-> has the only aim - to check whether the battery state has changed during
-> sleep, and if so, update the ACPI internal data structures, so that
-> information published through /proc/acpi/battery/*/* is correct even after
-> suspend/resume cycle, during which the battery was removed/inserted.
-> 
-> The patch is against current ACPI git tree, but applies cleanly also
-> against -mm and probably other trees. Please apply.
-> 
-> Signed-off-by: Jiri Kosina <jikos@jikos.cz>
-> Cc: "Brown, Len" <len.brown@intel.com>
-> Cc: Stefan Seyfried <seife@suse.de>
-> Acked-by: Pavel Machek <pavel@ucw.cz>
-> Signed-off-by: Andrew Morton <akpm@osdl.org>
-> ---
-> 
->  drivers/acpi/battery.c |   14 ++++++++++++++
->  1 files changed, 14 insertions(+)
-> 
-> diff -puN drivers/acpi/battery.c~acpi-preserve-correct-battery-state-through-suspend-resume-cycles drivers/acpi/battery.c
-> --- a/drivers/acpi/battery.c~acpi-preserve-correct-battery-state-through-suspend-resume-cycles
-> +++ a/drivers/acpi/battery.c
-> @@ -64,6 +64,7 @@ extern void *acpi_unlock_battery_dir(str
->  
->  static int acpi_battery_add(struct acpi_device *device);
->  static int acpi_battery_remove(struct acpi_device *device, int type);
-> +static int acpi_battery_resume(struct acpi_device *device, int status);
->  
->  static struct acpi_driver acpi_battery_driver = {
->  	.name = ACPI_BATTERY_DRIVER_NAME,
-> @@ -71,6 +72,7 @@ static struct acpi_driver acpi_battery_d
->  	.ids = ACPI_BATTERY_HID,
->  	.ops = {
->  		.add = acpi_battery_add,
-> +		.resume = acpi_battery_resume,
->  		.remove = acpi_battery_remove,
->  		},
->  };
-> @@ -753,6 +755,18 @@ static int acpi_battery_remove(struct ac
->  	return 0;
->  }
->  
-> +/* this is needed to learn about changes made in suspended state */
-> +static int acpi_battery_resume(struct acpi_device *device, int state)
-> +{
-> +	struct acpi_battery *battery;
-> +
-> +	if (!device)
-> +		return -EINVAL;
-> +
-> +	battery = device->driver_data;
-> +	return acpi_battery_check(battery);
-> +}
-> +
->  static int __init acpi_battery_init(void)
->  {
->  	int result;
-> _
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+-- 
+  Mathew Brown
+  mathewbrown@fastmail.fm
+
+-- 
+http://www.fastmail.fm - Faster than the air-speed velocity of an
+                          unladen european swallow
+
