@@ -1,48 +1,84 @@
-From: Yu Luming <luming.yu@gmail.com>
-Subject: Re: [PATCH 2.6.18-mm2] acpi: add backlight support to the sony_acpi driver
-Date: Tue, 17 Oct 2006 01:45:03 +0800
-Message-ID: <200610170145.03779.luming.yu@gmail.com>
-References: <20060930190810.30b8737f.alessandro.guido@gmail.com> <20061010161012.GA18847@lists.us.dell.com> <200610120028.29617.luming.yu@gmail.com>
+From: "Michael S. Tsirkin" <mst@mellanox.co.il>
+Subject: Re: x60 backlight Re: [discuss] 2.6.19-rc1: known
+	regressions (v2)
+Date: Mon, 16 Oct 2006 21:39:25 +0200
+Message-ID: <20061016193925.GA20009@mellanox.co.il>
+References: <20061008193005.GJ6755@stusta.de>
+Reply-To: "Michael S. Tsirkin" <mst@mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zeus1.kernel.org ([204.152.191.4]:6632 "EHLO zeus1.kernel.org")
-	by vger.kernel.org with ESMTP id S1161035AbWJPRr0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 16 Oct 2006 13:47:26 -0400
-Received: from py-out-1112.google.com (py-out-1112.google.com [64.233.166.181])
-	by zeus1.kernel.org (8.13.7/8.13.1) with ESMTP id k9GHl57G012133
-	for <linux-acpi@vger.kernel.org>; Mon, 16 Oct 2006 17:47:18 GMT
-Received: by py-out-1112.google.com with SMTP id n25so2455653pyg
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Oct 2006 10:45:32 -0700 (PDT)
-In-Reply-To: <200610120028.29617.luming.yu@gmail.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.osdl.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20061008193005.GJ6755@stusta.de>
+List-Unsubscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
+List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.osdl.org>
+List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
+List-Subscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.osdl.org
+Errors-To: linux-pm-bounces@lists.osdl.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: len.brown@intel.com, linux-acpi@vger.kernel.org, Jeff Garzik <jeff@garzik.org>, linux-pm@osdl.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Matt Domsch <Matt_Domsch@dell.com>, len.brown@intel.com
-Cc: Richard Hughes <hughsient@gmail.com>, Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@osdl.org>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr
 
-> > a generic ACPI driver that exports the _BCL and _BCM method
-> > implementations via that same interface, so that systems providing
-> > that will "just work".  drivers/acpi/video.c currently exports this
-> > via /proc/acpi/video/$DEVICE/brightness, which isn't the same as
-> > /sys/class/backlight. :-(
->
-> Yes, I'm working on acpi video driver transition , and have posted a patch
-> to user backlight for acpi video driver.
-> http://marc.theaimsgroup.com/?l=linux-acpi&m=115574087203605&w=2
+Quoting r. Adrian Bunk <bunk@stusta.de>:
+> Subject: Re: x60 backlight Re: [discuss] 2.6.19-rc1: known regressions (v=
+2)
+> =
 
-Just updated the backlight and output sysfs support for ACPI Video driver on
-bugzilla. If you are interested this, please take a look at
-http://bugzilla.kernel.org/show_bug.cgi?id=5749#c18
+> On Sun, Oct 08, 2006 at 07:59:58PM +0200, Michael S. Tsirkin wrote:
+> > Quoting r. Adrian Bunk <bunk@stusta.de>:
+> > > Subject: Re: x60 backlight Re: [discuss] 2.6.19-rc1: known regression=
+s (v2)
+> > > =
 
-signed-off-by 	Luming.yu@gmail.com
+> > > On Sun, Oct 08, 2006 at 07:12:54AM +0000, Pavel Machek wrote:
+> > > > =
 
-[patch 1/3] vidoe sysfs support: Add dev argument for baclight sys dev
-[patch 2/3] Add display output class support
-[patch 3/3] backlight and output sysfs support for acpi video driver
+> > > > On Sat 07-10-06 23:46:21, Adrian Bunk wrote:
+> > > > > This email lists some known regressions in 2.6.19-rc1 compared to=
+ 2.6.18
+> > > > > that are not yet fixed Linus' tree.
+> > > > > =
 
-Thanks,
-Luming
+> > > > ...
+> > > > > Subject    : T60 stops triggering any ACPI events
+> > > > > References : http://lkml.org/lkml/2006/10/4/425
+> > > > > Submitter  : "Michael S. Tsirkin" <mst@mellanox.co.il>
+> > > > > Status     : unknown
+> > =
+
+> > This was on a pre -rc1 git tree.
+> > I've been using -rc1 since it's out and does not happen to me anymore.
+> > So we probably can write this off as a memory corruption
+> > issue that got fixed in between.
+> =
+
+> Thanks for the information, I've removed it from the list.
+ =
+
+
+Unfortunately, this came back after using 2.6.19-rc1 for a couple of days
+without reboot. And I just re-tested and was able to re-produce the problem=
+ on
+2.6.19-rc2, as well. So the problem is still there, with the same symptoms:
+after usig machine for a while, or under stress (e.g. if I do a full kernel
+compile), I stop getting any ACPI events.
+
+tail -f /var/log/acpid
+does not show anything, even on Fn/F4 which is supposed ot be always enable=
+d.
+Restarting the acpid doesn't do anything either - ACPI starts working
+again, for a while, only after reboot.
+
+Worked fine under 2.6.18 (I was running vanilla + this patch
+http://lkml.org/lkml/2006/7/20/56 which made it into upstream since then).
+
+Any ideas? How to debug this?
+
+-- =
+
+MST
