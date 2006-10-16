@@ -1,84 +1,92 @@
-From: "Michael S. Tsirkin" <mst@mellanox.co.il>
-Subject: Re: x60 backlight Re: [discuss] 2.6.19-rc1: known
-	regressions (v2)
-Date: Mon, 16 Oct 2006 21:39:25 +0200
-Message-ID: <20061016193925.GA20009@mellanox.co.il>
-References: <20061008193005.GJ6755@stusta.de>
-Reply-To: "Michael S. Tsirkin" <mst@mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.osdl.org>
-Content-Disposition: inline
-In-Reply-To: <20061008193005.GJ6755@stusta.de>
-List-Unsubscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
-List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.osdl.org>
-List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
-List-Subscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.osdl.org
-Errors-To: linux-pm-bounces@lists.osdl.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: len.brown@intel.com, linux-acpi@vger.kernel.org, Jeff Garzik <jeff@garzik.org>, linux-pm@osdl.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+From: akpm@osdl.org
+Subject: - fix-incorrect-handling-of-pci-express-root-bridge-_hid.patch removed from -mm tree
+Date: Mon, 16 Oct 2006 13:36:19 -0700
+Message-ID: <200610162036.k9GKaG3N026766@shell0.pdx.osdl.net>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.osdl.org ([65.172.181.4]:46822 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1422894AbWJPUgZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 16 Oct 2006 16:36:25 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-Quoting r. Adrian Bunk <bunk@stusta.de>:
-> Subject: Re: x60 backlight Re: [discuss] 2.6.19-rc1: known regressions (v=
-2)
-> =
-
-> On Sun, Oct 08, 2006 at 07:59:58PM +0200, Michael S. Tsirkin wrote:
-> > Quoting r. Adrian Bunk <bunk@stusta.de>:
-> > > Subject: Re: x60 backlight Re: [discuss] 2.6.19-rc1: known regression=
-s (v2)
-> > > =
-
-> > > On Sun, Oct 08, 2006 at 07:12:54AM +0000, Pavel Machek wrote:
-> > > > =
-
-> > > > On Sat 07-10-06 23:46:21, Adrian Bunk wrote:
-> > > > > This email lists some known regressions in 2.6.19-rc1 compared to=
- 2.6.18
-> > > > > that are not yet fixed Linus' tree.
-> > > > > =
-
-> > > > ...
-> > > > > Subject    : T60 stops triggering any ACPI events
-> > > > > References : http://lkml.org/lkml/2006/10/4/425
-> > > > > Submitter  : "Michael S. Tsirkin" <mst@mellanox.co.il>
-> > > > > Status     : unknown
-> > =
-
-> > This was on a pre -rc1 git tree.
-> > I've been using -rc1 since it's out and does not happen to me anymore.
-> > So we probably can write this off as a memory corruption
-> > issue that got fixed in between.
-> =
-
-> Thanks for the information, I've removed it from the list.
- =
+To: eiichiro.oiwa.nm@hitachi.com, len.brown@intel.com, linux-acpi@vger.kernel.org, mm-commits@vger.kernel.org
 
 
-Unfortunately, this came back after using 2.6.19-rc1 for a couple of days
-without reboot. And I just re-tested and was able to re-produce the problem=
- on
-2.6.19-rc2, as well. So the problem is still there, with the same symptoms:
-after usig machine for a while, or under stress (e.g. if I do a full kernel
-compile), I stop getting any ACPI events.
+The patch titled
 
-tail -f /var/log/acpid
-does not show anything, even on Fn/F4 which is supposed ot be always enable=
-d.
-Restarting the acpid doesn't do anything either - ACPI starts working
-again, for a while, only after reboot.
+     Fix incorrect handling PCI-Express Root Bridge _HID
 
-Worked fine under 2.6.18 (I was running vanilla + this patch
-http://lkml.org/lkml/2006/7/20/56 which made it into upstream since then).
+has been removed from the -mm tree.  Its filename is
 
-Any ideas? How to debug this?
+     fix-incorrect-handling-of-pci-express-root-bridge-_hid.patch
 
--- =
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-MST
+------------------------------------------------------
+Subject: Fix incorrect handling PCI-Express Root Bridge _HID
+From: <eiichiro.oiwa.nm@hitachi.com>
+
+Lifted from http://bugzilla.kernel.org/show_bug.cgi?id=7145
+
+PCI Bus Topology:
+
+[CPU] [CPU]        [CPU]  [CPU]
+  |      |BUS        |     |   BUS
+--+--+---+---      --+--+--+------
+     |                  |
+ [Root Bridge]*1-----[Root Bridge]*1
+     |      |           \        \
+ [Bridge]   |        [PCI-e slot] [PCI-e slot]
+    | |    [PCI-e slot]
+    | \
+    | [PCI-e slot]
+    |
+    |
+ [PCI Bridge]
+    |     \
+    |      [PCI-X slot]
+    |
+ [PCI-X slot]
+
+*1: PCI Express Root Bridge.
+
+I could not get correct PCI Express BUS number from the structure of
+acpi_object_extra.  I always get zero as BUS number regardless of BUS
+location.  I found that there is incorrect comparison with _HID (PNP0A08)
+in acpi/events/evrgnini.c and PCI Express _BBN method always fail. 
+Therefore, we get always get zero as PCI Express bus number.
+
+I suggest the following patch.
+
+Cc: "Brown, Len" <len.brown@intel.com>
+Cc: <linux-acpi@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
+---
+
+ drivers/acpi/events/evrgnini.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff -puN drivers/acpi/events/evrgnini.c~fix-incorrect-handling-of-pci-express-root-bridge-_hid drivers/acpi/events/evrgnini.c
+--- a/drivers/acpi/events/evrgnini.c~fix-incorrect-handling-of-pci-express-root-bridge-_hid
++++ a/drivers/acpi/events/evrgnini.c
+@@ -225,12 +225,12 @@ acpi_ev_pci_config_region_setup(acpi_han
+ 				if (!
+ 				    (ACPI_STRNCMP
+ 				     (object_hID.value, PCI_ROOT_HID_STRING,
+-				      sizeof(PCI_ROOT_HID_STRING))
++				      sizeof(PCI_ROOT_HID_STRING)))
+ 				     ||
+ 				     !(ACPI_STRNCMP
+ 				       (object_hID.value,
+ 					PCI_EXPRESS_ROOT_HID_STRING,
+-					sizeof(PCI_EXPRESS_ROOT_HID_STRING)))))
++					sizeof(PCI_EXPRESS_ROOT_HID_STRING))))
+ 				{
+ 
+ 					/* Install a handler for this PCI root bridge */
+_
+
+Patches currently in -mm which might be from eiichiro.oiwa.nm@hitachi.com are
+
+origin.patch
+
