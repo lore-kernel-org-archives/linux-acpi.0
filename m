@@ -1,92 +1,29 @@
-From: akpm@osdl.org
-Subject: - fix-incorrect-handling-of-pci-express-root-bridge-_hid.patch removed from -mm tree
-Date: Mon, 16 Oct 2006 13:36:19 -0700
-Message-ID: <200610162036.k9GKaG3N026766@shell0.pdx.osdl.net>
+From: "Garry Williams" <gtwilliams@gmail.com>
+Subject: S3 Fixed With 2.6.18-1.2200.fc5
+Date: Tue, 17 Oct 2006 11:25:05 -0400
+Message-ID: <d11bb12e0610170825p58b19495w2735aa8d87943150@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:46822 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1422894AbWJPUgZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 16 Oct 2006 16:36:25 -0400
+Received: from wx-out-0506.google.com ([66.249.82.228]:48809 "EHLO
+	wx-out-0506.google.com") by vger.kernel.org with ESMTP
+	id S1751126AbWJQPZG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Oct 2006 11:25:06 -0400
+Received: by wx-out-0506.google.com with SMTP id h28so2248426wxd
+        for <linux-acpi@vger.kernel.org>; Tue, 17 Oct 2006 08:25:05 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: eiichiro.oiwa.nm@hitachi.com, len.brown@intel.com, linux-acpi@vger.kernel.org, mm-commits@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
+Since Fedora released its first 2.6.17 kernel for FC5, my laptop (Sony
+Vaio FS640W) would no longer wake from S3 sleep.  Many others
+experienced the same problem.
 
-The patch titled
+I'm happy to report that the first 2.6.18 kernel from Fedora for FC5
+fixes this problem.  Many others with different laptop models have
+reported the same.
 
-     Fix incorrect handling PCI-Express Root Bridge _HID
-
-has been removed from the -mm tree.  Its filename is
-
-     fix-incorrect-handling-of-pci-express-root-bridge-_hid.patch
-
-This patch was dropped because it was merged into mainline or a subsystem tree
-
-------------------------------------------------------
-Subject: Fix incorrect handling PCI-Express Root Bridge _HID
-From: <eiichiro.oiwa.nm@hitachi.com>
-
-Lifted from http://bugzilla.kernel.org/show_bug.cgi?id=7145
-
-PCI Bus Topology:
-
-[CPU] [CPU]        [CPU]  [CPU]
-  |      |BUS        |     |   BUS
---+--+---+---      --+--+--+------
-     |                  |
- [Root Bridge]*1-----[Root Bridge]*1
-     |      |           \        \
- [Bridge]   |        [PCI-e slot] [PCI-e slot]
-    | |    [PCI-e slot]
-    | \
-    | [PCI-e slot]
-    |
-    |
- [PCI Bridge]
-    |     \
-    |      [PCI-X slot]
-    |
- [PCI-X slot]
-
-*1: PCI Express Root Bridge.
-
-I could not get correct PCI Express BUS number from the structure of
-acpi_object_extra.  I always get zero as BUS number regardless of BUS
-location.  I found that there is incorrect comparison with _HID (PNP0A08)
-in acpi/events/evrgnini.c and PCI Express _BBN method always fail. 
-Therefore, we get always get zero as PCI Express bus number.
-
-I suggest the following patch.
-
-Cc: "Brown, Len" <len.brown@intel.com>
-Cc: <linux-acpi@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
----
-
- drivers/acpi/events/evrgnini.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff -puN drivers/acpi/events/evrgnini.c~fix-incorrect-handling-of-pci-express-root-bridge-_hid drivers/acpi/events/evrgnini.c
---- a/drivers/acpi/events/evrgnini.c~fix-incorrect-handling-of-pci-express-root-bridge-_hid
-+++ a/drivers/acpi/events/evrgnini.c
-@@ -225,12 +225,12 @@ acpi_ev_pci_config_region_setup(acpi_han
- 				if (!
- 				    (ACPI_STRNCMP
- 				     (object_hID.value, PCI_ROOT_HID_STRING,
--				      sizeof(PCI_ROOT_HID_STRING))
-+				      sizeof(PCI_ROOT_HID_STRING)))
- 				     ||
- 				     !(ACPI_STRNCMP
- 				       (object_hID.value,
- 					PCI_EXPRESS_ROOT_HID_STRING,
--					sizeof(PCI_EXPRESS_ROOT_HID_STRING)))))
-+					sizeof(PCI_EXPRESS_ROOT_HID_STRING))))
- 				{
- 
- 					/* Install a handler for this PCI root bridge */
-_
-
-Patches currently in -mm which might be from eiichiro.oiwa.nm@hitachi.com are
-
-origin.patch
-
+-- 
+Garry Williams +1 678 656-4579
