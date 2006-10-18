@@ -1,58 +1,107 @@
-From: Jiri Slaby <jirislaby@gmail.com>
-Subject: speedstep-centrino: ENODEV
-Date: Wed, 18 Oct 2006 21:00:32 +0200
-Message-ID: <453679D0.8060101@gmail.com>
+From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
+Subject: Re: SMP broken on pre-ACPI machine.
+Date: Thu, 19 Oct 2006 00:48:07 +0100
+Message-ID: <1161215287.17601.6.camel@localhost.portugal>
+References: <20061018222433.GA4770@redhat.com>
+Reply-To: sergio@sergiomb.no-ip.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-ZJP7rK5VXtl9hNzpZfTQ"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from av1.karneval.cz ([81.27.192.123]:2064 "EHLO av1.karneval.cz")
-	by vger.kernel.org with ESMTP id S1161276AbWJRTRW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Oct 2006 15:17:22 -0400
+Received: from smtp1.netcabo.pt ([212.113.174.28]:24639 "EHLO
+	exch01smtp10.hdi.tvcabo") by vger.kernel.org with ESMTP
+	id S1945910AbWJRXsP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Oct 2006 19:48:15 -0400
+In-Reply-To: <20061018222433.GA4770@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux kernel mailing list <linux-kernel@vger.kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Dave Jones <davej@redhat.com>
+Cc: acpi devel <linux-acpi@vger.kernel.org>
 
-Hi!
 
-How is it possible to find out whether or not speedstep-centrino is supported. I 
-have
-processor       : 0
-vendor_id       : GenuineIntel
-cpu family      : 6
-model           : 13
-model name      : Intel(R) Pentium(R) M processor 1.60GHz
-stepping        : 6
-cpu MHz         : 1600.149
-cache size      : 2048 KB
-fdiv_bug        : no
-hlt_bug         : no
-f00f_bug        : no
-coma_bug        : no
-fpu             : yes
-fpu_exception   : yes
-cpuid level     : 2
-wp              : yes
-flags           : fpu vme de pse tsc msr mce cx8 apic sep mtrr pge mca cmov pat 
-clflush dts acpi mmx fxsr sse sse2 ss tm pbe est tm2
-bogomips        : 3201.52
+--=-ZJP7rK5VXtl9hNzpZfTQ
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 
-processor, but speedstep-centrino returns ENODEV because of lack of _PCT et al 
-entries in DSDT (http://www.fi.muni.cz/~xslaby/sklad/adump). It is possible to 
-hard-code that values to speedstep-centrino as for banias cpus or use corrected 
-DSDT that will contain _PCT, _PSS and _PPC, but where may I obtain these values?
+On Wed, 2006-10-18 at 18:24 -0400, Dave Jones wrote:
+> I've been chasing a bug that got filed against the Fedora kernel
+> a while back:  https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=3D199=
+052
+> This is a dual pentium pro from an era before we had ACPI, and
+> it seems to be falling foul of this test in smpboot.c  ..
+>=20
+>     if (!smp_found_config && !acpi_lapic) {
+>         printk(KERN_NOTICE "SMP motherboard not detected.\n");
+>         smpboot_clear_io_apic_irqs();
+>         phys_cpu_present_map =3D physid_mask_of_physid(0);
+>         if (APIC_init_uniprocessor())
+>             printk(KERN_NOTICE "Local APIC not detected."
+>                        " Using dummy APIC emulation.\n");
+>         map_cpu_to_logical_apicid();
+>         cpu_set(0, cpu_sibling_map[0]);
+>         cpu_set(0, cpu_core_map[0]);
+>         return;
+>     }
+>=20
+>=20
+> My initial reaction is that the !acpi_lapic test should be conditional
+> on some variable that gets set if the ACPI parsing actually succeeded.
+>=20
+> Thoughts?
+>=20
+> 	Dave
+>=20
 
-This is Asus M6R notebook, some DSDT parts of this piece of HW are really ugly 
-(problems with acpi some time ago).
+acpi=3Doff ? this machine should work with APM. BTW, so time ago, this
+machine would enter in ACPI blacklist (by the year of bios) and ACPI was
+turned off automatically.=20
 
-I may use p4-clockmod (and it points me to speedstep-centrino module), but if I 
-am correct, it doesn't save battery life?
+--=20
+S=E9rgio M.B.
 
-thanks,
--- 
-http://www.fi.muni.cz/~xslaby/            Jiri Slaby
-faculty of informatics, masaryk university, brno, cz
-e-mail: jirislaby gmail com, gpg pubkey fingerprint:
-B674 9967 0407 CE62 ACC8  22A0 32CC 55C3 39D4 7A7E
+--=-ZJP7rK5VXtl9hNzpZfTQ
+Content-Type: application/x-pkcs7-signature; name=smime.p7s
+Content-Disposition: attachment; filename=smime.p7s
+Content-Transfer-Encoding: base64
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGSTCCAwIw
+ggJroAMCAQICAw/vkjANBgkqhkiG9w0BAQQFADBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhh
+d3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVt
+YWlsIElzc3VpbmcgQ0EwHhcNMDUxMTI4MjIyODU2WhcNMDYxMTI4MjIyODU2WjBLMR8wHQYDVQQD
+ExZUaGF3dGUgRnJlZW1haWwgTWVtYmVyMSgwJgYJKoZIhvcNAQkBFhlzZXJnaW9Ac2VyZ2lvbWIu
+bm8taXAub3JnMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApCNuKD3pz8GRKd1q+36r
+m0z7z+TBsbTrVa45UQsEeh9OQGZIASJMH5erC0u6KbKJ+km97RLOdsgSlKG6+5xuzsk+aqU7A0Gp
+kMjzIJT7UH/bbPnIFMQNnWJxluuYq1u+v8iIbfezQy1+SXyAyBv+OC7LnCOiOar/L9AD9zDy2fPX
+EqEDlbO3CJsoaR4Va8sgtoV0NmKnAt7DA0iZ2dmlsw6Qh+4euI+FgZ2WHPBQnfJ7PfSH5GIWl/Nx
+eUqnYpDaJafk/l94nX71UifdPXDMxJJlEOGqV9l4omhNlPmsZ/zrGXgLdBv9JuPjJ9mxhgwZsZbz
+VBc8emB0i3A7E6D6rwIDAQABo1kwVzAOBgNVHQ8BAf8EBAMCBJAwEQYJYIZIAYb4QgEBBAQDAgUg
+MCQGA1UdEQQdMBuBGXNlcmdpb0BzZXJnaW9tYi5uby1pcC5vcmcwDAYDVR0TAQH/BAIwADANBgkq
+hkiG9w0BAQQFAAOBgQBIVheRn3oHTU5rgIFHcBRxkIhOYPQHKk/oX4KakCrDCxp33XAqTG3aIG/v
+dsUT/OuFm5w0GlrUTrPaKYYxxfQ00+3d8y87aX22sUdj8oXJRYiPgQiE6lqu9no8axH6UXCCbKTi
+8383JcxReoXyuP000eUggq3tWr6fE/QmONUARzCCAz8wggKooAMCAQICAQ0wDQYJKoZIhvcNAQEF
+BQAwgdExCzAJBgNVBAYTAlpBMRUwEwYDVQQIEwxXZXN0ZXJuIENhcGUxEjAQBgNVBAcTCUNhcGUg
+VG93bjEaMBgGA1UEChMRVGhhd3RlIENvbnN1bHRpbmcxKDAmBgNVBAsTH0NlcnRpZmljYXRpb24g
+U2VydmljZXMgRGl2aXNpb24xJDAiBgNVBAMTG1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBDQTEr
+MCkGCSqGSIb3DQEJARYccGVyc29uYWwtZnJlZW1haWxAdGhhd3RlLmNvbTAeFw0wMzA3MTcwMDAw
+MDBaFw0xMzA3MTYyMzU5NTlaMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3Vs
+dGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWlu
+ZyBDQTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAxKY8VXNV+065yplaHmjAdQRwnd/p/6Me
+7L3N9VvyGna9fww6YfK/Uc4B1OVQCjDXAmNaLIkVcI7dyfArhVqqP3FWy688Cwfn8R+RNiQqE88r
+1fOCdz0Dviv+uxg+B79AgAJk16emu59l0cUqVIUPSAR/p7bRPGEEQB5kGXJgt/sCAwEAAaOBlDCB
+kTASBgNVHRMBAf8ECDAGAQH/AgEAMEMGA1UdHwQ8MDowOKA2oDSGMmh0dHA6Ly9jcmwudGhhd3Rl
+LmNvbS9UaGF3dGVQZXJzb25hbEZyZWVtYWlsQ0EuY3JsMAsGA1UdDwQEAwIBBjApBgNVHREEIjAg
+pB4wHDEaMBgGA1UEAxMRUHJpdmF0ZUxhYmVsMi0xMzgwDQYJKoZIhvcNAQEFBQADgYEASIzRUIPq
+Cy7MDaNmrGcPf6+svsIXoUOWlJ1/TCG4+DYfqi2fNi/A9BxQIJNwPP2t4WFiw9k6GX6EsZkbAMUa
+C4J0niVQlGLH2ydxVyWN3amcOY6MIE9lX5Xa9/eH1sYITq726jTlEBpbNU1341YheILcIRk13iSx
+0x1G/11fZU8xggHvMIIB6wIBATBpMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29u
+c3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNz
+dWluZyBDQQIDD++SMAkGBSsOAwIaBQCgXTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqG
+SIb3DQEJBTEPFw0wNjEwMTgyMzQ4MDdaMCMGCSqGSIb3DQEJBDEWBBROMhev0ss/LB3qg2j0hIEh
+ifzU/TANBgkqhkiG9w0BAQEFAASCAQAkV8sPKPplPtPXJ8qaKLbtjBB9V6UlqGdKSJu6ahBmaXQ/
+fwZ/5d3mJAqDXSPY3HG/nlh8cWno0ptq9572xgrDBYBKe02hMI8I+A7pfiqTB38UVK54GjybL55l
+KOMHrovoXvXPcE19M1yMfnuaQDpAMiVHA6Q3rcvczRgnzaMg486FO0J0kKk8Kr2Re88GpdgE4W7s
+uio+h0/1KE+ZuWxba+r2mhy/Fxy+WT4IF3Bc39m2wo/vTx3rqT2M01fGyp5oSkVJ3YjucYrC/F5C
+QRBOd70/Zk+487TUnGYyNc0fOUl2KHQK1bzxn0nJbcb2BdCKxvxTebDmW10T1yJWxnM+AAAAAAAA
+
+
+
+--=-ZJP7rK5VXtl9hNzpZfTQ--
