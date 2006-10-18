@@ -1,52 +1,58 @@
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
-Subject: [PATCH](acpi:memory hotplug) Change log level of a message of acpi_memhotplug to KERN_DEBUG
-Date: Wed, 18 Oct 2006 23:21:10 +0900
-Message-ID: <20061018230110.2AE0.Y-GOTO@jp.fujitsu.com>
+From: Jiri Slaby <jirislaby@gmail.com>
+Subject: speedstep-centrino: ENODEV
+Date: Wed, 18 Oct 2006 21:00:32 +0200
+Message-ID: <453679D0.8060101@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:36564 "EHLO
-	fgwmail5.fujitsu.co.jp") by vger.kernel.org with ESMTP
-	id S1030256AbWJROVZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Oct 2006 10:21:25 -0400
+Received: from av1.karneval.cz ([81.27.192.123]:2064 "EHLO av1.karneval.cz")
+	by vger.kernel.org with ESMTP id S1161276AbWJRTRW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Oct 2006 15:17:22 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: Andrew Morton <akpm@osdl.org>, Hiroyuki KAMEZAWA <kamezawa.hiroyu@jp.fujitsu.com>, ACPI-ML <linux-acpi@vger.kernel.org>, Linux Hotplug Memory Support <lhms-devel@lists.sourceforge.net>, Linux Kernel ML <linux-kernel@vger.kernel.org>
+To: Linux kernel mailing list <linux-kernel@vger.kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-This patch may be a bit trivial. But, I suppose this message seems
-quite useless except debugging. It just shows "Hotplug Mem Device".
-System admin can't know anything by this message.
-So, I would like to change it to KERN_DEBUG.
+Hi!
 
-This patch is for 2.6.19-rc2.
+How is it possible to find out whether or not speedstep-centrino is supported. I 
+have
+processor       : 0
+vendor_id       : GenuineIntel
+cpu family      : 6
+model           : 13
+model name      : Intel(R) Pentium(R) M processor 1.60GHz
+stepping        : 6
+cpu MHz         : 1600.149
+cache size      : 2048 KB
+fdiv_bug        : no
+hlt_bug         : no
+f00f_bug        : no
+coma_bug        : no
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 2
+wp              : yes
+flags           : fpu vme de pse tsc msr mce cx8 apic sep mtrr pge mca cmov pat 
+clflush dts acpi mmx fxsr sse sse2 ss tm pbe est tm2
+bogomips        : 3201.52
 
-Please apply.
+processor, but speedstep-centrino returns ENODEV because of lack of _PCT et al 
+entries in DSDT (http://www.fi.muni.cz/~xslaby/sklad/adump). It is possible to 
+hard-code that values to speedstep-centrino as for banias cpus or use corrected 
+DSDT that will contain _PCT, _PSS and _PPC, but where may I obtain these values?
 
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+This is Asus M6R notebook, some DSDT parts of this piece of HW are really ugly 
+(problems with acpi some time ago).
 
----
- drivers/acpi/acpi_memhotplug.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I may use p4-clockmod (and it points me to speedstep-centrino module), but if I 
+am correct, it doesn't save battery life?
 
----
-
-Index: linux-2.6.18/drivers/acpi/acpi_memhotplug.c
-===================================================================
---- linux-2.6.18.orig/drivers/acpi/acpi_memhotplug.c	2006-10-18 22:50:44.000000000 +0900
-+++ linux-2.6.18/drivers/acpi/acpi_memhotplug.c	2006-10-18 22:51:47.000000000 +0900
-@@ -416,7 +416,7 @@
- 	/* Set the device state */
- 	mem_device->state = MEMORY_POWER_ON_STATE;
- 
--	printk(KERN_INFO "%s \n", acpi_device_name(device));
-+	printk(KERN_DEBUG "%s \n", acpi_device_name(device));
- 
- 	return result;
- }
-
+thanks,
 -- 
-Yasunori Goto 
-
-
+http://www.fi.muni.cz/~xslaby/            Jiri Slaby
+faculty of informatics, masaryk university, brno, cz
+e-mail: jirislaby gmail com, gpg pubkey fingerprint:
+B674 9967 0407 CE62 ACC8  22A0 32CC 55C3 39D4 7A7E
