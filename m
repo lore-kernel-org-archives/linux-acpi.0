@@ -1,44 +1,33 @@
-From: =?ISO-8859-1?Q?Sune_M=F8lgaard?= <sune@molgaard.org>
-Subject: Re: speedstep-centrino: ENODEV
-Date: Thu, 19 Oct 2006 22:30:53 +0200
-Message-ID: <4537E07D.5080402@molgaard.org>
-References: <EB12A50964762B4D8111D55B764A8454C1A534@scsmsx413.amr.corp.intel.com>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: SMP broken on pre-ACPI machine.
+Date: Thu, 19 Oct 2006 23:17:19 +0100
+Message-ID: <1161296239.17335.151.camel@localhost.localdomain>
+References: <20061018222433.GA4770@redhat.com>
+	 <200610190133.40581.len.brown@intel.com>
+	 <20061019191644.GE26530@redhat.com>  <20061019201116.GG26530@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cicero1.cybercity.dk ([212.242.40.4]:24054 "EHLO
-	cicero1.cybercity.dk") by vger.kernel.org with ESMTP
-	id S1946467AbWJSUbN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Oct 2006 16:31:13 -0400
-In-Reply-To: <EB12A50964762B4D8111D55B764A8454C1A534@scsmsx413.amr.corp.intel.com>
+Received: from outpipe-village-512-1.bc.nu ([81.2.110.250]:64935 "EHLO
+	lxorguk.ukuu.org.uk") by vger.kernel.org with ESMTP
+	id S1946574AbWJSWPW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Oct 2006 18:15:22 -0400
+In-Reply-To: <20061019201116.GG26530@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>, Linux kernel mailing list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Dave Jones <davej@redhat.com>
+Cc: Len Brown <lenb@kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-Pallipadi, Venkatesh wrote:
->  
+Ar Iau, 2006-10-19 am 16:11 -0400, ysgrifennodd Dave Jones:
+> On Thu, Oct 19, 2006 at 03:16:44PM -0400, Dave Jones wrote:
 > 
-> OK. Things seem to be fine with the BIOS. 
+>  > Why smp_found_config isn't set in that guys configuration is a mystery to me,
+>  > as his MPS tables look sane..
+>  > 
+>  > MP Table:
+>  > #	APIC ID	Version	State		Family	Model	Step	Flags
+>  > #	 0	 0x10	 BSP, usable	 6	 2	 1	 0x0381
 
-That sounds promising :-)
+Isn't that an "overdrive" ? if so it isn't supposed to be SMP capable
 
-> You said it was working with 2.6.15. Do you remember whether kernel was using acpi-cpufreq or speedstep-centrino?
-
-Sorry, I don't know, but I can build it and check.
-
-> One change that has happened in this region is that If your BIOS supports both speedstep-centrino and acpi-cpufreq, with 2.6.15 any one of those drivers would have worked. But now with 2.6.18, acpi-cpufreq will not work in the above case and you have to use speedstep_centrino. This was done because, speedstep-centrino has more features than acpi-cpufreq and also doing this helped to elimiate issues with lot of systems with kernel trying to do multiple ACPI PDC writes when BIOS doesn't expect it to. 
-> 
-> In short:
-> (1) If you were using acpi-cpufreq in 2.6.15, there is a high chance that it wont work with 2.6.18 and you should be able to use speedstep-centrino in its place. Make sure you have properly configured speedstep-centrino (You should select X86_SPEEDSTEP_CENTRINO_ACPI along with X86_SPEEDSTEP_CENTRINO).
-> 
-> (2) If you were using speedstep-centrino in 2.6.15 and now it doesn't work with 2.6.18, then we have a new regression here and we need to root cause it further by enabling cpufreq.debug and getting more debug messages to see where it is failing....
-> 
-
-Seems like 1 then. Will check the speedstep-centrino settings in the 
-kernel. Thanks. I'll report back, but probably not until tomorrow.
-
-BR,
-
-Sune
