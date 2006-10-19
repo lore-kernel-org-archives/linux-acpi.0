@@ -1,68 +1,59 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Subject: RE: speedstep-centrino: ENODEV
-Date: Thu, 19 Oct 2006 11:56:58 -0700
-Message-ID: <EB12A50964762B4D8111D55B764A8454C1A534@scsmsx413.amr.corp.intel.com>
+From: Dave Jones <davej@redhat.com>
+Subject: Re: SMP broken on pre-ACPI machine.
+Date: Thu, 19 Oct 2006 15:16:44 -0400
+Message-ID: <20061019191644.GE26530@redhat.com>
+References: <20061018222433.GA4770@redhat.com> <200610190133.40581.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:41543 "EHLO mga01.intel.com")
-	by vger.kernel.org with ESMTP id S1946356AbWJSS5E convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Oct 2006 14:57:04 -0400
-Content-class: urn:content-classes:message
+Received: from mx1.redhat.com ([66.187.233.31]:7880 "EHLO mx1.redhat.com")
+	by vger.kernel.org with ESMTP id S1946389AbWJSTRO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Oct 2006 15:17:14 -0400
+Content-Disposition: inline
+In-Reply-To: <200610190133.40581.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?iso-8859-1?Q?Sune_M=F8lgaard?= <sune@molgaard.org>
-Cc: Jiri Slaby <jirislaby@gmail.com>, Linux kernel mailing list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Linux Kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-=20
+On Thu, Oct 19, 2006 at 01:33:40AM -0400, Len Brown wrote:
+ > On Wednesday 18 October 2006 18:24, Dave Jones wrote:
+ > > I've been chasing a bug that got filed against the Fedora kernel
+ > > a while back:  https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=199052
+ > > This is a dual pentium pro from an era before we had ACPI, and
+ > > it seems to be falling foul of this test in smpboot.c  ..
+ > > 
+ > >     if (!smp_found_config && !acpi_lapic) {
+ > >         printk(KERN_NOTICE "SMP motherboard not detected.\n");
+ > > 
+ > > My initial reaction is that the !acpi_lapic test should be conditional
+ > > on some variable that gets set if the ACPI parsing actually succeeded.
+ > 
+ > acpi_lapic isn't related to the problem at hand -- that  smp_found_config is not set.
 
->-----Original Message-----
->From: Sune M=F8lgaard [mailto:sune@molgaard.org]=20
->Sent: Thursday, October 19, 2006 11:19 AM
->To: Pallipadi, Venkatesh
->Cc: Jiri Slaby; Linux kernel mailing list; linux-acpi@vger.kernel.org
->Subject: Re: speedstep-centrino: ENODEV
->
->Thanks for taking an interest, if I haven't said so before.
->
->Now, I was about to write that I couldn't open /dev/mem, but luckily=20
->remembered to try sudo'ing acpidump :-$
->
->Enclosed is the dump, created while running 2.6.18.1.
->
+Right, it just seemed odd to me when I was eyeballing this code.
 
-OK. Things seem to be fine with the BIOS.=20
+ > That said, allowing acpi_lapic=1 to bail out of this check has the sole
+ > function of allowing SMP/PIC configurations.  (smp_found_config
+ > in ACPI mode is set if acpi_lapic and acpi_ioapic are set)
+ > SMP/PIC configurations are not very interesting, except for debugging.
+ > Indeed, MPS prohibits them by mandating an IOAPIC be present for SMP --
+ > but ACPI has no such rule.
 
-You said it was working with 2.6.15. Do you remember whether kernel was=
- using acpi-cpufreq or speedstep-centrino?
+Why smp_found_config isn't set in that guys configuration is a mystery to me,
+as his MPS tables look sane..
 
-One change that has happened in this region is that If your BIOS suppor=
-ts both speedstep-centrino and acpi-cpufreq, with 2.6.15 any one of tho=
-se drivers would have worked. But now with 2.6.18, acpi-cpufreq will no=
-t work in the above case and you have to use speedstep_centrino. This w=
-as done because, speedstep-centrino has more features than acpi-cpufreq=
- and also doing this helped to elimiate issues with lot of systems with=
- kernel trying to do multiple ACPI PDC writes when BIOS doesn't expect =
-it to.=20
+MP Table:
+#	APIC ID	Version	State		Family	Model	Step	Flags
+#	 0	 0x10	 BSP, usable	 6	 2	 1	 0x0381
+#	 0	 0x10	 AP, usable	 6	 1	 7	 0xfbff
 
-In short:
-(1) If you were using acpi-cpufreq in 2.6.15, there is a high chance th=
-at it wont work with 2.6.18 and you should be able to use speedstep-cen=
-trino in its place. Make sure you have properly configured speedstep-ce=
-ntrino (You should select X86_SPEEDSTEP_CENTRINO_ACPI along with X86_SP=
-EEDSTEP_CENTRINO).
+Hmm, wait, he has unpaired CPUs. I wonder if that's the reason.
+I know *some* combinations of PPro's are valid to be paired, but I'll
+need to dig out the old docs to be sure.
 
-(2) If you were using speedstep-centrino in 2.6.15 and now it doesn't w=
-ork with 2.6.18, then we have a new regression here and we need to root=
- cause it further by enabling cpufreq.debug and getting more debug mess=
-ages to see where it is failing....
+	Dave
 
-Thanks,
-Venki
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+http://www.codemonkey.org.uk
