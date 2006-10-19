@@ -1,41 +1,58 @@
-From: Dave Jones <davej@redhat.com>
-Subject: Re: SMP broken on pre-ACPI machine.
-Date: Thu, 19 Oct 2006 16:11:16 -0400
-Message-ID: <20061019201116.GG26530@redhat.com>
-References: <20061018222433.GA4770@redhat.com> <200610190133.40581.len.brown@intel.com> <20061019191644.GE26530@redhat.com>
+From: Vivek Goyal <vgoyal@in.ibm.com>
+Subject: Kdump broken in ACPI initialization upon reading SCI_EN bit
+Date: Thu, 19 Oct 2006 16:14:05 -0400
+Message-ID: <20061019201405.GA15078@in.ibm.com>
+Reply-To: vgoyal@in.ibm.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:35475 "EHLO mx1.redhat.com")
-	by vger.kernel.org with ESMTP id S1946432AbWJSUL5 (ORCPT
+Received: from e4.ny.us.ibm.com ([32.97.182.144]:10178 "EHLO e4.ny.us.ibm.com")
+	by vger.kernel.org with ESMTP id S1946435AbWJSURl (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Oct 2006 16:11:57 -0400
+	Thu, 19 Oct 2006 16:17:41 -0400
+Received: from d01relay02.pok.ibm.com (d01relay02.pok.ibm.com [9.56.227.234])
+	by e4.ny.us.ibm.com (8.13.8/8.12.11) with ESMTP id k9JKHerm024805
+	for <linux-acpi@vger.kernel.org>; Thu, 19 Oct 2006 16:17:40 -0400
+Received: from d01av02.pok.ibm.com (d01av02.pok.ibm.com [9.56.224.216])
+	by d01relay02.pok.ibm.com (8.13.6/8.13.6/NCO v8.1.1) with ESMTP id k9JKHeiW284340
+	for <linux-acpi@vger.kernel.org>; Thu, 19 Oct 2006 16:17:40 -0400
+Received: from d01av02.pok.ibm.com (loopback [127.0.0.1])
+	by d01av02.pok.ibm.com (8.12.11.20060308/8.13.3) with ESMTP id k9JKHeuh007647
+	for <linux-acpi@vger.kernel.org>; Thu, 19 Oct 2006 16:17:40 -0400
 Content-Disposition: inline
-In-Reply-To: <20061019191644.GE26530@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Fastboot mailing list <fastboot@lists.osdl.org>
 
-On Thu, Oct 19, 2006 at 03:16:44PM -0400, Dave Jones wrote:
+Hi,
 
- > Why smp_found_config isn't set in that guys configuration is a mystery to me,
- > as his MPS tables look sane..
- > 
- > MP Table:
- > #	APIC ID	Version	State		Family	Model	Step	Flags
- > #	 0	 0x10	 BSP, usable	 6	 2	 1	 0x0381
- > #	 0	 0x10	 AP, usable	 6	 1	 7	 0xfbff
- > 
- > Hmm, wait, he has unpaired CPUs. I wonder if that's the reason.
- > I know *some* combinations of PPro's are valid to be paired, but I'll
- > need to dig out the old docs to be sure.
- 
-Ok, after reading http://www.intel.com/design/archives/processors/pro/docs/242689.htm
-I'm more puzzled than ever.  There never was a model 2 Pentium Pro.
-Either this BIOS is on crack and putting nonsense in its MPS tables,
-or this is a hardware flaw of some sort.
+On one of my machines (Intel Xeon 2.00GHz), Kdump is broken. Second
+kernel hangs during boot during ACPI initialization. I am
+using 2.6.19-rc2.
 
-	Dave
+It basically hangs when it tries to read from hardware whether system
+is already in ACPI mode or not. It tries to read SCI_ENABLE bit from
+PM1 control register.
 
--- 
-http://www.codemonkey.org.uk
+Interestingly this phenomenon is observed only if the code is running 
+on a non-boot cpu (cpu id is not zero). I system crashes on cpu 0 and
+second kernel is booting on cpu 0 then everything is fine.
+
+Following is the code sequence.
+
+  acpi_early_init()
+   acpi_enable_subsystem()
+     acpi_hw_get_mode
+       acpi_hw_get_register
+	  acpi_hw_register_read
+	    acpi_hw_low_level_read
+		acpi_os_read_port()
+
+In acpi_os_read_port() it tries to read port 0x804 (inw()) and then it hangs.
+
+Any idea what's happening? Are there any dependencies of this port being
+read by a boot cpu only? Any suggestions how can I debug further?
+
+Thanks
+Vivek
