@@ -1,38 +1,36 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Subject: RE: speedstep-centrino: ENODEV
-Date: Thu, 19 Oct 2006 11:21:08 -0700
-Message-ID: <EB12A50964762B4D8111D55B764A8454C1A4AF@scsmsx413.amr.corp.intel.com>
+From: =?ISO-8859-1?Q?Sune_M=F8lgaard?= <sune@molgaard.org>
+Subject: Re: speedstep-centrino: ENODEV
+Date: Thu, 19 Oct 2006 20:33:06 +0200
+Message-ID: <4537C4E2.2030000@molgaard.org>
+References: <EB12A50964762B4D8111D55B764A8454C1A4AF@scsmsx413.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:14366 "EHLO mga09.intel.com")
-	by vger.kernel.org with ESMTP id S1423153AbWJSSVL convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Oct 2006 14:21:11 -0400
-Content-class: urn:content-classes:message
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1946322AbWJSSdL@vger.kernel.org>
+In-Reply-To: <EB12A50964762B4D8111D55B764A8454C1A4AF@scsmsx413.amr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+Cc: Jiri Slaby <jirislaby@gmail.com>, Linux kernel mailing list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiri Slaby <jirislaby@gmail.com>
-Cc: =?iso-8859-1?Q?Sune_M=F8lgaard?= <sune@molgaard.org>, Linux kernel mailing list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
->
->> Also, can both of you send the complete acpidump output from 
->your system. You can find acpidump in latest version of 
->pmtools package here: 
->http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
->
->May be obtained over there:
->
->[...]
->
->>>>> processor, but speedstep-centrino returns ENODEV because of 
->>>>> lack of _PCT et al 
->>>>> entries in DSDT (http://www.fi.muni.cz/~xslaby/sklad/adump). 
->----------------------^^^^
->
+ >
+ > Looking at the acpidump, looks like BIOS doesn't have this feature=20
+enabled. Can you also make sure you have latest BIOS for the platform=20
+and also, check in BIOS whether there are any options to enable this=20
+feature.
+ >
+ > Thanks,
+ > Venki
+ >
 
-Looking at the acpidump, looks like BIOS doesn't have this feature enabled. Can you also make sure you have latest BIOS for the platform and also, check in BIOS whether there are any options to enable this feature.
+I flashed to bios to latest yesterday, but to no avail. There are no
+options remotely connected to this in the setup menu :-(
 
-Thanks,
-Venki
+Now, I don't mean to sound rude but I would like to know what changed,
+as speedstep was working well in kernel 2.6.15, so my initial thoughts
+contain the word regression. I still thank you for your interest though=
+=2E
+
+My best regards,
+
+Sune M=F8lgaard
