@@ -1,55 +1,100 @@
-From: =?ISO-8859-1?Q?Sune_M=F8lgaard?= <sune@molgaard.org>
-Subject: Re: speedstep-centrino: ENODEV
-Date: Thu, 19 Oct 2006 16:27:24 +0200
-Message-ID: <45378B4C.1040708@molgaard.org>
-References: <EB12A50964762B4D8111D55B764A8454C1A223@scsmsx413.amr.corp.intel.com> <453788F9.4000704@molgaard.org>
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Subject: RE: speedstep-centrino: ENODEV
+Date: Thu, 19 Oct 2006 08:57:32 -0700
+Message-ID: <EB12A50964762B4D8111D55B764A8454C1A2D8@scsmsx413.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cicero1.cybercity.dk ([212.242.40.4]:30926 "EHLO
-	cicero1.cybercity.dk") by vger.kernel.org with ESMTP
-	id S1161413AbWJSO1c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Oct 2006 10:27:32 -0400
-In-Reply-To: <453788F9.4000704@molgaard.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1946144AbWJSP6x@vger.kernel.org>
+Content-class: urn:content-classes:message
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiri Slaby <jirislaby@gmail.com>, =?iso-8859-1?Q?Sune_M=F8lgaard?= <sune@molgaard.org>
+Cc: Linux kernel mailing list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?ISO-8859-1?Q?Sune_M=F8lgaard?= <sune@molgaard.org>
-Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, linux-acpi@vger.kernel.org
 
-Sune M=F8lgaard wrote:
-> Pallipadi, Venkatesh wrote:
->=20
+
+No. As in 2.6.18, speedstep-centrino and acpi-cpufreq are  two different drivers/modules that support Enhanced Speedstep in slightly different ways. It depends on your platform/BIOS on which one will work for your system. So you should try loading both those drivers in that order. If you have both compiled in the kernel, these drivers will be loaded (or tried to) in proper order. Please try this with the latest stable 2.6.18 kernel.
+
+Also, can both of you send the complete acpidump output from your system. You can find acpidump in latest version of pmtools package here: http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
+
+Also, it will help if you can open a bug in http://bugme.osdl.org and attach this acpidump to the bug. The issue can be tracked better that way..
+
+Thanks,
+Venki 
+
+>-----Original Message-----
+>From: Jiri Slaby [mailto:jirislaby@gmail.com] 
+>Sent: Thursday, October 19, 2006 7:21 AM
+>To: Pallipadi, Venkatesh
+>Cc: Linux kernel mailing list; linux-acpi@vger.kernel.org
+>Subject: Re: speedstep-centrino: ENODEV
+>
+>Pallipadi, Venkatesh wrote:
 >> How about acpi-cpufreq? Does it work?
->>
->=20
-> I face the same problem on a Dell Inspiron 6000 (sonoma core cpu) and=
-=20
-> 2.6.17.13. I might add that it was functional on 2.6.15.
->=20
-> Upon trying to load acpi-cpufreq instead, I get
->=20
-> sune@tommelise:~$ sudo modprobe acpi-cpufreq
-> Password:
-> FATAL: Error inserting acpi_cpufreq=20
-> (/lib/modules/2.6.17.13-ubuntu1-pentium4m-1/kernel/arch/i386/kernel/c=
-pu/cpufreq/acpi-cpufreq.ko):=20
-> Unknown symbol in module, or unknown parameter (see dmesg)
-> sune@tommelise:~$ dmesg
-> [snip]
-> [4320009.012000] acpi_cpufreq: Unknown symbol cpu_online_map
->=20
-> Best regards,
->=20
-> Sune M=F8lgaard
-
-And I forgot to mention that it ENODEVs if I comment out the offending =
-code.
-
-/sune
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>How did you mean this, speedstep-centrino (which can also 
+>control voltage) is 
+>one of acpi-cpufreq drivers, isn't it?
+>
+>> 
+>> Thanks,
+>> Venki 
+>> 
+>>> -----Original Message-----
+>>> From: linux-kernel-owner@vger.kernel.org 
+>>> [mailto:linux-kernel-owner@vger.kernel.org] On Behalf Of Jiri Slaby
+>>> Sent: Wednesday, October 18, 2006 12:01 PM
+>>> To: Linux kernel mailing list
+>>> Cc: linux-acpi@vger.kernel.org
+>>> Subject: speedstep-centrino: ENODEV
+>>>
+>>> Hi!
+>>>
+>>> How is it possible to find out whether or not 
+>>> speedstep-centrino is supported. I 
+>>> have
+>>> processor       : 0
+>>> vendor_id       : GenuineIntel
+>>> cpu family      : 6
+>>> model           : 13
+>>> model name      : Intel(R) Pentium(R) M processor 1.60GHz
+>>> stepping        : 6
+>>> cpu MHz         : 1600.149
+>>> cache size      : 2048 KB
+>>> fdiv_bug        : no
+>>> hlt_bug         : no
+>>> f00f_bug        : no
+>>> coma_bug        : no
+>>> fpu             : yes
+>>> fpu_exception   : yes
+>>> cpuid level     : 2
+>>> wp              : yes
+>>> flags           : fpu vme de pse tsc msr mce cx8 apic sep mtrr 
+>>> pge mca cmov pat 
+>>> clflush dts acpi mmx fxsr sse sse2 ss tm pbe est tm2
+>>> bogomips        : 3201.52
+>>>
+>>> processor, but speedstep-centrino returns ENODEV because of 
+>>> lack of _PCT et al 
+>>> entries in DSDT (http://www.fi.muni.cz/~xslaby/sklad/adump). 
+>>> It is possible to 
+>>> hard-code that values to speedstep-centrino as for banias cpus 
+>>> or use corrected 
+>>> DSDT that will contain _PCT, _PSS and _PPC, but where may I 
+>>> obtain these values?
+>>>
+>>> This is Asus M6R notebook, some DSDT parts of this piece of HW 
+>>> are really ugly 
+>>> (problems with acpi some time ago).
+>>>
+>>> I may use p4-clockmod (and it points me to speedstep-centrino 
+>>> module), but if I 
+>>> am correct, it doesn't save battery life?
+>
+>regards,
+>-- 
+>http://www.fi.muni.cz/~xslaby/            Jiri Slaby
+>faculty of informatics, masaryk university, brno, cz
+>e-mail: jirislaby gmail com, gpg pubkey fingerprint:
+>B674 9967 0407 CE62 ACC8  22A0 32CC 55C3 39D4 7A7E
+>
