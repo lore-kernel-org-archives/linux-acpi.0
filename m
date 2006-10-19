@@ -1,59 +1,47 @@
-From: Dave Jones <davej@redhat.com>
-Subject: Re: SMP broken on pre-ACPI machine.
-Date: Thu, 19 Oct 2006 15:16:44 -0400
-Message-ID: <20061019191644.GE26530@redhat.com>
-References: <20061018222433.GA4770@redhat.com> <200610190133.40581.len.brown@intel.com>
+From: Jiri Slaby <jirislaby@gmail.com>
+Subject: Re: speedstep-centrino: ENODEV
+Date: Thu, 19 Oct 2006 21:34:15 +0200
+Message-ID: <4537D337.3020706@gmail.com>
+References: <EB12A50964762B4D8111D55B764A8454C1A4AF@scsmsx413.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:7880 "EHLO mx1.redhat.com")
-	by vger.kernel.org with ESMTP id S1946389AbWJSTRO (ORCPT
+Received: from cacti.profiwh.com ([85.93.165.66]:15554 "EHLO cacti.profiwh.com")
+	by vger.kernel.org with ESMTP id S1423247AbWJSThU (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Oct 2006 15:17:14 -0400
-Content-Disposition: inline
-In-Reply-To: <200610190133.40581.len.brown@intel.com>
+	Thu, 19 Oct 2006 15:37:20 -0400
+In-Reply-To: <EB12A50964762B4D8111D55B764A8454C1A4AF@scsmsx413.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linux Kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Cc: =?UTF-8?B?U3VuZSBNw7hsZ2FhcmQ=?= <sune@molgaard.org>, Linux kernel mailing list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Thu, Oct 19, 2006 at 01:33:40AM -0400, Len Brown wrote:
- > On Wednesday 18 October 2006 18:24, Dave Jones wrote:
- > > I've been chasing a bug that got filed against the Fedora kernel
- > > a while back:  https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=199052
- > > This is a dual pentium pro from an era before we had ACPI, and
- > > it seems to be falling foul of this test in smpboot.c  ..
- > > 
- > >     if (!smp_found_config && !acpi_lapic) {
- > >         printk(KERN_NOTICE "SMP motherboard not detected.\n");
- > > 
- > > My initial reaction is that the !acpi_lapic test should be conditional
- > > on some variable that gets set if the ACPI parsing actually succeeded.
- > 
- > acpi_lapic isn't related to the problem at hand -- that  smp_found_config is not set.
+Pallipadi, Venkatesh wrote:
+>>> Also, can both of you send the complete acpidump output from 
+>> your system. You can find acpidump in latest version of 
+>> pmtools package here: 
+>> http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
+>>
+>> May be obtained over there:
+>>
+>> [...]
+>>
+>>>>>> processor, but speedstep-centrino returns ENODEV because of 
+>>>>>> lack of _PCT et al 
+>>>>>> entries in DSDT (http://www.fi.muni.cz/~xslaby/sklad/adump). 
+>> ----------------------^^^^
+>>
+> 
+> Looking at the acpidump, looks like BIOS doesn't have this feature enabled. Can you also make sure you have latest BIOS for the platform and also, check in BIOS whether there are any options to enable this feature.
 
-Right, it just seemed odd to me when I was eyeballing this code.
+Oh my god, I am a chump! Sorry; I had disabled this in BIOS. After enabling it,
+acpidump contains _PCT et al and speedstep-centrino works.
 
- > That said, allowing acpi_lapic=1 to bail out of this check has the sole
- > function of allowing SMP/PIC configurations.  (smp_found_config
- > in ACPI mode is set if acpi_lapic and acpi_ioapic are set)
- > SMP/PIC configurations are not very interesting, except for debugging.
- > Indeed, MPS prohibits them by mandating an IOAPIC be present for SMP --
- > but ACPI has no such rule.
-
-Why smp_found_config isn't set in that guys configuration is a mystery to me,
-as his MPS tables look sane..
-
-MP Table:
-#	APIC ID	Version	State		Family	Model	Step	Flags
-#	 0	 0x10	 BSP, usable	 6	 2	 1	 0x0381
-#	 0	 0x10	 AP, usable	 6	 1	 7	 0xfbff
-
-Hmm, wait, he has unpaired CPUs. I wonder if that's the reason.
-I know *some* combinations of PPro's are valid to be paired, but I'll
-need to dig out the old docs to be sure.
-
-	Dave
-
+thanks,
 -- 
-http://www.codemonkey.org.uk
+http://www.fi.muni.cz/~xslaby/            Jiri Slaby
+faculty of informatics, masaryk university, brno, cz
+e-mail: jirislaby gmail com, gpg pubkey fingerprint:
+B674 9967 0407 CE62 ACC8  22A0 32CC 55C3 39D4 7A7E
+
