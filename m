@@ -1,70 +1,41 @@
-From: fseidel@suse.de
-Subject: [patch 2/2] acpi: driverregistration again can report ENODEV
-Date: Fri, 20 Oct 2006 11:25:49 +0200
-Message-ID: <20061020092902.370992000@neutrino.suse.de>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [patch 0/2] acpi: driverregistration again can report ENODEV
+Date: Fri, 20 Oct 2006 11:59:41 +0200
+Message-ID: <1161338381.32262.114.camel@queen.suse.de>
 References: <20061020092547.519734000@neutrino.suse.de>
+Reply-To: trenn@suse.de
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.suse.de ([195.135.220.2]:40917 "EHLO mx1.suse.de")
-	by vger.kernel.org with ESMTP id S1751486AbWJTJ3D (ORCPT
+Received: from mail.suse.de ([195.135.220.2]:6874 "EHLO mx1.suse.de")
+	by vger.kernel.org with ESMTP id S932243AbWJTJ7r (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Oct 2006 05:29:03 -0400
-Content-Disposition: inline; filename=acpi_asus_cleanup.diff
+	Fri, 20 Oct 2006 05:59:47 -0400
+In-Reply-To: <20061020092547.519734000@neutrino.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Len Brown <len.brown@intel.com>, Thomas Renninger <trenn@suse.de>
+To: fseidel@suse.de
+Cc: linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
 
-From: Frank Seidel <fseidel@suse.de>
+On Fri, 2006-10-20 at 11:25 +0200, fseidel@suse.de wrote:
+> Currently acpi_bus_register_driver only reports an error
+> (-ENODEV) if acpi_disabled is true,
+> but many acpi drivers also depend on a negative error
+> value if no driver could be attached to a device
+> (as e.g. driver/acpi/asus_acpi.c).
+> This patch adds this again (without changing return type
+> of acpi_driver_attach for this).
 
-Cleanups in asus_acpi that are not need anymore
-as of the fix of acpi_bus_register_driver.
+Looks fine to me.
 
-Signed-off-by: Frank Seidel <fseidel@suse.de>
----
- drivers/acpi/asus_acpi.c |   17 -----------------
- 1 files changed, 17 deletions(-)
+acpi_bus_register_driver must return -ENODEV when no device with
+matching HID was found. E.g. battery also should currently get always
+loaded even a system never has one.
 
-Index: linux-2.6/drivers/acpi/asus_acpi.c
-===================================================================
---- linux-2.6.orig/drivers/acpi/asus_acpi.c
-+++ linux-2.6/drivers/acpi/asus_acpi.c
-@@ -1239,8 +1239,6 @@ static int asus_hotk_check(void)
- 	return result;
- }
- 
--static int asus_hotk_found;
--
- static int asus_hotk_add(struct acpi_device *device)
- {
- 	acpi_status status = AE_OK;
-@@ -1301,8 +1299,6 @@ static int asus_hotk_add(struct acpi_dev
- 		}
- 	}
- 
--	asus_hotk_found = 1;
--
- 	/* LED display is off by default */
- 	hotk->ledd_status = 0xFFF;
- 
-@@ -1357,19 +1353,6 @@ static int __init asus_acpi_init(void)
- 		return result;
- 	}
- 
--	/*
--	 * This is a bit of a kludge.  We only want this module loaded
--	 * for ASUS systems, but there's currently no way to probe the
--	 * ACPI namespace for ASUS HIDs.  So we just return failure if
--	 * we didn't find one, which will cause the module to be
--	 * unloaded.
--	 */
--	if (!asus_hotk_found) {
--		acpi_bus_unregister_driver(&asus_hotk_driver);
--		remove_proc_entry(PROC_ASUS, acpi_root_dir);
--		return result;
--	}
--
- 	return 0;
- }
- 
+driver_attach returned the amount of found devices in past, this was
+changed recently (can't find the patch/mail) right now. This change
+broke things and should get corrected by these patches.
 
---
+   Thomas
+
