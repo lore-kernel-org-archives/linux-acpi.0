@@ -1,65 +1,51 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Subject: RE: speedstep-centrino: ENODEV
-Date: Fri, 20 Oct 2006 05:25:00 -0700
-Message-ID: <EB12A50964762B4D8111D55B764A8454C1A976@scsmsx413.amr.corp.intel.com>
+From: =?ISO-8859-1?Q?Sune_M=F8lgaard?= <sune@molgaard.org>
+Subject: Re: speedstep-centrino: ENODEV
+Date: Fri, 20 Oct 2006 14:30:14 +0200
+Message-ID: <4538C156.3060502@molgaard.org>
+References: <EB12A50964762B4D8111D55B764A8454C1A976@scsmsx413.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:28430 "EHLO mga03.intel.com")
-	by vger.kernel.org with ESMTP id S964797AbWJTMZE convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Oct 2006 08:25:04 -0400
-Content-class: urn:content-classes:message
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: =?iso-8859-1?Q?Sune_M=F8lgaard?= <sune@molgaard.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964796AbWJTMa2@vger.kernel.org>
+In-Reply-To: <EB12A50964762B4D8111D55B764A8454C1A976@scsmsx413.amr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
 Cc: Jiri Slaby <jirislaby@gmail.com>, Linux kernel mailing list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-=20
+Pallipadi, Venkatesh wrote:
+>  
+> 
+> Puzzling.. 
+> Just to make sure, do you have CPU_FREQ_DEBUG enabled in your config and boot parameter? There are a bunch of dprintk debug messages in speedstep_centrino that should get printed in this case..
+> Do you have est flag displayed in your /proc/cpuinfo under flags?
+> 
 
->-----Original Message-----
->From: Sune M=F8lgaard [mailto:sune@molgaard.org]=20
->Sent: Friday, October 20, 2006 5:09 AM
->To: Pallipadi, Venkatesh
->Cc: Jiri Slaby; Linux kernel mailing list; linux-acpi@vger.kernel.org
->Subject: Re: speedstep-centrino: ENODEV
->
->Pallipadi, Venkatesh wrote:
->>=20
->> Hmm... You must have CPU_FREQ_DENUG enabled in CONFIG=20
->already. Can you pass cpufreq.debug=3D3 in boot option and send=20
->me the output of dmesg after that.
->>=20
->> Thanks,
->> Venki
->
->I am currently on 2.6.17.13 ubuntu version, that includes a lot of=20
->2.6.18 code.
->
->It seems it tries to load acpi-cpufreq which complains about=20
->cpu_online_map, bu I also tried explicitly to load speedstep-centrino,=
-=20
->which resulted in
->
->sune@tommelise:~$ sudo modprobe speedstep-centrino
->Password:
->FATAL: Error inserting speedstep_centrino=20
->(/lib/modules/2.6.17.13-ubuntu1-pentium4m-1/kernel/arch/i386/ke
-rnel/cpu/cpufreq/speedstep-centrino.ko):=20
->No such device
->sune@tommelise:~$
->
->But nothing in dmesg, which is attached.
->
+Well, how about that. No est :-$ I assume ss is regular speedstep? So 
+what do I use instead? Is there some way to get acpi-speedstep working 
+again?
 
-Puzzling..=20
-Just to make sure, do you have CPU_FREQ_DEBUG enabled in your config an=
-d boot parameter? There are a bunch of dprintk debug messages in speeds=
-tep_centrino that should get printed in this case..
-Do you have est flag displayed in your /proc/cpuinfo under flags?
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best regards,
+
+/sunem
+
+sune@tommelise:~$ cat /proc/cpuinfo
+processor       : 0
+vendor_id       : GenuineIntel
+cpu family      : 6
+model           : 13
+model name      : Intel(R) Celeron(R) M processor         1.40GHz
+stepping        : 8
+cpu MHz         : 1396.494
+cache size      : 1024 KB
+fdiv_bug        : no
+hlt_bug         : no
+f00f_bug        : no
+coma_bug        : no
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 2
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge 
+mca cmov pat clflush dts acpi mmx fxsr sse sse2 ss tm pbe nx up
+bogomips        : 2795.99
