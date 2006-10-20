@@ -1,652 +1,191 @@
 From: akpm@osdl.org
-Subject: [patch 2/8] acpi: add removable drive bay support
-Date: Fri, 20 Oct 2006 14:30:25 -0700
-Message-ID: <200610202130.k9KLUPxA003238@shell0.pdx.osdl.net>
+Subject: [patch 7/8] Add support for the generic backlight device to the TOSHIBA ACPI driver
+Date: Fri, 20 Oct 2006 14:30:29 -0700
+Message-ID: <200610202130.k9KLUTm9003254@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:10880 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1422954AbWJTVaq (ORCPT
+Received: from smtp.osdl.org ([65.172.181.4]:22912 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S2992739AbWJTVbE (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Oct 2006 17:30:46 -0400
+	Fri, 20 Oct 2006 17:31:04 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, kristen.c.accardi@intel.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, hmacht@suse.de, apw@shadowen.org
 
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+From: Holger Macht <hmacht@suse.de>
 
-This driver adds generic removable drive bay support.
+Add support for the generic backlight interface below /sys/class/backlight.
+ The patch keeps the procfs brightness handling for backward compatibility.
 
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+For this to archive, the patch adds two generic functions get_lcd and
+set_lcd to be used both by the procfs related and the sysfs related
+methods.
+
+[apw@shadowen.org: backlight users need to select BACKLIGHT_CLASS_DEVICE]
+Signed-off-by: Holger Macht <hmacht@suse.de>
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/Kconfig  |    7 
- drivers/acpi/Makefile |    1 
- drivers/acpi/bay.c    |  592 ++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 600 insertions(+)
+ drivers/acpi/Kconfig        |    1 
+ drivers/acpi/toshiba_acpi.c |   88 +++++++++++++++++++++++++---------
+ 2 files changed, 66 insertions(+), 23 deletions(-)
 
-diff -puN drivers/acpi/Kconfig~acpi-add-removable-drive-bay-support drivers/acpi/Kconfig
---- a/drivers/acpi/Kconfig~acpi-add-removable-drive-bay-support
+diff -puN drivers/acpi/Kconfig~add-support-for-the-generic-backlight-device-to-the-toshiba-acpi-driver drivers/acpi/Kconfig
+--- a/drivers/acpi/Kconfig~add-support-for-the-generic-backlight-device-to-the-toshiba-acpi-driver
 +++ a/drivers/acpi/Kconfig
-@@ -138,6 +138,13 @@ config ACPI_DOCK
- 	help
- 	  This driver adds support for ACPI controlled docking stations
+@@ -234,6 +234,7 @@ config ACPI_IBM_DOCK
+ config ACPI_TOSHIBA
+ 	tristate "Toshiba Laptop Extras"
+ 	depends on X86
++	select BACKLIGHT_CLASS_DEVICE
+ 	---help---
+ 	  This driver adds support for access to certain system settings
+ 	  on "legacy free" Toshiba laptops.  These laptops can be recognized by
+diff -puN drivers/acpi/toshiba_acpi.c~add-support-for-the-generic-backlight-device-to-the-toshiba-acpi-driver drivers/acpi/toshiba_acpi.c
+--- a/drivers/acpi/toshiba_acpi.c~add-support-for-the-generic-backlight-device-to-the-toshiba-acpi-driver
++++ a/drivers/acpi/toshiba_acpi.c
+@@ -41,6 +41,8 @@
+ #include <linux/init.h>
+ #include <linux/types.h>
+ #include <linux/proc_fs.h>
++#include <linux/backlight.h>
++
+ #include <asm/uaccess.h>
  
-+config ACPI_BAY
-+	tristate "Removable Drive Bay"
-+	depends on EXPERIMENTAL
-+	help
-+	  This driver adds support for ACPI controlled removable drive
-+	  bays such as the IBM ultrabay or the Dell Module Bay.
-+
- config ACPI_PROCESSOR
- 	tristate "Processor"
- 	default y
-diff -puN drivers/acpi/Makefile~acpi-add-removable-drive-bay-support drivers/acpi/Makefile
---- a/drivers/acpi/Makefile~acpi-add-removable-drive-bay-support
-+++ a/drivers/acpi/Makefile
-@@ -43,6 +43,7 @@ obj-$(CONFIG_ACPI_BUTTON)	+= button.o
- obj-$(CONFIG_ACPI_EC)		+= ec.o
- obj-$(CONFIG_ACPI_FAN)		+= fan.o
- obj-$(CONFIG_ACPI_DOCK)		+= dock.o
-+obj-$(CONFIG_ACPI_BAY)		+= bay.o
- obj-$(CONFIG_ACPI_VIDEO)	+= video.o 
- obj-$(CONFIG_ACPI_HOTKEY)	+= hotkey.o
- obj-y				+= pci_root.o pci_link.o pci_irq.o pci_bind.o
-diff -puN /dev/null drivers/acpi/bay.c
---- /dev/null
-+++ a/drivers/acpi/bay.c
-@@ -0,0 +1,592 @@
-+/*
-+ *  bay.c - ACPI removable drive bay driver
-+ *
-+ *  Copyright (C) 2006 Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or (at
-+ *  your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful, but
-+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ *  General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License along
-+ *  with this program; if not, write to the Free Software Foundation, Inc.,
-+ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ */
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/types.h>
-+#include <linux/notifier.h>
-+#include <acpi/acpi_bus.h>
-+#include <acpi/acpi_drivers.h>
-+#include <linux/proc_fs.h>
-+#include <linux/seq_file.h>
-+#include <asm/uaccess.h>
-+
-+#define ACPI_BAY_DRIVER_NAME "ACPI Removable Drive Bay Driver"
-+
-+ACPI_MODULE_NAME("bay")
-+MODULE_AUTHOR("Kristen Carlson Accardi");
-+MODULE_DESCRIPTION(ACPI_BAY_DRIVER_NAME);
-+MODULE_LICENSE("GPL");
-+#define ACPI_BAY_CLASS "bay"
-+#define ACPI_BAY_COMPONENT	0x10000000
-+#define _COMPONENT ACPI_BAY_COMPONENT
-+#define bay_dprintk(h,s) {\
-+	char prefix[80] = {'\0'};\
-+	struct acpi_buffer buffer = {sizeof(prefix), prefix};\
-+	acpi_get_name(h, ACPI_FULL_PATHNAME, &buffer);\
-+	printk(KERN_DEBUG PREFIX "%s: %s\n", prefix, s); }
-+
-+static void bay_notify(acpi_handle handle, u32 event, void *data);
-+static int acpi_bay_add(struct acpi_device *device);
-+static int acpi_bay_remove(struct acpi_device *device, int type);
-+static int acpi_bay_match(struct acpi_device *device,
-+				struct acpi_driver *driver);
-+
-+static struct acpi_driver acpi_bay_driver = {
-+	.name = ACPI_BAY_DRIVER_NAME,
-+	.class = ACPI_BAY_CLASS,
-+	.ops = {
-+		.add = acpi_bay_add,
-+		.remove = acpi_bay_remove,
-+		.match = acpi_bay_match,
-+		},
-+};
-+
-+struct bay {
-+	acpi_handle handle;
-+	char *name;
-+	struct list_head list;
-+	struct proc_dir_entry *proc;
-+};
-+
-+LIST_HEAD(drive_bays);
-+
-+static struct proc_dir_entry *acpi_bay_dir;
-+
-+/*****************************************************************************
-+ *                         Drive Bay functions                               *
-+ *****************************************************************************/
-+/**
-+ * is_ejectable - see if a device is ejectable
-+ * @handle: acpi handle of the device
-+ *
-+ * If an acpi object has a _EJ0 method, then it is ejectable
-+ */
-+static int is_ejectable(acpi_handle handle)
-+{
-+	acpi_status status;
-+	acpi_handle tmp;
-+
-+	status = acpi_get_handle(handle, "_EJ0", &tmp);
-+	if (ACPI_FAILURE(status))
-+		return 0;
-+	return 1;
+ #include <acpi/acpi_drivers.h>
+@@ -210,6 +212,7 @@ static acpi_status hci_read1(u32 reg, u3
+ }
+ 
+ static struct proc_dir_entry *toshiba_proc_dir /*= 0*/ ;
++static struct backlight_device *toshiba_backlight_device;
+ static int force_fan;
+ static int last_key_event;
+ static int key_event_valid;
+@@ -271,14 +274,23 @@ dispatch_write(struct file *file, const 
+ 	return result;
+ }
+ 
+-static char *read_lcd(char *p)
++static int get_lcd(struct backlight_device *bd)
+ {
+ 	u32 hci_result;
+ 	u32 value;
+ 
+ 	hci_read1(HCI_LCD_BRIGHTNESS, &value, &hci_result);
+ 	if (hci_result == HCI_SUCCESS) {
+-		value = value >> HCI_LCD_BRIGHTNESS_SHIFT;
++		return (value >> HCI_LCD_BRIGHTNESS_SHIFT);
++	} else
++		return -EFAULT;
 +}
 +
-+/**
-+ * bay_present - see if the bay device is present
-+ * @bay: the drive bay
-+ *
-+ * execute the _STA method.
-+ */
-+static int bay_present(struct bay *bay)
++static char *read_lcd(char *p)
 +{
-+	unsigned long sta;
-+	acpi_status status;
++	int value = get_lcd(NULL);
 +
-+	if (bay) {
-+		status = acpi_evaluate_integer(bay->handle, "_STA", NULL, &sta);
-+		if (ACPI_SUCCESS(status) && sta)
-+			return 1;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * eject_device - respond to an eject request
-+ * @handle - the device to eject
-+ *
-+ * Call this devices _EJ0 method.
-+ */
-+static void eject_device(acpi_handle handle)
++	if (value >= 0) {
+ 		p += sprintf(p, "brightness:              %d\n", value);
+ 		p += sprintf(p, "brightness_levels:       %d\n",
+ 			     HCI_LCD_BRIGHTNESS_LEVELS);
+@@ -289,22 +301,34 @@ static char *read_lcd(char *p)
+ 	return p;
+ }
+ 
++static int set_lcd(int value)
 +{
-+	struct acpi_object_list arg_list;
-+	union acpi_object arg;
++	u32 hci_result;
 +
-+	bay_dprintk(handle, "Ejecting device");
-+
-+	arg_list.count = 1;
-+	arg_list.pointer = &arg;
-+	arg.type = ACPI_TYPE_INTEGER;
-+	arg.integer.value = 1;
-+
-+	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_EJ0",
-+					      &arg_list, NULL)))
-+		pr_debug("Failed to evaluate _EJ0!\n");
-+}
-+
-+
-+/**
-+ * is_ata - see if a device is an ata device
-+ * @handle: acpi handle of the device
-+ *
-+ * If an acpi object has one of 4 ATA ACPI methods defined,
-+ * then it is an ATA device
-+ */
-+static int is_ata(acpi_handle handle)
-+{
-+	acpi_handle tmp;
-+
-+	if ((ACPI_SUCCESS(acpi_get_handle(handle, "_GTF", &tmp))) ||
-+	   (ACPI_SUCCESS(acpi_get_handle(handle, "_GTM", &tmp))) ||
-+	   (ACPI_SUCCESS(acpi_get_handle(handle, "_STM", &tmp))) ||
-+	   (ACPI_SUCCESS(acpi_get_handle(handle, "_SDD", &tmp))))
-+		return 1;
-+
-+	return 0;
-+}
-+
-+/**
-+ * parent_is_ata(acpi_handle handle)
-+ *
-+ */
-+static int parent_is_ata(acpi_handle handle)
-+{
-+	acpi_handle phandle;
-+
-+	if (acpi_get_parent(handle, &phandle))
-+		return 0;
-+
-+	return is_ata(phandle);
-+}
-+
-+/**
-+ * is_ejectable_bay - see if a device is an ejectable drive bay
-+ * @handle: acpi handle of the device
-+ *
-+ * If an acpi object is ejectable and has one of the ACPI ATA
-+ * methods defined, then we can safely call it an ejectable
-+ * drive bay
-+ */
-+static int is_ejectable_bay(acpi_handle handle)
-+{
-+	if ((is_ata(handle) || parent_is_ata(handle)) && is_ejectable(handle))
-+		return 1;
-+	return 0;
-+}
-+
-+/**
-+ * eject_removable_drive - try to eject this drive
-+ * @dev : the device structure of the drive
-+ *
-+ * If a device is a removable drive that requires an _EJ0 method
-+ * to be executed in order to safely remove from the system, do
-+ * it.  ATM - always returns success
-+ */
-+int eject_removable_drive(struct device *dev)
-+{
-+	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
-+
-+	if (handle) {
-+		bay_dprintk(handle, "Got device handle");
-+		if (is_ejectable_bay(handle))
-+			eject_device(handle);
-+	} else {
-+		printk("No acpi handle for device\n");
-+	}
-+
-+	/* should I return an error code? */
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(eject_removable_drive);
-+
-+static int acpi_bay_add(struct acpi_device *device)
-+{
-+	bay_dprintk(device->handle, "adding bay device");
-+	strcpy(acpi_device_name(device), "Dockable Bay");
-+	strcpy(acpi_device_class(device), "bay");
-+	return 0;
-+}
-+
-+static int acpi_bay_status_seq_show(struct seq_file *seq, void *offset)
-+{
-+	struct bay *bay = (struct bay *)seq->private;
-+
-+	if (!bay)
-+		return 0;
-+
-+	if (bay_present(bay))
-+		seq_printf(seq, "present\n");
-+	else
-+		seq_printf(seq, "removed\n");
-+
-+	return 0;
-+}
-+
-+static ssize_t
-+acpi_bay_write_eject(struct file *file,
-+		      const char __user * buffer,
-+		      size_t count, loff_t * data)
-+{
-+	struct seq_file *m = (struct seq_file *)file->private_data;
-+	struct bay *bay = (struct bay *)m->private;
-+	char str[12] = { 0 };
-+	u32 state = 0;
-+
-+	/* FIXME - our only valid value here is 1 */
-+	if (!bay || count + 1 > sizeof str)
-+		return -EINVAL;
-+
-+	if (copy_from_user(str, buffer, count))
++	value = value << HCI_LCD_BRIGHTNESS_SHIFT;
++	hci_write1(HCI_LCD_BRIGHTNESS, value, &hci_result);
++	if (hci_result != HCI_SUCCESS)
 +		return -EFAULT;
 +
-+	str[count] = 0;
-+	state = simple_strtoul(str, NULL, 0);
-+	if (state)
-+		eject_device(bay->handle);
-+
-+	return count;
++	return 0;
 +}
 +
-+static int
-+acpi_bay_status_open_fs(struct inode *inode, struct file *file)
++static int set_lcd_status(struct backlight_device *bd)
 +{
-+	return single_open(file, acpi_bay_status_seq_show,
-+			   PDE(inode)->data);
++	return set_lcd(bd->props->brightness);
 +}
 +
-+static int
-+acpi_bay_eject_open_fs(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, acpi_bay_status_seq_show,
-+			   PDE(inode)->data);
-+}
-+
-+static struct file_operations acpi_bay_status_fops = {
-+	.open = acpi_bay_status_open_fs,
-+	.read = seq_read,
-+	.llseek = seq_lseek,
-+	.release = single_release,
+ static unsigned long write_lcd(const char *buffer, unsigned long count)
+ {
+ 	int value;
+-	u32 hci_result;
++	int ret = count;
+ 
+ 	if (sscanf(buffer, " brightness : %i", &value) == 1 &&
+-	    value >= 0 && value < HCI_LCD_BRIGHTNESS_LEVELS) {
+-		value = value << HCI_LCD_BRIGHTNESS_SHIFT;
+-		hci_write1(HCI_LCD_BRIGHTNESS, value, &hci_result);
+-		if (hci_result != HCI_SUCCESS)
+-			return -EFAULT;
+-	} else {
+-		return -EINVAL;
+-	}
+-
+-	return count;
++	    value >= 0 && value < HCI_LCD_BRIGHTNESS_LEVELS)
++		ret = set_lcd(value);
++	else
++		ret = -EINVAL;
++	return ret;
+ }
+ 
+ static char *read_video(char *p)
+@@ -506,6 +530,26 @@ static acpi_status __exit remove_device(
+ 	return AE_OK;
+ }
+ 
++static struct backlight_properties toshiba_backlight_data = {
++        .owner          = THIS_MODULE,
++        .get_brightness = get_lcd,
++        .update_status  = set_lcd_status,
++        .max_brightness = HCI_LCD_BRIGHTNESS_LEVELS - 1,
 +};
 +
-+static struct file_operations acpi_bay_eject_fops = {
-+	.open = acpi_bay_eject_open_fs,
-+	.read = seq_read,
-+	.write = acpi_bay_write_eject,
-+	.llseek = seq_lseek,
-+	.release = single_release,
-+};
-+#if 0
-+static struct file_operations acpi_bay_insert_fops = {
-+	.open = acpi_bay_insert_open_fs,
-+	.read = seq_read,
-+	.llseek = seq_lseek,
-+	.release = single_release,
-+};
-+#endif
-+static int acpi_bay_add_fs(struct bay *bay)
++static void __exit toshiba_acpi_exit(void)
 +{
-+	struct proc_dir_entry *entry = NULL;
++	if (toshiba_backlight_device)
++		backlight_device_unregister(toshiba_backlight_device);
 +
-+	if (!bay)
-+		return -EINVAL;
++	remove_device();
 +
-+	/*
-+	 * create a proc entry for this device
-+	 * we need to do this a little bit differently than normal
-+  	 * acpi device drivers because our device may not be present
-+	 * at the moment, and therefore we have no acpi_device struct
-+	 */
++	if (toshiba_proc_dir)
++		remove_proc_entry(PROC_TOSHIBA, acpi_root_dir);
 +
-+	bay->proc = proc_mkdir(bay->name, acpi_bay_dir);
-+
-+	/* 'status' [R] */
-+	entry = create_proc_entry("status",
-+				  S_IRUGO, bay->proc);
-+	if (!entry)
-+		return -EIO;
-+	else {
-+		entry->proc_fops = &acpi_bay_status_fops;
-+		entry->data = bay;
-+		entry->owner = THIS_MODULE;
-+	}
-+	/* 'eject' [W] */
-+	entry = create_proc_entry("eject",
-+				  S_IWUGO, bay->proc);
-+	if (!entry)
-+		return -EIO;
-+	else {
-+		entry->proc_fops = &acpi_bay_eject_fops;
-+		entry->data = bay;
-+		entry->owner = THIS_MODULE;
-+	}
-+#if 0
-+	/* 'insert' [W] */
-+	entry = create_proc_entry("insert",
-+				  S_IWUGO, bay->proc);
-+	if (!entry)
-+		return -EIO;
-+	else {
-+		entry->proc_fops = &acpi_bay_insert_fops;
-+		entry->data = bay;
-+		entry->owner = THIS_MODULE;
-+	}
-+#endif
-+	return 0;
++	return;
 +}
 +
-+static void acpi_bay_remove_fs(struct bay *bay)
-+{
-+	if (!bay)
-+		return;
-+
-+	if (bay->proc) {
-+		remove_proc_entry("status", bay->proc);
-+		remove_proc_entry("eject", bay->proc);
-+#if 0
-+		remove_proc_entry("insert", bay->proc);
-+#endif
-+		remove_proc_entry(bay->name, acpi_bay_dir);
-+		bay->proc = NULL;
+ static int __init toshiba_acpi_init(void)
+ {
+ 	acpi_status status = AE_OK;
+@@ -546,17 +590,15 @@ static int __init toshiba_acpi_init(void
+ 			remove_proc_entry(PROC_TOSHIBA, acpi_root_dir);
+ 	}
+ 
+-	return (ACPI_SUCCESS(status)) ? 0 : -ENODEV;
+-}
+-
+-static void __exit toshiba_acpi_exit(void)
+-{
+-	remove_device();
+-
+-	if (toshiba_proc_dir)
+-		remove_proc_entry(PROC_TOSHIBA, acpi_root_dir);
++	toshiba_backlight_device = backlight_device_register("toshiba", NULL,
++						&toshiba_backlight_data);
++        if (IS_ERR(toshiba_backlight_device)) {
++		printk(KERN_ERR "Could not register toshiba backlight device\n");
++		toshiba_backlight_device = NULL;
++		toshiba_acpi_exit();
 +	}
-+}
-+
-+static int bay_is_dock_device(acpi_handle handle)
-+{
-+	acpi_handle parent;
-+
-+	acpi_get_parent(handle, &parent);
-+
-+	/* if the device or it's parent is dependent on the
-+	 * dock, then we are a dock device
-+	 */
-+	return (is_dock_device(handle) || is_dock_device(parent));
-+}
-+
-+static int bay_add(acpi_handle handle)
-+{
-+	acpi_status status;
-+	struct bay *new_bay;
-+	struct acpi_buffer nbuffer = {ACPI_ALLOCATE_BUFFER, NULL};
-+	acpi_get_name(handle, ACPI_FULL_PATHNAME, &nbuffer);
-+
-+	bay_dprintk(handle, "Adding notify handler");
-+
-+	/*
-+	 * if this is the first bay device found, make the root
-+	 * proc entry
-+	 */
-+	if (acpi_bay_dir == NULL)
-+		acpi_bay_dir = proc_mkdir(ACPI_BAY_CLASS, acpi_root_dir);
-+
-+	/*
-+	 * Initialize bay device structure
-+	 */
-+	new_bay = kmalloc(GFP_ATOMIC, sizeof(*new_bay));
-+	INIT_LIST_HEAD(&new_bay->list);
-+	new_bay->handle = handle;
-+	new_bay->name = (char *)nbuffer.pointer;
-+	list_add(&new_bay->list, &drive_bays);
-+	acpi_bay_add_fs(new_bay);
-+
-+	/* register for events on this device */
-+	status = acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
-+			bay_notify, new_bay);
-+	if (ACPI_FAILURE(status)) {
-+		printk(KERN_ERR PREFIX "Error installing bay notify handler\n");
-+	}
-+
-+	/* if we are on a dock station, we should register for dock
-+	 * notifications.
-+	 */
-+	if (bay_is_dock_device(handle)) {
-+		bay_dprintk(handle, "Is dependent on dock\n");
-+		register_hotplug_dock_device(handle, bay_notify, new_bay);
-+	}
-+	printk(KERN_INFO PREFIX "Bay [%s] Added\n", new_bay->name);
-+	return 0;
-+}
-+
-+static int acpi_bay_remove(struct acpi_device *device, int type)
-+{
-+	/*** FIXME: do something here */
-+	return 0;
-+}
-+
-+static int acpi_bay_match(struct acpi_device *device,
-+				struct acpi_driver *driver)
-+{
-+	if (!device || !driver)
-+		return -EINVAL;
-+
-+	if (is_ejectable_bay(device->handle)) {
-+		bay_dprintk(device->handle, "matching bay device");
-+		return 0;
-+	}
-+
-+	return -ENODEV;
-+}
-+
-+/**
-+ * bay_create_acpi_device - add new devices to acpi
-+ * @handle - handle of the device to add
-+ *
-+ *  This function will create a new acpi_device for the given
-+ *  handle if one does not exist already.  This should cause
-+ *  acpi to scan for drivers for the given devices, and call
-+ *  matching driver's add routine.
-+ *
-+ *  Returns a pointer to the acpi_device corresponding to the handle.
-+ */
-+static struct acpi_device * bay_create_acpi_device(acpi_handle handle)
-+{
-+	struct acpi_device *device = NULL;
-+	struct acpi_device *parent_device;
-+	acpi_handle parent;
-+	int ret;
-+
-+	bay_dprintk(handle, "Trying to get device");
-+	if (acpi_bus_get_device(handle, &device)) {
-+		/*
-+		 * no device created for this object,
-+		 * so we should create one.
-+		 */
-+		bay_dprintk(handle, "No device for handle");
-+		acpi_get_parent(handle, &parent);
-+		if (acpi_bus_get_device(parent, &parent_device))
-+			parent_device = NULL;
-+
-+		ret = acpi_bus_add(&device, parent_device, handle,
-+			ACPI_BUS_TYPE_DEVICE);
-+		if (ret) {
-+			pr_debug("error adding bus, %x\n",
-+				-ret);
-+			return NULL;
-+		}
-+	}
-+	return device;
-+}
-+
-+/**
-+ * bay_notify - act upon an acpi bay notification
-+ * @handle: the bay handle
-+ * @event: the acpi event
-+ * @data: our driver data struct
-+ *
-+ */
-+static void bay_notify(acpi_handle handle, u32 event, void *data)
-+{
-+	struct acpi_device *dev;
-+	struct bay *bay = data;
-+
-+	bay_dprintk(handle, "Bay event");
-+
-+	switch(event) {
-+	case ACPI_NOTIFY_BUS_CHECK:
-+		printk("Bus Check\n");
-+	case ACPI_NOTIFY_DEVICE_CHECK:
-+		printk("Device Check\n");
-+		dev = bay_create_acpi_device(handle);
-+		if (dev)
-+			acpi_bus_generate_event(dev, event, 0);
-+		else
-+			printk("No device for generating event\n");
-+		/* wouldn't it be a good idea to just rescan SATA
-+		 * right here?
-+		 */
-+		break;
-+	case ACPI_NOTIFY_EJECT_REQUEST:
-+		printk("Eject request\n");
-+		dev = bay_create_acpi_device(handle);
-+		if (dev)
-+			acpi_bus_generate_event(dev, event, 0);
-+		else
-+			printk("No device for generating eventn");
-+
-+		/* wouldn't it be a good idea to just call the
-+		 * eject_device here if we were a SATA device?
-+		 */
-+		break;
-+	default:
-+		printk("unknown event %d\n", event);
-+	}
-+}
-+
-+static acpi_status
-+find_bay(acpi_handle handle, u32 lvl, void *context, void **rv)
-+{
-+	int *count = (int *)context;
-+
-+	/*
-+	 * there could be more than one ejectable bay.
-+	 * so, just return AE_OK always so that every object
-+	 * will be checked.
-+	 */
-+	if (is_ejectable_bay(handle)) {
-+		bay_dprintk(handle, "found ejectable bay");
-+		bay_add(handle);
-+		(*count)++;
-+	}
-+	return AE_OK;
-+}
-+
-+static int __init bay_init(void)
-+{
-+	int bays = 0;
-+
-+	acpi_bay_dir = NULL;
-+	INIT_LIST_HEAD(&drive_bays);
-+
-+	/* look for dockable drive bays */
-+	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
-+		ACPI_UINT32_MAX, find_bay, &bays, NULL);
-+
-+	if (bays) {
-+		if ((acpi_bus_register_driver(&acpi_bay_driver) < 0)) {
-+			printk(KERN_ERR "Unable to register bay driver\n");
-+			if (acpi_bay_dir)
-+				remove_proc_entry(ACPI_BAY_CLASS,
-+					acpi_root_dir);
-+		}
-+	}
-+
-+	if (!bays)
-+		return -ENODEV;
-+
-+	return 0;
-+}
-+
-+static void __exit bay_exit(void)
-+{
-+	struct bay *bay, *tmp;
-+
-+	list_for_each_entry_safe(bay, tmp, &drive_bays, list) {
-+		if (is_dock_device(bay->handle))
-+			unregister_hotplug_dock_device(bay->handle);
-+		acpi_bay_remove_fs(bay);
-+		acpi_remove_notify_handler(bay->handle, ACPI_SYSTEM_NOTIFY,
-+			bay_notify);
-+		kfree(bay->name);
-+		kfree(bay);
-+	}
-+
-+	if (acpi_bay_dir)
-+		remove_proc_entry(ACPI_BAY_CLASS, acpi_root_dir);
-+
-+	acpi_bus_unregister_driver(&acpi_bay_driver);
-+}
-+
-+postcore_initcall(bay_init);
-+module_exit(bay_exit);
-+
+ 
+-	return;
++	return (ACPI_SUCCESS(status)) ? 0 : -ENODEV;
+ }
+ 
+ module_init(toshiba_acpi_init);
 _
