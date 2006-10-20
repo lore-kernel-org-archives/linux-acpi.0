@@ -1,26 +1,56 @@
-From: =?ISO-8859-1?Q?Sune_M=F8lgaard?= <sune@molgaard.org>
-Subject: Re: speedstep-centrino: ENODEV
-Date: Fri, 20 Oct 2006 09:34:15 +0200
-Message-ID: <45387BF7.3010302@molgaard.org>
-References: <EB12A50964762B4D8111D55B764A8454C1A534@scsmsx413.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+From: fseidel@suse.de
+Subject: [patch 1/2] acpi: driverregistration again can report ENODEV
+Date: Fri, 20 Oct 2006 11:25:48 +0200
+Message-ID: <20061020092902.102079000@neutrino.suse.de>
+References: <20061020092547.519734000@neutrino.suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cicero1.cybercity.dk ([212.242.40.4]:36062 "EHLO
-	cicero1.cybercity.dk") by vger.kernel.org with ESMTP
-	id S2992545AbWJTHeW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Oct 2006 03:34:22 -0400
-In-Reply-To: <EB12A50964762B4D8111D55B764A8454C1A534@scsmsx413.amr.corp.intel.com>
+Received: from ns1.suse.de ([195.135.220.2]:40405 "EHLO mx1.suse.de")
+	by vger.kernel.org with ESMTP id S1751084AbWJTJ3D (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 20 Oct 2006 05:29:03 -0400
+Content-Disposition: inline; filename=acpi_driverregister.diff
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>, Linux kernel mailing list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Len Brown <len.brown@intel.com>, Thomas Renninger <trenn@suse.de>
 
-Pallipadi, Venkatesh wrote:
-> Make sure you have properly configured speedstep-centrino (You should select X86_SPEEDSTEP_CENTRINO_ACPI along with X86_SPEEDSTEP_CENTRINO).
+From: Frank Seidel <fseidel@suse.de>
 
-I have enabled all options in the make menuconfig menu under cpufreq 
-(except the one marked deprecated). Still no go :-(
+Let acpi_bus_register_driver report -ENODEV if
+there was no driver attached to a device.
 
-/sunem
+Signed-off-by: Frank Seidel <fseidel@suse.de>
+---
+ drivers/acpi/scan.c |    8 ++++++++
+ 1 files changed, 8 insertions(+)
+
+Index: linux-2.6/drivers/acpi/scan.c
+===================================================================
+--- linux-2.6.orig/drivers/acpi/scan.c
++++ linux-2.6/drivers/acpi/scan.c
+@@ -596,15 +596,23 @@ static void acpi_driver_detach(struct ac
+  */
+ int acpi_bus_register_driver(struct acpi_driver *driver)
+ {
++	int count;
+ 
+ 	if (acpi_disabled)
+ 		return -ENODEV;
+ 
++	count = atomic_read(&driver->references);
+ 	spin_lock(&acpi_device_lock);
+ 	list_add_tail(&driver->node, &acpi_bus_drivers);
+ 	spin_unlock(&acpi_device_lock);
+ 	acpi_driver_attach(driver);
+ 
++	/* Return error if there were no devices this
++	 * driver was additionally attached to.
++	 */
++	if (atomic_read(&driver->references) == count)
++		return -ENODEV;
++
+ 	return 0;
+ }
+ 
+
+--
