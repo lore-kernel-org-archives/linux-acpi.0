@@ -1,41 +1,47 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [patch 0/2] acpi: driverregistration again can report ENODEV
-Date: Fri, 20 Oct 2006 11:59:41 +0200
-Message-ID: <1161338381.32262.114.camel@queen.suse.de>
-References: <20061020092547.519734000@neutrino.suse.de>
-Reply-To: trenn@suse.de
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Subject: RE: speedstep-centrino: ENODEV
+Date: Fri, 20 Oct 2006 04:56:06 -0700
+Message-ID: <EB12A50964762B4D8111D55B764A8454C1A971@scsmsx413.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.suse.de ([195.135.220.2]:6874 "EHLO mx1.suse.de")
-	by vger.kernel.org with ESMTP id S932243AbWJTJ7r (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Oct 2006 05:59:47 -0400
-In-Reply-To: <20061020092547.519734000@neutrino.suse.de>
+Received: from mga03.intel.com ([143.182.124.21]:61526 "EHLO mga03.intel.com")
+	by vger.kernel.org with ESMTP id S1946378AbWJTL5r convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 20 Oct 2006 07:57:47 -0400
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: fseidel@suse.de
-Cc: linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
+To: =?iso-8859-1?Q?Sune_M=F8lgaard?= <sune@molgaard.org>
+Cc: Jiri Slaby <jirislaby@gmail.com>, Linux kernel mailing list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Fri, 2006-10-20 at 11:25 +0200, fseidel@suse.de wrote:
-> Currently acpi_bus_register_driver only reports an error
-> (-ENODEV) if acpi_disabled is true,
-> but many acpi drivers also depend on a negative error
-> value if no driver could be attached to a device
-> (as e.g. driver/acpi/asus_acpi.c).
-> This patch adds this again (without changing return type
-> of acpi_driver_attach for this).
+=20
 
-Looks fine to me.
+>-----Original Message-----
+>From: Sune M=F8lgaard [mailto:sune@molgaard.org]=20
+>Sent: Friday, October 20, 2006 12:34 AM
+>To: Pallipadi, Venkatesh
+>Cc: Jiri Slaby; Linux kernel mailing list; linux-acpi@vger.kernel.org
+>Subject: Re: speedstep-centrino: ENODEV
+>
+>Pallipadi, Venkatesh wrote:
+>> Make sure you have properly configured speedstep-centrino=20
+>(You should select X86_SPEEDSTEP_CENTRINO_ACPI along with=20
+>X86_SPEEDSTEP_CENTRINO).
+>
+>I have enabled all options in the make menuconfig menu under cpufreq=20
+>(except the one marked deprecated). Still no go :-(
+>
 
-acpi_bus_register_driver must return -ENODEV when no device with
-matching HID was found. E.g. battery also should currently get always
-loaded even a system never has one.
+Hmm... You must have CPU_FREQ_DENUG enabled in CONFIG already. Can you =
+pass cpufreq.debug=3D3 in boot option and send me the output of dmesg a=
+fter that.
 
-driver_attach returned the amount of found devices in past, this was
-changed recently (can't find the patch/mail) right now. This change
-broke things and should get corrected by these patches.
-
-   Thomas
-
+Thanks,
+Venki
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
