@@ -1,34 +1,57 @@
-From: Werner LEMBERG <wl@gnu.org>
-Subject: ACPI and CDROM problems
-Date: Sat, 21 Oct 2006 06:58:27 +0200 (CEST)
-Message-ID: <20061021.065827.78720699.wl@gnu.org>
+From: Len Brown <len.brown@intel.com>
+Subject: Re: [patch 8/8] acpi-cpufreq: remove dead code
+Date: Sat, 21 Oct 2006 01:28:06 -0400
+Message-ID: <200610210128.07621.len.brown@intel.com>
+References: <200610202130.k9KLUUfN003257@shell0.pdx.osdl.net>
+Reply-To: Len Brown <lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:47556 "EHLO
-	moutng.kundenserver.de") by vger.kernel.org with ESMTP
-	id S1751711AbWJUE6b (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 21 Oct 2006 00:58:31 -0400
+Received: from hera.kernel.org ([140.211.167.34]:33201 "EHLO hera.kernel.org")
+	by vger.kernel.org with ESMTP id S932222AbWJUFZr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 21 Oct 2006 01:25:47 -0400
+In-Reply-To: <200610202130.k9KLUUfN003257@shell0.pdx.osdl.net>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: akpm@osdl.org
+Cc: linux-acpi@vger.kernel.org
 
+I would expect to see this same change in both speedstep-centrino.c and acpi-cpufreq.c, no?
 
-I have an inspiron 6400 (running SuSE 10.0), using kernel 2.6.18
-(unmodified) together with harddisk suspend.  This laptop showed
-severe problems at resuming with 2.6.17 (about 1 out of 5 resumes
-failed).  Now, with 2.6.18, about 1 out of 30 doesn't work.
-
-It takes about 20 seconds, then a normal reboot happens.
-
-Before sending various configuration and log data I wonder what I
-shall specifically do to improve debugging so that you get meaningful
-data in case it is a new problem (I searched the archive but doesn't
-found something relevant).  In particular, which debugging flags shall
-I activate -- if I enable all of them, my `/var/log/messages' file
-increases by about 100k per second...  And the default settings
-doesn't show anything suspicious.
-
-
-    Werner
+On Friday 20 October 2006 17:30, akpm@osdl.org wrote:
+> From: Andrew Morton <akpm@osdl.org>
+> 
+> arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c:396: warning: 'sw_any_bug_dmi_table' defined but not used
+> 
+> Cc: Len Brown <lenb@kernel.org>
+> Signed-off-by: Andrew Morton <akpm@osdl.org>
+> ---
+> 
+>  arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c |    2 ++
+>  1 files changed, 2 insertions(+)
+> 
+> diff -puN arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~acpi-cpufreq-remove-dead-code arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
+> --- a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~acpi-cpufreq-remove-dead-code
+> +++ a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
+> @@ -402,6 +402,7 @@ static int sw_any_bug_found(struct dmi_s
+>  	return 0;
+>  }
+>  
+> +#ifdef CONFIG_SMP
+>  static struct dmi_system_id sw_any_bug_dmi_table[] = {
+>  	{
+>  		.callback = sw_any_bug_found,
+> @@ -414,6 +415,7 @@ static struct dmi_system_id sw_any_bug_d
+>  	},
+>  	{ }
+>  };
+> +#endif
+>  
+>  static int
+>  acpi_cpufreq_cpu_init (
+> _
+> 
