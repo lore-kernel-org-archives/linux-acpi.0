@@ -1,42 +1,50 @@
-From: Werner LEMBERG <wl@gnu.org>
-Subject: Re: ACPI and CDROM problems
-Date: Sat, 21 Oct 2006 17:11:46 +0200 (CEST)
-Message-ID: <20061021.171146.173383997.wl@gnu.org>
-References: <20061021.065827.78720699.wl@gnu.org>
-	<200610211604.57803.rjw@sisk.pl>
+From: Borislav Petkov <bbpetkov@yahoo.de>
+Subject: [PATCH] do not compile Sony Vaio extras as a module per default
+Date: Sun, 22 Oct 2006 08:39:24 +0200
+Message-ID: <20061022063924.GA7177@gollum.tnic>
+Reply-To: petkov@math.uni-muenster.de
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.183]:32205 "EHLO
-	moutng.kundenserver.de") by vger.kernel.org with ESMTP
-	id S2993102AbWJUPMJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 21 Oct 2006 11:12:09 -0400
-In-Reply-To: <200610211604.57803.rjw@sisk.pl>
+Received: from smtp104.plus.mail.re2.yahoo.com ([206.190.53.29]:43407 "HELO
+	smtp104.plus.mail.re2.yahoo.com") by vger.kernel.org with SMTP
+	id S1423057AbWJVGjb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Oct 2006 02:39:31 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@sisk.pl
-Cc: linux-acpi@vger.kernel.org
+To: akpm@osdl.org
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
 
-> > I have an inspiron 6400 (running SuSE 10.0), using kernel 2.6.18
-> > (unmodified) together with harddisk suspend.  This laptop showed
-> > severe problems at resuming with 2.6.17 (about 1 out of 5 resumes
-> > failed).  Now, with 2.6.18, about 1 out of 30 doesn't work.
-> >
-> > It takes about 20 seconds, then a normal reboot happens.
-> 
-> I assume this is the suspend to RAM that doesn't work?
+Signed-off-by: <petkov@math.uni-muenster.de>
 
-I have never tried suspend to RAM.  I only use suspend to disk.
+--- current/drivers/acpi/Kconfig.orig	2006-10-21 10:02:23.000000000 +02=
+00
++++ current/drivers/acpi/Kconfig	2006-10-21 10:02:30.000000000 +0200
+@@ -262,7 +262,6 @@ config ACPI_SONY
+ 	tristate "Sony Laptop Extras"
+ 	depends on X86 && ACPI
+ 	select BACKLIGHT_CLASS_DEVICE
+-	default m
+ 	  ---help---
+ 	  This mini-driver drives the ACPI SNC device present in the
+ 	  ACPI BIOS of the Sony Vaio laptops.
 
-> Have you tried using swsusp (suspend to disk)?
+--=20
+Regards/Gru=DF,
+    Boris.
 
-No, and I'm too lazy to try that.  I'm writing to this list so that I
-can help in fixing problems.  For example, I could compile and run a
-newer kernel in case this is of benefit.  As mentioned before, I just
-need advice which kind of data, setup, etc., you need so that I
-produce valuable information.
+=09
 
-
-    Werner
+=09
+	=09
+___________________________________________________________=20
+Der fr=FChe Vogel f=E4ngt den Wurm. Hier gelangen Sie zum neuen Yahoo! =
+Mail: http://mail.yahoo.de=0D
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
