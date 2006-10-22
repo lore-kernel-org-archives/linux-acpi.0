@@ -1,50 +1,35 @@
-From: Borislav Petkov <bbpetkov@yahoo.de>
-Subject: [PATCH] do not compile Sony Vaio extras as a module per default
-Date: Sun, 22 Oct 2006 08:39:24 +0200
-Message-ID: <20061022063924.GA7177@gollum.tnic>
-Reply-To: petkov@math.uni-muenster.de
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: [PATCH] do not compile Sony Vaio extras as a module per default
+Date: Sun, 22 Oct 2006 12:54:30 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0610221254220.3696@yvahk01.tjqt.qr>
+References: <20061022063924.GA7177@gollum.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp104.plus.mail.re2.yahoo.com ([206.190.53.29]:43407 "HELO
-	smtp104.plus.mail.re2.yahoo.com") by vger.kernel.org with SMTP
-	id S1423057AbWJVGjb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Oct 2006 02:39:31 -0400
-Content-Disposition: inline
+Received: from emailer.gwdg.de ([134.76.10.24]:39554 "EHLO emailer.gwdg.de")
+	by vger.kernel.org with ESMTP id S932363AbWJVK4L (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 22 Oct 2006 06:56:11 -0400
+In-Reply-To: <20061022063924.GA7177@gollum.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@osdl.org
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: petkov@math.uni-muenster.de
+Cc: akpm@osdl.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
 
-Signed-off-by: <petkov@math.uni-muenster.de>
+>--- current/drivers/acpi/Kconfig.orig	2006-10-21 10:02:23.000000000 +0200
+>+++ current/drivers/acpi/Kconfig	2006-10-21 10:02:30.000000000 +0200
+>@@ -262,7 +262,6 @@ config ACPI_SONY
+> 	tristate "Sony Laptop Extras"
+> 	depends on X86 && ACPI
+> 	select BACKLIGHT_CLASS_DEVICE
+>-	default m
+> 	  ---help---
+> 	  This mini-driver drives the ACPI SNC device present in the
+> 	  ACPI BIOS of the Sony Vaio laptops.
 
---- current/drivers/acpi/Kconfig.orig	2006-10-21 10:02:23.000000000 +02=
-00
-+++ current/drivers/acpi/Kconfig	2006-10-21 10:02:30.000000000 +0200
-@@ -262,7 +262,6 @@ config ACPI_SONY
- 	tristate "Sony Laptop Extras"
- 	depends on X86 && ACPI
- 	select BACKLIGHT_CLASS_DEVICE
--	default m
- 	  ---help---
- 	  This mini-driver drives the ACPI SNC device present in the
- 	  ACPI BIOS of the Sony Vaio laptops.
+Reason?
 
---=20
-Regards/Gru=DF,
-    Boris.
 
-=09
-
-=09
-	=09
-___________________________________________________________=20
-Der fr=FChe Vogel f=E4ngt den Wurm. Hier gelangen Sie zum neuen Yahoo! =
-Mail: http://mail.yahoo.de=0D
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	-`J'
+-- 
