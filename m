@@ -1,17 +1,17 @@
-From: Borislav Petkov <petkov@math.uni-muenster.de>
+From: Borislav Petkov <bbpetkov@yahoo.de>
 Subject: Re: [PATCH] do not compile Sony Vaio extras as a module per default
-Date: Mon, 23 Oct 2006 19:08:58 +0200
-Message-ID: <20061023170858.GA21995@gollum.tnic>
+Date: Mon, 23 Oct 2006 14:24:11 +0200
+Message-ID: <20061023122411.GB4979@gollum.tnic>
 References: <20061022063924.GA7177@gollum.tnic> <Pine.LNX.4.61.0610221254220.3696@yvahk01.tjqt.qr> <20061022091054.3fc8596b.rdunlap@xenotime.net>
 Reply-To: petkov@math.uni-muenster.de
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from DENETHOR.UNI-MUENSTER.DE ([128.176.180.180]:4832 "EHLO
-	denethor.uni-muenster.de") by vger.kernel.org with ESMTP
-	id S964966AbWJWRJw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Oct 2006 13:09:52 -0400
+Received: from smtp101.plus.mail.re2.yahoo.com ([206.190.53.26]:34898 "HELO
+	smtp101.plus.mail.re2.yahoo.com") by vger.kernel.org with SMTP
+	id S964968AbWJWRmI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Oct 2006 13:42:08 -0400
 Content-Disposition: inline
 In-Reply-To: <20061022091054.3fc8596b.rdunlap@xenotime.net>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -45,9 +45,6 @@ On Sun, Oct 22, 2006 at 09:10:54AM -0700, Randy Dunlap wrote:
 > ---
 > ~Randy
 
-(sorry for the duplicate send but the yahoo mailserver is having proble=
-ms. :()
-
 We already turned off the Toshiba extras module some time ago since the=
  majority
 of us don't necessarily have the aforementioned machine (see commit
@@ -64,6 +61,11 @@ special case.
 --=20
 Regards/Gru=DF,
     Boris.
+
+	=09
+___________________________________________________________=20
+Telefonate ohne weitere Kosten vom PC zum PC: http://messenger.yahoo.de=
+=0D
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
