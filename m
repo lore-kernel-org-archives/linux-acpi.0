@@ -1,43 +1,35 @@
-From: Randy Dunlap <rdunlap@xenotime.net>
-Subject: Re: [PATCH] do not compile Sony Vaio extras as a module per default
-Date: Sun, 22 Oct 2006 09:10:54 -0700
-Message-ID: <20061022091054.3fc8596b.rdunlap@xenotime.net>
-References: <20061022063924.GA7177@gollum.tnic>
-	<Pine.LNX.4.61.0610221254220.3696@yvahk01.tjqt.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: "rajeshprabhu72721" <rajeshprabhu72721@indiatimes.com>
+Subject: Building ACPI for PPC architecture
+Date: Mon, 23 Oct 2006 14:00:24 +0530
+Message-ID: <200610230655.MAA16239@WS0005.indiatimes.com>
+Reply-To: "rajeshprabhu72721" <rajeshprabhu72721@indiatimes.com>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from xenotime.net ([66.160.160.81]:3483 "HELO xenotime.net")
-	by vger.kernel.org with SMTP id S1751136AbWJVQJT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Oct 2006 12:09:19 -0400
-Received: from midway.site ([71.117.236.95]) by xenotime.net for <linux-acpi@vger.kernel.org>; Sun, 22 Oct 2006 09:09:15 -0700
-In-Reply-To: <Pine.LNX.4.61.0610221254220.3696@yvahk01.tjqt.qr>
+Received: from smtp5.indiatimes.com ([203.199.93.15]:6148 "EHLO
+	WS0005.indiatimes.com") by vger.kernel.org with ESMTP
+	id S1751342AbWJWIai (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 23 Oct 2006 04:30:38 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Cc: petkov@math.uni-muenster.de, akpm@osdl.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-pm@lists.osdl.org, linux-acpi@vger.kernel.org
 
-On Sun, 22 Oct 2006 12:54:30 +0200 (MEST) Jan Engelhardt wrote:
 
-> 
-> >--- current/drivers/acpi/Kconfig.orig	2006-10-21 10:02:23.000000000 +0200
-> >+++ current/drivers/acpi/Kconfig	2006-10-21 10:02:30.000000000 +0200
-> >@@ -262,7 +262,6 @@ config ACPI_SONY
-> > 	tristate "Sony Laptop Extras"
-> > 	depends on X86 && ACPI
-> > 	select BACKLIGHT_CLASS_DEVICE
-> >-	default m
-> > 	  ---help---
-> > 	  This mini-driver drives the ACPI SNC device present in the
-> > 	  ACPI BIOS of the Sony Vaio laptops.
-> 
-> Reason?
 
-This is the third such patch/request that I recall for this
-one.  It's =m for Andrew (one of his machines).
-Otherwise the patch makes sense and should be merged...
+We are trying to build ACPI for PPC e300 core . The problem is we donot have a BIOS running to supply the System Descriptor Tables to ACPI during boot. So ACPI gets disabled during boot. Are the system desc tables must for the ACPI to run? Or is there a method where we can avoid these tables and make ACPI work directly. Without BIOS how do we make ACPI up and running?
 
----
-~Randy
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Have you checked out the new-look www.indiatimes.com yet?Have you checked out the new-look www.indiatimes.com yet?
+
