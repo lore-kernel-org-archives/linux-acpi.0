@@ -1,125 +1,71 @@
-From: Frank Seidel <fseidel@suse.de>
-Subject: Re: [patch 0/2] acpi: driverregistration again can report ENODEV
-Date: Mon, 23 Oct 2006 18:33:24 +0200
-Message-ID: <200610231833.29714.fseidel@suse.de>
-References: <20061020092547.519734000@neutrino.suse.de> <1161529793.12599.36.camel@sublime.site> <200610230934.12775.bjorn.helgaas@hp.com>
+From: Borislav Petkov <petkov@math.uni-muenster.de>
+Subject: Re: [PATCH] do not compile Sony Vaio extras as a module per default
+Date: Mon, 23 Oct 2006 19:08:58 +0200
+Message-ID: <20061023170858.GA21995@gollum.tnic>
+References: <20061022063924.GA7177@gollum.tnic> <Pine.LNX.4.61.0610221254220.3696@yvahk01.tjqt.qr> <20061022091054.3fc8596b.rdunlap@xenotime.net>
+Reply-To: petkov@math.uni-muenster.de
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart4174468.J3QWtQpfmF";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:31400 "EHLO mx2.suse.de")
-	by vger.kernel.org with ESMTP id S1751999AbWJWQdj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 23 Oct 2006 12:33:39 -0400
-In-Reply-To: <200610230934.12775.bjorn.helgaas@hp.com>
+Received: from DENETHOR.UNI-MUENSTER.DE ([128.176.180.180]:4832 "EHLO
+	denethor.uni-muenster.de") by vger.kernel.org with ESMTP
+	id S964966AbWJWRJw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Oct 2006 13:09:52 -0400
+Content-Disposition: inline
+In-Reply-To: <20061022091054.3fc8596b.rdunlap@xenotime.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: trenn@suse.de, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
+To: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Jan Engelhardt <jengelh@linux01.gwdg.de>, akpm@osdl.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
---nextPart4174468.J3QWtQpfmF
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+On Sun, Oct 22, 2006 at 09:10:54AM -0700, Randy Dunlap wrote:
+> On Sun, 22 Oct 2006 12:54:30 +0200 (MEST) Jan Engelhardt wrote:
+>=20
+> >=20
+> > >--- current/drivers/acpi/Kconfig.orig	2006-10-21 10:02:23.00000000=
+0 +0200
+> > >+++ current/drivers/acpi/Kconfig	2006-10-21 10:02:30.000000000 +02=
+00
+> > >@@ -262,7 +262,6 @@ config ACPI_SONY
+> > > 	tristate "Sony Laptop Extras"
+> > > 	depends on X86 && ACPI
+> > > 	select BACKLIGHT_CLASS_DEVICE
+> > >-	default m
+> > > 	  ---help---
+> > > 	  This mini-driver drives the ACPI SNC device present in the
+> > > 	  ACPI BIOS of the Sony Vaio laptops.
+> >=20
+> > Reason?
+>=20
+> This is the third such patch/request that I recall for this
+> one.  It's =3Dm for Andrew (one of his machines).
+> Otherwise the patch makes sense and should be merged...
+>=20
+> ---
+> ~Randy
 
-Hi,
+(sorry for the duplicate send but the yahoo mailserver is having proble=
+ms. :()
 
-first i want to thank you for your feedback, which i really appreciate=20
-very much.
+We already turned off the Toshiba extras module some time ago since the=
+ majority
+of us don't necessarily have the aforementioned machine (see commit
+f9a204e1de73a7007de66fb289e1d64a7665c9b4 in Linus' tree) but if this on=
+e is
+different, then so be it. I still think, though, that it makes more sen=
+se to
+leave stuff turned on in case it is needed in the most profiles of kern=
+el usage
+and leave not so common features off and let people turn them on only f=
+or their
+special case.
 
-On Monday 23 October 2006 17:34, Bjorn Helgaas wrote:
-> I think the current tree contains a merge error in asus_acpi_init().
-> It says:
->
-> 	if (!asus_hotk_found) {
-> 		...
-> 		return result;
->
-> But "result" is always zero at this point (it came from
-> acpi_bus_register_driver(), which returns either zero or a negative
-> error value).
-I got convinced that this is source of the problem.=20
-acpi_bus_register_driver() shouldn't always return zero, but -ENODEV=20
-if no device was attached to the driver.
-Currently it only does so if acpi is disabled.
-
->
-> My original change:
-> =20
-> http://kernel.org/git/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dco
->mmitdiff;h=3D578b333bfe8eb1360207a08a53c321822a8f40f3 contained:
->
-> 	if (!asus_hotk_found) {
-> 		...
-> 		return -ENODEV;
->
-> which is what we want.  I think the -ENODEV got lost when resolving
-> conflicts with the "propagate correct return value" patches that
-> happened at about the same time.
-That is the very same solution i also first thought of for this problem.=20
-But as the result var here holds the return value of=20
-acpi_bus_register_driver(), asus_acpi is also ok again with this fix.
-
-> > > I think it's a mistake to have acpi_bus_register_driver() return
-> > > any indication of how many devices were claimed.  If the driver
-> > > needs to know how many devices it claimed, it can easily count
-> > > them in its add() method.  Returning the count from
-> > > register_driver() is racey if devices can be hot-plugged.
-> >
-> > I think this is wrong.
-> > It needs not to return the number of claimed devices, it needs to
-> > return -ENODEV if no device will ever exist.
->
-> There is no way for acpi_bus_register_driver() to know that no device
-> will ever exist.
-But it can determine if the driver could be attached to devices or not
-as acpi_driver_attach increases the references counter each time
-it could bind the driver.
-
-> > The whole culprit to hotplug design (and you are right, this patch
-> > also does not
-> > work because of this) is this line in acpi_driver_attach:
-> >                 if (dev->driver || !dev->status.present)
-> >                         continue;
-> > If a device is not present, but exists in ACPI namespace, .add
-> > function must still be
-> > called.
-> > Can you/someone have a look at my mail a month ago:
-> > http://marc.theaimsgroup.com/?l=3Dlinux-acpi&m=3D115833743117570&w=3D2
->
-> Sorry, I missed this and haven't had time to pay any attention
-> to this for a long time.
->
-> I'm not sure I agree with your approach.  I don't think a driver
-> should have to have a notify handler just to handle hotplug.  It
-Perhaps i got Thomas wrong, but i think he doesn't intend the
-=2Enotify callback functions to be mandatory for every driver (as many
-don't need them at all). But this is a nice way for drivers that e.g.=20
-need to/should stay even if the devices got removed or never were=20
-available until now (like for batteries).
-In general .add and .remove sometimes are (or seemt to be) not enough=20
-and .notify callbacks seems a elegant way to solve this in a common=20
-way.
-But i have to admit that the changes this trails in the other drivers
-(using notifications) is a drawback on the one side, but on the other
-this also could be the chance to do some great cleanups (e.g. in
-memory hotplug).
-
-=46rank
-
---nextPart4174468.J3QWtQpfmF
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQBFPO7ZlizSENHXK2gRAj7nAJ0TKQWJSeX2AvNuTCh16PTA5J7hTgCeO3ED
-sdUtfNJ7t6T9jbryjYWrM1U=
-=csFs
------END PGP SIGNATURE-----
-
---nextPart4174468.J3QWtQpfmF--
+--=20
+Regards/Gru=DF,
+    Boris.
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
