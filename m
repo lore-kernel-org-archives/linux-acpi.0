@@ -1,73 +1,52 @@
-From: Borislav Petkov <bbpetkov@yahoo.de>
-Subject: Re: [PATCH] do not compile Sony Vaio extras as a module per default
-Date: Mon, 23 Oct 2006 14:24:11 +0200
-Message-ID: <20061023122411.GB4979@gollum.tnic>
-References: <20061022063924.GA7177@gollum.tnic> <Pine.LNX.4.61.0610221254220.3696@yvahk01.tjqt.qr> <20061022091054.3fc8596b.rdunlap@xenotime.net>
-Reply-To: petkov@math.uni-muenster.de
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: ia64 acpi-cpufreq driver
+Date: Mon, 23 Oct 2006 15:31:05 -0600
+Message-ID: <200610231531.05346.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp101.plus.mail.re2.yahoo.com ([206.190.53.26]:34898 "HELO
-	smtp101.plus.mail.re2.yahoo.com") by vger.kernel.org with SMTP
-	id S964968AbWJWRmI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Oct 2006 13:42:08 -0400
+Received: from atlrel7.hp.com ([156.153.255.213]:56730 "EHLO atlrel7.hp.com")
+	by vger.kernel.org with ESMTP id S1752016AbWJWVbM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 23 Oct 2006 17:31:12 -0400
 Content-Disposition: inline
-In-Reply-To: <20061022091054.3fc8596b.rdunlap@xenotime.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Jan Engelhardt <jengelh@linux01.gwdg.de>, akpm@osdl.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
 
-On Sun, Oct 22, 2006 at 09:10:54AM -0700, Randy Dunlap wrote:
-> On Sun, 22 Oct 2006 12:54:30 +0200 (MEST) Jan Engelhardt wrote:
->=20
-> >=20
-> > >--- current/drivers/acpi/Kconfig.orig	2006-10-21 10:02:23.00000000=
-0 +0200
-> > >+++ current/drivers/acpi/Kconfig	2006-10-21 10:02:30.000000000 +02=
-00
-> > >@@ -262,7 +262,6 @@ config ACPI_SONY
-> > > 	tristate "Sony Laptop Extras"
-> > > 	depends on X86 && ACPI
-> > > 	select BACKLIGHT_CLASS_DEVICE
-> > >-	default m
-> > > 	  ---help---
-> > > 	  This mini-driver drives the ACPI SNC device present in the
-> > > 	  ACPI BIOS of the Sony Vaio laptops.
-> >=20
-> > Reason?
->=20
-> This is the third such patch/request that I recall for this
-> one.  It's =3Dm for Andrew (one of his machines).
-> Otherwise the patch makes sense and should be merged...
->=20
-> ---
-> ~Randy
+arch/ia64/kernel/cpufreq/acpi-cpufreq.c currently makes direct
+calls to PAL_SET_PSTATE.
 
-We already turned off the Toshiba extras module some time ago since the=
- majority
-of us don't necessarily have the aforementioned machine (see commit
-f9a204e1de73a7007de66fb289e1d64a7665c9b4 in Linus' tree) but if this on=
-e is
-different, then so be it. I still think, though, that it makes more sen=
-se to
-leave stuff turned on in case it is needed in the most profiles of kern=
-el usage
-and leave not so common features off and let people turn them on only f=
-or their
-special case.
+Section 8.4.4.1 (_PCT) of the 3.0 ACPI spec says:
 
---=20
-Regards/Gru=DF,
-    Boris.
+  OSPM performs processor performance transitions by writing
+  the performance state-specific control value to a Performance
+  Control Register (PERF_CTRL).
 
-	=09
-___________________________________________________________=20
-Telefonate ohne weitere Kosten vom PC zum PC: http://messenger.yahoo.de=
-=0D
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+According to one of our architecture guys, this means we really
+ought to have an OpRegion driver that encapsulates the PAL_SET_PSTATE
+call.
+
+I guess _PCT would return an acpi_generic_address in the FFixedHW
+address space, and we would use acpi_hw_low_level_read() and
+acpi_hw_low_level_write() to do the accesses (those functions
+would need to be extended to support additional OpRegions, or
+maybe I'm looking in the wrong place).
+
+This sort of makes sense to me, because it would mean this part
+of acpi-cpufreq wouldn't need to be ia64-specific.  On x86, I
+suppose _PCT would return a ACPI_ADR_SPACE_SYSTEM_IO address,
+and acpi_processor_set_performance() could use acpi_hw_low_level_write()
+instead of its own acpi_processor_write_port().
+
+But I haven't seen anything resembling an ACPI FFH OpRegion
+driver for Linux, or even a spec (e.g., a definition of what
+the FFH address space contains) that would allow such a driver
+to be written.
+
+Any hints on what the future might hold in this area?
+
+Bjorn
