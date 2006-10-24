@@ -1,37 +1,43 @@
-From: Paul Mackerras <paulus@samba.org>
-Subject: Re: [linux-pm] Building ACPI for PPC architecture
-Date: Tue, 24 Oct 2006 09:02:55 +1000
-Message-ID: <17725.18975.597949.373572@cargo.ozlabs.ibm.com>
-References: <200610230655.MAA16239@WS0005.indiatimes.com>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: [PATCH] acpi: make ec_transaction not extern
+Date: Mon, 23 Oct 2006 19:59:22 -0700
+Message-ID: <20061023195922.23ac1ba2.randy.dunlap@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ozlabs.org ([203.10.76.45]:5308 "EHLO ozlabs.org")
-	by vger.kernel.org with ESMTP id S932352AbWJWXDB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 23 Oct 2006 19:03:01 -0400
-In-Reply-To: <200610230655.MAA16239@WS0005.indiatimes.com>
+Received: from agminet01.oracle.com ([141.146.126.228]:30340 "EHLO
+	agminet01.oracle.com") by vger.kernel.org with ESMTP
+	id S1751550AbWJXDAi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 23 Oct 2006 23:00:38 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rajeshprabhu72721 <rajeshprabhu72721@indiatimes.com>
-Cc: linux-pm@lists.osdl.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: len.brown@intel.com, akpm <akpm@osdl.org>
 
-rajeshprabhu72721 writes:
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-> We are trying to build ACPI for PPC e300 core . The problem is we
+Fix sparse warning:
+drivers/acpi/ec.c:372:12: warning: function 'ec_transaction' with external linkage has definition
 
-Why?  What problem do you think that will solve?
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+---
+ drivers/acpi/ec.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-> donot have a BIOS running to supply the System Descriptor Tables to
-> ACPI during boot. So ACPI gets disabled during boot. Are the system
-> desc tables must for the ACPI to run? Or is there a method where we
-> can avoid these tables and make ACPI work directly. Without BIOS how
-> do we make ACPI up and running?
+--- linux-2.6.19-rc2-git8.orig/drivers/acpi/ec.c
++++ linux-2.6.19-rc2-git8/drivers/acpi/ec.c
+@@ -369,7 +369,7 @@ int ec_write(u8 addr, u8 val)
+ 
+ EXPORT_SYMBOL(ec_write);
+ 
+-extern int ec_transaction(u8 command,
++int ec_transaction(u8 command,
+                           const u8 *wdata, unsigned wdata_len,
+                           u8 *rdata, unsigned rdata_len)
+ {
 
-ACPI is a bad idea (see Linus Torvalds' rants about ACPI in the
-linux-kernel mailing list archives for the reasons).  Fortunately no
-PowerPC platform has tried to implement it.  If nothing else, the
-endianness difference would make it impracticable.
 
-Paul.
+---
+---
+~Randy
