@@ -1,49 +1,48 @@
-From: "Michael S. Tsirkin" <mst@mellanox.co.il>
-Subject: Re: 2.6.19-rc2: known unfixed regressions (v3)
-Date: Tue, 24 Oct 2006 17:00:51 +0200
-Message-ID: <20061024150050.GA8766@mellanox.co.il>
-References: <20061022122355.GC3502@stusta.de>
-Reply-To: "Michael S. Tsirkin" <mst@mellanox.co.il>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: ia64 acpi-cpufreq driver
+Date: Tue, 24 Oct 2006 11:50:30 -0600
+Message-ID: <200610241150.31012.bjorn.helgaas@hp.com>
+References: <EB12A50964762B4D8111D55B764A8454C57982@scsmsx413.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ide-owner@vger.kernel.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from atlrel8.hp.com ([156.153.255.206]:49843 "EHLO atlrel8.hp.com")
+	by vger.kernel.org with ESMTP id S1161121AbWJXRun (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 Oct 2006 13:50:43 -0400
+In-Reply-To: <EB12A50964762B4D8111D55B764A8454C57982@scsmsx413.amr.corp.intel.com>
 Content-Disposition: inline
-In-Reply-To: <20061022122355.GC3502@stusta.de>
-Sender: linux-ide-owner@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, len.brown@intel.com, linux-acpi@vger.kernel.org, pavel@suse.cz, linux-pm@osdl.org, jgarzik@pobox.com, linux-ide@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
 
-Quoting r. Adrian Bunk <bunk@stusta.de>:
-> Subject: 2.6.19-rc2: known unfixed regressions (v3)
+On Monday 23 October 2006 22:46, Pallipadi, Venkatesh wrote:
+> Actually it is slightly different from low_level_read and write. 
+> Generic ACPI definition of ACPI PERF_CTRL and PERF_STATUS define 
+> them as if they are registers. But, with FfixedHW, ACPI allows 
+> architectures to implement this functionality in a native way.
+> Just like x86 implements FfixedHW based P-state support in 16 bits 
+> of some known MSR (Note the register field itself in _PCT is not used)
+> or FFH C-states are supported by native instructions like "hlt",
+> "monitor-mwait".
 > 
-> This email lists some known unfixed regressions in 2.6.19-rc2 compared 
-> to 2.6.18 that are not yet fixed Linus' tree.
-> 
-> If you find your name in the Cc header, you are either submitter of one
-> of the bugs, maintainer of an affectected subsystem or driver, a patch
-> of you caused a breakage or I'm considering you in any other way possibly
-> involved with one or more of these issues.
-> 
-> Due to the huge amount of recipients, please trim the Cc when answering.
->
+> So, when firmware tells P-state are FFH, OS will look at the hardware 
+> and processor information and use appropriate native interfaces. 
+> In this case, appropriate native interface is PAL_GET_PSTATE 
+> and PAL_SET_PSTATE.
 
-skip, hope I didn't trim too much.
+Clearly ia64 ultimately has to use PAL_SET_PSTATE.  My question
+is, does the PAL_SET_PSTATE call belong in acpi-cpufreq, or does
+it belong in the FFH driver?
 
->
-> Subject    : T60 stops triggering any ACPI events
-> References : http://lkml.org/lkml/2006/10/4/425
->              http://lkml.org/lkml/2006/10/16/262
-> Submitter  : "Michael S. Tsirkin" <mst@mellanox.co.il>
-> Status     : unknown
+I think it belongs in the latter, because the OSPM can be more
+generic if the architecture-specific stuff is in the FFH driver.
 
-Just retested with 2.6.19-rc3 - it's still there:
-e.g. after I do a full kernel compile, my T60 stops triggering any ACPI events:
-tail -f /var/log/acpid does not show anything, even on Fn/F4 which is supposed
-to be always enabled.  Restarting the acpid doesn't do anything either - ACPI
-starts working again, for a while, only after reboot.
+Another way to ask this is, if ia64 had an FFH driver, who would
+use it?  I assume acpi-cpufreq would be one user.  If so, what
+interface would acpi-cpufreq use to access FFH?
 
-Works fine in 2.6.18 ( + this patch http://lkml.org/lkml/2006/7/20/56).
-
--- 
-MST
+Bjorn
