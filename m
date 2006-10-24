@@ -1,78 +1,74 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Subject: RE: ia64 acpi-cpufreq driver
-Date: Mon, 23 Oct 2006 21:46:58 -0700
-Message-ID: <EB12A50964762B4D8111D55B764A8454C57982@scsmsx413.amr.corp.intel.com>
+From: Frank Seidel <fseidel@suse.de>
+Subject: Re: [patch 0/2] acpi: driverregistration again can report ENODEV
+Date: Tue, 24 Oct 2006 11:05:47 +0200
+Message-ID: <200610241105.52562.fseidel@suse.de>
+References: <20061020092547.519734000@neutrino.suse.de> <1161529793.12599.36.camel@sublime.site> <200610230934.12775.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed;
+  boundary="nextPart4757053.tQQ9aO3CzB";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:15380 "EHLO mga02.intel.com")
-	by vger.kernel.org with ESMTP id S1752002AbWJXErF convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 24 Oct 2006 00:47:05 -0400
-Content-class: urn:content-classes:message
+Received: from ns2.suse.de ([195.135.220.15]:23217 "EHLO mx2.suse.de")
+	by vger.kernel.org with ESMTP id S1030228AbWJXJFz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 Oct 2006 05:05:55 -0400
+In-Reply-To: <200610230934.12775.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
+Cc: trenn@suse.de, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
 
- 
->-----Original Message-----
->From: Bjorn Helgaas [mailto:bjorn.helgaas@hp.com] 
->Sent: Monday, October 23, 2006 2:31 PM
->To: Pallipadi, Venkatesh
->Cc: linux-acpi@vger.kernel.org; linux-ia64@vger.kernel.org
->Subject: ia64 acpi-cpufreq driver
->
->arch/ia64/kernel/cpufreq/acpi-cpufreq.c currently makes direct
->calls to PAL_SET_PSTATE.
->
->Section 8.4.4.1 (_PCT) of the 3.0 ACPI spec says:
->
->  OSPM performs processor performance transitions by writing
->  the performance state-specific control value to a Performance
->  Control Register (PERF_CTRL).
->
->According to one of our architecture guys, this means we really
->ought to have an OpRegion driver that encapsulates the PAL_SET_PSTATE
->call.
->
+--nextPart4757053.tQQ9aO3CzB
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Actually it is slightly different from low_level_read and write. 
-Generic ACPI definition of ACPI PERF_CTRL and PERF_STATUS define 
-them as if they are registers. But, with FfixedHW, ACPI allows 
-architectures to implement this functionality in a native way.
-Just like x86 implements FfixedHW based P-state support in 16 bits 
-of some known MSR (Note the register field itself in _PCT is not used)
-or FFH C-states are supported by native instructions like "hlt",
-"monitor-mwait".
-
-So, when firmware tells P-state are FFH, OS will look at the hardware 
-and processor information and use appropriate native interfaces. 
-In this case, appropriate native interface is PAL_GET_PSTATE 
-and PAL_SET_PSTATE.
-
->This sort of makes sense to me, because it would mean this part
->of acpi-cpufreq wouldn't need to be ia64-specific.  On x86, I
->suppose _PCT would return a ACPI_ADR_SPACE_SYSTEM_IO address,
->and acpi_processor_set_performance() could use 
->acpi_hw_low_level_write()
->instead of its own acpi_processor_write_port().
+On Monday 23 October 2006 17:34, Bjorn Helgaas wrote:
+> I think the current tree contains a merge error in asus_acpi_init().
+> It says:
 >
->But I haven't seen anything resembling an ACPI FFH OpRegion
->driver for Linux, or even a spec (e.g., a definition of what
->the FFH address space contains) that would allow such a driver
->to be written.
+> 	if (!asus_hotk_found) {
+> 		...
+> 		return result;
 >
->Any hints on what the future might hold in this area?
+> But "result" is always zero at this point (it came from
+> acpi_bus_register_driver(), which returns either zero or a negative
+> error value).
+>
+> My original change:
+> =20
+> http://kernel.org/git/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dco
+>mmitdiff;h=3D578b333bfe8eb1360207a08a53c321822a8f40f3 contained:
+>
+> 	if (!asus_hotk_found) {
+> 		...
+> 		return -ENODEV;
+>
+> which is what we want.  I think the -ENODEV got lost when resolving
+> conflicts with the "propagate correct return value" patches that
+> happened at about the same time.
+After some more testings and digging through the code.. i
+agree with you that this is way to go (for now).
+So, i sadfully now have to vote against my own patch ;-)
 
-FFH by nature is specific to hardware and we will have to 
-have arch specific driver to handle things. However, 
-At present there is a missing documentation to link this 
-ACPI FFH to Itanium Software Developers Manual's PAL_GET_PSTATE
-and PAL_SET_PSTATE. There is a document that is in the works
-and should go online real soon.
+Len, please don't commit it. As Bjorn wrote, fixing the asus_acpi module
+with return -ENODEV is the better solution.
 
 Thanks,
-Venki
+=46rank
+
+--nextPart4757053.tQQ9aO3CzB
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQBFPddwlizSENHXK2gRAsBXAJ9fATB+MBFgl0gi8OtxvUEIr3TRiACeMSkv
+jR2PITOPCGVkAGtqCrMyJuE=
+=vD/G
+-----END PGP SIGNATURE-----
+
+--nextPart4757053.tQQ9aO3CzB--
