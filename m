@@ -1,49 +1,54 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch] ACPI: asus_acpi: return -ENODEV when no device found
-Date: Wed, 25 Oct 2006 13:58:24 -0600
-Message-ID: <200610251358.25379.bjorn.helgaas@hp.com>
-References: <20061020092547.519734000@neutrino.suse.de> <200610230934.12775.bjorn.helgaas@hp.com> <200610241105.52562.fseidel@suse.de>
+Subject: Re: [0/12] acpi: make ACPI use driver model
+Date: Wed, 25 Oct 2006 14:40:04 -0600
+Message-ID: <200610251440.04502.bjorn.helgaas@hp.com>
+References: <1158916460.11985.45.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel7.hp.com ([156.153.255.213]:10432 "EHLO atlrel7.hp.com")
-	by vger.kernel.org with ESMTP id S964798AbWJYT6c (ORCPT
+Received: from atlrel9.hp.com ([156.153.255.214]:27098 "EHLO atlrel9.hp.com")
+	by vger.kernel.org with ESMTP id S1161369AbWJYUkL (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Oct 2006 15:58:32 -0400
-In-Reply-To: <200610241105.52562.fseidel@suse.de>
+	Wed, 25 Oct 2006 16:40:11 -0400
+In-Reply-To: <1158916460.11985.45.camel@localhost.localdomain>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Frank Seidel <fseidel@suse.de>
-Cc: trenn@suse.de, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Andrew Morton <akpm@osdl.org>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi@vger.kernel.org, len.brown@intel.com
 
-This driver is for non-hot-pluggable hardware.  Therefore, if the hardware
-isn't present, we want to return -ENODEV so a module load will fail.
+On Friday 22 September 2006 03:14, Zhang Rui wrote:
+> Make ACPI use driver model.
 
-We previously returned "result" from the acpi_bus_register_driver() call.
-Registering the driver usually succeeds even if no devices are present,
-because the ACPI core allows you to load a driver before a device is
-hot-added.
+What's happening with this series?  It doesn't seem to be in -mm
+yet.  Some of this stuff has been kicking around for a year already.
+It'd be nice to go forward or give up on the idea.
 
-Someday the kernel will expose enough information so user-space can tell
-what ACPI drivers should be loaded.  But the kernel doesn't do that yet, so
-distros have to load this driver always and rely on the -ENODEV causing the
-load to fail if the hardware isn't found.
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-
-Index: work-1/drivers/acpi/asus_acpi.c
-===================================================================
---- work-1.orig/drivers/acpi/asus_acpi.c	2006-10-24 15:35:24.000000000 -0600
-+++ work-1/drivers/acpi/asus_acpi.c	2006-10-24 15:37:54.000000000 -0600
-@@ -1367,7 +1367,7 @@
- 	if (!asus_hotk_found) {
- 		acpi_bus_unregister_driver(&asus_hotk_driver);
- 		remove_proc_entry(PROC_ASUS, acpi_root_dir);
--		return result;
-+		return -ENODEV;
- 	}
- 
- 	return 0;
+> Patrick has posted patches on rewriting ACPI driver model in November 2005.
+> And recently Shaohua send me a prototype on making ACPI use driver model.
+> This patch series bases on both Patrick and Shaohua's previous work. 
+> 
+> Two features are gonna to be changed by applying this series of patches.
+> 1.	ACPI driver model. 
+> 	ACPI driver are made to follow Linux driver model.
+> 	The mainly work is to convert the registeration interfaces, so that
+> 	ACPI devices are registered with the global device tree.
+> 	Note the new .uevent method mark ACPI drivers by PNPID 
+> 	instead of by name. Udev script needs to look for "HWID = "
+> 	or "COMPTID = " to load the right ACPI driver.
+> 2.	ACPI sysfs interface. 
+> 	As a result of using driver model, ACPI devices is added in the 
+> 	/sys/device tree. So after _EJ0 is added as a property of 
+> 	ACPI device in device tree, /sys/firm/acpi is deleted.
+> 	Note that the corresponding userspace script needs to be changed 
+> 	for hot removal.
+> 
+> Note that this is only the first step of ACPI sysfs convert project.
+> The next step is to duplicate /proc/acpi functions in /sys/device tree.
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
