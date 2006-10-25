@@ -1,24 +1,18 @@
 From: Luming Yu <luming.yu@gmail.com>
 Subject: Re: [PATCH 2.6.18-mm2] acpi: add backlight support to the sony_acpi driver
-Date: Wed, 25 Oct 2006 17:26:48 +0000 (UTC)
-Message-ID: <200610280124.57212.luming.yu@gmail.com>
+Date: Wed, 25 Oct 2006 17:27:28 +0000 (UTC)
+Message-ID: <200610280124.57212.luming.yu__38588.6394106366$1161797248$gmane$org@gmail.com>
 References: <20060930190810.30b8737f.alessandro.guido@gmail.com> <200610170145.03779.luming.yu@gmail.com> <20061025070713.GF5851@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
   boundary="Boundary-00=_pDkQFV03sk2Y5qE"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wx-out-0506.google.com ([66.249.82.234]:22730 "EHLO
-	wx-out-0506.google.com") by vger.kernel.org with ESMTP
-	id S964813AbWJYR0d (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Oct 2006 13:26:33 -0400
-Received: by wx-out-0506.google.com with SMTP id s14so192515wxc
-        for <linux-acpi@vger.kernel.org>; Wed, 25 Oct 2006 10:26:32 -0700 (PDT)
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S965220AbWJYR0f@vger.kernel.org>
 Date: Sat, 28 Oct 2006 01:24:54 +0800
 In-Reply-To: <20061025070713.GF5851@elf.ucw.cz>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Pavel Machek <pavel@ucw.cz>
 Cc: Matt Domsch <Matt_Domsch@dell.com>, len.brown@intel.com, Richard Hughes <hughsient@gmail.com>, Andrew Morton <akpm@osdl.org>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr
+List-Id: linux-acpi@vger.kernel.org
 
 --Boundary-00=_pDkQFV03sk2Y5qE
 Content-Type: text/plain;
