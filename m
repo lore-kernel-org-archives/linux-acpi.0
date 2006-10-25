@@ -1,54 +1,44 @@
-From: "Michael S. Tsirkin" <mst@mellanox.co.il>
-Subject: Re: 2.6.19-rc2: known unfixed regressions (v3)
-Date: Wed, 25 Oct 2006 10:37:11 +0200
-Message-ID: <20061025083711.GB9518@mellanox.co.il>
-References: <20061025082820.GD7083@elf.ucw.cz>
-Reply-To: "Michael S. Tsirkin" <mst@mellanox.co.il>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [patch 0/2] acpi: driverregistration again can report ENODEV
+Date: Wed, 25 Oct 2006 18:40:31 +0800
+Message-ID: <1161772831.14917.36.camel@localhost.localdomain>
+References: <20061020092547.519734000@neutrino.suse.de>
+	 <1161338381.32262.114.camel@queen.suse.de>
+	 <200610201055.33931.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.osdl.org>
-Content-Disposition: inline
-In-Reply-To: <20061025082820.GD7083@elf.ucw.cz>
-List-Unsubscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
-List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.osdl.org>
-List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
-List-Subscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.osdl.org
-Errors-To: linux-pm-bounces@lists.osdl.org
-To: Pavel Machek <pavel@suse.cz>
-Cc: Andrew Morton <akpm@osdl.org>, len.brown@intel.com, Linus Torvalds <torvalds@osdl.org>, linux-pm@osdl.org, linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org, jgarzik@pobox.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@stusta.de>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:43315 "EHLO mga01.intel.com")
+	by vger.kernel.org with ESMTP id S1423213AbWJYKiU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Oct 2006 06:38:20 -0400
+In-Reply-To: <200610201055.33931.bjorn.helgaas@hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: trenn@suse.de, fseidel@suse.de, linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>, shaohua.li@intel.com
 
-Quoting r. Pavel Machek <pavel@suse.cz>:
-> > >
-> > > Subject    : T60 stops triggering any ACPI events
-> > > References : http://lkml.org/lkml/2006/10/4/425
-> > >              http://lkml.org/lkml/2006/10/16/262
-> > > Submitter  : "Michael S. Tsirkin" <mst@mellanox.co.il>
-> > > Status     : unknown
-> > =
+We won't have such issues if we make ACPI use driver model.
+I've sent out a patch series which throw the legacy ACPI driver model
+away. The patches will be added to -mm tree.
 
-> > Just retested with 2.6.19-rc3 - it's still there:
-> > e.g. after I do a full kernel compile, my T60 stops triggering any ACPI=
- events:
-> > tail -f /var/log/acpid does not show anything, even on Fn/F4 which is s=
-upposed
-> > to be always enabled.  Restarting the acpid doesn't do anything either =
-- ACPI
-> > starts working again, for a while, only after reboot.
-> > =
+On Sat, 2006-10-21 at 00:55 +0800, Bjorn Helgaas wrote:
+> > acpi_bus_register_driver must return -ENODEV when no device with
+> > matching HID was found. E.g. battery also should currently get
+> always
+> > loaded even a system never has one.
+> 
+> If the driver wants to unload if it doesn't find any devices,
+> it can easily do so by counting calls to its add() method, as
+> asus_acpi.c currently does.  I don't think that's a good long-
+> term solution, though.  I think it would be better to have a
+> hotplug scheme that loads the driver when the hardware is
+> found, like we do for PCI.
+> 
+that's true. With this patch series, .uevent method of ACPI bus will be
+called when an ACPI device is found. Then udev script loads the right
+driver by checking hid/cid offered by .uevent method. 
 
-> > Works fine in 2.6.18 ( + this patch http://lkml.org/lkml/2006/7/20/56).
-> =
-
-> Bugzilla.kernel.org, assign it to acpi people...
-
-Already done, http://bugzilla.kernel.org/show_bug.cgi?id=3D7408
-
--- =
-
-MST
+thanks,
+Rui
