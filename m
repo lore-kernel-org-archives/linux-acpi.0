@@ -1,73 +1,49 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Runtime GPEs not saved over suspend/resume if type != "platform"
-Date: Wed, 25 Oct 2006 20:54:31 +0200
-Message-ID: <200610252054.32945.rjw@sisk.pl>
-References: <1C601A6A3344064EB423D0C1E83B717B5C5954@pdsmsx411.ccr.corp.intel.com> <453F9252.9060404@linux.intel.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [patch] ACPI: asus_acpi: return -ENODEV when no device found
+Date: Wed, 25 Oct 2006 13:58:24 -0600
+Message-ID: <200610251358.25379.bjorn.helgaas@hp.com>
+References: <20061020092547.519734000@neutrino.suse.de> <200610230934.12775.bjorn.helgaas@hp.com> <200610241105.52562.fseidel@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:17878 "EHLO ogre.sisk.pl")
-	by vger.kernel.org with ESMTP id S1161367AbWJYSzh (ORCPT
+Received: from atlrel7.hp.com ([156.153.255.213]:10432 "EHLO atlrel7.hp.com")
+	by vger.kernel.org with ESMTP id S964798AbWJYT6c (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Oct 2006 14:55:37 -0400
-In-Reply-To: <453F9252.9060404@linux.intel.com>
+	Wed, 25 Oct 2006 15:58:32 -0400
+In-Reply-To: <200610241105.52562.fseidel@suse.de>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
-Cc: Pavel Machek <pavel@suse.cz>, "Brown, Len" <len.brown@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: Frank Seidel <fseidel@suse.de>
+Cc: trenn@suse.de, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Andrew Morton <akpm@osdl.org>
 
-On Wednesday, 25 October 2006 18:35, Alexey Starikovskiy wrote:
-> Here is a least intrusive patch by my opinion...
-> Just copy pm_disk_mode from pm_ops supplied by platform.
-> ACPI sets it to PM_DISK_PLATFORM if it has S4,
-> and it should be zero otherwise, patch does not copy it then.
+This driver is for non-hot-pluggable hardware.  Therefore, if the hardware
+isn't present, we want to return -ENODEV so a module load will fail.
 
-Well, I think the appended patch is sufficient.
+We previously returned "result" from the acpi_bus_register_driver() call.
+Registering the driver usually succeeds even if no devices are present,
+because the ACPI core allows you to load a driver before a device is
+hot-added.
 
-If "platform" is unavailable it has no effect and works like "shutdown".
+Someday the kernel will expose enough information so user-space can tell
+what ACPI drivers should be loaded.  But the kernel doesn't do that yet, so
+distros have to load this driver always and rely on the -ENODEV causing the
+load to fail if the hardware isn't found.
 
-Greetings,
-Rafael
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- kernel/power/disk.c |    8 +++++---
- kernel/power/main.c |    2 +-
- 2 files changed, 6 insertions(+), 4 deletions(-)
-
-Index: linux-2.6.19-rc2-mm2/kernel/power/main.c
+Index: work-1/drivers/acpi/asus_acpi.c
 ===================================================================
---- linux-2.6.19-rc2-mm2.orig/kernel/power/main.c
-+++ linux-2.6.19-rc2-mm2/kernel/power/main.c
-@@ -28,7 +28,7 @@
- DECLARE_MUTEX(pm_sem);
+--- work-1.orig/drivers/acpi/asus_acpi.c	2006-10-24 15:35:24.000000000 -0600
++++ work-1/drivers/acpi/asus_acpi.c	2006-10-24 15:37:54.000000000 -0600
+@@ -1367,7 +1367,7 @@
+ 	if (!asus_hotk_found) {
+ 		acpi_bus_unregister_driver(&asus_hotk_driver);
+ 		remove_proc_entry(PROC_ASUS, acpi_root_dir);
+-		return result;
++		return -ENODEV;
+ 	}
  
- struct pm_ops *pm_ops;
--suspend_disk_method_t pm_disk_mode = PM_DISK_SHUTDOWN;
-+suspend_disk_method_t pm_disk_mode = PM_DISK_PLATFORM;
- 
- /**
-  *	pm_set_ops - Set the global power method table. 
-Index: linux-2.6.19-rc2-mm2/kernel/power/disk.c
-===================================================================
---- linux-2.6.19-rc2-mm2.orig/kernel/power/disk.c
-+++ linux-2.6.19-rc2-mm2/kernel/power/disk.c
-@@ -61,9 +61,11 @@ static void power_down(suspend_disk_meth
- 
- 	switch(mode) {
- 	case PM_DISK_PLATFORM:
--		kernel_shutdown_prepare(SYSTEM_SUSPEND_DISK);
--		error = pm_ops->enter(PM_SUSPEND_DISK);
--		break;
-+		if (pm_ops && pm_ops->enter) {
-+			kernel_shutdown_prepare(SYSTEM_SUSPEND_DISK);
-+			error = pm_ops->enter(PM_SUSPEND_DISK);
-+			break;
-+		}
- 	case PM_DISK_SHUTDOWN:
- 		kernel_power_off();
- 		break;
+ 	return 0;
