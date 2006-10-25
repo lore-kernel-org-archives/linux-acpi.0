@@ -1,54 +1,69 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [patch 0/2] acpi: driverregistration again can report ENODEV
-Date: Wed, 25 Oct 2006 13:31:55 +0200
-Message-ID: <1161775915.32262.235.camel@queen.suse.de>
-References: <20061020092547.519734000@neutrino.suse.de>
-	 <1161338381.32262.114.camel@queen.suse.de>
-	 <200610201055.33931.bjorn.helgaas@hp.com>
-	 <1161772831.14917.36.camel@localhost.localdomain>
-Reply-To: trenn@suse.de
+From: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
+Subject: [PATCH] make ibm_acpi work right with notify handlers.
+Date: Wed, 25 Oct 2006 18:29:04 +0400
+Message-ID: <453F74B0.8080105@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------000708010703090001070704"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns.suse.de ([195.135.220.2]:39138 "EHLO mx1.suse.de")
-	by vger.kernel.org with ESMTP id S1423297AbWJYLb5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Oct 2006 07:31:57 -0400
-In-Reply-To: <1161772831.14917.36.camel@localhost.localdomain>
+Received: from mga07.intel.com ([143.182.124.22]:8553 "EHLO
+	azsmga101.ch.intel.com") by vger.kernel.org with ESMTP
+	id S1751706AbWJYO3Q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Oct 2006 10:29:16 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, fseidel@suse.de, linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>, shaohua.li@intel.com
+To: Linux ACPI <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, Borislav Deianov <borislav@users.sf.net>
 
-On Wed, 2006-10-25 at 18:40 +0800, Zhang Rui wrote:
-> We won't have such issues if we make ACPI use driver model.
-> I've sent out a patch series which throw the legacy ACPI driver model
-> away. The patches will be added to -mm tree.
-> 
-> On Sat, 2006-10-21 at 00:55 +0800, Bjorn Helgaas wrote:
-> > > acpi_bus_register_driver must return -ENODEV when no device with
-> > > matching HID was found. E.g. battery also should currently get
-> > always
-> > > loaded even a system never has one.
-> > 
-> > If the driver wants to unload if it doesn't find any devices,
-> > it can easily do so by counting calls to its add() method, as
-> > asus_acpi.c currently does.  I don't think that's a good long-
-> > term solution, though.  I think it would be better to have a
-> > hotplug scheme that loads the driver when the hardware is
-> > found, like we do for PCI.
-> > 
-> that's true. With this patch series, .uevent method of ACPI bus will be
-> called when an ACPI device is found. Then udev script loads the right
-> driver by checking hid/cid offered by .uevent method. 
+This is a multi-part message in MIME format.
+--------------000708010703090001070704
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-That are great news.
-Maybe you can CC linux-acpi list on further patches, I didn't know about
-this.
-I am looking forward to give these a try as soon as I get some time...
+Hi,
+
+There is a bug in ibm_acpi module, which prevents its clean removal.
+This patch fixes the problem by moving setting notify_installed to the right place.
 
 Thanks,
+Alex.
 
-  Thomas
+--------------000708010703090001070704
+Content-Type: text/x-patch;
+ name="ibm_acpi-do_notify_remove.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ibm_acpi-do_notify_remove.patch"
 
+make unload of ibm_acpi right.
+
+From:  Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
+
+
+---
+
+ drivers/acpi/ibm_acpi.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
+index 003a987..719a320 100644
+--- a/drivers/acpi/ibm_acpi.c
++++ b/drivers/acpi/ibm_acpi.c
+@@ -1805,7 +1805,7 @@ static int __init setup_notify(struct ib
+ 		       ibm->name, status);
+ 		return -ENODEV;
+ 	}
+-
++	ibm->notify_installed = 1;
+ 	return 0;
+ }
+ 
+@@ -1882,7 +1882,6 @@ static int __init ibm_init(struct ibm_st
+ 		ret = setup_notify(ibm);
+ 		if (ret < 0)
+ 			return ret;
+-		ibm->notify_installed = 1;
+ 	}
+ 
+ 	return 0;
+
+--------------000708010703090001070704--
