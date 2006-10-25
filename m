@@ -1,50 +1,51 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 2.6.18-mm2] acpi: add backlight support to the sony_acpi driver
-Date: Wed, 25 Oct 2006 09:07:13 +0200
-Message-ID: <20061025070713.GF5851@elf.ucw.cz>
-References: <20060930190810.30b8737f.alessandro.guido@gmail.com> <20061010161012.GA18847@lists.us.dell.com> <200610120028.29617.luming.yu@gmail.com> <200610170145.03779.luming.yu@gmail.com>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: 2.6.19-rc2: known unfixed regressions (v3)
+Date: Wed, 25 Oct 2006 10:28:20 +0200
+Message-ID: <20061025082820.GD7083@elf.ucw.cz>
+References: <20061022122355.GC3502@stusta.de> <20061024150050.GA8766@mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:21398 "EHLO amd.ucw.cz")
-	by vger.kernel.org with ESMTP id S1423083AbWJYHHY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Oct 2006 03:07:24 -0400
+Return-path: <linux-ide-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <200610170145.03779.luming.yu@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20061024150050.GA8766@mellanox.co.il>
+Sender: linux-ide-owner@vger.kernel.org
+To: "Michael S. Tsirkin" <mst@mellanox.co.il>
+Cc: Adrian Bunk <bunk@stusta.de>, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, len.brown@intel.com, linux-acpi@vger.kernel.org, linux-pm@osdl.org, jgarzik@pobox.com, linux-ide@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yu Luming <luming.yu@gmail.com>
-Cc: Matt Domsch <Matt_Domsch@dell.com>, len.brown@intel.com, Richard Hughes <hughsient@gmail.com>, Andrew Morton <akpm@osdl.org>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr
 
-Hi!
-
-> > > a generic ACPI driver that exports the _BCL and _BCM method
-> > > implementations via that same interface, so that systems providing
-> > > that will "just work".  drivers/acpi/video.c currently exports this
-> > > via /proc/acpi/video/$DEVICE/brightness, which isn't the same as
-> > > /sys/class/backlight. :-(
+On Tue 2006-10-24 17:00:51, Michael S. Tsirkin wrote:
+> Quoting r. Adrian Bunk <bunk@stusta.de>:
+> > Subject: 2.6.19-rc2: known unfixed regressions (v3)
+> > 
+> > This email lists some known unfixed regressions in 2.6.19-rc2 compared 
+> > to 2.6.18 that are not yet fixed Linus' tree.
+> > 
+> > If you find your name in the Cc header, you are either submitter of one
+> > of the bugs, maintainer of an affectected subsystem or driver, a patch
+> > of you caused a breakage or I'm considering you in any other way possibly
+> > involved with one or more of these issues.
+> > 
+> > Due to the huge amount of recipients, please trim the Cc when answering.
 > >
-> > Yes, I'm working on acpi video driver transition , and have posted a patch
-> > to user backlight for acpi video driver.
-> > http://marc.theaimsgroup.com/?l=linux-acpi&m=115574087203605&w=2
 > 
-> Just updated the backlight and output sysfs support for ACPI Video driver on
-> bugzilla. If you are interested this, please take a look at
-> http://bugzilla.kernel.org/show_bug.cgi?id=5749#c18
+> skip, hope I didn't trim too much.
+> 
+> >
+> > Subject    : T60 stops triggering any ACPI events
+> > References : http://lkml.org/lkml/2006/10/4/425
+> >              http://lkml.org/lkml/2006/10/16/262
+> > Submitter  : "Michael S. Tsirkin" <mst@mellanox.co.il>
+> > Status     : unknown
+> 
+> Just retested with 2.6.19-rc3 - it's still there:
+> e.g. after I do a full kernel compile, my T60 stops triggering any ACPI events:
+> tail -f /var/log/acpid does not show anything, even on Fn/F4 which is supposed
+> to be always enabled.  Restarting the acpid doesn't do anything either - ACPI
+> starts working again, for a while, only after reboot.
+> 
+> Works fine in 2.6.18 ( + this patch http://lkml.org/lkml/2006/7/20/56).
 
-> [patch 1/3] vidoe sysfs support: Add dev argument for baclight sys dev
-
-Two typos in one line :-).
-
-> [patch 2/3] Add display output class support
-
-I guess this needs Documentation/ so we can tell if user<->kernel
-interface is sane..
-
-> [patch 3/3] backlight and output sysfs support for acpi video driver
-
-Some whitespace is not okay there...
+Bugzilla.kernel.org, assign it to acpi people...
 									Pavel
 -- 
 (english) http://www.livejournal.com/~pavelmachek
