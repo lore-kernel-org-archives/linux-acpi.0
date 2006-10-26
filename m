@@ -1,52 +1,96 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: ia64 acpi-cpufreq driver
-Date: Thu, 26 Oct 2006 09:29:59 -0600
-Message-ID: <200610260929.59672.bjorn.helgaas@hp.com>
-References: <EB12A50964762B4D8111D55B764A8454C96410@scsmsx413.amr.corp.intel.com>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: 2.6.19-rc3: known unfixed regressions (v2)
+Date: Fri, 27 Oct 2006 00:45:41 +0200
+Message-ID: <20061026224541.GQ27968@stusta.de>
+References: <Pine.LNX.4.64.0610231618510.3962@g5.osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <EB12A50964762B4D8111D55B764A8454C96410@scsmsx413.amr.corp.intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-ide-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-ia64-owner@vger.kernel.org
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
+In-Reply-To: <Pine.LNX.4.64.0610231618510.3962@g5.osdl.org>
+Sender: linux-ide-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, Greg KH <greg@kroah.com>, linux-pci@atrey.karlin.mff.cuni.cz, Stephen Hemminger <shemminger@osdl.org>, Philipp Zabel <philipp.zabel@gmail.com>, rmk@arm.linux.org.uk, Martin Lorenz <martin@lorenz.eu.org>, len.brown@intel.com, linux-acpi@vger.kernel.org, linux-pm@osdl.org, "Michael S. Tsirkin" <mst@mellanox.co.il>, Thierry Vignaud <tvignaud@mandriva.com>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Alex Romosan <romosan@sycorax.lbl.gov>, Jens Axboe <jens.axboe@oracle.com>, Komuro <komurojun-mbn@nifty.com>, Thomas Gleixner <tglx@linutronix.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Stefan Richter <stefanr@s5r6.in-berlin.de>, linux1394-devel@lists.sourceforge.net, Christian <christiand59@web.de>, Mark Langsdorf <mark.langsdorf@amd.com>, davej@codemonkey.org.uk, cpufreq@
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday 25 October 2006 22:36, Pallipadi, Venkatesh wrote:
-> Yes. Something like this will work. I don't think it is the intent of
-> the SPEC. As I understand, FFH in SPEC is intended to be used whenever
-> we have hardware/processor specific interfaces (As described in ACPI 3.0
-> spec - page 46). Also, it will complicate the code.
+This email lists some known regressions in 2.6.19-rc3 compared to 2.6.18
+that are not yet fixed Linus' tree.
 
-It sure looks like the intent to me.  Why would you bother with
-the concept of FFH at all unless it provided some abstraction?
-Abstraction can help simplify the code: you can use the same
-code for multiple architectures, with differences encapsulated
-in the per-arch FFH driver.
+If you find your name in the Cc header, you are either submitter of one
+of the bugs, maintainer of an affectected subsystem or driver, a patch
+of you caused a breakage or I'm considering you in any other way possibly
+involved with one or more of these issues.
 
-> I think having 
-> separate code, even if there is some amount of duplication is there, is
-> better in this case. The reasons:
-> - i386 acpi-cpufreq code has support for both IO port and FFH. Please
-> refer to arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c in 2.6.19-rc2-mm2,
-> which is a lot different from current git.
-> - FFH in i386 works in a different way from IPF. Specifically,
-> PERF_STATUS is just a register read, and hardware performance feedback
-> is by using different APERF/MPERF MSR. But, in IPF it is done through
-> passing a different type parameter to same PAL_GET_PSTATE calls (will be
-> adding this to IPF driver soon).
+Due to the huge amount of recipients, please trim the Cc when answering.
 
-Well, of course FFH would be *implemented* differently on x86
-than ia64!  But the layout of the FFH address space, which
-essentially determines the semantics of FFH, should be the
-same for all architectures (though somebody seems to have
-forgotten to specify that layout).
 
-There's nothing really x86-specific about i386/.../acpi-cpufreq,
-except for the whole mess about supporting I/O ports, MSRs, etc.
-If we made an x86 FFH OpRegion driver that knew how to do the MSR
-stuff, we could probably use the same acpi-cpufreq driver across
-x86 and ia64.
+Subject    : swsusp initialized after SATA (CONFIG_PCI_MULTITHREAD_PROBE)
+References : http://lkml.org/lkml/2006/10/14/31
+Submitter  : Pavel Machek <pavel@ucw.cz>
+Status     : unknown
+
+
+Subject    : MSI errors during boot (CONFIG_PCI_MULTITHREAD_PROBE)
+References : http://lkml.org/lkml/2006/10/16/291
+Submitter  : Stephen Hemminger <shemminger@osdl.org>
+Handled-By : Greg KH <greg@kroah.com>
+Status     : Greg is working on a fix
+
+
+Subject    : arm: Oops in __wake_up_common during htc magician resume
+References : http://lkml.org/lkml/2006/10/25/73
+Submitter  : Philipp Zabel <philipp.zabel@gmail.com>
+Status     : unknown
+
+
+Subject    : X60s: BUG()s, lose ACPI events after suspend/resume
+References : http://lkml.org/lkml/2006/10/10/39
+Submitter  : Martin Lorenz <martin@lorenz.eu.org>
+Status     : unknown
+
+
+Subject    : T60 stops triggering any ACPI events
+References : http://lkml.org/lkml/2006/10/4/425
+             http://lkml.org/lkml/2006/10/16/262
+             http://bugzilla.kernel.org/show_bug.cgi?id=7408
+Submitter  : "Michael S. Tsirkin" <mst@mellanox.co.il>
+Status     : unknown
+
+
+Subject    : sata-via doesn't detect anymore disks attached to VIA vt6421
+References : http://bugzilla.kernel.org/show_bug.cgi?id=7255
+Submitter  : Thierry Vignaud <tvignaud@mandriva.com>
+Status     : unknown
+
+
+Subject    : unable to rip cd
+References : http://lkml.org/lkml/2006/10/13/100
+Submitter  : Alex Romosan <romosan@sycorax.lbl.gov>
+Status     : unknown
+
+
+Subject    : SMP kernel can not generate ISA irq properly
+References : http://lkml.org/lkml/2006/10/22/15
+Submitter  : Komuro <komurojun-mbn@nifty.com>
+Handled-By : Thomas Gleixner <tglx@linutronix.de>
+Status     : Thomas will investigate
+
+
+Subject    : ohci1394 on PPC_PMAC:
+             pci_set_power_state() failure and breaking suspend
+References : http://lkml.org/lkml/2006/10/24/13
+Submitter  : Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Caused-By  : Stefan Richter <stefanr@s5r6.in-berlin.de>
+             commit ea6104c22468239083857fa07425c312b1ecb424
+Handled-By : Stefan Richter <stefanr@s5r6.in-berlin.de>
+Status     : Stefan Richter: looking for an answer when to ignore
+             the return code of pci_set_power_state
+
+
+Subject    : cpufreq not working on AMD K8
+References : http://lkml.org/lkml/2006/10/10/114
+Submitter  : Christian <christiand59@web.de>
+Handled-By : Mark Langsdorf <mark.langsdorf@amd.com>
+Status     : Mark is investigating
+
+
