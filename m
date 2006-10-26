@@ -1,73 +1,32 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Subject: RE: ia64 acpi-cpufreq driver
-Date: Wed, 25 Oct 2006 21:36:58 -0700
-Message-ID: <EB12A50964762B4D8111D55B764A8454C96410@scsmsx413.amr.corp.intel.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [0/12] acpi: make ACPI use driver model
+Date: Thu, 26 Oct 2006 14:12:17 +0800
+Message-ID: <1161843137.20016.4.camel@localhost.localdomain>
+References: <1158916460.11985.45.camel@localhost.localdomain>
+	 <200610251440.04502.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:34372 "EHLO mga01.intel.com")
-	by vger.kernel.org with ESMTP id S1423117AbWJZEhB convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Oct 2006 00:37:01 -0400
-Content-class: urn:content-classes:message
+Received: from mga01.intel.com ([192.55.52.88]:52613 "EHLO mga01.intel.com")
+	by vger.kernel.org with ESMTP id S1423424AbWJZGKD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 26 Oct 2006 02:10:03 -0400
+In-Reply-To: <200610251440.04502.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, len.brown@intel.com
 
- 
+On Wed, 2006-10-25 at 14:40 -0600, Bjorn Helgaas wrote:
+> On Friday 22 September 2006 03:14, Zhang Rui wrote:
+> > Make ACPI use driver model.
+> 
+> What's happening with this series?  It doesn't seem to be in -mm
+> yet.  Some of this stuff has been kicking around for a year already.
+> It'd be nice to go forward or give up on the idea.
+> 
+Len will add them to -mm tree soon. :)
 
->-----Original Message-----
->From: Bjorn Helgaas [mailto:bjorn.helgaas@hp.com] 
->Sent: Wednesday, October 25, 2006 4:21 PM
->To: Pallipadi, Venkatesh
->Cc: linux-acpi@vger.kernel.org; linux-ia64@vger.kernel.org
->Subject: Re: ia64 acpi-cpufreq driver
->
->On Monday 23 October 2006 22:46, Pallipadi, Venkatesh wrote:
->> >Section 8.4.4.1 (_PCT) of the 3.0 ACPI spec says:
->> >
->> >  OSPM performs processor performance transitions by writing
->> >  the performance state-specific control value to a Performance
->> >  Control Register (PERF_CTRL).
->> >
->> >According to one of our architecture guys, this means we really
->> >ought to have an OpRegion driver that encapsulates the 
->PAL_SET_PSTATE
->> >call.
->> 
->> Actually it is slightly different from low_level_read and write. 
->> Generic ACPI definition of ACPI PERF_CTRL and PERF_STATUS define 
->> them as if they are registers. But, with FfixedHW, ACPI allows 
->> architectures to implement this functionality in a native way.
->
->I'd like to understand this better.  Something like the following
->patch (not for inclusion, may not even compile) is what I'm
->thinking.  This seems more in line with the spec intent.
->
->Apart from details like "bit_width <= 8" vs. "bit_width == 8",
->this should be functionally the same.  Are you saying it's different
->because of those details, or is there a larger difference I don't
->understand?
->
-
-Yes. Something like this will work. I don't think it is the intent of
-the SPEC. As I understand, FFH in SPEC is intended to be used whenever
-we have hardware/processor specific interfaces (As described in ACPI 3.0
-spec - page 46). Also, it will complicate the code. I think having
-separate code, even if there is some amount of duplication is there, is
-better in this case. The reasons:
-- i386 acpi-cpufreq code has support for both IO port and FFH. Please
-refer to arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c in 2.6.19-rc2-mm2,
-which is a lot different from current git.
- 
-- FFH in i386 works in a different way from IPF. Specifically,
-PERF_STATUS is just a register read, and hardware performance feedback
-is by using different APERF/MPERF MSR. But, in IPF it is done through
-passing a different type parameter to same PAL_GET_PSTATE calls (will be
-adding this to IPF driver soon).
-
-Thanks,
-Venki
+thanks,
+Rui
