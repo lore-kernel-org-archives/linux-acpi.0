@@ -1,45 +1,58 @@
-From: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
-Subject: Re: [0/12] acpi: make ACPI use driver model
-Date: Thu, 26 Oct 2006 12:15:29 +0400
-Message-ID: <45406EA1.4000207@linux.intel.com>
-References: <1158916460.11985.45.camel@localhost.localdomain>	 <200610251440.04502.bjorn.helgaas@hp.com> <1161843137.20016.4.camel@localhost.localdomain>
+From: Frank Seidel <fseidel@suse.de>
+Subject: Re: [patch] ACPI: asus_acpi: return -ENODEV when no device found
+Date: Thu, 26 Oct 2006 11:22:41 +0200
+Message-ID: <200610261122.46254.fseidel@suse.de>
+References: <20061020092547.519734000@neutrino.suse.de> <200610241105.52562.fseidel@suse.de> <200610251358.25379.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed;
+  boundary="nextPart1414107.VFSizyEsmt";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:18787 "EHLO
-	fmsmga101.fm.intel.com") by vger.kernel.org with ESMTP
-	id S1751698AbWJZIPh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Oct 2006 04:15:37 -0400
-In-Reply-To: <1161843137.20016.4.camel@localhost.localdomain>
+Received: from cantor2.suse.de ([195.135.220.15]:65243 "EHLO mx2.suse.de")
+	by vger.kernel.org with ESMTP id S1422809AbWJZJWu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 26 Oct 2006 05:22:50 -0400
+In-Reply-To: <200610251358.25379.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-acpi@vger.kernel.org, len.brown@intel.com
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: trenn@suse.de, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Andrew Morton <akpm@osdl.org>
 
-Zhang,
-We discovered that resume of ACPI devices before pm_finish() and
-_WAK evaluation is not good. Could you find a way around this problem?
+--nextPart1414107.VFSizyEsmt
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Look into #7122 for changes needed with current driver model.
+On Wednesday 25 October 2006 21:58, Bjorn Helgaas wrote:
+> This driver is for non-hot-pluggable hardware.  Therefore, if the
+> hardware isn't present, we want to return -ENODEV so a module load
+> will fail.
+>
+> We previously returned "result" from the acpi_bus_register_driver()
+> call. Registering the driver usually succeeds even if no devices are
+> present, because the ACPI core allows you to load a driver before a
+> device is hot-added.
+>
+> Someday the kernel will expose enough information so user-space can
+> tell what ACPI drivers should be loaded.  But the kernel doesn't do
+> that yet, so distros have to load this driver always and rely on the
+> -ENODEV causing the load to fail if the hardware isn't found.
+>
+> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Frank Seidel <fseidel@suse.de>
 
-Regards,
-	Alex.
+--nextPart1414107.VFSizyEsmt
+Content-Type: application/pgp-signature
 
-Zhang Rui wrote:
-> On Wed, 2006-10-25 at 14:40 -0600, Bjorn Helgaas wrote:
->> On Friday 22 September 2006 03:14, Zhang Rui wrote:
->>> Make ACPI use driver model.
->> What's happening with this series?  It doesn't seem to be in -mm
->> yet.  Some of this stuff has been kicking around for a year already.
->> It'd be nice to go forward or give up on the idea.
->>
-> Len will add them to -mm tree soon. :)
-> 
-> thanks,
-> Rui
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQBFQH5mlizSENHXK2gRAhL7AKCVGFS//DTtgDGV4AJ7Gx7T6t/CZwCfSkAs
+9gApGz/XlJhzALeHbkC5e8M=
+=NN57
+-----END PGP SIGNATURE-----
+
+--nextPart1414107.VFSizyEsmt--
