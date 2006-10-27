@@ -1,96 +1,31 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: 2.6.19-rc3: known unfixed regressions (v2)
-Date: Fri, 27 Oct 2006 00:45:41 +0200
-Message-ID: <20061026224541.GQ27968@stusta.de>
-References: <Pine.LNX.4.64.0610231618510.3962@g5.osdl.org>
+From: "David Gorst" <dgorst@gmail.com>
+Subject: Unsupported Asus laptop - model A6T
+Date: Fri, 27 Oct 2006 14:18:23 +1000
+Message-ID: <f6ab3b80610262118v42de330dub50db7a83c42fbc3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ide-owner@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from wx-out-0506.google.com ([66.249.82.239]:287 "EHLO
+	wx-out-0506.google.com") by vger.kernel.org with ESMTP
+	id S932274AbWJ0ESY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 27 Oct 2006 00:18:24 -0400
+Received: by wx-out-0506.google.com with SMTP id s14so660071wxc
+        for <linux-acpi@vger.kernel.org>; Thu, 26 Oct 2006 21:18:23 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0610231618510.3962@g5.osdl.org>
-Sender: linux-ide-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, Greg KH <greg@kroah.com>, linux-pci@atrey.karlin.mff.cuni.cz, Stephen Hemminger <shemminger@osdl.org>, Philipp Zabel <philipp.zabel@gmail.com>, rmk@arm.linux.org.uk, Martin Lorenz <martin@lorenz.eu.org>, len.brown@intel.com, linux-acpi@vger.kernel.org, linux-pm@osdl.org, "Michael S. Tsirkin" <mst@mellanox.co.il>, Thierry Vignaud <tvignaud@mandriva.com>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Alex Romosan <romosan@sycorax.lbl.gov>, Jens Axboe <jens.axboe@oracle.com>, Komuro <komurojun-mbn@nifty.com>, Thomas Gleixner <tglx@linutronix.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Stefan Richter <stefanr@s5r6.in-berlin.de>, linux1394-devel@lists.sourceforge.net, Christian <christiand59@web.de>, Mark Langsdorf <mark.langsdorf@amd.com>, davej@codemonkey.org.uk, cpufreq@
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-This email lists some known regressions in 2.6.19-rc3 compared to 2.6.18
-that are not yet fixed Linus' tree.
+I've bought a laptop recently which is having problems with ACPI  - it
+requires "acpi=off" or "noapic nolapic" in order to avoid hanging
+while booting the (version 2.6.18) kernel. Scanning through
+/var/log/messages I've come a message indicating that this is an an
+unsupported model and I should extract and submit my DSDT to the
+developers. So I've done the former and I'm wondering where I should
+submit the latter? Apologies if this is the wrong place to do this - I
+had a search about on the SourceForge site and couldn't find an
+answer.
 
-If you find your name in the Cc header, you are either submitter of one
-of the bugs, maintainer of an affectected subsystem or driver, a patch
-of you caused a breakage or I'm considering you in any other way possibly
-involved with one or more of these issues.
-
-Due to the huge amount of recipients, please trim the Cc when answering.
-
-
-Subject    : swsusp initialized after SATA (CONFIG_PCI_MULTITHREAD_PROBE)
-References : http://lkml.org/lkml/2006/10/14/31
-Submitter  : Pavel Machek <pavel@ucw.cz>
-Status     : unknown
-
-
-Subject    : MSI errors during boot (CONFIG_PCI_MULTITHREAD_PROBE)
-References : http://lkml.org/lkml/2006/10/16/291
-Submitter  : Stephen Hemminger <shemminger@osdl.org>
-Handled-By : Greg KH <greg@kroah.com>
-Status     : Greg is working on a fix
-
-
-Subject    : arm: Oops in __wake_up_common during htc magician resume
-References : http://lkml.org/lkml/2006/10/25/73
-Submitter  : Philipp Zabel <philipp.zabel@gmail.com>
-Status     : unknown
-
-
-Subject    : X60s: BUG()s, lose ACPI events after suspend/resume
-References : http://lkml.org/lkml/2006/10/10/39
-Submitter  : Martin Lorenz <martin@lorenz.eu.org>
-Status     : unknown
-
-
-Subject    : T60 stops triggering any ACPI events
-References : http://lkml.org/lkml/2006/10/4/425
-             http://lkml.org/lkml/2006/10/16/262
-             http://bugzilla.kernel.org/show_bug.cgi?id=7408
-Submitter  : "Michael S. Tsirkin" <mst@mellanox.co.il>
-Status     : unknown
-
-
-Subject    : sata-via doesn't detect anymore disks attached to VIA vt6421
-References : http://bugzilla.kernel.org/show_bug.cgi?id=7255
-Submitter  : Thierry Vignaud <tvignaud@mandriva.com>
-Status     : unknown
-
-
-Subject    : unable to rip cd
-References : http://lkml.org/lkml/2006/10/13/100
-Submitter  : Alex Romosan <romosan@sycorax.lbl.gov>
-Status     : unknown
-
-
-Subject    : SMP kernel can not generate ISA irq properly
-References : http://lkml.org/lkml/2006/10/22/15
-Submitter  : Komuro <komurojun-mbn@nifty.com>
-Handled-By : Thomas Gleixner <tglx@linutronix.de>
-Status     : Thomas will investigate
-
-
-Subject    : ohci1394 on PPC_PMAC:
-             pci_set_power_state() failure and breaking suspend
-References : http://lkml.org/lkml/2006/10/24/13
-Submitter  : Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Caused-By  : Stefan Richter <stefanr@s5r6.in-berlin.de>
-             commit ea6104c22468239083857fa07425c312b1ecb424
-Handled-By : Stefan Richter <stefanr@s5r6.in-berlin.de>
-Status     : Stefan Richter: looking for an answer when to ignore
-             the return code of pci_set_power_state
-
-
-Subject    : cpufreq not working on AMD K8
-References : http://lkml.org/lkml/2006/10/10/114
-Submitter  : Christian <christiand59@web.de>
-Handled-By : Mark Langsdorf <mark.langsdorf@amd.com>
-Status     : Mark is investigating
-
-
+Regards,
+Dave.
