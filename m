@@ -1,67 +1,46 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [PATCH] ACPI: fix find_pci_rootbridge() return value to save time finding rootbridge
-Date: Fri, 27 Oct 2006 02:27:59 -0400
-Message-ID: <CFF307C98FEABE47A452B27C06B85BB601D58A9C@hdsmsx411.amr.corp.intel.com>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: Runtime GPEs not saved over suspend/resume if type != "platform"
+Date: Fri, 27 Oct 2006 10:40:52 +0200
+Message-ID: <20061027084052.GC1831@elf.ucw.cz>
+References: <453F77D4.2080706@linux.intel.com> <200610270122.34846.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:13423 "EHLO mga01.intel.com")
-	by vger.kernel.org with ESMTP id S1946032AbWJ0G2D convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 27 Oct 2006 02:28:03 -0400
-Content-class: urn:content-classes:message
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:47017 "EHLO amd.ucw.cz")
+	by vger.kernel.org with ESMTP id S965254AbWJ0Ik6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 27 Oct 2006 04:40:58 -0400
+Content-Disposition: inline
+In-Reply-To: <200610270122.34846.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Chen, Justin" <justin.chen@hp.com>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-applied.
+Hi!
 
-thanks,
--Len 
-
->-----Original Message-----
->From: Chen, Justin [mailto:justin.chen@hp.com] 
->Sent: Tuesday, October 10, 2006 5:07 PM
->To: Brown, Len
->Cc: linux-acpi@vger.kernel.org
->Subject: [PATCH] ACPI: fix find_pci_rootbridge() return value 
->to save time finding rootbridge
->
->
->The acpi_get_pci_rootbridge_handle() walk through the acpi ns 
->to find the handle matches the seg, bus and the 
->PCI_ROOT_HID_STRING.  It should returns the handle as soon as 
->if find the match.  But the current codes always parse through 
->the whole namespace because the user_function 
->find_pci_rootbridge() returns status=AE_OK when it finds the match.
->
->This patch, on top of 2.6.19-rc1, is to make the 
->find_pci_rootbridge() returning AE_CTRL_TERMINATE when it 
->finds the match.
->
->Signed-off-by: Justin Chen <justin.chen@hp.com>
->
->---------------------------------------------------------------
->----------------------------------------------------
->--- 2.6.19-rc1/drivers/acpi/glue.c.orig	2006-10-10 
->16:02:40.000000000 -0700
->+++ 2.6.19-rc1/drivers/acpi/glue.c	2006-10-10 
->16:05:11.000000000 -0700
->@@ -189,8 +189,12 @@ find_pci_rootbridge(acpi_handle handle, 
-> 	bus = tmp;
+> > There is a problem with swsuspend and GPE events.
+> > Now they are restored from acpi_pm_finish(), which is called only if we
+> > suspend with "platform" option, what means that if we suspended to disk
+> > with the default "shutdown" option after resume all the GPEs will be disabled.
+> > This presents us with the overheating problem after resume at very least.
 > 
-> 	if (seg == find->seg && bus == find->bus)
->+	{
-> 		find->handle = handle;
->-	status = AE_OK;
->+		status = AE_CTRL_TERMINATE;
->+	}
->+	else
->+		status = AE_OK;
->       exit:
-> 	kfree(buffer.pointer);
-> 	return status;
->
+> > I see two solutions: one is to make "platform" to be default option if ACPI is enabled,
+> > and second -- enable GPE events from some other function, which will be called in any case.
+> 
+> We need to do both.
+> 
+> "platform" needs to be the default on ACPI-enabled platforms because
+> when "shutdown" is used, wakeup devices that function from S4
+> but fail to function from S5 are unavailable.
+> 
+> Further, if somebody chooses to use "shutdown", certainly GPEs
+> need to work when they resume.
+
+Agreed. And rafael's patch is good step forward (in making "platform"
+default). Time to push it to akpm?
+								Pavel
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
