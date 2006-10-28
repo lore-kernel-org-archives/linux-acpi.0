@@ -1,55 +1,53 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: ibm-acpi: rename backlight device
-Date: Sat, 28 Oct 2006 13:34:26 -0300
-Message-ID: <20061028163426.GA7785@khazad-dum.debian.net>
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: [PATCH] acpi: fix single linked list manipulation
+Date: Sun, 29 Oct 2006 03:53:13 +0900
+Message-ID: <20061028185313.GK9973@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:47595 "EHLO
-	out1.smtp.messagingengine.com") by vger.kernel.org with ESMTP
-	id S1751017AbWJ1Qee (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 28 Oct 2006 12:34:34 -0400
+Received: from nz-out-0102.google.com ([64.233.162.192]:63975 "EHLO
+	nz-out-0102.google.com") by vger.kernel.org with ESMTP
+	id S932086AbWJ1Swu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 28 Oct 2006 14:52:50 -0400
+Received: by nz-out-0102.google.com with SMTP id z3so797232nzf
+        for <linux-acpi@vger.kernel.org>; Sat, 28 Oct 2006 11:52:50 -0700 (PDT)
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, Holger Macht <hmacht@suse.de>
-Cc: Borislav Deianov <borislav@users.sourceforge.net>, Andy Whitcroft <apw@shadowen.org>
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Len Brown <len.brown@intel.com>
 
-The ThinkPad can connect to more than one flat pannel display using the
-external VGA or DVI output, which we may be able to control over DCC
-someday.  
+This patch fixes single linked list manipulation for sub_driver.
+If the remving entry is not on the head of the sub_driver list,
+it goes into infinate loop.
 
-Also, Lenovo may introduce a ThinkPad with more than one internal LCD
-screen in the future.  Or we could have LCD gadgets from ibm with
-backlights connected to the ThinkPad...
+Though that infinate loop doesn't happen. Because the only user of
+acpi_pci_register_dirver() is acpiphp.
 
-This patch renames the main backlight device from "ibm" to
-"thinkpad_builtin_screen", which is far more descriptive and future-proof.
+Cc: Len Brown <len.brown@intel.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 
-Maybe the backlight devices refering to the built-in screen of laptops
-should even be renamed to just "builtin_screen" on all of the drivers?
+ drivers/acpi/pci_root.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-Please comment.
-
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Borislav Deianov <borislav@users.sourceforge.net>
-Cc: Holger Macht <hmacht@suse.de>
-Cc: Andy Whitcroft <apw@shadowen.org>
-
-Index: 2.6.18/drivers/acpi/ibm_acpi.c
+Index: work-fault-inject/drivers/acpi/pci_root.c
 ===================================================================
---- 2.6.18.orig/drivers/acpi/ibm_acpi.c
-+++ 2.6.18/drivers/acpi/ibm_acpi.c
-@@ -2072,10 +2072,10 @@ static int __init acpi_ibm_init(void)
- 		}
- 	}
+--- work-fault-inject.orig/drivers/acpi/pci_root.c
++++ work-fault-inject/drivers/acpi/pci_root.c
+@@ -98,11 +98,12 @@ void acpi_pci_unregister_driver(struct a
  
--	ibm_backlight_device = backlight_device_register("ibm", NULL,
-+	ibm_backlight_device = backlight_device_register("thinkpad_builtin_screen", NULL,
- 							 &ibm_backlight_data);
-         if (IS_ERR(ibm_backlight_device)) {
--		printk(IBM_ERR "Could not register ibm backlight device\n");
-+		printk(IBM_ERR "Could not register thinkpad_builtin_screen backlight device\n");
- 		ibm_backlight_device = NULL;
- 		acpi_ibm_exit();
+ 	struct acpi_pci_driver **pptr = &sub_driver;
+ 	while (*pptr) {
+-		if (*pptr != driver)
+-			continue;
+-		*pptr = (*pptr)->next;
+-		break;
++		if (*pptr == driver)
++			break;
++		pptr = &(*pptr)->next;
  	}
++	BUG_ON(!*pptr);
++	*pptr = (*pptr)->next;
+ 
+ 	if (!driver->remove)
+ 		return;
