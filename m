@@ -1,46 +1,55 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: Runtime GPEs not saved over suspend/resume if type != "platform"
-Date: Fri, 27 Oct 2006 10:40:52 +0200
-Message-ID: <20061027084052.GC1831@elf.ucw.cz>
-References: <453F77D4.2080706@linux.intel.com> <200610270122.34846.len.brown@intel.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: ibm-acpi: rename backlight device
+Date: Sat, 28 Oct 2006 13:34:26 -0300
+Message-ID: <20061028163426.GA7785@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:47017 "EHLO amd.ucw.cz")
-	by vger.kernel.org with ESMTP id S965254AbWJ0Ik6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 27 Oct 2006 04:40:58 -0400
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:47595 "EHLO
+	out1.smtp.messagingengine.com") by vger.kernel.org with ESMTP
+	id S1751017AbWJ1Qee (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 28 Oct 2006 12:34:34 -0400
 Content-Disposition: inline
-In-Reply-To: <200610270122.34846.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org, Holger Macht <hmacht@suse.de>
+Cc: Borislav Deianov <borislav@users.sourceforge.net>, Andy Whitcroft <apw@shadowen.org>
 
-Hi!
+The ThinkPad can connect to more than one flat pannel display using the
+external VGA or DVI output, which we may be able to control over DCC
+someday.  
 
-> > There is a problem with swsuspend and GPE events.
-> > Now they are restored from acpi_pm_finish(), which is called only if we
-> > suspend with "platform" option, what means that if we suspended to disk
-> > with the default "shutdown" option after resume all the GPEs will be disabled.
-> > This presents us with the overheating problem after resume at very least.
-> 
-> > I see two solutions: one is to make "platform" to be default option if ACPI is enabled,
-> > and second -- enable GPE events from some other function, which will be called in any case.
-> 
-> We need to do both.
-> 
-> "platform" needs to be the default on ACPI-enabled platforms because
-> when "shutdown" is used, wakeup devices that function from S4
-> but fail to function from S5 are unavailable.
-> 
-> Further, if somebody chooses to use "shutdown", certainly GPEs
-> need to work when they resume.
+Also, Lenovo may introduce a ThinkPad with more than one internal LCD
+screen in the future.  Or we could have LCD gadgets from ibm with
+backlights connected to the ThinkPad...
 
-Agreed. And rafael's patch is good step forward (in making "platform"
-default). Time to push it to akpm?
-								Pavel
+This patch renames the main backlight device from "ibm" to
+"thinkpad_builtin_screen", which is far more descriptive and future-proof.
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Maybe the backlight devices refering to the built-in screen of laptops
+should even be renamed to just "builtin_screen" on all of the drivers?
+
+Please comment.
+
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Borislav Deianov <borislav@users.sourceforge.net>
+Cc: Holger Macht <hmacht@suse.de>
+Cc: Andy Whitcroft <apw@shadowen.org>
+
+Index: 2.6.18/drivers/acpi/ibm_acpi.c
+===================================================================
+--- 2.6.18.orig/drivers/acpi/ibm_acpi.c
++++ 2.6.18/drivers/acpi/ibm_acpi.c
+@@ -2072,10 +2072,10 @@ static int __init acpi_ibm_init(void)
+ 		}
+ 	}
+ 
+-	ibm_backlight_device = backlight_device_register("ibm", NULL,
++	ibm_backlight_device = backlight_device_register("thinkpad_builtin_screen", NULL,
+ 							 &ibm_backlight_data);
+         if (IS_ERR(ibm_backlight_device)) {
+-		printk(IBM_ERR "Could not register ibm backlight device\n");
++		printk(IBM_ERR "Could not register thinkpad_builtin_screen backlight device\n");
+ 		ibm_backlight_device = NULL;
+ 		acpi_ibm_exit();
+ 	}
