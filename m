@@ -1,89 +1,91 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH -mm] acpi: use list.h API for sub_driver list
-Date: Sun, 29 Oct 2006 13:42:33 +0000
-Message-ID: <20061029134233.GA22902@infradead.org>
-References: <20061028185313.GK9973@localhost> <20061028190254.GA7070@infradead.org> <20061029134003.GC10295@localhost>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 2.6.18-mm2] acpi: add backlight support to the sony_acpi driver
+Date: Sun, 29 Oct 2006 18:50:05 +0100
+Message-ID: <20061029175005.GA3200@elf.ucw.cz>
+References: <20060930190810.30b8737f.alessandro.guido@gmail.com> <200610170145.03779.luming.yu@gmail.com> <20061025070713.GF5851@elf.ucw.cz> <200610280124.57212.luming.yu@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pentafluge.infradead.org ([213.146.154.40]:15806 "EHLO
-	pentafluge.infradead.org") by vger.kernel.org with ESMTP
-	id S965221AbWJ2Nmg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Oct 2006 08:42:36 -0500
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:26518 "EHLO amd.ucw.cz")
+	by vger.kernel.org with ESMTP id S965316AbWJ2RvS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Oct 2006 12:51:18 -0500
 Content-Disposition: inline
-In-Reply-To: <20061029134003.GC10295@localhost>
+In-Reply-To: <200610280124.57212.luming.yu@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Akinobu Mita <akinobu.mita@gmail.com>, Christoph Hellwig <hch@infradead.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
+To: Luming Yu <luming.yu@gmail.com>
+Cc: Matt Domsch <Matt_Domsch@dell.com>, len.brown@intel.com, Richard Hughes <hughsient@gmail.com>, Andrew Morton <akpm@osdl.org>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr
 
-On Sun, Oct 29, 2006 at 10:40:03PM +0900, Akinobu Mita wrote:
-> On Sat, Oct 28, 2006 at 08:02:54PM +0100, Christoph Hellwig wrote:
-> > Any chance to just switch the driver to use the list.h APIs instead
-> > of opencoding lists?
-> 
-> Subject: [PATCH -mm] acpi: use list.h API for sub_driver list
-> 
-> Use the list.h APIs instead of opencoding lists.
+Hi!
 
-Maybe it's just me but I don't see a place where we actually ever
-iterate this list.  Len, do you plan to introduce users of the list anytime
-soon?  In that case the patch below looks good to me, else we should just
-rip it out completely.
-
-> Cc: Len Brown <len.brown@intel.com>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> > Some whitespace is not okay there...
+> > 									Pavel
 > 
-> Index: work-fault-inject/drivers/acpi/pci_root.c
-> ===================================================================
-> --- work-fault-inject.orig/drivers/acpi/pci_root.c
-> +++ work-fault-inject/drivers/acpi/pci_root.c
-> @@ -65,17 +65,14 @@ struct acpi_pci_root {
->  
->  static LIST_HEAD(acpi_pci_roots);
->  
-> -static struct acpi_pci_driver *sub_driver;
-> +static LIST_HEAD(sub_driver);
->  
->  int acpi_pci_register_driver(struct acpi_pci_driver *driver)
->  {
->  	int n = 0;
->  	struct list_head *entry;
->  
-> -	struct acpi_pci_driver **pptr = &sub_driver;
-> -	while (*pptr)
-> -		pptr = &(*pptr)->next;
-> -	*pptr = driver;
-> +	list_add_tail(&driver->list, &sub_driver);
->  
->  	if (!driver->add)
->  		return 0;
-> @@ -96,14 +93,7 @@ void acpi_pci_unregister_driver(struct a
->  {
->  	struct list_head *entry;
->  
-> -	struct acpi_pci_driver **pptr = &sub_driver;
-> -	while (*pptr) {
-> -		if (*pptr == driver)
-> -			break;
-> -		pptr = &(*pptr)->next;
-> -	}
-> -	BUG_ON(!*pptr);
-> -	*pptr = (*pptr)->next;
-> +	list_del(&driver->list);
->  
->  	if (!driver->remove)
->  		return;
-> Index: work-fault-inject/include/linux/acpi.h
-> ===================================================================
-> --- work-fault-inject.orig/include/linux/acpi.h
-> +++ work-fault-inject/include/linux/acpi.h
-> @@ -480,7 +480,7 @@ void acpi_penalize_isa_irq(int irq, int 
->  void acpi_pci_irq_disable (struct pci_dev *dev);
->  
->  struct acpi_pci_driver {
-> -	struct acpi_pci_driver *next;
-> +	struct list_head list;
->  	int (*add)(acpi_handle handle);
->  	void (*remove)(acpi_handle handle);
->  };
----end quoted text---
+> updated version.
+
+> index 27597c5..1a18cdb 100644
+> --- a/drivers/video/backlight/backlight.c
+> +++ b/drivers/video/backlight/backlight.c
+> @@ -190,7 +190,7 @@ static int fb_notifier_callback(struct n
+>   * Creates and registers new backlight class_device. Returns either an
+>   * ERR_PTR() or a pointer to the newly allocated device.
+>   */
+> -struct backlight_device *backlight_device_register(const char *name, void *devdata,
+> +struct backlight_device *backlight_device_register(const char *name,struct device *dev,  void *devdata,
+>  						   struct
+
+80-columns, and fix the whitespace, please.
+
+> --- /dev/null
+> +++ b/drivers/video/output.c
+> @@ -0,0 +1,110 @@
+> +/*
+> + * Video output switch support
+> + */
+
+I guess this one needs copyright/GPL.
+
+> +	struct output_device *new_dev;
+> +	int	ret_code = 0;
+
+Indentation is wrong where... 
+
+> +	new_dev = (struct output_device *) kzalloc( sizeof(struct
+output_device), GFP_KERNEL);
+
+Cast should not be needed.
+
+> +	strlcpy(new_dev->class_dev.class_id, name, KOBJ_NAME_LEN);
+> +	class_set_devdata(&new_dev->class_dev, devdata);
+> +	ret_code = class_device_register(&new_dev->class_dev);
+> +	if (ret_code){
+
+") {", please.
+
+> +		kfree (new_dev);
+
+..and no space between kfree and its arguments.
+
+
+> @@ -0,0 +1,27 @@
+> +The output sysfs class driver is to provide video output abstract layer that can be used to hook platform specific methods to enable/disable video output device through common sysfs interface.
+> +
+
+80-columns, please. And some title would be nice.
+
+> @@ -141,11 +144,11 @@ struct acpi_video_device_cap {
+>  	u8 _ADR:1;		/*Return the unique ID */
+>  	u8 _BCL:1;		/*Query list of brightness control levels supported */
+>  	u8 _BCM:1;		/*Set the brightness level */
+> +	u8 _BQC:1;		/*Get current brightness level */
+>  	u8 _DDC:1;		/*Return the EDID for this device */
+>  	u8 _DCS:1;		/*Return status of output device */
+>  	u8 _DGS:1;		/*Query graphics state */
+>  	u8 _DSS:1;		/*Device state set */
+
+It is nicer to have space between /* and comment.
+								Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
