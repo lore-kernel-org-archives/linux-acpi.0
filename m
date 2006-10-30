@@ -1,90 +1,63 @@
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Subject: [patch] acpi: use mutex instead of spinlock in dock driver
-Date: Mon, 30 Oct 2006 11:18:45 -0800
-Message-ID: <20061030111845.7fdb6d37.kristen.c.accardi@intel.com>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: Re: 2.6.19-rc3: known unfixed regressions (v3)
+Date: Mon, 30 Oct 2006 19:35:22 +0100
+Message-ID: <20061030183522.GL27968@stusta.de>
+References: <20061029231358.GI27968@stusta.de> <20061030135625.GB1601@mellanox.co.il> <45462591.7020200@ce.jp.nec.com> <Pine.LNX.4.64.0610300834060.25218@g5.osdl.org> <454637BE.6090309@ce.jp.nec.com> <Pine.LNX.4.64.0610300953150.25218@g5.osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:4144 "EHLO mga03.intel.com")
-	by vger.kernel.org with ESMTP id S1751694AbWJ3SSe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 30 Oct 2006 13:18:34 -0500
+Received: from mailout.stusta.mhn.de ([141.84.69.5]:20242 "HELO
+	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
+	id S1030330AbWJ3SfX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 30 Oct 2006 13:35:23 -0500
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0610300953150.25218@g5.osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, len.brown@intel.com
+To: Linus Torvalds <torvalds@osdl.org>
+Cc: Jun'ichi Nomura <j-nomura@ce.jp.nec.com>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Martin Lorenz <martin@lorenz.eu.org>, Pavel Machek <pavel@suse.cz>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, len.brown@intel.com, linux-acpi@vger.kernel.org, linux-pm@osdl.org, "Randy.Dunlap" <rdunlap@xenotime.net>
 
-http://bugzilla.kernel.org/show_bug.cgi?id=7303
+On Mon, Oct 30, 2006 at 10:16:34AM -0800, Linus Torvalds wrote:
+>...
+> I assume that "compile the kernel" just triggers some magic ACPI event 
+> (probably fan-related due to heat), and I wonder if the bisection faked 
+> you out because once you get "close enough" the differences are small 
+> enough that the kernel compile is quick and the heat event doesn't 
+> actually trigger?
+> 
+> See what I'm saying? Maybe the act of bisecting itself changed the 
+> results, and then when you just revert the patch, you end up in the same 
+> situation: you only recompile a small part (you only recompile that 
+> particular file), and the problem doesn't occur, so you'd think that the 
+> revert "fixed" it.
+> 
+> If it's heat-related, it should probably trigger by anything that does a 
+> lot of CPU (and perhaps disk) accesses, not just kernel builds. It might 
+> be good to try to find another test-case for it than a kernel recompile, 
+> one that doesn't depend on how much changed in the kernel..
 
-Use a mutex instead of a spinlock for locking the
-hotplug list because we need to call into the acpi
-subsystem which might sleep.
+Martin's original bug report stated "now I loose ACPI events after 
+suspend/resume. not every time, but roughly 3 out of 4 times."
+This seems to support your theory.
 
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
----
- drivers/acpi/dock.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+But considering that two people have independently reported this as a 
+2.6.19-rc regression for similar hardware (Michael for a T60 and Martin 
+for an X60), a problem in the kernel seems to be involved.
 
---- 2.6-git.orig/drivers/acpi/dock.c
-+++ 2.6-git/drivers/acpi/dock.c
-@@ -44,7 +44,7 @@ struct dock_station {
- 	unsigned long last_dock_time;
- 	u32 flags;
- 	spinlock_t dd_lock;
--	spinlock_t hp_lock;
-+	struct mutex hp_lock;
- 	struct list_head dependent_devices;
- 	struct list_head hotplug_devices;
- };
-@@ -114,9 +114,9 @@ static void
- dock_add_hotplug_device(struct dock_station *ds,
- 			struct dock_dependent_device *dd)
- {
--	spin_lock(&ds->hp_lock);
-+	mutex_lock(&ds->hp_lock);
- 	list_add_tail(&dd->hotplug_list, &ds->hotplug_devices);
--	spin_unlock(&ds->hp_lock);
-+	mutex_unlock(&ds->hp_lock);
- }
- 
- /**
-@@ -130,9 +130,9 @@ static void
- dock_del_hotplug_device(struct dock_station *ds,
- 			struct dock_dependent_device *dd)
- {
--	spin_lock(&ds->hp_lock);
-+	mutex_lock(&ds->hp_lock);
- 	list_del(&dd->hotplug_list);
--	spin_unlock(&ds->hp_lock);
-+	mutex_unlock(&ds->hp_lock);
- }
- 
- /**
-@@ -295,7 +295,7 @@ static void hotplug_dock_devices(struct 
- {
- 	struct dock_dependent_device *dd;
- 
--	spin_lock(&ds->hp_lock);
-+	mutex_lock(&ds->hp_lock);
- 
- 	/*
- 	 * First call driver specific hotplug functions
-@@ -317,7 +317,7 @@ static void hotplug_dock_devices(struct 
- 		else
- 			dock_create_acpi_device(dd->handle);
- 	}
--	spin_unlock(&ds->hp_lock);
-+	mutex_unlock(&ds->hp_lock);
- }
- 
- static void dock_event(struct dock_station *ds, u32 event, int num)
-@@ -625,7 +625,7 @@ static int dock_add(acpi_handle handle)
- 	INIT_LIST_HEAD(&dock_station->dependent_devices);
- 	INIT_LIST_HEAD(&dock_station->hotplug_devices);
- 	spin_lock_init(&dock_station->dd_lock);
--	spin_lock_init(&dock_station->hp_lock);
-+	mutex_init(&dock_station->hp_lock);
- 	ATOMIC_INIT_NOTIFIER_HEAD(&dock_notifier_list);
- 
- 	/* Find dependent devices */
+Martin, Michael, can you send complete "dmesg -s 1000000" for both 
+2.6.18.1 and a non-working 2.6.19-rc kernel after resume?
+I don't have high hopes, but perhaps looking at the dmesg and/or 
+diff'ing them might give a hint.
+
+> 		Linus
+
+cu
+Adrian
+
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
+
