@@ -1,50 +1,50 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: 2.6.19-rc3-mm1 - udev doesn't work (was: ATI SATA controller
- not detected)
-Date: Mon, 30 Oct 2006 23:58:50 -0800
-Message-ID: <20061030235850.cb3a40ed.akpm@osdl.org>
-References: <20061029160002.29bb2ea1.akpm@osdl.org>
-	<200610310829.31554.rjw@sisk.pl>
-	<20061030234008.51da7d9a.akpm@osdl.org>
-	<200610310848.02739.rjw@sisk.pl>
+From: Martin Lorenz <martin@lorenz.eu.org>
+Subject: Re: 2.6.19-rc3: known unfixed regressions (v3)
+Date: Tue, 31 Oct 2006 13:47:47 +0100
+Message-ID: <20061031124747.GG27390@gimli>
+References: <20061029231358.GI27968@stusta.de> <20061030135625.GB1601@mellanox.co.il> <45462591.7020200@ce.jp.nec.com> <Pine.LNX.4.64.0610300834060.25218@g5.osdl.org> <454637BE.6090309@ce.jp.nec.com> <Pine.LNX.4.64.0610300953150.25218@g5.osdl.org> <20061030183522.GL27968@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:33930 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1422798AbWJaH7T (ORCPT
+Received: from holoclan.de ([62.75.158.126]:55248 "EHLO mail.holoclan.de")
+	by vger.kernel.org with ESMTP id S1423143AbWJaMvd (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 31 Oct 2006 02:59:19 -0500
-In-Reply-To: <200610310848.02739.rjw@sisk.pl>
+	Tue, 31 Oct 2006 07:51:33 -0500
+Content-Disposition: inline
+In-Reply-To: <20061030183522.GL27968@stusta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Greg KH <greg@kroah.com>, Dave Jones <davej@redhat.com>, linux-kernel@vger.kernel.org, Jeff Garzik <jeff@garzik.org>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Linus Torvalds <torvalds@osdl.org>, Jun'ichi Nomura <j-nomura@ce.jp.nec.com>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Pavel Machek <pavel@suse.cz>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, len.brown@intel.com, linux-acpi@vger.kernel.org, linux-pm@osdl.org, "Randy.Dunlap" <rdunlap@xenotime.net>
 
-On Tue, 31 Oct 2006 08:48:01 +0100
-"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
-
-> > > It's one of these:
-> > > 
-> > > git-acpi.patch
-> > > git-acpi-fixup.patch
-> > > git-acpi-more-build-fixes.patch
-> > > 
-> > 
-> > You might need to resend the original report so the acpi guys can see it.
+On Mon, Oct 30, 2006 at 07:35:22PM +0100, Adrian Bunk wrote:
+> On Mon, Oct 30, 2006 at 10:16:34AM -0800, Linus Torvalds wrote:
+[...]
+> Martin, Michael, can you send complete "dmesg -s 1000000" for both 
+> 2.6.18.1 and a non-working 2.6.19-rc kernel after resume?
+> I don't have high hopes, but perhaps looking at the dmesg and/or 
+> diff'ing them might give a hint.
 > 
-> Okay, I will.
+there are quite a few outputs from different kernels on my webpage
+www.lorenz.eu.org/~mlo/kernel/?C=M;O=D
 
-Thanks.
+I hope I can go deeper into that tonight, but at the moment I can't promise
+anything.
 
-> > Meanwhile, I'll have to drop the acpi tree.
-> 
-> Well, I'd prefer to find the offending commit within the tree, as the majority
-> of changes look pretty innocent.  Are the commits available somewhere as
-> individual patches?
 
-git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git#test
+gruss
+  mlo
+--
+Dipl.-Ing. Martin Lorenz
 
-I've not had much success persuading git to emit a series of applyable
-patches.
+            They that can give up essential liberty 
+	    to obtain a little temporary safety 
+	    deserve neither liberty nor safety.
+                                   Benjamin Franklin
 
+please encrypt your mail to me
+GnuPG key-ID: F1AAD37D
+get it here:
+http://blackhole.pca.dfn.de:11371/pks/lookup?op=get&search=0xF1AAD37D
+
+ICQ UIN: 33588107
