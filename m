@@ -1,84 +1,58 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Subject: RE: ia64 acpi-cpufreq driver
-Date: Wed, 1 Nov 2006 10:30:21 -0800
-Message-ID: <EB12A50964762B4D8111D55B764A8454D03557@scsmsx413.amr.corp.intel.com>
+From: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
+Subject: Re: udev broken by recent ACPI git commits
+Date: Wed, 01 Nov 2006 22:27:44 +0300
+Message-ID: <4548F530.3000206@linux.intel.com>
+References: <200611010004.28483.rjw@sisk.pl> <200611011147.42498.rjw@sisk.pl> <45489B3E.5000609@linux.intel.com> <200611011844.30280.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:58434 "EHLO mga09.intel.com")
-	by vger.kernel.org with ESMTP id S2992711AbWKASaX convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 1 Nov 2006 13:30:23 -0500
-Content-class: urn:content-classes:message
+Received: from mga05.intel.com ([192.55.52.89]:831 "EHLO
+	fmsmga101.fm.intel.com") by vger.kernel.org with ESMTP
+	id S2992743AbWKAT17 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 1 Nov 2006 14:27:59 -0500
+In-Reply-To: <200611011844.30280.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Robert Moore <robert.moore@intel.com>, Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>, Andrew Morton <akpm@osdl.org>
 
- 
+Rafael,
 
->-----Original Message-----
->From: Bjorn Helgaas [mailto:bjorn.helgaas@hp.com] 
->Sent: Thursday, October 26, 2006 8:30 AM
->To: Pallipadi, Venkatesh
->Cc: linux-acpi@vger.kernel.org; linux-ia64@vger.kernel.org
->Subject: Re: ia64 acpi-cpufreq driver
->> I think having 
->> separate code, even if there is some amount of duplication 
->is there, is
->> better in this case. The reasons:
->> - i386 acpi-cpufreq code has support for both IO port and FFH. Please
->> refer to arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c in 
->2.6.19-rc2-mm2,
->> which is a lot different from current git.
->> - FFH in i386 works in a different way from IPF. Specifically,
->> PERF_STATUS is just a register read, and hardware 
->performance feedback
->> is by using different APERF/MPERF MSR. But, in IPF it is done through
->> passing a different type parameter to same PAL_GET_PSTATE 
->calls (will be
->> adding this to IPF driver soon).
->
->Well, of course FFH would be *implemented* differently on x86
->than ia64!  But the layout of the FFH address space, which
->essentially determines the semantics of FFH, should be the
->same for all architectures (though somebody seems to have
->forgotten to specify that layout).
->
+I don't see what is wrong with failure log, do you?
+If only audit init number looks too big, did you try to disable it (audit)?
+< audit(1162401734.092:1): initialized
+---
+> audit(18446744012389200479.076:1): initialized
+289,290c291,292
+< ata1: SATA max UDMA/100 cmd 0xFFFFC2000000C080 ctl 0xFFFFC2000000C08A bmdma 0xFFFFC2000000C000 irq 16
+< ata2: SATA max UDMA/100 cmd 0xFFFFC2000000C0C0 ctl 0xFFFFC2000000C0CA bmdma 0xFFFFC2000000C008 irq 16
+---
+> ata1: SATA max UDMA/100 cmd 0xFFFFC20000020080 ctl 0xFFFFC2000002008A bmdma 0xFFFFC20000020000 irq 16
+> ata2: SATA max UDMA/100 cmd 0xFFFFC200000200C0 ctl 0xFFFFC200000200CA bmdma 0xFFFFC20000020008 irq 16
+Addresses for disk seem to be different too...
 
-What I meant is, way FFH address space is defined and used is not
-totally 
-same across i386 and ia64. Specifically, FFH is only used in definition
-of 
-_PCT status and control objects and a FFH driver can be useful there.
-But,
-Hardware feedback of current/average frequency over a period of time 
-(which does not have FFH object in ACPI) can also use some interface 
-which overlap with interface that FFH driver is using. In the sense that
-There is no clear distinction on the scope of this FFH driver.
-Also i386 uses FFH for both C-states and P-states where as IA64 uses it
-only for P-states today.
-
-All this issues can be resolved once we have a definition of this FFH
-scope.
-I guess we need to revisit once we have the FFH related documentation
-for IA64
-(which should happen soon).
-
-But, having seen the undue complications we are having in i386 world
-with 
-different drivers (SYSTEM_IO and FFH drivers) and stuff my feeling at
-this
-point is, it will just add more overhead due to abstraction than the
-commonality in code that it is going to bring. I mean, all the cpufreq
-and
-ACPI code are already getting shared across architectures today. So,
-only 
-thing this new abstraction is going to make common across archs is
-registering and deregistering with ACPI and cpufreq.
-
-
-Thanks,
-Venki
+Regards,
+	Alex.
+Rafael J. Wysocki wrote:
+> Hi,
+> 
+> On Wednesday, 1 November 2006 14:03, Alexey Starikovskiy wrote:
+>> Rafael,
+>>
+>> Is it possible to get any log from failed and normal boot?
+> 
+> Attached are dmesg outputs for both cases.
+> 
+> The good one is 2.6.19-rc3 with
+> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/test/2.6.19/acpi-test-20060707-2.6.19-rc3.diff.gz
+> applied.
+> 
+> The failing one is 2.6.19-rc3 with
+> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/test/2.6.19/acpi-acpica-20061011-2.6.19-rc3.diff.gz
+> applied.
+> 
+> Greetings,
+> Rafael
+> 
+> 
