@@ -1,118 +1,52 @@
-From: Len Brown <len.brown@intel.com>
-Subject: Re: udev broken by recent ACPI git commits
-Date: Wed, 1 Nov 2006 00:16:24 -0500
-Message-ID: <200611010016.25103.len.brown@intel.com>
-References: <200611010004.28483.rjw@sisk.pl>
-Reply-To: Len Brown <lenb@kernel.org>
+From: Linus Torvalds <torvalds@osdl.org>
+Subject: Re: 2.6.19-rc <-> ThinkPads
+Date: Tue, 31 Oct 2006 21:26:12 -0800 (PST)
+Message-ID: <Pine.LNX.4.64.0610312123320.25218@g5.osdl.org>
+References: <20061029231358.GI27968@stusta.de>
+	<20061101030126.GE27968@stusta.de>
+	<200610312215.44454.len.brown@intel.com>
+	<200611010611.30445.earny@net4u.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:41114 "EHLO hera.kernel.org")
-	by vger.kernel.org with ESMTP id S1946063AbWKAFOI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Nov 2006 00:14:08 -0500
-In-Reply-To: <200611010004.28483.rjw@sisk.pl>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.osdl.org>
+In-Reply-To: <200611010611.30445.earny@net4u.de>
+List-Unsubscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
+List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.osdl.org>
+List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
+List-Subscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.osdl.org
+Errors-To: linux-pm-bounces@lists.osdl.org
+To: Ernst Herzberg <earny@net4u.de>
+Cc: Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org, linux-pm@osdl.org, "Michael S. Tsirkin" <mst@mellanox.co.il>, Hugh Dickins <hugh@veritas.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Martin Lorenz <martin@lorenz.eu.org>, Adrian Bunk <bunk@stusta.de>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org, Robert Moore <robert.moore@intel.com>, Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>, Andrew Morton <akpm@osdl.org>
 
-On Tuesday 31 October 2006 18:04, Rafael J. Wysocki wrote:
 
-> One of the following commits out of the git-acpi tree breaks udev on my box
-> (HPC nx6325 w/ 64-bit SUSE 10.1):
 
-The good news is that you've isolated the issue to the ACPICA branch,
-and exonerated the other patches in the tree.
+On Wed, 1 Nov 2006, Ernst Herzberg wrote:
+> =
 
-The bad news is that the ACPICA branch is 90% of the tree:-)
+> still bisecting, will report the result.
 
-It would be helpful to know if you see the same issue in 32-bit mode --
-though I understand that may not be trivial for you to test.
+Figuring out what caused an apparent change of behaviour is definitely a =
 
-> 47636d8f011b8e709d4c10c4fbd66e0226380544
-> 88c108e4c156cdf77d551368ecc84280e59d5681
-> 3adafe97513e6e53283002b07f16c8b6666f5699
-> 2d23bd8bec6ce95b20cd175d450943d13c21db1f
-> 55dda781f6788411ed629e205c74f173959ceaf2
-> ddc4d66d74f18a6695ee0f425a104aa5adc3f7ae
+good idea - it might give us some clue to what really is going on.
 
-> Namely, if I boot the kernel with these patches applied, udev is unable to
-> create the device special files for /dev/sda and its partitions, so I can't
-> even mount the root fs.
+(Or it might not. Sometimes the patch that triggers changes really doesn't =
 
-Here are the comments for the above.
-While we tried very hard to split individual commits
-into individual patches, some of these changes are quite
-large and it may not be practical narrow further via bisect
-due to earlier patches needing subsequent fixes.
+seem to have anything to do with anything, and it literally was just a =
 
-commit ddc4d66d74f18a6695ee0f425a104aa5adc3f7ae
-Author: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
-Date:   Thu Oct 26 16:02:20 2006 +0400
+latent bug that just happened to be exposed by something that had nothing =
 
-    ACPICA: make new ACPICA table code work in Linux
+to do with anything at all but perhaps timing. But that's pretty rare in =
 
-    Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
+the end. It happens, but it's definitely not the common case at all, and I =
 
-commit 55dda781f6788411ed629e205c74f173959ceaf2
-Author: Robert Moore <robert.moore@intel.com>
-Date:   Thu Oct 26 16:02:19 2006 +0400
+think it's great that you're bisecting even if there is a possibility =
 
-    ACPICA: Lint changes
+that we'll be left with a big "Huh? Whaa?" as the end result ;^)
 
-    Lint changes
-    Move RSDT/XSDT pointer extraction to separate function
-    Warning on 32-bit platforms if XSDT pointers use more than 32 bits.
-
-    Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 2d23bd8bec6ce95b20cd175d450943d13c21db1f
-Author: Robert Moore <robert.moore@intel.com>
-Date:   Thu Oct 26 16:02:19 2006 +0400
-
-    ACPICA: Fix for FADT conversion in 64-bit mode
-
-    Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 3adafe97513e6e53283002b07f16c8b6666f5699
-Author: Robert Moore <robert.moore@intel.com>
-Date:   Thu Oct 26 16:02:19 2006 +0400
-
-    ACPICA: Update comments for individual table fields
-
-    comments only
-
-    Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 88c108e4c156cdf77d551368ecc84280e59d5681
-Author: Robert Moore <robert.moore@intel.com>
-Date:   Thu Oct 26 16:02:19 2006 +0400
-
-    ACPICA: misc fixes for new Table Manager:
-
-    Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-commit 47636d8f011b8e709d4c10c4fbd66e0226380544
-Author: Robert Moore <robert.moore@intel.com>
-Date:   Thu Oct 26 16:02:19 2006 +0400
-
-    ACPICA: Implement simplified Table Manager
-
-    The Table Manager component has been completely
-    redesigned and reimplemented. The new design is much
-    simpler, and reduces the overall code and data size of
-    the kernel-resident ACPICA by approximately 5%. Also,
-    it is now possible to obtain the ACPI tables very early
-    during kernel initialization, even before dynamic memory
-    management is initialized.
-
-    Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
+		Linus
