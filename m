@@ -1,44 +1,118 @@
-From: Ernst Herzberg <earny@net4u.de>
-Subject: Re: 2.6.19-rc <-> ThinkPads
-Date: Wed, 1 Nov 2006 06:11:27 +0100
-Message-ID: <200611010611.30445.earny@net4u.de>
-References: <20061029231358.GI27968@stusta.de> <20061101030126.GE27968@stusta.de> <200610312215.44454.len.brown@intel.com>
+From: Len Brown <len.brown@intel.com>
+Subject: Re: udev broken by recent ACPI git commits
+Date: Wed, 1 Nov 2006 00:16:24 -0500
+Message-ID: <200611010016.25103.len.brown@intel.com>
+References: <200611010004.28483.rjw@sisk.pl>
+Reply-To: Len Brown <lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from moci.net4u.de ([217.7.64.195]:63655 "EHLO moci.net4u.de")
-	by vger.kernel.org with ESMTP id S1423623AbWKAFLt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Nov 2006 00:11:49 -0500
-In-Reply-To: <200610312215.44454.len.brown@intel.com>
+Received: from hera.kernel.org ([140.211.167.34]:41114 "EHLO hera.kernel.org")
+	by vger.kernel.org with ESMTP id S1946063AbWKAFOI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Nov 2006 00:14:08 -0500
+In-Reply-To: <200611010004.28483.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Adrian Bunk <bunk@stusta.de>, Hugh Dickins <hugh@veritas.com>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Pavel Machek <pavel@suse.cz>, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, linux-pm@osdl.org, Martin Lorenz <martin@lorenz.eu.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, Robert Moore <robert.moore@intel.com>, Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>, Andrew Morton <akpm@osdl.org>
 
-On Wednesday 01 November 2006 04:15, Len Brown wrote:
-> The BIOS disables the LAPIC for a reason.
-> A couple of years ago Linux made the mistake of enabling the LAPIC
-> that the BIOS disabled, and all hell broke loose.
-> We fixed that bug about a year ago, but left "lapic"
-> to force it on for those where forcing it to be enabled actually
-> works (eg. some folks want the NMI profiling on their IOAPIC-less  laptop)
->
-> But if you force the lapic to be enabled, you are running the system
-> in a mode not supported by the manufacturer and you are on your own.
->
-> I don't see an indication that this is a bug.
-> If it used to work and it is important to you,
->  then run the old software where it used to work --
-> because chances are good that it worked by accident.
+On Tuesday 31 October 2006 18:04, Rafael J. Wysocki wrote:
 
-Maybe. But why does it boot with AC connected and lapic enabled, bot not if AC 
-is disconnected and lapic enabled? If have no problem to run this laptop 
-without lapic, i don't relly need it. But i wondering that this happens only 
-if the machine runs (by accident:) on battery.
+> One of the following commits out of the git-acpi tree breaks udev on my box
+> (HPC nx6325 w/ 64-bit SUSE 10.1):
 
-still bisecting, will report the result.
+The good news is that you've isolated the issue to the ACPICA branch,
+and exonerated the other patches in the tree.
 
-<earny>
+The bad news is that the ACPICA branch is 90% of the tree:-)
+
+It would be helpful to know if you see the same issue in 32-bit mode --
+though I understand that may not be trivial for you to test.
+
+> 47636d8f011b8e709d4c10c4fbd66e0226380544
+> 88c108e4c156cdf77d551368ecc84280e59d5681
+> 3adafe97513e6e53283002b07f16c8b6666f5699
+> 2d23bd8bec6ce95b20cd175d450943d13c21db1f
+> 55dda781f6788411ed629e205c74f173959ceaf2
+> ddc4d66d74f18a6695ee0f425a104aa5adc3f7ae
+
+> Namely, if I boot the kernel with these patches applied, udev is unable to
+> create the device special files for /dev/sda and its partitions, so I can't
+> even mount the root fs.
+
+Here are the comments for the above.
+While we tried very hard to split individual commits
+into individual patches, some of these changes are quite
+large and it may not be practical narrow further via bisect
+due to earlier patches needing subsequent fixes.
+
+commit ddc4d66d74f18a6695ee0f425a104aa5adc3f7ae
+Author: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
+Date:   Thu Oct 26 16:02:20 2006 +0400
+
+    ACPICA: make new ACPICA table code work in Linux
+
+    Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 55dda781f6788411ed629e205c74f173959ceaf2
+Author: Robert Moore <robert.moore@intel.com>
+Date:   Thu Oct 26 16:02:19 2006 +0400
+
+    ACPICA: Lint changes
+
+    Lint changes
+    Move RSDT/XSDT pointer extraction to separate function
+    Warning on 32-bit platforms if XSDT pointers use more than 32 bits.
+
+    Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 2d23bd8bec6ce95b20cd175d450943d13c21db1f
+Author: Robert Moore <robert.moore@intel.com>
+Date:   Thu Oct 26 16:02:19 2006 +0400
+
+    ACPICA: Fix for FADT conversion in 64-bit mode
+
+    Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 3adafe97513e6e53283002b07f16c8b6666f5699
+Author: Robert Moore <robert.moore@intel.com>
+Date:   Thu Oct 26 16:02:19 2006 +0400
+
+    ACPICA: Update comments for individual table fields
+
+    comments only
+
+    Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 88c108e4c156cdf77d551368ecc84280e59d5681
+Author: Robert Moore <robert.moore@intel.com>
+Date:   Thu Oct 26 16:02:19 2006 +0400
+
+    ACPICA: misc fixes for new Table Manager:
+
+    Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 47636d8f011b8e709d4c10c4fbd66e0226380544
+Author: Robert Moore <robert.moore@intel.com>
+Date:   Thu Oct 26 16:02:19 2006 +0400
+
+    ACPICA: Implement simplified Table Manager
+
+    The Table Manager component has been completely
+    redesigned and reimplemented. The new design is much
+    simpler, and reduces the overall code and data size of
+    the kernel-resident ACPICA by approximately 5%. Also,
+    it is now possible to obtain the ACPI tables very early
+    during kernel initialization, even before dynamic memory
+    management is initialized.
+
+    Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
