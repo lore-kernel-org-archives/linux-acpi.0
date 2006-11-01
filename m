@@ -1,82 +1,60 @@
-From: Stefan Seyfried <seife@suse.de>
-Subject: Re: [PATCH] swsusp: Use platform mode by default
-Date: Wed, 1 Nov 2006 13:45:01 +0100
-Message-ID: <20061101124501.GE10269@suse.de>
-References: <200611011323.14830.rjw@sisk.pl>
+From: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
+Subject: Re: udev broken by recent ACPI git commits
+Date: Wed, 01 Nov 2006 16:03:58 +0300
+Message-ID: <45489B3E.5000609@linux.intel.com>
+References: <200611010004.28483.rjw@sisk.pl> <200611010016.25103.len.brown@intel.com> <200611010335.02948.len.brown@intel.com> <200611011147.42498.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns1.suse.de ([195.135.220.2]:23772 "EHLO mx1.suse.de")
-	by vger.kernel.org with ESMTP id S1752078AbWKAMpZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Nov 2006 07:45:25 -0500
-Content-Disposition: inline
-In-Reply-To: <200611011323.14830.rjw@sisk.pl>
+Received: from mga07.intel.com ([143.182.124.22]:14245 "EHLO
+	azsmga101.ch.intel.com") by vger.kernel.org with ESMTP
+	id S1752110AbWKANEt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 1 Nov 2006 08:04:49 -0500
+In-Reply-To: <200611011147.42498.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Andrew Morton <akpm@osdl.org>, Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-acpi@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Robert Moore <robert.moore@intel.com>, Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>, Andrew Morton <akpm@osdl.org>
 
-On Wed, Nov 01, 2006 at 01:23:14PM +0100, Rafael J. Wysocki wrote:
-> It has been reported that on some systems the functionality after a r=
-esume
-> from disk is limited if the system is simply powered off during the s=
-uspend
-> instead of using the ACPI S4 suspend (aka platform mode).
->=20
-> Unfortunately the default is currently to power off the system during=
- the
-> suspend so the users of these systems experience problems after the r=
-esume
-> if they don't switch to the platform mode explicitly.  This patch mak=
-es swsusp
-> use the platform mode by default to avoid such situations.
->=20
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> ---
+Refael,
 
-Acked-by: Stefan Seyfried <seife@suse.de>
+Is it possible to get any log from failed and normal boot?
 
-Some background: i have put this as a default (from userspace, via
-echo "platform" > disk) since at least two years (SuSE 9.3, probably
-earlier) and have received one single bugreport where using "shutdown"
-mode fixed a problem. I had much more reports from users that upgraded
-from 9.1 and did not get the new setting about problems with "shutdown"
-which were solved by changing to "platform", so from my experience,
-"platform" mode is actually working better than "shutdown" mode.
+Thanks,
+	Alex.
 
-Note that shutdown mode will not lead to spectacular failures, but smal=
-l
-annoyances like incorrectly reported AC / battery state etc.
-
-> Index: linux-2.6.19-rc4-mm1/kernel/power/disk.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux-2.6.19-rc4-mm1.orig/kernel/power/disk.c
-> +++ linux-2.6.19-rc4-mm1/kernel/power/disk.c
-> @@ -62,9 +62,11 @@ static void power_down(suspend_disk_meth
-> =20
->  	switch(mode) {
->  	case PM_DISK_PLATFORM:
-> -		kernel_shutdown_prepare(SYSTEM_SUSPEND_DISK);
-> -		error =3D pm_ops->enter(PM_SUSPEND_DISK);
-> -		break;
-> +		if (pm_ops && pm_ops->enter) {
-> +			kernel_shutdown_prepare(SYSTEM_SUSPEND_DISK);
-> +			error =3D pm_ops->enter(PM_SUSPEND_DISK);
-> +			break;
-> +		}
-
-I have never heard of a system that had problems with not-present
-pm_ops->enter, but this extra safety net cannot hurt.
---=20
-Stefan Seyfried
-QA / R&D Team Mobile Devices        |              "Any ideas, John?"
-SUSE LINUX Products GmbH, N=FCrnberg  | "Well, surrounding them's out."=
-=20
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Rafael J. Wysocki wrote:
+> On Wednesday, 1 November 2006 09:35, Len Brown wrote:
+>>>> One of the following commits out of the git-acpi tree breaks udev on my box
+>>>> (HPC nx6325 w/ 64-bit SUSE 10.1):
+>> I've removed the acpica branch from the acpi test tree for now
+>> so it doesn't block testing of unrelated patches.
+>>
+>> Rafael,
+>> Please confirm that linus + the new acpi test tree works:
+>> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git test
+>> here's a plain patch:
+>> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/test/2.6.19/acpi-test-20060707-2.6.19-rc3.diff.gz
+> 
+> Confirmed.
+> 
+>> Please confirm that linus + just the acpica branch fails:
+>> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git acpica
+>> here's a plain patch:
+>> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/test/2.6.19/acpi-acpica-20061011-2.6.19-rc3.diff.gz
+> 
+> Confirmed too.  [Note: It didn't apply cleanly, I had to do one small
+> adjustment of a printk() in arch/x86_64/pci/mmconfig.c]
+> 
+>> Yes, except for a few small changes, this is the moral equivalent of the bisect that you just did.
+> 
+> No big deal. :-)
+> 
+>> But as Andrew has bounced git-acpi.patch out of -mm, it seems prudent to
+>> do this check before asking him to pull it in again.
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
