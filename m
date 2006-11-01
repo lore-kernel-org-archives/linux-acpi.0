@@ -1,35 +1,41 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] swsusp: Use platform mode by default
-Date: Wed, 1 Nov 2006 14:21:14 +0100
-Message-ID: <20061101132114.GB2567@elf.ucw.cz>
-References: <200611011323.14830.rjw@sisk.pl>
+From: Stefan Seyfried <seife@suse.de>
+Subject: Re: 2.6.19-rc <-> ThinkPads
+Date: Wed, 1 Nov 2006 14:50:26 +0100
+Message-ID: <20061101135026.GA25751@suse.de>
+References: <20061029231358.GI27968@stusta.de> <20061101030126.GE27968@stusta.de> <200610312215.44454.len.brown@intel.com> <200611010611.30445.earny@net4u.de> <Pine.LNX.4.64.0610312123320.25218@g5.osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:28555 "EHLO amd.ucw.cz")
-	by vger.kernel.org with ESMTP id S1946870AbWKANV0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Nov 2006 08:21:26 -0500
+Received: from mx2.suse.de ([195.135.220.15]:49616 "EHLO mx2.suse.de")
+	by vger.kernel.org with ESMTP id S1946882AbWKANvB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Nov 2006 08:51:01 -0500
 Content-Disposition: inline
-In-Reply-To: <200611011323.14830.rjw@sisk.pl>
+In-Reply-To: <Pine.LNX.4.64.0610312123320.25218@g5.osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Andrew Morton <akpm@osdl.org>, Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Stefan Seyfried <seife@suse.de>
+To: Linus Torvalds <torvalds@osdl.org>
+Cc: Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org, linux-pm@osdl.org, "Michael S. Tsirkin" <mst@mellanox.co.il>, Hugh Dickins <hugh@veritas.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Martin Lorenz <martin@lorenz.eu.org>, Adrian Bunk <bunk@stusta.de>, Ernst Herzberg <earny@net4u.de>
 
-On Wed 2006-11-01 13:23:14, Rafael J. Wysocki wrote:
-> It has been reported that on some systems the functionality after a resume
-> from disk is limited if the system is simply powered off during the suspend
-> instead of using the ACPI S4 suspend (aka platform mode).
-> 
-> Unfortunately the default is currently to power off the system during the
-> suspend so the users of these systems experience problems after the resume
-> if they don't switch to the platform mode explicitly.  This patch makes swsusp
-> use the platform mode by default to avoid such situations.
-> 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+On Tue, Oct 31, 2006 at 09:26:12PM -0800, Linus Torvalds wrote:
+> (Or it might not. Sometimes the patch that triggers changes really do=
+esn't=20
+> seem to have anything to do with anything, and it literally was just =
+a=20
+> latent bug that just happened to be exposed by something that had not=
+hing=20
+> to do with anything at all but perhaps timing.
 
-ACK.
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Especially when "booting on AC works, but on battery it doesn't", (or t=
+he
+other way round), looking at timing problems seems sane to me.
+--=20
+Stefan Seyfried
+QA / R&D Team Mobile Devices        |              "Any ideas, John?"
+SUSE LINUX Products GmbH, N=FCrnberg  | "Well, surrounding them's out."=
+=20
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
