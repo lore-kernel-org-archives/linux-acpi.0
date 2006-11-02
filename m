@@ -1,24 +1,18 @@
 From: Yu Luming <luming.yu@gmail.com>
 Subject: [patch 5/6] fix comments style in acpi video.c
-Date: Thu, 2 Nov 2006 13:28:31 +0000 (UTC)
-Message-ID: <200611042127.54947.luming.yu@gmail.com>
+Date: Thu, 2 Nov 2006 13:29:17 +0000 (UTC)
+Message-ID: <200611042127.54947.luming.yu__23804.5211336159$1162474157$gmane$org@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nz-out-0102.google.com ([64.233.162.197]:33720 "EHLO
-	nz-out-0102.google.com") by vger.kernel.org with ESMTP
-	id S1752867AbWKBN2O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 2 Nov 2006 08:28:14 -0500
-Received: by nz-out-0102.google.com with SMTP id z3so100398nzf
-        for <linux-acpi@vger.kernel.org>; Thu, 02 Nov 2006 05:28:13 -0800 (PST)
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752873AbWKBN2P@vger.kernel.org>
 Date: Sat, 4 Nov 2006 21:27:54 +0800
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Andrew Morton <akpm@osdl.org>
 Cc: Pavel Machek <pavel@ucw.cz>, len.brown@intel.com, Matt Domsch <Matt_Domsch@dell.com>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr, Richard Hughes <hughsient@gmail.com>
+List-Id: linux-acpi@vger.kernel.org
 
 fix comments style in acpi video.c
 
@@ -96,4 +90,3 @@ index ace21e2..4ad109f 100644
  };
  
  struct acpi_video_device_brightness {
-
