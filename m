@@ -1,14 +1,13 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [patch 2/6] Add display output class support
-Date: Thu, 2 Nov 2006 20:51:17 +0000
-Message-ID: <20061102205117.GA4887@ucw.cz>
-References: <200611042113.56913.luming.yu@gmail.com>
+Subject: Re: [patch 3/6] backlight and output sysfs support for acpi video driver
+Date: Thu, 2 Nov 2006 20:59:55 +0000
+Message-ID: <20061102205954.GB4887@ucw.cz>
+References: <200611042118.08629.luming.yu@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752364AbWKBVWp@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752440AbWKBVWt@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <200611042113.56913.luming.yu@gmail.com>
+In-Reply-To: <200611042118.08629.luming.yu@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Yu Luming <luming.yu@gmail.com>
 Cc: Andrew Morton <akpm@osdl.org>, len.brown@intel.com, Matt Domsch <Matt_Domsch@dell.com>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr, Richard Hughes <hughsient@gmail.com>
@@ -16,40 +15,89 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> Add display output class support
->=20
-> signed-off-by =A0 Luming.yu@gmail.com
+> backlight and output sysfs support for acpi video driver
 
-Hmm, strange characters inside signoff, and I guessthis should be Real
-Name <my@ddress>.
+Yes, using generic interfaces is always nice...
 
-
-> @@ -0,0 +1,129 @@
-> +/*
-> + *  output.c - Display output swither driver
-
-Switcher?
-
-> +static ssize_t video_output_store_state(struct class_device *dev,
-> +	const char *buf,size_t count)
-> +{
-> +	char *endp;
-> +	struct output_device *od =3D to_output_device(dev);
-> +	int request_state =3D simple_strtoul(buf,&endp,0);
-> +	size_t size =3D endp - buf;
+> @@ -482,6 +536,134 @@ acpi_video_bus_DOS(struct acpi_video_bus
+>  	return status;
+>  }
+>  
 > +
-> +        if (*endp && isspace(*endp))
-> +                size++;
-> +        if (size !=3D count)
-> +                return -EINVAL;
+> +/*
+> + * copy & paste some code for acpi_pci_data, acpi_pci_data_handler,acpi_pci_data
+> + * from pci_bind.c
+> + * To-do: write a new API: acpi_pci_get.
+> + */
 
-spaces vs. tabs...
+This comment only(?) serves to confuse me...
 
-> --- /dev/null
-> +++ b/include/linux/output.h
+> +	pathname = kmalloc(ACPI_PATHNAME_MAX, GFP_KERNEL);
+> +	if (!pathname)
+> +		return -ENOMEM;
+> +	memset(pathname, 0, ACPI_PATHNAME_MAX);
 
-I'm not sure if linux/output.h is not little too generic...
+kzalloc()? (More than once in this file).
 
-							Pavel
---=20
+> +	buffer.length = ACPI_PATHNAME_MAX;
+> +	buffer.pointer = pathname;
+> +
+> +	data = kmalloc(sizeof(struct acpi_pci_data), GFP_KERNEL);
+> +	if (!data) {
+> +		kfree(pathname);
+> +		return NULL;
+> +	}
+> +	memset(data, 0, sizeof(struct acpi_pci_data));
+> +
+> +	acpi_get_name(device->handle, ACPI_FULL_PATHNAME, &buffer);
+> +	printk(KERN_INFO PREFIX "finding PCI device [%s]...\n", pathname);
+> +
+> +	/*
+> +	 * Segment & Bus
+> +	 * -------------
+> +	 * These are obtained via the parent device's ACPI-PCI context.
+> +	 */
+> +go_up:
+> +	status = acpi_get_data(device->parent->handle, acpi_pci_data_handler,
+> +			       (void **)&pdata);
+> +	if (ACPI_FAILURE(status) || !pdata || !pdata->bus) {
+> +		struct acpi_device *tmp_dev;
+> +
+> +		tmp_dev = device->parent;
+> +		if (tmp_dev->parent && (tmp_dev->parent->handle != ACPI_ROOT_OBJECT)) {
+> +			device = tmp_dev;
+> +			goto go_up;
+> +		}
+
+Could we use plain old loop here?
+
+> +	printk(KERN_INFO PREFIX "data->dev =%p", &data->dev);
+> +	printk(KERN_INFO PREFIX "data->dev->dev =%p\n", &data->dev->dev);
+
+I doubt this is useful info for non-debugging. dprintk?
+>  
+>  
+> +	data = acpi_pci_get (device->video->device);
+> +        if (!data || !(data->dev)) {
+
+tabs vs. spaces... more than once in this file.
+
+> +		printk(KERN_ERR PREFIX "acpi_video_device:no valid data from acpi_pci_get\n");
+> +		return ;
+
+return; looks more natural.
+
+> @@ -1691,8 +1913,9 @@ static int acpi_video_bus_add(struct acp
+>  	int result = 0;
+>  	acpi_status status = 0;
+>  	struct acpi_video_bus *video = NULL;
+> +        char proc_dir_name[32];
+>  
+> -
+> +	memset(proc_dir_name, 0, 32);
+
+What about '= { 0, };', instead?
+
+						Pavel
+-- 
 Thanks for all the (sleeping) penguins.
