@@ -1,24 +1,18 @@
 From: Yu Luming <luming.yu@gmail.com>
 Subject: [patch 3/6] backlight and output sysfs support for acpi video driver
-Date: Thu, 2 Nov 2006 13:18:57 +0000 (UTC)
-Message-ID: <200611042118.08629.luming.yu@gmail.com>
+Date: Thu, 2 Nov 2006 13:19:20 +0000 (UTC)
+Message-ID: <200611042118.08629.luming.yu__24192.9983058528$1162473560$gmane$org@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.183]:37201 "EHLO
-	py-out-1112.google.com") by vger.kernel.org with ESMTP
-	id S1752843AbWKBNSg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 2 Nov 2006 08:18:36 -0500
-Received: by py-out-1112.google.com with SMTP id a73so101110pye
-        for <linux-acpi@vger.kernel.org>; Thu, 02 Nov 2006 05:18:26 -0800 (PST)
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752834AbWKBNS3@vger.kernel.org>
 Date: Sat, 4 Nov 2006 21:18:08 +0800
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Andrew Morton <akpm@osdl.org>
 Cc: Pavel Machek <pavel@ucw.cz>, len.brown@intel.com, Matt Domsch <Matt_Domsch@dell.com>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr, Richard Hughes <hughsient@gmail.com>
+List-Id: linux-acpi@vger.kernel.org
 
 
 backlight and output sysfs support for acpi video driver
