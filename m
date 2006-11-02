@@ -1,23 +1,17 @@
 From: Yu Luming <luming.yu@gmail.com>
 Subject: [patch 2/6] Add display output class support
-Date: Thu, 2 Nov 2006 13:14:24 +0000 (UTC)
-Message-ID: <200611042113.56913.luming.yu@gmail.com>
+Date: Thu, 2 Nov 2006 13:15:39 +0000 (UTC)
+Message-ID: <200611042113.56913.luming.yu__20725.9960625835$1162473339$gmane$org@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nz-out-0102.google.com ([64.233.162.200]:3823 "EHLO
-	nz-out-0102.google.com") by vger.kernel.org with ESMTP
-	id S1752820AbWKBNOO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Nov 2006 08:14:14 -0500
-Received: by nz-out-0102.google.com with SMTP id z3so97344nzf
-        for <linux-acpi@vger.kernel.org>; Thu, 02 Nov 2006 05:14:14 -0800 (PST)
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752838AbWKBNOs@vger.kernel.org>
 Date: Sat, 4 Nov 2006 21:13:56 +0800
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Andrew Morton <akpm@osdl.org>
 Cc: Pavel Machek <pavel@ucw.cz>, len.brown@intel.com, Matt Domsch <Matt_Domsch@dell.com>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr, Richard Hughes <hughsient@gmail.com>
+List-Id: linux-acpi@vger.kernel.org
 
 
 Add display output class support
@@ -232,8 +226,3 @@ class_dev)
 +	struct output_properties *op);
 +void video_output_unregister(struct output_device *dev);
 +#endif
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
