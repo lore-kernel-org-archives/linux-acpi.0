@@ -1,62 +1,75 @@
-From: Yu Luming <luming.yu@gmail.com>
-Subject: [patch 6/6] fix compile time warning in acpi video.c
-Date: Thu, 2 Nov 2006 13:32:08 +0000 (UTC)
-Message-ID: <200611042130.34677.luming.yu__15364.7646926858$1162474328$gmane$org@gmail.com>
+From: Timo Hoenig <thoenig@nouse.net>
+Subject: Re: [patch 4/6] Add output class document
+Date: Thu, 02 Nov 2006 15:04:29 +0100
+Message-ID: <1162476269.5888.17.camel@nouse.suse.de>
+References: <200611042122.00950.luming.yu@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.182]:23917 "EHLO
-	py-out-1112.google.com") by vger.kernel.org with ESMTP
-	id S1752870AbWKBNbZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Nov 2006 08:31:25 -0500
-Received: by py-out-1112.google.com with SMTP id a73so103042pye
-        for <linux-acpi@vger.kernel.org>; Thu, 02 Nov 2006 05:30:52 -0800 (PST)
-Date: Sat, 4 Nov 2006 21:30:34 +0800
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752886AbWKBOEq@vger.kernel.org>
+In-Reply-To: <200611042122.00950.luming.yu@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yu Luming <luming.yu@gmail.com>
+Cc: Andrew Morton <akpm@osdl.org>, Pavel Machek <pavel@ucw.cz>, len.brown@intel.com, Matt Domsch <Matt_Domsch@dell.com>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr, Richard Hughes <hughsient@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: Pavel Machek <pavel@ucw.cz>, len.brown@intel.com, Matt Domsch <Matt_Domsch@dell.com>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr, Richard Hughes <hughsient@gmail.com>
 
-fix compile time warning in acpi video.c
+Hi,
 
-signed-off-by =A0 Luming.yu@gmail.com
----
-[patch 6/6] fix compile time warning
- video.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+On Sat, 2006-11-04 at 21:22 +0800, Yu Luming wrote:
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 4ad109f..4a2520b 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -560,13 +560,11 @@ static void acpi_pci_data_handler(acpi_h
-=20
- static struct acpi_pci_data * acpi_pci_get (struct acpi_device *device=
-)
- {
--	int result =3D 0;
- 	acpi_status status =3D AE_OK;
- 	struct acpi_pci_data *data =3D NULL;
- 	struct acpi_pci_data *pdata =3D NULL;
- 	char *pathname =3D NULL;
- 	struct acpi_buffer buffer =3D { 0, NULL };
--	acpi_handle handle =3D NULL;
- 	struct pci_dev *dev;
- 	struct pci_bus *bus;
-=20
-@@ -576,7 +574,7 @@ static struct acpi_pci_data * acpi_pci_g
-=20
- 	pathname =3D kmalloc(ACPI_PATHNAME_MAX, GFP_KERNEL);
- 	if (!pathname)
--		return -ENOMEM;
-+		return NULL;
- 	memset(pathname, 0, ACPI_PATHNAME_MAX);
- 	buffer.length =3D ACPI_PATHNAME_MAX;
- 	buffer.pointer =3D pathname;
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/Documentation/video-output.txt b/Documentation/video-output.txt
+> new file mode 100644
+> index 0000000..71b1dba
+> --- /dev/null
+> +++ b/Documentation/video-output.txt
+> @@ -0,0 +1,34 @@
+> +
+> +		Video Output Switcher Control
+> +		~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> +		2006 luming.yu@gmail.com
+> +
+> +The output sysfs class driver is to provide video output abstract layer that 
+> +can be used to hook platform specific methods to enable/disable video output
+> +device through common sysfs interface. For example, on my IBM Thinkpad T42 
+> +aptop, acpi video driver registered its output devices and read/write method
+> +for state with output sysfs class. The user interface under sysfs is :
+
+Rephrased, s/Thinkpad/ThinkPad, s/aptop/laptop, s/acpi/ACPI, kill
+whitespace in front of colon: 
+
+The output sysfs class driver provides an abstract video output layer that 
+can be used to hook platform specific methods to enable/disable video output
+devices through a common sysfs interface. For example, on my IBM ThinkPad T42 
+laptop, the ACPI video driver registers its output devices and read/write methods
+for 'state' with output sysfs class. The user interface under sysfs is:
+
+The last but one sentence still sounds bogus to me, maybe someone else
+has an idea.
+
+> +linux:/sys/class/video_output # tree .
+> +.
+> +|-- CRT0
+> +|   |-- device -> ../../../devices/pci0000:00/0000:00:01.0
+> +|   |-- state
+> +|   |-- subsystem -> ../../../class/video_output
+> +|   `-- uevent
+> +|-- DVI0
+> +|   |-- device -> ../../../devices/pci0000:00/0000:00:01.0
+> +|   |-- state
+> +|   |-- subsystem -> ../../../class/video_output
+> +|   `-- uevent
+> +|-- LCD0
+> +|   |-- device -> ../../../devices/pci0000:00/0000:00:01.0
+> +|   |-- state
+> +|   |-- subsystem -> ../../../class/video_output
+> +|   `-- uevent
+> +`-- TV0
+> +   |-- device -> ../../../devices/pci0000:00/0000:00:01.0
+> +   |-- state
+> +   |-- subsystem -> ../../../class/video_output
+> +   `-- uevent
+> +
+
+Thanks,
+
+   Timo
