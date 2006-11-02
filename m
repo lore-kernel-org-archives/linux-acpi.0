@@ -1,23 +1,17 @@
 From: Yu Luming <luming.yu@gmail.com>
 Subject: [patch 4/6] Add output class document
-Date: Thu, 2 Nov 2006 13:22:51 +0000 (UTC)
-Message-ID: <200611042122.00950.luming.yu@gmail.com>
+Date: Thu, 2 Nov 2006 13:23:10 +0000 (UTC)
+Message-ID: <200611042122.00950.luming.yu__27288.4271842942$1162473790$gmane$org@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wx-out-0506.google.com ([66.249.82.239]:63910 "EHLO
-	wx-out-0506.google.com") by vger.kernel.org with ESMTP
-	id S1752848AbWKBNWS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Nov 2006 08:22:18 -0500
-Received: by wx-out-0506.google.com with SMTP id s14so118173wxc
-        for <linux-acpi@vger.kernel.org>; Thu, 02 Nov 2006 05:22:17 -0800 (PST)
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752863AbWKBNWU@vger.kernel.org>
 Date: Sat, 4 Nov 2006 21:22:00 +0800
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Andrew Morton <akpm@osdl.org>
 Cc: Pavel Machek <pavel@ucw.cz>, len.brown@intel.com, Matt Domsch <Matt_Domsch@dell.com>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr, Richard Hughes <hughsient@gmail.com>
+List-Id: linux-acpi@vger.kernel.org
 
 Add output class document
 
@@ -72,8 +66,3 @@ method
 +   |-- subsystem -> ../../../class/video_output
 +   `-- uevent
 +
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
