@@ -1,75 +1,55 @@
-From: Timo Hoenig <thoenig@nouse.net>
-Subject: Re: [patch 4/6] Add output class document
-Date: Thu, 02 Nov 2006 15:04:29 +0100
-Message-ID: <1162476269.5888.17.camel@nouse.suse.de>
-References: <200611042122.00950.luming.yu@gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [patch 2/6] Add display output class support
+Date: Thu, 2 Nov 2006 20:51:17 +0000
+Message-ID: <20061102205117.GA4887@ucw.cz>
+References: <200611042113.56913.luming.yu@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752886AbWKBOEq@vger.kernel.org>
-In-Reply-To: <200611042122.00950.luming.yu@gmail.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752364AbWKBVWp@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <200611042113.56913.luming.yu@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Yu Luming <luming.yu@gmail.com>
-Cc: Andrew Morton <akpm@osdl.org>, Pavel Machek <pavel@ucw.cz>, len.brown@intel.com, Matt Domsch <Matt_Domsch@dell.com>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr, Richard Hughes <hughsient@gmail.com>
+Cc: Andrew Morton <akpm@osdl.org>, len.brown@intel.com, Matt Domsch <Matt_Domsch@dell.com>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr, Richard Hughes <hughsient@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hi!
 
-On Sat, 2006-11-04 at 21:22 +0800, Yu Luming wrote:
+> Add display output class support
+>=20
+> signed-off-by =A0 Luming.yu@gmail.com
 
-> diff --git a/Documentation/video-output.txt b/Documentation/video-output.txt
-> new file mode 100644
-> index 0000000..71b1dba
+Hmm, strange characters inside signoff, and I guessthis should be Real
+Name <my@ddress>.
+
+
+> @@ -0,0 +1,129 @@
+> +/*
+> + *  output.c - Display output swither driver
+
+Switcher?
+
+> +static ssize_t video_output_store_state(struct class_device *dev,
+> +	const char *buf,size_t count)
+> +{
+> +	char *endp;
+> +	struct output_device *od =3D to_output_device(dev);
+> +	int request_state =3D simple_strtoul(buf,&endp,0);
+> +	size_t size =3D endp - buf;
+> +
+> +        if (*endp && isspace(*endp))
+> +                size++;
+> +        if (size !=3D count)
+> +                return -EINVAL;
+
+spaces vs. tabs...
+
 > --- /dev/null
-> +++ b/Documentation/video-output.txt
-> @@ -0,0 +1,34 @@
-> +
-> +		Video Output Switcher Control
-> +		~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> +		2006 luming.yu@gmail.com
-> +
-> +The output sysfs class driver is to provide video output abstract layer that 
-> +can be used to hook platform specific methods to enable/disable video output
-> +device through common sysfs interface. For example, on my IBM Thinkpad T42 
-> +aptop, acpi video driver registered its output devices and read/write method
-> +for state with output sysfs class. The user interface under sysfs is :
+> +++ b/include/linux/output.h
 
-Rephrased, s/Thinkpad/ThinkPad, s/aptop/laptop, s/acpi/ACPI, kill
-whitespace in front of colon: 
+I'm not sure if linux/output.h is not little too generic...
 
-The output sysfs class driver provides an abstract video output layer that 
-can be used to hook platform specific methods to enable/disable video output
-devices through a common sysfs interface. For example, on my IBM ThinkPad T42 
-laptop, the ACPI video driver registers its output devices and read/write methods
-for 'state' with output sysfs class. The user interface under sysfs is:
-
-The last but one sentence still sounds bogus to me, maybe someone else
-has an idea.
-
-> +linux:/sys/class/video_output # tree .
-> +.
-> +|-- CRT0
-> +|   |-- device -> ../../../devices/pci0000:00/0000:00:01.0
-> +|   |-- state
-> +|   |-- subsystem -> ../../../class/video_output
-> +|   `-- uevent
-> +|-- DVI0
-> +|   |-- device -> ../../../devices/pci0000:00/0000:00:01.0
-> +|   |-- state
-> +|   |-- subsystem -> ../../../class/video_output
-> +|   `-- uevent
-> +|-- LCD0
-> +|   |-- device -> ../../../devices/pci0000:00/0000:00:01.0
-> +|   |-- state
-> +|   |-- subsystem -> ../../../class/video_output
-> +|   `-- uevent
-> +`-- TV0
-> +   |-- device -> ../../../devices/pci0000:00/0000:00:01.0
-> +   |-- state
-> +   |-- subsystem -> ../../../class/video_output
-> +   `-- uevent
-> +
-
-Thanks,
-
-   Timo
+							Pavel
+--=20
+Thanks for all the (sleeping) penguins.
