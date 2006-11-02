@@ -1,66 +1,80 @@
-From: Andy Whitcroft <apw@shadowen.org>
-Subject: Re: 2.6.19-rc3-mm1 - udev doesn't work
-Date: Thu, 02 Nov 2006 02:29:07 +0000
-Message-ID: <454957F3.3020707@shadowen.org>
-References: <20061029160002.29bb2ea1.akpm@osdl.org>	<200610310829.31554.rjw@sisk.pl>	<20061030234008.51da7d9a.akpm@osdl.org>	<200610310848.02739.rjw@sisk.pl> <20061030235850.cb3a40ed.akpm@osdl.org>
+From: Len Brown <len.brown@intel.com>
+Subject: Re: [PATCH] swsusp: Use platform mode by default
+Date: Wed, 1 Nov 2006 22:40:12 -0500
+Message-ID: <200611012240.13412.len.brown@intel.com>
+References: <200611011323.14830.rjw@sisk.pl>
+Reply-To: Len Brown <lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hellhawk.shadowen.org ([80.68.90.175]:35337 "EHLO
-	hellhawk.shadowen.org") by vger.kernel.org with ESMTP
-	id S1750956AbWKBCaQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 1 Nov 2006 21:30:16 -0500
-In-Reply-To: <20061030235850.cb3a40ed.akpm@osdl.org>
+Received: from hera.kernel.org ([140.211.167.34]:64676 "EHLO hera.kernel.org")
+	by vger.kernel.org with ESMTP id S1752625AbWKBDiK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Nov 2006 22:38:10 -0500
+In-Reply-To: <200611011323.14830.rjw@sisk.pl>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Greg KH <greg@kroah.com>, Dave Jones <davej@redhat.com>, linux-kernel@vger.kernel.org, Jeff Garzik <jeff@garzik.org>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Andrew Morton <akpm@osdl.org>, Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-acpi@vger.kernel.org, Stefan Seyfried <seife@suse.de>
 
-Andrew Morton wrote:
-> On Tue, 31 Oct 2006 08:48:01 +0100
-> "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+Applied.
+
+thanks,
+-Len
+
+On Wednesday 01 November 2006 07:23, Rafael J. Wysocki wrote:
+> It has been reported that on some systems the functionality after a resume
+> from disk is limited if the system is simply powered off during the suspend
+> instead of using the ACPI S4 suspend (aka platform mode).
 > 
->>>> It's one of these:
->>>>
->>>> git-acpi.patch
->>>> git-acpi-fixup.patch
->>>> git-acpi-more-build-fixes.patch
->>>>
->>> You might need to resend the original report so the acpi guys can see it.
->> Okay, I will.
+> Unfortunately the default is currently to power off the system during the
+> suspend so the users of these systems experience problems after the resume
+> if they don't switch to the platform mode explicitly.  This patch makes swsusp
+> use the platform mode by default to avoid such situations.
 > 
-> Thanks.
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> ---
+>  kernel/power/disk.c |    8 +++++---
+>  kernel/power/main.c |    2 +-
+>  2 files changed, 6 insertions(+), 4 deletions(-)
 > 
->>> Meanwhile, I'll have to drop the acpi tree.
->> Well, I'd prefer to find the offending commit within the tree, as the majority
->> of changes look pretty innocent.  Are the commits available somewhere as
->> individual patches?
+> Index: linux-2.6.19-rc4-mm1/kernel/power/main.c
+> ===================================================================
+> --- linux-2.6.19-rc4-mm1.orig/kernel/power/main.c
+> +++ linux-2.6.19-rc4-mm1/kernel/power/main.c
+> @@ -29,7 +29,7 @@
+>  DECLARE_MUTEX(pm_sem);
+>  
+>  struct pm_ops *pm_ops;
+> -suspend_disk_method_t pm_disk_mode = PM_DISK_SHUTDOWN;
+> +suspend_disk_method_t pm_disk_mode = PM_DISK_PLATFORM;
+>  
+>  /**
+>   *	pm_set_ops - Set the global power method table. 
+> Index: linux-2.6.19-rc4-mm1/kernel/power/disk.c
+> ===================================================================
+> --- linux-2.6.19-rc4-mm1.orig/kernel/power/disk.c
+> +++ linux-2.6.19-rc4-mm1/kernel/power/disk.c
+> @@ -62,9 +62,11 @@ static void power_down(suspend_disk_meth
+>  
+>  	switch(mode) {
+>  	case PM_DISK_PLATFORM:
+> -		kernel_shutdown_prepare(SYSTEM_SUSPEND_DISK);
+> -		error = pm_ops->enter(PM_SUSPEND_DISK);
+> -		break;
+> +		if (pm_ops && pm_ops->enter) {
+> +			kernel_shutdown_prepare(SYSTEM_SUSPEND_DISK);
+> +			error = pm_ops->enter(PM_SUSPEND_DISK);
+> +			break;
+> +		}
+>  	case PM_DISK_SHUTDOWN:
+>  		kernel_power_off();
+>  		break;
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 > 
-> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git#test
-> 
-> I've not had much success persuading git to emit a series of applyable
-> patches.
-
-git-format-patch can make a patch file for each commit in range, each
-prefixed with a four digit patch number and named similarly to patches
-in -mm:
-
-    git format-patch -o <dir> <from>..<to>
-
-For example:
-
-    0009-DM-kill-bogus-uninit-warning.txt
-    0010-drivers-net-drivers-net-Silence-more-bogosities.txt
-    0011-debug-shared-irqs.txt
-    0012-debug-shared-irqs-kconfig-fix.txt
-    0013-make-frame_pointer-default-y.txt
-
-It can also produce an mbox mailbox:
-
-    git format-patch --stdout <from>..<to>
-
-I've used this second form in combination with a 'mailbomb' exploder to
-extract the patches with a series file.
-
--apw
