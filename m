@@ -1,29 +1,37 @@
-From: Dave Jones <davej@redhat.com>
-Subject: Re: [discuss] Linux 2.6.19-rc4: known unfixed regressions (v2)
-Date: Fri, 3 Nov 2006 10:56:56 -0500
-Message-ID: <20061103155656.GA1000@redhat.com>
-References: <Pine.LNX.4.64.0610302019560.25218@g5.osdl.org> <20061103024132.GG13381@stusta.de> <20061103025623.GB8816@redhat.com> <454AFD01.4080306@linux.intel.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: new ibm-acpi maintainer
+Date: Fri, 3 Nov 2006 13:19:33 -0300
+Message-ID: <20061103161933.GD4257@khazad-dum.debian.net>
+References: <20061102220422.GJ19761@aero.ensim.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753308AbWKCP6H@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:47842 "EHLO
+	out1.smtp.messagingengine.com") by vger.kernel.org with ESMTP
+	id S1753331AbWKCQTj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 3 Nov 2006 11:19:39 -0500
 Content-Disposition: inline
-In-Reply-To: <454AFD01.4080306@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
-Cc: Adrian Bunk <bunk@stusta.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Christian <christiand59@web.de>
+In-Reply-To: <20061102220422.GJ19761@aero.ensim.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Borislav Deianov <borislav@users.sf.net>, Len Brown <len.brown@intel.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Arno Willig <akw@thinkwiki.org>
 
-On Fri, Nov 03, 2006 at 11:25:37AM +0300, Alexey Starikovskiy wrote:
- > Could this be a problem?
- > --------------------
- > ...
- > CONFIG_ACPI_PROCESSOR=m
- > ...
- > CONFIG_X86_POWERNOW_K8=y
+On Thu, 02 Nov 2006, Borislav Deianov wrote:
+> I've handed over ibm-acpi to Henrique de Moraes Holschuh
+> <hmh@hmh.eng.br>, who will be the new maintainer. Henrique has been
+> actively improving ibm-acpi and I trust he'll keep it up to date much
+> better than I have been able to. 
 
-Hmm, possibly.  Christian, does it work again if you set them both to =y ?
+Thank you very much, Borislav.  It will be a honour to take care of
+ibm-acpi, and I hope I will be able to take care of it in a way that would
+make you (and myself) proud.
 
-	Dave
+Len, as the ACPI subsystem maintainer, is there any specific way you'd like
+me to handle ibm-acpi?
 
 -- 
-http://www.codemonkey.org.uk
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
