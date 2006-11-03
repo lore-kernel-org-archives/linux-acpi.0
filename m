@@ -1,37 +1,33 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: new ibm-acpi maintainer
-Date: Fri, 3 Nov 2006 13:19:33 -0300
-Message-ID: <20061103161933.GD4257@khazad-dum.debian.net>
-References: <20061102220422.GJ19761@aero.ensim.com>
+From: "Raz Ben-Jehuda(caro)" <raziebe@gmail.com>
+Subject: 2.6.16 / 2.6.15.7 regression --> acpi causes "rtc lost interrupts"
+Date: Fri, 3 Nov 2006 20:50:07 +0200
+Message-ID: <5d96567b0611031050v39b8e4y4b5c286d34c1eefb@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:47842 "EHLO
-	out1.smtp.messagingengine.com") by vger.kernel.org with ESMTP
-	id S1753331AbWKCQTj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 3 Nov 2006 11:19:39 -0500
+Received: from py-out-1112.google.com ([64.233.166.183]:47504 "EHLO
+	py-out-1112.google.com") by vger.kernel.org with ESMTP
+	id S1753461AbWKCSum (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 3 Nov 2006 13:50:42 -0500
+Received: by py-out-1112.google.com with SMTP id a73so365526pye
+        for <linux-acpi@vger.kernel.org>; Fri, 03 Nov 2006 10:50:07 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <20061102220422.GJ19761@aero.ensim.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Deianov <borislav@users.sf.net>, Len Brown <len.brown@intel.com>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Arno Willig <akw@thinkwiki.org>
+To: linux-acpi@vger.kernel.org
 
-On Thu, 02 Nov 2006, Borislav Deianov wrote:
-> I've handed over ibm-acpi to Henrique de Moraes Holschuh
-> <hmh@hmh.eng.br>, who will be the new maintainer. Henrique has been
-> actively improving ibm-acpi and I trust he'll keep it up to date much
-> better than I have been able to. 
+hello
+I have a problem using rtc and acpi enabled.
 
-Thank you very much, Borislav.  It will be a honour to take care of
-ibm-acpi, and I hope I will be able to take care of it in a way that would
-make you (and myself) proud.
+I am running  a simple rtc tester that reads /dev/rtc 8192 times
+a sec.  I am getting "rtc lost interupts" whenenever acpi is enabled.
+all this is with 2.6.16 and higher. in 2.6.15.7 and bellow i do not have
+this problem.
 
-Len, as the ACPI subsystem maintainer, is there any specific way you'd like
-me to handle ibm-acpi?
+Looking at the change log of 2.6.16 there seem to be lots of changes
+in acpi.
 
+anyone ?
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Raz
