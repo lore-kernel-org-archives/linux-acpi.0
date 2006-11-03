@@ -1,45 +1,38 @@
-From: Dave Jones <davej@redhat.com>
-Subject: Re: [discuss] Linux 2.6.19-rc4: known unfixed regressions (v2)
-Date: Thu, 2 Nov 2006 21:56:23 -0500
-Message-ID: <20061103025623.GB8816@redhat.com>
-References: <Pine.LNX.4.64.0610302019560.25218@g5.osdl.org> <20061103024132.GG13381@stusta.de>
+From: Len Brown <len.brown@intel.com>
+Subject: Re: udev broken by recent ACPI git commits
+Date: Fri, 3 Nov 2006 00:39:27 -0500
+Message-ID: <200611030039.28762.len.brown@intel.com>
+References: <200611010004.28483.rjw@sisk.pl> <200611010335.02948.len.brown@intel.com> <200611011147.42498.rjw@sisk.pl>
+Reply-To: Len Brown <lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:32653 "EHLO mx1.redhat.com")
-	by vger.kernel.org with ESMTP id S1752985AbWKCC51 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Nov 2006 21:57:27 -0500
+Received: from hera.kernel.org ([140.211.167.34]:24003 "EHLO hera.kernel.org")
+	by vger.kernel.org with ESMTP id S1752985AbWKCFhJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Nov 2006 00:37:09 -0500
+In-Reply-To: <200611011147.42498.rjw@sisk.pl>
 Content-Disposition: inline
-In-Reply-To: <20061103024132.GG13381@stusta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Christian <christiand59@web.de>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org
 
-On Fri, Nov 03, 2006 at 03:41:32AM +0100, Adrian Bunk wrote:
- > This email lists some known regressions in 2.6.19-rc4 compared to 2.6.18
- > that are not yet fixed in Linus' tree.
- > 
- > If you find your name in the Cc header, you are either submitter of one
- > of the bugs, maintainer of an affectected subsystem or driver, a patch
- > of you caused a breakage or I'm considering you in any other way possibly
- > involved with one or more of these issues.
- > 
- > Due to the huge amount of recipients, please trim the Cc when answering.
- > 
- > Subject    : cpufreq not working on AMD K8
- > References : http://lkml.org/lkml/2006/10/10/114
- > Submitter  : Christian <christiand59@web.de>
- > Status     : unknown
+Rafael,
+Please send the .config that fails.
 
-As Mark mentioned in his followup, powernow-k8 didn't change in .19 at all.
-I'm suspecting an ACPI change meant that we no longer find the PST tables
-correctly.
+This failure is on your HP NX6325 laptop running SL 10.1, yes?
+I know that an nx6125 works, so the question is what is unique about your system.
 
-Christian, can you post the full dmesg's from the working/broken kernels.
-It may be useful to enable CONFIG_ACPI_DEBUG too.
+Everybody,
+Please test that the latest ACPICA patch works on your system and shout if it doesn't.
+In particular, if you've got an nx6325 like Rafael's, it would be interesting to know
+if you see the same issue.
 
-	Dave
+You can snag the latest ACPICA patch vs  top of Linus' tree via git or plain patch here:
+git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git acpica
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/test/2.6.19/acpi-acpica-20061011-2.6.19-rc4.diff.gz
 
--- 
-http://www.codemonkey.org.uk
+thanks,
+-Len
