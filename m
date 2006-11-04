@@ -1,78 +1,57 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [patch 4/6] Add output class document
-Date: Sat, 4 Nov 2006 00:22:28 -0800
-Message-ID: <20061104082228.GA30489@kroah.com>
-References: <200611042122.00950.luming.yu@gmail.com>
+From: Hugh Dickins <hugh@veritas.com>
+Subject: Re: 2.6.19-rc <-> ThinkPads, summary
+Date: Sat, 4 Nov 2006 13:51:53 +0000 (GMT)
+Message-ID: <Pine.LNX.4.64.0611041348510.5975@blonde.wat.veritas.com>
+References: <20061029231358.GI27968@stusta.de> <20061030135625.GB1601@mellanox.co.il>
+ <20061101030126.GE27968@stusta.de> <20061104034906.GO13381@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kroah.org ([69.55.234.183]:63619 "EHLO perch.kroah.org")
-	by vger.kernel.org with ESMTP id S964913AbWKDJTu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Nov 2006 04:19:50 -0500
-Content-Disposition: inline
-In-Reply-To: <200611042122.00950.luming.yu@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20061104034906.GO13381@stusta.de>
+Sender: linux-serial-owner@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: "Michael S. Tsirkin" <mst@mellanox.co.il>, Pavel Machek <pavel@suse.cz>, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, len.brown@intel.com, linux-acpi@vger.kernel.org, linux-pm@osdl.org, Martin Lorenz <martin@lorenz.eu.org>, Andi Kleen <ak@suse.de>, discuss@x86-64.org, Russell King <rmk@dyn-67.arm.linux.org.uk>, linux-serial@vger.kernel.org, linux-thinkpad@linux-thinkpad.org, Ernst Herzberg <earny@net4u.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Yu Luming <luming.yu@gmail.com>
-Cc: Andrew Morton <akpm@osdl.org>, Pavel Machek <pavel@ucw.cz>, len.brown@intel.com, Matt Domsch <Matt_Domsch@dell.com>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr, Richard Hughes <hughsient@gmail.com>
 
-On Sat, Nov 04, 2006 at 09:22:00PM +0800, Yu Luming wrote:
-> Add output class document
+On Sat, 4 Nov 2006, Adrian Bunk wrote:
 > 
-> signed-off-by ? Luming.yu@gmail.com
-> ---
-> [patch 4/6] Add output class document
->  video-output.txt |   34 ++++++++++++++++++++++++++++++++++
->  1 file changed, 34 insertions(+)
-> 
-> diff --git a/Documentation/video-output.txt b/Documentation/video-output.txt
-> new file mode 100644
-> index 0000000..71b1dba
-> --- /dev/null
-> +++ b/Documentation/video-output.txt
-> @@ -0,0 +1,34 @@
-> +
-> +		Video Output Switcher Control
-> +		~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> +		2006 luming.yu@gmail.com
-> +
-> +The output sysfs class driver is to provide video output abstract layer that 
-> +can be used to hook platform specific methods to enable/disable video output
-> +device through common sysfs interface. For example, on my IBM Thinkpad T42 
-> +aptop, acpi video driver registered its output devices and read/write method
-> +for state with output sysfs class. The user interface under sysfs is :
-> +
-> +linux:/sys/class/video_output # tree .
-> +.
-> +|-- CRT0
-> +|   |-- device -> ../../../devices/pci0000:00/0000:00:01.0
-> +|   |-- state
-> +|   |-- subsystem -> ../../../class/video_output
-> +|   `-- uevent
-> +|-- DVI0
-> +|   |-- device -> ../../../devices/pci0000:00/0000:00:01.0
-> +|   |-- state
-> +|   |-- subsystem -> ../../../class/video_output
-> +|   `-- uevent
-> +|-- LCD0
-> +|   |-- device -> ../../../devices/pci0000:00/0000:00:01.0
-> +|   |-- state
-> +|   |-- subsystem -> ../../../class/video_output
-> +|   `-- uevent
-> +`-- TV0
-> +   |-- device -> ../../../devices/pci0000:00/0000:00:01.0
-> +   |-- state
-> +   |-- subsystem -> ../../../class/video_output
-> +   `-- uevent
+> Hugh Dickins:
+> - ThinkPad T43p
+> - booting with "noapic nolapic" didn't make any difference
+> - reverting commit cf4c6a2f27f5db810b69dcb1da7f194489e8ff88
+>   ("i386: Factor out common io apic routing entry access") didn't help
+> - question: Was your bisecting successful?
 
-Use a struct device instead of a struct class_device please.  That will
-change your tree a bit here (you will have symlinks at the top level.
+Not quite what I'd call successful, but I think I've just about arrived
+at some kind of conclusion.
 
-Have you been working with the X developers that have been doing a lot
-of work in describing and interacting with these different video
-devices?  I think you might want to work with them so that you don't
-create an interface that will not be used by them.
+Short summary: forget my complaint, assume it's fixed in current -git.
 
-thanks,
+Boring version:
 
-greg k-h
+I think I have two slightly different, perhaps not unrelated, issues.
+One manifested in habitual usage, to and from work, suspending for quiet
+at home, etc, etc.  As 2.6.19-rc progressed, I more and more often found
+it impossible to re-suspend after the first time: suspend key ignored.
+rc3 seemed worst, rc4 at first seemed okay, then not, perhaps because...
+
+In order to bisect on this, I had to speed up the testing from a day
+or two to a few minutes; and I'm now thinking that this may have
+focussed on a different problem.  After several reset bisections
+converging on absurd patches (e.g. sparse annotations or unbuilt
+sources), I grew even more suspicious of my "good" cases, and
+yesterday found even 2.6.18 and 2.6.17 (didn't try earlier) behave
+like this: occasionally the suspend key gets ignored for about one
+minute (in the few cases I timed).
+
+So whatever I was bisecting on, it's not a regression in 2.6.19.
+It may be a software bug, it would be worth fixing if I can work
+it out (though the pleasure of bisection was not having to think,
+I've grown addicted); but it's not anything to hold up 2.6.19.
+
+And as far as habitual usage goes, experience so far with -gits
+post rc4 suggests that that problem has gone away: it's a little
+too early to tell for sure, but I've not had to go back to using
+2.6.18 to avoid it yet.
+
+Hugh
