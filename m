@@ -1,33 +1,71 @@
-From: "Raz Ben-Jehuda(caro)" <raziebe@gmail.com>
-Subject: 2.6.16 / 2.6.15.7 regression --> acpi causes "rtc lost interrupts"
-Date: Fri, 3 Nov 2006 20:50:07 +0200
-Message-ID: <5d96567b0611031050v39b8e4y4b5c286d34c1eefb@mail.gmail.com>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: 2.6.19-rc <-> ThinkPads, summary
+Date: Sat, 4 Nov 2006 04:49:07 +0100
+Message-ID: <20061104034906.GO13381@stusta.de>
+References: <20061029231358.GI27968@stusta.de> <20061030135625.GB1601@mellanox.co.il> <20061101030126.GE27968@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.183]:47504 "EHLO
-	py-out-1112.google.com") by vger.kernel.org with ESMTP
-	id S1753461AbWKCSum (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 3 Nov 2006 13:50:42 -0500
-Received: by py-out-1112.google.com with SMTP id a73so365526pye
-        for <linux-acpi@vger.kernel.org>; Fri, 03 Nov 2006 10:50:07 -0800 (PST)
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20061101030126.GE27968@stusta.de>
+Sender: linux-serial-owner@vger.kernel.org
+To: Hugh Dickins <hugh@veritas.com>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Pavel Machek <pavel@suse.cz>, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, len.brown@intel.com, linux-acpi@vger.kernel.org, linux-pm@osdl.org, Martin Lorenz <martin@lorenz.eu.org>, Andi Kleen <ak@suse.de>, discuss@x86-64.org, Russell King <rmk@dyn-67.arm.linux.org.uk>, linux-serial@vger.kernel.org, linux-thinkpad@linux-thinkpad.org, Ernst Herzberg <earny@net4u.de>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-hello
-I have a problem using rtc and acpi enabled.
+As far as I can see, the 2.6.19-rc ThinkPad situation is still 
+confusing and we don't even know how many different bugs we are 
+chasing...
 
-I am running  a simple rtc tester that reads /dev/rtc 8192 times
-a sec.  I am getting "rtc lost interupts" whenenever acpi is enabled.
-all this is with 2.6.16 and higher. in 2.6.15.7 and bellow i do not have
-this problem.
+Below is all the information I have found, plus some questions for the 
+four people who reported problems that might hopefully bring us nearer 
+to solutions.
 
-Looking at the change log of 2.6.16 there seem to be lots of changes
-in acpi.
 
-anyone ?
+Michael S. Tsirkin:
+- ThinkPad T60 not coming out of suspend to RAM
+- broken by commit cf4c6a2f27f5db810b69dcb1da7f194489e8ff88
+  ("i386: Factor out common io apic routing entry access")
+- question: Did the post -rc4 arch/i386/kernel/io_apic.c changes fix it?
+
+
+Ernst Herzberg:
+- ThinkPad R50p: boot fail with (lapic && on_battery)
+- kernel compiled without cardbus support works
+- question: Does reverting  the bisected
+            commit 1fbbac4bcb03033d325c71fc7273aa0b9c1d9a03 
+            ("serial_cs: convert multi-port table to quirk table")
+            fix the problem?
+- question: Does reverting commit cf4c6a2f27f5db810b69dcb1da7f194489e8ff88
+            ("i386: Factor out common io apic routing entry access") help?
+- question: If yes, did the post -rc4 arch/i386/kernel/io_apic.c changes
+            fix it?
+
+
+Hugh Dickins:
+- ThinkPad T43p
+- booting with "noapic nolapic" didn't make any difference
+- reverting commit cf4c6a2f27f5db810b69dcb1da7f194489e8ff88
+  ("i386: Factor out common io apic routing entry access") didn't help
+- question: Was your bisecting successful?
+
+
+Martin Lorenz:
+- ThinkPad X60: lose ACPI events after suspend/resume
+                not every time, but roughly 3 out of 4 times
+- question: Does reverting commit cf4c6a2f27f5db810b69dcb1da7f194489e8ff88
+            ("i386: Factor out common io apic routing entry access")
+            in -rc4 help?
+- question: If yes, did the post -rc4 arch/i386/kernel/io_apic.c changes
+            fix it?
+
+
+cu
+Adrian
+
 -- 
-Raz
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
+
