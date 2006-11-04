@@ -1,71 +1,78 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: 2.6.19-rc <-> ThinkPads, summary
-Date: Sat, 4 Nov 2006 04:49:07 +0100
-Message-ID: <20061104034906.GO13381@stusta.de>
-References: <20061029231358.GI27968@stusta.de> <20061030135625.GB1601@mellanox.co.il> <20061101030126.GE27968@stusta.de>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [patch 4/6] Add output class document
+Date: Sat, 4 Nov 2006 00:22:28 -0800
+Message-ID: <20061104082228.GA30489@kroah.com>
+References: <200611042122.00950.luming.yu@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kroah.org ([69.55.234.183]:63619 "EHLO perch.kroah.org")
+	by vger.kernel.org with ESMTP id S964913AbWKDJTu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Nov 2006 04:19:50 -0500
 Content-Disposition: inline
-In-Reply-To: <20061101030126.GE27968@stusta.de>
-Sender: linux-serial-owner@vger.kernel.org
-To: Hugh Dickins <hugh@veritas.com>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Pavel Machek <pavel@suse.cz>, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, len.brown@intel.com, linux-acpi@vger.kernel.org, linux-pm@osdl.org, Martin Lorenz <martin@lorenz.eu.org>, Andi Kleen <ak@suse.de>, discuss@x86-64.org, Russell King <rmk@dyn-67.arm.linux.org.uk>, linux-serial@vger.kernel.org, linux-thinkpad@linux-thinkpad.org, Ernst Herzberg <earny@net4u.de>
+In-Reply-To: <200611042122.00950.luming.yu@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yu Luming <luming.yu@gmail.com>
+Cc: Andrew Morton <akpm@osdl.org>, Pavel Machek <pavel@ucw.cz>, len.brown@intel.com, Matt Domsch <Matt_Domsch@dell.com>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr, Richard Hughes <hughsient@gmail.com>
 
-As far as I can see, the 2.6.19-rc ThinkPad situation is still 
-confusing and we don't even know how many different bugs we are 
-chasing...
+On Sat, Nov 04, 2006 at 09:22:00PM +0800, Yu Luming wrote:
+> Add output class document
+> 
+> signed-off-by ? Luming.yu@gmail.com
+> ---
+> [patch 4/6] Add output class document
+>  video-output.txt |   34 ++++++++++++++++++++++++++++++++++
+>  1 file changed, 34 insertions(+)
+> 
+> diff --git a/Documentation/video-output.txt b/Documentation/video-output.txt
+> new file mode 100644
+> index 0000000..71b1dba
+> --- /dev/null
+> +++ b/Documentation/video-output.txt
+> @@ -0,0 +1,34 @@
+> +
+> +		Video Output Switcher Control
+> +		~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> +		2006 luming.yu@gmail.com
+> +
+> +The output sysfs class driver is to provide video output abstract layer that 
+> +can be used to hook platform specific methods to enable/disable video output
+> +device through common sysfs interface. For example, on my IBM Thinkpad T42 
+> +aptop, acpi video driver registered its output devices and read/write method
+> +for state with output sysfs class. The user interface under sysfs is :
+> +
+> +linux:/sys/class/video_output # tree .
+> +.
+> +|-- CRT0
+> +|   |-- device -> ../../../devices/pci0000:00/0000:00:01.0
+> +|   |-- state
+> +|   |-- subsystem -> ../../../class/video_output
+> +|   `-- uevent
+> +|-- DVI0
+> +|   |-- device -> ../../../devices/pci0000:00/0000:00:01.0
+> +|   |-- state
+> +|   |-- subsystem -> ../../../class/video_output
+> +|   `-- uevent
+> +|-- LCD0
+> +|   |-- device -> ../../../devices/pci0000:00/0000:00:01.0
+> +|   |-- state
+> +|   |-- subsystem -> ../../../class/video_output
+> +|   `-- uevent
+> +`-- TV0
+> +   |-- device -> ../../../devices/pci0000:00/0000:00:01.0
+> +   |-- state
+> +   |-- subsystem -> ../../../class/video_output
+> +   `-- uevent
 
-Below is all the information I have found, plus some questions for the 
-four people who reported problems that might hopefully bring us nearer 
-to solutions.
+Use a struct device instead of a struct class_device please.  That will
+change your tree a bit here (you will have symlinks at the top level.
 
+Have you been working with the X developers that have been doing a lot
+of work in describing and interacting with these different video
+devices?  I think you might want to work with them so that you don't
+create an interface that will not be used by them.
 
-Michael S. Tsirkin:
-- ThinkPad T60 not coming out of suspend to RAM
-- broken by commit cf4c6a2f27f5db810b69dcb1da7f194489e8ff88
-  ("i386: Factor out common io apic routing entry access")
-- question: Did the post -rc4 arch/i386/kernel/io_apic.c changes fix it?
+thanks,
 
-
-Ernst Herzberg:
-- ThinkPad R50p: boot fail with (lapic && on_battery)
-- kernel compiled without cardbus support works
-- question: Does reverting  the bisected
-            commit 1fbbac4bcb03033d325c71fc7273aa0b9c1d9a03 
-            ("serial_cs: convert multi-port table to quirk table")
-            fix the problem?
-- question: Does reverting commit cf4c6a2f27f5db810b69dcb1da7f194489e8ff88
-            ("i386: Factor out common io apic routing entry access") help?
-- question: If yes, did the post -rc4 arch/i386/kernel/io_apic.c changes
-            fix it?
-
-
-Hugh Dickins:
-- ThinkPad T43p
-- booting with "noapic nolapic" didn't make any difference
-- reverting commit cf4c6a2f27f5db810b69dcb1da7f194489e8ff88
-  ("i386: Factor out common io apic routing entry access") didn't help
-- question: Was your bisecting successful?
-
-
-Martin Lorenz:
-- ThinkPad X60: lose ACPI events after suspend/resume
-                not every time, but roughly 3 out of 4 times
-- question: Does reverting commit cf4c6a2f27f5db810b69dcb1da7f194489e8ff88
-            ("i386: Factor out common io apic routing entry access")
-            in -rc4 help?
-- question: If yes, did the post -rc4 arch/i386/kernel/io_apic.c changes
-            fix it?
-
-
-cu
-Adrian
-
--- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
-
+greg k-h
