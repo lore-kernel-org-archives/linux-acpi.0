@@ -1,79 +1,46 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH] backlight: do not power off backlight when unregistering
-Date: Sun, 5 Nov 2006 20:54:29 -0200
-Message-ID: <20061105225429.GE14295@khazad-dum.debian.net>
+From: David Weinehall <tao@acc.umu.se>
+Subject: Re: acpiphp makes noise on every lid close/open
+Date: Mon, 6 Nov 2006 00:29:44 +0100
+Message-ID: <20061105232944.GA23256@vasa.acc.umu.se>
+References: <20061101115618.GA1683@elf.ucw.cz> <20061102175403.279df320.kristen.c.accardi@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1422795AbWKEWyk@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.acc.umu.se ([130.239.18.156]:52128 "EHLO mail.acc.umu.se")
+	by vger.kernel.org with ESMTP id S932748AbWKEX3u (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 5 Nov 2006 18:29:50 -0500
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: Richard Purdie <rpurdie@rpsys.net>, Antonino Daplas <adaplas@pol.net>, Holger Macht <hmacht@suse.de>
+In-Reply-To: <20061102175403.279df320.kristen.c.accardi@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <linux-acpi@vger.kernel.org>
 
-ACPI drivers like ibm-acpi are moving to the backlight sysfs infrastructure.
-During ibm-acpi testing, I have noticed that backlight_device_unregister()
-sets the display brightness and power to zero.
+On Thu, Nov 02, 2006 at 05:54:03PM -0800, Kristen Carlson Accardi wrote:
+> On Wed, 1 Nov 2006 12:56:18 +0100
+> Pavel Machek <pavel@ucw.cz> wrote:
+> 
+> > Hi!
+> > 
+> > With 2.6.19-rc4, acpi complains about "acpiphp_glue: cannot get bridge
+> > info" each time I close/reopen the lid... On thinkpad x60. Any ideas?
+> > (-mm1 behaves the same).
+> > 									Pavel
+> > -- 
+> > (english) http://www.livejournal.com/~pavelmachek
+> > (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+> 
+> Looks like acpi is sending a BUS_CHECK notification to acpiphp on the 
+> PCI Root Bridge whenever the lid opens up.
+> 
+> There is a bug here in that acpiphp shouldn't even be used on the X60 -
+> it has no hotpluggable slots.
 
-This causes the display to be dimmed on ibm-acpi module removal.  It will
-affect all other ACPI drivers that are being converted to use the backlight
-class, as well.
+How about the docking station?
 
-This annoying behaviour in backlight_device_unregister() can either be
-reverted, or it can be worked around on acpi drivers by doing a
-backlightdevice->props->update_status = NULL before calling
-backlight_device_unregister().
 
-Given the, AFAIK, lack of a good reason to disable display backlight as the
-_general_ behaviour for the entire sysfs class, the attached patch changes
-backlight.c to not do so anymore.
-
-Since the commit that introduced this behaviour (commit
-6ca017658b1f902c9bba2cc1017e301581f7728d) apparently did so because the
-corgi_bl.c driver powered off the backlight, the attached patch also makes
-sure that the corgi_bl.c driver will not have its behaviour changed.
-
-Patch against latest linux-2.6.git.  corgi_bl.c changes untested, as I lack
-the hardware to do so.
-
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
---
-
-diff --git a/drivers/video/backlight/backlight.c b/drivers/video/backlight/backlight.c
-index 27597c5..de5a6b3 100644
---- a/drivers/video/backlight/backlight.c
-+++ b/drivers/video/backlight/backlight.c
-@@ -259,12 +259,6 @@ void backlight_device_unregister(struct
- 					 &bl_class_device_attributes[i]);
- 
- 	down(&bd->sem);
--	if (likely(bd->props && bd->props->update_status)) {
--		bd->props->brightness = 0;
--		bd->props->power = 0;
--		bd->props->update_status(bd);
--	}
--
- 	bd->props = NULL;
- 	up(&bd->sem);
- 
-diff --git a/drivers/video/backlight/corgi_bl.c b/drivers/video/backlight/corgi_bl.c
-index d07ecb5..61587ca 100644
---- a/drivers/video/backlight/corgi_bl.c
-+++ b/drivers/video/backlight/corgi_bl.c
-@@ -135,6 +135,10 @@ static int corgibl_probe(struct platform
- 
- static int corgibl_remove(struct platform_device *dev)
- {
-+	corgibl_data.power = 0;
-+	corgibl_data.brightness = 0;
-+	corgibl_send_intensity(corgi_backlight_device);
-+
- 	backlight_device_unregister(corgi_backlight_device);
- 
- 	printk("Corgi Backlight Driver Unloaded\n");
-
+Regards: David
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+ /) David Weinehall <tao@acc.umu.se> /) Northern lights wander      (\
+//  Maintainer of the v2.0 kernel   //  Dance across the winter sky //
+\)  http://www.acc.umu.se/~tao/    (/   Full colour fire           (/
