@@ -1,35 +1,89 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: acpiphp makes noise on every lid close/open
-Date: Mon, 6 Nov 2006 11:29:03 -0200
-Message-ID: <20061106132903.GA25257@khazad-dum.debian.net>
-References: <20061101115618.GA1683@elf.ucw.cz> <20061102175403.279df320.kristen.c.accardi@intel.com> <20061105232944.GA23256@vasa.acc.umu.se> <20061106092117.GB2175@elf.ucw.cz>
+From: Christian <christiand59@web.de>
+Subject: Re: [discuss] Linux 2.6.19-rc4: known unfixed regressions (v2)
+Date: Mon, 6 Nov 2006 16:43:13 +0100
+Message-ID: <200611061643.14217.christiand59@web.de>
+References: <Pine.LNX.4.64.0610302019560.25218@g5.osdl.org> <200611051832.13285.christiand59@web.de> <20061106060021.GD5778@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753082AbWKFN3K@vger.kernel.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753250AbWKFPn6@vger.kernel.org>
+In-Reply-To: <20061106060021.GD5778@stusta.de>
 Content-Disposition: inline
-In-Reply-To: <20061106092117.GB2175@elf.ucw.cz>
 Sender: linux-kernel-owner@vger.kernel.org
-To: kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <linux-acpi@vger.kernel.org>
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Dave Jones <davej@redhat.com>, Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-> > > There is a bug here in that acpiphp shouldn't even be used on the X60 -
-> > > it has no hotpluggable slots.
+Am Montag, 6. November 2006 07:00 schrieb Adrian Bunk:
+> On Sun, Nov 05, 2006 at 06:32:12PM +0100, Christian wrote:
+> > Am Freitag, 3. November 2006 16:56 schrieb Dave Jones:
+> > > On Fri, Nov 03, 2006 at 11:25:37AM +0300, Alexey Starikovskiy wrote:
+> > >  > Could this be a problem?
+> > >  > --------------------
+> > >  > ...
+> > >  > CONFIG_ACPI_PROCESSOR=m
+> > >  > ...
+> > >  > CONFIG_X86_POWERNOW_K8=y
+> > >
+> > > Hmm, possibly.  Christian, does it work again if you set them both to
+> > > =y ?
+> >
+> > Yes, it works now! Only the change to CONFIG_ACPI_PROCESSOR=y made it
+> > work again!
+>
+> You said 2.6.18 worked for you.
+>
+> Did you have CONFIG_ACPI_PROCESSOR=y in 2.6.18, or did
+> CONFIG_ACPI_PROCESSOR=m, CONFIG_X86_POWERNOW_K8=y work for you in 2.6.18?
 
-What about the internal mini PCI express slots (where the Intel 3945ABG
-device and EVDO wwwan cards are plugged)?
+It worked with CONFIG_ACPI_PROCESSOR=m in 2.6.18-rc7. Since 2.6.19-rc1 it 
+doesn't work anymore with CONFIG_ACPI_PROCESSOR=m.
 
-Also, ThinkWiki lists this machine as one that has a CardBus slot.  A photo
-I found also shows this cardbus slot, left side near palm rest, right above
-a SD card slot.  According to Lenovo, it appears that this cardbus slot is
-also a 34mm express card slot, which would account for a PCIe x1 hotplug bus
-and a USB2 hotplug bus in addition to the PCI (pccard) hotplug bus.
+user@ubuntu:~/Projekte/linux-2.6.18-rc7$ uname -a
+Linux ubuntu.localnet 2.6.18-rc7 #2 SMP Wed Sep 13 11:28:41 CEST 2006 x86_64 
+GNU/Linux
 
-And it is extremely likely that this notebook exposes either PCI or PCIe
-lanes to the dock station.  Whether they implemented PCIe or PCI slots in
-the dock is another story, of course...
+user@ubuntu:~/Projekte/linux-2.6.18-rc7$ lsmod | grep -Ei "processor|acpi|
+power"
+powernow_k8            16096  1
+freq_table              6848  2 powernow_k8,cpufreq_stats
+cpufreq_powersave       3584  0
+asus_acpi              20644  0
+processor              36872  2 powernow_k8,thermal
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+
+user@ubuntu:~/Projekte/linux-2.6.18-rc7$ grep -i 
+ACPI_PROCESSOR /boot/config-2.6.18-rc7
+CONFIG_ACPI_PROCESSOR=m
+
+user@ubuntu:~/Projekte/linux-2.6.18-rc7$ 
+grep -Ei "POWERNOW_K8" /boot/config-2.6.18-rc7
+CONFIG_X86_POWERNOW_K8=m
+CONFIG_X86_POWERNOW_K8_ACPI=y
+
++++ There's a difference in 2.6.19! CONFIG_X86_POWERNOW_K8_ACPI is gone +++
+
+user@ubuntu:~/Projekte/linux-2.6.18-rc7$ 
+grep -Ei "POWERNOW_K8" /boot/config-2.6.19-rc1
+CONFIG_X86_POWERNOW_K8=y
+
+user@ubuntu:~/Projekte/linux-2.6.18-rc7$ grep -Ei "CPUFREQ|
+CPU_FREQ" /boot/config-2.6.18-rc7
+CONFIG_CPU_FREQ=y
+CONFIG_CPU_FREQ_TABLE=m
+# CONFIG_CPU_FREQ_DEBUG is not set
+CONFIG_CPU_FREQ_STAT=m
+CONFIG_CPU_FREQ_STAT_DETAILS=y
+CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE=y
+# CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE is not set
+CONFIG_CPU_FREQ_GOV_PERFORMANCE=y
+CONFIG_CPU_FREQ_GOV_POWERSAVE=m
+CONFIG_CPU_FREQ_GOV_USERSPACE=m
+CONFIG_CPU_FREQ_GOV_ONDEMAND=m
+CONFIG_CPU_FREQ_GOV_CONSERVATIVE=m
+# CPUFreq processor drivers
+CONFIG_X86_ACPI_CPUFREQ=m
+# CONFIG_X86_ACPI_CPUFREQ_PROC_INTF is not set
+
+-Christian
