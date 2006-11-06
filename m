@@ -1,40 +1,45 @@
-From: Andi Kleen <ak@suse.de>
-Subject: Re: [discuss] Re: 2.6.19-rc4: known unfixed regressions
-	(v3)
-Date: Mon, 6 Nov 2006 18:47:26 +0100
-Message-ID: <200611061847.27540.ak@suse.de>
-References: <Pine.LNX.4.64.0610302019560.25218@g5.osdl.org>
-	<20061105064801.GV13381@stusta.de>
-	<b6a2187b0611050130s325d777che069a7d9619f061b@mail.gmail.com>
+From: Len Brown <len.brown@intel.com>
+Subject: Re: SMP C-states on x86_64 Status
+Date: Mon, 6 Nov 2006 12:44:55 -0500
+Message-ID: <200611061244.56455.len.brown@intel.com>
+References: <1162726672.25981.275035845@webmail.messagingengine.com>
+Reply-To: Len Brown <lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.osdl.org>
-In-Reply-To: <b6a2187b0611050130s325d777che069a7d9619f061b@mail.gmail.com>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:3506 "EHLO hera.kernel.org")
+	by vger.kernel.org with ESMTP id S1753600AbWKFRm1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Nov 2006 12:42:27 -0500
+In-Reply-To: <1162726672.25981.275035845@webmail.messagingengine.com>
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
-List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.osdl.org>
-List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
-List-Subscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.osdl.org
-Errors-To: linux-pm-bounces@lists.osdl.org
-To: discuss@x86-64.org
-Cc: Andrew Morton <akpm@osdl.org>, len.brown@intel.com, Thierry Vignaud <tvignaud@mandriva.com>, Ernst Herzberg <earny@net4u.de>, Christian <christiand59@web.de>, Alex Romosan <romosan@sycorax.lbl.gov>, openib-general@openib.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-ide@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, oprofile-list@lists.sourceforge.net, Jens Axboe <jens.axboe@oracle.com>, linux-pci@atrey.karlin.mff.cuni.cz, Elimar Riesebieter <riesebie@lxtec.de>, linux-pm@osdl.org, Komuro <komurojun-mbn@nifty.com>, Jeff Chua <jeff.chua.linux@gmail.com>, Tim Chen <tim.c.chen@linux.intel.com>, phil.el@wanadoo.fr, gregkh@suse.de, neilb@cse.unsw.edu.au, Adrian Bunk <bunk@stusta.de>, linux-acpi@vger.kernel.org, mingo@redhat.com, nfs@lists.sourceforge.net, "Eric W. Biederman" <ebiederm@xmission.com>, cpufreq@lists.linux.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mathew Brown <mathewbrown@fastmail.fm>
+Cc: linux-acpi@vger.kernel.org
 
-On Sunday 05 November 2006 10:30, Jeff Chua wrote:
+On Sunday 05 November 2006 06:37, Mathew Brown wrote:
+> Hi,
+>   I just saw Adrian's post on a patch to add SMP C-states on x86_64 to
+>   kernel 2.6.16.  Is there anywhere I can find the current status of
+>   C-states on SMP machines?  I have a 16-core machine running RHEL with
+>   kernel 2.6.9-34 and it shows only C0, nothing else.  I checked the
+>   DSDT and it compiled without error.  Any ideas?  Thanks for your help.
 
-> Here's results with vanilla 2.6.19-rc4 (gcc version 3.4.5) ...
-> =
+This support (bugzilla 5653) shipped starting in 2.6.18, and I sent it to Adrian
+for 2.6.16.stable -- and it appears it will pop out in 2.6.16.31.
 
-> 1) PCI access mode (Any) ... FAILED
-> =
+Re: your 16 core machine running 2.6.9...
+What does /proc/acpi/processor/*/power say?
+I would expect it to say C1 only.
 
-> 2) PCI access mode (MMConfig) ... FAILED
+I would not expect this box to grow deeper C-states upon the support above.
+The only SMP boxes with C-states deeper than C1 that I'm aware of today
+are laptops.
 
-Full boot log please?
+cheers,
+-Len
 
--Andi
+
+
