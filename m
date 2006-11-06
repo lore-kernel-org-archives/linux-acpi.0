@@ -1,45 +1,92 @@
-From: Len Brown <len.brown@intel.com>
-Subject: Re: SMP C-states on x86_64 Status
-Date: Mon, 6 Nov 2006 12:44:55 -0500
-Message-ID: <200611061244.56455.len.brown@intel.com>
-References: <1162726672.25981.275035845@webmail.messagingengine.com>
-Reply-To: Len Brown <lenb@kernel.org>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: Re: [discuss] Linux 2.6.19-rc4: known unfixed regressions (v2)
+Date: Mon, 6 Nov 2006 18:35:28 +0100
+Message-ID: <20061106173528.GQ5778@stusta.de>
+References: <Pine.LNX.4.64.0610302019560.25218@g5.osdl.org>
+	<454AFD01.4080306@linux.intel.com>
+	<20061103155656.GA1000@redhat.com>
+	<200611051832.13285.christiand59@web.de>
+	<20061105200448.GE859@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:3506 "EHLO hera.kernel.org")
-	by vger.kernel.org with ESMTP id S1753600AbWKFRm1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Nov 2006 12:42:27 -0500
-In-Reply-To: <1162726672.25981.275035845@webmail.messagingengine.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <cpufreq-bounces+glkc-cpufreq=m.gmane.org@lists.linux.org.uk>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20061105200448.GE859@redhat.com>
+List-Unsubscribe: <http://lists.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@lists.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://lists.linux.org.uk/mailman/private/cpufreq>
+List-Post: <mailto:cpufreq@lists.linux.org.uk>
+List-Help: <mailto:cpufreq-request@lists.linux.org.uk?subject=help>
+List-Subscribe: <http://lists.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@lists.linux.org.uk?subject=subscribe>
+Sender: cpufreq-bounces@lists.linux.org.uk
+Errors-To: cpufreq-bounces+glkc-cpufreq=m.gmane.org+glkc-cpufreq=m.gmane.org@lists.linux.org.uk
+To: Dave Jones <davej@redhat.com>, Christian <christiand59@web.de>, Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, cpufreq@lists.linux.org.uk
 List-Id: linux-acpi@vger.kernel.org
-To: Mathew Brown <mathewbrown@fastmail.fm>
-Cc: linux-acpi@vger.kernel.org
 
-On Sunday 05 November 2006 06:37, Mathew Brown wrote:
-> Hi,
->   I just saw Adrian's post on a patch to add SMP C-states on x86_64 to
->   kernel 2.6.16.  Is there anywhere I can find the current status of
->   C-states on SMP machines?  I have a 16-core machine running RHEL with
->   kernel 2.6.9-34 and it shows only C0, nothing else.  I checked the
->   DSDT and it compiled without error.  Any ideas?  Thanks for your help.
+On Sun, Nov 05, 2006 at 03:04:48PM -0500, Dave Jones wrote:
+> On Sun, Nov 05, 2006 at 06:32:12PM +0100, Christian wrote:
+>  > Am Freitag, 3. November 2006 16:56 schrieb Dave Jones:
+>  > > On Fri, Nov 03, 2006 at 11:25:37AM +0300, Alexey Starikovskiy wrote:
+>  > >  > Could this be a problem?
+>  > >  > --------------------
+>  > >  > ...
+>  > >  > CONFIG_ACPI_PROCESSOR=m
+>  > >  > ...
+>  > >  > CONFIG_X86_POWERNOW_K8=y
+>  > >
+>  > > Hmm, possibly.  Christian, does it work again if you set them both to =y ?
+>  > 
+>  > Yes, it works now! Only the change to CONFIG_ACPI_PROCESSOR=y made it work 
+>  > again!
+> 
+> So, the reasoning behind this, is that we have this construct..
+> 
+> config X86_POWERNOW_K8_ACPI
+>     bool
+>     depends on X86_POWERNOW_K8 && ACPI_PROCESSOR
+>     depends on !(X86_POWERNOW_K8 = y && ACPI_PROCESSOR = m)
+>     default y
+> 
+> 
+> Which makes us use the ACPI stuff if it's there, otherwise not,
+> and in your case, it seems your system _needs_ this enabled
+> to make powernow work.
+> 
+> Thing is, this was there in 2.6.18 too, so strictly speaking,
+> we haven't regressed here, and you're getting exactly what you asked for.
+> The problem is that it's completely silent as to why it then fails.
+> 
+> I'm open to improvements, but I'm not sure what the right thing to do
+> here is.. opinions ?
 
-This support (bugzilla 5653) shipped starting in 2.6.18, and I sent it to Adrian
-for 2.6.16.stable -- and it appears it will pop out in 2.6.16.31.
+The extreme solution would be
 
-Re: your 16 core machine running 2.6.9...
-What does /proc/acpi/processor/*/power say?
-I would expect it to say C1 only.
+config X86_POWERNOW_K8
+        tristate "AMD Opteron/Athlon64 PowerNow!"
+        select CPU_FREQ_TABLE
+        depends ACPI_PROCESSOR
 
-I would not expect this box to grow deeper C-states upon the support above.
-The only SMP boxes with C-states deeper than C1 that I'm aware of today
-are laptops.
+A medium solution might be
 
-cheers,
--Len
+config X86_POWERNOW_K8
+        tristate "AMD Opteron/Athlon64 PowerNow!"
+        select CPU_FREQ_TABLE
+	depends (ACPI_PROCESSOR || ACPI_PROCESSOR=n)
 
+But in the end, the best solution depends on how many percent of the 
+X86_POWERNOW_K8 users have Christian's problem of requiring 
+ACPI_PROCESSOR. If there are only very few people with this problem, I'd 
+say leave it as it is.
 
+> 	Dave
 
+cu
+Adrian
+
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
