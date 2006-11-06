@@ -1,83 +1,78 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: Re: [discuss] Linux 2.6.19-rc4: known unfixed regressions (v2)
-Date: Mon, 6 Nov 2006 18:37:07 +0100
-Message-ID: <20061106173707.GR5778@stusta.de>
-References: <Pine.LNX.4.64.0610302019560.25218@g5.osdl.org> <200611051832.13285.christiand59@web.de> <20061106060021.GD5778@stusta.de> <200611061643.14217.christiand59@web.de>
+From: Len Brown <len.brown@intel.com>
+Subject: Re: new ibm-acpi maintainer
+Date: Mon, 6 Nov 2006 13:18:22 -0500
+Message-ID: <200611061318.23326.len.brown@intel.com>
+References: <20061102220422.GJ19761@aero.ensim.com> <20061103161933.GD4257@khazad-dum.debian.net>
+Reply-To: Len Brown <lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753532AbWKFRhK@vger.kernel.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:25833 "EHLO hera.kernel.org")
+	by vger.kernel.org with ESMTP id S1753753AbWKFSQQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Nov 2006 13:16:16 -0500
+In-Reply-To: <20061103161933.GD4257@khazad-dum.debian.net>
 Content-Disposition: inline
-In-Reply-To: <200611061643.14217.christiand59@web.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christian <christiand59@web.de>
-Cc: Dave Jones <davej@redhat.com>, Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Borislav Deianov <borislav@users.sourceforge.net>, Linux ACPI <linux-acpi@vger.kernel.org>, Arno Willig <akw@thinkwiki.org>
 
-On Mon, Nov 06, 2006 at 04:43:13PM +0100, Christian wrote:
-> Am Montag, 6. November 2006 07:00 schrieb Adrian Bunk:
-> > On Sun, Nov 05, 2006 at 06:32:12PM +0100, Christian wrote:
-> > > Am Freitag, 3. November 2006 16:56 schrieb Dave Jones:
-> > > > On Fri, Nov 03, 2006 at 11:25:37AM +0300, Alexey Starikovskiy wrote:
-> > > >  > Could this be a problem?
-> > > >  > --------------------
-> > > >  > ...
-> > > >  > CONFIG_ACPI_PROCESSOR=m
-> > > >  > ...
-> > > >  > CONFIG_X86_POWERNOW_K8=y
-> > > >
-> > > > Hmm, possibly.  Christian, does it work again if you set them both to
-> > > > =y ?
-> > >
-> > > Yes, it works now! Only the change to CONFIG_ACPI_PROCESSOR=y made it
-> > > work again!
-> >
-> > You said 2.6.18 worked for you.
-> >
-> > Did you have CONFIG_ACPI_PROCESSOR=y in 2.6.18, or did
-> > CONFIG_ACPI_PROCESSOR=m, CONFIG_X86_POWERNOW_K8=y work for you in 2.6.18?
-> 
-> It worked with CONFIG_ACPI_PROCESSOR=m in 2.6.18-rc7. Since 2.6.19-rc1 it 
-> doesn't work anymore with CONFIG_ACPI_PROCESSOR=m.
-> 
-> user@ubuntu:~/Projekte/linux-2.6.18-rc7$ uname -a
-> Linux ubuntu.localnet 2.6.18-rc7 #2 SMP Wed Sep 13 11:28:41 CEST 2006 x86_64 
-> GNU/Linux
-> 
-> user@ubuntu:~/Projekte/linux-2.6.18-rc7$ lsmod | grep -Ei "processor|acpi|
-> power"
-> powernow_k8            16096  1
-> freq_table              6848  2 powernow_k8,cpufreq_stats
-> cpufreq_powersave       3584  0
-> asus_acpi              20644  0
-> processor              36872  2 powernow_k8,thermal
-> 
-> 
-> user@ubuntu:~/Projekte/linux-2.6.18-rc7$ grep -i 
-> ACPI_PROCESSOR /boot/config-2.6.18-rc7
-> CONFIG_ACPI_PROCESSOR=m
-> 
-> user@ubuntu:~/Projekte/linux-2.6.18-rc7$ 
-> grep -Ei "POWERNOW_K8" /boot/config-2.6.18-rc7
-> CONFIG_X86_POWERNOW_K8=m
-> CONFIG_X86_POWERNOW_K8_ACPI=y
-> 
-> +++ There's a difference in 2.6.19! CONFIG_X86_POWERNOW_K8_ACPI is gone +++
-> 
-> user@ubuntu:~/Projekte/linux-2.6.18-rc7$ 
-> grep -Ei "POWERNOW_K8" /boot/config-2.6.19-rc1
-> CONFIG_X86_POWERNOW_K8=y
->....
+On Friday 03 November 2006 11:19, Henrique de Moraes Holschuh wrote:
+> On Thu, 02 Nov 2006, Borislav Deianov wrote:
+> > I've handed over ibm-acpi to Henrique de Moraes Holschuh
 
-It's gone because you changed CONFIG_X86_POWERNOW_K8 from m to y.
+Thanks Boris, I know that a lot of thinkpad users are happier because of your efforts.
 
-> -Christian
+> Len, as the ACPI subsystem maintainer, is there any specific way you'd like
+> me to handle ibm-acpi?
 
-cu
-Adrian
+Yes, we should sync up on both the logistics and the strategy here.
 
--- 
+Logistics are pretty much covered by Documentation/SubmittingPatches
+Send to me, cc linux-acpi@vger.kernel.org
+Subject: ACPI: ibm_acpi: fix foo for model bar
 
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
+Put some thought into the Subject and check-in comments --
+they are the "permanent record" and people do read them.
+
+Also, it is ideal if we can maintain the invariant that the source is Lindent clean.
+(right now ibm_acpi.c is very close to clean.  I often Lindent after patches,
+ but not always -- simpler if you do it before sending to me)
+
+The strategy for platform specific drivers that use ACPI is:
+1. make the machines as useful as possible
+2. be supportable by distributors w/o any special user-land effort
+
+Linux does an okay job on #1, but not such a good job on #2 -- yet.
+
+For #2 we are generally trying to make features available to the user
+(think HAL, or X) with generic interfaces.  ie. if the word "acpi"
+appears in the path, we are probably not generic enough for general use.
+
+This is why I generally do not permit any new files under /proc/acpi,
+and why we are trying over time to delete them all and use generic sysfs
+places instead.
+
+  eg. you've seen the recent changes to put brightness under sysfs
+  in the backlight section, and the recent discussion about a generic
+  battery interface, and the recent dock driver and bay driver.
+  As these generic interfaces come on-line, we need to delete
+  the old ones from these platforms drivers w/o screwing up users.
+  This means announcing feature removal and documenting
+  it in Documentation/feature-removal.txt and adding #ifdefs
+  for the legacy stuff, then finally removing it.
+ 
+ On a minor, but related note,  at some point, ibm_acpi.c should be moved
+ outside of /drivers/acpi, probably to drivers/misc where other
+ platform specific drivers are starting to congregate.
+  This is because it is an OEM specific driver using un-documented
+   OEM features that happen to depend on ACPI, but it is not implementing
+   the ACPI spec itself, and is thus not part of ACPI.  Can still call it
+  ibm_acpi.c, and I'll still be happy to handle patches to it,
+  but the line between the implementation of the ACPI spec and the
+  platform specific drivers that use ACPI has to be more clear.
+
+thanks,
+-Len
