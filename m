@@ -1,54 +1,41 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: Re: [discuss] Linux 2.6.19-rc4: known unfixed regressions (v2)
-Date: Mon, 6 Nov 2006 07:00:21 +0100
-Message-ID: <20061106060021.GD5778@stusta.de>
-References: <Pine.LNX.4.64.0610302019560.25218@g5.osdl.org> <454AFD01.4080306@linux.intel.com> <20061103155656.GA1000@redhat.com> <200611051832.13285.christiand59@web.de>
+From: Stefan Seyfried <seife@suse.de>
+Subject: Re: acpiphp makes noise on every lid close/open
+Date: Mon, 6 Nov 2006 09:19:27 +0100
+Message-ID: <20061106081927.GA9063@suse.de>
+References: <20061101115618.GA1683@elf.ucw.cz> <20061102175403.279df320.kristen.c.accardi@intel.com> <20061105232944.GA23256@vasa.acc.umu.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emailhub.stusta.mhn.de ([141.84.69.5]:26379 "HELO
-	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
-	id S1423561AbWKFGAT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 6 Nov 2006 01:00:19 -0500
+Received: from mail.suse.de ([195.135.220.2]:42909 "EHLO mx1.suse.de")
+	by vger.kernel.org with ESMTP id S1423594AbWKFITx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Nov 2006 03:19:53 -0500
 Content-Disposition: inline
-In-Reply-To: <200611051832.13285.christiand59@web.de>
+In-Reply-To: <20061105232944.GA23256@vasa.acc.umu.se>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Christian <christiand59@web.de>
-Cc: Dave Jones <davej@redhat.com>, Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>, Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <linux-acpi@vger.kernel.org>
 
-On Sun, Nov 05, 2006 at 06:32:12PM +0100, Christian wrote:
-> Am Freitag, 3. November 2006 16:56 schrieb Dave Jones:
-> > On Fri, Nov 03, 2006 at 11:25:37AM +0300, Alexey Starikovskiy wrote:
-> >  > Could this be a problem?
-> >  > --------------------
-> >  > ...
-> >  > CONFIG_ACPI_PROCESSOR=m
-> >  > ...
-> >  > CONFIG_X86_POWERNOW_K8=y
-> >
-> > Hmm, possibly.  Christian, does it work again if you set them both to =y ?
-> 
-> Yes, it works now! Only the change to CONFIG_ACPI_PROCESSOR=y made it work 
-> again!
+On Mon, Nov 06, 2006 at 12:29:44AM +0100, David Weinehall wrote:
+> On Thu, Nov 02, 2006 at 05:54:03PM -0800, Kristen Carlson Accardi wro=
+te:
+>=20
+> > There is a bug here in that acpiphp shouldn't even be used on the X=
+60 -
+> > it has no hotpluggable slots.
+>=20
+> How about the docking station?
 
-You said 2.6.18 worked for you.
-
-Did you have CONFIG_ACPI_PROCESSOR=y in 2.6.18, or did
-CONFIG_ACPI_PROCESSOR=m, CONFIG_X86_POWERNOW_K8=y work for you in 2.6.18?
-
-> Nice catch ;-)
-> 
-> Thank you very much!
-> -Christian
-
-cu
-Adrian
-
--- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
-
+Hm, i haven't seen one - i only saw the "media slice" (or however it is
+called this week) which gives you a drive bay, but no additional PCI
+devices, so it does not count.
+--=20
+Stefan Seyfried
+QA / R&D Team Mobile Devices        |              "Any ideas, John?"
+SUSE LINUX Products GmbH, N=FCrnberg  | "Well, surrounding them's out."=
+=20
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
