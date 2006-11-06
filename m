@@ -1,89 +1,68 @@
-From: Christian <christiand59@web.de>
+From: Adrian Bunk <bunk@stusta.de>
 Subject: Re: [discuss] Linux 2.6.19-rc4: known unfixed regressions (v2)
-Date: Mon, 6 Nov 2006 16:43:13 +0100
-Message-ID: <200611061643.14217.christiand59@web.de>
-References: <Pine.LNX.4.64.0610302019560.25218@g5.osdl.org> <200611051832.13285.christiand59@web.de> <20061106060021.GD5778@stusta.de>
+Date: Mon, 6 Nov 2006 18:30:01 +0100
+Message-ID: <20061106173001.GP5778@stusta.de>
+References: <Pine.LNX.4.64.0610302019560.25218@g5.osdl.org> <200611051832.13285.christiand59@web.de> <20061106060021.GD5778@stusta.de> <200611061643.14217.christiand59@web.de> <20061106172049.GA19283@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753250AbWKFPn6@vger.kernel.org>
-In-Reply-To: <20061106060021.GD5778@stusta.de>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from emailhub.stusta.mhn.de ([141.84.69.5]:8466 "HELO
+	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
+	id S1753540AbWKFRaB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 6 Nov 2006 12:30:01 -0500
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Dave Jones <davej@redhat.com>, Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+In-Reply-To: <20061106172049.GA19283@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dave Jones <davej@redhat.com>, Christian <christiand59@web.de>, Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-Am Montag, 6. November 2006 07:00 schrieb Adrian Bunk:
-> On Sun, Nov 05, 2006 at 06:32:12PM +0100, Christian wrote:
-> > Am Freitag, 3. November 2006 16:56 schrieb Dave Jones:
-> > > On Fri, Nov 03, 2006 at 11:25:37AM +0300, Alexey Starikovskiy wrote:
-> > >  > Could this be a problem?
-> > >  > --------------------
-> > >  > ...
-> > >  > CONFIG_ACPI_PROCESSOR=m
-> > >  > ...
-> > >  > CONFIG_X86_POWERNOW_K8=y
-> > >
-> > > Hmm, possibly.  Christian, does it work again if you set them both to
-> > > =y ?
-> >
-> > Yes, it works now! Only the change to CONFIG_ACPI_PROCESSOR=y made it
-> > work again!
->
-> You said 2.6.18 worked for you.
->
-> Did you have CONFIG_ACPI_PROCESSOR=y in 2.6.18, or did
-> CONFIG_ACPI_PROCESSOR=m, CONFIG_X86_POWERNOW_K8=y work for you in 2.6.18?
+On Mon, Nov 06, 2006 at 12:20:49PM -0500, Dave Jones wrote:
+> On Mon, Nov 06, 2006 at 04:43:13PM +0100, Christian wrote:
+> 
+>  > > Did you have CONFIG_ACPI_PROCESSOR=y in 2.6.18, or did
+>  > > CONFIG_ACPI_PROCESSOR=m, CONFIG_X86_POWERNOW_K8=y work for you in 2.6.18?
+>  > 
+>  > It worked with CONFIG_ACPI_PROCESSOR=m in 2.6.18-rc7. Since 2.6.19-rc1 it 
+>  > doesn't work anymore with CONFIG_ACPI_PROCESSOR=m.
+>  > 
+>  > user@ubuntu:~/Projekte/linux-2.6.18-rc7$ grep -i ACPI_PROCESSOR /boot/config-2.6.18-rc7
+>  > CONFIG_ACPI_PROCESSOR=m
+>  > 
+>  > user@ubuntu:~/Projekte/linux-2.6.18-rc7$ 
+>  > grep -Ei "POWERNOW_K8" /boot/config-2.6.18-rc7
+>  > CONFIG_X86_POWERNOW_K8=m
+>  > CONFIG_X86_POWERNOW_K8_ACPI=y
+>  > 
+>  > +++ There's a difference in 2.6.19! CONFIG_X86_POWERNOW_K8_ACPI is gone +++
+> 
+> I don't understand how this was allowed. Because when I try this
+> with a 2.6.18 tree..  (nothing changed between -rc7 and final for cpufreq)
+> 
+> <editted a .config to match your config>
+> 
+> $ grep ACPI_PROCESSOR .config
+> CONFIG_ACPI_PROCESSOR=m
+> $ grep POWERNOW_K8 .config
+> CONFIG_X86_POWERNOW_K8=y
+> CONFIG_X86_POWERNOW_K8_ACPI=y
+> 
+> and then after a make oldconfig the CONFIG_X86_POWERNOW_K8_ACPI is removed
+> as it isn't valid.
+> 
+> Did you edit your .config by hand ?
 
-It worked with CONFIG_ACPI_PROCESSOR=m in 2.6.18-rc7. Since 2.6.19-rc1 it 
-doesn't work anymore with CONFIG_ACPI_PROCESSOR=m.
+Look closer, his linux-2.6.18-rc7 .config contains 
+CONFIG_ACPI_PROCESSOR=m, CONFIG_X86_POWERNOW_K8=m.
 
-user@ubuntu:~/Projekte/linux-2.6.18-rc7$ uname -a
-Linux ubuntu.localnet 2.6.18-rc7 #2 SMP Wed Sep 13 11:28:41 CEST 2006 x86_64 
-GNU/Linux
+> 	Dave
 
-user@ubuntu:~/Projekte/linux-2.6.18-rc7$ lsmod | grep -Ei "processor|acpi|
-power"
-powernow_k8            16096  1
-freq_table              6848  2 powernow_k8,cpufreq_stats
-cpufreq_powersave       3584  0
-asus_acpi              20644  0
-processor              36872  2 powernow_k8,thermal
+cu
+Adrian
 
+-- 
 
-user@ubuntu:~/Projekte/linux-2.6.18-rc7$ grep -i 
-ACPI_PROCESSOR /boot/config-2.6.18-rc7
-CONFIG_ACPI_PROCESSOR=m
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
 
-user@ubuntu:~/Projekte/linux-2.6.18-rc7$ 
-grep -Ei "POWERNOW_K8" /boot/config-2.6.18-rc7
-CONFIG_X86_POWERNOW_K8=m
-CONFIG_X86_POWERNOW_K8_ACPI=y
-
-+++ There's a difference in 2.6.19! CONFIG_X86_POWERNOW_K8_ACPI is gone +++
-
-user@ubuntu:~/Projekte/linux-2.6.18-rc7$ 
-grep -Ei "POWERNOW_K8" /boot/config-2.6.19-rc1
-CONFIG_X86_POWERNOW_K8=y
-
-user@ubuntu:~/Projekte/linux-2.6.18-rc7$ grep -Ei "CPUFREQ|
-CPU_FREQ" /boot/config-2.6.18-rc7
-CONFIG_CPU_FREQ=y
-CONFIG_CPU_FREQ_TABLE=m
-# CONFIG_CPU_FREQ_DEBUG is not set
-CONFIG_CPU_FREQ_STAT=m
-CONFIG_CPU_FREQ_STAT_DETAILS=y
-CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE=y
-# CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE is not set
-CONFIG_CPU_FREQ_GOV_PERFORMANCE=y
-CONFIG_CPU_FREQ_GOV_POWERSAVE=m
-CONFIG_CPU_FREQ_GOV_USERSPACE=m
-CONFIG_CPU_FREQ_GOV_ONDEMAND=m
-CONFIG_CPU_FREQ_GOV_CONSERVATIVE=m
-# CPUFreq processor drivers
-CONFIG_X86_ACPI_CPUFREQ=m
-# CONFIG_X86_ACPI_CPUFREQ_PROC_INTF is not set
-
--Christian
