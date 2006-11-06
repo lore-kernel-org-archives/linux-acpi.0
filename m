@@ -1,51 +1,44 @@
 From: Dave Jones <davej@redhat.com>
 Subject: Re: [discuss] Linux 2.6.19-rc4: known unfixed regressions (v2)
-Date: Mon, 6 Nov 2006 12:20:49 -0500
-Message-ID: <20061106172049.GA19283@redhat.com>
-References: <Pine.LNX.4.64.0610302019560.25218@g5.osdl.org> <200611051832.13285.christiand59@web.de> <20061106060021.GD5778@stusta.de> <200611061643.14217.christiand59@web.de>
+Date: Mon, 6 Nov 2006 12:49:28 -0500
+Message-ID: <20061106174928.GB19283@redhat.com>
+References: <Pine.LNX.4.64.0610302019560.25218@g5.osdl.org>
+	<454AFD01.4080306@linux.intel.com>
+	<20061103155656.GA1000@redhat.com>
+	<200611051832.13285.christiand59@web.de>
+	<20061105200448.GE859@redhat.com> <20061106173528.GQ5778@stusta.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753506AbWKFRWB@vger.kernel.org>
+Return-path: <cpufreq-bounces+glkc-cpufreq=gmane.org@lists.linux.org.uk>
 Content-Disposition: inline
-In-Reply-To: <200611061643.14217.christiand59@web.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christian <christiand59@web.de>
-Cc: Adrian Bunk <bunk@stusta.de>, Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+In-Reply-To: <20061106173528.GQ5778@stusta.de>
+List-Unsubscribe: <http://lists.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@lists.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://lists.linux.org.uk/mailman/private/cpufreq>
+List-Post: <mailto:cpufreq@lists.linux.org.uk>
+List-Help: <mailto:cpufreq-request@lists.linux.org.uk?subject=help>
+List-Subscribe: <http://lists.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@lists.linux.org.uk?subject=subscribe>
+Sender: cpufreq-bounces@lists.linux.org.uk
+Errors-To: cpufreq-bounces+glkc-cpufreq=gmane.org+glkc-cpufreq=gmane.org@lists.linux.org.uk
+To: Adrian Bunk <bunk@stusta.de>
+Cc: linux-acpi@vger.kernel.org, cpufreq@lists.linux.org.uk, Christian <christiand59@web.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Nov 06, 2006 at 04:43:13PM +0100, Christian wrote:
-
- > > Did you have CONFIG_ACPI_PROCESSOR=y in 2.6.18, or did
- > > CONFIG_ACPI_PROCESSOR=m, CONFIG_X86_POWERNOW_K8=y work for you in 2.6.18?
+On Mon, Nov 06, 2006 at 06:35:28PM +0100, Adrian Bunk wrote:
+ 
+ > config X86_POWERNOW_K8
+ >         tristate "AMD Opteron/Athlon64 PowerNow!"
+ >         select CPU_FREQ_TABLE
+ > 	depends (ACPI_PROCESSOR || ACPI_PROCESSOR=n)
  > 
- > It worked with CONFIG_ACPI_PROCESSOR=m in 2.6.18-rc7. Since 2.6.19-rc1 it 
- > doesn't work anymore with CONFIG_ACPI_PROCESSOR=m.
- > 
- > user@ubuntu:~/Projekte/linux-2.6.18-rc7$ grep -i ACPI_PROCESSOR /boot/config-2.6.18-rc7
- > CONFIG_ACPI_PROCESSOR=m
- > 
- > user@ubuntu:~/Projekte/linux-2.6.18-rc7$ 
- > grep -Ei "POWERNOW_K8" /boot/config-2.6.18-rc7
- > CONFIG_X86_POWERNOW_K8=m
- > CONFIG_X86_POWERNOW_K8_ACPI=y
- > 
- > +++ There's a difference in 2.6.19! CONFIG_X86_POWERNOW_K8_ACPI is gone +++
+ > But in the end, the best solution depends on how many percent of the 
+ > X86_POWERNOW_K8 users have Christian's problem of requiring 
+ > ACPI_PROCESSOR. If there are only very few people with this problem, I'd 
+ > say leave it as it is.
 
-I don't understand how this was allowed. Because when I try this
-with a 2.6.18 tree..  (nothing changed between -rc7 and final for cpufreq)
-
-<editted a .config to match your config>
-
-$ grep ACPI_PROCESSOR .config
-CONFIG_ACPI_PROCESSOR=m
-$ grep POWERNOW_K8 .config
-CONFIG_X86_POWERNOW_K8=y
-CONFIG_X86_POWERNOW_K8_ACPI=y
-
-and then after a make oldconfig the CONFIG_X86_POWERNOW_K8_ACPI is removed
-as it isn't valid.
-
-Did you edit your .config by hand ?
+Well, it's been this way for a while, and only recently this has come up.
+There was a similar report for powernow-k7, which has a similar construct.
 
 	Dave
 
