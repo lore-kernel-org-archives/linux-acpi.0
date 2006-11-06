@@ -1,46 +1,40 @@
-From: Dave Jones <davej@redhat.com>
-Subject: Re: [discuss] Linux 2.6.19-rc4: known unfixed regressions (v2)
-Date: Mon, 6 Nov 2006 12:49:28 -0500
-Message-ID: <20061106174928.GB19283@redhat.com>
+From: Andi Kleen <ak@suse.de>
+Subject: Re: [discuss] Re: 2.6.19-rc4: known unfixed regressions
+	(v3)
+Date: Mon, 6 Nov 2006 18:47:26 +0100
+Message-ID: <200611061847.27540.ak@suse.de>
 References: <Pine.LNX.4.64.0610302019560.25218@g5.osdl.org>
-	<454AFD01.4080306@linux.intel.com>
-	<20061103155656.GA1000@redhat.com>
-	<200611051832.13285.christiand59@web.de>
-	<20061105200448.GE859@redhat.com> <20061106173528.GQ5778@stusta.de>
+	<20061105064801.GV13381@stusta.de>
+	<b6a2187b0611050130s325d777che069a7d9619f061b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <cpufreq-bounces+glkc-cpufreq=gmane.org@lists.linux.org.uk>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.osdl.org>
+In-Reply-To: <b6a2187b0611050130s325d777che069a7d9619f061b@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <20061106173528.GQ5778@stusta.de>
-List-Unsubscribe: <http://lists.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@lists.linux.org.uk?subject=unsubscribe>
-List-Archive: <http://lists.linux.org.uk/mailman/private/cpufreq>
-List-Post: <mailto:cpufreq@lists.linux.org.uk>
-List-Help: <mailto:cpufreq-request@lists.linux.org.uk?subject=help>
-List-Subscribe: <http://lists.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@lists.linux.org.uk?subject=subscribe>
-Sender: cpufreq-bounces@lists.linux.org.uk
-Errors-To: cpufreq-bounces+glkc-cpufreq=gmane.org+glkc-cpufreq=gmane.org@lists.linux.org.uk
-To: Adrian Bunk <bunk@stusta.de>
-Cc: linux-acpi@vger.kernel.org, cpufreq@lists.linux.org.uk, Christian <christiand59@web.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+List-Unsubscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
+List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.osdl.org>
+List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
+List-Subscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.osdl.org
+Errors-To: linux-pm-bounces@lists.osdl.org
+To: discuss@x86-64.org
+Cc: Andrew Morton <akpm@osdl.org>, len.brown@intel.com, Thierry Vignaud <tvignaud@mandriva.com>, Ernst Herzberg <earny@net4u.de>, Christian <christiand59@web.de>, Alex Romosan <romosan@sycorax.lbl.gov>, openib-general@openib.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-ide@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, oprofile-list@lists.sourceforge.net, Jens Axboe <jens.axboe@oracle.com>, linux-pci@atrey.karlin.mff.cuni.cz, Elimar Riesebieter <riesebie@lxtec.de>, linux-pm@osdl.org, Komuro <komurojun-mbn@nifty.com>, Jeff Chua <jeff.chua.linux@gmail.com>, Tim Chen <tim.c.chen@linux.intel.com>, phil.el@wanadoo.fr, gregkh@suse.de, neilb@cse.unsw.edu.au, Adrian Bunk <bunk@stusta.de>, linux-acpi@vger.kernel.org, mingo@redhat.com, nfs@lists.sourceforge.net, "Eric W. Biederman" <ebiederm@xmission.com>, cpufreq@lists.linux.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Nov 06, 2006 at 06:35:28PM +0100, Adrian Bunk wrote:
- 
- > config X86_POWERNOW_K8
- >         tristate "AMD Opteron/Athlon64 PowerNow!"
- >         select CPU_FREQ_TABLE
- > 	depends (ACPI_PROCESSOR || ACPI_PROCESSOR=n)
- > 
- > But in the end, the best solution depends on how many percent of the 
- > X86_POWERNOW_K8 users have Christian's problem of requiring 
- > ACPI_PROCESSOR. If there are only very few people with this problem, I'd 
- > say leave it as it is.
+On Sunday 05 November 2006 10:30, Jeff Chua wrote:
 
-Well, it's been this way for a while, and only recently this has come up.
-There was a similar report for powernow-k7, which has a similar construct.
+> Here's results with vanilla 2.6.19-rc4 (gcc version 3.4.5) ...
+> =
 
-	Dave
+> 1) PCI access mode (Any) ... FAILED
+> =
 
--- 
-http://www.codemonkey.org.uk
+> 2) PCI access mode (MMConfig) ... FAILED
+
+Full boot log please?
+
+-Andi
