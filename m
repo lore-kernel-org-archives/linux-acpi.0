@@ -1,49 +1,44 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Overheating Problem: Acer 1525WLMi
-Date: Mon, 6 Nov 2006 22:23:15 +0100
-Message-ID: <200611062223.16168.rjw@sisk.pl>
-References: <E1Gh0dO-0003TM-9y@fenris.runbox.com>
+From: Len Brown <len.brown@intel.com>
+Subject: Re: [patch 4/6] Add output class document
+Date: Mon, 6 Nov 2006 17:42:26 -0500
+Message-ID: <200611061742.27298.len.brown@intel.com>
+References: <200611042122.00950.luming.yu@gmail.com> <20061104082228.GA30489@kroah.com>
+Reply-To: Len Brown <lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:15085 "EHLO ogre.sisk.pl")
-	by vger.kernel.org with ESMTP id S1753823AbWKFVZc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Nov 2006 16:25:32 -0500
-In-Reply-To: <E1Gh0dO-0003TM-9y@fenris.runbox.com>
+Received: from hera.kernel.org ([140.211.167.34]:44442 "EHLO hera.kernel.org")
+	by vger.kernel.org with ESMTP id S1753897AbWKFWkR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Nov 2006 17:40:17 -0500
+In-Reply-To: <20061104082228.GA30489@kroah.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stefan Haller <sh@grep.ch>
-Cc: linux-acpi@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Yu Luming <luming.yu@gmail.com>, Andrew Morton <akpm@osdl.org>, Pavel Machek <pavel@ucw.cz>, Matt Domsch <Matt_Domsch@dell.com>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr, Richard Hughes <hughsient@gmail.com>
 
-Hi,
+On Saturday 04 November 2006 03:22, Greg KH wrote:
+> On Sat, Nov 04, 2006 at 09:22:00PM +0800, Yu Luming wrote:
 
-On Monday, 6 November 2006 10:19, Stefan Haller wrote:
-> Hi all
-> 
-> I hope this is the right place to ask this.
-> 
-> I have an overheating problem with my acer 1525WLMi notebook (AMD64) and
-> experience frequent shutdowns due to "critical temperature (80C) reached".
-> Interesstingly, this happens when the temperature of THRC reaches 90C,
-> not 80C. I did not yet experience any such shutdowns under WIndows.   
-> 
-> According to BIOS info, I have version 1.11 from Phoenix, which is the
-> latest available from acer for my notebook. Unlike others with this kind
-> of notebook, I had no problems under Windows yet, though I use Windows
-> only for gaming once in a while.   
+> Have you been working with the X developers that have been doing a lot
+> of work in describing and interacting with these different video
+> devices?  I think you might want to work with them so that you don't
+> create an interface that will not be used by them.
 
-You can try the latest -rc kernel with the final patches from
-http://bugzilla.kernel.org/show_bug.cgi?id=7122
+We discussed this with Keith Packard, who insisted that video switching
+is best done from within the video driver using native hardware interfaces.
 
-It may be related.
+That sounds good to me, but it doesn't answer the question about
+systems who choose to export video switching via ACPI.
+The goal at hand is to export that capability in the event
+it is not available via other means.
 
-Greetings,
-Rafael
+The issue that will come up is if this capability and a native
+hardware technique are used at the same time -- probably
+bad things will happen.  In that case, we need a way for
+the native technique to disable use of the ACPI technique.
 
-
--- 
-You never change things by fighting the existing reality.
-		R. Buckminster Fuller
+cheers,
+-Len
