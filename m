@@ -1,101 +1,65 @@
-From: Len Brown <len.brown@intel.com>
-Subject: Re: 2.6.19-rc4: known unfixed regressions (v3)
-Date: Tue, 7 Nov 2006 00:41:24 -0500
-Message-ID: <200611070041.28008.len.brown@intel.com>
-References: <Pine.LNX.4.64.0610302019560.25218@g5.osdl.org>
-	<20061105064801.GV13381@stusta.de>
-	<200611070317.42230.earny@net4u.de>
-Reply-To: Len Brown <lenb@kernel.org>
+From: "Mathew Brown" <mathewbrown@fastmail.fm>
+Subject: Re: SMP C-states on x86_64 Status
+Date: Tue, 07 Nov 2006 04:51:51 -0800
+Message-ID: <1162903911.32119.275205906@webmail.messagingengine.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.osdl.org>
-In-Reply-To: <200611070317.42230.earny@net4u.de>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:64489 "EHLO
+	out1.smtp.messagingengine.com") by vger.kernel.org with ESMTP
+	id S1753528AbWKGMvv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 7 Nov 2006 07:51:51 -0500
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
-List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.osdl.org>
-List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
-List-Subscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.osdl.org
-Errors-To: linux-pm-bounces@lists.osdl.org
-To: linux-pm@lists.osdl.org
-Cc: Andrew Morton <akpm@osdl.org>, jgarzik@pobox.com, Thierry Vignaud <tvignaud@mandriva.com>, discuss@x86-64.org, Ernst Herzberg <earny@net4u.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Alex Romosan <romosan@sycorax.lbl.gov>, openib-general@openib.org, Christian <christiand59@web.de>, linux-ide@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, oprofile-list@lists.sourceforge.net, Jens Axboe <jens.axboe@oracle.com>, Martin Lorenz <martin@lorenz.eu.org>, Bryan O'Sullivan <bos@serpentine.com>, Elimar Riesebieter <riesebie@lxtec.de>, linux-pm@osdl.org, Komuro <komurojun-mbn@nifty.com>, Jeff Chua <jeff.chua.linux@gmail.com>, phil.el@wanadoo.fr, gregkh@suse.de, ak@suse.de, Adrian Bunk <bunk@stusta.de>, linux-acpi@vger.kernel.org, mingo@redhat.com, nfs@lists.sourceforge.net, "Eric W. Biederman" <ebiederm@xmission.com>, cpufreq@l
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-On Monday 06 November 2006 21:17, Ernst Herzberg wrote:
-> On Sunday 05 November 2006 07:48, Adrian Bunk wrote:
-> > ...
-> > Subject    : ThinkPad R50p: boot fail with (lapic && on_battery)
-> > References : http://lkml.org/lkml/2006/10/31/333
-> > Submitter  : Ernst Herzberg <earny@net4u.de>
-> > Status     : problem is being debugged
-> =
+Thanks a lot for your input Len.  For my 16 core machine, cat
+/proc/acpi/processor/*/power gives the following:
 
-> Update:
-> =
+active state:  C1
+default state: C1
+bus master activity:   00000000
+states:
+  *C1:      promotion[--] demotion[--] latency[000] usage[0000000000]
+    C2:      <not supported>
+    C3:      <not supported>
 
-> 2.6.19-rc4-git11 does _not_ fix the problem.
-> =
+So I gather that this means that even with CPU frequency scaling, I'm
+really not doing anything since the voltage and power going to the CPU
+are going to be constant until I upgrade to 2.6.18.  Am I correct?
 
-> But now it doesn't matter if Cardbus/PCMCIA is compiled in or not.
-> =
+Len Brown wrote:
+> On Sunday 05 November 2006 06:37, Mathew Brown wrote:
+>> Hi,
+>>   I just saw Adrian's post on a patch to add SMP C-states on x86_64 to
+>>   kernel 2.6.16.  Is there anywhere I can find the current status of
+>>   C-states on SMP machines?  I have a 16-core machine running RHEL with
+>>   kernel 2.6.9-34 and it shows only C0, nothing else.  I checked the
+>>   DSDT and it compiled without error.  Any ideas?  Thanks for your help.
+>
+> This support (bugzilla 5653) shipped starting in 2.6.18, and I sent it to Adrian
+> for 2.6.16.stable -- and it appears it will pop out in 2.6.16.31.
+>
+> Re: your 16 core machine running 2.6.9...
+> What does /proc/acpi/processor/*/power say?
+> I would expect it to say C1 only.
+>
+> I would not expect this box to grow deeper C-states upon the support above.
+> The only SMP boxes with C-states deeper than C1 that I'm aware of today
+> are laptops.
+>
+> cheers,
+> -Len
+>
+>
+>
+-- 
+  Mathew Brown
+  mathewbrown@fastmail.fm
 
-> What also matters is a setting in the BIOS:
-> =
+-- 
+http://www.fastmail.fm - The way an email service should be
 
-> If i set instead of
-> =
-
-> Power -> =
-
->    SpeedStep ->
->       Mode for AC -    "Max Performance"
->       Mode for Battery "Max Battery"
-> =
-
-> to
-> =
-
-> Power -> =
-
->    SpeedStep ->
->       Mode for AC -    "Max Battery"
->       Mode for Battery "Max Performance" =
-
-> =
-
-> he _does_ boot from battery but also on AC...
-
-so with the new settings it boots properly in either AC or battery mode wit=
-h forced "lapic"?
-Strange, one would expect this to refer to APM settings, but who knows...
-
-Please test if booting with "processor.max_cstate=3D1" makes any difference
-
-Please test if building with CONFIG_CPU_FREQ=3Dn makes any difference.
-
-Also, please make sure that booting with "apm=3Doff" makes no difference --
-there is a bug where the APM code is not currently disabled in ACPI mode,
-and who knows what effect that may have...
-
-> Also the problem is now(?) not very reliable. Sometimes the boot is succe=
-ssful =
-
-> even on battery and then the laptop works without a glitch.
-> This makes it not easier to isolate the problem.
-> =
-
-
-> Is somewhere a howto-revert-patches-in-kernel-git-for-raw-beginners?
-
-Documentation/git-bisect.txt is what you want -- though if you can't
-reliably reproduce the failure it may not easily lead you to the failure.
-
-Also, it may be a good use of time to make darn sure that booting 2.6.18
-with forced "lapic" when on battery does not fail.  ie. is this really
-a regression -- of did forcing the lapic on this box never work reliably?
-
--Len
