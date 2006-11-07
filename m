@@ -1,69 +1,85 @@
-From: Yu Luming <luming.yu@gmail.com>
-Subject: [patch 4/5] Add output class document
-Date: Wed, 8 Nov 2006 00:54:52 +0800
-Message-ID: <200611080054.53220.luming.yu@gmail.com>
+From: Jeff Chua <jeff.chua.linux@gmail.com>
+Subject: Re: [discuss] Re: 2.6.19-rc4: known unfixed regressions
+	(v3)
+Date: Wed, 8 Nov 2006 00:57:03 +0800 (SGT)
+Message-ID: <Pine.LNX.4.64.0611080056480.12828@silvia.corp.fedex.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nz-out-0102.google.com ([64.233.162.196]:28370 "EHLO
-	nz-out-0102.google.com") by vger.kernel.org with ESMTP
-	id S1753774AbWKGQz6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 7 Nov 2006 11:55:58 -0500
-Received: by nz-out-0102.google.com with SMTP id z3so1187127nzf
-        for <linux-acpi@vger.kernel.org>; Tue, 07 Nov 2006 08:55:57 -0800 (PST)
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.osdl.org>
+List-Unsubscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
+List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.osdl.org>
+List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
+List-Subscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.osdl.org
+Errors-To: linux-pm-bounces@lists.osdl.org
+To: Aaron Durbin <adurbin@google.com>
+Cc: Andrew Morton <akpm@osdl.org>, len.brown@intel.com, Komuro <komurojun-mbn@nifty.com>, linux-pm@osdl.org, Ernst Herzberg <earny@net4u.de>, Christian <christiand59@web.de>, Alex Romosan <romosan@sycorax.lbl.gov>, openib-general@openib.org, Andi Kleen <ak@suse.de>, linux-ide@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, oprofile-list@lists.sourceforge.net, Jens Axboe <jens.axboe@oracle.com>, Martin Lorenz <martin@lorenz.eu.org>, linux-pci@atrey.karlin.mff.cuni.cz, Elimar Riesebieter <riesebie@lxtec.de>, discuss@x86-64.org, Thierry Vignaud <tvignaud@mandriva.com>, Tim Chen <tim.c.chen@linux.intel.com>, phil.el@wanadoo.fr, gregkh@suse.de, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@stusta.de>, linux-acpi@vger.kernel.org, mingo@redhat.com, nfs@lists.sourceforge.net, "Eric W. Biederman" <ebiederm@xmission.com>cp
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: Pavel Machek <pavel@ucw.cz>, len.brown@intel.com, Matt Domsch <Matt_Domsch@dell.com>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr, Richard Hughes <hughsient@gmail.com>
 
-Patch 4/5: add output class document
 
-signed-off-by: Luming Yu <Luming.yu@intel.com>
----
- video-output.txt |   34 ++++++++++++++++++++++++++++++++++
- 1 file changed, 34 insertions(+)
+On 11/7/06, Aaron Durbin <adurbin@google.com> wrote:
 
-diff --git a/Documentation/video-output.txt b/Documentation/video-output.txt
-new file mode 100644
-index 0000000..cf0f3c2
---- /dev/null
-+++ b/Documentation/video-output.txt
-@@ -0,0 +1,34 @@
-+
-+		Video Output Switcher Control
-+		~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+		2006 luming.yu@intel.com
-+
-+The output sysfs class driver provides an abstract video output layer that 
-+can be used to hook platform specific methods to enable/disable video output
-+device through common sysfs interface. For example, on my IBM ThinkPad T42 
-+laptop, The ACPI video driver registered its output devices and read/write 
-+method for 'state' with output sysfs class. The user interface under sysfs 
-is:
-+
-+linux:/sys/class/video_output # tree .
-+.
-+|-- CRT0
-+|   |-- device -> ../../../devices/pci0000:00/0000:00:01.0
-+|   |-- state
-+|   |-- subsystem -> ../../../class/video_output
-+|   `-- uevent
-+|-- DVI0
-+|   |-- device -> ../../../devices/pci0000:00/0000:00:01.0
-+|   |-- state
-+|   |-- subsystem -> ../../../class/video_output
-+|   `-- uevent
-+|-- LCD0
-+|   |-- device -> ../../../devices/pci0000:00/0000:00:01.0
-+|   |-- state
-+|   |-- subsystem -> ../../../class/video_output
-+|   `-- uevent
-+`-- TV0
-+   |-- device -> ../../../devices/pci0000:00/0000:00:01.0
-+   |-- state
-+   |-- subsystem -> ../../../class/video_output
-+   `-- uevent
-+
+> Could please you post a dump of /proc/iomem for both the kernel that
+> works for you and the kernel that fails to allocate the PCI resources?
+
+
+
+1) this works ...
+
+00000000-0009ffff : System RAM
+000a0000-000bffff : Video RAM area
+000c0000-000c7fff : Video ROM
+000cc800-000cffff : Adapter ROM
+000f0000-000fffff : System ROM
+00100000-df686bff : System RAM
+    00100000-00357d27 : Kernel code
+    00357d28-0042bab3 : Kernel data
+df686c00-df688bff : ACPI Non-volatile Storage
+df688c00-df68abff : ACPI Tables
+df68ac00-dfffffff : reserved
+e0000000-efffffff : 0000:00:02.0
+f0000000-f3ffffff : reserved
+fe700000-fe7fffff : PCI Bus #03
+fe800000-fe8fffff : PCI Bus #02
+    fe8f0000-fe8fffff : 0000:02:00.0
+      fe8f0000-fe8fffff : tg3
+fe900000-fe9fffff : PCI Bus #01
+feabf900-feabf9ff : 0000:00:1e.2
+feabfa00-feabfbff : 0000:00:1e.2
+feac0000-feafffff : 0000:00:02.0
+feb00000-feb7ffff : 0000:00:02.0
+feb80000-febfffff : 0000:00:02.1
+fed00000-fed003ff : HPET 0
+fed20000-fed9ffff : reserved
+fee00000-feefffff : reserved
+ffa80800-ffa80bff : 0000:00:1d.7
+    ffa80800-ffa80bff : ehci_hcd
+ffb00000-ffffffff : reserved
+
+
+
+2) this fails ...
+
+00000000-0009ffff : System RAM
+000a0000-000bffff : Video RAM area
+000c0000-000c7fff : Video ROM
+000cc800-000cffff : Adapter ROM
+000f0000-000fffff : System ROM
+00100000-df686bff : System RAM
+    00100000-00358927 : Kernel code
+    00358928-0042cab3 : Kernel data
+df686c00-df688bff : ACPI Non-volatile Storage
+df688c00-df68abff : ACPI Tables
+df68ac00-dfffffff : reserved
+e0000000-efffffff : 0000:00:02.0
+f0000000-ffffffff : PCI MMCONFIG 0
+    fed00000-fed003ff : HPET 0
+
+
+
+Thanks,
+Jeff
