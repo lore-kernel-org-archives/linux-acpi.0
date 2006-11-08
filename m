@@ -1,61 +1,60 @@
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Subject: Re: acpiphp makes noise on every lid close/open
-Date: Tue, 7 Nov 2006 13:44:39 -0800
-Message-ID: <20061107134439.1d54dc66.kristen.c.accardi@intel.com>
-References: <20061101115618.GA1683@elf.ucw.cz>
-	<20061102175403.279df320.kristen.c.accardi@intel.com>
-	<20061105232944.GA23256@vasa.acc.umu.se>
-	<20061106092117.GB2175@elf.ucw.cz>
-	<20061107204409.GA37488@vasa.acc.umu.se>
+From: Andi Kleen <ak@suse.de>
+Subject: Re: [discuss] Re: 2.6.19-rc4: known unfixed regressions
+	(v3)
+Date: Wed, 8 Nov 2006 08:39:44 +0100
+Message-ID: <200611080839.46670.ak@suse.de>
+References: <Pine.LNX.4.64.0611080056480.12828@silvia.corp.fedex.com>
+	<20061107171143.GU27140@parisc-linux.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:20627 "EHLO mga09.intel.com")
-	by vger.kernel.org with ESMTP id S1753450AbWKGVqR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Nov 2006 16:46:17 -0500
-In-Reply-To: <20061107204409.GA37488@vasa.acc.umu.se>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.osdl.org>
+In-Reply-To: <20061107171143.GU27140@parisc-linux.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
+List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.osdl.org>
+List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
+List-Subscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.osdl.org
+Errors-To: linux-pm-bounces@lists.osdl.org
+To: Matthew Wilcox <matthew@wil.cx>
+Cc: Andrew Morton <akpm@osdl.org>, len.brown@intel.com, Thierry Vignaud <tvignaud@mandriva.com>, linux-pm@osdl.org, Ernst Herzberg <earny@net4u.de>, Aaron Durbin <adurbin@google.com>, Alex Romosan <romosan@sycorax.lbl.gov>, openib-general@openib.org, neilb@cse.unsw.edu.au, linux-ide@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, oprofile-list@lists.sourceforge.net, Jens Axboe <jens.axboe@oracle.com>, linux-pci@atrey.karlin.mff.cuni.cz, Elimar Riesebieter <riesebie@lxtec.de>, discuss@x86-64.org, Komuro <komurojun-mbn@nifty.com>, Jeff Chua <jeff.chua.linux@gmail.com>, Tim Chen <tim.c.chen@linux.intel.com>, phil.el@wanadoo.fr, gregkh@suse.de, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Christian <christiand59@web.de>, Adrian Bunk <bunk@stusta.de>, linux-acpi@vger.kernel.org, mingo@redhat.com, nfs@lists.sourceforge.net, Eric W. Bied
 List-Id: linux-acpi@vger.kernel.org
-To: David Weinehall <tao@acc.umu.se>
-Cc: Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <linux-acpi@vger.kernel.org>
 
-On Tue, 7 Nov 2006 21:44:09 +0100
-David Weinehall <tao@acc.umu.se> wrote:
+On Tuesday 07 November 2006 18:11, Matthew Wilcox wrote:
+> On Wed, Nov 08, 2006 at 12:57:03AM +0800, Jeff Chua wrote:
+> > 2) this fails ...
+> >
+> > e0000000-efffffff : 0000:00:02.0
+> > f0000000-ffffffff : PCI MMCONFIG 0
+> >    fed00000-fed003ff : HPET 0
+>
+> Heh, no kidding ...
+>
+>                 num_buses =3D pci_mmcfg_config[i].end_bus_number -
+>                     pci_mmcfg_config[i].start_bus_number + 1;
+>                 res->start =3D pci_mmcfg_config[i].base_address;
+>                 res->end =3D res->start + (num_buses << 20) - 1;
+>                 res->flags =3D IORESOURCE_MEM | IORESOURCE_BUSY;
+>                 insert_resource(&iomem_resource, res);
+>
+> So if we have 256 busses assigned, then we request 256MB and, well,
+> there's no room for anyone else.  This code was added by Andi in commit
+> de09bddb9d6f96785be470c832b881e6d72d589f
+>
+> Hopefully he'll have a good idea how to restrict it.  Given your "working"
+> resource map, it seems like it should be limited to 16MB (and thus 16
+> busses). But how to figure that out?
 
-> On Mon, Nov 06, 2006 at 10:21:17AM +0100, Pavel Machek wrote:
-> > Hi!
-> > 
-> > > > > With 2.6.19-rc4, acpi complains about "acpiphp_glue: cannot get bridge
-> > > > > info" each time I close/reopen the lid... On thinkpad x60. Any ideas?
-> > > > > (-mm1 behaves the same).
-> > > > 
-> > > > Looks like acpi is sending a BUS_CHECK notification to acpiphp on the 
-> > > > PCI Root Bridge whenever the lid opens up.
-> > > > 
-> > > > There is a bug here in that acpiphp shouldn't even be used on the X60 -
-> > > > it has no hotpluggable slots.
-> > > 
-> > > How about the docking station?
-> > 
-> > "Dock" for x60 only contains cdrom slot and aditional slots, no PCI or
-> > PCMCIA slots.
-> 
-> Well, when I press the undock button on the dock without the acpiphp
-> module loaded, I never get the green light that confirms that removing
-> the laptop is safe.  If acpiphp is loaded, things work just fine.
-> 
-> 
-> Regards: David
-> -- 
->  /) David Weinehall <tao@acc.umu.se> /) Northern lights wander      (\
-> //  Maintainer of the v2.0 kernel   //  Dance across the winter sky //
-> \)  http://www.acc.umu.se/~tao/    (/   Full colour fire           (/
 
-David,
-What kernel version are you using?  You should not need acpiphp to do
-docking on the X60.  If you are using a recent kernel, do you mind sending
-the dmesg output so we can figure out why this doesn't work for you?
+ACPI knows the number of busses.
 
-Thanks,
-kristen
+Just need to get the information there, which is a ordering issue
+(normally MCFG initialization is before this is known I think)
+
+Len, ACPI folks, any ideas how to fix this cleanly?
+
+-Andi
