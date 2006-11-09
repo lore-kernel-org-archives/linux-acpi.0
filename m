@@ -1,58 +1,50 @@
 From: akpm@osdl.org
-Subject: [patch 1/2] ACPI: Clear GPE before disabling it
-Date: Wed, 08 Nov 2006 19:44:45 -0800
-Message-ID: <200611090344.kA93ijKB003447@shell0.pdx.osdl.net>
+Subject: [patch 2/2] acpi: fix single linked list manipulation
+Date: Wed, 08 Nov 2006 19:44:47 -0800
+Message-ID: <200611090344.kA93ilOY003450@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:3245 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1754705AbWKIDpW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Nov 2006 22:45:22 -0500
+Received: from smtp.osdl.org ([65.172.181.4]:4013 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S932497AbWKIDpY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Nov 2006 22:45:24 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, william.morrow@amd.com, jordan.crouse@amd.com, len.brown@intel.com, luming.yu@intel.com, robert.moore@intel.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, akinobu.mita@gmail.com, len.brown@intel.com
 
-From: William Morrow <william.morrow@amd.com>
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-On some BIOSen, the GPE bit will remain set even if it is disabled,
-resulting in a interrupt storm.  This patch clears the bit before disabling
-it.
+Fix single linked list manipulation for sub_driver.  If the remving entry
+is not on the head of the sub_driver list, it goes into infinate loop.
 
-Signed-off-by: William Morrow <william.morrow@amd.com>
-Signed-off-by: Jordan Crouse <jordan.crouse@amd.com>
-Cc: "Yu, Luming" <luming.yu@intel.com>
-Cc: "Brown, Len" <len.brown@intel.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>
+Though that infinite loop doesn't happen.  Because the only user of
+acpi_pci_register_dirver() is acpiphp.
+
+Cc: Len Brown <len.brown@intel.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/events/evgpe.c |   14 +++++++++++++-
- 1 files changed, 13 insertions(+), 1 deletion(-)
+ drivers/acpi/pci_root.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/acpi/events/evgpe.c~acpi-clear-gpe-before-disabling-it drivers/acpi/events/evgpe.c
---- a/drivers/acpi/events/evgpe.c~acpi-clear-gpe-before-disabling-it
-+++ a/drivers/acpi/events/evgpe.c
-@@ -677,10 +677,22 @@ acpi_ev_gpe_dispatch(struct acpi_gpe_eve
- 	case ACPI_GPE_DISPATCH_METHOD:
+diff -puN drivers/acpi/pci_root.c~acpi-fix-single-linked-list-manipulation drivers/acpi/pci_root.c
+--- a/drivers/acpi/pci_root.c~acpi-fix-single-linked-list-manipulation
++++ a/drivers/acpi/pci_root.c
+@@ -98,11 +98,12 @@ void acpi_pci_unregister_driver(struct a
  
- 		/*
--		 * Disable GPE, so it doesn't keep firing before the method has a
-+		 * Clear GPE, so it doesn't keep firing before the method has a
- 		 * chance to run.
- 		 */
-+		status = acpi_hw_clear_gpe(gpe_event_info);
-+		if (ACPI_FAILURE(status)) {
-+			ACPI_EXCEPTION((AE_INFO, status,
-+					"Unable to clear GPE[%2X]",
-+					gpe_number));
-+			return_UINT32(ACPI_INTERRUPT_NOT_HANDLED);
-+		}
-+		/*
-+		 * Disable GPE, so it doesn't keep happen again.
-+		 */
-+
- 		status = acpi_ev_disable_gpe(gpe_event_info);
-+
- 		if (ACPI_FAILURE(status)) {
- 			ACPI_EXCEPTION((AE_INFO, status,
- 					"Unable to disable GPE[%2X]",
+ 	struct acpi_pci_driver **pptr = &sub_driver;
+ 	while (*pptr) {
+-		if (*pptr != driver)
+-			continue;
+-		*pptr = (*pptr)->next;
+-		break;
++		if (*pptr == driver)
++			break;
++		pptr = &(*pptr)->next;
+ 	}
++	BUG_ON(!*pptr);
++	*pptr = (*pptr)->next;
+ 
+ 	if (!driver->remove)
+ 		return;
 _
