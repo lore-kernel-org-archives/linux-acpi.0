@@ -1,62 +1,59 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: 2.6.19-rc5 x86_64  irq 22: nobody cared
-Date: Thu, 09 Nov 2006 10:12:44 -0700
-Message-ID: <m1d57wo86r.fsf@ebiederm.dsl.xmission.com>
-References: <4551D12D.4010304@trollprod.org> <20061109064956.GG4729@stusta.de>
-	<20061109084937.52af8768@freekitty>
+From: "Lu, Yinghai" <yinghai.lu@amd.com>
+Subject: RE: 2.6.19-rc5 x86_64 irq 22: nobody cared
+Date: Thu, 9 Nov 2006 13:03:16 -0800
+Message-ID: <5986589C150B2F49A46483AC44C7BCA49071CC@ssvlexmb2.amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+ charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ebiederm.dsl.xmission.com ([166.70.28.69]:136 "EHLO
-	ebiederm.dsl.xmission.com") by vger.kernel.org with ESMTP
-	id S1424149AbWKIROC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Nov 2006 12:14:02 -0500
-In-Reply-To: <20061109084937.52af8768@freekitty> (Stephen Hemminger's message
-	of "Thu, 9 Nov 2006 08:49:37 -0800")
+Received: from outbound-res.frontbridge.com ([63.161.60.49]:26295 "EHLO
+	outbound2-res-R.bigfish.com") by vger.kernel.org with ESMTP
+	id S966057AbWKIVD2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Nov 2006 16:03:28 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stephen Hemminger <shemminger@osdl.org>
-Cc: Adrian Bunk <bunk@stusta.de>, Olivier Nicolas <olivn@trollprod.org>, Takashi Iwai <tiwai@suse.de>, Jaroslav Kysela <perex@suse.cz>, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, gregkh@suse.de, linux-pci@atrey.karlin.mff.cuni.cz, len.brown@intel.com, linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>, Linus Torvalds <torvalds@osdl.org>
+To: Olivier Nicolas <olivn@trollprod.org>
+Cc: Adrian Bunk <bunk@stusta.de>, Stephen Hemminger <shemminger@osdl.org>, Takashi Iwai <tiwai@suse.de>, Jaroslav Kysela <perex@suse.cz>, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, gregkh@suse.de, linux-pci@atrey.karlin.mff.cuni.cz, len.brown@intel.com, linux-acpi@vger.kernel.org, "Eric W. Biederman" <ebiederm@xmission.com>, Andrew Morton <akpm@osdl.org>, Linus Torvalds <torvalds@osdl.org>
 
-Stephen Hemminger <shemminger@osdl.org> writes:
 
-> On Thu, 9 Nov 2006 07:49:56 +0100
-> Adrian Bunk <bunk@stusta.de> wrote:
->
->> On Wed, Nov 08, 2006 at 01:44:29PM +0100, Olivier Nicolas wrote:
->> 
->> > Hi,
->> 
->> Hi Olivier,
->> 
->> > 2.6.19-rc5 does not boot properly, I have tried pci=routeirq, irpoll 
->> > without success.
->> > 
->> > Full details (.config, dmesg, /proc/interrupts) are in 
->> > http://olivn.trollprod.org/2.6.19-rc5-irq.tar.gz
->> 
->> thanks for your report!
->> 
->> I might be wrong, but looking at the dmesg:
->> - irq 22 is the hda_intel IRQ
->> - the "irq 22: nobody cared" is immediately before the
->>   "hda_intel: No response from codec, disabling MSI..."
->> - in the routeirq case, the hda_intel IRQ as well as the
->>   IRQ in the error message change to 21
->> 
->> So it might be related to the hda_intel MSI check.
->
-> More likely the MSI management routines don't work for disabling MSI.
+           CPU0       CPU1       
+  0:        214      24856   IO-APIC-edge      timer
+  1:          0        359   IO-APIC-edge      i8042
+  6:          0          5   IO-APIC-edge      floppy
+  8:          0          0   IO-APIC-edge      rtc
+  9:          0          0   IO-APIC-fasteoi   acpi
+ 12:          0        103   IO-APIC-edge      i8042
+ 14:          0        128   IO-APIC-edge      ide0
+ 16:          0          0   IO-APIC-fasteoi   libata
+ 17:          1          2   IO-APIC-fasteoi   bttv0
+ 20:         22       6469   IO-APIC-fasteoi   libata
+ 21:         11      99989   IO-APIC-fasteoi   ehci_hcd:usb2, HDA Intel
+ 22:          0          1   IO-APIC-fasteoi   libata, ohci_hcd:usb1
+ 23:          0          0   IO-APIC-fasteoi   libata
+308:          8       2378   PCI-MSI-edge      eth1
+309:          0          9   PCI-MSI-edge      eth1
+310:          0          9   PCI-MSI-edge      eth1
+311:          4       2401   PCI-MSI-edge      eth0
+312:          0          0   PCI-MSI-edge      eth0
+313:          0          1   PCI-MSI-edge      eth0
+NMI:         74         47 
+LOC:      25024      24991 
+ERR:          0
 
-Well brand new MSI handling could be buggy, the disable hypothesis doesn't
-make much sense on boot up.
+But according to the irq router in pci conf, 
+the ehci and audio share to use irq 20.
+sata0 and ohci use irq 23
+sata1 use irq 22, (MAC1 share it but kernel will use MSI)
+sata2 use irq 21, (MAC0 share it but kernel will use MSI)
 
-> I am debugging a problem where MSI doesn't work across suspend/resume,
-> I suspect the base MSI code needs fixing.
+the ACPI report wrong GSI for them?
 
-Rethinking the interfaces maybe I don't think the code is broken I think
-most likely it is just not designed to do the right thing.  I remember
-thinking how horrible that code is, when I read through it.
+Can you disable the acpi and check the interrupt and lspci?
 
-Eric
+YH
+
+
+
 
