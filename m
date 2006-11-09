@@ -1,60 +1,52 @@
-From: Olivier Nicolas <olivn@trollprod.org>
+From: Stephen Hemminger <shemminger@osdl.org>
 Subject: Re: 2.6.19-rc5 x86_64  irq 22: nobody cared
-Date: Thu, 09 Nov 2006 17:08:46 +0100
-Message-ID: <4553528E.9060504@trollprod.org>
-References: <4551D12D.4010304@trollprod.org>	<20061109064956.GG4729@stusta.de> <s5hirhovr9j.wl%tiwai@suse.de>
+Date: Thu, 9 Nov 2006 08:49:37 -0800
+Message-ID: <20061109084937.52af8768@freekitty>
+References: <4551D12D.4010304@trollprod.org>
+	<20061109064956.GG4729@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outmx017.isp.belgacom.be ([195.238.4.116]:38865 "EHLO
-	outmx017.isp.belgacom.be") by vger.kernel.org with ESMTP
-	id S1424095AbWKIQJF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Nov 2006 11:09:05 -0500
-In-Reply-To: <s5hirhovr9j.wl%tiwai@suse.de>
+Received: from smtp.osdl.org ([65.172.181.4]:38614 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1424116AbWKIQxO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Nov 2006 11:53:14 -0500
+In-Reply-To: <20061109064956.GG4729@stusta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Takashi Iwai <tiwai@suse.de>
-Cc: Adrian Bunk <bunk@stusta.de>, Stephen Hemminger <shemminger@osdl.org>, Jaroslav Kysela <perex@suse.cz>, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, gregkh@suse.de, linux-pci@atrey.karlin.mff.cuni.cz, len.brown@intel.com, linux-acpi@vger.kernel.org, "Eric W. Biederman" <ebiederm@xmission.com>, Andrew Morton <akpm@osdl.org>, Linus Torvalds <torvalds@osdl.org>
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Olivier Nicolas <olivn@trollprod.org>, Takashi Iwai <tiwai@suse.de>, Jaroslav Kysela <perex@suse.cz>, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, gregkh@suse.de, linux-pci@atrey.karlin.mff.cuni.cz, len.brown@intel.com, linux-acpi@vger.kernel.org, "Eric W. Biederman" <ebiederm@xmission.com>, Andrew Morton <akpm@osdl.org>, Linus Torvalds <torvalds@osdl.org>
 
-Takashi,
+On Thu, 9 Nov 2006 07:49:56 +0100
+Adrian Bunk <bunk@stusta.de> wrote:
 
-You are right, setting disable_msi=1 as an option for snd-hda-intel 
-module solve my problem.
-
-Thanks
-
-Olivier
-
-Takashi Iwai wrote:
-> At Thu, 9 Nov 2006 07:49:56 +0100,
-> Adrian Bunk wrote:
->> On Wed, Nov 08, 2006 at 01:44:29PM +0100, Olivier Nicolas wrote:
->>
->>> Hi,
->> Hi Olivier,
->>
->>> 2.6.19-rc5 does not boot properly, I have tried pci=routeirq, irpoll 
->>> without success.
->>>
->>> Full details (.config, dmesg, /proc/interrupts) are in 
->>> http://olivn.trollprod.org/2.6.19-rc5-irq.tar.gz
->> thanks for your report!
->>
->> I might be wrong, but looking at the dmesg:
->> - irq 22 is the hda_intel IRQ
->> - the "irq 22: nobody cared" is immediately before the
->>   "hda_intel: No response from codec, disabling MSI..."
->> - in the routeirq case, the hda_intel IRQ as well as the
->>   IRQ in the error message change to 21
->>
->> So it might be related to the hda_intel MSI check.
+> On Wed, Nov 08, 2006 at 01:44:29PM +0100, Olivier Nicolas wrote:
 > 
-> To disable MSI from the beginning, set disable_msi=1 module option for
-> snd-hda-intel.
+> > Hi,
 > 
+> Hi Olivier,
 > 
-> Takashi
+> > 2.6.19-rc5 does not boot properly, I have tried pci=routeirq, irpoll 
+> > without success.
+> > 
+> > Full details (.config, dmesg, /proc/interrupts) are in 
+> > http://olivn.trollprod.org/2.6.19-rc5-irq.tar.gz
+> 
+> thanks for your report!
+> 
+> I might be wrong, but looking at the dmesg:
+> - irq 22 is the hda_intel IRQ
+> - the "irq 22: nobody cared" is immediately before the
+>   "hda_intel: No response from codec, disabling MSI..."
+> - in the routeirq case, the hda_intel IRQ as well as the
+>   IRQ in the error message change to 21
+> 
+> So it might be related to the hda_intel MSI check.
+
+More likely the MSI management routines don't work for disabling MSI.
+I am debugging a problem where MSI doesn't work across suspend/resume,
+I suspect the base MSI code needs fixing.
 
 
-
+-- 
+Stephen Hemminger <shemminger@osdl.org>
