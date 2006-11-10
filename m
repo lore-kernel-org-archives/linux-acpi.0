@@ -1,52 +1,108 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] backlight: do not power off backlight when unregistering
-Date: Thu, 9 Nov 2006 22:08:30 -0200
-Message-ID: <20061110000829.GA9021@khazad-dum.debian.net>
-References: <20061105225429.GE14295@khazad-dum.debian.net> <1162773394.5473.18.camel@localhost.localdomain>
+Subject: [PATCH] backlight: do not power off backlight when unregistering (try 2)
+Date: Thu, 9 Nov 2006 22:32:37 -0200
+Message-ID: <20061110003237.GB9021@khazad-dum.debian.net>
+References: <20061105225429.GE14295@khazad-dum.debian.net> <1162773394.5473.18.camel@localhost.localdomain> <20061110000829.GA9021@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:42149 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:63430 "EHLO
 	out1.smtp.messagingengine.com") by vger.kernel.org with ESMTP
-	id S1424259AbWKJAIn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Nov 2006 19:08:43 -0500
+	id S1424310AbWKJAcm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Nov 2006 19:32:42 -0500
 Content-Disposition: inline
-In-Reply-To: <1162773394.5473.18.camel@localhost.localdomain>
+In-Reply-To: <20061110000829.GA9021@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Richard Purdie <rpurdie@rpsys.net>, benh@kernel.crashing.org, paulus@samba.org, Lennart Poettering <mzxreary@0pointer.de>, Andriy Skulysh <askulysh@image.kiev.ua>
 Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Antonino Daplas <adaplas@pol.net>, Holger Macht <hmacht@suse.de>
 
-On Mon, 06 Nov 2006, Richard Purdie wrote:
-> Those commits were designed to standardise several behaviours amongst
-> several drivers and this specific case was added to the core rather than
-> coding it in each of several drivers. We therefore really need to update
-> those other drivers too (locomo at the very least).
+ACPI drivers like ibm-acpi are moving to the backlight sysfs infrastructure.
+During ibm-acpi testing, I have noticed that backlight_device_unregister()
+sets the display brightness and power to zero.
 
-The following in-tree drivers need changes:
-drivers/video/backlight/locomolcd.c
-drivers/video/backlight/hp680_bl.c
-drivers/video/backlight/corgi_bl.c
+This causes the display to be dimmed on ibm-acpi module removal.  It will
+affect all other ACPI drivers that are being converted to use the backlight
+class, as well.  It also affects a number of framebuffer devices that are
+used on desktops and laptops which might also not want such behaviour.
 
-I will repost the patch with locomolcd.c and hp680_bl.c included.
+Since working around this behaviour requires undesireable hacks, Richard
+Purdie decided that we would be better off reverting the changes in the
+sysfs class, and adding the code to dim and power off the backlight device
+to the drivers that want it.  This patch is my attempt to do so.
 
-The following in-tree (latest linux-2.6 git tree) drivers are desktop/laptop
-devices and likely do not want the "dim and power off backlight on
-backlight_device_unregister" behavior:
+Patch against latest linux-2.6.git.  Changes untested, as I lack the
+required hardware.  Still, they are trivial enough that, apart from typos,
+there is little chance of getting them wrong.
 
-drivers/video/aty/*
-drivers/video/riva/fbdev.c
-drivers/video/nvidia/nv_backlight.c
-drivers/misc/msi-laptop.c
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Andriy Skulysh <askulysh@image.kiev.ua>
+Cc: Antonino Daplas <adaplas@pol.net>
+--
 
-The ACPI drivers being converted to backlight sysfs are very unlikely to
-want the "power off backlight on backlight_device_unregister" behavior, so I
-have not hunted after backlight sysfs conversions in the linux-acpi-2.6 git
-tree.  Still, linux-acpi is cc'ed.
-
-I have CC'ed the relevant people (please forgive me any ommissions) for the
-drivers listed above, so they can chime in if their driver should retain the
-"dim and power off backlight on backlight_device_unregister" behaviour.
+diff --git a/drivers/video/backlight/backlight.c b/drivers/video/backlight/backlight.c
+index 27597c5..de5a6b3 100644
+--- a/drivers/video/backlight/backlight.c
++++ b/drivers/video/backlight/backlight.c
+@@ -259,12 +259,6 @@ void backlight_device_unregister(struct
+ 					 &bl_class_device_attributes[i]);
+ 
+ 	down(&bd->sem);
+-	if (likely(bd->props && bd->props->update_status)) {
+-		bd->props->brightness = 0;
+-		bd->props->power = 0;
+-		bd->props->update_status(bd);
+-	}
+-
+ 	bd->props = NULL;
+ 	up(&bd->sem);
+ 
+diff --git a/drivers/video/backlight/corgi_bl.c b/drivers/video/backlight/corgi_bl.c
+index d07ecb5..61587ca 100644
+--- a/drivers/video/backlight/corgi_bl.c
++++ b/drivers/video/backlight/corgi_bl.c
+@@ -135,6 +135,10 @@ static int corgibl_probe(struct platform
+ 
+ static int corgibl_remove(struct platform_device *dev)
+ {
++	corgibl_data.power = 0;
++	corgibl_data.brightness = 0;
++	corgibl_send_intensity(corgi_backlight_device);
++
+ 	backlight_device_unregister(corgi_backlight_device);
+ 
+ 	printk("Corgi Backlight Driver Unloaded\n");
+diff --git a/drivers/video/backlight/hp680_bl.c b/drivers/video/backlight/hp680_bl.c
+index e399321..1c569fb 100644
+--- a/drivers/video/backlight/hp680_bl.c
++++ b/drivers/video/backlight/hp680_bl.c
+@@ -117,6 +117,10 @@ static int __init hp680bl_probe(struct p
+ 
+ static int hp680bl_remove(struct platform_device *dev)
+ {
++	hp680bl_data.brightness = 0;
++	hp680bl_data.power = 0;
++	hp680bl_send_intensity(hp680_backlight_device);
++
+ 	backlight_device_unregister(hp680_backlight_device);
+ 
+ 	return 0;
+diff --git a/drivers/video/backlight/locomolcd.c b/drivers/video/backlight/locomolcd.c
+index 628571c..2d79054 100644
+--- a/drivers/video/backlight/locomolcd.c
++++ b/drivers/video/backlight/locomolcd.c
+@@ -200,6 +200,10 @@ static int locomolcd_remove(struct locom
+ {
+ 	unsigned long flags;
+ 
++	locomobl_data.brightness = 0;
++	locomobl_data.power = 0;
++	locomolcd_set_intensity(locomolcd_bl_device);
++
+ 	backlight_device_unregister(locomolcd_bl_device);
+ 	local_irq_save(flags);
+ 	locomolcd_dev = NULL;
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
