@@ -1,196 +1,32 @@
-From: Yu Luming <luming.yu@gmail.com>
-Subject: [Patch] Adds backlight sysfs support for acpi video driver.
-Date: Sat, 11 Nov 2006 02:40:34 +0800
-Message-ID: <200611110240.34715.luming.yu@gmail.com>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: 2.6.19-rc5 x86_64 irq 22: nobody cared
+Date: Fri, 10 Nov 2006 13:11:28 -0700
+Message-ID: <m1u017hxjj.fsf@ebiederm.dsl.xmission.com>
+References: <5986589C150B2F49A46483AC44C7BCA49071D9@ssvlexmb2.amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nz-out-0102.google.com ([64.233.162.202]:20213 "EHLO
-	nz-out-0102.google.com") by vger.kernel.org with ESMTP
-	id S1161951AbWKJSlP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 10 Nov 2006 13:41:15 -0500
-Received: by nz-out-0102.google.com with SMTP id l1so363624nzf
-        for <linux-acpi@vger.kernel.org>; Fri, 10 Nov 2006 10:41:15 -0800 (PST)
-Content-Disposition: inline
+Received: from ebiederm.dsl.xmission.com ([166.70.28.69]:31666 "EHLO
+	ebiederm.dsl.xmission.com") by vger.kernel.org with ESMTP
+	id S1424423AbWKJUMq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Nov 2006 15:12:46 -0500
+In-Reply-To: <5986589C150B2F49A46483AC44C7BCA49071D9@ssvlexmb2.amd.com>
+	(Yinghai Lu's message of "Fri, 10 Nov 2006 10:20:58 -0800")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: Pavel Machek <pavel@ucw.cz>, len.brown@intel.com, Matt Domsch <Matt_Domsch@dell.com>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr, Richard Hughes <hughsient@gmail.com>
+To: "Lu, Yinghai" <yinghai.lu@amd.com>
+Cc: Andi Kleen <ak@suse.de>, Olivier Nicolas <olivn@trollprod.org>, Andrew Morton <akpm@osdl.org>, Adrian Bunk <bunk@stusta.de>, Stephen Hemminger <shemminger@osdl.org>, Takashi Iwai <tiwai@suse.de>, Jaroslav Kysela <perex@suse.cz>, linux-kernel@vger.kernel.org, gregkh@suse.de, linux-pci@atrey.karlin.mff.cuni.cz, len.brown@intel.com, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>
 
-Adds backlight sysfs support for acpi video driver.
+"Lu, Yinghai" <yinghai.lu@amd.com> writes:
 
-signed-off-by: Luming Yu <Luming.yu@intel.com>
---
- Kconfig |    2 -
- video.c |   71 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--
- 2 files changed, 70 insertions(+), 3 deletions(-)
+> Andi,
+>
+> The two patches solve the problems that irq nobody care.
+>
+> They are already in your tree. But first one I wonder if you put correct
+> one in your tree.
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 3f7e9f3..196cb0a 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -106,7 +106,7 @@ config ACPI_BUTTON
- 
- config ACPI_VIDEO
- 	tristate "Video"
--	depends on X86
-+	depends on X86 && BACKLIGHT_CLASS_DEVICE
- 	help
- 	  This driver implement the ACPI Extensions For Display Adapters
- 	  for integrated graphics devices on motherboard, as specified in
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 53a9eb0..c83dd57 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -31,6 +31,7 @@ #include <linux/list.h>
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- 
-+#include <linux/backlight.h>
- #include <asm/uaccess.h>
- 
- #include <acpi/acpi_bus.h>
-@@ -55,6 +56,7 @@ #define ACPI_VIDEO_NOTIFY_DISPLAY_OFF		0
- 
- #define ACPI_VIDEO_HEAD_INVALID		(~0u - 1)
- #define ACPI_VIDEO_HEAD_END		(~0u)
-+#define MAX_NAME_LEN	20
- 
- #define _COMPONENT		ACPI_VIDEO_COMPONENT
- ACPI_MODULE_NAME("acpi_video")
-@@ -141,11 +143,11 @@ struct acpi_video_device_cap {
- 	u8 _ADR:1;		/*Return the unique ID */
- 	u8 _BCL:1;		/*Query list of brightness control levels supported */
- 	u8 _BCM:1;		/*Set the brightness level */
-+	u8 _BQC:1;		/* Get current brightness level */
- 	u8 _DDC:1;		/*Return the EDID for this device */
- 	u8 _DCS:1;		/*Return status of output device */
- 	u8 _DGS:1;		/*Query graphics state */
- 	u8 _DSS:1;		/*Device state set */
--	u8 _reserved:1;
- };
- 
- struct acpi_video_device_brightness {
-@@ -162,6 +164,8 @@ struct acpi_video_device {
- 	struct acpi_video_bus *video;
- 	struct acpi_device *dev;
- 	struct acpi_video_device_brightness *brightness;
-+	struct backlight_device *backlight;
-+	struct backlight_properties *data;
- };
- 
- /* bus */
-@@ -256,11 +260,35 @@ static void acpi_video_device_bind(struc
- 				   struct acpi_video_device *device);
- static int acpi_video_device_enumerate(struct acpi_video_bus *video);
- static int acpi_video_switch_output(struct acpi_video_bus *video, int event);
-+static int acpi_video_device_lcd_set_level(struct acpi_video_device *device,
-+			int level);
-+static int acpi_video_device_lcd_get_level_current(
-+			struct acpi_video_device *device,
-+			unsigned long *level);
- static int acpi_video_get_next_level(struct acpi_video_device *device,
- 				     u32 level_current, u32 event);
- static void acpi_video_switch_brightness(struct acpi_video_device *device,
- 					 int event);
- 
-+/*backlight device sysfs support*/
-+static int acpi_video_get_brightness(struct backlight_device *bd)
-+{
-+	unsigned long cur_level;
-+	struct acpi_video_device *vd =
-+		(struct acpi_video_device *)class_get_devdata(&bd->class_dev);
-+	acpi_video_device_lcd_get_level_current(vd, &cur_level);
-+	return (int) cur_level;
-+}
-+
-+static int acpi_video_set_brightness(struct backlight_device *bd)
-+{
-+	int request_level = bd->props->brightness;
-+	struct acpi_video_device *vd =
-+		(struct acpi_video_device *)class_get_devdata(&bd->class_dev);
-+	acpi_video_device_lcd_set_level(vd, request_level);
-+	return 0;
-+}
-+
- /* --------------------------------------------------------------------------
-                                Video Management
-    -------------------------------------------------------------------------- */
-@@ -498,6 +526,7 @@ static void acpi_video_device_find_cap(s
- 	acpi_integer status;
- 	acpi_handle h_dummy1;
- 	int i;
-+	u32 max_level = 0;
- 	union acpi_object *obj = NULL;
- 	struct acpi_video_device_brightness *br = NULL;
- 
-@@ -513,6 +542,8 @@ static void acpi_video_device_find_cap(s
- 	if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle, "_BCM", &h_dummy1))) {
- 		device->cap._BCM = 1;
- 	}
-+	if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle,"_BQC",&h_dummy1)))
-+		device->cap._BQC = 1;
- 	if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle, "_DDC", &h_dummy1))) {
- 		device->cap._DDC = 1;
- 	}
-@@ -550,6 +581,8 @@ static void acpi_video_device_find_cap(s
- 					continue;
- 				}
- 				br->levels[count] = (u32) o->integer.value;
-+				if (br->levels[count] > max_level)
-+					max_level = br->levels[count];
- 				count++;
- 			}
- 		      out:
-@@ -568,6 +601,37 @@ static void acpi_video_device_find_cap(s
- 
- 	kfree(obj);
- 
-+	if (device->cap._BCL && device->cap._BCM && device->cap._BQC){
-+		unsigned long tmp;
-+		static int count = 0;
-+		char *name;
-+		struct backlight_properties *acpi_video_data;
-+
-+		name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
-+		if (!name)
-+			return;
-+
-+		acpi_video_data = kzalloc(
-+			sizeof(struct backlight_properties),
-+			GFP_KERNEL);
-+		if (!acpi_video_data){
-+			kfree(name);
-+			return;
-+		}
-+		acpi_video_data->owner = THIS_MODULE;
-+		acpi_video_data->get_brightness =
-+			acpi_video_get_brightness;
-+		acpi_video_data->update_status =
-+			acpi_video_set_brightness;
-+		sprintf(name, "acpi_video%d", count++);
-+		device->data = acpi_video_data;
-+		acpi_video_data->max_brightness = max_level;
-+		acpi_video_device_lcd_get_level_current(device, &tmp);
-+		acpi_video_data->brightness = (int)tmp;
-+		device->backlight = backlight_device_register(name,
-+			NULL, device, acpi_video_data);
-+		kfree(name);
-+	}
- 	return;
- }
- 
-@@ -1564,7 +1628,10 @@ static int acpi_video_bus_put_one_device
- 	status = acpi_remove_notify_handler(device->dev->handle,
- 					    ACPI_DEVICE_NOTIFY,
- 					    acpi_video_device_notify);
--
-+	if (device->backlight){
-+		backlight_device_unregister(device->backlight);
-+		kfree(device->data);
-+	}
- 	return 0;
- }
- 
+YH.  This is a completely different problem.  The irq is properly setup
+and received but none of the drivers wanted it.
+
+Eric
