@@ -1,205 +1,33 @@
-From: akpm@osdl.org
-Subject: + updated-acpi-keep-track-of-timer-broadcast.patch added to -mm tree
-Date: Thu, 09 Nov 2006 17:32:11 -0800
-Message-ID: <200611100132.kAA1WBjV007405@shell0.pdx.osdl.net>
+From: "Lu, Yinghai" <yinghai.lu@amd.com>
+Subject: RE: 2.6.19-rc5 x86_64 irq 22: nobody cared
+Date: Thu, 9 Nov 2006 18:09:21 -0800
+Message-ID: <5986589C150B2F49A46483AC44C7BCA49071D4@ssvlexmb2.amd.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+ charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.4]:59843 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1424337AbWKJBc1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Nov 2006 20:32:27 -0500
+Received: from outbound-fra.frontbridge.com ([62.209.45.174]:33834 "EHLO
+	outbound2-fra-R.bigfish.com") by vger.kernel.org with ESMTP
+	id S1945965AbWKJCJh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Nov 2006 21:09:37 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, ak@suse.de, len.brown@intel.com, linux-acpi@vger.kernel.org, mingo@elte.hu
+To: Olivier Nicolas <olivn@trollprod.org>, "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Adrian Bunk <bunk@stusta.de>, Stephen Hemminger <shemminger@osdl.org>, Takashi Iwai <tiwai@suse.de>, Jaroslav Kysela <perex@suse.cz>, linux-kernel@vger.kernel.org, gregkh@suse.de, linux-pci@atrey.karlin.mff.cuni.cz, len.brown@intel.com, linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>, Linus Torvalds <torvalds@osdl.org>
+
+Eric,
+
+Can you confirm:
+>From 2.6.19-rc1, the irq for devices that using io-apic will not change
+between pci=routeirq and not.
+
+Olivier,
+Can you send lspci -vvxxx for pci=routeirq too?
+
+YH
 
 
-The patch titled
-     ACPI: Keep track of timer broadcast
-has been added to the -mm tree.  Its filename is
-     updated-acpi-keep-track-of-timer-broadcast.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
-
-------------------------------------------------------
-Subject: ACPI: Keep track of timer broadcast
-From: Thomas Gleixner <tglx@linutronix.de>
-
-This is a preperatory patch for highres/dyntick:
-
-- replace the big #ifdef ARCH_APICTIMER_STOPS_ON_C3 hackery by functions
-
-- remove the double switch in the power verify function (in the worst case
-  we switched ipi to apic and 20usec later apic to ipi)
-
-- keep track of the the state which stops local APIC timer
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: "Brown, Len" <len.brown@intel.com>
-Cc: <linux-acpi@vger.kernel.org>
-Cc: Andi Kleen <ak@suse.de>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
----
-
- drivers/acpi/processor_idle.c |   67 ++++++++++++++++++++++----------
- include/acpi/processor.h      |    1 
- 2 files changed, 49 insertions(+), 19 deletions(-)
-
-diff -puN drivers/acpi/processor_idle.c~updated-acpi-keep-track-of-timer-broadcast drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~updated-acpi-keep-track-of-timer-broadcast
-+++ a/drivers/acpi/processor_idle.c
-@@ -246,6 +246,49 @@ static void acpi_cstate_enter(struct acp
- 	}
- }
- 
-+#ifdef ARCH_APICTIMER_STOPS_ON_C3
-+
-+/*
-+ * Some BIOS implementations switch to C3 in the published C2 state. This seems
-+ * to be a common problem on AMD boxen.
-+ */
-+static void acpi_timer_check_state(int state, struct acpi_processor *pr,
-+				   struct acpi_processor_cx *cx)
-+{
-+	struct acpi_processor_power *pwr = &pr->power;
-+
-+	/*
-+	 * Check, if one of the previous states already marked the lapic
-+	 * unstable
-+	 */
-+	if (pwr->timer_broadcast_on_state < state)
-+		return;
-+
-+	if(cx->type == ACPI_STATE_C3 ||
-+	   boot_cpu_data.x86_vendor == X86_VENDOR_AMD) {
-+		pr->power.timer_broadcast_on_state = state;
-+		return;
-+	}
-+}
-+
-+static void acpi_propagate_timer_broadcast(struct acpi_processor *pr)
-+{
-+	cpumask_t mask = cpumask_of_cpu(pr->id);
-+
-+	if (pr->power.timer_broadcast_on_state < INT_MAX)
-+		on_each_cpu(switch_APIC_timer_to_ipi, &mask, 1, 1);
-+	else
-+		on_each_cpu(switch_ipi_to_APIC_timer, &mask, 1, 1);
-+}
-+
-+#else
-+
-+static void acpi_timer_check_state(int state, struct acpi_processor *pr,
-+				   struct acpi_processor_cx *cstate) { }
-+static void acpi_propagate_timer_broadcast(struct acpi_processor *pr) { }
-+
-+#endif
-+
- static void acpi_processor_idle(void)
- {
- 	struct acpi_processor *pr = NULL;
-@@ -912,11 +955,7 @@ static int acpi_processor_power_verify(s
- 	unsigned int i;
- 	unsigned int working = 0;
- 
--#ifdef ARCH_APICTIMER_STOPS_ON_C3
--	int timer_broadcast = 0;
--	cpumask_t mask = cpumask_of_cpu(pr->id);
--	on_each_cpu(switch_ipi_to_APIC_timer, &mask, 1, 1);
--#endif
-+	pr->power.timer_broadcast_on_state = INT_MAX;
- 
- 	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
- 		struct acpi_processor_cx *cx = &pr->power.states[i];
-@@ -928,21 +967,14 @@ static int acpi_processor_power_verify(s
- 
- 		case ACPI_STATE_C2:
- 			acpi_processor_power_verify_c2(cx);
--#ifdef ARCH_APICTIMER_STOPS_ON_C3
--			/* Some AMD systems fake C3 as C2, but still
--			   have timer troubles */
--			if (cx->valid && 
--				boot_cpu_data.x86_vendor == X86_VENDOR_AMD)
--				timer_broadcast++;
--#endif
-+			if (cx->valid)
-+				acpi_timer_check_state(i, pr, cx);
- 			break;
- 
- 		case ACPI_STATE_C3:
- 			acpi_processor_power_verify_c3(pr, cx);
--#ifdef ARCH_APICTIMER_STOPS_ON_C3
- 			if (cx->valid)
--				timer_broadcast++;
--#endif
-+				acpi_timer_check_state(i, pr, cx);
- 			break;
- 		}
- 
-@@ -950,10 +982,7 @@ static int acpi_processor_power_verify(s
- 			working++;
- 	}
- 
--#ifdef ARCH_APICTIMER_STOPS_ON_C3
--	if (timer_broadcast)
--		on_each_cpu(switch_APIC_timer_to_ipi, &mask, 1, 1);
--#endif
-+	acpi_propagate_timer_broadcast(pr);
- 
- 	return (working);
- }
-diff -puN include/acpi/processor.h~updated-acpi-keep-track-of-timer-broadcast include/acpi/processor.h
---- a/include/acpi/processor.h~updated-acpi-keep-track-of-timer-broadcast
-+++ a/include/acpi/processor.h
-@@ -79,6 +79,7 @@ struct acpi_processor_power {
- 	u32 bm_activity;
- 	int count;
- 	struct acpi_processor_cx states[ACPI_PROCESSOR_MAX_POWER];
-+	int timer_broadcast_on_state;
- };
- 
- /* Performance Management */
-_
-
-Patches currently in -mm which might be from tglx@linutronix.de are
-
-setup_irq-better-mismatch-debugging.patch
-gtod-exponential-update_wall_time.patch
-gtod-persistent-clock-support-core.patch
-gtod-persistent-clock-support-i386.patch
-time-uninline-jiffiesh.patch
-time-uninline-jiffiesh-fix.patch
-time-fix-msecs_to_jiffies-bug.patch
-time-fix-timeout-overflow.patch
-cleanup-uninline-irq_enter-and-move-it-into-a-function.patch
-dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie-remove-incorrect-warning-in-kernel-timerc.patch
-hrtimers-namespace-and-enum-cleanup.patch
-hrtimers-clean-up-locking.patch
-updated-hrtimers-state-tracking.patch
-updated-hrtimers-clean-up-callback-tracking.patch
-updated-hrtimers-move-and-add-documentation.patch
-updated-add-a-framework-to-manage-clock-event-devices.patch
-updated-acpi-include-apich.patch
-updated-acpi-keep-track-of-timer-broadcast.patch
-updated-acpi-add-state-propagation-for-dynamic-broadcasting.patch
-updated-i386-cleanup-apic-code.patch
-updated-i386-convert-to-clock-event-devices.patch
-updated-pm_timer-allow-early-access-and-move-externs-to-a-header-file.patch
-updated-i386-rework-local-apic-calibration.patch
-updated-high-res-timers-core.patch
-updated-gtod-mark-tsc-unusable-for-highres-timers.patch
-updated-dynticks-core-code.patch
-updated-dyntick-add-nohz-stats-to-proc-stat.patch
-updated-dynticks-i386-arch-code.patch
-updated-dynticks-fix-nmi-watchdog.patch
-updated-high-res-timers-dynticks-enable-i386-support.patch
-updated-debugging-feature-timer-stats.patch
-clockevents-core-check-for-clock-event-device-handler-being-non-null-before-calling-it.patch
-round_jiffies-infrastructure.patch
-round_jiffies-infrastructure-fix.patch
-clocksource-add-usage-of-config_sysfs.patch
-clocksource-small-cleanup-2.patch
-clocksource-small-cleanup-2-fix.patch
-clocksource-small-acpi_pm-cleanup.patch
 
