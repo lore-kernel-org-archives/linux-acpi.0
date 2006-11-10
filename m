@@ -1,48 +1,52 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: New ibm-acpi development mailinglist
-Date: Thu, 9 Nov 2006 20:40:16 -0200
-Message-ID: <20061109224016.GA30684@khazad-dum.debian.net>
+Subject: Re: [PATCH] backlight: do not power off backlight when unregistering
+Date: Thu, 9 Nov 2006 22:08:30 -0200
+Message-ID: <20061110000829.GA9021@khazad-dum.debian.net>
+References: <20061105225429.GE14295@khazad-dum.debian.net> <1162773394.5473.18.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:150 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:42149 "EHLO
 	out1.smtp.messagingengine.com") by vger.kernel.org with ESMTP
-	id S966017AbWKIWk0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Nov 2006 17:40:26 -0500
+	id S1424259AbWKJAIn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Nov 2006 19:08:43 -0500
 Content-Disposition: inline
+In-Reply-To: <1162773394.5473.18.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
-Cc: borislav@users.sf.net, akw@users.sf.net
+To: Richard Purdie <rpurdie@rpsys.net>, benh@kernel.crashing.org, paulus@samba.org, Lennart Poettering <mzxreary@0pointer.de>, Andriy Skulysh <askulysh@image.kiev.ua>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Antonino Daplas <adaplas@pol.net>, Holger Macht <hmacht@suse.de>
 
-Hello ibm-acpi users and linux-acpi developers,
+On Mon, 06 Nov 2006, Richard Purdie wrote:
+> Those commits were designed to standardise several behaviours amongst
+> several drivers and this specific case was added to the core rather than
+> coding it in each of several drivers. We therefore really need to update
+> those other drivers too (locomo at the very least).
 
-In order not to generate too much extra noise in the linux-thinkpad
-mailinglist, and to keep driver-specific traffic outside of linux-acpi, I
-have created an ibm-acpi-devel mailing list on sourceforge.net.
+The following in-tree drivers need changes:
+drivers/video/backlight/locomolcd.c
+drivers/video/backlight/hp680_bl.c
+drivers/video/backlight/corgi_bl.c
 
-The URI for the mailman list information page is:
-https://lists.sourceforge.net/mailman/listinfo/ibm-acpi-devel
+I will repost the patch with locomolcd.c and hp680_bl.c included.
 
-The mailinglist is public and anyone can join, but posts from non-members
-will be moderated and thus may be delayed a bit.  If you need some email
-address whitelisted for direct posting without moderation, and would rather
-not subscribe such address in "do not receive posts" mode, please contact
-me.
+The following in-tree (latest linux-2.6 git tree) drivers are desktop/laptop
+devices and likely do not want the "dim and power off backlight on
+backlight_device_unregister" behavior:
 
-I would appreciate if patches, comments and bug reports specific to ibm-acpi
-are directed or carbon-copied to that mailinglist from now on.  Patchsets
-deemed ready to begin the merge-into-mainline review process shall be sent
-to at least both of linux-acpi and ibm-acpi-devel.
+drivers/video/aty/*
+drivers/video/riva/fbdev.c
+drivers/video/nvidia/nv_backlight.c
+drivers/misc/msi-laptop.c
 
-In fact, please consider this email an explicit call for pending ibm-acpi
-patches.  If you have any patches for ibm-acpi that are not yet merged or
-queued-for-merging into linux-acpi-2.6, please send them to ibm-acpi-devel.
-It doesn't matter if you sent them already to linux-acpi or to Borislav,
-please submit them again to ibm-acpi-devel.
+The ACPI drivers being converted to backlight sysfs are very unlikely to
+want the "power off backlight on backlight_device_unregister" behavior, so I
+have not hunted after backlight sysfs conversions in the linux-acpi-2.6 git
+tree.  Still, linux-acpi is cc'ed.
 
-Should something important or interesting for ibm-acpi users happen, I will
-crosspost announcements to both ibm-acpi-devel and to linux-thinkpad.
+I have CC'ed the relevant people (please forgive me any ommissions) for the
+drivers listed above, so they can chime in if their driver should retain the
+"dim and power off backlight on backlight_device_unregister" behaviour.
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
