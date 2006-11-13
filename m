@@ -1,70 +1,67 @@
-From: jm@jm10.no-ip.com
-Subject: Asus A6T(c)
-Date: Sun, 12 Nov 2006 21:34:57 +0100
-Message-ID: <45578571.1030905@jm10.no-ip.com>
+From: Len Brown <len.brown@intel.com>
+Subject: Re: udev broken by recent ACPI git commits
+Date: Mon, 13 Nov 2006 06:16:37 -0500
+Message-ID: <200611130616.38174.len.brown@intel.com>
+References: <200611010004.28483.rjw@sisk.pl> <200611011147.42498.rjw@sisk.pl> <200611030039.28762.len.brown@intel.com>
+Reply-To: Len Brown <lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_WQFWFUwQWUoabgV"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ble59-2-81-56-123-123.fbx.proxad.net ([81.56.123.123]:30736
-	"EHLO jm10.no-ip.com") by vger.kernel.org with ESMTP
-	id S1753129AbWKLUfA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 12 Nov 2006 15:35:00 -0500
-Received: from julien ([192.168.0.2])
-	by jm10.no-ip.com with esmtpa (Exim 4.50)
-	id 1GjM2c-0005Nv-5F
-	for linux-acpi@vger.kernel.org; Sun, 12 Nov 2006 21:34:58 +0100
+Received: from hera.kernel.org ([140.211.167.34]:12772 "EHLO hera.kernel.org")
+	by vger.kernel.org with ESMTP id S1754428AbWKMLOT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Nov 2006 06:14:19 -0500
+In-Reply-To: <200611030039.28762.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org
 
-Hello,
+--Boundary-00=_WQFWFUwQWUoabgV
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
+> Please test that the latest ACPICA patch works on your system and shout if it doesn't.
+> In particular, if you've got an nx6325 like Rafael's, it would be interesting to know
+> if you see the same issue.
+> 
+> You can snag the latest ACPICA patch vs  top of Linus' tree via git or plain patch here:
+> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git acpica
+> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/test/2.6.19/acpi-acpica-20061011-2.6.19-rc4.diff.gz
 
-I have Debian/Sid/2.6.18.2-amd64-smp on an Asus A6Tc-AP014H laptop and there are
-many problems with ACPI. But the most annoying one is that I'd like it to
-suspend-to-ram.
+Rafael,
+What BIOS version is running on your nx6325?
+What do you see if you add the patch below to the ACPICA  patch?
 
-More precisely, it does suspend, but doesn't resume: the hard-drive does not
-return from power-saving mode. The screen remains off, the system freezes, with
-solid HD activity light. This is common with SATA disks... but mine is a PATA one.
-
-Apart from that, as you asked:
-> Asus Laptop ACPI Extras version 0.30
->   Error calling BSTS
->   unsupported model A6Tc, trying default values
->   send /proc/acpi/dsdt to the developers
-you'll find it on http://81.56.123.123/~jm/A6Tc-AP014H/
-with other information about my config.
-Note there are unknown opcodes, and even after having removed the 4 errors at
-the beginning of dsdt.dsl, it still fails to recompile.
-
-Linux 2.6.18-486 (Debian) boots but Linux 2.6.18-amd64-smp doesn't: it crashes
-just after
-> io scheduler noop registered
-> io scheduler anticipatory registered (default)
-(or just before "0000:00:0b.0 OHCI: BIOS handoff failed (BIOS bug ?) 000007b4")
-I need to add either "acpi=noirq" or "noapic" to the kernel command line.
-"acpi=noirq" gives better results: USB doesn't work with "noapic" (I have
-exactly the same problem as
-https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=205672)
-
-There are really a lot of awful things in the dmesg:
-* yet another invitation:
-> PCI: Bus #04 (-#07) is hidden behind transparent bridge #03 (-#04) (try
-'pci=assign-busses')
-> Please report the result to linux-kernel to fix this permanently
-* "pcie_portdrv_probe->Dev[02fd:10de] has invalid IRQ. Check vendor BIOS"
- (I already have the latest BIOS)
+thanks,
+-Len
 
 
-By curiosity, is CONFIG_ACPI_SLEEP required for suspend-to-ram? Before I enable
-it, I couldn't write to /sys/power/state:
-> echo: write error: Operation not permitted
-Google always tells me CONFIG_HOTPLUG_CPU is required (it was already enabled)
-but never mentions CONFIG_ACPI_SLEEP, while Linux says:
-"This option is not recommended for anyone except those doing driver power
-management development." (drivers/acpi/Kconfig:64)
+--Boundary-00=_WQFWFUwQWUoabgV
+Content-Type: text/x-diff;
+  charset="iso-8859-2";
+  name="git.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="git.diff"
 
+diff --git a/arch/i386/kernel/acpi/boot.c b/arch/i386/kernel/acpi/boot.c
+diff --git a/arch/x86_64/kernel/time.c b/arch/x86_64/kernel/time.c
+index 328bd73..d39cd90 100644
+--- a/arch/x86_64/kernel/time.c
++++ b/arch/x86_64/kernel/time.c
+@@ -513,6 +513,9 @@ static unsigned long get_cmos_time(void)
+ 		if (acpi_gbl_FADT.header.revision >= FADT2_REVISION_ID &&
+ 					acpi_gbl_FADT.century)
+ 			extyear = CMOS_READ(acpi_gbl_FADT.century);
++printk("get_cmos_time(): acpi_gbl_FADT.century %d extyear %d\n",
++	acpi_gbl_FADT.century, extyear);
++extyear = 0;
+ #endif
+ 	} while (sec != CMOS_READ(RTC_SECONDS));
+ 
 
-JM
+--Boundary-00=_WQFWFUwQWUoabgV--
