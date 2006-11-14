@@ -1,31 +1,64 @@
-From: James Simmons <jsimmons@infradead.org>
-Subject: Re: [Patch] Adds backlight sysfs support for acpi video driver.
-Date: Mon, 13 Nov 2006 22:19:12 +0000 (GMT)
-Message-ID: <Pine.LNX.4.64.0611132212230.2366@pentafluge.infradead.org>
-References: <200611110240.34715.luming.yu@gmail.com>
+From: Len Brown <len.brown@intel.com>
+Subject: Re: SMP C-states on x86_64 Status
+Date: Tue, 14 Nov 2006 01:41:42 -0500
+Message-ID: <200611140141.42657.len.brown@intel.com>
+References: <1162903911.32119.275205906@webmail.messagingengine.com>
+Reply-To: Len Brown <lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pentafluge.infradead.org ([213.146.154.40]:16868 "EHLO
-	pentafluge.infradead.org") by vger.kernel.org with ESMTP
-	id S1755375AbWKMWTZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Nov 2006 17:19:25 -0500
-In-Reply-To: <200611110240.34715.luming.yu@gmail.com>
+Received: from hera.kernel.org ([140.211.167.34]:37577 "EHLO hera.kernel.org")
+	by vger.kernel.org with ESMTP id S1755441AbWKNGjG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 14 Nov 2006 01:39:06 -0500
+In-Reply-To: <1162903911.32119.275205906@webmail.messagingengine.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yu Luming <luming.yu@gmail.com>
-Cc: Andrew Morton <akpm@osdl.org>, Pavel Machek <pavel@ucw.cz>, len.brown@intel.com, Matt Domsch <Matt_Domsch@dell.com>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr, Richard Hughes <hughsient@gmail.com>
+To: Mathew Brown <mathewbrown@fastmail.fm>
+Cc: linux-acpi@vger.kernel.org
 
-
-> Adds backlight sysfs support for acpi video driver.
+On Tuesday 07 November 2006 07:51, Mathew Brown wrote:
+> .... For my 16 core machine, cat
+> /proc/acpi/processor/*/power gives the following:
 > 
-> signed-off-by: Luming Yu <Luming.yu@intel.com>
+> active state:  C1
+> default state: C1
+> bus master activity:   00000000
+> states:
+>   *C1:      promotion[--] demotion[--] latency[000] usage[0000000000]
+>     C2:      <not supported>
+>     C3:      <not supported>
+> 
+> So I gather that this means that even with CPU frequency scaling, I'm
+> really not doing anything since the voltage and power going to the CPU
+> are going to be constant until I upgrade to 2.6.18.  Am I correct?
 
-Ug. Watch out. Right now the backlight code requires framebuffer to be 
-enabled. I seen a patch some time ago by Tony the allowed backlight 
-support which I need to integrate. 
+C-states and P-states are somewhat independent.
+You are not going to grow new C-states with a software upgrade.
+If the processor at hand supports "Enhanced" C-states, then
+it is going to reduce voltage automatically when you enter C1.
 
-P.S
-	It would be really nice if the acpi backlight could be exposed to 
-the VESA framebuffer or any other driver whos backlight is not 
-implemented. 
+If your processor supports P-states, but not enhanced C-states,
+then how much power you save in C1 will depend on what
+P-state you were in when you entered C1.  This is because
+even though you're running at 0MHz in C1, the lower voltage
+will result in less power lost to leakage.
+
+Running Linux's "ondemand" governor is pretty good at
+getting you into a power saving P-state promptly, so if
+you run that, then you're doing about as good as you can.
+(you can compare it to "powersave" governor if you want
+ to see what the lower power possible is)
+
+You can see if you have P-states by poking about in
+/sys/devices/system/cpu/cpu*/cpufreq/
+
+modprobe cpufreq_states
+will create a stats directory under there that will tell you
+what P-states you are using.
+
+cheers,
+-Len
