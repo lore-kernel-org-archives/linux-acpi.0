@@ -1,64 +1,48 @@
 From: Len Brown <len.brown@intel.com>
-Subject: Re: SMP C-states on x86_64 Status
-Date: Tue, 14 Nov 2006 01:41:42 -0500
-Message-ID: <200611140141.42657.len.brown@intel.com>
-References: <1162903911.32119.275205906@webmail.messagingengine.com>
+Subject: Re: 2.6.19-rc[1-4]: boot fail with (lapic && on_battery)
+Date: Tue, 14 Nov 2006 01:59:59 -0500
+Message-ID: <200611140159.59926.len.brown@intel.com>
+References: <200610312227.54617.list-lkml@net4u.de>
 Reply-To: Len Brown <lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:37577 "EHLO hera.kernel.org")
-	by vger.kernel.org with ESMTP id S1755441AbWKNGjG (ORCPT
+Received: from hera.kernel.org ([140.211.167.34]:54481 "EHLO hera.kernel.org")
+	by vger.kernel.org with ESMTP id S1755449AbWKNG5U (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 14 Nov 2006 01:39:06 -0500
-In-Reply-To: <1162903911.32119.275205906@webmail.messagingengine.com>
+	Tue, 14 Nov 2006 01:57:20 -0500
+In-Reply-To: <200610312227.54617.list-lkml@net4u.de>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mathew Brown <mathewbrown@fastmail.fm>
-Cc: linux-acpi@vger.kernel.org
+To: earny@net4u.de
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tuesday 07 November 2006 07:51, Mathew Brown wrote:
-> .... For my 16 core machine, cat
-> /proc/acpi/processor/*/power gives the following:
+On Tuesday 31 October 2006 16:27, Ernst Herzberg wrote:
+
+> With 2.6.18.x everything works fine.
 > 
-> active state:  C1
-> default state: C1
-> bus master activity:   00000000
-> states:
->   *C1:      promotion[--] demotion[--] latency[000] usage[0000000000]
->     C2:      <not supported>
->     C3:      <not supported>
-> 
-> So I gather that this means that even with CPU frequency scaling, I'm
-> really not doing anything since the voltage and power going to the CPU
-> are going to be constant until I upgrade to 2.6.18.  Am I correct?
+> But 2.16.19-rc does not boot if the laptop runs on battery _and_ lapic is 
+> defined as boot parameter.
 
-C-states and P-states are somewhat independent.
-You are not going to grow new C-states with a software upgrade.
-If the processor at hand supports "Enhanced" C-states, then
-it is going to reduce voltage automatically when you enter C1.
+> Local APIC disabled by BIOS -- you can enable it with "lapic"
 
-If your processor supports P-states, but not enhanced C-states,
-then how much power you save in C1 will depend on what
-P-state you were in when you entered C1.  This is because
-even though you're running at 0MHz in C1, the lower voltage
-will result in less power lost to leakage.
+The BIOS is advising you here that it is a bad idea to enable the LAPIC on this system.
+So why are you using the "lapic" boot parameter?
 
-Running Linux's "ondemand" governor is pretty good at
-getting you into a power saving P-state promptly, so if
-you run that, then you're doing about as good as you can.
-(you can compare it to "powersave" governor if you want
- to see what the lower power possible is)
+If you are running an CONFIG_SMP kernel with LAPIC enabled and deep C-states
+(such as are available on Thinkpads when on battery mode), you will
+run into the following bug:
 
-You can see if you have P-states by poking about in
-/sys/devices/system/cpu/cpu*/cpufreq/
+http://bugzilla.kernel.org/show_bug.cgi?id=7376
 
-modprobe cpufreq_states
-will create a stats directory under there that will tell you
-what P-states you are using.
+As this is not new, the mystery is really why you see no problems in 2.6.18.
+Perhaps you can forward the contents of /proc/interrupts for 2.6.18 with "lapic"
+and we can see if the timer and the LOC are in sync or not when on battery?
+/proc/acpi/processor/*/power will also tell us about the C-states --
+dump it for both AC and battery mode.
 
-cheers,
+thanks,
 -Len
