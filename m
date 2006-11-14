@@ -1,48 +1,69 @@
-From: Len Brown <len.brown@intel.com>
-Subject: Re: 2.6.19-rc[1-4]: boot fail with (lapic && on_battery)
-Date: Tue, 14 Nov 2006 01:59:59 -0500
-Message-ID: <200611140159.59926.len.brown@intel.com>
-References: <200610312227.54617.list-lkml@net4u.de>
-Reply-To: Len Brown <lenb@kernel.org>
+From: Stephen Hemminger <shemminger@osdl.org>
+Subject: [RFC] ACPI vs device ordering on resume
+Date: Tue, 14 Nov 2006 15:30:26 -0800
+Message-ID: <20061114153026.730deb94@freekitty>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:54481 "EHLO hera.kernel.org")
-	by vger.kernel.org with ESMTP id S1755449AbWKNG5U (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 14 Nov 2006 01:57:20 -0500
-In-Reply-To: <200610312227.54617.list-lkml@net4u.de>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.osdl.org>
+List-Unsubscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
+List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.osdl.org>
+List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
+List-Subscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.osdl.org
+Errors-To: linux-pm-bounces@lists.osdl.org
+To: len.brown@intel.com, Greg KH <greg@kroah.com>, Pavel Machek <pavel@suse.cz>
+Cc: Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, linux-pm@osdl.org
 List-Id: linux-acpi@vger.kernel.org
-To: earny@net4u.de
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tuesday 31 October 2006 16:27, Ernst Herzberg wrote:
+If I do a suspend-to-ram then resume on a Sony Vaio laptop with sky2 driver,
+the first interrupt gets misrouted to the original shared IRQ, rather than
+to the MSI irq expected.
 
-> With 2.6.18.x everything works fine.
-> 
-> But 2.16.19-rc does not boot if the laptop runs on battery _and_ lapic is 
-> defined as boot parameter.
+During the pci_restore process, the MSI information and the PCI command reg=
+ister =
 
-> Local APIC disabled by BIOS -- you can enable it with "lapic"
+are restored properly. But later during resume, inside the ACPI evaluation =
+of
+the WAK method, the PCI_COMMAND  INTX_DISABLE (0x400) flag is being cleared.
+My guess is that the BIOS ends up doing some resetting of devices.
 
-The BIOS is advising you here that it is a bad idea to enable the LAPIC on this system.
-So why are you using the "lapic" boot parameter?
+I may be able to workaround the problem for this one device, but it brings =
+up
+a more general issue about what the ordering should be during resume. If AC=
+PI
+evaluation (which I assume talks to the BIOS), might change device state, it
+seems that ACPI code should execute before resuming devices not after. But =
+changing
+the order here seems drastic.
 
-If you are running an CONFIG_SMP kernel with LAPIC enabled and deep C-states
-(such as are available on Thinkpads when on battery mode), you will
-run into the following bug:
+An alternate solution would be to have two pm_ops, one for early_resume
+and another for late, and split the ACPI work.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=7376
+--- 2.6.19-rc5.orig/kernel/power/main.c	2006-11-14 14:24:37.000000000 -0800
++++ 2.6.19-rc5/kernel/power/main.c	2006-11-14 14:25:23.000000000 -0800
+@@ -132,12 +132,12 @@
+ =
 
-As this is not new, the mystery is really why you see no problems in 2.6.18.
-Perhaps you can forward the contents of /proc/interrupts for 2.6.18 with "lapic"
-and we can see if the timer and the LOC are in sync or not when on battery?
-/proc/acpi/processor/*/power will also tell us about the C-states --
-dump it for both AC and battery mode.
+ static void suspend_finish(suspend_state_t state)
+ {
++	if (pm_ops && pm_ops->finish)
++		pm_ops->finish(state);
+ 	device_resume();
+ 	resume_console();
+ 	thaw_processes();
+ 	enable_nonboot_cpus();
+-	if (pm_ops && pm_ops->finish)
+-		pm_ops->finish(state);
+ 	pm_restore_console();
+ }
+ =
 
-thanks,
--Len
+
+
+-- =
+
+Stephen Hemminger <shemminger@osdl.org>
