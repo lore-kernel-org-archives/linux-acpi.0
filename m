@@ -1,65 +1,83 @@
-From: Len Brown <len.brown@intel.com>
-Subject: Re: 2.6.19-rc5 nasty ACPI regression, AE_TIME errors
-Date: Wed, 15 Nov 2006 02:48:12 -0500
-Message-ID: <200611150248.12578.len.brown@intel.com>
-References: <200611142303.47325.david-b@pacbell.net>
-Reply-To: Len Brown <lenb@kernel.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [RFC] ACPI vs device ordering on resume
+Date: Wed, 15 Nov 2006 10:32:57 +0100
+Message-ID: <200611151032.58100.rjw@sisk.pl>
+References: <20061114153026.730deb94@freekitty> <200611150203.30965.len.brown@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:27349 "EHLO hera.kernel.org")
-	by vger.kernel.org with ESMTP id S966004AbWKOHpV (ORCPT
+Received: from ogre.sisk.pl ([217.79.144.158]:60651 "EHLO ogre.sisk.pl")
+	by vger.kernel.org with ESMTP id S932829AbWKOJgH (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Nov 2006 02:45:21 -0500
-In-Reply-To: <200611142303.47325.david-b@pacbell.net>
+	Wed, 15 Nov 2006 04:36:07 -0500
+In-Reply-To: <200611150203.30965.len.brown@intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Linux Kernel list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-pm@lists.osdl.org, Stephen Hemminger <shemminger@osdl.org>, Greg KH <greg@kroah.com>, Pavel Machek <pavel@suse.cz>, Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, linux-pm@osdl.org
 
-On Wednesday 15 November 2006 02:03, David Brownell wrote:
-> dmesg reports to me stuff like
+On Wednesday, 15 November 2006 08:03, Len Brown wrote:
+> On Tuesday 14 November 2006 18:30, Stephen Hemminger wrote:
+> > If I do a suspend-to-ram then resume on a Sony Vaio laptop with sky2 driver,
+> > the first interrupt gets misrouted to the original shared IRQ, rather than
+> > to the MSI irq expected.
+> > 
+> > During the pci_restore process, the MSI information and the PCI command register 
+> > are restored properly. But later during resume, inside the ACPI evaluation of
+> > the WAK method, the PCI_COMMAND  INTX_DISABLE (0x400) flag is being cleared.
+> > My guess is that the BIOS ends up doing some resetting of devices.
+> > 
+> > I may be able to workaround the problem for this one device, but it brings up
+> > a more general issue about what the ordering should be during resume. If ACPI
+> > evaluation (which I assume talks to the BIOS), might change device state, it
+> > seems that ACPI code should execute before resuming devices not after. But changing
+> > the order here seems drastic.
+> > 
+> > An alternate solution would be to have two pm_ops, one for early_resume
+> > and another for late, and split the ACPI work.
+> > 
+> > --- 2.6.19-rc5.orig/kernel/power/main.c	2006-11-14 14:24:37.000000000 -0800
+> > +++ 2.6.19-rc5/kernel/power/main.c	2006-11-14 14:25:23.000000000 -0800
+> > @@ -132,12 +132,12 @@
+> >  
+> >  static void suspend_finish(suspend_state_t state)
+> >  {
+> > +	if (pm_ops && pm_ops->finish)
+> > +		pm_ops->finish(state);
+> >  	device_resume();
+> >  	resume_console();
+> >  	thaw_processes();
+> >  	enable_nonboot_cpus();
+> > -	if (pm_ops && pm_ops->finish)
+> > -		pm_ops->finish(state);
+> >  	pm_restore_console();
+> >  }
 > 
-> ACPI Exception (evregion-0424): AE_TIME, Returned by Handler for [EmbeddedControl] [20060707]
-> ACPI Exception (dswexec-0458): AE_TIME, While resolving operands for [OpcodeName unavailable] [20060707]
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPC0.BAT1._BIF] (Node ffff8100020368d0), AE_TIME
-> ACPI Exception (acpi_battery-0148): AE_TIME, Evaluating _BIF [20060707]
-> ACPI: read EC, IB not empty
-> ACPI Exception (evregion-0424): AE_TIME, Returned by Handler for [EmbeddedControl] [20060707]
-> ACPI Exception (dswexec-0458): AE_TIME, While resolving operands for [OpcodeName unavailable] [20060707]
-> ACPI Error (psparse-0537): Method parse/execution failed [\_TZ_.THRM._TMP] (Node ffff810002032d10), AE_TIME
+> Yes, I agree that _WAK needs to come before device_resume().
+> Need to let any BIOS nasties happen and get over with before we restore device drivers.
+> This is consistent with the wording in ACPI 3.0b (section 7.4) that says
+> 11. _WAK is run
+> 12. OSPM notifies all native device drivefrs of the return from the sleep state transition
+> 
+> However, commit 1a38416cea8ac801ae8f261074721f35317613dc says that
+> _WAK must follow INIT -- ie finish() must come after enable_nonboot_cpus(),
+> and this patch as it stands would violate that.
+> 
+> So it looks like we need this sequence:
+> 
+> enable_nonboot_cpus() /* INIT */
+> finish()	/* _WAK */
+> device_resume()
 
-AE_TIME is generally used for timeout situations -- ie didn't get a semaphore within a certain period.
+Which is a problem, because thaw_processes() is not SMP-safe.
 
-Any change if you boot with "ec_intr=0"?
+Greetings,
+Rafael
 
-thanks,
--Len
 
-> It never used to complain at all.  This is an amd64 laptop, and related symptoms
-> include
-> 
->  - kpowersave not being able to monitor the batter or AC adapter correctly;
->    leading to catastrophes like laptop powering itself off with no warning,
->    loss of work, filesystem needing log recovery, and so forth.
-> 
->  - Serious fan action.  Recent kernels seemed to finally be doing sane things
->    so that e.g. just editing text kept the CPU cool ... but now it's on almost
->    all the time, CPU is very hot.
-> 
-> What's an AE_TIME?
-> 
-> I'm not quite sure where these problems crept in, but I never saw such stuff with
-> 2.6.18 at all.
-> 
-> - Dave
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+-- 
+You never change things by fighting the existing reality.
+		R. Buckminster Fuller
