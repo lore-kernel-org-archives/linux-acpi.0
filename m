@@ -1,83 +1,68 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [RFC] ACPI vs device ordering on resume
-Date: Wed, 15 Nov 2006 10:32:57 +0100
-Message-ID: <200611151032.58100.rjw@sisk.pl>
-References: <20061114153026.730deb94@freekitty> <200611150203.30965.len.brown@intel.com>
+From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Subject: Re: 2.6.19-rc5 nasty ACPI regression, AE_TIME errors
+Date: Wed, 15 Nov 2006 17:48:18 +0300
+Message-ID: <455B28B2.4010707@linux.intel.com>
+References: <200611142303.47325.david-b@pacbell.net> <200611150248.12578.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------030109050807050601050305"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:60651 "EHLO ogre.sisk.pl")
-	by vger.kernel.org with ESMTP id S932829AbWKOJgH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Nov 2006 04:36:07 -0500
-In-Reply-To: <200611150203.30965.len.brown@intel.com>
-Content-Disposition: inline
+Received: from mga07.intel.com ([143.182.124.22]:62011 "EHLO
+	azsmga101.ch.intel.com") by vger.kernel.org with ESMTP
+	id S1030511AbWKOOsn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Nov 2006 09:48:43 -0500
+In-Reply-To: <200611150248.12578.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-pm@lists.osdl.org, Stephen Hemminger <shemminger@osdl.org>, Greg KH <greg@kroah.com>, Pavel Machek <pavel@suse.cz>, Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, linux-pm@osdl.org
+Cc: David Brownell <david-b@pacbell.net>, Linux Kernel list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Wednesday, 15 November 2006 08:03, Len Brown wrote:
-> On Tuesday 14 November 2006 18:30, Stephen Hemminger wrote:
-> > If I do a suspend-to-ram then resume on a Sony Vaio laptop with sky2 driver,
-> > the first interrupt gets misrouted to the original shared IRQ, rather than
-> > to the MSI irq expected.
-> > 
-> > During the pci_restore process, the MSI information and the PCI command register 
-> > are restored properly. But later during resume, inside the ACPI evaluation of
-> > the WAK method, the PCI_COMMAND  INTX_DISABLE (0x400) flag is being cleared.
-> > My guess is that the BIOS ends up doing some resetting of devices.
-> > 
-> > I may be able to workaround the problem for this one device, but it brings up
-> > a more general issue about what the ordering should be during resume. If ACPI
-> > evaluation (which I assume talks to the BIOS), might change device state, it
-> > seems that ACPI code should execute before resuming devices not after. But changing
-> > the order here seems drastic.
-> > 
-> > An alternate solution would be to have two pm_ops, one for early_resume
-> > and another for late, and split the ACPI work.
-> > 
-> > --- 2.6.19-rc5.orig/kernel/power/main.c	2006-11-14 14:24:37.000000000 -0800
-> > +++ 2.6.19-rc5/kernel/power/main.c	2006-11-14 14:25:23.000000000 -0800
-> > @@ -132,12 +132,12 @@
-> >  
-> >  static void suspend_finish(suspend_state_t state)
-> >  {
-> > +	if (pm_ops && pm_ops->finish)
-> > +		pm_ops->finish(state);
-> >  	device_resume();
-> >  	resume_console();
-> >  	thaw_processes();
-> >  	enable_nonboot_cpus();
-> > -	if (pm_ops && pm_ops->finish)
-> > -		pm_ops->finish(state);
-> >  	pm_restore_console();
-> >  }
-> 
-> Yes, I agree that _WAK needs to come before device_resume().
-> Need to let any BIOS nasties happen and get over with before we restore device drivers.
-> This is consistent with the wording in ACPI 3.0b (section 7.4) that says
-> 11. _WAK is run
-> 12. OSPM notifies all native device drivefrs of the return from the sleep state transition
-> 
-> However, commit 1a38416cea8ac801ae8f261074721f35317613dc says that
-> _WAK must follow INIT -- ie finish() must come after enable_nonboot_cpus(),
-> and this patch as it stands would violate that.
-> 
-> So it looks like we need this sequence:
-> 
-> enable_nonboot_cpus() /* INIT */
-> finish()	/* _WAK */
-> device_resume()
+This is a multi-part message in MIME format.
+--------------030109050807050601050305
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Which is a problem, because thaw_processes() is not SMP-safe.
-
-Greetings,
-Rafael
+Could you try if attached patch helps?
 
 
--- 
-You never change things by fighting the existing reality.
-		R. Buckminster Fuller
+Regards,
+    Alex
+
+
+
+
+
+
+
+--------------030109050807050601050305
+Content-Type: text/plain;
+ name="ec1.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ec1.patch"
+
+Always enable GPE after return from notify handler.
+
+From:  Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+
+
+---
+
+ drivers/acpi/ec.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index e6d4b08..937eafc 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -465,8 +465,6 @@ static u32 acpi_ec_gpe_handler(void *dat
+ 
+ 	if (value & ACPI_EC_FLAG_SCI) {
+ 		status = acpi_os_execute(OSL_EC_BURST_HANDLER, acpi_ec_gpe_query, ec);
+-		return status == AE_OK ?
+-		    ACPI_INTERRUPT_HANDLED : ACPI_INTERRUPT_NOT_HANDLED;
+ 	}
+ 	acpi_enable_gpe(NULL, ec->gpe_bit, ACPI_ISR);
+ 	return status == AE_OK ?
+
+--------------030109050807050601050305--
