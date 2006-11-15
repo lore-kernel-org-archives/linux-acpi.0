@@ -1,68 +1,61 @@
 From: David Brownell <david-b@pacbell.net>
 Subject: Re: 2.6.19-rc5 nasty ACPI regression, AE_TIME errors
-Date: Wed, 15 Nov 2006 10:46:48 -0800
-Message-ID: <200611151046.49066.david-b@pacbell.net>
-References: <200611142303.47325.david-b@pacbell.net> <200611150248.12578.len.brown@intel.com>
+Date: Wed, 15 Nov 2006 13:56:52 -0800
+Message-ID: <200611151356.52985.david-b@pacbell.net>
+References: <200611142303.47325.david-b@pacbell.net> <200611150248.12578.len.brown@intel.com> <455B28B2.4010707@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp104.sbc.mail.mud.yahoo.com ([68.142.198.203]:45931 "HELO
-	smtp104.sbc.mail.mud.yahoo.com") by vger.kernel.org with SMTP
-	id S1161745AbWKOVoN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Nov 2006 16:44:13 -0500
-In-Reply-To: <200611150248.12578.len.brown@intel.com>
+Received: from smtp110.sbc.mail.mud.yahoo.com ([68.142.198.209]:58526 "HELO
+	smtp110.sbc.mail.mud.yahoo.com") by vger.kernel.org with SMTP
+	id S1162073AbWKOXpP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Nov 2006 18:45:15 -0500
+In-Reply-To: <455B28B2.4010707@linux.intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linux Kernel list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Cc: Len Brown <lenb@kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Tuesday 14 November 2006 11:48 pm, Len Brown wrote:
-> On Wednesday 15 November 2006 02:03, David Brownell wrote:
-> > dmesg reports to me stuff like
-> > 
-> > ACPI Exception (evregion-0424): AE_TIME, Returned by Handler for [EmbeddedControl] [20060707]
-> > ACPI Exception (dswexec-0458): AE_TIME, While resolving operands for [OpcodeName unavailable] [20060707]
-> > ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPC0.BAT1._BIF] (Node ffff8100020368d0), AE_TIME
-> > ACPI Exception (acpi_battery-0148): AE_TIME, Evaluating _BIF [20060707]
-> > ACPI: read EC, IB not empty
-> > ACPI Exception (evregion-0424): AE_TIME, Returned by Handler for [EmbeddedControl] [20060707]
-> > ACPI Exception (dswexec-0458): AE_TIME, While resolving operands for [OpcodeName unavailable] [20060707]
-> > ACPI Error (psparse-0537): Method parse/execution failed [\_TZ_.THRM._TMP] (Node ffff810002032d10), AE_TIME
-> 
-> AE_TIME is generally used for timeout situations -- ie didn't get a semaphore within a certain period.
-> 
-> Any change if you boot with "ec_intr=0"?
+On Wednesday 15 November 2006 6:48 am, Alexey Starikovskiy wrote:
+> ec1.patch
+>=20
+>=20
+> Always enable GPE after return from notify handler.
+>=20
+> From: =A0Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+>=20
+>=20
+> ---
 
-That does seem to get rid of the AE_TIME messages; thanks!
+Yes, this seems to resolve the regression as well as Len's ec_intr=3D0 =
+boot param.
 
-Next I'll try that "ec1.patch" from Alex, without overriding ec_intr.
-
-- Dave
+IMO this should get merged into 2.6.19 ASAP ...
 
 
-> 
-> thanks,
-> -Len
-> 
-> > It never used to complain at all.  This is an amd64 laptop, and related symptoms
-> > include
-> > 
-> >  - kpowersave not being able to monitor the batter or AC adapter correctly;
-> >    leading to catastrophes like laptop powering itself off with no warning,
-> >    loss of work, filesystem needing log recovery, and so forth.
-> > 
-> >  - Serious fan action.  Recent kernels seemed to finally be doing sane things
-> >    so that e.g. just editing text kept the CPU cool ... but now it's on almost
-> >    all the time, CPU is very hot.
-> > 
-> > What's an AE_TIME?
-> > 
-> > I'm not quite sure where these problems crept in, but I never saw such stuff with
-> > 2.6.18 at all.
-> > 
-> > - Dave
-> > 
-> > 
+> =A0drivers/acpi/ec.c | =A0 =A02 --
+> =A01 files changed, 0 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> index e6d4b08..937eafc 100644
+> --- a/drivers/acpi/ec.c
+> +++ b/drivers/acpi/ec.c
+> @@ -465,8 +465,6 @@ static u32 acpi_ec_gpe_handler(void *dat
+> =A0
+> =A0=A0=A0=A0=A0=A0=A0=A0if (value & ACPI_EC_FLAG_SCI) {
+> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0status =3D acpi_os_ex=
+ecute(OSL_EC_BURST_HANDLER, acpi_ec_gpe_query, ec);
+> -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0return status =3D=3D AE=
+_OK ?
+> -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 =A0 =A0ACPI_INTERRUPT_=
+HANDLED : ACPI_INTERRUPT_NOT_HANDLED;
+> =A0=A0=A0=A0=A0=A0=A0=A0}
+> =A0=A0=A0=A0=A0=A0=A0=A0acpi_enable_gpe(NULL, ec->gpe_bit, ACPI_ISR);
+> =A0=A0=A0=A0=A0=A0=A0=A0return status =3D=3D AE_OK ?
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
