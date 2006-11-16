@@ -1,125 +1,96 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: 2.6.19-rc5 nasty ACPI regression, AE_TIME errors
-Date: Thu, 16 Nov 2006 08:53:48 -0800
-Message-ID: <200611160853.48748.david-b@pacbell.net>
-References: <200611142303.47325.david-b@pacbell.net> <200611160803.04152.david-b@pacbell.net> <455C907A.8080600@linux.intel.com>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: 2.6.19-rc6: known regressions
+Date: Thu, 16 Nov 2006 22:37:18 +0100
+Message-ID: <20061116213717.GJ31879@stusta.de>
+References: <Pine.LNX.4.64.0611152008450.3349@woody.osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp103.sbc.mail.mud.yahoo.com ([68.142.198.202]:6569 "HELO
-	smtp103.sbc.mail.mud.yahoo.com") by vger.kernel.org with SMTP
-	id S1031200AbWKPQxy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 16 Nov 2006 11:53:54 -0500
-In-Reply-To: <455C907A.8080600@linux.intel.com>
+Received: from mailout.stusta.mhn.de ([141.84.69.5]:40454 "HELO
+	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
+	id S1424330AbWKPVhV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Nov 2006 16:37:21 -0500
 Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0611152008450.3349@woody.osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-Cc: Len Brown <lenb@kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Ray Lee <ray-lk@madrabbit.org>, Michael Buesch <mb@bu3sch.de>, Larry Finger <Larry.Finger@lwfinger.net>, st3@riseup.net, linville@tuxdriver.com, netdev@vger.kernel.org, David Brownell <david-b@pacbell.net>, Len Brown <len.brown@intel.com>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, linux-acpi@vger.kernel.org, Ernst Herzberg <earny@net4u.de>, Ingo Molnar <mingo@elte.hu>, Andre Noll <maan@systemlinux.org>, Andi Kleen <ak@suse.de>, discuss@x86-64.org, Prakash Punnoor <prakash@punnoor.de>, phil.el@wanadoo.fr, oprofile-list@lists.sf.net, Dennis Stosberg <dennis@stosberg.net>, Greg Kroah-Hartman <gregkh@suse.de>, ecashin@coraid.com, Andrey Borzenkov <arvidjaar@mail.ru>, Alan Stern <stern@rowland.harvard.edu>, linux-usb-devel@lists.sourceforge.net
 
-On Thursday 16 November 2006 8:23 am, Alexey Starikovskiy wrote:
-> David Brownell wrote:
-> > On Thursday 16 November 2006 7:41 am, Alexey Starikovskiy wrote:
-> >   
-> >> Looks like either EC GPE or whole ACPI irq got disabled... Could you 
-> >> check that ACPI interrupts still arrive after
-> >> you notice AE_TIME?
-> >>     
-> >
-> > If I unplug AC, /proc/interrrupts reports 2 IRQs going to ACPI.
-> > Then on replug, it reports 10-12 IRQs going to ACPI.
-> >   
-> What is the state of kacpid and kacpid_notify ?
+This email lists some known regressions in 2.6.19-rc6 compared to 2.6.18
+that are not yet fixed in Linus' tree.
 
-Not clear what you mean by this, but:
+If you find your name in the Cc header, you are either submitter of one
+of the bugs, maintainer of an affectected subsystem or driver, a patch
+of you caused a breakage or I'm considering you in any other way possibly
+involved with one or more of these issues.
 
-$ ps ax | grep acpi
-   51 ?        S<     0:00 [kacpid]
-   52 ?        S<     0:00 [kacpi_notify]
- 2971 ?        Ss     0:00 /usr/sbin/acpid -c /etc/acpi/events.ignore
-19240 pts/2    R+     0:00 grep acpi
-$ 
+Due to the huge amount of recipients, please trim the Cc when answering.
 
 
-> >
-> >   
-> >> Also, may be attached patch will help?
-> >>     
-> >
-> > I'l give it a try next time I can reboot (presumably by this PM).
-> >
-> > - Dave
-> >
-> >
-> >   
-> >> Regards,
-> >>     Alex.
-> >>
-> >> David Brownell wrote:
-> >>     
-> >>> On Wednesday 15 November 2006 1:56 pm, David Brownell wrote:
-> >>>   
-> >>>       
-> >>>> On Wednesday 15 November 2006 6:48 am, Alexey Starikovskiy wrote:
-> >>>>     
-> >>>>         
-> >>>>> ec1.patch
-> >>>>>
-> >>>>>
-> >>>>> Always enable GPE after return from notify handler.
-> >>>>>
-> >>>>> From:  Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-> >>>>>
-> >>>>>
-> >>>>> ---
-> >>>>>       
-> >>>>>           
-> >>>> Yes, this seems to resolve the regression as well as Len's ec_intr=0 boot param.
-> >>>>     
-> >>>>         
-> >>> Whoops, I spoke too soon.  It does get rid of SOME of the AE_TIME errors.  But
-> >>> the system is still confused about whether or not the AC is connected, and
-> >>> whether the battery is charging or not; and the CPU is still relatively hot.
-> >>> Even with this patch I later got:
-> >>>
-> >>> ACPI Exception (evregion-0424): AE_TIME, Returned by Handler for [EmbeddedControl] [20060707]
-> >>> ACPI Exception (dswexec-0458): AE_TIME, While resolving operands for [OpcodeName unavailable] [2006070
-> >>> 7]
-> >>> ACPI Error (psparse-0537): Method parse/execution failed [\_TZ_.THRM._TMP] (Node ffff810002032d10), AE
-> >>> _TIME
-> >>>
-> >>> In short, better but evidently not yet good enough...
-> >>>
-> >>> - Dave
-> >>>
-> >>>
-> >>>
-> >>>   
-> >>>       
-> >>>> IMO this should get merged into 2.6.19 ASAP ...
-> >>>>
-> >>>>
-> >>>>     
-> >>>>         
-> >>>>>  drivers/acpi/ec.c |    2 --
-> >>>>>  1 files changed, 0 insertions(+), 2 deletions(-)
-> >>>>>
-> >>>>> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-> >>>>> index e6d4b08..937eafc 100644
-> >>>>> --- a/drivers/acpi/ec.c
-> >>>>> +++ b/drivers/acpi/ec.c
-> >>>>> @@ -465,8 +465,6 @@ static u32 acpi_ec_gpe_handler(void *dat
-> >>>>>  
-> >>>>>         if (value & ACPI_EC_FLAG_SCI) {
-> >>>>>                 status = acpi_os_execute(OSL_EC_BURST_HANDLER, acpi_ec_gpe_query, ec);
-> >>>>> -               return status == AE_OK ?
-> >>>>> -                   ACPI_INTERRUPT_HANDLED : ACPI_INTERRUPT_NOT_HANDLED;
-> >>>>>         }
-> >>>>>         acpi_enable_gpe(NULL, ec->gpe_bit, ACPI_ISR);
-> >>>>>         return status == AE_OK ?
-> >>>>>       
-> >>>>>           
-> >>     
-> 
+Subject    : bcm43xx: serious problems
+References : http://lkml.org/lkml/2006/11/15/296
+Submitter  : Ray Lee <ray-lk@madrabbit.org>
+Handled-By : Michael Buesch <mb@bu3sch.de>
+             Larry Finger <Larry.Finger@lwfinger.net>
+Status     : problem is being debugged
+
+
+Subject    : nasty ACPI regression, AE_TIME errors
+References : http://lkml.org/lkml/2006/11/15/12
+Submitter  : David Brownell <david-b@pacbell.net>
+Handled-By : Len Brown <len.brown@intel.com>
+             Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Status     : problem is being debugged
+
+
+Subject    : ThinkPad R50p: boot fail with (lapic && on_battery)
+References : http://lkml.org/lkml/2006/10/31/333
+Submitter  : Ernst Herzberg <earny@net4u.de>
+Handled-By : Len Brown <len.brown@intel.com>
+Status     : problem is being debugged
+
+
+Subject    : x86_64: Bad page state in process 'swapper'
+References : http://lkml.org/lkml/2006/11/10/135
+             http://lkml.org/lkml/2006/11/10/208
+Submitter  : Andre Noll <maan@systemlinux.org>
+Handled-By : Andi Kleen <ak@suse.de>
+Status     : Andi is investigating
+
+
+Subject    : x86_64: oprofile doesn't work
+References : http://lkml.org/lkml/2006/10/27/3
+             http://lkml.org/lkml/2006/11/15/92
+Submitter  : Prakash Punnoor <prakash@punnoor.de>
+Status     : problem is being discussed
+
+
+Subject    : x86_64 UP compile error
+References : http://lkml.org/lkml/2006/11/16/29
+Submitter  : Ingo Molnar <mingo@elte.hu>
+Caused-By  : Andi Kleen <ak@suse.de>
+             commit 8c131af1db510793f87dc43edbc8950a35370df3
+Handled-By : Andi Kleen <ak@suse.de>
+             Ingo Molnar <mingo@elte.hu>
+Patch      : http://lkml.org/lkml/2006/11/16/36
+Status     : patch available
+
+
+Subject    : aoe: Add forgotten NULL at end of attribute list in aoeblk.c
+References : http://lkml.org/lkml/2006/11/13/26
+Submitter  : Dennis Stosberg <dennis@stosberg.net>
+Caused-By  : Greg Kroah-Hartman <gregkh@suse.de>
+             commit 4ca5224f3ea4779054d96e885ca9b3980801ce13
+Handled-By : Dennis Stosberg <dennis@stosberg.net>
+Patch      : http://lkml.org/lkml/2006/11/13/26
+Status     : patch available
+
+
+Subject    : can't disable OHCI wakeup via sysfs
+References : http://lkml.org/lkml/2006/11/11/33
+Submitter  : Andrey Borzenkov <arvidjaar@mail.ru>
+Handled-By : Alan Stern <stern@rowland.harvard.edu>
+Patch      : http://lkml.org/lkml/2006/11/13/261
+Status     : patch available
+
