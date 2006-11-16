@@ -1,42 +1,91 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: 2.6.19-rc6: known regressions
-Date: Thu, 16 Nov 2006 13:43:59 -0800
-Message-ID: <20061116214359.GA32690@suse.de>
-References: <Pine.LNX.4.64.0611152008450.3349@woody.osdl.org> <20061116213717.GJ31879@stusta.de>
+From: "Miguel Ojeda" <maxextreme@gmail.com>
+Subject: Re: ACPI output/lcd/auxdisplay mess
+Date: Thu, 16 Nov 2006 22:48:20 +0100
+Message-ID: <653402b90611161348k163a004ax483f1c2bc6928fd9@mail.gmail.com>
+References: <Pine.LNX.4.64.0611141939050.6957@pentafluge.infradead.org>
+	 <653402b90611141426y6db15a3bh8ea59f89c8f1bb39@mail.gmail.com>
+	 <Pine.LNX.4.64.0611150052180.13800@pentafluge.infradead.org>
+	 <653402b90611160045s6ddf1305jdb262ee55b0f16bf@mail.gmail.com>
+	 <Pine.LNX.4.64.0611161450180.31960@pentafluge.infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:28079 "EHLO mx2.suse.de")
-	by vger.kernel.org with ESMTP id S1424669AbWKPVoc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 16 Nov 2006 16:44:32 -0500
+Received: from wx-out-0506.google.com ([66.249.82.234]:49966 "EHLO
+	wx-out-0506.google.com") by vger.kernel.org with ESMTP
+	id S1424691AbWKPVsV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Nov 2006 16:48:21 -0500
+Received: by wx-out-0506.google.com with SMTP id s7so731609wxc
+        for <linux-acpi@vger.kernel.org>; Thu, 16 Nov 2006 13:48:20 -0800 (PST)
+In-Reply-To: <Pine.LNX.4.64.0611161450180.31960@pentafluge.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20061116213717.GJ31879@stusta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Ray Lee <ray-lk@madrabbit.org>, Michael Buesch <mb@bu3sch.de>, Larry Finger <Larry.Finger@lwfinger.net>, st3@riseup.net, linville@tuxdriver.com, netdev@vger.kernel.org, David Brownell <david-b@pacbell.net>, Len Brown <len.brown@intel.com>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, linux-acpi@vger.kernel.org, Ernst Herzberg <earny@net4u.de>, Ingo Molnar <mingo@elte.hu>, Andre Noll <maan@systemlinux.org>, Andi Kleen <ak@suse.de>, discuss@x86-64.org, Prakash Punnoor <prakash@punnoor.de>, phil.el@wanadoo.fr, oprofile-list@lists.sf.net, Dennis Stosberg <dennis@stosberg.net>, ecashin@coraid.com, Andrey Borzenkov <arvidjaar@mail.ru>, Alan Stern <stern@rowland.harvard.edu>, linux-usb-devel@lists.sourceforge.net
+To: James Simmons <jsimmons@infradead.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Fbdev development list <linux-fbdev-devel@lists.sourceforge.net>, Luming Yu <Luming.yu@intel.com>, Andrew Zabolotny <zap@homelink.ru>, linux-acpi@vger.kernel.org
 
-On Thu, Nov 16, 2006 at 10:37:18PM +0100, Adrian Bunk wrote:
-> Subject    : aoe: Add forgotten NULL at end of attribute list in aoeblk.c
-> References : http://lkml.org/lkml/2006/11/13/26
-> Submitter  : Dennis Stosberg <dennis@stosberg.net>
-> Caused-By  : Greg Kroah-Hartman <gregkh@suse.de>
->              commit 4ca5224f3ea4779054d96e885ca9b3980801ce13
-> Handled-By : Dennis Stosberg <dennis@stosberg.net>
-> Patch      : http://lkml.org/lkml/2006/11/13/26
-> Status     : patch available
-> 
-> 
-> Subject    : can't disable OHCI wakeup via sysfs
-> References : http://lkml.org/lkml/2006/11/11/33
-> Submitter  : Andrey Borzenkov <arvidjaar@mail.ru>
-> Handled-By : Alan Stern <stern@rowland.harvard.edu>
-> Patch      : http://lkml.org/lkml/2006/11/13/261
-> Status     : patch available
+On 11/16/06, James Simmons <jsimmons@infradead.org> wrote:
+>
+> >
+> > cfag12864bcfb is a "fbdev" (actually, it is a "fb wrapper" for
+> > cfag12864b, so it behaves like a framebuffer, although it is not an
+> > usual framebuffer. f.e. it has asynchronous refresh rate, a mmaped
+> > page to appear to be a fb...).
+>
+> BTW to use it as a fb you need to set the FILLRECT etc. See Kconfig in the
+> drivers/video directory and look at one of the graphic card examples.
 
-I'll be sending Linus both of these patches later today.
+I see, thanks you. I will take care of that.
 
-thanks,
+>
+> > Still, it is not the front panel lcd of any specific device like PDA,
+> > so people that expects only their primary video/ displays may be
+> > confused if it appears at such section. So we decided to go away from
+> > video/. Maybe we can change the description, as right now it only
+> > refers to front panel lcds.
+>
+>   Neither is a monitor for a PC desktop. That is why we have ddc. If I
+> take a desktop with more than one video card and swap the lcd monitors
+> the lcd monitor data remains the same. As soon as the display device is
+> attached to the graphics card the graphics card will then communicate
+> with the monitor to retrieve data. For example if the mode of the
+> graphics card is set to 1900x1080 which is supported by the current
+> monitor. Then we swap it for a CRT that supports only 1280x1024 then in
+> that case when the graphics card probes the CRT it will change the
+> resolution to the maximum that is supported by the CRT.
+>   Currently the fbdev layer handles all this with struct fb_monspecs. Now
+> I know that structure doesn't cover everything. Nor does it handle
+> multiple displays attached to one piece of hardware. These where things I
+> was hoping to fix. Now that there are display devices that can handle
+> there own power management I have no problem having another sysfs device
+> to handle it. A representation that is more generic than lcd in the
+> backlight directory. Like the output device suggested by Yu. Of course I'm
+> not fond of that name. Display would be better.
+>
 
-greg k-h
+Yep, indeed it would be better to have both generic place and sysfs
+device to put all these generic displays, however, I think they
+shouldn't be at video/* (maybe video/something/* or outside). I mean,
+we can do something like:
+
+1. First, we move auxiliary-special displays (including cfag12864b,
+[*]"Arc Monochrome LCD board" and stuff like that: they aren't really
+primary video displays) to another folder outside video/, maybe
+"drivers/display/" ("drivers/auxdisplay/"...).
+2. Then we create a sysfs device, called "display" ("auxdisplay"...)
+for all of them, which must be generic as you suggested, not just lcds
+or "front panels".
+
+So finally we will have usual-primary fbdevs and video drivers at
+"drivers/video/*", and all the other stuff at "drivers/display/*" or
+some similar place.
+
+Is that a good suggestion?
+
+[*] I saw fbdevs like "Arc Monochorme LCD board support" that can be
+put there the same way like auxdisplay/cfag12864b, as they look pretty
+similar.
+
+-- 
+Miguel Ojeda
+http://maxextreme.googlepages.com/index.htm
