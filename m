@@ -1,58 +1,125 @@
-From: James Simmons <jsimmons@infradead.org>
-Subject: Re: ACPI output/lcd/auxdisplay mess
-Date: Thu, 16 Nov 2006 15:38:39 +0000 (GMT)
-Message-ID: <Pine.LNX.4.64.0611161450180.31960@pentafluge.infradead.org>
-References: <Pine.LNX.4.64.0611141939050.6957@pentafluge.infradead.org>
- <653402b90611141426y6db15a3bh8ea59f89c8f1bb39@mail.gmail.com>
- <Pine.LNX.4.64.0611150052180.13800@pentafluge.infradead.org>
- <653402b90611160045s6ddf1305jdb262ee55b0f16bf@mail.gmail.com>
+From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Subject: Re: 2.6.19-rc5 nasty ACPI regression, AE_TIME errors
+Date: Thu, 16 Nov 2006 18:41:10 +0300
+Message-ID: <455C8696.80508@linux.intel.com>
+References: <200611142303.47325.david-b@pacbell.net> <455B28B2.4010707@linux.intel.com> <200611151356.52985.david-b@pacbell.net> <200611151710.26570.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/mixed;
+ boundary="------------030108010505080106030705"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pentafluge.infradead.org ([213.146.154.40]:39831 "EHLO
-	pentafluge.infradead.org") by vger.kernel.org with ESMTP
-	id S1424178AbWKPPim (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 16 Nov 2006 10:38:42 -0500
-In-Reply-To: <653402b90611160045s6ddf1305jdb262ee55b0f16bf@mail.gmail.com>
+Received: from mga09.intel.com ([134.134.136.24]:18047 "EHLO mga09.intel.com")
+	by vger.kernel.org with ESMTP id S1424184AbWKPPlQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Nov 2006 10:41:16 -0500
+In-Reply-To: <200611151710.26570.david-b@pacbell.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Miguel Ojeda <maxextreme@gmail.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Fbdev development list <linux-fbdev-devel@lists.sourceforge.net>, Luming Yu <Luming.yu@intel.com>, Andrew Zabolotny <zap@homelink.ru>, linux-acpi@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Len Brown <lenb@kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------030108010505080106030705
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Looks like either EC GPE or whole ACPI irq got disabled... Could you 
+check that ACPI interrupts still arrive after
+you notice AE_TIME?
+Also, may be attached patch will help?
+
+Regards,
+    Alex.
+
+David Brownell wrote:
+> On Wednesday 15 November 2006 1:56 pm, David Brownell wrote:
+>   
+>> On Wednesday 15 November 2006 6:48 am, Alexey Starikovskiy wrote:
+>>     
+>>> ec1.patch
+>>>
+>>>
+>>> Always enable GPE after return from notify handler.
+>>>
+>>> From:  Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+>>>
+>>>
+>>> ---
+>>>       
+>> Yes, this seems to resolve the regression as well as Len's ec_intr=0 boot param.
+>>     
+>
+> Whoops, I spoke too soon.  It does get rid of SOME of the AE_TIME errors.  But
+> the system is still confused about whether or not the AC is connected, and
+> whether the battery is charging or not; and the CPU is still relatively hot.
+> Even with this patch I later got:
+>
+> ACPI Exception (evregion-0424): AE_TIME, Returned by Handler for [EmbeddedControl] [20060707]
+> ACPI Exception (dswexec-0458): AE_TIME, While resolving operands for [OpcodeName unavailable] [2006070
+> 7]
+> ACPI Error (psparse-0537): Method parse/execution failed [\_TZ_.THRM._TMP] (Node ffff810002032d10), AE
+> _TIME
+>
+> In short, better but evidently not yet good enough...
+>
+> - Dave
+>
+>
+>
+>   
+>> IMO this should get merged into 2.6.19 ASAP ...
+>>
+>>
+>>     
+>>>  drivers/acpi/ec.c |    2 --
+>>>  1 files changed, 0 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+>>> index e6d4b08..937eafc 100644
+>>> --- a/drivers/acpi/ec.c
+>>> +++ b/drivers/acpi/ec.c
+>>> @@ -465,8 +465,6 @@ static u32 acpi_ec_gpe_handler(void *dat
+>>>  
+>>>         if (value & ACPI_EC_FLAG_SCI) {
+>>>                 status = acpi_os_execute(OSL_EC_BURST_HANDLER, acpi_ec_gpe_query, ec);
+>>> -               return status == AE_OK ?
+>>> -                   ACPI_INTERRUPT_HANDLED : ACPI_INTERRUPT_NOT_HANDLED;
+>>>         }
+>>>         acpi_enable_gpe(NULL, ec->gpe_bit, ACPI_ISR);
+>>>         return status == AE_OK ?
+>>>       
 
 
-> > Is it a framebuffer device ? The framebuffer layer is abstracted to work
-> > with such devices.
-> > 
-> 
-> cfag12864bcfb is a "fbdev" (actually, it is a "fb wrapper" for
-> cfag12864b, so it behaves like a framebuffer, although it is not an
-> usual framebuffer. f.e. it has asynchronous refresh rate, a mmaped
-> page to appear to be a fb...).
+--------------030108010505080106030705
+Content-Type: text/plain;
+ name="ec2.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ec2.patch"
 
-BTW to use it as a fb you need to set the FILLRECT etc. See Kconfig in the 
-drivers/video directory and look at one of the graphic card examples.
+Always confirm handled interrupt, even if we failed.
+
+From:  Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
+
+
+---
+
+ drivers/acpi/ec.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 937eafc..6fb5ee0 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -467,8 +467,8 @@ static u32 acpi_ec_gpe_handler(void *dat
+ 		status = acpi_os_execute(OSL_EC_BURST_HANDLER, acpi_ec_gpe_query, ec);
+ 	}
+ 	acpi_enable_gpe(NULL, ec->gpe_bit, ACPI_ISR);
+-	return status == AE_OK ?
+-	    ACPI_INTERRUPT_HANDLED : ACPI_INTERRUPT_NOT_HANDLED;
++	WARN_ON(ACPI_FAILURE(status));
++	return ACPI_INTERRUPT_HANDLED;
+ }
  
-> Still, it is not the front panel lcd of any specific device like PDA,
-> so people that expects only their primary video/ displays may be
-> confused if it appears at such section. So we decided to go away from
-> video/. Maybe we can change the description, as right now it only
-> refers to front panel lcds.
+ /* --------------------------------------------------------------------------
 
-  Neither is a monitor for a PC desktop. That is why we have ddc. If I 
-take a desktop with more than one video card and swap the lcd monitors 
-the lcd monitor data remains the same. As soon as the display device is 
-attached to the graphics card the graphics card will then communicate 
-with the monitor to retrieve data. For example if the mode of the 
-graphics card is set to 1900x1080 which is supported by the current 
-monitor. Then we swap it for a CRT that supports only 1280x1024 then in 
-that case when the graphics card probes the CRT it will change the 
-resolution to the maximum that is supported by the CRT. 
-  Currently the fbdev layer handles all this with struct fb_monspecs. Now
-I know that structure doesn't cover everything. Nor does it handle 
-multiple displays attached to one piece of hardware. These where things I 
-was hoping to fix. Now that there are display devices that can handle 
-there own power management I have no problem having another sysfs device
-to handle it. A representation that is more generic than lcd in the 
-backlight directory. Like the output device suggested by Yu. Of course I'm 
-not fond of that name. Display would be better. 
-
+--------------030108010505080106030705--
