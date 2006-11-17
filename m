@@ -1,59 +1,68 @@
-From: Mark Stosberg <mark@summersault.com>
-Subject: Re: 2.6.19-rc <-> ThinkPads, (related Ubuntu bug report)
-Date: Thu, 16 Nov 2006 20:53:40 -0500
-Message-ID: <ejj4nl$d1n$1@sea.gmane.org>
-References: <20061029231358.GI27968@stusta.de> <20061030135625.GB1601@mellanox.co.il> <20061101030126.GE27968@stusta.de> <20061104034906.GO13381@stusta.de>
-Reply-To: linux-thinkpad@linux-thinkpad.org
+From: David Weinehall <tao@acc.umu.se>
+Subject: Re: acpiphp makes noise on every lid close/open
+Date: Fri, 17 Nov 2006 11:22:38 +0100
+Message-ID: <20061117102237.GS14886@vasa.acc.umu.se>
+References: <20061101115618.GA1683@elf.ucw.cz> <20061102175403.279df320.kristen.c.accardi@intel.com> <20061105232944.GA23256@vasa.acc.umu.se> <20061106092117.GB2175@elf.ucw.cz> <20061107204409.GA37488@vasa.acc.umu.se> <20061107134439.1d54dc66.kristen.c.accardi@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-thinkpad-admin@linux-thinkpad.org>
-In-Reply-To: <20061104034906.GO13381@stusta.de>
-Sender: linux-thinkpad-admin@linux-thinkpad.org
-Errors-To: linux-thinkpad-admin@linux-thinkpad.org
-List-Help: <mailto:linux-thinkpad-request@linux-thinkpad.org?subject=help>
-List-Post: <mailto:linux-thinkpad@linux-thinkpad.org>
-List-Subscribe: <http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad>,
-	<mailto:linux-thinkpad-request@linux-thinkpad.org?subject=subscribe>
-List-Unsubscribe: <http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad>,
-	<mailto:linux-thinkpad-request@linux-thinkpad.org?subject=unsubscribe>
-List-Archive: <http://mailman.linux-thinkpad.org/pipermail/linux-thinkpad/>
-To: linux-thinkpad@linux-thinkpad.org
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.osdl.org, discuss@x86-64.orglinux-kernel@vger.kernel.orglinux-acpi@vger.kernel.orglinux-pm@lists.osdl.orglinux-kernel@vger.kernel.orglinux-pm@lists.osdl.orgdiscuss@x86-64.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.acc.umu.se ([130.239.18.156]:49303 "EHLO mail.acc.umu.se")
+	by vger.kernel.org with ESMTP id S1755664AbWKQKWn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 17 Nov 2006 05:22:43 -0500
+Content-Disposition: inline
+In-Reply-To: <20061107134439.1d54dc66.kristen.c.accardi@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <linux-acpi@vger.kernel.org>
 
-Adrian Bunk wrote:
-> As far as I can see, the 2.6.19-rc ThinkPad situation is still 
-> confusing and we don't even know how many different bugs we are 
-> chasing...
+On Tue, Nov 07, 2006 at 01:44:39PM -0800, Kristen Carlson Accardi wrote:
+> On Tue, 7 Nov 2006 21:44:09 +0100
+> David Weinehall <tao@acc.umu.se> wrote:
+> 
+> > On Mon, Nov 06, 2006 at 10:21:17AM +0100, Pavel Machek wrote:
+> > > Hi!
+> > > 
+> > > > > > With 2.6.19-rc4, acpi complains about "acpiphp_glue: cannot get bridge
+> > > > > > info" each time I close/reopen the lid... On thinkpad x60. Any ideas?
+> > > > > > (-mm1 behaves the same).
+> > > > > 
+> > > > > Looks like acpi is sending a BUS_CHECK notification to acpiphp on the 
+> > > > > PCI Root Bridge whenever the lid opens up.
+> > > > > 
+> > > > > There is a bug here in that acpiphp shouldn't even be used on the X60 -
+> > > > > it has no hotpluggable slots.
+> > > > 
+> > > > How about the docking station?
+> > > 
+> > > "Dock" for x60 only contains cdrom slot and aditional slots, no PCI or
+> > > PCMCIA slots.
+> > 
+> > Well, when I press the undock button on the dock without the acpiphp
+> > module loaded, I never get the green light that confirms that removing
+> > the laptop is safe.  If acpiphp is loaded, things work just fine.
+> > 
+> > 
+> > Regards: David
+> > -- 
+> >  /) David Weinehall <tao@acc.umu.se> /) Northern lights wander      (\
+> > //  Maintainer of the v2.0 kernel   //  Dance across the winter sky //
+> > \)  http://www.acc.umu.se/~tao/    (/   Full colour fire           (/
+> 
+> David,
+> What kernel version are you using?  You should not need acpiphp to do
+> docking on the X60.  If you are using a recent kernel, do you mind sending
+> the dmesg output so we can figure out why this doesn't work for you?
 
-Hello,
+That was with 2.6.17; with 2.7.19-pre? (don't remember right now),
+docking seems to work without acpiphp.  It still would be nice to be
+able to undock when the laptop is sleeping though; how do I achieve
+that?
 
-I just hoped on this list to see what "ThinkPad" discussion there was.
-Here my own observations:
 
-Using Mandriva 2006 with 2.6.12, ACPI suspend/resume works great on a
-ThinkPad T20. It didn't work with 2.6.14, and it doesn't work with
-2.6.17 with Mandriva. Further, it doesn't seem to work with on some
-ThinkPads with Ubuntu and 2.6.15 and 2.6.17 either, as this now-lengthy
-bug report documents:
-
-https://launchpad.net/distros/ubuntu/+source/linux-source-2.6.17/+bug/50031
-
-I added a comment there encouraging the other bug reporters to include
-the kind of information requested on the ACPI website, but so far no have.
-
-Personally, I'm still using 2.6.12 daily because of this regression.
-
-I'm interested to help resolve it, but am not currently tracking the
-latest kernel sources.
-
-I realize this bug report is a bit out of date with respect to 2.6.19,
-but as another poster suggested, this could simply indicate that at
-least one regressions may not be recent.
-
-   Mark
-
+Regards: David
 -- 
-The linux-thinkpad mailing list home page is at:
-http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad
+ /) David Weinehall <tao@acc.umu.se> /) Northern lights wander      (\
+//  Maintainer of the v2.0 kernel   //  Dance across the winter sky //
+\)  http://www.acc.umu.se/~tao/    (/   Full colour fire           (/
