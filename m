@@ -1,68 +1,37 @@
-From: David Weinehall <tao@acc.umu.se>
-Subject: Re: acpiphp makes noise on every lid close/open
-Date: Fri, 17 Nov 2006 11:22:38 +0100
-Message-ID: <20061117102237.GS14886@vasa.acc.umu.se>
-References: <20061101115618.GA1683@elf.ucw.cz> <20061102175403.279df320.kristen.c.accardi@intel.com> <20061105232944.GA23256@vasa.acc.umu.se> <20061106092117.GB2175@elf.ucw.cz> <20061107204409.GA37488@vasa.acc.umu.se> <20061107134439.1d54dc66.kristen.c.accardi@intel.com>
+From: "Valya" <gibson@mwsm-law.com>
+Subject: Re[2]:Want to know me?
+Date: Fri, 17 Nov 2006 14:41:06 +0200
+Message-ID: <009f01c70a45$914b4980$6424000a@89.108.136.34>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.acc.umu.se ([130.239.18.156]:49303 "EHLO mail.acc.umu.se")
-	by vger.kernel.org with ESMTP id S1755664AbWKQKWn (ORCPT
+Received: from [89.108.136.34] ([89.108.136.34]:29702 "EHLO 89.108.136.34")
+	by vger.kernel.org with ESMTP id S933575AbWKQMkU (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 17 Nov 2006 05:22:43 -0500
-Content-Disposition: inline
-In-Reply-To: <20061107134439.1d54dc66.kristen.c.accardi@intel.com>
+	Fri, 17 Nov 2006 07:40:20 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <linux-acpi@vger.kernel.org>
+To: "40info.sayya.org" <40info.sayya.org@vger.kernel.org>
 
-On Tue, Nov 07, 2006 at 01:44:39PM -0800, Kristen Carlson Accardi wrote:
-> On Tue, 7 Nov 2006 21:44:09 +0100
-> David Weinehall <tao@acc.umu.se> wrote:
-> 
-> > On Mon, Nov 06, 2006 at 10:21:17AM +0100, Pavel Machek wrote:
-> > > Hi!
-> > > 
-> > > > > > With 2.6.19-rc4, acpi complains about "acpiphp_glue: cannot get bridge
-> > > > > > info" each time I close/reopen the lid... On thinkpad x60. Any ideas?
-> > > > > > (-mm1 behaves the same).
-> > > > > 
-> > > > > Looks like acpi is sending a BUS_CHECK notification to acpiphp on the 
-> > > > > PCI Root Bridge whenever the lid opens up.
-> > > > > 
-> > > > > There is a bug here in that acpiphp shouldn't even be used on the X60 -
-> > > > > it has no hotpluggable slots.
-> > > > 
-> > > > How about the docking station?
-> > > 
-> > > "Dock" for x60 only contains cdrom slot and aditional slots, no PCI or
-> > > PCMCIA slots.
-> > 
-> > Well, when I press the undock button on the dock without the acpiphp
-> > module loaded, I never get the green light that confirms that removing
-> > the laptop is safe.  If acpiphp is loaded, things work just fine.
-> > 
-> > 
-> > Regards: David
-> > -- 
-> >  /) David Weinehall <tao@acc.umu.se> /) Northern lights wander      (\
-> > //  Maintainer of the v2.0 kernel   //  Dance across the winter sky //
-> > \)  http://www.acc.umu.se/~tao/    (/   Full colour fire           (/
-> 
-> David,
-> What kernel version are you using?  You should not need acpiphp to do
-> docking on the X60.  If you are using a recent kernel, do you mind sending
-> the dmesg output so we can figure out why this doesn't work for you?
+Hi to you!
 
-That was with 2.6.17; with 2.7.19-pre? (don't remember right now),
-docking seems to work without acpiphp.  It still would be nice to be
-able to undock when the laptop is sleeping though; how do I achieve
-that?
+Sincere lady wants to meet a nice, responsible man to create a
+loving and caring family. I will do my best to make my man happy and
+proud of his family.
+I am very kind and understanding. I listen to people and try to help
+them. I love children. I want to have a good house where all of us
+will live in happiness and prosperity.
+I have decided to send you this message as maybe you are looking for
+the same things in life...
+If you want to reply to me, you can find me here
+http://greatfeelingoflove.com/flirtwithlove
+I will be waiting for a note from you!
 
 
-Regards: David
--- 
- /) David Weinehall <tao@acc.umu.se> /) Northern lights wander      (\
-//  Maintainer of the v2.0 kernel   //  Dance across the winter sky //
-\)  http://www.acc.umu.se/~tao/    (/   Full colour fire           (/
+Looking forward to hear from you!
+
+Valya
+
+
