@@ -1,40 +1,52 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [Bulk] Re: 2.6.19-rc5 nasty ACPI regression, AE_TIME errors
-Date: Fri, 17 Nov 2006 13:45:28 -0800
-Message-ID: <200611171345.29216.david-b@pacbell.net>
-References: <200611142303.47325.david-b@pacbell.net> <200611160853.48748.david-b@pacbell.net> <455CDE75.3050001@linux.intel.com>
+From: Linus Torvalds <torvalds@osdl.org>
+Subject: ACPI breakage (Re: 2.6.19-rc6: known regressions (v2))
+Date: Fri, 17 Nov 2006 15:58:49 -0800 (PST)
+Message-ID: <Pine.LNX.4.64.0611171552230.3618@woody.osdl.org>
+References: <Pine.LNX.4.64.0611152008450.3349@woody.osdl.org>
+ <20061117204036.GK31879@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp103.sbc.mail.mud.yahoo.com ([68.142.198.202]:40829 "HELO
-	smtp103.sbc.mail.mud.yahoo.com") by vger.kernel.org with SMTP
-	id S1753224AbWKQVpe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 17 Nov 2006 16:45:34 -0500
-In-Reply-To: <455CDE75.3050001@linux.intel.com>
-Content-Disposition: inline
+Received: from smtp.osdl.org ([65.172.181.25]:54411 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1756059AbWKRACK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 17 Nov 2006 19:02:10 -0500
+In-Reply-To: <20061117204036.GK31879@stusta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Len Brown <len.brown@intel.com>, Adrian Bunk <bunk@stusta.de>, Andrew Morton <akpm@osdl.org>
+Cc: David Brownell <david-b@pacbell.net>, linux-acpi@vger.kernel.org
 
-On Thursday 16 November 2006 1:56 pm, Alexey Starikovskiy wrote:
-> David,
+
+
+On Fri, 17 Nov 2006, Adrian Bunk wrote:
 > 
-> It looks like problem with recent changes to EC driver, so could you 
-> please try to revert those patches one-by-one in order to
-> find problematic one... I'm attaching patches: ec_x1 is the first in 
-> series and ec_x7 is the last...
+> Subject    : nasty ACPI regression, AE_TIME errors
+> References : http://lkml.org/lkml/2006/11/15/12
+> Submitter  : David Brownell <david-b@pacbell.net>
+> Handled-By : Len Brown <len.brown@intel.com>
+>              Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+> Status     : problem is being debugged
 
-ec_x7 clearly can't be an issue (just exports a symbol).
+I do not know if this is related, but testing one of my laptops (always a 
+good idea to check the week before release) shows that my trusty old 
+Compaq N620c locks up rather quickly at boot with the current -git tree. 
 
-It's going to take a long time to isolate the problem this way,
-since it doesn't appear at all promptly ... and since the system
-exhibiting the regression is in use for "real work".
+Total lockup - no sysrq, no messages, no nothing.
 
-Too bad there's no "quilt import -R" option to import each of
-these patches for reversion...
+I've mostly bisected it (what the _hell_ did we do before "git bisect"?), 
+and right now I know:
 
-- Dave
+commit 9aaed2b42d00d4abb2748d72d599a8033600e2bf is bad (that's Len's "pull 
+trivial into test branch") commit.
 
+v2.6.19-rc2 seems all good.
+
+Which leaves a chunk of just a few ACPI commits left to bisect. 
+
+I'll do five or so more reboots, and I should be able to tell exactly 
+which commit breaks. It almost always locks up very early during boot 
+(generally during the "initializing udev" phase), although sometimes it 
+survives a bit further..
+
+		Linus
