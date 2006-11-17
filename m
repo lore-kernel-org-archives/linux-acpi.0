@@ -1,26 +1,135 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: acpiphp makes noise on every lid close/open
-Date: Fri, 17 Nov 2006 18:35:52 +0000
-Message-ID: <20061117183552.GA3621@srcf.ucam.org>
-References: <20061105232944.GA23256@vasa.acc.umu.se> <20061106092117.GB2175@elf.ucw.cz> <20061107204409.GA37488@vasa.acc.umu.se> <20061107134439.1d54dc66.kristen.c.accardi@intel.com> <20061117102237.GS14886@vasa.acc.umu.se> <20061117151341.GA1162@srcf.ucam.org> <20061117153717.GU14886@vasa.acc.umu.se> <20061117154627.GA1544@srcf.ucam.org> <20061117160810.GW14886@vasa.acc.umu.se> <20061117163128.GA2068@srcf.ucam.org>
+From: Andrew Morton <akpm@osdl.org>
+Subject: Re: [patch] i386/x86_64: ACPI cpu_idle_wait() fix
+Date: Fri, 17 Nov 2006 11:18:44 -0800
+Message-ID: <20061117111844.a6dfd039.akpm@osdl.org>
+References: <20061116122820.GA2718@upset.pdb.fsc.net>
+	<20061116123335.GA1392@elte.hu>
+	<20061116124132.GA9048@upset.pdb.fsc.net>
+	<20061116131842.GA12961@elte.hu>
+	<20061116133019.GA14546@upset.pdb.fsc.net>
+	<20061116144356.GA4891@elte.hu>
+	<20061117090356.GA26013@upset.pdb.fsc.net>
+	<20061117112237.GA26270@elte.hu>
+	<20061117124913.GA24893@upset.pdb.fsc.net>
+	<20061117132618.GA14411@elte.hu>
+	<20061117133128.GA15404@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:35821 "EHLO
-	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
-	id S1750961AbWKQSf5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 17 Nov 2006 13:35:57 -0500
-Content-Disposition: inline
-In-Reply-To: <20061117163128.GA2068@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755815AbWKQTWU@vger.kernel.org>
+In-Reply-To: <20061117133128.GA15404@elte.hu>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: linux-kernel@vger.kernel.org, Wolfgang Erig <Wolfgang.Erig@fujitsu-siemens.com>, Andreas Friedrich <andreas.friedrich@fujitsu-siemens.com>, Adrian Bunk <bunk@stusta.de>, Greg Kroah-Hartman <gregkh@suse.de>, Linus Torvalds <torvalds@osdl.org>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>, Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <linux-acpi@vger.kernel.org>
 
-On Fri, Nov 17, 2006 at 04:31:28PM +0000, Matthew Garrett wrote:
+On Fri, 17 Nov 2006 14:31:28 +0100
+Ingo Molnar <mingo@elte.hu> wrote:
 
-> Possibly what's needed is something like Apple's nullfs 
+> 
+> * Ingo Molnar <mingo@elte.hu> wrote:
+> 
+> > The scheduler on Andreas Friedrich's hyperthreading system stopped 
+> > working properly as of 2.6.18: the scheduler would never move tasks to 
+> > another CPU!
+> 
+> correction: the last known working kernel was 2.6.8. The bug predates 
+> our GIT history so it's older than 1.5 years.
+> 
 
-deadfs, rather.
+How come nobody noticed?  Maybe it improved things ;)
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+I spose it's 2.6.19 material, although it's a bit of a leap into the
+unknown.
+
+How many systems will this affect?
+
+
+CPU#1: set_cpus_allowed(), swapper:1, 3 -> 2
+ [<c0103bbe>] show_trace_log_lvl+0x34/0x4a
+ [<c0103ceb>] show_trace+0x2c/0x2e
+ [<c01045f8>] dump_stack+0x2b/0x2d
+ [<c0116a77>] set_cpus_allowed+0x52/0xec
+ [<c0101d86>] cpu_idle_wait+0x2e/0x100
+ [<c0259c57>] acpi_processor_power_exit+0x45/0x58
+ [<c0259752>] acpi_processor_remove+0x46/0xea
+ [<c025c6fb>] acpi_start_single_object+0x47/0x54
+ [<c025cee5>] acpi_bus_register_driver+0xa4/0xd3
+ [<c04ab2d7>] acpi_processor_init+0x57/0x77
+ [<c01004d7>] init+0x146/0x2fd
+ [<c0103a87>] kernel_thread_helper+0x7/0x10
+
+It seems strange that the kernel is calling acpi_processor_power_exit() at
+this stage.  It'll have happened because acpi_start_single_object()'s call
+to acpi_processor_start() returned non-zero.  Why did that happen?
+
+> static int __cpuinit acpi_processor_start(struct acpi_device *device)
+> {
+> 	int result = 0;
+> 	acpi_status status = AE_OK;
+> 	struct acpi_processor *pr;
+> 
+> 
+> 	pr = acpi_driver_data(device);
+> 
+> 	result = acpi_processor_get_info(pr);
+> 	if (result) {
+> 		/* Processor is physically not present */
+> 		return 0;
+
+Surely that should be either AE_OK (but why?) or -ESOMETHING.
+
+> 	}
+> 
+> 	BUG_ON((pr->id >= NR_CPUS) || (pr->id < 0));
+> 
+> 	/*
+> 	 * Buggy BIOS check
+> 	 * ACPI id of processors can be reported wrongly by the BIOS.
+> 	 * Don't trust it blindly
+> 	 */
+> 	if (processor_device_array[pr->id] != NULL &&
+> 	    processor_device_array[pr->id] != device) {
+> 		printk(KERN_WARNING "BIOS reported wrong ACPI id"
+> 			"for the processor\n");
+> 		return -ENODEV;
+
+Andreas wasn't seeing that, right?
+
+> 	}
+> 	processor_device_array[pr->id] = device;
+> 
+> 	processors[pr->id] = pr;
+> 
+> 	result = acpi_processor_add_fs(device);
+> 	if (result)
+> 		goto end;
+
+I'd assume that this is failing.  I wonder why?
+
+> 	status = acpi_install_notify_handler(pr->handle, ACPI_DEVICE_NOTIFY,
+> 					     acpi_processor_notify, pr);
+
+whoops, this return value gets lost.
+
+> 	/* _PDC call should be done before doing anything else (if reqd.). */
+> 	arch_acpi_processor_init_pdc(pr);
+> 	acpi_processor_set_pdc(pr);
+> 
+> 	acpi_processor_power_init(pr, device);
+> 
+> 	if (pr->flags.throttling) {
+> 		printk(KERN_INFO PREFIX "%s [%s] (supports",
+> 		       acpi_device_name(device), acpi_device_bid(device));
+> 		printk(" %d throttling states", pr->throttling.state_count);
+> 		printk(")\n");
+> 	}
+> 
+>       end:
+> 
+> 	return result;
+> }
+> 
+> 
+> 
+> 
