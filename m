@@ -1,87 +1,54 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: 2.6.19-rc6: known regressions (v2)
-Date: Fri, 17 Nov 2006 21:40:36 +0100
-Message-ID: <20061117204036.GK31879@stusta.de>
-References: <Pine.LNX.4.64.0611152008450.3349@woody.osdl.org>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: 2.6.19-rc5 nasty ACPI regression, AE_TIME errors
+Date: Fri, 17 Nov 2006 13:04:00 -0800
+Message-ID: <200611171304.00889.david-b@pacbell.net>
+References: <200611142303.47325.david-b@pacbell.net> <455C8696.80508@linux.intel.com> <200611162222.44836.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emailhub.stusta.mhn.de ([141.84.69.5]:1285 "HELO
-	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
-	id S1755890AbWKQUki (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 17 Nov 2006 15:40:38 -0500
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1424925AbWKQVcg@vger.kernel.org>
+In-Reply-To: <200611162222.44836.david-b@pacbell.net>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0611152008450.3349@woody.osdl.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Cc: Len Brown <lenb@kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@timesys.com>, Alan Stern <stern@rowland.harvard.edu>, Ingo Molnar <mingo@elte.hu>, davej@codemonkey.org.uk, cpufreq@lists.linux.org.uk, Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>, Mattia Dongili <malattia@linux.it>, Andre Noll <maan@systemlinux.org>, Andi Kleen <ak@suse.de>, discuss@x86-64.org, Prakash Punnoor <prakash@punnoor.de>, phil.el@wanadoo.fr, oprofile-list@lists.sf.net, Ray Lee <ray-lk@madrabbit.org>, Michael Buesch <mb@bu3sch.de>, Larry Finger <Larry.Finger@lwfinger.net>, st3@riseup.net, linville@tuxdriver.com, netdev@vger.kernel.org, David Brownell <david-b@pacbell.net>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Ernst Herzberg <earny@net4u.de>
 
-This email lists some known regressions in 2.6.19-rc6 compared to 2.6.18
-that are not yet fixed in Linus' tree.
+On Thursday 16 November 2006 10:22 pm, David Brownell wrote:
+> On Thursday 16 November 2006 7:41 am, Alexey Starikovskiy wrote:
+> > --- a/drivers/acpi/ec.c
+> > +++ b/drivers/acpi/ec.c
+> > @@ -467,8 +467,8 @@ static u32 acpi_ec_gpe_handler(void *dat
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0status =3D acpi_os_=
+execute(OSL_EC_BURST_HANDLER, acpi_ec_gpe_query, ec);
+> > =A0=A0=A0=A0=A0=A0=A0=A0}
+> > =A0=A0=A0=A0=A0=A0=A0=A0acpi_enable_gpe(NULL, ec->gpe_bit, ACPI_ISR=
+);
+> > -=A0=A0=A0=A0=A0=A0=A0return status =3D=3D AE_OK ?
+> > -=A0=A0=A0=A0=A0=A0=A0 =A0 =A0ACPI_INTERRUPT_HANDLED : ACPI_INTERRU=
+PT_NOT_HANDLED;
+> > +=A0=A0=A0=A0=A0=A0=A0WARN_ON(ACPI_FAILURE(status));
+> > +=A0=A0=A0=A0=A0=A0=A0return ACPI_INTERRUPT_HANDLED;
+> > =A0}
+> > =A0
+>=20
+> Strange ... applying this on top of the previous patch seems to work
+> much better, but that WARN_ON hasn't triggered.  At least, not yet.
+> Updating to RC6, with your two patches installed...
 
-If you find your name in the Cc header, you are either submitter of one
-of the bugs, maintainer of an affectected subsystem or driver, a patch
-of you caused a breakage or I'm considering you in any other way possibly
-involved with one or more of these issues.
+ACPI Exception (evregion-0424): AE_TIME, Returned by Handler for [Embed=
+dedControl] [20060707]
+ACPI Exception (dswexec-0458): AE_TIME, While resolving operands for [O=
+pcodeName unavailable] [2006070
+7]
+ACPI Error (psparse-0537): Method parse/execution failed [\_TZ_.THRM._T=
+MP] (Node ffff810002032d10), AE
+_TIME
 
-Due to the huge amount of recipients, please trim the Cc when answering.
+OK, I don't get the WARN_ON when these happen, so it's got to be one of=
+ the
+other EC updates.
 
+It'd be nice if this were easily reproducible ...
 
-Subject    : cpufreq notification broken
-References : http://lkml.org/lkml/2006/11/16/177
-Submitter  : Thomas Gleixner <tglx@timesys.com>
-Caused-By  : Alan Stern <stern@rowland.harvard.edu>
-             commit b4dfdbb3c707474a2254c5b4d7e62be31a4b7da9
-Handled-By : Ingo Molnar <mingo@elte.hu>
-             Linus Torvalds <torvalds@osdl.org>
-Status     : patches are being discussed
-
-
-Subject    : CPU_FREQ_GOV_ONDEMAND=y compile error
-References : http://lkml.org/lkml/2006/11/17/198
-Submitter  : alex1000@comcast.net
-Caused-By  : Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
-             commit 05ca0350e8caa91a5ec9961c585c98005b6934ea
-Handled-By : Mattia Dongili <malattia@linux.it>
-Patch      : http://lkml.org/lkml/2006/11/17/236
-Status     : patch available
-
-
-Subject    : x86_64: Bad page state in process 'swapper'
-References : http://lkml.org/lkml/2006/11/10/135
-             http://lkml.org/lkml/2006/11/10/208
-Submitter  : Andre Noll <maan@systemlinux.org>
-Handled-By : Andi Kleen <ak@suse.de>
-Status     : Andi is investigating
-
-
-Subject    : x86_64: oprofile doesn't work
-References : http://lkml.org/lkml/2006/10/27/3
-             http://lkml.org/lkml/2006/11/15/92
-Submitter  : Prakash Punnoor <prakash@punnoor.de>
-Status     : problem is being discussed
-
-
-Subject    : bcm43xx: serious problems
-References : http://lkml.org/lkml/2006/11/15/296
-Submitter  : Ray Lee <ray-lk@madrabbit.org>
-Handled-By : Michael Buesch <mb@bu3sch.de>
-             Larry Finger <Larry.Finger@lwfinger.net>
-Status     : problem is being debugged
-
-
-Subject    : nasty ACPI regression, AE_TIME errors
-References : http://lkml.org/lkml/2006/11/15/12
-Submitter  : David Brownell <david-b@pacbell.net>
-Handled-By : Len Brown <len.brown@intel.com>
-             Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-Status     : problem is being debugged
-
-
-Subject    : ThinkPad R50p: boot fail with (lapic && on_battery)
-References : http://lkml.org/lkml/2006/10/31/333
-Submitter  : Ernst Herzberg <earny@net4u.de>
-Handled-By : Len Brown <len.brown@intel.com>
-Status     : problem is being debugged
-
+- Dave
