@@ -1,28 +1,31 @@
-From: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy@intel.com>
+From: Linus Torvalds <torvalds@osdl.org>
 Subject: RE: ACPI breakage (Re: 2.6.19-rc6: known regressions (v2))
-Date: Sat, 18 Nov 2006 22:01:20 +0300
-Message-ID: <B41635854730A14CA71C92B36EC22AAC5AD485@mssmsx411>
+Date: Sat, 18 Nov 2006 11:05:16 -0800 (PST)
+Message-ID: <Pine.LNX.4.64.0611181104030.3692@woody.osdl.org>
+References: <B41635854730A14CA71C92B36EC22AAC5AD485@mssmsx411>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:10667 "EHLO mga01.intel.com")
-	by vger.kernel.org with ESMTP id S1756374AbWKRTB2 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 18 Nov 2006 14:01:28 -0500
-Content-class: urn:content-classes:message
+Received: from smtp.osdl.org ([65.172.181.25]:57287 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1755322AbWKRTIh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 18 Nov 2006 14:08:37 -0500
+In-Reply-To: <B41635854730A14CA71C92B36EC22AAC5AD485@mssmsx411>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@osdl.org>
+To: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy@intel.com>
 Cc: "Brown, Len" <len.brown@intel.com>, Adrian Bunk <bunk@stusta.de>, Andrew Morton <akpm@osdl.org>, David Brownell <david-b@pacbell.net>, linux-acpi@vger.kernel.org
 
->Feel free to send me test patches when working on these 
->things, because I 
->have no trouble at all to test my particular machine.
 
-I've sent you a test patch back in July, but did not get a reply. May be
-due to OLS?
 
-Thanks,
-	Alex.
+On Sat, 18 Nov 2006, Starikovskiy, Alexey Y wrote:
+> 
+> I've sent you a test patch back in July, but did not get a reply. May be
+> due to OLS?
+
+Heh. Whenever you send me something like that, and I don't answer within a 
+few days, you can pretty much depend on me not answering - my mailqueue 
+just fills up too fast. And yeah, it might have been during OLS. Just 
+re-send when it happens.
+
+		Linus
