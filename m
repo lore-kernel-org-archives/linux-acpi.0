@@ -1,31 +1,40 @@
-From: Linus Torvalds <torvalds@osdl.org>
-Subject: RE: ACPI breakage (Re: 2.6.19-rc6: known regressions (v2))
-Date: Sat, 18 Nov 2006 11:05:16 -0800 (PST)
-Message-ID: <Pine.LNX.4.64.0611181104030.3692@woody.osdl.org>
-References: <B41635854730A14CA71C92B36EC22AAC5AD485@mssmsx411>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: ACPI breakage (Re: 2.6.19-rc6: known regressions (v2))
+Date: Sat, 18 Nov 2006 11:05:14 -0800
+Message-ID: <200611181105.15421.david-b@pacbell.net>
+References: <B41635854730A14CA71C92B36EC22AAC5AD47B@mssmsx411> <Pine.LNX.4.64.0611180912090.3618@woody.osdl.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:57287 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1755322AbWKRTIh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 18 Nov 2006 14:08:37 -0500
-In-Reply-To: <B41635854730A14CA71C92B36EC22AAC5AD485@mssmsx411>
+Received: from smtp112.sbc.mail.mud.yahoo.com ([68.142.198.211]:9094 "HELO
+	smtp112.sbc.mail.mud.yahoo.com") by vger.kernel.org with SMTP
+	id S1753872AbWKRVdJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 18 Nov 2006 16:33:09 -0500
+In-Reply-To: <Pine.LNX.4.64.0611180912090.3618@woody.osdl.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy@intel.com>
-Cc: "Brown, Len" <len.brown@intel.com>, Adrian Bunk <bunk@stusta.de>, Andrew Morton <akpm@osdl.org>, David Brownell <david-b@pacbell.net>, linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Linus Torvalds <torvalds@osdl.org>
+Cc: Adrian Bunk <bunk@stusta.de>, Andrew Morton <akpm@osdl.org>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-
-
-On Sat, 18 Nov 2006, Starikovskiy, Alexey Y wrote:
+> On Sat, 18 Nov 2006, Starikovskiy, Alexey Y wrote:
 > 
-> I've sent you a test patch back in July, but did not get a reply. May be
-> due to OLS?
+> > Or may be because it fixes all the current AMD-HP notebooks? 
 
-Heh. Whenever you send me something like that, and I don't answer within a 
-few days, you can pretty much depend on me not answering - my mailqueue 
-just fills up too fast. And yeah, it might have been during OLS. Just 
-re-send when it happens.
+Whatever "it" is sure broke mine though... the one that's
+currently on my lap!  :)
 
-		Linus
+
+Running right now with a patch reverting the update which
+made trouble on Linus' machine, but without Alexey's two
+tweaks to the EC interrupt handler.  So far so good, even
+after doing things which had previously caused AE_TIME
+errors pretty quickly.  But then, the errors weren't what
+I'd call reproducible either.
+
+Linus' explanation of what went wrong looks compatible with
+the symptoms I've seen, FWIW.
+
+- Dave
