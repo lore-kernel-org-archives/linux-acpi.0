@@ -1,52 +1,53 @@
 From: Linus Torvalds <torvalds@osdl.org>
-Subject: ACPI breakage (Re: 2.6.19-rc6: known regressions (v2))
-Date: Fri, 17 Nov 2006 15:58:49 -0800 (PST)
-Message-ID: <Pine.LNX.4.64.0611171552230.3618@woody.osdl.org>
+Subject: Re: ACPI breakage (Re: 2.6.19-rc6: known regressions (v2))
+Date: Fri, 17 Nov 2006 17:25:05 -0800 (PST)
+Message-ID: <Pine.LNX.4.64.0611171719110.3618@woody.osdl.org>
 References: <Pine.LNX.4.64.0611152008450.3349@woody.osdl.org>
- <20061117204036.GK31879@stusta.de>
+ <20061117204036.GK31879@stusta.de> <Pine.LNX.4.64.0611171552230.3618@woody.osdl.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:54411 "EHLO smtp.osdl.org")
-	by vger.kernel.org with ESMTP id S1756059AbWKRACK (ORCPT
+Received: from smtp.osdl.org ([65.172.181.25]:54187 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1756123AbWKRB2X (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 17 Nov 2006 19:02:10 -0500
-In-Reply-To: <20061117204036.GK31879@stusta.de>
+	Fri, 17 Nov 2006 20:28:23 -0500
+In-Reply-To: <Pine.LNX.4.64.0611171552230.3618@woody.osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <len.brown@intel.com>, Adrian Bunk <bunk@stusta.de>, Andrew Morton <akpm@osdl.org>
+To: Len Brown <len.brown@intel.com>, Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>, Adrian Bunk <bunk@stusta.de>, Andrew Morton <akpm@osdl.org>
 Cc: David Brownell <david-b@pacbell.net>, linux-acpi@vger.kernel.org
 
 
 
-On Fri, 17 Nov 2006, Adrian Bunk wrote:
+On Fri, 17 Nov 2006, Linus Torvalds wrote:
 > 
-> Subject    : nasty ACPI regression, AE_TIME errors
-> References : http://lkml.org/lkml/2006/11/15/12
-> Submitter  : David Brownell <david-b@pacbell.net>
-> Handled-By : Len Brown <len.brown@intel.com>
->              Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-> Status     : problem is being debugged
+> Total lockup - no sysrq, no messages, no nothing.
 
-I do not know if this is related, but testing one of my laptops (always a 
-good idea to check the week before release) shows that my trusty old 
-Compaq N620c locks up rather quickly at boot with the current -git tree. 
+Dammit.
 
-Total lockup - no sysrq, no messages, no nothing.
+It looks like 37605a6900f6b4d886d995751fcfeef88c4e462c, and I should have 
+realized that immediately.
 
-I've mostly bisected it (what the _hell_ did we do before "git bisect"?), 
-and right now I know:
+That commit re-introduces the bug that we already reverted once.
 
-commit 9aaed2b42d00d4abb2748d72d599a8033600e2bf is bad (that's Len's "pull 
-trivial into test branch") commit.
+Why the hell did that idiotic thing go in, when we had to revert it once 
+already (see commit 72945b2b90a5554975b8f72673ab7139d232a121 for the 
+earlier revert).
 
-v2.6.19-rc2 seems all good.
+It was broken then, it is broken now. Nothing has changed.
 
-Which leaves a chunk of just a few ACPI commits left to bisect. 
+Why did you guys try to sneak it in again? Last time this same "use a 
+second workqueue" patch went in (in a different form), we had _exactly_ 
+the same problems, with total lockups, and way too high CPU usage.
 
-I'll do five or so more reboots, and I should be able to tell exactly 
-which commit breaks. It almost always locks up very early during boot 
-(generally during the "initializing udev" phase), although sometimes it 
-survives a bit further..
+The bugzilla entry that you refer to in that commit is even the same one 
+that discussed why the _original_ patch was totally broken.
+
+It's even the same AUTHOR who wrote the original buggy patch, that pushed 
+through the same buggy patch AGAIN.
+
+Dammit, this is frustrating.
+
+Why did people expect it to suddenly not be buggy?
 
 		Linus
