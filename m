@@ -1,41 +1,47 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: [2.6 patch] drivers/acpi/osl.c: fix a NULL check
-Date: Mon, 20 Nov 2006 22:06:43 +0100
-Message-ID: <20061120210643.GA31879@stusta.de>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: ACPI breakage (Re: 2.6.19-rc6: known regressions (v2))
+Date: Mon, 20 Nov 2006 10:46:06 -0800
+Message-ID: <200611201046.07375.david-b@pacbell.net>
+References: <B41635854730A14CA71C92B36EC22AAC5AD47B@mssmsx411> <200611181105.15421.david-b@pacbell.net> <200611182033.56332.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emailhub.stusta.mhn.de ([141.84.69.5]:39692 "HELO
-	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
-	id S966733AbWKTVGo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Nov 2006 16:06:44 -0500
+Received: from smtp109.sbc.mail.mud.yahoo.com ([68.142.198.208]:5719 "HELO
+	smtp109.sbc.mail.mud.yahoo.com") by vger.kernel.org with SMTP
+	id S966606AbWKTWPp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 Nov 2006 17:15:45 -0500
+In-Reply-To: <200611182033.56332.david-b@pacbell.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: Bob Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Cc: Linus Torvalds <torvalds@osdl.org>, Adrian Bunk <bunk@stusta.de>, Andrew Morton <akpm@osdl.org>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-This patch fixes a non-working NULL check introduced by commit 
-b229cf92eee616c7cb5ad8cdb35a19b119f00bc8.
+On Saturday 18 November 2006 8:33 pm, David Brownell wrote:
+> On Saturday 18 November 2006 11:05 am, David Brownell wrote:
+> > 
+> > Running right now with a patch reverting the update which
+> > made trouble on Linus' machine, but without Alexey's two
+> > tweaks to the EC interrupt handler.  So far so good, even
+> > after doing things which had previously caused AE_TIME
+> > errors pretty quickly.  But then, the errors weren't what
+> > I'd call reproducible either.
+> 
+> Hmm, well after a reboot to sort out some other patches,
+> and at uptime of ~2 hours, I noticed confusion about
+> whether AC or battery power was active, then the old:
+> 
+> ACPI Exception (evregion-0424): AE_TIME, Returned by Handler for [EmbeddedControl] [20060707]
+> ACPI Exception (dswexec-0458): AE_TIME, While resolving operands for [OpcodeName unavailable] [20060707]
+> ACPI Error (psparse-0537): Method parse/execution failed [\_TZ_.THRM._TMP] (Node ffff810002032d10), AE_TIME
+> 
+> So maybe that's not the entire story; sigh.
 
-Spotted by the Coverity checker.
+Whatever it is, it hasn't shown its ugly little face since then.
+So while it doesn't seem completely fixed ... it's nowhere near
+as broken as it was previously.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-
----
-
-This patch was already sent on:
-- 15 Aug 2006
-
---- linux-2.6.18-rc4-mm1/drivers/acpi/osl.c.old	2006-08-15 00:43:30.000000000 +0200
-+++ linux-2.6.18-rc4-mm1/drivers/acpi/osl.c	2006-08-15 00:43:55.000000000 +0200
-@@ -1030,7 +1030,7 @@
- acpi_os_create_cache(char *name, u16 size, u16 depth, acpi_cache_t ** cache)
- {
- 	*cache = kmem_cache_create(name, size, 0, 0, NULL, NULL);
--	if (cache == NULL)
-+	if (*cache == NULL)
- 		return AE_ERROR;
- 	else
- 		return AE_OK;
+- Dave
 
