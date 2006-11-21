@@ -1,78 +1,65 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: new ibm-acpi maintainer
-Date: Tue, 21 Nov 2006 14:26:54 -0200
-Message-ID: <20061121162654.GC29510@khazad-dum.debian.net>
-References: <20061102220422.GJ19761@aero.ensim.com> <20061103161933.GD4257@khazad-dum.debian.net> <200611061318.23326.len.brown@intel.com>
+From: Bruno Ducrot <ducrot@poupinou.org>
+Subject: Re: [PATCH] allow the highest frequency if bios think so.
+Date: Tue, 21 Nov 2006 17:35:14 +0100
+Message-ID: <20061121163514.GM4945@poupinou.org>
+References: <EB12A50964762B4D8111D55B764A8454E76E62@scsmsx413.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:15827 "EHLO
-	out2.smtp.messagingengine.com") by vger.kernel.org with ESMTP
-	id S1031053AbWKUQ1B (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Nov 2006 11:27:01 -0500
+Received: from poup.poupinou.org ([195.101.94.96]:32282 "EHLO
+	poup.poupinou.org") by vger.kernel.org with ESMTP id S1031156AbWKUQfe
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 21 Nov 2006 11:35:34 -0500
 Content-Disposition: inline
-In-Reply-To: <200611061318.23326.len.brown@intel.com>
+In-Reply-To: <EB12A50964762B4D8111D55B764A8454E76E62@scsmsx413.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net
+To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Cc: davej@redhat.com, cpufreq@lists.linux.org.uk, linux-acpi@vger.kernel.org
 
-On Mon, 06 Nov 2006, Len Brown wrote:
-> Also, it is ideal if we can maintain the invariant that the source is Lindent clean.
-> (right now ibm_acpi.c is very close to clean.  I often Lindent after patches,
->  but not always -- simpler if you do it before sending to me)
+On Tue, Nov 21, 2006 at 07:08:57AM -0800, Pallipadi, Venkatesh wrote:
+> Hmmm Great find.....
+> A perfect example of the bug that was quietly hiding
+> under our noses all these years....
 
-Lindent doesn't do that well with some of the stuff in the patches, but I
-will keep everything as Lindent-clean as possible, yes.  I will also see if
-I can reformat it to be Lindent-friendly on the areas where Lindent doesn't
-do the right thing.
+Indeed.  I'm actually still surprised why I haven't found it in the
+past.
 
-> This is why I generally do not permit any new files under /proc/acpi,
-> and why we are trying over time to delete them all and use generic sysfs
-> places instead.
+> 
+> >>  	if (ppc > pr->performance->state_count)
+> >
+> >BTW I'm wondering if this check should be :
+> >	if (ppc >= pr->performance->state_count)
+> >>  		goto out;
+> >
+> 
+> Yes. I think this should change to >= as well.
+> Otherwise indexing states with this ppc can go out of bounds.
+> 
 
-ibm-acpi needs a serious revamp on the stuff it *already* exports to
-/proc/acpi, so that people will stop blindly echoing stuff directly to EC
-space through /proc/acpi/ibm/ecdump.
+Updated.
 
-But as soon as it becomes practical to do so (i.e. as soon as I can find a
-sane way to place ibm-acpi in the device model -- currently this means I am
-waiting the ACPI patches to go in), I intend to fully move to sysfs, and
-freeze (and schedule for removal) the procfs interface.
+Correct bound checking from the value returned from _PPC method.
 
->   eg. you've seen the recent changes to put brightness under sysfs
->   in the backlight section, and the recent discussion about a generic
->   battery interface, and the recent dock driver and bay driver.
+Signed-off-by: Bruno Ducrot <ducrot@poupinou.org>
 
-Yes, I have paid quite close attention to them all.
-
->   This means announcing feature removal and documenting
->   it in Documentation/feature-removal.txt and adding #ifdefs
->   for the legacy stuff, then finally removing it.
-
-Indeed.  For ibm-acpi, I will go with the shortest deprecation periods you
-allow me to when the time to do it comes.  Some userland is doing
-unforgivable sins to parse the ibm-acpi procfs output, and I want to see all
-that bogosity *gone*.
-
->  On a minor, but related note,  at some point, ibm_acpi.c should be moved
->  outside of /drivers/acpi, probably to drivers/misc where other
->  platform specific drivers are starting to congregate.
-
-Sure.  Whenever you feel like it is the right time to do it, we shall do it.
-
->    the ACPI spec itself, and is thus not part of ACPI.  Can still call it
->   ibm_acpi.c, and I'll still be happy to handle patches to it,
->   but the line between the implementation of the ACPI spec and the
->   platform specific drivers that use ACPI has to be more clear.
-
-It is a done deal, then.  Just tell me when you want it moved.
-
-A first lot of patches for ibm-acpi will follow soon.  I can also provide
-them through git if you'd prefer that.
+--- linux-2.6.19-rc6/drivers/acpi/processor_perflib.c	2006/11/21 10:18:39	1.1
++++ linux-2.6.19-rc6/drivers/acpi/processor_perflib.c	2006/11/21 16:28:04
+@@ -83,10 +83,8 @@ static int acpi_processor_ppc_notifier(s
+ 		goto out;
+ 
+ 	ppc = (unsigned int)pr->performance_platform_limit;
+-	if (!ppc)
+-		goto out;
+ 
+-	if (ppc > pr->performance->state_count)
++	if (ppc >= pr->performance->state_count)
+ 		goto out;
+ 
+ 	cpufreq_verify_within_limits(policy, 0,
 
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
