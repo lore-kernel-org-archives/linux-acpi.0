@@ -1,56 +1,37 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: problems about ACPI sysfs convert work
-Date: Tue, 21 Nov 2006 16:34:38 +0000
-Message-ID: <20061121163438.GA16748@srcf.ucam.org>
-References: <58A36151585E4047913F40517D307BAE01719E@pdsmsx404.ccr.corp.intel.com> <1164021493.3721.229.camel@queen.suse.de>
+From: Dave Jones <davej@redhat.com>
+Subject: Re: [PATCH] allow the highest frequency if bios think so.
+Date: Tue, 21 Nov 2006 12:03:45 -0500
+Message-ID: <20061121170345.GI17736@redhat.com>
+References: <EB12A50964762B4D8111D55B764A8454E76E62@scsmsx413.amr.corp.intel.com>
+	<20061121163514.GM4945@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:38104 "EHLO
-	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
-	id S1031073AbWKUQen (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Nov 2006 11:34:43 -0500
+Content-Type: text/plain; charset=us-ascii
+Return-path: <cpufreq-bounces+glkc-cpufreq=m.gmane.org@lists.linux.org.uk>
 Content-Disposition: inline
-In-Reply-To: <1164021493.3721.229.camel@queen.suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20061121163514.GM4945@poupinou.org>
+List-Unsubscribe: <http://lists.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@lists.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://lists.linux.org.uk/mailman/private/cpufreq>
+List-Post: <mailto:cpufreq@lists.linux.org.uk>
+List-Help: <mailto:cpufreq-request@lists.linux.org.uk?subject=help>
+List-Subscribe: <http://lists.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@lists.linux.org.uk?subject=subscribe>
+Sender: cpufreq-bounces@lists.linux.org.uk
+Errors-To: cpufreq-bounces+glkc-cpufreq=m.gmane.org+glkc-cpufreq=m.gmane.org@lists.linux.org.uk
+To: Bruno Ducrot <ducrot@poupinou.org>
+Cc: cpufreq@lists.linux.org.uk, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>, "Li, Shaohua" <shaohua.li@intel.com>, "Yu, Luming" <luming.yu@intel.com>, Kay Sievers <kasievers@suse.de>
 
-(I seem to be missing the original mail here...)
+On Tue, Nov 21, 2006 at 05:35:14PM +0100, Bruno Ducrot wrote:
 
-On Mon, Nov 20, 2006 at 12:18:13PM +0100, Thomas Renninger wrote:
-> > Hello, lists
-> > I=E2=80=99m doing the ACPI sysfs convert work now. And I have some =
-problems when duplicating some procfs interfaces to sysfs.
-> > Under driver model (this will be available soon), files under /proc=
-/acpi/xxx(driver)/yyy(device)/ will be duplicated under /sys/device/ as=
- they are properties of individual devices.
-> > But I still have some trouble on dealing with the files under /prco=
-/acpi, including =E2=80=9Calarm=E2=80=9D, =E2=80=9Csleep=E2=80=9D, =E2=80=
-=9Cwakeup=E2=80=9D, =E2=80=9Cdebug_layer=E2=80=9D, =E2=80=9Cdebug_level=
-=E2=80=9D, =E2=80=9Cdsdt=E2=80=9D, =E2=80=9Cfadt=E2=80=9D, =E2=80=9Ceve=
-nt=E2=80=9D and =E2=80=9Cinfo=E2=80=9D.
-> > Following is a proposal as well as some problem and I=E2=80=99m not=
- quite sure about the places all these attributes should be located at.=
- I wish to get some advice from you, and any comment is welcome=E2=98=BA=
-=2E
-> >=20
-> > 1. Where should =E2=80=9Calarm=E2=80=9D be located? Another problem=
- is whether we should put a duration into this file instead of a future=
- time.
-> Don't know, never used...
+ > Correct bound checking from the value returned from _PPC method.
+ > 
+ > Signed-off-by: Bruno Ducrot <ducrot@poupinou.org>
 
-This should presumably just be handled by the clock driver rather than=20
-the ACPI subsystem. There's only a tiny amount of acpi-related code in=20
-the driver, and that's information that we could just export to the=20
-clock instead.
+Looks good for me, and should go into .19
+Len, do you want to push this to Linus through acpi.git ?
 
---=20
-Matthew Garrett | mjg59@srcf.ucam.org
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+		Dave
+ 
+-- 
+http://www.codemonkey.org.uk
