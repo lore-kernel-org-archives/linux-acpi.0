@@ -1,53 +1,57 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] backlight: do not power off backlight when unregistering
-Date: Tue, 21 Nov 2006 01:01:46 -0200
-Message-ID: <20061121030146.GA31304@khazad-dum.debian.net>
-References: <20061105225429.GE14295@khazad-dum.debian.net> <1162773394.5473.18.camel@localhost.localdomain> <20061110000829.GA9021@khazad-dum.debian.net> <Pine.LNX.4.64.0611201928310.17639@pentafluge.infradead.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Subject: Re: ACPI breakage (Re: 2.6.19-rc6: known regressions (v2))
+Date: Tue, 21 Nov 2006 03:10:59 +0000
+Message-ID: <E1GmM2F-0007v4-00@skye.ra.phy.cam.ac.uk>
+References: <Pine.LNX.4.64.0611201020320.3692@woody.osdl.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:34696 "EHLO
-	out2.smtp.messagingengine.com") by vger.kernel.org with ESMTP
-	id S965885AbWKUDBz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Nov 2006 22:01:55 -0500
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0611201928310.17639@pentafluge.infradead.org>
+Received: from mraos.ra.phy.cam.ac.uk ([131.111.48.8]:33209 "EHLO
+	mraos.ra.phy.cam.ac.uk") by vger.kernel.org with ESMTP
+	id S966906AbWKUDLJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 Nov 2006 22:11:09 -0500
+In-Reply-To: Your message of "Mon, 20 Nov 2006 10:27:05 PST."
+             <Pine.LNX.4.64.0611201020320.3692@woody.osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: James Simmons <jsimmons@infradead.org>
-Cc: Richard Purdie <rpurdie@rpsys.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, paulus@samba.org, Lennart Poettering <mzxreary@0pointer.de>, Andriy Skulysh <askulysh@image.kiev.ua>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Antonino Daplas <adaplas@pol.net>, Holger Macht <hmacht@suse.de>, Linux Fbdev development list <linux-fbdev-devel@lists.sourceforge.net>
+To: Linus Torvalds <torvalds@osdl.org>
+Cc: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-On Mon, 20 Nov 2006, James Simmons wrote:
-> > The following in-tree (latest linux-2.6 git tree) drivers are desktop/laptop
-> > devices and likely do not want the "dim and power off backlight on
-> > backlight_device_unregister" behavior:
-> > 
-> > drivers/video/aty/*
-> > drivers/video/riva/fbdev.c
-> > drivers/video/nvidia/nv_backlight.c
-> > drivers/misc/msi-laptop.c
-> 
-> ...
->  
-> > I have CC'ed the relevant people (please forgive me any ommissions) for the
-> > drivers listed above, so they can chime in if their driver should retain the
-> > "dim and power off backlight on backlight_device_unregister" behaviour.
-> 
-> Hm. In the case of some drivers the hardware state on x86 is set back to 
-> text mode in some cases. So do we in that case dim the backlight?
+Linus Torvalds wrote:
 
-I would very much *hate* that happening on any x86 box of mine.  I won't
-presume I understand enough of the usage pattern on weird devices, and it
-would make some sense to power off the display if you are removing the
-*only* way to talk to the video device (but I still think this is naively
-assuming the local admin don't want to just leave the display as-is).
+  (it thinks all fans are on), but no fans are actually on:
 
-But as you said yourself, in regular desktop/laptops (at least x86 ones)
-textmode is there, and works just fine, so killing the display on module
-removal is wrong IMO.
+	  cat /proc/acpi/fan/*/*
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+	  status:                  off
+	  status:                  off
+	  status:                  off
+	  status:                  off
+
+I saw a related problem with suspend to disk; a second suspend to RAM
+would hang while suspending -- bugzilla 5989, 6749 -- so I couldn't
+test its effect on the fans.
+
+After resuming, the fans would be off but the system thought they were
+on, and the fan/*/* files would confirm that wrong idea.  Because the
+fans were allegedly on, they would never get turned on, even as the
+temperature climbed into the sky.  I reported this problem to the acpi
+list and bugzilla, and the fan driver was fixed to have suspend/resume
+methods, and that plus other patches eventually fixed it for my box
+(IBM TP 600X).  Though with some of the intermediate patches, I saw
+the behavior you are seeing (with 'off' status in fan/*/*, but showing
+'on' in thermal_zone/*/* or in 'acpi -t').
+
+Also there was some question there on whether exactly the right
+version of the patch got merged.
+
+See the discussions in
+<http://bugzilla.kernel.org/show_bug.cgi?id=5000>.
+
+Unfortunately I haven't kept testing it because my 600X's screen died,
+and its replacement (T60) doesn't export any fan control or trip
+points to ACPI (it's all done at a lower level, alas, so the damn fan
+is on way too much).
+
+-Sanjoy
+
+`Never underestimate the evil of which men of power are capable.'
+         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
