@@ -1,57 +1,45 @@
-From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
-Subject: Re: ACPI breakage (Re: 2.6.19-rc6: known regressions (v2))
-Date: Tue, 21 Nov 2006 03:10:59 +0000
-Message-ID: <E1GmM2F-0007v4-00@skye.ra.phy.cam.ac.uk>
-References: <Pine.LNX.4.64.0611201020320.3692@woody.osdl.org>
+From: Bruno Ducrot <ducrot@poupinou.org>
+Subject: [PATCH] allow the highest frequency if bios think so.
+Date: Tue, 21 Nov 2006 11:30:42 +0100
+Message-ID: <20061121103042.GI4945@poupinou.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mraos.ra.phy.cam.ac.uk ([131.111.48.8]:33209 "EHLO
-	mraos.ra.phy.cam.ac.uk") by vger.kernel.org with ESMTP
-	id S966906AbWKUDLJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Nov 2006 22:11:09 -0500
-In-Reply-To: Your message of "Mon, 20 Nov 2006 10:27:05 PST."
-             <Pine.LNX.4.64.0611201020320.3692@woody.osdl.org>
+Received: from poup.poupinou.org ([195.101.94.96]:2862 "EHLO poup.poupinou.org")
+	by vger.kernel.org with ESMTP id S1030833AbWKUKay (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 21 Nov 2006 05:30:54 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@osdl.org>
-Cc: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
+To: davej@redhat.com
+Cc: cpufreq@lists.linux.org.uk, linux-acpi@vger.kernel.org
 
-Linus Torvalds wrote:
+Hi all,
 
-  (it thinks all fans are on), but no fans are actually on:
+processor_perflib.c::acpi_processor_ppc_notifier() check if the value
+returned by the processor's _PPC method is 0 and return failed if so.
+This is wrong since 0 indicate that the bios think the processor can go
+to the highest frequency.  This patch for example fix the HP NX 6125 to
+allow its highest frequency to be available.
 
-	  cat /proc/acpi/fan/*/*
+Signed-off-by: Bruno Ducrot <ducrot@poupinou.org>
 
-	  status:                  off
-	  status:                  off
-	  status:                  off
-	  status:                  off
+--- linux-2.6.19-rc6/drivers/acpi/processor_perflib.c	2006/11/21 10:18:39	1.1
++++ linux-2.6.19-rc6/drivers/acpi/processor_perflib.c	2006/11/21 10:18:55
+@@ -83,8 +83,6 @@ static int acpi_processor_ppc_notifier(s
+ 		goto out;
+ 
+ 	ppc = (unsigned int)pr->performance_platform_limit;
+-	if (!ppc)
+-		goto out;
+ 
+ 	if (ppc > pr->performance->state_count)
+ 		goto out;
 
-I saw a related problem with suspend to disk; a second suspend to RAM
-would hang while suspending -- bugzilla 5989, 6749 -- so I couldn't
-test its effect on the fans.
 
-After resuming, the fans would be off but the system thought they were
-on, and the fan/*/* files would confirm that wrong idea.  Because the
-fans were allegedly on, they would never get turned on, even as the
-temperature climbed into the sky.  I reported this problem to the acpi
-list and bugzilla, and the fan driver was fixed to have suspend/resume
-methods, and that plus other patches eventually fixed it for my box
-(IBM TP 600X).  Though with some of the intermediate patches, I saw
-the behavior you are seeing (with 'off' status in fan/*/*, but showing
-'on' in thermal_zone/*/* or in 'acpi -t').
+-- 
+Bruno Ducrot
 
-Also there was some question there on whether exactly the right
-version of the patch got merged.
-
-See the discussions in
-<http://bugzilla.kernel.org/show_bug.cgi?id=5000>.
-
-Unfortunately I haven't kept testing it because my 600X's screen died,
-and its replacement (T60) doesn't export any fan control or trip
-points to ACPI (it's all done at a lower level, alas, so the damn fan
-is on way too much).
-
--Sanjoy
-
-`Never underestimate the evil of which men of power are capable.'
-         --Bertrand Russell, _War Crimes in Vietnam_, chapter 1.
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
