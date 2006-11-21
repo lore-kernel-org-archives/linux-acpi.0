@@ -1,65 +1,56 @@
-From: Bruno Ducrot <ducrot@poupinou.org>
-Subject: Re: [PATCH] allow the highest frequency if bios think so.
-Date: Tue, 21 Nov 2006 17:35:14 +0100
-Message-ID: <20061121163514.GM4945@poupinou.org>
-References: <EB12A50964762B4D8111D55B764A8454E76E62@scsmsx413.amr.corp.intel.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: problems about ACPI sysfs convert work
+Date: Tue, 21 Nov 2006 16:34:38 +0000
+Message-ID: <20061121163438.GA16748@srcf.ucam.org>
+References: <58A36151585E4047913F40517D307BAE01719E@pdsmsx404.ccr.corp.intel.com> <1164021493.3721.229.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from poup.poupinou.org ([195.101.94.96]:32282 "EHLO
-	poup.poupinou.org") by vger.kernel.org with ESMTP id S1031156AbWKUQfe
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Nov 2006 11:35:34 -0500
+Received: from cavan.codon.org.uk ([217.147.92.49]:38104 "EHLO
+	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
+	id S1031073AbWKUQen (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 21 Nov 2006 11:34:43 -0500
 Content-Disposition: inline
-In-Reply-To: <EB12A50964762B4D8111D55B764A8454E76E62@scsmsx413.amr.corp.intel.com>
+In-Reply-To: <1164021493.3721.229.camel@queen.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: davej@redhat.com, cpufreq@lists.linux.org.uk, linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>, "Li, Shaohua" <shaohua.li@intel.com>, "Yu, Luming" <luming.yu@intel.com>, Kay Sievers <kasievers@suse.de>
 
-On Tue, Nov 21, 2006 at 07:08:57AM -0800, Pallipadi, Venkatesh wrote:
-> Hmmm Great find.....
-> A perfect example of the bug that was quietly hiding
-> under our noses all these years....
+(I seem to be missing the original mail here...)
 
-Indeed.  I'm actually still surprised why I haven't found it in the
-past.
+On Mon, Nov 20, 2006 at 12:18:13PM +0100, Thomas Renninger wrote:
+> > Hello, lists
+> > I=E2=80=99m doing the ACPI sysfs convert work now. And I have some =
+problems when duplicating some procfs interfaces to sysfs.
+> > Under driver model (this will be available soon), files under /proc=
+/acpi/xxx(driver)/yyy(device)/ will be duplicated under /sys/device/ as=
+ they are properties of individual devices.
+> > But I still have some trouble on dealing with the files under /prco=
+/acpi, including =E2=80=9Calarm=E2=80=9D, =E2=80=9Csleep=E2=80=9D, =E2=80=
+=9Cwakeup=E2=80=9D, =E2=80=9Cdebug_layer=E2=80=9D, =E2=80=9Cdebug_level=
+=E2=80=9D, =E2=80=9Cdsdt=E2=80=9D, =E2=80=9Cfadt=E2=80=9D, =E2=80=9Ceve=
+nt=E2=80=9D and =E2=80=9Cinfo=E2=80=9D.
+> > Following is a proposal as well as some problem and I=E2=80=99m not=
+ quite sure about the places all these attributes should be located at.=
+ I wish to get some advice from you, and any comment is welcome=E2=98=BA=
+=2E
+> >=20
+> > 1. Where should =E2=80=9Calarm=E2=80=9D be located? Another problem=
+ is whether we should put a duration into this file instead of a future=
+ time.
+> Don't know, never used...
 
-> 
-> >>  	if (ppc > pr->performance->state_count)
-> >
-> >BTW I'm wondering if this check should be :
-> >	if (ppc >= pr->performance->state_count)
-> >>  		goto out;
-> >
-> 
-> Yes. I think this should change to >= as well.
-> Otherwise indexing states with this ppc can go out of bounds.
-> 
+This should presumably just be handled by the clock driver rather than=20
+the ACPI subsystem. There's only a tiny amount of acpi-related code in=20
+the driver, and that's information that we could just export to the=20
+clock instead.
 
-Updated.
-
-Correct bound checking from the value returned from _PPC method.
-
-Signed-off-by: Bruno Ducrot <ducrot@poupinou.org>
-
---- linux-2.6.19-rc6/drivers/acpi/processor_perflib.c	2006/11/21 10:18:39	1.1
-+++ linux-2.6.19-rc6/drivers/acpi/processor_perflib.c	2006/11/21 16:28:04
-@@ -83,10 +83,8 @@ static int acpi_processor_ppc_notifier(s
- 		goto out;
- 
- 	ppc = (unsigned int)pr->performance_platform_limit;
--	if (!ppc)
--		goto out;
- 
--	if (ppc > pr->performance->state_count)
-+	if (ppc >= pr->performance->state_count)
- 		goto out;
- 
- 	cpufreq_verify_within_limits(policy, 0,
-
--- 
-Bruno Ducrot
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+--=20
+Matthew Garrett | mjg59@srcf.ucam.org
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
