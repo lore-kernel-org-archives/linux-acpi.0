@@ -1,55 +1,29 @@
-From: Len Brown <len.brown@intel.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: problems about ACPI sysfs convert work
-Date: Wed, 22 Nov 2006 17:18:55 -0500
-Message-ID: <200611221718.55689.len.brown@intel.com>
-References: <58A36151585E4047913F40517D307BAE01719E@pdsmsx404.ccr.corp.intel.com> <1164021493.3721.229.camel@queen.suse.de>
-Reply-To: Len Brown <lenb@kernel.org>
+Date: Wed, 22 Nov 2006 22:25:04 +0000
+Message-ID: <20061122222504.GA2477@srcf.ucam.org>
+References: <58A36151585E4047913F40517D307BAE01719E@pdsmsx404.ccr.corp.intel.com> <1164021493.3721.229.camel@queen.suse.de> <20061121163438.GA16748@srcf.ucam.org> <200611221712.37199.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:8411 "EHLO hera.kernel.org")
-	by vger.kernel.org with ESMTP id S1757071AbWKVWQE convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Nov 2006 17:16:04 -0500
-In-Reply-To: <1164021493.3721.229.camel@queen.suse.de>
+Received: from cavan.codon.org.uk ([217.147.92.49]:39878 "EHLO
+	vavatch.codon.org.uk") by vger.kernel.org with ESMTP
+	id S1757078AbWKVWZI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Nov 2006 17:25:08 -0500
 Content-Disposition: inline
+In-Reply-To: <200611221712.37199.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, "Li, Shaohua" <shaohua.li@intel.com>, "Yu, Luming" <luming.yu@intel.com>, Kay Sievers <kasievers@suse.de>
+To: Len Brown <lenb@kernel.org>
+Cc: Thomas Renninger <trenn@suse.de>, "Zhang, Rui" <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, "Li, Shaohua" <shaohua.li@intel.com>, "Yu, Luming" <luming.yu@intel.com>, Kay Sievers <kasievers@suse.de>
 
-> > 5. Is =E2=80=9Cdsdt=E2=80=9D and =E2=80=9Cfadt=E2=80=9D still neede=
-d in sysfs? This is not necessary because the acpidump tools are quite =
-handy.
-> > If =E2=80=9CYes=E2=80=9D, are other tables also needed, e.g. multip=
-le SSDTs and dynamically loaded op-regions? This is much more difficult=
-, as they can=E2=80=99t be distinguished sometimes.
-> > And where should these tables locate?
+On Wed, Nov 22, 2006 at 05:12:35PM -0500, Len Brown wrote:
+> Matthew, exactly what code in "the clock driver" to you refer to that
+> should be involved here?
 
-> IMO they can vanish (at least temporarily).
-> If really needed (AFAIK explicitly loaded tables via "Load(addr,)"
-> statement that are not listed in RSDT/XSDT can't be found by acpidump=
-),
-> a /sys/../tables/* can still be implemented at later time? We are als=
-o
-> not able to grab them atm...
+http://lkml.org/lkml/2006/7/15/85 - looking closer, it may not have been 
+merged yet. But it hooks the ACPI clock information into the general RTC 
+framework, so sounds like the right sort of answer.
 
-=46YI, The latest code on the ACPICA branch spits out the physical addr=
-ess
-for dynamic tables in dmesg and the latest acpidump can read it by
-specifying a physical address as a parameter.
-
-My view is that if we export any tables in sysfs, we should export them=
- all,
-including dynamically loaded tables.  The current /proc/acpi/fadt,dsdt
-is inconsistent.
-
-I agree, that we can do this later.
-
--Len
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
