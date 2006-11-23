@@ -1,36 +1,28 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: 2.6.19-rc6: known regressions (v4)
-Date: Wed, 22 Nov 2006 16:04:25 -0800
-Message-ID: <200611221604.26982.david-b@pacbell.net>
-References: <Pine.LNX.4.64.0611152008450.3349@woody.osdl.org> <20061121212424.GQ5200@stusta.de>
+From: Len Brown <len.brown@intel.com>
+Subject: Re: problems about ACPI sysfs convert work
+Date: Wed, 22 Nov 2006 21:29:44 -0500
+Message-ID: <200611222129.45436.len.brown@intel.com>
+References: <58A36151585E4047913F40517D307BAE01719E@pdsmsx404.ccr.corp.intel.com> <20061121163438.GA16748@srcf.ucam.org> <1164183221.5461.41.camel@localhost.localdomain>
+Reply-To: Len Brown <lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp111.sbc.mail.mud.yahoo.com ([68.142.198.210]:22867 "HELO
-	smtp111.sbc.mail.mud.yahoo.com") by vger.kernel.org with SMTP
-	id S1757242AbWKWAlM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Nov 2006 19:41:12 -0500
-In-Reply-To: <20061121212424.GQ5200@stusta.de>
+Received: from hera.kernel.org ([140.211.167.34]:20717 "EHLO hera.kernel.org")
+	by vger.kernel.org with ESMTP id S932934AbWKWC1D (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Nov 2006 21:27:03 -0500
+In-Reply-To: <1164183221.5461.41.camel@localhost.localdomain>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Andrew Morton <akpm@osdl.org>, Len Brown <len.brown@intel.com>, Linus Torvalds <torvalds@osdl.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org, "Li, Shaohua" <shaohua.li@intel.com>, "Yu, Luming" <luming.yu@intel.com>, Kay Sievers <kasievers@suse.de>
 
-On Tuesday 21 November 2006 1:24 pm, Adrian Bunk wrote:
+On Wednesday 22 November 2006 03:13, Zhang Rui wrote:
+> On Tue, 2006-11-21 at 16:34 +0000, Matthew Garrett wrote:
 
-> Subject    : ACPI: AE_TIME errors
-> References : http://lkml.org/lkml/2006/11/15/12
-> Submitter  : David Brownell <david-b@pacbell.net>
-> Handled-By : Len Brown <len.brown@intel.com>
->              Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-> Status     : problem is being debugged
+> > (I seem to be missing the original mail here...)
 
-I've not seen this in over 3 days now, and am willing to believe that
-the previous instance (after manually reverting the patch identified
-by Linus) was a fluke ... it's certainly not the critical/blocking kind
-of issue it had previously been.
-
-- Dave
+FYI, the original message was filtered from the list b/c it was HTML, but Thomas' reply quoted the whole thing.
