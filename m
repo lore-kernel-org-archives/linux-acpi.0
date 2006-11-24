@@ -1,17 +1,17 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 20/65] ACPICA: Fix unalignment in acpi_ut_repair_name
-Date: Fri, 24 Nov 2006 02:18:30 -0500
-Message-ID: <11643527821346-git-send-email-len.brown@intel.com>
+Subject: [PATCH 22/65] ACPICA: Split acpi_format_exception into two parts
+Date: Fri, 24 Nov 2006 02:18:32 -0500
+Message-ID: <11643527843465-git-send-email-len.brown@intel.com>
 References: <1164352755500-git-send-email-len.brown@intel.com> <11643527561399-git-send-email-len.brown@intel.com> <11643527572123-git-send-email-len.brown@intel.com> <11643527582206-git-send-email-len.brown@intel.com> <11643527591227-git-send-email-len.brown@intel.com> <11643527604195-git-send-email-len.brown@intel.com> <1164352761941-git-send-email-len.brown@intel.com> <1164352762703-git-send-email-len.brown@intel.com> <11643527631929-git-send-email-len.brown@intel.com> <11643527633954-git-send-email-len.brown@intel.com> <11643527641142-git-send-email-len.brown@intel.com> <11643527654192-git-send-email-len.brown@intel.com> <11643527703526-git-send-email-len.brown@intel.com> <11643527731111-git-send-email-len.brown@intel.com> <11643527743390-git-send-email-len.brown@intel.com> <11643527752251-git-send-email-len.brown@intel.com> <1164352776767-git-send-email-len.brown@intel.com> <1164352
- 7782767-git-send-email-len.brown@intel.com> <11643527804057-git-send-email-len.brown@intel.com> <11643527812144-git-send-email-len.brown@intel.com>
+ 7782767-git-send-email-len.brown@intel.com> <11643527804057-git-send-email-len.brown@intel.com> <11643527812144-git-send-email-len.brown@intel.com> <11643527821346-git-send-email-len.brown@intel.com> <11643527832869-git-send-email-len.brown@intel.com>
 Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:59186 "EHLO mga03.intel.com")
-	by vger.kernel.org with ESMTP id S1757627AbWKXHPo (ORCPT
+Received: from mga03.intel.com ([143.182.124.21]:62619 "EHLO mga03.intel.com")
+	by vger.kernel.org with ESMTP id S934466AbWKXHPq (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 24 Nov 2006 02:15:44 -0500
-In-Reply-To: <11643527812144-git-send-email-len.brown@intel.com>
-Message-Id: <fca6a1e6bd5f675d123948f9a4ca07defe24fad5.1164352294.git.len.brown@intel.com>
+	Fri, 24 Nov 2006 02:15:46 -0500
+In-Reply-To: <11643527832869-git-send-email-len.brown@intel.com>
+Message-Id: <03a5f10642d95d738db56368dff73566bb313a54.1164352294.git.len.brown@intel.com>
 In-Reply-To: <410c2f0190f74c35505beda6ff3f2da7819f8bac.1164352285.git.len.brown@intel.com>
 References: <410c2f0190f74c35505beda6ff3f2da7819f8bac.1164352285.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -21,107 +21,280 @@ Cc: Robert Moore <robert.moore@intel.com>, Alexey Starikovskiy <alexey.y.stariko
 
 From: Robert Moore <robert.moore@intel.com>
 
-Update interface to acpi_ut_repair_name() to avoid
-alignment issues on IA64
+Split acpi_format_exception into two parts. New
+function is acpi_ut_verify_exception and will be used to
+verify exception codes returned by user.
 
 Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/namespace/nsdump.c   |    2 +-
- drivers/acpi/namespace/nssearch.c |    3 ++-
- drivers/acpi/utilities/utglobal.c |    2 +-
- drivers/acpi/utilities/utmisc.c   |   11 +++++------
- include/acpi/acutils.h            |    2 +-
- 5 files changed, 10 insertions(+), 10 deletions(-)
+ drivers/acpi/utilities/utglobal.c |  118 +++++++++++-------------------------
+ drivers/acpi/utilities/utmisc.c   |   73 +++++++++++++++++++++++
+ include/acpi/acglobal.h           |    8 +++
+ include/acpi/acutils.h            |    2 +
+ 4 files changed, 119 insertions(+), 82 deletions(-)
 
-diff --git a/drivers/acpi/namespace/nsdump.c b/drivers/acpi/namespace/nsdump.c
-index d72df66..da88834 100644
---- a/drivers/acpi/namespace/nsdump.c
-+++ b/drivers/acpi/namespace/nsdump.c
-@@ -205,7 +205,7 @@ acpi_ns_dump_one_object(acpi_handle obj_
- 
- 		if (!acpi_ut_valid_acpi_name(this_node->name.integer)) {
- 			this_node->name.integer =
--			    acpi_ut_repair_name(this_node->name.integer);
-+			    acpi_ut_repair_name(this_node->name.ascii);
- 
- 			ACPI_WARNING((AE_INFO, "Invalid ACPI Name %08X",
- 				      this_node->name.integer));
-diff --git a/drivers/acpi/namespace/nssearch.c b/drivers/acpi/namespace/nssearch.c
-index 500e2bb..566f0a4 100644
---- a/drivers/acpi/namespace/nssearch.c
-+++ b/drivers/acpi/namespace/nssearch.c
-@@ -321,7 +321,8 @@ acpi_ns_search_and_enter(u32 target_name
- 	 * even though there are a few bad names.
- 	 */
- 	if (!acpi_ut_valid_acpi_name(target_name)) {
--		target_name = acpi_ut_repair_name(target_name);
-+		target_name =
-+		    acpi_ut_repair_name(ACPI_CAST_PTR(char, &target_name));
- 
- 		/* Report warning only if in strict mode or debug mode */
- 
 diff --git a/drivers/acpi/utilities/utglobal.c b/drivers/acpi/utilities/utglobal.c
-index a524e75..855bc8f 100644
+index 5b83f86..509a85d 100644
 --- a/drivers/acpi/utilities/utglobal.c
 +++ b/drivers/acpi/utilities/utglobal.c
-@@ -566,7 +566,7 @@ char *acpi_ut_get_node_name(void *object
- 	/* Name must be a valid ACPI name */
+@@ -52,87 +52,6 @@ ACPI_EXPORT_SYMBOL(acpi_gbl_FADT)
  
- 	if (!acpi_ut_valid_acpi_name(node->name.integer)) {
--		node->name.integer = acpi_ut_repair_name(node->name.integer);
-+		node->name.integer = acpi_ut_repair_name(node->name.ascii);
- 	}
+ /*******************************************************************************
+  *
+- * FUNCTION:    acpi_format_exception
+- *
+- * PARAMETERS:  Status       - The acpi_status code to be formatted
+- *
+- * RETURN:      A string containing the exception text. A valid pointer is
+- *              always returned.
+- *
+- * DESCRIPTION: This function translates an ACPI exception into an ASCII string.
+- *
+- ******************************************************************************/
+-const char *acpi_format_exception(acpi_status status)
+-{
+-	acpi_status sub_status;
+-	const char *exception = NULL;
+-
+-	ACPI_FUNCTION_ENTRY();
+-
+-	/*
+-	 * Status is composed of two parts, a "type" and an actual code
+-	 */
+-	sub_status = (status & ~AE_CODE_MASK);
+-
+-	switch (status & AE_CODE_MASK) {
+-	case AE_CODE_ENVIRONMENTAL:
+-
+-		if (sub_status <= AE_CODE_ENV_MAX) {
+-			exception = acpi_gbl_exception_names_env[sub_status];
+-		}
+-		break;
+-
+-	case AE_CODE_PROGRAMMER:
+-
+-		if (sub_status <= AE_CODE_PGM_MAX) {
+-			exception =
+-			    acpi_gbl_exception_names_pgm[sub_status - 1];
+-		}
+-		break;
+-
+-	case AE_CODE_ACPI_TABLES:
+-
+-		if (sub_status <= AE_CODE_TBL_MAX) {
+-			exception =
+-			    acpi_gbl_exception_names_tbl[sub_status - 1];
+-		}
+-		break;
+-
+-	case AE_CODE_AML:
+-
+-		if (sub_status <= AE_CODE_AML_MAX) {
+-			exception =
+-			    acpi_gbl_exception_names_aml[sub_status - 1];
+-		}
+-		break;
+-
+-	case AE_CODE_CONTROL:
+-
+-		if (sub_status <= AE_CODE_CTRL_MAX) {
+-			exception =
+-			    acpi_gbl_exception_names_ctrl[sub_status - 1];
+-		}
+-		break;
+-
+-	default:
+-		break;
+-	}
+-
+-	if (!exception) {
+-
+-		/* Exception code was not recognized */
+-
+-		ACPI_ERROR((AE_INFO,
+-			    "Unknown exception code: 0x%8.8X", status));
+-
+-		exception = "UNKNOWN_STATUS_CODE";
+-	}
+-
+-	return (ACPI_CAST_PTR(const char, exception));
+-}
+-
+-/*******************************************************************************
+- *
+  * Static global variable initialization.
+  *
+  ******************************************************************************/
+@@ -182,10 +101,45 @@ const char *acpi_gbl_highest_dstate_name
  
- 	/* Return the name */
-diff --git a/drivers/acpi/utilities/utmisc.c b/drivers/acpi/utilities/utmisc.c
-index 4b03051..36d8815 100644
---- a/drivers/acpi/utilities/utmisc.c
-+++ b/drivers/acpi/utilities/utmisc.c
-@@ -582,26 +582,25 @@ u8 acpi_ut_valid_acpi_name(u32 name)
+ /*******************************************************************************
+  *
+- * Namespace globals
++ * FUNCTION:    acpi_format_exception
++ *
++ * PARAMETERS:  Status       - The acpi_status code to be formatted
++ *
++ * RETURN:      A string containing the exception text. A valid pointer is
++ *              always returned.
++ *
++ * DESCRIPTION: This function translates an ACPI exception into an ASCII string
++ *              It is here instead of utxface.c so it is always present.
   *
   ******************************************************************************/
  
--acpi_name acpi_ut_repair_name(acpi_name name)
-+acpi_name acpi_ut_repair_name(char *name)
- {
--	char *name_ptr = ACPI_CAST_PTR(char, &name);
--	char new_name[ACPI_NAME_SIZE];
- 	acpi_native_uint i;
-+	char new_name[ACPI_NAME_SIZE];
- 
- 	for (i = 0; i < ACPI_NAME_SIZE; i++) {
--		new_name[i] = name_ptr[i];
-+		new_name[i] = name[i];
- 
- 		/*
- 		 * Replace a bad character with something printable, yet technically
- 		 * still invalid. This prevents any collisions with existing "good"
- 		 * names in the namespace.
- 		 */
--		if (!acpi_ut_valid_acpi_char(name_ptr[i], i)) {
-+		if (!acpi_ut_valid_acpi_char(name[i], i)) {
- 			new_name[i] = '*';
- 		}
- 	}
- 
--	return (*ACPI_CAST_PTR(u32, new_name));
-+	return (*(u32 *) new_name);
- }
++const char *acpi_format_exception(acpi_status status)
++{
++	const char *exception = NULL;
++
++	ACPI_FUNCTION_ENTRY();
++
++	exception = acpi_ut_validate_exception(status);
++	if (!exception) {
++
++		/* Exception code was not recognized */
++
++		ACPI_ERROR((AE_INFO,
++			    "Unknown exception code: 0x%8.8X", status));
++
++		exception = "UNKNOWN_STATUS_CODE";
++	}
++
++	return (ACPI_CAST_PTR(const char, exception));
++}
++
++ACPI_EXPORT_SYMBOL(acpi_format_exception)
++
++/*******************************************************************************
++ *
++ * Namespace globals
++ *
++ ******************************************************************************/
+ /*
+  * Predefined ACPI Names (Built-in to the Interpreter)
+  *
+diff --git a/drivers/acpi/utilities/utmisc.c b/drivers/acpi/utilities/utmisc.c
+index 36d8815..e437bc7 100644
+--- a/drivers/acpi/utilities/utmisc.c
++++ b/drivers/acpi/utilities/utmisc.c
+@@ -51,6 +51,78 @@ ACPI_MODULE_NAME("utmisc")
  
  /*******************************************************************************
+  *
++ * FUNCTION:    acpi_ut_validate_exception
++ *
++ * PARAMETERS:  Status       - The acpi_status code to be formatted
++ *
++ * RETURN:      A string containing the exception text. NULL if exception is
++ *              not valid.
++ *
++ * DESCRIPTION: This function validates and translates an ACPI exception into
++ *              an ASCII string.
++ *
++ ******************************************************************************/
++const char *acpi_ut_validate_exception(acpi_status status)
++{
++	acpi_status sub_status;
++	const char *exception = NULL;
++
++	ACPI_FUNCTION_ENTRY();
++
++	/*
++	 * Status is composed of two parts, a "type" and an actual code
++	 */
++	sub_status = (status & ~AE_CODE_MASK);
++
++	switch (status & AE_CODE_MASK) {
++	case AE_CODE_ENVIRONMENTAL:
++
++		if (sub_status <= AE_CODE_ENV_MAX) {
++			exception = acpi_gbl_exception_names_env[sub_status];
++		}
++		break;
++
++	case AE_CODE_PROGRAMMER:
++
++		if (sub_status <= AE_CODE_PGM_MAX) {
++			exception =
++			    acpi_gbl_exception_names_pgm[sub_status - 1];
++		}
++		break;
++
++	case AE_CODE_ACPI_TABLES:
++
++		if (sub_status <= AE_CODE_TBL_MAX) {
++			exception =
++			    acpi_gbl_exception_names_tbl[sub_status - 1];
++		}
++		break;
++
++	case AE_CODE_AML:
++
++		if (sub_status <= AE_CODE_AML_MAX) {
++			exception =
++			    acpi_gbl_exception_names_aml[sub_status - 1];
++		}
++		break;
++
++	case AE_CODE_CONTROL:
++
++		if (sub_status <= AE_CODE_CTRL_MAX) {
++			exception =
++			    acpi_gbl_exception_names_ctrl[sub_status - 1];
++		}
++		break;
++
++	default:
++		break;
++	}
++
++	return (ACPI_CAST_PTR(const char, exception));
++}
++
++/*******************************************************************************
++ *
+  * FUNCTION:    acpi_ut_is_aml_table
+  *
+  * PARAMETERS:  Table               - An ACPI table
+@@ -62,6 +134,7 @@ ACPI_MODULE_NAME("utmisc")
+  *              data tables that do not contain AML code.
+  *
+  ******************************************************************************/
++
+ u8 acpi_ut_is_aml_table(struct acpi_table_header *table)
+ {
+ 
+diff --git a/include/acpi/acglobal.h b/include/acpi/acglobal.h
+index 3ebf42d..d1a5363 100644
+--- a/include/acpi/acglobal.h
++++ b/include/acpi/acglobal.h
+@@ -244,6 +244,14 @@ extern const char *acpi_gbl_highest_dsta
+ extern const struct acpi_opcode_info acpi_gbl_aml_op_info[AML_NUM_OPCODES];
+ extern const char *acpi_gbl_region_types[ACPI_NUM_PREDEFINED_REGIONS];
+ 
++/* Exception codes */
++
++extern char const *acpi_gbl_exception_names_env[];
++extern char const *acpi_gbl_exception_names_pgm[];
++extern char const *acpi_gbl_exception_names_tbl[];
++extern char const *acpi_gbl_exception_names_aml[];
++extern char const *acpi_gbl_exception_names_ctrl[];
++
+ /*****************************************************************************
+  *
+  * Namespace globals
 diff --git a/include/acpi/acutils.h b/include/acpi/acutils.h
-index ba039ea..beb07ac 100644
+index beb07ac..3c66f54 100644
 --- a/include/acpi/acutils.h
 +++ b/include/acpi/acutils.h
-@@ -470,7 +470,7 @@ void acpi_ut_print_string(char *string,
+@@ -453,6 +453,8 @@ acpi_ut_short_divide(acpi_integer in_div
+ /*
+  * utmisc
+  */
++const char *acpi_ut_validate_exception(acpi_status status);
++
+ u8 acpi_ut_is_aml_table(struct acpi_table_header *table);
  
- u8 acpi_ut_valid_acpi_name(u32 name);
- 
--acpi_name acpi_ut_repair_name(acpi_name name);
-+acpi_name acpi_ut_repair_name(char *name);
- 
- u8 acpi_ut_valid_acpi_char(char character, acpi_native_uint position);
- 
+ acpi_status acpi_ut_allocate_owner_id(acpi_owner_id * owner_id);
 -- 
 1.4.4.1
