@@ -1,80 +1,48 @@
-From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 10/13] ACPI: consolidate two motherboard drivers into one
-Date: Fri, 24 Nov 2006 00:17:38 -0500
-Message-ID: <11643454732506-git-send-email-len.brown@intel.com>
-References: <11643454612902-git-send-email-len.brown@intel.com> <1164345463205-git-send-email-len.brown@intel.com> <11643454641312-git-send-email-len.brown@intel.com> <11643454642611-git-send-email-len.brown@intel.com> <11643454652241-git-send-email-len.brown@intel.com> <11643454662740-git-send-email-len.brown@intel.com> <1164345468324-git-send-email-len.brown@intel.com> <11643454703489-git-send-email-len.brown@intel.com> <11643454711040-git-send-email-len.brown@intel.com> <11643454722679-git-send-email-len.brown@intel.com>
-Reply-To: Len Brown <lenb@kernel.org>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [11/12] acpi: acpi pci bridge driver
+Date: Fri, 24 Nov 2006 13:32:45 +0800
+Message-ID: <1164346365.5768.24.camel@localhost.localdomain>
+References: <1158918689.11985.84.camel@localhost.localdomain>
+	 <200611232239.34046.len.brown@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:51583 "EHLO mga03.intel.com")
-	by vger.kernel.org with ESMTP id S934289AbWKXFOE (ORCPT
+Received: from mga01.intel.com ([192.55.52.88]:16516 "EHLO mga01.intel.com")
+	by vger.kernel.org with ESMTP id S1756381AbWKXF3T (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 24 Nov 2006 00:14:04 -0500
-In-Reply-To: <11643454722679-git-send-email-len.brown@intel.com>
-Message-Id: <46d1ee2fc5b8924aa5bb56c34f2205e6fc329b1b.1164343921.git.len.brown@intel.com>
-In-Reply-To: <bd119392c453771fdb994728a2568c2e3f17705d.1164343921.git.len.brown@intel.com>
-References: <bd119392c453771fdb994728a2568c2e3f17705d.1164343921.git.len.brown@intel.com>
+	Fri, 24 Nov 2006 00:29:19 -0500
+In-Reply-To: <200611232239.34046.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Li Shaohua <shaohua.li@intel.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: "linux-acpi@vger" <linux-acpi@vger.kernel.org>
 
-From: Li Shaohua <shaohua.li@intel.com>
-
-Consolidate motherboard1 and motherboard2 drivers into one
-so that driver core doesn't complain that two drivers have
-the same name.
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/acpi/motherboard.c |   19 ++++---------------
- 1 files changed, 4 insertions(+), 15 deletions(-)
-
-diff --git a/drivers/acpi/motherboard.c b/drivers/acpi/motherboard.c
-index 2e17ec7..bedb511 100644
---- a/drivers/acpi/motherboard.c
-+++ b/drivers/acpi/motherboard.c
-@@ -33,8 +33,7 @@
- ACPI_MODULE_NAME("acpi_motherboard")
- 
- /* Dell use PNP0C01 instead of PNP0C02 */
--#define ACPI_MB_HID1			"PNP0C01"
--#define ACPI_MB_HID2			"PNP0C02"
-+#define ACPI_MB_HID			"PNP0C01,PNP0C02"
- /**
-  * Doesn't care about legacy IO ports, only IO ports beyond 0x1000 are reserved
-  * Doesn't care about the failure of 'request_region', since other may reserve
-@@ -110,19 +109,10 @@ static int acpi_motherboard_add(struct a
- 	return 0;
- }
- 
--static struct acpi_driver acpi_motherboard_driver1 = {
-+static struct acpi_driver acpi_motherboard_driver = {
- 	.name = "motherboard",
- 	.class = "",
--	.ids = ACPI_MB_HID1,
--	.ops = {
--		.add = acpi_motherboard_add,
--		},
--};
--
--static struct acpi_driver acpi_motherboard_driver2 = {
--	.name = "motherboard",
--	.class = "",
--	.ids = ACPI_MB_HID2,
-+	.ids = ACPI_MB_HID,
- 	.ops = {
- 		.add = acpi_motherboard_add,
- 		},
-@@ -173,8 +163,7 @@ static void __init acpi_reserve_resource
- 
- static int __init acpi_motherboard_init(void)
- {
--	acpi_bus_register_driver(&acpi_motherboard_driver1);
--	acpi_bus_register_driver(&acpi_motherboard_driver2);
-+	acpi_bus_register_driver(&acpi_motherboard_driver);
- 	/*
- 	 * Guarantee motherboard IO reservation first
- 	 * This module must run after scan.c
--- 
-1.4.4.g59427
+On Thu, 2006-11-23 at 22:39 -0500, Len Brown wrote:
+> > Index: linux-2.6.18-rc7/drivers/acpi/scan.c
+> > ===================================================================
+> > --- linux-2.6.18-rc7.orig/drivers/acpi/scan.c	2006-09-19 19:55:25.000000000 +0800
+> > +++ linux-2.6.18-rc7/drivers/acpi/scan.c	2006-09-19 19:55:52.000000000 +0800
+> > @@ -865,12 +865,13 @@ static int acpi_bus_remove(struct acpi_d
+> >  
+> >  	if (!rmdevice)
+> >  		return 0;
+> > -
+> > +	/* FIXME: device_release_driver will automically call unbind, is this ok */
+> > +#if 0
+> >  	if (dev->flags.bus_address) {
+> >  		if ((dev->parent) && (dev->parent->ops.unbind))
+> >  			dev->parent->ops.unbind(dev);
+> >  	}
+> > -
+> > +#endif
+> 
+> eh?
+Code here should never be executed.
+all the acpi-pci bridges(except root bridge) are managed by this acpi-
+pci bridge driver . The bind and unbind methods are called automatically
+in the .add/.remove method now.
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
