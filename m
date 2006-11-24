@@ -1,44 +1,33 @@
-From: Thomas Tuttle <linux-kernel@ttuttle.net>
-Subject: Re: [PATCH] Implementation of acpi_video_get_next_level
-Date: Fri, 24 Nov 2006 14:36:50 -0500
-Message-ID: <20061124193650.GB22622@lion>
-References: <20061124193347.GA22622@lion>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: contents of the acpica branch
+Date: Fri, 24 Nov 2006 21:32:59 +0100
+Message-ID: <200611242133.00136.rjw@sisk.pl>
+References: <1164352755500-git-send-email-len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature"; boundary="3Gf/FFewwPeBMqCJ"
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vms046pub.verizon.net ([206.46.252.46]:3291 "EHLO
-	vms046pub.verizon.net") by vger.kernel.org with ESMTP
-	id S966111AbWKXTih (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 24 Nov 2006 14:38:37 -0500
-In-reply-to: <20061124193347.GA22622@lion>
-Content-disposition: inline
+Received: from ogre.sisk.pl ([217.79.144.158]:9359 "EHLO ogre.sisk.pl")
+	by vger.kernel.org with ESMTP id S935050AbWKXUhG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 24 Nov 2006 15:37:06 -0500
+In-Reply-To: <1164352755500-git-send-email-len.brown@intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, acpi-devel@lists.sourceforge.net, linux-acpi@intel.com
+To: Len Brown <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org
+
+On Friday, 24 November 2006 08:18, Len Brown wrote:
+> 
+> The following patches are on the "acpica" branch of the ACPI git tree.
+
+#11 seems to be missing, or is it just me who hasn't received it?
+
+Rafael
 
 
---3Gf/FFewwPeBMqCJ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Whoops, just forgot something:
-
-Signed-off-by: Thomas Tuttle <linux-kernel@ttuttle.net>
-
---Thomas Tuttle
-
---3Gf/FFewwPeBMqCJ
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (GNU/Linux)
-
-iD8DBQFFZ0nSgPpxLpYWreERAlelAKCski///GrwjC76R/jxutWlCz85lQCfWaUV
-NdjZNr7PflaxhFU4lOyboEM=
-=J6nt
------END PGP SIGNATURE-----
-
---3Gf/FFewwPeBMqCJ--
+-- 
+You never change things by fighting the existing reality.
+		R. Buckminster Fuller
