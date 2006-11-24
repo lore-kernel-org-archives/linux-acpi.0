@@ -1,19 +1,19 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 60/65] ACPICA: Fixes for load() operator.
-Date: Fri, 24 Nov 2006 02:19:10 -0500
-Message-ID: <11643528201749-git-send-email-len.brown@intel.com>
+Subject: [PATCH 59/65] ACPICA: Miscellaneous table manager updates and optimizations
+Date: Fri, 24 Nov 2006 02:19:09 -0500
+Message-ID: <1164352819583-git-send-email-len.brown@intel.com>
 References: <1164352755500-git-send-email-len.brown@intel.com> <11643527561399-git-send-email-len.brown@intel.com> <11643527572123-git-send-email-len.brown@intel.com> <11643527582206-git-send-email-len.brown@intel.com> <11643527591227-git-send-email-len.brown@intel.com> <11643527604195-git-send-email-len.brown@intel.com> <1164352761941-git-send-email-len.brown@intel.com> <1164352762703-git-send-email-len.brown@intel.com> <11643527631929-git-send-email-len.brown@intel.com> <11643527633954-git-send-email-len.brown@intel.com> <11643527641142-git-send-email-len.brown@intel.com> <11643527654192-git-send-email-len.brown@intel.com> <11643527703526-git-send-email-len.brown@intel.com> <11643527731111-git-send-email-len.brown@intel.com> <11643527743390-git-send-email-len.brown@intel.com> <11643527752251-git-send-email-len.brown@intel.com> <1164352776767-git-send-email-len.brown@intel.com> <1164352
  7782767-git-send-email-len.brown@intel.com> <11643527804057-git-send-email-len.brown@intel.com> <11643527812144-git-send-email-len.brown@intel.com> <11643527821346-git-send-email-len.brown@intel.com> <11643527832869-git-send-email-len.brown@intel.com> <11643527843465-git-send-email-len.brown@intel.com> <11643527853403-git-send-email-len.brown@intel.com> <1164352786236-git-send-email-len.brown@intel.com> <11643527871558-git-send-email-len.brown@intel.com> <1164352787694-git-send-email-len.brown@intel.com> <1164352788512-git-send-email-len.brown@intel.com> <11643527891947-git-send-email-len.brown@intel.com> <1164352791852-git-send-email-len.brown@intel.com> <1164352792447-git-send-email-len.brown@intel.com> <11643527931850-git-send-email-len.brown@intel.com> <11643527943385-git-send-email-len.brown@intel.com> <11643527951196-git-send-email-len.brown@intel.com> <1164352796746-git-send-ema
  il-len.brown@intel.com> <11643527973892-git-send-email-len.brown@intel.com> <11643527982269-git-send-email-len.brown@intel.com> <11643527993578-git-send-email-len.brown@intel.com> <11643527992802-git-send-email-len.brown@intel.com> <11643528001078-git-send-email-len.brown@intel.com> <11643528013509-git-send-email-len.brown@intel.com> <11643528022585-git-send-email-len.brown@intel.com> <11643528032291-git-send-email-len.brown@intel.com> <11643528042439-git-send-email-len.brown@intel.com> <11643528053298-git-send-email-len.brown@intel.com> <11643528062723-git-send-email-len.brown@intel.com> <1164352807227-git-send-email-len.brown@intel.com> <11643528083991-git-send-email-len.brown@intel.com> <1164352808199-git-send-email-len.brown@intel.com> <11643528091601-git-send-email-len.brown@intel.com> <11643528111088-git-send-email-len.brown@intel.com> <11643528124177-git-send-email-len.brown@int
- el.com> <11643528134106-git-send-email-len.brown@intel.com> <11643528141248-git-send-email-len.brown@intel.com> <11643528153363-git-send-email-len.brown@intel.com> <11643528161204-git-send-email-len.brown@intel.com> <11643528173586-git-send-email-len.brown@intel.com> <11643528181135-git-send-email-len.brown@intel.com> <11643528181927-git-send-email-len.brown@intel.com> <1164352819583-git-send-email-len.brown@intel.com>
+ el.com> <11643528134106-git-send-email-len.brown@intel.com> <11643528141248-git-send-email-len.brown@intel.com> <11643528153363-git-send-email-len.brown@intel.com> <11643528161204-git-send-email-len.brown@intel.com> <11643528173586-git-send-email-len.brown@intel.com> <11643528181135-git-send-email-len.brown@intel.com> <11643528181927-git-send-email-len.brown@intel.com>
 Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:52563 "EHLO mga03.intel.com")
-	by vger.kernel.org with ESMTP id S934470AbWKXHQW (ORCPT
+Received: from mga03.intel.com ([143.182.124.21]:58137 "EHLO mga03.intel.com")
+	by vger.kernel.org with ESMTP id S934507AbWKXHQV (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 24 Nov 2006 02:16:22 -0500
-In-Reply-To: <1164352819583-git-send-email-len.brown@intel.com>
-Message-Id: <a799ea72f1f893ef9e3a46f60b6f310df8bc097c.1164352294.git.len.brown@intel.com>
+	Fri, 24 Nov 2006 02:16:21 -0500
+In-Reply-To: <11643528181927-git-send-email-len.brown@intel.com>
+Message-Id: <e446515cc751f48675116855f4bec723896da94d.1164352294.git.len.brown@intel.com>
 In-Reply-To: <410c2f0190f74c35505beda6ff3f2da7819f8bac.1164352285.git.len.brown@intel.com>
 References: <410c2f0190f74c35505beda6ff3f2da7819f8bac.1164352285.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -23,313 +23,410 @@ Cc: Robert Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
 
 From: Robert Moore <robert.moore@intel.com>
 
-Optimized the Load operator in the case where the source operand is an
-operation region. Simply map the operation region memory, instead of
-performing a bytewise read.
-
 Signed-off-by: Robert Moore <robert.moore@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/executer/exconfig.c |  159 +++++++++-----------------------------
- drivers/acpi/executer/exresop.c  |   10 +--
- include/acpi/acopcode.h          |    2 +-
- include/acpi/amlcode.h           |    2 +-
- 4 files changed, 42 insertions(+), 131 deletions(-)
+ drivers/acpi/blacklist.c       |   12 +++---
+ drivers/acpi/tables/tbinstal.c |   91 +++++++++++++++++++++++----------------
+ drivers/acpi/tables/tbutils.c  |   46 --------------------
+ drivers/acpi/tables/tbxface.c  |   39 ++++++++++++-----
+ include/acpi/acpixf.h          |    2 +-
+ include/acpi/actables.h        |    8 +---
+ 6 files changed, 90 insertions(+), 108 deletions(-)
 
-diff --git a/drivers/acpi/executer/exconfig.c b/drivers/acpi/executer/exconfig.c
-index 20a5ab8..75b54ac 100644
---- a/drivers/acpi/executer/exconfig.c
-+++ b/drivers/acpi/executer/exconfig.c
-@@ -119,7 +119,7 @@ acpi_ex_add_table(acpi_native_uint table
+diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+index c8f4cac..f289fd4 100644
+--- a/drivers/acpi/blacklist.c
++++ b/drivers/acpi/blacklist.c
+@@ -103,7 +103,7 @@ int __init acpi_blacklisted(void)
+ {
+ 	int i = 0;
+ 	int blacklisted = 0;
+-	struct acpi_table_header *table_header;
++	struct acpi_table_header table_header;
+ 
+ 	while (acpi_blacklist[i].oem_id[0] != '\0') {
+ 		if (acpi_get_table_header(acpi_blacklist[i].table, 0, &table_header)) {
+@@ -111,13 +111,13 @@ int __init acpi_blacklisted(void)
+ 			continue;
+ 		}
+ 
+-		if (strncmp(acpi_blacklist[i].oem_id, table_header->oem_id, 6)) {
++		if (strncmp(acpi_blacklist[i].oem_id, table_header.oem_id, 6)) {
+ 			i++;
+ 			continue;
+ 		}
+ 
+ 		if (strncmp
+-		    (acpi_blacklist[i].oem_table_id, table_header->oem_table_id,
++		    (acpi_blacklist[i].oem_table_id, table_header.oem_table_id,
+ 		     8)) {
+ 			i++;
+ 			continue;
+@@ -126,14 +126,14 @@ int __init acpi_blacklisted(void)
+ 		if ((acpi_blacklist[i].oem_revision_predicate == all_versions)
+ 		    || (acpi_blacklist[i].oem_revision_predicate ==
+ 			less_than_or_equal
+-			&& table_header->oem_revision <=
++			&& table_header.oem_revision <=
+ 			acpi_blacklist[i].oem_revision)
+ 		    || (acpi_blacklist[i].oem_revision_predicate ==
+ 			greater_than_or_equal
+-			&& table_header->oem_revision >=
++			&& table_header.oem_revision >=
+ 			acpi_blacklist[i].oem_revision)
+ 		    || (acpi_blacklist[i].oem_revision_predicate == equal
+-			&& table_header->oem_revision ==
++			&& table_header.oem_revision ==
+ 			acpi_blacklist[i].oem_revision)) {
+ 
+ 			printk(KERN_ERR PREFIX
+diff --git a/drivers/acpi/tables/tbinstal.c b/drivers/acpi/tables/tbinstal.c
+index 9e0b3ce..b07d9c8 100644
+--- a/drivers/acpi/tables/tbinstal.c
++++ b/drivers/acpi/tables/tbinstal.c
+@@ -61,16 +61,19 @@ ACPI_MODULE_NAME("tbinstal")
+  *****************************************************************************/
+ acpi_status acpi_tb_verify_table(struct acpi_table_desc *table_desc)
+ {
+-	acpi_status status;
++	acpi_status status = AE_OK;
+ 
+ 	ACPI_FUNCTION_TRACE(tb_verify_table);
+ 
+ 	/* Map the table if necessary */
+ 
+ 	if (!table_desc->pointer) {
+-		table_desc->pointer =
+-		    acpi_tb_map(table_desc->address, table_desc->length,
+-				table_desc->flags & ACPI_TABLE_ORIGIN_MASK);
++		if ((table_desc->flags & ACPI_TABLE_ORIGIN_MASK) ==
++		    ACPI_TABLE_ORIGIN_MAPPED) {
++			table_desc->pointer =
++			    acpi_os_map_memory(table_desc->address,
++					       table_desc->length);
++		}
+ 		if (!table_desc->pointer) {
+ 			return_ACPI_STATUS(AE_NO_MEMORY);
+ 		}
+@@ -78,14 +81,15 @@ acpi_status acpi_tb_verify_table(struct
+ 
+ 	/* FACS is the odd table, has no standard ACPI header and no checksum */
+ 
+-	if (ACPI_COMPARE_NAME(&(table_desc->signature), ACPI_SIG_FACS)) {
+-		return_ACPI_STATUS(AE_OK);
+-	}
++	if (!ACPI_COMPARE_NAME(&table_desc->signature, ACPI_SIG_FACS)) {
+ 
+-	/* Always calculate checksum, ignore bad checksum if requested */
++		/* Always calculate checksum, ignore bad checksum if requested */
++
++		status =
++		    acpi_tb_verify_checksum(table_desc->pointer,
++					    table_desc->length);
++	}
+ 
+-	status =
+-	    acpi_tb_verify_checksum(table_desc->pointer, table_desc->length);
+ 	return_ACPI_STATUS(status);
+ }
+ 
+@@ -93,7 +97,7 @@ acpi_status acpi_tb_verify_table(struct
+  *
+  * FUNCTION:    acpi_tb_add_table
+  *
+- * PARAMETERS:  Table               - Pointer to the table header
++ * PARAMETERS:  table_desc          - Table descriptor
+  *              table_index         - Where the table index is returned
   *
   * RETURN:      Status
-  *
-- * DESCRIPTION: Load an ACPI table
-+ * DESCRIPTION: Load an ACPI table from the RSDT/XSDT
-  *
-  ******************************************************************************/
- 
-@@ -138,21 +138,7 @@ acpi_ex_load_table_op(struct acpi_walk_s
- 
- 	ACPI_FUNCTION_TRACE(ex_load_table_op);
- 
--#if 0
--	/*
--	 * Make sure that the signature does not match one of the tables that
--	 * is already loaded.
--	 */
--	status = acpi_tb_match_signature(operand[0]->string.pointer, NULL);
--	if (status == AE_OK) {
--
--		/* Signature matched -- don't allow override */
--
--		return_ACPI_STATUS(AE_ALREADY_EXISTS);
--	}
--#endif
--
--	/* Find the ACPI table */
-+	/* Find the ACPI table in the RSDT/XSDT */
- 
- 	status = acpi_tb_find_table(operand[0]->string.pointer,
- 				    operand[1]->string.pointer,
-@@ -256,7 +242,7 @@ acpi_ex_load_table_op(struct acpi_walk_s
-  *
-  * FUNCTION:    acpi_ex_load_op
-  *
-- * PARAMETERS:  obj_desc        - Region or Field where the table will be
-+ * PARAMETERS:  obj_desc        - Region or Buffer/Field where the table will be
-  *                                obtained
-  *              Target          - Where a handle to the table will be stored
-  *              walk_state      - Current state
-@@ -265,6 +251,12 @@ acpi_ex_load_table_op(struct acpi_walk_s
-  *
-  * DESCRIPTION: Load an ACPI table from a field or operation region
-  *
-+ * NOTE: Region Fields (Field, bank_field, index_fields) are resolved to buffer
-+ *       objects before this code is reached.
-+ *
-+ *       If source is an operation region, it must refer to system_memory, as
-+ *       per the ACPI specification.
-+ *
+@@ -103,7 +107,7 @@ acpi_status acpi_tb_verify_table(struct
   ******************************************************************************/
  
  acpi_status
-@@ -272,23 +264,27 @@ acpi_ex_load_op(union acpi_operand_objec
- 		union acpi_operand_object *target,
- 		struct acpi_walk_state *walk_state)
+-acpi_tb_add_table(struct acpi_table_header *table,
++acpi_tb_add_table(struct acpi_table_desc *table_desc,
+ 		  acpi_native_uint * table_index)
  {
--	acpi_status status;
- 	union acpi_operand_object *ddb_handle;
--	union acpi_operand_object *buffer_desc = NULL;
--	struct acpi_table_header *table_ptr = NULL;
-+	struct acpi_table_desc table_desc;
- 	acpi_native_uint table_index;
--	acpi_physical_address address;
--	struct acpi_table_header table_header;
--	acpi_integer temp;
--	u32 i;
-+	acpi_status status;
+ 	acpi_native_uint i;
+@@ -112,6 +116,25 @@ acpi_tb_add_table(struct acpi_table_head
  
- 	ACPI_FUNCTION_TRACE(ex_load_op);
+ 	ACPI_FUNCTION_TRACE(tb_add_table);
  
--	/* Object can be either an op_region or a Field */
-+	ACPI_MEMSET(&table_desc, 0, sizeof(struct acpi_table_desc));
-+	table_desc.flags = ACPI_TABLE_ORIGIN_ALLOCATED;
-+
-+	/* Source Object can be either an op_region or a Buffer/Field */
- 
- 	switch (ACPI_GET_OBJECT_TYPE(obj_desc)) {
- 	case ACPI_TYPE_REGION:
- 
-+		/* Region must be system_memory (from ACPI spec) */
-+
-+		if (obj_desc->region.space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY) {
-+			return_ACPI_STATUS(AE_AML_OPERAND_TYPE);
++	if (!table_desc->pointer) {
++		status = acpi_tb_verify_table(table_desc);
++		if (ACPI_FAILURE(status) || !table_desc->pointer) {
++			return_ACPI_STATUS(status);
 +		}
++	}
 +
- 		ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "Load from Region %p %s\n",
- 				  obj_desc,
- 				  acpi_ut_get_object_type_name(obj_desc)));
-@@ -304,114 +300,35 @@ acpi_ex_load_op(union acpi_operand_objec
++	/* The table must be either an SSDT or a PSDT */
++
++	if ((!ACPI_COMPARE_NAME(table_desc->pointer->signature, ACPI_SIG_PSDT))
++	    &&
++	    (!ACPI_COMPARE_NAME(table_desc->pointer->signature, ACPI_SIG_SSDT)))
++	{
++		ACPI_ERROR((AE_INFO,
++			    "Table has invalid signature [%4.4s], must be SSDT or PSDT",
++			    table_desc->pointer->signature));
++		return_ACPI_STATUS(AE_BAD_SIGNATURE);
++	}
++
+ 	(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
+ 
+ 	/* Check if table is already registered */
+@@ -127,18 +150,17 @@ acpi_tb_add_table(struct acpi_table_head
  			}
  		}
  
--		/* Get the base physical address of the region */
--
--		address = obj_desc->region.address;
--
--		/* Get part of the table header to get the table length */
--
--		table_header.length = 0;
--		for (i = 0; i < 8; i++) {
--			status =
--			    acpi_ev_address_space_dispatch(obj_desc, ACPI_READ,
--							   (acpi_physical_address)
--							   (i + address), 8,
--							   &temp);
--			if (ACPI_FAILURE(status)) {
--				return_ACPI_STATUS(status);
--			}
--
--			/* Get the one valid byte of the returned 64-bit value */
--
--			ACPI_CAST_PTR(u8, &table_header)[i] = (u8) temp;
--		}
--
--		/* Sanity check the table length */
--
--		if (table_header.length < sizeof(struct acpi_table_header)) {
--			return_ACPI_STATUS(AE_BAD_HEADER);
--		}
--
--		/* Allocate a buffer for the entire table */
--
--		table_ptr = ACPI_ALLOCATE(table_header.length);
--		if (!table_ptr) {
--			return_ACPI_STATUS(AE_NO_MEMORY);
--		}
--
--		/* Get the entire table from the op region */
--
--		for (i = 0; i < table_header.length; i++) {
--			status =
--			    acpi_ev_address_space_dispatch(obj_desc, ACPI_READ,
--							   (acpi_physical_address)
--							   (i + address), 8,
--							   &temp);
--			if (ACPI_FAILURE(status)) {
--				goto cleanup;
--			}
--
--			/* Get the one valid byte of the returned 64-bit value */
--
--			ACPI_CAST_PTR(u8, table_ptr)[i] = (u8) temp;
--		}
-+		table_desc.address = obj_desc->region.address;
-+		table_desc.length = obj_desc->region.length;
-+		table_desc.flags = ACPI_TABLE_ORIGIN_MAPPED;
- 		break;
+-		length = ACPI_MIN(table->length,
+-				  acpi_gbl_root_table_list.tables[i].pointer->
+-				  length);
+-		if (ACPI_MEMCMP
+-		    (table, acpi_gbl_root_table_list.tables[i].pointer,
+-		     length)) {
++		length = ACPI_MIN(table_desc->length,
++				  acpi_gbl_root_table_list.tables[i].length);
++		if (ACPI_MEMCMP(table_desc->pointer,
++				acpi_gbl_root_table_list.tables[i].pointer,
++				length)) {
+ 			continue;
+ 		}
  
--	case ACPI_TYPE_LOCAL_REGION_FIELD:
--	case ACPI_TYPE_LOCAL_BANK_FIELD:
--	case ACPI_TYPE_LOCAL_INDEX_FIELD:
-+	case ACPI_TYPE_BUFFER:	/* Buffer or resolved region_field */
+ 		/* Table is already registered */
  
--		ACPI_DEBUG_PRINT((ACPI_DB_EXEC, "Load from Field %p %s\n",
--				  obj_desc,
--				  acpi_ut_get_object_type_name(obj_desc)));
-+		/* Simply extract the buffer from the buffer object */
- 
--		/*
--		 * The length of the field must be at least as large as the table.
--		 * Read the entire field and thus the entire table.  Buffer is
--		 * allocated during the read.
--		 */
--		status =
--		    acpi_ex_read_data_from_field(walk_state, obj_desc,
--						 &buffer_desc);
--		if (ACPI_FAILURE(status)) {
--			return_ACPI_STATUS(status);
--		}
--
--		table_ptr = ACPI_CAST_PTR(struct acpi_table_header,
--					  buffer_desc->buffer.pointer);
--
--		/* All done with the buffer_desc, delete it */
--
--		buffer_desc->buffer.pointer = NULL;
--		acpi_ut_remove_reference(buffer_desc);
-+		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
-+				  "Load from Buffer or Field %p %s\n", obj_desc,
-+				  acpi_ut_get_object_type_name(obj_desc)));
- 
--		/* Sanity check the table length */
-+		table_desc.pointer = ACPI_CAST_PTR(struct acpi_table_header,
-+						   obj_desc->buffer.pointer);
-+		table_desc.length = table_desc.pointer->length;
-+		table_desc.flags = ACPI_TABLE_ORIGIN_ALLOCATED;
- 
--		if (table_ptr->length < sizeof(struct acpi_table_header)) {
--			status = AE_BAD_HEADER;
--			goto cleanup;
--		}
-+		obj_desc->buffer.pointer = NULL;
- 		break;
- 
- 	default:
- 		return_ACPI_STATUS(AE_AML_OPERAND_TYPE);
+-		ACPI_FREE(table);
++		acpi_tb_delete_table(table_desc);
+ 		*table_index = i;
+ 		goto release;
  	}
- 
--	/* The table must be either an SSDT or a PSDT */
--
--	if ((!ACPI_COMPARE_NAME(table_ptr->signature, ACPI_SIG_PSDT)) &&
--	    (!ACPI_COMPARE_NAME(table_ptr->signature, ACPI_SIG_SSDT))) {
--		ACPI_ERROR((AE_INFO,
--			    "Table has invalid signature [%4.4s], must be SSDT or PSDT",
--			    table_ptr->signature));
--		status = AE_BAD_SIGNATURE;
--		goto cleanup;
--	}
--
+@@ -146,14 +168,14 @@ acpi_tb_add_table(struct acpi_table_head
  	/*
- 	 * Install the new table into the local data structures
+ 	 * Add the table to the global table list
  	 */
--	status = acpi_tb_add_table(table_ptr, &table_index);
-+	status = acpi_tb_add_table(&table_desc, &table_index);
+-	status = acpi_tb_store_table(ACPI_TO_INTEGER(table),
+-				     table, table->length,
+-				     ACPI_TABLE_ORIGIN_ALLOCATED, table_index);
++	status = acpi_tb_store_table(table_desc->address, table_desc->pointer,
++				     table_desc->length, table_desc->flags,
++				     table_index);
  	if (ACPI_FAILURE(status)) {
- 		goto cleanup;
- 	}
-@@ -436,13 +353,9 @@ acpi_ex_load_op(union acpi_operand_objec
- 		return_ACPI_STATUS(status);
+ 		goto release;
  	}
  
--	ACPI_INFO((AE_INFO,
--		   "Dynamic SSDT Load - OemId [%6.6s] OemTableId [%8.8s]",
--		   table_ptr->oem_id, table_ptr->oem_table_id));
+-	acpi_tb_print_table_header(0, table);
++	acpi_tb_print_table_header(table_desc->address, table_desc->pointer);
+ 
+       release:
+ 	(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
+@@ -282,25 +304,20 @@ acpi_tb_store_table(acpi_physical_addres
+  *
+  ******************************************************************************/
+ 
+-void acpi_tb_delete_table(acpi_native_uint table_index)
++void acpi_tb_delete_table(struct acpi_table_desc *table_desc)
+ {
+-	struct acpi_table_desc *table_desc;
 -
-       cleanup:
- 	if (ACPI_FAILURE(status)) {
--		ACPI_FREE(table_ptr);
-+		acpi_tb_delete_table(&table_desc);
+-	/* table_index assumed valid */
+-
+-	table_desc = &acpi_gbl_root_table_list.tables[table_index];
+-
+ 	/* Table must be mapped or allocated */
+-
+ 	if (!table_desc->pointer) {
+ 		return;
  	}
- 	return_ACPI_STATUS(status);
+-
+-	if (table_desc->flags & ACPI_TABLE_ORIGIN_MAPPED) {
+-		acpi_tb_unmap(table_desc->pointer, table_desc->length,
+-			      table_desc->flags & ACPI_TABLE_ORIGIN_MASK);
+-	} else if (table_desc->flags & ACPI_TABLE_ORIGIN_ALLOCATED) {
++	switch (table_desc->flags & ACPI_TABLE_ORIGIN_MASK) {
++	case ACPI_TABLE_ORIGIN_MAPPED:
++		acpi_os_unmap_memory(table_desc->pointer, table_desc->length);
++		break;
++	case ACPI_TABLE_ORIGIN_ALLOCATED:
+ 		ACPI_FREE(table_desc->pointer);
++		break;
++	default:;
+ 	}
+ 
+ 	table_desc->pointer = NULL;
+@@ -329,7 +346,7 @@ void acpi_tb_terminate(void)
+ 	/* Delete the individual tables */
+ 
+ 	for (i = 0; i < acpi_gbl_root_table_list.count; ++i) {
+-		acpi_tb_delete_table(i);
++		acpi_tb_delete_table(&acpi_gbl_root_table_list.tables[i]);
+ 	}
+ 
+ 	/*
+diff --git a/drivers/acpi/tables/tbutils.c b/drivers/acpi/tables/tbutils.c
+index f97b70e..a456e6c 100644
+--- a/drivers/acpi/tables/tbutils.c
++++ b/drivers/acpi/tables/tbutils.c
+@@ -460,49 +460,3 @@ acpi_tb_parse_root_table(acpi_physical_a
+ 
+ 	return_ACPI_STATUS(AE_OK);
  }
-diff --git a/drivers/acpi/executer/exresop.c b/drivers/acpi/executer/exresop.c
-index 4c93d09..411d120 100644
---- a/drivers/acpi/executer/exresop.c
-+++ b/drivers/acpi/executer/exresop.c
-@@ -611,22 +611,20 @@ acpi_ex_resolve_operands(u16 opcode,
- 			}
- 			goto next_operand;
+-
+-/******************************************************************************
+- *
+- * FUNCTION:    acpi_tb_map
+- *
+- * PARAMETERS:  Address             - Address to be mapped
+- *              Length              - Length to be mapped
+- *              Flags               - Logical or physical addressing mode
+- *
+- * RETURN:      Pointer to mapped region
+- *
+- * DESCRIPTION: Maps memory according to flag
+- *
+- *****************************************************************************/
+-
+-void *acpi_tb_map(acpi_physical_address address, u32 length, u32 flags)
+-{
+-
+-	if (flags == ACPI_TABLE_ORIGIN_MAPPED) {
+-		return (acpi_os_map_memory(address, length));
+-	} else {
+-		return (ACPI_CAST_PTR(void, address));
+-	}
+-}
+-
+-/******************************************************************************
+- *
+- * FUNCTION:    acpi_tb_unmap
+- *
+- * PARAMETERS:  Pointer             - To mapped region
+- *              Length              - Length to be unmapped
+- *              Flags               - Logical or physical addressing mode
+- *
+- * RETURN:      None
+- *
+- * DESCRIPTION: Unmaps memory according to flag
+- *
+- *****************************************************************************/
+-
+-void acpi_tb_unmap(void *pointer, u32 length, u32 flags)
+-{
+-
+-	if (flags == ACPI_TABLE_ORIGIN_MAPPED) {
+-		acpi_os_unmap_memory(pointer, length);
+-	}
+-}
+diff --git a/drivers/acpi/tables/tbxface.c b/drivers/acpi/tables/tbxface.c
+index c5009f5..5b63c12 100644
+--- a/drivers/acpi/tables/tbxface.c
++++ b/drivers/acpi/tables/tbxface.c
+@@ -212,8 +212,7 @@ ACPI_EXPORT_SYMBOL(acpi_reallocate_root_
+  *
+  * PARAMETERS:  Signature           - ACPI signature of needed table
+  *              Instance            - Which instance (for SSDTs)
+- *              out_table_header    - Where the pointer to the table header
+- *                                    is returned
++ *              out_table_header    - The pointer to the table header to fill
+  *
+  * RETURN:      Status and pointer to mapped table header
+  *
+@@ -226,10 +225,11 @@ ACPI_EXPORT_SYMBOL(acpi_reallocate_root_
+ acpi_status
+ acpi_get_table_header(char *signature,
+ 		      acpi_native_uint instance,
+-		      struct acpi_table_header **out_table_header)
++		      struct acpi_table_header *out_table_header)
+ {
+ 	acpi_native_uint i;
+ 	acpi_native_uint j;
++	struct acpi_table_header *header;
  
--		case ARGI_REGION_OR_FIELD:
-+		case ARGI_REGION_OR_BUFFER:	/* Used by Load() only */
+ 	/* Parameter validation */
  
--			/* Need an operand of type REGION or a FIELD in a region */
-+			/* Need an operand of type REGION or a BUFFER (which could be a resolved region field) */
+@@ -251,16 +251,31 @@ acpi_get_table_header(char *signature,
+ 			continue;
+ 		}
  
- 			switch (ACPI_GET_OBJECT_TYPE(obj_desc)) {
-+			case ACPI_TYPE_BUFFER:
- 			case ACPI_TYPE_REGION:
--			case ACPI_TYPE_LOCAL_REGION_FIELD:
--			case ACPI_TYPE_LOCAL_BANK_FIELD:
--			case ACPI_TYPE_LOCAL_INDEX_FIELD:
+-		*out_table_header =
+-		    acpi_tb_map(acpi_gbl_root_table_list.tables[i].address,
+-				(u32) sizeof(struct acpi_table_header),
+-				acpi_gbl_root_table_list.tables[i].
+-				flags & ACPI_TABLE_ORIGIN_MASK);
+-
+-		if (!(*out_table_header)) {
+-			return (AE_NO_MEMORY);
++		if (!acpi_gbl_root_table_list.tables[i].pointer) {
++			if ((acpi_gbl_root_table_list.tables[i].
++			     flags & ACPI_TABLE_ORIGIN_MASK) ==
++			    ACPI_TABLE_ORIGIN_MAPPED) {
++				header =
++				    acpi_os_map_memory(acpi_gbl_root_table_list.
++						       tables[i].address,
++						       sizeof(struct
++							      acpi_table_header));
++				if (!header) {
++					return AE_NO_MEMORY;
++				}
++				ACPI_MEMCPY(out_table_header, header,
++					    sizeof(struct acpi_table_header));
++				acpi_os_unmap_memory(header,
++						     sizeof(struct
++							    acpi_table_header));
++			} else {
++				return AE_NOT_FOUND;
++			}
++		} else {
++			ACPI_MEMCPY(out_table_header,
++				    acpi_gbl_root_table_list.tables[i].pointer,
++				    sizeof(struct acpi_table_header));
+ 		}
+-
+ 		return (AE_OK);
+ 	}
  
- 				/* Valid operand */
- 				break;
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 035a5a8..b4190c7 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -105,7 +105,7 @@ acpi_status acpi_load_tables(void);
+ acpi_status
+ acpi_get_table_header(acpi_string signature,
+ 		      acpi_native_uint instance,
+-		      struct acpi_table_header **out_table_header);
++		      struct acpi_table_header *out_table_header);
  
- 			default:
- 				ACPI_ERROR((AE_INFO,
--					    "Needed [Region/RegionField], found [%s] %p",
-+					    "Needed [Region/Buffer], found [%s] %p",
- 					    acpi_ut_get_object_type_name
- 					    (obj_desc), obj_desc));
+ acpi_status
+ acpi_get_table(acpi_string signature,
+diff --git a/include/acpi/actables.h b/include/acpi/actables.h
+index 4079f8a..5ef1b69 100644
+--- a/include/acpi/actables.h
++++ b/include/acpi/actables.h
+@@ -69,7 +69,7 @@ acpi_status acpi_tb_resize_root_table_li
+ acpi_status acpi_tb_verify_table(struct acpi_table_desc *table_desc);
  
-diff --git a/include/acpi/acopcode.h b/include/acpi/acopcode.h
-index 7659a46..d71f5d9 100644
---- a/include/acpi/acopcode.h
-+++ b/include/acpi/acopcode.h
-@@ -257,7 +257,7 @@
- #define ARGI_LLESSEQUAL_OP              ARGI_INVALID_OPCODE
- #define ARGI_LNOT_OP                    ARGI_LIST1 (ARGI_INTEGER)
- #define ARGI_LNOTEQUAL_OP               ARGI_INVALID_OPCODE
--#define ARGI_LOAD_OP                    ARGI_LIST2 (ARGI_REGION_OR_FIELD,ARGI_TARGETREF)
-+#define ARGI_LOAD_OP                    ARGI_LIST2 (ARGI_REGION_OR_BUFFER,ARGI_TARGETREF)
- #define ARGI_LOAD_TABLE_OP              ARGI_LIST6 (ARGI_STRING,     ARGI_STRING,        ARGI_STRING,       ARGI_STRING,    ARGI_STRING, ARGI_ANYTYPE)
- #define ARGI_LOCAL0                     ARG_NONE
- #define ARGI_LOCAL1                     ARG_NONE
-diff --git a/include/acpi/amlcode.h b/include/acpi/amlcode.h
-index cf18426..fd0c722 100644
---- a/include/acpi/amlcode.h
-+++ b/include/acpi/amlcode.h
-@@ -273,7 +273,7 @@
- #define ARGI_DATAOBJECT             0x12	/* Buffer, String, package or reference to a Node - Used only by size_of operator */
- #define ARGI_COMPLEXOBJ             0x13	/* Buffer, String, or package (Used by INDEX op only) */
- #define ARGI_REF_OR_STRING          0x14	/* Reference or String (Used by DEREFOF op only) */
--#define ARGI_REGION_OR_FIELD        0x15	/* Used by LOAD op only */
-+#define ARGI_REGION_OR_BUFFER       0x15	/* Used by LOAD op only */
- #define ARGI_DATAREFOBJ             0x16
+ acpi_status
+-acpi_tb_add_table(struct acpi_table_header *table,
++acpi_tb_add_table(struct acpi_table_desc *table_desc,
+ 		  acpi_native_uint * table_index);
  
- /* Note: types above can expand to 0x1F maximum */
+ acpi_status
+@@ -77,7 +77,7 @@ acpi_tb_store_table(acpi_physical_addres
+ 		    struct acpi_table_header *table,
+ 		    u32 length, u8 flags, acpi_native_uint * table_index);
+ 
+-void acpi_tb_delete_table(acpi_native_uint table_index);
++void acpi_tb_delete_table(struct acpi_table_desc *table_desc);
+ 
+ void acpi_tb_terminate(void);
+ 
+@@ -113,8 +113,4 @@ acpi_tb_install_table(acpi_physical_addr
+ acpi_status
+ acpi_tb_parse_root_table(acpi_physical_address rsdp_address, u8 flags);
+ 
+-void *acpi_tb_map(acpi_physical_address address, u32 length, u32 flags);
+-
+-void acpi_tb_unmap(void *pointer, u32 length, u32 flags);
+-
+ #endif				/* __ACTABLES_H__ */
 -- 
 1.4.4.1
