@@ -1,352 +1,81 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 4/13] ACPI: add ACPI bus_type for driver model
-Date: Fri, 24 Nov 2006 00:17:32 -0500
-Message-ID: <11643454652241-git-send-email-len.brown@intel.com>
-References: <11643454612902-git-send-email-len.brown@intel.com> <1164345463205-git-send-email-len.brown@intel.com> <11643454641312-git-send-email-len.brown@intel.com> <11643454642611-git-send-email-len.brown@intel.com>
+Subject: [PATCH 9/13] ACPI: add acpi_bus_removal_type in acpi_device
+Date: Fri, 24 Nov 2006 00:17:37 -0500
+Message-ID: <11643454722679-git-send-email-len.brown@intel.com>
+References: <11643454612902-git-send-email-len.brown@intel.com> <1164345463205-git-send-email-len.brown@intel.com> <11643454641312-git-send-email-len.brown@intel.com> <11643454642611-git-send-email-len.brown@intel.com> <11643454652241-git-send-email-len.brown@intel.com> <11643454662740-git-send-email-len.brown@intel.com> <1164345468324-git-send-email-len.brown@intel.com> <11643454703489-git-send-email-len.brown@intel.com> <11643454711040-git-send-email-len.brown@intel.com>
 Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:21603 "EHLO mga03.intel.com")
-	by vger.kernel.org with ESMTP id S934277AbWKXFNz (ORCPT
+Received: from mga03.intel.com ([143.182.124.21]:14415 "EHLO mga03.intel.com")
+	by vger.kernel.org with ESMTP id S934285AbWKXFOE (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 24 Nov 2006 00:13:55 -0500
-In-Reply-To: <11643454642611-git-send-email-len.brown@intel.com>
-Message-Id: <1a01fe8f75dc4b96707ebdac366121e772063b96.1164343921.git.len.brown@intel.com>
+	Fri, 24 Nov 2006 00:14:04 -0500
+In-Reply-To: <11643454711040-git-send-email-len.brown@intel.com>
+Message-Id: <68d72528fc25d05d0f6fc17212ea5f695448bee2.1164343921.git.len.brown@intel.com>
 In-Reply-To: <bd119392c453771fdb994728a2568c2e3f17705d.1164343921.git.len.brown@intel.com>
 References: <bd119392c453771fdb994728a2568c2e3f17705d.1164343921.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Patrick Mochel <mochel@linux.intel.com>, Li Shaohua <shaohua.li@intel.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Li Shaohua <shaohua.li@intel.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Patrick Mochel <mochel@linux.intel.com>
+From: Li Shaohua <shaohua.li@intel.com>
 
-Add ACPI bus_type for Linux driver model.
+Add removal_type in structure acpi_device for hot removal.
 
-1.	.shutdown method is added into acpi_driver.ops
-	needed by bus_type operations.
-2.	remove useless parameter 'int state' in .resume method.
-3.	change parameter 'int state'
-	to 'pm_message_t state' in .suspend method.
+ACPI_BUS_REMOVAL_EJECT is used for ACPI device hot removal.
+Only one parameter is allowed in .remove method due to driver model.
+So removal_type is added to indicate different removal type.
 
-Note:	The new .uevent method mark ACPI drivers by PNPID instead of by name.
-	Udev script needs to look for "HWID=" or "COMPTID=" to load
-	ACPI drivers as a result.
-
-Signed-off-by: Li Shaohua <shaohua.li@intel.com>
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/fan.c      |    8 +-
- drivers/acpi/scan.c     |  158 +++++++++++++++++++++++++++--------------------
- drivers/acpi/thermal.c  |    4 +-
- include/acpi/acpi_bus.h |    9 ++-
- 4 files changed, 103 insertions(+), 76 deletions(-)
+ drivers/acpi/scan.c     |    6 ++++--
+ include/acpi/acpi_bus.h |    1 +
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
-index 045c894..b249420 100644
---- a/drivers/acpi/fan.c
-+++ b/drivers/acpi/fan.c
-@@ -48,8 +48,8 @@ MODULE_LICENSE("GPL");
- 
- static int acpi_fan_add(struct acpi_device *device);
- static int acpi_fan_remove(struct acpi_device *device, int type);
--static int acpi_fan_suspend(struct acpi_device *device, int state);
--static int acpi_fan_resume(struct acpi_device *device, int state);
-+static int acpi_fan_suspend(struct acpi_device *device, pm_message_t state);
-+static int acpi_fan_resume(struct acpi_device *device);
- 
- static struct acpi_driver acpi_fan_driver = {
- 	.name = ACPI_FAN_DRIVER_NAME,
-@@ -238,7 +238,7 @@ static int acpi_fan_remove(struct acpi_d
- 	return 0;
- }
- 
--static int acpi_fan_suspend(struct acpi_device *device, int state)
-+static int acpi_fan_suspend(struct acpi_device *device, pm_message_t state)
- {
- 	if (!device)
- 		return -EINVAL;
-@@ -248,7 +248,7 @@ static int acpi_fan_suspend(struct acpi_
- 	return AE_OK;
- }
- 
--static int acpi_fan_resume(struct acpi_device *device, int state)
-+static int acpi_fan_resume(struct acpi_device *device)
- {
- 	int result = 0;
- 	int power_state = 0;
 diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 5b42948..4647462 100644
+index 2a82645..06b86fa 100644
 --- a/drivers/acpi/scan.c
 +++ b/drivers/acpi/scan.c
-@@ -222,100 +222,124 @@ acpi_eject_store(struct acpi_device *dev
- /* --------------------------------------------------------------------------
- 			ACPI Bus operations
-    -------------------------------------------------------------------------- */
--static int root_suspend(struct acpi_device * acpi_dev, pm_message_t state)
-+static int acpi_device_suspend(struct device *dev, pm_message_t state)
- {
--	struct acpi_device * dev, * next;
--	int result;
-+	struct acpi_device *acpi_dev = to_acpi_device(dev);
-+	struct acpi_driver *acpi_drv = acpi_dev->driver;
+@@ -229,9 +229,9 @@ static int acpi_device_remove(struct dev
  
--	spin_lock(&acpi_device_lock);
--	list_for_each_entry_safe_reverse(dev, next, &acpi_device_list, g_list) {
--		if (dev->driver && dev->driver->ops.suspend) {
--			spin_unlock(&acpi_device_lock);
--			result = dev->driver->ops.suspend(dev, 0);
--			if (result) {
--				printk(KERN_ERR PREFIX "[%s - %s] Suspend failed: %d\n",
--				       acpi_device_name(dev),
--				       acpi_device_bid(dev), result);
--			}
--			spin_lock(&acpi_device_lock);
--		}
--	}
--	spin_unlock(&acpi_device_lock);
-+	if (acpi_drv && acpi_drv->ops.suspend)
-+		return acpi_drv->ops.suspend(acpi_dev, state);
- 	return 0;
- }
- 
--static int acpi_device_suspend(struct device * dev, pm_message_t state)
-+static int acpi_device_resume(struct device *dev)
- {
--	struct acpi_device * acpi_dev = to_acpi_device(dev);
-+	struct acpi_device *acpi_dev = to_acpi_device(dev);
-+	struct acpi_driver *acpi_drv = acpi_dev->driver;
- 
--	/*
--	 * For now, we should only register 1 generic device -
--	 * the ACPI root device - and from there, we walk the
--	 * tree of ACPI devices to suspend each one using the
--	 * ACPI driver methods.
--	 */
--	if (acpi_dev->handle == ACPI_ROOT_OBJECT)
--		root_suspend(acpi_dev, state);
-+	if (acpi_drv && acpi_drv->ops.resume)
-+		return acpi_drv->ops.resume(acpi_dev);
- 	return 0;
- }
- 
--static int root_resume(struct acpi_device * acpi_dev)
-+static int acpi_bus_match(struct device *dev, struct device_driver *drv)
- {
--	struct acpi_device * dev, * next;
--	int result;
-+	struct acpi_device *acpi_dev = to_acpi_device(dev);
-+	struct acpi_driver *acpi_drv = to_acpi_driver(drv);
- 
--	spin_lock(&acpi_device_lock);
--	list_for_each_entry_safe(dev, next, &acpi_device_list, g_list) {
--		if (dev->driver && dev->driver->ops.resume) {
--			spin_unlock(&acpi_device_lock);
--			result = dev->driver->ops.resume(dev, 0);
--			if (result) {
--				printk(KERN_ERR PREFIX "[%s - %s] resume failed: %d\n",
--				       acpi_device_name(dev),
--				       acpi_device_bid(dev), result);
--			}
--			spin_lock(&acpi_device_lock);
-+	if (acpi_drv->ops.match)
-+		return !acpi_drv->ops.match(acpi_dev, acpi_drv);
-+	return !acpi_match_ids(acpi_dev, acpi_drv->ids);
-+}
-+
-+static int acpi_device_uevent(struct device *dev, char **envp, int num_envp,
-+	char *buffer, int buffer_size)
-+{
-+	struct acpi_device *acpi_dev = to_acpi_device(dev);
-+	int i = 0, length = 0, ret = 0;
-+
-+	if (acpi_dev->flags.hardware_id)
-+		ret = add_uevent_var(envp, num_envp, &i,
-+			buffer, buffer_size, &length,
-+			"HWID=%s", acpi_dev->pnp.hardware_id);
-+	if (ret)
-+		return -ENOMEM;
-+	if (acpi_dev->flags.compatible_ids) {
-+		int j;
-+		struct acpi_compatible_id_list *cid_list;
-+
-+		cid_list = acpi_dev->pnp.cid_list;
-+
-+		for (j = 0; j < cid_list->count; j++) {
-+			ret = add_uevent_var(envp, num_envp, &i, buffer,
-+				buffer_size, &length, "COMPTID=%s",
-+				cid_list->id[j].value);
-+			if (ret)
-+				return -ENOMEM;
- 		}
+ 	if (acpi_drv) {
+ 		if (acpi_drv->ops.stop)
+-			acpi_drv->ops.stop(acpi_dev, ACPI_BUS_REMOVAL_NORMAL);
++			acpi_drv->ops.stop(acpi_dev, acpi_dev->removal_type);
+ 		if (acpi_drv->ops.remove)
+-			acpi_drv->ops.remove(acpi_dev, ACPI_BUS_REMOVAL_NORMAL);
++			acpi_drv->ops.remove(acpi_dev, acpi_dev->removal_type);
  	}
--	spin_unlock(&acpi_device_lock);
-+
-+	envp[i] = NULL;
- 	return 0;
+ 	acpi_dev->driver = NULL;
+ 	acpi_driver_data(dev) = NULL;
+@@ -294,6 +294,7 @@ static void acpi_device_register(struct
+ 	device_add(&device->dev);
+ 
+ 	acpi_device_setup_files(device);
++	device->removal_type = ACPI_BUS_REMOVAL_NORMAL;
  }
  
--static int acpi_device_resume(struct device * dev)
-+static int acpi_bus_driver_init(struct acpi_device *, struct acpi_driver *);
-+static int acpi_start_single_object(struct acpi_device *);
-+static int acpi_device_probe(struct device * dev)
- {
--	struct acpi_device * acpi_dev = to_acpi_device(dev);
-+	struct acpi_device *acpi_dev = to_acpi_device(dev);
-+	struct acpi_driver *acpi_drv = to_acpi_driver(dev->driver);
-+	int ret;
-+
-+	ret = acpi_bus_driver_init(acpi_dev, acpi_drv);
-+	if (!ret) {
-+		acpi_start_single_object(acpi_dev);
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+			"Found driver [%s] for device [%s]\n",
-+			acpi_drv->name, acpi_dev->pnp.bus_id));
-+		get_device(dev);
-+	}
-+	return ret;
-+}
+ static void acpi_device_unregister(struct acpi_device *device, int type)
+@@ -859,6 +860,7 @@ static int acpi_bus_remove(struct acpi_d
+ 	if (!dev)
+ 		return -EINVAL;
  
--	/*
--	 * For now, we should only register 1 generic device -
--	 * the ACPI root device - and from there, we walk the
--	 * tree of ACPI devices to resume each one using the
--	 * ACPI driver methods.
--	 */
--	if (acpi_dev->handle == ACPI_ROOT_OBJECT)
--		root_resume(acpi_dev);
-+static int acpi_device_remove(struct device * dev)
-+{
-+	struct acpi_device *acpi_dev = to_acpi_device(dev);
-+	struct acpi_driver *acpi_drv = acpi_dev->driver;
-+
-+	if (acpi_drv) {
-+		if (acpi_drv->ops.stop)
-+			acpi_drv->ops.stop(acpi_dev, ACPI_BUS_REMOVAL_NORMAL);
-+		if (acpi_drv->ops.remove)
-+			acpi_drv->ops.remove(acpi_dev, ACPI_BUS_REMOVAL_NORMAL);
-+	}
-+	acpi_dev->driver = NULL;
-+	acpi_driver_data(dev) = NULL;
-+
-+	put_device(dev);
- 	return 0;
- }
++	dev->removal_type = ACPI_BUS_REMOVAL_EJECT;
+ 	device_release_driver(&dev->dev);
  
--/**
-- * acpi_bus_match - match device IDs to driver's supported IDs
-- * @device: the device that we are trying to match to a driver
-- * @driver: driver whose device id table is being checked
-- *
-- * Checks the device's hardware (_HID) or compatible (_CID) ids to see if it
-- * matches the specified driver's criteria.
-- */
--static int
--acpi_bus_match(struct acpi_device *device, struct acpi_driver *driver)
-+static void acpi_device_shutdown(struct device *dev)
- {
--	if (driver && driver->ops.match)
--		return driver->ops.match(device, driver);
--	return acpi_match_ids(device, driver->ids);
-+	struct acpi_device *acpi_dev = to_acpi_device(dev);
-+	struct acpi_driver *acpi_drv = acpi_dev->driver;
-+
-+	if (acpi_drv && acpi_drv->ops.shutdown)
-+		acpi_drv->ops.shutdown(acpi_dev);
-+
-+	return ;
- }
- 
- static struct bus_type acpi_bus_type = {
- 	.name		= "acpi",
- 	.suspend	= acpi_device_suspend,
- 	.resume		= acpi_device_resume,
-+	.shutdown	= acpi_device_shutdown,
-+	.match		= acpi_bus_match,
-+	.probe		= acpi_device_probe,
-+	.remove		= acpi_device_remove,
-+	.uevent		= acpi_device_uevent,
- };
- 
- static void acpi_device_register(struct acpi_device *device,
-@@ -449,7 +473,7 @@ static void acpi_driver_attach(struct ac
- 			continue;
- 		spin_unlock(&acpi_device_lock);
- 
--		if (!acpi_bus_match(dev, drv)) {
-+		if (!acpi_bus_match(&(dev->dev), &(drv->drv))) {
- 			if (!acpi_bus_driver_init(dev, drv)) {
- 				acpi_start_single_object(dev);
- 				atomic_inc(&drv->references);
-@@ -551,7 +575,7 @@ static int acpi_bus_find_driver(struct a
- 
- 		atomic_inc(&driver->references);
- 		spin_unlock(&acpi_device_lock);
--		if (!acpi_bus_match(device, driver)) {
-+		if (!acpi_bus_match(&(device->dev), &(driver->drv))) {
- 			result = acpi_bus_driver_init(device, driver);
- 			if (!result)
- 				goto Done;
-diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index 5753d06..3650654 100644
---- a/drivers/acpi/thermal.c
-+++ b/drivers/acpi/thermal.c
-@@ -82,7 +82,7 @@ MODULE_PARM_DESC(tzp, "Thermal zone poll
- 
- static int acpi_thermal_add(struct acpi_device *device);
- static int acpi_thermal_remove(struct acpi_device *device, int type);
--static int acpi_thermal_resume(struct acpi_device *device, int state);
-+static int acpi_thermal_resume(struct acpi_device *device);
- static int acpi_thermal_state_open_fs(struct inode *inode, struct file *file);
- static int acpi_thermal_temp_open_fs(struct inode *inode, struct file *file);
- static int acpi_thermal_trip_open_fs(struct inode *inode, struct file *file);
-@@ -1356,7 +1356,7 @@ static int acpi_thermal_remove(struct ac
- 	return 0;
- }
- 
--static int acpi_thermal_resume(struct acpi_device *device, int state)
-+static int acpi_thermal_resume(struct acpi_device *device)
- {
- 	struct acpi_thermal *tz = NULL;
- 	int i;
+ 	if (!rmdevice)
 diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 5282fe7..8fb7158 100644
+index b7baac7..168ef22 100644
 --- a/include/acpi/acpi_bus.h
 +++ b/include/acpi/acpi_bus.h
-@@ -92,13 +92,14 @@ typedef int (*acpi_op_remove) (struct ac
- typedef int (*acpi_op_lock) (struct acpi_device * device, int type);
- typedef int (*acpi_op_start) (struct acpi_device * device);
- typedef int (*acpi_op_stop) (struct acpi_device * device, int type);
--typedef int (*acpi_op_suspend) (struct acpi_device * device, int state);
--typedef int (*acpi_op_resume) (struct acpi_device * device, int state);
-+typedef int (*acpi_op_suspend) (struct acpi_device * device, pm_message_t state);
-+typedef int (*acpi_op_resume) (struct acpi_device * device);
- typedef int (*acpi_op_scan) (struct acpi_device * device);
- typedef int (*acpi_op_bind) (struct acpi_device * device);
- typedef int (*acpi_op_unbind) (struct acpi_device * device);
- typedef int (*acpi_op_match) (struct acpi_device * device,
- 			      struct acpi_driver * driver);
-+typedef int (*acpi_op_shutdown) (struct acpi_device * device);
- 
- struct acpi_bus_ops {
- 	u32 acpi_op_add:1;
-@@ -112,7 +113,8 @@ struct acpi_bus_ops {
- 	u32 acpi_op_bind:1;
- 	u32 acpi_op_unbind:1;
- 	u32 acpi_op_match:1;
--	u32 reserved:21;
-+	u32 acpi_op_shutdown:1;
-+	u32 reserved:20;
+@@ -301,6 +301,7 @@ struct acpi_device {
+ 	void *driver_data;
+ 	struct device dev;
+ 	struct acpi_bus_ops bus_ops;	/* workaround for different code path for hotplug */
++	enum acpi_bus_removal_type removal_type; /* indicate for different removal type */
  };
  
- struct acpi_device_ops {
-@@ -127,6 +129,7 @@ struct acpi_device_ops {
- 	acpi_op_bind bind;
- 	acpi_op_unbind unbind;
- 	acpi_op_match match;
-+	acpi_op_shutdown shutdown;
- };
- 
- struct acpi_driver {
+ #define acpi_driver_data(d)	((d)->driver_data)
 -- 
 1.4.4.g59427
