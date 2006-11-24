@@ -1,16 +1,16 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 7/65] ACPICA: fix for object premature deletion
-Date: Fri, 24 Nov 2006 02:18:17 -0500
-Message-ID: <1164352762703-git-send-email-len.brown@intel.com>
-References: <1164352755500-git-send-email-len.brown@intel.com> <11643527561399-git-send-email-len.brown@intel.com> <11643527572123-git-send-email-len.brown@intel.com> <11643527582206-git-send-email-len.brown@intel.com> <11643527591227-git-send-email-len.brown@intel.com> <11643527604195-git-send-email-len.brown@intel.com> <1164352761941-git-send-email-len.brown@intel.com>
+Subject: [PATCH 9/65] ACPICA: Update version to 20060721
+Date: Fri, 24 Nov 2006 02:18:19 -0500
+Message-ID: <11643527633954-git-send-email-len.brown@intel.com>
+References: <1164352755500-git-send-email-len.brown@intel.com> <11643527561399-git-send-email-len.brown@intel.com> <11643527572123-git-send-email-len.brown@intel.com> <11643527582206-git-send-email-len.brown@intel.com> <11643527591227-git-send-email-len.brown@intel.com> <11643527604195-git-send-email-len.brown@intel.com> <1164352761941-git-send-email-len.brown@intel.com> <1164352762703-git-send-email-len.brown@intel.com> <11643527631929-git-send-email-len.brown@intel.com>
 Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:50244 "EHLO mga03.intel.com")
-	by vger.kernel.org with ESMTP id S1757611AbWKXHPX (ORCPT
+Received: from mga03.intel.com ([143.182.124.21]:58725 "EHLO mga03.intel.com")
+	by vger.kernel.org with ESMTP id S1757614AbWKXHP0 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 24 Nov 2006 02:15:23 -0500
-In-Reply-To: <1164352761941-git-send-email-len.brown@intel.com>
-Message-Id: <c243528a18ae423700c1e6d41e027b18907189eb.1164352288.git.len.brown@intel.com>
+	Fri, 24 Nov 2006 02:15:26 -0500
+In-Reply-To: <11643527631929-git-send-email-len.brown@intel.com>
+Message-Id: <e3360d67bf3a2661dc3c7b2f470a263e4bea340d.1164352288.git.len.brown@intel.com>
 In-Reply-To: <410c2f0190f74c35505beda6ff3f2da7819f8bac.1164352285.git.len.brown@intel.com>
 References: <410c2f0190f74c35505beda6ff3f2da7819f8bac.1164352285.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -20,35 +20,24 @@ Cc: Robert Moore <robert.moore@intel.com>, Alexey Starikovskiy <alexey.y.stariko
 
 From: Robert Moore <robert.moore@intel.com>
 
-Fix for object premature deletion after CopyObject
-on Operation Region (BZ 350)
-
-Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/utilities/utcopy.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+ include/acpi/acconfig.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/utilities/utcopy.c b/drivers/acpi/utilities/utcopy.c
-index 5e1a80d..5c38276 100644
---- a/drivers/acpi/utilities/utcopy.c
-+++ b/drivers/acpi/utilities/utcopy.c
-@@ -719,6 +719,15 @@ acpi_ut_copy_simple_object(union acpi_op
- 		acpi_ut_add_reference(source_desc->reference.object);
- 		break;
+diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
+index 9e6c23c..fe6ccd2 100644
+--- a/include/acpi/acconfig.h
++++ b/include/acpi/acconfig.h
+@@ -63,7 +63,7 @@
  
-+	case ACPI_TYPE_REGION:
-+		/*
-+		 * We copied the Region Handler, so we now must add a reference
-+		 */
-+		if (dest_desc->region.handler) {
-+			acpi_ut_add_reference(dest_desc->region.handler);
-+		}
-+		break;
-+
- 	default:
- 		/* Nothing to do for other simple objects */
- 		break;
+ /* Current ACPICA subsystem version in YYYYMMDD format */
+ 
+-#define ACPI_CA_VERSION                 0x20060707
++#define ACPI_CA_VERSION                 0x20060721
+ 
+ /*
+  * OS name, used for the _OS object.  The _OS object is essentially obsolete,
 -- 
 1.4.4.1
