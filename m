@@ -1,8 +1,7 @@
 From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 06/21] ACPI: ibm-acpi: prepare to cleanup
-	fan_read and fan_write
-Date: Sat, 25 Nov 2006 18:43:56 -0200
-Message-ID: <20061125204356.6604.61150.stgit@thorin.khazad-dum.debian.net>
+Subject: [PATCH 07/21] ACPI: ibm-acpi: clean up fan_read
+Date: Sat, 25 Nov 2006 18:44:16 -0200
+Message-ID: <20061125204416.6604.62583.stgit@thorin.khazad-dum.debian.net>
 References: <20061125204155.6604.35338.stgit@thorin.khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -24,122 +23,91 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 
-This patch lays some groundwork for a fan_read and fan_write cleanup in the
-next patches.  To do so, it provides a new fan_init initializer, and also some
-constants (through enums).
+This patch cleans up fan_read so that it is much easier to read and
+extend.
+
+The patch fixes the userspace ABI to return "status: not supported" (like
+all other ibm-acpi functions) when neither fan status or fan control are
+possible.
+
+It also fixes the userspace ABI to return EIO if ACPI access to the EC
+fails, instead of returning "status: unreadable" or "speed: unreadable".
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 ---
 
- drivers/acpi/ibm_acpi.c |   81 ++++++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 79 insertions(+), 2 deletions(-)
+ drivers/acpi/ibm_acpi.c |   40 ++++++++++++++++++++++++----------------
+ 1 files changed, 24 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
-index 491c413..4c836e2 100644
+index 4c836e2..ef8ac01 100644
 --- a/drivers/acpi/ibm_acpi.c
 +++ b/drivers/acpi/ibm_acpi.c
-@@ -231,6 +231,31 @@ struct ibm_thermal_sensors_struct {
- 	s32 temp[IBMACPI_MAX_THERMAL_SENSORS];
- };
- 
-+enum fan_status_access_mode {
-+	IBMACPI_FAN_NONE = 0,		/* No fan status or control */
-+	IBMACPI_FAN_RD_ACPI_GFAN,	/* Use ACPI GFAN */
-+	IBMACPI_FAN_RD_TPEC,		/* Use ACPI EC regs 0x2f, 0x84-0x85 */
-+};
-+
-+enum fan_control_access_mode {
-+	IBMACPI_FAN_WR_NONE = 0,	/* No fan control */
-+	IBMACPI_FAN_WR_ACPI_SFAN,	/* Use ACPI SFAN */
-+	IBMACPI_FAN_WR_TPEC,		/* Use ACPI EC reg 0x2f */
-+	IBMACPI_FAN_WR_ACPI_FANS,	/* Use ACPI FANS and EC reg 0x2f */
-+};
-+
-+enum fan_control_commands {
-+	IBMACPI_FAN_CMD_SPEED 	= 0x0001,	/* speed command */
-+	IBMACPI_FAN_CMD_LEVEL 	= 0x0002,	/* level command  */
-+	IBMACPI_FAN_CMD_ENABLE	= 0x0004,	/* enable/disable cmd */
-+};
-+
-+enum {					/* Fan control constants */
-+	fan_status_offset = 0x2f,	/* EC register 0x2f */
-+	fan_rpm_offset = 0x84,		/* EC register 0x84: LSB, 0x85 MSB (RPM)
-+					 * 0x84 must be read before 0x85 */
-+};
-+
- static int ibm_thinkpad_ec_found;
- 
- struct ibm_struct {
-@@ -1659,8 +1684,59 @@ static int volume_write(char *buf)
- 	return 0;
- }
- 
--static int fan_status_offset = 0x2f;
--static int fan_rpm_offset = 0x84;
-+static enum fan_status_access_mode fan_status_access_mode;
-+static enum fan_control_access_mode fan_control_access_mode;
-+static enum fan_control_commands fan_control_commands;
-+
-+static int fan_init(void)
-+{
-+	u8 status;
-+
-+	fan_status_access_mode = IBMACPI_FAN_NONE;
-+	fan_control_access_mode = IBMACPI_FAN_WR_NONE;
-+	fan_control_commands = 0;
-+
-+	if (gfan_handle) {
-+		/* 570, 600e/x, 770e, 770x */
-+		fan_status_access_mode = IBMACPI_FAN_RD_ACPI_GFAN;
-+	} else {
-+		/* all other ThinkPads: note that even old-style
-+		 * ThinkPad ECs supports the fan control register */
-+		if (likely(acpi_ec_read(fan_status_offset, &status))) {
-+			fan_status_access_mode = IBMACPI_FAN_RD_TPEC;
-+		} else {
-+			printk(IBM_ERR
-+			       "ThinkPad ACPI EC access misbehaving, "
-+			       "fan status and control unavailable\n");
-+			return 0;
-+		}
-+	}
-+
-+	if (sfan_handle) {
-+		/* 570, 770x-JL */
-+		fan_control_access_mode = IBMACPI_FAN_WR_ACPI_SFAN;
-+		fan_control_commands |= IBMACPI_FAN_CMD_LEVEL;
-+	} else {
-+		if (!gfan_handle) {
-+			/* gfan without sfan means no fan control */
-+			/* all other models implement TP EC 0x2f control */
-+
-+			if (fans_handle) {
-+				/* X31, X40 */
-+				fan_control_access_mode =
-+				    IBMACPI_FAN_WR_ACPI_FANS;
-+				fan_control_commands |=
-+				    IBMACPI_FAN_CMD_SPEED |
-+				    IBMACPI_FAN_CMD_ENABLE;
-+			} else {
-+				fan_control_access_mode = IBMACPI_FAN_WR_TPEC;
-+				fan_control_commands |= IBMACPI_FAN_CMD_ENABLE;
-+			}
-+		}
-+	}
-+
-+	return 0;
-+}
- 
+@@ -1741,40 +1741,48 @@ static int fan_init(void)
  static int fan_read(char *p)
  {
-@@ -1849,6 +1925,7 @@ static struct ibm_struct ibms[] = {
- 	 .name = "fan",
- 	 .read = fan_read,
- 	 .write = fan_write,
-+	 .init = fan_init,
- 	 .experimental = 1,
- 	 },
- };
+ 	int len = 0;
+-	int s;
+ 	u8 lo, hi, status;
+ 
+-	if (gfan_handle) {
++	switch (fan_status_access_mode) {
++	case IBMACPI_FAN_RD_ACPI_GFAN:
+ 		/* 570, 600e/x, 770e, 770x */
+-		if (!acpi_evalf(gfan_handle, &s, NULL, "d"))
++		if (unlikely(!acpi_evalf(gfan_handle, &status, NULL, "d")))
+ 			return -EIO;
+ 
+-		len += sprintf(p + len, "level:\t\t%d\n", s);
+-	} else {
++		len += sprintf(p + len, "level:\t\t%d\n", status);
++
++		break;
++
++	case IBMACPI_FAN_RD_TPEC:
+ 		/* all except 570, 600e/x, 770e, 770x */
+-		if (!acpi_ec_read(fan_status_offset, &status))
+-			len += sprintf(p + len, "status:\t\tunreadable\n");
++		if (unlikely(!acpi_ec_read(fan_status_offset, &status)))
++			return -EIO;
+ 		else
+ 			len += sprintf(p + len, "status:\t\t%s\n",
+ 				       enabled(status, 7));
+ 
+-		if (!acpi_ec_read(fan_rpm_offset, &lo) ||
+-		    !acpi_ec_read(fan_rpm_offset + 1, &hi))
+-			len += sprintf(p + len, "speed:\t\tunreadable\n");
++		if (unlikely(!acpi_ec_read(fan_rpm_offset, &lo) ||
++			     !acpi_ec_read(fan_rpm_offset + 1, &hi)))
++			return -EIO;
+ 		else
+ 			len += sprintf(p + len, "speed:\t\t%d\n",
+ 				       (hi << 8) + lo);
++
++		break;
++
++	case IBMACPI_FAN_NONE:
++	default:
++		len += sprintf(p + len, "status:\t\tnot supported\n");
+ 	}
+ 
+-	if (sfan_handle)
+-		/* 570, 770x-JL */
++	if (fan_control_commands & IBMACPI_FAN_CMD_LEVEL)
+ 		len += sprintf(p + len, "commands:\tlevel <level>"
+ 			       " (<level> is 0-7)\n");
+-	if (!gfan_handle)
+-		/* all except 570, 600e/x, 770e, 770x */
++
++	if (fan_control_commands & IBMACPI_FAN_CMD_ENABLE)
+ 		len += sprintf(p + len, "commands:\tenable, disable\n");
+-	if (fans_handle)
+-		/* X31, X40 */
++
++	if (fan_control_commands & IBMACPI_FAN_CMD_SPEED)
+ 		len += sprintf(p + len, "commands:\tspeed <speed>"
+ 			       " (<speed> is 0-65535)\n");
+ 
 
 -------------------------------------------------------------------------
 Take Surveys. Earn Cash. Influence the Future of IT
