@@ -1,89 +1,107 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 11/21] ACPI: ibm-acpi: extend fan status functions
-Date: Sat, 25 Nov 2006 18:45:37 -0200
-Message-ID: <20061125204537.6604.80245.stgit@thorin.khazad-dum.debian.net>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: [PATCH 12/21] ACPI: ibm-acpi: fix and extend fan
+	enable
+Date: Sat, 25 Nov 2006 18:45:57 -0200
+Message-ID: <20061125204557.6604.78866.stgit@thorin.khazad-dum.debian.net>
 References: <20061125204155.6604.35338.stgit@thorin.khazad-dum.debian.net>
-Content-Type: text/plain; charset=utf-8; format=fixed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:47011 "EHLO
-	out2.smtp.messagingengine.com") by vger.kernel.org with ESMTP
-	id S967188AbWKYUpe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 25 Nov 2006 15:45:34 -0500
-In-Reply-To: <20061125204155.6604.35338.stgit@thorin.khazad-dum.debian.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20061125204155.6604.35338.stgit-H32KNTuDSMjdPi8JTuvWk31TOOPCyuNQ5NbjCUgZEJk@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 
-This patch fixes fan_read to return correct values for all fan access
-modes.  It also implements some fan access mode status output that was
-missing, and normalizes the proc fan abi to return consistent data across
-all fan read/write modes.
+This patch fix fan enable to attempt to do the right thing and not slow
+down the fan if it is forced to the maximum speed.  It also extends fan
+enable to work on older thinkpads.
 
-Userspace ABI changes and extensions:
-	1. Return status: enable/disable for *all* modes
-	   (this actually improves compatibility with userspace utils!)
-	2. Return level: auto and level: disengaged for EC 2f access mode
-	3. Return level: <number> for EC 0x2f access mode
-	4. Return level 0 as well as "disabled" in level-aware modes
+ABI changes:
+	1.  Support enable/disable for all level-based write access modes
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 ---
 
- drivers/acpi/ibm_acpi.c |   21 ++++++++++++++++++---
- 1 files changed, 18 insertions(+), 3 deletions(-)
+ drivers/acpi/ibm_acpi.c |   34 ++++++++++++++++++++++++++++++++--
+ 1 files changed, 32 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
-index ccbb17c..2dc36e7 100644
+index 2dc36e7..001a5e9 100644
 --- a/drivers/acpi/ibm_acpi.c
 +++ b/drivers/acpi/ibm_acpi.c
-@@ -354,6 +354,11 @@ enum {					/* Fan control constants */
- 	fan_status_offset = 0x2f,	/* EC register 0x2f */
- 	fan_rpm_offset = 0x84,		/* EC register 0x84: LSB, 0x85 MSB (RPM)
- 					 * 0x84 must be read before 0x85 */
+@@ -1820,7 +1820,8 @@ static int fan_init(void)
+ 	if (sfan_handle) {
+ 		/* 570, 770x-JL */
+ 		fan_control_access_mode = IBMACPI_FAN_WR_ACPI_SFAN;
+-		fan_control_commands |= IBMACPI_FAN_CMD_LEVEL;
++		fan_control_commands |=
++		    IBMACPI_FAN_CMD_LEVEL | IBMACPI_FAN_CMD_ENABLE;
+ 	} else {
+ 		if (!gfan_handle) {
+ 			/* gfan without sfan means no fan control */
+@@ -1980,10 +1981,34 @@ static int fan_set_level(int level)
+ 
+ static int fan_set_enable(void)
+ {
++	u8 s;
++	int rc;
 +
-+	IBMACPI_FAN_EC_DISENGAGED 	= 0x40,	/* EC mode: tachometer
-+						 * disengaged */
-+	IBMACPI_FAN_EC_AUTO		= 0x80, /* EC mode: auto fan
-+						 * control */
- };
- 
- static int ibm_thinkpad_ec_found;
-@@ -1910,8 +1915,9 @@ static int fan_read(char *p)
- 		if ((rc = fan_get_status(&status)) < 0)
- 			return rc;
- 
--		len += sprintf(p + len, "level:\t\t%d\n", status);
--
-+		len += sprintf(p + len, "status:\t\t%s\n"
-+			       "level:\t\t%d\n",
-+			       (status != 0) ? "enabled" : "disabled", status);
+ 	switch (fan_control_access_mode) {
+ 	case IBMACPI_FAN_WR_ACPI_FANS:
+ 	case IBMACPI_FAN_WR_TPEC:
+-		if (!acpi_ec_write(fan_status_offset, 0x80))
++		if ((rc = fan_get_status(&s)) < 0)
++			return rc;
++
++		/* Don't go out of emergency fan mode */
++		if (s != 7)
++			s = IBMACPI_FAN_EC_AUTO;
++
++		if (!acpi_ec_write(fan_status_offset, s))
++			return -EIO;
++		break;
++
++	case IBMACPI_FAN_WR_ACPI_SFAN:
++		if ((rc = fan_get_status(&s)) < 0)
++			return rc;
++
++		s &= 0x07;
++
++		/* Set fan to at least level 4 */
++		if (s < 4)
++			s = 4;
++
++		if (!acpi_evalf(sfan_handle, NULL, NULL, "vd", s))
+ 			return -EIO;
  		break;
  
- 	case IBMACPI_FAN_RD_TPEC:
-@@ -1919,12 +1925,21 @@ static int fan_read(char *p)
- 		if ((rc = fan_get_status(&status)) < 0)
- 			return rc;
- 
--		len += sprintf(p + len, "status:\t\t%s\n", enabled(status, 7));
-+		len += sprintf(p + len, "status:\t\t%s\n",
-+			       (status != 0) ? "enabled" : "disabled");
- 
- 		if ((rc = fan_get_speed(&speed)) < 0)
- 			return rc;
- 
- 		len += sprintf(p + len, "speed:\t\t%d\n", speed);
-+
-+		if (status & IBMACPI_FAN_EC_DISENGAGED)
-+			/* Disengaged mode takes precedence */
-+			len += sprintf(p + len, "level:\t\tdisengaged\n");
-+		else if (status & IBMACPI_FAN_EC_AUTO)
-+			len += sprintf(p + len, "level:\t\tauto\n");
-+		else
-+			len += sprintf(p + len, "level:\t\t%d\n", status);
+@@ -2002,6 +2027,11 @@ static int fan_set_disable(void)
+ 			return -EIO;
  		break;
  
- 	case IBMACPI_FAN_NONE:
++	case IBMACPI_FAN_WR_ACPI_SFAN:
++		if (!acpi_evalf(sfan_handle, NULL, NULL, "vd", 0x00))
++			return -EIO;
++		break;
++
+ 	default:
+ 		return -ENXIO;
+ 	}
+
+-------------------------------------------------------------------------
+Take Surveys. Earn Cash. Influence the Future of IT
+Join SourceForge.net's Techsay panel and you'll get the chance to share your
+opinions on IT & business topics through brief surveys - and earn cash
+http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
