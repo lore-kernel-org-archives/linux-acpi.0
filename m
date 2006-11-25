@@ -1,170 +1,234 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 15/21] ACPI: ibm-acpi: workaround for EC 0x2f initialization bug
-Date: Sat, 25 Nov 2006 18:46:57 -0200
-Message-ID: <20061125204657.6604.22139.stgit@thorin.khazad-dum.debian.net>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: [PATCH 16/21] ACPI: ibm-acpi: implement fan
+	watchdog command
+Date: Sat, 25 Nov 2006 18:47:17 -0200
+Message-ID: <20061125204717.6604.32168.stgit@thorin.khazad-dum.debian.net>
 References: <20061125204155.6604.35338.stgit@thorin.khazad-dum.debian.net>
-Content-Type: text/plain; charset=utf-8; format=fixed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:44225 "EHLO
-	out2.smtp.messagingengine.com") by vger.kernel.org with ESMTP
-	id S967192AbWKYUqy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 25 Nov 2006 15:46:54 -0500
-In-Reply-To: <20061125204155.6604.35338.stgit@thorin.khazad-dum.debian.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20061125204155.6604.35338.stgit-H32KNTuDSMjdPi8JTuvWk31TOOPCyuNQ5NbjCUgZEJk@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 
-A few ThinkPads fail to initialize EC register 0x2f both in the EC
-firmware and ACPI DSDT.  If the BIOS and the ACPI DSDT also do not
-initialize it, then the initial status of that register does not
-correspond to reality.
+This patch implements a fan control safety watchdog, by request of the
+authors of userspace fan control scripts.
 
-On all reported buggy machines, EC 0x2f will read 0x07 (fan level 7) upon
-cold boot, when the EC is actually in mode 0x80 (auto mode).  Since
-returning a text string ("unknown") would break a number of userspace
-programs, instead we correct the reading for the most probably correct
-answer, and return it is in auto mode.
+When the watchdog timer expires, the equivalent action of a "fan enable"
+command is executed.  The watchdog timer is reset at every reception of a
+fan control command that could change the state of the fan itself.
 
-The workaround flags the status and level as unknown on module load/kernel
-boot, until we are certain at least one fan control command was issued,
-either by us, or by something else.
+This command is meant to be used by userspace fan control daemons, to make
+sure the fan is never left set to an unsafe level because of userspace
+problems.
 
-We don't work around the bug by doing a "fan enable" at module
-load/startup (which would initialize the EC register) because it is not
-known if these ThinkPad ACPI DSDT might have set the fan to level 7
-instead of "auto" (we don't know if they can do this or not) due to a
-thermal condition, and we don't want to override that, should they be
-capable of it.
+Users of the X31/X40/X41 "speed" command are on their own, the current
+implementation of "speed" is just too incomplete to be used safely,
+anyway.  Better to never use it, and just use the "level" command instead.
 
-We should be setting the workaround flag to "status known" upon resume, as
-both reports and a exaustive search on the DSDT tables at acpi.sf.net show
-that the DSDTs always enable the fan on resume, thus working around the
-bug.  But since we don't have suspend/resume handlers in ibm-acpi yet and
-the "EC register 0x2f was modified" logic is likely to catch the change
-anyway, we don't.
+The watchdog is programmed using echo "watchdog <number>" > fan, where
+number is the number of seconds to wait before doing an "enable", and zero
+disables the watchdog.
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 ---
 
- drivers/acpi/ibm_acpi.c |   53 +++++++++++++++++++++++++++++++++++++++++++----
- 1 files changed, 49 insertions(+), 4 deletions(-)
+ Documentation/ibm-acpi.txt |   20 +++++++++++++
+ drivers/acpi/ibm_acpi.c    |   70 ++++++++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 87 insertions(+), 3 deletions(-)
 
+diff --git a/Documentation/ibm-acpi.txt b/Documentation/ibm-acpi.txt
+index cbd3a60..0132d36 100644
+--- a/Documentation/ibm-acpi.txt
++++ b/Documentation/ibm-acpi.txt
+@@ -670,6 +670,26 @@ example:
+ 
+ 	modprobe ibm_acpi hotkey=enable,0xffff video=auto_disable
+ 
++The ibm-acpi kernel driver can be programmed to revert the fan level
++to a safe setting if userspace does not issue one of the fan commands:
++"enable", "disable", "level" or "watchdog" within a configurable
++ammount of time.  To do this, use the "watchdog" command.
++
++	echo 'watchdog <interval>' > /proc/acpi/ibm/fan
++
++Interval is the ammount of time in seconds to wait for one of the
++above mentioned fan commands before reseting the fan level to a safe
++one.  If set to zero, the watchdog is disabled (default).  When the
++watchdog timer runs out, it does the exact equivalent of the "enable"
++fan command.
++
++Note that the watchdog timer stops after it enables the fan.  It will
++be rearmed again automatically (using the same interval) when one of
++the above mentioned fan commands is received.  The fan watchdog is,
++therefore, not suitable to protect against fan mode changes made
++through means other than the "enable", "disable", and "level" fan
++commands.
++
+ 
+ Example Configuration
+ ---------------------
 diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
-index af83977..f742c33 100644
+index f742c33..adf3dae 100644
 --- a/drivers/acpi/ibm_acpi.c
 +++ b/drivers/acpi/ibm_acpi.c
-@@ -362,7 +362,7 @@ enum {					/* Fan control constants */
- 						 * control */
+@@ -82,6 +82,8 @@
+ #include <linux/backlight.h>
+ #include <asm/uaccess.h>
+ #include <linux/dmi.h>
++#include <linux/jiffies.h>
++#include <linux/workqueue.h>
+ 
+ #include <acpi/acpi_drivers.h>
+ #include <acpi/acnamesp.h>
+@@ -348,7 +350,8 @@ enum fan_control_access_mode {
+ enum fan_control_commands {
+ 	IBMACPI_FAN_CMD_SPEED 	= 0x0001,	/* speed command */
+ 	IBMACPI_FAN_CMD_LEVEL 	= 0x0002,	/* level command  */
+-	IBMACPI_FAN_CMD_ENABLE	= 0x0004,	/* enable/disable cmd */
++	IBMACPI_FAN_CMD_ENABLE	= 0x0004,	/* enable/disable cmd,
++						 * and also watchdog cmd */
  };
  
--static char* ibm_thinkpad_ec_found = NULL;
-+static char *ibm_thinkpad_ec_found = NULL;
+ enum {					/* Fan control constants */
+@@ -1797,12 +1800,17 @@ static enum fan_control_commands fan_con
+ static int fan_control_status_known;
+ static u8 fan_control_initial_status;
  
- struct ibm_struct {
- 	char *name;
-@@ -1794,13 +1794,15 @@ static enum fan_status_access_mode fan_s
- static enum fan_control_access_mode fan_control_access_mode;
- static enum fan_control_commands fan_control_commands;
- 
-+static int fan_control_status_known;
-+static u8 fan_control_initial_status;
++static void fan_watchdog_fire(void *ignored);
++static int fan_watchdog_maxinterval;
++static DECLARE_WORK(fan_watchdog_task, fan_watchdog_fire, NULL);
 +
  static int fan_init(void)
  {
--	u8 status;
--
  	fan_status_access_mode = IBMACPI_FAN_NONE;
  	fan_control_access_mode = IBMACPI_FAN_WR_NONE;
  	fan_control_commands = 0;
-+	fan_control_status_known = 1;
+ 	fan_control_status_known = 1;
++	fan_watchdog_maxinterval = 0;
  
  	if (gfan_handle) {
  		/* 570, 600e/x, 770e, 770x */
-@@ -1808,8 +1810,33 @@ static int fan_init(void)
- 	} else {
- 		/* all other ThinkPads: note that even old-style
- 		 * ThinkPad ECs supports the fan control register */
--		if (likely(acpi_ec_read(fan_status_offset, &status))) {
-+		if (likely(acpi_ec_read(fan_status_offset,
-+					&fan_control_initial_status))) {
- 			fan_status_access_mode = IBMACPI_FAN_RD_TPEC;
-+
-+			/* In some ThinkPads, neither the EC nor the ACPI
-+			 * DSDT initialize the fan status, and it ends up
-+			 * being set to 0x07 when it *could* be either
-+			 * 0x07 or 0x80.
-+			 *
-+			 * Enable for TP-1Y (T43), TP-78 (R51e),
-+			 * TP-76 (R52), TP-70 (T43, R52), which are known
-+			 * to be buggy. */
-+			if (fan_control_initial_status == 0x07 &&
-+			    ibm_thinkpad_ec_found &&
-+			    ((ibm_thinkpad_ec_found[0] == '1' &&
-+			      ibm_thinkpad_ec_found[1] == 'Y') ||
-+			     (ibm_thinkpad_ec_found[0] == '7' &&
-+			      (ibm_thinkpad_ec_found[1] == '6' ||
-+			       ibm_thinkpad_ec_found[1] == '8' ||
-+			       ibm_thinkpad_ec_found[1] == '0'))
-+			    )) {
-+				printk(IBM_NOTICE
-+				       "fan_init: initial fan status is "
-+				       "unknown, assuming it is in auto "
-+				       "mode\n");
-+				fan_control_status_known = 0;
-+			}
- 		} else {
- 			printk(IBM_ERR
- 			       "ThinkPad ACPI EC access misbehaving, "
-@@ -1930,9 +1957,21 @@ static int fan_read(char *p)
- 		if ((rc = fan_get_status(&status)) < 0)
- 			return rc;
+@@ -1934,6 +1942,31 @@ static int fan_get_speed(unsigned int *s
+ 	return 0;
+ }
  
-+		if (unlikely(!fan_control_status_known)) {
-+			if (status != fan_control_initial_status)
-+				fan_control_status_known = 1;
-+			else
-+				/* Return most likely status. In fact, it
-+				 * might be the only possible status */
-+				status = IBMACPI_FAN_EC_AUTO;
++static void fan_exit(void)
++{
++	cancel_delayed_work(&fan_watchdog_task);
++	flush_scheduled_work();
++}
++
++static void fan_watchdog_reset(void)
++{
++	static int fan_watchdog_active = 0;
++
++	if (fan_watchdog_active)
++		cancel_delayed_work(&fan_watchdog_task);
++
++	if (fan_watchdog_maxinterval > 0) {
++		fan_watchdog_active = 1;
++		if (!schedule_delayed_work(&fan_watchdog_task,
++				msecs_to_jiffies(fan_watchdog_maxinterval
++						 * 1000))) {
++			printk(IBM_ERR "failed to schedule the fan watchdog, "
++			       "watchdog will not trigger\n");
 +		}
++	} else
++		fan_watchdog_active = 0;
++}
 +
- 		len += sprintf(p + len, "status:\t\t%s\n",
- 			       (status != 0) ? "enabled" : "disabled");
+ static int fan_read(char *p)
+ {
+ 	int len = 0;
+@@ -2007,7 +2040,9 @@ static int fan_read(char *p)
+ 	}
  
-+		/* No ThinkPad boots on disengaged mode, we can safely
-+		 * assume the tachometer is online if fan control status
-+		 * was unknown */
- 		if ((rc = fan_get_speed(&speed)) < 0)
- 			return rc;
+ 	if (fan_control_commands & IBMACPI_FAN_CMD_ENABLE)
+-		len += sprintf(p + len, "commands:\tenable, disable\n");
++		len += sprintf(p + len, "commands:\tenable, disable\n"
++			       "commands:\twatchdog <timeout> (<timeout> is 0 (off), "
++			       "1-120 (seconds))\n");
  
-@@ -1997,6 +2036,8 @@ static int fan_set_level(int level)
+ 	if (fan_control_commands & IBMACPI_FAN_CMD_SPEED)
+ 		len += sprintf(p + len, "commands:\tspeed <speed>"
+@@ -2186,6 +2221,21 @@ static int fan_write_cmd_speed(const cha
+ 	return 1;
+ }
  
- 		if (!acpi_ec_write(fan_status_offset, level))
- 			return -EIO;
-+		else
-+			fan_control_status_known = 1;
- 		break;
++static int fan_write_cmd_watchdog(const char *cmd, int *rc)
++{
++	int interval;
++
++	if (sscanf(cmd, "watchdog %d", &interval) != 1)
++		return 0;
++
++	if (interval < 0 || interval > 120)
++		*rc = -EINVAL;
++	else
++		fan_watchdog_maxinterval = interval;
++
++	return 1;
++}
++
+ static int fan_write(char *buf)
+ {
+ 	char *cmd;
+@@ -2196,16 +2246,29 @@ static int fan_write(char *buf)
+ 		      fan_write_cmd_level(cmd, &rc)) &&
+ 		    !((fan_control_commands & IBMACPI_FAN_CMD_ENABLE) &&
+ 		      (fan_write_cmd_enable(cmd, &rc) ||
+-		       fan_write_cmd_disable(cmd, &rc))) &&
++		       fan_write_cmd_disable(cmd, &rc) ||
++		       fan_write_cmd_watchdog(cmd, &rc))) &&
+ 		    !((fan_control_commands & IBMACPI_FAN_CMD_SPEED) &&
+ 		      fan_write_cmd_speed(cmd, &rc))
+ 		    )
+ 			rc = -EINVAL;
++		else if (!rc)
++			fan_watchdog_reset();
+ 	}
  
- 	default:
-@@ -2022,6 +2063,8 @@ static int fan_set_enable(void)
+ 	return rc;
+ }
  
- 		if (!acpi_ec_write(fan_status_offset, s))
- 			return -EIO;
-+		else
-+			fan_control_status_known = 1;
- 		break;
- 
- 	case IBMACPI_FAN_WR_ACPI_SFAN:
-@@ -2051,6 +2094,8 @@ static int fan_set_disable(void)
- 	case IBMACPI_FAN_WR_TPEC:
- 		if (!acpi_ec_write(fan_status_offset, 0x00))
- 			return -EIO;
-+		else
-+			fan_control_status_known = 1;
- 		break;
- 
- 	case IBMACPI_FAN_WR_ACPI_SFAN:
++static void fan_watchdog_fire(void *ignored)
++{
++	printk(IBM_NOTICE "fan watchdog: enabling fan\n");
++	if (fan_set_enable()) {
++		printk(IBM_ERR "fan watchdog: error while enabling fan\n");
++		/* reschedule for later */
++		fan_watchdog_reset();
++	}
++}
++
+ static struct ibm_struct ibms[] = {
+ 	{
+ 	 .name = "driver",
+@@ -2317,6 +2380,7 @@ static struct ibm_struct ibms[] = {
+ 	 .read = fan_read,
+ 	 .write = fan_write,
+ 	 .init = fan_init,
++	 .exit = fan_exit,
+ 	 .experimental = 1,
+ 	 },
+ };
+
+-------------------------------------------------------------------------
+Take Surveys. Earn Cash. Influence the Future of IT
+Join SourceForge.net's Techsay panel and you'll get the chance to share your
+opinions on IT & business topics through brief surveys - and earn cash
+http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
