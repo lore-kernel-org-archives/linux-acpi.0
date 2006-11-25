@@ -1,101 +1,82 @@
-From: "Yong Lee" <yonglee@telus.net>
-Subject: RE: acpi nic card flapping
-Date: Fri, 24 Nov 2006 23:34:58 -0800
-Message-ID: <000f01c71064$36a4ea20$6602a8c0@yonglaptop>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: [2.6 patch] proper prototype for drivers/base/init.c:driver_init()
+Date: Sat, 25 Nov 2006 20:16:45 +0100
+Message-ID: <20061125191645.GI3702@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from defout.telus.net ([204.209.205.55]:47810 "EHLO defout.telus.net")
-	by vger.kernel.org with ESMTP id S1757874AbWKYHfB convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 25 Nov 2006 02:35:01 -0500
-Received: from priv-edmwaa06.telusplanet.net ([209.121.150.110])
-          by priv-edmwes50.telusplanet.net
-          (InterMail vM.7.05.01.01 201-2174-106-103-20060222) with ESMTP
-          id <20061125073500.SWHF19925.priv-edmwes50.telusplanet.net@priv-edmwaa06.telusplanet.net>
-          for <linux-acpi@vger.kernel.org>; Sat, 25 Nov 2006 00:35:00 -0700
-Received: from yonglaptop (d209-121-150-110.bchsia.telus.net [209.121.150.110])
-	by priv-edmwaa06.telusplanet.net (BorderWare MXtreme Infinity Mail Firewall) with ESMTP id 8561R3CHV8
-	for <linux-acpi@vger.kernel.org>; Sat, 25 Nov 2006 00:34:59 -0700 (MST)
-In-Reply-To: 
+Received: from mailout.stusta.mhn.de ([141.84.69.5]:1037 "HELO
+	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
+	id S967135AbWKYTQm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 25 Nov 2006 14:16:42 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: linux-kernel@vger.kernel.org, ibm-acpi@hmh.eng.br, len.brown@intel.com, linux-acpi@vger.kernel.org
 
-Hi all,
+This patch adds a prototype for driver_init() in include/linux/device.h.
 
-I=92m hoping that someone out there can lend me a hand with a problem t=
-hat we
-were seeing. =A0I=92m not very familiar with the acpi tool so please be=
-ar with
-me.
+It also removes a static function of the same name in 
+drivers/acpi/ibm_acpi.c to ibm_acpi_driver_init() to fix the namespace 
+collision.
 
-We had an outage where we could not ssh into our web server and we had =
-to do
-a reboot from our console to get things running again.=A0 It looks like=
- an
-acpi problem and I=92m trying to figure out what was going on. =A0Was A=
-CPI going
-crazy or was it trying to report a problem condition that we were not a=
-ware
-of.
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
-What we saw in the dmesg log was this :
+---
 
-shpchp: Address64 -------- Resource unparsed
-shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=3D0x5
-shpchp: acpi_shpchprm:=A0=A0 Slot sun(0) at s:b:d:f=3D0x00:04:1f:00
-shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=3D0x5
-shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=3D0x5
-shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=3D0x5
-shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=3D0x5
-shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=3D0x5
-shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=3D0x5
-shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=3D0x5
-shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=3D0x5
-shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=3D0x5
-shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=3D0x5
-shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=3D0x5
-shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=3D0x5
-shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=3D0x5
-shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=3D0x5
-shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=3D0x5
-shpchp: shpc_init : shpc_cap_offset =3D=3D 0
-shpchp: shpc_init : shpc_cap_offset =3D=3D 0
-shpchp: shpc_init : shpc_cap_offset =3D=3D 0
-shpchp: shpc_init : shpc_cap_offset =3D=3D 0
-shpchp: shpc_init : shpc_cap_offset =3D=3D 0
-shpchp: shpc_init : shpc_cap_offset =3D=3D 0
-shpchp: shpc_init : shpc_cap_offset =3D=3D 0
-shpchp: shpc_init : shpc_cap_offset =3D=3D 0
-shpchp: shpc_init : shpc_cap_offset =3D=3D 0
-shpchp: Standard Hot Plug PCI Controller Driver version: 0.4
+ drivers/acpi/ibm_acpi.c |    4 ++--
+ include/linux/device.h  |    2 ++
+ init/main.c             |    2 +-
+ 3 files changed, 5 insertions(+), 3 deletions(-)
 
-During the time of the outage we saw from our router logs that the
-connection to the server was going up and down.
+--- linux-2.6.19-rc6-mm1/include/linux/device.h.old	2006-11-25 00:03:22.000000000 +0100
++++ linux-2.6.19-rc6-mm1/include/linux/device.h	2006-11-25 00:04:06.000000000 +0100
+@@ -432,6 +432,8 @@
+ 	return dev->is_registered;
+ }
+ 
++void driver_init(void);
++
+ /*
+  * High level routines for use by the bus drivers
+  */
+--- linux-2.6.19-rc6-mm1/init/main.c.old	2006-11-25 00:05:03.000000000 +0100
++++ linux-2.6.19-rc6-mm1/init/main.c	2006-11-25 00:05:58.000000000 +0100
+@@ -52,6 +52,7 @@
+ #include <linux/debug_locks.h>
+ #include <linux/lockdep.h>
+ #include <linux/pid_namespace.h>
++#include <linux/device.h>
+ 
+ #include <asm/io.h>
+ #include <asm/bugs.h>
+@@ -90,7 +91,6 @@
+ extern void radix_tree_init(void);
+ extern void free_initmem(void);
+ extern void populate_rootfs(void);
+-extern void driver_init(void);
+ extern void prepare_namespace(void);
+ #ifdef	CONFIG_ACPI
+ extern void acpi_early_init(void);
+--- linux-2.6.19-rc6-mm1/drivers/acpi/ibm_acpi.c.old	2006-11-25 00:06:12.000000000 +0100
++++ linux-2.6.19-rc6-mm1/drivers/acpi/ibm_acpi.c	2006-11-25 00:06:37.000000000 +0100
+@@ -355,7 +355,7 @@
+ 	return start;
+ }
+ 
+-static int driver_init(void)
++static int ibm_acpi_driver_init(void)
+ {
+ 	printk(IBM_INFO "%s v%s\n", IBM_DESC, IBM_VERSION);
+ 	printk(IBM_INFO "%s\n", IBM_URL);
+@@ -1634,7 +1634,7 @@
+ static struct ibm_struct ibms[] = {
+ 	{
+ 	 .name = "driver",
+-	 .init = driver_init,
++	 .init = ibm_acpi_driver_init,
+ 	 .read = driver_read,
+ 	 },
+ 	{
 
-There was a lot of other messages on the console but our sysadmin guy d=
-idn=92t
-capture this.
-
-We=92re running redhat linux 2.6.9-34.0.2.ELsmp on intel xeon processor=
-s. =A0
-We have 2 intel nic cards : Intel Corporation 82541GI/PI Gigabit Ethern=
-et
-Controller (rev 05)
-
-Any light you can shed on this problem would be great.=A0 Note that whi=
-le the
-kacpid kernel thread is running the acpid daemon was shut off during th=
-is
-incident.
-
-Many thanks,
-Yong.
-
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
