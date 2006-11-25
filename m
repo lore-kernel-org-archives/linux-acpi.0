@@ -1,43 +1,67 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: contents of the acpica branch
-Date: Fri, 24 Nov 2006 23:25:48 +0100
-Message-ID: <200611242325.49160.rjw@sisk.pl>
-References: <1164352755500-git-send-email-len.brown@intel.com> <200611242133.00136.rjw@sisk.pl>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: RE: [PATCH] ACPI: ibm-acpi: do not use / in driver names
+Date: Sat, 25 Nov 2006 09:02:14 +0800
+Message-ID: <58A36151585E4047913F40517D307BAE0171A5@pdsmsx404.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=gb2312
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:20112 "EHLO ogre.sisk.pl")
-	by vger.kernel.org with ESMTP id S935101AbWKXWaN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 24 Nov 2006 17:30:13 -0500
-In-Reply-To: <200611242133.00136.rjw@sisk.pl>
-Content-Disposition: inline
+Received: from mga02.intel.com ([134.134.136.20]:45720 "EHLO mga02.intel.com")
+	by vger.kernel.org with ESMTP id S935105AbWKYBCR convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 24 Nov 2006 20:02:17 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org, Robert Moore <robert.moore@intel.com>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <lenb@kernel.org>
+Cc: "linux-acpi@vger" <linux-acpi@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net
 
-On Friday, 24 November 2006 21:32, Rafael J. Wysocki wrote:
-> On Friday, 24 November 2006 08:18, Len Brown wrote:
-> > 
-> > The following patches are on the "acpica" branch of the ACPI git tree.
-> 
-> #11 seems to be missing, or is it just me who hasn't received it?
+Yes, that's exactly what I want to change. :)
+Thanks.
 
-I think it is missing.
+Best regards,
+Zhang.Rui(Ray)
 
-Moreover, the one available at
+=20
+-----Original Message-----
+=46rom: Henrique de Moraes Holschuh [mailto:hmh@hmh.eng.br]=20
+Sent: 2006=C4=EA11=D4=C224=C8=D5 22:38
+To: Zhang, Rui; Len Brown
+Cc: linux-acpi@vger; ibm-acpi-devel@lists.sourceforge.net
+Subject: [PATCH] ACPI: ibm-acpi: do not use / in driver names
 
-http://kernel.org/git/?p=linux/kernel/git/lenb/linux-acpi-2.6.git;a=commitdiff;h=7b3b58eb8bcf2605a809010ad084dab9fa7f58ad
+ACPI: ibm-acpi: do not use / in driver names
 
-seems to suffer from a mismerge in acpi_status acpi_reallocate_root_table().
+ibm-acpi uses sub-device names like ibm/hotkey, which get in the way of
+a sysfs conversion.  Fix it to use ibm_hotkey instead.  Thanks to Zhang
+Rui for noticing this.
 
-Greetings,
-Rafael
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+---
 
+ drivers/acpi/ibm_acpi.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
--- 
-You never change things by fighting the existing reality.
-		R. Buckminster Fuller
+diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
+index 9658253..9baae34 100644
+--- a/drivers/acpi/ibm_acpi.c
++++ b/drivers/acpi/ibm_acpi.c
+@@ -1854,7 +1854,7 @@ static int __init register_driver(struct
+ 	}
+=20
+ 	memset(ibm->driver, 0, sizeof(struct acpi_driver));
+-	sprintf(ibm->driver->name, "%s/%s", IBM_NAME, ibm->name);
++	sprintf(ibm->driver->name, "%s_%s", IBM_NAME, ibm->name);
+ 	ibm->driver->ids =3D ibm->hid;
+ 	ibm->driver->ops.add =3D &ibm_device_add;
+=20
+--=20
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
