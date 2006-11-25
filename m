@@ -1,82 +1,60 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: [2.6 patch] proper prototype for drivers/base/init.c:driver_init()
-Date: Sat, 25 Nov 2006 20:16:45 +0100
-Message-ID: <20061125191645.GI3702@stusta.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [PATCH 00/21] ACPI: ibm-acpi: cleanups, extended fan/thermal support
+Date: Sat, 25 Nov 2006 18:41:55 -0200
+Message-ID: <20061125204155.6604.35338.stgit@thorin.khazad-dum.debian.net>
+Content-Type: text/plain; charset=utf-8; format=fixed
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout.stusta.mhn.de ([141.84.69.5]:1037 "HELO
-	mailout.stusta.mhn.de") by vger.kernel.org with SMTP
-	id S967135AbWKYTQm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 25 Nov 2006 14:16:42 -0500
-Content-Disposition: inline
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:46005 "EHLO
+	out2.smtp.messagingengine.com") by vger.kernel.org with ESMTP
+	id S967177AbWKYUly (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 25 Nov 2006 15:41:54 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: linux-kernel@vger.kernel.org, ibm-acpi@hmh.eng.br, len.brown@intel.com, linux-acpi@vger.kernel.org
+To: len.brown@intel.com
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-This patch adds a prototype for driver_init() in include/linux/device.h.
 
-It also removes a static function of the same name in 
-drivers/acpi/ibm_acpi.c to ibm_acpi_driver_init() to fix the namespace 
-collision.
+This patch series contains the ibm-acpi devel queue for 2006-11-25.
+Please merge for acpi-test.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Patch 1 fixes sub-driver naming so that it doesn't get in the way of
+a ACPI sysfs conversion work.
 
----
+Patch 2 just does some Lindent housekeeping work, as Len said he likes
+code to be as Lindent-clean as possible.
 
- drivers/acpi/ibm_acpi.c |    4 ++--
- include/linux/device.h  |    2 ++
- init/main.c             |    2 +-
- 3 files changed, 5 insertions(+), 3 deletions(-)
+Patches 3-5 extend thermal support for the new thinkpads, and updates
+thermal docs.
 
---- linux-2.6.19-rc6-mm1/include/linux/device.h.old	2006-11-25 00:03:22.000000000 +0100
-+++ linux-2.6.19-rc6-mm1/include/linux/device.h	2006-11-25 00:04:06.000000000 +0100
-@@ -432,6 +432,8 @@
- 	return dev->is_registered;
- }
- 
-+void driver_init(void);
-+
- /*
-  * High level routines for use by the bus drivers
-  */
---- linux-2.6.19-rc6-mm1/init/main.c.old	2006-11-25 00:05:03.000000000 +0100
-+++ linux-2.6.19-rc6-mm1/init/main.c	2006-11-25 00:05:58.000000000 +0100
-@@ -52,6 +52,7 @@
- #include <linux/debug_locks.h>
- #include <linux/lockdep.h>
- #include <linux/pid_namespace.h>
-+#include <linux/device.h>
- 
- #include <asm/io.h>
- #include <asm/bugs.h>
-@@ -90,7 +91,6 @@
- extern void radix_tree_init(void);
- extern void free_initmem(void);
- extern void populate_rootfs(void);
--extern void driver_init(void);
- extern void prepare_namespace(void);
- #ifdef	CONFIG_ACPI
- extern void acpi_early_init(void);
---- linux-2.6.19-rc6-mm1/drivers/acpi/ibm_acpi.c.old	2006-11-25 00:06:12.000000000 +0100
-+++ linux-2.6.19-rc6-mm1/drivers/acpi/ibm_acpi.c	2006-11-25 00:06:37.000000000 +0100
-@@ -355,7 +355,7 @@
- 	return start;
- }
- 
--static int driver_init(void)
-+static int ibm_acpi_driver_init(void)
- {
- 	printk(IBM_INFO "%s v%s\n", IBM_DESC, IBM_VERSION);
- 	printk(IBM_INFO "%s\n", IBM_URL);
-@@ -1634,7 +1634,7 @@
- static struct ibm_struct ibms[] = {
- 	{
- 	 .name = "driver",
--	 .init = driver_init,
-+	 .init = ibm_acpi_driver_init,
- 	 .read = driver_read,
- 	 },
- 	{
+Patches 6-13 extend fan support for new thinkpads, so people will stop
+using ecdump to directly modify EC registers ;-)
 
+Patches 14-15 implement a work-around for a bug in the EC firmware in
+certain thinkpads, see
+http://thinkwiki.org/wiki/Embedded_Controller_Firmware#Bug:_Fan_control_loop_status_is_not_initialized
+
+Patch 16 adds a watchdog functionality for fan control that has been
+requested by developers of userspace fan control utilities.  Many
+thinkpads have very annoying out-of-the-box fan behaviour, so userspace
+fan control is quite widespread among T4x owners, for example.
+
+Patch 17 adds support for SATA ultrabay (advanced ultrabay), found in
+*60 and *61 x/t/z-series.
+
+Patch 18 makes ibm-acpi non-generic bay support optional.
+
+Patch 19 refactors backlight support so that it is in line with 
+the rest of the ibm-acpi driver code.
+
+Patches 20-21 are just housekeeping.
+
+This patch series is available for git pull from:
+git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git branch
+for-upstream/acpi-test.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
