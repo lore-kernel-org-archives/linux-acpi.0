@@ -1,38 +1,62 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [2.6 patch] proper prototype for drivers/base/init.c:driver_init()
-Date: Sat, 25 Nov 2006 20:31:28 -0200
-Message-ID: <20061125223128.GN1537@khazad-dum.debian.net>
-References: <20061125191645.GI3702@stusta.de>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH 13/13] ACPI: use unique number as bus_id of ACPI device
+	in sysfs
+Date: Sun, 26 Nov 2006 13:10:10 +0800
+Message-ID: <1164517810.5768.126.camel@localhost.localdomain>
+References: <11643454612902-git-send-email-len.brown@intel.com>
+	 <11643454754138-git-send-email-len.brown@intel.com>
+	 <11643454762691-git-send-email-len.brown@intel.com>
+	 <200611240136.04511.len.brown@intel.com>
+	 <1164361231.5768.93.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:11204 "EHLO
-	out2.smtp.messagingengine.com") by vger.kernel.org with ESMTP
-	id S967264AbWKYWbk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 25 Nov 2006 17:31:40 -0500
-Content-Disposition: inline
-In-Reply-To: <20061125191645.GI3702@stusta.de>
+Received: from mga01.intel.com ([192.55.52.88]:41808 "EHLO mga01.intel.com")
+	by vger.kernel.org with ESMTP id S967298AbWKZFGm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 26 Nov 2006 00:06:42 -0500
+In-Reply-To: <1164361231.5768.93.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, linux-kernel@vger.kernel.org, len.brown@intel.com, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: "linux-acpi@vger" <linux-acpi@vger.kernel.org>, Li Shaohua <shaohua.li@intel.com>
 
-On Sat, 25 Nov 2006, Adrian Bunk wrote:
-> This patch adds a prototype for driver_init() in include/linux/device.h.
+> > Also, the ACPI spec has some pre-defined root name-spaces, and I think
+> > it makes sense to look up the device name against a small table of
+> > those reserved names and print something more interesting than
+> > a number.
+> > 
+> > eg. 
+> > _SB	system_bus
+> > _PR processors
+> > _TZ thermal_zones
+> > _SI system_indicators
+> > _GPE events
+> > 
+> Yeah. I can do that. But few devices can benefit from this. :(.
 > 
-> It also removes a static function of the same name in 
-> drivers/acpi/ibm_acpi.c to ibm_acpi_driver_init() to fix the namespace 
-> collision.
 > 
-> Signed-off-by: Adrian Bunk <bunk@stusta.de>
+> BTW: Maybe I can generate a patch to get the following result:
+> Five devices with the fixed name shown above if they are declared in the
+> BIOS
+> And add a prefix for every devices, the prefix is one of fixed names,
+> _SB _PR _TZ _SI _GPE. So devices are shown like _SB:dev001, _TZ:dev001,
+> _PR:dev033 etc.
+> But does this make sense? :(
+> 
+> The best way is to define a unique and meaning rule to name all the ACPI
+> devices. Unfortunately we haven't reached an agreement until now, but I
+> think we can leave this for further discussion.
 
-ACK for the proposed ibm-acpi changes (I can't speak for driver_init).  A
-full namespace cleanup in ibm-acpi will touch pretty much every function in
-the ibm-acpi driver, so it will have to wait until a bunch of patches that I
-just submitted for acpi-test are either merged or rejected.
+Another way to fix this naming problem.
+Many devices in ACPI namespace is meaningless. Only the devices with a
+PNPID are physical devices and should be exported to userspace.
+So we can only register these devices and use "PNPID:instance no" as its
+name.
+Add instance_no in struct acpi_device. Every time we fail to register an
+ACPI device and get an error of "-EEXIST", loop acpi_device_list to get
+the right instance_no and register again.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Thanks,
+Ray
