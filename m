@@ -1,53 +1,61 @@
-From: "Eric Benton" <benton71@gmail.com>
-Subject: How ACPI is actually implemented?
-Date: Sun, 26 Nov 2006 19:35:33 +0200
-Message-ID: <29545330611260935l507b7853g8ec3bb1597a3c884@mail.gmail.com>
+From: Len Brown <len.brown@intel.com>
+Subject: Re: contents of the acpica branch
+Date: Sun, 26 Nov 2006 21:12:35 -0500
+Message-ID: <200611262112.35683.len.brown@intel.com>
+References: <1164352755500-git-send-email-len.brown@intel.com> <200611242133.00136.rjw@sisk.pl> <200611242325.49160.rjw@sisk.pl>
+Reply-To: Len Brown <lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.171]:53476 "EHLO
-	ug-out-1314.google.com") by vger.kernel.org with ESMTP
-	id S935467AbWKZRff (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 26 Nov 2006 12:35:35 -0500
-Received: by ug-out-1314.google.com with SMTP id 44so965685uga
-        for <linux-acpi@vger.kernel.org>; Sun, 26 Nov 2006 09:35:34 -0800 (PST)
+Received: from hera.kernel.org ([140.211.167.34]:1511 "EHLO hera.kernel.org")
+	by vger.kernel.org with ESMTP id S1756120AbWK0CKA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 26 Nov 2006 21:10:00 -0500
+In-Reply-To: <200611242325.49160.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, Robert Moore <robert.moore@intel.com>
 
-Hi,
+On Friday 24 November 2006 17:25, Rafael J. Wysocki wrote:
+> On Friday, 24 November 2006 21:32, Rafael J. Wysocki wrote:
+> > On Friday, 24 November 2006 08:18, Len Brown wrote:
+> > > 
+> > > The following patches are on the "acpica" branch of the ACPI git tree.
+> > 
+> > #11 seems to be missing, or is it just me who hasn't received it?
+> 
+> I think it is missing.
 
-I'm trying to figure out how ACPI is implemented, I don't know if this
-list is the right one to ask but I'm sure there are kind people in
-this place that will help me in my quest :)
-I tried to look for resources but I couldn't find too many. I'm
-interested to know how ACPI works in the hardware level... so, after a
-lot of reading I left with these questions, any knowledge provided is
-greatly appreciated.
+Yep, it got filtered by vger.kernel.org due to size.
+Here's a copy:
 
-By looking at /proc/irq and /proc/ioports I can see that ACPI is
-allocated with IRQ9 and I/O ports 0x400-0x42F.
-1. How does exactly a hardware device generates an event?
-2. How does the OS asks a device to change it's state? what *exactly* happens?
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/test/acpica/
+0011-ACPICA-Implement-simplified-Table-Manager.txt
 
-I read that the BIOS supplies all the ACPI tables.
-3. Are they are being built in compile time (this is what I understand
-from the FAQ at Intel's website)?
-4. What happens If a new PCI device is being added to the system, how
-the DSDT is being updated? (If at all...)
+While we're trying hard to break up the ACPICA updates into individual patches,
+with a single well contained logical change  per each, in that case we
+did not succeed.
 
-I saw a note about an ACPI Controller.
-5. What exactly is the role of this controller? How it operates? And who
-6. In general, I'm looking to find out what is the role (in respect to
-"talking with the hardware") of these entities: the driver, the
-device, the OS (including the CA)? Who reads/writes to the I/O ports.
-Who sets the IRQ? the controller? or is it the device itself? What
-happens exactly?
+> Moreover, the one available at
+> 
+> http://kernel.org/git/?p=linux/kernel/git/lenb/linux-acpi-2.6.git;a=commitdiff;h=7b3b58eb8bcf2605a809010ad084dab9fa7f58ad
+> 
+> seems to suffer from a mismerge in acpi_status acpi_reallocate_root_table().
 
-I tried reading the ACPI spec, but it's 600+ pages that doesn't answer
-these questions...
+I don't see a mis-merge there.
+Note that the unused acpi_load_table got deleted,
+and acpi_reallocate_root_table got added in that place in the file.
+Diff isn't very smart about displaying this case --
+or did I mis-understand what you are referring to?
 
-Thanks in advance,
-Eric.
+note that the acpica branch will be re-checked in to fix some minor issues.
+so if you pulled it and you pull it again and get conflicts, throw away the previous version.
+This is the price we pay for being required to supply "clean" history to upsteam.
+
+thanks,
+-Len
+
