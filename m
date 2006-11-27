@@ -1,88 +1,162 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [Patch] Default values for asus_acpi
-Date: Mon, 27 Nov 2006 17:39:27 +0100
-Message-ID: <1164645567.4656.199.camel@queen.suse.de>
-References: <200611121422.29019.corentincj@iksaif.net>
-Reply-To: trenn@suse.de
+From: Alessandro Guido <alessandro.guido@gmail.com>
+Subject: [PATCH] acpi: add backlight support to the sony_acpi driver (v2)
+Date: Mon, 27 Nov 2006 17:43:28 +0100
+Message-ID: <20061127174328.30e8856e.alessandro.guido@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:50068 "EHLO mx2.suse.de")
-	by vger.kernel.org with ESMTP id S1758385AbWK0Qjk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Nov 2006 11:39:40 -0500
-In-Reply-To: <200611121422.29019.corentincj@iksaif.net>
+Received: from nf-out-0910.google.com ([64.233.182.187]:592 "EHLO
+	nf-out-0910.google.com") by vger.kernel.org with ESMTP
+	id S1758383AbWK0QnP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Nov 2006 11:43:15 -0500
+Received: by nf-out-0910.google.com with SMTP id o25so2292969nfa
+        for <linux-acpi@vger.kernel.org>; Mon, 27 Nov 2006 08:43:14 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: corentincj@iksaif.net
-Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net
+To: linux-kernel@vger.kernel.org
+Cc: akpm@osdl.org, linux-acpi@vger.kernel.org, len.brown@intel.com
 
-On Sun, 2006-11-12 at 14:22 +0100, Corentin CHARY wrote:
-> With the current default values, unsuported laptops usualy get a lot of "Asus 
-> ACPI: Error reading LCD status" in dmesg. And it's also a problem for apps 
-> like kmilo : http://bugs.kde.org/show_bug.cgi?id=102374 .
-> So, I think default values should be changed..
-IMO the asus_acpi module should not load at all if the model is not
-supported.
-I've posted a patch to do so a while ago.
-The main problem (beside side affects you mention above), is that there
-exist sony laptops which provide the sony ACPI device to handle things
-(not sure any more what exactly, hotkeys, ...?) and an asus ACPI device.
-There, if both modules load even worse things happen like machine
-freeze, etc....
+Enable the sony_acpi driver to use the backlight subsysyem for
+adjusting the monitor brightness. Old way of changing the brightness will be
+still available for compatibility with existing tools.
 
-The patch should have a message like: "Unsupported Asus model, pls post
-acpidump output to linux-acpi@vger.kernel.org or
-acpi4asus-user@lists.sourceforge.net to help supporting this one."
-Like that those Asus models' ACPI implementation should become much more
-robust.
+Signed-off-by: Alessandro Guido <alessandro.guido@gmail.com>
+---
 
-     Thomas
+ Kconfig     |    1 +
+ sony_acpi.c |   53 ++++++++++++++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 49 insertions(+), 5 deletions(-)
 
-> For example :
-> 
-> --- linux-2.6.19-rc5/drivers/acpi/asus_acpi.c	2006-11-08 03:24:20.000000000 
-> +0100
-> +++ asus_acpi.c	2006-11-12 14:10:03.000000000 +0100
-> @@ -141,6 +141,7 @@
->  		W3V,            //W3030V
->  		xxN,		//M2400N, M3700N, M5200N, M6800N, S1300N, S5200N
->  		//(Centrino)
-> +		DEF,            //Others ...
->  		END_MODEL
->  	} model;		//Models currently supported
->  	u16 event_count[128];	//count for each event TODO make this better
-> @@ -396,7 +397,19 @@
->  	 .brightness_set = "SPLV",
->  	 .brightness_get = "GPLV",
->  	 .display_set = "SDSP",
-> -	 .display_get = "\\ADVG"}
-> +	 .display_get = "\\ADVG"},
-> +
-> +	{
-> +	 .name = "???",
-> +	 .mt_mled = "MLED",
-> +	 .mt_wled = "WLED",
-> +	 /* lcd_switch not supported as lcd_status is needed,
-> +	    but never the same */
-> +	 .brightness_set = "SPLV",
-> +	 .brightness_get = "GPLV",
-> +	 .display_set = "SDSP",
-> +	 .display_get = "\\INFB"}, /* Most of the time, it's \\INFB */
-> +
->  };
->  
->  /* procdir we use */
-> @@ -1177,7 +1190,7 @@
->  			printk(KERN_NOTICE
->  			       "  Samsung P30 detected, supported\n");
->  		} else {
-> -			hotk->model = M2E;
-> +			hotk->model = DEF;
->  			printk(KERN_NOTICE "  unsupported model %s, trying "
->  			       "default values\n", string);
->  			printk(KERN_NOTICE
-> 
-> 
-
+Index: linux-2.6.18/drivers/acpi/Kconfig
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/Kconfig
++++ linux-2.6.18/drivers/acpi/Kconfig
+@@ -251,6 +251,7 @@ config ACPI_TOSHIBA
+ config ACPI_SONY
+ 	tristate "Sony Laptop Extras"
+ 	depends on X86 && ACPI
++	select BACKLIGHT_CLASS_DEVICE
+ 	default m
+ 	  ---help---
+ 	  This mini-driver drives the ACPI SNC device present in the
+Index: linux-2.6.18/drivers/acpi/sony_acpi.c
+===================================================================
+--- linux-2.6.18.orig/drivers/acpi/sony_acpi.c
++++ linux-2.6.18/drivers/acpi/sony_acpi.c
+@@ -27,13 +27,19 @@
+ #include <linux/moduleparam.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
++#include <linux/backlight.h>
++#include <linux/err.h>
+ #include <acpi/acpi_drivers.h>
+ #include <acpi/acpi_bus.h>
+ #include <asm/uaccess.h>
+ 
+ #define ACPI_SNC_CLASS		"sony"
+ #define ACPI_SNC_HID		"SNY5001"
+-#define ACPI_SNC_DRIVER_NAME	"ACPI Sony Notebook Control Driver v0.2"
++#define ACPI_SNC_DRIVER_NAME	"ACPI Sony Notebook Control Driver v0.3"
++
++/* the device uses 1-based values, while the backlight subsystem uses
++   0-based values */
++#define SONY_MAX_BRIGHTNESS	8
+ 
+ #define LOG_PFX			KERN_WARNING "sony_acpi: "
+ 
+@@ -49,6 +55,16 @@ MODULE_PARM_DESC(debug, "set this to 1 (
+ static acpi_handle sony_acpi_handle;
+ static struct proc_dir_entry *sony_acpi_dir;
+ 
++static int sony_backlight_update_status(struct backlight_device *bd);
++static int sony_backlight_get_brightness(struct backlight_device *bd);
++static struct backlight_device *sony_backlight_device;
++static struct backlight_properties sony_backlight_properties = {
++	.owner		= THIS_MODULE,
++	.update_status	= sony_backlight_update_status,
++	.get_brightness	= sony_backlight_get_brightness,
++	.max_brightness	= SONY_MAX_BRIGHTNESS - 1,
++};
++
+ static struct sony_acpi_value {
+ 	char			*name;	 /* name of the entry */
+ 	struct proc_dir_entry 	*proc;	 /* /proc entry */
+@@ -65,7 +81,7 @@ static struct sony_acpi_value {
+ 		.acpiget	= "GBRT",
+ 		.acpiset	= "SBRT",
+ 		.min		= 1,
+-		.max		= 8,
++		.max		= SONY_MAX_BRIGHTNESS,
+ 		.debug		= 0,
+ 	},
+ 	{
+@@ -73,7 +89,7 @@ static struct sony_acpi_value {
+ 		.acpiget	= "GPBR",
+ 		.acpiset	= "SPBR",
+ 		.min		= 1,
+-		.max		= 8,
++		.max		= SONY_MAX_BRIGHTNESS,
+ 		.debug		= 0,
+ 	},
+ 	{
+@@ -276,6 +292,7 @@ static int sony_acpi_add(struct acpi_dev
+ {
+ 	acpi_status status;
+ 	int result;
++	acpi_handle handle;
+ 	struct sony_acpi_value *item;
+ 
+ 	sony_acpi_handle = device->handle;
+@@ -303,9 +320,15 @@ static int sony_acpi_add(struct acpi_dev
+ 		}
+ 	}
+ 
+-	for (item = sony_acpi_values; item->name; ++item) {
+-		acpi_handle handle;
++	if (ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle, "GBRT", &handle))) {
++		sony_backlight_device = backlight_device_register("sony", NULL,
++					&sony_backlight_properties);
++	        if (IS_ERR(sony_backlight_device)) {
++        	        printk(LOG_PFX "unable to register backlight device\n");
++		}
++	}
+ 
++	for (item = sony_acpi_values; item->name; ++item) {
+ 		if (!debug && item->debug)
+ 			continue;
+ 
+@@ -358,6 +381,9 @@ static int sony_acpi_remove(struct acpi_
+ 	acpi_status status;
+ 	struct sony_acpi_value *item;
+ 
++	if (sony_backlight_device)
++		backlight_device_unregister(sony_backlight_device);
++
+ 	if (debug) {
+ 		status = acpi_remove_notify_handler(sony_acpi_handle,
+ 						    ACPI_DEVICE_NOTIFY,
+@@ -375,6 +401,23 @@ static int sony_acpi_remove(struct acpi_
+ 	return 0;
+ }
+ 
++static int sony_backlight_update_status(struct backlight_device *bd)
++{
++	return acpi_callsetfunc(sony_acpi_handle, "SBRT",
++				bd->props->brightness + 1,
++				NULL);
++}
++
++static int sony_backlight_get_brightness(struct backlight_device *bd)
++{
++	int value;
++
++	if (acpi_callgetfunc(sony_acpi_handle, "GBRT", &value))
++		return 0;
++	/* brightness levels are 1-based, while backlight ones are 0-based */
++	return value - 1;
++}
++
+ static struct acpi_driver sony_acpi_driver = {
+ 	.name	= ACPI_SNC_DRIVER_NAME,
+ 	.class	= ACPI_SNC_CLASS,
