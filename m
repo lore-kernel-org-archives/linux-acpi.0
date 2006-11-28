@@ -1,42 +1,47 @@
-From: =?UTF-8?Q?Miros=C5=82aw?= Majka <mirekmajka@o2.pl>
-Subject: Broken DSDT (ASUS A6Km, Sempron 3300+)
-Date: Mon, 27 Nov 2006 19:19:23 +0100
-Message-ID: <1164651563.12120.3.camel@frodo>
-Reply-To: mirekmajka@o2.pl
+From: "Yuan, Kein" <kein.yuan@intel.com>
+Subject: RE: How ACPI is actually implemented?
+Date: Tue, 28 Nov 2006 09:07:47 +0800
+Message-ID: <0E6B8CEB89DCFE40A52F80EB8F97D99D0B6104@pdsmsx413.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx10.go2.pl ([193.17.41.74]:9910 "EHLO poczta.o2.pl")
-	by vger.kernel.org with ESMTP id S1758504AbWK0SSo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Nov 2006 13:18:44 -0500
-Received: from poczta.o2.pl (mx10.go2.pl [127.0.0.1])
-	by poczta.o2.pl (Postfix) with ESMTP id 8E74A5802D
-	for <linux-acpi@vger.kernel.org>; Mon, 27 Nov 2006 19:18:43 +0100 (CET)
-Received: from bzv163.neoplus.adsl.tpnet.pl (bzv163.neoplus.adsl.tpnet.pl [83.30.67.163])
-	by poczta.o2.pl (Postfix) with ESMTP
-	for <linux-acpi@vger.kernel.org>; Mon, 27 Nov 2006 19:18:43 +0100 (CET)
+Received: from mga03.intel.com ([143.182.124.21]:11572 "EHLO mga03.intel.com")
+	by vger.kernel.org with ESMTP id S935033AbWK1BH4 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Nov 2006 20:07:56 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, Eric Benton <benton71@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-Hi,
+> eg. the SCI handler might run a GPE handler, which will run the _Lxx
+> method in AML, which might send a Notify() to an AML device object.
+> The OS might have registered a driver on that object which
+> will receive the event and do some action, such as sending an event
+> to user-space.  see button.c for an even simpler example.
 
-I've been sent to You by Ling Yu. don't know how to repair my broken
-DSDT. I've tried some of those sent to the ACPI for linux page but none
-of them works perfectly. I don't know where to send my decompiled code
-to search for some anwsers. Can I send my DSDT to You to have it
-examined and for some tips on how to fix it?
+The SCI handler, which will run a GPE handler as you said here,  Who is
+belongs to? I mean, is it part of OS? Or BIOS?  ACPI spec seems says if
+the OS is ACPI compatible and ACPI was enabled,  EC will trigger SCI,
+then handled by OS otherwise it will trigger SMI which handled by BIOS,
+is this true?
 
-Miros=B3aw Majka
+>> I read that the BIOS supplies all the ACPI tables.
+>> 3. Are they are being built in compile time (this is what I
+understand
+>> from the FAQ at Intel's website)?
 
---=20
-UNIX is like sex: If you don't know it, you don't miss is. But if you
-know it, you'll need it.
+> the ACPI tables are built by the OEM and with an ASL->AML compiler
+> and are burned into the BIOS.
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Does it means every time if need to verify the ASL is correct or not,
+you need to build the BIOS again and program the binary to FWH?   Is
+there any quicker way to do that? Or in another words, what's the normal
+way/steps to debug ASL?
+
+Thanks,
+
+Kein
