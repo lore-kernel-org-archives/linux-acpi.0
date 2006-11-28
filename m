@@ -1,105 +1,73 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: RE: acpi nic card flapping
-Date: Tue, 28 Nov 2006 13:00:50 +0100
-Message-ID: <1164715250.4656.272.camel@queen.suse.de>
-References: <000f01c71064$36a4ea20$6602a8c0@yonglaptop>
-Reply-To: trenn@suse.de
+From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Subject: Re: new pmtools available for testing
+Date: Tue, 28 Nov 2006 17:00:45 +0300
+Message-ID: <456C410D.9090201@linux.intel.com>
+References: <B28E9812BAF6E2498B7EC5C427F293A401671EDA@orsmsx415.amr.corp.intel.com>	 <1164708222.4656.203.camel@queen.suse.de>	 <456C0E5A.5090703@linux.intel.com> <1164712459.4656.253.camel@queen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.suse.de ([195.135.220.2]:57291 "EHLO mx1.suse.de")
-	by vger.kernel.org with ESMTP id S1757014AbWK1MA7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Nov 2006 07:00:59 -0500
-In-Reply-To: <000f01c71064$36a4ea20$6602a8c0@yonglaptop>
+Received: from mga07.intel.com ([143.182.124.22]:65425 "EHLO
+	azsmga101.ch.intel.com") by vger.kernel.org with ESMTP
+	id S933705AbWK1OAx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Nov 2006 09:00:53 -0500
+In-Reply-To: <1164712459.4656.253.camel@queen.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yong Lee <yonglee@telus.net>
-Cc: linux-acpi@vger.kernel.org
+To: trenn@suse.de
+Cc: "Moore, Robert" <robert.moore@intel.com>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-On Fri, 2006-11-24 at 23:34 -0800, Yong Lee wrote:
-> Hi all,
->=20
-> I=E2=80=99m hoping that someone out there can lend me a hand with a p=
-roblem that we
-> were seeing.  I=E2=80=99m not very familiar with the acpi tool so ple=
-ase bear with
-> me.
->=20
-> We had an outage where we could not ssh into our web server and we ha=
-d to do
-> a reboot from our console to get things running again.  It looks like=
- an
-> acpi problem and I=E2=80=99m trying to figure out what was going on. =
- Was ACPI going
-> crazy or was it trying to report a problem condition that we were not=
- aware
-> of.
->=20
-> What we saw in the dmesg log was this :
->=20
-> shpchp: Address64 -------- Resource unparsed
-> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=3D0x5
-> shpchp: acpi_shpchprm:   Slot sun(0) at s:b:d:f=3D0x00:04:1f:00
-> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=3D0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=3D0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=3D0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=3D0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=3D0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=3D0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=3D0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=3D0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=3D0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=3D0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=3D0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=3D0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=3D0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=3D0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=3D0x5
-> shpchp: shpc_init : shpc_cap_offset =3D=3D 0
-> shpchp: shpc_init : shpc_cap_offset =3D=3D 0
-> shpchp: shpc_init : shpc_cap_offset =3D=3D 0
-> shpchp: shpc_init : shpc_cap_offset =3D=3D 0
-> shpchp: shpc_init : shpc_cap_offset =3D=3D 0
-> shpchp: shpc_init : shpc_cap_offset =3D=3D 0
-> shpchp: shpc_init : shpc_cap_offset =3D=3D 0
-> shpchp: shpc_init : shpc_cap_offset =3D=3D 0
-> shpchp: shpc_init : shpc_cap_offset =3D=3D 0
-> shpchp: Standard Hot Plug PCI Controller Driver version: 0.4
->=20
-> During the time of the outage we saw from our router logs that the
-> connection to the server was going up and down.
->=20
-> There was a lot of other messages on the console but our sysadmin guy=
- didn=E2=80=99t
-> capture this.
-Hmm, so that may not be the root cause of your problems?
->=20
-> We=E2=80=99re running redhat linux 2.6.9-34.0.2.ELsmp on intel xeon p=
-rocessors. =20
-> We have 2 intel nic cards : Intel Corporation 82541GI/PI Gigabit Ethe=
-rnet
-> Controller (rev 05)
->=20
-> Any light you can shed on this problem would be great.  Note that whi=
-le the
-> kacpid kernel thread is running the acpid daemon was shut off during =
-this
-> incident.
-If the pci hotplug module (shpchp, difficult to spell...) really causes
-this it might be kernel or a BIOS bug. If this is a production machine
-that is already running for a while, I would not risk a BIOS update or
-waste time with kernel compilations. Best/simplest would be to remove
-the module out of /lib/modules/xy/kernel/drivers/pci/hotplug/shpchp.ko
-directory if you do not need PCI hotplug urgently.
+Thomas Renninger wrote:
+> On Tue, 2006-11-28 at 13:24 +0300, Alexey Starikovskiy wrote:
+>   
+>> Thomas Renninger wrote:
+>>     
+>>> On Mon, 2006-11-27 at 10:13 -0800, Moore, Robert wrote:
+>>>   
+>>>       
+>>>> I don't know what's going on here.
+>>>>
+>>>> I wrote acpixtract in C in order to get away from Perl and Perl issues.
+>>>>
+>>>> I certainly hope that we don't have yet another version of acpixtract.
+>>>>     
+>>>>         
+>>> Second.
+>>> Better remove this one soon. People are packing Len's pmtools. As soon
+>>> as it's spread confusion and maintenance work will grow.
+>>>   
+>>>       
+>> There was no confusion between two utilities with the same name, and now you claim to have lost between two with different names, how so?
+>>     
+> It's not the two names, it simply makes no sense to provide two
+> utilities which do the same.
+>   
+So blaim Bob for making second utility and distributing it in ACPICA.
 
-Hope that works...
+> Why do you want to do that?
+>
+> You have other params, other output, double amount of bug fixing or
+> feature enhancements work. I only see cons not one single pro argument
+> to do so.
+>
+>   
+Params are compatible with acpidump. What do you mean by "other output"?
+>> pmtools used to be complete in sense it was able to decode that was it 
+>> has produced, and it will remain complete.
+>>     
+> But why not just move/copy Robert's acpixtract, it's already well
+> tested?
+> It does not include any APCICA stuff and changing the license shouldn't
+> be a problem for you...
+>
+>   
+Writing new utility from scratch took half a day, while porting ACPICA 
+acpidump with change in license would take weeks.
+It does include ACPICA types, so it will require ACPICA headers at least.
+Also it relies on ACPICA subset of libc, so it will be pain to both 
+maintain it  and  make any improvements.
+We already tried to have acpidump utility in both ACPICA and pmtools and 
+ended with two completely different programs.
 
-      Thomas
-
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+    Alex.
