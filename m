@@ -1,55 +1,58 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: new pmtools available for testing
-Date: Tue, 28 Nov 2006 12:14:19 +0100
-Message-ID: <1164712459.4656.253.camel@queen.suse.de>
-References: <B28E9812BAF6E2498B7EC5C427F293A401671EDA@orsmsx415.amr.corp.intel.com>
-	 <1164708222.4656.203.camel@queen.suse.de>
-	 <456C0E5A.5090703@linux.intel.com>
-Reply-To: trenn@suse.de
+From: "Eric Benton" <benton71@gmail.com>
+Subject: Re: How ACPI is actually implemented?
+Date: Tue, 28 Nov 2006 13:37:15 +0200
+Message-ID: <29545330611280337s9c4ed10sb00d2ad97eac6eb@mail.gmail.com>
+References: <3E68BD4534D7FC4995E20ECE949EA0C77EA34E@pdsmsx412.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns1.suse.de ([195.135.220.2]:20928 "EHLO mx1.suse.de")
-	by vger.kernel.org with ESMTP id S935853AbWK1LOY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Nov 2006 06:14:24 -0500
-In-Reply-To: <456C0E5A.5090703@linux.intel.com>
+Received: from ug-out-1314.google.com ([66.249.92.174]:181 "EHLO
+	ug-out-1314.google.com") by vger.kernel.org with ESMTP
+	id S935871AbWK1LhR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Nov 2006 06:37:17 -0500
+Received: by ug-out-1314.google.com with SMTP id 44so1448200uga
+        for <linux-acpi@vger.kernel.org>; Tue, 28 Nov 2006 03:37:16 -0800 (PST)
+In-Reply-To: <3E68BD4534D7FC4995E20ECE949EA0C77EA34E@pdsmsx412.ccr.corp.intel.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
+To: "Wu, Cody" <cody.wu@intel.com>
+Cc: "Yuan, Kein" <kein.yuan@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Tue, 2006-11-28 at 13:24 +0300, Alexey Starikovskiy wrote:
-> Thomas Renninger wrote:
-> > On Mon, 2006-11-27 at 10:13 -0800, Moore, Robert wrote:
-> >   
-> >> I don't know what's going on here.
-> >>
-> >> I wrote acpixtract in C in order to get away from Perl and Perl issues.
-> >>
-> >> I certainly hope that we don't have yet another version of acpixtract.
-> >>     
-> > Second.
-> > Better remove this one soon. People are packing Len's pmtools. As soon
-> > as it's spread confusion and maintenance work will grow.
-> >   
-> There was no confusion between two utilities with the same name, and now you claim to have lost between two with different names, how so?
-It's not the two names, it simply makes no sense to provide two
-utilities which do the same.
+Hi All,
 
-Why do you want to do that?
 
-You have other params, other output, double amount of bug fixing or
-feature enhancements work. I only see cons not one single pro argument
-to do so.
+On 11/28/06, Wu, Cody <cody.wu@intel.com> wrote:
+> Hi Kein,
+>
+> >The SCI handler, which will run a GPE handler as you said here,  Who is
+> >belongs to? I mean, is it part of OS? Or BIOS?  ACPI spec seems says if
+> >the OS is ACPI compatible and ACPI was enabled,  EC will trigger SCI,
+> >then handled by OS otherwise it will trigger SMI which handled by BIOS,
+> >is this true?
+>
+> GPE handler is provided by Bios originally in the form of AML. Os's AcPI
+> driver will parse it and link it to SCI interrupt processing. Whether EC
+> will trigger SCI or SMI depends on how you want it to be done as well as
+> what OS you are working with. For OS supporting ACPI it will enable ACPI
+> controller on the chipset and SCI will take precedence over SMI.
+>
 
-> pmtools used to be complete in sense it was able to decode that was it 
-> has produced, and it will remain complete.
-But why not just move/copy Robert's acpixtract, it's already well
-tested?
-It does not include any APCICA stuff and changing the license shouldn't
-be a problem for you...
+If we will go back again to the GPEs, In my DSDT (Lenovo Laptop),
+under the _GPE scope, there is a method that assigns itself to the 3rd
+bit of the GPE register block. It's code is the following:
 
-   Thomas
+Method (_L03, 0, NotSerialized)
+{
+    Notify (\_SB.PCI0.USB1, 0x02)
+}
 
+Now, it tells the OSPM to notify the native device driver of the USB1
+device to Wake (0x02). But, the thing is, I didn't see in any place
+that the actual USB1 device is being associated with the 3rd bit of
+this GPE register block. Is it defined in some other ACPI table or is
+it dectated by the system platform?
+
+Thanks,
+Eric.
