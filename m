@@ -1,95 +1,125 @@
-From: "Eric Benton" <benton71@gmail.com>
-Subject: Re: How ACPI is actually implemented?
-Date: Wed, 29 Nov 2006 09:05:29 +0200
-Message-ID: <29545330611282305l37f8d59hc481173a63ff74ad@mail.gmail.com>
-References: <3E68BD4534D7FC4995E20ECE949EA0C77EA986@pdsmsx412.ccr.corp.intel.com>
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: Re: acpi nic card flapping
+Date: Wed, 29 Nov 2006 16:14:00 +0900
+Message-ID: <456D3338.6070709@jp.fujitsu.com>
+References: <000f01c71064$36a4ea20$6602a8c0@yonglaptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=windows-1252;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.173]:26052 "EHLO
-	ug-out-1314.google.com") by vger.kernel.org with ESMTP
-	id S935330AbWK2HFb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 Nov 2006 02:05:31 -0500
-Received: by ug-out-1314.google.com with SMTP id 44so1704941uga
-        for <linux-acpi@vger.kernel.org>; Tue, 28 Nov 2006 23:05:30 -0800 (PST)
-In-Reply-To: <3E68BD4534D7FC4995E20ECE949EA0C77EA986@pdsmsx412.ccr.corp.intel.com>
-Content-Disposition: inline
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:15294 "EHLO
+	fgwmail5.fujitsu.co.jp") by vger.kernel.org with ESMTP
+	id S935356AbWK2HTO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Nov 2006 02:19:14 -0500
+In-Reply-To: <000f01c71064$36a4ea20$6602a8c0@yonglaptop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Wu, Cody" <cody.wu@intel.com>
-Cc: "Yuan, Kein" <kein.yuan@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Yong Lee <yonglee@telus.net>
+Cc: linux-acpi@vger.kernel.org
 
-Thanks Cody for your replay!
-Thank you all guys!
+Hi Yong Lee,
 
-Eric.
+> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=3D0x5
 
-On 11/29/06, Wu, Cody <cody.wu@intel.com> wrote:
-> Hi Eric,
-> >But, the thing is, I didn't see in any place
-> >that the actual USB1 device is being associated with the 3rd bit of
-> >this GPE register block. Is it defined in some other ACPI table or is
-> >it dectated by the system platform?
->
-> This is made stiff in the board hardware layout especially how it
-> connects onboard USB controller to the ACPI Chipset. You can find the
-> details illustrations such as which USB port is for which bit in the ICH
-> spec.
+This message means OSHP method is not found under _SB.PCI0.PBLO. This
+message itself is harmless, I think.
 
-So does that means that the OSPM needs to
+But, IIRC, old shpchp driver had a problem that loading shpchp driver
+may cause a master-abort on some ongoing PCI cards. The root cause is
+old shpchp driver writes 0xFFFFFFFF to BARs of some ongoing PCI cards
+to know the size of resources assigned to the cards at modprobe time.
 
->
-> Best regards,
-> Cody
-> -----Original Message-----
-> From: Eric Benton [mailto:benton71@gmail.com]
-> Sent: Tuesday, November 28, 2006 7:37 PM
-> To: Wu, Cody
-> Cc: Yuan, Kein; Len Brown; linux-acpi@vger.kernel.org
-> Subject: Re: How ACPI is actually implemented?
->
-> Hi All,
->
->
-> On 11/28/06, Wu, Cody <cody.wu@intel.com> wrote:
-> > Hi Kein,
-> >
-> > >The SCI handler, which will run a GPE handler as you said here,  Who
-> is
-> > >belongs to? I mean, is it part of OS? Or BIOS?  ACPI spec seems says
-> if
-> > >the OS is ACPI compatible and ACPI was enabled,  EC will trigger SCI,
-> > >then handled by OS otherwise it will trigger SMI which handled by
-> BIOS,
-> > >is this true?
-> >
-> > GPE handler is provided by Bios originally in the form of AML. Os's
-> AcPI
-> > driver will parse it and link it to SCI interrupt processing. Whether
-> EC
-> > will trigger SCI or SMI depends on how you want it to be done as well
-> as
-> > what OS you are working with. For OS supporting ACPI it will enable
-> ACPI
-> > controller on the chipset and SCI will take precedence over SMI.
-> >
->
-> If we will go back again to the GPEs, In my DSDT (Lenovo Laptop),
-> under the _GPE scope, there is a method that assigns itself to the 3rd
-> bit of the GPE register block. It's code is the following:
->
-> Method (_L03, 0, NotSerialized)
-> {
->    Notify (\_SB.PCI0.USB1, 0x02)
-> }
->
-> Now, it tells the OSPM to notify the native device driver of the USB1
-> device to Wake (0x02). But, the thing is, I didn't see in any place
-> that the actual USB1 device is being associated with the 3rd bit of
-> this GPE register block. Is it defined in some other ACPI table or is
-> it dectated by the system platform?
->
-> Thanks,
-> Eric.
->
+I don't know this is related to your problem. But I hope this info is
+helpful for you.
+
+Thanks,
+Kenji Kaneshige
+
+
+Yong Lee wrote:
+> Hi all,
+>=20
+> I=92m hoping that someone out there can lend me a hand with a problem=
+ that we
+> were seeing.  I=92m not very familiar with the acpi tool so please be=
+ar with
+> me.
+>=20
+> We had an outage where we could not ssh into our web server and we ha=
+d to do
+> a reboot from our console to get things running again.  It looks like=
+ an
+> acpi problem and I=92m trying to figure out what was going on.  Was A=
+CPI going
+> crazy or was it trying to report a problem condition that we were not=
+ aware
+> of.
+>=20
+> What we saw in the dmesg log was this :
+>=20
+> shpchp: Address64 -------- Resource unparsed
+> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=3D0x5
+> shpchp: acpi_shpchprm:   Slot sun(0) at s:b:d:f=3D0x00:04:1f:00
+> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=3D0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=3D0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=3D0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=3D0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=3D0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=3D0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=3D0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=3D0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=3D0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=3D0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=3D0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=3D0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=3D0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=3D0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=3D0x5
+> shpchp: shpc_init : shpc_cap_offset =3D=3D 0
+> shpchp: shpc_init : shpc_cap_offset =3D=3D 0
+> shpchp: shpc_init : shpc_cap_offset =3D=3D 0
+> shpchp: shpc_init : shpc_cap_offset =3D=3D 0
+> shpchp: shpc_init : shpc_cap_offset =3D=3D 0
+> shpchp: shpc_init : shpc_cap_offset =3D=3D 0
+> shpchp: shpc_init : shpc_cap_offset =3D=3D 0
+> shpchp: shpc_init : shpc_cap_offset =3D=3D 0
+> shpchp: shpc_init : shpc_cap_offset =3D=3D 0
+> shpchp: Standard Hot Plug PCI Controller Driver version: 0.4
+>=20
+> During the time of the outage we saw from our router logs that the
+> connection to the server was going up and down.
+>=20
+> There was a lot of other messages on the console but our sysadmin guy=
+ didn=92t
+> capture this.
+>=20
+> We=92re running redhat linux 2.6.9-34.0.2.ELsmp on intel xeon process=
+ors. =20
+> We have 2 intel nic cards : Intel Corporation 82541GI/PI Gigabit Ethe=
+rnet
+> Controller (rev 05)
+>=20
+> Any light you can shed on this problem would be great.  Note that whi=
+le the
+> kacpid kernel thread is running the acpid daemon was shut off during =
+this
+> incident.
+>=20
+> Many thanks,
+> Yong.
+>=20
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
+>=20
+
+
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
