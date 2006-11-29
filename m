@@ -1,49 +1,45 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 01/21] ACPI: ibm-acpi: do not use / in driver names
-Date: Wed, 29 Nov 2006 17:08:57 +0800
-Message-ID: <1164791337.6097.15.camel@localhost.localdomain>
-References: <20061125204155.6604.35338.stgit@thorin.khazad-dum.debian.net>
-	 <20061125204216.6604.44912.stgit@thorin.khazad-dum.debian.net>
+From: Bruno Ducrot <ducrot@poupinou.org>
+Subject: Re: new pmtools available for testing
+Date: Wed, 29 Nov 2006 17:31:09 +0100
+Message-ID: <20061129163109.GN4945@poupinou.org>
+References: <B28E9812BAF6E2498B7EC5C427F293A401671EDA@orsmsx415.amr.corp.intel.com> <1164708222.4656.203.camel@queen.suse.de> <456C0E5A.5090703@linux.intel.com> <1164712459.4656.253.camel@queen.suse.de> <456C410D.9090201@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:1926 "EHLO mga01.intel.com")
-	by vger.kernel.org with ESMTP id S966428AbWK2JFV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 Nov 2006 04:05:21 -0500
-In-Reply-To: <20061125204216.6604.44912.stgit@thorin.khazad-dum.debian.net>
+Received: from poup.poupinou.org ([195.101.94.96]:57646 "EHLO
+	poup.poupinou.org") by vger.kernel.org with ESMTP id S967469AbWK2Qem
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Nov 2006 11:34:42 -0500
+Content-Disposition: inline
+In-Reply-To: <456C410D.9090201@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, len.brown@intel.com
-Cc: ibm-acpi-devel@lists.sourceforge.net, "linux-acpi@vger" <linux-acpi@vger.kernel.org>
+To: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Cc: trenn@suse.de, "Moore, Robert" <robert.moore@intel.com>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-On Sat, 2006-11-25 at 18:42 -0200, Henrique de Moraes Holschuh wrote:
-> From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+On Tue, Nov 28, 2006 at 05:00:45PM +0300, Alexey Starikovskiy wrote:
+> Writing new utility from scratch took half a day, while porting ACPICA 
+> acpidump with change in license would take weeks.
+> It does include ACPICA types, so it will require ACPICA headers at least.
+> Also it relies on ACPICA subset of libc, so it will be pain to both 
+> maintain it  and  make any improvements.
+> We already tried to have acpidump utility in both ACPICA and pmtools and 
+> ended with two completely different programs.
 > 
-> ibm-acpi uses sub-device names like ibm/hotkey, which get in the way of
-> a sysfs conversion.  Fix it to use ibm_hotkey instead.  Thanks to Zhang
-> Rui for noticing this.
-> 
-> Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-> ---
-> 
->  drivers/acpi/ibm_acpi.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
-> index 9658253..9baae34 100644
-> --- a/drivers/acpi/ibm_acpi.c
-> +++ b/drivers/acpi/ibm_acpi.c
-> @@ -1854,7 +1854,7 @@ static int __init register_driver(struct
->  	}
->  
->  	memset(ibm->driver, 0, sizeof(struct acpi_driver));
-> -	sprintf(ibm->driver->name, "%s/%s", IBM_NAME, ibm->name);
-> +	sprintf(ibm->driver->name, "%s_%s", IBM_NAME, ibm->name);
->  	ibm->driver->ids = ibm->hid;
->  	ibm->driver->ops.add = &ibm_device_add;
->  
-I think this patch should be added to ACPI sysfs patch series, as it's
-critical for ACPI sysfs conversion. We should make sure that the patches
-won't break ibm_acpi any longer. :)
+
+I don't get it.
+
+ducrot@neptune:~/packages$ cp -r acpica-unix-20060912/tools/acpixtract/ .
+ducrot@neptune:~/packages$ cd acpixtract/
+ducrot@neptune:~/packages/acpixtract$ make
+cc -Wall -O2 -D_LINUX -DACPI_APPLICATION -Wstrict-prototypes -I../../include    -c -o acpixtract.o acpixtract.c
+cc  acpixtract.o -o acpixtract
+ducrot@neptune:~/packages/acpixtract$ 
+
+How acpixtract need ACPICA specific headers?
+
+-- 
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
