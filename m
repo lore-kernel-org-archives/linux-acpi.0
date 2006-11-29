@@ -1,73 +1,82 @@
-From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-Subject: Re: new pmtools available for testing
-Date: Tue, 28 Nov 2006 17:00:45 +0300
-Message-ID: <456C410D.9090201@linux.intel.com>
-References: <B28E9812BAF6E2498B7EC5C427F293A401671EDA@orsmsx415.amr.corp.intel.com>	 <1164708222.4656.203.camel@queen.suse.de>	 <456C0E5A.5090703@linux.intel.com> <1164712459.4656.253.camel@queen.suse.de>
+From: "Wu, Cody" <cody.wu@intel.com>
+Subject: RE: How ACPI is actually implemented?
+Date: Wed, 29 Nov 2006 09:22:50 +0800
+Message-ID: <3E68BD4534D7FC4995E20ECE949EA0C77EA986@pdsmsx412.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([143.182.124.22]:65425 "EHLO
-	azsmga101.ch.intel.com") by vger.kernel.org with ESMTP
-	id S933705AbWK1OAx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Nov 2006 09:00:53 -0500
-In-Reply-To: <1164712459.4656.253.camel@queen.suse.de>
+Received: from mga01.intel.com ([192.55.52.88]:10558 "EHLO mga01.intel.com")
+	by vger.kernel.org with ESMTP id S1758599AbWK2BXv convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Nov 2006 20:23:51 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
+To: Eric Benton <benton71@gmail.com>
+Cc: "Yuan, Kein" <kein.yuan@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-Thomas Renninger wrote:
-> On Tue, 2006-11-28 at 13:24 +0300, Alexey Starikovskiy wrote:
->   
->> Thomas Renninger wrote:
->>     
->>> On Mon, 2006-11-27 at 10:13 -0800, Moore, Robert wrote:
->>>   
->>>       
->>>> I don't know what's going on here.
->>>>
->>>> I wrote acpixtract in C in order to get away from Perl and Perl issues.
->>>>
->>>> I certainly hope that we don't have yet another version of acpixtract.
->>>>     
->>>>         
->>> Second.
->>> Better remove this one soon. People are packing Len's pmtools. As soon
->>> as it's spread confusion and maintenance work will grow.
->>>   
->>>       
->> There was no confusion between two utilities with the same name, and now you claim to have lost between two with different names, how so?
->>     
-> It's not the two names, it simply makes no sense to provide two
-> utilities which do the same.
->   
-So blaim Bob for making second utility and distributing it in ACPICA.
+Hi Eric,
+>But, the thing is, I didn't see in any place
+>that the actual USB1 device is being associated with the 3rd bit of
+>this GPE register block. Is it defined in some other ACPI table or is
+>it dectated by the system platform?
 
-> Why do you want to do that?
->
-> You have other params, other output, double amount of bug fixing or
-> feature enhancements work. I only see cons not one single pro argument
-> to do so.
->
->   
-Params are compatible with acpidump. What do you mean by "other output"?
->> pmtools used to be complete in sense it was able to decode that was it 
->> has produced, and it will remain complete.
->>     
-> But why not just move/copy Robert's acpixtract, it's already well
-> tested?
-> It does not include any APCICA stuff and changing the license shouldn't
-> be a problem for you...
->
->   
-Writing new utility from scratch took half a day, while porting ACPICA 
-acpidump with change in license would take weeks.
-It does include ACPICA types, so it will require ACPICA headers at least.
-Also it relies on ACPICA subset of libc, so it will be pain to both 
-maintain it  and  make any improvements.
-We already tried to have acpidump utility in both ACPICA and pmtools and 
-ended with two completely different programs.
+This is made stiff in the board hardware layout especially how it
+connects onboard USB controller to the ACPI Chipset. You can find the
+details illustrations such as which USB port is for which bit in the ICH
+spec. 
 
-Regards,
-    Alex.
+Best regards,
+Cody
+-----Original Message-----
+From: Eric Benton [mailto:benton71@gmail.com] 
+Sent: Tuesday, November 28, 2006 7:37 PM
+To: Wu, Cody
+Cc: Yuan, Kein; Len Brown; linux-acpi@vger.kernel.org
+Subject: Re: How ACPI is actually implemented?
+
+Hi All,
+
+
+On 11/28/06, Wu, Cody <cody.wu@intel.com> wrote:
+> Hi Kein,
+>
+> >The SCI handler, which will run a GPE handler as you said here,  Who
+is
+> >belongs to? I mean, is it part of OS? Or BIOS?  ACPI spec seems says
+if
+> >the OS is ACPI compatible and ACPI was enabled,  EC will trigger SCI,
+> >then handled by OS otherwise it will trigger SMI which handled by
+BIOS,
+> >is this true?
+>
+> GPE handler is provided by Bios originally in the form of AML. Os's
+AcPI
+> driver will parse it and link it to SCI interrupt processing. Whether
+EC
+> will trigger SCI or SMI depends on how you want it to be done as well
+as
+> what OS you are working with. For OS supporting ACPI it will enable
+ACPI
+> controller on the chipset and SCI will take precedence over SMI.
+>
+
+If we will go back again to the GPEs, In my DSDT (Lenovo Laptop),
+under the _GPE scope, there is a method that assigns itself to the 3rd
+bit of the GPE register block. It's code is the following:
+
+Method (_L03, 0, NotSerialized)
+{
+    Notify (\_SB.PCI0.USB1, 0x02)
+}
+
+Now, it tells the OSPM to notify the native device driver of the USB1
+device to Wake (0x02). But, the thing is, I didn't see in any place
+that the actual USB1 device is being associated with the 3rd bit of
+this GPE register block. Is it defined in some other ACPI table or is
+it dectated by the system platform?
+
+Thanks,
+Eric.
