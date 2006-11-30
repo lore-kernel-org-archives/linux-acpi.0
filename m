@@ -1,132 +1,47 @@
-From: "Yong Lee" <yonglee@telus.net>
-Subject: RE: acpi nic card flapping
-Date: Wed, 29 Nov 2006 22:23:33 -0800
-Message-ID: <000e01c71448$1001e930$6502a8c0@ben>
-References: <456D3338.6070709@jp.fujitsu.com>
+From: Oliver Henriot <Oliver.Henriot@imag.fr>
+Subject: understanding acpi
+Date: Thu, 30 Nov 2006 11:55:16 +0100
+Message-ID: <456EB894.20306@imag.fr>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from defout.telus.net ([204.209.205.55]:60886 "EHLO defout.telus.net")
-	by vger.kernel.org with ESMTP id S1757642AbWK3GXg (ORCPT
+Received: from imag.imag.fr ([129.88.30.1]:35014 "EHLO imag.imag.fr")
+	by vger.kernel.org with ESMTP id S935663AbWK3K7O (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 30 Nov 2006 01:23:36 -0500
-In-Reply-To: <456D3338.6070709@jp.fujitsu.com>
+	Thu, 30 Nov 2006 05:59:14 -0500
+Received: from [192.168.1.101] (lns-bzn-23-82-248-109-151.adsl.proxad.net [82.248.109.151])
+	by imag.imag.fr (8.13.6/8.13.6) with ESMTP id kAUAsfPN016577
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-acpi@vger.kernel.org>; Thu, 30 Nov 2006 11:54:46 +0100 (CET)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: 'Kenji Kaneshige' <kaneshige.kenji@jp.fujitsu.com>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Thanks all for the feedback.  We're having problems with acpi turned off
-leading me to suspect that acpi may not be the issue at all.  We're doing a
-swap of the hardrive into a new identical machine to see if we can isolate
-it as a hardware problem.
+Hi all list subscribers,
 
------Original Message-----
-From: linux-acpi-owner@vger.kernel.org
-[mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Kenji Kaneshige
-Sent: Tuesday, November 28, 2006 11:14 PM
-To: Yong Lee
-Cc: linux-acpi@vger.kernel.org
-Subject: Re: acpi nic card flapping
+I'm looking for info on how acpi functions in order to get it to work 
+the best possible on my computer. It's a Sony laptop (vaio vgn-sz3xp/c, 
+core2duo) running Debian Etch. In particular, I'm looking for ways to 
+reduce thermal dissipation from the CPU as much as possible, in order to 
+queep the machine as quiet as possible. From the various docs I've read, 
+so far I seem to understand that C-states is the way to go, throttling 
+being probably not very efficient.
 
-Hi Yong Lee,
+When I'm running on batteries, C3 state is active (as shown by cat 
+/prc/acpi/processor/CPU0/power) and is the main state, whereas when I'm 
+running on mains, C3 disappears and only C1 and C2 remain.
 
-> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=0x5
+My question are : wouldn't it be better if I could use C3 even when on 
+mains. Wouldn't it be even better with C4? As suggested by "Why My Cx 
+Power State Is Not Used" I tried unloading various modules (e.g. those 
+concerning usb but I got stuck with usbcore which refused to unload 
+despite nothing usb being connected) without any success. Being 
+relatively new to GNU/Linux, I'm a bit stuck here and don't know where 
+to look or what to make of this.
 
-This message means OSHP method is not found under _SB.PCI0.PBLO. This
-message itself is harmless, I think.
+Any help would be gladly welcome.
 
-But, IIRC, old shpchp driver had a problem that loading shpchp driver
-may cause a master-abort on some ongoing PCI cards. The root cause is
-old shpchp driver writes 0xFFFFFFFF to BARs of some ongoing PCI cards
-to know the size of resources assigned to the cards at modprobe time.
+Cheers,
 
-I don't know this is related to your problem. But I hope this info is
-helpful for you.
-
-Thanks,
-Kenji Kaneshige
-
-
-Yong Lee wrote:
-> Hi all,
-> 
-> I'm hoping that someone out there can lend me a hand with a problem that
-we
-> were seeing.  I'm not very familiar with the acpi tool so please bear with
-> me.
-> 
-> We had an outage where we could not ssh into our web server and we had to
-do
-> a reboot from our console to get things running again.  It looks like an
-> acpi problem and I'm trying to figure out what was going on.  Was ACPI
-going
-> crazy or was it trying to report a problem condition that we were not
-aware
-> of.
-> 
-> What we saw in the dmesg log was this :
-> 
-> shpchp: Address64 -------- Resource unparsed
-> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=0x5
-> shpchp: acpi_shpchprm:   Slot sun(0) at s:b:d:f=0x00:04:1f:00
-> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=0x5
-> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=0x5
-> shpchp: shpc_init : shpc_cap_offset == 0
-> shpchp: shpc_init : shpc_cap_offset == 0
-> shpchp: shpc_init : shpc_cap_offset == 0
-> shpchp: shpc_init : shpc_cap_offset == 0
-> shpchp: shpc_init : shpc_cap_offset == 0
-> shpchp: shpc_init : shpc_cap_offset == 0
-> shpchp: shpc_init : shpc_cap_offset == 0
-> shpchp: shpc_init : shpc_cap_offset == 0
-> shpchp: shpc_init : shpc_cap_offset == 0
-> shpchp: Standard Hot Plug PCI Controller Driver version: 0.4
-> 
-> During the time of the outage we saw from our router logs that the
-> connection to the server was going up and down.
-> 
-> There was a lot of other messages on the console but our sysadmin guy
-didn't
-> capture this.
-> 
-> We're running redhat linux 2.6.9-34.0.2.ELsmp on intel xeon processors.  
-> We have 2 intel nic cards : Intel Corporation 82541GI/PI Gigabit Ethernet
-> Controller (rev 05)
-> 
-> Any light you can shed on this problem would be great.  Note that while
-the
-> kacpid kernel thread is running the acpid daemon was shut off during this
-> incident.
-> 
-> Many thanks,
-> Yong.
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-
-
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Oliver
