@@ -1,45 +1,132 @@
-From: Bruno Ducrot <ducrot@poupinou.org>
-Subject: Re: new pmtools available for testing
-Date: Wed, 29 Nov 2006 17:31:09 +0100
-Message-ID: <20061129163109.GN4945@poupinou.org>
-References: <B28E9812BAF6E2498B7EC5C427F293A401671EDA@orsmsx415.amr.corp.intel.com> <1164708222.4656.203.camel@queen.suse.de> <456C0E5A.5090703@linux.intel.com> <1164712459.4656.253.camel@queen.suse.de> <456C410D.9090201@linux.intel.com>
+From: "Yong Lee" <yonglee@telus.net>
+Subject: RE: acpi nic card flapping
+Date: Wed, 29 Nov 2006 22:23:33 -0800
+Message-ID: <000e01c71448$1001e930$6502a8c0@ben>
+References: <456D3338.6070709@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from poup.poupinou.org ([195.101.94.96]:57646 "EHLO
-	poup.poupinou.org") by vger.kernel.org with ESMTP id S967469AbWK2Qem
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 Nov 2006 11:34:42 -0500
-Content-Disposition: inline
-In-Reply-To: <456C410D.9090201@linux.intel.com>
+Received: from defout.telus.net ([204.209.205.55]:60886 "EHLO defout.telus.net")
+	by vger.kernel.org with ESMTP id S1757642AbWK3GXg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 30 Nov 2006 01:23:36 -0500
+In-Reply-To: <456D3338.6070709@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-Cc: trenn@suse.de, "Moore, Robert" <robert.moore@intel.com>, "Brown, Len" <len.brown@intel.com>, linux-acpi@vger.kernel.org
+To: 'Kenji Kaneshige' <kaneshige.kenji@jp.fujitsu.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Tue, Nov 28, 2006 at 05:00:45PM +0300, Alexey Starikovskiy wrote:
-> Writing new utility from scratch took half a day, while porting ACPICA 
-> acpidump with change in license would take weeks.
-> It does include ACPICA types, so it will require ACPICA headers at least.
-> Also it relies on ACPICA subset of libc, so it will be pain to both 
-> maintain it  and  make any improvements.
-> We already tried to have acpidump utility in both ACPICA and pmtools and 
-> ended with two completely different programs.
+Thanks all for the feedback.  We're having problems with acpi turned off
+leading me to suspect that acpi may not be the issue at all.  We're doing a
+swap of the hardrive into a new identical machine to see if we can isolate
+it as a hardware problem.
+
+-----Original Message-----
+From: linux-acpi-owner@vger.kernel.org
+[mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Kenji Kaneshige
+Sent: Tuesday, November 28, 2006 11:14 PM
+To: Yong Lee
+Cc: linux-acpi@vger.kernel.org
+Subject: Re: acpi nic card flapping
+
+Hi Yong Lee,
+
+> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=0x5
+
+This message means OSHP method is not found under _SB.PCI0.PBLO. This
+message itself is harmless, I think.
+
+But, IIRC, old shpchp driver had a problem that loading shpchp driver
+may cause a master-abort on some ongoing PCI cards. The root cause is
+old shpchp driver writes 0xFFFFFFFF to BARs of some ongoing PCI cards
+to know the size of resources assigned to the cards at modprobe time.
+
+I don't know this is related to your problem. But I hope this info is
+helpful for you.
+
+Thanks,
+Kenji Kaneshige
+
+
+Yong Lee wrote:
+> Hi all,
+> 
+> I'm hoping that someone out there can lend me a hand with a problem that
+we
+> were seeing.  I'm not very familiar with the acpi tool so please bear with
+> me.
+> 
+> We had an outage where we could not ssh into our web server and we had to
+do
+> a reboot from our console to get things running again.  It looks like an
+> acpi problem and I'm trying to figure out what was going on.  Was ACPI
+going
+> crazy or was it trying to report a problem condition that we were not
+aware
+> of.
+> 
+> What we saw in the dmesg log was this :
+> 
+> shpchp: Address64 -------- Resource unparsed
+> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=0x5
+> shpchp: acpi_shpchprm:   Slot sun(0) at s:b:d:f=0x00:04:1f:00
+> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.PBLO OSHP fails=0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=0x5
+> shpchp: acpi_pciehprm:\_SB_.PCI0.VPR0 OSHP fails=0x5
+> shpchp: shpc_init : shpc_cap_offset == 0
+> shpchp: shpc_init : shpc_cap_offset == 0
+> shpchp: shpc_init : shpc_cap_offset == 0
+> shpchp: shpc_init : shpc_cap_offset == 0
+> shpchp: shpc_init : shpc_cap_offset == 0
+> shpchp: shpc_init : shpc_cap_offset == 0
+> shpchp: shpc_init : shpc_cap_offset == 0
+> shpchp: shpc_init : shpc_cap_offset == 0
+> shpchp: shpc_init : shpc_cap_offset == 0
+> shpchp: Standard Hot Plug PCI Controller Driver version: 0.4
+> 
+> During the time of the outage we saw from our router logs that the
+> connection to the server was going up and down.
+> 
+> There was a lot of other messages on the console but our sysadmin guy
+didn't
+> capture this.
+> 
+> We're running redhat linux 2.6.9-34.0.2.ELsmp on intel xeon processors.  
+> We have 2 intel nic cards : Intel Corporation 82541GI/PI Gigabit Ethernet
+> Controller (rev 05)
+> 
+> Any light you can shed on this problem would be great.  Note that while
+the
+> kacpid kernel thread is running the acpid daemon was shut off during this
+> incident.
+> 
+> Many thanks,
+> Yong.
+> 
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 > 
 
-I don't get it.
 
-ducrot@neptune:~/packages$ cp -r acpica-unix-20060912/tools/acpixtract/ .
-ducrot@neptune:~/packages$ cd acpixtract/
-ducrot@neptune:~/packages/acpixtract$ make
-cc -Wall -O2 -D_LINUX -DACPI_APPLICATION -Wstrict-prototypes -I../../include    -c -o acpixtract.o acpixtract.c
-cc  acpixtract.o -o acpixtract
-ducrot@neptune:~/packages/acpixtract$ 
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-How acpixtract need ACPICA specific headers?
-
--- 
-Bruno Ducrot
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
