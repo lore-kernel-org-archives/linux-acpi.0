@@ -1,215 +1,78 @@
-From: John Keller <jpk@sgi.com>
-Subject: Re: [PATCH 3/3] - Add support for acpi_load_table/acpi_unload_table_id
-Date: Thu, 30 Nov 2006 17:04:10 -0600 (CST)
-Message-ID: <20061130230410.23614.55659.74300@attica.americas.sgi.com>
+From: Stephen Hemminger <shemminger@osdl.org>
+Subject: Re: [linux-pm] [RFC] ACPI vs device ordering on resume
+Date: Thu, 30 Nov 2006 17:48:25 -0800
+Message-ID: <20061130174825.7608c33b@localhost.localdomain>
+References: <20061114153026.730deb94@freekitty>
+	<200611150203.30965.len.brown@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from omx1-ext.sgi.com ([192.48.179.11]:33164 "EHLO omx1.sgi.com")
-	by vger.kernel.org with ESMTP id S967958AbWK3XEQ (ORCPT
+Received: from smtp.osdl.org ([65.172.181.25]:9681 "EHLO smtp.osdl.org")
+	by vger.kernel.org with ESMTP id S1749667AbWLABtR (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 30 Nov 2006 18:04:16 -0500
+	Thu, 30 Nov 2006 20:49:17 -0500
+In-Reply-To: <200611150203.30965.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: akpm@osdl.org, len.brown@intel.com, tony.luck@intel.com, linux-ia64@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, gregkh@suse.de, linux-kernel@vger.kernel.org, ayoung@sgi.com, jes@sgi.com, John Keller <jpk@sgi.com>
+To: Len Brown <lenb@kernel.org>
+Cc: len.brown@intel.com, linux-pm@lists.osdl.org, Greg KH <greg@kroah.com>, Pavel Machek <pavel@suse.cz>, Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@osdl.org>, linux-pm@osdl.org
 
+On Wed, 15 Nov 2006 02:03:30 -0500
+Len Brown <len.brown@intel.com> wrote:
 
- This patch makes acpi_load_table() available
- for use by removing it from the #ifdef ACPI_FUTURE_USAGE.
+> On Tuesday 14 November 2006 18:30, Stephen Hemminger wrote:
+> > If I do a suspend-to-ram then resume on a Sony Vaio laptop with sky2 driver,
+> > the first interrupt gets misrouted to the original shared IRQ, rather than
+> > to the MSI irq expected.
+> > 
+> > During the pci_restore process, the MSI information and the PCI command register 
+> > are restored properly. But later during resume, inside the ACPI evaluation of
+> > the WAK method, the PCI_COMMAND  INTX_DISABLE (0x400) flag is being cleared.
+> > My guess is that the BIOS ends up doing some resetting of devices.
+> > 
+> > I may be able to workaround the problem for this one device, but it brings up
+> > a more general issue about what the ordering should be during resume. If ACPI
+> > evaluation (which I assume talks to the BIOS), might change device state, it
+> > seems that ACPI code should execute before resuming devices not after. But changing
+> > the order here seems drastic.
+> > 
+> > An alternate solution would be to have two pm_ops, one for early_resume
+> > and another for late, and split the ACPI work.
+> > 
+> > --- 2.6.19-rc5.orig/kernel/power/main.c	2006-11-14 14:24:37.000000000 -0800
+> > +++ 2.6.19-rc5/kernel/power/main.c	2006-11-14 14:25:23.000000000 -0800
+> > @@ -132,12 +132,12 @@
+> >  
+> >  static void suspend_finish(suspend_state_t state)
+> >  {
+> > +	if (pm_ops && pm_ops->finish)
+> > +		pm_ops->finish(state);
+> >  	device_resume();
+> >  	resume_console();
+> >  	thaw_processes();
+> >  	enable_nonboot_cpus();
+> > -	if (pm_ops && pm_ops->finish)
+> > -		pm_ops->finish(state);
+> >  	pm_restore_console();
+> >  }
+> 
+> Yes, I agree that _WAK needs to come before device_resume().
+> Need to let any BIOS nasties happen and get over with before we restore device drivers.
+> This is consistent with the wording in ACPI 3.0b (section 7.4) that says
+> 11. _WAK is run
+> 12. OSPM notifies all native device drivefrs of the return from the sleep state transition
+> 
+> However, commit 1a38416cea8ac801ae8f261074721f35317613dc says that
+> _WAK must follow INIT -- ie finish() must come after enable_nonboot_cpus(),
+> and this patch as it stands would violate that.
+> 
+> So it looks like we need this sequence:
+> 
+> enable_nonboot_cpus() /* INIT */
+> finish()	/* _WAK */
+> device_resume()
+> 
 
- It also adds a new routine used to unload an ACPI table
- of a given type and "id" - acpi_unload_table_id().
- The implementation of this new routine was almost a direct
- copy of existing routine acpi_unload_table() - only difference
- being that it only removes a specific table id instead of
- ALL tables of a given type.
- The SN hotplug driver (sgi_hotplug.c) now uses both of these
- interfaces to dynamically load and unload SSDT ACPI tables.
-
-Signed-off-by: Aaron Young <ayoung@sgi.com>
-
----
-
-Andrew,
-  Can you take this update and replace the current version in
-  your -mm tree:
-   add-support-for-acpi_load_table-acpi_unload_table_id.patch
-
-Len,
-  What do we need to do to resolve any licensing issues related to
-  these changes?
-
-Thanks.
-
-
-Resend #2
-   Code has been improved to no longer use ACPI "internal" routines
-   (such as acpi_ns_get_next_node()). To this end, a new public interface
-   to obtain the owner_id for a handle was added (acpi_get_id()). It is
-   very similar to existing routine acpi_get_type().
-
-Resend #1
-   Original send of this patch was outdated and did not have
-   acpi_ut_acquire_mutex() and acpi_ut_release_mutex() calls
-   in acpi_unload_table_id().
-
-
- drivers/acpi/namespace/nsxfobj.c |   44 +++++++++++++++++++++++
- drivers/acpi/tables/tbxface.c    |   54 ++++++++++++++++++++++++++++-
- include/acpi/acpixf.h            |    7 ++-
- 3 files changed, 102 insertions(+), 3 deletions(-)
-
-Index: release/drivers/acpi/tables/tbxface.c
-===================================================================
---- release.orig/drivers/acpi/tables/tbxface.c	2006-11-29 14:14:23.532910707 -0600
-+++ release/drivers/acpi/tables/tbxface.c	2006-11-29 14:15:04.173937975 -0600
-@@ -123,7 +123,6 @@ acpi_status acpi_load_tables(void)
- 
- ACPI_EXPORT_SYMBOL(acpi_load_tables)
- 
--#ifdef ACPI_FUTURE_USAGE
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_load_table
-@@ -221,6 +220,59 @@ ACPI_EXPORT_SYMBOL(acpi_load_table)
- 
- /*******************************************************************************
-  *
-+ * FUNCTION:    acpi_unload_table_id
-+ *
-+ * PARAMETERS:  table_type    - Type of table to be unloaded
-+ *              id            - Owner ID of the table to be removed.
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: This routine is used to force the unload of a table (by id)
-+ *
-+ ******************************************************************************/
-+acpi_status acpi_unload_table_id(acpi_table_type table_type, acpi_owner_id id)
-+{
-+	struct acpi_table_desc *table_desc;
-+	acpi_status status;
-+
-+	ACPI_FUNCTION_TRACE(acpi_unload_table);
-+
-+	/* Parameter validation */
-+	if (table_type > ACPI_TABLE_ID_MAX)
-+		return_ACPI_STATUS(AE_BAD_PARAMETER);
-+
-+	/* Find table from the requested type list */
-+	table_desc = acpi_gbl_table_lists[table_type].next;
-+	while (table_desc && table_desc->owner_id != id)
-+		table_desc = table_desc->next;
-+
-+	if (!table_desc)
-+		return_ACPI_STATUS(AE_NOT_EXIST);
-+
-+	/*
-+	 * Delete all namespace objects owned by this table. Note that these
-+	 * objects can appear anywhere in the namespace by virtue of the AML
-+	 * "Scope" operator. Thus, we need to track ownership by an ID, not
-+	 * simply a position within the hierarchy
-+	 */
-+	acpi_ns_delete_namespace_by_owner(table_desc->owner_id);
-+
-+	status = acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
-+	if (ACPI_FAILURE(status))
-+		return_ACPI_STATUS(status);
-+
-+	(void)acpi_tb_uninstall_table(table_desc);
-+
-+	(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
-+
-+	return_ACPI_STATUS(AE_OK);
-+}
-+
-+ACPI_EXPORT_SYMBOL(acpi_unload_table_id)
-+
-+#ifdef ACPI_FUTURE_USAGE
-+/*******************************************************************************
-+ *
-  * FUNCTION:    acpi_unload_table
-  *
-  * PARAMETERS:  table_type    - Type of table to be unloaded
-Index: release/include/acpi/acpixf.h
-===================================================================
---- release.orig/include/acpi/acpixf.h	2006-11-29 14:14:23.556913676 -0600
-+++ release/include/acpi/acpixf.h	2006-11-29 14:18:55.966606388 -0600
-@@ -97,11 +97,12 @@ acpi_find_root_pointer(u32 flags, struct
- 
- acpi_status acpi_load_tables(void);
- 
--#ifdef ACPI_FUTURE_USAGE
- acpi_status acpi_load_table(struct acpi_table_header *table_ptr);
- 
--acpi_status acpi_unload_table(acpi_table_type table_type);
-+acpi_status acpi_unload_table_id(acpi_table_type table_type, acpi_owner_id id);
- 
-+#ifdef ACPI_FUTURE_USAGE
-+acpi_status acpi_unload_table(acpi_table_type table_type);
- acpi_status
- acpi_get_table_header(acpi_table_type table_type,
- 		      u32 instance, struct acpi_table_header *out_table_header);
-@@ -180,6 +181,8 @@ acpi_get_next_object(acpi_object_type ty
- 
- acpi_status acpi_get_type(acpi_handle object, acpi_object_type * out_type);
- 
-+acpi_status acpi_get_id(acpi_handle object, acpi_owner_id * out_type);
-+
- acpi_status acpi_get_parent(acpi_handle object, acpi_handle * out_handle);
- 
- /*
-Index: release/drivers/acpi/namespace/nsxfobj.c
-===================================================================
---- release.orig/drivers/acpi/namespace/nsxfobj.c	2006-11-29 14:18:31.000000000 -0600
-+++ release/drivers/acpi/namespace/nsxfobj.c	2006-11-29 14:19:18.709418875 -0600
-@@ -50,6 +50,50 @@ ACPI_MODULE_NAME("nsxfobj")
- 
- /*******************************************************************************
-  *
-+ * FUNCTION:    acpi_get_id
-+ *
-+ * PARAMETERS:  Handle          - Handle of object whose id is desired
-+ *              ret_id          - Where the id will be placed
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: This routine returns the owner id associated with a handle
-+ *
-+ ******************************************************************************/
-+acpi_status acpi_get_id(acpi_handle handle, acpi_owner_id * ret_id)
-+{
-+	struct acpi_namespace_node *node;
-+	acpi_status status;
-+
-+	/* Parameter Validation */
-+
-+	if (!ret_id) {
-+		return (AE_BAD_PARAMETER);
-+	}
-+
-+	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
-+	if (ACPI_FAILURE(status)) {
-+		return (status);
-+	}
-+
-+	/* Convert and validate the handle */
-+
-+	node = acpi_ns_map_handle_to_node(handle);
-+	if (!node) {
-+		(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
-+		return (AE_BAD_PARAMETER);
-+	}
-+
-+	*ret_id = node->owner_id;
-+
-+	status = acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
-+	return (status);
-+}
-+
-+ACPI_EXPORT_SYMBOL(acpi_get_id)
-+
-+/*******************************************************************************
-+ *
-  * FUNCTION:    acpi_get_type
-  *
-  * PARAMETERS:  Handle          - Handle of object whose type is desired
+Do you want to do this, or shall I? send off a patch.
+I can test on about 5 machines first.
