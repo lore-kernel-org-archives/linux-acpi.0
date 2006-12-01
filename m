@@ -1,32 +1,54 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] acpi: add backlight support to the sony_acpi driver (v2)
-Date: Fri, 1 Dec 2006 13:35:21 +0000
-Message-ID: <20061201133520.GC4239@ucw.cz>
-References: <20061127174328.30e8856e.alessandro.guido@gmail.com>
+From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Subject: Re: [linux-pm] [RFC] ACPI vs device ordering on resume
+Date: Fri, 01 Dec 2006 20:45:51 +0300
+Message-ID: <45706A4F.6090200@linux.intel.com>
+References: <20061114153026.730deb94@freekitty>	<200611150203.30965.len.brown@intel.com>	<Pine.LNX.4.64.0611150839040.3349@woody.osdl.org>	<20061201093301.GA1842@elf.ucw.cz> <Pine.LNX.4.64.0612010810410.3695@woody.osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:48141 "EHLO
-	spitz.ucw.cz") by vger.kernel.org with ESMTP id S936464AbWLAQUu
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 1 Dec 2006 11:20:50 -0500
-Content-Disposition: inline
-In-Reply-To: <20061127174328.30e8856e.alessandro.guido@gmail.com>
+Received: from mga06.intel.com ([134.134.136.21]:35081 "EHLO
+	orsmga101.jf.intel.com") by vger.kernel.org with ESMTP
+	id S967661AbWLARqG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 1 Dec 2006 12:46:06 -0500
+In-Reply-To: <Pine.LNX.4.64.0612010810410.3695@woody.osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alessandro Guido <alessandro.guido@gmail.com>
-Cc: linux-kernel@vger.kernel.org, akpm@osdl.org, linux-acpi@vger.kernel.org, len.brown@intel.com
+To: Linus Torvalds <torvalds@osdl.org>
+Cc: Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org, linux-pm@osdl.org, linux-pm@lists.osdl.org, Stephen Hemminger <shemminger@osdl.org>
 
-Hi!
+Linus Torvalds wrote:
+> On Fri, 1 Dec 2006, Pavel Machek wrote:
+>
+>   
+>>>> So it looks like we need this sequence:
+>>>>
+>>>> enable_nonboot_cpus() /* INIT */
+>>>> finish()	/* _WAK */
+>>>> device_resume()
+>>>>         
+>>> Can somebody remind me about this immediately after 2.6.19?
+>>>       
+>> Remind. But note that freezer is not yet SMP safe... Rafael is working
+>> on that.
+>>     
+>
+> Thanks.
+>
+> On the other hand, I really wonder (and suspect) whether the problem isn't 
+> really the freezer or even the kernel resume ordering, but simply an ACPI 
+> internal resume ordering thing.
+>
+> Doesn't ACPI have per-device "WAK" calls anyway? Shouldn't we just call 
+> those _individually_ as we walk the device tree (perhaps in the 
+> "early_resume" stage) rather than calling them all in one chunk?
+>
+> 		Linus
+>   
+_WAK method is system-wide. Individual objects do not have their own 
+resume methods.
+One way of reordering internal ACPI resume is done in patch series to 
+7122, I mentioned that earlier.
+It's possible to resume ACPI devices after execution of _WAK in pm->finish.
 
-> Enable the sony_acpi driver to use the backlight subsysyem for
-> adjusting the monitor brightness. Old way of changing the brightness will be
-> still available for compatibility with existing tools.
-> 
-> Signed-off-by: Alessandro Guido <alessandro.guido@gmail.com>
-
-Looks okay to me. We really want unified interface for backlight.
-
-							Pavel
--- 
-Thanks for all the (sleeping) penguins.
+Alex.
