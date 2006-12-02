@@ -1,34 +1,30 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] acpi: add backlight support to the sony_acpi driver (v2)
-Date: Sat, 2 Dec 2006 16:23:52 +0000
-Message-ID: <20061202162352.GD4773@ucw.cz>
-References: <20061127174328.30e8856e.alessandro.guido@gmail.com> <20061201133520.GC4239@ucw.cz> <20061201194337.GA7773@khazad-dum.debian.net>
+From: Panagiotis Papadakos <papadako@csd.uoc.gr>
+Subject: asus-acpi support for more laptops
+Date: Sat, 2 Dec 2006 23:34:48 +0200 (EET)
+Message-ID: <Pine.LNX.4.64.0612022331580.16036@localhost.csd.uoc.gr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1424120AbWLBQil@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20061201194337.GA7773@khazad-dum.debian.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, akpm@osdl.org, linux-acpi@vger.kernel.org, len.brown@intel.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from tenar.csd.uoc.gr ([147.52.16.3]:17630 "EHLO tenar.csd.uoc.gr")
+	by vger.kernel.org with ESMTP id S1162506AbWLBVef (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 Dec 2006 16:34:35 -0500
+Received: from localhost.csd.uoc.gr (peponi.csd.uoc.gr [147.52.19.13])
+	by tenar.csd.uoc.gr (8.12.11.20060308/8.12.10) with ESMTP id kB2LYken018129
+	for <linux-acpi@vger.kernel.org>; Sat, 2 Dec 2006 23:34:46 +0200 (EET)
+Received: from localhost (papadako@localhost)
+	by localhost.csd.uoc.gr (8.13.8/8.13.5/Submit) with ESMTP id kB2LYm6u016047
+	for <linux-acpi@vger.kernel.org>; Sat, 2 Dec 2006 23:34:49 +0200
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Hi!
+There was a mail posted in July with a patch adding support for more ASUS 
+laptops A6VA, M6A, M6V, W3030V, V6V and W5F but up to now only W3030V was
+added. Can anybody commit this to the git tree?
 
-> > Looks okay to me. We really want unified interface for backlight.
-> 
-> Then I request some help to get
-> http://article.gmane.org/gmane.linux.acpi.devel/19792
-> merged.
-> 
-> Without it, the backlight interface becomes annoying on laptops.  Your
-> screen will be powered off when you remove the modules providing the
-> backlight interface.  This is not consistent with the needs of laptop
-> backlight devices, or with the behaviour the drivers had before the
-> backlight sysfs support was added.
+http://www.mail-archive.com/linux-acpi@vger.kernel.org/msg02277.html
 
-Just retransmit it to akpm and list, and add acked-by headers with
-people who said patch is okay... that included me IIRC.
+P.S.
+I am not subscribed to this mailing list.
 
--- 
-Thanks for all the (sleeping) penguins.
+ 	Panagiotis Papadakos
