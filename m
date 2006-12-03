@@ -1,37 +1,54 @@
-From: Pavel Machek <pavel@suse.cz>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
 Subject: Re: 2.6.19: ACPI reports AC not present after resume from STD
-Date: Sun, 3 Dec 2006 13:11:24 +0000
-Message-ID: <20061203131124.GG4773@ucw.cz>
-References: <200612031526.00861.arvidjaar@mail.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Date: Sun, 3 Dec 2006 16:52:36 +0300
+Message-ID: <200612031652.38155.arvidjaar@mail.ru>
+References: <200612031526.00861.arvidjaar@mail.ru> <20061203131124.GG4773@ucw.cz>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:10249 "EHLO
-	spitz.ucw.cz") by vger.kernel.org with ESMTP id S1759663AbWLCNLq
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 3 Dec 2006 08:11:46 -0500
+Received: from mx3.mail.ru ([194.67.23.149]:14670 "EHLO mx3.mail.ru")
+	by vger.kernel.org with ESMTP id S1759681AbWLCNwl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Dec 2006 08:52:41 -0500
+In-Reply-To: <20061203131124.GG4773@ucw.cz>
 Content-Disposition: inline
-In-Reply-To: <200612031526.00861.arvidjaar@mail.ru>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrey Borzenkov <arvidjaar@mail.ru>
+To: Pavel Machek <pavel@suse.cz>
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi!
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> I started to notice it some time ago; I can't say exactly if this was not 
-> present in earlier versions because recently I switched from STR (which gave 
-> me no end of troubles) to STD. So I may have not seen it before.
-> 
-> Suspend to disk while on battery. Plug in AC, resume. ACPI continues to show 
-> AC adapter as not present:
-> 
-> {pts/0}% cat /proc/acpi/ac_adapter/ADP1/state
-> state:                   off-line
-> 
-> replugging AC correctly changes state to on-line.
+On Sunday 03 December 2006 16:11, Pavel Machek wrote:
+> Hi!
+>
+> > I started to notice it some time ago; I can't say exactly if this was not
+> > present in earlier versions because recently I switched from STR (which
+> > gave me no end of troubles) to STD. So I may have not seen it before.
+> >
+> > Suspend to disk while on battery. Plug in AC, resume. ACPI continues to
+> > show AC adapter as not present:
+> >
+> > {pts/0}% cat /proc/acpi/ac_adapter/ADP1/state
+> > state:                   off-line
+> >
+> > replugging AC correctly changes state to on-line.
+>
+> try echo platform > /sys/power/disk.
 
-try echo platform > /sys/power/disk.
-						Pavel
--- 
-Thanks for all the (sleeping) penguins.
+Nope.
+
+{pts/0}% pmsuspend disk
+... after resume
+{pts/0}% cat /sys/power/disk
+platform
+{pts/0}% cat /proc/acpi/ac_adapter/ADP1/state
+state:                   off-line
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (GNU/Linux)
+
+iD8DBQFFctamR6LMutpd94wRAqnCAJwKi4wXUj2FRkD2tyq+c0gqAghnrgCgyKYZ
+lep/19gowY3OTGIkpzcasfU=
+=4Cgb
+-----END PGP SIGNATURE-----
