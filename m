@@ -1,61 +1,46 @@
-From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-Subject: Re: Possible bug in ACPI
-Date: Sun, 03 Dec 2006 12:30:52 +0300
-Message-ID: <4572994C.6020603@linux.intel.com>
-References: <20060919214724.GB2073@panelnet.cz>	<20061109140416.db12bcbe.akpm@osdl.org>	<20061202205140.GA12447@panelnet.cz>	<20061202192632.d1815e5f.akpm@osdl.org>	<457293AE.2060701@linux.intel.com> <20061203021216.e15b1d5d.akpm@osdl.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: 2.6.19: ACPI reports AC not present after resume from STD
+Date: Sun, 3 Dec 2006 15:25:55 +0300
+Message-ID: <200612031526.00861.arvidjaar@mail.ru>
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:13907 "EHLO
-	fmsmga101.fm.intel.com") by vger.kernel.org with ESMTP
-	id S935778AbWLCJa4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 3 Dec 2006 04:30:56 -0500
-In-Reply-To: <20061203021216.e15b1d5d.akpm@osdl.org>
+Received: from mx5.mail.ru ([194.67.23.25]:44387 "EHLO mx5.mail.ru")
+	by vger.kernel.org with ESMTP id S1759633AbWLCM0E (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Dec 2006 07:26:04 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: Dalibor Straka <dast@panelnet.cz>, jikos@jikos.cz, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-Andrew Morton wrote:
-> On Sun, 03 Dec 2006 12:06:54 +0300
-> Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com> wrote:
->
->   
->> This is a patch reverted by Linus from rc6-git2 because it broke his 
->> Compaq n620c, it refers to #5534 bug. Basically, kacpid deadlocks on 
->> some new HP notebooks, and all incoming requests would be queued until 
->> memory is over if this patch is not applied. On a bright side -- it's 
->> not a memory leak...
->> Patch, which works for Linus laptop and "looks acceptable" to Linus is 
->> the last in #5534 list.
->>     
->
-> hm, if you say so.
-I forwarded Linus' mail to you...
->   The description in that patch is nowhere near complete
-> enough for me to be able to work out what it does.
->
->   
-Will update.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> The sys_sched_yield() is particularly incomprehensible and needs good
-> commenting.  You are, I hope, aware of the severe problems which yield()
-> causes when the system is busy?  The process which calls it will get
-> practically no CPU at all.
->
->   
-On Linus' machine, as soon as we execute deferred work, it's GPE becomes 
-enabled again and BIOS sends us a new event.
-So kacpid is always ready to run, while kacpi_notify don't have a chance 
-to run. sys_sched_yield() was added to
-give kacpi_notify a chance to run.
-I was thinking about lowering the priority of kacpid, is it better?
-> Minor point: that patch has several unneded (and undesirable) casts of void*:
->
-> +static void acpi_os_execute_notify(void *context)
-> +{
-> +	struct acpi_os_dpc *dpc = (struct acpi_os_dpc *)context;
-> 	
-> please remove those.
->   
+I started to notice it some time ago; I can't say exactly if this was not 
+present in earlier versions because recently I switched from STR (which gave 
+me no end of troubles) to STD. So I may have not seen it before.
+
+Suspend to disk while on battery. Plug in AC, resume. ACPI continues to show 
+AC adapter as not present:
+
+{pts/0}% cat /proc/acpi/ac_adapter/ADP1/state
+state:                   off-line
+
+replugging AC correctly changes state to on-line.
+
+The system is Toshiba Portege 4000; I am not sure which information may be 
+required in this case so please tell what is needed (unfortunately I will be 
+off next two weeks without access to this system).
+
+regards
+
+- -andrey
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (GNU/Linux)
+
+iD8DBQFFcsJYR6LMutpd94wRAqSeAJ4n3lHqbdvgBeXxeIc9ZUTDe/X2jgCgyfU5
+w+heEYYnA3Al/U9xHovOkQ4=
+=F+Zu
+-----END PGP SIGNATURE-----
