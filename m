@@ -1,59 +1,96 @@
-From: akpm@osdl.org
-Subject: [patch 01/13] ACPI: Clear GPE before disabling it
-Date: Mon, 04 Dec 2006 14:49:38 -0800
-Message-ID: <200612042250.kB4MokjY007352@shell0.pdx.osdl.net>
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: [patch 1/3] Make the dock station driver a platform device driver.
+Date: Mon, 4 Dec 2006 14:49:43 -0800
+Message-ID: <20061204144943.30120719.kristen.c.accardi@intel.com>
+References: <20061204224037.713257809@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:50234 "EHLO smtp.osdl.org"
+Received: from mga02.intel.com ([134.134.136.20]:21763 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759784AbWLDWvh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 4 Dec 2006 17:51:37 -0500
+	id S967711AbWLDWvw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 4 Dec 2006 17:51:52 -0500
+In-Reply-To: <20061204224037.713257809@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, william.morrow@amd.com, jordan.crouse@amd.com, len.brown@intel.com, luming.yu@intel.com, robert.moore@intel.com
+To: len.brown@intel.com
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-From: William Morrow <william.morrow@amd.com>
+Make the dock station driver a platform device driver so that
+we can create sysfs entries under /sys/device/platform.
 
-On some BIOSen, the GPE bit will remain set even if it is disabled,
-resulting in a interrupt storm.  This patch clears the bit before disabling
-it.
-
-Signed-off-by: William Morrow <william.morrow@amd.com>
-Signed-off-by: Jordan Crouse <jordan.crouse@amd.com>
-Cc: "Yu, Luming" <luming.yu@intel.com>
-Cc: "Brown, Len" <len.brown@intel.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 ---
+ drivers/acpi/dock.c |   22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
 
- drivers/acpi/events/evgpe.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
-
-diff -puN drivers/acpi/events/evgpe.c~acpi-clear-gpe-before-disabling-it drivers/acpi/events/evgpe.c
---- a/drivers/acpi/events/evgpe.c~acpi-clear-gpe-before-disabling-it
-+++ a/drivers/acpi/events/evgpe.c
-@@ -677,10 +677,22 @@ acpi_ev_gpe_dispatch(struct acpi_gpe_eve
- 	case ACPI_GPE_DISPATCH_METHOD:
+--- kristen-2.6.orig/drivers/acpi/dock.c
++++ kristen-2.6/drivers/acpi/dock.c
+@@ -27,6 +27,7 @@
+ #include <linux/init.h>
+ #include <linux/types.h>
+ #include <linux/notifier.h>
++#include <linux/platform_device.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
  
- 		/*
--		 * Disable GPE, so it doesn't keep firing before the method has a
-+		 * Clear GPE, so it doesn't keep firing before the method has a
- 		 * chance to run.
- 		 */
-+		status = acpi_hw_clear_gpe(gpe_event_info);
-+		if (ACPI_FAILURE(status)) {
-+			ACPI_EXCEPTION((AE_INFO, status,
-+					"Unable to clear GPE[%2X]",
-+					gpe_number));
-+			return_UINT32(ACPI_INTERRUPT_NOT_HANDLED);
-+		}
-+		/*
-+		 * Disable GPE, so it doesn't keep happen again.
-+		 */
+@@ -38,6 +39,8 @@ MODULE_DESCRIPTION(ACPI_DOCK_DRIVER_NAME
+ MODULE_LICENSE("GPL");
+ 
+ static struct atomic_notifier_head dock_notifier_list;
++static struct platform_device dock_device;
++static char dock_device_name[] = "dock";
+ 
+ struct dock_station {
+ 	acpi_handle handle;
+@@ -628,6 +631,15 @@ static int dock_add(acpi_handle handle)
+ 	spin_lock_init(&dock_station->hp_lock);
+ 	ATOMIC_INIT_NOTIFIER_HEAD(&dock_notifier_list);
+ 
++	/* initialize platform device stuff */
++	dock_device.name = dock_device_name;
++	ret = platform_device_register(&dock_device);
++	if (ret) {
++		printk(KERN_ERR PREFIX "Error registering dock device\n", ret);
++		kfree(dock_station);
++		return ret;
++	}
 +
- 		status = acpi_ev_disable_gpe(gpe_event_info);
+ 	/* Find dependent devices */
+ 	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
+ 			    ACPI_UINT32_MAX, find_dock_devices, dock_station,
+@@ -637,7 +649,8 @@ static int dock_add(acpi_handle handle)
+ 	dd = alloc_dock_dependent_device(handle);
+ 	if (!dd) {
+ 		kfree(dock_station);
+-		return -ENOMEM;
++		ret = -ENOMEM;
++		goto dock_add_err_unregister;
+ 	}
+ 	add_dock_dependent_device(dock_station, dd);
+ 
+@@ -657,8 +670,10 @@ static int dock_add(acpi_handle handle)
+ 	return 0;
+ 
+ dock_add_err:
+-	kfree(dock_station);
+ 	kfree(dd);
++dock_add_err_unregister:
++	platform_device_unregister(&dock_device);
++	kfree(dock_station);
+ 	return ret;
+ }
+ 
+@@ -685,6 +700,9 @@ static int dock_remove(void)
+ 	if (ACPI_FAILURE(status))
+ 		printk(KERN_ERR "Error removing notify handler\n");
+ 
++	/* cleanup sysfs */
++	platform_device_unregister(&dock_device);
 +
- 		if (ACPI_FAILURE(status)) {
- 			ACPI_EXCEPTION((AE_INFO, status,
- 					"Unable to disable GPE[%2X]",
-_
+ 	/* free dock station memory */
+ 	kfree(dock_station);
+ 	return 0;
+
+--
