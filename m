@@ -1,52 +1,45 @@
-From: Stephen Clark <Stephen.Clark@seclark.us>
-Subject: Re: Error calling BSTS
-Date: Tue, 05 Dec 2006 12:13:49 -0500
-Message-ID: <4575A8CD.2070602@seclark.us>
-References: <4570BECB.5050502@seclark.us> <200612041856.48871.corentincj@iksaif.net> <4574CE67.2000302@seclark.us> <200612050804.44486.corentincj@iksaif.net>
-Reply-To: Stephen.Clark@seclark.us
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: pci_enable_device() and pci=routeirq
+Date: Tue, 5 Dec 2006 10:58:19 -0700
+Message-ID: <200612051058.19960.bjorn.helgaas@hp.com>
+References: <20061202150530.GA5159@grok.co.za> <200612041420.12741.bjorn.helgaas@hp.com> <20061205045050.GA14444@grok.co.za>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpout06-01.prod.mesa1.secureserver.net ([64.202.165.224]:44472
-	"HELO smtpout06-04.prod.mesa1.secureserver.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S968459AbWLEROA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 Dec 2006 12:14:00 -0500
-In-Reply-To: <200612050804.44486.corentincj@iksaif.net>
+Received: from atlrel8.hp.com ([156.153.255.206]:45097 "EHLO atlrel8.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S968546AbWLER60 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Dec 2006 12:58:26 -0500
+In-Reply-To: <20061205045050.GA14444@grok.co.za>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: corentincj@iksaif.net
+To: Thomas Andrews <tandrews@grok.co.za>
 Cc: linux-acpi@vger.kernel.org
 
-Corentin CHARY wrote:
+On Monday 04 December 2006 21:50, Thomas Andrews wrote:
+> On Mon, Dec 04, 2006 at 02:20:12PM -0700, Bjorn Helgaas wrote:
+> > Can you post the entire dmesg log with and without "pci=routeirq"?
+> 
+> And here it is with "pci=routeirq":
 
->>ACPI: AC Adapter [AC0] (on-line)
->>Asus Laptop ACPI Extras version 0.31b2
->>  Error calling BSTS
->>  Z96F model detected, supported
->>    
->>
->
->The Error is "normal" .. It will be fixed ...
->Now files is /proc/acpi/asus/ should work (and maybe /sys/class/backlight/ if 
->you kernel support it).
->  
->
+I think this is a BIOS bug.  Are there any updates available?
 
-I don't see a /sys/class/backlight - so it must not be configured in the 
-kernel.
+My guess is that 0000:00:0a.0[A] is really connected to LNKC,
+and the BIOS writer forgot to tell us that.
 
-Thanks,
-Steve
+Without "pci=routeirq", we leave LNKC disabled.  With
+"pci=routeirq", we enable LNKC at IRQ 10 for 0000:00:0e.0[A]
+even though you don't have a driver for the 0000:00:0e.0 device,
+and I think this makes the 0000:00:0a.0[A] interrupt work as
+a side-effect.
 
--- 
+If you load a driver for the firewire device at 0000:00:0e.0,
+that should enable LNKC, and I bet that will make your qozap
+driver start working.
 
-"They that give up essential liberty to obtain temporary safety, 
-deserve neither liberty nor safety."  (Ben Franklin)
+Let me know what you find.
 
-"The course of history shows that as a government grows, liberty 
-decreases."  (Thomas Jefferson)
-
-
-
+Bjorn
