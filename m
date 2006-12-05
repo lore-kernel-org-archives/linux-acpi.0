@@ -1,193 +1,88 @@
-From: "Chen, Justin" <justin.chen@hp.com>
-Subject: [PATCH] ACPI: Recode the acpi_get_pci_rootbridge_handle() to boot faster
-Date: Mon, 4 Dec 2006 18:53:11 -0600
-Message-ID: <BD66F1A3AD5256419EBBAAA492578482E224D5@G3W0068.americas.hpqcorp.net>
+From: Stephen Clark <Stephen.Clark@seclark.us>
+Subject: Re: Error calling BSTS
+Date: Mon, 04 Dec 2006 20:41:59 -0500
+Message-ID: <4574CE67.2000302@seclark.us>
+References: <4570BECB.5050502@seclark.us> <200612020827.56692.corentincj@iksaif.net> <4571925C.3090204@seclark.us> <200612041856.48871.corentincj@iksaif.net>
+Reply-To: Stephen.Clark@seclark.us
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ccerelbas02.cce.hp.com ([161.114.21.105]:41176 "EHLO
-	ccerelbas02.cce.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967930AbWLEAxN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Dec 2006 19:53:13 -0500
-Content-class: urn:content-classes:message
+Received: from smtpout09-04.prod.mesa1.secureserver.net ([64.202.165.17]:37848
+	"HELO smtpout09-04.prod.mesa1.secureserver.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S968004AbWLEBmA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Dec 2006 20:42:00 -0500
+In-Reply-To: <200612041856.48871.corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org, "Helgaas, Bjorn" <bjorn.helgaas@hp.com>, Matthew Wilcox <matthew@wil.cx>
+To: corentincj@iksaif.net
+Cc: linux-acpi@vger.kernel.org
 
-This patch, on top of 2.6.19, is to recode the
-acpi_get_pci_rootbridge_handle().  Move this routine from the glue.c to
-pci_root.c and get the root bridge acpi handles by searching the
-&acpi_pci_roots list instead of walking through the ACPI name space.
-This change saves significant boot time if trying to boot on a large IO
-systems.
+Corentin CHARY wrote:
 
-Signed-off-by: Justin Chen <justin.chen@hp.com>
+>Le samedi 2 d=E9cembre 2006 15:49, Stephen Clark a =E9crit :
+> =20
+>
+>>Corentin CHARY wrote:
+>>   =20
+>>
+>>>Le samedi 2 d=E9cembre 2006 00:46, Stephen Clark a =E9crit :
+>>>     =20
+>>>
+>>>>Asus Laptop ACPI Extras version 0.30
+>>>> Error calling BSTS
+>>>> unsupported model Z96F, trying default values
+>>>> send /proc/acpi/dsdt to the developers
+>>>>       =20
+>>>>
+>>>Please send /proc/acpi/dsdt, not dmidecode output :)
+>>>cat /proc/acpi/dsdt > /tmp/dsdt
+>>>     =20
+>>>
+>>Ok here it is as a DSDT binary blob.
+>>
+>>Thanks,
+>>Steve
+>>   =20
+>>
+>Can you try the current cvs version of asus_acpi ?
+>http://acpi4asus.sourceforge.net/
+>
+> =20
+>
+Hi Corentin,
 
-------------------------------------------------------------------------
---------------------------
-diff -Nru a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
---- a/drivers/acpi/pci_root.c	2006-11-29 13:57:37.000000000 -0800
-+++ b/drivers/acpi/pci_root.c	2006-12-04 14:41:14.551395167 -0800
-@@ -116,6 +116,19 @@
- 
- EXPORT_SYMBOL(acpi_pci_unregister_driver);
- 
-+acpi_handle acpi_get_pci_rootbridge_handle(unsigned int seg, unsigned
-int bus)
-+{
-+	struct acpi_pci_root *tmp;
-+	
-+	list_for_each_entry(tmp, &acpi_pci_roots, node) {
-+		if ((tmp->id.segment == (u16) seg) && (tmp->id.bus ==
-(u16) bus))
-+			return tmp->device->handle;
-+	}
-+	return NULL;		
-+}
-+
-+EXPORT_SYMBOL_GPL(acpi_get_pci_rootbridge_handle);
-+
- static acpi_status
- get_root_bridge_busnr_callback(struct acpi_resource *resource, void
-*data)
- {
-diff -Nru a/drivers/acpi/glue.c b/drivers/acpi/glue.c
---- a/drivers/acpi/glue.c	2006-12-04 14:42:53.067995523 -0800
-+++ b/drivers/acpi/glue.c	2006-12-04 14:44:42.723267617 -0800
-@@ -86,125 +86,6 @@
- 	return ret;
- }
- 
--/* Get PCI root bridge's handle from its segment and bus number */
--struct acpi_find_pci_root {
--	unsigned int seg;
--	unsigned int bus;
--	acpi_handle handle;
--};
+Here is the dmesg output now - looks good except for the Error call BST=
+S=20
+whatever that is.
+
+ACPI: AC Adapter [AC0] (on-line)
+Asus Laptop ACPI Extras version 0.31b2
+  Error calling BSTS
+  Z96F model detected, supported
+ACPI: Battery Slot [BAT0] (battery present)
+ACPI: Power Button (FF) [PWRF]
+ACPI: Lid Switch [LID]
+ACPI: Sleep Button (CM) [SLPB]
+ACPI: Power Button (CM) [PWRB]
+ibm_acpi: ec object not found
+ACPI: Video Device [VGA] (multi-head: yes  rom: no  post: no)
+
+Thanks,
+Steve
+--=20
+
+"They that give up essential liberty to obtain temporary safety,=20
+deserve neither liberty nor safety."  (Ben Franklin)
+
+"The course of history shows that as a government grows, liberty=20
+decreases."  (Thomas Jefferson)
+
+
+
 -
--static acpi_status
--do_root_bridge_busnr_callback(struct acpi_resource *resource, void
-*data)
--{
--	unsigned long *busnr = (unsigned long *)data;
--	struct acpi_resource_address64 address;
--
--	if (resource->type != ACPI_RESOURCE_TYPE_ADDRESS16 &&
--	    resource->type != ACPI_RESOURCE_TYPE_ADDRESS32 &&
--	    resource->type != ACPI_RESOURCE_TYPE_ADDRESS64)
--		return AE_OK;
--
--	acpi_resource_to_address64(resource, &address);
--	if ((address.address_length > 0) &&
--	    (address.resource_type == ACPI_BUS_NUMBER_RANGE))
--		*busnr = address.minimum;
--
--	return AE_OK;
--}
--
--static int get_root_bridge_busnr(acpi_handle handle)
--{
--	acpi_status status;
--	unsigned long bus, bbn;
--	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
--
--	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
--
--	status = acpi_evaluate_integer(handle, METHOD_NAME__BBN, NULL,
--				       &bbn);
--	if (status == AE_NOT_FOUND) {
--		/* Assume bus = 0 */
--		printk(KERN_INFO PREFIX
--		       "Assume root bridge [%s] bus is 0\n",
--		       (char *)buffer.pointer);
--		status = AE_OK;
--		bbn = 0;
--	}
--	if (ACPI_FAILURE(status)) {
--		bbn = -ENODEV;
--		goto exit;
--	}
--	if (bbn > 0)
--		goto exit;
--
--	/* _BBN in some systems return 0 for all root bridges */
--	bus = -1;
--	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
--				     do_root_bridge_busnr_callback,
-&bus);
--	/* If _CRS failed, we just use _BBN */
--	if (ACPI_FAILURE(status) || (bus == -1))
--		goto exit;
--	/* We select _CRS */
--	if (bbn != bus) {
--		printk(KERN_INFO PREFIX
--		       "_BBN and _CRS returns different value for %s.
-Select _CRS\n",
--		       (char *)buffer.pointer);
--		bbn = bus;
--	}
--      exit:
--	kfree(buffer.pointer);
--	return (int)bbn;
--}
--
--static acpi_status
--find_pci_rootbridge(acpi_handle handle, u32 lvl, void *context, void
-**rv)
--{
--	struct acpi_find_pci_root *find = (struct acpi_find_pci_root
-*)context;
--	unsigned long seg, bus;
--	acpi_status status;
--	int tmp;
--	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
--
--	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
--
--	status = acpi_evaluate_integer(handle, METHOD_NAME__SEG, NULL,
-&seg);
--	if (status == AE_NOT_FOUND) {
--		/* Assume seg = 0 */
--		status = AE_OK;
--		seg = 0;
--	}
--	if (ACPI_FAILURE(status)) {
--		status = AE_CTRL_DEPTH;
--		goto exit;
--	}
--
--	tmp = get_root_bridge_busnr(handle);
--	if (tmp < 0) {
--		printk(KERN_ERR PREFIX
--		       "Find root bridge failed for %s\n",
--		       (char *)buffer.pointer);
--		status = AE_CTRL_DEPTH;
--		goto exit;
--	}
--	bus = tmp;
--
--	if (seg == find->seg && bus == find->bus)
--		find->handle = handle;
--	status = AE_OK;
--      exit:
--	kfree(buffer.pointer);
--	return status;
--}
--
--acpi_handle acpi_get_pci_rootbridge_handle(unsigned int seg, unsigned
-int bus)
--{
--	struct acpi_find_pci_root find = { seg, bus, NULL };
--
--	acpi_get_devices(PCI_ROOT_HID_STRING, find_pci_rootbridge,
-&find, NULL);
--	return find.handle;
--}
--EXPORT_SYMBOL_GPL(acpi_get_pci_rootbridge_handle);
--
- /* Get device's handler per its address under its parent */
- struct acpi_find_child {
- 	acpi_handle handle;
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
