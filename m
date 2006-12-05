@@ -1,15 +1,15 @@
 From: Thomas Andrews <tandrews@grok.co.za>
 Subject: Re: pci_enable_device() and pci=routeirq
-Date: Tue, 5 Dec 2006 06:39:50 +0200
-Message-ID: <20061205043950.GA14299@grok.co.za>
+Date: Tue, 5 Dec 2006 06:50:50 +0200
+Message-ID: <20061205045050.GA14444@grok.co.za>
 References: <20061202150530.GA5159@grok.co.za> <200612041049.00690.bjorn.helgaas@hp.com> <4574770B.80009@grok.co.za> <200612041420.12741.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.grok.org.za ([196.1.58.22]:2985 "EHLO mail.grok.org.za"
+Received: from mail.grok.org.za ([196.1.58.22]:3160 "EHLO mail.grok.org.za"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S968339AbWLEEkb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 4 Dec 2006 23:40:31 -0500
+	id S968349AbWLEEva (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 4 Dec 2006 23:51:30 -0500
 Content-Disposition: inline
 In-Reply-To: <200612041420.12741.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -43,7 +43,7 @@ On Mon, Dec 04, 2006 at 02:20:12PM -0700, Bjorn Helgaas wrote:
 > 
 > Can you post the entire dmesg log with and without "pci=routeirq"?
 
-OK, here it is:
+And here it is with "pci=routeirq":
 
 
 Linux version 2.6.17.7-elf (tandrews@zorg.nextlink.co.za) (gcc version 3.3.6 (Debian 1:3.3.6-13)) #12 Tue Nov 28 09:13:40 SAST 2006
@@ -67,18 +67,18 @@ ACPI: DSDT (v001 AMDGX3 AWRDACPI 0x00001000 MSFT 0x0100000e) @ 0x00000000
 ACPI: PM-Timer IO Port: 0x9c10
 Allocating PCI resources starting at 10000000 (gap: 06fc0000:f9030000)
 Built 1 zonelists
-Kernel command line: root=/dev/hdb1 idebus=33 console=ttyS0,38400
+Kernel command line: root=/dev/hdb1 idebus=33 console=ttyS0,38400 pci=routeirq
 ide_setup: idebus=33
 Initializing CPU#0
 PID hash table entries: 512 (order: 9, 2048 bytes)
-Detected 501.231 MHz processor.
+Detected 501.186 MHz processor.
 Using pmtmr for high-res timesource
 Console: colour VGA+ 80x25
 Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
 Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
 Memory: 110728k/114368k available (1333k kernel code, 3180k reserved, 538k data, 116k init, 0k highmem)
 Checking if this processor honours the WP bit even in supervisor mode... Ok.
-Calibrating delay using timer specific routine.. 1003.98 BogoMIPS (lpj=2007972)
+Calibrating delay using timer specific routine.. 1003.98 BogoMIPS (lpj=2007969)
 Mount-cache hash table entries: 512
 CPU: After generic identify, caps: 0088a93d c0c0a13d 00000000 00000000 00000000 00000000 00000000
 CPU: After vendor identify, caps: 0088a93d c0c0a13d 00000000 00000000 00000000 00000000 00000000
@@ -107,7 +107,24 @@ ACPI: PCI Interrupt Link [LNKB] (IRQs 5 10 *11)
 ACPI: PCI Interrupt Link [LNKC] (IRQs 5 10 11) *0
 ACPI: PCI Interrupt Link [LNKD] (IRQs 5 10 11) *0
 PCI: Using ACPI for IRQ routing
-PCI: If a device doesn't work, try "pci=routeirq".  If it helps, post a report
+PCI: Routing PCI interrupts for all devices because "pci=routeirq" specified
+ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 5
+PCI: setting IRQ 5 as level-triggered
+ACPI: PCI Interrupt 0000:00:01.1[A] -> Link [LNKA] -> GSI 5 (level, low) -> IRQ 5
+ACPI: PCI Interrupt 0000:00:01.2[A] -> Link [LNKA] -> GSI 5 (level, low) -> IRQ 5
+ACPI: PCI Interrupt 0000:00:0a.0[A]: no GSI - using IRQ 10
+PCI: setting IRQ 10 as level-triggered
+ACPI: PCI Interrupt Link [LNKD] BIOS reported IRQ 0, using IRQ 11
+ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 11
+PCI: setting IRQ 11 as level-triggered
+ACPI: PCI Interrupt 0000:00:0b.0[A] -> Link [LNKD] -> GSI 11 (level, low) -> IRQ 11
+ACPI: PCI Interrupt Link [LNKC] BIOS reported IRQ 0, using IRQ 10
+ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 10
+ACPI: PCI Interrupt 0000:00:0e.0[A] -> Link [LNKC] -> GSI 10 (level, low) -> IRQ 10
+ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 11
+ACPI: PCI Interrupt 0000:00:0f.3[B] -> Link [LNKB] -> GSI 11 (level, low) -> IRQ 11
+ACPI: PCI Interrupt 0000:00:0f.4[D] -> Link [LNKD] -> GSI 11 (level, low) -> IRQ 11
+ACPI: PCI Interrupt 0000:00:0f.5[D] -> Link [LNKD] -> GSI 11 (level, low) -> IRQ 11
 PCI: Ignore bogus resource 6 [0:0] of 0000:00:01.1
 NET: Registered protocol family 2
 IP route cache hash table entries: 1024 (order: 0, 4096 bytes)
@@ -130,9 +147,6 @@ serial8250: ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
 tun: Universal TUN/TAP device driver, 1.6
 tun: (C) 1999-2004 Max Krasnyansky <maxk@qualcomm.com>
 r8169 Gigabit Ethernet driver 2.2LK loaded
-ACPI: PCI Interrupt Link [LNKD] BIOS reported IRQ 0, using IRQ 11
-ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 11
-PCI: setting IRQ 11 as level-triggered
 ACPI: PCI Interrupt 0000:00:0b.0[A] -> Link [LNKD] -> GSI 11 (level, low) -> IRQ 11
 eth0: Identified chip type is 'RTL8169s/8110s'.
 eth0: RTL8169 at 0xc7806000, 00:03:1d:03:7b:12, IRQ 11
@@ -169,18 +183,16 @@ spurious 8259A interrupt: IRQ7.
 EXT3 FS on hdb1, internal journal
 r8169: eth0: link up
 
---- modules loaded manually here ---
+ --- modules loaded manually here ---
 
 Axon registration driver (v0.01) Copyright (C) 2006 Thomas Andrews 
 Zapata Telephony Interface Registered on major 196
 Zaptel Version: 1.2.6 Echo Canceller: KB1
 qozap: no version for "zt_receive" found: kernel tainted.
 ACPI: PCI Interrupt 0000:00:0a.0[A]: no GSI - using IRQ 10
-PCI: setting IRQ 10 as level-triggered
 qozap: CologneChip HFC-4S evaluation board configured at io port 0xff00 IRQ 10 HZ 250
 qozap: S/T ports: 4 [ TE TE TE TE ]
 qozap: 1 multiBRI card(s) in this box, 4 BRI ports total, bloop 0, pcmslave 0.
-
 
 Many thanks,
 Thomas
