@@ -1,188 +1,124 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH] ACPI: Recode the acpi_get_pci_rootbridge_handle() to boot faster
-Date: Wed, 6 Dec 2006 10:17:10 -0700
-Message-ID: <200612061017.10405.bjorn.helgaas@hp.com>
-References: <BD66F1A3AD5256419EBBAAA492578482E224D5@G3W0068.americas.hpqcorp.net>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: Display class
+Date: Wed, 6 Dec 2006 10:14:34 -0800
+Message-ID: <20061206101434.8acb229a.randy.dunlap@oracle.com>
+References: <Pine.LNX.4.64.0611141939050.6957@pentafluge.infradead.org>
+	<653402b90611141426y6db15a3bh8ea59f89c8f1bb39@mail.gmail.com>
+	<Pine.LNX.4.64.0611150052180.13800@pentafluge.infradead.org>
+	<Pine.LNX.4.64.0612051740250.2925@pentafluge.infradead.org>
+	<20061205171401.fd11160d.randy.dunlap@oracle.com>
+	<Pine.LNX.4.64.0612061443180.28745@pentafluge.infradead.org>
+Reply-To: linux-fbdev-devel@lists.sourceforge.net
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel7.hp.com ([156.153.255.213]:33355 "EHLO atlrel7.hp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S936857AbWLFRRT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 Dec 2006 12:17:19 -0500
-In-Reply-To: <BD66F1A3AD5256419EBBAAA492578482E224D5@G3W0068.americas.hpqcorp.net>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-fbdev-devel-bounces@lists.sourceforge.net>
+In-Reply-To: <Pine.LNX.4.64.0612061443180.28745@pentafluge.infradead.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-fbdev-devel>,
+	<mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-fbdev-devel>
+List-Post: <mailto:linux-fbdev-devel@lists.sourceforge.net>
+List-Help: <mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-fbdev-devel>,
+	<mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=subscribe>
+Sender: linux-fbdev-devel-bounces@lists.sourceforge.net
+Errors-To: linux-fbdev-devel-bounces@lists.sourceforge.net
+To: James Simmons <jsimmons@infradead.org>
+Cc: Linux Fbdev development list <linux-fbdev-devel@lists.sourceforge.net>, Miguel Ojeda <maxextreme@gmail.com>, kernel-discuss@handhelds.org, Luming Yu <Luming.yu@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Andrew Zabolotny <zap@homelink.ru>
 List-Id: linux-acpi@vger.kernel.org
-To: "Chen, Justin" <justin.chen@hp.com>
-Cc: len.brown@intel.com, linux-acpi@vger.kernel.org, Matthew Wilcox <matthew@wil.cx>, "Li, Shaohua" <shaohua.li@intel.com>
 
-Here's a non-line-wrapped version.  Justin sent this yesterday
-but it didn't make it to the list for some reason, so I'm
-trying again.
+On Wed, 6 Dec 2006 15:10:44 +0000 (GMT) James Simmons wrote:
 
+> 
+> > > of Mr. Yu for acpi. Also this class could in time replace the lcd class 
+> > > located in the backlight directory since a lcd is a type of display.
+> > > The final hope is that the purpose auxdisplay could fall under this 
+> > > catergory.
+> > > 
+> > > P.S
+> > >    I know the edid parsing would have to be pulled out of the fbdev layer.
+> 
+> That patch was rought draft for feedback. I applied your comments. This 
+> patch actually works. It includes my backlight fix as well.
 
+Glad to hear it.  I had to make the following changes
+in order for it to build.
+However, I still have build errors for aty.
 
+---
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Move acpi_get_pci_rootbridge_handle() from glue.c to pci_root.c and get the
-root bridge acpi handles by searching the &acpi_pci_roots list instead of
-walking through the ACPI name space.  This significantly reduces boot time
-on large I/O systems.
+Replace CONFIG_FB_BACKLIGHT with CONFIG_BACKLIGHT_CLASS_DEVICE
+in include/linux/fb.h and drivers/video/fbsysfs.c
+to match Kconfig changes.
 
-Signed-off-by: Justin Chen <justin.chen@hp.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+---
+ drivers/video/fbsysfs.c |    8 ++++----
+ include/linux/fb.h      |    4 ++--
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -Nru a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
---- a/drivers/acpi/pci_root.c	2006-11-29 13:57:37.000000000 -0800
-+++ b/drivers/acpi/pci_root.c	2006-12-04 14:41:14.551395167 -0800
-@@ -116,6 +116,19 @@
+--- linux-2.6.19-git7.orig/include/linux/fb.h
++++ linux-2.6.19-git7/include/linux/fb.h
+@@ -367,7 +367,7 @@ struct fb_cursor {
+ 	struct fb_image	image;	/* Cursor image */
+ };
  
- EXPORT_SYMBOL(acpi_pci_unregister_driver);
+-#ifdef CONFIG_FB_BACKLIGHT
++#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE
+ /* Settings for the generic backlight code */
+ #define FB_BACKLIGHT_LEVELS	128
+ #define FB_BACKLIGHT_MAX	0xFF
+@@ -759,7 +759,7 @@ struct fb_info {
+ 	struct list_head modelist;      /* mode list */
+ 	struct fb_videomode *mode;	/* current mode */
  
-+acpi_handle acpi_get_pci_rootbridge_handle(unsigned int seg, unsigned int bus)
-+{
-+	struct acpi_pci_root *tmp;
-+	
-+	list_for_each_entry(tmp, &acpi_pci_roots, node) {
-+		if ((tmp->id.segment == (u16) seg) && (tmp->id.bus == (u16) bus))
-+			return tmp->device->handle;
-+	}
-+	return NULL;		
-+}
-+
-+EXPORT_SYMBOL_GPL(acpi_get_pci_rootbridge_handle);
-+
- static acpi_status
- get_root_bridge_busnr_callback(struct acpi_resource *resource, void *data)
- {
-diff -Nru a/drivers/acpi/glue.c b/drivers/acpi/glue.c
---- a/drivers/acpi/glue.c	2006-12-04 14:42:53.067995523 -0800
-+++ b/drivers/acpi/glue.c	2006-12-04 14:44:42.723267617 -0800
-@@ -86,125 +86,6 @@
- 	return ret;
+-#ifdef CONFIG_FB_BACKLIGHT
++#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE
+ 	/* Lock ordering:
+ 	 * bl_mutex (protects bl_dev and bl_curve)
+ 	 *   bl_dev->sem (backlight class)
+--- linux-2.6.19-git7.orig/drivers/video/fbsysfs.c
++++ linux-2.6.19-git7/drivers/video/fbsysfs.c
+@@ -58,7 +58,7 @@ struct fb_info *framebuffer_alloc(size_t
+ 
+ 	info->device = dev;
+ 
+-#ifdef CONFIG_FB_BACKLIGHT
++#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE
+ 	mutex_init(&info->bl_mutex);
+ #endif
+ 
+@@ -411,7 +411,7 @@ static ssize_t show_fbstate(struct devic
+ 	return snprintf(buf, PAGE_SIZE, "%d\n", fb_info->state);
  }
  
--/* Get PCI root bridge's handle from its segment and bus number */
--struct acpi_find_pci_root {
--	unsigned int seg;
--	unsigned int bus;
--	acpi_handle handle;
--};
--
--static acpi_status
--do_root_bridge_busnr_callback(struct acpi_resource *resource, void *data)
--{
--	unsigned long *busnr = (unsigned long *)data;
--	struct acpi_resource_address64 address;
--
--	if (resource->type != ACPI_RESOURCE_TYPE_ADDRESS16 &&
--	    resource->type != ACPI_RESOURCE_TYPE_ADDRESS32 &&
--	    resource->type != ACPI_RESOURCE_TYPE_ADDRESS64)
--		return AE_OK;
--
--	acpi_resource_to_address64(resource, &address);
--	if ((address.address_length > 0) &&
--	    (address.resource_type == ACPI_BUS_NUMBER_RANGE))
--		*busnr = address.minimum;
--
--	return AE_OK;
--}
--
--static int get_root_bridge_busnr(acpi_handle handle)
--{
--	acpi_status status;
--	unsigned long bus, bbn;
--	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
--
--	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
--
--	status = acpi_evaluate_integer(handle, METHOD_NAME__BBN, NULL,
--				       &bbn);
--	if (status == AE_NOT_FOUND) {
--		/* Assume bus = 0 */
--		printk(KERN_INFO PREFIX
--		       "Assume root bridge [%s] bus is 0\n",
--		       (char *)buffer.pointer);
--		status = AE_OK;
--		bbn = 0;
--	}
--	if (ACPI_FAILURE(status)) {
--		bbn = -ENODEV;
--		goto exit;
--	}
--	if (bbn > 0)
--		goto exit;
--
--	/* _BBN in some systems return 0 for all root bridges */
--	bus = -1;
--	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
--				     do_root_bridge_busnr_callback, &bus);
--	/* If _CRS failed, we just use _BBN */
--	if (ACPI_FAILURE(status) || (bus == -1))
--		goto exit;
--	/* We select _CRS */
--	if (bbn != bus) {
--		printk(KERN_INFO PREFIX
--		       "_BBN and _CRS returns different value for %s. Select _CRS\n",
--		       (char *)buffer.pointer);
--		bbn = bus;
--	}
--      exit:
--	kfree(buffer.pointer);
--	return (int)bbn;
--}
--
--static acpi_status
--find_pci_rootbridge(acpi_handle handle, u32 lvl, void *context, void **rv)
--{
--	struct acpi_find_pci_root *find = (struct acpi_find_pci_root *)context;
--	unsigned long seg, bus;
--	acpi_status status;
--	int tmp;
--	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
--
--	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
--
--	status = acpi_evaluate_integer(handle, METHOD_NAME__SEG, NULL, &seg);
--	if (status == AE_NOT_FOUND) {
--		/* Assume seg = 0 */
--		status = AE_OK;
--		seg = 0;
--	}
--	if (ACPI_FAILURE(status)) {
--		status = AE_CTRL_DEPTH;
--		goto exit;
--	}
--
--	tmp = get_root_bridge_busnr(handle);
--	if (tmp < 0) {
--		printk(KERN_ERR PREFIX
--		       "Find root bridge failed for %s\n",
--		       (char *)buffer.pointer);
--		status = AE_CTRL_DEPTH;
--		goto exit;
--	}
--	bus = tmp;
--
--	if (seg == find->seg && bus == find->bus)
--		find->handle = handle;
--	status = AE_OK;
--      exit:
--	kfree(buffer.pointer);
--	return status;
--}
--
--acpi_handle acpi_get_pci_rootbridge_handle(unsigned int seg, unsigned int bus)
--{
--	struct acpi_find_pci_root find = { seg, bus, NULL };
--
--	acpi_get_devices(PCI_ROOT_HID_STRING, find_pci_rootbridge, &find, NULL);
--	return find.handle;
--}
--EXPORT_SYMBOL_GPL(acpi_get_pci_rootbridge_handle);
--
- /* Get device's handler per its address under its parent */
- struct acpi_find_child {
- 	acpi_handle handle;
+-#ifdef CONFIG_FB_BACKLIGHT
++#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE
+ static ssize_t store_bl_curve(struct device *device,
+ 			      struct device_attribute *attr,
+ 			      const char *buf, size_t count)
+@@ -500,7 +500,7 @@ static struct device_attribute device_at
+ 	__ATTR(stride, S_IRUGO, show_stride, NULL),
+ 	__ATTR(rotate, S_IRUGO|S_IWUSR, show_rotate, store_rotate),
+ 	__ATTR(state, S_IRUGO|S_IWUSR, show_fbstate, store_fbstate),
+-#ifdef CONFIG_FB_BACKLIGHT
++#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE
+ 	__ATTR(bl_curve, S_IRUGO|S_IWUSR, show_bl_curve, store_bl_curve),
+ #endif
+ };
+@@ -541,7 +541,7 @@ void fb_cleanup_device(struct fb_info *f
+ 	}
+ }
+ 
+-#ifdef CONFIG_FB_BACKLIGHT
++#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE
+ /* This function generates a linear backlight curve
+  *
+  *     0: off
 
+-------------------------------------------------------------------------
+Take Surveys. Earn Cash. Influence the Future of IT
+Join SourceForge.net's Techsay panel and you'll get the chance to share your
+opinions on IT & business topics through brief surveys - and earn cash
+http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
