@@ -1,51 +1,66 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] acpi: add backlight support to the sony_acpi driver (v2)
-Date: Wed, 6 Dec 2006 19:54:04 +0100
-Message-ID: <20061206185404.GA3230@atrey.karlin.mff.cuni.cz>
-References: <20061127174328.30e8856e.alessandro.guido@gmail.com> <20061201133520.GC4239@ucw.cz> <20061201194337.GA7773@khazad-dum.debian.net> <20061202162352.GD4773@ucw.cz> <Pine.LNX.4.64.0612061525140.28745@pentafluge.infradead.org>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: Display class
+Date: Wed, 6 Dec 2006 10:57:24 -0800
+Message-ID: <20061206105724.cf7b39bc.randy.dunlap@oracle.com>
+References: <Pine.LNX.4.64.0611141939050.6957@pentafluge.infradead.org>
+	<653402b90611141426y6db15a3bh8ea59f89c8f1bb39@mail.gmail.com>
+	<Pine.LNX.4.64.0611150052180.13800@pentafluge.infradead.org>
+	<Pine.LNX.4.64.0612051740250.2925@pentafluge.infradead.org>
+	<20061205171401.fd11160d.randy.dunlap@oracle.com>
+	<Pine.LNX.4.64.0612061443180.28745@pentafluge.infradead.org>
+	<20061206101434.8acb229a.randy.dunlap@oracle.com>
+	<Pine.LNX.4.64.0612061818540.28745@pentafluge.infradead.org>
+Reply-To: linux-fbdev-devel@lists.sourceforge.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:60446 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S937105AbWLFSyE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Dec 2006 13:54:04 -0500
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0612061525140.28745@pentafluge.infradead.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-fbdev-devel-bounces@lists.sourceforge.net>
+In-Reply-To: <Pine.LNX.4.64.0612061818540.28745@pentafluge.infradead.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-fbdev-devel>,
+	<mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-fbdev-devel>
+List-Post: <mailto:linux-fbdev-devel@lists.sourceforge.net>
+List-Help: <mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-fbdev-devel>,
+	<mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=subscribe>
+Sender: linux-fbdev-devel-bounces@lists.sourceforge.net
+Errors-To: linux-fbdev-devel-bounces@lists.sourceforge.net
 To: James Simmons <jsimmons@infradead.org>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, akpm@osdl.org, linux-acpi@vger.kernel.org, len.brown@intel.com
+Cc: Linux Fbdev development list <linux-fbdev-devel@lists.sourceforge.net>, Miguel Ojeda <maxextreme@gmail.com>, kernel-discuss@handhelds.org, Luming Yu <Luming.yu@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Andrew Zabolotny <zap@homelink.ru>
+List-Id: linux-acpi@vger.kernel.org
 
+On Wed, 6 Dec 2006 18:24:08 +0000 (GMT) James Simmons wrote:
 
-Please don't top-post...
-
-> Its nice to see acpi moving to the backlight api. Will acpi also move to 
-> hwmon and led class support ?
-
-It would be nice... ACPI does not drive many leds ... usually ... but
-creating battery API based on hwmon and moving ACPI battery support to
-that API would certainly be nice... and I believe it is ongoing work.
-								Pavel
-
-> > Hi!
+> 
+> > > That patch was rought draft for feedback. I applied your comments. This 
+> > > patch actually works. It includes my backlight fix as well.
 > > 
-> > > > Looks okay to me. We really want unified interface for backlight.
-> > > 
-> > > Then I request some help to get
-> > > http://article.gmane.org/gmane.linux.acpi.devel/19792
-> > > merged.
-> > > 
-> > > Without it, the backlight interface becomes annoying on laptops.  Your
-> > > screen will be powered off when you remove the modules providing the
-> > > backlight interface.  This is not consistent with the needs of laptop
-> > > backlight devices, or with the behaviour the drivers had before the
-> > > backlight sysfs support was added.
-> > 
-> > Just retransmit it to akpm and list, and add acked-by headers with
-> > people who said patch is okay... that included me IIRC.
-> > 
-> > 
+> > Glad to hear it.  I had to make the following changes
+> > in order for it to build.
+> > However, I still have build errors for aty.
+> 
+> Ug. I see another problem. I had backlight completly compiled as a 
+> module! Thus it hid these compile errors. So we need also a 
+> CONFIG_BACKLIGHT_CLASS_DEVICE_MODULE check as well. Can sysfs handle this 
+> well or would it be better the the backlight class be a boolean instead?
 
--- 
-Thanks, Sharp!
+SCSI works as a module and it uses sysfs.
+See drivers/scsi/scsi_sysfs.c.
+Does that answer your question?  I wasn't quite sure what
+the question was.
+
+Next question, based on:
+drivers/built-in.o: In function `probe_edid':
+(.text.probe_edid+0x42): undefined reference to `fb_edid_to_monspecs'
+
+Should backlight and/or display support depend on
+CONFIG_FB?  Right now they don't, so the above can happen...
+
+---
+~Randy
+
+-------------------------------------------------------------------------
+Take Surveys. Earn Cash. Influence the Future of IT
+Join SourceForge.net's Techsay panel and you'll get the chance to share your
+opinions on IT & business topics through brief surveys - and earn cash
+http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
