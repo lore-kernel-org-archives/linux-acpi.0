@@ -1,110 +1,51 @@
-From: James Simmons <jsimmons@infradead.org>
-Subject: Re: Display class
-Date: Wed, 6 Dec 2006 18:24:08 +0000 (GMT)
-Message-ID: <Pine.LNX.4.64.0612061818540.28745@pentafluge.infradead.org>
-References: <Pine.LNX.4.64.0611141939050.6957@pentafluge.infradead.org>
- <653402b90611141426y6db15a3bh8ea59f89c8f1bb39@mail.gmail.com>
- <Pine.LNX.4.64.0611150052180.13800@pentafluge.infradead.org>
- <Pine.LNX.4.64.0612051740250.2925@pentafluge.infradead.org>
- <20061205171401.fd11160d.randy.dunlap@oracle.com>
- <Pine.LNX.4.64.0612061443180.28745@pentafluge.infradead.org>
- <20061206101434.8acb229a.randy.dunlap@oracle.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] acpi: add backlight support to the sony_acpi driver (v2)
+Date: Wed, 6 Dec 2006 19:54:04 +0100
+Message-ID: <20061206185404.GA3230@atrey.karlin.mff.cuni.cz>
+References: <20061127174328.30e8856e.alessandro.guido@gmail.com> <20061201133520.GC4239@ucw.cz> <20061201194337.GA7773@khazad-dum.debian.net> <20061202162352.GD4773@ucw.cz> <Pine.LNX.4.64.0612061525140.28745@pentafluge.infradead.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pentafluge.infradead.org ([213.146.154.40]:35116 "EHLO
-	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S937006AbWLFSYM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Dec 2006 13:24:12 -0500
-In-Reply-To: <20061206101434.8acb229a.randy.dunlap@oracle.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.31.123]:60446 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S937105AbWLFSyE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Dec 2006 13:54:04 -0500
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0612061525140.28745@pentafluge.infradead.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Miguel Ojeda <maxextreme@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Fbdev development list <linux-fbdev-devel@lists.sourceforge.net>, Luming Yu <Luming.yu@intel.com>, Andrew Zabolotny <zap@homelink.ru>, linux-acpi@vger.kernel.org, kernel-discuss@handhelds.org
+To: James Simmons <jsimmons@infradead.org>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, akpm@osdl.org, linux-acpi@vger.kernel.org, len.brown@intel.com
 
 
-> > That patch was rought draft for feedback. I applied your comments. This 
-> > patch actually works. It includes my backlight fix as well.
-> 
-> Glad to hear it.  I had to make the following changes
-> in order for it to build.
-> However, I still have build errors for aty.
+Please don't top-post...
 
-Ug. I see another problem. I had backlight completly compiled as a 
-module! Thus it hid these compile errors. So we need also a 
-CONFIG_BACKLIGHT_CLASS_DEVICE_MODULE check as well. Can sysfs handle this 
-well or would it be better the the backlight class be a boolean instead?
+> Its nice to see acpi moving to the backlight api. Will acpi also move to 
+> hwmon and led class support ?
 
- 
-> ---
-> From: Randy Dunlap <randy.dunlap@oracle.com>
-> 
-> Replace CONFIG_FB_BACKLIGHT with CONFIG_BACKLIGHT_CLASS_DEVICE
-> in include/linux/fb.h and drivers/video/fbsysfs.c
-> to match Kconfig changes.
-> 
-> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-> ---
->  drivers/video/fbsysfs.c |    8 ++++----
->  include/linux/fb.h      |    4 ++--
->  2 files changed, 6 insertions(+), 6 deletions(-)
-> 
-> --- linux-2.6.19-git7.orig/include/linux/fb.h
-> +++ linux-2.6.19-git7/include/linux/fb.h
-> @@ -367,7 +367,7 @@ struct fb_cursor {
->  	struct fb_image	image;	/* Cursor image */
->  };
->  
-> -#ifdef CONFIG_FB_BACKLIGHT
-> +#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE
->  /* Settings for the generic backlight code */
->  #define FB_BACKLIGHT_LEVELS	128
->  #define FB_BACKLIGHT_MAX	0xFF
-> @@ -759,7 +759,7 @@ struct fb_info {
->  	struct list_head modelist;      /* mode list */
->  	struct fb_videomode *mode;	/* current mode */
->  
-> -#ifdef CONFIG_FB_BACKLIGHT
-> +#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE
->  	/* Lock ordering:
->  	 * bl_mutex (protects bl_dev and bl_curve)
->  	 *   bl_dev->sem (backlight class)
-> --- linux-2.6.19-git7.orig/drivers/video/fbsysfs.c
-> +++ linux-2.6.19-git7/drivers/video/fbsysfs.c
-> @@ -58,7 +58,7 @@ struct fb_info *framebuffer_alloc(size_t
->  
->  	info->device = dev;
->  
-> -#ifdef CONFIG_FB_BACKLIGHT
-> +#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE
->  	mutex_init(&info->bl_mutex);
->  #endif
->  
-> @@ -411,7 +411,7 @@ static ssize_t show_fbstate(struct devic
->  	return snprintf(buf, PAGE_SIZE, "%d\n", fb_info->state);
->  }
->  
-> -#ifdef CONFIG_FB_BACKLIGHT
-> +#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE
->  static ssize_t store_bl_curve(struct device *device,
->  			      struct device_attribute *attr,
->  			      const char *buf, size_t count)
-> @@ -500,7 +500,7 @@ static struct device_attribute device_at
->  	__ATTR(stride, S_IRUGO, show_stride, NULL),
->  	__ATTR(rotate, S_IRUGO|S_IWUSR, show_rotate, store_rotate),
->  	__ATTR(state, S_IRUGO|S_IWUSR, show_fbstate, store_fbstate),
-> -#ifdef CONFIG_FB_BACKLIGHT
-> +#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE
->  	__ATTR(bl_curve, S_IRUGO|S_IWUSR, show_bl_curve, store_bl_curve),
->  #endif
->  };
-> @@ -541,7 +541,7 @@ void fb_cleanup_device(struct fb_info *f
->  	}
->  }
->  
-> -#ifdef CONFIG_FB_BACKLIGHT
-> +#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE
->  /* This function generates a linear backlight curve
->   *
->   *     0: off
-> 
+It would be nice... ACPI does not drive many leds ... usually ... but
+creating battery API based on hwmon and moving ACPI battery support to
+that API would certainly be nice... and I believe it is ongoing work.
+								Pavel
+
+> > Hi!
+> > 
+> > > > Looks okay to me. We really want unified interface for backlight.
+> > > 
+> > > Then I request some help to get
+> > > http://article.gmane.org/gmane.linux.acpi.devel/19792
+> > > merged.
+> > > 
+> > > Without it, the backlight interface becomes annoying on laptops.  Your
+> > > screen will be powered off when you remove the modules providing the
+> > > backlight interface.  This is not consistent with the needs of laptop
+> > > backlight devices, or with the behaviour the drivers had before the
+> > > backlight sysfs support was added.
+> > 
+> > Just retransmit it to akpm and list, and add acked-by headers with
+> > people who said patch is okay... that included me IIRC.
+> > 
+> > 
+
+-- 
+Thanks, Sharp!
