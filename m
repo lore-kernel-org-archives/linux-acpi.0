@@ -1,69 +1,50 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 3/14] ACPI: add device_driver and hepler functions
-Date: Thu, 07 Dec 2006 20:56:23 +0800
-Message-ID: <1165496183.11485.77.camel@localhost.localdomain>
+Subject: [PATCH 6/14] ACPI: adjust init order
+Date: Thu, 07 Dec 2006 20:56:34 +0800
+Message-ID: <1165496194.11485.80.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:13048 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:39031 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1032168AbWLGMwR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Dec 2006 07:52:17 -0500
+	id S1032174AbWLGMw2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Dec 2006 07:52:28 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
 Cc: "linux-acpi@vger" <linux-acpi@vger.kernel.org>
 
-From: Patrick Mochel <mochel@linux.intel.com>
+From: Li Shaohua <shaohua.li@intel.com>
 
-Add device_driver into acpi_driver for driver model.
-Add helper functions 'to_acpi_device' and 'to_acpi_driver'
-to get structure acpi_device/acpi_driver by device/device_driver.
+Adjust link order to add ACPI devices to global list before PCI devices.
+In addition, acpi_bus type must be initialized before any driver loads.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/scan.c     |    5 -----
- include/acpi/acpi_bus.h |    3 +++
- 2 files changed, 3 insertions(+), 5 deletions(-)
+ drivers/acpi/Makefile |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 1f75ba6..5b42948 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -222,11 +222,6 @@ acpi_eject_store(struct acpi_device *dev
- /* --------------------------------------------------------------------------
- 			ACPI Bus operations
-    -------------------------------------------------------------------------- */
--static inline struct acpi_device * to_acpi_device(struct device * dev)
--{
--	return container_of(dev, struct acpi_device, dev);
--}
--
- static int root_suspend(struct acpi_device * acpi_dev, pm_message_t state)
- {
- 	struct acpi_device * dev, * next;
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index f338e40..5282fe7 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -136,6 +136,7 @@ struct acpi_driver {
- 	atomic_t references;
- 	char *ids;		/* Supported Hardware IDs */
- 	struct acpi_device_ops ops;
-+	struct device_driver drv;
- };
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index bce7ca2..a749510 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -37,6 +37,7 @@ endif
  
- /*
-@@ -301,6 +302,8 @@ struct acpi_device {
- };
- 
- #define acpi_driver_data(d)	((d)->driver_data)
-+#define to_acpi_device(d)	container_of(d, struct acpi_device, dev)
-+#define to_acpi_driver(d)	container_of(d, struct acpi_driver, drv)
- 
- /*
-  * Events
+ obj-y				+= sleep/
+ obj-y				+= bus.o glue.o
++obj-y				+= scan.o motherboard.o
+ obj-$(CONFIG_ACPI_AC) 		+= ac.o
+ obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
+ obj-$(CONFIG_ACPI_BUTTON)	+= button.o
+@@ -56,7 +57,6 @@ obj-$(CONFIG_ACPI_NUMA)		+= numa.o
+ obj-$(CONFIG_ACPI_ASUS)		+= asus_acpi.o
+ obj-$(CONFIG_ACPI_IBM)		+= ibm_acpi.o
+ obj-$(CONFIG_ACPI_TOSHIBA)	+= toshiba_acpi.o
+-obj-y				+= scan.o motherboard.o
+ obj-$(CONFIG_ACPI_HOTPLUG_MEMORY)	+= acpi_memhotplug.o
+ obj-y				+= cm_sbs.o
+ obj-$(CONFIG_ACPI_SBS)		+= i2c_ec.o sbs.o
 -- 
 1.4.4.g59427
