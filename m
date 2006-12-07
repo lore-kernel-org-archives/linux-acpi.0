@@ -1,45 +1,37 @@
-From: Miroslav Ruda <ruda@ics.muni.cz>
-Subject: suspend to RAM on lifebook 7110
-Date: Thu, 7 Dec 2006 23:18:31 +0100
-Message-ID: <20061207221831.GA31419@erebor.ics.muni.cz>
+From: Len Brown <len.brown@intel.com>
+Subject: Re: [patch 0/3] Dock patches
+Date: Thu, 7 Dec 2006 17:50:23 -0500
+Message-ID: <200612071750.24523.len.brown@intel.com>
+References: <20061204144930.ee923959.kristen.c.accardi@intel.com>
+Reply-To: Len Brown <lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tirith.ics.muni.cz ([147.251.4.36]:41153 "EHLO
-	tirith.ics.muni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1163511AbWLGWSj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Dec 2006 17:18:39 -0500
+Received: from hera.kernel.org ([140.211.167.34]:57750 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1163470AbWLGWrW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Dec 2006 17:47:22 -0500
+In-Reply-To: <20061204144930.ee923959.kristen.c.accardi@intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: seife@suse.de
-Cc: linux-acpi@vger.kernel.org
+To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi,
+On Monday 04 December 2006 17:49, Kristen Carlson Accardi wrote:
+> Hi Len,
+> Here are a set of patches for the dock station driver (drivers/acpi/dock).
+> One makes the dock station driver also a platform driver.  The second
+> adds sysfs entries which will be created under /sys/devices/platform/dock.0
+> to allow the user to read the status of the dock station (1 for docked, 0
+> undocked) and to initiate an undock request via software by writing to
+> the "undock" entry.  The third patch fixes a bug that would prevent
+> acpiphp from loading if the dock station was not able to load (on systems
+> with no _DCK in the dsdt).
 
- I'm installing opensuse 10.2 on Fujitsu Siemens Lifebook 7110 (intel
-dual core, intel 965 chipset, intel 945 graphics chipset ...).
-Most of hardware works fine, but I have some problems with suspend to
-ram - suspend/resume using s2ram works fine, but display remains nearly 
-black. I can see very hardly what's on display, but machine including
-network works fine.
+1,2,3 applied.
 
-I have tested s2ram on Suse 2.6.18.2-23-default or vanila 2.6.19+swsusp2
-with the same problems.
-
-s2ram -i returns
-This machine can be identified by:
-    sys_vendor   = "FUJITSU SIEMENS"
-    sys_product  = "LIFEBOOK S7110"
-    sys_version  = " "
-    bios_version = "Version 1.18 "
-
-s2ram -f -a[0123] gives the same result, -s -p combinations doesn't work
-too. Switching back to text console doesn't help. Using xset dpms force
-off doesn't help too. The same problem I have both on text console and
-using Xserver.
-
-Do you have any idea what may be wrong? 
-
--- 
-                  Mirek Ruda 
+thanks,
+-Len
