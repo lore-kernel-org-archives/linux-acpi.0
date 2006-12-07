@@ -1,15 +1,15 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 4/14] ACPI: add ACPI bus_type for driver model
-Date: Thu, 07 Dec 2006 20:56:27 +0800
-Message-ID: <1165496187.11485.78.camel@localhost.localdomain>
+Subject: [PATCH 7/14] ACPI: convert to sysfs framework
+Date: Thu, 07 Dec 2006 20:56:38 +0800
+Message-ID: <1165496198.11485.81.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga01.intel.com ([192.55.52.88]:39031 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1032171AbWLGMwY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Dec 2006 07:52:24 -0500
+	id S1032175AbWLGMwc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Dec 2006 07:52:32 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
@@ -17,354 +17,388 @@ Cc: "linux-acpi@vger" <linux-acpi@vger.kernel.org>
 
 From: Patrick Mochel <mochel@linux.intel.com>
 
-Add ACPI bus_type for Linux driver model.
+Setup new sysfs framework
 
-1.	.shutdown method is added into acpi_driver.ops
-	needed by bus_type operations.
-2.	remove useless parameter 'int state' in .resume method.
-3.	change parameter 'int state'
-	to 'pm_message_t state' in .suspend method.
+1.	Remove /sys/firmware/acpi
+2.	Add ACPI device in device tree.
 
-Note:	The new .uevent method mark ACPI drivers by PNPID instead of by name.
-	Udev script needs to look for "HWID=" or "COMPTID=" to load
-	ACPI drivers as a result.
+File "eject" for every device that has _EJ0 method is moved from
+/sys/firmware to /sys/devices.
+Operation on this file is exactly the same as before.
+i.e. echo 1 to "eject" will cause hot removal of this device.
+Corresponding changes should be made in userspace for hot removal.
 
 Signed-off-by: Li Shaohua <shaohua.li@intel.com>
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Zhang Rui<rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/battery.c  |    4 -
- drivers/acpi/fan.c      |    8 +-
- drivers/acpi/scan.c     |  158 +++++++++++++++++++++++++++---------------------
- drivers/acpi/thermal.c  |    4 -
- include/acpi/acpi_bus.h |    9 +-
- 5 files changed, 105 insertions(+), 78 deletions(-)
+ drivers/acpi/bus.c            |    2 +-
+ drivers/acpi/container.c      |    6 +-
+ drivers/acpi/processor_core.c |    8 +-
+ drivers/acpi/scan.c           |  187 +++++++++--------------------------------
+ include/acpi/acpi_bus.h       |    1 -
+ 5 files changed, 49 insertions(+), 155 deletions(-)
 
-Index: linux-2.6.19/drivers/acpi/fan.c
-===================================================================
---- linux-2.6.19.orig/drivers/acpi/fan.c	2006-12-01 15:18:30.000000000 +0800
-+++ linux-2.6.19/drivers/acpi/fan.c	2006-12-01 15:18:34.000000000 +0800
-@@ -48,8 +48,8 @@ MODULE_LICENSE("GPL");
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 279c4ba..da471f6 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -195,7 +195,7 @@ int acpi_bus_set_power(acpi_handle handl
  
- static int acpi_fan_add(struct acpi_device *device);
- static int acpi_fan_remove(struct acpi_device *device, int type);
--static int acpi_fan_suspend(struct acpi_device *device, int state);
--static int acpi_fan_resume(struct acpi_device *device, int state);
-+static int acpi_fan_suspend(struct acpi_device *device, pm_message_t state);
-+static int acpi_fan_resume(struct acpi_device *device);
+ 	if (!device->flags.power_manageable) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device `[%s]' is not power manageable\n",
+-				device->kobj.name));
++				device->dev.kobj.name));
+ 		return -ENODEV;
+ 	}
+ 	/*
+diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
+index 871aa52..914f56a 100644
+--- a/drivers/acpi/container.c
++++ b/drivers/acpi/container.c
+@@ -168,7 +168,7 @@ static void container_notify_cb(acpi_han
+ 			if (ACPI_FAILURE(status) || !device) {
+ 				result = container_device_add(&device, handle);
+ 				if (!result)
+-					kobject_uevent(&device->kobj,
++					kobject_uevent(&device->dev.kobj,
+ 						       KOBJ_ONLINE);
+ 				else
+ 					printk("Failed to add container\n");
+@@ -176,13 +176,13 @@ static void container_notify_cb(acpi_han
+ 		} else {
+ 			if (ACPI_SUCCESS(status)) {
+ 				/* device exist and this is a remove request */
+-				kobject_uevent(&device->kobj, KOBJ_OFFLINE);
++				kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
+ 			}
+ 		}
+ 		break;
+ 	case ACPI_NOTIFY_EJECT_REQUEST:
+ 		if (!acpi_bus_get_device(handle, &device) && device) {
+-			kobject_uevent(&device->kobj, KOBJ_OFFLINE);
++			kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
+ 		}
+ 		break;
+ 	default:
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index 1908e0d..46e72c3 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -711,7 +711,7 @@ int acpi_processor_device_add(acpi_handl
+ 		return -ENODEV;
  
- static struct acpi_driver acpi_fan_driver = {
- 	.name = ACPI_FAN_DRIVER_NAME,
-@@ -238,7 +238,7 @@ static int acpi_fan_remove(struct acpi_d
+ 	if ((pr->id >= 0) && (pr->id < NR_CPUS)) {
+-		kobject_uevent(&(*device)->kobj, KOBJ_ONLINE);
++		kobject_uevent(&(*device)->dev.kobj, KOBJ_ONLINE);
+ 	}
  	return 0;
  }
+@@ -749,13 +749,13 @@ acpi_processor_hotplug_notify(acpi_handl
+ 		}
  
--static int acpi_fan_suspend(struct acpi_device *device, int state)
-+static int acpi_fan_suspend(struct acpi_device *device, pm_message_t state)
+ 		if (pr->id >= 0 && (pr->id < NR_CPUS)) {
+-			kobject_uevent(&device->kobj, KOBJ_OFFLINE);
++			kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
+ 			break;
+ 		}
+ 
+ 		result = acpi_processor_start(device);
+ 		if ((!result) && ((pr->id >= 0) && (pr->id < NR_CPUS))) {
+-			kobject_uevent(&device->kobj, KOBJ_ONLINE);
++			kobject_uevent(&device->dev.kobj, KOBJ_ONLINE);
+ 		} else {
+ 			printk(KERN_ERR PREFIX "Device [%s] failed to start\n",
+ 				    acpi_device_bid(device));
+@@ -778,7 +778,7 @@ acpi_processor_hotplug_notify(acpi_handl
+ 		}
+ 
+ 		if ((pr->id < NR_CPUS) && (cpu_present(pr->id)))
+-			kobject_uevent(&device->kobj, KOBJ_OFFLINE);
++			kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
+ 		break;
+ 	default:
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index b616e17..97f6bbd 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -24,126 +24,6 @@ static LIST_HEAD(acpi_device_list);
+ DEFINE_SPINLOCK(acpi_device_lock);
+ LIST_HEAD(acpi_wakeup_device_list);
+ 
+-
+-static void acpi_device_release_legacy(struct kobject *kobj)
+-{
+-	struct acpi_device *dev = container_of(kobj, struct acpi_device, kobj);
+-	kfree(dev->pnp.cid_list);
+-	kfree(dev);
+-}
+-
+-struct acpi_device_attribute {
+-	struct attribute attr;
+-	 ssize_t(*show) (struct acpi_device *, char *);
+-	 ssize_t(*store) (struct acpi_device *, const char *, size_t);
+-};
+-
+-typedef void acpi_device_sysfs_files(struct kobject *,
+-				     const struct attribute *);
+-
+-static void setup_sys_fs_device_files(struct acpi_device *dev,
+-				      acpi_device_sysfs_files * func);
+-
+-#define create_sysfs_device_files(dev)	\
+-	setup_sys_fs_device_files(dev, (acpi_device_sysfs_files *)&sysfs_create_file)
+-#define remove_sysfs_device_files(dev)	\
+-	setup_sys_fs_device_files(dev, (acpi_device_sysfs_files *)&sysfs_remove_file)
+-
+-#define to_acpi_dev(n) container_of(n, struct acpi_device, kobj)
+-#define to_handle_attr(n) container_of(n, struct acpi_device_attribute, attr);
+-
+-static ssize_t acpi_device_attr_show(struct kobject *kobj,
+-				     struct attribute *attr, char *buf)
+-{
+-	struct acpi_device *device = to_acpi_dev(kobj);
+-	struct acpi_device_attribute *attribute = to_handle_attr(attr);
+-	return attribute->show ? attribute->show(device, buf) : -EIO;
+-}
+-static ssize_t acpi_device_attr_store(struct kobject *kobj,
+-				      struct attribute *attr, const char *buf,
+-				      size_t len)
+-{
+-	struct acpi_device *device = to_acpi_dev(kobj);
+-	struct acpi_device_attribute *attribute = to_handle_attr(attr);
+-	return attribute->store ? attribute->store(device, buf, len) : -EIO;
+-}
+-
+-static struct sysfs_ops acpi_device_sysfs_ops = {
+-	.show = acpi_device_attr_show,
+-	.store = acpi_device_attr_store,
+-};
+-
+-static struct kobj_type ktype_acpi_ns = {
+-	.sysfs_ops = &acpi_device_sysfs_ops,
+-	.release = acpi_device_release_legacy,
+-};
+-
+-static int namespace_uevent(struct kset *kset, struct kobject *kobj,
+-			     char **envp, int num_envp, char *buffer,
+-			     int buffer_size)
+-{
+-	struct acpi_device *dev = to_acpi_dev(kobj);
+-	int i = 0;
+-	int len = 0;
+-
+-	if (!dev->driver)
+-		return 0;
+-
+-	if (add_uevent_var(envp, num_envp, &i, buffer, buffer_size, &len,
+-			   "PHYSDEVDRIVER=%s", dev->driver->name))
+-		return -ENOMEM;
+-
+-	envp[i] = NULL;
+-
+-	return 0;
+-}
+-
+-static struct kset_uevent_ops namespace_uevent_ops = {
+-	.uevent = &namespace_uevent,
+-};
+-
+-static struct kset acpi_namespace_kset = {
+-	.kobj = {
+-		 .name = "namespace",
+-		 },
+-	.subsys = &acpi_subsys,
+-	.ktype = &ktype_acpi_ns,
+-	.uevent_ops = &namespace_uevent_ops,
+-};
+-
+-/* --------------------------------------------------------------------------
+-		ACPI sysfs device file support
+-   -------------------------------------------------------------------------- */
+-static ssize_t acpi_eject_store(struct acpi_device *device,
+-				const char *buf, size_t count);
+-
+-#define ACPI_DEVICE_ATTR(_name,_mode,_show,_store) \
+-static struct acpi_device_attribute acpi_device_attr_##_name = \
+-		__ATTR(_name, _mode, _show, _store)
+-
+-ACPI_DEVICE_ATTR(eject, 0200, NULL, acpi_eject_store);
+-
+-/**
+- * setup_sys_fs_device_files - sets up the device files under device namespace
+- * @dev:	acpi_device object
+- * @func:	function pointer to create or destroy the device file
+- */
+-static void
+-setup_sys_fs_device_files(struct acpi_device *dev,
+-			  acpi_device_sysfs_files * func)
+-{
+-	acpi_status status;
+-	acpi_handle temp = NULL;
+-
+-	/*
+-	 * If device has _EJ0, 'eject' file is created that is used to trigger
+-	 * hot-removal function from userland.
+-	 */
+-	status = acpi_get_handle(dev->handle, "_EJ0", &temp);
+-	if (ACPI_SUCCESS(status))
+-		(*(func)) (&dev->kobj, &acpi_device_attr_eject.attr);
+-}
+-
+ static int acpi_eject_operation(acpi_handle handle, int lockable)
  {
- 	if (!device)
- 		return -EINVAL;
-@@ -248,7 +248,7 @@ static int acpi_fan_suspend(struct acpi_
- 	return AE_OK;
+ 	struct acpi_object_list arg_list;
+@@ -180,7 +60,8 @@ static int acpi_eject_operation(acpi_han
  }
  
--static int acpi_fan_resume(struct acpi_device *device, int state)
-+static int acpi_fan_resume(struct acpi_device *device)
+ static ssize_t
+-acpi_eject_store(struct acpi_device *device, const char *buf, size_t count)
++acpi_eject_store(struct device *d, struct device_attribute *attr,
++		const char *buf, size_t count)
  {
- 	int result = 0;
- 	int power_state = 0;
-Index: linux-2.6.19/drivers/acpi/scan.c
-===================================================================
---- linux-2.6.19.orig/drivers/acpi/scan.c	2006-12-01 15:18:30.000000000 +0800
-+++ linux-2.6.19/drivers/acpi/scan.c	2006-12-01 15:18:34.000000000 +0800
-@@ -222,100 +222,124 @@ acpi_eject_store(struct acpi_device *dev
+ 	int result;
+ 	int ret = count;
+@@ -188,26 +69,27 @@ acpi_eject_store(struct acpi_device *dev
+ 	acpi_status status;
+ 	acpi_handle handle;
+ 	acpi_object_type type = 0;
++	struct acpi_device *acpi_device = to_acpi_device(d);
+ 
+ 	if ((!count) || (buf[0] != '1')) {
+ 		return -EINVAL;
+ 	}
+ #ifndef FORCE_EJECT
+-	if (device->driver == NULL) {
++	if (acpi_device->driver == NULL) {
+ 		ret = -ENODEV;
+ 		goto err;
+ 	}
+ #endif
+-	status = acpi_get_type(device->handle, &type);
+-	if (ACPI_FAILURE(status) || (!device->flags.ejectable)) {
++	status = acpi_get_type(acpi_device->handle, &type);
++	if (ACPI_FAILURE(status) || (!acpi_device->flags.ejectable)) {
+ 		ret = -ENODEV;
+ 		goto err;
+ 	}
+ 
+-	islockable = device->flags.lockable;
+-	handle = device->handle;
++	islockable = acpi_device->flags.lockable;
++	handle = acpi_device->handle;
+ 
+-	result = acpi_bus_trim(device, 1);
++	result = acpi_bus_trim(acpi_device, 1);
+ 
+ 	if (!result)
+ 		result = acpi_eject_operation(handle, islockable);
+@@ -219,6 +101,35 @@ acpi_eject_store(struct acpi_device *dev
+ 	return ret;
+ }
+ 
++static DEVICE_ATTR(eject, 0200, NULL, acpi_eject_store);
++
++static void acpi_device_setup_files(struct acpi_device *dev)
++{
++	acpi_status status;
++	acpi_handle temp;
++
++	/*
++	 * If device has _EJ0, 'eject' file is created that is used to trigger
++	 * hot-removal function from userland.
++	 */
++	status = acpi_get_handle(dev->handle, "_EJ0", &temp);
++	if (ACPI_SUCCESS(status))
++		device_create_file(&dev->dev, &dev_attr_eject);
++}
++
++static void acpi_device_remove_files(struct acpi_device *dev)
++{
++	acpi_status status;
++	acpi_handle temp;
++
++	/*
++	 * If device has _EJ0, 'eject' file is created that is used to trigger
++	 * hot-removal function from userland.
++	 */
++	status = acpi_get_handle(dev->handle, "_EJ0", &temp);
++	if (ACPI_SUCCESS(status))
++		device_remove_file(&dev->dev, &dev_attr_eject);
++}
  /* --------------------------------------------------------------------------
  			ACPI Bus operations
     -------------------------------------------------------------------------- */
--static int root_suspend(struct acpi_device * acpi_dev, pm_message_t state)
-+static int acpi_device_suspend(struct device *dev, pm_message_t state)
- {
--	struct acpi_device * dev, * next;
--	int result;
-+	struct acpi_device *acpi_dev = to_acpi_device(dev);
-+	struct acpi_driver *acpi_drv = acpi_dev->driver;
- 
--	spin_lock(&acpi_device_lock);
--	list_for_each_entry_safe_reverse(dev, next, &acpi_device_list, g_list) {
--		if (dev->driver && dev->driver->ops.suspend) {
--			spin_unlock(&acpi_device_lock);
--			result = dev->driver->ops.suspend(dev, 0);
--			if (result) {
--				printk(KERN_ERR PREFIX "[%s - %s] Suspend failed: %d\n",
--				       acpi_device_name(dev),
--				       acpi_device_bid(dev), result);
--			}
--			spin_lock(&acpi_device_lock);
--		}
--	}
--	spin_unlock(&acpi_device_lock);
-+	if (acpi_drv && acpi_drv->ops.suspend)
-+		return acpi_drv->ops.suspend(acpi_dev, state);
- 	return 0;
- }
- 
--static int acpi_device_suspend(struct device * dev, pm_message_t state)
-+static int acpi_device_resume(struct device *dev)
- {
--	struct acpi_device * acpi_dev = to_acpi_device(dev);
-+	struct acpi_device *acpi_dev = to_acpi_device(dev);
-+	struct acpi_driver *acpi_drv = acpi_dev->driver;
- 
--	/*
--	 * For now, we should only register 1 generic device -
--	 * the ACPI root device - and from there, we walk the
--	 * tree of ACPI devices to suspend each one using the
--	 * ACPI driver methods.
--	 */
--	if (acpi_dev->handle == ACPI_ROOT_OBJECT)
--		root_suspend(acpi_dev, state);
-+	if (acpi_drv && acpi_drv->ops.resume)
-+		return acpi_drv->ops.resume(acpi_dev);
- 	return 0;
- }
- 
--static int root_resume(struct acpi_device * acpi_dev)
-+static int acpi_bus_match(struct device *dev, struct device_driver *drv)
- {
--	struct acpi_device * dev, * next;
--	int result;
-+	struct acpi_device *acpi_dev = to_acpi_device(dev);
-+	struct acpi_driver *acpi_drv = to_acpi_driver(drv);
- 
--	spin_lock(&acpi_device_lock);
--	list_for_each_entry_safe(dev, next, &acpi_device_list, g_list) {
--		if (dev->driver && dev->driver->ops.resume) {
--			spin_unlock(&acpi_device_lock);
--			result = dev->driver->ops.resume(dev, 0);
--			if (result) {
--				printk(KERN_ERR PREFIX "[%s - %s] resume failed: %d\n",
--				       acpi_device_name(dev),
--				       acpi_device_bid(dev), result);
--			}
--			spin_lock(&acpi_device_lock);
-+	if (acpi_drv->ops.match)
-+		return !acpi_drv->ops.match(acpi_dev, acpi_drv);
-+	return !acpi_match_ids(acpi_dev, acpi_drv->ids);
-+}
-+
-+static int acpi_device_uevent(struct device *dev, char **envp, int num_envp,
-+	char *buffer, int buffer_size)
-+{
-+	struct acpi_device *acpi_dev = to_acpi_device(dev);
-+	int i = 0, length = 0, ret = 0;
-+
-+	if (acpi_dev->flags.hardware_id)
-+		ret = add_uevent_var(envp, num_envp, &i,
-+			buffer, buffer_size, &length,
-+			"HWID=%s", acpi_dev->pnp.hardware_id);
-+	if (ret)
-+		return -ENOMEM;
-+	if (acpi_dev->flags.compatible_ids) {
-+		int j;
-+		struct acpi_compatible_id_list *cid_list;
-+
-+		cid_list = acpi_dev->pnp.cid_list;
-+
-+		for (j = 0; j < cid_list->count; j++) {
-+			ret = add_uevent_var(envp, num_envp, &i, buffer,
-+				buffer_size, &length, "COMPTID=%s",
-+				cid_list->id[j].value);
-+			if (ret)
-+				return -ENOMEM;
- 		}
- 	}
--	spin_unlock(&acpi_device_lock);
-+
-+	envp[i] = NULL;
- 	return 0;
- }
- 
--static int acpi_device_resume(struct device * dev)
-+static int acpi_bus_driver_init(struct acpi_device *, struct acpi_driver *);
-+static int acpi_start_single_object(struct acpi_device *);
-+static int acpi_device_probe(struct device * dev)
- {
--	struct acpi_device * acpi_dev = to_acpi_device(dev);
-+	struct acpi_device *acpi_dev = to_acpi_device(dev);
-+	struct acpi_driver *acpi_drv = to_acpi_driver(dev->driver);
-+	int ret;
- 
--	/*
--	 * For now, we should only register 1 generic device -
--	 * the ACPI root device - and from there, we walk the
--	 * tree of ACPI devices to resume each one using the
--	 * ACPI driver methods.
--	 */
--	if (acpi_dev->handle == ACPI_ROOT_OBJECT)
--		root_resume(acpi_dev);
-+	ret = acpi_bus_driver_init(acpi_dev, acpi_drv);
-+	if (!ret) {
-+		acpi_start_single_object(acpi_dev);
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+			"Found driver [%s] for device [%s]\n",
-+			acpi_drv->name, acpi_dev->pnp.bus_id));
-+		get_device(dev);
-+	}
-+	return ret;
-+}
-+
-+static int acpi_device_remove(struct device * dev)
-+{
-+	struct acpi_device *acpi_dev = to_acpi_device(dev);
-+	struct acpi_driver *acpi_drv = acpi_dev->driver;
-+
-+	if (acpi_drv) {
-+		if (acpi_drv->ops.stop)
-+			acpi_drv->ops.stop(acpi_dev, ACPI_BUS_REMOVAL_NORMAL);
-+		if (acpi_drv->ops.remove)
-+			acpi_drv->ops.remove(acpi_dev, ACPI_BUS_REMOVAL_NORMAL);
-+	}
-+	acpi_dev->driver = NULL;
-+	acpi_driver_data(dev) = NULL;
-+
-+	put_device(dev);
- 	return 0;
- }
- 
--/**
-- * acpi_bus_match - match device IDs to driver's supported IDs
-- * @device: the device that we are trying to match to a driver
-- * @driver: driver whose device id table is being checked
-- *
-- * Checks the device's hardware (_HID) or compatible (_CID) ids to see if it
-- * matches the specified driver's criteria.
-- */
--static int
--acpi_bus_match(struct acpi_device *device, struct acpi_driver *driver)
-+static void acpi_device_shutdown(struct device *dev)
- {
--	if (driver && driver->ops.match)
--		return driver->ops.match(device, driver);
--	return acpi_match_ids(device, driver->ids);
-+	struct acpi_device *acpi_dev = to_acpi_device(dev);
-+	struct acpi_driver *acpi_drv = acpi_dev->driver;
-+
-+	if (acpi_drv && acpi_drv->ops.shutdown)
-+		acpi_drv->ops.shutdown(acpi_dev);
-+
-+	return ;
- }
- 
- static struct bus_type acpi_bus_type = {
- 	.name		= "acpi",
- 	.suspend	= acpi_device_suspend,
- 	.resume		= acpi_device_resume,
-+	.shutdown	= acpi_device_shutdown,
-+	.match		= acpi_bus_match,
-+	.probe		= acpi_device_probe,
-+	.remove		= acpi_device_remove,
-+	.uevent		= acpi_device_uevent,
- };
- 
+@@ -353,8 +264,6 @@ static struct bus_type acpi_bus_type = {
  static void acpi_device_register(struct acpi_device *device,
-@@ -449,7 +473,7 @@ static void acpi_driver_attach(struct ac
- 			continue;
- 		spin_unlock(&acpi_device_lock);
+ 				 struct acpi_device *parent)
+ {
+-	int err;
+-
+ 	/*
+ 	 * Linkage
+ 	 * -------
+@@ -375,17 +284,6 @@ static void acpi_device_register(struct
+ 		list_add_tail(&device->wakeup_list, &acpi_wakeup_device_list);
+ 	spin_unlock(&acpi_device_lock);
  
--		if (!acpi_bus_match(dev, drv)) {
-+		if (!acpi_bus_match(&(dev->dev), &(drv->drv))) {
- 			if (!acpi_bus_driver_init(dev, drv)) {
- 				acpi_start_single_object(dev);
- 				atomic_inc(&drv->references);
-@@ -551,7 +575,7 @@ static int acpi_bus_find_driver(struct a
- 
- 		atomic_inc(&driver->references);
- 		spin_unlock(&acpi_device_lock);
--		if (!acpi_bus_match(device, driver)) {
-+		if (!acpi_bus_match(&(device->dev), &(driver->drv))) {
- 			result = acpi_bus_driver_init(device, driver);
- 			if (!result)
- 				goto Done;
-Index: linux-2.6.19/drivers/acpi/thermal.c
-===================================================================
---- linux-2.6.19.orig/drivers/acpi/thermal.c	2006-12-01 15:18:30.000000000 +0800
-+++ linux-2.6.19/drivers/acpi/thermal.c	2006-12-01 15:18:34.000000000 +0800
-@@ -82,7 +82,7 @@ MODULE_PARM_DESC(tzp, "Thermal zone poll
- 
- static int acpi_thermal_add(struct acpi_device *device);
- static int acpi_thermal_remove(struct acpi_device *device, int type);
--static int acpi_thermal_resume(struct acpi_device *device, int state);
-+static int acpi_thermal_resume(struct acpi_device *device);
- static int acpi_thermal_state_open_fs(struct inode *inode, struct file *file);
- static int acpi_thermal_temp_open_fs(struct inode *inode, struct file *file);
- static int acpi_thermal_trip_open_fs(struct inode *inode, struct file *file);
-@@ -1356,7 +1356,7 @@ static int acpi_thermal_remove(struct ac
- 	return 0;
+-	strlcpy(device->kobj.name, device->pnp.bus_id, KOBJ_NAME_LEN);
+-	if (parent)
+-		device->kobj.parent = &parent->kobj;
+-	device->kobj.ktype = &ktype_acpi_ns;
+-	device->kobj.kset = &acpi_namespace_kset;
+-	err = kobject_register(&device->kobj);
+-	if (err < 0)
+-		printk(KERN_WARNING "%s: kobject_register error: %d\n",
+-			__FUNCTION__, err);
+-	create_sysfs_device_files(device);
+-
+ 	if (device->parent)
+ 		device->dev.parent = &parent->dev;
+ 	device->dev.bus = &acpi_bus_type;
+@@ -393,6 +291,8 @@ static void acpi_device_register(struct
+ 	sprintf(device->dev.bus_id, "%s", device->pnp.bus_id);
+ 	device->dev.release = &acpi_device_release;
+ 	device_add(&device->dev);
++
++	acpi_device_setup_files(device);
  }
  
--static int acpi_thermal_resume(struct acpi_device *device, int state)
-+static int acpi_thermal_resume(struct acpi_device *device)
- {
- 	struct acpi_thermal *tz = NULL;
- 	int i;
-Index: linux-2.6.19/include/acpi/acpi_bus.h
-===================================================================
---- linux-2.6.19.orig/include/acpi/acpi_bus.h	2006-12-01 15:18:30.000000000 +0800
-+++ linux-2.6.19/include/acpi/acpi_bus.h	2006-12-01 15:18:34.000000000 +0800
-@@ -92,13 +92,14 @@ typedef int (*acpi_op_remove) (struct ac
- typedef int (*acpi_op_lock) (struct acpi_device * device, int type);
- typedef int (*acpi_op_start) (struct acpi_device * device);
- typedef int (*acpi_op_stop) (struct acpi_device * device, int type);
--typedef int (*acpi_op_suspend) (struct acpi_device * device, int state);
--typedef int (*acpi_op_resume) (struct acpi_device * device, int state);
-+typedef int (*acpi_op_suspend) (struct acpi_device * device, pm_message_t state);
-+typedef int (*acpi_op_resume) (struct acpi_device * device);
- typedef int (*acpi_op_scan) (struct acpi_device * device);
- typedef int (*acpi_op_bind) (struct acpi_device * device);
- typedef int (*acpi_op_unbind) (struct acpi_device * device);
- typedef int (*acpi_op_match) (struct acpi_device * device,
- 			      struct acpi_driver * driver);
-+typedef int (*acpi_op_shutdown) (struct acpi_device * device);
+ static void acpi_device_unregister(struct acpi_device *device, int type)
+@@ -409,9 +309,8 @@ static void acpi_device_unregister(struc
+ 	spin_unlock(&acpi_device_lock);
  
- struct acpi_bus_ops {
- 	u32 acpi_op_add:1;
-@@ -112,7 +113,8 @@ struct acpi_bus_ops {
- 	u32 acpi_op_bind:1;
- 	u32 acpi_op_unbind:1;
- 	u32 acpi_op_match:1;
--	u32 reserved:21;
-+	u32 acpi_op_shutdown:1;
-+	u32 reserved:20;
- };
+ 	acpi_detach_data(device->handle, acpi_bus_data_handler);
+-	remove_sysfs_device_files(device);
+-	kobject_unregister(&device->kobj);
  
- struct acpi_device_ops {
-@@ -127,6 +129,7 @@ struct acpi_device_ops {
- 	acpi_op_bind bind;
- 	acpi_op_unbind unbind;
- 	acpi_op_match match;
-+	acpi_op_shutdown shutdown;
- };
- 
- struct acpi_driver {
-Index: linux-2.6.19/drivers/acpi/battery.c
-===================================================================
---- linux-2.6.19.orig/drivers/acpi/battery.c	2006-12-01 15:03:38.000000000 +0800
-+++ linux-2.6.19/drivers/acpi/battery.c	2006-12-01 15:19:23.000000000 +0800
-@@ -64,7 +64,7 @@ extern void *acpi_unlock_battery_dir(str
- 
- static int acpi_battery_add(struct acpi_device *device);
- static int acpi_battery_remove(struct acpi_device *device, int type);
--static int acpi_battery_resume(struct acpi_device *device, int status);
-+static int acpi_battery_resume(struct acpi_device *device);
- 
- static struct acpi_driver acpi_battery_driver = {
- 	.name = ACPI_BATTERY_DRIVER_NAME,
-@@ -756,7 +756,7 @@ static int acpi_battery_remove(struct ac
++	acpi_device_remove_files(device);
+ 	device_unregister(&device->dev);
  }
  
- /* this is needed to learn about changes made in suspended state */
--static int acpi_battery_resume(struct acpi_device *device, int state)
-+static int acpi_battery_resume(struct acpi_device *device)
- {
- 	struct acpi_battery *battery;
+@@ -1353,10 +1252,6 @@ static int __init acpi_scan_init(void)
+ 	if (acpi_disabled)
+ 		return 0;
  
+-	result = kset_register(&acpi_namespace_kset);
+-	if (result < 0)
+-		printk(KERN_ERR PREFIX "kset_register error: %d\n", result);
+-
+ 	result = bus_register(&acpi_bus_type);
+ 	if (result) {
+ 		/* We don't want to quit even if we failed to add suspend/resume */
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 137fdee..d409d9a 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -299,7 +299,6 @@ struct acpi_device {
+ 	struct acpi_device_ops ops;
+ 	struct acpi_driver *driver;
+ 	void *driver_data;
+-	struct kobject kobj;
+ 	struct device dev;
+ };
+ 
+-- 
+1.4.4.g59427
