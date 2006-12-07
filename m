@@ -1,43 +1,25 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 14/14] ACPI: ibm_acpi: don't use '/' in driver names
-Date: Thu, 07 Dec 2006 20:57:57 +0800
-Message-ID: <1165496277.11485.88.camel@localhost.localdomain>
+From: Dave Jones <davej@redhat.com>
+Subject: Re: [PATCH 13/14] ACPI: use PNPID:instance_no as bus_id of ACPI device
+Date: Thu, 7 Dec 2006 08:02:46 -0500
+Message-ID: <20061207130246.GB19142@redhat.com>
+References: <1165496265.11485.87.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:9779 "EHLO mga01.intel.com"
+Received: from mx1.redhat.com ([66.187.233.31]:39522 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1032181AbWLGMyB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Dec 2006 07:54:01 -0500
+	id S1032189AbWLGNER (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Dec 2006 08:04:17 -0500
+Content-Disposition: inline
+In-Reply-To: <1165496265.11485.87.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: "linux-acpi@vger" <linux-acpi@vger.kernel.org>, hmh@hmh.eng.br
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: lenb@kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+On Thu, Dec 07, 2006 at 08:57:45PM +0800, Zhang Rui wrote:
+ > +		memset(acpi_device_bus_id, sizeof(struct acpi_device_bus_id), 0);
 
-ibm-acpi uses sub-device names like ibm/hotkey, which get in the way of
-a sysfs conversion.  Fix it to use ibm_hotkey instead.  Thanks to Zhang
-Rui for noticing this.
+Bzzzrrrt,  Swapped args.
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
-
- drivers/acpi/ibm_acpi.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
-
-Index: linux-2.6.19/drivers/acpi/ibm_acpi.c
-===================================================================
---- linux-2.6.19.orig/drivers/acpi/ibm_acpi.c	2006-12-01 11:10:37.000000000 +0800
-+++ linux-2.6.19/drivers/acpi/ibm_acpi.c	2006-12-01 11:33:30.000000000 +0800
-@@ -1825,7 +1825,7 @@ static int __init register_driver(struct
- 	}
- 
- 	memset(ibm->driver, 0, sizeof(struct acpi_driver));
--	sprintf(ibm->driver->name, "%s/%s", IBM_NAME, ibm->name);
-+	sprintf(ibm->driver->name, "%s_%s", IBM_NAME, ibm->name);
- 	ibm->driver->ids = ibm->hid;
- 	ibm->driver->ops.add = &ibm_device_add;
- 
+		Dave
