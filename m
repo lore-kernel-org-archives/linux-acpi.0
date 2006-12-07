@@ -1,15 +1,15 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 8/14] ACPI: add acpi_bus_ops in acpi_device
-Date: Thu, 07 Dec 2006 20:56:41 +0800
-Message-ID: <1165496201.11485.82.camel@localhost.localdomain>
+Subject: [PATCH 10/14] ACPI: consolidate two motherboard drivers into one
+Date: Thu, 07 Dec 2006 20:56:51 +0800
+Message-ID: <1165496211.11485.84.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga01.intel.com ([192.55.52.88]:39031 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1032176AbWLGMwf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Dec 2006 07:52:35 -0500
+	id S1032173AbWLGMwo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Dec 2006 07:52:44 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
@@ -17,186 +17,61 @@ Cc: "linux-acpi@vger" <linux-acpi@vger.kernel.org>
 
 From: Li Shaohua <shaohua.li@intel.com>
 
-Add acpi_bus_ops in acpi_device to support acpi hot plug.
-
-NOTE:	Two methods .add and .start in acpi_driver.ops are
-	called separately to probe ACPI devices, while only
-	.probe method is called in driver model.
-	As executing .add and .start separately is critical
-	for ACPI device hot plug, we use acpi_bus_ops to
-	distinguish different code path.
+Consolidate motherboard1 and motherboard2 drivers into one
+so that driver core doesn't complain that two drivers have
+the same name.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/scan.c     |   55 ++++++++++++++++++++++++-----------------------
- include/acpi/acpi_bus.h |    1 +
- 2 files changed, 29 insertions(+), 27 deletions(-)
+ drivers/acpi/motherboard.c |   19 ++++---------------
+ 1 files changed, 4 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 97f6bbd..2a82645 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -212,7 +212,8 @@ static int acpi_device_probe(struct devi
+diff --git a/drivers/acpi/motherboard.c b/drivers/acpi/motherboard.c
+index 2e17ec7..bedb511 100644
+--- a/drivers/acpi/motherboard.c
++++ b/drivers/acpi/motherboard.c
+@@ -33,8 +33,7 @@
+ ACPI_MODULE_NAME("acpi_motherboard")
  
- 	ret = acpi_bus_driver_init(acpi_dev, acpi_drv);
- 	if (!ret) {
--		acpi_start_single_object(acpi_dev);
-+		if (acpi_dev->bus_ops.acpi_op_start)
-+			acpi_start_single_object(acpi_dev);
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 			"Found driver [%s] for device [%s]\n",
- 			acpi_drv->name, acpi_dev->pnp.bus_id));
-@@ -305,7 +306,6 @@ static void acpi_device_unregister(struc
- 		list_del(&device->g_list);
- 
- 	list_del(&device->wakeup_list);
--
- 	spin_unlock(&acpi_device_lock);
- 
- 	acpi_detach_data(device->handle, acpi_bus_data_handler);
-@@ -876,7 +876,8 @@ static int acpi_bus_remove(struct acpi_d
- 
- static int
- acpi_add_single_object(struct acpi_device **child,
--		       struct acpi_device *parent, acpi_handle handle, int type)
-+		       struct acpi_device *parent, acpi_handle handle, int type,
-+			struct acpi_bus_ops *ops)
- {
- 	int result = 0;
- 	struct acpi_device *device = NULL;
-@@ -894,6 +895,8 @@ acpi_add_single_object(struct acpi_devic
- 
- 	device->handle = handle;
- 	device->parent = parent;
-+	device->bus_ops = *ops; /* workround for not call .start */
-+
- 
- 	acpi_device_get_busid(device, handle, type);
- 
-@@ -1079,14 +1082,14 @@ static int acpi_bus_scan(struct acpi_dev
- 
- 		if (ops->acpi_op_add)
- 			status = acpi_add_single_object(&child, parent,
--							chandle, type);
-+				chandle, type, ops);
- 		else
- 			status = acpi_bus_get_device(chandle, &child);
- 
- 		if (ACPI_FAILURE(status))
- 			continue;
- 
--		if (ops->acpi_op_start) {
-+		if (ops->acpi_op_start && !(ops->acpi_op_add)) {
- 			status = acpi_start_single_object(child);
- 			if (ACPI_FAILURE(status))
- 				continue;
-@@ -1124,13 +1127,13 @@ acpi_bus_add(struct acpi_device **child,
- 	int result;
- 	struct acpi_bus_ops ops;
- 
-+	memset(&ops, 0, sizeof(ops));
-+	ops.acpi_op_add = 1;
- 
--	result = acpi_add_single_object(child, parent, handle, type);
--	if (!result) {
--		memset(&ops, 0, sizeof(ops));
--		ops.acpi_op_add = 1;
-+	result = acpi_add_single_object(child, parent, handle, type, &ops);
-+	if (!result)
- 		result = acpi_bus_scan(*child, &ops);
--	}
-+
- 	return result;
+ /* Dell use PNP0C01 instead of PNP0C02 */
+-#define ACPI_MB_HID1			"PNP0C01"
+-#define ACPI_MB_HID2			"PNP0C02"
++#define ACPI_MB_HID			"PNP0C01,PNP0C02"
+ /**
+  * Doesn't care about legacy IO ports, only IO ports beyond 0x1000 are reserved
+  * Doesn't care about the failure of 'request_region', since other may reserve
+@@ -110,19 +109,10 @@ static int acpi_motherboard_add(struct a
+ 	return 0;
  }
  
-@@ -1216,28 +1219,30 @@ static int acpi_bus_scan_fixed(struct ac
+-static struct acpi_driver acpi_motherboard_driver1 = {
++static struct acpi_driver acpi_motherboard_driver = {
+ 	.name = "motherboard",
+ 	.class = "",
+-	.ids = ACPI_MB_HID1,
+-	.ops = {
+-		.add = acpi_motherboard_add,
+-		},
+-};
+-
+-static struct acpi_driver acpi_motherboard_driver2 = {
+-	.name = "motherboard",
+-	.class = "",
+-	.ids = ACPI_MB_HID2,
++	.ids = ACPI_MB_HID,
+ 	.ops = {
+ 		.add = acpi_motherboard_add,
+ 		},
+@@ -173,8 +163,7 @@ static void __init acpi_reserve_resource
+ 
+ static int __init acpi_motherboard_init(void)
  {
- 	int result = 0;
- 	struct acpi_device *device = NULL;
--
-+	struct acpi_bus_ops ops;
- 
- 	if (!root)
- 		return -ENODEV;
- 
-+	memset(&ops, 0, sizeof(ops));
-+	ops.acpi_op_add = 1;
-+	ops.acpi_op_start = 1;
-+
+-	acpi_bus_register_driver(&acpi_motherboard_driver1);
+-	acpi_bus_register_driver(&acpi_motherboard_driver2);
++	acpi_bus_register_driver(&acpi_motherboard_driver);
  	/*
- 	 * Enumerate all fixed-feature devices.
- 	 */
- 	if (acpi_fadt.pwr_button == 0) {
- 		result = acpi_add_single_object(&device, acpi_root,
- 						NULL,
--						ACPI_BUS_TYPE_POWER_BUTTON);
--		if (!result)
--			result = acpi_start_single_object(device);
-+						ACPI_BUS_TYPE_POWER_BUTTON,
-+						&ops);
- 	}
- 
- 	if (acpi_fadt.sleep_button == 0) {
- 		result = acpi_add_single_object(&device, acpi_root,
- 						NULL,
--						ACPI_BUS_TYPE_SLEEP_BUTTON);
--		if (!result)
--			result = acpi_start_single_object(device);
-+						ACPI_BUS_TYPE_SLEEP_BUTTON,
-+						&ops);
- 	}
- 
- 	return result;
-@@ -1252,6 +1257,10 @@ static int __init acpi_scan_init(void)
- 	if (acpi_disabled)
- 		return 0;
- 
-+	memset(&ops, 0, sizeof(ops));
-+	ops.acpi_op_add = 1;
-+	ops.acpi_op_start = 1;
-+
- 	result = bus_register(&acpi_bus_type);
- 	if (result) {
- 		/* We don't want to quit even if we failed to add suspend/resume */
-@@ -1262,11 +1271,7 @@ static int __init acpi_scan_init(void)
- 	 * Create the root device in the bus's device tree
- 	 */
- 	result = acpi_add_single_object(&acpi_root, NULL, ACPI_ROOT_OBJECT,
--					ACPI_BUS_TYPE_SYSTEM);
--	if (result)
--		goto Done;
--
--	result = acpi_start_single_object(acpi_root);
-+					ACPI_BUS_TYPE_SYSTEM, &ops);
- 	if (result)
- 		goto Done;
- 
-@@ -1274,12 +1279,8 @@ static int __init acpi_scan_init(void)
- 	 * Enumerate devices in the ACPI namespace.
- 	 */
- 	result = acpi_bus_scan_fixed(acpi_root);
--	if (!result) {
--		memset(&ops, 0, sizeof(ops));
--		ops.acpi_op_add = 1;
--		ops.acpi_op_start = 1;
-+	if (!result)
- 		result = acpi_bus_scan(acpi_root, &ops);
--	}
- 
- 	if (result)
- 		acpi_device_unregister(acpi_root, ACPI_BUS_REMOVAL_NORMAL);
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index d409d9a..b7baac7 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -300,6 +300,7 @@ struct acpi_device {
- 	struct acpi_driver *driver;
- 	void *driver_data;
- 	struct device dev;
-+	struct acpi_bus_ops bus_ops;	/* workaround for different code path for hotplug */
- };
- 
- #define acpi_driver_data(d)	((d)->driver_data)
+ 	 * Guarantee motherboard IO reservation first
+ 	 * This module must run after scan.c
 -- 
 1.4.4.g59427
