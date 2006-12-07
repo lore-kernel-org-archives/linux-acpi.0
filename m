@@ -1,15 +1,15 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 10/14] ACPI: consolidate two motherboard drivers into one
-Date: Thu, 07 Dec 2006 20:56:51 +0800
-Message-ID: <1165496211.11485.84.camel@localhost.localdomain>
+Subject: [PATCH 9/14] ACPI: add acpi_bus_removal_type in acpi_device
+Date: Thu, 07 Dec 2006 20:56:46 +0800
+Message-ID: <1165496206.11485.83.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga01.intel.com ([192.55.52.88]:39031 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1032173AbWLGMwo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Dec 2006 07:52:44 -0500
+	id S1032177AbWLGMwk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Dec 2006 07:52:40 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
@@ -17,61 +17,62 @@ Cc: "linux-acpi@vger" <linux-acpi@vger.kernel.org>
 
 From: Li Shaohua <shaohua.li@intel.com>
 
-Consolidate motherboard1 and motherboard2 drivers into one
-so that driver core doesn't complain that two drivers have
-the same name.
+Add removal_type in structure acpi_device for hot removal.
+
+ACPI_BUS_REMOVAL_EJECT is used for ACPI device hot removal.
+Only one parameter is allowed in .remove method due to driver model.
+So removal_type is added to indicate different removal type.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/motherboard.c |   19 ++++---------------
- 1 files changed, 4 insertions(+), 15 deletions(-)
+ drivers/acpi/scan.c     |    6 ++++--
+ include/acpi/acpi_bus.h |    1 +
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/motherboard.c b/drivers/acpi/motherboard.c
-index 2e17ec7..bedb511 100644
---- a/drivers/acpi/motherboard.c
-+++ b/drivers/acpi/motherboard.c
-@@ -33,8 +33,7 @@
- ACPI_MODULE_NAME("acpi_motherboard")
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 2a82645..06b86fa 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -229,9 +229,9 @@ static int acpi_device_remove(struct dev
  
- /* Dell use PNP0C01 instead of PNP0C02 */
--#define ACPI_MB_HID1			"PNP0C01"
--#define ACPI_MB_HID2			"PNP0C02"
-+#define ACPI_MB_HID			"PNP0C01,PNP0C02"
- /**
-  * Doesn't care about legacy IO ports, only IO ports beyond 0x1000 are reserved
-  * Doesn't care about the failure of 'request_region', since other may reserve
-@@ -110,19 +109,10 @@ static int acpi_motherboard_add(struct a
- 	return 0;
+ 	if (acpi_drv) {
+ 		if (acpi_drv->ops.stop)
+-			acpi_drv->ops.stop(acpi_dev, ACPI_BUS_REMOVAL_NORMAL);
++			acpi_drv->ops.stop(acpi_dev, acpi_dev->removal_type);
+ 		if (acpi_drv->ops.remove)
+-			acpi_drv->ops.remove(acpi_dev, ACPI_BUS_REMOVAL_NORMAL);
++			acpi_drv->ops.remove(acpi_dev, acpi_dev->removal_type);
+ 	}
+ 	acpi_dev->driver = NULL;
+ 	acpi_driver_data(dev) = NULL;
+@@ -294,6 +294,7 @@ static void acpi_device_register(struct
+ 	device_add(&device->dev);
+ 
+ 	acpi_device_setup_files(device);
++	device->removal_type = ACPI_BUS_REMOVAL_NORMAL;
  }
  
--static struct acpi_driver acpi_motherboard_driver1 = {
-+static struct acpi_driver acpi_motherboard_driver = {
- 	.name = "motherboard",
- 	.class = "",
--	.ids = ACPI_MB_HID1,
--	.ops = {
--		.add = acpi_motherboard_add,
--		},
--};
--
--static struct acpi_driver acpi_motherboard_driver2 = {
--	.name = "motherboard",
--	.class = "",
--	.ids = ACPI_MB_HID2,
-+	.ids = ACPI_MB_HID,
- 	.ops = {
- 		.add = acpi_motherboard_add,
- 		},
-@@ -173,8 +163,7 @@ static void __init acpi_reserve_resource
+ static void acpi_device_unregister(struct acpi_device *device, int type)
+@@ -859,6 +860,7 @@ static int acpi_bus_remove(struct acpi_d
+ 	if (!dev)
+ 		return -EINVAL;
  
- static int __init acpi_motherboard_init(void)
- {
--	acpi_bus_register_driver(&acpi_motherboard_driver1);
--	acpi_bus_register_driver(&acpi_motherboard_driver2);
-+	acpi_bus_register_driver(&acpi_motherboard_driver);
- 	/*
- 	 * Guarantee motherboard IO reservation first
- 	 * This module must run after scan.c
++	dev->removal_type = ACPI_BUS_REMOVAL_EJECT;
+ 	device_release_driver(&dev->dev);
+ 
+ 	if (!rmdevice)
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index b7baac7..168ef22 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -301,6 +301,7 @@ struct acpi_device {
+ 	void *driver_data;
+ 	struct device dev;
+ 	struct acpi_bus_ops bus_ops;	/* workaround for different code path for hotplug */
++	enum acpi_bus_removal_type removal_type; /* indicate for different removal type */
+ };
+ 
+ #define acpi_driver_data(d)	((d)->driver_data)
 -- 
 1.4.4.g59427
