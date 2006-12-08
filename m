@@ -1,52 +1,48 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: Re: RFC: PCI quirks update for 2.6.16
-Date: Fri, 8 Dec 2006 16:42:08 +0100
-Message-ID: <20061208154208.GB3356@stusta.de>
-References: <20061207132430.GF8963@stusta.de> <20061207205420.15622d52.khali@linux-fr.org> <200612072145.56861.tomek@koprowski.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [PATCH 0/14] ACPI: make ACPI use driver model
+Date: Fri, 8 Dec 2006 09:50:52 -0700
+Message-ID: <200612080950.52390.bjorn.helgaas@hp.com>
+References: <1165496170.11485.74.camel@localhost.localdomain> <200612070928.30460.bjorn.helgaas@hp.com> <200612080529.56183.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout.stusta.mhn.de ([141.84.69.5]:3230 "HELO
-	mailout.stusta.mhn.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1425570AbWLHPmA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Dec 2006 10:42:00 -0500
+Received: from atlrel8.hp.com ([156.153.255.206]:58104 "EHLO atlrel8.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1425628AbWLHQvB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Dec 2006 11:51:01 -0500
+In-Reply-To: <200612080529.56183.len.brown@intel.com>
 Content-Disposition: inline
-In-Reply-To: <200612072145.56861.tomek@koprowski.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomek Koprowski <tomek@koprowski.org>
-Cc: Jean Delvare <khali@linux-fr.org>, Daniel Ritz <daniel.ritz@gmx.ch>, Daniel Drake <dsd@gentoo.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Linus Torvalds <torvalds@osdl.org>, Brice Goglin <brice@myri.com>, "John W. Linville" <linville@tuxdriver.com>, Bauke Jan Douma <bjdouma@xs4all.nl>, gregkh@suse.de, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, len.brown@intel.com, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Zhang Rui <rui.zhang@intel.com>, "linux-acpi@vger" <linux-acpi@vger.kernel.org>
 
-On Thu, Dec 07, 2006 at 09:45:56PM +0100, Tomek Koprowski wrote:
-> On Thursday 07 of December 2006 20:54, Jean Delvare wrote:
+[Sorry for the duplicate; I fat-fingered my reply and inadvertently
+introduced an HTML sub-part, causing linux-acpi to reject it as spam.]
+
+On Friday 08 December 2006 03:29, Len Brown wrote:
+> On Thursday 07 December 2006 11:28, Bjorn Helgaas wrote:
+> > Is it possible to extend the PNP model to include ACPI, rather
+> > than introducing a new ACPI model alongside the PNP model?
 > 
-> > > Tomasz Koprowski (1):
-> > >       PCI: SMBus unhide on HP Compaq nx6110
-> >
-> > Bug #6944 might be related to this one, so I'd not include it in
-> > 2.6.16-stable.
+> Hmmm, well, I thought we were doing well to get ride of ACPI specific
+> devices names...
 > 
-> Actually, the #6944 requires more investigation. I've noticed the 
-> kacpid going to 100% cpu without the unhide patch applied as well. It 
-> happens sometimes after dehibernation, putting the laptop to sleep
-> and waking it up again resolves the issue. I can't figure out why.
-> 
-> To be on the safe side I'd suggest dumping the patch, but I really 
-> don't think it should fix anything.
+> The PNPBIOS + ACPI  box will never run both PNPBIOS and ACPI at
+> the same time.
 
-Thanks for this information, I've dropped it.
+Right.  But should the fact that we use ACPI instead of PNPBIOS make
+a difference to userland?  My intuition says "no."  Obviously there
+might be new devices and new functionality with ACPI, so there might
+be new files and knobs in sysfs, but if you don't care about those,
+it'd be nice if all the old PNP stuff just worked.
 
-And this problem really be debugged and fixed in Linus' tree...
+> My question is where the "cut point is".  At what point do we start
+> pushing this work upstream, and what parts of it?
 
-> Tomek
+I don't want to delay pushing Zhang's patches upstream.  I think
+they are definitely a step in the right direction.
 
-cu
-Adrian
-
--- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
-
+Bjorn
