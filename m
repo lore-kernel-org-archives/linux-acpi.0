@@ -1,34 +1,32 @@
-From: "Valia" <fleming@musini.com>
-Subject: Greetings, Stranger!
-Date: Fri, 08 Dec 2006 07:05:44 +0200
-Message-ID: <004501c71a86$3c1fb800$fe18000a__39937.1913671077$1165554375$gmane$org@200216107080.user.veloxzone.com.br>
+From: Len Brown <len.brown@intel.com>
+Subject: Re: [PATCH 13/14] ACPI: use PNPID:instance_no as bus_id of ACPI device
+Date: Fri, 8 Dec 2006 02:59:46 -0500
+Message-ID: <200612080259.46901.len.brown@intel.com>
+References: <1165496265.11485.87.camel@localhost.localdomain> <20061207130246.GB19142@redhat.com> <1165539951.18470.5.camel@localhost.localdomain>
+Reply-To: Len Brown <lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 200216107080.user.veloxzone.com.br ([200.216.107.80]:3552 "EHLO
-	200216107080.user.veloxzone.com.br" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1424510AbWLHFGC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Dec 2006 00:06:02 -0500
+Received: from hera.kernel.org ([140.211.167.34]:42426 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1425087AbWLHH4n (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Dec 2006 02:56:43 -0500
+In-Reply-To: <1165539951.18470.5.camel@localhost.localdomain>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Willy <linux-acpi@vger.kernel.org>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Dave Jones <davej@redhat.com>, "linux-acpi@vger" <linux-acpi@vger.kernel.org>
 
-Good day!
+> >  > +		memset(acpi_device_bus_id, sizeof(struct acpi_device_bus_id), 0);
 
-A nice, good looking lady is looking for a real man to connect her
-heart with him. I decided to write you this letter because I am
-looking for my one and only to make him happy.
-I haven't found my prince yet, but I know he is waiting for me. I know
-I will find him soon. Maybe you are my prince? Something inside says
-me that we have much in common. We can try to build strong and healthy
-relationships. If you are interested, please follow this white rabbit:
-http://loveonlyme.com/goodforlove   :)))
-Kisses!
+> > Bzzzrrrt,  Swapped args. 
 
-See you later
+> ... I'll refresh the patch.
 
-Valya
+Better yet, please replace kmalloc+memset with kzalloc.
 
-
+thanks,
+-Len
