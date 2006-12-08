@@ -1,37 +1,33 @@
-From: Len Brown <len.brown@intel.com>
-Subject: Re: [patch 0/3] Dock patches
-Date: Thu, 7 Dec 2006 17:50:23 -0500
-Message-ID: <200612071750.24523.len.brown@intel.com>
-References: <20061204144930.ee923959.kristen.c.accardi@intel.com>
-Reply-To: Len Brown <lenb@kernel.org>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH 13/14] ACPI: use PNPID:instance_no as bus_id of ACPI
+	device
+Date: Fri, 08 Dec 2006 09:05:51 +0800
+Message-ID: <1165539951.18470.5.camel@localhost.localdomain>
+References: <1165496265.11485.87.camel@localhost.localdomain>
+	 <20061207130246.GB19142@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:57750 "EHLO hera.kernel.org"
+Received: from mga01.intel.com ([192.55.52.88]:31572 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163470AbWLGWrW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Dec 2006 17:47:22 -0500
-In-Reply-To: <20061204144930.ee923959.kristen.c.accardi@intel.com>
-Content-Disposition: inline
+	id S1164314AbWLHBBz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Dec 2006 20:01:55 -0500
+In-Reply-To: <20061207130246.GB19142@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Dave Jones <davej@redhat.com>
+Cc: lenb@kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>
 
-On Monday 04 December 2006 17:49, Kristen Carlson Accardi wrote:
-> Hi Len,
-> Here are a set of patches for the dock station driver (drivers/acpi/dock).
-> One makes the dock station driver also a platform driver.  The second
-> adds sysfs entries which will be created under /sys/devices/platform/dock.0
-> to allow the user to read the status of the dock station (1 for docked, 0
-> undocked) and to initiate an undock request via software by writing to
-> the "undock" entry.  The third patch fixes a bug that would prevent
-> acpiphp from loading if the dock station was not able to load (on systems
-> with no _DCK in the dsdt).
+On Thu, 2006-12-07 at 08:02 -0500, Dave Jones wrote:
+> On Thu, Dec 07, 2006 at 08:57:45PM +0800, Zhang Rui wrote:
+>  > +		memset(acpi_device_bus_id, sizeof(struct acpi_device_bus_id), 0);
+> 
+> Bzzzrrrt,  Swapped args.
+> 
+> 		Dave
+Yes, that's really a careless mistake :(
+Thanks for pointing it out. I'll refresh the patch.
 
-1,2,3 applied.
-
-thanks,
--Len
+Thanks,
+Ray
