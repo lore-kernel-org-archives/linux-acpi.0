@@ -1,45 +1,47 @@
-From: Corentin CHARY <corentincj@iksaif.net>
-Subject: Re: DSDT from my ASUS A6JC
-Date: Sat, 9 Dec 2006 12:39:04 +0100
-Message-ID: <200612091239.04109.corentincj@iksaif.net>
-References: <200612091041.41583.Marc.Hansen@gmx.de>
-Reply-To: corentincj@iksaif.net
+From: Holger Macht <hmacht@suse.de>
+Subject: Re: [patch 2/3] acpi: Add a docked sysfs file to the dock driver.
+Date: Sat, 9 Dec 2006 12:59:58 +0100
+Message-ID: <20061209115957.GA5254@homac2>
+References: <20061204224037.713257809@localhost.localdomain> <20061204144958.207e58e2.kristen.c.accardi@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.dns26.com ([84.246.226.15]:54195 "EHLO iksaif.net"
+Received: from mx2.suse.de ([195.135.220.15]:50203 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S967801AbWLILjG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 9 Dec 2006 06:39:06 -0500
-In-Reply-To: <200612091041.41583.Marc.Hansen@gmx.de>
+	id S1758361AbWLIMAZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 9 Dec 2006 07:00:25 -0500
 Content-Disposition: inline
+In-Reply-To: <20061204144958.207e58e2.kristen.c.accardi@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Hansen <Marc.Hansen@gmx.de>
-Cc: linux-acpi@vger.kernel.org
+To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: len.brown@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Brandon Philips <brandon@ifup.org>
 
-Le samedi 9 d=E9cembre 2006 10:41, Marc Hansen a =E9crit=A0:
-> Hi,
-> here I got a message in "dmesg"
->
-> Asus Laptop ACPI Extras version 0.30
->   unsupported model A6JC, trying default values
->   send /proc/acpi/dsdt to the developers
->
-> The file is attached.
->
-> Regards
-> Marc
+On Mon 04. Dec - 14:49:58, Kristen Carlson Accardi wrote:
+> From: brandon@ifup.org
+> 
+> Add 2 sysfs files for user interface.
+> 1) docked - 1/0 (read only) - indicates whether the software believes the 
+> laptop is docked in a docking station.
+> 2) undock - (write only) - writing to this file causes the software to
+> initiate an undock request to the firmware. 
 
-Use the last version from http://acpi4asus.sourceforge.net :).
-A6JC is well supported, I get an A6JC.
+Thanks for doin this!
 
---=20
-CHARY 'Iksaif' Corentin
-http://xf.iksaif.net
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+However, the function dock_event(...) still contains this comment:
+
+	/*
+	 * we don't do events until someone tells me that
+	 * they would like to have them.
+	 */
+
+Well, I like to have them ;-)
+
+The sysfs exports are more or less useless without events. When the dock
+driver is loaded, you get a platform device below /sys. But you never know
+if there will ever be a docking station connected to your
+system. Userspace caring about this will have to poll the 'docked' file,
+which is obviously bad.
+
+Thanks,
+	Holger
