@@ -1,75 +1,115 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: new pmtools available for testing
-Date: Mon, 11 Dec 2006 13:20:18 -0500
-Message-ID: <200612111320.19183.lenb@kernel.org>
-References: <45634459.8040404@linux.intel.com> <20061210155015.GA13555@inferi.kami.home> <457C3FC4.8070804@linux.intel.com>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: [-mm patch] ACPI: make code static
+Date: Mon, 11 Dec 2006 19:40:48 +0100
+Message-ID: <20061211184048.GB28443@stusta.de>
+References: <20061211005807.f220b81c.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:49555 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762986AbWLKSRd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 Dec 2006 13:17:33 -0500
-In-Reply-To: <457C3FC4.8070804@linux.intel.com>
+Received: from mailout.stusta.mhn.de ([141.84.69.5]:3923 "HELO
+	mailout.stusta.mhn.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1763013AbWLKSkj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Dec 2006 13:40:39 -0500
 Content-Disposition: inline
+In-Reply-To: <20061211005807.f220b81c.akpm@osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, robert.moore@intel.com
-Cc: Mattia Dongili <malattia@linux.it>, linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>, len.brown@intel.com
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Bob,
-Any chance you could tweak the C acpixtract so it can handle
-the parameter format of the old perl script?
+On Mon, Dec 11, 2006 at 12:58:07AM -0800, Andrew Morton wrote:
+>...
+> Changes since 2.6.19-rc6-mm2:
+>...
+>  git-acpi.patch
+>...
+>  git trees.
+>...
 
-I like the newer way better, but it looks like  backwards compatibility
-is within our grasp without mucking it up, so I think we should do it.
+This patch makes needlessly global code static.
 
-On Sunday 10 December 2006 12:11, Alexey Starikovskiy wrote:
-> Mattia Dongili wrote:
-> > On Tue, Nov 21, 2006 at 09:24:25PM +0300, Alexey Starikovskiy wrote:
-> >   
-> >> Hi,
-> >>
-> >> acpixtract perl-script is being replaced by C xtract utility. Please test.
-> >>     
-> >
-> > Hello, I'm considering an update to the acpidump Debian package, so is
-> > this version (20061121) available online somewhere?
-> > Should it just appear in Len's kernel.org FTP when it's ready?
-> >
-> > Thanks
-> >   
-> Len is about to put 20061130 version out, with acpixtract from ACPI CA 
-> package.
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
-Well, I pushed this up to the ftp site, and it is functional, but the problem
-is that the new acpixtract from ACPICA has different parameters, so it
-isn't backwards compatible with the old per acpixtract.
+---
 
-the examples in pmtools/README include invocations like this:
-    $ cat email | ./acpixtract DSDT > DSDT
-    $ cat email | ./acpixtract FACP | ./acpitbl
-    $ ./acpixtract FACP acpidump.out > FACP.bin
-    $ ./acpixtract -n 3 SSDT acpidump.out > SSDT3.bin
+ drivers/acpi/bus.c          |    2 +-
+ drivers/acpi/dock.c         |    4 ++--
+ drivers/acpi/pci_bind.c     |    4 ++--
+ include/acpi/acpi_bus.h     |    2 --
+ include/acpi/acpi_drivers.h |    2 --
+ 5 files changed, 5 insertions(+), 9 deletions(-)
 
-but the new acpixtract looks like this:
-
-# ./acpixtract FACP acpidump.out > FACP.bin
-# cat FACP.bin
-Could not open FACP
-#
-# ./acpixtract -n 3 SSDT acpidump.out > SSDT3.bin
-# cat SSDT3.bin
-Usage: acpixtract [option] <InputFile>
-
-Extract binary ACPI tables from text acpidump output
-Default invocation extracts all DSDTs and SSDTs
-Version 20060324
-
-Options:
- -a                    Extract all tables, not just DSDT/SSDT
- -l                    List table summaries, do not extract
- -s<Signature>         Extract all tables named <Signature>
+--- linux-2.6.19-mm1/include/acpi/acpi_bus.h.old	2006-12-11 17:59:03.000000000 +0100
++++ linux-2.6.19-mm1/include/acpi/acpi_bus.h	2006-12-11 17:59:08.000000000 +0100
+@@ -317,8 +317,6 @@
+ 	u32 data;
+ };
+ 
+-extern struct subsystem acpi_subsys;
+-
+ /*
+  * External Functions
+  */
+--- linux-2.6.19-mm1/drivers/acpi/bus.c.old	2006-12-11 16:44:31.000000000 +0100
++++ linux-2.6.19-mm1/drivers/acpi/bus.c	2006-12-11 16:44:56.000000000 +0100
+@@ -728,7 +728,7 @@
+ 	return -ENODEV;
+ }
+ 
+-decl_subsys(acpi, NULL, NULL);
++static decl_subsys(acpi, NULL, NULL);
+ 
+ static int __init acpi_init(void)
+ {
+--- linux-2.6.19-mm1/include/acpi/acpi_drivers.h.old	2006-12-11 16:45:46.000000000 +0100
++++ linux-2.6.19-mm1/include/acpi/acpi_drivers.h	2006-12-11 16:46:09.000000000 +0100
+@@ -68,8 +68,6 @@
+ struct pci_bus;
+ 
+ acpi_status acpi_get_pci_id(acpi_handle handle, struct acpi_pci_id *id);
+-int acpi_pci_bind(struct acpi_device *device);
+-int acpi_pci_unbind(struct acpi_device *device);
+ int acpi_pci_bind_root(struct acpi_device *device, struct acpi_pci_id *id,
+ 		       struct pci_bus *bus);
+ 
+--- linux-2.6.19-mm1/drivers/acpi/pci_bind.c.old	2006-12-11 16:46:17.000000000 +0100
++++ linux-2.6.19-mm1/drivers/acpi/pci_bind.c	2006-12-11 16:46:35.000000000 +0100
+@@ -106,7 +106,7 @@
+ 
+ EXPORT_SYMBOL(acpi_get_pci_id);
+ 
+-int acpi_pci_bind(struct acpi_device *device)
++static int acpi_pci_bind(struct acpi_device *device)
+ {
+ 	int result = 0;
+ 	acpi_status status = AE_OK;
+@@ -265,7 +265,7 @@
+ 	return result;
+ }
+ 
+-int acpi_pci_unbind(struct acpi_device *device)
++static int acpi_pci_unbind(struct acpi_device *device)
+ {
+ 	int result = 0;
+ 	acpi_status status = AE_OK;
+--- linux-2.6.19-mm1/drivers/acpi/dock.c.old	2006-12-11 16:47:24.000000000 +0100
++++ linux-2.6.19-mm1/drivers/acpi/dock.c	2006-12-11 16:47:55.000000000 +0100
+@@ -639,7 +639,7 @@
+ 	return snprintf(buf, PAGE_SIZE, "%d\n", dock_present(dock_station));
+ 
+ }
+-DEVICE_ATTR(docked, S_IRUGO, show_docked, NULL);
++static DEVICE_ATTR(docked, S_IRUGO, show_docked, NULL);
+ 
+ /*
+  * write_undock - write method for "undock" file in sysfs
+@@ -655,7 +655,7 @@
+ 	ret = handle_eject_request(dock_station, ACPI_NOTIFY_EJECT_REQUEST);
+ 	return ret ? ret: count;
+ }
+-DEVICE_ATTR(undock, S_IWUSR, NULL, write_undock);
++static DEVICE_ATTR(undock, S_IWUSR, NULL, write_undock);
+ 
+ /**
+  * dock_add - add a new dock station
 
