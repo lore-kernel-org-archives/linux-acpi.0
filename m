@@ -1,102 +1,250 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: Hostap_cs shared irq oops
-Date: Mon, 11 Dec 2006 00:55:21 -0500
-Message-ID: <200612110055.22416.lenb@kernel.org>
-References: <457B9020.1040101@latinsud.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH 13/14] ACPI: use PNPID:instance_no as bus_id of ACPI
+	device
+Date: Mon, 11 Dec 2006 14:29:24 +0800
+Message-ID: <1165818564.9417.14.camel@localhost.localdomain>
+References: <1165496265.11485.87.camel@localhost.localdomain>
+	 <1165569823.5480.6.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:49759 "EHLO hera.kernel.org"
+Received: from mga01.intel.com ([192.55.52.88]:33650 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762532AbWLKFws (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 Dec 2006 00:52:48 -0500
-In-Reply-To: <457B9020.1040101@latinsud.com>
-Content-Disposition: inline
+	id S1762560AbWLKGZL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 11 Dec 2006 01:25:11 -0500
+In-Reply-To: <1165569823.5480.6.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: SuD <sud@latinsud.com>
-Cc: linux-kernel@vger.kernel.org, hostap@shmoo.com, linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-On Saturday 09 December 2006 23:42, SuD wrote:
-> Hi, I recently upgraded to kernel 2.6.18.2 and noticed these problems:
->  - I realized that having CONFIG_ISA=y makes it always crash when i 
-> insert the card (complains about unexpected LVT TMR interrupt). So i 
-> disabled Isa.
->  - Hostap_cs gets a shared Irq (this didn't happen with kernel 
-> 2.6.15.6). It crashes if the interrupt is triggered while the device is 
-> not fully initialized (Error is: "Divide error 0000 [#1]"). I can 
-> workaround that by using a flag and inserting a "if (!my_init_flag) { 
-> return IRQ_HANDLED }" at the begining of the irq handler.
+Hello, Len
+I checked the acpi-test branch just now, and found that you didn't push
+this updated patch, but the old buggy one instead.
+So will you please refresh it? :)
 
-hostap_cs is hard-coded to request IRQ_TYPE_EXCLUSIVE
+Thanks,
+Ray
 
-I think it was Bjorn Helgaas who observed that a device doing such
-a request is not seen, and thus not honored by ACPI when the
-physical IRQs are handed out.
-
-The immediate question is why this fragile creature broke after 2.6.15.
-By default, we avoid re-programming interrupts in PIC mode.
-Is CONFIG_PNPACPI enabled in both kernels?
-
-Need the dmesg -s64000 and /proc/interrupts output for last working
-and first broken kernels.  Maybe best to file these in a bugzilla entry.
-
-http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
-
-thanks,
--Len
-
-
-> - I don't know much about irq allocation. Can i try something to get my 
-> separate irq back?
-> - Should i try different configuration or 2.6.19?
-> - Should hostap_cs be enhanced to support shared irq?
+On Fri, 2006-12-08 at 17:23 +0800, Zhang Rui wrote:
+> From: Zhang Rui <rui.zhang@intel.com>
 > 
-> I use debian etch. Laptop is a G200N 1.7GHz Centrino.
+> Previously we used the device name in the DSDT, but would
+> crash upon encountering a duplicate. Also, exposing the
+> DSDT device name to the user in a patch isn't a good idea,
+> because it is arbitrary.
 > 
-> My /proc/interrupts in 2.6.18.2:
->            CPU0
->   0:     756865          XT-PIC  timer
->   1:      11062          XT-PIC  i8042
->   2:          0          XT-PIC  cascade
->   5:      30453          XT-PIC  uhci_hcd:usb3, eth0
->   9:     306542          XT-PIC  acpi
->  10:      40192          XT-PIC  ohci1394, yenta, ipw2200, 
-> ehci_hcd:usb1, uhci_hcd:usb4, Intel 82801DB-ICH4, pcmcia0.0
->  11:     167128          XT-PIC  uhci_hcd:usb2, i915@pci:0000:00:02.0
->  12:     226854          XT-PIC  i8042
->  14:      48281          XT-PIC  ide0
->  15:      24932          XT-PIC  ide1
+> After some discussion, we finally decided to use
+> "PNPID:instance_no" as the bus_id of ACPI devices.
 > 
-> Some acpi boot messages:
-> PCI quirk: region 1000-107f claimed by ICH4 ACPI/GPIO/TCO
-> PCI quirk: region 1180-11bf claimed by ICH4 GPIO
-> PCI: Ignoring BAR0-3 of IDE controller 0000:00:1f.1
-> PCI: Transparent bridge - 0000:00:1e.0
-> PCI: Bus #03 (-#06) is hidden behind transparent bridge #02 (-#02) (try 
-> 'pci=assign-busses')
-> Please report the result to linux-kernel to fix this permanently
-> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCIB._PRT]
-> ACPI: PCI Interrupt Link [LNKA] (IRQs *11)
-> ACPI: PCI Interrupt Link [LNKB] (IRQs *10)
-> ACPI: PCI Interrupt Link [LNKC] (IRQs *10)
-> ACPI: PCI Interrupt Link [LNKD] (IRQs 5) *11
-> ACPI: PCI Interrupt Link [LNKE] (IRQs 10) *11
-> ACPI: PCI Interrupt Link [LNKF] (IRQs 10) *0, disabled.
-> ACPI: PCI Interrupt Link [LNKG] (IRQs 11) *0, disabled.
-> ACPI: PCI Interrupt Link [LNKH] (IRQs *10)
-> ACPI: Embedded Controller [EC0] (gpe 29) interrupt mode.
-> ACPI: Power Resource [PFN0] (off)
-> ACPI: Power Resource [PFN1] (off)
+> Two attributes for each device are added at the same time,
+> the full pathname in ACPI namespace and hardware_id if it has.
 > 
-> Thanks, please CC me if you can (works both with or without the "_nospam").
+> NOTE:	acpi_bus_id_list is used to keep the information of PNPID
+> 	and instance number of the given PNPID. Loop the
+> 	acpi_bus_id_list to find the instance_no of the	same PNPID
+> 	when register a device. If failed, i.e. we don't have a
+> 	node with this PNPID, allocate one and link it to this list.
 > 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+> NOTE:	Now I don't take the memory free work in charge.
+> 	If necessary, I can add a reference count in
+> 	struct acpi_device_bus_id, and check the reference and
+> 	when unregister a device, i.e. memory is freed when
+> 	the reference count of a given PNPID is 0.
+> 	
+> Signed-off-by: Li Shaohua <shaohua.li@intel.com>
+> 
+> ---
+>  drivers/acpi/scan.c |  118 ++++++++++++++++++++++++++++++++++++++++++++++++----
+>  1 files changed, 109 insertions(+), 9 deletions(-)
+> 
+> Index: linux-2.6.19/drivers/acpi/scan.c
+> ===================================================================
+> --- linux-2.6.19.orig/drivers/acpi/scan.c	2006-12-08 16:20:53.000000000 +0800
+> +++ linux-2.6.19/drivers/acpi/scan.c	2006-12-08 16:57:20.000000000 +0800
+> @@ -21,9 +21,15 @@ extern struct acpi_device *acpi_root;
+>  #define ACPI_BUS_DEVICE_NAME		"System Bus"
+>  
+>  static LIST_HEAD(acpi_device_list);
+> +static LIST_HEAD(acpi_bus_id_list);
+>  DEFINE_SPINLOCK(acpi_device_lock);
+>  LIST_HEAD(acpi_wakeup_device_list);
+>  
+> +struct acpi_device_bus_id{
+> +	char bus_id[9];
+> +	unsigned int instance_no;
+> +	struct list_head node;
+> +};
+>  static int acpi_eject_operation(acpi_handle handle, int lockable)
+>  {
+>  	struct acpi_object_list arg_list;
+> @@ -103,18 +109,61 @@ acpi_eject_store(struct device *d, struc
+>  
+>  static DEVICE_ATTR(eject, 0200, NULL, acpi_eject_store);
+>  
+> -static void acpi_device_setup_files(struct acpi_device *dev)
+> +static ssize_t
+> +acpi_device_hid_show(struct device *dev, struct device_attribute *attr, char *buf) {
+> +	struct acpi_device *acpi_dev = to_acpi_device(dev);
+> +
+> +	return sprintf(buf, "%s\n", acpi_dev->pnp.hardware_id);
+> +}
+> +static DEVICE_ATTR(hid, 0444, acpi_device_hid_show, NULL);
+> +
+> +static ssize_t
+> +acpi_device_path_show(struct device *dev, struct device_attribute *attr, char *buf) {
+> +	struct acpi_device *acpi_dev = to_acpi_device(dev);
+> +	struct acpi_buffer path = {ACPI_ALLOCATE_BUFFER, NULL};
+> +	int result;
+> +
+> +	result = acpi_get_name(acpi_dev->handle, ACPI_FULL_PATHNAME, &path);
+> +	if(result)
+> +		goto end;
+> +
+> +	result = sprintf(buf, "%s\n", (char*)path.pointer);
+> +	kfree(path.pointer);
+> +  end:
+> +	return result;
+> +}
+> +static DEVICE_ATTR(path, 0444, acpi_device_path_show, NULL);
+> +
+> +static int acpi_device_setup_files(struct acpi_device *dev)
+>  {
+>  	acpi_status status;
+>  	acpi_handle temp;
+> +	int result = 0;
+>  
+>  	/*
+> -	 * If device has _EJ0, 'eject' file is created that is used to trigger
+> -	 * hot-removal function from userland.
+> +	 * Devices gotten from FADT don't have a "path" attribute
+>  	 */
+> +	if(dev->handle) {
+> +		result = device_create_file(&dev->dev, &dev_attr_path);
+> +		if(result)
+> +			goto end;
+> +	}
+> +
+> +	if(dev->flags.hardware_id) {
+> +		result = device_create_file(&dev->dev, &dev_attr_hid);
+> +		if(result)
+> +			goto end;
+> +	}
+> +
+> +        /*
+> +         * If device has _EJ0, 'eject' file is created that is used to trigger
+> +         * hot-removal function from userland.
+> +         */
+>  	status = acpi_get_handle(dev->handle, "_EJ0", &temp);
+>  	if (ACPI_SUCCESS(status))
+> -		device_create_file(&dev->dev, &dev_attr_eject);
+> +		result = device_create_file(&dev->dev, &dev_attr_eject);
+> +  end:
+> +	return result;
+>  }
+>  
+>  static void acpi_device_remove_files(struct acpi_device *dev)
+> @@ -129,6 +178,11 @@ static void acpi_device_remove_files(str
+>  	status = acpi_get_handle(dev->handle, "_EJ0", &temp);
+>  	if (ACPI_SUCCESS(status))
+>  		device_remove_file(&dev->dev, &dev_attr_eject);
+> +
+> +	if(dev->flags.hardware_id)
+> +		device_remove_file(&dev->dev, &dev_attr_hid);
+> +	if(dev->handle)
+> +		device_remove_file(&dev->dev, &dev_attr_path);
+>  }
+>  /* --------------------------------------------------------------------------
+>  			ACPI Bus operations
+> @@ -260,9 +314,12 @@ static struct bus_type acpi_bus_type = {
+>  	.uevent		= acpi_device_uevent,
+>  };
+>  
+> -static void acpi_device_register(struct acpi_device *device,
+> +static int acpi_device_register(struct acpi_device *device,
+>  				 struct acpi_device *parent)
+>  {
+> +	int result;
+> +	struct acpi_device_bus_id *acpi_device_bus_id, *new_bus_id;
+> +	int found = 0;
+>  	/*
+>  	 * Linkage
+>  	 * -------
+> @@ -273,7 +330,33 @@ static void acpi_device_register(struct 
+>  	INIT_LIST_HEAD(&device->g_list);
+>  	INIT_LIST_HEAD(&device->wakeup_list);
+>  
+> +	new_bus_id = kzalloc(sizeof(struct acpi_device_bus_id), GFP_KERNEL);
+> +	if (!new_bus_id) {
+> +		printk(KERN_ERR PREFIX "Memory allocation error\n");
+> +		return -ENOMEM;
+> +	}
+> +
+>  	spin_lock(&acpi_device_lock);
+> +	/*
+> +	 * Find suitable bus_id and instance number in acpi_bus_id_list
+> +	 * If failed, create one and link it into acpi_bus_id_list
+> +	 */
+> +	list_for_each_entry(acpi_device_bus_id, &acpi_bus_id_list, node) {
+> +		if(!strcmp(acpi_device_bus_id->bus_id, device->flags.hardware_id? device->pnp.hardware_id : "PNPIDNON")) {
+> +			acpi_device_bus_id->instance_no ++;
+> +			found = 1;
+> +			kfree(new_bus_id);
+> +			break;
+> +		}
+> +	}
+> +	if(!found) {
+> +		acpi_device_bus_id = new_bus_id;
+> +		strcpy(acpi_device_bus_id->bus_id, device->flags.hardware_id ? device->pnp.hardware_id : "PNPIDNON");
+> +		acpi_device_bus_id->instance_no = 0;
+> +		list_add_tail(&acpi_device_bus_id->node, &acpi_bus_id_list);
+> +	}
+> +	sprintf(device->dev.bus_id, "%s:%02x", acpi_device_bus_id->bus_id, acpi_device_bus_id->instance_no);
+> +
+>  	if (device->parent) {
+>  		list_add_tail(&device->node, &device->parent->children);
+>  		list_add_tail(&device->g_list, &device->parent->g_list);
+> @@ -287,12 +370,29 @@ static void acpi_device_register(struct 
+>  		device->dev.parent = &parent->dev;
+>  	device->dev.bus = &acpi_bus_type;
+>  	device_initialize(&device->dev);
+> -	sprintf(device->dev.bus_id, "%s", device->pnp.bus_id);
+>  	device->dev.release = &acpi_device_release;
+> -	device_add(&device->dev);
+> +	result = device_add(&device->dev);
+> +	if(result) {
+> +		printk("Error adding device %s", device->dev.bus_id);
+> +		goto end;
+> +	}
+> +
+> +	result = acpi_device_setup_files(device);
+> +	if(result)
+> +		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Error creating sysfs interface for device %s\n", device->dev.bus_id));
+>  
+> -	acpi_device_setup_files(device);
+>  	device->removal_type = ACPI_BUS_REMOVAL_NORMAL;
+> +	return 0;
+> +  end:
+> +	spin_lock(&acpi_device_lock);
+> +	if (device->parent) {
+> +		list_del(&device->node);
+> +		list_del(&device->g_list);
+> +	} else
+> +		list_del(&device->g_list);
+> +	list_del(&device->wakeup_list);
+> +	spin_unlock(&acpi_device_lock);
+> +	return result;
+>  }
+>  
+>  static void acpi_device_unregister(struct acpi_device *device, int type)
+> @@ -1035,7 +1135,7 @@ acpi_add_single_object(struct acpi_devic
+>  
+>  	acpi_device_get_debug_info(device, handle, type);
+>  
+> -	acpi_device_register(device, parent);
+> +	result = acpi_device_register(device, parent);
+>  
+>        end:
+>  	if (!result)
 > 
