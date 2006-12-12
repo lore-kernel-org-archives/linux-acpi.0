@@ -1,49 +1,54 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: [RFC 2/2] don't enable link device in IOAPIC mode
-Date: Tue, 12 Dec 2006 09:26:32 +0800
-Message-ID: <1165886792.19586.26.camel@sli10-conroe.sh.intel.com>
+From: Corentin CHARY <corentincj@iksaif.net>
+Subject: acpi4asus-0.31 release
+Date: Tue, 12 Dec 2006 10:08:04 +0100
+Message-ID: <200612121008.04894.corentincj@iksaif.net>
+Reply-To: corentincj@iksaif.net
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:41013 "EHLO mga01.intel.com"
+Received: from iksaif.dns26.com ([84.246.226.15]:34353 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750809AbWLLB1s (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 Dec 2006 20:27:48 -0500
+	id S932153AbWLLJIH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Dec 2006 04:08:07 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux acpi <linux-acpi@vger.kernel.org>
-Cc: Stian Jordet <stian_web@jordet.nu>, Andrew Morton <akpm@osdl.org>, "Brown, Len" <len.brown@intel.com>
+To: linux-acpi@vger.kernel.org
+Cc: len.brown@intel.com
 
-In Stian's system, if link device is enabled in IOAPIC mode, pci device
-will connect to link device and link device connect to IOAPIC pin. That
-is the device's interrupt is decided by link's irq. If link device is
-disabled, pci device is connected to IOAPIC pin.
-There are two devices who share one link device in pic mode, but in
-IOAPIC mode, _PRT table reported one device connected to IOAPIC pin and
-the other connected to the link device. If the link device is enabled,
-the device connected to IOAPIC pin directly will break as _PRT reported
-interrupt for the device doesn't reflect the case link device is
-enabled. If we leave the link device disabled, the device which
-connected to the link device doesn't break. It appears the link device
-is just used to get an interrupt number instead of for real interrupt
-routing. So in this patch, if current irq model is IOAPIC, we will leave
-link device disabled and just use its active irq number.
+Hi,
+There is a new acpi4asus release, the first since january ...
+Changelog :
+New default values to avoid errors
+Added support for A6J
+Added support for A6R
+Added support for A6B, A6K
+Added support for A6V
+Added support for F3J
+Added support for A3N, A3L
+Added support for A3E
+Added support for A3F
+Added support for Z71V
+Added support for Z71A
+Added support for V6V
+Added support for V6J
+Added support for A8J
+Added support for A6F
+Added support for Z96F
+Added support for W5F
+Added support for light_sens (thx zorxd)
+New methods name (mt_led -> set_led, etc ...)
+Support for backlight class /sys/class/backlight/asus/
+Constants params can be specified for lcd_switch and lcd_status (used for A6x, 
+F3J, L3H, ..)
+Remove asus_uid and asus_gid parameters
+Added "unsupported" parameter
+Added support for 2.6.19
 
-Signed-off-by: Shaohua Li<shaohua.li@intel.com>
+Files can be found at http://acpi4asus.sourceforge.net/ .
 
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index d53bd98..655bb49 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -527,6 +527,10 @@ static int acpi_pci_link_allocate(struct
- 	int i;
- 
- 
-+	if (acpi_irq_model == ACPI_IRQ_MODEL_IOAPIC && link->irq.active) {
-+		link->irq.initialized = 1;
-+		return 0;
-+	}
- 	if (link->irq.initialized) {
- 		if (link->refcnt == 0)
- 			/* This means the link is disabled but initialized */
+-- 
+CHARY 'Iksaif' Corentin
+http://xf.iksaif.net
