@@ -1,54 +1,33 @@
-From: Corentin CHARY <corentincj@iksaif.net>
-Subject: acpi4asus-0.31 release
-Date: Tue, 12 Dec 2006 10:08:04 +0100
-Message-ID: <200612121008.04894.corentincj@iksaif.net>
-Reply-To: corentincj@iksaif.net
+From: "Michael.Eschweiler@t-online.de" <Michael.Eschweiler@t-online.de>
+Subject: (unknown)
+Date: Tue, 12 Dec 2006 15:42:28 +0100
+Message-ID: <1Gu8px-1D7NLM0@fwd32.aul.t-online.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.dns26.com ([84.246.226.15]:34353 "EHLO iksaif.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932153AbWLLJIH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Dec 2006 04:08:07 -0500
-Content-Disposition: inline
+Received: from mailout05.sul.t-online.com ([194.25.134.82]:53289 "EHLO
+	mailout05.sul.t-online.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751379AbWLLOmf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Dec 2006 09:42:35 -0500
+Subject: 
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: len.brown@intel.com
+Cc: ling.l.yu@intel.com
 
-Hi,
-There is a new acpi4asus release, the first since january ...
-Changelog :
-New default values to avoid errors
-Added support for A6J
-Added support for A6R
-Added support for A6B, A6K
-Added support for A6V
-Added support for F3J
-Added support for A3N, A3L
-Added support for A3E
-Added support for A3F
-Added support for Z71V
-Added support for Z71A
-Added support for V6V
-Added support for V6J
-Added support for A8J
-Added support for A6F
-Added support for Z96F
-Added support for W5F
-Added support for light_sens (thx zorxd)
-New methods name (mt_led -> set_led, etc ...)
-Support for backlight class /sys/class/backlight/asus/
-Constants params can be specified for lcd_switch and lcd_status (used for A6x, 
-F3J, L3H, ..)
-Remove asus_uid and asus_gid parameters
-Added "unsupported" parameter
-Added support for 2.6.19
+Hi there, 
+I recently installed SuSE 10.2 on my Acer Travelmate 661
+and now I'm trying to get to work suspend2ram. Unfortunately it doesn't
+work
+out of the box. One hint in the manual was to download the DSDT from
+http://acpi.sourceforge.net/dsdt/view.php. I looked in the lis  but I
+didn't find it. Is there perhaps another way to get it somewhere else? 
+Thanks in advance,
+Michael
 
-Files can be found at http://acpi4asus.sourceforge.net/ .
 
--- 
-CHARY 'Iksaif' Corentin
-http://xf.iksaif.net
+
+
+
