@@ -1,73 +1,60 @@
-From: "Lincoln Baxter, III" <lincolnbaxter@gmail.com>
-Subject: HP nc6400 v.03 or v.05 laptop ACPI fails after reboot, works again
- after booting windows
-Date: Tue, 12 Dec 2006 18:14:08 -0500
-Message-ID: <457F37C0.3090003@gmail.com>
+From: Stefan Schmidt <stefan@datenfreihafen.org>
+Subject: Re: [patch 2/3] acpi: Add a docked sysfs file to the dock driver.
+Date: Wed, 13 Dec 2006 00:26:38 +0100
+Message-ID: <20061212232638.GB4104@datenfreihafen.org>
+References: <20061204224037.713257809@localhost.localdomain> <20061211120508.2f2704ac.kristen.c.accardi@intel.com> <20061212221504.GA4104@datenfreihafen.org> <200612121431.11919.jbarnes@virtuousgeek.org> <20061212150033.e3c7612f.kristen.c.accardi@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="98e8jtXdkpgskNou"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wx-out-0506.google.com ([66.249.82.229]:46933 "EHLO
-	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964817AbWLLXOK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Dec 2006 18:14:10 -0500
-Received: by wx-out-0506.google.com with SMTP id h27so2022954wxd
-        for <linux-acpi@vger.kernel.org>; Tue, 12 Dec 2006 15:14:10 -0800 (PST)
+Received: from sirius.lasnet.de ([62.75.240.18]:48720 "EHLO sirius.lasnet.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932573AbWLMADK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Dec 2006 19:03:10 -0500
+Content-Disposition: inline
+In-Reply-To: <20061212150033.e3c7612f.kristen.c.accardi@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Holger Macht <hmacht@suse.de>, len.brown@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Brandon Philips <brandon@ifup.org>, Kay Sievers <kay.sievers@vrfy.org>
 
-Hi everyone, I recently tried to install gentoo linux on my HP nc6400 
-laptop, and everything works fine except for the following issues.
 
-   This may be related to:
-   http://marc.theaimsgroup.com/?l=linux-acpi&m=115583434909936&w=2
+--98e8jtXdkpgskNou
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Here are the problems:
-  1. After booting gentoo, when I reboot, I can no longer enter the BIOS 
-setup screen by pressing F10.
-  2. After booting gentoo, when I reboot, the ACPI battery file does not 
-update the power status / events.
+Hello.
 
-Here's how they happen:
-  1. Boot windows: everything works fine.
-  2. Reboot from windows: I can get into setup by pressing F10.
-  3. Boot Gentoo after having booted windows first: power status meter 
-works, files are updated, etc.
-  4. Reboot into Gentoo: I can no longer enter setup via F10.
-  5. Reboot into windows: Everything works again. On next bootup, F10 
-works fine.
+On Tue, 2006-12-12 at 15:00, Kristen Carlson Accardi wrote:
+>=20
+> I did have different dock/undock events a few months ago - but
+> after some discussion we scrapped them because Kay wants to avoid driver
+> specific events.  The "change" event is the only thing that makes sense,
+> given the set of uevents available right now, and userspace should be=20
+> able to handle checking a file to get driver specific details (i.e. dock=
+=20
+> and undock status).  If you have a specific reason why this won't work,
+> let me know.
 
-Sometimes the keyboard will refuse to work until the system has booted 
-into the OS.
-(This doesn't seem to consistently occur.)
+It's fine with me. I just find two different events more handy.
+Checking the file after the event in userspace should not be aproblem.
 
-Any ideas on how to go about fixing this?
+regards
+Stefan Schmidt
 
-My DSDT generates the following errors on compiling:
+--98e8jtXdkpgskNou
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-------------------------------------------------------------------------------------------------------
-Intel ACPI Component Architecture
-ASL Optimizing Compiler version 20060912 [Dec 11 2006]
-Copyright (C) 2000 - 2006 Intel Corporation
-Supports ACPI Specification Revision 3.0a
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+Comment: http://www.datenfreihafen.org/contact.html
 
-dsdt.dsl  3275:                                         And (Local1, 0xFFFF)
-Warning  1104 -        Result is not used, operator has no effect ^
+iD8DBQFFfzqubNSsvd31FmURAqwQAJ9xeae93It6P/qa2/wCLlWRTWofXgCgihqY
+Y9yZdkDpm55hhJRffaRv4dg=
+=S+6w
+-----END PGP SIGNATURE-----
 
-dsdt.dsl  4672:                     Method (_DSM, 4, NotSerialized)
-Warning  1086 -                                ^ Not all control paths 
-return a value (_DSM)
-
-dsdt.dsl  4672:                     Method (_DSM, 4, NotSerialized)
-Warning  1079 -                                ^ Reserved method must 
-return a value (_DSM)
-
-dsdt.dsl 12767:                 CreateByteField (C1D3, 
-\_SB.C002.C003._Y0F._LEN, C08F)
-Error    4062 -                                         Object does not 
-exist ^  (\_SB.C002.C003._Y0F._LEN)
-
-ASL Input:  dsdt.dsl - 13280 lines, 491767 bytes, 6207 keywords
-Compilation complete. 1 Errors, 3 Warnings, 0 Remarks, 2052 Optimizations
-
+--98e8jtXdkpgskNou--
