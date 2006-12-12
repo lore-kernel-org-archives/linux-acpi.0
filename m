@@ -1,33 +1,85 @@
-From: "Michael.Eschweiler@t-online.de" <Michael.Eschweiler@t-online.de>
-Subject: (unknown)
-Date: Tue, 12 Dec 2006 15:42:28 +0100
-Message-ID: <1Gu8px-1D7NLM0@fwd32.aul.t-online.de>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: [2.6 patch] proper prototype for drivers/base/init.c:driver_init()
+Date: Tue, 12 Dec 2006 17:22:35 +0100
+Message-ID: <20061212162235.GQ28443@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout05.sul.t-online.com ([194.25.134.82]:53289 "EHLO
-	mailout05.sul.t-online.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751379AbWLLOmf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Dec 2006 09:42:35 -0500
-Subject: 
+Received: from mailout.stusta.mhn.de ([141.84.69.5]:3372 "HELO
+	mailout.stusta.mhn.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751502AbWLLQWZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Dec 2006 11:22:25 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: ling.l.yu@intel.com
+To: Andrew Morton <akpm@osdl.org>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, linux-kernel@vger.kernel.org, ibm-acpi@hmh.eng.br, len.brown@intel.com, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Hi there, 
-I recently installed SuSE 10.2 on my Acer Travelmate 661
-and now I'm trying to get to work suspend2ram. Unfortunately it doesn't
-work
-out of the box. One hint in the manual was to download the DSDT from
-http://acpi.sourceforge.net/dsdt/view.php. I looked in the lis  but I
-didn't find it. Is there perhaps another way to get it somewhere else? 
-Thanks in advance,
-Michael
+This patch adds a prototype for driver_init() in include/linux/device.h.
 
+It also removes a static function of the same name in 
+drivers/acpi/ibm_acpi.c to ibm_acpi_driver_init() to fix the namespace 
+collision.
 
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
+---
 
+ drivers/acpi/ibm_acpi.c |    4 ++--
+ include/linux/device.h  |    2 ++
+ init/main.c             |    2 +-
+ 3 files changed, 5 insertions(+), 3 deletions(-)
+
+--- linux-2.6.19-rc6-mm1/include/linux/device.h.old	2006-11-25 00:03:22.000000000 +0100
++++ linux-2.6.19-rc6-mm1/include/linux/device.h	2006-11-25 00:04:06.000000000 +0100
+@@ -432,6 +432,8 @@
+ 	return dev->is_registered;
+ }
+ 
++void driver_init(void);
++
+ /*
+  * High level routines for use by the bus drivers
+  */
+--- linux-2.6.19-rc6-mm1/init/main.c.old	2006-11-25 00:05:03.000000000 +0100
++++ linux-2.6.19-rc6-mm1/init/main.c	2006-11-25 00:05:58.000000000 +0100
+@@ -52,8 +52,9 @@
+ #include <linux/debug_locks.h>
+ #include <linux/lockdep.h>
+ #include <linux/utsrelease.h>
+ #include <linux/pid_namespace.h>
+ #include <linux/compile.h>
++#include <linux/device.h>
+ 
+ #include <asm/io.h>
+ #include <asm/bugs.h>
+@@ -90,7 +91,6 @@
+ extern void radix_tree_init(void);
+ extern void free_initmem(void);
+ extern void populate_rootfs(void);
+-extern void driver_init(void);
+ extern void prepare_namespace(void);
+ #ifdef	CONFIG_ACPI
+ extern void acpi_early_init(void);
+--- linux-2.6.19-rc6-mm1/drivers/acpi/ibm_acpi.c.old	2006-11-25 00:06:12.000000000 +0100
++++ linux-2.6.19-rc6-mm1/drivers/acpi/ibm_acpi.c	2006-11-25 00:06:37.000000000 +0100
+@@ -355,7 +355,7 @@
+ 	return start;
+ }
+ 
+-static int driver_init(void)
++static int ibm_acpi_driver_init(void)
+ {
+ 	printk(IBM_INFO "%s v%s\n", IBM_DESC, IBM_VERSION);
+ 	printk(IBM_INFO "%s\n", IBM_URL);
+@@ -1634,7 +1634,7 @@
+ static struct ibm_struct ibms[] = {
+ 	{
+ 	 .name = "driver",
+-	 .init = driver_init,
++	 .init = ibm_acpi_driver_init,
+ 	 .read = driver_read,
+ 	 },
+ 	{
 
