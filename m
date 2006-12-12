@@ -1,85 +1,67 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: [2.6 patch] proper prototype for drivers/base/init.c:driver_init()
-Date: Tue, 12 Dec 2006 17:22:35 +0100
-Message-ID: <20061212162235.GQ28443@stusta.de>
+From: Stefan Schmidt <stefan@datenfreihafen.org>
+Subject: Re: [patch 2/3] acpi: Add a docked sysfs file to the dock driver.
+Date: Tue, 12 Dec 2006 23:15:04 +0100
+Message-ID: <20061212221504.GA4104@datenfreihafen.org>
+References: <20061204224037.713257809@localhost.localdomain> <20061204144958.207e58e2.kristen.c.accardi@intel.com> <20061209115957.GA5254@homac2> <20061211120508.2f2704ac.kristen.c.accardi@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="HcAYCG3uE/tztfnV"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout.stusta.mhn.de ([141.84.69.5]:3372 "HELO
-	mailout.stusta.mhn.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751502AbWLLQWZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Dec 2006 11:22:25 -0500
+Received: from sirius.lasnet.de ([62.75.240.18]:36370 "EHLO sirius.lasnet.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932445AbWLLWNe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Dec 2006 17:13:34 -0500
 Content-Disposition: inline
+In-Reply-To: <20061211120508.2f2704ac.kristen.c.accardi@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, linux-kernel@vger.kernel.org, ibm-acpi@hmh.eng.br, len.brown@intel.com, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Holger Macht <hmacht@suse.de>, len.brown@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Brandon Philips <brandon@ifup.org>
 
-This patch adds a prototype for driver_init() in include/linux/device.h.
 
-It also removes a static function of the same name in 
-drivers/acpi/ibm_acpi.c to ibm_acpi_driver_init() to fix the namespace 
-collision.
+--HcAYCG3uE/tztfnV
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Hello.
 
----
+On Mon, 2006-12-11 at 12:05, Kristen Carlson Accardi wrote:
+> On Sat, 9 Dec 2006 12:59:58 +0100
+> Holger Macht <hmacht@suse.de> wrote:
+>=20
+> > Well, I like to have them ;-)
+>=20
+> Ok - how is this?
+>=20
+> Send a uevent to indicate a device change whenever we dock or
+> undock, so that userspace may now check the dock status via=20
+> sysfs.
 
- drivers/acpi/ibm_acpi.c |    4 ++--
- include/linux/device.h  |    2 ++
- init/main.c             |    2 +-
- 3 files changed, 5 insertions(+), 3 deletions(-)
+I would like to have two different events for dock and undock.
 
---- linux-2.6.19-rc6-mm1/include/linux/device.h.old	2006-11-25 00:03:22.000000000 +0100
-+++ linux-2.6.19-rc6-mm1/include/linux/device.h	2006-11-25 00:04:06.000000000 +0100
-@@ -432,6 +432,8 @@
- 	return dev->is_registered;
- }
- 
-+void driver_init(void);
-+
- /*
-  * High level routines for use by the bus drivers
-  */
---- linux-2.6.19-rc6-mm1/init/main.c.old	2006-11-25 00:05:03.000000000 +0100
-+++ linux-2.6.19-rc6-mm1/init/main.c	2006-11-25 00:05:58.000000000 +0100
-@@ -52,8 +52,9 @@
- #include <linux/debug_locks.h>
- #include <linux/lockdep.h>
- #include <linux/utsrelease.h>
- #include <linux/pid_namespace.h>
- #include <linux/compile.h>
-+#include <linux/device.h>
- 
- #include <asm/io.h>
- #include <asm/bugs.h>
-@@ -90,7 +91,6 @@
- extern void radix_tree_init(void);
- extern void free_initmem(void);
- extern void populate_rootfs(void);
--extern void driver_init(void);
- extern void prepare_namespace(void);
- #ifdef	CONFIG_ACPI
- extern void acpi_early_init(void);
---- linux-2.6.19-rc6-mm1/drivers/acpi/ibm_acpi.c.old	2006-11-25 00:06:12.000000000 +0100
-+++ linux-2.6.19-rc6-mm1/drivers/acpi/ibm_acpi.c	2006-11-25 00:06:37.000000000 +0100
-@@ -355,7 +355,7 @@
- 	return start;
- }
- 
--static int driver_init(void)
-+static int ibm_acpi_driver_init(void)
- {
- 	printk(IBM_INFO "%s v%s\n", IBM_DESC, IBM_VERSION);
- 	printk(IBM_INFO "%s\n", IBM_URL);
-@@ -1634,7 +1634,7 @@
- static struct ibm_struct ibms[] = {
- 	{
- 	 .name = "driver",
--	 .init = driver_init,
-+	 .init = ibm_acpi_driver_init,
- 	 .read = driver_read,
- 	 },
- 	{
+This way the userspace listener don't need to check the status file in
+sysfs to know if there was a dock or undock after getting the event.
 
+Anyway the status file is still usefull for programs don't react on
+the events, but like to know if the laptop is docked before starting
+for example.
+
+regards
+Stefan Schmidt
+
+--HcAYCG3uE/tztfnV
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+Comment: http://www.datenfreihafen.org/contact.html
+
+iD8DBQFFfynobNSsvd31FmURAiMyAJ4oiRnvaeplmDUxGte7E8Ghs84SkwCgg9QL
+c3TQCSO0kb+FH6C8jzCqNzY=
+=BybV
+-----END PGP SIGNATURE-----
+
+--HcAYCG3uE/tztfnV--
