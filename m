@@ -1,60 +1,66 @@
-From: Stefan Schmidt <stefan@datenfreihafen.org>
-Subject: Re: [patch 2/3] acpi: Add a docked sysfs file to the dock driver.
-Date: Wed, 13 Dec 2006 00:26:38 +0100
-Message-ID: <20061212232638.GB4104@datenfreihafen.org>
-References: <20061204224037.713257809@localhost.localdomain> <20061211120508.2f2704ac.kristen.c.accardi@intel.com> <20061212221504.GA4104@datenfreihafen.org> <200612121431.11919.jbarnes@virtuousgeek.org> <20061212150033.e3c7612f.kristen.c.accardi@intel.com>
+From: Peter Clifton <pcjc2@cam.ac.uk>
+Subject: Re: HP nc6400 v.03 or v.05 laptop ACPI fails after reboot, works
+	again after booting windows
+Date: Tue, 12 Dec 2006 23:42:16 +0000
+Message-ID: <1165966936.29844.37.camel@pcjc2lap>
+References: <457F37C0.3090003@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="98e8jtXdkpgskNou"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sirius.lasnet.de ([62.75.240.18]:48720 "EHLO sirius.lasnet.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932573AbWLMADK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Dec 2006 19:03:10 -0500
-Content-Disposition: inline
-In-Reply-To: <20061212150033.e3c7612f.kristen.c.accardi@intel.com>
+Received: from ppsw-4.csi.cam.ac.uk ([131.111.8.134]:59119 "EHLO
+	ppsw-4.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932568AbWLMAIL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Dec 2006 19:08:11 -0500
+In-Reply-To: <457F37C0.3090003@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Holger Macht <hmacht@suse.de>, len.brown@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Brandon Philips <brandon@ifup.org>, Kay Sievers <kay.sievers@vrfy.org>
+To: linux-acpi@vger.kernel.org
+Cc: "Lincoln Baxter, III" <lincolnbaxter@gmail.com>
+
+On Tue, 2006-12-12 at 18:14 -0500, Lincoln Baxter, III wrote:
+> Hi everyone, I recently tried to install gentoo linux on my HP nc6400 
+> laptop, and everything works fine except for the following issues.
+> 
+>    This may be related to:
+>    http://marc.theaimsgroup.com/?l=linux-acpi&m=115583434909936&w=2
+> 
+> Here are the problems:
+>   1. After booting gentoo, when I reboot, I can no longer enter the BIOS 
+> setup screen by pressing F10.
+>   2. After booting gentoo, when I reboot, the ACPI battery file does not 
+> update the power status / events.
+> 
+> Here's how they happen:
+>   1. Boot windows: everything works fine.
+>   2. Reboot from windows: I can get into setup by pressing F10.
+>   3. Boot Gentoo after having booted windows first: power status meter 
+> works, files are updated, etc.
+>   4. Reboot into Gentoo: I can no longer enter setup via F10.
+>   5. Reboot into windows: Everything works again. On next bootup, F10 
+> works fine.
+
+Crazy as it seems, add an init script to rmmod psmouse before you
+shutdown or reboot linux. Somehow having it loaded when the machine
+shuts down causes the BIOS to get upset.
+
+Works on my nc6320 as a workaround, although I've got a few odd issues
+still:
+
+Critically, when the lid-switch is pressed, the backlight extinguishes,
+but if the touchpad senses any movement, a key is pressed, or for some
+random reason, the backlight fires back up again, then doesn't switch
+off.
+
+This leaves the laptop very toasty if you shut the lid and it does this.
+
+Does yours do this?
 
 
---98e8jtXdkpgskNou
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Suspend doesn't work out of box, I've not really tried to diagnose.
 
-Hello.
+Regards,
 
-On Tue, 2006-12-12 at 15:00, Kristen Carlson Accardi wrote:
->=20
-> I did have different dock/undock events a few months ago - but
-> after some discussion we scrapped them because Kay wants to avoid driver
-> specific events.  The "change" event is the only thing that makes sense,
-> given the set of uevents available right now, and userspace should be=20
-> able to handle checking a file to get driver specific details (i.e. dock=
-=20
-> and undock status).  If you have a specific reason why this won't work,
-> let me know.
+Peter Clifton
 
-It's fine with me. I just find two different events more handy.
-Checking the file after the event in userspace should not be aproblem.
 
-regards
-Stefan Schmidt
-
---98e8jtXdkpgskNou
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-Comment: http://www.datenfreihafen.org/contact.html
-
-iD8DBQFFfzqubNSsvd31FmURAqwQAJ9xeae93It6P/qa2/wCLlWRTWofXgCgihqY
-Y9yZdkDpm55hhJRffaRv4dg=
-=S+6w
------END PGP SIGNATURE-----
-
---98e8jtXdkpgskNou--
