@@ -1,66 +1,73 @@
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Subject: Re: [patch 2/3] acpi: Add a docked sysfs file to the dock driver.
-Date: Tue, 12 Dec 2006 15:00:33 -0800
-Message-ID: <20061212150033.e3c7612f.kristen.c.accardi@intel.com>
-References: <20061204224037.713257809@localhost.localdomain>
-	<20061211120508.2f2704ac.kristen.c.accardi@intel.com>
-	<20061212221504.GA4104@datenfreihafen.org>
-	<200612121431.11919.jbarnes@virtuousgeek.org>
+From: "Lincoln Baxter, III" <lincolnbaxter@gmail.com>
+Subject: HP nc6400 v.03 or v.05 laptop ACPI fails after reboot, works again
+ after booting windows
+Date: Tue, 12 Dec 2006 18:14:08 -0500
+Message-ID: <457F37C0.3090003@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:26414 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964787AbWLLXFw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Dec 2006 18:05:52 -0500
-In-Reply-To: <200612121431.11919.jbarnes@virtuousgeek.org>
+Received: from wx-out-0506.google.com ([66.249.82.229]:46933 "EHLO
+	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964817AbWLLXOK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Dec 2006 18:14:10 -0500
+Received: by wx-out-0506.google.com with SMTP id h27so2022954wxd
+        for <linux-acpi@vger.kernel.org>; Tue, 12 Dec 2006 15:14:10 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Stefan Schmidt <stefan@datenfreihafen.org>, Holger Macht <hmacht@suse.de>, len.brown@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Brandon Philips <brandon@ifup.org>, Kay Sievers <kay.sievers@vrfy.org>
+To: linux-acpi@vger.kernel.org
 
-On Tue, 12 Dec 2006 14:31:10 -0800
-Jesse Barnes <jbarnes@virtuousgeek.org> wrote:
+Hi everyone, I recently tried to install gentoo linux on my HP nc6400 
+laptop, and everything works fine except for the following issues.
 
-> On Tuesday, December 12, 2006 2:15 pm, Stefan Schmidt wrote:
-> > Hello.
-> >
-> > On Mon, 2006-12-11 at 12:05, Kristen Carlson Accardi wrote:
-> > > On Sat, 9 Dec 2006 12:59:58 +0100
-> > >
-> > > Holger Macht <hmacht@suse.de> wrote:
-> > > > Well, I like to have them ;-)
-> > >
-> > > Ok - how is this?
-> > >
-> > > Send a uevent to indicate a device change whenever we dock or
-> > > undock, so that userspace may now check the dock status via
-> > > sysfs.
-> >
-> > I would like to have two different events for dock and undock.
-> >
-> > This way the userspace listener don't need to check the status file
-> > in sysfs to know if there was a dock or undock after getting the
-> > event.
-> >
-> > Anyway the status file is still usefull for programs don't react on
-> > the events, but like to know if the laptop is docked before starting
-> > for example.
-> 
-> FWIW, Kay and Neil recently went back and forth regarding what sorts of 
-> events to generate for MD online/offline events.  In concept md 
-> online/offline and dock/undock seem similar enough that the 'change' 
-> events Kay requested for md probably make sense in the dock/undock 
-> context as well, but I've Cc'd him just in case.
-> 
-> Jesse
-> 
+   This may be related to:
+   http://marc.theaimsgroup.com/?l=linux-acpi&m=115583434909936&w=2
 
-I did have different dock/undock events a few months ago - but
-after some discussion we scrapped them because Kay wants to avoid driver
-specific events.  The "change" event is the only thing that makes sense,
-given the set of uevents available right now, and userspace should be 
-able to handle checking a file to get driver specific details (i.e. dock 
-and undock status).  If you have a specific reason why this won't work,
-let me know.
+Here are the problems:
+  1. After booting gentoo, when I reboot, I can no longer enter the BIOS 
+setup screen by pressing F10.
+  2. After booting gentoo, when I reboot, the ACPI battery file does not 
+update the power status / events.
+
+Here's how they happen:
+  1. Boot windows: everything works fine.
+  2. Reboot from windows: I can get into setup by pressing F10.
+  3. Boot Gentoo after having booted windows first: power status meter 
+works, files are updated, etc.
+  4. Reboot into Gentoo: I can no longer enter setup via F10.
+  5. Reboot into windows: Everything works again. On next bootup, F10 
+works fine.
+
+Sometimes the keyboard will refuse to work until the system has booted 
+into the OS.
+(This doesn't seem to consistently occur.)
+
+Any ideas on how to go about fixing this?
+
+My DSDT generates the following errors on compiling:
+
+------------------------------------------------------------------------------------------------------
+Intel ACPI Component Architecture
+ASL Optimizing Compiler version 20060912 [Dec 11 2006]
+Copyright (C) 2000 - 2006 Intel Corporation
+Supports ACPI Specification Revision 3.0a
+
+dsdt.dsl  3275:                                         And (Local1, 0xFFFF)
+Warning  1104 -        Result is not used, operator has no effect ^
+
+dsdt.dsl  4672:                     Method (_DSM, 4, NotSerialized)
+Warning  1086 -                                ^ Not all control paths 
+return a value (_DSM)
+
+dsdt.dsl  4672:                     Method (_DSM, 4, NotSerialized)
+Warning  1079 -                                ^ Reserved method must 
+return a value (_DSM)
+
+dsdt.dsl 12767:                 CreateByteField (C1D3, 
+\_SB.C002.C003._Y0F._LEN, C08F)
+Error    4062 -                                         Object does not 
+exist ^  (\_SB.C002.C003._Y0F._LEN)
+
+ASL Input:  dsdt.dsl - 13280 lines, 491767 bytes, 6207 keywords
+Compilation complete. 1 Errors, 3 Warnings, 0 Remarks, 2052 Optimizations
+
