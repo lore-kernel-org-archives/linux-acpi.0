@@ -1,88 +1,56 @@
-From: "Lincoln Baxter, III" <lincolnbaxter@gmail.com>
-Subject: Re: HP nc6400 v.03 or v.05 laptop ACPI fails after reboot, works
- again after booting windows
-Date: Wed, 13 Dec 2006 02:54:09 -0500
-Message-ID: <457FB1A1.2030602@gmail.com>
-References: <457F37C0.3090003@gmail.com> <1165966936.29844.37.camel@pcjc2lap>
+From: Kay Sievers <kay.sievers@vrfy.org>
+Subject: Re: [patch 2/3] acpi: Add a docked sysfs file to the dock driver.
+Date: Wed, 13 Dec 2006 10:14:15 +0100
+Message-ID: <1166001255.5631.33.camel@pim.off.vrfy.org>
+References: <20061204224037.713257809@localhost.localdomain>
+	 <20061211120508.2f2704ac.kristen.c.accardi@intel.com>
+	 <20061212221504.GA4104@datenfreihafen.org>
+	 <200612121431.11919.jbarnes@virtuousgeek.org>
+	 <20061212150033.e3c7612f.kristen.c.accardi@intel.com>
+	 <20061212232638.GB4104@datenfreihafen.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wx-out-0506.google.com ([66.249.82.233]:37356 "EHLO
-	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932612AbWLMHyM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Dec 2006 02:54:12 -0500
-Received: by wx-out-0506.google.com with SMTP id h27so96087wxd
-        for <linux-acpi@vger.kernel.org>; Tue, 12 Dec 2006 23:54:12 -0800 (PST)
-In-Reply-To: <1165966936.29844.37.camel@pcjc2lap>
+Received: from moutng.kundenserver.de ([212.227.126.183]:60078 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932629AbWLMJTu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Dec 2006 04:19:50 -0500
+In-Reply-To: <20061212232638.GB4104@datenfreihafen.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Clifton <pcjc2@cam.ac.uk>
-Cc: linux-acpi@vger.kernel.org
+To: Stefan Schmidt <stefan@datenfreihafen.org>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Holger Macht <hmacht@suse.de>, len.brown@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Brandon Philips <brandon@ifup.org>, Greg KH <greg@kroah.com>
 
-Wow. You're completely right... so this isn't an ACPI issue (directly.)
+On Wed, 2006-12-13 at 00:26 +0100, Stefan Schmidt wrote:
+> On Tue, 2006-12-12 at 15:00, Kristen Carlson Accardi wrote:
+> > 
+> > I did have different dock/undock events a few months ago - but
+> > after some discussion we scrapped them because Kay wants to avoid driver
+> > specific events.  The "change" event is the only thing that makes sense,
+> > given the set of uevents available right now, and userspace should be 
+> > able to handle checking a file to get driver specific details (i.e. dock 
+> > and undock status).  If you have a specific reason why this won't work,
+> > let me know.
+> 
+> It's fine with me. I just find two different events more handy.
+> Checking the file after the event in userspace should not be aproblem.
 
-I don't seem to experience any of the other problems you describe, but I 
-do have a different model. I don't have an external lid-switch sensor. 
-Hm.. Suspend doesn't quite work for me either, I'll look into this 
-farther and get back to you.
+The thing is that we try to avoid driver-core "features" that are
+specific to a single subsystem or driver.
 
-The battery meters and other ACPI functionality is working now with your 
-workaround. Should this be a bug report? Which group should get the 
-report if this is the case?
+You can easily add additional environment variables today, while sending
+a "change"-event with kobject_uevent_env(), like
+ACPI_DOCK={lock,unlock,insert,remove,...}. Just pass any driver-specific
+string you like along with the event, and it will be available just like
+the "action" string.
 
-Thanks so much!
-Lincoln
+This should fit all requirements, without the need to introduce all
+sorts of new generic action-strings, that can almost never be changed
+later for compatibility reasons. That way, if "drivers" later find out,
+that they need to send different actions/flags, they can just add as
+many new strings as they like on top of the event. :)
 
-Peter Clifton wrote:
-> On Tue, 2006-12-12 at 18:14 -0500, Lincoln Baxter, III wrote:
->   
->> Hi everyone, I recently tried to install gentoo linux on my HP nc6400 
->> laptop, and everything works fine except for the following issues.
->>
->>    This may be related to:
->>    http://marc.theaimsgroup.com/?l=linux-acpi&m=115583434909936&w=2
->>
->> Here are the problems:
->>   1. After booting gentoo, when I reboot, I can no longer enter the BIOS 
->> setup screen by pressing F10.
->>   2. After booting gentoo, when I reboot, the ACPI battery file does not 
->> update the power status / events.
->>
->> Here's how they happen:
->>   1. Boot windows: everything works fine.
->>   2. Reboot from windows: I can get into setup by pressing F10.
->>   3. Boot Gentoo after having booted windows first: power status meter 
->> works, files are updated, etc.
->>   4. Reboot into Gentoo: I can no longer enter setup via F10.
->>   5. Reboot into windows: Everything works again. On next bootup, F10 
->> works fine.
->>     
->
-> Crazy as it seems, add an init script to rmmod psmouse before you
-> shutdown or reboot linux. Somehow having it loaded when the machine
-> shuts down causes the BIOS to get upset.
->
-> Works on my nc6320 as a workaround, although I've got a few odd issues
-> still:
->
-> Critically, when the lid-switch is pressed, the backlight extinguishes,
-> but if the touchpad senses any movement, a key is pressed, or for some
-> random reason, the backlight fires back up again, then doesn't switch
-> off.
->
-> This leaves the laptop very toasty if you shut the lid and it does this.
->
-> Does yours do this?
->
->
-> Suspend doesn't work out of box, I've not really tried to diagnose.
->
-> Regards,
->
-> Peter Clifton
->
->
->
->   
+Thanks,
+Kay
 
