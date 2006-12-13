@@ -1,53 +1,81 @@
-From: Peter Clifton <pcjc2@cam.ac.uk>
-Subject: Re: HP nc6400 v.03 or v.05 laptop ACPI fails after reboot, works
-	again after booting windows
-Date: Wed, 13 Dec 2006 12:25:07 +0000
-Message-ID: <1166012707.22903.4.camel@pcjc2lap>
-References: <457F37C0.3090003@gmail.com>
-	 <1165966936.29844.37.camel@pcjc2lap>  <457FB1A1.2030602@gmail.com>
+From: Jacob <fun2program8@yahoo.com>
+Subject: Battery sticks at 0% - ACPI's fault or not?
+Date: Wed, 13 Dec 2006 08:26:23 -0500
+Message-ID: <op.tkh1992m6fluez@jacob-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; format=flowed; delsp=yes; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ppsw-3.csi.cam.ac.uk ([131.111.8.133]:46526 "EHLO
-	ppsw-3.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964914AbWLMMZP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Dec 2006 07:25:15 -0500
-In-Reply-To: <457FB1A1.2030602@gmail.com>
+Received: from smtp107.plus.mail.re2.yahoo.com ([206.190.53.32]:37458 "HELO
+	smtp107.plus.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S964956AbWLMNdF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 13 Dec 2006 08:33:05 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, "Lincoln Baxter, III" <lincolnbaxter@gmail.com>
+To: linux-acpi@vger.kernel.org
 
-On Wed, 2006-12-13 at 02:54 -0500, Lincoln Baxter, III wrote:
-> Wow. You're completely right... so this isn't an ACPI issue (directly.)
-> 
-> I don't seem to experience any of the other problems you describe, but I 
-> do have a different model. I don't have an external lid-switch sensor. 
-> Hm.. Suspend doesn't quite work for me either, I'll look into this 
-> farther and get back to you.
-> 
-> The battery meters and other ACPI functionality is working now with your 
-> workaround. Should this be a bug report? Which group should get the 
-> report if this is the case?
-> 
-> Thanks so much!
-> Lincoln
+I've made a bug report about this to gnome-power-manager applet, but I  
+wonder if it's really ACPI's fault. I decided to check right at the source  
+of most excellent support - the mailing lists. :)
 
-It was suggested to me to open a kernel bug (possibly starting under
-ACPI), however I never got to it.. I don't know where kernel bugs are
-reported officially, and was busy at the time. (still am). I do try and
-reply to others with the same problems though... finding the webpage
-which suggested that fix was not trivial!
+So, here's the deal. I've got this Compaq Presario 1720US, with a battery  
+that didn't appear to work until recently. (It could've been a self-made  
+illusion all along.) Now, however, even when the battery still has 45  
+minutes of life left, Gnome's applet reports 0%. The applet does appear to  
+be accessing ACPI, because it is telling me everything else about the  
+battery but that.
 
-My lid switch is just above the keyboard, on the right hand side of the
-left hand screen hinge. It is just a tiny piece of plastic protruding
-from the case. Push it, and the screen goes off. Hold it, and wiggle the
-mouse (touchpad), and the naughty screen comes back on.
+So, here's what ACPI tells me when I ask it:
+jacob@jacob-laptop:~$ cat /proc/acpi/battery/CMB0/state
+present:                 yes
+capacity state:          ok
+charging state:          charged
+present rate:            0 mW
+remaining capacity:      2700 mWh
+present voltage:         16614 mV
+jacob@jacob-laptop:~$ cat /proc/acpi/battery/CMB0/info
+present:                 yes
+design capacity:         unknown
+last full capacity:      unknown
+battery technology:      rechargeable
+design voltage:          unknown
+design capacity warning: 800 mWh
+design capacity low:     16 mWh
+capacity granularity 1:  100 mWh
+capacity granularity 2:  100 mWh
+model number:            BAT1
+serial number:           0000
+battery type:            LION
+OEM info:                COMPAQ
 
-Most importantly for me, the workaround brings the max CPU speed
-available with speed step back to what it is supposed to be on my
-laptop, and the BIOS actually boots much faster.
 
-Peter C.
+When I unplug the AC, it tells me this:
+jacob@jacob-laptop:~$ cat /proc/acpi/battery/CMB0/info
+present:                 yes
+design capacity:         unknown
+last full capacity:      unknown
+battery technology:      rechargeable
+design voltage:          unknown
+design capacity warning: 800 mWh
+design capacity low:     16 mWh
+capacity granularity 1:  100 mWh
+capacity granularity 2:  100 mWh
+model number:            BAT1
+serial number:           0000
+battery type:            LION
+OEM info:                COMPAQ
+jacob@jacob-laptop:~$ cat /proc/acpi/battery/CMB0/state
+present:                 yes
+capacity state:          ok
+charging state:          discharging
+present rate:            1153 mW
+remaining capacity:      2620 mWh
+present voltage:         15708 mV
 
 
+ACPI does do some strange things, like the remaining capacity drops to 0  
+mWh when it gets to be around a mere 10 minutes left in battery power,  
+causing Gnome to freak out.
+
+So the bottom question is: who's fault is it, and how would I fix this?
