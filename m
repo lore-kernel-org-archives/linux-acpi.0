@@ -1,172 +1,102 @@
-From: akpm@osdl.org
-Subject: - updated-acpi-add-state-propagation-for-dynamic-broadcasting.patch removed from -mm tree
-Date: Wed, 13 Dec 2006 14:49:05 -0800
-Message-ID: <200612132249.kBDMn5pU023132@shell0.pdx.osdl.net>
-Reply-To: linux-kernel@vger.kernel.org
-Return-path: <mm-commits-owner@vger.kernel.org>
-Sender: mm-commits-owner@vger.kernel.org
-To: tglx@linutronix.de, ak@suse.de, len.brown@intel.com, linux-acpi@vger.kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org
+From: "Lebedev, Vladimir P" <vladimir.p.lebedev@intel.com>
+Subject: RE: Battery sticks at 0% - ACPI's fault or not?
+Date: Thu, 14 Dec 2006 09:03:21 +0300
+Message-ID: <8E389A5F2FEABA4CB1DEC35A25CB39CE830A34@mssmsx411>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:38196 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751951AbWLNGNX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Dec 2006 01:13:23 -0500
+Content-class: urn:content-classes:message
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jacob <fun2program8@yahoo.com>, linux-acpi@vger.kernel.org
+
+Please attach acpidump and dmesg output after 'cat /proc/acpi/battery
+files'.
 
 
-The patch titled
-     ACPI: Add state propagation for dynamic broadcasting
-has been removed from the -mm tree.  Its filename was
-     updated-acpi-add-state-propagation-for-dynamic-broadcasting.patch
+-----Original Message-----
+From: linux-acpi-owner@vger.kernel.org
+[mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Jacob
+Sent: Wednesday, December 13, 2006 4:26 PM
+To: linux-acpi@vger.kernel.org
+Subject: Battery sticks at 0% - ACPI's fault or not?
 
-This patch was dropped because it is obsolete
+I've made a bug report about this to gnome-power-manager applet, but I  
+wonder if it's really ACPI's fault. I decided to check right at the
+source  
+of most excellent support - the mailing lists. :)
 
-------------------------------------------------------
-Subject: ACPI: Add state propagation for dynamic broadcasting
-From: Thomas Gleixner <tglx@linutronix.de>
+So, here's the deal. I've got this Compaq Presario 1720US, with a
+battery  
+that didn't appear to work until recently. (It could've been a self-made
 
-This is a preparatory patch for high resolution timers and dynticks.
+illusion all along.) Now, however, even when the battery still has 45  
+minutes of life left, Gnome's applet reports 0%. The applet does appear
+to  
+be accessing ACPI, because it is telling me everything else about the  
+battery but that.
 
-The local APIC timer is fast and per CPU, but it gets stopped in C3 state.  On
-some broken systems, especially AMD based ones it gets stopped in C2.  This
-also affects akpm's jinxed VAIO.
+So, here's what ACPI tells me when I ask it:
+jacob@jacob-laptop:~$ cat /proc/acpi/battery/CMB0/state
+present:                 yes
+capacity state:          ok
+charging state:          charged
+present rate:            0 mW
+remaining capacity:      2700 mWh
+present voltage:         16614 mV
+jacob@jacob-laptop:~$ cat /proc/acpi/battery/CMB0/info
+present:                 yes
+design capacity:         unknown
+last full capacity:      unknown
+battery technology:      rechargeable
+design voltage:          unknown
+design capacity warning: 800 mWh
+design capacity low:     16 mWh
+capacity granularity 1:  100 mWh
+capacity granularity 2:  100 mWh
+model number:            BAT1
+serial number:           0000
+battery type:            LION
+OEM info:                COMPAQ
 
-The broadcast function informs the local APIC management code that a state
-which stops the local APIC is going to be entered/exited.  This switches the
-local APIC timer to the PIT broadcast mode.  The clockevents layer takes care
-of the distribution of events.
 
-The lapic_timer_idle_broadcast() function is an empty inline for now, which
-will be replaced by the later clockevents patches for the affected
-architectures.
+When I unplug the AC, it tells me this:
+jacob@jacob-laptop:~$ cat /proc/acpi/battery/CMB0/info
+present:                 yes
+design capacity:         unknown
+last full capacity:      unknown
+battery technology:      rechargeable
+design voltage:          unknown
+design capacity warning: 800 mWh
+design capacity low:     16 mWh
+capacity granularity 1:  100 mWh
+capacity granularity 2:  100 mWh
+model number:            BAT1
+serial number:           0000
+battery type:            LION
+OEM info:                COMPAQ
+jacob@jacob-laptop:~$ cat /proc/acpi/battery/CMB0/state
+present:                 yes
+capacity state:          ok
+charging state:          discharging
+present rate:            1153 mW
+remaining capacity:      2620 mWh
+present voltage:         15708 mV
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: "Brown, Len" <len.brown@intel.com>
-Cc: <linux-acpi@vger.kernel.org>
-Cc: Andi Kleen <ak@suse.de>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
----
 
- drivers/acpi/processor_idle.c |   20 ++++++++++++++++++++
- include/asm-i386/apic.h       |    1 +
- include/asm-x86_64/apic.h     |    1 +
- 3 files changed, 22 insertions(+)
+ACPI does do some strange things, like the remaining capacity drops to 0
 
-diff -puN drivers/acpi/processor_idle.c~updated-acpi-add-state-propagation-for-dynamic-broadcasting drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~updated-acpi-add-state-propagation-for-dynamic-broadcasting
-+++ a/drivers/acpi/processor_idle.c
-@@ -281,11 +281,27 @@ static void acpi_propagate_timer_broadca
- 		on_each_cpu(switch_ipi_to_APIC_timer, &mask, 1, 1);
- }
- 
-+/* Power(C) State timer broadcast control */
-+static void acpi_state_timer_broadcast(struct acpi_processor *pr,
-+				       struct acpi_processor_cx *cx,
-+				       int broadcast)
-+{
-+	int state = cx - pr->power.states;
-+
-+	if (state >= pr->power.timer_broadcast_on_state)
-+		lapic_timer_idle_broadcast(broadcast);
-+}
-+
- #else
- 
- static void acpi_timer_check_state(int state, struct acpi_processor *pr,
- 				   struct acpi_processor_cx *cstate) { }
- static void acpi_propagate_timer_broadcast(struct acpi_processor *pr) { }
-+static void acpi_state_timer_broadcast(struct acpi_processor *pr,
-+				       struct acpi_processor_cx *cx,
-+				       int broadcast)
-+{
-+}
- 
- #endif
- 
-@@ -431,6 +447,7 @@ static void acpi_processor_idle(void)
- 		/* Get start time (ticks) */
- 		t1 = inl(acpi_fadt.xpm_tmr_blk.address);
- 		/* Invoke C2 */
-+		acpi_state_timer_broadcast(pr, cx, 1);
- 		acpi_cstate_enter(cx);
- 		/* Get end time (ticks) */
- 		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
-@@ -445,6 +462,7 @@ static void acpi_processor_idle(void)
- 		/* Compute time (ticks) that we were actually asleep */
- 		sleep_ticks =
- 		    ticks_elapsed(t1, t2) - cx->latency_ticks - C2_OVERHEAD;
-+		acpi_state_timer_broadcast(pr, cx, 0);
- 		break;
- 
- 	case ACPI_STATE_C3:
-@@ -467,6 +485,7 @@ static void acpi_processor_idle(void)
- 		/* Get start time (ticks) */
- 		t1 = inl(acpi_fadt.xpm_tmr_blk.address);
- 		/* Invoke C3 */
-+		acpi_state_timer_broadcast(pr, cx, 1);
- 		acpi_cstate_enter(cx);
- 		/* Get end time (ticks) */
- 		t2 = inl(acpi_fadt.xpm_tmr_blk.address);
-@@ -487,6 +506,7 @@ static void acpi_processor_idle(void)
- 		/* Compute time (ticks) that we were actually asleep */
- 		sleep_ticks =
- 		    ticks_elapsed(t1, t2) - cx->latency_ticks - C3_OVERHEAD;
-+		acpi_state_timer_broadcast(pr, cx, 0);
- 		break;
- 
- 	default:
-diff -puN include/asm-i386/apic.h~updated-acpi-add-state-propagation-for-dynamic-broadcasting include/asm-i386/apic.h
---- a/include/asm-i386/apic.h~updated-acpi-add-state-propagation-for-dynamic-broadcasting
-+++ a/include/asm-i386/apic.h
-@@ -113,6 +113,7 @@ extern void setup_secondary_APIC_clock (
- extern int APIC_init_uniprocessor (void);
- extern void disable_APIC_timer(void);
- extern void enable_APIC_timer(void);
-+static inline void lapic_timer_idle_broadcast(int broadcast) { }
- 
- extern void enable_NMI_through_LVT0 (void * dummy);
- 
-diff -puN include/asm-x86_64/apic.h~updated-acpi-add-state-propagation-for-dynamic-broadcasting include/asm-x86_64/apic.h
---- a/include/asm-x86_64/apic.h~updated-acpi-add-state-propagation-for-dynamic-broadcasting
-+++ a/include/asm-x86_64/apic.h
-@@ -84,6 +84,7 @@ extern int APIC_init_uniprocessor (void)
- extern void disable_APIC_timer(void);
- extern void enable_APIC_timer(void);
- extern void setup_apic_routing(void);
-+static inline void lapic_timer_idle_broadcast(int broadcast) { }
- 
- extern void setup_APIC_extened_lvt(unsigned char lvt_off, unsigned char vector,
- 				   unsigned char msg_type, unsigned char mask);
-_
+mWh when it gets to be around a mere 10 minutes left in battery power,  
+causing Gnome to freak out.
 
-Patches currently in -mm which might be from tglx@linutronix.de are
-
-origin.patch
-git-mtd.patch
-gtod-uninline-jiffiesh.patch
-gtod-fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
-gtod-fix-timeout-overflow.patch
-gtod-persistent-clock-support-core.patch
-gtod-persistent-clock-support-i386.patch
-dynticks-uninline-irq_enter.patch
-dynticks-extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
-hrtimers-namespace-and-enum-cleanup.patch
-hrtimers-clean-up-locking.patch
-hrtimers-add-state-tracking.patch
-hrtimers-clean-up-callback-tracking.patch
-hrtimers-move-and-add-documentation.patch
-acpi-include-fix.patch
-acpi-keep-track-of-timer-broadcast.patch
-acpi-add-state-propagation-for-dynamic-broadcasting.patch
-acpi-cleanups-allow-early-access-to-pmtimer.patch
-i386-apic-clean-up-the-apic-code.patch
-clockevents-core.patch
-clockevents-i386-drivers.patch
-clockevents-i386-hpet-driver.patch
-i386-apic-rework-and-fix-local-apic-calibration.patch
-high-res-timers-core.patch
-high-res-timers-core-do-itimer-rearming-in-process-context.patch
-high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
-dynticks-core.patch
-dynticks-add-nohz-stats-to-proc-stat.patch
-dynticks-i386-support-idle-handler-callbacks.patch
-dynticks-i386-prepare-nmi-watchdog.patch
-high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
-debugging-feature-add-proc-timer_stat.patch
-
+So the bottom question is: who's fault is it, and how would I fix this?
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
