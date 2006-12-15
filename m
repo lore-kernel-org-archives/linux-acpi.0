@@ -1,52 +1,91 @@
-From: Len Brown <lenb@kernel.org>
-Subject: ACPICA 20061109 regression on Supermicro X7DB8+
-Date: Fri, 15 Dec 2006 14:36:27 -0500
-Message-ID: <200612151436.27426.lenb@kernel.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: Large Reference Count warnings
+Date: Fri, 15 Dec 2006 12:56:38 -0700
+Message-ID: <200612151256.38823.bjorn.helgaas@hp.com>
+References: <B28E9812BAF6E2498B7EC5C427F293A40189F513@orsmsx415.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:51934 "EHLO hera.kernel.org"
+Received: from atlrel8.hp.com ([156.153.255.206]:51835 "EHLO atlrel8.hp.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753283AbWLOThB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 Dec 2006 14:37:01 -0500
-Received: from d975xbx2.site (c-65-96-213-102.hsd1.ma.comcast.net [65.96.213.102])
-	(authenticated bits=0)
-	by hera.kernel.org (8.13.8/8.13.7) with ESMTP id kBFJaW2f009833
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Fri, 15 Dec 2006 19:36:59 GMT
+	id S1753349AbWLOT4o (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Dec 2006 14:56:44 -0500
+In-Reply-To: <B28E9812BAF6E2498B7EC5C427F293A40189F513@orsmsx415.amr.corp.intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-A Supermicro X7DB8+ does not boot for me -- SCSI driver dies.
+On Thursday 14 December 2006 17:13, Moore, Robert wrote:
+> In theory, it should get detached/decremented/etc. when it is deleted at
+> the end of the method.
 
-Possibly related to this difference -- which by itself is a regression.
+That's what I thought, too, but I can't figure out where this
+happens.  I was looking for calls to acpi_ev_detach_region(),
+but I don't see any of those that look like they happen at the
+end of a method.
 
-I'll send more details when I get a chance to narrow it down.
+We instrumented acpi_ev_detach_region(), and we never see it
+called for the LREG dynamic OpRegions.  Were we looking in the
+wrong place?
 
--Len
-
-< ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P2._PRT]
-< ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P2.BMD0._PRT]
-< ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P2.BMD0.BPD0.PXH0._PRT]
-< ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P2.BMD0.BPD0.PXH1._PRT]
-< ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P2.BMD0.BPD2._PRT]
-< ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P2.BMF3._PRT]
-< ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P4._PRT]
-< ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P6._PRT]
-< ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PEX0._PRT]
-< ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCIB._PRT]
-268a318,327
-> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P2._PRT]
-> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P2.BMD0._PRT]
-> ACPI Exception (pci_bind-0153): AE_NOT_FOUND, Invalid ACPI-PCI context for parent device BPD0 [20061109]
-> ACPI Exception (pci_bind-0153): AE_NOT_FOUND, Invalid ACPI-PCI context for parent device BPD0 [20061109]
-> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P2.BMD0.BPD2._PRT]
-> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P2.BMF3._PRT]
-> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P4._PRT]
-> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P6._PRT]
-> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PEX0._PRT]
-> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCIB._PRT]
+> > -----Original Message-----
+> > From: Bjorn Helgaas [mailto:bjorn.helgaas@hp.com]
+> > Sent: Thursday, December 14, 2006 4:01 PM
+> > To: linux-acpi@vger.kernel.org
+> > Cc: Moore, Robert
+> > Subject: Large Reference Count warnings
+> > 
+> > I have the AML below that defines an OpRegion inside the scope of
+> > a method.  The region gets attached (and its ref count incremented)
+> > in this path:
+> > 
+> >     acpi_ev_attach_region
+> >     acpi_ev_initialize_region
+> >     acpi_ds_load2_end_op
+> >     acpi_ds_exec_end_op
+> >     acpi_ps_parse_loop
+> >     acpi_ps_parse_aml
+> > 
+> > But I don't see any corresponding place where the ref count gets
+> > decremented.  That only seems to happen via acpi_ev_install_handler()
+> > or acpi_remove_address_space_handler(), neither of which is called
+> > from the interpreter.
+> > 
+> > I expected the OpRegion to be detached when exiting the LRRD scope.
+> > Is that supposed to happen?
+> > 
+> > On a large system, we are tripping over warnings like this:
+> > 
+> >   ACPI Warning (utdelete-0397): Large Reference Count (801) in object
+> > e0000a0ff6797ab0 [20060707]
+> > 
+> > This method is used to access registers in a PCI host bridge, so
+> > we do lots of attaches for the LREG region, which eventually bumps
+> > the ref count above the 0x800 limit.
+> > 
+> > FWIW, this didn't seem to happen with older kernels, like RHEL4.
+> > I don't know whether the difference is in the ACPI CA or in the
+> > way Linux is using the root bridges.
+> > 
+> > 
+> >             Device (L000)
+> >             {
+> >                 ...
+> >                 Method (LRRD, 6, NotSerialized)
+> >                 {
+> >                     Store (Arg0, Local0)
+> >                     Store (Arg1, Local1)
+> >                     Add (Local0, Arg2, Local0)
+> >                     ShiftLeft (Local1, 0x20, Local1)
+> >                     Or (Local0, Local1, Local0)
+> >                     OperationRegion (LREG, SystemMemory, Local0, Arg3)
+> >                     Field (LREG, ByteAcc, NoLock, Preserve)
+> >                     {
+> >                         LRDB,   8
+> >                     }
+> >                     ...
+> 
