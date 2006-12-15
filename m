@@ -1,43 +1,67 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: acpi git versus x86_64 tree
-Date: Thu, 14 Dec 2006 15:37:50 -0800
-Message-ID: <20061214153750.b70744ad.akpm@osdl.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Large Reference Count warnings
+Date: Thu, 14 Dec 2006 17:00:45 -0700
+Message-ID: <200612141700.45934.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:42526 "EHLO smtp.osdl.org"
+Received: from atlrel7.hp.com ([156.153.255.213]:56764 "EHLO atlrel7.hp.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751979AbWLNXiA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Dec 2006 18:38:00 -0500
+	id S1752061AbWLOATy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 Dec 2006 19:19:54 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>, Andi Kleen <ak@suse.de>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: "Moore, Robert" <robert.moore@intel.com>
+
+I have the AML below that defines an OpRegion inside the scope of
+a method.  The region gets attached (and its ref count incremented)
+in this path:
+
+    acpi_ev_attach_region
+    acpi_ev_initialize_region
+    acpi_ds_load2_end_op
+    acpi_ds_exec_end_op
+    acpi_ps_parse_loop
+    acpi_ps_parse_aml
+
+But I don't see any corresponding place where the ref count gets
+decremented.  That only seems to happen via acpi_ev_install_handler()
+or acpi_remove_address_space_handler(), neither of which is called
+from the interpreter.
+
+I expected the OpRegion to be detached when exiting the LRRD scope.
+Is that supposed to happen?
+
+On a large system, we are tripping over warnings like this:
+
+  ACPI Warning (utdelete-0397): Large Reference Count (801) in object e0000a0ff6797ab0 [20060707]
+
+This method is used to access registers in a PCI host bridge, so
+we do lots of attaches for the LREG region, which eventually bumps
+the ref count above the 0x800 limit.
+
+FWIW, this didn't seem to happen with older kernels, like RHEL4.
+I don't know whether the difference is in the ACPI CA or in the
+way Linux is using the root bridges.
 
 
-I have problems here.  A large update has recently gone into the acpi devel
-tree which trashes a lot of the acpi patches which I have thus far been
-unable to get Len to pay attention to.  It also trashes a large number of
-x86_64 patches which I have thus far been unable to get Andi to pay
-attention to.
-
-Having torn my hair out for a while I've decided to revert to yesterday's
-version of the ACPI tree and I shall stop updating it.  This enables me to
-at least maintain the x86_64 patches.
-
-If/when Andi merges those x86_64 patches we have a huge conflict
-outstanding between the acpi and x86_64 trees.  Whoever merges with Linus
-second will lose, big-time.  Basically their work will need to be dropped
-and redone.
-
-The moral here is simple: x86_64 patches go through the x86_64 maintainer. 
-Please do not attempt to maintain foreign patches in the acpi tree.
-
-
-Oh, and I am getting *extremely* tired of sending patches to maintainers
-over and over and over and over again, and receiving no response at all. 
-And then eventually seeing them merge other patches which trash the patches
-which I'm maintaining for them, and which they have previously ignored.
-
-
+            Device (L000)
+            {
+                ...
+                Method (LRRD, 6, NotSerialized)
+                {
+                    Store (Arg0, Local0)
+                    Store (Arg1, Local1)
+                    Add (Local0, Arg2, Local0)
+                    ShiftLeft (Local1, 0x20, Local1)
+                    Or (Local0, Local1, Local0)
+                    OperationRegion (LREG, SystemMemory, Local0, Arg3)
+                    Field (LREG, ByteAcc, NoLock, Preserve)
+                    {
+                        LRDB,   8
+                    }
+                    ...
