@@ -1,66 +1,87 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: acpi git versus x86_64 tree
-Date: Thu, 14 Dec 2006 22:07:50 -0800
-Message-ID: <20061214220750.7617fae3.akpm@osdl.org>
-References: <20061214153750.b70744ad.akpm@osdl.org>
-	<200612142154.41632.lenb@kernel.org>
-	<20061214191338.946a056a.akpm@osdl.org>
-	<200612150101.41044.lenb@kernel.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [patch 01/13] ACPI: Clear GPE before disabling it
+Date: Fri, 15 Dec 2006 01:17:11 -0500
+Message-ID: <200612150117.12222.lenb@kernel.org>
+References: <200612042250.kB4MokjY007352@shell0.pdx.osdl.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:35456 "EHLO smtp.osdl.org"
+Received: from hera.kernel.org ([140.211.167.34]:60514 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750875AbWLOGIa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 Dec 2006 01:08:30 -0500
-In-Reply-To: <200612150101.41044.lenb@kernel.org>
+	id S1750896AbWLOGRu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Dec 2006 01:17:50 -0500
+In-Reply-To: <200612042250.kB4MokjY007352@shell0.pdx.osdl.net>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Andi Kleen <ak@suse.de>, linux-acpi@vger.kernel.org
+To: akpm@osdl.org, william.morrow@amd.com, jordan.crouse@amd.com
+Cc: linux-acpi@vger.kernel.org, luming.yu@intel.com, robert.moore@intel.com
 
-On Fri, 15 Dec 2006 01:01:40 -0500
-Len Brown <lenb@kernel.org> wrote:
+William,
+Please test if this is still necessary when you are running ACPICA 20061109.
 
-> > When will it be sent to Linus?
-> >
-> > I cannot feasibly carry this work, the outstanding x86_64 work, the
-> > outstanding i386 work and the outstanding ACPI work in -mm.
-> >
-> > As the acpi patch is the one which has disrupted the other trees I dropped
-> > that, so what little bit of testing gets donw in -mm won't be available.
-> 
-> Until the ACPICA update can survive for a few rounds of -mm
-> with no regressions reported, I'm not going to send it to Linus.
-> 
-> So removing it from -mm in favor of Andi's patches that may
-> be up-stream bound shortly was the right decision.
+You can get that release in several ways:
 
-I doubt if Andi is planning on getting much of this work into 2.6.20.
+A plain patch on top of 2.6.19:
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/test/2.6.19/acpi-test-20061109-2.6.19.diff.gz
+or pull it from git:
+git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git acpica
 
-> > > Nearly all of this series has been in -mm before.
-> > > 
-> > > I do regret that there are more variable re-names and whitespace
-> > > cleanups in this batch than I'd prefer -- seems there is never
-> > > a good time to do those...
-> > 
-> > There are ways of doing these things which don't cause such breakage. 
-> > Whitespace cleanups go to the subsystem maintainer and NOT in the ACPI
-> > tree.  For renames, you can add back-compat defines in the acpi headers,
-> > send that and the rename patch to the subsytem maintainer and when it's all
-> > merged up, remove the back-compat stuff.  
-> 
-> Agreed.
-> Perhaps in January some re-write can be done to make the series smaller.
-> 
-> For now I will remove the ACPICA update from my test branch
-> so that it doesn't block the unrelated patches that should go up now.
-> The ACPICA update will still be available on a dedicated acpica branch.
+In both cases, you'll result in a 2.6.19 base plus only the ACPICA update.
 
-OK, thanks.  I'll resync with gti-acpi and will go through another round of
-squirting patches at everyone.
+thanks,
+-Len
 
-But the problem remains: there is outstanding work in ACPICA which
-conflicts with outstanding x86/x86_64 work.  Once those two patchsets
-finally coincide somewhere, things will blow up.  
+On Monday 04 December 2006 17:49, akpm@osdl.org wrote:
+> From: William Morrow <william.morrow@amd.com>
+>
+> On some BIOSen, the GPE bit will remain set even if it is disabled,
+> resulting in a interrupt storm.  This patch clears the bit before disabling
+> it.
+>
+> Signed-off-by: William Morrow <william.morrow@amd.com>
+> Signed-off-by: Jordan Crouse <jordan.crouse@amd.com>
+> Cc: "Yu, Luming" <luming.yu@intel.com>
+> Cc: "Brown, Len" <len.brown@intel.com>
+> Cc: "Moore, Robert" <robert.moore@intel.com>
+> Signed-off-by: Andrew Morton <akpm@osdl.org>
+> ---
+>
+>  drivers/acpi/events/evgpe.c |   14 +++++++++++++-
+>  1 file changed, 13 insertions(+), 1 deletion(-)
+>
+> diff -puN drivers/acpi/events/evgpe.c~acpi-clear-gpe-before-disabling-it
+> drivers/acpi/events/evgpe.c ---
+> a/drivers/acpi/events/evgpe.c~acpi-clear-gpe-before-disabling-it +++
+> a/drivers/acpi/events/evgpe.c
+> @@ -677,10 +677,22 @@ acpi_ev_gpe_dispatch(struct acpi_gpe_eve
+>  	case ACPI_GPE_DISPATCH_METHOD:
+>
+>  		/*
+> -		 * Disable GPE, so it doesn't keep firing before the method has a
+> +		 * Clear GPE, so it doesn't keep firing before the method has a
+>  		 * chance to run.
+>  		 */
+> +		status = acpi_hw_clear_gpe(gpe_event_info);
+> +		if (ACPI_FAILURE(status)) {
+> +			ACPI_EXCEPTION((AE_INFO, status,
+> +					"Unable to clear GPE[%2X]",
+> +					gpe_number));
+> +			return_UINT32(ACPI_INTERRUPT_NOT_HANDLED);
+> +		}
+> +		/*
+> +		 * Disable GPE, so it doesn't keep happen again.
+> +		 */
+> +
+>  		status = acpi_ev_disable_gpe(gpe_event_info);
+> +
+>  		if (ACPI_FAILURE(status)) {
+>  			ACPI_EXCEPTION((AE_INFO, status,
+>  					"Unable to disable GPE[%2X]",
+> _
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
