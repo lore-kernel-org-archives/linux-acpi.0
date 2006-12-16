@@ -1,59 +1,101 @@
-From: Frank Ursel <listadress@gmx.net>
-Subject: Re: HP nc6400 v.03 or v.05 laptop ACPI fails after reboot, works again after booting windows
-Date: Sat, 16 Dec 2006 09:17:57 +0100
-Message-ID: <20061216081757.GA3571@invalid.invalid>
-References: <457F37C0.3090003@gmail.com> <1165966936.29844.37.camel@pcjc2lap> <457FB1A1.2030602@gmail.com> <1166012707.22903.4.camel@pcjc2lap> <4582A607.8040302@gmail.com> <1166191807.7459.16.camel@pcjc2lap> <45832339.3050307@gmail.com> <20061216043002.GA29560@tangens.sinus.cz> <4583A779.3000902@gmail.com>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: RE: sysfs regression on Supermicro X7DB8+ (was Re: ACPICA 20061109 regression on Supermicro X7DB8+)
+Date: Sun, 17 Dec 2006 00:41:43 +0800
+Message-ID: <58A36151585E4047913F40517D307BAE0171CD@pdsmsx404.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+	boundary="----_=_NextPart_001_01C72131.11CCB378"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:57937 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1030748AbWLPISC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 16 Dec 2006 03:18:02 -0500
-Content-Disposition: inline
-In-Reply-To: <4583A779.3000902@gmail.com>
+Received: from mga01.intel.com ([192.55.52.88]:15800 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1161198AbWLPQvz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 16 Dec 2006 11:51:55 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Cc: "Li, Shaohua" <shaohua.li@intel.com>
+
+This is a multi-part message in MIME format.
+
+------_=_NextPart_001_01C72131.11CCB378
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
+
+Yes. We do made several changes on .bind/.unbind method.
+It seems that DEVICE(BPD0) doesn't have the _PRT method, which is =
+required when binding BPD0.PXH0 and BPD0.PXH1. This is really strange...
+
+Len, can you show me the ACPIDUMP and dmesg of 2.6.20-rc1 with this =
+debug patch please?
+
+Thanks,
+Zhang.Rui(Ray)
+
+-----Original Message-----
+From: linux-acpi-owner@vger.kernel.org =
+[mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Len Brown
+Sent: 2006=C4=EA12=D4=C216=C8=D5 13:07
 To: linux-acpi@vger.kernel.org
+Subject: Re: sysfs regression on Supermicro X7DB8+ (was Re: ACPICA =
+20061109 regression on Supermicro X7DB8+)
 
-On Sat, Dec 16, 2006 at 02:59:53AM -0500, Lincoln Baxter, III wrote:
-> Pavel Troller wrote:
-> >Hi!
-> >  
-> >Try the following:
-> >  cat /proc/acpi/processor/*/power in the following situations:
-> >  1) After loading the processor module being on the battery,
-> >  2) After loading the processor module being on AC,
-> >  3) After disconnecting the AC,
-> >and compare the results. I think that for 1), you will see more C-states 
-> >than
-> >for 2) and that possibly the missing C-states are not added for 3).
-> >  
-> And the reason the hum seems to go away when AC is plugged back in, is 
-> because it switches to C2.
-> 
-> I have this question, however. While the CPU is powered down, 
-> /proc/cpuinfo still shows the full frequency of the chip, at 1823Mhz. 
-> When I enable cpufrequtils, and clock down the processor, there is no 
-> change in noise or power consumption, it's still noisy, and it's still . 
-> If this is the case, then why bother with cpufrequtils in the first 
-> place... also... I still have the question of why doesn't this happen in 
-> windows? What power state is windows running in to get as much or more 
-> battery life, and still have no humming noise?
-> 
-> It seems like the processor module must be doing something that isn't 
-> quite right. I heard that there's supposed to be a C0, and a C4 power 
-> state for the core duo processor, but I don't see those in the list of 
-> options. Any ideas as to why they don't show up?
+> The failure is caused by the sysfs branch, which I'll have to drop =
+from the acpi-test tree.
 
-As far as i know, the humming appears in windows too. I tested it with
-the RMClock utility and on my laptop, switching to C4 was making the
-humming. But every other C-State was quite. You should tune the timing
-frquencies, like Pavel pointed out.
+I think the failure comes down to the sysfs branch not finding the PRT
+that is necessary to configure the SCSI controller on the PCI-X bus,
+and the SCSI boot disk subsequently loses its mind.
 
-But i'm curios, why on linux the C4-State does not show up. The maximum
-working C-State on my system, on AC or battery is C3. Is there any
-hidden switch to enable it?
+< ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P2._PRT]
+< ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P2.BMD0._PRT]
+< ACPI: PCI Interrupt Routing Table =
+[\_SB_.PCI0.P0P2.BMD0.BPD0.PXH0._PRT]
+< ACPI: PCI Interrupt Routing Table =
+[\_SB_.PCI0.P0P2.BMD0.BPD0.PXH1._PRT]
+< ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P2.BMD0.BPD2._PRT]
+< ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P2.BMF3._PRT]
+< ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P4._PRT]
+< ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P6._PRT]
+< ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PEX0._PRT]
+< ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCIB._PRT]
+268a316,325
+> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P2._PRT]
+> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P2.BMD0._PRT]
+> ACPI Exception (pci_bind-0153): AE_NOT_FOUND, Invalid ACPI-PCI context =
+for parent device BPD0 [20060707]
+> ACPI Exception (pci_bind-0153): AE_NOT_FOUND, Invalid ACPI-PCI context =
+for parent device BPD0 [20060707]
+> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P2.BMD0.BPD2._PRT]
+> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P2.BMF3._PRT]
+> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P4._PRT]
+> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P6._PRT]
+> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PEX0._PRT]
+> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCIB._PRT]
 
-with regards, frank
+dmesg for 2.6.20-rc1 success and 2.6.20-rc1-sysfs failure attached.
 
+-Len
+
+------_=_NextPart_001_01C72131.11CCB378
+Content-Type: application/octet-stream;
+	name="patch-debug-ACPI-PCI-bridge-driver"
+Content-Transfer-Encoding: base64
+Content-Description: patch-debug-ACPI-PCI-bridge-driver
+Content-Disposition: attachment;
+	filename="patch-debug-ACPI-PCI-bridge-driver"
+
+LS0tCiBkcml2ZXJzL2FjcGkvcGNpX2JpbmQuYyB8ICAgIDEgKwogMSBmaWxlcyBjaGFuZ2VkLCAx
+IGluc2VydGlvbigrKQoKSW5kZXg6IGxpbnV4LTIuNi4xOS9kcml2ZXJzL2FjcGkvcGNpX2JpbmQu
+Ywo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09Ci0tLSBsaW51eC0yLjYuMTkub3JpZy9kcml2ZXJzL2FjcGkvcGNpX2JpbmQu
+YwkyMDA2LTEyLTE3IDAwOjE4OjI3LjAwMDAwMDAwMCArMDgwMAorKysgbGludXgtMi42LjE5L2Ry
+aXZlcnMvYWNwaS9wY2lfYmluZC5jCTIwMDYtMTItMTcgMDA6Mzg6NDMuMDAwMDAwMDAwICswODAw
+CkBAIC0xNTQsNiArMTU0LDcgQEAgaW50IGFjcGlfcGNpX2JpbmQoc3RydWN0IGFjcGlfZGV2aWNl
+ICpkZQogCQlyZXN1bHQgPSAtRU5PREVWOwogCQlnb3RvIGVuZDsKIAl9CisJZWxzZSBwcmludGso
+IkZpbmQgQUNQSS1QQ0kgY29udGV4dCBmb3IgcGFyZW50IGRldmljZSAlc1xuIiwgYWNwaV9kZXZp
+Y2VfYmlkKGRldmljZS0+cGFyZW50KSk7CiAJZGF0YS0+aWQuc2VnbWVudCA9IHBkYXRhLT5pZC5z
+ZWdtZW50OwogCWRhdGEtPmlkLmJ1cyA9IHBkYXRhLT5idXMtPm51bWJlcjsKIAo=
+
+------_=_NextPart_001_01C72131.11CCB378--
