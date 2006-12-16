@@ -1,57 +1,67 @@
 From: Pavel Troller <patrol@sinus.cz>
-Subject: Re: HP nc6400 v.03 or v.05 laptop ACPI fails after reboot, works again after booting windows
-Date: Sat, 16 Dec 2006 05:30:02 +0100
-Message-ID: <20061216043002.GA29560@tangens.sinus.cz>
-References: <457F37C0.3090003@gmail.com> <1165966936.29844.37.camel@pcjc2lap> <457FB1A1.2030602@gmail.com> <1166012707.22903.4.camel@pcjc2lap> <4582A607.8040302@gmail.com> <1166191807.7459.16.camel@pcjc2lap> <45832339.3050307@gmail.com>
+Subject: Strange things on 2.6.19 for a dual-core CPU
+Date: Sat, 16 Dec 2006 05:50:08 +0100
+Message-ID: <20061216045008.GA30833@tangens.sinus.cz>
 Reply-To: Pavel Troller <patrol@sinus.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tangens.sinus.cz ([195.39.17.8]:34328 "EHLO tangens.sinus.cz"
+Received: from tangens.sinus.cz ([195.39.17.8]:57275 "EHLO tangens.sinus.cz"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932304AbWLPEpw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 Dec 2006 23:45:52 -0500
+	id S932252AbWLPEuK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Dec 2006 23:50:10 -0500
+Received: from tangens.sinus.cz (patrol@localhost [127.0.0.1])
+	by tangens.sinus.cz (8.13.5.20060308/8.13.5) with ESMTP id kBG4o8cL031790
+	for <linux-acpi@vger.kernel.org>; Sat, 16 Dec 2006 05:50:08 +0100
+Received: (from patrol@localhost)
+	by tangens.sinus.cz (8.13.5.20060308/8.13.5/Submit) id kBG4o8Jf031789
+	for linux-acpi@vger.kernel.org; Sat, 16 Dec 2006 05:50:08 +0100
 Content-Disposition: inline
-In-Reply-To: <45832339.3050307@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Lincoln Baxter, III" <lincolnbaxter@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
 Hi!
-> Update:
-> 
-> Kernel 2.6.18-r4
-> 
-> I've done some more testing, and I've narrowed the problem down to the 
-> "processor" cpu driver.
-> I disabled all power management features in the kernel, and compiled 
-> ACPI as modules so that they would not be loaded until I wanted them to be.
-> 
-> APM is off.
-> CPU Frequency Scaling is off.
-> ACPI is compiled entirely as modules to be loaded by the user.
-> 
-> While running on the battery:
-> As soon as I "modprobe processor" the humming begins, and as soon as I 
-> "rmmod processor" the humming stops.
-> 
-> While running on AC, if I "modprobe processor" there is no buzzing. I 
-> can remove the AC adapter and the computer remains silent.
-Try the following:
-  cat /proc/acpi/processor/*/power in the following situations:
-  1) After loading the processor module being on the battery,
-  2) After loading the processor module being on AC,
-  3) After disconnecting the AC,
-and compare the results. I think that for 1), you will see more C-states than
-for 2) and that possibly the missing C-states are not added for 3).
-> 
-> It seems to be something related to the way that the processor driver is 
-> handling power to the CPU. Ideas?
-It looks that when your machine doesn't hum, it doesn't save so much power.
-Try to change the timer frequency, I suspect that frequency of the hum tracks
-it. Try to set it at 1000 Hz if it's not already there; possibly at this
-frequency, capacitors will do better work and filter the peaks on the power
-bus better. You can also use 100 Hz - maybe the hum will go lower and will be
-less hearable.
-          With regards, Pavel Troller
+  I've updated to vanilla 2.6.19 on my Pentium-D (dual-core x86_64) box.
+Now I can't see even C1 in the /proc/acpi/processor/*/power output:
+patrol@arcus:~$ cat /proc/acpi/processor/CPU1/power
+active state:            C0
+max_cstate:              C8
+bus master activity:     00000000
+maximum allowed latency: 2000 usec
+states:
+patrol@arcus:~$ cat /proc/acpi/processor/CPU2/power
+active state:            C0
+max_cstate:              C8
+bus master activity:     00000000
+maximum allowed latency: 2000 usec
+states:
+
+  Another interesting thing is shown here:
+patrol@arcus:~$ cat /proc/acpi/processor/CPU1/info
+processor id:            0
+acpi id:                 1
+bus mastering control:   no
+power management:        no
+throttling control:      yes
+limit interface:         yes
+patrol@arcus:~$ cat /proc/acpi/processor/CPU2/info
+processor id:            1
+acpi id:                 2
+bus mastering control:   no
+power management:        no
+throttling control:      no
+limit interface:         no
+
+  As I remember, both cores were showing the same things formerly.
+  The only line referring to CPUs during boot is
+ACPI: Processor [CPU1] (supports 8 throttling states)
+  and CPU2 is not mentioned at all.
+
+  The last (but maybe not acpi-related) strange thing is that in /proc/cpuinfo,
+CPU1 reports 6403.56 bogomips (as always, approximately twice the clock) and CPU2
+8314.32 ones (too much). It's also very suspicious. Formerly the difference was
+very small.
+
+  Should I provide more info to debug these things, or is it OK ?
+         With regards, Pavel Troller
