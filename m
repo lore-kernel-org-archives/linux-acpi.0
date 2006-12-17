@@ -1,130 +1,207 @@
-From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-Subject: Re: benq s73g with bugs in DSDT
-Date: Sun, 17 Dec 2006 19:36:30 +0300
-Message-ID: <4585720E.7060700@linux.intel.com>
-References: <1166372730.6122.18.camel@pico>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH -mm 4/4] swsusp: Change pm_ops handling by
+	userland interface
+Date: Sun, 17 Dec 2006 19:18:34 +0100
+Message-ID: <200612171918.35697.rjw@sisk.pl>
+References: <200612171858.16380.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:20324 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752967AbWLQQqL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 17 Dec 2006 11:46:11 -0500
-In-Reply-To: <1166372730.6122.18.camel@pico>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <suspend-devel-bounces@lists.sourceforge.net>
+In-Reply-To: <200612171858.16380.rjw@sisk.pl>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
+	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=suspend-devel>
+List-Post: <mailto:suspend-devel@lists.sourceforge.net>
+List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
+	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
+Sender: suspend-devel-bounces@lists.sourceforge.net
+Errors-To: suspend-devel-bounces@lists.sourceforge.net
+To: pm list <linux-pm@lists.osdl.org>
+Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, linux-acpi@vger.kernel.org, Stefan Seyfried <seife@suse.de>, Stephen Hemminger <shemminger@osdl.org>, Pavel Machek <pavel@ucw.cz>
 List-Id: linux-acpi@vger.kernel.org
-To: philip havran <spa77@gmx.at>
-Cc: linux-acpi@vger.kernel.org
 
-These warnings are warnings -- they are not fatal by themselves.
-Do you have any real problem with your notebook?
-You should send output of iasl to Benq, as it is them who should fix that.
+Make the userland interface of swsusp call pm_ops->finish() after
+enable_nonboot_cpus() and before resume_device(),
+as indicated by the recent discussion on Linux-PM
+(cf. http://lists.osdl.org/pipermail/linux-pm/2006-November/004164.html).
 
-Regards,
-    Alex
+This patch changes the SNAPSHOT_PMOPS ioctl so that its first function,
+PMOPS_PREPARE, only sets a switch turning the platform suspend mode on, and
+its last function, PMOPS_PREPARE, only checks if the platform mode is enabled.
+This should allow the older userland tools to work with new kernels without
+any modifications.
 
-philip havran wrote:
-> dear developers
->
-> using acpid with the benq notebook s73g on ubuntu 6.06 dapper drake,
-> there are several bugs (warnings) when recompiling the the dsdt.dsl.
->
-> i search now for about 3 weeks on the net, but i was not able to find
-> fixes for the output of the iasl compiler!
-> i am running the benq s73g notebook with the leatest bios update form
-> the vendors homepage!
->
-> maybe you could give me some advice or an mailing list where i could
-> send the problem with the DSDT to.
->
-> thank you in advance 
->
-> yours philip havran
->
-> p.s. at the end of this mail is an attachement with the output of the
-> iasl compiler
->
->
->
->
->   
-> ------------------------------------------------------------------------
->
->
-> Intel ACPI Component Architecture
-> ASL Optimizing Compiler version 20051216 [Jan  9 2006]
-> Copyright (C) 2000 - 2005 Intel Corporation
-> Supports ACPI Specification Revision 3.0
->
-> dsdt.dsl   328:             Method (_CST, 0, NotSerialized)
-> Warning  2085 -                        ^ Not all control paths return a value (_CST)
->
-> dsdt.dsl   328:             Method (_CST, 0, NotSerialized)
-> Warning  2078 -                        ^ Reserved method must return a value (_CST)
->
-> dsdt.dsl   488:             Method (_CST, 0, NotSerialized)
-> Warning  2085 -                        ^ Not all control paths return a value (_CST)
->
-> dsdt.dsl   488:             Method (_CST, 0, NotSerialized)
-> Warning  2078 -                        ^ Reserved method must return a value (_CST)
->
-> dsdt.dsl   493:                     Return (\_PR.CPU0._CST ())
-> Warning  2090 -                                          ^ Called method may not always return a value
->
-> dsdt.dsl  1147:             Method (_OSC, 5, NotSerialized)
-> Warning  2074 -                        ^ Reserved method has too many arguments (_OSC requires 4)
->
-> dsdt.dsl  4480:                     Method (_GTM, 0, NotSerialized)
-> Warning  2085 -                                ^ Not all control paths return a value (_GTM)
->
-> dsdt.dsl  4480:                     Method (_GTM, 0, NotSerialized)
-> Warning  2078 -                                ^ Reserved method must return a value (_GTM)
->
-> dsdt.dsl  4637:                         Method (_GTF, 0, NotSerialized)
-> Warning  2085 -                                    ^ Not all control paths return a value (_GTF)
->
-> dsdt.dsl  4637:                         Method (_GTF, 0, NotSerialized)
-> Warning  2078 -                                    ^ Reserved method must return a value (_GTF)
->
-> dsdt.dsl  4705:                         Method (_GTF, 0, NotSerialized)
-> Warning  2085 -                                    ^ Not all control paths return a value (_GTF)
->
-> dsdt.dsl  4705:                         Method (_GTF, 0, NotSerialized)
-> Warning  2078 -                                    ^ Reserved method must return a value (_GTF)
->
-> dsdt.dsl  4777:                     Method (_GTM, 0, NotSerialized)
-> Warning  2085 -                                ^ Not all control paths return a value (_GTM)
->
-> dsdt.dsl  4777:                     Method (_GTM, 0, NotSerialized)
-> Warning  2078 -                                ^ Reserved method must return a value (_GTM)
->
-> dsdt.dsl  4947:                         Method (_GTF, 0, NotSerialized)
-> Warning  2085 -                                    ^ Not all control paths return a value (_GTF)
->
-> dsdt.dsl  4947:                         Method (_GTF, 0, NotSerialized)
-> Warning  2078 -                                    ^ Reserved method must return a value (_GTF)
->
-> dsdt.dsl  5015:                         Method (_GTF, 0, NotSerialized)
-> Warning  2085 -                                    ^ Not all control paths return a value (_GTF)
->
-> dsdt.dsl  5015:                         Method (_GTF, 0, NotSerialized)
-> Warning  2078 -                                    ^ Reserved method must return a value (_GTF)
->
-> dsdt.dsl  5121:                     Method (_GTF, 0, NotSerialized)
-> Warning  2085 -                                ^ Not all control paths return a value (_GTF)
->
-> dsdt.dsl  5121:                     Method (_GTF, 0, NotSerialized)
-> Warning  2078 -                                ^ Reserved method must return a value (_GTF)
->
-> dsdt.dsl  5167:                     Method (_GTF, 0, NotSerialized)
-> Warning  2085 -                                ^ Not all control paths return a value (_GTF)
->
-> dsdt.dsl  5167:                     Method (_GTF, 0, NotSerialized)
-> Warning  2078 -                                ^ Reserved method must return a value (_GTF)
->
-> ASL Input:  dsdt.dsl - 5181 lines, 185613 bytes, 2130 keywords
-> AML Output: DSDT.aml - 19127 bytes 572 named objects 1558 executable opcodes
->
-> Compilation complete. 0 Errors, 22 Warnings, 0 Remarks, 131 Optimizations
->   
+The changes here only affect the userland interface of swsusp.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ kernel/power/user.c |   64 +++++++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 51 insertions(+), 13 deletions(-)
+
+Index: linux-2.6.20-rc1/kernel/power/user.c
+===================================================================
+--- linux-2.6.20-rc1.orig/kernel/power/user.c	2006-12-14 23:20:10.000000000 +0100
++++ linux-2.6.20-rc1/kernel/power/user.c	2006-12-14 23:20:18.000000000 +0100
+@@ -37,6 +37,7 @@ static struct snapshot_data {
+ 	int mode;
+ 	char frozen;
+ 	char ready;
++	char platform_suspend;
+ } snapshot_state;
+ 
+ static atomic_t device_available = ATOMIC_INIT(1);
+@@ -66,6 +67,7 @@ static int snapshot_open(struct inode *i
+ 	data->bitmap = NULL;
+ 	data->frozen = 0;
+ 	data->ready = 0;
++	data->platform_suspend = 0;
+ 
+ 	return 0;
+ }
+@@ -122,7 +124,23 @@ static ssize_t snapshot_write(struct fil
+ 	return res;
+ }
+ 
+-static inline int snapshot_suspend(void)
++static inline int platform_prepare(void)
++{
++	int error = 0;
++
++	if (pm_ops && pm_ops->prepare)
++		error = pm_ops->prepare(PM_SUSPEND_DISK);
++
++	return error;
++}
++
++static inline void platform_finish(void)
++{
++	if (pm_ops && pm_ops->finish)
++		pm_ops->finish(PM_SUSPEND_DISK);
++}
++
++static inline int snapshot_suspend(int platform_suspend)
+ {
+ 	int error;
+ 
+@@ -132,6 +150,11 @@ static inline int snapshot_suspend(void)
+ 	if (error)
+ 		goto Finish;
+ 
++	if (platform_suspend) {
++		error = platform_prepare();
++		if (error)
++			goto Finish;
++	}
+ 	suspend_console();
+ 	error = device_suspend(PMSG_FREEZE);
+ 	if (error)
+@@ -144,6 +167,9 @@ static inline int snapshot_suspend(void)
+ 	}
+ 	enable_nonboot_cpus();
+  Resume_devices:
++	if (platform_suspend)
++		platform_finish();
++
+ 	device_resume();
+ 	resume_console();
+  Finish:
+@@ -151,12 +177,17 @@ static inline int snapshot_suspend(void)
+ 	return error;
+ }
+ 
+-static inline int snapshot_restore(void)
++static inline int snapshot_restore(int platform_suspend)
+ {
+ 	int error;
+ 
+ 	mutex_lock(&pm_mutex);
+ 	pm_prepare_console();
++	if (platform_suspend) {
++		error = platform_prepare();
++		if (error)
++			goto Finish;
++	}
+ 	suspend_console();
+ 	error = device_suspend(PMSG_PRETHAW);
+ 	if (error)
+@@ -168,8 +199,12 @@ static inline int snapshot_restore(void)
+ 
+ 	enable_nonboot_cpus();
+  Resume_devices:
++	if (platform_suspend)
++		platform_finish();
++
+ 	device_resume();
+ 	resume_console();
++ Finish:
+ 	pm_restore_console();
+ 	mutex_unlock(&pm_mutex);
+ 	return error;
+@@ -221,7 +256,7 @@ static int snapshot_ioctl(struct inode *
+ 			error = -EPERM;
+ 			break;
+ 		}
+-		error = snapshot_suspend();
++		error = snapshot_suspend(data->platform_suspend);
+ 		if (!error)
+ 			error = put_user(in_suspend, (unsigned int __user *)arg);
+ 		if (!error)
+@@ -235,7 +270,7 @@ static int snapshot_ioctl(struct inode *
+ 			error = -EPERM;
+ 			break;
+ 		}
+-		error = snapshot_restore();
++		error = snapshot_restore(data->platform_suspend);
+ 		break;
+ 
+ 	case SNAPSHOT_FREE:
+@@ -342,28 +377,31 @@ static int snapshot_ioctl(struct inode *
+ 		break;
+ 
+ 	case SNAPSHOT_PMOPS:
++		error = -EINVAL;
++
+ 		switch (arg) {
+ 
+ 		case PMOPS_PREPARE:
+-			if (pm_ops->prepare) {
+-				error = pm_ops->prepare(PM_SUSPEND_DISK);
+-			}
++			data->platform_suspend = 1;
++			error = 0;
+ 			break;
+ 
+ 		case PMOPS_ENTER:
+-			kernel_shutdown_prepare(SYSTEM_SUSPEND_DISK);
+-			error = pm_ops->enter(PM_SUSPEND_DISK);
++			if (data->platform_suspend) {
++				kernel_shutdown_prepare(SYSTEM_SUSPEND_DISK);
++				error = pm_ops->enter(PM_SUSPEND_DISK);
++				error = 0;
++			}
+ 			break;
+ 
+ 		case PMOPS_FINISH:
+-			if (pm_ops && pm_ops->finish) {
+-				pm_ops->finish(PM_SUSPEND_DISK);
+-			}
++			if (data->platform_suspend)
++				error = 0;
++
+ 			break;
+ 
+ 		default:
+ 			printk(KERN_ERR "SNAPSHOT_PMOPS: invalid argument %ld\n", arg);
+-			error = -EINVAL;
+ 
+ 		}
+ 		break;
+
+-------------------------------------------------------------------------
+Take Surveys. Earn Cash. Influence the Future of IT
+Join SourceForge.net's Techsay panel and you'll get the chance to share your
+opinions on IT & business topics through brief surveys - and earn cash
+http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
