@@ -1,115 +1,53 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH -mm 1/4] PM: Change code ordering in main.c
-Date: Sun, 17 Dec 2006 19:02:32 +0100
-Message-ID: <200612171902.32819.rjw@sisk.pl>
-References: <200612171858.16380.rjw@sisk.pl>
+From: "Lincoln Baxter, III" <lincolnbaxter@gmail.com>
+Subject: Re: HP nc6400 v.03 or v.05 laptop ACPI fails after reboot, works
+ again after booting windows
+Date: Sun, 17 Dec 2006 13:51:06 -0500
+Message-ID: <4585919A.9060907@gmail.com>
+References: <457F37C0.3090003@gmail.com> <1165966936.29844.37.camel@pcjc2lap> <457FB1A1.2030602@gmail.com> <1166012707.22903.4.camel@pcjc2lap> <4582A607.8040302@gmail.com> <1166191807.7459.16.camel@pcjc2lap> <45832339.3050307@gmail.com> <20061216043002.GA29560@tangens.sinus.cz> <4583A779.3000902@gmail.com> <20061216081757.GA3571@invalid.invalid>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <suspend-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <200612171858.16380.rjw@sisk.pl>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=suspend-devel>
-List-Post: <mailto:suspend-devel@lists.sourceforge.net>
-List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
-Sender: suspend-devel-bounces@lists.sourceforge.net
-Errors-To: suspend-devel-bounces@lists.sourceforge.net
-To: pm list <linux-pm@lists.osdl.org>
-Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, linux-acpi@vger.kernel.org, Stefan Seyfried <seife@suse.de>, Stephen Hemminger <shemminger@osdl.org>, Pavel Machek <pavel@ucw.cz>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from wx-out-0506.google.com ([66.249.82.234]:17107 "EHLO
+	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932418AbWLQSvL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 17 Dec 2006 13:51:11 -0500
+Received: by wx-out-0506.google.com with SMTP id h27so1173575wxd
+        for <linux-acpi@vger.kernel.org>; Sun, 17 Dec 2006 10:51:10 -0800 (PST)
+In-Reply-To: <20061216081757.GA3571@invalid.invalid>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-Change the ordering of code in kernel/power/main.c so that device_suspend()
-is called before disable_nonboot_cpus() and pm_ops->finish() is called after
-enable_nonboot_cpus() and before device_resume(), as indicated by recent
-discussion on Linux-PM
-(cf. http://lists.osdl.org/pipermail/linux-pm/2006-November/004164.html).
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- kernel/power/main.c |   34 +++++++++++++++++++---------------
- 1 file changed, 19 insertions(+), 15 deletions(-)
-
-Index: linux-2.6.20-rc1/kernel/power/main.c
-===================================================================
---- linux-2.6.20-rc1.orig/kernel/power/main.c	2006-12-14 22:35:52.000000000 +0100
-+++ linux-2.6.20-rc1/kernel/power/main.c	2006-12-14 23:19:32.000000000 +0100
-@@ -43,6 +43,11 @@ void pm_set_ops(struct pm_ops * ops)
- 	mutex_unlock(&pm_mutex);
- }
- 
-+static inline void pm_finish(suspend_state_t state)
-+{
-+	if (pm_ops->finish)
-+		pm_ops->finish(state);
-+}
- 
- /**
-  *	suspend_prepare - Do prep work before entering low-power state.
-@@ -63,10 +68,6 @@ static int suspend_prepare(suspend_state
- 
- 	pm_prepare_console();
- 
--	error = disable_nonboot_cpus();
--	if (error)
--		goto Enable_cpu;
--
- 	if (freeze_processes()) {
- 		error = -EAGAIN;
- 		goto Thaw;
-@@ -88,18 +89,22 @@ static int suspend_prepare(suspend_state
- 	}
- 
- 	suspend_console();
--	if ((error = device_suspend(PMSG_SUSPEND))) {
-+	error = device_suspend(PMSG_SUSPEND);
-+	if (error) {
- 		printk(KERN_ERR "Some devices failed to suspend\n");
--		goto Finish;
-+		goto Resume_devices;
- 	}
--	return 0;
-- Finish:
--	if (pm_ops->finish)
--		pm_ops->finish(state);
-+	error = disable_nonboot_cpus();
-+	if (!error)
-+		return 0;
-+
-+	enable_nonboot_cpus();
-+ Resume_devices:
-+	pm_finish(state);
-+	device_resume();
-+	resume_console();
-  Thaw:
- 	thaw_processes();
-- Enable_cpu:
--	enable_nonboot_cpus();
- 	pm_restore_console();
- 	return error;
- }
-@@ -134,12 +139,11 @@ int suspend_enter(suspend_state_t state)
- 
- static void suspend_finish(suspend_state_t state)
- {
-+	enable_nonboot_cpus();
-+	pm_finish(state);
- 	device_resume();
- 	resume_console();
- 	thaw_processes();
--	enable_nonboot_cpus();
--	if (pm_ops && pm_ops->finish)
--		pm_ops->finish(state);
- 	pm_restore_console();
- }
- 
+To: linux-acpi@vger.kernel.org
 
 
--------------------------------------------------------------------------
-Take Surveys. Earn Cash. Influence the Future of IT
-Join SourceForge.net's Techsay panel and you'll get the chance to share your
-opinions on IT & business topics through brief surveys - and earn cash
-http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
+> As far as i know, the humming appears in windows too. I tested it with
+> the RMClock utility and on my laptop, switching to C4 was making the
+> humming. But every other C-State was quite. You should tune the timing
+> frquencies, like Pavel pointed out.
+>
+> But i'm curios, why on linux the C4-State does not show up. The maximum
+> working C-State on my system, on AC or battery is C3. Is there any
+> hidden switch to enable it?
+>
+> with regards, frank
+>
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ok, thank you. With regard to the timing frequencies Is that in 
+reference to the Kernel Frequency for Latency?
+Eg. 1000 / 250 / 100 ?
+
+There's nothing that I've found the enable the C4 state. It would be 
+nice, since that is definitely the most power saving state. And do you 
+have any ideas why the sound would not occur in windows? I'm pretty sure 
+it's using the lower power states, because battery lasts a heck of a lot 
+longer than in gentoo.
+
+I'm not sure if I was using RMClock correctly, but it seems like the 
+humming did not occur in windows. Perhaps you could give me a little 
+guidance on how to use the tool properly?
+
+Thanks.
+Lincoln
