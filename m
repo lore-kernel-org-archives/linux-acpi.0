@@ -1,216 +1,69 @@
-From: Stefan Seyfried <seife@suse.de>
-Subject: Re: suspend to RAM on lifebook 7110
-Date: Mon, 18 Dec 2006 18:48:51 +0100
-Message-ID: <20061218174851.GE13541@suse.de>
-References: <20061208123358.GA3724@invalid.invalid>
-	<20061208211308.GA5157@erebor.ics.muni.cz>
-	<20061218065136.GG26170@suse.de>
-	<20061218111142.GA27070@srcf.ucam.org>
-	<20061218112916.GB6636@suse.de>
-	<20061218120551.GA27546@srcf.ucam.org>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: [PATCH 2/2] ACPI: ibm_acpi: allow clean removal
+Date: Mon, 18 Dec 2006 14:47:08 -0300
+Message-ID: <20061218174708.8531.35814.stgit@thorin.khazad-dum.debian.net>
+References: <20061218174503.8531.86189.stgit@thorin.khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <suspend-devel-bounces@lists.sourceforge.net>
-Content-Disposition: inline
-In-Reply-To: <20061218120551.GA27546@srcf.ucam.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=suspend-devel>
-List-Post: <mailto:suspend-devel@lists.sourceforge.net>
-List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
-Sender: suspend-devel-bounces@lists.sourceforge.net
-Errors-To: suspend-devel-bounces@lists.sourceforge.net
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, linux-acpi@vger.kernel.org, Miroslav Ruda <ruda@ics.muni.cz>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20061218174503.8531.86189.stgit-H32KNTuDSMjdPi8JTuvWk31TOOPCyuNQ5NbjCUgZEJk@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 18, 2006 at 12:05:51PM +0000, Matthew Garrett wrote:
-> On Mon, Dec 18, 2006 at 12:29:16PM +0100, Stefan Seyfried wrote:
+From: Alexey Starikovskiy <alexey_y_starikovskiy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 
-> >  - implement this as a workaround in userspace?
-> =
+Allow clean removal by setting notify_installed in the right place.
 
-> Might be easier for the moment, though I agree that it's less than =
+Alexey Starikovskiy <alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Signed-off-by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
 
-> ideal.
+ drivers/acpi/ibm_acpi.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-Ok, so how about that (compiled, not really tested. I tested the =
-
-"save_vga_pci" by outputting to a file and comparing to /proc and sysfs),
-but i have no hardware here that needs this:
-
-Warning: watch out for my maybe creative usage of "*" and "&" and complain
-if you find obvious errors ;-)
-
-Index: s2ram.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-RCS file: /cvsroot/suspend/suspend/s2ram.c,v
-retrieving revision 1.45
-diff -u -p -r1.45 s2ram.c
---- s2ram.c	20 Sep 2006 16:23:51 -0000	1.45
-+++ s2ram.c	18 Dec 2006 16:44:47 -0000
-@@ -11,12 +11,16 @@
- #include <errno.h>
- #include <string.h>
- =
-
-+#include <pci/pci.h>
-+
- #define S2RAM
- #include "vbetool/vbetool.h"
- #include "vt.h"
- #include "s2ram.h"
- =
-
- static void *vbe_buffer;
-+unsigned char vga_pci_state[256];
-+struct pci_dev vga_dev;
- /* Flags set from whitelist */
- static int flags, vbe_mode =3D -1;
- char bios_version[1024], sys_vendor[1024], sys_product[1024], sys_version[=
-1024];
-@@ -36,6 +40,7 @@ char bios_version[1024], sys_vendor[1024
- #define UNSURE      0x20	/* unverified entries from acpi-support 0.59 */
- #define NOFB        0x40	/* must not use a frame buffer */
- #define VBE_MODE    0x80	/* machine needs "vbetool vbemode get / set" */
-+#define PCI_SAVE   0x100	/* we need to save the VGA PCI registers */
- =
-
- #include "whitelist.c"
- =
-
-@@ -67,14 +72,15 @@ void machine_known(int i)
- 	       "    bios_version =3D '%s'\n", i,
- 	       whitelist[i].sys_vendor, whitelist[i].sys_product,
- 	       whitelist[i].sys_version, whitelist[i].bios_version);
--	printf("Fixes: 0x%x  %s%s%s%s%s%s%s\n", flags,
-+	printf("Fixes: 0x%x  %s%s%s%s%s%s%s%s\n", flags,
- 	       (flags & VBE_SAVE) ? "VBE_SAVE " : "",
- 	       (flags & VBE_POST) ? "VBE_POST " : "",
- 	       (flags & VBE_MODE) ? "VBE_MODE " : "",
- 	       (flags & RADEON_OFF) ? "RADEON_OFF " : "",
- 	       (flags & S3_BIOS) ? "S3_BIOS " : "",
- 	       (flags & S3_MODE) ? "S3_MODE " : "",
--	       (flags & NOFB) ? "NOFB " : "");
-+	       (flags & NOFB) ? "NOFB " : "",
-+	       (flags & PCI_SAVE) ? "PCI_SAVE " : "");
- 	if (flags & UNSURE)
- 		printf("Machine is in the whitelist but perhaps using "
- 		       "vbetool unnecessarily.\n"
-@@ -143,6 +149,35 @@ int s2ram_check(int id)
- 	return ret;
- }
- =
-
-+struct pci_dev find_vga(void)
-+{
-+	struct pci_access *pacc;
-+	struct pci_dev *dev;
-+
-+	pacc =3D pci_alloc();	/* Get the pci_access structure */
-+	pci_init(pacc);		/* Initialize the PCI library */
-+	pci_scan_bus(pacc);	/* We want to get the list of devices */
-+
-+	for (dev=3Dpacc->devices; dev; dev=3Ddev->next) {
-+		pci_fill_info(dev, PCI_FILL_IDENT | PCI_FILL_CLASS);
-+		if (dev->device_class =3D=3D 0x300)
-+			break;
-+	}
-+	pci_cleanup(pacc);
-+
-+	return *dev;
-+}
-+
-+void save_vga_pci(struct pci_dev dev)
-+{
-+	pci_read_block(&dev, 0, vga_pci_state, 256);
-+}
-+
-+void restore_vga_pci(struct pci_dev dev)
-+{
-+	pci_write_block(&dev, 0, vga_pci_state, 256);
-+}
-+
- /* warning: we have to be on a text console when calling this */
- int s2ram_hacks(void)
- {
-@@ -171,6 +206,12 @@ int s2ram_hacks(void)
- 		printf("Calling radeon_cmd_light(0)\n");
- 		radeon_cmd_light(0);
+diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
+index 4a9f3bf..025a9f9 100644
+--- a/drivers/acpi/ibm_acpi.c
++++ b/drivers/acpi/ibm_acpi.c
+@@ -1806,7 +1806,7 @@ static int __init setup_notify(struct ibm_struct *ibm)
+ 		       ibm->name, status);
+ 		return -ENODEV;
  	}
-+	if (flags & PCI_SAVE) {
-+		vga_dev =3D find_vga();
-+		printf("saving PCI config of device %02x:%02x.%d\n",
-+			 vga_dev.bus, vga_dev.dev, vga_dev.func);
-+		save_vga_pci(vga_dev);
-+	}
- =
-
+-
++	ibm->notify_installed = 1;
  	return 0;
  }
-@@ -216,6 +257,11 @@ int s2ram_do(void)
- =
+ 
+@@ -1883,7 +1883,6 @@ static int __init ibm_init(struct ibm_struct *ibm)
+ 		ret = setup_notify(ibm);
+ 		if (ret < 0)
+ 			return ret;
+-		ibm->notify_installed = 1;
+ 	}
+ 
+ 	return 0;
 
- void s2ram_resume(void)
- {
-+	if (flags & PCI_SAVE) {
-+		printf("saving PCI config of device %02x:%02x.%d\n",
-+			 vga_dev.bus, vga_dev.dev, vga_dev.func);
-+		restore_vga_pci(vga_dev);
-+	}
- 	// FIXME: can we call vbetool_init() multiple times without cleaning up?
- 	if (flags & VBE_POST) {
- 		vbetool_init();
-@@ -260,6 +306,7 @@ static void usage(void)
- 	       "    -a, --acpi_sleep: set the acpi_sleep parameter before "
- 				       "suspend\n"
- 	       "                      1=3Ds3_bios, 2=3Ds3_mode, 3=3Dboth\n"
-+	       "    -v, --pci_save:   save the PCI config space for the VGA card.=
-\n"
- 	       "\n");
- 	exit(1);
- }
-@@ -278,10 +325,11 @@ int main(int argc, char *argv[])
- 		{ "radeontool",	no_argument,		NULL, 'r'},
- 		{ "identify",	no_argument,		NULL, 'i'},
- 		{ "acpi_sleep",	required_argument,	NULL, 'a'},
-+		{ "pci_save",	no_argument,		NULL, 'v'},
- 		{ NULL,		0,			NULL,  0 }
- 	};
- =
 
--	while ((i =3D getopt_long(argc, argv, "nhfspmria:", options, NULL)) !=3D =
--1) {
-+	while ((i =3D getopt_long(argc, argv, "nhfspmriva:", options, NULL)) !=3D=
- -1) {
- 		switch (i) {
- 		case 'h':
- 			usage();
-@@ -311,6 +359,9 @@ int main(int argc, char *argv[])
- 		case 'a':
- 			flags |=3D (atoi(optarg) & (S3_BIOS | S3_MODE));
- 			break;
-+		case 'v':
-+			flags |=3D PCI_SAVE;
-+			break;
- 		default:
- 			usage();
- 			break;
-
--- =
-
-Stefan Seyfried                  \ "I didn't want to write for pay. I
-QA / R&D Team Mobile Devices      \ wanted to be paid for what I write."
-SUSE LINUX Products GmbH, N=FCrnberg \                    -- Leonard Cohen
+--  
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
 
 -------------------------------------------------------------------------
 Take Surveys. Earn Cash. Influence the Future of IT
 Join SourceForge.net's Techsay panel and you'll get the chance to share your
 opinions on IT & business topics through brief surveys - and earn cash
-http://www.techsay.com/default.php?page=3Djoin.php&p=3Dsourceforge&CID=3DDE=
-VDEV
+http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
