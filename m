@@ -1,38 +1,44 @@
-From: Frank Ursel <listadress@gmx.net>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: suspend to RAM on lifebook 7110
-Date: Mon, 18 Dec 2006 10:30:54 +0100
-Message-ID: <20061218093054.GA4032@invalid.invalid>
-References: <20061207221831.GA31419@erebor.ics.muni.cz> <20061218063816.GE26170@suse.de>
+Date: Mon, 18 Dec 2006 11:11:42 +0000
+Message-ID: <20061218111142.GA27070@srcf.ucam.org>
+References: <20061208123358.GA3724@invalid.invalid>
+	<20061208211308.GA5157@erebor.ics.muni.cz>
+	<20061218065136.GG26170@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:52691 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753603AbWLRJbB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 18 Dec 2006 04:31:01 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <suspend-devel-bounces@lists.sourceforge.net>
 Content-Disposition: inline
-In-Reply-To: <20061218063816.GE26170@suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20061218065136.GG26170@suse.de>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
+	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=suspend-devel>
+List-Post: <mailto:suspend-devel@lists.sourceforge.net>
+List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
+	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
+Sender: suspend-devel-bounces@lists.sourceforge.net
+Errors-To: suspend-devel-bounces@lists.sourceforge.net
+To: Stefan Seyfried <seife@suse.de>
+Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, linux-acpi@vger.kernel.org, Miroslav Ruda <ruda@ics.muni.cz>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-On Mo, Dez 18, 2006 at 07:38:16 +0100, Stefan Seyfried wrote:
-> So the graphics card is back up, it is really just the backlight that
-> stays off.
+On Mon, Dec 18, 2006 at 07:51:36AM +0100, Stefan Seyfried wrote:
 
-> Does this machine have fn-keycombos for adjusting the screen
-> brightness?  Try those. I have seen a FSC Q-series (?) that needed
-> just one touch of the brightness-up key to turn back on the light.
+> I thought that this should somehow go away by the PCI bus suspend/resume
+> methods that somewhen back got merged by Greg K-H.
 
-Yes such fn-key combos exist, but on Kernel 2.6.18 and 2.6.19 they work
-only with disabled acpi. So, i would like to test your hint, but i can't
-:-(
+The kernel will only save and restore the standardised PCI configuration 
+registers - anything else needs to be handled by the specific device 
+driver. Unfortunately, in the graphics hardware case, the closest thing 
+to that is the framebuffer driver. Which we don't tend to use.
 
-> Maybe also playing with the "switch internal/external display" key
-> combo might do something.
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
 
-As far as i can see, this key combo does not bring back light on my FSC
-S7110.
-
- Frank
-
+-------------------------------------------------------------------------
+Take Surveys. Earn Cash. Influence the Future of IT
+Join SourceForge.net's Techsay panel and you'll get the chance to share your
+opinions on IT & business topics through brief surveys - and earn cash
+http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
