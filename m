@@ -1,78 +1,38 @@
-From: Stefan Seyfried <seife@suse.de>
-Subject: Re: [PATCH -mm] PM: Change ordering of suspend and resume code
-Date: Mon, 18 Dec 2006 08:42:26 +0100
-Message-ID: <20061218074226.GO26170@suse.de>
-References: <200612171858.16380.rjw@sisk.pl>
+From: Frank Ursel <listadress@gmx.net>
+Subject: Re: suspend to RAM on lifebook 7110
+Date: Mon, 18 Dec 2006 10:30:54 +0100
+Message-ID: <20061218093054.GA4032@invalid.invalid>
+References: <20061207221831.GA31419@erebor.ics.muni.cz> <20061218063816.GE26170@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.suse.de ([195.135.220.2]:36641 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753440AbWLRHpM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 18 Dec 2006 02:45:12 -0500
+Received: from mail.gmx.net ([213.165.64.20]:52691 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753603AbWLRJbB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 18 Dec 2006 04:31:01 -0500
 Content-Disposition: inline
-In-Reply-To: <200612171858.16380.rjw@sisk.pl>
+In-Reply-To: <20061218063816.GE26170@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: pm list <linux-pm@lists.osdl.org>, Pavel Machek <pavel@ucw.cz>, suspend-devel List <suspend-devel@lists.sourceforge.net>, Stephen Hemminger <shemminger@osdl.org>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Hi,
+On Mo, Dez 18, 2006 at 07:38:16 +0100, Stefan Seyfried wrote:
+> So the graphics card is back up, it is really just the backlight that
+> stays off.
 
-On Sun, Dec 17, 2006 at 06:58:15PM +0100, Rafael J. Wysocki wrote:
-> Hi,
->=20
-> As indicated in a recent thread on Linux-PM, it's necessary to call
-> pm_ops->finish() before devce_resume(), but enable_nonboot_cpus() has=
- to be
-> called before pm_ops->finish()
-> (cf. http://lists.osdl.org/pipermail/linux-pm/2006-November/004164.ht=
-ml).
-> For consistency, it seems reasonable to call disable_nonboot_cpus() a=
-fter
-> device_suspend().
->=20
-> This way the suspend code will remain symmetrical with respect to the=
- resume
-> code and it may allow us to speed up things in the future by suspendi=
-ng and
-> resuming devices and/or saving the suspend image in many threads.
+> Does this machine have fn-keycombos for adjusting the screen
+> brightness?  Try those. I have seen a FSC Q-series (?) that needed
+> just one touch of the brightness-up key to turn back on the light.
 
-Good. A thread to do progress bars :-)
-=20
-> The first patch changes the ordering of the suspend-to-RAM code and i=
-s
-> untested, because my boxes continue refusing to resume from RAM for o=
-ther
-> reasons.  If anyone can, please do me a favour and test it.
->=20
-> The second patch changes the ordering of the built-in suspend-to-disk=
- code,
-> and the last two patches modify the swsusp userland interface code
-> accordingly.  As far as the last patch is concerned, I've decided to =
-change
-> the existing ioctls, so that the patched kernel works with the "old" =
-userland.
-> I don't think this change breaks anything of importance, but if it do=
-es, we
-> can just add (yet) another ioctl to set the platform mode, although i=
-n that
-> case the userland would have to be changed as well.
->=20
-> All of the patches are against 2.6.20-rc1 and should not be used with=
- any
-> earlier kernel.
+Yes such fn-key combos exist, but on Kernel 2.6.18 and 2.6.19 they work
+only with disabled acpi. So, i would like to test your hint, but i can't
+:-(
 
-I'll test them, but probably not this year :-(
-I'll only get to it during the first week of January.
---=20
-Stefan Seyfried
-QA / R&D Team Mobile Devices        |              "Any ideas, John?"
-SUSE LINUX Products GmbH, N=FCrnberg  | "Well, surrounding them's out."=
-=20
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Maybe also playing with the "switch internal/external display" key
+> combo might do something.
+
+As far as i can see, this key combo does not bring back light on my FSC
+S7110.
+
+ Frank
+
