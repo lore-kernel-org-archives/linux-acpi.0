@@ -1,66 +1,74 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH] ACPI: ibm_acpi: allow clean removal
-Date: Mon, 18 Dec 2006 14:53:33 -0300
-Message-ID: <20061218175332.8826.95334.stgit@thorin.khazad-dum.debian.net>
-References: <20061218175207.8826.25057.stgit@thorin.khazad-dum.debian.net>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: suspend to RAM on lifebook 7110
+Date: Mon, 18 Dec 2006 16:55:40 +0100
+Message-ID: <200612181655.40484.rjw@sisk.pl>
+References: <20061208123358.GA3724@invalid.invalid>
+	<20061218112916.GB6636@suse.de> <20061218121645.GD2000@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20061218175207.8826.25057.stgit-H32KNTuDSMjdPi8JTuvWk31TOOPCyuNQ5NbjCUgZEJk@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <suspend-devel-bounces@lists.sourceforge.net>
+In-Reply-To: <20061218121645.GD2000@elf.ucw.cz>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
+	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=suspend-devel>
+List-Post: <mailto:suspend-devel@lists.sourceforge.net>
+List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
+	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
+Sender: suspend-devel-bounces@lists.sourceforge.net
+Errors-To: suspend-devel-bounces@lists.sourceforge.net
+To: suspend-devel@lists.sourceforge.net
+Cc: linux-acpi@vger.kernel.org, Stefan Seyfried <seife@suse.de>, Miroslav Ruda <ruda@ics.muni.cz>, Pavel Machek <pavel@ucw.cz>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Alexey Starikovskiy <alexey_y_starikovskiy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Hi,
 
-Allow clean removal by setting notify_installed in the right place.
+On Monday, 18 December 2006 13:16, Pavel Machek wrote:
+> Hi!
+> 
+> > thanks for explaining this, i am obviously not too deep into that
+> > PCI bus stuff :-)
+> > 
+> ...
+> > > > I thought that this should somehow go away by the PCI bus suspend/resume
+> > > > methods that somewhen back got merged by Greg K-H.
+> > > 
+> > > The kernel will only save and restore the standardised PCI configuration 
+> > > registers - anything else needs to be handled by the specific device 
+> > > driver. Unfortunately, in the graphics hardware case, the closest thing 
+> > > to that is the framebuffer driver. Which we don't tend to use.
+> > 
+> > So the question is: should we either
+> >  - implement a minimal "graphics card PCI suspend resume" "driver" in the
+> >    kernel that will do this even if no framebuffer is used, or
+> 
+> We are going there, but it is *hard* to do, due to kernel graphics
+> missdesign. Could take years.
+> 
+> >  - implement this as a workaround in userspace?
+> > 
+> > I mean - it is not rocket science to do it in s2ram, but it just seems
+> > more correct (to me) to do it in the kernel, where the correct locking
+> > and ordering is more or less guaranteed.
+> 
+> Lets do it in userspace. Doing in kernel is right, but it will be
+> hard.
 
-Alexey Starikovskiy <alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Signed-off-by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
+Agreed.
 
- drivers/acpi/ibm_acpi.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+Plus if we do it in the user space, we'll be able to drop it as soon as it's
+no longer needed. ;-)
 
-diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
-index 003a987..719a320 100644
---- a/drivers/acpi/ibm_acpi.c
-+++ b/drivers/acpi/ibm_acpi.c
-@@ -1805,7 +1805,7 @@ static int __init setup_notify(struct ibm_struct *ibm)
- 		       ibm->name, status);
- 		return -ENODEV;
- 	}
--
-+	ibm->notify_installed = 1;
- 	return 0;
- }
- 
-@@ -1882,7 +1882,6 @@ static int __init ibm_init(struct ibm_struct *ibm)
- 		ret = setup_notify(ibm);
- 		if (ret < 0)
- 			return ret;
--		ibm->notify_installed = 1;
- 	}
- 
- 	return 0;
+Greetings,
+Rafael
 
 
---  
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+-- 
+If you don't have the time to read,
+you don't have the time or the tools to write.
+		- Stephen King
 
 -------------------------------------------------------------------------
 Take Surveys. Earn Cash. Influence the Future of IT
