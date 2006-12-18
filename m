@@ -1,59 +1,77 @@
-From: Stefan Seyfried <seife@suse.de>
+From: Miroslav Ruda <ruda@ics.muni.cz>
 Subject: Re: suspend to RAM on lifebook 7110
-Date: Mon, 18 Dec 2006 12:29:16 +0100
-Message-ID: <20061218112916.GB6636@suse.de>
-References: <20061208123358.GA3724@invalid.invalid> <20061208211308.GA5157@erebor.ics.muni.cz> <20061218065136.GG26170@suse.de> <20061218111142.GA27070@srcf.ucam.org>
+Date: Mon, 18 Dec 2006 17:53:02 +0100
+Message-ID: <4586C76E.5000105@ics.muni.cz>
+References: <20061207221831.GA31419@erebor.ics.muni.cz>
+	<20061218063816.GE26170@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.suse.de ([195.135.220.2]:53072 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753850AbWLRL36 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 18 Dec 2006 06:29:58 -0500
-Content-Disposition: inline
-In-Reply-To: <20061218111142.GA27070@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <suspend-devel-bounces@lists.sourceforge.net>
+In-Reply-To: <20061218063816.GE26170@suse.de>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
+	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=suspend-devel>
+List-Post: <mailto:suspend-devel@lists.sourceforge.net>
+List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
+	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
+Sender: suspend-devel-bounces@lists.sourceforge.net
+Errors-To: suspend-devel-bounces@lists.sourceforge.net
+To: Stefan Seyfried <seife@suse.de>
+Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Miroslav Ruda <ruda@ics.muni.cz>, linux-acpi@vger.kernel.org, suspend-devel List <suspend-devel@lists.sourceforge.net>
 
-Hi Matthew,
+Stefan Seyfried wrote:
+> Hi Miroslav,
+> 
+> i'm taking suspend-devel into cc:, maybe somebody there has an idea about
+> this, too.
+> 
+> On Thu, Dec 07, 2006 at 11:18:31PM +0100, Miroslav Ruda wrote:
+>> Hi,
+>>
+>>  I'm installing opensuse 10.2 on Fujitsu Siemens Lifebook 7110 (intel
+>> dual core, intel 965 chipset, intel 945 graphics chipset ...).
+>> Most of hardware works fine, but I have some problems with suspend to
+>> ram - suspend/resume using s2ram works fine, but display remains nearly 
+>> black. I can see very hardly what's on display, but machine including
+>> network works fine.
+> 
+> So the graphics card is back up, it is really just the backlight that stays
+> off.
+> 
+>> I have tested s2ram on Suse 2.6.18.2-23-default or vanila 2.6.19+swsusp2
+>> with the same problems.
+>>
+>> s2ram -i returns
+>> This machine can be identified by:
+>>     sys_vendor   = "FUJITSU SIEMENS"
+>>     sys_product  = "LIFEBOOK S7110"
+>>     sys_version  = " "
+>>     bios_version = "Version 1.18 "
+>>
+>> s2ram -f -a[0123] gives the same result, -s -p combinations doesn't work
+>> too. Switching back to text console doesn't help. Using xset dpms force
+>> off doesn't help too. The same problem I have both on text console and
+>> using Xserver.
+> 
+> Does this machine have fn-keycombos for adjusting the screen brightness?
+> Try those. I have seen a FSC Q-series (?) that needed just one touch of
+> the brightness-up key to turn back on the light.
+> 
+> Once we realized this, we could also poke it via the ACPI video module
+> (just increase the brightness by one level, then decrease it again) and
+> this also switched the light back on.
 
-thanks for explaining this, i am obviously not too deep into that
-PCI bus stuff :-)
+Fn-brightness-down (really down, not up) helps me with the same problem 
+on older Lifebook S7020 (i915 chipset). However, on Lifebok S7110 non of
+Fn- keys or switching off/on display does the same trick :-(
 
-On Mon, Dec 18, 2006 at 11:11:42AM +0000, Matthew Garrett wrote:
-> On Mon, Dec 18, 2006 at 07:51:36AM +0100, Stefan Seyfried wrote:
->=20
-> > I thought that this should somehow go away by the PCI bus suspend/r=
-esume
-> > methods that somewhen back got merged by Greg K-H.
->=20
-> The kernel will only save and restore the standardised PCI configurat=
-ion=20
-> registers - anything else needs to be handled by the specific device=20
-> driver. Unfortunately, in the graphics hardware case, the closest thi=
-ng=20
-> to that is the framebuffer driver. Which we don't tend to use.
+              Miroslav Ruda
 
-So the question is: should we either
- - implement a minimal "graphics card PCI suspend resume" "driver" in t=
-he
-   kernel that will do this even if no framebuffer is used, or
- - implement this as a workaround in userspace?
-
-I mean - it is not rocket science to do it in s2ram, but it just seems
-more correct (to me) to do it in the kernel, where the correct locking
-and ordering is more or less guaranteed.
-
---=20
-Stefan Seyfried
-QA / R&D Team Mobile Devices        |              "Any ideas, John?"
-SUSE LINUX Products GmbH, N=FCrnberg  | "Well, surrounding them's out."=
-=20
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-------------------------------------------------------------------------
+Take Surveys. Earn Cash. Influence the Future of IT
+Join SourceForge.net's Techsay panel and you'll get the chance to share your
+opinions on IT & business topics through brief surveys - and earn cash
+http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
