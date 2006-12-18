@@ -1,14 +1,15 @@
 From: Stefan Seyfried <seife@suse.de>
 Subject: Re: suspend to RAM on lifebook 7110
-Date: Mon, 18 Dec 2006 07:38:16 +0100
-Message-ID: <20061218063816.GE26170@suse.de>
-References: <20061207221831.GA31419@erebor.ics.muni.cz>
+Date: Mon, 18 Dec 2006 07:51:36 +0100
+Message-ID: <20061218065136.GG26170@suse.de>
+References: <20061208123358.GA3724@invalid.invalid>
+	<20061208211308.GA5157@erebor.ics.muni.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <suspend-devel-bounces@lists.sourceforge.net>
 Content-Disposition: inline
-In-Reply-To: <20061207221831.GA31419@erebor.ics.muni.cz>
+In-Reply-To: <20061208211308.GA5157@erebor.ics.muni.cz>
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
 	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=suspend-devel>
@@ -22,60 +23,67 @@ To: Miroslav Ruda <ruda@ics.muni.cz>
 Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Miroslav,
+On Fri, Dec 08, 2006 at 10:13:08PM +0100, Miroslav Ruda wrote:
+> On Fri, Dec 08, 2006 at 01:33:58PM +0100, Frank Ursel wrote:
+> > Before i actually suspend the notebook, i write some data about the
+> > graphic card on disk and on resume the data is written back to the
+> > graphic card and everything works fine (I'm writing only the relevant
+> > parts in here):
+> > =
 
-i'm taking suspend-devel into cc:, maybe somebody there has an idea about
-this, too.
+> >  # discover video card's ID
+> >  ID=3D`lspci | grep VGA | awk '{ print $1 }' | sed -e 's@0000:@@' -e 's=
+@:@/@'`
+> > =
 
-On Thu, Dec 07, 2006 at 11:18:31PM +0100, Miroslav Ruda wrote:
-> Hi,
+> >  # dump current data from the video card to the temporary file
+> >  cat /proc/bus/pci/$ID > $TMP_FILE
+> > =
+
+> >  # suspend
+> >  echo -n mem > /sys/power/state
+> > =
+
+> >  # restore video card data from the temporary file
+> >  # on resume
+> >  cat $TMP_FILE > /proc/bus/pci/$ID
 > =
 
->  I'm installing opensuse 10.2 on Fujitsu Siemens Lifebook 7110 (intel
-> dual core, intel 965 chipset, intel 945 graphics chipset ...).
-> Most of hardware works fine, but I have some problems with suspend to
-> ram - suspend/resume using s2ram works fine, but display remains nearly =
+> Great, it works for me too.
 
-> black. I can see very hardly what's on display, but machine including
-> network works fine.
+OK. This is probably the same as the R50e entry in the whitelist:
+        /* R50e needs not yet implemented save_video_pci_state :-(
 
-So the graphics card is back up, it is really just the backlight that stays
-off.
+I thought that this should somehow go away by the PCI bus suspend/resume
+methods that somewhen back got merged by Greg K-H.
+I still think that this belongs in the kernel and that we should not work
+around this issue in s2ram. But maybe somebody who knows more about this
+stuff can convince me otherwise. It should not be too hard :-)
 
-> I have tested s2ram on Suse 2.6.18.2-23-default or vanila 2.6.19+swsusp2
-> with the same problems.
+> > Note: This works fine for me in a script, which is invoked by acpi on
+> >       button-press. I'm using Debian/SID and i don't know where the rig=
+ht
+> >       place for manipulation on Suse is. Maybe you need to tweek a bit
 > =
 
-> s2ram -i returns
-> This machine can be identified by:
->     sys_vendor   =3D "FUJITSU SIEMENS"
->     sys_product  =3D "LIFEBOOK S7110"
->     sys_version  =3D " "
->     bios_version =3D "Version 1.18 "
+> Just for record (or others with the same problem :-), I'm using hibernate =
+
+> script from swsusp2 and there I was able to use
+> OnSuspend 80 /etc/hibernate/video.sh store
+> OnResume 80 /etc/hibernate/video.sh restore
+> into /etc/hibernate/ususpend-ram.conf script.
 > =
 
-> s2ram -f -a[0123] gives the same result, -s -p combinations doesn't work
-> too. Switching back to text console doesn't help. Using xset dpms force
-> off doesn't help too. The same problem I have both on text console and
-> using Xserver.
+> Or on Suse 10.2, pm-utils are used by default and it's easy to add call t=
+o =
 
-Does this machine have fn-keycombos for adjusting the screen brightness?
-Try those. I have seen a FSC Q-series (?) that needed just one touch of
-the brightness-up key to turn back on the light.
+> this script to /etc/pm/hooks/ directory.
 
-Once we realized this, we could also poke it via the ACPI video module
-(just increase the brightness by one level, then decrease it again) and
-this also switched the light back on.
+Yes, that's how it was intended to be. Easy and straightforward :-)
 
-Maybe also playing with the "switch internal/external display" key combo
-might do something.
+Best regards,
 
-I am of course not sure that this also helps on your machine, but it might =
-:-)
-
-Good luck,
-
-    Stefan
+     Stefan
 
 -- =
 
