@@ -1,14 +1,14 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: suspend to RAM on lifebook 7110
-Date: Mon, 18 Dec 2006 16:55:40 +0100
-Message-ID: <200612181655.40484.rjw@sisk.pl>
-References: <20061208123358.GA3724@invalid.invalid>
-	<20061218112916.GB6636@suse.de> <20061218121645.GD2000@elf.ucw.cz>
+Subject: Re: [PATCH -mm] PM: Change ordering of suspend and
+	resume code
+Date: Mon, 18 Dec 2006 16:10:30 +0100
+Message-ID: <200612181610.31039.rjw@sisk.pl>
+References: <200612171858.16380.rjw@sisk.pl> <20061218074226.GO26170@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <suspend-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <20061218121645.GD2000@elf.ucw.cz>
+In-Reply-To: <20061218074226.GO26170@suse.de>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
 	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
@@ -19,47 +19,57 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
 	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
 Sender: suspend-devel-bounces@lists.sourceforge.net
 Errors-To: suspend-devel-bounces@lists.sourceforge.net
-To: suspend-devel@lists.sourceforge.net
-Cc: linux-acpi@vger.kernel.org, Stefan Seyfried <seife@suse.de>, Miroslav Ruda <ruda@ics.muni.cz>, Pavel Machek <pavel@ucw.cz>
+To: Stefan Seyfried <seife@suse.de>
+Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, linux-acpi@vger.kernel.org, pm list <linux-pm@lists.osdl.org>, Stephen Hemminger <shemminger@osdl.org>, Pavel Machek <pavel@ucw.cz>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi,
 
-On Monday, 18 December 2006 13:16, Pavel Machek wrote:
-> Hi!
+On Monday, 18 December 2006 08:42, Stefan Seyfried wrote:
+> Hi,
 > 
-> > thanks for explaining this, i am obviously not too deep into that
-> > PCI bus stuff :-)
+> On Sun, Dec 17, 2006 at 06:58:15PM +0100, Rafael J. Wysocki wrote:
+> > Hi,
 > > 
-> ...
-> > > > I thought that this should somehow go away by the PCI bus suspend/resume
-> > > > methods that somewhen back got merged by Greg K-H.
-> > > 
-> > > The kernel will only save and restore the standardised PCI configuration 
-> > > registers - anything else needs to be handled by the specific device 
-> > > driver. Unfortunately, in the graphics hardware case, the closest thing 
-> > > to that is the framebuffer driver. Which we don't tend to use.
+> > As indicated in a recent thread on Linux-PM, it's necessary to call
+> > pm_ops->finish() before devce_resume(), but enable_nonboot_cpus() has to be
+> > called before pm_ops->finish()
+> > (cf. http://lists.osdl.org/pipermail/linux-pm/2006-November/004164.html).
+> > For consistency, it seems reasonable to call disable_nonboot_cpus() after
+> > device_suspend().
 > > 
-> > So the question is: should we either
-> >  - implement a minimal "graphics card PCI suspend resume" "driver" in the
-> >    kernel that will do this even if no framebuffer is used, or
+> > This way the suspend code will remain symmetrical with respect to the resume
+> > code and it may allow us to speed up things in the future by suspending and
+> > resuming devices and/or saving the suspend image in many threads.
 > 
-> We are going there, but it is *hard* to do, due to kernel graphics
-> missdesign. Could take years.
-> 
-> >  - implement this as a workaround in userspace?
-> > 
-> > I mean - it is not rocket science to do it in s2ram, but it just seems
-> > more correct (to me) to do it in the kernel, where the correct locking
-> > and ordering is more or less guaranteed.
-> 
-> Lets do it in userspace. Doing in kernel is right, but it will be
-> hard.
+> Good. A thread to do progress bars :-)
 
-Agreed.
+I thought about something like multiple compression/encryption threads, but
+well ... ;-)
 
-Plus if we do it in the user space, we'll be able to drop it as soon as it's
-no longer needed. ;-)
+> > The first patch changes the ordering of the suspend-to-RAM code and is
+> > untested, because my boxes continue refusing to resume from RAM for other
+> > reasons.  If anyone can, please do me a favour and test it.
+> > 
+> > The second patch changes the ordering of the built-in suspend-to-disk code,
+> > and the last two patches modify the swsusp userland interface code
+> > accordingly.  As far as the last patch is concerned, I've decided to change
+> > the existing ioctls, so that the patched kernel works with the "old" userland.
+> > I don't think this change breaks anything of importance, but if it does, we
+> > can just add (yet) another ioctl to set the platform mode, although in that
+> > case the userland would have to be changed as well.
+> > 
+> > All of the patches are against 2.6.20-rc1 and should not be used with any
+> > earlier kernel.
+> 
+> I'll test them,
+
+Thanks.
+
+> but probably not this year :-( 
+> I'll only get to it during the first week of January.
+
+That will be fine.
 
 Greetings,
 Rafael
