@@ -1,14 +1,19 @@
-From: Miroslav Ruda <ruda@ics.muni.cz>
+From: Stefan Seyfried <seife@suse.de>
 Subject: Re: suspend to RAM on lifebook 7110
-Date: Mon, 18 Dec 2006 17:53:02 +0100
-Message-ID: <4586C76E.5000105@ics.muni.cz>
-References: <20061207221831.GA31419@erebor.ics.muni.cz>
-	<20061218063816.GE26170@suse.de>
+Date: Mon, 18 Dec 2006 18:48:51 +0100
+Message-ID: <20061218174851.GE13541@suse.de>
+References: <20061208123358.GA3724@invalid.invalid>
+	<20061208211308.GA5157@erebor.ics.muni.cz>
+	<20061218065136.GG26170@suse.de>
+	<20061218111142.GA27070@srcf.ucam.org>
+	<20061218112916.GB6636@suse.de>
+	<20061218120551.GA27546@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <suspend-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <20061218063816.GE26170@suse.de>
+Content-Disposition: inline
+In-Reply-To: <20061218120551.GA27546@srcf.ucam.org>
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
 	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=suspend-devel>
@@ -18,60 +23,194 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
 	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
 Sender: suspend-devel-bounces@lists.sourceforge.net
 Errors-To: suspend-devel-bounces@lists.sourceforge.net
-To: Stefan Seyfried <seife@suse.de>
-Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, linux-acpi@vger.kernel.org, Miroslav Ruda <ruda@ics.muni.cz>
 List-Id: linux-acpi@vger.kernel.org
 
-Stefan Seyfried wrote:
-> Hi Miroslav,
-> 
-> i'm taking suspend-devel into cc:, maybe somebody there has an idea about
-> this, too.
-> 
-> On Thu, Dec 07, 2006 at 11:18:31PM +0100, Miroslav Ruda wrote:
->> Hi,
->>
->>  I'm installing opensuse 10.2 on Fujitsu Siemens Lifebook 7110 (intel
->> dual core, intel 965 chipset, intel 945 graphics chipset ...).
->> Most of hardware works fine, but I have some problems with suspend to
->> ram - suspend/resume using s2ram works fine, but display remains nearly 
->> black. I can see very hardly what's on display, but machine including
->> network works fine.
-> 
-> So the graphics card is back up, it is really just the backlight that stays
-> off.
-> 
->> I have tested s2ram on Suse 2.6.18.2-23-default or vanila 2.6.19+swsusp2
->> with the same problems.
->>
->> s2ram -i returns
->> This machine can be identified by:
->>     sys_vendor   = "FUJITSU SIEMENS"
->>     sys_product  = "LIFEBOOK S7110"
->>     sys_version  = " "
->>     bios_version = "Version 1.18 "
->>
->> s2ram -f -a[0123] gives the same result, -s -p combinations doesn't work
->> too. Switching back to text console doesn't help. Using xset dpms force
->> off doesn't help too. The same problem I have both on text console and
->> using Xserver.
-> 
-> Does this machine have fn-keycombos for adjusting the screen brightness?
-> Try those. I have seen a FSC Q-series (?) that needed just one touch of
-> the brightness-up key to turn back on the light.
-> 
-> Once we realized this, we could also poke it via the ACPI video module
-> (just increase the brightness by one level, then decrease it again) and
-> this also switched the light back on.
+On Mon, Dec 18, 2006 at 12:05:51PM +0000, Matthew Garrett wrote:
+> On Mon, Dec 18, 2006 at 12:29:16PM +0100, Stefan Seyfried wrote:
 
-Fn-brightness-down (really down, not up) helps me with the same problem 
-on older Lifebook S7020 (i915 chipset). However, on Lifebok S7110 non of
-Fn- keys or switching off/on display does the same trick :-(
+> >  - implement this as a workaround in userspace?
+> =
 
-              Miroslav Ruda
+> Might be easier for the moment, though I agree that it's less than =
+
+> ideal.
+
+Ok, so how about that (compiled, not really tested. I tested the =
+
+"save_vga_pci" by outputting to a file and comparing to /proc and sysfs),
+but i have no hardware here that needs this:
+
+Warning: watch out for my maybe creative usage of "*" and "&" and complain
+if you find obvious errors ;-)
+
+Index: s2ram.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+RCS file: /cvsroot/suspend/suspend/s2ram.c,v
+retrieving revision 1.45
+diff -u -p -r1.45 s2ram.c
+--- s2ram.c	20 Sep 2006 16:23:51 -0000	1.45
++++ s2ram.c	18 Dec 2006 16:44:47 -0000
+@@ -11,12 +11,16 @@
+ #include <errno.h>
+ #include <string.h>
+ =
+
++#include <pci/pci.h>
++
+ #define S2RAM
+ #include "vbetool/vbetool.h"
+ #include "vt.h"
+ #include "s2ram.h"
+ =
+
+ static void *vbe_buffer;
++unsigned char vga_pci_state[256];
++struct pci_dev vga_dev;
+ /* Flags set from whitelist */
+ static int flags, vbe_mode =3D -1;
+ char bios_version[1024], sys_vendor[1024], sys_product[1024], sys_version[=
+1024];
+@@ -36,6 +40,7 @@ char bios_version[1024], sys_vendor[1024
+ #define UNSURE      0x20	/* unverified entries from acpi-support 0.59 */
+ #define NOFB        0x40	/* must not use a frame buffer */
+ #define VBE_MODE    0x80	/* machine needs "vbetool vbemode get / set" */
++#define PCI_SAVE   0x100	/* we need to save the VGA PCI registers */
+ =
+
+ #include "whitelist.c"
+ =
+
+@@ -67,14 +72,15 @@ void machine_known(int i)
+ 	       "    bios_version =3D '%s'\n", i,
+ 	       whitelist[i].sys_vendor, whitelist[i].sys_product,
+ 	       whitelist[i].sys_version, whitelist[i].bios_version);
+-	printf("Fixes: 0x%x  %s%s%s%s%s%s%s\n", flags,
++	printf("Fixes: 0x%x  %s%s%s%s%s%s%s%s\n", flags,
+ 	       (flags & VBE_SAVE) ? "VBE_SAVE " : "",
+ 	       (flags & VBE_POST) ? "VBE_POST " : "",
+ 	       (flags & VBE_MODE) ? "VBE_MODE " : "",
+ 	       (flags & RADEON_OFF) ? "RADEON_OFF " : "",
+ 	       (flags & S3_BIOS) ? "S3_BIOS " : "",
+ 	       (flags & S3_MODE) ? "S3_MODE " : "",
+-	       (flags & NOFB) ? "NOFB " : "");
++	       (flags & NOFB) ? "NOFB " : "",
++	       (flags & PCI_SAVE) ? "PCI_SAVE " : "");
+ 	if (flags & UNSURE)
+ 		printf("Machine is in the whitelist but perhaps using "
+ 		       "vbetool unnecessarily.\n"
+@@ -143,6 +149,35 @@ int s2ram_check(int id)
+ 	return ret;
+ }
+ =
+
++struct pci_dev find_vga(void)
++{
++	struct pci_access *pacc;
++	struct pci_dev *dev;
++
++	pacc =3D pci_alloc();	/* Get the pci_access structure */
++	pci_init(pacc);		/* Initialize the PCI library */
++	pci_scan_bus(pacc);	/* We want to get the list of devices */
++
++	for (dev=3Dpacc->devices; dev; dev=3Ddev->next) {
++		pci_fill_info(dev, PCI_FILL_IDENT | PCI_FILL_CLASS);
++		if (dev->device_class =3D=3D 0x300)
++			break;
++	}
++	pci_cleanup(pacc);
++
++	return *dev;
++}
++
++void save_vga_pci(struct pci_dev dev)
++{
++	pci_read_block(&dev, 0, vga_pci_state, 256);
++}
++
++void restore_vga_pci(struct pci_dev dev)
++{
++	pci_write_block(&dev, 0, vga_pci_state, 256);
++}
++
+ /* warning: we have to be on a text console when calling this */
+ int s2ram_hacks(void)
+ {
+@@ -171,6 +206,12 @@ int s2ram_hacks(void)
+ 		printf("Calling radeon_cmd_light(0)\n");
+ 		radeon_cmd_light(0);
+ 	}
++	if (flags & PCI_SAVE) {
++		vga_dev =3D find_vga();
++		printf("saving PCI config of device %02x:%02x.%d\n",
++			 vga_dev.bus, vga_dev.dev, vga_dev.func);
++		save_vga_pci(vga_dev);
++	}
+ =
+
+ 	return 0;
+ }
+@@ -216,6 +257,11 @@ int s2ram_do(void)
+ =
+
+ void s2ram_resume(void)
+ {
++	if (flags & PCI_SAVE) {
++		printf("saving PCI config of device %02x:%02x.%d\n",
++			 vga_dev.bus, vga_dev.dev, vga_dev.func);
++		restore_vga_pci(vga_dev);
++	}
+ 	// FIXME: can we call vbetool_init() multiple times without cleaning up?
+ 	if (flags & VBE_POST) {
+ 		vbetool_init();
+@@ -260,6 +306,7 @@ static void usage(void)
+ 	       "    -a, --acpi_sleep: set the acpi_sleep parameter before "
+ 				       "suspend\n"
+ 	       "                      1=3Ds3_bios, 2=3Ds3_mode, 3=3Dboth\n"
++	       "    -v, --pci_save:   save the PCI config space for the VGA card.=
+\n"
+ 	       "\n");
+ 	exit(1);
+ }
+@@ -278,10 +325,11 @@ int main(int argc, char *argv[])
+ 		{ "radeontool",	no_argument,		NULL, 'r'},
+ 		{ "identify",	no_argument,		NULL, 'i'},
+ 		{ "acpi_sleep",	required_argument,	NULL, 'a'},
++		{ "pci_save",	no_argument,		NULL, 'v'},
+ 		{ NULL,		0,			NULL,  0 }
+ 	};
+ =
+
+-	while ((i =3D getopt_long(argc, argv, "nhfspmria:", options, NULL)) !=3D =
+-1) {
++	while ((i =3D getopt_long(argc, argv, "nhfspmriva:", options, NULL)) !=3D=
+ -1) {
+ 		switch (i) {
+ 		case 'h':
+ 			usage();
+@@ -311,6 +359,9 @@ int main(int argc, char *argv[])
+ 		case 'a':
+ 			flags |=3D (atoi(optarg) & (S3_BIOS | S3_MODE));
+ 			break;
++		case 'v':
++			flags |=3D PCI_SAVE;
++			break;
+ 		default:
+ 			usage();
+ 			break;
+
+-- =
+
+Stefan Seyfried                  \ "I didn't want to write for pay. I
+QA / R&D Team Mobile Devices      \ wanted to be paid for what I write."
+SUSE LINUX Products GmbH, N=FCrnberg \                    -- Leonard Cohen
 
 -------------------------------------------------------------------------
 Take Surveys. Earn Cash. Influence the Future of IT
 Join SourceForge.net's Techsay panel and you'll get the chance to share your
 opinions on IT & business topics through brief surveys - and earn cash
-http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
+http://www.techsay.com/default.php?page=3Djoin.php&p=3Dsourceforge&CID=3DDE=
+VDEV
