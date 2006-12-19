@@ -1,51 +1,101 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: suspend to RAM on lifebook 7110
-Date: Mon, 18 Dec 2006 12:05:51 +0000
-Message-ID: <20061218120551.GA27546@srcf.ucam.org>
-References: <20061208123358.GA3724@invalid.invalid>
-	<20061208211308.GA5157@erebor.ics.muni.cz>
-	<20061218065136.GG26170@suse.de>
-	<20061218111142.GA27070@srcf.ucam.org>
-	<20061218112916.GB6636@suse.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <suspend-devel-bounces@lists.sourceforge.net>
-Content-Disposition: inline
-In-Reply-To: <20061218112916.GB6636@suse.de>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=suspend-devel>
-List-Post: <mailto:suspend-devel@lists.sourceforge.net>
-List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
-Sender: suspend-devel-bounces@lists.sourceforge.net
-Errors-To: suspend-devel-bounces@lists.sourceforge.net
-To: Stefan Seyfried <seife@suse.de>
-Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, linux-acpi@vger.kernel.org, Miroslav Ruda <ruda@ics.muni.cz>
+From: akpm@osdl.org
+Subject: [patch 08/19] Implementation of acpi_video_get_next_level()
+Date: Tue, 19 Dec 2006 12:56:14 -0800
+Message-ID: <200612192056.kBJKuEsM010029@shell0.pdx.osdl.net>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.osdl.org ([65.172.181.25]:34464 "EHLO smtp.osdl.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932946AbWLSU4z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Dec 2006 15:56:55 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, linux-kernel@ttuttle.net, len.brown@intel.com
 
-On Mon, Dec 18, 2006 at 12:29:16PM +0100, Stefan Seyfried wrote:
-> So the question is: should we either
->  - implement a minimal "graphics card PCI suspend resume" "driver" in the
->    kernel that will do this even if no framebuffer is used, or
+From: Thomas Tuttle <linux-kernel@ttuttle.net>
 
-The long term aim is to implement a thin graphics card driver in the 
-kernel, and then port framebuffer and DRM code to that. Doing it 
-effectively requires knowing which PCI configuration registers are 
-relevant for the hardware, which is possibly easier said than done.
+acpi_video_get_next_level was supposed to implement an algorithm to select
+a new brightness level based on the old brightness level of an ACPI video
+device, but it simply says "/* Fix me */" and returns the current
+brightness.
 
->  - implement this as a workaround in userspace?
+This patch implements acpi_video_get_next_level properly.  It had to change
+a few constants at the top of the file because they were (apparently)
+wrong, but it appears to work on my Dell Inspiron e1405 (with BIOS A05
+only--BIOS A04 doesn't seem to send ACPI video hotkey events).
 
-Might be easier for the moment, though I agree that it's less than 
-ideal.
+[akpm@osdl.org: cleanups]
+Cc: Len Brown <len.brown@intel.com>
+Signed-off-by: Thomas Tuttle <linux-kernel@ttuttle.net>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
+---
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+ drivers/acpi/video.c |   41 ++++++++++++++++++++++++++++++++++-------
+ 1 files changed, 34 insertions(+), 7 deletions(-)
 
--------------------------------------------------------------------------
-Take Surveys. Earn Cash. Influence the Future of IT
-Join SourceForge.net's Techsay panel and you'll get the chance to share your
-opinions on IT & business topics through brief surveys - and earn cash
-http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
+diff -puN drivers/acpi/video.c~implementation-of-acpi_video_get_next_level drivers/acpi/video.c
+--- a/drivers/acpi/video.c~implementation-of-acpi_video_get_next_level
++++ a/drivers/acpi/video.c
+@@ -3,6 +3,7 @@
+  *
+  *  Copyright (C) 2004 Luming Yu <luming.yu@intel.com>
+  *  Copyright (C) 2004 Bruno Ducrot <ducrot@poupinou.org>
++ *  Copyright (C) 2006 Thomas Tuttle <linux-kernel@ttuttle.net>
+  *
+  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  *
+@@ -47,11 +48,11 @@
+ #define ACPI_VIDEO_NOTIFY_NEXT_OUTPUT	0x83
+ #define ACPI_VIDEO_NOTIFY_PREV_OUTPUT	0x84
+ 
+-#define ACPI_VIDEO_NOTIFY_CYCLE_BRIGHTNESS	0x82
+-#define	ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS	0x83
+-#define ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS	0x84
+-#define ACPI_VIDEO_NOTIFY_ZERO_BRIGHTNESS	0x85
+-#define ACPI_VIDEO_NOTIFY_DISPLAY_OFF		0x86
++#define ACPI_VIDEO_NOTIFY_CYCLE_BRIGHTNESS	0x85
++#define	ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS	0x86
++#define ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS	0x87
++#define ACPI_VIDEO_NOTIFY_ZERO_BRIGHTNESS	0x88
++#define ACPI_VIDEO_NOTIFY_DISPLAY_OFF		0x89
+ 
+ #define ACPI_VIDEO_HEAD_INVALID		(~0u - 1)
+ #define ACPI_VIDEO_HEAD_END		(~0u)
+@@ -1502,8 +1503,34 @@ static int
+ acpi_video_get_next_level(struct acpi_video_device *device,
+ 			  u32 level_current, u32 event)
+ {
+-	/*Fix me */
+-	return level_current;
++	int min, max, min_above, max_below, i, l;
++	max = max_below = 0;
++	min = min_above = 255;
++	for (i = 0; i < device->brightness->count; i++) {
++		l = device->brightness->levels[i];
++		if (l < min)
++			min = l;
++		if (l > max)
++			max = l;
++		if (l < min_above && l > level_current)
++			min_above = l;
++		if (l > max_below && l < level_current)
++			max_below = l;
++	}
++
++	switch (event) {
++	case ACPI_VIDEO_NOTIFY_CYCLE_BRIGHTNESS:
++		return (level_current < max) ? min_above : min;
++	case ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS:
++		return (level_current < max) ? min_above : max;
++	case ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS:
++		return (level_current > min) ? max_below : min;
++	case ACPI_VIDEO_NOTIFY_ZERO_BRIGHTNESS:
++	case ACPI_VIDEO_NOTIFY_DISPLAY_OFF:
++		return 0;
++	default:
++		return level_current;
++	}
+ }
+ 
+ static void
+_
