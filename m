@@ -1,68 +1,93 @@
 From: Corentin CHARY <corentincj@iksaif.net>
-Subject: [PATCH 21/22] Add support for Z96
-Date: Tue, 19 Dec 2006 22:20:48 +0100
-Message-ID: <200612192220.48088.corentincj@iksaif.net>
+Subject: [PATCH 3/22] Remove deprecated parameters
+Date: Tue, 19 Dec 2006 22:18:55 +0100
+Message-ID: <200612192218.55855.corentincj@iksaif.net>
 Reply-To: corentincj@iksaif.net
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.dns26.com ([84.246.226.15]:50187 "EHLO iksaif.net"
+Received: from iksaif.dns26.com ([84.246.226.15]:50175 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933015AbWLSVZ6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Dec 2006 16:25:58 -0500
+	id S933013AbWLSVZ4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Dec 2006 16:25:56 -0500
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
 Cc: linux-acpi@vger.kernel.org
 
+Remove the deprecated asus_uid and asus_gid parameters.
 
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
- asus_acpi.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ asus_acpi.c |   29 +++++------------------------
+ 1 file changed, 5 insertions(+), 24 deletions(-)
 
---- a/drivers/acpi/asus_acpi.c  2006-12-15 16:22:26.000000000 +0100
-+++ b/drivers/acpi/asus_acpi.c  2006-12-15 16:23:38.000000000 +0100
-@@ -182,6 +182,7 @@
-                W5F,            //W5F
-                W6A,            //W6A
-                xxN,            //M2400N, M3700N, M5200N, M6800N, S1300N, 
-S5200N
-+               Z96,            //Z96F
-                //(Centrino)
-                DEF,            //Default values
-                END_MODEL
-@@ -693,6 +694,16 @@
-         .display_get = "\\ADVG"},
+--- a/drivers/acpi/asus_acpi.c  2006-12-15 10:36:09.000000000 +0100
++++ b/drivers/acpi/asus_acpi.c  2006-12-15 10:37:36.000000000 +0100
+@@ -76,13 +76,6 @@
+ MODULE_DESCRIPTION(ACPI_HOTK_NAME);
+ MODULE_LICENSE("GPL");
 
-        {
-+        .name = "Z96",
-+        .mled_set = "MLED",
-+        .wled_set = "WLED",
-+        .bt_switch = "BLED",
-+        .brightness_set = "SPLV",
-+        .brightness_get = "GPLV",
-+        .display_set = "SDSP",
-+        .display_get = "\\_SB.PCI0.VGA.GETD"},
-+
-+       {
-         .name = "???",
-         .mled_set = "MLED",
-         .wled_set = "WLED",
-@@ -1486,6 +1497,8 @@
-                 strncmp(model, "S1N", 3) == 0 ||
-                 strncmp(model, "S5N", 3) == 0 || strncmp(model, "W1N", 3) == 
-0)
-                return xxN;
-+       else if (strncmp(model, "Z96", 3) == 0)
-+               return Z96;
-        else if (strncmp(model, "M1", 2) == 0)
-                return M1A;
-        else if (strncmp(model, "M2", 2) == 0 || strncmp(model, "L4E", 3) == 
-0)
+-static uid_t asus_uid;
+-static gid_t asus_gid;
+-module_param(asus_uid, uint, 0);
+-MODULE_PARM_DESC(asus_uid, "UID for entries in /proc/acpi/asus.\n");
+-module_param(asus_gid, uint, 0);
+-MODULE_PARM_DESC(asus_gid, "GID for entries in /proc/acpi/asus.\n");
+-
+ /* For each model, all features implemented,
+  * those marked with R are relative to HOTK, A for absolute */
+ struct model_data {
+@@ -916,8 +909,8 @@
+        proc->read_proc = readfunc;
+        proc->data = acpi_driver_data(device);
+        proc->owner = THIS_MODULE;
+-       proc->uid = asus_uid;
+-       proc->gid = asus_gid;
++       proc->uid = 0;
++       proc->gid = 0;
+        return 0;
+ }
+
+@@ -926,19 +919,7 @@
+        struct proc_dir_entry *proc;
+        mode_t mode;
+
+-       /*
+-        * If parameter uid or gid is not changed, keep the default setting 
+for
+-        * our proc entries (-rw-rw-rw-) else, it means we care about 
+security,
+-        * and then set to -rw-rw----
+-        */
+-
+-       if ((asus_uid == 0) && (asus_gid == 0)) {
+-               mode = S_IFREG | S_IRUGO | S_IWUGO;
+-       } else {
+-               mode = S_IFREG | S_IRUSR | S_IRGRP | S_IWUSR | S_IWGRP;
+-               printk(KERN_WARNING "  asus_uid and asus_gid parameters are "
+-                      "deprecated, use chown and chmod instead!\n");
+-       }
++       mode = S_IFREG | S_IRUGO | S_IWUGO;
+
+        acpi_device_dir(device) = asus_proc_dir;
+        if (!acpi_device_dir(device))
+@@ -949,8 +930,8 @@
+                proc->read_proc = proc_read_info;
+                proc->data = acpi_driver_data(device);
+                proc->owner = THIS_MODULE;
+-               proc->uid = asus_uid;
+-               proc->gid = asus_gid;
++               proc->uid = 0;
++               proc->gid = 0;
+        } else {
+                printk(KERN_WARNING "  Unable to create " PROC_INFO
+                       " fs entry\n");
+
+
 -- 
 CHARY 'Iksaif' Corentin
 http://xf.iksaif.net
