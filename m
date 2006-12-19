@@ -1,121 +1,91 @@
 From: Corentin CHARY <corentincj@iksaif.net>
-Subject: Re: [PATCH 3/22] Remove deprecated parameters
-Date: Tue, 19 Dec 2006 23:18:10 +0100
-Message-ID: <200612192318.10845.corentincj@iksaif.net>
-References: <200612192218.55855.corentincj@iksaif.net> <20061219134500.a058bb8f.randy.dunlap@oracle.com>
+Subject: Re: [PATCH 19/22] Swap W3V and W5A
+Date: Tue, 19 Dec 2006 23:20:48 +0100
+Message-ID: <200612192320.48843.corentincj@iksaif.net>
+References: <200612192220.35487.corentincj@iksaif.net> <20061219134604.5331de02.randy.dunlap@oracle.com>
 Reply-To: corentincj@iksaif.net
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.dns26.com ([84.246.226.15]:60283 "EHLO iksaif.net"
+Received: from iksaif.dns26.com ([84.246.226.15]:60626 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932968AbWLSWSN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Dec 2006 17:18:13 -0500
-In-Reply-To: <20061219134500.a058bb8f.randy.dunlap@oracle.com>
+	id S933047AbWLSWUu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Dec 2006 17:20:50 -0500
+In-Reply-To: <20061219134604.5331de02.randy.dunlap@oracle.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: len.brown@intel.com, linux-acpi@vger.kernel.org
 
-Just look the code ;)
-> > -               printk(KERN_WARNING "  asus_uid and asus_gid parame=
-ters
-> > are " -                      "deprecated, use chown and chmod
-> > instead!\n"); -       }
+Sorry, I forget .. It's just because 5 comes after 3, and the list is o=
+rdered.
 
-Le mardi 19 d=E9cembre 2006 22:45, vous avez =E9crit=A0:
-> On Tue, 19 Dec 2006 22:18:55 +0100 Corentin CHARY wrote:
-> > Remove the deprecated asus_uid and asus_gid parameters.
->
-> Hi,
-> Where are they documented as deprecated?
->
-> Thanks.
->
+Le mardi 19 d=E9cembre 2006 22:46, vous avez =E9crit=A0:
+> On Tue, 19 Dec 2006 22:20:35 +0100 Corentin CHARY wrote:
 > > Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 > > ---
-> >  asus_acpi.c |   29 +++++------------------------
-> >  1 file changed, 5 insertions(+), 24 deletions(-)
+>
+> Please tell us _why_ you are making a change, not just what
+> the change is.
+>
+> >  asus_acpi.c |   16 ++++++++--------
+> >  1 file changed, 8 insertions(+), 8 deletions(-)
 > >
-> > --- a/drivers/acpi/asus_acpi.c  2006-12-15 10:36:09.000000000 +0100
-> > +++ b/drivers/acpi/asus_acpi.c  2006-12-15 10:37:36.000000000 +0100
-> > @@ -76,13 +76,6 @@
-> >  MODULE_DESCRIPTION(ACPI_HOTK_NAME);
-> >  MODULE_LICENSE("GPL");
 > >
-> > -static uid_t asus_uid;
-> > -static gid_t asus_gid;
-> > -module_param(asus_uid, uint, 0);
-> > -MODULE_PARM_DESC(asus_uid, "UID for entries in /proc/acpi/asus.\n"=
-);
-> > -module_param(asus_gid, uint, 0);
-> > -MODULE_PARM_DESC(asus_gid, "GID for entries in /proc/acpi/asus.\n"=
-);
-> > -
-> >  /* For each model, all features implemented,
-> >   * those marked with R are relative to HOTK, A for absolute */
-> >  struct model_data {
-> > @@ -916,8 +909,8 @@
-> >         proc->read_proc =3D readfunc;
-> >         proc->data =3D acpi_driver_data(device);
-> >         proc->owner =3D THIS_MODULE;
-> > -       proc->uid =3D asus_uid;
-> > -       proc->gid =3D asus_gid;
-> > +       proc->uid =3D 0;
-> > +       proc->gid =3D 0;
-> >         return 0;
-> >  }
+> > --- a/drivers/acpi/asus_acpi.c  2006-12-15 16:19:24.000000000 +0100
+> > +++ b/drivers/acpi/asus_acpi.c  2006-12-15 16:19:08.000000000 +0100
+> > @@ -177,8 +177,8 @@
+> >                 V6J,            //V6J
+> >                 V6V,            //V6V
+> >                 W1N,            //W1000N
+> > -               W5A,            //W5A
+> >                 W3V,            //W3030V
+> > +               W5A,            //W5A
+> >                 xxN,            //M2400N, M3700N, M5200N, M6800N, S=
+1300N,
+> > S5200N
+> >                 //(Centrino)
+> >                 DEF,            //Default values
+> > @@ -636,25 +636,25 @@
+> >          .display_get =3D "\\ADVG"},
 > >
-> > @@ -926,19 +919,7 @@
-> >         struct proc_dir_entry *proc;
-> >         mode_t mode;
+> >         {
+> > -        .name =3D "W5A",
+> > -        .bt_switch =3D "BLED",
+> > +        .name =3D "W3V",
+> > +        .mled_set =3D "MLED",
+> >          .wled_set =3D "WLED",
+> >          .lcd_switch =3D xxN_PREFIX "_Q10",
+> > +        .lcd_status =3D "\\BKLT",
+> >          .brightness_set =3D "SPLV",
+> >          .brightness_get =3D "GPLV",
+> >          .display_set =3D "SDSP",
+> > -        .display_get =3D "\\ADVG"},
+> > +        .display_get =3D "\\INFB"},
 > >
-> > -       /*
-> > -        * If parameter uid or gid is not changed, keep the default
-> > setting for
-> > -        * our proc entries (-rw-rw-rw-) else, it means we care abo=
-ut
-> > security,
-> > -        * and then set to -rw-rw----
-> > -        */
-> > -
-> > -       if ((asus_uid =3D=3D 0) && (asus_gid =3D=3D 0)) {
-> > -               mode =3D S_IFREG | S_IRUGO | S_IWUGO;
-> > -       } else {
-> > -               mode =3D S_IFREG | S_IRUSR | S_IRGRP | S_IWUSR | S_=
-IWGRP;
-> > -               printk(KERN_WARNING "  asus_uid and asus_gid parame=
-ters
-> > are " -                      "deprecated, use chown and chmod
-> > instead!\n"); -       }
-> > +       mode =3D S_IFREG | S_IRUGO | S_IWUGO;
+> >         {
+> > -        .name =3D "W3V",
+> > -        .mled_set =3D "MLED",
+> > +        .name =3D "W5A",
+> > +        .bt_switch =3D "BLED",
+> >          .wled_set =3D "WLED",
+> >          .lcd_switch =3D xxN_PREFIX "_Q10",
+> > -        .lcd_status =3D "\\BKLT",
+> >          .brightness_set =3D "SPLV",
+> >          .brightness_get =3D "GPLV",
+> >          .display_set =3D "SDSP",
+> > -        .display_get =3D "\\INFB"},
+> > +        .display_get =3D "\\ADVG"},
 > >
-> >         acpi_device_dir(device) =3D asus_proc_dir;
-> >         if (!acpi_device_dir(device))
-> > @@ -949,8 +930,8 @@
-> >                 proc->read_proc =3D proc_read_info;
-> >                 proc->data =3D acpi_driver_data(device);
-> >                 proc->owner =3D THIS_MODULE;
-> > -               proc->uid =3D asus_uid;
-> > -               proc->gid =3D asus_gid;
-> > +               proc->uid =3D 0;
-> > +               proc->gid =3D 0;
-> >         } else {
-> >                 printk(KERN_WARNING "  Unable to create " PROC_INFO
-> >                        " fs entry\n");
-> >
+> >         {
+> >          .name =3D "xxN",
 > >
 > > --
 >
 > ---
 > ~Randy
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --=20
 CHARY 'Iksaif' Corentin
