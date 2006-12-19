@@ -1,50 +1,73 @@
-From: Corentin CHARY <corentincj@iksaif.net>
-Subject: Re: [PATCH 3/22] Remove deprecated parameters
-Date: Tue, 19 Dec 2006 23:46:55 +0100
-Message-ID: <200612192346.55969.corentincj@iksaif.net>
-References: <200612192218.55855.corentincj@iksaif.net> <200612192318.10845.corentincj@iksaif.net> <20061219142216.ad8298f4.randy.dunlap@oracle.com>
-Reply-To: corentincj@iksaif.net
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH -mm] PM: Change ordering of suspend and
+	resume code
+Date: Wed, 20 Dec 2006 00:30:02 +0100
+Message-ID: <20061219233002.GA2694@elf.ucw.cz>
+References: <200612171858.16380.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.dns26.com ([84.246.226.15]:45459 "EHLO iksaif.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932979AbWLSWq5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Dec 2006 17:46:57 -0500
-In-Reply-To: <20061219142216.ad8298f4.randy.dunlap@oracle.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <suspend-devel-bounces@lists.sourceforge.net>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <200612171858.16380.rjw@sisk.pl>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
+	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=suspend-devel>
+List-Post: <mailto:suspend-devel@lists.sourceforge.net>
+List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
+	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
+Sender: suspend-devel-bounces@lists.sourceforge.net
+Errors-To: suspend-devel-bounces@lists.sourceforge.net
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, linux-acpi@vger.kernel.org, pm list <linux-pm@lists.osdl.org>, Stephen Hemminger <shemminger@osdl.org>, Stefan Seyfried <seife@suse.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: len.brown@intel.com, linux-acpi@vger.kernel.org
 
-Le mardi 19 d=E9cembre 2006 23:22, Randy Dunlap a =E9crit=A0:
-> On Tue, 19 Dec 2006 23:18:10 +0100 Corentin CHARY wrote:
-> > Just look the code ;)
-> >
-> > > > -               printk(KERN_WARNING "  asus_uid and asus_gid
-> > > > parameters are " -                      "deprecated, use chown =
-and
-> > > > chmod instead!\n"); -       }
->
-> That's really not the right place for it.
-> See Documentation/feature-removal-schedule.txt .
->
+Hi!
 
-Yep, you're right, but it should have been added here since January . I=
-t's in=20
-acpi4asus 0.30, released on 2006-01-17, but I don't know when it had be=
-en=20
-merged in the kernel. So, maybe we should wait, but I think nobody use =
-that=20
-(I know it's not a good reason) ...
+> As indicated in a recent thread on Linux-PM, it's necessary to call
+> pm_ops->finish() before devce_resume(), but enable_nonboot_cpus() has to =
+be
+> called before pm_ops->finish()
+> (cf. http://lists.osdl.org/pipermail/linux-pm/2006-November/004164.html).
+> For consistency, it seems reasonable to call disable_nonboot_cpus() after
+> device_suspend().
+> =
 
---=20
-CHARY 'Iksaif' Corentin
-http://xf.iksaif.net
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> This way the suspend code will remain symmetrical with respect to the res=
+ume
+> code and it may allow us to speed up things in the future by suspending a=
+nd
+> resuming devices and/or saving the suspend image in many threads.
+...
+> The following series of patches reorders the suspend and resume code so t=
+hat
+> nonboot CPUs are disabled after devices have been suspended and enabled b=
+efore
+> the devices are resumed. =A0It also causes pm_ops->finish() to be called =
+after
+> enable_nonboot_cpus() wherever necessary.
+
+Series looks okay to me... but it will need _long_ testing in
+-mm. (Consider this ACK).
+
+> The first patch changes the ordering of the suspend-to-RAM code and is
+> untested, because my boxes continue refusing to resume from RAM for other
+> reasons.  If anyone can, please do me a favour and test it.
+
+I did a bit of testing, and it seems to still work, both s2ram and
+swsusp. (uswsusp untested).
+									Pavel
+
+-- =
+
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+-------------------------------------------------------------------------
+Take Surveys. Earn Cash. Influence the Future of IT
+Join SourceForge.net's Techsay panel and you'll get the chance to share your
+opinions on IT & business topics through brief surveys - and earn cash
+http://www.techsay.com/default.php?page=3Djoin.php&p=3Dsourceforge&CID=3DDE=
+VDEV
