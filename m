@@ -1,67 +1,66 @@
 From: akpm@osdl.org
-Subject: [patch 12/19] Add output class document
-Date: Tue, 19 Dec 2006 12:56:18 -0800
-Message-ID: <200612192056.kBJKuIBp010041@shell0.pdx.osdl.net>
+Subject: [patch 19/19] asus_acpi: Add support for Asus Z81SP
+Date: Tue, 19 Dec 2006 12:56:25 -0800
+Message-ID: <200612192056.kBJKuP7b010068@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:34484 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:34507 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932950AbWLSU47 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Dec 2006 15:56:59 -0500
+	id S932959AbWLSU5N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Dec 2006 15:57:13 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, luming.yu@gmail.com, Luming.yu@intel.com, adaplas@pol.net, greg@kroah.com, len.brown@intel.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, calvinmc@gmail.com
 
-From: Yu Luming <luming.yu@gmail.com>
+From: Matthew C Campbell <calvinmc@gmail.com>
 
-Add output class document
+Adds support in asus_acpi for the Asus Z81SP laptop.  This preserves all
+old functionality when improperly detected as well as enabling Bluetooth
+support.
 
-Signed-off-by: Luming Yu <Luming.yu@intel.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: "Brown, Len" <len.brown@intel.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Matthew C Campbell <calvinmc@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- Documentation/video-output.txt |   34 +++++++++++++++++++++++++++++++
- 1 files changed, 34 insertions(+)
+ drivers/acpi/asus_acpi.c |   14 +++++++++++++-
+ 1 files changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN /dev/null Documentation/video-output.txt
---- /dev/null
-+++ a/Documentation/video-output.txt
-@@ -0,0 +1,34 @@
+diff -puN drivers/acpi/asus_acpi.c~asus_acpi-add-support-for-asus-z81sp drivers/acpi/asus_acpi.c
+--- a/drivers/acpi/asus_acpi.c~asus_acpi-add-support-for-asus-z81sp
++++ a/drivers/acpi/asus_acpi.c
+@@ -145,6 +145,7 @@ struct asus_hotk {
+ 		W5F,            //W5F
+ 		V6V,            //V6V
+ 		xxN,		//M2400N, M3700N, M5200N, M6800N, S1300N, S5200N
++		A4S,            //Z81sp
+ 		//(Centrino)
+ 		END_MODEL
+ 	} model;		//Models currently supported
+@@ -450,7 +451,16 @@ static struct model_data model_conf[END_
+ 	 .brightness_set = "SPLV",
+ 	 .brightness_get = "GPLV",
+ 	 .display_set = "SDSP",
+-	 .display_get = "\\ADVG"}
++	.display_get = "\\ADVG"},
 +
-+		Video Output Switcher Control
-+		~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+		2006 luming.yu@intel.com
++	{
++		.name              = "A4S",
++		.brightness_set    = "SPLV",
++		.brightness_get    = "GPLV",
++		.mt_bt_switch      = "BLED",
++		.mt_wled           = "WLED"
++	}
 +
-+The output sysfs class driver provides an abstract video output layer that
-+can be used to hook platform specific methods to enable/disable video output
-+device through common sysfs interface. For example, on my IBM ThinkPad T42
-+laptop, The ACPI video driver registered its output devices and read/write
-+method for 'state' with output sysfs class. The user interface under sysfs is:
-+
-+linux:/sys/class/video_output # tree .
-+.
-+|-- CRT0
-+|   |-- device -> ../../../devices/pci0000:00/0000:00:01.0
-+|   |-- state
-+|   |-- subsystem -> ../../../class/video_output
-+|   `-- uevent
-+|-- DVI0
-+|   |-- device -> ../../../devices/pci0000:00/0000:00:01.0
-+|   |-- state
-+|   |-- subsystem -> ../../../class/video_output
-+|   `-- uevent
-+|-- LCD0
-+|   |-- device -> ../../../devices/pci0000:00/0000:00:01.0
-+|   |-- state
-+|   |-- subsystem -> ../../../class/video_output
-+|   `-- uevent
-+`-- TV0
-+   |-- device -> ../../../devices/pci0000:00/0000:00:01.0
-+   |-- state
-+   |-- subsystem -> ../../../class/video_output
-+   `-- uevent
-+
+ };
+ 
+ /* procdir we use */
+@@ -1188,6 +1198,8 @@ static int asus_model_match(char *model)
+ 		return W5F;
+ 	else if (strncmp(model, "V6V", 3) == 0)
+ 		return V6V;
++	else if (strncmp(model, "A4S", 3) == 0)
++		return A4S;
+ 	else
+ 		return END_MODEL;
+ }
 _
