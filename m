@@ -1,12 +1,12 @@
 From: akpm@osdl.org
-Subject: [patch 09/19] video sysfs support: Add dev argument for backlight_device_register
-Date: Tue, 19 Dec 2006 12:56:15 -0800
-Message-ID: <200612192056.kBJKuFfx010032@shell0.pdx.osdl.net>
+Subject: [patch 11/19] Add display output class support
+Date: Tue, 19 Dec 2006 12:56:17 -0800
+Message-ID: <200612192056.kBJKuH8u010038@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:34494 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:34498 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932955AbWLSU5C (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Dec 2006 15:57:02 -0500
+	id S932953AbWLSU5F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Dec 2006 15:57:05 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
@@ -14,19 +14,11 @@ Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, luming.yu@gmail.com, Luming.yu@in
 
 From: Yu Luming <luming.yu@gmail.com>
 
-This patch set adds generic abstract layer support for acpi video driver to
-have generic user interface to control backlight and output switch control by
-leveraging the existing backlight sysfs class driver, and by adding a new
-video output sysfs class driver.
+Add generic abstract layer for display output switch control.  The output
+sysfs class driver provides an abstract video output layer that can be used to
+hook platform specific methods to enable/disable video output device through
+common sysfs interface.
 
-This patch:
-
-Add dev argument for backlight_device_register to link the class device to
-real device object.  The platform specific driver should find a way to get the
-real device object for their video device.
-
-[akpm@osdl.org: build fix]
-[akpm@osdl.org: fix msi-laptop.c]
 Signed-off-by: Luming Yu <Luming.yu@intel.com>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Cc: "Brown, Len" <len.brown@intel.com>
@@ -34,111 +26,187 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/asus_acpi.c            |    2 +-
- drivers/acpi/ibm_acpi.c             |    2 +-
- drivers/acpi/toshiba_acpi.c         |    3 ++-
- drivers/misc/msi-laptop.c           |    3 ++-
- drivers/usb/misc/appledisplay.c     |    2 +-
- drivers/video/backlight/backlight.c |    7 +++++--
- include/linux/backlight.h           |    2 +-
- 7 files changed, 13 insertions(+), 8 deletions(-)
+ drivers/video/output.c       |  129 +++++++++++++++++++++++++++++++++
+ include/linux/video_output.h |   42 ++++++++++
+ 2 files changed, 171 insertions(+)
 
-diff -puN drivers/acpi/asus_acpi.c~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register drivers/acpi/asus_acpi.c
---- a/drivers/acpi/asus_acpi.c~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register
-+++ a/drivers/acpi/asus_acpi.c
-@@ -1400,7 +1400,7 @@ static int __init asus_acpi_init(void)
- 		return result;
- 	}
- 
--	asus_backlight_device = backlight_device_register("asus", NULL,
-+	asus_backlight_device = backlight_device_register("asus",NULL,NULL,
- 							  &asus_backlight_data);
-         if (IS_ERR(asus_backlight_device)) {
- 		printk(KERN_ERR "Could not register asus backlight device\n");
-diff -puN drivers/acpi/ibm_acpi.c~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register drivers/acpi/ibm_acpi.c
---- a/drivers/acpi/ibm_acpi.c~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register
-+++ a/drivers/acpi/ibm_acpi.c
-@@ -1714,7 +1714,7 @@ static struct backlight_properties ibm_b
- 
- static int brightness_init(void)
- {
--	ibm_backlight_device = backlight_device_register("ibm", NULL,
-+	ibm_backlight_device = backlight_device_register("ibm", NULL, NULL,
- 							 &ibm_backlight_data);
- 	if (IS_ERR(ibm_backlight_device)) {
- 		printk(IBM_ERR "Could not register backlight device\n");
-diff -puN drivers/acpi/toshiba_acpi.c~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register drivers/acpi/toshiba_acpi.c
---- a/drivers/acpi/toshiba_acpi.c~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register
-+++ a/drivers/acpi/toshiba_acpi.c
-@@ -590,7 +590,8 @@ static int __init toshiba_acpi_init(void
- 			remove_proc_entry(PROC_TOSHIBA, acpi_root_dir);
- 	}
- 
--	toshiba_backlight_device = backlight_device_register("toshiba", NULL,
-+	toshiba_backlight_device = backlight_device_register("toshiba",NULL,
-+						NULL,
- 						&toshiba_backlight_data);
-         if (IS_ERR(toshiba_backlight_device)) {
- 		printk(KERN_ERR "Could not register toshiba backlight device\n");
-diff -puN drivers/misc/msi-laptop.c~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register drivers/misc/msi-laptop.c
---- a/drivers/misc/msi-laptop.c~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register
-+++ a/drivers/misc/msi-laptop.c
-@@ -317,7 +317,8 @@ static int __init msi_init(void)
- 
- 	/* Register backlight stuff */
- 
--	msibl_device = backlight_device_register("msi-laptop-bl", NULL, &msibl_props);
-+	msibl_device = backlight_device_register("msi-laptop-bl", NULL, NULL,
-+						&msibl_props);
- 	if (IS_ERR(msibl_device))
- 		return PTR_ERR(msibl_device);
- 
-diff -puN drivers/usb/misc/appledisplay.c~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register drivers/usb/misc/appledisplay.c
---- a/drivers/usb/misc/appledisplay.c~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register
-+++ a/drivers/usb/misc/appledisplay.c
-@@ -281,7 +281,7 @@ static int appledisplay_probe(struct usb
- 	/* Register backlight device */
- 	snprintf(bl_name, sizeof(bl_name), "appledisplay%d",
- 		atomic_inc_return(&count_displays) - 1);
--	pdata->bd = backlight_device_register(bl_name, pdata,
-+	pdata->bd = backlight_device_register(bl_name, NULL, NULL,
- 						&appledisplay_bl_data);
- 	if (IS_ERR(pdata->bd)) {
- 		err("appledisplay: Backlight registration failed");
-diff -puN drivers/video/backlight/backlight.c~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register drivers/video/backlight/backlight.c
---- a/drivers/video/backlight/backlight.c~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register
-+++ a/drivers/video/backlight/backlight.c
-@@ -216,8 +216,10 @@ static const struct class_device_attribu
-  * Creates and registers new backlight class_device. Returns either an
-  * ERR_PTR() or a pointer to the newly allocated device.
-  */
--struct backlight_device *backlight_device_register(const char *name, void *devdata,
--						   struct backlight_properties *bp)
-+struct backlight_device *backlight_device_register(const char *name,
+diff -puN /dev/null drivers/video/output.c
+--- /dev/null
++++ a/drivers/video/output.c
+@@ -0,0 +1,129 @@
++/*
++ *  output.c - Display Output Switch driver
++ *
++ *  Copyright (C) 2006 Luming Yu <luming.yu@intel.com>
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or (at
++ *  your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful, but
++ *  WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ *  General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ */
++#include <linux/module.h>
++#include <linux/video_output.h>
++#include <linux/err.h>
++#include <linux/ctype.h>
++
++
++MODULE_DESCRIPTION("Display Output Switcher Lowlevel Control Abstraction");
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Luming Yu <luming.yu@intel.com>");
++
++static ssize_t video_output_show_state(struct class_device *dev,char *buf)
++{
++	ssize_t ret_size = 0;
++	struct output_device *od = to_output_device(dev);
++	if (od->props)
++		ret_size = sprintf(buf,"%.8x\n",od->props->get_status(od));
++	return ret_size;
++}
++
++static ssize_t video_output_store_state(struct class_device *dev,
++	const char *buf,size_t count)
++{
++	char *endp;
++	struct output_device *od = to_output_device(dev);
++	int request_state = simple_strtoul(buf,&endp,0);
++	size_t size = endp - buf;
++
++	if (*endp && isspace(*endp))
++		size++;
++	if (size != count)
++		return -EINVAL;
++
++	if (od->props) {
++		od->request_state = request_state;
++		od->props->set_state(od);
++	}
++	return count;
++}
++
++static void video_output_class_release(struct class_device *dev)
++{
++	struct output_device *od = to_output_device(dev);
++	kfree(od);
++}
++
++static struct class_device_attribute video_output_attributes[] = {
++	__ATTR(state, 0644, video_output_show_state, video_output_store_state),
++	__ATTR_NULL,
++};
++
++static struct class video_output_class = {
++	.name = "video_output",
++	.release = video_output_class_release,
++	.class_dev_attrs = video_output_attributes,
++};
++
++struct output_device *video_output_register(const char *name,
 +	struct device *dev,
 +	void *devdata,
-+	struct backlight_properties *bp)
- {
- 	int i, rc;
- 	struct backlight_device *new_bd;
-@@ -232,6 +234,7 @@ struct backlight_device *backlight_devic
- 	new_bd->props = bp;
- 	memset(&new_bd->class_dev, 0, sizeof(new_bd->class_dev));
- 	new_bd->class_dev.class = &backlight_class;
-+	new_bd->class_dev.dev = dev;
- 	strlcpy(new_bd->class_dev.class_id, name, KOBJ_NAME_LEN);
- 	class_set_devdata(&new_bd->class_dev, devdata);
- 
-diff -puN include/linux/backlight.h~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register include/linux/backlight.h
---- a/include/linux/backlight.h~video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register
-+++ a/include/linux/backlight.h
-@@ -54,7 +54,7 @@ struct backlight_device {
- };
- 
- extern struct backlight_device *backlight_device_register(const char *name,
--	void *devdata, struct backlight_properties *bp);
-+	struct device *dev,void *devdata,struct backlight_properties *bp);
- extern void backlight_device_unregister(struct backlight_device *bd);
- 
- #define to_backlight_device(obj) container_of(obj, struct backlight_device, class_dev)
++	struct output_properties *op)
++{
++	struct output_device *new_dev;
++	int ret_code = 0;
++
++	new_dev = kzalloc(sizeof(struct output_device),GFP_KERNEL);
++	if (!new_dev) {
++		ret_code = -ENOMEM;
++		goto error_return;
++	}
++	new_dev->props = op;
++	new_dev->class_dev.class = &video_output_class;
++	new_dev->class_dev.dev = dev;
++	strlcpy(new_dev->class_dev.class_id,name,KOBJ_NAME_LEN);
++	class_set_devdata(&new_dev->class_dev,devdata);
++	ret_code = class_device_register(&new_dev->class_dev);
++	if (ret_code) {
++		kfree(new_dev);
++		goto error_return;
++	}
++	return new_dev;
++
++error_return:
++	return ERR_PTR(ret_code);
++}
++EXPORT_SYMBOL(video_output_register);
++
++void video_output_unregister(struct output_device *dev)
++{
++	if (!dev)
++		return;
++	class_device_unregister(&dev->class_dev);
++}
++EXPORT_SYMBOL(video_output_unregister);
++
++static void __exit video_output_class_exit(void)
++{
++	class_unregister(&video_output_class);
++}
++
++static int __init video_output_class_init(void)
++{
++	return class_register(&video_output_class);
++}
++
++postcore_initcall(video_output_class_init);
++module_exit(video_output_class_exit);
+diff -puN /dev/null include/linux/video_output.h
+--- /dev/null
++++ a/include/linux/video_output.h
+@@ -0,0 +1,42 @@
++/*
++ *
++ *  Copyright (C) 2006 Luming Yu <luming.yu@intel.com>
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or (at
++ *  your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful, but
++ *  WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ *  General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ */
++#ifndef _LINUX_VIDEO_OUTPUT_H
++#define _LINUX_VIDEO_OUTPUT_H
++#include <linux/device.h>
++struct output_device;
++struct output_properties {
++	int (*set_state)(struct output_device *);
++	int (*get_status)(struct output_device *);
++};
++struct output_device {
++	int request_state;
++	struct output_properties *props;
++	struct class_device class_dev;
++};
++#define to_output_device(obj) container_of(obj, struct output_device, class_dev)
++struct output_device *video_output_register(const char *name,
++	struct device *dev,
++	void *devdata,
++	struct output_properties *op);
++void video_output_unregister(struct output_device *dev);
++#endif
 _
