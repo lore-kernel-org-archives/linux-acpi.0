@@ -1,61 +1,88 @@
-From: Corentin CHARY <corentincj@iksaif.net>
-Subject: [PATCH 7/22] Remove useless casts
-Date: Tue, 19 Dec 2006 22:19:22 +0100
-Message-ID: <200612192219.22871.corentincj@iksaif.net>
-Reply-To: corentincj@iksaif.net
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: [PATCH 19/22] Swap W3V and W5A
+Date: Tue, 19 Dec 2006 13:46:04 -0800
+Message-ID: <20061219134604.5331de02.randy.dunlap@oracle.com>
+References: <200612192220.35487.corentincj@iksaif.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.dns26.com ([84.246.226.15]:50181 "EHLO iksaif.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933020AbWLSVZ6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Dec 2006 16:25:58 -0500
-Content-Disposition: inline
+Received: from rgminet02.oracle.com ([148.87.113.119]:54783 "EHLO
+	rgminet02.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932962AbWLSVyy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Dec 2006 16:54:54 -0500
+Received: from rgminet01.oracle.com (rgminet01.oracle.com [148.87.113.118])
+	by rgminet02.oracle.com (Switch-3.2.4/Switch-3.1.7) with ESMTP id kBJLsrPZ020244
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-acpi@vger.kernel.org>; Tue, 19 Dec 2006 14:54:53 -0700
+In-Reply-To: <200612192220.35487.corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org
+To: corentincj@iksaif.net
+Cc: len.brown@intel.com, linux-acpi@vger.kernel.org
 
-Only remove some useless cast ...
+On Tue, 19 Dec 2006 22:20:35 +0100 Corentin CHARY wrote:
 
-Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+> 
+> Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+> ---
+
+Please tell us _why_ you are making a change, not just what
+the change is.
+
+
+>  asus_acpi.c |   16 ++++++++--------
+>  1 file changed, 8 insertions(+), 8 deletions(-)
+> 
+> 
+> --- a/drivers/acpi/asus_acpi.c  2006-12-15 16:19:24.000000000 +0100
+> +++ b/drivers/acpi/asus_acpi.c  2006-12-15 16:19:08.000000000 +0100
+> @@ -177,8 +177,8 @@
+>                 V6J,            //V6J
+>                 V6V,            //V6V
+>                 W1N,            //W1000N
+> -               W5A,            //W5A
+>                 W3V,            //W3030V
+> +               W5A,            //W5A
+>                 xxN,            //M2400N, M3700N, M5200N, M6800N, S1300N, 
+> S5200N
+>                 //(Centrino)
+>                 DEF,            //Default values
+> @@ -636,25 +636,25 @@
+>          .display_get = "\\ADVG"},
+> 
+>         {
+> -        .name = "W5A",
+> -        .bt_switch = "BLED",
+> +        .name = "W3V",
+> +        .mled_set = "MLED",
+>          .wled_set = "WLED",
+>          .lcd_switch = xxN_PREFIX "_Q10",
+> +        .lcd_status = "\\BKLT",
+>          .brightness_set = "SPLV",
+>          .brightness_get = "GPLV",
+>          .display_set = "SDSP",
+> -        .display_get = "\\ADVG"},
+> +        .display_get = "\\INFB"},
+> 
+>         {
+> -        .name = "W3V",
+> -        .mled_set = "MLED",
+> +        .name = "W5A",
+> +        .bt_switch = "BLED",
+>          .wled_set = "WLED",
+>          .lcd_switch = xxN_PREFIX "_Q10",
+> -        .lcd_status = "\\BKLT",
+>          .brightness_set = "SPLV",
+>          .brightness_get = "GPLV",
+>          .display_set = "SDSP",
+> -        .display_get = "\\INFB"},
+> +        .display_get = "\\ADVG"},
+> 
+>         {
+>          .name = "xxN",
+> 
+> -- 
+
 ---
- asus_acpi.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
-
---- a/drivers/acpi/asus_acpi.c  2006-12-15 13:05:46.000000000 +0100
-+++ b/drivers/acpi/asus_acpi.c  2006-12-15 13:06:38.000000000 +0100
-@@ -1134,7 +1134,7 @@
-        if (ACPI_FAILURE(status))
-                printk(KERN_WARNING "  Couldn't get the DSDT table header\n");
-        else
--               asus_info = (struct acpi_table_header *)dsdt.pointer;
-+               asus_info = dsdt.pointer;
-
-        /* We have to write 0 on init this far for all ASUS models */
-        if (!write_acpi_int(hotk->handle, "INIT", 0, &buffer)) {
-@@ -1156,7 +1156,7 @@
-         * asus_model_match() and try something completely different.
-         */
-        if (buffer.pointer) {
--               model = (union acpi_object *)buffer.pointer;
-+               model = buffer.pointer;
-                switch (model->type) {
-                case ACPI_TYPE_STRING:
-                        string = model->string.pointer;
-@@ -1252,8 +1252,7 @@
-        printk(KERN_NOTICE "Asus Laptop ACPI Extras version %s\n",
-               ASUS_ACPI_VERSION);
-
--       hotk =
--           (struct asus_hotk *)kmalloc(sizeof(struct asus_hotk), GFP_KERNEL);
-+       hotk = kmalloc(sizeof(struct asus_hotk), GFP_KERNEL);
-        if (!hotk)
-                return -ENOMEM;
-        memset(hotk, 0, sizeof(struct asus_hotk));
-
--- 
-CHARY 'Iksaif' Corentin
-http://xf.iksaif.net
+~Randy
