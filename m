@@ -1,66 +1,46 @@
 From: akpm@osdl.org
-Subject: [patch 19/19] asus_acpi: Add support for Asus Z81SP
-Date: Tue, 19 Dec 2006 12:56:25 -0800
-Message-ID: <200612192056.kBJKuP7b010068@shell0.pdx.osdl.net>
+Subject: [patch 03/19] acpi/processor: prevent loading module on failures
+Date: Tue, 19 Dec 2006 12:56:10 -0800
+Message-ID: <200612192056.kBJKuBhb010014@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:34507 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.25]:34488 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932959AbWLSU5N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Dec 2006 15:57:13 -0500
+	id S932952AbWLSU5A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Dec 2006 15:57:00 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, calvinmc@gmail.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, akinobu.mita@gmail.com, len.brown@intel.com
 
-From: Matthew C Campbell <calvinmc@gmail.com>
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Adds support in asus_acpi for the Asus Z81SP laptop.  This preserves all
-old functionality when improperly detected as well as enabling Bluetooth
-support.
+Make loading processor.ko fail when an error happens.
 
-Signed-off-by: Matthew C Campbell <calvinmc@gmail.com>
+Cc: Len Brown <len.brown@intel.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/acpi/asus_acpi.c |   14 +++++++++++++-
- 1 files changed, 13 insertions(+), 1 deletion(-)
+ drivers/acpi/processor_core.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/asus_acpi.c~asus_acpi-add-support-for-asus-z81sp drivers/acpi/asus_acpi.c
---- a/drivers/acpi/asus_acpi.c~asus_acpi-add-support-for-asus-z81sp
-+++ a/drivers/acpi/asus_acpi.c
-@@ -145,6 +145,7 @@ struct asus_hotk {
- 		W5F,            //W5F
- 		V6V,            //V6V
- 		xxN,		//M2400N, M3700N, M5200N, M6800N, S1300N, S5200N
-+		A4S,            //Z81sp
- 		//(Centrino)
- 		END_MODEL
- 	} model;		//Models currently supported
-@@ -450,7 +451,16 @@ static struct model_data model_conf[END_
- 	 .brightness_set = "SPLV",
- 	 .brightness_get = "GPLV",
- 	 .display_set = "SDSP",
--	 .display_get = "\\ADVG"}
-+	.display_get = "\\ADVG"},
-+
-+	{
-+		.name              = "A4S",
-+		.brightness_set    = "SPLV",
-+		.brightness_get    = "GPLV",
-+		.mt_bt_switch      = "BLED",
-+		.mt_wled           = "WLED"
-+	}
-+
- };
+diff -puN drivers/acpi/processor_core.c~acpi-processor-prevent-loading-module-on-failures drivers/acpi/processor_core.c
+--- a/drivers/acpi/processor_core.c~acpi-processor-prevent-loading-module-on-failures
++++ a/drivers/acpi/processor_core.c
+@@ -901,13 +901,13 @@ static int __init acpi_processor_init(vo
  
- /* procdir we use */
-@@ -1188,6 +1198,8 @@ static int asus_model_match(char *model)
- 		return W5F;
- 	else if (strncmp(model, "V6V", 3) == 0)
- 		return V6V;
-+	else if (strncmp(model, "A4S", 3) == 0)
-+		return A4S;
- 	else
- 		return END_MODEL;
- }
+ 	acpi_processor_dir = proc_mkdir(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+ 	if (!acpi_processor_dir)
+-		return 0;
++		return -ENOMEM;
+ 	acpi_processor_dir->owner = THIS_MODULE;
+ 
+ 	result = acpi_bus_register_driver(&acpi_processor_driver);
+ 	if (result < 0) {
+ 		remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+-		return 0;
++		return result;
+ 	}
+ 
+ 	acpi_processor_install_hotplug_notify();
 _
