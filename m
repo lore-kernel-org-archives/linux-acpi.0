@@ -1,17 +1,17 @@
 From: Corentin CHARY <corentincj@iksaif.net>
-Subject: [PATCH 13/22] Add support for A3x
-Date: Tue, 19 Dec 2006 22:20:00 +0100
-Message-ID: <200612192220.00655.corentincj@iksaif.net>
+Subject: [PATCH 18/22] Add support for S5A, V6J and V6V
+Date: Tue, 19 Dec 2006 22:20:29 +0100
+Message-ID: <200612192220.29994.corentincj@iksaif.net>
 Reply-To: corentincj@iksaif.net
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.dns26.com ([84.246.226.15]:50171 "EHLO iksaif.net"
+Received: from iksaif.dns26.com ([84.246.226.15]:50180 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933016AbWLSVZ4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Dec 2006 16:25:56 -0500
+	id S933019AbWLSVZ5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Dec 2006 16:25:57 -0500
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -21,80 +21,78 @@ Cc: linux-acpi@vger.kernel.org
 
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
- asus_acpi.c |   46 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 46 insertions(+)
+ asus_acpi.c |   45 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 45 insertions(+)
 
---- a/drivers/acpi/asus_acpi.c  2006-12-15 15:53:40.000000000 +0100
-+++ b/drivers/acpi/asus_acpi.c  2006-12-15 15:57:49.000000000 +0100
-@@ -143,6 +143,9 @@
-                A1x = 0,        //A1340D, A1300F
-                A2D,            //A2D
-                A2x,            //A2500H
-+               A3E,            //A3E
-+               A3F,            //A3F, A6F
-+               A3N,            //A3N, A3L
-                A4G,            //A4700G
-                D1x,            //D1
-                L2D,            //L2000D
-@@ -218,6 +221,43 @@
-         .display_get = "\\INFB"},
+--- a/drivers/acpi/asus_acpi.c  2006-12-15 16:17:12.000000000 +0100
++++ b/drivers/acpi/asus_acpi.c  2006-12-15 16:16:09.000000000 +0100
+@@ -173,6 +173,9 @@
+                P30,            //Samsung P30
+                S1x,            //S1300A, but also L1400B and M2400A (L84F)
+                S2x,            //S200 (J1 reported), Victor MP-XP7210
++               S5A,            //S5200A
++               V6J,            //V6J
++               V6V,            //V6V
+                W1N,            //W1000N
+                W5A,            //W5A
+                W3V,            //W3030V
+@@ -585,6 +588,42 @@
+         .brightness_down = S2x_PREFIX "_Q0A"},
 
         {
-+        .name = "A3E",
++        .name = "S5A",
 +        .mled_set = "MLED",
 +        .wled_set = "WLED",
-+        .lcd_switch = xxN_PREFIX "_Q10",
-+        .lcd_status = xxN_PREFIX "RPIN(0x67)",
++        .lcd_switch = xxN_PREFIX "Q10",
++        .lcd_status = "\\RGPL(0x15,0x01)",
 +        .brightness_set = "SPLV",
 +        .brightness_get = "GPLV",
 +        .display_set = "SDSP",
 +        .display_get = "\\_SB.PCI0.P0P2.VGA.GETD"},
 +
 +       {
-+        .name = "A3F",
-+        .mled_set = "MLED",
++        .name = "V6J",
 +        .wled_set = "WLED",
-+        .wled_status = "\\WRST",
 +        .bt_switch = "BLED",
-+        .bt_status = "\\BRST",
++        .tled_set = "TLED",
 +        .lcd_switch = xxN_PREFIX "_Q10",
-+        .lcd_status = xxN_PREFIX "RPIN(0x11)",
-+        .brightness_set = "SPLV",
-+        .brightness_get = "GPLV",
++        .lcd_status = "\\RGPL(0x06,0x01)",
++        .display_get = "\\_SB.PCI0.P0P1.VGA.GETD",
 +        .display_set = "SDSP",
-+        .display_get = "\\SSTE"},
++        .brightness_set = "SPLV",
++        .brightness_get = "GPLV"},
 +
 +       {
-+        .name = "A3N",
-+        .mled_set = "MLED",
++        .name = "V6V",
++        .bt_switch = "BLED",
++        .bt_status = "\\_SB.PCI0.SBRG.BLTS",
 +        .wled_set = "WLED",
-+        .wled_status = "\\WLDC",
++        .tled_set = "TLED",
 +        .lcd_switch = xxN_PREFIX "_Q10",
 +        .lcd_status = "\\BKLT",
 +        .brightness_set = "SPLV",
 +        .brightness_get = "GPLV",
-+        .display_set = "SDSP",
-+        .display_get = "\\SSTE"},
++        .display_get = "\\_SB.PCI0.P0P1.VGA.GETD",
++        .display_set = "SDSP"},
 +
 +       {
-         .name = "A4G",
+         .name = "W1N",
          .mled_set = "MLED",
- /* WLED present, but not controlled by ACPI */
-@@ -1237,6 +1277,12 @@
-                return A2D;
-        else if (strncmp(model, "A2", 2) == 0)
-                return A2x;
-+       else if (strncmp(model, "A3N", 3) == 0 || strncmp(model, "A3L", 3) == 
-0)
-+               return A3N;
-+       else if (strncmp(model, "A3E", 3) == 0)
-+               return A3E;
-+       else if (strncmp(model, "A3F", 3) == 0 || strncmp(model, "A6F", 3) == 
-0)
-+               return A3F;
-        else if (strncmp(model, "J1", 2) == 0)
-                return S2x;
-        else if (strncmp(model, "L5", 2) == 0)
+         .wled_set = "WLED",
+@@ -1472,6 +1511,12 @@
+                return W3V;
+        else if (strncmp(model, "W5A", 3) == 0)
+                return W5A;
++       else if (strncmp(model, "V6V", 3) == 0)
++               return V6V;
++       else if (strncmp(model, "V6J", 3) == 0)
++               return V6J;
++       else if (strncmp(model, "S5A", 3) == 0)
++               return S5A;
+        else
+                return END_MODEL;
+ }
+
 -- 
 CHARY 'Iksaif' Corentin
 http://xf.iksaif.net
