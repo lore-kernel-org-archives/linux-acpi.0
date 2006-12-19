@@ -1,75 +1,72 @@
 From: Corentin CHARY <corentincj@iksaif.net>
-Subject: [PATCH 1/22] Version Bump
-Date: Tue, 19 Dec 2006 22:18:30 +0100
-Message-ID: <200612192218.30515.corentincj@iksaif.net>
+Subject: [PATCH 16/22] Add support for F3J
+Date: Tue, 19 Dec 2006 22:20:16 +0100
+Message-ID: <200612192220.16571.corentincj@iksaif.net>
 Reply-To: corentincj@iksaif.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.dns26.com ([84.246.226.15]:50120 "EHLO iksaif.net"
+Received: from iksaif.dns26.com ([84.246.226.15]:50123 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933004AbWLSVZg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Dec 2006 16:25:36 -0500
+	id S932972AbWLSVZg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Dec 2006 16:25:36 -0500
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: len.brown@intel.com
 Cc: linux-acpi@vger.kernel.org
 
-Change the version, and the maintainers.
 
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
- asus_acpi.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ asus_acpi.c |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
---- a/drivers/acpi/asus_acpi.c  2006-12-13 20:59:36.000000000 +0100
-+++ b/drivers/acpi/asus_acpi.c  2006-12-15 10:23:25.000000000 +0100
-@@ -3,6 +3,7 @@
-  *
-  *
-  *  Copyright (C) 2002-2005 Julien Lerouge, 2003-2006 Karol Kozimor
-+ *  Copyright (C) 2006 Corentin Chary
-  *
-  *  This program is free software; you can redistribute it and/or modi=
-fy
-  *  it under the terms of the GNU General Public License as published =
-by
-@@ -26,7 +27,7 @@
-  *  Pontus Fuchs   - Helper functions, cleanup
-  *  Johann Wiesner - Small compile fixes
-  *  John Belmonte  - ACPI code for Toshiba laptop was a good starting =
-point.
-- *  =C9ric Burghard  - LED display support for W1N
-+ *  Eric Burghard  - LED display support for W1N
-  *
-  */
+--- a/drivers/acpi/asus_acpi.c  2006-12-15 16:03:47.000000000 +0100
++++ b/drivers/acpi/asus_acpi.c  2006-12-15 16:05:07.000000000 +0100
+@@ -155,6 +155,7 @@
+                A6V,            //A6V, A6Q
+                A8J,            //A8J
+                D1x,            //D1
++               F3J,            //F3JM
+                L2D,            //L2000D
+                L3C,            //L3800C
+                L3D,            //L3400D
+@@ -377,6 +378,21 @@
+         .display_get = "\\INFB"},
 
-@@ -39,7 +40,7 @@
- #include <acpi/acpi_bus.h>
- #include <asm/uaccess.h>
+        {
++        .name = "F3J",
++        .mled_set = "MLED",
++        .wled_set = "WLED",
++        .wled_status = "\\WRST",
++        .bt_switch = "BLED",
++        .bt_status = "\\BRST",
++        .tled_set = "TLED",
++        .lcd_switch = A6x_PREFIX "_Q10",
++        .lcd_status = A6x_PREFIX "RPIN(0x11)",
++        .brightness_set = "SPLV",
++        .brightness_get = "GPLV",
++        .display_set = "SDSP",
++        .display_get = "\\_SB.PCI0.P0P1.VGA.GETD"},
++
++       {
+         .name = "L2D",
+         .mled_set = "MLED",
+         .mled_status = "\\SGP6",
+@@ -1365,6 +1381,8 @@
+                return M2E;
+        else if (strncmp(model, "L2", 2) == 0)
+                return L2D;
++       else if (strncmp(model, "F3J", 3) == 0)
++               return F3J;
+        else if (strncmp(model, "L8", 2) == 0)
+                return S1x;
+        else if (strncmp(model, "D1", 2) == 0)
 
--#define ASUS_ACPI_VERSION "0.30"
-+#define ASUS_ACPI_VERSION "0.31"
-
- #define PROC_ASUS       "asus" //the directory
- #define PROC_MLED       "mled"
-@@ -71,7 +72,7 @@
- #define TLED_ON     0x04       //touchpad LED
- #define BT_ON       0x08       //internal Bluetooth
-
--MODULE_AUTHOR("Julien Lerouge, Karol Kozimor");
-+MODULE_AUTHOR("Julien Lerouge, Karol Kozimor, Corentin Chary");
- MODULE_DESCRIPTION(ACPI_HOTK_NAME);
- MODULE_LICENSE("GPL");
-
-
---=20
+-- 
 CHARY 'Iksaif' Corentin
 http://xf.iksaif.net
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
