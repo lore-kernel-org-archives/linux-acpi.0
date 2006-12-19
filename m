@@ -1,107 +1,77 @@
-From: akpm@osdl.org
-Subject: [patch 18/19] ACPI: make code static
-Date: Tue, 19 Dec 2006 12:56:24 -0800
-Message-ID: <200612192056.kBJKuOEJ010065@shell0.pdx.osdl.net>
+From: Corentin CHARY <corentincj@iksaif.net>
+Subject: [PATCH 19/22] Swap W3V and W5A
+Date: Tue, 19 Dec 2006 22:20:35 +0100
+Message-ID: <200612192220.35487.corentincj@iksaif.net>
+Reply-To: corentincj@iksaif.net
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.25]:34695 "EHLO smtp.osdl.org"
+Received: from iksaif.dns26.com ([84.246.226.15]:50118 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932967AbWLSVAO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Dec 2006 16:00:14 -0500
+	id S932946AbWLSVZg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Dec 2006 16:25:36 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, bunk@stusta.de, len.brown@intel.com
+To: len.brown@intel.com
+Cc: linux-acpi@vger.kernel.org
 
-From: Adrian Bunk <bunk@stusta.de>
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: "Brown, Len" <len.brown@intel.com>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
+ asus_acpi.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
- drivers/acpi/bus.c          |    2 +-
- drivers/acpi/dock.c         |    4 ++--
- drivers/acpi/pci_bind.c     |    4 ++--
- include/acpi/acpi_bus.h     |    2 --
- include/acpi/acpi_drivers.h |    2 --
- 5 files changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN drivers/acpi/bus.c~acpi-make-code-static drivers/acpi/bus.c
---- a/drivers/acpi/bus.c~acpi-make-code-static
-+++ a/drivers/acpi/bus.c
-@@ -728,7 +728,7 @@ static int __init acpi_bus_init(void)
- 	return -ENODEV;
- }
- 
--decl_subsys(acpi, NULL, NULL);
-+static decl_subsys(acpi, NULL, NULL);
- 
- static int __init acpi_init(void)
- {
-diff -puN drivers/acpi/dock.c~acpi-make-code-static drivers/acpi/dock.c
---- a/drivers/acpi/dock.c~acpi-make-code-static
-+++ a/drivers/acpi/dock.c
-@@ -641,7 +641,7 @@ static ssize_t show_docked(struct device
- 	return snprintf(buf, PAGE_SIZE, "%d\n", dock_present(dock_station));
- 
- }
--DEVICE_ATTR(docked, S_IRUGO, show_docked, NULL);
-+static DEVICE_ATTR(docked, S_IRUGO, show_docked, NULL);
- 
- /*
-  * write_undock - write method for "undock" file in sysfs
-@@ -657,7 +657,7 @@ static ssize_t write_undock(struct devic
- 	ret = handle_eject_request(dock_station, ACPI_NOTIFY_EJECT_REQUEST);
- 	return ret ? ret: count;
- }
--DEVICE_ATTR(undock, S_IWUSR, NULL, write_undock);
-+static DEVICE_ATTR(undock, S_IWUSR, NULL, write_undock);
- 
- /**
-  * dock_add - add a new dock station
-diff -puN drivers/acpi/pci_bind.c~acpi-make-code-static drivers/acpi/pci_bind.c
---- a/drivers/acpi/pci_bind.c~acpi-make-code-static
-+++ a/drivers/acpi/pci_bind.c
-@@ -106,7 +106,7 @@ acpi_status acpi_get_pci_id(acpi_handle 
- 
- EXPORT_SYMBOL(acpi_get_pci_id);
- 
--int acpi_pci_bind(struct acpi_device *device)
-+static int acpi_pci_bind(struct acpi_device *device)
- {
- 	int result = 0;
- 	acpi_status status = AE_OK;
-@@ -267,7 +267,7 @@ int acpi_pci_bind(struct acpi_device *de
- 	return result;
- }
- 
--int acpi_pci_unbind(struct acpi_device *device)
-+static int acpi_pci_unbind(struct acpi_device *device)
- {
- 	int result = 0;
- 	acpi_status status = AE_OK;
-diff -puN include/acpi/acpi_bus.h~acpi-make-code-static include/acpi/acpi_bus.h
---- a/include/acpi/acpi_bus.h~acpi-make-code-static
-+++ a/include/acpi/acpi_bus.h
-@@ -315,8 +315,6 @@ struct acpi_bus_event {
- 	u32 data;
- };
- 
--extern struct subsystem acpi_subsys;
--
- /*
-  * External Functions
-  */
-diff -puN include/acpi/acpi_drivers.h~acpi-make-code-static include/acpi/acpi_drivers.h
---- a/include/acpi/acpi_drivers.h~acpi-make-code-static
-+++ a/include/acpi/acpi_drivers.h
-@@ -66,8 +66,6 @@ void acpi_pci_irq_del_prt(int segment, i
- struct pci_bus;
- 
- acpi_status acpi_get_pci_id(acpi_handle handle, struct acpi_pci_id *id);
--int acpi_pci_bind(struct acpi_device *device);
--int acpi_pci_unbind(struct acpi_device *device);
- int acpi_pci_bind_root(struct acpi_device *device, struct acpi_pci_id *id,
- 		       struct pci_bus *bus);
- 
-_
+--- a/drivers/acpi/asus_acpi.c  2006-12-15 16:19:24.000000000 +0100
++++ b/drivers/acpi/asus_acpi.c  2006-12-15 16:19:08.000000000 +0100
+@@ -177,8 +177,8 @@
+                V6J,            //V6J
+                V6V,            //V6V
+                W1N,            //W1000N
+-               W5A,            //W5A
+                W3V,            //W3030V
++               W5A,            //W5A
+                xxN,            //M2400N, M3700N, M5200N, M6800N, S1300N, 
+S5200N
+                //(Centrino)
+                DEF,            //Default values
+@@ -636,25 +636,25 @@
+         .display_get = "\\ADVG"},
+
+        {
+-        .name = "W5A",
+-        .bt_switch = "BLED",
++        .name = "W3V",
++        .mled_set = "MLED",
+         .wled_set = "WLED",
+         .lcd_switch = xxN_PREFIX "_Q10",
++        .lcd_status = "\\BKLT",
+         .brightness_set = "SPLV",
+         .brightness_get = "GPLV",
+         .display_set = "SDSP",
+-        .display_get = "\\ADVG"},
++        .display_get = "\\INFB"},
+
+        {
+-        .name = "W3V",
+-        .mled_set = "MLED",
++        .name = "W5A",
++        .bt_switch = "BLED",
+         .wled_set = "WLED",
+         .lcd_switch = xxN_PREFIX "_Q10",
+-        .lcd_status = "\\BKLT",
+         .brightness_set = "SPLV",
+         .brightness_get = "GPLV",
+         .display_set = "SDSP",
+-        .display_get = "\\INFB"},
++        .display_get = "\\ADVG"},
+
+        {
+         .name = "xxN",
+
+-- 
+CHARY 'Iksaif' Corentin
+http://xf.iksaif.net
