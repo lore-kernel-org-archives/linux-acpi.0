@@ -1,125 +1,114 @@
 From: Len Brown <lenb@kernel.org>
 Subject: Re: [patch 18/19] ACPI: make code static
-Date: Wed, 20 Dec 2006 17:02:45 -0500
-Message-ID: <200612201702.46156.lenb@kernel.org>
-References: <200612192056.kBJKuOEJ010065@shell0.pdx.osdl.net>
+Date: Wed, 20 Dec 2006 17:20:37 -0500
+Message-ID: <200612201720.37216.lenb@kernel.org>
+References: <200612192056.kBJKuOEJ010065@shell0.pdx.osdl.net> <200612201702.46156.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:51175 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:56876 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030369AbWLTWJo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Dec 2006 17:09:44 -0500
-In-Reply-To: <200612192056.kBJKuOEJ010065@shell0.pdx.osdl.net>
+	id S1030398AbWLTW1e convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Dec 2006 17:27:34 -0500
+In-Reply-To: <200612201702.46156.lenb@kernel.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: akpm@osdl.org
 Cc: linux-acpi@vger.kernel.org, bunk@stusta.de
 
-Applied.
+On Wednesday 20 December 2006 17:02, Len Brown wrote:
+> Applied.
+
+Wups, had to NAK the acpi_pci_bind part...
+
+drivers/acpi/pci_root.c: In function =E2=80=98acpi_pci_root_add=E2=80=99=
+:
+drivers/acpi/pci_root.c:181: error: =E2=80=98acpi_pci_bind=E2=80=99 und=
+eclared (first use in this function)
+drivers/acpi/pci_root.c:181: error: (Each undeclared identifier is repo=
+rted only once
+drivers/acpi/pci_root.c:181: error: for each function it appears in.)
+make[2]: *** [drivers/acpi/pci_root.o] Error 1
+make[2]: *** Waiting for unfinished jobs....
+  LD      drivers/pnp/pnpacpi/built-in.o
+  LD      drivers/pnp/built-in.o
+drivers/acpi/pci_bind.c: In function =E2=80=98acpi_pci_bind=E2=80=99:
+drivers/acpi/pci_bind.c:225: error: =E2=80=98acpi_pci_unbind=E2=80=99 u=
+ndeclared (first use in this function)
+drivers/acpi/pci_bind.c:225: error: (Each undeclared identifier is repo=
+rted only once
+drivers/acpi/pci_bind.c:225: error: for each function it appears in.)
+make[2]: *** [drivers/acpi/pci_bind.o] Error 1
+
+Leaving that below.
 
 thanks,
 -Len
 
-On Tuesday 19 December 2006 15:56, akpm@osdl.org wrote:
-> From: Adrian Bunk <bunk@stusta.de>
-> 
-> Signed-off-by: Adrian Bunk <bunk@stusta.de>
-> Cc: "Brown, Len" <len.brown@intel.com>
-> Signed-off-by: Andrew Morton <akpm@osdl.org>
-> ---
-> 
->  drivers/acpi/bus.c          |    2 +-
->  drivers/acpi/dock.c         |    4 ++--
->  drivers/acpi/pci_bind.c     |    4 ++--
->  include/acpi/acpi_bus.h     |    2 --
->  include/acpi/acpi_drivers.h |    2 --
->  5 files changed, 5 insertions(+), 9 deletions(-)
-> 
-> diff -puN drivers/acpi/bus.c~acpi-make-code-static drivers/acpi/bus.c
-> --- a/drivers/acpi/bus.c~acpi-make-code-static
-> +++ a/drivers/acpi/bus.c
-> @@ -728,7 +728,7 @@ static int __init acpi_bus_init(void)
->  	return -ENODEV;
->  }
->  
-> -decl_subsys(acpi, NULL, NULL);
-> +static decl_subsys(acpi, NULL, NULL);
->  
->  static int __init acpi_init(void)
->  {
-> diff -puN drivers/acpi/dock.c~acpi-make-code-static drivers/acpi/dock.c
-> --- a/drivers/acpi/dock.c~acpi-make-code-static
-> +++ a/drivers/acpi/dock.c
-> @@ -641,7 +641,7 @@ static ssize_t show_docked(struct device
->  	return snprintf(buf, PAGE_SIZE, "%d\n", dock_present(dock_station));
->  
->  }
-> -DEVICE_ATTR(docked, S_IRUGO, show_docked, NULL);
-> +static DEVICE_ATTR(docked, S_IRUGO, show_docked, NULL);
->  
->  /*
->   * write_undock - write method for "undock" file in sysfs
-> @@ -657,7 +657,7 @@ static ssize_t write_undock(struct devic
->  	ret = handle_eject_request(dock_station, ACPI_NOTIFY_EJECT_REQUEST);
->  	return ret ? ret: count;
->  }
-> -DEVICE_ATTR(undock, S_IWUSR, NULL, write_undock);
-> +static DEVICE_ATTR(undock, S_IWUSR, NULL, write_undock);
->  
->  /**
->   * dock_add - add a new dock station
-> diff -puN drivers/acpi/pci_bind.c~acpi-make-code-static drivers/acpi/pci_bind.c
-> --- a/drivers/acpi/pci_bind.c~acpi-make-code-static
-> +++ a/drivers/acpi/pci_bind.c
-> @@ -106,7 +106,7 @@ acpi_status acpi_get_pci_id(acpi_handle 
->  
->  EXPORT_SYMBOL(acpi_get_pci_id);
->  
-> -int acpi_pci_bind(struct acpi_device *device)
-> +static int acpi_pci_bind(struct acpi_device *device)
->  {
->  	int result = 0;
->  	acpi_status status = AE_OK;
-> @@ -267,7 +267,7 @@ int acpi_pci_bind(struct acpi_device *de
->  	return result;
->  }
->  
-> -int acpi_pci_unbind(struct acpi_device *device)
-> +static int acpi_pci_unbind(struct acpi_device *device)
->  {
->  	int result = 0;
->  	acpi_status status = AE_OK;
-> diff -puN include/acpi/acpi_bus.h~acpi-make-code-static include/acpi/acpi_bus.h
-> --- a/include/acpi/acpi_bus.h~acpi-make-code-static
-> +++ a/include/acpi/acpi_bus.h
-> @@ -315,8 +315,6 @@ struct acpi_bus_event {
->  	u32 data;
->  };
->  
-> -extern struct subsystem acpi_subsys;
-> -
->  /*
->   * External Functions
->   */
-> diff -puN include/acpi/acpi_drivers.h~acpi-make-code-static include/acpi/acpi_drivers.h
-> --- a/include/acpi/acpi_drivers.h~acpi-make-code-static
-> +++ a/include/acpi/acpi_drivers.h
-> @@ -66,8 +66,6 @@ void acpi_pci_irq_del_prt(int segment, i
->  struct pci_bus;
->  
->  acpi_status acpi_get_pci_id(acpi_handle handle, struct acpi_pci_id *id);
-> -int acpi_pci_bind(struct acpi_device *device);
-> -int acpi_pci_unbind(struct acpi_device *device);
->  int acpi_pci_bind_root(struct acpi_device *device, struct acpi_pci_id *id,
->  		       struct pci_bus *bus);
->  
-> _
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+commit 9e0ed41e9aff61648e2261ab334fb5eea3d5aeb3
+Author: Adrian Bunk <bunk@stusta.de>
+Date:   Tue Dec 19 12:56:24 2006 -0800
+
+    ACPI: make code static
+   =20
+    Signed-off-by: Adrian Bunk <bunk@stusta.de>
+    Signed-off-by: Andrew Morton <akpm@osdl.org>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 279c4ba..555bf00 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -728,7 +728,7 @@ static int __init acpi_bus_init(void)
+ 	return -ENODEV;
+ }
+=20
+-decl_subsys(acpi, NULL, NULL);
++static decl_subsys(acpi, NULL, NULL);
+=20
+ static int __init acpi_init(void)
+ {
+diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
+index 90990a4..a66b4c7 100644
+--- a/drivers/acpi/dock.c
++++ b/drivers/acpi/dock.c
+@@ -641,7 +641,7 @@ static ssize_t show_docked(struct device *dev,
+ 	return snprintf(buf, PAGE_SIZE, "%d\n", dock_present(dock_station));
+=20
+ }
+-DEVICE_ATTR(docked, S_IRUGO, show_docked, NULL);
++static DEVICE_ATTR(docked, S_IRUGO, show_docked, NULL);
+=20
+ /*
+  * write_undock - write method for "undock" file in sysfs
+@@ -657,7 +657,7 @@ static ssize_t write_undock(struct device *dev, str=
+uct device_attribute *attr,
+ 	ret =3D handle_eject_request(dock_station, ACPI_NOTIFY_EJECT_REQUEST)=
+;
+ 	return ret ? ret: count;
+ }
+-DEVICE_ATTR(undock, S_IWUSR, NULL, write_undock);
++static DEVICE_ATTR(undock, S_IWUSR, NULL, write_undock);
+=20
+ /**
+  * dock_add - add a new dock station
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index fdd1095..cefe952 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -315,8 +315,6 @@ struct acpi_bus_event {
+ 	u32 data;
+ };
+=20
+-extern struct subsystem acpi_subsys;
+-
+ /*
+  * External Functions
+  */
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
