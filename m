@@ -1,73 +1,72 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH -mm] PM: Change ordering of suspend and
-	resume code
-Date: Wed, 20 Dec 2006 00:30:02 +0100
-Message-ID: <20061219233002.GA2694@elf.ucw.cz>
-References: <200612171858.16380.rjw@sisk.pl>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI: ibm_acpi: allow clean removal
+Date: Tue, 19 Dec 2006 23:13:27 -0500
+Message-ID: <200612192313.27202.lenb@kernel.org>
+References: <20061218175207.8826.25057.stgit@thorin.khazad-dum.debian.net> <20061218175332.8826.95334.stgit@thorin.khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <suspend-devel-bounces@lists.sourceforge.net>
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:47253 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964871AbWLTEOg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Dec 2006 23:14:36 -0500
+In-Reply-To: <20061218175332.8826.95334.stgit@thorin.khazad-dum.debian.net>
 Content-Disposition: inline
-In-Reply-To: <200612171858.16380.rjw@sisk.pl>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=suspend-devel>
-List-Post: <mailto:suspend-devel@lists.sourceforge.net>
-List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
-Sender: suspend-devel-bounces@lists.sourceforge.net
-Errors-To: suspend-devel-bounces@lists.sourceforge.net
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: suspend-devel List <suspend-devel@lists.sourceforge.net>, linux-acpi@vger.kernel.org, pm list <linux-pm@lists.osdl.org>, Stephen Hemminger <shemminger@osdl.org>, Stefan Seyfried <seife@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-Hi!
+Applied.
 
-> As indicated in a recent thread on Linux-PM, it's necessary to call
-> pm_ops->finish() before devce_resume(), but enable_nonboot_cpus() has to =
-be
-> called before pm_ops->finish()
-> (cf. http://lists.osdl.org/pipermail/linux-pm/2006-November/004164.html).
-> For consistency, it seems reasonable to call disable_nonboot_cpus() after
-> device_suspend().
-> =
+thanks,
+-Len
 
-> This way the suspend code will remain symmetrical with respect to the res=
-ume
-> code and it may allow us to speed up things in the future by suspending a=
-nd
-> resuming devices and/or saving the suspend image in many threads.
-...
-> The following series of patches reorders the suspend and resume code so t=
-hat
-> nonboot CPUs are disabled after devices have been suspended and enabled b=
-efore
-> the devices are resumed. =A0It also causes pm_ops->finish() to be called =
-after
-> enable_nonboot_cpus() wherever necessary.
-
-Series looks okay to me... but it will need _long_ testing in
--mm. (Consider this ACK).
-
-> The first patch changes the ordering of the suspend-to-RAM code and is
-> untested, because my boxes continue refusing to resume from RAM for other
-> reasons.  If anyone can, please do me a favour and test it.
-
-I did a bit of testing, and it seems to still work, both s2ram and
-swsusp. (uswsusp untested).
-									Pavel
-
--- =
-
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
--------------------------------------------------------------------------
-Take Surveys. Earn Cash. Influence the Future of IT
-Join SourceForge.net's Techsay panel and you'll get the chance to share your
-opinions on IT & business topics through brief surveys - and earn cash
-http://www.techsay.com/default.php?page=3Djoin.php&p=3Dsourceforge&CID=3DDE=
-VDEV
+On Monday 18 December 2006 12:53, Henrique de Moraes Holschuh wrote:
+> From: Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>
+> 
+> Allow clean removal by setting notify_installed in the right place.
+> 
+> Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
+> Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+> Signed-off-by: Len Brown <len.brown@intel.com>
+> ---
+> 
+>  drivers/acpi/ibm_acpi.c |    3 +--
+>  1 files changed, 1 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
+> index 003a987..719a320 100644
+> --- a/drivers/acpi/ibm_acpi.c
+> +++ b/drivers/acpi/ibm_acpi.c
+> @@ -1805,7 +1805,7 @@ static int __init setup_notify(struct ibm_struct *ibm)
+>  		       ibm->name, status);
+>  		return -ENODEV;
+>  	}
+> -
+> +	ibm->notify_installed = 1;
+>  	return 0;
+>  }
+>  
+> @@ -1882,7 +1882,6 @@ static int __init ibm_init(struct ibm_struct *ibm)
+>  		ret = setup_notify(ibm);
+>  		if (ret < 0)
+>  			return ret;
+> -		ibm->notify_installed = 1;
+>  	}
+>  
+>  	return 0;
+> 
+> 
+> --  
+>   "One disk to rule them all, One disk to find them. One disk to bring
+>   them all and in the darkness grind them. In the Land of Redmond
+>   where the shadows lie." -- The Silicon Valley Tarot
+>   Henrique Holschuh
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
