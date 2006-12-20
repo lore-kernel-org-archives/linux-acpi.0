@@ -1,112 +1,99 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 18/19] ACPI: make code static
-Date: Wed, 20 Dec 2006 17:20:37 -0500
-Message-ID: <200612201720.37216.lenb@kernel.org>
-References: <200612192056.kBJKuOEJ010065@shell0.pdx.osdl.net> <200612201702.46156.lenb@kernel.org>
+Subject: Re: [PATCH 0/22] acpi4asus sync with 0.31
+Date: Wed, 20 Dec 2006 17:49:32 -0500
+Message-ID: <200612201749.32486.lenb@kernel.org>
+References: <200612192217.43660.corentincj@iksaif.net> <200612200242.24745.lenb@kernel.org> <200612201102.38500.corentincj@iksaif.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:56876 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:35341 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030398AbWLTW1e convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Dec 2006 17:27:34 -0500
-In-Reply-To: <200612201702.46156.lenb@kernel.org>
+	id S1030417AbWLTWut convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Dec 2006 17:50:49 -0500
+In-Reply-To: <200612201102.38500.corentincj@iksaif.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@osdl.org
-Cc: linux-acpi@vger.kernel.org, bunk@stusta.de
+To: corentincj@iksaif.net
+Cc: linux-acpi@vger.kernel.org, sziwan@users.sourceforge.net, julien.lerouge@free.fr
 
-On Wednesday 20 December 2006 17:02, Len Brown wrote:
-> Applied.
+Karol and Julien are listed as the MAINTAINERS for asus_acpi.
+Why do I not see their Signed-off-by or Acked-by lines on this patch se=
+ries?
 
-Wups, had to NAK the acpi_pci_bind part...
+On Wednesday 20 December 2006 05:02, Corentin CHARY wrote:
+> Le mercredi 20 d=E9cembre 2006 08:42, Len Brown a =E9crit=A0:
+> > On Tuesday 19 December 2006 16:17, Corentin CHARY wrote:
+> > > Hi,
+> > > This set of patch is against 2.6.19. It add support for many
+> > > models, /sys/class/backlight/, Light Sens, etc ... There is also =
+a lot of
+> > > cleanups. And the most important, a new system to handle unsuppor=
+ted
+> > > models.
+> > >
+> > > Patch from 0 to 10 are change and cleanups in the driver.
+> > > Patch from 11t to 21 add support for new models.
+> > >
+> > > All the following patchs are available here :
+> > > <http://xf.iksaif.net/acpi4asus/2.6.19/>
+> >
 
-drivers/acpi/pci_root.c: In function =E2=80=98acpi_pci_root_add=E2=80=99=
-:
-drivers/acpi/pci_root.c:181: error: =E2=80=98acpi_pci_bind=E2=80=99 und=
-eclared (first use in this function)
-drivers/acpi/pci_root.c:181: error: (Each undeclared identifier is repo=
-rted only once
-drivers/acpi/pci_root.c:181: error: for each function it appears in.)
-make[2]: *** [drivers/acpi/pci_root.o] Error 1
-make[2]: *** Waiting for unfinished jobs....
-  LD      drivers/pnp/pnpacpi/built-in.o
-  LD      drivers/pnp/built-in.o
-drivers/acpi/pci_bind.c: In function =E2=80=98acpi_pci_bind=E2=80=99:
-drivers/acpi/pci_bind.c:225: error: =E2=80=98acpi_pci_unbind=E2=80=99 u=
-ndeclared (first use in this function)
-drivers/acpi/pci_bind.c:225: error: (Each undeclared identifier is repo=
-rted only once
-drivers/acpi/pci_bind.c:225: error: for each function it appears in.)
-make[2]: *** [drivers/acpi/pci_bind.o] Error 1
+> >
+> > When this series is formatted to apply, what tree is it supposed to=
+ apply
+> > to?
+> These patchs are done with asus_acpi.c from 2.6.19 . So it can be app=
+lied to=20
+> 2.6.19 and 2.6.20-rc1 (as there is no change for asus_acpi in 2.6.20-=
+rc1).
+>=20
+>=20
+> >
+> > How does it relate to the two asus_acpi patches in the mm tree righ=
+t now --
+> > 13/19 and 19/19 that akpm forwarded to the list yesterday.
+> >
+> The change in the mm tree are :  =20
+> 	- Backlight support
+> 	=3D> It's nearly the same code (patch 10/22)
+> 	- no more useless cast
+> 	=3D> It's ok (patch 7/22)
+> 	- Add support for A6VA, M6V, W5F, V6V, A4S
+> 	=3D> It's ok, but more features are supported in my patchs.
+> 	And the implemention is cleaner, as I use my parse_method()
+> 	function instead of adding special case in get_lcd_status()
+> 	(see patch 5/22 and 6/22)
+> 	- Swap W5A and W3V
+> 	=3D> It's ok,  (patch 19/22)
+> 	- Invert wled status
+> 	=3D> I don't do it, as it's a mistake. I tested on A6T, A6J, F3JM, a=
+nd the
+> 	wled value don't need to be inverted.
 
-Leaving that below.
+So should we NAK the two patches that are proposed in -mm
+and ask Andrew to not accept asus_acpi patches and instead direct
+them to acpi4asus-user@lists.sourceforge.net?
+
+> > How does it relate to the acpi-test tree, which already includes
+> > the backlight patch to asus_acpi from Holger Macht?
+> The change in the acpi-test tree are :
+> 	- Backlight support
+> 	=3D> done
+> 	- no more useless cast
+> 	=3D> done
+
+Holger's patch is already queued for upstream -- having lived in -mm fo=
+r some time now.
+When you resend the acpi4asus series such that it is properly formatted=
+,
+please be sure it applies cleanly to what is in acpi release tree.
+(ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release=
+/2.6.20/acpi-release-20060707-2.6.20-rc1.diff.gz)
 
 thanks,
 -Len
-
-commit 9e0ed41e9aff61648e2261ab334fb5eea3d5aeb3
-Author: Adrian Bunk <bunk@stusta.de>
-Date:   Tue Dec 19 12:56:24 2006 -0800
-
-    ACPI: make code static
-   =20
-    Signed-off-by: Adrian Bunk <bunk@stusta.de>
-    Signed-off-by: Andrew Morton <akpm@osdl.org>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 279c4ba..555bf00 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -728,7 +728,7 @@ static int __init acpi_bus_init(void)
- 	return -ENODEV;
- }
-=20
--decl_subsys(acpi, NULL, NULL);
-+static decl_subsys(acpi, NULL, NULL);
-=20
- static int __init acpi_init(void)
- {
-diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-index 90990a4..a66b4c7 100644
---- a/drivers/acpi/dock.c
-+++ b/drivers/acpi/dock.c
-@@ -641,7 +641,7 @@ static ssize_t show_docked(struct device *dev,
- 	return snprintf(buf, PAGE_SIZE, "%d\n", dock_present(dock_station));
-=20
- }
--DEVICE_ATTR(docked, S_IRUGO, show_docked, NULL);
-+static DEVICE_ATTR(docked, S_IRUGO, show_docked, NULL);
-=20
- /*
-  * write_undock - write method for "undock" file in sysfs
-@@ -657,7 +657,7 @@ static ssize_t write_undock(struct device *dev, str=
-uct device_attribute *attr,
- 	ret =3D handle_eject_request(dock_station, ACPI_NOTIFY_EJECT_REQUEST)=
-;
- 	return ret ? ret: count;
- }
--DEVICE_ATTR(undock, S_IWUSR, NULL, write_undock);
-+static DEVICE_ATTR(undock, S_IWUSR, NULL, write_undock);
-=20
- /**
-  * dock_add - add a new dock station
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index fdd1095..cefe952 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -315,8 +315,6 @@ struct acpi_bus_event {
- 	u32 data;
- };
-=20
--extern struct subsystem acpi_subsys;
--
- /*
-  * External Functions
-  */
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
