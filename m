@@ -1,18 +1,18 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 02/19] acpi: fix single linked list manipulation
-Date: Wed, 20 Dec 2006 00:43:27 -0500
-Message-ID: <200612200043.27289.lenb@kernel.org>
-References: <200612192056.kBJKuAIb010011@shell0.pdx.osdl.net>
+Subject: Re: [patch 03/19] acpi/processor: prevent loading module on failures
+Date: Wed, 20 Dec 2006 00:43:32 -0500
+Message-ID: <200612200043.32815.lenb@kernel.org>
+References: <200612192056.kBJKuBhb010014@shell0.pdx.osdl.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:39618 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:39620 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964891AbWLTFn6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Dec 2006 00:43:58 -0500
-In-Reply-To: <200612192056.kBJKuAIb010011@shell0.pdx.osdl.net>
+	id S964895AbWLTFoA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Dec 2006 00:44:00 -0500
+In-Reply-To: <200612192056.kBJKuBhb010014@shell0.pdx.osdl.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -27,39 +27,38 @@ thanks,
 On Tuesday 19 December 2006 15:56, akpm@osdl.org wrote:
 > From: Akinobu Mita <akinobu.mita@gmail.com>
 > 
-> Fix single linked list manipulation for sub_driver.  If the remving entry
-> is not on the head of the sub_driver list, it goes into infinate loop.
-> 
-> Though that infinite loop doesn't happen.  Because the only user of
-> acpi_pci_register_dirver() is acpiphp.
+> Make loading processor.ko fail when an error happens.
 > 
 > Cc: Len Brown <len.brown@intel.com>
 > Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 > Signed-off-by: Andrew Morton <akpm@osdl.org>
 > ---
 > 
->  drivers/acpi/pci_root.c |    9 +++++----
->  1 files changed, 5 insertions(+), 4 deletions(-)
+>  drivers/acpi/processor_core.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff -puN drivers/acpi/pci_root.c~acpi-fix-single-linked-list-manipulation drivers/acpi/pci_root.c
-> --- a/drivers/acpi/pci_root.c~acpi-fix-single-linked-list-manipulation
-> +++ a/drivers/acpi/pci_root.c
-> @@ -98,11 +98,12 @@ void acpi_pci_unregister_driver(struct a
+> diff -puN drivers/acpi/processor_core.c~acpi-processor-prevent-loading-module-on-failures drivers/acpi/processor_core.c
+> --- a/drivers/acpi/processor_core.c~acpi-processor-prevent-loading-module-on-failures
+> +++ a/drivers/acpi/processor_core.c
+> @@ -901,13 +901,13 @@ static int __init acpi_processor_init(vo
 >  
->  	struct acpi_pci_driver **pptr = &sub_driver;
->  	while (*pptr) {
-> -		if (*pptr != driver)
-> -			continue;
-> -		*pptr = (*pptr)->next;
-> -		break;
-> +		if (*pptr == driver)
-> +			break;
-> +		pptr = &(*pptr)->next;
+>  	acpi_processor_dir = proc_mkdir(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+>  	if (!acpi_processor_dir)
+> -		return 0;
+> +		return -ENOMEM;
+>  	acpi_processor_dir->owner = THIS_MODULE;
+>  
+>  	result = acpi_bus_register_driver(&acpi_processor_driver);
+>  	if (result < 0) {
+>  		remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+> -		return 0;
+> +		return result;
 >  	}
-> +	BUG_ON(!*pptr);
-> +	*pptr = (*pptr)->next;
 >  
->  	if (!driver->remove)
->  		return;
+>  	acpi_processor_install_hotplug_notify();
 > _
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
