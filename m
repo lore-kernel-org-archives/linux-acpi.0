@@ -1,115 +1,230 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 08/19] Implementation of acpi_video_get_next_level()
-Date: Wed, 20 Dec 2006 01:39:46 -0500
-Message-ID: <200612200139.46520.lenb@kernel.org>
-References: <200612192056.kBJKuEsM010029@shell0.pdx.osdl.net>
+Subject: Re: [patch 11/19] Add display output class support
+Date: Wed, 20 Dec 2006 01:47:31 -0500
+Message-ID: <200612200147.32005.lenb@kernel.org>
+References: <200612192056.kBJKuH8u010038@shell0.pdx.osdl.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:43683 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:41707 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964919AbWLTGkZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Dec 2006 01:40:25 -0500
-In-Reply-To: <200612192056.kBJKuEsM010029@shell0.pdx.osdl.net>
+	id S964908AbWLTGsb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Dec 2006 01:48:31 -0500
+In-Reply-To: <200612192056.kBJKuH8u010038@shell0.pdx.osdl.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: akpm@osdl.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@ttuttle.net, len.brown@intel.com
+Cc: linux-acpi@vger.kernel.org, luming.yu@gmail.com, Luming.yu@intel.com, adaplas@pol.net, greg@kroah.com, len.brown@intel.com
 
-Applied.
+Applied to acpi-test.
 
-thanks,
+thanks
 -Len
 
 On Tuesday 19 December 2006 15:56, akpm@osdl.org wrote:
-> From: Thomas Tuttle <linux-kernel@ttuttle.net>
+> From: Yu Luming <luming.yu@gmail.com>
 > 
-> acpi_video_get_next_level was supposed to implement an algorithm to select
-> a new brightness level based on the old brightness level of an ACPI video
-> device, but it simply says "/* Fix me */" and returns the current
-> brightness.
+> Add generic abstract layer for display output switch control.  The output
+> sysfs class driver provides an abstract video output layer that can be used to
+> hook platform specific methods to enable/disable video output device through
+> common sysfs interface.
 > 
-> This patch implements acpi_video_get_next_level properly.  It had to change
-> a few constants at the top of the file because they were (apparently)
-> wrong, but it appears to work on my Dell Inspiron e1405 (with BIOS A05
-> only--BIOS A04 doesn't seem to send ACPI video hotkey events).
-> 
-> [akpm@osdl.org: cleanups]
-> Cc: Len Brown <len.brown@intel.com>
-> Signed-off-by: Thomas Tuttle <linux-kernel@ttuttle.net>
+> Signed-off-by: Luming Yu <Luming.yu@intel.com>
+> Cc: "Antonino A. Daplas" <adaplas@pol.net>
+> Cc: "Brown, Len" <len.brown@intel.com>
+> Cc: Greg KH <greg@kroah.com>
 > Signed-off-by: Andrew Morton <akpm@osdl.org>
 > ---
 > 
->  drivers/acpi/video.c |   41 ++++++++++++++++++++++++++++++++++-------
->  1 files changed, 34 insertions(+), 7 deletions(-)
+>  drivers/video/output.c       |  129 +++++++++++++++++++++++++++++++++
+>  include/linux/video_output.h |   42 ++++++++++
+>  2 files changed, 171 insertions(+)
 > 
-> diff -puN drivers/acpi/video.c~implementation-of-acpi_video_get_next_level drivers/acpi/video.c
-> --- a/drivers/acpi/video.c~implementation-of-acpi_video_get_next_level
-> +++ a/drivers/acpi/video.c
-> @@ -3,6 +3,7 @@
->   *
->   *  Copyright (C) 2004 Luming Yu <luming.yu@intel.com>
->   *  Copyright (C) 2004 Bruno Ducrot <ducrot@poupinou.org>
-> + *  Copyright (C) 2006 Thomas Tuttle <linux-kernel@ttuttle.net>
->   *
->   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->   *
-> @@ -47,11 +48,11 @@
->  #define ACPI_VIDEO_NOTIFY_NEXT_OUTPUT	0x83
->  #define ACPI_VIDEO_NOTIFY_PREV_OUTPUT	0x84
->  
-> -#define ACPI_VIDEO_NOTIFY_CYCLE_BRIGHTNESS	0x82
-> -#define	ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS	0x83
-> -#define ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS	0x84
-> -#define ACPI_VIDEO_NOTIFY_ZERO_BRIGHTNESS	0x85
-> -#define ACPI_VIDEO_NOTIFY_DISPLAY_OFF		0x86
-> +#define ACPI_VIDEO_NOTIFY_CYCLE_BRIGHTNESS	0x85
-> +#define	ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS	0x86
-> +#define ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS	0x87
-> +#define ACPI_VIDEO_NOTIFY_ZERO_BRIGHTNESS	0x88
-> +#define ACPI_VIDEO_NOTIFY_DISPLAY_OFF		0x89
->  
->  #define ACPI_VIDEO_HEAD_INVALID		(~0u - 1)
->  #define ACPI_VIDEO_HEAD_END		(~0u)
-> @@ -1502,8 +1503,34 @@ static int
->  acpi_video_get_next_level(struct acpi_video_device *device,
->  			  u32 level_current, u32 event)
->  {
-> -	/*Fix me */
-> -	return level_current;
-> +	int min, max, min_above, max_below, i, l;
-> +	max = max_below = 0;
-> +	min = min_above = 255;
-> +	for (i = 0; i < device->brightness->count; i++) {
-> +		l = device->brightness->levels[i];
-> +		if (l < min)
-> +			min = l;
-> +		if (l > max)
-> +			max = l;
-> +		if (l < min_above && l > level_current)
-> +			min_above = l;
-> +		if (l > max_below && l < level_current)
-> +			max_below = l;
-> +	}
+> diff -puN /dev/null drivers/video/output.c
+> --- /dev/null
+> +++ a/drivers/video/output.c
+> @@ -0,0 +1,129 @@
+> +/*
+> + *  output.c - Display Output Switch driver
+> + *
+> + *  Copyright (C) 2006 Luming Yu <luming.yu@intel.com>
+> + *
+> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> + *
+> + *  This program is free software; you can redistribute it and/or modify
+> + *  it under the terms of the GNU General Public License as published by
+> + *  the Free Software Foundation; either version 2 of the License, or (at
+> + *  your option) any later version.
+> + *
+> + *  This program is distributed in the hope that it will be useful, but
+> + *  WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + *  General Public License for more details.
+> + *
+> + *  You should have received a copy of the GNU General Public License along
+> + *  with this program; if not, write to the Free Software Foundation, Inc.,
+> + *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+> + *
+> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> + */
+> +#include <linux/module.h>
+> +#include <linux/video_output.h>
+> +#include <linux/err.h>
+> +#include <linux/ctype.h>
 > +
-> +	switch (event) {
-> +	case ACPI_VIDEO_NOTIFY_CYCLE_BRIGHTNESS:
-> +		return (level_current < max) ? min_above : min;
-> +	case ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS:
-> +		return (level_current < max) ? min_above : max;
-> +	case ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS:
-> +		return (level_current > min) ? max_below : min;
-> +	case ACPI_VIDEO_NOTIFY_ZERO_BRIGHTNESS:
-> +	case ACPI_VIDEO_NOTIFY_DISPLAY_OFF:
-> +		return 0;
-> +	default:
-> +		return level_current;
+> +
+> +MODULE_DESCRIPTION("Display Output Switcher Lowlevel Control Abstraction");
+> +MODULE_LICENSE("GPL");
+> +MODULE_AUTHOR("Luming Yu <luming.yu@intel.com>");
+> +
+> +static ssize_t video_output_show_state(struct class_device *dev,char *buf)
+> +{
+> +	ssize_t ret_size = 0;
+> +	struct output_device *od = to_output_device(dev);
+> +	if (od->props)
+> +		ret_size = sprintf(buf,"%.8x\n",od->props->get_status(od));
+> +	return ret_size;
+> +}
+> +
+> +static ssize_t video_output_store_state(struct class_device *dev,
+> +	const char *buf,size_t count)
+> +{
+> +	char *endp;
+> +	struct output_device *od = to_output_device(dev);
+> +	int request_state = simple_strtoul(buf,&endp,0);
+> +	size_t size = endp - buf;
+> +
+> +	if (*endp && isspace(*endp))
+> +		size++;
+> +	if (size != count)
+> +		return -EINVAL;
+> +
+> +	if (od->props) {
+> +		od->request_state = request_state;
+> +		od->props->set_state(od);
 > +	}
->  }
->  
->  static void
+> +	return count;
+> +}
+> +
+> +static void video_output_class_release(struct class_device *dev)
+> +{
+> +	struct output_device *od = to_output_device(dev);
+> +	kfree(od);
+> +}
+> +
+> +static struct class_device_attribute video_output_attributes[] = {
+> +	__ATTR(state, 0644, video_output_show_state, video_output_store_state),
+> +	__ATTR_NULL,
+> +};
+> +
+> +static struct class video_output_class = {
+> +	.name = "video_output",
+> +	.release = video_output_class_release,
+> +	.class_dev_attrs = video_output_attributes,
+> +};
+> +
+> +struct output_device *video_output_register(const char *name,
+> +	struct device *dev,
+> +	void *devdata,
+> +	struct output_properties *op)
+> +{
+> +	struct output_device *new_dev;
+> +	int ret_code = 0;
+> +
+> +	new_dev = kzalloc(sizeof(struct output_device),GFP_KERNEL);
+> +	if (!new_dev) {
+> +		ret_code = -ENOMEM;
+> +		goto error_return;
+> +	}
+> +	new_dev->props = op;
+> +	new_dev->class_dev.class = &video_output_class;
+> +	new_dev->class_dev.dev = dev;
+> +	strlcpy(new_dev->class_dev.class_id,name,KOBJ_NAME_LEN);
+> +	class_set_devdata(&new_dev->class_dev,devdata);
+> +	ret_code = class_device_register(&new_dev->class_dev);
+> +	if (ret_code) {
+> +		kfree(new_dev);
+> +		goto error_return;
+> +	}
+> +	return new_dev;
+> +
+> +error_return:
+> +	return ERR_PTR(ret_code);
+> +}
+> +EXPORT_SYMBOL(video_output_register);
+> +
+> +void video_output_unregister(struct output_device *dev)
+> +{
+> +	if (!dev)
+> +		return;
+> +	class_device_unregister(&dev->class_dev);
+> +}
+> +EXPORT_SYMBOL(video_output_unregister);
+> +
+> +static void __exit video_output_class_exit(void)
+> +{
+> +	class_unregister(&video_output_class);
+> +}
+> +
+> +static int __init video_output_class_init(void)
+> +{
+> +	return class_register(&video_output_class);
+> +}
+> +
+> +postcore_initcall(video_output_class_init);
+> +module_exit(video_output_class_exit);
+> diff -puN /dev/null include/linux/video_output.h
+> --- /dev/null
+> +++ a/include/linux/video_output.h
+> @@ -0,0 +1,42 @@
+> +/*
+> + *
+> + *  Copyright (C) 2006 Luming Yu <luming.yu@intel.com>
+> + *
+> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> + *
+> + *  This program is free software; you can redistribute it and/or modify
+> + *  it under the terms of the GNU General Public License as published by
+> + *  the Free Software Foundation; either version 2 of the License, or (at
+> + *  your option) any later version.
+> + *
+> + *  This program is distributed in the hope that it will be useful, but
+> + *  WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + *  General Public License for more details.
+> + *
+> + *  You should have received a copy of the GNU General Public License along
+> + *  with this program; if not, write to the Free Software Foundation, Inc.,
+> + *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+> + *
+> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> + */
+> +#ifndef _LINUX_VIDEO_OUTPUT_H
+> +#define _LINUX_VIDEO_OUTPUT_H
+> +#include <linux/device.h>
+> +struct output_device;
+> +struct output_properties {
+> +	int (*set_state)(struct output_device *);
+> +	int (*get_status)(struct output_device *);
+> +};
+> +struct output_device {
+> +	int request_state;
+> +	struct output_properties *props;
+> +	struct class_device class_dev;
+> +};
+> +#define to_output_device(obj) container_of(obj, struct output_device, class_dev)
+> +struct output_device *video_output_register(const char *name,
+> +	struct device *dev,
+> +	void *devdata,
+> +	struct output_properties *op);
+> +void video_output_unregister(struct output_device *dev);
+> +#endif
 > _
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
