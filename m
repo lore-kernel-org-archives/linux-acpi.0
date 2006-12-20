@@ -1,87 +1,77 @@
-From: Corentin CHARY <corentincj@iksaif.net>
-Subject: Re: [PATCH 0/22] acpi4asus sync with 0.31
-Date: Wed, 20 Dec 2006 11:02:38 +0100
-Message-ID: <200612201102.38500.corentincj@iksaif.net>
-References: <200612192217.43660.corentincj@iksaif.net> <200612200242.24745.lenb@kernel.org>
-Reply-To: corentincj@iksaif.net
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Suspend-devel] [PATCH -mm] PM: Change ordering of suspend and resume code
+Date: Wed, 20 Dec 2006 13:43:22 +0100
+Message-ID: <200612201343.23440.rjw@sisk.pl>
+References: <200612171858.16380.rjw@sisk.pl> <20061219233002.GA2694@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.dns26.com ([84.246.226.15]:56637 "EHLO iksaif.net"
+Received: from ogre.sisk.pl ([217.79.144.158]:53075 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964976AbWLTKCk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Dec 2006 05:02:40 -0500
-In-Reply-To: <200612200242.24745.lenb@kernel.org>
+	id S965017AbWLTMlg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Dec 2006 07:41:36 -0500
+In-Reply-To: <20061219233002.GA2694@elf.ucw.cz>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pm list <linux-pm@lists.osdl.org>, suspend-devel List <suspend-devel@lists.sourceforge.net>, linux-acpi@vger.kernel.org, Stefan Seyfried <seife@suse.de>, Stephen Hemminger <shemminger@osdl.org>
 
-Le mercredi 20 d=E9cembre 2006 08:42, Len Brown a =E9crit=A0:
-> On Tuesday 19 December 2006 16:17, Corentin CHARY wrote:
-> > Hi,
-> > This set of patch is against 2.6.19. It add support for many
-> > models, /sys/class/backlight/, Light Sens, etc ... There is also a =
-lot of
-> > cleanups. And the most important, a new system to handle unsupporte=
-d
-> > models.
-> >
-> > Patch from 0 to 10 are change and cleanups in the driver.
-> > Patch from 11t to 21 add support for new models.
-> >
-> > All the following patchs are available here :
-> > <http://xf.iksaif.net/acpi4asus/2.6.19/>
->
-> Great!
->
-> When this series is formatted to apply, what tree is it supposed to a=
-pply
-> to?
-These patchs are done with asus_acpi.c from 2.6.19 . So it can be appli=
-ed to=20
-2.6.19 and 2.6.20-rc1 (as there is no change for asus_acpi in 2.6.20-rc=
-1).
+Hi,
 
+On Wednesday, 20 December 2006 00:30, Pavel Machek wrote:
+> Hi!
+>=20
+> > As indicated in a recent thread on Linux-PM, it's necessary to call
+> > pm_ops->finish() before devce_resume(), but enable_nonboot_cpus() h=
+as to be
+> > called before pm_ops->finish()
+> > (cf. http://lists.osdl.org/pipermail/linux-pm/2006-November/004164.=
+html).
+> > For consistency, it seems reasonable to call disable_nonboot_cpus()=
+ after
+> > device_suspend().
+> >=20
+> > This way the suspend code will remain symmetrical with respect to t=
+he resume
+> > code and it may allow us to speed up things in the future by suspen=
+ding and
+> > resuming devices and/or saving the suspend image in many threads.
+> ...
+> > The following series of patches reorders the suspend and resume cod=
+e so that
+> > nonboot CPUs are disabled after devices have been suspended and ena=
+bled before
+> > the devices are resumed. =A0It also causes pm_ops->finish() to be c=
+alled after
+> > enable_nonboot_cpus() wherever necessary.
+>=20
+> Series looks okay to me... but it will need _long_ testing in
+> -mm. (Consider this ACK).
 
->
-> How does it relate to the two asus_acpi patches in the mm tree right =
-now --
-> 13/19 and 19/19 that akpm forwarded to the list yesterday.
->
-The change in the mm tree are :  =20
-	- Backlight support
-	=3D> It's nearly the same code (patch 10/22)
-	- no more useless cast
-	=3D> It's ok (patch 7/22)
-	- Add support for A6VA, M6V, W5F, V6V, A4S
-	=3D> It's ok, but more features are supported in my patchs.
-	And the implemention is cleaner, as I use my parse_method()
-	function instead of adding special case in get_lcd_status()
-	(see patch 5/22 and 6/22)
-	- Swap W5A and W3V
-	=3D> It's ok,  (patch 19/22)
-	- Invert wled status
-	=3D> I don't do it, as it's a mistake. I tested on A6T, A6J, F3JM, and=
- the
-	wled value don't need to be inverted.
+Thanks.
 
-> How does it relate to the acpi-test tree, which already includes
-> the backlight patch to asus_acpi from Holger Macht?
-The change in the acpi-test tree are :
-	- Backlight support
-	=3D> done
-	- no more useless cast
-	=3D> done
->
-> thanks
-> -Len
+> > The first patch changes the ordering of the suspend-to-RAM code and=
+ is
+> > untested, because my boxes continue refusing to resume from RAM for=
+ other
+> > reasons.  If anyone can, please do me a favour and test it.
+>=20
+> I did a bit of testing, and it seems to still work, both s2ram and
+> swsusp. (uswsusp untested).
+
+I've been testing uswsusp for some time and it doesn't seem to break (s=
+o far :-)).
+
+Greetings,
+Rafael
+
 
 --=20
-CHARY 'Iksaif' Corentin
-http://xf.iksaif.net
+If you don't have the time to read,
+you don't have the time or the tools to write.
+		- Stephen King
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
