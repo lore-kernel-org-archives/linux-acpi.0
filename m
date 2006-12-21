@@ -1,121 +1,123 @@
-From: Julien Lerouge <julien.lerouge@m4x.org>
-Subject: Re: [PATCH 0/22] acpi4asus sync with 0.31
-Date: Wed, 20 Dec 2006 17:17:05 -0800
-Message-ID: <20061221011705.GG29711@debian>
-References: <200612192217.43660.corentincj@iksaif.net> <200612200242.24745.lenb@kernel.org> <200612201102.38500.corentincj@iksaif.net> <200612201749.32486.lenb@kernel.org>
+From: Oliver Henriot <Oliver.Henriot@imag.fr>
+Subject: Re: Power States
+Date: Thu, 21 Dec 2006 08:16:21 +0100
+Message-ID: <458A34C5.3000406@imag.fr>
+References: <569c97d20612201033g69b7d345i657dc6f62f591854@mail.gmail.com>	 <45898257.5060004@linux.intel.com> <569c97d20612201051la543b85r11a789affe356e1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms040800030705010901080409"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.polytechnique.org ([129.104.30.34]:36568 "EHLO
-	mx1.polytechnique.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161124AbWLUBqS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Dec 2006 20:46:18 -0500
-Content-Disposition: inline
-In-Reply-To: <200612201749.32486.lenb@kernel.org>
+Received: from imag.imag.fr ([129.88.30.1]:58091 "EHLO imag.imag.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1422788AbWLUHQk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Dec 2006 02:16:40 -0500
+Received: from [129.88.28.55] (jahnu.imag.fr [129.88.28.55])
+	by imag.imag.fr (8.13.6/8.13.6) with ESMTP id kBL7GMZ6022902
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-acpi@vger.kernel.org>; Thu, 21 Dec 2006 08:16:22 +0100 (CET)
+In-Reply-To: <569c97d20612201051la543b85r11a789affe356e1@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: corentincj@iksaif.net, linux-acpi@vger.kernel.org, sziwan@users.sourceforge.net
+To: linux-acpi@vger.kernel.org
 
-Sorry Len, I should have told you earlier,
+This is a cryptographically signed message in MIME format.
 
-I have not been active for a long time, and don't plan to be, at least
-not on this driver. Corentin is willing to maintain it. I don't know fo=
-r
-Karol, but you can remove me from the MAINTAINERS.
+--------------ms040800030705010901080409
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 
-Also, Corentin should be added to the list of the MAINTAINERS for this
-driver.
+Dans sa grande sagesse, Balaji Rao a écrit, le 20.12.2006 19:51 :
+> Also, power management is reported as not available.
+Do you mean power management as in apm? In that case, it is most 
+probably normal behavior, it seems some recent core2duo setups simply do 
+not support apm at all.
+> Where can i look for a solution?
+I've given up apm altogether and use only cpufreq + acpi on my core2duo 
+T7200 and appart from getting C3 to work even when on mains, I haven't 
+had any particular hassles.
 
-Thanks,
-Julien
+Sorry I can't give you more precise directions...
 
-On Wed, Dec 20, 2006 at 05:49:32PM -0500, Len Brown wrote:
-> Karol and Julien are listed as the MAINTAINERS for asus_acpi.
-> Why do I not see their Signed-off-by or Acked-by lines on this patch =
-series?
+Cheers,
 
-> On Wednesday 20 December 2006 05:02, Corentin CHARY wrote:
-> > Le mercredi 20 d=E9cembre 2006 08:42, Len Brown a =E9crit=A0:
-> > > On Tuesday 19 December 2006 16:17, Corentin CHARY wrote:
-> > > > Hi,
-> > > > This set of patch is against 2.6.19. It add support for many
-> > > > models, /sys/class/backlight/, Light Sens, etc ... There is als=
-o a lot of
-> > > > cleanups. And the most important, a new system to handle unsupp=
-orted
-> > > > models.
-> > > >
-> > > > Patch from 0 to 10 are change and cleanups in the driver.
-> > > > Patch from 11t to 21 add support for new models.
-> > > >
-> > > > All the following patchs are available here :
-> > > > <http://xf.iksaif.net/acpi4asus/2.6.19/>
-> > >
+--------------ms040800030705010901080409
+Content-Type: application/x-pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: S/MIME Cryptographic Signature
 
-> > >
-> > > When this series is formatted to apply, what tree is it supposed =
-to apply
-> > > to?
-> > These patchs are done with asus_acpi.c from 2.6.19 . So it can be a=
-pplied to=20
-> > 2.6.19 and 2.6.20-rc1 (as there is no change for asus_acpi in 2.6.2=
-0-rc1).
-> >=20
-> >=20
-> > >
-> > > How does it relate to the two asus_acpi patches in the mm tree ri=
-ght now --
-> > > 13/19 and 19/19 that akpm forwarded to the list yesterday.
-> > >
-> > The change in the mm tree are :  =20
-> > 	- Backlight support
-> > 	=3D> It's nearly the same code (patch 10/22)
-> > 	- no more useless cast
-> > 	=3D> It's ok (patch 7/22)
-> > 	- Add support for A6VA, M6V, W5F, V6V, A4S
-> > 	=3D> It's ok, but more features are supported in my patchs.
-> > 	And the implemention is cleaner, as I use my parse_method()
-> > 	function instead of adding special case in get_lcd_status()
-> > 	(see patch 5/22 and 6/22)
-> > 	- Swap W5A and W3V
-> > 	=3D> It's ok,  (patch 19/22)
-> > 	- Invert wled status
-> > 	=3D> I don't do it, as it's a mistake. I tested on A6T, A6J, F3JM,=
- and the
-> > 	wled value don't need to be inverted.
-
-> So should we NAK the two patches that are proposed in -mm
-> and ask Andrew to not accept asus_acpi patches and instead direct
-> them to acpi4asus-user@lists.sourceforge.net?
-
-> > > How does it relate to the acpi-test tree, which already includes
-> > > the backlight patch to asus_acpi from Holger Macht?
-> > The change in the acpi-test tree are :
-> > 	- Backlight support
-> > 	=3D> done
-> > 	- no more useless cast
-> > 	=3D> done
-
-> Holger's patch is already queued for upstream -- having lived in -mm =
-for some time now.
-> When you resend the acpi4asus series such that it is properly formatt=
-ed,
-> please be sure it applies cleanly to what is in acpi release tree.
-> (ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/relea=
-se/2.6.20/acpi-release-20060707-2.6.20-rc1.diff.gz)
-
-> thanks,
-> -Len
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIMzzCC
+A20wggJVoAMCAQICAQIwDQYJKoZIhvcNAQEEBQAwKzELMAkGA1UEBhMCRlIxDTALBgNVBAoT
+BENOUlMxDTALBgNVBAMTBENOUlMwHhcNMDEwNDI3MDU0NjQ5WhcNMTEwNDI1MDU0NjQ5WjA0
+MQswCQYDVQQGEwJGUjENMAsGA1UEChMEQ05SUzEWMBQGA1UEAxMNQ05SUy1TdGFuZGFyZDCC
+ASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANzhHiE9BovqvV60iNsPk5e0bQc9hmIA
+Lcr/tUqO51akj2Es8aAqq/Yq3Xwsv+91VQusCU7nTmHA5wzwkBVFEgLCjOvDEmTiYxAYLssH
+MdmB5dwpgpsxVuKBHopvp+ipWBFEVoNds054cC3ftv1ygUXV8e5Nzu++1T0MkCBFmgmArw9M
+2iAOgL86s+sngMC5D8ChTkDcOv1qKr9A1SxxgPn4umvk6ioAqy++mvCndm2YKZwPL/BC8hiX
+W8n2zBlfusK+EtJcsJCUwLfLBgTvjzDtMi16SveTu6AJpLTuM8vQg5u1tbOQ3o6QHlmcINVL
+Hu3XTE+G+hw6KqHprAWgnb8CAwEAAaOBkjCBjzAMBgNVHRMEBTADAQH/MB0GA1UdDgQWBBRn
+WaXlB3RJA+8Fz8wupBjVEMiePDBTBgNVHSMETDBKgBRW62i50lx+mLWlU8ORb2NYxPlrt6Ev
+pC0wKzELMAkGA1UEBhMCRlIxDTALBgNVBAoTBENOUlMxDTALBgNVBAMTBENOUlOCAQAwCwYD
+VR0PBAQDAgEGMA0GCSqGSIb3DQEBBAUAA4IBAQAGA0eDckWQwk7hIderF6kBVQbKQG1Voh1e
+6+IUI1nkCeKQ9jyNNgYPS6cmI2XC6gaacru4jMuKX+95NiV+ANfzBpT7g0QpJjfH7umHzmyG
+gBtxPdJir/bNYmxTD+Z6kwCMey4z4EEdqr5lmHbxlQd0s+Y/U3XVSwY2SynE9tyOE4BAEHOC
+rRV7BHFQtTcz8shku6EQfjbGra9vcFKm0a7MzLqw6FkSj2INrQPdSyroiTmIUS/tYei3MIfb
+J1VtZoejUQmAYXFRBb4THdlBMPx1XwqWmxj/vpCBtBPAchEI/Wqaage99IMstGA2ZAf6PWqn
+sJAEdoPdM8s04heYBAuhMIIEqzCCA5OgAwIBAgICPqowDQYJKoZIhvcNAQEEBQAwNDELMAkG
+A1UEBhMCRlIxDTALBgNVBAoTBENOUlMxFjAUBgNVBAMTDUNOUlMtU3RhbmRhcmQwHhcNMDYw
+OTA0MTE0MDQyWhcNMDcwOTA0MTE0MDQyWjBrMQswCQYDVQQGEwJGUjENMAsGA1UEChMEQ05S
+UzENMAsGA1UECxMERlI3MTEXMBUGA1UEAxMOT2xpdmVyIEhlbnJpb3QxJTAjBgkqhkiG9w0B
+CQEWFk9saXZlci5IZW5yaW90QGltYWcuZnIwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK
+AoIBAQCyNl4NNKoxifg7S153OeCW5a54sL+5LiDJnYJxkpJAXIkvg3dCCFEah7Ui47aIhWwI
+lixnwZQKrm2rf6bz7hR1XF6snAMXJdqN6tDA+j3Spno/Ap77wZjJvYV4m9vM0JTF5rzcO0am
+Mb0XP2rSw89bbI7+IXNl90/toJT+BkplGsxJi561C0HgbCxvmLG+q75UW78pv+d41lQbs96M
+bjHUQGyDkzt1AtU3OW1YiHr33BIyNXSYSfHGgfz3ZOjb496bfCTftLs9xro5HkpYI5PNOa1x
+Or6R9uOydv+KX010kjTb5H+WZCGo2mzHaO4i7taKbCUKt7V09d2zX8XQH+NbAgMBAAGjggGO
+MIIBijAMBgNVHRMBAf8EAjAAMBEGCWCGSAGG+EIBAQQEAwIEsDAOBgNVHQ8BAf8EBAMCBeAw
+eAYJYIZIAYb4QgENBGsWaUNlcnRpZmljYXQgQ05SUy1TdGFuZGFyZC4gUG91ciB0b3V0ZSBp
+bmZvcm1hdGlvbiBzZSByZXBvcnRlciDgIGh0dHA6Ly9pZ2Muc2VydmljZXMuY25ycy5mci9D
+TlJTLVN0YW5kYXJkLzAdBgNVHQ4EFgQU6H78Ol0mMubat4BoYbZ/Rw/j/l0wUwYDVR0jBEww
+SoAUZ1ml5Qd0SQPvBc/MLqQY1RDInjyhL6QtMCsxCzAJBgNVBAYTAkZSMQ0wCwYDVQQKEwRD
+TlJTMQ0wCwYDVQQDEwRDTlJTggECMCEGA1UdEQQaMBiBFk9saXZlci5IZW5yaW90QGltYWcu
+ZnIwRgYDVR0fBD8wPTA7oDmgN4Y1aHR0cDovL2NybHMuc2VydmljZXMuY25ycy5mci9DTlJT
+LVN0YW5kYXJkL2dldGRlci5jcmwwDQYJKoZIhvcNAQEEBQADggEBAB8tLxj4B1fWbQDswyyR
+FtHYSkomAFb5ajZVvlRQL9AGGzWvLj7Skn286EOStNGtekmJJ+tZsFlWgNeV3b06XmPa4D8X
+znTTlQjSl5eMHJ7n07xips8br+uhUZRlAGN49fKV4aSTY3D+/2u45X6lFLZP7bM1MmtqXgcD
+u6XWZQupvOUfa9w8+hozfsIWlzhIcfXmFXa7+R7kXjk/39RDk0/9pN8v5Xp67PBSKp44CR1D
+HwBfEoFLHkErr/3yjIK42uiiTerxmfnARGQB2VXHd6ENf+TbtZRoTNcADndi/WbW3TaCWO9D
+AQJtxj0k7xJwN/+WkRalbUu+GoF9+ZKyVFIwggSrMIIDk6ADAgECAgI+qjANBgkqhkiG9w0B
+AQQFADA0MQswCQYDVQQGEwJGUjENMAsGA1UEChMEQ05SUzEWMBQGA1UEAxMNQ05SUy1TdGFu
+ZGFyZDAeFw0wNjA5MDQxMTQwNDJaFw0wNzA5MDQxMTQwNDJaMGsxCzAJBgNVBAYTAkZSMQ0w
+CwYDVQQKEwRDTlJTMQ0wCwYDVQQLEwRGUjcxMRcwFQYDVQQDEw5PbGl2ZXIgSGVucmlvdDEl
+MCMGCSqGSIb3DQEJARYWT2xpdmVyLkhlbnJpb3RAaW1hZy5mcjCCASIwDQYJKoZIhvcNAQEB
+BQADggEPADCCAQoCggEBALI2Xg00qjGJ+DtLXnc54Jblrniwv7kuIMmdgnGSkkBciS+Dd0II
+URqHtSLjtoiFbAiWLGfBlAqubat/pvPuFHVcXqycAxcl2o3q0MD6PdKmej8CnvvBmMm9hXib
+28zQlMXmvNw7RqYxvRc/atLDz1tsjv4hc2X3T+2glP4GSmUazEmLnrULQeBsLG+Ysb6rvlRb
+vym/53jWVBuz3oxuMdRAbIOTO3UC1Tc5bViIevfcEjI1dJhJ8caB/Pdk6Nvj3pt8JN+0uz3G
+ujkeSlgjk805rXE6vpH247J2/4pfTXSSNNvkf5ZkIajabMdo7iLu1opsJQq3tXT13bNfxdAf
+41sCAwEAAaOCAY4wggGKMAwGA1UdEwEB/wQCMAAwEQYJYIZIAYb4QgEBBAQDAgSwMA4GA1Ud
+DwEB/wQEAwIF4DB4BglghkgBhvhCAQ0EaxZpQ2VydGlmaWNhdCBDTlJTLVN0YW5kYXJkLiBQ
+b3VyIHRvdXRlIGluZm9ybWF0aW9uIHNlIHJlcG9ydGVyIOAgaHR0cDovL2lnYy5zZXJ2aWNl
+cy5jbnJzLmZyL0NOUlMtU3RhbmRhcmQvMB0GA1UdDgQWBBTofvw6XSYy5tq3gGhhtn9HD+P+
+XTBTBgNVHSMETDBKgBRnWaXlB3RJA+8Fz8wupBjVEMiePKEvpC0wKzELMAkGA1UEBhMCRlIx
+DTALBgNVBAoTBENOUlMxDTALBgNVBAMTBENOUlOCAQIwIQYDVR0RBBowGIEWT2xpdmVyLkhl
+bnJpb3RAaW1hZy5mcjBGBgNVHR8EPzA9MDugOaA3hjVodHRwOi8vY3Jscy5zZXJ2aWNlcy5j
+bnJzLmZyL0NOUlMtU3RhbmRhcmQvZ2V0ZGVyLmNybDANBgkqhkiG9w0BAQQFAAOCAQEAHy0v
+GPgHV9ZtAOzDLJEW0dhKSiYAVvlqNlW+VFAv0AYbNa8uPtKSfbzoQ5K00a16SYkn61mwWVaA
+15XdvTpeY9rgPxfOdNOVCNKXl4wcnufTvGKmzxuv66FRlGUAY3j18pXhpJNjcP7/a7jlfqUU
+tk/tszUya2peBwO7pdZlC6m85R9r3Dz6GjN+whaXOEhx9eYVdrv5HuReOT/f1EOTT/2k3y/l
+enrs8FIqnjgJHUMfAF8SgUseQSuv/fKMgrja6KJN6vGZ+cBEZAHZVcd3oQ1/5Nu1lGhM1wAO
+d2L9ZtbdNoJY70MBAm3GPSTvEnA3/5aRFqVtS74agX35krJUUjGCAq4wggKqAgEBMDowNDEL
+MAkGA1UEBhMCRlIxDTALBgNVBAoTBENOUlMxFjAUBgNVBAMTDUNOUlMtU3RhbmRhcmQCAj6q
+MAkGBSsOAwIaBQCgggFJMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkF
+MQ8XDTA2MTIyMTA3MTYyMVowIwYJKoZIhvcNAQkEMRYEFFM7NuKjDJfxTMLv/C7ed5j5oa1T
+MEkGCSsGAQQBgjcQBDE8MDowNDELMAkGA1UEBhMCRlIxDTALBgNVBAoTBENOUlMxFjAUBgNV
+BAMTDUNOUlMtU3RhbmRhcmQCAj6qMEsGCyqGSIb3DQEJEAILMTygOjA0MQswCQYDVQQGEwJG
+UjENMAsGA1UEChMEQ05SUzEWMBQGA1UEAxMNQ05SUy1TdGFuZGFyZAICPqowUgYJKoZIhvcN
+AQkPMUUwQzAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYF
+Kw4DAgcwDQYIKoZIhvcNAwICASgwDQYJKoZIhvcNAQEBBQAEggEAiPrrMikxz6pHXxfJGB/n
+shnTB6ppFW867xxaRaRh7JT5ATAoicU30rkrbkuQDwi1z7o0qOcXSNVjwl/725+Fncck+a+p
+DrujwVf1AnGnzHuUkQBM8kSiJZWyvDrPsdPFftYHQq4ttvgeloDnD1iq3NrsFjh5LsRdH18C
+lc3nr/YZGTr67TBdfb5v5j0F7fhBhg1DbwB6v1G5GTk/txwvwVYhP2y17544sMpkg2CQ4jtW
+GjI/vqUhqUiKB+Z+3jh/MxR8rxEjyvow05Q7g883Wu/37vuRmk5vkCX1X33jeGJAOdq3viWV
+JalglZT2AX4Nod15zbkBh6Jq9y71rDOkaQAAAAAAAA==
+--------------ms040800030705010901080409--
