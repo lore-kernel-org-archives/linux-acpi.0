@@ -1,143 +1,121 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: Power States
-Date: Thu, 21 Dec 2006 17:28:57 +0800
-Message-ID: <1166693337.12505.7.camel@localhost.localdomain>
-References: <569c97d20612201033g69b7d345i657dc6f62f591854@mail.gmail.com>
-	 <45898257.5060004@linux.intel.com>
-	 <569c97d20612201051la543b85r11a789affe356e1@mail.gmail.com>
-	 <458988A4.7050801@linux.intel.com>
-	 <569c97d20612201109i7c8d3accl6ac2346ba023401b@mail.gmail.com>
-	 <45898B95.2020007@linux.intel.com>
-	 <569c97d20612201120q37e12982u7c006180604242b@mail.gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: sysfs regression on Supermicro X7DB8+
+Date: Thu, 21 Dec 2006 04:28:33 -0500
+Message-ID: <200612210428.33389.lenb@kernel.org>
+References: <200612210341.08394.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:6350 "EHLO mga01.intel.com"
+Received: from hera.kernel.org ([140.211.167.34]:60284 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965169AbWLUJY0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Dec 2006 04:24:26 -0500
-In-Reply-To: <569c97d20612201120q37e12982u7c006180604242b@mail.gmail.com>
+	id S965175AbWLUJ3L (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Dec 2006 04:29:11 -0500
+In-Reply-To: <200612210341.08394.lenb@kernel.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Balaji Rao <balajirrao@gmail.com>
-Cc: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, "linux-acpi@vger" <linux-acpi@vger.kernel.org>
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "Li, Shaohua" <shaohua.li@intel.com>, linux-acpi@vger.kernel.org
 
-On Thu, 2006-12-21 at 03:20 +0800, Balaji Rao wrote:
-> also i get these two errors. kernel version 2.6.20-rc1-mm1 
-> ACPI Exception (acpi_processor-0680): AE_NOT_FOUND, Processor Device 
-> is not present [20060707] 
-> ACPI Exception (acpi_processor-0680): AE_NOT_FOUND, Processor Device 
-> is not present [20060707] 
-> and,
-> 
-> acpi_processor-0740 [00] processor_preregister_: Error while parsing 
-> _PSD domain information. Assuming no coordination
-> 
-This is just a warning.
-> does power management "no" mean, hardware does not suppport it? or
-> can 
-> it be enabled?
-> 
-> On 12/21/06, Alexey Starikovskiy
-> <alexey.y.starikovskiy@linux.intel.com> wrote: 
-> > 6 is lowest FSB multiplier, 0.266*6 = 1.6GHz -- your lowest. 
-> > 7 is multiplier to get 1.86Ghz -- your max. 
-> > 
-> > "power management:        no"  means  power management is disabled. 
-> > 
-> > 
-> > Balaji Rao wrote: 
-> > > also, the file cat /proc/acpi/processor/CPU1/info gives this 
-> > > 
-> > > processor id:            0 
-> > > acpi id:                 1 
-> > > bus mastering control:   yes 
-> > > power management:        no 
-> > > throttling control:      yes 
-> > > limit interface:         yes 
-> > > 
-> > > Is power management not available according to this file? 
-> > > 
-> > > One more thing is that, only two frequency levels ( 1.86 and 1.6
-> Ghz) 
-> > > are being used. This does not cause much power saving.. 
-> > > 
-> > > How many levels are actually available on core 2 duo? 
-> > > 
-> > > I cant find any PSS in the DSDT dump. 
-_PSS may be contained in DSDT, SSDT and dynamic loaded tables.
-If you have any doubts, open a bug report in bugzilla.kernel.org
-attach your kernel config, acpidump and dmesg at the same time.
-> > > 
-> > > On 12/21/06, Alexey Starikovskiy 
-> > > <alexey.y.starikovskiy@linux.intel.com> wrote: 
-> > >> Then you should check your BIOS settings for DBS/EST/speedstep
-> etc 
-> > >> support. 
-> > >> C1 is the only C-state supported on CoreDuo2. 
-> > >> PSS should give you P-states. 
-> > >> 
-> > >> Balaji Rao wrote: 
-> > >> > But, acpidump doest give me anything saying SSDT.. 
-> > >> > Actually the problem is, only one power state(C1) is being
-> shown up in 
-> > >> > my Core 2 Duo (E6300) box. 
-> > >> > 
-> > >> > Also, power management is reported as not available. 
-> > >> > 
-> > >> > Where can i look for a solution? 
-> > >> > 
-> > >> > 
-> > >> > On 12/21/06, Alexey Starikovskiy 
-> > >> > <alexey.y.starikovskiy@linux.intel.com> wrote: 
-> > >> >> Balaji Rao wrote: 
-> > >> >> > Hello all, 
-> > >> >> > 
-> > >> >> > Are the various power levels supported by the processor
-> provided 
-> > >> only 
-> > >> >> > through the DSDT? Or is there any other table for this
-> purpose? 
-> > >> >> > When i disassembled my DSDT, i could not find any _PSS
-> Packages. 
-> > >> >> > 
-> > >> >> > From where does the kernel read values into the frequency
-> table? 
-> > >> >> > 
-> > >> >> > Also, which is the mechanism that decides to load the
-> appropriate 
-> > >> >> > cpufreq driver? 
-> > >> >> > 
-> > >> >> > warm regards 
-> > >> >> > 
-> > >> >> > Balaji Rao 
-> > >> >> > - 
-> > >> >> > To unsubscribe from this list: send the line "unsubscribe 
-> > >> >> linux-acpi" in 
-> > >> >> > the body of a message to majordomo@vger.kernel.org 
-> > >> >> > More majordomo info at  http://vger.kernel.org/majordomo-
-> info.html 
-> > >> >> Check SSDTs as well. 
-> > >> >> 
-> > >> >> Regards, 
-> > >> >>     Alex. 
-> > >> >> 
-> > >> > 
-> > >> > 
-> > >> 
-> > > 
-> > > 
-> >
-> 
-> 
-> --  
-> warm regards
-> 
-> Balaji Rao 
-> - 
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
-> in 
-> the body of a message to majordomo@vger.kernel.org 
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+lenb@supermicro:~> ls /sys/bus/acpi/drivers
+ACPI AC Adapter Driver           ACPI PCI Root Bridge Driver
+ACPI Battery Driver              ACPI Power Resource Driver
+ACPI Button Driver               ACPI Processor Driver
+ACPI container driver            ACPI Thermal Zone Driver
+ACPI Embedded Controller Driver  hpet
+ACPI Fan Driver                  motherboard
+ACPI PCI Interrupt Link Driver
+lenb@supermicro:~>
+
+Seems with the exception of motherboard and hpet, we have the description
+confused with the .name.  I'll fix this.
+
+What is "PNPIDNON" (below) supposed to mean?
+
+thanks,
+-Len
+
+
+supermicro:~ # ls /sys/bus/acpi/devices
+ACPI_CPU:00  ACPI_THM:00  PNP0800:00  PNP0C0F:03   PNPIDNON:04  PNPIDNON:0e
+ACPI_CPU:01  INT0800:00   PNP0A03:00  PNP0C0F:04   PNPIDNON:05  PNPIDNON:0f
+ACPI_CPU:02  PNP0000:00   PNP0A05:00  PNP0C0F:05   PNPIDNON:06  PNPIDNON:10
+ACPI_CPU:03  PNP0100:00   PNP0B00:00  PNP0C0F:06   PNPIDNON:07  PNPIDNON:11
+ACPI_CPU:04  PNP0200:00   PNP0C02:00  PNP0C0F:07   PNPIDNON:08  PNPIDNON:12
+ACPI_CPU:05  PNP0303:00   PNP0C04:00  PNP0F13:00   PNPIDNON:09  PNPIDNON:13
+ACPI_CPU:06  PNP0401:00   PNP0C0C:00  PNPIDNON:00  PNPIDNON:0a  PNPIDNON:14
+ACPI_CPU:07  PNP0501:00   PNP0C0F:00  PNPIDNON:01  PNPIDNON:0b  PNPIDNON:15
+ACPI_FPB:00  PNP0501:01   PNP0C0F:01  PNPIDNON:02  PNPIDNON:0c
+ACPI_SYS:00  PNP0700:00   PNP0C0F:02  PNPIDNON:03  PNPIDNON:0d
+
+supermicro:~# ls /sys/bus/acpi/devices/PNPIDNON*
+PNPIDNON:00:
+path  PNP0A03:00  power  subsystem  uevent
+
+PNPIDNON:01:
+path  PNPIDNON:02  PNPIDNON:07  power  subsystem  uevent
+
+PNPIDNON:02:
+path  PNPIDNON:03  PNPIDNON:06  power  subsystem  uevent
+
+PNPIDNON:03:
+path  PNPIDNON:04  PNPIDNON:05  power  subsystem  uevent
+
+PNPIDNON:04:
+path  power  subsystem  uevent
+
+PNPIDNON:05:
+path  power  subsystem  uevent
+
+PNPIDNON:06:
+path  power  subsystem  uevent
+
+PNPIDNON:07:
+path  power  subsystem  uevent
+
+PNPIDNON:08:
+path  power  subsystem  uevent
+
+PNPIDNON:09:
+path  power  subsystem  uevent
+
+PNPIDNON:0a:
+path  power  subsystem  uevent
+
+PNPIDNON:0b:
+path  power  subsystem  uevent
+
+PNPIDNON:0c:
+path  power  subsystem  uevent
+
+PNPIDNON:0d:
+path  power  subsystem  uevent
+
+PNPIDNON:0e:
+path  power  subsystem  uevent
+
+PNPIDNON:0f:
+path  power  subsystem  uevent
+
+PNPIDNON:10:
+INT0800:00  PNP0200:00  PNP0C02:00  PNP0C0F:02  PNP0C0F:06  uevent
+path        PNP0800:00  PNP0C04:00  PNP0C0F:03  PNP0C0F:07
+PNP0000:00  PNP0A05:00  PNP0C0F:00  PNP0C0F:04  power
+PNP0100:00  PNP0B00:00  PNP0C0F:01  PNP0C0F:05  subsystem
+
+PNPIDNON:11:
+path  PNPIDNON:12  power  subsystem  uevent
+
+PNPIDNON:12:
+path  PNPIDNON:13  PNPIDNON:14  power  subsystem  uevent
+
+PNPIDNON:13:
+path  power  subsystem  uevent
+
+PNPIDNON:14:
+path  power  subsystem  uevent
+
+PNPIDNON:15:
+path  power  subsystem  uevent
