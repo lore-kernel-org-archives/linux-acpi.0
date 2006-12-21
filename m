@@ -1,248 +1,143 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: sysfs regression on Supermicro X7DB8+
-Date: Thu, 21 Dec 2006 03:41:08 -0500
-Message-ID: <200612210341.08394.lenb@kernel.org>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: Power States
+Date: Thu, 21 Dec 2006 17:28:57 +0800
+Message-ID: <1166693337.12505.7.camel@localhost.localdomain>
+References: <569c97d20612201033g69b7d345i657dc6f62f591854@mail.gmail.com>
+	 <45898257.5060004@linux.intel.com>
+	 <569c97d20612201051la543b85r11a789affe356e1@mail.gmail.com>
+	 <458988A4.7050801@linux.intel.com>
+	 <569c97d20612201109i7c8d3accl6ac2346ba023401b@mail.gmail.com>
+	 <45898B95.2020007@linux.intel.com>
+	 <569c97d20612201120q37e12982u7c006180604242b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:44882 "EHLO hera.kernel.org"
+Received: from mga01.intel.com ([192.55.52.88]:6350 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422833AbWLUIln (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Dec 2006 03:41:43 -0500
-Content-Disposition: inline
+	id S965169AbWLUJY0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Dec 2006 04:24:26 -0500
+In-Reply-To: <569c97d20612201120q37e12982u7c006180604242b@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>, "Li, Shaohua" <shaohua.li@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: Balaji Rao <balajirrao@gmail.com>
+Cc: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, "linux-acpi@vger" <linux-acpi@vger.kernel.org>
 
-Rui, Shaohua,
-Thanks for fixing the boot regression on the Supermicro.
-
-Here is the patch as applied from http://bugzilla.kernel.org/show_bug.cgi?id=7695
-to the tip of the sysfs branch.
-
--Len
-
-commit 2786f6e388e9dfe9e7b1c3c6bd7fcfba9cfb9831
-Author: Rui Zhang <rui.zhang@intel.com>
-Date:   Thu Dec 21 02:21:13 2006 -0500
-
-    ACPI: fix Supermicro X7DB8+ Boot regression
-    
-    http://bugzilla.kernel.org/show_bug.cgi?id=7695
-    
-    Originally we converted bind/unbind to use a new pci bridge driver.
-    The driver will add/remove _PRT, so we can eventually remove
-    .bind/.unbind methods.
-    
-    But we found that some of the _ADR-Based devices don't have _PRT,
-    i.e. they are not managed by the new ACPI PCI bridge driver.
-    So that .bind method is not called for some _ADR-Based devices,
-    which leads to a failure.
-    
-    Now we make ACPI PCI Root Bridge Driver scan and binds all _ADR-Based devices
-    once the driver is loaded, in the .add method of ACPI PCI Root Bridge driver.
-    
-    Extra code path for calling .bind/.unbind when _ADR-Based devices
-    are hot added/removed is also added.
-    
-    Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
-
-diff --git a/drivers/acpi/pci_bind.c b/drivers/acpi/pci_bind.c
-index aa05e92..1e2ae6e 100644
---- a/drivers/acpi/pci_bind.c
-+++ b/drivers/acpi/pci_bind.c
-@@ -223,6 +223,8 @@ int acpi_pci_bind(struct acpi_device *device)
- 				  data->id.segment, data->id.bus,
- 				  data->id.device, data->id.function));
- 		data->bus = data->dev->subordinate;
-+		device->ops.bind = acpi_pci_bind;
-+		device->ops.unbind = acpi_pci_unbind;
- 	}
- 
- 	/*
-@@ -352,6 +354,8 @@ acpi_pci_bind_root(struct acpi_device *device,
- 
- 	data->id = *id;
- 	data->bus = bus;
-+	device->ops.bind = acpi_pci_bind;
-+	device->ops.unbind = acpi_pci_unbind;
- 
- 	acpi_get_name(device->handle, ACPI_FULL_PATHNAME, &buffer);
- 
-@@ -374,39 +378,3 @@ acpi_pci_bind_root(struct acpi_device *device,
- 
- 	return result;
- }
--
--#define ACPI_PCI_BRIDGE_DRIVER_NAME "ACPI PCI Bridge Driver"
--
--static int acpi_pci_bridge_add(struct acpi_device *device);
--static int acpi_pci_bridge_remove(struct acpi_device *device, int type);
--
--static struct acpi_driver acpi_pci_bridge_driver = {
--       .name = ACPI_PCI_BRIDGE_DRIVER_NAME,
--	.ids = ACPI_PCI_BRIDGE_HID,
--       .ops = {
--               .add = acpi_pci_bridge_add,
--               .remove = acpi_pci_bridge_remove,
--       },
--};
--
--static int acpi_pci_bridge_add(struct acpi_device *device)
--{
--       return acpi_pci_bind(device);
--}
--
--static int acpi_pci_bridge_remove(struct acpi_device *device, int type)
--{
--       return acpi_pci_unbind(device);
--}
--
--static int __init acpi_pci_bridge_init(void)
--{
--       if (acpi_pci_disabled)
--               return 0;
--       if (acpi_bus_register_driver(&acpi_pci_bridge_driver) < 0)
--               return -ENODEV;
--       return 0;
--}
--
--/* Should be called after ACPI pci root driver */
--subsys_initcall(acpi_pci_bridge_init);
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 9cfc741..2e1a74a 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -151,6 +151,21 @@ static acpi_status try_get_root_bridge_busnr(acpi_handle handle, int *busnum)
- 	return AE_OK;
- }
- 
-+static void acpi_pci_bridge_scan(struct acpi_device *device)
-+{
-+	int status;
-+	struct acpi_device *child = NULL;
-+
-+	if (device->flags.bus_address)
-+		if (device->parent && device->parent->ops.bind) {
-+			status = device->parent->ops.bind(device);
-+			if (!status) {
-+				list_for_each_entry(child, &device->children, node)
-+					acpi_pci_bridge_scan(child);
-+			}
-+		}
-+}
-+
- static int acpi_pci_root_add(struct acpi_device *device)
- {
- 	int result = 0;
-@@ -159,6 +174,7 @@ static int acpi_pci_root_add(struct acpi_device *device)
- 	acpi_status status = AE_OK;
- 	unsigned long value = 0;
- 	acpi_handle handle = NULL;
-+	struct acpi_device *child;
- 
- 
- 	if (!device)
-@@ -175,6 +191,8 @@ static int acpi_pci_root_add(struct acpi_device *device)
- 	strcpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS);
- 	acpi_driver_data(device) = root;
- 
-+	device->ops.bind = acpi_pci_bind;
-+
- 	/* 
- 	 * Segment
- 	 * -------
-@@ -294,6 +312,12 @@ static int acpi_pci_root_add(struct acpi_device *device)
- 		result = acpi_pci_irq_add_prt(device->handle, root->id.segment,
- 					      root->id.bus);
- 
-+	/*
-+	 * Scan and bind all _ADR-Based Devices
-+	 */
-+	list_for_each_entry(child, &device->children, node)
-+		acpi_pci_bridge_scan(child);
-+
-       end:
- 	if (result) {
- 		if (!list_empty(&root->node))
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 769e54b..30a39ba 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -837,20 +837,6 @@ acpi_video_bus_match(struct acpi_device *device)
- 	return -ENODEV;
- }
- 
--static int acpi_pci_bridge_match(struct acpi_device *device)
--{
--       acpi_status status;
--       acpi_handle handle;
--
--       /* pci bridge has _PRT but isn't PNP0A03 */
--       status = acpi_get_handle(device->handle, METHOD_NAME__PRT, &handle);
--       if (ACPI_FAILURE(status))
--               return -ENODEV;
--       if (!acpi_match_ids(device, "PNP0A03"))
--               return -ENODEV;
--       return 0;
--}
--
- static void acpi_device_set_id(struct acpi_device *device,
- 			       struct acpi_device *parent, acpi_handle handle,
- 			       int type)
-@@ -886,10 +872,6 @@ static void acpi_device_set_id(struct acpi_device *device,
- 			status = acpi_video_bus_match(device);
- 			if(ACPI_SUCCESS(status))
- 				hid = ACPI_VIDEO_HID;
--
--			status = acpi_pci_bridge_match(device);
--			if(ACPI_SUCCESS(status))
--				hid = ACPI_PCI_BRIDGE_HID;
- 		}
- 		break;
- 	case ACPI_BUS_TYPE_POWER:
-@@ -1021,6 +1003,13 @@ static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
- 	if (!rmdevice)
- 		return 0;
- 
-+	/*
-+	 * unbind _ADR-Based Devices when hot removal
-+	 */
-+	if (dev->flags.bus_address) {
-+		if ((dev->parent) && (dev->parent->ops.unbind))
-+			dev->parent->ops.unbind(dev);
-+	}
- 	acpi_device_unregister(dev, ACPI_BUS_REMOVAL_EJECT);
- 
- 	return 0;
-@@ -1137,6 +1126,14 @@ acpi_add_single_object(struct acpi_device **child,
- 
- 	result = acpi_device_register(device, parent);
- 
-+	/*
-+	 * Bind _ADR-Based Devices when hot add
-+	 */
-+	if (device->flags.bus_address) {
-+		if (device->parent && device->parent->ops.bind)
-+			device->parent->ops.bind(device);
-+	}
-+
-       end:
- 	if (!result)
- 		*child = device;
-diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-index be67750..2781e66 100644
---- a/include/acpi/acpi_drivers.h
-+++ b/include/acpi/acpi_drivers.h
-@@ -44,7 +44,6 @@
- #define ACPI_BUTTON_HID_SLEEPF		"ACPI_FSB"
- 
- #define ACPI_VIDEO_HID			"ACPI_VID"
--#define ACPI_PCI_BRIDGE_HID		"ACPI_PCI"
- /* --------------------------------------------------------------------------
-                                        PCI
-    -------------------------------------------------------------------------- */
+On Thu, 2006-12-21 at 03:20 +0800, Balaji Rao wrote:
+> also i get these two errors. kernel version 2.6.20-rc1-mm1 
+> ACPI Exception (acpi_processor-0680): AE_NOT_FOUND, Processor Device 
+> is not present [20060707] 
+> ACPI Exception (acpi_processor-0680): AE_NOT_FOUND, Processor Device 
+> is not present [20060707] 
+> and,
+> 
+> acpi_processor-0740 [00] processor_preregister_: Error while parsing 
+> _PSD domain information. Assuming no coordination
+> 
+This is just a warning.
+> does power management "no" mean, hardware does not suppport it? or
+> can 
+> it be enabled?
+> 
+> On 12/21/06, Alexey Starikovskiy
+> <alexey.y.starikovskiy@linux.intel.com> wrote: 
+> > 6 is lowest FSB multiplier, 0.266*6 = 1.6GHz -- your lowest. 
+> > 7 is multiplier to get 1.86Ghz -- your max. 
+> > 
+> > "power management:        no"  means  power management is disabled. 
+> > 
+> > 
+> > Balaji Rao wrote: 
+> > > also, the file cat /proc/acpi/processor/CPU1/info gives this 
+> > > 
+> > > processor id:            0 
+> > > acpi id:                 1 
+> > > bus mastering control:   yes 
+> > > power management:        no 
+> > > throttling control:      yes 
+> > > limit interface:         yes 
+> > > 
+> > > Is power management not available according to this file? 
+> > > 
+> > > One more thing is that, only two frequency levels ( 1.86 and 1.6
+> Ghz) 
+> > > are being used. This does not cause much power saving.. 
+> > > 
+> > > How many levels are actually available on core 2 duo? 
+> > > 
+> > > I cant find any PSS in the DSDT dump. 
+_PSS may be contained in DSDT, SSDT and dynamic loaded tables.
+If you have any doubts, open a bug report in bugzilla.kernel.org
+attach your kernel config, acpidump and dmesg at the same time.
+> > > 
+> > > On 12/21/06, Alexey Starikovskiy 
+> > > <alexey.y.starikovskiy@linux.intel.com> wrote: 
+> > >> Then you should check your BIOS settings for DBS/EST/speedstep
+> etc 
+> > >> support. 
+> > >> C1 is the only C-state supported on CoreDuo2. 
+> > >> PSS should give you P-states. 
+> > >> 
+> > >> Balaji Rao wrote: 
+> > >> > But, acpidump doest give me anything saying SSDT.. 
+> > >> > Actually the problem is, only one power state(C1) is being
+> shown up in 
+> > >> > my Core 2 Duo (E6300) box. 
+> > >> > 
+> > >> > Also, power management is reported as not available. 
+> > >> > 
+> > >> > Where can i look for a solution? 
+> > >> > 
+> > >> > 
+> > >> > On 12/21/06, Alexey Starikovskiy 
+> > >> > <alexey.y.starikovskiy@linux.intel.com> wrote: 
+> > >> >> Balaji Rao wrote: 
+> > >> >> > Hello all, 
+> > >> >> > 
+> > >> >> > Are the various power levels supported by the processor
+> provided 
+> > >> only 
+> > >> >> > through the DSDT? Or is there any other table for this
+> purpose? 
+> > >> >> > When i disassembled my DSDT, i could not find any _PSS
+> Packages. 
+> > >> >> > 
+> > >> >> > From where does the kernel read values into the frequency
+> table? 
+> > >> >> > 
+> > >> >> > Also, which is the mechanism that decides to load the
+> appropriate 
+> > >> >> > cpufreq driver? 
+> > >> >> > 
+> > >> >> > warm regards 
+> > >> >> > 
+> > >> >> > Balaji Rao 
+> > >> >> > - 
+> > >> >> > To unsubscribe from this list: send the line "unsubscribe 
+> > >> >> linux-acpi" in 
+> > >> >> > the body of a message to majordomo@vger.kernel.org 
+> > >> >> > More majordomo info at  http://vger.kernel.org/majordomo-
+> info.html 
+> > >> >> Check SSDTs as well. 
+> > >> >> 
+> > >> >> Regards, 
+> > >> >>     Alex. 
+> > >> >> 
+> > >> > 
+> > >> > 
+> > >> 
+> > > 
+> > > 
+> >
+> 
+> 
+> --  
+> warm regards
+> 
+> Balaji Rao 
+> - 
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+> in 
+> the body of a message to majordomo@vger.kernel.org 
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
