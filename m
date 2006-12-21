@@ -1,45 +1,39 @@
 From: Oliver Henriot <Oliver.Henriot@imag.fr>
 Subject: Re: Power States
-Date: Thu, 21 Dec 2006 08:16:21 +0100
-Message-ID: <458A34C5.3000406@imag.fr>
-References: <569c97d20612201033g69b7d345i657dc6f62f591854@mail.gmail.com>	 <45898257.5060004@linux.intel.com> <569c97d20612201051la543b85r11a789affe356e1@mail.gmail.com>
+Date: Thu, 21 Dec 2006 08:09:40 +0100
+Message-ID: <458A3334.3070708@imag.fr>
+References: <569c97d20612201033g69b7d345i657dc6f62f591854@mail.gmail.com>	 <45898257.5060004@linux.intel.com> <569c97d20612201051la543b85r11a789affe356e1@mail.gmail.com> <458988A4.7050801@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms040800030705010901080409"
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms000800070505000508060207"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from imag.imag.fr ([129.88.30.1]:58091 "EHLO imag.imag.fr"
+Received: from imag.imag.fr ([129.88.30.1]:62044 "EHLO imag.imag.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422788AbWLUHQk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Dec 2006 02:16:40 -0500
+	id S1422799AbWLUHZx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Dec 2006 02:25:53 -0500
 Received: from [129.88.28.55] (jahnu.imag.fr [129.88.28.55])
-	by imag.imag.fr (8.13.6/8.13.6) with ESMTP id kBL7GMZ6022902
+	by imag.imag.fr (8.13.6/8.13.6) with ESMTP id kBL79eFn022026
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-acpi@vger.kernel.org>; Thu, 21 Dec 2006 08:16:22 +0100 (CET)
-In-Reply-To: <569c97d20612201051la543b85r11a789affe356e1@mail.gmail.com>
+	for <linux-acpi@vger.kernel.org>; Thu, 21 Dec 2006 08:09:41 +0100 (CET)
+In-Reply-To: <458988A4.7050801@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
 This is a cryptographically signed message in MIME format.
 
---------------ms040800030705010901080409
+--------------ms000800070505000508060207
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 8bit
 
-Dans sa grande sagesse, Balaji Rao a écrit, le 20.12.2006 19:51 :
-> Also, power management is reported as not available.
-Do you mean power management as in apm? In that case, it is most 
-probably normal behavior, it seems some recent core2duo setups simply do 
-not support apm at all.
-> Where can i look for a solution?
-I've given up apm altogether and use only cpufreq + acpi on my core2duo 
-T7200 and appart from getting C3 to work even when on mains, I haven't 
-had any particular hassles.
-
-Sorry I can't give you more precise directions...
+Dans sa grande sagesse, Alexey Starikovskiy a écrit, le 20.12.2006 20:01 :
+> C1 is the only C-state supported on CoreDuo2.
+Could you detail why please? I've got C1 to C3 working fine on a 
+Core2Duo T7200 and  2.6.19 kernel, or so it seems to me, maybe I've 
+missed something?
 
 Cheers,
 
---------------ms040800030705010901080409
+--------------ms000800070505000508060207
 Content-Type: application/x-pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -109,15 +103,15 @@ enrs8FIqnjgJHUMfAF8SgUseQSuv/fKMgrja6KJN6vGZ+cBEZAHZVcd3oQ1/5Nu1lGhM1wAO
 d2L9ZtbdNoJY70MBAm3GPSTvEnA3/5aRFqVtS74agX35krJUUjGCAq4wggKqAgEBMDowNDEL
 MAkGA1UEBhMCRlIxDTALBgNVBAoTBENOUlMxFjAUBgNVBAMTDUNOUlMtU3RhbmRhcmQCAj6q
 MAkGBSsOAwIaBQCgggFJMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkF
-MQ8XDTA2MTIyMTA3MTYyMVowIwYJKoZIhvcNAQkEMRYEFFM7NuKjDJfxTMLv/C7ed5j5oa1T
+MQ8XDTA2MTIyMTA3MDk0MFowIwYJKoZIhvcNAQkEMRYEFFCChUUa79h1J5ISEkKkCYf3eKcV
 MEkGCSsGAQQBgjcQBDE8MDowNDELMAkGA1UEBhMCRlIxDTALBgNVBAoTBENOUlMxFjAUBgNV
 BAMTDUNOUlMtU3RhbmRhcmQCAj6qMEsGCyqGSIb3DQEJEAILMTygOjA0MQswCQYDVQQGEwJG
 UjENMAsGA1UEChMEQ05SUzEWMBQGA1UEAxMNQ05SUy1TdGFuZGFyZAICPqowUgYJKoZIhvcN
 AQkPMUUwQzAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYF
-Kw4DAgcwDQYIKoZIhvcNAwICASgwDQYJKoZIhvcNAQEBBQAEggEAiPrrMikxz6pHXxfJGB/n
-shnTB6ppFW867xxaRaRh7JT5ATAoicU30rkrbkuQDwi1z7o0qOcXSNVjwl/725+Fncck+a+p
-DrujwVf1AnGnzHuUkQBM8kSiJZWyvDrPsdPFftYHQq4ttvgeloDnD1iq3NrsFjh5LsRdH18C
-lc3nr/YZGTr67TBdfb5v5j0F7fhBhg1DbwB6v1G5GTk/txwvwVYhP2y17544sMpkg2CQ4jtW
-GjI/vqUhqUiKB+Z+3jh/MxR8rxEjyvow05Q7g883Wu/37vuRmk5vkCX1X33jeGJAOdq3viWV
-JalglZT2AX4Nod15zbkBh6Jq9y71rDOkaQAAAAAAAA==
---------------ms040800030705010901080409--
+Kw4DAgcwDQYIKoZIhvcNAwICASgwDQYJKoZIhvcNAQEBBQAEggEAf7LcclP647YVTHYKmZK0
+DS0k8/pgn/CjJnFCKkr5eQhBP7PWH2u2W/9DvZyuROyx4OaXVzqXGvgfauExhRjNfnrxhuJS
+rzX7EeDh+D+1HsQFCRe80SroU7leMy3F//77ZMvwhOrAdEG2DNFAKCa1k80in/Bt/715d7ih
+0k7KB/Tjc6B1OhoOZ+bq83gJvSiQ9tObYi3Q3n0b8yXSPkB7ABNFJPxxfUqt+GvwsNgnjbkt
+0wHoMUg5b9T+0qfekcvdhPCimh9ry9xoS9yzOUB/tlXUQhLLK3Lf8ov0B8R06zA3MoNvADJw
+2R91f+BwoA0B4Ot9wixZmeNCbJunGV3q6wAAAAAAAA==
+--------------ms000800070505000508060207--
