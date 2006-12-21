@@ -1,39 +1,56 @@
 From: Oliver Henriot <Oliver.Henriot@imag.fr>
 Subject: Re: Power States
-Date: Thu, 21 Dec 2006 08:09:40 +0100
-Message-ID: <458A3334.3070708@imag.fr>
-References: <569c97d20612201033g69b7d345i657dc6f62f591854@mail.gmail.com>	 <45898257.5060004@linux.intel.com> <569c97d20612201051la543b85r11a789affe356e1@mail.gmail.com> <458988A4.7050801@linux.intel.com>
+Date: Thu, 21 Dec 2006 08:33:52 +0100
+Message-ID: <458A38E0.40108@imag.fr>
+References: <569c97d20612201033g69b7d345i657dc6f62f591854@mail.gmail.com>	 <45898257.5060004@linux.intel.com>	 <569c97d20612201051la543b85r11a789affe356e1@mail.gmail.com>	 <458988A4.7050801@linux.intel.com> <569c97d20612201109i7c8d3accl6ac2346ba023401b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms000800070505000508060207"
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms010607060207010206040904"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from imag.imag.fr ([129.88.30.1]:62044 "EHLO imag.imag.fr"
+Received: from imag.imag.fr ([129.88.30.1]:32875 "EHLO imag.imag.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422799AbWLUHZx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Dec 2006 02:25:53 -0500
+	id S1422806AbWLUHeP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Dec 2006 02:34:15 -0500
 Received: from [129.88.28.55] (jahnu.imag.fr [129.88.28.55])
-	by imag.imag.fr (8.13.6/8.13.6) with ESMTP id kBL79eFn022026
+	by imag.imag.fr (8.13.6/8.13.6) with ESMTP id kBL7Xq95024957
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-acpi@vger.kernel.org>; Thu, 21 Dec 2006 08:09:41 +0100 (CET)
-In-Reply-To: <458988A4.7050801@linux.intel.com>
+	for <linux-acpi@vger.kernel.org>; Thu, 21 Dec 2006 08:33:52 +0100 (CET)
+In-Reply-To: <569c97d20612201109i7c8d3accl6ac2346ba023401b@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
 This is a cryptographically signed message in MIME format.
 
---------------ms000800070505000508060207
+--------------ms010607060207010206040904
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 8bit
 
-Dans sa grande sagesse, Alexey Starikovskiy a écrit, le 20.12.2006 20:01 :
-> C1 is the only C-state supported on CoreDuo2.
-Could you detail why please? I've got C1 to C3 working fine on a 
-Core2Duo T7200 and  2.6.19 kernel, or so it seems to me, maybe I've 
-missed something?
+Dans sa grande sagesse, Balaji Rao a écrit, le 20.12.2006 20:09 :
+> also, the file cat /proc/acpi/processor/CPU1/info gives this
+>
+> processor id:            0
+> acpi id:                 1
+> bus mastering control:   yes
+> power management:        no
+> throttling control:      yes
+> limit interface:         yes
+Indeed, that's odd. I've got yes for pm on mine...
+>
+> One more thing is that, only two frequency levels ( 1.86 and 1.6 Ghz)
+> are being used. This does not cause much power saving..
+>
+> How many levels are actually available on core 2 duo?
+cpufreq stages from 1GHz to 2GHz via 4 steps (1.33 and 1.67 
+intermediate) on my T7200, can't say for your E6300.
+>
+> I cant find any PSS in the DSDT dump.
+Neither can I but that doesn't seem to be a problem ;-)
+Can't help you more with DSDT, you probably know more about it than I 
+do, I've got a lot of rtfming to do yet...
 
 Cheers,
 
---------------ms000800070505000508060207
+--------------ms010607060207010206040904
 Content-Type: application/x-pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -103,15 +120,15 @@ enrs8FIqnjgJHUMfAF8SgUseQSuv/fKMgrja6KJN6vGZ+cBEZAHZVcd3oQ1/5Nu1lGhM1wAO
 d2L9ZtbdNoJY70MBAm3GPSTvEnA3/5aRFqVtS74agX35krJUUjGCAq4wggKqAgEBMDowNDEL
 MAkGA1UEBhMCRlIxDTALBgNVBAoTBENOUlMxFjAUBgNVBAMTDUNOUlMtU3RhbmRhcmQCAj6q
 MAkGBSsOAwIaBQCgggFJMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkF
-MQ8XDTA2MTIyMTA3MDk0MFowIwYJKoZIhvcNAQkEMRYEFFCChUUa79h1J5ISEkKkCYf3eKcV
+MQ8XDTA2MTIyMTA3MzM1MlowIwYJKoZIhvcNAQkEMRYEFMjyNtH/GZfe9ljmNrh9dzT73vgh
 MEkGCSsGAQQBgjcQBDE8MDowNDELMAkGA1UEBhMCRlIxDTALBgNVBAoTBENOUlMxFjAUBgNV
 BAMTDUNOUlMtU3RhbmRhcmQCAj6qMEsGCyqGSIb3DQEJEAILMTygOjA0MQswCQYDVQQGEwJG
 UjENMAsGA1UEChMEQ05SUzEWMBQGA1UEAxMNQ05SUy1TdGFuZGFyZAICPqowUgYJKoZIhvcN
 AQkPMUUwQzAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYF
-Kw4DAgcwDQYIKoZIhvcNAwICASgwDQYJKoZIhvcNAQEBBQAEggEAf7LcclP647YVTHYKmZK0
-DS0k8/pgn/CjJnFCKkr5eQhBP7PWH2u2W/9DvZyuROyx4OaXVzqXGvgfauExhRjNfnrxhuJS
-rzX7EeDh+D+1HsQFCRe80SroU7leMy3F//77ZMvwhOrAdEG2DNFAKCa1k80in/Bt/715d7ih
-0k7KB/Tjc6B1OhoOZ+bq83gJvSiQ9tObYi3Q3n0b8yXSPkB7ABNFJPxxfUqt+GvwsNgnjbkt
-0wHoMUg5b9T+0qfekcvdhPCimh9ry9xoS9yzOUB/tlXUQhLLK3Lf8ov0B8R06zA3MoNvADJw
-2R91f+BwoA0B4Ot9wixZmeNCbJunGV3q6wAAAAAAAA==
---------------ms000800070505000508060207--
+Kw4DAgcwDQYIKoZIhvcNAwICASgwDQYJKoZIhvcNAQEBBQAEggEAVLpfUVJH+4/2Df/kUWdV
+rJtVQwHrAgNhx2sBisyb/mbz94d1UAEpzF+yL8xu8kxU7yU0xEixP89URMRsnxgtS/z6OheL
+dflOI4VoRE8tYEcxVTYOmxLEWHlyFxBf3nZjH5NQxyhNsiRWrjTM9PaoCiSkMPPhavxfCgYD
+uE5ko4y0IyzUMXSE2bp993YdT3csbzyEzQIbFfrmbMMuY3t0JMlim3Qz75eR/3sh31D25rm1
+QFaYYyHGE2VCNJ8NgqtZMOaX29H4ilwJc2l5Uz/avRNvfGOMyQfifA9dhmiHlrPTnoFhpj3w
+bHHQdxapb2tatPoqsGoCaGfN6+HF7nyg6wAAAAAAAA==
+--------------ms010607060207010206040904--
