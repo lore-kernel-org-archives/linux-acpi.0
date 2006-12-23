@@ -1,157 +1,158 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH] sysfs->test merge /w  bay.c
-Date: Fri, 22 Dec 2006 23:31:14 -0500
-Message-ID: <200612222331.14738.lenb@kernel.org>
+From: Corentin CHARY <corentincj@iksaif.net>
+Subject: Re: [PATCH 0/22] acpi4asus sync with 0.31
+Date: Sat, 23 Dec 2006 13:27:32 +0100
+Message-ID: <200612231327.33301.corentincj@iksaif.net>
+References: <200612192217.43660.corentincj@iksaif.net> <20061221011705.GG29711@debian> <200612222111.52411.lenb@kernel.org>
+Reply-To: corentincj@iksaif.net
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:49778 "EHLO hera.kernel.org"
+Received: from iksaif.dns26.com ([84.246.226.15]:35861 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751791AbWLWEbs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Dec 2006 23:31:48 -0500
-Received: from d975xbx2.site (c-65-96-213-102.hsd1.ma.comcast.net [65.96.213.102])
-	(authenticated bits=0)
-	by hera.kernel.org (8.13.8/8.13.7) with ESMTP id kBN4VKcb027280
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Sat, 23 Dec 2006 04:31:45 GMT
+	id S1753102AbWLWM1f convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Dec 2006 07:27:35 -0500
+In-Reply-To: <200612222111.52411.lenb@kernel.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Julien Lerouge <julien.lerouge@m4x.org>, linux-acpi@vger.kernel.org, sziwan@users.sourceforge.net, acpi4asus-user@lists.sourceforge.net
 
-With Rui's patch below, I've merged sysfs back into the main test branch in the acpi git tree.
+ACK
 
-As usual, the test branch is also available as a plain patch:
-http://ftp.kernel.org:/pub/linux/kernel/people/lenb/acpi/patches/test/2.6.20/acpi-test-20060707-2.6.20-rc1.diff.gz
+Le samedi 23 d=E9cembre 2006 03:11, Len Brown a =E9crit=A0:
+> Thanks Julien, I'll update MAINTAINERS patch below.
+>
+> Corentin, please ACK or NAK (note, I put your URL in there too)
+>
+> I'll leave Karol's entry alone till I hear from him.
+>
+> Corentin,
+> Do you agree that patches for asus_acpi should always appear on the
+> acpi4asus mailing list and get an ACK from you before being applied
+> upstream? (The only answer is yes:-)  I'll NAK them now:-)
+Yes
 
-thanks Rui,
--Len
+> But to apply your series, we need to first iron out a couple of logis=
+tics.
+>
+> Per Documentation/SubmittingPatches
+>
+> From: Original Author <author@example.com>
+> must appear on each patch to credit the original author.
+> Clarity on the Subject: line about what changed is important.
+> Important to keep cosmetic vs functional changes in different patches
+> and document such -- looks like you've done a good job of that --
+> though ideally the cosmetic patches come _after_ the functional ones
+> in case somebody wants to apply functional w/o cosmetic -- but not a =
+hard
+> rule. Check-in comments go into the permanent record, so they don't
+> need to say thing like "this patch" etc, since that is implicit etc.
+>
+> The series you sent is from you and signed-off-by you, which credits =
+nobody
+> else. That is fine if you are the original author and only contributo=
+r, but
+> needs to be updated if not.
+Most of the patch I get were unusable. Some of them were very usefull (=
+but I=20
+had to rewrite them), I added authors in asus_acpi.c header, but forgot=
+ them=20
+in the mails.
 
-commit 8f750a47c8cfea621a5769bcd354de07ae0d5e05
-Author: Zhang Rui <rui.zhang@intel.com>
-Date:   Fri Dec 22 00:48:00 2006 -0500
+> Also, the e-mail patches must apply and not get garbled by your maile=
+r due
+> to line-wrap per my previous message.
+Ok, I will re-send the whole series. Maybe I should join them to avoid =
+stupid=20
+mistakes like that ? (Or I can just uncheck line-wrap ^^)
 
-    ACPI: bay: Convert ACPI Bay driver to be compatible with sysfs update.
-    
-    	Set fake hid for ejectable drive bay.
-    	Match bay devices by checking the hid.
-    	Remove .match method of Bay driver.
-    
-    Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
+> The patch series will ideally apply on top of any asus_acpi patches a=
+lready
+> in my tree. But if not, then at a minimum they must apply to Linus' t=
+ree --
+> which is where you are now and I can attempt to merge any conflicts. =
+ If
+> you'd rather merge the conflicts, then make sure the series you send
+> applied to my tree.
+I can re-do the whole series to apply to your tree. If I do that, I wil=
+l also=20
+include some change from the CVS (3 new models, some cleanups, new led)=
+=2E I=20
+can also just re-send the series as it is. As you want.
+Anyway, I can't do anything before next week.
 
-diff --git a/drivers/acpi/bay.c b/drivers/acpi/bay.c
-index aa1b131..667fa1d 100644
---- a/drivers/acpi/bay.c
-+++ b/drivers/acpi/bay.c
-@@ -49,16 +49,14 @@ MODULE_LICENSE("GPL");
- static void bay_notify(acpi_handle handle, u32 event, void *data);
- static int acpi_bay_add(struct acpi_device *device);
- static int acpi_bay_remove(struct acpi_device *device, int type);
--static int acpi_bay_match(struct acpi_device *device,
--				struct acpi_driver *driver);
- 
- static struct acpi_driver acpi_bay_driver = {
- 	.name = ACPI_BAY_DRIVER_NAME,
- 	.class = ACPI_BAY_CLASS,
-+	.ids = ACPI_BAY_HID,
- 	.ops = {
- 		.add = acpi_bay_add,
- 		.remove = acpi_bay_remove,
--		.match = acpi_bay_match,
- 		},
- };
- 
-@@ -347,20 +345,6 @@ static int acpi_bay_remove(struct acpi_device *device, int type)
- 	return 0;
- }
- 
--static int acpi_bay_match(struct acpi_device *device,
--				struct acpi_driver *driver)
--{
--	if (!device || !driver)
--		return -EINVAL;
+> Re: development strategy
+> Asside from supporting your users, there are a couple of "big picture=
+"
+> things to be aware of. It is clear that we need platform-specific dri=
+vers
+> like asus_acpi, and always will. However, to the extent that we creat=
+e
+> special API's to user-space in the form of /proc or /sysfs files that
+> appear only when that driver is loaded, we've failed.
+>
+> We need to move towards common interfaces that make it simple for use=
+rs and
+> programmers to talk to the kernel drivers, the backlight and led clas=
+ses
+> are good examples, and input layer for keyboard events is another.  I=
+n
+> these cases the user or utility doesn't know or care about the model =
+of
+> laptop they have or the way that the feature is implemented.  So whil=
+e
+> /proc/acpi/asus_acpi files were practical for a prototype, they are w=
+hat we
+> want to move _away_ from, and we should be working on deleting them a=
+nd not
+> changing what is there and not adding any more /proc files.
+>
+> Indeed, in the long term, all of /proc/acpi will be removed in favor =
+of
+> generic /sys interfaces -- as ACPI itself is an implementation depend=
+ent
+> way of making features available to the user -- ie. not all systems h=
+ave
+> ACPI...
+>
+It's why I will try to add led support in the next release :). There is=
+ also=20
+the new display class.
+
+>
+> thanks,
+> -Len
+>
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index d708702..68f72c0 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -404,13 +404,13 @@ L:	netdev@vger.kernel.org
+>  S:	Maintained
+>
+>  ASUS ACPI EXTRAS DRIVER
+> +P:	Corentin Chary
+> +M:	corentincj@iksaif.net
+>  P:	Karol Kozimor
+>  M:	sziwan@users.sourceforge.net
+> -P:	Julien Lerouge
+> -M:	julien.lerouge@free.fr
+>  L:	acpi4asus-user@lists.sourceforge.net
+>  W:	http://sourceforge.net/projects/acpi4asus
+> -W:	http://julien.lerouge.free.fr
+> +W:	http://xf.iksaif.net/acpi4asus
+>  S:	Maintained
+>
+>  ATA OVER ETHERNET DRIVER
+
+Thanks
+--=20
+CHARY 'Iksaif' Corentin
+http://xf.iksaif.net
 -
--	if (is_ejectable_bay(device->handle)) {
--		bay_dprintk(device->handle, "matching bay device");
--		return 0;
--	}
--
--	return -ENODEV;
--}
--
- /**
-  * bay_create_acpi_device - add new devices to acpi
-  * @handle - handle of the device to add
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index cd08bd4..40218ff 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -837,6 +837,42 @@ acpi_video_bus_match(struct acpi_device *device)
- 	return -ENODEV;
- }
- 
-+/*
-+ * acpi_bay_match - see if a device is an ejectable driver bay
-+ *
-+ * If an acpi object is ejectable and has one of the ACPI ATA methods defined,
-+ * then we can safely call it an ejectable drive bay
-+ */
-+static int acpi_bay_match(struct acpi_device *device){
-+	acpi_status status;
-+	acpi_handle handle;
-+	acpi_handle tmp;
-+	acpi_handle phandle;
-+
-+	handle = device->handle;
-+
-+	status = acpi_get_handle(handle, "_EJ0", &tmp);
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
-+
-+	if ((ACPI_SUCCESS(acpi_get_handle(handle, "_GTF", &tmp))) ||
-+		(ACPI_SUCCESS(acpi_get_handle(handle, "_GTM", &tmp))) ||
-+		(ACPI_SUCCESS(acpi_get_handle(handle, "_STM", &tmp))) ||
-+		(ACPI_SUCCESS(acpi_get_handle(handle, "_SDD", &tmp))))
-+		return 0;
-+
-+	if (acpi_get_parent(handle, &phandle))
-+		return -ENODEV;
-+
-+        if ((ACPI_SUCCESS(acpi_get_handle(phandle, "_GTF", &tmp))) ||
-+                (ACPI_SUCCESS(acpi_get_handle(phandle, "_GTM", &tmp))) ||
-+                (ACPI_SUCCESS(acpi_get_handle(phandle, "_STM", &tmp))) ||
-+                (ACPI_SUCCESS(acpi_get_handle(phandle, "_SDD", &tmp))))
-+                return 0;
-+
-+	return -ENODEV;
-+}
-+
- static void acpi_device_set_id(struct acpi_device *device,
- 			       struct acpi_device *parent, acpi_handle handle,
- 			       int type)
-@@ -872,6 +908,10 @@ static void acpi_device_set_id(struct acpi_device *device,
- 			status = acpi_video_bus_match(device);
- 			if(ACPI_SUCCESS(status))
- 				hid = ACPI_VIDEO_HID;
-+
-+			status = acpi_bay_match(device);
-+			if (ACPI_SUCCESS(status))
-+				hid = ACPI_BAY_HID;
- 		}
- 		break;
- 	case ACPI_BUS_TYPE_POWER:
-diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-index 2781e66..960a7d8 100644
---- a/include/acpi/acpi_drivers.h
-+++ b/include/acpi/acpi_drivers.h
-@@ -44,6 +44,7 @@
- #define ACPI_BUTTON_HID_SLEEPF		"ACPI_FSB"
- 
- #define ACPI_VIDEO_HID			"ACPI_VID"
-+#define ACPI_BAY_HID			"ACPI_BAY"
- /* --------------------------------------------------------------------------
-                                        PCI
-    -------------------------------------------------------------------------- */
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
