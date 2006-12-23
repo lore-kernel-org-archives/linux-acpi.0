@@ -1,82 +1,241 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 19/19] asus_acpi: Add support for Asus Z81SP
-Date: Fri, 22 Dec 2006 21:13:23 -0500
-Message-ID: <200612222113.24023.lenb@kernel.org>
-References: <200612192056.kBJKuP7b010068@shell0.pdx.osdl.net>
+Subject: Re: [patch 13/19] Add support for ASUS A6VA, M6V, W5F, V6V laptops in asus-acpi
+Date: Fri, 22 Dec 2006 21:13:22 -0500
+Message-ID: <200612222113.22903.lenb@kernel.org>
+References: <200612192056.kBJKuJxu010049@shell0.pdx.osdl.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:49122 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:49125 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753456AbWLWCO2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Dec 2006 21:14:28 -0500
-In-Reply-To: <200612192056.kBJKuP7b010068@shell0.pdx.osdl.net>
+	id S1753460AbWLWCOa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Dec 2006 21:14:30 -0500
+In-Reply-To: <200612192056.kBJKuJxu010049@shell0.pdx.osdl.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: akpm@osdl.org
-Cc: linux-acpi@vger.kernel.org, calvinmc@gmail.com, acpi4asus-user@lists.sourceforge.net
+Cc: linux-acpi@vger.kernel.org, papadako@gmail.com, thoenig@suse.de, acpi4asus-user@lists.sourceforge.net
 
 NAK
 
-The proper way to update the asus_acpi driver
+This is mostly a duplicate, and thus a conflict, with what is in asus_acpi 0.31,
+which contains all of these except  for A6VA AFAICT.
+
+In any case, the proper way to update the asus_acpi driver
 is through its (new) maintainer and mailing list on acpi4asus-user@lists.sourceforge.net
-which will forward the patches through the acpi tree when tested.
+which will forward the patches through the acpi tree when testsed.
 
 thanks,
 -Len
 
 On Tuesday 19 December 2006 15:56, akpm@osdl.org wrote:
-> From: Matthew C Campbell <calvinmc@gmail.com>
+> From: "Panagiotis Papadakos" <papadako@gmail.com>
 > 
-> Adds support in asus_acpi for the Asus Z81SP laptop.  This preserves all
-> old functionality when improperly detected as well as enabling Bluetooth
-> support.
+> This patch is based on
+> http://www.mail-archive.com/linux-acpi@vger.kernel.org/msg02277.html
+> and adds support for ASUS A6VA, M6V, W5F and V6V laptops in asus-acpi.
+> Also some trailing spaces cleanups.
 > 
-> Signed-off-by: Matthew C Campbell <calvinmc@gmail.com>
+> Cc: Timo Hoenig <thoenig@suse.de>
 > Signed-off-by: Andrew Morton <akpm@osdl.org>
 > ---
 > 
->  drivers/acpi/asus_acpi.c |   14 +++++++++++++-
->  1 files changed, 13 insertions(+), 1 deletion(-)
+>  drivers/acpi/asus_acpi.c |   93 ++++++++++++++++++++++++++++++++-----
+>  1 files changed, 82 insertions(+), 11 deletions(-)
 > 
-> diff -puN drivers/acpi/asus_acpi.c~asus_acpi-add-support-for-asus-z81sp drivers/acpi/asus_acpi.c
-> --- a/drivers/acpi/asus_acpi.c~asus_acpi-add-support-for-asus-z81sp
+> diff -puN drivers/acpi/asus_acpi.c~add-support-for-asus-a6va-m6v-w5f-v6v-laptops-in-asus-acpi drivers/acpi/asus_acpi.c
+> --- a/drivers/acpi/asus_acpi.c~add-support-for-asus-a6va-m6v-w5f-v6v-laptops-in-asus-acpi
 > +++ a/drivers/acpi/asus_acpi.c
-> @@ -145,6 +145,7 @@ struct asus_hotk {
->  		W5F,            //W5F
->  		V6V,            //V6V
+> @@ -122,6 +122,7 @@ struct asus_hotk {
+>  		A1x = 0,	//A1340D, A1300F
+>  		A2x,		//A2500H
+>  		A4G,		//A4700G
+> +		A6VA,           //A6VA
+>  		D1x,		//D1
+>  		L2D,		//L2000D
+>  		L3C,		//L3800C
+> @@ -134,12 +135,15 @@ struct asus_hotk {
+>  		M2E,		//M2400E, L4400L
+>  		M6N,		//M6800N, W3400N
+>  		M6R,		//M6700R, A3000G
+> +		M6V,            //M6A, M6V-B022P, M6V-8012P
+>  		P30,		//Samsung P30
+>  		S1x,		//S1300A, but also L1400B and M2400A (L84F)
+>  		S2x,		//S200 (J1 reported), Victor MP-XP7210
+>  		W1N,		//W1000N
+> -		W5A,		//W5A
+>  		W3V,            //W3030V
+> +		W5A,		//W5A
+> +		W5F,            //W5F
+> +		V6V,            //V6V
 >  		xxN,		//M2400N, M3700N, M5200N, M6800N, S1300N, S5200N
-> +		A4S,            //Z81sp
 >  		//(Centrino)
 >  		END_MODEL
->  	} model;		//Models currently supported
-> @@ -450,7 +451,16 @@ static struct model_data model_conf[END_
+> @@ -194,6 +198,17 @@ static struct model_data model_conf[END_
+>  	 .display_get = "\\ADVG"},
+>  
+>  	{
+> +	 .name = "A6VA",
+> +	 .mt_mled = "MLED",
+> +	 .mt_wled = "WLED",
+> +	 .mt_lcd_switch = "\\Q11",
+> +	 .lcd_status = "\\RGPL",
+> +	 .brightness_set = "SPLV",
+> +	 .brightness_get = "GPLV",
+> +	 .display_set = "SDSP",
+> +	 .display_get = "\\ADVG"},
+> +
+> +	{
+>  	 .name = "D1x",
+>  	 .mt_mled = "MLED",
+>  	 .mt_lcd_switch = "\\Q0D",
+> @@ -326,6 +341,20 @@ static struct model_data model_conf[END_
+>  	 .display_get = "\\_SB.PCI0.P0P1.VGA.GETD"},
+>  
+>  	{
+> +	 .name = "M6V",
+> +	 .mt_bt_switch = "BLED",
+> +	 .mt_wled = "WLED",
+> +	 .mt_mled = NULL,
+> +	 .mt_lcd_switch = xxN_PREFIX "_Q10",
+> +	 .bt_status = "\\_SB.PCI0.SBRG.BLTS",
+> +	 .lcd_status = "\\RGPL",
+> +	 .wled_status = "\\WLSF",
+> +	 .display_get = "\\_SB.PCI0.P0P3.VGA.GETD",
+> +	 .display_set = "SDSP",
+> +	 .brightness_set = "SPLV",
+> +	 .brightness_get = "GPLV"},
+> +
+> +	{
+>  	 .name = "P30",
+>  	 .mt_wled = "WLED",
+>  	 .mt_lcd_switch = P30_PREFIX "_Q0E",
+> @@ -368,6 +397,17 @@ static struct model_data model_conf[END_
+>  	 .display_get = "\\ADVG"},
+>  
+>  	{
+> +	 .name = "W3V",
+> +	 .mt_mled = "MLED",
+> +	 .mt_wled = "WLED",
+> +	 .mt_lcd_switch = xxN_PREFIX "_Q10",
+> +	 .lcd_status = "\\BKLT",
+> +	 .brightness_set = "SPLV",
+> +	 .brightness_get = "GPLV",
+> +	 .display_set = "SDSP",
+> +	 .display_get = "\\INFB"},
+> +
+> +	{
+>  	 .name = "W5A",
+>  	 .mt_bt_switch = "BLED",
+>  	 .mt_wled = "WLED",
+> @@ -378,17 +418,30 @@ static struct model_data model_conf[END_
+>  	 .display_get = "\\ADVG"},
+>  
+>  	{
+> -	 .name = "W3V",
+> -	 .mt_mled = "MLED",
+> +	 .name = "W5F",
+> +	 .mt_bt_switch = "BLED",
+>  	 .mt_wled = "WLED",
+> +	 .mt_tled = "TLED",
+>  	 .mt_lcd_switch = xxN_PREFIX "_Q10",
+> -	 .lcd_status = "\\BKLT",
 >  	 .brightness_set = "SPLV",
 >  	 .brightness_get = "GPLV",
 >  	 .display_set = "SDSP",
-> -	 .display_get = "\\ADVG"}
-> +	.display_get = "\\ADVG"},
+> -	 .display_get = "\\INFB"},
+> +	 .display_get = "\\ADVG"},
 > +
 > +	{
-> +		.name              = "A4S",
-> +		.brightness_set    = "SPLV",
-> +		.brightness_get    = "GPLV",
-> +		.mt_bt_switch      = "BLED",
-> +		.mt_wled           = "WLED"
-> +	}
-> +
->  };
+> +	 .name = "V6V",
+> +	 .mt_bt_switch = "BLED",
+> +	 .mt_wled = "WLED",
+> +	 .mt_tled = "TLED",
+> +	 .mt_lcd_switch = xxN_PREFIX "_Q10",
+> +	 .bt_status = "\\_SB.PCI0.SBRG.BLTS",
+> +	 .display_get = "\\_SB.PCI0.POP1.VGA.GETD",
+> +	 .display_set = "SDSP",
+> +	 .brightness_set = "SPLV",
+> +	 .brightness_get = "GPLV",
+> +	 .lcd_status = "\\BKLT"},
 >  
->  /* procdir we use */
-> @@ -1188,6 +1198,8 @@ static int asus_model_match(char *model)
->  		return W5F;
->  	else if (strncmp(model, "V6V", 3) == 0)
->  		return V6V;
-> +	else if (strncmp(model, "A4S", 3) == 0)
-> +		return A4S;
+> -       {
+> +	{
+>  	 .name = "xxN",
+>  	 .mt_mled = "MLED",
+>  /* WLED present, but not controlled by ACPI */
+> @@ -695,7 +748,7 @@ static int get_lcd_state(void)
+>  {
+>  	int lcd = 0;
+>  
+> -	if (hotk->model != L3H) {
+> +	if (hotk->model != A6VA && hotk->model != M6V && hotk->model != L3H) {
+>  		/* We don't have to check anything if we are here */
+>  		if (!read_acpi_int(NULL, hotk->methods->lcd_status, &lcd))
+>  			printk(KERN_WARNING
+> @@ -715,9 +768,15 @@ static int get_lcd_state(void)
+>  		/* Note: the following values are partly guessed up, but 
+>  		   otherwise they seem to work */
+>  		mt_params[0].type = ACPI_TYPE_INTEGER;
+> -		mt_params[0].integer.value = 0x02;
+>  		mt_params[1].type = ACPI_TYPE_INTEGER;
+> -		mt_params[1].integer.value = 0x02;
+> +
+> +		if (hotk->model == A6VA || hotk->model == M6V) {
+> +			mt_params[0].integer.value = 0x15;
+> +			mt_params[1].integer.value = 0x01;
+> +		} else if (hotk->model == L3H) {
+> +			mt_params[0].integer.value = 0x02;
+> +			mt_params[1].integer.value = 0x02;
+> +		}
+>  
+>  		output.length = sizeof(out_obj);
+>  		output.pointer = &out_obj;
+> @@ -727,9 +786,13 @@ static int get_lcd_state(void)
+>  					 &input, &output);
+>  		if (status != AE_OK)
+>  			return -1;
+> -		if (out_obj.type == ACPI_TYPE_INTEGER)
+> +		if (out_obj.type == ACPI_TYPE_INTEGER) {
+>  			/* That's what the AML code does */
+> -			lcd = out_obj.integer.value >> 8;
+> +			if (hotk->model == A6VA || hotk->model == M6V)
+> +				lcd = out_obj.integer.value;
+> +			else if (hotk->model == L3H)
+> +				lcd = out_obj.integer.value >> 8;
+> +		}
+>  	}
+>  
+>  	return (lcd & 1);
+> @@ -1095,6 +1158,8 @@ static int asus_model_match(char *model)
+>  		return M1A;
+>  	else if (strncmp(model, "M2", 2) == 0 || strncmp(model, "L4E", 3) == 0)
+>  		return M2E;
+> +	else if (strncmp(model, "M6A", 3) == 0 || strncmp(model, "M6V", 3) == 0)
+> +		return M6V;
+>  	else if (strncmp(model, "L2", 2) == 0)
+>  		return L2D;
+>  	else if (strncmp(model, "L8", 2) == 0)
+> @@ -1105,6 +1170,8 @@ static int asus_model_match(char *model)
+>  		return A1x;
+>  	else if (strncmp(model, "A2", 2) == 0)
+>  		return A2x;
+> +	else if (strncmp(model, "A6VA", 4) == 0)
+> +		return A6VA;
+>  	else if (strncmp(model, "J1", 2) == 0)
+>  		return S2x;
+>  	else if (strncmp(model, "L5", 2) == 0)
+> @@ -1117,6 +1184,10 @@ static int asus_model_match(char *model)
+>  		return W3V;
+>  	else if (strncmp(model, "W5A", 3) == 0)
+>  		return W5A;
+> +	else if (strncmp(model, "W5F", 3) == 0)
+> +		return W5F;
+> +	else if (strncmp(model, "V6V", 3) == 0)
+> +		return V6V;
 >  	else
 >  		return END_MODEL;
 >  }
