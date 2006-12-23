@@ -1,77 +1,48 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 01/19] ACPI: Clear GPE before disabling it
-Date: Fri, 22 Dec 2006 21:15:50 -0500
-Message-ID: <200612222115.50505.lenb@kernel.org>
-References: <200612192056.kBJKu9BE010008@shell0.pdx.osdl.net>
+Subject: Re: [GIT PATCH] ACPI patches for 2.6.20-rc1
+Date: Fri, 22 Dec 2006 21:34:13 -0500
+Message-ID: <200612222134.14054.lenb@kernel.org>
+References: <200612200434.56516.lenb@kernel.org> <Pine.LNX.4.64.0612202357110.3576@woody.osdl.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:49152 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:54748 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753456AbWLWCQ1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Dec 2006 21:16:27 -0500
-In-Reply-To: <200612192056.kBJKu9BE010008@shell0.pdx.osdl.net>
+	id S1750856AbWLWCeu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Dec 2006 21:34:50 -0500
+In-Reply-To: <Pine.LNX.4.64.0612202357110.3576@woody.osdl.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@osdl.org
-Cc: linux-acpi@vger.kernel.org, william.morrow@amd.com, jordan.crouse@amd.com, luming.yu@intel.com, robert.moore@intel.com
+To: Linus Torvalds <torvalds@osdl.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org
 
-NAK
+On Thursday 21 December 2006 02:58, Linus Torvalds wrote:
+> 
+> On Wed, 20 Dec 2006, Len Brown wrote:
+> > 
+> > please pull from: 
+> 
+> Is this really all obvious bug-fixes? There seems to be a lot of 
+> development there that simply isn't appropriate after an -rc1 any more.
+> 
+> I want 2.6.20 to be stable, and one of the things I'm doing is to be 
+> strict about the merge window.
 
-Per previous discussions, I continue to have no plans to apply this patch as it stands,
-and am awaiting reply from the author if the latest ACPICA code
-works properly on their machine without this patch.
+Yes, I recommend pulling this tree now.
+While there is a fair amount of text changed, the functional changes
+here are actually quite small, and have been in -mm for a long time --
+some of them already shipping in distros before being upstream.
+
+Yes, there is a fair amount of fluffy cleanup here -- seems there is
+never a good time in the release cycle to do them, but as andrew says,
+we're in this for the long term, so we do have to do them some time.
+I don't see any big risks in them so it seems appropriate to push after rc1.
+
+Note that there is a much larger body of ACPI changes in flight
+that I have excluded from this pull request and are waiting for 2.6.21.
 
 thanks,
 -Len
-
-On Tuesday 19 December 2006 15:56, akpm@osdl.org wrote:
-> From: William Morrow <william.morrow@amd.com>
-> 
-> On some BIOSen, the GPE bit will remain set even if it is disabled,
-> resulting in a interrupt storm.  This patch clears the bit before disabling
-> it.
-> 
-> Signed-off-by: William Morrow <william.morrow@amd.com>
-> Signed-off-by: Jordan Crouse <jordan.crouse@amd.com>
-> Cc: "Yu, Luming" <luming.yu@intel.com>
-> Cc: "Brown, Len" <len.brown@intel.com>
-> Cc: "Moore, Robert" <robert.moore@intel.com>
-> Signed-off-by: Andrew Morton <akpm@osdl.org>
-> ---
-> 
->  drivers/acpi/events/evgpe.c |   14 +++++++++++++-
->  1 files changed, 13 insertions(+), 1 deletion(-)
-> 
-> diff -puN drivers/acpi/events/evgpe.c~acpi-clear-gpe-before-disabling-it drivers/acpi/events/evgpe.c
-> --- a/drivers/acpi/events/evgpe.c~acpi-clear-gpe-before-disabling-it
-> +++ a/drivers/acpi/events/evgpe.c
-> @@ -677,10 +677,22 @@ acpi_ev_gpe_dispatch(struct acpi_gpe_eve
->  	case ACPI_GPE_DISPATCH_METHOD:
->  
->  		/*
-> -		 * Disable GPE, so it doesn't keep firing before the method has a
-> +		 * Clear GPE, so it doesn't keep firing before the method has a
->  		 * chance to run.
->  		 */
-> +		status = acpi_hw_clear_gpe(gpe_event_info);
-> +		if (ACPI_FAILURE(status)) {
-> +			ACPI_EXCEPTION((AE_INFO, status,
-> +					"Unable to clear GPE[%2X]",
-> +					gpe_number));
-> +			return_UINT32(ACPI_INTERRUPT_NOT_HANDLED);
-> +		}
-> +		/*
-> +		 * Disable GPE, so it doesn't keep happen again.
-> +		 */
-> +
->  		status = acpi_ev_disable_gpe(gpe_event_info);
-> +
->  		if (ACPI_FAILURE(status)) {
->  			ACPI_EXCEPTION((AE_INFO, status,
->  					"Unable to disable GPE[%2X]",
-> _
-> 
