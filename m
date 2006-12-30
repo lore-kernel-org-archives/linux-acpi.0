@@ -1,64 +1,84 @@
-From: Richard Purdie <rpurdie@rpsys.net>
-Subject: Re: [patch 1/5] video sysfs support - take 2: Add dev argument for
-	backlight_device_register.
-Date: Sat, 30 Dec 2006 15:35:35 +0000
-Message-ID: <1167492935.5626.12.camel@localhost.localdomain>
-References: <200611080033.56035.luming.yu@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755141AbWL3Pgw@vger.kernel.org>
-In-Reply-To: <200611080033.56035.luming.yu@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yu Luming <luming.yu@gmail.com>
-Cc: Andrew Morton <akpm@osdl.org>, Pavel Machek <pavel@ucw.cz>, len.brown@intel.com, Matt Domsch <Matt_Domsch@dell.com>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr, Richard Hughes <hughsient@gmail.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [PATCH] ACPI: ibm-acpi: fix Kconfig entries for ibm-acpi bay and dock
+Date: Sat, 30 Dec 2006 17:26:49 -0200
+Message-ID: <20061230192649.13533.53575.stgit@thorin.khazad-dum.debian.net>
+References: <20061230192618.13533.29790.stgit@thorin.khazad-dum.debian.net>
+Content-Type: text/plain; charset=utf-8; format=fixed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:42022 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1030301AbWL3T0r (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 30 Dec 2006 14:26:47 -0500
+In-Reply-To: <20061230192618.13533.29790.stgit@thorin.khazad-dum.debian.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <len.brown@intel.com>, hmh@khazad-dum.debian.net
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-On Wed, 2006-11-08 at 00:33 +0800, Yu Luming wrote:
-> This patch set adds generic abstract layer support for acpi video driver to have
-> generic user interface to control backlight and output switch control by leveraging
-> the existing backlight sysfs class driver, and by adding a new video output sysfs 
-> class driver.
-> 
-> Patch 1/5:  adds dev argument for backlight_device_register to link the class device
-> to real device object. The platform specific driver should find a way to get the real
-> device object for their video device.
-> 
-> signed-off-by: Luming Yu <Luming.yu@intel.com>
-> ---
->  drivers/acpi/asus_acpi.c            |    2 +-
->  drivers/acpi/ibm_acpi.c             |    2 +-
->  drivers/acpi/toshiba_acpi.c         |    3 ++-
->  drivers/video/backlight/backlight.c |    7 +++++--
->  include/linux/backlight.h           |    2 +-
->  5 files changed, 10 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/video/backlight/backlight.c b/drivers/video/backlight/backlight.c
-> index 27597c5..1d97cdf 100644
-> --- a/drivers/video/backlight/backlight.c
-> +++ b/drivers/video/backlight/backlight.c
-> @@ -190,8 +190,10 @@ static int fb_notifier_callback(struct n
->   * Creates and registers new backlight class_device. Returns either an
->   * ERR_PTR() or a pointer to the newly allocated device.
->   */
-> -struct backlight_device *backlight_device_register(const char *name, void *devdata,
-> -						   struct backlight_properties *bp)
-> +struct backlight_device *backlight_device_register(const char *name,
-> +	struct device *dev,
-> +	void *devdata,
-> +	struct backlight_properties *bp)
->  {
->  	int i, rc;
->  	struct backlight_device *new_bd;
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-This patch breaks several platforms. If you're going to add parameters
-to a function like backlight_device_register, you could at least grep
-the tree and update all the users :-(.
+Support for ACPI_BAY has not been merged in mainline yet.  Usage of
+"depends on FOO=n" fails if FOO is undefined, thus ibm-acpi support
+for bay was being made non-available in a kernel that has no other
+sort of bay support.
 
-To top it off, someone noticed some of the failures and fixed them but
-nobody thought to fix the drivers in drivers/video/backlight itself and
-a mac reference seems to have escaped too.
+Fix it to use "depends on ! FOO" instead, that does the right thing
+when FOO is undefined.  Fix ACPI_IBM_DOCK accordingly as well while
+at it, and also improve the help text.
 
-I'll send a patch to to Andrew to clean up this mess...
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+---
 
-Richard
+ drivers/acpi/Kconfig |   17 ++++++++++-------
+ 1 files changed, 10 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index aa884d8..95de81f 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -213,26 +213,29 @@ config ACPI_IBM
+ config ACPI_IBM_DOCK
+ 	bool "Legacy Docking Station Support"
+ 	depends on ACPI_IBM
+-	depends on ACPI_DOCK=n
+-	default n
++	depends on ! ACPI_DOCK
++	default y
+ 	---help---
+ 	  Allows the ibm_acpi driver to handle docking station events.
+ 	  This support is obsoleted by CONFIG_HOTPLUG_PCI_ACPI.  It will
+ 	  allow locking and removing the laptop from the docking station,
+ 	  but will not properly connect PCI devices.
+ 
+-	  If you are not sure, say N here.
++	  If you are not sure, select ACPI_DOCK instead.
+ 
+ config ACPI_IBM_BAY
+ 	bool "Legacy Removable Bay Support"
+ 	depends on ACPI_IBM
+-	depends on ACPI_BAY=n
+-	default n
++	depends on ! ACPI_BAY
++	default y
+ 	---help---
+ 	  Allows the ibm_acpi driver to handle removable bays.
+-	  This support is obsoleted by CONFIG_ACPI_BAY.
++	  This support is obsoleted by CONFIG_ACPI_BAY.  It will allow
++	  enabling and disabling devices in the removable bays, but it
++	  will not properly add or remove the devices from the kernel,
++	  which must be done manually by userspace scripts.
+ 
+-	  If you are not sure, say N here.
++	  If you are not sure, select ACPI_BAY instead if it is available.
+ 
+ config ACPI_TOSHIBA
+ 	tristate "Toshiba Laptop Extras"
+
+
+--  
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
