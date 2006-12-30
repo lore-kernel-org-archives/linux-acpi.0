@@ -1,45 +1,64 @@
-From: Dmitry Torokhov <dtor@insightbb.com>
-Subject: Re: Display class
-Date: Fri, 29 Dec 2006 22:32:43 -0500
-Message-ID: <200612292232.44122.dtor@insightbb.com>
-References: <Pine.LNX.4.64.0611141939050.6957@pentafluge.infradead.org> <Pine.LNX.4.64.0611150052180.13800@pentafluge.infradead.org> <Pine.LNX.4.64.0612051740250.2925@pentafluge.infradead.org>
+From: Richard Purdie <rpurdie@rpsys.net>
+Subject: Re: [patch 1/5] video sysfs support - take 2: Add dev argument for
+	backlight_device_register.
+Date: Sat, 30 Dec 2006 15:35:35 +0000
+Message-ID: <1167492935.5626.12.camel@localhost.localdomain>
+References: <200611080033.56035.luming.yu@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1030265AbWL3Dcc@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0612051740250.2925@pentafluge.infradead.org>
-Content-Disposition: inline
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755141AbWL3Pgw@vger.kernel.org>
+In-Reply-To: <200611080033.56035.luming.yu@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: James Simmons <jsimmons@infradead.org>
-Cc: Miguel Ojeda <maxextreme@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Fbdev development list <linux-fbdev-devel@lists.sourceforge.net>, Luming Yu <Luming.yu@intel.com>, Andrew Zabolotny <zap@homelink.ru>, linux-acpi@vger.kernel.org, kernel-discuss@handhelds.org
+To: Yu Luming <luming.yu@gmail.com>
+Cc: Andrew Morton <akpm@osdl.org>, Pavel Machek <pavel@ucw.cz>, len.brown@intel.com, Matt Domsch <Matt_Domsch@dell.com>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr, Richard Hughes <hughsient@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On Wed, 2006-11-08 at 00:33 +0800, Yu Luming wrote:
+> This patch set adds generic abstract layer support for acpi video driver to have
+> generic user interface to control backlight and output switch control by leveraging
+> the existing backlight sysfs class driver, and by adding a new video output sysfs 
+> class driver.
+> 
+> Patch 1/5:  adds dev argument for backlight_device_register to link the class device
+> to real device object. The platform specific driver should find a way to get the real
+> device object for their video device.
+> 
+> signed-off-by: Luming Yu <Luming.yu@intel.com>
+> ---
+>  drivers/acpi/asus_acpi.c            |    2 +-
+>  drivers/acpi/ibm_acpi.c             |    2 +-
+>  drivers/acpi/toshiba_acpi.c         |    3 ++-
+>  drivers/video/backlight/backlight.c |    7 +++++--
+>  include/linux/backlight.h           |    2 +-
+>  5 files changed, 10 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/video/backlight/backlight.c b/drivers/video/backlight/backlight.c
+> index 27597c5..1d97cdf 100644
+> --- a/drivers/video/backlight/backlight.c
+> +++ b/drivers/video/backlight/backlight.c
+> @@ -190,8 +190,10 @@ static int fb_notifier_callback(struct n
+>   * Creates and registers new backlight class_device. Returns either an
+>   * ERR_PTR() or a pointer to the newly allocated device.
+>   */
+> -struct backlight_device *backlight_device_register(const char *name, void *devdata,
+> -						   struct backlight_properties *bp)
+> +struct backlight_device *backlight_device_register(const char *name,
+> +	struct device *dev,
+> +	void *devdata,
+> +	struct backlight_properties *bp)
+>  {
+>  	int i, rc;
+>  	struct backlight_device *new_bd;
 
-On Tuesday 05 December 2006 13:03, James Simmons wrote:
-> +int probe_edid(struct display_device *dev, void *data)
-> +{
-> +=A0=A0=A0=A0=A0=A0=A0struct fb_monspecs spec;
-> +=A0=A0=A0=A0=A0=A0=A0ssize_t size =3D 45;
+This patch breaks several platforms. If you're going to add parameters
+to a function like backlight_device_register, you could at least grep
+the tree and update all the users :-(.
 
-const ssize_t size =3D 45?=20
+To top it off, someone noticed some of the failures and fixed them but
+nobody thought to fix the drivers in drivers/video/backlight itself and
+a mac reference seems to have escaped too.
 
-> +
-> +=A0=A0=A0=A0=A0=A0=A0dev->name =3D kzalloc(size, GFP_KERNEL);
+I'll send a patch to to Andrew to clean up this mess...
 
-Why do you need kzalloc here?
-
-> +=A0=A0=A0=A0=A0=A0=A0fb_edid_to_monspecs((unsigned char *) data, &sp=
-ec);
-> +=A0=A0=A0=A0=A0=A0=A0strcpy(dev->name, spec.manufacturer);
-
-You seem to be overwriting dev->name in the very next line?
-
-> +=A0=A0=A0=A0=A0=A0=A0return snprintf(dev->name, size, "%s %s %s\n", =
-spec.manufacturer, spec.monitor, spec.ascii);
->=20
-
-Is result of snprintf interesting to the callers?
-
---=20
-Dmitry
+Richard
