@@ -1,51 +1,120 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] ACPI: ibm-acpi: fix Kconfig entries for ibm-acpi bay and dock
-Date: Sat, 30 Dec 2006 17:55:20 -0200
-Message-ID: <20061230195520.GA15811@khazad-dum.debian.net>
-References: <20061230192618.13533.29790.stgit@thorin.khazad-dum.debian.net> <20061230192649.13533.53575.stgit@thorin.khazad-dum.debian.net>
+From: Len Brown <lenb@kernel.org>
+Subject: [GIT PATCH] ACPI related patches for 2.6.20-rc3
+Date: Tue, 2 Jan 2007 00:30:28 -0500
+Message-ID: <200701020030.29177.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:51401 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030326AbWL3TzZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 30 Dec 2006 14:55:25 -0500
+Received: from hera.kernel.org ([140.211.167.34]:42093 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755270AbXABFbL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 2 Jan 2007 00:31:11 -0500
 Content-Disposition: inline
-In-Reply-To: <20061230192649.13533.53575.stgit@thorin.khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
+To: Linus Torvalds <torvalds@osdl.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Doug Chapman <doug.chapman@hp.com>, Guillaume Chazarain <guichaz@yahoo.fr>, Richard Purdie <rpurdie@rpsys.net>, Andrew Morton <akpm@osdl.org>
 
-On Sat, 30 Dec 2006, Henrique de Moraes Holschuh wrote:
-> Support for ACPI_BAY has not been merged in mainline yet.  Usage of
-> "depends on FOO=n" fails if FOO is undefined, thus ibm-acpi support
-> for bay was being made non-available in a kernel that has no other
-> sort of bay support.
-> 
-> Fix it to use "depends on ! FOO" instead, that does the right thing
-> when FOO is undefined.  Fix ACPI_IBM_DOCK accordingly as well while
-> at it, and also improve the help text.
+Hi Linus,
 
-Either this patch, or a different fix (see below), should to be sent to
-Linus.  Otherwise, it causes a regression (lack of removable bay support in
-ibm-acpi).
+please pull from: 
 
-Unfortunately, I didn't notice the problem before because I had ACPI_BAY
-applied to my 2.6.18 and 2.6.19 test trees.
+git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
 
-The patch uses "depends on ! FOO", which means the legacy support in
-ibm-acpi can be selected if ACPI_DOCK or ACPI_BAY is set to "m" (module).
-Loading ACPI_DOCK or ACPI_BAY module along with ibm-acpi and ACPI_IBM_DOCK
-or ACPI_IBM_BAY could cause weird behaviour (untested) on some systems.
+A couple of small self-explanatory patches,
+they will will update the files shown below.
 
-There are alternate ways to fix this.  The easiest would be to revert commit
-2df910b4c3edcce9a0c12394db6f5f4a6e69c712 from Linus' tree, and I'd submit it
-again when ACPI_BAY is ready to be sent to mainline.
+thanks!
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+-Len
+
+ps. a plain patch is also available here:
+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.20/acpi-release-20060707-2.6.20-rc3.diff.gz
+
+ arch/i386/kernel/acpi/boot.c        |    2 +-
+ drivers/acpi/ec.c                   |    2 +-
+ drivers/video/backlight/corgi_bl.c  |    2 +-
+ drivers/video/backlight/hp680_bl.c  |    2 +-
+ drivers/video/backlight/locomolcd.c |    2 +-
+ include/acpi/acconfig.h             |    2 +-
+ 6 files changed, 6 insertions(+), 6 deletions(-)
+
+through these commits:
+
+Doug Chapman (1):
+      ACPI: increase ACPI_MAX_REFERENCE_COUNT for larger systems
+
+Guillaume Chazarain (1):
+      ACPI: EC: move verbose printk to debug build only
+
+Len Brown (1):
+      ACPI: fix section mis-match build warning
+
+Richard Purdie (1):
+      backlight: fix backlight_device_register compile failures
+
+with this log:
+
+commit e82c354bb26a9da6fed1fadf7082d68055b7d1db
+Author: Len Brown <len.brown@intel.com>
+Date:   Thu Dec 21 01:29:59 2006 -0500
+
+    ACPI: fix section mis-match build warning
+    
+    Dunno why this pops out in only in the allmodconfig build.
+    Though the warning is accurate, all the callers of the flagged
+    non __init function are __init, this is not a functional change.
+    
+    WARNING: vmlinux - Section mismatch: reference to .init.data:acpi_sci_flags from .text between 'acpi_sci_ioapic_setup' (at offset 0xc010f0a
+    6) and 'acpi_gsi_to_irq'                                                                                                                   WARNING: vmlinux - Section mismatch: reference to .init.text:mp_override_legacy_irq from .text between 'acpi_sci_ioapic_setup' (at offset 0
+    xc010f0de) and 'acpi_gsi_to_irq'                                                                                                           WARNING: vmlinux - Section mismatch: reference to .init.data:acpi_sci_override_gsi from .text between 'acpi_sci_ioapic_setup' (at offset 0x
+    c010f0e4) and 'acpi_gsi_to_irq'
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 9a654b522234615a76717f35365ca4a8beb757df
+Author: Doug Chapman <doug.chapman@hp.com>
+Date:   Thu Dec 21 12:11:43 2006 -0500
+
+    ACPI: increase ACPI_MAX_REFERENCE_COUNT for larger systems
+    
+    We have some new larger ia64 systems in HP that trip over the
+    ACPI_MAX_REFERENCE_COUNT limit which triggers a large number of these
+    debug messages:
+    
+    ACPI Warning (utdelete-0397): Large Reference Count (XXX) in object e0000a0ff6797ab0  [20060707]
+    
+    This was increased once in the past as described in this very brief thread:
+    
+    http://www.mail-archive.com/linux-acpi@vger.kernel.org/msg00890.html
+    
+    Signed-off-by: Doug Chapman <doug.chapman@hp.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit c6e19194b6e1a565f8fe18d56d509e9892c32ee1
+Author: Guillaume Chazarain <guichaz@yahoo.fr>
+Date:   Sun Dec 24 22:19:02 2006 +0100
+
+    ACPI: EC: move verbose printk to debug build only
+    
+    The recent EC cleanup left a printk enabled on handler evaluation
+    resulting in a bunch of messages on normal operation, like so:
+    
+    ACPI: EC: evaluating _Q60
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 27c5d745ac685c3f48cebd7a9c07707755b4b711
+Author: Richard Purdie <rpurdie@rpsys.net>
+Date:   Sat Dec 30 15:40:11 2006 +0000
+
+    backlight: fix backlight_device_register compile failures
+    
+    Fix breakage from commit 519ab5f2be65b72cf12ae99c89752bbe79b44df6 which
+    didn't update all references to backlight_device_register causing
+    compile failures.
+    
+    Signed-off-by: Richard Purdie <rpurdie@rpsys.net>
+    Signed-off-by: Len Brown <len.brown@intel.com>
