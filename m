@@ -1,58 +1,35 @@
-From: Thomas Meyer <thomas@m3y3r.de>
-Subject: Re: ACPI: EC: evaluating _Q10
-Date: Wed, 03 Jan 2007 08:46:24 +0100
-Message-ID: <459B5F50.8010703@m3y3r.de>
-References: <45992109.9050009@m3y3r.de> <200701021205.07817.lenb@kernel.org> <459AC146.9020804@m3y3r.de> <200701022241.05303.lenb@kernel.org>
+From: "Matthew Brett" <matthew.brett@gmail.com>
+Subject: Re: PROBLEM: CPU fan shuts down on load of fan.ko in kernel 2.6.18 and later
+Date: Wed, 3 Jan 2007 11:40:28 +0000
+Message-ID: <1e2af89e0701030340q7a01520cm831b6064af8f7881@mail.gmail.com>
+References: <1e2af89e0612280914n62a192e2kdb7e2677b55d2670@mail.gmail.com>
+	 <45943118.3030500@linux.intel.com>
+	 <1e2af89e0612281536y769323a7l62c9df334d1e8a06@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www17.your-server.de ([213.133.104.17]:4669 "EHLO
-	www17.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754926AbXACHr2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Jan 2007 02:47:28 -0500
-In-Reply-To: <200701022241.05303.lenb@kernel.org>
+Received: from ug-out-1314.google.com ([66.249.92.172]:30243 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750722AbXACLka (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Jan 2007 06:40:30 -0500
+Received: by ug-out-1314.google.com with SMTP id 44so5144220uga
+        for <linux-acpi@vger.kernel.org>; Wed, 03 Jan 2007 03:40:28 -0800 (PST)
+In-Reply-To: <1e2af89e0612281536y769323a7l62c9df334d1e8a06@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-Len Brown schrieb:
->>> The bigger question is why you get "tons of these" --
->>> as EC  events are usually infrequent.
->>> Do you have a big number next to "acpi" in /proc/interrupts?
->>> If so, at what rate is it growing?
->>>       
->> maybe tons were a bit to overstated... After a fresh reboot, i count 110 
->> _q10 and one _q21messages now with 8 min. uptime and around 10300 acpi 
->> interrupts.
->>     
->
-> 480 sec/110 ec events = 4 seconds/event.  This doesn't worry me.
-> Could be battery updates, thermal updates etc.
->
-> 480/10300 = an interrupt every 46 ms.
-> This is certainly not right.
-> Have you always seen runaway acpi interrupts on this box, no matter the kernel?
->   
-To be honest i didn't care and knew about that this could be an problem 
-until now. But the biggest part of the acpi interrupts seems to happen 
-while the first minutes, maybe while booting because with 22 min. uptime 
-i get these values:
+Hi,
 
-           CPU0       CPU1
-  0:     413784          0   IO-APIC-edge      timer
-  9:      14544          0   IO-APIC-fasteoi   acpi
+> > > CPU fan shuts down on load of fan.ko in kernel 2.6.18 and later
 
-24 min. uptime:
-           CPU0       CPU1
-  0:     435875          0   IO-APIC-edge      timer
-  9:      15247          0   IO-APIC-fasteoi   acpi
+I am sorry to persist - but is there anything I can do further to help
+debug this problem?  Or somewhere else that I should ask?  I would not
+keep posting, but am worried that others with the same problem may not
+notice it until they have fried their hardware...
 
-26 min. uptime:
-  0:     470428          0   IO-APIC-edge      timer
-  9:      16251          0   IO-APIC-fasteoi   acpi
+Best,
 
-So let's say approximatley 700 to 1000 acpi interrupts in 120 seconds. I 
-guess this sounds better, doesn't it?
-
+Matthew
