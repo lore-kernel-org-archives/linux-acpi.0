@@ -1,70 +1,84 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: 2.6.20-rc3: known unfixed regressions (v2)
-Date: Wed, 3 Jan 2007 21:59:45 +0100
-Message-ID: <20070103205945.GK20714@stusta.de>
-References: <Pine.LNX.4.64.0612311710430.4473@woody.osdl.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [RFC 2/2] don't enable link device in IOAPIC mode
+Date: Wed, 3 Jan 2007 17:41:32 -0500
+Message-ID: <200701031741.32746.lenb@kernel.org>
+References: <1165886792.19586.26.camel@sli10-conroe.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <sparclinux-owner@vger.kernel.org>
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:54866 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932066AbXACWmT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 3 Jan 2007 17:42:19 -0500
+In-Reply-To: <1165886792.19586.26.camel@sli10-conroe.sh.intel.com>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0612311710430.4473@woody.osdl.org>
-Sender: sparclinux-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Berthold Cogel <cogel@rrz.uni-koeln.de>, len.brown@intel.com, linux-acpi@vger.kernel.org, Florin Iucha <florin@iucha.net>, greg@kroah.com, linux-usb-devel@lists.sourceforge.net, dmitry.torokhov@gmail.com, linux-input@atrey.karlin.mff.cuni.cz, Jon Smirl <jonsmirl@gmail.com>, "Horst H. von Brand" <vonbrand@inf.utfsm.cl>, davem@davemloft.net, sparclinux@vger.kernel.org, Komuro <komurojun-mbn@nifty.com>, YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>, netdev@vger.kernel.org, Tobias Diedrich <ranma+kernel@tdiedrich.de>, Andi Kleen <ak@suse.de>, Yinghai Lu <yinghai.lu@amd.com>, "Eric W. Biederman" <ebiederm@xmission.com>, discuss@x86-64.org, mingo@redhat.com
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, Stian Jordet <stian_web@jordet.nu>, Andrew Morton <akpm@osdl.org>
 
-This email lists some known regressions in 2.6.20-rc3 compared to 2.6.19
-that are not yet fixed in Linus' tree.
+On Monday 11 December 2006 20:26, Shaohua Li wrote:
+> In Stian's system, if link device is enabled in IOAPIC mode, pci device
+> will connect to link device and link device connect to IOAPIC pin. That
+> is the device's interrupt is decided by link's irq. If link device is
+> disabled, pci device is connected to IOAPIC pin.
+> There are two devices who share one link device in pic mode, but in
+> IOAPIC mode, _PRT table reported one device connected to IOAPIC pin and
+> the other connected to the link device. If the link device is enabled,
+> the device connected to IOAPIC pin directly will break as _PRT reported
+> interrupt for the device doesn't reflect the case link device is
+> enabled. If we leave the link device disabled, the device which
+> connected to the link device doesn't break. It appears the link device
+> is just used to get an interrupt number instead of for real interrupt
+> routing. So in this patch, if current irq model is IOAPIC, we will leave
+> link device disabled and just use its active irq number.
+> 
+> Signed-off-by: Shaohua Li<shaohua.li@intel.com>
+> 
+> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> index d53bd98..655bb49 100644
+> --- a/drivers/acpi/pci_link.c
+> +++ b/drivers/acpi/pci_link.c
+> @@ -527,6 +527,10 @@ static int acpi_pci_link_allocate(struct
+>  	int i;
+>  
+>  
+> +	if (acpi_irq_model == ACPI_IRQ_MODEL_IOAPIC && link->irq.active) {
+> +		link->irq.initialized = 1;
+> +		return 0;
+> +	}
+>  	if (link->irq.initialized) {
+>  		if (link->refcnt == 0)
+>  			/* This means the link is disabled but initialized */
 
-If you find your name in the Cc header, you are either submitter of one
-of the bugs, maintainer of an affectected subsystem or driver, a patch
-of you caused a breakage or I'm considering you in any other way possibly
-involved with one or more of these issues.
+Earlier I NAK'd this on the assertion that it would cause some devices to
+not get interrupts.
 
-Due to the huge amount of recipients, please trim the Cc when answering.
+I've now confirmed that assertion was correct.
 
+Annforce2 board uses Link APC3 to connect
+int-A of its PCI slot to the IOAPIC, and the link
+is disabled by default:
 
-Subject    : Acer Extensa 3002 WLMi: 'shutdown -h now' reboots the system
-References : http://lkml.org/lkml/2006/12/25/40
-Submitter  : Berthold Cogel <cogel@rrz.uni-koeln.de>
-Status     : unknown
+ACPI: PCI Interrupt Link [APC3] (IRQs *18), disabled.
 
+Before this patch, an e100 in that slot works:
 
-Subject    : USB keyboard unresponsive after some time
-References : http://lkml.org/lkml/2006/12/25/35
-             http://lkml.org/lkml/2006/12/26/106
-Submitter  : Florin Iucha <florin@iucha.net>
-Status     : unknown
+ACPI: PCI Interrupt Link [APC3] enabled at IRQ 18
+(and eth1 interface works properly)
 
+And after this patch an e100 in that slot does not work:
+(APC3 is not enabled, and interface does not come up)
+Bringing up interface eth1:
+Determining IP information for eth1...PING 192.168.0.1 (192.168.0.1) from 192.168.0.17 eth1: 56(84) bytes of data.
 
-Subject    : BUG: scheduling while atomic
-References : http://lkml.org/lkml/2006/12/26/105
-Submitter  : Jon Smirl <jonsmirl@gmail.com>
-Status     : unknown
+--- 192.168.0.1 ping statistics ---
+3 packets transmitted, 0 received, +3 errors, 100% packet loss, time 2010ms
+, pipe 3
+ failed.
+[FAILED]                                                                                                                                  
 
-
-Subject    : SPARC64: Can't mount /
-References : http://lkml.org/lkml/2006/12/13/181
-Submitter  : Horst H. von Brand <vonbrand@inf.utfsm.cl>
-Status     : unknown
-
-
-Subject    : ftp: get or put stops during file-transfer
-References : http://lkml.org/lkml/2006/12/16/174
-Submitter  : Komuro <komurojun-mbn@nifty.com>
-Caused-By  : YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-             commit cfb6eeb4c860592edd123fdea908d23c6ad1c7dc
-Handled-By : YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-Status     : problem is being debugged
-
-
-Subject    : x86_64 boot failure: "IO-APIC + timer doesn't work"
-References : http://lkml.org/lkml/2006/12/16/101
-             http://lkml.org/lkml/2007/1/3/9
-Submitter  : Tobias Diedrich <ranma+kernel@tdiedrich.de>
-Caused-By  : Andi Kleen <ak@suse.de>
-             commit b026872601976f666bae77b609dc490d1834bf77
-Handled-By : Yinghai Lu <yinghai.lu@amd.com>
-             Eric W. Biederman <ebiederm@xmission.com>
-Status     : patches are being discussed
-
+thanks,
+-Len
