@@ -1,75 +1,120 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: 2.6.20-rc3: known unfixed regressions (v3)
-Date: Thu, 4 Jan 2007 18:46:32 +0100
-Message-ID: <20070104174632.GC20714@stusta.de>
-References: <Pine.LNX.4.64.0612311710430.4473@woody.osdl.org>
+From: Cacy Rodney <cacy-rodney-cacy@tlen.pl>
+Subject: RE: sonypc with Sony Vaio VGN-SZ1VP
+Date: Thu, 04 Jan 2007 18:58:41 +0100
+Message-ID: <459D4051.9020506@tlen.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ide-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0612311710430.4473@woody.osdl.org>
-Sender: linux-ide-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jon Smirl <jonsmirl@gmail.com>, Damien Wyart <damien.wyart@free.fr>, Aaron Sethman <androsyn@ratbox.org>, alan@lxorguk.ukuu.org.uk, linux-ide@vger.kernel.org, Berthold Cogel <cogel@rrz.uni-koeln.de>, len.brown@intel.com, linux-acpi@vger.kernel.org, Florin Iucha <florin@iucha.net>, greg@kroah.com, linux-usb-devel@lists.sourceforge.net, dmitry.torokhov@gmail.com, linux-input@atrey.karlin.mff.cuni.cz, James.Bottomley@SteelEye.com, linux-scsi@vger.kernel.org, Komuro <komurojun-mbn@nifty.com>, YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>, netdev@vger.kernel.org, Tobias Diedrich <ranma+kernel@tdiedrich.de>, Andi Kleen <ak@suse.de>, Yinghai Lu <yinghai.lu@amd.com>, "Eric W. Biederman" <ebiederm@xmission.com>, discuss@x86-64.org, mingo@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from tur.go2.pl ([193.17.41.50]:41939 "EHLO tur.go2.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964881AbXADSOu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Jan 2007 13:14:50 -0500
+Received: from poczta.o2.pl (unknown [193.17.41.142])
+	by tur.go2.pl (o2.pl Mailer 2.0.1) with ESMTP id 5CC442303F7
+	for <linux-acpi@vger.kernel.org>; Thu,  4 Jan 2007 18:57:47 +0100 (CET)
+Received: from poczta.o2.pl (mx12 [127.0.0.1])
+	by poczta.o2.pl (Postfix) with ESMTP id C61376280C9
+	for <linux-acpi@vger.kernel.org>; Thu,  4 Jan 2007 18:56:44 +0100 (CET)
+Received: from [192.168.226.86] (imc.pcz.czest.pl [212.87.225.147])
+	by poczta.o2.pl (Postfix) with ESMTP
+	for <linux-acpi@vger.kernel.org>; Thu,  4 Jan 2007 18:56:44 +0100 (CET)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-This email lists some known regressions in 2.6.20-rc3 compared to 2.6.19
-that are not yet fixed in Linus' tree.
+Hello everyone!
 
-If you find your name in the Cc header, you are either submitter of one
-of the bugs, maintainer of an affectected subsystem or driver, a patch
-of you caused a breakage or I'm considering you in any other way possibly
-involved with one or more of these issues.
+I know that the thread is much further but I'd like to inform the 
+maintainer (whoever is) that the driver v0.2 (there is v0.3 but in this 
+context it is not important) with the updated sony_acpi_values structure 
+(enclosed at the end) is working and gives me about 20% of energy 
+conservation.
+By clear, I have Sony Vaio SZ2.
+The cdpower(cdrom),sound,lan files in sony directory can power off 
+(_PS3) the relevant devices. To do that
 
-Due to the huge amount of recipients, please trim the Cc when answering.
+echo 0 >/proc/acpi/sony/cdpower etc.
+
+To ON the devices
+
+echo 1 >/proc/acpi/sony/cdpower etc.
+
+(unfortunately, after the commend sequence the lan card is not 
+initialized properly and to use it again the computer must be rebooted - 
+but i'm working to change it :))
+
+The acpi methods of SNC are:
+
+Jan  4 17:56:12 darkstar kernel: sony_acpi: method: name: GBRT, args 0
+Jan  4 17:56:12 darkstar kernel: sony_acpi: method: name: SBRT, args 1
+Jan  4 17:56:12 darkstar kernel: sony_acpi: method: name: GPBR, args 0
+Jan  4 17:56:12 darkstar kernel: sony_acpi: method: name: SPBR, args 1
+Jan  4 17:56:12 darkstar kernel: sony_acpi: method: name: PWAK, args 0
+Jan  4 17:56:12 darkstar kernel: sony_acpi: method: name: PWRN, args 0
+Jan  4 17:56:12 darkstar kernel: sony_acpi: method: name: CSXB, args 1
+Jan  4 17:56:12 darkstar kernel: sony_acpi: method: name: GWDP, args 0
+Jan  4 17:56:12 darkstar kernel: sony_acpi: method: name: CDPW, args 1
+Jan  4 17:56:12 darkstar kernel: sony_acpi: method: name: GCDP, args 0
+Jan  4 17:56:12 darkstar kernel: sony_acpi: method: name: SLRS, args 1
+Jan  4 17:56:12 darkstar kernel: sony_acpi: method: name: RBMF, args 1
+Jan  4 17:56:12 darkstar kernel: sony_acpi: method: name: RSBI, args 1
+Jan  4 17:56:12 darkstar kernel: sony_acpi: method: name: CBMF, args 1
+Jan  4 17:56:12 darkstar kernel: sony_acpi: method: name: AZPW, args 1
+Jan  4 17:56:12 darkstar kernel: sony_acpi: method: name: GAZP, args 0
+Jan  4 17:56:12 darkstar kernel: sony_acpi: method: name: LNPW, args 1
+Jan  4 17:56:12 darkstar kernel: sony_acpi: method: name: GLNP, args 0
+Jan  4 17:56:12 darkstar kernel: sony_acpi: method: name: SCAM, args 1
+Jan  4 17:56:12 darkstar kernel: sony_acpi: method: name: GCAM, args 0
+
+Anyone knows what the rest do?
+
+Best regards
+Cacy
 
 
-Subject    : BUG: scheduling while atomic: hald-addon-stor/...
-             cdrom_{open,release,ioctl} in trace
-References : http://lkml.org/lkml/2006/12/26/105
-             http://lkml.org/lkml/2006/12/29/22
-             http://lkml.org/lkml/2006/12/31/133
-Submitter  : Jon Smirl <jonsmirl@gmail.com>
-             Damien Wyart <damien.wyart@free.fr>
-             Aaron Sethman <androsyn@ratbox.org>
-Status     : unknown
-
-
-Subject    : Acer Extensa 3002 WLMi: 'shutdown -h now' reboots the system
-References : http://lkml.org/lkml/2006/12/25/40
-Submitter  : Berthold Cogel <cogel@rrz.uni-koeln.de>
-Status     : unknown
-
-
-Subject    : USB keyboard unresponsive after some time
-References : http://lkml.org/lkml/2006/12/25/35
-             http://lkml.org/lkml/2006/12/26/106
-Submitter  : Florin Iucha <florin@iucha.net>
-Status     : unknown
-
-
-Subject    : SPARC64: Can't mount /  (CONFIG_SCSI_SCAN_ASYNC=y ?)
-References : http://lkml.org/lkml/2006/12/13/181
-             http://lkml.org/lkml/2007/01/04/75
-Submitter  : Horst H. von Brand <vonbrand@inf.utfsm.cl>
-Status     : unknown
-
-
-Subject    : ftp: get or put stops during file-transfer
-References : http://lkml.org/lkml/2006/12/16/174
-Submitter  : Komuro <komurojun-mbn@nifty.com>
-Caused-By  : YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-             commit cfb6eeb4c860592edd123fdea908d23c6ad1c7dc
-Handled-By : YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-Status     : problem is being debugged
-
-
-Subject    : x86_64 boot failure: "IO-APIC + timer doesn't work"
-References : http://lkml.org/lkml/2006/12/16/101
-             http://lkml.org/lkml/2007/1/3/9
-Submitter  : Tobias Diedrich <ranma+kernel@tdiedrich.de>
-Caused-By  : Andi Kleen <ak@suse.de>
-             commit b026872601976f666bae77b609dc490d1834bf77
-Handled-By : Yinghai Lu <yinghai.lu@amd.com>
-             Eric W. Biederman <ebiederm@xmission.com>
-Status     : patches are being discussed
+} sony_acpi_values[] = {
+         {
+                 .name           = "brightness",
+                 .acpiget        = "GBRT",
+                 .acpiset        = "SBRT",
+                 .min            = 1,
+                 .max            = 8,
+                 .debug          = 0,
+         },
+         {
+                 .name           = "brightness_default",
+                 .acpiget        = "GPBR",
+                 .acpiset        = "SPBR",
+                 .min            = 1,
+                 .max            = 8,
+                 .debug          = 0,
+         },
+         {
+                 .name           = "cdpower",
+                 .acpiget        = "GCDP",
+                 .acpiset        = "CDPW",
+                 .min            = 0,
+                 .max            = 1,
+                 .debug          = 0,
+         },
+         {
+                 .name           = "sound",
+                 .acpiget        = "GAZP",
+                 .acpiset        = "AZPW",
+                 .min            = 0,
+                 .max            = 1,
+                 .debug          = 0,
+         },
+         {
+                 .name           = "lan",
+                 .acpiget        = "GLNP",
+                 .acpiset        = "LNPW",
+                 .min            = 0,
+                 .max            = 1,
+                 .debug          = 0,
+         },
+         {
+                 .name           = NULL,
+         }
+};
