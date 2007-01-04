@@ -1,60 +1,47 @@
-From: Stelian Pop <stelian@popies.net>
-Subject: Re: sonypc with Sony Vaio VGN-SZ1VP
-Date: Thu, 04 Jan 2007 11:09:44 +0100
-Message-ID: <1167905384.7763.36.camel@localhost.localdomain>
-References: <49814.213.30.172.234.1159357906.squirrel@webmail.popies.net>
-	 <200701040024.29793.lenb@kernel.org>
+From: Thorsten Kukuk <kukuk@suse.de>
+Subject: Re: /usr/include/*/acpi.h
+Date: Thu, 4 Jan 2007 11:49:45 +0100
+Message-ID: <20070104104945.GA31430@suse.de>
+References: <200701031552.37919.lenb@kernel.org> <1167900335.14297.23.camel@prodigy.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sd291.sivit.org ([194.146.225.122]:3265 "EHLO sd291.sivit.org"
+Received: from mx2.suse.de ([195.135.220.15]:45882 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932352AbXADKlP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 4 Jan 2007 05:41:15 -0500
-In-Reply-To: <200701040024.29793.lenb@kernel.org>
+	id S964780AbXADKtv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Jan 2007 05:49:51 -0500
+Content-Disposition: inline
+In-Reply-To: <1167900335.14297.23.camel@prodigy.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Andrew Morton <akpm@osdl.org>, Ismail Donmez <ismail@pardus.org.tr>, Andrea Gelmini <gelma@gelma.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, pbaudis@suse.cz
 
-Le jeudi 04 janvier 2007 =E0 00:24 -0500, Len Brown a =E9crit :
+On Thu, Jan 04, Thomas Renninger wrote:
 
-> > > I'd like to keep this driver out-of-tree
-> > > until we prove that we can't enhance the
-> > > generic code to handle this hardware
-> > > without the addition of a new driver.
-> >=20
-> > How long is this going to take ?
->=20
-> How about 2.6.21?
+> On Wed, 2007-01-03 at 15:52 -0500, Len Brown wrote:
+> > Thomas,
+> > Why do the following files appear in OpenSuse 10.2?
+> > 
+> > $ find /usr/include -name '*acpi*'
+> > /usr/include/asm/acpi.h
+> > /usr/include/asm-x86_64/acpi.h
+> > /usr/include/asm-i386/acpi.h
+> > /usr/include/linux/acpi.h
+> > /usr/include/linux/pci-acpi.h
+> > 
+> > They are not present on a Fedora Core 6 system.
+> 
+> No idea. I never used them and I don't know any user space tool using
+> them.
 
-Good news !
+This header files are part of the linux kernel, and thus of course
+available in /usr/include/{asm,linux}.
 
-> What needs to happen is
-> 1. a maintainer for sony_acpi.c needs to step forward
->     I can't do this, I'm not allowed to be in the reverse engineering=
- business.
+  Thorsten
 
-Well, I can't do this either, because I just don't have the required
-hardware anymore.
-
-If someone want to step forward now it is a great time !
->=20
-> 2. /proc/acpi/sony API needs to be deleted
->=20
-> 3. source needs to move out of drivers/acpi, and into drivers/misc al=
-ong with msi.
-
-Sensible suggestions, the new maintainer will have to work on this.
-
-Thanks Len.
-
---=20
-Stelian Pop <stelian@popies.net>
-
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Thorsten Kukuk         http://www.suse.de/~kukuk/      kukuk@suse.de
+SUSE LINUX Products GmbH       Maxfeldstr. 5       D-90409 Nuernberg
+--------------------------------------------------------------------    
+Key fingerprint = 8C6B FD92 EE0F 42ED F91A  6A73 6D1A 7F05 2E59 24BB
