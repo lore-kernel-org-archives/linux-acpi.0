@@ -1,44 +1,66 @@
-From: Matthijs van Otterdijk <thotter@gmail.com>
-Subject: [PATCH] fix the toshiba_acpi write_lcd return value
-Date: Thu, 04 Jan 2007 22:07:46 +0100
-Message-ID: <459D6CA2.8000703@gmail.com>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: sonypc with Sony Vaio VGN-SZ1VP
+Date: Thu, 4 Jan 2007 22:18:30 +0100
+Message-ID: <20070104211830.GD25619@inferi.kami.home>
+References: <49814.213.30.172.234.1159357906.squirrel@webmail.popies.net> <200701040024.29793.lenb@kernel.org> <1167905384.7763.36.camel@localhost.localdomain> <20070104191512.GC25619@inferi.kami.home> <20070104125107.b82db604.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.175]:7242 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030210AbXADVHv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Jan 2007 16:07:51 -0500
-Received: by ug-out-1314.google.com with SMTP id 44so5535517uga
-        for <linux-acpi@vger.kernel.org>; Thu, 04 Jan 2007 13:07:50 -0800 (PST)
+Received: from aa011msr.fastwebnet.it ([85.18.95.71]:51196 "EHLO
+	aa011msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030237AbXADVTX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Jan 2007 16:19:23 -0500
+Content-Disposition: inline
+In-Reply-To: <20070104125107.b82db604.akpm@osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: hmacht@suse.de
-Cc: len.brown@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: Stelian Pop <stelian@popies.net>, Len Brown <lenb@kernel.org>, Ismail Donmez <ismail@pardus.org.tr>, Andrea Gelmini <gelma@gelma.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Cacy Rodney <cacy-rodney-cacy@tlen.pl>
 
-the write_lcd function in toshiba_acpi returns 0 on success since the big ACPI
-patch merged in 2.6.20-rc2. It should return count.
+On Thu, Jan 04, 2007 at 12:51:07PM -0800, Andrew Morton wrote:
+> On Thu, 4 Jan 2007 20:15:12 +0100
+> Mattia Dongili <malattia@linux.it> wrote:
+[...]
+> > but:
+> > - I'll probably need some help;
+> > - I'll have an almost-blackout between the end of February and the end
+> >   of April as I'm moving to a different country and I'll need some time
+> >   before I can be active again (I hope I'll have at least easy mail
+> >   access for all the time though).
+> > Anyway if it is still ok I can maintain the thing, to months seems
+> > enough to give the driver a shape.
+> > 
+> > > > 2. /proc/acpi/sony API needs to be deleted
+> > > > 
+> > > > 3. source needs to move out of drivers/acpi, and into drivers/misc along with msi.
+> > 
+> > And turn extra-backlight features into platform_device stuff? So 2 and 3
+> > can come together.
+> > 
+> > Moreover, I own an SZ72B and an older GR7 and have come to the same
+> > findings of Cacy, plus a patch to allow a smarter "debug" mode.
+> > So, how to proceed? (I've just cloned the linux-acpi-2.6 tree)
+> > 
+> 
+> I have a VGN-something-or-other notebook and I use this driver regularly.
 
-Signed-off-by: Matthijs van Otterdijk <thotter@gmail.com>
----
- drivers/acpi/toshiba_acpi.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Hehehe, I think all the sony lappies are VGN-something :)
 
-diff -up a/drivers/acpi/toshiba_acpi.c b/drivers/acpi/toshiba_acpi.c
---- a/drivers/acpi/toshiba_acpi.c	2007-01-04 18:41:03.000000000 +0100
-+++ b/drivers/acpi/toshiba_acpi.c	2007-01-04 19:36:32.000000000 +0100
-@@ -321,11 +321,11 @@ static int set_lcd_status(struct backlig
- static unsigned long write_lcd(const char *buffer, unsigned long count)
- {
- 	int value;
--	int ret = count;
-+	int ret;
- 
- 	if (sscanf(buffer, " brightness : %i", &value) == 1 &&
- 	    value >= 0 && value < HCI_LCD_BRIGHTNESS_LEVELS)
--		ret = set_lcd(value);
-+		ret = (ret = set_lcd(value)) == 0 ? count : ret;
- 	else
- 		ret = -EINVAL;
- 	return ret;
+> The place to start (please) is the patches in -mm:
+> 
+> 2.6-sony_acpi4.patch
+> sony_apci-resume.patch
+> sony_apci-resume-fix.patch
+> acpi-add-backlight-support-to-the-sony_acpi.patch
+> acpi-add-backlight-support-to-the-sony_acpi-v2.patch
+> video-sysfs-support-take-2-add-dev-argument-for-backlight_device_register-sony_acpi-fix.patch
+> 
+> It presently has both the /proc and /sys/.../backlight/.. interfaces, so the first
+> job would be to chop out the /proc stuff.
+
+Ok, I'll import all of them and start from there.
+Is it ok to wipe all the /proc stuff without notice?
+
+-- 
+mattia
+:wq!
