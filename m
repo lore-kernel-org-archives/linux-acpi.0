@@ -1,95 +1,104 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: sonypc with Sony Vaio VGN-SZ1VP
-Date: Thu, 4 Jan 2007 00:24:29 -0500
-Message-ID: <200701040024.29793.lenb@kernel.org>
-References: <49814.213.30.172.234.1159357906.squirrel@webmail.popies.net>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH -mm] ACPI: use more understandable bus_id for ACPI devices
+Date: Thu, 04 Jan 2007 15:03:18 +0800
+Message-ID: <1167894198.5725.8.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:44644 "EHLO hera.kernel.org"
+Received: from mga01.intel.com ([192.55.52.88]:30958 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932274AbXADFZt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 4 Jan 2007 00:25:49 -0500
-In-Reply-To: <49814.213.30.172.234.1159357906.squirrel@webmail.popies.net>
-Content-Disposition: inline
+	id S932309AbXADHC5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Jan 2007 02:02:57 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: stelian@popies.net
-Cc: Andrew Morton <akpm@osdl.org>, Ismail Donmez <ismail@pardus.org.tr>, Andrea Gelmini <gelma@gelma.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-On Wednesday 27 September 2006 07:51, stelian@popies.net wrote:
-> >> > Will sony_acpi ever make it to the mainline? Its very useful for new
+From: Zhang Rui <rui.zhang@intel.com>
 
-> > Nope, not as it is.  Useful != supportable.
-> >
-> > 1. It must not create any files under /proc/acpi
-> >     This is creating a machine-specific API, which
-> >     is exactly what we don't want  Nobody can maintain
-> >     50 machine specific APIs.
-> >
-> >     These objects must appear generic and under sysfs
-> >     as if acpi were not involved in providing them.
-> >
-> > 2. its source code shall not live in drivers/acpi
-> >     it is not part of the ACPI implementation after all --
-> >     it is a platform specific driver.
-> 
->...
-> 
-> I don't really care much about sony_acpi (since I'm not maintaining it
-> anymore, even if I still answer support requests about it), but this is
-> just silly. This has been going on for more than one and a half year now.
-> 
-> Meanwhile (at least from what I've seen), the ACPI subsystem still doesn't
-> provide this "generic" API which platform specific driver need to
-> implement. drivers/acpi/{hotkey.c,video.c} are just rudimentary, and there
-> is no indication that this is going forward:
+Some of the ACPI devices use the internal fake hids which are exposed to userspace as devces' bus_id after sysfs conversion.
+To make it more friendly, we convert them to more understandable strings.
 
-You are right.  And the reason is that platform specific drivers are not part of ACPI.
-They must either be vendor documented/supplied or reverse-engineered.
-Vendors have not been forthcoming with documentation or code to support
-Linux laptops, and our happy team here at Intel is not allowed to be in
-the reverse enginering business.
+For those devices w/o PNPids, we use "device:instance_no" as the bus_id
+instead of "PNPIDNON:instance_no".
 
-So I concur that hotkey.c is a failed experiment, and I'm going to delete it.
-There is more different than common on these boxes, so it makes no sense.
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/acpi/scan.c         |    6 +++---
+ include/acpi/acpi_bus.h     |    2 +-
+ include/acpi/acpi_drivers.h |   16 ++++++++--------
+ 3 files changed, 12 insertions(+), 12 deletions(-)
 
-video.c, however, is standard, and stays for those machines that actually
-do follow the public specification.
-
-> In March 2005 you (Len) said:
-> 
-> > The goal is to DELETE ibm, toshiba, and asus drivers -- or at least the
-> video.c handles the standard compliant machines.> duplicated functions in them.
-> >
-> > platform specific drivers make it harder, not easier, to support more
-> > hardware -- there are a zillion vendors out there, implementing special
-> > drivers for each of them is a strategy of last resort.
-
-Still true, though it is clear we'll never be able to delete platform specific parts --
-just the parts that duplicate the generic standard functions..
+Index: linux-2.6.20-rc2-mm1/drivers/acpi/scan.c
+===================================================================
+--- linux-2.6.20-rc2-mm1.orig/drivers/acpi/scan.c	2006-12-29 14:12:08.000000000 +0800
++++ linux-2.6.20-rc2-mm1/drivers/acpi/scan.c	2006-12-29 16:05:36.000000000 +0800
+@@ -26,7 +26,7 @@ DEFINE_SPINLOCK(acpi_device_lock);
+ LIST_HEAD(acpi_wakeup_device_list);
  
-> > I'd like to keep this driver out-of-tree
-> > until we prove that we can't enhance the
-> > generic code to handle this hardware
-> > without the addition of a new driver.
-> 
-> How long is this going to take ?
-
-How about 2.6.21?
-What needs to happen is
-1. a maintainer for sony_acpi.c needs to step forward
-    I can't do this, I'm not allowed to be in the reverse engineering business.
-
-2. /proc/acpi/sony API needs to be deleted
-
-3. source needs to move out of drivers/acpi, and into drivers/misc along with msi.
-
-Luming has a sony laptop and can help with this, but
-he can't be the permanent maintainer any more than I can, for the same reason.
-If we can get past #1, then I recommend we apply the patch series in -mm to
-the acpi-test tree and go from there.
-
--Len
+ struct acpi_device_bus_id{
+-	char bus_id[9];
++	char bus_id[15];
+ 	unsigned int instance_no;
+ 	struct list_head node;
+ };
+@@ -342,7 +342,7 @@ static int acpi_device_register(struct a
+ 	 * If failed, create one and link it into acpi_bus_id_list
+ 	 */
+ 	list_for_each_entry(acpi_device_bus_id, &acpi_bus_id_list, node) {
+-		if(!strcmp(acpi_device_bus_id->bus_id, device->flags.hardware_id? device->pnp.hardware_id : "PNPIDNON")) {
++		if(!strcmp(acpi_device_bus_id->bus_id, device->flags.hardware_id? device->pnp.hardware_id : "device")) {
+ 			acpi_device_bus_id->instance_no ++;
+ 			found = 1;
+ 			kfree(new_bus_id);
+@@ -351,7 +351,7 @@ static int acpi_device_register(struct a
+ 	}
+ 	if(!found) {
+ 		acpi_device_bus_id = new_bus_id;
+-		strcpy(acpi_device_bus_id->bus_id, device->flags.hardware_id ? device->pnp.hardware_id : "PNPIDNON");
++		strcpy(acpi_device_bus_id->bus_id, device->flags.hardware_id ? device->pnp.hardware_id : "device");
+ 		acpi_device_bus_id->instance_no = 0;
+ 		list_add_tail(&acpi_device_bus_id->node, &acpi_bus_id_list);
+ 	}
+Index: linux-2.6.20-rc2-mm1/include/acpi/acpi_bus.h
+===================================================================
+--- linux-2.6.20-rc2-mm1.orig/include/acpi/acpi_bus.h	2006-12-29 14:12:10.000000000 +0800
++++ linux-2.6.20-rc2-mm1/include/acpi/acpi_bus.h	2006-12-29 14:22:29.000000000 +0800
+@@ -184,7 +184,7 @@ struct acpi_device_dir {
+ 
+ typedef char acpi_bus_id[5];
+ typedef unsigned long acpi_bus_address;
+-typedef char acpi_hardware_id[9];
++typedef char acpi_hardware_id[15];
+ typedef char acpi_unique_id[9];
+ typedef char acpi_device_name[40];
+ typedef char acpi_device_class[20];
+Index: linux-2.6.20-rc2-mm1/include/acpi/acpi_drivers.h
+===================================================================
+--- linux-2.6.20-rc2-mm1.orig/include/acpi/acpi_drivers.h	2006-12-29 14:12:10.000000000 +0800
++++ linux-2.6.20-rc2-mm1/include/acpi/acpi_drivers.h	2006-12-29 14:29:25.000000000 +0800
+@@ -36,15 +36,15 @@
+ 
+ /* _HID definitions */
+ 
+-#define ACPI_POWER_HID			"ACPI_PWR"
+-#define ACPI_PROCESSOR_HID		"ACPI_CPU"
+-#define ACPI_SYSTEM_HID			"ACPI_SYS"
+-#define ACPI_THERMAL_HID		"ACPI_THM"
+-#define ACPI_BUTTON_HID_POWERF		"ACPI_FPB"
+-#define ACPI_BUTTON_HID_SLEEPF		"ACPI_FSB"
++#define ACPI_POWER_HID			"power_resource"
++#define ACPI_PROCESSOR_HID		"processor"
++#define ACPI_SYSTEM_HID			"acpi_system"
++#define ACPI_THERMAL_HID		"thermal"
++#define ACPI_BUTTON_HID_POWERF		"button_power"
++#define ACPI_BUTTON_HID_SLEEPF		"button_sleep"
+ 
+-#define ACPI_VIDEO_HID			"ACPI_VID"
+-#define ACPI_BAY_HID			"ACPI_BAY"
++#define ACPI_VIDEO_HID			"video"
++#define ACPI_BAY_HID			"bay"
+ /* --------------------------------------------------------------------------
+                                        PCI
+    -------------------------------------------------------------------------- */
