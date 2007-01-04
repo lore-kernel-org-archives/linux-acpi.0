@@ -1,106 +1,75 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 1/1] - Altix: ACPI _PRT support
-Date: Thu, 4 Jan 2007 12:19:12 -0500
-Message-ID: <200701041219.12225.lenb@kernel.org>
-References: <20061222175004.1603.74655.sendpatchset@attica.americas.sgi.com>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: 2.6.20-rc3: known unfixed regressions (v3)
+Date: Thu, 4 Jan 2007 18:46:32 +0100
+Message-ID: <20070104174632.GC20714@stusta.de>
+References: <Pine.LNX.4.64.0612311710430.4473@woody.osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <20061222175004.1603.74655.sendpatchset@attica.americas.sgi.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-ide-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-ia64-owner@vger.kernel.org
-To: John Keller <jpk@sgi.com>
-Cc: linux-acpi@vger.kernel.org, ayoung@agi.com, jes@sgi.com, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <Pine.LNX.4.64.0612311710430.4473@woody.osdl.org>
+Sender: linux-ide-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jon Smirl <jonsmirl@gmail.com>, Damien Wyart <damien.wyart@free.fr>, Aaron Sethman <androsyn@ratbox.org>, alan@lxorguk.ukuu.org.uk, linux-ide@vger.kernel.org, Berthold Cogel <cogel@rrz.uni-koeln.de>, len.brown@intel.com, linux-acpi@vger.kernel.org, Florin Iucha <florin@iucha.net>, greg@kroah.com, linux-usb-devel@lists.sourceforge.net, dmitry.torokhov@gmail.com, linux-input@atrey.karlin.mff.cuni.cz, James.Bottomley@SteelEye.com, linux-scsi@vger.kernel.org, Komuro <komurojun-mbn@nifty.com>, YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>, netdev@vger.kernel.org, Tobias Diedrich <ranma+kernel@tdiedrich.de>, Andi Kleen <ak@suse.de>, Yinghai Lu <yinghai.lu@amd.com>, "Eric W. Biederman" <ebiederm@xmission.com>, discuss@x86-64.org, mingo@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
-Applied.
+This email lists some known regressions in 2.6.20-rc3 compared to 2.6.19
+that are not yet fixed in Linus' tree.
 
-thanks,
--Len
+If you find your name in the Cc header, you are either submitter of one
+of the bugs, maintainer of an affectected subsystem or driver, a patch
+of you caused a breakage or I'm considering you in any other way possibly
+involved with one or more of these issues.
 
-On Friday 22 December 2006 12:50, John Keller wrote:
-> Provide ACPI _PRT support for SN Altix systems.
-> 
-> The SN Altix platform does not conform to the 
-> IOSAPIC IRQ routing model, so a new acpi_irq_model
-> (ACPI_IRQ_MODEL_PLATFORM) has been defined. The SN
-> platform specific code sets acpi_irq_model to
-> this new value, and keys off of it in acpi_register_gsi()
-> to avoid the iosapic code path.
-> 
-> Signed-off-by: John Keller <jpk@sgi.com>
-> ---
-> 
-> To avoid future regression/backward compatibilty issues
-> when _PRT support is added to our PROM, we'd like to
-> see this pushed into 2.6.20, if at all possible.
-> 
-> 
->  arch/ia64/kernel/acpi.c            |    3 +++
->  arch/ia64/sn/kernel/io_acpi_init.c |    3 +++
->  drivers/acpi/bus.c                 |    3 +++
->  include/linux/acpi.h               |    1 +
->  4 files changed, 10 insertions(+)
-> 
-> 
-> Index: linux/arch/ia64/kernel/acpi.c
-> ===================================================================
-> --- linux.orig/arch/ia64/kernel/acpi.c	2006-10-24 02:38:54.000000000 -0500
-> +++ linux/arch/ia64/kernel/acpi.c	2006-12-22 10:54:36.930343639 -0600
-> @@ -590,6 +590,9 @@ void __init acpi_numa_arch_fixup(void)
->   */
->  int acpi_register_gsi(u32 gsi, int triggering, int polarity)
->  {
-> +	if (acpi_irq_model == ACPI_IRQ_MODEL_PLATFORM)
-> +		return gsi;
-> +
->  	if (has_8259 && gsi < 16)
->  		return isa_irq_to_vector(gsi);
->  
-> Index: linux/arch/ia64/sn/kernel/io_acpi_init.c
-> ===================================================================
-> --- linux.orig/arch/ia64/sn/kernel/io_acpi_init.c	2006-12-21 00:51:59.000000000 -0600
-> +++ linux/arch/ia64/sn/kernel/io_acpi_init.c	2006-12-22 10:53:45.504213484 -0600
-> @@ -223,6 +223,9 @@ sn_io_acpi_init(void)
->  	u64 result;
->  	s64 status;
->  
-> +	/* SN Altix does not follow the IOSAPIC IRQ routing model */
-> +	acpi_irq_model = ACPI_IRQ_MODEL_PLATFORM;
-> +
->  	acpi_bus_register_driver(&acpi_sn_hubdev_driver);
->  	status = sal_ioif_init(&result);
->  	if (status || result)
-> Index: linux/drivers/acpi/bus.c
-> ===================================================================
-> --- linux.orig/drivers/acpi/bus.c	2006-08-28 20:40:10.000000000 -0500
-> +++ linux/drivers/acpi/bus.c	2006-12-22 10:52:32.155474439 -0600
-> @@ -561,6 +561,9 @@ static int __init acpi_bus_init_irq(void
->  	case ACPI_IRQ_MODEL_IOSAPIC:
->  		message = "IOSAPIC";
->  		break;
-> +	case ACPI_IRQ_MODEL_PLATFORM:
-> +		message = "platform specific model";
-> +		break;
->  	default:
->  		printk(KERN_WARNING PREFIX "Unknown interrupt routing model\n");
->  		return -ENODEV;
-> Index: linux/include/linux/acpi.h
-> ===================================================================
-> --- linux.orig/include/linux/acpi.h	2006-10-24 02:38:54.000000000 -0500
-> +++ linux/include/linux/acpi.h	2006-12-22 10:52:53.337997675 -0600
-> @@ -47,6 +47,7 @@ enum acpi_irq_model_id {
->  	ACPI_IRQ_MODEL_PIC = 0,
->  	ACPI_IRQ_MODEL_IOAPIC,
->  	ACPI_IRQ_MODEL_IOSAPIC,
-> +	ACPI_IRQ_MODEL_PLATFORM,
->  	ACPI_IRQ_MODEL_COUNT
->  };
->  
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Due to the huge amount of recipients, please trim the Cc when answering.
+
+
+Subject    : BUG: scheduling while atomic: hald-addon-stor/...
+             cdrom_{open,release,ioctl} in trace
+References : http://lkml.org/lkml/2006/12/26/105
+             http://lkml.org/lkml/2006/12/29/22
+             http://lkml.org/lkml/2006/12/31/133
+Submitter  : Jon Smirl <jonsmirl@gmail.com>
+             Damien Wyart <damien.wyart@free.fr>
+             Aaron Sethman <androsyn@ratbox.org>
+Status     : unknown
+
+
+Subject    : Acer Extensa 3002 WLMi: 'shutdown -h now' reboots the system
+References : http://lkml.org/lkml/2006/12/25/40
+Submitter  : Berthold Cogel <cogel@rrz.uni-koeln.de>
+Status     : unknown
+
+
+Subject    : USB keyboard unresponsive after some time
+References : http://lkml.org/lkml/2006/12/25/35
+             http://lkml.org/lkml/2006/12/26/106
+Submitter  : Florin Iucha <florin@iucha.net>
+Status     : unknown
+
+
+Subject    : SPARC64: Can't mount /  (CONFIG_SCSI_SCAN_ASYNC=y ?)
+References : http://lkml.org/lkml/2006/12/13/181
+             http://lkml.org/lkml/2007/01/04/75
+Submitter  : Horst H. von Brand <vonbrand@inf.utfsm.cl>
+Status     : unknown
+
+
+Subject    : ftp: get or put stops during file-transfer
+References : http://lkml.org/lkml/2006/12/16/174
+Submitter  : Komuro <komurojun-mbn@nifty.com>
+Caused-By  : YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+             commit cfb6eeb4c860592edd123fdea908d23c6ad1c7dc
+Handled-By : YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Status     : problem is being debugged
+
+
+Subject    : x86_64 boot failure: "IO-APIC + timer doesn't work"
+References : http://lkml.org/lkml/2006/12/16/101
+             http://lkml.org/lkml/2007/1/3/9
+Submitter  : Tobias Diedrich <ranma+kernel@tdiedrich.de>
+Caused-By  : Andi Kleen <ak@suse.de>
+             commit b026872601976f666bae77b609dc490d1834bf77
+Handled-By : Yinghai Lu <yinghai.lu@amd.com>
+             Eric W. Biederman <ebiederm@xmission.com>
+Status     : patches are being discussed
