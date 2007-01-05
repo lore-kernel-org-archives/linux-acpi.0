@@ -1,41 +1,60 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 19/19] asus_acpi: Add support for Asus Z81SP
-Date: Fri, 5 Jan 2007 02:06:22 -0500
-Message-ID: <200701050206.22992.lenb@kernel.org>
-References: <200612192056.kBJKuP7b010068@shell0.pdx.osdl.net> <200612222113.24023.lenb@kernel.org> <20061222201511.e9f6ef16.akpm@osdl.org>
+From: Sid Boyce <g3vbv@blueyonder.co.uk>
+Subject: Re: 2.6.19 and up to 2.6.20-rc2 Ethernet problems x86_64
+Date: Fri, 05 Jan 2007 09:09:53 +0000
+Message-ID: <459E15E1.3010708@blueyonder.co.uk>
+References: <459A7D46.5000509@blueyonder.co.uk> <200701021159.24945.lenb@kernel.org> <459AE34D.8040709@blueyonder.co.uk> <200701030117.31737.lenb@kernel.org>
+Reply-To: g3vbv@blueyonder.co.uk
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:53998 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030358AbXAEHHZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 5 Jan 2007 02:07:25 -0500
-In-Reply-To: <20061222201511.e9f6ef16.akpm@osdl.org>
-Content-Disposition: inline
+Received: from smtp-out2.blueyonder.co.uk ([195.188.213.5]:47832 "EHLO
+	smtp-out2.blueyonder.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1030364AbXAEJJ4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Jan 2007 04:09:56 -0500
+In-Reply-To: <200701030117.31737.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: linux-acpi@vger.kernel.org, calvinmc@gmail.com, acpi4asus-user@lists.sourceforge.net
+To: Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Friday 22 December 2006 23:15, Andrew Morton wrote:
-> On Fri, 22 Dec 2006 21:13:23 -0500
-> Len Brown <lenb@kernel.org> wrote:
-> 
-> > NAK
-> > 
-> > The proper way to update the asus_acpi driver
-> > is through its (new) maintainer and mailing list on acpi4asus-user@lists.sourceforge.net
-> > which will forward the patches through the acpi tree when tested.
-> > 
-> 
-> So why the NAK?  The patch is good, isn't it?
+Len Brown wrote:
+>> ..same problem with 2.6.20-rc3. Last worked with 
+>> 2.6.19-rc6-git12, so it was 2.6.19 where it failed.
+>>     
+>
+>
+>   
+>> Attaching both case1 normal, case2 acpi=noirq. With acpi=noirq ethernet 
+>> doesn't get configured, route -n says it's an Unsupported operation, 
+>> ifconfig only shows for localhost, ifconfig eth0 192.168.10.5 also 
+>> complains of a config error.
+>>     
+>
+> It seems that the "acpi=noirq" (and probably also the acpi=off) case
+> is simply an additional broken case, not a success case to compare to.
+>
+> The thing we really want to compare is dmesg and /proc/interrupts
+> from 2.6.19-rc6-git12, and the broken current release.
+> Perhaps you can put that info in the bug report when you file it.
+>
+> thanks,
+> -Len
+>
+>
+>
+>   
+2.6.19-rc6-git12 fails in exactly the same way, from /var/log/messages 
+it seems 2.6.19-rc6 19/11/06 first saw the problem, details later when I 
+boot 2.6.19-rc5.
+If I boot an affected kernel with the SuSEfirewall2 enabled and then 
+stop the firewall, the problems goes away.
+Regards
+Sid.
 
-Okay, call it lack of an ACK:-)
+-- 
+Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
+Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support Specialist, Cricket Coach
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
 
-When it comes from the asus_acpi maintainer having passed the muster of
-the acpi4asus-user list I'll be delighted to apply it.
 
-cheers,
--Len
