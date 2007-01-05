@@ -1,48 +1,35 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Sony Vaio VGN-SZ340 (was Re: sonypc with Sony Vaio VGN-SZ1VP)
-Date: Fri, 5 Jan 2007 12:11:08 -0500
-Message-ID: <200701051211.08458.lenb@kernel.org>
-References: <49814.213.30.172.234.1159357906.squirrel@webmail.popies.net> <20070104154434.7e1a7c83.akpm@osdl.org> <7ce7bf330701041820l5132ddbfsd3dd2b6ea826f3ae@mail.gmail.com>
+Subject: Re: sonypc with Sony Vaio VGN-SZ1VP
+Date: Fri, 5 Jan 2007 12:19:00 -0500
+Message-ID: <200701051219.00509.lenb@kernel.org>
+References: <49814.213.30.172.234.1159357906.squirrel@webmail.popies.net> <20070104191512.GC25619@inferi.kami.home> <459E1909.9020703@fnxweb.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1161171AbXAERMK@vger.kernel.org>
-In-Reply-To: <7ce7bf330701041820l5132ddbfsd3dd2b6ea826f3ae@mail.gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:51018 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1422633AbXAERTy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 5 Jan 2007 12:19:54 -0500
+In-Reply-To: <459E1909.9020703@fnxweb.com>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: MoRpHeUz <morpheuz@gmail.com>
-Cc: Andrew Morton <akpm@osdl.org>, Stelian Pop <stelian@popies.net>, Mattia Dongili <malattia@linux.it>, Ismail Donmez <ismail@pardus.org.tr>, Andrea Gelmini <gelma@gelma.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Cacy Rodney <cacy-rodney-cacy@tlen.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Neil Bird <neil@fnxweb.com>
+Cc: linux-acpi@vger.kernel.org, malattia@linux.it
 
-On Thursday 04 January 2007 21:20, MoRpHeUz wrote:
-> Hi,
-> 
->   I own a Sony Vaio VGN-SZ340 and I had problems regarding acpi + it's
-> dual core processor. The guys from Intel gave me a workaround and now
-> it recognises both cores.
+On Friday 05 January 2007 04:23, Neil Bird wrote:
 
-What workaround are you using?
+>    But last time I tried (couple of kernel releases ago) it crashes on 
+> start-up;  I think it's something to do with kmallocs in the ACPI code tyhat 
+> I'm calling that aren't allowed in certain contexts, buit I have no control 
+> over what kmallocs are used in acpi.
 
->   The problem is that it does not do cpu frequency scaling for both
-> cores, just for cpu0...And when I boot with acpi the Nvidia graphic
-> card doesnt work also.
-> 
->   I don't know if you know about these problems regarding sony acpi.
-> The guys from Intel said that this notebook have 2 dst's. So to detect
-> both cores the workaround just uses the second dst (although frequency
-> scaling does work for both.)
-> 
->   I can help you to fix this bug...I have the machine where we can do
-> some tests..
+running the AML interpreter in  interrupt context would be a no-no.
 
-The frequency scaling issue sounds like a BIOS/Linux incompatibility.
-Please open a bugzilla, if you haven't already, and include the
-output from acpidump.
+I thought we had deferred the notify handlers so that they wouldn't
+run in interrupt context, but maybe there is a case here where
+that does not happen.
 
-The nvidia issue sounds like an interrupt issue, so please reproduce
-it using the open source nvidia driver (not the nvidia binary),
-and include the lspci -vv output, dmesg, and /proc/interrupts.
-
-thanks,
 -Len
