@@ -1,47 +1,61 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: Sony Vaio VGN-SZ340 (was Re: sonypc with Sony Vaio VGN-SZ1VP)
-Date: Fri, 5 Jan 2007 13:10:40 -0500
-Message-ID: <200701051310.41131.lenb@kernel.org>
-References: <49814.213.30.172.234.1159357906.squirrel@webmail.popies.net> <200701051211.08458.lenb@kernel.org> <7ce7bf330701050924h47546970w36ed189ed147ddb3@mail.gmail.com>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: sonypc with Sony Vaio VGN-SZ1VP
+Date: Fri, 5 Jan 2007 20:10:45 +0100
+Message-ID: <20070105191045.GI13533@inferi.kami.home>
+References: <459D4051.9020506@tlen.pl> <200701051233.20366.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:49952 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422653AbXAESLf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 5 Jan 2007 13:11:35 -0500
-In-Reply-To: <7ce7bf330701050924h47546970w36ed189ed147ddb3@mail.gmail.com>
+Received: from aa014msr.fastwebnet.it ([85.18.95.74]:49078 "EHLO
+	aa014msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422677AbXAETLW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Jan 2007 14:11:22 -0500
 Content-Disposition: inline
+In-Reply-To: <200701051233.20366.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: MoRpHeUz <morpheuz@gmail.com>
-Cc: Andrew Morton <akpm@osdl.org>, Stelian Pop <stelian@popies.net>, Mattia Dongili <malattia@linux.it>, Ismail Donmez <ismail@pardus.org.tr>, Andrea Gelmini <gelma@gelma.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Cacy Rodney <cacy-rodney-cacy@tlen.pl>
+To: Len Brown <lenb@kernel.org>
+Cc: Cacy Rodney <cacy-rodney-cacy@tlen.pl>, linux-acpi@vger.kernel.org
 
-On Friday 05 January 2007 12:24, MoRpHeUz wrote:
-> > What workaround are you using?
-> 
->  This one: http://bugzilla.kernel.org/show_bug.cgi?id=7465
+On Fri, Jan 05, 2007 at 12:33:20PM -0500, Len Brown wrote:
+[...]
+> With /proc/acpi/ going away, this raises the question of where sony_acpi should put stuff
+> that is under development -- as unlike brightness -- it will not have a generic home in sysfs.
 
-Ah yes, the duplicate MADT issue is clearly a BIOS bug.
-It is possible that we can tweak our Linux workaround for it to be more
-Microsoft Windows Bug Compatbile(TM).
+I was thinking the same and had 2 options in my mind:
 
-> > The frequency scaling issue sounds like a BIOS/Linux incompatibility.
+1- debugfs (with proper documentation)
 
-It looks like this issue results from that above,
-rather than being an additional problem.
+2- turn the SNC into a platform_device driver (as is msi-laptop) and
+   eventually  create .config options to enable experimental/debug
+   features.
 
-> > The nvidia issue sounds like an interrupt issue, so please reproduce
-> > it using the open source nvidia driver (not the nvidia binary),
-> > and include the lspci -vv output, dmesg, and /proc/interrupts.
-> 
->   Will try that !
+> To do it right,  some analysis of the DSDT which has these vendor methods in them
+> will be necessary.  It is conceivable that these methods can be hooked to the generic
+> device power management support if the "real" devices in sysfs can be found.
 
-If interrupts fail using the open source nvidia driver, (and using the workaround
-from the bug above to use the right MADT, please open a new bug report
-as I think it would be an independent issue.
+In my DSDT[1] some of the methods (the audio card power setter: AZPW)
+references a method in the real device (the same used in
+_PS0 and _PS3 for the device) so it's actually a duplicate and the real
+device already has the capability. I'd say all the others are playing
+with random IO registers or in the EC0 operation region.
 
-thanks,
--Len
+[1]: sz72b http://oioio.altervista.org/linux/DSDT.sz72b.dsl
+
+other DSDTs I have:
+http://oioio.altervista.org/linux/DSDT.ux50.dsl
+http://oioio.altervista.org/linux/DSDT.gr7k.dsl
+
+> A word of warning, which may be totally obvious here, is that the method names above
+> are completely arbitrary choices on the part of a BIOS engineer at Sony, and the
+> next BIOS engineer can make completely different choices for what names are used
+> or what the same names do.
+
+This is already partly happened, at least a known old method name has
+mutated.
+
+I'll send a first rush of patches as soon as I decide how to deal with
+the different method names.
+-- 
+mattia
+:wq!
