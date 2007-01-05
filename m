@@ -1,64 +1,47 @@
-From: Mattia Dongili <malattia@linux.it>
+From: Len Brown <lenb@kernel.org>
 Subject: Re: sonypc with Sony Vaio VGN-SZ1VP
-Date: Fri, 5 Jan 2007 17:24:48 +0100
-Message-ID: <20070105162448.GE13533@inferi.kami.home>
-References: <49814.213.30.172.234.1159357906.squirrel@webmail.popies.net> <200701040024.29793.lenb@kernel.org> <1167905384.7763.36.camel@localhost.localdomain> <20070104191512.GC25619@inferi.kami.home> <459E1909.9020703@fnxweb.com>
+Date: Fri, 5 Jan 2007 12:02:30 -0500
+Message-ID: <200701051202.31208.lenb@kernel.org>
+References: <49814.213.30.172.234.1159357906.squirrel@webmail.popies.net> <1167946596.6816.7.camel@hughsie-laptop> <20070104215810.GE25619@inferi.kami.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aa013msr.fastwebnet.it ([85.18.95.73]:38064 "EHLO
-	aa013msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161142AbXAEQYz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Jan 2007 11:24:55 -0500
+Received: from hera.kernel.org ([140.211.167.34]:44494 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1161156AbXAEREW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 5 Jan 2007 12:04:22 -0500
+In-Reply-To: <20070104215810.GE25619@inferi.kami.home>
 Content-Disposition: inline
-In-Reply-To: <459E1909.9020703@fnxweb.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Neil Bird <neil@fnxweb.com>
-Cc: linux-acpi@vger.kernel.org
+To: Mattia Dongili <malattia@linux.it>
+Cc: Richard Hughes <hughsient@gmail.com>, Andrew Morton <akpm@osdl.org>, Stelian Pop <stelian@popies.net>, Ismail Donmez <ismail@pardus.org.tr>, Andrea Gelmini <gelma@gelma.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Cacy Rodney <cacy-rodney-cacy@tlen.pl>
 
-On Fri, Jan 05, 2007 at 09:23:21AM +0000, Neil Bird wrote:
-> Around about 04/01/07 19:15, Mattia Dongili typed ...
-> >I have the hw and I'd be happy to do some basic working on the code
+> > Well, HAL has used it for changing the brightness for the last year or
+> > so: /proc/acpi/sony/brightness
+> > 
+> > Although if you use a new enough HAL (CVS), the laptop will be supported
+> > via the shiny new backlight class.
 > 
->   OK, I'm going to jump in here with something I've been meaning to post 
-> for a while;  now seems as good a time as any :)
+> great, -mm already has the /sys/class/backlight in place for sony_acpi
+> and I suppose the /proc entry can be kept until 2.6.20 is released, i.e.
+> just before pushing things for .21.
 > 
->   I *think* I'm using the code you're all talking about on my Vaio:  the 
-> sony_acpi (0.3?) module that works where the stick s=kernel sonypi doesn't.
->
->   I'm also (currently) using the fsfn daemon/osd-app, or at least modified 
-> versions of them (my laptop, like other poeple's, doesn't report back the 
-> current brightness, so the fsfn daemon remembers the value and uses that 
-> instead for higher/lower settings).
-> 
-> 
->   I've been tinkering with the module code, initially just to add this 
-> brightness-value memory to the module (so the /proc entries do actually 
-> work) via a module param, and this works a treat.
-> 
->   I've also added the ability to watch for key presses and inject fake key 
-> presses, so that the Fn buttons are seen by the kernel and X, etc., and can 
-> thus be bound by GNOME or KDE in the normal fashion, making it (for me) 
-> more immediately useful, esp. for the generic keys (S1/S2 on mine).
-> 
->   But last time I tried (couple of kernel releases ago) it crashes on 
-> start-up;  I think it's something to do with kmallocs in the ACPI code 
-> tyhat I'm calling that aren't allowed in certain contexts, buit I have no 
-> control over what kmallocs are used in acpi.
-> 
->   If anyone's interested, I'll email them my latest copy.  I got a bit 
-> stuck as the last attempt lost the actual error off the top of the screen 
-> before locking and I don't know how to get the console output, erm, output 
-> to anything other than the screen on my laptop.
+> Len, would you allow it?
 
-Ok, could you send me a copy? I'll see if I can add some of your code.
-BTW, which vaio model is this?
+Sure, no problem.
+Checking it into my tree with /proc/acpi/sony is
+no different than what is in -mm today.
 
-Can you send me the DSDT too?
-(acpidump -b -t DSDT -o DSDT.aml && iasl -d DSDT.aml)
+When we push upstream, however, the /proc/acpi/sony part should be gone,
+or at least scheduled for removal.
 
-Thanks
--- 
-mattia
-:wq!
+I suggest a sub CONFIG option under CONFIG_SONY_ACPI, say,
+CONFIG_SONY_ACPI_PROCFS so you can #ifdef the code that
+is going away.
+
+thanks for stepping forward Mattia,
+-Len
+ 
