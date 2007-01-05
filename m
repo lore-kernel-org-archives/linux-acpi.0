@@ -1,49 +1,58 @@
-From: Mattia Dongili <malattia@linux.it>
+From: Neil Bird <neil@fnxweb.com>
 Subject: Re: sonypc with Sony Vaio VGN-SZ1VP
-Date: Fri, 5 Jan 2007 10:15:40 +0100
-Message-ID: <20070105091539.GA13533@inferi.kami.home>
-References: <49814.213.30.172.234.1159357906.squirrel@webmail.popies.net> <200701040024.29793.lenb@kernel.org> <1167905384.7763.36.camel@localhost.localdomain> <20070104191512.GC25619@inferi.kami.home> <20070104125107.b82db604.akpm@osdl.org> <1167953784.4901.5.camel@localhost.localdomain> <Pine.LNX.4.61.0701050110170.8556@yvahk01.tjqt.qr>
+Date: Fri, 05 Jan 2007 09:23:21 +0000
+Message-ID: <459E1909.9020703@fnxweb.com>
+References: <49814.213.30.172.234.1159357906.squirrel@webmail.popies.net> <200701040024.29793.lenb@kernel.org> <1167905384.7763.36.camel@localhost.localdomain> <20070104191512.GC25619@inferi.kami.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aa013msr.fastwebnet.it ([85.18.95.73]:47091 "EHLO
-	aa013msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965112AbXAEJQg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Jan 2007 04:16:36 -0500
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.61.0701050110170.8556@yvahk01.tjqt.qr>
+Received: from mail.uk.thalesgroup.com ([194.128.85.7]:4593 "EHLO
+	CRAWSMAIL2.uk.thalesgroup.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S965135AbXAEJi1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Jan 2007 04:38:27 -0500
+In-Reply-To: <20070104191512.GC25619@inferi.kami.home>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Cc: Stelian Pop <stelian@popies.net>, Andrew Morton <akpm@osdl.org>, Len Brown <lenb@kernel.org>, Ismail Donmez <ismail@pardus.org.tr>, Andrea Gelmini <gelma@gelma.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Cacy Rodney <cacy-rodney-cacy@tlen.pl>
+To: linux-acpi@vger.kernel.org
+Cc: malattia@linux.it
 
-On Fri, Jan 05, 2007 at 01:11:16AM +0100, Jan Engelhardt wrote:
-> 
-> On Jan 5 2007 00:36, Stelian Pop wrote:
-> >@@ -61,6 +61,7 @@ static struct acpi_driver sony_acpi_driv
-> > 
-> > static acpi_handle sony_acpi_handle;
-> > static struct proc_dir_entry *sony_acpi_dir;
-> >+static struct acpi_device *sony_acpi_acpi_device = NULL;
-> 
-> acpi_acpi?
-> 
-> >@@ -310,7 +315,7 @@ static int sony_acpi_add(struct acpi_dev
-> > 		    		 item->acpiset, &handle)))
-> > 		    	continue;
-> > 
-> >-		item->proc = create_proc_entry(item->name, 0600,
-> >+		item->proc = create_proc_entry(item->name, 0666,
-> > 					       acpi_device_dir(device));
-> > 		if (!item->proc) {
-> > 			printk(LOG_PFX "unable to create proc entry\n");
-> 
-> Is this safe? I would not want normal users to poke on that.
+Around about 04/01/07 19:15, Mattia Dongili typed ...
+> I have the hw and I'd be happy to do some basic working on the code
 
-Hmmm, seconded. It also seems quite a gratuitous change and I have a
-different patch that takes care of permissions and the /proc stuff is
-going away in any case.
+   OK, I'm going to jump in here with something I've been meaning to post 
+for a while;  now seems as good a time as any :)
+
+   I *think* I'm using the code you're all talking about on my Vaio:  the 
+sony_acpi (0.3?) module that works where the stick s=kernel sonypi doesn't.
+
+   I'm also (currently) using the fsfn daemon/osd-app, or at least modified 
+versions of them (my laptop, like other poeple's, doesn't report back the 
+current brightness, so the fsfn daemon remembers the value and uses that 
+instead for higher/lower settings).
+
+
+   I've been tinkering with the module code, initially just to add this 
+brightness-value memory to the module (so the /proc entries do actually 
+work) via a module param, and this works a treat.
+
+   I've also added the ability to watch for key presses and inject fake key 
+presses, so that the Fn buttons are seen by the kernel and X, etc., and can 
+thus be bound by GNOME or KDE in the normal fashion, making it (for me) more 
+immediately useful, esp. for the generic keys (S1/S2 on mine).
+
+   But last time I tried (couple of kernel releases ago) it crashes on 
+start-up;  I think it's something to do with kmallocs in the ACPI code tyhat 
+I'm calling that aren't allowed in certain contexts, buit I have no control 
+over what kmallocs are used in acpi.
+
+   If anyone's interested, I'll email them my latest copy.  I got a bit 
+stuck as the last attempt lost the actual error off the top of the screen 
+before locking and I don't know how to get the console output, erm, output 
+to anything other than the screen on my laptop.
 
 -- 
-mattia
-:wq!
+[neil@fnx ~]# rm -f .signature
+[neil@fnx ~]# ls -l .signature
+ls: .signature: No such file or directory
+[neil@fnx ~]# exit
