@@ -1,80 +1,54 @@
-From: "Lebedev, Vladimir P" <vladimir.p.lebedev@intel.com>
-Subject: RE: Problem with HP Pavillion DV8000
-Date: Sat, 6 Jan 2007 10:09:56 +0300
-Message-ID: <8E389A5F2FEABA4CB1DEC35A25CB39CE8E8F3C@mssmsx411>
-References: <beb91d720701052012j5dbc94aay9fb8142031a6b7cd@mail.gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH 0/6] [-mm]: ACPI: duplicate ACPI procfs functions in sysfs
+Date: Sat, 06 Jan 2007 19:35:06 +0800
+Message-ID: <1168083306.5619.34.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:34101 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:42946 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751194AbXAFHKA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Jan 2007 02:10:00 -0500
-Content-class: urn:content-classes:message
-In-Reply-To: <beb91d720701052012j5dbc94aay9fb8142031a6b7cd@mail.gmail.com>
+	id S1751351AbXAFLen (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 6 Jan 2007 06:34:43 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Salatiel Filho <salatiel.filho@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: "linux-acpi@vger" <linux-acpi@vger.kernel.org>, linux-pm@osdl.org
 
-> I`m having a lot of ACPI BATTERY related problems ...
+This patch set is against acpi-test sysfs branch, and will duplicate several ACPI procfs functions in sysfs.
+As struct subsystem power_subsys is referred and the interface under /sys/power/ is changed by this patch series,
+I wish to receive some comments from linux-pm too.
 
-Please look into the bug #7386 and try 'acpi_serialize' flag.
+Patch 01:
+	add a Kconfig option which is used to make ACPI procfs interface configurable.
+	This will be used by all the following sysfs conversion patches.
 
------Original Message-----
-=46rom: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.=
-kernel.org] On Behalf Of Salatiel Filho
-Sent: Saturday, January 06, 2007 7:13 AM
-To: linux-acpi@vger.kernel.org
-Subject: Re: Problem with HP Pavillion DV8000
+Patch 02:
+	add ACPI debug attribute in sysfs.
+	By applying this patch, /proc/acpi/debug_layer && debug_level is deprecated by
+	/sys/module/acpi/parameter/debug_layer && debug_level.
 
-I`m having a lot of ACPI BATTERY related problems ...
+Patch 03-05:
+	add ACPI sleep attributes in sysfs.
+	/proc/acpi/sleep is already deprecated by /sys/power/state.
+	/proc/acpi/alarm is deprecated by /sys/power/alarm.
+	For those devices that support "wake" attribute, two files, "sleep_state" and "wakeup", are created for these devices.
+	"sleep_state" indicates the lowest sleeping state that can be entered while still providing wake functionality.
+	"wakeup" can be used to enable/disable the device's ability to wake a sleeping system.
+	So /proc/acpi/wakeup is deprecated by /sys/devices/acpi_system/.../xxx/sleep_state && wakeup.
 
-A lot of
-Jan  6 00:43:49 localhost kernel: ACPI Error (psargs-0355): [PBST]
-Namespace lookup failure, AE_NOT_FOUND
-Jan  6 00:43:49 localhost kernel: ACPI Error (psparse-0537): Method
-parse/execution failed [\_SB_.PCI0.LPCB.BAT1._BST] (Node c1910770),
-AE_NOT_FOUND
-Jan  6 00:43:49 localhost kernel: ACPI Exception (acpi_battery-0207):
-AE_NOT_FOUND, Evaluating _BST [20060707]
-Jan  6 00:44:19 localhost kernel: ACPI Error (psargs-0355): [PBST]
-Namespace lookup failure, AE_NOT_FOUND
-Jan  6 00:44:19 localhost kernel: ACPI Error (psparse-0537): Method
-parse/execution failed [\_SB_.PCI0.LPCB.BAT1._BST] (Node c1910770),
-AE_NOT_FOUND
-Jan  6 00:44:19 localhost kernel: ACPI Exception (acpi_battery-0207):
-AE_NOT_FOUND, Evaluating _BST [20060707]
-Jan  6 00:44:49 localhost kernel: ACPI Error (psargs-0355): [PBST]
-Namespace lookup failure, AE_NOT_FOUND
-Jan  6 00:44:49 localhost kernel: ACPI Error (psparse-0537): Method
-parse/execution failed [\_SB_.PCI0.LPCB.BAT1._BST] (Node c1910770),
-AE_NOT_FOUND
-Jan  6 00:44:49 localhost kernel: ACPI Exception (acpi_battery-0207):
-AE_NOT_FOUND, Evaluating _BST [20060707]
+Patch 06:
+	add ACPI info in sysfs which indicates ACPICA version.
+	/sys/firmware/acpi/info is create and /proc/acpi/info is marked as deprecated.
 
-is there anyway to fix this ?
+Things not do:
+	/proc/acpi/dsdt and /proc/acpi/fadt are not duplicated in sysfs, as the acpidump tools are quite handy.
+	And another reason is that, if we do this, we want all the ACPI tables be shown in sysfs, like
+	the multiple ssdts and dynamic loaded ssdts. And we are not able to do this now. 
 
-I have a HP PAVILLION DV8230us ...
-Any help is really appreciated.
-Thanks in advice.
+Things will do:
+	This patch set only duplicates the ACPI attributes shown in /proc/acpi/.
+	The next patch set will duplicate attributes in sysfs for ACPI devices.
 
-
-
---=20
-[]'s
-Salatiel
-
-"O maior prazer do inteligente =E9 bancar o  idiota
-   diante de um  idiota que banca o inteligente".
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+For users who are used to the procfs interface, setting CONFIG_ACPI_PROCFS will make them feel nothing different.
+But I'd like you guys to try the ACPI sysfs interfaces though it's not complete now. :)
