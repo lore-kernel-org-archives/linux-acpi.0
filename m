@@ -1,35 +1,59 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [linux-pm] [PATCH 3/6] [-mm]: ACPI: duplicate ACPI sleep "alarm" attribute in	sysfs
-Date: Sun, 7 Jan 2007 05:57:57 +0000
-Message-ID: <20070107055757.GB24853@srcf.ucam.org>
-References: <1168083318.5619.37.camel@localhost.localdomain> <200701061442.22340.david-b@pacbell.net>
+From: "Karthik Gopalakrishnan" <karthik.g.krishnan@gmail.com>
+Subject: Re: Doubt about fan
+Date: Sun, 7 Jan 2007 13:02:15 +0530
+Message-ID: <5e0a1fd80701062332g3450d256q11810b10337e6d7@mail.gmail.com>
+References: <beb91d720701061309j718bd63es5c6c16ea4ea8f439@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:49522 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932410AbXAGF6K (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Jan 2007 00:58:10 -0500
+Received: from wx-out-0506.google.com ([66.249.82.226]:63269 "EHLO
+	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932381AbXAGHcQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Jan 2007 02:32:16 -0500
+Received: by wx-out-0506.google.com with SMTP id h27so7637728wxd
+        for <linux-acpi@vger.kernel.org>; Sat, 06 Jan 2007 23:32:15 -0800 (PST)
+In-Reply-To: <beb91d720701061309j718bd63es5c6c16ea4ea8f439@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <200701061442.22340.david-b@pacbell.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-pm@lists.osdl.org, Zhang Rui <rui.zhang@intel.com>, lenb@kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, linux-pm@osdl.org
+To: Salatiel Filho <salatiel.filho@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Sat, Jan 06, 2007 at 02:42:22PM -0800, David Brownell wrote:
-> On Saturday 06 January 2007 3:35 am, Zhang Rui wrote:
-> > 
-> > Create /sys/power/alarm.
-> 
-> Urg.  This doesn't work with the RTC framework, which accepts the reality
-> that some systems have multiple RTCs ... /sys/class/rtc/rtcN/alarm is a
-> much more appropriate location for that RTC's alarm.
+On 1/7/07, Salatiel Filho <salatiel.filho@gmail.com> wrote:
+> Hi guys , i have two doubts and i`d be grateful if someone could help=
+-me.
+>
+> 1) When i`m over windows , i can see hear my laptop` fans runing but
+> when i`m over linux i think they never run or at least i do not hear
+> then and i think my machine gets a little hot. Is there something tha=
+t
+> i can do ???
 
-Especially since /proc/acpi/alarm is just banging on the RTC registers 
-- the only ACPI thing about it is that the FADT can expose whether or 
-not the extended registers exist, and then making sure that the GPE is 
-enabled.
+There is an issue "CPU fan shuts down on load of fan.ko in kernel
+2.6.18 and later" reported by Mathew Brett. Maybe your problem is
+similar. Please look through the Archives for more information.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+>
+> 2) Is there anyway to control monitor brightness for HP Pavillion
+> notebooks when working in battery mode ?
+>
+>
+> --
+> []'s
+> Salatiel
+>
+> "O maior prazer do inteligente =E9 bancar o  idiota
+>    diante de um  idiota que banca o inteligente".
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
