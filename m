@@ -1,40 +1,30 @@
 From: malattia@linux.it
-Subject: [PATCH 3/11] Fix sony_acpi_resume call
-Date: Sun,  7 Jan 2007 18:54:35 +0100
-Message-ID: <11681924833947-git-send-email-malattia@linux.it>
-References: <1168192483500-git-send-email-malattia@linux.it> <11681924832840-git-send-email-malattia@linux.it> <1168192483207-git-send-email-malattia@linux.it>
+Subject: [PATCH 0/11] sony_acpi: getting in shape for prime time
+Date: Sun,  7 Jan 2007 18:54:32 +0100
+Message-ID: <1168192483500-git-send-email-malattia@linux.it>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aa011msr.fastwebnet.it ([85.18.95.71]:46680 "EHLO
+Received: from aa011msr.fastwebnet.it ([85.18.95.71]:46681 "EHLO
 	aa011msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932623AbXAGRzU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Jan 2007 12:55:20 -0500
-In-Reply-To: <1168192483207-git-send-email-malattia@linux.it>
+	with ESMTP id S932622AbXAGRzT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Jan 2007 12:55:19 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>
+Cc: linux-acpi@vger.kernel.org
 
-From: Andrew Morton <akpm@osdl.org>
+Hello Len,
 
-Signed-off-by: Andrew Morton <akpm@osdl.org>
-Signed-off-by: Mattia Dongili <malattia@linux.it>
----
- drivers/acpi/sony_acpi.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+I'm sending this first batch of patches for review:
 
-diff --git a/drivers/acpi/sony_acpi.c b/drivers/acpi/sony_acpi.c
-index beb56b9..f323c2c 100644
---- a/drivers/acpi/sony_acpi.c
-+++ b/drivers/acpi/sony_acpi.c
-@@ -233,7 +233,7 @@ static int sony_acpi_write(struct file *file, const char __user *buffer,
- 	return count;
- }
- 
--static int sony_acpi_resume(struct acpi_device *device, int state)
-+static int sony_acpi_resume(struct acpi_device *device)
- {
- 	struct sony_acpi_value *item;
- 
+- 1 to 7 are currently present in -mm
+- 8 to 10 are my local changes to have sony_acpi do something more
+  interesting in recent vaios
+- 11 initializes the real brightness value in the backlight props (should this
+  go in the backlight class itself?).
+
+I'll start turning /proc to platform_device in the next days.
+
+So, let's go! Comments are very welcome. :)
 -- 
-1.4.4.2
-
+mattia
+:wq
