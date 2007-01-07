@@ -1,63 +1,47 @@
-From: malattia@linux.it
-Subject: [PATCH 9/11] Add lanpower and audiopower controls
-Date: Sun,  7 Jan 2007 18:54:41 +0100
-Message-ID: <11681924831019-git-send-email-malattia@linux.it>
-References: <1168192483500-git-send-email-malattia@linux.it> <11681924832840-git-send-email-malattia@linux.it> <1168192483207-git-send-email-malattia@linux.it> <11681924833947-git-send-email-malattia@linux.it> <11681924832264-git-send-email-malattia@linux.it> <11681924831582-git-send-email-malattia@linux.it> <11681924831482-git-send-email-malattia@linux.it> <11681924833473-git-send-email-malattia@linux.it> <11681924833091-git-send-email-malattia@linux.it>
+From: "Matthew Brett" <matthew.brett@gmail.com>
+Subject: Re: PROBLEM: CPU fan shuts down on load of fan.ko in kernel 2.6.18 and later
+Date: Sun, 7 Jan 2007 20:10:46 +0000
+Message-ID: <1e2af89e0701071210i3efc9f50w635013f7ec0b0a32@mail.gmail.com>
+References: <1e2af89e0612280914n62a192e2kdb7e2677b55d2670@mail.gmail.com>
+	 <1e2af89e0612281536y769323a7l62c9df334d1e8a06@mail.gmail.com>
+	 <1e2af89e0701030340q7a01520cm831b6064af8f7881@mail.gmail.com>
+	 <200701031329.34665.bjorn.helgaas@hp.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aa012msr.fastwebnet.it ([85.18.95.72]:38090 "EHLO
-	aa012msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932623AbXAGSB5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Jan 2007 13:01:57 -0500
-In-Reply-To: <11681924833091-git-send-email-malattia@linux.it>
+Received: from ug-out-1314.google.com ([66.249.92.175]:32368 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965102AbXAGUKs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Jan 2007 15:10:48 -0500
+Received: by ug-out-1314.google.com with SMTP id 44so6077750uga
+        for <linux-acpi@vger.kernel.org>; Sun, 07 Jan 2007 12:10:46 -0800 (PST)
+In-Reply-To: <200701031329.34665.bjorn.helgaas@hp.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Mattia Dongili <malattia@linux.it>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: linux-acpi@vger.kernel.org, konstantin.a.karasyov@intel.com
 
-From: Mattia Dongili <malattia@linux.it>
+Hi,
 
-audiopower works well on my SZ72B so it's not marked has "debug" while lanpower
-has at least one report of not resuming power happily so morked as "debug"
+I am sorry, I am a bit lost.  Should I expect replacing:
 
-Signed-off-by: Mattia Dongili <malattia@linux.it>
----
- drivers/acpi/sony_acpi.c |   20 ++++++++++++++++++--
- 1 files changed, 18 insertions(+), 2 deletions(-)
+> +       device->flags.force_power_state = 1;
+> +       acpi_bus_set_power(device->handle, state);
+> +       device->flags.force_power_state = 0;
 
-diff --git a/drivers/acpi/sony_acpi.c b/drivers/acpi/sony_acpi.c
-index 69122ad..1f7dca3 100644
---- a/drivers/acpi/sony_acpi.c
-+++ b/drivers/acpi/sony_acpi.c
-@@ -102,11 +102,27 @@ static struct sony_acpi_value {
- 		.name		= "cdpower",
- 		.acpiget	= "GCDP",
- 		.acpiset	= "SCDP",
--		.min		= -1,
--		.max		= -1,
-+		.min		= 0,
-+		.max		= 1,
- 		.debug		= 0,
- 	},
- 	{
-+		.name           = "audiopower",
-+		.acpiget        = "GAZP",
-+		.acpiset        = "AZPW",
-+		.min            = 0,
-+		.max            = 1,
-+		.debug          = 0,
-+	},
-+	{
-+		.name           = "lanpower",
-+		.acpiget        = "GLNP",
-+		.acpiset        = "LNPW",
-+		.min            = 0,
-+		.max            = 1,
-+		.debug          = 1,
-+	},
-+	{
- 		.name		= "PID",
- 		.acpiget	= "GPID",
- 		.debug		= 1,
--- 
-1.4.4.2
+with:
 
+> +       if (state == ACPI_STATE_D0)
+> +               acpi_bus_set_power(fan->handle, ACPI_STATE_D3);
+> +       else if (state == ACPI_STATE_D3)
+> +               acpi_bus_set_power(fan->handle, ACPI_STATE_D0);
+> +       acpi_bus_set_power(fan->handle, state);
+
+in fan.c from 2.6.20-rc3 should solve the problem (replacing
+fan->handle with device->handle)?  It does not seem to.
+
+Thanks a lot for the feedback...
+
+Matthew
