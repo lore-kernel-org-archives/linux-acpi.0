@@ -1,42 +1,109 @@
 From: malattia@linux.it
-Subject: [PATCH 6/11] Video sysfs support take 2
-Date: Sun,  7 Jan 2007 18:54:38 +0100
-Message-ID: <11681924831482-git-send-email-malattia@linux.it>
-References: <1168192483500-git-send-email-malattia@linux.it> <11681924832840-git-send-email-malattia@linux.it> <1168192483207-git-send-email-malattia@linux.it> <11681924833947-git-send-email-malattia@linux.it> <11681924832264-git-send-email-malattia@linux.it> <11681924831582-git-send-email-malattia@linux.it>
+Subject: [PATCH 10/11] Allow multiple sony_acpi_values for the same .name
+Date: Sun,  7 Jan 2007 18:54:42 +0100
+Message-ID: <11681924832600-git-send-email-malattia@linux.it>
+References: <1168192483500-git-send-email-malattia@linux.it> <11681924832840-git-send-email-malattia@linux.it> <1168192483207-git-send-email-malattia@linux.it> <11681924833947-git-send-email-malattia@linux.it> <11681924832264-git-send-email-malattia@linux.it> <11681924831582-git-send-email-malattia@linux.it> <11681924831482-git-send-email-malattia@linux.it> <11681924833473-git-send-email-malattia@linux.it> <11681924833091-git-send-email-malattia@linux.it> <11681924831019-git-send-email-malattia@linux.it>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aa011msr.fastwebnet.it ([85.18.95.71]:46679 "EHLO
-	aa011msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932624AbXAGRzU (ORCPT
+Received: from aa014msr.fastwebnet.it ([85.18.95.74]:60813 "EHLO
+	aa014msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932625AbXAGRzU (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Jan 2007 12:55:20 -0500
-In-Reply-To: <11681924831582-git-send-email-malattia@linux.it>
+In-Reply-To: <11681924831019-git-send-email-malattia@linux.it>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>
+Cc: linux-acpi@vger.kernel.org, Mattia Dongili <malattia@linux.it>
 
-From: Andrew Morton <akpm@osdl.org>
+From: Mattia Dongili <malattia@linux.it>
 
-add dev argument for backlight_device_register
+The acpi handles are kept _only_ if both the requested .acpiget and .acpiset
+are available in the DSDT.
+Currently only the SCDP/CDPW dualism is known.
 
-Signed-off-by: Andrew Morton <akpm@osdl.org>
 Signed-off-by: Mattia Dongili <malattia@linux.it>
 ---
- drivers/acpi/sony_acpi.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/acpi/sony_acpi.c |   44 +++++++++++++++++++++++++-------------------
+ 1 files changed, 25 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/acpi/sony_acpi.c b/drivers/acpi/sony_acpi.c
-index fd7d55a..195895c 100644
+index 1f7dca3..c65f589 100644
 --- a/drivers/acpi/sony_acpi.c
 +++ b/drivers/acpi/sony_acpi.c
-@@ -322,7 +322,7 @@ static int sony_acpi_add(struct acpi_device *device)
+@@ -68,7 +68,7 @@ static struct backlight_properties sony_backlight_properties = {
  
- 	if (ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle, "GBRT", &handle))) {
- 		sony_backlight_device = backlight_device_register("sony", NULL,
--					&sony_backlight_properties);
-+					NULL, &sony_backlight_properties);
- 	        if (IS_ERR(sony_backlight_device)) {
-         	        printk(LOG_PFX "unable to register backlight device\n");
- 		}
+ static struct sony_acpi_value {
+ 	char			*name;	 /* name of the entry */
+-	struct proc_dir_entry 	*proc;	 /* /proc entry */
++	struct proc_dir_entry	*proc;	 /* /proc entry */
+ 	char			*acpiget;/* name of the ACPI get function */
+ 	char			*acpiset;/* name of the ACPI get function */
+ 	int 			min;	 /* minimum allowed value or -1 */
+@@ -78,6 +78,7 @@ static struct sony_acpi_value {
+ 	int			debug;	 /* active only in debug mode ? */
+ } sony_acpi_values[] = {
+ 	{
++		/* for backward compatibility only */
+ 		.name		= "brightness",
+ 		.acpiget	= "GBRT",
+ 		.acpiset	= "SBRT",
+@@ -107,6 +108,14 @@ static struct sony_acpi_value {
+ 		.debug		= 0,
+ 	},
+ 	{
++		.name		= "cdpower",
++		.acpiget	= "GCDP",
++		.acpiset	= "CDPW",
++		.min		= 0,
++		.max		= 1,
++		.debug		= 0,
++	},
++	{
+ 		.name           = "audiopower",
+ 		.acpiget        = "GAZP",
+ 		.acpiset        = "AZPW",
+@@ -356,27 +365,24 @@ static int sony_acpi_add(struct acpi_device *device)
+ 		if (!debug && item->debug)
+ 			continue;
+ 
+-		if (item->acpiget &&
+-		    ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle,
+-		    		 item->acpiget, &handle)))
+-			proc_file_mode = S_IRUSR;
+-		else
+-			printk(LOG_PFX "unable to get ACPI handle for %s (get)\n",
+-					item->name);
+-
+-		if (item->acpiset &&
+-		    ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle,
+-		    		 item->acpiset, &handle)))
+-			proc_file_mode |= S_IWUSR;
+-		else
+-			printk(LOG_PFX "unable to get ACPI handle for %s (set)\n",
+-					item->name);
++		if (item->acpiget) {
++			if (ACPI_FAILURE(acpi_get_handle(sony_acpi_handle,
++							item->acpiget, &handle)))
++				continue;
+ 
+-		if (proc_file_mode == 0)
+-			continue;
++			proc_file_mode |= S_IRUSR;
++		}
++
++		if (item->acpiset) {
++			if (ACPI_FAILURE(acpi_get_handle(sony_acpi_handle,
++							item->acpiset, &handle)))
++				continue;
++
++			proc_file_mode |= S_IWUSR;
++		}
+ 
+ 		item->proc = create_proc_entry(item->name, proc_file_mode,
+-					       acpi_device_dir(device));
++				acpi_device_dir(device));
+ 		if (!item->proc) {
+ 			printk(LOG_PFX "unable to create proc entry\n");
+ 			result = -EIO;
 -- 
 1.4.4.2
 
