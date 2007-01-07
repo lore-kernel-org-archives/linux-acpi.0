@@ -1,40 +1,49 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH 21/28] ACPI: update comments in motherboard.c
-Date: Sat, 6 Jan 2007 21:56:34 -0700
-Message-ID: <200701062156.35067.bjorn.helgaas@hp.com>
-References: <11608131691346-git-send-email-len.brown@intel.com> <11608131973927-git-send-email-len.brown@intel.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [linux-pm] [PATCH 0/6] [-mm]: ACPI: duplicate ACPI procfs functions in sysfs
+Date: Sun, 7 Jan 2007 05:54:24 +0000
+Message-ID: <20070107055424.GA24853@srcf.ucam.org>
+References: <1168083306.5619.34.camel@localhost.localdomain> <200701061421.41342.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel8.hp.com ([156.153.255.206]:35835 "EHLO atlrel8.hp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932394AbXAGE4n (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 6 Jan 2007 23:56:43 -0500
-In-Reply-To: <11608131973927-git-send-email-len.brown@intel.com>
+Received: from cavan.codon.org.uk ([217.147.92.49]:34976 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932409AbXAGFyl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Jan 2007 00:54:41 -0500
 Content-Disposition: inline
+In-Reply-To: <200701061421.41342.david-b@pacbell.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-pm@lists.osdl.org, Zhang Rui <rui.zhang@intel.com>, lenb@kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, linux-pm@osdl.org
 
-On Saturday 14 October 2006 02:06, Len Brown wrote:
-> --- a/drivers/acpi/motherboard.c
-> +++ b/drivers/acpi/motherboard.c
-> ...
-> > +/* 
-> + * When CONFIG_PNP is enabled, pnp/system.c binds to PNP0C01
-> + * and PNP0C02, redundant with acpi_reserve_io_ranges().
-> + * But acpi_reserve_io_ranges() is necessary for !CONFIG_PNP.
-> + */
->  static acpi_status acpi_reserve_io_ranges(struct acpi_resource *res, void *data)
+On Sat, Jan 06, 2007 at 02:21:41PM -0800, David Brownell wrote:
 
-I don't understand this comment.
+> Please tell me you mean "devices with a /sys/devices/.../power/wakeup"
+> attribute.  And that ACPI is finally going to start working with those
+> attributes ...
 
-IMHO, we should make CONFIG_ACPI should select CONFIG_PNP and
-CONFIG_PNPACPI, move the FADT resource reservations somewhere
-else in ACPI, make pnp/system.c reserve all the resources (not
-just I/O ports), and remove acpi/motherboard.c.
+It's not necessarily possible to map from an ACPI object with a wakeup 
+capability to a Linux device, so there's going to have to be some degree 
+of interface nastiness. However, some devices can be sensibly mapped, 
+and ideally those should be integrated into 
+/sys/devices/.../power/wakeup.
 
-Bjorn
+However, I'm not entirely sure /how/ that integration should happen. If 
+both the Linux driver and ACPI know how to enable wakeup for a device, 
+what should writing to power/wakeup do?
+
+> > 	So /proc/acpi/wakeup is deprecated by
+> > 	/sys/devices/acpi_system/.../xxx/sleep_state && wakeup. 
+> 
+> Why is ACPI still not coupling such information to the REAL device
+> nodes?  On my laptop, right now without any wakeup-capable USB
+> devices attached, the appended script produces:
+
+So for example, the PCI0 device on my Thinkpad is an ACPI wakeup device. 
+Investigating the DSDT suggests that this is just a wrapper around a 
+bunch of platform devices, including the ISA bridge. In this case, what 
+real device should we be associating it with?
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
