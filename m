@@ -1,33 +1,36 @@
-From: bloch@verdurin.com
-Subject: Sony Vaio SZ3XVP
-Date: Sun, 7 Jan 2007 10:02:54 +0000
-Message-ID: <20070107100254.GC1076@bloch.config>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [linux-pm] [PATCH 0/6] [-mm]: ACPI: duplicate ACPI procfs functions in sysfs
+Date: Sun, 7 Jan 2007 11:15:09 +0000
+Message-ID: <20070107111509.GA4792@ucw.cz>
+References: <1168083306.5619.34.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 87-194-8-112.bethere.co.uk ([87.194.8.112]:65266 "EHLO
-	bloch.verdurin.priv" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932492AbXAGK66 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Jan 2007 05:58:58 -0500
-Received: from bloch.verdurin.priv (localhost.localdomain [127.0.0.1])
-	by bloch.verdurin.priv (8.13.8/8.13.1) with ESMTP id l07A2t8Y005348
-	for <linux-acpi@vger.kernel.org>; Sun, 7 Jan 2007 10:02:55 GMT
-Received: (from adam@localhost)
-	by bloch.verdurin.priv (8.13.8/8.13.1/Submit) id l07A2tY5005347
-	for linux-acpi@vger.kernel.org; Sun, 7 Jan 2007 10:02:55 GMT
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:3390 "EHLO spitz.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932500AbXAGLPZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 7 Jan 2007 06:15:25 -0500
 Content-Disposition: inline
+In-Reply-To: <1168083306.5619.34.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: lenb@kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, linux-pm@osdl.org
 
-I've been glad to see the recent activity on Vaio support, as I have an
-SZ3XVP with Fedora 6 x86_64 installed.  It seems the sonypi module is
-disabled as it "doesn't work in 64-bit" (according to a bug report I've
-seen).
+Hi!
 
-Which module is expected to work with this module - sonypi or sony_acpi?
-Is it true that sonypi needs to be cleaned up for 64-bit installations?
-I'm quite happy to test, though I was initially unsure which patches in
-the -mm kernel tree to apply.
+> This patch set is against acpi-test sysfs branch, and will duplicate several ACPI procfs functions in sysfs.
+> As struct subsystem power_subsys is referred and the interface under /sys/power/ is changed by this patch series,
+> I wish to receive some comments from linux-pm too.
 
-Adam
+Thanks for doing the work.
+
+> Patch 03-05:
+> 	add ACPI sleep attributes in sysfs.
+> 	/proc/acpi/sleep is already deprecated by /sys/power/state.
+
+Does that mean we drop standby (S1) capability on PCs?
+
+						Pavel
+-- 
+Thanks for all the (sleeping) penguins.
