@@ -1,44 +1,35 @@
-From: "dhanya" <dhanya.justin@wipro.com>
-Subject: How to get PCI slot information from ACPI
-Date: Mon, 8 Jan 2007 19:44:03 +0530
-Message-ID: <200701081357.TAA11137@wipro.tcpn.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [linux-pm] [PATCH 3/6] [-mm]: ACPI: duplicate ACPI sleep "alarm" attribute in	sysfs
+Date: Mon, 8 Jan 2007 12:35:52 -0800
+Message-ID: <200701081235.52592.david-b@pacbell.net>
+References: <1168083318.5619.37.camel@localhost.localdomain> <200701071944.59470.david-b@pacbell.net> <20070108113612.GC25857@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wip-ec-mm01.wipro.com ([203.91.193.25]:47537 "EHLO
-	wip-ec-mm01.wipro.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751554AbXAHOhD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Jan 2007 09:37:03 -0500
-Received: from wip-ec-mm01.wipro.com (localhost.localdomain [127.0.0.1])
-	by localhost (Postfix) with ESMTP id 32EDF1F6087
-	for <linux-acpi@vger.kernel.org>; Mon,  8 Jan 2007 19:35:12 +0530 (IST)
-Received: from wipro.tcpn.com (adm.wipro.tcpn.com [172.31.41.11])
-	by wip-ec-mm01.wipro.com (Postfix) with ESMTP id 16F111F6082
-	for <linux-acpi@vger.kernel.org>; Mon,  8 Jan 2007 19:35:12 +0530 (IST)
-Received: from EC4HP134180 ([172.31.42.81])
-	by wipro.tcpn.com (8.9.3/8.9.3) with ESMTP id TAA11137
-	for <linux-acpi@vger.kernel.org>; Mon, 8 Jan 2007 19:27:34 +0530 (IST)
+Received: from smtp102.sbc.mail.mud.yahoo.com ([68.142.198.201]:42760 "HELO
+	smtp102.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S932650AbXAHUjO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Jan 2007 15:39:14 -0500
+In-Reply-To: <20070108113612.GC25857@elf.ucw.cz>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-pm@lists.osdl.org, Alessandro Zummo <alessandro.zummo@towertech.it>, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Paul Sokolovsky <pmiscml@gmail.com>
 
+On Monday 08 January 2007 3:36 am, Pavel Machek wrote:
+> 
+> What about periodic alarms? 
 
-Hi, 
+So far as I'm concerned they're not part of the API.  The periodicity notion
+of the alarm on PC RTCs is pretty bizarre if you look at it ... not portable
+to much non-PC hardware (without extremely ugly hacks nobody's likely to do),
+and so not appropriate to include in a cross-platform API framework.
 
-I need to get PCI slot info through ACPI using _SUN object. So I want to
-know how to retrieve the slot info from _SUN object. Can you tell me how to
-access the _SUN object? 
+The user model of a one-shot alarm is simple and easy to understand; plus it's
+a direct match for the alarms people use all the time in the kitchen and to
+wake up in the morning.
 
-I have couple of questions related to that: 
-
-1) Is there any signature in ROM for that object, so that we can map that
-and read that structure? 
-
-2) What is the structure of _SUN object and how to get the handle to that
-structure? 
-
-Thanks in advance
-
-
+- Dave
