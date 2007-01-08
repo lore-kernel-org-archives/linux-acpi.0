@@ -1,109 +1,53 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: 2.6.20-rc4: known unfixed regressions
-Date: Mon, 8 Jan 2007 01:22:08 +0100
-Message-ID: <20070108002208.GO20714@stusta.de>
-References: <Pine.LNX.4.64.0701062216210.3661@woody.osdl.org>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [linux-pm] [PATCH 3/6] [-mm]: ACPI: duplicate ACPI sleep "alarm" attribute in	sysfs
+Date: Sun, 7 Jan 2007 18:31:17 -0800
+Message-ID: <200701071831.18186.david-b@pacbell.net>
+References: <1168083318.5619.37.camel@localhost.localdomain> <200701061442.22340.david-b@pacbell.net> <20070107055757.GB24853@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emailhub.stusta.mhn.de ([141.84.69.5]:2884 "HELO
-	mailout.stusta.mhn.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S965265AbXAHAWG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Jan 2007 19:22:06 -0500
+Received: from smtp101.sbc.mail.mud.yahoo.com ([68.142.198.200]:46804 "HELO
+	smtp101.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1030456AbXAHCbn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Jan 2007 21:31:43 -0500
+In-Reply-To: <20070107055757.GB24853@srcf.ucam.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0701062216210.3661@woody.osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Malte =?iso-8859-1?Q?Schr=F6der?= <MalteSch@gmx.de>, Bernhard Schmidt <berni@birkenwald.de>, Peter Osterlund <petero2@telia.com>, netfilter-devel@lists.netfilter.org, netdev@vger.kernel.org, Komuro <komurojun-mbn@nifty.com>, YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>, Cijoml Cijomlovic Cijomlov <cijoml@volny.cz>, ttb@tentacle.dhs.org, rml@novell.com, Jon Smirl <jonsmirl@gmail.com>, Damien Wyart <damien.wyart@free.fr>, Aaron Sethman <androsyn@ratbox.org>, alan@lxorguk.ukuu.org.uk, linux-ide@vger.kernel.org, Uwe Bugla <uwe.bugla@gmx.de>, Tobias Diedrich <ranma+kernel@tdiedrich.de>, Andi Kleen <ak@suse.de>, Yinghai Lu <yinghai.lu@amd.com>, "Eric W. Biederman" <ebiederm@xmission.com>, mingo@redhat.com, discuss@x86-64.org, Florin Iucha <florin@iucha.net>, Berthold Cogel <cogel@rrz.uni-koeln.de>, Alexey
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: lenb@kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, linux-pm@lists.osdl.org, Zhang Rui <rui.zhang@intel.com>
 
-This email lists some known regressions in 2.6.20-rc4 compared to 2.6.1=
-9.
+On Saturday 06 January 2007 9:57 pm, Matthew Garrett wrote:
+> On Sat, Jan 06, 2007 at 02:42:22PM -0800, David Brownell wrote:
+> > On Saturday 06 January 2007 3:35 am, Zhang Rui wrote:
+> > > 
+> > > Create /sys/power/alarm.
+> > 
+> > Urg.  This doesn't work with the RTC framework, which accepts the reality
+> > that some systems have multiple RTCs ... /sys/class/rtc/rtcN/alarm is a
+> > much more appropriate location for that RTC's alarm.
+> 
+> Especially since /proc/acpi/alarm is just banging on the RTC registers 
+> - the only ACPI thing about it is that the FADT can expose whether or 
+> not the extended registers exist, and then making sure that the GPE is 
+> enabled.
 
-If you find your name in the Cc header, you are either submitter of one
-of the bugs, maintainer of an affectected subsystem or driver, a patch
-of you caused a breakage or I'm considering you in any other way possib=
-ly
-involved with one or more of these issues.
+The FADT also exposes whether the RTC can wake from S4.  You may have
+noticed that my rtc-cmos patch #3 exported the relevant FADT info
+to the RTC device using platform_data, but the S4 wake capability flag
+isn't useful for anything on today's Linux.
 
-Due to the huge amount of recipients, please trim the Cc when answering=
-=2E
+Not speaking as an ACPI expert, I do see the ACPI spec says (right
+under fig 4-11 in my version) that RTC events don't require GPEs.
 
+Conceptually, one would expect that enable_irq_wake(RTC_IRQ) would
+set PM1.RTC_EN, and disable_irq_wake(RTC_IRQ) would clear it, on
+ACPI systems.  It doesn't do that, though.
 
-Subject    : BUG: at mm/truncate.c:60 cancel_dirty_page()
-References : http://lkml.org/lkml/2007/1/7/117
-Submitter  : Malte Schr=F6der <MalteSch@gmx.de>
-Status     : unknown
+But I did notice there was a lot of event infrastructure behind the
+/proc/acpi/alarm thing ... which I never observed to fire.  Maybe it
+would be needed on systems with different RTC implementations...
 
-
-Subject    : netfilter conntrack Oopses
-References : http://lkml.org/lkml/2007/1/4/156
-             http://lkml.org/lkml/2007/1/7/188
-Submitter  : Bernhard Schmidt <berni@birkenwald.de>
-             Peter Osterlund <petero2@telia.com>
-Status     : unknown
-
-
-Subject    : ftp: get or put stops during file-transfer
-References : http://lkml.org/lkml/2006/12/16/174
-Submitter  : Komuro <komurojun-mbn@nifty.com>
-Caused-By  : YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-             commit cfb6eeb4c860592edd123fdea908d23c6ad1c7dc
-Handled-By : YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-Status     : problem is being debugged
-
-
-Subject    : BUG: at fs/inotify.c:172 set_dentry_child_flags()
-References : http://bugzilla.kernel.org/show_bug.cgi?id=3D7785
-Submitter  : Cijoml Cijomlovic Cijomlov <cijoml@volny.cz>
-Status     : unknown
-
-
-Subject    : BUG: scheduling while atomic: hald-addon-stor/...
-             cdrom_{open,release,ioctl} in trace
-References : http://lkml.org/lkml/2006/12/26/105
-             http://lkml.org/lkml/2006/12/29/22
-             http://lkml.org/lkml/2006/12/31/133
-Submitter  : Jon Smirl <jonsmirl@gmail.com>
-             Damien Wyart <damien.wyart@free.fr>
-             Aaron Sethman <androsyn@ratbox.org>
-Status     : unknown
-
-
-Subject    : problems with CD burning
-References : http://www.spinics.net/lists/linux-ide/msg06545.html
-Submitter  : Uwe Bugla <uwe.bugla@gmx.de>
-Status     : unknown
-
-
-Subject    : x86_64 boot failure: "IO-APIC + timer doesn't work"
-References : http://lkml.org/lkml/2006/12/16/101
-             http://lkml.org/lkml/2007/1/3/9
-Submitter  : Tobias Diedrich <ranma+kernel@tdiedrich.de>
-Caused-By  : Andi Kleen <ak@suse.de>
-             commit b026872601976f666bae77b609dc490d1834bf77
-Handled-By : Yinghai Lu <yinghai.lu@amd.com>
-             Eric W. Biederman <ebiederm@xmission.com>
-Status     : patches are being discussed
-
-
-Subject    : USB keyboard unresponsive after some time
-References : http://lkml.org/lkml/2006/12/25/35
-             http://lkml.org/lkml/2006/12/26/106
-Submitter  : Florin Iucha <florin@iucha.net>
-Status     : unknown
-
-
-Subject    : Acer Extensa 3002 WLMi: 'shutdown -h now' reboots the syst=
-em
-References : http://lkml.org/lkml/2006/12/25/40
-Submitter  : Berthold Cogel <cogel@rrz.uni-koeln.de>
-Handled-By : Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com=
->
-Status     : problem is being debugged
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Dave
