@@ -1,51 +1,44 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: PROBLEM: CPU fan shuts down on load of fan.ko in kernel 2.6.18 and later
-Date: Sun, 7 Jan 2007 22:08:07 -0700
-Message-ID: <200701072208.07831.bjorn.helgaas@hp.com>
-References: <1e2af89e0612280914n62a192e2kdb7e2677b55d2670@mail.gmail.com> <200701031329.34665.bjorn.helgaas@hp.com> <1e2af89e0701071210i3efc9f50w635013f7ec0b0a32@mail.gmail.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [linux-pm] [PATCH 3/6] [-mm]: ACPI: duplicate ACPI sleep "alarm" attribute in	sysfs
+Date: Mon, 8 Jan 2007 10:10:26 +0000
+Message-ID: <20070108101026.GA14485@srcf.ucam.org>
+References: <1168083318.5619.37.camel@localhost.localdomain> <200701061442.22340.david-b@pacbell.net> <20070107055757.GB24853@srcf.ucam.org> <200701071831.18186.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel6.hp.com ([156.153.255.205]:58879 "EHLO atlrel6.hp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161128AbXAHFIO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 8 Jan 2007 00:08:14 -0500
-In-Reply-To: <1e2af89e0701071210i3efc9f50w635013f7ec0b0a32@mail.gmail.com>
+Received: from cavan.codon.org.uk ([217.147.92.49]:34623 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161205AbXAHKKk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Jan 2007 05:10:40 -0500
 Content-Disposition: inline
+In-Reply-To: <200701071831.18186.david-b@pacbell.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Brett <matthew.brett@gmail.com>
-Cc: linux-acpi@vger.kernel.org, konstantin.a.karasyov@intel.com
+To: David Brownell <david-b@pacbell.net>
+Cc: lenb@kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, linux-pm@lists.osdl.org, Zhang Rui <rui.zhang@intel.com>
 
-On Sunday 07 January 2007 13:10, Matthew Brett wrote:
-> I am sorry, I am a bit lost.  Should I expect replacing:
+On Sun, Jan 07, 2007 at 06:31:17PM -0800, David Brownell wrote:
+> On Saturday 06 January 2007 9:57 pm, Matthew Garrett wrote:
+> > Especially since /proc/acpi/alarm is just banging on the RTC registers 
+> > - the only ACPI thing about it is that the FADT can expose whether or 
+> > not the extended registers exist, and then making sure that the GPE is 
+> > enabled.
 > 
-> > +       device->flags.force_power_state = 1;
-> > +       acpi_bus_set_power(device->handle, state);
-> > +       device->flags.force_power_state = 0;
-> 
-> with:
-> 
-> > +       if (state == ACPI_STATE_D0)
-> > +               acpi_bus_set_power(fan->handle, ACPI_STATE_D3);
-> > +       else if (state == ACPI_STATE_D3)
-> > +               acpi_bus_set_power(fan->handle, ACPI_STATE_D0);
-> > +       acpi_bus_set_power(fan->handle, state);
-> 
-> in fan.c from 2.6.20-rc3 should solve the problem (replacing
-> fan->handle with device->handle)?  It does not seem to.
+> The FADT also exposes whether the RTC can wake from S4.  You may have
+> noticed that my rtc-cmos patch #3 exported the relevant FADT info
+> to the RTC device using platform_data, but the S4 wake capability flag
+> isn't useful for anything on today's Linux.
 
-I think the "acpi_bus_set_power" call was added after
-2.6.17.  So if you remove it, I suspect your fan might work
-like it used to.
+Isn't useful in what way? It'd be helpful for userspace to know that now 
+that we're actually using S4 for swsusp, but I understand that it might 
+not fit into the current API terribly well.
 
-I doubt that's the correct fix, though, because that call
-was probably added for a reason.  Konstantin can probably
-speak to that.
+> Not speaking as an ACPI expert, I do see the ACPI spec says (right
+> under fig 4-11 in my version) that RTC events don't require GPEs.
 
-If you feel like experimenting, you could print out what
-state the BIOS tells you the fan is in (from the
-acpi_bus_get_power() call), try setting it to either
-ACPI_STATE_D0 or ACPI_STATE_D3, and see what the fan does.
+Hmm. My interpretation of that section had been that RTC_EN and RTC_STS 
+were optional, and that a GPE would be required if they weren't 
+implemented. On re-reading it, I think you're right.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
