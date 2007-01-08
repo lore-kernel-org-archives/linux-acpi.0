@@ -1,201 +1,51 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [linux-pm] [PATCH 3/6] [-mm]: ACPI: duplicate ACPI sleep "alarm" attribute in	sysfs
-Date: Sun, 7 Jan 2007 19:44:58 -0800
-Message-ID: <200701071944.59470.david-b@pacbell.net>
-References: <1168083318.5619.37.camel@localhost.localdomain> <20070107111859.GB4792@ucw.cz>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: PROBLEM: CPU fan shuts down on load of fan.ko in kernel 2.6.18 and later
+Date: Sun, 7 Jan 2007 22:08:07 -0700
+Message-ID: <200701072208.07831.bjorn.helgaas@hp.com>
+References: <1e2af89e0612280914n62a192e2kdb7e2677b55d2670@mail.gmail.com> <200701031329.34665.bjorn.helgaas@hp.com> <1e2af89e0701071210i3efc9f50w635013f7ec0b0a32@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp103.sbc.mail.mud.yahoo.com ([68.142.198.202]:37872 "HELO
-	smtp103.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1030478AbXAHDpL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Jan 2007 22:45:11 -0500
-In-Reply-To: <20070107111859.GB4792@ucw.cz>
+Received: from atlrel6.hp.com ([156.153.255.205]:58879 "EHLO atlrel6.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1161128AbXAHFIO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 8 Jan 2007 00:08:14 -0500
+In-Reply-To: <1e2af89e0701071210i3efc9f50w635013f7ec0b0a32@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pm@lists.osdl.org
-Cc: Alessandro Zummo <alessandro.zummo@towertech.it>, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, Zhang Rui <rui.zhang@intel.com>, Paul Sokolovsky <pmiscml@gmail.com>
+To: Matthew Brett <matthew.brett@gmail.com>
+Cc: linux-acpi@vger.kernel.org, konstantin.a.karasyov@intel.com
 
-On Sunday 07 January 2007 3:19 am, Pavel Machek wrote:
+On Sunday 07 January 2007 13:10, Matthew Brett wrote:
+> I am sorry, I am a bit lost.  Should I expect replacing:
 > 
-> > Create /sys/power/alarm.
-> > The way it works is exactly the same as /proc/acpi/alarm.
-> > I.e. "#echo yyyy-mm-dd hh-mm-ss >/sys/power/alarm" supports existing absolute time.
-> > And "#echo +yyyy-mm-dd hh-mm-ss >/sys/power/alarm" supports a duration.
+> > +       device->flags.force_power_state = 1;
+> > +       acpi_bus_set_power(device->handle, state);
+> > +       device->flags.force_power_state = 0;
 > 
-> NAK. /proc/acpi/alarm is a mess, and this just moves it to /sysfs.
-> 'One value per file', please.
+> with:
+> 
+> > +       if (state == ACPI_STATE_D0)
+> > +               acpi_bus_set_power(fan->handle, ACPI_STATE_D3);
+> > +       else if (state == ACPI_STATE_D3)
+> > +               acpi_bus_set_power(fan->handle, ACPI_STATE_D0);
+> > +       acpi_bus_set_power(fan->handle, state);
+> 
+> in fan.c from 2.6.20-rc3 should solve the problem (replacing
+> fan->handle with device->handle)?  It does not seem to.
 
-Sort of like the appended patch, instead ... which doesn't need to know a
-thing about ACPI.  This is what I suggested in response to an earlier patch
-from Paul Sokolovsky.
+I think the "acpi_bus_set_power" call was added after
+2.6.17.  So if you remove it, I suspect your fan might work
+like it used to.
 
-- Dave
+I doubt that's the correct fix, though, because that call
+was probably added for a reason.  Konstantin can probably
+speak to that.
 
-
-================	CUT HERE
-This adds a new "wakealarm" sysfs attribute to RTC class devices which
-support alarm operations and are wakeup-capable:
-
- - It reads as either empty, or the scheduled alarm time as seconds
-   since the POSIX epoch.  (That time may already have passed, since
-   nothing currently enforces one-shot alarm semantics...)
-
- - It can be written with an alarm time in the future, again seconds
-   since the POSIX epoch, which enables the alarm.
-
- - It can be written with an alarm time not in the future (such as 0,
-   the start of the POSIX epoch) to disable the alarm.
-
-Usage examples, after "cd /sys/class/rtc/rtcN":
-
-    alarm after 45 minutes:
-	# echo $(( $(cat since_epoch) + 45 * 60 )) > wakealarm
-    alarm next tuesday evening (using GNU date):
-	# date -d '10pm tuesday' "+%s" > wakealarm
-    disable alarm:
-    	# echo 0 > wakealarm
-
-This resembles the /proc/acpi/alarm file in that nothing happens when
-the alarm triggers ... except possibly waking the system from sleep.
-It's also like that in a nasty way:  not much can be done to prevent
-one task from clobbering another task's alarm settings.
-
-It differs from that file in that there's no in-kernel date parser.
-
-Note that a few RTCs ignore rtc_wkalrm.enabled when setting alarms, or
-aren't set up correctly, so they won't yet behave with this attribute.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-
-Index: g26/drivers/rtc/rtc-sysfs.c
-===================================================================
---- g26.orig/drivers/rtc/rtc-sysfs.c	2007-01-07 19:34:50.000000000 -0800
-+++ g26/drivers/rtc/rtc-sysfs.c	2007-01-07 19:34:52.000000000 -0800
-@@ -78,6 +78,92 @@ static struct attribute_group rtc_attr_g
- 	.attrs = rtc_attrs,
- };
- 
-+
-+static ssize_t
-+rtc_sysfs_show_wakealarm(struct class_device *dev, char *buf)
-+{
-+	ssize_t retval;
-+	unsigned long alarm;
-+	struct rtc_wkalrm alm;
-+
-+	/* Don't show disabled alarms; but the RTC could leave the
-+	 * alarm enabled after it's already triggered.  Alarms are
-+	 * conceptually one-shot, even though some common hardware
-+	 * (PCs) doesn't actually work that way.
-+	 *
-+	 * REVISIT maybe we should require RTC implementations to
-+	 * disable the RTC alarm after it triggers, for uniformity.
-+	 */
-+	retval = rtc_read_alarm(dev, &alm);
-+	if (retval == 0 && alm.enabled) {
-+		rtc_tm_to_time(&alm.time, &alarm);
-+		retval = sprintf(buf, "%lu\n", alarm);
-+	}
-+
-+	return retval;
-+}
-+
-+static ssize_t
-+rtc_sysfs_set_wakealarm(struct class_device *dev, const char *buf, size_t n)
-+{
-+	ssize_t retval;
-+	unsigned long now, alarm;
-+	struct rtc_wkalrm alm;
-+
-+	/* Only request alarms that trigger in the future.  Disable them
-+	 * by writing another time, e.g. 0 meaning Jan 1 1970 UTC.
-+	 */
-+	retval = rtc_read_time(dev, &alm.time);
-+	if (retval < 0)
-+		return retval;
-+	rtc_tm_to_time(&alm.time, &now);
-+
-+	alarm = simple_strtoul(buf, NULL, 0);
-+	if (alarm > now) {
-+		/* Avoid accidentally clobbering active alarms; we can't
-+		 * entirely prevent that here, without even the minimal
-+		 * locking from the /dev/rtcN api.
-+		 */
-+		retval = rtc_read_alarm(dev, &alm);
-+		if (retval < 0)
-+			return retval;
-+		if (alm.enabled)
-+			return -EBUSY;
-+
-+		alm.enabled = 1;
-+	} else {
-+		alm.enabled = 0;
-+
-+		/* Provide a valid future alarm time.  Linux isn't EFI,
-+		 * this time won't be ignored when disabling the alarm.
-+		 */
-+		alarm = now + 300;
-+	}
-+	rtc_time_to_tm(alarm, &alm.time);
-+
-+	retval = rtc_set_alarm(dev, &alm);
-+	return (retval < 0) ? retval : n;
-+}
-+static const CLASS_DEVICE_ATTR(wakealarm, S_IRUGO | S_IWUSR,
-+		rtc_sysfs_show_wakealarm, rtc_sysfs_set_wakealarm);
-+
-+
-+/* The reason to trigger an alarm with no process watching it (via sysfs)
-+ * is its side effect:  waking from a system state like suspend-to-RAM or
-+ * suspend-to-disk.  So: no attribute unless that side effect is possible.
-+ * (Userspace may disable that mechanism later.)
-+ */
-+static inline int rtc_does_wakealarm(struct class_device *class_dev)
-+{
-+	struct rtc_device *rtc;
-+
-+	if (!device_can_wakeup(class_dev->dev))
-+		return 0;
-+	rtc = to_rtc_device(class_dev);
-+	return rtc->ops->set_alarm != NULL;
-+}
-+
-+
- static int __devinit rtc_sysfs_add_device(struct class_device *class_dev,
- 					struct class_interface *class_intf)
- {
-@@ -87,8 +173,18 @@ static int __devinit rtc_sysfs_add_devic
- 
- 	err = sysfs_create_group(&class_dev->kobj, &rtc_attr_group);
- 	if (err)
--		dev_err(class_dev->dev,
--			"failed to create sysfs attributes\n");
-+		dev_err(class_dev->dev, "failed to create %s\n",
-+				"sysfs attributes");
-+	else if (rtc_does_wakealarm(class_dev)) {
-+		/* not all RTCs support both alarms and wakeup */
-+		err = class_device_create_file(class_dev,
-+					&class_device_attr_wakealarm);
-+		if (err) {
-+			dev_err(class_dev->dev, "failed to create %s\n",
-+					"alarm attribute");
-+			sysfs_remove_group(&class_dev->kobj, &rtc_attr_group);
-+		}
-+	}
- 
- 	return err;
- }
-@@ -96,6 +192,9 @@ static int __devinit rtc_sysfs_add_devic
- static void rtc_sysfs_remove_device(struct class_device *class_dev,
- 				struct class_interface *class_intf)
- {
-+	if (rtc_does_wakealarm(class_dev))
-+		class_device_remove_file(class_dev,
-+				&class_device_attr_wakealarm);
- 	sysfs_remove_group(&class_dev->kobj, &rtc_attr_group);
- }
- 
+If you feel like experimenting, you could print out what
+state the BIOS tells you the fan is in (from the
+acpi_bus_get_power() call), try setting it to either
+ACPI_STATE_D0 or ACPI_STATE_D3, and see what the fan does.
