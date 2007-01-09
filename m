@@ -1,85 +1,83 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: 2.6.20-rc4: known unfixed regressions (v2)
-Date: Tue, 9 Jan 2007 06:25:10 +0100
-Message-ID: <20070109052510.GG25007@stusta.de>
-References: <Pine.LNX.4.64.0701062216210.3661@woody.osdl.org>
+From: "Luming Yu" <luming.yu@gmail.com>
+Subject: Re: [patch 1/5] video sysfs support - take 2: Add dev argument for backlight_device_register.
+Date: Tue, 9 Jan 2007 23:09:38 +0800
+Message-ID: <3877989d0701090709n32f57048o495274849cbbf127@mail.gmail.com>
+References: <200611080033.56035.luming.yu@gmail.com>
+	 <1167492935.5626.12.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout.stusta.mhn.de ([141.84.69.5]:4381 "HELO
-	mailout.stusta.mhn.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751056AbXAIFZJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jan 2007 00:25:09 -0500
+Received: from wr-out-0506.google.com ([64.233.184.231]:32977 "EHLO
+	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932143AbXAIPJi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jan 2007 10:09:38 -0500
+Received: by wr-out-0506.google.com with SMTP id 71so1462586wri
+        for <linux-acpi@vger.kernel.org>; Tue, 09 Jan 2007 07:09:38 -0800 (PST)
+In-Reply-To: <1167492935.5626.12.camel@localhost.localdomain>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0701062216210.3661@woody.osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Malte =?iso-8859-1?Q?Schr=F6der?= <MalteSch@gmx.de>, reiserfs-dev@namesys.com, Cijoml Cijomlovic Cijomlov <cijoml@volny.cz>, ttb@tentacle.dhs.org, rml@novell.com, Jon Smirl <jonsmirl@gmail.com>, Damien Wyart <damien.wyart@free.fr>, Aaron Sethman <androsyn@ratbox.org>, alan@lxorguk.ukuu.org.uk, linux-ide@vger.kernel.org, Uwe Bugla <uwe.bugla@gmx.de>, Florin Iucha <florin@iucha.net>, Jiri Kosina <jkosina@suse.cz>, dmitry.torokhov@gmail.com, linux-input@atrey.karlin.mff.cuni.cz, greg@kroah.com, linux-usb-devel@lists.sourceforge.net, Berthold Cogel <cogel@rrz.uni-koeln.de>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, len.brown@intel.com, linux-acpi@vger.kernel.org
+To: Richard Purdie <rpurdie@rpsys.net>
+Cc: Andrew Morton <akpm@osdl.org>, Pavel Machek <pavel@ucw.cz>, len.brown@intel.com, Matt Domsch <Matt_Domsch@dell.com>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr, Richard Hughes <hughsient@gmail.com>
 
-This email lists some known regressions in 2.6.20-rc4 compared to 2.6.1=
-9
-that are not yet fixed in Linus' tree.
-
-If you find your name in the Cc header, you are either submitter of one
-of the bugs, maintainer of an affectected subsystem or driver, a patch
-of you caused a breakage or I'm considering you in any other way possib=
-ly
-involved with one or more of these issues.
-
-Due to the huge amount of recipients, please trim the Cc when answering=
-=2E
-
-
-Subject    : BUG: at mm/truncate.c:60 cancel_dirty_page()  (reiserfs)
-References : http://lkml.org/lkml/2007/1/7/117
-Submitter  : Malte Schr=F6der <MalteSch@gmx.de>
-Status     : unknown
-
-
-Subject    : BUG: at fs/inotify.c:172 set_dentry_child_flags()
-References : http://bugzilla.kernel.org/show_bug.cgi?id=3D7785
-Submitter  : Cijoml Cijomlovic Cijomlov <cijoml@volny.cz>
-Status     : unknown
-
-
-Subject    : BUG: scheduling while atomic: hald-addon-stor/...
-             cdrom_{open,release,ioctl} in trace
-References : http://lkml.org/lkml/2006/12/26/105
-             http://lkml.org/lkml/2006/12/29/22
-             http://lkml.org/lkml/2006/12/31/133
-Submitter  : Jon Smirl <jonsmirl@gmail.com>
-             Damien Wyart <damien.wyart@free.fr>
-             Aaron Sethman <androsyn@ratbox.org>
-Status     : unknown
-
-
-Subject    : problems with CD burning
-References : http://www.spinics.net/lists/linux-ide/msg06545.html
-Submitter  : Uwe Bugla <uwe.bugla@gmx.de>
-Status     : unknown
-
-
-Subject    : USB keyboard unresponsive after some time
-References : http://lkml.org/lkml/2006/12/25/35
-             http://lkml.org/lkml/2006/12/26/106
-Submitter  : Florin Iucha <florin@iucha.net>
-Handled-By : Jiri Kosina <jkosina@suse.cz>
-Status     : problem is being debugged
-
-
-Subject    : Acer Extensa 3002 WLMi: 'shutdown -h now' reboots the syst=
-em
-References : http://lkml.org/lkml/2006/12/25/40
-Submitter  : Berthold Cogel <cogel@rrz.uni-koeln.de>
-Handled-By : Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com=
+On 12/30/06, Richard Purdie <rpurdie@rpsys.net> wrote:
+> On Wed, 2006-11-08 at 00:33 +0800, Yu Luming wrote:
+> > This patch set adds generic abstract layer support for acpi video driver to have
+> > generic user interface to control backlight and output switch control by leveraging
+> > the existing backlight sysfs class driver, and by adding a new video output sysfs
+> > class driver.
+> >
+> > Patch 1/5:  adds dev argument for backlight_device_register to link the class device
+> > to real device object. The platform specific driver should find a way to get the real
+> > device object for their video device.
+> >
+> > signed-off-by: Luming Yu <Luming.yu@intel.com>
+> > ---
+> >  drivers/acpi/asus_acpi.c            |    2 +-
+> >  drivers/acpi/ibm_acpi.c             |    2 +-
+> >  drivers/acpi/toshiba_acpi.c         |    3 ++-
+> >  drivers/video/backlight/backlight.c |    7 +++++--
+> >  include/linux/backlight.h           |    2 +-
+> >  5 files changed, 10 insertions(+), 6 deletions(-)
+> >
+> > diff --git a/drivers/video/backlight/backlight.c b/drivers/video/backlight/backlight.c
+> > index 27597c5..1d97cdf 100644
+> > --- a/drivers/video/backlight/backlight.c
+> > +++ b/drivers/video/backlight/backlight.c
+> > @@ -190,8 +190,10 @@ static int fb_notifier_callback(struct n
+> >   * Creates and registers new backlight class_device. Returns either an
+> >   * ERR_PTR() or a pointer to the newly allocated device.
+> >   */
+> > -struct backlight_device *backlight_device_register(const char *name, void *devdata,
+> > -                                                struct backlight_properties *bp)
+> > +struct backlight_device *backlight_device_register(const char *name,
+> > +     struct device *dev,
+> > +     void *devdata,
+> > +     struct backlight_properties *bp)
+> >  {
+> >       int i, rc;
+> >       struct backlight_device *new_bd;
 >
-Status     : problem is being debugged
+> This patch breaks several platforms. If you're going to add parameters
+> to a function like backlight_device_register, you could at least grep
+> the tree and update all the users :-(.
 
+yes, you are right.  I just noticed that there are so many users when I sent
+out that patch. And all these users were disabled when I was testing patch.
+I'm sorry for that.
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> To top it off, someone noticed some of the failures and fixed them but
+> nobody thought to fix the drivers in drivers/video/backlight itself and
+> a mac reference seems to have escaped too.
+
+If my memory serves me well,  there is a patch for mac in mm.
+Not sure other drivers in video/backlight. But I should have sent it
+to some place.
+Need to check.
+
+>
+> I'll send a patch to to Andrew to clean up this mess...
+>
+thank you!
