@@ -1,83 +1,101 @@
-From: "Luming Yu" <luming.yu@gmail.com>
-Subject: Re: [patch 1/5] video sysfs support - take 2: Add dev argument for backlight_device_register.
-Date: Tue, 9 Jan 2007 23:09:38 +0800
-Message-ID: <3877989d0701090709n32f57048o495274849cbbf127@mail.gmail.com>
-References: <200611080033.56035.luming.yu@gmail.com>
-	 <1167492935.5626.12.camel@localhost.localdomain>
+From: "Karasyov, Konstantin A" <konstantin.a.karasyov@intel.com>
+Subject: RE: Doubt about fan
+Date: Tue, 9 Jan 2007 18:17:08 +0300
+Message-ID: <E3C0BCA40296C347AF7142161DB9FC8293D9F3@mssmsx411>
+References: <beb91d720701070833j12461721q4e8f21d5e6c4fdd9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wr-out-0506.google.com ([64.233.184.231]:32977 "EHLO
-	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932143AbXAIPJi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jan 2007 10:09:38 -0500
-Received: by wr-out-0506.google.com with SMTP id 71so1462586wri
-        for <linux-acpi@vger.kernel.org>; Tue, 09 Jan 2007 07:09:38 -0800 (PST)
-In-Reply-To: <1167492935.5626.12.camel@localhost.localdomain>
-Content-Disposition: inline
+Received: from mga01.intel.com ([192.55.52.88]:19583 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932118AbXAIPRT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jan 2007 10:17:19 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <beb91d720701070833j12461721q4e8f21d5e6c4fdd9@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Richard Purdie <rpurdie@rpsys.net>
-Cc: Andrew Morton <akpm@osdl.org>, Pavel Machek <pavel@ucw.cz>, len.brown@intel.com, Matt Domsch <Matt_Domsch@dell.com>, Alessandro Guido <alessandro.guido@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, jengelh@linux01.gwdg.de, gelma@gelma.net, ismail@pardus.org.tr, Richard Hughes <hughsient@gmail.com>
+To: Salatiel Filho <salatiel.filho@gmail.com>, Karthik Gopalakrishnan <karthik.g.krishnan@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-On 12/30/06, Richard Purdie <rpurdie@rpsys.net> wrote:
-> On Wed, 2006-11-08 at 00:33 +0800, Yu Luming wrote:
-> > This patch set adds generic abstract layer support for acpi video driver to have
-> > generic user interface to control backlight and output switch control by leveraging
-> > the existing backlight sysfs class driver, and by adding a new video output sysfs
-> > class driver.
-> >
-> > Patch 1/5:  adds dev argument for backlight_device_register to link the class device
-> > to real device object. The platform specific driver should find a way to get the real
-> > device object for their video device.
-> >
-> > signed-off-by: Luming Yu <Luming.yu@intel.com>
-> > ---
-> >  drivers/acpi/asus_acpi.c            |    2 +-
-> >  drivers/acpi/ibm_acpi.c             |    2 +-
-> >  drivers/acpi/toshiba_acpi.c         |    3 ++-
-> >  drivers/video/backlight/backlight.c |    7 +++++--
-> >  include/linux/backlight.h           |    2 +-
-> >  5 files changed, 10 insertions(+), 6 deletions(-)
-> >
-> > diff --git a/drivers/video/backlight/backlight.c b/drivers/video/backlight/backlight.c
-> > index 27597c5..1d97cdf 100644
-> > --- a/drivers/video/backlight/backlight.c
-> > +++ b/drivers/video/backlight/backlight.c
-> > @@ -190,8 +190,10 @@ static int fb_notifier_callback(struct n
-> >   * Creates and registers new backlight class_device. Returns either an
-> >   * ERR_PTR() or a pointer to the newly allocated device.
-> >   */
-> > -struct backlight_device *backlight_device_register(const char *name, void *devdata,
-> > -                                                struct backlight_properties *bp)
-> > +struct backlight_device *backlight_device_register(const char *name,
-> > +     struct device *dev,
-> > +     void *devdata,
-> > +     struct backlight_properties *bp)
-> >  {
-> >       int i, rc;
-> >       struct backlight_device *new_bd;
+Hi,
+
+Could you please try the patches for 2.6.20-rc3 from these bugs:
+http://bugzilla.kernel.org/show_bug.cgi?id=3D7570
+http://bugzilla.kernel.org/show_bug.cgi?id=3D7122
+
+and report the results (possibly in bugzilla)?
+
+
+Regards.
+Konstantin.
+
+>-----Original Message-----
+>From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+>owner@vger.kernel.org] On Behalf Of Salatiel Filho
+>Sent: Sunday, January 07, 2007 7:33 PM
+>To: Karthik Gopalakrishnan
+>Cc: linux-acpi@vger.kernel.org
+>Subject: Re: Doubt about fan
 >
-> This patch breaks several platforms. If you're going to add parameters
-> to a function like backlight_device_register, you could at least grep
-> the tree and update all the users :-(.
-
-yes, you are right.  I just noticed that there are so many users when I sent
-out that patch. And all these users were disabled when I was testing patch.
-I'm sorry for that.
-
+>On 1/7/07, Karthik Gopalakrishnan <karthik.g.krishnan@gmail.com> wrote=
+:
+>> On 1/7/07, Salatiel Filho <salatiel.filho@gmail.com> wrote:
+>> > Hi guys , i have two doubts and i`d be grateful if someone could h=
+elp-
+>me.
+>> >
+>> > 1) When i`m over windows , i can see hear my laptop` fans runing b=
+ut
+>> > when i`m over linux i think they never run or at least i do not he=
+ar
+>> > then and i think my machine gets a little hot. Is there something =
+that
+>> > i can do ???
+>>
+>> There is an issue "CPU fan shuts down on load of fan.ko in kernel
+>> 2.6.18 and later" reported by Mathew Brett. Maybe your problem is
+>> similar. Please look through the Archives for more information.
 >
-> To top it off, someone noticed some of the failures and fixed them but
-> nobody thought to fix the drivers in drivers/video/backlight itself and
-> a mac reference seems to have escaped too.
-
-If my memory serves me well,  there is a patch for mac in mm.
-Not sure other drivers in video/backlight. But I should have sent it
-to some place.
-Need to check.
-
+>I`m wondering who controls fans if i blacklist fan module ?
+>I`forgot mention that i`m using kernel 2.6.20rc-3
 >
-> I'll send a patch to to Andrew to clean up this mess...
 >
-thank you!
+>>
+>> >
+>> > 2) Is there anyway to control monitor brightness for HP Pavillion
+>> > notebooks when working in battery mode ?
+>> >
+>> >
+>> > --
+>> > []'s
+>> > Salatiel
+>> >
+>> > "O maior prazer do inteligente =E9 bancar o  idiota
+>> >    diante de um  idiota que banca o inteligente".
+>> > -
+>> > To unsubscribe from this list: send the line "unsubscribe linux-ac=
+pi"
+>in
+>> > the body of a message to majordomo@vger.kernel.org
+>> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> >
+>>
+>
+>
+>--
+>[]'s
+>Salatiel
+>
+>"O maior prazer do inteligente =E9 bancar o  idiota
+>   diante de um  idiota que banca o inteligente".
+>-
+>To unsubscribe from this list: send the line "unsubscribe linux-acpi" =
+in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
