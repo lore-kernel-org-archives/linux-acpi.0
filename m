@@ -1,93 +1,78 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [2.6.20-rc4 regression] ibm-acpi: bay support disabled
-Date: Tue, 9 Jan 2007 15:28:45 -0200
-Message-ID: <20070109172845.GA3528@khazad-dum.debian.net>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: Re: [2.6.20-rc4 regression] ibm-acpi: bay support disabled
+Date: Tue, 9 Jan 2007 18:45:34 +0100
+Message-ID: <20070109174534.GN25007@stusta.de>
+References: <20070109172845.GA3528@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:38406 "EHLO
-	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932242AbXAIR2x (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jan 2007 12:28:53 -0500
+Received: from mailout.stusta.mhn.de ([141.84.69.5]:2362 "HELO
+	mailout.stusta.mhn.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932299AbXAIRpa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jan 2007 12:45:30 -0500
 Content-Disposition: inline
+In-Reply-To: <20070109172845.GA3528@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
 
-A new one for you, it exists since 2.6.20-rc2.
+On Tue, Jan 09, 2007 at 03:28:45PM -0200, Henrique de Moraes Holschuh wrote:
+> A new one for you, it exists since 2.6.20-rc2.
+> 
+> Subject      : ThinkPad removable bay support disabled unconditionally
+> References   : http://marc.theaimsgroup.com/?l=linux-acpi&m=116750681901208&w=2
+> Caused-By    : Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+> Handled-By   : Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+> Status       : patch attached
 
-Subject      : ThinkPad removable bay support disabled unconditionally
-References   : http://marc.theaimsgroup.com/?l=linux-acpi&m=116750681901208&w=2
-Caused-By    : Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Handled-By   : Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Status       : patch attached
+Thanks, noted.
+
+> From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+> 
+> ACPI: ibm-acpi: fix Kconfig entries for ibm-acpi bay and dock
+> 
+> Support for ACPI_BAY has not been merged in mainline yet.  Usage of
+> "depends on FOO=n" fails if FOO is undefined, thus ibm-acpi support
+> for bay was being made non-available in a kernel that has no other
+> sort of bay support.
+> 
+> Fix it to use "depends on ! FOO" instead, that does the right thing
+> when FOO is undefined.  Fix ACPI_IBM_DOCK accordingly as well while
+> at it, and also improve the help text.
+> 
+> Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+> ---
+>  drivers/acpi/Kconfig |   17 ++++++++++-------
+>  1 files changed, 10 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 1639998..34cc8d5 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -215,26 +215,29 @@ config ACPI_IBM
+>  config ACPI_IBM_DOCK
+>  	bool "Legacy Docking Station Support"
+>  	depends on ACPI_IBM
+> -	depends on ACPI_DOCK=n
+> -	default n
+> +	depends on ! ACPI_DOCK
+> +	default y
+>...
+
+!ACPI_DOCK is wrong if the intention was ACPI_DOCK=n (since ACPI_DOCK is 
+a tristate).
+
+I'd say the right fix is to remove the negative dependencies on unmerged 
+options and reintroduce them once these options themselves got merged.
+
+cu
+Adrian
 
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-
-ACPI: ibm-acpi: fix Kconfig entries for ibm-acpi bay and dock
-
-Support for ACPI_BAY has not been merged in mainline yet.  Usage of
-"depends on FOO=n" fails if FOO is undefined, thus ibm-acpi support
-for bay was being made non-available in a kernel that has no other
-sort of bay support.
-
-Fix it to use "depends on ! FOO" instead, that does the right thing
-when FOO is undefined.  Fix ACPI_IBM_DOCK accordingly as well while
-at it, and also improve the help text.
-
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
----
- drivers/acpi/Kconfig |   17 ++++++++++-------
- 1 files changed, 10 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 1639998..34cc8d5 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -215,26 +215,29 @@ config ACPI_IBM
- config ACPI_IBM_DOCK
- 	bool "Legacy Docking Station Support"
- 	depends on ACPI_IBM
--	depends on ACPI_DOCK=n
--	default n
-+	depends on ! ACPI_DOCK
-+	default y
- 	---help---
- 	  Allows the ibm_acpi driver to handle docking station events.
- 	  This support is obsoleted by CONFIG_HOTPLUG_PCI_ACPI.  It will
- 	  allow locking and removing the laptop from the docking station,
- 	  but will not properly connect PCI devices.
- 
--	  If you are not sure, say N here.
-+	  If you are not sure, select ACPI_DOCK instead.
- 
- config ACPI_IBM_BAY
- 	bool "Legacy Removable Bay Support"
- 	depends on ACPI_IBM
--	depends on ACPI_BAY=n
--	default n
-+	depends on ! ACPI_BAY
-+	default y
- 	---help---
- 	  Allows the ibm_acpi driver to handle removable bays.
--	  This support is obsoleted by CONFIG_ACPI_BAY.
-+	  This support is obsoleted by CONFIG_ACPI_BAY.  It will allow
-+	  enabling and disabling devices in the removable bays, but it
-+	  will not properly add or remove the devices from the kernel,
-+	  which must be done manually by userspace scripts.
- 
--	  If you are not sure, say N here.
-+	  If you are not sure, select ACPI_BAY instead if it is available.
- 
- config ACPI_TOSHIBA
- 	tristate "Toshiba Laptop Extras"
--- 
-1.4.4.3
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
 
