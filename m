@@ -1,39 +1,85 @@
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Subject: [patch 2/2] ACPI: Make bay depend on dock
-Date: Mon, 8 Jan 2007 16:21:16 -0800
-Message-ID: <20070108162116.6736afc2.kristen.c.accardi@intel.com>
-References: <20070108233740.155026806@localhost.localdomain>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: 2.6.20-rc4: known unfixed regressions (v2)
+Date: Tue, 9 Jan 2007 06:25:10 +0100
+Message-ID: <20070109052510.GG25007@stusta.de>
+References: <Pine.LNX.4.64.0701062216210.3661@woody.osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:28825 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750772AbXAIAVc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 8 Jan 2007 19:21:32 -0500
-In-Reply-To: <20070108233740.155026806@localhost.localdomain>
+Received: from mailout.stusta.mhn.de ([141.84.69.5]:4381 "HELO
+	mailout.stusta.mhn.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751056AbXAIFZJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jan 2007 00:25:09 -0500
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0701062216210.3661@woody.osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jikos@jikos.cz, akpm@osdl.org, Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Malte =?iso-8859-1?Q?Schr=F6der?= <MalteSch@gmx.de>, reiserfs-dev@namesys.com, Cijoml Cijomlovic Cijomlov <cijoml@volny.cz>, ttb@tentacle.dhs.org, rml@novell.com, Jon Smirl <jonsmirl@gmail.com>, Damien Wyart <damien.wyart@free.fr>, Aaron Sethman <androsyn@ratbox.org>, alan@lxorguk.ukuu.org.uk, linux-ide@vger.kernel.org, Uwe Bugla <uwe.bugla@gmx.de>, Florin Iucha <florin@iucha.net>, Jiri Kosina <jkosina@suse.cz>, dmitry.torokhov@gmail.com, linux-input@atrey.karlin.mff.cuni.cz, greg@kroah.com, linux-usb-devel@lists.sourceforge.net, Berthold Cogel <cogel@rrz.uni-koeln.de>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, len.brown@intel.com, linux-acpi@vger.kernel.org
 
-Since the bay driver depends on the dock driver for proper notification,
-make this driver depend on the dock driver. 
+This email lists some known regressions in 2.6.20-rc4 compared to 2.6.1=
+9
+that are not yet fixed in Linus' tree.
 
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
----
- drivers/acpi/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+If you find your name in the Cc header, you are either submitter of one
+of the bugs, maintainer of an affectected subsystem or driver, a patch
+of you caused a breakage or I'm considering you in any other way possib=
+ly
+involved with one or more of these issues.
 
---- 2.6-mm.orig/drivers/acpi/Kconfig
-+++ 2.6-mm/drivers/acpi/Kconfig
-@@ -133,6 +133,7 @@ config ACPI_DOCK
- config ACPI_BAY
- 	tristate "Removable Drive Bay"
- 	depends on EXPERIMENTAL
-+	depends on ACPI_DOCK
- 	help
- 	  This driver adds support for ACPI controlled removable drive
- 	  bays such as the IBM ultrabay or the Dell Module Bay.
+Due to the huge amount of recipients, please trim the Cc when answering=
+=2E
 
---
+
+Subject    : BUG: at mm/truncate.c:60 cancel_dirty_page()  (reiserfs)
+References : http://lkml.org/lkml/2007/1/7/117
+Submitter  : Malte Schr=F6der <MalteSch@gmx.de>
+Status     : unknown
+
+
+Subject    : BUG: at fs/inotify.c:172 set_dentry_child_flags()
+References : http://bugzilla.kernel.org/show_bug.cgi?id=3D7785
+Submitter  : Cijoml Cijomlovic Cijomlov <cijoml@volny.cz>
+Status     : unknown
+
+
+Subject    : BUG: scheduling while atomic: hald-addon-stor/...
+             cdrom_{open,release,ioctl} in trace
+References : http://lkml.org/lkml/2006/12/26/105
+             http://lkml.org/lkml/2006/12/29/22
+             http://lkml.org/lkml/2006/12/31/133
+Submitter  : Jon Smirl <jonsmirl@gmail.com>
+             Damien Wyart <damien.wyart@free.fr>
+             Aaron Sethman <androsyn@ratbox.org>
+Status     : unknown
+
+
+Subject    : problems with CD burning
+References : http://www.spinics.net/lists/linux-ide/msg06545.html
+Submitter  : Uwe Bugla <uwe.bugla@gmx.de>
+Status     : unknown
+
+
+Subject    : USB keyboard unresponsive after some time
+References : http://lkml.org/lkml/2006/12/25/35
+             http://lkml.org/lkml/2006/12/26/106
+Submitter  : Florin Iucha <florin@iucha.net>
+Handled-By : Jiri Kosina <jkosina@suse.cz>
+Status     : problem is being debugged
+
+
+Subject    : Acer Extensa 3002 WLMi: 'shutdown -h now' reboots the syst=
+em
+References : http://lkml.org/lkml/2006/12/25/40
+Submitter  : Berthold Cogel <cogel@rrz.uni-koeln.de>
+Handled-By : Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com=
+>
+Status     : problem is being debugged
+
+
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
