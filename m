@@ -1,194 +1,76 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [2.6.20-rc4 regression] ibm-acpi: bay support disabled
-Date: Tue, 9 Jan 2007 16:54:23 -0200
-Message-ID: <20070109185422.GB3528@khazad-dum.debian.net>
-References: <20070109172845.GA3528@khazad-dum.debian.net> <20070109174534.GN25007@stusta.de>
+From: "Matthew Brett" <matthew.brett@gmail.com>
+Subject: Re: PROBLEM: CPU fan shuts down on load of fan.ko in kernel 2.6.18 and later
+Date: Wed, 10 Jan 2007 01:12:28 +0000
+Message-ID: <1e2af89e0701091712h692985eesdf66dba6b3e7daec@mail.gmail.com>
+References: <1e2af89e0612280914n62a192e2kdb7e2677b55d2670@mail.gmail.com>
+	 <E3C0BCA40296C347AF7142161DB9FC8293DA20@mssmsx411>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:54155 "EHLO
-	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932374AbXAISyb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jan 2007 13:54:31 -0500
+Received: from ug-out-1314.google.com ([66.249.92.170]:17216 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932613AbXAJBM3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jan 2007 20:12:29 -0500
+Received: by ug-out-1314.google.com with SMTP id 44so6744190uga
+        for <linux-acpi@vger.kernel.org>; Tue, 09 Jan 2007 17:12:28 -0800 (PST)
+In-Reply-To: <E3C0BCA40296C347AF7142161DB9FC8293DA20@mssmsx411>
 Content-Disposition: inline
-In-Reply-To: <20070109174534.GN25007@stusta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
+To: "Karasyov, Konstantin A" <konstantin.a.karasyov@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Tue, 09 Jan 2007, Adrian Bunk wrote:
-> > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> > index 1639998..34cc8d5 100644
-> > --- a/drivers/acpi/Kconfig
-> > +++ b/drivers/acpi/Kconfig
-> > @@ -215,26 +215,29 @@ config ACPI_IBM
-> >  config ACPI_IBM_DOCK
-> >  	bool "Legacy Docking Station Support"
-> >  	depends on ACPI_IBM
-> > -	depends on ACPI_DOCK=n
-> > -	default n
-> > +	depends on ! ACPI_DOCK
-> > +	default y
-> >...
-> 
-> !ACPI_DOCK is wrong if the intention was ACPI_DOCK=n (since ACPI_DOCK is 
-> a tristate).
+Hi,
 
-Actually, the intention is to give a sensible default AND to avoid
-ACPI_DOCK=y && ACPI_IBM_DOCK=y.  The same goes for ACPI_BAY.  An user is
-certainly entitled to have both as modules (e.g. to see if ACPI_DOCK or
-ACPI_BAY works in his ThinkPad).
+> Could you please perform the following testing:
 
-Even better would be to detect it at runtime, and disable the specific
-support in ibm-acpi if the generic support is loaded.  But that's something
-to try in -mm and target 2.6.21 or 2.6.22.
+Thanks a lot for the reply.  Results of tests below.  I've included
+the output from the 2.6.17 kernel and 2.6.20-rc3 kernel with comments.
+ Patched kernel gave identical output to unpatched...  CPU load did
+not turn on the fan as before.
 
-> I'd say the right fix is to remove the negative dependencies on unmerged 
-> options and reintroduce them once these options themselves got merged.
+Best,
 
-Well, as long as the regression is fixed, I am happy.  Here is an
-alternative patch, that reverts the problematic commit,
-2df910b4c3edcce9a0c12394db6f5f4a6e69c712.
+Matthew
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+2.6.17 kernel, fan on at boot
+[root@bob ~]# cat /proc/acpi/thermal/*/*
+cat: /proc/acpi/thermal/*/*: No such file or directory
+[root@bob ~]# cat /proc/acpi/thermal_zone/*/*
+<setting not supported>
+cooling mode:   passive
+<polling disabled>
+state:                   passive
+temperature:             -270 C
+critical (S5):           -264 C
+passive:                 -273 C: tc1=0 tc2=0 tsp=600 devices=0xf7ffd340
+active[0]:               -267 C: devices=0xf7ffd5c0
+[root@bob ~]# cat /proc/acpi/fan/*/state
+status:                  on
+[root@bob ~]# echo 3 > /proc/acpi/fan/*/state
+-bash: echo: write error: Exec format error
+[Fan goes off]
+[root@bob ~]# echo 0 > /proc/acpi/fan/*/state
+[No effect, fan stays off]
+[root@bob ~]#
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-
-ACPI: ibm-acpi: allow bay support to work in mainline
-
-This patch reverts commit 2df910b4c3edcce9a0c12394db6f5f4a6e69c712.
-
-ACPI_BAY has not been merged into mainline yet, so the changes to ibm-acpi
-related Kconfig entries that depend on ACPI_BAY were permanently disabling
-ibm-acpi bay support.  This is a serious regression for ThinkPad users.
-
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
----
- drivers/acpi/Kconfig    |   11 -----------
- drivers/acpi/ibm_acpi.c |   13 +------------
- 2 files changed, 1 insertions(+), 23 deletions(-)
-
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 1639998..f4f000a 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -225,17 +225,6 @@ config ACPI_IBM_DOCK
- 
- 	  If you are not sure, say N here.
- 
--config ACPI_IBM_BAY
--	bool "Legacy Removable Bay Support"
--	depends on ACPI_IBM
--	depends on ACPI_BAY=n
--	default n
--	---help---
--	  Allows the ibm_acpi driver to handle removable bays.
--	  This support is obsoleted by CONFIG_ACPI_BAY.
--
--	  If you are not sure, say N here.
--
- config ACPI_TOSHIBA
- 	tristate "Toshiba Laptop Extras"
- 	depends on X86
-diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
-index b72d13d..c6144ca 100644
---- a/drivers/acpi/ibm_acpi.c
-+++ b/drivers/acpi/ibm_acpi.c
-@@ -157,7 +157,6 @@ IBM_HANDLE(dock, root, "\\_SB.GDCK",	/* X30, X31, X40 */
- 	   "\\_SB.PCI.ISA.SLCE",	/* 570 */
-     );				/* A21e,G4x,R30,R31,R32,R40,R40e,R50e */
- #endif
--#ifdef CONFIG_ACPI_IBM_BAY
- IBM_HANDLE(bay, root, "\\_SB.PCI.IDE.SECN.MAST",	/* 570 */
- 	   "\\_SB.PCI0.IDE0.IDES.IDSM",	/* 600e/x, 770e, 770x */
- 	   "\\_SB.PCI0.SATA.SCND.MSTR",	/* T60, X60, Z60 */ 
-@@ -175,7 +174,6 @@ IBM_HANDLE(bay2, root, "\\_SB.PCI0.IDE0.PRIM.SLAV",	/* A3x, R32 */
- IBM_HANDLE(bay2_ej, bay2, "_EJ3",	/* 600e/x, 770e, A3x */
- 	   "_EJ0",		/* 770x */
-     );				/* all others */
--#endif
- 
- /* don't list other alternatives as we install a notify handler on the 570 */
- IBM_HANDLE(pci, root, "\\_SB.PCI");	/* 570 */
-@@ -1042,7 +1040,6 @@ static int light_write(char *buf)
- 	return 0;
- }
- 
--#if defined(CONFIG_ACPI_IBM_DOCK) || defined(CONFIG_ACPI_IBM_BAY)
- static int _sta(acpi_handle handle)
- {
- 	int status;
-@@ -1052,7 +1049,7 @@ static int _sta(acpi_handle handle)
- 
- 	return status;
- }
--#endif
-+
- #ifdef CONFIG_ACPI_IBM_DOCK
- #define dock_docked() (_sta(dock_handle) & 1)
- 
-@@ -1118,7 +1115,6 @@ static void dock_notify(struct ibm_struct *ibm, u32 event)
- }
- #endif
- 
--#ifdef CONFIG_ACPI_IBM_BAY
- static int bay_status_supported;
- static int bay_status2_supported;
- static int bay_eject_supported;
-@@ -1194,7 +1190,6 @@ static void bay_notify(struct ibm_struct *ibm, u32 event)
- {
- 	acpi_bus_generate_event(ibm->device, event, 0);
- }
--#endif
- 
- static int cmos_read(char *p)
- {
-@@ -2354,7 +2349,6 @@ static struct ibm_struct ibms[] = {
- 	 .type = ACPI_SYSTEM_NOTIFY,
- 	 },
- #endif
--#ifdef CONFIG_ACPI_IBM_BAY
- 	{
- 	 .name = "bay",
- 	 .init = bay_init,
-@@ -2364,7 +2358,6 @@ static struct ibm_struct ibms[] = {
- 	 .handle = &bay_handle,
- 	 .type = ACPI_SYSTEM_NOTIFY,
- 	 },
--#endif
- 	{
- 	 .name = "cmos",
- 	 .read = cmos_read,
-@@ -2650,9 +2643,7 @@ IBM_PARAM(light);
- #ifdef CONFIG_ACPI_IBM_DOCK
- IBM_PARAM(dock);
- #endif
--#ifdef CONFIG_ACPI_IBM_BAY
- IBM_PARAM(bay);
--#endif
- IBM_PARAM(cmos);
- IBM_PARAM(led);
- IBM_PARAM(beep);
-@@ -2735,14 +2726,12 @@ static int __init acpi_ibm_init(void)
- 	IBM_HANDLE_INIT(dock);
- #endif
- 	IBM_HANDLE_INIT(pci);
--#ifdef CONFIG_ACPI_IBM_BAY
- 	IBM_HANDLE_INIT(bay);
- 	if (bay_handle)
- 		IBM_HANDLE_INIT(bay_ej);
- 	IBM_HANDLE_INIT(bay2);
- 	if (bay2_handle)
- 		IBM_HANDLE_INIT(bay2_ej);
--#endif
- 	IBM_HANDLE_INIT(beep);
- 	IBM_HANDLE_INIT(ecrd);
- 	IBM_HANDLE_INIT(ecwr);
--- 
-1.4.4.3
-
+2.6.20-rc3 kernel, fan off at boot
+[root@bob ~]# cat /proc/acpi/thermal/*/*
+cat: /proc/acpi/thermal/*/*: No such file or directory
+[root@bob ~]# cat /proc/acpi/thermal_zone/*/*
+<setting not supported>
+cooling mode:   passive
+<polling disabled>
+state:                   passive active[0]
+temperature:             -266 C
+critical (S5):           -264 C
+passive:                 -273 C: tc1=0 tc2=0 tsp=600 devices=0xc18fd2c0
+active[0]:               -267 C: devices=0xc18fd798
+[root@bob ~]# cat /proc/acpi/fan/*/state
+status:                  on
+[root@bob ~]# echo 3 > /proc/acpi/fan/*/state
+-bash: echo: write error: Exec format error
+[No effect]
+[root@bob ~]# echo 0 > /proc/acpi/fan/*/state
+[No effect]
