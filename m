@@ -1,76 +1,118 @@
-From: "Matthew Brett" <matthew.brett@gmail.com>
+From: "Salatiel Filho" <salatiel.filho@gmail.com>
 Subject: Re: PROBLEM: CPU fan shuts down on load of fan.ko in kernel 2.6.18 and later
-Date: Wed, 10 Jan 2007 01:12:28 +0000
-Message-ID: <1e2af89e0701091712h692985eesdf66dba6b3e7daec@mail.gmail.com>
+Date: Wed, 10 Jan 2007 00:18:45 -0300
+Message-ID: <beb91d720701091918g83a0677y33778c17d4b9c82d@mail.gmail.com>
 References: <1e2af89e0612280914n62a192e2kdb7e2677b55d2670@mail.gmail.com>
 	 <E3C0BCA40296C347AF7142161DB9FC8293DA20@mssmsx411>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.170]:17216 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932613AbXAJBM3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jan 2007 20:12:29 -0500
-Received: by ug-out-1314.google.com with SMTP id 44so6744190uga
-        for <linux-acpi@vger.kernel.org>; Tue, 09 Jan 2007 17:12:28 -0800 (PST)
+Received: from nf-out-0910.google.com ([64.233.182.184]:16704 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932701AbXAJDSq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jan 2007 22:18:46 -0500
+Received: by nf-out-0910.google.com with SMTP id o25so360416nfa
+        for <linux-acpi@vger.kernel.org>; Tue, 09 Jan 2007 19:18:45 -0800 (PST)
 In-Reply-To: <E3C0BCA40296C347AF7142161DB9FC8293DA20@mssmsx411>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Karasyov, Konstantin A" <konstantin.a.karasyov@intel.com>
-Cc: linux-acpi@vger.kernel.org
+Cc: Matthew Brett <matthew.brett@gmail.com>, linux-acpi@vger.kernel.org
 
-Hi,
-
+On 1/9/07, Karasyov, Konstantin A <konstantin.a.karasyov@intel.com> wro=
+te:
+> Hi Matthew,
+>
 > Could you please perform the following testing:
 
-Thanks a lot for the reply.  Results of tests below.  I've included
-the output from the 2.6.17 kernel and 2.6.20-rc3 kernel with comments.
- Patched kernel gave identical output to unpatched...  CPU load did
-not turn on the fan as before.
 
-Best,
 
-Matthew
+Well , i tried to perform this steps in my machine since i think my
+fans are not working in linux. Well , for my surprise , i have
+absolutely nothing in
 
-2.6.17 kernel, fan on at boot
-[root@bob ~]# cat /proc/acpi/thermal/*/*
+# ls -lh  /proc/acpi/fan/
+total 0
+
+
+
+>
+> 1. boot, make sure the fan doesn't spin.
+>
+> 2. do 'cat /proc/acpi/thermal/*/*', check the following:
+>         - the 'state' field shows 'active[<smthng>]'
+>         (if not - perform some CPU-intensive task);
+>         - fan still doesn't spin,
+
+#cat /proc/acpi/thermal/*/*
 cat: /proc/acpi/thermal/*/*: No such file or directory
-[root@bob ~]# cat /proc/acpi/thermal_zone/*/*
-<setting not supported>
-cooling mode:   passive
-<polling disabled>
-state:                   passive
-temperature:             -270 C
-critical (S5):           -264 C
-passive:                 -273 C: tc1=0 tc2=0 tsp=600 devices=0xf7ffd340
-active[0]:               -267 C: devices=0xf7ffd5c0
-[root@bob ~]# cat /proc/acpi/fan/*/state
-status:                  on
-[root@bob ~]# echo 3 > /proc/acpi/fan/*/state
--bash: echo: write error: Exec format error
-[Fan goes off]
-[root@bob ~]# echo 0 > /proc/acpi/fan/*/state
-[No effect, fan stays off]
-[root@bob ~]#
 
-2.6.20-rc3 kernel, fan off at boot
-[root@bob ~]# cat /proc/acpi/thermal/*/*
-cat: /proc/acpi/thermal/*/*: No such file or directory
-[root@bob ~]# cat /proc/acpi/thermal_zone/*/*
+#cat /proc/acpi/thermal_zone/*/*
 <setting not supported>
-cooling mode:   passive
+cooling mode:   critical
 <polling disabled>
-state:                   passive active[0]
-temperature:             -266 C
-critical (S5):           -264 C
-passive:                 -273 C: tc1=0 tc2=0 tsp=600 devices=0xc18fd2c0
-active[0]:               -267 C: devices=0xc18fd798
-[root@bob ~]# cat /proc/acpi/fan/*/state
-status:                  on
-[root@bob ~]# echo 3 > /proc/acpi/fan/*/state
--bash: echo: write error: Exec format error
-[No effect]
-[root@bob ~]# echo 0 > /proc/acpi/fan/*/state
-[No effect]
+state:                   ok
+temperature:             60 C
+critical (S5):           99 C
+<setting not supported>
+cooling mode:   critical
+<polling disabled>
+state:                   ok
+temperature:             27 C
+critical (S5):           105 C
+
+
+
+
+>
+> 3. do 'cat /proc/acpi/fan/*/state', check the following:
+>         - the 'status' field shows 'on' (at least one of them);
+>         - fan still doesn't spin,
+>
+
+# cat /proc/acpi/fan/*/state
+cat: /proc/acpi/fan/*/state: No such file or directory
+
+
+
+
+> 4a. do consequently (as root) the following:
+>         - 'echo 3 > /proc/acpi/fan/*/state'
+>         - 'echo 0 > /proc/acpi/fan/*/state'
+>         (the fan should be that one, which shown 'on' in step 3)
+>
+> 4b. (if step 3 failed) do (as root) 'echo 0 > /proc/acpi/fan/*/state'
+> consequently for each fan device under /proc/acpi/fan/, check the
+> following:
+>         - fans start spinning;
+>         - fans' states are correct ('cat /proc/acpi/fan/*/state'
+> command)
+>
+> 5. check if the fan(s) start spinning.
+>
+> Please, get back to me with the results, test flow description and
+> commands' outputs.
+>
+> Also, you could try the patches from bugs ##7122, 7570 for 2.6.20-rc3=
+ to
+> see if it help.
+>
+
+any ideas why i have no /proc/acpi/fan/*?
+
+Notebook HP Pavillion dv8230us
+
+--=20
+[]'s
+Salatiel
+
+"O maior prazer do inteligente =E9 bancar o  idiota
+   diante de um  idiota que banca o inteligente".
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
