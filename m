@@ -1,60 +1,211 @@
-From: "Jaya Kumar" <jayakumar.acpi@gmail.com>
-Subject: Re: [patch 02/14] ACPI: Atlas ACPI driver
-Date: Thu, 11 Jan 2007 06:16:45 +0100
-Message-ID: <756b48450701102116k2a667b1dh3a09d0de6bf7ce65@mail.gmail.com>
-References: <200608150537.k7F5bMHZ011530@shell0.pdx.osdl.net>
-	 <200608152313.56558.len.brown@intel.com>
-	 <756b48450608170048n4d4941c2s349f44883628df9a@mail.gmail.com>
-	 <200608181044.55097.len.brown@intel.com>
-	 <d120d5000608231049p7050310dobee359a1d871d453@mail.gmail.com>
+From: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [2.6.20-rc4 regression] ibm-acpi: bay support
+	disabled
+Date: Thu, 11 Jan 2007 02:59:11 -0500
+Message-ID: <200701110259.12094.lenb@kernel.org>
+References: <20070109172845.GA3528@khazad-dum.debian.net>
+	<20070109174534.GN25007@stusta.de>
+	<20070109185422.GB3528@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.168]:9034 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965249AbXAKFQr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Jan 2007 00:16:47 -0500
-Received: by ug-out-1314.google.com with SMTP id 44so345498uga
-        for <linux-acpi@vger.kernel.org>; Wed, 10 Jan 2007 21:16:45 -0800 (PST)
-In-Reply-To: <d120d5000608231049p7050310dobee359a1d871d453@mail.gmail.com>
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20070109185422.GB3528-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Adrian Bunk <bunk-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, akpm@osdl.org, linux-acpi@vger.kernel.org, luming.yu@intel.com
 
-On 8/23/06, Dmitry Torokhov <dmitry.torokhov@gmail.com> wrote:
-> On 8/18/06, Len Brown <len.brown@intel.com> wrote:
-> >
-> > that patch was an incremental depending on the previous patch.
-> > Please send just the final patch vs 2.6.18-rc4  to the above, also cc: linux-kernel@vger.kernel.org
-> >
-> > > Also, Dmitry had asked what we should do about handing ACPI errors to
-> > > upper layers here:
-> > > http://marc.theaimsgroup.com/?l=linux-acpi&m=115392091425952&w=2
-> >
-> > Dmitry has a good question and we need to iron it out for the general case.
-> > I recommend that for your driver you simply do something like this for now:
-> >
-> > if (ACPI_ERROR(status))
-> >        status = -EINVAL
-> >
-> > and get your driver into the mm tree to find the next problem.
-> >
->
-> Jaya,
->
-> If you could make the change Len was talking about and create a patch
-> against mainline I would apply it to my tree.
->
-> Thank you.
->
-> --
-> Dmitry
->
+Reverted.
 
-Ok. Will do and post shortly.
+thanks,
+-Len
 
-Thanks,
-jaya
+On Tuesday 09 January 2007 13:54, Henrique de Moraes Holschuh wrote:
+> On Tue, 09 Jan 2007, Adrian Bunk wrote:
+> > > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> > > index 1639998..34cc8d5 100644
+> > > --- a/drivers/acpi/Kconfig
+> > > +++ b/drivers/acpi/Kconfig
+> > > @@ -215,26 +215,29 @@ config ACPI_IBM
+> > >  config ACPI_IBM_DOCK
+> > >  	bool "Legacy Docking Station Support"
+> > >  	depends on ACPI_IBM
+> > > -	depends on ACPI_DOCK=n
+> > > -	default n
+> > > +	depends on ! ACPI_DOCK
+> > > +	default y
+> > >...
+> > 
+> > !ACPI_DOCK is wrong if the intention was ACPI_DOCK=n (since ACPI_DOCK is 
+> > a tristate).
+> 
+> Actually, the intention is to give a sensible default AND to avoid
+> ACPI_DOCK=y && ACPI_IBM_DOCK=y.  The same goes for ACPI_BAY.  An user is
+> certainly entitled to have both as modules (e.g. to see if ACPI_DOCK or
+> ACPI_BAY works in his ThinkPad).
+> 
+> Even better would be to detect it at runtime, and disable the specific
+> support in ibm-acpi if the generic support is loaded.  But that's something
+> to try in -mm and target 2.6.21 or 2.6.22.
+> 
+> > I'd say the right fix is to remove the negative dependencies on unmerged 
+> > options and reintroduce them once these options themselves got merged.
+> 
+> Well, as long as the regression is fixed, I am happy.  Here is an
+> alternative patch, that reverts the problematic commit,
+> 2df910b4c3edcce9a0c12394db6f5f4a6e69c712.
+> 
+> -- 
+>   "One disk to rule them all, One disk to find them. One disk to bring
+>   them all and in the darkness grind them. In the Land of Redmond
+>   where the shadows lie." -- The Silicon Valley Tarot
+>   Henrique Holschuh
+> 
+> From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+> 
+> ACPI: ibm-acpi: allow bay support to work in mainline
+> 
+> This patch reverts commit 2df910b4c3edcce9a0c12394db6f5f4a6e69c712.
+> 
+> ACPI_BAY has not been merged into mainline yet, so the changes to ibm-acpi
+> related Kconfig entries that depend on ACPI_BAY were permanently disabling
+> ibm-acpi bay support.  This is a serious regression for ThinkPad users.
+> 
+> Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+> ---
+>  drivers/acpi/Kconfig    |   11 -----------
+>  drivers/acpi/ibm_acpi.c |   13 +------------
+>  2 files changed, 1 insertions(+), 23 deletions(-)
+> 
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 1639998..f4f000a 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -225,17 +225,6 @@ config ACPI_IBM_DOCK
+>  
+>  	  If you are not sure, say N here.
+>  
+> -config ACPI_IBM_BAY
+> -	bool "Legacy Removable Bay Support"
+> -	depends on ACPI_IBM
+> -	depends on ACPI_BAY=n
+> -	default n
+> -	---help---
+> -	  Allows the ibm_acpi driver to handle removable bays.
+> -	  This support is obsoleted by CONFIG_ACPI_BAY.
+> -
+> -	  If you are not sure, say N here.
+> -
+>  config ACPI_TOSHIBA
+>  	tristate "Toshiba Laptop Extras"
+>  	depends on X86
+> diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
+> index b72d13d..c6144ca 100644
+> --- a/drivers/acpi/ibm_acpi.c
+> +++ b/drivers/acpi/ibm_acpi.c
+> @@ -157,7 +157,6 @@ IBM_HANDLE(dock, root, "\\_SB.GDCK",	/* X30, X31, X40 */
+>  	   "\\_SB.PCI.ISA.SLCE",	/* 570 */
+>      );				/* A21e,G4x,R30,R31,R32,R40,R40e,R50e */
+>  #endif
+> -#ifdef CONFIG_ACPI_IBM_BAY
+>  IBM_HANDLE(bay, root, "\\_SB.PCI.IDE.SECN.MAST",	/* 570 */
+>  	   "\\_SB.PCI0.IDE0.IDES.IDSM",	/* 600e/x, 770e, 770x */
+>  	   "\\_SB.PCI0.SATA.SCND.MSTR",	/* T60, X60, Z60 */ 
+> @@ -175,7 +174,6 @@ IBM_HANDLE(bay2, root, "\\_SB.PCI0.IDE0.PRIM.SLAV",	/* A3x, R32 */
+>  IBM_HANDLE(bay2_ej, bay2, "_EJ3",	/* 600e/x, 770e, A3x */
+>  	   "_EJ0",		/* 770x */
+>      );				/* all others */
+> -#endif
+>  
+>  /* don't list other alternatives as we install a notify handler on the 570 */
+>  IBM_HANDLE(pci, root, "\\_SB.PCI");	/* 570 */
+> @@ -1042,7 +1040,6 @@ static int light_write(char *buf)
+>  	return 0;
+>  }
+>  
+> -#if defined(CONFIG_ACPI_IBM_DOCK) || defined(CONFIG_ACPI_IBM_BAY)
+>  static int _sta(acpi_handle handle)
+>  {
+>  	int status;
+> @@ -1052,7 +1049,7 @@ static int _sta(acpi_handle handle)
+>  
+>  	return status;
+>  }
+> -#endif
+> +
+>  #ifdef CONFIG_ACPI_IBM_DOCK
+>  #define dock_docked() (_sta(dock_handle) & 1)
+>  
+> @@ -1118,7 +1115,6 @@ static void dock_notify(struct ibm_struct *ibm, u32 event)
+>  }
+>  #endif
+>  
+> -#ifdef CONFIG_ACPI_IBM_BAY
+>  static int bay_status_supported;
+>  static int bay_status2_supported;
+>  static int bay_eject_supported;
+> @@ -1194,7 +1190,6 @@ static void bay_notify(struct ibm_struct *ibm, u32 event)
+>  {
+>  	acpi_bus_generate_event(ibm->device, event, 0);
+>  }
+> -#endif
+>  
+>  static int cmos_read(char *p)
+>  {
+> @@ -2354,7 +2349,6 @@ static struct ibm_struct ibms[] = {
+>  	 .type = ACPI_SYSTEM_NOTIFY,
+>  	 },
+>  #endif
+> -#ifdef CONFIG_ACPI_IBM_BAY
+>  	{
+>  	 .name = "bay",
+>  	 .init = bay_init,
+> @@ -2364,7 +2358,6 @@ static struct ibm_struct ibms[] = {
+>  	 .handle = &bay_handle,
+>  	 .type = ACPI_SYSTEM_NOTIFY,
+>  	 },
+> -#endif
+>  	{
+>  	 .name = "cmos",
+>  	 .read = cmos_read,
+> @@ -2650,9 +2643,7 @@ IBM_PARAM(light);
+>  #ifdef CONFIG_ACPI_IBM_DOCK
+>  IBM_PARAM(dock);
+>  #endif
+> -#ifdef CONFIG_ACPI_IBM_BAY
+>  IBM_PARAM(bay);
+> -#endif
+>  IBM_PARAM(cmos);
+>  IBM_PARAM(led);
+>  IBM_PARAM(beep);
+> @@ -2735,14 +2726,12 @@ static int __init acpi_ibm_init(void)
+>  	IBM_HANDLE_INIT(dock);
+>  #endif
+>  	IBM_HANDLE_INIT(pci);
+> -#ifdef CONFIG_ACPI_IBM_BAY
+>  	IBM_HANDLE_INIT(bay);
+>  	if (bay_handle)
+>  		IBM_HANDLE_INIT(bay_ej);
+>  	IBM_HANDLE_INIT(bay2);
+>  	if (bay2_handle)
+>  		IBM_HANDLE_INIT(bay2_ej);
+> -#endif
+>  	IBM_HANDLE_INIT(beep);
+>  	IBM_HANDLE_INIT(ecrd);
+>  	IBM_HANDLE_INIT(ecwr);
+
+-------------------------------------------------------------------------
+Take Surveys. Earn Cash. Influence the Future of IT
+Join SourceForge.net's Techsay panel and you'll get the chance to share your
+opinions on IT & business topics through brief surveys - and earn cash
+http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
