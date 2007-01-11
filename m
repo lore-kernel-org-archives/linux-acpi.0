@@ -1,85 +1,60 @@
-From: Adrian Bunk <bunk-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>
-Subject: 2.6.20-rc4: known regressions with patches (v3)
-Date: Thu, 11 Jan 2007 06:13:29 +0100
-Message-ID: <20070111051329.GB21724@stusta.de>
-References: <Pine.LNX.4.64.0701062216210.3661@woody.osdl.org>
+From: "Jaya Kumar" <jayakumar.acpi@gmail.com>
+Subject: Re: [patch 02/14] ACPI: Atlas ACPI driver
+Date: Thu, 11 Jan 2007 06:16:45 +0100
+Message-ID: <756b48450701102116k2a667b1dh3a09d0de6bf7ce65@mail.gmail.com>
+References: <200608150537.k7F5bMHZ011530@shell0.pdx.osdl.net>
+	 <200608152313.56558.len.brown@intel.com>
+	 <756b48450608170048n4d4941c2s349f44883628df9a@mail.gmail.com>
+	 <200608181044.55097.len.brown@intel.com>
+	 <d120d5000608231049p7050310dobee359a1d871d453@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <kvm-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ug-out-1314.google.com ([66.249.92.168]:9034 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965249AbXAKFQr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Jan 2007 00:16:47 -0500
+Received: by ug-out-1314.google.com with SMTP id 44so345498uga
+        for <linux-acpi@vger.kernel.org>; Wed, 10 Jan 2007 21:16:45 -0800 (PST)
+In-Reply-To: <d120d5000608231049p7050310dobee359a1d871d453@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0701062216210.3661-AgDkxUvNf0y7TbgM5vRIOg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/kvm-devel>,
-	<mailto:kvm-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=kvm-devel>
-List-Post: <mailto:kvm-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:kvm-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/kvm-devel>,
-	<mailto:kvm-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: kvm-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: kvm-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Cc: Robert Hancock <hancockr-fVOoFLC7IWo@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Sami Farin <7atbggg02-O/bDAPVd7B0N+BqQ9rBEUg@public.gmane.org>, gregkh-l3A5Bk7waGM@public.gmane.org, "Vladimir V. Saveliev" <vs-nJ1KrdHEGnBBDgjK7y7TUQ@public.gmane.org>, xfs-masters-VZNHf3L845pBDgjK7y7TUQ@public.gmane.org, kvm-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Malte =?iso-8859-1?Q?Schr=F6der?= <MalteSch-Mmb7MZpHnFY@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, David Chinner <dgc-sJ/iWh9BUns@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Brice Goglin <brice-vV262kQ/Wyo@public.gmane.org>, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org, reiserfs-dev-nJ1KrdHEGnBBDgjK7y7TUQ@public.gmane.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, akpm@osdl.org, linux-acpi@vger.kernel.org, luming.yu@intel.com
 
-This email lists some known regressions in 2.6.20-rc4 compared to 2.6.19
-with patches available.
+On 8/23/06, Dmitry Torokhov <dmitry.torokhov@gmail.com> wrote:
+> On 8/18/06, Len Brown <len.brown@intel.com> wrote:
+> >
+> > that patch was an incremental depending on the previous patch.
+> > Please send just the final patch vs 2.6.18-rc4  to the above, also cc: linux-kernel@vger.kernel.org
+> >
+> > > Also, Dmitry had asked what we should do about handing ACPI errors to
+> > > upper layers here:
+> > > http://marc.theaimsgroup.com/?l=linux-acpi&m=115392091425952&w=2
+> >
+> > Dmitry has a good question and we need to iron it out for the general case.
+> > I recommend that for your driver you simply do something like this for now:
+> >
+> > if (ACPI_ERROR(status))
+> >        status = -EINVAL
+> >
+> > and get your driver into the mm tree to find the next problem.
+> >
+>
+> Jaya,
+>
+> If you could make the change Len was talking about and create a patch
+> against mainline I would apply it to my tree.
+>
+> Thank you.
+>
+> --
+> Dmitry
+>
 
-If you find your name in the Cc header, you are either submitter of one
-of the bugs, maintainer of an affectected subsystem or driver, a patch
-of you caused a breakage or I'm considering you in any other way possibly
-involved with one or more of these issues.
+Ok. Will do and post shortly.
 
-Due to the huge amount of recipients, please trim the Cc when answering.
-
-
-Subject    : ibm-acpi: bay support disabled
-References : http://lkml.org/lkml/2007/1/9/242
-Submitter  : Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Caused-By  : Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-             commit 2df910b4c3edcce9a0c12394db6f5f4a6e69c712
-Handled-By : Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Patch      : http://lkml.org/lkml/2007/1/9/242
-Status     : patch to revert the commit available
-
-
-Subject    : BUG: at mm/truncate.c:60 cancel_dirty_page()  (reiserfs)
-References : http://lkml.org/lkml/2007/1/7/117
-Submitter  : Malte Schr=F6der <MalteSch-Mmb7MZpHnFY@public.gmane.org>
-Handled-By : Vladimir V. Saveliev <vs-nJ1KrdHEGnBBDgjK7y7TUQ@public.gmane.org>
-Patch      : http://lkml.org/lkml/2007/1/10/202
-Status     : patch available
-
-
-Subject    : BUG: at mm/truncate.c:60 cancel_dirty_page()  (XFS)
-References : http://lkml.org/lkml/2007/1/5/308
-Submitter  : Sami Farin <7atbggg02-O/bDAPVd7B0N+BqQ9rBEUg@public.gmane.org>
-Handled-By : David Chinner <dgc-sJ/iWh9BUns@public.gmane.org>
-Patch      : http://lkml.org/lkml/2007/1/7/201
-Status     : patch available
-
-
-Subject    : nVidia CK804 chipset: not detecting HT MSI capabilities
-References : http://lkml.org/lkml/2007/1/5/215
-Submitter  : Brice Goglin <brice-vV262kQ/Wyo@public.gmane.org>
-             Robert Hancock <hancockr-fVOoFLC7IWo@public.gmane.org>
-Handled-By : Brice Goglin <brice-vV262kQ/Wyo@public.gmane.org>
-Patch      : http://lkml.org/lkml/2007/1/5/215
-Status     : patch available
-
-
-Subject    : KVM: guest crash
-References : http://lkml.org/lkml/2007/1/8/163
-Submitter  : Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Handled-By : Avi Kivity <avi-atKUWr5tajBWk0Htik3J/w@public.gmane.org>
-Patch      : http://lkml.org/lkml/2007/1/9/280
-Status     : patch available
-
-
-
--------------------------------------------------------------------------
-Take Surveys. Earn Cash. Influence the Future of IT
-Join SourceForge.net's Techsay panel and you'll get the chance to share your
-opinions on IT & business topics through brief surveys - and earn cash
-http://www.techsay.com/default.php?page=3Djoin.php&p=3Dsourceforge&CID=3DDE=
-VDEV
+Thanks,
+jaya
