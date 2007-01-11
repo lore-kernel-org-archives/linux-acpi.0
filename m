@@ -1,211 +1,168 @@
-From: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [2.6.20-rc4 regression] ibm-acpi: bay support
-	disabled
-Date: Thu, 11 Jan 2007 02:59:11 -0500
-Message-ID: <200701110259.12094.lenb@kernel.org>
-References: <20070109172845.GA3528@khazad-dum.debian.net>
-	<20070109174534.GN25007@stusta.de>
-	<20070109185422.GB3528@khazad-dum.debian.net>
+From: Len Brown <lenb@kernel.org>
+Subject: [GIT PATCH] ACPI patches for 2.6.20-rc4
+Date: Thu, 11 Jan 2007 03:12:05 -0500
+Message-ID: <200701110312.05969.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20070109185422.GB3528-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:49576 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030219AbXAKINz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 11 Jan 2007 03:13:55 -0500
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Adrian Bunk <bunk-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@osdl.org>
+Cc: Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-Reverted.
+Hi Linus,
 
-thanks,
+please pull from: 
+
+git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
+
+This will update the files shown below.
+
+thanks!
+
 -Len
 
-On Tuesday 09 January 2007 13:54, Henrique de Moraes Holschuh wrote:
-> On Tue, 09 Jan 2007, Adrian Bunk wrote:
-> > > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> > > index 1639998..34cc8d5 100644
-> > > --- a/drivers/acpi/Kconfig
-> > > +++ b/drivers/acpi/Kconfig
-> > > @@ -215,26 +215,29 @@ config ACPI_IBM
-> > >  config ACPI_IBM_DOCK
-> > >  	bool "Legacy Docking Station Support"
-> > >  	depends on ACPI_IBM
-> > > -	depends on ACPI_DOCK=n
-> > > -	default n
-> > > +	depends on ! ACPI_DOCK
-> > > +	default y
-> > >...
-> > 
-> > !ACPI_DOCK is wrong if the intention was ACPI_DOCK=n (since ACPI_DOCK is 
-> > a tristate).
-> 
-> Actually, the intention is to give a sensible default AND to avoid
-> ACPI_DOCK=y && ACPI_IBM_DOCK=y.  The same goes for ACPI_BAY.  An user is
-> certainly entitled to have both as modules (e.g. to see if ACPI_DOCK or
-> ACPI_BAY works in his ThinkPad).
-> 
-> Even better would be to detect it at runtime, and disable the specific
-> support in ibm-acpi if the generic support is loaded.  But that's something
-> to try in -mm and target 2.6.21 or 2.6.22.
-> 
-> > I'd say the right fix is to remove the negative dependencies on unmerged 
-> > options and reintroduce them once these options themselves got merged.
-> 
-> Well, as long as the regression is fixed, I am happy.  Here is an
-> alternative patch, that reverts the problematic commit,
-> 2df910b4c3edcce9a0c12394db6f5f4a6e69c712.
-> 
-> -- 
->   "One disk to rule them all, One disk to find them. One disk to bring
->   them all and in the darkness grind them. In the Land of Redmond
->   where the shadows lie." -- The Silicon Valley Tarot
->   Henrique Holschuh
-> 
-> From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-> 
-> ACPI: ibm-acpi: allow bay support to work in mainline
-> 
-> This patch reverts commit 2df910b4c3edcce9a0c12394db6f5f4a6e69c712.
-> 
-> ACPI_BAY has not been merged into mainline yet, so the changes to ibm-acpi
-> related Kconfig entries that depend on ACPI_BAY were permanently disabling
-> ibm-acpi bay support.  This is a serious regression for ThinkPad users.
-> 
-> Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-> ---
->  drivers/acpi/Kconfig    |   11 -----------
->  drivers/acpi/ibm_acpi.c |   13 +------------
->  2 files changed, 1 insertions(+), 23 deletions(-)
-> 
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 1639998..f4f000a 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -225,17 +225,6 @@ config ACPI_IBM_DOCK
->  
->  	  If you are not sure, say N here.
->  
-> -config ACPI_IBM_BAY
-> -	bool "Legacy Removable Bay Support"
-> -	depends on ACPI_IBM
-> -	depends on ACPI_BAY=n
-> -	default n
-> -	---help---
-> -	  Allows the ibm_acpi driver to handle removable bays.
-> -	  This support is obsoleted by CONFIG_ACPI_BAY.
-> -
-> -	  If you are not sure, say N here.
-> -
->  config ACPI_TOSHIBA
->  	tristate "Toshiba Laptop Extras"
->  	depends on X86
-> diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
-> index b72d13d..c6144ca 100644
-> --- a/drivers/acpi/ibm_acpi.c
-> +++ b/drivers/acpi/ibm_acpi.c
-> @@ -157,7 +157,6 @@ IBM_HANDLE(dock, root, "\\_SB.GDCK",	/* X30, X31, X40 */
->  	   "\\_SB.PCI.ISA.SLCE",	/* 570 */
->      );				/* A21e,G4x,R30,R31,R32,R40,R40e,R50e */
->  #endif
-> -#ifdef CONFIG_ACPI_IBM_BAY
->  IBM_HANDLE(bay, root, "\\_SB.PCI.IDE.SECN.MAST",	/* 570 */
->  	   "\\_SB.PCI0.IDE0.IDES.IDSM",	/* 600e/x, 770e, 770x */
->  	   "\\_SB.PCI0.SATA.SCND.MSTR",	/* T60, X60, Z60 */ 
-> @@ -175,7 +174,6 @@ IBM_HANDLE(bay2, root, "\\_SB.PCI0.IDE0.PRIM.SLAV",	/* A3x, R32 */
->  IBM_HANDLE(bay2_ej, bay2, "_EJ3",	/* 600e/x, 770e, A3x */
->  	   "_EJ0",		/* 770x */
->      );				/* all others */
-> -#endif
->  
->  /* don't list other alternatives as we install a notify handler on the 570 */
->  IBM_HANDLE(pci, root, "\\_SB.PCI");	/* 570 */
-> @@ -1042,7 +1040,6 @@ static int light_write(char *buf)
->  	return 0;
->  }
->  
-> -#if defined(CONFIG_ACPI_IBM_DOCK) || defined(CONFIG_ACPI_IBM_BAY)
->  static int _sta(acpi_handle handle)
->  {
->  	int status;
-> @@ -1052,7 +1049,7 @@ static int _sta(acpi_handle handle)
->  
->  	return status;
->  }
-> -#endif
-> +
->  #ifdef CONFIG_ACPI_IBM_DOCK
->  #define dock_docked() (_sta(dock_handle) & 1)
->  
-> @@ -1118,7 +1115,6 @@ static void dock_notify(struct ibm_struct *ibm, u32 event)
->  }
->  #endif
->  
-> -#ifdef CONFIG_ACPI_IBM_BAY
->  static int bay_status_supported;
->  static int bay_status2_supported;
->  static int bay_eject_supported;
-> @@ -1194,7 +1190,6 @@ static void bay_notify(struct ibm_struct *ibm, u32 event)
->  {
->  	acpi_bus_generate_event(ibm->device, event, 0);
->  }
-> -#endif
->  
->  static int cmos_read(char *p)
->  {
-> @@ -2354,7 +2349,6 @@ static struct ibm_struct ibms[] = {
->  	 .type = ACPI_SYSTEM_NOTIFY,
->  	 },
->  #endif
-> -#ifdef CONFIG_ACPI_IBM_BAY
->  	{
->  	 .name = "bay",
->  	 .init = bay_init,
-> @@ -2364,7 +2358,6 @@ static struct ibm_struct ibms[] = {
->  	 .handle = &bay_handle,
->  	 .type = ACPI_SYSTEM_NOTIFY,
->  	 },
-> -#endif
->  	{
->  	 .name = "cmos",
->  	 .read = cmos_read,
-> @@ -2650,9 +2643,7 @@ IBM_PARAM(light);
->  #ifdef CONFIG_ACPI_IBM_DOCK
->  IBM_PARAM(dock);
->  #endif
-> -#ifdef CONFIG_ACPI_IBM_BAY
->  IBM_PARAM(bay);
-> -#endif
->  IBM_PARAM(cmos);
->  IBM_PARAM(led);
->  IBM_PARAM(beep);
-> @@ -2735,14 +2726,12 @@ static int __init acpi_ibm_init(void)
->  	IBM_HANDLE_INIT(dock);
->  #endif
->  	IBM_HANDLE_INIT(pci);
-> -#ifdef CONFIG_ACPI_IBM_BAY
->  	IBM_HANDLE_INIT(bay);
->  	if (bay_handle)
->  		IBM_HANDLE_INIT(bay_ej);
->  	IBM_HANDLE_INIT(bay2);
->  	if (bay2_handle)
->  		IBM_HANDLE_INIT(bay2_ej);
-> -#endif
->  	IBM_HANDLE_INIT(beep);
->  	IBM_HANDLE_INIT(ecrd);
->  	IBM_HANDLE_INIT(ecwr);
+ps. a plain patch is also available here:
+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.20/acpi-release-20060707-2.6.20-rc4.diff.gz
 
--------------------------------------------------------------------------
-Take Surveys. Earn Cash. Influence the Future of IT
-Join SourceForge.net's Techsay panel and you'll get the chance to share your
-opinions on IT & business topics through brief surveys - and earn cash
-http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
+ Documentation/feature-removal-schedule.txt |   45 +++++++++++++++++
+ MAINTAINERS                                |   39 ++++++++++++--
+ arch/i386/kernel/acpi/cstate.c             |   10 +--
+ arch/ia64/kernel/acpi.c                    |    3 +
+ arch/ia64/sn/kernel/io_acpi_init.c         |    3 +
+ drivers/acpi/Kconfig                       |   11 ----
+ drivers/acpi/bus.c                         |    3 +
+ drivers/acpi/ec.c                          |    4 -
+ drivers/acpi/ibm_acpi.c                    |   13 ----
+ drivers/acpi/processor_core.c              |    3 -
+ drivers/acpi/processor_perflib.c           |    4 -
+ include/linux/acpi.h                       |    1 
+ 12 files changed, 97 insertions(+), 42 deletions(-)
+
+through these commits:
+
+Henrique de Moraes Holschuh (1):
+      Revert "ACPI: ibm-acpi: make non-generic bay support optional"
+
+John Keller (1):
+      ACPI: Altix: ACPI _PRT support
+
+Len Brown (3):
+      ACPI: ec: enable printk on cmdline use
+      ACPI: schedule obsolete features for deletion
+      ACPI: update MAINTAINERS
+
+Venkatesh Pallipadi (2):
+      ACPI: rename cstate_entry_s to cstate_entry
+      ACPI: delete two spurious ACPI messages
+
+with this log:
+
+commit d2fadbbbf0e42b842731da71864f222e7f119461
+Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Date:   Thu Jan 11 02:58:15 2007 -0500
+
+    Revert "ACPI: ibm-acpi: make non-generic bay support optional"
+    
+    This reverts commit 2df910b4c3edcce9a0c12394db6f5f4a6e69c712.
+    
+    ACPI_BAY has not been merged into mainline yet, so the changes to ibm-acpi
+    related Kconfig entries that depend on ACPI_BAY were permanently disabling
+    ibm-acpi bay support.  This is a serious regression for ThinkPad users.
+    
+    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 8f6d63adf8309a412bf2d3d2e49a85e519ebf57c
+Merge: 85f4544... 3948ec9...
+Author: Len Brown <len.brown@intel.com>
+Date:   Thu Jan 11 01:55:34 2007 -0500
+
+    Pull sgi into release branch
+
+commit 85f4544fbf02f60993c76f5b92517a87f220472d
+Merge: f3a2c3e... 8b59a45...
+Author: Len Brown <len.brown@intel.com>
+Date:   Thu Jan 11 01:55:25 2007 -0500
+
+    Pull trivial into release branch
+
+commit 8b59a454c421542a51c391f542c80d165f7547a0
+Author: Len Brown <len.brown@intel.com>
+Date:   Mon Jan 8 19:03:28 2007 -0500
+
+    ACPI: update MAINTAINERS
+    
+    s/Maintained/Supported/
+    and document some sub-maintainers for ACPI drivers.
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 1bb67c2582f4271488721001a707124fd0af347e
+Author: Len Brown <len.brown@intel.com>
+Date:   Thu Jan 11 01:49:44 2007 -0500
+
+    ACPI: schedule obsolete features for deletion
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit d6637b28ffb38f207015c990e481fde5bba233d7
+Author: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Date:   Wed Jan 10 23:16:36 2007 -0500
+
+    ACPI: delete two spurious ACPI messages
+    
+    ACPI: Getting cpuindex for acpiid 0x4
+    
+    acpi_processor-0742 [00] processor_preregister_: Error while parsing _PSD domain information. Assuming no coordination
+    
+    http://bugzilla.kernel.org/show_bug.cgi?id=7286
+    
+    Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 5d65131fa8d333d4575e7dfe5a05d3a9fa4a687e
+Author: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Date:   Wed Jan 10 23:08:38 2007 -0500
+
+    ACPI: rename cstate_entry_s to cstate_entry
+    
+    style change only.
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 723fe2ca82d1ffc80c9d53035babf011f84c65d4
+Author: Len Brown <len.brown@intel.com>
+Date:   Sat Jan 6 00:02:07 2007 -0500
+
+    ACPI: ec: enable printk on cmdline use
+    
+    if somebody uses "ec_intr=", lets be sure to
+    capture that in the dmesg even in the non-debug case.
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 3948ec9406f9a60a43d63f23f6f5284db6529b9c
+Author: John Keller <jpk@sgi.com>
+Date:   Fri Dec 22 11:50:04 2006 -0600
+
+    ACPI: Altix: ACPI _PRT support
+    
+    Provide ACPI _PRT support for SN Altix systems.
+    
+    The SN Altix platform does not conform to the
+    IOSAPIC IRQ routing model, so a new acpi_irq_model
+    (ACPI_IRQ_MODEL_PLATFORM) has been defined. The SN
+    platform specific code sets acpi_irq_model to
+    this new value, and keys off of it in acpi_register_gsi()
+    to avoid the iosapic code path.
+    
+    Signed-off-by: John Keller <jpk@sgi.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
