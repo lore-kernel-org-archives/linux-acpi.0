@@ -1,51 +1,131 @@
-From: Neil Bird <neil.bird@uk.thalesgroup.com>
-Subject: Re: sonypc with Sony Vaio VGN-SZ1VP  [repost]
-Date: Thu, 11 Jan 2007 12:20:55 +0000
-Message-ID: <45A62BA7.1090500@uk.thalesgroup.com>
-References: <49814.213.30.172.234.1159357906.squirrel@webmail.popies.net> <20070104191512.GC25619@inferi.kami.home> <459E1909.9020703@fnxweb.com> <200701051219.00509.lenb@kernel.org>
+From: "Karasyov, Konstantin A" <konstantin.a.karasyov@intel.com>
+Subject: RE: PROBLEM: CPU fan shuts down on load of fan.ko in kernel 2.6.18 and later
+Date: Thu, 11 Jan 2007 16:37:16 +0300
+Message-ID: <E3C0BCA40296C347AF7142161DB9FC8298EEEA@mssmsx411>
+References: <beb91d720701091918g83a0677y33778c17d4b9c82d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.uk.thalesgroup.com ([194.128.85.6]:3943 "EHLO
-	crawsmail1.uk.thalesgroup.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030301AbXAKMjS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 11 Jan 2007 07:39:18 -0500
-Received: from mail.uk.thalesgroup.com (lisc0021.int.rdel.co.uk) by crawsmail1.uk.thalesgroup.com
- (Content Technologies SMTPRS 4.3.14) with ESMTP id <T7d1d83525bc0a85c02584@crawsmail1.uk.thalesgroup.com> for <linux-acpi@vger.kernel.org>;
- Thu, 11 Jan 2007 12:20:57 +0000
-Received: from ntscxch1.int.rdel.co.uk (ntscxch1.int.rdel.co.uk [172.21.100.149])
-	by mail.uk.thalesgroup.com (8.12.8/8.12.8) with ESMTP id l0BCKvq9019565
-	for <linux-acpi@vger.kernel.org>; Thu, 11 Jan 2007 12:20:57 GMT
-In-Reply-To: <200701051219.00509.lenb@kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:44608 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030437AbXAKNhm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Jan 2007 08:37:42 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <beb91d720701091918g83a0677y33778c17d4b9c82d@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Salatiel Filho <salatiel.filho@gmail.com>, Matthew Brett <matthew.brett@gmail.com>
+Cc: linux-acpi@vger.kernel.org
+
+Hi,
+
+Could you send acpidump command output?
 
 
-   [orig. quietly didn't make it to the list for some reason]
-
-Around about 05/01/07 17:19, Len Brown typed ...
-> running the AML interpreter in  interrupt context would be a no-no.
-> I thought we had deferred the notify handlers so that they wouldn't
-> run in interrupt context, but maybe there is a case here where
-> that does not happen.
-
-   Yes, I tracked though the kernel acpi code as much as I could, and found
-that I was making acpi calls that did kmalloc() with the 'wrong' arg. in a
-context that didn't allow it (where /proc reads would).
-
-   Unfortunately, the solutions I tried (diff. ways of deferral using notify
-handlers) still failed, or at least stuffed it on boot (which is what my
-current code-base does).  The last code I traced was the bit that looked up
-the full ACPI ref. from a local ref., and that does a malloc, so I did the
-lookup at module init and stored that full string to bypass the lookup
-malloc later, but then it just goes wrong a bit later :-(
-
--- 
-[neil@fnx ~]# rm -f .signature
-[neil@fnx ~]# ls -l .signature
-ls: .signature: No such file or directory
-[neil@fnx ~]# exit
-
+Regards.
+Konstantin.
+>-----Original Message-----
+>From: Salatiel Filho [mailto:salatiel.filho@gmail.com]
+>Sent: Wednesday, January 10, 2007 6:19 AM
+>To: Karasyov, Konstantin A
+>Cc: Matthew Brett; linux-acpi@vger.kernel.org
+>Subject: Re: PROBLEM: CPU fan shuts down on load of fan.ko in kernel 2=
+=2E6.18
+>and later
+>
+>On 1/9/07, Karasyov, Konstantin A <konstantin.a.karasyov@intel.com> wr=
+ote:
+>> Hi Matthew,
+>>
+>> Could you please perform the following testing:
+>
+>
+>
+>Well , i tried to perform this steps in my machine since i think my
+>fans are not working in linux. Well , for my surprise , i have
+>absolutely nothing in
+>
+># ls -lh  /proc/acpi/fan/
+>total 0
+>
+>
+>
+>>
+>> 1. boot, make sure the fan doesn't spin.
+>>
+>> 2. do 'cat /proc/acpi/thermal/*/*', check the following:
+>>         - the 'state' field shows 'active[<smthng>]'
+>>         (if not - perform some CPU-intensive task);
+>>         - fan still doesn't spin,
+>
+>#cat /proc/acpi/thermal/*/*
+>cat: /proc/acpi/thermal/*/*: No such file or directory
+>
+>#cat /proc/acpi/thermal_zone/*/*
+><setting not supported>
+>cooling mode:   critical
+><polling disabled>
+>state:                   ok
+>temperature:             60 C
+>critical (S5):           99 C
+><setting not supported>
+>cooling mode:   critical
+><polling disabled>
+>state:                   ok
+>temperature:             27 C
+>critical (S5):           105 C
+>
+>
+>
+>
+>>
+>> 3. do 'cat /proc/acpi/fan/*/state', check the following:
+>>         - the 'status' field shows 'on' (at least one of them);
+>>         - fan still doesn't spin,
+>>
+>
+># cat /proc/acpi/fan/*/state
+>cat: /proc/acpi/fan/*/state: No such file or directory
+>
+>
+>
+>
+>> 4a. do consequently (as root) the following:
+>>         - 'echo 3 > /proc/acpi/fan/*/state'
+>>         - 'echo 0 > /proc/acpi/fan/*/state'
+>>         (the fan should be that one, which shown 'on' in step 3)
+>>
+>> 4b. (if step 3 failed) do (as root) 'echo 0 > /proc/acpi/fan/*/state=
+'
+>> consequently for each fan device under /proc/acpi/fan/, check the
+>> following:
+>>         - fans start spinning;
+>>         - fans' states are correct ('cat /proc/acpi/fan/*/state'
+>> command)
+>>
+>> 5. check if the fan(s) start spinning.
+>>
+>> Please, get back to me with the results, test flow description and
+>> commands' outputs.
+>>
+>> Also, you could try the patches from bugs ##7122, 7570 for 2.6.20-rc=
+3 to
+>> see if it help.
+>>
+>
+>any ideas why i have no /proc/acpi/fan/*?
+>
+>Notebook HP Pavillion dv8230us
+>
+>--
+>[]'s
+>Salatiel
+>
+>"O maior prazer do inteligente =E9 bancar o  idiota
+>   diante de um  idiota que banca o inteligente".
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
