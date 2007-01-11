@@ -1,109 +1,94 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 6/7] ACPI: update MAINTAINERS
-Date: Thu, 11 Jan 2007 04:11:47 -0500
-Message-ID: <11685067152996-git-send-email-len.brown@intel.com>
-References: <11685067081383-git-send-email-len.brown@intel.com> <11685067091916-git-send-email-len.brown@intel.com> <11685067101245-git-send-email-len.brown@intel.com> <11685067113037-git-send-email-len.brown@intel.com> <11685067121393-git-send-email-len.brown@intel.com> <11685067141577-git-send-email-len.brown@intel.com>
+Subject: [PATCH 1/7] ACPI: Altix: ACPI _PRT support
+Date: Thu, 11 Jan 2007 04:11:42 -0500
+Message-ID: <11685067091916-git-send-email-len.brown@intel.com>
+References: <11685067081383-git-send-email-len.brown@intel.com>
 Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:45388 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:7019 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030246AbXAKJL4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 11 Jan 2007 04:11:56 -0500
-In-Reply-To: <11685067141577-git-send-email-len.brown@intel.com>
-Message-Id: <8b59a454c421542a51c391f542c80d165f7547a0.1168506584.git.len.brown@intel.com>
-In-Reply-To: <3948ec9406f9a60a43d63f23f6f5284db6529b9c.1168506584.git.len.brown@intel.com>
-References: <3948ec9406f9a60a43d63f23f6f5284db6529b9c.1168506584.git.len.brown@intel.com>
+	id S1030243AbXAKJLw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 11 Jan 2007 04:11:52 -0500
+In-Reply-To: <11685067081383-git-send-email-len.brown@intel.com>
+Message-Id: <3948ec9406f9a60a43d63f23f6f5284db6529b9c.1168506584.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Len Brown <len.brown@intel.com>
+Cc: John Keller <jpk@sgi.com>, Len Brown <len.brown@intel.com>
 
-s/Maintained/Supported/
-and document some sub-maintainers for ACPI drivers.
+From: John Keller <jpk@sgi.com>
 
+Provide ACPI _PRT support for SN Altix systems.
+
+The SN Altix platform does not conform to the
+IOSAPIC IRQ routing model, so a new acpi_irq_model
+(ACPI_IRQ_MODEL_PLATFORM) has been defined. The SN
+platform specific code sets acpi_irq_model to
+this new value, and keys off of it in acpi_register_gsi()
+to avoid the iosapic code path.
+
+Signed-off-by: John Keller <jpk@sgi.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- MAINTAINERS |   39 ++++++++++++++++++++++++++++++++++-----
- 1 files changed, 34 insertions(+), 5 deletions(-)
+ arch/ia64/kernel/acpi.c            |    3 +++
+ arch/ia64/sn/kernel/io_acpi_init.c |    3 +++
+ drivers/acpi/bus.c                 |    3 +++
+ include/linux/acpi.h               |    1 +
+ 4 files changed, 10 insertions(+), 0 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 0f6d13b..d1f454c 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -207,16 +207,45 @@ S:	Supported
- ACPI
- P:	Len Brown
- M:	len.brown@intel.com
-+M:	lenb@kernel.org
- L:	linux-acpi@vger.kernel.org
- W:	http://acpi.sourceforge.net/
- T:	git kernel.org:/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git
--S:	Maintained
-+S:	Supported
+diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+index 73ef4a8..ef2fe47 100644
+--- a/arch/ia64/kernel/acpi.c
++++ b/arch/ia64/kernel/acpi.c
+@@ -590,6 +590,9 @@ void __init acpi_numa_arch_fixup(void)
+  */
+ int acpi_register_gsi(u32 gsi, int triggering, int polarity)
+ {
++	if (acpi_irq_model == ACPI_IRQ_MODEL_PLATFORM)
++		return gsi;
 +
-+ACPI BATTERY DRIVERS
-+P:	Vladimir P. Lebedev
-+M:	vladimir.p.lebedev@intel.com
-+L:	linux-acpi@vger.kernel.org
-+W:	http://acpi.sourceforge.net/
-+S:	Supported
+ 	if (has_8259 && gsi < 16)
+ 		return isa_irq_to_vector(gsi);
+ 
+diff --git a/arch/ia64/sn/kernel/io_acpi_init.c b/arch/ia64/sn/kernel/io_acpi_init.c
+index 99d7f27..cb96b4e 100644
+--- a/arch/ia64/sn/kernel/io_acpi_init.c
++++ b/arch/ia64/sn/kernel/io_acpi_init.c
+@@ -223,6 +223,9 @@ sn_io_acpi_init(void)
+ 	u64 result;
+ 	s64 status;
+ 
++	/* SN Altix does not follow the IOSAPIC IRQ routing model */
++	acpi_irq_model = ACPI_IRQ_MODEL_PLATFORM;
 +
-+ACPI EC DRIVER
-+P:	Alexey Starikovskiy
-+M:	alexey.y.starikovskiy@linux.intel.com
-+L:	linux-acpi@vger.kernel.org
-+W:	http://acpi.sourceforge.net/
-+S:	Supported
-+
-+ACPI FAN DRIVER
-+P:	Konstantin A. Karasyov
-+M:	konstantin.a.karasyov@intel.com
-+L:	linux-acpi@vger.kernel.org
-+W:	http://acpi.sourceforge.net/
-+S:	Supported
+ 	acpi_bus_register_driver(&acpi_sn_hubdev_driver);
+ 	status = sal_ioif_init(&result);
+ 	if (status || result)
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 279c4ba..766332e 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -561,6 +561,9 @@ static int __init acpi_bus_init_irq(void)
+ 	case ACPI_IRQ_MODEL_IOSAPIC:
+ 		message = "IOSAPIC";
+ 		break;
++	case ACPI_IRQ_MODEL_PLATFORM:
++		message = "platform specific model";
++		break;
+ 	default:
+ 		printk(KERN_WARNING PREFIX "Unknown interrupt routing model\n");
+ 		return -ENODEV;
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 2b0c955..91f1f23 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -47,6 +47,7 @@ enum acpi_irq_model_id {
+ 	ACPI_IRQ_MODEL_PIC = 0,
+ 	ACPI_IRQ_MODEL_IOAPIC,
+ 	ACPI_IRQ_MODEL_IOSAPIC,
++	ACPI_IRQ_MODEL_PLATFORM,
+ 	ACPI_IRQ_MODEL_COUNT
+ };
  
- ACPI PCI HOTPLUG DRIVER
- P:	Kristen Carlson Accardi
- M:	kristen.c.accardi@intel.com
- L:	pcihpd-discuss@lists.sourceforge.net
--S:	Maintained
-+S:	Supported
-+
-+ACPI THERMAL DRIVER
-+P:	Konstantin A. Karasyov
-+M:	konstantin.a.karasyov@intel.com
-+L:	linux-acpi@vger.kernel.org
-+W:	http://acpi.sourceforge.net/
-+S:	Supported
- 
- AD1816 SOUND DRIVER
- P:	Thorsten Knabe
-@@ -1071,7 +1100,7 @@ DOCKING STATION DRIVER
- P:	Kristen Carlson Accardi
- M:	kristen.c.accardi@intel.com
- L:	linux-acpi@vger.kernel.org
--S:	Maintained
-+S:	Supported
- 
- DOUBLETALK DRIVER
- P:	James R. Van Zandt
-@@ -2521,7 +2550,7 @@ PCIE HOTPLUG DRIVER
- P:	Kristen Carlson Accardi
- M:	kristen.c.accardi@intel.com
- L:	pcihpd-discuss@lists.sourceforge.net
--S:	Maintained
-+S:	Supported
- 
- PCMCIA SUBSYSTEM
- P:	Linux PCMCIA Team
-@@ -3015,7 +3044,7 @@ SHPC HOTPLUG DRIVER
- P:	Kristen Carlson Accardi
- M:	kristen.c.accardi@intel.com
- L:	pcihpd-discuss@lists.sourceforge.net
--S:	Maintained
-+S:	Supported
- 
- SECURE DIGITAL HOST CONTROLLER INTERFACE DRIVER
- P:	Pierre Ossman
 -- 
 1.4.4.4.ge05d
