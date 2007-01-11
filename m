@@ -1,122 +1,161 @@
 From: "Karasyov, Konstantin A" <konstantin.a.karasyov@intel.com>
 Subject: RE: PROBLEM: CPU fan shuts down on load of fan.ko in kernel 2.6.18 and later
-Date: Thu, 11 Jan 2007 16:37:16 +0300
-Message-ID: <E3C0BCA40296C347AF7142161DB9FC8298EEEA@mssmsx411>
-References: <beb91d720701091918g83a0677y33778c17d4b9c82d@mail.gmail.com>
+Date: Thu, 11 Jan 2007 17:15:57 +0300
+Message-ID: <E3C0BCA40296C347AF7142161DB9FC8298EF3A@mssmsx411>
+References: <beb91d720701110549r346991beh95547e912f68d98f@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:44608 "EHLO mga03.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:38416 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030437AbXAKNhm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Jan 2007 08:37:42 -0500
+	id S1030450AbXAKOQ2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Jan 2007 09:16:28 -0500
 Content-class: urn:content-classes:message
-In-Reply-To: <beb91d720701091918g83a0677y33778c17d4b9c82d@mail.gmail.com>
+In-Reply-To: <beb91d720701110549r346991beh95547e912f68d98f@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Salatiel Filho <salatiel.filho@gmail.com>, Matthew Brett <matthew.brett@gmail.com>
+To: Salatiel Filho <salatiel.filho@gmail.com>
 Cc: linux-acpi@vger.kernel.org
 
 Hi,
 
-Could you send acpidump command output?
+Unfortunately, thermal zones defined in your DSDT doesn't contain any t=
+rip points except critical, but the fan control requires at least one a=
+ctive trip point (_ACx) to be defined.
+Also, there are no fan devices (i.e. device with 'PNP0C0B' HID) defined=
+=2E=20
+
+This means, that no fan and minimal thermal control is available on you=
+r system through the ACPI functionality.
 
 
 Regards.
 Konstantin.
+
 >-----Original Message-----
 >From: Salatiel Filho [mailto:salatiel.filho@gmail.com]
->Sent: Wednesday, January 10, 2007 6:19 AM
+>Sent: Thursday, January 11, 2007 4:50 PM
 >To: Karasyov, Konstantin A
 >Cc: Matthew Brett; linux-acpi@vger.kernel.org
 >Subject: Re: PROBLEM: CPU fan shuts down on load of fan.ko in kernel 2=
 =2E6.18
 >and later
 >
->On 1/9/07, Karasyov, Konstantin A <konstantin.a.karasyov@intel.com> wr=
-ote:
->> Hi Matthew,
+>On 1/11/07, Karasyov, Konstantin A <konstantin.a.karasyov@intel.com> w=
+rote:
+>> Hi,
 >>
->> Could you please perform the following testing:
->
->
->
->Well , i tried to perform this steps in my machine since i think my
->fans are not working in linux. Well , for my surprise , i have
->absolutely nothing in
->
-># ls -lh  /proc/acpi/fan/
->total 0
->
->
->
+>> Could you send acpidump command output?
 >>
->> 1. boot, make sure the fan doesn't spin.
+>sure. Attached
 >>
->> 2. do 'cat /proc/acpi/thermal/*/*', check the following:
->>         - the 'state' field shows 'active[<smthng>]'
->>         (if not - perform some CPU-intensive task);
->>         - fan still doesn't spin,
->
->#cat /proc/acpi/thermal/*/*
->cat: /proc/acpi/thermal/*/*: No such file or directory
->
->#cat /proc/acpi/thermal_zone/*/*
-><setting not supported>
->cooling mode:   critical
-><polling disabled>
->state:                   ok
->temperature:             60 C
->critical (S5):           99 C
-><setting not supported>
->cooling mode:   critical
-><polling disabled>
->state:                   ok
->temperature:             27 C
->critical (S5):           105 C
->
->
->
->
+>> Regards.
+>> Konstantin.
+>> >-----Original Message-----
+>> >From: Salatiel Filho [mailto:salatiel.filho@gmail.com]
+>> >Sent: Wednesday, January 10, 2007 6:19 AM
+>> >To: Karasyov, Konstantin A
+>> >Cc: Matthew Brett; linux-acpi@vger.kernel.org
+>> >Subject: Re: PROBLEM: CPU fan shuts down on load of fan.ko in kerne=
+l
+>2.6.18
+>> >and later
+>> >
+>> >On 1/9/07, Karasyov, Konstantin A <konstantin.a.karasyov@intel.com>
+>wrote:
+>> >> Hi Matthew,
+>> >>
+>> >> Could you please perform the following testing:
+>> >
+>> >
+>> >
+>> >Well , i tried to perform this steps in my machine since i think my
+>> >fans are not working in linux. Well , for my surprise , i have
+>> >absolutely nothing in
+>> >
+>> ># ls -lh  /proc/acpi/fan/
+>> >total 0
+>> >
+>> >
+>> >
+>> >>
+>> >> 1. boot, make sure the fan doesn't spin.
+>> >>
+>> >> 2. do 'cat /proc/acpi/thermal/*/*', check the following:
+>> >>         - the 'state' field shows 'active[<smthng>]'
+>> >>         (if not - perform some CPU-intensive task);
+>> >>         - fan still doesn't spin,
+>> >
+>> >#cat /proc/acpi/thermal/*/*
+>> >cat: /proc/acpi/thermal/*/*: No such file or directory
+>> >
+>> >#cat /proc/acpi/thermal_zone/*/*
+>> ><setting not supported>
+>> >cooling mode:   critical
+>> ><polling disabled>
+>> >state:                   ok
+>> >temperature:             60 C
+>> >critical (S5):           99 C
+>> ><setting not supported>
+>> >cooling mode:   critical
+>> ><polling disabled>
+>> >state:                   ok
+>> >temperature:             27 C
+>> >critical (S5):           105 C
+>> >
+>> >
+>> >
+>> >
+>> >>
+>> >> 3. do 'cat /proc/acpi/fan/*/state', check the following:
+>> >>         - the 'status' field shows 'on' (at least one of them);
+>> >>         - fan still doesn't spin,
+>> >>
+>> >
+>> ># cat /proc/acpi/fan/*/state
+>> >cat: /proc/acpi/fan/*/state: No such file or directory
+>> >
+>> >
+>> >
+>> >
+>> >> 4a. do consequently (as root) the following:
+>> >>         - 'echo 3 > /proc/acpi/fan/*/state'
+>> >>         - 'echo 0 > /proc/acpi/fan/*/state'
+>> >>         (the fan should be that one, which shown 'on' in step 3)
+>> >>
+>> >> 4b. (if step 3 failed) do (as root) 'echo 0 > /proc/acpi/fan/*/st=
+ate'
+>> >> consequently for each fan device under /proc/acpi/fan/, check the
+>> >> following:
+>> >>         - fans start spinning;
+>> >>         - fans' states are correct ('cat /proc/acpi/fan/*/state'
+>> >> command)
+>> >>
+>> >> 5. check if the fan(s) start spinning.
+>> >>
+>> >> Please, get back to me with the results, test flow description an=
+d
+>> >> commands' outputs.
+>> >>
+>> >> Also, you could try the patches from bugs ##7122, 7570 for 2.6.20=
+-rc3
+>to
+>> >> see if it help.
+>> >>
+>> >
+>> >any ideas why i have no /proc/acpi/fan/*?
+>> >
+>> >Notebook HP Pavillion dv8230us
+>> >
+>> >--
+>> >[]'s
+>> >Salatiel
+>> >
+>> >"O maior prazer do inteligente =E9 bancar o  idiota
+>> >   diante de um  idiota que banca o inteligente".
 >>
->> 3. do 'cat /proc/acpi/fan/*/state', check the following:
->>         - the 'status' field shows 'on' (at least one of them);
->>         - fan still doesn't spin,
->>
 >
-># cat /proc/acpi/fan/*/state
->cat: /proc/acpi/fan/*/state: No such file or directory
->
->
->
->
->> 4a. do consequently (as root) the following:
->>         - 'echo 3 > /proc/acpi/fan/*/state'
->>         - 'echo 0 > /proc/acpi/fan/*/state'
->>         (the fan should be that one, which shown 'on' in step 3)
->>
->> 4b. (if step 3 failed) do (as root) 'echo 0 > /proc/acpi/fan/*/state=
-'
->> consequently for each fan device under /proc/acpi/fan/, check the
->> following:
->>         - fans start spinning;
->>         - fans' states are correct ('cat /proc/acpi/fan/*/state'
->> command)
->>
->> 5. check if the fan(s) start spinning.
->>
->> Please, get back to me with the results, test flow description and
->> commands' outputs.
->>
->> Also, you could try the patches from bugs ##7122, 7570 for 2.6.20-rc=
-3 to
->> see if it help.
->>
->
->any ideas why i have no /proc/acpi/fan/*?
->
->Notebook HP Pavillion dv8230us
 >
 >--
 >[]'s
