@@ -1,64 +1,74 @@
-From: "Luming Yu" <luming.yu@gmail.com>
-Subject: Re: HP nc6400 v.03 or v.05 laptop ACPI fails after reboot, works again after booting windows
-Date: Fri, 12 Jan 2007 13:51:50 +0800
-Message-ID: <3877989d0701112151m6816cd4fl4f2a2bdf309d51ac@mail.gmail.com>
-References: <457F37C0.3090003@gmail.com> <1165966936.29844.37.camel@pcjc2lap>
-	 <457FB1A1.2030602@gmail.com> <1166012707.22903.4.camel@pcjc2lap>
+From: "dhanya" <dhanya.justin@wipro.com>
+Subject: How to get PCI slot information from ACPI
+Date: Fri, 12 Jan 2007 14:16:59 +0530
+Message-ID: <200701120839.OAA13480@wipro.tcpn.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wx-out-0506.google.com ([66.249.82.224]:47133 "EHLO
-	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030489AbXALFvv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Jan 2007 00:51:51 -0500
-Received: by wx-out-0506.google.com with SMTP id h31so737815wxd
-        for <linux-acpi@vger.kernel.org>; Thu, 11 Jan 2007 21:51:50 -0800 (PST)
-In-Reply-To: <1166012707.22903.4.camel@pcjc2lap>
-Content-Disposition: inline
+Received: from wip-ec-mm01.wipro.com ([203.91.193.25]:43954 "EHLO
+	wip-ec-mm01.wipro.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161041AbXALIrZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Jan 2007 03:47:25 -0500
+Received: from wip-ec-mm01.wipro.com (localhost.localdomain [127.0.0.1])
+	by localhost (Postfix) with ESMTP id C623E1F609C
+	for <linux-acpi@vger.kernel.org>; Fri, 12 Jan 2007 14:17:22 +0530 (IST)
+Received: from wipro.tcpn.com (adm.wipro.tcpn.com [172.31.41.11])
+	by wip-ec-mm01.wipro.com (Postfix) with ESMTP id AD39C1F61BE
+	for <linux-acpi@vger.kernel.org>; Fri, 12 Jan 2007 14:17:22 +0530 (IST)
+Received: from EC4HP134180 ([172.31.42.81])
+	by wipro.tcpn.com (8.9.3/8.9.3) with ESMTP id OAA13480
+	for <linux-acpi@vger.kernel.org>; Fri, 12 Jan 2007 14:09:45 +0530 (IST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Clifton <pcjc2@cam.ac.uk>
-Cc: linux-acpi@vger.kernel.org, "Lincoln Baxter, III" <lincolnbaxter@gmail.com>
+To: linux-acpi@vger.kernel.org
 
-Since it is somewhat related to ACPI, please open a bug in ACPI
-category on bugzilla.kernel.org. It is a great place to track this
-kind of issues.
+Hi,
 
-On 12/13/06, Peter Clifton <pcjc2@cam.ac.uk> wrote:
-> On Wed, 2006-12-13 at 02:54 -0500, Lincoln Baxter, III wrote:
-> > Wow. You're completely right... so this isn't an ACPI issue (directly.)
-> >
-> > I don't seem to experience any of the other problems you describe, but I
-> > do have a different model. I don't have an external lid-switch sensor.
-> > Hm.. Suspend doesn't quite work for me either, I'll look into this
-> > farther and get back to you.
-> >
-> > The battery meters and other ACPI functionality is working now with your
-> > workaround. Should this be a bug report? Which group should get the
-> > report if this is the case?
-> >
-> > Thanks so much!
-> > Lincoln
->
-> It was suggested to me to open a kernel bug (possibly starting under
-> ACPI), however I never got to it.. I don't know where kernel bugs are
-> reported officially, and was busy at the time. (still am). I do try and
+I am working on "Server Diagnostics Project". Our requirement is to display
+the PCI slot information by retrieving the  ACPI Device Identification
+Objects _SUN. I have couple of questions related to that.
 
-bugzilla.kernel.org
+My observations from ACPI Specs 3.0a are
 
-> reply to others with the same problems though... finding the webpage
-> which suggested that fix was not trivial!
+1) ACPI Namespace
 
-It is not easy to track it in emals.
+A hierarchical tree structure in OS-controlled memory that contains named
+objects. These objects may be data objects, control method objects,
+bus/device package objects, and so on. The OS dynamically changes the
+contents of the namespace at run-time by loading and/or unloading definition
+blocks from the ACPI Tables that reside in the ACPI BIOS. All the
+information in the ACPI Namespace comes from the Differentiated System
+Description Table (DSDT), which contains the Differentiated Definition
+Block, and one or more other definition blocks.
 
->
-> My lid switch is just above the keyboard, on the right hand side of the
-> left hand screen hinge. It is just a tiny piece of plastic protruding
-> from the case. Push it, and the screen goes off. Hold it, and wiggle the
-> mouse (touchpad), and the naughty screen comes back on.
->
-> Most importantly for me, the workaround brings the max CPU speed
-> available with speed step back to what it is supposed to be on my
-> laptop, and the BIOS actually boots much faster.
->
+2) Differentiated System Description Table (DSDT)
+
+An OEM must supply a DSDT to an ACPI-compatible OS. The DSDT contains the
+Differentiated Definition Block, which supplies the implementation and
+configuration information about the base system. The OS always inserts the
+DSDT information into the ACPI Namespace at system boot time and never
+removes it.
+
+And I have couple of questions related to that.
+
+1) From the above two observations what I have understood is _SUN object
+will be present in DSDT table. Is this assumption is true or not?
+
+2) When this _SUN object will be present in DSDT table for PCI device? 
+Is it for only HOT Plug PCI devices?
+Or
+Any system which has a PCI device will contain _SUN object?
+
+3) If particular machine having PCI device and not having _SUN object in
+DSDT table what is that mean?
+
+4) What is that ACPI BIOS how it relate to DSDT table?
+
+
+Thanks in advance,
+Dhanya
+
+
+
