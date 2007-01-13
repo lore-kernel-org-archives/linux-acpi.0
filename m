@@ -1,527 +1,385 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: [RFC][PATCH] sony_acpi: turn into a platform device driver
-Date: Sat, 13 Jan 2007 23:20:46 +0100
-Message-ID: <20070113222045.GA7066@inferi.kami.home>
+From: James Simmons <jsimmons@infradead.org>
+Subject: Re: Display class
+Date: Sat, 13 Jan 2007 22:40:55 +0000 (GMT)
+Message-ID: <Pine.LNX.4.64.0701132225530.18652@pentafluge.infradead.org>
+References: <Pine.LNX.4.64.0611141939050.6957@pentafluge.infradead.org>
+ <Pine.LNX.4.64.0611150052180.13800@pentafluge.infradead.org>
+ <Pine.LNX.4.64.0612051740250.2925@pentafluge.infradead.org>
+ <200612292232.44122.dtor@insightbb.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: MULTIPART/MIXED; BOUNDARY="-1831524198-632567853-1168727380=:18652"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aa014msr.fastwebnet.it ([85.18.95.74]:49057 "EHLO
-	aa014msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422806AbXAMWUt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 13 Jan 2007 17:20:49 -0500
-Content-Disposition: inline
+Received: from pentafluge.infradead.org ([213.146.154.40]:50934 "EHLO
+	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030521AbXAMWlN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 13 Jan 2007 17:41:13 -0500
+In-Reply-To: <200612292232.44122.dtor@insightbb.com>
+Content-ID: <Pine.LNX.4.64.0701132231300.19194@pentafluge.infradead.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Stelian Pop <stelian@popies.net>, Len Brown <len.brown@intel.com>
+To: Dmitry Torokhov <dtor@insightbb.com>
+Cc: Miguel Ojeda <maxextreme@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, oLinux Fbdev development list <linux-fbdev-devel@lists.sourceforge.net>, Luming Yu <Luming.yu@intel.com>, Andrew Zabolotny <zap@homelink.ru>, linux-acpi@vger.kernel.org, kernel-discuss@handhelds.org, lcd4linux-devel@sf.net
 
-Hello,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-this is my current work to remove the /proc/acpi/sony directory, it
-applies ontop of the previous patchset I just sent.
+---1831524198-632567853-1168727380=:18652
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+Content-ID: <Pine.LNX.4.64.0701132231301.19194@pentafluge.infradead.org>
 
-A few questions though:
-- is it correct to have files in /sys/devices/platform/sony_acpi?
-    /sys/devices/platform/sony_acpi/
-    |-- audiopower
-    |-- brightness
-    |-- brightness_default
-    |-- cdpower
-    |-- driver -> ../../../bus/platform/drivers/sony_acpi
-    |-- lanpower
-    |-- modalias
-    |-- power
-    |   `-- wakeup
-    |-- subsystem -> ../../../bus/platform
-    `-- uevent
-  (oops, yes, will remove 'brightness')
 
-- shall I move the source file to drivers/misc?
+> Hi,
+> 
+> On Tuesday 05 December 2006 13:03, James Simmons wrote:
+> > +int probe_edid(struct display_device *dev, void *data)
+> > +{
+> > +       struct fb_monspecs spec;
+> > +       ssize_t size = 45;
 
-thanks for any comment and suggestion!
----
+That code was only for testing. I do have new core code. Andrew could 
+you merge this patch as it is against the -mm tree.
 
- sony_acpi.c |  349 ++++++++++++++++++++++++++----------------------------------
- 1 file changed, 152 insertions(+), 197 deletions(-)
-
----
-diff --git a/drivers/acpi/sony_acpi.c b/drivers/acpi/sony_acpi.c
-index c01d98d..4ffda2b 100644
---- a/drivers/acpi/sony_acpi.c
-+++ b/drivers/acpi/sony_acpi.c
-@@ -3,6 +3,8 @@
-  *
-  * Copyright (C) 2004-2005 Stelian Pop <stelian@popies.net>
-  *
-+ * Copyright (C) 2007 Mattia Dongili <malattia@linux.it>
+This new class provides a way common interface for various types of 
+displays such as LCD, CRT, LVDS etc. It is a expansion of the lcd
+class to include other types of displays.
+  
+diff -urN linux-2.6.20-rc3/drivers/video/display/display-sysfs.c linux-2.6.20-rc3-display/drivers/video/display/display-sysfs.c
+--- linux-2.6.20-rc3/drivers/video/display/display-sysfs.c	1969-12-31 19:00:00.000000000 -0500
++++ linux-2.6.20-rc3-display/drivers/video/display/display-sysfs.c	2007-01-13 16:22:54.000000000 -0500
+@@ -0,0 +1,208 @@
++/*
++ *  display.c - Display output driver
 + *
-  * Parts of this driver inspired from asus_acpi.c and ibm_acpi.c
-  * which are copyrighted by their respective authors.
-  *
-@@ -28,6 +30,7 @@
- #include <linux/init.h>
- #include <linux/types.h>
- #include <linux/backlight.h>
-+#include <linux/platform_device.h>
- #include <linux/err.h>
- #include <acpi/acpi_drivers.h>
- #include <acpi/acpi_bus.h>
-@@ -35,7 +38,7 @@
- 
- #define ACPI_SNC_CLASS		"sony"
- #define ACPI_SNC_HID		"SNY5001"
--#define ACPI_SNC_DRIVER_NAME	"ACPI Sony Notebook Control Driver v0.3"
-+#define ACPI_SNC_DRIVER_NAME	"ACPI Sony Notebook Control Driver v0.4"
- 
- /* the device uses 1-based values, while the backlight subsystem uses
-    0-based values */
-@@ -52,10 +55,53 @@ module_param(debug, int, 0);
- MODULE_PARM_DESC(debug, "set this to 1 (and RTFM) if you want to help "
- 			"the development of this driver");
- 
-+static ssize_t sony_acpi_show(struct device *, struct device_attribute *, char *);
-+static ssize_t sony_acpi_store(struct device *, struct device_attribute *, const char *, size_t);
++ *  Copyright (C) 2007 James Simmons <jsimmons@infradead.org>
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or (at
++ *  your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful, but
++ *  WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ *  General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ */
++#include <linux/module.h>
++#include <linux/display.h>
++#include <linux/err.h>
++#include <linux/ctype.h>
 +
-+struct sony_acpi_value {
-+	char			*name;	 /* name of the entry */
-+	char			*acpiget;/* name of the ACPI get function */
-+	char			*acpiset;/* name of the ACPI get function */
-+	int 			min;	 /* minimum allowed value or -1 */
-+	int			max;	 /* maximum allowed value or -1 */
-+	int			value;	 /* current setting */
-+	int			valid;	 /* Has ever been set */
-+	int			debug;	 /* active only in debug mode ? */
-+	struct device_attribute	devattr; /* sysfs atribute */
-+};
-+
-+#define SONY_ACPI_VALUE(_name, _getter, _setter, _min, _max, _debug) \
-+	{ \
-+		.name		= __stringify(_name), \
-+		.acpiget	= _getter, \
-+		.acpiset	= _setter, \
-+		.min		= _min, \
-+		.max		= _max, \
-+		.debug		= _debug, \
-+		.devattr	= __ATTR(_name, 0, sony_acpi_show, sony_acpi_store), \
-+	}
-+
-+#define SONY_ACPI_VALUE_NULL	{ .name = NULL }
-+
-+static struct sony_acpi_value sony_acpi_values[] = {
-+	SONY_ACPI_VALUE( brightness,		"GBRT", "SBRT", 1, SONY_MAX_BRIGHTNESS, 0),
-+	SONY_ACPI_VALUE( brightness_default,	"GPBR", "SPBR", 1, SONY_MAX_BRIGHTNESS, 0),
-+	SONY_ACPI_VALUE( fnkey,			"GHKE", NULL, -1, -1, 0),
-+	SONY_ACPI_VALUE( cdpower,		"GCDP", "SCDP", 0, 1, 0),
-+	SONY_ACPI_VALUE( cdpower,		"GCDP", "CDPW", 0, 1, 0),
-+	SONY_ACPI_VALUE( audiopower,		"GAZP", "AZPW", 0, 1, 0),
-+	SONY_ACPI_VALUE( lanpower,		"GLNP", "LNPW", 0, 1, 1),
-+	SONY_ACPI_VALUE( PID,			"GPID", NULL, -1, -1, 1),
-+	SONY_ACPI_VALUE( CTR,			"GCTR", "SCTR", -1, -1, 1),
-+	SONY_ACPI_VALUE( PCR,			"GPCR", "SPCR", -1, -1, 1),
-+	SONY_ACPI_VALUE( CMI,			"GCMI", "SCMI", -1, -1, 1),
-+	SONY_ACPI_VALUE_NULL
-+};
-+
- static acpi_handle sony_acpi_handle;
--static struct proc_dir_entry *sony_acpi_dir;
- static struct acpi_device *sony_acpi_acpi_device = NULL;
- 
-+/* backlight */
- static int sony_backlight_update_status(struct backlight_device *bd);
- static int sony_backlight_get_brightness(struct backlight_device *bd);
- static struct backlight_device *sony_backlight_device;
-@@ -66,105 +112,7 @@ static struct backlight_properties sony_backlight_properties = {
- 	.max_brightness	= SONY_MAX_BRIGHTNESS - 1,
- };
- 
--static struct sony_acpi_value {
--	char			*name;	 /* name of the entry */
--	struct proc_dir_entry	*proc;	 /* /proc entry */
--	char			*acpiget;/* name of the ACPI get function */
--	char			*acpiset;/* name of the ACPI get function */
--	int 			min;	 /* minimum allowed value or -1 */
--	int			max;	 /* maximum allowed value or -1 */
--	int			value;	 /* current setting */
--	int			valid;	 /* Has ever been set */
--	int			debug;	 /* active only in debug mode ? */
--} sony_acpi_values[] = {
--	{
--		/* for backward compatibility only */
--		.name		= "brightness",
--		.acpiget	= "GBRT",
--		.acpiset	= "SBRT",
--		.min		= 1,
--		.max		= SONY_MAX_BRIGHTNESS,
--		.debug		= 0,
--	},
--	{
--		.name		= "brightness_default",
--		.acpiget	= "GPBR",
--		.acpiset	= "SPBR",
--		.min		= 1,
--		.max		= SONY_MAX_BRIGHTNESS,
--		.debug		= 0,
--	},
--	{
--		.name           = "fnkey",
--		.acpiget        = "GHKE",
--		.debug          = 0,
--	},
--	{
--		.name		= "cdpower",
--		.acpiget	= "GCDP",
--		.acpiset	= "SCDP",
--		.min		= 0,
--		.max		= 1,
--		.debug		= 0,
--	},
--	{
--		.name		= "cdpower",
--		.acpiget	= "GCDP",
--		.acpiset	= "CDPW",
--		.min		= 0,
--		.max		= 1,
--		.debug		= 0,
--	},
--	{
--		.name           = "audiopower",
--		.acpiget        = "GAZP",
--		.acpiset        = "AZPW",
--		.min            = 0,
--		.max            = 1,
--		.debug          = 0,
--	},
--	{
--		.name           = "lanpower",
--		.acpiget        = "GLNP",
--		.acpiset        = "LNPW",
--		.min            = 0,
--		.max            = 1,
--		.debug          = 1,
--	},
--	{
--		.name		= "PID",
--		.acpiget	= "GPID",
--		.debug		= 1,
--	},
--	{
--		.name		= "CTR",
--		.acpiget	= "GCTR",
--		.acpiset	= "SCTR",
--		.min		= -1,
--		.max		= -1,
--		.debug		= 1,
--	},
--	{
--		.name		= "PCR",
--		.acpiget	= "GPCR",
--		.acpiset	= "SPCR",
--		.min		= -1,
--		.max		= -1,
--		.debug		= 1,
--	},
--	{
--		.name		= "CMI",
--		.acpiget	= "GCMI",
--		.acpiset	= "SCMI",
--		.min		= -1,
--		.max		= -1,
--		.debug		= 1,
--	},
--	{
--		.name		= NULL,
--	}
--};
--
-+/* acpi stubs */
- static int acpi_callgetfunc(acpi_handle handle, char *name, int *result)
- {
- 	struct acpi_buffer output;
-@@ -220,26 +168,11 @@ static int acpi_callsetfunc(acpi_handle handle, char *name, int value,
- 	return -1;
- }
- 
--static int parse_buffer(const char __user *buffer, unsigned long count,
--			int *val) {
--	char s[32];
--	int ret;
--
--	if (count > 31)
--		return -EINVAL;
--	if (copy_from_user(s, buffer, count))
--		return -EFAULT;
--	s[count] = '\0';
--	ret = simple_strtoul(s, NULL, 10);
--	*val = ret;
--	return 0;
--}
--
--static int sony_acpi_read(char* page, char** start, off_t off, int count,
--			  int* eof, void *data)
-+static ssize_t sony_acpi_show(struct device *dev, struct device_attribute *attr,
-+		char *buffer)
- {
--	struct sony_acpi_value *item = data;
- 	int value;
-+	struct sony_acpi_value *item = container_of(attr, struct sony_acpi_value, devattr);
- 
- 	if (!item->acpiget)
- 		return -EIO;
-@@ -247,21 +180,22 @@ static int sony_acpi_read(char* page, char** start, off_t off, int count,
- 	if (acpi_callgetfunc(sony_acpi_handle, item->acpiget, &value) < 0)
- 		return -EIO;
- 
--	return sprintf(page, "%d\n", value);
-+	return snprintf(buffer, PAGE_SIZE, "%d\n", value);
- }
- 
--static int sony_acpi_write(struct file *file, const char __user *buffer,
--			   unsigned long count, void *data)
-+static ssize_t sony_acpi_store(struct device *dev, struct device_attribute *attr,
-+		const char *buffer, size_t count)
- {
--	struct sony_acpi_value *item = data;
--	int result;
- 	int value;
-+	struct sony_acpi_value *item = container_of(attr, struct sony_acpi_value, devattr);
- 
- 	if (!item->acpiset)
- 		return -EIO;
- 
--	if ((result = parse_buffer(buffer, count, &value)) < 0)
--		return result;
-+	if (count > 31)
-+		return -EINVAL;
-+
-+	value = simple_strtoul(buffer, NULL, 10);
- 
- 	if (item->min != -1 && value < item->min)
- 		return -EINVAL;
-@@ -316,20 +250,102 @@ static acpi_status sony_walk_callback(acpi_handle handle, u32 level,
- 	return AE_OK;
- }
- 
-+/***************** Platform device **********************/
-+static struct platform_driver sncpf_driver = {
-+	.driver = {
-+		.name = "sony_acpi",
-+		.owner = THIS_MODULE,
-+	}
-+};
-+static struct platform_device *sncpf_device;
-+
-+static int sony_acpi_pf_add(void)
++static ssize_t display_show_name(struct class_device *cdev, char *buf)
 +{
++	struct display_device *dsp = to_display_device(cdev);
++	return snprintf(buf, PAGE_SIZE, "%s\n", dsp->name);
++}
 +
-+	acpi_handle handle;
-+	struct sony_acpi_value *item;
-+	int ret = 0;
++static ssize_t display_show_type(struct class_device *cdev, char *buf)
++{
++	struct display_device *dsp = to_display_device(cdev);
++	return snprintf(buf, PAGE_SIZE, "%s\n", dsp->driver->type);
++}
 +
-+	ret = platform_driver_register(&sncpf_driver);
-+	if (ret)
-+		goto out;
++static ssize_t display_show_power(struct class_device *cdev, char *buf)
++{
++	struct display_device *dsp = to_display_device(cdev);
++	ssize_t ret = -ENXIO;
 +
-+	sncpf_device = platform_device_alloc("sony_acpi", -1);
-+	if (!sncpf_device) {
-+		ret = -ENOMEM;
-+		goto out_platform_registered;
-+	}
-+
-+	ret = platform_device_add(sncpf_device);
-+	if (ret)
-+		goto out_platform_alloced;
-+
-+	for (item = sony_acpi_values; item->name; ++item) {
-+
-+		if (!debug && item->debug)
-+			continue;
-+
-+		if (item->acpiget) {
-+			if (ACPI_FAILURE(acpi_get_handle(sony_acpi_handle,
-+							item->acpiget, &handle)))
-+				continue;
-+
-+			item->devattr.attr.mode |= S_IRUSR;
-+		}
-+
-+		if (item->acpiset) {
-+			if (ACPI_FAILURE(acpi_get_handle(sony_acpi_handle,
-+							item->acpiset, &handle)))
-+				continue;
-+
-+			item->devattr.attr.mode |= S_IWUSR;
-+		}
-+		ret = device_create_file(&sncpf_device->dev, &item->devattr);
-+		if (ret)
-+			goto out_sysfs;
-+	}
-+
-+	return 0;
-+
-+out_sysfs:
-+	for (item = sony_acpi_values; item->name; ++item) {
-+		device_remove_file(&sncpf_device->dev, &item->devattr);
-+	}
-+	platform_device_del(sncpf_device);
-+out_platform_alloced:
-+	platform_device_put(sncpf_device);
-+out_platform_registered:
-+	platform_driver_unregister(&sncpf_driver);
-+out:
++	mutex_lock(&dsp->lock);
++	if (likely(dsp->driver->get_power))
++		ret = sprintf(buf,"%.8x\n", dsp->driver->get_power(dsp));
++	mutex_unlock(&dsp->lock);
 +	return ret;
 +}
 +
-+static void sony_acpi_pf_remove(void)
++static ssize_t display_store_power(struct class_device *cdev,
++	const char *buf, size_t count)
 +{
-+	struct sony_acpi_value *item;
++	struct display_device *dsp = to_display_device(cdev);
++	ssize_t size;
++	char *endp;
++	int power;
 +
-+	for (item = sony_acpi_values; item->name; ++item) {
-+		device_remove_file(&sncpf_device->dev, &item->devattr);
++	power = simple_strtoul(buf, &endp, 0);
++	size = endp - buf;
++	if (*endp && isspace(*endp))
++		size++;
++	if (size != count)
++		return -EINVAL;
++
++	mutex_lock(&dsp->lock);
++	if (likely(dsp->driver->set_power)) {
++		dsp->request_state = power;
++		dsp->driver->set_power(dsp);
 +	}
-+
-+	platform_device_del(sncpf_device);
-+	platform_device_put(sncpf_device);
-+	platform_driver_unregister(&sncpf_driver);
-+
++	mutex_unlock(&dsp->lock);
++	return count;
 +}
 +
- static int sony_acpi_add(struct acpi_device *device)
- {
- 	acpi_status status;
- 	int result;
- 	acpi_handle handle;
--	mode_t proc_file_mode;
--	struct sony_acpi_value *item;
++static ssize_t display_show_contrast(struct class_device *cdev, char *buf)
++{
++	struct display_device *dsp = to_display_device(cdev);
++	ssize_t rc = -ENXIO;
++
++	mutex_lock(&dsp->lock);
++	if (likely(dsp->driver) && dsp->driver->get_contrast)
++		rc = sprintf(buf, "%d\n", dsp->driver->get_contrast(dsp));
++	mutex_unlock(&dsp->lock);
++	return rc;
++}
++
++static ssize_t display_store_contrast(struct class_device *cdev, const char *buf, size_t count)
++{
++	
++	struct display_device *dsp = to_display_device(cdev);
++	ssize_t ret = -EINVAL, size;
++	int contrast;
++	char *endp;
++
++	contrast = simple_strtoul(buf, &endp, 0);
++	size = endp - buf;
++
++	if (*endp && isspace(*endp))
++		size++;
++
++	if (size != count)
++		return ret;
++
++	mutex_lock(&dsp->lock);
++	if (likely(dsp->driver && dsp->driver->set_contrast)) {
++		pr_debug("display: set contrast to %d\n", contrast);
++		dsp->driver->set_contrast(dsp, contrast);
++		ret = count;
++	}
++	mutex_unlock(&dsp->lock);
++	return ret;
++}
++
++static ssize_t display_show_max_contrast(struct class_device *cdev, char *buf)
++{
++	struct display_device *dsp = to_display_device(cdev);
++	ssize_t rc = -ENXIO;
++
++	mutex_lock(&dsp->lock);
++	if (likely(dsp->driver))
++		rc = sprintf(buf, "%d\n", dsp->driver->max_contrast);
++	mutex_unlock(&dsp->lock);
++	return rc;
++}
++
++static void display_class_release(struct class_device *dev)
++{
++	struct display_device *dsp = to_display_device(dev);
++	kfree(dsp);
++}
++
++static struct class_device_attribute display_attributes[] = {
++	__ATTR(name, S_IRUGO, display_show_name, NULL),
++	__ATTR(type, S_IRUGO, display_show_type, NULL),
++	__ATTR(power, S_IRUGO | S_IWUSR, display_show_power, display_store_power),
++	__ATTR(contrast, S_IRUGO | S_IWUSR, display_show_contrast, display_store_contrast),
++	__ATTR(max_contrast, S_IRUGO, display_show_max_contrast, NULL),
++};
++
++static struct class display_class = {
++	.name = "display",
++	.release = display_class_release,
++	.class_dev_attrs = display_attributes,
++};
++
++static int index;
++
++struct display_device *display_device_register(struct display_driver *driver,
++						struct device *dev, void *devdata)
++{
++	struct display_device *new_dev;
++	int ret = -ENOMEM;
++
++	if (unlikely(!driver))
++		return ERR_PTR(-EINVAL);
++
++	new_dev = kzalloc(sizeof(struct display_device), GFP_KERNEL);
++	if (likely(new_dev) && unlikely(driver->probe(new_dev, devdata))) {
++		mutex_init(&new_dev->lock);
++
++		new_dev->class_dev.groups = &driver->type_prop; 
++		new_dev->class_dev.class = &display_class;
++		new_dev->class_dev.dev = dev;
++		new_dev->driver = driver;
++
++		sprintf(new_dev->class_dev.class_id, "display%d", index++);
++		class_set_devdata(&new_dev->class_dev, devdata);
++		ret = class_device_register(&new_dev->class_dev);
++	}
++	if (unlikely(ret)) {
++		kfree(new_dev);
++		new_dev = ERR_PTR(ret);
++	}
++	return new_dev;
++}
++EXPORT_SYMBOL(display_device_register);
++
++void display_device_unregister(struct display_device *dev)
++{
++	if (!dev)
++		return;
++	mutex_lock(&dev->lock);
++	class_device_unregister(&dev->class_dev);
++	dev->driver = NULL;
++	index--;
++	mutex_unlock(&dev->lock);
++	kfree(dev);
++}
++EXPORT_SYMBOL(display_device_unregister);
++
++static void __exit display_class_exit(void)
++{
++	class_unregister(&display_class);
++}
++
++static int __init display_class_init(void)
++{
++	return class_register(&display_class);
++}
++
++postcore_initcall(display_class_init);
++module_exit(display_class_exit);
++
++MODULE_DESCRIPTION("Display Hardware handling");
++MODULE_AUTHOR("James Simmons <jsimmons@infradead.org>");
++MODULE_LICENSE("GPL");
+diff -urN linux-2.6.20-rc3/drivers/video/display/Kconfig linux-2.6.20-rc3-display/drivers/video/display/Kconfig
+--- linux-2.6.20-rc3/drivers/video/display/Kconfig	1969-12-31 19:00:00.000000000 -0500
++++ linux-2.6.20-rc3-display/drivers/video/display/Kconfig	2007-01-13 16:00:51.000000000 -0500
+@@ -0,0 +1,24 @@
++#
++# Display drivers configuration
++#
++
++menu "Display device support"
++
++config DISPLAY_SUPPORT
++	tristate "Display panel/monitor support"
++	---help---
++	  This framework adds support for low-level control of a display.
++	  This includes support for power.
++
++	  Enable this to be able to choose the drivers for controlling the
++	  physical display panel/monitor on some platforms. This not only
++	  covers LCD displays for PDAs but also other types of displays
++	  such as CRT, TVout etc.
++
++	  To have support for your specific display panel you will have to
++	  select the proper drivers which depend on this option.
++
++comment "Display hardware drivers"
++	depends on DISPLAY_SUPPORT
++
++endmenu
+diff -urN linux-2.6.20-rc3/drivers/video/display/Makefile linux-2.6.20-rc3-display/drivers/video/display/Makefile
+--- linux-2.6.20-rc3/drivers/video/display/Makefile	1969-12-31 19:00:00.000000000 -0500
++++ linux-2.6.20-rc3-display/drivers/video/display/Makefile	2007-01-13 16:01:03.000000000 -0500
+@@ -0,0 +1,6 @@
++# Display drivers
++
++display-objs				:= display-sysfs.o
++
++obj-$(CONFIG_DISPLAY_SUPPORT)		+= display.o
++
+diff -urN linux-2.6.20-rc3/drivers/video/Kconfig linux-2.6.20-rc3-display/drivers/video/Kconfig
+--- linux-2.6.20-rc3/drivers/video/Kconfig	2007-01-08 14:00:26.000000000 -0500
++++ linux-2.6.20-rc3-display/drivers/video/Kconfig	2007-01-13 09:23:03.000000000 -0500
+@@ -6,6 +6,7 @@
  
- 	sony_acpi_acpi_device = device;
+ if SYSFS
+ 	source "drivers/video/backlight/Kconfig"
++	source "drivers/video/display/Kconfig"
+ endif
  
- 	sony_acpi_handle = device->handle;
+ config FB
+diff -urN linux-2.6.20-rc3/drivers/video/Makefile linux-2.6.20-rc3-display/drivers/video/Makefile
+--- linux-2.6.20-rc3/drivers/video/Makefile	2007-01-08 14:00:26.000000000 -0500
++++ linux-2.6.20-rc3-display/drivers/video/Makefile	2007-01-13 09:22:40.000000000 -0500
+@@ -12,7 +12,7 @@
  
- 	acpi_driver_data(device) = NULL;
--	acpi_device_dir(device) = sony_acpi_dir;
-+	acpi_device_dir(device) = NULL;
+ obj-$(CONFIG_VT)		  += console/
+ obj-$(CONFIG_LOGO)		  += logo/
+-obj-$(CONFIG_SYSFS)		  += backlight/
++obj-$(CONFIG_SYSFS)		  += backlight/ display/
  
- 	if (debug) {
- 		status = acpi_walk_namespace(ACPI_TYPE_METHOD, sony_acpi_handle,
-@@ -353,64 +369,21 @@ static int sony_acpi_add(struct acpi_device *device)
- 
- 	if (ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle, "GBRT", &handle))) {
- 		sony_backlight_device = backlight_device_register("sony", NULL,
--					NULL, &sony_backlight_properties);
--
-+				NULL, &sony_backlight_properties);
- 	        if (IS_ERR(sony_backlight_device)) {
-         	        printk(LOG_PFX "unable to register backlight device\n");
--			sony_backlight_device = NULL;
- 		}
--		else
--			sony_backlight_properties.brightness =
--				sony_backlight_get_brightness(sony_backlight_device);
-+		sony_backlight_properties.brightness =
-+			sony_backlight_get_brightness(sony_backlight_device);
- 	}
- 
--	for (item = sony_acpi_values; item->name; ++item) {
--		proc_file_mode = 0;
--
--		if (!debug && item->debug)
--			continue;
--
--		if (item->acpiget) {
--			if (ACPI_FAILURE(acpi_get_handle(sony_acpi_handle,
--							item->acpiget, &handle)))
--				continue;
--
--			proc_file_mode |= S_IRUSR;
--		}
--
--		if (item->acpiset) {
--			if (ACPI_FAILURE(acpi_get_handle(sony_acpi_handle,
--							item->acpiset, &handle)))
--				continue;
--
--			proc_file_mode |= S_IWUSR;
--		}
--
--		item->proc = create_proc_entry(item->name, proc_file_mode,
--				acpi_device_dir(device));
--		if (!item->proc) {
--			printk(LOG_PFX "unable to create proc entry\n");
--			result = -EIO;
--			goto outproc;
--		}
--
--		item->proc->read_proc = sony_acpi_read;
--		item->proc->write_proc = sony_acpi_write;
--		item->proc->data = item;
--		item->proc->owner = THIS_MODULE;
--	}
-+	if (sony_acpi_pf_add())
-+		goto outnotify;
- 
- 	printk(KERN_INFO ACPI_SNC_DRIVER_NAME " successfully installed\n");
- 
- 	return 0;
- 
--outproc:
--	if (sony_backlight_device)
--		backlight_device_unregister(sony_backlight_device);
--
--	for (item = sony_acpi_values; item->name; ++item)
--		if (item->proc)
--			remove_proc_entry(item->name, acpi_device_dir(device));
- outnotify:
- 	status = acpi_remove_notify_handler(sony_acpi_handle,
- 					    ACPI_DEVICE_NOTIFY,
-@@ -424,7 +397,6 @@ outwalk:
- static int sony_acpi_remove(struct acpi_device *device, int type)
- {
- 	acpi_status status;
--	struct sony_acpi_value *item;
- 
- 	if (sony_backlight_device)
- 		backlight_device_unregister(sony_backlight_device);
-@@ -437,9 +409,7 @@ static int sony_acpi_remove(struct acpi_device *device, int type)
- 	if (ACPI_FAILURE(status))
- 		printk(LOG_PFX "unable to remove notify handler\n");
- 
--	for (item = sony_acpi_values; item->name; ++item)
--		if (item->proc)
--			remove_proc_entry(item->name, acpi_device_dir(device));
-+	sony_acpi_pf_remove();
- 
- 	printk(KERN_INFO ACPI_SNC_DRIVER_NAME " successfully removed\n");
- 
-@@ -476,28 +446,13 @@ static struct acpi_driver sony_acpi_driver = {
- 
- static int __init sony_acpi_init(void)
- {
--	int result;
--
--	sony_acpi_dir = proc_mkdir("sony", acpi_root_dir);
--	if (!sony_acpi_dir) {
--		printk(LOG_PFX "unable to create /proc entry\n");
--		return -ENODEV;
--	}
--	sony_acpi_dir->owner = THIS_MODULE;
--
--	result = acpi_bus_register_driver(&sony_acpi_driver);
--	if (result < 0) {
--		remove_proc_entry("sony", acpi_root_dir);
--		return -ENODEV;
--	}
--	return 0;
-+	return acpi_bus_register_driver(&sony_acpi_driver);
- }
- 
- 
- static void __exit sony_acpi_exit(void)
- {
- 	acpi_bus_unregister_driver(&sony_acpi_driver);
--	remove_proc_entry("sony", acpi_root_dir);
- }
- 
- module_init(sony_acpi_init);
--- 
-mattia
-:wq!
+ obj-$(CONFIG_FB_CFB_FILLRECT)  += cfbfillrect.o
+ obj-$(CONFIG_FB_CFB_COPYAREA)  += cfbcopyarea.o
+diff -urN linux-2.6.20-rc3/include/linux/display.h linux-2.6.20-rc3-display/include/linux/display.h
+--- linux-2.6.20-rc3/include/linux/display.h	1969-12-31 19:00:00.000000000 -0500
++++ linux-2.6.20-rc3-display/include/linux/display.h	2007-01-13 16:23:51.000000000 -0500
+@@ -0,0 +1,60 @@
++/*
++ *  Copyright (C) 2006 James Simmons <jsimmons@infradead.org>
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or (at
++ *  your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful, but
++ *  WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ *  General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ */
++
++#ifndef _LINUX_DISPLAY_H
++#define _LINUX_DISPLAY_H
++
++#include <linux/device.h>
++
++struct display_device;
++
++/* This structure defines all the properties of a Display. */
++struct display_driver {
++	int (*set_power)(struct display_device *);
++	int (*get_power)(struct display_device *);
++	int (*set_contrast)(struct display_device *, unsigned int);
++	int (*get_contrast)(struct display_device *);
++	int (*probe)(struct display_device *, void *);
++	int (*remove)(struct display_device *);
++	struct attribute_group *type_prop;
++	int max_contrast;
++	char type[16];
++};
++
++struct display_device {
++	struct module *owner;	/* Owner module */
++	char *name;
++	struct mutex lock;
++	int request_state;
++	struct display_driver *driver;
++	struct class_device class_dev;		/* The class device structure */
++};
++
++extern struct display_device *display_device_register(struct display_driver *driver,
++					struct device *dev, void *devdata);
++extern void display_device_unregister(struct display_device *dev);
++
++extern int display_probe_edid(struct display_device *dev, void *devdata);
++
++#define to_display_device(obj) container_of(obj, struct display_device, class_dev)
++
++#endif
+
+---1831524198-632567853-1168727380=:18652--
