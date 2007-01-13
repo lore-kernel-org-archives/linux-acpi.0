@@ -1,99 +1,121 @@
 From: malattia@linux.it
-Subject: [PATCH 8/11] Allow easier debugging for the unknown SNC methods.
-Date: Sat, 13 Jan 2007 23:04:38 +0100
-Message-ID: <1168725881872-git-send-email-malattia@linux.it>
-References: <11687258812893-git-send-email-malattia@linux.it> <1168725881764-git-send-email-malattia@linux.it> <11687258811866-git-send-email-malattia@linux.it> <11687258812417-git-send-email-malattia@linux.it> <11687258812248-git-send-email-malattia@linux.it> <11687258811707-git-send-email-malattia@linux.it> <11687258813214-git-send-email-malattia@linux.it> <1168725881949-git-send-email-malattia@linux.it>
+Subject: [PATCH 2/11] Avoid dimness on resume.
+Date: Sat, 13 Jan 2007 23:04:32 +0100
+Message-ID: <11687258811866-git-send-email-malattia@linux.it>
+References: <11687258812893-git-send-email-malattia@linux.it> <1168725881764-git-send-email-malattia@linux.it>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aa012msr.fastwebnet.it ([85.18.95.72]:52618 "EHLO
+Received: from aa012msr.fastwebnet.it ([85.18.95.72]:52602 "EHLO
 	aa012msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751384AbXAMWGG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 13 Jan 2007 17:06:06 -0500
-In-Reply-To: <1168725881949-git-send-email-malattia@linux.it>
+	with ESMTP id S1751443AbXAMWGE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 13 Jan 2007 17:06:04 -0500
+In-Reply-To: <1168725881764-git-send-email-malattia@linux.it>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Mattia Dongili <malattia@linux.it>
+Cc: linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>
 
-From: Mattia Dongili <malattia@linux.it>
+From: Andrew Morton <akpm@osdl.org>
 
-Allow the existence of a setter method without a getter and viceversa,
-additionaly set /proc file permissions reflecting it.
-Fix also the error exit path.
+Doesn't work.
 
+Cc: Stelian Pop <stelian@popies.net>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 Signed-off-by: Mattia Dongili <malattia@linux.it>
 ---
- drivers/acpi/sony_acpi.c |   30 +++++++++++++++++++++---------
- 1 files changed, 21 insertions(+), 9 deletions(-)
+ drivers/acpi/sony_acpi.c |   49 +++++++++++++++++++++++++++++++--------------
+ 1 files changed, 34 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/acpi/sony_acpi.c b/drivers/acpi/sony_acpi.c
-index 138f2b6..69122ad 100644
+index e23522a..beb56b9 100644
 --- a/drivers/acpi/sony_acpi.c
 +++ b/drivers/acpi/sony_acpi.c
-@@ -296,6 +296,7 @@ static int sony_acpi_add(struct acpi_device *device)
- 	acpi_status status;
- 	int result;
- 	acpi_handle handle;
-+	mode_t proc_file_mode;
- 	struct sony_acpi_value *item;
+@@ -46,19 +46,6 @@ module_param(debug, int, 0);
+ MODULE_PARM_DESC(debug, "set this to 1 (and RTFM) if you want to help "
+ 			"the development of this driver");
  
- 	sony_acpi_acpi_device = device;
-@@ -334,20 +335,31 @@ static int sony_acpi_add(struct acpi_device *device)
- 	}
+-static int sony_acpi_add (struct acpi_device *device);
+-static int sony_acpi_remove (struct acpi_device *device, int type);
+-
+-static struct acpi_driver sony_acpi_driver = {
+-	.name	= ACPI_SNC_DRIVER_NAME,
+-	.class	= ACPI_SNC_CLASS,
+-	.ids	= ACPI_SNC_HID,
+-	.ops	= {
+-			.add	= sony_acpi_add,
+-			.remove	= sony_acpi_remove,
+-		  },
+-};
+-
+ static acpi_handle sony_acpi_handle;
+ static struct proc_dir_entry *sony_acpi_dir;
  
- 	for (item = sony_acpi_values; item->name; ++item) {
-+		proc_file_mode = 0;
+@@ -69,6 +56,8 @@ static struct sony_acpi_value {
+ 	char			*acpiset;/* name of the ACPI get function */
+ 	int 			min;	 /* minimum allowed value or -1 */
+ 	int			max;	 /* maximum allowed value or -1 */
++	int			value;	 /* current setting */
++	int			valid;	 /* Has ever been set */
+ 	int			debug;	 /* active only in debug mode ? */
+ } sony_acpi_values[] = {
+ 	{
+@@ -239,10 +228,30 @@ static int sony_acpi_write(struct file *file, const char __user *buffer,
+ 
+ 	if (acpi_callsetfunc(sony_acpi_handle, item->acpiset, value, NULL) < 0)
+ 		return -EIO;
+-
++	item->value = value;
++	item->valid = 1;
+ 	return count;
+ }
+ 
++static int sony_acpi_resume(struct acpi_device *device, int state)
++{
++	struct sony_acpi_value *item;
 +
- 		if (!debug && item->debug)
- 			continue;
- 
- 		if (item->acpiget &&
--		    ACPI_FAILURE(acpi_get_handle(sony_acpi_handle,
-+		    ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle,
- 		    		 item->acpiget, &handle)))
--		    	continue;
-+			proc_file_mode = S_IRUSR;
-+		else
-+			printk(LOG_PFX "unable to get ACPI handle for %s (get)\n",
-+					item->name);
- 
- 		if (item->acpiset &&
--		    ACPI_FAILURE(acpi_get_handle(sony_acpi_handle,
-+		    ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle,
- 		    		 item->acpiset, &handle)))
--		    	continue;
-+			proc_file_mode |= S_IWUSR;
-+		else
-+			printk(LOG_PFX "unable to get ACPI handle for %s (set)\n",
-+					item->name);
++	for (item = sony_acpi_values; item->name; item++) {
++		int ret;
 +
-+		if (proc_file_mode == 0)
++		if (!item->valid)
 +			continue;
- 
--		item->proc = create_proc_entry(item->name, 0666,
-+		item->proc = create_proc_entry(item->name, proc_file_mode,
- 					       acpi_device_dir(device));
- 		if (!item->proc) {
- 			printk(LOG_PFX "unable to create proc entry\n");
-@@ -366,15 +378,15 @@ static int sony_acpi_add(struct acpi_device *device)
- 	return 0;
- 
- outproc:
-+	for (item = sony_acpi_values; item->name; ++item)
-+		if (item->proc)
-+			remove_proc_entry(item->name, acpi_device_dir(device));
-+outnotify:
- 	status = acpi_remove_notify_handler(sony_acpi_handle,
- 					    ACPI_DEVICE_NOTIFY,
- 					    sony_acpi_notify);
- 	if (ACPI_FAILURE(status))
- 		printk(LOG_PFX "unable to remove notify handler\n");
--outnotify:
--	for (item = sony_acpi_values; item->name; ++item)
--		if (item->proc)
--			remove_proc_entry(item->name, acpi_device_dir(device));
- outwalk:
++		ret = acpi_callsetfunc(sony_acpi_handle, item->acpiset,
++					item->value, NULL);
++		if (ret < 0) {
++			printk("%s: %d\n", __FUNCTION__, ret);
++			break;
++		}
++	}
++	return 0;
++}
++
+ static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
+ {
+ 	printk(LOG_PFX "sony_acpi_notify\n");
+@@ -344,7 +353,6 @@ outwalk:
  	return result;
  }
+ 
+-
+ static int sony_acpi_remove(struct acpi_device *device, int type)
+ {
+ 	acpi_status status;
+@@ -367,6 +375,17 @@ static int sony_acpi_remove(struct acpi_device *device, int type)
+ 	return 0;
+ }
+ 
++static struct acpi_driver sony_acpi_driver = {
++	.name	= ACPI_SNC_DRIVER_NAME,
++	.class	= ACPI_SNC_CLASS,
++	.ids	= ACPI_SNC_HID,
++	.ops	= {
++			.add	= sony_acpi_add,
++			.remove	= sony_acpi_remove,
++			.resume = sony_acpi_resume,
++		  },
++};
++
+ static int __init sony_acpi_init(void)
+ {
+ 	int result;
 -- 
 1.4.4.2
 
