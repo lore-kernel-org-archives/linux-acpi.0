@@ -1,41 +1,40 @@
-From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-Subject: Re: PROBLEM: CPU fan shuts down on load of fan.ko in kernel 2.6.18
- and later
-Date: Sat, 13 Jan 2007 18:51:59 +0300
-Message-ID: <45A9001F.1040008@linux.intel.com>
-References: <beb91d720701110549r346991beh95547e912f68d98f@mail.gmail.com>	 <E3C0BCA40296C347AF7142161DB9FC8298EF3A@mssmsx411>	 <1e2af89e0701130429x7083b6d7we89174dd7e130364@mail.gmail.com>	 <45A8DAA9.3010300@linux.intel.com> <1e2af89e0701130533o7cdead43g9ab79b71f852ac71@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: malattia@linux.it
+Subject: [PATCH 3/11] Fix sony_acpi_resume call
+Date: Sat, 13 Jan 2007 23:04:33 +0100
+Message-ID: <11687258812417-git-send-email-malattia@linux.it>
+References: <11687258812893-git-send-email-malattia@linux.it> <1168725881764-git-send-email-malattia@linux.it> <11687258811866-git-send-email-malattia@linux.it>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([143.182.124.22]:25337 "EHLO
-	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1422702AbXAMPwH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 13 Jan 2007 10:52:07 -0500
-In-Reply-To: <1e2af89e0701130533o7cdead43g9ab79b71f852ac71@mail.gmail.com>
+Received: from aa013msr.fastwebnet.it ([85.18.95.73]:37561 "EHLO
+	aa013msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751399AbXAMWGA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 13 Jan 2007 17:06:00 -0500
+In-Reply-To: <11687258811866-git-send-email-malattia@linux.it>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Brett <matthew.brett@gmail.com>
-Cc: "Karasyov, Konstantin A" <konstantin.a.karasyov@intel.com>, Salatiel Filho <salatiel.filho@gmail.com>, linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>
 
-Matthew Brett wrote:
-> Hi,
->
->> If BIOS does not export fan controls to OS via DSDT, it means that BIOS
->> wants to control fans via its own means (hardware), this doesn't mean
->> that your machine is at risk, it only means that you are not allowed to
->> tamper with it...
->
-> Well, except the original poster complained that linux but not windows
-> was shutting down the fan - meaning - surely - that somehow linux is
-> tampering with the fan when it should not.
->
-> Best,
->
-> Matthew
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-As it was said above, Linux has no means to do that. At least through 
-ACPI framework.
+From: Andrew Morton <akpm@osdl.org>
+
+Signed-off-by: Andrew Morton <akpm@osdl.org>
+Signed-off-by: Mattia Dongili <malattia@linux.it>
+---
+ drivers/acpi/sony_acpi.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/acpi/sony_acpi.c b/drivers/acpi/sony_acpi.c
+index beb56b9..f323c2c 100644
+--- a/drivers/acpi/sony_acpi.c
++++ b/drivers/acpi/sony_acpi.c
+@@ -233,7 +233,7 @@ static int sony_acpi_write(struct file *file, const char __user *buffer,
+ 	return count;
+ }
+ 
+-static int sony_acpi_resume(struct acpi_device *device, int state)
++static int sony_acpi_resume(struct acpi_device *device)
+ {
+ 	struct sony_acpi_value *item;
+ 
+-- 
+1.4.4.2
+
