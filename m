@@ -1,121 +1,138 @@
 From: malattia@linux.it
-Subject: [PATCH 2/11] Avoid dimness on resume.
-Date: Sat, 13 Jan 2007 23:04:32 +0100
-Message-ID: <11687258811866-git-send-email-malattia@linux.it>
-References: <11687258812893-git-send-email-malattia@linux.it> <1168725881764-git-send-email-malattia@linux.it>
+Subject: [PATCH 7/11] Add acpi_bus_generate event
+Date: Sat, 13 Jan 2007 23:04:37 +0100
+Message-ID: <1168725881949-git-send-email-malattia@linux.it>
+References: <11687258812893-git-send-email-malattia@linux.it> <1168725881764-git-send-email-malattia@linux.it> <11687258811866-git-send-email-malattia@linux.it> <11687258812417-git-send-email-malattia@linux.it> <11687258812248-git-send-email-malattia@linux.it> <11687258811707-git-send-email-malattia@linux.it> <11687258813214-git-send-email-malattia@linux.it>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aa012msr.fastwebnet.it ([85.18.95.72]:52602 "EHLO
-	aa012msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751443AbXAMWGE (ORCPT
+Received: from aa011msr.fastwebnet.it ([85.18.95.71]:58168 "EHLO
+	aa011msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751446AbXAMWGE (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Sat, 13 Jan 2007 17:06:04 -0500
-In-Reply-To: <1168725881764-git-send-email-malattia@linux.it>
+In-Reply-To: <11687258813214-git-send-email-malattia@linux.it>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Andrew Morton <akpm@osdl.org>
+Cc: linux-acpi@vger.kernel.org, Stelian Pop <stelian@popies.net>
 
-From: Andrew Morton <akpm@osdl.org>
+From: Stelian Pop <stelian@popies.net>
 
-Doesn't work.
+Added acpi_bus_generate event for forwarding Fn-keys pressed to acpi subsystem,
+and made correspondent necessary changes for this to work.
 
-Cc: Stelian Pop <stelian@popies.net>
+Signed-off-by: Nilton Volpato <nilton.volpato@gmail.com>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 Signed-off-by: Mattia Dongili <malattia@linux.it>
 ---
- drivers/acpi/sony_acpi.c |   49 +++++++++++++++++++++++++++++++--------------
- 1 files changed, 34 insertions(+), 15 deletions(-)
+ drivers/acpi/sony_acpi.c |   53 ++++++++++++++++++++++++---------------------
+ 1 files changed, 28 insertions(+), 25 deletions(-)
 
 diff --git a/drivers/acpi/sony_acpi.c b/drivers/acpi/sony_acpi.c
-index e23522a..beb56b9 100644
+index 195895c..138f2b6 100644
 --- a/drivers/acpi/sony_acpi.c
 +++ b/drivers/acpi/sony_acpi.c
-@@ -46,19 +46,6 @@ module_param(debug, int, 0);
- MODULE_PARM_DESC(debug, "set this to 1 (and RTFM) if you want to help "
- 			"the development of this driver");
+@@ -54,6 +54,7 @@ MODULE_PARM_DESC(debug, "set this to 1 (and RTFM) if you want to help "
  
--static int sony_acpi_add (struct acpi_device *device);
--static int sony_acpi_remove (struct acpi_device *device, int type);
--
--static struct acpi_driver sony_acpi_driver = {
--	.name	= ACPI_SNC_DRIVER_NAME,
--	.class	= ACPI_SNC_CLASS,
--	.ids	= ACPI_SNC_HID,
--	.ops	= {
--			.add	= sony_acpi_add,
--			.remove	= sony_acpi_remove,
--		  },
--};
--
  static acpi_handle sony_acpi_handle;
  static struct proc_dir_entry *sony_acpi_dir;
++static struct acpi_device *sony_acpi_acpi_device = NULL;
  
-@@ -69,6 +56,8 @@ static struct sony_acpi_value {
- 	char			*acpiset;/* name of the ACPI get function */
- 	int 			min;	 /* minimum allowed value or -1 */
- 	int			max;	 /* maximum allowed value or -1 */
-+	int			value;	 /* current setting */
-+	int			valid;	 /* Has ever been set */
- 	int			debug;	 /* active only in debug mode ? */
- } sony_acpi_values[] = {
- 	{
-@@ -239,10 +228,30 @@ static int sony_acpi_write(struct file *file, const char __user *buffer,
+ static int sony_backlight_update_status(struct backlight_device *bd);
+ static int sony_backlight_get_brightness(struct backlight_device *bd);
+@@ -270,7 +271,9 @@ static int sony_acpi_resume(struct acpi_device *device)
  
- 	if (acpi_callsetfunc(sony_acpi_handle, item->acpiset, value, NULL) < 0)
- 		return -EIO;
--
-+	item->value = value;
-+	item->valid = 1;
- 	return count;
- }
- 
-+static int sony_acpi_resume(struct acpi_device *device, int state)
-+{
-+	struct sony_acpi_value *item;
-+
-+	for (item = sony_acpi_values; item->name; item++) {
-+		int ret;
-+
-+		if (!item->valid)
-+			continue;
-+		ret = acpi_callsetfunc(sony_acpi_handle, item->acpiset,
-+					item->value, NULL);
-+		if (ret < 0) {
-+			printk("%s: %d\n", __FUNCTION__, ret);
-+			break;
-+		}
-+	}
-+	return 0;
-+}
-+
  static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
  {
- 	printk(LOG_PFX "sony_acpi_notify\n");
-@@ -344,7 +353,6 @@ outwalk:
- 	return result;
+-	printk(LOG_PFX "sony_acpi_notify\n");
++	if (debug)
++		printk(LOG_PFX "sony_acpi_notify, event: %d\n", event);
++	acpi_bus_generate_event(sony_acpi_acpi_device, 1, event);
  }
  
--
- static int sony_acpi_remove(struct acpi_device *device, int type)
- {
- 	acpi_status status;
-@@ -367,6 +375,17 @@ static int sony_acpi_remove(struct acpi_device *device, int type)
- 	return 0;
- }
+ static acpi_status sony_walk_callback(acpi_handle handle, u32 level,
+@@ -295,6 +298,8 @@ static int sony_acpi_add(struct acpi_device *device)
+ 	acpi_handle handle;
+ 	struct sony_acpi_value *item;
  
-+static struct acpi_driver sony_acpi_driver = {
-+	.name	= ACPI_SNC_DRIVER_NAME,
-+	.class	= ACPI_SNC_CLASS,
-+	.ids	= ACPI_SNC_HID,
-+	.ops	= {
-+			.add	= sony_acpi_add,
-+			.remove	= sony_acpi_remove,
-+			.resume = sony_acpi_resume,
-+		  },
-+};
++	sony_acpi_acpi_device = device;
 +
- static int __init sony_acpi_init(void)
- {
- 	int result;
+ 	sony_acpi_handle = device->handle;
+ 
+ 	acpi_driver_data(device) = NULL;
+@@ -308,16 +313,16 @@ static int sony_acpi_add(struct acpi_device *device)
+ 			result = -ENODEV;
+ 			goto outwalk;
+ 		}
++	}
+ 
+-		status = acpi_install_notify_handler(sony_acpi_handle,
+-						     ACPI_DEVICE_NOTIFY,
+-						     sony_acpi_notify,
+-						     NULL);
+-		if (ACPI_FAILURE(status)) {
+-			printk(LOG_PFX "unable to install notify handler\n");
+-			result = -ENODEV;
+-			goto outnotify;
+-		}
++	status = acpi_install_notify_handler(sony_acpi_handle,
++					     ACPI_DEVICE_NOTIFY,
++					     sony_acpi_notify,
++					     NULL);
++	if (ACPI_FAILURE(status)) {
++		printk(LOG_PFX "unable to install notify handler\n");
++		result = -ENODEV;
++		goto outnotify;
+ 	}
+ 
+ 	if (ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle, "GBRT", &handle))) {
+@@ -342,7 +347,7 @@ static int sony_acpi_add(struct acpi_device *device)
+ 		    		 item->acpiset, &handle)))
+ 		    	continue;
+ 
+-		item->proc = create_proc_entry(item->name, 0600,
++		item->proc = create_proc_entry(item->name, 0666,
+ 					       acpi_device_dir(device));
+ 		if (!item->proc) {
+ 			printk(LOG_PFX "unable to create proc entry\n");
+@@ -361,13 +366,11 @@ static int sony_acpi_add(struct acpi_device *device)
+ 	return 0;
+ 
+ outproc:
+-	if (debug) {
+-		status = acpi_remove_notify_handler(sony_acpi_handle,
+-						    ACPI_DEVICE_NOTIFY,
+-						    sony_acpi_notify);
+-		if (ACPI_FAILURE(status))
+-			printk(LOG_PFX "unable to remove notify handler\n");
+-	}
++	status = acpi_remove_notify_handler(sony_acpi_handle,
++					    ACPI_DEVICE_NOTIFY,
++					    sony_acpi_notify);
++	if (ACPI_FAILURE(status))
++		printk(LOG_PFX "unable to remove notify handler\n");
+ outnotify:
+ 	for (item = sony_acpi_values; item->name; ++item)
+ 		if (item->proc)
+@@ -384,13 +387,13 @@ static int sony_acpi_remove(struct acpi_device *device, int type)
+ 	if (sony_backlight_device)
+ 		backlight_device_unregister(sony_backlight_device);
+ 
+-	if (debug) {
+-		status = acpi_remove_notify_handler(sony_acpi_handle,
+-						    ACPI_DEVICE_NOTIFY,
+-						    sony_acpi_notify);
+-		if (ACPI_FAILURE(status))
+-			printk(LOG_PFX "unable to remove notify handler\n");
+-	}
++	sony_acpi_acpi_device = NULL;
++
++	status = acpi_remove_notify_handler(sony_acpi_handle,
++					    ACPI_DEVICE_NOTIFY,
++					    sony_acpi_notify);
++	if (ACPI_FAILURE(status))
++		printk(LOG_PFX "unable to remove notify handler\n");
+ 
+ 	for (item = sony_acpi_values; item->name; ++item)
+ 		if (item->proc)
 -- 
 1.4.4.2
 
