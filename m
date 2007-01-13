@@ -1,194 +1,143 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [PATCH] ACPI: Recode the acpi_get_pci_rootbridge_handle() to boot faster
-Date: Fri, 12 Jan 2007 12:10:19 -0700
-Message-ID: <200701121210.19779.bjorn.helgaas@hp.com>
-References: <BD66F1A3AD5256419EBBAAA492578482E224D5@G3W0068.americas.hpqcorp.net> <200612061017.10405.bjorn.helgaas@hp.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: 2.6.17 - weird, boot CPU (#0) not listed by the BIOS.
+Date: Sat, 13 Jan 2007 01:12:39 -0500
+Message-ID: <200701130112.39140.lenb@kernel.org>
+References: <45A7ABB8.2030808@compro.net> <45A7AE57.8020400@compro.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel6.hp.com ([156.153.255.205]:42728 "EHLO atlrel6.hp.com"
+Received: from hera.kernel.org ([140.211.167.34]:35461 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964950AbXALTK0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 12 Jan 2007 14:10:26 -0500
-In-Reply-To: <200612061017.10405.bjorn.helgaas@hp.com>
+	id S1161294AbXAMGOC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 13 Jan 2007 01:14:02 -0500
+In-Reply-To: <45A7AE57.8020400@compro.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Chen, Justin" <justin.chen@hp.com>
-Cc: len.brown@intel.com, linux-acpi@vger.kernel.org, Matthew Wilcox <matthew@wil.cx>, "Li, Shaohua" <shaohua.li@intel.com>
+To: markh@compro.net
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wednesday 06 December 2006 10:17, Bjorn Helgaas wrote:
-> Here's a non-line-wrapped version.  Justin sent this yesterday
-> but it didn't make it to the list for some reason, so I'm
-> trying again.
+On Friday 12 January 2007 10:50, Mark Hounschell wrote:
+> Mark Hounschell wrote:
+> > I have a Tyan S4881 Thunder K8QW 4 processor (8 cores). Kernel 2.6.16.37 boots
+> > and runs fine.
+> > However kernel 2.6.17 and up doesn't. Here is my boot error msg.
+> > 
+> > 
+> > kernel /vmlinuz-2.6.17-smp  root=/dev/sda5inux version 2.6.17-smp (root@badboy1)
+> > (gcc version 4.1.0 (SUSE Linux)) #1 SMP PREEMPT Fri Jan 12 07:53:35 EST 2007
+> > BIOS-provided physical RAM map:
+> >  BIOS-e820: 0000000000000000 - 0000000000093800 (usable)
+> >  BIOS-e820: 0000000000093800 - 00000000000a0000 (reserved)
+> >  BIOS-e820: 00000000000c2000 - 0000000000100000 (reserved)
+> >  BIOS-e820: 0000000000100000 - 00000000cfea0000 (usable)
+> >  BIOS-e820: 00000000cfea0000 - 00000000cfea4000 (ACPI data)
+> >  BIOS-e820: 00000000cfea4000 - 00000000cff00000 (ACPI NVS)
+> >  BIOS-e820: 00000000cff00000 - 00000000d0000000 (reserved)
+> >  BIOS-e820: 00000000e0000000 - 00000000f0000000 (reserved)
+> >  BIOS-e820: 00000000fec00000 - 00000000fec00400 (reserved)
+> >  BIOS-e820: 00000000fee00000 - 00000000fee01000 (reserved)
+> >  BIOS-e820: 00000000fff80000 - 0000000100000000 (reserved)
+> >  BIOS-e820: 0000000100000000 - 0000000230000000 (usable)
+> > Warning only 4GB will be used.
+> > Use a PAE enabled kernel.
+> > 3200MB HIGHMEM available.
+> > 896MB LOWMEM available.
+> > found SMP MP-table at 000f71f0
+> > DMI present.
+> > ACPI: PM-Timer IO Port: 0x8008
+> > ACPI: LAPIC (acpi_id[0x00] lapic_id[0x10] enabled)
+> > Processor #16 15:1 APIC version 16
 
-Ping!  Any reaction to this?  It makes a BIG difference in
-boot time on large system.s
+The APIC id for the 1st processor here is 16.
+Usually it is 0.
 
-> Move acpi_get_pci_rootbridge_handle() from glue.c to pci_root.c and get the
-> root bridge acpi handles by searching the &acpi_pci_roots list instead of
-> walking through the ACPI name space.  This significantly reduces boot time
-> on large I/O systems.
+Apparently this has confused some of the smpboot code
+with all their new nifty bitmaps for processors online and offline...
+
+Does the latest kernel work any better, say 2.6.19?
+What if you throw CONFIG_NR_CPUS=32 at it?
+
+-Len
+
+> > ACPI: LAPIC (acpi_id[0x01] lapic_id[0x11] enabled)
+> > Processor #17 15:1 APIC version 16
+> > ACPI: LAPIC (acpi_id[0x02] lapic_id[0x12] enabled)
+> > Processor #18 15:1 APIC version 16
+> > ACPI: LAPIC (acpi_id[0x03] lapic_id[0x13] enabled)
+> > Processor #19 15:1 APIC version 16
+> > ACPI: LAPIC (acpi_id[0x04] lapic_id[0x14] enabled)
+> > Processor #20 15:1 APIC version 16
+> > ACPI: LAPIC (acpi_id[0x05] lapic_id[0x15] enabled)
+> > Processor #21 15:1 APIC version 16
+> > ACPI: LAPIC (acpi_id[0x06] lapic_id[0x16] enabled)
+> > Processor #22 15:1 APIC version 16
+> > ACPI: LAPIC (acpi_id[0x07] lapic_id[0x17] enabled)
+> > Processor #23 15:1 APIC version 16
+> > ACPI: LAPIC_NMI (acpi_id[0x00] high edge lint[0x1])
+> > ACPI: LAPIC_NMI (acpi_id[0x01] high edge lint[0x1])
+> > ACPI: LAPIC_NMI (acpi_id[0x02] high edge lint[0x1])
+> > ACPI: LAPIC_NMI (acpi_id[0x03] high edge lint[0x1])
+> > ACPI: LAPIC_NMI (acpi_id[0x04] high edge lint[0x1])
+> > ACPI: LAPIC_NMI (acpi_id[0x05] high edge lint[0x1])
+> > ACPI: LAPIC_NMI (acpi_id[0x06] high edge lint[0x1])
+> > ACPI: LAPIC_NMI (acpi_id[0x07] high edge lint[0x1])
+> > ACPI: IOAPIC (id[0x00] address[0xfec00000] gsi_base[0])
+> > IOAPIC[0]: apic_id 0, version 17, address 0xfec00000, GSI 0-23
+> > ACPI: IOAPIC (id[0x01] address[0xda200000] gsi_base[24])
+> > IOAPIC[1]: apic_id 1, version 17, address 0xda200000, GSI 24-27
+> > ACPI: IOAPIC (id[0x02] address[0xda201000] gsi_base[28])
+> > IOAPIC[2]: apic_id 2, version 17, address 0xda201000, GSI 28-31
+> > ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 low level)
+> > Enabling APIC mode:  Flat.  Using 3 I/O APICs
+> > Using ACPI (MADT) for SMP configuration information
+> > Allocating PCI resources starting at d1000000 (gap: d0000000:10000000)
+> > Built 1 zonelists
+> > Kernel command line: root=/dev/sda5 vga=normal resume=/dev/sda2  splash=silent
+> > "console=ttyS0,19200"
+> > Enabling fast FPU save and restore... done.
+> > Enabling unmasked SIMD FPU exception support... done.
+> > Initializing CPU#0
+> > PID hash table entries: 4096 (order: 12, 16384 bytes)
+> > Detected 2411.454 MHz processor.
+> > Using pmtmr for high-res timesource
+> > Console: colour VGA+ 80x25
+> > Dentry cache hash table entries: 131072 (order: 7, 524288 bytes)
+> > Inode-cache hash table entries: 65536 (order: 6, 262144 bytes)
+> > Memory: 3366304k/4194304k available (1529k kernel code, 38968k reserved, 633k
+> > data, 184k init, 2488960k highmem)
+> > Checking if this processor honours the WP bit even in supervisor mode... Ok.
+> > Calibrating delay using timer specific routine.. 4827.61 BogoMIPS (lpj=9655232)
+> > Security Framework v1.0.0 initialized
+> > Capability LSM initialized
+> > Mount-cache hash table entries: 512
+> > CPU: L1 I Cache: 64K (64 bytes/line), D cache 64K (64 bytes/line)
+> > CPU: L2 Cache: 1024K (64 bytes/line)
+> > CPU 0(2) -> Core 0
+> > Intel machine check architecture supported.
+> > Intel machine check reporting enabled on CPU#0.
+> > Checking 'hlt' instruction... OK.
+> > Freeing SMP alternatives: 12k freed
+> > ACPI Warning (nsload-0106): Zero-length AML block in table [SSDT] [20060127]
+> > CPU0: AMD Athlon(tm) or Opteron(tm) CPU-model unknown stepping 02
+> > weird, boot CPU (#0) not listed by the BIOS.
+> > 
+> > It then just reboots. Any ideas what I need to do for 2.6.17 and up kernels. I
+> > have tried all the
+> > way up to 2.6.20-rc4.
+> > 
+> > Thanks
+> > Mark
+> > 
 > 
-> Signed-off-by: Justin Chen <justin.chen@hp.com>
+> Oh, I'm running in 32 bit mode on SuSE-10.2
 > 
-> diff -Nru a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> --- a/drivers/acpi/pci_root.c	2006-11-29 13:57:37.000000000 -0800
-> +++ b/drivers/acpi/pci_root.c	2006-12-04 14:41:14.551395167 -0800
-> @@ -116,6 +116,19 @@
->  
->  EXPORT_SYMBOL(acpi_pci_unregister_driver);
->  
-> +acpi_handle acpi_get_pci_rootbridge_handle(unsigned int seg, unsigned int bus)
-> +{
-> +	struct acpi_pci_root *tmp;
-> +	
-> +	list_for_each_entry(tmp, &acpi_pci_roots, node) {
-> +		if ((tmp->id.segment == (u16) seg) && (tmp->id.bus == (u16) bus))
-> +			return tmp->device->handle;
-> +	}
-> +	return NULL;		
-> +}
-> +
-> +EXPORT_SYMBOL_GPL(acpi_get_pci_rootbridge_handle);
-> +
->  static acpi_status
->  get_root_bridge_busnr_callback(struct acpi_resource *resource, void *data)
->  {
-> diff -Nru a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-> --- a/drivers/acpi/glue.c	2006-12-04 14:42:53.067995523 -0800
-> +++ b/drivers/acpi/glue.c	2006-12-04 14:44:42.723267617 -0800
-> @@ -86,125 +86,6 @@
->  	return ret;
->  }
->  
-> -/* Get PCI root bridge's handle from its segment and bus number */
-> -struct acpi_find_pci_root {
-> -	unsigned int seg;
-> -	unsigned int bus;
-> -	acpi_handle handle;
-> -};
+> Mark
 > -
-> -static acpi_status
-> -do_root_bridge_busnr_callback(struct acpi_resource *resource, void *data)
-> -{
-> -	unsigned long *busnr = (unsigned long *)data;
-> -	struct acpi_resource_address64 address;
-> -
-> -	if (resource->type != ACPI_RESOURCE_TYPE_ADDRESS16 &&
-> -	    resource->type != ACPI_RESOURCE_TYPE_ADDRESS32 &&
-> -	    resource->type != ACPI_RESOURCE_TYPE_ADDRESS64)
-> -		return AE_OK;
-> -
-> -	acpi_resource_to_address64(resource, &address);
-> -	if ((address.address_length > 0) &&
-> -	    (address.resource_type == ACPI_BUS_NUMBER_RANGE))
-> -		*busnr = address.minimum;
-> -
-> -	return AE_OK;
-> -}
-> -
-> -static int get_root_bridge_busnr(acpi_handle handle)
-> -{
-> -	acpi_status status;
-> -	unsigned long bus, bbn;
-> -	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-> -
-> -	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
-> -
-> -	status = acpi_evaluate_integer(handle, METHOD_NAME__BBN, NULL,
-> -				       &bbn);
-> -	if (status == AE_NOT_FOUND) {
-> -		/* Assume bus = 0 */
-> -		printk(KERN_INFO PREFIX
-> -		       "Assume root bridge [%s] bus is 0\n",
-> -		       (char *)buffer.pointer);
-> -		status = AE_OK;
-> -		bbn = 0;
-> -	}
-> -	if (ACPI_FAILURE(status)) {
-> -		bbn = -ENODEV;
-> -		goto exit;
-> -	}
-> -	if (bbn > 0)
-> -		goto exit;
-> -
-> -	/* _BBN in some systems return 0 for all root bridges */
-> -	bus = -1;
-> -	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
-> -				     do_root_bridge_busnr_callback, &bus);
-> -	/* If _CRS failed, we just use _BBN */
-> -	if (ACPI_FAILURE(status) || (bus == -1))
-> -		goto exit;
-> -	/* We select _CRS */
-> -	if (bbn != bus) {
-> -		printk(KERN_INFO PREFIX
-> -		       "_BBN and _CRS returns different value for %s. Select _CRS\n",
-> -		       (char *)buffer.pointer);
-> -		bbn = bus;
-> -	}
-> -      exit:
-> -	kfree(buffer.pointer);
-> -	return (int)bbn;
-> -}
-> -
-> -static acpi_status
-> -find_pci_rootbridge(acpi_handle handle, u32 lvl, void *context, void **rv)
-> -{
-> -	struct acpi_find_pci_root *find = (struct acpi_find_pci_root *)context;
-> -	unsigned long seg, bus;
-> -	acpi_status status;
-> -	int tmp;
-> -	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-> -
-> -	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
-> -
-> -	status = acpi_evaluate_integer(handle, METHOD_NAME__SEG, NULL, &seg);
-> -	if (status == AE_NOT_FOUND) {
-> -		/* Assume seg = 0 */
-> -		status = AE_OK;
-> -		seg = 0;
-> -	}
-> -	if (ACPI_FAILURE(status)) {
-> -		status = AE_CTRL_DEPTH;
-> -		goto exit;
-> -	}
-> -
-> -	tmp = get_root_bridge_busnr(handle);
-> -	if (tmp < 0) {
-> -		printk(KERN_ERR PREFIX
-> -		       "Find root bridge failed for %s\n",
-> -		       (char *)buffer.pointer);
-> -		status = AE_CTRL_DEPTH;
-> -		goto exit;
-> -	}
-> -	bus = tmp;
-> -
-> -	if (seg == find->seg && bus == find->bus)
-> -		find->handle = handle;
-> -	status = AE_OK;
-> -      exit:
-> -	kfree(buffer.pointer);
-> -	return status;
-> -}
-> -
-> -acpi_handle acpi_get_pci_rootbridge_handle(unsigned int seg, unsigned int bus)
-> -{
-> -	struct acpi_find_pci_root find = { seg, bus, NULL };
-> -
-> -	acpi_get_devices(PCI_ROOT_HID_STRING, find_pci_rootbridge, &find, NULL);
-> -	return find.handle;
-> -}
-> -EXPORT_SYMBOL_GPL(acpi_get_pci_rootbridge_handle);
-> -
->  /* Get device's handler per its address under its parent */
->  struct acpi_find_child {
->  	acpi_handle handle;
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 > 
