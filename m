@@ -1,38 +1,35 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: Display class
-Date: Sat, 13 Jan 2007 23:55:14 -0800
-Message-ID: <20070114075514.GE10585@kroah.com>
-References: <Pine.LNX.4.64.0611141939050.6957@pentafluge.infradead.org> <Pine.LNX.4.64.0611150052180.13800@pentafluge.infradead.org> <Pine.LNX.4.64.0612051740250.2925@pentafluge.infradead.org> <200612292232.44122.dtor@insightbb.com> <Pine.LNX.4.64.0701132225530.18652@pentafluge.infradead.org>
+From: Goulven Guillard <lecotegougdelaforce@free.fr>
+Subject: Where to find dmesg messages explanations ?
+Date: Sun, 14 Jan 2007 12:18:15 +0100
+Message-ID: <45AA1177.1000202@free.fr>
+Reply-To: lecotegougdelaforce@free.fr
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751165AbXANIFj@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0701132225530.18652@pentafluge.infradead.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: James Simmons <jsimmons@infradead.org>
-Cc: Dmitry Torokhov <dtor@insightbb.com>, Miguel Ojeda <maxextreme@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, oLinux Fbdev development list <linux-fbdev-devel@lists.sourceforge.net>, Luming Yu <Luming.yu@intel.com>, Andrew Zabolotny <zap@homelink.ru>, linux-acpi@vger.kernel.org, kernel-discuss@handhelds.org, lcd4linux-devel@sf.net
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from postfix2-g20.free.fr ([212.27.60.43]:54200 "EHLO
+	postfix2-g20.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751246AbXANLS1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 14 Jan 2007 06:18:27 -0500
+Received: from smtp5-g19.free.fr (smtp5-g19.free.fr [212.27.42.35])
+	by postfix2-g20.free.fr (Postfix) with ESMTP id 41F528F4D3F
+	for <linux-acpi@vger.kernel.org>; Sun, 14 Jan 2007 11:18:33 +0100 (CET)
+Received: from [192.168.0.2] (cro67-1-82-229-251-158.fbx.proxad.net [82.229.251.158])
+	by smtp5-g19.free.fr (Postfix) with ESMTP id 936E127A58
+	for <linux-acpi@vger.kernel.org>; Sun, 14 Jan 2007 12:17:24 +0100 (CET)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Sat, Jan 13, 2007 at 10:40:55PM +0000, James Simmons wrote:
-> 
-> > Hi,
-> > 
-> > On Tuesday 05 December 2006 13:03, James Simmons wrote:
-> > > +int probe_edid(struct display_device *dev, void *data)
-> > > +{
-> > > +???????struct fb_monspecs spec;
-> > > +???????ssize_t size = 45;
-> 
-> That code was only for testing. I do have new core code. Andrew could 
-> you merge this patch as it is against the -mm tree.
-> 
-> This new class provides a way common interface for various types of 
-> displays such as LCD, CRT, LVDS etc. It is a expansion of the lcd
-> class to include other types of displays.
+Hi,
 
-Have you worked with the DRM developers who also need to tie into this
-CRT class somehow?
+Is there any place where I can find some explanations about dmesg 
+messages and consequences of their causes (especially for acpi/apic/irq 
+messages) ?
 
-thanks,
+Thanks.
 
-greg k-h
+
+-- 
+La banquise fond !!! Adoptez un pingouin...
+=> http://doc.ubuntu-fr.org/
