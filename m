@@ -1,74 +1,42 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: PROBLEM: CPU fan shuts down on load of fan.ko in kernel 2.6.18 and later
-Date: Sat, 13 Jan 2007 22:24:59 -0700
-Message-ID: <200701132224.59596.bjorn.helgaas@hp.com>
-References: <beb91d720701110549r346991beh95547e912f68d98f@mail.gmail.com> <1e2af89e0701130533o7cdead43g9ab79b71f852ac71@mail.gmail.com> <45A9001F.1040008@linux.intel.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: Display class
+Date: Sat, 13 Jan 2007 23:54:18 -0800
+Message-ID: <20070114075418.GD10585@kroah.com>
+References: <Pine.LNX.4.64.0611141939050.6957@pentafluge.infradead.org> <Pine.LNX.4.64.0611150052180.13800@pentafluge.infradead.org> <Pine.LNX.4.64.0612051740250.2925@pentafluge.infradead.org> <200612292232.44122.dtor@insightbb.com> <Pine.LNX.4.64.0701132225530.18652@pentafluge.infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel7.hp.com ([156.153.255.213]:45072 "EHLO atlrel7.hp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751019AbXANFZI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 14 Jan 2007 00:25:08 -0500
-In-Reply-To: <45A9001F.1040008@linux.intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751154AbXANIFX@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <Pine.LNX.4.64.0701132225530.18652@pentafluge.infradead.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: James Simmons <jsimmons@infradead.org>
+Cc: Dmitry Torokhov <dtor@insightbb.com>, Miguel Ojeda <maxextreme@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, oLinux Fbdev development list <linux-fbdev-devel@lists.sourceforge.net>, Luming Yu <Luming.yu@intel.com>, Andrew Zabolotny <zap@homelink.ru>, linux-acpi@vger.kernel.org, kernel-discuss@handhelds.org, lcd4linux-devel@sf.net
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-Cc: Matthew Brett <matthew.brett@gmail.com>, "Karasyov, Konstantin A" <konstantin.a.karasyov@intel.com>, Salatiel Filho <salatiel.filho@gmail.com>, linux-acpi@vger.kernel.org
 
-On Saturday 13 January 2007 08:51, Alexey Starikovskiy wrote:
-> Matthew Brett wrote:
-> >> If BIOS does not export fan controls to OS via DSDT, it means that BIOS
-> >> wants to control fans via its own means (hardware), this doesn't mean
-> >> that your machine is at risk, it only means that you are not allowed to
-> >> tamper with it...
-> >
-> > Well, except the original poster complained that linux but not windows
-> > was shutting down the fan - meaning - surely - that somehow linux is
-> > tampering with the fan when it should not.
-> >
-> As it was said above, Linux has no means to do that. At least through 
-> ACPI framework.
+On Sat, Jan 13, 2007 at 10:40:55PM +0000, James Simmons wrote:
+> 
+> > Hi,
+> > 
+> > On Tuesday 05 December 2006 13:03, James Simmons wrote:
+> > > +int probe_edid(struct display_device *dev, void *data)
+> > > +{
+> > > +???????struct fb_monspecs spec;
+> > > +???????ssize_t size = 45;
+> 
+> That code was only for testing. I do have new core code. Andrew could 
+> you merge this patch as it is against the -mm tree.
+> 
+> This new class provides a way common interface for various types of 
+> displays such as LCD, CRT, LVDS etc. It is a expansion of the lcd
+> class to include other types of displays.
 
-I think there are two things being confused here:
+Any chance you can change this to use "struct device" instead of "struct
+class_device" so I don't have to convert it myself in the next few weeks
+if it ever gets merged?  :)
 
-  1) Matthew's report, which clearly says that loading fan.ko
-     turns off the fan, and it doesn't come back on when it should.
-     His BIOS provides a PNP0C0B fan device and an _AC0 trip point,
-     so Linux *should* be able to control the fan.
+The functionality will be the same, if not, please let me know what
+problems you have with the change.
 
-  2) Salatiel's report, which is rather vague: "I think my fans
-     are not working in Linux."  I haven't seen Salatiel's acpidump,
-     but Konstantin says it has no fan devices and no active trip
-     points.  Since Salatiel has no PNP0C0B device, his problem is
-     unrelated to the fan.ko driver.
+thanks,
 
-So let's concentrate on Matthew's problem first.  Loading fan.ko
-turns off the fan.  If the machine is cool, as it likely is at
-boot-time, this might be appropriate.
-
-When the system gets hot, the thermal driver is supposed to turn
-the fan(s) on, and this doesn't seem to happen.  But the experiments
-Konstantin suggested showed that the thermal driver did notice the
-temperature above the active trip point, it switched to active
-cooling, and ACPI claims the fan is on, thought it apparently is
-not.
-
-Are there any messages in dmesg about problems turning on cooling
-devices?
-
-With 2.6.17, loading fan.ko leaves the fan on.  Manually turning
-off the fan works.  But manually turning it back on again fails,
-which looks suspiciously like the 2.6.20-rc3 problem where the
-thermal driver can't turn the fan on again.
-
-Maybe there's some firmware or mechanical problem such that the
-fan can only be turned on via reset or a power cycle?  Does the
-fan *ever* turn off and then back on again under 2.6.17?  I don't
-suppose you can try this under Windows?  Vacuum out the dust
-bunnies?  Try a different fan?
-
-Bjorn
+greg k-h
