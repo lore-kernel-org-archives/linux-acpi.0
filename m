@@ -1,77 +1,59 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [PATCH 0/11] sony_acpi: prepare for prime time (resend)
-Date: Mon, 15 Jan 2007 20:12:50 +0100
-Message-ID: <20070115191250.GA6912@inferi.kami.home>
-References: <11687258812893-git-send-email-malattia@linux.it> <3877989d0701150101y1098e27ep26c1df0798292997@mail.gmail.com>
+From: Andrew Morton <akpm@osdl.org>
+Subject: Fw: [Bugme-new] [Bug 7828] New: Reboot instead of powerdown with
+ 2.6.20-rc4 or 2.6.20-rc5
+Date: Mon, 15 Jan 2007 13:50:43 -0800
+Message-ID: <20070115135043.4518efa3.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aa014msr.fastwebnet.it ([85.18.95.74]:49973 "EHLO
-	aa014msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751425AbXAOTOS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Jan 2007 14:14:18 -0500
-Content-Disposition: inline
-In-Reply-To: <3877989d0701150101y1098e27ep26c1df0798292997@mail.gmail.com>
+Received: from smtp.osdl.org ([65.172.181.24]:49784 "EHLO smtp.osdl.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751272AbXAOVut (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Jan 2007 16:50:49 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Luming Yu <luming.yu@gmail.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: francois.valenduc@skynet.be, "bugme-daemon@kernel-bugs.osdl.org" <bugme-daemon@bugzilla.kernel.org>
 
-Hello and sorry for the delay
 
-On Mon, Jan 15, 2007 at 04:01:14AM -0500, Luming Yu wrote:
-> Patch series is not clean against 2.6.20-rc5.
-> 
-> patch -p1 < ../malattia_sony/1_snc_device_support_for_sony_va
-> io.patch
-> patching file Documentation/acpi/sony_acpi.txt
-> patching file drivers/acpi/Kconfig
-> Hunk #1 succeeded at 252 with fuzz 2 (offset -9 lines).
-> patching file drivers/acpi/Makefile
-> Hunk #1 FAILED at 54.
-> 1 out of 1 hunk FAILED -- saving rejects to file drivers/acpi/Makefile.rej
-> patching file drivers/acpi/sony_acpi.c
-...
+hm, this could be anything - a triple-fault on the shutdown path would cause
+the machine to reboot.
 
-uh. I'm developing on the acpi tree test branch, however I just tried
-the patches on a freshly unpacked/patched .20-rc5 and the patches apply
-without any reject.
+Perhaps you could try booting with acpi=off?
 
-# for i in ../*.patch ; do patch -p1 < $i ; done
-patching file Documentation/acpi/sony_acpi.txt
-patching file drivers/acpi/Kconfig
-Hunk #1 succeeded at 252 (offset -9 lines).
-patching file drivers/acpi/Makefile
-Hunk #1 succeeded at 53 (offset -1 lines).
-patching file drivers/acpi/sony_acpi.c
-patching file drivers/acpi/sony_acpi.c
-patching file drivers/acpi/sony_acpi.c
-patching file drivers/acpi/Kconfig
-Hunk #1 succeeded at 255 (offset -9 lines).
-patching file drivers/acpi/sony_acpi.c
-patching file drivers/acpi/sony_acpi.c
-patching file drivers/acpi/sony_acpi.c
-patching file drivers/acpi/sony_acpi.c
-patching file drivers/acpi/sony_acpi.c
-patching file drivers/acpi/sony_acpi.c
-patching file drivers/acpi/sony_acpi.c
-patching file drivers/acpi/sony_acpi.c
+Begin forwarded message:
 
-> patch -p1 < ../malattia_sony/2_avoid_dimness_on_resume.patch
-> patching file drivers/acpi/sony_acpi.c
-> Hunk #1 succeeded at 46 with fuzz 2.
-> Hunk #2 FAILED at 56.
-> Hunk #3 FAILED at 228.
-> Hunk #4 succeeded at 353 with fuzz 1.
-> Hunk #5 succeeded at 375 with fuzz 1.
-> 2 out of 5 hunks FAILED -- saving rejects to file 
-> drivers/acpi/sony_acpi.c.rej
+Date: Mon, 15 Jan 2007 10:18:53 -0800
+From: bugme-daemon@bugzilla.kernel.org
+To: bugme-new@lists.osdl.org
+Subject: [Bugme-new] [Bug 7828] New: Reboot instead of powerdown with 2.6.20-rc4 or 2.6.20-rc5
 
-The really strange thing is that since the sony_acpi.c file doesn't
-exist in mainline and is created in the first patch, at least the
-patches on it shouldn't fail... :)
 
-hummm... could you retry with a fresh tree?
--- 
-mattia
-:wq!
+http://bugzilla.kernel.org/show_bug.cgi?id=7828
+
+           Summary: Reboot instead of powerdown with 2.6.20-rc4 or 2.6.20-
+                    rc5
+    Kernel Version: 2.6.20-rc5
+            Status: NEW
+          Severity: normal
+             Owner: power-management_other@kernel-bugs.osdl.org
+         Submitter: francois.valenduc@skynet.be
+
+
+Most recent kernel where this bug did *NOT* occur: 2.6.19.2 (or maybe 2.6.20
+until rc3, I haven't tested 2.6.20 before rc4)
+Distribution: Debian sid
+Hardware Environment: ACER Travelmate 4001 WMli, processor Intel centrino 1,5
+GhZ (pentium M family)
+Software Environment: I don't think it's relevant
+Problem Description: When I wan't to shutdown the computer, the shutdown
+sequence occurs as expected, however, when the computer is supposed to power
+down, it reboots.
+
+Steps to reproduce: Try to powerdown the computer.
+
+Please don't hesitate to ask more info if needed.
+
+------- You are receiving this mail because: -------
+You are on the CC list for the bug, or are watching someone who is.
