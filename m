@@ -1,184 +1,206 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [patch 5/5] ACPI: remove motherboard driver (redundant with PNP system driver)
-Date: Tue, 16 Jan 2007 10:35:45 -0700
-Message-ID: <200701161035.45188.bjorn.helgaas@hp.com>
-References: <200701161028.10109.bjorn.helgaas@hp.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI: Recode the acpi_get_pci_rootbridge_handle() to boot faster
+Date: Tue, 16 Jan 2007 17:00:42 -0500
+Message-ID: <200701161700.42285.lenb@kernel.org>
+References: <BD66F1A3AD5256419EBBAAA492578482E224D5@G3W0068.americas.hpqcorp.net> <200612061017.10405.bjorn.helgaas@hp.com> <200701121210.19779.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel6.hp.com ([156.153.255.205]:45278 "EHLO atlrel6.hp.com"
+Received: from hera.kernel.org ([140.211.167.34]:52572 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751954AbXAPRgT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Jan 2007 12:36:19 -0500
-In-Reply-To: <200701161028.10109.bjorn.helgaas@hp.com>
+	id S1751662AbXAPWCe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Jan 2007 17:02:34 -0500
+In-Reply-To: <200701121210.19779.bjorn.helgaas@hp.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Matthieu Castet <castet.matthieu@free.fr>, Li Shaohua <shaohua.li@intel.com>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: "Chen, Justin" <justin.chen@hp.com>, len.brown@intel.com, linux-acpi@vger.kernel.org, Matthew Wilcox <matthew@wil.cx>, "Li, Shaohua" <shaohua.li@intel.com>
 
-The PNP system board driver (drivers/pnp/system.c) contains all the
-same functionality, so we don't need the ACPI version.
+On Friday 12 January 2007 14:10, Bjorn Helgaas wrote:
+> On Wednesday 06 December 2006 10:17, Bjorn Helgaas wrote:
+> > Here's a non-line-wrapped version.  Justin sent this yesterday
+> > but it didn't make it to the list for some reason, so I'm
+> > trying again.
+> 
+> Ping!  Any reaction to this?  It makes a BIG difference in
+> boot time on large system.s
 
-Previously, a motherboard device would be claimed by *both* the ACPI and
-PNP drivers, resulting in stuff like this in /proc/ioports:
 
-    1200-121f : motherboard	<-- from drivers/acpi/motherboard.c
-      1200-121f : pnp 00:0d	<-- from drivers/pnp/system.c
+Applied.
+thanks for the ping.
 
-Make sure to enable CONFIG_PNP (and CONFIG_PNPACPI) to include the
-PNP system board driver.
+-Len
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-
-Index: mm-work13/drivers/acpi/Makefile
-===================================================================
---- mm-work13.orig/drivers/acpi/Makefile	2007-01-08 12:03:18.000000000 -0700
-+++ mm-work13/drivers/acpi/Makefile	2007-01-11 13:17:02.000000000 -0700
-@@ -37,7 +37,7 @@
- 
- obj-y				+= sleep/
- obj-y				+= bus.o glue.o
--obj-y				+= scan.o motherboard.o
-+obj-y				+= scan.o
- obj-$(CONFIG_ACPI_AC) 		+= ac.o
- obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
- obj-$(CONFIG_ACPI_BUTTON)	+= button.o
-Index: mm-work13/drivers/acpi/motherboard.c
-===================================================================
---- mm-work13.orig/drivers/acpi/motherboard.c	2007-01-11 12:35:28.000000000 -0700
-+++ /dev/null	1970-01-01 00:00:00.000000000 +0000
-@@ -1,131 +0,0 @@
--/* 
-- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- *  This program is free software; you can redistribute it and/or modify
-- *  it under the terms of the GNU General Public License as published by
-- *  the Free Software Foundation; either version 2 of the License, or (at
-- *  your option) any later version.
-- *
-- *  This program is distributed in the hope that it will be useful, but
-- *  WITHOUT ANY WARRANTY; without even the implied warranty of
-- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- *  General Public License for more details.
-- *
-- *  You should have received a copy of the GNU General Public License along
-- *  with this program; if not, write to the Free Software Foundation, Inc.,
-- *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-- *
-- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- */
--
--/* Purpose: Prevent PCMCIA cards from using motherboard resources. */
--
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/types.h>
--#include <linux/pci.h>
--#include <linux/ioport.h>
--#include <asm/io.h>
--
--#include <acpi/acpi_bus.h>
--#include <acpi/acpi_drivers.h>
--
--#define _COMPONENT		ACPI_SYSTEM_COMPONENT
--ACPI_MODULE_NAME("acpi_motherboard")
--
--/* Dell use PNP0C01 instead of PNP0C02 */
--#define ACPI_MB_HID			"PNP0C01,PNP0C02"
--/**
-- * Doesn't care about legacy IO ports, only IO ports beyond 0x1000 are reserved
-- * Doesn't care about the failure of 'request_region', since other may reserve
-- * the io ports as well
-- */
--#define IS_RESERVED_ADDR(base, len) \
--	(((len) > 0) && ((base) > 0) && ((base) + (len) < IO_SPACE_LIMIT) \
--	&& ((base) + (len) > PCIBIOS_MIN_IO))
--/*
-- * Clearing the flag (IORESOURCE_BUSY) allows drivers to use
-- * the io ports if they really know they can use it, while
-- * still preventing hotplug PCI devices from using it.
-- */
--
--/*
-- * When CONFIG_PNP is enabled, pnp/system.c binds to PNP0C01
-- * and PNP0C02, redundant with acpi_reserve_io_ranges().
-- * But acpi_reserve_io_ranges() is necessary for !CONFIG_PNP.
-- */
--static acpi_status acpi_reserve_io_ranges(struct acpi_resource *res, void *data)
--{
--	struct resource *requested_res = NULL;
--
--
--	if (res->type == ACPI_RESOURCE_TYPE_IO) {
--		struct acpi_resource_io *io_res = &res->data.io;
--
--		if (io_res->minimum != io_res->maximum)
--			return AE_OK;
--		if (IS_RESERVED_ADDR
--		    (io_res->minimum, io_res->address_length)) {
--			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--					  "Motherboard resources 0x%08x - 0x%08x\n",
--					  io_res->minimum,
--					  io_res->minimum +
--					  io_res->address_length));
--			requested_res =
--			    request_region(io_res->minimum,
--					   io_res->address_length, "motherboard");
--		}
--	} else if (res->type == ACPI_RESOURCE_TYPE_FIXED_IO) {
--		struct acpi_resource_fixed_io *fixed_io_res =
--		    &res->data.fixed_io;
--
--		if (IS_RESERVED_ADDR
--		    (fixed_io_res->address, fixed_io_res->address_length)) {
--			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--					  "Motherboard resources 0x%08x - 0x%08x\n",
--					  fixed_io_res->address,
--					  fixed_io_res->address +
--					  fixed_io_res->address_length));
--			requested_res =
--			    request_region(fixed_io_res->address,
--					   fixed_io_res->address_length,
--					   "motherboard");
--		}
--	} else {
--		/* Memory mapped IO? */
--	}
--
--	if (requested_res)
--		requested_res->flags &= ~IORESOURCE_BUSY;
--	return AE_OK;
--}
--
--static int acpi_motherboard_add(struct acpi_device *device)
--{
--	if (!device)
--		return -EINVAL;
--	acpi_walk_resources(device->handle, METHOD_NAME__CRS,
--			    acpi_reserve_io_ranges, NULL);
--
--	return 0;
--}
--
--static struct acpi_driver acpi_motherboard_driver = {
--	.name = "motherboard",
--	.class = "",
--	.ids = ACPI_MB_HID,
--	.ops = {
--		.add = acpi_motherboard_add,
--		},
--};
--
--static int __init acpi_motherboard_init(void)
--{
--	acpi_bus_register_driver(&acpi_motherboard_driver);
--	return 0;
--}
--
--/**
-- * Reserve motherboard resources after PCI claim BARs,
-- * but before PCI assign resources for uninitialized PCI devices
-- */
--fs_initcall(acpi_motherboard_init);
+> > Move acpi_get_pci_rootbridge_handle() from glue.c to pci_root.c and get the
+> > root bridge acpi handles by searching the &acpi_pci_roots list instead of
+> > walking through the ACPI name space.  This significantly reduces boot time
+> > on large I/O systems.
+> > 
+> > Signed-off-by: Justin Chen <justin.chen@hp.com>
+> > 
+> > diff -Nru a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> > --- a/drivers/acpi/pci_root.c	2006-11-29 13:57:37.000000000 -0800
+> > +++ b/drivers/acpi/pci_root.c	2006-12-04 14:41:14.551395167 -0800
+> > @@ -116,6 +116,19 @@
+> >  
+> >  EXPORT_SYMBOL(acpi_pci_unregister_driver);
+> >  
+> > +acpi_handle acpi_get_pci_rootbridge_handle(unsigned int seg, unsigned int bus)
+> > +{
+> > +	struct acpi_pci_root *tmp;
+> > +	
+> > +	list_for_each_entry(tmp, &acpi_pci_roots, node) {
+> > +		if ((tmp->id.segment == (u16) seg) && (tmp->id.bus == (u16) bus))
+> > +			return tmp->device->handle;
+> > +	}
+> > +	return NULL;		
+> > +}
+> > +
+> > +EXPORT_SYMBOL_GPL(acpi_get_pci_rootbridge_handle);
+> > +
+> >  static acpi_status
+> >  get_root_bridge_busnr_callback(struct acpi_resource *resource, void *data)
+> >  {
+> > diff -Nru a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+> > --- a/drivers/acpi/glue.c	2006-12-04 14:42:53.067995523 -0800
+> > +++ b/drivers/acpi/glue.c	2006-12-04 14:44:42.723267617 -0800
+> > @@ -86,125 +86,6 @@
+> >  	return ret;
+> >  }
+> >  
+> > -/* Get PCI root bridge's handle from its segment and bus number */
+> > -struct acpi_find_pci_root {
+> > -	unsigned int seg;
+> > -	unsigned int bus;
+> > -	acpi_handle handle;
+> > -};
+> > -
+> > -static acpi_status
+> > -do_root_bridge_busnr_callback(struct acpi_resource *resource, void *data)
+> > -{
+> > -	unsigned long *busnr = (unsigned long *)data;
+> > -	struct acpi_resource_address64 address;
+> > -
+> > -	if (resource->type != ACPI_RESOURCE_TYPE_ADDRESS16 &&
+> > -	    resource->type != ACPI_RESOURCE_TYPE_ADDRESS32 &&
+> > -	    resource->type != ACPI_RESOURCE_TYPE_ADDRESS64)
+> > -		return AE_OK;
+> > -
+> > -	acpi_resource_to_address64(resource, &address);
+> > -	if ((address.address_length > 0) &&
+> > -	    (address.resource_type == ACPI_BUS_NUMBER_RANGE))
+> > -		*busnr = address.minimum;
+> > -
+> > -	return AE_OK;
+> > -}
+> > -
+> > -static int get_root_bridge_busnr(acpi_handle handle)
+> > -{
+> > -	acpi_status status;
+> > -	unsigned long bus, bbn;
+> > -	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+> > -
+> > -	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
+> > -
+> > -	status = acpi_evaluate_integer(handle, METHOD_NAME__BBN, NULL,
+> > -				       &bbn);
+> > -	if (status == AE_NOT_FOUND) {
+> > -		/* Assume bus = 0 */
+> > -		printk(KERN_INFO PREFIX
+> > -		       "Assume root bridge [%s] bus is 0\n",
+> > -		       (char *)buffer.pointer);
+> > -		status = AE_OK;
+> > -		bbn = 0;
+> > -	}
+> > -	if (ACPI_FAILURE(status)) {
+> > -		bbn = -ENODEV;
+> > -		goto exit;
+> > -	}
+> > -	if (bbn > 0)
+> > -		goto exit;
+> > -
+> > -	/* _BBN in some systems return 0 for all root bridges */
+> > -	bus = -1;
+> > -	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
+> > -				     do_root_bridge_busnr_callback, &bus);
+> > -	/* If _CRS failed, we just use _BBN */
+> > -	if (ACPI_FAILURE(status) || (bus == -1))
+> > -		goto exit;
+> > -	/* We select _CRS */
+> > -	if (bbn != bus) {
+> > -		printk(KERN_INFO PREFIX
+> > -		       "_BBN and _CRS returns different value for %s. Select _CRS\n",
+> > -		       (char *)buffer.pointer);
+> > -		bbn = bus;
+> > -	}
+> > -      exit:
+> > -	kfree(buffer.pointer);
+> > -	return (int)bbn;
+> > -}
+> > -
+> > -static acpi_status
+> > -find_pci_rootbridge(acpi_handle handle, u32 lvl, void *context, void **rv)
+> > -{
+> > -	struct acpi_find_pci_root *find = (struct acpi_find_pci_root *)context;
+> > -	unsigned long seg, bus;
+> > -	acpi_status status;
+> > -	int tmp;
+> > -	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+> > -
+> > -	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
+> > -
+> > -	status = acpi_evaluate_integer(handle, METHOD_NAME__SEG, NULL, &seg);
+> > -	if (status == AE_NOT_FOUND) {
+> > -		/* Assume seg = 0 */
+> > -		status = AE_OK;
+> > -		seg = 0;
+> > -	}
+> > -	if (ACPI_FAILURE(status)) {
+> > -		status = AE_CTRL_DEPTH;
+> > -		goto exit;
+> > -	}
+> > -
+> > -	tmp = get_root_bridge_busnr(handle);
+> > -	if (tmp < 0) {
+> > -		printk(KERN_ERR PREFIX
+> > -		       "Find root bridge failed for %s\n",
+> > -		       (char *)buffer.pointer);
+> > -		status = AE_CTRL_DEPTH;
+> > -		goto exit;
+> > -	}
+> > -	bus = tmp;
+> > -
+> > -	if (seg == find->seg && bus == find->bus)
+> > -		find->handle = handle;
+> > -	status = AE_OK;
+> > -      exit:
+> > -	kfree(buffer.pointer);
+> > -	return status;
+> > -}
+> > -
+> > -acpi_handle acpi_get_pci_rootbridge_handle(unsigned int seg, unsigned int bus)
+> > -{
+> > -	struct acpi_find_pci_root find = { seg, bus, NULL };
+> > -
+> > -	acpi_get_devices(PCI_ROOT_HID_STRING, find_pci_rootbridge, &find, NULL);
+> > -	return find.handle;
+> > -}
+> > -EXPORT_SYMBOL_GPL(acpi_get_pci_rootbridge_handle);
+> > -
+> >  /* Get device's handler per its address under its parent */
+> >  struct acpi_find_child {
+> >  	acpi_handle handle;
+> > 
+> > -
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
