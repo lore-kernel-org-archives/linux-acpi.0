@@ -1,95 +1,65 @@
-From: "Mattia Dongili" <malattia@linux.it>
-Subject: Re: [PATCH 0/11] sony_acpi: prepare for prime time (resend)
-Date: Wed, 17 Jan 2007 10:34:57 +0100 (CET)
-Message-ID: <54970.85.47.20.193.1169026497.squirrel@picard.linux.it>
-References: <11687258812893-git-send-email-malattia@linux.it>
-    <3877989d0701150101y1098e27ep26c1df0798292997@mail.gmail.com>
-    <20070115191250.GA6912@inferi.kami.home>
-    <3877989d0701162150k63640835n4489f87279d8fc6f@mail.gmail.com>
+From: Peter Clifton <pcjc2@cam.ac.uk>
+Subject: Re: HP Compaq nc6320 - Booting on battery power causes softlock
+Date: Wed, 17 Jan 2007 14:21:59 +0000
+Message-ID: <1169043719.6273.8.camel@localhost>
+References: <1169002596.29755.5.camel@localhost>
+	 <3877989d0701161904u6ef2b931t99b79d92dd974f2a@mail.gmail.com>
+	 <200701162215.34627.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from picard.linux.it ([213.254.12.146]:53980 "EHLO picard.linux.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932209AbXAQJ6L (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 17 Jan 2007 04:58:11 -0500
-In-Reply-To: <3877989d0701162150k63640835n4489f87279d8fc6f@mail.gmail.com>
+Received: from ppsw-7.csi.cam.ac.uk ([131.111.8.137]:57792 "EHLO
+	ppsw-7.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932323AbXAQOWW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jan 2007 09:22:22 -0500
+In-Reply-To: <200701162215.34627.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Luming Yu <luming.yu@gmail.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Luming Yu <luming.yu@gmail.com>, linux-acpi@vger.kernel.org
 
-On Wed, January 17, 2007 6:50 am, Luming Yu said:
-> On 1/15/07, Mattia Dongili <malattia@linux.it> wrote:
->> Hello and sorry for the delay
->>
->> On Mon, Jan 15, 2007 at 04:01:14AM -0500, Luming Yu wrote:
->> > Patch series is not clean against 2.6.20-rc5.
->> >
->> > patch -p1 < ../malattia_sony/1_snc_device_support_for_sony_va
->> > io.patch
->> > patching file Documentation/acpi/sony_acpi.txt
->> > patching file drivers/acpi/Kconfig
->> > Hunk #1 succeeded at 252 with fuzz 2 (offset -9 lines).
->> > patching file drivers/acpi/Makefile
->> > Hunk #1 FAILED at 54.
->> > 1 out of 1 hunk FAILED -- saving rejects to file
->> drivers/acpi/Makefile.rej
->> > patching file drivers/acpi/sony_acpi.c
->> ...
->>
->> uh. I'm developing on the acpi tree test branch, however I just tried
->> the patches on a freshly unpacked/patched .20-rc5 and the patches apply
->> without any reject.
->
-> I was using linus's linux-2.6 git tree.
-> Then, I tried the patch series on a fresh unpacked 2.6.20-rc5.
-> I still got :
->
-> #  patch -p1 < ../malattia_sony/1_snc_device_support_for_sony_vaio.patch
-> patching file Documentation/acpi/sony_acpi.txt
-> patching file drivers/acpi/Kconfig
-> Hunk #1 succeeded at 252 with fuzz 2 (offset -9 lines).
-> patching file drivers/acpi/Makefile
-> Hunk #1 FAILED at 54.
-> 1 out of 1 hunk FAILED -- saving rejects to file drivers/acpi/Makefile.rej
-> patching file drivers/acpi/sony_acpi.c
+On Tue, 2007-01-16 at 22:15 -0500, Len Brown wrote:
+> try also "apm=off" -- since the ACPI/APM dependency checking
+> is currently broken in some configs.
+> 
+> On Tuesday 16 January 2007 22:04, Luming Yu wrote:
+> > The first thing is to make sure you are running the latest bios, kernel.
+> > Then, you need to sort out the kernel component/modules/drivers that
+> > cause the problem.
+> > If you guess it is ACPI issue, pleas test boot option acpi=off to see
+> > if the problem goes away. If you guess it is battery issue, please
+> > remove battery module, etc.
+> > Please don't forget to enter a bug in bugzilla.kernel.org.
+> > 
+> > Thanks,
+> > Luming
 
-can you show the contents of the rejects on Makefile? and also the next
-one with the second patch on sony_acpi.c?
+Ok, I've tested acpi=off and apm=off with the stock Ubuntu kernel. It
+didn't softlock with either, but I'll try to use one of the two when
+booting now to ensure it is consistent.
 
-> patch -p1 < ../malattia_sony/2_avoid_dimness_on_resume.patch
-> patching file drivers/acpi/sony_acpi.c
-> Hunk #1 succeeded at 46 with fuzz 2.
-> Hunk #2 FAILED at 56.
-> Hunk #3 FAILED at 228.
-> Hunk #4 succeeded at 353 with fuzz 1.
-> Hunk #5 succeeded at 375 with fuzz 1.
-> 2 out of 5 hunks FAILED -- saving rejects to file
-> drivers/acpi/sony_acpi.c.rej
->
-> Is 2_avoid_dimness_on_resume.patch a right patch, or in right order?
+with acpi=off, there was a backtrace printed from an unloved IRQ11, and
+the sound card wasn't particularly happy. These HP laptops seem very
+picky - perhaps I should buy an IBM next time for linux!
 
-yes, this is how I have the patches as created by git-format-patch:
+I've filed a bug, #7840, http://bugzilla.kernel.org/show_bug.cgi?id=7840
 
-0001-SNC-device-support-for-Sony-Vaios.txt
-0002-Avoid-dimness-on-resume.txt
-0003-Fix-sony_acpi_resume-call.txt
-0004-Add-backlight-support-to-the-sony_acpi.txt
-0005-Add-backlight-support-to-the-sony_acpi-v2.txt
-0006-Video-sysfs-support-take-2.txt
-0007-Add-acpi_bus_generate-event.txt
-0008-Allow-easier-debugging-for-the-unknown-SNC-methods.txt
-0009-Add-lanpower-and-audiopower-controls.txt
-0010-Allow-multiple-sony_acpi_values-for-the-same-.name.txt
-0011-Fix-sony_acpi-backlight-registration-and-unregistration.txt
+It is under ACPI/Other. Attached to that bug is dmesg output from the
+normal AC boot, and battery boots with acpi=off, api=off, also an
+acpidump output from the normal AC boot.
 
-don't know, I put them all here, if useful:
-http://oioio.altervista.org/linux/to_len.tar.gz
+I will check the bios, and vanilla kernel tests when I get chance.
+Unfortunately, it seems quite hard to get a kernel config which exactly
+matches a stock Ubuntu one (for keeping as few variables changed as
+possible). I can recompile a kernel source deb for Ubuntu quite happily,
+but it produces a huge number of versions, and takes many many hours
+(brings me back to using linux on a [34]86 :))
 
--- 
-mattia
-:wq!
+Thanks for your input Luming, Len.
+
+Regards,
+
+Peter Clifton
 
 
