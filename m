@@ -1,129 +1,55 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Fwd: [patch] ACPI: fix cpufreq regression
-Date: Tue, 16 Jan 2007 22:13:14 -0500
-Message-ID: <200701162213.14875.lenb@kernel.org>
+Subject: Re: HP Compaq nc6320 - Booting on battery power causes softlock
+Date: Tue, 16 Jan 2007 22:15:34 -0500
+Message-ID: <200701162215.34627.lenb@kernel.org>
+References: <1169002596.29755.5.camel@localhost> <3877989d0701161904u6ef2b931t99b79d92dd974f2a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
+Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:50020 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:50040 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751987AbXAQDOc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Jan 2007 22:14:32 -0500
-Received: from d975xbx2.site (c-65-96-213-102.hsd1.ma.comcast.net [65.96.213.102])
-	(authenticated bits=0)
-	by hera.kernel.org (8.13.8/8.13.7) with ESMTP id l0H3DKKv004251
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Wed, 17 Jan 2007 03:14:30 GMT
+	id S1751990AbXAQDQ5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Jan 2007 22:16:57 -0500
+In-Reply-To: <3877989d0701161904u6ef2b931t99b79d92dd974f2a@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Luming Yu <luming.yu@gmail.com>
+Cc: Peter Clifton <pcjc2@cam.ac.uk>, linux-acpi@vger.kernel.org
 
-nobody else with a T60 noticed this since November?
+try also "apm=off" -- since the ACPI/APM dependency checking
+is currently broken in some configs.
 
-----------  Forwarded Message  ----------
-
-Subject: [patch] ACPI: fix cpufreq regression
-Date: Tuesday 16 January 2007 12:09
-From: Ingo Molnar <mingo@elte.hu>
-To: Andrew Morton <akpm@osdl.org>
-Cc: linux-kernel@vger.kernel.org, Dave Jones <davej@redhat.com>, Linus Torvalds <torvalds@osdl.org>, Len Brown <lenb@kernel.org>
-
-Subject: [patch] ACPI: fix cpufreq regression
-From: Ingo Molnar <mingo@elte.hu>
-
-recently cpufreq support on my laptop (Lenovo T60) broke completely: 
-when it's plugged into AC it would never go higher than 1 GHz - neither 
-1.3 GHz nor 1.83 GHz is possible - no matter which governor (userspace, 
-speed or ondemand) is used.
-
-after some cpufreq debugging i tracked the regression back to the 
-following (totally correct) bug-fix commit:
-
-   commit 0916bd3ebb7cefdd0f432e8491abe24f4b5a101e
-   Author: Dave Jones <davej@redhat.com>
-   Date:   Wed Nov 22 20:42:01 2006 -0500
-
-    [PATCH] Correct bound checking from the value returned from _PPC method.
-
-this bugfix, which makes other laptops work, made a previously hidden 
-(BIOS) bug visible on my laptop.
-
-The bug is the following: if the _PPC (Performance Present Capabilities) 
-optional ACPI object is queried /after/ bootup then the BIOS reports an 
-incorrect value of '2'.
-
-My laptop (Lenovo T60) has the following performance states supported:
-
-   0: 1833000
-   1: 1333000
-   2: 1000000
-
-Per ACPI specification, a _PPC value of '0' means that all 3 performance 
-states are usable. A _PPC value of '1' means states 1 .. 2 are usable, a 
-value of '2' means only state '2' (slowest) is usable.
-
-now, the _PPC object is optional, and it also comes with notification. 
-Furthermore, when a CPU object is initialized, the _PPC object is 
-initialized as well. So the following evaluation of the _PPC object is 
-superfluous:
-
- [<c028ba5f>] acpi_processor_get_platform_limit+0xa1/0xaf
- [<c028c040>] acpi_processor_register_performance+0x3b9/0x3ef
- [<c0111a85>] acpi_cpufreq_cpu_init+0xb7/0x596
- [<c03dab74>] cpufreq_add_dev+0x160/0x4a8
- [<c02bed90>] sysdev_driver_register+0x5a/0xa0
- [<c03d9c4c>] cpufreq_register_driver+0xb4/0x176
- [<c068ac08>] acpi_cpufreq_init+0xe5/0xeb
- [<c010056e>] init+0x14f/0x3dd
-
-and this is the point where my laptop's BIOS returns the incorrect value 
-of '2'. Note that it has not sent any notification event, so the value 
-is probably not really intentional (possibly spurious), and Windows 
-likely doesnt query it after bootup either. Maybe the value is kept at 
-'2' normally, and is only set to the real value when a true asynchronous 
-event (such as AC plug event, battery switch, etc.) occurs.
-
-So i /think/ this is a grey area of the ACPI spec: per the letter of the 
-spec the _PPC value only changes when notified, so there's no reason to 
-query it after the system has booted up. So in my opinion the best (and 
-most compatible) strategy would be to do the change below, and to not 
-evaluate the _PPC object in the acpi_processor_get_performance_info() 
-call, but only evaluate it if _PPC is present during CPU object init, or 
-if it's notified during an asynchronous event. This change is more 
-permissive than the previous logic, so it definitely shouldnt break any 
-existing system.
-
-This also happens to fix my laptop, which is merrily chugging along at 
-1.83 GHz now. Yay!
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
----
- drivers/acpi/processor_perflib.c |    4 ----
- 1 file changed, 4 deletions(-)
-
-Index: linux/drivers/acpi/processor_perflib.c
-===================================================================
---- linux.orig/drivers/acpi/processor_perflib.c
-+++ linux/drivers/acpi/processor_perflib.c
-@@ -322,10 +322,6 @@ static int acpi_processor_get_performanc
- 	if (result)
- 		return result;
- 
--	result = acpi_processor_get_platform_limit(pr);
--	if (result)
--		return result;
--
- 	return 0;
- }
- 
--
-To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-Please read the FAQ at  http://www.tux.org/lkml/
-
-
--------------------------------------------------------
+On Tuesday 16 January 2007 22:04, Luming Yu wrote:
+> The first thing is to make sure you are running the latest bios, kernel.
+> Then, you need to sort out the kernel component/modules/drivers that
+> cause the problem.
+> If you guess it is ACPI issue, pleas test boot option acpi=off to see
+> if the problem goes away. If you guess it is battery issue, please
+> remove battery module, etc.
+> Please don't forget to enter a bug in bugzilla.kernel.org.
+> 
+> Thanks,
+> Luming
+> 
+> On 1/17/07, Peter Clifton <pcjc2@cam.ac.uk> wrote:
+> > Hi, I've got an issue with my HP Compaq nc6320, where it won't boot off
+> > its battery without softlocking on CPU#0. I remember it booting ok off
+> > battery occasionally in the past, but once I've seen the fault - the
+> > only way I can get it to boot is off AC. (I usually boot off AC anyway).
+> >
+> > I'm presuming ACPI as a good starting point, since that is an area where
+> > AC / Battery may make a difference.
+> >
+> > Can anyone suggest a debugging procedure to identify the cause of a
+> > softlock, and where would be appropriate (which category) to file a
+> > kernel bug for this?
+> >
+> >
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
