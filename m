@@ -1,67 +1,33 @@
-From: emisca <emisca.ml@gmail.com>
-Subject: Re: i810, mergedfb and lid switch and acpi video
-Date: Wed, 17 Jan 2007 16:08:52 +0100
-Message-ID: <414cba4e0701170708s188b72feube3b50293df201ed@mail.gmail.com>
-References: <1C601A6A3344064EB423D0C1E83B717BE6FD77@pdsmsx411.ccr.corp.intel.com>
-	 <1169043819.6273.10.camel@localhost>
+From: Peter Clifton <pcjc2@cam.ac.uk>
+Subject: Re: HP Compaq nc6320 - Booting on battery power causes softlock
+Date: Wed, 17 Jan 2007 15:52:32 +0000
+Message-ID: <1169049152.5743.0.camel@localhost>
+References: <1169002596.29755.5.camel@localhost>
+	 <3877989d0701161904u6ef2b931t99b79d92dd974f2a@mail.gmail.com>
+	 <200701162215.34627.lenb@kernel.org>  <1169043719.6273.8.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.174]:49552 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751443AbXAQPIy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jan 2007 10:08:54 -0500
-Received: by ug-out-1314.google.com with SMTP id 44so2008998uga
-        for <linux-acpi@vger.kernel.org>; Wed, 17 Jan 2007 07:08:53 -0800 (PST)
-In-Reply-To: <1169043819.6273.10.camel@localhost>
-Content-Disposition: inline
+Received: from ppsw-7.csi.cam.ac.uk ([131.111.8.137]:60402 "EHLO
+	ppsw-7.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751410AbXAQPww (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jan 2007 10:52:52 -0500
+In-Reply-To: <1169043719.6273.8.camel@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: xorg@lists.freedesktop.org, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Luming Yu <luming.yu@gmail.com>, linux-acpi@vger.kernel.org
 
-I've also seen that windows vista document... perhaps it's a
-requirement to pass vista certification to have the _BCQ method.
-In addition when I compile the dsdt with iasl it complains about _BCQ
-as unknown............ Microsoft decided to change that name and hp
-followed them?
-Yesterday I've seen that there is a new bios for my machine, version
-F0A. Does anyone experimented with it? I will try it on the weekend...
-For now I'll try to change the DSDT file, I use the patch to replace
-DSDT on linux and I'll report if it works.
+On Wed, 2007-01-17 at 14:21 +0000, Peter Clifton wrote:
 
-Regarding the lid switch, is there something I could try?
+> Ok, I've tested acpi=off and apm=off with the stock Ubuntu kernel. It
+> didn't softlock with either, but I'll try to use one of the two when
+> booting now to ensure it is consistent.
 
-Bye
+Ok, having tried some more, apm=off can still give a softlock. Will keep
+trying with acpi=off.
 
-2007/1/17, Peter Clifton <pcjc2@cam.ac.uk>:
-> SORRY - sent back to Luming by mistake - meant to send to all.
->
-> On Wed, 2007-01-17 at 12:20 +0800, Yu, Luming wrote:
->
-> > But there is NO _BQC. Instead of _BQC, there do have a _BCQ in DSDT.
-> > Is this a bug of BIOS? Acpi video drvier needs _BQC to get the
-> > current brightness level, and to get the next level to set on
-> receiving
-> > notification of 0x86 (Increase Brightness) , 0x87 (decrease
-> Brightness).
->
-> I can ACK that my HP had a similar typo / feature with its intel based
-> video:
->
-> 00:02.0 VGA compatible controller: Intel Corporation Mobile
-> 945GM/GMS/940GML Express Integrated Graphics Controller (rev 03)
->
-> The _BQC is absent, but a strange _BCQ is there - which looks to give
-> the correct functionality.
->
-> The ONLY place I can find any reference to _BCQ is in a couple of
-> Windows Vista design documents about making display brightness work with
-> Vista.
->
-> Thank you Microsoft, for that typo - presuming thats what it is!
->
-> Peter Clifton
->
->
->
+Peter C.
+
+
