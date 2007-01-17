@@ -1,49 +1,68 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: i810, mergedfb and lid switch and acpi video
-Date: Wed, 17 Jan 2007 12:20:20 +0800
-Message-ID: <1C601A6A3344064EB423D0C1E83B717BE6FD77@pdsmsx411.ccr.corp.intel.com>
-References: <414cba4e0701150039j27d5ffcaw78e31e4119779872@mail.gmail.com>
+From: "Luming Yu" <luming.yu@gmail.com>
+Subject: Re: [PATCH 0/11] sony_acpi: prepare for prime time (resend)
+Date: Wed, 17 Jan 2007 00:50:30 -0500
+Message-ID: <3877989d0701162150k63640835n4489f87279d8fc6f@mail.gmail.com>
+References: <11687258812893-git-send-email-malattia@linux.it>
+	 <3877989d0701150101y1098e27ep26c1df0798292997@mail.gmail.com>
+	 <20070115191250.GA6912@inferi.kami.home>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:9189 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752010AbXAQEUZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Jan 2007 23:20:25 -0500
-Content-class: urn:content-classes:message
-In-Reply-To: <414cba4e0701150039j27d5ffcaw78e31e4119779872@mail.gmail.com>
+Received: from wx-out-0506.google.com ([66.249.82.229]:1594 "EHLO
+	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752029AbXAQFub (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jan 2007 00:50:31 -0500
+Received: by wx-out-0506.google.com with SMTP id h31so2393467wxd
+        for <linux-acpi@vger.kernel.org>; Tue, 16 Jan 2007 21:50:31 -0800 (PST)
+In-Reply-To: <20070115191250.GA6912@inferi.kami.home>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: emisca <emisca.ml@gmail.com>
-Cc: xorg@lists.freedesktop.org, linux-acpi@vger.kernel.org
+To: Mattia Dongili <malattia@linux.it>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
 
->Here are the dsdt decompiled, and the acpidump output.
->Could you see also the section related to brightness control? I can
+On 1/15/07, Mattia Dongili <malattia@linux.it> wrote:
+> Hello and sorry for the delay
+>
+> On Mon, Jan 15, 2007 at 04:01:14AM -0500, Luming Yu wrote:
+> > Patch series is not clean against 2.6.20-rc5.
+> >
+> > patch -p1 < ../malattia_sony/1_snc_device_support_for_sony_va
+> > io.patch
+> > patching file Documentation/acpi/sony_acpi.txt
+> > patching file drivers/acpi/Kconfig
+> > Hunk #1 succeeded at 252 with fuzz 2 (offset -9 lines).
+> > patching file drivers/acpi/Makefile
+> > Hunk #1 FAILED at 54.
+> > 1 out of 1 hunk FAILED -- saving rejects to file drivers/acpi/Makefile.rej
+> > patching file drivers/acpi/sony_acpi.c
+> ...
+>
+> uh. I'm developing on the acpi tree test branch, however I just tried
+> the patches on a freshly unpacked/patched .20-rc5 and the patches apply
+> without any reject.
 
-Yes, I found :
+I was using linus's linux-2.6 git tree.
+Then, I tried the patch series on a fresh unpacked 2.6.20-rc5.
+I still got :
 
-Method (_L02,..)
-	    If (LEqual (Local0, 0x03))
-                {
-                    Notify (\_SB.C002.C080.C13F, 0x87)
-                }
+#  patch -p1 < ../malattia_sony/1_snc_device_support_for_sony_vaio.patch
+patching file Documentation/acpi/sony_acpi.txt
+patching file drivers/acpi/Kconfig
+Hunk #1 succeeded at 252 with fuzz 2 (offset -9 lines).
+patching file drivers/acpi/Makefile
+Hunk #1 FAILED at 54.
+1 out of 1 hunk FAILED -- saving rejects to file drivers/acpi/Makefile.rej
+patching file drivers/acpi/sony_acpi.c
 
-                If (LEqual (Local0, 0x02))
-                {
-                    Notify (\_SB.C002.C080.C13F, 0x86)
-                }
-And:
-	_BCL, _BCM under C13F.
+patch -p1 < ../malattia_sony/2_avoid_dimness_on_resume.patch
+patching file drivers/acpi/sony_acpi.c
+Hunk #1 succeeded at 46 with fuzz 2.
+Hunk #2 FAILED at 56.
+Hunk #3 FAILED at 228.
+Hunk #4 succeeded at 353 with fuzz 1.
+Hunk #5 succeeded at 375 with fuzz 1.
+2 out of 5 hunks FAILED -- saving rejects to file drivers/acpi/sony_acpi.c.rej
 
-But there is NO _BQC. Instead of _BQC, there do have a _BCQ in DSDT.
-Is this a bug of BIOS? Acpi video drvier needs _BQC to get the
-current brightness level, and to get the next level to set on receiving
-notification of 0x86 (Increase Brightness) , 0x87 (decrease Brightness).
-
-Could you just try to replace _BQC with _BCQ in acpi/video.c?
-
-
-Thanks,
-Luming
+Is 2_avoid_dimness_on_resume.patch a right patch, or in right order?
