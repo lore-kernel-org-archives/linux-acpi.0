@@ -1,70 +1,66 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 4/5] i386: turn on CONFIG_PNP in defconfig
-Date: Wed, 17 Jan 2007 22:08:56 -0500
-Message-ID: <200701172208.56185.lenb@kernel.org>
-References: <200701161028.10109.bjorn.helgaas@hp.com> <200701161034.59194.bjorn.helgaas@hp.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH 0/6] [-mm]: ACPI: duplicate ACPI procfs functions in
+	sysfs
+Date: Thu, 18 Jan 2007 14:53:02 +0800
+Message-ID: <1169103182.1585.67.camel@localhost.localdomain>
+References: <1168083306.5619.34.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:54762 "EHLO hera.kernel.org"
+Received: from mga01.intel.com ([192.55.52.88]:14548 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751023AbXARDKb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 17 Jan 2007 22:10:31 -0500
-In-Reply-To: <200701161034.59194.bjorn.helgaas@hp.com>
-Content-Disposition: inline
+	id S1751909AbXARGw1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 18 Jan 2007 01:52:27 -0500
+In-Reply-To: <1168083306.5619.34.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-acpi@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Matthieu Castet <castet.matthieu@free.fr>, Li Shaohua <shaohua.li@intel.com>
+To: len.brown@intel.com
+Cc: "linux-acpi@vger" <linux-acpi@vger.kernel.org>, david-b@pacbell.net, mjg59@srcf.ucam.org, pavel@ucw.cz, randy.dunlap@oracle.com, fiodor.f.suietov@intel.com
 
-On Tuesday 16 January 2007 12:34, Bjorn Helgaas wrote:
-> I'm trying to remove drivers/acpi/motherboard.c, which is mostly
-> redundant with drivers/pnp/system.c.  So make sure that we include the
-> PNP driver in the default config.  Most distros enable this already.
+> Patch 01:
+> 	add a Kconfig option which is used to make ACPI procfs interface configurable.
+> 	This will be used by all the following sysfs conversion patches.
 > 
-> Turning on CONFIG_PNP also causes the following options to be enabled:
+> Patch 02:
+> 	add ACPI debug attribute in sysfs.
+> 	By applying this patch, /proc/acpi/debug_layer && debug_level is deprecated by
+> 	/sys/module/acpi/parameter/debug_layer && debug_level.
 > 
->     CONFIG_PNPACPI
->     CONFIG_SERIAL_8250_PNP
+> Patch 03-05:
+> 	add ACPI sleep attributes in sysfs.
+> 	/proc/acpi/sleep is already deprecated by /sys/power/state.
+> 	/proc/acpi/alarm is deprecated by /sys/power/alarm.
+> 	For those devices that support "wake" attribute, two files, "sleep_state" and "wakeup", are created for these devices.
+> 	"sleep_state" indicates the lowest sleeping state that can be entered while still providing wake functionality.
+> 	"wakeup" can be used to enable/disable the device's ability to wake a sleeping system.
+> 	So /proc/acpi/wakeup is deprecated by /sys/devices/acpi_system/.../xxx/sleep_state && wakeup.
 > 
-> CONFIG_SERIAL_8250_PNP causes legacy serial ports to be discovered
-> twice, which is ugly but harmless:
-> 
->     serial8250: ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
->     00:07: ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
-> 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> 
-> Index: mm-work13/arch/i386/defconfig
-> ===================================================================
-> --- mm-work13.orig/arch/i386/defconfig	2007-01-11 13:56:18.000000000 -0700
-> +++ mm-work13/arch/i386/defconfig	2007-01-11 13:57:23.000000000 -0700
-> @@ -466,7 +466,7 @@
->  #
->  # Plug and Play support
->  #
-> -# CONFIG_PNP is not set
-> +CONFIG_PNP=y
->  
->  #
->  # Block devices
+Len,
+Now, I'm thinking of dropping patch 03-05.
+"alarm" is ACPI specific and /sys/power/alarm is not a good idea.
+In addition, it can't handle multiple RTCs as David described.
+So, if the new rtc-cmos driver written by David works well,
+this's not needed any more. :)
 
-shouldn't CONFIG_PNPACPI=y also appear in defconfig with this change?
-If it doesn't, then somebody who runs make oldconfig will get prompted for it.
-
-Also, do we need to be concerned about the case where
-CONFIG_PNP=n
-CONFIG_ACPI=y
-This is the case that motherboard.c was intended to cover.
-
-CONFIG_PNP depends on ACPI (or ISA)
-But nothing mandates that somebody must select it.
-
-what do you think?
-
--Len
-
-
--Len
+"wakeup" attribute for ACPI wakeup devices is in the wish list.
+	1. Try to map ACPI devices to the physical devices.
+	   It's not very easy, as we can not find a generic method to
+	   map ACPI wakeup devices to physical devices. So I have to
+	   divide them into several groups, e.g. PCI, legacy serial,
+	   legacy PS2, etc. And verify which group the ACPI device 
+	   belongs to.
+	2. add "wakeup" properly to /sys/device/(not ACPI)/...
+	   I'll investigate the possibility of integrating this one into
+	   /sys/device/.../power/wakeup.
+	3. consolidate all wakeup devices in one place for convenience.
+	   E.g. /sys/power/wakeup/, symbolic links with useful names.
+	   (note that links here are from "real" devices node in sysfs,
+	   so it's a generic interface for systems both w/ and w/o ACPI)
+	4. remove /proc/acpi/wakeup,
+	   since it's replaced by /sys/power/wakeup/...
+> Patch 06:
+> 	add ACPI info in sysfs which indicates ACPICA version.
+> 	/sys/firmware/acpi/info is create and /proc/acpi/info is marked as deprecated.
+I'll refresh the patch 01,02,06 and resend them.
+Thanks for your comments, David, Matthew, Pavel, Randy and Suietov. :)
