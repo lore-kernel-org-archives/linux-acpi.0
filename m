@@ -1,36 +1,60 @@
-From: "Pieter De Wit" <Pieter.DeWit@vodacom.co.za>
-Subject: Fan speeds on HP nc6400 and nc8430
-Date: Fri, 19 Jan 2007 09:50:06 +0200
-Message-ID: <C3FA62B1A90D7440B9B6C7C31895994F03663637@zadbn02100.vodacom.corp>
+From: "Luming Yu" <luming.yu@gmail.com>
+Subject: Re: Debugging video resume problems
+Date: Fri, 19 Jan 2007 16:06:15 +0800
+Message-ID: <3877989d0701190006u58e789c4o3aa30069b8a441db@mail.gmail.com>
+References: <1169165850.3613.10.camel@hughsie-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mfwj032.mfw.is.co.za ([196.35.77.38]:1219 "EHLO
-	mfwj032.mfw.is.co.za" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964927AbXASH5N convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jan 2007 02:57:13 -0500
-Content-class: urn:content-classes:message
+Received: from wx-out-0506.google.com ([66.249.82.237]:48310 "EHLO
+	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964928AbXASIGQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jan 2007 03:06:16 -0500
+Received: by wx-out-0506.google.com with SMTP id h31so448650wxd
+        for <linux-acpi@vger.kernel.org>; Fri, 19 Jan 2007 00:06:16 -0800 (PST)
+In-Reply-To: <1169165850.3613.10.camel@hughsie-laptop>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Richard Hughes <hughsient@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-Hello List,
-=20
-I have noted that the fan speed on "idle" is much higher in Linux
-compared to XP. I have also noted that once fans are turned on, they
-never seem to return to the off state. I am currently using the 2.6.18
-kernel from Gentoo (gentoo-sources-r6). I was wondering if there is a
-way I can lower the fan speed, or even assist the devs to get info
-regarding these notebooks (if any is needed).
-=20
+Does it respond to Ctl+Alt+Delete?
+If yes, it could be just a known black screen issue. You can try
+vbetool which happens to work for some lucky guys.Please google
+vbetool, and take a look at video.txt in documentation/power.
+if not,  you need to sort out the broken drivers. If you need help
+please feel free to enter a bug in ACPI category at
+bugzilla.kernel.org.
+
 Thanks,
-=20
-Pieter
-=93This e-mail is sent on the Terms and Conditions that can be accessed=
- by Clicking on this link http://www.vodacom.co.za/legal/email.jsp "
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Luming
+
+
+On 1/19/07, Richard Hughes <hughsient@gmail.com> wrote:
+> Guys,
+>
+> I have a shiny new Lenovo 3000 N100 laptop. Hibernate works with the
+> latest git tree from kernel.org, but suspend fails to resume with a
+> black screen and no other flashing LED's or other activity. I've tried
+> 2.6.18 and 2.6.19 and neither of those work either.
+>
+> This laptop has no serial ports, so I can't even see if it's oopsed
+> remotely. Is there a guide (howto) that can help debug this? I've tried
+> nearly all the usual combinations of acpi_sleep=s3_bios,s3_mode but I
+> really need a hand with this one.
+>
+> As I've got no messages on the screen at resume, I really don't know
+> where to begin to fix this, advice would be really appreciated.
+>
+> Thanks,
+>
+> Richard Hughes.
+>
+>
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
