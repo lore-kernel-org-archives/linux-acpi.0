@@ -1,128 +1,62 @@
 From: emisca <emisca.ml@gmail.com>
-Subject: Re: Fan speeds on HP nc6400 and nc8430
-Date: Fri, 19 Jan 2007 15:41:01 +0100
-Message-ID: <414cba4e0701190641x4e5c5747j3edf4ead90d805a2@mail.gmail.com>
-References: <C3FA62B1A90D7440B9B6C7C31895994F0366363A@zadbn02100.vodacom.corp>
-	 <45B0D454.5000808@linux.intel.com>
+Subject: Re: [0/5] remove ACPI motherboard driver, use PNP system driver instead (take 2)
+Date: Fri, 19 Jan 2007 16:37:39 +0100
+Message-ID: <414cba4e0701190737j110b33aau25789808767953fa@mail.gmail.com>
+References: <200701181636.45590.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.175]:13293 "EHLO
+Received: from ug-out-1314.google.com ([66.249.92.173]:26220 "EHLO
 	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932845AbXASOlD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jan 2007 09:41:03 -0500
-Received: by ug-out-1314.google.com with SMTP id 44so470191uga
-        for <linux-acpi@vger.kernel.org>; Fri, 19 Jan 2007 06:41:01 -0800 (PST)
-In-Reply-To: <45B0D454.5000808@linux.intel.com>
+	with ESMTP id S932156AbXASPhl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jan 2007 10:37:41 -0500
+Received: by ug-out-1314.google.com with SMTP id 44so482674uga
+        for <linux-acpi@vger.kernel.org>; Fri, 19 Jan 2007 07:37:40 -0800 (PST)
+In-Reply-To: <200701181636.45590.bjorn.helgaas@hp.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-Cc: Pieter De Wit <Pieter.DeWit@vodacom.co.za>, linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Matthieu Castet <castet.matthieu@free.fr>, Li Shaohua <shaohua.li@intel.com>
 
-The TZ4 thermal zone on all the hp compaq line nx**** and nc**** is
-not a temperature but the fan speed. You can see this information on
-the web and on hp forums. I really don't know why hp has done this..
-With my nx7400 I have problems with fans only when I resume from
-suspend to disk and the thermal module is loaded by initramfs before
-resuming the system.
-I have also noticed that these laptops consume more energy on linux
-than on windows.
-I think that's a problem related to acpi C states. On AC I have only
-C1 and C2 on both cpu cores, on battery I have C1, C2 on first core
-and C1, C2, C3 on the second. Why there are no higher C-states?
+I have posted some days ago, some problems on resume from suspend to
+disk on my motherboard (asus p5ld2 se) related to acpi pnp. The serial
+didn't worked after resume. Using pnpacpi=off it worked.
+Now using this patch what will be the behaviour?
 
 Bye
 
-2007/1/19, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>:
-> Did you try patches from #5534 and #7122?
+2007/1/19, Bjorn Helgaas <bjorn.helgaas@hp.com>:
+> The ACPI motherboard driver is mostly redundant with the PNP system
+> driver.  This series moves the little bit of ACPI-specific stuff out
+> of the motherboard driver into acpi/osl.c, adds a little bit to the
+> PNP system driver so it covers all the remaining functionality of
+> the ACPI driver, and removes the ACPI driver.
 >
-> Pieter De Wit wrote:
-> > Hi Luming,
-> >
-> > This module was build into the kernel. After make it a module and making
-> > sure it's not loaded, I still see the problem. Here is a more detailed
-> > problem:
-> >
-> > If I leave ACPI to manage the system, thermal zone TZ4 stays around 80
-> > C. The moment I turn on fan C318, this zone *shoots* up to 100 C and
-> > stays there, no matter what. This fan I can't turn off again.
-> >
-> > Here is a cat of fans, thermal_zone status and temp.
-> >
-> > status:                  on
-> > status:                  off
-> > status:                  on
-> > status:                  on
-> > status:                  on
-> > status:                  on
-> > status:                  on
-> > state:                   active[2]
-> > state:                   ok
-> > state:                   ok
-> > state:                   ok
-> > state:                   ok
-> > temperature:             65 C
-> > temperature:             61 C
-> > temperature:             54 C
-> > temperature:             30 C
-> > temperature:             100 C
-> >
-> > This was taken during the compile of gcc. While not doing anything, the
-> > second zone drops to 54 C (currently at 61)
-> >
-> > Thanks for the time,
-> >
-> > Pieter
-> >
-> > -----Original Message-----
-> > From: Luming Yu [mailto:luming.yu@gmail.com]
-> > Sent: 2007/01/19 10:14
-> > To: Pieter De Wit
-> > Cc: linux-acpi@vger.kernel.org
-> > Subject: Re: Fan speeds on HP nc6400 and nc8430
-> >
-> > Do you have psmouse module loaded ?
-> > (i.e. CONFIG_MOUSE_PS2=m)
-> > If yes, Please try remove it, and re-test it.
-> >
-> > Thanks,
-> > Luming
-> >
-> > On 1/19/07, Pieter De Wit <Pieter.DeWit@vodacom.co.za> wrote:
-> >
-> >> Hello List,
-> >>
-> >> I have noted that the fan speed on "idle" is much higher in Linux
-> >> compared to XP. I have also noted that once fans are turned on, they
-> >> never seem to return to the off state. I am currently using the 2.6.18
-> >>
-> >
-> >
-> >> kernel from Gentoo (gentoo-sources-r6). I was wondering if there is a
-> >> way I can lower the fan speed, or even assist the devs to get info
-> >> regarding these notebooks (if any is needed).
-> >>
-> >> Thanks,
-> >>
-> >> Pieter
-> >> "This e-mail is sent on the Terms and Conditions that can be accessed
-> >>
-> > by Clicking on this link http://www.vodacom.co.za/legal/email.jsp "
-> >
-> >> -
-> >> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
-> >> in the body of a message to majordomo@vger.kernel.org More majordomo
-> >> info at  http://vger.kernel.org/majordomo-info.html
-> >>
-> >>
-> > "This e-mail is sent on the Terms and Conditions that can be accessed by Clicking on this link http://www.vodacom.co.za/legal/email.jsp "
-> > -
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
+> Thanks for the comments on the previous version.  This set of patches:
+>
+>   - Makes acpi_reserve_resources() a device_initcall(), so the FADT
+>     resources will be reserved after the pnp/system driver claims its
+>     resources.  This lets us reserve a motherboard region larger than
+>     the FADT describes without conflicts.
+>
+>   - Adds CONFIG_PNPACPI=y to the i386/defconfig patch.  This is needed
+>     for the pnp/system driver to find its devices.
+>
+> Len asked about the CONFIG_PNP=n, CONFIG_ACPI=y case.  In this case,
+> we won't have a pnp/system driver to claim motherboard resources.  But
+> we already have this situation with other devices.  My IR device
+> responds to ioports 0x100-0x10f and my ECP parallel port responds to
+> ioports 0x778-0x77a.  If those drivers aren't loaded (or if they
+> aren't smart enough to claim all the resources), the resources just
+> aren't claimed.
+>
+> So I think a better solution for this problem would be to make the
+> PNP core reserve all the regions for every active device, similar to
+> what PCI does.
+>
+> Bjorn
 > -
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 > the body of a message to majordomo@vger.kernel.org
