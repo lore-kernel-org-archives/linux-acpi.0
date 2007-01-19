@@ -1,37 +1,62 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [patch 1/5] ACPI: move FADT resource reservations from motherboard driver to osl
-Date: Fri, 19 Jan 2007 12:46:59 -0700
-Message-ID: <200701191246.59641.bjorn.helgaas@hp.com>
-References: <200701181636.45590.bjorn.helgaas@hp.com> <200701181642.56040.bjorn.helgaas@hp.com> <1169169121.23563.1.camel@sli10-conroe.sh.intel.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: ACPI _SUN
+Date: Fri, 19 Jan 2007 14:51:34 -0500
+Message-ID: <200701191451.34693.lenb@kernel.org>
+References: <80b0b9460701190156l7a7f95cdnc442787f7fb37b15@mail.gmail.com> <20070119163749.GU4945@poupinou.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel9.hp.com ([156.153.255.214]:38149 "EHLO atlrel9.hp.com"
+Received: from hera.kernel.org ([140.211.167.34]:49922 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932846AbXASTrI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 Jan 2007 14:47:08 -0500
-In-Reply-To: <1169169121.23563.1.camel@sli10-conroe.sh.intel.com>
+	id S932864AbXASTxD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 19 Jan 2007 14:53:03 -0500
+In-Reply-To: <20070119163749.GU4945@poupinou.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Matthieu Castet <castet.matthieu@free.fr>
+To: Bruno Ducrot <ducrot@poupinou.org>
+Cc: Mohan Kumar Jami <mohan124885@gmail.com>, linux-acpi@vger.kernel.org
 
-On Thursday 18 January 2007 18:12, Shaohua Li wrote:
-> > +device_initcall(acpi_reserve_resources);
-> Will this be called before PCI assigned resources to PCI devices? We use
-> fs_initcall in motherboard to avoid PCI devices use motherboard's
-> resources before.
+On Friday 19 January 2007 11:37, Bruno Ducrot wrote:
+> On Fri, Jan 19, 2007 at 03:26:26PM +0530, Mohan Kumar Jami wrote:
+> > Hi,
+> > 
+> > I have couple of questions related to _SUN object.
+> > 
+> > 1) Is _SUN object be present DSDT tables?
+> 
+> They are defined under DSDT or RSDT tables as any other ACPI objects
+> populating the ACPI namespace.
 
-I think we're OK.  Here's the current order:
+The DSDT and all the SSDT's listed in the RSDT are all loaded at boot-time.
 
-  pnp_system_init            fs_initcall       drivers/pnp/system.c
-  pcibios_assign_resources   fs_initcall       arch/i386/pci/i386.c
-  acpi_reserve_resources     device_initcall   drivers/acpi/osl.c
+However, the BIOS AML can also explicitly Load additional "dynamic" SSDTs
+at run-time -- and can also Unload an SSDT.
+In this way, objects in the name space can appear and go away at run-time.
 
-So pnp_system_init() will reserve all the motherboard resources before
-the PCI resources are assigned.  What do you think?
+_SUN, Slot User Number, is an (optional) property of an object.
+So for it to change at run-time, the object that contains it
+would have to go away and then come back.
 
-Bjorn
+cheers,
+-Len
+
+> > 2) How this DSDT table get updated?
+> 
+> They can't be updated.
+> 
+> > 3) Is DSDT table is static binary file or it can be dynamically updated?
+> 
+> A DSDT table is not a static binary file.  On most i386 or amd64
+> architectures, DSDT and SSDT are part of the BIOS.
+> The BIOS uncompressed and copyied them into main memory at the
+> POST stage since the ROM is too limited in size.
+> 
+> > 4) Who will update the DSDT tables?
+> 
+> By the customer via BIOS updates obtained from the vendor.
+> 
+> Cheers,
+> 
