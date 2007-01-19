@@ -1,38 +1,161 @@
-From: Richard Hughes <hughsient@gmail.com>
-Subject: Debugging video resume problems
-Date: Fri, 19 Jan 2007 00:17:30 +0000
-Message-ID: <1169165850.3613.10.camel@hughsie-laptop>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [patch 1/5] ACPI: move FADT resource reservations from
+	motherboard driver to osl
+Date: Fri, 19 Jan 2007 09:12:00 +0800
+Message-ID: <1169169121.23563.1.camel@sli10-conroe.sh.intel.com>
+References: <200701181636.45590.bjorn.helgaas@hp.com>
+	 <200701181642.56040.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.171]:52517 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932783AbXASARt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Jan 2007 19:17:49 -0500
-Received: by ug-out-1314.google.com with SMTP id 44so320941uga
-        for <linux-acpi@vger.kernel.org>; Thu, 18 Jan 2007 16:17:48 -0800 (PST)
+Received: from mga01.intel.com ([192.55.52.88]:4799 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932833AbXASBNs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 18 Jan 2007 20:13:48 -0500
+In-Reply-To: <200701181642.56040.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Matthieu Castet <castet.matthieu@free.fr>
 
-Guys,
-
-I have a shiny new Lenovo 3000 N100 laptop. Hibernate works with the
-latest git tree from kernel.org, but suspend fails to resume with a
-black screen and no other flashing LED's or other activity. I've tried
-2.6.18 and 2.6.19 and neither of those work either.
-
-This laptop has no serial ports, so I can't even see if it's oopsed
-remotely. Is there a guide (howto) that can help debug this? I've tried
-nearly all the usual combinations of acpi_sleep=s3_bios,s3_mode but I
-really need a hand with this one.
-
-As I've got no messages on the screen at resume, I really don't know
-where to begin to fix this, advice would be really appreciated.
+On Thu, 2007-01-18 at 16:42 -0700, Bjorn Helgaas wrote:
+> Resources described by the FADT aren't really a good fit for the
+> ACPI motherboard driver.
+> 
+> The motherboard driver cares about PNP0C01 and PNP0C02 devices and
+> their resources.
+> 
+> The FADT describes some resources used by the ACPI core.  Often, they
+> are also described by by the _CRS of a motherboard device, but I think
+> it's better to reserve them specifically in the ACPI osl.c because
+> (a) the motherboard driver is optional and ACPI uses the resources even
+> if the driver is absent, and (b) I want to remove the ACPI motherboard
+> driver because it's mostly redundant with the PNP system.c driver.
+> 
+> Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+> 
+> Index: mm-work3/drivers/acpi/motherboard.c
+> ===================================================================
+> --- mm-work3.orig/drivers/acpi/motherboard.c	2007-01-14 14:52:30.000000000 -0700
+> +++ mm-work3/drivers/acpi/motherboard.c	2007-01-18 10:21:13.000000000 -0700
+> @@ -118,58 +118,9 @@
+>  		},
+>  };
+>  
+> -static void __init acpi_request_region (struct acpi_generic_address *addr,
+> -	unsigned int length, char *desc)
+> -{
+> -	if (!addr->address || !length)
+> -		return;
+> -
+> -	if (addr->address_space_id == ACPI_ADR_SPACE_SYSTEM_IO)
+> -		request_region(addr->address, length, desc);
+> -	else if (addr->address_space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
+> -		request_mem_region(addr->address, length, desc);
+> -}
+> -
+> -static void __init acpi_reserve_resources(void)
+> -{
+> -	acpi_request_region(&acpi_gbl_FADT->xpm1a_evt_blk,
+> -			       acpi_gbl_FADT->pm1_evt_len, "ACPI PM1a_EVT_BLK");
+> -
+> -	acpi_request_region(&acpi_gbl_FADT->xpm1b_evt_blk,
+> -			       acpi_gbl_FADT->pm1_evt_len, "ACPI PM1b_EVT_BLK");
+> -
+> -	acpi_request_region(&acpi_gbl_FADT->xpm1a_cnt_blk,
+> -			       acpi_gbl_FADT->pm1_cnt_len, "ACPI PM1a_CNT_BLK");
+> -
+> -	acpi_request_region(&acpi_gbl_FADT->xpm1b_cnt_blk,
+> -			       acpi_gbl_FADT->pm1_cnt_len, "ACPI PM1b_CNT_BLK");
+> -
+> -	if (acpi_gbl_FADT->pm_tm_len == 4)
+> -		acpi_request_region(&acpi_gbl_FADT->xpm_tmr_blk, 4, "ACPI PM_TMR");
+> -
+> -	acpi_request_region(&acpi_gbl_FADT->xpm2_cnt_blk,
+> -			       acpi_gbl_FADT->pm2_cnt_len, "ACPI PM2_CNT_BLK");
+> -
+> -	/* Length of GPE blocks must be a non-negative multiple of 2 */
+> -
+> -	if (!(acpi_gbl_FADT->gpe0_blk_len & 0x1))
+> -		acpi_request_region(&acpi_gbl_FADT->xgpe0_blk,
+> -			       acpi_gbl_FADT->gpe0_blk_len, "ACPI GPE0_BLK");
+> -
+> -	if (!(acpi_gbl_FADT->gpe1_blk_len & 0x1))
+> -		acpi_request_region(&acpi_gbl_FADT->xgpe1_blk,
+> -			       acpi_gbl_FADT->gpe1_blk_len, "ACPI GPE1_BLK");
+> -}
+> -
+>  static int __init acpi_motherboard_init(void)
+>  {
+>  	acpi_bus_register_driver(&acpi_motherboard_driver);
+> -	/*
+> -	 * Guarantee motherboard IO reservation first
+> -	 * This module must run after scan.c
+> -	 */
+> -	if (!acpi_disabled)
+> -		acpi_reserve_resources();
+>  	return 0;
+>  }
+>  
+> Index: mm-work3/drivers/acpi/osl.c
+> ===================================================================
+> --- mm-work3.orig/drivers/acpi/osl.c	2007-01-14 14:52:30.000000000 -0700
+> +++ mm-work3/drivers/acpi/osl.c	2007-01-18 14:39:47.000000000 -0700
+> @@ -75,6 +75,54 @@
+>  static void *acpi_irq_context;
+>  static struct workqueue_struct *kacpid_wq;
+>  
+> +static void __init acpi_request_region (struct acpi_generic_address *addr,
+> +	unsigned int length, char *desc)
+> +{
+> +	struct resource *res;
+> +
+> +	if (!addr->address || !length)
+> +		return;
+> +
+> +	if (addr->address_space_id == ACPI_ADR_SPACE_SYSTEM_IO)
+> +		res = request_region(addr->address, length, desc);
+> +	else if (addr->address_space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
+> +		res = request_mem_region(addr->address, length, desc);
+> +}
+> +
+> +static int __init acpi_reserve_resources(void)
+> +{
+> +	acpi_request_region(&acpi_fadt.xpm1a_evt_blk, acpi_fadt.pm1_evt_len,
+> +		"ACPI PM1a_EVT_BLK");
+> +
+> +	acpi_request_region(&acpi_fadt.xpm1b_evt_blk, acpi_fadt.pm1_evt_len,
+> +		"ACPI PM1b_EVT_BLK");
+> +
+> +	acpi_request_region(&acpi_fadt.xpm1a_cnt_blk, acpi_fadt.pm1_cnt_len,
+> +		"ACPI PM1a_CNT_BLK");
+> +
+> +	acpi_request_region(&acpi_fadt.xpm1b_cnt_blk, acpi_fadt.pm1_cnt_len,
+> +		"ACPI PM1b_CNT_BLK");
+> +
+> +	if (acpi_fadt.pm_tm_len == 4)
+> +		acpi_request_region(&acpi_fadt.xpm_tmr_blk, 4, "ACPI PM_TMR");
+> +
+> +	acpi_request_region(&acpi_fadt.xpm2_cnt_blk, acpi_fadt.pm2_cnt_len,
+> +		"ACPI PM2_CNT_BLK");
+> +
+> +	/* Length of GPE blocks must be a non-negative multiple of 2 */
+> +
+> +	if (!(acpi_fadt.gpe0_blk_len & 0x1))
+> +		acpi_request_region(&acpi_fadt.xgpe0_blk,
+> +			       acpi_fadt.gpe0_blk_len, "ACPI GPE0_BLK");
+> +
+> +	if (!(acpi_fadt.gpe1_blk_len & 0x1))
+> +		acpi_request_region(&acpi_fadt.xgpe1_blk,
+> +			       acpi_fadt.gpe1_blk_len, "ACPI GPE1_BLK");
+> +
+> +	return 0;
+> +}
+> +device_initcall(acpi_reserve_resources);
+Will this be called before PCI assigned resources to PCI devices? We use
+fs_initcall in motherboard to avoid PCI devices use motherboard's
+resources before.
 
 Thanks,
-
-Richard Hughes.
-
-
+Shaohua
