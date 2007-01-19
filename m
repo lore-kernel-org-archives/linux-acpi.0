@@ -1,17 +1,17 @@
 From: "Mohan Kumar Jami" <mohan124885@gmail.com>
 Subject: ACPI _SUN
-Date: Fri, 19 Jan 2007 15:26:26 +0530
-Message-ID: <80b0b9460701190156l7a7f95cdnc442787f7fb37b15@mail.gmail.com>
+Date: Fri, 19 Jan 2007 15:37:34 +0530
+Message-ID: <80b0b9460701190207o67bb107q8c64ca885a29418c@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wx-out-0506.google.com ([66.249.82.236]:29834 "EHLO
-	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965033AbXASJ41 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jan 2007 04:56:27 -0500
-Received: by wx-out-0506.google.com with SMTP id h31so474906wxd
-        for <linux-acpi@vger.kernel.org>; Fri, 19 Jan 2007 01:56:26 -0800 (PST)
+Received: from ag-out-0708.google.com ([72.14.246.248]:36700 "EHLO
+	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965040AbXASKHf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jan 2007 05:07:35 -0500
+Received: by ag-out-0708.google.com with SMTP id 23so409230agd
+        for <linux-acpi@vger.kernel.org>; Fri, 19 Jan 2007 02:07:34 -0800 (PST)
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
