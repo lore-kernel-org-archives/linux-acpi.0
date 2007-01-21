@@ -1,85 +1,34 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [RFC] [PATCH] Power S3 Resume Optimization Patch. Request for Comment
-Date: Fri, 19 Jan 2007 09:29:37 +0000
-Message-ID: <20070119092936.GA5590@ucw.cz>
-References: <5B3EF00AF56209498A59172917BFE8130165151B@bgsmsx412.gar.corp.intel.com>
+From: Richard Hughes <hughsient@gmail.com>
+Subject: Re: Debugging video resume problems
+Date: Sun, 21 Jan 2007 19:31:49 +0000
+Message-ID: <1169407909.32193.21.camel@hughsie-laptop>
+References: <1169165850.3613.10.camel@hughsie-laptop>
+	 <3877989d0701190006u58e789c4o3aa30069b8a441db@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:4582 "EHLO spitz.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751538AbXAUNMC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 21 Jan 2007 08:12:02 -0500
-Content-Disposition: inline
-In-Reply-To: <5B3EF00AF56209498A59172917BFE8130165151B@bgsmsx412.gar.corp.intel.com>
+Received: from ug-out-1314.google.com ([66.249.92.168]:59916 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751395AbXAUTcJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 21 Jan 2007 14:32:09 -0500
+Received: by ug-out-1314.google.com with SMTP id 44so867705uga
+        for <linux-acpi@vger.kernel.org>; Sun, 21 Jan 2007 11:32:08 -0800 (PST)
+In-Reply-To: <3877989d0701190006u58e789c4o3aa30069b8a441db@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Seshadri, Harinarayanan" <harinarayanan.seshadri@intel.com>
-Cc: inux-pm@lists.osdl.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Luming Yu <luming.yu@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-Hi!
+On Fri, 2007-01-19 at 16:06 +0800, Luming Yu wrote:
+> if not,  you need to sort out the broken drivers. If you need help
+> please feel free to enter a bug in ACPI category at
+> bugzilla.kernel.org.
 
-> [RFC][PATCH] Power S3 Resume optimisation 
-> 	Here is a simple patch for optimising the S3 resume. With this
-> patch the resume time is 0.85. Given the fact that device initialisation
-> on the resume takes almost 70% of time, By executing the whole
-> "device_resume()" function on a seperate kernel thread, the resume gets
-> completed( ie. the user can precieve) by ~0.85 sec.
+Done, thanks.
 
-Yep, but you also break it completely...
+http://bugzilla.kernel.org/show_bug.cgi?id=7860
 
-> 	To avoid any possible race condition while processing the IO
-> request and to make sure all the io request are queued till the device
-> resume thread exits, the IO schedulars (patched cfq and as) checks a for
-> system_resume flag, which is set when the device resume thread starts,
-> if the flag is set, it doesnt put the request in the dispatch queue.
-> Once the flag is cleared i.e when the device resume thread is complete,
-> the IO-schedular behave as in normal situation.
-
-And you noticed that, so you fixed obvious problems on block devices.
-Ignoring char and net devices completely.
+Richard.
 
 
-> @@ -1088,6 +1088,19 @@
->         if (list_empty(&ad->fifo_list[adir]))
->                 return 0;
-> 
-> +       /*
-> +        * Check here for the System resume flag to be cleared, if flag
-> is
-> +       *  still set the resume thread hasnt completed yet, and hence
-> dont
-> +       *  takeout any new request from the FIFO
-> +       */
-> +       extern int system_resuming;
-> +       if (system_resuming != 0)
-> +       {
-
-Locking. CodingStyle.
-
-> -static void suspend_finish(suspend_state_t state)
-> +static int dev_resume_proc(void * data)
-> {
-> +       /* Set the global resume flag, this will be checked by the
-> IO_schedular
-
-Broken mail client.
-
-> +       * before dispatching the IO request
-> +       */
-> +       system_resuming =1;
-
-Add mdelay(1 hour) here. Then try to use your wifi card and your tv
-grabber.
-
->         device_resume();
-> +       system_resuming = 0;
-> +#ifdef DEBUG
-> +       printk(" reseting system_resume \n");
-> +#endif
-
-							Pavel
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
