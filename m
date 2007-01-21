@@ -1,57 +1,57 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 0/3] [-mm]: ACPI: duplicate ACPI procfs functions in sysfs
-Date: Sun, 21 Jan 2007 13:48:41 +0800
-Message-ID: <1169358521.5691.2.camel@localhost.localdomain>
-References: <1168083306.5619.34.camel@localhost.localdomain>
+Subject: [PATCH 1/3] [-mm]: ACPI: add a Kconfig option for ACPI procfs
+	interface
+Date: Sun, 21 Jan 2007 13:48:56 +0800
+Message-ID: <1169358536.5691.3.camel@localhost.localdomain>
+References: <1168083310.5619.35.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:23003 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:47144 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751197AbXAUFr6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 21 Jan 2007 00:47:58 -0500
-In-Reply-To: <1168083306.5619.34.camel@localhost.localdomain>
+	id S1751201AbXAUFsN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 21 Jan 2007 00:48:13 -0500
+In-Reply-To: <1168083310.5619.35.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
 Cc: "linux-acpi@vger" <linux-acpi@vger.kernel.org>
 
-This patch set is against acpi-test sysfs branch,
-and will duplicate several ACPI procfs functions in sysfs.
+From: Zhang Rui <rui.zhang@intel.com>
 
-Patch 01:
-add a Kconfig option to make ACPI procfs configurable.
-This will be used by all the following sysfs conversion patches.
+Add a kconfig option CONFIG_ACPI_PROCFS to make procfs interface
+a configurable attribute of ACPI.
 
-Patch 02:
-add ACPI debug attribute in sysfs.
-/proc/acpi/debug_layer && debug_level is deprecated by
-/sys/module/acpi/parameter/debug_layer && debug_level.
+No procfs interface is actually deprecated,
+and no sysfs interface is added in this patch.
 
-Patch 03:
-add ACPICA version in sysfs.
-/proc/acpi/info is deprecated by /sys/firmware/acpi/version.
+CONGI_ACPI_PROCFS is used to mark procfs interface as deprecated
+once the same function is duplicated in sysfs.
 
-Wish list:
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/acpi/Kconfig |   10 ++++++++++
+ 1 files changed, 10 insertions(+)
 
-Sysfs interfaces for all the ACPI tables, like the multiple ssdts and
-dynamic loaded ssdts, which are likely to be listed under
-/sys/firmware/acpi/tables/...
-
-"wakeup" attribute for ACPI wakeup devices.
-        1. Try to map ACPI devices to the physical devices.
-           It's not very easy, as we can not find a generic method to
-           map ACPI wakeup devices to physical devices. So I have to
-           divide them into several groups, e.g. PCI, legacy serial,
-           legacy PS2, etc. And verify which group the ACPI device 
-           belongs to.
-        2. add "wakeup" properly to /sys/device/(not ACPI)/...
-           I'll investigate the possibility of integrating this one into
-           /sys/device/.../power/wakeup.
-        3. consolidate all wakeup devices in one place for convenience.
-           E.g. /sys/power/wakeup/, symbolic links with useful names.
-           (note that links here are from "real" devices node in sysfs,
-           so it's a generic interface for systems both w/ and w/o ACPI)
-        4. remove /proc/acpi/wakeup,
-           since it's replaced by /sys/power/wakeup/...
+Index: linux-2.6.20-rc2-mm1/drivers/acpi/Kconfig
+===================================================================
+--- linux-2.6.20-rc2-mm1.orig/drivers/acpi/Kconfig	2007-01-05 17:20:09.000000000 +0800
++++ linux-2.6.20-rc2-mm1/drivers/acpi/Kconfig	2007-01-05 17:21:51.000000000 +0800
+@@ -77,6 +77,16 @@ config ACPI_SLEEP_PROC_SLEEP
+ 	  Create /proc/acpi/sleep
+ 	  Deprecated by /sys/power/state
+ 
++config ACPI_PROCFS
++	bool "Procfs interface (deprecated)"
++	depends on ACPI
++	default y
++	---help---
++	  Procfs interface for ACPI is made optional for back-compatible.
++	  As the same functions are duplicated in sysfs interface
++	  and this proc interface will be removed some time later,
++	  it's marked as deprecated.
++
+ config ACPI_AC
+ 	tristate "AC Adapter"
+ 	depends on X86
