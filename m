@@ -1,45 +1,57 @@
-From: emisca <emisca.ml@gmail.com>
-Subject: Re: [0/5] remove ACPI motherboard driver, use PNP system driver instead (take 2)
-Date: Sat, 20 Jan 2007 19:00:23 +0100
-Message-ID: <414cba4e0701201000n698f0bbbh10016c984c84b364@mail.gmail.com>
-References: <200701181636.45590.bjorn.helgaas@hp.com>
-	 <414cba4e0701190737j110b33aau25789808767953fa@mail.gmail.com>
-	 <200701191433.09311.bjorn.helgaas@hp.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH 0/3] [-mm]: ACPI: duplicate ACPI procfs functions in sysfs
+Date: Sun, 21 Jan 2007 13:48:41 +0800
+Message-ID: <1169358521.5691.2.camel@localhost.localdomain>
+References: <1168083306.5619.34.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.174]:28559 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965340AbXATSAZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 20 Jan 2007 13:00:25 -0500
-Received: by ug-out-1314.google.com with SMTP id 44so716525uga
-        for <linux-acpi@vger.kernel.org>; Sat, 20 Jan 2007 10:00:24 -0800 (PST)
-In-Reply-To: <200701191433.09311.bjorn.helgaas@hp.com>
-Content-Disposition: inline
+Received: from mga01.intel.com ([192.55.52.88]:23003 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751197AbXAUFr6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 21 Jan 2007 00:47:58 -0500
+In-Reply-To: <1168083306.5619.34.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Adam Belay <ambx1@neo.rr.com>, Matthieu Castet <castet.matthieu@free.fr>, Li Shaohua <shaohua.li@intel.com>
+To: lenb@kernel.org
+Cc: "linux-acpi@vger" <linux-acpi@vger.kernel.org>
 
-Could you tell me which informations I must collect and in which
-conditions I must collect them so I could post them?
-They replied me on the other post that I must manually debug the
-pnpacpi code.......
+This patch set is against acpi-test sysfs branch,
+and will duplicate several ACPI procfs functions in sysfs.
 
-2007/1/19, Bjorn Helgaas <bjorn.helgaas@hp.com>:
-> On Friday 19 January 2007 08:37, emisca wrote:
-> > I have posted some days ago, some problems on resume from suspend to
-> > disk on my motherboard (asus p5ld2 se) related to acpi pnp. The serial
-> > didn't worked after resume. Using pnpacpi=off it worked.
-> > Now using this patch what will be the behaviour?
->
-> My patches shouldn't change the behavior you're seeing.
->
-> Since it seems to be related to PNPACPI, can you post the dmesgs with
-> and without pnpacpi=off to linux-acpi?  I see the ones on LKML, but
-> it sounds like there was some user error in collecting them.
->
-> Bjorn
->
->
+Patch 01:
+add a Kconfig option to make ACPI procfs configurable.
+This will be used by all the following sysfs conversion patches.
+
+Patch 02:
+add ACPI debug attribute in sysfs.
+/proc/acpi/debug_layer && debug_level is deprecated by
+/sys/module/acpi/parameter/debug_layer && debug_level.
+
+Patch 03:
+add ACPICA version in sysfs.
+/proc/acpi/info is deprecated by /sys/firmware/acpi/version.
+
+Wish list:
+
+Sysfs interfaces for all the ACPI tables, like the multiple ssdts and
+dynamic loaded ssdts, which are likely to be listed under
+/sys/firmware/acpi/tables/...
+
+"wakeup" attribute for ACPI wakeup devices.
+        1. Try to map ACPI devices to the physical devices.
+           It's not very easy, as we can not find a generic method to
+           map ACPI wakeup devices to physical devices. So I have to
+           divide them into several groups, e.g. PCI, legacy serial,
+           legacy PS2, etc. And verify which group the ACPI device 
+           belongs to.
+        2. add "wakeup" properly to /sys/device/(not ACPI)/...
+           I'll investigate the possibility of integrating this one into
+           /sys/device/.../power/wakeup.
+        3. consolidate all wakeup devices in one place for convenience.
+           E.g. /sys/power/wakeup/, symbolic links with useful names.
+           (note that links here are from "real" devices node in sysfs,
+           so it's a generic interface for systems both w/ and w/o ACPI)
+        4. remove /proc/acpi/wakeup,
+           since it's replaced by /sys/power/wakeup/...
