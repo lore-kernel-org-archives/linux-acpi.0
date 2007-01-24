@@ -1,124 +1,58 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: make checkstack | grep acpi
-Date: Wed, 24 Jan 2007 14:48:28 -0500
-Message-ID: <200701241448.28272.lenb@kernel.org>
-References: <200701232107.13296.lenb@kernel.org> <20070123214603.a4fa0be9.randy.dunlap@oracle.com>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: Re: 2.6.20rc5 k8/acpi regression ( 2.6.17.13 works fine ).
+Date: Wed, 24 Jan 2007 23:52:39 +0100
+Message-ID: <20070124225238.GT17836@stusta.de>
+References: <200701242346.44673.pluto@agmk.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:60840 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751146AbXAXTtr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Jan 2007 14:49:47 -0500
-Received: from d975xbx2.site (c-65-96-213-102.hsd1.ma.comcast.net [65.96.213.102])
-	(authenticated bits=0)
-	by hera.kernel.org (8.13.8/8.13.7) with ESMTP id l0OJmXXd005852
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Wed, 24 Jan 2007 19:49:44 GMT
-In-Reply-To: <20070123214603.a4fa0be9.randy.dunlap@oracle.com>
+Received: from emailhub.stusta.mhn.de ([141.84.69.5]:3413 "HELO
+	mailout.stusta.mhn.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932863AbXAXWwd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jan 2007 17:52:33 -0500
 Content-Disposition: inline
+In-Reply-To: <200701242346.44673.pluto@agmk.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: =?utf-8?B?UGF3ZcWC?= Sikora <pluto@agmk.net>, len.brown@intel.com
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wednesday 24 January 2007 00:46, you wrote:
-> On Tue, 23 Jan 2007 21:07:13 -0500 Len Brown L wrote:
-> 
-> > FYI,
-> 
-> Well, depending on call chains (trees), I don't see anything
-> here that is a problem in isolation.
-> 
-> Do you?
+On Wed, Jan 24, 2007 at 11:46:44PM +0100, Pawe=C5=82 Sikora wrote:
 
-No, I think this confirms that our efforts to reduce stack usage in the
-long AML evaluation chains is still intact.
+> hi,
 
+Hi Pawe=C5=82,
 
-cheers,
--Len
+> for 2.6.20rc5 i get an acpi related oops during x86-64 boot:
+> http://minus.ds14.agh.edu.pl/~pluto/2.6.20rc5-acpi-oops.jpg
+> disabling the "amd-k8 cool'n'quiet" option in bios helps.
+> moreover, it works fine for 2.6.17.13, so it looks like
+> a recent regression. i can provide more details if you need.
 
-> > 2.6.20-rc5, i386:
-> > 
-> > 0x00000bee asus_hotk_add [asus_acpi]:                   232
-> > 0x000018fc asus_hotk_add [asus_acpi]:                   232
-> > 0x00cf hci_raw [toshiba_acpi]:                          228
-> > 0x0166 hci_raw [toshiba_acpi]:                          228
-> > 0xc026af95 acpi_processor_write_performance [vmlinux]:  200
-> > 0xc026b091 acpi_processor_write_performance [vmlinux]:  200
-> > 0xc02695ea acpi_processor_get_power_info [vmlinux]:     160
-> > 0xc0269cf5 acpi_processor_get_power_info [vmlinux]:     160
-> > 0xc02867d0 hpet_acpi_add [vmlinux]:                     152
-> > 0xc0286830 hpet_acpi_add [vmlinux]:                     152
-> > 0xc02388c5 acpi_evaluate_reference [vmlinux]:           140
-> > 0xc0238c12 acpi_evaluate_reference [vmlinux]:           140
-> > 0xc0238c2a acpi_evaluate_integer [vmlinux]:             140
-> > 0xc0238e20 acpi_evaluate_integer [vmlinux]:             140
-> > 0xc025c89f acpi_tb_get_required_tables [vmlinux]:       132
-> > 0xc025ccbb acpi_tb_get_required_tables [vmlinux]:       132
-> > 0x0644 acpi_cpufreq_cpu_init [acpi-cpufreq]:            124
-> > 0x0be5 acpi_cpufreq_cpu_init [acpi-cpufreq]:            124
-> > 0x0000017a acpi_evalf [ibm_acpi]:                       120
-> > 0x00000305 acpi_evalf [ibm_acpi]:                       120
-> > 0x000026d1 video_write [ibm_acpi]:                      116
-> > 0x00002c25 video_write [ibm_acpi]:                      116
-> > 0xc024548c acpi_ex_load_op [vmlinux]:                   104
-> > 0xc024586a acpi_ex_load_op [vmlinux]:                   104
-> > 0x00000fb0 acpi_sbs_generate_event [sbs]:               100
-> > 0x00001022 acpi_sbs_generate_event [sbs]:               100
-> > 0x0000040c acpi_thermal_check [thermal]:                100
-> > 0x000007fd acpi_thermal_check [thermal]:                100
-> > 0x00001782 thermal_read [ibm_acpi]:                     100
-> > 0x00001992 thermal_read [ibm_acpi]:                     100
-> > 
-> > 
-> > acpi-test, x86_64
-> > 
-> > 0xffffffff8036cdb0 acpi_os_printf [vmlinux]:            216
-> > 0xffffffff8036cdfe acpi_os_printf [vmlinux]:            216
-> > 0xffffffff803905d9 acpi_ut_debug_print_raw [vmlinux]:   216
-> > 0xffffffff80390622 acpi_ut_debug_print_raw [vmlinux]:   216
-> > 0xffffffff8039063e acpi_ut_debug_print [vmlinux]:       208
-> > 0xffffffff80390729 acpi_ut_debug_print [vmlinux]:       208
-> > 0xffffffff803916f3 acpi_ut_info [vmlinux]:              208
-> > 0xffffffff8039174d acpi_ut_info [vmlinux]:              208
-> > 0xffffffff80391768 acpi_ut_warning [vmlinux]:           208
-> > 0xffffffff803917c7 acpi_ut_warning [vmlinux]:           208
-> > 0xffffffff803917e2 acpi_ut_error [vmlinux]:             208
-> > 0xffffffff80391841 acpi_ut_error [vmlinux]:             208
-> > 0xffffffff80391859 acpi_ut_exception [vmlinux]:         208
-> > 0xffffffff803918c9 acpi_ut_exception [vmlinux]:         208
-> > 0xffffffff8036d0a8 acpi_evaluate_reference [vmlinux]:   168
-> > 0xffffffff8036d3cc acpi_evaluate_reference [vmlinux]:   168
-> > 0xffffffff8039eb75 acpi_processor_get_power_info [vmlinux]:168
-> > 0xffffffff8039f21b acpi_processor_get_power_info [vmlinux]:168
-> > 0xffffffff803bb743 hpet_acpi_add [vmlinux]:             168
-> > 0xffffffff803bb7aa hpet_acpi_add [vmlinux]:             168
-> > 0xffffffff8036d3fc acpi_evaluate_integer [vmlinux]:     152
-> > 0xffffffff8036d5dd acpi_evaluate_integer [vmlinux]:     152
-> > 0xffffffff8039ffdb acpi_processor_register_performance [vmlinux]:152
-> > 0xffffffff803a045f acpi_processor_register_performance [vmlinux]:152
-> > 0x000011a5 acpi_video_bus_add [video]:                  152
-> > 0x00001cf2 acpi_video_bus_add [video]:                  152
-> > 0xffffffff8034af28 acpi_query_osc [vmlinux]:            136
-> > 0xffffffff8034b054 acpi_query_osc [vmlinux]:            136
-> > 0xffffffff8038a283 acpi_ps_get_next_namepath [vmlinux]: 136
-> > 0xffffffff8038a51f acpi_ps_get_next_namepath [vmlinux]: 136
-> > 0x015b bay_create_acpi_device [bay]:                    136
-> > 0x0248 bay_create_acpi_device [bay]:                    136
-> > 0xffffffff80387e12 acpi_ns_get_node [vmlinux]:          120
-> > 0xffffffff80387f39 acpi_ns_get_node [vmlinux]:          120
-> > 0xffffffff8039763c acpi_add_single_object [vmlinux]:    120
-> > 0xffffffff80398258 acpi_add_single_object [vmlinux]:    120
-> > 0xffffffff80374595 acpi_ds_initialize_objects [vmlinux]:104
-> > 0xffffffff80374773 acpi_ds_initialize_objects [vmlinux]:104
-> > 0xffffffff8037cd5c acpi_ex_write_with_update_rule [vmlinux]:104
-> > 0xffffffff8037cf0b acpi_ex_write_with_update_rule [vmlinux]:104
-> > 0x00d5 acpi_bay_add [bay]:                              104
-> > 0x0141 acpi_bay_add [bay]:                              104
-> 
-> ---
-> ~Randy
-> 
+thanks for your report.
+
+Can you narrow down a bit when it started?
+Is 2.6.19 OK?
+Is 2.6.18 OK?
+
+I've Cc'ed the ACPI maintainers that might have some clues.
+
+> BR,
+> pawel.
+
+cu
+Adrian
+
+--=20
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
+
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
