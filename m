@@ -1,47 +1,62 @@
-From: "Luming Yu" <luming.yu@gmail.com>
-Subject: Re: Fan speeds on HP nc6400 and nc8430
-Date: Wed, 24 Jan 2007 22:54:15 +0800
-Message-ID: <3877989d0701240654p4421b8f0ob9462de2e3e40607@mail.gmail.com>
-References: <C3FA62B1A90D7440B9B6C7C31895994F0366363A@zadbn02100.vodacom.corp>
-	 <414cba4e0701190641x4e5c5747j3edf4ead90d805a2@mail.gmail.com>
-	 <3877989d0701232019g45af8feaxabdcf6ba77170a5d@mail.gmail.com>
-	 <200701232138.54758.bjorn.helgaas@hp.com>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: 2.6.20-rc5: known regressions with patches (v3)
+Date: Wed, 24 Jan 2007 16:50:53 +0100
+Message-ID: <20070124155053.GL17836@stusta.de>
+References: <Pine.LNX.4.64.0701121424520.11200@woody.osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wx-out-0506.google.com ([66.249.82.237]:8495 "EHLO
-	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751858AbXAXOyQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jan 2007 09:54:16 -0500
-Received: by wx-out-0506.google.com with SMTP id h31so215699wxd
-        for <linux-acpi@vger.kernel.org>; Wed, 24 Jan 2007 06:54:16 -0800 (PST)
-In-Reply-To: <200701232138.54758.bjorn.helgaas@hp.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <Pine.LNX.4.64.0701121424520.11200@woody.osdl.org>
+Sender: netdev-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, =?utf-8?B?QmrDtnJu?= Steinbrink <B.Steinbrink@gmx.de>, Robert Hancock <hancockr@shaw.ca>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Michael Gernoth <gernoth@informatik.uni-erlangen.de>, Daniel Drake <dsd@gentoo.org>, David L Stevens <dlstevens@us.ibm.com>, YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>, davem@davemloft.net, netdev@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Dave Jones <davej@redhat.com>, cpufreq@lists.linux.org.uk, lenb@kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: emisca <emisca.ml@gmail.com>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Pieter De Wit <Pieter.DeWit@vodacom.co.za>, linux-acpi@vger.kernel.org, trenn@novell.com
 
->From the thread, I see  Emilio Scalise has resolved the problem by
-hacking DSDT. So it would be helpful to verify. (Please check this
-thread http://www.mail-archive.com/linux-acpi@vger.kernel.org/msg02785.html)
-I don't have this laptop, so I don't know if it really work. But, I
-will check how it was resovled. Probably, we can find out the root
-cause. But I'm still confused by the fact that Windows just works.
+This email lists some known regressions in 2.6.20-rc5 compared to 2.6.1=
+9
+with patches available.
 
-http://www.mail-archive.com/linux-acpi@vger.kernel.org/msg02785.html
-On 1/24/07, Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
-> On Tuesday 23 January 2007 21:19, Luming Yu wrote:
-> > On 1/19/07, emisca <emisca.ml@gmail.com> wrote:
-> > > The TZ4 thermal zone on all the hp compaq line nx**** and nc**** is
-> > > not a temperature but the fan speed. You can see this information on
-> > > the web and on hp forums.
-> >
-> > Where is the hp forums.
->
-> I don't work on laptops, so I can't confirm this, but Google found
-> this (from "tz4 thermal zone fan speed hp"):
->
-> http://forums1.itrc.hp.com/service/forums/bizsupport/questionanswer.do?threadId=1052925
->
+If you find your name in the Cc header, you are either submitter of one
+of the bugs, maintainer of an affectected subsystem or driver, a patch
+of you caused a breakage or I'm considering you in any other way possib=
+ly
+involved with one or more of these issues.
+
+Due to the huge amount of recipients, please trim the Cc when answering=
+=2E
+
+
+Subject    : sata_nv: SATA exceptions
+References : http://lkml.org/lkml/2007/1/14/108
+Submitter  : Bj=C3=B6rn Steinbrink <B.Steinbrink@gmx.de>
+Caused-By  : Robert Hancock <hancockr@shaw.ca>
+             commit 2dec7555e6bf2772749113ea0ad454fcdb8cf861
+Handled-By : Robert Hancock <hancockr@shaw.ca>
+Patch      : http://lkml.org/lkml/2007/1/23/280
+Status     : patch available
+
+
+Subject    : does not pickup ipv6 addresses
+References : http://bugzilla.kernel.org/show_bug.cgi?id=3D7817
+             http://lkml.org/lkml/2007/1/14/146
+Submitter  : Michael Gernoth <gernoth@informatik.uni-erlangen.de>
+             Daniel Drake <dsd@gentoo.org>
+Caused-By  : David L Stevens <dlstevens@us.ibm.com>
+             commit 30c4cf577fb5b68c16e5750d6bdbd7072e42b279
+Handled-By : YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Patch      : http://bugzilla.kernel.org/show_bug.cgi?id=3D7817
+Status     : patch available
+
+
+Subject    : ACPI: fix cpufreq regression
+References : http://lkml.org/lkml/2007/1/16/120
+Submitter  : Ingo Molnar <mingo@elte.hu>
+Caused-By  : Dave Jones <davej@redhat.com>
+             commit 0916bd3ebb7cefdd0f432e8491abe24f4b5a101e
+Handled-By : Ingo Molnar <mingo@elte.hu>
+Patch      : http://lkml.org/lkml/2007/1/16/120
+Status     : patch available
+
+
