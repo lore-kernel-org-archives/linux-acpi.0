@@ -1,58 +1,54 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: Re: 2.6.20rc5 k8/acpi regression ( 2.6.17.13 works fine ).
-Date: Wed, 24 Jan 2007 23:52:39 +0100
-Message-ID: <20070124225238.GT17836@stusta.de>
-References: <200701242346.44673.pluto@agmk.net>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: IA64 ACPI build issues
+Date: Wed, 24 Jan 2007 15:19:06 -0800
+Message-ID: <617E1C2C70743745A92448908E030B2A0109E59A@scsmsx411.amr.corp.intel.com>
+References: <200701232348.30214.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emailhub.stusta.mhn.de ([141.84.69.5]:3413 "HELO
-	mailout.stusta.mhn.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932863AbXAXWwd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jan 2007 17:52:33 -0500
-Content-Disposition: inline
-In-Reply-To: <200701242346.44673.pluto@agmk.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Content-class: urn:content-classes:message
+In-Reply-To: <200701232348.30214.lenb@kernel.org>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?utf-8?B?UGF3ZcWC?= Sikora <pluto@agmk.net>, len.brown@intel.com
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wed, Jan 24, 2007 at 11:46:44PM +0100, Pawe=C5=82 Sikora wrote:
+> Some of the IA64 code assumes that ACPI is optional,
+> and some assumes that it is not.
 
-> hi,
+The situation now is that the simulator doesn't want ACPI, and everything
+else needs it (even "allnoconfig" ends up with CONFIG_ACPI=y!).  So the
+solution that you suggest near the end of your mail of making CONFIG_ACPI=y
+required, and somehow cleverly deal with the fallout in sim_defconfig would
+be the neatest (if we were clever enough to do this without an explosion
+of #ifdefs all over the place ... I don't know how complex this would get.
+A brief forray into Kconfig-file-land showed multiple levels of defenses
+preventing ACPI ever getting near CONFIG_HP_SIM ... I ripped out the first
+two layers and still didn't get asked whether I wanted ACPI (and couldn't
+immediately see where the third layer of defenses was located).
 
-Hi Pawe=C5=82,
+> But right behind this build issue is the IA64 PCI code assuming ACPI as well...
 
-> for 2.6.20rc5 i get an acpi related oops during x86-64 boot:
-> http://minus.ds14.agh.edu.pl/~pluto/2.6.20rc5-acpi-oops.jpg
-> disabling the "amd-k8 cool'n'quiet" option in bios helps.
-> moreover, it works fine for 2.6.17.13, so it looks like
-> a recent regression. i can provide more details if you need.
+Which is probably in the same category ... PCI gets excluded by HP_SIM, but
+for everyone else (again including allnoconfig) CONFIG_PCI=y
 
-thanks for your report.
+> How do you want to proceed?
+> I assume that
+> 1. configs that are theoretically possible, but  would run on nothing, should be discouraged
+>    as they become maintainer make-work that benefits nobody.
+Discouraged ... sure.  So if there is an easy tweak to a Kconfig file
+to stop someone from configuring something that won't work, that's
+definitely a good thing.  How much effort to expend on more complex
+cases to stop people shooting themselves in the foot is a much greyer
+area.  Right now we let people configure in all sorts of devices that
+have zero probabability of ever being installed in an ia64 box.
 
-Can you narrow down a bit when it started?
-Is 2.6.19 OK?
-Is 2.6.18 OK?
+> 2. littering the code with #ifdef  CONFIG_ACPI should be minimized.
+Yup ... #fidef's are bad, #ifdef CONFIG_* doubly so (the Makefile syntax
+of "objects-$(CONFIG_FOO) += foo.o" is pure magic).
 
-I've Cc'ed the ACPI maintainers that might have some clues.
+So no definitive answers ... just a pointer to what I think is
+the right direction.
 
-> BR,
-> pawel.
-
-cu
-Adrian
-
---=20
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
-
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Tony
