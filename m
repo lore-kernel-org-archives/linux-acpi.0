@@ -1,103 +1,99 @@
-From: Len Brown L <lenb@kernel.org>
-Subject: make checkstack | grep acpi
-Date: Tue, 23 Jan 2007 21:07:13 -0500
-Message-ID: <200701232107.13296.lenb@kernel.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: Idle loop causes speaker whine/buzz (!)
+Date: Tue, 23 Jan 2007 21:19:45 -0500
+Message-ID: <200701232119.45779.lenb@kernel.org>
+References: <20070123104010.GB7135@fscked.org> <200701231625.39684.lenb@kernel.org> <20070124003342.GB8644@fscked.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:58704 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:55614 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965615AbXAXCIh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 Jan 2007 21:08:37 -0500
-Received: from d975xbx2.site (c-65-96-213-102.hsd1.ma.comcast.net [65.96.213.102])
-	(authenticated bits=0)
-	by hera.kernel.org (8.13.8/8.13.7) with ESMTP id l0O27Nbw017337
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Wed, 24 Jan 2007 02:08:34 GMT
+	id S965615AbXAXCVG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 23 Jan 2007 21:21:06 -0500
+In-Reply-To: <20070124003342.GB8644@fscked.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Mike Perry <mikepery@fscked.org>
+Cc: linux-acpi@vger.kernel.org
 
-FYI,
+On Tuesday 23 January 2007 19:33, Mike Perry wrote:
+> Thus spake Len Brown (lenb@kernel.org):
+> 
+> > On Tuesday 23 January 2007 16:00, Henrique de Moraes Holschuh wrote:
+> > > On Tue, 23 Jan 2007, Mike Perry wrote:
+> > > > Is there currently any way to disable busmastering or C3 transitions
+> > > > (without recompilation)? Or better: is it possible to make the system
+> > > > less eager to transition into C3 or otherwise reduce the frequency of
+> > > > these transitions? If I could just get the frequency of transitions to
+> > > > get out of the audible range, my life would be a lot better.
+> > > 
+> > > Read http://thinkwiki.org/wiki/Problem_with_high_pitch_noises, it may have
+> > > the answers.
+> > 
+> > Pretty good write-up.  It is correct, you should try max_cstate.
+> > 
+> > for n starting at 3 and decreasing until the stound stops:
+> > # echo n > /sys/module/processor/parameters/max_cstate
+> 
+> Ahh, very nice. The whine stops at n=2, which is consistent with my
+> hack of manually disabling busmastering (which kills C3). At least now
+> I have the option of peace and quiet vs longer battery life+annoying
+> whine. Probably a tolerable option for plane flights :)
+> 
+> > BTW. what model Thinkpad do you have?
+> 
+> I actually have a Compaq Presario V6000T (Intel version). I was afraid
+> to mention it because Compaqs are historically pretty junky and I
+> figured someone would just say "that's what you get for buying junk" :)
+> But aside from the whine the machine is really nice (slim form
+> factor, very light yet durable, standard components, etc). ACPI
+> suspend to RAM and such is also fully functional (at least with the
+> Fedora kernels).
+>
+> > On some older systems, this pops all the way to C0, and on newer
+> > systems it transparently pops to C2 and returns to C3 w/o waking the
+> > OS.  You can get rid of it by disabling USB.  But it sounds like in
+> > the full-on case you've got an issue even with USB disabled.  Or
+> > sometimes you can bias the system to simply not enter C3 if it sees
+> > bus master traffic with
+> > 
+> > # echo 0xFFFFFFFF > /sys/module/processor/parameters/bm_history
+> 
+> Yeah, unfortunately this has no effect, even if I enable CONFIG_HZ=100
+> and CONFIG_HZ_100. What about that suspicious threshold structure in
+> the acpi_processor_cx struct? Is there any reasoning behind these
+> magic numbers in there for each state?
 
-2.6.20-rc5, i386:
+doesn't matter -- this code is being re-written anyway to handle dynticks.
+Further, even a very broken C-state promotion algorithm quickly finds
+its way to the deepest available C-state on a completely idle system.
+ 
+> > Another thing to try building the kernel with CONFIG_HZ=100 -- which
+> > is what a kernel for most laptops should be using in the first place.
+> 
+> As an aside, maybe this config option should be moved to a boot
+> parameter? I don't think you're going to see distros shipping laptop
+> kernels vs desktop kernels anytime soon.. But it doesn't seem to make
+> any difference for me either way.
 
-0x00000bee asus_hotk_add [asus_acpi]:                   232
-0x000018fc asus_hotk_add [asus_acpi]:                   232
-0x00cf hci_raw [toshiba_acpi]:                          228
-0x0166 hci_raw [toshiba_acpi]:                          228
-0xc026af95 acpi_processor_write_performance [vmlinux]:  200
-0xc026b091 acpi_processor_write_performance [vmlinux]:  200
-0xc02695ea acpi_processor_get_power_info [vmlinux]:     160
-0xc0269cf5 acpi_processor_get_power_info [vmlinux]:     160
-0xc02867d0 hpet_acpi_add [vmlinux]:                     152
-0xc0286830 hpet_acpi_add [vmlinux]:                     152
-0xc02388c5 acpi_evaluate_reference [vmlinux]:           140
-0xc0238c12 acpi_evaluate_reference [vmlinux]:           140
-0xc0238c2a acpi_evaluate_integer [vmlinux]:             140
-0xc0238e20 acpi_evaluate_integer [vmlinux]:             140
-0xc025c89f acpi_tb_get_required_tables [vmlinux]:       132
-0xc025ccbb acpi_tb_get_required_tables [vmlinux]:       132
-0x0644 acpi_cpufreq_cpu_init [acpi-cpufreq]:            124
-0x0be5 acpi_cpufreq_cpu_init [acpi-cpufreq]:            124
-0x0000017a acpi_evalf [ibm_acpi]:                       120
-0x00000305 acpi_evalf [ibm_acpi]:                       120
-0x000026d1 video_write [ibm_acpi]:                      116
-0x00002c25 video_write [ibm_acpi]:                      116
-0xc024548c acpi_ex_load_op [vmlinux]:                   104
-0xc024586a acpi_ex_load_op [vmlinux]:                   104
-0x00000fb0 acpi_sbs_generate_event [sbs]:               100
-0x00001022 acpi_sbs_generate_event [sbs]:               100
-0x0000040c acpi_thermal_check [thermal]:                100
-0x000007fd acpi_thermal_check [thermal]:                100
-0x00001782 thermal_read [ibm_acpi]:                     100
-0x00001992 thermal_read [ibm_acpi]:                     100
+There actually was patch for boot-time "dynamic hz" a while ago,
+but it didn't make it upstream -- instead the compile time static HZ did.
 
+Unfortunately, FC6 chose to move to 1000 HZ from 250 HZ --
+which is pretty much the opposite of what you want to do for
+battery life.  Though honestly, for many models it will not make
+a significant difference -- including the one I used for an example
+battery life system here:
 
-acpi-test, x86_64
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/doc/OLS2006-bltk-paper.pdf
 
-0xffffffff8036cdb0 acpi_os_printf [vmlinux]:            216
-0xffffffff8036cdfe acpi_os_printf [vmlinux]:            216
-0xffffffff803905d9 acpi_ut_debug_print_raw [vmlinux]:   216
-0xffffffff80390622 acpi_ut_debug_print_raw [vmlinux]:   216
-0xffffffff8039063e acpi_ut_debug_print [vmlinux]:       208
-0xffffffff80390729 acpi_ut_debug_print [vmlinux]:       208
-0xffffffff803916f3 acpi_ut_info [vmlinux]:              208
-0xffffffff8039174d acpi_ut_info [vmlinux]:              208
-0xffffffff80391768 acpi_ut_warning [vmlinux]:           208
-0xffffffff803917c7 acpi_ut_warning [vmlinux]:           208
-0xffffffff803917e2 acpi_ut_error [vmlinux]:             208
-0xffffffff80391841 acpi_ut_error [vmlinux]:             208
-0xffffffff80391859 acpi_ut_exception [vmlinux]:         208
-0xffffffff803918c9 acpi_ut_exception [vmlinux]:         208
-0xffffffff8036d0a8 acpi_evaluate_reference [vmlinux]:   168
-0xffffffff8036d3cc acpi_evaluate_reference [vmlinux]:   168
-0xffffffff8039eb75 acpi_processor_get_power_info [vmlinux]:168
-0xffffffff8039f21b acpi_processor_get_power_info [vmlinux]:168
-0xffffffff803bb743 hpet_acpi_add [vmlinux]:             168
-0xffffffff803bb7aa hpet_acpi_add [vmlinux]:             168
-0xffffffff8036d3fc acpi_evaluate_integer [vmlinux]:     152
-0xffffffff8036d5dd acpi_evaluate_integer [vmlinux]:     152
-0xffffffff8039ffdb acpi_processor_register_performance [vmlinux]:152
-0xffffffff803a045f acpi_processor_register_performance [vmlinux]:152
-0x000011a5 acpi_video_bus_add [video]:                  152
-0x00001cf2 acpi_video_bus_add [video]:                  152
-0xffffffff8034af28 acpi_query_osc [vmlinux]:            136
-0xffffffff8034b054 acpi_query_osc [vmlinux]:            136
-0xffffffff8038a283 acpi_ps_get_next_namepath [vmlinux]: 136
-0xffffffff8038a51f acpi_ps_get_next_namepath [vmlinux]: 136
-0x015b bay_create_acpi_device [bay]:                    136
-0x0248 bay_create_acpi_device [bay]:                    136
-0xffffffff80387e12 acpi_ns_get_node [vmlinux]:          120
-0xffffffff80387f39 acpi_ns_get_node [vmlinux]:          120
-0xffffffff8039763c acpi_add_single_object [vmlinux]:    120
-0xffffffff80398258 acpi_add_single_object [vmlinux]:    120
-0xffffffff80374595 acpi_ds_initialize_objects [vmlinux]:104
-0xffffffff80374773 acpi_ds_initialize_objects [vmlinux]:104
-0xffffffff8037cd5c acpi_ex_write_with_update_rule [vmlinux]:104
-0xffffffff8037cf0b acpi_ex_write_with_update_rule [vmlinux]:104
-0x00d5 acpi_bay_add [bay]:                              104
-0x0141 acpi_bay_add [bay]:                              104
+Also, other major distros, such as OS 10.2, are still available with HZ 250,
+
+Further, as Henrique says, we should be cutting over to dynticks soon anyway.
+(though we've been saying that for 6 months)
+
+cheers,
+-Len
