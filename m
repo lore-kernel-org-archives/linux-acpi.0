@@ -1,38 +1,47 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH] Add Micro-Star as a PCI VENDOR
-Date: Wed, 24 Jan 2007 17:26:44 -0800
-Message-ID: <20070125012644.GA6172@kroah.com>
-References: <c1cd85210701241715p29fb437dy9400e74afaf8bbf7@mail.gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [linux-pm] [PATCH 0/6] [-mm]: ACPI: duplicate ACPI procfs functions in sysfs
+Date: Wed, 24 Jan 2007 21:03:56 -0500
+Message-ID: <200701242103.57153.lenb@kernel.org>
+References: <1168083306.5619.34.camel@localhost.localdomain> <20070107111509.GA4792@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns1.suse.de ([195.135.220.2]:36549 "EHLO mx1.suse.de"
+Received: from hera.kernel.org ([140.211.167.34]:33819 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965065AbXAYB1p (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Jan 2007 20:27:45 -0500
+	id S965158AbXAYCFV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 24 Jan 2007 21:05:21 -0500
+In-Reply-To: <20070107111509.GA4792@ucw.cz>
 Content-Disposition: inline
-In-Reply-To: <c1cd85210701241715p29fb437dy9400e74afaf8bbf7@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Gordon Stanton <fixacpi@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, lm-sensors@lm-sensors.org, s270-linux@mail.0pointer.de, linux-pci@atrey.karlin.mff.cuni.cz
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Zhang Rui <rui.zhang@intel.com>, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, linux-pm@osdl.org
 
-On Thu, Jan 25, 2007 at 12:15:51PM +1100, Gordon Stanton wrote:
-> Hi,
-> I noticed that a common motherboard manufacturer Micro-Star was
-> missing it's PCI_VENDOR_ID and so I have sent this patch in.
-> Later on I will send a patch to pci/quirks.c to unhide the SMBus on
-> the M510C laptop once I have investigated it a bit more. It hides the
-> SMBus the same as ASUS (and a couple of others) laptops.
-> This is definately the correct ID, see
-> http://www.pcidatabase.com/vendor_details.php?id=705
+
+> > Patch 03-05:
+> > 	add ACPI sleep attributes in sysfs.
+> > 	/proc/acpi/sleep is already deprecated by /sys/power/state.
 > 
-> I would also be happy with PCI_VENDOR_ID_MICRO_STAR instead, what do you 
-> think?
+> Does that mean we drop standby (S1) capability on PCs?
 
-I suggest sending this patch in when you need to use it, i.e. at the
-same time you send the quirk patch in.
+I think we need to make /sys/power/state handle S1.
 
-thanks,
+There are two cases
 
-greg k-h
+1. Platform supports S1, but does not support S3.
+
+This is more common.  You see this a lot on server-class machines.
+
+We could make "mem" simply mean S1 here b/c it is effectively
+the closest thing to S3.
+
+2. Platform supports both S1 and S3.
+
+This is pretty rare -- at least on the systems I've got.
+I'd  like the generic interface be able to describe and handle this case.
+
+I'm open to suggestions on what to call S1 if it isn't called "mem".
+
+-Len
