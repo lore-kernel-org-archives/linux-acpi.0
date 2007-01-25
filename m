@@ -1,270 +1,227 @@
 From: Corentin CHARY <corentincj@iksaif.net>
-Subject: [patch 2/7] asus-laptop: add led support
-Date: Thu, 25 Jan 2007 12:54:43 +0100
-Message-ID: <200701251254.43674.corentincj@iksaif.net>
+Subject: [patch 3/7] asus-laptop: add bluetooth and wlan support
+Date: Thu, 25 Jan 2007 12:54:46 +0100
+Message-ID: <200701251254.46132.corentincj@iksaif.net>
 Reply-To: corentincj@iksaif.net
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.dns26.com ([84.246.226.15]:35182 "EHLO iksaif.net"
+Received: from iksaif.dns26.com ([84.246.226.15]:35192 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932792AbXAYLyw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 25 Jan 2007 06:54:52 -0500
+	id S932846AbXAYLyx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Jan 2007 06:54:53 -0500
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net
 
-Add led support, using generic led class.
-Thomas Tuttle's patch <http://lkml.org/lkml/2006/7/6/247> was very usefull.
-We use hotk->status to store led status because it's very hard to find acpi method
-to get the right status...
-To reduce the code, I use a lot of macro (ASUS_LED, ASUS_LED_REGISTER, etc ...), because
-the code is the same for all leds ...
+WLED and BLED are not handled like other leds (MLED, etc ..), because sometime
+they also control the wlan/bluetooth device.
+If the method for wireless_status is found, it's used to get the status, otherwise hotk->status
+is used.
+We also use the HWRS method, which tell if the bluetooth/wlan device is present or not.
+This patch show why we need a ASUS_SET_DEVICE_ATTR macro : if there is a bluetooth device,
+/sys/dev.../asus-laptop/bluetooth is usable, else it's not but it's clean.
 
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
- Kconfig       |    1
- asus-laptop.c |  146 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 147 insertions(+)
+ asus-laptop.c |  117 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 116 insertions(+), 1 deletion(-)
 ---
 
 diff -Naur a/drivers/misc/asus-laptop.c b/drivers/misc/asus-laptop.c
---- a/drivers/misc/asus-laptop.c	2007-01-21 15:27:49.000000000 +0100
-+++ b/drivers/misc/asus-laptop.c	2007-01-21 15:24:46.000000000 +0100
-@@ -40,6 +40,7 @@
- #include <linux/types.h>
- #include <linux/err.h>
- #include <linux/proc_fs.h>
-+#include <linux/leds.h>
- #include <linux/platform_device.h>
- #include <acpi/acpi_drivers.h>
- #include <acpi/acpi_bus.h>
-@@ -54,6 +55,14 @@
- #define ASUS_HOTK_FILE          "asus-laptop"
+--- a/drivers/misc/asus-laptop.c	2007-01-21 15:29:27.000000000 +0100
++++ b/drivers/misc/asus-laptop.c	2007-01-21 15:29:02.000000000 +0100
+@@ -56,8 +56,17 @@
  #define ASUS_HOTK_PREFIX        "\\_SB.ATKD."
  
-+/*
-+ * Flags for hotk status
+ /*
++ * Known bits returned by \_SB.ATKD.HWRS
 + */
-+#define MLED_ON     0x04	//mail LED
-+#define TLED_ON     0x08	//touchpad LED
-+#define RLED_ON     0x10        //Record LED
-+#define PLED_ON     0x20        //Phone LED
++#define WL_HWRS     0x80
++#define BT_HWRS     0x100
 +
- #define ASUS_LOG    ASUS_HOTK_FILE ": "
- #define ASUS_ERR    KERN_ERR    ASUS_LOG
- #define ASUS_WARNING    KERN_WARNING    ASUS_LOG
-@@ -69,6 +78,12 @@
- 	static acpi_handle  object##_handle = NULL;			\
- 	static char *object##_paths[] = { paths }
++/*
+  * Flags for hotk status
++ * WL_ON and BT_ON are also used for wireless_status()
+  */
++#define WL_ON       0x01	//internal Wifi
++#define BT_ON       0x02	//internal Bluetooth
+ #define MLED_ON     0x04	//mail LED
+ #define TLED_ON     0x08	//touchpad LED
+ #define RLED_ON     0x10        //Record LED
+@@ -84,6 +93,14 @@
+ ASUS_HANDLE(rled_set, ASUS_HOTK_PREFIX "RLED"); /* W1JC */
+ ASUS_HANDLE(pled_set, ASUS_HOTK_PREFIX "PLED"); /* A7J */
  
-+/* LED */
-+ASUS_HANDLE(mled_set, ASUS_HOTK_PREFIX "MLED");
-+ASUS_HANDLE(tled_set, ASUS_HOTK_PREFIX "TLED");
-+ASUS_HANDLE(rled_set, ASUS_HOTK_PREFIX "RLED"); /* W1JC */
-+ASUS_HANDLE(pled_set, ASUS_HOTK_PREFIX "PLED"); /* A7J */
++/* Bluetooth and WLAN
++ * WLED and BLED are not handled like other XLED, because in some dsdt
++ * they also control the WLAN/Bluetooth device.
++ */
++ASUS_HANDLE(wl_switch, ASUS_HOTK_PREFIX "WLED");
++ASUS_HANDLE(bt_switch, ASUS_HOTK_PREFIX "BLED");
++ASUS_HANDLE(wireless_status, ASUS_HOTK_PREFIX "RSTS"); /* All new models */
 +
  /*
   * This is the main structure, we can use it to store anything interesting
   * about the hotk device
-@@ -106,6 +121,28 @@
- 		},
- };
- 
-+/* These functions actually update the LED's, and are called from a
-+ * workqueue. By doing this as separate work rather than when the LED
-+ * subsystem asks, we avoid messing with the Asus ACPI stuff during a
-+ * potentially bad time, such as a timer interrupt. */
-+static struct workqueue_struct *led_workqueue;
-+
-+#define ASUS_LED(object, ledname)					\
-+	static void object##_led_set(struct led_classdev *led_cdev,	\
-+				     enum led_brightness value);	\
-+	static void object##_led_update(struct work_struct *ignored);	\
-+	static int object##_led_wk;					\
-+	DECLARE_WORK(object##_led_work, object##_led_update);		\
-+	static struct led_classdev object##_led = {			\
-+		.name           = "asus:" ledname,			\
-+		.brightness_set = object##_led_set,			\
-+	}
-+
-+ASUS_LED(mled, "mail");
-+ASUS_LED(tled, "touchpad");
-+ASUS_LED(rled, "record");
-+ASUS_LED(pled, "phone");
-+
- /*
-  * This function evaluates an ACPI method, given an int as parameter, the
-  * method is searched within the scope of the handle, can be NULL. The output
-@@ -144,6 +181,44 @@
+@@ -181,9 +198,26 @@
  	return (status == AE_OK) && (out_obj.type == ACPI_TYPE_INTEGER);
  }
  
-+/* Generic LED functions */
-+static int read_led(int ledmask)
-+{
++static int read_wireless_status(int ledmask) {
++	int led_status;
++
++	if (read_acpi_int(wireless_status_handle, NULL, &led_status, NULL)) {
++		return (led_status & ledmask) ? 1 : 0;
++	} else
++		printk(ASUS_WARNING "Error reading Wireless status\n");
++
 +	return (hotk->status & ledmask) ? 1 : 0;
 +}
 +
-+static void write_led(acpi_handle led_handle, int led_out, int ledmask,
-+		      int invert)
-+{
-+	hotk->status =
-+	    (led_out) ? (hotk->status | ledmask) : (hotk->status & ~ledmask);
-+
-+	if (invert)		/* invert target value */
-+		led_out = !led_out & 0x1;
-+
-+	if (!write_acpi_int(led_handle, NULL, led_out, NULL))
-+		printk(ASUS_WARNING "LED write failed\n");
-+}
-+
-+/* /sys/class/led handlers */
-+#define ASUS_LED_HANDLER(object, mask, invert)				\
-+	static void object##_led_set(struct led_classdev *led_cdev,	\
-+				     enum led_brightness value)		\
-+	{								\
-+		object##_led_wk = value;				\
-+		queue_work(led_workqueue, &object##_led_work);		\
-+	}								\
-+	static void object##_led_update(struct work_struct *ignored)	\
-+	{								\
-+		int value = object##_led_wk;				\
-+		write_led(object##_set_handle, value, (mask), (invert)); \
+ /* Generic LED functions */
+ static int read_led(int ledmask)
+ {
++	/* There is a special method for both wireless devices */
++	if ((ledmask == BT_ON || ledmask == WL_ON) &&
++	    wireless_status_handle) {
++		return read_wireless_status(ledmask);
 +	}
 +
-+ASUS_LED_HANDLER(mled, MLED_ON, 1);
-+ASUS_LED_HANDLER(pled, PLED_ON, 0);
-+ASUS_LED_HANDLER(rled, RLED_ON, 0);
-+ASUS_LED_HANDLER(tled, TLED_ON, 0);
-+
- /*
-  * Platform device handlers
-  */
-@@ -361,6 +436,11 @@
- 	if(*string)
- 		printk(ASUS_NOTICE "  %s model detected\n", string);
+ 	return (hotk->status & ledmask) ? 1 : 0;
+ }
  
-+	ASUS_HANDLE_INIT(mled_set);
-+	ASUS_HANDLE_INIT(tled_set);
-+	ASUS_HANDLE_INIT(rled_set);
-+	ASUS_HANDLE_INIT(pled_set);
+@@ -293,6 +327,51 @@
+ 	return count;
+ }
+ 
++static ssize_t store_led(const char *buf, size_t count,
++			 acpi_handle led_handle, int ledmask, int invert)
++{
++	int rv, value;
++	int led_out = 0;
++
++	rv = parse_arg(buf, count, &value);
++	if (rv > 0)
++		led_out = value ? 1 : 0;
++
++	write_led(led_handle, led_out, ledmask, invert);
++
++	return rv;
++}
++
++/*
++ * WLAN
++ */
++static ssize_t show_wlan(struct device *dev,
++			 struct device_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%d\n", read_led(WL_ON));
++}
++
++static ssize_t store_wlan(struct device *dev, struct device_attribute *attr,
++			  const char *buf, size_t count)
++{
++	return store_led(buf, count, wl_switch_handle, WL_ON, 0);
++}
++
++/*
++ * Bluetooth
++ */
++static ssize_t show_bluetooth(struct device *dev,
++			      struct device_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%d\n", read_led(BT_ON));
++}
++
++static ssize_t store_bluetooth(struct device *dev, struct device_attribute *attr,
++			       const char *buf, size_t count)
++{
++	return store_led(buf, count, bt_switch_handle, BT_ON, 0);
++}
++
+ static void asus_hotk_notify(acpi_handle handle, u32 event, void *data)
+ {
+ 	/* TODO Find a better way to handle events count. */
+@@ -323,9 +402,13 @@
+ 	} while(0)
+ 
+ static ASUS_CREATE_DEVICE_ATTR(infos);
++static ASUS_CREATE_DEVICE_ATTR(wlan);
++static ASUS_CREATE_DEVICE_ATTR(bluetooth);
+ 
+ static struct attribute *asuspf_attributes[] = {
+         &dev_attr_infos.attr,
++        &dev_attr_wlan.attr,
++        &dev_attr_bluetooth.attr,
+         NULL
+ };
+ 
+@@ -346,6 +429,13 @@
+ static void asus_hotk_add_fs(void)
+ {
+ 	ASUS_SET_DEVICE_ATTR(infos, 0444, show_infos, NULL);
++
++	if (wl_switch_handle)
++		ASUS_SET_DEVICE_ATTR(wlan, 0644, show_wlan, store_wlan);
++
++	if (bt_switch_handle)
++		ASUS_SET_DEVICE_ATTR(bluetooth, 0644,
++				     show_bluetooth, store_bluetooth);
+ }
+ 
+ static int asus_handle_init(char *name, acpi_handle *handle,
+@@ -378,7 +468,7 @@
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	struct acpi_buffer dsdt = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	union acpi_object *model = NULL;
+-	int bsts_result;
++	int bsts_result, hwrs_result;
+ 	char *string = NULL;
+ 	acpi_status status;
+ 
+@@ -441,6 +531,22 @@
+ 	ASUS_HANDLE_INIT(rled_set);
+ 	ASUS_HANDLE_INIT(pled_set);
+ 
++	/*
++	 * The HWRS method return informations about the hardware.
++	 * 0x80 bit is for WLAN, 0x100 for Bluetooth.
++	 * The significance of others is yet to be found.
++	 * If we don't find the method, we assume the device are present.
++	 */
++	if (!read_acpi_int(hotk->handle, "HRWS", &hwrs_result, NULL))
++		hwrs_result = WL_HWRS | BT_HWRS;
++
++	if(hwrs_result | WL_HWRS)
++		ASUS_HANDLE_INIT(wl_switch);
++	if(hwrs_result | BT_HWRS)
++		ASUS_HANDLE_INIT(bt_switch);
++
++	ASUS_HANDLE_INIT(wireless_status);
 +
  	kfree(model);
  
  	return AE_OK;
-@@ -452,8 +532,25 @@
- 	return 0;
- }
+@@ -505,6 +611,15 @@
  
-+#define  ASUS_LED_UNREGISTER(object)				\
-+	if(object##_led.class_dev				\
-+	   && !IS_ERR(object##_led.class_dev))			\
-+		led_classdev_unregister(&object##_led)
-+
-+static void asus_led_exit(void)
-+{
-+	ASUS_LED_UNREGISTER(mled);
-+	ASUS_LED_UNREGISTER(tled);
-+	ASUS_LED_UNREGISTER(pled);
-+	ASUS_LED_UNREGISTER(rled);
-+
-+	destroy_workqueue(led_workqueue);
-+}
-+
- static void __exit asus_laptop_exit(void)
- {
-+	asus_led_exit();
-+
- 	acpi_bus_unregister_driver(&asus_hotk_driver);
-         sysfs_remove_group(&asuspf_device->dev.kobj, &asuspf_attribute_group);
-         platform_device_unregister(asuspf_device);
-@@ -462,8 +559,48 @@
- 	kfree(asus_info);
- }
+ 	asus_hotk_found = 1;
  
-+static int asus_led_register(acpi_handle handle,
-+			     struct led_classdev * ldev,
-+			     struct device * dev)
-+{
-+	if(!handle)
-+		return 0;
++	/* WLED and BLED are on by  default */
++	hotk->status |= WL_ON | BT_ON;
 +
-+	return led_classdev_register(dev, ldev);
-+}
-+#define ASUS_LED_REGISTER(object, device)				\
-+	asus_led_register(object##_set_handle, &object##_led, device)
++	if(wl_switch_handle)
++		write_acpi_int(wl_switch_handle, NULL, 1, NULL);
 +
-+static int asus_led_init(struct device * dev)
-+{
-+	int rv;
++	if(bt_switch_handle)
++		write_acpi_int(bt_switch_handle, NULL, 1, NULL);
 +
-+	rv = ASUS_LED_REGISTER(mled, dev);
-+	if(rv)
-+		return rv;
-+
-+	rv = ASUS_LED_REGISTER(tled, dev);
-+	if(rv)
-+		return rv;
-+
-+	rv = ASUS_LED_REGISTER(rled, dev);
-+	if(rv)
-+		return rv;
-+
-+	rv = ASUS_LED_REGISTER(pled, dev);
-+	if(rv)
-+		return rv;
-+
-+	led_workqueue = create_singlethread_workqueue("led_workqueue");
-+	if(!led_workqueue)
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+
- static int __init asus_laptop_init(void)
- {
-+	struct device *dev;
- 	int result;
- 
- 	if (acpi_disabled)
-@@ -490,6 +627,12 @@
- 		return -ENODEV;
- 	}
- 
-+	dev = acpi_get_physical_device(hotk->device->handle);
-+
-+	result = asus_led_init(dev);
-+	if(result)
-+		goto fail_led;
-+
-         /* Register platform stuff */
- 	result = platform_driver_register(&asuspf_driver);
-         if (result)
-@@ -522,6 +665,9 @@
-         platform_driver_unregister(&asuspf_driver);
- 
- fail_platform_driver:
-+	asus_led_exit();
-+
-+fail_led:
- 
- 	return result;
- }
-diff -Naur a/drivers/misc/Kconfig b/drivers/misc/Kconfig
---- a/drivers/misc/Kconfig	2007-01-21 15:27:49.000000000 +0100
-+++ b/drivers/misc/Kconfig	2007-01-21 15:24:26.000000000 +0100
-@@ -74,6 +74,7 @@
-         depends on X86
-         depends on ACPI
- 	depends on EXPERIMENTAL && !ASUS_ACPI
-+	select LEDS_CLASS
-         ---help---
- 	  This is the new Linux driver for Asus laptops. It may also support some
- 	  MEDION, JVC or VICTOR laptops. It makes all the extra buttons generate
+       end:
+ 	if (result) {
+ 		kfree(hotk->name);
 
 -- 
 CHARY 'Iksaif' Corentin
