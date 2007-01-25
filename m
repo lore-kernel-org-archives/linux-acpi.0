@@ -1,54 +1,46 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: IA64 ACPI build issues
-Date: Wed, 24 Jan 2007 15:19:06 -0800
-Message-ID: <617E1C2C70743745A92448908E030B2A0109E59A@scsmsx411.amr.corp.intel.com>
-References: <200701232348.30214.lenb@kernel.org>
+From: "Gordon Stanton" <fixacpi@gmail.com>
+Subject: [PATCH] Add Micro-Star as a PCI VENDOR
+Date: Thu, 25 Jan 2007 12:15:51 +1100
+Message-ID: <c1cd85210701241715p29fb437dy9400e74afaf8bbf7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <200701232348.30214.lenb@kernel.org>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from wr-out-0506.google.com ([64.233.184.238]:60883 "EHLO
+	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752003AbXAYBPx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jan 2007 20:15:53 -0500
+Received: by wr-out-0506.google.com with SMTP id i22so292515wra
+        for <linux-acpi@vger.kernel.org>; Wed, 24 Jan 2007 17:15:52 -0800 (PST)
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, lm-sensors@lm-sensors.org, s270-linux@mail.0pointer.de, linux-pci@atrey.karlin.mff.cuni.cz
 
-> Some of the IA64 code assumes that ACPI is optional,
-> and some assumes that it is not.
+Hi,
+I noticed that a common motherboard manufacturer Micro-Star was
+missing it's PCI_VENDOR_ID and so I have sent this patch in.
+Later on I will send a patch to pci/quirks.c to unhide the SMBus on
+the M510C laptop once I have investigated it a bit more. It hides the
+SMBus the same as ASUS (and a couple of others) laptops.
+This is definately the correct ID, see
+http://www.pcidatabase.com/vendor_details.php?id=705
 
-The situation now is that the simulator doesn't want ACPI, and everything
-else needs it (even "allnoconfig" ends up with CONFIG_ACPI=y!).  So the
-solution that you suggest near the end of your mail of making CONFIG_ACPI=y
-required, and somehow cleverly deal with the fallout in sim_defconfig would
-be the neatest (if we were clever enough to do this without an explosion
-of #ifdefs all over the place ... I don't know how complex this would get.
-A brief forray into Kconfig-file-land showed multiple levels of defenses
-preventing ACPI ever getting near CONFIG_HP_SIM ... I ripped out the first
-two layers and still didn't get asked whether I wanted ACPI (and couldn't
-immediately see where the third layer of defenses was located).
+I would also be happy with PCI_VENDOR_ID_MICRO_STAR instead, what do you think?
 
-> But right behind this build issue is the IA64 PCI code assuming ACPI as well...
+Signed-off-by: Gordon Stanton <fixacpi@gmail.com>
 
-Which is probably in the same category ... PCI gets excluded by HP_SIM, but
-for everyone else (again including allnoconfig) CONFIG_PCI=y
+---
 
-> How do you want to proceed?
-> I assume that
-> 1. configs that are theoretically possible, but  would run on nothing, should be discouraged
->    as they become maintainer make-work that benefits nobody.
-Discouraged ... sure.  So if there is an easy tweak to a Kconfig file
-to stop someone from configuring something that won't work, that's
-definitely a good thing.  How much effort to expend on more complex
-cases to stop people shooting themselves in the foot is a much greyer
-area.  Right now we let people configure in all sorts of devices that
-have zero probabability of ever being installed in an ia64 box.
+--- linux-2.6.20-rc5/include/linux/pci_ids.h	2007-01-13 05:54:26.000000000 +1100
++++ linux/include/linux/pci_ids.h	2007-01-25 11:43:30.478249500 +1100
+@@ -1875,6 +1875,8 @@
 
-> 2. littering the code with #ifdef  CONFIG_ACPI should be minimized.
-Yup ... #fidef's are bad, #ifdef CONFIG_* doubly so (the Makefile syntax
-of "objects-$(CONFIG_FOO) += foo.o" is pure magic).
+ #define PCI_VENDOR_ID_SAMSUNG		0x144d
 
-So no definitive answers ... just a pointer to what I think is
-the right direction.
++#define PCI_VENDOR_ID_MICROSTAR		0x1462
++
+ #define PCI_VENDOR_ID_MYRICOM		0x14c1
 
--Tony
+ #define PCI_VENDOR_ID_TITAN		0x14D2
