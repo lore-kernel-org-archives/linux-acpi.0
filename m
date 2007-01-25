@@ -1,63 +1,27 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [linux-pm] [PATCH 0/6] [-mm]: ACPI: duplicate ACPI procfs functions in sysfs
-Date: Thu, 25 Jan 2007 02:00:25 -0800
-Message-ID: <200701250200.26338.david-b@pacbell.net>
-References: <1168083306.5619.34.camel@localhost.localdomain> <1169693548.9381.1.camel@nigel.suspend2.net> <200701250917.48689.rjw@sisk.pl>
+From: "Zhao Forrest" <forrest.zhao@gmail.com>
+Subject: A question about CONFIG_SERIAL_ACPI
+Date: Thu, 25 Jan 2007 18:23:25 +0800
+Message-ID: <ac8af0be0701250223p6c201a4ci3c26673f33aef25@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp106.sbc.mail.mud.yahoo.com ([68.142.198.205]:41207 "HELO
-	smtp106.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S965750AbXAYKA2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 25 Jan 2007 05:00:28 -0500
-In-Reply-To: <200701250917.48689.rjw@sisk.pl>
+Received: from ug-out-1314.google.com ([66.249.92.168]:14958 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965755AbXAYKX1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Jan 2007 05:23:27 -0500
+Received: by ug-out-1314.google.com with SMTP id 44so414467uga
+        for <linux-acpi@vger.kernel.org>; Thu, 25 Jan 2007 02:23:25 -0800 (PST)
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pm@lists.osdl.org
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, nigel@nigel.suspend2.net, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, linux-pm@osdl.org, Pavel Machek <pavel@ucw.cz>
+To: linux-acpi@vger.kernel.org
 
-> > > I think we need to make /sys/power/state handle S1.
-> > > 
-> > > There are two cases
-> > > 
-> > > 1. Platform supports S1, but does not support S3.
-> > > 
-> > > This is more common.  You see this a lot on server-class machines.
-> > > 
-> > > We could make "mem" simply mean S1 here b/c it is effectively
-> > > the closest thing to S3.
+Hi list,
 
-Today, this system would list "standby" in /sys/power/state,
-but not "mem".  I have a system like that here ...
+I found that kernel 2.4.21 has CONFIG_SERIAL_ACPI, but 2.6 kernel and
+later 2.4 kernel remove this kernel config option.
+Has CONFIG_SERIAL_ACPI become the default option and been built into kernel?
 
-
-> > > 2. Platform supports both S1 and S3.
-> > > 
-> > > This is pretty rare -- at least on the systems I've got.
-> > > I'd  like the generic interface be able to describe and handle this case.
-
-Today, this system would list both "standby" and "mem"
-in /sys/power/state.  I have a system like that here ...
-
-
-      3. (ACPI) platform supports S3 but not S1
-
-Today, this system would list "mem" in /sys/power/state,
-but not "standby".  I have a system like that here ...
-
-
-
-> > > I'm open to suggestions on what to call S1 if it isn't called "mem".
-> > 
-> > 'standby'? That's what occurs to me from previous M$ usage.
-> 
-> Yes, something like that, I think..
-
-Good news ... it already works that way!!!  :)
-
-- Dave
-
+Thanks,
+Forrest
