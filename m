@@ -1,40 +1,35 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: A question about CONFIG_SERIAL_ACPI
-Date: Thu, 25 Jan 2007 08:58:30 -0700
-Message-ID: <200701250858.30758.bjorn.helgaas@hp.com>
-References: <ac8af0be0701250223p6c201a4ci3c26673f33aef25@mail.gmail.com> <20070125105918.GA12979@srcf.ucam.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [linux-pm] [PATCH 0/6] [-mm]: ACPI: duplicate ACPI procfs functions in sysfs
+Date: Thu, 25 Jan 2007 20:37:42 +0100
+Message-ID: <20070125193742.GA23774@elf.ucw.cz>
+References: <1168083306.5619.34.camel@localhost.localdomain> <200701061421.41342.david-b@pacbell.net> <200701242228.17836.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel7.hp.com ([156.153.255.213]:48700 "EHLO atlrel7.hp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030247AbXAYP7a (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 25 Jan 2007 10:59:30 -0500
-In-Reply-To: <20070125105918.GA12979@srcf.ucam.org>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:46051 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1030525AbXAYTiT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Jan 2007 14:38:19 -0500
 Content-Disposition: inline
+In-Reply-To: <200701242228.17836.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Zhao Forrest <forrest.zhao@gmail.com>, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: David Brownell <david-b@pacbell.net>, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, linux-pm@lists.osdl.org, linux-pm@osdl.org
 
-On Thursday 25 January 2007 03:59, Matthew Garrett wrote:
-> On Thu, Jan 25, 2007 at 06:23:25PM +0800, Zhao Forrest wrote:
-> > I found that kernel 2.4.21 has CONFIG_SERIAL_ACPI, but 2.6 kernel and
-> > later 2.4 kernel remove this kernel config option.
-> > Has CONFIG_SERIAL_ACPI become the default option and been built into kernel?
+Hi!
+
+> > (Yes, there are huge gaps in Linux-PM wakeup support.  Weak ACPI suppport
+> > for it, especially from STR -- without swsusp -- is a big factor.  I
+> > was pleased to see RTC wakeup from ACPI S4 actually work ... first time
+> > I've ever seen ACPI wakeup ever work correctly.)
 > 
-> The support has been merged into the PNP serial driver.
+> Try your power button, sleep button, or lid switch.
 
-To get the functionality that CONFIG_SERIAL_ACPI used to provide, you
-now need:
-
-	CONFIG_ACPI
-	CONFIG_PNP
-	CONFIG_PNPACPI
-	CONFIG_SERIAL_8250
-	CONFIG_SERIAL_8250_PNP
-
-Most of those should be set by default, but sometimes people miss
-CONFIG_PNPACPI.
+Actually, in 2.6.18-or-so, I could wake my x60 from s2ram by simply
+opening the lid. New kernels do not support that. Do I need to
+configure it somewhere?
+								Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
