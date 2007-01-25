@@ -1,23 +1,30 @@
 From: akpm@osdl.org
-Subject: - acpi-keep-track-of-timer-broadcast.patch removed from -mm tree
-Date: Wed, 24 Jan 2007 22:12:09 -0800
-Message-ID: <200701250612.l0P6C9FQ007768@shell0.pdx.osdl.net>
-Reply-To: linux-kernel@vger.kernel.org
-Return-path: <mm-commits-owner@vger.kernel.org>
-Sender: mm-commits-owner@vger.kernel.org
-To: tglx@linutronix.de, ak@suse.de, len.brown@intel.com, linux-acpi@vger.kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org
+Subject: + acpi-keep-track-of-timer-broadcasting.patch added to -mm tree
+Date: Wed, 24 Jan 2007 22:36:39 -0800
+Message-ID: <200701250636.l0P6ad3Z008355@shell0.pdx.osdl.net>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.osdl.org ([65.172.181.24]:50591 "EHLO smtp.osdl.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965620AbXAYGmu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Jan 2007 01:42:50 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, len.brown@intel.com, linux-acpi@vger.kernel.org, mingo@elte.hu, zippel@linux-m68k.org
 
 
 The patch titled
-     ACPI: keep track of timer broadcast
-has been removed from the -mm tree.  Its filename was
-     acpi-keep-track-of-timer-broadcast.patch
+     ACPI keep track of timer broadcasting
+has been added to the -mm tree.  Its filename is
+     acpi-keep-track-of-timer-broadcasting.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: ACPI: keep track of timer broadcast
+Subject: ACPI keep track of timer broadcasting
 From: Thomas Gleixner <tglx@linutronix.de>
 
 This is a preperatory patch for highres/dyntick:
@@ -31,9 +38,11 @@ This is a preperatory patch for highres/dyntick:
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: "Brown, Len" <len.brown@intel.com>
+Cc: Len Brown <len.brown@intel.com>
 Cc: <linux-acpi@vger.kernel.org>
 Cc: Andi Kleen <ak@suse.de>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
@@ -41,8 +50,8 @@ Signed-off-by: Andrew Morton <akpm@osdl.org>
  include/acpi/processor.h      |    1 
  2 files changed, 49 insertions(+), 19 deletions(-)
 
-diff -puN drivers/acpi/processor_idle.c~acpi-keep-track-of-timer-broadcast drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-keep-track-of-timer-broadcast
+diff -puN drivers/acpi/processor_idle.c~acpi-keep-track-of-timer-broadcasting drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~acpi-keep-track-of-timer-broadcasting
 +++ a/drivers/acpi/processor_idle.c
 @@ -250,6 +250,49 @@ static void acpi_cstate_enter(struct acp
  	}
@@ -144,8 +153,8 @@ diff -puN drivers/acpi/processor_idle.c~acpi-keep-track-of-timer-broadcast drive
  
  	return (working);
  }
-diff -puN include/acpi/processor.h~acpi-keep-track-of-timer-broadcast include/acpi/processor.h
---- a/include/acpi/processor.h~acpi-keep-track-of-timer-broadcast
+diff -puN include/acpi/processor.h~acpi-keep-track-of-timer-broadcasting include/acpi/processor.h
+--- a/include/acpi/processor.h~acpi-keep-track-of-timer-broadcasting
 +++ a/include/acpi/processor.h
 @@ -79,6 +79,7 @@ struct acpi_processor_power {
  	u32 bm_activity;
@@ -163,27 +172,53 @@ origin.patch
 git-block.patch
 use-cycle_t-instead-of-u64-in-struct-time_interpolator.patch
 proc-remove-useless-and-buggy-nlink-settings.patch
-acpi-keep-track-of-timer-broadcast.patch
-acpi-add-state-propagation-for-dynamic-broadcasting.patch
-acpi-cleanups-allow-early-access-to-pmtimer.patch
+add-irq-flag-to-disable-balancing-for-an-interrupt.patch
+add-a-functions-to-handle-interrupt-affinity-setting.patch
+hz-free-ntp.patch
+uninline-jiffiesh-functions.patch
+fix-multiple-conversion-bugs-in-msecs_to_jiffies.patch
+fix-timeout-overflow-with-jiffies.patch
+gtod-persistent-clock-support.patch
+i386-use-gtod-persistent-clock-support.patch
+i386-remove-useless-code-in-tscc.patch
+simplify-the-registration-of-clocksources.patch
+x86-rewrite-smp-tsc-sync-code.patch
+clocksource-replace-is_continuous-by-a-flag-field.patch
+clocksource-replace-is_continuous-by-a-flag-field-fix.patch
+clocksource-fixup-is_continous-changes-on-arm.patch
+clocksource-fixup-is_continous-changes-on-avr32.patch
+clocksource-fixup-is_continous-changes-on-s390.patch
+clocksource-fixup-is_continous-changes-on-mips.patch
+clocksource-remove-the-update-callback.patch
+clocksource-add-verification-watchdog-helper.patch
+clocksource-add-verification-watchdog-helper-fix.patch
+mark-tsc-on-geodelx-reliable.patch
+uninline-irq_enter.patch
+fix-cascade-lookup-of-next_timer_interrupt.patch
+extend-next_timer_interrupt-to-use-a-reference-jiffie.patch
+hrtimers-namespace-and-enum-cleanup.patch
+hrtimers-namespace-and-enum-cleanup-vs-git-input.patch
+hrtimers-cleanup-locking.patch
+hrtimers-add-state-tracking.patch
+hrtimers-clean-up-callback-tracking.patch
+hrtimers-move-and-add-documentation.patch
+acpi-fix-missing-include-for-up.patch
+acpi-keep-track-of-timer-broadcasting.patch
+allow-early-access-to-the-power-management-timer.patch
 i386-apic-clean-up-the-apic-code.patch
-clockevents-core.patch
-clockevents-i386-drivers.patch
-clockevents-i386-drivers-high-res-timers-fix-apic-event-broadcasting-code.patch
-clockevents-i386-hpet-driver.patch
-i386-apic-rework-and-fix-local-apic-calibration.patch
-high-res-timers-core.patch
-high-res-timers-core-do-itimer-rearming-in-process-context.patch
-high-res-timers-core-do-itimer-rearming-in-process-context-fix2.patch
-high-res-timers-core-hrtimers-add-state-tracking-fix.patch
-high-res-timers-core-hrtimers-add-state-tracking-fix-fix.patch
-high-res-timers-allow-tsc-clocksource-if-pmtimer-present.patch
-dynticks-core.patch
-dynticks-add-nohz-stats-to-proc-stat.patch
-dynticks-i386-support-idle-handler-callbacks.patch
-dynticks-i386-prepare-nmi-watchdog.patch
-high-res-timers-dynticks-i386-support-enable-in-kconfig.patch
-debugging-feature-add-proc-timer_stat.patch
+clockevents-add-core-functionality.patch
+tick-management-core-functionality.patch
+tick-management-broadcast-functionality.patch
+tick-management-dyntick--highres-functionality.patch
+clockevents-i383-drivers.patch
+i386-rework-local-apic-timer-calibration.patch
+i386-prepare-for-dyntick.patch
+i386-prepare-nmi-watchdog-for-dynticks.patch
+hrtimers-add-high-resolution-timer-support.patch
+hrtimers-prevent-possible-itimer-dos.patch
+add-debugging-feature-proc-timer_stat.patch
+add-debugging-feature-proc-timer_list.patch
+add-sysrq-q-to-print-timer_list-debug-info.patch
 generic-vsyscall-gtod-support-for-generic_time.patch
 generic-vsyscall-gtod-support-for-generic_time-tidy.patch
 time-x86_64-hpet_address-cleanup.patch
@@ -202,3 +237,4 @@ aio-completion-signal-notification.patch
 scheduled-removal-of-sa_xxx-interrupt-flags-fixups.patch
 scheduled-removal-of-sa_xxx-interrupt-flags-fixups-2.patch
 scheduled-removal-of-sa_xxx-interrupt-flags.patch
+
