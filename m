@@ -1,126 +1,190 @@
 From: Corentin CHARY <corentincj@iksaif.net>
-Subject: [patch 6/7] asus-laptop: add ledd support
-Date: Thu, 25 Jan 2007 12:54:52 +0100
-Message-ID: <200701251254.52843.corentincj@iksaif.net>
+Subject: [patch 7/7] asus-laptop: add  light sensor support
+Date: Thu, 25 Jan 2007 12:54:59 +0100
+Message-ID: <200701251254.59337.corentincj@iksaif.net>
 Reply-To: corentincj@iksaif.net
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.dns26.com ([84.246.226.15]:35243 "EHLO iksaif.net"
+Received: from iksaif.dns26.com ([84.246.226.15]:35246 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752092AbXAYLzD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 25 Jan 2007 06:55:03 -0500
+	id S1752109AbXAYLzF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Jan 2007 06:55:05 -0500
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net
 
-Ledd is a special led ... /sys/.../asus-laptop/ledd works like /proc/acpi/asus/ledd
+/proc/acpi/asus/lslvl is now /sys/.../asus-laptop/ls_level
+/proc/acpi/asus/lssw is now /sys/.../asus-laptop/ls_switch
+nothing else ..
 
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
- asus-laptop.c |   38 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+ asus-laptop.c |   92 +++++++++++++++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 88 insertions(+), 4 deletions(-)
 ---
 
 diff -Naur a/drivers/misc/asus-laptop.c b/drivers/misc/asus-laptop.c
---- a/drivers/misc/asus-laptop.c	2007-01-21 15:35:37.000000000 +0100
-+++ b/drivers/misc/asus-laptop.c	2007-01-21 15:38:44.000000000 +0100
-@@ -104,6 +104,9 @@
- ASUS_HANDLE(rled_set, ASUS_HOTK_PREFIX "RLED"); /* W1JC */
- ASUS_HANDLE(pled_set, ASUS_HOTK_PREFIX "PLED"); /* A7J */
+--- a/drivers/misc/asus-laptop.c	2007-01-21 15:39:24.000000000 +0100
++++ b/drivers/misc/asus-laptop.c	2007-01-21 15:44:54.000000000 +0100
+@@ -145,6 +145,9 @@
+ 	    "\\INFB", /* A2H D1 L2D L3D L3H L2E L5D L5C M1A M2E L4L W3V */
+ 	    "\\SSTE"); /* A3F A6F A3N A3L M6N W3N W6A */
  
-+/* LEDD */
-+ASUS_HANDLE(ledd_set, ASUS_HOTK_PREFIX "SLCM");
++ASUS_HANDLE(ls_switch, ASUS_HOTK_PREFIX "ALSC"); /* Z71A Z71V */
++ASUS_HANDLE(ls_level, ASUS_HOTK_PREFIX "ALSL"); /* Z71A Z71V */
 +
- /* Bluetooth and WLAN
-  * WLED and BLED are not handled like other XLED, because in some dsdt
-  * they also control the WLAN/Bluetooth device.
-@@ -151,6 +154,7 @@
- 	struct acpi_device *device;	//the device we are in
+ /*
+  * This is the main structure, we can use it to store anything interesting
+  * about the hotk device
+@@ -155,6 +158,8 @@
  	acpi_handle handle;	//the handle of the hotk device
  	char status;		//status of the hotk, for LEDs, ...
-+	u32 ledd_status;	//status of the LED display
+ 	u32 ledd_status;	//status of the LED display
++	u8 light_level;    //light sensor level
++	u8 light_switch;    //light sensor switch value
  	u16 event_count[128];	//count for each event TODO make this better
  };
  
-@@ -477,6 +481,30 @@
+@@ -588,6 +593,62 @@
+ 	return rv;
  }
  
- /*
-+ * LEDD display
++/*
++ * Light Sens
 + */
-+static ssize_t show_ledd(struct device *dev,
-+			 struct device_attribute *attr, char *buf)
++static void set_light_sens_switch(int value)
 +{
-+	return sprintf(buf, "0x%08x\n", hotk->ledd_status);
++	if (!write_acpi_int(ls_switch_handle, NULL, value, NULL))
++		printk(ASUS_WARNING "Error setting light sensor switch\n");
++	hotk->light_switch = value;
 +}
 +
-+static ssize_t store_ledd(struct device *dev, struct device_attribute *attr,
++static ssize_t show_lssw(struct device *dev,
++			 struct device_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%d\n", hotk->light_switch);
++}
++
++static ssize_t store_lssw(struct device *dev, struct device_attribute *attr,
 +			  const char *buf, size_t count)
 +{
 +	int rv, value;
 +
 +	rv = parse_arg(buf, count, &value);
-+	if (rv > 0) {
-+		if (!write_acpi_int(ledd_set_handle, NULL, value, NULL))
-+			printk(ASUS_WARNING "LED display write failed\n");
-+		else
-+			hotk->ledd_status = (u32) value;
-+	}
++	if (rv > 0)
++		set_light_sens_switch(value ? 1 : 0);
++
 +	return rv;
 +}
 +
-+/*
-  * WLAN
-  */
- static ssize_t show_wlan(struct device *dev,
-@@ -605,12 +633,14 @@
- static ASUS_CREATE_DEVICE_ATTR(wlan);
++static void set_light_sens_level(int value)
++{
++	if (!write_acpi_int(ls_level_handle, NULL, value, NULL))
++		printk(ASUS_WARNING "Error setting light sensor level\n");
++	hotk->light_level = value;
++}
++
++static ssize_t show_lslvl(struct device *dev,
++			  struct device_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%d\n", hotk->light_level);
++}
++
++static ssize_t store_lslvl(struct device *dev, struct device_attribute *attr,
++			   const char *buf, size_t count)
++{
++	int rv, value;
++
++	rv = parse_arg(buf, count, &value);
++	if (rv > 0) {
++		value = (0 < value) ? ((15 < value) ? 15 : value) : 0;
++		/* 0 <= value <= 15 */
++		set_light_sens_level(value);
++	}
++
++	return rv;
++}
++
+ static void asus_hotk_notify(acpi_handle handle, u32 event, void *data)
+ {
+ 	/* TODO Find a better way to handle events count. */
+@@ -634,6 +695,8 @@
  static ASUS_CREATE_DEVICE_ATTR(bluetooth);
  static ASUS_CREATE_DEVICE_ATTR(display);
-+static ASUS_CREATE_DEVICE_ATTR(ledd);
+ static ASUS_CREATE_DEVICE_ATTR(ledd);
++static ASUS_CREATE_DEVICE_ATTR(ls_switch);
++static ASUS_CREATE_DEVICE_ATTR(ls_level);
  
  static struct attribute *asuspf_attributes[] = {
          &dev_attr_infos.attr,
-         &dev_attr_wlan.attr,
+@@ -641,6 +704,8 @@
          &dev_attr_bluetooth.attr,
          &dev_attr_display.attr,
-+        &dev_attr_ledd.attr,
+         &dev_attr_ledd.attr,
++        &dev_attr_ls_switch.attr,
++        &dev_attr_ls_level.attr,
          NULL
  };
  
-@@ -644,6 +674,9 @@
- 	else if(display_set_handle)
- 		ASUS_SET_DEVICE_ATTR(display, 0200, NULL, store_disp);
+@@ -677,6 +742,10 @@
+ 	if (ledd_set_handle)
+ 		ASUS_SET_DEVICE_ATTR(ledd, 0644, show_ledd, store_ledd);
  
-+	if (ledd_set_handle)
-+		ASUS_SET_DEVICE_ATTR(ledd, 0644, show_ledd, store_ledd);
-+
++	if (ls_switch_handle && ls_level_handle) {
++		ASUS_SET_DEVICE_ATTR(ls_level, 0644, show_lslvl, store_lslvl);
++		ASUS_SET_DEVICE_ATTR(ls_switch, 0644, show_lssw, store_lssw);
++	}
  }
  
  static int asus_handle_init(char *name, acpi_handle *handle,
-@@ -739,6 +772,8 @@
- 	ASUS_HANDLE_INIT(rled_set);
- 	ASUS_HANDLE_INIT(pled_set);
+@@ -798,6 +867,11 @@
+ 	ASUS_HANDLE_INIT(display_set);
+ 	ASUS_HANDLE_INIT(display_get);
  
-+	ASUS_HANDLE_INIT(ledd_set);
++	/* There is a lot of models with "ALSL", but a few get
++	   a real light sens, so we need to check it. */
++	if(ASUS_HANDLE_INIT(ls_switch))
++		ASUS_HANDLE_INIT(ls_level);
 +
- 	/*
- 	 * The HWRS method return informations about the hardware.
- 	 * 0x80 bit is for WLAN, 0x100 for Bluetooth.
-@@ -833,6 +868,9 @@
+ 	kfree(model);
+ 
+ 	return AE_OK;
+@@ -865,17 +939,27 @@
+ 	/* WLED and BLED are on by default */
+ 	hotk->status |= WL_ON | BT_ON;
+ 
++	if(wl_switch_handle)
++		write_acpi_int(wl_switch_handle, NULL, 1, NULL);
++
++	if(bt_switch_handle)
++		write_acpi_int(bt_switch_handle, NULL, 1, NULL);
++
  	/* LCD Backlight is on by default */
  	hotk->status |= LCD_ON;
  
-+	/* LED display is off by default */
-+	hotk->ledd_status = 0xFFF;
-+
- 	if(wl_switch_handle)
- 		write_acpi_int(wl_switch_handle, NULL, 1, NULL);
+ 	/* LED display is off by default */
+ 	hotk->ledd_status = 0xFFF;
  
+-	if(wl_switch_handle)
+-		write_acpi_int(wl_switch_handle, NULL, 1, NULL);
++	/* Set initial values of light sensor and level */
++	hotk->light_switch = 1; /* Default to light sensor disabled */
++	hotk->light_level = 0; /* level 5 for sensor sensitivity */
+ 
+-	if(bt_switch_handle)
+-		write_acpi_int(bt_switch_handle, NULL, 1, NULL);
++	if (ls_switch_handle)
++		set_light_sens_switch(hotk->light_switch);
++
++	if (ls_level_handle)
++		set_light_sens_level(hotk->light_level);
+ 
+       end:
+ 	if (result) {
 
 -- 
 CHARY 'Iksaif' Corentin
