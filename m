@@ -1,45 +1,39 @@
-From: =?utf-8?q?Pawe=C5=82_Sikora?= <pluto@agmk.net>
-Subject: Re: 2.6.20rc5 k8/acpi regression ( 2.6.17.13 works fine ).
-Date: Thu, 25 Jan 2007 23:11:46 +0100
-Message-ID: <200701252311.46858.pluto@agmk.net>
-References: <200701242346.44673.pluto@agmk.net> <20070124225238.GT17836@stusta.de> <200701242350.45276.lenb@kernel.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [linux-pm] [PATCH 3/6] [-mm]: ACPI: duplicate ACPI sleep "alarm" attribute =?iso-8859-1?q?in=09sysfs?=
+Date: Thu, 25 Jan 2007 18:12:20 -0500
+Message-ID: <200701251812.21180.lenb@kernel.org>
+References: <1168083318.5619.37.camel@localhost.localdomain> <200701242321.09850.lenb@kernel.org> <20070125194710.GC23774@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from agmk.net ([87.236.194.20]:4289 "EHLO mail.agmk.net"
+Received: from hera.kernel.org ([140.211.167.34]:33890 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965403AbXAYWMO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 25 Jan 2007 17:12:14 -0500
-In-Reply-To: <200701242350.45276.lenb@kernel.org>
+	id S1030494AbXAYXNv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Jan 2007 18:13:51 -0500
+In-Reply-To: <20070125194710.GC23774@elf.ucw.cz>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Len Brown <lenb@kernel.org>, Adrian Bunk <bunk@stusta.de>, linux-acpi@vger.kernel.org, cpufreq@lists.linux.org.uk
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-pm@lists.osdl.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, Alessandro Zummo <alessandro.zummo@towertech.it>, Paul Sokolovsky <pmiscml@gmail.com>
 
-On Thursday 25 of January 2007 05:50:45 Len Brown wrote:
-> On Wednesday 24 January 2007 17:52, Adrian Bunk wrote:
-> > On Wed, Jan 24, 2007 at 11:46:44PM +0100, Pawe=C5=82 Sikora wrote:
-> > > for 2.6.20rc5 i get an acpi related oops during x86-64 boot:
-> > > http://minus.ds14.agh.edu.pl/~pluto/2.6.20rc5-acpi-oops.jpg
-> > > disabling the "amd-k8 cool'n'quiet" option in bios helps.
-> > > moreover, it works fine for 2.6.17.13, so it looks like
-> > > a recent regression. i can provide more details if you need.
-> >
-> > thanks for your report.
-> >
-> > Can you narrow down a bit when it started?
-> > Is 2.6.19 OK?
-> > Is 2.6.18 OK?
->
-> Is the stack trace always the same?  It doesn't make much sense to me=
-=2E
+On Thursday 25 January 2007 14:47, Pavel Machek wrote:
+> Hi!
+> 
+> > > Note that a few RTCs ignore rtc_wkalrm.enabled when setting alarms, or
+> > > aren't set up correctly, so they won't yet behave with this attribute.
+> > > 
+> > > Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+> > 
+> > How do I ask to wake up "as soon as possible"?
+> 
+> If you want to wake up ASAP, don't go to sleep :-).
+> 
+> I see it might be handy for debugging... but I guess we should not
+> mess rtc design because of that. Just set alarm 10 seconds into
+> future.
 
-with debug options enabled oops looks better:
-http://minus.ds14.agh.edu.pl/~pluto/2.6.20rc5-oops-01.jpg
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+That's my point.
+What is the syntax to request "10-seconds into the future"?
