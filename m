@@ -1,48 +1,36 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: 2.6.20rc5 k8/acpi regression ( 2.6.17.13 works fine ).
-Date: Wed, 24 Jan 2007 23:50:45 -0500
-Message-ID: <200701242350.45276.lenb@kernel.org>
-References: <200701242346.44673.pluto@agmk.net>
-	<20070124225238.GT17836@stusta.de>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [linux-pm] [PATCH 0/6] [-mm]: ACPI: duplicate ACPI procfs functions in sysfs
+Date: Thu, 25 Jan 2007 05:50:25 +0000
+Message-ID: <20070125055025.GA9066@srcf.ucam.org>
+References: <1168083306.5619.34.camel@localhost.localdomain> <20070107055424.GA24853@srcf.ucam.org> <200701071931.20306.david-b@pacbell.net> <200701242314.23169.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <cpufreq-bounces+glkc-cpufreq=m.gmane.org@lists.linux.org.uk>
-In-Reply-To: <20070124225238.GT17836@stusta.de>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([217.147.92.49]:58216 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965360AbXAYFu5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Jan 2007 00:50:57 -0500
 Content-Disposition: inline
-List-Unsubscribe: <http://lists.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@lists.linux.org.uk?subject=unsubscribe>
-List-Archive: <http://lists.linux.org.uk/mailman/private/cpufreq>
-List-Post: <mailto:cpufreq@lists.linux.org.uk>
-List-Help: <mailto:cpufreq-request@lists.linux.org.uk?subject=help>
-List-Subscribe: <http://lists.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@lists.linux.org.uk?subject=subscribe>
-Sender: cpufreq-bounces@lists.linux.org.uk
-Errors-To: cpufreq-bounces+glkc-cpufreq=m.gmane.org+glkc-cpufreq=m.gmane.org@lists.linux.org.uk
-To: Adrian Bunk <bunk@stusta.de>
-Cc: linux-acpi@vger.kernel.org, =?utf-8?q?Pawe=C5=82_Sikora?= <pluto@agmk.net>, linux-kernel@vger.kernel.org, cpufreq@lists.linux.org.uk
+In-Reply-To: <200701242314.23169.lenb@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: David Brownell <david-b@pacbell.net>, linux-pm@lists.osdl.org, Zhang Rui <rui.zhang@intel.com>, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, linux-pm@osdl.org
 
-On Wednesday 24 January 2007 17:52, Adrian Bunk wrote:
-> On Wed, Jan 24, 2007 at 11:46:44PM +0100, Pawe=C5=82 Sikora wrote:
+On Wed, Jan 24, 2007 at 11:14:22PM -0500, Len Brown wrote:
+> On Sunday 07 January 2007 22:31, David Brownell wrote:
+> 
+> > > However, I'm not entirely sure /how/ that integration should happen. If 
+> > > both the Linux driver and ACPI know how to enable wakeup for a device,
+> > > what should writing to power/wakeup do?
+> 
+> If a native hardware device driver knows how to talk to the device,
+> then it should win, and ACPI should lose.
 
-> > for 2.6.20rc5 i get an acpi related oops during x86-64 boot:
-> > http://minus.ds14.agh.edu.pl/~pluto/2.6.20rc5-acpi-oops.jpg
-> > disabling the "amd-k8 cool'n'quiet" option in bios helps.
-> > moreover, it works fine for 2.6.17.13, so it looks like
-> > a recent regression. i can provide more details if you need.
->=20
-> thanks for your report.
->=20
-> Can you narrow down a bit when it started?
-> Is 2.6.19 OK?
-> Is 2.6.18 OK?
+My concern is that there may be cases where the ACPI wakeup code 
+interacts with the platform in a way that the Linux code doesn't, which 
+may be somehow necessary. I've no evidence that this is ever something 
+that would actually be an issue, but on the other hand, this is ACPI...
 
-Is the stack trace always the same?  It doesn't make much sense to me.
-
-if AMD cool & quiet is enabled in the BIOS, but CONFIG_CPU_FREQ=3Dn
-in the kernel, do you see the same problem?
-
-thanks,
-=2DLen
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
