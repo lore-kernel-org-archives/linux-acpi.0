@@ -1,38 +1,176 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [linux-pm] [PATCH 0/6] [-mm]: ACPI: duplicate ACPI =?iso-8859-1?q?procfs=09functions_in?= sysfs
-Date: Wed, 24 Jan 2007 21:28:13 -0500
-Message-ID: <200701242128.14047.lenb@kernel.org>
-References: <1168083306.5619.34.camel@localhost.localdomain> <1168256428.5754.98.camel@localhost.localdomain> <20070108131318.GC25933@elf.ucw.cz>
+Subject: Re: [PATCH 3/3] [-mm]: ACPI: add ACPICA version in sysfs
+Date: Wed, 24 Jan 2007 21:42:20 -0500
+Message-ID: <200701242142.20307.lenb@kernel.org>
+References: <1168083333.5619.40.camel@localhost.localdomain> <1169358604.5691.7.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:34175 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:58216 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752096AbXAYC3p (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Jan 2007 21:29:45 -0500
-In-Reply-To: <20070108131318.GC25933@elf.ucw.cz>
+	id S1752109AbXAYCni (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 24 Jan 2007 21:43:38 -0500
+In-Reply-To: <1169358604.5691.7.camel@localhost.localdomain>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pm@lists.osdl.org
-Cc: Pavel Machek <pavel@ucw.cz>, Zhang Rui <rui.zhang@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-pm@osdl.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "linux-acpi@vger" <linux-acpi@vger.kernel.org>
 
-On Monday 08 January 2007 08:13, Pavel Machek wrote:
-> Hi!
+How about instead something like this?
+
+module_param(acpica_version, uint, 0444);
+
+unsigned int acpica_version = ACPI_CA_VERSION;
+
+On Sunday 21 January 2007 00:50, Zhang Rui wrote:
+> From: Zhang Rui <rui.zhang@intel.com>
 > 
-> > This patch set is against acpi-test sysfs branch which already converts
-> > ACPI to follow driver model. Now the ACPI procfs functions are
-> > duplicated in sysfs step by step. And I want the ACPI interface in sysfs
-> > works exactly the same way as in procfs.
+> Add an ACPI attribute to indicate ACPICA version.
+> /proc/acpi/version is deprecated by /sys/firmware/acpi/info.
 > 
-> No, you can't port same broken interface into sysfs. Some /proc
-> interfaces are horrible, and we do not want to create _exactly same_
-> horrible interfaces in /sys.
-
-Please be specific.
-
-thanks,
--Len
-
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> ---
+>  drivers/acpi/Kconfig    |    3 ++-
+>  drivers/acpi/system.c   |   43 +++++++++++++++++++++++++++++++++++++------
+>  include/acpi/acpi_bus.h |    7 +++++++
+>  3 files changed, 46 insertions(+), 7 deletions(-)
+> 
+> Index: linux-2.6.20-rc4-mm1/drivers/acpi/system.c
+> ===================================================================
+> --- linux-2.6.20-rc4-mm1.orig/drivers/acpi/system.c	2007-01-21 12:58:31.000000000 +0800
+> +++ linux-2.6.20-rc4-mm1/drivers/acpi/system.c	2007-01-21 13:03:44.000000000 +0800
+> @@ -29,6 +29,7 @@
+>  #include <asm/uaccess.h>
+>  
+>  #include <acpi/acpi_drivers.h>
+> +#include <acpi/acpi_bus.h>
+>  
+>  #define _COMPONENT		ACPI_SYSTEM_COMPONENT
+>  ACPI_MODULE_NAME("acpi_system")
+> @@ -42,8 +43,24 @@ ACPI_MODULE_NAME("acpi_system")
+>  extern struct fadt_descriptor acpi_fadt;
+>  
+>  /* --------------------------------------------------------------------------
+> +                              FS Interface (/sys)
+> +   -------------------------------------------------------------------------- */
+> +extern struct subsystem acpi_subsys;
+> +
+> +static ssize_t version_show(struct subsystem *subsys, char *buf)
+> +{
+> +	return 	sprintf(buf, "%x\n", ACPI_CA_VERSION);
+> +}
+> +acpi_ro_attr(version);
+> +
+> +static int acpi_system_info_add_sysfs(void)
+> +{
+> +	return sysfs_create_file(&acpi_subsys.kset.kobj, &version_attr.attr);
+> +}
+> +/* --------------------------------------------------------------------------
+>                                FS Interface (/proc)
+>     -------------------------------------------------------------------------- */
+> +#ifdef CONFIG_ACPI_PROCFS
+>  
+>  static int acpi_system_read_info(struct seq_file *seq, void *offset)
+>  {
+> @@ -63,6 +80,7 @@ static const struct file_operations acpi
+>  	.llseek = seq_lseek,
+>  	.release = single_release,
+>  };
+> +#endif
+>  
+>  static ssize_t acpi_system_read_dsdt(struct file *, char __user *, size_t,
+>  				     loff_t *);
+> @@ -118,16 +136,13 @@ acpi_system_read_fadt(struct file *file,
+>  	return res;
+>  }
+>  
+> -static int __init acpi_system_init(void)
+> +static int  acpi_system_procfs_init(void)
+>  {
+>  	struct proc_dir_entry *entry;
+>  	int error = 0;
+>  	char *name;
+>  
+> -
+> -	if (acpi_disabled)
+> -		return 0;
+> -
+> +#ifdef CONFIG_ACPI_PROCFS
+>  	/* 'info' [R] */
+>  	name = ACPI_SYSTEM_FILE_INFO;
+>  	entry = create_proc_entry(name, S_IRUGO, acpi_root_dir);
+> @@ -136,6 +151,7 @@ static int __init acpi_system_init(void)
+>  	else {
+>  		entry->proc_fops = &acpi_system_info_ops;
+>  	}
+> +#endif
+>  
+>  	/* 'dsdt' [R] */
+>  	name = ACPI_SYSTEM_FILE_DSDT;
+> @@ -159,10 +175,25 @@ static int __init acpi_system_init(void)
+>        Error:
+>  	remove_proc_entry(ACPI_SYSTEM_FILE_FADT, acpi_root_dir);
+>  	remove_proc_entry(ACPI_SYSTEM_FILE_DSDT, acpi_root_dir);
+> +#ifdef CONFIG_ACPI_PROCFS
+>  	remove_proc_entry(ACPI_SYSTEM_FILE_INFO, acpi_root_dir);
+> -
+> +#endif
+>  	error = -EFAULT;
+>  	goto Done;
+>  }
+>  
+> +static int __init acpi_system_init(void) {
+> +	int result;
+> +
+> +	if (acpi_disabled)
+> +		return 0;
+> +
+> +	result = acpi_system_info_add_sysfs();
+> +	if (result)
+> +		return result;
+> +
+> +	result = acpi_system_procfs_init();
+> +
+> +	return result;
+> +}
+>  subsys_initcall(acpi_system_init);
+> Index: linux-2.6.20-rc4-mm1/drivers/acpi/Kconfig
+> ===================================================================
+> --- linux-2.6.20-rc4-mm1.orig/drivers/acpi/Kconfig	2007-01-21 12:58:31.000000000 +0800
+> +++ linux-2.6.20-rc4-mm1/drivers/acpi/Kconfig	2007-01-21 13:02:23.000000000 +0800
+> @@ -87,7 +87,8 @@ config ACPI_PROCFS
+>  	  and this proc interface will be removed some time later,
+>  	  it's marked as deprecated.
+>  	  ( /proc/acpi/debug_layer && debug_level are deprecated by
+> -	    /sys/module/acpi/parameters/debug_layer && debug_level. )
+> +	    /sys/module/acpi/parameters/debug_layer && debug_level.
+> +	    /proc/acpi/info is deprecated by /sys/firmware/acpi/version )
+>  
+>  config ACPI_AC
+>  	tristate "AC Adapter"
+> Index: linux-2.6.20-rc4-mm1/include/acpi/acpi_bus.h
+> ===================================================================
+> --- linux-2.6.20-rc4-mm1.orig/include/acpi/acpi_bus.h	2007-01-21 12:58:31.000000000 +0800
+> +++ linux-2.6.20-rc4-mm1/include/acpi/acpi_bus.h	2007-01-21 13:04:34.000000000 +0800
+> @@ -320,6 +320,13 @@ struct acpi_bus_event {
+>  extern struct subsystem acpi_subsys;
+>  
+>  /*
+> + * This is for ACPI read only data
+> + * Like ACPICA version, ACPI tables, etc.
+> + */
+> +#define acpi_ro_attr(_name)	\
+> +static struct subsys_attribute _name##_attr = __ATTR_RO(_name)
+> +
+> +/*
+>   * External Functions
+>   */
+>  
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
