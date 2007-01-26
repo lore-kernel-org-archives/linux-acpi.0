@@ -1,57 +1,52 @@
-From: emisca <emisca.ml@gmail.com>
-Subject: Re: Fan speeds on HP nc6400 and nc8430
-Date: Fri, 26 Jan 2007 17:31:11 +0100
-Message-ID: <414cba4e0701260831v1f23cbf5oafe38e2ca23ec002@mail.gmail.com>
-References: <C3FA62B1A90D7440B9B6C7C31895994F0366363A@zadbn02100.vodacom.corp>
-	 <3877989d0701232019g45af8feaxabdcf6ba77170a5d@mail.gmail.com>
-	 <200701232138.54758.bjorn.helgaas@hp.com>
-	 <200701240954.32742.bjorn.helgaas@hp.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [linux-pm] [PATCH 3/6] [-mm]: ACPI: duplicate ACPI sleep "alarm" attribute in	sysfs
+Date: Fri, 26 Jan 2007 18:07:54 +0100
+Message-ID: <20070126170754.GA964@elf.ucw.cz>
+References: <1168083318.5619.37.camel@localhost.localdomain> <200701242321.09850.lenb@kernel.org> <20070125194710.GC23774@elf.ucw.cz> <200701251812.21180.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.172]:49013 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965715AbXAZQbN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Jan 2007 11:31:13 -0500
-Received: by ug-out-1314.google.com with SMTP id 44so758267uga
-        for <linux-acpi@vger.kernel.org>; Fri, 26 Jan 2007 08:31:12 -0800 (PST)
-In-Reply-To: <200701240954.32742.bjorn.helgaas@hp.com>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:49396 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1030761AbXAZRIu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 26 Jan 2007 12:08:50 -0500
 Content-Disposition: inline
+In-Reply-To: <200701251812.21180.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Luming Yu <luming.yu@gmail.com>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Pieter De Wit <Pieter.DeWit@vodacom.co.za>, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-pm@lists.osdl.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, Alessandro Zummo <alessandro.zummo@towertech.it>, Paul Sokolovsky <pmiscml@gmail.com>
 
-I was wrong on that post....
-I've found that the initramfs scripts loaded thermal module before
-resume from suspend to disk (this is the default behaviuor of debian
-based distros). That confused the bios...
-That was the only problem.
+On Thu 2007-01-25 18:12:20, Len Brown wrote:
+> On Thursday 25 January 2007 14:47, Pavel Machek wrote:
+> > Hi!
+> > 
+> > > > Note that a few RTCs ignore rtc_wkalrm.enabled when setting alarms, or
+> > > > aren't set up correctly, so they won't yet behave with this attribute.
+> > > > 
+> > > > Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+> > > 
+> > > How do I ask to wake up "as soon as possible"?
+> > 
+> > If you want to wake up ASAP, don't go to sleep :-).
+> > 
+> > I see it might be handy for debugging... but I guess we should not
+> > mess rtc design because of that. Just set alarm 10 seconds into
+> > future.
+> 
+> That's my point.
+> What is the syntax to request "10-seconds into the future"?
 
-2007/1/24, Bjorn Helgaas <bjorn.helgaas@hp.com>:
-> On Tuesday 23 January 2007 21:38, Bjorn Helgaas wrote:
-> > On Tuesday 23 January 2007 21:19, Luming Yu wrote:
-> > > On 1/19/07, emisca <emisca.ml@gmail.com> wrote:
-> > > > The TZ4 thermal zone on all the hp compaq line nx**** and nc**** is
-> > > > not a temperature but the fan speed. You can see this information on
-> > > > the web and on hp forums.
-> > >
-> > > Where is the hp forums.
-> >
-> > I don't work on laptops, so I can't confirm this, but Google found
-> > this (from "tz4 thermal zone fan speed hp"):
-> >
-> > http://forums1.itrc.hp.com/service/forums/bizsupport/questionanswer.do?threadId=1052925
->
-> Someone also sent me this, which I'll include in case it helps anybody
-> else.  Obviously, scripts like the one mentioned below are stop-gaps
-> that shouldn't be necessary.  But the script might have useful hints
-> about how to fix the kernel so the script would no longer be needed.
->
-> > Take a look at this:
-> > http://daniel.graziotin.net/2006/12/02/hp-nx6325-and-friends-thermal-problems-solved this fixed my thermal problem.
-> > And make sure you unload the psmouse module during halt/reboot
-> > otherwise you have problemes when you start your notebook again.
-> > (symptom's: very long BIOS-Boot, ACPI-problems (thermal)..)
->
+echo $(( $(cat since_epoch) + 10 )) > wakealarm
+
+...which is what you should expect. Yep, for users, nice utility would
+be nice... but absence of nice utility does not mean that it belongs
+in kernel.
+
+Plus, old alarm file was such a mess that I were not figure out how to
+use it within two hours... or maybe it just did not work on my
+machine? ... so utility will be needed, anyway.
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
