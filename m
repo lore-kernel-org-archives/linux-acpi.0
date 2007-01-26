@@ -1,38 +1,52 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 5/7] asus-laptop: add display switching support
-Date: Fri, 26 Jan 2007 03:04:31 -0500
-Message-ID: <200701260304.32068.lenb@kernel.org>
-References: <200701251254.56798.corentincj@iksaif.net>
+Subject: Re: sbs driver
+Date: Fri, 26 Jan 2007 04:10:22 -0500
+Message-ID: <200701260410.24361.lenb@kernel.org>
+References: <8E389A5F2FEABA4CB1DEC35A25CB39CE7839BD@mssmsx411>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:59824 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:37914 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030814AbXAZILx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 26 Jan 2007 03:11:53 -0500
-In-Reply-To: <200701251254.56798.corentincj@iksaif.net>
+	id S1030842AbXAZJL5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 26 Jan 2007 04:11:57 -0500
+In-Reply-To: <8E389A5F2FEABA4CB1DEC35A25CB39CE7839BD@mssmsx411>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: corentincj@iksaif.net
-Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net
+To: "Lebedev, Vladimir P" <vladimir.p.lebedev@intel.com>
+Cc: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy@intel.com>, linux-acpi@vger.kernel.org
 
-On Thursday 25 January 2007 06:54, Corentin CHARY wrote:
-> /sys/.../asus-laptop/display can now be used to switch displays like the old
-> /proc/acpi/asus/disp does
+On Monday 27 November 2006 21:25, Lebedev, Vladimir P wrote:
 > 
-> Signed-off-by: Corentin Chary <corentincj@iksaif.net>
->  asus-laptop.c |   82 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 82 insertions(+)
+> Len,
+> 
+> Attached patch contains new release of sbs driver.
+> 
+> The sbs driver was cleaned and restructured. Patch is based on
+> 2.6.19-rc6-mm1. It was tested on Acer 2300 laptop. I suggest add patch
+> to mm tree.
 
-Tried to apply this series on top of 2.6.20-rc6 and it stopped applying here.
-Late here, maybe operator error...
+Vladimir,
+Looks like we failed to merge this one.
+(in general, if I don't ack or somehow respond within a week or so, re-ping.
+ This one was sent the day after Thanksgiving here in the US
+ and I never saw it)
 
-In any case, it is probably simplest if the patch series is based off of Linus' tree
-unless it has dependencies on stuff in the acpi-test tree which have to go in
-before this goes in.
+Is this patch entirely clean-up, or are there any functional changes?
+
+Sifting through the 1500 line patch it was hard to tell, but it
+looked to be at least mostly cleanup, with maybe some
+of the errors messages changed.
+
+Please refresh this patch against 2.6.20-rc6
+If there are any functional changes, please split them out
+into a single patch per logical change and send a series
+and provide check in comments describing exactly
+what changed and why.
 
 thanks,
 -Len
+
