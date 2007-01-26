@@ -1,19 +1,19 @@
 From: Corentin CHARY <corentincj@iksaif.net>
-Subject: Re: [patch 4/7] asus-laptop: add backlight support
-Date: Fri, 26 Jan 2007 14:04:45 +0100
-Message-ID: <200701261404.45462.corentincj@iksaif.net>
-References: <200701251254.50198.corentincj@iksaif.net>
+Subject: Re: [patch 7/7] asus-laptop: add  light sensor support
+Date: Fri, 26 Jan 2007 14:04:58 +0100
+Message-ID: <200701261404.58597.corentincj@iksaif.net>
+References: <200701251254.59337.corentincj@iksaif.net>
 Reply-To: corentincj@iksaif.net
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.dns26.com ([84.246.226.15]:36618 "EHLO iksaif.net"
+Received: from iksaif.dns26.com ([84.246.226.15]:36665 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965640AbXAZNEs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 26 Jan 2007 08:04:48 -0500
-In-Reply-To: <200701251254.50198.corentincj@iksaif.net>
+	id S965650AbXAZNFA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 26 Jan 2007 08:05:00 -0500
+In-Reply-To: <200701251254.59337.corentincj@iksaif.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -22,315 +22,155 @@ Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net
 
 From: Corentin Chary <corentincj@iksaif.net>
 
-Adds backlight support using backlight class. We now
-change the brightness *and toggle the backlight !* via
-/sys/class/backlight/asus-laptop/.
-
-If the user switchs the backlight using the keyboard,
-asus_hotk_notify looks for ATKD_LCD_OFF and ATKD_LCD_ON events,
-and stores the right state into hotk->status and bd->props->power .
+/proc/acpi/asus/lslvl is now /sys/.../asus-laptop/ls_level
+/proc/acpi/asus/lssw is now /sys/.../asus-laptop/ls_switch nothing
+else ..
 
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
- drivers/misc/Kconfig       |    1 
- drivers/misc/asus-laptop.c |  183 ++++++++++++++++++++++++++++++++++-
- 2 files changed, 183 insertions(+), 1 deletion(-)
+ drivers/misc/asus-laptop.c |   84 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 84 insertions(+)
 
 diff -Naur a/drivers/misc/asus-laptop.c b/drivers/misc/asus-laptop.c
---- a/drivers/misc/asus-laptop.c	2007-01-26 12:45:11.000000000 +0100
-+++ b/drivers/misc/asus-laptop.c	2007-01-26 12:59:30.000000000 +0100
-@@ -40,6 +40,8 @@
- #include <linux/types.h>
- #include <linux/err.h>
- #include <linux/proc_fs.h>
-+#include <linux/backlight.h>
-+#include <linux/fb.h>
- #include <linux/leds.h>
- #include <linux/platform_device.h>
- #include <acpi/acpi_drivers.h>
-@@ -56,6 +58,14 @@
- #define ASUS_HOTK_PREFIX        "\\_SB.ATKD."
+--- a/drivers/misc/asus-laptop.c	2007-01-26 13:05:53.000000000 +0100
++++ b/drivers/misc/asus-laptop.c	2007-01-26 13:04:54.000000000 +0100
+@@ -145,6 +145,9 @@
+ 	    "\\INFB", /* A2H D1 L2D L3D L3H L2E L5D L5C M1A M2E L4L W3V */
+ 	    "\\SSTE"); /* A3F A6F A3N A3L M6N W3N W6A */
  
- /*
-+ * Some events we use, same for all Asus
-+ */
-+#define ATKD_BR_UP       0x10
-+#define ATKD_BR_DOWN     0x20
-+#define ATKD_LCD_ON      0x33
-+#define ATKD_LCD_OFF     0x34
-+
-+/*
-  * Known bits returned by \_SB.ATKD.HWRS
-  */
- #define WL_HWRS     0x80
-@@ -71,6 +81,7 @@
- #define TLED_ON     0x08	//touchpad LED
- #define RLED_ON     0x10        //Record LED
- #define PLED_ON     0x20        //Phone LED
-+#define LCD_ON      0x40        //LCD backlight
- 
- #define ASUS_LOG    ASUS_HOTK_FILE ": "
- #define ASUS_ERR    KERN_ERR    ASUS_LOG
-@@ -101,6 +112,19 @@
- ASUS_HANDLE(bt_switch, ASUS_HOTK_PREFIX "BLED");
- ASUS_HANDLE(wireless_status, ASUS_HOTK_PREFIX "RSTS"); /* All new models */
- 
-+/* Brightness */
-+ASUS_HANDLE(brightness_set, ASUS_HOTK_PREFIX "SPLV");
-+ASUS_HANDLE(brightness_get, ASUS_HOTK_PREFIX "GPLV");
-+
-+/* Backlight */
-+ASUS_HANDLE(lcd_switch, "\\_SB.PCI0.SBRG.EC0._Q10", /* All new models */
-+	    "\\_SB.PCI0.ISA.EC0._Q10", /* A1x */
-+	    "\\_SB.PCI0.PX40.ECD0._Q10", /* L3C */
-+	    "\\_SB.PCI0.PX40.EC0.Q10", /* M1A */
-+	    "\\_SB.PCI0.LPCB.EC0._Q10", /* P30 */
-+	    "\\_SB.PCI0.PX40.Q10", /* S1x */
-+	    "\\Q10");  /* A2x, L2D, L3D, M2E */
++ASUS_HANDLE(ls_switch, ASUS_HOTK_PREFIX "ALSC"); /* Z71A Z71V */
++ASUS_HANDLE(ls_level, ASUS_HOTK_PREFIX "ALSL"); /* Z71A Z71V */
 +
  /*
   * This is the main structure, we can use it to store anything interesting
   * about the hotk device
-@@ -138,6 +162,21 @@
- 		},
+@@ -155,6 +158,8 @@
+ 	acpi_handle handle;	//the handle of the hotk device
+ 	char status;		//status of the hotk, for LEDs, ...
+ 	u32 ledd_status;	//status of the LED display
++	u8 light_level;    //light sensor level
++	u8 light_switch;    //light sensor switch value
+ 	u16 event_count[128];	//count for each event TODO make this better
  };
  
-+/* The backlight device /sys/class/backlight */
-+static struct backlight_device *asus_backlight_device;
-+
+@@ -590,6 +595,62 @@
+ 	return rv;
+ }
+ 
 +/*
-+ * The backlight class declaration
++ * Light Sens
 + */
-+static int read_brightness(struct backlight_device *bd);
-+static int update_bl_status(struct backlight_device *bd);
-+static struct backlight_properties asusbl_data = {
-+	       .owner          = THIS_MODULE,
-+	       .get_brightness = read_brightness,
-+	       .update_status  = update_bl_status,
-+	       .max_brightness = 15,
-+};
-+
- /* These functions actually update the LED's, and are called from a
-  * workqueue. By doing this as separate work rather than when the LED
-  * subsystem asks, we avoid messing with the Asus ACPI stuff during a
-@@ -253,6 +292,86 @@
- ASUS_LED_HANDLER(rled, RLED_ON, 0);
- ASUS_LED_HANDLER(tled, TLED_ON, 0);
- 
-+static int get_lcd_state(void)
++static void set_light_sens_switch(int value)
 +{
-+	return read_status(LCD_ON);
++	if (!write_acpi_int(ls_switch_handle, NULL, value, NULL))
++		printk(ASUS_WARNING "Error setting light sensor switch\n");
++	hotk->light_switch = value;
 +}
 +
-+static int set_lcd_state(int value)
++static ssize_t show_lssw(struct device *dev,
++			 struct device_attribute *attr, char *buf)
 +{
-+	int lcd = 0;
-+	acpi_status status = 0;
++	return sprintf(buf, "%d\n", hotk->light_switch);
++}
 +
-+	lcd = value ? 1 : 0;
++static ssize_t store_lssw(struct device *dev, struct device_attribute *attr,
++			  const char *buf, size_t count)
++{
++	int rv, value;
 +
-+	if (lcd == get_lcd_state())
-+		return 0;
++	rv = parse_arg(buf, count, &value);
++	if (rv > 0)
++		set_light_sens_switch(value ? 1 : 0);
 +
-+	if(lcd_switch_handle) {
-+		status = acpi_evaluate_object(lcd_switch_handle,
-+					      NULL, NULL, NULL);
++	return rv;
++}
 +
-+		if (ACPI_FAILURE(status))
-+			printk(ASUS_WARNING "Error switching LCD\n");
++static void set_light_sens_level(int value)
++{
++	if (!write_acpi_int(ls_level_handle, NULL, value, NULL))
++		printk(ASUS_WARNING "Error setting light sensor level\n");
++	hotk->light_level = value;
++}
++
++static ssize_t show_lslvl(struct device *dev,
++			  struct device_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%d\n", hotk->light_level);
++}
++
++static ssize_t store_lslvl(struct device *dev, struct device_attribute *attr,
++			   const char *buf, size_t count)
++{
++	int rv, value;
++
++	rv = parse_arg(buf, count, &value);
++	if (rv > 0) {
++		value = (0 < value) ? ((15 < value) ? 15 : value) : 0;
++		/* 0 <= value <= 15 */
++		set_light_sens_level(value);
 +	}
 +
-+	write_status(NULL, lcd, LCD_ON, 0);
-+	return 0;
++	return rv;
 +}
 +
-+static void lcd_blank(int blank)
-+{
-+	struct backlight_device *bd = asus_backlight_device;
-+
-+	if(bd) {
-+		down(&bd->sem);
-+		if(likely(bd->props)) {
-+			bd->props->power = blank;
-+			if(likely(bd->props->update_status))
-+			   bd->props->update_status(bd);
-+		}
-+		up(&bd->sem);
+ static void asus_hotk_notify(acpi_handle handle, u32 event, void *data)
+ {
+ 	/* TODO Find a better way to handle events count. */
+@@ -636,6 +697,8 @@
+ static ASUS_CREATE_DEVICE_ATTR(bluetooth);
+ static ASUS_CREATE_DEVICE_ATTR(display);
+ static ASUS_CREATE_DEVICE_ATTR(ledd);
++static ASUS_CREATE_DEVICE_ATTR(ls_switch);
++static ASUS_CREATE_DEVICE_ATTR(ls_level);
+ 
+ static struct attribute *asuspf_attributes[] = {
+         &dev_attr_infos.attr,
+@@ -643,6 +706,8 @@
+         &dev_attr_bluetooth.attr,
+         &dev_attr_display.attr,
+         &dev_attr_ledd.attr,
++        &dev_attr_ls_switch.attr,
++        &dev_attr_ls_level.attr,
+         NULL
+ };
+ 
+@@ -679,6 +744,10 @@
+ 	if (ledd_set_handle)
+ 		ASUS_SET_DEVICE_ATTR(ledd, 0644, show_ledd, store_ledd);
+ 
++	if (ls_switch_handle && ls_level_handle) {
++		ASUS_SET_DEVICE_ATTR(ls_level, 0644, show_lslvl, store_lslvl);
++		ASUS_SET_DEVICE_ATTR(ls_switch, 0644, show_lssw, store_lssw);
 +	}
-+}
-+
-+static int read_brightness(struct backlight_device *bd)
-+{
-+	int value;
-+
-+	if (!read_acpi_int(brightness_get_handle, NULL, &value, NULL))
-+		printk(ASUS_WARNING "Error reading brightness\n");
-+
-+	return value;
-+}
-+
-+static int set_brightness(struct backlight_device *bd, int value)
-+{
-+	int ret = 0;
-+
-+	value = (0 < value) ? ((15 < value) ? 15 : value) : 0;
-+	/* 0 <= value <= 15 */
-+
-+	if (!write_acpi_int(brightness_set_handle, NULL, value, NULL)) {
-+		printk(ASUS_WARNING "Error changing brightness\n");
-+		ret = -EIO;
-+	}
-+
-+	return ret;
-+}
-+
-+static int update_bl_status(struct backlight_device *bd)
-+{
-+	int rv;
-+	int value = bd->props->brightness;
-+
-+	rv = set_brightness(bd, value);
-+	if(rv)
-+		return rv;
-+
-+	value = (bd->props->power == FB_BLANK_UNBLANK) ? 1 : 0;
-+	return set_lcd_state(value);
-+}
-+
- /*
-  * Platform device handlers
-  */
-@@ -378,6 +497,18 @@
- 	if (!hotk)
- 		return;
+ }
  
-+	/*
-+	 * We need to tell the backlight device when the backlight power is
-+	 * switched
-+	 */
-+	if (event == ATKD_LCD_ON) {
-+		write_status(NULL, 1, LCD_ON, 0);
-+		lcd_blank(FB_BLANK_UNBLANK);
-+	} else if(event == ATKD_LCD_OFF) {
-+		write_status(NULL, 0, LCD_ON, 0);
-+		lcd_blank(FB_BLANK_POWERDOWN);
-+	}
-+
- 	acpi_bus_generate_event(hotk->device, event,
- 				hotk->event_count[event % 128]++);
+ static int asus_handle_init(char *name, acpi_handle *handle,
+@@ -800,6 +869,11 @@
+ 	ASUS_HANDLE_INIT(display_set);
+ 	ASUS_HANDLE_INIT(display_get);
  
-@@ -547,6 +678,11 @@
- 
- 	ASUS_HANDLE_INIT(wireless_status);
- 
-+	ASUS_HANDLE_INIT(brightness_set);
-+	ASUS_HANDLE_INIT(brightness_get);
-+
-+	ASUS_HANDLE_INIT(lcd_switch);
++	/* There is a lot of models with "ALSL", but a few get
++	   a real light sens, so we need to check it. */
++	if(ASUS_HANDLE_INIT(ls_switch))
++		ASUS_HANDLE_INIT(ls_level);
 +
  	kfree(model);
  
  	return AE_OK;
-@@ -611,10 +747,13 @@
+@@ -874,6 +948,16 @@
+  	/* LED display is off by default */
+  	hotk->ledd_status = 0xFFF;
  
- 	asus_hotk_found = 1;
- 
--	/* WLED and BLED are on by  default */
-+	/* WLED and BLED are on by default */
- 	write_status(bt_switch_handle, 1, BT_ON, 0);
- 	write_status(wl_switch_handle, 1, WL_ON, 0);
- 
-+	/* LCD Backlight is on by default */
-+	write_status(NULL, 1, LCD_ON, 0);
++ 	/* Set initial values of light sensor and level */
++ 	hotk->light_switch = 1; /* Default to light sensor disabled */
++ 	hotk->light_level = 0; /* level 5 for sensor sensitivity */
++
++ 	if (ls_switch_handle)
++ 		set_light_sens_switch(hotk->light_switch);
++
++ 	if (ls_level_handle)
++ 		set_light_sens_level(hotk->light_level);
 +
        end:
  	if (result) {
  		kfree(hotk->name);
-@@ -642,6 +781,12 @@
- 	return 0;
- }
- 
-+static void asus_backlight_exit(void)
-+{
-+	if(asus_backlight_device)
-+		backlight_device_unregister(asus_backlight_device);
-+}
-+
- #define  ASUS_LED_UNREGISTER(object)				\
- 	if(object##_led.class_dev				\
- 	   && !IS_ERR(object##_led.class_dev))			\
-@@ -659,6 +804,7 @@
- 
- static void __exit asus_laptop_exit(void)
- {
-+	asus_backlight_exit();
- 	asus_led_exit();
- 
- 	acpi_bus_unregister_driver(&asus_hotk_driver);
-@@ -669,6 +815,34 @@
- 	kfree(asus_info);
- }
- 
-+static int asus_backlight_init(struct device * dev)
-+{
-+	struct backlight_device *bd;
-+
-+	if(brightness_set_handle && lcd_switch_handle) {
-+		bd = backlight_device_register (ASUS_HOTK_FILE, dev,
-+						NULL, &asusbl_data);
-+		if (IS_ERR (bd)) {
-+			printk(ASUS_ERR
-+			       "Could not register asus backlight device\n");
-+			asus_backlight_device = NULL;
-+			return PTR_ERR(bd);
-+		}
-+
-+		asus_backlight_device = bd;
-+
-+		down(&bd->sem);
-+		if(likely(bd->props)) {
-+			bd->props->brightness = read_brightness(NULL);
-+			bd->props->power = FB_BLANK_UNBLANK;
-+			if(likely(bd->props->update_status))
-+			   bd->props->update_status(bd);
-+		}
-+		up(&bd->sem);
-+	}
-+	return 0;
-+}
-+
- static int asus_led_register(acpi_handle handle,
- 			     struct led_classdev * ldev,
- 			     struct device * dev)
-@@ -739,6 +913,10 @@
- 
- 	dev = acpi_get_physical_device(hotk->device->handle);
- 
-+	result = asus_backlight_init(dev);
-+	if(result)
-+		goto fail_backlight;
-+
- 	result = asus_led_init(dev);
- 	if(result)
- 		goto fail_led;
-@@ -778,6 +956,9 @@
- 	asus_led_exit();
- 
- fail_led:
-+	asus_backlight_exit();
-+
-+fail_backlight:
- 
- 	return result;
- }
-diff -Naur a/drivers/misc/Kconfig b/drivers/misc/Kconfig
---- a/drivers/misc/Kconfig	2007-01-26 12:44:20.000000000 +0100
-+++ b/drivers/misc/Kconfig	2007-01-26 12:46:22.000000000 +0100
-@@ -75,6 +75,7 @@
-         depends on ACPI
- 	depends on EXPERIMENTAL && !ACPI_ASUS
- 	depends on LEDS_CLASS
-+	depends on BACKLIGHT_CLASS_DEVICE
-         ---help---
- 	  This is the new Linux driver for Asus laptops. It may also support some
- 	  MEDION, JVC or VICTOR laptops. It makes all the extra buttons generate
