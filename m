@@ -1,52 +1,67 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [linux-pm] [PATCH 3/6] [-mm]: ACPI: duplicate ACPI sleep "alarm" attribute in	sysfs
-Date: Fri, 26 Jan 2007 18:07:54 +0100
-Message-ID: <20070126170754.GA964@elf.ucw.cz>
-References: <1168083318.5619.37.camel@localhost.localdomain> <200701242321.09850.lenb@kernel.org> <20070125194710.GC23774@elf.ucw.cz> <200701251812.21180.lenb@kernel.org>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: 2.6.20-rc6: known regressions with patches
+Date: Fri, 26 Jan 2007 19:18:53 +0100
+Message-ID: <20070126181853.GO17836@stusta.de>
+References: <Pine.LNX.4.64.0701241847360.25027@woody.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:49396 "EHLO amd.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1030761AbXAZRIu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 26 Jan 2007 12:08:50 -0500
+Received: from emailhub.stusta.mhn.de ([141.84.69.5]:37094 "EHLO
+	mailhub.stusta.mhn.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1161119AbXAZSSp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Jan 2007 13:18:45 -0500
 Content-Disposition: inline
-In-Reply-To: <200701251812.21180.lenb@kernel.org>
+In-Reply-To: <Pine.LNX.4.64.0701241847360.25027@woody.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-pm@lists.osdl.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, Alessandro Zummo <alessandro.zummo@towertech.it>, Paul Sokolovsky <pmiscml@gmail.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@osdl.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Duncan <1i5t5.duncan@cox.net>, Neil Brown <neilb@suse.de>, mingo@redhat.com, linux-raid@vger.kernel.org, Dave Jones <davej@redhat.com>, cpufreq@lists.linux.org.uk, lenb@kernel.org, linux-acpi@vger.kernel.org, Jan Altenberg <jan@linutronix.de>, Ralf Baechle <ralf@linux-mips.org>, linux-mips@linux-mips.org, Andrew Clayton <andrew@digital-domain.net>, Trond Myklebust <trond.myklebust@fys.uio.no>
 
-On Thu 2007-01-25 18:12:20, Len Brown wrote:
-> On Thursday 25 January 2007 14:47, Pavel Machek wrote:
-> > Hi!
-> > 
-> > > > Note that a few RTCs ignore rtc_wkalrm.enabled when setting alarms, or
-> > > > aren't set up correctly, so they won't yet behave with this attribute.
-> > > > 
-> > > > Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> > > 
-> > > How do I ask to wake up "as soon as possible"?
-> > 
-> > If you want to wake up ASAP, don't go to sleep :-).
-> > 
-> > I see it might be handy for debugging... but I guess we should not
-> > mess rtc design because of that. Just set alarm 10 seconds into
-> > future.
-> 
-> That's my point.
-> What is the syntax to request "10-seconds into the future"?
+This email lists some known regressions in 2.6.20-rc6 compared to 2.6.19
+with patches available.
 
-echo $(( $(cat since_epoch) + 10 )) > wakealarm
+If you find your name in the Cc header, you are either submitter of one
+of the bugs, maintainer of an affectected subsystem or driver, a patch
+of you caused a breakage or I'm considering you in any other way possibly
+involved with one or more of these issues.
 
-...which is what you should expect. Yep, for users, nice utility would
-be nice... but absence of nice utility does not mean that it belongs
-in kernel.
+Due to the huge amount of recipients, please trim the Cc when answering.
 
-Plus, old alarm file was such a mess that I were not figure out how to
-use it within two hours... or maybe it just did not work on my
-machine? ... so utility will be needed, anyway.
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+
+Subject    : RAID: annoying "hunk_aligned_read : non aligned" messages
+References : http://bugzilla.kernel.org/show_bug.cgi?id=7835
+Submitter  : Duncan <1i5t5.duncan@cox.net>
+Handled-By : Neil Brown <neilb@suse.de>
+Patch      : http://bugzilla.kernel.org/show_bug.cgi?id=7835
+Status     : patch available
+
+
+Subject    : ACPI: fix cpufreq regression
+References : http://lkml.org/lkml/2007/1/16/120
+Submitter  : Ingo Molnar <mingo@elte.hu>
+Caused-By  : Dave Jones <davej@redhat.com>
+             commit 0916bd3ebb7cefdd0f432e8491abe24f4b5a101e
+Handled-By : Ingo Molnar <mingo@elte.hu>
+Patch      : http://lkml.org/lkml/2007/1/16/120
+Status     : patch available
+
+
+Subject    : MIPS Malta: CONFIG_MTD=n compile error
+References : http://lkml.org/lkml/2007/1/25/122
+Submitter  : Jan Altenberg <jan@linutronix.de>
+Caused-By  : Ralf Baechle <ralf@linux-mips.org>
+             commit b228f4c54df37b53c6f364aa7f3efa4280bcc4f0
+Handled-By : Jan Altenberg <jan@linutronix.de>
+Patch      : http://lkml.org/lkml/2007/1/25/122
+Status     : patch available
+
+
+Subject    : NFS triggers WARN_ON() in invalidate_inode_pages2_range()
+References : http://bugzilla.kernel.org/show_bug.cgi?id=7826
+Submitter  : Andrew Clayton <andrew@digital-domain.net>
+Caused-By  : Andrew Morton <akpm@osdl.org>
+             commit 8258d4a574d3a8c01f0ef68aa26b969398a0e140
+Handled-By : Trond Myklebust <trond.myklebust@fys.uio.no>
+Patch      : http://lkml.org/lkml/2007/1/24/323
+Status     : patch available
+
