@@ -1,55 +1,53 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: sata driver fails to work after resume from S3
-Date: Fri, 26 Jan 2007 15:46:42 +0800
-Message-ID: <1169797602.25758.85.camel@localhost.localdomain>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [patch 2/7] asus-laptop: add led support
+Date: Fri, 26 Jan 2007 02:43:25 -0500
+Message-ID: <200701260243.25372.lenb@kernel.org>
+References: <200701251254.43674.corentincj@iksaif.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:30964 "EHLO mga01.intel.com"
+Received: from hera.kernel.org ([140.211.167.34]:37923 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030785AbXAZHqI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 26 Jan 2007 02:46:08 -0500
+	id S1030793AbXAZHuq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 26 Jan 2007 02:50:46 -0500
+In-Reply-To: <200701251254.43674.corentincj@iksaif.net>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: jgarzik@pobox.com, forrest.zhao@gmail.com, kristen.c.accardi@intel.com
-Cc: linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
+To: corentincj@iksaif.net
+Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net
 
-Hi,
-I met a problem that sata driver fails to work after resume from S3.
-The kernel version is 2.6.16.33.
+On Thursday 25 January 2007 06:54, Corentin CHARY wrote:
+> Add led support, using generic led class.
+> Thomas Tuttle's patch <http://lkml.org/lkml/2006/7/6/247> was very usefull.
+> We use hotk->status to store led status because it's very hard to find acpi method
+> to get the right status...
+> To reduce the code, I use a lot of macro (ASUS_LED, ASUS_LED_REGISTER, etc ...), because
+> the code is the same for all leds ...
+> 
+> Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+>  Kconfig       |    1
+>  asus-laptop.c |  146 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 147 insertions(+)
+> ---
+> 
+> diff -Naur a/drivers/misc/asus-laptop.c b/drivers/misc/asus-laptop.c
+...
+> diff -Naur a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+> --- a/drivers/misc/Kconfig	2007-01-21 15:27:49.000000000 +0100
+> +++ b/drivers/misc/Kconfig	2007-01-21 15:24:26.000000000 +0100
+> @@ -74,6 +74,7 @@
+>          depends on X86
+>          depends on ACPI
+>  	depends on EXPERIMENTAL && !ASUS_ACPI
+> +	select LEDS_CLASS
 
-After resume from S3,
-I got the following messages:
-First, "ATA: abnormal status 0x80 on port 0x1F7" for 3 times.
-Then, "sd 0:0:0(sometimes is 1):0: SCSI error: return code=0x40000
-end_request: I/O error, dev sdb, sector ....
-Buffer I/O error on device dm-0, logical block...
-lost page write due to I/O error on device dm-0"
-keeps on popping up.
-Finally I got a message saying that "Remounting filesystem read-only"
-and can't access the disk any more.
+Why isn't this depends on BACKLIGHT_CLASS_DEVICE
+like msi-laptop?
 
-The problem is exactly like bug6262 in bugzilla, except for
-this happens when I set SATA mode to "compatibility"(not "AHCI").
-I can confirm that it is fixed in the 2.6.18.
-
-But how to make SATA drive S3 work properly in 2.6.16.33?
-I found several similar bugs, but the final conclusion I got is
-"This is fixed in linux-2.6.18..." and I can not find the original patches
-against this problem.
-I think the patch set "ACPI support for SATA/PATA" from Forrest and
-updated by Kristen may be helpful. But I can't apply them to 2.6.16.33
-due to too much changes in sata driver.
-
-Do I need to open a bug report in bugzilla?
-Does the patch set really make sense to my problem?
-If so, any patch I should apply first?
-If not, which patches I should test?
-
-Is there anyone who could show me what I should do please?
-Any comment is appreciated. Thanks in advance.
-
-
-Thanks,
-Rui
+>          ---help---
+>  	  This is the new Linux driver for Asus laptops. It may also support some
+>  	  MEDION, JVC or VICTOR laptops. It makes all the extra buttons generate
+> 
