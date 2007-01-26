@@ -1,19 +1,19 @@
 From: Corentin CHARY <corentincj@iksaif.net>
-Subject: Re: [patch 3/7] asus-laptop: add bluetooth and wlan support
-Date: Fri, 26 Jan 2007 14:04:40 +0100
-Message-ID: <200701261404.41011.corentincj@iksaif.net>
-References: <200701251254.46132.corentincj@iksaif.net>
+Subject: Re: [patch 5/7] asus-laptop: add display switching support
+Date: Fri, 26 Jan 2007 14:04:49 +0100
+Message-ID: <200701261404.49487.corentincj@iksaif.net>
+References: <200701251254.56798.corentincj@iksaif.net>
 Reply-To: corentincj@iksaif.net
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.dns26.com ([84.246.226.15]:36614 "EHLO iksaif.net"
+Received: from iksaif.dns26.com ([84.246.226.15]:36631 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965623AbXAZNEr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 26 Jan 2007 08:04:47 -0500
-In-Reply-To: <200701251254.46132.corentincj@iksaif.net>
+	id S965641AbXAZNEw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 26 Jan 2007 08:04:52 -0500
+In-Reply-To: <200701251254.56798.corentincj@iksaif.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -22,210 +22,136 @@ Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net
 
 From: Corentin Chary <corentincj@iksaif.net>
 
-WLED and BLED are not handled like other leds (MLED, etc ..),
-because sometime they also control the wlan/bluetooth device.
-If the method for wireless_status is found, it's used to get the
-status, otherwise hotk->status is used.  We also use the HWRS
-method, which tell if the bluetooth/wlan device is present or not.
-This patch show why we need a ASUS_SET_DEVICE_ATTR macro : if
-there is a bluetooth device, /sys/dev.../asus-laptop/bluetooth
-is usable, else it's not but it's clean.
+/sys/.../asus-laptop/display can now be used to switch displays
+like the old /proc/acpi/asus/disp does
 
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
- drivers/misc/asus-laptop.c |  115 ++++++++++++++++++++++++++++++++++-
- 1 file changed, 113 insertions(+), 2 deletions(-)
+ drivers/misc/asus-laptop.c |   82 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 82 insertions(+)
 
 diff -Naur a/drivers/misc/asus-laptop.c b/drivers/misc/asus-laptop.c
---- a/drivers/misc/asus-laptop.c	2007-01-26 12:44:20.000000000 +0100
-+++ b/drivers/misc/asus-laptop.c	2007-01-26 12:17:57.000000000 +0100
-@@ -56,8 +56,17 @@
- #define ASUS_HOTK_PREFIX        "\\_SB.ATKD."
+--- a/drivers/misc/asus-laptop.c	2007-01-26 13:00:56.000000000 +0100
++++ b/drivers/misc/asus-laptop.c	2007-01-26 13:01:08.000000000 +0100
+@@ -125,6 +125,23 @@
+ 	    "\\_SB.PCI0.PX40.Q10", /* S1x */
+ 	    "\\Q10");  /* A2x, L2D, L3D, M2E */
  
- /*
-+ * Known bits returned by \_SB.ATKD.HWRS
-+ */
-+#define WL_HWRS     0x80
-+#define BT_HWRS     0x100
-+
-+/*
-  * Flags for hotk status
-+ * WL_ON and BT_ON are also used for wireless_status()
-  */
-+#define WL_ON       0x01	//internal Wifi
-+#define BT_ON       0x02	//internal Bluetooth
- #define MLED_ON     0x04	//mail LED
- #define TLED_ON     0x08	//touchpad LED
- #define RLED_ON     0x10        //Record LED
-@@ -84,6 +93,14 @@
- ASUS_HANDLE(rled_set, ASUS_HOTK_PREFIX "RLED"); /* W1JC */
- ASUS_HANDLE(pled_set, ASUS_HOTK_PREFIX "PLED"); /* A7J */
- 
-+/* Bluetooth and WLAN
-+ * WLED and BLED are not handled like other XLED, because in some dsdt
-+ * they also control the WLAN/Bluetooth device.
-+ */
-+ASUS_HANDLE(wl_switch, ASUS_HOTK_PREFIX "WLED");
-+ASUS_HANDLE(bt_switch, ASUS_HOTK_PREFIX "BLED");
-+ASUS_HANDLE(wireless_status, ASUS_HOTK_PREFIX "RSTS"); /* All new models */
++/* Display */
++ASUS_HANDLE(display_set, ASUS_HOTK_PREFIX "SDSP");
++ASUS_HANDLE(display_get,
++	    "\\_SB.PCI0.P0P1.VGA.GETD", /*  A6B, A6K A6R A7D F3JM L4R M6R A3G
++					    M6A M6V VX-1 V6J V6V W3Z */
++	    "\\_SB.PCI0.P0P2.VGA.GETD", /* A3E A4K, A4D A4L A6J A7J A8J Z71V M9V
++					   S5A M5A z33A W1Jc W2V */
++	    "\\_SB.PCI0.P0P3.VGA.GETD", /* A6V A6Q */
++	    "\\_SB.PCI0.P0PA.VGA.GETD", /* A6T, A6M */
++	    "\\_SB.PCI0.PCI1.VGAC.NMAP", /* L3C */
++	    "\\_SB.PCI0.VGA.GETD", /* Z96F */
++	    "\\ACTD", /* A2D */
++	    "\\ADVG", /* A4G Z71A W1N W5A W5F M2N M3N M5N M6N S1N S5N */
++	    "\\DNXT", /* P30 */
++	    "\\INFB", /* A2H D1 L2D L3D L3H L2E L5D L5C M1A M2E L4L W3V */
++	    "\\SSTE"); /* A3F A6F A3N A3L M6N W3N W6A */
 +
  /*
   * This is the main structure, we can use it to store anything interesting
   * about the hotk device
-@@ -181,14 +198,32 @@
- 	return (status == AE_OK) && (out_obj.type == ACPI_TYPE_INTEGER);
+@@ -491,6 +508,60 @@
+ 	return store_status(buf, count, bt_switch_handle, BT_ON, 0);
  }
  
-+static int read_wireless_status(int mask) {
-+	int status;
-+
-+	if (!wireless_status_handle)
-+		return (hotk->status & mask) ? 1 : 0;
-+
-+	if (read_acpi_int(wireless_status_handle, NULL, &status, NULL)) {
-+		return (status & mask) ? 1 : 0;
-+	} else
-+		printk(ASUS_WARNING "Error reading Wireless status\n");
-+
-+	return (hotk->status & mask) ? 1 : 0;
++/*
++ * Display
++ */
++static void set_display(int value)
++{
++	/* no sanity check needed for now */
++	if (!write_acpi_int(display_set_handle, NULL, value, NULL))
++		printk(ASUS_WARNING "Error setting display\n");
++	return;
 +}
 +
- /* Generic LED functions */
- static int read_status(int mask)
- {
-+	/* There is a special method for both wireless devices */
-+	if (mask == BT_ON || mask == WL_ON)
-+		return read_wireless_status(mask);
++static int read_display(void)
++{
++	int value = 0;
 +
- 	return (hotk->status & mask) ? 1 : 0;
- }
- 
- static void write_status(acpi_handle handle, int out, int mask,
--		      int invert)
-+			 int invert)
- {
- 	hotk->status = (out) ? (hotk->status | mask) : (hotk->status & ~mask);
- 
-@@ -292,6 +327,51 @@
- 	return count;
- }
- 
-+static ssize_t store_status(const char *buf, size_t count,
-+			    acpi_handle handle, int mask, int invert)
++	/* In most of the case, we know how to set the display, but sometime
++	   we can't read it */
++	if(display_get_handle) {
++		if (!read_acpi_int(display_get_handle, NULL, &value, NULL))
++			printk(ASUS_WARNING "Error reading display status\n");
++	}
++
++	value &= 0x0F;		/* needed for some models, shouldn't hurt others */
++
++	return value;
++}
++/*
++ * Now, *this* one could be more user-friendly, but so far, no-one has
++ * complained. The significance of bits is the same as in store_disp()
++ */
++static ssize_t show_disp(struct device *dev,
++			 struct device_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%d\n", read_display());
++}
++
++/*
++ * Experimental support for display switching. As of now: 1 should activate
++ * the LCD output, 2 should do for CRT, 4 for TV-Out and 8 for DVI.
++ * Any combination (bitwise) of these will suffice. I never actually tested 4
++ * displays hooked up simultaneously, so be warned. See the acpi4asus README
++ * for more info.
++ */
++static ssize_t store_disp(struct device *dev, struct device_attribute *attr,
++			  const char *buf, size_t count)
 +{
 +	int rv, value;
-+	int out = 0;
 +
 +	rv = parse_arg(buf, count, &value);
 +	if (rv > 0)
-+		out = value ? 1 : 0;
-+
-+	write_status(handle, out, mask, invert);
-+
++		set_display(value);
 +	return rv;
-+}
-+
-+/*
-+ * WLAN
-+ */
-+static ssize_t show_wlan(struct device *dev,
-+			 struct device_attribute *attr, char *buf)
-+{
-+	return sprintf(buf, "%d\n", read_status(WL_ON));
-+}
-+
-+static ssize_t store_wlan(struct device *dev, struct device_attribute *attr,
-+			  const char *buf, size_t count)
-+{
-+	return store_status(buf, count, wl_switch_handle, WL_ON, 0);
-+}
-+
-+/*
-+ * Bluetooth
-+ */
-+static ssize_t show_bluetooth(struct device *dev,
-+			      struct device_attribute *attr, char *buf)
-+{
-+	return sprintf(buf, "%d\n", read_status(BT_ON));
-+}
-+
-+static ssize_t store_bluetooth(struct device *dev, struct device_attribute *attr,
-+			       const char *buf, size_t count)
-+{
-+	return store_status(buf, count, bt_switch_handle, BT_ON, 0);
 +}
 +
  static void asus_hotk_notify(acpi_handle handle, u32 event, void *data)
  {
  	/* TODO Find a better way to handle events count. */
-@@ -322,9 +402,13 @@
- 	} while(0)
- 
+@@ -535,11 +606,13 @@
  static ASUS_CREATE_DEVICE_ATTR(infos);
-+static ASUS_CREATE_DEVICE_ATTR(wlan);
-+static ASUS_CREATE_DEVICE_ATTR(bluetooth);
+ static ASUS_CREATE_DEVICE_ATTR(wlan);
+ static ASUS_CREATE_DEVICE_ATTR(bluetooth);
++static ASUS_CREATE_DEVICE_ATTR(display);
  
  static struct attribute *asuspf_attributes[] = {
          &dev_attr_infos.attr,
-+        &dev_attr_wlan.attr,
-+        &dev_attr_bluetooth.attr,
+         &dev_attr_wlan.attr,
+         &dev_attr_bluetooth.attr,
++        &dev_attr_display.attr,
          NULL
  };
  
-@@ -345,6 +429,13 @@
- static void asus_hotk_add_fs(void)
- {
- 	ASUS_SET_DEVICE_ATTR(infos, 0444, show_infos, NULL);
+@@ -567,6 +640,12 @@
+ 	if (bt_switch_handle)
+ 		ASUS_SET_DEVICE_ATTR(bluetooth, 0644,
+ 				     show_bluetooth, store_bluetooth);
 +
-+	if (wl_switch_handle)
-+		ASUS_SET_DEVICE_ATTR(wlan, 0644, show_wlan, store_wlan);
++	if (display_set_handle && display_get_handle)
++		ASUS_SET_DEVICE_ATTR(display, 0644, show_disp, store_disp);
++	else if(display_set_handle)
++		ASUS_SET_DEVICE_ATTR(display, 0200, NULL, store_disp);
 +
-+	if (bt_switch_handle)
-+		ASUS_SET_DEVICE_ATTR(bluetooth, 0644,
-+				     show_bluetooth, store_bluetooth);
  }
  
  static int asus_handle_init(char *name, acpi_handle *handle,
-@@ -377,7 +468,7 @@
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 	struct acpi_buffer dsdt = { ACPI_ALLOCATE_BUFFER, NULL };
- 	union acpi_object *model = NULL;
--	int bsts_result;
-+	int bsts_result, hwrs_result;
- 	char *string = NULL;
- 	acpi_status status;
+@@ -683,6 +762,9 @@
  
-@@ -440,6 +531,22 @@
- 	ASUS_HANDLE_INIT(rled_set);
- 	ASUS_HANDLE_INIT(pled_set);
+ 	ASUS_HANDLE_INIT(lcd_switch);
  
-+	/*
-+	 * The HWRS method return informations about the hardware.
-+	 * 0x80 bit is for WLAN, 0x100 for Bluetooth.
-+	 * The significance of others is yet to be found.
-+	 * If we don't find the method, we assume the device are present.
-+	 */
-+	if (!read_acpi_int(hotk->handle, "HRWS", &hwrs_result, NULL))
-+		hwrs_result = WL_HWRS | BT_HWRS;
-+
-+	if(hwrs_result & WL_HWRS)
-+		ASUS_HANDLE_INIT(wl_switch);
-+	if(hwrs_result & BT_HWRS)
-+		ASUS_HANDLE_INIT(bt_switch);
-+
-+	ASUS_HANDLE_INIT(wireless_status);
++	ASUS_HANDLE_INIT(display_set);
++	ASUS_HANDLE_INIT(display_get);
 +
  	kfree(model);
  
  	return AE_OK;
-@@ -504,6 +611,10 @@
- 
- 	asus_hotk_found = 1;
- 
-+	/* WLED and BLED are on by  default */
-+	write_status(bt_switch_handle, 1, BT_ON, 0);
-+	write_status(wl_switch_handle, 1, WL_ON, 0);
-+
-       end:
- 	if (result) {
- 		kfree(hotk->name);
