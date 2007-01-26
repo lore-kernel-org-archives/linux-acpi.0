@@ -1,29 +1,90 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: IA64 ACPI build issues
-Date: Fri, 26 Jan 2007 13:58:41 -0800
-Message-ID: <617E1C2C70743745A92448908E030B2A010D0927@scsmsx411.amr.corp.intel.com>
-References: <200701260026.32318.lenb@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:36031 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752144AbXAZV64 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Jan 2007 16:58:56 -0500
-Content-class: urn:content-classes:message
-In-Reply-To: <200701260026.32318.lenb@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: John Keller <jpk@sgi.com>
+Subject: [PATCH 1/1] -  increase acpi owner_id max
+Date: Fri, 26 Jan 2007 16:40:04 -0600
+Message-ID: <20070126224004.21202.43805.sendpatchset@attica.americas.sgi.com>
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Sender: linux-ia64-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: ayoung@sgi.com, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, John Keller <jpk@sgi.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org
 
-> This seems to make it through my evil config script that tries everything --
-> by making the two failing configs I sent you simply impossible.
+To support systems with large IO configurations,
+this patch increases the number of available ACPI
+owner ids to 1023.
 
-Passes through my regular build regression script (which doesn't try everything,
-but does hit eleven different configs) too.
+On SN platforms, we represent every populated root
+bus slot with an ACPI SSDT table containing info
+for every device and PPB attached to the slot.
+Each SSDT requires a unique ACPI owner id.
 
-Thanks
+Signed-off-by: John Keller <jpk@sgi.com>
+---
 
--Tony
+ drivers/acpi/utilities/utmisc.c |    6 +++---
+ include/acpi/acconfig.h         |    4 ++--
+ include/acpi/aclocal.h          |    4 ++--
+ 3 files changed, 7 insertions(+), 7 deletions(-)
+
+
+Index: linux/drivers/acpi/utilities/utmisc.c
+===================================================================
+--- linux.orig/drivers/acpi/utilities/utmisc.c	2007-01-25 11:27:25.509259412 -0600
++++ linux/drivers/acpi/utilities/utmisc.c	2007-01-26 13:16:09.551081284 -0600
+@@ -147,7 +147,7 @@ acpi_status acpi_ut_allocate_owner_id(ac
+ 				/*
+ 				 * Construct encoded ID from the index and bit position
+ 				 *
+-				 * Note: Last [j].k (bit 255) is never used and is marked
++				 * Note: Last [j].k (bit 1023) is never used and is marked
+ 				 * permanently allocated (prevents +1 overflow)
+ 				 */
+ 				*owner_id =
+@@ -175,7 +175,7 @@ acpi_status acpi_ut_allocate_owner_id(ac
+ 	 */
+ 	status = AE_OWNER_ID_LIMIT;
+ 	ACPI_ERROR((AE_INFO,
+-		    "Could not allocate new OwnerId (255 max), AE_OWNER_ID_LIMIT"));
++		    "Could not allocate new OwnerId (1023 max), AE_OWNER_ID_LIMIT"));
+ 
+       exit:
+ 	(void)acpi_ut_release_mutex(ACPI_MTX_CACHES);
+@@ -192,7 +192,7 @@ acpi_status acpi_ut_allocate_owner_id(ac
+  *              control method or unloading a table. Either way, we would
+  *              ignore any error anyway.
+  *
+- * DESCRIPTION: Release a table or method owner ID.  Valid IDs are 1 - 255
++ * DESCRIPTION: Release a table or method owner ID.  Valid IDs are 1 - 1023
+  *
+  ******************************************************************************/
+ 
+Index: linux/include/acpi/acconfig.h
+===================================================================
+--- linux.orig/include/acpi/acconfig.h	2007-01-25 11:27:25.577267818 -0600
++++ linux/include/acpi/acconfig.h	2007-01-26 13:17:14.111002597 -0600
+@@ -111,9 +111,9 @@
+ 
+ #define ACPI_SYSMEM_REGION_WINDOW_SIZE  4096
+ 
+-/* owner_id tracking. 8 entries allows for 255 owner_ids */
++/* owner_id tracking. 32 entries allow for 1023 owner_ids */
+ 
+-#define ACPI_NUM_OWNERID_MASKS          8
++#define ACPI_NUM_OWNERID_MASKS		32
+ 
+ /******************************************************************************
+  *
+Index: linux/include/acpi/aclocal.h
+===================================================================
+--- linux.orig/include/acpi/aclocal.h	2007-01-25 11:27:25.585268807 -0600
++++ linux/include/acpi/aclocal.h	2007-01-26 13:20:06.148115848 -0600
+@@ -122,8 +122,8 @@ static char *acpi_gbl_mutex_names[ACPI_N
+ 
+ /* Owner IDs are used to track namespace nodes for selective deletion */
+ 
+-typedef u8 acpi_owner_id;
+-#define ACPI_OWNER_ID_MAX               0xFF
++typedef u16 acpi_owner_id;
++#define ACPI_OWNER_ID_MAX               0x3FF
+ 
+ /* This Thread ID means that the mutex is not in use (unlocked) */
+ 
