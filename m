@@ -1,53 +1,34 @@
-From: Nigel Cunningham <nigel@nigel.suspend2.net>
-Subject: Re: [linux-pm] [PATCH 3/6] [-mm]: ACPI: duplicate ACPI sleep
-	"alarm" attribute in	sysfs
-Date: Fri, 26 Jan 2007 10:28:50 +1100
-Message-ID: <1169767730.1316.58.camel@nigel.suspend2.net>
-References: <1168083318.5619.37.camel@localhost.localdomain>
-	 <200701242321.09850.lenb@kernel.org> <20070125194710.GC23774@elf.ucw.cz>
-	 <200701251812.21180.lenb@kernel.org>
-Reply-To: nigel@nigel.suspend2.net
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [linux-pm] [PATCH 3/6] [-mm]: ACPI: duplicate ACPI sleep "alarm" attribute in	sysfs
+Date: Thu, 25 Jan 2007 16:33:15 -0800
+Message-ID: <200701251633.16031.david-b@pacbell.net>
+References: <1168083318.5619.37.camel@localhost.localdomain> <20070125194710.GC23774@elf.ucw.cz> <200701251812.21180.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nigel.suspend2.net ([203.171.70.205]:39230 "EHLO
-	nigel.suspend2.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030499AbXAYX2w (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Jan 2007 18:28:52 -0500
+Received: from smtp107.sbc.mail.mud.yahoo.com ([68.142.198.206]:32719 "HELO
+	smtp107.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1030681AbXAZAdS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Jan 2007 19:33:18 -0500
 In-Reply-To: <200701251812.21180.lenb@kernel.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, Alessandro Zummo <alessandro.zummo@towertech.it>, linux-pm@lists.osdl.org, Paul Sokolovsky <pmiscml@gmail.com>
+To: linux-pm@lists.osdl.org
+Cc: Len Brown <lenb@kernel.org>, Pavel Machek <pavel@ucw.cz>, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, Alessandro Zummo <alessandro.zummo@towertech.it>, Paul Sokolovsky <pmiscml@gmail.com>
 
-Hi.
+On Thursday 25 January 2007 3:12 pm, Len Brown wrote:
 
-On Thu, 2007-01-25 at 18:12 -0500, Len Brown wrote:
-> On Thursday 25 January 2007 14:47, Pavel Machek wrote:
-> > Hi!
-> > 
-> > > > Note that a few RTCs ignore rtc_wkalrm.enabled when setting alarms, or
-> > > > aren't set up correctly, so they won't yet behave with this attribute.
-> > > > 
-> > > > Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> > > 
-> > > How do I ask to wake up "as soon as possible"?
-> > 
-> > If you want to wake up ASAP, don't go to sleep :-).
-> > 
-> > I see it might be handy for debugging... but I guess we should not
-> > mess rtc design because of that. Just set alarm 10 seconds into
-> > future.
-> 
 > That's my point.
 > What is the syntax to request "10-seconds into the future"?
 
-AFAIK (and I think this is what Pavel is saying) there isn't one - you'd
-have to use a shell script of some sort or such like to calculate now +
-10s and echo the result to the entry.
+See
 
-Regards,
+  http://lists.osdl.org/pipermail/linux-pm/2007-January/004459.html
 
-Nigel
+and morph the first example ... it shows 45*60 seconds into the future.
+Substitute "45*60" ...
 
