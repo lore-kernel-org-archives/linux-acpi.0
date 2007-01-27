@@ -1,54 +1,52 @@
-From: Corentin CHARY <corentincj@iksaif.net>
-Subject: Re: [Acpi4asus-user] [patch 7/7] asus-laptop: add light =?iso-8859-1?q?sensor=09support?=
-Date: Sat, 27 Jan 2007 09:46:18 +0100
-Message-ID: <200701270946.19039.corentincj@iksaif.net>
-References: <200701251254.59337.corentincj@iksaif.net> <200701261404.58597.corentincj@iksaif.net> <45BA865E.4040706@gmx.de>
-Reply-To: corentincj@iksaif.net
+From: Len Brown <lenb@kernel.org>
+Subject: Re: x86_64-mm-always-use-physical-delivery-mode-on-8-cpus vs git-acpi
+Date: Sat, 27 Jan 2007 04:29:57 -0500
+Message-ID: <200701270429.57170.lenb@kernel.org>
+References: <20070126172402.77a3edbc.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.dns26.com ([84.246.226.15]:50953 "EHLO iksaif.net"
+Received: from hera.kernel.org ([140.211.167.34]:51252 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752212AbXA0IqV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Jan 2007 03:46:21 -0500
-In-Reply-To: <45BA865E.4040706@gmx.de>
+	id S1750729AbXA0Jb0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 27 Jan 2007 04:31:26 -0500
+In-Reply-To: <20070126172402.77a3edbc.akpm@osdl.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Johannes Engel <j-engel@gmx.de>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net
+To: Andrew Morton <akpm@osdl.org>
+Cc: Andi Kleen <ak@muc.de>, linux-acpi@vger.kernel.org
 
-Le vendredi 26 janvier 2007 23:53, Johannes Engel a =E9crit=A0:
-> Hi, Corentin!
->
-> Some remarks on your patch which upto now works great for me!
->
-> 1.) configuration seems to have a "circle": Warning! Found recursive
-> dependency: ACPI_ASUS ASUS_LAPTOP ACPI_ASUS
-Yep I know, I already fixed that in the new patch (posted as an answer =
-of the=20
-first).
+On Friday 26 January 2007 20:24, Andrew Morton wrote:
+> 
+> The new stuff which just landed in Len's tree caused a huge mess in
+> arch/x86_64/kernel/genapic.c:clustered_apic_check() when applying
+> ftp://ftp.firstfloor.org/pub/ak/x86_64/quilt/patches/always-use-physical-delivery-mode-on-8-cpus
+> on top of it.
 
-> 2.) The dependency X86 makes it necessary to enable generic
-> X86-optimizations. Is that intended?
-Is that a problem ?
+The ACPI change this cleanup patch is conflicting with is quite small:
 
-> 3.) With recent BIOS versions the implementation of the value for the
-> Touchpad LED has switched. So an "echo 0 > .../led" results in the le=
-d
-> to light. Maybe there is a way to deal with that in kernel space. But=
- I
-> think we already had that discussion some months ago.
-I think we should make it work in most of the case, but it's not really=
- a=20
-problem if the led doesn't work exactly as excepted ^^
+------------------------- arch/x86_64/kernel/genapic.c -------------------------
+index b007433..0b3603a 100644
+@@ -58,8 +58,8 @@ void __init clustered_apic_check(void)
+ 	 * Some x86_64 machines use physical APIC mode regardless of how many
+ 	 * procs/clusters are present (x86_64 ES7000 is an example).
+ 	 */
+-	if (acpi_fadt.revision > FADT2_REVISION_ID)
+-		if (acpi_fadt.force_apic_physical_destination_mode) {
++	if (acpi_gbl_FADT.header.revision > FADT2_REVISION_ID)
++		if (acpi_gbl_FADT.flags & ACPI_FADT_APIC_PHYSICAL) {
+ 			genapic = &apic_cluster;
+ 			goto print;
+ 		}
+> In fact the ACPI change has trashed a fair slice of Andi's pending tree.
+> 
+> I think I'll revert to yesterday's git-acpi, let you guys sort it all out.
 
---=20
-CHARY 'Iksaif' Corentin
-http://xf.iksaif.net
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Send me a version of the always-use-physical-delivery-mode-on-8-cpus patch
+that applies to Linus' tree (the one above doesn't), and I'll be happy to apply
+the 2-line diff above to it.
+
+-Len
