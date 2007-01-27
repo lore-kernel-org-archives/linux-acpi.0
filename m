@@ -1,26 +1,45 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: x86_64-mm-always-use-physical-delivery-mode-on-8-cpus vs git-acpi
-Date: Fri, 26 Jan 2007 17:24:02 -0800
-Message-ID: <20070126172402.77a3edbc.akpm@osdl.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 1/3] - Altix: ACPI SSDT PCI device support
+Date: Sat, 27 Jan 2007 01:55:17 -0500
+Message-ID: <200701270155.18596.lenb@kernel.org>
+References: <20061115152454.6047.64973.sendpatchset@attica.americas.sgi.com> <20070126171048.5f0bf293.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35262 "EHLO smtp.osdl.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752161AbXA0BZh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 26 Jan 2007 20:25:37 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <20070126171048.5f0bf293.akpm@osdl.org>
+Content-Disposition: inline
+Sender: linux-ia64-owner@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: John Keller <jpk@sgi.com>, linux-acpi@vger.kernel.org, tony.luck@intel.com, linux-ia64@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, gregkh@suse.de, linux-kernel@vger.kernel.org, ayoung@sgi.com, jes@sgi.com, "Starikovskiy, Alexey" <alexey.y.starikovskiy@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, Andi Kleen <ak@muc.de>, linux-acpi@vger.kernel.org
 
+On Friday 26 January 2007 20:10, Andrew Morton wrote:
+> On Wed, 15 Nov 2006 09:24:54 -0600
+> John Keller <jpk@sgi.com> wrote:
+> 
+> > Add SN platform support for running with an ACPI
+> > capable PROM that defines PCI devices in SSDT
+> > tables. There is a SSDT table for every occupied
+> > slot on a root bus, containing info for every
+> > PPB and/or device on the bus. The SSDTs will be
+> > dynamically loaded/unloaded at hotplug enable/disable.
+> 
+> An additional 600kb of diff has just popped up in the ACPI tree, so none of
+> this patch applies any more.  I'll need to drop it again, sorry.
+> 
+> It's been over two months - I'm not sure why things are so difficult for
+> this patchset.
 
-The new stuff which just landed in Len's tree caused a huge mess in
-arch/x86_64/kernel/genapic.c:clustered_apic_check() when applying
-ftp://ftp.firstfloor.org/pub/ak/x86_64/quilt/patches/always-use-physical-delivery-mode-on-8-cpus
-on top of it.
+it is because
+1. this didn't make it into 2.6.20 before -rc1, and Linus prohibits adding features thereafter
+2. these patches simultaneously depend on ACPI, hotplug, and IA64 platform dependent code,
+    so it isn't always clear who owns them.  However, if Greg and Tony Ack them,
+    I'll be happy to carry them upstream with the ACPI tree.
 
-In fact the ACPI change has trashed a fair slice of Andi's pending tree.
+I'll reply to this note with a shim patch to help these apply, and a  pair of refreshed SGI patches
+that apply on top of the ACPI tree.  Build tested vs sn2_defconfig , but SGI will have to test it on hardware.
 
-I think I'll revert to yesterday's git-acpi, let you guys sort it all out.
-
+thanks,
+-Len
