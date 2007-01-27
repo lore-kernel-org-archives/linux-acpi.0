@@ -1,119 +1,62 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: acpidump vs tiger2
-Date: Sat, 27 Jan 2007 14:11:18 +0100
-Message-ID: <20070127131118.GB3267@inferi.kami.home>
-References: <200701252320.02765.lenb@kernel.org>
+From: Andrew Morton <akpm@osdl.org>
+Subject: Re: x86_64-mm-always-use-physical-delivery-mode-on-8-cpus vs
+ git-acpi
+Date: Sat, 27 Jan 2007 14:20:31 -0800
+Message-ID: <20070127142031.041d3239.akpm@osdl.org>
+References: <20070126172402.77a3edbc.akpm@osdl.org>
+	<200701270429.57170.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aa014msr.fastwebnet.it ([85.18.95.74]:33212 "EHLO
-	aa014msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752166AbXA0NMr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 27 Jan 2007 08:12:47 -0500
-Content-Disposition: inline
-In-Reply-To: <200701252320.02765.lenb@kernel.org>
+Received: from smtp.osdl.org ([65.172.181.24]:36609 "EHLO smtp.osdl.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752394AbXA0WVz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 27 Jan 2007 17:21:55 -0500
+In-Reply-To: <200701270429.57170.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: robert.moore@intel.com, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org
+Cc: Andi Kleen <ak@muc.de>, linux-acpi@vger.kernel.org
 
-On Thu, Jan 25, 2007 at 11:20:02PM -0500, Len Brown wrote:
-> Alexey,
-> Using pmtools-20061130 I get some warnings on a Tiger-2:
+On Sat, 27 Jan 2007 04:29:57 -0500
+Len Brown <lenb@kernel.org> wrote:
+
+> On Friday 26 January 2007 20:24, Andrew Morton wrote:
+> > 
+> > The new stuff which just landed in Len's tree caused a huge mess in
+> > arch/x86_64/kernel/genapic.c:clustered_apic_check() when applying
+> > ftp://ftp.firstfloor.org/pub/ak/x86_64/quilt/patches/always-use-physical-delivery-mode-on-8-cpus
+> > on top of it.
 > 
-> [root@tiger lenb]# bin/acpidump >acpidump.out
-> acpidump(4538): unaligned access to 0x6000000000008274, ip=0x4000000000002ab1
-> acpidump(4538): unaligned access to 0x600000000000827c, ip=0x4000000000002ab1
+> The ACPI change this cleanup patch is conflicting with is quite small:
 > 
-> Bob,
-> acpixtract also results in warnings when running,
-> an error in the .dsl file, and inability to re-compile.
-[...]
-> [lenb@tiger ~]$ head -20 DSDT.dsl
-> ACPI Error (nsaccess-0531): ACPI path has too many parent prefixes (^) - reached beyond root node [20061109]
+> ------------------------- arch/x86_64/kernel/genapic.c -------------------------
+> index b007433..0b3603a 100644
+> @@ -58,8 +58,8 @@ void __init clustered_apic_check(void)
+>  	 * Some x86_64 machines use physical APIC mode regardless of how many
+>  	 * procs/clusters are present (x86_64 ES7000 is an example).
+>  	 */
+> -	if (acpi_fadt.revision > FADT2_REVISION_ID)
+> -		if (acpi_fadt.force_apic_physical_destination_mode) {
+> +	if (acpi_gbl_FADT.header.revision > FADT2_REVISION_ID)
+> +		if (acpi_gbl_FADT.flags & ACPI_FADT_APIC_PHYSICAL) {
+>  			genapic = &apic_cluster;
+>  			goto print;
+>  		}
+> > In fact the ACPI change has trashed a fair slice of Andi's pending tree.
+> > 
+> > I think I'll revert to yesterday's git-acpi, let you guys sort it all out.
+> 
+> Send me a version of the always-use-physical-delivery-mode-on-8-cpus patch
+> that applies to Linus' tree (the one above doesn't), and I'll be happy to apply
+> the 2-line diff above to it.
+> 
 
-No unaligned access here but I did see this error on another DSDT.
+OK, so I took another look.  This ACPI update does extensive damage to
+Andi's pending queue.  I fixed four patches, dropped four or five more, hit
+more problems then gave up again.  I'll go back to Thursday's git-acpi
+again.
 
-Basically disassembling a DSDT (to fix some errors), rebuilding it,
-disassembling again added an External reference at the begininning of
-the DSDT DefinitionBlock. If the first rebuild in the above sequence is
-performed without optimizations (-oa) everithing is fine. Or eventually
-remiving the external ref make re-re-building succeed.
-
-This is the beginning of the diff of the original disassembled and the
-optimized disassembled:
-
-  * Original Table Header:
-  *     Signature        "DSDT"
-- *     Length           0x0000F9A0 (63904)
-+ *     Length           0x0000ECCD (60621)
-  *     Revision         0x01
-  *     OEM ID           "HP    "
-  *     OEM Table ID     "nx7400"
-  *     OEM Revision     0x00010000 (65536)
-- *     Creator ID       "MSFT"
-- *     Creator Revision 0x0100000E (16777230)
-+ *     Creator ID       "INTL"
-+ *     Creator Revision 0x20061109 (537268489)
-  */
--DefinitionBlock ("../DSDT.aml", "DSDT", 1, "HP    ", "nx7400", 0x00010000)
-+DefinitionBlock ("DSDT.aml", "DSDT", 1, "HP    ", "nx7400", 0x00010000)
- {
--    Name (C000, 0x00)
--    Processor (\_PR.CPU0, 0x01, 0x00001010, 0x06)
-+    External (^^^C003.C005.C19C)
-+
-+    Name (C000, Zero)
-+    Processor (_PR.CPU0, 0x01, 0x080C5478, 0x06)
-     {
-
-Full DSDT:
-http://people.debian.org/~malattia/iasl/DSDT.dat
-Some more info about the issue on Debian's BTS:
-http://bugs.debian.org/407708
-
-So here's maybe a more clear sequence:
-
-# wget -q http://people.debian.org/~malattia/iasl/DSDT.dat
-# wget -q http://people.debian.org/~malattia/iasl/dsdtF0A.patch
-# iasl -d DSDT.dat
-
-Intel ACPI Component Architecture
-AML Disassembler version 20061109 [Jan 14 2007]
-...
-Disassembly completed, written to "DSDT.dsl"
-
-# patch -p0 < dsdtF0A.patch
-# iasl DSDT.dsl
-...
-Compilation complete. 0 Errors, 0 Warnings, 0 Remarks, 2153 Optimizations
-
-# iasl -d DSDT.aml
-...
-Disassembly completed, written to "DSDT.dsl"
-
-# iasl DSDT.dsl | head -n 20
-
-Intel ACPI Component Architecture
-ASL Optimizing Compiler version 20061109 [Jan 14 2007]
-Copyright (C) 2000 - 2006 Intel Corporation
-Supports ACPI Specification Revision 3.0a
-
-ACPI Error (nsaccess-0531): ACPI path has too many parent prefixes (^) - reached beyond root node [20061109]
-
-Maximum error count (200) exceeded
-DSDT.dsl    20:     External (^^^C003.C005.C19C)
-Error    4014 -         From ACPI CA Subsystem ^  (AE_NOT_FOUND Failure from lookup %s
-)
-
-DSDT.dsl    22:     Name (C000, Zero)
-Error    4062 -              ^ Object does not exist (C000)
-
-DSDT.dsl    23:     Processor (_PR.CPU0, 0x01, 0x080C5478, 0x06)
-Error    4063 -                       ^ Object not found or not accessible from scope (_PR.CPU0)
-
-DSDT.dsl    25:         Name (C001, Zero)
-
--- 
-mattia
-:wq!
+Longer-term, I expect Andi will merge before acpi does, and you're looking
+at a fairly large amount of fixing after that happens.
