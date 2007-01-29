@@ -1,50 +1,30 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: x86_64-mm-always-use-physical-delivery-mode-on-8-cpus vs
- git-acpi
-Date: Sun, 28 Jan 2007 22:38:16 -0800
-Message-ID: <20070128223816.3ee4574a.akpm@osdl.org>
-References: <20070126172402.77a3edbc.akpm@osdl.org>
-	<200701270429.57170.lenb@kernel.org>
-	<20070127142031.041d3239.akpm@osdl.org>
-	<200701282158.12540.lenb@kernel.org>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: 2.6.20-rc6: known regressions with patches
+Date: Mon, 29 Jan 2007 09:45:48 +0100
+Message-ID: <20070129084548.GA10578@elte.hu>
+References: <Pine.LNX.4.64.0701241847360.25027@woody.linux-foundation.org> <20070126181853.GO17836@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51412 "EHLO smtp.osdl.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933241AbXA2Gjh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 29 Jan 2007 01:39:37 -0500
-In-Reply-To: <200701282158.12540.lenb@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933274AbXA2Iuv@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20070126181853.GO17836@stusta.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Duncan <1i5t5.duncan@cox.net>, Neil Brown <neilb@suse.de>, mingo@redhat.com, linux-raid@vger.kernel.org, Dave Jones <davej@redhat.com>, cpufreq@lists.linux.org.uk, lenb@kernel.org, linux-acpi@vger.kernel.org, Jan Altenberg <jan@linutronix.de>, Ralf Baechle <ralf@linux-mips.org>, linux-mips@linux-mips.org, Andrew Clayton <andrew@digital-domain.net>, Trond Myklebust <trond.myklebust@fys.uio.no>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Andi Kleen <ak@muc.de>, linux-acpi@vger.kernel.org
 
-On Sun, 28 Jan 2007 21:58:12 -0500
-Len Brown <lenb@kernel.org> wrote:
 
-> > OK, so I took another look.  This ACPI update does extensive damage to
-> > Andi's pending queue.  I fixed four patches, dropped four or five more, hit
-> > more problems then gave up again.  I'll go back to Thursday's git-acpi
-> > again.
-> > 
-> > Longer-term, I expect Andi will merge before acpi does, and you're looking
-> > at a fairly large amount of fixing after that happens.
-> 
-> Exactly what patches from Andi do I need to merge on top of to get the ACPI tree into -mm?
+* Adrian Bunk <bunk@stusta.de> wrote:
 
-ftp://ftp.firstfloor.org/pub/ak/x86_64/quilt/patches/ is everything.
+> Subject    : ACPI: fix cpufreq regression
+> References : http://lkml.org/lkml/2007/1/16/120
+> Submitter  : Ingo Molnar <mingo@elte.hu>
+> Caused-By  : Dave Jones <davej@redhat.com>
+>              commit 0916bd3ebb7cefdd0f432e8491abe24f4b5a101e
+> Handled-By : Ingo Molnar <mingo@elte.hu>
+> Patch      : http://lkml.org/lkml/2007/1/16/120
+> Status     : patch available
 
-In rc6-mm1 that's everything between #X86_64-START and #X86_64-END in the
-series file.  I have another 35-odd x86 patches on top of that lot.
+this is commit e4233dec749a3519069d9390561b5636a75c7579 meanwhile.
 
-Note that I normally stage the x86_64 tree _after_ the ACPI tree, but I can
-change that.
-
-I don't think that making the acpi tree dependent upon the x86_64 tree
-would be a smart idea, frankly.  It'll cause you heaps of pain.
-
-Perhaps Andi could stick his tree into git for you to base off, dunno.  But
-he doesn't seem to be around at present.
-
+	Ingo
