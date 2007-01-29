@@ -1,67 +1,39 @@
-From: "Pieter De Wit" <Pieter.DeWit@vodacom.co.za>
-Subject: RE: Fan speeds on HP nc6400 and nc8430
-Date: Mon, 29 Jan 2007 11:13:42 +0200
-Message-ID: <C3FA62B1A90D7440B9B6C7C31895994F03663675@zadbn02100.vodacom.corp>
-References: <45B100A0.40305@gmail.com>
+From: Dave Jones <davej@redhat.com>
+Subject: Re: 2.6.20-rc6: known regressions with patches
+Date: Mon, 29 Jan 2007 07:58:55 -0500
+Message-ID: <20070129125855.GA30599@redhat.com>
+References: <Pine.LNX.4.64.0701241847360.25027@woody.linux-foundation.org> <20070126181853.GO17836@stusta.de> <20070129084548.GA10578@elte.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mfwj032.mfw.is.co.za ([196.35.77.38]:1962 "EHLO
-	mfwj032.mfw.is.co.za" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933282AbXA2JOy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Jan 2007 04:14:54 -0500
-Content-class: urn:content-classes:message
-In-Reply-To: <45B100A0.40305@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-mips-bounce@linux-mips.org>
+Content-Disposition: inline
+In-Reply-To: <20070129084548.GA10578@elte.hu>
+Sender: linux-mips-bounce@linux-mips.org
+Errors-to: linux-mips-bounce@linux-mips.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Adrian Bunk <bunk@stusta.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Duncan <1i5t5.duncan@cox.net>, Neil Brown <neilb@suse.de>, mingo@redhat.com, linux-raid@vger.kernel.org, cpufreq@lists.linux.org.uk, lenb@kernel.org, linux-acpi@vger.kernel.org, Jan Altenberg <jan@linutronix.de>, Ralf Baechle <ralf@linux-mips.org>, linux-mips@linux-mips.org, Andrew Clayton <andrew@digital-domain.net>, Trond Myklebust <trond.myklebust@fys.uio.no>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Hi Guys,
+On Mon, Jan 29, 2007 at 09:45:48AM +0100, Ingo Molnar wrote:
+ > 
+ > * Adrian Bunk <bunk@stusta.de> wrote:
+ > 
+ > > Subject    : ACPI: fix cpufreq regression
+ > > References : http://lkml.org/lkml/2007/1/16/120
+ > > Submitter  : Ingo Molnar <mingo@elte.hu>
+ > > Caused-By  : Dave Jones <davej@redhat.com>
+ > >              commit 0916bd3ebb7cefdd0f432e8491abe24f4b5a101e
+ > > Handled-By : Ingo Molnar <mingo@elte.hu>
+ > > Patch      : http://lkml.org/lkml/2007/1/16/120
+ > > Status     : patch available
+ > 
+ > this is commit e4233dec749a3519069d9390561b5636a75c7579 meanwhile.
 
-I tried the suggestion below and it didn't seem to change anything - I
-even set the same trip points to TZ1. The fans still seem to spin faste=
-r
-in Linux compared to Windows. Then the other issue is that I can't
-switch a fan off once I force it on.
+Thanks for pushing this on in my absense btw.
+FWIW, it has my belated ACK :)
+I've asked for it to be in 19.3 too as the same bug exists there.
 
-Thanks,
+		Dave
 
-Pieter
-
-
-Show:
-cat /proc/acpi/thermal_zone/TZ0/trip_points
-
-or change TZ0 to TZ1
-
-=46or many HP notebooks first trip point is to low. To change manually,
-for example:
-
-echo "105:100:100:78:70:60:50" > /proc/acpi/thermal_zone/TZ0/trip_point=
-s
-echo 10  > /proc/acpi/thermal_zone/TZ0/polling_frequency
-
-Then I have:
-maciek@rutek:~$ cat /proc/acpi/thermal_zone/TZ0/trip_points
-critical (S5):           105 C
-active[0]:               78 C: devices=3D0xcf7aea40
-active[1]:               70 C: devices=3D0xcf7ae9dc
-active[2]:               60 C: devices=3D0xcf7ae98c
-active[3]:               50 C: devices=3D0xcf7ae93c
-
-maciek@rutek:~$ cat /proc/acpi/thermal_zone/TZ0/polling_frequency
-polling frequency:       10 seconds
-
---
-Maciej Rutecki <maciej.rutecki@gmail.com> http://www.unixy.pl LTG -
-Linux Testers Group
-(http://www.stardust.webpages.pl/ltg/wiki/)
-
-=93This e-mail is sent on the Terms and Conditions that can be accessed=
- by Clicking on this link http://www.vodacom.co.za/legal/email.jsp "
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+http://www.codemonkey.org.uk
