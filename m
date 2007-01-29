@@ -1,117 +1,50 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 3/3] [-mm]: ACPI: add ACPICA version in sysfs
-Date: Mon, 29 Jan 2007 11:02:42 +0800
-Message-ID: <1170039762.6907.11.camel@localhost.localdomain>
+From: Andrew Morton <akpm@osdl.org>
+Subject: Re: x86_64-mm-always-use-physical-delivery-mode-on-8-cpus vs
+ git-acpi
+Date: Sun, 28 Jan 2007 22:38:16 -0800
+Message-ID: <20070128223816.3ee4574a.akpm@osdl.org>
+References: <20070126172402.77a3edbc.akpm@osdl.org>
+	<200701270429.57170.lenb@kernel.org>
+	<20070127142031.041d3239.akpm@osdl.org>
+	<200701282158.12540.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:32360 "EHLO mga01.intel.com"
+Received: from smtp.osdl.org ([65.172.181.24]:51412 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933117AbXA2DCI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 28 Jan 2007 22:02:08 -0500
+	id S933241AbXA2Gjh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 29 Jan 2007 01:39:37 -0500
+In-Reply-To: <200701282158.12540.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: "linux-acpi@vger" <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Andi Kleen <ak@muc.de>, linux-acpi@vger.kernel.org
 
-From: Zhang Rui <rui.zhang@intel.com>
+On Sun, 28 Jan 2007 21:58:12 -0500
+Len Brown <lenb@kernel.org> wrote:
 
-Add an ACPI attribute to indicate ACPICA version.
-/proc/acpi/version is deprecated by /sys/module/acpi/parameters/acpica_version.
+> > OK, so I took another look.  This ACPI update does extensive damage to
+> > Andi's pending queue.  I fixed four patches, dropped four or five more, hit
+> > more problems then gave up again.  I'll go back to Thursday's git-acpi
+> > again.
+> > 
+> > Longer-term, I expect Andi will merge before acpi does, and you're looking
+> > at a fairly large amount of fixing after that happens.
+> 
+> Exactly what patches from Andi do I need to merge on top of to get the ACPI tree into -mm?
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/Kconfig  |    4 +++-
- drivers/acpi/system.c |   24 ++++++++++++++++++++++++
- 2 files changed, 27 insertions(+), 1 deletion(-)
+ftp://ftp.firstfloor.org/pub/ak/x86_64/quilt/patches/ is everything.
 
-Index: linux-2.6.20-rc4-mm1/drivers/acpi/system.c
-===================================================================
---- linux-2.6.20-rc4-mm1.orig/drivers/acpi/system.c	2007-01-29 09:24:06.000000000 +0800
-+++ linux-2.6.20-rc4-mm1/drivers/acpi/system.c	2007-01-29 11:00:21.000000000 +0800
-@@ -32,6 +32,11 @@
- 
- #define _COMPONENT		ACPI_SYSTEM_COMPONENT
- ACPI_MODULE_NAME("acpi_system")
-+#ifdef MODULE_PARAM_PREFIX
-+#undef MODULE_PARAM_PREFIX
-+#endif
-+#define MODULE_PARAM_PREFIX "acpi."
-+
- #define ACPI_SYSTEM_CLASS		"system"
- #define ACPI_SYSTEM_DRIVER_NAME		"ACPI System Driver"
- #define ACPI_SYSTEM_DEVICE_NAME		"System"
-@@ -41,9 +46,23 @@ ACPI_MODULE_NAME("acpi_system")
- #define ACPI_SYSTEM_FILE_FADT		"fadt"
- extern struct fadt_descriptor acpi_fadt;
- 
-+/*
-+ * Make ACPICA version work as module param
-+ */
-+static int param_get_acpica_version(char *buffer, struct kernel_param *kp) {
-+	int result;
-+
-+	result = sprintf(buffer, "%x", ACPI_CA_VERSION);
-+
-+	return result;
-+}
-+
-+module_param_call(acpica_version, NULL, param_get_acpica_version, NULL, 0444);
-+
- /* --------------------------------------------------------------------------
-                               FS Interface (/proc)
-    -------------------------------------------------------------------------- */
-+#ifdef CONFIG_ACPI_PROCFS
- 
- static int acpi_system_read_info(struct seq_file *seq, void *offset)
- {
-@@ -63,6 +82,7 @@ static const struct file_operations acpi
- 	.llseek = seq_lseek,
- 	.release = single_release,
- };
-+#endif
- 
- static ssize_t acpi_system_read_dsdt(struct file *, char __user *, size_t,
- 				     loff_t *);
-@@ -128,6 +148,7 @@ static int __init acpi_system_init(void)
- 	if (acpi_disabled)
- 		return 0;
- 
-+#ifdef CONFIG_ACPI_PROCFS
- 	/* 'info' [R] */
- 	name = ACPI_SYSTEM_FILE_INFO;
- 	entry = create_proc_entry(name, S_IRUGO, acpi_root_dir);
-@@ -136,6 +157,7 @@ static int __init acpi_system_init(void)
- 	else {
- 		entry->proc_fops = &acpi_system_info_ops;
- 	}
-+#endif
- 
- 	/* 'dsdt' [R] */
- 	name = ACPI_SYSTEM_FILE_DSDT;
-@@ -159,7 +181,9 @@ static int __init acpi_system_init(void)
-       Error:
- 	remove_proc_entry(ACPI_SYSTEM_FILE_FADT, acpi_root_dir);
- 	remove_proc_entry(ACPI_SYSTEM_FILE_DSDT, acpi_root_dir);
-+#ifdef CONFIG_ACPI_PROCFS
- 	remove_proc_entry(ACPI_SYSTEM_FILE_INFO, acpi_root_dir);
-+#endif
- 
- 	error = -EFAULT;
- 	goto Done;
-Index: linux-2.6.20-rc4-mm1/drivers/acpi/Kconfig
-===================================================================
---- linux-2.6.20-rc4-mm1.orig/drivers/acpi/Kconfig	2007-01-29 09:27:11.000000000 +0800
-+++ linux-2.6.20-rc4-mm1/drivers/acpi/Kconfig	2007-01-29 09:27:13.000000000 +0800
-@@ -87,7 +87,9 @@ config ACPI_PROCFS
- 	  and this proc interface will be removed some time later,
- 	  it's marked as deprecated.
- 	  ( /proc/acpi/debug_layer && debug_level are deprecated by
--	    /sys/module/acpi/parameters/debug_layer && debug_level. )
-+	    /sys/module/acpi/parameters/debug_layer && debug_level.
-+	    /proc/acpi/info is deprecated by
-+	    /sys/module/acpi/parameters/acpica_version )
- 
- config ACPI_AC
- 	tristate "AC Adapter"
+In rc6-mm1 that's everything between #X86_64-START and #X86_64-END in the
+series file.  I have another 35-odd x86 patches on top of that lot.
+
+Note that I normally stage the x86_64 tree _after_ the ACPI tree, but I can
+change that.
+
+I don't think that making the acpi tree dependent upon the x86_64 tree
+would be a smart idea, frankly.  It'll cause you heaps of pain.
+
+Perhaps Andi could stick his tree into git for you to base off, dunno.  But
+he doesn't seem to be around at present.
+
