@@ -1,15 +1,15 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 2/3] [-mm]: ACPI: add ACPI debug attribute in sysfs
-Date: Mon, 29 Jan 2007 11:02:38 +0800
-Message-ID: <1170039758.6907.10.camel@localhost.localdomain>
+Subject: [PATCH 3/3] [-mm]: ACPI: add ACPICA version in sysfs
+Date: Mon, 29 Jan 2007 11:02:42 +0800
+Message-ID: <1170039762.6907.11.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga01.intel.com ([192.55.52.88]:32360 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933115AbXA2DCE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 28 Jan 2007 22:02:04 -0500
+	id S933117AbXA2DCI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 28 Jan 2007 22:02:08 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
@@ -17,118 +17,101 @@ Cc: "linux-acpi@vger" <linux-acpi@vger.kernel.org>
 
 From: Zhang Rui <rui.zhang@intel.com>
 
-Add ACPI debug attributes in sysfs.
-/proc/acpi/debug_layer && debug_level are deprecated by
-/sys/module/acpi/parameters/debug_layer && debug_level.
-
-NOTE: The operations to them are quite the same.
-E.g. if you want to enable ACPI_DB_INFO, ACPI_DB_WARN, ACPI_DB_ERROR and disable the others,
-#echo 0x13 >/sys/module/acpi/parameters/debug_level is OK,
-and a boot option "acpi.debug_level = 0x13" also works.
+Add an ACPI attribute to indicate ACPICA version.
+/proc/acpi/version is deprecated by /sys/module/acpi/parameters/acpica_version.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/Kconfig |    2 +
- drivers/acpi/debug.c |   62 ++++++++++++++++++++++++++++++++++++++++++++++-----
- 2 files changed, 59 insertions(+), 5 deletions(-)
+ drivers/acpi/Kconfig  |    4 +++-
+ drivers/acpi/system.c |   24 ++++++++++++++++++++++++
+ 2 files changed, 27 insertions(+), 1 deletion(-)
 
-Index: linux-2.6.20-rc4-mm1/drivers/acpi/debug.c
+Index: linux-2.6.20-rc4-mm1/drivers/acpi/system.c
 ===================================================================
---- linux-2.6.20-rc4-mm1.orig/drivers/acpi/debug.c	2007-01-21 12:47:23.000000000 +0800
-+++ linux-2.6.20-rc4-mm1/drivers/acpi/debug.c	2007-01-21 12:59:01.000000000 +0800
-@@ -13,14 +13,11 @@
+--- linux-2.6.20-rc4-mm1.orig/drivers/acpi/system.c	2007-01-29 09:24:06.000000000 +0800
++++ linux-2.6.20-rc4-mm1/drivers/acpi/system.c	2007-01-29 11:00:21.000000000 +0800
+@@ -32,6 +32,11 @@
  
  #define _COMPONENT		ACPI_SYSTEM_COMPONENT
- ACPI_MODULE_NAME("debug")
--#define ACPI_SYSTEM_FILE_DEBUG_LAYER	"debug_layer"
--#define ACPI_SYSTEM_FILE_DEBUG_LEVEL	"debug_level"
-+
- #ifdef MODULE_PARAM_PREFIX
- #undef MODULE_PARAM_PREFIX
- #endif
--#define MODULE_PARAM_PREFIX
--    module_param(acpi_dbg_layer, uint, 0400);
--module_param(acpi_dbg_level, uint, 0400);
-+#define MODULE_PARAM_PREFIX "acpi."
- 
- struct acpi_dlayer {
- 	const char *name;
-@@ -86,6 +83,60 @@ static const struct acpi_dlevel acpi_deb
- 	ACPI_DEBUG_INIT(ACPI_LV_EVENTS),
- };
- 
-+/* --------------------------------------------------------------------------
-+                              FS Interface (/sys)
-+   -------------------------------------------------------------------------- */
-+static int param_get_debug_layer(char *buffer, struct kernel_param *kp) {
-+	int result = 0;
-+	int i;
-+
-+	result = sprintf(buffer, "%-25s\tHex        SET\n", "Description");
-+
-+	for(i = 0; i <ARRAY_SIZE(acpi_debug_layers); i++) {
-+		result += sprintf(buffer+result, "%-25s\t0x%08lX [%c]\n",
-+					acpi_debug_layers[i].name,
-+					acpi_debug_layers[i].value,
-+					(acpi_dbg_layer & acpi_debug_layers[i].value) ? '*' : ' ');
-+	}
-+	result += sprintf(buffer+result, "%-25s\t0x%08X [%c]\n", "ACPI_ALL_DRIVERS",
-+					ACPI_ALL_DRIVERS,
-+					(acpi_dbg_layer & ACPI_ALL_DRIVERS) ==
-+					ACPI_ALL_DRIVERS ? '*' : (acpi_dbg_layer &
-+					ACPI_ALL_DRIVERS) == 0 ? ' ' : '-');
-+	result += sprintf(buffer+result, "--\ndebug_layer = 0x%08X ( * = enabled)\n", acpi_dbg_layer);
-+
-+	return result;
-+}
-+
-+static int param_get_debug_level(char *buffer, struct kernel_param *kp) {
-+	int result = 0;
-+	int i;
-+
-+	result = sprintf(buffer, "%-25s\tHex        SET\n", "Description");
-+
-+	for (i = 0; i < ARRAY_SIZE(acpi_debug_levels); i++) {
-+		result += sprintf(buffer+result, "%-25s\t0x%08lX [%c]\n",
-+				     acpi_debug_levels[i].name,
-+				     acpi_debug_levels[i].value,
-+				     (acpi_dbg_level & acpi_debug_levels[i].
-+				      value) ? '*' : ' ');
-+	}
-+	result += sprintf(buffer+result, "--\ndebug_level = 0x%08X (* = enabled)\n",
-+			     acpi_dbg_level);
-+
-+	return result;
-+}
-+
-+module_param_call(debug_layer, param_set_uint, param_get_debug_layer, &acpi_dbg_layer, 0644);
-+module_param_call(debug_level, param_set_uint, param_get_debug_level, &acpi_dbg_level, 0644);
-+
-+/* --------------------------------------------------------------------------
-+                              FS Interface (/proc)
-+   -------------------------------------------------------------------------- */
-+#ifdef CONFIG_ACPI_PROCFS
-+#define ACPI_SYSTEM_FILE_DEBUG_LAYER	"debug_layer"
-+#define ACPI_SYSTEM_FILE_DEBUG_LEVEL		"debug_level"
-+
- static int
- acpi_system_read_debug(char *page,
- 		       char **start, off_t off, int count, int *eof, void *data)
-@@ -221,3 +272,4 @@ static int __init acpi_debug_init(void)
- }
- 
- subsys_initcall(acpi_debug_init);
+ ACPI_MODULE_NAME("acpi_system")
++#ifdef MODULE_PARAM_PREFIX
++#undef MODULE_PARAM_PREFIX
 +#endif
++#define MODULE_PARAM_PREFIX "acpi."
++
+ #define ACPI_SYSTEM_CLASS		"system"
+ #define ACPI_SYSTEM_DRIVER_NAME		"ACPI System Driver"
+ #define ACPI_SYSTEM_DEVICE_NAME		"System"
+@@ -41,9 +46,23 @@ ACPI_MODULE_NAME("acpi_system")
+ #define ACPI_SYSTEM_FILE_FADT		"fadt"
+ extern struct fadt_descriptor acpi_fadt;
+ 
++/*
++ * Make ACPICA version work as module param
++ */
++static int param_get_acpica_version(char *buffer, struct kernel_param *kp) {
++	int result;
++
++	result = sprintf(buffer, "%x", ACPI_CA_VERSION);
++
++	return result;
++}
++
++module_param_call(acpica_version, NULL, param_get_acpica_version, NULL, 0444);
++
+ /* --------------------------------------------------------------------------
+                               FS Interface (/proc)
+    -------------------------------------------------------------------------- */
++#ifdef CONFIG_ACPI_PROCFS
+ 
+ static int acpi_system_read_info(struct seq_file *seq, void *offset)
+ {
+@@ -63,6 +82,7 @@ static const struct file_operations acpi
+ 	.llseek = seq_lseek,
+ 	.release = single_release,
+ };
++#endif
+ 
+ static ssize_t acpi_system_read_dsdt(struct file *, char __user *, size_t,
+ 				     loff_t *);
+@@ -128,6 +148,7 @@ static int __init acpi_system_init(void)
+ 	if (acpi_disabled)
+ 		return 0;
+ 
++#ifdef CONFIG_ACPI_PROCFS
+ 	/* 'info' [R] */
+ 	name = ACPI_SYSTEM_FILE_INFO;
+ 	entry = create_proc_entry(name, S_IRUGO, acpi_root_dir);
+@@ -136,6 +157,7 @@ static int __init acpi_system_init(void)
+ 	else {
+ 		entry->proc_fops = &acpi_system_info_ops;
+ 	}
++#endif
+ 
+ 	/* 'dsdt' [R] */
+ 	name = ACPI_SYSTEM_FILE_DSDT;
+@@ -159,7 +181,9 @@ static int __init acpi_system_init(void)
+       Error:
+ 	remove_proc_entry(ACPI_SYSTEM_FILE_FADT, acpi_root_dir);
+ 	remove_proc_entry(ACPI_SYSTEM_FILE_DSDT, acpi_root_dir);
++#ifdef CONFIG_ACPI_PROCFS
+ 	remove_proc_entry(ACPI_SYSTEM_FILE_INFO, acpi_root_dir);
++#endif
+ 
+ 	error = -EFAULT;
+ 	goto Done;
 Index: linux-2.6.20-rc4-mm1/drivers/acpi/Kconfig
 ===================================================================
---- linux-2.6.20-rc4-mm1.orig/drivers/acpi/Kconfig	2007-01-21 12:47:23.000000000 +0800
-+++ linux-2.6.20-rc4-mm1/drivers/acpi/Kconfig	2007-01-21 12:58:31.000000000 +0800
-@@ -86,6 +86,8 @@ config ACPI_PROCFS
- 	  As the same functions are duplicated in sysfs interface
+--- linux-2.6.20-rc4-mm1.orig/drivers/acpi/Kconfig	2007-01-29 09:27:11.000000000 +0800
++++ linux-2.6.20-rc4-mm1/drivers/acpi/Kconfig	2007-01-29 09:27:13.000000000 +0800
+@@ -87,7 +87,9 @@ config ACPI_PROCFS
  	  and this proc interface will be removed some time later,
  	  it's marked as deprecated.
-+	  ( /proc/acpi/debug_layer && debug_level are deprecated by
-+	    /sys/module/acpi/parameters/debug_layer && debug_level. )
+ 	  ( /proc/acpi/debug_layer && debug_level are deprecated by
+-	    /sys/module/acpi/parameters/debug_layer && debug_level. )
++	    /sys/module/acpi/parameters/debug_layer && debug_level.
++	    /proc/acpi/info is deprecated by
++	    /sys/module/acpi/parameters/acpica_version )
  
  config ACPI_AC
  	tristate "AC Adapter"
