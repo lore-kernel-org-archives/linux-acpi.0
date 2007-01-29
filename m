@@ -1,30 +1,40 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: 2.6.20-rc6: known regressions with patches
-Date: Mon, 29 Jan 2007 09:45:48 +0100
-Message-ID: <20070129084548.GA10578@elte.hu>
-References: <Pine.LNX.4.64.0701241847360.25027@woody.linux-foundation.org> <20070126181853.GO17836@stusta.de>
+From: Corentin CHARY <corentincj@iksaif.net>
+Subject: Re: [patch 1/7] asus-laptop: add base driver
+Date: Mon, 29 Jan 2007 10:09:38 +0100
+Message-ID: <200701291009.39073.corentincj@iksaif.net>
+References: <3D8E84095C6A524A985B787423094E40A75B26@mssmsx411>
+Reply-To: corentincj@iksaif.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933274AbXA2Iuv@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from iksaif.dns26.com ([84.246.226.15]:40789 "EHLO iksaif.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933284AbXA2JJv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Jan 2007 04:09:51 -0500
+In-Reply-To: <3D8E84095C6A524A985B787423094E40A75B26@mssmsx411>
 Content-Disposition: inline
-In-Reply-To: <20070126181853.GO17836@stusta.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Duncan <1i5t5.duncan@cox.net>, Neil Brown <neilb@suse.de>, mingo@redhat.com, linux-raid@vger.kernel.org, Dave Jones <davej@redhat.com>, cpufreq@lists.linux.org.uk, lenb@kernel.org, linux-acpi@vger.kernel.org, Jan Altenberg <jan@linutronix.de>, Ralf Baechle <ralf@linux-mips.org>, linux-mips@linux-mips.org, Andrew Clayton <andrew@digital-domain.net>, Trond Myklebust <trond.myklebust@fys.uio.no>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Suietov, Fiodor F" <fiodor.f.suietov@intel.com>
+Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net
 
+Thanks, I didn't know this function =3D).
+But maybe we should first merge this series, and then I will make a pat=
+ch to=20
+remove read_acpi_int().
 
-* Adrian Bunk <bunk@stusta.de> wrote:
-
-> Subject    : ACPI: fix cpufreq regression
-> References : http://lkml.org/lkml/2007/1/16/120
-> Submitter  : Ingo Molnar <mingo@elte.hu>
-> Caused-By  : Dave Jones <davej@redhat.com>
->              commit 0916bd3ebb7cefdd0f432e8491abe24f4b5a101e
-> Handled-By : Ingo Molnar <mingo@elte.hu>
-> Patch      : http://lkml.org/lkml/2007/1/16/120
-> Status     : patch available
-
-this is commit e4233dec749a3519069d9390561b5636a75c7579 meanwhile.
-
-	Ingo
+Le vendredi 26 janvier 2007 19:48, Suietov, Fiodor F a =E9crit=A0:
+> Please use acpi_evaluate_integer() instead of read_acpi_int().
+>
+> Thanks,
+>  Fiodor
+>
+--=20
+CHARY 'Iksaif' Corentin
+http://xf.iksaif.net
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
