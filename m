@@ -1,68 +1,73 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: x86_64-mm-always-use-physical-delivery-mode-on-8-cpus vs git-acpi
-Date: Sun, 28 Jan 2007 21:58:12 -0500
-Message-ID: <200701282158.12540.lenb@kernel.org>
-References: <20070126172402.77a3edbc.akpm@osdl.org> <200701270429.57170.lenb@kernel.org> <20070127142031.041d3239.akpm@osdl.org>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH 1/3] [-mm]: ACPI: add a Kconfig option for ACPI  procfs
+	interface
+Date: Mon, 29 Jan 2007 11:02:30 +0800
+Message-ID: <1170039750.6907.9.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:54078 "EHLO hera.kernel.org"
+Received: from mga01.intel.com ([192.55.52.88]:32932 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933109AbXA2C7k (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 28 Jan 2007 21:59:40 -0500
-In-Reply-To: <20070127142031.041d3239.akpm@osdl.org>
-Content-Disposition: inline
+	id S933108AbXA2DB5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 28 Jan 2007 22:01:57 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: Andi Kleen <ak@muc.de>, linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: "linux-acpi@vger" <linux-acpi@vger.kernel.org>
 
-On Saturday 27 January 2007 17:20, Andrew Morton wrote:
-> On Sat, 27 Jan 2007 04:29:57 -0500
-> Len Brown <lenb@kernel.org> wrote:
-> 
-> > On Friday 26 January 2007 20:24, Andrew Morton wrote:
-> > > 
-> > > The new stuff which just landed in Len's tree caused a huge mess in
-> > > arch/x86_64/kernel/genapic.c:clustered_apic_check() when applying
-> > > ftp://ftp.firstfloor.org/pub/ak/x86_64/quilt/patches/always-use-physical-delivery-mode-on-8-cpus
-> > > on top of it.
-> > 
-> > The ACPI change this cleanup patch is conflicting with is quite small:
-> > 
-> > ------------------------- arch/x86_64/kernel/genapic.c -------------------------
-> > index b007433..0b3603a 100644
-> > @@ -58,8 +58,8 @@ void __init clustered_apic_check(void)
-> >  	 * Some x86_64 machines use physical APIC mode regardless of how many
-> >  	 * procs/clusters are present (x86_64 ES7000 is an example).
-> >  	 */
-> > -	if (acpi_fadt.revision > FADT2_REVISION_ID)
-> > -		if (acpi_fadt.force_apic_physical_destination_mode) {
-> > +	if (acpi_gbl_FADT.header.revision > FADT2_REVISION_ID)
-> > +		if (acpi_gbl_FADT.flags & ACPI_FADT_APIC_PHYSICAL) {
-> >  			genapic = &apic_cluster;
-> >  			goto print;
-> >  		}
-> > > In fact the ACPI change has trashed a fair slice of Andi's pending tree.
-> > > 
-> > > I think I'll revert to yesterday's git-acpi, let you guys sort it all out.
-> > 
-> > Send me a version of the always-use-physical-delivery-mode-on-8-cpus patch
-> > that applies to Linus' tree (the one above doesn't), and I'll be happy to apply
-> > the 2-line diff above to it.
-> > 
-> 
-> OK, so I took another look.  This ACPI update does extensive damage to
-> Andi's pending queue.  I fixed four patches, dropped four or five more, hit
-> more problems then gave up again.  I'll go back to Thursday's git-acpi
-> again.
-> 
-> Longer-term, I expect Andi will merge before acpi does, and you're looking
-> at a fairly large amount of fixing after that happens.
+From: Zhang Rui <rui.zhang@intel.com>
 
-Exactly what patches from Andi do I need to merge on top of to get the ACPI tree into -mm?
+Add a kconfig option CONFIG_ACPI_PROCFS to make procfs interface
+a configurable attribute of ACPI.
 
-thanks,
--Len
+No procfs interface is actually deprecated,
+and no sysfs interface is added in this patch.
+
+CONGI_ACPI_PROCFS is used to mark procfs interface as deprecated
+once the same function is duplicated in sysfs.
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ Documentation/feature-removal-schedule.txt |    9 +++++++++
+ drivers/acpi/Kconfig                       |   10 ++++++++++
+ 2 files changed, 19 insertions(+)
+
+Index: linux-2.6.20-rc4-mm1/drivers/acpi/Kconfig
+===================================================================
+--- linux-2.6.20-rc4-mm1.orig/drivers/acpi/Kconfig	2007-01-29 09:24:14.000000000 +0800
++++ linux-2.6.20-rc4-mm1/drivers/acpi/Kconfig	2007-01-29 09:24:17.000000000 +0800
+@@ -77,6 +77,16 @@ config ACPI_SLEEP_PROC_SLEEP
+ 	  Create /proc/acpi/sleep
+ 	  Deprecated by /sys/power/state
+ 
++config ACPI_PROCFS
++	bool "Procfs interface (deprecated)"
++	depends on ACPI
++	default y
++	---help---
++	  Procfs interface for ACPI is made optional for back-compatible.
++	  As the same functions are duplicated in sysfs interface
++	  and this proc interface will be removed some time later,
++	  it's marked as deprecated.
++
+ config ACPI_AC
+ 	tristate "AC Adapter"
+ 	depends on X86
+Index: linux-2.6.20-rc4-mm1/Documentation/feature-removal-schedule.txt
+===================================================================
+--- linux-2.6.20-rc4-mm1.orig/Documentation/feature-removal-schedule.txt	2007-01-29 09:24:14.000000000 +0800
++++ linux-2.6.20-rc4-mm1/Documentation/feature-removal-schedule.txt	2007-01-29 09:27:02.000000000 +0800
+@@ -264,3 +264,12 @@ Why:   OSS drivers with ALSA replacement
+ Who:   Adrian Bunk <bunk@stusta.de>
+ 
+ ---------------------------
++
++What:	ACPI procfs interface
++When:	July 2007
++Why:	After ACPI sysfs conversion, ACPI attributes will be duplicated
++	in sysfs and the ACPI procfs interface should be removed.
++Who:	Zhang Rui <rui.zhang@intel.com>
++
++---------------------------
++
