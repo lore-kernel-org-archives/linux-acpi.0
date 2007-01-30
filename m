@@ -1,71 +1,201 @@
-From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-Subject: Re: Missing "alarm"
-Date: Tue, 30 Jan 2007 21:58:31 +0300
-Message-ID: <45BF9557.3050001@linux.intel.com>
-References: <135ab3ff0701300907v6bd931b0o7a0a291621d2d962@mail.gmail.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 1/1] -  increase acpi owner_id max
+Date: Tue, 30 Jan 2007 12:02:57 -0800
+Message-ID: <B28E9812BAF6E2498B7EC5C427F293A401CA541E@orsmsx415.amr.corp.intel.com>
+References: <200701270003.QAA67218@google.engr.sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([143.182.124.22]:47157 "EHLO
-	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750919AbXA3S6g (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jan 2007 13:58:36 -0500
-In-Reply-To: <135ab3ff0701300907v6bd931b0o7a0a291621d2d962@mail.gmail.com>
+Received: from mga03.intel.com ([143.182.124.21]:37626 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751083AbXA3UDA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jan 2007 15:03:00 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <200701270003.QAA67218@google.engr.sgi.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Morten Friesgaard <friesgaard@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: Aaron Young <ayoung@google.engr.sgi.com>
+Cc: John Keller <jpk@sgi.com>, linux-acpi@vger.kernel.org, ayoung@sgi.com, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, "Brown, Len" <len.brown@intel.com>
 
-Please attach your config file.
+OK, I missed that.
 
-Regards,
-    Alex.
+Can you give us some idea of just how many SSDTs this machine loads?
 
-Morten Friesgaard wrote:
-> Hey.
-> I have searched various sites, but cannot find a solution to my problem.
-> I'm running a mythtv media center, and I need automatic startup - so
-> of course I use ACPI. (it works with speed stepping
-> CONFIG_X86_POWERNOW_K8_ACPI=y)
-> I have an asus k8n-vm motherboard that support acpi 2.0
->
-> # uname -a
-> Linux mythbox 2.6.18-gentoo-r6 #1 SMP Mon Jan 29 20:38:18 CET 2007
-> i686 AMD Sempron(tm) Processor 3000+ AuthenticAMD GNU/Linux
->
->
->
-> However I have one big problem (trying to solve it the last 2-3 months)
->
-> /proc/acpi/alarm is missing
->
-> so I tried to configure this in my kernel adding the following to my 
-> ".config":
->
-> CONFIG_ACPI_SLEEP=y
-> CONFIG_ACPI_SLEEP_PROC_FS=y
->
-> (i found the following site
-> http://www.mail-archive.com/linux-acpi@vger.kernel.org/msg04284.html
-> but haven't had any luck with that either, e.g. adding 
-> CONFIG_ACPI_PROCFS)
->
-> but each time I run "make menuconfig" or "genkernel --menuconfig all"
-> ... the configure is not visible in the menu system or in the .config
-> file. Somehow the system does not accept the configuration.
->
-> I really do not understand this since the system,
-> at http://www.mythtv.org/wiki/index.php/ACPI_Wakeup
-> i found that my system should be able to use this function
->
-> grep -r CONFIG_ACPI_SLEEP_PROC_FS arch/*
-> arch/x86_64/defconfig:CONFIG_ACPI_SLEEP_PROC_FS=y
->
->
-> Anyone might know what is wrong?
-> Regards, Morten
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Does it dynamically delete SSDTs also?
+
+Thanks,
+Bob
+
+
+> -----Original Message-----
+> From: Aaron Young [mailto:ayoung@google.engr.sgi.com]
+> Sent: Friday, January 26, 2007 4:03 PM
+> To: Moore, Robert
+> Cc: John Keller; linux-acpi@vger.kernel.org; ayoung@sgi.com; linux-
+> ia64@vger.kernel.org; linux-kernel@vger.kernel.org; Alexey
+Starikovskiy;
+> Brown, Len
+> Subject: Re: [PATCH 1/1] - increase acpi owner_id max
+> 
+> >
+> > The OwnerId field within a namespace node is 8 bits, and this is the
+> > main constraint on the maximum OwnerId. You can't simply bump up the
+> > number of owner ids without changing this field.
+> 
+>   Isn't this accomplished with the mod to aclocal.h below - i.e.
+>   by making a acpi_owner_id a u16 instead of a u8?:
+> 
+>  -typedef u8 acpi_owner_id;
+>  -#define ACPI_OWNER_ID_MAX               0xFF
+>  +typedef u16 acpi_owner_id;
+>  +#define ACPI_OWNER_ID_MAX               0x3FF
+> 
+> >
+> > If we need more than 255 owner Ids, the width of this field will
+have to
+> > be increased, or we will need to use a pointer for the field in
+order to
+> > maintain a linked list of all nodes owned by a particular owner.
+> >
+> > Bob
+> >
+> > > -----Original Message-----
+> > > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> > > owner@vger.kernel.org] On Behalf Of John Keller
+> > > Sent: Friday, January 26, 2007 2:40 PM
+> > > To: linux-acpi@vger.kernel.org
+> > > Cc: ayoung@sgi.com; linux-ia64@vger.kernel.org; linux-
+> > > kernel@vger.kernel.org; John Keller
+> > > Subject: [PATCH 1/1] - increase acpi owner_id max
+> > >
+> > > To support systems with large IO configurations,
+> > > this patch increases the number of available ACPI
+> > > owner ids to 1023.
+> > >
+> > > On SN platforms, we represent every populated root
+> > > bus slot with an ACPI SSDT table containing info
+> > > for every device and PPB attached to the slot.
+> > > Each SSDT requires a unique ACPI owner id.
+> > >
+> > > Signed-off-by: John Keller <jpk@sgi.com>
+> > > ---
+> > >
+> > >  drivers/acpi/utilities/utmisc.c |    6 +++---
+> > >  include/acpi/acconfig.h         |    4 ++--
+> > >  include/acpi/aclocal.h          |    4 ++--
+> > >  3 files changed, 7 insertions(+), 7 deletions(-)
+> > >
+> > >
+> > > Index: linux/drivers/acpi/utilities/utmisc.c
+> > >
+===================================================================
+> > > --- linux.orig/drivers/acpi/utilities/utmisc.c	2007-01-25
+> > > 11:27:25.509259412 -0600
+> > > +++ linux/drivers/acpi/utilities/utmisc.c	2007-01-26
+> > 13:16:09.551081284 -
+> > > 0600
+> > > @@ -147,7 +147,7 @@ acpi_status acpi_ut_allocate_owner_id(ac
+> > >  				/*
+> > >  				 * Construct encoded ID from the index
+> > and bit
+> > > position
+> > >  				 *
+> > > -				 * Note: Last [j].k (bit 255) is never
+> > used and is
+> > > marked
+> > > +				 * Note: Last [j].k (bit 1023) is never
+> > used and
+> > > is marked
+> > >  				 * permanently allocated (prevents +1
+> > overflow)
+> > >  				 */
+> > >  				*owner_id =
+> > > @@ -175,7 +175,7 @@ acpi_status acpi_ut_allocate_owner_id(ac
+> > >  	 */
+> > >  	status = AE_OWNER_ID_LIMIT;
+> > >  	ACPI_ERROR((AE_INFO,
+> > > -		    "Could not allocate new OwnerId (255 max),
+> > > AE_OWNER_ID_LIMIT"));
+> > > +		    "Could not allocate new OwnerId (1023 max),
+> > > AE_OWNER_ID_LIMIT"));
+> > >
+> > >        exit:
+> > >  	(void)acpi_ut_release_mutex(ACPI_MTX_CACHES);
+> > > @@ -192,7 +192,7 @@ acpi_status acpi_ut_allocate_owner_id(ac
+> > >   *              control method or unloading a table. Either way,
+we
+> > would
+> > >   *              ignore any error anyway.
+> > >   *
+> > > - * DESCRIPTION: Release a table or method owner ID.  Valid IDs
+are 1
+> > -
+> > > 255
+> > > + * DESCRIPTION: Release a table or method owner ID.  Valid IDs
+are 1
+> > -
+> > > 1023
+> > >   *
+> > >
+> > >
+> >
+************************************************************************
+> > **
+> > > ****/
+> > >
+> > > Index: linux/include/acpi/acconfig.h
+> > >
+===================================================================
+> > > --- linux.orig/include/acpi/acconfig.h	2007-01-25
+> > 11:27:25.577267818 -
+> > > 0600
+> > > +++ linux/include/acpi/acconfig.h	2007-01-26 13:17:14.111002597
+> > -0600
+> > > @@ -111,9 +111,9 @@
+> > >
+> > >  #define ACPI_SYSMEM_REGION_WINDOW_SIZE  4096
+> > >
+> > > -/* owner_id tracking. 8 entries allows for 255 owner_ids */
+> > > +/* owner_id tracking. 32 entries allow for 1023 owner_ids */
+> > >
+> > > -#define ACPI_NUM_OWNERID_MASKS          8
+> > > +#define ACPI_NUM_OWNERID_MASKS		32
+> > >
+> > >
+> > >
+> >
+/***********************************************************************
+> > **
+> > > *****
+> > >   *
+> > > Index: linux/include/acpi/aclocal.h
+> > >
+===================================================================
+> > > --- linux.orig/include/acpi/aclocal.h	2007-01-25
+11:27:25.585268807 -
+> > > 0600
+> > > +++ linux/include/acpi/aclocal.h	2007-01-26 13:20:06.148115848
+> > -0600
+> > > @@ -122,8 +122,8 @@ static char *acpi_gbl_mutex_names[ACPI_N
+> > >
+> > >  /* Owner IDs are used to track namespace nodes for selective
+deletion
+> > */
+> > >
+> > > -typedef u8 acpi_owner_id;
+> > > -#define ACPI_OWNER_ID_MAX               0xFF
+> > > +typedef u16 acpi_owner_id;
+> > > +#define ACPI_OWNER_ID_MAX               0x3FF
+> > >
+> > >  /* This Thread ID means that the mutex is not in use (unlocked)
+*/
+> > >
+> > > -
+> > > To unsubscribe from this list: send the line "unsubscribe
+linux-acpi"
+> > in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
