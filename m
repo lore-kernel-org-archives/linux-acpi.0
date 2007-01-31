@@ -1,111 +1,114 @@
-From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: RE: Re: Missing "alarm"
-Date: Wed, 31 Jan 2007 09:26:39 +0800
-Message-ID: <58A36151585E4047913F40517D307BAE43BDD7@pdsmsx404.ccr.corp.intel.com>
-References: <135ab3ff0701301336gc04fee7lc799cc3a07679700@mail.gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: No mptable found (Tyan h1000E)
+Date: Wed, 31 Jan 2007 02:52:16 -0500
+Message-ID: <200701310252.16653.lenb@kernel.org>
+References: <20070130231617.GP29697@fi.muni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=gb2312
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:16796 "EHLO mga09.intel.com"
+Received: from hera.kernel.org ([140.211.167.34]:39825 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932175AbXAaB0p convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jan 2007 20:26:45 -0500
-Content-class: urn:content-classes:message
-In-Reply-To: <135ab3ff0701301336gc04fee7lc799cc3a07679700@mail.gmail.com>
+	id S1751146AbXAaHxi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 31 Jan 2007 02:53:38 -0500
+In-Reply-To: <20070130231617.GP29697@fi.muni.cz>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Morten Friesgaard <friesgaard@gmail.com>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: Jan Kasprzak <kas@fi.muni.cz>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-># CONFIG_HOTPLUG_CPU is not set
-Please set "Support for hot-pluggable CPUs"
+On Tuesday 30 January 2007 18:16, Jan Kasprzak wrote:
+> 	Hello,
+> 
+> 	I have a Tyan h1000E (S3970) dual-socket board, with two
+> dual-core AMD Athlon 2210 CPUs (4 cores total). The problem is
+> that the kernel apparently cannot detect the SMP configuration
+> (after boot, /proc/cpuinfo lists only one processor).
+> The full dmesg output is available at
+> 
+> http://www.fi.muni.cz/~kas/tmp/dmesg-h1000E.txt
 
-Best regards,
-Zhang.Rui(Ray)
+ACPI: RSDP (v002 ACPIAM                                ) @ 0x00000000000f7700
+ACPI: XSDT (v001 A M I  OEMXSDT  0x10000605 MSFT 0x00000097) @ 0x00000000bfff0100
+ACPI: FADT (v003 A M I  OEMFACP  0x10000605 MSFT 0x00000097) @ 0x00000000bfff0290
+ACPI: OEMB (v001 A M I  AMI_OEM  0x10000605 MSFT 0x00000097) @ 0x00000000bfffe040
+ACPI: SRAT (v001 AMD    HAMMER   0x00000001 AMD  0x00000001) @ 0x00000000bfff3420
+ACPI: SSDT (v001 A M I  POWERNOW 0x00000001 AMD  0x00000001) @ 0x00000000bfff34e0
+ACPI: DSDT (v001  0AAAA 0AAAA000 0x00000000 INTL 0x02002026) @ 0x0000000000000000
 
-=20
------Original Message-----
-=46rom: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.=
-kernel.org] On Behalf Of Morten Friesgaard
-Sent: 2007=C4=EA1=D4=C231=C8=D5 5:37
-To: Alexey Starikovskiy
-Cc: linux-acpi@vger.kernel.org
-Subject: Re: Re: Missing "alarm"
+This board appears to have no APIC (MADT) table -- which is what Linux uses to enumerate processors
+in ACPI mode.  (doesn't have MPS either, but in ACPI mode you wouldn't use it anyway).
 
-Here it is :)
-/Morten
+Are there any BIOS SETUP settings for enabling SMP or ACPI features?
 
+I guess that /proc/interrupts shows this system running in PIC mode?
 
-ps. forgot to tell that i have also tried to fix the dsdt ... that
-diden't solve the problem either...
-http://gentoo-wiki.com/HOWTO_Fix_Common_ACPI_Problems
+Please open a bugzilla here and attach the output from acpidump.
+http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
+Component: Config-Processors
 
-On 30/01/07, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com=
-> wrote:
-> Please attach your config file.
->
-> Regards,
->     Alex.
->
-> Morten Friesgaard wrote:
-> > Hey.
-> > I have searched various sites, but cannot find a solution to my pro=
-blem.
-> > I'm running a mythtv media center, and I need automatic startup - s=
-o
-> > of course I use ACPI. (it works with speed stepping
-> > CONFIG_X86_POWERNOW_K8_ACPI=3Dy)
-> > I have an asus k8n-vm motherboard that support acpi 2.0
-> >
-> > # uname -a
-> > Linux mythbox 2.6.18-gentoo-r6 #1 SMP Mon Jan 29 20:38:18 CET 2007
-> > i686 AMD Sempron(tm) Processor 3000+ AuthenticAMD GNU/Linux
-> >
-> >
-> >
-> > However I have one big problem (trying to solve it the last 2-3 mon=
-ths)
-> >
-> > /proc/acpi/alarm is missing
-> >
-> > so I tried to configure this in my kernel adding the following to m=
-y
-> > ".config":
-> >
-> > CONFIG_ACPI_SLEEP=3Dy
-> > CONFIG_ACPI_SLEEP_PROC_FS=3Dy
-> >
-> > (i found the following site
-> > http://www.mail-archive.com/linux-acpi@vger.kernel.org/msg04284.htm=
-l
-> > but haven't had any luck with that either, e.g. adding
-> > CONFIG_ACPI_PROCFS)
-> >
-> > but each time I run "make menuconfig" or "genkernel --menuconfig al=
-l"
-> > ... the configure is not visible in the menu system or in the .conf=
-ig
-> > file. Somehow the system does not accept the configuration.
-> >
-> > I really do not understand this since the system,
-> > at http://www.mythtv.org/wiki/index.php/ACPI_Wakeup
-> > i found that my system should be able to use this function
-> >
-> > grep -r CONFIG_ACPI_SLEEP_PROC_FS arch/*
-> > arch/x86_64/defconfig:CONFIG_ACPI_SLEEP_PROC_FS=3Dy
-> >
-> >
-> > Anyone might know what is wrong?
-> > Regards, Morten
-> > -
-> > To unsubscribe from this list: send the line "unsubscribe linux-acp=
-i" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Any chance you can see if Windows finds multiple processors on this board with this version of the BIOS?
+
+This system may be proof that Linux needs to parse the DSDT to properly enumerate processors.
+Though it is somewhat strange to have an SMP without an IOAPIC...
+
+thanks,
+-Len
+
+ps. after you get the acpidump for the failing system, check for a BIOS update.
+
+> The most interesting parts of it are probably these (with my comments
+> inline marked by "---"):
+> 
+> [...]
+> SRAT: PXM 0 -> APIC 0 -> Node 0
+> SRAT: PXM 0 -> APIC 1 -> Node 0
+> SRAT: PXM 1 -> APIC 2 -> Node 1
+> SRAT: PXM 1 -> APIC 3 -> Node 1
+> --- So the kernel can see all four APICs.
+> [...]
+> Bootmem setup node 0 0000000000000000-00000000bfff0000
+> No mptable found.
+> --- the above does not depend on MPS 1.1 or 1.4 settings in the BIOS
+> [...]
+> Kernel command line: ro root=/dev/md0 console=ttyS0,38400n8
+> Initializing CPU#0
+> PID hash table entries: 4096 (order: 12, 32768 bytes)
+> Console: colour VGA+ 80x25
+> Dentry cache hash table entries: 524288 (order: 10, 4194304 bytes)
+> Inode-cache hash table entries: 262144 (order: 9, 2097152 bytes)
+> Checking aperture...
+> CPU 0: aperture @ e8000000 size 128 MB
+> CPU 1: aperture @ e8000000 size 128 MB
+> --- the kernel knows something about CPU1 (presumably the second core of CPU0).
+> [...]
+> CPU 0/0 -> Node 0
+> CPU: Physical Processor ID: 0
+> CPU: Processor Core ID: 0
+> SMP alternatives: switching to UP code
+> Freeing SMP alternatives: 32k freed
+> ACPI: Core revision 20060707
+> ACPI: setting ELCR to 0200 (from 0e20)
+> weird, boot CPU (#0) not listed by the BIOS.
+> SMP motherboard not detected.
+> Using local APIC timer interrupts.
+> result 12469270
+> Detected 12.469 MHz APIC timer.
+> testing NMI watchdog ... OK.
+> SMP disabled
+> --- hmm, no SMP configuration detected after all.
+> Brought up 1 CPUs
+> testing NMI watchdog ... OK.
+>                       ^^^ here it waits for few seconds before printing "OK."
+> 
+> 	I have tested it with vanilla 2.6.19.2, 2.6.20-rc6, and
+> the latest Fedora kernel (2.6.19-1.2895.fc6). I have the latest BIOS
+> available for this board, and the BIOS can see all four cores.
+> 
+> 	How can I make all four cores visible by the Linux kernel?
+> Thanks,
+> 
+> -Yenya
+> 
