@@ -1,84 +1,58 @@
-From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+From: Ingo Molnar <mingo@elte.hu>
 Subject: Re: 2.6.20-rc6-mm3
-Date: Wed, 31 Jan 2007 15:29:26 +0300
-Message-ID: <45C08BA6.5000209@linux.intel.com>
-References: <20070129204528.eb8d695e.akpm@osdl.org>	<45BFC442.5000903@gmail.com>	<45BFEDFB.6000500@imap.cc> <20070130172525.f32fb9ea.akpm@osdl.org> <45C07FBF.3080000@imap.cc>
+Date: Wed, 31 Jan 2007 14:22:45 +0100
+Message-ID: <20070131132245.GA26066@elte.hu>
+References: <20070129204528.eb8d695e.akpm@osdl.org> <45BFC442.5000903@gmail.com> <20070130142714.9f8dd5da.akpm@osdl.org> <200701310155.05474.fzu@wemgehoertderstaat.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------030202070304010503020206"
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933167AbXAaM3e@vger.kernel.org>
-In-Reply-To: <45C07FBF.3080000@imap.cc>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tilman Schmidt <tilman@imap.cc>
-Cc: Andrew Morton <akpm@osdl.org>, Maciej Rutecki <maciej.rutecki@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx2.mail.elte.hu ([157.181.151.9]:54434 "EHLO mx2.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933251AbXAaNYo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 31 Jan 2007 08:24:44 -0500
+Content-Disposition: inline
+In-Reply-To: <200701310155.05474.fzu@wemgehoertderstaat.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-This is a multi-part message in MIME format.
---------------030202070304010503020206
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
-Tilman Schmidt wrote:
-> On Tue, 30 Jan 2007 17:25:25 -0800, Andrew Morton wrote:
->   
->> On Wed, 31 Jan 2007 02:16:43 +0100
->> Tilman Schmidt <tilman@imap.cc> wrote:
->>
->>     
->>> Am 30.01.2007 23:18 schrieb Maciej Rutecki:
->>>       
->>>> Second problem, power button doesn't work. When I pressed it, I has this
->>>> error:
->>>>
->>>> ACPI Error (evevent-0305): No installed handler for fixed event
->>>> [00000002] [20070126]
->>>>         
->>> Same here, minus the message. (Or perhaps I just don't know where to look.)
->>> Problem also exists in 2.6.20-rc6-mm2. With 2.6.20-rc6-git1 the power
->>> button of this machine works fine.
->>>       
->> That's significant - in your case at least the 2.6.20-rc6-mm3 ACPI update
->> isn't the cause.
->>     
->
-> Is there anything specific I should test, or Big Bisect time?
->
->   
-This patch should fix the issue...
-
-Regards,
-    Alex.
-
---------------030202070304010503020206
-Content-Type: text/plain;
- name="fix-button_c.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="fix-button_c.patch"
-
-Correct id for fixed buttons.
-ACPI_BUTTON_HID_POWERF was changed, but this change was not propogated to button.c,
-thus breaking detection of fixed power and sleep buttons.
-From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+To: Karsten Wiese <fzu@wemgehoertderstaat.de>
+Cc: Andrew Morton <akpm@osdl.org>, Maciej Rutecki <maciej.rutecki@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
 
----
+* Karsten Wiese <fzu@wemgehoertderstaat.de> wrote:
 
- drivers/acpi/button.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+> Similar weirdness here on rc6-mm2 and rc6-rt*: resume from disk waits 
+> unduly long.
 
-diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index ac86058..c726612 100644
---- a/drivers/acpi/button.c
-+++ b/drivers/acpi/button.c
-@@ -75,7 +75,7 @@ static int acpi_button_state_open_fs(str
- static struct acpi_driver acpi_button_driver = {
- 	.name = ACPI_BUTTON_DRIVER_NAME,
- 	.class = ACPI_BUTTON_CLASS,
--	.ids = "ACPI_FPB,ACPI_FSB,PNP0C0D,PNP0C0C,PNP0C0E",
-+	.ids = "button_power,button_sleep,PNP0C0D,PNP0C0C,PNP0C0E",
- 	.ops = {
- 		.add = acpi_button_add,
- 		.remove = acpi_button_remove,
+i'm wondering whether the jiffies update fix from Thomas fixes this bug 
+for you.
 
---------------030202070304010503020206--
+If not then do you have a serial console enabled?
+
+> Some waiting times from rc6-rt6 from memory:
+> 
+> Config		| HZ			| NO_HZ + HRESTIMERS
+> cmos clock unchanged	| 2s			| 6s
+> cmos clock += 10min	| 			| 2 minutes
+> cmos clock += 2 month	| 20s			| > 4minutes, test interrupted
+
+i've seen something like this on -rt (and incorrectly attributed it to 
+-rt) when running on a system which has a serial port and which has a 
+kernel console on that serial port. What happens is that after resume 
+(and straight after console suspend) every serial character printed 
+takes /alot/ of time - and resume does print a number of kernel messages 
+to the console. I didnt get any further in debugging this though, but 
+disabling the serial console made the problem go away.
+
+a possibly related thing: the serial code is sensitive to jiffies 
+updates and timers, i saw that during early revisions of the dynticks 
+code - but the specifics escape me.
+
+the slowdown could also be something like the kernel somehow wrapping 
+around jiffies and thus doing /alot/ of jiffy ticks? Or it could be a 
+miscalculation in the amount of jiffies that need updating, resulting in 
+a similar number of loops in the jiffy update code.
+
+(i'll try to figure out this regression - but wanted to describe to you 
+the known things so far, maybe you'll figure it out faster than me.)
+
+	Ingo
