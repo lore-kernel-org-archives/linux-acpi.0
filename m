@@ -1,129 +1,127 @@
-From: Maciej Rutecki <maciej.rutecki@gmail.com>
-Subject: Re: 2.6.20-rc6-mm3
-Date: Wed, 31 Jan 2007 17:02:33 +0100
-Message-ID: <45C0BD99.6050303@gmail.com>
-References: <20070129204528.eb8d695e.akpm@osdl.org>	<45BFC442.5000903@gmail.com>	<45BFEDFB.6000500@imap.cc> <20070130172525.f32fb9ea.akpm@osdl.org> <45C07FBF.3080000@imap.cc> <45C08BA6.5000209@linux.intel.com>
+From: John Keller <jpk@sgi.com>
+Subject: acpi_bus_register_driver() and latest acpi trees
+Date: Wed, 31 Jan 2007 10:11:11 -0600 (CST)
+Message-ID: <200701311611.l0VGBCwY395506@fcbayern.americas.sgi.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms050501080302090706050206"
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1030210AbXAaQCo@vger.kernel.org>
-In-Reply-To: <45C08BA6.5000209@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-Cc: Tilman Schmidt <tilman@imap.cc>, Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from omx1-ext.sgi.com ([192.48.179.11]:49410 "EHLO omx1.sgi.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1030219AbXAaQLW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 31 Jan 2007 11:11:22 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: len.brown@intel.com
+Cc: linux-acpi@vger.kernel.org, akpm@osdl.org, ayoung@sgi.com
 
-This is a cryptographically signed message in MIME format.
+Len,
+  When building kernels from your ACPI release or test trees,
+as well as the -mm tree, SN Altix boots are crashing in the
+kobject code when calling acpi_bus_register_driver().
+The crash is because kset->list has not been initialized yet.
 
---------------ms050501080302090706050206
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-Alexey Starikovskiy napisa=C5=82(a):
-> Tilman Schmidt wrote:
->> On Tue, 30 Jan 2007 17:25:25 -0800, Andrew Morton wrote:
->> =20
->>> On Wed, 31 Jan 2007 02:16:43 +0100
->>> Tilman Schmidt <tilman@imap.cc> wrote:
->>>
->>>   =20
->>>> Am 30.01.2007 23:18 schrieb Maciej Rutecki:
->>>>     =20
->>>>> Second problem, power button doesn't work. When I pressed it, I has=
-
->>>>> this
->>>>> error:
->>>>>
->>>>> ACPI Error (evevent-0305): No installed handler for fixed event
->>>>> [00000002] [20070126]
->>>>>        =20
->>>> Same here, minus the message. (Or perhaps I just don't know where to=
-
->>>> look.)
->>>> Problem also exists in 2.6.20-rc6-mm2. With 2.6.20-rc6-git1 the powe=
-r
->>>> button of this machine works fine.
->>>>      =20
->>> That's significant - in your case at least the 2.6.20-rc6-mm3 ACPI
->>> update
->>> isn't the cause.
->>>    =20
->>
->> Is there anything specific I should test, or Big Bisect time?
->>
->>  =20
-> This patch should fix the issue...
-
-Yes, after add this patch power button works fine. Thanks
-
---=20
-Maciej Rutecki <maciej.rutecki@gmail.com>
+ kobject_add()
+  list_add_tail(&kobj->entry,&kobj->kset->list);
 
 
---------------ms050501080302090706050206
-Content-Type: application/x-pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
+Is there now a restriction on how early acpi_bus_register_driver()
+can be called? If so, at what point in time can calls be made,
+and is it still possible to register a driver early enough such
+that it will be called at device discovery time vs registration time?
 
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIJHzCC
-AuowggJToAMCAQICEE6xoJMcyW54m7Gt6FEjF3swDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UE
-BhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMT
-I1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA2MDgyODEyMzAwNloX
-DTA3MDgyODEyMzAwNlowSjEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjEnMCUG
-CSqGSIb3DQEJARYYbWFjaWVqLnJ1dGVja2lAZ21haWwuY29tMIIBIjANBgkqhkiG9w0BAQEF
-AAOCAQ8AMIIBCgKCAQEAxmrZ/vMNBQsTG+9oNg9WeFTNtluscxhg5oBwudmsZhsoDdtQYPlK
-ZsRSZnkKTdEWR9w8dwi0JBxmq1XHumBA6/rFfAfhbOV1SBH3ktZ9foamMjpJTjO3+3gF9ocT
-wj1GzfReeGZuPgr4qVVvOT5FfD/PkAJzvur7fyLnviiZokQz8R3c+VhJlW3HurhlOlK0ItUu
-UuVtCdJosQRepYdPQ6H3Mvn74UxVttDeVxWNlQ2DaS7cy8wTmtc5CTNMVctbJkzFz0a/7wCJ
-JHdmqKTgjMBm+ry/IC50jvwkLKAumSJBLWhoIB+LxkJlMwgn69jc0KJkrdkpsUjPdo+zDgff
-iQIDAQABozUwMzAjBgNVHREEHDAagRhtYWNpZWoucnV0ZWNraUBnbWFpbC5jb20wDAYDVR0T
-AQH/BAIwADANBgkqhkiG9w0BAQUFAAOBgQC2O4xAuM7DplCDsgJuaMKz3uR25rq9ucMqVtCW
-CAfCyORrFaxN8LFF9KcYx6M4AK1fQ36JVPtMER2VzGMF74gXgrFQ4A9tno6rKzi/QpzwWoPE
-4I1hcOKz/YxOK0sRjSDR3p5s2XrKVxgUe+TEeJ6/y1iv52o41oYVmilsUovvHzCCAuowggJT
-oAMCAQICEE6xoJMcyW54m7Gt6FEjF3swDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UEBhMCWkEx
-JTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0
-ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA2MDgyODEyMzAwNloXDTA3MDgy
-ODEyMzAwNlowSjEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjEnMCUGCSqGSIb3
-DQEJARYYbWFjaWVqLnJ1dGVja2lAZ21haWwuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A
-MIIBCgKCAQEAxmrZ/vMNBQsTG+9oNg9WeFTNtluscxhg5oBwudmsZhsoDdtQYPlKZsRSZnkK
-TdEWR9w8dwi0JBxmq1XHumBA6/rFfAfhbOV1SBH3ktZ9foamMjpJTjO3+3gF9ocTwj1GzfRe
-eGZuPgr4qVVvOT5FfD/PkAJzvur7fyLnviiZokQz8R3c+VhJlW3HurhlOlK0ItUuUuVtCdJo
-sQRepYdPQ6H3Mvn74UxVttDeVxWNlQ2DaS7cy8wTmtc5CTNMVctbJkzFz0a/7wCJJHdmqKTg
-jMBm+ry/IC50jvwkLKAumSJBLWhoIB+LxkJlMwgn69jc0KJkrdkpsUjPdo+zDgffiQIDAQAB
-ozUwMzAjBgNVHREEHDAagRhtYWNpZWoucnV0ZWNraUBnbWFpbC5jb20wDAYDVR0TAQH/BAIw
-ADANBgkqhkiG9w0BAQUFAAOBgQC2O4xAuM7DplCDsgJuaMKz3uR25rq9ucMqVtCWCAfCyORr
-FaxN8LFF9KcYx6M4AK1fQ36JVPtMER2VzGMF74gXgrFQ4A9tno6rKzi/QpzwWoPE4I1hcOKz
-/YxOK0sRjSDR3p5s2XrKVxgUe+TEeJ6/y1iv52o41oYVmilsUovvHzCCAz8wggKooAMCAQIC
-AQ0wDQYJKoZIhvcNAQEFBQAwgdExCzAJBgNVBAYTAlpBMRUwEwYDVQQIEwxXZXN0ZXJuIENh
-cGUxEjAQBgNVBAcTCUNhcGUgVG93bjEaMBgGA1UEChMRVGhhd3RlIENvbnN1bHRpbmcxKDAm
-BgNVBAsTH0NlcnRpZmljYXRpb24gU2VydmljZXMgRGl2aXNpb24xJDAiBgNVBAMTG1RoYXd0
-ZSBQZXJzb25hbCBGcmVlbWFpbCBDQTErMCkGCSqGSIb3DQEJARYccGVyc29uYWwtZnJlZW1h
-aWxAdGhhd3RlLmNvbTAeFw0wMzA3MTcwMDAwMDBaFw0xMzA3MTYyMzU5NTlaMGIxCzAJBgNV
-BAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQD
-EyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQTCBnzANBgkqhkiG9w0BAQEF
-AAOBjQAwgYkCgYEAxKY8VXNV+065yplaHmjAdQRwnd/p/6Me7L3N9VvyGna9fww6YfK/Uc4B
-1OVQCjDXAmNaLIkVcI7dyfArhVqqP3FWy688Cwfn8R+RNiQqE88r1fOCdz0Dviv+uxg+B79A
-gAJk16emu59l0cUqVIUPSAR/p7bRPGEEQB5kGXJgt/sCAwEAAaOBlDCBkTASBgNVHRMBAf8E
-CDAGAQH/AgEAMEMGA1UdHwQ8MDowOKA2oDSGMmh0dHA6Ly9jcmwudGhhd3RlLmNvbS9UaGF3
-dGVQZXJzb25hbEZyZWVtYWlsQ0EuY3JsMAsGA1UdDwQEAwIBBjApBgNVHREEIjAgpB4wHDEa
-MBgGA1UEAxMRUHJpdmF0ZUxhYmVsMi0xMzgwDQYJKoZIhvcNAQEFBQADgYEASIzRUIPqCy7M
-DaNmrGcPf6+svsIXoUOWlJ1/TCG4+DYfqi2fNi/A9BxQIJNwPP2t4WFiw9k6GX6EsZkbAMUa
-C4J0niVQlGLH2ydxVyWN3amcOY6MIE9lX5Xa9/eH1sYITq726jTlEBpbNU1341YheILcIRk1
-3iSx0x1G/11fZU8xggNkMIIDYAIBATB2MGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3
-dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJl
-ZW1haWwgSXNzdWluZyBDQQIQTrGgkxzJbnibsa3oUSMXezAJBgUrDgMCGgUAoIIBwzAYBgkq
-hkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0wNzAxMzExNjAyMzNaMCMG
-CSqGSIb3DQEJBDEWBBTxlHatdEj0oOBzpBuIabg0pqWm6zBSBgkqhkiG9w0BCQ8xRTBDMAoG
-CCqGSIb3DQMHMA4GCCqGSIb3DQMCAgIAgDANBggqhkiG9w0DAgIBQDAHBgUrDgMCBzANBggq
-hkiG9w0DAgIBKDCBhQYJKwYBBAGCNxAEMXgwdjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMc
-VGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFs
-IEZyZWVtYWlsIElzc3VpbmcgQ0ECEE6xoJMcyW54m7Gt6FEjF3swgYcGCyqGSIb3DQEJEAIL
-MXigdjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhhd3RlIENvbnN1bHRpbmcgKFB0eSkg
-THRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVtYWlsIElzc3VpbmcgQ0ECEE6x
-oJMcyW54m7Gt6FEjF3swDQYJKoZIhvcNAQEBBQAEggEAw8H+RwfH04IANamyLFKptMufS6OD
-3nxKFdZsZMvpEwTr3OgCDVbJXgy2bqAJS+SzlY0UKy3CyJJ4KeyrZ1z9R1x3Bc/o7vyyxiDd
-A0aNgtRkkEz48VCIrnSqD+qZTw/3IkmTeNIj36etpXElFMiFKN87ZnB7DM4Ur885RFbHEmAr
-HbiSOk6JupYWJbJMXww/FkxCoKqMB7LPlaxOppG07Dkduy3RlXkt05tZkSZv3a8NHL2nhqis
-l8ZS0icRx35ucLCioMqCqX47x9Rbwd/i/0DE5JeTFi+SDlyedwyhk4bs3LxP3Lsx8qoIU/Kz
-+INcxoVKV+Q1CK60oKOxbtovugAAAAAAAA==
---------------ms050501080302090706050206--
+Thanks,
+John
+
+
+-------------------
+
+BUG: at lib/kref.c:34 kref_get()
+
+Call Trace: 
+ [<a000000100012b80>] show_stack+0x40/0xa0
+                                sp=e00000b0037f7ab0 bsp=e00000b0037f0e68
+ [<a000000100012c10>] dump_stack+0x30/0x60
+                                sp=e00000b0037f7c80 bsp=e00000b0037f0e50
+ [<a0000001004196c0>] kref_get+0xa0/0xe0
+                                sp=e00000b0037f7c80 bsp=e00000b0037f0e30
+ [<a0000001004173b0>] kobject_get+0x30/0x60
+                                sp=e00000b0037f7c80 bsp=e00000b0037f0e10
+ [<a0000001005070d0>] get_bus+0x30/0x80
+                                sp=e00000b0037f7c80 bsp=e00000b0037f0de8
+ [<a000000100507f30>] bus_add_driver+0x30/0x3a0
+                                sp=e00000b0037f7c80 bsp=e00000b0037f0db0
+ [<a000000100509c20>] driver_register+0x160/0x180 
+                                sp=e00000b0037f7c80 bsp=e00000b0037f0d90
+ [<a0000001004a00b0>] acpi_bus_register_driver+0x50/0x80
+                                sp=e00000b0037f7c80 bsp=e00000b0037f0d70
+ [<a0000001009afbc0>] sn_io_acpi_init+0x80/0x240
+                                sp=e00000b0037f7c80 bsp=e00000b0037f0d50
+ [<a0000001009aff80>] sn_io_early_init+0x200/0x240
+                                sp=e00000b0037f7d20 bsp=e00000b0037f0d38
+ [<a000000100009720>] init+0x420/0x840
+                                sp=e00000b0037f7d30 bsp=e00000b0037f0d08
+ [<a0000001000110f0>] kernel_thread_helper+0xd0/0x100
+                                sp=e00000b0037f7e30 bsp=e00000b0037f0ce0
+ [<a000000100009140>] start_kernel_thread+0x20/0x40
+                                sp=e00000b0037f7e30 bsp=e00000b0037f0ce0
+JPK:kref_get: refcount = 0, kref=0xa000000100d6d7bc
+BUG: at lib/kref.c:34 kref_get()
+
+Unable to handle kernel NULL pointer dereference (address 0000000000000000)
+swapper[1]: Oops 8804682956800 [1]
+Modules linked in:
+
+Pid: 1, CPU 1, comm:              swapper
+psr : 00001010085a6010 ifs : 800000000000040c ip  : [<a0000001004179d0>]    Not tainted
+ip is at kobject_add+0x370/0x640
+unat: 0000000000000000 pfs : 000000000000040c rsc : 0000000000000003
+rnat: 000000000000030e bsps: 0000000000000000 pr  : 0000000000006681
+ldrs: 0000000000000000 ccv : 0000000000000000 fpsr: 0009804c8a70433f
+csd : 0000000000000000 ssd : 0000000000000000
+b0  : a000000100417980 b6  : e0000030025ee6a0 b7  : a0000001004f69e0
+f6  : 000000000000000000000 f7  : 1003e20c49ba5e353f7cf
+f8  : 1003e00000000000000c8 f9  : 10006c7fffffffd73ea5c
+f10 : 0fffe9ffffffff6000000 f11 : 1003e0000000000000000
+r1  : a000000100f8e5c0 r2  : e00000b0037f0ca8 r3  : 0000000000000003
+r8  : 000000000000005e r9  : 0000000000004000 r10 : a000000100da9d18
+r11 : a000000100da9d28 r12 : e00000b0037f7c80 r13 : e00000b0037f0000
+r14 : 0000000000000002 r15 : e00000b0037f0c90 r16 : e00000b0037f0ca8
+r17 : a000000100da9d48 r18 : e00000b0037f7b31 r19 : e00000b0037f7c10
+r20 : 0000000000004000 r21 : 0000000000004000 r22 : a000000100da9d10
+r23 : a000000100d998d0 r24 : a000000100cafaa0 r25 : a000000100cafaa0
+r26 : e00000b0037f0c90 r27 : 0000000000000000 r28 : a000000100d6d790
+r29 : a000000100d6d788 r30 : a000000100d6d778 r31 : a000000100da5338
+
+Call Trace:
+ [<a000000100012b80>] show_stack+0x40/0xa0
+                                sp=e00000b0037f7830 bsp=e00000b0037f0f68
+ [<a000000100013480>] show_regs+0x840/0x880
+                                sp=e00000b0037f7a00 bsp=e00000b0037f0f10
+ [<a000000100034e70>] die+0x250/0x340
+                                sp=e00000b0037f7a00 bsp=e00000b0037f0ec8
+ [<a000000100059350>] ia64_do_page_fault+0x930/0xa60
+                                sp=e00000b0037f7a20 bsp=e00000b0037f0e78
+ [<a00000010000bb60>] ia64_leave_kernel+0x0/0x290
+                                sp=e00000b0037f7ab0 bsp=e00000b0037f0e78
+ [<a0000001004179d0>] kobject_add+0x370/0x640
+                                sp=e00000b0037f7c80 bsp=e00000b0037f0e18
+ [<a000000100418050>] kobject_register+0x90/0xe0
+                                sp=e00000b0037f7c80 bsp=e00000b0037f0de8    
+ [<a000000100507fa0>] bus_add_driver+0xa0/0x3a0
+                                sp=e00000b0037f7c80 bsp=e00000b0037f0db0
+ [<a000000100509c20>] driver_register+0x160/0x180 
+                                sp=e00000b0037f7c80 bsp=e00000b0037f0d90
+ [<a0000001004a00b0>] acpi_bus_register_driver+0x50/0x80
+                                sp=e00000b0037f7c80 bsp=e00000b0037f0d70
+ [<a0000001009afbc0>] sn_io_acpi_init+0x80/0x240
+                                sp=e00000b0037f7c80 bsp=e00000b0037f0d50
+ [<a0000001009aff80>] sn_io_early_init+0x200/0x240
+                                sp=e00000b0037f7d20 bsp=e00000b0037f0d38
+ [<a000000100009720>] init+0x420/0x840
+                                sp=e00000b0037f7d30 bsp=e00000b0037f0d08
+ [<a0000001000110f0>] kernel_thread_helper+0xd0/0x100
+                                sp=e00000b0037f7e30 bsp=e00000b0037f0ce0
+ [<a000000100009140>] start_kernel_thread+0x20/0x40 
+                                sp=e00000b0037f7e30 bsp=e00000b0037f0ce0
+
