@@ -1,59 +1,39 @@
-From: Karsten Wiese <fzu@wemgehoertderstaat.de>
+From: Andrew Morton <akpm@osdl.org>
 Subject: Re: 2.6.20-rc6-mm3
-Date: Wed, 31 Jan 2007 01:55:05 +0100
-Message-ID: <200701310155.05474.fzu@wemgehoertderstaat.de>
-References: <20070129204528.eb8d695e.akpm@osdl.org> <45BFC442.5000903@gmail.com> <20070130142714.9f8dd5da.akpm@osdl.org>
+Date: Tue, 30 Jan 2007 17:25:25 -0800
+Message-ID: <20070130172525.f32fb9ea.akpm@osdl.org>
+References: <20070129204528.eb8d695e.akpm@osdl.org>
+	<45BFC442.5000903@gmail.com>
+	<45BFEDFB.6000500@imap.cc>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752168AbXAaAzL@vger.kernel.org>
-In-Reply-To: <20070130142714.9f8dd5da.akpm@osdl.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: Maciej Rutecki <maciej.rutecki@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.osdl.org ([65.172.181.24]:60874 "EHLO smtp.osdl.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932169AbXAaBZ3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Jan 2007 20:25:29 -0500
+In-Reply-To: <45BFEDFB.6000500@imap.cc>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tilman Schmidt <tilman@imap.cc>
+Cc: Maciej Rutecki <maciej.rutecki@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Am Dienstag, 30. Januar 2007 23:27 schrieb Andrew Morton:
-> On Tue, 30 Jan 2007 23:18:42 +0100
-> Maciej Rutecki <maciej.rutecki@gmail.com> wrote:
-<...> 
-> > I have two problems. First suspend to disk.
+On Wed, 31 Jan 2007 02:16:43 +0100
+Tilman Schmidt <tilman@imap.cc> wrote:
+
+> Am 30.01.2007 23:18 schrieb Maciej Rutecki:
+> > Second problem, power button doesn't work. When I pressed it, I has this
+> > error:
 > > 
-> > After suspend to disk (before resume) I check time in bios, and it's
-> > correct, but during resume, I have this message:
-> > 
-> > "Suspending console(s)"
-> > 
-> > system wait 20 seconds (or more) until finish resume. Also system clock
-> > was slow about this 20 seconds.
+> > ACPI Error (evevent-0305): No installed handler for fixed event
+> > [00000002] [20070126]
 > 
-> OK, thanks.  That might be due to the time-management updates as well. 
-> I'll see if I can reproduce this.
+> Same here, minus the message. (Or perhaps I just don't know where to look.)
+> Problem also exists in 2.6.20-rc6-mm2. With 2.6.20-rc6-git1 the power
+> button of this machine works fine.
 > 
-> If you're keen, you could test just 2.6.19-rc6+origin.patch+git-acpi.patch
-> from
-> ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.20-rc6/2.6.20-rc6-mm3/broken-out
-> and see which of these problems remain.
 
-Similar weirdness here on rc6-mm2 and rc6-rt*:
-resume from disk waits unduly long.
-I played with bios clock setting after I wondered why susp/res
- wouldn't work overnight:
-the longer the (faked/real) suspend to disk time,
-the longer the (not seen on 2.6.18-rt) waiting past the incrementing
-% display, before things are running again.
-After turning time backwards in bios, console mouse handler gpm experiences
-"interrupted system call". 
+That's significant - in your case at least the 2.6.20-rc6-mm3 ACPI update
+isn't the cause.
 
-
-Some waiting times from rc6-rt6 from memory:
-
-Config			| HZ			| NO_HZ + HRESTIMERS
-cmos clock unchanged	| 2s			| 6s
-cmos clock += 10min	| 			| 2 minutes
-cmos clock += 2 month	| 20s			| > 4minutes, test interrupted
-
-
-      Karsten
