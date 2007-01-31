@@ -1,114 +1,66 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: No mptable found (Tyan h1000E)
-Date: Wed, 31 Jan 2007 02:52:16 -0500
-Message-ID: <200701310252.16653.lenb@kernel.org>
-References: <20070130231617.GP29697@fi.muni.cz>
+From: Tilman Schmidt <tilman@imap.cc>
+Subject: Re: 2.6.20-rc6-mm3
+Date: Wed, 31 Jan 2007 12:38:39 +0100
+Message-ID: <45C07FBF.3080000@imap.cc>
+References: <20070129204528.eb8d695e.akpm@osdl.org>	<45BFC442.5000903@gmail.com>	<45BFEDFB.6000500@imap.cc> <20070130172525.f32fb9ea.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:39825 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751146AbXAaHxi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 31 Jan 2007 02:53:38 -0500
-In-Reply-To: <20070130231617.GP29697@fi.muni.cz>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig067A9A7812D5457B3812C790"
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933031AbXAaLiw@vger.kernel.org>
+In-Reply-To: <20070130172525.f32fb9ea.akpm@osdl.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: Maciej Rutecki <maciej.rutecki@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jan Kasprzak <kas@fi.muni.cz>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tuesday 30 January 2007 18:16, Jan Kasprzak wrote:
-> 	Hello,
-> 
-> 	I have a Tyan h1000E (S3970) dual-socket board, with two
-> dual-core AMD Athlon 2210 CPUs (4 cores total). The problem is
-> that the kernel apparently cannot detect the SMP configuration
-> (after boot, /proc/cpuinfo lists only one processor).
-> The full dmesg output is available at
-> 
-> http://www.fi.muni.cz/~kas/tmp/dmesg-h1000E.txt
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig067A9A7812D5457B3812C790
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-ACPI: RSDP (v002 ACPIAM                                ) @ 0x00000000000f7700
-ACPI: XSDT (v001 A M I  OEMXSDT  0x10000605 MSFT 0x00000097) @ 0x00000000bfff0100
-ACPI: FADT (v003 A M I  OEMFACP  0x10000605 MSFT 0x00000097) @ 0x00000000bfff0290
-ACPI: OEMB (v001 A M I  AMI_OEM  0x10000605 MSFT 0x00000097) @ 0x00000000bfffe040
-ACPI: SRAT (v001 AMD    HAMMER   0x00000001 AMD  0x00000001) @ 0x00000000bfff3420
-ACPI: SSDT (v001 A M I  POWERNOW 0x00000001 AMD  0x00000001) @ 0x00000000bfff34e0
-ACPI: DSDT (v001  0AAAA 0AAAA000 0x00000000 INTL 0x02002026) @ 0x0000000000000000
+On Tue, 30 Jan 2007 17:25:25 -0800, Andrew Morton wrote:
+> On Wed, 31 Jan 2007 02:16:43 +0100
+> Tilman Schmidt <tilman@imap.cc> wrote:
+>=20
+>> Am 30.01.2007 23:18 schrieb Maciej Rutecki:
+>> > Second problem, power button doesn't work. When I pressed it, I has =
+this
+>> > error:
+>> >=20
+>> > ACPI Error (evevent-0305): No installed handler for fixed event
+>> > [00000002] [20070126]
+>>=20
+>> Same here, minus the message. (Or perhaps I just don't know where to l=
+ook.)
+>> Problem also exists in 2.6.20-rc6-mm2. With 2.6.20-rc6-git1 the power
+>> button of this machine works fine.
+>=20
+> That's significant - in your case at least the 2.6.20-rc6-mm3 ACPI upda=
+te
+> isn't the cause.
 
-This board appears to have no APIC (MADT) table -- which is what Linux uses to enumerate processors
-in ACPI mode.  (doesn't have MPS either, but in ACPI mode you wouldn't use it anyway).
+Is there anything specific I should test, or Big Bisect time?
 
-Are there any BIOS SETUP settings for enabling SMP or ACPI features?
+--=20
+Tilman Schmidt                    E-Mail: tilman@imap.cc
+Bonn, Germany
+Diese Nachricht besteht zu 100% aus wiederverwerteten Bits.
+Unge=F6ffnet mindestens haltbar bis: (siehe R=FCckseite)
 
-I guess that /proc/interrupts shows this system running in PIC mode?
 
-Please open a bugzilla here and attach the output from acpidump.
-http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
-Component: Config-Processors
+--------------enig067A9A7812D5457B3812C790
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-Any chance you can see if Windows finds multiple processors on this board with this version of the BIOS?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.4 (MingW32)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
-This system may be proof that Linux needs to parse the DSDT to properly enumerate processors.
-Though it is somewhat strange to have an SMP without an IOAPIC...
+iD8DBQFFwH+/MdB4Whm86/kRAvNsAJoCvHBpCbTs+Jf151gdz4FqQ8Cw0ACePSRU
+Bcqx7WKbAdEPncxYMdUdg54=
+=L29q
+-----END PGP SIGNATURE-----
 
-thanks,
--Len
-
-ps. after you get the acpidump for the failing system, check for a BIOS update.
-
-> The most interesting parts of it are probably these (with my comments
-> inline marked by "---"):
-> 
-> [...]
-> SRAT: PXM 0 -> APIC 0 -> Node 0
-> SRAT: PXM 0 -> APIC 1 -> Node 0
-> SRAT: PXM 1 -> APIC 2 -> Node 1
-> SRAT: PXM 1 -> APIC 3 -> Node 1
-> --- So the kernel can see all four APICs.
-> [...]
-> Bootmem setup node 0 0000000000000000-00000000bfff0000
-> No mptable found.
-> --- the above does not depend on MPS 1.1 or 1.4 settings in the BIOS
-> [...]
-> Kernel command line: ro root=/dev/md0 console=ttyS0,38400n8
-> Initializing CPU#0
-> PID hash table entries: 4096 (order: 12, 32768 bytes)
-> Console: colour VGA+ 80x25
-> Dentry cache hash table entries: 524288 (order: 10, 4194304 bytes)
-> Inode-cache hash table entries: 262144 (order: 9, 2097152 bytes)
-> Checking aperture...
-> CPU 0: aperture @ e8000000 size 128 MB
-> CPU 1: aperture @ e8000000 size 128 MB
-> --- the kernel knows something about CPU1 (presumably the second core of CPU0).
-> [...]
-> CPU 0/0 -> Node 0
-> CPU: Physical Processor ID: 0
-> CPU: Processor Core ID: 0
-> SMP alternatives: switching to UP code
-> Freeing SMP alternatives: 32k freed
-> ACPI: Core revision 20060707
-> ACPI: setting ELCR to 0200 (from 0e20)
-> weird, boot CPU (#0) not listed by the BIOS.
-> SMP motherboard not detected.
-> Using local APIC timer interrupts.
-> result 12469270
-> Detected 12.469 MHz APIC timer.
-> testing NMI watchdog ... OK.
-> SMP disabled
-> --- hmm, no SMP configuration detected after all.
-> Brought up 1 CPUs
-> testing NMI watchdog ... OK.
->                       ^^^ here it waits for few seconds before printing "OK."
-> 
-> 	I have tested it with vanilla 2.6.19.2, 2.6.20-rc6, and
-> the latest Fedora kernel (2.6.19-1.2895.fc6). I have the latest BIOS
-> available for this board, and the BIOS can see all four cores.
-> 
-> 	How can I make all four cores visible by the Linux kernel?
-> Thanks,
-> 
-> -Yenya
-> 
+--------------enig067A9A7812D5457B3812C790--
