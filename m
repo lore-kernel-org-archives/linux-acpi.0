@@ -1,39 +1,65 @@
-From: Karsten Wiese <fzu@wemgehoertderstaat.de>
-Subject: Re: 2.6.20-rc6-mm3
-Date: Thu, 1 Feb 2007 11:12:45 +0000 (UTC)
-Message-ID: <200703011211.09055.fzu__20644.0988266424$1170328365$gmane$org@wemgehoertderstaat.de>
-References: <20070129204528.eb8d695e.akpm@osdl.org> <20070201080108.GC14378@elte.hu> <200702011144.43774.fzu@wemgehoertderstaat.de>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: [PATCH -mm] gtod persistent clock resume fix
+Date: Thu, 01 Feb 2007 14:03:47 +0100
+Message-ID: <1170335027.29240.272.camel@localhost.localdomain>
+References: <20070129204528.eb8d695e.akpm@osdl.org>
+	 <45BFC442.5000903@gmail.com> <20070130142714.9f8dd5da.akpm@osdl.org>
+	 <200701310155.05474.fzu@wemgehoertderstaat.de>
+Reply-To: tglx@linutronix.de
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751724AbXBALLz@vger.kernel.org>
-Date: Thu, 1 Mar 2007 12:11:08 +0100
-In-Reply-To: <200702011144.43774.fzu@wemgehoertderstaat.de>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Andrew Morton <akpm@osdl.org>, Maciej Rutecki <maciej.rutecki@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from www.osadl.org ([213.239.205.134]:45246 "EHLO mail.tglx.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1422848AbXBANCy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 1 Feb 2007 08:02:54 -0500
+In-Reply-To: <200701310155.05474.fzu@wemgehoertderstaat.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Karsten Wiese <fzu@wemgehoertderstaat.de>
+Cc: Andrew Morton <akpm@osdl.org>, Maciej Rutecki <maciej.rutecki@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Am Donnerstag, 1. Februar 2007 11:44 schrieb Karsten Wiese:
-> I think the wait is caused by an interrupt starting somewhere under
-> sysdev_resume(void).
-> possibly lapic timer interrupt? Will try to trace that.
+The reworked highres/dyntick code made a thinko in the resume code
+visible, which was magically working in the old queue.
 
-Some evidence:
-[root@a64 Desktop]# echo reboot > /sys/power/disk
-[root@a64 Desktop]# cat /proc/interrupts; echo disk > /sys/power/state ; cat /proc/interrupts
-<snip>
-LOC:    2215504
-<snip, cmos clock untouched>
-LOC:    2216432
-<snip>
-[root@a64 Desktop]# cat /proc/interrupts; echo disk > /sys/power/state ; cat /proc/interrupts
-<snip>
-LOC:    2225752
-<snip, cmos clock advanced by 1 month under biossettings>
-LOC:    2238383
-<snip>
+On resume we add the slept time to xtime. This delta must be adjusted in
+wall_to_monotonic as well. The update of jiffies64 is bogus and a
+leftover of the code which was taken from arch/i386/kernel/time.c.
 
-      Karsten
+On suspend the current state of xtime, wall_to_monotonic and jiffies is
+frozen. After resume we need to add the slept time to xtime, but we need
+to subtract it from wall_to_monotonic, so the monotonic time is resuming
+from exactly the point where it was suspended. jiffies are restarting
+from the same point as well.
+
+This solves the resume waittime observed by Karsten Wiese.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+
+Index: linux-2.6.20-rc6-mm/kernel/timer.c
+===================================================================
+--- linux-2.6.20-rc6-mm.orig/kernel/timer.c
++++ linux-2.6.20-rc6-mm/kernel/timer.c
+@@ -985,8 +985,9 @@ static int timekeeping_resume(struct sys
+ 
+ 	if (now && (now > timekeeping_suspend_time)) {
+ 		unsigned long sleep_length = now - timekeeping_suspend_time;
++
+ 		xtime.tv_sec += sleep_length;
+-		jiffies_64 += (u64)sleep_length * HZ;
++		wall_to_monotonic.tv_sec -= sleep_length;
+ 	}
+ 	/* re-base the last cycle value */
+ 	clock->cycle_last = clocksource_read(clock);
+@@ -994,7 +995,7 @@ static int timekeeping_resume(struct sys
+ 	timekeeping_suspended = 0;
+ 	write_sequnlock_irqrestore(&xtime_lock, flags);
+ 
+-	clockevents_notify(CLOCK_EVT_NOTIFY_RESUME, NULL);
++	touch_softlockup_watchdog();
+ 	/* Resume hrtimers */
+ 	clock_was_set();
+ 
+
+
