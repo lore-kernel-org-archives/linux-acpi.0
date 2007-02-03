@@ -1,41 +1,95 @@
-From: John Keller <jpk@sgi.com>
-Subject: [PATCH 1/1] -  Altix: more ACPI PRT support
-Date: Fri, 02 Feb 2007 14:54:12 -0600
-Message-ID: <20070202205412.14367.60290.sendpatchset@attica.americas.sgi.com>
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Sender: linux-ia64-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: ayoung@sgi.com, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, John Keller <jpk@sgi.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Bad libata resume behaviour due to ACPICA change (in acpi-test)
+Date: Fri, 2 Feb 2007 22:41:40 -0200
+Message-ID: <20070203004140.GB619@khazad-dum.debian.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:33681 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933407AbXBCAlu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Feb 2007 19:41:50 -0500
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>, Len Brown <len.brown@intel.com>
 
-The SN Altix platform does not conform to the 
-IOSAPIC IRQ routing model. Add code in acpi_unregister_gsi()
-to check if (acpi_irq_model == ACPI_IRQ_MODEL_PLATFORM) and
-return.
+On an otherwise ordinary ThinkPad T43, v2.6.20-rc7-g190ff5b runs and works
+beaufully, however if I apply the acpi-test patches, it adds a 40-50s pause
+right after libata tries to resume the disks.
 
-Signed-off-by: John Keller <jpk@sgi.com>
----
+Here's the relevant info:
 
-Due to an oversight, this code was not added previously when
-similar code was added to acpi_register_gsi().
+1. The relevant detail of logs of a normal resume:
+Feb  1 20:50:02 thorin kernel: ata2.00: configured for UDMA/33
+Feb  1 20:50:02 thorin kernel: ata1.00: configured for UDMA/100
+Feb  1 20:50:02 thorin kernel: SCSI device sda: 117210240 512-byte hdwr sectors (60012 MB)
+Feb  1 20:50:02 thorin kernel: sda: Write Protect is off
+Feb  1 20:50:02 thorin kernel: sda: Mode Sense: 00 3a 00 00
+Feb  1 20:50:02 thorin kernel: SCSI device sda: write cache: enabled, read cache: enabled, doesn't support DPO or FUA
+Feb  1 20:50:20 thorin kernel: ...
 
-http://marc.theaimsgroup.com/?l=linux-acpi&m=116680983430121&w=2
+2. The relevant detail of logs of a resume with the strange pause:
+Feb  1 19:21:28 thorin kernel: Restarting tasks ... done.
+Feb  1 19:21:29 thorin kernel: ata2.00: configured for UDMA/33
+Feb  1 19:21:29 thorin kernel: ata1.00: configured for UDMA/100
+Feb  1 19:21:29 thorin kernel: SCSI device sda: 117210240 512-byte hdwr sectors (60012 MB)
+Feb  1 19:21:29 thorin kernel: sda: Write Protect is off
+Feb  1 19:21:29 thorin kernel: sda: Mode Sense: 00 3a 00 00
+Feb  1 19:21:29 thorin kernel: SCSI device sda: write cache: enabled, read cache: enabled, doesn't support DPO or FUA
+Feb  1 19:21:53 thorin kernel: ...
 
- arch/ia64/kernel/acpi.c |    3 +++
- 1 file changed, 3 insertions(+)
+Note the timestamps on the two last lines of the log.  Another delay I had
+was bigger by 20s.  It is really, *really* annoying.
 
+3. The affected PCI device:
 
-Index: linux-2.6/arch/ia64/kernel/acpi.c
-===================================================================
---- linux-2.6.orig/arch/ia64/kernel/acpi.c	2007-02-02 14:44:31.000000000 -0600
-+++ linux-2.6/arch/ia64/kernel/acpi.c	2007-02-02 14:47:44.658143727 -0600
-@@ -609,6 +609,9 @@ EXPORT_SYMBOL(acpi_register_gsi);
- 
- void acpi_unregister_gsi(u32 gsi)
- {
-+	if (acpi_irq_model == ACPI_IRQ_MODEL_PLATFORM)
-+		return;
-+
- 	iosapic_unregister_intr(gsi);
- }
- 
+00:1f.2 IDE interface: Intel Corporation 82801FBM (ICH6M) SATA Controller (rev 03) (prog-if 80 [Master])
+        Subsystem: IBM Unknown device 056a
+        Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
+        Status: Cap+ 66MHz+ UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+        Latency: 0
+        Region 0: I/O ports at 01f0 [size=8]
+        Region 1: I/O ports at 03f4 [size=1]
+        Region 2: I/O ports at 0170 [size=8]
+        Region 3: I/O ports at 0374 [size=1]
+        Region 4: I/O ports at 18c0 [size=16]
+        Capabilities: [70] Power Management version 2
+                Flags: PMEClk- DSI- D1- D2- AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot+,D3cold-)
+                Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+
+4. The relevant DSDT:
+http://acpi.sourceforge.net/dsdt/view.php?id=742
+
+5. The culprit (insert ob. Linus-is-a-genius git bisect thanks here):
+
+ 5559e40e60632ab6927f08cd2a2a3b65c088fc03 is first bad commit
+ commit 5559e40e60632ab6927f08cd2a2a3b65c088fc03
+ Author: Bob Moore <robert.moore@intel.com>
+ Date:   Tue Jan 23 15:49:27 2007 +0300
+
+    ACPICA: Disable all wake GPEs after first one recieved
+    
+    Change for GPE support: when a wake GPE is
+    received, now all wake GPEs are immediately disabled to
+    prevent the waking GPE from firing again, and to prevent
+    other wake GPEs from interrupting the wake process.
+    
+    Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+I will try to run with the above commit reverted, so as to continue playing
+with the acpi-test tree.
+
+If there is anything I can contribute to help shape up the above into
+something that is not annoying for ThinkPad T43 onwers, just tell me what,
+and I'll see what I can do.
+
+The bug is reproducible at will.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
