@@ -1,67 +1,42 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 1/1] -  Altix: more ACPI PRT support
-Date: Fri, 2 Feb 2007 21:56:42 -0500
-Message-ID: <200702022156.42805.lenb@kernel.org>
-References: <20070202205412.14367.60290.sendpatchset@attica.americas.sgi.com> <20070202173746.9fc66172.akpm@linux-foundation.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: 2.6.20-rc6-mm3
+Date: Sat, 3 Feb 2007 01:37:52 +0100
+Message-ID: <20070203003752.GC1712@elf.ucw.cz>
+References: <20070129204528.eb8d695e.akpm@osdl.org> <200701310155.05474.fzu@wemgehoertderstaat.de> <20070131132245.GA26066@elte.hu> <200701311525.50160.fzu@wemgehoertderstaat.de> <20070201080108.GC14378@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:51386 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946238AbXBCC6J (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 2 Feb 2007 21:58:09 -0500
-In-Reply-To: <20070202173746.9fc66172.akpm@linux-foundation.org>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:46706 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1946446AbXBCLHQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 3 Feb 2007 06:07:16 -0500
 Content-Disposition: inline
+In-Reply-To: <20070201080108.GC14378@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: John Keller <jpk@sgi.com>, linux-acpi@vger.kernel.org, ayoung@sgi.com, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, "Luck, Tony" <tony.luck@intel.com>
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Karsten Wiese <fzu@wemgehoertderstaat.de>, Andrew Morton <akpm@osdl.org>, Maciej Rutecki <maciej.rutecki@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Friday 02 February 2007 20:37, Andrew Morton wrote:
-> On Fri, 02 Feb 2007 14:54:12 -0600
-> John Keller <jpk@sgi.com> wrote:
+Hi!
+
+> * Karsten Wiese <fzu@wemgehoertderstaat.de> wrote:
 > 
-> > The SN Altix platform does not conform to the 
-> > IOSAPIC IRQ routing model. Add code in acpi_unregister_gsi()
-> > to check if (acpi_irq_model == ACPI_IRQ_MODEL_PLATFORM) and
-> > return.
-> > 
-> > Signed-off-by: John Keller <jpk@sgi.com>
-> > ---
-> > 
-> > Due to an oversight, this code was not added previously when
-> > similar code was added to acpi_register_gsi().
-> > 
-> > http://marc.theaimsgroup.com/?l=linux-acpi&m=116680983430121&w=2
-> > 
-> >  arch/ia64/kernel/acpi.c |    3 +++
-> >  1 file changed, 3 insertions(+)
-> > 
-> > 
-> > Index: linux-2.6/arch/ia64/kernel/acpi.c
-> > ===================================================================
-> > --- linux-2.6.orig/arch/ia64/kernel/acpi.c	2007-02-02 14:44:31.000000000 -0600
-> > +++ linux-2.6/arch/ia64/kernel/acpi.c	2007-02-02 14:47:44.658143727 -0600
-> > @@ -609,6 +609,9 @@ EXPORT_SYMBOL(acpi_register_gsi);
-> >  
-> >  void acpi_unregister_gsi(u32 gsi)
-> >  {
-> > +	if (acpi_irq_model == ACPI_IRQ_MODEL_PLATFORM)
-> > +		return;
-> > +
-> >  	iosapic_unregister_intr(gsi);
-> >  }
+> > Serial port console is off here and the jiffies update fix doesn't 
+> > make a noticeable difference.
 > 
-> Given that the December 22 patch appears to be in mainline, and that this
-> patch is simple, I shall cheerily bypass maintainers and send it in for
-> 2.6.20.
+> ok, this eliminates my serial port theory.
+> 
+> and this means i'm having trouble reproducing this problem locally. 
+> Maybe i tried it the wrong way: does it only occur with suspend-to-disk, 
+> or suspend-to-ram too? Does it need ACPI suspend-to-disk, or 
+> software-suspend?
 
-Yep.
+? What is ACPI suspend-to-disk? There used to be S4bios *long* time
+ago... these days everyone does swsusp.
 
-Acked-by: Len Brown <len.brown@intel.com>
+(Granted, you can select "shutdown" and "platform" flavours...)
+									Pavel
 
-thanks,
--Len
-
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
