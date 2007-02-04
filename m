@@ -1,81 +1,210 @@
-From: "Gabor Gabris" <gaborgabris@gmail.com>
-Subject: Synaptic touchpad freezes and lost sync messages in dmesg
-Date: Sun, 4 Feb 2007 21:18:14 +0100
-Message-ID: <f6dfbef00702041218r403147dse04a771fc46e5b73@mail.gmail.com>
+From: Rudolf Marek <r.marek@assembler.cz>
+Subject: ACPI bytecode hardware registers access
+Date: Sun, 04 Feb 2007 21:23:43 +0100
+Message-ID: <45C640CF.2090205@assembler.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nz-out-0506.google.com ([64.233.162.239]:4470 "EHLO
-	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752534AbXBDUSP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Feb 2007 15:18:15 -0500
-Received: by nz-out-0506.google.com with SMTP id x7so1452579nzc
-        for <linux-acpi@vger.kernel.org>; Sun, 04 Feb 2007 12:18:15 -0800 (PST)
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <lm-sensors-bounces@lm-sensors.org>
+List-Unsubscribe: <http://lists.lm-sensors.org/mailman/listinfo/lm-sensors>,
+	<mailto:lm-sensors-request@lm-sensors.org?subject=unsubscribe>
+List-Archive: <http://lists.lm-sensors.org/pipermail/lm-sensors>
+List-Post: <mailto:lm-sensors@lm-sensors.org>
+List-Help: <mailto:lm-sensors-request@lm-sensors.org?subject=help>
+List-Subscribe: <http://lists.lm-sensors.org/mailman/listinfo/lm-sensors>,
+	<mailto:lm-sensors-request@lm-sensors.org?subject=subscribe>
+Sender: lm-sensors-bounces@lm-sensors.org
+Errors-To: lm-sensors-bounces@lm-sensors.org
+To: LM Sensors <lm-sensors@lm-sensors.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Hi!
+Hello all,
 
-I encountered problems on my laptop, which is an Albacomp Eco
-Traveller V4 (AFAIK it is a rebranded Clevo M660S), it does not bot
-Linux without ACPI (at least my UHU-Linux with kernel 2.6.17 does not
-boot with acpi=off parameter), but when I use the Synaptics touchpad
-in X, the cursor often freezes, and in dmesg i can see the following:
+I would like to discuss some issues that we as the lm-sensors (hardware
+monitoring) developers see. To make it short: ACPI bytecode pokes the hardware
+without letting know the other linux drivers and this is bad. In the past it was
+there but it somehow worked. Nowdays it is becoming larger problem not only for
+the lm-sensors group but also for other drivers (video...)
 
-[17186729.044000] psmouse.c: bad data from KBC - bad parity
-[17186729.048000] psmouse.c: bad data from KBC - timeout
-[17186729.056000] psmouse.c: bad data from KBC - bad parity
-[17186729.056000] psmouse.c: TouchPad at isa0060/serio4/input0 lost
-sync at byte 1
-[17186729.060000] psmouse.c: TouchPad at isa0060/serio4/input0 lost
-sync at byte 1
-[17186729.060000] psmouse.c: TouchPad at isa0060/serio4/input0 lost
-sync at byte 1
-[17186729.068000] psmouse.c: bad data from KBC - bad parity
-[17186729.068000] psmouse.c: TouchPad at isa0060/serio4/input0 lost
-sync at byte 4
-[17186729.072000] psmouse.c: TouchPad at isa0060/serio4/input0 lost
-sync at byte 1
-[17186729.072000] psmouse.c: issuing reconnect request
-[17186757.108000] Synaptics Touchpad, model: 1, fw: 6.3, id: 0x81a0b1,
-caps: 0xa04713/0x204000
-[17186757.144000] input: SynPS/2 Synaptics TouchPad as /class/input/input3
-[17186807.068000] psmouse.c: bad data from KBC - bad parity
-[17186807.068000] psmouse.c: TouchPad at isa0060/serio4/input0 lost
-sync at byte 4
-[17186807.072000] psmouse.c: bad data from KBC - timeout
-[17186807.076000] psmouse.c: bad data from KBC - bad parity
-[17186807.076000] psmouse.c: TouchPad at isa0060/serio4/input0 lost
-sync at byte 1
-[17186807.080000] psmouse.c: TouchPad at isa0060/serio4/input0 lost
-sync at byte 1
-[17186807.080000] psmouse.c: TouchPad at isa0060/serio4/input0 lost
-sync at byte 1
-[17186807.080000] psmouse.c: bad data from KBC - bad parity
-[17186807.084000] psmouse.c: TouchPad at isa0060/serio4/input0 lost
-sync at byte 1
-[17186807.084000] psmouse.c: issuing reconnect request
-[17186807.712000] Synaptics Touchpad, model: 1, fw: 6.3, id: 0x81a0b1,
-caps: 0xa04713/0x204000
-[17186807.752000] input: SynPS/2 Synaptics TouchPad as /class/input/input4
+ACPI provides the thermal zone methods to read the temps. Now imagine that this
+method is implemented and executed:
 
-I googled a bit an I found that not I am the first with this problem.
-The thread, titled "Synaptics and keyboard losing interrupts w/ACPI ?"
-and acpi.sf.net and the FreeBSD ACPI chapter gave me some hints, but I
-am only a user, I am not really into programming. But as I can
-understand the problem is caused by the querying of the battery.
-Unfortunately the simple workaround - disable battery monitoring apps
-- did not solved the problem. As I wrote earlier, the machine does not
-want to boot Linux without ACPI.
-But! I tried to disassemble and recompile the DSDT table, which was
-found very buggy: the iasl compiler found 47 errors, from which 1
-could I solve (a ByteAcc instead of AnyAcc).
-My question is that, what do you think, is there any chance, that
-fixing the DSDT table will solve the problem?
+            Method (_TMP, 0, NotSerialized)
 
-Thanks
+            {
 
-Gabor Gabris
+                And (SENF, 0x01, Local6)
+
+                If (LEqual (Local6, 0x01))
+
+                {
+
+                    Return (RTMP ())
+
+                }
+
+                Else
+
+                {
+
+                    Return (0x0B86)
+
+                }
+
+            }
+
+  Method (RTMP, 0, NotSerialized)
+
+    {
+
+        WBYT (0x4E, 0x01)
+
+        Store (RBYT (0x50), Local0)
+
+        If (LLess (Local0, 0x80))
+
+        {
+
+            Multiply (Local0, 0x0A, Local0)
+
+            Add (Local0, 0x0AAC, Local0)
+
+        }
+
+        Else
+
+        {
+
+            Subtract (Local0, 0x80, Local0)
+
+            Multiply (Local0, 0x0A, Local0)
+
+            Subtract (0x0AAC, Local0, Local0)
+
+        }
+
+
+
+        If (LEqual (SSHU, 0x01))
+
+        {
+
+            Return (Local0)
+
+        }
+
+        Else
+
+        {
+
+            Return (Local0)
+
+        }
+
+    }
+
+What it does? It reads the register 0x50 in bank 1 of W83627EHF chip. The
+register for bank switch is 0x4e.
+
+The w83627EHF driver update function is also changing the bank switch register.
+We have seen already that this might be wrong - you will read nonsense when in
+wrong bank... This happened in the past already - with some other drivers and hw :
+
+http://www.lm-sensors.org/ticket/2072
+
+That is not all. Now imagine that the smbus controller is programed in the
+bytecode... (and it is if some special methods are implemented or the sensors is
+located on smbus - to make it clear they dont use the APCI specified smbus
+interface but the bytecode programs the controller)
+
+Like this:
+
+               Method (SWFS, 0, NotSerialized)
+
+                {
+
+                    And (HSTS, 0x02, Local0)
+
+                    Sleep (0x02)
+
+                    While (LEqual (Local0, Zero))
+
+                    {
+
+                        Stall (0x01)
+
+                        Sleep (0x02)
+
+                        And (HSTS, 0x02, Local0)
+
+                    }
+
+
+
+                    Sleep (0x02)
+
+                    Store (0xFF, HSTS)
+
+                    Sleep (0x02)
+
+                }
+
+
+This is no good :/
+
+How can be this prevented/solved? Here are some ideas I had through some time,
+none of them is my favourite, but please help me find some solution!
+
+1) APCI AML code based locks.
+
+   There are none standard implemented. Asus is using sometimes for their HW
+    Mutex (\P4SM, 0x00)   to deal with concurrent smbus driver/acpi access.
+
+some award based BIOSes contain that magic "SENF" value check the first example.
+Quite a lot of BIOSes have this. Perhaps it is just cut and paste???
+
+Plus with other vendor specific means.
+
+Result: no way
+
+2) some ACPI subsystem locking
+
+Is it possible to stop/resume ACPI bytecode execution somehow? Will this lead to
+crashes/deadlocks?
+
+Result: ?
+
+3) reesource region locking
+Just imagine that the ioregion/mem resource region would have some kind of lock
+in the structure, acpi and driver will need this lock to write to the device -
+or at least acpi. This will/may lead to deadlock during suspend/resume????
+
+Could it work ever work????
+
+Result: ???
+
+4) port forwarding
+
+If the special bit in resource is set, ACPI will not do the actual access to
+IO/mem but forward it to driver, which will handle the operation in safe way -
+for example preserves the bank. Cares about the transactions...
+
+Something like this would also work for the problems with super I/O chips which
+are accessed with different drivers.
+
+Imagine this like some coordinating driver...
+
+Result: ????
+
+5) some other ideas????
+
+I wanted to write this mail long time, however I wrote it as fast as possible to
+make it happen. Any questions, proposals etc etc very welcome!
+
+Thanks,
+Rudolf
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
