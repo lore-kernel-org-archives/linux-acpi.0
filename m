@@ -1,56 +1,221 @@
 From: "Luming Yu" <luming.yu@gmail.com>
-Subject: Re: Strange things on 2.6.19/20 for a dual-core CPU
-Date: Mon, 5 Feb 2007 14:34:20 +0800
-Message-ID: <3877989d0702042234v6734ca66r56a723c2d4c98a6c@mail.gmail.com>
-References: <20070205060404.GA23121@tangens.sinus.cz>
+Subject: Re: ACPI bytecode hardware registers access
+Date: Mon, 5 Feb 2007 16:03:07 +0800
+Message-ID: <3877989d0702050003w3e0be4d3q9c475d2c6706f6a8@mail.gmail.com>
+References: <45C640CF.2090205@assembler.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wr-out-0506.google.com ([64.233.184.237]:25345 "EHLO
+Received: from wr-out-0506.google.com ([64.233.184.234]:52592 "EHLO
 	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752731AbXBEGeV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Feb 2007 01:34:21 -0500
-Received: by wr-out-0506.google.com with SMTP id i22so1143133wra
-        for <linux-acpi@vger.kernel.org>; Sun, 04 Feb 2007 22:34:21 -0800 (PST)
-In-Reply-To: <20070205060404.GA23121@tangens.sinus.cz>
+	with ESMTP id S1752770AbXBEIDH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Feb 2007 03:03:07 -0500
+Received: by wr-out-0506.google.com with SMTP id i22so1154786wra
+        for <linux-acpi@vger.kernel.org>; Mon, 05 Feb 2007 00:03:07 -0800 (PST)
+In-Reply-To: <45C640CF.2090205@assembler.cz>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Troller <patrol@sinus.cz>, linux-acpi@vger.kernel.org
+To: Rudolf Marek <r.marek@assembler.cz>
+Cc: LM Sensors <lm-sensors@lm-sensors.org>, linux-acpi@vger.kernel.org
 
-Well, enter a acpi bug on bugzilla with acpidump output and dmesg attached.
+Yes, that is bad to simultaneously access same hardware by ACPI and
+native drivers without coordination. But the problem is if nativer
+driver is really needed with the existence of the ACPI support for
+that device?  Do you know the features that are NOT supported by ACPI?
+Probably, just writing a acpi driver for SMBus controler could solve
+this problem completely. Just my intuition. Please correct me if I'm
+wrong.
 
->   Another interesting thing is shown here:
-> patrol@arcus:~$ cat /proc/acpi/processor/CPU1/info
-> processor id:            0
-> acpi id:                 1
-> bus mastering control:   no
-> power management:        no
-> throttling control:      yes
-> limit interface:         yes
-> patrol@arcus:~$ cat /proc/acpi/processor/CPU2/info
-> processor id:            1
-> acpi id:                 2
-> bus mastering control:   no
-> power management:        no
-> throttling control:      no
-> limit interface:         no
+
+
+On 2/5/07, Rudolf Marek <r.marek@assembler.cz> wrote:
+> Hello all,
 >
->   As I remember, both cores were showing the same things formerly.
->   The only line referring to CPUs during boot is
-> ACPI: Processor [CPU1] (supports 8 throttling states)
->   and CPU2 is not mentioned at all.
+> I would like to discuss some issues that we as the lm-sensors (hardware
+> monitoring) developers see. To make it short: ACPI bytecode pokes the hardware
+> without letting know the other linux drivers and this is bad. In the past it was
+> there but it somehow worked. Nowdays it is becoming larger problem not only for
+> the lm-sensors group but also for other drivers (video...)
 >
->   The last (but maybe not acpi-related) strange thing is that in /proc/cpuinfo,
-> CPU1 reports 6403.56 bogomips (as always, approximately twice the clock) and CPU2
-> 8314.32 ones (too much). It's also very suspicious. Formerly the difference was
-> very small.
+> ACPI provides the thermal zone methods to read the temps. Now imagine that this
+> method is implemented and executed:
 >
->   Should I provide more info to debug these things, or is it OK ?
->          With regards, Pavel Troller
+>             Method (_TMP, 0, NotSerialized)
 >
-> ----- End forwarded message -----
+>             {
+>
+>                 And (SENF, 0x01, Local6)
+>
+>                 If (LEqual (Local6, 0x01))
+>
+>                 {
+>
+>                     Return (RTMP ())
+>
+>                 }
+>
+>                 Else
+>
+>                 {
+>
+>                     Return (0x0B86)
+>
+>                 }
+>
+>             }
+>
+>   Method (RTMP, 0, NotSerialized)
+>
+>     {
+>
+>         WBYT (0x4E, 0x01)
+>
+>         Store (RBYT (0x50), Local0)
+>
+>         If (LLess (Local0, 0x80))
+>
+>         {
+>
+>             Multiply (Local0, 0x0A, Local0)
+>
+>             Add (Local0, 0x0AAC, Local0)
+>
+>         }
+>
+>         Else
+>
+>         {
+>
+>             Subtract (Local0, 0x80, Local0)
+>
+>             Multiply (Local0, 0x0A, Local0)
+>
+>             Subtract (0x0AAC, Local0, Local0)
+>
+>         }
+>
+>
+>
+>         If (LEqual (SSHU, 0x01))
+>
+>         {
+>
+>             Return (Local0)
+>
+>         }
+>
+>         Else
+>
+>         {
+>
+>             Return (Local0)
+>
+>         }
+>
+>     }
+>
+> What it does? It reads the register 0x50 in bank 1 of W83627EHF chip. The
+> register for bank switch is 0x4e.
+>
+> The w83627EHF driver update function is also changing the bank switch register.
+> We have seen already that this might be wrong - you will read nonsense when in
+> wrong bank... This happened in the past already - with some other drivers and hw :
+>
+> http://www.lm-sensors.org/ticket/2072
+>
+> That is not all. Now imagine that the smbus controller is programed in the
+> bytecode... (and it is if some special methods are implemented or the sensors is
+> located on smbus - to make it clear they dont use the APCI specified smbus
+> interface but the bytecode programs the controller)
+>
+> Like this:
+>
+>                Method (SWFS, 0, NotSerialized)
+>
+>                 {
+>
+>                     And (HSTS, 0x02, Local0)
+>
+>                     Sleep (0x02)
+>
+>                     While (LEqual (Local0, Zero))
+>
+>                     {
+>
+>                         Stall (0x01)
+>
+>                         Sleep (0x02)
+>
+>                         And (HSTS, 0x02, Local0)
+>
+>                     }
+>
+>
+>
+>                     Sleep (0x02)
+>
+>                     Store (0xFF, HSTS)
+>
+>                     Sleep (0x02)
+>
+>                 }
+>
+>
+> This is no good :/
+>
+> How can be this prevented/solved? Here are some ideas I had through some time,
+> none of them is my favourite, but please help me find some solution!
+>
+> 1) APCI AML code based locks.
+>
+>    There are none standard implemented. Asus is using sometimes for their HW
+>     Mutex (\P4SM, 0x00)   to deal with concurrent smbus driver/acpi access.
+>
+> some award based BIOSes contain that magic "SENF" value check the first example.
+> Quite a lot of BIOSes have this. Perhaps it is just cut and paste???
+>
+> Plus with other vendor specific means.
+>
+> Result: no way
+>
+> 2) some ACPI subsystem locking
+>
+> Is it possible to stop/resume ACPI bytecode execution somehow? Will this lead to
+> crashes/deadlocks?
+>
+> Result: ?
+>
+> 3) reesource region locking
+> Just imagine that the ioregion/mem resource region would have some kind of lock
+> in the structure, acpi and driver will need this lock to write to the device -
+> or at least acpi. This will/may lead to deadlock during suspend/resume????
+>
+> Could it work ever work????
+>
+> Result: ???
+>
+> 4) port forwarding
+>
+> If the special bit in resource is set, ACPI will not do the actual access to
+> IO/mem but forward it to driver, which will handle the operation in safe way -
+> for example preserves the bank. Cares about the transactions...
+>
+> Something like this would also work for the problems with super I/O chips which
+> are accessed with different drivers.
+>
+> Imagine this like some coordinating driver...
+>
+> Result: ????
+>
+> 5) some other ideas????
+>
+> I wanted to write this mail long time, however I wrote it as fast as possible to
+> make it happen. Any questions, proposals etc etc very welcome!
+>
+> Thanks,
+> Rudolf
 > -
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 > the body of a message to majordomo@vger.kernel.org
