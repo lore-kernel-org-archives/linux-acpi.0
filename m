@@ -1,79 +1,87 @@
-From: "Luming Yu" <luming.yu@gmail.com>
-Subject: Re: 2.6.20 poweroff regression on se7525gp2
-Date: Mon, 5 Feb 2007 14:00:37 +0800
-Message-ID: <3877989d0702042200m16ae9f2cqa74e882f14017172@mail.gmail.com>
-References: <200702050012.38485.lenb@kernel.org>
+From: Pavel Troller <patrol@sinus.cz>
+Subject: Strange things on 2.6.19/20 for a dual-core CPU
+Date: Mon, 5 Feb 2007 07:04:04 +0100
+Message-ID: <20070205060404.GA23121@tangens.sinus.cz>
+Reply-To: Pavel Troller <patrol@sinus.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wr-out-0506.google.com ([64.233.184.229]:16228 "EHLO
-	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752643AbXBEGAi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Feb 2007 01:00:38 -0500
-Received: by wr-out-0506.google.com with SMTP id 68so1105153wri
-        for <linux-acpi@vger.kernel.org>; Sun, 04 Feb 2007 22:00:37 -0800 (PST)
-In-Reply-To: <200702050012.38485.lenb@kernel.org>
+Received: from tangens.sinus.cz ([195.39.17.8]:43191 "EHLO tangens.sinus.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752731AbXBEGEH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 Feb 2007 01:04:07 -0500
+Received: from tangens.sinus.cz (patrol@localhost [127.0.0.1])
+	by tangens.sinus.cz (8.13.5.20060308/8.13.5) with ESMTP id l15644Ei023854
+	for <linux-acpi@vger.kernel.org>; Mon, 5 Feb 2007 07:04:04 +0100
+Received: (from patrol@localhost)
+	by tangens.sinus.cz (8.13.5.20060308/8.13.5/Submit) id l15644H5023853
+	for linux-acpi@vger.kernel.org; Mon, 5 Feb 2007 07:04:04 +0100
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Sounds like a regression of patch from linus
+Hi!
+  I posted the following question, when 2.6.19 was freshly out. However, nobody
+has answered. OK, I told myself, let's get things to stabilize, and I waited
+patiently for 2.6.20. Now, the things are absolutely the same, and IMHO wrong.
+Could anybody look at this and decide, whether it is a real bug, which has to
+be fixed, or not ?
+      With regards, Pavel Troller
+      
+----- Forwarded message from Pavel Troller <patrol@sinus.cz> -----
 
-ACPI: Allow setting SCI_EN bit in PM1_CONTROL register
-Linus Torvalds [Wed, 11 Oct 2006 00:14:44 +0000 (17:14 -0700)]
-This is needed by at least the Mac Mini's, which (incorrectly) come back
-from suspend with SCI_EN clear.
+From: Pavel Troller <patrol@sinus.cz>
+To: linux-acpi@vger.kernel.org
+Subject: Strange things on 2.6.19 for a dual-core CPU
+Mail-Followup-To: Pavel Troller <patrol@sinus.cz>,
+	linux-acpi@vger.kernel.org
+Content-Disposition: inline
+User-Agent: Mutt/1.5.9i
 
+Hi!
+  I've updated to vanilla 2.6.19 on my Pentium-D (dual-core x86_64) box.
+Now I can't see even C1 in the /proc/acpi/processor/*/power output:
+patrol@arcus:~$ cat /proc/acpi/processor/CPU1/power
+active state:            C0
+max_cstate:              C8
+bus master activity:     00000000
+maximum allowed latency: 2000 usec
+states:
+patrol@arcus:~$ cat /proc/acpi/processor/CPU2/power
+active state:            C0
+max_cstate:              C8
+bus master activity:     00000000
+maximum allowed latency: 2000 usec
+states:
 
-On 2/5/07, Len Brown <lenb@kernel.org> wrote:
-> With 2.6.19.2, init 0 works
-> with 2.6.20, it causes this box to reset when it should poweroff, and thus it reboots.
->
-> any suggestions on where to look first?
->
-> thanks,
-> -Len
->
-> Success case:
->
-> Linux version 2.6.19.2 (lenb@d975xbx2) (gcc version 4.1.2 20061115 (prerelease) (SUSE Linux)) #5 SMP Sun Feb
-> Command line: root=/dev/sda2 console=tty0 console=ttyS0,115200n8 debug
-> ...
-> # init 0
-> ...
-> The system will be halted immediately.
-> Synchronizing SCSI cache for disk sda:
-> ACPI: PCI interrupt for device 0000:06:03.0 disabled
-> ACPI: PCI interrupt for device 0000:05:06.1 disabled
-> ACPI: PCI interrupt for device 0000:05:06.0 disabled
-> ACPI: PCI interrupt for device 0000:05:04.1 disabled
-> ACPI: PCI interrupt for device 0000:05:04.0 disabled
-> Power down.
-> acpi_power_off called
->  hwsleep-0285 [02] enter_sleep_state     : Entering sleep state [S5]
->
-> Failure case:
->
-> Linux version 2.6.20 (lenb@d975xbx2) (gcc version 4.1.2 20061115 (prerelease) (SUSE Linux)) #1 SMP Sun Feb
-> Command line: root=/dev/sda2 console=tty0 console=ttyS0,115200n8 debug
-> ...
-> # init 0
-> ...
-> The system will be halted immediately.
-> Synchronizing SCSI cache for disk sda:
-> ACPI: PCI interrupt for device 0000:06:03.0 disabled
-> ACPI: PCI interrupt for device 0000:05:06.1 disabled
-> ACPI: PCI interrupt for device 0000:05:06.0 disabled
-> ACPI: PCI interrupt for device 0000:05:04.1 disabled
-> ACPI: PCI interrupt for device 0000:05:04.0 disabled
-> Power down.
-> acpi_power_off called
->  hwsleep-0285 [02] enter_sleep_state     : Entering sleep state [S5]
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+  Another interesting thing is shown here:
+patrol@arcus:~$ cat /proc/acpi/processor/CPU1/info
+processor id:            0
+acpi id:                 1
+bus mastering control:   no
+power management:        no
+throttling control:      yes
+limit interface:         yes
+patrol@arcus:~$ cat /proc/acpi/processor/CPU2/info
+processor id:            1
+acpi id:                 2
+bus mastering control:   no
+power management:        no
+throttling control:      no
+limit interface:         no
+
+  As I remember, both cores were showing the same things formerly.
+  The only line referring to CPUs during boot is
+ACPI: Processor [CPU1] (supports 8 throttling states)
+  and CPU2 is not mentioned at all.
+
+  The last (but maybe not acpi-related) strange thing is that in /proc/cpuinfo,
+CPU1 reports 6403.56 bogomips (as always, approximately twice the clock) and CPU2
+8314.32 ones (too much). It's also very suspicious. Formerly the difference was
+very small.
+
+  Should I provide more info to debug these things, or is it OK ?
+         With regards, Pavel Troller
+
+----- End forwarded message -----
