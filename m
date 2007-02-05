@@ -1,16 +1,16 @@
 From: Rudolf Marek <r.marek@assembler.cz>
 Subject: Re: ACPI bytecode hardware registers access
-Date: Mon, 05 Feb 2007 15:38:21 +0100
-Message-ID: <45C7415D.9030409@assembler.cz>
+Date: Mon, 05 Feb 2007 15:46:15 +0100
+Message-ID: <45C74337.4060105@assembler.cz>
 References: <45C640CF.2090205@assembler.cz> <3877989d0702050003w3e0be4d3q9c475d2c6706f6a8@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ms.trustica.cz ([82.208.32.68]:42029 "EHLO ms.trustica.cz"
+Received: from ms.trustica.cz ([82.208.32.68]:42644 "EHLO ms.trustica.cz"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932973AbXBEOoz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Feb 2007 09:44:55 -0500
+	id S932952AbXBEOqo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 Feb 2007 09:46:44 -0500
 In-Reply-To: <3877989d0702050003w3e0be4d3q9c475d2c6706f6a8@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
