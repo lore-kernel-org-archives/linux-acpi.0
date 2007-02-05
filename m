@@ -1,37 +1,41 @@
-From: "Adrian Yee" <brewt-linux-acpi@brewt.org>
-Subject: Re: Synaptic touchpad freezes and lost sync messages in dmesg
-Date: Mon, 05 Feb 2007 15:33:40 -0800
-Message-ID: <GMail.1170718420.189062352.5196947708@brewt.org>
-References: <f6dfbef00702041218r403147dse04a771fc46e5b73@mail.gmail.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: Bad libata resume behaviour due to ACPICA change (in acpi-test)
+Date: Mon, 5 Feb 2007 21:59:04 -0200
+Message-ID: <20070205235904.GA18392@khazad-dum.debian.net>
+References: <20070203004140.GB619@khazad-dum.debian.net> <B41635854730A14CA71C92B36EC22AAC803F9D@mssmsx411>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mini.brewt.org ([216.18.5.212]:51962 "HELO mini.brewt.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751400AbXBEXkX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Feb 2007 18:40:23 -0500
-In-Reply-To: <f6dfbef00702041218r403147dse04a771fc46e5b73@mail.gmail.com>
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:47694 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933089AbXBEX7O (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Feb 2007 18:59:14 -0500
+Content-Disposition: inline
+In-Reply-To: <B41635854730A14CA71C92B36EC22AAC803F9D@mssmsx411>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Gabor Gabris <gaborgabris@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy@intel.com>
+Cc: linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>
 
-Hi Gabor,
+On Mon, 05 Feb 2007, Starikovskiy, Alexey Y wrote:
+> I cannot reproduce your problem with T43 here on linux-acpi-test with
+> defconfig (relevant ACPI modules were tried both dynamic and static).
+> Resume time is about 4-6 seconds, not 20-40 as you mention.
 
-On Sun, 4 Feb 2007 21:18:14 +0100
-"Gabor Gabris" <gaborgabris@gmail.com> wrote:
-> I encountered problems on my laptop, which is an Albacomp Eco
-> Traveller V4 (AFAIK it is a rebranded Clevo M660S), it does not bot
-> Linux without ACPI (at least my UHU-Linux with kernel 2.6.17 does not
-> boot with acpi=off parameter), but when I use the Synaptics touchpad
-> in X, the cursor often freezes, and in dmesg i can see the following:
+Never tried a thinkpad in defconfig mode.  Will do.
 
-Are you sure your notebook uses a Synaptics touchpad?  With my Sony TX850,
-Debian automatically chooses to use the synaptics driver, which results in the
-freezing cursor and lost interrupts (iirc).  My notebook actually has an ALPS
-touchpad, so tweaking the synaptics driver X configuration accordingly fixes
-things.  Take a look at the README.alps file that comes with the synaptics
-driver if this is the case.
+> Could you please send your .config and try defconfig on your machine?
+> 
+> BTW, my T43 use AHCI mode of SATA controller, if it matters...
 
-Adrian
+Mine is stuck in legacy mode, so we are using different drivers (ata_piix in
+my case).  Which BIOS and firmware you got?  What is your machine type?  I
+am very interested in a way to get my T43 into AHCI mode...
+
+Mine is a ThinkPad T43 2687-DDU, BIOS is 1.29, EC firmware is 1.06.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
