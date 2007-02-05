@@ -1,45 +1,67 @@
-From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-Subject: Re: ACPI bytecode hardware registers access
-Date: Mon, 05 Feb 2007 18:42:34 +0300
-Message-ID: <45C7506A.20402@linux.intel.com>
-References: <45C640CF.2090205@assembler.cz> <3877989d0702050003w3e0be4d3q9c475d2c6706f6a8@mail.gmail.com> <45C74337.4060105@assembler.cz>
+From: Markus Demleitner <msdemlei@cl.uni-heidelberg.de>
+Subject: Thermal resume "regression"
+Date: Mon, 5 Feb 2007 16:36:09 +0100
+Message-ID: <20070205153609.GA31471@victor.cl.uni-heidelberg.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([143.182.124.22]:10487 "EHLO
-	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751068AbXBEPmv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Feb 2007 10:42:51 -0500
-In-Reply-To: <45C74337.4060105@assembler.cz>
+Received: from relay2.uni-heidelberg.de ([129.206.210.211]:52875 "EHLO
+	relay2.uni-heidelberg.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751707AbXBEQjZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Feb 2007 11:39:25 -0500
+Received: from ix.urz.uni-heidelberg.de (cyrus1.urz.uni-heidelberg.de [129.206.119.235])
+	by relay2.uni-heidelberg.de (8.13.8/8.13.1) with ESMTP id l15FaGkI003876
+	for <linux-acpi@vger.kernel.org>; Mon, 5 Feb 2007 16:36:16 +0100
+Received: from janus.cl.uni-heidelberg.de (janus.cl.uni-heidelberg.de [147.142.207.16])
+	by ix.urz.uni-heidelberg.de (8.8.8/8.8.8) with ESMTP id QAA4333636
+	for <linux-acpi@vger.kernel.org>; Mon, 5 Feb 2007 16:36:16 +0100
+Received: from msdemlei by janus.cl.uni-heidelberg.de with local (Exim 4.50)
+	id 1HE5t9-00059r-WF
+	for linux-acpi@vger.kernel.org; Mon, 05 Feb 2007 16:36:16 +0100
+Received: from msdemlei by victor.cl.uni-heidelberg.de with local (Exim 4.50)
+	id 1HE5t3-000053-HS
+	for linux-acpi@vger.kernel.org; Mon, 05 Feb 2007 16:36:09 +0100
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rudolf Marek <r.marek@assembler.cz>
-Cc: LM Sensors <lm-sensors@lm-sensors.org>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Rudolf Marek wrote:
-> Problem is that the device manufacturers may do what they want in ACPI 
-> bytecode.
->   We cannot expect them to implement smbus bus control as specified in the
-> specs. They just drive the registers on their own.
->
-> What I'm trying to implement is the ACPI isolation from selected hardware
-> somehow, because the ACPI bytecode can contain code that modifies virtually any
-> hardware in the system without the clue what others drivers do.
->
-> Even the windows don't like it:
-> http://www.microsoft.com/whdc/system/pnppwr/powermgmt/BIOSAML.mspx
-> (I/O Ports Blocked from BIOS AML)
->
->   
-There are no any devices in the list above (e.g. there is no 
-sm-bus/fan/thermal, e.t.c chip blocked).
-> Please help me find the solution.
->   
-Why do you think such a solution exists? One solution would be to create generic "thermal" interface, under which all drivers could provide their capabilities... Say if lm-sensors could keep system from overheating, it could say so, and system could skip loading of ACPI thermal driver.
-Problem is, lm-sensors doesn't know, what to do to control system. You still need to figure out, that for example turning fan #3 on helps to decrease temp #2... It's not possible to associate termal devices of ACPI with those from lm-sensors, so lm-sensors cannot steal info about trip-points from ACPI, or use ACPI as a governor. 
+Hi,
 
-Returning to your example, there are two registers in ACPI space, access to which should be locked by single mutex. So you could provide mapping from I/O address to mutex. So if ACPI wants to access IO register, it asks, which mutex it should acquire. Question on how to extend mutex lock until access to second register remains open...
+Since 2.6.20 is out and nobody else seem to complain, I thought
+it's time to ask --
 
-Regards,
-	Alex.
+>From kernel version 2.6.18 on my JVC XP731 (a centrino-based
+subnotebook) would freeze when resuming from 
+
+echo -n mem > /sys/power/state
+
+where it woke up flawlessly before.  Turns out it did this because in
+drivers/acpi/thermal.c, function acpi_thermal_resume, a call to
+acpi_thermal_check was introduced (that's line 1415 in 2.6.20).  The
+lockup at resume time is deterministic, i.e., it is independent of
+the actual temperature of the device(s).
+
+Commenting it out results in a flawless wakeup (as does removing the
+thermal module at suspend time).
+
+Now, I have to admit I didn't investigate matters much further, but
+still: acpi_thermal_check does quite a few rather fancy things, and
+regardless if the freeze on resume is an issue of the JVC (as the
+lack of other complaints suggests) or not -- is it absolutely
+necessary to run it during resume, when things are a nightmare to
+debug (which is one reason I didn't investigate further)?  I for one
+would appreciate if it were only called after the system is up and
+running, when one could at least see what the kernel thinks it's
+doing...
+
+Disclaimer: I only have very shady ideas what's actually going on
+with ACPI thermal management.  If not calling acpi_thermal_check
+actually significantly increases the likelihood of fried machines,
+disregard all this as layman babble, and I'll just add thermal to the
+list of modules that don't survive a suspend to RAM.
+
+Cheers,
+
+         Markus
+
