@@ -1,67 +1,92 @@
-From: Markus Demleitner <msdemlei@cl.uni-heidelberg.de>
-Subject: Thermal resume "regression"
-Date: Mon, 5 Feb 2007 16:36:09 +0100
-Message-ID: <20070205153609.GA31471@victor.cl.uni-heidelberg.de>
+From: Rudolf Marek <r.marek@assembler.cz>
+Subject: Re: ACPI bytecode hardware registers access
+Date: Mon, 05 Feb 2007 17:41:04 +0100
+Message-ID: <45C75E20.8010101@assembler.cz>
+References: <45C640CF.2090205@assembler.cz> <3877989d0702050003w3e0be4d3q9c475d2c6706f6a8@mail.gmail.com> <45C74337.4060105@assembler.cz> <45C7506A.20402@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay2.uni-heidelberg.de ([129.206.210.211]:52875 "EHLO
-	relay2.uni-heidelberg.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751707AbXBEQjZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Feb 2007 11:39:25 -0500
-Received: from ix.urz.uni-heidelberg.de (cyrus1.urz.uni-heidelberg.de [129.206.119.235])
-	by relay2.uni-heidelberg.de (8.13.8/8.13.1) with ESMTP id l15FaGkI003876
-	for <linux-acpi@vger.kernel.org>; Mon, 5 Feb 2007 16:36:16 +0100
-Received: from janus.cl.uni-heidelberg.de (janus.cl.uni-heidelberg.de [147.142.207.16])
-	by ix.urz.uni-heidelberg.de (8.8.8/8.8.8) with ESMTP id QAA4333636
-	for <linux-acpi@vger.kernel.org>; Mon, 5 Feb 2007 16:36:16 +0100
-Received: from msdemlei by janus.cl.uni-heidelberg.de with local (Exim 4.50)
-	id 1HE5t9-00059r-WF
-	for linux-acpi@vger.kernel.org; Mon, 05 Feb 2007 16:36:16 +0100
-Received: from msdemlei by victor.cl.uni-heidelberg.de with local (Exim 4.50)
-	id 1HE5t3-000053-HS
-	for linux-acpi@vger.kernel.org; Mon, 05 Feb 2007 16:36:09 +0100
-Content-Disposition: inline
+Received: from ms.trustica.cz ([82.208.32.68]:41054 "EHLO ms.trustica.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751649AbXBEQla (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 Feb 2007 11:41:30 -0500
+In-Reply-To: <45C7506A.20402@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Cc: LM Sensors <lm-sensors@lm-sensors.org>, linux-acpi@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>
 
-Hi,
+Hello Alex,
 
-Since 2.6.20 is out and nobody else seem to complain, I thought
-it's time to ask --
+Thanks for the comments.
 
->From kernel version 2.6.18 on my JVC XP731 (a centrino-based
-subnotebook) would freeze when resuming from 
+> Why do you think such a solution exists?
 
-echo -n mem > /sys/power/state
+I asked help to find a solution, this does not mean I believe there is one.
 
-where it woke up flawlessly before.  Turns out it did this because in
-drivers/acpi/thermal.c, function acpi_thermal_resume, a call to
-acpi_thermal_check was introduced (that's line 1415 in 2.6.20).  The
-lockup at resume time is deterministic, i.e., it is independent of
-the actual temperature of the device(s).
+> One solution would be to create generic "thermal" interface, under which all
+> drivers could provide their capabilities... Say if lm-sensors could keep
+> system from overheating, it could say so, and system could skip loading of
+> ACPI thermal driver. Problem is, lm-sensors doesn't know, what to do to
+> control system. You still need to figure out, that for example turning fan #3
+> on helps to decrease temp #2... It's not possible to associate termal devices
+> of ACPI with those from lm-sensors, so lm-sensors cannot steal info about 
+> trip-points from ACPI, or use ACPI as a governor.
 
-Commenting it out results in a flawless wakeup (as does removing the
-thermal module at suspend time).
+Well this is quite a different level of abstraction. I believe that thermal
+control for laptops should be left alone, or driven by ACPI.
 
-Now, I have to admit I didn't investigate matters much further, but
-still: acpi_thermal_check does quite a few rather fancy things, and
-regardless if the freeze on resume is an issue of the JVC (as the
-lack of other complaints suggests) or not -- is it absolutely
-necessary to run it during resume, when things are a nightmare to
-debug (which is one reason I didn't investigate further)?  I for one
-would appreciate if it were only called after the system is up and
-running, when one could at least see what the kernel thinks it's
-doing...
+My current focus is to stop changing the registers from ACPI AML same time as
+other drivers are using same device. (on desktop/server systems) This causes
+problems to APCI and also to other drivers. Once such collision is detected we
+may warn the user to use for example just the thermal module and not lm-sensors
+one...
 
-Disclaimer: I only have very shady ideas what's actually going on
-with ACPI thermal management.  If not calling acpi_thermal_check
-actually significantly increases the likelihood of fried machines,
-disregard all this as layman babble, and I'll just add thermal to the
-list of modules that don't survive a suspend to RAM.
+In ideal case user should use the ACPI thermal policy OR the lm-sensors, but
+without the actual inspection of ACPI bytecode there is no chance to know if
+ACPI and lm-sensors driver are talking to same chip? (maybe through the I/O
+space regions it may work, however not for smbus bused stuff, because it will
+advertise the controller and not the actual smbus device)
 
-Cheers,
+> Returning to your example, there are two registers in ACPI space, access to
+> which should be locked by single mutex. So you could provide mapping from I/O
+> address to mutex. So if ACPI wants to access IO register, it asks, which
+> mutex it should acquire. Question on how to extend mutex lock until access to
+> second register remains open...
 
-         Markus
+So if I understand correctly you propose something like I did in 3) in my
+original post. However this will not help much because we need to hold the mutex
+longer time. If I look from the "other" side, typical driver just sets the bank,
+do the reads/writes and then does not care about it. This could be generalized -
+the driver guards its "transactions" - once done it does not care what happens
+with the device (suppose the driver preserves the chip state after transaction
+is done - this is easy for monitoring chips but hard for smbus cotrollers)
+
+I studied ACPI spec once a while and there is only global lock (this is used for
+SMM ) and also there might be some per device mutexes, but I never seen them
+implemented. Maybe there might be implemented some per ACPI device mutex, so
+regions belonging to this device will be locked if the code execution is still
+in device methods. I dont know if it would work for the "globaly" declared
+regions...
+
+Second possibility is to have some kind of that port forwarder, which will
+direct the actual access from ACPI to the Linux driver. The driver then knows if
+is safe to read or write from/to that location.
+
+This principle would be also handy for the super I/O because this chips needs
+some magic sequence to open them, read the config and close them. There are many
+drivers (watchdog, parport, irda, mmc, lm-sensors) in the kernel trying to write
+to same super I/O port (0x2e/0x2f) this generic port forwarder would solve it too.
+
+Question for ACPI people: If I would come with some kind of this port-forwarder
+class - will you accept it as solution if all technical stuff is solved? I mean
+- will be solution acceptable in principle for you?
+
+Thanks,
+
+Regards
+Rudolf
+
+Keep me CCed thanks.
 
