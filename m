@@ -1,105 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [patch 12/13] sony_acpi: allow multiple sony_acpi_values for the same .name
-Date: Mon, 05 Feb 2007 16:09:18 -0800
-Message-ID: <200702060010.l160AMos003754@shell0.pdx.osdl.net>
+Subject: [patch 08/13] sony_apci: add resume handling
+Date: Mon, 05 Feb 2007 16:09:15 -0800
+Message-ID: <200702060010.l160AI2m003742@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40713 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40716 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965166AbXBFALz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Feb 2007 19:11:55 -0500
+	id S965166AbXBFAMG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 Feb 2007 19:12:06 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, malattia@linux.it
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.orgakpm@linux-foundation.org, stelian@popies.net
 
-From: Mattia Dongili <malattia@linux.it>
+From: Andrew Morton <akpm@osdl.org>
 
-The acpi handles are kept _only_ if both the requested .acpiget and .acpiset
-are available in the DSDT.  Currently only the SCDP/CDPW dualism is known.
+Avoid dimness on resume.
 
-Signed-off-by: Mattia Dongili <malattia@linux.it>
+Cc: Stelian Pop <stelian@popies.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/sony_acpi.c |   44 +++++++++++++++++++++----------------
- 1 file changed, 25 insertions(+), 19 deletions(-)
+ drivers/acpi/sony_acpi.c |   49 +++++++++++++++++++++++++------------
+ 1 file changed, 34 insertions(+), 15 deletions(-)
 
-diff -puN drivers/acpi/sony_acpi.c~sony_acpi-allow-multiple-sony_acpi_values-for-the-same-name drivers/acpi/sony_acpi.c
---- a/drivers/acpi/sony_acpi.c~sony_acpi-allow-multiple-sony_acpi_values-for-the-same-name
+diff -puN drivers/acpi/sony_acpi.c~sony_apci-resume drivers/acpi/sony_acpi.c
+--- a/drivers/acpi/sony_acpi.c~sony_apci-resume
 +++ a/drivers/acpi/sony_acpi.c
-@@ -68,7 +68,7 @@ static struct backlight_properties sony_
+@@ -46,19 +46,6 @@ module_param(debug, int, 0);
+ MODULE_PARM_DESC(debug, "set this to 1 (and RTFM) if you want to help "
+ 			"the development of this driver");
  
- static struct sony_acpi_value {
- 	char			*name;	 /* name of the entry */
--	struct proc_dir_entry 	*proc;	 /* /proc entry */
-+	struct proc_dir_entry	*proc;	 /* /proc entry */
- 	char			*acpiget;/* name of the ACPI get function */
+-static int sony_acpi_add (struct acpi_device *device);
+-static int sony_acpi_remove (struct acpi_device *device, int type);
+-
+-static struct acpi_driver sony_acpi_driver = {
+-	.name	= ACPI_SNC_DRIVER_NAME,
+-	.class	= ACPI_SNC_CLASS,
+-	.ids	= ACPI_SNC_HID,
+-	.ops	= {
+-			.add	= sony_acpi_add,
+-			.remove	= sony_acpi_remove,
+-		  },
+-};
+-
+ static acpi_handle sony_acpi_handle;
+ static struct proc_dir_entry *sony_acpi_dir;
+ 
+@@ -69,6 +56,8 @@ static struct sony_acpi_value {
  	char			*acpiset;/* name of the ACPI get function */
  	int 			min;	 /* minimum allowed value or -1 */
-@@ -78,6 +78,7 @@ static struct sony_acpi_value {
+ 	int			max;	 /* maximum allowed value or -1 */
++	int			value;	 /* current setting */
++	int			valid;	 /* Has ever been set */
  	int			debug;	 /* active only in debug mode ? */
  } sony_acpi_values[] = {
  	{
-+		/* for backward compatibility only */
- 		.name		= "brightness",
- 		.acpiget	= "GBRT",
- 		.acpiset	= "SBRT",
-@@ -107,6 +108,14 @@ static struct sony_acpi_value {
- 		.debug		= 0,
- 	},
- 	{
-+		.name		= "cdpower",
-+		.acpiget	= "GCDP",
-+		.acpiset	= "CDPW",
-+		.min		= 0,
-+		.max		= 1,
-+		.debug		= 0,
-+	},
-+	{
- 		.name           = "audiopower",
- 		.acpiget        = "GAZP",
- 		.acpiset        = "AZPW",
-@@ -356,27 +365,24 @@ static int sony_acpi_add(struct acpi_dev
- 		if (!debug && item->debug)
- 			continue;
+@@ -239,10 +228,30 @@ static int sony_acpi_write(struct file *
  
--		if (item->acpiget &&
--		    ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle,
--		    		 item->acpiget, &handle)))
--			proc_file_mode = S_IRUSR;
--		else
--			printk(LOG_PFX "unable to get ACPI handle for %s (get)\n",
--					item->name);
+ 	if (acpi_callsetfunc(sony_acpi_handle, item->acpiset, value, NULL) < 0)
+ 		return -EIO;
 -
--		if (item->acpiset &&
--		    ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle,
--		    		 item->acpiset, &handle)))
--			proc_file_mode |= S_IWUSR;
--		else
--			printk(LOG_PFX "unable to get ACPI handle for %s (set)\n",
--					item->name);
-+		if (item->acpiget) {
-+			if (ACPI_FAILURE(acpi_get_handle(sony_acpi_handle,
-+							item->acpiget, &handle)))
-+				continue;
++	item->value = value;
++	item->valid = 1;
+ 	return count;
+ }
  
--		if (proc_file_mode == 0)
--			continue;
-+			proc_file_mode |= S_IRUSR;
-+		}
++static int sony_acpi_resume(struct acpi_device *device)
++{
++	struct sony_acpi_value *item;
 +
-+		if (item->acpiset) {
-+			if (ACPI_FAILURE(acpi_get_handle(sony_acpi_handle,
-+							item->acpiset, &handle)))
-+				continue;
++	for (item = sony_acpi_values; item->name; item++) {
++		int ret;
 +
-+			proc_file_mode |= S_IWUSR;
++		if (!item->valid)
++			continue;
++		ret = acpi_callsetfunc(sony_acpi_handle, item->acpiset,
++					item->value, NULL);
++		if (ret < 0) {
++			printk("%s: %d\n", __FUNCTION__, ret);
++			break;
 +		}
++	}
++	return 0;
++}
++
+ static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
+ {
+ 	printk(LOG_PFX "sony_acpi_notify\n");
+@@ -344,7 +353,6 @@ outwalk:
+ 	return result;
+ }
  
- 		item->proc = create_proc_entry(item->name, proc_file_mode,
--					       acpi_device_dir(device));
-+				acpi_device_dir(device));
- 		if (!item->proc) {
- 			printk(LOG_PFX "unable to create proc entry\n");
- 			result = -EIO;
+-
+ static int sony_acpi_remove(struct acpi_device *device, int type)
+ {
+ 	acpi_status status;
+@@ -367,6 +375,17 @@ static int sony_acpi_remove(struct acpi_
+ 	return 0;
+ }
+ 
++static struct acpi_driver sony_acpi_driver = {
++	.name	= ACPI_SNC_DRIVER_NAME,
++	.class	= ACPI_SNC_CLASS,
++	.ids	= ACPI_SNC_HID,
++	.ops	= {
++			.add	= sony_acpi_add,
++			.remove	= sony_acpi_remove,
++			.resume = sony_acpi_resume,
++		  },
++};
++
+ static int __init sony_acpi_init(void)
+ {
+ 	int result;
 _
