@@ -1,116 +1,176 @@
 From: akpm@linux-foundation.org
-Subject: [patch 08/13] sony_apci: add resume handling
-Date: Mon, 05 Feb 2007 16:09:15 -0800
-Message-ID: <200702060010.l160AI2m003742@shell0.pdx.osdl.net>
+Subject: [patch 10/13] sony_acpi: add acpi_bus_generate event
+Date: Mon, 05 Feb 2007 16:09:17 -0800
+Message-ID: <200702060010.l160AL9W003748@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40716 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40753 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965166AbXBFAMG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Feb 2007 19:12:06 -0500
+	id S965220AbXBFAMP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 Feb 2007 19:12:15 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.orgakpm@linux-foundation.org, stelian@popies.net
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, stelian@popies.net, malattia@linux.it, nilton.volpato@gmail.com
 
-From: Andrew Morton <akpm@osdl.org>
+From: Stelian Pop <stelian@popies.net>
 
-Avoid dimness on resume.
+Added acpi_bus_generate event for forwarding Fn-keys pressed to acpi subsystem,
+and made correspondent necessary changes for this to work.
 
-Cc: Stelian Pop <stelian@popies.net>
+From: Mattia Dongili <malattia@linux.it>
+
+Allow the existence of a setter method without a getter and viceversa,
+additionaly set /proc file permissions reflecting it.  Fix also the error
+exit path.
+
+Signed-off-by: Mattia Dongili <malattia@linux.it>
+Signed-off-by: Nilton Volpato <nilton.volpato@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/sony_acpi.c |   49 +++++++++++++++++++++++++------------
- 1 file changed, 34 insertions(+), 15 deletions(-)
+ drivers/acpi/sony_acpi.c |   75 ++++++++++++++++++++++---------------
+ 1 file changed, 45 insertions(+), 30 deletions(-)
 
-diff -puN drivers/acpi/sony_acpi.c~sony_apci-resume drivers/acpi/sony_acpi.c
---- a/drivers/acpi/sony_acpi.c~sony_apci-resume
+diff -puN drivers/acpi/sony_acpi.c~sony_acpi-addacpi_bus_generate-event drivers/acpi/sony_acpi.c
+--- a/drivers/acpi/sony_acpi.c~sony_acpi-addacpi_bus_generate-event
 +++ a/drivers/acpi/sony_acpi.c
-@@ -46,19 +46,6 @@ module_param(debug, int, 0);
- MODULE_PARM_DESC(debug, "set this to 1 (and RTFM) if you want to help "
- 			"the development of this driver");
+@@ -54,6 +54,7 @@ MODULE_PARM_DESC(debug, "set this to 1 (
  
--static int sony_acpi_add (struct acpi_device *device);
--static int sony_acpi_remove (struct acpi_device *device, int type);
--
--static struct acpi_driver sony_acpi_driver = {
--	.name	= ACPI_SNC_DRIVER_NAME,
--	.class	= ACPI_SNC_CLASS,
--	.ids	= ACPI_SNC_HID,
--	.ops	= {
--			.add	= sony_acpi_add,
--			.remove	= sony_acpi_remove,
--		  },
--};
--
  static acpi_handle sony_acpi_handle;
  static struct proc_dir_entry *sony_acpi_dir;
++static struct acpi_device *sony_acpi_acpi_device = NULL;
  
-@@ -69,6 +56,8 @@ static struct sony_acpi_value {
- 	char			*acpiset;/* name of the ACPI get function */
- 	int 			min;	 /* minimum allowed value or -1 */
- 	int			max;	 /* maximum allowed value or -1 */
-+	int			value;	 /* current setting */
-+	int			valid;	 /* Has ever been set */
- 	int			debug;	 /* active only in debug mode ? */
- } sony_acpi_values[] = {
- 	{
-@@ -239,10 +228,30 @@ static int sony_acpi_write(struct file *
+ static int sony_backlight_update_status(struct backlight_device *bd);
+ static int sony_backlight_get_brightness(struct backlight_device *bd);
+@@ -270,7 +271,9 @@ static int sony_acpi_resume(struct acpi_
  
- 	if (acpi_callsetfunc(sony_acpi_handle, item->acpiset, value, NULL) < 0)
- 		return -EIO;
--
-+	item->value = value;
-+	item->valid = 1;
- 	return count;
- }
- 
-+static int sony_acpi_resume(struct acpi_device *device)
-+{
-+	struct sony_acpi_value *item;
-+
-+	for (item = sony_acpi_values; item->name; item++) {
-+		int ret;
-+
-+		if (!item->valid)
-+			continue;
-+		ret = acpi_callsetfunc(sony_acpi_handle, item->acpiset,
-+					item->value, NULL);
-+		if (ret < 0) {
-+			printk("%s: %d\n", __FUNCTION__, ret);
-+			break;
-+		}
-+	}
-+	return 0;
-+}
-+
  static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
  {
- 	printk(LOG_PFX "sony_acpi_notify\n");
-@@ -344,7 +353,6 @@ outwalk:
+-	printk(LOG_PFX "sony_acpi_notify\n");
++	if (debug)
++		printk(LOG_PFX "sony_acpi_notify, event: %d\n", event);
++	acpi_bus_generate_event(sony_acpi_acpi_device, 1, event);
+ }
+ 
+ static acpi_status sony_walk_callback(acpi_handle handle, u32 level,
+@@ -293,8 +296,11 @@ static int sony_acpi_add(struct acpi_dev
+ 	acpi_status status;
+ 	int result;
+ 	acpi_handle handle;
++	mode_t proc_file_mode;
+ 	struct sony_acpi_value *item;
+ 
++	sony_acpi_acpi_device = device;
++
+ 	sony_acpi_handle = device->handle;
+ 
+ 	acpi_driver_data(device) = NULL;
+@@ -308,16 +314,16 @@ static int sony_acpi_add(struct acpi_dev
+ 			result = -ENODEV;
+ 			goto outwalk;
+ 		}
++	}
+ 
+-		status = acpi_install_notify_handler(sony_acpi_handle,
+-						     ACPI_DEVICE_NOTIFY,
+-						     sony_acpi_notify,
+-						     NULL);
+-		if (ACPI_FAILURE(status)) {
+-			printk(LOG_PFX "unable to install notify handler\n");
+-			result = -ENODEV;
+-			goto outnotify;
+-		}
++	status = acpi_install_notify_handler(sony_acpi_handle,
++					     ACPI_DEVICE_NOTIFY,
++					     sony_acpi_notify,
++					     NULL);
++	if (ACPI_FAILURE(status)) {
++		printk(LOG_PFX "unable to install notify handler\n");
++		result = -ENODEV;
++		goto outnotify;
+ 	}
+ 
+ 	if (ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle, "GBRT", &handle))) {
+@@ -329,20 +335,31 @@ static int sony_acpi_add(struct acpi_dev
+ 	}
+ 
+ 	for (item = sony_acpi_values; item->name; ++item) {
++		proc_file_mode = 0;
++
+ 		if (!debug && item->debug)
+ 			continue;
+ 
+ 		if (item->acpiget &&
+-		    ACPI_FAILURE(acpi_get_handle(sony_acpi_handle,
++		    ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle,
+ 		    		 item->acpiget, &handle)))
+-		    	continue;
++			proc_file_mode = S_IRUSR;
++		else
++			printk(LOG_PFX "unable to get ACPI handle for %s (get)\n",
++					item->name);
+ 
+ 		if (item->acpiset &&
+-		    ACPI_FAILURE(acpi_get_handle(sony_acpi_handle,
++		    ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle,
+ 		    		 item->acpiset, &handle)))
+-		    	continue;
++			proc_file_mode |= S_IWUSR;
++		else
++			printk(LOG_PFX "unable to get ACPI handle for %s (set)\n",
++					item->name);
++
++		if (proc_file_mode == 0)
++			continue;
+ 
+-		item->proc = create_proc_entry(item->name, 0600,
++		item->proc = create_proc_entry(item->name, proc_file_mode,
+ 					       acpi_device_dir(device));
+ 		if (!item->proc) {
+ 			printk(LOG_PFX "unable to create proc entry\n");
+@@ -361,17 +378,15 @@ static int sony_acpi_add(struct acpi_dev
+ 	return 0;
+ 
+ outproc:
+-	if (debug) {
+-		status = acpi_remove_notify_handler(sony_acpi_handle,
+-						    ACPI_DEVICE_NOTIFY,
+-						    sony_acpi_notify);
+-		if (ACPI_FAILURE(status))
+-			printk(LOG_PFX "unable to remove notify handler\n");
+-	}
+-outnotify:
+ 	for (item = sony_acpi_values; item->name; ++item)
+ 		if (item->proc)
+ 			remove_proc_entry(item->name, acpi_device_dir(device));
++outnotify:
++	status = acpi_remove_notify_handler(sony_acpi_handle,
++					    ACPI_DEVICE_NOTIFY,
++					    sony_acpi_notify);
++	if (ACPI_FAILURE(status))
++		printk(LOG_PFX "unable to remove notify handler\n");
+ outwalk:
  	return result;
  }
+@@ -384,13 +399,13 @@ static int sony_acpi_remove(struct acpi_
+ 	if (sony_backlight_device)
+ 		backlight_device_unregister(sony_backlight_device);
  
--
- static int sony_acpi_remove(struct acpi_device *device, int type)
- {
- 	acpi_status status;
-@@ -367,6 +375,17 @@ static int sony_acpi_remove(struct acpi_
- 	return 0;
- }
- 
-+static struct acpi_driver sony_acpi_driver = {
-+	.name	= ACPI_SNC_DRIVER_NAME,
-+	.class	= ACPI_SNC_CLASS,
-+	.ids	= ACPI_SNC_HID,
-+	.ops	= {
-+			.add	= sony_acpi_add,
-+			.remove	= sony_acpi_remove,
-+			.resume = sony_acpi_resume,
-+		  },
-+};
+-	if (debug) {
+-		status = acpi_remove_notify_handler(sony_acpi_handle,
+-						    ACPI_DEVICE_NOTIFY,
+-						    sony_acpi_notify);
+-		if (ACPI_FAILURE(status))
+-			printk(LOG_PFX "unable to remove notify handler\n");
+-	}
++	sony_acpi_acpi_device = NULL;
 +
- static int __init sony_acpi_init(void)
- {
- 	int result;
++	status = acpi_remove_notify_handler(sony_acpi_handle,
++					    ACPI_DEVICE_NOTIFY,
++					    sony_acpi_notify);
++	if (ACPI_FAILURE(status))
++		printk(LOG_PFX "unable to remove notify handler\n");
+ 
+ 	for (item = sony_acpi_values; item->name; ++item)
+ 		if (item->proc)
 _
