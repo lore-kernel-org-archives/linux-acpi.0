@@ -1,161 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [patch 09/13] acpi: add backlight support to the sony_acpi driver
-Date: Mon, 05 Feb 2007 16:09:16 -0800
-Message-ID: <200702060010.l160AJMV003745@shell0.pdx.osdl.net>
+Subject: [patch 06/13] ACPI: updates rtc-cmos device platform_data
+Date: Mon, 05 Feb 2007 16:09:11 -0800
+Message-ID: <200702060010.l160AEfC003735@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40771 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40800 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965220AbXBFAMV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Feb 2007 19:12:21 -0500
+	id S965250AbXBFAMy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 Feb 2007 19:12:54 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, alessandro.guido@gmail.com, rpurdie@rpsys.net, stelian@popies.net
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, david-b@pacbell.net, bjorn.helgaas@hp.com, dbrownell@users.sourceforge.net, len.brown@intel.com
 
-From: Alessandro Guido <alessandro.guido@gmail.com>
+From: David Brownell <david-b@pacbell.net>
 
-Make the sony_acpi use the backlight subsystem to adjust brightness value
-instead of using the /proc/sony/brightness file.  (Other settings will
-still have a /proc/sony/...  entry)
+Update ACPI to export its RTC extension information through platform_data
+to the PNPACPI or platform bus device node used on the system being set up.
 
-Signed-off-by: Alessandro Guido <alessandro.guido@gmail.com>
-Cc: Stelian Pop <stelian@popies.net>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+This will need to be updated later to provide a firmware hook to handle
+system suspend with an alarm pending.
+
+Len notes that "Eventually we may bundle ACPI/PNP/PNPACPI..." but if/when
+that happens, ACPI can simplify this without my help.
+
+And until it does, the separate patch creating a platform_device (on all
+X86_PC systems, even without ACPI) will be needed.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Len Brown <len.brown@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/Kconfig     |    1 
- drivers/acpi/sony_acpi.c |   53 +++++++++++++++++++++++++++++++++----
- 2 files changed, 49 insertions(+), 5 deletions(-)
+ drivers/acpi/glue.c |   89 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 89 insertions(+)
 
-diff -puN drivers/acpi/Kconfig~acpi-add-backlight-support-to-the-sony_acpi drivers/acpi/Kconfig
---- a/drivers/acpi/Kconfig~acpi-add-backlight-support-to-the-sony_acpi
-+++ a/drivers/acpi/Kconfig
-@@ -281,6 +281,7 @@ config ACPI_TOSHIBA
- config ACPI_SONY
- 	tristate "Sony Laptop Extras"
- 	depends on X86 && ACPI
-+	select BACKLIGHT_CLASS_DEVICE
- 	default m
- 	  ---help---
- 	  This mini-driver drives the ACPI SNC device present in the
-diff -puN drivers/acpi/sony_acpi.c~acpi-add-backlight-support-to-the-sony_acpi drivers/acpi/sony_acpi.c
---- a/drivers/acpi/sony_acpi.c~acpi-add-backlight-support-to-the-sony_acpi
-+++ a/drivers/acpi/sony_acpi.c
-@@ -27,13 +27,19 @@
- #include <linux/moduleparam.h>
- #include <linux/init.h>
- #include <linux/types.h>
-+#include <linux/backlight.h>
-+#include <linux/err.h>
- #include <acpi/acpi_drivers.h>
- #include <acpi/acpi_bus.h>
- #include <asm/uaccess.h>
- 
- #define ACPI_SNC_CLASS		"sony"
- #define ACPI_SNC_HID		"SNY5001"
--#define ACPI_SNC_DRIVER_NAME	"ACPI Sony Notebook Control Driver v0.2"
-+#define ACPI_SNC_DRIVER_NAME	"ACPI Sony Notebook Control Driver v0.3"
-+
-+/* the device uses 1-based values, while the backlight subsystem uses
-+   0-based values */
-+#define SONY_MAX_BRIGHTNESS	8
- 
- #define LOG_PFX			KERN_WARNING "sony_acpi: "
- 
-@@ -49,6 +55,16 @@ MODULE_PARM_DESC(debug, "set this to 1 (
- static acpi_handle sony_acpi_handle;
- static struct proc_dir_entry *sony_acpi_dir;
- 
-+static int sony_backlight_update_status(struct backlight_device *bd);
-+static int sony_backlight_get_brightness(struct backlight_device *bd);
-+static struct backlight_device *sony_backlight_device;
-+static struct backlight_properties sony_backlight_properties = {
-+	.owner		= THIS_MODULE,
-+	.update_status	= sony_backlight_update_status,
-+	.get_brightness	= sony_backlight_get_brightness,
-+	.max_brightness	= SONY_MAX_BRIGHTNESS - 1,
-+};
-+
- static struct sony_acpi_value {
- 	char			*name;	 /* name of the entry */
- 	struct proc_dir_entry 	*proc;	 /* /proc entry */
-@@ -65,7 +81,7 @@ static struct sony_acpi_value {
- 		.acpiget	= "GBRT",
- 		.acpiset	= "SBRT",
- 		.min		= 1,
--		.max		= 8,
-+		.max		= SONY_MAX_BRIGHTNESS,
- 		.debug		= 0,
- 	},
- 	{
-@@ -73,7 +89,7 @@ static struct sony_acpi_value {
- 		.acpiget	= "GPBR",
- 		.acpiset	= "SPBR",
- 		.min		= 1,
--		.max		= 8,
-+		.max		= SONY_MAX_BRIGHTNESS,
- 		.debug		= 0,
- 	},
- 	{
-@@ -276,6 +292,7 @@ static int sony_acpi_add(struct acpi_dev
- {
- 	acpi_status status;
- 	int result;
-+	acpi_handle handle;
- 	struct sony_acpi_value *item;
- 
- 	sony_acpi_handle = device->handle;
-@@ -303,9 +320,15 @@ static int sony_acpi_add(struct acpi_dev
- 		}
- 	}
- 
--	for (item = sony_acpi_values; item->name; ++item) {
--		acpi_handle handle;
-+	if (ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle, "GBRT", &handle))) {
-+		sony_backlight_device = backlight_device_register("sony", NULL,
-+					NULL, &sony_backlight_properties);
-+	        if (IS_ERR(sony_backlight_device)) {
-+        	        printk(LOG_PFX "unable to register backlight device\n");
-+		}
-+	}
- 
-+	for (item = sony_acpi_values; item->name; ++item) {
- 		if (!debug && item->debug)
- 			continue;
- 
-@@ -358,6 +381,9 @@ static int sony_acpi_remove(struct acpi_
- 	acpi_status status;
- 	struct sony_acpi_value *item;
- 
-+	if (sony_backlight_device)
-+		backlight_device_unregister(sony_backlight_device);
-+
- 	if (debug) {
- 		status = acpi_remove_notify_handler(sony_acpi_handle,
- 						    ACPI_DEVICE_NOTIFY,
-@@ -375,6 +401,23 @@ static int sony_acpi_remove(struct acpi_
- 	return 0;
+diff -puN drivers/acpi/glue.c~acpi-updates-rtc-cmos-device-platform_data drivers/acpi/glue.c
+--- a/drivers/acpi/glue.c~acpi-updates-rtc-cmos-device-platform_data
++++ a/drivers/acpi/glue.c
+@@ -241,3 +241,92 @@ static int __init init_acpi_device_notif
  }
  
-+static int sony_backlight_update_status(struct backlight_device *bd)
+ arch_initcall(init_acpi_device_notify);
++
++
++#if defined(CONFIG_RTC_DRV_CMOS) || defined(CONFIG_RTC_DRV_CMOS_MODULE)
++
++/* Every ACPI platform has a mc146818 compatible "cmos rtc".  Here we find
++ * its device node and pass extra config data.  This helps its driver use
++ * capabilities that the now-obsolete mc146818 didn't have, and informs it
++ * that this board's RTC is wakeup-capable (per ACPI spec).
++ */
++#include <linux/mc146818rtc.h>
++
++static struct cmos_rtc_board_info rtc_info;
++
++
++#ifdef CONFIG_PNPACPI
++
++/* PNP devices are registered in a subsys_initcall();
++ * ACPI specifies the PNP IDs to use.
++ */
++#include <linux/pnp.h>
++
++static int __init pnp_match(struct device *dev, void *data)
 +{
-+	return acpi_callsetfunc(sony_acpi_handle, "SBRT",
-+				bd->props->brightness + 1,
-+				NULL);
++	static const char *ids[] = { "PNP0b00", "PNP0b01", "PNP0b02", };
++	struct pnp_dev *pnp = to_pnp_dev(dev);
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(ids); i++) {
++		if (compare_pnp_id(pnp->id, ids[i]) != 0)
++			return 1;
++	}
++	return 0;
 +}
 +
-+static int sony_backlight_get_brightness(struct backlight_device *bd)
++static struct device *__init get_rtc_dev(void)
 +{
-+	int value;
-+
-+	if (acpi_callgetfunc(sony_acpi_handle, "GBRT", &value))
-+		return 0;
-+	/* brightness levels are 1-based, while backlight ones are 0-based */
-+	return value - 1;
++	return bus_find_device(&pnp_bus_type, NULL, NULL, pnp_match);
 +}
 +
- static struct acpi_driver sony_acpi_driver = {
- 	.name	= ACPI_SNC_DRIVER_NAME,
- 	.class	= ACPI_SNC_CLASS,
++#else
++
++/* We expect non-PNPACPI platforms to register an RTC device, usually
++ * at or near arch_initcall().  That also helps for example PCs that
++ * aren't configured with ACPI (where this code wouldn't run, but the
++ * RTC would still be available).  The device name matches the driver;
++ * that's how the platform bus works.
++ */
++#include <linux/platform_device.h>
++
++static int __init platform_match(struct device *dev, void *data)
++{
++	struct platform_device	*pdev;
++
++	pdev = container_of(dev, struct platform_device, dev);
++	return strcmp(pdev->name, "rtc_cmos") == 0;
++}
++
++static struct device *__init get_rtc_dev(void)
++{
++	return bus_find_device(&platform_bus_type, NULL, NULL, platform_match);
++}
++
++#endif
++
++static int __init acpi_rtc_init(void)
++{
++	struct device *dev = get_rtc_dev();
++
++	if (dev) {
++		rtc_info.rtc_day_alarm = acpi_gbl_FADT.day_alarm;
++		rtc_info.rtc_mon_alarm = acpi_gbl_FADT.month_alarm;
++		rtc_info.rtc_century = acpi_gbl_FADT.century;
++
++		/* NOTE:  acpi_gbl_FADT->rtcs4 is NOT currently useful */
++
++		dev->platform_data = &rtc_info;
++
++		/* RTC always wakes from S1/S2/S3, and often S4/STD */
++		device_init_wakeup(dev, 1);
++
++		put_device(dev);
++	} else
++		pr_debug("ACPI: RTC unavailable?\n");
++	return 0;
++}
++/* do this between RTC subsys_initcall() and rtc_cmos driver_initcall() */
++fs_initcall(acpi_rtc_init);
++
++#endif
 _
