@@ -1,82 +1,35 @@
-From: Peter Clifton <pcjc2@cam.ac.uk>
-Subject: Re: Fan speeds on HP nc6400 and nc8430
-Date: Tue, 06 Feb 2007 15:04:56 +0000
-Message-ID: <1170774296.5785.6.camel@localhost>
-References: <C3FA62B1A90D7440B9B6C7C31895994F0366363A@zadbn02100.vodacom.corp>
-	 <3877989d0701232019g45af8feaxabdcf6ba77170a5d@mail.gmail.com>
-	 <200701232138.54758.bjorn.helgaas@hp.com>
-	 <200701240954.32742.bjorn.helgaas@hp.com>
-	 <1170701940.25027.422.camel@d36.suse.de>
-	 <3877989d0702060358w101d809ar3b8c8900a8dba7c9@mail.gmail.com>
+From: Richard Purdie <rpurdie@rpsys.net>
+Subject: Re: [patch 09/13] acpi: add backlight support to the sony_acpi
+	driver
+Date: Tue, 06 Feb 2007 18:04:29 +0000
+Message-ID: <1170785069.5826.91.camel@localhost.localdomain>
+References: <200702060010.l160AJMV003745@shell0.pdx.osdl.net>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ppsw-0.csi.cam.ac.uk ([131.111.8.130]:37190 "EHLO
-	ppsw-0.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752215AbXBFPHX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Feb 2007 10:07:23 -0500
-In-Reply-To: <3877989d0702060358w101d809ar3b8c8900a8dba7c9@mail.gmail.com>
+Received: from tim.rpsys.net ([194.106.48.114]:44671 "EHLO tim.rpsys.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752262AbXBFS3I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 6 Feb 2007 13:29:08 -0500
+In-Reply-To: <200702060010.l160AJMV003745@shell0.pdx.osdl.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Luming Yu <luming.yu@gmail.com>
-Cc: trenn@suse.de, Bjorn Helgaas <bjorn.helgaas@hp.com>, emisca <emisca.ml@gmail.com>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Pieter De Wit <Pieter.DeWit@vodacom.co.za>, linux-acpi@vger.kernel.org, dtor@mail.ru
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, alessandro.guido@gmail.com, stelian@popies.net, akpm@linux-foundation.org
 
-On Tue, 2007-02-06 at 19:58 +0800, Luming Yu wrote:
-> I managed to get a HP NX 6330 laptop to test HP laptop related issues
-> discussed here.
-> But the bug http://bugzilla.kernel.org/show_bug.cgi?id=7813 seems to
-> be NOT reproducible on my NX6330. This fact prompt if there are any
-> essential difference between NX6330 and NC6400. The BIOS of my NX6330
-> even declares itself is NC6330.
-
-I'm not clear on HP's numbering scheme. It doesn't make any obvious
-sense to me!
-
-Mine is a nc6320 which exhibits the above bug. The DSDT lists as nc6340
-though. That is an Intel Core Duo, with the following lspci output:
-
-00:00.0 Host bridge: Intel Corporation Mobile 945GM/PM/GMS/940GML and
-945GT Express Memory Controller Hub (rev 03)
-00:02.0 VGA compatible controller: Intel Corporation Mobile
-945GM/GMS/940GML Express Integrated Graphics Controller (rev 03)
-00:02.1 Display controller: Intel Corporation Mobile 945GM/GMS/940GML
-Express Integrated Graphics Controller (rev 03)
-00:1b.0 Audio device: Intel Corporation 82801G (ICH7 Family) High
-Definition Audio Controller (rev 01)
-00:1c.0 PCI bridge: Intel Corporation 82801G (ICH7 Family) PCI Express
-Port 1 (rev 01)
-00:1c.2 PCI bridge: Intel Corporation 82801G (ICH7 Family) PCI Express
-Port 3 (rev 01)
-00:1c.3 PCI bridge: Intel Corporation 82801G (ICH7 Family) PCI Express
-Port 4 (rev 01)
-00:1d.0 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI
-#1 (rev 01)
-00:1d.1 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI
-#2 (rev 01)
-00:1d.2 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI
-#3 (rev 01)
-00:1d.3 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI
-#4 (rev 01)
-00:1d.7 USB Controller: Intel Corporation 82801G (ICH7 Family) USB2 EHCI
-Controller (rev 01)
-00:1e.0 PCI bridge: Intel Corporation 82801 Mobile PCI Bridge (rev e1)
-00:1f.0 ISA bridge: Intel Corporation 82801GBM (ICH7-M) LPC Interface
-Bridge (rev 01)
-00:1f.1 IDE interface: Intel Corporation 82801G (ICH7 Family) IDE
-Controller (rev 01)
-00:1f.2 SATA controller: Intel Corporation 82801GBM/GHM (ICH7 Family)
-Serial ATA Storage Controller AHCI (rev 01)
-02:06.0 CardBus bridge: Texas Instruments Unknown device 8039
-02:06.1 FireWire (IEEE 1394): Texas Instruments Unknown device 803a
-02:06.2 Mass storage controller: Texas Instruments Unknown device 803b
-02:06.3 Class 0805: Texas Instruments Unknown device 803c
-02:0e.0 Ethernet controller: Broadcom Corporation NetXtreme BCM5788
-Gigabit Ethernet (rev 03)
-08:00.0 Network controller: Intel Corporation PRO/Wireless 3945ABG
-Network Connection (rev 02)
-
-
-Peter Clifton
+On Mon, 2007-02-05 at 16:09 -0800, akpm@linux-foundation.org wrote:
+> From: Alessandro Guido <alessandro.guido@gmail.com>
+> 
+> Make the sony_acpi use the backlight subsystem to adjust brightness value
+> instead of using the /proc/sony/brightness file.  (Other settings will
+> still have a /proc/sony/...  entry)
+> 
+> Signed-off-by: Alessandro Guido <alessandro.guido@gmail.com>
+> Cc: Stelian Pop <stelian@popies.net>
+> Cc: Richard Purdie <rpurdie@rpsys.net>
+Acked-by: Richard Purdie <rpurdie@rpsys.net>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
 
 
