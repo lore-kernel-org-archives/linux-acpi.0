@@ -1,572 +1,157 @@
-From: akpm@linux-foundation.org
-Subject: [patch 07/13] sony acpi driver
-Date: Mon, 05 Feb 2007 16:09:12 -0800
-Message-ID: <200702060010.l160AFkf003738@shell0.pdx.osdl.net>
+From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
+Subject: Re: Strange things on 2.6.19/20 for a dual-core CPU
+Date: Tue, 06 Feb 2007 00:04:02 +0000
+Message-ID: <1170720242.4926.17.camel@monteirov>
+References: <20070205060404.GA23121@tangens.sinus.cz>
+Reply-To: sergio@sergiomb.no-ip.org
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-fRIXoLYw4x0bovzY+ZgK"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40792 "EHLO smtp.osdl.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965239AbXBFAMe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Feb 2007 19:12:34 -0500
+Received: from smtp1.netcabo.pt ([212.113.174.28]:6173 "EHLO
+	exch01smtp10.hdi.tvcabo" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S965220AbXBFANR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Feb 2007 19:13:17 -0500
+In-Reply-To: <20070205060404.GA23121@tangens.sinus.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, stelian@popies.net, bcollins@ubuntu.com, bjorn.helgaas@hp.com, mjg59@srcf.ucam.org
+To: Pavel Troller <patrol@sinus.cz>
+Cc: linux-acpi@vger.kernel.org
 
-From: Stelian Pop <stelian@popies.net>
 
-Sony ACPI driver.
+--=-fRIXoLYw4x0bovzY+ZgK
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+On Mon, 2007-02-05 at 07:04 +0100, Pavel Troller wrote:
+> Hi!
+>   I posted the following question, when 2.6.19 was freshly out. However, =
+nobody
+> has answered. OK, I told myself, let's get things to stabilize, and I wai=
+ted
+> patiently for 2.6.20. Now, the things are absolutely the same, and IMHO w=
+rong.
+> Could anybody look at this and decide, whether it is a real bug, which ha=
+s to
+> be fixed, or not ?
 
-  Even though the devices claimed by sony_acpi.c can not be hot-plugged, the
-  driver registration infrastructure allows the .add() and .remove() methods
-  to be called at any time while the driver is registered.  So remove __init
-  and __exit from them.
+Hi , I also have a Pentium D with a very strange things=20
+http://bugzilla.kernel.org/show_bug.cgi?id=3D6419
 
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+have you test yours in older kernels?=20
 
-in -mm only
 
-[UBUNTU:acpi/sony] Add FN hotkey support
-Source URL of Patch:
-http://www.kernel.org/git/?p=linux/kernel/git/bcollins/ubuntu-dapper.git;a=commitdiff;h=7a9b49cba4919e8506604629db03add8e0b85767
+>       With regards, Pavel Troller
+>      =20
+> ----- Forwarded message from Pavel Troller <patrol@sinus.cz> -----
+>=20
+> From: Pavel Troller <patrol@sinus.cz>
+> To: linux-acpi@vger.kernel.org
+> Subject: Strange things on 2.6.19 for a dual-core CPU
+> Mail-Followup-To: Pavel Troller <patrol@sinus.cz>,
+> 	linux-acpi@vger.kernel.org
+> Content-Disposition: inline
+> User-Agent: Mutt/1.5.9i
+>=20
+> Hi!
+>   I've updated to vanilla 2.6.19 on my Pentium-D (dual-core x86_64) box.
+> Now I can't see even C1 in the /proc/acpi/processor/*/power output:
+> patrol@arcus:~$ cat /proc/acpi/processor/CPU1/power
+> active state:            C0
+> max_cstate:              C8
+> bus master activity:     00000000
+> maximum allowed latency: 2000 usec
+> states:
+> patrol@arcus:~$ cat /proc/acpi/processor/CPU2/power
+> active state:            C0
+> max_cstate:              C8
+> bus master activity:     00000000
+> maximum allowed latency: 2000 usec
+> states:
+>=20
+>   Another interesting thing is shown here:
+> patrol@arcus:~$ cat /proc/acpi/processor/CPU1/info
+> processor id:            0
+> acpi id:                 1
+> bus mastering control:   no
+> power management:        no
+> throttling control:      yes
+> limit interface:         yes
+> patrol@arcus:~$ cat /proc/acpi/processor/CPU2/info
+> processor id:            1
+> acpi id:                 2
+> bus mastering control:   no
+> power management:        no
+> throttling control:      no
+> limit interface:         no
+>=20
+>   As I remember, both cores were showing the same things formerly.
+>   The only line referring to CPUs during boot is
+> ACPI: Processor [CPU1] (supports 8 throttling states)
+>   and CPU2 is not mentioned at all.
+>=20
+>   The last (but maybe not acpi-related) strange thing is that in /proc/cp=
+uinfo,
+> CPU1 reports 6403.56 bogomips (as always, approximately twice the clock) =
+and CPU2
+> 8314.32 ones (too much). It's also very suspicious. Formerly the differen=
+ce was
+> very small.
+>=20
+>   Should I provide more info to debug these things, or is it OK ?
+>          With regards, Pavel Troller
+>=20
+> ----- End forwarded message -----
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+S=E9rgio M.B.
 
-Signed-off-by: Ben Collins <bcollins@ubuntu.com>
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+--=-fRIXoLYw4x0bovzY+ZgK
+Content-Type: application/x-pkcs7-signature; name=smime.p7s
+Content-Disposition: attachment; filename=smime.p7s
+Content-Transfer-Encoding: base64
 
- Documentation/acpi/sony_acpi.txt |   87 ++++++
- drivers/acpi/Kconfig             |   14 +
- drivers/acpi/Makefile            |    1 
- drivers/acpi/sony_acpi.c         |  397 +++++++++++++++++++++++++++++
- 4 files changed, 499 insertions(+)
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGVjCCAw8w
+ggJ4oAMCAQICEGne8YrzxxgYAeyxZxmiO+owDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UEBhMCWkEx
+JTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQ
+ZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA2MTAxMTEwMjAzOVoXDTA3MTAxMTEwMjAz
+OVowSzEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjEoMCYGCSqGSIb3DQEJARYZc2Vy
+Z2lvQHNlcmdpb21iLm5vLWlwLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAN9R
+ix9koyWSNQDmAHxcSeWXdFO1osqg2yeNgBBl+fz8FLYyROsDGpZMcnOd/Df6tWwMZpMSYDNIksiZ
+5VkCWaWIzIBccHX3wIkqrkcq3v1OcPGW9adXClXSbSZ0Hb4V4+bQ9LMAOjaMlH/dKLVkln6qmbko
+NOxgPotdVxCGcUy1Pqa4dT1zFo5+nIv1NAUNqKpq63X/+3nILNG4JGAvLIL8wcYs0cETGS6vISgd
+YFN/JlIqekWUGGUmc+SJcyyTWjXGN+2G0SDS8K3a9NFCo7a1Y0FyHQxikQRtB9sCcpQCoXiqaWsT
+npSrNJ0Od4w1sHZz09uEdhWKqXEmJsKKwi8CAwEAAaNZMFcwDgYDVR0PAQH/BAQDAgSQMBEGCWCG
+SAGG+EIBAQQEAwIFoDAkBgNVHREEHTAbgRlzZXJnaW9Ac2VyZ2lvbWIubm8taXAub3JnMAwGA1Ud
+EwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEAwVE8/kY82qYG7I2+gW0NhSyn+DR0uAWYbSxB2NgP
+16QOrzXt2HazlXkl2Bc+NKQEqEGKOu5fPPg2GoJ3zDO1Y8GUNGtJH0sX+63RGoUNOAv+bAK1Nxhb
+illDUUCjW3OqA/hRyBwjU9kHJPYhl1EbAUGpAhfENHjkS/S7b1REBLMwggM/MIICqKADAgECAgEN
+MA0GCSqGSIb3DQEBBQUAMIHRMQswCQYDVQQGEwJaQTEVMBMGA1UECBMMV2VzdGVybiBDYXBlMRIw
+EAYDVQQHEwlDYXBlIFRvd24xGjAYBgNVBAoTEVRoYXd0ZSBDb25zdWx0aW5nMSgwJgYDVQQLEx9D
+ZXJ0aWZpY2F0aW9uIFNlcnZpY2VzIERpdmlzaW9uMSQwIgYDVQQDExtUaGF3dGUgUGVyc29uYWwg
+RnJlZW1haWwgQ0ExKzApBgkqhkiG9w0BCQEWHHBlcnNvbmFsLWZyZWVtYWlsQHRoYXd0ZS5jb20w
+HhcNMDMwNzE3MDAwMDAwWhcNMTMwNzE2MjM1OTU5WjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMc
+VGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZy
+ZWVtYWlsIElzc3VpbmcgQ0EwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMSmPFVzVftOucqZ
+Wh5owHUEcJ3f6f+jHuy9zfVb8hp2vX8MOmHyv1HOAdTlUAow1wJjWiyJFXCO3cnwK4Vaqj9xVsuv
+PAsH5/EfkTYkKhPPK9Xzgnc9A74r/rsYPge/QIACZNenprufZdHFKlSFD0gEf6e20TxhBEAeZBly
+YLf7AgMBAAGjgZQwgZEwEgYDVR0TAQH/BAgwBgEB/wIBADBDBgNVHR8EPDA6MDigNqA0hjJodHRw
+Oi8vY3JsLnRoYXd0ZS5jb20vVGhhd3RlUGVyc29uYWxGcmVlbWFpbENBLmNybDALBgNVHQ8EBAMC
+AQYwKQYDVR0RBCIwIKQeMBwxGjAYBgNVBAMTEVByaXZhdGVMYWJlbDItMTM4MA0GCSqGSIb3DQEB
+BQUAA4GBAEiM0VCD6gsuzA2jZqxnD3+vrL7CF6FDlpSdf0whuPg2H6otnzYvwPQcUCCTcDz9reFh
+YsPZOhl+hLGZGwDFGguCdJ4lUJRix9sncVcljd2pnDmOjCBPZV+V2vf3h9bGCE6u9uo05RAaWzVN
+d+NWIXiC3CEZNd4ksdMdRv9dX2VPMYIB/DCCAfgCAQEwdjBiMQswCQYDVQQGEwJaQTElMCMGA1UE
+ChMcVGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFs
+IEZyZWVtYWlsIElzc3VpbmcgQ0ECEGne8YrzxxgYAeyxZxmiO+owCQYFKw4DAhoFAKBdMBgGCSqG
+SIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA3MDIwNjAwMDM1OFowIwYJKoZI
+hvcNAQkEMRYEFKq77EqToIZkQ3I2TBGoLOO/q2+yMA0GCSqGSIb3DQEBAQUABIIBALzKnSTplcm7
+pWzOR7w1Ik1difyNAXMu2LmAjIXjmCEXXLpFVxm4tHLPzpKAFziaFxOQjbJNCjQdtXR3t9+AT0xK
+SnCpBu/SWSbueRrcHYtR9LwH2VE6wR7Jl05TikjBkemeWQATy6JQxBmFXX1DFr/RJ/RSDwIkE2WD
++tPl72BaP35y7I7ayZKFyZ1c4/qdn6fb9BPNJYc/XShwB5Zt0s6+IHXOelmU2XORDQ8BqgpUykCW
+h4nWh4Bfu8gmFbvtWpSoyw2RbCgBdxV/rjAn4mhRKqUPff4zms/vS22MbKlMj25WFHEQ326VusiG
+yLM1EfkKyTluwDamlYM+1y69tb4AAAAAAAA=
 
-diff -puN /dev/null Documentation/acpi/sony_acpi.txt
---- /dev/null
-+++ a/Documentation/acpi/sony_acpi.txt
-@@ -0,0 +1,87 @@
-+ACPI Sony Notebook Control Driver (SNC) Readme
-+----------------------------------------------
-+	Copyright (C) 2004- 2005 Stelian Pop <stelian@popies.net>
-+
-+This mini-driver drives the ACPI SNC device present in the
-+ACPI BIOS of the Sony Vaio laptops.
-+
-+It gives access to some extra laptop functionalities. In
-+its current form, this driver is mainly useful for controlling the
-+screen brightness, but it may do more in the future.
-+
-+You should probably start by trying the sonypi driver, and try
-+sony_acpi only if sonypi doesn't work for you.
-+
-+Usage:
-+------
-+
-+Loading the sony_acpi module will create a /proc/acpi/sony/
-+directory populated with a couple of files.
-+
-+You then read/write integer values from/to those files by using
-+standard UNIX tools.
-+
-+The files are:
-+	brightness		current screen brightness
-+	brightness_default	screen brightness which will be set
-+				when the laptop will be rebooted
-+	cdpower			power on/off the internal CD drive
-+
-+Note that some files may be missing if they are not supported
-+by your particular laptop model.
-+
-+Example usage:
-+	# echo "1" > /proc/acpi/sony/brightness
-+sets the lowest screen brightness,
-+	# echo "8" > /proc/acpi/sony/brightness
-+sets the highest screen brightness,
-+	# cat /proc/acpi/sony/brightness
-+retrieves the current screen brightness.
-+
-+Development:
-+------------
-+
-+If you want to help with the development of this driver (and
-+you are not afraid of any side effects doing strange things with
-+your ACPI BIOS could have on your laptop), load the driver and
-+pass the option 'debug=1'.
-+
-+REPEAT: DON'T DO THIS IF YOU DON'T LIKE RISKY BUSINESS.
-+
-+In your kernel logs you will find the list of all ACPI methods
-+the SNC device has on your laptop. You can see the GBRT/SBRT methods
-+used to get/set the brightness, but there are others.
-+
-+I HAVE NO IDEA WHAT THOSE METHODS DO.
-+
-+The sony_acpi driver creates, for some of those methods (the most
-+current ones found on several Vaio models), an entry under
-+/proc/acpi/sony/, just like the 'brightness' one. You can create
-+other entries corresponding to your own laptop methods by further
-+editing the source (see the 'sony_acpi_values' table, and add a new
-+structure to this table with your get/set method names).
-+
-+Your mission, should you accept it, is to try finding out what
-+those entries are for, by reading/writing random values from/to those
-+files and find out what is the impact on your laptop.
-+
-+Should you find anything interesting, please report it back to me,
-+I will not disavow all knowledge of your actions :)
-+
-+Bugs/Limitations:
-+-----------------
-+
-+* This driver is not based on official documentation from Sony
-+  (because there is none), so there is no guarantee this driver
-+  will work at all, or do the right thing. Although this hasn't
-+  happened to me, this driver could do very bad things to your
-+  laptop, including permanent damage.
-+
-+* The sony_acpi and sonypi drivers do not interact at all. In the
-+  future, sonypi could use sony_acpi to do (part of) its business.
-+
-+* spicctrl, which is the userspace tool used to communicate with the
-+  sonypi driver (through /dev/sonypi) does not try to use the
-+  sony_acpi driver. In the future, spicctrl could try sonypi first,
-+  and if it isn't present, try sony_acpi instead.
-+
-diff -puN drivers/acpi/Kconfig~2.6-sony_acpi4 drivers/acpi/Kconfig
---- a/drivers/acpi/Kconfig~2.6-sony_acpi4
-+++ a/drivers/acpi/Kconfig
-@@ -278,6 +278,20 @@ config ACPI_TOSHIBA
- 	  If you have a legacy free Toshiba laptop (such as the Libretto L1
- 	  series), say Y.
- 
-+config ACPI_SONY
-+	tristate "Sony Laptop Extras"
-+	depends on X86 && ACPI
-+	default m
-+	  ---help---
-+	  This mini-driver drives the ACPI SNC device present in the
-+	  ACPI BIOS of the Sony Vaio laptops.
-+
-+	  It gives access to some extra laptop functionalities. In
-+	  its current form, the only thing this driver does is letting
-+	  the user set or query the screen brightness.
-+
-+	  Read <file:Documentation/acpi/sony_acpi.txt> for more information.
-+
- config ACPI_CUSTOM_DSDT
- 	bool "Include Custom DSDT"
- 	depends on !STANDALONE
-diff -puN drivers/acpi/Makefile~2.6-sony_acpi4 drivers/acpi/Makefile
---- a/drivers/acpi/Makefile~2.6-sony_acpi4
-+++ a/drivers/acpi/Makefile
-@@ -55,6 +55,7 @@ obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
- obj-$(CONFIG_ACPI_SYSTEM)	+= system.o event.o
- obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
- obj-$(CONFIG_ACPI_NUMA)		+= numa.o
-+obj-$(CONFIG_ACPI_SONY)		+= sony_acpi.o
- obj-$(CONFIG_ACPI_ASUS)		+= asus_acpi.o
- obj-$(CONFIG_ACPI_IBM)		+= ibm_acpi.o
- obj-$(CONFIG_ACPI_TOSHIBA)	+= toshiba_acpi.o
-diff -puN /dev/null drivers/acpi/sony_acpi.c
---- /dev/null
-+++ a/drivers/acpi/sony_acpi.c
-@@ -0,0 +1,397 @@
-+/*
-+ * ACPI Sony Notebook Control Driver (SNC)
-+ *
-+ * Copyright (C) 2004-2005 Stelian Pop <stelian@popies.net>
-+ *
-+ * Parts of this driver inspired from asus_acpi.c and ibm_acpi.c
-+ * which are copyrighted by their respective authors.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ *
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/moduleparam.h>
-+#include <linux/init.h>
-+#include <linux/types.h>
-+#include <acpi/acpi_drivers.h>
-+#include <acpi/acpi_bus.h>
-+#include <asm/uaccess.h>
-+
-+#define ACPI_SNC_CLASS		"sony"
-+#define ACPI_SNC_HID		"SNY5001"
-+#define ACPI_SNC_DRIVER_NAME	"ACPI Sony Notebook Control Driver v0.2"
-+
-+#define LOG_PFX			KERN_WARNING "sony_acpi: "
-+
-+MODULE_AUTHOR("Stelian Pop");
-+MODULE_DESCRIPTION(ACPI_SNC_DRIVER_NAME);
-+MODULE_LICENSE("GPL");
-+
-+static int debug;
-+module_param(debug, int, 0);
-+MODULE_PARM_DESC(debug, "set this to 1 (and RTFM) if you want to help "
-+			"the development of this driver");
-+
-+static int sony_acpi_add (struct acpi_device *device);
-+static int sony_acpi_remove (struct acpi_device *device, int type);
-+
-+static struct acpi_driver sony_acpi_driver = {
-+	.name	= ACPI_SNC_DRIVER_NAME,
-+	.class	= ACPI_SNC_CLASS,
-+	.ids	= ACPI_SNC_HID,
-+	.ops	= {
-+			.add	= sony_acpi_add,
-+			.remove	= sony_acpi_remove,
-+		  },
-+};
-+
-+static acpi_handle sony_acpi_handle;
-+static struct proc_dir_entry *sony_acpi_dir;
-+
-+static struct sony_acpi_value {
-+	char			*name;	 /* name of the entry */
-+	struct proc_dir_entry 	*proc;	 /* /proc entry */
-+	char			*acpiget;/* name of the ACPI get function */
-+	char			*acpiset;/* name of the ACPI get function */
-+	int 			min;	 /* minimum allowed value or -1 */
-+	int			max;	 /* maximum allowed value or -1 */
-+	int			debug;	 /* active only in debug mode ? */
-+} sony_acpi_values[] = {
-+	{
-+		.name		= "brightness",
-+		.acpiget	= "GBRT",
-+		.acpiset	= "SBRT",
-+		.min		= 1,
-+		.max		= 8,
-+		.debug		= 0,
-+	},
-+	{
-+		.name		= "brightness_default",
-+		.acpiget	= "GPBR",
-+		.acpiset	= "SPBR",
-+		.min		= 1,
-+		.max		= 8,
-+		.debug		= 0,
-+	},
-+	{
-+		.name           = "fnkey",
-+		.acpiget        = "GHKE",
-+		.debug          = 0,
-+	},
-+	{
-+		.name		= "cdpower",
-+		.acpiget	= "GCDP",
-+		.acpiset	= "SCDP",
-+		.min		= -1,
-+		.max		= -1,
-+		.debug		= 0,
-+	},
-+	{
-+		.name		= "PID",
-+		.acpiget	= "GPID",
-+		.debug		= 1,
-+	},
-+	{
-+		.name		= "CTR",
-+		.acpiget	= "GCTR",
-+		.acpiset	= "SCTR",
-+		.min		= -1,
-+		.max		= -1,
-+		.debug		= 1,
-+	},
-+	{
-+		.name		= "PCR",
-+		.acpiget	= "GPCR",
-+		.acpiset	= "SPCR",
-+		.min		= -1,
-+		.max		= -1,
-+		.debug		= 1,
-+	},
-+	{
-+		.name		= "CMI",
-+		.acpiget	= "GCMI",
-+		.acpiset	= "SCMI",
-+		.min		= -1,
-+		.max		= -1,
-+		.debug		= 1,
-+	},
-+	{
-+		.name		= NULL,
-+	}
-+};
-+
-+static int acpi_callgetfunc(acpi_handle handle, char *name, int *result)
-+{
-+	struct acpi_buffer output;
-+	union acpi_object out_obj;
-+	acpi_status status;
-+
-+	output.length = sizeof(out_obj);
-+	output.pointer = &out_obj;
-+
-+	status = acpi_evaluate_object(handle, name, NULL, &output);
-+	if ((status == AE_OK) && (out_obj.type == ACPI_TYPE_INTEGER)) {
-+		*result = out_obj.integer.value;
-+		return 0;
-+	}
-+
-+	printk(LOG_PFX "acpi_callreadfunc failed\n");
-+
-+	return -1;
-+}
-+
-+static int acpi_callsetfunc(acpi_handle handle, char *name, int value,
-+			    int *result)
-+{
-+	struct acpi_object_list params;
-+	union acpi_object in_obj;
-+	struct acpi_buffer output;
-+	union acpi_object out_obj;
-+	acpi_status status;
-+
-+	params.count = 1;
-+	params.pointer = &in_obj;
-+	in_obj.type = ACPI_TYPE_INTEGER;
-+	in_obj.integer.value = value;
-+
-+	output.length = sizeof(out_obj);
-+	output.pointer = &out_obj;
-+
-+	status = acpi_evaluate_object(handle, name, &params, &output);
-+	if (status == AE_OK) {
-+		if (result != NULL) {
-+			if (out_obj.type != ACPI_TYPE_INTEGER) {
-+				printk(LOG_PFX "acpi_evaluate_object bad "
-+				       "return type\n");
-+				return -1;
-+			}
-+			*result = out_obj.integer.value;
-+		}
-+		return 0;
-+	}
-+
-+	printk(LOG_PFX "acpi_evaluate_object failed\n");
-+
-+	return -1;
-+}
-+
-+static int parse_buffer(const char __user *buffer, unsigned long count,
-+			int *val) {
-+	char s[32];
-+	int ret;
-+
-+	if (count > 31)
-+		return -EINVAL;
-+	if (copy_from_user(s, buffer, count))
-+		return -EFAULT;
-+	s[count] = '\0';
-+	ret = simple_strtoul(s, NULL, 10);
-+	*val = ret;
-+	return 0;
-+}
-+
-+static int sony_acpi_read(char* page, char** start, off_t off, int count,
-+			  int* eof, void *data)
-+{
-+	struct sony_acpi_value *item = data;
-+	int value;
-+
-+	if (!item->acpiget)
-+		return -EIO;
-+
-+	if (acpi_callgetfunc(sony_acpi_handle, item->acpiget, &value) < 0)
-+		return -EIO;
-+
-+	return sprintf(page, "%d\n", value);
-+}
-+
-+static int sony_acpi_write(struct file *file, const char __user *buffer,
-+			   unsigned long count, void *data)
-+{
-+	struct sony_acpi_value *item = data;
-+	int result;
-+	int value;
-+
-+	if (!item->acpiset)
-+		return -EIO;
-+
-+	if ((result = parse_buffer(buffer, count, &value)) < 0)
-+		return result;
-+
-+	if (item->min != -1 && value < item->min)
-+		return -EINVAL;
-+	if (item->max != -1 && value > item->max)
-+		return -EINVAL;
-+
-+	if (acpi_callsetfunc(sony_acpi_handle, item->acpiset, value, NULL) < 0)
-+		return -EIO;
-+
-+	return count;
-+}
-+
-+static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
-+{
-+	printk(LOG_PFX "sony_acpi_notify\n");
-+}
-+
-+static acpi_status sony_walk_callback(acpi_handle handle, u32 level,
-+				      void *context, void **return_value)
-+{
-+	struct acpi_namespace_node *node;
-+	union acpi_operand_object *operand;
-+
-+	node = (struct acpi_namespace_node *) handle;
-+	operand = (union acpi_operand_object *) node->object;
-+
-+	printk(LOG_PFX "method: name: %4.4s, args %X\n", node->name.ascii,
-+	       (u32) operand->method.param_count);
-+
-+	return AE_OK;
-+}
-+
-+static int sony_acpi_add(struct acpi_device *device)
-+{
-+	acpi_status status;
-+	int result;
-+	struct sony_acpi_value *item;
-+
-+	sony_acpi_handle = device->handle;
-+
-+	acpi_driver_data(device) = NULL;
-+	acpi_device_dir(device) = sony_acpi_dir;
-+
-+	if (debug) {
-+		status = acpi_walk_namespace(ACPI_TYPE_METHOD, sony_acpi_handle,
-+					     1, sony_walk_callback, NULL, NULL);
-+		if (ACPI_FAILURE(status)) {
-+			printk(LOG_PFX "unable to walk acpi resources\n");
-+			result = -ENODEV;
-+			goto outwalk;
-+		}
-+
-+		status = acpi_install_notify_handler(sony_acpi_handle,
-+						     ACPI_DEVICE_NOTIFY,
-+						     sony_acpi_notify,
-+						     NULL);
-+		if (ACPI_FAILURE(status)) {
-+			printk(LOG_PFX "unable to install notify handler\n");
-+			result = -ENODEV;
-+			goto outnotify;
-+		}
-+	}
-+
-+	for (item = sony_acpi_values; item->name; ++item) {
-+		acpi_handle handle;
-+
-+		if (!debug && item->debug)
-+			continue;
-+
-+		if (item->acpiget &&
-+		    ACPI_FAILURE(acpi_get_handle(sony_acpi_handle,
-+		    		 item->acpiget, &handle)))
-+		    	continue;
-+
-+		if (item->acpiset &&
-+		    ACPI_FAILURE(acpi_get_handle(sony_acpi_handle,
-+		    		 item->acpiset, &handle)))
-+		    	continue;
-+
-+		item->proc = create_proc_entry(item->name, 0600,
-+					       acpi_device_dir(device));
-+		if (!item->proc) {
-+			printk(LOG_PFX "unable to create proc entry\n");
-+			result = -EIO;
-+			goto outproc;
-+		}
-+
-+		item->proc->read_proc = sony_acpi_read;
-+		item->proc->write_proc = sony_acpi_write;
-+		item->proc->data = item;
-+		item->proc->owner = THIS_MODULE;
-+	}
-+
-+	printk(KERN_INFO ACPI_SNC_DRIVER_NAME " successfully installed\n");
-+
-+	return 0;
-+
-+outproc:
-+	if (debug) {
-+		status = acpi_remove_notify_handler(sony_acpi_handle,
-+						    ACPI_DEVICE_NOTIFY,
-+						    sony_acpi_notify);
-+		if (ACPI_FAILURE(status))
-+			printk(LOG_PFX "unable to remove notify handler\n");
-+	}
-+outnotify:
-+	for (item = sony_acpi_values; item->name; ++item)
-+		if (item->proc)
-+			remove_proc_entry(item->name, acpi_device_dir(device));
-+outwalk:
-+	return result;
-+}
-+
-+
-+static int sony_acpi_remove(struct acpi_device *device, int type)
-+{
-+	acpi_status status;
-+	struct sony_acpi_value *item;
-+
-+	if (debug) {
-+		status = acpi_remove_notify_handler(sony_acpi_handle,
-+						    ACPI_DEVICE_NOTIFY,
-+						    sony_acpi_notify);
-+		if (ACPI_FAILURE(status))
-+			printk(LOG_PFX "unable to remove notify handler\n");
-+	}
-+
-+	for (item = sony_acpi_values; item->name; ++item)
-+		if (item->proc)
-+			remove_proc_entry(item->name, acpi_device_dir(device));
-+
-+	printk(KERN_INFO ACPI_SNC_DRIVER_NAME " successfully removed\n");
-+
-+	return 0;
-+}
-+
-+static int __init sony_acpi_init(void)
-+{
-+	int result;
-+
-+	sony_acpi_dir = proc_mkdir("sony", acpi_root_dir);
-+	if (!sony_acpi_dir) {
-+		printk(LOG_PFX "unable to create /proc entry\n");
-+		return -ENODEV;
-+	}
-+	sony_acpi_dir->owner = THIS_MODULE;
-+
-+	result = acpi_bus_register_driver(&sony_acpi_driver);
-+	if (result < 0) {
-+		remove_proc_entry("sony", acpi_root_dir);
-+		return -ENODEV;
-+	}
-+	return 0;
-+}
-+
-+
-+static void __exit sony_acpi_exit(void)
-+{
-+	acpi_bus_unregister_driver(&sony_acpi_driver);
-+	remove_proc_entry("sony", acpi_root_dir);
-+}
-+
-+module_init(sony_acpi_init);
-+module_exit(sony_acpi_exit);
-_
+
+--=-fRIXoLYw4x0bovzY+ZgK--
