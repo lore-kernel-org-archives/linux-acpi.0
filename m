@@ -1,50 +1,65 @@
-From: Corentin CHARY <corentincj@iksaif.net>
-Subject: Re: [patch 03/13] asus_acpi: Add support for Asus Z81SP
-Date: Tue, 6 Feb 2007 20:20:46 +0100
-Message-ID: <200702062020.46715.corentincj@iksaif.net>
-References: <200702060010.l160ACsX003721@shell0.pdx.osdl.net>
-Reply-To: corentincj@iksaif.net
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [PATCH 1/2] ACPI: ibm-acpi: add Ultrabay support for the T60p ThinkPad
+Date: Tue,  6 Feb 2007 19:13:43 -0200
+Message-ID: <11707964243869-git-send-email-hmh@hmh.eng.br>
+References: <11707964241851-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.dns26.com ([84.246.226.15]:51257 "EHLO iksaif.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752287AbXBFTVG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Feb 2007 14:21:06 -0500
-In-Reply-To: <200702060010.l160ACsX003721@shell0.pdx.osdl.net>
-Content-Disposition: inline
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:56081 "EHLO
+	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S965474AbXBFVNz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Feb 2007 16:13:55 -0500
+In-Reply-To: <11707964241851-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, calvinmc@gmail.com, acpi4asus-user@lists.sourceforge.net, sziwan@users.sourceforge.net
+To: Len Brown <lenb@kernel.org>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Le Tuesday 06 February 2007 01:09:09 akpm@linux-foundation.org, vous av=
-ez=20
-=E9crit=A0:
-> From: Matthew C Campbell <calvinmc@gmail.com>
->
-> Adds support in asus_acpi for the Asus Z81SP laptop.  This preserves =
-all
-> old functionality when improperly detected as well as enabling Blueto=
-oth
-> support.
-I don't know if this patch is realy usefull, as there is the new asus-l=
-aptop=20
-driver (in acpi-test), but let's Ack this ...
+From: Theodore Ts'o <tytso@mit.edu>
 
-> Signed-off-by: Matthew C Campbell <calvinmc@gmail.com>
-> Cc: Corentin Chary <corentincj@iksaif.net>
-Acked-by: Corentin Chary <corentincj@iksaif.net>
-> Cc: Karol Kozimor <sziwan@users.sourceforge.net>
-> Cc: <acpi4asus-user@lists.sourceforge.net>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+The following patch adds support for obtaining the status and ejecting
+Ultrabay devices for the T60p Thinkpad; my guess is that it probably
+works on T60 Thinkpads and probably more recent Lenovo latops as well.
 
---=20
-CHARY 'Iksaif' Corentin
-http://xf.iksaif.net
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+With the 2.03 BIOS I have been able to eject a SATA drive in an Ultrabay
+carrier by using the command:
+
+  "echo 1 > /sys/class/scsi_device/1:0:0:0/device/delete"
+
+and upon re-inserting the it back into the device and issuing the
+command:
+
+ "echo 0 0 0 > /sys/class/scsi_host/host1/scan"
+
+have the device appear again.  (With the 1.02 BIOS the device does not
+function when re-inserted, even after a warm boot; a cold reboot is
+required to store the Ultrabay device's functionality.)
+
+More complicated Ultrabay eject and insert scripts can be found on the
+ThinkWiki, although it's important to comment out the "hdparm -Y" as it
+apparently doesn't work or do anything, and causes the eject process to
+hang for about a minute.
+
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Whoopie <whoopie79@gmx.net>
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+---
+ drivers/acpi/ibm_acpi.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
+index c6144ca..5c0f1b8 100644
+--- a/drivers/acpi/ibm_acpi.c
++++ b/drivers/acpi/ibm_acpi.c
+@@ -159,7 +159,8 @@ IBM_HANDLE(dock, root, "\\_SB.GDCK",	/* X30, X31, X40 */
+ #endif
+ IBM_HANDLE(bay, root, "\\_SB.PCI.IDE.SECN.MAST",	/* 570 */
+ 	   "\\_SB.PCI0.IDE0.IDES.IDSM",	/* 600e/x, 770e, 770x */
+-	   "\\_SB.PCI0.SATA.SCND.MSTR",	/* T60, X60, Z60 */ 
++	   "\\_SB.PCI0.SATA.SCND.MSTR",	/* T60, X60, Z60, SATA mode? */
++	   "\\_SB.PCI0.IDE0.PRIM.MSTR", /* T60p, IDE mode? */
+ 	   "\\_SB.PCI0.IDE0.SCND.MSTR",	/* all others */
+     );				/* A21e, R30, R31 */
+ 
+-- 
+1.4.4.4
+
