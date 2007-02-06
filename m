@@ -1,11 +1,11 @@
 From: akpm@linux-foundation.org
-Subject: [patch 11/13] sony_acpi: add lanpower and audiopower controls
+Subject: [patch 12/13] sony_acpi: allow multiple sony_acpi_values for the same .name
 Date: Mon, 05 Feb 2007 16:09:18 -0800
-Message-ID: <200702060010.l160ALCi003751@shell0.pdx.osdl.net>
+Message-ID: <200702060010.l160AMos003754@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40712 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40713 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965156AbXBFALz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S965166AbXBFALz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Mon, 5 Feb 2007 19:11:55 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -14,48 +14,92 @@ Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, malattia@linux.it
 
 From: Mattia Dongili <malattia@linux.it>
 
-audiopower works well on my SZ72B so it's not marked has "debug" while
-lanpower has at least one report of not resuming power happily so morked as
-"debug"
+The acpi handles are kept _only_ if both the requested .acpiget and .acpiset
+are available in the DSDT.  Currently only the SCDP/CDPW dualism is known.
 
 Signed-off-by: Mattia Dongili <malattia@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/sony_acpi.c |   20 ++++++++++++++++++--
- 1 file changed, 18 insertions(+), 2 deletions(-)
+ drivers/acpi/sony_acpi.c |   44 +++++++++++++++++++++----------------
+ 1 file changed, 25 insertions(+), 19 deletions(-)
 
-diff -puN drivers/acpi/sony_acpi.c~sony_acpi-add-lanpower-and-audiopower-controls drivers/acpi/sony_acpi.c
---- a/drivers/acpi/sony_acpi.c~sony_acpi-add-lanpower-and-audiopower-controls
+diff -puN drivers/acpi/sony_acpi.c~sony_acpi-allow-multiple-sony_acpi_values-for-the-same-name drivers/acpi/sony_acpi.c
+--- a/drivers/acpi/sony_acpi.c~sony_acpi-allow-multiple-sony_acpi_values-for-the-same-name
 +++ a/drivers/acpi/sony_acpi.c
-@@ -102,11 +102,27 @@ static struct sony_acpi_value {
- 		.name		= "cdpower",
- 		.acpiget	= "GCDP",
- 		.acpiset	= "SCDP",
--		.min		= -1,
--		.max		= -1,
-+		.min		= 0,
-+		.max		= 1,
+@@ -68,7 +68,7 @@ static struct backlight_properties sony_
+ 
+ static struct sony_acpi_value {
+ 	char			*name;	 /* name of the entry */
+-	struct proc_dir_entry 	*proc;	 /* /proc entry */
++	struct proc_dir_entry	*proc;	 /* /proc entry */
+ 	char			*acpiget;/* name of the ACPI get function */
+ 	char			*acpiset;/* name of the ACPI get function */
+ 	int 			min;	 /* minimum allowed value or -1 */
+@@ -78,6 +78,7 @@ static struct sony_acpi_value {
+ 	int			debug;	 /* active only in debug mode ? */
+ } sony_acpi_values[] = {
+ 	{
++		/* for backward compatibility only */
+ 		.name		= "brightness",
+ 		.acpiget	= "GBRT",
+ 		.acpiset	= "SBRT",
+@@ -107,6 +108,14 @@ static struct sony_acpi_value {
  		.debug		= 0,
  	},
  	{
-+		.name           = "audiopower",
-+		.acpiget        = "GAZP",
-+		.acpiset        = "AZPW",
-+		.min            = 0,
-+		.max            = 1,
-+		.debug          = 0,
++		.name		= "cdpower",
++		.acpiget	= "GCDP",
++		.acpiset	= "CDPW",
++		.min		= 0,
++		.max		= 1,
++		.debug		= 0,
 +	},
 +	{
-+		.name           = "lanpower",
-+		.acpiget        = "GLNP",
-+		.acpiset        = "LNPW",
-+		.min            = 0,
-+		.max            = 1,
-+		.debug          = 1,
-+	},
-+	{
- 		.name		= "PID",
- 		.acpiget	= "GPID",
- 		.debug		= 1,
+ 		.name           = "audiopower",
+ 		.acpiget        = "GAZP",
+ 		.acpiset        = "AZPW",
+@@ -356,27 +365,24 @@ static int sony_acpi_add(struct acpi_dev
+ 		if (!debug && item->debug)
+ 			continue;
+ 
+-		if (item->acpiget &&
+-		    ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle,
+-		    		 item->acpiget, &handle)))
+-			proc_file_mode = S_IRUSR;
+-		else
+-			printk(LOG_PFX "unable to get ACPI handle for %s (get)\n",
+-					item->name);
+-
+-		if (item->acpiset &&
+-		    ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle,
+-		    		 item->acpiset, &handle)))
+-			proc_file_mode |= S_IWUSR;
+-		else
+-			printk(LOG_PFX "unable to get ACPI handle for %s (set)\n",
+-					item->name);
++		if (item->acpiget) {
++			if (ACPI_FAILURE(acpi_get_handle(sony_acpi_handle,
++							item->acpiget, &handle)))
++				continue;
+ 
+-		if (proc_file_mode == 0)
+-			continue;
++			proc_file_mode |= S_IRUSR;
++		}
++
++		if (item->acpiset) {
++			if (ACPI_FAILURE(acpi_get_handle(sony_acpi_handle,
++							item->acpiset, &handle)))
++				continue;
++
++			proc_file_mode |= S_IWUSR;
++		}
+ 
+ 		item->proc = create_proc_entry(item->name, proc_file_mode,
+-					       acpi_device_dir(device));
++				acpi_device_dir(device));
+ 		if (!item->proc) {
+ 			printk(LOG_PFX "unable to create proc entry\n");
+ 			result = -EIO;
 _
