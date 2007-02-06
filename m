@@ -1,57 +1,40 @@
-From: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy@intel.com>
-Subject: RE: Bad libata resume behaviour due to ACPICA change (in acpi-test)
-Date: Tue, 6 Feb 2007 15:17:47 +0300
-Message-ID: <B41635854730A14CA71C92B36EC22AAC804186@mssmsx411>
-References: <20070205235904.GA18392@khazad-dum.debian.net>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: T43 BIOS and AHCI
+Date: Tue, 6 Feb 2007 11:39:14 -0200
+Message-ID: <20070206133914.GC18392@khazad-dum.debian.net>
+References: <20070205235904.GA18392@khazad-dum.debian.net> <B41635854730A14CA71C92B36EC22AAC804186@mssmsx411>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:34314 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751753AbXBFMRy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Feb 2007 07:17:54 -0500
-Content-class: urn:content-classes:message
-In-Reply-To: <20070205235904.GA18392@khazad-dum.debian.net>
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:46780 "EHLO
+	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752153AbXBFNjX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Feb 2007 08:39:23 -0500
+Content-Disposition: inline
+In-Reply-To: <B41635854730A14CA71C92B36EC22AAC804186@mssmsx411>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>
+To: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-T43 2668-NG2 BIOS 1.23 EC 1.03
+On Tue, 06 Feb 2007, Starikovskiy, Alexey Y wrote:
+> T43 2668-NG2 BIOS 1.23 EC 1.03
 
+We use the same BIOS (TP-1Y), but you are using a very old version.  A lot
+might have changed since then, including AHCI support going away.  I don't
+think I ever run a 1.23 bios on my machine...
 
->-----Original Message-----
->From: Henrique de Moraes Holschuh [mailto:hmh@hmh.eng.br]
->Sent: Tuesday, February 06, 2007 2:59 AM
->To: Starikovskiy, Alexey Y
->Cc: linux-acpi@vger.kernel.org; Brown, Len
->Subject: Re: Bad libata resume behaviour due to ACPICA change (in acpi-
->test)
->
->On Mon, 05 Feb 2007, Starikovskiy, Alexey Y wrote:
->> I cannot reproduce your problem with T43 here on linux-acpi-test with
->> defconfig (relevant ACPI modules were tried both dynamic and static).
->> Resume time is about 4-6 seconds, not 20-40 as you mention.
->
->Never tried a thinkpad in defconfig mode.  Will do.
->
->> Could you please send your .config and try defconfig on your machine?
->>
->> BTW, my T43 use AHCI mode of SATA controller, if it matters...
->
->Mine is stuck in legacy mode, so we are using different drivers
-(ata_piix
->in
->my case).  Which BIOS and firmware you got?  What is your machine type?
-I
->am very interested in a way to get my T43 into AHCI mode...
->
->Mine is a ThinkPad T43 2687-DDU, BIOS is 1.29, EC firmware is 1.06.
->
->--
->  "One disk to rule them all, One disk to find them. One disk to bring
->  them all and in the darkness grind them. In the Land of Redmond
->  where the shadows lie." -- The Silicon Valley Tarot
->  Henrique Holschuh
+And I know for a fact that the ACPI DSDT tables *did* change since 1.23, as
+I have been looking at the DSDT changes in later versions of the BIOS as I
+upgrade them.
+
+Anyway, do you have anything in the BIOS that allows you to select AHCI
+mode, or did Linux just load AHCI and skipped merrily along?  Here, AHCI
+won't load with an error (supposedly because the ICH is already set to
+non-AHCI mode).
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
