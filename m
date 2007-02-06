@@ -1,69 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [patch 03/13] asus_acpi: Add support for Asus Z81SP
-Date: Mon, 05 Feb 2007 16:09:09 -0800
-Message-ID: <200702060010.l160ACsX003721@shell0.pdx.osdl.net>
+Subject: [patch 13/13] sony_acpi: fix sony_acpi backlight registration and unregistration
+Date: Mon, 05 Feb 2007 16:09:19 -0800
+Message-ID: <200702060010.l160AMUf003757@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40701 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40708 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965158AbXBFALu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Feb 2007 19:11:50 -0500
+	id S965161AbXBFALx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 Feb 2007 19:11:53 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, calvinmc@gmail.com, acpi4asus-user@lists.sourceforge.net, corentincj@iksaif.net, sziwan@users.sourceforge.net
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, malattia@linux.it
 
-From: Matthew C Campbell <calvinmc@gmail.com>
+From: Mattia Dongili <malattia@linux.it>
 
-Adds support in asus_acpi for the Asus Z81SP laptop.  This preserves all
-old functionality when improperly detected as well as enabling Bluetooth
-support.
+Initialize the current brightness if the driver registration was successful
+and unregister the driver in the error exit path.
 
-Signed-off-by: Matthew C Campbell <calvinmc@gmail.com>
-Cc: Corentin Chary <corentincj@iksaif.net>
-Cc: Karol Kozimor <sziwan@users.sourceforge.net>
-Cc: <acpi4asus-user@lists.sourceforge.net>
+Signed-off-by: Mattia Dongili <malattia@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/asus_acpi.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ drivers/acpi/sony_acpi.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/acpi/asus_acpi.c~asus_acpi-add-support-for-asus-z81sp drivers/acpi/asus_acpi.c
---- a/drivers/acpi/asus_acpi.c~asus_acpi-add-support-for-asus-z81sp
-+++ a/drivers/acpi/asus_acpi.c
-@@ -141,6 +141,7 @@ struct asus_hotk {
- 		W5A,		//W5A
- 		W3V,            //W3030V
- 		xxN,		//M2400N, M3700N, M5200N, M6800N, S1300N, S5200N
-+		A4S,            //Z81sp
- 		//(Centrino)
- 		END_MODEL
- 	} model;		//Models currently supported
-@@ -397,7 +398,16 @@ static struct model_data model_conf[END_
- 	 .brightness_set = "SPLV",
- 	 .brightness_get = "GPLV",
- 	 .display_set = "SDSP",
--	 .display_get = "\\ADVG"}
-+	.display_get = "\\ADVG"},
+diff -puN drivers/acpi/sony_acpi.c~sony_acpi-fix-sony_acpi-backlight-registration-and-unregistration drivers/acpi/sony_acpi.c
+--- a/drivers/acpi/sony_acpi.c~sony_acpi-fix-sony_acpi-backlight-registration-and-unregistration
++++ a/drivers/acpi/sony_acpi.c
+@@ -354,9 +354,14 @@ static int sony_acpi_add(struct acpi_dev
+ 	if (ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle, "GBRT", &handle))) {
+ 		sony_backlight_device = backlight_device_register("sony", NULL,
+ 					NULL, &sony_backlight_properties);
 +
-+	{
-+		.name              = "A4S",
-+		.brightness_set    = "SPLV",
-+		.brightness_get    = "GPLV",
-+		.mt_bt_switch      = "BLED",
-+		.mt_wled           = "WLED"
-+	}
-+
- };
+ 	        if (IS_ERR(sony_backlight_device)) {
+         	        printk(LOG_PFX "unable to register backlight device\n");
++			sony_backlight_device = NULL;
+ 		}
++		else
++			sony_backlight_properties.brightness =
++				sony_backlight_get_brightness(sony_backlight_device);
+ 	}
  
- /* procdir we use */
-@@ -1117,6 +1127,8 @@ static int asus_model_match(char *model)
- 		return W3V;
- 	else if (strncmp(model, "W5A", 3) == 0)
- 		return W5A;
-+	else if (strncmp(model, "A4S", 3) == 0)
-+		return A4S;
- 	else
- 		return END_MODEL;
- }
+ 	for (item = sony_acpi_values; item->name; ++item) {
+@@ -400,6 +405,9 @@ static int sony_acpi_add(struct acpi_dev
+ 	return 0;
+ 
+ outproc:
++	if (sony_backlight_device)
++		backlight_device_unregister(sony_backlight_device);
++
+ 	for (item = sony_acpi_values; item->name; ++item)
+ 		if (item->proc)
+ 			remove_proc_entry(item->name, acpi_device_dir(device));
 _
