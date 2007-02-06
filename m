@@ -1,65 +1,79 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 1/2] ACPI: ibm-acpi: add Ultrabay support for the T60p ThinkPad
-Date: Tue,  6 Feb 2007 19:13:43 -0200
-Message-ID: <11707964243869-git-send-email-hmh@hmh.eng.br>
-References: <11707964241851-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 2/2] ACPI: ibm-acpi: cleanup init and exit paths
+Date: Tue,  6 Feb 2007 19:13:44 -0200
+Message-ID: <11707964241860-git-send-email-hmh@hmh.eng.br>
+References: <11707964241851-git-send-email-hmh@hmh.eng.br> <11707964243869-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:56081 "EHLO
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:37833 "EHLO
 	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965474AbXBFVNz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Feb 2007 16:13:55 -0500
-In-Reply-To: <11707964241851-git-send-email-hmh@hmh.eng.br>
+	by vger.kernel.org with ESMTP id S965496AbXBFVN5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Feb 2007 16:13:57 -0500
+In-Reply-To: <11707964243869-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-From: Theodore Ts'o <tytso@mit.edu>
+This patch fixes a small memory leak on module removal, and does other
+assorted minor cleanups on the module init codepath.
 
-The following patch adds support for obtaining the status and ejecting
-Ultrabay devices for the T60p Thinkpad; my guess is that it probably
-works on T60 Thinkpads and probably more recent Lenovo latops as well.
-
-With the 2.03 BIOS I have been able to eject a SATA drive in an Ultrabay
-carrier by using the command:
-
-  "echo 1 > /sys/class/scsi_device/1:0:0:0/device/delete"
-
-and upon re-inserting the it back into the device and issuing the
-command:
-
- "echo 0 0 0 > /sys/class/scsi_host/host1/scan"
-
-have the device appear again.  (With the 1.02 BIOS the device does not
-function when re-inserted, even after a warm boot; a cold reboot is
-required to store the Ultrabay device's functionality.)
-
-More complicated Ultrabay eject and insert scripts can be found on the
-ThinkWiki, although it's important to comment out the "hdparm -Y" as it
-apparently doesn't work or do anything, and causes the eject process to
-hang for about a minute.
-
-Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Whoopie <whoopie79@gmx.net>
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 ---
- drivers/acpi/ibm_acpi.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ drivers/acpi/ibm_acpi.c |   13 ++++++++-----
+ 1 files changed, 8 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
-index c6144ca..5c0f1b8 100644
+index 5c0f1b8..20cbde5 100644
 --- a/drivers/acpi/ibm_acpi.c
 +++ b/drivers/acpi/ibm_acpi.c
-@@ -159,7 +159,8 @@ IBM_HANDLE(dock, root, "\\_SB.GDCK",	/* X30, X31, X40 */
- #endif
- IBM_HANDLE(bay, root, "\\_SB.PCI.IDE.SECN.MAST",	/* 570 */
- 	   "\\_SB.PCI0.IDE0.IDES.IDSM",	/* 600e/x, 770e, 770x */
--	   "\\_SB.PCI0.SATA.SCND.MSTR",	/* T60, X60, Z60 */ 
-+	   "\\_SB.PCI0.SATA.SCND.MSTR",	/* T60, X60, Z60, SATA mode? */
-+	   "\\_SB.PCI0.IDE0.PRIM.MSTR", /* T60p, IDE mode? */
- 	   "\\_SB.PCI0.IDE0.SCND.MSTR",	/* all others */
-     );				/* A21e, R30, R31 */
+@@ -497,6 +497,10 @@ static int ibm_acpi_driver_init(void)
+ 	printk(IBM_INFO "%s v%s\n", IBM_DESC, IBM_VERSION);
+ 	printk(IBM_INFO "%s\n", IBM_URL);
  
++	if (ibm_thinkpad_ec_found)
++		printk(IBM_INFO "ThinkPad EC firmware %s\n",
++		       ibm_thinkpad_ec_found);
++
+ 	return 0;
+ }
+ 
+@@ -2618,7 +2622,7 @@ static void __init ibm_handle_init(char *name,
+ 	ibm_handle_init(#object, &object##_handle, *object##_parent,	\
+ 		object##_paths, ARRAY_SIZE(object##_paths), &object##_path)
+ 
+-static int set_ibm_param(const char *val, struct kernel_param *kp)
++static int __init set_ibm_param(const char *val, struct kernel_param *kp)
+ {
+ 	unsigned int i;
+ 
+@@ -2660,7 +2664,8 @@ static void acpi_ibm_exit(void)
+ 	for (i = ARRAY_SIZE(ibms) - 1; i >= 0; i--)
+ 		ibm_exit(&ibms[i]);
+ 
+-	remove_proc_entry(IBM_DIR, acpi_root_dir);
++	if (proc_dir)
++		remove_proc_entry(IBM_DIR, acpi_root_dir);
+ 
+ 	if (ibm_thinkpad_ec_found)
+ 		kfree(ibm_thinkpad_ec_found);
+@@ -2711,9 +2716,6 @@ static int __init acpi_ibm_init(void)
+ 
+ 	/* Models with newer firmware report the EC in DMI */
+ 	ibm_thinkpad_ec_found = check_dmi_for_ec();
+-	if (ibm_thinkpad_ec_found)
+-		printk(IBM_INFO "ThinkPad EC firmware %s\n",
+-		       ibm_thinkpad_ec_found);
+ 
+ 	/* these handles are not required */
+ 	IBM_HANDLE_INIT(vid);
+@@ -2743,6 +2745,7 @@ static int __init acpi_ibm_init(void)
+ 	proc_dir = proc_mkdir(IBM_DIR, acpi_root_dir);
+ 	if (!proc_dir) {
+ 		printk(IBM_ERR "unable to create proc dir %s", IBM_DIR);
++		acpi_ibm_exit();
+ 		return -ENODEV;
+ 	}
+ 	proc_dir->owner = THIS_MODULE;
 -- 
 1.4.4.4
 
