@@ -1,176 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: [patch 10/13] sony_acpi: add acpi_bus_generate event
-Date: Mon, 05 Feb 2007 16:09:17 -0800
-Message-ID: <200702060010.l160AL9W003748@shell0.pdx.osdl.net>
+Subject: [patch 09/13] acpi: add backlight support to the sony_acpi driver
+Date: Mon, 05 Feb 2007 16:09:16 -0800
+Message-ID: <200702060010.l160AJMV003745@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40753 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40771 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965220AbXBFAMP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Feb 2007 19:12:15 -0500
+	id S965220AbXBFAMV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 Feb 2007 19:12:21 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, stelian@popies.net, malattia@linux.it, nilton.volpato@gmail.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, alessandro.guido@gmail.com, rpurdie@rpsys.net, stelian@popies.net
 
-From: Stelian Pop <stelian@popies.net>
+From: Alessandro Guido <alessandro.guido@gmail.com>
 
-Added acpi_bus_generate event for forwarding Fn-keys pressed to acpi subsystem,
-and made correspondent necessary changes for this to work.
+Make the sony_acpi use the backlight subsystem to adjust brightness value
+instead of using the /proc/sony/brightness file.  (Other settings will
+still have a /proc/sony/...  entry)
 
-From: Mattia Dongili <malattia@linux.it>
-
-Allow the existence of a setter method without a getter and viceversa,
-additionaly set /proc file permissions reflecting it.  Fix also the error
-exit path.
-
-Signed-off-by: Mattia Dongili <malattia@linux.it>
-Signed-off-by: Nilton Volpato <nilton.volpato@gmail.com>
+Signed-off-by: Alessandro Guido <alessandro.guido@gmail.com>
+Cc: Stelian Pop <stelian@popies.net>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/sony_acpi.c |   75 ++++++++++++++++++++++---------------
- 1 file changed, 45 insertions(+), 30 deletions(-)
+ drivers/acpi/Kconfig     |    1 
+ drivers/acpi/sony_acpi.c |   53 +++++++++++++++++++++++++++++++++----
+ 2 files changed, 49 insertions(+), 5 deletions(-)
 
-diff -puN drivers/acpi/sony_acpi.c~sony_acpi-addacpi_bus_generate-event drivers/acpi/sony_acpi.c
---- a/drivers/acpi/sony_acpi.c~sony_acpi-addacpi_bus_generate-event
+diff -puN drivers/acpi/Kconfig~acpi-add-backlight-support-to-the-sony_acpi drivers/acpi/Kconfig
+--- a/drivers/acpi/Kconfig~acpi-add-backlight-support-to-the-sony_acpi
++++ a/drivers/acpi/Kconfig
+@@ -281,6 +281,7 @@ config ACPI_TOSHIBA
+ config ACPI_SONY
+ 	tristate "Sony Laptop Extras"
+ 	depends on X86 && ACPI
++	select BACKLIGHT_CLASS_DEVICE
+ 	default m
+ 	  ---help---
+ 	  This mini-driver drives the ACPI SNC device present in the
+diff -puN drivers/acpi/sony_acpi.c~acpi-add-backlight-support-to-the-sony_acpi drivers/acpi/sony_acpi.c
+--- a/drivers/acpi/sony_acpi.c~acpi-add-backlight-support-to-the-sony_acpi
 +++ a/drivers/acpi/sony_acpi.c
-@@ -54,6 +54,7 @@ MODULE_PARM_DESC(debug, "set this to 1 (
+@@ -27,13 +27,19 @@
+ #include <linux/moduleparam.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
++#include <linux/backlight.h>
++#include <linux/err.h>
+ #include <acpi/acpi_drivers.h>
+ #include <acpi/acpi_bus.h>
+ #include <asm/uaccess.h>
  
+ #define ACPI_SNC_CLASS		"sony"
+ #define ACPI_SNC_HID		"SNY5001"
+-#define ACPI_SNC_DRIVER_NAME	"ACPI Sony Notebook Control Driver v0.2"
++#define ACPI_SNC_DRIVER_NAME	"ACPI Sony Notebook Control Driver v0.3"
++
++/* the device uses 1-based values, while the backlight subsystem uses
++   0-based values */
++#define SONY_MAX_BRIGHTNESS	8
+ 
+ #define LOG_PFX			KERN_WARNING "sony_acpi: "
+ 
+@@ -49,6 +55,16 @@ MODULE_PARM_DESC(debug, "set this to 1 (
  static acpi_handle sony_acpi_handle;
  static struct proc_dir_entry *sony_acpi_dir;
-+static struct acpi_device *sony_acpi_acpi_device = NULL;
  
- static int sony_backlight_update_status(struct backlight_device *bd);
- static int sony_backlight_get_brightness(struct backlight_device *bd);
-@@ -270,7 +271,9 @@ static int sony_acpi_resume(struct acpi_
- 
- static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
++static int sony_backlight_update_status(struct backlight_device *bd);
++static int sony_backlight_get_brightness(struct backlight_device *bd);
++static struct backlight_device *sony_backlight_device;
++static struct backlight_properties sony_backlight_properties = {
++	.owner		= THIS_MODULE,
++	.update_status	= sony_backlight_update_status,
++	.get_brightness	= sony_backlight_get_brightness,
++	.max_brightness	= SONY_MAX_BRIGHTNESS - 1,
++};
++
+ static struct sony_acpi_value {
+ 	char			*name;	 /* name of the entry */
+ 	struct proc_dir_entry 	*proc;	 /* /proc entry */
+@@ -65,7 +81,7 @@ static struct sony_acpi_value {
+ 		.acpiget	= "GBRT",
+ 		.acpiset	= "SBRT",
+ 		.min		= 1,
+-		.max		= 8,
++		.max		= SONY_MAX_BRIGHTNESS,
+ 		.debug		= 0,
+ 	},
+ 	{
+@@ -73,7 +89,7 @@ static struct sony_acpi_value {
+ 		.acpiget	= "GPBR",
+ 		.acpiset	= "SPBR",
+ 		.min		= 1,
+-		.max		= 8,
++		.max		= SONY_MAX_BRIGHTNESS,
+ 		.debug		= 0,
+ 	},
+ 	{
+@@ -276,6 +292,7 @@ static int sony_acpi_add(struct acpi_dev
  {
--	printk(LOG_PFX "sony_acpi_notify\n");
-+	if (debug)
-+		printk(LOG_PFX "sony_acpi_notify, event: %d\n", event);
-+	acpi_bus_generate_event(sony_acpi_acpi_device, 1, event);
- }
- 
- static acpi_status sony_walk_callback(acpi_handle handle, u32 level,
-@@ -293,8 +296,11 @@ static int sony_acpi_add(struct acpi_dev
  	acpi_status status;
  	int result;
- 	acpi_handle handle;
-+	mode_t proc_file_mode;
++	acpi_handle handle;
  	struct sony_acpi_value *item;
  
-+	sony_acpi_acpi_device = device;
-+
  	sony_acpi_handle = device->handle;
- 
- 	acpi_driver_data(device) = NULL;
-@@ -308,16 +314,16 @@ static int sony_acpi_add(struct acpi_dev
- 			result = -ENODEV;
- 			goto outwalk;
+@@ -303,9 +320,15 @@ static int sony_acpi_add(struct acpi_dev
  		}
+ 	}
+ 
+-	for (item = sony_acpi_values; item->name; ++item) {
+-		acpi_handle handle;
++	if (ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle, "GBRT", &handle))) {
++		sony_backlight_device = backlight_device_register("sony", NULL,
++					NULL, &sony_backlight_properties);
++	        if (IS_ERR(sony_backlight_device)) {
++        	        printk(LOG_PFX "unable to register backlight device\n");
++		}
 +	}
  
--		status = acpi_install_notify_handler(sony_acpi_handle,
--						     ACPI_DEVICE_NOTIFY,
--						     sony_acpi_notify,
--						     NULL);
--		if (ACPI_FAILURE(status)) {
--			printk(LOG_PFX "unable to install notify handler\n");
--			result = -ENODEV;
--			goto outnotify;
--		}
-+	status = acpi_install_notify_handler(sony_acpi_handle,
-+					     ACPI_DEVICE_NOTIFY,
-+					     sony_acpi_notify,
-+					     NULL);
-+	if (ACPI_FAILURE(status)) {
-+		printk(LOG_PFX "unable to install notify handler\n");
-+		result = -ENODEV;
-+		goto outnotify;
- 	}
- 
- 	if (ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle, "GBRT", &handle))) {
-@@ -329,20 +335,31 @@ static int sony_acpi_add(struct acpi_dev
- 	}
- 
- 	for (item = sony_acpi_values; item->name; ++item) {
-+		proc_file_mode = 0;
-+
++	for (item = sony_acpi_values; item->name; ++item) {
  		if (!debug && item->debug)
  			continue;
  
- 		if (item->acpiget &&
--		    ACPI_FAILURE(acpi_get_handle(sony_acpi_handle,
-+		    ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle,
- 		    		 item->acpiget, &handle)))
--		    	continue;
-+			proc_file_mode = S_IRUSR;
-+		else
-+			printk(LOG_PFX "unable to get ACPI handle for %s (get)\n",
-+					item->name);
+@@ -358,6 +381,9 @@ static int sony_acpi_remove(struct acpi_
+ 	acpi_status status;
+ 	struct sony_acpi_value *item;
  
- 		if (item->acpiset &&
--		    ACPI_FAILURE(acpi_get_handle(sony_acpi_handle,
-+		    ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle,
- 		    		 item->acpiset, &handle)))
--		    	continue;
-+			proc_file_mode |= S_IWUSR;
-+		else
-+			printk(LOG_PFX "unable to get ACPI handle for %s (set)\n",
-+					item->name);
++	if (sony_backlight_device)
++		backlight_device_unregister(sony_backlight_device);
 +
-+		if (proc_file_mode == 0)
-+			continue;
- 
--		item->proc = create_proc_entry(item->name, 0600,
-+		item->proc = create_proc_entry(item->name, proc_file_mode,
- 					       acpi_device_dir(device));
- 		if (!item->proc) {
- 			printk(LOG_PFX "unable to create proc entry\n");
-@@ -361,17 +378,15 @@ static int sony_acpi_add(struct acpi_dev
+ 	if (debug) {
+ 		status = acpi_remove_notify_handler(sony_acpi_handle,
+ 						    ACPI_DEVICE_NOTIFY,
+@@ -375,6 +401,23 @@ static int sony_acpi_remove(struct acpi_
  	return 0;
- 
- outproc:
--	if (debug) {
--		status = acpi_remove_notify_handler(sony_acpi_handle,
--						    ACPI_DEVICE_NOTIFY,
--						    sony_acpi_notify);
--		if (ACPI_FAILURE(status))
--			printk(LOG_PFX "unable to remove notify handler\n");
--	}
--outnotify:
- 	for (item = sony_acpi_values; item->name; ++item)
- 		if (item->proc)
- 			remove_proc_entry(item->name, acpi_device_dir(device));
-+outnotify:
-+	status = acpi_remove_notify_handler(sony_acpi_handle,
-+					    ACPI_DEVICE_NOTIFY,
-+					    sony_acpi_notify);
-+	if (ACPI_FAILURE(status))
-+		printk(LOG_PFX "unable to remove notify handler\n");
- outwalk:
- 	return result;
  }
-@@ -384,13 +399,13 @@ static int sony_acpi_remove(struct acpi_
- 	if (sony_backlight_device)
- 		backlight_device_unregister(sony_backlight_device);
  
--	if (debug) {
--		status = acpi_remove_notify_handler(sony_acpi_handle,
--						    ACPI_DEVICE_NOTIFY,
--						    sony_acpi_notify);
--		if (ACPI_FAILURE(status))
--			printk(LOG_PFX "unable to remove notify handler\n");
--	}
-+	sony_acpi_acpi_device = NULL;
++static int sony_backlight_update_status(struct backlight_device *bd)
++{
++	return acpi_callsetfunc(sony_acpi_handle, "SBRT",
++				bd->props->brightness + 1,
++				NULL);
++}
 +
-+	status = acpi_remove_notify_handler(sony_acpi_handle,
-+					    ACPI_DEVICE_NOTIFY,
-+					    sony_acpi_notify);
-+	if (ACPI_FAILURE(status))
-+		printk(LOG_PFX "unable to remove notify handler\n");
- 
- 	for (item = sony_acpi_values; item->name; ++item)
- 		if (item->proc)
++static int sony_backlight_get_brightness(struct backlight_device *bd)
++{
++	int value;
++
++	if (acpi_callgetfunc(sony_acpi_handle, "GBRT", &value))
++		return 0;
++	/* brightness levels are 1-based, while backlight ones are 0-based */
++	return value - 1;
++}
++
+ static struct acpi_driver sony_acpi_driver = {
+ 	.name	= ACPI_SNC_DRIVER_NAME,
+ 	.class	= ACPI_SNC_CLASS,
 _
