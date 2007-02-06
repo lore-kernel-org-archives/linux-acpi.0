@@ -1,38 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [patch 05/13] ACPI: Make bay depend on dock
+Subject: [patch 04/13] Exit ACPI processor module gracefully if acpi is disabled
 Date: Mon, 05 Feb 2007 16:09:10 -0800
-Message-ID: <200702060010.l160AE0G003732@shell0.pdx.osdl.net>
+Message-ID: <200702060010.l160ADKR003729@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40672 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40680 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965140AbXBFALf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Feb 2007 19:11:35 -0500
+	id S965147AbXBFALi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 Feb 2007 19:11:38 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, kristen.c.accardi@intel.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, trenn@suse.de
 
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+From: Thomas Renninger <trenn@suse.de>
 
-Since the bay driver depends on the dock driver for proper notification, make
-this driver depend on the dock driver.
-
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/acpi/processor_core.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN drivers/acpi/Kconfig~acpi-make-bay-depend-on-dock drivers/acpi/Kconfig
---- a/drivers/acpi/Kconfig~acpi-make-bay-depend-on-dock
-+++ a/drivers/acpi/Kconfig
-@@ -151,6 +151,7 @@ config ACPI_FAN
- config ACPI_DOCK
- 	tristate "Dock"
- 	depends on EXPERIMENTAL
-+	depends on ACPI_DOCK
- 	help
- 	  This driver adds support for ACPI controlled docking stations
+diff -puN drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled drivers/acpi/processor_core.c
+--- a/drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled
++++ a/drivers/acpi/processor_core.c
+@@ -994,6 +994,8 @@ void acpi_processor_uninstall_hotplug_no
+  * ACPI, but needs symbols from this driver
+  */
+ 
++static int processor_driver_registered;
++
+ static int __init acpi_processor_init(void)
+ {
+ 	int result = 0;
+@@ -1019,6 +1021,8 @@ static int __init acpi_processor_init(vo
+ 		return result;
+ 	}
+ 
++	processor_driver_registered = 1;
++
+ 	acpi_processor_install_hotplug_notify();
+ 
+ 	acpi_thermal_cpufreq_init();
+@@ -1035,12 +1039,13 @@ static void __exit acpi_processor_exit(v
+ 
+ 	acpi_thermal_cpufreq_exit();
+ 
+-	acpi_processor_uninstall_hotplug_notify();
+-
+-	acpi_bus_unregister_driver(&acpi_processor_driver);
++	if (processor_driver_registered) {
++		acpi_processor_uninstall_hotplug_notify();
+ 
+-	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
++		acpi_bus_unregister_driver(&acpi_processor_driver);
+ 
++		remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
++	}
+ 	return;
+ }
  
 _
