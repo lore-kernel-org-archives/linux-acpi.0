@@ -1,35 +1,71 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [GIT PULL] ibm-acpi patches for 2.6.21
-Date: Tue,  6 Feb 2007 19:13:42 -0200
-Message-ID: <11707964241851-git-send-email-hmh@hmh.eng.br>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: [-mm patch] #ifdef ACPI_FUTURE_USAGE acpi_os_readable()
+Date: Tue, 6 Feb 2007 23:11:45 +0100
+Message-ID: <20070206221145.GF27397@stusta.de>
+References: <20070129204528.eb8d695e.akpm@osdl.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:33679 "EHLO
-	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965472AbXBFVNv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Feb 2007 16:13:51 -0500
+Received: from emailhub.stusta.mhn.de ([141.84.69.5]:39697 "EHLO
+	mailhub.stusta.mhn.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S965477AbXBFWLl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Feb 2007 17:11:41 -0500
+Content-Disposition: inline
+In-Reply-To: <20070129204528.eb8d695e.akpm@osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>, lenb@kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Please pull from git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git
-branch for-upstream/acpi-release
+On Mon, Jan 29, 2007 at 08:45:28PM -0800, Andrew Morton wrote:
+>...
+> Changes since 2.6.20-rc6-mm2:
+>...
+>  git-acpi.patch
+>...
+>  git trees
+>...
 
-To receive the following patches:
 
-Henrique de Moraes Holschuh (1):
-      ACPI: ibm-acpi: cleanup init and exit paths
+acpi_os_readable() is no longer used.
 
-Theodore Ts'o (1):
-      ACPI: ibm-acpi: add Ultrabay support for the T60p ThinkPad
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
-Please schedule these patches to be merged in mainline 2.6.21.
+---
 
-The patches are also going to be sent as replies to this email, for your
-convenience.
+ drivers/acpi/osl.c      |    2 --
+ include/acpi/acpiosxf.h |    3 +--
+ 2 files changed, 1 insertion(+), 4 deletions(-)
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+--- linux-2.6.20-rc6-mm3/include/acpi/acpiosxf.h.old	2007-02-06 06:57:15.000000000 +0100
++++ linux-2.6.20-rc6-mm3/include/acpi/acpiosxf.h	2007-02-06 06:57:53.000000000 +0100
+@@ -240,9 +240,8 @@
+ acpi_os_validate_address(u8 space_id,
+ 			 acpi_physical_address address, acpi_size length);
+ 
+-u8 acpi_os_readable(void *pointer, acpi_size length);
+-
+ #ifdef ACPI_FUTURE_USAGE
++u8 acpi_os_readable(void *pointer, acpi_size length);
+ u8 acpi_os_writable(void *pointer, acpi_size length);
+ #endif
+ 
+--- linux-2.6.20-rc6-mm3/drivers/acpi/osl.c.old	2007-02-06 07:18:33.000000000 +0100
++++ linux-2.6.20-rc6-mm3/drivers/acpi/osl.c	2007-02-06 07:18:54.000000000 +0100
+@@ -888,7 +888,6 @@
+ 
+ 	return 0;
+ }
+-#endif				/*  ACPI_FUTURE_USAGE  */
+ 
+ /* Assumes no unreadable holes inbetween */
+ u8 acpi_os_readable(void *ptr, acpi_size len)
+@@ -901,7 +900,6 @@
+ 	return 1;
+ }
+ 
+-#ifdef ACPI_FUTURE_USAGE
+ u8 acpi_os_writable(void *ptr, acpi_size len)
+ {
+ 	/* could do dummy write (racy) or a kernel page table lookup.
+
