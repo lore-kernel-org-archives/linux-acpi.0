@@ -1,241 +1,224 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 16/140] ACPI: use PNPID:instance_no as bus_id of ACPI device
-Date: Wed,  7 Feb 2007 13:50:30 -0500
-Message-ID: <11708743962377-git-send-email-lenb@kernel.org>
-References: <11708743541314-git-send-email-lenb@kernel.org> <11708743561383-git-send-email-lenb@kernel.org> <117087435785-git-send-email-lenb@kernel.org> <11708743582090-git-send-email-lenb@kernel.org> <11708743611662-git-send-email-lenb@kernel.org> <11708743653073-git-send-email-lenb@kernel.org> <11708743674006-git-send-email-lenb@kernel.org> <11708743693386-git-send-email-lenb@kernel.org> <11708743702194-git-send-email-lenb@kernel.org> <11708743723353-git-send-email-lenb@kernel.org> <11708743783727-git-send-email-lenb@kernel.org> <11708743802558-git-send-email-lenb@kernel.org> <11708743821259-git-send-email-lenb@kernel.org> <11708743853573-git-send-email-lenb@kernel.org> <11708743871468-git-send-email-lenb@kernel.org> <1170874390715-git-send-email-lenb@kernel.org> <1170874393736-git-send-email-lenb@kernel.org> <11708743943108-git-send-email-lenb@kernel.org>
+Subject: [PATCH 13/140] output: Add display output class support
+Date: Wed,  7 Feb 2007 13:50:27 -0500
+Message-ID: <1170874390715-git-send-email-lenb@kernel.org>
+References: <11708743541314-git-send-email-lenb@kernel.org> <11708743561383-git-send-email-lenb@kernel.org> <117087435785-git-send-email-lenb@kernel.org> <11708743582090-git-send-email-lenb@kernel.org> <11708743611662-git-send-email-lenb@kernel.org> <11708743653073-git-send-email-lenb@kernel.org> <11708743674006-git-send-email-lenb@kernel.org> <11708743693386-git-send-email-lenb@kernel.org> <11708743702194-git-send-email-lenb@kernel.org> <11708743723353-git-send-email-lenb@kernel.org> <11708743783727-git-send-email-lenb@kernel.org> <11708743802558-git-send-email-lenb@kernel.org> <11708743821259-git-send-email-lenb@kernel.org> <11708743853573-git-send-email-lenb@kernel.org> <11708743871468-git-send-email-lenb@kernel.org>
 Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([143.182.124.22]:7926 "EHLO
+Received: from mga07.intel.com ([143.182.124.22]:22847 "EHLO
 	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1422729AbXBGSxT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Feb 2007 13:53:19 -0500
-In-Reply-To: <11708743943108-git-send-email-lenb@kernel.org>
-Message-Id: <e49bd2dd5a503bb94fe2f2af45422b610940b75d.1170873816.git.len.brown@intel.com>
+	with ESMTP id S1422714AbXBGSxP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Feb 2007 13:53:15 -0500
+In-Reply-To: <11708743871468-git-send-email-lenb@kernel.org>
+Message-Id: <2dec3ba8d872aa3ffbcdb8f6f8a2c0bcd44e9910.1170873816.git.len.brown@intel.com>
 In-Reply-To: <9e89dde2b063ca73fcdc9244fe68e2dea32c5088.1170873816.git.len.brown@intel.com>
 References: <9e89dde2b063ca73fcdc9244fe68e2dea32c5088.1170873816.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Zhang Rui <rui.zhang@intel.com>, Li Shaohua <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Yu Luming <luming.yu@gmail.com>, Luming Yu <Luming.yu@intel.com>, Andrew Morton <akpm@osdl.org>, Len Brown <len.brown@intel.com>
 
-From: Zhang Rui <rui.zhang@intel.com>
+From: Yu Luming <luming.yu@gmail.com>
 
-Previously we used the device name in the DSDT, but would
-crash upon encountering a duplicate. Also, exposing the
-DSDT device name to the user in a patch isn't a good idea,
-because it is arbitrary.
+Add generic abstract layer for display output switch control.  The output
+sysfs class driver provides an abstract video output layer that can be used to
+hook platform specific methods to enable/disable video output device through
+common sysfs interface.
 
-After some discussion, we finally decided to use
-"PNPID:instance_no" as the bus_id of ACPI devices.
-
-Two attributes for each device are added at the same time,
-the full pathname in ACPI namespace and hardware_id if it has.
-
-NOTE:	acpi_bus_id_list is used to keep the information of PNPID
-	and instance number of the given PNPID. Loop the
-	acpi_bus_id_list to find the instance_no of the	same PNPID
-	when register a device. If failed, i.e. we don't have a
-	node with this PNPID, allocate one and link it to this list.
-
-NOTE:	Now I don't take the memory free work in charge.
-	If necessary, I can add a reference count in
-	struct acpi_device_bus_id, and check the reference and
-	when unregister a device, i.e. memory is freed when
-	the reference count of a given PNPID is 0.
-
-Signed-off-by: Li Shaohua <shaohua.li@intel.com>
+Signed-off-by: Luming Yu <Luming.yu@intel.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/scan.c |  118 +++++++++++++++++++++++++++++++++++++++++++++++----
- 1 files changed, 109 insertions(+), 9 deletions(-)
+ drivers/video/output.c       |  129 ++++++++++++++++++++++++++++++++++++++++++
+ include/linux/video_output.h |   42 ++++++++++++++
+ 2 files changed, 171 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/video/output.c
+ create mode 100644 include/linux/video_output.h
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 9efe3e9..769e54b 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -21,9 +21,15 @@ extern struct acpi_device *acpi_root;
- #define ACPI_BUS_DEVICE_NAME		"System Bus"
- 
- static LIST_HEAD(acpi_device_list);
-+static LIST_HEAD(acpi_bus_id_list);
- DEFINE_SPINLOCK(acpi_device_lock);
- LIST_HEAD(acpi_wakeup_device_list);
- 
-+struct acpi_device_bus_id{
-+	char bus_id[9];
-+	unsigned int instance_no;
-+	struct list_head node;
+diff --git a/drivers/video/output.c b/drivers/video/output.c
+new file mode 100644
+index 0000000..1473f2c
+--- /dev/null
++++ b/drivers/video/output.c
+@@ -0,0 +1,129 @@
++/*
++ *  output.c - Display Output Switch driver
++ *
++ *  Copyright (C) 2006 Luming Yu <luming.yu@intel.com>
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or (at
++ *  your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful, but
++ *  WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ *  General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ */
++#include <linux/module.h>
++#include <linux/video_output.h>
++#include <linux/err.h>
++#include <linux/ctype.h>
++
++
++MODULE_DESCRIPTION("Display Output Switcher Lowlevel Control Abstraction");
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Luming Yu <luming.yu@intel.com>");
++
++static ssize_t video_output_show_state(struct class_device *dev,char *buf)
++{
++	ssize_t ret_size = 0;
++	struct output_device *od = to_output_device(dev);
++	if (od->props)
++		ret_size = sprintf(buf,"%.8x\n",od->props->get_status(od));
++	return ret_size;
++}
++
++static ssize_t video_output_store_state(struct class_device *dev,
++	const char *buf,size_t count)
++{
++	char *endp;
++	struct output_device *od = to_output_device(dev);
++	int request_state = simple_strtoul(buf,&endp,0);
++	size_t size = endp - buf;
++
++	if (*endp && isspace(*endp))
++		size++;
++	if (size != count)
++		return -EINVAL;
++
++	if (od->props) {
++		od->request_state = request_state;
++		od->props->set_state(od);
++	}
++	return count;
++}
++
++static void video_output_class_release(struct class_device *dev)
++{
++	struct output_device *od = to_output_device(dev);
++	kfree(od);
++}
++
++static struct class_device_attribute video_output_attributes[] = {
++	__ATTR(state, 0644, video_output_show_state, video_output_store_state),
++	__ATTR_NULL,
 +};
- static int acpi_eject_operation(acpi_handle handle, int lockable)
- {
- 	struct acpi_object_list arg_list;
-@@ -103,18 +109,61 @@ acpi_eject_store(struct device *d, struct device_attribute *attr,
- 
- static DEVICE_ATTR(eject, 0200, NULL, acpi_eject_store);
- 
--static void acpi_device_setup_files(struct acpi_device *dev)
-+static ssize_t
-+acpi_device_hid_show(struct device *dev, struct device_attribute *attr, char *buf) {
-+	struct acpi_device *acpi_dev = to_acpi_device(dev);
 +
-+	return sprintf(buf, "%s\n", acpi_dev->pnp.hardware_id);
++static struct class video_output_class = {
++	.name = "video_output",
++	.release = video_output_class_release,
++	.class_dev_attrs = video_output_attributes,
++};
++
++struct output_device *video_output_register(const char *name,
++	struct device *dev,
++	void *devdata,
++	struct output_properties *op)
++{
++	struct output_device *new_dev;
++	int ret_code = 0;
++
++	new_dev = kzalloc(sizeof(struct output_device),GFP_KERNEL);
++	if (!new_dev) {
++		ret_code = -ENOMEM;
++		goto error_return;
++	}
++	new_dev->props = op;
++	new_dev->class_dev.class = &video_output_class;
++	new_dev->class_dev.dev = dev;
++	strlcpy(new_dev->class_dev.class_id,name,KOBJ_NAME_LEN);
++	class_set_devdata(&new_dev->class_dev,devdata);
++	ret_code = class_device_register(&new_dev->class_dev);
++	if (ret_code) {
++		kfree(new_dev);
++		goto error_return;
++	}
++	return new_dev;
++
++error_return:
++	return ERR_PTR(ret_code);
 +}
-+static DEVICE_ATTR(hid, 0444, acpi_device_hid_show, NULL);
++EXPORT_SYMBOL(video_output_register);
 +
-+static ssize_t
-+acpi_device_path_show(struct device *dev, struct device_attribute *attr, char *buf) {
-+	struct acpi_device *acpi_dev = to_acpi_device(dev);
-+	struct acpi_buffer path = {ACPI_ALLOCATE_BUFFER, NULL};
-+	int result;
-+
-+	result = acpi_get_name(acpi_dev->handle, ACPI_FULL_PATHNAME, &path);
-+	if(result)
-+		goto end;
-+
-+	result = sprintf(buf, "%s\n", (char*)path.pointer);
-+	kfree(path.pointer);
-+  end:
-+	return result;
++void video_output_unregister(struct output_device *dev)
++{
++	if (!dev)
++		return;
++	class_device_unregister(&dev->class_dev);
 +}
-+static DEVICE_ATTR(path, 0444, acpi_device_path_show, NULL);
++EXPORT_SYMBOL(video_output_unregister);
 +
-+static int acpi_device_setup_files(struct acpi_device *dev)
- {
- 	acpi_status status;
- 	acpi_handle temp;
-+	int result = 0;
- 
- 	/*
--	 * If device has _EJ0, 'eject' file is created that is used to trigger
--	 * hot-removal function from userland.
-+	 * Devices gotten from FADT don't have a "path" attribute
- 	 */
-+	if(dev->handle) {
-+		result = device_create_file(&dev->dev, &dev_attr_path);
-+		if(result)
-+			goto end;
-+	}
++static void __exit video_output_class_exit(void)
++{
++	class_unregister(&video_output_class);
++}
 +
-+	if(dev->flags.hardware_id) {
-+		result = device_create_file(&dev->dev, &dev_attr_hid);
-+		if(result)
-+			goto end;
-+	}
++static int __init video_output_class_init(void)
++{
++	return class_register(&video_output_class);
++}
 +
-+        /*
-+         * If device has _EJ0, 'eject' file is created that is used to trigger
-+         * hot-removal function from userland.
-+         */
- 	status = acpi_get_handle(dev->handle, "_EJ0", &temp);
- 	if (ACPI_SUCCESS(status))
--		device_create_file(&dev->dev, &dev_attr_eject);
-+		result = device_create_file(&dev->dev, &dev_attr_eject);
-+  end:
-+	return result;
- }
- 
- static void acpi_device_remove_files(struct acpi_device *dev)
-@@ -129,6 +178,11 @@ static void acpi_device_remove_files(struct acpi_device *dev)
- 	status = acpi_get_handle(dev->handle, "_EJ0", &temp);
- 	if (ACPI_SUCCESS(status))
- 		device_remove_file(&dev->dev, &dev_attr_eject);
-+
-+	if(dev->flags.hardware_id)
-+		device_remove_file(&dev->dev, &dev_attr_hid);
-+	if(dev->handle)
-+		device_remove_file(&dev->dev, &dev_attr_path);
- }
- /* --------------------------------------------------------------------------
- 			ACPI Bus operations
-@@ -260,9 +314,12 @@ static struct bus_type acpi_bus_type = {
- 	.uevent		= acpi_device_uevent,
- };
- 
--static void acpi_device_register(struct acpi_device *device,
-+static int acpi_device_register(struct acpi_device *device,
- 				 struct acpi_device *parent)
- {
-+	int result;
-+	struct acpi_device_bus_id *acpi_device_bus_id, *new_bus_id;
-+	int found = 0;
- 	/*
- 	 * Linkage
- 	 * -------
-@@ -273,7 +330,33 @@ static void acpi_device_register(struct acpi_device *device,
- 	INIT_LIST_HEAD(&device->g_list);
- 	INIT_LIST_HEAD(&device->wakeup_list);
- 
-+	new_bus_id = kzalloc(sizeof(struct acpi_device_bus_id), GFP_KERNEL);
-+	if (!new_bus_id) {
-+		printk(KERN_ERR PREFIX "Memory allocation error\n");
-+		return -ENOMEM;
-+	}
-+
- 	spin_lock(&acpi_device_lock);
-+	/*
-+	 * Find suitable bus_id and instance number in acpi_bus_id_list
-+	 * If failed, create one and link it into acpi_bus_id_list
-+	 */
-+	list_for_each_entry(acpi_device_bus_id, &acpi_bus_id_list, node) {
-+		if(!strcmp(acpi_device_bus_id->bus_id, device->flags.hardware_id? device->pnp.hardware_id : "PNPIDNON")) {
-+			acpi_device_bus_id->instance_no ++;
-+			found = 1;
-+			kfree(new_bus_id);
-+			break;
-+		}
-+	}
-+	if(!found) {
-+		acpi_device_bus_id = new_bus_id;
-+		strcpy(acpi_device_bus_id->bus_id, device->flags.hardware_id ? device->pnp.hardware_id : "PNPIDNON");
-+		acpi_device_bus_id->instance_no = 0;
-+		list_add_tail(&acpi_device_bus_id->node, &acpi_bus_id_list);
-+	}
-+	sprintf(device->dev.bus_id, "%s:%02x", acpi_device_bus_id->bus_id, acpi_device_bus_id->instance_no);
-+
- 	if (device->parent) {
- 		list_add_tail(&device->node, &device->parent->children);
- 		list_add_tail(&device->g_list, &device->parent->g_list);
-@@ -287,12 +370,29 @@ static void acpi_device_register(struct acpi_device *device,
- 		device->dev.parent = &parent->dev;
- 	device->dev.bus = &acpi_bus_type;
- 	device_initialize(&device->dev);
--	sprintf(device->dev.bus_id, "%s", device->pnp.bus_id);
- 	device->dev.release = &acpi_device_release;
--	device_add(&device->dev);
-+	result = device_add(&device->dev);
-+	if(result) {
-+		printk("Error adding device %s", device->dev.bus_id);
-+		goto end;
-+	}
-+
-+	result = acpi_device_setup_files(device);
-+	if(result)
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Error creating sysfs interface for device %s\n", device->dev.bus_id));
- 
--	acpi_device_setup_files(device);
- 	device->removal_type = ACPI_BUS_REMOVAL_NORMAL;
-+	return 0;
-+  end:
-+	spin_lock(&acpi_device_lock);
-+	if (device->parent) {
-+		list_del(&device->node);
-+		list_del(&device->g_list);
-+	} else
-+		list_del(&device->g_list);
-+	list_del(&device->wakeup_list);
-+	spin_unlock(&acpi_device_lock);
-+	return result;
- }
- 
- static void acpi_device_unregister(struct acpi_device *device, int type)
-@@ -1035,7 +1135,7 @@ acpi_add_single_object(struct acpi_device **child,
- 
- 	acpi_device_get_debug_info(device, handle, type);
- 
--	acpi_device_register(device, parent);
-+	result = acpi_device_register(device, parent);
- 
-       end:
- 	if (!result)
++postcore_initcall(video_output_class_init);
++module_exit(video_output_class_exit);
+diff --git a/include/linux/video_output.h b/include/linux/video_output.h
+new file mode 100644
+index 0000000..e63e0c0
+--- /dev/null
++++ b/include/linux/video_output.h
+@@ -0,0 +1,42 @@
++/*
++ *
++ *  Copyright (C) 2006 Luming Yu <luming.yu@intel.com>
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or (at
++ *  your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful, but
++ *  WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ *  General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ */
++#ifndef _LINUX_VIDEO_OUTPUT_H
++#define _LINUX_VIDEO_OUTPUT_H
++#include <linux/device.h>
++struct output_device;
++struct output_properties {
++	int (*set_state)(struct output_device *);
++	int (*get_status)(struct output_device *);
++};
++struct output_device {
++	int request_state;
++	struct output_properties *props;
++	struct class_device class_dev;
++};
++#define to_output_device(obj) container_of(obj, struct output_device, class_dev)
++struct output_device *video_output_register(const char *name,
++	struct device *dev,
++	void *devdata,
++	struct output_properties *op);
++void video_output_unregister(struct output_device *dev);
++#endif
 -- 
 1.5.0.rc3.39.gec804
