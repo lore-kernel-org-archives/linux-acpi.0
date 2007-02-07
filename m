@@ -1,36 +1,39 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: ACPI patches for 2.6.21
-Date: Wed, 7 Feb 2007 20:42:20 +0100
-Message-ID: <20070207194220.GB3339@inferi.kami.home>
-References: <11708743541314-git-send-email-lenb@kernel.org> <11708743561383-git-send-email-lenb@kernel.org>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Caching the results of acpi_get_handle() in a driver: is it valid?
+Date: Wed, 7 Feb 2007 17:43:52 -0200
+Message-ID: <20070207194352.GB4515@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aa012msr.fastwebnet.it ([85.18.95.72]:56053 "EHLO
-	aa012msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422714AbXBGTnk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Feb 2007 14:43:40 -0500
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:55815 "EHLO
+	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1422715AbXBGTn5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Feb 2007 14:43:57 -0500
 Content-Disposition: inline
-In-Reply-To: <11708743561383-git-send-email-lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: ibm-acpi-devel@lists.sourceforge.net
 
-On Wed, Feb 07, 2007 at 01:50:13PM -0500, Len Brown wrote:
-> The following series of patches are
-> in the acpi release tree for inclusion in 2.6.21.
-> 
-> If you see any problems with them, please speak up now.
-> 
-> Yes, there are more coming for 2.6.21 after this.
-> If you are excited about a patch for 2.6.21 that is
-> not included in this patch, please ping me about it now,
-> to be sure I don't miss it.
+The code I inherited in ibm-acpi does heavy caching of acpi_get_handle()
+results.  It stores the results of acpi_get_handle() for a number of nodes
+at module init, and uses the stored results during its lifetime.
 
-May I suggest the sony-acpi/sony-laptop stuff from akpm and me? :)
+Is that a valid use of the handles returned by acpi_get_handle()?  In
+particular, what happens to handlers when a SSDT gets loaded or unloaded at
+runtime?  Do handles that came from the DSDT change?  What if the handler
+was to a node in the SSDT being unloaded?  What if the handler is overriden
+by a new loaded SSDT?
 
-Thanks
+While the vast majority of the handlers ibm-acpi caches are in the DSDT and
+very unlikely to change through a SSDT load, I'd still like to make sure the
+driver is doing the right thing...
+
+PS: not caching the results is always possible, but that will mean various
+calls to acpi_get_handle() per second.
+
 -- 
-mattia
-:wq!
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
