@@ -1,32 +1,32 @@
-From: Jiri Slaby <jirislaby@gmail.com>
-Subject: Re: hwsusp defunct
-Date: Wed, 07 Feb 2007 14:02:29 +0100
-Message-ID: <45C9CDE5.1040109@gmail.com>
-References: <45C5DBBA.20502@gmail.com> <200702041452.28874.rjw@sisk.pl>	 <45C86405.1070902@gmail.com> <200702061855.49077.rjw@sisk.pl>	 <45C9C0B6.9090704@gmail.com> <3877989d0702070410k77f67616qb4edff275b90c988@mail.gmail.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Regression on ibm-acpi bay support on the sf.net releases
+Date: Wed, 7 Feb 2007 12:10:41 -0200
+Message-ID: <20070207141041.GA19140@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cacti.profiwh.com ([85.93.165.66]:41683 "EHLO cacti.profiwh.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965564AbXBGNCD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 7 Feb 2007 08:02:03 -0500
-In-Reply-To: <3877989d0702070410k77f67616qb4edff275b90c988@mail.gmail.com>
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:56696 "EHLO
+	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1161323AbXBGOK5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Feb 2007 09:10:57 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Luming Yu <luming.yu@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@suse.cz>, linux-acpi@vger.kernel.org
+To: ibm-acpi-devel@lists.sourceforge.net, linux-thinkpad@linux-thinkpad.org, linux-acpi@vger.kernel.org
 
-Luming Yu napsal(a):
-> For acpi issues, please enter bug into bugzilla.kernel.org with dmesg,
-> acpidump output .
+I have just noticed that the T60p bay suport patch uncovered a bad design
+bug in the ibm-acpi bay handling, that causes a regression (ibm-acpi bay
+support will not work on the T43 and many others).  It will work on the
+t60p, though :-p
 
-Ok:
-http://bugzilla.kernel.org/show_bug.cgi?id=7958
+The workaround is to revert that patch.  I am working on a proper fix, but
+it may take a few days as I need to change the way bay_init() works
+completely.  As a bonus, the bay_init rework will probably fix the
+long-standing bug of bay support not finding the bay when the machine boots
+with a battery in the bay.
 
-thanks,
 -- 
-http://www.fi.muni.cz/~xslaby/            Jiri Slaby
-faculty of informatics, masaryk university, brno, cz
-e-mail: jirislaby gmail com, gpg pubkey fingerprint:
-B674 9967 0407 CE62 ACC8  22A0 32CC 55C3 39D4 7A7E
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
