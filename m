@@ -1,124 +1,340 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 29/140] ACPI: add ACPICA version in sysfs
-Date: Wed,  7 Feb 2007 13:50:43 -0500
-Message-ID: <11708744142658-git-send-email-lenb@kernel.org>
+Subject: [PATCH 33/140] asus-laptop: add backlight support
+Date: Wed,  7 Feb 2007 13:50:47 -0500
+Message-ID: <11708744191642-git-send-email-lenb@kernel.org>
 References: <11708743541314-git-send-email-lenb@kernel.org> <11708743561383-git-send-email-lenb@kernel.org> <117087435785-git-send-email-lenb@kernel.org> <11708743582090-git-send-email-lenb@kernel.org> <11708743611662-git-send-email-lenb@kernel.org> <11708743653073-git-send-email-lenb@kernel.org> <11708743674006-git-send-email-lenb@kernel.org> <11708743693386-git-send-email-lenb@kernel.org> <11708743702194-git-send-email-lenb@kernel.org> <11708743723353-git-send-email-lenb@kernel.org> <11708743783727-git-send-email-lenb@kernel.org> <11708743802558-git-send-email-lenb@kernel.org> <11708743821259-git-send-email-lenb@kernel.org> <11708743853573-git-send-email-lenb@kernel.org> <11708743871468-git-send-email-lenb@kernel.org> <1170874390715-git-send-email-lenb@kernel.org> <1170874393736-git-send-email-lenb@kernel.org> <11708743943108-git-send-email-lenb@kernel.org> <11708743962377-git-send-ema
- il-lenb@kernel.org> <11708743972593-git-send-email-lenb@kernel.org> <1170874398386-git-send-email-lenb@kernel.org> <11708743993414-git-send-email-lenb@kernel.org> <11708744003959-git-send-email-lenb@kernel.org> <11708744023872-git-send-email-lenb@kernel.org> <11708744032427-git-send-email-lenb@kernel.org> <11708744053556-git-send-email-lenb@kernel.org> <11708744062538-git-send-email-lenb@kernel.org> <11708744071019-git-send-email-lenb@kernel.org> <11708744093818-git-send-email-lenb@kernel.org> <11708744101300-git-send-email-lenb@kernel.org> <1170874412494-git-send-email-lenb@kernel.org>
+ il-lenb@kernel.org> <11708743972593-git-send-email-lenb@kernel.org> <1170874398386-git-send-email-lenb@kernel.org> <11708743993414-git-send-email-lenb@kernel.org> <11708744003959-git-send-email-lenb@kernel.org> <11708744023872-git-send-email-lenb@kernel.org> <11708744032427-git-send-email-lenb@kernel.org> <11708744053556-git-send-email-lenb@kernel.org> <11708744062538-git-send-email-lenb@kernel.org> <11708744071019-git-send-email-lenb@kernel.org> <11708744093818-git-send-email-lenb@kernel.org> <11708744101300-git-send-email-lenb@kernel.org> <1170874412494-git-send-email-lenb@kernel.org> <11708744142658-git-send-email-lenb@kernel.org> <1170874415464-git-send-email-lenb@kernel.org> <1170874417392-git-send-email-lenb@kernel.org> <1170874418134-git-send-email-lenb@kernel.org>
 Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([143.182.124.22]:45778 "EHLO
+Received: from mga07.intel.com ([143.182.124.22]:4200 "EHLO
 	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1422749AbXBGSxi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Feb 2007 13:53:38 -0500
-In-Reply-To: <1170874412494-git-send-email-lenb@kernel.org>
-Message-Id: <5bb730fda8aa4e3f7e94b259c468ecd095f60770.1170873816.git.len.brown@intel.com>
+	with ESMTP id S1422751AbXBGSxm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Feb 2007 13:53:42 -0500
+In-Reply-To: <1170874418134-git-send-email-lenb@kernel.org>
+Message-Id: <6b7091e74fe176da97917ca60524e2b3554305f0.1170873816.git.len.brown@intel.com>
 In-Reply-To: <9e89dde2b063ca73fcdc9244fe68e2dea32c5088.1170873816.git.len.brown@intel.com>
 References: <9e89dde2b063ca73fcdc9244fe68e2dea32c5088.1170873816.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Corentin Chary <corentincj@iksaif.net>, Len Brown <len.brown@intel.com>
 
-From: Zhang Rui <rui.zhang@intel.com>
+From: Corentin Chary <corentincj@iksaif.net>
 
-Add an ACPI attribute to indicate ACPICA version.
-/proc/acpi/version is deprecated by /sys/module/acpi/parameters/acpica_version.
+Adds backlight support using backlight class. We now
+change the brightness *and toggle the backlight !* via
+/sys/class/backlight/asus-laptop/.
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+If the user switchs the backlight using the keyboard,
+asus_hotk_notify looks for ATKD_LCD_OFF and ATKD_LCD_ON events,
+and stores the right state into hotk->status and bd->props->power .
+
+Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/Kconfig  |    4 +++-
- drivers/acpi/system.c |   24 ++++++++++++++++++++++++
- 2 files changed, 27 insertions(+), 1 deletions(-)
+ drivers/misc/Kconfig       |    1 +
+ drivers/misc/asus-laptop.c |  183 +++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 183 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index a3a1073..df45144 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -87,7 +87,9 @@ config ACPI_PROCFS
- 	  and this proc interface will be removed some time later,
- 	  it's marked as deprecated.
- 	  ( /proc/acpi/debug_layer && debug_level are deprecated by
--	    /sys/module/acpi/parameters/debug_layer && debug_level. )
-+	    /sys/module/acpi/parameters/debug_layer && debug_level.
-+	    /proc/acpi/info is deprecated by
-+	    /sys/module/acpi/parameters/acpica_version )
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index 87e1db8..89bba27 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -75,6 +75,7 @@ config ASUS_LAPTOP
+         depends on ACPI
+ 	depends on EXPERIMENTAL && !ACPI_ASUS
+ 	depends on LEDS_CLASS
++	depends on BACKLIGHT_CLASS_DEVICE
+         ---help---
+ 	  This is the new Linux driver for Asus laptops. It may also support some
+ 	  MEDION, JVC or VICTOR laptops. It makes all the extra buttons generate
+diff --git a/drivers/misc/asus-laptop.c b/drivers/misc/asus-laptop.c
+index 222d4fb..58ab44d 100644
+--- a/drivers/misc/asus-laptop.c
++++ b/drivers/misc/asus-laptop.c
+@@ -40,6 +40,8 @@
+ #include <linux/types.h>
+ #include <linux/err.h>
+ #include <linux/proc_fs.h>
++#include <linux/backlight.h>
++#include <linux/fb.h>
+ #include <linux/leds.h>
+ #include <linux/platform_device.h>
+ #include <acpi/acpi_drivers.h>
+@@ -56,6 +58,14 @@
+ #define ASUS_HOTK_PREFIX        "\\_SB.ATKD."
  
- config ACPI_AC
- 	tristate "AC Adapter"
-diff --git a/drivers/acpi/system.c b/drivers/acpi/system.c
-index d86dcb3..407b0e0 100644
---- a/drivers/acpi/system.c
-+++ b/drivers/acpi/system.c
-@@ -32,6 +32,11 @@
- 
- #define _COMPONENT		ACPI_SYSTEM_COMPONENT
- ACPI_MODULE_NAME("acpi_system")
-+#ifdef MODULE_PARAM_PREFIX
-+#undef MODULE_PARAM_PREFIX
-+#endif
-+#define MODULE_PARAM_PREFIX "acpi."
-+
- #define ACPI_SYSTEM_CLASS		"system"
- #define ACPI_SYSTEM_DRIVER_NAME		"ACPI System Driver"
- #define ACPI_SYSTEM_DEVICE_NAME		"System"
-@@ -41,9 +46,23 @@ ACPI_MODULE_NAME("acpi_system")
- #define ACPI_SYSTEM_FILE_FADT		"fadt"
- extern struct fadt_descriptor acpi_fadt;
- 
-+/*
-+ * Make ACPICA version work as module param
+ /*
++ * Some events we use, same for all Asus
 + */
-+static int param_get_acpica_version(char *buffer, struct kernel_param *kp) {
-+	int result;
++#define ATKD_BR_UP       0x10
++#define ATKD_BR_DOWN     0x20
++#define ATKD_LCD_ON      0x33
++#define ATKD_LCD_OFF     0x34
 +
-+	result = sprintf(buffer, "%x", ACPI_CA_VERSION);
++/*
+  * Known bits returned by \_SB.ATKD.HWRS
+  */
+ #define WL_HWRS     0x80
+@@ -71,6 +81,7 @@
+ #define TLED_ON     0x08	//touchpad LED
+ #define RLED_ON     0x10        //Record LED
+ #define PLED_ON     0x20        //Phone LED
++#define LCD_ON      0x40        //LCD backlight
+ 
+ #define ASUS_LOG    ASUS_HOTK_FILE ": "
+ #define ASUS_ERR    KERN_ERR    ASUS_LOG
+@@ -101,6 +112,19 @@ ASUS_HANDLE(wl_switch, ASUS_HOTK_PREFIX "WLED");
+ ASUS_HANDLE(bt_switch, ASUS_HOTK_PREFIX "BLED");
+ ASUS_HANDLE(wireless_status, ASUS_HOTK_PREFIX "RSTS"); /* All new models */
+ 
++/* Brightness */
++ASUS_HANDLE(brightness_set, ASUS_HOTK_PREFIX "SPLV");
++ASUS_HANDLE(brightness_get, ASUS_HOTK_PREFIX "GPLV");
 +
-+	return result;
++/* Backlight */
++ASUS_HANDLE(lcd_switch, "\\_SB.PCI0.SBRG.EC0._Q10", /* All new models */
++	    "\\_SB.PCI0.ISA.EC0._Q10", /* A1x */
++	    "\\_SB.PCI0.PX40.ECD0._Q10", /* L3C */
++	    "\\_SB.PCI0.PX40.EC0.Q10", /* M1A */
++	    "\\_SB.PCI0.LPCB.EC0._Q10", /* P30 */
++	    "\\_SB.PCI0.PX40.Q10", /* S1x */
++	    "\\Q10");  /* A2x, L2D, L3D, M2E */
++
+ /*
+  * This is the main structure, we can use it to store anything interesting
+  * about the hotk device
+@@ -138,6 +162,21 @@ static struct acpi_driver asus_hotk_driver = {
+ 		},
+ };
+ 
++/* The backlight device /sys/class/backlight */
++static struct backlight_device *asus_backlight_device;
++
++/*
++ * The backlight class declaration
++ */
++static int read_brightness(struct backlight_device *bd);
++static int update_bl_status(struct backlight_device *bd);
++static struct backlight_properties asusbl_data = {
++	       .owner          = THIS_MODULE,
++	       .get_brightness = read_brightness,
++	       .update_status  = update_bl_status,
++	       .max_brightness = 15,
++};
++
+ /* These functions actually update the LED's, and are called from a
+  * workqueue. By doing this as separate work rather than when the LED
+  * subsystem asks, we avoid messing with the Asus ACPI stuff during a
+@@ -253,6 +292,86 @@ ASUS_LED_HANDLER(pled, PLED_ON, 0);
+ ASUS_LED_HANDLER(rled, RLED_ON, 0);
+ ASUS_LED_HANDLER(tled, TLED_ON, 0);
+ 
++static int get_lcd_state(void)
++{
++	return read_status(LCD_ON);
 +}
 +
-+module_param_call(acpica_version, NULL, param_get_acpica_version, NULL, 0444);
++static int set_lcd_state(int value)
++{
++	int lcd = 0;
++	acpi_status status = 0;
 +
- /* --------------------------------------------------------------------------
-                               FS Interface (/proc)
-    -------------------------------------------------------------------------- */
-+#ifdef CONFIG_ACPI_PROCFS
++	lcd = value ? 1 : 0;
++
++	if (lcd == get_lcd_state())
++		return 0;
++
++	if(lcd_switch_handle) {
++		status = acpi_evaluate_object(lcd_switch_handle,
++					      NULL, NULL, NULL);
++
++		if (ACPI_FAILURE(status))
++			printk(ASUS_WARNING "Error switching LCD\n");
++	}
++
++	write_status(NULL, lcd, LCD_ON, 0);
++	return 0;
++}
++
++static void lcd_blank(int blank)
++{
++	struct backlight_device *bd = asus_backlight_device;
++
++	if(bd) {
++		down(&bd->sem);
++		if(likely(bd->props)) {
++			bd->props->power = blank;
++			if(likely(bd->props->update_status))
++			   bd->props->update_status(bd);
++		}
++		up(&bd->sem);
++	}
++}
++
++static int read_brightness(struct backlight_device *bd)
++{
++	int value;
++
++	if (!read_acpi_int(brightness_get_handle, NULL, &value, NULL))
++		printk(ASUS_WARNING "Error reading brightness\n");
++
++	return value;
++}
++
++static int set_brightness(struct backlight_device *bd, int value)
++{
++	int ret = 0;
++
++	value = (0 < value) ? ((15 < value) ? 15 : value) : 0;
++	/* 0 <= value <= 15 */
++
++	if (!write_acpi_int(brightness_set_handle, NULL, value, NULL)) {
++		printk(ASUS_WARNING "Error changing brightness\n");
++		ret = -EIO;
++	}
++
++	return ret;
++}
++
++static int update_bl_status(struct backlight_device *bd)
++{
++	int rv;
++	int value = bd->props->brightness;
++
++	rv = set_brightness(bd, value);
++	if(rv)
++		return rv;
++
++	value = (bd->props->power == FB_BLANK_UNBLANK) ? 1 : 0;
++	return set_lcd_state(value);
++}
++
+ /*
+  * Platform device handlers
+  */
+@@ -378,6 +497,18 @@ static void asus_hotk_notify(acpi_handle handle, u32 event, void *data)
+ 	if (!hotk)
+ 		return;
  
- static int acpi_system_read_info(struct seq_file *seq, void *offset)
++	/*
++	 * We need to tell the backlight device when the backlight power is
++	 * switched
++	 */
++	if (event == ATKD_LCD_ON) {
++		write_status(NULL, 1, LCD_ON, 0);
++		lcd_blank(FB_BLANK_UNBLANK);
++	} else if(event == ATKD_LCD_OFF) {
++		write_status(NULL, 0, LCD_ON, 0);
++		lcd_blank(FB_BLANK_POWERDOWN);
++	}
++
+ 	acpi_bus_generate_event(hotk->device, event,
+ 				hotk->event_count[event % 128]++);
+ 
+@@ -547,6 +678,11 @@ static int asus_hotk_get_info(void)
+ 
+ 	ASUS_HANDLE_INIT(wireless_status);
+ 
++	ASUS_HANDLE_INIT(brightness_set);
++	ASUS_HANDLE_INIT(brightness_get);
++
++	ASUS_HANDLE_INIT(lcd_switch);
++
+ 	kfree(model);
+ 
+ 	return AE_OK;
+@@ -611,10 +747,13 @@ static int asus_hotk_add(struct acpi_device *device)
+ 
+ 	asus_hotk_found = 1;
+ 
+-	/* WLED and BLED are on by  default */
++	/* WLED and BLED are on by default */
+ 	write_status(bt_switch_handle, 1, BT_ON, 0);
+ 	write_status(wl_switch_handle, 1, WL_ON, 0);
+ 
++	/* LCD Backlight is on by default */
++	write_status(NULL, 1, LCD_ON, 0);
++
+       end:
+ 	if (result) {
+ 		kfree(hotk->name);
+@@ -642,6 +781,12 @@ static int asus_hotk_remove(struct acpi_device *device, int type)
+ 	return 0;
+ }
+ 
++static void asus_backlight_exit(void)
++{
++	if(asus_backlight_device)
++		backlight_device_unregister(asus_backlight_device);
++}
++
+ #define  ASUS_LED_UNREGISTER(object)				\
+ 	if(object##_led.class_dev				\
+ 	   && !IS_ERR(object##_led.class_dev))			\
+@@ -659,6 +804,7 @@ static void asus_led_exit(void)
+ 
+ static void __exit asus_laptop_exit(void)
  {
-@@ -63,6 +82,7 @@ static const struct file_operations acpi_system_info_ops = {
- 	.llseek = seq_lseek,
- 	.release = single_release,
- };
-+#endif
++	asus_backlight_exit();
+ 	asus_led_exit();
  
- static ssize_t acpi_system_read_dsdt(struct file *, char __user *, size_t,
- 				     loff_t *);
-@@ -128,6 +148,7 @@ static int __init acpi_system_init(void)
- 	if (acpi_disabled)
- 		return 0;
+ 	acpi_bus_unregister_driver(&asus_hotk_driver);
+@@ -669,6 +815,34 @@ static void __exit asus_laptop_exit(void)
+ 	kfree(asus_info);
+ }
  
-+#ifdef CONFIG_ACPI_PROCFS
- 	/* 'info' [R] */
- 	name = ACPI_SYSTEM_FILE_INFO;
- 	entry = create_proc_entry(name, S_IRUGO, acpi_root_dir);
-@@ -136,6 +157,7 @@ static int __init acpi_system_init(void)
- 	else {
- 		entry->proc_fops = &acpi_system_info_ops;
- 	}
-+#endif
++static int asus_backlight_init(struct device * dev)
++{
++	struct backlight_device *bd;
++
++	if(brightness_set_handle && lcd_switch_handle) {
++		bd = backlight_device_register (ASUS_HOTK_FILE, dev,
++						NULL, &asusbl_data);
++		if (IS_ERR (bd)) {
++			printk(ASUS_ERR
++			       "Could not register asus backlight device\n");
++			asus_backlight_device = NULL;
++			return PTR_ERR(bd);
++		}
++
++		asus_backlight_device = bd;
++
++		down(&bd->sem);
++		if(likely(bd->props)) {
++			bd->props->brightness = read_brightness(NULL);
++			bd->props->power = FB_BLANK_UNBLANK;
++			if(likely(bd->props->update_status))
++			   bd->props->update_status(bd);
++		}
++		up(&bd->sem);
++	}
++	return 0;
++}
++
+ static int asus_led_register(acpi_handle handle,
+ 			     struct led_classdev * ldev,
+ 			     struct device * dev)
+@@ -739,6 +913,10 @@ static int __init asus_laptop_init(void)
  
- 	/* 'dsdt' [R] */
- 	name = ACPI_SYSTEM_FILE_DSDT;
-@@ -159,7 +181,9 @@ static int __init acpi_system_init(void)
-       Error:
- 	remove_proc_entry(ACPI_SYSTEM_FILE_FADT, acpi_root_dir);
- 	remove_proc_entry(ACPI_SYSTEM_FILE_DSDT, acpi_root_dir);
-+#ifdef CONFIG_ACPI_PROCFS
- 	remove_proc_entry(ACPI_SYSTEM_FILE_INFO, acpi_root_dir);
-+#endif
+ 	dev = acpi_get_physical_device(hotk->device->handle);
  
- 	error = -EFAULT;
- 	goto Done;
++	result = asus_backlight_init(dev);
++	if(result)
++		goto fail_backlight;
++
+ 	result = asus_led_init(dev);
+ 	if(result)
+ 		goto fail_led;
+@@ -778,6 +956,9 @@ fail_platform_driver:
+ 	asus_led_exit();
+ 
+ fail_led:
++	asus_backlight_exit();
++
++fail_backlight:
+ 
+ 	return result;
+ }
 -- 
 1.5.0.rc3.39.gec804
