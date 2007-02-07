@@ -1,49 +1,99 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 122/140] ACPICA: Fix for incorrect parameter passed to AcpiTbDeleteTable during table load.
-Date: Wed,  7 Feb 2007 13:52:16 -0500
-Message-ID: <11708745391441-git-send-email-lenb@kernel.org>
-References: <11708743541314-git-send-email-lenb@kernel.org> <11708743561383-git-send-email-lenb@kernel.org> <117087435785-git-send-email-lenb@kernel.org> <11708743582090-git-send-email-lenb@kernel.org> <11708743611662-git-send-email-lenb@kernel.org> <11708743653073-git-send-email-lenb@kernel.org> <11708743674006-git-send-email-lenb@kernel.org> <11708743693386-git-send-email-lenb@kernel.org> <11708743702194-git-send-email-lenb@kernel.org> <11708743723353-git-send-email-lenb@kernel.org> <11708743783727-git-send-email-lenb@kernel.org> <11708743802558-git-send-email-lenb@kernel.org> <11708743821259-git-send-email-lenb@kernel.org> <11708743853573-git-send-email-lenb@kernel.org> <11708743871468-git-send-email-lenb@kernel.org> <1170874390715-git-send-email-lenb@kernel.org> <1170874393736-git-send-email-lenb@kernel.org> <11708743943108-git-send-email-lenb@kernel.org> <11708743962377-git-send-ema
- il-lenb@kernel.org> <11708743972593-git-send-email-lenb@kernel.org> <1170874398386-git-send-email-lenb@kernel.org> <11708743993414-git-send-email-lenb@kernel.org> <11708744003959-git-send-email-lenb@kernel.org> <11708744023872-git-send-email-lenb@kernel.org> <11708744032427-git-send-email-lenb@kernel.org> <11708744053556-git-send-email-lenb@kernel.org> <11708744062538-git-send-email-lenb@kernel.org> <11708744071019-git-send-email-lenb@kernel.org> <11708744093818-git-send-email-lenb@kernel.org> <11708744101300-git-send-email-lenb@kernel.org> <1170874412494-git-send-email-lenb@kernel.org> <11708744142658-git-send-email-lenb@kernel.org> <1170874415464-git-send-email-lenb@kernel.org> <1170874417392-git-send-email-lenb@kernel.org> <1170874418134-git-send-email-lenb@kernel.org> <11708744191642-git-send-email-lenb@kernel.org> <11708744203492-git-send-email-lenb@kernel.org> <1170874421658-git-
- send-email-lenb@kernel.org> <1170874422581-git-send-email-lenb@kernel.org> <117087442385-git-send-email-lenb@kernel.org> <1170874424332-git-send-email-lenb@kernel.org> <11708744253790-git-send-email-lenb@kernel.org> <11708744263395-git-send-email-lenb@kernel.org> <11708744273028-git-send-email-lenb@kernel.org> <11708744272354-git-send-email-lenb@kernel.org> <11708744311281-git-send-email-lenb@kernel.org> <11708744322360-git-send-email-lenb@kernel.org> <1170874433382-git-send-email-lenb@kernel.org> <11708744353864-git-send-email-lenb@kernel.org> <11708744352790-git-send-email-lenb@kernel.org> <1170874437973-git-send-email-lenb@kernel.org> <11708744382626-git-send-email-lenb@kernel.org> <11708744402139-git-send-email-lenb@kernel.org> <11708744413743-git-send-email-lenb@kernel.org> <117087444256-git-send-email-lenb@kernel.org> <11708744461131-git-send-email-lenb@kernel.org> <1170874451354
- 1-git-send-email-lenb@kernel.org> <11708744522444-git-send-email-lenb@kernel.org> <1170874453363-git-send-email-lenb@kernel.org> <11708744542419-git-send-email-lenb@kernel.org> <11708744562243-git-send-email-lenb@kernel.org> <1170874458256-git-send-email-lenb@kernel.org> <11708744603317-git-send-email-lenb@kernel.org> <11708744612314-git-send-email-lenb@kernel.org> <117087446376-git-send-email-lenb@kernel.org> <11708744642267-git-send-email-lenb@kernel.org> <11708744674050-git-send-email-lenb@kernel.org> <11708744692041-git-send-email-lenb@kernel.org> <11708744712690-git-send-email-lenb@kernel.org> <11708744732351-git-send-email-lenb@kernel.org> <11708744752537-git-send-email-lenb@kernel.org> <11708744772462-git-send-email-lenb@kernel.org> <11708744803527-git-send-email-lenb@kernel.org> <11708744813011-git-send-email-lenb@kernel.org> <11708744852095-git-send-email-lenb@kernel.org> <117
- 08744874154-git-send-email-lenb@kernel.org> <11708744878-git-send-email-lenb@kernel.org> <1170874488430-git-send-email-lenb@kernel.org> <11708744903381-git-send-email-lenb@kernel.org> <11708744911989-git-send-email-lenb@kernel.org> <11708744922677-git-send-email-lenb@kernel.org> <11708744934033-git-send-email-lenb@kernel.org> <1170874494939-git-send-email-lenb@kernel.org> <11708744951308-git-send-emailMessage-Id: <035f994b3ccfcfc555f838e2f33a2e49721e8533.1170873819.git.len.brown@intel.com>
-Reply-To: Len Brown <lenb@kernel.org>
+From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Subject: Re: acpi change between 2.6.8.1 and 2.6.17 breaks Tyan S2466N power
+ button
+Date: Wed, 07 Feb 2007 21:56:52 +0300
+Message-ID: <45CA20F4.9050205@linux.intel.com>
+References: <E1HErfN-00051j-Dm@mendel.bio.caltech.edu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([143.182.124.22]:10552 "EHLO
-	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1422866AbXBGSzn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Feb 2007 13:55:43 -0500
-In-Reply-To: <11708745374009-git-send-email-lenb@kernel.org>
-In-Reply-To: <9e89dde2b063ca73fcdc9244fe68e2dea32c5088.1170873816.git.len.brown@intel.com>
-References: <9e89dde2b063ca73fcdc9244fe68e2dea32c5088.1170873816.git.len.brown@intel.com>
+Received: from mga05.intel.com ([192.55.52.89]:24918 "EHLO
+	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1422870AbXBGS5F (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Feb 2007 13:57:05 -0500
+In-Reply-To: <E1HErfN-00051j-Dm@mendel.bio.caltech.edu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Bob Moore <robert.moore@intel.com>, Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>, Len Brown <len.brown@intel.com>
+To: David Mathog <mathog@caltech.edu>
+Cc: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+Please open bug at bugzilla.kernel.org for ACPI/Button, attach dmesg, 
+acpidump,config.
+Also please try stock kernel (2.6.20?) -- as it could be 
+Mandriva-specific bug...
 
-Bad pointer was passed in the case where the DSDT is overridden.
+Regards,
+    Alex.
 
-Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/acpi/tables/tbxface.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/acpi/tables/tbxface.c b/drivers/acpi/tables/tbxface.c
-index 84a8089..807978d 100644
---- a/drivers/acpi/tables/tbxface.c
-+++ b/drivers/acpi/tables/tbxface.c
-@@ -524,7 +524,8 @@ static acpi_status acpi_tb_load_namespace(void)
- 		/*
- 		 * DSDT table has been found
- 		 */
--		acpi_tb_delete_table(ACPI_TABLE_INDEX_DSDT);
-+		acpi_tb_delete_table(&acpi_gbl_root_table_list.
-+				     tables[ACPI_TABLE_INDEX_DSDT]);
- 		acpi_gbl_root_table_list.tables[ACPI_TABLE_INDEX_DSDT].pointer =
- 		    table;
- 		acpi_gbl_root_table_list.tables[ACPI_TABLE_INDEX_DSDT].length =
--- 
-1.5.0.rc3.39.gec804
+David Mathog wrote:
+>   
+>> Could it be that you don't load button module?
+>>     
+>
+> Good guess but "button" is loaded, that was the first
+> thing I checked.  Here is the output of lsmod:
+>
+> Module                  Size  Used by
+> ipv6                  237120  12
+> w83627hf               24848  0
+> nfs                   215916  3
+> lockd                  56360  2 nfs
+> nfs_acl                 3776  1 nfs
+> sunrpc                137532  4 nfs,lockd,nfs_acl
+> eeprom                  6320  0
+> w83781d                31368  0
+> hwmon_vid               3392  2 w83627hf,w83781d
+> i2c_isa                 4352  2 w83627hf,w83781d
+> i2c_amd756              6436  0
+> i2c_core               17536  5 w83627hf,eeprom,w83781d,i2c_isa,i2c_amd756
+> 3c59x                  40616  0
+> mii                     5664  1 3c59x
+> af_packet              17960  2
+> iptable_filter          3232  0
+> iptable_mangle          3104  0
+> iptable_nat             7652  0
+> ip_nat                 15692  1 iptable_nat
+> ip_conntrack           48320  2 iptable_nat,ip_nat
+> nfnetlink               5912  2 ip_nat,ip_conntrack
+> iptable_raw             2496  0
+> ip_tables              12740  4
+> iptable_filter,iptable_mangle,iptable_nat,iptable_raw
+> x_tables               12132  2 iptable_nat,ip_tables
+> video                  13924  0
+> thermal                11240  0
+> fan                     4036  0
+> container               3968  0
+> button                  5808  0
+> battery                 8260  0
+> ac                      4292  0
+> ide_cd                 35776  0
+> binfmt_misc             9800  1
+> loop                   15400  0
+> dm_mod                 49944  0
+> cpufreq_ondemand        6956  0
+> cpufreq_conservative     6952  0
+> cpufreq_powersave       2400  0
+> freq_table              4800  0
+> processor              21448  1 thermal
+> amd_k7_agp              7660  1
+> agpgart                27240  1 amd_k7_agp
+> hw_random               5688  0
+> evdev                   8864  1
+> tsdev                   7040  0
+> ext3                  124936  3
+> jbd                    51028  1 ext3
+>
+>
+> Next guess?
+>
+> Thanks,
+>
+> David Mathog
+> mathog@caltech.edu
+> Manager, Sequence Analysis Facility, Biology Division, Caltech
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>   
