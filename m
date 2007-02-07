@@ -1,39 +1,26 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Caching the results of acpi_get_handle() in a driver: is it valid?
-Date: Wed, 7 Feb 2007 17:43:52 -0200
-Message-ID: <20070207194352.GB4515@khazad-dum.debian.net>
+From: "Lebedev, Vladimir P" <vladimir.p.lebedev@intel.com>
+Subject: Bugs fixing
+Date: Wed, 7 Feb 2007 23:07:22 +0300
+Message-ID: <8E389A5F2FEABA4CB1DEC35A25CB39CEA13B9C@mssmsx411>
+References: <200701261443.33139.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:55815 "EHLO
-	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1422715AbXBGTn5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Feb 2007 14:43:57 -0500
-Content-Disposition: inline
+Received: from mga02.intel.com ([134.134.136.20]:15619 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030656AbXBGUHy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Feb 2007 15:07:54 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <200701261443.33139.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: ibm-acpi-devel@lists.sourceforge.net
+To: "Brown, Len" <len.brown@intel.com>
+Cc: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy@intel.com>, linux-acpi@vger.kernel.org
 
-The code I inherited in ibm-acpi does heavy caching of acpi_get_handle()
-results.  It stores the results of acpi_get_handle() for a number of nodes
-at module init, and uses the stored results during its lifetime.
+Please look at bugs 7200 and 7897; these bugs are resolved and patches
+are ready.
 
-Is that a valid use of the handles returned by acpi_get_handle()?  In
-particular, what happens to handlers when a SSDT gets loaded or unloaded at
-runtime?  Do handles that came from the DSDT change?  What if the handler
-was to a node in the SSDT being unloaded?  What if the handler is overriden
-by a new loaded SSDT?
-
-While the vast majority of the handlers ibm-acpi caches are in the DSDT and
-very unlikely to change through a SSDT load, I'd still like to make sure the
-driver is doing the right thing...
-
-PS: not caching the results is always possible, but that will mean various
-calls to acpi_get_handle() per second.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Thanks.
+Vladimir.
