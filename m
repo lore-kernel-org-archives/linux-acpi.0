@@ -1,224 +1,205 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 13/140] output: Add display output class support
-Date: Wed,  7 Feb 2007 13:50:27 -0500
-Message-ID: <1170874390715-git-send-email-lenb@kernel.org>
-References: <11708743541314-git-send-email-lenb@kernel.org> <11708743561383-git-send-email-lenb@kernel.org> <117087435785-git-send-email-lenb@kernel.org> <11708743582090-git-send-email-lenb@kernel.org> <11708743611662-git-send-email-lenb@kernel.org> <11708743653073-git-send-email-lenb@kernel.org> <11708743674006-git-send-email-lenb@kernel.org> <11708743693386-git-send-email-lenb@kernel.org> <11708743702194-git-send-email-lenb@kernel.org> <11708743723353-git-send-email-lenb@kernel.org> <11708743783727-git-send-email-lenb@kernel.org> <11708743802558-git-send-email-lenb@kernel.org> <11708743821259-git-send-email-lenb@kernel.org> <11708743853573-git-send-email-lenb@kernel.org> <11708743871468-git-send-email-lenb@kernel.org>
+Subject: [PATCH 8/140] ACPI: add acpi_bus_ops in acpi_device
+Date: Wed,  7 Feb 2007 13:50:22 -0500
+Message-ID: <11708743783727-git-send-email-lenb@kernel.org>
+References: <11708743541314-git-send-email-lenb@kernel.org> <11708743561383-git-send-email-lenb@kernel.org> <117087435785-git-send-email-lenb@kernel.org> <11708743582090-git-send-email-lenb@kernel.org> <11708743611662-git-send-email-lenb@kernel.org> <11708743653073-git-send-email-lenb@kernel.org> <11708743674006-git-send-email-lenb@kernel.org> <11708743693386-git-send-email-lenb@kernel.org> <11708743702194-git-send-email-lenb@kernel.org> <11708743723353-git-send-email-lenb@kernel.org>
 Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([143.182.124.22]:22847 "EHLO
+Received: from mga07.intel.com ([143.182.124.22]:27002 "EHLO
 	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1422714AbXBGSxP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Feb 2007 13:53:15 -0500
-In-Reply-To: <11708743871468-git-send-email-lenb@kernel.org>
-Message-Id: <2dec3ba8d872aa3ffbcdb8f6f8a2c0bcd44e9910.1170873816.git.len.brown@intel.com>
+	with ESMTP id S1422666AbXBGSxH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Feb 2007 13:53:07 -0500
+In-Reply-To: <11708743723353-git-send-email-lenb@kernel.org>
+Message-Id: <c4168bff32e218b8400cb48b48adb9b7f7bb31b8.1170873816.git.len.brown@intel.com>
 In-Reply-To: <9e89dde2b063ca73fcdc9244fe68e2dea32c5088.1170873816.git.len.brown@intel.com>
 References: <9e89dde2b063ca73fcdc9244fe68e2dea32c5088.1170873816.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Yu Luming <luming.yu@gmail.com>, Luming Yu <Luming.yu@intel.com>, Andrew Morton <akpm@osdl.org>, Len Brown <len.brown@intel.com>
+Cc: Li Shaohua <shaohua.li@intel.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Yu Luming <luming.yu@gmail.com>
+From: Li Shaohua <shaohua.li@intel.com>
 
-Add generic abstract layer for display output switch control.  The output
-sysfs class driver provides an abstract video output layer that can be used to
-hook platform specific methods to enable/disable video output device through
-common sysfs interface.
+Add acpi_bus_ops in acpi_device to support acpi hot plug.
 
-Signed-off-by: Luming Yu <Luming.yu@intel.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Greg KH <greg@kroah.com>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+NOTE:	Two methods .add and .start in acpi_driver.ops are
+	called separately to probe ACPI devices, while only
+	.probe method is called in driver model.
+	As executing .add and .start separately is critical
+	for ACPI device hot plug, we use acpi_bus_ops to
+	distinguish different code path.
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/video/output.c       |  129 ++++++++++++++++++++++++++++++++++++++++++
- include/linux/video_output.h |   42 ++++++++++++++
- 2 files changed, 171 insertions(+), 0 deletions(-)
- create mode 100644 drivers/video/output.c
- create mode 100644 include/linux/video_output.h
+ drivers/acpi/scan.c     |   55 ++++++++++++++++++++++++-----------------------
+ include/acpi/acpi_bus.h |    1 +
+ 2 files changed, 29 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/video/output.c b/drivers/video/output.c
-new file mode 100644
-index 0000000..1473f2c
---- /dev/null
-+++ b/drivers/video/output.c
-@@ -0,0 +1,129 @@
-+/*
-+ *  output.c - Display Output Switch driver
-+ *
-+ *  Copyright (C) 2006 Luming Yu <luming.yu@intel.com>
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or (at
-+ *  your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful, but
-+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ *  General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License along
-+ *  with this program; if not, write to the Free Software Foundation, Inc.,
-+ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ */
-+#include <linux/module.h>
-+#include <linux/video_output.h>
-+#include <linux/err.h>
-+#include <linux/ctype.h>
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 97f6bbd..2a82645 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -212,7 +212,8 @@ static int acpi_device_probe(struct device * dev)
+ 
+ 	ret = acpi_bus_driver_init(acpi_dev, acpi_drv);
+ 	if (!ret) {
+-		acpi_start_single_object(acpi_dev);
++		if (acpi_dev->bus_ops.acpi_op_start)
++			acpi_start_single_object(acpi_dev);
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 			"Found driver [%s] for device [%s]\n",
+ 			acpi_drv->name, acpi_dev->pnp.bus_id));
+@@ -305,7 +306,6 @@ static void acpi_device_unregister(struct acpi_device *device, int type)
+ 		list_del(&device->g_list);
+ 
+ 	list_del(&device->wakeup_list);
+-
+ 	spin_unlock(&acpi_device_lock);
+ 
+ 	acpi_detach_data(device->handle, acpi_bus_data_handler);
+@@ -876,7 +876,8 @@ static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
+ 
+ static int
+ acpi_add_single_object(struct acpi_device **child,
+-		       struct acpi_device *parent, acpi_handle handle, int type)
++		       struct acpi_device *parent, acpi_handle handle, int type,
++			struct acpi_bus_ops *ops)
+ {
+ 	int result = 0;
+ 	struct acpi_device *device = NULL;
+@@ -894,6 +895,8 @@ acpi_add_single_object(struct acpi_device **child,
+ 
+ 	device->handle = handle;
+ 	device->parent = parent;
++	device->bus_ops = *ops; /* workround for not call .start */
 +
+ 
+ 	acpi_device_get_busid(device, handle, type);
+ 
+@@ -1079,14 +1082,14 @@ static int acpi_bus_scan(struct acpi_device *start, struct acpi_bus_ops *ops)
+ 
+ 		if (ops->acpi_op_add)
+ 			status = acpi_add_single_object(&child, parent,
+-							chandle, type);
++				chandle, type, ops);
+ 		else
+ 			status = acpi_bus_get_device(chandle, &child);
+ 
+ 		if (ACPI_FAILURE(status))
+ 			continue;
+ 
+-		if (ops->acpi_op_start) {
++		if (ops->acpi_op_start && !(ops->acpi_op_add)) {
+ 			status = acpi_start_single_object(child);
+ 			if (ACPI_FAILURE(status))
+ 				continue;
+@@ -1124,13 +1127,13 @@ acpi_bus_add(struct acpi_device **child,
+ 	int result;
+ 	struct acpi_bus_ops ops;
+ 
++	memset(&ops, 0, sizeof(ops));
++	ops.acpi_op_add = 1;
+ 
+-	result = acpi_add_single_object(child, parent, handle, type);
+-	if (!result) {
+-		memset(&ops, 0, sizeof(ops));
+-		ops.acpi_op_add = 1;
++	result = acpi_add_single_object(child, parent, handle, type, &ops);
++	if (!result)
+ 		result = acpi_bus_scan(*child, &ops);
+-	}
 +
-+MODULE_DESCRIPTION("Display Output Switcher Lowlevel Control Abstraction");
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Luming Yu <luming.yu@intel.com>");
+ 	return result;
+ }
+ 
+@@ -1216,28 +1219,30 @@ static int acpi_bus_scan_fixed(struct acpi_device *root)
+ {
+ 	int result = 0;
+ 	struct acpi_device *device = NULL;
+-
++	struct acpi_bus_ops ops;
+ 
+ 	if (!root)
+ 		return -ENODEV;
+ 
++	memset(&ops, 0, sizeof(ops));
++	ops.acpi_op_add = 1;
++	ops.acpi_op_start = 1;
 +
-+static ssize_t video_output_show_state(struct class_device *dev,char *buf)
-+{
-+	ssize_t ret_size = 0;
-+	struct output_device *od = to_output_device(dev);
-+	if (od->props)
-+		ret_size = sprintf(buf,"%.8x\n",od->props->get_status(od));
-+	return ret_size;
-+}
+ 	/*
+ 	 * Enumerate all fixed-feature devices.
+ 	 */
+ 	if (acpi_fadt.pwr_button == 0) {
+ 		result = acpi_add_single_object(&device, acpi_root,
+ 						NULL,
+-						ACPI_BUS_TYPE_POWER_BUTTON);
+-		if (!result)
+-			result = acpi_start_single_object(device);
++						ACPI_BUS_TYPE_POWER_BUTTON,
++						&ops);
+ 	}
+ 
+ 	if (acpi_fadt.sleep_button == 0) {
+ 		result = acpi_add_single_object(&device, acpi_root,
+ 						NULL,
+-						ACPI_BUS_TYPE_SLEEP_BUTTON);
+-		if (!result)
+-			result = acpi_start_single_object(device);
++						ACPI_BUS_TYPE_SLEEP_BUTTON,
++						&ops);
+ 	}
+ 
+ 	return result;
+@@ -1252,6 +1257,10 @@ static int __init acpi_scan_init(void)
+ 	if (acpi_disabled)
+ 		return 0;
+ 
++	memset(&ops, 0, sizeof(ops));
++	ops.acpi_op_add = 1;
++	ops.acpi_op_start = 1;
 +
-+static ssize_t video_output_store_state(struct class_device *dev,
-+	const char *buf,size_t count)
-+{
-+	char *endp;
-+	struct output_device *od = to_output_device(dev);
-+	int request_state = simple_strtoul(buf,&endp,0);
-+	size_t size = endp - buf;
-+
-+	if (*endp && isspace(*endp))
-+		size++;
-+	if (size != count)
-+		return -EINVAL;
-+
-+	if (od->props) {
-+		od->request_state = request_state;
-+		od->props->set_state(od);
-+	}
-+	return count;
-+}
-+
-+static void video_output_class_release(struct class_device *dev)
-+{
-+	struct output_device *od = to_output_device(dev);
-+	kfree(od);
-+}
-+
-+static struct class_device_attribute video_output_attributes[] = {
-+	__ATTR(state, 0644, video_output_show_state, video_output_store_state),
-+	__ATTR_NULL,
-+};
-+
-+static struct class video_output_class = {
-+	.name = "video_output",
-+	.release = video_output_class_release,
-+	.class_dev_attrs = video_output_attributes,
-+};
-+
-+struct output_device *video_output_register(const char *name,
-+	struct device *dev,
-+	void *devdata,
-+	struct output_properties *op)
-+{
-+	struct output_device *new_dev;
-+	int ret_code = 0;
-+
-+	new_dev = kzalloc(sizeof(struct output_device),GFP_KERNEL);
-+	if (!new_dev) {
-+		ret_code = -ENOMEM;
-+		goto error_return;
-+	}
-+	new_dev->props = op;
-+	new_dev->class_dev.class = &video_output_class;
-+	new_dev->class_dev.dev = dev;
-+	strlcpy(new_dev->class_dev.class_id,name,KOBJ_NAME_LEN);
-+	class_set_devdata(&new_dev->class_dev,devdata);
-+	ret_code = class_device_register(&new_dev->class_dev);
-+	if (ret_code) {
-+		kfree(new_dev);
-+		goto error_return;
-+	}
-+	return new_dev;
-+
-+error_return:
-+	return ERR_PTR(ret_code);
-+}
-+EXPORT_SYMBOL(video_output_register);
-+
-+void video_output_unregister(struct output_device *dev)
-+{
-+	if (!dev)
-+		return;
-+	class_device_unregister(&dev->class_dev);
-+}
-+EXPORT_SYMBOL(video_output_unregister);
-+
-+static void __exit video_output_class_exit(void)
-+{
-+	class_unregister(&video_output_class);
-+}
-+
-+static int __init video_output_class_init(void)
-+{
-+	return class_register(&video_output_class);
-+}
-+
-+postcore_initcall(video_output_class_init);
-+module_exit(video_output_class_exit);
-diff --git a/include/linux/video_output.h b/include/linux/video_output.h
-new file mode 100644
-index 0000000..e63e0c0
---- /dev/null
-+++ b/include/linux/video_output.h
-@@ -0,0 +1,42 @@
-+/*
-+ *
-+ *  Copyright (C) 2006 Luming Yu <luming.yu@intel.com>
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or (at
-+ *  your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful, but
-+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ *  General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License along
-+ *  with this program; if not, write to the Free Software Foundation, Inc.,
-+ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ */
-+#ifndef _LINUX_VIDEO_OUTPUT_H
-+#define _LINUX_VIDEO_OUTPUT_H
-+#include <linux/device.h>
-+struct output_device;
-+struct output_properties {
-+	int (*set_state)(struct output_device *);
-+	int (*get_status)(struct output_device *);
-+};
-+struct output_device {
-+	int request_state;
-+	struct output_properties *props;
-+	struct class_device class_dev;
-+};
-+#define to_output_device(obj) container_of(obj, struct output_device, class_dev)
-+struct output_device *video_output_register(const char *name,
-+	struct device *dev,
-+	void *devdata,
-+	struct output_properties *op);
-+void video_output_unregister(struct output_device *dev);
-+#endif
+ 	result = bus_register(&acpi_bus_type);
+ 	if (result) {
+ 		/* We don't want to quit even if we failed to add suspend/resume */
+@@ -1262,11 +1271,7 @@ static int __init acpi_scan_init(void)
+ 	 * Create the root device in the bus's device tree
+ 	 */
+ 	result = acpi_add_single_object(&acpi_root, NULL, ACPI_ROOT_OBJECT,
+-					ACPI_BUS_TYPE_SYSTEM);
+-	if (result)
+-		goto Done;
+-
+-	result = acpi_start_single_object(acpi_root);
++					ACPI_BUS_TYPE_SYSTEM, &ops);
+ 	if (result)
+ 		goto Done;
+ 
+@@ -1274,12 +1279,8 @@ static int __init acpi_scan_init(void)
+ 	 * Enumerate devices in the ACPI namespace.
+ 	 */
+ 	result = acpi_bus_scan_fixed(acpi_root);
+-	if (!result) {
+-		memset(&ops, 0, sizeof(ops));
+-		ops.acpi_op_add = 1;
+-		ops.acpi_op_start = 1;
++	if (!result)
+ 		result = acpi_bus_scan(acpi_root, &ops);
+-	}
+ 
+ 	if (result)
+ 		acpi_device_unregister(acpi_root, ACPI_BUS_REMOVAL_NORMAL);
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 598fab3..8976dbe 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -300,6 +300,7 @@ struct acpi_device {
+ 	struct acpi_driver *driver;
+ 	void *driver_data;
+ 	struct device dev;
++	struct acpi_bus_ops bus_ops;	/* workaround for different code path for hotplug */
+ };
+ 
+ #define acpi_driver_data(d)	((d)->driver_data)
 -- 
 1.5.0.rc3.39.gec804
