@@ -1,246 +1,200 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 17/140] ACPI: fix Supermicro X7DB8+ Boot regression
-Date: Wed,  7 Feb 2007 13:50:31 -0500
-Message-ID: <11708743972593-git-send-email-lenb@kernel.org>
-References: <11708743541314-git-send-email-lenb@kernel.org> <11708743561383-git-send-email-lenb@kernel.org> <117087435785-git-send-email-lenb@kernel.org> <11708743582090-git-send-email-lenb@kernel.org> <11708743611662-git-send-email-lenb@kernel.org> <11708743653073-git-send-email-lenb@kernel.org> <11708743674006-git-send-email-lenb@kernel.org> <11708743693386-git-send-email-lenb@kernel.org> <11708743702194-git-send-email-lenb@kernel.org> <11708743723353-git-send-email-lenb@kernel.org> <11708743783727-git-send-email-lenb@kernel.org> <11708743802558-git-send-email-lenb@kernel.org> <11708743821259-git-send-email-lenb@kernel.org> <11708743853573-git-send-email-lenb@kernel.org> <11708743871468-git-send-email-lenb@kernel.org> <1170874390715-git-send-email-lenb@kernel.org> <1170874393736-git-send-email-lenb@kernel.org> <11708743943108-git-send-email-lenb@kernel.org> <11708743962377-git-send-ema
- il-lenb@kernel.org>
+Subject: [PATCH 15/140] ACPI: Adds backlight sysfs support for acpi video driver.
+Date: Wed,  7 Feb 2007 13:50:29 -0500
+Message-ID: <11708743943108-git-send-email-lenb@kernel.org>
+References: <11708743541314-git-send-email-lenb@kernel.org> <11708743561383-git-send-email-lenb@kernel.org> <117087435785-git-send-email-lenb@kernel.org> <11708743582090-git-send-email-lenb@kernel.org> <11708743611662-git-send-email-lenb@kernel.org> <11708743653073-git-send-email-lenb@kernel.org> <11708743674006-git-send-email-lenb@kernel.org> <11708743693386-git-send-email-lenb@kernel.org> <11708743702194-git-send-email-lenb@kernel.org> <11708743723353-git-send-email-lenb@kernel.org> <11708743783727-git-send-email-lenb@kernel.org> <11708743802558-git-send-email-lenb@kernel.org> <11708743821259-git-send-email-lenb@kernel.org> <11708743853573-git-send-email-lenb@kernel.org> <11708743871468-git-send-email-lenb@kernel.org> <1170874390715-git-send-email-lenb@kernel.org> <1170874393736-git-send-email-lenb@kernel.org>
 Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga07.intel.com ([143.182.124.22]:7926 "EHLO
 	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1422724AbXBGSxU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Feb 2007 13:53:20 -0500
-In-Reply-To: <11708743962377-git-send-email-lenb@kernel.org>
-Message-Id: <2786f6e388e9dfe9e7b1c3c6bd7fcfba9cfb9831.1170873816.git.len.brown@intel.com>
+	with ESMTP id S1422716AbXBGSxR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Feb 2007 13:53:17 -0500
+In-Reply-To: <1170874393736-git-send-email-lenb@kernel.org>
+Message-Id: <2f3d000a133f68250635f14f6caf24d32d358090.1170873816.git.len.brown@intel.com>
 In-Reply-To: <9e89dde2b063ca73fcdc9244fe68e2dea32c5088.1170873816.git.len.brown@intel.com>
 References: <9e89dde2b063ca73fcdc9244fe68e2dea32c5088.1170873816.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Rui Zhang <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Yu Luming <luming.yu@gmail.com>, Luming Yu <Luming.yu@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Rui Zhang <rui.zhang@intel.com>
+From: Yu Luming <luming.yu@gmail.com>
 
-http://bugzilla.kernel.org/show_bug.cgi?id=7695
+Adds backlight sysfs support for acpi video driver.
 
-Originally we converted bind/unbind to use a new pci bridge driver.
-The driver will add/remove _PRT, so we can eventually remove
-.bind/.unbind methods.
-
-But we found that some of the _ADR-Based devices don't have _PRT,
-i.e. they are not managed by the new ACPI PCI bridge driver.
-So that .bind method is not called for some _ADR-Based devices,
-which leads to a failure.
-
-Now we make ACPI PCI Root Bridge Driver scan and binds all _ADR-Based devices
-once the driver is loaded, in the .add method of ACPI PCI Root Bridge driver.
-
-Extra code path for calling .bind/.unbind when _ADR-Based devices
-are hot added/removed is also added.
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+signed-off-by: Luming Yu <Luming.yu@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/pci_bind.c     |   40 ++++------------------------------------
- drivers/acpi/pci_root.c     |   24 ++++++++++++++++++++++++
- drivers/acpi/scan.c         |   33 +++++++++++++++------------------
- include/acpi/acpi_drivers.h |    1 -
- 4 files changed, 43 insertions(+), 55 deletions(-)
+ drivers/acpi/Kconfig |    2 +-
+ drivers/acpi/video.c |   71 ++++++++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 70 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/pci_bind.c b/drivers/acpi/pci_bind.c
-index aa05e92..1e2ae6e 100644
---- a/drivers/acpi/pci_bind.c
-+++ b/drivers/acpi/pci_bind.c
-@@ -223,6 +223,8 @@ int acpi_pci_bind(struct acpi_device *device)
- 				  data->id.segment, data->id.bus,
- 				  data->id.device, data->id.function));
- 		data->bus = data->dev->subordinate;
-+		device->ops.bind = acpi_pci_bind;
-+		device->ops.unbind = acpi_pci_unbind;
- 	}
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 6f8c50e..e3f77e2 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -106,7 +106,7 @@ config ACPI_BUTTON
  
- 	/*
-@@ -352,6 +354,8 @@ acpi_pci_bind_root(struct acpi_device *device,
+ config ACPI_VIDEO
+ 	tristate "Video"
+-	depends on X86
++	depends on X86 && BACKLIGHT_CLASS_DEVICE
+ 	help
+ 	  This driver implement the ACPI Extensions For Display Adapters
+ 	  for integrated graphics devices on motherboard, as specified in
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 9200a46..4b09a02 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -32,6 +32,7 @@
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
  
- 	data->id = *id;
- 	data->bus = bus;
-+	device->ops.bind = acpi_pci_bind;
-+	device->ops.unbind = acpi_pci_unbind;
++#include <linux/backlight.h>
+ #include <asm/uaccess.h>
  
- 	acpi_get_name(device->handle, ACPI_FULL_PATHNAME, &buffer);
+ #include <acpi/acpi_bus.h>
+@@ -56,6 +57,7 @@
  
-@@ -374,39 +378,3 @@ acpi_pci_bind_root(struct acpi_device *device,
+ #define ACPI_VIDEO_HEAD_INVALID		(~0u - 1)
+ #define ACPI_VIDEO_HEAD_END		(~0u)
++#define MAX_NAME_LEN	20
  
- 	return result;
- }
--
--#define ACPI_PCI_BRIDGE_DRIVER_NAME "ACPI PCI Bridge Driver"
--
--static int acpi_pci_bridge_add(struct acpi_device *device);
--static int acpi_pci_bridge_remove(struct acpi_device *device, int type);
--
--static struct acpi_driver acpi_pci_bridge_driver = {
--       .name = ACPI_PCI_BRIDGE_DRIVER_NAME,
--	.ids = ACPI_PCI_BRIDGE_HID,
--       .ops = {
--               .add = acpi_pci_bridge_add,
--               .remove = acpi_pci_bridge_remove,
--       },
--};
--
--static int acpi_pci_bridge_add(struct acpi_device *device)
--{
--       return acpi_pci_bind(device);
--}
--
--static int acpi_pci_bridge_remove(struct acpi_device *device, int type)
--{
--       return acpi_pci_unbind(device);
--}
--
--static int __init acpi_pci_bridge_init(void)
--{
--       if (acpi_pci_disabled)
--               return 0;
--       if (acpi_bus_register_driver(&acpi_pci_bridge_driver) < 0)
--               return -ENODEV;
--       return 0;
--}
--
--/* Should be called after ACPI pci root driver */
--subsys_initcall(acpi_pci_bridge_init);
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 9cfc741..2e1a74a 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -151,6 +151,21 @@ static acpi_status try_get_root_bridge_busnr(acpi_handle handle, int *busnum)
- 	return AE_OK;
- }
+ #define _COMPONENT		ACPI_VIDEO_COMPONENT
+ ACPI_MODULE_NAME("acpi_video")
+@@ -142,11 +144,11 @@ struct acpi_video_device_cap {
+ 	u8 _ADR:1;		/*Return the unique ID */
+ 	u8 _BCL:1;		/*Query list of brightness control levels supported */
+ 	u8 _BCM:1;		/*Set the brightness level */
++	u8 _BQC:1;		/* Get current brightness level */
+ 	u8 _DDC:1;		/*Return the EDID for this device */
+ 	u8 _DCS:1;		/*Return status of output device */
+ 	u8 _DGS:1;		/*Query graphics state */
+ 	u8 _DSS:1;		/*Device state set */
+-	u8 _reserved:1;
+ };
  
-+static void acpi_pci_bridge_scan(struct acpi_device *device)
+ struct acpi_video_device_brightness {
+@@ -163,6 +165,8 @@ struct acpi_video_device {
+ 	struct acpi_video_bus *video;
+ 	struct acpi_device *dev;
+ 	struct acpi_video_device_brightness *brightness;
++	struct backlight_device *backlight;
++	struct backlight_properties *data;
+ };
+ 
+ /* bus */
+@@ -257,11 +261,35 @@ static void acpi_video_device_bind(struct acpi_video_bus *video,
+ 				   struct acpi_video_device *device);
+ static int acpi_video_device_enumerate(struct acpi_video_bus *video);
+ static int acpi_video_switch_output(struct acpi_video_bus *video, int event);
++static int acpi_video_device_lcd_set_level(struct acpi_video_device *device,
++			int level);
++static int acpi_video_device_lcd_get_level_current(
++			struct acpi_video_device *device,
++			unsigned long *level);
+ static int acpi_video_get_next_level(struct acpi_video_device *device,
+ 				     u32 level_current, u32 event);
+ static void acpi_video_switch_brightness(struct acpi_video_device *device,
+ 					 int event);
+ 
++/*backlight device sysfs support*/
++static int acpi_video_get_brightness(struct backlight_device *bd)
 +{
-+	int status;
-+	struct acpi_device *child = NULL;
-+
-+	if (device->flags.bus_address)
-+		if (device->parent && device->parent->ops.bind) {
-+			status = device->parent->ops.bind(device);
-+			if (!status) {
-+				list_for_each_entry(child, &device->children, node)
-+					acpi_pci_bridge_scan(child);
-+			}
-+		}
++	unsigned long cur_level;
++	struct acpi_video_device *vd =
++		(struct acpi_video_device *)class_get_devdata(&bd->class_dev);
++	acpi_video_device_lcd_get_level_current(vd, &cur_level);
++	return (int) cur_level;
 +}
 +
- static int acpi_pci_root_add(struct acpi_device *device)
- {
- 	int result = 0;
-@@ -159,6 +174,7 @@ static int acpi_pci_root_add(struct acpi_device *device)
- 	acpi_status status = AE_OK;
- 	unsigned long value = 0;
- 	acpi_handle handle = NULL;
-+	struct acpi_device *child;
- 
- 
- 	if (!device)
-@@ -175,6 +191,8 @@ static int acpi_pci_root_add(struct acpi_device *device)
- 	strcpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS);
- 	acpi_driver_data(device) = root;
- 
-+	device->ops.bind = acpi_pci_bind;
++static int acpi_video_set_brightness(struct backlight_device *bd)
++{
++	int request_level = bd->props->brightness;
++	struct acpi_video_device *vd =
++		(struct acpi_video_device *)class_get_devdata(&bd->class_dev);
++	acpi_video_device_lcd_set_level(vd, request_level);
++	return 0;
++}
 +
- 	/* 
- 	 * Segment
- 	 * -------
-@@ -294,6 +312,12 @@ static int acpi_pci_root_add(struct acpi_device *device)
- 		result = acpi_pci_irq_add_prt(device->handle, root->id.segment,
- 					      root->id.bus);
+ /* --------------------------------------------------------------------------
+                                Video Management
+    -------------------------------------------------------------------------- */
+@@ -499,6 +527,7 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
+ 	acpi_integer status;
+ 	acpi_handle h_dummy1;
+ 	int i;
++	u32 max_level = 0;
+ 	union acpi_object *obj = NULL;
+ 	struct acpi_video_device_brightness *br = NULL;
  
-+	/*
-+	 * Scan and bind all _ADR-Based Devices
-+	 */
-+	list_for_each_entry(child, &device->children, node)
-+		acpi_pci_bridge_scan(child);
+@@ -514,6 +543,8 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
+ 	if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle, "_BCM", &h_dummy1))) {
+ 		device->cap._BCM = 1;
+ 	}
++	if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle,"_BQC",&h_dummy1)))
++		device->cap._BQC = 1;
+ 	if (ACPI_SUCCESS(acpi_get_handle(device->dev->handle, "_DDC", &h_dummy1))) {
+ 		device->cap._DDC = 1;
+ 	}
+@@ -551,6 +582,8 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
+ 					continue;
+ 				}
+ 				br->levels[count] = (u32) o->integer.value;
++				if (br->levels[count] > max_level)
++					max_level = br->levels[count];
+ 				count++;
+ 			}
+ 		      out:
+@@ -569,6 +602,37 @@ static void acpi_video_device_find_cap(struct acpi_video_device *device)
+ 
+ 	kfree(obj);
+ 
++	if (device->cap._BCL && device->cap._BCM && device->cap._BQC){
++		unsigned long tmp;
++		static int count = 0;
++		char *name;
++		struct backlight_properties *acpi_video_data;
 +
-       end:
- 	if (result) {
- 		if (!list_empty(&root->node))
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 769e54b..30a39ba 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -837,20 +837,6 @@ acpi_video_bus_match(struct acpi_device *device)
- 	return -ENODEV;
++		name = kzalloc(MAX_NAME_LEN, GFP_KERNEL);
++		if (!name)
++			return;
++
++		acpi_video_data = kzalloc(
++			sizeof(struct backlight_properties),
++			GFP_KERNEL);
++		if (!acpi_video_data){
++			kfree(name);
++			return;
++		}
++		acpi_video_data->owner = THIS_MODULE;
++		acpi_video_data->get_brightness =
++			acpi_video_get_brightness;
++		acpi_video_data->update_status =
++			acpi_video_set_brightness;
++		sprintf(name, "acpi_video%d", count++);
++		device->data = acpi_video_data;
++		acpi_video_data->max_brightness = max_level;
++		acpi_video_device_lcd_get_level_current(device, &tmp);
++		acpi_video_data->brightness = (int)tmp;
++		device->backlight = backlight_device_register(name,
++			NULL, device, acpi_video_data);
++		kfree(name);
++	}
+ 	return;
  }
  
--static int acpi_pci_bridge_match(struct acpi_device *device)
--{
--       acpi_status status;
--       acpi_handle handle;
+@@ -1595,7 +1659,10 @@ static int acpi_video_bus_put_one_device(struct acpi_video_device *device)
+ 	status = acpi_remove_notify_handler(device->dev->handle,
+ 					    ACPI_DEVICE_NOTIFY,
+ 					    acpi_video_device_notify);
 -
--       /* pci bridge has _PRT but isn't PNP0A03 */
--       status = acpi_get_handle(device->handle, METHOD_NAME__PRT, &handle);
--       if (ACPI_FAILURE(status))
--               return -ENODEV;
--       if (!acpi_match_ids(device, "PNP0A03"))
--               return -ENODEV;
--       return 0;
--}
--
- static void acpi_device_set_id(struct acpi_device *device,
- 			       struct acpi_device *parent, acpi_handle handle,
- 			       int type)
-@@ -886,10 +872,6 @@ static void acpi_device_set_id(struct acpi_device *device,
- 			status = acpi_video_bus_match(device);
- 			if(ACPI_SUCCESS(status))
- 				hid = ACPI_VIDEO_HID;
--
--			status = acpi_pci_bridge_match(device);
--			if(ACPI_SUCCESS(status))
--				hid = ACPI_PCI_BRIDGE_HID;
- 		}
- 		break;
- 	case ACPI_BUS_TYPE_POWER:
-@@ -1021,6 +1003,13 @@ static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
- 	if (!rmdevice)
- 		return 0;
- 
-+	/*
-+	 * unbind _ADR-Based Devices when hot removal
-+	 */
-+	if (dev->flags.bus_address) {
-+		if ((dev->parent) && (dev->parent->ops.unbind))
-+			dev->parent->ops.unbind(dev);
++	if (device->backlight){
++		backlight_device_unregister(device->backlight);
++		kfree(device->data);
 +	}
- 	acpi_device_unregister(dev, ACPI_BUS_REMOVAL_EJECT);
- 
  	return 0;
-@@ -1137,6 +1126,14 @@ acpi_add_single_object(struct acpi_device **child,
+ }
  
- 	result = acpi_device_register(device, parent);
- 
-+	/*
-+	 * Bind _ADR-Based Devices when hot add
-+	 */
-+	if (device->flags.bus_address) {
-+		if (device->parent && device->parent->ops.bind)
-+			device->parent->ops.bind(device);
-+	}
-+
-       end:
- 	if (!result)
- 		*child = device;
-diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-index be67750..2781e66 100644
---- a/include/acpi/acpi_drivers.h
-+++ b/include/acpi/acpi_drivers.h
-@@ -44,7 +44,6 @@
- #define ACPI_BUTTON_HID_SLEEPF		"ACPI_FSB"
- 
- #define ACPI_VIDEO_HID			"ACPI_VID"
--#define ACPI_PCI_BRIDGE_HID		"ACPI_PCI"
- /* --------------------------------------------------------------------------
-                                        PCI
-    -------------------------------------------------------------------------- */
 -- 
 1.5.0.rc3.39.gec804
