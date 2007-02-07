@@ -1,14 +1,14 @@
 From: Len Brown <lenb@kernel.org>
 Subject: ACPI patches for 2.6.21
-Date: Wed,  7 Feb 2007 13:50:14 -0500
-Message-ID: <117087435785-git-send-email-lenb@kernel.org>
-References: <11708743541314-git-send-email-lenb@kernel.org> <11708743561383-git-send-email-lenb@kernel.org>
+Date: Wed,  7 Feb 2007 13:50:13 -0500
+Message-ID: <11708743561383-git-send-email-lenb@kernel.org>
+References: <11708743541314-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga07.intel.com ([143.182.124.22]:17538 "EHLO
 	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1161416AbXBGSwj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Feb 2007 13:52:39 -0500
-In-Reply-To: <11708743561383-git-send-email-lenb@kernel.org>
+	with ESMTP id S1161403AbXBGSwi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Feb 2007 13:52:38 -0500
+In-Reply-To: <11708743541314-git-send-email-lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
@@ -25,3 +25,8 @@ to be sure I don't miss it.
 
 thanks,
 -Len
+
+GIT: Please enter your email below.
+GIT: Lines beginning in "GIT: " will be removed.
+GIT: Consider including an overall diffstat or table of contents
+GIT: for the patch you are writing.
