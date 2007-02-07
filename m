@@ -1,209 +1,309 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 135/140] ACPI: bay: make bay a platform driver
-Date: Wed,  7 Feb 2007 13:52:29 -0500
-Message-ID: <11708745533065-git-send-email-lenb@kernel.org>
+Subject: [PATCH 129/140] Altix: Add ACPI SSDT PCI device support (hotplug)
+Date: Wed,  7 Feb 2007 13:52:23 -0500
+Message-ID: <1170874546646-git-send-email-lenb@kernel.org>
 References: <11708743541314-git-send-email-lenb@kernel.org> <11708743561383-git-send-email-lenb@kernel.org> <117087435785-git-send-email-lenb@kernel.org> <11708743582090-git-send-email-lenb@kernel.org> <11708743611662-git-send-email-lenb@kernel.org> <11708743653073-git-send-email-lenb@kernel.org> <11708743674006-git-send-email-lenb@kernel.org> <11708743693386-git-send-email-lenb@kernel.org> <11708743702194-git-send-email-lenb@kernel.org> <11708743723353-git-send-email-lenb@kernel.org> <11708743783727-git-send-email-lenb@kernel.org> <11708743802558-git-send-email-lenb@kernel.org> <11708743821259-git-send-email-lenb@kernel.org> <11708743853573-git-send-email-lenb@kernel.org> <11708743871468-git-send-email-lenb@kernel.org> <1170874390715-git-send-email-lenb@kernel.org> <1170874393736-git-send-email-lenb@kernel.org> <11708743943108-git-send-email-lenb@kernel.org> <11708743962377-git-send-ema
  il-lenb@kernel.org> <11708743972593-git-send-email-lenb@kernel.org> <1170874398386-git-send-email-lenb@kernel.org> <11708743993414-git-send-email-lenb@kernel.org> <11708744003959-git-send-email-lenb@kernel.org> <11708744023872-git-send-email-lenb@kernel.org> <11708744032427-git-send-email-lenb@kernel.org> <11708744053556-git-send-email-lenb@kernel.org> <11708744062538-git-send-email-lenb@kernel.org> <11708744071019-git-send-email-lenb@kernel.org> <11708744093818-git-send-email-lenb@kernel.org> <11708744101300-git-send-email-lenb@kernel.org> <1170874412494-git-send-email-lenb@kernel.org> <11708744142658-git-send-email-lenb@kernel.org> <1170874415464-git-send-email-lenb@kernel.org> <1170874417392-git-send-email-lenb@kernel.org> <1170874418134-git-send-email-lenb@kernel.org> <11708744191642-git-send-email-lenb@kernel.org> <11708744203492-git-send-email-lenb@kernel.org> <1170874421658-git-
  send-email-lenb@kernel.org> <1170874422581-git-send-email-lenb@kernel.org> <117087442385-git-send-email-lenb@kernel.org> <1170874424332-git-send-email-lenb@kernel.org> <11708744253790-git-send-email-lenb@kernel.org> <11708744263395-git-send-email-lenb@kernel.org> <11708744273028-git-send-email-lenb@kernel.org> <11708744272354-git-send-email-lenb@kernel.org> <11708744311281-git-send-email-lenb@kernel.org> <11708744322360-git-send-email-lenb@kernel.org> <1170874433382-git-send-email-lenb@kernel.org> <11708744353864-git-send-email-lenb@kernel.org> <11708744352790-git-send-email-lenb@kernel.org> <1170874437973-git-send-email-lenb@kernel.org> <11708744382626-git-send-email-lenb@kernel.org> <11708744402139-git-send-email-lenb@kernel.org> <11708744413743-git-send-email-lenb@kernel.org> <117087444256-git-send-email-lenb@kernel.org> <11708744461131-git-send-email-lenb@kernel.org> <1170874451354
  1-git-send-email-lenb@kernel.org> <11708744522444-git-send-email-lenb@kernel.org> <1170874453363-git-send-email-lenb@kernel.org> <11708744542419-git-send-email-lenb@kernel.org> <11708744562243-git-send-email-lenb@kernel.org> <1170874458256-git-send-email-lenb@kernel.org> <11708744603317-git-send-email-lenb@kernel.org> <11708744612314-git-send-email-lenb@kernel.org> <117087446376-git-send-email-lenb@kernel.org> <11708744642267-git-send-email-lenb@kernel.org> <11708744674050-git-send-email-lenb@kernel.org> <11708744692041-git-send-email-lenb@kernel.org> <11708744712690-git-send-email-lenb@kernel.org> <11708744732351-git-send-email-lenb@kernel.org> <11708744752537-git-send-email-lenb@kernel.org> <11708744772462-git-send-email-lenb@kernel.org> <11708744803527-git-send-email-lenb@kernel.org> <11708744813011-git-send-email-lenb@kernel.org> <11708744852095-git-send-email-lenb@kernel.org> <117
- 08744874154-git-send-email-lenb@kernel.org> <11708744878-git-send-email-lenb@kernel.org> <1170874488430-git-send-email-lenb@kernel.org> <11708744903381-git-send-email-lenb@kernel.org> <11708744911989-git-send-email-lenb@kernel.org> <11708744922677-git-send-email-lenb@kernel.org> <11708744934033-git-send-email-lenb@kernel.org> <1170874494939-git-send-email-lenb@kernel.org> <11708744951308-git-send-emailMessage-Id: <2b167c01190b647c976e7fab312f2e3d3b3a785f.1170873819.git.len.brown@intel.com>
+ 08744874154-git-send-email-lenb@kernel.org> <11708744878-git-send-email-lenb@kernel.org> <1170874488430-git-send-email-lenb@kernel.org> <11708744903381-git-send-email-lenb@kernel.org> <11708744911989-git-send-email-lenb@kernel.org> <11708744922677-git-send-email-lenb@kernel.org> <11708744934033-git-send-email-lenb@kernel.org> <1170874494939-git-send-email-lenb@kernel.org> <11708744951308-git-send-emailMessage-Id: <3e643e77a929202455a0cc868c2030a5ba8d1371.1170873819.git.len.brown@intel.com>
 Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([143.182.124.22]:37036 "EHLO
+Received: from mga07.intel.com ([143.182.124.22]:1087 "EHLO
 	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1422883AbXBGSzz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Feb 2007 13:55:55 -0500
-In-Reply-To: <11708745522982-git-send-email-lenb@kernel.org>
+	with ESMTP id S1422872AbXBGSzt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Feb 2007 13:55:49 -0500
+In-Reply-To: <11708745451195-git-send-email-lenb@kernel.org>
 In-Reply-To: <9e89dde2b063ca73fcdc9244fe68e2dea32c5088.1170873816.git.len.brown@intel.com>
 References: <9e89dde2b063ca73fcdc9244fe68e2dea32c5088.1170873816.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>, Len Brown <len.brown@intel.com>
+Cc: John Keller <jpk@sgi.com>, Aaron Young <ayoung@sgi.com>, Andrew Morton <akpm@osdl.org>, Len Brown <len.brown@intel.com>
 
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+From: John Keller <jpk@sgi.com>
 
-Convert the bay driver to be a platform driver, so that we can have
-sysfs entries.
+Support for dynamic loading and unloading of ACPI SSDT tables upon slot
+hotplugs and unplugs.
 
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
+On SN platforms, we now represent every populated root bus slot with a single
+ACPI SSDT table containing info for every device and PPB attached to the slot.
+ These SSDTs are generated by the prom at initial boot and hotplug time.  The
+info in these SSDT tables is used by the SN kernel IO "fixup" code (which is
+called at boot and hotplug time).
+
+On hotplugs (i.e.  enable_slot()), if running with an ACPI capable prom,
+attempt to obtain a new ACPI SSDT table for the slot being hotplugged.  If
+successful, add the table to the ACPI namespace (acpi_load_table()) and then
+walk the new devices and add them to the ACPI infrastructure (acpi_bus_add()).
+
+On hot unplugs (i.e.  disable_slot()), if running with an ACPI capable prom,
+attempt to remove the SSDT table associated with the slot from the ACPI
+namespace (acpi_unload_table_id()) and infastructure (acpi_bus_trim()).
+
+From: John Keller <jpk@sgi.com>
+
+ A bug was fixed where the sgi hotplug driver was removing
+ the slot's SSDT table from the ACPI namespace a bit too early in
+ disable_slot(). Also, we now call acpi_bus_start() subsequent
+ to acpi_bus_add().
+
+Signed-off-by: Aaron Young <ayoung@sgi.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
+Signed-off-by: Len Brown<len.brown@intel.com>
 ---
- drivers/acpi/bay.c |   87 +++++++++++++++++++++++++++++++++++++++++++++------
- 1 files changed, 76 insertions(+), 11 deletions(-)
+ drivers/pci/hotplug/sgi_hotplug.c |  155 +++++++++++++++++++++++++++++++++++--
+ 1 files changed, 148 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/acpi/bay.c b/drivers/acpi/bay.c
-index 0c0a620..3f0ae7d 100644
---- a/drivers/acpi/bay.c
-+++ b/drivers/acpi/bay.c
-@@ -30,6 +30,7 @@
- #include <acpi/acpi_drivers.h>
- #include <linux/seq_file.h>
- #include <asm/uaccess.h>
-+#include <linux/platform_device.h>
+diff --git a/drivers/pci/hotplug/sgi_hotplug.c b/drivers/pci/hotplug/sgi_hotplug.c
+index 5d188c5..78cf071 100644
+--- a/drivers/pci/hotplug/sgi_hotplug.c
++++ b/drivers/pci/hotplug/sgi_hotplug.c
+@@ -28,6 +28,8 @@
+ #include <asm/sn/sn_feature_sets.h>
+ #include <asm/sn/sn_sal.h>
+ #include <asm/sn/types.h>
++#include <linux/acpi.h>
++#include <asm/sn/acpi.h>
  
- #define ACPI_BAY_DRIVER_NAME "ACPI Removable Drive Bay Driver"
+ #include "../pci.h"
  
-@@ -45,7 +46,6 @@ MODULE_LICENSE("GPL");
- 	struct acpi_buffer buffer = {sizeof(prefix), prefix};\
- 	acpi_get_name(h, ACPI_FULL_PATHNAME, &buffer);\
- 	printk(KERN_DEBUG PREFIX "%s: %s\n", prefix, s); }
--
- static void bay_notify(acpi_handle handle, u32 event, void *data);
- static int acpi_bay_add(struct acpi_device *device);
- static int acpi_bay_remove(struct acpi_device *device, int type);
-@@ -66,6 +66,7 @@ struct bay {
- 	acpi_handle handle;
- 	char *name;
- 	struct list_head list;
-+	struct platform_device *pdev;
- };
+@@ -35,14 +37,17 @@ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("SGI (prarit@sgi.com, dickie@sgi.com, habeck@sgi.com)");
+ MODULE_DESCRIPTION("SGI Altix Hot Plug PCI Controller Driver");
  
- LIST_HEAD(drive_bays);
-@@ -133,6 +134,33 @@ static void eject_device(acpi_handle handle)
- 		pr_debug("Failed to evaluate _EJ0!\n");
+-#define PCIIO_ASIC_TYPE_TIOCA		4
++
++/* SAL call error codes. Keep in sync with prom header io/include/pcibr.h */
+ #define PCI_SLOT_ALREADY_UP		2	/* slot already up */
+ #define PCI_SLOT_ALREADY_DOWN		3	/* slot already down */
+ #define PCI_L1_ERR			7	/* L1 console command error */
+ #define PCI_EMPTY_33MHZ			15	/* empty 33 MHz bus */
++
++
++#define PCIIO_ASIC_TYPE_TIOCA		4
+ #define PCI_L1_QSIZE			128	/* our L1 message buffer size */
+ #define SN_MAX_HP_SLOTS			32	/* max hotplug slots */
+-#define SGI_HOTPLUG_PROM_REV		0x0430	/* Min. required PROM version */
+ #define SN_SLOT_NAME_SIZE		33	/* size of name string */
+ 
+ /* internal list head */
+@@ -227,7 +232,7 @@ static void sn_bus_free_data(struct pci_dev *dev)
  }
  
-+/*
-+ * show_present - read method for "present" file in sysfs
-+ */
-+static ssize_t show_present(struct device *dev,
-+			   struct device_attribute *attr, char *buf)
-+{
-+	struct bay *bay = dev_get_drvdata(dev);
-+	return snprintf(buf, PAGE_SIZE, "%d\n", bay_present(bay));
-+
-+}
-+DEVICE_ATTR(present, S_IRUGO, show_present, NULL);
-+
-+/*
-+ * write_eject - write method for "eject" file in sysfs
-+ */
-+static ssize_t write_eject(struct device *dev, struct device_attribute *attr,
-+			   const char *buf, size_t count)
-+{
-+	struct bay *bay = dev_get_drvdata(dev);
-+
-+	if (!count)
-+		return -EINVAL;
-+
-+	eject_device(bay->handle);
-+	return count;
-+}
-+DEVICE_ATTR(eject, S_IWUSR, NULL, write_eject);
- 
- /**
-  * is_ata - see if a device is an ata device
-@@ -218,14 +246,31 @@ static int acpi_bay_add(struct acpi_device *device)
- 
- static int acpi_bay_add_fs(struct bay *bay)
+ static int sn_slot_enable(struct hotplug_slot *bss_hotplug_slot,
+-			  int device_num)
++			  int device_num, char **ssdt)
  {
--	if (!bay)
--		return -EINVAL;
-+	int ret;
-+	struct device *dev = &bay->pdev->dev;
+ 	struct slot *slot = bss_hotplug_slot->private;
+ 	struct pcibus_info *pcibus_info;
+@@ -240,7 +245,8 @@ static int sn_slot_enable(struct hotplug_slot *bss_hotplug_slot,
+ 	 * Power-on and initialize the slot in the SN
+ 	 * PCI infrastructure.
+ 	 */
+-	rc = sal_pcibr_slot_enable(pcibus_info, device_num, &resp);
++	rc = sal_pcibr_slot_enable(pcibus_info, device_num, &resp, ssdt);
 +
-+	ret = device_create_file(dev, &dev_attr_present);
-+	if (ret)
-+		goto add_fs_err;
-+	ret = device_create_file(dev, &dev_attr_eject);
-+	if (ret) {
-+		device_remove_file(dev, &dev_attr_present);
-+		goto add_fs_err;
-+	}
-+	return 0;
-+
-+ add_fs_err:
-+	bay_dprintk(bay->handle, "Error adding sysfs files\n");
-+	return ret;
- }
  
- static void acpi_bay_remove_fs(struct bay *bay)
- {
--	if (!bay)
--		return;
-+	struct device *dev = &bay->pdev->dev;
-+
-+	/* cleanup sysfs */
-+	device_remove_file(dev, &dev_attr_present);
-+	device_remove_file(dev, &dev_attr_eject);
- }
+ 	if (rc == PCI_SLOT_ALREADY_UP) {
+ 		dev_dbg(slot->pci_bus->self, "is already active\n");
+@@ -335,6 +341,7 @@ static int enable_slot(struct hotplug_slot *bss_hotplug_slot)
+ 	int func, num_funcs;
+ 	int new_ppb = 0;
+ 	int rc;
++	char *ssdt = NULL;
+ 	void pcibios_fixup_device_resources(struct pci_dev *);
  
- static int bay_is_dock_device(acpi_handle handle)
-@@ -240,10 +285,11 @@ static int bay_is_dock_device(acpi_handle handle)
- 	return (is_dock_device(handle) || is_dock_device(parent));
- }
+ 	/* Serialize the Linux PCI infrastructure */
+@@ -342,14 +349,29 @@ static int enable_slot(struct hotplug_slot *bss_hotplug_slot)
  
--static int bay_add(acpi_handle handle)
-+static int bay_add(acpi_handle handle, int id)
- {
- 	acpi_status status;
- 	struct bay *new_bay;
-+	struct platform_device *pdev;
- 	struct acpi_buffer nbuffer = {ACPI_ALLOCATE_BUFFER, NULL};
- 	acpi_get_name(handle, ACPI_FULL_PATHNAME, &nbuffer);
- 
-@@ -252,12 +298,24 @@ static int bay_add(acpi_handle handle)
  	/*
- 	 * Initialize bay device structure
+ 	 * Power-on and initialize the slot in the SN
+-	 * PCI infrastructure.
++	 * PCI infrastructure. Also, retrieve the ACPI SSDT
++	 * table for the slot (if ACPI capable PROM).
  	 */
--	new_bay = kmalloc(GFP_ATOMIC, sizeof(*new_bay));
-+	new_bay = kzalloc(GFP_ATOMIC, sizeof(*new_bay));
- 	INIT_LIST_HEAD(&new_bay->list);
- 	new_bay->handle = handle;
- 	new_bay->name = (char *)nbuffer.pointer;
--	list_add(&new_bay->list, &drive_bays);
--	acpi_bay_add_fs(new_bay);
-+
-+	/* initialize platform device stuff */
-+	pdev = platform_device_register_simple(ACPI_BAY_CLASS, id, NULL, 0);
-+	if (pdev == NULL) {
-+		printk(KERN_ERR PREFIX "Error registering bay device\n");
-+		goto bay_add_err;
-+	}
-+	new_bay->pdev = pdev;
-+	platform_set_drvdata(pdev, new_bay);
-+
-+	if (acpi_bay_add_fs(new_bay)) {
-+		platform_device_unregister(new_bay->pdev);
-+		goto bay_add_err;
-+	}
+-	rc = sn_slot_enable(bss_hotplug_slot, slot->device_num);
++	rc = sn_slot_enable(bss_hotplug_slot, slot->device_num, &ssdt);
+ 	if (rc) {
+ 		mutex_unlock(&sn_hotplug_mutex);
+ 		return rc;
+ 	}
  
- 	/* register for events on this device */
- 	status = acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
-@@ -273,8 +331,14 @@ static int bay_add(acpi_handle handle)
- 		bay_dprintk(handle, "Is dependent on dock\n");
- 		register_hotplug_dock_device(handle, bay_notify, new_bay);
- 	}
-+	list_add(&new_bay->list, &drive_bays);
- 	printk(KERN_INFO PREFIX "Bay [%s] Added\n", new_bay->name);
- 	return 0;
++	if (ssdt)
++		ssdt = __va(ssdt);
++	/* Add the new SSDT for the slot to the ACPI namespace */
++	if (SN_ACPI_BASE_SUPPORT() && ssdt) {
++		acpi_status ret;
 +
-+bay_add_err:
-+	kfree(new_bay->name);
-+	kfree(new_bay);
-+	return -ENODEV;
- }
++		ret = acpi_load_table((struct acpi_table_header *)ssdt);
++		if (ACPI_FAILURE(ret)) {
++			printk(KERN_ERR "%s: acpi_load_table failed (0x%x)\n",
++			       __FUNCTION__, ret);
++			/* try to continue on */
++		}
++	}
++
+ 	num_funcs = pci_scan_slot(slot->pci_bus,
+ 				  PCI_DEVFN(slot->device_num + 1, 0));
+ 	if (!num_funcs) {
+@@ -374,7 +396,10 @@ static int enable_slot(struct hotplug_slot *bss_hotplug_slot)
+ 			 * pdi_host_pcidev_info).
+ 			 */
+ 			pcibios_fixup_device_resources(dev);
+-			sn_pci_fixup_slot(dev);
++			if (SN_ACPI_BASE_SUPPORT())
++				sn_acpi_slot_fixup(dev);
++			else
++				sn_io_slot_fixup(dev);
+ 			if (dev->hdr_type == PCI_HEADER_TYPE_BRIDGE) {
+ 				unsigned char sec_bus;
+ 				pci_read_config_byte(dev, PCI_SECONDARY_BUS,
+@@ -388,6 +413,63 @@ static int enable_slot(struct hotplug_slot *bss_hotplug_slot)
+ 		}
+ 	}
  
- static int acpi_bay_remove(struct acpi_device *device, int type)
-@@ -393,8 +457,8 @@ find_bay(acpi_handle handle, u32 lvl, void *context, void **rv)
- 	 */
- 	if (is_ejectable_bay(handle)) {
- 		bay_dprintk(handle, "found ejectable bay");
--		bay_add(handle);
--		(*count)++;
-+		if (!bay_add(handle, *count))
-+			(*count)++;
++	/*
++	 * Add the slot's devices to the ACPI infrastructure */
++	if (SN_ACPI_BASE_SUPPORT() && ssdt) {
++		unsigned long adr;
++		struct acpi_device *pdevice;
++		struct acpi_device *device;
++		acpi_handle phandle;
++		acpi_handle chandle = NULL;
++		acpi_handle rethandle;
++		acpi_status ret;
++
++		phandle = PCI_CONTROLLER(slot->pci_bus)->acpi_handle;
++
++		if (acpi_bus_get_device(phandle, &pdevice)) {
++			dev_dbg(slot->pci_bus->self,
++				"no parent device, assuming NULL\n");
++			pdevice = NULL;
++		}
++
++		/*
++		 * Walk the rootbus node's immediate children looking for
++		 * the slot's device node(s). There can be more than
++		 * one for multifunction devices.
++		 */
++		for (;;) {
++			rethandle = NULL;
++			ret = acpi_get_next_object(ACPI_TYPE_DEVICE,
++						   phandle, chandle,
++						   &rethandle);
++
++			if (ret == AE_NOT_FOUND || rethandle == NULL)
++				break;
++
++			chandle = rethandle;
++
++			ret = acpi_evaluate_integer(chandle, METHOD_NAME__ADR,
++						    NULL, &adr);
++
++			if (ACPI_SUCCESS(ret) &&
++			    (adr>>16) == (slot->device_num + 1)) {
++
++				ret = acpi_bus_add(&device, pdevice, chandle,
++						   ACPI_BUS_TYPE_DEVICE);
++				if (ACPI_FAILURE(ret)) {
++					printk(KERN_ERR "%s: acpi_bus_add "
++					       "failed (0x%x) for slot %d "
++					       "func %d\n", __FUNCTION__,
++					       ret, (int)(adr>>16),
++					       (int)(adr&0xffff));
++					/* try to continue on */
++				} else {
++					acpi_bus_start(device);
++				}
++			}
++		}
++	}
++
+ 	/* Call the driver for the new device */
+ 	pci_bus_add_devices(slot->pci_bus);
+ 	/* Call the drivers for the new devices subordinate to PPB */
+@@ -412,6 +494,7 @@ static int disable_slot(struct hotplug_slot *bss_hotplug_slot)
+ 	struct pci_dev *dev;
+ 	int func;
+ 	int rc;
++	acpi_owner_id ssdt_id = 0;
+ 
+ 	/* Acquire update access to the bus */
+ 	mutex_lock(&sn_hotplug_mutex);
+@@ -422,6 +505,52 @@ static int disable_slot(struct hotplug_slot *bss_hotplug_slot)
+ 	if (rc)
+ 		goto leaving;
+ 
++	/* free the ACPI resources for the slot */
++	if (SN_ACPI_BASE_SUPPORT() &&
++            PCI_CONTROLLER(slot->pci_bus)->acpi_handle) {
++		unsigned long adr;
++		struct acpi_device *device;
++		acpi_handle phandle;
++		acpi_handle chandle = NULL;
++		acpi_handle rethandle;
++		acpi_status ret;
++
++		/* Get the rootbus node pointer */
++		phandle = PCI_CONTROLLER(slot->pci_bus)->acpi_handle;
++
++		/*
++		 * Walk the rootbus node's immediate children looking for
++		 * the slot's device node(s). There can be more than
++		 * one for multifunction devices.
++		 */
++		for (;;) {
++			rethandle = NULL;
++			ret = acpi_get_next_object(ACPI_TYPE_DEVICE,
++						   phandle, chandle,
++						   &rethandle);
++
++			if (ret == AE_NOT_FOUND || rethandle == NULL)
++				break;
++
++			chandle = rethandle;
++
++			ret = acpi_evaluate_integer(chandle,
++						    METHOD_NAME__ADR,
++						    NULL, &adr);
++			if (ACPI_SUCCESS(ret) &&
++			    (adr>>16) == (slot->device_num + 1)) {
++				/* retain the owner id */
++				acpi_get_id(chandle, &ssdt_id);
++
++				ret = acpi_bus_get_device(chandle,
++							  &device);
++				if (ACPI_SUCCESS(ret))
++					acpi_bus_trim(device, 1);
++			}
++		}
++
++	}
++
+ 	/* Free the SN resources assigned to the Linux device.*/
+ 	for (func = 0; func < 8;  func++) {
+ 		dev = pci_get_slot(slot->pci_bus,
+@@ -434,6 +563,18 @@ static int disable_slot(struct hotplug_slot *bss_hotplug_slot)
+ 		}
  	}
- 	return AE_OK;
- }
-@@ -429,6 +493,7 @@ static void __exit bay_exit(void)
- 		acpi_bay_remove_fs(bay);
- 		acpi_remove_notify_handler(bay->handle, ACPI_SYSTEM_NOTIFY,
- 			bay_notify);
-+		platform_device_unregister(bay->pdev);
- 		kfree(bay->name);
- 		kfree(bay);
- 	}
+ 
++	/* Remove the SSDT for the slot from the ACPI namespace */
++	if (SN_ACPI_BASE_SUPPORT() && ssdt_id) {
++		acpi_status ret;
++		ret = acpi_unload_table_id(ssdt_id);
++		if (ACPI_FAILURE(ret)) {
++			printk(KERN_ERR "%s: acpi_unload_table_id "
++			       "failed (0x%x) for id %d\n",
++			       __FUNCTION__, ret, ssdt_id);
++			/* try to continue on */
++		}
++	}
++
+ 	/* free the collected sysdata pointers */
+ 	sn_bus_free_sysdata();
+ 
 -- 
 1.5.0.rc3.39.gec804
