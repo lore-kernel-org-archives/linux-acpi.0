@@ -1,17 +1,17 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 33/140] asus-laptop: add backlight support
-Date: Wed,  7 Feb 2007 13:50:47 -0500
-Message-ID: <11708744191642-git-send-email-lenb@kernel.org>
+Subject: [PATCH 32/140] asus-laptop: add bluetooth and wlan support
+Date: Wed,  7 Feb 2007 13:50:46 -0500
+Message-ID: <1170874418134-git-send-email-lenb@kernel.org>
 References: <11708743541314-git-send-email-lenb@kernel.org> <11708743561383-git-send-email-lenb@kernel.org> <117087435785-git-send-email-lenb@kernel.org> <11708743582090-git-send-email-lenb@kernel.org> <11708743611662-git-send-email-lenb@kernel.org> <11708743653073-git-send-email-lenb@kernel.org> <11708743674006-git-send-email-lenb@kernel.org> <11708743693386-git-send-email-lenb@kernel.org> <11708743702194-git-send-email-lenb@kernel.org> <11708743723353-git-send-email-lenb@kernel.org> <11708743783727-git-send-email-lenb@kernel.org> <11708743802558-git-send-email-lenb@kernel.org> <11708743821259-git-send-email-lenb@kernel.org> <11708743853573-git-send-email-lenb@kernel.org> <11708743871468-git-send-email-lenb@kernel.org> <1170874390715-git-send-email-lenb@kernel.org> <1170874393736-git-send-email-lenb@kernel.org> <11708743943108-git-send-email-lenb@kernel.org> <11708743962377-git-send-ema
- il-lenb@kernel.org> <11708743972593-git-send-email-lenb@kernel.org> <1170874398386-git-send-email-lenb@kernel.org> <11708743993414-git-send-email-lenb@kernel.org> <11708744003959-git-send-email-lenb@kernel.org> <11708744023872-git-send-email-lenb@kernel.org> <11708744032427-git-send-email-lenb@kernel.org> <11708744053556-git-send-email-lenb@kernel.org> <11708744062538-git-send-email-lenb@kernel.org> <11708744071019-git-send-email-lenb@kernel.org> <11708744093818-git-send-email-lenb@kernel.org> <11708744101300-git-send-email-lenb@kernel.org> <1170874412494-git-send-email-lenb@kernel.org> <11708744142658-git-send-email-lenb@kernel.org> <1170874415464-git-send-email-lenb@kernel.org> <1170874417392-git-send-email-lenb@kernel.org> <1170874418134-git-send-email-lenb@kernel.org>
+ il-lenb@kernel.org> <11708743972593-git-send-email-lenb@kernel.org> <1170874398386-git-send-email-lenb@kernel.org> <11708743993414-git-send-email-lenb@kernel.org> <11708744003959-git-send-email-lenb@kernel.org> <11708744023872-git-send-email-lenb@kernel.org> <11708744032427-git-send-email-lenb@kernel.org> <11708744053556-git-send-email-lenb@kernel.org> <11708744062538-git-send-email-lenb@kernel.org> <11708744071019-git-send-email-lenb@kernel.org> <11708744093818-git-send-email-lenb@kernel.org> <11708744101300-git-send-email-lenb@kernel.org> <1170874412494-git-send-email-lenb@kernel.org> <11708744142658-git-send-email-lenb@kernel.org> <1170874415464-git-send-email-lenb@kernel.org> <1170874417392-git-send-email-lenb@kernel.org>
 Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([143.182.124.22]:4200 "EHLO
+Received: from mga07.intel.com ([143.182.124.22]:45778 "EHLO
 	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1422751AbXBGSxm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Feb 2007 13:53:42 -0500
-In-Reply-To: <1170874418134-git-send-email-lenb@kernel.org>
-Message-Id: <6b7091e74fe176da97917ca60524e2b3554305f0.1170873816.git.len.brown@intel.com>
+	with ESMTP id S1422752AbXBGSxk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Feb 2007 13:53:40 -0500
+In-Reply-To: <1170874417392-git-send-email-lenb@kernel.org>
+Message-Id: <4564de172dcdce641c0d6c689e79e95b5f6bee2c.1170873816.git.len.brown@intel.com>
 In-Reply-To: <9e89dde2b063ca73fcdc9244fe68e2dea32c5088.1170873816.git.len.brown@intel.com>
 References: <9e89dde2b063ca73fcdc9244fe68e2dea32c5088.1170873816.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -21,320 +21,214 @@ Cc: Corentin Chary <corentincj@iksaif.net>, Len Brown <len.brown@intel.com>
 
 From: Corentin Chary <corentincj@iksaif.net>
 
-Adds backlight support using backlight class. We now
-change the brightness *and toggle the backlight !* via
-/sys/class/backlight/asus-laptop/.
-
-If the user switchs the backlight using the keyboard,
-asus_hotk_notify looks for ATKD_LCD_OFF and ATKD_LCD_ON events,
-and stores the right state into hotk->status and bd->props->power .
+WLED and BLED are not handled like other leds (MLED, etc ..),
+because sometime they also control the wlan/bluetooth device.
+If the method for wireless_status is found, it's used to get the
+status, otherwise hotk->status is used.  We also use the HWRS
+method, which tell if the bluetooth/wlan device is present or not.
+This patch show why we need a ASUS_SET_DEVICE_ATTR macro : if
+there is a bluetooth device, /sys/dev.../asus-laptop/bluetooth
+is usable, else it's not but it's clean.
 
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/Kconfig       |    1 +
- drivers/misc/asus-laptop.c |  183 +++++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 183 insertions(+), 1 deletions(-)
+ drivers/misc/asus-laptop.c |  115 +++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 113 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index 87e1db8..89bba27 100644
---- a/drivers/misc/Kconfig
-+++ b/drivers/misc/Kconfig
-@@ -75,6 +75,7 @@ config ASUS_LAPTOP
-         depends on ACPI
- 	depends on EXPERIMENTAL && !ACPI_ASUS
- 	depends on LEDS_CLASS
-+	depends on BACKLIGHT_CLASS_DEVICE
-         ---help---
- 	  This is the new Linux driver for Asus laptops. It may also support some
- 	  MEDION, JVC or VICTOR laptops. It makes all the extra buttons generate
 diff --git a/drivers/misc/asus-laptop.c b/drivers/misc/asus-laptop.c
-index 222d4fb..58ab44d 100644
+index d0d5ee9..222d4fb 100644
 --- a/drivers/misc/asus-laptop.c
 +++ b/drivers/misc/asus-laptop.c
-@@ -40,6 +40,8 @@
- #include <linux/types.h>
- #include <linux/err.h>
- #include <linux/proc_fs.h>
-+#include <linux/backlight.h>
-+#include <linux/fb.h>
- #include <linux/leds.h>
- #include <linux/platform_device.h>
- #include <acpi/acpi_drivers.h>
-@@ -56,6 +58,14 @@
+@@ -56,8 +56,17 @@
  #define ASUS_HOTK_PREFIX        "\\_SB.ATKD."
  
  /*
-+ * Some events we use, same for all Asus
++ * Known bits returned by \_SB.ATKD.HWRS
 + */
-+#define ATKD_BR_UP       0x10
-+#define ATKD_BR_DOWN     0x20
-+#define ATKD_LCD_ON      0x33
-+#define ATKD_LCD_OFF     0x34
++#define WL_HWRS     0x80
++#define BT_HWRS     0x100
 +
 +/*
-  * Known bits returned by \_SB.ATKD.HWRS
+  * Flags for hotk status
++ * WL_ON and BT_ON are also used for wireless_status()
   */
- #define WL_HWRS     0x80
-@@ -71,6 +81,7 @@
++#define WL_ON       0x01	//internal Wifi
++#define BT_ON       0x02	//internal Bluetooth
+ #define MLED_ON     0x04	//mail LED
  #define TLED_ON     0x08	//touchpad LED
  #define RLED_ON     0x10        //Record LED
- #define PLED_ON     0x20        //Phone LED
-+#define LCD_ON      0x40        //LCD backlight
+@@ -84,6 +93,14 @@ ASUS_HANDLE(tled_set, ASUS_HOTK_PREFIX "TLED");
+ ASUS_HANDLE(rled_set, ASUS_HOTK_PREFIX "RLED"); /* W1JC */
+ ASUS_HANDLE(pled_set, ASUS_HOTK_PREFIX "PLED"); /* A7J */
  
- #define ASUS_LOG    ASUS_HOTK_FILE ": "
- #define ASUS_ERR    KERN_ERR    ASUS_LOG
-@@ -101,6 +112,19 @@ ASUS_HANDLE(wl_switch, ASUS_HOTK_PREFIX "WLED");
- ASUS_HANDLE(bt_switch, ASUS_HOTK_PREFIX "BLED");
- ASUS_HANDLE(wireless_status, ASUS_HOTK_PREFIX "RSTS"); /* All new models */
- 
-+/* Brightness */
-+ASUS_HANDLE(brightness_set, ASUS_HOTK_PREFIX "SPLV");
-+ASUS_HANDLE(brightness_get, ASUS_HOTK_PREFIX "GPLV");
-+
-+/* Backlight */
-+ASUS_HANDLE(lcd_switch, "\\_SB.PCI0.SBRG.EC0._Q10", /* All new models */
-+	    "\\_SB.PCI0.ISA.EC0._Q10", /* A1x */
-+	    "\\_SB.PCI0.PX40.ECD0._Q10", /* L3C */
-+	    "\\_SB.PCI0.PX40.EC0.Q10", /* M1A */
-+	    "\\_SB.PCI0.LPCB.EC0._Q10", /* P30 */
-+	    "\\_SB.PCI0.PX40.Q10", /* S1x */
-+	    "\\Q10");  /* A2x, L2D, L3D, M2E */
++/* Bluetooth and WLAN
++ * WLED and BLED are not handled like other XLED, because in some dsdt
++ * they also control the WLAN/Bluetooth device.
++ */
++ASUS_HANDLE(wl_switch, ASUS_HOTK_PREFIX "WLED");
++ASUS_HANDLE(bt_switch, ASUS_HOTK_PREFIX "BLED");
++ASUS_HANDLE(wireless_status, ASUS_HOTK_PREFIX "RSTS"); /* All new models */
 +
  /*
   * This is the main structure, we can use it to store anything interesting
   * about the hotk device
-@@ -138,6 +162,21 @@ static struct acpi_driver asus_hotk_driver = {
- 		},
- };
+@@ -181,14 +198,32 @@ static int read_acpi_int(acpi_handle handle, const char *method, int *val,
+ 	return (status == AE_OK) && (out_obj.type == ACPI_TYPE_INTEGER);
+ }
  
-+/* The backlight device /sys/class/backlight */
-+static struct backlight_device *asus_backlight_device;
++static int read_wireless_status(int mask) {
++	int status;
++
++	if (!wireless_status_handle)
++		return (hotk->status & mask) ? 1 : 0;
++
++	if (read_acpi_int(wireless_status_handle, NULL, &status, NULL)) {
++		return (status & mask) ? 1 : 0;
++	} else
++		printk(ASUS_WARNING "Error reading Wireless status\n");
++
++	return (hotk->status & mask) ? 1 : 0;
++}
++
+ /* Generic LED functions */
+ static int read_status(int mask)
+ {
++	/* There is a special method for both wireless devices */
++	if (mask == BT_ON || mask == WL_ON)
++		return read_wireless_status(mask);
++
+ 	return (hotk->status & mask) ? 1 : 0;
+ }
+ 
+ static void write_status(acpi_handle handle, int out, int mask,
+-		      int invert)
++			 int invert)
+ {
+ 	hotk->status = (out) ? (hotk->status | mask) : (hotk->status & ~mask);
+ 
+@@ -292,6 +327,51 @@ static int parse_arg(const char *buf, unsigned long count, int *val)
+ 	return count;
+ }
+ 
++static ssize_t store_status(const char *buf, size_t count,
++			    acpi_handle handle, int mask, int invert)
++{
++	int rv, value;
++	int out = 0;
++
++	rv = parse_arg(buf, count, &value);
++	if (rv > 0)
++		out = value ? 1 : 0;
++
++	write_status(handle, out, mask, invert);
++
++	return rv;
++}
 +
 +/*
-+ * The backlight class declaration
++ * WLAN
 + */
-+static int read_brightness(struct backlight_device *bd);
-+static int update_bl_status(struct backlight_device *bd);
-+static struct backlight_properties asusbl_data = {
-+	       .owner          = THIS_MODULE,
-+	       .get_brightness = read_brightness,
-+	       .update_status  = update_bl_status,
-+	       .max_brightness = 15,
-+};
++static ssize_t show_wlan(struct device *dev,
++			 struct device_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%d\n", read_status(WL_ON));
++}
 +
- /* These functions actually update the LED's, and are called from a
-  * workqueue. By doing this as separate work rather than when the LED
-  * subsystem asks, we avoid messing with the Asus ACPI stuff during a
-@@ -253,6 +292,86 @@ ASUS_LED_HANDLER(pled, PLED_ON, 0);
- ASUS_LED_HANDLER(rled, RLED_ON, 0);
- ASUS_LED_HANDLER(tled, TLED_ON, 0);
++static ssize_t store_wlan(struct device *dev, struct device_attribute *attr,
++			  const char *buf, size_t count)
++{
++	return store_status(buf, count, wl_switch_handle, WL_ON, 0);
++}
++
++/*
++ * Bluetooth
++ */
++static ssize_t show_bluetooth(struct device *dev,
++			      struct device_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%d\n", read_status(BT_ON));
++}
++
++static ssize_t store_bluetooth(struct device *dev, struct device_attribute *attr,
++			       const char *buf, size_t count)
++{
++	return store_status(buf, count, bt_switch_handle, BT_ON, 0);
++}
++
+ static void asus_hotk_notify(acpi_handle handle, u32 event, void *data)
+ {
+ 	/* TODO Find a better way to handle events count. */
+@@ -322,9 +402,13 @@ static void asus_hotk_notify(acpi_handle handle, u32 event, void *data)
+ 	} while(0)
  
-+static int get_lcd_state(void)
-+{
-+	return read_status(LCD_ON);
-+}
+ static ASUS_CREATE_DEVICE_ATTR(infos);
++static ASUS_CREATE_DEVICE_ATTR(wlan);
++static ASUS_CREATE_DEVICE_ATTR(bluetooth);
+ 
+ static struct attribute *asuspf_attributes[] = {
+         &dev_attr_infos.attr,
++        &dev_attr_wlan.attr,
++        &dev_attr_bluetooth.attr,
+         NULL
+ };
+ 
+@@ -345,6 +429,13 @@ static struct platform_device *asuspf_device;
+ static void asus_hotk_add_fs(void)
+ {
+ 	ASUS_SET_DEVICE_ATTR(infos, 0444, show_infos, NULL);
 +
-+static int set_lcd_state(int value)
-+{
-+	int lcd = 0;
-+	acpi_status status = 0;
++	if (wl_switch_handle)
++		ASUS_SET_DEVICE_ATTR(wlan, 0644, show_wlan, store_wlan);
 +
-+	lcd = value ? 1 : 0;
-+
-+	if (lcd == get_lcd_state())
-+		return 0;
-+
-+	if(lcd_switch_handle) {
-+		status = acpi_evaluate_object(lcd_switch_handle,
-+					      NULL, NULL, NULL);
-+
-+		if (ACPI_FAILURE(status))
-+			printk(ASUS_WARNING "Error switching LCD\n");
-+	}
-+
-+	write_status(NULL, lcd, LCD_ON, 0);
-+	return 0;
-+}
-+
-+static void lcd_blank(int blank)
-+{
-+	struct backlight_device *bd = asus_backlight_device;
-+
-+	if(bd) {
-+		down(&bd->sem);
-+		if(likely(bd->props)) {
-+			bd->props->power = blank;
-+			if(likely(bd->props->update_status))
-+			   bd->props->update_status(bd);
-+		}
-+		up(&bd->sem);
-+	}
-+}
-+
-+static int read_brightness(struct backlight_device *bd)
-+{
-+	int value;
-+
-+	if (!read_acpi_int(brightness_get_handle, NULL, &value, NULL))
-+		printk(ASUS_WARNING "Error reading brightness\n");
-+
-+	return value;
-+}
-+
-+static int set_brightness(struct backlight_device *bd, int value)
-+{
-+	int ret = 0;
-+
-+	value = (0 < value) ? ((15 < value) ? 15 : value) : 0;
-+	/* 0 <= value <= 15 */
-+
-+	if (!write_acpi_int(brightness_set_handle, NULL, value, NULL)) {
-+		printk(ASUS_WARNING "Error changing brightness\n");
-+		ret = -EIO;
-+	}
-+
-+	return ret;
-+}
-+
-+static int update_bl_status(struct backlight_device *bd)
-+{
-+	int rv;
-+	int value = bd->props->brightness;
-+
-+	rv = set_brightness(bd, value);
-+	if(rv)
-+		return rv;
-+
-+	value = (bd->props->power == FB_BLANK_UNBLANK) ? 1 : 0;
-+	return set_lcd_state(value);
-+}
-+
- /*
-  * Platform device handlers
-  */
-@@ -378,6 +497,18 @@ static void asus_hotk_notify(acpi_handle handle, u32 event, void *data)
- 	if (!hotk)
- 		return;
++	if (bt_switch_handle)
++		ASUS_SET_DEVICE_ATTR(bluetooth, 0644,
++				     show_bluetooth, store_bluetooth);
+ }
+ 
+ static int asus_handle_init(char *name, acpi_handle *handle,
+@@ -377,7 +468,7 @@ static int asus_hotk_get_info(void)
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	struct acpi_buffer dsdt = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	union acpi_object *model = NULL;
+-	int bsts_result;
++	int bsts_result, hwrs_result;
+ 	char *string = NULL;
+ 	acpi_status status;
+ 
+@@ -440,6 +531,22 @@ static int asus_hotk_get_info(void)
+ 	ASUS_HANDLE_INIT(rled_set);
+ 	ASUS_HANDLE_INIT(pled_set);
  
 +	/*
-+	 * We need to tell the backlight device when the backlight power is
-+	 * switched
++	 * The HWRS method return informations about the hardware.
++	 * 0x80 bit is for WLAN, 0x100 for Bluetooth.
++	 * The significance of others is yet to be found.
++	 * If we don't find the method, we assume the device are present.
 +	 */
-+	if (event == ATKD_LCD_ON) {
-+		write_status(NULL, 1, LCD_ON, 0);
-+		lcd_blank(FB_BLANK_UNBLANK);
-+	} else if(event == ATKD_LCD_OFF) {
-+		write_status(NULL, 0, LCD_ON, 0);
-+		lcd_blank(FB_BLANK_POWERDOWN);
-+	}
++	if (!read_acpi_int(hotk->handle, "HRWS", &hwrs_result, NULL))
++		hwrs_result = WL_HWRS | BT_HWRS;
 +
- 	acpi_bus_generate_event(hotk->device, event,
- 				hotk->event_count[event % 128]++);
- 
-@@ -547,6 +678,11 @@ static int asus_hotk_get_info(void)
- 
- 	ASUS_HANDLE_INIT(wireless_status);
- 
-+	ASUS_HANDLE_INIT(brightness_set);
-+	ASUS_HANDLE_INIT(brightness_get);
++	if(hwrs_result & WL_HWRS)
++		ASUS_HANDLE_INIT(wl_switch);
++	if(hwrs_result & BT_HWRS)
++		ASUS_HANDLE_INIT(bt_switch);
 +
-+	ASUS_HANDLE_INIT(lcd_switch);
++	ASUS_HANDLE_INIT(wireless_status);
 +
  	kfree(model);
  
  	return AE_OK;
-@@ -611,10 +747,13 @@ static int asus_hotk_add(struct acpi_device *device)
+@@ -504,6 +611,10 @@ static int asus_hotk_add(struct acpi_device *device)
  
  	asus_hotk_found = 1;
  
--	/* WLED and BLED are on by  default */
-+	/* WLED and BLED are on by default */
- 	write_status(bt_switch_handle, 1, BT_ON, 0);
- 	write_status(wl_switch_handle, 1, WL_ON, 0);
- 
-+	/* LCD Backlight is on by default */
-+	write_status(NULL, 1, LCD_ON, 0);
++	/* WLED and BLED are on by  default */
++	write_status(bt_switch_handle, 1, BT_ON, 0);
++	write_status(wl_switch_handle, 1, WL_ON, 0);
 +
        end:
  	if (result) {
  		kfree(hotk->name);
-@@ -642,6 +781,12 @@ static int asus_hotk_remove(struct acpi_device *device, int type)
- 	return 0;
- }
- 
-+static void asus_backlight_exit(void)
-+{
-+	if(asus_backlight_device)
-+		backlight_device_unregister(asus_backlight_device);
-+}
-+
- #define  ASUS_LED_UNREGISTER(object)				\
- 	if(object##_led.class_dev				\
- 	   && !IS_ERR(object##_led.class_dev))			\
-@@ -659,6 +804,7 @@ static void asus_led_exit(void)
- 
- static void __exit asus_laptop_exit(void)
- {
-+	asus_backlight_exit();
- 	asus_led_exit();
- 
- 	acpi_bus_unregister_driver(&asus_hotk_driver);
-@@ -669,6 +815,34 @@ static void __exit asus_laptop_exit(void)
- 	kfree(asus_info);
- }
- 
-+static int asus_backlight_init(struct device * dev)
-+{
-+	struct backlight_device *bd;
-+
-+	if(brightness_set_handle && lcd_switch_handle) {
-+		bd = backlight_device_register (ASUS_HOTK_FILE, dev,
-+						NULL, &asusbl_data);
-+		if (IS_ERR (bd)) {
-+			printk(ASUS_ERR
-+			       "Could not register asus backlight device\n");
-+			asus_backlight_device = NULL;
-+			return PTR_ERR(bd);
-+		}
-+
-+		asus_backlight_device = bd;
-+
-+		down(&bd->sem);
-+		if(likely(bd->props)) {
-+			bd->props->brightness = read_brightness(NULL);
-+			bd->props->power = FB_BLANK_UNBLANK;
-+			if(likely(bd->props->update_status))
-+			   bd->props->update_status(bd);
-+		}
-+		up(&bd->sem);
-+	}
-+	return 0;
-+}
-+
- static int asus_led_register(acpi_handle handle,
- 			     struct led_classdev * ldev,
- 			     struct device * dev)
-@@ -739,6 +913,10 @@ static int __init asus_laptop_init(void)
- 
- 	dev = acpi_get_physical_device(hotk->device->handle);
- 
-+	result = asus_backlight_init(dev);
-+	if(result)
-+		goto fail_backlight;
-+
- 	result = asus_led_init(dev);
- 	if(result)
- 		goto fail_led;
-@@ -778,6 +956,9 @@ fail_platform_driver:
- 	asus_led_exit();
- 
- fail_led:
-+	asus_backlight_exit();
-+
-+fail_backlight:
- 
- 	return result;
- }
 -- 
 1.5.0.rc3.39.gec804
