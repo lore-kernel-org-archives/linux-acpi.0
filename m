@@ -1,78 +1,52 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 04/13] Exit ACPI processor module gracefully if acpi is disabled
-Date: Fri, 9 Feb 2007 00:47:24 -0500
-Message-ID: <200702090047.25044.lenb@kernel.org>
-References: <200702060010.l160ADKR003729@shell0.pdx.osdl.net>
+Subject: Re: [patch 05/13] ACPI: Make bay depend on dock
+Date: Fri, 9 Feb 2007 00:50:10 -0500
+Message-ID: <200702090050.10271.lenb@kernel.org>
+References: <200702060010.l160AE0G003732@shell0.pdx.osdl.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:52200 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:60198 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946128AbXBIFsr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 9 Feb 2007 00:48:47 -0500
-In-Reply-To: <200702060010.l160ADKR003729@shell0.pdx.osdl.net>
+	id S1946129AbXBIFv3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 Feb 2007 00:51:29 -0500
+In-Reply-To: <200702060010.l160AE0G003732@shell0.pdx.osdl.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: akpm@linux-foundation.org
-Cc: linux-acpi@vger.kernel.org, trenn@suse.de
+Cc: linux-acpi@vger.kernel.org, kristen.c.accardi@intel.com
 
-Why not simply check acpi_disabled, like other drivers do?
+Did you intend to make ACPI_BAY depend on ACPI_DOCK
+instead of making ACPI_DOCK depend on ACPI_DOCK?
 
-thanks,
 -Len
 
 On Monday 05 February 2007 19:09, akpm@linux-foundation.org wrote:
-> From: Thomas Renninger <trenn@suse.de>
+> From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 > 
-> Signed-off-by: Thomas Renninger <trenn@suse.de>
-> Cc: Len Brown <lenb@kernel.org>
+> Since the bay driver depends on the dock driver for proper notification, make
+> this driver depend on the dock driver.
+> 
+> Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 > ---
 > 
->  drivers/acpi/processor_core.c |   13 +++++++++----
->  1 file changed, 9 insertions(+), 4 deletions(-)
+>  drivers/acpi/Kconfig |    1 +
+>  1 file changed, 1 insertion(+)
 > 
-> diff -puN drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled drivers/acpi/processor_core.c
-> --- a/drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled
-> +++ a/drivers/acpi/processor_core.c
-> @@ -994,6 +994,8 @@ void acpi_processor_uninstall_hotplug_no
->   * ACPI, but needs symbols from this driver
->   */
->  
-> +static int processor_driver_registered;
-> +
->  static int __init acpi_processor_init(void)
->  {
->  	int result = 0;
-> @@ -1019,6 +1021,8 @@ static int __init acpi_processor_init(vo
->  		return result;
->  	}
->  
-> +	processor_driver_registered = 1;
-> +
->  	acpi_processor_install_hotplug_notify();
->  
->  	acpi_thermal_cpufreq_init();
-> @@ -1035,12 +1039,13 @@ static void __exit acpi_processor_exit(v
->  
->  	acpi_thermal_cpufreq_exit();
->  
-> -	acpi_processor_uninstall_hotplug_notify();
-> -
-> -	acpi_bus_unregister_driver(&acpi_processor_driver);
-> +	if (processor_driver_registered) {
-> +		acpi_processor_uninstall_hotplug_notify();
->  
-> -	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
-> +		acpi_bus_unregister_driver(&acpi_processor_driver);
->  
-> +		remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
-> +	}
->  	return;
->  }
+> diff -puN drivers/acpi/Kconfig~acpi-make-bay-depend-on-dock drivers/acpi/Kconfig
+> --- a/drivers/acpi/Kconfig~acpi-make-bay-depend-on-dock
+> +++ a/drivers/acpi/Kconfig
+> @@ -151,6 +151,7 @@ config ACPI_FAN
+>  config ACPI_DOCK
+>  	tristate "Dock"
+>  	depends on EXPERIMENTAL
+> +	depends on ACPI_DOCK
+>  	help
+>  	  This driver adds support for ACPI controlled docking stations
 >  
 > _
 > -
