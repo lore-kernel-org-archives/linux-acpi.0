@@ -1,36 +1,31 @@
-From: Sascha Heid <saschaheid@gmail.com>
-Subject: Re: CoreDuo Bus-Master-Activity on Core1 ffffffff when idle, no C3
-Date: Fri, 09 Feb 2007 19:35:51 +0100
-Message-ID: <1171046151.11522.1.camel@localhost>
-References: <1170989226.4546.17.camel@localhost>
-	 <200702090154.02351.lenb@kernel.org>
-	 <20070209142925.GE26414@khazad-dum.debian.net>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [patch 02/13] ACPI, i686, x86_64: fix laptop bootup hang in init_acpi()
+Date: Fri, 9 Feb 2007 18:01:29 +0000
+Message-ID: <20070209180128.GA8586@srcf.ucam.org>
+References: <200702060010.l160AB6R003718@shell0.pdx.osdl.net> <200702090114.32041.lenb@kernel.org> <20070209142622.GD26414@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.175]:6584 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946620AbXBIRgC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Feb 2007 12:36:02 -0500
-Received: by ug-out-1314.google.com with SMTP id 44so2938uga
-        for <linux-acpi@vger.kernel.org>; Fri, 09 Feb 2007 09:36:01 -0800 (PST)
-In-Reply-To: <20070209142925.GE26414@khazad-dum.debian.net>
+Received: from cavan.codon.org.uk ([217.147.92.49]:59561 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S2992538AbXBISBx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Feb 2007 13:01:53 -0500
+Content-Disposition: inline
+In-Reply-To: <20070209142622.GD26414@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: linux-acpi@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, mingo@elte.hu, ak@suse.de
 
-Am Freitag, den 09.02.2007, 12:29 -0200 schrieb Henrique de Moraes
-Holschuh:
-> On Fri, 09 Feb 2007, Len Brown wrote:
-> > Try disconnecting usb devices until lsusb shows nothing.
-> 
-> On some ThinkPads, this means removing uhci_hcd and ehci_hcd, because they
-> have internal USB devices (bluetooth, fingerprint reader, etc).
-> 
+On Fri, Feb 09, 2007 at 12:26:22PM -0200, Henrique de Moraes Holschuh wrote:
 
-Thats it, added 1h Battery-Life immediately.
+> According to a patch sent to LKML a while ago that blacklisted all ThinkPads
+> from nmi_watchdog, the ThinkPad SMBIOS does INT 0x10 or something else that
+> will cause double or triple-faults if an NMI happens while in SMBIOS mode.
 
-Thank you very much!
+This is hardly unique to Thinkpads - huge arrays of things can trigger 
+SMM on pretty much any laptop. It's rarer on desktops, but some servers 
+have similar issues.
 
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
