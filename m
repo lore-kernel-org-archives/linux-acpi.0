@@ -1,105 +1,199 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: Bad libata resume behaviour due to ACPICA change (in acpi-test)
-Date: Fri, 9 Feb 2007 01:02:04 -0200
-Message-ID: <20070209030204.GB12298@khazad-dum.debian.net>
-References: <45CB62EE.8020300@linux.intel.com> <B41635854730A14CA71C92B36EC22AAC80488D@mssmsx411>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [patch 01/13] ACPI: bay: remove ACPI driver struct
+Date: Fri, 9 Feb 2007 00:42:36 -0500
+Message-ID: <200702090042.36147.lenb@kernel.org>
+References: <200702060010.l160AAHK003715@shell0.pdx.osdl.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:43360 "EHLO
-	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946030AbXBIDCJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Feb 2007 22:02:09 -0500
+Received: from hera.kernel.org ([140.211.167.34]:56967 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1946120AbXBIFnl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 Feb 2007 00:43:41 -0500
+In-Reply-To: <200702060010.l160AAHK003715@shell0.pdx.osdl.net>
 Content-Disposition: inline
-In-Reply-To: <B41635854730A14CA71C92B36EC22AAC80488D@mssmsx411>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy@intel.com>
-Cc: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>
+To: akpm@linux-foundation.org
+Cc: linux-acpi@vger.kernel.org, kristen.c.accardi@intel.com
 
-On Thu, 08 Feb 2007, Starikovskiy, Alexey Y wrote:
-> Please also try to set acpi_gbl_system_awake_and_running to true in the
-> same place, if you find that disable_all_gpes() is called not once...
+Applied.
 
-Here's what happens if I "acpi_gbl_system_awake_and_running = true;" right
-after the call to acpi_hw_disable_all_gpes();
+thanks,
+-Len
 
-It stops the annoying the delay all right, as it won't loop anymore:
-
-Feb  9 00:50:00 thorin kernel: Stopping tasks ... done.
-Feb  9 00:50:00 thorin kernel: Suspending console(s)
-Feb  9 00:50:00 thorin kernel: pnp: Device 00:09 disabled.
-Feb  9 00:50:00 thorin kernel: ACPI: PCI interrupt for device 0000:00:1e.2 disabled
-Feb  9 00:50:00 thorin kernel: ACPI: PCI interrupt for device 0000:00:1d.7 disabled
-Feb  9 00:50:00 thorin kernel: ACPI: PCI interrupt for device 0000:00:1d.3 disabled
-Feb  9 00:50:00 thorin kernel: ACPI: PCI interrupt for device 0000:00:1d.2 disabled
-Feb  9 00:50:00 thorin kernel: ACPI: PCI interrupt for device 0000:00:1d.1 disabled
-Feb  9 00:50:00 thorin kernel: ACPI: PCI interrupt for device 0000:00:1d.0 disabled
-Feb  9 00:50:00 thorin kernel:  hwsleep-0315 [03] enter_sleep_state     : Entering sleep state [S3]
-Feb  9 00:50:00 thorin kernel: Intel machine check architecture supported.
-Feb  9 00:50:00 thorin kernel: Intel machine check reporting enabled on CPU#0.
-Feb  9 00:50:00 thorin kernel: Back to C!
-Feb  9 00:50:00 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-Feb  9 00:50:00 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device 0000:00:01.0 at offset 7 (was 20002020, writing 2020)
-Feb  9 00:50:00 thorin kernel: ACPI: PCI Interrupt 0000:00:01.0[A] -> GSI 16 (level, low) -> IRQ 16
-Feb  9 00:50:00 thorin kernel: PCI: Setting latency timer of device 0000:00:01.0 to 64
-Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device 0000:00:1c.0 at offset 7 (was f0, writing 200000f0)
-Feb  9 00:50:00 thorin kernel: ACPI: PCI Interrupt 0000:00:1c.0[A] -> GSI 20 (level, low) -> IRQ 17
-Feb  9 00:50:00 thorin kernel: PCI: Setting latency timer of device 0000:00:1c.0 to 64
-Feb  9 00:50:00 thorin kernel: ACPI: PCI Interrupt 0000:00:1c.2[C] -> GSI 22 (level, low) -> IRQ 18
-Feb  9 00:50:00 thorin kernel: PCI: Setting latency timer of device 0000:00:1c.2 to 64
-Feb  9 00:50:00 thorin kernel: PCI: Enabling device 0000:00:1d.0 (0000 -> 0001)
-Feb  9 00:50:00 thorin kernel: ACPI: PCI Interrupt 0000:00:1d.0[A] -> GSI 16 (level, low) -> IRQ 16
-Feb  9 00:50:00 thorin kernel: PCI: Setting latency timer of device 0000:00:1d.0 to 64
-Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device 0000:00:1d.0 at offset f (was 100, writing 10b)
-Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device 0000:00:1d.0 at offset 8 (was 1, writing 1801)
-Feb  9 00:50:00 thorin kernel: usb usb2: root hub lost power or was reset
-Feb  9 00:50:00 thorin kernel: PCI: Enabling device 0000:00:1d.1 (0000 -> 0001)
-Feb  9 00:50:00 thorin kernel: ACPI: PCI Interrupt 0000:00:1d.1[B] -> GSI 17 (level, low) -> IRQ 20
-Feb  9 00:50:00 thorin kernel: PCI: Setting latency timer of device 0000:00:1d.1 to 64
-Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device 0000:00:1d.1 at offset f (was 200, writing 20b)
-Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device 0000:00:1d.1 at offset 8 (was 1, writing 1821)
-Feb  9 00:50:00 thorin kernel: usb usb3: root hub lost power or was reset
-Feb  9 00:50:00 thorin kernel: PCI: Enabling device 0000:00:1d.2 (0000 -> 0001)
-Feb  9 00:50:00 thorin kernel: ACPI: PCI Interrupt 0000:00:1d.2[C] -> GSI 18 (level, low) -> IRQ 21
-Feb  9 00:50:00 thorin kernel: PCI: Setting latency timer of device 0000:00:1d.2 to 64
-Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device 0000:00:1d.2 at offset f (was 300, writing 30b)
-Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device 0000:00:1d.2 at offset 8 (was 1, writing 1841)
-Feb  9 00:50:00 thorin kernel: usb usb4: root hub lost power or was reset
-Feb  9 00:50:00 thorin kernel: PCI: Enabling device 0000:00:1d.3 (0000 -> 0001)
-Feb  9 00:50:00 thorin kernel: ACPI: PCI Interrupt 0000:00:1d.3[D] -> GSI 19 (level, low) -> IRQ 19
-Feb  9 00:50:00 thorin kernel: PCI: Setting latency timer of device 0000:00:1d.3 to 64
-Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device 0000:00:1d.3 at offset f (was 400, writing 40b)
-Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device 0000:00:1d.3 at offset 8 (was 1, writing 1861)
-Feb  9 00:50:00 thorin kernel: usb usb5: root hub lost power or was reset
-Feb  9 00:50:00 thorin kernel: PCI: Enabling device 0000:00:1d.7 (0000 -> 0002)
-Feb  9 00:50:00 thorin kernel: ACPI: PCI Interrupt 0000:00:1d.7[D] -> GSI 19 (level, low) -> IRQ 19
-Feb  9 00:50:00 thorin kernel: PCI: Setting latency timer of device 0000:00:1d.7 to 64
-Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device 0000:00:1d.7 at offset f (was 400, writing 40b)
-Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device 0000:00:1d.7 at offset 4 (was 0, writing b0000000)
-Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device 0000:00:1d.7 at offset 1 (was 2900006, writing 2900106)
-Feb  9 00:50:00 thorin kernel: PCI: Setting latency timer of device 0000:00:1e.0 to 64
-Feb  9 00:50:00 thorin kernel: ACPI: PCI Interrupt 0000:00:1e.2[A] -> GSI 22 (level, low) -> IRQ 18
-Feb  9 00:50:00 thorin kernel: i810_audio: Primary codec has ID 0
-Feb  9 00:50:00 thorin kernel: ac97_codec: AC97 Audio codec, id: ADS116 (Analog Devices AD1981B)
-Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device 0000:00:1f.2 at offset 1 (was 2b00005, writing 2b80005)
-Feb  9 00:50:00 thorin kernel: PCI: Setting latency timer of device 0000:00:1f.2 to 64
-Feb  9 00:50:00 thorin kernel: ACPI: PCI Interrupt 0000:0b:00.0[A] -> GSI 16 (level, low) -> IRQ 16
-Feb  9 00:50:00 thorin kernel: pnp: Device 00:07 does not support activation.
-Feb  9 00:50:00 thorin kernel: pnp: Device 00:08 does not support activation.
-Feb  9 00:50:00 thorin kernel: pnp: Device 00:09 activated.
-Feb  9 00:50:00 thorin kernel: ata1.00: configured for UDMA/100
-Feb  9 00:50:00 thorin kernel: SCSI device sda: 117210240 512-byte hdwr sectors (60012 MB)
-Feb  9 00:50:00 thorin kernel: sda: Write Protect is off
-Feb  9 00:50:00 thorin kernel: sda: Mode Sense: 00 3a 00 00
-Feb  9 00:50:00 thorin kernel: SCSI device sda: write cache: enabled, read cache: enabled, doesn't support DPO or FUA
-Feb  9 00:50:00 thorin kernel: ata2.00: configured for UDMA/33
-Feb  9 00:50:00 thorin kernel: Restarting tasks ... done.
-Feb  9 00:51:10 thorin kernel: Kernel logging (proc) stopped.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+On Monday 05 February 2007 19:09, akpm@linux-foundation.org wrote:
+> From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+> 
+> The bay driver is a platform driver, and doesn't need to also be an acpi
+> driver.  Remove the acpi driver related structures and callbacks, they didn't
+> do anything anyway.  Switch to uevent for user space event notification.
+> 
+> Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  drivers/acpi/bay.c |   99 +------------------------------------------
+>  1 file changed, 4 insertions(+), 95 deletions(-)
+> 
+> diff -puN drivers/acpi/bay.c~acpi-bay-remove-acpi-driver-struct drivers/acpi/bay.c
+> --- a/drivers/acpi/bay.c~acpi-bay-remove-acpi-driver-struct
+> +++ a/drivers/acpi/bay.c
+> @@ -47,18 +47,6 @@ MODULE_LICENSE("GPL");
+>  	acpi_get_name(h, ACPI_FULL_PATHNAME, &buffer);\
+>  	printk(KERN_DEBUG PREFIX "%s: %s\n", prefix, s); }
+>  static void bay_notify(acpi_handle handle, u32 event, void *data);
+> -static int acpi_bay_add(struct acpi_device *device);
+> -static int acpi_bay_remove(struct acpi_device *device, int type);
+> -
+> -static struct acpi_driver acpi_bay_driver = {
+> -	.name = ACPI_BAY_DRIVER_NAME,
+> -	.class = ACPI_BAY_CLASS,
+> -	.ids = ACPI_BAY_HID,
+> -	.ops = {
+> -		.add = acpi_bay_add,
+> -		.remove = acpi_bay_remove,
+> -		},
+> -};
+>  
+>  struct bay {
+>  	acpi_handle handle;
+> @@ -234,14 +222,6 @@ int eject_removable_drive(struct device 
+>  }
+>  EXPORT_SYMBOL_GPL(eject_removable_drive);
+>  
+> -static int acpi_bay_add(struct acpi_device *device)
+> -{
+> -	bay_dprintk(device->handle, "adding bay device");
+> -	strcpy(acpi_device_name(device), "Dockable Bay");
+> -	strcpy(acpi_device_class(device), "bay");
+> -	return 0;
+> -}
+> -
+>  static int acpi_bay_add_fs(struct bay *bay)
+>  {
+>  	int ret;
+> @@ -339,52 +319,6 @@ bay_add_err:
+>  	return -ENODEV;
+>  }
+>  
+> -static int acpi_bay_remove(struct acpi_device *device, int type)
+> -{
+> -	/*** FIXME: do something here */
+> -	return 0;
+> -}
+> -
+> -/**
+> - * bay_create_acpi_device - add new devices to acpi
+> - * @handle - handle of the device to add
+> - *
+> - *  This function will create a new acpi_device for the given
+> - *  handle if one does not exist already.  This should cause
+> - *  acpi to scan for drivers for the given devices, and call
+> - *  matching driver's add routine.
+> - *
+> - *  Returns a pointer to the acpi_device corresponding to the handle.
+> - */
+> -static struct acpi_device * bay_create_acpi_device(acpi_handle handle)
+> -{
+> -	struct acpi_device *device = NULL;
+> -	struct acpi_device *parent_device;
+> -	acpi_handle parent;
+> -	int ret;
+> -
+> -	bay_dprintk(handle, "Trying to get device");
+> -	if (acpi_bus_get_device(handle, &device)) {
+> -		/*
+> -		 * no device created for this object,
+> -		 * so we should create one.
+> -		 */
+> -		bay_dprintk(handle, "No device for handle");
+> -		acpi_get_parent(handle, &parent);
+> -		if (acpi_bus_get_device(parent, &parent_device))
+> -			parent_device = NULL;
+> -
+> -		ret = acpi_bus_add(&device, parent_device, handle,
+> -			ACPI_BUS_TYPE_DEVICE);
+> -		if (ret) {
+> -			pr_debug("error adding bus, %x\n",
+> -				-ret);
+> -			return NULL;
+> -		}
+> -	}
+> -	return device;
+> -}
+> -
+>  /**
+>   * bay_notify - act upon an acpi bay notification
+>   * @handle: the bay handle
+> @@ -394,38 +328,19 @@ static struct acpi_device * bay_create_a
+>   */
+>  static void bay_notify(acpi_handle handle, u32 event, void *data)
+>  {
+> -	struct acpi_device *dev;
+> +	struct bay *bay_dev = (struct bay *)data;
+> +	struct device *dev = &bay_dev->pdev->dev;
+>  
+>  	bay_dprintk(handle, "Bay event");
+>  
+>  	switch(event) {
+>  	case ACPI_NOTIFY_BUS_CHECK:
+> -		printk("Bus Check\n");
+>  	case ACPI_NOTIFY_DEVICE_CHECK:
+> -		printk("Device Check\n");
+> -		dev = bay_create_acpi_device(handle);
+> -		if (dev)
+> -			acpi_bus_generate_event(dev, event, 0);
+> -		else
+> -			printk("No device for generating event\n");
+> -		/* wouldn't it be a good idea to just rescan SATA
+> -		 * right here?
+> -		 */
+> -		break;
+>  	case ACPI_NOTIFY_EJECT_REQUEST:
+> -		printk("Eject request\n");
+> -		dev = bay_create_acpi_device(handle);
+> -		if (dev)
+> -			acpi_bus_generate_event(dev, event, 0);
+> -		else
+> -			printk("No device for generating eventn");
+> -
+> -		/* wouldn't it be a good idea to just call the
+> -		 * eject_device here if we were a SATA device?
+> -		 */
+> +		kobject_uevent(&dev->kobj, KOBJ_CHANGE);
+>  		break;
+>  	default:
+> -		printk("unknown event %d\n", event);
+> +		printk(KERN_ERR PREFIX "Bay: unknown event %d\n", event);
+>  	}
+>  }
+>  
+> @@ -457,10 +372,6 @@ static int __init bay_init(void)
+>  	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
+>  		ACPI_UINT32_MAX, find_bay, &bays, NULL);
+>  
+> -	if (bays)
+> -		if ((acpi_bus_register_driver(&acpi_bay_driver) < 0))
+> -			printk(KERN_ERR "Unable to register bay driver\n");
+> -
+>  	if (!bays)
+>  		return -ENODEV;
+>  
+> @@ -481,8 +392,6 @@ static void __exit bay_exit(void)
+>  		kfree(bay->name);
+>  		kfree(bay);
+>  	}
+> -
+> -	acpi_bus_unregister_driver(&acpi_bay_driver);
+>  }
+>  
+>  postcore_initcall(bay_init);
+> _
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
