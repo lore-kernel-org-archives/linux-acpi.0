@@ -1,82 +1,72 @@
-From: "Mattia Dongili" <malattia@linux.it>
-Subject: Re: [PATCH 1/2] Add new sony laptop drivers maintainer
-Date: Fri, 9 Feb 2007 15:01:29 +0100 (CET)
-Message-ID: <56393.85.47.20.193.1171029689.squirrel@picard.linux.it>
-References: <11709622011964-git-send-email-malattia@linux.it>
-    <11709622013582-git-send-email-malattia@linux.it>
-    <200702090144.13237.lenb@kernel.org>
-    <1171028098.6387.15.camel@localhost.localdomain>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [patch 02/13] ACPI, i686, x86_64: fix laptop bootup hang in init_acpi()
+Date: Fri, 9 Feb 2007 12:26:22 -0200
+Message-ID: <20070209142622.GD26414@khazad-dum.debian.net>
+References: <200702060010.l160AB6R003718@shell0.pdx.osdl.net> <200702090114.32041.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from picard.linux.it ([213.254.12.146]:54114 "EHLO picard.linux.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946465AbXBIOBb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 9 Feb 2007 09:01:31 -0500
-In-Reply-To: <1171028098.6387.15.camel@localhost.localdomain>
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:58756 "EHLO
+	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1946479AbXBIO0h (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Feb 2007 09:26:37 -0500
+Content-Disposition: inline
+In-Reply-To: <200702090114.32041.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stelian Pop <stelian@popies.net>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: akpm@linux-foundation.org, linux-acpi@vger.kernel.org, mingo@elte.hu, ak@suse.de
 
-On Fri, February 9, 2007 2:34 pm, Stelian Pop said:
-> Le vendredi 09 f=E9vrier 2007 =E0 01:44 -0500, Len Brown a =E9crit :
->> On Thursday 08 February 2007 14:16, malattia@linux.it wrote:
->> > From: Mattia Dongili <malattia@linux.it>
->> >
->> > Signed-off-by: Mattia Dongili <malattia@linux.it>
->> > ---
->> >  MAINTAINERS |    2 ++
->> >  1 files changed, 2 insertions(+), 0 deletions(-)
->> >
->> > diff --git a/MAINTAINERS b/MAINTAINERS
->> > index efca26a..ec97723 100644
->> > --- a/MAINTAINERS
->> > +++ b/MAINTAINERS
->> > @@ -3012,6 +3012,8 @@ S:	Maintained
->> >  SONY VAIO CONTROL DEVICE DRIVER
->> >  P:	Stelian Pop
->> >  M:	stelian@popies.net
->> > +P:	Mattia Dongili
->> > +M:	malattia@linux.it
->> >  W:	http://popies.net/sonypi/
->> >  S:	Maintained
->>
->> Stelian, are you still actively maintaining Sony support,
->
-> Actively definately not, though I still answer a lot of support
-> questions about sonypi.
->
-> I even receive patches from time to time :)
->
->> or should we simply replace your name here with Mattia?
->
->>From what I recall, Mattia took over sony_acpi but didn't want to han=
-dle
-> sonypi as well, at least not for the time being.
->
-> If he changed his mind I'm hapily handing over the maintenance to him=
-=2E
->
-> If not, maybe the MAINTAINERS entry should be clarified to say that
-> Mattia maintains sony_acpi and sonypi is currently not maintained.
+On Fri, 09 Feb 2007, Len Brown wrote:
+> resuming our previous discussion on this topic...
+> 
+> I'd rather see nmi watchdog disabled by default.
+> 
+> But if that battle isn't going to be concluded in my natural
+> life-time, then I'm okay with a workaround for that bug
+> in the interest of functioning systems.
+> 
+> > +	acpi_nmi_disable();
+> >  	status = acpi_ns_evaluate(info);
+> > +	acpi_nmi_enable();
+> 
+> My concern is that while this may make a T60 work, we have
+> no assurance if it is sufficient for other systems which might
+> suffer a similar fate.
 
-Well, I'd hate losing possibly useful patches because the driver result=
-s
-unmaintained. :)
-Sooo... updated MAINTAINERS patch will follow soon.
+What IS the point of even *allowing* the NMI watchdog to be turned on on any
+ThinkPad?
 
-One question though: which subsystem should sonypi patches flow through=
-?
+According to a patch sent to LKML a while ago that blacklisted all ThinkPads
+from nmi_watchdog, the ThinkPad SMBIOS does INT 0x10 or something else that
+will cause double or triple-faults if an NMI happens while in SMBIOS mode.
 
---=20
-mattia
-:wq!
+I never tried to look at the ThinkPad SMBIOS, but given the stuff IBM does
+in SMIs, I would actually *expect* them to do all sort of stuff that will
+hose us.  The EC can trigger SMIs (and probably does, too. Ever seen the
+ammount of "automatic" PM stuff the BIOS offers to do?).  The ACPI DSDT
+*does* trigger SMIs for just about every bad reason, including to program
+PCI config registers.  One really doesn't have a clue of what a ThinkPad is
+doing behind his back.
 
+> Maybe we should consider shutting off nmi_watchdog whenever we
+> interpret AML, eg hook into acpi_ex_enter_interpreter/acpi_ex_exit_interpreter(),
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On a ThinkPad?  Definately.  If the nmi_watchdog is to be allowed at all, we
+should shut the watchdog at every call that could potentially:
+
+	1. Call a DSDT/SSDT method (known to sometimes do SMI)
+
+	2. Cause a smapi call (this means fixing the ACP Mwave driver and a
+	at least the out-of-tree drivers in tpctl.sf.net) - known to use SMI
+
+	3. Call in the BIOS or SMBIOS - potential user of SMIs.
+
+Of course, this all assumes the reporter of the problem with NMIs while
+processing a SMI in a ThinkPad is correct.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
