@@ -1,87 +1,36 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 2/2] ACPI: ibm-acpi: cleanup init and exit paths
-Date: Fri, 9 Feb 2007 15:40:00 -0500
-Message-ID: <200702091540.00980.lenb@kernel.org>
-References: <11707964241851-git-send-email-hmh@hmh.eng.br> <11707964243869-git-send-email-hmh@hmh.eng.br> <11707964241860-git-send-email-hmh@hmh.eng.br>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: sony-laptop vs sonypi (Re: [PATCH 1/2] Add new sony laptop drivers maintainer)
+Date: Fri, 9 Feb 2007 22:02:11 +0100
+Message-ID: <20070209210211.GB4612@inferi.kami.home>
+References: <11709622011964-git-send-email-malattia@linux.it> <1171028098.6387.15.camel@localhost.localdomain> <56393.85.47.20.193.1171029689.squirrel@picard.linux.it> <200702091158.18909.lenb@kernel.org> <20070209192513.GA4612@inferi.kami.home>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:33153 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992835AbXBIUvR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 9 Feb 2007 15:51:17 -0500
-In-Reply-To: <11707964241860-git-send-email-hmh@hmh.eng.br>
+Received: from aa013msr.fastwebnet.it ([85.18.95.73]:33726 "EHLO
+	aa013msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S2992847AbXBIVDi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Feb 2007 16:03:38 -0500
 Content-Disposition: inline
+In-Reply-To: <20070209192513.GA4612@inferi.kami.home>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Stelian Pop <stelian@popies.net>, linux-acpi@vger.kernel.org
 
-Applied.
+On Fri, Feb 09, 2007 at 08:25:13PM +0100, Mattia Dongili wrote:
+> On Fri, Feb 09, 2007 at 11:58:18AM -0500, Len Brown wrote:
+[...]
+> > > One question though: which subsystem should sonypi patches flow through?
+> > 
+> > In the interest of making ACPI use in the platform specific drivers
+> > sane and uniform, I'll be happy to be the conduit to upstream
+> > to clean this up.  In particular, I'd really like to see the
+> > reverse engineered AML implemented as C IO reads and writes go away.
 
-thanks,
--Len
+BTW: can I add 
+L:	linux-acpi@vger.kernel.org
 
-On Tuesday 06 February 2007 16:13, Henrique de Moraes Holschuh wrote:
-> This patch fixes a small memory leak on module removal, and does other
-> assorted minor cleanups on the module init codepath.
-> 
-> Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-> ---
->  drivers/acpi/ibm_acpi.c |   13 ++++++++-----
->  1 files changed, 8 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
-> index 5c0f1b8..20cbde5 100644
-> --- a/drivers/acpi/ibm_acpi.c
-> +++ b/drivers/acpi/ibm_acpi.c
-> @@ -497,6 +497,10 @@ static int ibm_acpi_driver_init(void)
->  	printk(IBM_INFO "%s v%s\n", IBM_DESC, IBM_VERSION);
->  	printk(IBM_INFO "%s\n", IBM_URL);
->  
-> +	if (ibm_thinkpad_ec_found)
-> +		printk(IBM_INFO "ThinkPad EC firmware %s\n",
-> +		       ibm_thinkpad_ec_found);
-> +
->  	return 0;
->  }
->  
-> @@ -2618,7 +2622,7 @@ static void __init ibm_handle_init(char *name,
->  	ibm_handle_init(#object, &object##_handle, *object##_parent,	\
->  		object##_paths, ARRAY_SIZE(object##_paths), &object##_path)
->  
-> -static int set_ibm_param(const char *val, struct kernel_param *kp)
-> +static int __init set_ibm_param(const char *val, struct kernel_param *kp)
->  {
->  	unsigned int i;
->  
-> @@ -2660,7 +2664,8 @@ static void acpi_ibm_exit(void)
->  	for (i = ARRAY_SIZE(ibms) - 1; i >= 0; i--)
->  		ibm_exit(&ibms[i]);
->  
-> -	remove_proc_entry(IBM_DIR, acpi_root_dir);
-> +	if (proc_dir)
-> +		remove_proc_entry(IBM_DIR, acpi_root_dir);
->  
->  	if (ibm_thinkpad_ec_found)
->  		kfree(ibm_thinkpad_ec_found);
-> @@ -2711,9 +2716,6 @@ static int __init acpi_ibm_init(void)
->  
->  	/* Models with newer firmware report the EC in DMI */
->  	ibm_thinkpad_ec_found = check_dmi_for_ec();
-> -	if (ibm_thinkpad_ec_found)
-> -		printk(IBM_INFO "ThinkPad EC firmware %s\n",
-> -		       ibm_thinkpad_ec_found);
->  
->  	/* these handles are not required */
->  	IBM_HANDLE_INIT(vid);
-> @@ -2743,6 +2745,7 @@ static int __init acpi_ibm_init(void)
->  	proc_dir = proc_mkdir(IBM_DIR, acpi_root_dir);
->  	if (!proc_dir) {
->  		printk(IBM_ERR "unable to create proc dir %s", IBM_DIR);
-> +		acpi_ibm_exit();
->  		return -ENODEV;
->  	}
->  	proc_dir->owner = THIS_MODULE;
+as contact list?
+-- 
+mattia
+:wq!
