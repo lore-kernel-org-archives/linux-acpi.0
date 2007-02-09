@@ -1,196 +1,79 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 01/13] ACPI: bay: remove ACPI driver struct
-Date: Fri, 9 Feb 2007 00:42:36 -0500
-Message-ID: <200702090042.36147.lenb@kernel.org>
-References: <200702060010.l160AAHK003715@shell0.pdx.osdl.net>
+Subject: Re: [patch 04/13] Exit ACPI processor module gracefully if acpi is disabled
+Date: Fri, 9 Feb 2007 00:47:24 -0500
+Message-ID: <200702090047.25044.lenb@kernel.org>
+References: <200702060010.l160ADKR003729@shell0.pdx.osdl.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:56967 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:52200 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946120AbXBIFnl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 9 Feb 2007 00:43:41 -0500
-In-Reply-To: <200702060010.l160AAHK003715@shell0.pdx.osdl.net>
+	id S1946128AbXBIFsr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 Feb 2007 00:48:47 -0500
+In-Reply-To: <200702060010.l160ADKR003729@shell0.pdx.osdl.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: akpm@linux-foundation.org
-Cc: linux-acpi@vger.kernel.org, kristen.c.accardi@intel.com
+Cc: linux-acpi@vger.kernel.org, trenn@suse.de
 
-Applied.
+Why not simply check acpi_disabled, like other drivers do?
 
 thanks,
 -Len
 
 On Monday 05 February 2007 19:09, akpm@linux-foundation.org wrote:
-> From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+> From: Thomas Renninger <trenn@suse.de>
 > 
-> The bay driver is a platform driver, and doesn't need to also be an acpi
-> driver.  Remove the acpi driver related structures and callbacks, they didn't
-> do anything anyway.  Switch to uevent for user space event notification.
-> 
-> Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+> Signed-off-by: Thomas Renninger <trenn@suse.de>
+> Cc: Len Brown <lenb@kernel.org>
 > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 > ---
 > 
->  drivers/acpi/bay.c |   99 +------------------------------------------
->  1 file changed, 4 insertions(+), 95 deletions(-)
+>  drivers/acpi/processor_core.c |   13 +++++++++----
+>  1 file changed, 9 insertions(+), 4 deletions(-)
 > 
-> diff -puN drivers/acpi/bay.c~acpi-bay-remove-acpi-driver-struct drivers/acpi/bay.c
-> --- a/drivers/acpi/bay.c~acpi-bay-remove-acpi-driver-struct
-> +++ a/drivers/acpi/bay.c
-> @@ -47,18 +47,6 @@ MODULE_LICENSE("GPL");
->  	acpi_get_name(h, ACPI_FULL_PATHNAME, &buffer);\
->  	printk(KERN_DEBUG PREFIX "%s: %s\n", prefix, s); }
->  static void bay_notify(acpi_handle handle, u32 event, void *data);
-> -static int acpi_bay_add(struct acpi_device *device);
-> -static int acpi_bay_remove(struct acpi_device *device, int type);
-> -
-> -static struct acpi_driver acpi_bay_driver = {
-> -	.name = ACPI_BAY_DRIVER_NAME,
-> -	.class = ACPI_BAY_CLASS,
-> -	.ids = ACPI_BAY_HID,
-> -	.ops = {
-> -		.add = acpi_bay_add,
-> -		.remove = acpi_bay_remove,
-> -		},
-> -};
->  
->  struct bay {
->  	acpi_handle handle;
-> @@ -234,14 +222,6 @@ int eject_removable_drive(struct device 
->  }
->  EXPORT_SYMBOL_GPL(eject_removable_drive);
->  
-> -static int acpi_bay_add(struct acpi_device *device)
-> -{
-> -	bay_dprintk(device->handle, "adding bay device");
-> -	strcpy(acpi_device_name(device), "Dockable Bay");
-> -	strcpy(acpi_device_class(device), "bay");
-> -	return 0;
-> -}
-> -
->  static int acpi_bay_add_fs(struct bay *bay)
->  {
->  	int ret;
-> @@ -339,52 +319,6 @@ bay_add_err:
->  	return -ENODEV;
->  }
->  
-> -static int acpi_bay_remove(struct acpi_device *device, int type)
-> -{
-> -	/*** FIXME: do something here */
-> -	return 0;
-> -}
-> -
-> -/**
-> - * bay_create_acpi_device - add new devices to acpi
-> - * @handle - handle of the device to add
-> - *
-> - *  This function will create a new acpi_device for the given
-> - *  handle if one does not exist already.  This should cause
-> - *  acpi to scan for drivers for the given devices, and call
-> - *  matching driver's add routine.
-> - *
-> - *  Returns a pointer to the acpi_device corresponding to the handle.
-> - */
-> -static struct acpi_device * bay_create_acpi_device(acpi_handle handle)
-> -{
-> -	struct acpi_device *device = NULL;
-> -	struct acpi_device *parent_device;
-> -	acpi_handle parent;
-> -	int ret;
-> -
-> -	bay_dprintk(handle, "Trying to get device");
-> -	if (acpi_bus_get_device(handle, &device)) {
-> -		/*
-> -		 * no device created for this object,
-> -		 * so we should create one.
-> -		 */
-> -		bay_dprintk(handle, "No device for handle");
-> -		acpi_get_parent(handle, &parent);
-> -		if (acpi_bus_get_device(parent, &parent_device))
-> -			parent_device = NULL;
-> -
-> -		ret = acpi_bus_add(&device, parent_device, handle,
-> -			ACPI_BUS_TYPE_DEVICE);
-> -		if (ret) {
-> -			pr_debug("error adding bus, %x\n",
-> -				-ret);
-> -			return NULL;
-> -		}
-> -	}
-> -	return device;
-> -}
-> -
->  /**
->   * bay_notify - act upon an acpi bay notification
->   * @handle: the bay handle
-> @@ -394,38 +328,19 @@ static struct acpi_device * bay_create_a
+> diff -puN drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled drivers/acpi/processor_core.c
+> --- a/drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled
+> +++ a/drivers/acpi/processor_core.c
+> @@ -994,6 +994,8 @@ void acpi_processor_uninstall_hotplug_no
+>   * ACPI, but needs symbols from this driver
 >   */
->  static void bay_notify(acpi_handle handle, u32 event, void *data)
+>  
+> +static int processor_driver_registered;
+> +
+>  static int __init acpi_processor_init(void)
 >  {
-> -	struct acpi_device *dev;
-> +	struct bay *bay_dev = (struct bay *)data;
-> +	struct device *dev = &bay_dev->pdev->dev;
->  
->  	bay_dprintk(handle, "Bay event");
->  
->  	switch(event) {
->  	case ACPI_NOTIFY_BUS_CHECK:
-> -		printk("Bus Check\n");
->  	case ACPI_NOTIFY_DEVICE_CHECK:
-> -		printk("Device Check\n");
-> -		dev = bay_create_acpi_device(handle);
-> -		if (dev)
-> -			acpi_bus_generate_event(dev, event, 0);
-> -		else
-> -			printk("No device for generating event\n");
-> -		/* wouldn't it be a good idea to just rescan SATA
-> -		 * right here?
-> -		 */
-> -		break;
->  	case ACPI_NOTIFY_EJECT_REQUEST:
-> -		printk("Eject request\n");
-> -		dev = bay_create_acpi_device(handle);
-> -		if (dev)
-> -			acpi_bus_generate_event(dev, event, 0);
-> -		else
-> -			printk("No device for generating eventn");
-> -
-> -		/* wouldn't it be a good idea to just call the
-> -		 * eject_device here if we were a SATA device?
-> -		 */
-> +		kobject_uevent(&dev->kobj, KOBJ_CHANGE);
->  		break;
->  	default:
-> -		printk("unknown event %d\n", event);
-> +		printk(KERN_ERR PREFIX "Bay: unknown event %d\n", event);
+>  	int result = 0;
+> @@ -1019,6 +1021,8 @@ static int __init acpi_processor_init(vo
+>  		return result;
 >  	}
+>  
+> +	processor_driver_registered = 1;
+> +
+>  	acpi_processor_install_hotplug_notify();
+>  
+>  	acpi_thermal_cpufreq_init();
+> @@ -1035,12 +1039,13 @@ static void __exit acpi_processor_exit(v
+>  
+>  	acpi_thermal_cpufreq_exit();
+>  
+> -	acpi_processor_uninstall_hotplug_notify();
+> -
+> -	acpi_bus_unregister_driver(&acpi_processor_driver);
+> +	if (processor_driver_registered) {
+> +		acpi_processor_uninstall_hotplug_notify();
+>  
+> -	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+> +		acpi_bus_unregister_driver(&acpi_processor_driver);
+>  
+> +		remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+> +	}
+>  	return;
 >  }
 >  
-> @@ -457,10 +372,6 @@ static int __init bay_init(void)
->  	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
->  		ACPI_UINT32_MAX, find_bay, &bays, NULL);
->  
-> -	if (bays)
-> -		if ((acpi_bus_register_driver(&acpi_bay_driver) < 0))
-> -			printk(KERN_ERR "Unable to register bay driver\n");
-> -
->  	if (!bays)
->  		return -ENODEV;
->  
-> @@ -481,8 +392,6 @@ static void __exit bay_exit(void)
->  		kfree(bay->name);
->  		kfree(bay);
->  	}
-> -
-> -	acpi_bus_unregister_driver(&acpi_bay_driver);
->  }
->  
->  postcore_initcall(bay_init);
 > _
 > -
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
