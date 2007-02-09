@@ -1,233 +1,203 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 02/13] ACPI, i686, x86_64: fix laptop bootup hang in init_acpi()
-Date: Fri, 9 Feb 2007 01:14:31 -0500
-Message-ID: <200702090114.32041.lenb@kernel.org>
-References: <200702060010.l160AB6R003718@shell0.pdx.osdl.net>
+From: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy@intel.com>
+Subject: RE: Bad libata resume behaviour due to ACPICA change (in acpi-test)
+Date: Fri, 9 Feb 2007 09:31:21 +0300
+Message-ID: <B41635854730A14CA71C92B36EC22AAC804903@mssmsx411>
+References: <20070209030204.GB12298@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:52612 "EHLO hera.kernel.org"
+Received: from mga03.intel.com ([143.182.124.21]:29493 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946131AbXBIGQI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 9 Feb 2007 01:16:08 -0500
-In-Reply-To: <200702060010.l160AB6R003718@shell0.pdx.osdl.net>
-Content-Disposition: inline
+	id S1946149AbXBIGbo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Feb 2007 01:31:44 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <20070209030204.GB12298@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: linux-acpi@vger.kernel.org, mingo@elte.hu, ak@suse.de
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>
 
-resuming our previous discussion on this topic...
+Great, I will send a proper patch.
+Thanks,
+	Alex.
 
-I'd rather see nmi watchdog disabled by default.
-
-But if that battle isn't going to be concluded in my natural
-life-time, then I'm okay with a workaround for that bug
-in the interest of functioning systems.
-
-> +	acpi_nmi_disable();
->  	status = acpi_ns_evaluate(info);
-> +	acpi_nmi_enable();
-
-My concern is that while this may make a T60 work, we have
-no assurance if it is sufficient for other systems which might
-suffer a similar fate.
-
-Maybe we should consider shutting off nmi_watchdog whenever we
-interpret AML, eg hook into acpi_ex_enter_interpreter/acpi_ex_exit_interpreter(),
-or maybe we should shut off nmi_watchdog whenever we
-touch hardware registers, eg. hook entry and exit
-from acpi_gbl_hardware_lock.  Or maybe we should simply
-disable nmi_watchdog by default and use it only for debugging.
-
-Oh, I already said that.
-
--Len
-
-On Monday 05 February 2007 19:09, akpm@linux-foundation.org wrote:
-> From: Ingo Molnar <mingo@elte.hu>
-> 
-> During kernel bootup, a new T60 laptop (CoreDuo, 32-bit) hangs about
-> 10%-20% of the time in acpi_init():
-> 
->  Calling initcall 0xc055ce1a: topology_init+0x0/0x2f()
->  Calling initcall 0xc055d75e: mtrr_init_finialize+0x0/0x2c()
->  Calling initcall 0xc05664f3: param_sysfs_init+0x0/0x175()
->  Calling initcall 0xc014cb65: pm_sysrq_init+0x0/0x17()
->  Calling initcall 0xc0569f99: init_bio+0x0/0xf4()
->  Calling initcall 0xc056b865: genhd_device_init+0x0/0x50()
->  Calling initcall 0xc056c4bd: fbmem_init+0x0/0x87()
->  Calling initcall 0xc056dd74: acpi_init+0x0/0x1ee()
-> 
-> It's a hard hang that not even an NMI could punch through!  Frustratingly,
-> adding printks or function tracing to the ACPI code made the hangs go away
-> ...
-> 
-> After some time an additional detail emerged: disabling the NMI watchdog
-> made these occasional hangs go away.
-> 
-> So i spent the better part of today trying to debug this and trying out
-> various theories when i finally found the likely reason for the hang: if
-> acpi_ns_initialize_devices() executes an _INI AML method and an NMI
-> happens to hit that AML execution in the wrong moment, the machine would
-> hang.  (my theory is that this must be some sort of chipset setup method
-> doing stores to chipset mmio registers?)
-> 
-> Unfortunately given the characteristics of the hang it was sheer
-> impossible to figure out which of the numerous AML methods is impacted
-> by this problem.
-> 
-> As a workaround i wrote an interface to disable chipset-based NMIs while
-> executing _INI sections - and indeed this fixed the hang.  I did a
-> boot-loop of 100 separate reboots and none hung - while without the patch
-> it would hang every 5-10 attempts.  Out of caution i did not touch the
-> nmi_watchdog=2 case (it's not related to the chipset anyway and didnt
-> hang).
-> 
-> I implemented this for both x86_64 and i686, tested the i686 laptop both
-> with nmi_watchdog=1 [which triggered the hangs] and nmi_watchdog=2, and
-> tested an Athlon64 box with the 64-bit kernel as well. Everything builds
-> and works with the patch applied.
-> 
-> Signed-off-by: Ingo Molnar <mingo@elte.hu>
-> Cc: Andi Kleen <ak@suse.de>
-> Cc: Len Brown <lenb@kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  arch/i386/kernel/nmi.c          |   28 ++++++++++++++++++++++++++++
->  arch/x86_64/kernel/nmi.c        |   27 +++++++++++++++++++++++++++
->  drivers/acpi/namespace/nsinit.c |    9 +++++++++
->  include/linux/nmi.h             |    9 ++++++++-
->  4 files changed, 72 insertions(+), 1 deletion(-)
-> 
-> diff -puN arch/i386/kernel/nmi.c~acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi arch/i386/kernel/nmi.c
-> --- a/arch/i386/kernel/nmi.c~acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi
-> +++ a/arch/i386/kernel/nmi.c
-> @@ -369,6 +369,34 @@ void enable_timer_nmi_watchdog(void)
->  	}
->  }
->  
-> +static void __acpi_nmi_disable(void *__unused)
-> +{
-> +	apic_write_around(APIC_LVT0, APIC_DM_NMI | APIC_LVT_MASKED);
-> +}
-> +
-> +/*
-> + * Disable timer based NMIs on all CPUs:
-> + */
-> +void acpi_nmi_disable(void)
-> +{
-> +	if (atomic_read(&nmi_active) && nmi_watchdog == NMI_IO_APIC)
-> +		on_each_cpu(__acpi_nmi_disable, NULL, 0, 1);
-> +}
-> +
-> +static void __acpi_nmi_enable(void *__unused)
-> +{
-> +	apic_write_around(APIC_LVT0, APIC_DM_NMI);
-> +}
-> +
-> +/*
-> + * Enable timer based NMIs on all CPUs:
-> + */
-> +void acpi_nmi_enable(void)
-> +{
-> +	if (atomic_read(&nmi_active) && nmi_watchdog == NMI_IO_APIC)
-> +		on_each_cpu(__acpi_nmi_enable, NULL, 0, 1);
-> +}
-> +
->  #ifdef CONFIG_PM
->  
->  static int nmi_pm_active; /* nmi_active before suspend */
-> diff -puN arch/x86_64/kernel/nmi.c~acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi arch/x86_64/kernel/nmi.c
-> --- a/arch/x86_64/kernel/nmi.c~acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi
-> +++ a/arch/x86_64/kernel/nmi.c
-> @@ -360,6 +360,33 @@ void enable_timer_nmi_watchdog(void)
->  	}
->  }
->  
-> +static void __acpi_nmi_disable(void *__unused)
-> +{
-> +	apic_write(APIC_LVT0, APIC_DM_NMI | APIC_LVT_MASKED);
-> +}
-> +
-> +/*
-> + * Disable timer based NMIs on all CPUs:
-> + */
-> +void acpi_nmi_disable(void)
-> +{
-> +	if (atomic_read(&nmi_active) && nmi_watchdog == NMI_IO_APIC)
-> +		on_each_cpu(__acpi_nmi_disable, NULL, 0, 1);
-> +}
-> +
-> +static void __acpi_nmi_enable(void *__unused)
-> +{
-> +	apic_write(APIC_LVT0, APIC_DM_NMI);
-> +}
-> +
-> +/*
-> + * Enable timer based NMIs on all CPUs:
-> + */
-> +void acpi_nmi_enable(void)
-> +{
-> +	if (atomic_read(&nmi_active) && nmi_watchdog == NMI_IO_APIC)
-> +		on_each_cpu(__acpi_nmi_enable, NULL, 0, 1);
-> +}
->  #ifdef CONFIG_PM
->  
->  static int nmi_pm_active; /* nmi_active before suspend */
-> diff -puN drivers/acpi/namespace/nsinit.c~acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi drivers/acpi/namespace/nsinit.c
-> --- a/drivers/acpi/namespace/nsinit.c~acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi
-> +++ a/drivers/acpi/namespace/nsinit.c
-> @@ -45,6 +45,7 @@
->  #include <acpi/acnamesp.h>
->  #include <acpi/acdispat.h>
->  #include <acpi/acinterp.h>
-> +#include <linux/nmi.h>
->  
->  #define _COMPONENT          ACPI_NAMESPACE
->  ACPI_MODULE_NAME("nsinit")
-> @@ -534,7 +535,15 @@ acpi_ns_init_one_device(acpi_handle obj_
->  	info->parameter_type = ACPI_PARAM_ARGS;
->  	info->flags = ACPI_IGNORE_RETURN_VALUE;
->  
-> +	/*
-> +	 * Some hardware relies on this being executed as atomically
-> +	 * as possible (without an NMI being received in the middle of
-> +	 * this) - so disable NMIs and initialize the device:
-> +	 */
-> +	acpi_nmi_disable();
->  	status = acpi_ns_evaluate(info);
-> +	acpi_nmi_enable();
-> +
->  	if (ACPI_SUCCESS(status)) {
->  		walk_info->num_INI++;
->  
-> diff -puN include/linux/nmi.h~acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi include/linux/nmi.h
-> --- a/include/linux/nmi.h~acpi-i686-x86_64-fix-laptop-bootup-hang-in-init_acpi
-> +++ a/include/linux/nmi.h
-> @@ -17,8 +17,15 @@
->  #ifdef ARCH_HAS_NMI_WATCHDOG
->  #include <asm/nmi.h>
->  extern void touch_nmi_watchdog(void);
-> +extern void acpi_nmi_disable(void);
-> +extern void acpi_nmi_enable(void);
->  #else
-> -# define touch_nmi_watchdog() touch_softlockup_watchdog()
-> +static inline void touch_nmi_watchdog(void)
-> +{
-> +	touch_softlockup_watchdog();
-> +}
-> +static inline void acpi_nmi_disable(void) { }
-> +static inline void acpi_nmi_enable(void) { }
->  #endif
->  
->  #ifndef trigger_all_cpu_backtrace
-> _
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>-----Original Message-----
+>From: Henrique de Moraes Holschuh [mailto:hmh@hmh.eng.br]
+>Sent: Friday, February 09, 2007 6:02 AM
+>To: Starikovskiy, Alexey Y
+>Cc: Alexey Starikovskiy; linux-acpi@vger.kernel.org; Brown, Len
+>Subject: Re: Bad libata resume behaviour due to ACPICA change (in acpi-
+>test)
+>
+>On Thu, 08 Feb 2007, Starikovskiy, Alexey Y wrote:
+>> Please also try to set acpi_gbl_system_awake_and_running to true in
+the
+>> same place, if you find that disable_all_gpes() is called not once...
+>
+>Here's what happens if I "acpi_gbl_system_awake_and_running = true;"
+right
+>after the call to acpi_hw_disable_all_gpes();
+>
+>It stops the annoying the delay all right, as it won't loop anymore:
+>
+>Feb  9 00:50:00 thorin kernel: Stopping tasks ... done.
+>Feb  9 00:50:00 thorin kernel: Suspending console(s)
+>Feb  9 00:50:00 thorin kernel: pnp: Device 00:09 disabled.
+>Feb  9 00:50:00 thorin kernel: ACPI: PCI interrupt for device
+0000:00:1e.2
+>disabled
+>Feb  9 00:50:00 thorin kernel: ACPI: PCI interrupt for device
+0000:00:1d.7
+>disabled
+>Feb  9 00:50:00 thorin kernel: ACPI: PCI interrupt for device
+0000:00:1d.3
+>disabled
+>Feb  9 00:50:00 thorin kernel: ACPI: PCI interrupt for device
+0000:00:1d.2
+>disabled
+>Feb  9 00:50:00 thorin kernel: ACPI: PCI interrupt for device
+0000:00:1d.1
+>disabled
+>Feb  9 00:50:00 thorin kernel: ACPI: PCI interrupt for device
+0000:00:1d.0
+>disabled
+>Feb  9 00:50:00 thorin kernel:  hwsleep-0315 [03] enter_sleep_state
+:
+>Entering sleep state [S3]
+>Feb  9 00:50:00 thorin kernel: Intel machine check architecture
+supported.
+>Feb  9 00:50:00 thorin kernel: Intel machine check reporting enabled on
+>CPU#0.
+>Feb  9 00:50:00 thorin kernel: Back to C!
+>Feb  9 00:50:00 thorin kernel: ACPI-DEBUG: before
+>acpi_hw_disable_all_gpes()
+>Feb  9 00:50:00 thorin kernel: ACPI-DEBUG: after
+acpi_hw_disable_all_gpes()
+>Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device
+>0000:00:01.0 at offset 7 (was 20002020, writing 2020)
+>Feb  9 00:50:00 thorin kernel: ACPI: PCI Interrupt 0000:00:01.0[A] ->
+GSI
+>16 (level, low) -> IRQ 16
+>Feb  9 00:50:00 thorin kernel: PCI: Setting latency timer of device
+>0000:00:01.0 to 64
+>Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device
+>0000:00:1c.0 at offset 7 (was f0, writing 200000f0)
+>Feb  9 00:50:00 thorin kernel: ACPI: PCI Interrupt 0000:00:1c.0[A] ->
+GSI
+>20 (level, low) -> IRQ 17
+>Feb  9 00:50:00 thorin kernel: PCI: Setting latency timer of device
+>0000:00:1c.0 to 64
+>Feb  9 00:50:00 thorin kernel: ACPI: PCI Interrupt 0000:00:1c.2[C] ->
+GSI
+>22 (level, low) -> IRQ 18
+>Feb  9 00:50:00 thorin kernel: PCI: Setting latency timer of device
+>0000:00:1c.2 to 64
+>Feb  9 00:50:00 thorin kernel: PCI: Enabling device 0000:00:1d.0 (0000
+->
+>0001)
+>Feb  9 00:50:00 thorin kernel: ACPI: PCI Interrupt 0000:00:1d.0[A] ->
+GSI
+>16 (level, low) -> IRQ 16
+>Feb  9 00:50:00 thorin kernel: PCI: Setting latency timer of device
+>0000:00:1d.0 to 64
+>Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device
+>0000:00:1d.0 at offset f (was 100, writing 10b)
+>Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device
+>0000:00:1d.0 at offset 8 (was 1, writing 1801)
+>Feb  9 00:50:00 thorin kernel: usb usb2: root hub lost power or was
+reset
+>Feb  9 00:50:00 thorin kernel: PCI: Enabling device 0000:00:1d.1 (0000
+->
+>0001)
+>Feb  9 00:50:00 thorin kernel: ACPI: PCI Interrupt 0000:00:1d.1[B] ->
+GSI
+>17 (level, low) -> IRQ 20
+>Feb  9 00:50:00 thorin kernel: PCI: Setting latency timer of device
+>0000:00:1d.1 to 64
+>Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device
+>0000:00:1d.1 at offset f (was 200, writing 20b)
+>Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device
+>0000:00:1d.1 at offset 8 (was 1, writing 1821)
+>Feb  9 00:50:00 thorin kernel: usb usb3: root hub lost power or was
+reset
+>Feb  9 00:50:00 thorin kernel: PCI: Enabling device 0000:00:1d.2 (0000
+->
+>0001)
+>Feb  9 00:50:00 thorin kernel: ACPI: PCI Interrupt 0000:00:1d.2[C] ->
+GSI
+>18 (level, low) -> IRQ 21
+>Feb  9 00:50:00 thorin kernel: PCI: Setting latency timer of device
+>0000:00:1d.2 to 64
+>Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device
+>0000:00:1d.2 at offset f (was 300, writing 30b)
+>Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device
+>0000:00:1d.2 at offset 8 (was 1, writing 1841)
+>Feb  9 00:50:00 thorin kernel: usb usb4: root hub lost power or was
+reset
+>Feb  9 00:50:00 thorin kernel: PCI: Enabling device 0000:00:1d.3 (0000
+->
+>0001)
+>Feb  9 00:50:00 thorin kernel: ACPI: PCI Interrupt 0000:00:1d.3[D] ->
+GSI
+>19 (level, low) -> IRQ 19
+>Feb  9 00:50:00 thorin kernel: PCI: Setting latency timer of device
+>0000:00:1d.3 to 64
+>Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device
+>0000:00:1d.3 at offset f (was 400, writing 40b)
+>Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device
+>0000:00:1d.3 at offset 8 (was 1, writing 1861)
+>Feb  9 00:50:00 thorin kernel: usb usb5: root hub lost power or was
+reset
+>Feb  9 00:50:00 thorin kernel: PCI: Enabling device 0000:00:1d.7 (0000
+->
+>0002)
+>Feb  9 00:50:00 thorin kernel: ACPI: PCI Interrupt 0000:00:1d.7[D] ->
+GSI
+>19 (level, low) -> IRQ 19
+>Feb  9 00:50:00 thorin kernel: PCI: Setting latency timer of device
+>0000:00:1d.7 to 64
+>Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device
+>0000:00:1d.7 at offset f (was 400, writing 40b)
+>Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device
+>0000:00:1d.7 at offset 4 (was 0, writing b0000000)
+>Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device
+>0000:00:1d.7 at offset 1 (was 2900006, writing 2900106)
+>Feb  9 00:50:00 thorin kernel: PCI: Setting latency timer of device
+>0000:00:1e.0 to 64
+>Feb  9 00:50:00 thorin kernel: ACPI: PCI Interrupt 0000:00:1e.2[A] ->
+GSI
+>22 (level, low) -> IRQ 18
+>Feb  9 00:50:00 thorin kernel: i810_audio: Primary codec has ID 0
+>Feb  9 00:50:00 thorin kernel: ac97_codec: AC97 Audio codec, id: ADS116
+>(Analog Devices AD1981B)
+>Feb  9 00:50:00 thorin kernel: PM: Writing back config space on device
+>0000:00:1f.2 at offset 1 (was 2b00005, writing 2b80005)
+>Feb  9 00:50:00 thorin kernel: PCI: Setting latency timer of device
+>0000:00:1f.2 to 64
+>Feb  9 00:50:00 thorin kernel: ACPI: PCI Interrupt 0000:0b:00.0[A] ->
+GSI
+>16 (level, low) -> IRQ 16
+>Feb  9 00:50:00 thorin kernel: pnp: Device 00:07 does not support
+>activation.
+>Feb  9 00:50:00 thorin kernel: pnp: Device 00:08 does not support
+>activation.
+>Feb  9 00:50:00 thorin kernel: pnp: Device 00:09 activated.
+>Feb  9 00:50:00 thorin kernel: ata1.00: configured for UDMA/100
+>Feb  9 00:50:00 thorin kernel: SCSI device sda: 117210240 512-byte hdwr
+>sectors (60012 MB)
+>Feb  9 00:50:00 thorin kernel: sda: Write Protect is off
+>Feb  9 00:50:00 thorin kernel: sda: Mode Sense: 00 3a 00 00
+>Feb  9 00:50:00 thorin kernel: SCSI device sda: write cache: enabled,
+read
+>cache: enabled, doesn't support DPO or FUA
+>Feb  9 00:50:00 thorin kernel: ata2.00: configured for UDMA/33
+>Feb  9 00:50:00 thorin kernel: Restarting tasks ... done.
+>Feb  9 00:51:10 thorin kernel: Kernel logging (proc) stopped.
+>
+>--
+>  "One disk to rule them all, One disk to find them. One disk to bring
+>  them all and in the darkness grind them. In the Land of Redmond
+>  where the shadows lie." -- The Silicon Valley Tarot
+>  Henrique Holschuh
