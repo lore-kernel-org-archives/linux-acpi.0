@@ -1,207 +1,143 @@
-From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-Subject: Re: Bad libata resume behaviour due to ACPICA change (in acpi-test)
-Date: Fri, 09 Feb 2007 18:10:32 +0300
-Message-ID: <45CC8EE8.2080107@linux.intel.com>
-References: <20070203004140.GB619@khazad-dum.debian.net> <B41635854730A14CA71C92B36EC22AAC803F9D@mssmsx411> <20070208153025.GA466@khazad-dum.debian.net> <45CB62EE.8020300@linux.intel.com> <20070209025910.GA12298@khazad-dum.debian.net>
+From: Len Brown <lenb@kernel.org>
+Subject: sony-laptop vs sonypi (Re: [PATCH 1/2] Add new sony laptop drivers maintainer)
+Date: Fri, 9 Feb 2007 11:58:18 -0500
+Message-ID: <200702091158.18909.lenb@kernel.org>
+References: <11709622011964-git-send-email-malattia@linux.it> <1171028098.6387.15.camel@localhost.localdomain> <56393.85.47.20.193.1171029689.squirrel@picard.linux.it>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------050804080005090704010606"
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:43195 "EHLO mga09.intel.com"
+Received: from hera.kernel.org ([140.211.167.34]:44211 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946516AbXBIPLD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 9 Feb 2007 10:11:03 -0500
-In-Reply-To: <20070209025910.GA12298@khazad-dum.debian.net>
+	id S1946630AbXBIQ7t convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Feb 2007 11:59:49 -0500
+In-Reply-To: <56393.85.47.20.193.1171029689.squirrel@picard.linux.it>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, "Brown, Len" <len.brown@intel.com>
-Cc: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy@intel.com>, linux-acpi@vger.kernel.org
+To: Mattia Dongili <malattia@linux.it>
+Cc: Stelian Pop <stelian@popies.net>, linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------050804080005090704010606
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On Friday 09 February 2007 09:01, Mattia Dongili wrote:
+> On Fri, February 9, 2007 2:34 pm, Stelian Pop said:
+> > Le vendredi 09 f=E9vrier 2007 =E0 01:44 -0500, Len Brown a =E9crit =
+:
+> >> On Thursday 08 February 2007 14:16, malattia@linux.it wrote:
+> >> > From: Mattia Dongili <malattia@linux.it>
+> >> >
+> >> > Signed-off-by: Mattia Dongili <malattia@linux.it>
+> >> > ---
+> >> >  MAINTAINERS |    2 ++
+> >> >  1 files changed, 2 insertions(+), 0 deletions(-)
+> >> >
+> >> > diff --git a/MAINTAINERS b/MAINTAINERS
+> >> > index efca26a..ec97723 100644
+> >> > --- a/MAINTAINERS
+> >> > +++ b/MAINTAINERS
+> >> > @@ -3012,6 +3012,8 @@ S:	Maintained
+> >> >  SONY VAIO CONTROL DEVICE DRIVER
+> >> >  P:	Stelian Pop
+> >> >  M:	stelian@popies.net
+> >> > +P:	Mattia Dongili
+> >> > +M:	malattia@linux.it
+> >> >  W:	http://popies.net/sonypi/
+> >> >  S:	Maintained
+> >>
+> >> Stelian, are you still actively maintaining Sony support,
+> >
+> > Actively definately not, though I still answer a lot of support
+> > questions about sonypi.
+> >
+> > I even receive patches from time to time :)
+> >
+> >> or should we simply replace your name here with Mattia?
+> >
+> >>From what I recall, Mattia took over sony_acpi but didn't want to h=
+andle
+> > sonypi as well, at least not for the time being.
+> >
+> > If he changed his mind I'm hapily handing over the maintenance to h=
+im.
+> >
+> > If not, maybe the MAINTAINERS entry should be clarified to say that
+> > Mattia maintains sony_acpi and sonypi is currently not maintained.
+>=20
+> Well, I'd hate losing possibly useful patches because the driver resu=
+lts
+> unmaintained. :)
+> Sooo... updated MAINTAINERS patch will follow soon.
 
-Here is the patch
+sonypi is an interesting beast, and I do mean beast.
+It pre-dates Linux ACPI support by several years
+and is chock-full of reverse engineered magic numbers.
 
-Regards,
-    Alex.
+It is much more complicated than sony-laptop.
+It has a device file, ioctls, it registers for and handles irqs,
+it tickles bluetooth, the camera, the hotkeys, jog dial --
+and it also registers with ACPI on SONY6001
+and talks to the ACPI EC -- with or without ACPI present.
 
-Henrique de Moraes Holschuh wrote:
-> On Thu, 08 Feb 2007, Alexey Starikovskiy wrote:
->   
->> first thing to check is timing of acpi_hw_disable_all_gpes() at 
->> drivers/acpi/events/evgpe.c:647,
->> printk() around it should be good.
->>     
->
-> Done, and the thing is looping like heck, and wasting time:
->
-> Feb  9 00:23:44 thorin kernel: Stopping tasks ... done.
-> Feb  9 00:23:44 thorin kernel: Suspending console(s)
-> Feb  9 00:23:44 thorin kernel: pnp: Device 00:09 disabled.
-> Feb  9 00:23:44 thorin kernel: ACPI: PCI interrupt for device 0000:00:1e.2 disabled
-> Feb  9 00:23:44 thorin kernel: ACPI: PCI interrupt for device 0000:00:1d.7 disabled
-> Feb  9 00:23:44 thorin kernel: ACPI: PCI interrupt for device 0000:00:1d.3 disabled
-> Feb  9 00:23:44 thorin kernel: ACPI: PCI interrupt for device 0000:00:1d.2 disabled
-> Feb  9 00:23:44 thorin kernel: ACPI: PCI interrupt for device 0000:00:1d.1 disabled
-> Feb  9 00:23:44 thorin kernel: ACPI: PCI interrupt for device 0000:00:1d.0 disabled
-> Feb  9 00:23:44 thorin kernel:  hwsleep-0315 [03] enter_sleep_state     : Entering sleep state [S3]
-> Feb  9 00:23:44 thorin kernel: Intel machine check architecture supported.
-> Feb  9 00:23:44 thorin kernel: Intel machine check reporting enabled on CPU#0.
-> Feb  9 00:23:44 thorin kernel: Back to C!
-> Feb  9 00:23:44 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:44 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:44 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:44 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:44 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:44 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:44 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:44 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:44 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:44 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:44 thorin kernel: PM: Writing back config space on device 0000:00:01.0 at offset 7 (was 20002020, writing 2020)
-> Feb  9 00:23:44 thorin kernel: ACPI: PCI Interrupt 0000:00:01.0[A] -> GSI 16 (level, low) -> IRQ 16
-> Feb  9 00:23:44 thorin kernel: PCI: Setting latency timer of device 0000:00:01.0 to 64
-> Feb  9 00:23:44 thorin kernel: PM: Writing back config space on device 0000:00:1c.0 at offset 7 (was f0, writing 200000f0)
-> Feb  9 00:23:44 thorin kernel: ACPI: PCI Interrupt 0000:00:1c.0[A] -> GSI 20 (level, low) -> IRQ 17
-> Feb  9 00:23:44 thorin kernel: PCI: Setting latency timer of device 0000:00:1c.0 to 64
-> Feb  9 00:23:44 thorin kernel: ACPI: PCI Interrupt 0000:00:1c.2[C] -> GSI 22 (level, low) -> IRQ 18
-> Feb  9 00:23:44 thorin kernel: PCI: Setting latency timer of device 0000:00:1c.2 to 64
-> Feb  9 00:23:44 thorin kernel: PCI: Enabling device 0000:00:1d.0 (0000 -> 0001)
-> Feb  9 00:23:44 thorin kernel: ACPI: PCI Interrupt 0000:00:1d.0[A] -> GSI 16 (level, low) -> IRQ 16
-> Feb  9 00:23:44 thorin kernel: PCI: Setting latency timer of device 0000:00:1d.0 to 64
-> Feb  9 00:23:44 thorin kernel: PM: Writing back config space on device 0000:00:1d.0 at offset f (was 100, writing 10b)
-> Feb  9 00:23:44 thorin kernel: PM: Writing back config space on device 0000:00:1d.0 at offset 8 (was 1, writing 1801)
-> Feb  9 00:23:44 thorin kernel: usb usb2: root hub lost power or was reset
-> Feb  9 00:23:44 thorin kernel: PCI: Enabling device 0000:00:1d.1 (0000 -> 0001)
-> Feb  9 00:23:44 thorin kernel: ACPI: PCI Interrupt 0000:00:1d.1[B] -> GSI 17 (level, low) -> IRQ 20
-> Feb  9 00:23:44 thorin kernel: PCI: Setting latency timer of device 0000:00:1d.1 to 64
-> Feb  9 00:23:44 thorin kernel: PM: Writing back config space on device 0000:00:1d.1 at offset f (was 200, writing 20b)
-> Feb  9 00:23:44 thorin kernel: PM: Writing back config space on device 0000:00:1d.1 at offset 8 (was 1, writing 1821)
-> Feb  9 00:23:44 thorin kernel: usb usb3: root hub lost power or was reset
-> Feb  9 00:23:44 thorin kernel: PCI: Enabling device 0000:00:1d.2 (0000 -> 0001)
-> Feb  9 00:23:44 thorin kernel: ACPI: PCI Interrupt 0000:00:1d.2[C] -> GSI 18 (level, low) -> IRQ 21
-> Feb  9 00:23:44 thorin kernel: PCI: Setting latency timer of device 0000:00:1d.2 to 64
-> Feb  9 00:23:44 thorin kernel: PM: Writing back config space on device 0000:00:1d.2 at offset f (was 300, writing 30b)
-> Feb  9 00:23:44 thorin kernel: PM: Writing back config space on device 0000:00:1d.2 at offset 8 (was 1, writing 1841)
-> Feb  9 00:23:44 thorin kernel: usb usb4: root hub lost power or was reset
-> Feb  9 00:23:44 thorin kernel: PCI: Enabling device 0000:00:1d.3 (0000 -> 0001)
-> Feb  9 00:23:44 thorin kernel: ACPI: PCI Interrupt 0000:00:1d.3[D] -> GSI 19 (level, low) -> IRQ 19
-> Feb  9 00:23:44 thorin kernel: PCI: Setting latency timer of device 0000:00:1d.3 to 64
-> Feb  9 00:23:44 thorin kernel: PM: Writing back config space on device 0000:00:1d.3 at offset f (was 400, writing 40b)
-> Feb  9 00:23:44 thorin kernel: PM: Writing back config space on device 0000:00:1d.3 at offset 8 (was 1, writing 1861)
-> Feb  9 00:23:44 thorin kernel: usb usb5: root hub lost power or was reset
-> Feb  9 00:23:44 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:44 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:44 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:44 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:44 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:44 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:44 thorin kernel: PCI: Enabling device 0000:00:1d.7 (0000 -> 0002)
-> Feb  9 00:23:44 thorin kernel: ACPI: PCI Interrupt 0000:00:1d.7[D] -> GSI 19 (level, low) -> IRQ 19
-> Feb  9 00:23:44 thorin kernel: PCI: Setting latency timer of device 0000:00:1d.7 to 64
-> Feb  9 00:23:44 thorin kernel: PM: Writing back config space on device 0000:00:1d.7 at offset f (was 400, writing 40b)
-> Feb  9 00:23:44 thorin kernel: PM: Writing back config space on device 0000:00:1d.7 at offset 4 (was 0, writing b0000000)
-> Feb  9 00:23:44 thorin kernel: PM: Writing back config space on device 0000:00:1d.7 at offset 1 (was 2900006, writing 2900106)
-> Feb  9 00:23:44 thorin kernel: PCI: Setting latency timer of device 0000:00:1e.0 to 64
-> Feb  9 00:23:44 thorin kernel: ACPI: PCI Interrupt 0000:00:1e.2[A] -> GSI 22 (level, low) -> IRQ 18
-> Feb  9 00:23:44 thorin kernel: i810_audio: Primary codec has ID 0
-> Feb  9 00:23:44 thorin kernel: ac97_codec: AC97 Audio codec, id: ADS116 (Analog Devices AD1981B)
-> Feb  9 00:23:44 thorin kernel: PM: Writing back config space on device 0000:00:1f.2 at offset 1 (was 2b00005, writing 2b80005)
-> Feb  9 00:23:44 thorin kernel: PCI: Setting latency timer of device 0000:00:1f.2 to 64
-> Feb  9 00:23:44 thorin kernel: ACPI: PCI Interrupt 0000:0b:00.0[A] -> GSI 16 (level, low) -> IRQ 16
-> Feb  9 00:23:44 thorin kernel: pnp: Device 00:07 does not support activation.
-> Feb  9 00:23:44 thorin kernel: pnp: Device 00:08 does not support activation.
-> Feb  9 00:23:44 thorin kernel: pnp: Device 00:09 activated.
-> Feb  9 00:23:44 thorin kernel: ata2.00: configured for UDMA/33
-> Feb  9 00:23:44 thorin kernel: ata1.00: configured for UDMA/100
-> Feb  9 00:23:44 thorin kernel: SCSI device sda: 117210240 512-byte hdwr sectors (60012 MB)
-> Feb  9 00:23:44 thorin kernel: sda: Write Protect is off
-> Feb  9 00:23:44 thorin kernel: sda: Mode Sense: 00 3a 00 00
-> Feb  9 00:23:44 thorin kernel: SCSI device sda: write cache: enabled, read cache: enabled, doesn't support DPO or FUA
-> Feb  9 00:23:44 thorin kernel: Restarting tasks ... done.
-> Feb  9 00:23:44 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:44 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:45 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:45 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:46 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:46 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:47 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:47 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:48 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:48 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:49 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:49 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:49 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:49 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:50 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:50 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:51 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:51 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:52 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:52 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:52 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:52 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:53 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:53 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:53 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:53 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:54 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:54 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:55 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:55 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:55 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:55 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:56 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:56 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:57 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:57 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:57 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:57 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:58 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:58 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:23:59 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:23:59 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:24:00 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:24:00 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:24:00 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:24:00 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:24:01 thorin kernel: ACPI-DEBUG: before acpi_hw_disable_all_gpes()
-> Feb  9 00:24:01 thorin kernel: ACPI-DEBUG: after acpi_hw_disable_all_gpes()
-> Feb  9 00:24:24 thorin kernel: Kernel logging (proc) stopped.
->
->   
+Presumably there is some application that talks to those ioctls.
 
+Happily it already registers all the input events with
+the input layer.
 
---------------050804080005090704010606
-Content-Type: text/plain;
- name="fix-disable_all_wake_gpes.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="fix-disable_all_wake_gpes.patch"
+I think one of the major decisions you need to make going forward
+is if it makes sense to maintain the parts of sonypi
+that are reverse engineered AML -- rather than simply
+running in ACPI mode and invoking the AML in the BIOS.
 
-Disable wake GPEs only once.
+To be effective at this, you need a machine on hand that
+actually runs the sonypi features.  Lacking that, you need
+active testers and a copy of their acpidump.
 
-From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Personally, I think that invoking machine specific AML
+has its risks, but invoking C-ized machine specific AML
+sucked into a platform specific driver borders on the insane.
+(but Linux didn't have ACPI in 2000, so maybe "determined"
+would be a more appropriate word:-)
 
+Stelian,
+I think if you can list what you know actually works on what models,
+and what may not work, and what you think about the code needs to
+be changed, that would help Mattia enormously.
 
----
+I suggest that the goal might be to have a single consolidated
+sony-laptop driver.  Ie. port the working features one by one
+from sonypi into sony-laptop, and when sony-laptop can do everything
+that sonypi can do (though maybe not with the same ioctl interface etc)
+the schedule sonypi for deletion.  But in the mean time, on the
+assumption the people actually use sonypi to make their vaio's
+dance in useful ways, I would leave it alone for their benefit.
 
- drivers/acpi/events/evgpe.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Or, it may be possible to make a gradual transition --
+this would spread the migration pain over a longer period,
+but would also spread the testing over a longer period
+and probably end up with a better driver in the end.
+You'd have to convince both drivers to load at the same
+time and to not conflict.  Maybe some shared state could
+tell them which features are handled by which, so you could
+test if the new driver is working by flipping some load-time
+bits...  I don't know if this is possible or not -- depends on
+how the features and the models interact with each other.
 
-diff --git a/drivers/acpi/events/evgpe.c b/drivers/acpi/events/evgpe.c
-index dfac3ec..263a001 100644
---- a/drivers/acpi/events/evgpe.c
-+++ b/drivers/acpi/events/evgpe.c
-@@ -644,6 +644,7 @@ acpi_ev_gpe_dispatch(struct acpi_gpe_eve
- 		 * 1) We must disable this particular wake GPE so it won't fire again
- 		 * 2) We want to disable all wake GPEs, since we are now awake
- 		 */
-+		acpi_gbl_system_awake_and_running = TRUE;
- 		(void)acpi_hw_disable_all_gpes();
- 	}
- 
+In any case, I think it would make sense to cook up a transition plan
+and to let the users know what you are thinking before you do it.
+If you don't have folks testing it on the models you don't have
+then you'll be unable to make progress.
 
---------------050804080005090704010606--
+> One question though: which subsystem should sonypi patches flow throu=
+gh?
+
+In the interest of making ACPI use in the platform specific drivers
+sane and uniform, I'll be happy to be the conduit to upstream
+to clean this up.  In particular, I'd really like to see the
+reverse engineered AML implemented as C IO reads and writes go away.
+
+thanks,
+-Len
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
