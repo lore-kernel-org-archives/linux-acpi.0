@@ -1,66 +1,57 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [GIT PATCH] ACPI patches for 2.6.21
-Date: Fri, 9 Feb 2007 23:27:03 -0500
-Message-ID: <200702092327.04237.lenb@kernel.org>
-References: <200702071418.51058.lenb@kernel.org> <20070209230928.GD3949@ucw.cz>
+Subject: Re: Fix null pointer dereference in appledisplay driver
+Date: Sat, 10 Feb 2007 00:39:20 -0500
+Message-ID: <200702100039.20956.lenb@kernel.org>
+References: <20070210001823.GA3557@hansmi.ch>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:44186 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:39504 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753028AbXBJE23 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 9 Feb 2007 23:28:29 -0500
-In-Reply-To: <20070209230928.GD3949@ucw.cz>
+	id S1752960AbXBJFkv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 10 Feb 2007 00:40:51 -0500
+In-Reply-To: <20070210001823.GA3557@hansmi.ch>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, tony.luck@intel.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, "Accardi, Kristen" <kristen.c.accardi@intel.com>
+To: Michael Hanselmann <linux-kernel@hansmi.ch>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, akpm@linux-foundation.org, cappaberra@gmail.com
 
-On Friday 09 February 2007 18:09, Pavel Machek wrote:
-> Hi!
-> 
-> > Per your request, and the request of the distros, we've changed
-> > how ACPICA Core releases are integrated into Linux so that each
-> > upstream (CVS) check-in appears as a single git commit.
-> > While this process is not yet perfect, it should be vastly better
-> > than previous "code drops" in allowing git bisect to work,
-> > and allowing distros to cherry-pick individual fixes.
-> > 
-> > The "bay" driver is new (and marked EXPERIMENTAL) -- adding initial
-> > hot-plug support for ACPI controlled drive bays such as the
-> > IBM ultrabay or the Dell Module Bay.
-> 
-> Could you describe userland interface it uses? /proc? Will it be
-> usable for bays on notebooks not using acpi?
-
-No, Not until somebody finds one and writes code to support it.
-
-> > The "asus-laptop" driver is also new.  Consistent with msi-laptop,
-> > it uses ACPI in platform-specific ways, but strives to avoid
-> > exposing ACPI-specific implementation details to the user.
-> > asus-laptop is mutually exclusive with asus_acpi, which it will
-> > replace over time.
-> 
-> Not including another /proc/acpi/ibm -like nightmare, is it?
-
-No. See discussion on linux-acpi.
-I've prohibited new files under /proc/acpi/ for quite some time now.
-
-> > the old /proc/acpi/ interfaces with cleaner interfaces in sysfs --
-> > non-ACPI-specific generic ones whenever possible.  This effort
-> > is not complete, but it has been in -mm for a long time and
-> > I believe that it is time to push it upstream to benefit
-> > from broader exposure and testing.
-> 
-> Does it still include completely broken alarm interface? Can't find it
-> in changelogs, so hopefully not.
-
-No. See discussion on linux-acpi.
-David Brownell's RTC driver will provide the new RTC interface in sysfs.
-/proc/acpi/alarm will go away when the rest of /proc/acpi goes away.
+Applied.
 
 thanks,
 -Len
+
+On Friday 09 February 2007 19:18, Michael Hanselmann wrote:
+> Commit 40b20c257a13c5a526ac540bc5e43d0fdf29792a by Len Brown introduced
+> a null pointer dereference in the appledisplay driver. This patch fixes
+> it.
+> 
+> Signed-off-by: Michael Hanselmann <linux-kernel@hansmi.ch>
+> 
+> ---
+> I suggest adding this to 2.6.20.1 because this bug causes the kernel to
+> panic on boot when the driver is compiled in.
+> 
+> diff -Nrup --exclude-from linux-exclude-from linux-2.6.20.orig/drivers/usb/misc/appledisplay.c linux-2.6.20/drivers/usb/misc/appledisplay.c
+> --- linux-2.6.20.orig/drivers/usb/misc/appledisplay.c	2007-02-09 22:35:56.000000000 +0100
+> +++ linux-2.6.20/drivers/usb/misc/appledisplay.c	2007-02-10 01:00:28.000000000 +0100
+> @@ -281,8 +281,8 @@ static int appledisplay_probe(struct usb
+>  	/* Register backlight device */
+>  	snprintf(bl_name, sizeof(bl_name), "appledisplay%d",
+>  		atomic_inc_return(&count_displays) - 1);
+> -	pdata->bd = backlight_device_register(bl_name, NULL, NULL,
+> -						&appledisplay_bl_data);
+> +	pdata->bd = backlight_device_register(bl_name, NULL,
+> +		pdata, &appledisplay_bl_data);
+>  	if (IS_ERR(pdata->bd)) {
+>  		err("appledisplay: Backlight registration failed");
+>  		goto error;
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
