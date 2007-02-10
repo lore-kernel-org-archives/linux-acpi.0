@@ -1,80 +1,64 @@
 From: Stelian Pop <stelian@popies.net>
 Subject: Re: sony-laptop vs sonypi (Re: [PATCH 1/2] Add new sony laptop
 	drivers maintainer)
-Date: Sat, 10 Feb 2007 22:59:43 +0100
-Message-ID: <1171144783.5026.14.camel@localhost.localdomain>
+Date: Sat, 10 Feb 2007 23:07:59 +0100
+Message-ID: <1171145280.5026.23.camel@localhost.localdomain>
 References: <11709622011964-git-send-email-malattia@linux.it>
 	 <1171028098.6387.15.camel@localhost.localdomain>
 	 <56393.85.47.20.193.1171029689.squirrel@picard.linux.it>
 	 <200702091158.18909.lenb@kernel.org>
+	 <20070209192513.GA4612@inferi.kami.home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sd291.sivit.org ([194.146.225.122]:4234 "EHLO sd291.sivit.org"
+Received: from sd291.sivit.org ([194.146.225.122]:4930 "EHLO sd291.sivit.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751963AbXBJV7v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 10 Feb 2007 16:59:51 -0500
-In-Reply-To: <200702091158.18909.lenb@kernel.org>
+	id S1752016AbXBJWID (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 10 Feb 2007 17:08:03 -0500
+In-Reply-To: <20070209192513.GA4612@inferi.kami.home>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Mattia Dongili <malattia@linux.it>, linux-acpi@vger.kernel.org
+To: Mattia Dongili <malattia@linux.it>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-Le vendredi 09 f=E9vrier 2007 =E0 11:58 -0500, Len Brown a =E9crit :
+Le vendredi 09 f=E9vrier 2007 =E0 20:25 +0100, Mattia Dongili a =E9crit=
+ :
 
-> sonypi is an interesting beast, and I do mean beast.
-> It pre-dates Linux ACPI support by several years
-> and is chock-full of reverse engineered magic numbers.
+> > Presumably there is some application that talks to those ioctls.
+>=20
+> Yep, sonypid spicctrl sjog sonykeyd just to name a few.
 
-Yep. It was Andrew Trigdell (with friends) who reverse engineered some
-of those magic numbers in the first place, and even I never knew what
-were they good for.
-
-[...]
-
-> I think one of the major decisions you need to make going forward
-> is if it makes sense to maintain the parts of sonypi
-> that are reverse engineered AML -- rather than simply
-> running in ACPI mode and invoking the AML in the BIOS.
-
-Personaly I think that running without ACPI today is no longer an
-option, especially on laptops. So I would indeed go in this direction.
+Don't forget also kde and hal...
 
 [...]
 
-> Personally, I think that invoking machine specific AML
-> has its risks, but invoking C-ized machine specific AML
-> sucked into a platform specific driver borders on the insane.
-> (but Linux didn't have ACPI in 2000, so maybe "determined"
-> would be a more appropriate word:-)
+> Fortunately I own a type2 and a couple of type3 laptops but none of
+> which has a motion eye camera.
 
-I'll take that as a compliment then :)
+Leave the motion eye camera alone, the Linux support for the motion eye
+camera is only for a very old specific model of the motion eye camera
+(the PCI one made by Kawasaki). All the recent (last 5 years) Vaio
+laptops with "Motion Eye" cameras are completly different hardware.
 
-> Stelian,
-> I think if you can list what you know actually works on what models,
-> and what may not work, and what you think about the code needs to
-> be changed, that would help Mattia enormously.
+[...]
 
-Unfortunately, this is something I always wanted to do and never get
-around to. I don't have such a list, I only have a rather big mail
-folder containing sony related mail.
+> At one point sonypi could just implement the ioctls and device file
+> needed for backward compatibility.
+> But I need to start playing seriously with sonypi's code before getti=
+ng
+> a clear idea if this is really doable or not.
+>=20
+> Stelian: thoughts?
+> I remember an (very?) old discussion where you've been asked to
+> implement sonypi using acpi functions and the answer was something li=
+ke
+> "if acpi will allow that..."
 
-I don't remember if I already said this, but I think it would be a good
-idea to start a wiki to create some sort of documentation.
-
-> I suggest that the goal might be to have a single consolidated
-> sony-laptop driver.  Ie. port the working features one by one
-> from sonypi into sony-laptop, and when sony-laptop can do everything
-> that sonypi can do (though maybe not with the same ioctl interface et=
-c)
-> the schedule sonypi for deletion.  But in the mean time, on the
-> assumption the people actually use sonypi to make their vaio's
-> dance in useful ways, I would leave it alone for their benefit.
-
-It seems a reasonable way to pursue.
-
-Thanks,
+Hmm, this was probably from a time when the ACPI layer had zero externa=
+l
+APIs. Things have changed since then and should be much easier now,
+especially since you have Len's support :)
 
 --=20
 Stelian Pop <stelian@popies.net>
