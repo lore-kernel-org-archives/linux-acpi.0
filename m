@@ -1,42 +1,64 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [PATCH 2/4] Remove /proc/acpi/sony interface and implement platform_device.
-Date: Sat, 10 Feb 2007 13:49:40 +0100
-Message-ID: <20070210124940.GB6964@inferi.kami.home>
-References: <11708749163025-git-send-email-malattia@linux.it> <11708749161009-git-send-email-malattia@linux.it> <11708749161045-git-send-email-malattia@linux.it> <20070210024719.37413cfc@localhost>
+From: Ismail =?iso-8859-1?q?D=F6nmez?= <ismail@pardus.org.tr>
+Subject: Re: [GIT PATCH] ACPI patches for 2.6.21
+Date: Sat, 10 Feb 2007 17:52:13 +0200
+Message-ID: <200702101752.14797.ismail@pardus.org.tr>
+References: <200702071418.51058.lenb@kernel.org> <200702101027.25372.ismail@pardus.org.tr> <20070210120713.GA31473@homac2>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aa013msr.fastwebnet.it ([85.18.95.73]:55941 "EHLO
-	aa013msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932119AbXBJMu7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Feb 2007 07:50:59 -0500
+Received: from ns2.uludag.org.tr ([193.140.100.220]:60468 "EHLO uludag.org.tr"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932667AbXBJPyO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Feb 2007 10:54:14 -0500
+In-Reply-To: <20070210120713.GA31473@homac2>
 Content-Disposition: inline
-In-Reply-To: <20070210024719.37413cfc@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alessandro Guido <alessandro.guido@gmail.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Holger Macht <hmacht@suse.de>
+Cc: Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@osdl.org>, Andrew Morton <akpm@osdl.org>, tony.luck@intel.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, "Accardi, Kristen" <kristen.c.accardi@intel.com>
 
-On Sat, Feb 10, 2007 at 02:47:19AM +0100, Alessandro Guido wrote:
-> Thanks for doing this! I hope this will be merged soon in mainline :)
-> I'm testing it on my VGN-FS215S and so far I haven't noticed any
-> problem.
-> 
-> Just a thing:
-> 
-> brightness_default uses values starting from 1. In my opinion, it should
-> be changed to use values starting from 0 to have some consistency or,
-> better, have an entry itself in the backlight interface.
+On Saturday 10 February 2007 14:07:13 Holger Macht wrote:
+> On Sat 10. Feb - 10:27:14, Ismail D=F6nmez wrote:
+> > On Wednesday 07 February 2007 21:18:50 Len Brown wrote:
+> > > Hi Linus,
+> > >
+> > > please pull from:
+> > >
+> > > git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6=
+=2Egit
+> > > release
+> > >
+> > > ACPICA Core version 2070126 simplifies the ACPI table manager
+> > > code by consolidating multiple table definitions into one.
+> > > It also saves memory by mapping the tables where the BIOS provide=
+s them
+> > > rather than copying them into the kernel.
+> >
+> > This breaks kpowersave, now it always says laptop is plugged in and=
+ does
+> > not show any battery status. Any /proc changes in this release?
+>
+> kpowersave just reflects what HAL thinks, and HAL reflects what the k=
+ernel
+> thinks. So please post the content of /proc/acpi/ac_adapter/AC/state =
+when
+> AC is not plugged in to figure out if it's just a userland bug or a k=
+ernel
+> issue.
 
-I don't think the latter is possible, at least not without patching the
-backlight class framework but I don't know if this has ever been
-discussed with backlight subsytem maintainers.
+[~]> cat /proc/acpi/ac_adapter/ADP1/state
+state:                   off-line
 
-While I thought about the former suggestion too. It needs some work to
-keep the generalized sysfs_{show,store} functions but it's definitely
-worth implementing.
 
-Thanks for the feedback :)
--- 
-mattia
-:wq!
+Hmmf looks like a userspace bug, but it certainly did work before ACPI =
+update.
+
+Regards,
+ismail
+
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
