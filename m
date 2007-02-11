@@ -1,33 +1,34 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: current git breaks resume
-Date: Sun, 11 Feb 2007 00:02:38 -0500
-Message-ID: <200702110002.38328.lenb@kernel.org>
-References: <20070209190307.GC6152@kernel.dk>
+Subject: Re: acpi_find_bmc() and acpi_get_table()
+Date: Sun, 11 Feb 2007 00:28:07 -0500
+Message-ID: <200702110028.08052.lenb@kernel.org>
+References: <200702102327.28312.lenb@kernel.org> <45CEA157.8050207@acm.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:32907 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:36827 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752729AbXBKFD6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 11 Feb 2007 00:03:58 -0500
-In-Reply-To: <20070209190307.GC6152@kernel.dk>
+	id S1752743AbXBKF3f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 11 Feb 2007 00:29:35 -0500
+In-Reply-To: <45CEA157.8050207@acm.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jens Axboe <jens.axboe@oracle.com>, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+To: Corey Minyard <minyard@acm.org>
+Cc: minyard@mvista.com, linux-acpi@vger.kernel.org
 
-On Friday 09 February 2007 14:03, Jens Axboe wrote:
-> Hi,
-> 
-> Unfortunately I'm a little short on time as I'll be travelling tomorrow,
-> but of course preparing a new kernel for the laptop is something you
-> want to do right before leaving. So I discovered that the current (well
-> as of yesterday, HEAD is 5986a2ec35836a878350c54af4bd91b1de6abc59)
-> doesn't resume on my x60. 2.6.20 works fine, so something broke since
-> then.
+On Saturday 10 February 2007 23:53, Corey Minyard wrote:
+> ...the IPMI spec states that in the case 
+> of multiple interfaces, a unique SPMI table should be provided for each 
+> of those interfaces.  So the IPMI spec seems to require support more 
+> than one.
 
-resume from RAM, or resume from disk?
+okay, good to know.
+If you have the dmesg or acpidump output from a box with multiple interfaces,
+we should then see multiple SPMI entries in the RSDT.
+
+thanks,
+-Len
 
