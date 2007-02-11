@@ -1,47 +1,50 @@
 From: Jens Axboe <jens.axboe@oracle.com>
 Subject: Re: current git breaks resume
-Date: Sun, 11 Feb 2007 18:36:24 +0100
-Message-ID: <20070211173624.GU6458@kernel.dk>
-References: <20070209190307.GC6152@kernel.dk> <200702110002.38328.lenb@kernel.org> <20070211165302.GO6458@kernel.dk> <45CF52F4.3060108@linux.intel.com>
+Date: Sun, 11 Feb 2007 18:56:19 +0100
+Message-ID: <20070211175619.GB3999@kernel.dk>
+References: <20070209190307.GC6152@kernel.dk> <200702110002.38328.lenb@kernel.org> <20070211165302.GO6458@kernel.dk> <45CF52F4.3060108@linux.intel.com> <20070211173624.GU6458@kernel.dk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.globalsuite.net ([69.46.103.200]:40846 "HELO
-	mail.globalsuite.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750750AbXBKRgL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 11 Feb 2007 12:36:11 -0500
+Received: from brick.kernel.dk ([62.242.22.158]:20465 "EHLO kernel.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750760AbXBKR4U (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 11 Feb 2007 12:56:20 -0500
 Content-Disposition: inline
-In-Reply-To: <45CF52F4.3060108@linux.intel.com>
+In-Reply-To: <20070211173624.GU6458@kernel.dk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
 Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sun, Feb 11 2007, Alexey Starikovskiy wrote:
-> Jens Axboe wrote:
-> >On Sun, Feb 11 2007, Len Brown wrote:
-> >  
-> >>On Friday 09 February 2007 14:03, Jens Axboe wrote:
-> >>    
-> >>>Hi,
-> >>>
-> >>>Unfortunately I'm a little short on time as I'll be travelling tomorrow,
-> >>>but of course preparing a new kernel for the laptop is something you
-> >>>want to do right before leaving. So I discovered that the current (well
-> >>>as of yesterday, HEAD is 5986a2ec35836a878350c54af4bd91b1de6abc59)
-> >>>doesn't resume on my x60. 2.6.20 works fine, so something broke since
-> >>>then.
-> >>>      
-> >>resume from RAM, or resume from disk?
-> >>    
-> >
-> >Resume from RAM, I never use suspend-to-disk.
-> >
-> >  
-> Jens,
-> Could you please test the patch I've sent?
+On Sun, Feb 11 2007, Jens Axboe wrote:
+> On Sun, Feb 11 2007, Alexey Starikovskiy wrote:
+> > Jens Axboe wrote:
+> > >On Sun, Feb 11 2007, Len Brown wrote:
+> > >  
+> > >>On Friday 09 February 2007 14:03, Jens Axboe wrote:
+> > >>    
+> > >>>Hi,
+> > >>>
+> > >>>Unfortunately I'm a little short on time as I'll be travelling tomorrow,
+> > >>>but of course preparing a new kernel for the laptop is something you
+> > >>>want to do right before leaving. So I discovered that the current (well
+> > >>>as of yesterday, HEAD is 5986a2ec35836a878350c54af4bd91b1de6abc59)
+> > >>>doesn't resume on my x60. 2.6.20 works fine, so something broke since
+> > >>>then.
+> > >>>      
+> > >>resume from RAM, or resume from disk?
+> > >>    
+> > >
+> > >Resume from RAM, I never use suspend-to-disk.
+> > >
+> > >  
+> > Jens,
+> > Could you please test the patch I've sent?
+> 
+> Just saw it, will do.
 
-Just saw it, will do.
+With that patch applied, current git works as expected. Thanks!
 
 -- 
 Jens Axboe
