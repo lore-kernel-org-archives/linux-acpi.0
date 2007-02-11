@@ -1,81 +1,86 @@
-From: root@gmml24.itg.hitachi.co.jp
-Subject: Conversion failure : Recipients-Information is not available.
-Date: Sun, 11 Feb 2007 21:14:12 +0900
-Message-ID: <200702111214.l1BCEHT7057610@gmml24.itg.hitachi.co.jp>
+From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Subject: Re: current git breaks resume
+Date: Sun, 11 Feb 2007 17:34:26 +0300
+Message-ID: <45CF2972.40902@linux.intel.com>
+References: <20070209190307.GC6152@kernel.dk> <200702110002.38328.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/report; report-type=delivery-status; boundary="GMAILSMTPBOUND01070211211412"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------030304030100030406030309"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailx.hitachi.co.jp ([133.145.228.49]:64233 "EHLO
-	mailx.hitachi.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932078AbXBKMSW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 11 Feb 2007 07:18:22 -0500
-Received: from mlsv5.hitachi.co.jp (unknown [133.144.234.166])
-	by mail4.hitachi.co.jp (Postfix) with ESMTP id 4A8C033CEB
-	for <linux-acpi@vger.kernel.org>; Sun, 11 Feb 2007 21:14:18 +0900 (JST)
-Received: from vshuts4.hitachi.co.jp (unverified) by mfilter-s5.hitachi.co.jp
- (Content Technologies SMTPRS 4.3.17) with SMTP id <T7dbf10c0680ac906b5dc4@mfilter-s5.hitachi.co.jp> for <linux-acpi@vger.kernel.org>;
- Sun, 11 Feb 2007 21:14:18 +0900
-Received: from gmml24.itg.hitachi.co.jp ([158.213.165.144])
- by vshuts4.hitachi.co.jp with SMTP id M2007021121141703884
- for <linux-acpi@vger.kernel.org>; Sun, 11 Feb 2007 21:14:17 +0900
+Received: from mga07.intel.com ([143.182.124.22]:3555 "EHLO
+	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750849AbXBKOeb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 11 Feb 2007 09:34:31 -0500
+In-Reply-To: <200702110002.38328.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Jens Axboe <jens.axboe@oracle.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
---GMAILSMTPBOUND01070211211412
+This is a multi-part message in MIME format.
+--------------030304030100030406030309
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-This report relates to your message:
-	
+Len Brown wrote:
+> On Friday 09 February 2007 14:03, Jens Axboe wrote:
+>   
+>> Hi,
+>>
+>> Unfortunately I'm a little short on time as I'll be travelling tomorrow,
+>> but of course preparing a new kernel for the laptop is something you
+>> want to do right before leaving. So I discovered that the current (well
+>> as of yesterday, HEAD is 5986a2ec35836a878350c54af4bd91b1de6abc59)
+>> doesn't resume on my x60. 2.6.20 works fine, so something broke since
+>> then.
+>>     
+>
+> resume from RAM, or resume from disk?
+>
+>   
+Len,
+resume from RAM is still broken by "Disable all wakeup GPEs". My 
+previous patch for T43 does not help, only attached one helps (revert 
+original patch).
 
-	of Sun, 11 Feb 2007 21:14:12 +0900
+--------------030304030100030406030309
+Content-Type: text/plain;
+ name="fix-disable_all_wake_gpes.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="fix-disable_all_wake_gpes.patch"
 
+Disable wake GPEs only once.
 
-Your message was not delivered to: yoshii-takashi@hitachi-ul.co.jp
-	for the following reason: unable-to-transfer
-	and the following diagonostic: recipient-reassignment-prohibited
-
-***** The following information is directed towards the local administrator
-
---GMAILSMTPBOUND01070211211412
-Content-Type: message/delivery-status
-
-Reporting-MTA: x400; gmml24.itg.hitachi.co.jp
-Arrival-Date: Sun, 11 Feb 2007 21:14:12 +0900
-DSN-Gateway: dns; gmml24.itg.hitachi.co.jp
-
-Final-Recipient: RFC822; yoshii-takashi@hitachi-ul.co.jp
-Action: failed
-Status: 5.4.0
-Last-Attempt-Date: Sun, 11 Feb 2007 21:14:12 +0900
-
-
---GMAILSMTPBOUND01070211211412
-Content-Type: text/rfc822-headers
-
-Received: from mlsv5.hitachi.co.jp by gmml24.itg.hitachi.co.jp (AIX5.2/8.11.6p2/8.11.0) id l1BCEBm6484058; Sun, 11 Feb 2007 21:14:11 +0900
-Received: from mfilter-r8.hitachi.co.jp by mlsv5.hitachi.co.jp (8.12.10/8.12.10) id l1BCEElr028080; Sun, 11 Feb 2007 21:14:14 +0900
-Received: from vshutr2.hitachi.co.jp (unverified) by mfilter-r8.hitachi.co.jp
- (Clearswift SMTPRS 5.2.5) with SMTP id <T7dbf10a7b80ac90690c30@mfilter-r8.hitachi.co.jp> for <yoshii-takashi@hitachi-ul.co.jp>;
- Sun, 11 Feb 2007 21:14:11 +0900
-Received: from hitiij-kan.hitachi.co.jp ([133.145.228.4])
- by vshutr2.hitachi.co.jp with SMTP id M2007021121141105121
- for <yoshii-takashi@hitachi-ul.co.jp>; Sun, 11 Feb 2007 21:14:11 +0900
-Received: from hitachi-ul.co.jp (unknown [121.247.224.249])
-	by hitiij-kan.hitachi.co.jp (Postfix) with ESMTP id C559233CF6
-	for <yoshii-takashi@hitachi-ul.co.jp>; Sun, 11 Feb 2007 21:14:08 +0900 (JST)
-From: linux-acpi@vger.kernel.org
-To: yoshii-takashi@hitachi-ul.co.jp
-Subject: =?utf-8?Q?[MaybeSpam]?=
-	 Phone number
-Date: Sun, 4 Feb 2007 05:11:40 -0800
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0016----=_NextPart_000_0016"
-X-Priority: 3
-X-MSMail-Priority: Normal
-Message-Id: <20070211121408.C559233CF6@hitiij-kan.hitachi.co.jp>
-X-MSW-Classification: =?utf-8?Q?[MaybeSpam]?=
+From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
 
 
---GMAILSMTPBOUND01070211211412--
+---
+
+ drivers/acpi/events/evgpe.c |   11 -----------
+ 1 files changed, 0 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/acpi/events/evgpe.c b/drivers/acpi/events/evgpe.c
+index dfac3ec..635ba44 100644
+--- a/drivers/acpi/events/evgpe.c
++++ b/drivers/acpi/events/evgpe.c
+@@ -636,17 +636,6 @@ acpi_ev_gpe_dispatch(struct acpi_gpe_eve
+ 		}
+ 	}
+ 
+-	if (!acpi_gbl_system_awake_and_running) {
+-		/*
+-		 * We just woke up because of a wake GPE. Disable any further GPEs
+-		 * until we are fully up and running (Only wake GPEs should be enabled
+-		 * at this time, but we just brute-force disable them all.)
+-		 * 1) We must disable this particular wake GPE so it won't fire again
+-		 * 2) We want to disable all wake GPEs, since we are now awake
+-		 */
+-		(void)acpi_hw_disable_all_gpes();
+-	}
+-
+ 	/*
+ 	 * Dispatch the GPE to either an installed handler, or the control method
+ 	 * associated with this GPE (_Lxx or _Exx). If a handler exists, we invoke
+
+--------------030304030100030406030309--
