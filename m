@@ -1,41 +1,51 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [GIT PATCH] ACPI patches for 2.6.21
-Date: Sun, 11 Feb 2007 17:48:51 -0200
-Message-ID: <20070211194851.GB26874@khazad-dum.debian.net>
-References: <200702071418.51058.lenb@kernel.org> <20070209230928.GD3949@ucw.cz> <20070210015836.GA24082@khazad-dum.debian.net> <20070211193517.GA15445@elf.ucw.cz>
+From: Berthold Cogel <cogel@rrz.uni-koeln.de>
+Subject: Re: Regression in kernel linux-2.6.20-rc1/2: Problems with poweroff
+Date: Sun, 11 Feb 2007 23:01:53 +0100
+Message-ID: <45CF9251.1040003@rrz.uni-koeln.de>
+References: <459069AA.20809@rrz.uni-koeln.de> <45999C47.40204@rrz.uni-koeln.de> <20070102190722.GT20714@stusta.de> <200702052228.34264.lenb@kernel.org> <20070206034620.GB27397@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:52064 "EHLO
-	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750710AbXBKTt1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 11 Feb 2007 14:49:27 -0500
-Content-Disposition: inline
-In-Reply-To: <20070211193517.GA15445@elf.ucw.cz>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932572AbXBKWDc@vger.kernel.org>
+In-Reply-To: <20070206034620.GB27397@stusta.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Sun, 11 Feb 2007, Pavel Machek wrote:
-> > > Not including another /proc/acpi/ibm -like nightmare, is it?
-> > 
-> > Don't worry, I am already on my way to kill /proc/acpi/ibm... :-)
+Adrian Bunk schrieb:
+> On Mon, Feb 05, 2007 at 10:28:34PM -0500, Len Brown wrote:
+>>> On Tue, Jan 02, 2007 at 12:41:59AM +0100, Berthold Cogel wrote:
+>>>>>> 'shutdown -h now' doesn't work for my system (Acer Extensa 3002 WLMi)
+>>>>>> with linux-2.6.20-rc kernels. The system reboots instead.
+>>>>>> I've checked linux-2.6.19.1 with an almost identical .config file
+>>>>>> (differences because of new or changed options). For pre 2.6.20 kernels
+>>>>>> shutdown works for my computer.
+>> Try CONFIG_USB=n
 > 
-> Great, thanks!
-> 								Pavel
+> CONFIG_USB_SUSPEND=n is most likely enough.
+> 
+> That's an unfixed 2.6.20-rc regression reported more than once, the 
+> first time in December last year...
+> 
+>> http://bugzilla.kernel.org/show_bug.cgi?id=7945
+> 
+> http://bugzilla.kernel.org/show_bug.cgi?id=7828
+> 
+>> -Len
+> 
+> cu
+> Adrian
+> 
 
-None of the platform/hwmon/led driver model code landed there yet, but it
-should be available at:
+Hi!
 
-http://repo.or.cz/w/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git queue/waiting
+CONFIG_USB_SUSPEND=n does the job. But the patch from
+http://bugzilla.kernel.org/show_bug.cgi?id=7828#c29 works for my system
+too (with CONFIG_USB_SUSPEND=y). The bugreport was made for an ACER
+Travelmate 4001 WMLi, which is almost identical to my Acer Extensa 3002
+WLMi.
 
-eventually.  Note, I push a lot to that branch, and it is a stgit head, so
-it gets rewond if a change that makes sense in an earlier patch shows up.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Regards,
+Berthold
