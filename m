@@ -1,47 +1,39 @@
-From: Richard Purdie <rpurdie@rpsys.net>
-Subject: Re: git backlight tree
-Date: Mon, 12 Feb 2007 13:43:27 +0000
-Message-ID: <1171287807.5898.122.camel@localhost.localdomain>
-References: <1171153985.5836.66.camel@localhost.localdomain>
-	 <200702102345.39855.lenb@kernel.org>
+From: Ismail =?utf-8?q?D=C3=B6nmez?= <ismail@pardus.org.tr>
+Subject: /proc/acpi/ac_adapter/AC is missing after latest ACPI merge
+Date: Mon, 12 Feb 2007 20:45:33 +0200
+Message-ID: <200702122045.34951.ismail@pardus.org.tr>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tim.rpsys.net ([194.106.48.114]:41394 "EHLO tim.rpsys.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964919AbXBLNqE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 Feb 2007 08:46:04 -0500
-In-Reply-To: <200702102345.39855.lenb@kernel.org>
+Received: from ns2.uludag.org.tr ([193.140.100.220]:43342 "EHLO uludag.org.tr"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S965292AbXBLSpd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Feb 2007 13:45:33 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, akpm <akpm@linux-foundation.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, jsimmons@infradead.org, linux-kernel@hansmi.ch, openembedded@hrw.one.pl, Benjamin Herrenschmidt <benh@kernel.crashing.org>
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-On Sat, 2007-02-10 at 23:45 -0500, Len Brown wrote:
-> On Saturday 10 February 2007 19:33, Richard Purdie wrote:
-> > As mentioned previously, I've setup a backlight git tree at:
-> > 
-> > http://git.o-hand.com/?p=linux-rpurdie-backlight;a=shortlog;h=for-mm
-> > (git://git.o-hand.com/linux-rpurdie-backlight)
-> > 
-> > A patch of the combined changes to mainline is:
-> > 
-> > http://www.rpsys.net/openzaurus/patches/git_backlight-r1.patch.gz
-> 
-> The changes under drivers/acpi/ and drivers/misc/ look fine to me.
-> Acked-by: Len Brown <len.brown@intel.com>
-> if you need that to send those bits upstream.
-> 
-> Note that there is a new sony-laptop driver under drivers/misc/ in my tree
-> that I expect to send upstream next week -- and it will need
-> the analogous updates.
+Hi all,
 
-I'd noticed it and had sent Andrew a patch to keep things happy in -mm.
-Now I know the timescales, I'll wait until after its gone in and fixup
-the backlight tree accordingly before submitting.
+After latest ACPI merge /proc/acpi/ac_adapter/AC has gone fishing :
 
-Thanks,
+[~]> ls -al /proc/acpi/ac_adapter/
+dr-xr-xr-x  2 root root 0 =C5=9Eub 12 20:44 ADP1
 
-Richard
+[~]> ls -al /proc/acpi/ac_adapter/ADP1
+-r--r--r-- 1 root root 0 =C5=9Eub 12 20:44 state
 
+This at least breaks HAL which thinks AC is always plugged in, is this =
+change=20
+intentional?
+
+Regards,
+ismail
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
