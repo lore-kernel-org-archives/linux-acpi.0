@@ -1,141 +1,43 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 07/41] sony_acpi: Add acpi_bus_generate event
-Date: Tue, 13 Feb 2007 00:49:09 -0500
-Message-ID: <11713457953042-git-send-email-lenb@kernel.org>
-References: <11713457831139-git-send-email-lenb@kernel.org> <11713457843659-git-send-email-lenb@kernel.org> <11713457871537-git-send-email-lenb@kernel.org> <1171345789246-git-send-email-lenb@kernel.org> <1171345790970-git-send-email-lenb@kernel.org> <11713457922756-git-send-email-lenb@kernel.org> <11713457941772-git-send-email-lenb@kernel.org>
+Subject: [PATCH 14/41] sony-laptop: Small update to the Kconfig help to make people believe this driver is useful.
+Date: Tue, 13 Feb 2007 00:49:16 -0500
+Message-ID: <11713458031539-git-send-email-lenb@kernel.org>
+References: <11713457831139-git-send-email-lenb@kernel.org> <11713457843659-git-send-email-lenb@kernel.org> <11713457871537-git-send-email-lenb@kernel.org> <1171345789246-git-send-email-lenb@kernel.org> <1171345790970-git-send-email-lenb@kernel.org> <11713457922756-git-send-email-lenb@kernel.org> <11713457941772-git-send-email-lenb@kernel.org> <11713457953042-git-send-email-lenb@kernel.org> <11713457971245-git-send-email-lenb@kernel.org> <1171345798129-git-send-email-lenb@kernel.org> <11713457996-git-send-email-lenb@kernel.org> <11713458001192-git-send-email-lenb@kernel.org> <11713458011379-git-send-email-lenb@kernel.org> <11713458021568-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga06.intel.com ([134.134.136.21]:39577 "EHLO
 	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751029AbXBMFt6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Feb 2007 00:49:58 -0500
-In-Reply-To: <11713457941772-git-send-email-lenb@kernel.org>
-Message-Id: <003d185e7123e92f56f4a889015419c272f29fa9.1171345630.git.len.brown@intel.com>
+	with ESMTP id S1751060AbXBMFuF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Feb 2007 00:50:05 -0500
+In-Reply-To: <11713458021568-git-send-email-lenb@kernel.org>
+Message-Id: <e94975adbc53d65bc0362f8eec5f77bea7c88425.1171345630.git.len.brown@intel.com>
 In-Reply-To: <268d175f131e33fe1aed4cd5080884ab5d0badb2.1171345630.git.len.brown@intel.com>
 References: <268d175f131e33fe1aed4cd5080884ab5d0badb2.1171345630.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Stelian Pop <stelian@popies.net>, Nilton Volpato <nilton.volpato@gmail.com>, Andrew Morton <akpm@osdl.org>, Mattia Dongili <malattia@linux.it>, Len Brown <len.brown@intel.com>
+Cc: Mattia Dongili <malattia@linux.it>, Len Brown <len.brown@intel.com>
 
-From: Stelian Pop <stelian@popies.net>
+From: Mattia Dongili <malattia@linux.it>
 
-Added acpi_bus_generate event for forwarding Fn-keys pressed to acpi subsystem,
-and made correspondent necessary changes for this to work.
-
-Signed-off-by: Nilton Volpato <nilton.volpato@gmail.com>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
 Signed-off-by: Mattia Dongili <malattia@linux.it>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/sony_acpi.c |   53 ++++++++++++++++++++++++---------------------
- 1 files changed, 28 insertions(+), 25 deletions(-)
+ drivers/misc/Kconfig |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/sony_acpi.c b/drivers/acpi/sony_acpi.c
-index 195895c..138f2b6 100644
---- a/drivers/acpi/sony_acpi.c
-+++ b/drivers/acpi/sony_acpi.c
-@@ -54,6 +54,7 @@ MODULE_PARM_DESC(debug, "set this to 1 (and RTFM) if you want to help "
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index 78fc47b..009aff8 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -98,7 +98,8 @@ config SONY_LAPTOP
  
- static acpi_handle sony_acpi_handle;
- static struct proc_dir_entry *sony_acpi_dir;
-+static struct acpi_device *sony_acpi_acpi_device = NULL;
+ 	  It gives access to some extra laptop functionalities. In
+ 	  its current form, the only thing this driver does is letting
+-	  the user set or query the screen brightness.
++	  the user set or query the screen brightness and remove/apply
++	  power to some devices.
  
- static int sony_backlight_update_status(struct backlight_device *bd);
- static int sony_backlight_get_brightness(struct backlight_device *bd);
-@@ -270,7 +271,9 @@ static int sony_acpi_resume(struct acpi_device *device)
+ 	  Read <file:Documentation/acpi/sony_acpi.txt> for more information.
  
- static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
- {
--	printk(LOG_PFX "sony_acpi_notify\n");
-+	if (debug)
-+		printk(LOG_PFX "sony_acpi_notify, event: %d\n", event);
-+	acpi_bus_generate_event(sony_acpi_acpi_device, 1, event);
- }
- 
- static acpi_status sony_walk_callback(acpi_handle handle, u32 level,
-@@ -295,6 +298,8 @@ static int sony_acpi_add(struct acpi_device *device)
- 	acpi_handle handle;
- 	struct sony_acpi_value *item;
- 
-+	sony_acpi_acpi_device = device;
-+
- 	sony_acpi_handle = device->handle;
- 
- 	acpi_driver_data(device) = NULL;
-@@ -308,16 +313,16 @@ static int sony_acpi_add(struct acpi_device *device)
- 			result = -ENODEV;
- 			goto outwalk;
- 		}
-+	}
- 
--		status = acpi_install_notify_handler(sony_acpi_handle,
--						     ACPI_DEVICE_NOTIFY,
--						     sony_acpi_notify,
--						     NULL);
--		if (ACPI_FAILURE(status)) {
--			printk(LOG_PFX "unable to install notify handler\n");
--			result = -ENODEV;
--			goto outnotify;
--		}
-+	status = acpi_install_notify_handler(sony_acpi_handle,
-+					     ACPI_DEVICE_NOTIFY,
-+					     sony_acpi_notify,
-+					     NULL);
-+	if (ACPI_FAILURE(status)) {
-+		printk(LOG_PFX "unable to install notify handler\n");
-+		result = -ENODEV;
-+		goto outnotify;
- 	}
- 
- 	if (ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle, "GBRT", &handle))) {
-@@ -342,7 +347,7 @@ static int sony_acpi_add(struct acpi_device *device)
- 		    		 item->acpiset, &handle)))
- 		    	continue;
- 
--		item->proc = create_proc_entry(item->name, 0600,
-+		item->proc = create_proc_entry(item->name, 0666,
- 					       acpi_device_dir(device));
- 		if (!item->proc) {
- 			printk(LOG_PFX "unable to create proc entry\n");
-@@ -361,13 +366,11 @@ static int sony_acpi_add(struct acpi_device *device)
- 	return 0;
- 
- outproc:
--	if (debug) {
--		status = acpi_remove_notify_handler(sony_acpi_handle,
--						    ACPI_DEVICE_NOTIFY,
--						    sony_acpi_notify);
--		if (ACPI_FAILURE(status))
--			printk(LOG_PFX "unable to remove notify handler\n");
--	}
-+	status = acpi_remove_notify_handler(sony_acpi_handle,
-+					    ACPI_DEVICE_NOTIFY,
-+					    sony_acpi_notify);
-+	if (ACPI_FAILURE(status))
-+		printk(LOG_PFX "unable to remove notify handler\n");
- outnotify:
- 	for (item = sony_acpi_values; item->name; ++item)
- 		if (item->proc)
-@@ -384,13 +387,13 @@ static int sony_acpi_remove(struct acpi_device *device, int type)
- 	if (sony_backlight_device)
- 		backlight_device_unregister(sony_backlight_device);
- 
--	if (debug) {
--		status = acpi_remove_notify_handler(sony_acpi_handle,
--						    ACPI_DEVICE_NOTIFY,
--						    sony_acpi_notify);
--		if (ACPI_FAILURE(status))
--			printk(LOG_PFX "unable to remove notify handler\n");
--	}
-+	sony_acpi_acpi_device = NULL;
-+
-+	status = acpi_remove_notify_handler(sony_acpi_handle,
-+					    ACPI_DEVICE_NOTIFY,
-+					    sony_acpi_notify);
-+	if (ACPI_FAILURE(status))
-+		printk(LOG_PFX "unable to remove notify handler\n");
- 
- 	for (item = sony_acpi_values; item->name; ++item)
- 		if (item->proc)
 -- 
 1.5.0.rc4.345.gb4d2
