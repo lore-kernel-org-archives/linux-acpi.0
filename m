@@ -1,42 +1,38 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [PATCH] sony-laptop: allow complex per-value input/output validation
-Date: Tue, 13 Feb 2007 16:49:56 +0100
-Message-ID: <20070213154956.GE5174@inferi.kami.home>
-References: <20070212210107.GA5577@inferi.kami.home> <200702122355.56336.lenb@kernel.org> <49660.85.47.20.193.1171356477.squirrel@picard.linux.it> <1171357148.6028.5.camel@localhost.localdomain> <50157.85.47.20.193.1171358948.squirrel@picard.linux.it> <20070213121659.GA25171@khazad-dum.debian.net>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: no fan detected
+Date: Tue, 13 Feb 2007 15:10:56 -0500
+Message-ID: <200702131510.56754.lenb@kernel.org>
+References: <e30fb88b0702130638g9e26873ned471eceaa309719@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from MTA068A.interbusiness.it ([85.37.17.68]:22430 "EHLO
-	MTA068A.interbusiness.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750772AbXBMP4S (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Feb 2007 10:56:18 -0500
+Received: from hera.kernel.org ([140.211.167.34]:41428 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750928AbXBMUMU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 Feb 2007 15:12:20 -0500
+In-Reply-To: <e30fb88b0702130638g9e26873ned471eceaa309719@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <20070213121659.GA25171@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: linux-acpi@vger.kernel.org, Richard Purdie <rpurdie@rpsys.net>, Len Brown <lenb@kernel.org>
+To: martin schneebacher <martin.schneebacher@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Tue, Feb 13, 2007 at 10:16:59AM -0200, Henrique de Moraes Holschuh wrote:
-> On Tue, 13 Feb 2007, Mattia Dongili wrote:
-> > well this is actually hardware driven, the brightness_default in
-> > sony-laptop only exposes a DSDT method to set this value.
-> > So it's actually one more feature, not a software trick :)
-> > I admit the attribute could be better named 'poweron_brightness'.
+On Tuesday 13 February 2007 09:38, martin schneebacher wrote:
+> hi, list.
 > 
-> ThinkPads can also do this, if we keep their CMOS up-to-date (which we do,
-> currently).  The solution taken by ibm-acpi is to set the power-on
-> brightness at every brighness change, so the machine powers up in the last
-> state it was left in.
+> i have a aopen notebook 1559as with a centrino cpu and a nvidia
+> graphic card. there are two fans inside (cpu and graphic), but since
+> somewhen (i don't remember when exactly, i noticed it with the latest
+> kernel) there is no fan detected by the acpi system, and
+> /proc/acpi/fan is empty. the syslog lists all acpi devices but the
+> fan.
 
-yes, that's the same as in windows. And actually something I did think
-about the same to get rid of the brighness_default stuff, but I'm not
-really convinced it's a nice behaviour, maybe as a configurable option.
+Did /proc/acpi/fan have any contents with any previous version of Linux?
+If so, what version and what was there?
 
-Anyway, I still believe it could be nice to implement it as a general
-interface in the backlight subsys.
+-Len
 
-Let's see if I can prepare a patch :)
--- 
-mattia
-:wq!
+> i'm using debian/sid with
+> Linux gusti 2.6.20 #4 Tue Feb 13 14:58:45 CET 2007 i686 GNU/Linux
