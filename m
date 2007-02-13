@@ -1,17 +1,17 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 39/41] ACPI: delete extra #defines in /drivers/acpi/ drivers
-Date: Tue, 13 Feb 2007 00:49:41 -0500
-Message-ID: <11713458283253-git-send-email-lenb@kernel.org>
+Subject: [PATCH 38/41] ACPI: fix acpi_driver.name usage
+Date: Tue, 13 Feb 2007 00:49:40 -0500
+Message-ID: <11713458271642-git-send-email-lenb@kernel.org>
 References: <11713457831139-git-send-email-lenb@kernel.org> <11713457843659-git-send-email-lenb@kernel.org> <11713457871537-git-send-email-lenb@kernel.org> <1171345789246-git-send-email-lenb@kernel.org> <1171345790970-git-send-email-lenb@kernel.org> <11713457922756-git-send-email-lenb@kernel.org> <11713457941772-git-send-email-lenb@kernel.org> <11713457953042-git-send-email-lenb@kernel.org> <11713457971245-git-send-email-lenb@kernel.org> <1171345798129-git-send-email-lenb@kernel.org> <11713457996-git-send-email-lenb@kernel.org> <11713458001192-git-send-email-lenb@kernel.org> <11713458011379-git-send-email-lenb@kernel.org> <11713458021568-git-send-email-lenb@kernel.org> <11713458031539-git-send-email-lenb@kernel.org> <11713458041996-git-send-email-lenb@kernel.org> <11713458052158-git-send-email-lenb@kernel.org> <11713458062930-git-send-email-lenb@kernel.org> <11713458071963-git-send-email
  -lenb@kernel.org> <11713458083103-git-send-email-lenb@kernel.org> <11713458101527-git-send-email-lenb@kernel.org> <11713458113695-git-send-email-lenb@kernel.org> <11713458122380-git-send-email-lenb@kernel.org> <11713458132236-git-send-email-lenb@kernel.org> <11713458143449-git-send-email-lenb@kernel.org> <11713458152188-git-send-email-lenb@kernel.org> <11713458163685-git-send-email-lenb@kernel.org> <11713458171374-git-send-email-lenb@kernel.org> <11713458183917-git-send-email-lenb@kernel.org> <11713458191475-git-send-email-lenb@kernel.org> <11713458202747-git-send-email-lenb@kernel.org> <11713458211458-git-send-email-lenb@kernel.org> <11713458222751-git-send-email-lenb@kernel.org> <11713458233765-git-send-email-lenb@kernel.org> <11713458242872-git-send-email-lenb@kernel.org> <11713458251648-git-send-email-lenb@kernel.org> <11713458262743-git-send-email-lenb@kernel.org> <11713458271675-
- git-send-email-lenb@kernel.org> <11713458271642-git-send-email-lenb@kernel.org>
+ git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.21]:17992 "EHLO
+Received: from mga06.intel.com ([134.134.136.21]:39554 "EHLO
 	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751098AbXBMFua (ORCPT
+	with ESMTP id S1751097AbXBMFua (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Feb 2007 00:50:30 -0500
-In-Reply-To: <11713458271642-git-send-email-lenb@kernel.org>
-Message-Id: <7cda93e008e1a477970adbf82dba81a5d4f0ae40.1171345631.git.len.brown@intel.com>
+In-Reply-To: <11713458271675-git-send-email-lenb@kernel.org>
+Message-Id: <c2b6705b75d9c7aff98a4602a32230639e10891c.1171345631.git.len.brown@intel.com>
 In-Reply-To: <268d175f131e33fe1aed4cd5080884ab5d0badb2.1171345630.git.len.brown@intel.com>
 References: <268d175f131e33fe1aed4cd5080884ab5d0badb2.1171345630.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -21,412 +21,262 @@ Cc: Len Brown <len.brown@intel.com>
 
 From: Len Brown <len.brown@intel.com>
 
-Cosmetic only.
+It was erroneously used as a description rather than a name.
 
-Except in a single case, #define ACPI_*_DRIVER_NAME
-were invoked 0 or 1 times.
+ie. turn this:
+
+lenb@se7525gp2:/sys> ls bus/acpi/drivers
+ACPI AC Adapter Driver  ACPI Embedded Controller Driver  ACPI Power Resource Driver
+ACPI Battery Driver     ACPI Fan Driver                  ACPI Processor Driver
+ACPI Button Driver      ACPI PCI Interrupt Link Driver   ACPI Thermal Zone Driver
+ACPI container driver   ACPI PCI Root Bridge Driver      hpet
+
+into this:
+
+lenb@se7525gp2:~> ls /sys/bus/acpi/drivers
+ac  battery  button  container  ec  fan  hpet  pci_link  pci_root  power  processor  thermal
 
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/ac.c                   |    3 +--
- drivers/acpi/acpi_memhotplug.c      |    3 +--
- drivers/acpi/battery.c              |    3 +--
- drivers/acpi/bay.c                  |    4 +---
- drivers/acpi/button.c               |    3 +--
- drivers/acpi/container.c            |    3 +--
- drivers/acpi/dock.c                 |    6 +++---
- drivers/acpi/ec.c                   |    1 -
- drivers/acpi/fan.c                  |    3 +--
- drivers/acpi/i2c_ec.c               |    1 -
- drivers/acpi/pci_link.c             |    1 -
- drivers/acpi/pci_root.c             |    1 -
- drivers/acpi/power.c                |    1 -
- drivers/acpi/processor_core.c       |    3 +--
- drivers/acpi/processor_idle.c       |    1 -
- drivers/acpi/processor_perflib.c    |    1 -
- drivers/acpi/processor_thermal.c    |    1 -
- drivers/acpi/processor_throttling.c |    1 -
- drivers/acpi/sbs.c                  |    1 -
- drivers/acpi/scan.c                 |    1 -
- drivers/acpi/system.c               |    1 -
- drivers/acpi/thermal.c              |    3 +--
- drivers/acpi/video.c                |    3 +--
- 23 files changed, 13 insertions(+), 36 deletions(-)
+ drivers/acpi/ac.c              |    2 +-
+ drivers/acpi/acpi_memhotplug.c |    2 +-
+ drivers/acpi/asus_acpi.c       |    2 +-
+ drivers/acpi/battery.c         |    2 +-
+ drivers/acpi/bay.c             |    2 +-
+ drivers/acpi/button.c          |    2 +-
+ drivers/acpi/container.c       |    2 +-
+ drivers/acpi/ec.c              |    2 +-
+ drivers/acpi/fan.c             |    2 +-
+ drivers/acpi/i2c_ec.c          |    2 +-
+ drivers/acpi/pci_link.c        |    2 +-
+ drivers/acpi/pci_root.c        |    2 +-
+ drivers/acpi/power.c           |    2 +-
+ drivers/acpi/processor_core.c  |    2 +-
+ drivers/acpi/sbs.c             |    2 +-
+ drivers/acpi/thermal.c         |    2 +-
+ drivers/acpi/video.c           |    2 +-
+ 17 files changed, 17 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
-index 17eef27..37c7dc4 100644
+index a9b30e6..17eef27 100644
 --- a/drivers/acpi/ac.c
 +++ b/drivers/acpi/ac.c
-@@ -35,7 +35,6 @@
- #define ACPI_AC_COMPONENT		0x00020000
- #define ACPI_AC_CLASS			"ac_adapter"
- #define ACPI_AC_HID 			"ACPI0003"
--#define ACPI_AC_DRIVER_NAME		"ACPI AC Adapter Driver"
- #define ACPI_AC_DEVICE_NAME		"AC Adapter"
- #define ACPI_AC_FILE_STATE		"state"
- #define ACPI_AC_NOTIFY_STATUS		0x80
-@@ -47,7 +46,7 @@
- ACPI_MODULE_NAME("ac");
+@@ -58,7 +58,7 @@ static int acpi_ac_remove(struct acpi_device *device, int type);
+ static int acpi_ac_open_fs(struct inode *inode, struct file *file);
  
- MODULE_AUTHOR("Paul Diefenbaugh");
--MODULE_DESCRIPTION(ACPI_AC_DRIVER_NAME);
-+MODULE_DESCRIPTION("ACPI AC Adapter Driver");
- MODULE_LICENSE("GPL");
- 
- extern struct proc_dir_entry *acpi_lock_ac_dir(void);
+ static struct acpi_driver acpi_ac_driver = {
+-	.name = ACPI_AC_DRIVER_NAME,
++	.name = "ac",
+ 	.class = ACPI_AC_CLASS,
+ 	.ids = ACPI_AC_HID,
+ 	.ops = {
 diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index d677130..c261726 100644
+index 88a6dc3..d677130 100644
 --- a/drivers/acpi/acpi_memhotplug.c
 +++ b/drivers/acpi/acpi_memhotplug.c
-@@ -35,14 +35,13 @@
- #define ACPI_MEMORY_DEVICE_COMPONENT		0x08000000UL
- #define ACPI_MEMORY_DEVICE_CLASS		"memory"
- #define ACPI_MEMORY_DEVICE_HID			"PNP0C80"
--#define ACPI_MEMORY_DEVICE_DRIVER_NAME		"Hotplug Mem Driver"
- #define ACPI_MEMORY_DEVICE_NAME			"Hotplug Mem Device"
+@@ -60,7 +60,7 @@ static int acpi_memory_device_remove(struct acpi_device *device, int type);
+ static int acpi_memory_device_start(struct acpi_device *device);
  
- #define _COMPONENT		ACPI_MEMORY_DEVICE_COMPONENT
- 
- ACPI_MODULE_NAME("acpi_memhotplug");
- MODULE_AUTHOR("Naveen B S <naveen.b.s@intel.com>");
--MODULE_DESCRIPTION(ACPI_MEMORY_DEVICE_DRIVER_NAME);
-+MODULE_DESCRIPTION("Hotplug Mem Driver");
- MODULE_LICENSE("GPL");
- 
- /* ACPI _STA method values */
+ static struct acpi_driver acpi_memory_device_driver = {
+-	.name = ACPI_MEMORY_DEVICE_DRIVER_NAME,
++	.name = "acpi_memhotplug",
+ 	.class = ACPI_MEMORY_DEVICE_CLASS,
+ 	.ids = ACPI_MEMORY_DEVICE_HID,
+ 	.ops = {
+diff --git a/drivers/acpi/asus_acpi.c b/drivers/acpi/asus_acpi.c
+index 31ad70a..40a2f4c 100644
+--- a/drivers/acpi/asus_acpi.c
++++ b/drivers/acpi/asus_acpi.c
+@@ -421,7 +421,7 @@ static struct asus_hotk *hotk;
+ static int asus_hotk_add(struct acpi_device *device);
+ static int asus_hotk_remove(struct acpi_device *device, int type);
+ static struct acpi_driver asus_hotk_driver = {
+-	.name = ACPI_HOTK_NAME,
++	.name = "asus_acpi",
+ 	.class = ACPI_HOTK_CLASS,
+ 	.ids = ACPI_HOTK_HID,
+ 	.ops = {
 diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index da29d9d..02de49e 100644
+index 4b8db56..da29d9d 100644
 --- a/drivers/acpi/battery.c
 +++ b/drivers/acpi/battery.c
-@@ -42,7 +42,6 @@
- #define ACPI_BATTERY_COMPONENT		0x00040000
- #define ACPI_BATTERY_CLASS		"battery"
- #define ACPI_BATTERY_HID		"PNP0C0A"
--#define ACPI_BATTERY_DRIVER_NAME	"ACPI Battery Driver"
- #define ACPI_BATTERY_DEVICE_NAME	"Battery"
- #define ACPI_BATTERY_FILE_INFO		"info"
- #define ACPI_BATTERY_FILE_STATUS	"state"
-@@ -56,7 +55,7 @@
- ACPI_MODULE_NAME("battery");
+@@ -67,7 +67,7 @@ static int acpi_battery_remove(struct acpi_device *device, int type);
+ static int acpi_battery_resume(struct acpi_device *device);
  
- MODULE_AUTHOR("Paul Diefenbaugh");
--MODULE_DESCRIPTION(ACPI_BATTERY_DRIVER_NAME);
-+MODULE_DESCRIPTION("ACPI Battery Driver");
- MODULE_LICENSE("GPL");
- 
- extern struct proc_dir_entry *acpi_lock_battery_dir(void);
+ static struct acpi_driver acpi_battery_driver = {
+-	.name = ACPI_BATTERY_DRIVER_NAME,
++	.name = "battery",
+ 	.class = ACPI_BATTERY_CLASS,
+ 	.ids = ACPI_BATTERY_HID,
+ 	.ops = {
 diff --git a/drivers/acpi/bay.c b/drivers/acpi/bay.c
-index 1f88858..36dcb89 100644
+index 19fe57d..1f88858 100644
 --- a/drivers/acpi/bay.c
 +++ b/drivers/acpi/bay.c
-@@ -32,11 +32,9 @@
- #include <asm/uaccess.h>
- #include <linux/platform_device.h>
+@@ -51,7 +51,7 @@ static int acpi_bay_add(struct acpi_device *device);
+ static int acpi_bay_remove(struct acpi_device *device, int type);
  
--#define ACPI_BAY_DRIVER_NAME "ACPI Removable Drive Bay Driver"
--
- ACPI_MODULE_NAME("bay");
- MODULE_AUTHOR("Kristen Carlson Accardi");
--MODULE_DESCRIPTION(ACPI_BAY_DRIVER_NAME);
-+MODULE_DESCRIPTION("ACPI Removable Drive Bay Driver");
- MODULE_LICENSE("GPL");
- #define ACPI_BAY_CLASS "bay"
- #define ACPI_BAY_COMPONENT	0x10000000
+ static struct acpi_driver acpi_bay_driver = {
+-	.name = ACPI_BAY_DRIVER_NAME,
++	.name = "bay",
+ 	.class = ACPI_BAY_CLASS,
+ 	.ids = ACPI_BAY_HID,
+ 	.ops = {
 diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index 45f960d..cb4110b 100644
+index 28ce5c6..45f960d 100644
 --- a/drivers/acpi/button.c
 +++ b/drivers/acpi/button.c
-@@ -34,7 +34,6 @@
- #include <acpi/acpi_drivers.h>
+@@ -73,7 +73,7 @@ static int acpi_button_info_open_fs(struct inode *inode, struct file *file);
+ static int acpi_button_state_open_fs(struct inode *inode, struct file *file);
  
- #define ACPI_BUTTON_COMPONENT		0x00080000
--#define ACPI_BUTTON_DRIVER_NAME		"ACPI Button Driver"
- #define ACPI_BUTTON_CLASS		"button"
- #define ACPI_BUTTON_FILE_INFO		"info"
- #define ACPI_BUTTON_FILE_STATE		"state"
-@@ -64,7 +63,7 @@
- ACPI_MODULE_NAME("button");
- 
- MODULE_AUTHOR("Paul Diefenbaugh");
--MODULE_DESCRIPTION(ACPI_BUTTON_DRIVER_NAME);
-+MODULE_DESCRIPTION("ACPI Button Driver");
- MODULE_LICENSE("GPL");
- 
- static int acpi_button_add(struct acpi_device *device);
+ static struct acpi_driver acpi_button_driver = {
+-	.name = ACPI_BUTTON_DRIVER_NAME,
++	.name = "button",
+ 	.class = ACPI_BUTTON_CLASS,
+ 	.ids = "button_power,button_sleep,PNP0C0D,PNP0C0C,PNP0C0E",
+ 	.ops = {
 diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
-index 0e36062..0930d94 100644
+index f3e59af..0e36062 100644
 --- a/drivers/acpi/container.c
 +++ b/drivers/acpi/container.c
-@@ -35,7 +35,6 @@
- #include <acpi/acpi_drivers.h>
- #include <acpi/container.h>
+@@ -56,7 +56,7 @@ static int acpi_container_add(struct acpi_device *device);
+ static int acpi_container_remove(struct acpi_device *device, int type);
  
--#define ACPI_CONTAINER_DRIVER_NAME	"ACPI container driver"
- #define ACPI_CONTAINER_DEVICE_NAME	"ACPI container device"
- #define ACPI_CONTAINER_CLASS		"container"
- 
-@@ -47,7 +46,7 @@
- ACPI_MODULE_NAME("container");
- 
- MODULE_AUTHOR("Anil S Keshavamurthy");
--MODULE_DESCRIPTION(ACPI_CONTAINER_DRIVER_NAME);
-+MODULE_DESCRIPTION("ACPI container driver");
- MODULE_LICENSE("GPL");
- 
- #define ACPI_STA_PRESENT		(0x00000001)
-diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-index b3a04ff..54a697f 100644
---- a/drivers/acpi/dock.c
-+++ b/drivers/acpi/dock.c
-@@ -32,11 +32,11 @@
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
- 
--#define ACPI_DOCK_DRIVER_NAME "ACPI Dock Station Driver"
-+#define ACPI_DOCK_DRIVER_DESCRIPTION "ACPI Dock Station Driver"
- 
- ACPI_MODULE_NAME("dock");
- MODULE_AUTHOR("Kristen Carlson Accardi");
--MODULE_DESCRIPTION(ACPI_DOCK_DRIVER_NAME);
-+MODULE_DESCRIPTION(ACPI_DOCK_DRIVER_DESCRIPTION);
- MODULE_LICENSE("GPL");
- 
- static struct atomic_notifier_head dock_notifier_list;
-@@ -741,7 +741,7 @@ static int dock_add(acpi_handle handle)
- 		goto dock_add_err;
- 	}
- 
--	printk(KERN_INFO PREFIX "%s \n", ACPI_DOCK_DRIVER_NAME);
-+	printk(KERN_INFO PREFIX "%s \n", ACPI_DOCK_DRIVER_DESCRIPTION);
- 
- 	return 0;
- 
+ static struct acpi_driver acpi_container_driver = {
+-	.name = ACPI_CONTAINER_DRIVER_NAME,
++	.name = "container",
+ 	.class = ACPI_CONTAINER_CLASS,
+ 	.ids = "ACPI0004,PNP0A05,PNP0A06",
+ 	.ops = {
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 9d67952..c1f6251 100644
+index a5c0b5c..9d67952 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -42,7 +42,6 @@ ACPI_MODULE_NAME("ec");
- #define ACPI_EC_COMPONENT		0x00100000
- #define ACPI_EC_CLASS			"embedded_controller"
- #define ACPI_EC_HID			"PNP0C09"
--#define ACPI_EC_DRIVER_NAME		"ACPI Embedded Controller Driver"
- #define ACPI_EC_DEVICE_NAME		"Embedded Controller"
- #define ACPI_EC_FILE_INFO		"info"
- #undef PREFIX
+@@ -80,7 +80,7 @@ static int acpi_ec_stop(struct acpi_device *device, int type);
+ static int acpi_ec_add(struct acpi_device *device);
+ 
+ static struct acpi_driver acpi_ec_driver = {
+-	.name = ACPI_EC_DRIVER_NAME,
++	.name = "ec",
+ 	.class = ACPI_EC_CLASS,
+ 	.ids = ACPI_EC_HID,
+ 	.ops = {
 diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
-index 5ac727e..ec655c5 100644
+index b902d3b..5ac727e 100644
 --- a/drivers/acpi/fan.c
 +++ b/drivers/acpi/fan.c
-@@ -36,14 +36,13 @@
+@@ -52,7 +52,7 @@ static int acpi_fan_suspend(struct acpi_device *device, pm_message_t state);
+ static int acpi_fan_resume(struct acpi_device *device);
  
- #define ACPI_FAN_COMPONENT		0x00200000
- #define ACPI_FAN_CLASS			"fan"
--#define ACPI_FAN_DRIVER_NAME		"ACPI Fan Driver"
- #define ACPI_FAN_FILE_STATE		"state"
- 
- #define _COMPONENT		ACPI_FAN_COMPONENT
- ACPI_MODULE_NAME("fan");
- 
- MODULE_AUTHOR("Paul Diefenbaugh");
--MODULE_DESCRIPTION(ACPI_FAN_DRIVER_NAME);
-+MODULE_DESCRIPTION("ACPI Fan Driver");
- MODULE_LICENSE("GPL");
- 
- static int acpi_fan_add(struct acpi_device *device);
+ static struct acpi_driver acpi_fan_driver = {
+-	.name = ACPI_FAN_DRIVER_NAME,
++	.name = "fan",
+ 	.class = ACPI_FAN_CLASS,
+ 	.ids = "PNP0C0B",
+ 	.ops = {
 diff --git a/drivers/acpi/i2c_ec.c b/drivers/acpi/i2c_ec.c
-index d2fde7a..a29b827 100644
+index 62af6da..d2fde7a 100644
 --- a/drivers/acpi/i2c_ec.c
 +++ b/drivers/acpi/i2c_ec.c
-@@ -28,7 +28,6 @@
- #define ACPI_EC_HC_COMPONENT	0x00080000
- #define ACPI_EC_HC_CLASS	"ec_hc_smbus"
- #define ACPI_EC_HC_HID		"ACPI0001"
--#define ACPI_EC_HC_DRIVER_NAME	"ACPI EC HC smbus driver"
- #define ACPI_EC_HC_DEVICE_NAME	"EC HC smbus"
+@@ -39,7 +39,7 @@ static int acpi_ec_hc_add(struct acpi_device *device);
+ static int acpi_ec_hc_remove(struct acpi_device *device, int type);
  
- #define _COMPONENT		ACPI_EC_HC_COMPONENT
+ static struct acpi_driver acpi_ec_hc_driver = {
+-	.name = ACPI_EC_HC_DRIVER_NAME,
++	.name = "i2c_ec",
+ 	.class = ACPI_EC_HC_CLASS,
+ 	.ids = ACPI_EC_HC_HID,
+ 	.ops = {
 diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index a95f03f..acc5947 100644
+index da22c5e..a95f03f 100644
 --- a/drivers/acpi/pci_link.c
 +++ b/drivers/acpi/pci_link.c
-@@ -47,7 +47,6 @@
- ACPI_MODULE_NAME("pci_link");
- #define ACPI_PCI_LINK_CLASS		"pci_irq_routing"
- #define ACPI_PCI_LINK_HID		"PNP0C0F"
--#define ACPI_PCI_LINK_DRIVER_NAME	"ACPI PCI Interrupt Link Driver"
- #define ACPI_PCI_LINK_DEVICE_NAME	"PCI Interrupt Link"
- #define ACPI_PCI_LINK_FILE_INFO		"info"
- #define ACPI_PCI_LINK_FILE_STATUS	"state"
+@@ -56,7 +56,7 @@ static int acpi_pci_link_add(struct acpi_device *device);
+ static int acpi_pci_link_remove(struct acpi_device *device, int type);
+ 
+ static struct acpi_driver acpi_pci_link_driver = {
+-	.name = ACPI_PCI_LINK_DRIVER_NAME,
++	.name = "pci_link",
+ 	.class = ACPI_PCI_LINK_CLASS,
+ 	.ids = ACPI_PCI_LINK_HID,
+ 	.ops = {
 diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 7bf24c3..ad4145a 100644
+index 3db2cd3..7bf24c3 100644
 --- a/drivers/acpi/pci_root.c
 +++ b/drivers/acpi/pci_root.c
-@@ -39,7 +39,6 @@
- ACPI_MODULE_NAME("pci_root");
- #define ACPI_PCI_ROOT_CLASS		"pci_bridge"
- #define ACPI_PCI_ROOT_HID		"PNP0A03"
--#define ACPI_PCI_ROOT_DRIVER_NAME	"ACPI PCI Root Bridge Driver"
- #define ACPI_PCI_ROOT_DEVICE_NAME	"PCI Root Bridge"
- static int acpi_pci_root_add(struct acpi_device *device);
- static int acpi_pci_root_remove(struct acpi_device *device, int type);
+@@ -46,7 +46,7 @@ static int acpi_pci_root_remove(struct acpi_device *device, int type);
+ static int acpi_pci_root_start(struct acpi_device *device);
+ 
+ static struct acpi_driver acpi_pci_root_driver = {
+-	.name = ACPI_PCI_ROOT_DRIVER_NAME,
++	.name = "pci_root",
+ 	.class = ACPI_PCI_ROOT_CLASS,
+ 	.ids = ACPI_PCI_ROOT_HID,
+ 	.ops = {
 diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index 09b855d..92f80ba 100644
+index 26e8edc..09b855d 100644
 --- a/drivers/acpi/power.c
 +++ b/drivers/acpi/power.c
-@@ -48,7 +48,6 @@
- ACPI_MODULE_NAME("power");
- #define ACPI_POWER_COMPONENT		0x00800000
- #define ACPI_POWER_CLASS		"power_resource"
--#define ACPI_POWER_DRIVER_NAME		"ACPI Power Resource Driver"
- #define ACPI_POWER_DEVICE_NAME		"Power Resource"
- #define ACPI_POWER_FILE_INFO		"info"
- #define ACPI_POWER_FILE_STATUS		"state"
+@@ -60,7 +60,7 @@ static int acpi_power_remove(struct acpi_device *device, int type);
+ static int acpi_power_open_fs(struct inode *inode, struct file *file);
+ 
+ static struct acpi_driver acpi_power_driver = {
+-	.name = ACPI_POWER_DRIVER_NAME,
++	.name = "power",
+ 	.class = ACPI_POWER_CLASS,
+ 	.ids = ACPI_POWER_HID,
+ 	.ops = {
 diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 19c44b5..911fc8c 100644
+index 13135f8..19c44b5 100644
 --- a/drivers/acpi/processor_core.c
 +++ b/drivers/acpi/processor_core.c
-@@ -60,7 +60,6 @@
+@@ -89,7 +89,7 @@ static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu);
+ static int acpi_processor_handle_eject(struct acpi_processor *pr);
  
- #define ACPI_PROCESSOR_COMPONENT	0x01000000
- #define ACPI_PROCESSOR_CLASS		"processor"
--#define ACPI_PROCESSOR_DRIVER_NAME	"ACPI Processor Driver"
- #define ACPI_PROCESSOR_DEVICE_NAME	"Processor"
- #define ACPI_PROCESSOR_FILE_INFO	"info"
- #define ACPI_PROCESSOR_FILE_THROTTLING	"throttling"
-@@ -77,7 +76,7 @@
- ACPI_MODULE_NAME("processor_core");
- 
- MODULE_AUTHOR("Paul Diefenbaugh");
--MODULE_DESCRIPTION(ACPI_PROCESSOR_DRIVER_NAME);
-+MODULE_DESCRIPTION("ACPI Processor Driver");
- MODULE_LICENSE("GPL");
- 
- static int acpi_processor_add(struct acpi_device *device);
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index a26433d..92f5185 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -48,7 +48,6 @@
- 
- #define ACPI_PROCESSOR_COMPONENT        0x01000000
- #define ACPI_PROCESSOR_CLASS            "processor"
--#define ACPI_PROCESSOR_DRIVER_NAME      "ACPI Processor Driver"
- #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
- ACPI_MODULE_NAME("processor_idle");
- #define ACPI_PROCESSOR_FILE_POWER	"power"
-diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
-index c2add4e..2f2e796 100644
---- a/drivers/acpi/processor_perflib.c
-+++ b/drivers/acpi/processor_perflib.c
-@@ -44,7 +44,6 @@
- 
- #define ACPI_PROCESSOR_COMPONENT	0x01000000
- #define ACPI_PROCESSOR_CLASS		"processor"
--#define ACPI_PROCESSOR_DRIVER_NAME	"ACPI Processor Driver"
- #define ACPI_PROCESSOR_FILE_PERFORMANCE	"performance"
- #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
- ACPI_MODULE_NAME("processor_perflib");
-diff --git a/drivers/acpi/processor_thermal.c b/drivers/acpi/processor_thermal.c
-index 9357d63..06e6f3f 100644
---- a/drivers/acpi/processor_thermal.c
-+++ b/drivers/acpi/processor_thermal.c
-@@ -41,7 +41,6 @@
- 
- #define ACPI_PROCESSOR_COMPONENT        0x01000000
- #define ACPI_PROCESSOR_CLASS            "processor"
--#define ACPI_PROCESSOR_DRIVER_NAME      "ACPI Processor Driver"
- #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
- ACPI_MODULE_NAME("processor_thermal");
- 
-diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
-index 8194eb0..b334860 100644
---- a/drivers/acpi/processor_throttling.c
-+++ b/drivers/acpi/processor_throttling.c
-@@ -41,7 +41,6 @@
- 
- #define ACPI_PROCESSOR_COMPONENT        0x01000000
- #define ACPI_PROCESSOR_CLASS            "processor"
--#define ACPI_PROCESSOR_DRIVER_NAME      "ACPI Processor Driver"
- #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
- ACPI_MODULE_NAME("processor_throttling");
- 
+ static struct acpi_driver acpi_processor_driver = {
+-	.name = ACPI_PROCESSOR_DRIVER_NAME,
++	.name = "processor",
+ 	.class = ACPI_PROCESSOR_CLASS,
+ 	.ids = ACPI_PROCESSOR_HID,
+ 	.ops = {
 diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-index 1c2d8fb..1eab203 100644
+index f5b714d..1c2d8fb 100644
 --- a/drivers/acpi/sbs.c
 +++ b/drivers/acpi/sbs.c
-@@ -59,7 +59,6 @@ extern void acpi_unlock_battery_dir(struct proc_dir_entry *acpi_battery_dir);
- #define ACPI_AC_CLASS			"ac_adapter"
- #define ACPI_BATTERY_CLASS		"battery"
- #define ACPI_SBS_HID			"ACPI0002"
--#define ACPI_SBS_DRIVER_NAME		"ACPI Smart Battery System Driver"
- #define ACPI_SBS_DEVICE_NAME		"Smart Battery System"
- #define ACPI_SBS_FILE_INFO		"info"
- #define ACPI_SBS_FILE_STATE		"state"
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index cff1b59..bb0e0da 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -17,7 +17,6 @@ extern struct acpi_device *acpi_root;
+@@ -110,7 +110,7 @@ static void acpi_battery_smbus_err_handler(struct acpi_ec_smbus *smbus);
+ static void acpi_sbs_update_queue(void *data);
  
- #define ACPI_BUS_CLASS			"system_bus"
- #define ACPI_BUS_HID			"ACPI_BUS"
--#define ACPI_BUS_DRIVER_NAME		"ACPI Bus Driver"
- #define ACPI_BUS_DEVICE_NAME		"System Bus"
- 
- static LIST_HEAD(acpi_device_list);
-diff --git a/drivers/acpi/system.c b/drivers/acpi/system.c
-index edead9e..83a8d30 100644
---- a/drivers/acpi/system.c
-+++ b/drivers/acpi/system.c
-@@ -38,7 +38,6 @@ ACPI_MODULE_NAME("system");
- #define MODULE_PARAM_PREFIX "acpi."
- 
- #define ACPI_SYSTEM_CLASS		"system"
--#define ACPI_SYSTEM_DRIVER_NAME		"ACPI System Driver"
- #define ACPI_SYSTEM_DEVICE_NAME		"System"
- #define ACPI_SYSTEM_FILE_INFO		"info"
- #define ACPI_SYSTEM_FILE_EVENT		"event"
+ static struct acpi_driver acpi_sbs_driver = {
+-	.name = ACPI_SBS_DRIVER_NAME,
++	.name = "sbs",
+ 	.class = ACPI_SBS_CLASS,
+ 	.ids = ACPI_SBS_HID,
+ 	.ops = {
 diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index c34a89d..f50a405 100644
+index bf0a9f2..c34a89d 100644
 --- a/drivers/acpi/thermal.c
 +++ b/drivers/acpi/thermal.c
-@@ -46,7 +46,6 @@
+@@ -98,7 +98,7 @@ static ssize_t acpi_thermal_write_polling(struct file *, const char __user *,
+ 					  size_t, loff_t *);
  
- #define ACPI_THERMAL_COMPONENT		0x04000000
- #define ACPI_THERMAL_CLASS		"thermal_zone"
--#define ACPI_THERMAL_DRIVER_NAME	"ACPI Thermal Zone Driver"
- #define ACPI_THERMAL_DEVICE_NAME	"Thermal Zone"
- #define ACPI_THERMAL_FILE_STATE		"state"
- #define ACPI_THERMAL_FILE_TEMPERATURE	"temperature"
-@@ -73,7 +72,7 @@
- ACPI_MODULE_NAME("thermal");
- 
- MODULE_AUTHOR("Paul Diefenbaugh");
--MODULE_DESCRIPTION(ACPI_THERMAL_DRIVER_NAME);
-+MODULE_DESCRIPTION("ACPI Thermal Zone Driver");
- MODULE_LICENSE("GPL");
- 
- static int tzp;
+ static struct acpi_driver acpi_thermal_driver = {
+-	.name = ACPI_THERMAL_DRIVER_NAME,
++	.name = "thermal",
+ 	.class = ACPI_THERMAL_CLASS,
+ 	.ids = ACPI_THERMAL_HID,
+ 	.ops = {
 diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 0c44ffd..bf525cc 100644
+index a095d01..0c44ffd 100644
 --- a/drivers/acpi/video.c
 +++ b/drivers/acpi/video.c
-@@ -40,7 +40,6 @@
+@@ -75,7 +75,7 @@ static int acpi_video_bus_add(struct acpi_device *device);
+ static int acpi_video_bus_remove(struct acpi_device *device, int type);
  
- #define ACPI_VIDEO_COMPONENT		0x08000000
- #define ACPI_VIDEO_CLASS		"video"
--#define ACPI_VIDEO_DRIVER_NAME		"ACPI Video Driver"
- #define ACPI_VIDEO_BUS_NAME		"Video Bus"
- #define ACPI_VIDEO_DEVICE_NAME		"Video Device"
- #define ACPI_VIDEO_NOTIFY_SWITCH	0x80
-@@ -68,7 +67,7 @@
- ACPI_MODULE_NAME("video");
- 
- MODULE_AUTHOR("Bruno Ducrot");
--MODULE_DESCRIPTION(ACPI_VIDEO_DRIVER_NAME);
-+MODULE_DESCRIPTION("ACPI Video Driver");
- MODULE_LICENSE("GPL");
- 
- static int acpi_video_bus_add(struct acpi_device *device);
+ static struct acpi_driver acpi_video_bus = {
+-	.name = ACPI_VIDEO_DRIVER_NAME,
++	.name = "video",
+ 	.class = ACPI_VIDEO_CLASS,
+ 	.ids = ACPI_VIDEO_HID,
+ 	.ops = {
 -- 
 1.5.0.rc4.345.gb4d2
