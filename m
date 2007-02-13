@@ -1,66 +1,49 @@
-From: "Mattia Dongili" <malattia@linux.it>
-Subject: Re: [PATCH] sony-laptop: allow complex per-value input/output  
-     validation
-Date: Tue, 13 Feb 2007 10:29:08 +0100 (CET)
-Message-ID: <50157.85.47.20.193.1171358948.squirrel@picard.linux.it>
-References: <20070212210107.GA5577@inferi.kami.home>
-    <200702122355.56336.lenb@kernel.org>
-    <49660.85.47.20.193.1171356477.squirrel@picard.linux.it>
-    <1171357148.6028.5.camel@localhost.localdomain>
+From: Ismail =?utf-8?q?D=C3=B6nmez?= <ismail@pardus.org.tr>
+Subject: Re: /proc/acpi/ac_adapter/AC is missing after latest ACPI merge
+Date: Tue, 13 Feb 2007 13:51:51 +0200
+Message-ID: <200702131352.13587.ismail@pardus.org.tr>
+References: <200702122045.34951.ismail@pardus.org.tr> <200702130023.15495.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from picard.linux.it ([213.254.12.146]:51230 "EHLO picard.linux.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751231AbXBMJ3K (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Feb 2007 04:29:10 -0500
-In-Reply-To: <1171357148.6028.5.camel@localhost.localdomain>
+Received: from ns2.uludag.org.tr ([193.140.100.220]:33072 "EHLO uludag.org.tr"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751292AbXBMLwZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Feb 2007 06:52:25 -0500
+In-Reply-To: <200702130023.15495.lenb@kernel.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Richard Purdie <rpurdie@rpsys.net>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, February 13, 2007 9:59 am, Richard Purdie said:
-> On Tue, 2007-02-13 at 09:47 +0100, Mattia Dongili wrote:
->> On Tue, February 13, 2007 5:55 am, Len Brown said:
->> > On Monday 12 February 2007 16:01, Mattia Dongili wrote:
->> >> allows consistency between the sony-laptop
->> >> specific 'brightness_default' and the backlight subsystem 0-based
->> >> 'brightness'.
->> >
->> > Why do we need to have "sony-laptop specific 'brightness_default'" --
->> > is that a shortcoming of the backlight subsystem?
->>
->> It depends on how do you see it :)
->> brightness_default is the value that brightness will have at the next
->> (and
->> later) reboot and it's currently handled as a platform_device attribute.
->> It would be nice anyway if one such attribute could be added to the
->> backlight subsystem (I'll provide patches - added rpurdie to the Cc
->> list)
->> in order to standardize its behavior/interface.
+On Tuesday 13 February 2007 07:23:15 Len Brown wrote:
+> On Monday 12 February 2007 13:45, Ismail D=C3=B6nmez wrote:
+> > Hi all,
+> >
+> > After latest ACPI merge /proc/acpi/ac_adapter/AC has gone fishing :
+> >
+> > [~]> ls -al /proc/acpi/ac_adapter/
+> > dr-xr-xr-x  2 root root 0 =C5=9Eub 12 20:44 ADP1
+> >
+> > [~]> ls -al /proc/acpi/ac_adapter/ADP1
+> > -r--r--r-- 1 root root 0 =C5=9Eub 12 20:44 state
+> >
+> > This at least breaks HAL which thinks AC is always plugged in, is t=
+his
+> > change intentional?
 >
-> The backlight class doesn't really have any reason to know anything
-> about defaults. The current behaviour is that if you want it at a
-> certain 'default' brightness, you set it to this after you register the
-> device. Some devices don't want the brightness changed and want to use
-> whatever it was set to originally. In the case of some other drivers,
-> you can't read the brightness value.
+> no change intended here.
 
-well this is actually hardware driven, the brightness_default in
-sony-laptop only exposes a DSDT method to set this value.
-So it's actually one more feature, not a software trick :)
-I admit the attribute could be better named 'poweron_brightness'.
+It was indeed a sysfs problem which commit=20
+c2b6705b75d9c7aff98a4602a32230639e10891c fixed.
 
-> With any patches, please keep in mind the changes in
-> http://git.o-hand.com/?p=linux-rpurdie-backlight;a=shortlog;h=for-mm as
-> I've separated out the ops functions from the actual device specific
-> data.
+Regards,
+ismail
 
-Yep, thanks.
--- 
-mattia
-:wq!
-
-
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
