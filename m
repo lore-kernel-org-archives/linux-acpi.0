@@ -1,55 +1,46 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] sony-laptop: allow complex per-value input/output validation
-Date: Tue, 13 Feb 2007 23:17:33 -0200
-Message-ID: <20070214011733.GA4447@khazad-dum.debian.net>
-References: <20070212210107.GA5577@inferi.kami.home> <200702122355.56336.lenb@kernel.org> <49660.85.47.20.193.1171356477.squirrel@picard.linux.it> <1171357148.6028.5.camel@localhost.localdomain> <50157.85.47.20.193.1171358948.squirrel@picard.linux.it> <20070213121659.GA25171@khazad-dum.debian.net> <20070213154956.GE5174@inferi.kami.home>
+From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Subject: Re: no fan detected
+Date: Wed, 14 Feb 2007 09:46:06 +0300
+Message-ID: <45D2B02E.7040302@linux.intel.com>
+References: <e30fb88b0702130638g9e26873ned471eceaa309719@mail.gmail.com>	 <200702131510.56754.lenb@kernel.org>	 <e30fb88b0702131400p7aa0c1b6ifcde1eca191fea8c@mail.gmail.com> <e30fb88b0702131545y5ee3b5eeq992344926f32fde8@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:43209 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751478AbXBNBRs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Feb 2007 20:17:48 -0500
-Content-Disposition: inline
-In-Reply-To: <20070213154956.GE5174@inferi.kami.home>
+Received: from mga06.intel.com ([134.134.136.21]:28088 "EHLO
+	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751136AbXBNGqO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Feb 2007 01:46:14 -0500
+In-Reply-To: <e30fb88b0702131545y5ee3b5eeq992344926f32fde8@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: linux-acpi@vger.kernel.org, Richard Purdie <rpurdie@rpsys.net>, Len Brown <lenb@kernel.org>
+To: martin schneebacher <martin.schneebacher@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Tue, 13 Feb 2007, Mattia Dongili wrote:
-> On Tue, Feb 13, 2007 at 10:16:59AM -0200, Henrique de Moraes Holschuh wrote:
-> > On Tue, 13 Feb 2007, Mattia Dongili wrote:
-> > > well this is actually hardware driven, the brightness_default in
-> > > sony-laptop only exposes a DSDT method to set this value.
-> > > So it's actually one more feature, not a software trick :)
-> > > I admit the attribute could be better named 'poweron_brightness'.
-> > 
-> > ThinkPads can also do this, if we keep their CMOS up-to-date (which we do,
-> > currently).  The solution taken by ibm-acpi is to set the power-on
-> > brightness at every brighness change, so the machine powers up in the last
-> > state it was left in.
-> 
-> yes, that's the same as in windows. And actually something I did think
-> about the same to get rid of the brighness_default stuff, but I'm not
-> really convinced it's a nice behaviour, maybe as a configurable option.
+martin schneebacher wrote:
+> On 2/13/07, martin schneebacher <martin.schneebacher@gmail.com> wrote:
+>> On 2/13/07, Len Brown <lenb@kernel.org> wrote:
+>> > Did /proc/acpi/fan have any contents with any previous version of 
+>> Linux?
+>> > If so, what version and what was there?
+>
+> i tried with 2.6.12.6, which was the first one on this machine. but
+> without success.
+>
+Good chance your BIOS vendor did not export control of the fun to userspace.
+> the fans are running up and down acording to the temperature, but i
+> have no control in /proc nor any info about their state.
+>
+So you don't need to have control too.
+You could look at your DSDT, it is in /proc/dsdt. it is possible to 
+disassemble it with "iasl" which should
+be available either in repository of the packages for your Linux version,
+or as part of acpica-unix, available at www.intel.com.
+Look for a device with id from /drivers/acpi/fun.c file (PNP*).
+If such a device exists, then we should deliver it to you as 
+/proc/acpi/fun/name.
+> bye...masc.
+> -
 
-It is the least surprise principle at work.  Users can very easily
-understand that it will stay at the state they left it.  ThinkPads have been
-doing it like that since forever, no matter which the operating system it is
-running.
-
-> Anyway, I still believe it could be nice to implement it as a general
-> interface in the backlight subsys.
-
-I am not against it, but I don't know if I would take the trouble to
-implement that in ibm-acpi.  I'd accept a proper patch doing it, though, if
-some thinkpad user ever cared enough to produce one, and the interface
-allowed for a default of "don't change".
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Regards,
+    Alex.
