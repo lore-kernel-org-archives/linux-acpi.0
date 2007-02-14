@@ -1,53 +1,43 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH] ACPI: bay: use IS_ERR for return of register_platform_device_simple
-Date: Wed, 14 Feb 2007 10:55:00 -0200
-Message-ID: <20070214125459.GB4447@khazad-dum.debian.net>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [GIT PATCH] ACPI patches for 2.6.21
+Date: Wed, 14 Feb 2007 13:58:49 +0100
+Message-ID: <20070214125849.GH22008@elf.ucw.cz>
+References: <200702071418.51058.lenb@kernel.org> <20070209230928.GD3949@ucw.cz> <20070210015836.GA24082@khazad-dum.debian.net> <20070211193517.GA15445@elf.ucw.cz> <20070211194851.GB26874@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:48224 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932241AbXBNMzG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 14 Feb 2007 07:55:06 -0500
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:35049 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932242AbXBNM7I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 Feb 2007 07:59:08 -0500
 Content-Disposition: inline
+In-Reply-To: <20070211194851.GB26874@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-register_platform_device_simple returns ERR_PTR(foo), so test it with
-IS_ERR(foo).
+Hi!
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+> > > > Not including another /proc/acpi/ibm -like nightmare, is it?
+> > > 
+> > > Don't worry, I am already on my way to kill /proc/acpi/ibm... :-)
+> > 
+> > Great, thanks!
+> > 								Pavel
+> 
+> None of the platform/hwmon/led driver model code landed there yet, but it
+> should be available at:
+> 
+> http://repo.or.cz/w/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git queue/waiting
+> 
+> eventually.  Note, I push a lot to that branch, and it is a stgit head, so
+> it gets rewond if a change that makes sense in an earlier patch shows up.
 
----
-
-I wonder how many of these are in the kernel?  An annotation for this would be
-a good idea.  It doesn't help that people, as usual, do not see fit to document
-how the heck they return errors, so you have to track down the source of every
-function you are not intimately familiar with before using it.
----
- drivers/acpi/bay.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/acpi/bay.c b/drivers/acpi/bay.c
-index dcf5f42..fb3f31b 100644
---- a/drivers/acpi/bay.c
-+++ b/drivers/acpi/bay.c
-@@ -281,7 +281,7 @@ static int bay_add(acpi_handle handle, int id)
- 
- 	/* initialize platform device stuff */
- 	pdev = platform_device_register_simple(ACPI_BAY_CLASS, id, NULL, 0);
--	if (pdev == NULL) {
-+	if (IS_ERR(pdev)) {
- 		printk(KERN_ERR PREFIX "Error registering bay device\n");
- 		goto bay_add_err;
- 	}
--- 
-1.4.4.4
+Great... if you want some testing, just mail me patch against mainline
+or whatever... (I don't think I can handle stgit).
+								Pavel
 
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
