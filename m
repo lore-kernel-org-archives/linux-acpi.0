@@ -1,46 +1,39 @@
-From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-Subject: Re: no fan detected
-Date: Wed, 14 Feb 2007 09:46:06 +0300
-Message-ID: <45D2B02E.7040302@linux.intel.com>
-References: <e30fb88b0702130638g9e26873ned471eceaa309719@mail.gmail.com>	 <200702131510.56754.lenb@kernel.org>	 <e30fb88b0702131400p7aa0c1b6ifcde1eca191fea8c@mail.gmail.com> <e30fb88b0702131545y5ee3b5eeq992344926f32fde8@mail.gmail.com>
+From: Lorincz Andras <lorandsm@yahoo.com>
+Subject: Help with fan on fujitsu-siemens
+Date: Wed, 14 Feb 2007 10:47:18 +0100 (CET)
+Message-ID: <364867.80154.qm@web90511.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.21]:28088 "EHLO
-	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751136AbXBNGqO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Feb 2007 01:46:14 -0500
-In-Reply-To: <e30fb88b0702131545y5ee3b5eeq992344926f32fde8@mail.gmail.com>
+Received: from web90511.mail.mud.yahoo.com ([216.252.100.178]:41361 "HELO
+	web90511.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750818AbXBNJrT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 Feb 2007 04:47:19 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: martin schneebacher <martin.schneebacher@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-martin schneebacher wrote:
-> On 2/13/07, martin schneebacher <martin.schneebacher@gmail.com> wrote:
->> On 2/13/07, Len Brown <lenb@kernel.org> wrote:
->> > Did /proc/acpi/fan have any contents with any previous version of 
->> Linux?
->> > If so, what version and what was there?
->
-> i tried with 2.6.12.6, which was the first one on this machine. but
-> without success.
->
-Good chance your BIOS vendor did not export control of the fun to userspace.
-> the fans are running up and down acording to the temperature, but i
-> have no control in /proc nor any info about their state.
->
-So you don't need to have control too.
-You could look at your DSDT, it is in /proc/dsdt. it is possible to 
-disassemble it with "iasl" which should
-be available either in repository of the packages for your Linux version,
-or as part of acpica-unix, available at www.intel.com.
-Look for a device with id from /drivers/acpi/fun.c file (PNP*).
-If such a device exists, then we should deliver it to you as 
-/proc/acpi/fun/name.
-> bye...masc.
-> -
+Hello,
 
-Regards,
-    Alex.
+I have a fujitsu-siemens amilo l1310g laptop. The
+problem is that the cpu fan doesn't start if the cpu
+heats up, but I can start it manualy by these 2
+commands:
+
+echo 3 > /proc/acpi/fan/FAN0/state
+echo 0 > /proc/acpi/fan/FAN0/state
+
+in this case the fan starts but it won't ever stop
+even if I launch:
+
+echo 3 > /proc/acpi/fan/FAN0/state
+
+I'm using kernel 2.6.18, but tried with 2.6.19 and
+2.6.20-rc7 also. Any hint on how can be this fixed? Thanks.
+
+
+		
+___________________________________________________________ 
+Telefonate ohne weitere Kosten vom PC zum PC: http://messenger.yahoo.de
