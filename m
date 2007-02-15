@@ -1,78 +1,63 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: use NULL for ptrs
-Date: Wed, 14 Feb 2007 18:17:55 -0500
-Message-ID: <200702141817.55746.lenb@kernel.org>
-References: <20070213161136.e8c8ac5b.randy.dunlap@oracle.com>
+From: Jan Dittmer <jdi@l4x.org>
+Subject: Suspend to RAM, Sony Vaio PCG-SRX51P, lcd stays off
+Date: Thu, 15 Feb 2007 11:23:05 +0100
+Message-ID: <45D43489.3060409@l4x.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:50764 "EHLO hera.kernel.org"
+Received: from mail.trixing.net ([87.230.125.58]:60786 "EHLO mail.trixing.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751266AbXBNXTQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 14 Feb 2007 18:19:16 -0500
-In-Reply-To: <20070213161136.e8c8ac5b.randy.dunlap@oracle.com>
-Content-Disposition: inline
+	id S965409AbXBOKZm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Feb 2007 05:25:42 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: linux-acpi@vger.kernel.org, akpm <akpm@osdl.org>
+To: stelian@popies.net, linux-acpi@vger.kernel.org, linux-pm@osdl.org, adaplas@pol.net, dawes@xfree86.org
+Cc: Linux kernel <linux-kernel@vger.kernel.org>
 
-Applied.
+Hi there,
 
-thanks,
--Len
-On Tuesday 13 February 2007 19:11, Randy Dunlap wrote:
-> From: Randy Dunlap <randy.dunlap@oracle.com>
-> 
-> Fix sparse warnings in ACPI:
-> drivers/acpi/osl.c:208:10: warning: Using plain integer as NULL pointer
-> drivers/acpi/tables/tbxface.c:411:49: warning: Using plain integer as NULL pointer
-> drivers/acpi/processor_core.c:1008:10: warning: Using plain integer as NULL pointer
-> 
-> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-> ---
->  drivers/acpi/osl.c            |    2 +-
->  drivers/acpi/processor_core.c |    2 +-
->  drivers/acpi/tables/tbxface.c |    2 +-
->  3 files changed, 3 insertions(+), 3 deletions(-)
-> 
-> --- linux-2.6.20-git9.orig/drivers/acpi/osl.c
-> +++ linux-2.6.20-git9/drivers/acpi/osl.c
-> @@ -205,7 +205,7 @@ void __iomem *acpi_os_map_memory(acpi_ph
->  {
->  	if (phys > ULONG_MAX) {
->  		printk(KERN_ERR PREFIX "Cannot map memory that high\n");
-> -		return 0;
-> +		return NULL;
->  	}
->  	if (acpi_gbl_permanent_mmap)
->  		/*
-> --- linux-2.6.20-git9.orig/drivers/acpi/processor_core.c
-> +++ linux-2.6.20-git9/drivers/acpi/processor_core.c
-> @@ -1005,7 +1005,7 @@ static int __init acpi_processor_init(vo
->  #ifdef CONFIG_SMP
->  	if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_MADT, 0,
->  				(struct acpi_table_header **)&madt)))
-> -		madt = 0;
-> +		madt = NULL;
->  #endif
->  
->  	acpi_processor_dir = proc_mkdir(ACPI_PROCESSOR_CLASS, acpi_root_dir);
-> --- linux-2.6.20-git9.orig/drivers/acpi/tables/tbxface.c
-> +++ linux-2.6.20-git9/drivers/acpi/tables/tbxface.c
-> @@ -408,7 +408,7 @@ acpi_get_table(char *signature,
->  		}
->  
->  		if (!acpi_gbl_permanent_mmap) {
-> -			acpi_gbl_root_table_list.tables[i].pointer = 0;
-> +			acpi_gbl_root_table_list.tables[i].pointer = NULL;
->  		}
->  
->  		return (status);
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+I own an older Sony Vaio SRX51P, European Model, P3 based. s2ram
+identifies it with
+
+    sys_vendor   = "Sony Corporation    "
+    sys_product  = "PCG-SRX51P(DE)      "
+    sys_version  = "01                  "
+    bios_version = "R0232U2"
+
+Suspend to RAM by using "s2ram -v -m -f" actually works and the
+laptop comes back to life, is accessible by network, etc. kudos
+so far.
+The only but serious problem is, that the lcd stays off after
+resume. No matter what kind of options for s2ram I try, if I disable
+framebuffer or suspend from X, the lcd always stays off. Only
+a reboot fixes this. Note that the X driver also cannot dis-/enable
+the lcd (xset dpms force off). It always stays lit. I also tried
+with i810switch, but that also does not affect the lcd.
+spicctrl -b42 neither.
+Latest kernel I tested is 2.6.20-git11 from today.
+
+So has anyone of you suspend, acpi, sonypi, fb people an idea how to fix
+this? I suspect one has to call some magic ACPI method upon resume? What
+other kind of information would be needed to debug this? Anything more
+to try? Are there some sony people here listening who can fix this?
+
+Thanks very much for any help,
+
+Jan
+
+$ lspci
+00:00.0 Host bridge: Intel Corporation 82815 815 Chipset Host Bridge and Memory Controller Hub (rev 11)
+00:02.0 VGA compatible controller: Intel Corporation 82815 CGC [Chipset Graphics Controller] (rev 11)
+00:1e.0 PCI bridge: Intel Corporation 82801 Mobile PCI Bridge (rev 03)
+00:1f.0 ISA bridge: Intel Corporation 82801BAM ISA Bridge (LPC) (rev 03)
+00:1f.1 IDE interface: Intel Corporation 82801BAM IDE U100 (rev 03)
+00:1f.2 USB Controller: Intel Corporation 82801BA/BAM USB (Hub #1) (rev 03)
+00:1f.3 SMBus: Intel Corporation 82801BA/BAM SMBus (rev 03)
+00:1f.4 USB Controller: Intel Corporation 82801BA/BAM USB (Hub #2) (rev 03)
+00:1f.5 Multimedia audio controller: Intel Corporation 82801BA/BAM AC'97 Audio (rev 03)
+00:1f.6 Modem: Intel Corporation 82801BA/BAM AC'97 Modem (rev 03)
+01:00.0 FireWire (IEEE 1394): Texas Instruments TSB43AB22/A IEEE-1394a-2000 Controller (PHY/Link)
+01:02.0 CardBus bridge: Ricoh Co Ltd RL5c475 (rev 80)
+01:05.0 CardBus bridge: Texas Instruments PCI1410 PC card Cardbus Controller (rev 01)
+01:08.0 Ethernet controller: Intel Corporation 82801BA/BAM/CA/CAM Ethernet Controller (rev 03)
