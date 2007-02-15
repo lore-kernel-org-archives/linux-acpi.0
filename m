@@ -1,67 +1,28 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH] add CONFIG_PNP=y to x86_64 defconfig
-Date: Thu, 15 Feb 2007 17:42:14 -0500
-Message-ID: <200702151742.15188.lenb@kernel.org>
+From: Andi Kleen <ak@suse.de>
+Subject: Re: [PATCH] add CONFIG_PNP=y to x86_64 defconfig
+Date: Fri, 16 Feb 2007 00:33:37 +0100
+Message-ID: <200702160033.37241.ak@suse.de>
+References: <200702151742.15188.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
+Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:44164 "EHLO hera.kernel.org"
+Received: from ns2.suse.de ([195.135.220.15]:43154 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161527AbXBOWoJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Feb 2007 17:44:09 -0500
+	id S1751731AbXBOXd4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Feb 2007 18:33:56 -0500
+In-Reply-To: <200702151742.15188.lenb@kernel.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <ak@suse.de>, linux-acpi@vger.kernel.org
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Adam Belay <abelay@novell.com>, Linux Kernel <linux-kernel@vger.kernel.org>, Dave Jones <davej@redhat.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Bjorn Helgaas <bjorn.helgaas@hp.com>, Adam Belay <abelay@novell.com>, Linux Kernel <linux-kernel@vger.kernel.org>, Dave Jones <davej@redhat.com>
 
-The ACPI motherboard driver was removed from 2.6.20-git, and it handled
-reserving resources for the CONFIG_ACPI=y CONFIG_PNP=n case.
-Now that it is gone, CONFIG_PNP=y should be used for CONFIG_ACPI=y kernels,
-and that brings CONFIG_PNPACPI=y.
 
-Signed-off-by: Len Brown <len.brown@intel.com>
----
-i386 defconfig already has this.
-x86_64 Fedora Core 6 already has this.
-x86_64 OpenSuse 10.2 does not yet have this.
+> Maybe we should select CONFIG_PNP from CONFIG_ACPI?
 
-Maybe we should select CONFIG_PNP from CONFIG_ACPI?
+That would be probably better I think because it will fix existing
+user configurations. You'll get the defconfig for free with that too.
 
-diff --git a/arch/x86_64/defconfig b/arch/x86_64/defconfig
-index 293a4a4..9f2e1c4 100644
---- a/arch/x86_64/defconfig
-+++ b/arch/x86_64/defconfig
-@@ -421,7 +421,13 @@ CONFIG_FW_LOADER=y
- #
- # Plug and Play support
- #
--# CONFIG_PNP is not set
-+CONFIG_PNP=y
-+# CONFIG_PNP_DEBUG is not set
-+
-+#
-+# Protocols
-+#
-+CONFIG_PNPACPI=y
- 
- #
- # Block devices
-@@ -477,6 +483,7 @@ CONFIG_BLK_DEV_IDEACPI=y
- #
- CONFIG_IDE_GENERIC=y
- # CONFIG_BLK_DEV_CMD640 is not set
-+# CONFIG_BLK_DEV_IDEPNP is not set
- CONFIG_BLK_DEV_IDEPCI=y
- # CONFIG_IDEPCI_SHARE_IRQ is not set
- # CONFIG_BLK_DEV_OFFBOARD is not set
-@@ -920,6 +927,7 @@ CONFIG_HW_CONSOLE=y
- CONFIG_SERIAL_8250=y
- CONFIG_SERIAL_8250_CONSOLE=y
- CONFIG_SERIAL_8250_PCI=y
-+CONFIG_SERIAL_8250_PNP=y
- CONFIG_SERIAL_8250_NR_UARTS=4
- CONFIG_SERIAL_8250_RUNTIME_UARTS=4
- # CONFIG_SERIAL_8250_EXTENDED is not set
+-Andi
