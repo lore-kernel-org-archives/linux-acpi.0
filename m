@@ -1,51 +1,67 @@
-From: John Keller <jpk@sgi.com>
-Subject: [PATCH 1/1] -  acpi_unload_table_id() always returns error
-Date: Thu, 15 Feb 2007 14:08:30 -0600
-Message-ID: <20070215200830.1822.98901.sendpatchset@attica.americas.sgi.com>
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH] add CONFIG_PNP=y to x86_64 defconfig
+Date: Thu, 15 Feb 2007 17:42:14 -0500
+Message-ID: <200702151742.15188.lenb@kernel.org>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from netops-testserver-3-out.sgi.com ([192.48.171.28]:37233 "EHLO
-	netops-testserver-3.corp.sgi.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1161193AbXBOUfR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Feb 2007 15:35:17 -0500
+Received: from hera.kernel.org ([140.211.167.34]:44164 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1161527AbXBOWoJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Feb 2007 17:44:09 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: ayoung@sgi.com, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, John Keller <jpk@sgi.com>
+To: Andi Kleen <ak@suse.de>, linux-acpi@vger.kernel.org
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Adam Belay <abelay@novell.com>, Linux Kernel <linux-kernel@vger.kernel.org>, Dave Jones <davej@redhat.com>
 
-acpi_unload_table_id() is always returning an error status.
-Also, once the matching table is found, don't bother looking
-for another match.
+The ACPI motherboard driver was removed from 2.6.20-git, and it handled
+reserving resources for the CONFIG_ACPI=y CONFIG_PNP=n case.
+Now that it is gone, CONFIG_PNP=y should be used for CONFIG_ACPI=y kernels,
+and that brings CONFIG_PNPACPI=y.
 
-
-Signed-off-by: John Keller <jpk@sgi.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
 ---
+i386 defconfig already has this.
+x86_64 Fedora Core 6 already has this.
+x86_64 OpenSuse 10.2 does not yet have this.
 
+Maybe we should select CONFIG_PNP from CONFIG_ACPI?
 
-Index: release/drivers/acpi/tables/tbxface.c
-===================================================================
---- release.orig/drivers/acpi/tables/tbxface.c	2007-02-13 08:20:42.000000000 -0600
-+++ release/drivers/acpi/tables/tbxface.c	2007-02-15 14:04:07.855248010 -0600
-@@ -338,9 +338,9 @@ acpi_status acpi_unload_table_id(acpi_ow
- 	int i;
- 	acpi_status status = AE_NOT_EXIST;
+diff --git a/arch/x86_64/defconfig b/arch/x86_64/defconfig
+index 293a4a4..9f2e1c4 100644
+--- a/arch/x86_64/defconfig
++++ b/arch/x86_64/defconfig
+@@ -421,7 +421,13 @@ CONFIG_FW_LOADER=y
+ #
+ # Plug and Play support
+ #
+-# CONFIG_PNP is not set
++CONFIG_PNP=y
++# CONFIG_PNP_DEBUG is not set
++
++#
++# Protocols
++#
++CONFIG_PNPACPI=y
  
--	ACPI_FUNCTION_TRACE(acpi_unload_table);
-+	ACPI_FUNCTION_TRACE(acpi_unload_table_id);
- 
--	/* Find table from the requested type list */
-+	/* Find table in the global table list */
- 	for (i = 0; i < acpi_gbl_root_table_list.count; ++i) {
- 		if (id != acpi_gbl_root_table_list.tables[i].owner_id) {
- 			continue;
-@@ -352,8 +352,9 @@ acpi_status acpi_unload_table_id(acpi_ow
- 		* simply a position within the hierarchy
- 		*/
- 		acpi_tb_delete_namespace_by_owner(i);
--		acpi_tb_release_owner_id(i);
-+		status = acpi_tb_release_owner_id(i);
- 		acpi_tb_set_table_loaded_flag(i, FALSE);
-+		break;
- 	}
- 	return_ACPI_STATUS(status);
- }
+ #
+ # Block devices
+@@ -477,6 +483,7 @@ CONFIG_BLK_DEV_IDEACPI=y
+ #
+ CONFIG_IDE_GENERIC=y
+ # CONFIG_BLK_DEV_CMD640 is not set
++# CONFIG_BLK_DEV_IDEPNP is not set
+ CONFIG_BLK_DEV_IDEPCI=y
+ # CONFIG_IDEPCI_SHARE_IRQ is not set
+ # CONFIG_BLK_DEV_OFFBOARD is not set
+@@ -920,6 +927,7 @@ CONFIG_HW_CONSOLE=y
+ CONFIG_SERIAL_8250=y
+ CONFIG_SERIAL_8250_CONSOLE=y
+ CONFIG_SERIAL_8250_PCI=y
++CONFIG_SERIAL_8250_PNP=y
+ CONFIG_SERIAL_8250_NR_UARTS=4
+ CONFIG_SERIAL_8250_RUNTIME_UARTS=4
+ # CONFIG_SERIAL_8250_EXTENDED is not set
