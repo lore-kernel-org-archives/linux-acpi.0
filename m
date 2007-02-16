@@ -1,40 +1,112 @@
-From: Chuck Ebbert <cebbert@redhat.com>
-Subject: Could the k8temp driver be interfering with ACPI?
-Date: Fri, 16 Feb 2007 12:31:52 -0500
-Message-ID: <45D5EA88.7090300@redhat.com>
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Subject: RE: kernel BUG at drivers/acpi/osl.c:373! (acpi-cpufreq)
+Date: Fri, 16 Feb 2007 09:48:44 -0800
+Message-ID: <EB12A50964762B4D8111D55B764A845401485EFD@scsmsx413.amr.corp.intel.com>
+References: <200702161152.24710.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:43518 "EHLO mx1.redhat.com"
+Received: from mga02.intel.com ([134.134.136.20]:46974 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946018AbXBPReM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 16 Feb 2007 12:34:12 -0500
+	id S932614AbXBPRsr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Feb 2007 12:48:47 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <200702161152.24710.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel <linux-kernel@vger.kernel.org>
-Cc: linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Len Brown <lenb@kernel.org>, Henri Hunnekens <henrihunnekens@gmail.com>
+Cc: cpufreq <cpufreq@lists.linux.org.uk>, linux-acpi@vger.kernel.org
 
-Recently my notebook has started shutting down with
-these messages in the logs:
 
-	ACPI: Critical trip point
-	Critical temperature reached (128 C), shutting down.
+Hmm.. I recently changed acpi-cpufreq to use acpi_os_write_port(),
+instead of its local copy of read port. Let me look at that patch
+again...
 
-But it didn't seem hot at all to me, so I wrote a script to
-cat /proc/acpi/thermal_zone/THRM/temperature once a second
-and eventually caught this (but no shutdown):
+Thanks,
+Venki
 
-temperature:             47 C
-temperature:             47 C
-temperature:             128 C
-temperature:             48 C
-temperature:             47 C
-
-Google found several people reporting problems like mine
-after installing lm-sensors, and when I looked at the list
-of loaded modules I found k8temp and hwmon there. Then I
-realized my problems had started after installing a 2.6.19
-kernel that had the new k8temp driver.
-
-So, could ACPI and the k8temp driver be at odds?
+>-----Original Message-----
+>From: cpufreq-bounces@lists.linux.org.uk 
+>[mailto:cpufreq-bounces@lists.linux.org.uk] On Behalf Of Len Brown
+>Sent: Friday, February 16, 2007 8:52 AM
+>To: Henri Hunnekens
+>Cc: cpufreq; linux-acpi@vger.kernel.org
+>Subject: Re: kernel BUG at drivers/acpi/osl.c:373! (acpi-cpufreq)
+>
+>On Friday 16 February 2007 10:03, Henri Hunnekens wrote:
+>
+>> Loading the acpi_cpufreq module reports a kernel bug using kernel
+>> version 2.6.20.  versions 2.6.18 and older work fine.
+>
+>> kernel BUG at drivers/acpi/osl.c:373!
+>
+>>  [<e0074455>] acpi_cpufreq_target+0x185/0x290 [acpi_cpufreq]
+>>  [<c037881f>] __cpufreq_driver_target+0x3f/0x50
+>>  [<c037a0de>] cpufreq_governor_performance+0x1e/0x30
+>>  [<c0378984>] __cpufreq_governor+0x24/0xd0
+>>  [<c0378e9b>] __cpufreq_set_policy+0xeb/0x140
+>>  [<c03790fe>] cpufreq_set_policy+0x4e/0x80
+>>  [<c0379d4a>] cpufreq_add_dev+0x31a/0x3e0
+>>  [<c02bdfc9>] sysdev_driver_register+0x59/0xa0
+>>  [<c037a027>] cpufreq_register_driver+0x67/0x100
+>>  [<e007809d>] acpi_cpufreq_init+0x9d/0xa4 [acpi_cpufreq]
+>>  [<c01423f7>] sys_init_module+0x137/0x1b90
+>>  [<c0104620>] syscall_call+0x7/0xb
+>>  =======================
+>> Code: f9 10 89 e5 53 89 c3 89 d0 74 12 83 f9 20 74 16 83 f9 
+>08 75 16 0f b6 c2 89
+>>  da ee eb 12 0f b7 c2 89 da 66 ef eb 09 89 da ef eb 04 <0f> 
+>0b eb fe 5b 31 c0 5d
+>>  c3 55 89 e5 5d c3 55 85 c0 89 e5 89 c1
+>> EIP: [<c027dbd9>] acpi_os_write_port+0x2d/0x36 SS:ESP 0068:dd3d1c8c
+>
+>acpi_status acpi_os_write_port(acpi_io_address port, u32 
+>value, u32 width)
+>{
+>        switch (width) {
+>        case 8:
+>                outb(value, port);
+>                break;
+>        case 16:
+>                outw(value, port);
+>                break;
+>        case 32:
+>                outl(value, port);
+>                break;
+>        default:
+>373:            BUG();
+>        }
+>
+>        return AE_OK;
+>}
+>
+>Well, acpi_os_write_port itself has not changed -- so it
+>is either acpi_cpufreq, cpufreq, or how they've read and 
+>interpreted the tables.
+>
+>Please attach the output from acpidump > acpidump.out into a 
+>new bugzilla entry here:
+>http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
+>
+>You can get acpidump from the latest pmtools here:
+>http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
+>
+>Also, you can build with CONFIG_ACPI_DEBUG=y and boot with 
+>"acpi_dbg_layer=2"
+>plus "acpi_dbg_level=0xffffffff" and capture the console log.
+>(or you can set these values after booted in /proc/acpi just before
+>you try to load the module)
+>
+>and, maybe some clues from the cpufreq subsystem will help.
+>cpufreq.debug=3 looks like it may give us a clue.
+>
+>thanks,
+>-Len
+>
+>_______________________________________________
+>Cpufreq mailing list
+>Cpufreq@lists.linux.org.uk
+>http://lists.linux.org.uk/mailman/listinfo/cpufreq
+>
