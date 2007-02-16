@@ -1,41 +1,64 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: FW: [PATCH] i386: irq: Kill IRQ compression
-Date: Fri, 16 Feb 2007 02:27:12 -0700
-Message-ID: <m11wkqh2q7.fsf@ebiederm.dsl.xmission.com>
-References: <19D0D50E9B1D0A40A9F0323DBFA04ACC023B0E20@USRV-EXCH4.na.uis.unisys.com>
-	<32209efe0702160111q78a32df8i70e3112e5d8da5c1@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: akpm@linux-foundation.org
+Subject: [patch 1/1] Exit ACPI processor module gracefully if acpi is disabled
+Date: Fri, 16 Feb 2007 01:36:51 -0800
+Message-ID: <200702160936.l1G9aqIj026320@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ebiederm.dsl.xmission.com ([166.70.28.69]:50392 "EHLO
-	ebiederm.dsl.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1423466AbXBPJ2p (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Feb 2007 04:28:45 -0500
-In-Reply-To: <32209efe0702160111q78a32df8i70e3112e5d8da5c1@mail.gmail.com>
-	(Natalie Protasevich's message of "Fri, 16 Feb 2007 02:11:20 -0700")
+Received: from smtp.osdl.org ([65.172.181.24]:36350 "EHLO smtp.osdl.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S966266AbXBPJiJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 16 Feb 2007 04:38:09 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Natalie Protasevich <protasnb@gmail.com>
-Cc: lenb@kernel.org, Andi Kleen <ak@suse.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, trenn@suse.de
 
-"Natalie Protasevich" <protasnb@gmail.com> writes:
+From: Thomas Renninger <trenn@suse.de>
 
-> This routine actually renumbers gsi's. I don't think you can kill
-> ioapic_renumber_irq without bringing down ES7000 that have swapped
-> legacy/PCI ranges and are still out there. Moreover, mach-es7000
-> purpose is to define and use the range swapper on the first ioapic.
-> Kernel still assumes legacy mapping having no overrides of that
-> extent. Perhaps the real fix is to have ACPI/MPS parsers to read the
-> actual pin/gsi information from the tables, which turned out pretty
-> difficult last time we tried.
-> --Natalie
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Yes I noticed, and you replied just before I send off an email explicitly
-asking you about this :)  At first glance I thought it was that other piece of
-irq compression that showed up in arch/x86_64/io_apic.c but it appears
-arch/i386/io_apic.c does not have that.
+ drivers/acpi/processor_core.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-Anyway now all we have to do is bump up NR_IRQS and we should be good, patch
-in a moment.
-
-Eric
+diff -puN drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled drivers/acpi/processor_core.c
+--- a/drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled
++++ a/drivers/acpi/processor_core.c
+@@ -993,6 +993,8 @@ void acpi_processor_uninstall_hotplug_no
+  * ACPI, but needs symbols from this driver
+  */
+ 
++static int processor_driver_registered;
++
+ static int __init acpi_processor_init(void)
+ {
+ 	int result = 0;
+@@ -1018,6 +1020,8 @@ static int __init acpi_processor_init(vo
+ 		return result;
+ 	}
+ 
++	processor_driver_registered = 1;
++
+ 	acpi_processor_install_hotplug_notify();
+ 
+ 	acpi_thermal_cpufreq_init();
+@@ -1034,12 +1038,13 @@ static void __exit acpi_processor_exit(v
+ 
+ 	acpi_thermal_cpufreq_exit();
+ 
+-	acpi_processor_uninstall_hotplug_notify();
+-
+-	acpi_bus_unregister_driver(&acpi_processor_driver);
++	if (processor_driver_registered) {
++		acpi_processor_uninstall_hotplug_notify();
+ 
+-	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
++		acpi_bus_unregister_driver(&acpi_processor_driver);
+ 
++		remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
++	}
+ 	return;
+ }
+ 
+_
