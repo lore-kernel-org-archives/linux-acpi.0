@@ -1,47 +1,48 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [PATCH] i386 irq: Kill NR_IRQ_VECTORS and increase NR_IRQS
-Date: Fri, 16 Feb 2007 03:33:32 -0700
-Message-ID: <m1y7mye6ir.fsf@ebiederm.dsl.xmission.com>
-References: <200702160015.04453.lenb@kernel.org>
-	<m1mz3efn0q.fsf@ebiederm.dsl.xmission.com>
-	<200702161115.59017.ak@suse.de>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [linux-pm] Suspend to RAM, Sony Vaio PCG-SRX51P, lcd stays off
+Date: Fri, 16 Feb 2007 11:59:31 +0100
+Message-ID: <20070216105931.GE4176@elf.ucw.cz>
+References: <45D43489.3060409@l4x.org> <20070215103639.GB27338@elf.ucw.cz> <37556.85.47.20.193.1171540572.squirrel@picard.linux.it> <45D558D6.3050303@l4x.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751907AbXBPKgD@vger.kernel.org>
-In-Reply-To: <200702161115.59017.ak@suse.de> (Andi Kleen's message of "Fri, 16
-	Feb 2007 11:15:58 +0100")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andi Kleen <ak@suse.de>
-Cc: Andrew Morton <akpm@osdl.org>, Natalie Protasevich <Natalie.Protasevich@unisys.com>, lkml - Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:55911 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S933001AbXBPK7t (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 16 Feb 2007 05:59:49 -0500
+Content-Disposition: inline
+In-Reply-To: <45D558D6.3050303@l4x.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jan Dittmer <jdi@l4x.org>, seife@novell.com
+Cc: Mattia Dongili <malattia@linux.it>, stelian@popies.net, linux-acpi@vger.kernel.org, linux-pm@osdl.org, adaplas@pol.net, dawes@xfree86.org, Linux kernel <linux-kernel@vger.kernel.org>
 
-Andi Kleen <ak@suse.de> writes:
+Hi!
 
->> Allowing the kernel to work on big machines without complicated
->> and error prone irq remapping logic.
->
-> How much memory does this use by default? If it's much there should
-> be at least a CONFIG_* to make it smaller.
+> > On Thu, February 15, 2007 11:36 am, Pavel Machek said:
+> 
+> >>>     sys_vendor   = "Sony Corporation    "
+> >>>     sys_product  = "PCG-SRX51P(DE)      "
+> >>>     sys_version  = "01                  "
+> >>>     bios_version = "R0232U2"
+> >>>
+...
+> >>> Latest kernel I tested is 2.6.20-git11 from today.
+> > 
+> > I read reports of successful suspends on that laptop, eg:
+> > http://freenet-homepage.de/obauer/index.html
+> 
+> Ok, now I feel totally dumb. 's2ram -s -f' actually works iff you disable
+> fb support completely in the kernel. It works even from X. Don't know how
+> many combinations I tried but that one somehow slipped through. Anyway
+> thanks for your help. So could this machine be added to the s2ram
+> database?
 
-If you don't build a generic kernel and are not a big way smp you only
-get 200 IRQs so it is less.  
+Stefan, can we add this one?
 
-Otherwise it is either 1024 or NR_CPUS*32 depending on the subarch
-we compile.  The limits are actually unchanged from what we are doing
-today.
-
-I'm in the final stages of figuring out how to kill the stupid
-irq_desc array which should make all the memory consumption worries
-go away but that is a little ways off, and I'm putting real bug
-fixes ahead of that work.
-
-Basically this is just a back port from x86_64 without the
-complication of the per cpu vector logic.  So if we run into any
-issues I missed before this reaches a stable kernel we can just copy
-the fix from x86_64 where we have been doing this for a while.  
-
-So in short the existing CONFIG_ options should give us the control
-we need, and before it becomes any kind of an issue I intend to
-completely remove the compile time limit and make it dynamic.
-
-Eric
+Anyway, it would be nice to actually fix the fb support in kernel not
+to hang the machine on your Sony...
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
