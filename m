@@ -1,33 +1,27 @@
-From: Andi Kleen <ak@suse.de>
-Subject: Re: ASUS P5W DH boot up messages
-Date: Fri, 16 Feb 2007 19:45:47 +0100
-Message-ID: <200702161945.47922.ak@suse.de>
-References: <20070216104332.2a5f1768@freekitty>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: Could the k8temp driver be interfering with ACPI?
+Date: 16 Feb 2007 20:59:33 +0100
+Message-ID: <p73odntg9ga.fsf@bingen.suse.de>
+References: <45D5EA88.7090300@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:38061 "EHLO mx2.suse.de"
+Received: from ns.suse.de ([195.135.220.2]:53179 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946219AbXBPSqA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 16 Feb 2007 13:46:00 -0500
-In-Reply-To: <20070216104332.2a5f1768@freekitty>
-Content-Disposition: inline
+	id S1946036AbXBPS7c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 16 Feb 2007 13:59:32 -0500
+In-Reply-To: <45D5EA88.7090300@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stephen Hemminger <shemminger@linux-foundation.org>
-Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
+To: Chuck Ebbert <cebbert@redhat.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On Friday 16 February 2007 19:43, Stephen Hemminger wrote:
-
-> 1. Some noise about E820 mapping
-> PCI: BIOS Bug: MCFG area at f0000000 is not E820-reserved
+Chuck Ebbert <cebbert@redhat.com> writes:
 > 
-> 2. Doesn't use MMCONFIG
-> PCI: Not using MMCONFIG.
+> So, could ACPI and the k8temp driver be at odds?
 
-Asus gets MCFG wrong in most older BIOSes. We finally decided to not try to fix
-it up, but just reject them.
+Yes, there is no locking between ACPI and Linux drivers for register access.
+e.g. if there is a indexed register both try to access (and temperature
+sensors tend to use these things) they can race and get corrupted data.
 
 -Andi
