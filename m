@@ -1,29 +1,39 @@
-From: Chuck Ebbert <cebbert@redhat.com>
-Subject: Re: Could the k8temp driver be interfering with ACPI?
-Date: Fri, 16 Feb 2007 14:31:44 -0500
-Message-ID: <45D606A0.5020606@redhat.com>
-References: <45D5EA88.7090300@redhat.com> <p73odntg9ga.fsf@bingen.suse.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:49282 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946058AbXBPTdx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 16 Feb 2007 14:33:53 -0500
-In-Reply-To: <p73odntg9ga.fsf@bingen.suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+From: John Keller <jpk@sgi.com>
+Subject: [PATCH 1/1] -  acpi_boot_init() making bad check on return code
+Date: Fri, 16 Feb 2007 15:07:27 -0600
+Message-ID: <20070216210727.7407.93052.sendpatchset@attica.americas.sgi.com>
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Sender: linux-ia64-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: ayoung@sgi.com, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, John Keller <jpk@sgi.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Andi Kleen wrote:
-> Chuck Ebbert <cebbert@redhat.com> writes:
->> So, could ACPI and the k8temp driver be at odds?
-> 
-> Yes, there is no locking between ACPI and Linux drivers for register access.
-> e.g. if there is a indexed register both try to access (and temperature
-> sensors tend to use these things) they can race and get corrupted data.
+acpi_boot_init() is making a bad check on the return
+status from acpi_table_parse(). acpi_table_parse() now
+returns zero on success, one on failure.
 
-I blacklisted the k8temp driver and everything looks OK now.
+Signed-off-by: Aaron Young <ayoung@sgi.com>
+---
 
+Index: release/arch/ia64/kernel/acpi.c
+===================================================================
+--- release.orig/arch/ia64/kernel/acpi.c	2007-02-16 08:58:10.000000000 -0600
++++ release/arch/ia64/kernel/acpi.c	2007-02-16 09:03:16.893360100 -0600
+@@ -651,7 +651,7 @@ int __init acpi_boot_init(void)
+ 	 * information -- the successor to MPS tables.
+ 	 */
+ 
+-	if (acpi_table_parse(ACPI_SIG_MADT, acpi_parse_madt) < 1) {
++	if (acpi_table_parse(ACPI_SIG_MADT, acpi_parse_madt)) {
+ 		printk(KERN_ERR PREFIX "Can't find MADT\n");
+ 		goto skip_madt;
+ 	}
+@@ -702,7 +702,7 @@ int __init acpi_boot_init(void)
+ 	 * gets interrupts such as power and sleep buttons.  If it's not
+ 	 * on a Legacy interrupt, it needs to be setup.
+ 	 */
+-	if (acpi_table_parse(ACPI_SIG_FADT, acpi_parse_fadt) < 1)
++	if (acpi_table_parse(ACPI_SIG_FADT, acpi_parse_fadt))
+ 		printk(KERN_ERR PREFIX "Can't find FADT\n");
+ 
+ #ifdef CONFIG_SMP
