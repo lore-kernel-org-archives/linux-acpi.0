@@ -1,68 +1,38 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 1/1] -  acpi_unload_table_id() always returns error
-Date: Thu, 15 Feb 2007 23:29:55 -0500
-Message-ID: <200702152329.55535.lenb@kernel.org>
-References: <20070215200830.1822.98901.sendpatchset@attica.americas.sgi.com>
+From: Corey Minyard <minyard@acm.org>
+Subject: Re: acpi_find_bmc() and acpi_get_table()
+Date: Thu, 15 Feb 2007 23:15:10 -0600
+Message-ID: <45D53DDE.5000300@acm.org>
+References: <200702102327.28312.lenb@kernel.org> <200702152103.54960.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:39761 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423150AbXBPEbP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Feb 2007 23:31:15 -0500
-In-Reply-To: <20070215200830.1822.98901.sendpatchset@attica.americas.sgi.com>
-Content-Disposition: inline
+Received: from mta9.adelphia.net ([68.168.78.199]:47699 "EHLO
+	mta9.adelphia.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1423254AbXBPFPR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Feb 2007 00:15:17 -0500
+In-Reply-To: <200702152103.54960.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: John Keller <jpk@sgi.com>
-Cc: linux-acpi@vger.kernel.org, ayoung@sgi.com, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>, minyard@mvista.com, linux-acpi@vger.kernel.org
 
-Thanks for the fix, John.
-Do you grant Intel permission to apply it to the upstream ACPICA tree (with its non-GPL license)?
+Bjorn Helgaas wrote:
+> On Saturday 10 February 2007 21:27, Len Brown wrote:
+>   
+>> acpi_find_bmc() appears to be searching for 
+>> multiple SPMI tables in the RSDT and running
+>> try_init_acpi() on each of them
+>> until it doesn't find any more.
+>>     
+>
+> I can't remember why we look at the SPMI table(s) rather than
+> registering a normal ACPI (or even PNP) driver.  Unless we
+> need to poke the BMC very early, wouldn't it be better to
+> rely on the device description in the namespace?
+>   
+For some strange reason the normal ACPI information does not
+have all the information needed by the driver.  It doesn't have
+register size or spacing information.
 
--Len
-
-On Thursday 15 February 2007 15:08, John Keller wrote:
-> acpi_unload_table_id() is always returning an error status.
-> Also, once the matching table is found, don't bother looking
-> for another match.
-> 
-> 
-> Signed-off-by: John Keller <jpk@sgi.com>
-> ---
-> 
-> 
-> Index: release/drivers/acpi/tables/tbxface.c
-> ===================================================================
-> --- release.orig/drivers/acpi/tables/tbxface.c	2007-02-13 08:20:42.000000000 -0600
-> +++ release/drivers/acpi/tables/tbxface.c	2007-02-15 14:04:07.855248010 -0600
-> @@ -338,9 +338,9 @@ acpi_status acpi_unload_table_id(acpi_ow
->  	int i;
->  	acpi_status status = AE_NOT_EXIST;
->  
-> -	ACPI_FUNCTION_TRACE(acpi_unload_table);
-> +	ACPI_FUNCTION_TRACE(acpi_unload_table_id);
->  
-> -	/* Find table from the requested type list */
-> +	/* Find table in the global table list */
->  	for (i = 0; i < acpi_gbl_root_table_list.count; ++i) {
->  		if (id != acpi_gbl_root_table_list.tables[i].owner_id) {
->  			continue;
-> @@ -352,8 +352,9 @@ acpi_status acpi_unload_table_id(acpi_ow
->  		* simply a position within the hierarchy
->  		*/
->  		acpi_tb_delete_namespace_by_owner(i);
-> -		acpi_tb_release_owner_id(i);
-> +		status = acpi_tb_release_owner_id(i);
->  		acpi_tb_set_table_loaded_flag(i, FALSE);
-> +		break;
->  	}
->  	return_ACPI_STATUS(status);
->  }
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+-Corey
