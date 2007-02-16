@@ -1,49 +1,77 @@
-From: "Lebedev, Vladimir P" <vladimir.p.lebedev@intel.com>
-Subject: RE: [PATCH] sbs: Use i2c_smbus_xfer
-Date: Fri, 16 Feb 2007 15:02:55 +0300
-Message-ID: <8E389A5F2FEABA4CB1DEC35A25CB39CEA643E5@mssmsx411>
-References: <20070216072513.d8a1be3f.khali@linux-fr.org>
+From: John Keller <jpk@sgi.com>
+Subject: Re: [PATCH 1/1] -  acpi_unload_table_id() always returns error
+Date: Fri, 16 Feb 2007 07:53:51 -0600 (CST)
+Message-ID: <200702161353.l1GDrq4q413863@fcbayern.americas.sgi.com>
+References: <200702152329.55535.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:1380 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751311AbXBPMDP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Feb 2007 07:03:15 -0500
-Content-class: urn:content-classes:message
-In-Reply-To: <20070216072513.d8a1be3f.khali@linux-fr.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <200702152329.55535.lenb@kernel.org> from "Len Brown" at Feb 15, 2007 11:29:55 PM
+Sender: linux-ia64-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: John Keller <jpk@sgi.com>, linux-acpi@vger.kernel.org, ayoung@sgi.com, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: linux-acpi@vger.kernel.org
+
+Yes.
+
+      I understand and agree this project and the contribution
+      are public and that a record of the contribution (including all
+      personal information I submit with it, including my sign-off) is
+      maintained indefinitely. I thereby license this patch to be
+      redistributed under any license (GPL or non-GPL) consistent
+      with the project.
+
+John
 
 
-Right now sbs driver has access to SBS via 'ec' (read/write) functions,
-but it uses the i2c functions/structures - this is historical situation,
-so; there are no problems (some time is needed only) to remove i2c using
-from sbs driver. We are planning to do it to next release.
+> 
+> Thanks for the fix, John.
+> Do you grant Intel permission to apply it to the upstream ACPICA tree (with its non-GPL license)?
+> 
+> -Len
+> 
+> On Thursday 15 February 2007 15:08, John Keller wrote:
+> > acpi_unload_table_id() is always returning an error status.
+> > Also, once the matching table is found, don't bother looking
+> > for another match.
+> > 
+> > 
+> > Signed-off-by: John Keller <jpk@sgi.com>
+> > ---
+> > 
+> > 
+> > Index: release/drivers/acpi/tables/tbxface.c
+> > ===================================================================
+> > --- release.orig/drivers/acpi/tables/tbxface.c	2007-02-13 08:20:42.000000000 -0600
+> > +++ release/drivers/acpi/tables/tbxface.c	2007-02-15 14:04:07.855248010 -0600
+> > @@ -338,9 +338,9 @@ acpi_status acpi_unload_table_id(acpi_ow
+> >  	int i;
+> >  	acpi_status status = AE_NOT_EXIST;
+> >  
+> > -	ACPI_FUNCTION_TRACE(acpi_unload_table);
+> > +	ACPI_FUNCTION_TRACE(acpi_unload_table_id);
+> >  
+> > -	/* Find table from the requested type list */
+> > +	/* Find table in the global table list */
+> >  	for (i = 0; i < acpi_gbl_root_table_list.count; ++i) {
+> >  		if (id != acpi_gbl_root_table_list.tables[i].owner_id) {
+> >  			continue;
+> > @@ -352,8 +352,9 @@ acpi_status acpi_unload_table_id(acpi_ow
+> >  		* simply a position within the hierarchy
+> >  		*/
+> >  		acpi_tb_delete_namespace_by_owner(i);
+> > -		acpi_tb_release_owner_id(i);
+> > +		status = acpi_tb_release_owner_id(i);
+> >  		acpi_tb_set_table_loaded_flag(i, FALSE);
+> > +		break;
+> >  	}
+> >  	return_ACPI_STATUS(status);
+> >  }
+> > -
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> 
 
-Thanks.
-Vladimir.
-
------Original Message-----
-From: Jean Delvare [mailto:khali@linux-fr.org] 
-Sent: Friday, February 16, 2007 9:25 AM
-To: Lebedev, Vladimir P
-Cc: linux-acpi@vger.kernel.org
-Subject: Re: [PATCH] sbs: Use i2c_smbus_xfer
-
-Vladimir,
-
-On Fri, 16 Feb 2007 08:54:25 +0300, Lebedev, Vladimir P wrote:
-> Yes, you are right, but we are going to remove i2c objects from sbs
-> driver in near future.
-
-How that? How do you plan to access SMBus devices without using i2c
-functions?
-
-Thanks,
--- 
-Jean Delvare
