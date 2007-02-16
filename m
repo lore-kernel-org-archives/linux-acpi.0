@@ -1,64 +1,58 @@
-From: akpm@linux-foundation.org
-Subject: [patch 1/1] Exit ACPI processor module gracefully if acpi is disabled
-Date: Fri, 16 Feb 2007 01:36:51 -0800
-Message-ID: <200702160936.l1G9aqIj026320@shell0.pdx.osdl.net>
+From: "Natalie Protasevich" <protasnb@gmail.com>
+Subject: Re: FW: [PATCH] i386: irq: Kill IRQ compression
+Date: Fri, 16 Feb 2007 02:41:51 -0700
+Message-ID: <32209efe0702160141k32f16923qdf93abdf5d473886@mail.gmail.com>
+References: <19D0D50E9B1D0A40A9F0323DBFA04ACC023B0E21@USRV-EXCH4.na.uis.unisys.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36350 "EHLO smtp.osdl.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966266AbXBPJiJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 16 Feb 2007 04:38:09 -0500
+Received: from wr-out-0506.google.com ([64.233.184.224]:62697 "EHLO
+	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966267AbXBPJlx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Feb 2007 04:41:53 -0500
+Received: by wr-out-0506.google.com with SMTP id i21so979413wra
+        for <linux-acpi@vger.kernel.org>; Fri, 16 Feb 2007 01:41:52 -0800 (PST)
+In-Reply-To: <19D0D50E9B1D0A40A9F0323DBFA04ACC023B0E21@USRV-EXCH4.na.uis.unisys.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, trenn@suse.de
+To: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: lenb@kernel.org, Andi Kleen <ak@suse.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-From: Thomas Renninger <trenn@suse.de>
+l> From: Eric W. Biederman [mailto:ebiederm@xmission.com]
+> Sent: Friday, February 16, 2007 2:22 AM
+> To: Protasevich, Natalie
+> Cc: Len Brown; Andi Kleen; lkml - Kernel Mailing List;
+> linux-acpi@vger.kernel.org
+> Subject: Re: [PATCH] i386: irq: Kill IRQ compression
+>
+> ebiederm@xmission.com (Eric W. Biederman) writes:
+>
+> > By itself I don't think we are going to observe any real problems
+> > with this patch.
+> >
+> > However if we are going to be serious about this we need to do a
+> > few more things.
+> >
+> > - kill ioapic_renumber_irq.
+>
+> Looking closer ioapic_renumber_irq does not appear to be an irq
+> compress thing.  Rather it appears to be a work around for a weird
+> acpi implementation where gsi 0 - 15 are not the ISA irqs.
+>
+> Natalie is my reading of the code there correct?
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-Cc: Len Brown <lenb@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+Yes, indeed.
 
- drivers/acpi/processor_core.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+>
+> If so keeping ioapic_renumber_irq makes sense.  Although giving
+> it a name that suggests it is working around weird implementation
+> details would be good.
 
-diff -puN drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled drivers/acpi/processor_core.c
---- a/drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled
-+++ a/drivers/acpi/processor_core.c
-@@ -993,6 +993,8 @@ void acpi_processor_uninstall_hotplug_no
-  * ACPI, but needs symbols from this driver
-  */
- 
-+static int processor_driver_registered;
-+
- static int __init acpi_processor_init(void)
- {
- 	int result = 0;
-@@ -1018,6 +1020,8 @@ static int __init acpi_processor_init(vo
- 		return result;
- 	}
- 
-+	processor_driver_registered = 1;
-+
- 	acpi_processor_install_hotplug_notify();
- 
- 	acpi_thermal_cpufreq_init();
-@@ -1034,12 +1038,13 @@ static void __exit acpi_processor_exit(v
- 
- 	acpi_thermal_cpufreq_exit();
- 
--	acpi_processor_uninstall_hotplug_notify();
--
--	acpi_bus_unregister_driver(&acpi_processor_driver);
-+	if (processor_driver_registered) {
-+		acpi_processor_uninstall_hotplug_notify();
- 
--	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
-+		acpi_bus_unregister_driver(&acpi_processor_driver);
- 
-+		remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
-+	}
- 	return;
- }
- 
-_
+Sure. I think it was originally renumber_gsi something, but Len had to
+change it so it sounds more explicit as familiar "IRQ".
+--Natalie
+>
+> Eric
+>
