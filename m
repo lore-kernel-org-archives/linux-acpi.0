@@ -1,32 +1,49 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH] sbs: Use i2c_smbus_xfer
-Date: Fri, 16 Feb 2007 07:25:13 +0100
-Message-ID: <20070216072513.d8a1be3f.khali@linux-fr.org>
-References: <20070215215215.ccb9c132.khali@linux-fr.org>
-	<8E389A5F2FEABA4CB1DEC35A25CB39CEA642CD@mssmsx411>
+From: Jan Dittmer <jdi@l4x.org>
+Subject: Re: [linux-pm] Suspend to RAM, Sony Vaio PCG-SRX51P, lcd stays off
+Date: Fri, 16 Feb 2007 08:10:14 +0100
+Message-ID: <45D558D6.3050303@l4x.org>
+References: <45D43489.3060409@l4x.org> <20070215103639.GB27338@elf.ucw.cz> <37556.85.47.20.193.1171540572.squirrel@picard.linux.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-105-friday.nerim.net ([62.4.16.105]:4128 "EHLO
-	kraid.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932484AbXBPGYo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Feb 2007 01:24:44 -0500
-In-Reply-To: <8E389A5F2FEABA4CB1DEC35A25CB39CEA642CD@mssmsx411>
+Received: from mail.trixing.net ([87.230.125.58]:43822 "EHLO mail.trixing.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932977AbXBPHLP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 16 Feb 2007 02:11:15 -0500
+In-Reply-To: <37556.85.47.20.193.1171540572.squirrel@picard.linux.it>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Lebedev, Vladimir P" <vladimir.p.lebedev@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: Mattia Dongili <malattia@linux.it>
+Cc: Pavel Machek <pavel@ucw.cz>, stelian@popies.net, linux-acpi@vger.kernel.org, linux-pm@osdl.org, adaplas@pol.net, dawes@xfree86.org, Linux kernel <linux-kernel@vger.kernel.org>
 
-Vladimir,
+Mattia Dongili wrote:
+> On Thu, February 15, 2007 11:36 am, Pavel Machek said:
 
-On Fri, 16 Feb 2007 08:54:25 +0300, Lebedev, Vladimir P wrote:
-> Yes, you are right, but we are going to remove i2c objects from sbs
-> driver in near future.
+>>>     sys_vendor   = "Sony Corporation    "
+>>>     sys_product  = "PCG-SRX51P(DE)      "
+>>>     sys_version  = "01                  "
+>>>     bios_version = "R0232U2"
+>>>
 
-How that? How do you plan to access SMBus devices without using i2c
-functions?
+> (unrelated to your suspend problems) does the sony-laptop (formerly
+> sony_acpi) module helps controlling brightness?
+> (should appear soon or you can eventually grab it from the linux-acpi tree)
+
+No, I use the sonypi driver. But I can test the sony-laptop one as
+soon as it is in -mm again if it would be of any help.
+
+>>> Latest kernel I tested is 2.6.20-git11 from today.
+> 
+> I read reports of successful suspends on that laptop, eg:
+> http://freenet-homepage.de/obauer/index.html
+
+Ok, now I feel totally dumb. 's2ram -s -f' actually works iff you disable
+fb support completely in the kernel. It works even from X. Don't know how
+many combinations I tried but that one somehow slipped through. Anyway
+thanks for your help. So could this machine be added to the s2ram
+database?
 
 Thanks,
--- 
-Jean Delvare
+
+Jan
