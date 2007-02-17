@@ -1,135 +1,50 @@
-From: "Andras Lorincz" <andras.lorincz@gmail.com>
-Subject: Re: Help with fan on fujitsu siemens
-Date: Sat, 17 Feb 2007 10:33:53 +0200
-Message-ID: <a21d779b0702170033r3147c41ft69bb87fc39c61768@mail.gmail.com>
-References: <a21d779b0702152346l35b83cadw2d2b4e9f3939da7e@mail.gmail.com>
-	 <200702161202.43455.lenb@kernel.org>
-	 <a21d779b0702161025v275a2890ke243bdf4957a96d8@mail.gmail.com>
-	 <200702161658.37249.lenb@kernel.org>
-	 <a21d779b0702170012g523fe950vaec79ef2190aecdb@mail.gmail.com>
+From: Rudolf Marek <r.marek@assembler.cz>
+Subject: Re: Could the k8temp driver be interfering with ACPI?
+Date: Sat, 17 Feb 2007 11:49:50 +0100
+Message-ID: <45D6DDCE.5050803@assembler.cz>
+References: <45D5EA88.7090300@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nz-out-0506.google.com ([64.233.162.226]:18928 "EHLO
-	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946499AbXBQIdy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 17 Feb 2007 03:33:54 -0500
-Received: by nz-out-0506.google.com with SMTP id s1so1122059nze
-        for <linux-acpi@vger.kernel.org>; Sat, 17 Feb 2007 00:33:54 -0800 (PST)
-In-Reply-To: <a21d779b0702170012g523fe950vaec79ef2190aecdb@mail.gmail.com>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <lm-sensors-bounces@lm-sensors.org>
+In-Reply-To: <45D5EA88.7090300@redhat.com>
+List-Unsubscribe: <http://lists.lm-sensors.org/mailman/listinfo/lm-sensors>,
+	<mailto:lm-sensors-request@lm-sensors.org?subject=unsubscribe>
+List-Archive: <http://lists.lm-sensors.org/pipermail/lm-sensors>
+List-Post: <mailto:lm-sensors@lm-sensors.org>
+List-Help: <mailto:lm-sensors-request@lm-sensors.org?subject=help>
+List-Subscribe: <http://lists.lm-sensors.org/mailman/listinfo/lm-sensors>,
+	<mailto:lm-sensors-request@lm-sensors.org?subject=subscribe>
+Sender: lm-sensors-bounces@lm-sensors.org
+Errors-To: lm-sensors-bounces@lm-sensors.org
+To: Chuck Ebbert <cebbert@redhat.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-On 2/17/07, Andras Lorincz <andras.lorincz@gmail.com> wrote:
-> On 2/16/07, Len Brown <lenb@kernel.org> wrote:
-> > On Friday 16 February 2007 13:25, you wrote:
-> > > On 2/16/07, Len Brown <lenb@kernel.org> wrote:
-> > > > On Friday 16 February 2007 02:46, Andras Lorincz wrote:
-> > > >
-> > > > > and the output of cat /proc/acpi/thermal_zone/*/* is:
-> > > > >
-> > > > > cooling mode:   active
-> > > > > polling frequency:       30 seconds
-> > > > > state:                   ok
-> > > > > temperature:             49 C
-> > > > > critical (S5):           105 C
-> > > > > passive:                 79 C: tc1=3 tc2=1 tsp=80
-> > > > > devices=0xf7e9c720
-> > > > > active[0]:               65 C: devices=0xc17e4d9c
-> > > > > active[1]:               55 C: devices=0xc17e4d38
-> > > > >
-> > > > > Some remarks:
-> > > > >
-> > > > >  - the polling frequency is not set by default so I
-> > > > > run a script on startup which sets the polling
-> > > > > frequency to 30 secs
-> > > >
-> > > > if you don't set polling frequency it is 0?
-> > > > Does anything not work in that case?
-> > > >
-> > > > That is the ideal case -- as polling frequency 0
-> > > > means that the system is event-driven.
-> > > >
-> > > > If you need to enable polling b/c something isn't working,
-> > > > 3 seconds may be more prudent than 30 seconds.
-> > > >
-> > > > >  - the state reported by
-> > > > > /proc/acpi/thermal_zone/THRM/state changes correctly
-> > > > > according to changing temperatures but it is not in
-> > > > > accordance with the real state of the cooler.
-> > > >
-> > > > Do you have /proc/acpi/fan/*/* files?
-> > > > What do they say?
-> > > >
-> > > > -Len
-> > > >
-> > >
-> > > Now I'm playing around with 2.6.20. If I don't set the polling
-> > > frequency at boot time then cat
-> > > /proc/acpi/thermal_zone/polling_frequency gives me:
-> > >
-> > > <polling disabled>
-> > >
-> > > I also tried setting the polling frequency to 0 but doesn't help. ls
-> > > /proc/acpi/fan gives me:
-> >
-> > right, polling frequency of 0 disables polling.
-> > when polling is disabled, the thermal system is event driven.
-> >
-> > why do you want to enable polling -- what is not working
-> > when it is disabled?
-> >
-> > > FAN0  FAN1
-> > >
-> > > and ls /proc/acpi/fan/FAN0 and ls /proc/acpi/fan/FAN1 give me:
-> > >
-> > > state
-> >
-> > s/ls/cat/
-> >
-> > -Len
-> >
-> >
->
-> The CPU cooler doesn't start spinning when temperature raises,
-> although the output of `cat /proc/acpi/thermal_zone/THRM/state`
-> changes according to the temperature, so if temperature is less than
-> 55 then `cat /proc/acpi/thermal_zone/THRM/state` returns state ok, if
-> temperature is between 55 and 65 then it returns state active[1] and
-> finally if temperature is higher then 65, `cat
-> /proc/acpi/thermal_zone/THRM/state` returns active[0] but the cpu
-> cooler won't ever start. If I issue the commands `echo 3 >
-> /proc/acpi/fan/FAN0/state` and `echo 0 > /proc/acpi/fan/FAN0/state`
-> then the cooler starts but then never stops even if the temperature
-> falls bellow 55 and manually also can be stopped by `echo 3 >
-> /proc/acpi/fan/FAN0/state`.
-> The same situation with polling set or not.
->
+Hello Chuck,
 
-I also decompiled and recompiled dsdt with iasl and on compilation I get this:
+I'm the author of K8temp. Please can you share with us your DSDT table?
+(cat /proc/acpi/dsdt > /tmp/dsdt.bin)
 
-Intel ACPI Component Architecture
-ASL Optimizing Compiler version 20060912 [Dec 20 2006]
-Copyright (C) 2000 - 2006 Intel Corporation
-Supports ACPI Specification Revision 3.0a
+> So, could ACPI and the k8temp driver be at odds?
 
-dsdt.dsl   155:     Method (_WAK, 1, NotSerialized)
-Warning  1079 -                ^ Reserved method must return a value (_WAK)
+Yes because ACPI AML code has no synchronization with Linux drivers. Second
+reason is that ACPI AML code assign resource regions to itself but with cleared
+busy flag - so other drivers could bind and might possibly interfere  with ACPI.
 
-ASL Input:  dsdt.dsl - 3980 lines, 138169 bytes, 1868 keywords
-AML Output: dsdt.aml - 17440 bytes 535 named objects 1333 executable opcodes
+This is very long term problem, I already proposed some possible solutions to
+this problem
+(http://lists.lm-sensors.org/pipermail/lm-sensors/2007-February/018788.html)
 
-Compilation complete. 0 Errors, 1 Warnings, 0 Remarks, 613 Optimizations
+There are some ideas, but none is implemented yet. As you already wrote, best
+solution is to stop using k8temp driver.
 
-Do you think that this warning has something to do with it? One spooky
-thing: 2 times happened that the cooler worked once with 2.6.19 and
-once with 2.6.20-rc7 when the polling frequency was set to 30 s. When
-the temperature reached 55C, the cooler started spinning and bellow
-stoped (so it was working as it was supposed to) but couldn't manage
-with the same kernels to get the cooler working although I don't
-remember to have done some extra configuration... spooky :). So it
-worked twice and after reboot, with the same kernels and nothing
-changed, things stopped working.
+I will check the DSDT table to confirm this fact.
+
+Thanks,
+Rudolf
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
