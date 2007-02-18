@@ -1,70 +1,37 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: breakage in current git-acpi
-Date: Sat, 17 Feb 2007 19:07:55 -0800
-Message-ID: <20070217190755.e708effd.akpm@linux-foundation.org>
-References: <20070216223956.d04af327.akpm@linux-foundation.org>
-	<200702170225.07774.lenb@kernel.org>
-	<20070216234948.6bf2ed82.akpm@linux-foundation.org>
-	<200702172159.03332.lenb@kernel.org>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
+Date: Sun, 18 Feb 2007 18:32:19 +0100
+Message-ID: <20070218183219.557856dc.khali@linux-fr.org>
+References: <45D5EA88.7090300@redhat.com>
+	<p73odntg9ga.fsf@bingen.suse.de>
+	<45D606A0.5020606@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56556 "EHLO smtp.osdl.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750774AbXBRDJK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 17 Feb 2007 22:09:10 -0500
-In-Reply-To: <200702172159.03332.lenb@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751623AbXBRRcN@vger.kernel.org>
+In-Reply-To: <45D606A0.5020606@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Chuck Ebbert <cebbert@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
 
-On Sat, 17 Feb 2007 21:59:02 -0500 Len Brown <lenb@kernel.org> wrote:
+Hi Chuck,
 
-> 
-> Assuming there is exactly 1 event for each press,
-> then the kernel part of this is healthy.
-> 
-> Assuming the failure is that the lid event fails
-> to trigger the STD after a few iterations,
-> and you did this after the failure started;
-> then it seems the failure isn't the event
-> at all, but perhaps the inability to re-invoke STD.
-> 
-> What happens if you invoke STD manually with
-> # echo disk > /sys/power/state
-
-That works OK.
-
-> > 9:       1344   IO-APIC-fasteoi   acpi
+On Fri, 16 Feb 2007 14:31:44 -0500, Chuck Ebbert wrote:
+> Andi Kleen wrote:
+> > Chuck Ebbert wrote:
+> > > So, could ACPI and the k8temp driver be at odds?
 > > 
-> > it's increasing even while the machine is just sitting there.
+> > Yes, there is no locking between ACPI and Linux drivers for register access.
+> > e.g. if there is a indexed register both try to access (and temperature
+> > sensors tend to use these things) they can race and get corrupted data.
 > 
-> That's okay -- it is common -- particularly
-> laptops, which are likely to have a number of events ticking away.
-> thermal and fan control, and battery state, in particular.
->  
-> > > Also, you should be able to see the state of the lid in a file under /proc/acpi/button/*/
-> > 
-> > sony:/home/akpm# cat /proc/acpi/button/lid/LID0/state
-> > state:      closed
-> > sony:/home/akpm# cat /proc/acpi/button/lid/LID0/state
-> > state:      open
-> > 
-> > all seems well.
-> > 
-> > Stopping and restarting acpid doesn't fix it.
-> 
-> Yeah, it must be suspend-to-disk itself refusing to suspend.
-> Probably when automatically invoked any errors or warnings
-> get sent to /dev/null.
-> Are there any dmesg associated with the failed suspend attempt?
+> I blacklisted the k8temp driver and everything looks OK now.
 
-No messages come out when I shut the lid.
+You could blacklist the ACPI "thermal" module instead. If you're
+interested in monitoring your CPU temperature, k8temp is IMHO more
+convenient to use than ACPI, as it interfaces properly with libsensors
+and all hardware monitoring user interfaces.
 
-Manually suspending works normally.
-
-> How many suspend cycles can you survive before git-acpi is applied?
-
-I tested up to five or six times once.
+-- 
+Jean Delvare
