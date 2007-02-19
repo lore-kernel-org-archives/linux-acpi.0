@@ -1,70 +1,62 @@
-From: Dominik Brodowski <linux@dominikbrodowski.net>
-Subject: Re: ec locking issue
-Date: Mon, 19 Feb 2007 16:45:02 -0500
-Message-ID: <20070219214502.GA19762@isilmar.linta.de>
-References: <20070215192616.GA31595@isilmar.linta.de> <45D4BF92.5050401@linux.intel.com> <200702161254.55430.lenb@kernel.org> <20070219134431.GG9283@isilmar.linta.de>
+From: "Ilya A. Volynets-Evenbakh" <ilya@total-knowledge.com>
+Subject: [PATCH] add access to ACPI docking station UID
+Date: Mon, 19 Feb 2007 15:19:31 -0800
+Message-ID: <45DA3083.9080604@total-knowledge.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+ boundary="------------080809070601010508030702"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from isilmar.linta.de ([213.239.214.66]:52461 "EHLO linta.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S932713AbXBSVpG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Feb 2007 16:45:06 -0500
-Content-Disposition: inline
-In-Reply-To: <20070219134431.GG9283@isilmar.linta.de>
+Received: from alpha.total-knowledge.com ([205.217.158.170]:45244 "EHLO
+	total-knowledge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965533AbXBSX0W (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Feb 2007 18:26:22 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Hi,
+This is a multi-part message in MIME format.
+--------------080809070601010508030702
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Mon, Feb 19, 2007 at 08:44:31AM -0500, Dominik Brodowski wrote:
-> On Fri, Feb 16, 2007 at 12:54:55PM -0500, Len Brown wrote:
-> > > > acpi_ec_transaction
-> > > > acpi_ec_read
-> > > > acpi_ec_space_handler
-> > > > acpi_ev_address_space_dispatch
-> > > > acpi_ex_access_region
-> > > > acpi_ex_field_datum_
-> > > > acpi_ex_extract_from_field
-> > > > ...
-> > > > acpi_ex_ns_evaluate
-> > > > acpi_ev_execute_reg_method
-> > > > acpi_ev_reg_run
-> > > > acpi_ns_walk_namespace
-> > > > acpi_ev_execute_reg_methods
-> > > > acpi_install_address_space_handler
-> > > > acpi_ec_start
-> > > > acpi_start_single_object
-> > > > acpi_device_probe
-> > > > really_probe
-> > > > ...
-> > > > bus_add_driver
-> > > > ...
-> > > > acpi_ec_init
-> > 
-> > Alexey,
-> > Thanks for the fix -- it is applied.
-> > 
-> > Dominik,
-> > Did this fix help, or is the problem elsehwere?
-> 
-> Unfortunately, this doesn't solve the issue for me -- now I get a panic with
-> EIP at __list_add+0x2d/0x60, with the call trace being
-> 
-> 	...
-> 	die
-> 	do_page_fault
-> 	error_code
-> 	__mutex_lock_slowpath
-> 	mutex_lock
-> 	acpi_ec_transaction
-> 
-> and then the same as above... Will try it out with lockdep disabled.
+It is useful to know whether your laptop is docked or not,
+but it is even more useful to know which docking station it's
+docked to. Attached patch adds "uid" file to sysfs.
+Tested on Dell Latitude D600 with D/Dock.
+Patch is against official 2.6.20 release.
 
-No, doesn't seem to be lockdep-related; same issue continues. "acpi=off"
-fixes the issue, though, of course...
+-- 
+Ilya A. Volynets-Evenbakh
+Total Knowledge. CTO
+http://www.total-knowledge.com
 
-Thanks,
-	Dominik
+
+--------------080809070601010508030702
+Content-Type: text/plain;
+ name="acpi-dock-uid.diff"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="acpi-dock-uid.diff"
+
+LS0tIGxpbnV4LTIuNi4yMC5vcmlnL2RyaXZlcnMvYWNwaS9kb2NrLmMJMjAwNy0wMi0wNCAx
+MDo0NDo1NC4wMDAwMDAwMDAgLTA4MDAKKysrIGxpbnV4LTIuNi4yMC9kcml2ZXJzL2FjcGkv
+ZG9jay5jCTIwMDctMDItMTkgMTQ6NDM6MzkuMDAwMDAwMDAwIC0wODAwCkBAIC02NTksNiAr
+NjU5LDIzIEBACiB9CiBERVZJQ0VfQVRUUih1bmRvY2ssIFNfSVdVU1IsIE5VTEwsIHdyaXRl
+X3VuZG9jayk7CiAKKy8qCisgKiBzaG93X2RvY2tfdWlkIC0gcmVhZCBtZXRob2QgZm9yICJ1
+aWQiIGZpbGUgaW4gc3lzZnMKKyAqLworc3RhdGljIHNzaXplX3Qgc2hvd19kb2NrX3VpZChz
+dHJ1Y3QgZGV2aWNlICpkZXYsCisJCQkgICAgIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICph
+dHRyLCBjaGFyICpidWYpCit7CisJdW5zaWduZWQgbG9uZyBsYnVmOworCWFjcGlfc3RhdHVz
+IHN0YXR1cyA9IGFjcGlfZXZhbHVhdGVfaW50ZWdlcihkb2NrX3N0YXRpb24tPmhhbmRsZSwg
+Il9VSUQiLCAwLCAmbGJ1Zik7CisJaWYoQUNQSV9GQUlMVVJFKHN0YXR1cykpIHsKKwkgICAg
+cmV0dXJuIDA7CisJfQorCXJldHVybiBzbnByaW50ZihidWYsIFBBR0VfU0laRSwgIiVseFxu
+IiwgbGJ1Zik7Cit9CitERVZJQ0VfQVRUUih1aWQsIFNfSVJVR08sIHNob3dfZG9ja191aWQs
+IE5VTEwpOworCisKKwogLyoqCiAgKiBkb2NrX2FkZCAtIGFkZCBhIG5ldyBkb2NrIHN0YXRp
+b24KICAqIEBoYW5kbGU6IHRoZSBkb2NrIHN0YXRpb24gaGFuZGxlCkBAIC03MDcsNiArNzI0
+LDEzIEBACiAJCWtmcmVlKGRvY2tfc3RhdGlvbik7CiAJCXJldHVybiByZXQ7CiAJfQorCXJl
+dCA9IGRldmljZV9jcmVhdGVfZmlsZSgmZG9ja19kZXZpY2UuZGV2LCAmZGV2X2F0dHJfdWlk
+KTsKKwlpZiAocmV0KSB7CisJCXByaW50aygiRXJyb3IgJWQgYWRkaW5nIHN5c2ZzIGZpbGVc
+biIsIHJldCk7CisJCXBsYXRmb3JtX2RldmljZV91bnJlZ2lzdGVyKCZkb2NrX2RldmljZSk7
+CisJCWtmcmVlKGRvY2tfc3RhdGlvbik7CisJCXJldHVybiByZXQ7CisJfQogCiAJLyogRmlu
+ZCBkZXBlbmRlbnQgZGV2aWNlcyAqLwogCWFjcGlfd2Fsa19uYW1lc3BhY2UoQUNQSV9UWVBF
+X0RFVklDRSwgQUNQSV9ST09UX09CSkVDVCwK
+--------------080809070601010508030702--
