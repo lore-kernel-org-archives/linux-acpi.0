@@ -1,24 +1,65 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Date: Mon, 19 Feb 2007 00:22:49 +0100
-Message-ID: <20070218232249.GA11730@one.firstfloor.org>
-References: <45D5EA88.7090300@redhat.com> <p73odntg9ga.fsf@bingen.suse.de> <45D606A0.5020606@redhat.com> <20070218183219.557856dc.khali@linux-fr.org>
+From: Dominik Brodowski <linux@dominikbrodowski.net>
+Subject: Re: ec locking issue
+Date: Mon, 19 Feb 2007 08:44:31 -0500
+Message-ID: <20070219134431.GG9283@isilmar.linta.de>
+References: <20070215192616.GA31595@isilmar.linta.de> <45D4BF92.5050401@linux.intel.com> <200702161254.55430.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752440AbXBRXWx@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from isilmar.linta.de ([213.239.214.66]:57793 "EHLO linta.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932247AbXBSNod (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 Feb 2007 08:44:33 -0500
 Content-Disposition: inline
-In-Reply-To: <20070218183219.557856dc.khali@linux-fr.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Chuck Ebbert <cebbert@redhat.com>, Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+In-Reply-To: <200702161254.55430.lenb@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, linux-acpi@vger.kernel.org
 
-> You could blacklist the ACPI "thermal" module instead. If you're
-> interested in monitoring your CPU temperature, k8temp is IMHO more
-> convenient to use than ACPI, as it interfaces properly with libsensors
-> and all hardware monitoring user interfaces.
+Hi,
 
-That would be somewhat dangerous because ACPI thermal does more than
-just displaying the temperature. Especially laptops often need it.
+On Fri, Feb 16, 2007 at 12:54:55PM -0500, Len Brown wrote:
+> > > acpi_ec_transaction
+> > > acpi_ec_read
+> > > acpi_ec_space_handler
+> > > acpi_ev_address_space_dispatch
+> > > acpi_ex_access_region
+> > > acpi_ex_field_datum_
+> > > acpi_ex_extract_from_field
+> > > ...
+> > > acpi_ex_ns_evaluate
+> > > acpi_ev_execute_reg_method
+> > > acpi_ev_reg_run
+> > > acpi_ns_walk_namespace
+> > > acpi_ev_execute_reg_methods
+> > > acpi_install_address_space_handler
+> > > acpi_ec_start
+> > > acpi_start_single_object
+> > > acpi_device_probe
+> > > really_probe
+> > > ...
+> > > bus_add_driver
+> > > ...
+> > > acpi_ec_init
+> 
+> Alexey,
+> Thanks for the fix -- it is applied.
+> 
+> Dominik,
+> Did this fix help, or is the problem elsehwere?
 
--Andi
+Unfortunately, this doesn't solve the issue for me -- now I get a panic with
+EIP at __list_add+0x2d/0x60, with the call trace being
+
+	...
+	die
+	do_page_fault
+	error_code
+	__mutex_lock_slowpath
+	mutex_lock
+	acpi_ec_transaction
+
+and then the same as above... Will try it out with lockdep disabled.
+
+	Dominik
