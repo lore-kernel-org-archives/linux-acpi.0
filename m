@@ -1,55 +1,81 @@
-From: "Luca Tettamanti" <kronos.it@gmail.com>
-Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Date: Tue, 20 Feb 2007 16:33:56 +0100
-Message-ID: <68676e00702200733l6e7f13a5o201bc70fed98528b@mail.gmail.com>
-References: <45D5EA88.7090300@redhat.com> <45D6DDCE.5050803@assembler.cz>
-	 <45D7461A.2040808@redhat.com>
-	 <20070218183805.5a4fd813.khali@linux-fr.org>
-	 <20070220151813.GA6581@srcf.ucam.org>
+From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Subject: Re: ec locking issue
+Date: Tue, 20 Feb 2007 21:24:36 +0300
+Message-ID: <45DB3CE4.8090001@linux.intel.com>
+References: <20070215192616.GA31595@isilmar.linta.de> <45D4BF92.5050401@linux.intel.com> <200702161254.55430.lenb@kernel.org> <20070219134431.GG9283@isilmar.linta.de> <20070219214502.GA19762@isilmar.linta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wr-out-0506.google.com ([64.233.184.228]:50265 "EHLO
-	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965066AbXBTPd5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Feb 2007 10:33:57 -0500
-Received: by wr-out-0506.google.com with SMTP id i21so1905187wra
-        for <linux-acpi@vger.kernel.org>; Tue, 20 Feb 2007 07:33:57 -0800 (PST)
-In-Reply-To: <20070220151813.GA6581@srcf.ucam.org>
-Content-Disposition: inline
+Received: from mga07.intel.com ([143.182.124.22]:7612 "EHLO
+	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750986AbXBTSYz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Feb 2007 13:24:55 -0500
+In-Reply-To: <20070219214502.GA19762@isilmar.linta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Jean Delvare <khali@linux-fr.org>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, Chuck Ebbert <cebbert@redhat.com>, lm-sensors@lm-sensors.org
+To: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On 2/20/07, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> On Sun, Feb 18, 2007 at 06:38:05PM +0100, Jean Delvare wrote:
+Dominik Brodowski wrote:
+> Hi,
 >
-> > ACPI is broken here, not k8temp, so let's fix ACPI instead. ACPI
-> > doesn't conflict with only k8temp, but with virtually all hardware
-> > monitoring drivers, all I2C/SMBus drivers, and probably other types of
-> > drivers too. We just can't restrict or blacklist all these drivers
-> > because ACPI misbehaves.
+> On Mon, Feb 19, 2007 at 08:44:31AM -0500, Dominik Brodowski wrote:
+>   
+>> On Fri, Feb 16, 2007 at 12:54:55PM -0500, Len Brown wrote:
+>>     
+>>>>> acpi_ec_transaction
+>>>>> acpi_ec_read
+>>>>> acpi_ec_space_handler
+>>>>> acpi_ev_address_space_dispatch
+>>>>> acpi_ex_access_region
+>>>>> acpi_ex_field_datum_
+>>>>> acpi_ex_extract_from_field
+>>>>> ...
+>>>>> acpi_ex_ns_evaluate
+>>>>> acpi_ev_execute_reg_method
+>>>>> acpi_ev_reg_run
+>>>>> acpi_ns_walk_namespace
+>>>>> acpi_ev_execute_reg_methods
+>>>>> acpi_install_address_space_handler
+>>>>> acpi_ec_start
+>>>>> acpi_start_single_object
+>>>>> acpi_device_probe
+>>>>> really_probe
+>>>>> ...
+>>>>> bus_add_driver
+>>>>> ...
+>>>>> acpi_ec_init
+>>>>>           
+>>> Alexey,
+>>> Thanks for the fix -- it is applied.
+>>>
+>>> Dominik,
+>>> Did this fix help, or is the problem elsehwere?
+>>>       
+>> Unfortunately, this doesn't solve the issue for me -- now I get a panic with
+>> EIP at __list_add+0x2d/0x60, with the call trace being
+>>
+>> 	...
+>> 	die
+>> 	do_page_fault
+>> 	error_code
+>> 	__mutex_lock_slowpath
+>> 	mutex_lock
+>> 	acpi_ec_transaction
+>>
+>> and then the same as above... Will try it out with lockdep disabled.
+>>     
 >
-> No, the simple fact of the matter is that if you're running on an ACPI
-> platform you need to change some of your assumptions. ACPI owns the
-> hardware. The OS doesn't. To an extent this has always been true on
-> laptops and servers /anyway/ - the BIOS is free to have a wide variety
-> of SMM insanity that invalidates basic assumptions like "If I hold this
-> lock, nothing can interrupt me between this write and this read". That's
-> simply not true.
+> No, doesn't seem to be lockdep-related; same issue continues. "acpi=off"
+> fixes the issue, though, of course...
 >
-> So this isn't about fixing ACPI. It's about trying to find a mechanism
-> that allows ACPI and raw hardware drivers to coexist, which is made
-> somewhat harder by it not being a situation that the platform designers
-> have considered in the slightest.
+> Thanks,
+> 	Dominik
+>   
 
-Motherboard vendors usually provide tools for $(TheOtherOS) that can
-read from all thermal  / fan / voltage / whatever sensors, so I guess
-it's possible to make the ACPI driver and the "raw" one play nice with
-each other[1].
+Dominik,
+Could you send your acpidump and full dmesg please?
 
-Luca
-[1] Unless their solution is "poke at the hardware and hope that ACPI
-doesn't blow up", that is.
+Thanks,
+    Alex.
