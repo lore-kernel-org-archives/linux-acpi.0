@@ -1,74 +1,62 @@
-From: Corey Minyard <minyard@acm.org>
-Subject: Re: acpi_find_bmc() and acpi_get_table()
-Date: Tue, 20 Feb 2007 07:55:36 -0600
-Message-ID: <45DAFDD8.909@acm.org>
-References: <200702102327.28312.lenb@kernel.org>
-	<200702152103.54960.bjorn.helgaas@hp.com>
-	<45D53DDE.5000300@acm.org>
-	<200702192131.52947.bjorn.helgaas@hp.com>
-	<45DA9931.80605@linux.intel.com>
+From: marco <marco@metm.org>
+Subject: suspend kills serial wacom tablet
+Date: Tue, 20 Feb 2007 08:52:07 -0500
+Message-ID: <pan.2007.02.20.13.52.07.111117@metm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <openipmi-developer-bounces@lists.sourceforge.net>
-In-Reply-To: <45DA9931.80605@linux.intel.com>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
-	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=openipmi-developer>
-List-Post: <mailto:openipmi-developer@lists.sourceforge.net>
-List-Help: <mailto:openipmi-developer-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
-	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=subscribe>
-Sender: openipmi-developer-bounces@lists.sourceforge.net
-Errors-To: openipmi-developer-bounces@lists.sourceforge.net
-To: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, openipmi <openipmi-developer@lists.sourceforge.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from main.gmane.org ([80.91.229.2]:58702 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964893AbXBTOAS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Feb 2007 09:00:18 -0500
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1HJVXG-0003cL-GJ
+	for linux-acpi@vger.kernel.org; Tue, 20 Feb 2007 15:00:02 +0100
+Received: from dsl081-200-033.nyc2.dsl.speakeasy.net ([64.81.200.33])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Tue, 20 Feb 2007 15:00:02 +0100
+Received: from marco by dsl081-200-033.nyc2.dsl.speakeasy.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Tue, 20 Feb 2007 15:00:02 +0100
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Alexey Starikovskiy wrote:
-> Bjorn Helgaas wrote:
->> On Thursday 15 February 2007 22:15, Corey Minyard wrote:
->>  
->>> Bjorn Helgaas wrote:
->>>    
->>>> On Saturday 10 February 2007 21:27, Len Brown wrote:
->>>>        
->>>>> acpi_find_bmc() appears to be searching for multiple SPMI tables 
->>>>> in the RSDT and running
->>>>> try_init_acpi() on each of them
->>>>> until it doesn't find any more.
->>>>>             
->>>> I can't remember why we look at the SPMI table(s) rather than
->>>> registering a normal ACPI (or even PNP) driver.  Unless we
->>>> need to poke the BMC very early, wouldn't it be better to
->>>> rely on the device description in the namespace?
->>>>         
->>> For some strange reason the normal ACPI information does not
->>> have all the information needed by the driver.  It doesn't have
->>> register size or spacing information.
->>>     
->>
->> I guess that would be a defect in the way ACPI is being used,
->> wouldn't it?  A PNP ID should define the device programming
->> model, including things like register size and spacing.  It
->> sounds like somebody didn't define a new PNP ID when he should
->> have.  I wonder whether it's worth trying to fix this.
->>
->>   
-> Yes, it is considered an ACPI fault. Could you please describe in 
-> detail, which registers miss the information? And probably your 
-> acpidump will help as well.
-I don't have a machine with an ACPI description of the BMC.  I'll copy 
-the mailing list to see if anyone has an ACPI-described BMC.
+Hello all,
 
-I don't know that much about ACPI, so maybe that information is 
-described somehow in a way the IPMI spec doesn't talk about directly, 
-like in the _CRS object.
+I have a thinkpad X41-tablet which uses the linuxwacom serial drivers. 
+The tablet works perfectly when the laptop first boots, but does not work
+at all after resuming from sleep.  I posted to the linuxwacom list but
+think that the problem might be more general in how acpi resumes the
+serial ports.
 
--Corey
+As suggested here:
+http://www.thinkwiki.org/wiki/Installing_Ubuntu_6.10_on_a_ThinkPad_X41_Tablet
+I have added a script to resume.d which calls the setserial command:
+  /bin/setserial /dev/ttyS0 port 0x0200 irq 5 autoconfig
 
--------------------------------------------------------------------------
-Take Surveys. Earn Cash. Influence the Future of IT
-Join SourceForge.net's Techsay panel and you'll get the chance to share your
-opinions on IT & business topics through brief surveys-and earn cash
-http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
+>From looking at how Ubuntu at least stores the serial configurations, I
+think that the above is redundant. If I try to run the above command from
+the command line after resuming from sleep I get:
+  Cannot autoconfigure port: Device or resource busy
+If I try to cat /dev/ttyS0 after the resume, all my trackpoint and
+keyboard die, no Ctrl-Alt-Delete etc. I have to cold reboot the system.
+
+I have tried 
+  > /dev/ttyS0
+As was suggested on a tread in this list to about a serial console, but
+that does not revive my tablet.  Also added the above line to the resume.d
+script I wrote, but this does not work.
+
+Any ideas of what I could do to revive this serial port?  Or if you think
+I am completely on the wrong path, or am posting to the wrong list, please
+let me know.
+
+Thanks for the excellent work on the acpi infrastructure. I can tell you
+that daily use of a laptop has become much more pleasurable thanks to you.
+
+-- 
+Marco
+
