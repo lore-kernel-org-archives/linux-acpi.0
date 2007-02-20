@@ -1,62 +1,48 @@
-From: marco <marco@metm.org>
-Subject: suspend kills serial wacom tablet
-Date: Tue, 20 Feb 2007 08:52:07 -0500
-Message-ID: <pan.2007.02.20.13.52.07.111117@metm.org>
+From: Chuck Ebbert <cebbert@redhat.com>
+Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
+Date: Tue, 20 Feb 2007 10:08:26 -0500
+Message-ID: <45DB0EEA.2010205@redhat.com>
+References: <45D5EA88.7090300@redhat.com> <45D6DDCE.5050803@assembler.cz> <45D7461A.2040808@redhat.com> <45D8D6AE.3000204@assembler.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:58702 "EHLO ciao.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964893AbXBTOAS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Feb 2007 09:00:18 -0500
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1HJVXG-0003cL-GJ
-	for linux-acpi@vger.kernel.org; Tue, 20 Feb 2007 15:00:02 +0100
-Received: from dsl081-200-033.nyc2.dsl.speakeasy.net ([64.81.200.33])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Tue, 20 Feb 2007 15:00:02 +0100
-Received: from marco by dsl081-200-033.nyc2.dsl.speakeasy.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Tue, 20 Feb 2007 15:00:02 +0100
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S965019AbXBTPK6@vger.kernel.org>
+In-Reply-To: <45D8D6AE.3000204@assembler.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rudolf Marek <r.marek@assembler.cz>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Hello all,
+Rudolf Marek wrote:
+> Hello all,
+> 
+> I got the DSDT from chuck and it seems there is nothing interesting - no
+> declaration of PCI_config for the registers. If someone wants to check it I can
+> send him the DSDT.
+> 
+> _TMP looks like this:
+> 
+>  Store (\_SB.PCI0.LPC0.EC0.RTMP, Local0)
+>                     Store ("Current temp is: ", Debug)
+> 
+>                     Store (Local0, Debug)
+> 
+>                     Store (Local0, \_SB.CM25)
+> 
+>                     Return (Add (0x0AAC, Multiply (Local0, 0x0A)))
+> 
+> This looks quite OK LPC0.EC0 is embedded controller IO RAM at 0x62. Nothing
+> special. I guess some SMM interrupt is reading the the PCI regs and sends it to EC.
 
-I have a thinkpad X41-tablet which uses the linuxwacom serial drivers. 
-The tablet works perfectly when the laptop first boots, but does not work
-at all after resuming from sleep.  I posted to the linuxwacom list but
-think that the problem might be more general in how acpi resumes the
-serial ports.
+I blacklisted the k8temp driver (and the out-of-tree k8_edac driver
+in Fedora) and the temps were still volatile, so that's not causing
+it. Since then I've upgraded the system BIOS from F.06 to F.27 and
+the problems _may_ have gone away. My own custom 2.6.19 kernel has
+never been a problem, so I'm thinking it's one of these drivers
+loaded by Fedora that I never even compile:
 
-As suggested here:
-http://www.thinkwiki.org/wiki/Installing_Ubuntu_6.10_on_a_ThinkPad_X41_Tablet
-I have added a script to resume.d which calls the setserial command:
-  /bin/setserial /dev/ttyS0 port 0x0200 irq 5 autoconfig
-
->From looking at how Ubuntu at least stores the serial configurations, I
-think that the above is redundant. If I try to run the above command from
-the command line after resuming from sleep I get:
-  Cannot autoconfigure port: Device or resource busy
-If I try to cat /dev/ttyS0 after the resume, all my trackpoint and
-keyboard die, no Ctrl-Alt-Delete etc. I have to cold reboot the system.
-
-I have tried 
-  > /dev/ttyS0
-As was suggested on a tread in this list to about a serial console, but
-that does not revive my tablet.  Also added the above line to the resume.d
-script I wrote, but this does not work.
-
-Any ideas of what I could do to revive this serial port?  Or if you think
-I am completely on the wrong path, or am posting to the wrong list, please
-let me know.
-
-Thanks for the excellent work on the acpi infrastructure. I can tell you
-that daily use of a laptop has become much more pleasurable thanks to you.
-
--- 
-Marco
-
+	i2c_core
+	i2c_ec
+	i2c_piix4
+	asus_acpi (on a Compaq???)
+	sbs
