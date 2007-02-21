@@ -1,44 +1,42 @@
-From: Chuck Ebbert <cebbert@redhat.com>
+From: Jean Delvare <khali@linux-fr.org>
 Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Date: Wed, 21 Feb 2007 11:03:07 -0500
-Message-ID: <45DC6D3B.80500@redhat.com>
-References: <45D5EA88.7090300@redhat.com>	<45D6DDCE.5050803@assembler.cz>	<45D7461A.2040808@redhat.com>	<45D8D6AE.3000204@assembler.cz>	<45DB0EEA.2010205@redhat.com> <20070221155444.99386b98.khali@linux-fr.org>
+Date: Wed, 21 Feb 2007 17:17:37 +0100
+Message-ID: <20070221171737.b6592104.khali@linux-fr.org>
+References: <45D5EA88.7090300@redhat.com>
+	<45D6DDCE.5050803@assembler.cz>
+	<45D7461A.2040808@redhat.com>
+	<45D8D6AE.3000204@assembler.cz>
+	<45DB0EEA.2010205@redhat.com>
+	<20070220191142.GE16614@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:38804 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161323AbXBUQFu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Feb 2007 11:05:50 -0500
-In-Reply-To: <20070221155444.99386b98.khali@linux-fr.org>
+Received: from smtp-103-wednesday.nerim.net ([62.4.16.103]:4739 "EHLO
+	kraid.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1422647AbXBUQR5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Feb 2007 11:17:57 -0500
+In-Reply-To: <20070220191142.GE16614@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: Dave Jones <davej@redhat.com>
+Cc: Chuck Ebbert <cebbert@redhat.com>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-Jean Delvare wrote:
-> Can you try to load the i2c-dev driver, then run the following commands
-> and report the results:
-> $ i2cdetect -l
-> For each bus listed:
-> $ i2cdetect N
+On Tue, 20 Feb 2007 14:11:42 -0500, Dave Jones wrote:
+> On Tue, Feb 20, 2007 at 10:08:26AM -0500, Chuck Ebbert wrote:
+>  
+>  > 	i2c_core
+>  > 	i2c_ec
+>  > 	i2c_piix4
+>  > 	asus_acpi (on a Compaq???)
+>  > 	sbs
+> 
+> Something is pulling in asus_acpi as a dependancy. I've never
+> figured out what the cause is.  For a long time I was thinking
+> that we had an explicit modprobe for it in an initscript, but
+> grepping for it in /etc turns up zip.
 
-FWIW it's really an ATIIXP chipset, but supposedly PIIX4 compatible:
+How could it be, given that asus_acpi doesn't export any symbol?
 
-# i2cdetect -l
-i2c-0   smbus           SMBus PIIX4 adapter at 8400             Non-I2C SMBus adapter
-# i2cdetect 0
-WARNING! This program can confuse your I2C bus, cause data loss and worse!
-I will probe file /dev/i2c-0.
-I will probe address range 0x03-0x77.
-Continue? [Y/n] y
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00:          XX XX XX XX XX XX XX XX XX XX XX XX XX
-10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-50: 50 51 XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-60: XX XX XX XX XX XX XX XX XX 69 XX XX XX XX XX XX
-70: XX XX XX XX XX XX XX XX
+-- 
+Jean Delvare
