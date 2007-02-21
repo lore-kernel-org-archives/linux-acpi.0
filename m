@@ -1,57 +1,60 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH - 2.6.19 -0/2] Backport of psmouse suspend/shutdown cleanups
-Date: Wed, 21 Feb 2007 20:52:03 +0100
-Message-ID: <20070221195203.GF3732@elf.ucw.cz>
-References: <1172077685.10619.101.camel@d36.suse.de>
+From: Dave Jones <davej@redhat.com>
+Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
+Date: Wed, 21 Feb 2007 15:19:44 -0500
+Message-ID: <20070221201944.GD13794@redhat.com>
+References: <45D5EA88.7090300@redhat.com> <45D6DDCE.5050803@assembler.cz> <45D7461A.2040808@redhat.com> <45D8D6AE.3000204@assembler.cz> <45DB0EEA.2010205@redhat.com> <20070220191142.GE16614@redhat.com> <20070221171737.b6592104.khali@linux-fr.org> <20070221173740.GD19851@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:58362 "EHLO amd.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1161147AbXBUTyI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Feb 2007 14:54:08 -0500
+Received: from mx1.redhat.com ([66.187.233.31]:40393 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1423063AbXBUUWB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Feb 2007 15:22:01 -0500
 Content-Disposition: inline
-In-Reply-To: <1172077685.10619.101.camel@d36.suse.de>
+In-Reply-To: <20070221173740.GD19851@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Stable <Stable@kernel.org>, Dmitry Torokhov <dtor@insightbb.com>, linux-acpi <linux-acpi@vger.kernel.org>
+To: Jean Delvare <khali@linux-fr.org>, Chuck Ebbert <cebbert@redhat.com>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, notting@redhat.com
 
-Hi!
+On Wed, Feb 21, 2007 at 12:37:40PM -0500, Dave Jones wrote:
+ > On Wed, Feb 21, 2007 at 05:17:37PM +0100, Jean Delvare wrote:
+ >  > On Tue, 20 Feb 2007 14:11:42 -0500, Dave Jones wrote:
+ >  > > On Tue, Feb 20, 2007 at 10:08:26AM -0500, Chuck Ebbert wrote:
+ >  > >  
+ >  > >  > 	i2c_core
+ >  > >  > 	i2c_ec
+ >  > >  > 	i2c_piix4
+ >  > >  > 	asus_acpi (on a Compaq???)
+ >  > >  > 	sbs
+ >  > > 
+ >  > > Something is pulling in asus_acpi as a dependancy. I've never
+ >  > > figured out what the cause is.  For a long time I was thinking
+ >  > > that we had an explicit modprobe for it in an initscript, but
+ >  > > grepping for it in /etc turns up zip.
+ >  > 
+ >  > How could it be, given that asus_acpi doesn't export any symbol?
+ >  
+ > If I knew I'd have fixed it by now.
 
-I'm not input or stable maintainer, but...
+Ah, Fedora has this horror in its initscripts (which explains why I missed
+it in my grep)..
 
-> I like to ask for inclusion into stable series for these.
-> 
-> The original patch from Dmitry can be found here:
-> http://bugzilla.kernel.org/show_bug.cgi?id=7689
-> comment #64, #65.
-> 
-> The reason is:
->  - These patches fix a lot weird stuff on all recent
->    HP nc/nx series laptop models.
+# Initialize ACPI bits
+if [ -d /proc/acpi ]; then
+    for module in /lib/modules/$unamer/kernel/drivers/acpi/* ; do
+        module=${module##*/}
+        module=${module%.ko}
+        modprobe $module >/dev/null 2>&1
+    done
+fi
 
-Well, I'd call that "work around hardware problems in broken HP
-laptops". There's HP BIOS bugzilla somewhere, perhaps we should fix it
-that way?
 
->  - The problem with the psmouse thing is, if you booted
->    a broken kernel, rebooting a fixed one will still result
->    in a broken system (things break (or get fixed) on shutdown
->    and survive the reboot).
->    Therefore the patch(es) should get into as much kernels
->    as possible to avoid further confusions on bug reports...
+This is there because there's no clean way for userspace to know whether
+to load the system specific stuff right now.   Bill Nottingham pointed
+out that we could add a /sys/class/dmi/modalias and appropriate MODULE_DMI
+tags to the various modules like asus_acpi to make udev autoload them.
 
-Yes, it is quite nasty problem, but:
+		Dave
 
-1) Fix is non-trivial (>100 lines, which violates -stable rule IIRC)
-
-2) Fix is very disconnected from the problem. "Deinitialize mouse so
-that fans work after reboot". WTF?
-
-3) AFAICT it is not a regression.
-
-									Pavel
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+http://www.codemonkey.org.uk
