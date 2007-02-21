@@ -1,60 +1,31 @@
-From: Dave Jones <davej@redhat.com>
-Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Date: Wed, 21 Feb 2007 15:19:44 -0500
-Message-ID: <20070221201944.GD13794@redhat.com>
-References: <45D5EA88.7090300@redhat.com> <45D6DDCE.5050803@assembler.cz> <45D7461A.2040808@redhat.com> <45D8D6AE.3000204@assembler.cz> <45DB0EEA.2010205@redhat.com> <20070220191142.GE16614@redhat.com> <20070221171737.b6592104.khali@linux-fr.org> <20070221173740.GD19851@redhat.com>
+From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Subject: Re: [PATCH - 2.6.19 -0/2] Backport of psmouse suspend/shutdown cleanups
+Date: Wed, 21 Feb 2007 23:22:57 +0300
+Message-ID: <45DCAA21.4030900@linux.intel.com>
+References: <1172077685.10619.101.camel@d36.suse.de> <20070221195203.GF3732@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:40393 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423063AbXBUUWB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Feb 2007 15:22:01 -0500
-Content-Disposition: inline
-In-Reply-To: <20070221173740.GD19851@redhat.com>
+Received: from mga07.intel.com ([143.182.124.22]:24726 "EHLO
+	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1423080AbXBUUXD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Feb 2007 15:23:03 -0500
+In-Reply-To: <20070221195203.GF3732@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>, Chuck Ebbert <cebbert@redhat.com>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, notting@redhat.com
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Thomas Renninger <trenn@suse.de>, Stable <Stable@kernel.org>, Dmitry Torokhov <dtor@insightbb.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Wed, Feb 21, 2007 at 12:37:40PM -0500, Dave Jones wrote:
- > On Wed, Feb 21, 2007 at 05:17:37PM +0100, Jean Delvare wrote:
- >  > On Tue, 20 Feb 2007 14:11:42 -0500, Dave Jones wrote:
- >  > > On Tue, Feb 20, 2007 at 10:08:26AM -0500, Chuck Ebbert wrote:
- >  > >  
- >  > >  > 	i2c_core
- >  > >  > 	i2c_ec
- >  > >  > 	i2c_piix4
- >  > >  > 	asus_acpi (on a Compaq???)
- >  > >  > 	sbs
- >  > > 
- >  > > Something is pulling in asus_acpi as a dependancy. I've never
- >  > > figured out what the cause is.  For a long time I was thinking
- >  > > that we had an explicit modprobe for it in an initscript, but
- >  > > grepping for it in /etc turns up zip.
- >  > 
- >  > How could it be, given that asus_acpi doesn't export any symbol?
- >  
- > If I knew I'd have fixed it by now.
+Pavel Machek wrote:
+> 2) Fix is very disconnected from the problem. "Deinitialize mouse so
+> that fans work after reboot". WTF?
+>
+>   
+ACPI spec implies that EC controller and PS/2 mouse/keyboards controller 
+are one entity.
+So if mouse screws up "its" controller, it screws up EC as well, meaning 
+fans will not work.
 
-Ah, Fedora has this horror in its initscripts (which explains why I missed
-it in my grep)..
-
-# Initialize ACPI bits
-if [ -d /proc/acpi ]; then
-    for module in /lib/modules/$unamer/kernel/drivers/acpi/* ; do
-        module=${module##*/}
-        module=${module%.ko}
-        modprobe $module >/dev/null 2>&1
-    done
-fi
-
-
-This is there because there's no clean way for userspace to know whether
-to load the system specific stuff right now.   Bill Nottingham pointed
-out that we could add a /sys/class/dmi/modalias and appropriate MODULE_DMI
-tags to the various modules like asus_acpi to make udev autoload them.
-
-		Dave
-
--- 
-http://www.codemonkey.org.uk
+Regards,
+    Alex.
