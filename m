@@ -1,69 +1,79 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Date: Wed, 21 Feb 2007 17:22:07 +0100
-Message-ID: <20070221172207.d469b17d.khali@linux-fr.org>
-References: <45D5EA88.7090300@redhat.com>
-	<45D6DDCE.5050803@assembler.cz>
-	<45D7461A.2040808@redhat.com>
-	<45D8D6AE.3000204@assembler.cz>
-	<45DB0EEA.2010205@redhat.com>
-	<20070221155444.99386b98.khali@linux-fr.org>
-	<45DC6D3B.80500@redhat.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH - 2.6.19 -0/2] Backport of psmouse suspend/shutdown cleanups
+Date: Wed, 21 Feb 2007 18:08:05 +0100
+Message-ID: <1172077685.10619.101.camel@d36.suse.de>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-103-wednesday.noc.nerim.net ([62.4.17.103]:4185 "EHLO
-	mallaury.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1422640AbXBUQWa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Feb 2007 11:22:30 -0500
-In-Reply-To: <45DC6D3B.80500@redhat.com>
+Received: from mx1.suse.de ([195.135.220.2]:34846 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1422706AbXBURIL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Feb 2007 12:08:11 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chuck Ebbert <cebbert@redhat.com>
-Cc: Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: Stable <Stable@kernel.org>
+Cc: Dmitry Torokhov <dtor@insightbb.com>, Pavel Machek <pavel@ucw.cz>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Wed, 21 Feb 2007 11:03:07 -0500, Chuck Ebbert wrote:
-> Jean Delvare wrote:
-> > Can you try to load the i2c-dev driver, then run the following commands
-> > and report the results:
-> > $ i2cdetect -l
-> > For each bus listed:
-> > $ i2cdetect N
-> 
-> FWIW it's really an ATIIXP chipset, but supposedly PIIX4 compatible:
-> 
-> # i2cdetect -l
-> i2c-0   smbus           SMBus PIIX4 adapter at 8400             Non-I2C SMBus adapter
+Hi,
 
-No i2c_ec. Maybe your distribution is loading it by default for
-everyone then.
+I like to ask for inclusion into stable series for these.
 
-Either way, it means you can forget right away about sbs, if i2c_ec
-didn't register a device, sbs cannot be used.
+The original patch from Dmitry can be found here:
+http://bugzilla.kernel.org/show_bug.cgi?id=7689
+comment #64, #65.
 
-> # i2cdetect 0
-> WARNING! This program can confuse your I2C bus, cause data loss and worse!
-> I will probe file /dev/i2c-0.
-> I will probe address range 0x03-0x77.
-> Continue? [Y/n] y
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00:          XX XX XX XX XX XX XX XX XX XX XX XX XX
-> 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-> 20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-> 30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-> 40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-> 50: 50 51 XX XX XX XX XX XX XX XX XX XX XX XX XX XX
-> 60: XX XX XX XX XX XX XX XX XX 69 XX XX XX XX XX XX
-> 70: XX XX XX XX XX XX XX XX
+The reason is:
+ - These patches fix a lot weird stuff on all recent
+   HP nc/nx series laptop models.
 
-Only a couple EEPROMs and a clock chip on your SMBus, it's very
-unlikely that ACPI accesses this at all. So I'd be surprised that
-i2c-piix4 is causing any trouble.
+ - The problem with the psmouse thing is, if you booted
+   a broken kernel, rebooting a fixed one will still result
+   in a broken system (things break (or get fixed) on shutdown
+   and survive the reboot).
+   Therefore the patch(es) should get into as much kernels
+   as possible to avoid further confusions on bug reports...
 
-This leaves asus_acpi as the only candidate? Better unload _all_ the
-drivers you consider as suspects, and see if it changes anything. I
-guess not.
+This test report shows the behavior nicely:
+http://bugzilla.kernel.org/show_bug.cgi?id=7689#c45:
+1-Boot   in good state with original kernel
+2-Reboot going in bad state with original kernel
+3-Reboot with 2.6.20 patched kernel->still in bad state
+4-Reboot with 2.6.20 patched kernel->going in good
+         state: battery reporting ok,
+         cpufreq working and go to full speed.
+5-reboot with original Fedora kernel->still in *good* state
+6-reboot going in bad state
 
--- 
-Jean Delvare
+The symptoms of breakages are (because of wrong EC reads/writes)
+very different, depending on the laptop model:
+
+  - Cannot reach highest freq on (all?) HP Intel Dual core machines
+    This is the only 100% reproducable bug I saw...
+
+  - Shutdowns because of critical temperature (e.g. showing 1200 C)
+    HP NX 9420 shutting down on huge, bogus thermal temperature values
+    https://bugzilla.novell.com/show_bug.cgi?id=234475
+
+  - There are probably a lot other bug reports out there that
+    will lead to this problem...
+
+
+These are patches against the plain 2.6.19 kernel (not stable .X,
+I hope nothing changed at these specific files..., if there
+changed something I can resubmit).
+
+As we are using these in SLE10 SP1, I did the backports back to
+2.6.16 and will send more if I get your ok for that.
+
+Dmitry (or others), can you please review. I had to fiddle a bit on
+each kernel version. I did a compile test on x86_64 (CONFIG_PM on)
+and powerpc (CONFIG_PM off). And I verified 2.6.20 (original) and
+2.6.16 working with s2disk and s2ram. Still I could have done a
+little typo/mistake somewhere...
+
+Thanks,
+
+   Thomas
+
