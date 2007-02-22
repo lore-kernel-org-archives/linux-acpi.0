@@ -1,50 +1,74 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Date: Thu, 22 Feb 2007 17:37:11 +0100
-Message-ID: <20070222173711.9364695b.khali@linux-fr.org>
-References: <45D5EA88.7090300@redhat.com>
-	<45D6DDCE.5050803@assembler.cz>
-	<45D7461A.2040808@redhat.com>
-	<45D8D6AE.3000204@assembler.cz>
-	<45DB0EEA.2010205@redhat.com>
-	<20070220191142.GE16614@redhat.com>
-	<20070221171737.b6592104.khali@linux-fr.org>
-	<20070221173740.GD19851@redhat.com>
-	<20070221201944.GD13794@redhat.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: ACPI: ibm-acpi: fix initial status of backlight device
+Date: Thu, 22 Feb 2007 16:19:35 -0200
+Message-ID: <20070222181935.GG25887@khazad-dum.debian.net>
+References: <1171876788.6046.3.camel@localhost.localdomain> <877iub9mu2.fsf@sycorax.lbl.gov> <1172097718.5790.29.camel@localhost.localdomain> <20070221231706.GA3336@khazad-dum.debian.net> <1172103159.5790.45.camel@localhost.localdomain> <20070222005122.GA7928@khazad-dum.debian.net> <20070222011017.GA8845@khazad-dum.debian.net> <20070222011643.GB8845@khazad-dum.debian.net> <1172138587.5837.37.camel@localhost.localdomain> <20070222144511.GC25887@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751690AbXBVQhs@vger.kernel.org>
-In-Reply-To: <20070221201944.GD13794@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Jones <davej@redhat.com>
-Cc: Chuck Ebbert <cebbert@redhat.com>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, notting@redhat.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:41356 "EHLO
+	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751754AbXBVSXT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 Feb 2007 13:23:19 -0500
+Content-Disposition: inline
+In-Reply-To: <20070222144511.GC25887@khazad-dum.debian.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Richard Purdie <rpurdie@rpsys.net>
+Cc: linux-kernel@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-On Wed, 21 Feb 2007 15:19:44 -0500, Dave Jones wrote:
-> Ah, Fedora has this horror in its initscripts (which explains why I missed
-> it in my grep)..
-> 
-> # Initialize ACPI bits
-> if [ -d /proc/acpi ]; then
->     for module in /lib/modules/$unamer/kernel/drivers/acpi/* ; do
->         module=${module##*/}
->         module=${module%.ko}
->         modprobe $module >/dev/null 2>&1
->     done
-> fi
-
-Ah, this also explains why the i2c_ec and sbs drivers were loaded on
-Chuck's system, although they were not needed.
-
-> This is there because there's no clean way for userspace to know whether
-> to load the system specific stuff right now.   Bill Nottingham pointed
-> out that we could add a /sys/class/dmi/modalias and appropriate MODULE_DMI
-> tags to the various modules like asus_acpi to make udev autoload them.
-
-Something similiar should be doable for i2c_ec, as it's only useful if a
-given ACPI object is present. sbs, in turn, is only useful if i2c_ec is
-loaded.
+Here's the final version.  I will request a pull from Len Brown to get it
+into acpi-test, from where it will eventually reach mainline at Len's
+discretion.
 
 -- 
-Jean Delvare
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
+
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+
+ACPI: ibm-acpi: fix initial status of backlight device
+
+The brightness class core does not update the initial status of the
+device's brightness at register time.  Do it by ourselves.
+
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Acked-by: Richard Purdie <rpurdie@rpsys.net>
+---
+ drivers/acpi/ibm_acpi.c |   10 +++++++++-
+ 1 files changed, 9 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
+index 4cc534e..7c1b418 100644
+--- a/drivers/acpi/ibm_acpi.c
++++ b/drivers/acpi/ibm_acpi.c
+@@ -1711,6 +1711,12 @@ static struct backlight_ops ibm_backlight_data = {
+ 
+ static int brightness_init(void)
+ {
++	int b;
++
++	b = brightness_get(NULL);
++	if (b < 0)
++		return b;
++
+ 	ibm_backlight_device = backlight_device_register("ibm", NULL, NULL,
+ 							 &ibm_backlight_data);
+ 	if (IS_ERR(ibm_backlight_device)) {
+@@ -1718,7 +1724,9 @@ static int brightness_init(void)
+ 		return PTR_ERR(ibm_backlight_device);
+ 	}
+ 
+-        ibm_backlight_device->props.max_brightness = 7;
++	ibm_backlight_device->props.max_brightness = 7;
++	ibm_backlight_device->props.brightness = b;
++	backlight_update_status(ibm_backlight_device);
+ 
+ 	return 0;
+ }
+-- 
+1.4.4.4
+
