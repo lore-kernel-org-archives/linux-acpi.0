@@ -1,42 +1,60 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [stable] [PATCH - 2.6.19 -0/2] Backport of psmouse suspend/shutdown cleanups
-Date: Wed, 21 Feb 2007 16:22:06 -0800
-Message-ID: <20070222002206.GD30444@kroah.com>
-References: <1172077685.10619.101.camel@d36.suse.de> <20070222002114.GC30444@kroah.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: ACPI: ibm-acpi: fix initial status of backlight device
+Date: Wed, 21 Feb 2007 23:16:43 -0200
+Message-ID: <20070222011643.GB8845@khazad-dum.debian.net>
+References: <20070219044616.GC25659@washoe.onerussian.com> <20070219000412.acad13de.akpm@linux-foundation.org> <1171876788.6046.3.camel@localhost.localdomain> <877iub9mu2.fsf@sycorax.lbl.gov> <1172097718.5790.29.camel@localhost.localdomain> <20070221231706.GA3336@khazad-dum.debian.net> <1172103159.5790.45.camel@localhost.localdomain> <20070222005122.GA7928@khazad-dum.debian.net> <20070222011017.GA8845@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kroah.org ([69.55.234.183]:54221 "EHLO perch.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965138AbXBVBG5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Feb 2007 20:06:57 -0500
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:42169 "EHLO
+	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932955AbXBVBQr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Feb 2007 20:16:47 -0500
 Content-Disposition: inline
-In-Reply-To: <20070222002114.GC30444@kroah.com>
+In-Reply-To: <20070222011017.GA8845@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Stable <Stable@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Dmitry Torokhov <dtor@insightbb.com>, Pavel Machek <pavel@ucw.cz>
+To: Richard Purdie <rpurdie@rpsys.net>
+Cc: linux-kernel@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-On Wed, Feb 21, 2007 at 04:21:14PM -0800, Greg KH wrote:
-> On Wed, Feb 21, 2007 at 06:08:05PM +0100, Thomas Renninger wrote:
-> > Hi,
-> > 
-> > I like to ask for inclusion into stable series for these.
-> > 
-> > The original patch from Dmitry can be found here:
-> > http://bugzilla.kernel.org/show_bug.cgi?id=7689
-> > comment #64, #65.
-> 
-> After Dmitry and you can agree on them, can you send them to us at the
-> stable@ address?  Picking up patches from bugzilla isn't that easy at
-> times, as there can be some confusion as to the proper patch and
-> descriptions and sign-offs.
+The brightness class core does not update the initial status of
+the device's brightness at register time.  Do it by ourselves
+before we register the class device.
 
-Oh nevermind, that's what I get for sending email before reading the
-whole thread...
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+---
 
-But I'll wait until Dmitry agrees that both of these patches are needed.
+NOTE: This patch needs an ACK from Richard Purdie before it can be merged,
+as he might want to change the backlight class code instead.
 
-thanks,
+ drivers/acpi/ibm_acpi.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
-greg k-h
+diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
+index 2429e11..6875421 100644
+--- a/drivers/acpi/ibm_acpi.c
++++ b/drivers/acpi/ibm_acpi.c
+@@ -1713,6 +1713,13 @@ static struct backlight_properties ibm_backlight_data = {
+ 
+ static int brightness_init(void)
+ {
++	int b;
++
++	b = brightness_get(NULL);
++	if (b < 0)
++		return b;
++	ibm_backlight_data.brightness = b;
++
+ 	ibm_backlight_device = backlight_device_register("ibm", NULL, NULL,
+ 							 &ibm_backlight_data);
+ 	if (IS_ERR(ibm_backlight_device)) {
+-- 
+1.4.4.4
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
