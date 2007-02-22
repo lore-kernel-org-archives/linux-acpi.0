@@ -1,133 +1,59 @@
-From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Subject: [PATCH 3/3]cpuidle take2: Basic documentation for cpuidle
-Date: Thu, 22 Feb 2007 13:54:57 -0800
-Message-ID: <20070222135457.C26335@unix-os.sc.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752017AbXBVWaX@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, Dave Jones <davej@redhat.com>, linux-acpi@vger.kernel.org
-Cc: Adam Belay <abelay@novell.com>, Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [PATCH 1/2] ACPI: ibm-acpi: fix initial status of backlight device
+Date: Thu, 22 Feb 2007 21:11:16 -0200
+Message-ID: <11721858774109-git-send-email-hmh@hmh.eng.br>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:43514 "EHLO
+	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752040AbXBVXLe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 Feb 2007 18:11:34 -0500
+In-Reply-To: 20070222205520.GA11505@khazad-dum.debian.net
+References: 20070222205520.GA11505@khazad-dum.debian.net
+In-Reply-To: <20070222205520.GA11505@khazad-dum.debian.net>
+References: <20070222205520.GA11505@khazad-dum.debian.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
+The brightness class core does not update the initial status of the
+device's brightness at register time.  Do it by ourselves.
 
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Acked-by: Richard Purdie <rpurdie@rpsys.net>
+---
+ drivers/acpi/ibm_acpi.c |   10 +++++++++-
+ 1 files changed, 9 insertions(+), 1 deletions(-)
 
-Documentation for cpuidle infrastructure
+diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
+index 4cc534e..7c1b418 100644
+--- a/drivers/acpi/ibm_acpi.c
++++ b/drivers/acpi/ibm_acpi.c
+@@ -1711,6 +1711,12 @@ static struct backlight_ops ibm_backlight_data = {
+ 
+ static int brightness_init(void)
+ {
++	int b;
++
++	b = brightness_get(NULL);
++	if (b < 0)
++		return b;
++
+ 	ibm_backlight_device = backlight_device_register("ibm", NULL, NULL,
+ 							 &ibm_backlight_data);
+ 	if (IS_ERR(ibm_backlight_device)) {
+@@ -1718,7 +1724,9 @@ static int brightness_init(void)
+ 		return PTR_ERR(ibm_backlight_device);
+ 	}
+ 
+-        ibm_backlight_device->props.max_brightness = 7;
++	ibm_backlight_device->props.max_brightness = 7;
++	ibm_backlight_device->props.brightness = b;
++	backlight_update_status(ibm_backlight_device);
+ 
+ 	return 0;
+ }
+-- 
+1.4.4.4
 
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Signed-off-by: Adam Belay <abelay@novell.com>
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-
-Index: linux-2.6.21-rc-mm/Documentation/cpuidle/core.txt
-===================================================================
---- /dev/null
-+++ linux-2.6.21-rc-mm/Documentation/cpuidle/core.txt
-@@ -0,0 +1,17 @@
-+
-+		Supporting multiple CPU idle levels in kernel
-+
-+				cpuidle
-+
-+General Information:
-+
-+Various CPUs today support multiple idle levels that are differentiated
-+by varying exit latencies and power consumption during idle.
-+cpuidle is a generic in-kernel infrastructure that separates
-+idle policy (governor) from idle mechanism (driver) and provides a
-+standardized infrastructure to support independent development of
-+governors and drivers.
-+
-+cpuidle resides under /drivers/cpuidle.
-+
-+
-Index: linux-2.6.21-rc-mm/Documentation/cpuidle/driver.txt
-===================================================================
---- /dev/null
-+++ linux-2.6.21-rc-mm/Documentation/cpuidle/driver.txt
-@@ -0,0 +1,24 @@
-+
-+
-+		Supporting multiple CPU idle levels in kernel
-+
-+				cpuidle drivers
-+
-+
-+
-+
-+cpuidle driver supports capability detection for a particular system. The
-+init and exit routines will be called for each online CPU, with a percpu
-+cpuidle_driver object and driver should fill in cpuidle_states inside
-+cpuidle_driver depending on the CPU capability.
-+
-+Driver can handle dynamic state changes (like battery<->AC), by calling
-+force_redetect interface.
-+
-+It is possible to have more than one driver registered at the same time and
-+user can switch between drivers using /sysfs interface.
-+
-+Interfaces:
-+int cpuidle_register_driver(struct cpuidle_driver *drv);
-+void cpuidle_unregister_driver(struct cpuidle_driver *drv);
-+int cpuidle_force_redetect(struct cpuidle_device *dev);
-Index: linux-2.6.21-rc-mm/Documentation/cpuidle/sysfs.txt
-===================================================================
---- /dev/null
-+++ linux-2.6.21-rc-mm/Documentation/cpuidle/sysfs.txt
-@@ -0,0 +1,27 @@
-+
-+
-+		Supporting multiple CPU idle levels in kernel
-+
-+				cpuidle sysfs
-+
-+System global cpuidle information are under
-+/sys/devices/system/cpu/cpuidle
-+
-+The current interfaces in this directory has self-explanatory names:
-+* available_drivers
-+* available_governors
-+* current_driver
-+* current_governor
-+
-+Per logical CPU specific cpuidle information are under
-+/sys/devices/system/cpu/cpuX/cpuidle
-+for each online cpu X
-+
-+Under this percpu directory, there is a directory for each idle state supported
-+by the driver, which in turn has
-+* latency
-+* power
-+* time
-+* usage
-+
-+
-Index: linux-2.6.21-rc-mm/Documentation/cpuidle/governor.txt
-===================================================================
---- /dev/null
-+++ linux-2.6.21-rc-mm/Documentation/cpuidle/governor.txt
-@@ -0,0 +1,24 @@
-+
-+
-+
-+		Supporting multiple CPU idle levels in kernel
-+
-+				cpuidle governors
-+
-+
-+
-+
-+cpuidle governor is policy routine that decides what idle state to enter at
-+any given time. cpuidle core uses different callbacks to governor while
-+handling idle entry.
-+* select_state callback where governor can determine next idle state to enter
-+* prepare_idle callback is called before entering an idle state
-+* scan callback is called after a driver forces redetection of the states
-+
-+More than one governor can be registered at the same time and
-+user can switch between drivers using /sysfs interface.
-+
-+Interfaces:
-+int cpuidle_register_governor(struct cpuidle_governor *gov);
-+void cpuidle_unregister_governor(struct cpuidle_governor *gov);
-+
