@@ -1,74 +1,59 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: ACPI: ibm-acpi: fix initial status of backlight device
-Date: Thu, 22 Feb 2007 16:19:35 -0200
-Message-ID: <20070222181935.GG25887@khazad-dum.debian.net>
-References: <1171876788.6046.3.camel@localhost.localdomain> <877iub9mu2.fsf@sycorax.lbl.gov> <1172097718.5790.29.camel@localhost.localdomain> <20070221231706.GA3336@khazad-dum.debian.net> <1172103159.5790.45.camel@localhost.localdomain> <20070222005122.GA7928@khazad-dum.debian.net> <20070222011017.GA8845@khazad-dum.debian.net> <20070222011643.GB8845@khazad-dum.debian.net> <1172138587.5837.37.camel@localhost.localdomain> <20070222144511.GC25887@khazad-dum.debian.net>
+From: Janosch Machowinski <scotch@tzi.de>
+Subject: Re: C-States Usage/Accounting
+Date: Thu, 22 Feb 2007 20:31:37 +0100
+Message-ID: <45DDEF99.40102@tzi.de>
+References: <FE6DEEF0-61B3-44D4-AA62-E8CE04C7FD8E@badopi.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:41356 "EHLO
-	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751754AbXBVSXT (ORCPT
+Received: from mailhost.informatik.uni-bremen.de ([134.102.201.18]:52466 "EHLO
+	informatik.uni-bremen.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751799AbXBVTqL (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 Feb 2007 13:23:19 -0500
-Content-Disposition: inline
-In-Reply-To: <20070222144511.GC25887@khazad-dum.debian.net>
+	Thu, 22 Feb 2007 14:46:11 -0500
+In-Reply-To: <FE6DEEF0-61B3-44D4-AA62-E8CE04C7FD8E@badopi.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Richard Purdie <rpurdie@rpsys.net>
-Cc: linux-kernel@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: =?ISO-8859-1?Q?Eduard_Gim=E9nez_Cerd=E0?= <edu@badopi.org>
+Cc: linux-acpi@vger.kernel.org
 
-Here's the final version.  I will request a pull from Len Brown to get it
-into acpi-test, from where it will eventually reach mainline at Len's
-discretion.
+Eduard Gim=E9nez Cerd=E0 schrieb:
+> Hello,
+>=20
+> I've two machines with the following configuration:
+>     Processor:    Intel Core Solo T1300 / Intel Celeron M 420
+>     Mainboard:    Asus N4L-VM DH with Intel 945GM Chipset with an AMI=
+ BIOS
+>     (I suppose the drives and the memory are not important)
+>=20
+> With the vanilla kernels 2.6.18 and 2.6.19 the=20
+> /proc/acpi/processor/CPU1/info file shows that there is no bus master=
+ing=20
+> nor power management, and looking at /proc/acpi/processor/CPU1/power =
+the=20
+> states accounting only shows the C1 state but without any data (0 or =
+--=20
+> on all the values), although it shows that the maximum C-State is C8.
+C8 is the maximum C-State supported by Linux.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Actually is could be, that nothing is broken. If the bios does not=20
+export more than one C-State, than everything is (from the view of=20
+linux) ok. If you want to find out, what C-States are exported by the=20
+bios, decompile your DSDT (can be found under /proc/acpi/dsdt) with the=
+=20
+  IASL compiler=20
+(http://www.intel.com/technology/iapc/acpi/license2.htm), and search in=
+=20
+the decompiled version for _CST. More information about the _CST object=
+=20
+can be found in the ACPI-Specification (www.acpi.info)
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+	Janosch
 
-ACPI: ibm-acpi: fix initial status of backlight device
-
-The brightness class core does not update the initial status of the
-device's brightness at register time.  Do it by ourselves.
-
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Acked-by: Richard Purdie <rpurdie@rpsys.net>
----
- drivers/acpi/ibm_acpi.c |   10 +++++++++-
- 1 files changed, 9 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
-index 4cc534e..7c1b418 100644
---- a/drivers/acpi/ibm_acpi.c
-+++ b/drivers/acpi/ibm_acpi.c
-@@ -1711,6 +1711,12 @@ static struct backlight_ops ibm_backlight_data = {
- 
- static int brightness_init(void)
- {
-+	int b;
-+
-+	b = brightness_get(NULL);
-+	if (b < 0)
-+		return b;
-+
- 	ibm_backlight_device = backlight_device_register("ibm", NULL, NULL,
- 							 &ibm_backlight_data);
- 	if (IS_ERR(ibm_backlight_device)) {
-@@ -1718,7 +1724,9 @@ static int brightness_init(void)
- 		return PTR_ERR(ibm_backlight_device);
- 	}
- 
--        ibm_backlight_device->props.max_brightness = 7;
-+	ibm_backlight_device->props.max_brightness = 7;
-+	ibm_backlight_device->props.brightness = b;
-+	backlight_update_status(ibm_backlight_device);
- 
- 	return 0;
- }
--- 
-1.4.4.4
-
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
