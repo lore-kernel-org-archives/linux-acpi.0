@@ -1,35 +1,34 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [GIT PULL] ibm-acpi updates
-Date: Thu, 22 Feb 2007 18:55:21 -0200
-Message-ID: <20070222205520.GA11505@khazad-dum.debian.net>
+From: Andreas Mohr <andi@rhlx01.fht-esslingen.de>
+Subject: 2.6.20-mm2 CONFIG_ACPI_BAY=y: undefined reference to `is_dock_device'
+Date: Thu, 22 Feb 2007 22:15:22 +0100
+Message-ID: <20070222211522.GA6939@rhlx01.hs-esslingen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:47201 "EHLO
-	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751881AbXBVUzf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 Feb 2007 15:55:35 -0500
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751901AbXBVVPY@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: len.brown@intel.com, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-Len,
+Hello all,
 
-Please pull from git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git
-branch for-upstream/acpi-test
+make-kpkg kernel_image bombed with:
 
-to receive the following patches:
+  LD      init/built-in.o
+  LD      .tmp_vmlinux1
+drivers/built-in.o: In function `bay_is_dock_device':
+drivers/acpi/bay.c:261: undefined reference to `is_dock_device'
+drivers/acpi/bay.c:261: undefined reference to `is_dock_device'
+drivers/built-in.o: In function `bay_add':
+drivers/acpi/bay.c:308: undefined reference to `register_hotplug_dock_device'
+drivers/built-in.o: In function `bay_exit':
+drivers/acpi/bay.c:384: undefined reference to `is_dock_device'
+drivers/acpi/bay.c:385: undefined reference to `unregister_hotplug_dock_device'
+make[1]: *** [.tmp_vmlinux1] Error 1
+make[1]: Leaving directory `/usr/src/linux-2.6.20-mm2'
 
-ACPI: ibm-acpi: make ibm-acpi bay support optional
-ACPI: ibm-acpi: fix initial status of backlight device
 
-The branch is based on 2.6.21-rc1.
+Famous last words: CONFIG_ACPI_DOCK=m...
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Andreas Mohr
