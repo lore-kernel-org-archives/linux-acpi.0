@@ -1,44 +1,50 @@
-From: =?ISO-8859-1?Q?Eduard_Gim=E9nez_Cerd=E0?= <edu@badopi.org>
-Subject: C-States Usage/Accounting
-Date: Thu, 22 Feb 2007 17:08:31 +0100
-Message-ID: <FE6DEEF0-61B3-44D4-AA62-E8CE04C7FD8E@badopi.org>
-Mime-Version: 1.0 (Apple Message framework v752.2)
-Content-Type: text/plain; charset=US-ASCII; delsp=yes; format=flowed
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
+Date: Thu, 22 Feb 2007 17:37:11 +0100
+Message-ID: <20070222173711.9364695b.khali@linux-fr.org>
+References: <45D5EA88.7090300@redhat.com>
+	<45D6DDCE.5050803@assembler.cz>
+	<45D7461A.2040808@redhat.com>
+	<45D8D6AE.3000204@assembler.cz>
+	<45DB0EEA.2010205@redhat.com>
+	<20070220191142.GE16614@redhat.com>
+	<20070221171737.b6592104.khali@linux-fr.org>
+	<20070221173740.GD19851@redhat.com>
+	<20070221201944.GD13794@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.169]:47694 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750699AbXBVQIh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Feb 2007 11:08:37 -0500
-Received: by ug-out-1314.google.com with SMTP id 44so151411uga
-        for <linux-acpi@vger.kernel.org>; Thu, 22 Feb 2007 08:08:35 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751690AbXBVQhs@vger.kernel.org>
+In-Reply-To: <20070221201944.GD13794@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dave Jones <davej@redhat.com>
+Cc: Chuck Ebbert <cebbert@redhat.com>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, notting@redhat.com
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Hello,
+On Wed, 21 Feb 2007 15:19:44 -0500, Dave Jones wrote:
+> Ah, Fedora has this horror in its initscripts (which explains why I missed
+> it in my grep)..
+> 
+> # Initialize ACPI bits
+> if [ -d /proc/acpi ]; then
+>     for module in /lib/modules/$unamer/kernel/drivers/acpi/* ; do
+>         module=${module##*/}
+>         module=${module%.ko}
+>         modprobe $module >/dev/null 2>&1
+>     done
+> fi
 
-I've two machines with the following configuration:
-	Processor:	Intel Core Solo T1300 / Intel Celeron M 420
-	Mainboard:	Asus N4L-VM DH with Intel 945GM Chipset with an AMI BIOS
-	(I suppose the drives and the memory are not important)
+Ah, this also explains why the i2c_ec and sbs drivers were loaded on
+Chuck's system, although they were not needed.
 
-With the vanilla kernels 2.6.18 and 2.6.19 the /proc/acpi/processor/ 
-CPU1/info file shows that there is no bus mastering nor power  
-management, and looking at /proc/acpi/processor/CPU1/power the states  
-accounting only shows the C1 state but without any data (0 or -- on  
-all the values), although it shows that the maximum C-State is C8.
+> This is there because there's no clean way for userspace to know whether
+> to load the system specific stuff right now.   Bill Nottingham pointed
+> out that we could add a /sys/class/dmi/modalias and appropriate MODULE_DMI
+> tags to the various modules like asus_acpi to make udev autoload them.
 
-Now, I'm trying to determine why ACPI does not work. Both processors  
-and the mainboard chipset support ACPI, so perhaps it's the BIOS?  
-I've been reading the ACPI documentation, the dmesg output, and  
-googling but I can't find an answer.
+Something similiar should be doable for i2c_ec, as it's only useful if a
+given ACPI object is present. sbs, in turn, is only useful if i2c_ec is
+loaded.
 
-How can I determine which is the faulty part in the system?
-
-Thanks in advance!
-
---  
-
-edu
-
+-- 
+Jean Delvare
