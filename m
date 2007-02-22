@@ -1,137 +1,68 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH - 2.6.19 -0/1] Backport of psmouse suspend/shutdown
-	cleanups
-Date: Thu, 22 Feb 2007 13:52:19 +0100
-Message-ID: <1172148739.10619.196.camel@d36.suse.de>
-References: <1172077685.10619.101.camel@d36.suse.de>
-	 <d120d5000702210926j7e7f1ccjb8c2689640b870e8@mail.gmail.com>
-Reply-To: trenn@suse.de
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: ACPI: ibm-acpi: fix initial status of backlight device
+Date: Thu, 22 Feb 2007 12:45:11 -0200
+Message-ID: <20070222144511.GC25887@khazad-dum.debian.net>
+References: <20070219000412.acad13de.akpm@linux-foundation.org> <1171876788.6046.3.camel@localhost.localdomain> <877iub9mu2.fsf@sycorax.lbl.gov> <1172097718.5790.29.camel@localhost.localdomain> <20070221231706.GA3336@khazad-dum.debian.net> <1172103159.5790.45.camel@localhost.localdomain> <20070222005122.GA7928@khazad-dum.debian.net> <20070222011017.GA8845@khazad-dum.debian.net> <20070222011643.GB8845@khazad-dum.debian.net> <1172138587.5837.37.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:43127 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750798AbXBVMw0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 Feb 2007 07:52:26 -0500
-In-Reply-To: <d120d5000702210926j7e7f1ccjb8c2689640b870e8@mail.gmail.com>
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:38800 "EHLO
+	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1030202AbXBVOpS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 Feb 2007 09:45:18 -0500
+Content-Disposition: inline
+In-Reply-To: <1172138587.5837.37.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Stable <Stable@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, Greg KH <greg@kroah.com>
+To: Richard Purdie <rpurdie@rpsys.net>
+Cc: linux-kernel@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-On Wed, 2007-02-21 at 12:26 -0500, Dmitry Torokhov wrote:
-> On 2/21/07, Thomas Renninger <trenn@suse.de> wrote:
-> > Hi,
-> >
-> > I like to ask for inclusion into stable series for these.
-> >
-> > The original patch from Dmitry can be found here:
-> > http://bugzilla.kernel.org/show_bug.cgi?id=7689
-> > comment #64, #65.
-> >
-> > The reason is:
-> >  - These patches fix a lot weird stuff on all recent
-> >   HP nc/nx series laptop models.
-> >
-> >  - The problem with the psmouse thing is, if you booted
-> >   a broken kernel, rebooting a fixed one will still result
-> >   in a broken system (things break (or get fixed) on shutdown
-> >   and survive the reboot).
-> >   Therefore the patch(es) should get into as much kernels
-> >   as possible to avoid further confusions on bug reports...
-> >
-> > This test report shows the behavior nicely:
-> > http://bugzilla.kernel.org/show_bug.cgi?id=7689#c45:
-> > 1-Boot   in good state with original kernel
-> > 2-Reboot going in bad state with original kernel
-> > 3-Reboot with 2.6.20 patched kernel->still in bad state
-> > 4-Reboot with 2.6.20 patched kernel->going in good
-> >         state: battery reporting ok,
-> >         cpufreq working and go to full speed.
-> > 5-reboot with original Fedora kernel->still in *good* state
-> > 6-reboot going in bad state
-> >
-> > The symptoms of breakages are (because of wrong EC reads/writes)
-> > very different, depending on the laptop model:
-> >
-> >  - Cannot reach highest freq on (all?) HP Intel Dual core machines
-> >    This is the only 100% reproducable bug I saw...
-> >
-> >  - Shutdowns because of critical temperature (e.g. showing 1200 C)
-> >    HP NX 9420 shutting down on huge, bogus thermal temperature values
-> >    https://bugzilla.novell.com/show_bug.cgi?id=234475
-> >
-> >  - There are probably a lot other bug reports out there that
-> >    will lead to this problem...
-> >
-> >
-> > These are patches against the plain 2.6.19 kernel (not stable .X,
-> > I hope nothing changed at these specific files..., if there
-> > changed something I can resubmit).
-> >
-> > As we are using these in SLE10 SP1, I did the backports back to
-> > 2.6.16 and will send more if I get your ok for that.
-> >
-> > Dmitry (or others), can you please review. I had to fiddle a bit on
-> > each kernel version. I did a compile test on x86_64 (CONFIG_PM on)
-> > and powerpc (CONFIG_PM off). And I verified 2.6.20 (original) and
-> > 2.6.16 working with s2disk and s2ram. Still I could have done a
-> > little typo/mistake somewhere...
-> >
-> 
-> Hi Thomas,
-> 
-> The patches look good, however I believe that only psmouse patch is
-> enough to fix the issues you referring to in your mail (I don't have a
-> box that exibits these symptoms so I can't verify). The second patch,
-> while useful, should not be included in stable series unless the first
-> patch alone does not work.
+The brightness class core does not update the initial status of the
+device's brightness at register time.  Do it by ourselves.
 
-When adding the .shutdown workaround I went down and realized it must be
-this:
-	psmouse_set_state(psmouse, PSMOUSE_CMD_MODE);
-or this:
-       	psmouse_set_state(psmouse, PSMOUSE_IGNORE);
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+---
 
-as I added the stuff in serio.c, I didn't realize that your psmouse
-patch is enough...
+Waiting ACK from Richard Purdie, applies on top of 2.6.21-rc1.  Also fixes a
+whitespace problem.
 
-So it's the first command that is needed on shutdown(PSMOUSE_CMD_MODE)?
-Dmitry: Could you explain me in a short sentence what this is doing, so
-that I can explain HP the problem again more detailed (without reading
-specs...).
+ drivers/acpi/ibm_acpi.c |    9 ++++++++-
+ 1 files changed, 8 insertions(+), 1 deletions(-)
 
-I run into the problem that Ingo Molnar's patch (Don't call _PPC on
-startup) hid the problem, later calls to _PPC seemed to return zero
-again (I wonder if recent ThinkPads also suffer from this or whether
-this is unrelated)...
+diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
+index 4cc534e..c59ebff 100644
+--- a/drivers/acpi/ibm_acpi.c
++++ b/drivers/acpi/ibm_acpi.c
+@@ -1711,6 +1711,12 @@ static struct backlight_ops ibm_backlight_data = {
+ 
+ static int brightness_init(void)
+ {
++	int b;
++
++	b = brightness_get(NULL);
++	if (b < 0)
++		return b;
++
+ 	ibm_backlight_device = backlight_device_register("ibm", NULL, NULL,
+ 							 &ibm_backlight_data);
+ 	if (IS_ERR(ibm_backlight_device)) {
+@@ -1718,7 +1724,8 @@ static int brightness_init(void)
+ 		return PTR_ERR(ibm_backlight_device);
+ 	}
+ 
+-        ibm_backlight_device->props.max_brightness = 7;
++	ibm_backlight_device->props.max_brightness = 7;
++	ibm_backlight_device->props.brightness = b;
+ 
+ 	return 0;
+ }
+-- 
+1.4.4.4
 
-Some dozen reboots later I can confirm that:
-  a) _PPC reports 0 on startup (1 otherwise) with this patch
-  b) AC state works now (found that by luck, 100% reproducable,
-     when booted with AC (un)plugged, the AC state is stuck to
-     (off)on and will never change again -> gets also fixed with
-     this patch)
-  c) mouse (and a + b) still work after s2ram (could only
-     test this without X) and s2disk.
-
-Problems (a + b) were reproducable in the mentioned way:
-  - reboot a broken kernel and the next booted kernel will be broken
-  - reboot a fixed kernel and the next booted kernel will work
-
-I tested this on a 2.6.16 kernel.
-
-I expect that they don't fully reinitialize their EC after reboot
-(unplugging AC and battery for some minutes, is also a reported
-workaround for that problem), just a guess...
-
-Maybe this even fixes the endless loop some HPs run into ->
-I didn't test this, don't know how to slip into it.
-
-I will send patch to stable separated now ...
-
-Thanks,
-
-   Thomas
-
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
