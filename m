@@ -1,41 +1,44 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Date: Fri, 23 Feb 2007 08:47:12 +0100
-Message-ID: <20070223084712.717a0ee4.khali@linux-fr.org>
-References: <45D5EA88.7090300@redhat.com>
-	<45D6DDCE.5050803@assembler.cz>
-	<45D7461A.2040808@redhat.com>
-	<45D8D6AE.3000204@assembler.cz>
-	<45DB0EEA.2010205@redhat.com>
-	<20070220191142.GE16614@redhat.com>
-	<20070221171737.b6592104.khali@linux-fr.org>
-	<20070221173740.GD19851@redhat.com>
-	<20070221201944.GD13794@redhat.com>
-	<20070222173711.9364695b.khali@linux-fr.org>
-	<45DE941A.1070306@hhs.nl>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: 2.6.21-rc1: T60 resume from suspend to RAM issues
+Date: Fri, 23 Feb 2007 02:09:04 -0800
+Message-ID: <20070223020904.c8fc8a3e.akpm@linux-foundation.org>
+References: <20070222233803.GA4447@mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-105-friday.noc.nerim.net ([62.4.17.105]:2117 "EHLO
-	mallaury.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752111AbXBWHru (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Feb 2007 02:47:50 -0500
-In-Reply-To: <45DE941A.1070306@hhs.nl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.osdl.org>
+In-Reply-To: <20070222233803.GA4447@mellanox.co.il>
+List-Unsubscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
+List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.osdl.org>
+List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
+List-Subscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.osdl.org
+Errors-To: linux-pm-bounces@lists.osdl.org
+To: "Michael S. Tsirkin" <mst@mellanox.co.il>
+Cc: linux-acpi@vger.kernel.org, mingo@redhat.com, len.brown@intel.com, bunk@stusta.de, linux-kernel@vger.kernel.org, linux-pm@linux-foundation.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-Cc: Dave Jones <davej@redhat.com>, linux-acpi@vger.kernel.org, notting@redhat.com, linux-kernel <linux-kernel@vger.kernel.org>, Chuck Ebbert <cebbert@redhat.com>, lm-sensors@lm-sensors.org
 
-On Fri, 23 Feb 2007 08:13:30 +0100, Hans de Goede wrote:
-> I'm thinking that it might be an idea to also use this idea of udev autoloading 
-> through DMI info for the abituguru and abituguru3 driver (review please). The 
-> both only support about 12 motherboards. For the abituguru driver, dmi info 
-> could also be used to automatically set the module options needed on the 2 
-> oldest uguru featuring abit motherboards. What do you think about this?
+> On Fri, 23 Feb 2007 01:38:03 +0200 "Michael S. Tsirkin" <mst@mellanox.co.=
+il> wrote:
+> I tested this:
+> commit 9654640d0af8f2de40ff3807d3695109d3463f54
+> and see 2 issues:
+> =
 
-Given that the uguru chips are hard (impossible) to detect and only a
-small number of boards need it, yes, I think it's a good idea.
+> 1. After suspend to RAM, system wakes up but no screen.
+> I can log in through ssh though.
+> dmesg output at this point below.
+> Works fine on 2.6.20 and below, with same .config
+> .config and log file for this issue attached.
+> =
 
--- 
-Jean Delvare
+> 2. As a separate test, I enabled DynTicks in .config.
+> Seems to work fine but won't come out of suspend to memory at all:
+> pressing Fn/F4 seems to have no effect.
+> =
+
+
+Do you believe that the second problem was caused by dynticks?
