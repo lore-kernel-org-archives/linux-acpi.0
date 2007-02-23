@@ -1,51 +1,41 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: EC init cleanup patches
-Date: Fri, 23 Feb 2007 02:24:19 -0500
-Message-ID: <200702230224.19440.lenb@kernel.org>
-References: <45DC9091.9050605@linux.intel.com>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
+Date: Fri, 23 Feb 2007 08:47:12 +0100
+Message-ID: <20070223084712.717a0ee4.khali@linux-fr.org>
+References: <45D5EA88.7090300@redhat.com>
+	<45D6DDCE.5050803@assembler.cz>
+	<45D7461A.2040808@redhat.com>
+	<45D8D6AE.3000204@assembler.cz>
+	<45DB0EEA.2010205@redhat.com>
+	<20070220191142.GE16614@redhat.com>
+	<20070221171737.b6592104.khali@linux-fr.org>
+	<20070221173740.GD19851@redhat.com>
+	<20070221201944.GD13794@redhat.com>
+	<20070222173711.9364695b.khali@linux-fr.org>
+	<45DE941A.1070306@hhs.nl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:41325 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752133AbXBWH0N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 23 Feb 2007 02:26:13 -0500
-In-Reply-To: <45DC9091.9050605@linux.intel.com>
-Content-Disposition: inline
+Received: from smtp-105-friday.noc.nerim.net ([62.4.17.105]:2117 "EHLO
+	mallaury.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752111AbXBWHru (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Feb 2007 02:47:50 -0500
+In-Reply-To: <45DE941A.1070306@hhs.nl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+Cc: Dave Jones <davej@redhat.com>, linux-acpi@vger.kernel.org, notting@redhat.com, linux-kernel <linux-kernel@vger.kernel.org>, Chuck Ebbert <cebbert@redhat.com>, lm-sensors@lm-sensors.org
 
-On Wednesday 21 February 2007 13:33, Alexey Starikovskiy wrote:
-> Hi,
-> Here is the patch series to clean-up init of EC.
-> 
-> Please test, comment.
+On Fri, 23 Feb 2007 08:13:30 +0100, Hans de Goede wrote:
+> I'm thinking that it might be an idea to also use this idea of udev autoloading 
+> through DMI info for the abituguru and abituguru3 driver (review please). The 
+> both only support about 12 motherboards. For the abituguru driver, dmi info 
+> could also be used to automatically set the module options needed on the 2 
+> oldest uguru featuring abit motherboards. What do you think about this?
 
-> ACPI: EC: enable burst functionality in EC
+Given that the uguru chips are hard (impossible) to detect and only a
+small number of boards need it, yes, I think it's a good idea.
 
-seems to expose ec_burst_enable(), but nobody calls it --
-so the patch has no functional change by itself, yes?
-
-looks like some unrelated cleanups in that patch too.
-
-anybody able to test this out on the samsung box
-that had trouble with burst mode?
-
-if we are going to cut over to enabling burst mode by default,
-surely we should have a boot-param so the user can set it
-to whatever works -- as well as a dmesg indicator so we
-can tell what is going on -- like we do for ec_intr=, yes?
-
-thanks, 
--Len
-
-ps. in the patch and mbox format, please include
-a Signed-off-by: line in addition to the From: line --
-i have to remember to add these manually when they're
-not included in what you sent to me, and technically nobody should be adding
-a signed-off-by line with somebody elses's name on it...
-
+-- 
+Jean Delvare
