@@ -1,77 +1,56 @@
 From: Len Brown <lenb@kernel.org>
-Subject: AE_NOT_FOUND,  (Re: Several remarks for 9654640d0af8f2de40ff3807d3695109d3463f54)
-Date: Fri, 23 Feb 2007 01:17:23 -0500
-Message-ID: <200702230117.23888.lenb@kernel.org>
-References: <45DDEA1D.7060703@m3y3r.de>
+Subject: Re: [GIT PULL] ibm-acpi updates
+Date: Fri, 23 Feb 2007 01:29:23 -0500
+Message-ID: <200702230129.24251.lenb@kernel.org>
+References: <20070222205520.GA11505@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:60191 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:42292 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751785AbXBWGTh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 23 Feb 2007 01:19:37 -0500
-In-Reply-To: <45DDEA1D.7060703@m3y3r.de>
+	id S1751840AbXBWGiF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 23 Feb 2007 01:38:05 -0500
+In-Reply-To: <20070222205520.GA11505@khazad-dum.debian.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Meyer <thomas@m3y3r.de>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-On Thursday 22 February 2007 14:08, Thomas Meyer wrote:
-> 1.) My kde klaptopdaemon icon is gone. This icon displayed the remaining
-> battery time. This is maybe a kde problem?
+On Thursday 22 February 2007 15:55, Henrique de Moraes Holschuh wrote:
+> Len,
 > 
-> 2.) I get these new messages in the kernel log buffer:
-> [...]
-> ACPI: bus type pci registered
-> PCI: Using MMCONFIG
-> Setting up standard PCI resources
-> ACPI Exception (evregion-0420): AE_NOT_FOUND, Returned by Handler for
-> [EmbeddedControl] [20070126]
-> ACPI Exception (dswexec-0462): AE_NOT_FOUND, While resolving operands
-> for [OpcodeName unavailable] [20070126]
-> ACPI Error (psparse-0537): Method parse/execution failed
-> [\_SB_.PCI0.LPCB.EC__._REG] (Node c190db1c), AE_NOT_FOUND
-> ACPI Exception (ec-0956): AE_NOT_FOUND, Could not use ECDT [20070126]
-> ACPI: Interpreter enabled
-> ACPI: (supports S0 S3 S4 S5)
-> ACPI: Using IOAPIC for interrupt routing
-> [...]
-> ACPI Exception (evregion-0420): AE_NOT_FOUND, Returned by Handler for
-> [EmbeddedControl] [20070126]
-> ACPI Exception (dswexec-0462): AE_NOT_FOUND, While resolving operands
-> for [OpcodeName unavailable] [20070126]
-> ACPI Error (psparse-0537): Method parse/execution failed
-> [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node c190dbbc), AE_NOT_FOUND
-> ACPI Error (psparse-0537): Method parse/execution failed
-> [\_SB_.BAT0.UBSS] (Node c190da2c), AE_NOT_FOUND
-> ACPI Error (psparse-0537): Method parse/execution failed
-> [\_SB_.BAT0._STA] (Node c190da7c), AE_NOT_FOUND
-> ACPI Exception (evregion-0420): AE_NOT_FOUND, Returned by Handler for
-> [EmbeddedControl] [20070126]
-> ACPI Error (psparse-0537): Method parse/execution failed
-> [\_SB_.PCI0.LPCB.EC__._REG] (Node c190db1c), AE_NOT_FOUND
-> ACPI Exception (evregion-0513): AE_NOT_FOUND, from region _REG,
-> [EmbeddedControl] [20070126]
-> ACPI: PCI Root Bridge [PCI0] (0000:00)
+> Please pull from git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git
+> branch for-upstream/acpi-test
 > 
-> But i guess this is ok and seems to be an acpi problem on my computer,
-> aren't they?
+> to receive the following patches:
+> 
+> ACPI: ibm-acpi: make ibm-acpi bay support optional
+> ACPI: ibm-acpi: fix initial status of backlight device
+> 
+> The branch is based on 2.6.21-rc1.
+> 
+----------------------------- drivers/acpi/Kconfig -----------------------------
+index e942ffe..ee3dcd1 100644
+@@ -242,6 +242,17 @@ config ACPI_IBM_DOCK
+ 
+ 	  If you are not sure, say N here.
+ 
++config ACPI_IBM_BAY
++	bool "Legacy Removable Bay Support"
++	depends on ACPI_IBM
++	default y
++	---help---
++	  Allows the ibm_acpi driver to handle removable bays.  It will allow
++	  disabling the device in the bay, and also generate notifications when
++	  the bay lever is ejected or inserted.
++
++	  If you are not sure, say Y here.
++
 
-Please open a bug report here:
-http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
-
-and please attach (don't paste) the complete output from dmesg -s64000
-plus the output from acpidump > acpidump.out.
-If you don't have acpidump, you can get it from the latest pmtools here:
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
-
-please also attach the config file you're using.
+Why is the default Y?
 
 thanks,
 -Len
-
-ps. linux-acpi list added to cc:
-
