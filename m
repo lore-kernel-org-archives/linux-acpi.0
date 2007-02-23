@@ -1,56 +1,70 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [GIT PULL] ibm-acpi updates
-Date: Fri, 23 Feb 2007 01:29:23 -0500
-Message-ID: <200702230129.24251.lenb@kernel.org>
-References: <20070222205520.GA11505@khazad-dum.debian.net>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Subject: Re: Could the k8temp driver be interfering with ACPI?
+Date: Fri, 23 Feb 2007 08:13:30 +0100
+Message-ID: <45DE941A.1070306@hhs.nl>
+References: <45D5EA88.7090300@redhat.com>
+	<45D6DDCE.5050803@assembler.cz>	<45D7461A.2040808@redhat.com>
+	<45D8D6AE.3000204@assembler.cz>	<45DB0EEA.2010205@redhat.com>
+	<20070220191142.GE16614@redhat.com>	<20070221171737.b6592104.khali@linux-fr.org>	<20070221173740.GD19851@redhat.com>	<20070221201944.GD13794@redhat.com>
+	<20070222173711.9364695b.khali@linux-fr.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:42292 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751840AbXBWGiF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 23 Feb 2007 01:38:05 -0500
-In-Reply-To: <20070222205520.GA11505@khazad-dum.debian.net>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <lm-sensors-bounces@lm-sensors.org>
+In-Reply-To: <20070222173711.9364695b.khali@linux-fr.org>
+List-Unsubscribe: <http://lists.lm-sensors.org/mailman/listinfo/lm-sensors>,
+	<mailto:lm-sensors-request@lm-sensors.org?subject=unsubscribe>
+List-Archive: <http://lists.lm-sensors.org/pipermail/lm-sensors>
+List-Post: <mailto:lm-sensors@lm-sensors.org>
+List-Help: <mailto:lm-sensors-request@lm-sensors.org?subject=help>
+List-Subscribe: <http://lists.lm-sensors.org/mailman/listinfo/lm-sensors>,
+	<mailto:lm-sensors-request@lm-sensors.org?subject=subscribe>
+Sender: lm-sensors-bounces@lm-sensors.org
+Errors-To: lm-sensors-bounces@lm-sensors.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: notting@redhat.com, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, Chuck Ebbert <cebbert@redhat.com>, Dave Jones <davej@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-On Thursday 22 February 2007 15:55, Henrique de Moraes Holschuh wrote:
-> Len,
+Jean Delvare wrote:
+> On Wed, 21 Feb 2007 15:19:44 -0500, Dave Jones wrote:
+>> Ah, Fedora has this horror in its initscripts (which explains why I missed
+>> it in my grep)..
+>>
+>> # Initialize ACPI bits
+>> if [ -d /proc/acpi ]; then
+>>     for module in /lib/modules/$unamer/kernel/drivers/acpi/* ; do
+>>         module=${module##*/}
+>>         module=${module%.ko}
+>>         modprobe $module >/dev/null 2>&1
+>>     done
+>> fi
 > 
-> Please pull from git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git
-> branch for-upstream/acpi-test
+> Ah, this also explains why the i2c_ec and sbs drivers were loaded on
+> Chuck's system, although they were not needed.
 > 
-> to receive the following patches:
+>> This is there because there's no clean way for userspace to know whether
+>> to load the system specific stuff right now.   Bill Nottingham pointed
+>> out that we could add a /sys/class/dmi/modalias and appropriate MODULE_DMI
+>> tags to the various modules like asus_acpi to make udev autoload them.
 > 
-> ACPI: ibm-acpi: make ibm-acpi bay support optional
-> ACPI: ibm-acpi: fix initial status of backlight device
+> Something similiar should be doable for i2c_ec, as it's only useful if a
+> given ACPI object is present. sbs, in turn, is only useful if i2c_ec is
+> loaded.
 > 
-> The branch is based on 2.6.21-rc1.
-> 
------------------------------ drivers/acpi/Kconfig -----------------------------
-index e942ffe..ee3dcd1 100644
-@@ -242,6 +242,17 @@ config ACPI_IBM_DOCK
- 
- 	  If you are not sure, say N here.
- 
-+config ACPI_IBM_BAY
-+	bool "Legacy Removable Bay Support"
-+	depends on ACPI_IBM
-+	default y
-+	---help---
-+	  Allows the ibm_acpi driver to handle removable bays.  It will allow
-+	  disabling the device in the bay, and also generate notifications when
-+	  the bay lever is ejected or inserted.
-+
-+	  If you are not sure, say Y here.
-+
 
-Why is the default Y?
+I'm thinking that it might be an idea to also use this idea of udev autoloading 
+through DMI info for the abituguru and abituguru3 driver (review please). The 
+both only support about 12 motherboards. For the abituguru driver, dmi info 
+could also be used to automatically set the module options needed on the 2 
+oldest uguru featuring abit motherboards. What do you think about this?
 
-thanks,
--Len
+Regards,
+
+Hans
+
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
