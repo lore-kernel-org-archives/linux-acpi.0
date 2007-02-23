@@ -1,67 +1,54 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Fw: ata-piix ACPI errors
-Date: Fri, 23 Feb 2007 02:08:56 -0800
-Message-ID: <20070223020856.641452a3.akpm@linux-foundation.org>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [GIT PULL] ibm-acpi updates
+Date: Fri, 23 Feb 2007 09:08:55 -0200
+Message-ID: <20070223110855.GA11902@khazad-dum.debian.net>
+References: <20070222205520.GA11505@khazad-dum.debian.net> <200702230129.24251.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60217 "EHLO smtp.osdl.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932097AbXBWKMj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 23 Feb 2007 05:12:39 -0500
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:52491 "EHLO
+	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932295AbXBWLJG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 23 Feb 2007 06:09:06 -0500
+Content-Disposition: inline
+In-Reply-To: <200702230129.24251.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Meelis Roos <mroos@linux.ee>, Adrian Bunk <bunk@stusta.de>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
+On Fri, 23 Feb 2007, Len Brown wrote:
+> +config ACPI_IBM_BAY
+> +	bool "Legacy Removable Bay Support"
+> +	depends on ACPI_IBM
+> +	default y
+> +	---help---
+> +	  Allows the ibm_acpi driver to handle removable bays.  It will allow
+> +	  disabling the device in the bay, and also generate notifications when
+> +	  the bay lever is ejected or inserted.
+> +
+> +	  If you are not sure, say Y here.
+> +
+> 
+> Why is the default Y?
 
-I'm starting to think that big acpi merge came a bit too soon.
+ACPI_BAY is still experimental, and breaks completely on ThinkPads if
+whatever is in the bay is not a disk (e.g. if it is a battery), at least
+during boot.
 
-Begin forwarded message:
+Also, some thinkpads benefit from *optional* extra intelligence on bay
+handling during STR (which is not in ibm-acpi yet).  E.g. a T43 can save a
+few watts if you power off whatever is in the bay right before STR, *as long
+as it is not a battery*.
 
-Date: Thu, 22 Feb 2007 15:29:42 +0200 (EET)
-From: Meelis Roos <mroos@linux.ee>
-To: Linux Kernel list <linux-kernel@vger.kernel.org>
-Subject: ata-piix ACPI errors
-
-
-Testbooted 2.6.21-rc1+todays git on a PC with Intel 845 chipset and PATA 
-HDD. Works fine but I now have these ACPI errors in dmesg, maybe someone 
-is interested:
-
-ata_piix 0000:00:1f.1: version 2.00ac7
-PCI: Enabling device 0000:00:1f.1 (0005 -> 0007)
-ACPI: PCI Interrupt 0000:00:1f.1[A] -> GSI 18 (level, low) -> IRQ 18
-PCI: Setting latency timer of device 0000:00:1f.1 to 64
-ata1: PATA max UDMA/100 cmd 0x000101f0 ctl 0x000103f6 bmdma 0x0001ffa0 irq 14
-ata2: PATA max UDMA/100 cmd 0x00010170 ctl 0x00010376 bmdma 0x0001ffa8 irq 15
-scsi0 : ata_piix
-ACPI Error (dsopcode-0481): Attempt to CreateField of length zero [20070126]
-ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node c18edbf8), AE_AML_OPERAND_VALUE
-ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN0.DRV0._GTF] (Node c18ed608), AE_AML_OPERAND_VALUE
-ata1.00: ATA-5: ST380021A, 3.19, max UDMA/100
-ata1.00: 156301488 sectors, multi 16: LBA
-ACPI Error (dsopcode-0481): Attempt to CreateField of length zero [20070126]
-ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node c18edbf8), AE_AML_OPERAND_VALUE
-ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN0.DRV0._GTF] (Node c18ed608), AE_AML_OPERAND_VALUE
-ata1.00: configured for UDMA/100
-scsi1 : ata_piix
-ACPI Error (dsopcode-0481): Attempt to CreateField of length zero [20070126]
-ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node c18edbf8), AE_AML_OPERAND_VALUE
-ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN1.DRV0._GTF] (Node c18ed464), AE_AML_OPERAND_VALUE
-ata2.00: ATAPI, max UDMA/33
-ACPI Error (dsopcode-0481): Attempt to CreateField of length zero [20070126]
-ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node c18edbf8), AE_AML_OPERAND_VALUE
-ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN1.DRV0._GTF] (Node c18ed464), AE_AML_OPERAND_VALUE
-ata2.00: configured for UDMA/33
-scsi 0:0:0:0: Direct-Access     ATA      ST380021A        3.19 PQ: 0 ANSI: 5
-scsi 1:0:0:0: CD-ROM            _NEC     DV-5800B         G9H3 PQ: 0 ANSI: 5
+This is just an interim patch to let people easily disable ibm-acpi bay
+support.  Another patch making it default to N and depend on !ACPI_BAY can
+be added later, but since I did not have a time window to work on ACPI_BAY
++ ibm-acpi interaction yet, I fear it is a little early for that.
 
 -- 
-Meelis Roos (mroos@linux.ee)
--
-To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-Please read the FAQ at  http://www.tux.org/lkml/
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
