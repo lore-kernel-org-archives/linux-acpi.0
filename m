@@ -1,70 +1,51 @@
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-Subject: Re: Could the k8temp driver be interfering with ACPI?
-Date: Fri, 23 Feb 2007 08:13:30 +0100
-Message-ID: <45DE941A.1070306@hhs.nl>
-References: <45D5EA88.7090300@redhat.com>
-	<45D6DDCE.5050803@assembler.cz>	<45D7461A.2040808@redhat.com>
-	<45D8D6AE.3000204@assembler.cz>	<45DB0EEA.2010205@redhat.com>
-	<20070220191142.GE16614@redhat.com>	<20070221171737.b6592104.khali@linux-fr.org>	<20070221173740.GD19851@redhat.com>	<20070221201944.GD13794@redhat.com>
-	<20070222173711.9364695b.khali@linux-fr.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: EC init cleanup patches
+Date: Fri, 23 Feb 2007 02:24:19 -0500
+Message-ID: <200702230224.19440.lenb@kernel.org>
+References: <45DC9091.9050605@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <lm-sensors-bounces@lm-sensors.org>
-In-Reply-To: <20070222173711.9364695b.khali@linux-fr.org>
-List-Unsubscribe: <http://lists.lm-sensors.org/mailman/listinfo/lm-sensors>,
-	<mailto:lm-sensors-request@lm-sensors.org?subject=unsubscribe>
-List-Archive: <http://lists.lm-sensors.org/pipermail/lm-sensors>
-List-Post: <mailto:lm-sensors@lm-sensors.org>
-List-Help: <mailto:lm-sensors-request@lm-sensors.org?subject=help>
-List-Subscribe: <http://lists.lm-sensors.org/mailman/listinfo/lm-sensors>,
-	<mailto:lm-sensors-request@lm-sensors.org?subject=subscribe>
-Sender: lm-sensors-bounces@lm-sensors.org
-Errors-To: lm-sensors-bounces@lm-sensors.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: notting@redhat.com, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, Chuck Ebbert <cebbert@redhat.com>, Dave Jones <davej@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:41325 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752133AbXBWH0N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 23 Feb 2007 02:26:13 -0500
+In-Reply-To: <45DC9091.9050605@linux.intel.com>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-Jean Delvare wrote:
-> On Wed, 21 Feb 2007 15:19:44 -0500, Dave Jones wrote:
->> Ah, Fedora has this horror in its initscripts (which explains why I missed
->> it in my grep)..
->>
->> # Initialize ACPI bits
->> if [ -d /proc/acpi ]; then
->>     for module in /lib/modules/$unamer/kernel/drivers/acpi/* ; do
->>         module=${module##*/}
->>         module=${module%.ko}
->>         modprobe $module >/dev/null 2>&1
->>     done
->> fi
+On Wednesday 21 February 2007 13:33, Alexey Starikovskiy wrote:
+> Hi,
+> Here is the patch series to clean-up init of EC.
 > 
-> Ah, this also explains why the i2c_ec and sbs drivers were loaded on
-> Chuck's system, although they were not needed.
-> 
->> This is there because there's no clean way for userspace to know whether
->> to load the system specific stuff right now.   Bill Nottingham pointed
->> out that we could add a /sys/class/dmi/modalias and appropriate MODULE_DMI
->> tags to the various modules like asus_acpi to make udev autoload them.
-> 
-> Something similiar should be doable for i2c_ec, as it's only useful if a
-> given ACPI object is present. sbs, in turn, is only useful if i2c_ec is
-> loaded.
-> 
+> Please test, comment.
 
-I'm thinking that it might be an idea to also use this idea of udev autoloading 
-through DMI info for the abituguru and abituguru3 driver (review please). The 
-both only support about 12 motherboards. For the abituguru driver, dmi info 
-could also be used to automatically set the module options needed on the 2 
-oldest uguru featuring abit motherboards. What do you think about this?
+> ACPI: EC: enable burst functionality in EC
 
-Regards,
+seems to expose ec_burst_enable(), but nobody calls it --
+so the patch has no functional change by itself, yes?
 
-Hans
+looks like some unrelated cleanups in that patch too.
 
+anybody able to test this out on the samsung box
+that had trouble with burst mode?
 
+if we are going to cut over to enabling burst mode by default,
+surely we should have a boot-param so the user can set it
+to whatever works -- as well as a dmesg indicator so we
+can tell what is going on -- like we do for ec_intr=, yes?
 
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+thanks, 
+-Len
+
+ps. in the patch and mbox format, please include
+a Signed-off-by: line in addition to the From: line --
+i have to remember to add these manually when they're
+not included in what you sent to me, and technically nobody should be adding
+a signed-off-by line with somebody elses's name on it...
+
