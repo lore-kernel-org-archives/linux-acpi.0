@@ -1,83 +1,123 @@
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Subject: Re: [patch 05/13] ACPI: Make bay depend on dock
-Date: Fri, 23 Feb 2007 13:37:58 -0800
-Message-ID: <20070223133758.f330dab3.kristen.c.accardi@intel.com>
-References: <200702060010.l160AE0G003732@shell0.pdx.osdl.net>
-	<200702090050.10271.lenb@kernel.org>
-	<20070208220152.7f62b6c1.akpm@linux-foundation.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:39527 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933212AbXBWVkN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 23 Feb 2007 16:40:13 -0500
-In-Reply-To: <20070208220152.7f62b6c1.akpm@linux-foundation.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: John Keller <jpk@sgi.com>
+Subject: [PATCH 1/1] -  Altix: cannot register acpi bus driver before bus scan
+Date: Fri, 23 Feb 2007 16:24:16 -0600
+Message-ID: <20070223222416.10849.61333.sendpatchset@attica.americas.sgi.com>
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Sender: linux-ia64-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: ayoung@sgi.com, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, John Keller <jpk@sgi.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Thu, 8 Feb 2007 22:01:52 -0800
-Andrew Morton <akpm@linux-foundation.org> wrote:
+SN code to initialize the Hub/TIO infrastructure needs to
+execute before bus scanning. This is currently done by an
+early call to acpi_bus_register_driver(). With the latest
+ACPI changes to the driver model, a driver cannot be registered
+this early. Make changes to have the init routines invoked via
+calls to acpi_get_devices().
 
-> On Fri, 9 Feb 2007 00:50:10 -0500 Len Brown <lenb@kernel.org> wrote:
-> 
-> > Did you intend to make ACPI_BAY depend on ACPI_DOCK
-> > instead of making ACPI_DOCK depend on ACPI_DOCK?
-> > 
-> > -Len
-> > 
-> > On Monday 05 February 2007 19:09, akpm@linux-foundation.org wrote:
-> > > From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-> > > 
-> > > Since the bay driver depends on the dock driver for proper notification, make
-> > > this driver depend on the dock driver.
-> > > 
-> > > Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-> > > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> > > ---
-> > > 
-> > >  drivers/acpi/Kconfig |    1 +
-> > >  1 file changed, 1 insertion(+)
-> > > 
-> > > diff -puN drivers/acpi/Kconfig~acpi-make-bay-depend-on-dock drivers/acpi/Kconfig
-> > > --- a/drivers/acpi/Kconfig~acpi-make-bay-depend-on-dock
-> > > +++ a/drivers/acpi/Kconfig
-> > > @@ -151,6 +151,7 @@ config ACPI_FAN
-> > >  config ACPI_DOCK
-> > >  	tristate "Dock"
-> > >  	depends on EXPERIMENTAL
-> > > +	depends on ACPI_DOCK
-> > >  	help
-> > >  	  This driver adds support for ACPI controlled docking stations
-> 
-> I dunno what's going on with this one - it might have got mangled.  Please
-> drop.
-> 
-
-Eh - we do need this patch after all - here it is again - ACPI_BAY should
-be dependent on ACPI_DOCK.
-
-
-Subject: ACPI: Make bay depend on dock
-
-Since the bay driver depends on the dock driver for proper notification,
-make this driver depend on the dock driver. 
-
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Signed-off-by: John Keller <jpk@sgi.com>
 ---
- drivers/acpi/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
 
---- kristen-2.6.orig/drivers/acpi/Kconfig
-+++ kristen-2.6/drivers/acpi/Kconfig
-@@ -142,6 +142,7 @@ config ACPI_DOCK
- config ACPI_BAY
- 	tristate "Removable Drive Bay"
- 	depends on EXPERIMENTAL
-+	depends on ACPI_DOCK
- 	help
- 	  This driver adds support for ACPI controlled removable drive
- 	  bays such as the IBM ultrabay or the Dell Module Bay.
+ arch/ia64/sn/kernel/io_acpi_init.c |   44 +++++++++++++--------------
+ 1 file changed, 22 insertions(+), 22 deletions(-)
+
+
+Index: release/arch/ia64/sn/kernel/io_acpi_init.c
+===================================================================
+--- release.orig/arch/ia64/sn/kernel/io_acpi_init.c	2007-02-23 15:21:21.070216119 -0600
++++ release/arch/ia64/sn/kernel/io_acpi_init.c	2007-02-23 15:22:04.255545247 -0600
+@@ -53,12 +53,15 @@ sal_ioif_init(u64 *result)
+ }
+ 
+ /*
+- * sn_hubdev_add - The 'add' function of the acpi_sn_hubdev_driver.
+- *		   Called for every "SGIHUB" or "SGITIO" device defined
+- *		   in the ACPI namespace.
++ * sn_acpi_hubdev_init() - This function is called by acpi_ns_get_device_callback()
++ *			   for all SGIHUB and SGITIO acpi devices defined in the
++ *			   DSDT. It obtains the hubdev_info pointer from the
++ *			   ACPI vendor resource, which the PROM setup, and sets up the
++ *			   hubdev_info in the pda.
+  */
+-static int __init
+-sn_hubdev_add(struct acpi_device *device)
++
++static acpi_status __init
++sn_acpi_hubdev_init(acpi_handle handle, u32 depth, void *context, void **ret)
+ {
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	u64 addr;
+@@ -67,18 +70,19 @@ sn_hubdev_add(struct acpi_device *device
+ 	int i;
+ 	u64 nasid;
+ 	struct acpi_resource *resource;
+-	int ret = 0;
+ 	acpi_status status;
+ 	struct acpi_resource_vendor_typed *vendor;
+ 	extern void sn_common_hubdev_init(struct hubdev_info *);
+ 
+-	status = acpi_get_vendor_resource(device->handle, METHOD_NAME__CRS,
++	status = acpi_get_vendor_resource(handle, METHOD_NAME__CRS,
+ 					  &sn_uuid, &buffer);
+ 	if (ACPI_FAILURE(status)) {
+ 		printk(KERN_ERR
+-		       "sn_hubdev_add: acpi_get_vendor_resource() failed: %d\n",
+-		        status);
+-		return 1;
++		       "sn_acpi_hubdev_init: acpi_get_vendor_resource() "
++		       "(0x%x) failed for: ", status);
++		acpi_ns_print_node_pathname(handle, NULL);
++		printk("\n");
++		return AE_OK;		/* Continue walking namespace */
+ 	}
+ 
+ 	resource = buffer.pointer;
+@@ -86,9 +90,10 @@ sn_hubdev_add(struct acpi_device *device
+ 	if ((vendor->byte_length - sizeof(struct acpi_vendor_uuid)) !=
+ 	    sizeof(struct hubdev_info *)) {
+ 		printk(KERN_ERR
+-		       "sn_hubdev_add: Invalid vendor data length: %d\n",
++		       "sn_acpi_hubdev_init: Invalid vendor data length: %d for: ",
+ 		        vendor->byte_length);
+-		ret = 1;
++		acpi_ns_print_node_pathname(handle, NULL);
++		printk("\n");
+ 		goto exit;
+ 	}
+ 
+@@ -103,7 +108,7 @@ sn_hubdev_add(struct acpi_device *device
+ 
+ exit:
+ 	kfree(buffer.pointer);
+-	return ret;
++	return AE_OK;		/* Continue walking namespace */
+ }
+ 
+ /*
+@@ -441,14 +446,6 @@ sn_acpi_slot_fixup(struct pci_dev *dev)
+ 
+ EXPORT_SYMBOL(sn_acpi_slot_fixup);
+ 
+-static struct acpi_driver acpi_sn_hubdev_driver = {
+-	.name = "SGI HUBDEV Driver",
+-	.ids = "SGIHUB,SGITIO",
+-	.ops = {
+-		.add = sn_hubdev_add,
+-		},
+-};
+-
+ 
+ /*
+  * sn_acpi_bus_fixup -  Perform SN specific setup of software structs
+@@ -492,7 +489,10 @@ sn_io_acpi_init(void)
+ 	/* SN Altix does not follow the IOSAPIC IRQ routing model */
+ 	acpi_irq_model = ACPI_IRQ_MODEL_PLATFORM;
+ 
+-	acpi_bus_register_driver(&acpi_sn_hubdev_driver);
++	/* Setup hubdev_info for all SGIHUB/SGITIO devices */
++	acpi_get_devices("SGIHUB", sn_acpi_hubdev_init, NULL, NULL);
++	acpi_get_devices("SGITIO", sn_acpi_hubdev_init, NULL, NULL);
++
+ 	status = sal_ioif_init(&result);
+ 	if (status || result)
+ 		panic("sal_ioif_init failed: [%lx] %s\n",
