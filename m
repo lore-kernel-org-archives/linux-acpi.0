@@ -1,44 +1,67 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: 2.6.21-rc1: T60 resume from suspend to RAM issues
-Date: Fri, 23 Feb 2007 02:09:04 -0800
-Message-ID: <20070223020904.c8fc8a3e.akpm@linux-foundation.org>
-References: <20070222233803.GA4447@mellanox.co.il>
+Subject: Fw: ata-piix ACPI errors
+Date: Fri, 23 Feb 2007 02:08:56 -0800
+Message-ID: <20070223020856.641452a3.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.osdl.org>
-In-Reply-To: <20070222233803.GA4447@mellanox.co.il>
-List-Unsubscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
-List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.osdl.org>
-List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
-List-Subscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.osdl.org
-Errors-To: linux-pm-bounces@lists.osdl.org
-To: "Michael S. Tsirkin" <mst@mellanox.co.il>
-Cc: linux-acpi@vger.kernel.org, mingo@redhat.com, len.brown@intel.com, bunk@stusta.de, linux-kernel@vger.kernel.org, linux-pm@linux-foundation.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.osdl.org ([65.172.181.24]:60217 "EHLO smtp.osdl.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932097AbXBWKMj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 23 Feb 2007 05:12:39 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-> On Fri, 23 Feb 2007 01:38:03 +0200 "Michael S. Tsirkin" <mst@mellanox.co.=
-il> wrote:
-> I tested this:
-> commit 9654640d0af8f2de40ff3807d3695109d3463f54
-> and see 2 issues:
-> =
-
-> 1. After suspend to RAM, system wakes up but no screen.
-> I can log in through ssh though.
-> dmesg output at this point below.
-> Works fine on 2.6.20 and below, with same .config
-> .config and log file for this issue attached.
-> =
-
-> 2. As a separate test, I enabled DynTicks in .config.
-> Seems to work fine but won't come out of suspend to memory at all:
-> pressing Fn/F4 seems to have no effect.
-> =
+To: linux-acpi@vger.kernel.org
+Cc: Meelis Roos <mroos@linux.ee>, Adrian Bunk <bunk@stusta.de>
 
 
-Do you believe that the second problem was caused by dynticks?
+I'm starting to think that big acpi merge came a bit too soon.
+
+Begin forwarded message:
+
+Date: Thu, 22 Feb 2007 15:29:42 +0200 (EET)
+From: Meelis Roos <mroos@linux.ee>
+To: Linux Kernel list <linux-kernel@vger.kernel.org>
+Subject: ata-piix ACPI errors
+
+
+Testbooted 2.6.21-rc1+todays git on a PC with Intel 845 chipset and PATA 
+HDD. Works fine but I now have these ACPI errors in dmesg, maybe someone 
+is interested:
+
+ata_piix 0000:00:1f.1: version 2.00ac7
+PCI: Enabling device 0000:00:1f.1 (0005 -> 0007)
+ACPI: PCI Interrupt 0000:00:1f.1[A] -> GSI 18 (level, low) -> IRQ 18
+PCI: Setting latency timer of device 0000:00:1f.1 to 64
+ata1: PATA max UDMA/100 cmd 0x000101f0 ctl 0x000103f6 bmdma 0x0001ffa0 irq 14
+ata2: PATA max UDMA/100 cmd 0x00010170 ctl 0x00010376 bmdma 0x0001ffa8 irq 15
+scsi0 : ata_piix
+ACPI Error (dsopcode-0481): Attempt to CreateField of length zero [20070126]
+ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node c18edbf8), AE_AML_OPERAND_VALUE
+ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN0.DRV0._GTF] (Node c18ed608), AE_AML_OPERAND_VALUE
+ata1.00: ATA-5: ST380021A, 3.19, max UDMA/100
+ata1.00: 156301488 sectors, multi 16: LBA
+ACPI Error (dsopcode-0481): Attempt to CreateField of length zero [20070126]
+ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node c18edbf8), AE_AML_OPERAND_VALUE
+ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN0.DRV0._GTF] (Node c18ed608), AE_AML_OPERAND_VALUE
+ata1.00: configured for UDMA/100
+scsi1 : ata_piix
+ACPI Error (dsopcode-0481): Attempt to CreateField of length zero [20070126]
+ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node c18edbf8), AE_AML_OPERAND_VALUE
+ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN1.DRV0._GTF] (Node c18ed464), AE_AML_OPERAND_VALUE
+ata2.00: ATAPI, max UDMA/33
+ACPI Error (dsopcode-0481): Attempt to CreateField of length zero [20070126]
+ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node c18edbf8), AE_AML_OPERAND_VALUE
+ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN1.DRV0._GTF] (Node c18ed464), AE_AML_OPERAND_VALUE
+ata2.00: configured for UDMA/33
+scsi 0:0:0:0: Direct-Access     ATA      ST380021A        3.19 PQ: 0 ANSI: 5
+scsi 1:0:0:0: CD-ROM            _NEC     DV-5800B         G9H3 PQ: 0 ANSI: 5
+
+-- 
+Meelis Roos (mroos@linux.ee)
+-
+To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at  http://www.tux.org/lkml/
