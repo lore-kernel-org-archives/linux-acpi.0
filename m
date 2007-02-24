@@ -1,163 +1,106 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 1/5] ACPI: ibm-acpi: rename some identifiers
-Date: Sat, 24 Feb 2007 13:01:18 -0200
-Message-ID: <bde16e404cce89ebfe6d9b143d979f0c6fe5434b.1172327581.git.hmh__8330.54095642201$1172329499$gmane$org@hmh.eng.br>
-References: <11723292823837-git-send-email-hmh@hmh.eng.br>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:46714 "EHLO
-	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933506AbXBXPEX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 24 Feb 2007 10:04:23 -0500
-In-Reply-To: <11723292823837-git-send-email-hmh@hmh.eng.br>
-Message-Id: <bde16e404cce89ebfe6d9b143d979f0c6fe5434b.1172327581.git.hmh@hmh.eng.br>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: RFC: conversion of ibm-acpi to hwmon sysfs
+Date: Sat, 24 Feb 2007 16:20:24 -0200
+Message-ID: <20070224182024.GA23865@khazad-dum.debian.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Rename some identifiers so that they are more in tune with the rest of the
-driver code, or less generic.
+I am working on a conversion of ibm-acpi to sysfs, and in the process I am
+trying to do away with every non-generic interface I can.  At least two
+ibm-acpi interfaces map directly to hwmon/lm-sensors style: fan and thermal.
+I'd like to expose them as hwmon attributes, using the hwmon generic
+interfaces for fan control and thermal sensor readings.
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
----
- drivers/acpi/ibm_acpi.c |   43 ++++++++++++++++++++++++-------------------
- 1 files changed, 24 insertions(+), 19 deletions(-)
+I would really appreciate feedback from the lm-sensors/hwmon group on how to
+best achieve that.
 
-diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
-index e7309a6..0a22d46 100644
---- a/drivers/acpi/ibm_acpi.c
-+++ b/drivers/acpi/ibm_acpi.c
-@@ -505,7 +505,7 @@ static int ibm_acpi_driver_init(void)
- 	return 0;
- }
- 
--static int driver_read(char *p)
-+static int ibm_acpi_driver_read(char *p)
- {
- 	int len = 0;
- 
-@@ -1309,9 +1309,9 @@ static const int led_exp_hlbl[] = { 0, 0, 1 };	/* led# * */
- static const int led_exp_hlcl[] = { 0, 1, 1 };	/* led# * */
- static const int led_led_arg1[] = { 0, 0x80, 0xc0 };
- 
--#define EC_HLCL 0x0c
--#define EC_HLBL 0x0d
--#define EC_HLMS 0x0e
-+#define IBMACPI_LED_EC_HLCL 0x0c
-+#define IBMACPI_LED_EC_HLBL 0x0d
-+#define IBMACPI_LED_EC_HLMS 0x0e
- 
- static int led_write(char *buf)
- {
-@@ -1343,13 +1343,15 @@ static int led_write(char *buf)
- 		} else if (led_supported == IBMACPI_LED_OLD) {
- 			/* 600e/x, 770e, 770x, A21e, A2xm/p, T20-22, X20 */
- 			led = 1 << led;
--			ret = ec_write(EC_HLMS, led);
-+			ret = ec_write(IBMACPI_LED_EC_HLMS, led);
- 			if (ret >= 0)
- 				ret =
--				    ec_write(EC_HLBL, led * led_exp_hlbl[ind]);
-+				    ec_write(IBMACPI_LED_EC_HLBL,
-+				    	     led * led_exp_hlbl[ind]);
- 			if (ret >= 0)
- 				ret =
--				    ec_write(EC_HLCL, led * led_exp_hlcl[ind]);
-+				    ec_write(IBMACPI_LED_EC_HLCL,
-+				    	     led * led_exp_hlcl[ind]);
- 			if (ret < 0)
- 				return ret;
- 		} else {
-@@ -1656,8 +1658,8 @@ static int brightness_read(char *p)
- 	return len;
- }
- 
--#define BRIGHTNESS_UP	4
--#define BRIGHTNESS_DOWN	5
-+#define TP_CMOS_BRIGHTNESS_UP	4
-+#define TP_CMOS_BRIGHTNESS_DOWN	5
- 
- static int brightness_set(int value)
- {
-@@ -1666,7 +1668,8 @@ static int brightness_set(int value)
- 
- 	value &= 7;
- 
--	cmos_cmd = value > current_value ? BRIGHTNESS_UP : BRIGHTNESS_DOWN;
-+	cmos_cmd = value > current_value ?
-+		   TP_CMOS_BRIGHTNESS_UP : TP_CMOS_BRIGHTNESS_DOWN;
- 	inc = value > current_value ? 1 : -1;
- 	for (i = current_value; i != value; i += inc) {
- 		if (!cmos_eval(cmos_cmd))
-@@ -1765,9 +1768,9 @@ static int volume_read(char *p)
- 	return len;
- }
- 
--#define VOLUME_DOWN	0
--#define VOLUME_UP	1
--#define VOLUME_MUTE	2
-+#define TP_CMOS_VOLUME_DOWN	0
-+#define TP_CMOS_VOLUME_UP	1
-+#define TP_CMOS_VOLUME_MUTE	2
- 
- static int volume_write(char *buf)
- {
-@@ -1801,7 +1804,8 @@ static int volume_write(char *buf)
- 			return -EINVAL;
- 
- 		if (new_level != level) {	/* mute doesn't change */
--			cmos_cmd = new_level > level ? VOLUME_UP : VOLUME_DOWN;
-+			cmos_cmd = new_level > level ?
-+					TP_CMOS_VOLUME_UP : TP_CMOS_VOLUME_DOWN;
- 			inc = new_level > level ? 1 : -1;
- 
- 			if (mute && (!cmos_eval(cmos_cmd) ||
-@@ -1813,14 +1817,15 @@ static int volume_write(char *buf)
- 				    !acpi_ec_write(volume_offset, i + inc))
- 					return -EIO;
- 
--			if (mute && (!cmos_eval(VOLUME_MUTE) ||
-+			if (mute && (!cmos_eval(TP_CMOS_VOLUME_MUTE) ||
- 				     !acpi_ec_write(volume_offset,
- 						    new_level + mute)))
- 				return -EIO;
- 		}
- 
- 		if (new_mute != mute) {	/* level doesn't change */
--			cmos_cmd = new_mute ? VOLUME_MUTE : VOLUME_UP;
-+			cmos_cmd = new_mute ?
-+				   TP_CMOS_VOLUME_MUTE : TP_CMOS_VOLUME_UP;
- 
- 			if (!cmos_eval(cmos_cmd) ||
- 			    !acpi_ec_write(volume_offset, level + new_mute))
-@@ -2311,7 +2316,7 @@ static struct ibm_struct ibms[] = {
- 	{
- 	 .name = "driver",
- 	 .init = ibm_acpi_driver_init,
--	 .read = driver_read,
-+	 .read = ibm_acpi_driver_read,
- 	 },
- 	{
- 	 .name = "hotkey",
-@@ -2525,7 +2530,7 @@ static int __init ibm_device_add(struct acpi_device *device)
- 	return 0;
- }
- 
--static int __init register_driver(struct ibm_struct *ibm)
-+static int __init register_ibmacpi_subdriver(struct ibm_struct *ibm)
- {
- 	int ret;
- 
-@@ -2558,7 +2563,7 @@ static int __init ibm_init(struct ibm_struct *ibm)
- 		return 0;
- 
- 	if (ibm->hid) {
--		ret = register_driver(ibm);
-+		ret = register_ibmacpi_subdriver(ibm);
- 		if (ret < 0)
- 			return ret;
- 		ibm->driver_registered = 1;
+Thermal is relatively easy.  A thinkpad has either 8 or up to 16 thermal
+sensors (typically, 12 sensors), and I can simply export them as
+temp##_input, already converted to milidegree Celcius.
+
+However, some thinkpad thermal sensors are hotswappable (they're inside
+battery packs, for example).  What is the recommended way to deal with that?
+
+I was planning to return -ENXIO for sensors thare are currently unavailable,
+and I could also try to make their sysfs attributes go away (and come back
+again) when the driver detects such a change -- note that I don't get events
+from the thinkpad firmware when a sensor gets disconnected or reconnected, I
+need to poll them to know that).  Is that the recommended way to go about
+it?  Or should I just leave all entries there and return -ENXIO on the
+invalid ones (the firmware returns -128 for invalid sensors).
+
+fan control is a bit more hard to map to the hwmon interface, as the
+thinkpad firmware exports a higher level interface than your regular
+thermal-and-fan-monitor chip (and it is far less documented and far more
+buggy than regular chips :p):
+
+Most thinkpads have a tachometer that returns data in RPM, and that gets
+mapped to fan##_input.  The tachometer can get stale in fan control
+disengaged mode (see below), how should I export that information to
+userspace?  There is nothing in the standard hwmon sysfs for that, and it
+*is* useful to userspace to know the last measured speed, so I don't want to
+return -ENXIO or somesuch on fan##_input...   What do you guys suggest I do?
+Add an ibm-acpi specific fan##_input_valid attribute that reads 0/1?  Or not
+export that information in the first place?  Should I propose such an
+attribute to the generic interface?
+
+The thinkpad EC has three modes of fan operation: manual, where there are
+seven fan speed levels (0=off, 1=slowest, 7=fastest) that map to different
+speeds (usually fan stopped plus three different speeds, so it is not a 1:1
+mapping).  auto, where it selects one of the levels by itself, and
+disengaged, where it kicks the fan to its highest speed (which usually is
+quite higher than level 7).  The levels are closed-loop-controlled, and
+track a model-specific desired RPM value.  That allows for consistent
+hardware behaviour with fans that are going old or are somewhat dirty.
+
+I was thinking of using pwm##_enable to: force manual mode, level 0 (fan
+off) when pwm##_enable is 0, force manual mode when it is 1, and force auto
+mode when it is 2+.  I can query what mode the firmware is in, so reading
+pwm##_enable is not a problem.
+
+The level for manual mode would be set by pwm##: if it is 0, force level 0.
+If it is between 1..90, I'd select one of the six non-stopped fan speed
+levels.  If it is above 90, I'd select disengaged mode.
+
+Reading pwm## is not easy.  It is indeterminate if pwm##_enable is set to 2+
+(auto mode)... what should I return, then?   For manual mode, I was planning
+to return the quantized value (i.e. if 1..26 select fan level 1, a read will
+return 26).  For disengaged value (a write of 90..100 with pwm##_enable set
+to 1), I'd always return 100.  Is that a good way to implement it?
+
+Note that this interface does not map exacly what the hardware is doing.
+When one sets the fan to disengaged mode, the firmware slowly increases fan
+speed until it hits max, for example.  There is no way to get any feedback
+on what the firmware is *really* doing to the fan, other than the tachometer
+readings.
+
+I was going to place all fan attributes in a sysfs group (subdirectory)
+named "fan", and all thermal attributes in a sysfs group named "thermal". Is
+that acceptable?
+
 -- 
-1.5.0.1
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
 
+-------------------------------------------------------------------------
+Take Surveys. Earn Cash. Influence the Future of IT
+Join SourceForge.net's Techsay panel and you'll get the chance to share your
+opinions on IT & business topics through brief surveys-and earn cash
+http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
