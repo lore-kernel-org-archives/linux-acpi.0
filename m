@@ -1,52 +1,41 @@
 From: "Andrew Nelless" <andrew@nelless.net>
 Subject: Re: 2.6.21-rc1: framebuffer/console boot failure
-Date: Sat, 24 Feb 2007 22:57:39 -0000 (GMT)
-Message-ID: <33524.86.7.220.119.1172357859.squirrel@wmbeta.mxes.net>
+Date: Sat, 24 Feb 2007 23:00:10 -0000 (GMT)
+Message-ID: <33525.86.7.220.119.1172358010.squirrel@wmbeta.mxes.net>
 References: <35472.86.7.220.119.1172237750.squirrel@wmbeta.mxes.net>
     <20070224030950.074f88d4.akpm@linux-foundation.org>
 Reply-To: "Andrew Nelless" <andrew@nelless.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933580AbXBXW5l@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933581AbXBXXAN@vger.kernel.org>
 In-Reply-To: <20070224030950.074f88d4.akpm@linux-foundation.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
 On Sat, February 24, 2007 11:09 am, Andrew Morton wrote:
->> On Fri, 23 Feb 2007 13:35:50 -0000 (GMT) "Andrew" <andrew@nelless.net> wrote:
->> Hi,
->>
->>
->> 2.6.21-rc1 fails to boot on my machine. As soon as I switch
->> from grub the screen turns and remains black with no sign of Tux or any output.
->>
->> I've run a git-bisect between 2.6.20 (which works fine) and
->> 2.6.21-rc1 and found the first bad commit to be
->> #59b8175c771040afcd4ad67022b0cc80c216b866 which seems bizarre
->> to me since this is a mostly an ARM commit.
->>
->> I haven't tried to revert this commit because frankly I don't
->> know where to go from there with a multi-parent commit.
->>
->> I'm running on on a Asus A8N-VM CSM motherboard with a single
->> core AMD64 processor, with a nVidia GPU in the PCI-ex slot using the standard VESA frame
->> buffer driver.
->>
->> Relevant config's can be found here:
->> http://homepage.ntlworld.com/anelless/linux/2.6.21-rc1/
->>
->>
->
-> and, later,
->
->> I have just discovered 2.6.21-rc1 boots with
->> pci=noacpi ...
 >
 > Presumably this regression was caused by the ACPI merge.  Are you able to
 > capture the dmesg output from the 2.6.20-rc1 boot?  netconsole might be useful here, thanks.
 >
+
+I've confirmed a few things:
+
+1) 2.6.21-rc1 actually will boot intermittently.
+2) pci=noacpi always allows 2.6.21-rc1 to boot.
+2) 2.6.20 always boots.
+3) There doesn't seem to be a pattern (that I can tell) between booting and not booting,
+although it'll now boot more often than not (It seemed very much t'other way around yesterday)
+4) When 2.6.21-rc1 doesn't boot ('Boot'? Am i using the right term here? hmm...) nothing is
+sent across netconsole at all.
+5) Netconsole is useful.
+
+I've uploaded all the dmesg output i've managed to capture here:
+http://homepage.ntlworld.com/anelless/linux/2.6.21-rc1/
+
 > (You get added to the post-2.6.20 regression list, so you'll be hearing
 > from us quite a lot for the next month.  Sorry ;))
 >
+
+Lucky me :)
