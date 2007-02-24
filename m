@@ -1,144 +1,55 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 1/1] -  Altix: cannot register acpi bus driver before bus scan
-Date: Fri, 23 Feb 2007 23:10:06 -0500
-Message-ID: <200702232310.06391.lenb@kernel.org>
-References: <20070223222416.10849.61333.sendpatchset@attica.americas.sgi.com>
+Subject: Re: [GIT PULL] ibm-acpi updates
+Date: Fri, 23 Feb 2007 23:13:07 -0500
+Message-ID: <200702232313.07338.lenb@kernel.org>
+References: <20070222205520.GA11505@khazad-dum.debian.net> <200702230129.24251.lenb@kernel.org> <20070223110855.GA11902@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <20070223222416.10849.61333.sendpatchset@attica.americas.sgi.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:59217 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933367AbXBXEVh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 23 Feb 2007 23:21:37 -0500
+In-Reply-To: <20070223110855.GA11902@khazad-dum.debian.net>
 Content-Disposition: inline
-Sender: linux-ia64-owner@vger.kernel.org
-To: John Keller <jpk@sgi.com>
-Cc: linux-acpi@vger.kernel.org, ayoung@sgi.com, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-Applied to acpi-test.
+On Friday 23 February 2007 06:08, Henrique de Moraes Holschuh wrote:
+> On Fri, 23 Feb 2007, Len Brown wrote:
+> > +config ACPI_IBM_BAY
+> > +	bool "Legacy Removable Bay Support"
+> > +	depends on ACPI_IBM
+> > +	default y
+> > +	---help---
+> > +	  Allows the ibm_acpi driver to handle removable bays.  It will allow
+> > +	  disabling the device in the bay, and also generate notifications when
+> > +	  the bay lever is ejected or inserted.
+> > +
+> > +	  If you are not sure, say Y here.
+> > +
+> > 
+> > Why is the default Y?
+> 
+> ACPI_BAY is still experimental, and breaks completely on ThinkPads if
+> whatever is in the bay is not a disk (e.g. if it is a battery), at least
+> during boot.
+> 
+> Also, some thinkpads benefit from *optional* extra intelligence on bay
+> handling during STR (which is not in ibm-acpi yet).  E.g. a T43 can save a
+> few watts if you power off whatever is in the bay right before STR, *as long
+> as it is not a battery*.
+> 
+> This is just an interim patch to let people easily disable ibm-acpi bay
+> support.  Another patch making it default to N and depend on !ACPI_BAY can
+> be added later, but since I did not have a time window to work on ACPI_BAY
+> + ibm-acpi interaction yet, I fear it is a little early for that.
 
-Thanks John.  Sorry to have broken this on you.
-Maybe some day we'll be able to tidy up the init sequence.
+Thanks for the clarification, Henrique.
 
 -Len
 
-On Friday 23 February 2007 17:24, John Keller wrote:
-> SN code to initialize the Hub/TIO infrastructure needs to
-> execute before bus scanning. This is currently done by an
-> early call to acpi_bus_register_driver(). With the latest
-> ACPI changes to the driver model, a driver cannot be registered
-> this early. Make changes to have the init routines invoked via
-> calls to acpi_get_devices().
-> 
-> Signed-off-by: John Keller <jpk@sgi.com>
-> ---
-> 
->  arch/ia64/sn/kernel/io_acpi_init.c |   44 +++++++++++++--------------
->  1 file changed, 22 insertions(+), 22 deletions(-)
-> 
-> 
-> Index: release/arch/ia64/sn/kernel/io_acpi_init.c
-> ===================================================================
-> --- release.orig/arch/ia64/sn/kernel/io_acpi_init.c	2007-02-23 15:21:21.070216119 -0600
-> +++ release/arch/ia64/sn/kernel/io_acpi_init.c	2007-02-23 15:22:04.255545247 -0600
-> @@ -53,12 +53,15 @@ sal_ioif_init(u64 *result)
->  }
->  
->  /*
-> - * sn_hubdev_add - The 'add' function of the acpi_sn_hubdev_driver.
-> - *		   Called for every "SGIHUB" or "SGITIO" device defined
-> - *		   in the ACPI namespace.
-> + * sn_acpi_hubdev_init() - This function is called by acpi_ns_get_device_callback()
-> + *			   for all SGIHUB and SGITIO acpi devices defined in the
-> + *			   DSDT. It obtains the hubdev_info pointer from the
-> + *			   ACPI vendor resource, which the PROM setup, and sets up the
-> + *			   hubdev_info in the pda.
->   */
-> -static int __init
-> -sn_hubdev_add(struct acpi_device *device)
-> +
-> +static acpi_status __init
-> +sn_acpi_hubdev_init(acpi_handle handle, u32 depth, void *context, void **ret)
->  {
->  	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
->  	u64 addr;
-> @@ -67,18 +70,19 @@ sn_hubdev_add(struct acpi_device *device
->  	int i;
->  	u64 nasid;
->  	struct acpi_resource *resource;
-> -	int ret = 0;
->  	acpi_status status;
->  	struct acpi_resource_vendor_typed *vendor;
->  	extern void sn_common_hubdev_init(struct hubdev_info *);
->  
-> -	status = acpi_get_vendor_resource(device->handle, METHOD_NAME__CRS,
-> +	status = acpi_get_vendor_resource(handle, METHOD_NAME__CRS,
->  					  &sn_uuid, &buffer);
->  	if (ACPI_FAILURE(status)) {
->  		printk(KERN_ERR
-> -		       "sn_hubdev_add: acpi_get_vendor_resource() failed: %d\n",
-> -		        status);
-> -		return 1;
-> +		       "sn_acpi_hubdev_init: acpi_get_vendor_resource() "
-> +		       "(0x%x) failed for: ", status);
-> +		acpi_ns_print_node_pathname(handle, NULL);
-> +		printk("\n");
-> +		return AE_OK;		/* Continue walking namespace */
->  	}
->  
->  	resource = buffer.pointer;
-> @@ -86,9 +90,10 @@ sn_hubdev_add(struct acpi_device *device
->  	if ((vendor->byte_length - sizeof(struct acpi_vendor_uuid)) !=
->  	    sizeof(struct hubdev_info *)) {
->  		printk(KERN_ERR
-> -		       "sn_hubdev_add: Invalid vendor data length: %d\n",
-> +		       "sn_acpi_hubdev_init: Invalid vendor data length: %d for: ",
->  		        vendor->byte_length);
-> -		ret = 1;
-> +		acpi_ns_print_node_pathname(handle, NULL);
-> +		printk("\n");
->  		goto exit;
->  	}
->  
-> @@ -103,7 +108,7 @@ sn_hubdev_add(struct acpi_device *device
->  
->  exit:
->  	kfree(buffer.pointer);
-> -	return ret;
-> +	return AE_OK;		/* Continue walking namespace */
->  }
->  
->  /*
-> @@ -441,14 +446,6 @@ sn_acpi_slot_fixup(struct pci_dev *dev)
->  
->  EXPORT_SYMBOL(sn_acpi_slot_fixup);
->  
-> -static struct acpi_driver acpi_sn_hubdev_driver = {
-> -	.name = "SGI HUBDEV Driver",
-> -	.ids = "SGIHUB,SGITIO",
-> -	.ops = {
-> -		.add = sn_hubdev_add,
-> -		},
-> -};
-> -
->  
->  /*
->   * sn_acpi_bus_fixup -  Perform SN specific setup of software structs
-> @@ -492,7 +489,10 @@ sn_io_acpi_init(void)
->  	/* SN Altix does not follow the IOSAPIC IRQ routing model */
->  	acpi_irq_model = ACPI_IRQ_MODEL_PLATFORM;
->  
-> -	acpi_bus_register_driver(&acpi_sn_hubdev_driver);
-> +	/* Setup hubdev_info for all SGIHUB/SGITIO devices */
-> +	acpi_get_devices("SGIHUB", sn_acpi_hubdev_init, NULL, NULL);
-> +	acpi_get_devices("SGITIO", sn_acpi_hubdev_init, NULL, NULL);
-> +
->  	status = sal_ioif_init(&result);
->  	if (status || result)
->  		panic("sal_ioif_init failed: [%lx] %s\n",
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
