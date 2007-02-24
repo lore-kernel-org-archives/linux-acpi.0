@@ -1,53 +1,54 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: 2.6.21-rc1: framebuffer/console boot failure
-Date: Sat, 24 Feb 2007 03:09:50 -0800
-Message-ID: <20070224030950.074f88d4.akpm@linux-foundation.org>
-References: <35472.86.7.220.119.1172237750.squirrel@wmbeta.mxes.net>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: [GIT PULL] ibm-acpi: more updates
+Date: Sat, 24 Feb 2007 13:01:17 -0200
+Message-ID: <11723292823837-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:57791 "EHLO smtp.osdl.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750971AbXBXLNX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 24 Feb 2007 06:13:23 -0500
-In-Reply-To: <35472.86.7.220.119.1172237750.squirrel@wmbeta.mxes.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew <andrew@nelless.net>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-> On Fri, 23 Feb 2007 13:35:50 -0000 (GMT) "Andrew" <andrew@nelless.net> wrote:
-> Hi,
-> 
-> 2.6.21-rc1 fails to boot on my machine. As soon as I switch
-> from grub the screen turns and remains black with no sign
-> of Tux or any output.
-> 
-> I've run a git-bisect between 2.6.20 (which works fine) and
-> 2.6.21-rc1 and found the first bad commit to be
-> #59b8175c771040afcd4ad67022b0cc80c216b866 which seems bizarre
-> to me since this is a mostly an ARM commit.
-> 
-> I haven't tried to revert this commit because frankly I don't
-> know where to go from there with a multi-parent commit.
-> 
-> I'm running on on a Asus A8N-VM CSM motherboard with a single
-> core AMD64 processor, with a nVidia GPU in the PCI-ex slot
-> using the standard VESA frame buffer driver.
-> 
-> Relevant config's can be found here:
-> http://homepage.ntlworld.com/anelless/linux/2.6.21-rc1/
-> 
+Len,
 
-and, later,
+Please pull from:
+git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git
+branch for-upstream/acpi-test
 
-> I have just discovered 2.6.21-rc1 boots with
-> pci=noacpi ...
+to receive the following patches:
 
-Presumably this regression was caused by the ACPI merge.  Are you able to
-capture the dmesg output from the 2.6.20-rc1 boot?  netconsole might be
-useful here, thanks.
+Henrique de Moraes Holschuh (5):
+      ACPI: ibm-acpi: rename some identifiers
+      ACPI: ibm-acpi: add header file
+      ACPI: ibm-acpi: organize code
+      ACPI: ibm-acpi: update copyright notice
+      ACPI: ibm-acpi: update documentation
 
-(You get added to the post-2.6.20 regression list, so you'll be hearing
-from us quite a lot for the next month.  Sorry ;))
+It has a lot of code shuffling, which I did while cleaning up and preparing for
+a sysfs conversion.  It would be helpful to me if it is merged in acpi-test, as
+that means it will be much faster for me to keep my working tree and what is in
+acpi-test and mainline in sync.  The rest are just minor doc updates.
+
+This patch set should not change any functionality.
+
+I just added the patches on top of what I had already sent you (and that you
+have already merged).  If you'd prefer it to be based on something else, just
+say so.
+
+
+
+-------------------------------------------------------------------------
+Take Surveys. Earn Cash. Influence the Future of IT
+Join SourceForge.net's Techsay panel and you'll get the chance to share your
+opinions on IT & business topics through brief surveys-and earn cash
+http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
