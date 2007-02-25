@@ -1,147 +1,85 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 2.6.19: ACPI reports AC not present after resume from STD
-Date: Sun, 25 Feb 2007 19:58:36 +0100
-Message-ID: <200702251958.37315.rjw@sisk.pl>
-References: <8E389A5F2FEABA4CB1DEC35A25CB39CE82FE9F@mssmsx411> <200702251151.12107.rjw@sisk.pl> <200702252014.26110.arvidjaar@mail.ru>
+From: Matt Domsch <Matt_Domsch@dell.com>
+Subject: Re: acpi_find_bmc() and acpi_get_table()
+Date: Sun, 25 Feb 2007 15:59:22 -0600
+Message-ID: <20070225215922.GA28931@lists.us.dell.com>
+References: <200702102327.28312.lenb@kernel.org>
+	<200702152103.54960.bjorn.helgaas@hp.com>
+	<45D53DDE.5000300@acm.org>
+	<200702192131.52947.bjorn.helgaas@hp.com>
+	<45DA9931.80605@linux.intel.com> <45DAFDD8.909@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:56372 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965107AbXBYTFu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Feb 2007 14:05:50 -0500
-In-Reply-To: <200702252014.26110.arvidjaar@mail.ru>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <openipmi-developer-bounces@lists.sourceforge.net>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <45DAFDD8.909@acm.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
+	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=openipmi-developer>
+List-Post: <mailto:openipmi-developer@lists.sourceforge.net>
+List-Help: <mailto:openipmi-developer-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
+	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=subscribe>
+Sender: openipmi-developer-bounces@lists.sourceforge.net
+Errors-To: openipmi-developer-bounces@lists.sourceforge.net
+To: Corey Minyard <minyard@acm.org>, jordan_hargrave@dell.com
+Cc: linux-acpi@vger.kernel.org, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, openipmi <openipmi-developer@lists.sourceforge.net>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Andrey Borzenkov <arvidjaar@mail.ru>
-Cc: "Lebedev, Vladimir P" <vladimir.p.lebedev@intel.com>, "Karasyov, Konstantin A" <konstantin.a.karasyov@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.osdl.org, Andrew Morton <akpm@osdl.org>
 
-On Sunday, 25 February 2007 18:14, Andrey Borzenkov wrote:
-> On =D0=92=D0=BE=D1=81=D0=BA=D1=80=D0=B5=D1=81=D0=B5=D0=BD=D1=8C=D0=B5=
- 25 =D1=84=D0=B5=D0=B2=D1=80=D0=B0=D0=BB=D1=8F 2007, Rafael J. Wysocki =
-wrote:
-> > On Sunday, 25 February 2007 11:37, Andrey Borzenkov wrote:
-> > > On =D0=92=D0=BE=D1=81=D0=BA=D1=80=D0=B5=D1=81=D0=B5=D0=BD=D1=8C=D0=
-=B5 25 =D1=84=D0=B5=D0=B2=D1=80=D0=B0=D0=BB=D1=8F 2007, Rafael J. Wysoc=
-ki wrote:
-> > > > On Sunday, 25 February 2007 00:26, Andrey Borzenkov wrote:
-> > > > > On =D0=A1=D1=83=D0=B1=D0=B1=D0=BE=D1=82=D0=B0 24 =D1=84=D0=B5=
-=D0=B2=D1=80=D0=B0=D0=BB=D1=8F 2007, Rafael J. Wysocki wrote:
-> > > > > > Hi,
-> > > > > >
-> > > > > > On Saturday, 24 February 2007 10:55, Andrey Borzenkov wrote=
-:
-> > > > > > > On =D0=92=D1=82=D0=BE=D1=80=D0=BD=D0=B8=D0=BA 13 =D1=84=D0=
-=B5=D0=B2=D1=80=D0=B0=D0=BB=D1=8F 2007, Andrey Borzenkov wrote:
-> > > > > > > > On =D0=A7=D0=B5=D1=82=D0=B2=D0=B5=D1=80=D0=B3 07 =D0=B4=
-=D0=B5=D0=BA=D0=B0=D0=B1=D1=80=D1=8F 2006, Lebedev, Vladimir P wrote:
-> > > > > > > > > Please register new bug, attach acpidump and dmesg.
-> > > > > > > >
-> > > > > > > > http://bugzilla.kernel.org/show_bug.cgi?id=3D7995
-> > > > > > > >
-> > > > > > > > regards
-> > > > > > >
-> > > > > > > Well, this starts looking like ACPI is not at fault.
-> > > > > > >
-> > > > > > > When reporting AC state ACPI just reads contents of syste=
-m memory
-> > > > > > > (I presume it gets updated by BIOS/ACPI when AC state cha=
-nges).
-> > > > > > > It looks like this memory area is restored during resume =
-from
-> > > > > > > STD. I updated mentioned bug report with more detailed
-> > > > > > > description. Now if someone could suggest a way to catch =
-if
-> > > > > > > specific physical address gets saved/restored this would =
-finally
-> > > > > > > explain it.
-> > > > > >
-> > > > > > First, if you want the reserved memory areas to be left alo=
-ne by
-> > > > > > swsusp, you need to mark them as 'nosave'.  On x86_64 this =
-is done
-> > > > > > by the function e820_mark_nosave_range() in
-> > > > > > arch/x86_64/kernel/e820.c that can be ported to i386 with n=
-o
-> > > > > > problems.  However, we haven't found that very useful, so f=
-ar,
-> > > > > > since no one has ever reported any problems with the curren=
-t
-> > > > > > approach, which is to save and restore them.
-> > > > >
-> > > > > Well, the following proof of concept patch fixes this issue f=
-or me.
-> > > > > Please notice that original version of e820_mark_nosave_range=
-() could
-> > > > > fail to exclude some areas due to alignment issues (exactly w=
-hat
-> > > > > happened to me on first try) so it still can explain your pro=
-blem
-> > > > > too.
-> > > >
-> > > > Great job, thanks for the patch!  It looks good, so I'm going t=
-o
-> > > > forward it for merging.
-> > >
-> > > Please no; I'm currently testing slightly more polished version; =
-I will
-> > > send it later.
-> >
-> > OK
-> >
-> > > Could anybody explain (or give pointer to) what happens which reg=
-ion that
-> > > is not page-aligned? In particular, the very first one:
-> > >
-> > >  BIOS-e820: 0000000000000000 - 000000000009fc00 (usable)
-> > >  BIOS-e820: 000000000009fc00 - 00000000000a0000 (reserved)
-> > >
-> > > Will the kernel allocate partial page (how?) or will the kernel i=
-gnore
-> > > last (first) incomplete page? In the former case how those incomp=
-lete
-> > > pages can be detected?
-> >
-> > Well, on x86_64, if I understand e820_register_active_regions() cor=
-rectly,
-> > the partial pages won't be registered.
-> >
->=20
-> It appears that for low memory kernel will ignore incomplete pages fo=
-r sure. I=20
-> hope it does the same for high memory - but for now I just throw this=
- in and=20
-> pray :)
+On Tue, Feb 20, 2007 at 07:55:36AM -0600, Corey Minyard wrote:
+> Alexey Starikovskiy wrote:
+> > Bjorn Helgaas wrote:
+> >> On Thursday 15 February 2007 22:15, Corey Minyard wrote:
+> >>  
+> >>> Bjorn Helgaas wrote:
+> >>>    
+> >>>> On Saturday 10 February 2007 21:27, Len Brown wrote:
+> >>>>        
+> >>>>> acpi_find_bmc() appears to be searching for multiple SPMI tables 
+> >>>>> in the RSDT and running
+> >>>>> try_init_acpi() on each of them
+> >>>>> until it doesn't find any more.
+> >>>>>             
+> >>>> I can't remember why we look at the SPMI table(s) rather than
+> >>>> registering a normal ACPI (or even PNP) driver.  Unless we
+> >>>> need to poke the BMC very early, wouldn't it be better to
+> >>>> rely on the device description in the namespace?
+> >>>>         
+> >>> For some strange reason the normal ACPI information does not
+> >>> have all the information needed by the driver.  It doesn't have
+> >>> register size or spacing information.
+> >>>     
+> >>
+> >> I guess that would be a defect in the way ACPI is being used,
+> >> wouldn't it?  A PNP ID should define the device programming
+> >> model, including things like register size and spacing.  It
+> >> sounds like somebody didn't define a new PNP ID when he should
+> >> have.  I wonder whether it's worth trying to fix this.
+> >>
+> >>   
+> > Yes, it is considered an ACPI fault. Could you please describe in 
+> > detail, which registers miss the information? And probably your 
+> > acpidump will help as well.
+> I don't have a machine with an ACPI description of the BMC.  I'll copy 
+> the mailing list to see if anyone has an ACPI-described BMC.
+> 
+> I don't know that much about ACPI, so maybe that information is 
+> described somehow in a way the IPMI spec doesn't talk about directly, 
+> like in the _CRS object.
 
-You don't need to do this for highmem, because swsusp won't save reserv=
-ed
-highmem pages anyway.
+Let me copy my teammate Jordan Hargrave in on this, as he's been
+working with our BIOS team to implement discovery through an IPI0
+object in the namespace, and thinks he can derive the register spacing
+and interrupt assignment (if any).
 
-> This also significantly simplifies patch.=20
->=20
-> As this touches quite sensitive field, I Cc Andrew - if he considers =
-this=20
-> appropriate for mm; or would you do it as part of your tree? Also he =
-probably=20
-> can easily clarify memory allocation questions :p
+-- 
+Matt Domsch
+Software Architect
+Dell Linux Solutions linux.dell.com & www.dell.com/linux
+Linux on Dell mailing lists @ http://lists.us.dell.com
 
-The patch looks good, but the changelog does not.  First, AFAICT, the x=
-86_64
-code doesn't touch anything outside the e820 map.  Why do you think it =
-does?
-
-Second, it is not true that the region in question is at 0xee00 on x86_=
-64.
-At least on my box it's above the end of RAM.
-
-I think the x86_64 version is correct too.
-
-Greetings,
-Rafael
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-------------------------------------------------------------------------
+Take Surveys. Earn Cash. Influence the Future of IT
+Join SourceForge.net's Techsay panel and you'll get the chance to share your
+opinions on IT & business topics through brief surveys-and earn cash
+http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
