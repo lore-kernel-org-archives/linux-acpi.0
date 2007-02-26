@@ -1,59 +1,56 @@
-From: <Jordan_Hargrave@Dell.com>
-Subject: RE: [Openipmi-developer] acpi_find_bmc() and acpi_get_table()
-Date: Mon, 26 Feb 2007 14:06:31 -0600
-Message-ID: <5DDAB7BA7BDB58439DD0EED0B8E9A3AE07387A@ausx3mpc102.aus.amer.dell.com>
-References: <200702102327.28312.lenb@kernel.org> <20070225215922.GA28931@lists.us.dell.com> <5DDAB7BA7BDB58439DD0EED0B8E9A3AE073879@ausx3mpc102.aus.amer.dell.com> <200702261232.11947.bjorn.helgaas@hp.com>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: Re: 2.6.19: ACPI reports AC not present after resume
+	from STD
+Date: Mon, 26 Feb 2007 23:35:41 +0300
+Message-ID: <200702262335.47874.arvidjaar@mail.ru>
+References: <8E389A5F2FEABA4CB1DEC35A25CB39CE82FE9F@mssmsx411>
+	<200702252014.26110.arvidjaar@mail.ru>
+	<200702251958.37315.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ausc60pc101.us.dell.com ([143.166.85.206]:32520 "EHLO
-	ausc60pc101.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030630AbXBZUGh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Feb 2007 15:06:37 -0500
-Content-class: urn:content-classes:message
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-pm-bounces@lists.osdl.org>
+In-Reply-To: <200702251958.37315.rjw@sisk.pl>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
+List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.osdl.org>
+List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
+List-Subscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.osdl.org
+Errors-To: linux-pm-bounces@lists.osdl.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org, linux-pm@lists.osdl.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: bjorn.helgaas@hp.com
-Cc: Matt_Domsch@Dell.com, minyard@acm.org, alexey.y.starikovskiy@linux.intel.com, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net, lenb@kernel.org
 
-Correct, the parseresource code really should look for IRQ/MEM, but I haven't yet seen any ACPI namespaces that use memory or IRQ resources with IPI0001 for testing. (I have a huge collection of DSDTs from my OpenBSD work). 
-
---jordan hargrave
-Dell Enterprise Linux Engineering
-
-
-
------Original Message-----
-From: Bjorn Helgaas [mailto:bjorn.helgaas@hp.com]
-Sent: Mon 2/26/2007 1:32 PM
-To: Hargrave, Jordan
-Cc: Domsch, Matt; minyard@acm.org; alexey.y.starikovskiy@linux.intel.com; linux-acpi@vger.kernel.org; openipmi-developer@lists.sourceforge.net; lenb@kernel.org
-Subject: Re: [Openipmi-developer] acpi_find_bmc() and acpi_get_table()
- 
-On Monday 26 February 2007 11:30, Jordan_Hargrave@dell.com wrote:
->   Here is the patch (RHEL5 base code) I've been testing that detects
->   the ACPI namespace object.
-
-I like this approach a lot.
-
-Shouldn't acpi_ipmi_getresource() also look for IRQ descriptors?
-The existing code that looks at the SPMI table can handle either
-GPEs or regular IOxAPIC interrupts (i.e., a GSI).
-
-You might also want to look for memory address ranges as well
-as IO ranges.
-
-I wish you could use pnp_register_driver() instead of
-acpi_bus_register_driver().  That would let you get rid of all
-the _CRS parsing.  But I forgot that IPMI devices often use GPEs
-instead of regular interrupts, and GPEs require a different
-path (acpi_install_gpe_handler() instead of request_irq(), etc),
-so I guess you're stuck with grubbing through _CRS by hand.
-
-Plus, it looks like you need the _IFT thing to figure out what
-type of interface it is.  It might have been nicer if there
-were separate PNP IDs for KCS vs SMIC vs BT.  But that's water
-under the bridge.
-
-Bjorn
+LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQpIYXNoOiBTSEExCgpPbiDQktC+0YHQ
+utGA0LXRgdC10L3RjNC1IDI1INGE0LXQstGA0LDQu9GPIDIwMDcsIFJhZmFlbCBKLiBXeXNvY2tp
+IHdyb3RlOgo+Cj4gVGhlIHBhdGNoIGxvb2tzIGdvb2QsIGJ1dCB0aGUgY2hhbmdlbG9nIGRvZXMg
+bm90LiAgRmlyc3QsIEFGQUlDVCwgdGhlCj4geDg2XzY0IGNvZGUgZG9lc24ndCB0b3VjaCBhbnl0
+aGluZyBvdXRzaWRlIHRoZSBlODIwIG1hcC4gIFdoeSBkbyB5b3UgdGhpbmsKPiBpdCBkb2VzPwo+
+Cgp0aGUgZm9sbG93aW5nIGNvZGU6CgogICAgICAgcGFkZHIgPSByb3VuZF9kb3duKGU4MjAubWFw
+WzBdLmFkZHIgKyBlODIwLm1hcFswXS5zaXplLCBQQUdFX1NJWkUpOwogICAgICAgIGZvciAoaSA9
+IDE7IGkgPCBlODIwLm5yX21hcDsgaSsrKSB7CiAgICAgICAgICAgICAgICBzdHJ1Y3QgZTgyMGVu
+dHJ5ICplaSA9ICZlODIwLm1hcFtpXTsKCiAgICAgICAgICAgICAgICBpZiAocGFkZHIgPCBlaS0+
+YWRkcikKICAgICAgICAgICAgICAgICAgICAgICAgZTgyMF9tYXJrX25vc2F2ZV9yYW5nZShwYWRk
+ciwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHJvdW5kX3VwKGVpLT5h
+ZGRyLCBQQUdFX1NJWkUpKTsKCm9idmlvdXNseSB3aWxsIG1hcmsgcmVnaW9uICpiZXR3ZWVuKiB0
+d28gZTgyMCByZWdpb25zIGlmIHRoZXkgYXJlIG5vdCAKYWRqYWNlbnQuIEkgZG8gbm90IHNheSB0
+aGF0IGl0IGlzIHdyb25nIChJIGhhdmUgbm8gaWRlYSk7IGJ1dCBleGFjdGx5IGJlY2F1c2UgCkkg
+aGF2ZSBubyBpZGVhIEkgdHJpZWQgdG8gYXZvaWQgaXQuCgo+IFNlY29uZCwgaXQgaXMgbm90IHRy
+dWUgdGhhdCB0aGUgcmVnaW9uIGluIHF1ZXN0aW9uIGlzIGF0IDB4ZWUwMCBvbiB4ODZfNjQuCj4g
+QXQgbGVhc3Qgb24gbXkgYm94IGl0J3MgYWJvdmUgdGhlIGVuZCBvZiBSQU0uCj4KCk9uIG15IGJv
+eCB0aGUgcHJvYmxlbSByZWdpb24gc3RhcnRzIGF0IGVlODAwIDopIEJ1dCB5b3UgYXJlIHJpZ2h0
+LCBpdCBkb2VzIG5vdCAKYmVsb25nIGhlcmUuCgo+IEkgdGhpbmsgdGhlIHg4Nl82NCB2ZXJzaW9u
+IGlzIGNvcnJlY3QgdG9vLgo+CgpJIGRvIG5vdCBzYXkgaXQgaXMgbm90LiBJIGp1c3Qgc2F5IHRo
+YXQgaXQgZG9lcyBzb21ldGhpbmcgSSBjYW5ub3QgdmVyaWZ5IHNvIEkgCmJldHRlciBhdm9pZCBp
+dCAoaS5lLiBJIGJldHRlciBjaGFuZ2UgZXhpc3RpbmcgYmVoYXZpb3VyIGFzIGxpdHRsZSBhcyAK
+cG9zc2libGUpLgoKLSAtYW5kcmV5Ci0tLS0tQkVHSU4gUEdQIFNJR05BVFVSRS0tLS0tClZlcnNp
+b246IEdudVBHIHYxLjQuNSAoR05VL0xpbnV4KQoKaUQ4REJRRkY0MFNqUjZMTXV0cGQ5NHdSQWxM
+dkFLQ01rVnhNa0tOd3BHWC9KM29uMGpRUzY1OSt6Z0NnbW9mSwp2dUc0cDNnUjR5Qmpmb0h1TUFS
+MGNEVT0KPUpHOXoKLS0tLS1FTkQgUEdQIFNJR05BVFVSRS0tLS0tCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LXBtIG1haWxpbmcgbGlzdApsaW51
+eC1wbUBsaXN0cy5vc2RsLm9yZwpodHRwczovL2xpc3RzLm9zZGwub3JnL21haWxtYW4vbGlzdGlu
+Zm8vbGludXgtcG0K
