@@ -1,67 +1,48 @@
-From: "Andrew Nelless" <andrew@nelless.net>
-Subject: Re: 2.6.21-rc1: framebuffer/console boot failure
-Date: Mon, 26 Feb 2007 18:48:58 -0000 (GMT)
-Message-ID: <36488.86.7.220.119.1172515738.squirrel@wmbeta.mxes.net>
-References: <35472.86.7.220.119.1172237750.squirrel@wmbeta.mxes.net>
-    <20070224030950.074f88d4.akpm@linux-foundation.org>
-    <33525.86.7.220.119.1172358010.squirrel@wmbeta.mxes.net>
-    <1172359843.4415.8.camel@daplas>
-    <34578.86.7.220.119.1172401665.squirrel@wmbeta.mxes.net>
-    <1172493697.20842.6.camel@daplas>
-Reply-To: "Andrew Nelless" <andrew@nelless.net>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [Openipmi-developer] acpi_find_bmc() and acpi_get_table()
+Date: Mon, 26 Feb 2007 12:32:11 -0700
+Message-ID: <200702261232.11947.bjorn.helgaas@hp.com>
+References: <200702102327.28312.lenb@kernel.org> <20070225215922.GA28931@lists.us.dell.com> <5DDAB7BA7BDB58439DD0EED0B8E9A3AE073879@ausx3mpc102.aus.amer.dell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mxout-03.mxes.net ([216.86.168.178]:2068 "EHLO
-	mxout-03.mxes.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030426AbXBZStA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Feb 2007 13:49:00 -0500
-In-Reply-To: <1172493697.20842.6.camel@daplas>
+Received: from atlrel9.hp.com ([156.153.255.214]:52716 "EHLO atlrel9.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030481AbXBZTcT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Feb 2007 14:32:19 -0500
+In-Reply-To: <5DDAB7BA7BDB58439DD0EED0B8E9A3AE073879@ausx3mpc102.aus.amer.dell.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: "Antonino A. Daplas" <adaplas@gmail.com>
+To: Jordan_Hargrave@dell.com
+Cc: Matt_Domsch@dell.com, minyard@acm.org, alexey.y.starikovskiy@linux.intel.com, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net, lenb@kernel.org
 
-On Mon, February 26, 2007 12:41 pm, Antonino A. Daplas wrote:
->
-> I don't know, probably the ACPI code can now probably detect the
-> presence or absence of the HPET timer.
->
-> Can you remove CONFIG_FB_VESA support from your kernel config but boot
-> as if you have vesafb (ie with vga=<VESA mode number>). Your machine may boot to completion but
-> you will have a blank screen.  But you should be able to have an output in netconsole and you
-> can start X. I wanted to know if the lockup is related to the framebuffer.
->
-> Tony
->
->
+On Monday 26 February 2007 11:30, Jordan_Hargrave@dell.com wrote:
+>   Here is the patch (RHEL5 base code) I've been testing that detects
+>   the ACPI namespace object.
 
-I disabled CONFIG_FB_VESA but it is still happening because
-intermittent boots don't pump out anything over NetConsole.
+I like this approach a lot.
 
-It's tempting to think this is a hardware issue but I've been
-booting 2.6.20 daily since -rc3 and this hasn't happened before
-and still doesn't. I've even installed Asus's latest "beta bios"
-(which convenient doesn't come with a changelog) but it had
-no effect.
+Shouldn't acpi_ipmi_getresource() also look for IRQ descriptors?
+The existing code that looks at the SPMI table can handle either
+GPEs or regular IOxAPIC interrupts (i.e., a GSI).
 
-The only thing I can think to do now is another git bisect.
-Now I know this occurs on average about every third boot I
-could do half a dozen reboots between bisections and hopefully
-find out what caused the problem..
+You might also want to look for memory address ranges as well
+as IO ranges.
 
-Unfortunately I won't have the time for such a time consuming
-adventure much the weekend..
+I wish you could use pnp_register_driver() instead of
+acpi_bus_register_driver().  That would let you get rid of all
+the _CRS parsing.  But I forgot that IPMI devices often use GPEs
+instead of regular interrupts, and GPEs require a different
+path (acpi_install_gpe_handler() instead of request_irq(), etc),
+so I guess you're stuck with grubbing through _CRS by hand.
 
-Any further ideas?
+Plus, it looks like you need the _IFT thing to figure out what
+type of interface it is.  It might have been nicer if there
+were separate PNP IDs for KCS vs SMIC vs BT.  But that's water
+under the bridge.
 
- -- Andrew
-
-P.S. You mentioned HPET, is this HPET config normal?
-andrew@ziggy ~ $ fgrep -i hpet /usr/src/linux-2.6.21-rc1/.config
-CONFIG_HPET_TIMER=y
-CONFIG_HPET_EMULATE_RTC=y
-# CONFIG_HPET is not set
-
+Bjorn
 
