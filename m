@@ -1,66 +1,148 @@
-From: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH - 2.6.19 -0/1] Backport of psmouse suspend/shutdown cleanups
-Date: Mon, 26 Feb 2007 09:34:05 -0500
-Message-ID: <d120d5000702260634g3250e32ej3619a5f584f204af@mail.gmail.com>
-References: <1172077685.10619.101.camel@d36.suse.de>
-	 <d120d5000702210926j7e7f1ccjb8c2689640b870e8@mail.gmail.com>
-	 <1172148739.10619.196.camel@d36.suse.de>
-	 <d120d5000702220702r44894a51lfb5499b5c59d8563@mail.gmail.com>
-	 <1172499672.10619.346.camel@d36.suse.de>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [lm-sensors] RFC: conversion of ibm-acpi to hwmon sysfs
+Date: Mon, 26 Feb 2007 17:27:16 +0100
+Message-ID: <20070226172716.b2e956b7.khali@linux-fr.org>
+References: <20070224182024.GA23865@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.169]:32472 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030283AbXBZOeH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Feb 2007 09:34:07 -0500
-Received: by ug-out-1314.google.com with SMTP id 44so801436uga
-        for <linux-acpi@vger.kernel.org>; Mon, 26 Feb 2007 06:34:06 -0800 (PST)
-In-Reply-To: <1172499672.10619.346.camel@d36.suse.de>
-Content-Disposition: inline
+Received: from smtp-101-monday.noc.nerim.net ([62.4.17.101]:3292 "EHLO
+	mallaury.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752449AbXBZQ2p (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Feb 2007 11:28:45 -0500
+In-Reply-To: <20070224182024.GA23865@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de
-Cc: linux-acpi <linux-acpi@vger.kernel.org>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: lm-sensors@lm-sensors.org, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-Hi Thomas,
+Hi Henrique,
 
-On 2/26/07, Thomas Renninger <trenn@suse.de> wrote:
-> On Thu, 2007-02-22 at 10:02 -0500, Dmitry Torokhov wrote:
-> >
-> > Hope this makes sense (I must admit it makes little sense to me ;) ).
->
-> Same for me at the beginning.
-> I tracked two of the HP problems (wrong temperature, wrong _PPC value)
-> down to wrong EC reads -> BIOS issue.
->
-> Someone (this is the guy who actually solved this) reported that
-> unloading psmouse helps. When I saw this report confirmed by other
-> people a .shutdown workaround was easy and got also confirmed working...
->
-> And now it even makes a bit sense...
-> There is a little microprocessor (Embedded Controller) pre-processing
-> sensor or other data which gets accessed via ACPI. This one also access
-> mouse/keyboard hardware (described a bit in ACPI specs).
+On Sat, 24 Feb 2007 16:20:24 -0200, Henrique de Moraes Holschuh wrote:
+> I am working on a conversion of ibm-acpi to sysfs, and in the process I am
+> trying to do away with every non-generic interface I can.  At least two
+> ibm-acpi interfaces map directly to hwmon/lm-sensors style: fan and thermal.
+> I'd like to expose them as hwmon attributes, using the hwmon generic
+> interfaces for fan control and thermal sensor readings.
 
-Yes, I am aware that KBC is usually emulated by EC chip nowadays, what
-does not really makes sense to me is how crazy the firmware is.
+This would be really great. I was thinking about doing the same for the
+standard ACPI "fan" and "thermal" modules too, but I happen to be too
+busy for that :( Making these drivers compatible with the hwmon
+interface is one way to solve the ACPI vs. hwmon issues which have been
+reported and discussed lately.
 
-...
-> FYI:
-> You might stumble again over the EC in future...
-> I saw reports where mouse jittering or similar bugs where fixed in
-> drivers/acpi/ec.c
-> If trying ec_intr=0 boot param, not loading any ACPI modules or the big
-> hammer: acpi=off helps to solve mouse or keyboard problems it's probably
-> Embedded Controller related (which might need a fix in ec.c, AML or EC
-> BIOS code (in this case we seem to have the latter problem :) )...).
->
+> I would really appreciate feedback from the lm-sensors/hwmon group on how to
+> best achieve that.
+> 
+> Thermal is relatively easy.  A thinkpad has either 8 or up to 16 thermal
+> sensors (typically, 12 sensors), and I can simply export them as
+> temp##_input, already converted to milidegree Celcius.
+> 
+> However, some thinkpad thermal sensors are hotswappable (they're inside
+> battery packs, for example).  What is the recommended way to deal with that?
+> 
+> I was planning to return -ENXIO for sensors thare are currently unavailable,
+> and I could also try to make their sysfs attributes go away (and come back
+> again) when the driver detects such a change -- note that I don't get events
+> from the thinkpad firmware when a sensor gets disconnected or reconnected, I
+> need to poll them to know that).  Is that the recommended way to go about
+> it?  Or should I just leave all entries there and return -ENXIO on the
+> invalid ones (the firmware returns -128 for invalid sensors).
 
-Yep, seen that, except for AML workarounds. Do you have any examples?
-Although there seem to be lees complaints about mice jittering
-nowadays... Or maybe they simply got tired of complaining ;)
+Had you been able to detect disconnections and reconnections as they
+happen, removing and creating the files on the file would have been
+nice. But as you can't do that, returning -ENXIO on disconnected
+sensors sounds sensible. I don't think any other driver does this at
+the moment though, so maybe libsensors will need to be updated to
+handle this behavior properly.
 
+> fan control is a bit more hard to map to the hwmon interface, as the
+> thinkpad firmware exports a higher level interface than your regular
+> thermal-and-fan-monitor chip (and it is far less documented and far more
+> buggy than regular chips :p):
+> 
+> Most thinkpads have a tachometer that returns data in RPM, and that gets
+> mapped to fan##_input.  The tachometer can get stale in fan control
+> disengaged mode (see below), how should I export that information to
+> userspace?  There is nothing in the standard hwmon sysfs for that, and it
+> *is* useful to userspace to know the last measured speed, so I don't want to
+> return -ENXIO or somesuch on fan##_input...   What do you guys suggest I do?
+> Add an ibm-acpi specific fan##_input_valid attribute that reads 0/1?  Or not
+> export that information in the first place?  Should I propose such an
+> attribute to the generic interface?
+
+I'm surprised that the fan speed reading goes stale when a fan runs at
+max speed, it doesn't make much physical sense and it's quite the
+opposite of what happens usually: tachometers start failing when PWM
+modulation distorts the signal to much.
+
+Either way, I do not think that knowing the last measured speed is that
+useful. Given that it may be completely unrelated with the current
+value, I'd rather return -ENXIO or -ERETRY if there is a reasonable
+chance to get a valid reading soon after. If applications wants to
+cache the last read value instead of reporting an error, it's up to
+them, not the driver's decision.
+
+I don't want to see *_valid files being created, it doesn't add any
+value. Just try to read the data from the file, and check for errors.
+
+> The thinkpad EC has three modes of fan operation: manual, where there are
+> seven fan speed levels (0=off, 1=slowest, 7=fastest) that map to different
+> speeds (usually fan stopped plus three different speeds, so it is not a 1:1
+> mapping).  auto, where it selects one of the levels by itself, and
+> disengaged, where it kicks the fan to its highest speed (which usually is
+> quite higher than level 7).  The levels are closed-loop-controlled, and
+> track a model-specific desired RPM value.  That allows for consistent
+> hardware behaviour with fans that are going old or are somewhat dirty.
+> 
+> I was thinking of using pwm##_enable to: force manual mode, level 0 (fan
+> off) when pwm##_enable is 0, force manual mode when it is 1, and force auto
+> mode when it is 2+.  I can query what mode the firmware is in, so reading
+> pwm##_enable is not a problem.
+
+pwm#_enable = 0 means fan# at full speed, _not_ fan# stopped. Fan# stopped
+is pwm#_enable = 1 and pwm# = 0.
+
+> The level for manual mode would be set by pwm##: if it is 0, force level 0.
+> If it is between 1..90, I'd select one of the six non-stopped fan speed
+> levels.  If it is above 90, I'd select disengaged mode.
+
+According to your description, the disengaged mode corresponds to
+pwm_enable = 0 (full speed), so I don't want it to be set automatically
+when the user writes a high value to pwm.
+
+> Reading pwm## is not easy.  It is indeterminate if pwm##_enable is set to 2+
+> (auto mode)... what should I return, then?   For manual mode, I was planning
+> to return the quantized value (i.e. if 1..26 select fan level 1, a read will
+> return 26).  For disengaged value (a write of 90..100 with pwm##_enable set
+> to 1), I'd always return 100.  Is that a good way to implement it?
+
+Note that the "native" PWM scale is from 0 to 255, not 0 to 100 (I know
+it's somewhat confusing, but it's historical and makes drivers more
+simple.)
+
+You do not have to return the actual PWM value in automatic mode. Most
+chips don't report it and as a result most drivers don't. In automatic
+mode, pwm usually holds the value which would be set if manual mode was
+to be enabled. Only a few drivers report the current PWM value in
+automatic mode there.
+
+> Note that this interface does not map exacly what the hardware is doing.
+> When one sets the fan to disengaged mode, the firmware slowly increases fan
+> speed until it hits max, for example.  There is no way to get any feedback
+> on what the firmware is *really* doing to the fan, other than the tachometer
+> readings.
+
+No big deal.
+
+> I was going to place all fan attributes in a sysfs group (subdirectory)
+> named "fan", and all thermal attributes in a sysfs group named "thermal". Is
+> that acceptable?
+
+No, it's not, as it wouldn't be compatible with what all the other
+drivers do and what libsensors expects.
+
+Thanks,
 -- 
-Dmitry
+Jean Delvare
