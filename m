@@ -1,51 +1,55 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [GIT PATCH] ACPI patches for 2.6.21
-Date: Mon, 26 Feb 2007 17:25:39 +0800
-Message-ID: <1172481939.11100.11.camel@localhost.localdomain>
-References: <200702071418.51058.lenb@kernel.org>
-	 <20070209230928.GD3949@ucw.cz> <200702092327.04237.lenb@kernel.org>
-	 <20070222155357.GA4692@ucw.cz>
+From: "Antonino A. Daplas" <adaplas@gmail.com>
+Subject: Re: 2.6.21-rc1: framebuffer/console boot failure
+Date: Mon, 26 Feb 2007 20:41:37 +0800
+Message-ID: <1172493697.20842.6.camel@daplas>
+References: <35472.86.7.220.119.1172237750.squirrel@wmbeta.mxes.net>
+	 <20070224030950.074f88d4.akpm@linux-foundation.org>
+	 <33525.86.7.220.119.1172358010.squirrel@wmbeta.mxes.net>
+	 <1172359843.4415.8.camel@daplas>
+	 <34578.86.7.220.119.1172401665.squirrel@wmbeta.mxes.net>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:28700 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751146AbXBZJ0q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 Feb 2007 04:26:46 -0500
-In-Reply-To: <20070222155357.GA4692@ucw.cz>
+Received: from nz-out-0506.google.com ([64.233.162.226]:42748 "EHLO
+	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965241AbXBZMjQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Feb 2007 07:39:16 -0500
+Received: by nz-out-0506.google.com with SMTP id s1so1238798nze
+        for <linux-acpi@vger.kernel.org>; Mon, 26 Feb 2007 04:39:15 -0800 (PST)
+In-Reply-To: <34578.86.7.220.119.1172401665.squirrel@wmbeta.mxes.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Andrew Nelless <andrew@nelless.net>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, 2007-02-22 at 15:53 +0000, Pavel Machek wrote: 
-> Hi!
+On Sun, 2007-02-25 at 11:07 +0000, Andrew Nelless wrote:
+> On Sat, February 24, 2007 11:30 pm, Antonino A. Daplas wrote:
+> >
+> > How about booting with just vga=normal?
+> >
+> >
+> > Tony
+> >
 > 
-> > > > the old /proc/acpi/ interfaces with cleaner interfaces in sysfs --
-> > > > non-ACPI-specific generic ones whenever possible.  This effort
-> > > > is not complete, but it has been in -mm for a long time and
-> > > > I believe that it is time to push it upstream to benefit
-> > > > from broader exposure and testing.
-> > > 
-> > > Does it still include completely broken alarm interface? Can't find it
-> > > in changelogs, so hopefully not.
-> > 
-> > No. See discussion on linux-acpi.
-> > David Brownell's RTC driver will provide the new RTC interface in sysfs.
-> > /proc/acpi/alarm will go away when the rest of /proc/acpi goes away.
+> That seems to work too. I've rebooted about 20 times in a row
+> and it hasn't done it again yet. Why would this only occur
+> at higher modes?
 > 
-> I guess I should say 'sorry for a flame'. I've seen a discussion
-> (linux-pm or somewhere), but did not see the decision to drop the
-> offending patch.
+> In the 2.6.20 dmesg log it reads "Nvidia board detected.
+> Ignoring ACPI timer override." whereas in 2.6.21-rc1 it doesn't.
+> Could this be the culprit?
 > 
-Hi, Pavel,
-Both the patches that duplicate "alarm" and "wakeup" attributes in sysfs
-are dropped. "alarm" attribute can be replaced by the new RTC driver.
-And the "wakeup" attribute are in the wish list now.
-You can get more details from the original mail.
 
-http://marc.theaimsgroup.com/?l=linux-acpi&m=116910315512529&w=2
+I don't know, probably the ACPI code can now probably detect the
+presence or absence of the HPET timer.
 
-Thanks,
-Rui
+Can you remove CONFIG_FB_VESA support from your kernel config but boot
+as if you have vesafb (ie with vga=<VESA mode number>). Your machine may
+boot to completion but you will have a blank screen.  But you should be
+able to have an output in netconsole and you can start X. I wanted to
+know if the lockup is related to the framebuffer.
+
+Tony
+
+
