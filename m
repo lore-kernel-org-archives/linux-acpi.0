@@ -1,103 +1,87 @@
-From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
-Subject: Re: 2.6.21-rc1: known regressions (v2) (part 1)
-Date: Tue, 27 Feb 2007 04:09:09 +0000
-Message-ID: <1172549350.4027.2.camel@monteirov>
-References: <Pine.LNX.4.64.0702202043280.4043@woody.linux-foundation.org>
-	<20070226220152.GA29575@stusta.de>
-Reply-To: sergio@sergiomb.no-ip.org
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [lm-sensors] RFC: conversion of ibm-acpi to hwmon sysfs
+Date: Tue, 27 Feb 2007 10:01:29 +0100
+Message-ID: <20070227100129.fa962c81.khali@linux-fr.org>
+References: <20070224182024.GA23865@khazad-dum.debian.net>
+	<20070226172716.b2e956b7.khali@linux-fr.org>
+	<20070226180635.GG2909@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0703137703=="
-Return-path: <linux-pm-bounces@lists.osdl.org>
-In-Reply-To: <20070226220152.GA29575@stusta.de>
-List-Unsubscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
-List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.osdl.org>
-List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
-List-Subscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.osdl.org
-Errors-To: linux-pm-bounces@lists.osdl.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Tejun Heo <htejun@gmail.com>, Arkadiusz Miskiewicz <arekm@maven.pl>, "Antonino A. Daplas" <adaplas@gmail.com>, Marcel Holtmann <marcel@holtmann.org>, linux-ide@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Lukas Hejtmanek <xhejtman@fi.muni.cz>, Jean-Luc Coulon <jean.luc.coulon@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Ismail =?ISO-8859-1?Q?D=F6nmez?= <ismail@pardus.org.tr>, linux-usb-devel@lists.sourceforge.net, Andrew Nelless <andrew@nelless.net>, jgarzik@pobox.com, Meelis Roos <mroos@linux.ee>, Janosch Machowinski <jmachowinski@gmx.de>, linux-pm@lists.osdl.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Fabio Comolli <fabio.comolli@gmail.com>, Thomas Meyer <thomas.mey@web.de>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp-102-tuesday.nerim.net ([62.4.16.102]:3172 "EHLO
+	kraid.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751458AbXB0JC7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Feb 2007 04:02:59 -0500
+In-Reply-To: <20070226180635.GG2909@khazad-dum.debian.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org
 
+Hi Henrique,
 
---===============0703137703==
-Content-Type: multipart/signed; micalg=sha1;
-	protocol="application/x-pkcs7-signature";
-	boundary="=-lSHRSyPeNBOa2FmwSE/h"
+On Mon, 26 Feb 2007 15:06:35 -0300, Henrique de Moraes Holschuh wrote:
+> On Mon, 26 Feb 2007, Jean Delvare wrote:
+> > Either way, I do not think that knowing the last measured speed is that
+> > useful. Given that it may be completely unrelated with the current
+> 
+> It is, actually, because it lets one mess with the embedded controller and
+> completely override the fan control loop while not letting anyone else
+> notice (i.e. without disturbing fan monitor applets, etc).
+> 
+> Check http://thinkwiki.org/wiki/Embedded_Controller_Firmware and
+> http://thinkwiki.org/wiki/ACPI_fan_control_script if you are
+> curious about the whys for these weird things.
 
+I don't really have time for such long reads, sorry. If there's
+anything in particular you think I should know, just tell me.
 
---=-lSHRSyPeNBOa2FmwSE/h
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+> > value, I'd rather return -ENXIO or -ERETRY if there is a reasonable
+> > chance to get a valid reading soon after. If applications wants to
+> 
+> I will return the stale value or an error, then.  Not returning the stale
+> value actually requires that I implement some sort of back/white lists to
+> differentiate models which don't have the stale tachometer bug from those
+> that do... or I need to detect that the tachometer seems to be stuck.
 
-On Mon, 2007-02-26 at 23:01 +0100, Adrian Bunk wrote:
-> Subject    : MacBook: AE_NOT_FOUND ACPI messages
-> References : http://bugzilla.kernel.org/show_bug.cgi?id=3D8066
-> Submitter  : Thomas Meyer <thomas.mey@web.de>
-> Status     : unknown=20
+I see. In that case I am fine with you returning the stale value. After
+all, the driver is supposed to return the value as read from the
+hardware.
 
-I think , Messages is not a regression=20
-Appears AE_NOT_FOUND messages could be good=20
+> > pwm#_enable = 0 means fan# at full speed, _not_ fan# stopped. Fan# stopped
+> > is pwm#_enable = 1 and pwm# = 0.
+> 
+> The hwmon sysfs interface documentation is not clear on that.  Turning PWM
+> off might lock the hardware into 0% duty or 100% duty depending on how it
+> was designed.
 
---=20
-S=E9rgio M.B.
+Feel free to submit a patch improving the documentation.
 
---=-lSHRSyPeNBOa2FmwSE/h
-Content-Type: application/x-pkcs7-signature; name=smime.p7s
-Content-Disposition: attachment; filename=smime.p7s
-Content-Transfer-Encoding: base64
+> Anyway, I can map it to:
+> 	pwm_enable = 0: disengaged mode on
+> 		     1: manual mode on
+> 		     2+: EC auto mode on (default)
+> 
+> no problem.
+> (...)
+> Ok. pwm = 0 in manual mode will stop fan, 1..255 will be mapped to 1..7 to
+> select the thinkpad fan level, which the EC itself will map to (usually)
+> three different speeds.
 
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGVjCCAw8w
-ggJ4oAMCAQICEGne8YrzxxgYAeyxZxmiO+owDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UEBhMCWkEx
-JTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQ
-ZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA2MTAxMTEwMjAzOVoXDTA3MTAxMTEwMjAz
-OVowSzEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjEoMCYGCSqGSIb3DQEJARYZc2Vy
-Z2lvQHNlcmdpb21iLm5vLWlwLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAN9R
-ix9koyWSNQDmAHxcSeWXdFO1osqg2yeNgBBl+fz8FLYyROsDGpZMcnOd/Df6tWwMZpMSYDNIksiZ
-5VkCWaWIzIBccHX3wIkqrkcq3v1OcPGW9adXClXSbSZ0Hb4V4+bQ9LMAOjaMlH/dKLVkln6qmbko
-NOxgPotdVxCGcUy1Pqa4dT1zFo5+nIv1NAUNqKpq63X/+3nILNG4JGAvLIL8wcYs0cETGS6vISgd
-YFN/JlIqekWUGGUmc+SJcyyTWjXGN+2G0SDS8K3a9NFCo7a1Y0FyHQxikQRtB9sCcpQCoXiqaWsT
-npSrNJ0Od4w1sHZz09uEdhWKqXEmJsKKwi8CAwEAAaNZMFcwDgYDVR0PAQH/BAQDAgSQMBEGCWCG
-SAGG+EIBAQQEAwIFoDAkBgNVHREEHTAbgRlzZXJnaW9Ac2VyZ2lvbWIubm8taXAub3JnMAwGA1Ud
-EwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEAwVE8/kY82qYG7I2+gW0NhSyn+DR0uAWYbSxB2NgP
-16QOrzXt2HazlXkl2Bc+NKQEqEGKOu5fPPg2GoJ3zDO1Y8GUNGtJH0sX+63RGoUNOAv+bAK1Nxhb
-illDUUCjW3OqA/hRyBwjU9kHJPYhl1EbAUGpAhfENHjkS/S7b1REBLMwggM/MIICqKADAgECAgEN
-MA0GCSqGSIb3DQEBBQUAMIHRMQswCQYDVQQGEwJaQTEVMBMGA1UECBMMV2VzdGVybiBDYXBlMRIw
-EAYDVQQHEwlDYXBlIFRvd24xGjAYBgNVBAoTEVRoYXd0ZSBDb25zdWx0aW5nMSgwJgYDVQQLEx9D
-ZXJ0aWZpY2F0aW9uIFNlcnZpY2VzIERpdmlzaW9uMSQwIgYDVQQDExtUaGF3dGUgUGVyc29uYWwg
-RnJlZW1haWwgQ0ExKzApBgkqhkiG9w0BCQEWHHBlcnNvbmFsLWZyZWVtYWlsQHRoYXd0ZS5jb20w
-HhcNMDMwNzE3MDAwMDAwWhcNMTMwNzE2MjM1OTU5WjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMc
-VGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZy
-ZWVtYWlsIElzc3VpbmcgQ0EwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMSmPFVzVftOucqZ
-Wh5owHUEcJ3f6f+jHuy9zfVb8hp2vX8MOmHyv1HOAdTlUAow1wJjWiyJFXCO3cnwK4Vaqj9xVsuv
-PAsH5/EfkTYkKhPPK9Xzgnc9A74r/rsYPge/QIACZNenprufZdHFKlSFD0gEf6e20TxhBEAeZBly
-YLf7AgMBAAGjgZQwgZEwEgYDVR0TAQH/BAgwBgEB/wIBADBDBgNVHR8EPDA6MDigNqA0hjJodHRw
-Oi8vY3JsLnRoYXd0ZS5jb20vVGhhd3RlUGVyc29uYWxGcmVlbWFpbENBLmNybDALBgNVHQ8EBAMC
-AQYwKQYDVR0RBCIwIKQeMBwxGjAYBgNVBAMTEVByaXZhdGVMYWJlbDItMTM4MA0GCSqGSIb3DQEB
-BQUAA4GBAEiM0VCD6gsuzA2jZqxnD3+vrL7CF6FDlpSdf0whuPg2H6otnzYvwPQcUCCTcDz9reFh
-YsPZOhl+hLGZGwDFGguCdJ4lUJRix9sncVcljd2pnDmOjCBPZV+V2vf3h9bGCE6u9uo05RAaWzVN
-d+NWIXiC3CEZNd4ksdMdRv9dX2VPMYIB/DCCAfgCAQEwdjBiMQswCQYDVQQGEwJaQTElMCMGA1UE
-ChMcVGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFs
-IEZyZWVtYWlsIElzc3VpbmcgQ0ECEGne8YrzxxgYAeyxZxmiO+owCQYFKw4DAhoFAKBdMBgGCSqG
-SIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA3MDIyNzA0MDkwNVowIwYJKoZI
-hvcNAQkEMRYEFPcpZNziQVMkBnTs627aeFaOhmM9MA0GCSqGSIb3DQEBAQUABIIBAH5k0QLZPePx
-LcDOl1nmynZfOw5i6YFgoKSIeoNmULxjlRWPjqbo4rsHGTmWP8QMAbIC6BITFLkNSN61RRohsIL1
-XcAbLSYrNi+FDi1Y++iKtKwphUks2Mnyz/l6jeRUQFKK8Kddb2sNJqOj8r3oAfnzBZiDgzHpAWYZ
-YOOL6t4o/6+ZFC96lGpEK2gWrI6+nvliMkK5CeF1PRQiiTIuLtOWDNvTGzmBfFup4/SfmAkA/gHt
-GZfm4KHTAWAEPXGHbmuxiCu3VWRz6bo8NqqP0zdEZRR8VpM2KjcC349E/PV7IAlX+LlMp9qbfjv4
-fvPgxfdO0h6qVF0RZjgM7L9neNkAAAAAAAA=
+Yes, this looks good.
 
+> BTW, ibm-acpi implements a "fan watchdog", to help fan-control userspace
+> applications.  It resets the fan to a safe "on" mode if nothing tries any
+> control operation on the fans in a given time period.
+> 
+> Is there any interest in trying for a fan-watchdog generic interface, or
+> should I just implement that in sysfs as I see fit for ibm-acpi?
 
---=-lSHRSyPeNBOa2FmwSE/h--
+We don't have anything like that in the other drivers. I guess it only
+applies to manual mode? The idea is interesting, I have to admit. I
+don't have a particular opinion on how to implement that (specific vs
+standard), do as you wish.
 
---===============0703137703==
-Content-Type: text/plain; charset="iso-8859-1"
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-
-
---===============0703137703==--
+-- 
+Jean Delvare
