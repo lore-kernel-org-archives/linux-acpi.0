@@ -1,67 +1,59 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Subject: RE: problem about ACPI processor procfs
-Date: Tue, 27 Feb 2007 07:19:03 -0800
-Message-ID: <EB12A50964762B4D8111D55B764A84540150731B@scsmsx413.amr.corp.intel.com>
-References: <1172587547.10619.429.camel@d36.suse.de>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [lm-sensors] RFC: conversion of ibm-acpi to hwmon sysfs
+Date: Tue, 27 Feb 2007 12:41:18 -0300
+Message-ID: <20070227154118.GA1980@khazad-dum.debian.net>
+References: <20070224182024.GA23865@khazad-dum.debian.net> <20070226172716.b2e956b7.khali@linux-fr.org> <20070226180635.GG2909@khazad-dum.debian.net> <20070227100129.fa962c81.khali@linux-fr.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:37914 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752512AbXB0PTH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Feb 2007 10:19:07 -0500
-Content-class: urn:content-classes:message
-In-Reply-To: <1172587547.10619.429.camel@d36.suse.de>
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:52646 "EHLO
+	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751638AbXB0PlY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 27 Feb 2007 10:41:24 -0500
+Content-Disposition: inline
+In-Reply-To: <20070227100129.fa962c81.khali@linux-fr.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: trenn@suse.de, "Zhang, Rui" <rui.zhang@intel.com>
-Cc: linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: ibm-acpi-devel@lists.sourceforge.net, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org
 
+On Tue, 27 Feb 2007, Jean Delvare wrote:
+> I don't really have time for such long reads, sorry. If there's
+> anything in particular you think I should know, just tell me.
 
-Yes. All the things needed are in cpufreq already and I don't think we
-need to export things like P-state power etc in /sys. I think we should
-be able to remove all P-state stuff in /proc/acpi without adding
-anything in cpufreq. 
+Just that the stale value is indeed useful on one particular case.
 
-Thanks,
-Venki
+> > > pwm#_enable = 0 means fan# at full speed, _not_ fan# stopped. Fan# stopped
+> > > is pwm#_enable = 1 and pwm# = 0.
+> > 
+> > The hwmon sysfs interface documentation is not clear on that.  Turning PWM
+> > off might lock the hardware into 0% duty or 100% duty depending on how it
+> > was designed.
+> 
+> Feel free to submit a patch improving the documentation.
 
->-----Original Message-----
->From: Thomas Renninger [mailto:trenn@suse.de] 
->Sent: Tuesday, February 27, 2007 6:46 AM
->To: Zhang, Rui
->Cc: linux-acpi@vger.kernel.org; Brown, Len; Pallipadi, Venkatesh
->Subject: Re: problem about ACPI processor procfs
->
->On Tue, 2007-02-27 at 17:33 +0800, Zhang, Rui wrote:
->> Hello, list
->> 
->> I met some problems when duplicating ACPI processor procfs 
->interface in sysfs.
->> #cat /proc/acpi/processor/CPU0/limit
->> Active limit:		P0:T0
->> User limit:		P0:T0
->> Thermal limit:	P0,T0
->> 
->> IMO, "Tx" is easy to understand. It indicates the active 
->T-state, T-state set by user and T-state set by thermal (in 
->passive mode).
->> 
->> But what does the "Px" stand for? After reading the code in 
->processor_thermal.c, I don't think user or thermal will change 
->its value.
->> And I don't know if it's still needed when porting to sysfs.
->
->Px are P-states, this is cpufreq.
->Writing to it will probably interfere with /sys/devices/../cpufreq/*.
->x should correspond to the amount of entries in
->/sys/devices/../cpufreq/scaling_available_frequencies.
->
->Can't we just get rid of this? Is there any userspace prog 
->that made use
->of this in /proc and if was it really useful in any way?
->
->   Thomas
->
+Ok.
+
+> > BTW, ibm-acpi implements a "fan watchdog", to help fan-control userspace
+> > applications.  It resets the fan to a safe "on" mode if nothing tries any
+> > control operation on the fans in a given time period.
+> > 
+> > Is there any interest in trying for a fan-watchdog generic interface, or
+> > should I just implement that in sysfs as I see fit for ibm-acpi?
+> 
+> We don't have anything like that in the other drivers. I guess it only
+> applies to manual mode? The idea is interesting, I have to admit. I
+> don't have a particular opinion on how to implement that (specific vs
+> standard), do as you wish.
+
+The fan watchdog is a driver thing, it could be implemented by any driver
+for any chip that has a manual mode (it doesn't make sense if the chip is
+always in auto mode).  I will implement it in a suitable-to-be-generic way
+and propose a patch for the sysfs hwmon docs.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
