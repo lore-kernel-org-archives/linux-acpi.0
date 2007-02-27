@@ -1,81 +1,44 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: Re: Fw: ata-piix ACPI errors
-Date: Tue, 27 Feb 2007 15:29:17 +0100
-Message-ID: <1172586557.10619.423.camel@d36.suse.de>
-References: <20070223020856.641452a3.akpm@linux-foundation.org>
+Subject: Re: problem about ACPI processor procfs
+Date: Tue, 27 Feb 2007 15:45:47 +0100
+Message-ID: <1172587547.10619.429.camel@d36.suse.de>
+References: <58A36151585E4047913F40517D307BAE43BDE8@pdsmsx404.ccr.corp.intel.com>
 Reply-To: trenn@suse.de
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:43439 "EHLO mx2.suse.de"
+Received: from ns1.suse.de ([195.135.220.2]:55028 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751742AbXB0O3V (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 Feb 2007 09:29:21 -0500
-In-Reply-To: <20070223020856.641452a3.akpm@linux-foundation.org>
+	id S1751780AbXB0Ops (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 27 Feb 2007 09:45:48 -0500
+In-Reply-To: <58A36151585E4047913F40517D307BAE43BDE8@pdsmsx404.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-acpi@vger.kernel.org, Meelis Roos <mroos@linux.ee>, Adrian Bunk <bunk@stusta.de>, htejun@gmail.com
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: linux-acpi@vger.kernel.org, "Brown, Len" <len.brown@intel.com>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
 
-On Fri, 2007-02-23 at 02:08 -0800, Andrew Morton wrote:
-> I'm starting to think that big acpi merge came a bit too soon.
+On Tue, 2007-02-27 at 17:33 +0800, Zhang, Rui wrote:
+> Hello, list
 > 
-> Begin forwarded message:
+> I met some problems when duplicating ACPI processor procfs interface in sysfs.
+> #cat /proc/acpi/processor/CPU0/limit
+> Active limit:		P0:T0
+> User limit:		P0:T0
+> Thermal limit:	P0,T0
 > 
-> Date: Thu, 22 Feb 2007 15:29:42 +0200 (EET)
-> From: Meelis Roos <mroos@linux.ee>
-> To: Linux Kernel list <linux-kernel@vger.kernel.org>
-> Subject: ata-piix ACPI errors
+> IMO, "Tx" is easy to understand. It indicates the active T-state, T-state set by user and T-state set by thermal (in passive mode).
 > 
-> 
-> Testbooted 2.6.21-rc1+todays git on a PC with Intel 845 chipset and PATA 
-> HDD. Works fine but I now have these ACPI errors in dmesg, maybe someone 
-> is interested:
-> 
-> ata_piix 0000:00:1f.1: version 2.00ac7
-> PCI: Enabling device 0000:00:1f.1 (0005 -> 0007)
-> ACPI: PCI Interrupt 0000:00:1f.1[A] -> GSI 18 (level, low) -> IRQ 18
-> PCI: Setting latency timer of device 0000:00:1f.1 to 64
-> ata1: PATA max UDMA/100 cmd 0x000101f0 ctl 0x000103f6 bmdma 0x0001ffa0 irq 14
-> ata2: PATA max UDMA/100 cmd 0x00010170 ctl 0x00010376 bmdma 0x0001ffa8 irq 15
-> scsi0 : ata_piix
-> ACPI Error (dsopcode-0481): Attempt to CreateField of length zero [20070126]
-I expect this to be ACPI (interpreter) unrelated and the bug should be
-in drivers/ata/libata-acpi.c.
-The problem is that libata-acpi.c calls _GTF function before _STM has
-been called. This is forbidden by ACPI spec.
-The Field is created in _STM. When _GTF is called first, an
-uninitialized Field is tried to be accessed. ACPI subsystem behaves
-correctly here.
+> But what does the "Px" stand for? After reading the code in processor_thermal.c, I don't think user or thermal will change its value.
+> And I don't know if it's still needed when porting to sysfs.
 
-libata.ata_acpi=0
-boot param should workaround the bug?
+Px are P-states, this is cpufreq.
+Writing to it will probably interfere with /sys/devices/../cpufreq/*.
+x should correspond to the amount of entries in
+/sys/devices/../cpufreq/scaling_available_frequencies.
 
-Related/same bugs:
-https://bugzilla.novell.com/show_bug.cgi?id=216853
-http://bugzilla.kernel.org/show_bug.cgi?id=7907
+Can't we just get rid of this? Is there any userspace prog that made use
+of this in /proc and if was it really useful in any way?
 
-    Thomas
-
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node c18edbf8), AE_AML_OPERAND_VALUE
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN0.DRV0._GTF] (Node c18ed608), AE_AML_OPERAND_VALUE
-> ata1.00: ATA-5: ST380021A, 3.19, max UDMA/100
-> ata1.00: 156301488 sectors, multi 16: LBA
-> ACPI Error (dsopcode-0481): Attempt to CreateField of length zero [20070126]
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node c18edbf8), AE_AML_OPERAND_VALUE
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN0.DRV0._GTF] (Node c18ed608), AE_AML_OPERAND_VALUE
-> ata1.00: configured for UDMA/100
-> scsi1 : ata_piix
-> ACPI Error (dsopcode-0481): Attempt to CreateField of length zero [20070126]
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node c18edbf8), AE_AML_OPERAND_VALUE
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN1.DRV0._GTF] (Node c18ed464), AE_AML_OPERAND_VALUE
-> ata2.00: ATAPI, max UDMA/33
-> ACPI Error (dsopcode-0481): Attempt to CreateField of length zero [20070126]
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node c18edbf8), AE_AML_OPERAND_VALUE
-> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN1.DRV0._GTF] (Node c18ed464), AE_AML_OPERAND_VALUE
-> ata2.00: configured for UDMA/33
-> scsi 0:0:0:0: Direct-Access     ATA      ST380021A        3.19 PQ: 0 ANSI: 5
-> scsi 1:0:0:0: CD-ROM            _NEC     DV-5800B         G9H3 PQ: 0 ANSI: 5
-Rest are aftereffects/subsequent faults.
+   Thomas
 
