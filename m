@@ -1,42 +1,144 @@
-From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: problem about ACPI processor procfs
-Date: Tue, 27 Feb 2007 17:33:46 +0800
-Message-ID: <58A36151585E4047913F40517D307BAE43BDE8@pdsmsx404.ccr.corp.intel.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 3/3]cpuidle take2: Basic documentation for cpuidle
+Date: Tue, 27 Feb 2007 10:39:37 +0100
+Message-ID: <20070227093936.GA6766@elf.ucw.cz>
+References: <20070222135457.C26335@unix-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:23211 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161108AbXB0JfO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Feb 2007 04:35:14 -0500
-Content-class: urn:content-classes:message
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:51964 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1161115AbXB0Jj7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 27 Feb 2007 04:39:59 -0500
+Content-Disposition: inline
+In-Reply-To: <20070222135457.C26335@unix-os.sc.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: "Brown, Len" <len.brown@intel.com>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+To: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, Dave Jones <davej@redhat.com>, linux-acpi@vger.kernel.org, Adam Belay <abelay@novell.com>, Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
 
-Hello, list
+Hi!
 
-I met some problems when duplicating ACPI processor procfs interface in=
- sysfs.
-#cat /proc/acpi/processor/CPU0/limit
-Active limit:		P0:T0
-User limit:		P0:T0
-Thermal limit:	P0,T0
+> Documentation for cpuidle infrastructure
+> 
+> Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+> Signed-off-by: Adam Belay <abelay@novell.com>
+> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> 
+> Index: linux-2.6.21-rc-mm/Documentation/cpuidle/core.txt
+> ===================================================================
+> --- /dev/null
+> +++ linux-2.6.21-rc-mm/Documentation/cpuidle/core.txt
+> @@ -0,0 +1,17 @@
+> +
+> +		Supporting multiple CPU idle levels in kernel
+> +
+> +				cpuidle
+> +
+> +General Information:
+> +
+> +Various CPUs today support multiple idle levels that are differentiated
+> +by varying exit latencies and power consumption during idle.
+> +cpuidle is a generic in-kernel infrastructure that separates
+> +idle policy (governor) from idle mechanism (driver) and provides a
+> +standardized infrastructure to support independent development of
+> +governors and drivers.
+> +
+> +cpuidle resides under /drivers/cpuidle.
 
-IMO, "Tx" is easy to understand. It indicates the active T-state, T-sta=
-te set by user and T-state set by thermal (in passive mode).
+Drop leading slash? Merge this to some other docs, since it is so
+short?
 
-But what does the "Px" stand for? After reading the code in processor_t=
-hermal.c, I don't think user or thermal will change its value.
-And I don't know if it's still needed when porting to sysfs.
 
-Best regards,
-Zhang.Rui(Ray)
-=A0
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Index: linux-2.6.21-rc-mm/Documentation/cpuidle/driver.txt
+> ===================================================================
+> --- /dev/null
+> +++ linux-2.6.21-rc-mm/Documentation/cpuidle/driver.txt
+> @@ -0,0 +1,24 @@
+> +
+> +
+> +		Supporting multiple CPU idle levels in kernel
+> +
+> +				cpuidle drivers
+> +
+> +
+> +
+> +
+> +cpuidle driver supports capability detection for a particular system. The
+> +init and exit routines will be called for each online CPU, with a percpu
+> +cpuidle_driver object and driver should fill in cpuidle_states inside
+> +cpuidle_driver depending on the CPU capability.
+
+Huh, perhaps it would be nice to explain what the driver does?
+
+Now we know that it does...
+
+> +Driver can handle dynamic state changes (like battery<->AC), by calling
+> +force_redetect interface.
+> +
+> +It is possible to have more than one driver registered at the same time and
+> +user can switch between drivers using /sysfs interface.
+> +
+> +Interfaces:
+> +int cpuidle_register_driver(struct cpuidle_driver *drv);
+> +void cpuidle_unregister_driver(struct cpuidle_driver *drv);
+> +int cpuidle_force_redetect(struct cpuidle_device *dev);
+
+register, unregister and redetect... but that somehow does not seem complete?
+
+> Index: linux-2.6.21-rc-mm/Documentation/cpuidle/sysfs.txt
+> ===================================================================
+> --- /dev/null
+> +++ linux-2.6.21-rc-mm/Documentation/cpuidle/sysfs.txt
+> @@ -0,0 +1,27 @@
+> +
+> +
+> +		Supporting multiple CPU idle levels in kernel
+> +
+> +				cpuidle sysfs
+> +
+> +System global cpuidle information are under
+> +/sys/devices/system/cpu/cpuidle
+
+"information is"? (Not 100% sure).
+
+> +Under this percpu directory, there is a directory for each idle state supported
+> +by the driver, which in turn has
+> +* latency
+> +* power
+> +* time
+> +* usage
+
+This should say... latency (in microseconds), power (in miliwats), and
+explain what time (which units?) and usage means. (Total time spent in
+that state, usage == number of enters into that state?)
+
+> +		Supporting multiple CPU idle levels in kernel
+> +
+> +				cpuidle governors
+> +
+> +
+> +cpuidle governor is policy routine that decides what idle state to enter at
+> +any given time. cpuidle core uses different callbacks to governor while
+> +handling idle entry.
+> +* select_state callback where governor can determine next idle state to enter
+> +* prepare_idle callback is called before entering an idle state
+> +* scan callback is called after a driver forces redetection of the states
+
+Can we get some visual separation between functions and their
+descriptions?
+
+scan() callback?
+
+scan -- callback?
+
+> +More than one governor can be registered at the same time and
+> +user can switch between drivers using /sysfs interface.
+
+<describe interface here>?
+
+Explain why we want more than one governor?
+								Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
