@@ -1,48 +1,81 @@
-From: Ismail =?utf-8?q?D=C3=B6nmez?= <ismail@pardus.org.tr>
-Subject: Re: 2.6.21-rc1: known regressions (v2) (part 1)
-Date: Tue, 27 Feb 2007 15:25:45 +0200
-Message-ID: <200702271525.48645.ismail@pardus.org.tr>
-References: <Pine.LNX.4.64.0702202043280.4043@woody.linux-foundation.org>
-	<20070226220152.GA29575@stusta.de>
-	<200702271450.19080.caglar@pardus.org.tr>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: Fw: ata-piix ACPI errors
+Date: Tue, 27 Feb 2007 15:29:17 +0100
+Message-ID: <1172586557.10619.423.camel@d36.suse.de>
+References: <20070223020856.641452a3.akpm@linux-foundation.org>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-pm-bounces@lists.osdl.org>
-In-Reply-To: <200702271450.19080.caglar@pardus.org.tr>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
-List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.osdl.org>
-List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
-List-Subscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.osdl.org
-Errors-To: linux-pm-bounces@lists.osdl.org
-To: caglar@pardus.org.tr
-Cc: Tejun Heo <htejun@gmail.com>, Arkadiusz Miskiewicz <arekm@maven.pl>, "Antonino A. Daplas" <adaplas@gmail.com>, linux-pm@lists.osdl.org, Marcel Holtmann <marcel@holtmann.org>, linux-ide@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Lukas Hejtmanek <xhejtman@fi.muni.cz>, Jean-Luc Coulon <jean.luc.coulon@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, linux-usb-devel@lists.sourceforge.net, Andrew Nelless <andrew@nelless.net>, jgarzik@pobox.com, Meelis Roos <mroos@linux.ee>, Janosch Machowinski <jmachowinski@gmx.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@stusta.de>, linux-acpi@vger.kernel.org, Fabio Comolli <fabio.comolli@gmail.com>, Thomas Meyer <thomas.mey@web.de>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Markus
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ns2.suse.de ([195.135.220.15]:43439 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751742AbXB0O3V (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 27 Feb 2007 09:29:21 -0500
+In-Reply-To: <20070223020856.641452a3.akpm@linux-foundation.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-acpi@vger.kernel.org, Meelis Roos <mroos@linux.ee>, Adrian Bunk <bunk@stusta.de>, htejun@gmail.com
 
-T24gVHVlc2RheSAyNyBGZWJydWFyeSAyMDA3IDE0OjUwOjE3IFMuw4dhxJ9sYXIgT251ciB3cm90
-ZToKPiAyNyDFnnViIDIwMDcgU2FsIHRhcmloaW5kZSwgQWRyaWFuIEJ1bmsgxZ91bmxhcsSxIHlh
-em3EscWfdMSxOgo+ID4gVGhpcyBlbWFpbCBsaXN0cyBzb21lIGtub3duIHJlZ3Jlc3Npb25zIGlu
-IDIuNi4yMS1yYzEgY29tcGFyZWQgdG8gMi42LjIwCj4gPiB0aGF0IGFyZSBub3QgeWV0IGZpeGVk
-IGluIExpbnVzJyB0cmVlLgo+ID4KPiA+IElmIHlvdSBmaW5kIHlvdXIgbmFtZSBpbiB0aGUgQ2Mg
-aGVhZGVyLCB5b3UgYXJlIGVpdGhlciBzdWJtaXR0ZXIgb2Ygb25lCj4gPiBvZiB0aGUgYnVncywg
-bWFpbnRhaW5lciBvZiBhbiBhZmZlY3RlY3RlZCBzdWJzeXN0ZW0gb3IgZHJpdmVyLCBhIHBhdGNo
-Cj4gPiBvZiB5b3UgY2F1c2VkIGEgYnJlYWthZ2Ugb3IgSSdtIGNvbnNpZGVyaW5nIHlvdSBpbiBh
-bnkgb3RoZXIgd2F5IHBvc3NpYmx5Cj4gPiBpbnZvbHZlZCB3aXRoIG9uZSBvciBtb3JlIG9mIHRo
-ZXNlIGlzc3Vlcy4KPgo+IC4uLgo+Cj4gPiBTdWJqZWN0ICAgIDogQUNQSSB1cGRhdGUgYnJlYWtz
-IGtwb3dlcnNhdmUKPiA+IFJlZmVyZW5jZXMgOiBodHRwOi8vbGttbC5vcmcvbGttbC8yMDA3LzIv
-MTAvNwo+ID4gU3VibWl0dGVyICA6IElzbWFpbCBEw7ZubWV6IDxpc21haWxAcGFyZHVzLm9yZy50
-cj4KPiA+ICAgICAgICAgICAgICBGYWJpbyBDb21vbGxpIDxmYWJpby5jb21vbGxpQGdtYWlsLmNv
-bT4KPiA+IFN0YXR1cyAgICAgOiB1bmtub3duCj4KPiBUaGF0IHJlZ3Jlc3Npb24gZml4ZWQgYnkg
-YzJiNjcwNWI3NWQ5YzdhZmY5OGE0NjAyYTMyMjMwNjM5ZTEwODkxYyBhY2NvcmRpbmcKPiB0byDE
-sHNtYWlsIFsxXQo+Cj4gWzFdIGh0dHA6Ly9sa21sLm9yZy9sa21sLzIwMDcvMi8xMy8xMDUKCk5v
-dCBxdWl0ZSwgbXkgbGFwdG9wIGRpZWQgdGhlIHNhbWUgZGF5LiBTbyBJIGNhbid0IGRvIGFueSBy
-ZWxpYWJsZSB0ZXN0LiBBbHNvIApGYWJpbyBzZWVtcyB0byByZXByb2R1Y2UgaXQgd2l0aCAyLjYu
-MjEtcmMxLgoKUmVnYXJkcywKaXNtYWlsCgoKLS0gCkluIEdvZCBXZSBUcnVzdCBPdGhlcnMgV2Ug
-TW9uaXRvcgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-bGludXgtcG0gbWFpbGluZyBsaXN0CmxpbnV4LXBtQGxpc3RzLm9zZGwub3JnCmh0dHBzOi8vbGlz
-dHMub3NkbC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1wbQo=
+On Fri, 2007-02-23 at 02:08 -0800, Andrew Morton wrote:
+> I'm starting to think that big acpi merge came a bit too soon.
+> 
+> Begin forwarded message:
+> 
+> Date: Thu, 22 Feb 2007 15:29:42 +0200 (EET)
+> From: Meelis Roos <mroos@linux.ee>
+> To: Linux Kernel list <linux-kernel@vger.kernel.org>
+> Subject: ata-piix ACPI errors
+> 
+> 
+> Testbooted 2.6.21-rc1+todays git on a PC with Intel 845 chipset and PATA 
+> HDD. Works fine but I now have these ACPI errors in dmesg, maybe someone 
+> is interested:
+> 
+> ata_piix 0000:00:1f.1: version 2.00ac7
+> PCI: Enabling device 0000:00:1f.1 (0005 -> 0007)
+> ACPI: PCI Interrupt 0000:00:1f.1[A] -> GSI 18 (level, low) -> IRQ 18
+> PCI: Setting latency timer of device 0000:00:1f.1 to 64
+> ata1: PATA max UDMA/100 cmd 0x000101f0 ctl 0x000103f6 bmdma 0x0001ffa0 irq 14
+> ata2: PATA max UDMA/100 cmd 0x00010170 ctl 0x00010376 bmdma 0x0001ffa8 irq 15
+> scsi0 : ata_piix
+> ACPI Error (dsopcode-0481): Attempt to CreateField of length zero [20070126]
+I expect this to be ACPI (interpreter) unrelated and the bug should be
+in drivers/ata/libata-acpi.c.
+The problem is that libata-acpi.c calls _GTF function before _STM has
+been called. This is forbidden by ACPI spec.
+The Field is created in _STM. When _GTF is called first, an
+uninitialized Field is tried to be accessed. ACPI subsystem behaves
+correctly here.
+
+libata.ata_acpi=0
+boot param should workaround the bug?
+
+Related/same bugs:
+https://bugzilla.novell.com/show_bug.cgi?id=216853
+http://bugzilla.kernel.org/show_bug.cgi?id=7907
+
+    Thomas
+
+> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node c18edbf8), AE_AML_OPERAND_VALUE
+> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN0.DRV0._GTF] (Node c18ed608), AE_AML_OPERAND_VALUE
+> ata1.00: ATA-5: ST380021A, 3.19, max UDMA/100
+> ata1.00: 156301488 sectors, multi 16: LBA
+> ACPI Error (dsopcode-0481): Attempt to CreateField of length zero [20070126]
+> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node c18edbf8), AE_AML_OPERAND_VALUE
+> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN0.DRV0._GTF] (Node c18ed608), AE_AML_OPERAND_VALUE
+> ata1.00: configured for UDMA/100
+> scsi1 : ata_piix
+> ACPI Error (dsopcode-0481): Attempt to CreateField of length zero [20070126]
+> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node c18edbf8), AE_AML_OPERAND_VALUE
+> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN1.DRV0._GTF] (Node c18ed464), AE_AML_OPERAND_VALUE
+> ata2.00: ATAPI, max UDMA/33
+> ACPI Error (dsopcode-0481): Attempt to CreateField of length zero [20070126]
+> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.RATA] (Node c18edbf8), AE_AML_OPERAND_VALUE
+> ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.IDE0.CHN1.DRV0._GTF] (Node c18ed464), AE_AML_OPERAND_VALUE
+> ata2.00: configured for UDMA/33
+> scsi 0:0:0:0: Direct-Access     ATA      ST380021A        3.19 PQ: 0 ANSI: 5
+> scsi 1:0:0:0: CD-ROM            _NEC     DV-5800B         G9H3 PQ: 0 ANSI: 5
+Rest are aftereffects/subsequent faults.
+
