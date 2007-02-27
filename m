@@ -1,59 +1,45 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [lm-sensors] RFC: conversion of ibm-acpi to hwmon sysfs
-Date: Tue, 27 Feb 2007 12:41:18 -0300
-Message-ID: <20070227154118.GA1980@khazad-dum.debian.net>
-References: <20070224182024.GA23865@khazad-dum.debian.net> <20070226172716.b2e956b7.khali@linux-fr.org> <20070226180635.GG2909@khazad-dum.debian.net> <20070227100129.fa962c81.khali@linux-fr.org>
+From: Dave Jones <davej@redhat.com>
+Subject: Re: [PATCH 1/3]cpuidle take2: Core cpuidle infrastructure
+Date: Tue, 27 Feb 2007 11:44:27 -0500
+Message-ID: <20070227164427.GB2223@redhat.com>
+References: <20070222135257.A26335@unix-os.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:52646 "EHLO
-	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751638AbXB0PlY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 Feb 2007 10:41:24 -0500
+Received: from mx1.redhat.com ([66.187.233.31]:50617 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751072AbXB0Qpr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 27 Feb 2007 11:45:47 -0500
 Content-Disposition: inline
-In-Reply-To: <20070227100129.fa962c81.khali@linux-fr.org>
+In-Reply-To: <20070222135257.A26335@unix-os.sc.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org
+To: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org, Adam Belay <abelay@novell.com>, Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
 
-On Tue, 27 Feb 2007, Jean Delvare wrote:
-> I don't really have time for such long reads, sorry. If there's
-> anything in particular you think I should know, just tell me.
+On Thu, Feb 22, 2007 at 01:52:57PM -0800, Venkatesh Pallipadi wrote:
 
-Just that the stale value is indeed useful on one particular case.
+ > Announcing 'cpuidle', a new CPU power management infrastructure to manage
+ > idle CPUs in a clean and efficient manner.
+ > cpuidle separates out the drivers that can provide support for multiple types
+ > of idle states and policy governors that decide on what idle state to use
+ > at run time.
+ > A cpuidle driver can support multiple idle states based on parameters like
+ > varying power consumption, wakeup latency, etc (ACPI C-states for example).
+ > A cpuidle governor can be usage model specific (laptop, server,
+ > laptop on battery etc).
+ > Main advantage of the infrastructure being, it allows independent development
+ > of drivers and governors and allows for better CPU power management.
 
-> > > pwm#_enable = 0 means fan# at full speed, _not_ fan# stopped. Fan# stopped
-> > > is pwm#_enable = 1 and pwm# = 0.
-> > 
-> > The hwmon sysfs interface documentation is not clear on that.  Turning PWM
-> > off might lock the hardware into 0% duty or 100% duty depending on how it
-> > was designed.
-> 
-> Feel free to submit a patch improving the documentation.
+I played with this a little, and got puzzled.
+My quad core box used exactly the same amount of power whether the
+'ladder' governer was loaded & in use or not.  In both situations
+it was exactly the same as a vanilla 2.6.20
 
-Ok.
+I'd have expected it to use more until I loaded up 'ladder' to bring it
+on par featurewise with 2.6.20.  What did I miss?
 
-> > BTW, ibm-acpi implements a "fan watchdog", to help fan-control userspace
-> > applications.  It resets the fan to a safe "on" mode if nothing tries any
-> > control operation on the fans in a given time period.
-> > 
-> > Is there any interest in trying for a fan-watchdog generic interface, or
-> > should I just implement that in sysfs as I see fit for ibm-acpi?
-> 
-> We don't have anything like that in the other drivers. I guess it only
-> applies to manual mode? The idea is interesting, I have to admit. I
-> don't have a particular opinion on how to implement that (specific vs
-> standard), do as you wish.
-
-The fan watchdog is a driver thing, it could be implemented by any driver
-for any chip that has a manual mode (it doesn't make sense if the chip is
-always in auto mode).  I will implement it in a suitable-to-be-generic way
-and propose a patch for the sysfs hwmon docs.
+		Dave
 
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+http://www.codemonkey.org.uk
