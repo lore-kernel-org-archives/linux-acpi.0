@@ -1,68 +1,38 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: 2.6.21-rc1: more ACPI errors (EC__)
-Date: Wed, 28 Feb 2007 14:14:40 -0800
-Message-ID: <B28E9812BAF6E2498B7EC5C427F293A401FEFC82@orsmsx415.amr.corp.intel.com>
-References: <Pine.SOC.4.64.0702260842260.9705@math>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [Openipmi-developer] acpi_find_bmc() and acpi_get_table()
+Date: Wed, 28 Feb 2007 15:35:31 -0700
+Message-ID: <200702281535.31329.bjorn.helgaas@hp.com>
+References: <200702102327.28312.lenb@kernel.org> <45E5F733.8080708@acm.org> <5DDAB7BA7BDB58439DD0EED0B8E9A3AE073884@ausx3mpc102.aus.amer.dell.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:25901 "EHLO mga09.intel.com"
+Received: from atlrel6.hp.com ([156.153.255.205]:51754 "EHLO atlrel6.hp.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932504AbXB1WP3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Feb 2007 17:15:29 -0500
-Content-class: urn:content-classes:message
-In-Reply-To: <Pine.SOC.4.64.0702260842260.9705@math>
+	id S1750839AbXB1Wfl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Feb 2007 17:35:41 -0500
+In-Reply-To: <5DDAB7BA7BDB58439DD0EED0B8E9A3AE073884@ausx3mpc102.aus.amer.dell.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Meelis Roos <mroos@linux.ee>, Linux Kernel list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Jordan_Hargrave@dell.com
+Cc: minyard@acm.org, Matt_Domsch@dell.com, alexey.y.starikovskiy@linux.intel.com, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net, lenb@kernel.org
 
-This exception appears to be originating somewhere in the EC driver:
+On Wednesday 28 February 2007 15:05, Jordan_Hargrave@dell.com wrote:
+> The reason for the acpi_bus_register/unregister is to get the handle
+> of the IPMI ACPI object.  There isn't a way to get the device handle
+> otherwise.  Once it gets the handle it doesn't need the ACPI device
+> anymore.
 
-ACPI Exception (evregion-0420): AE_NOT_FOUND, Returned by Handler for
-[EmbeddedControl] [20070126]
+Well, but in a world of truth and beauty, we should treat the
+interface as an ACPI device, and we really should only be using
+it after acpi_ipmi_add() and before acpi_ipmi_remove().  So that
+implies that we shouldn't call acpi_bus_unregister_driver() until
+we're ready to unload the driver.
 
+I have no idea how multiple IPMI devices should be handled.  But
+some HP systems have several, and I think they can be hot-added
+and removed.
 
-
-> -----Original Message-----
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> owner@vger.kernel.org] On Behalf Of Meelis Roos
-> Sent: Tuesday, February 27, 2007 12:50 PM
-> To: Linux Kernel list; linux-acpi@vger.kernel.org
-> Subject: 2.6.21-rc1: more ACPI errors (EC__)
-> 
-> I tested 2.6.21-rc1 on my laptop (IBM X20 with 440BX) and found two
-> problems:
-> 
-> First, a seemingly harmless one - ACPI error messages during bootup:
-> 
-> ACPI Exception (evregion-0420): AE_NOT_FOUND, Returned by Handler for
-> [EmbeddedControl] [20070126]
-> ACPI Exception (dswexec-0462): AE_NOT_FOUND, While resolving operands
-for
-> [OpcodeName unavailable] [20070126]
-> ACPI Error (psparse-0537): Method parse/execution failed
-> [\_SB_.PCI0.ISA_.EC__.BAT0._STA] (Node d3c435e0), AE_NOT_FOUND
-> ACPI Exception (evregion-0420): AE_NOT_FOUND, Returned by Handler for
-> [EmbeddedControl] [20070126]
-> ACPI Error (psparse-0537): Method parse/execution failed
-> [\_SB_.PCI0.ISA_.EC__.AC__._PSR] (Node d3c43540), AE_NOT_FOUND
-> ACPI Exception (ac-0095): AE_NOT_FOUND, Error reading AC Adapter state
-> [20070126]
-> 
-> And second, there were ACPI error messages about EC__ during shutdown.
-> These messages appeared, then the "acpi_power_off called" message
-> appeared, then it waited for about 5 seconds (this does not happen
-> normally) and then it succeeded shutting down. Captured a screenshot
-of
-> these messages, temporarily available at
-> http://www.cs.ut.ee/~mroos/x20-shutdown-acpi-errors.jpg
-> 
-> --
-> Meelis Roos (mroos@linux.ee)
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
-in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bjorn
