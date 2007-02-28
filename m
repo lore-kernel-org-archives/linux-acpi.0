@@ -1,78 +1,114 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH - 2.6.19 -0/1] Backport of psmouse suspend/shutdown
-	cleanups
-Date: Wed, 28 Feb 2007 17:46:04 +0100
-Message-ID: <1172681164.10619.516.camel@d36.suse.de>
-References: <1172077685.10619.101.camel@d36.suse.de>
-	 <d120d5000702210926j7e7f1ccjb8c2689640b870e8@mail.gmail.com>
-	 <1172148739.10619.196.camel@d36.suse.de>
-	 <d120d5000702220702r44894a51lfb5499b5c59d8563@mail.gmail.com>
-	 <1172499672.10619.346.camel@d36.suse.de>
-	 <d120d5000702260634g3250e32ej3619a5f584f204af@mail.gmail.com>
-Reply-To: trenn@suse.de
+From: "Karasyov, Konstantin A" <konstantin.a.karasyov@intel.com>
+Subject: RE: 2.6.21-rc1: known regressions (part 1)
+Date: Wed, 28 Feb 2007 21:16:48 +0300
+Message-ID: <E3C0BCA40296C347AF7142161DB9FC82B2EDB2@mssmsx411>
+References: <20070225175247.GB12392@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="----_=_NextPart_001_01C75B64.9D3198F5"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.suse.de ([195.135.220.2]:34289 "EHLO mx1.suse.de"
+Received: from mga02.intel.com ([134.134.136.20]:15388 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752288AbXB1QqG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Feb 2007 11:46:06 -0500
-In-Reply-To: <d120d5000702260634g3250e32ej3619a5f584f204af@mail.gmail.com>
+	id S932184AbXB1SQ6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Feb 2007 13:16:58 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <20070225175247.GB12392@stusta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>
+To: Adrian Bunk <bunk@stusta.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-pm@lists.osdl.org, Ingo Molnar <mingo@elte.hu>, lenb@kernel.org, linux-acpi@vger.kernel.org, Arkadiusz Miskiewicz <arekm@maven.pl>, linux-usb-devel@lists.sourceforge.net, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Mon, 2007-02-26 at 09:34 -0500, Dmitry Torokhov wrote:
-> Hi Thomas,
-> 
-> On 2/26/07, Thomas Renninger <trenn@suse.de> wrote:
-> > On Thu, 2007-02-22 at 10:02 -0500, Dmitry Torokhov wrote:
-> > >
-> > > Hope this makes sense (I must admit it makes little sense to me ;) ).
-> >
-> > Same for me at the beginning.
-> > I tracked two of the HP problems (wrong temperature, wrong _PPC value)
-> > down to wrong EC reads -> BIOS issue.
-> >
-> > Someone (this is the guy who actually solved this) reported that
-> > unloading psmouse helps. When I saw this report confirmed by other
-> > people a .shutdown workaround was easy and got also confirmed working...
-> >
-> > And now it even makes a bit sense...
-> > There is a little microprocessor (Embedded Controller) pre-processing
-> > sensor or other data which gets accessed via ACPI. This one also access
-> > mouse/keyboard hardware (described a bit in ACPI specs).
-> 
-> Yes, I am aware that KBC is usually emulated by EC chip nowadays, what
-> does not really makes sense to me is how crazy the firmware is.
-> 
-> ...
-> > FYI:
-> > You might stumble again over the EC in future...
-> > I saw reports where mouse jittering or similar bugs where fixed in
-> > drivers/acpi/ec.c
-> > If trying ec_intr=0 boot param, not loading any ACPI modules or the big
-> > hammer: acpi=off helps to solve mouse or keyboard problems it's probably
-> > Embedded Controller related (which might need a fix in ec.c, AML or EC
-> > BIOS code (in this case we seem to have the latter problem :) )...).
-> >
-> 
-> Yep, seen that, except for AML workarounds. Do you have any examples?
-> Although there seem to be lees complaints about mice jittering
-> nowadays... Or maybe they simply got tired of complaining ;)
+This is a multi-part message in MIME format.
 
-I remember one mouse jittering issue got fixed by BIOS update, but I
-don't know whether they fixed the EC firmware, modified EC reads/writes
-in AML or whatever...
+------_=_NextPart_001_01C75B64.9D3198F5
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-Reducing thermal polling or ACPI (EC) activity in general could also
-help, therefore I expect workarounds in AML could be an option.
-	
-I also remember some cleanups in drivers/acpi/ec.c (some time ago) that
-fixed up some machines...
+Arkadiusz,
+
+Could try the attached patch to see if it solves the problem?
+If not, please send the output of acpidump command and log.
+
+Regards.
+Konstantin.
+
+>-----Original Message-----
+>From: Adrian Bunk [mailto:bunk@stusta.de]
+>Sent: Sunday, February 25, 2007 8:53 PM
+>To: Linus Torvalds; Andrew Morton
+>Cc: Linux Kernel Mailing List; Pavel Machek; Marcel Holtmann; linux-
+>pm@lists.osdl.org; Michael S. Tsirkin; Ingo Molnar; lenb@kernel.org;
+linux-
+>acpi@vger.kernel.org; Yu, Luming; Arkadiusz Miskiewicz; Karasyov,
+>Konstantin A; linux-usb-devel@lists.sourceforge.net; Thomas Meyer;
+Andrew;
+>Janosch Machowinski; Lebedev, Vladimir P; Lukas Hejtmanek;
+>jgarzik@pobox.com; linux-ide@vger.kernel.org; Meelis Roos; Alan Cox;
+Fabio
+>Comolli; Jean-Luc Coulon; Markus Trippelsdorf; Tejun Heo; Rafael J.
+Wysocki
+>Subject: 2.6.21-rc1: known regressions (part 1)
+>
+>This email lists some known regressions in 2.6.21-rc1 compared to
+2.6.20
+>that are not yet fixed in Linus' tree.
+>
+>If you find your name in the Cc header, you are either submitter of one
+>of the bugs, maintainer of an affectected subsystem or driver, a patch
+>of you caused a breakage or I'm considering you in any other way
+possibly
+>involved with one or more of these issues.
+>
+>Due to the huge amount of recipients, please trim the Cc when
+answering.
+>
+>
+>Subject    : HP nx6325 notebook: usb mouse stops working after suspend
+to
+>ram
+>References : http://lkml.org/lkml/2007/2/21/413
+>Submitter  : Arkadiusz Miskiewicz <arekm@maven.pl>
+>Caused-By  : Konstantin Karasyov <konstantin.a.karasyov@intel.com>
+>             commit 0a6139027f3986162233adc17285151e78b39cac
+>Status     : unknown
+>
+>
 
 
-    Thomas
+------_=_NextPart_001_01C75B64.9D3198F5
+Content-Type: application/octet-stream;
+	name="usb_power.patch"
+Content-Transfer-Encoding: base64
+Content-Description: usb_power.patch
+Content-Disposition: attachment;
+	filename="usb_power.patch"
 
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9wb3dlci5jIGIvZHJpdmVycy9hY3BpL3Bvd2VyLmMK
+aW5kZXggMWVmMzM4NS4uODY2YzhlNyAxMDA2NDQKLS0tIGEvZHJpdmVycy9hY3BpL3Bvd2VyLmMK
+KysrIGIvZHJpdmVycy9hY3BpL3Bvd2VyLmMKQEAgLTQzNiw4ICs0MzYsNiBAQCBpbnQgYWNwaV9w
+b3dlcl90cmFuc2l0aW9uKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlLCBpbnQgc3RhdGUpCiAJ
+Y2wgPSAmZGV2aWNlLT5wb3dlci5zdGF0ZXNbZGV2aWNlLT5wb3dlci5zdGF0ZV0ucmVzb3VyY2Vz
+OwogCXRsID0gJmRldmljZS0+cG93ZXIuc3RhdGVzW3N0YXRlXS5yZXNvdXJjZXM7CiAKLQlkZXZp
+Y2UtPnBvd2VyLnN0YXRlID0gQUNQSV9TVEFURV9VTktOT1dOOwotCiAJaWYgKCFjbC0+Y291bnQg
+JiYgIXRsLT5jb3VudCkgewogCQlyZXN1bHQgPSAtRU5PREVWOwogCQlnb3RvIGVuZDsKQEAgLTQ2
+OCwxMiArNDY2LDE1IEBAIGludCBhY3BpX3Bvd2VyX3RyYW5zaXRpb24oc3RydWN0IGFjcGlfZGV2
+aWNlICpkZXZpY2UsIGludCBzdGF0ZSkKIAkJCWdvdG8gZW5kOwogCX0KIAotCS8qIFdlIHNob3Vs
+ZG4ndCBjaGFuZ2UgdGhlIHN0YXRlIHRpbGwgYWxsIGFib3ZlIG9wZXJhdGlvbnMgc3VjY2VlZCAq
+LwotCWRldmljZS0+cG93ZXIuc3RhdGUgPSBzdGF0ZTsKLSAgICAgIGVuZDoKLQlpZiAocmVzdWx0
+KQorICAgICBlbmQ6CisJaWYgKHJlc3VsdCkgeworCQlkZXZpY2UtPnBvd2VyLnN0YXRlID0gQUNQ
+SV9TVEFURV9VTktOT1dOOwogCQlwcmludGsoS0VSTl9XQVJOSU5HIFBSRUZJWCAiVHJhbnNpdGlv
+bmluZyBkZXZpY2UgWyVzXSB0byBEJWRcbiIsCiAJCQkgICAgICBkZXZpY2UtPnBucC5idXNfaWQs
+IHN0YXRlKTsKKwl9IGVsc2UgeworCS8qIFdlIHNob3VsZG4ndCBjaGFuZ2UgdGhlIHN0YXRlIHRp
+bGwgYWxsIGFib3ZlIG9wZXJhdGlvbnMgc3VjY2VlZCAqLworIAkJZGV2aWNlLT5wb3dlci5zdGF0
+ZSA9IHN0YXRlOworCX0KIAogCXJldHVybiByZXN1bHQ7CiB9CkBAIC02OTAsNyArNjkxLDggQEAg
+c3RhdGljIGludCBhY3BpX3Bvd2VyX3Jlc3VtZShzdHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmljZSkK
+IAlpZiAoKHJlc291cmNlLT5zdGF0ZSA9PSBBQ1BJX1BPV0VSX1JFU09VUkNFX1NUQVRFX09OKSAm
+JgogCSAgICBsaXN0X2VtcHR5KCZyZXNvdXJjZS0+cmVmZXJlbmNlKSkgewogCQltdXRleF91bmxv
+Y2soJnJlc291cmNlLT5yZXNvdXJjZV9sb2NrKTsKLQkJcmVzdWx0ID0gYWNwaV9wb3dlcl9vZmZf
+ZGV2aWNlKGRldmljZS0+aGFuZGxlLCBOVUxMKTsKKy8vCQlyZXN1bHQgPSBhY3BpX3Bvd2VyX29m
+Zl9kZXZpY2UoZGV2aWNlLT5oYW5kbGUsIE5VTEwpOworcHJpbnRrKCJSRVNVTUU6IHBvd2VyIHJl
+c291cmNlICVzIGZvdW5kIHRvIGJlIE9GRlxuIiwgZGV2aWNlLT5wbnAuYnVzX2lkKTsKIAkJcmV0
+dXJuIHJlc3VsdDsKIAl9CiAK
+
+------_=_NextPart_001_01C75B64.9D3198F5--
