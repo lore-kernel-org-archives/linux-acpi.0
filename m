@@ -1,40 +1,50 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: 2.6.21-rc1: known regressions (v2) (part 1)
-Date: Wed, 28 Feb 2007 22:27:06 +0100
-Message-ID: <1172698026.11473.40.camel@localhost.localdomain>
-References: <Pine.LNX.4.64.0702202043280.4043@woody.linux-foundation.org>
-	 <20070226220152.GA29575@stusta.de>  <20070228211318.GB4301@mellanox.co.il>
-Reply-To: tglx@linutronix.de
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
+Date: Wed, 28 Feb 2007 21:38:04 +0000
+Message-ID: <20070228213803.GA4877@ucw.cz>
+References: <45D5EA88.7090300@redhat.com> <45D6DDCE.5050803@assembler.cz> <45D7461A.2040808@redhat.com> <20070218183805.5a4fd813.khali@linux-fr.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.osadl.org ([213.239.205.134]:48281 "EHLO mail.tglx.de"
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:4973 "EHLO spitz.ucw.cz"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752013AbXB1VV3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Feb 2007 16:21:29 -0500
-In-Reply-To: <20070228211318.GB4301@mellanox.co.il>
+	id S932371AbXB1Vi5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Feb 2007 16:38:57 -0500
+Content-Disposition: inline
+In-Reply-To: <20070218183805.5a4fd813.khali@linux-fr.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Michael S. Tsirkin" <mst@mellanox.co.il>
-Cc: Adrian Bunk <bunk@stusta.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-pm@lists.osdl.org, Ingo Molnar <mingo@elte.hu>, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-On Wed, 2007-02-28 at 23:13 +0200, Michael S. Tsirkin wrote:
-> >Subject    : ThinkPad T60: no screen after suspend to RAM
-> >References : http://lkml.org/lkml/2007/2/22/391
-> >Submitter  : Michael S. Tsirkin <mst@mellanox.co.il>
-> >Handled-By : Ingo Molnar <mingo@elte.hu>
-> >Status     : unknown
+Hi!
+
+> > Well I had an idea after looking at k8temp -- why not make it default to
+> > doing only reads from the sensor?  You'd only get information from whatever
+> > core/sensor combination that ACPI had last used, but it would be safe.
 > 
-> Just reproduced this in -rc2.
-> Another thing I noticed:
-> with 2.6.20, pressing Fn/F4 generates an ACPI event and triggers suspend to RAM.
-> 
-> On 2.6.21-rc2, after resume (when the box is accessible from network),
-> pressing Fn/F4 again does not seem to have any effect.
+> ACPI is broken here, not k8temp, so let's fix ACPI instead. ACPI
+> doesn't conflict with only k8temp, but with virtually all hardware
+> monitoring drivers, all I2C/SMBus drivers, and probably other types of
+> drivers too. We just can't restrict or blacklist all these drivers
+> because ACPI misbehaves.
 
-Can you please get the dmesg output after resume via the network ?
+Oops, sorry about that but no, that will not work.
 
-	tglx
+There's piece of paper, called ACPI specification, and we are
+following it.
 
+Bug is not in our implementation.
 
+Bug is in the ACPI specs... it does not explicitely allow you to go
+out and bitbang i2c, and you do it, and you get problems.
+
+Now, you may try to change specs to be hwmon-friendly... good luck.
+
+But currently hw manufacturers follow ACPI specs, so we have to follow
+it, too; bad luck for hwmon. BIOS hiding smbus from you is good hint
+you are doing something wrong...?
+							Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
