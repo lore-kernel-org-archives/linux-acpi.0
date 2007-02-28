@@ -1,36 +1,40 @@
-From: "Michael S. Tsirkin" <mst@mellanox.co.il>
+From: Thomas Gleixner <tglx@linutronix.de>
 Subject: Re: 2.6.21-rc1: known regressions (v2) (part 1)
-Date: Wed, 28 Feb 2007 23:13:18 +0200
-Message-ID: <20070228211318.GB4301@mellanox.co.il>
-References: <Pine.LNX.4.64.0702202043280.4043@woody.linux-foundation.org> <20070226220152.GA29575@stusta.de>
-Reply-To: "Michael S. Tsirkin" <mst@mellanox.co.il>
+Date: Wed, 28 Feb 2007 22:27:06 +0100
+Message-ID: <1172698026.11473.40.camel@localhost.localdomain>
+References: <Pine.LNX.4.64.0702202043280.4043@woody.linux-foundation.org>
+	 <20070226220152.GA29575@stusta.de>  <20070228211318.GB4301@mellanox.co.il>
+Reply-To: tglx@linutronix.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from p02c11o142.mxlogic.net ([208.65.145.65]:36239 "EHLO
-	p02c11o142.mxlogic.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752007AbXB1VMr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Feb 2007 16:12:47 -0500
-Content-Disposition: inline
-In-Reply-To: <20070226220152.GA29575@stusta.de>
+Received: from www.osadl.org ([213.239.205.134]:48281 "EHLO mail.tglx.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752013AbXB1VV3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Feb 2007 16:21:29 -0500
+In-Reply-To: <20070228211318.GB4301@mellanox.co.il>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-pm@lists.osdl.org, Ingo Molnar <mingo@elte.hu>, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: "Michael S. Tsirkin" <mst@mellanox.co.il>
+Cc: Adrian Bunk <bunk@stusta.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-pm@lists.osdl.org, Ingo Molnar <mingo@elte.hu>, lenb@kernel.org, linux-acpi@vger.kernel.org
 
->Subject    : ThinkPad T60: no screen after suspend to RAM
->References : http://lkml.org/lkml/2007/2/22/391
->Submitter  : Michael S. Tsirkin <mst@mellanox.co.il>
->Handled-By : Ingo Molnar <mingo@elte.hu>
->Status     : unknown
+On Wed, 2007-02-28 at 23:13 +0200, Michael S. Tsirkin wrote:
+> >Subject    : ThinkPad T60: no screen after suspend to RAM
+> >References : http://lkml.org/lkml/2007/2/22/391
+> >Submitter  : Michael S. Tsirkin <mst@mellanox.co.il>
+> >Handled-By : Ingo Molnar <mingo@elte.hu>
+> >Status     : unknown
+> 
+> Just reproduced this in -rc2.
+> Another thing I noticed:
+> with 2.6.20, pressing Fn/F4 generates an ACPI event and triggers suspend to RAM.
+> 
+> On 2.6.21-rc2, after resume (when the box is accessible from network),
+> pressing Fn/F4 again does not seem to have any effect.
 
-Just reproduced this in -rc2.
-Another thing I noticed:
-with 2.6.20, pressing Fn/F4 generates an ACPI event and triggers suspend to RAM.
+Can you please get the dmesg output after resume via the network ?
 
-On 2.6.21-rc2, after resume (when the box is accessible from network),
-pressing Fn/F4 again does not seem to have any effect.
+	tglx
 
 
--- 
-MST
