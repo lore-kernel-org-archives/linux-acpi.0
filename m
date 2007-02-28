@@ -1,41 +1,43 @@
-From: Corey Minyard <minyard@acm.org>
-Subject: Re: [Openipmi-developer] acpi_find_bmc() and acpi_get_table()
-Date: Wed, 28 Feb 2007 16:44:56 -0600
-Message-ID: <45E605E8.1010502@acm.org>
-References: <200702102327.28312.lenb@kernel.org> <45E5F733.8080708@acm.org>	<5DDAB7BA7BDB58439DD0EED0B8E9A3AE073884@ausx3mpc102.aus.amer.dell.com> <200702281535.31329.bjorn.helgaas@hp.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mta9.adelphia.net ([68.168.78.199]:44927 "EHLO
-	mta9.adelphia.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932089AbXB1Wo7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Feb 2007 17:44:59 -0500
-In-Reply-To: <200702281535.31329.bjorn.helgaas@hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: John Keller <jpk@sgi.com>
+Subject: [PATCH 1/1] - Altix: reinitialize acpi tables
+Date: Wed, 28 Feb 2007 17:47:27 -0600
+Message-ID: <20070228234727.11369.38394.sendpatchset@attica.americas.sgi.com>
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Sender: linux-ia64-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: ayoung@sgi.com, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, John Keller <jpk@sgi.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Jordan_Hargrave@dell.com, linux-acpi@vger.kernel.org, Matt_Domsch@dell.com, alexey.y.starikovskiy@linux.intel.com, openipmi-developer@lists.sourceforge.net, lenb@kernel.org
 
-Bjorn Helgaas wrote:
-> On Wednesday 28 February 2007 15:05, Jordan_Hargrave@dell.com wrote:
->   
->> The reason for the acpi_bus_register/unregister is to get the handle
->> of the IPMI ACPI object.  There isn't a way to get the device handle
->> otherwise.  Once it gets the handle it doesn't need the ACPI device
->> anymore.
->>     
->
-> Well, but in a world of truth and beauty, we should treat the
-> interface as an ACPI device, and we really should only be using
-> it after acpi_ipmi_add() and before acpi_ipmi_remove().  So that
-> implies that we shouldn't call acpi_bus_unregister_driver() until
-> we're ready to unload the driver.
->   
-yes, that sounds more reasonable to me.
-> I have no idea how multiple IPMI devices should be handled.  But
-> some HP systems have several, and I think they can be hot-added
-> and removed.
-The current IPMI driver can actually do hot add and remove, so if the low-level ACPI code does the add/remove, it will automagically work.    I'd like to know how well that worked :).
+To provide compatibilty with SN kernels that do and do not
+have ACPI IO support, the SN PROM must build different
+versions of some ACPI tables based on which kernel is booting.
+As such, the tables may have to change at kernel boot time.
+By default, prior to kernel boot, the PROM builds an empty
+DSDT (header only) and no SSDTs. If an ACPI capable kernel
+boots, the kernel will notify the PROM, at platform setup time,
+and the PROM will build full DSDT and SSDT tables.
 
--Corey
+With the latest changes to acpi_table_init(), the table lengths
+are saved, and when our PROM changes them, the changes are not seen,
+and the kernel will crash on boot. Because of issues with kexec support,
+we are not able to create the tables prior to acpi_table_init().
+As a result, we are making a second call to acpi_table_init() to
+process the rebuilt DSDT and SSDTs.
+
+Signed-off-by: John Keller <jpk@sgi.com>
+---
+
+
+Index: release/arch/ia64/sn/kernel/setup.c
+===================================================================
+--- release.orig/arch/ia64/sn/kernel/setup.c	2007-02-28 11:02:34.558139870 -0600
++++ release/arch/ia64/sn/kernel/setup.c	2007-02-28 11:02:39.362737953 -0600
+@@ -397,6 +397,8 @@ void __init sn_setup(char **cmdline_p)
+ 	ia64_sn_set_os_feature(OSF_PCISEGMENT_ENABLE);
+ 	ia64_sn_set_os_feature(OSF_ACPI_ENABLE);
+ 
++	/* Load the new DSDT and SSDT tables into the global table list. */
++ 	acpi_table_init();
+ 
+ #if defined(CONFIG_VT) && defined(CONFIG_VGA_CONSOLE)
+ 	/*
