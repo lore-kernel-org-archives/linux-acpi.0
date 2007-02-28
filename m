@@ -1,59 +1,125 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: bugzilla.kernel.org bug 7988: Resume from RAM on Toshiba A100 fails
-Date: Wed, 28 Feb 2007 01:20:45 +0100
-Message-ID: <200702280120.46036.rjw@sisk.pl>
-References: <8956d4ca0702210648v43f99a5el53f5a15b2b99a8d1@mail.gmail.com> <8956d4ca0702271604u39a734k408184477ade88f0@mail.gmail.com>
+From: Kristian =?ISO-8859-1?Q?Gr=F8nfeldt_S=F8rensen?= <kriller@vkr.dk>
+Subject: Re: PROBLEM: "BUG:" when resuming from suspend-to-ram
+Date: Wed, 28 Feb 2007 01:27:21 +0100
+Message-ID: <1172622441.4587.14.camel@localhost.localdomain>
+References: <1172601905.5428.28.camel@localhost.localdomain>
+	 <200702272304.01756.rjw@sisk.pl>  <200702272330.22968.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:38858 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750873AbXB1ASg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 Feb 2007 19:18:36 -0500
-In-Reply-To: <8956d4ca0702271604u39a734k408184477ade88f0@mail.gmail.com>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932083AbXB1A21@vger.kernel.org>
+In-Reply-To: <200702272330.22968.rjw@sisk.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux kernel mailing list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mitch Davis <mjd-kernel-org@afork.com>
-Cc: linux-acpi@vger.kernel.org
 
-On Wednesday, 28 February 2007 01:04, Mitch Davis wrote:
-> On 2/22/07, Mitch Davis <mjd-kernel-org@afork.com> wrote:
-> > Hello,
-> >
-> > I was inspired by Matthew Garrett's talk at LCA to find out why my
-> > Toshiba laptop doesn't resume after a suspend.  I did what I could to
-> > diagnose it, and logged the problem here:
-> >
-> >  http://bugzilla.kernel.org/show_bug.cgi?id=7988
-> 
-> In the bug, Rafael J. Wysocki suggested:
-> >
-> > Can you try the latest -mm kernel (but please do not compile it with
-> > CONFIG_PREEMPT set)?
-> 
-> I have now tried 2.6.20-mm2, and the result is exactly the same: The laptop
-> suspends but never gets to first base on resume.
-> 
-> Please, any ideas?
+On Tue, 2007-02-27 at 23:30 +0100, Rafael J. Wysocki wrote:
+> On Tuesday, 27 February 2007 23:04, Rafael J. Wysocki wrote:
+> > Hi,
+> >=20
+> > On Tuesday, 27 February 2007 19:45, Kristian Gr=F8nfeldt S=F8rensen=
+ wrote:
+> > > Hi.
+> > >=20
+> > > PROBLEM: "BUG:" when resumimg from suspend-to-ram=20
+> > > =09
+> > > My laptop have a problem with resuming from suspend-to-ram.=20
+> > > It does not occur every time - most of the time, resume works wit=
+hout
+> > > any problem.at all.
+> > >=20
+> > > After it occurs, the laptop refuses to go into suspend-to-ram mod=
+e until
+> > > next reboot.
+> >=20
+> > What do you mean by "refuses"?  Are there any suspicious messages i=
+n
+> > dmesg?
+> >=20
+> > > The system is a Debian unstable running with a self-compiled 2.6.=
+20
+> > > kernel downloaded from kernel.org.=20
+> > >=20
+> > > I've only tried suspend-to-ram on 2.6.20 so I don't know whether =
+or not
+> > > other versions might have the same problem.
+> > >=20
+> > > I'm not subscribed to the list. Please CC me.
+> >=20
+> > I guess one of the drivers you use goes awry at some point.  Please=
+ provide
+> > us with more information (like dmesg output after a failing resume)=
+=2E
+>=20
+> I'm sorry, I've just been told you sent it. :-)
+>=20
+> > CLASS: Unregistering class device. ID =3D 'event3'
+> > class_uevent - name =3D event3
+> > class_device_create_uevent called for event3
+> > device class 'event3': release.
+> > class_device_create_release called for event3
+> > BUG: unable to handle kernel paging request at virtual address 6b6b=
+6b6b
+> >  printing eip:
+> > f8825a81
+> > *pde =3D 00000000
+> > Oops: 0000 [#1]
+> > PREEMPT
+> > Modules linked in: tg3 battery ac thermal fan button i915 drm binfm=
+t_misc
+> > rfcomm l2cap ipv6 fuse capability commoncap cpufreq_performance aoe
+> > af_packet nls_utf8 ntfs nls_iso8859_1 nls_cp437 vfat fat dm_snapsho=
+t
+> > dm_mirror dm_mod ieee80211_cr ypt_tkip ieee80211_crypt pd6729 snd_s=
+eq_dummy
+> > snd_seq_oss snd_seq_midi snd_rawmi di snd_seq_midi_event snd_seq
+> > snd_seq_device sermouse hci_vhci hci_uart wbsd mmc _block mmc_core =
+tun msr
+> > cpuid cpufreq_stats container video speedstep_lib speeds tep_centri=
+no
+> > processor sr_mod sbp2 scsi_mod ide_cd cdrom eth1394 hci_usb bluetoo=
+ th
+> > pcmcia firmware_class irda snd_intel8x0m snd_intel8x0 snd_ac97_code=
+c
+> > crc_ccit t ac97_bus snd_pcm_oss snd_mixer_oss rtc i2c_i801 snd_pcm
+> > snd_timer ohci1394 iee e1394 i2c_core serio_raw intel_agp iTCO_wdt =
+snd
+> > soundcore snd_page_alloc ehci_hc d pcspkr uhci_hcd yenta_socket
+> > rsrc_nonstatic pcmcia_core usbcore agpgart moused ev evdev
+> > CPU:    0
+> > EIP:    0060:[<f8825a81>]    Not tainted VLI
+> > EFLAGS: 00010202   (2.6.20-x300 #1)
+> > EIP is at evdev_disconnect+0xb1/0xe0 [evdev]
+>=20
+> This points us to a suspect.  Can you please run "gdb vmlinux" agains=
+t the
+> vmlinux in your kernel sources directory and then
+>=20
+> gdb> l *evdev_disconnect+0xb1
 
-No, sorry. :-(
+OK. Recopiled the kernel with CONFIG_DEBUG_INFO=3Dy
 
-I was hoping that the fix might go into -mm.
+This gives:=20
 
-The hardware configuration of your system is very similar to one and the only
-substantial difference I can see is
+(gdb) l *evdev_disconnect+0xb1
+No symbol "evdev_disconnect" in current context.
 
-00:00.0 Host bridge: ATI Technologies Inc Unknown device 5a31 (rev 01)
+I guess you meant gdb drivers/input/evdev.ko
 
-but I haven't tried the STR yet.
+This gives:
 
-Does your system suspend to disk?
+(gdb) l *evdev_disconnect+0xb1
+0xa81 is in evdev_disconnect (include/asm/processor.h:716).
+711        However we don't do prefetches for pre XP Athlons currently
+712        That should be fixed. */
+713     #define ARCH_HAS_PREFETCH
+714     static inline void prefetch(const void *x)
+715     {
+716             alternative_input(ASM_NOP4,
+717                               "prefetchnta (%1)",
+718                               X86_FEATURE_XMM,
+719                               "r" (x));
+720     }
 
-Rafael
--- 
-If you don't have the time to read,
-you don't have the time or the tools to write.
-		- Stephen King
+/Kristian
