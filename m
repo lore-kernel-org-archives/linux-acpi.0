@@ -1,125 +1,73 @@
-From: Kristian =?ISO-8859-1?Q?Gr=F8nfeldt_S=F8rensen?= <kriller@vkr.dk>
-Subject: Re: PROBLEM: "BUG:" when resuming from suspend-to-ram
-Date: Wed, 28 Feb 2007 01:27:21 +0100
-Message-ID: <1172622441.4587.14.camel@localhost.localdomain>
-References: <1172601905.5428.28.camel@localhost.localdomain>
-	 <200702272304.01756.rjw@sisk.pl>  <200702272330.22968.rjw@sisk.pl>
+From: "Mitch Davis" <mjd-kernel-org@afork.com>
+Subject: Re: bugzilla.kernel.org bug 7988: Resume from RAM on Toshiba A100 fails
+Date: Wed, 28 Feb 2007 12:27:40 +1100
+Message-ID: <8956d4ca0702271727g63959d2bk77201c2624aab882@mail.gmail.com>
+References: <8956d4ca0702210648v43f99a5el53f5a15b2b99a8d1@mail.gmail.com>
+	 <8956d4ca0702271604u39a734k408184477ade88f0@mail.gmail.com>
+	 <200702280120.46036.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932083AbXB1A21@vger.kernel.org>
-In-Reply-To: <200702272330.22968.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux kernel mailing list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from an-out-0708.google.com ([209.85.132.244]:16737 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750741AbXB1B1o (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Feb 2007 20:27:44 -0500
+Received: by an-out-0708.google.com with SMTP id b33so1304596ana
+        for <linux-acpi@vger.kernel.org>; Tue, 27 Feb 2007 17:27:43 -0800 (PST)
+In-Reply-To: <200702280120.46036.rjw@sisk.pl>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org
 
-On Tue, 2007-02-27 at 23:30 +0100, Rafael J. Wysocki wrote:
-> On Tuesday, 27 February 2007 23:04, Rafael J. Wysocki wrote:
-> > Hi,
-> >=20
-> > On Tuesday, 27 February 2007 19:45, Kristian Gr=F8nfeldt S=F8rensen=
- wrote:
-> > > Hi.
-> > >=20
-> > > PROBLEM: "BUG:" when resumimg from suspend-to-ram=20
-> > > =09
-> > > My laptop have a problem with resuming from suspend-to-ram.=20
-> > > It does not occur every time - most of the time, resume works wit=
-hout
-> > > any problem.at all.
-> > >=20
-> > > After it occurs, the laptop refuses to go into suspend-to-ram mod=
-e until
-> > > next reboot.
-> >=20
-> > What do you mean by "refuses"?  Are there any suspicious messages i=
-n
-> > dmesg?
-> >=20
-> > > The system is a Debian unstable running with a self-compiled 2.6.=
-20
-> > > kernel downloaded from kernel.org.=20
-> > >=20
-> > > I've only tried suspend-to-ram on 2.6.20 so I don't know whether =
-or not
-> > > other versions might have the same problem.
-> > >=20
-> > > I'm not subscribed to the list. Please CC me.
-> >=20
-> > I guess one of the drivers you use goes awry at some point.  Please=
- provide
-> > us with more information (like dmesg output after a failing resume)=
-=2E
->=20
-> I'm sorry, I've just been told you sent it. :-)
->=20
-> > CLASS: Unregistering class device. ID =3D 'event3'
-> > class_uevent - name =3D event3
-> > class_device_create_uevent called for event3
-> > device class 'event3': release.
-> > class_device_create_release called for event3
-> > BUG: unable to handle kernel paging request at virtual address 6b6b=
-6b6b
-> >  printing eip:
-> > f8825a81
-> > *pde =3D 00000000
-> > Oops: 0000 [#1]
-> > PREEMPT
-> > Modules linked in: tg3 battery ac thermal fan button i915 drm binfm=
-t_misc
-> > rfcomm l2cap ipv6 fuse capability commoncap cpufreq_performance aoe
-> > af_packet nls_utf8 ntfs nls_iso8859_1 nls_cp437 vfat fat dm_snapsho=
-t
-> > dm_mirror dm_mod ieee80211_cr ypt_tkip ieee80211_crypt pd6729 snd_s=
-eq_dummy
-> > snd_seq_oss snd_seq_midi snd_rawmi di snd_seq_midi_event snd_seq
-> > snd_seq_device sermouse hci_vhci hci_uart wbsd mmc _block mmc_core =
-tun msr
-> > cpuid cpufreq_stats container video speedstep_lib speeds tep_centri=
-no
-> > processor sr_mod sbp2 scsi_mod ide_cd cdrom eth1394 hci_usb bluetoo=
- th
-> > pcmcia firmware_class irda snd_intel8x0m snd_intel8x0 snd_ac97_code=
-c
-> > crc_ccit t ac97_bus snd_pcm_oss snd_mixer_oss rtc i2c_i801 snd_pcm
-> > snd_timer ohci1394 iee e1394 i2c_core serio_raw intel_agp iTCO_wdt =
-snd
-> > soundcore snd_page_alloc ehci_hc d pcspkr uhci_hcd yenta_socket
-> > rsrc_nonstatic pcmcia_core usbcore agpgart moused ev evdev
-> > CPU:    0
-> > EIP:    0060:[<f8825a81>]    Not tainted VLI
-> > EFLAGS: 00010202   (2.6.20-x300 #1)
-> > EIP is at evdev_disconnect+0xb1/0xe0 [evdev]
->=20
-> This points us to a suspect.  Can you please run "gdb vmlinux" agains=
-t the
-> vmlinux in your kernel sources directory and then
->=20
-> gdb> l *evdev_disconnect+0xb1
+On 2/28/07, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Wednesday, 28 February 2007 01:04, Mitch Davis wrote:
+> > >
+> > >  http://bugzilla.kernel.org/show_bug.cgi?id=7988
+> >
+> > In the bug, Rafael J. Wysocki suggested:
+> > >
+> > > Can you try the latest -mm kernel (but please do not compile it with
+> > > CONFIG_PREEMPT set)?
+> >
+> > I have now tried 2.6.20-mm2, and the result is exactly the same: The laptop
+> > suspends but never gets to first base on resume.
+>
+> I was hoping that the fix might go into -mm.
+>
+> The hardware configuration of your system is very similar to one and the only
+> substantial difference I can see is
 
-OK. Recopiled the kernel with CONFIG_DEBUG_INFO=3Dy
+Hi Rafael,
 
-This gives:=20
+Sorry, similar to what?  A laptop of yours?
 
-(gdb) l *evdev_disconnect+0xb1
-No symbol "evdev_disconnect" in current context.
+> 00:00.0 Host bridge: ATI Technologies Inc Unknown device 5a31 (rev 01)
 
-I guess you meant gdb drivers/input/evdev.ko
+As far as I can tell, this is something in the ATI RS400 Northbridge:
 
-This gives:
+  http://lxr.linux.no/ident?i=PCI_DEVICE_ID_ATI_RS400_133
 
-(gdb) l *evdev_disconnect+0xb1
-0xa81 is in evdev_disconnect (include/asm/processor.h:716).
-711        However we don't do prefetches for pre XP Athlons currently
-712        That should be fixed. */
-713     #define ARCH_HAS_PREFETCH
-714     static inline void prefetch(const void *x)
-715     {
-716             alternative_input(ASM_NOP4,
-717                               "prefetchnta (%1)",
-718                               X86_FEATURE_XMM,
-719                               "r" (x));
-720     }
+> Does your system suspend to disk?
 
-/Kristian
+I tried suspend2.  I had problems with the laptop hanging at "atomic
+copy".  Others have had the same problem:
+
+  http://linux-on-laptops.com/forum/archive/index.php/t-295.html
+
+The solution to that problem was to boot with "noapic".  (suspend2
+works reliably most of the time, but 2G of RAM takes so long to write
+that I want S-T-R to work).
+
+With "noapic", the RTL8139 ethernet stopped working, so I added
+"acpi=noirq".  Now both suspend2 and ethernet work.
+
+PCMCIA still doesn't work but I think the link above may be a useful workaround.
+
+Please, can anyone help me with my resume-after-suspend-to-RAM problem?
+
+Thanks,
+
+Mitch.
