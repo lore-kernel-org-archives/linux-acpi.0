@@ -1,114 +1,78 @@
-From: "Karasyov, Konstantin A" <konstantin.a.karasyov@intel.com>
-Subject: RE: 2.6.21-rc1: known regressions (part 1)
-Date: Wed, 28 Feb 2007 21:16:48 +0300
-Message-ID: <E3C0BCA40296C347AF7142161DB9FC82B2EDB2@mssmsx411>
-References: <20070225175247.GB12392@stusta.de>
+From: Tejun Heo <htejun@gmail.com>
+Subject: Re: Fw: ata-piix ACPI errors
+Date: Thu, 01 Mar 2007 03:17:55 +0900
+Message-ID: <45E5C753.106@gmail.com>
+References: <20070223020856.641452a3.akpm@linux-foundation.org> <1172586557.10619.423.camel@d36.suse.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----_=_NextPart_001_01C75B64.9D3198F5"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:15388 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932184AbXB1SQ6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Feb 2007 13:16:58 -0500
-Content-class: urn:content-classes:message
-In-Reply-To: <20070225175247.GB12392@stusta.de>
+Received: from wx-out-0506.google.com ([66.249.82.227]:60939 "EHLO
+	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932207AbXB1SR6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Feb 2007 13:17:58 -0500
+Received: by wx-out-0506.google.com with SMTP id h31so213307wxd
+        for <linux-acpi@vger.kernel.org>; Wed, 28 Feb 2007 10:17:57 -0800 (PST)
+In-Reply-To: <1172586557.10619.423.camel@d36.suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-pm@lists.osdl.org, Ingo Molnar <mingo@elte.hu>, lenb@kernel.org, linux-acpi@vger.kernel.org, Arkadiusz Miskiewicz <arekm@maven.pl>, linux-usb-devel@lists.sourceforge.net, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: trenn@suse.de
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, Meelis Roos <mroos@linux.ee>, Adrian Bunk <bunk@stusta.de>
 
-This is a multi-part message in MIME format.
+Hello, Thomas.
 
-------_=_NextPart_001_01C75B64.9D3198F5
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-Arkadiusz,
-
-Could try the attached patch to see if it solves the problem?
-If not, please send the output of acpidump command and log.
-
-Regards.
-Konstantin.
-
->-----Original Message-----
->From: Adrian Bunk [mailto:bunk@stusta.de]
->Sent: Sunday, February 25, 2007 8:53 PM
->To: Linus Torvalds; Andrew Morton
->Cc: Linux Kernel Mailing List; Pavel Machek; Marcel Holtmann; linux-
->pm@lists.osdl.org; Michael S. Tsirkin; Ingo Molnar; lenb@kernel.org;
-linux-
->acpi@vger.kernel.org; Yu, Luming; Arkadiusz Miskiewicz; Karasyov,
->Konstantin A; linux-usb-devel@lists.sourceforge.net; Thomas Meyer;
-Andrew;
->Janosch Machowinski; Lebedev, Vladimir P; Lukas Hejtmanek;
->jgarzik@pobox.com; linux-ide@vger.kernel.org; Meelis Roos; Alan Cox;
-Fabio
->Comolli; Jean-Luc Coulon; Markus Trippelsdorf; Tejun Heo; Rafael J.
-Wysocki
->Subject: 2.6.21-rc1: known regressions (part 1)
+Thomas Renninger wrote:
+> On Fri, 2007-02-23 at 02:08 -0800, Andrew Morton wrote:
+>> I'm starting to think that big acpi merge came a bit too soon.
+>>
+>> Begin forwarded message:
+>>
+>> Date: Thu, 22 Feb 2007 15:29:42 +0200 (EET)
+>> From: Meelis Roos <mroos@linux.ee>
+>> To: Linux Kernel list <linux-kernel@vger.kernel.org>
+>> Subject: ata-piix ACPI errors
+>>
+>>
+>> Testbooted 2.6.21-rc1+todays git on a PC with Intel 845 chipset and PATA 
+>> HDD. Works fine but I now have these ACPI errors in dmesg, maybe someone 
+>> is interested:
+>>
+>> ata_piix 0000:00:1f.1: version 2.00ac7
+>> PCI: Enabling device 0000:00:1f.1 (0005 -> 0007)
+>> ACPI: PCI Interrupt 0000:00:1f.1[A] -> GSI 18 (level, low) -> IRQ 18
+>> PCI: Setting latency timer of device 0000:00:1f.1 to 64
+>> ata1: PATA max UDMA/100 cmd 0x000101f0 ctl 0x000103f6 bmdma 0x0001ffa0 irq 14
+>> ata2: PATA max UDMA/100 cmd 0x00010170 ctl 0x00010376 bmdma 0x0001ffa8 irq 15
+>> scsi0 : ata_piix
+>> ACPI Error (dsopcode-0481): Attempt to CreateField of length zero [20070126]
 >
->This email lists some known regressions in 2.6.21-rc1 compared to
-2.6.20
->that are not yet fixed in Linus' tree.
->
->If you find your name in the Cc header, you are either submitter of one
->of the bugs, maintainer of an affectected subsystem or driver, a patch
->of you caused a breakage or I'm considering you in any other way
-possibly
->involved with one or more of these issues.
->
->Due to the huge amount of recipients, please trim the Cc when
-answering.
->
->
->Subject    : HP nx6325 notebook: usb mouse stops working after suspend
-to
->ram
->References : http://lkml.org/lkml/2007/2/21/413
->Submitter  : Arkadiusz Miskiewicz <arekm@maven.pl>
->Caused-By  : Konstantin Karasyov <konstantin.a.karasyov@intel.com>
->             commit 0a6139027f3986162233adc17285151e78b39cac
->Status     : unknown
->
->
+> I expect this to be ACPI (interpreter) unrelated and the bug should be
+> in drivers/ata/libata-acpi.c.
+> The problem is that libata-acpi.c calls _GTF function before _STM has
+> been called. This is forbidden by ACPI spec.
 
+I can't find such wording in acpi 3.0a spec.  It says _STM may make
+adjustments to the result of _GTF.  Hmmm... the suspend/resume order
+does specify that _STM should be called before _GTF but nothing seems to
+mandate use of _GTM and _STM.
 
-------_=_NextPart_001_01C75B64.9D3198F5
-Content-Type: application/octet-stream;
-	name="usb_power.patch"
-Content-Transfer-Encoding: base64
-Content-Description: usb_power.patch
-Content-Disposition: attachment;
-	filename="usb_power.patch"
+I think libata-acpi has several issues here.
 
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9wb3dlci5jIGIvZHJpdmVycy9hY3BpL3Bvd2VyLmMK
-aW5kZXggMWVmMzM4NS4uODY2YzhlNyAxMDA2NDQKLS0tIGEvZHJpdmVycy9hY3BpL3Bvd2VyLmMK
-KysrIGIvZHJpdmVycy9hY3BpL3Bvd2VyLmMKQEAgLTQzNiw4ICs0MzYsNiBAQCBpbnQgYWNwaV9w
-b3dlcl90cmFuc2l0aW9uKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlLCBpbnQgc3RhdGUpCiAJ
-Y2wgPSAmZGV2aWNlLT5wb3dlci5zdGF0ZXNbZGV2aWNlLT5wb3dlci5zdGF0ZV0ucmVzb3VyY2Vz
-OwogCXRsID0gJmRldmljZS0+cG93ZXIuc3RhdGVzW3N0YXRlXS5yZXNvdXJjZXM7CiAKLQlkZXZp
-Y2UtPnBvd2VyLnN0YXRlID0gQUNQSV9TVEFURV9VTktOT1dOOwotCiAJaWYgKCFjbC0+Y291bnQg
-JiYgIXRsLT5jb3VudCkgewogCQlyZXN1bHQgPSAtRU5PREVWOwogCQlnb3RvIGVuZDsKQEAgLTQ2
-OCwxMiArNDY2LDE1IEBAIGludCBhY3BpX3Bvd2VyX3RyYW5zaXRpb24oc3RydWN0IGFjcGlfZGV2
-aWNlICpkZXZpY2UsIGludCBzdGF0ZSkKIAkJCWdvdG8gZW5kOwogCX0KIAotCS8qIFdlIHNob3Vs
-ZG4ndCBjaGFuZ2UgdGhlIHN0YXRlIHRpbGwgYWxsIGFib3ZlIG9wZXJhdGlvbnMgc3VjY2VlZCAq
-LwotCWRldmljZS0+cG93ZXIuc3RhdGUgPSBzdGF0ZTsKLSAgICAgIGVuZDoKLQlpZiAocmVzdWx0
-KQorICAgICBlbmQ6CisJaWYgKHJlc3VsdCkgeworCQlkZXZpY2UtPnBvd2VyLnN0YXRlID0gQUNQ
-SV9TVEFURV9VTktOT1dOOwogCQlwcmludGsoS0VSTl9XQVJOSU5HIFBSRUZJWCAiVHJhbnNpdGlv
-bmluZyBkZXZpY2UgWyVzXSB0byBEJWRcbiIsCiAJCQkgICAgICBkZXZpY2UtPnBucC5idXNfaWQs
-IHN0YXRlKTsKKwl9IGVsc2UgeworCS8qIFdlIHNob3VsZG4ndCBjaGFuZ2UgdGhlIHN0YXRlIHRp
-bGwgYWxsIGFib3ZlIG9wZXJhdGlvbnMgc3VjY2VlZCAqLworIAkJZGV2aWNlLT5wb3dlci5zdGF0
-ZSA9IHN0YXRlOworCX0KIAogCXJldHVybiByZXN1bHQ7CiB9CkBAIC02OTAsNyArNjkxLDggQEAg
-c3RhdGljIGludCBhY3BpX3Bvd2VyX3Jlc3VtZShzdHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmljZSkK
-IAlpZiAoKHJlc291cmNlLT5zdGF0ZSA9PSBBQ1BJX1BPV0VSX1JFU09VUkNFX1NUQVRFX09OKSAm
-JgogCSAgICBsaXN0X2VtcHR5KCZyZXNvdXJjZS0+cmVmZXJlbmNlKSkgewogCQltdXRleF91bmxv
-Y2soJnJlc291cmNlLT5yZXNvdXJjZV9sb2NrKTsKLQkJcmVzdWx0ID0gYWNwaV9wb3dlcl9vZmZf
-ZGV2aWNlKGRldmljZS0+aGFuZGxlLCBOVUxMKTsKKy8vCQlyZXN1bHQgPSBhY3BpX3Bvd2VyX29m
-Zl9kZXZpY2UoZGV2aWNlLT5oYW5kbGUsIE5VTEwpOworcHJpbnRrKCJSRVNVTUU6IHBvd2VyIHJl
-c291cmNlICVzIGZvdW5kIHRvIGJlIE9GRlxuIiwgZGV2aWNlLT5wbnAuYnVzX2lkKTsKIAkJcmV0
-dXJuIHJlc3VsdDsKIAl9CiAK
+1. Missing _GTM/_STM support.  This is because mode programming is
+essential to PATA controllers and we do it in more conventional way
+(poking PCI / controller registers) regardless of ACPI, so this feature
+is kind of redundant.
 
-------_=_NextPart_001_01C75B64.9D3198F5--
+2. Doing _GTF on boot.  _GTF is supposed to configure the device as the
+firmware would have configured it during a normal boot, so we shouldn't
+be doing it during boot.  This too is in gray area as if we're doing
+kexec, we might want to do _GTF during boot.
+
+It would be the cleanest if _GTF can be modified by but doesn't depend
+on _STM.  Oh, well, there seem to be enough motherboards out there hit
+by this.  I'll cook something up.
+
+Thanks.
+
+-- 
+tejun
