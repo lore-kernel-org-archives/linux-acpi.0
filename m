@@ -1,49 +1,44 @@
-From: Dave Jones <davej@redhat.com>
-Subject: Re: [PATCH 1/3]cpuidle take2: Core cpuidle infrastructure
-Date: Wed, 28 Feb 2007 01:59:32 -0500
-Message-ID: <20070228065932.GA23678@redhat.com>
-References: <20070227164427.GB2223@redhat.com> <EB12A50964762B4D8111D55B764A845401540255@scsmsx413.amr.corp.intel.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [lm-sensors] RFC: conversion of ibm-acpi to hwmon sysfs
+Date: Wed, 28 Feb 2007 17:31:51 +0800
+Message-ID: <1172655111.11100.50.camel@localhost.localdomain>
+References: <20070224182024.GA23865@khazad-dum.debian.net>
+	 <20070226172716.b2e956b7.khali@linux-fr.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:40100 "EHLO mx1.redhat.com"
+Received: from mga01.intel.com ([192.55.52.88]:44748 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751725AbXB1HAO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Feb 2007 02:00:14 -0500
-Content-Disposition: inline
-In-Reply-To: <EB12A50964762B4D8111D55B764A845401540255@scsmsx413.amr.corp.intel.com>
+	id S932091AbXB1Jc5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Feb 2007 04:32:57 -0500
+In-Reply-To: <20070226172716.b2e956b7.khali@linux-fr.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org, Adam Belay <abelay@novell.com>, "Li, Shaohua" <shaohua.li@intel.com>, "Brown, Len" <len.brown@intel.com>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, lm-sensors@lm-sensors.org, ibm-acpi-devel@lists.sourceforge.net, "linux-acpi@vger" <linux-acpi@vger.kernel.org>
 
-On Tue, Feb 27, 2007 at 08:47:55PM -0800, Pallipadi, Venkatesh wrote:
+On Mon, 2007-02-26 at 17:27 +0100, Jean Delvare wrote:
+> Hi Henrique,
+> 
+> On Sat, 24 Feb 2007 16:20:24 -0200, Henrique de Moraes Holschuh wrote:
+> > I am working on a conversion of ibm-acpi to sysfs, and in the process I am
+> > trying to do away with every non-generic interface I can.  At least two
+> > ibm-acpi interfaces map directly to hwmon/lm-sensors style: fan and thermal.
+> > I'd like to expose them as hwmon attributes, using the hwmon generic
+> > interfaces for fan control and thermal sensor readings.
+> 
+> This would be really great. I was thinking about doing the same for the
+> standard ACPI "fan" and "thermal" modules too, but I happen to be too
+> busy for that :( Making these drivers compatible with the hwmon
+> interface is one way to solve the ACPI vs. hwmon issues which have been
+> reported and discussed lately.
+> 
+The standard ACPI "fan" and "thermal" modules?
+I'm converting these two modules to sysfs. I think "thermal" has too
+much ACPI specific information and is not that easy to have a generic
+interface.
+Could you give some more detailed descriptions please? :)
 
- > >I played with this a little, and got puzzled.
- > >My quad core box used exactly the same amount of power whether the
- > >'ladder' governer was loaded & in use or not.  In both situations
- > >it was exactly the same as a vanilla 2.6.20
- > >
- > >I'd have expected it to use more until I loaded up 'ladder' to bring it
- > >on par featurewise with 2.6.20.  What did I miss?
- > 
- > Quad core what platform?
-
-Glenwood
-
- > How many C-states are supported in this platform?
-
-Garg, only C1.  That explains a lot.
-
- > Current ladder is mostly like Policy embedded in ACPI today. But, Adam
- > has
- > been working on different policies that we want to experiment with as we
- > go along.
-
-ok.
-
-		Dave
-
-
--- 
-http://www.codemonkey.org.uk
+Thanks,
+Rui
