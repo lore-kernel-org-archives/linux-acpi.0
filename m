@@ -1,57 +1,78 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: Re: [lm-sensors] RFC: conversion of ibm-acpi to
-	hwmon sysfs
-Date: Wed, 28 Feb 2007 11:38:36 -0300
-Message-ID: <20070228143836.GC30168@khazad-dum.debian.net>
-References: <20070224182024.GA23865@khazad-dum.debian.net>
-	<20070226172716.b2e956b7.khali@linux-fr.org>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH - 2.6.19 -0/1] Backport of psmouse suspend/shutdown
+	cleanups
+Date: Wed, 28 Feb 2007 17:46:04 +0100
+Message-ID: <1172681164.10619.516.camel@d36.suse.de>
+References: <1172077685.10619.101.camel@d36.suse.de>
+	 <d120d5000702210926j7e7f1ccjb8c2689640b870e8@mail.gmail.com>
+	 <1172148739.10619.196.camel@d36.suse.de>
+	 <d120d5000702220702r44894a51lfb5499b5c59d8563@mail.gmail.com>
+	 <1172499672.10619.346.camel@d36.suse.de>
+	 <d120d5000702260634g3250e32ej3619a5f584f204af@mail.gmail.com>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20070226172716.b2e956b7.khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.suse.de ([195.135.220.2]:34289 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752288AbXB1QqG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Feb 2007 11:46:06 -0500
+In-Reply-To: <d120d5000702260634g3250e32ej3619a5f584f204af@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>
 
-On Mon, 26 Feb 2007, Jean Delvare wrote:
-> > I was going to place all fan attributes in a sysfs group (subdirectory)
-> > named "fan", and all thermal attributes in a sysfs group named "thermal". Is
-> > that acceptable?
+On Mon, 2007-02-26 at 09:34 -0500, Dmitry Torokhov wrote:
+> Hi Thomas,
 > 
-> No, it's not, as it wouldn't be compatible with what all the other
-> drivers do and what libsensors expects.
+> On 2/26/07, Thomas Renninger <trenn@suse.de> wrote:
+> > On Thu, 2007-02-22 at 10:02 -0500, Dmitry Torokhov wrote:
+> > >
+> > > Hope this makes sense (I must admit it makes little sense to me ;) ).
+> >
+> > Same for me at the beginning.
+> > I tracked two of the HP problems (wrong temperature, wrong _PPC value)
+> > down to wrong EC reads -> BIOS issue.
+> >
+> > Someone (this is the guy who actually solved this) reported that
+> > unloading psmouse helps. When I saw this report confirmed by other
+> > people a .shutdown workaround was easy and got also confirmed working...
+> >
+> > And now it even makes a bit sense...
+> > There is a little microprocessor (Embedded Controller) pre-processing
+> > sensor or other data which gets accessed via ACPI. This one also access
+> > mouse/keyboard hardware (described a bit in ACPI specs).
+> 
+> Yes, I am aware that KBC is usually emulated by EC chip nowadays, what
+> does not really makes sense to me is how crazy the firmware is.
+> 
+> ...
+> > FYI:
+> > You might stumble again over the EC in future...
+> > I saw reports where mouse jittering or similar bugs where fixed in
+> > drivers/acpi/ec.c
+> > If trying ec_intr=0 boot param, not loading any ACPI modules or the big
+> > hammer: acpi=off helps to solve mouse or keyboard problems it's probably
+> > Embedded Controller related (which might need a fix in ec.c, AML or EC
+> > BIOS code (in this case we seem to have the latter problem :) )...).
+> >
+> 
+> Yep, seen that, except for AML workarounds. Do you have any examples?
+> Although there seem to be lees complaints about mice jittering
+> nowadays... Or maybe they simply got tired of complaining ;)
 
-Ok, I have fan*_* and temp*_input hanging directly from the device (no
-groups).  However, that device has a lot of other stuff that is not even
-remotely accounted for in hwmon, such as control of video outputs and
-hotkeys, the firmware action beeper, etc.
+I remember one mouse jittering issue got fixed by BIOS update, but I
+don't know whether they fixed the EC firmware, modified EC reads/writes
+in AML or whatever...
 
-Does that cause problems for lm-sensors, or would it just ignore the extra
-attributes and groups?
+Reducing thermal polling or ACPI (EC) activity in general could also
+help, therefore I expect workarounds in AML could be an option.
+	
+I also remember some cleanups in drivers/acpi/ec.c (some time ago) that
+fixed up some machines...
 
-I can provide two devices, ibm-acpi.0 and ibm-acpi.1, and have the hwmon
-attributes in only one of them, and register just that one with the hwmon
-class.  Would that be better/safer?
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+    Thomas
 
--------------------------------------------------------------------------
-Take Surveys. Earn Cash. Influence the Future of IT
-Join SourceForge.net's Techsay panel and you'll get the chance to share your
-opinions on IT & business topics through brief surveys-and earn cash
-http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
