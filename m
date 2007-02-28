@@ -1,22 +1,36 @@
-From: Corey Minyard <minyard@acm.org>
-Subject: Re: [Openipmi-developer] acpi_find_bmc() and acpi_get_table()
-Date: Wed, 28 Feb 2007 15:42:11 -0600
-Message-ID: <45E5F733.8080708@acm.org>
-References: <200702102327.28312.lenb@kernel.org> <200702152103.54960.bjorn.helgaas@hp.com> <45D53DDE.5000300@acm.org> <200702192131.52947.bjorn.helgaas@hp.com> <45DA9931.80605@linux.intel.com> <45DAFDD8.909@acm.org> <20070225215922.GA28931@lists.us.dell.com> <5DDAB7BA7BDB58439DD0EED0B8E9A3AE073879@ausx3mpc102.aus.amer.dell.com>
+From: <Jordan_Hargrave@Dell.com>
+Subject: RE: [Openipmi-developer] acpi_find_bmc() and acpi_get_table()
+Date: Wed, 28 Feb 2007 16:05:41 -0600
+Message-ID: <5DDAB7BA7BDB58439DD0EED0B8E9A3AE073884@ausx3mpc102.aus.amer.dell.com>
+References: <200702102327.28312.lenb@kernel.org> <200702152103.54960.bjorn.helgaas@hp.com> <45D53DDE.5000300@acm.org> <200702192131.52947.bjorn.helgaas@hp.com> <45DA9931.80605@linux.intel.com> <45DAFDD8.909@acm.org> <20070225215922.GA28931@lists.us.dell.com> <5DDAB7BA7BDB58439DD0EED0B8E9A3AE073879@ausx3mpc102.aus.amer.dell.com> <45E5F733.8080708@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mta15.mail.adelphia.net ([68.168.78.77]:36926 "EHLO
-	mta15.adelphia.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932438AbXB1VmP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Feb 2007 16:42:15 -0500
-In-Reply-To: <5DDAB7BA7BDB58439DD0EED0B8E9A3AE073879@ausx3mpc102.aus.amer.dell.com>
+Received: from ausc60ps301.us.dell.com ([143.166.148.206]:36175 "EHLO
+	ausc60ps301.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932481AbXB1WFn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Feb 2007 17:05:43 -0500
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jordan_Hargrave@Dell.com
-Cc: Matt_Domsch@dell.com, alexey.y.starikovskiy@linux.intel.com, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net, lenb@kernel.org, bjorn.helgaas@hp.com
+To: minyard@acm.org
+Cc: Matt_Domsch@Dell.com, alexey.y.starikovskiy@linux.intel.com, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net, lenb@kernel.org, bjorn.helgaas@hp.com
 
+The reason for the acpi_bus_register/unregister is to get the handle of the IPMI ACPI object.  There isn't a way to get the device handle otherwise.  Once it gets the handle it doesn't need the ACPI device anymore.  It's not the best solution, but the current way that the SI driver initializes (at least with SLES and older RHEL3/4) doesn't match up well with the way that the ACPI drivers initialize.  Actually for RHEL5 I could make this cleaner, moving the try_init_acpidev code into the acpi_ipmi_add; then set a global variable to show that it initialized properly to pass back to try_init_xxxx.  For older OpenIPMI driver code this doesn't mesh so well as the try_init_xxx routines take a smi_info ** argument and we can't pass this to the ACPI add routine.
+
+--jordan hargrave
+Dell Enterprise Linux Engineering
+
+
+
+-----Original Message-----
+From: Corey Minyard [mailto:minyard@acm.org]
+Sent: Wed 2/28/2007 3:42 PM
+To: Hargrave, Jordan
+Cc: Domsch, Matt; alexey.y.starikovskiy@linux.intel.com; linux-acpi@vger.kernel.org; openipmi-developer@lists.sourceforge.net; lenb@kernel.org; bjorn.helgaas@hp.com
+Subject: Re: [Openipmi-developer] acpi_find_bmc() and acpi_get_table()
+ 
 Jordan_Hargrave@Dell.com wrote:
 > Corey,
 >
