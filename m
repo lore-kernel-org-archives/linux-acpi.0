@@ -1,145 +1,77 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: Could the k8temp driver be interfering with ACPI?
-Date: Thu, 1 Mar 2007 15:26:55 +0100
-Message-ID: <20070301152655.f232db64.khali@linux-fr.org>
-References: <45D5EA88.7090300@redhat.com> <45D6DDCE.5050803@assembler.cz>
-	<45D7461A.2040808@redhat.com>
-	<20070218183805.5a4fd813.khali@linux-fr.org>
-	<20070228213803.GA4877@ucw.cz>
+From: John Keller <jpk@sgi.com>
+Subject: Re: [PATCH 1/1] - Altix: reinitialize acpi tables
+Date: Thu, 1 Mar 2007 09:15:22 -0600 (CST)
+Message-ID: <200703011515.l21FFNBK439457@fcbayern.americas.sgi.com>
+References: <200703010236.42128.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <lm-sensors-bounces@lm-sensors.org>
-In-Reply-To: <20070228213803.GA4877@ucw.cz>
-List-Unsubscribe: <http://lists.lm-sensors.org/mailman/listinfo/lm-sensors>,
-	<mailto:lm-sensors-request@lm-sensors.org?subject=unsubscribe>
-List-Archive: <http://lists.lm-sensors.org/pipermail/lm-sensors>
-List-Post: <mailto:lm-sensors@lm-sensors.org>
-List-Help: <mailto:lm-sensors-request@lm-sensors.org?subject=help>
-List-Subscribe: <http://lists.lm-sensors.org/mailman/listinfo/lm-sensors>,
-	<mailto:lm-sensors-request@lm-sensors.org?subject=subscribe>
-Sender: lm-sensors-bounces@lm-sensors.org
-Errors-To: lm-sensors-bounces@lm-sensors.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, Chuck Ebbert <cebbert@redhat.com>, lm-sensors@lm-sensors.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S965180AbXCAPP3@vger.kernel.org>
+In-Reply-To: <200703010236.42128.lenb@kernel.org> from "Len Brown" at Mar 01, 2007 02:36:41 AM
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: John Keller <jpk@sgi.com>, linux-acpi@vger.kernel.org, ayoung@sgi.com, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Pavel,
+Len,
+ The call itself does not fail. acpi_table_init() has no problem
+processing an empty DSDT. In fact, this is exactly what happens
+today when booting our non-acpi capable kernel. The second call is
+needed in the case of booting an acpi capable kernel. We need to
+rebuild the DSDT and SSDT, and because the first acpi_table_init
+call has saved away info from the first set of tables, we need to
+call it again to process the rebuilt tables.
 
-On Wed, 28 Feb 2007 21:38:04 +0000, Pavel Machek wrote:
-> > > Well I had an idea after looking at k8temp -- why not make it default to
-> > > doing only reads from the sensor?  You'd only get information from whatever
-> > > core/sensor combination that ACPI had last used, but it would be safe.
+In the future, when we no longer need to support non-acpi capable
+kernels, the second call would not be needed for a normal/production
+boot. But, it would still be required for a kexec/kdump boot.
+
+John
+
+
+> 
+> so will the 1st acpi_table_init() always fail -- even
+> on future machines?
+> 
+> -Len
+> 
+> On Wednesday 28 February 2007 18:47, John Keller wrote:
+> > To provide compatibilty with SN kernels that do and do not
+> > have ACPI IO support, the SN PROM must build different
+> > versions of some ACPI tables based on which kernel is booting.
+> > As such, the tables may have to change at kernel boot time.
+> > By default, prior to kernel boot, the PROM builds an empty
+> > DSDT (header only) and no SSDTs. If an ACPI capable kernel
+> > boots, the kernel will notify the PROM, at platform setup time,
+> > and the PROM will build full DSDT and SSDT tables.
 > > 
-> > ACPI is broken here, not k8temp, so let's fix ACPI instead. ACPI
-> > doesn't conflict with only k8temp, but with virtually all hardware
-> > monitoring drivers, all I2C/SMBus drivers, and probably other types of
-> > drivers too. We just can't restrict or blacklist all these drivers
-> > because ACPI misbehaves.
+> > With the latest changes to acpi_table_init(), the table lengths
+> > are saved, and when our PROM changes them, the changes are not seen,
+> > and the kernel will crash on boot. Because of issues with kexec support,
+> > we are not able to create the tables prior to acpi_table_init().
+> > As a result, we are making a second call to acpi_table_init() to
+> > process the rebuilt DSDT and SSDTs.
+> > 
+> > Signed-off-by: John Keller <jpk@sgi.com>
+> > ---
+> > 
+> > 
+> > Index: release/arch/ia64/sn/kernel/setup.c
+> > ===================================================================
+> > --- release.orig/arch/ia64/sn/kernel/setup.c	2007-02-28 11:02:34.558139870 -0600
+> > +++ release/arch/ia64/sn/kernel/setup.c	2007-02-28 11:02:39.362737953 -0600
+> > @@ -397,6 +397,8 @@ void __init sn_setup(char **cmdline_p)
+> >  	ia64_sn_set_os_feature(OSF_PCISEGMENT_ENABLE);
+> >  	ia64_sn_set_os_feature(OSF_ACPI_ENABLE);
+> >  
+> > +	/* Load the new DSDT and SSDT tables into the global table list. */
+> > + 	acpi_table_init();
+> >  
+> >  #if defined(CONFIG_VT) && defined(CONFIG_VGA_CONSOLE)
+> >  	/*
+> > -
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
 > 
-> Oops, sorry about that but no, that will not work.
-> 
-> There's piece of paper, called ACPI specification, and we are
-> following it.
-
-I never suggested otherwise. But the Linux 2.6 device driver model is
-based, in part, on the fact that each driver must request the
-resources it needs before actually using them. The acpi subsystem fails
-to do that, so it is, in that sense, misbehaving. The is the root cause
-of the problems people are reporting these days.
-
-> Bug is not in our implementation.
-> 
-> Bug is in the ACPI specs... it does not explicitely allow you to go
-> out and bitbang i2c, and you do it, and you get problems.
-
-It really doesn't have anything to do with bit-banged I2C. It's about
-SMBus master chips (most often embedded in south bridges), hardware
-monitoring chips (be them SMBus-based or not), or basically any driver
-which uses a resource ACPI is using as well (virtually any driver
-accessing a Super-IO/LPC device is affected, for example.)
-
-Secondly, your logic is somewhat broken. Just because one specification
-doesn't explicitely allow me to do something, I must stop doing it?
-There must be two dozen different specifications modern PC hardware
-supposedly conforms to. If we stop doing everything which isn't
-explicitely allowed by all of them, I fear there won't be much left ;)
-A better question would be IMHO: Does the ACPI specification
-explicitely _prohibits_ accessing directly to some categories of
-hardware?
-
-Lastly, I wholeheartedly agree that the core problem appears to be in
-the ACPI design rather than in the Linux implementation. As a matter of
-fact, other operating systems are facing the same problem [1]. The
-problem isn't less real, though.
-
-> Now, you may try to change specs to be hwmon-friendly... good luck.
-
-I would like them to be driver-model-friendly, that's even a broader
-challenge ;)
-
-> But currently hw manufacturers follow ACPI specs, so we have to follow
-> it, too; bad luck for hwmon. BIOS hiding smbus from you is good hint
-> you are doing something wrong...?
-
-I would love things to be that easy, but unfortunately they are not.
-
-Firstly, the first records of hidden SMBus, in September 2000, predate
-ACPI. All the early boards where the SMBus was hidden did not have ACPI
-code poking at it at all, so this is definitely not the reason why it
-was removed. The Asus P4 series is a good example of that. Unhiding the
-SMBus on these boards actually let the user take benefit of the
-hardware they had paid for.
-
-Secondly, only a few south bridges are capable of hiding the SMBus. And
-an even smaller number of systems have their SMBus actually hidden by
-the BIOS. A much large number of systems, especially recent ones, have
-ACPI poking at the hardware monitoring chip (again, SMBus-based or
-not.) So there is no correlation between hidden SMBus and ACPI poking
-at the hardware monitoring chip. So, even though we are very careful
-these days when adding a quirk to unhide the SMBus on a new system (we
-make sure that ACPI isn't accessing it), this is not going to solve the
-general problem.
-
-I would be happy to prevent SMBus and/or hardware monitoring drivers
-from being loaded on ACPI-based system if we had a way to know which
-systems do have ACPI code accessing these chips and which do not, and if
-ACPI was offering a level of functionality comparable to what
-individual hardware monitoring drivers offer. Unfortunately:
-
-1* As far as I know, we currently have no way to know if the ACPI code
-plans to ever access the hardware monitoring chip. If the acpi
-subsystem could export this information somehow, it would help a lot.
-But I'm not familiar with ACPI, so I don't know if this is feasable or
-not. We just can't prevent the SMBus and hardware monitoring drivers
-drivers from being loaded as soon as ACPI is enabled. This would
-prevent a majority of users from using them, while they work fine for
-most of them.
-
-2* The hardware monitoring features offered by ACPI today are one level
-of magnitude weaker than what lm_sensors was already offering back in
-1999. The monitoring chips can do much but unfortunately ACPI only
-exposes a very small subset of the chip features. ACPI doesn't handle
-voltage monitoring at all. It usually reports no more than one fan, and
-in my experience, more often than not, the speed is reported as a
-boolean (spinning or not), when lm_sensors gives you the exact speed of
-all your fans. ACPI thermal zones are not so bad, but the interface to
-control them is ugly, and lm_sensors usually gives more details. And
-more importantly, on almost all desktop and server motherboards, ACPI
-does _not_ provide any hardware monitoring feature. So we really can't
-go tell our users: give up the individual hardware monitoring drivers
-and lm_sensors on all ACPI-enabled systems and use whatever ACPI offers
-instead. This would be a major functionality loss for a vast majority
-of users.
-
-What do you propose?
-
-[1] http://www.microsoft.com/whdc/system/pnppwr/powermgmt/BIOSAML.mspx
-
--- 
-Jean Delvare
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
