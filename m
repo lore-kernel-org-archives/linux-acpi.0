@@ -1,43 +1,39 @@
-From: John Keller <jpk@sgi.com>
-Subject: [PATCH 1/1] - Altix: reinitialize acpi tables
-Date: Wed, 28 Feb 2007 17:47:27 -0600
-Message-ID: <20070228234727.11369.38394.sendpatchset@attica.americas.sgi.com>
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Sender: linux-ia64-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: ayoung@sgi.com, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, John Keller <jpk@sgi.com>
+From: "Jeff Chua" <jeff.chua.linux@gmail.com>
+Subject: Re: 2.6.21-rc1: known regressions (v2) (part 1)
+Date: Thu, 1 Mar 2007 11:45:35 +0800
+Message-ID: <b6a2187b0702281945n5f62a6b5w1c535de3ef9aaa8f@mail.gmail.com>
+References: <Pine.LNX.4.64.0702202043280.4043@woody.linux-foundation.org>
+	<20070226220152.GA29575@stusta.de>
+	<20070228211318.GB4301@mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.osdl.org>
+In-Reply-To: <20070228211318.GB4301@mellanox.co.il>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
+List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.osdl.org>
+List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
+List-Subscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.osdl.org
+Errors-To: linux-pm-bounces@lists.osdl.org
+To: "Michael S. Tsirkin" <mst@mellanox.co.il>
+Cc: linux-acpi@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Ingo Molnar <mingo@elte.hu>, Adrian Bunk <bunk@stusta.de>, linux-pm@lists.osdl.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-To provide compatibilty with SN kernels that do and do not
-have ACPI IO support, the SN PROM must build different
-versions of some ACPI tables based on which kernel is booting.
-As such, the tables may have to change at kernel boot time.
-By default, prior to kernel boot, the PROM builds an empty
-DSDT (header only) and no SSDTs. If an ACPI capable kernel
-boots, the kernel will notify the PROM, at platform setup time,
-and the PROM will build full DSDT and SSDT tables.
+On 3/1/07, Michael S. Tsirkin <mst@mellanox.co.il> wrote:
 
-With the latest changes to acpi_table_init(), the table lengths
-are saved, and when our PROM changes them, the changes are not seen,
-and the kernel will crash on boot. Because of issues with kexec support,
-we are not able to create the tables prior to acpi_table_init().
-As a result, we are making a second call to acpi_table_init() to
-process the rebuilt DSDT and SSDTs.
+> with 2.6.20, pressing Fn/F4 generates an ACPI event and triggers suspend =
+to RAM.
+>
+> On 2.6.21-rc2, after resume (when the box is accessible from network),
+> pressing Fn/F4 again does not seem to have any effect.
 
-Signed-off-by: John Keller <jpk@sgi.com>
----
+I have the same problem on my IBM X60s on rc1 and rc2. Can't resume
+from RAM, can't suspend to disk. It is possible to revert all the
+changes to ACPI and test it?
 
-
-Index: release/arch/ia64/sn/kernel/setup.c
-===================================================================
---- release.orig/arch/ia64/sn/kernel/setup.c	2007-02-28 11:02:34.558139870 -0600
-+++ release/arch/ia64/sn/kernel/setup.c	2007-02-28 11:02:39.362737953 -0600
-@@ -397,6 +397,8 @@ void __init sn_setup(char **cmdline_p)
- 	ia64_sn_set_os_feature(OSF_PCISEGMENT_ENABLE);
- 	ia64_sn_set_os_feature(OSF_ACPI_ENABLE);
- 
-+	/* Load the new DSDT and SSDT tables into the global table list. */
-+ 	acpi_table_init();
- 
- #if defined(CONFIG_VT) && defined(CONFIG_VGA_CONSOLE)
- 	/*
+Jeff.
