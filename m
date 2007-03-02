@@ -1,117 +1,50 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Date: Fri, 2 Mar 2007 12:40:23 +0100
-Message-ID: <20070302114023.GD2163@elf.ucw.cz>
-References: <45D5EA88.7090300@redhat.com> <45D6DDCE.5050803@assembler.cz> <45D7461A.2040808@redhat.com> <20070218183805.5a4fd813.khali@linux-fr.org> <20070228213803.GA4877@ucw.cz> <20070301152655.f232db64.khali@linux-fr.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: Conversion of ACPI fan+thermal to hwmon sysfs
+Date: Fri, 2 Mar 2007 11:43:26 +0000
+Message-ID: <20070302114326.GA1212@srcf.ucam.org>
+References: <20070224182024.GA23865@khazad-dum.debian.net> <20070226172716.b2e956b7.khali@linux-fr.org> <1172655111.11100.50.camel@localhost.localdomain> <20070228143433.GB30168@khazad-dum.debian.net> <1172797936.14827.33.camel@localhost.localdomain> <20070302121304.9db20131.khali@linux-fr.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:46964 "EHLO amd.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S933336AbXCBLkh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 2 Mar 2007 06:40:37 -0500
+Received: from cavan.codon.org.uk ([217.147.92.49]:37730 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422830AbXCBLnr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Mar 2007 06:43:47 -0500
 Content-Disposition: inline
-In-Reply-To: <20070301152655.f232db64.khali@linux-fr.org>
+In-Reply-To: <20070302121304.9db20131.khali@linux-fr.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Jean Delvare <khali@linux-fr.org>
-Cc: Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+Cc: Zhang Rui <rui.zhang@intel.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, lenb@kernel.org, konstantin.a.karasyov@intel.com
 
-Hi!
+On Fri, Mar 02, 2007 at 12:13:04PM +0100, Jean Delvare wrote:
 
-> > > > Well I had an idea after looking at k8temp -- why not make it default to
-> > > > doing only reads from the sensor?  You'd only get information from whatever
-> > > > core/sensor combination that ACPI had last used, but it would be safe.
-> > > 
-> > > ACPI is broken here, not k8temp, so let's fix ACPI instead. ACPI
-> > > doesn't conflict with only k8temp, but with virtually all hardware
-> > > monitoring drivers, all I2C/SMBus drivers, and probably other types of
-> > > drivers too. We just can't restrict or blacklist all these drivers
-> > > because ACPI misbehaves.
-> > 
-> > Oops, sorry about that but no, that will not work.
-> > 
-> > There's piece of paper, called ACPI specification, and we are
-> > following it.
-> 
-> I never suggested otherwise. But the Linux 2.6 device driver model is
-> based, in part, on the fact that each driver must request the
-> resources it needs before actually using them. The acpi subsystem fails
-> to do that, so it is, in that sense, misbehaving. The is the root cause
-> of the problems people are reporting these days.
+> As I don't know what these "cooling mode policies" are, I can't really
+> tell. Trip points in hwmon let the user define the desired fan speed
+> depending on a temperature measurement, and that's about it. You can't
+> associate other actions at the moment, essentially because hardware
+> monitoring chips themselves can't do anything else. If it would be
+> convenient for the ACPI case to add something else, we can discuss
+> additional interface files.
 
-Ok. You are right that ACPI is an ugly piece of mess. But I'm pretty
-sure that 90%+ of ACPI notebook implementations *will* want to talk to
-their monitoring chips... for temperature readings.
+ACPI cooling mode policies may be related to fans, but can also be 
+associated with passive cooling of the CPU by throttling or voltage 
+scaling. Some machines keep the fan under BIOS control, so the only 
+information exposed via the thermal module will be something like:
 
-So even if we fixed ACPI to reserve the ports, you'd be still unhappy;
-lm-sensors would break at least on all the notebooks.
+critical (S5):           95 C
+passive:                 91 C: tc1=5 tc2=4 tsp=600 devices=0xc16dd310 
 
-> > Now, you may try to change specs to be hwmon-friendly... good luck.
-> 
-> I would like them to be driver-model-friendly, that's even a broader
-> challenge ;)
+indicating that the CPU should be throttled at 91C, and the system 
+forcibly shut down at 95C. 
 
-:-).
+> My original idea was to simply add a read-only hwmon-like interface to
+> the acpi fan and thermal modules. I didn't plan to replace the current
+> interfaces offered by these modules, at least not directly. There must
+> be many user-space tools and scripts relying on these at the moment, so
+> we need a transition period anyway.
 
-> > But currently hw manufacturers follow ACPI specs, so we have to follow
-> > it, too; bad luck for hwmon. BIOS hiding smbus from you is good hint
-> > you are doing something wrong...?
-> 
-> I would love things to be that easy, but unfortunately they are not.
-> 
-> Firstly, the first records of hidden SMBus, in September 2000, predate
-> ACPI. All the early boards where the SMBus was hidden did not have ACPI
-> code poking at it at all, so this is definitely not the reason why it
-> was removed. The Asus P4 series is a good example of that. Unhiding the
-> SMBus on these boards actually let the user take benefit of the
-> hardware they had paid for.
+That doesn't sound like a bad plan.
 
-...against wishes of the manufacturers. Which sometimes know what they
-are doing. (Sometimes not :-).
-
-> I would be happy to prevent SMBus and/or hardware monitoring drivers
-> from being loaded on ACPI-based system if we had a way to know which
-> systems do have ACPI code accessing these chips and which do not, and if
-> ACPI was offering a level of functionality comparable to what
-> individual hardware monitoring drivers offer. Unfortunately:
-
-Well, I'm afraid you should assume all recent notebooks touch sensors
-from ACPI.
-
-> 1* As far as I know, we currently have no way to know if the ACPI code
-> plans to ever access the hardware monitoring chip. If the acpi
-> subsystem could export this information somehow, it would help a lot.
-> But I'm not familiar with ACPI, so I don't know if this is feasable or
-> not. We just can't prevent the SMBus and hardware monitoring drivers
-> drivers from being loaded as soon as ACPI is enabled. This would
-> prevent a majority of users from using them, while they work fine for
-> most of them.
-
-What about whitelist? DMI-based? That's only way to do it, I'm afraid.
-
-> 2* The hardware monitoring features offered by ACPI today are one level
-> of magnitude weaker than what lm_sensors was already offering back in
-> 1999. The monitoring chips can do much but unfortunately ACPI only
-> exposes a very small subset of the chip features. ACPI doesn't
-> handle
-
-Yes, I know ACPI sucks at hardware monitoring. Unfortunately, we can't
-go without ACPI.
-
-> voltage monitoring at all. It usually reports no more than one fan, and
-> in my experience, more often than not, the speed is reported as a
-> boolean (spinning or not), when lm_sensors gives you the exact speed of
-> all your fans. ACPI thermal zones are not so bad, but the interface to
-> control them is ugly, and lm_sensors usually gives more details. And
-
-Fix the interface? ;-). Actually that move may be underway as we are
-moving out of /proc.
-
-> What do you propose?
-
-Whitelist seems like a way to go :(.
-									Pavel
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Matthew Garrett | mjg59@srcf.ucam.org
