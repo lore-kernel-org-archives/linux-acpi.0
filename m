@@ -1,32 +1,38 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Date: Fri, 2 Mar 2007 11:47:47 +0000
-Message-ID: <20070302114747.GB1212@srcf.ucam.org>
-References: <45D5EA88.7090300@redhat.com> <45D6DDCE.5050803@assembler.cz> <45D7461A.2040808@redhat.com> <20070218183805.5a4fd813.khali@linux-fr.org> <20070228213803.GA4877@ucw.cz> <20070301152655.f232db64.khali@linux-fr.org> <20070302114023.GD2163@elf.ucw.cz>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [linux-pm] 2.6.21-rc1: known regressions (v2) (part 1)
+Date: Fri, 2 Mar 2007 13:26:41 +0100
+Message-ID: <20070302122641.GA3034@elf.ucw.cz>
+References: <Pine.LNX.4.64.0702202043280.4043@woody.linux-foundation.org> <20070226220152.GA29575@stusta.de> <20070228211318.GB4301@mellanox.co.il> <b6a2187b0702281945n5f62a6b5w1c535de3ef9aaa8f@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:35001 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422831AbXCBLsM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Mar 2007 06:48:12 -0500
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:35372 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1423055AbXCBM07 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 2 Mar 2007 07:26:59 -0500
 Content-Disposition: inline
-In-Reply-To: <20070302114023.GD2163@elf.ucw.cz>
+In-Reply-To: <b6a2187b0702281945n5f62a6b5w1c535de3ef9aaa8f@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Jean Delvare <khali@linux-fr.org>, Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: Jeff Chua <jeff.chua.linux@gmail.com>
+Cc: "Michael S. Tsirkin" <mst@mellanox.co.il>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Adrian Bunk <bunk@stusta.de>, linux-pm@lists.osdl.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Fri, Mar 02, 2007 at 12:40:23PM +0100, Pavel Machek wrote:
+On Thu 2007-03-01 11:45:35, Jeff Chua wrote:
+> On 3/1/07, Michael S. Tsirkin <mst@mellanox.co.il> wrote:
+> 
+> > with 2.6.20, pressing Fn/F4 generates an ACPI event and triggers suspend to RAM.
+> >
+> > On 2.6.21-rc2, after resume (when the box is accessible from network),
+> > pressing Fn/F4 again does not seem to have any effect.
+> 
+> I have the same problem on my IBM X60s on rc1 and rc2. Can't resume
+> from RAM, can't suspend to disk. It is possible to revert all the
+> changes to ACPI and test it?
 
-> Whitelist seems like a way to go :(.
-
-The DSDT code clearly can't touch the hardware itself - hardware access 
-is carried out by the kernel. If we can identify cases where ACPI reads 
-and writes would touch resources claimed by other drivers, that would be 
-a good starting point for working out what's going on.
-
-Of course, this ignores the case where the DSDT just traps into SMM 
-code. That one is clearly unsolvable.
+As I said elsewhere in the thread, suspend/resume to RAM works ok on
+my thinkpad x60. I posted my .config there, perhaps difference is in
+it? Ingo identified KVM as possible culprit.
+								Pavel
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
