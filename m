@@ -1,61 +1,48 @@
 From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: Conversion of ACPI fan+thermal to hwmon sysfs
-Date: Fri, 2 Mar 2007 12:13:04 +0100
-Message-ID: <20070302121304.9db20131.khali@linux-fr.org>
-References: <20070224182024.GA23865@khazad-dum.debian.net>
-	<20070226172716.b2e956b7.khali@linux-fr.org>
-	<1172655111.11100.50.camel@localhost.localdomain>
-	<20070228143433.GB30168@khazad-dum.debian.net>
-	<1172797936.14827.33.camel@localhost.localdomain>
+Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
+Date: Fri, 2 Mar 2007 12:27:36 +0100
+Message-ID: <20070302122736.f14a7a22.khali@linux-fr.org>
+References: <45D5EA88.7090300@redhat.com>
+	<45D6DDCE.5050803@assembler.cz>
+	<45D7461A.2040808@redhat.com>
+	<20070218183805.5a4fd813.khali@linux-fr.org>
+	<20070228213803.GA4877@ucw.cz>
+	<20070301152655.f232db64.khali@linux-fr.org>
+	<20070301174806.GA4979@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-105-friday.nerim.net ([62.4.16.105]:3473 "EHLO
+Received: from smtp-105-friday.nerim.net ([62.4.16.105]:2866 "EHLO
 	kraid.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1423029AbXCBLPR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Mar 2007 06:15:17 -0500
-In-Reply-To: <1172797936.14827.33.camel@localhost.localdomain>
+	with ESMTP id S1423036AbXCBL3s (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Mar 2007 06:29:48 -0500
+In-Reply-To: <20070301174806.GA4979@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, lenb@kernel.org, konstantin.a.karasyov@intel.com
+To: Dave Jones <davej@redhat.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-Hi Zhang,
-
-> On Thu, 2007-03-01 at 08:06 +0100, Jean Delvare wrote: 
-> > Indeed, ACPI thermal zone may have more thermal trip points than the
-> > hwmon interface specifies. Two of the trip points can be mapped to
-> > temp1_max and temp1_crit, respectively. If we want to handle them all,
-> > then probably we have to implement Henrique's suggestion and really
-> > think in terms of thermal zones, i.e. the trip points would be mapped
-> > to temp1_auto_point[1-*]_temp and possibly associated with a fan speed
-> > output.
+On Thu, 1 Mar 2007 12:48:06 -0500, Dave Jones wrote:
+> On Thu, Mar 01, 2007 at 03:26:55PM +0100, Jean Delvare wrote:
 > 
-> Well, ACPI thermal zones are not only a logical collection of interfaces
-> to temperature sensors, trip points and thermal property information,
-> but also take charge of thermal controls, i.e. setting platform's
-> cooling mode policies.
-> I don't know if I missed something, but from Documentation/hwmon/sysfs-
-> interface, I can't find any interface that make it possible.
+>  > Firstly, the first records of hidden SMBus, in September 2000, predate
+>  > ACPI.
+> 
+> The earliest ACPI spec I have handy is 1.0b, which came out in Feb 2 1999
+> so this isn't true. The all knowing (and always accurate :) wikipedia
+> claims it was first released in 1996, though I believe that all the pre 1.0b
+> machines were using acpi implementations before the standard was finalised.
+> 
+> I certainly remember seeing ACPI capable machines circa 1997/1998.
 
-As I don't know what these "cooling mode policies" are, I can't really
-tell. Trip points in hwmon let the user define the desired fan speed
-depending on a temperature measurement, and that's about it. You can't
-associate other actions at the moment, essentially because hardware
-monitoring chips themselves can't do anything else. If it would be
-convenient for the ACPI case to add something else, we can discuss
-additional interface files.
+Yeah, and these early ACPI implementations were so good that we have an
+option to blacklist them.
+arch/i386/defconfig:CONFIG_ACPI_BLACKLIST_YEAR=2001
 
-> And, porting ACPI fan and thermal zones to the hwmon model? That is
-> really complicated.
-> Add Len and Konstantin to cc list and see if they have any ideas. :)
-
-My original idea was to simply add a read-only hwmon-like interface to
-the acpi fan and thermal modules. I didn't plan to replace the current
-interfaces offered by these modules, at least not directly. There must
-be many user-space tools and scripts relying on these at the moment, so
-we need a transition period anyway.
+My point (which you didn't quote) was that there is no correlation
+between the SMBus being hidden and ACPI accessing the hardware
+monitoring chip, contrary to what Pavel was suggesting.
 
 -- 
 Jean Delvare
