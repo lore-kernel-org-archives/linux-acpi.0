@@ -1,38 +1,43 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [linux-pm] 2.6.21-rc1: known regressions (v2) (part 1)
-Date: Fri, 2 Mar 2007 13:26:41 +0100
-Message-ID: <20070302122641.GA3034@elf.ucw.cz>
-References: <Pine.LNX.4.64.0702202043280.4043@woody.linux-foundation.org> <20070226220152.GA29575@stusta.de> <20070228211318.GB4301@mellanox.co.il> <b6a2187b0702281945n5f62a6b5w1c535de3ef9aaa8f@mail.gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
+Date: Fri, 2 Mar 2007 14:37:20 +0100
+Message-ID: <20070302143720.cfd8afeb.khali@linux-fr.org>
+References: <45D5EA88.7090300@redhat.com>
+	<45D6DDCE.5050803@assembler.cz>
+	<45D7461A.2040808@redhat.com>
+	<20070218183805.5a4fd813.khali@linux-fr.org>
+	<20070228213803.GA4877@ucw.cz>
+	<20070301152655.f232db64.khali@linux-fr.org>
+	<20070301174806.GA4979@redhat.com>
+	<20070302122736.f14a7a22.khali@linux-fr.org>
+	<20070302113158.GC2156@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:35372 "EHLO amd.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1423055AbXCBM07 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 2 Mar 2007 07:26:59 -0500
-Content-Disposition: inline
-In-Reply-To: <b6a2187b0702281945n5f62a6b5w1c535de3ef9aaa8f@mail.gmail.com>
+Received: from smtp-105-friday.noc.nerim.net ([62.4.17.105]:2065 "EHLO
+	mallaury.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S2992434AbXCBNjj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Mar 2007 08:39:39 -0500
+In-Reply-To: <20070302113158.GC2156@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeff Chua <jeff.chua.linux@gmail.com>
-Cc: "Michael S. Tsirkin" <mst@mellanox.co.il>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Adrian Bunk <bunk@stusta.de>, linux-pm@lists.osdl.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Dave Jones <davej@redhat.com>, Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-On Thu 2007-03-01 11:45:35, Jeff Chua wrote:
-> On 3/1/07, Michael S. Tsirkin <mst@mellanox.co.il> wrote:
+On Fri, 2 Mar 2007 12:31:58 +0100, Pavel Machek wrote:
+> > My point (which you didn't quote) was that there is no correlation
+> > between the SMBus being hidden and ACPI accessing the hardware
+> > monitoring chip, contrary to what Pavel was suggesting.
 > 
-> > with 2.6.20, pressing Fn/F4 generates an ACPI event and triggers suspend to RAM.
-> >
-> > On 2.6.21-rc2, after resume (when the box is accessible from network),
-> > pressing Fn/F4 again does not seem to have any effect.
-> 
-> I have the same problem on my IBM X60s on rc1 and rc2. Can't resume
-> from RAM, can't suspend to disk. It is possible to revert all the
-> changes to ACPI and test it?
+> It may not be correlated with ACPI, but BIOS authors clearly want to
+> keep you away from their SMBus controllers....
 
-As I said elsewhere in the thread, suspend/resume to RAM works ok on
-my thinkpad x60. I posted my .config there, perhaps difference is in
-it? Ingo identified KVM as possible culprit.
-								Pavel
+drivers/pci/quirks.c is full of things we do against the BIOS authors
+intent. You don't plan to remove them all, do you?
+
+(And as a side note, this is really the board's owner SMBus controller.
+The hardware doesn't belong to the BIOS author.)
+
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Jean Delvare
