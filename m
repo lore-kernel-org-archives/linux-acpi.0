@@ -1,59 +1,61 @@
-From: "Takayoshi Kochi" <takayoshi.kochi@gmail.com>
-Subject: [PATCH] supporting MMCONFIG over 4GB on x86_64
-Date: Fri, 2 Mar 2007 20:07:58 +0900
-Message-ID: <43c301fe0703020307g37f7df7dxd8f94adaac3acaf3@mail.gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: Conversion of ACPI fan+thermal to hwmon sysfs
+Date: Fri, 2 Mar 2007 12:13:04 +0100
+Message-ID: <20070302121304.9db20131.khali@linux-fr.org>
+References: <20070224182024.GA23865@khazad-dum.debian.net>
+	<20070226172716.b2e956b7.khali@linux-fr.org>
+	<1172655111.11100.50.camel@localhost.localdomain>
+	<20070228143433.GB30168@khazad-dum.debian.net>
+	<1172797936.14827.33.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wx-out-0506.google.com ([66.249.82.231]:13019 "EHLO
-	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933331AbXCBLH7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Mar 2007 06:07:59 -0500
-Received: by wx-out-0506.google.com with SMTP id h31so727912wxd
-        for <linux-acpi@vger.kernel.org>; Fri, 02 Mar 2007 03:07:58 -0800 (PST)
-Content-Disposition: inline
+Received: from smtp-105-friday.nerim.net ([62.4.16.105]:3473 "EHLO
+	kraid.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1423029AbXCBLPR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Mar 2007 06:15:17 -0500
+In-Reply-To: <1172797936.14827.33.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, lenb@kernel.org, konstantin.a.karasyov@intel.com
 
-Hi,
+Hi Zhang,
 
-Currently MMCONFIG is ignored if it is located over 4G, but I see no reason
-to reject it on x86_64 platform.
+> On Thu, 2007-03-01 at 08:06 +0100, Jean Delvare wrote: 
+> > Indeed, ACPI thermal zone may have more thermal trip points than the
+> > hwmon interface specifies. Two of the trip points can be mapped to
+> > temp1_max and temp1_crit, respectively. If we want to handle them all,
+> > then probably we have to implement Henrique's suggestion and really
+> > think in terms of thermal zones, i.e. the trip points would be mapped
+> > to temp1_auto_point[1-*]_temp and possibly associated with a fan speed
+> > output.
+> 
+> Well, ACPI thermal zones are not only a logical collection of interfaces
+> to temperature sensors, trip points and thermal property information,
+> but also take charge of thermal controls, i.e. setting platform's
+> cooling mode policies.
+> I don't know if I missed something, but from Documentation/hwmon/sysfs-
+> interface, I can't find any interface that make it possible.
 
-This patch is against 2.6.21-rc2 and was tested on
-such a machine (MMCONFIG is located at 0xfe10000000)
-without any problem.
+As I don't know what these "cooling mode policies" are, I can't really
+tell. Trip points in hwmon let the user define the desired fan speed
+depending on a temperature measurement, and that's about it. You can't
+associate other actions at the moment, essentially because hardware
+monitoring chips themselves can't do anything else. If it would be
+convenient for the ACPI case to add something else, we can discuss
+additional interface files.
 
-Any comments?
+> And, porting ACPI fan and thermal zones to the hwmon model? That is
+> really complicated.
+> Add Len and Konstantin to cc list and see if they have any ideas. :)
+
+My original idea was to simply add a read-only hwmon-like interface to
+the acpi fan and thermal modules. I didn't plan to replace the current
+interfaces offered by these modules, at least not directly. There must
+be many user-space tools and scripts relying on these at the moment, so
+we need a transition period anyway.
 
 -- 
-Takayoshi Kochi
-
-Signed-off-by: Takayoshi Kochi <takayoshi.kochi@gmail.com>
----
- boot.c |    2 ++
- 1 files changed, 2 insertions(+)
-
---- linux-2.6.20/arch/i386/kernel/acpi/boot.c.orig	2007-03-02
-14:34:02.000000000 +0900
-+++ linux-2.6.20/arch/i386/kernel/acpi/boot.c	2007-03-02
-19:38:10.000000000 +0900
-@@ -198,6 +198,7 @@ int __init acpi_parse_mcfg(struct acpi_t
-
- 	memcpy(pci_mmcfg_config, &mcfg[1], config_size);
- 	for (i = 0; i < pci_mmcfg_config_num; ++i) {
-+#ifndef CONFIG_X86_64
- 		if (pci_mmcfg_config[i].address > 0xFFFFFFFF) {
- 			printk(KERN_ERR PREFIX
- 			       "MMCONFIG not in low 4GB of memory\n");
-@@ -205,6 +206,7 @@ int __init acpi_parse_mcfg(struct acpi_t
- 			pci_mmcfg_config_num = 0;
- 			return -ENODEV;
- 		}
-+#endif
- 	}
-
- 	return 0;
+Jean Delvare
