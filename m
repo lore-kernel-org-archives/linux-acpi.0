@@ -1,57 +1,59 @@
-From: =?ISO-8859-1?Q?Eduard_Gim=E9nez_Cerd=E0?= <edu@badopi.org>
-Subject: C-States usage on 2.6.18 is ok, but fails on 2.6.{19,20,20.1} (was: C-States Usage/Accounting)
-Date: Fri, 2 Mar 2007 11:11:57 +0100
-Message-ID: <9DBD4DED-A68A-4E4B-8D02-04AAEAB99171@badopi.org>
-References: <FE6DEEF0-61B3-44D4-AA62-E8CE04C7FD8E@badopi.org> <45DDEF99.40102@tzi.de>
-Mime-Version: 1.0 (Apple Message framework v752.2)
-Content-Type: text/plain; charset=US-ASCII; delsp=yes; format=flowed
+From: "Takayoshi Kochi" <takayoshi.kochi@gmail.com>
+Subject: [PATCH] supporting MMCONFIG over 4GB on x86_64
+Date: Fri, 2 Mar 2007 20:07:58 +0900
+Message-ID: <43c301fe0703020307g37f7df7dxd8f94adaac3acaf3@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.175]:8998 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422999AbXCBKMC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Mar 2007 05:12:02 -0500
-Received: by ug-out-1314.google.com with SMTP id 44so650380uga
-        for <linux-acpi@vger.kernel.org>; Fri, 02 Mar 2007 02:12:01 -0800 (PST)
-In-Reply-To: <45DDEF99.40102@tzi.de>
+Received: from wx-out-0506.google.com ([66.249.82.231]:13019 "EHLO
+	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933331AbXCBLH7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Mar 2007 06:07:59 -0500
+Received: by wx-out-0506.google.com with SMTP id h31so727912wxd
+        for <linux-acpi@vger.kernel.org>; Fri, 02 Mar 2007 03:07:58 -0800 (PST)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
+Hi,
 
-On 22 Feb 2007, at 20:31, Janosch Machowinski wrote:
+Currently MMCONFIG is ignored if it is located over 4G, but I see no reason
+to reject it on x86_64 platform.
 
->
-> Actually is could be, that nothing is broken. If the bios does not  
-> export more than one C-State, than everything is (from the view of  
-> linux) ok. If you want to find out, what C-States are exported by  
-> the bios, decompile your DSDT (can be found under /proc/acpi/dsdt)  
-> with the  IASL compiler (http://www.intel.com/technology/iapc/acpi/ 
-> license2.htm), and search in the decompiled version for _CST. More  
-> information about the _CST object can be found in the ACPI- 
-> Specification (www.acpi.info)
+This patch is against 2.6.21-rc2 and was tested on
+such a machine (MMCONFIG is located at 0xfe10000000)
+without any problem.
 
-That was just the problem. I upgraded the BIOS and now it provides C1  
-and C2. And the 2.6.18 kernel is using them.
+Any comments?
 
-egimenez@watt:~$ dmesg | grep "power states"
-ACPI: CPU0 (power states: C1[C1] C2[C2])
+-- 
+Takayoshi Kochi
 
-But still there are a couple of strange quirks.
+Signed-off-by: Takayoshi Kochi <takayoshi.kochi@gmail.com>
+---
+ boot.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-First the DSDT does not provide the _CST object, so I suppose the  
-kernel is using the P_LVL method. Another BIOS problem... :S
+--- linux-2.6.20/arch/i386/kernel/acpi/boot.c.orig	2007-03-02
+14:34:02.000000000 +0900
++++ linux-2.6.20/arch/i386/kernel/acpi/boot.c	2007-03-02
+19:38:10.000000000 +0900
+@@ -198,6 +198,7 @@ int __init acpi_parse_mcfg(struct acpi_t
 
-The second one intrigues me more. The 2.6.19, 2.6.20 and 2.6.20.1  
-kernels does not use nor show the C1 and C2 states. I've been using  
-the same config file with oldconfig and I've removed problematic  
-drivers, such as USB.
+ 	memcpy(pci_mmcfg_config, &mcfg[1], config_size);
+ 	for (i = 0; i < pci_mmcfg_config_num; ++i) {
++#ifndef CONFIG_X86_64
+ 		if (pci_mmcfg_config[i].address > 0xFFFFFFFF) {
+ 			printk(KERN_ERR PREFIX
+ 			       "MMCONFIG not in low 4GB of memory\n");
+@@ -205,6 +206,7 @@ int __init acpi_parse_mcfg(struct acpi_t
+ 			pci_mmcfg_config_num = 0;
+ 			return -ENODEV;
+ 		}
++#endif
+ 	}
 
-I would like to solve this behaviour, or at least to find why is  
-happening. I will start reviewing the dmesg output for each kernel,  
-to see what changes. Any advice on what and where look for will be  
-really welcomed :)
-
---  
-
-edu
+ 	return 0;
