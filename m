@@ -1,50 +1,32 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: Conversion of ACPI fan+thermal to hwmon sysfs
-Date: Fri, 2 Mar 2007 11:43:26 +0000
-Message-ID: <20070302114326.GA1212@srcf.ucam.org>
-References: <20070224182024.GA23865@khazad-dum.debian.net> <20070226172716.b2e956b7.khali@linux-fr.org> <1172655111.11100.50.camel@localhost.localdomain> <20070228143433.GB30168@khazad-dum.debian.net> <1172797936.14827.33.camel@localhost.localdomain> <20070302121304.9db20131.khali@linux-fr.org>
+Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
+Date: Fri, 2 Mar 2007 11:47:47 +0000
+Message-ID: <20070302114747.GB1212@srcf.ucam.org>
+References: <45D5EA88.7090300@redhat.com> <45D6DDCE.5050803@assembler.cz> <45D7461A.2040808@redhat.com> <20070218183805.5a4fd813.khali@linux-fr.org> <20070228213803.GA4877@ucw.cz> <20070301152655.f232db64.khali@linux-fr.org> <20070302114023.GD2163@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:37730 "EHLO
+Received: from cavan.codon.org.uk ([217.147.92.49]:35001 "EHLO
 	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422830AbXCBLnr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Mar 2007 06:43:47 -0500
+	with ESMTP id S1422831AbXCBLsM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Mar 2007 06:48:12 -0500
 Content-Disposition: inline
-In-Reply-To: <20070302121304.9db20131.khali@linux-fr.org>
+In-Reply-To: <20070302114023.GD2163@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Zhang Rui <rui.zhang@intel.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, lenb@kernel.org, konstantin.a.karasyov@intel.com
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Jean Delvare <khali@linux-fr.org>, Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-On Fri, Mar 02, 2007 at 12:13:04PM +0100, Jean Delvare wrote:
+On Fri, Mar 02, 2007 at 12:40:23PM +0100, Pavel Machek wrote:
 
-> As I don't know what these "cooling mode policies" are, I can't really
-> tell. Trip points in hwmon let the user define the desired fan speed
-> depending on a temperature measurement, and that's about it. You can't
-> associate other actions at the moment, essentially because hardware
-> monitoring chips themselves can't do anything else. If it would be
-> convenient for the ACPI case to add something else, we can discuss
-> additional interface files.
+> Whitelist seems like a way to go :(.
 
-ACPI cooling mode policies may be related to fans, but can also be 
-associated with passive cooling of the CPU by throttling or voltage 
-scaling. Some machines keep the fan under BIOS control, so the only 
-information exposed via the thermal module will be something like:
+The DSDT code clearly can't touch the hardware itself - hardware access 
+is carried out by the kernel. If we can identify cases where ACPI reads 
+and writes would touch resources claimed by other drivers, that would be 
+a good starting point for working out what's going on.
 
-critical (S5):           95 C
-passive:                 91 C: tc1=5 tc2=4 tsp=600 devices=0xc16dd310 
-
-indicating that the CPU should be throttled at 91C, and the system 
-forcibly shut down at 95C. 
-
-> My original idea was to simply add a read-only hwmon-like interface to
-> the acpi fan and thermal modules. I didn't plan to replace the current
-> interfaces offered by these modules, at least not directly. There must
-> be many user-space tools and scripts relying on these at the moment, so
-> we need a transition period anyway.
-
-That doesn't sound like a bad plan.
-
+Of course, this ignores the case where the DSDT just traps into SMM 
+code. That one is clearly unsolvable.
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
