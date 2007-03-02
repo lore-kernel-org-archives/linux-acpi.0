@@ -1,31 +1,46 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Date: Fri, 2 Mar 2007 10:47:03 -0300
-Message-ID: <20070302134703.GB23656@khazad-dum.debian.net>
+Date: Fri, 2 Mar 2007 14:57:06 +0100
+Message-ID: <20070302135706.GE2156@elf.ucw.cz>
 References: <45D5EA88.7090300@redhat.com> <45D6DDCE.5050803@assembler.cz> <45D7461A.2040808@redhat.com> <20070218183805.5a4fd813.khali@linux-fr.org> <20070228213803.GA4877@ucw.cz> <20070301152655.f232db64.khali@linux-fr.org> <20070301174806.GA4979@redhat.com> <20070302122736.f14a7a22.khali@linux-fr.org> <20070302113158.GC2156@elf.ucw.cz> <20070302143720.cfd8afeb.khali@linux-fr.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:35431 "EHLO
-	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2992439AbXCBNrI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Mar 2007 08:47:08 -0500
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:41614 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S2992437AbXCBN5P (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 2 Mar 2007 08:57:15 -0500
 Content-Disposition: inline
 In-Reply-To: <20070302143720.cfd8afeb.khali@linux-fr.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Jean Delvare <khali@linux-fr.org>
-Cc: Pavel Machek <pavel@ucw.cz>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, Chuck Ebbert <cebbert@redhat.com>, Dave Jones <davej@redhat.com>, Rudolf@ATrpms.net
+Cc: Dave Jones <davej@redhat.com>, Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-On Fri, 02 Mar 2007, Jean Delvare wrote:
+On Fri 2007-03-02 14:37:20, Jean Delvare wrote:
+> On Fri, 2 Mar 2007 12:31:58 +0100, Pavel Machek wrote:
+> > > My point (which you didn't quote) was that there is no correlation
+> > > between the SMBus being hidden and ACPI accessing the hardware
+> > > monitoring chip, contrary to what Pavel was suggesting.
+> > 
+> > It may not be correlated with ACPI, but BIOS authors clearly want to
+> > keep you away from their SMBus controllers....
+> 
+> drivers/pci/quirks.c is full of things we do against the BIOS authors
+> intent. You don't plan to remove them all, do you?
+
+Notice how quirks.c is careful to name machines where given quirk is
+used.
+
+If you do whitelist "it is okay to do sensors accesses on this board",
+that is okay with me. But having quirk "on all future Intel chipsets,
+do foo" would be stupid. Enabling sensors blindly is pretty similar.
+
 > (And as a side note, this is really the board's owner SMBus controller.
 > The hardware doesn't belong to the BIOS author.)
 
-Especially when they won't do their job right, and won't fix it later
-either...
-
+True.
+									Pavel
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
