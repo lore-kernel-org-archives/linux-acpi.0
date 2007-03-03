@@ -1,74 +1,42 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Date: Sat, 3 Mar 2007 10:53:16 +0100
-Message-ID: <20070303105316.d51e032d.khali@linux-fr.org>
-References: <45D6DDCE.5050803@assembler.cz>
-	<45D7461A.2040808@redhat.com>
-	<20070218183805.5a4fd813.khali@linux-fr.org>
-	<20070228213803.GA4877@ucw.cz>
-	<20070301152655.f232db64.khali@linux-fr.org>
-	<20070302114023.GD2163@elf.ucw.cz>
-	<20070302114747.GB1212@srcf.ucam.org>
-	<20070302151055.d2665d66.khali@linux-fr.org>
-	<20070302141840.GA3441@srcf.ucam.org>
-	<20070302220454.a0c66d04.khali@linux-fr.org>
-	<20070302211251.GA10035@srcf.ucam.org>
+From: Jens Axboe <jens.axboe@oracle.com>
+Subject: Re: [linux-pm] 2.6.21-rc1: known regressions (v2) (part 1)
+Date: Sat, 3 Mar 2007 12:17:11 +0100
+Message-ID: <20070303111710.GL3178@kernel.dk>
+References: <Pine.LNX.4.64.0702202043280.4043@woody.linux-foundation.org> <20070226220152.GA29575@stusta.de> <20070228211318.GB4301@mellanox.co.il> <b6a2187b0702281945n5f62a6b5w1c535de3ef9aaa8f@mail.gmail.com> <20070302122641.GA3034@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-106-saturday.noc.nerim.net ([62.4.17.106]:2005 "EHLO
-	mallaury.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751297AbXCCJzo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 3 Mar 2007 04:55:44 -0500
-In-Reply-To: <20070302211251.GA10035@srcf.ucam.org>
+Received: from brick.kernel.dk ([62.242.22.158]:2389 "EHLO kernel.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751945AbXCCLRh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 3 Mar 2007 06:17:37 -0500
+Content-Disposition: inline
+In-Reply-To: <20070302122641.GA3034@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Pavel Machek <pavel@ucw.cz>, Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Jeff Chua <jeff.chua.linux@gmail.com>, "Michael S. Tsirkin" <mst@mellanox.co.il>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Adrian Bunk <bunk@stusta.de>, linux-pm@lists.osdl.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi Matthew,
-
-On Fri, 2 Mar 2007 21:12:51 +0000, Matthew Garrett wrote:
-> On Fri, Mar 02, 2007 at 10:04:54PM +0100, Jean Delvare wrote:
-> > It might be more elegant but it won't work. We don't want to prevent
-> > ACPI from accessing these I/O ports. If we need to choose only one
-> > "driver" accessing the I/O port, it must be acpi, at leat for now,
-> > despite the fact that acpi provides very weak hardware monitoring
-> > capabilities compared to the specific drivers.
+On Fri, Mar 02 2007, Pavel Machek wrote:
+> On Thu 2007-03-01 11:45:35, Jeff Chua wrote:
+> > On 3/1/07, Michael S. Tsirkin <mst@mellanox.co.il> wrote:
+> > 
+> > > with 2.6.20, pressing Fn/F4 generates an ACPI event and triggers suspend to RAM.
+> > >
+> > > On 2.6.21-rc2, after resume (when the box is accessible from network),
+> > > pressing Fn/F4 again does not seem to have any effect.
+> > 
+> > I have the same problem on my IBM X60s on rc1 and rc2. Can't resume
+> > from RAM, can't suspend to disk. It is possible to revert all the
+> > changes to ACPI and test it?
 > 
-> Assuming arbitration of access, what's the problem with having two 
-> drivers accessing the same hardware? Do these chips generally have any 
-> significant internal state other than trip points and the like?
+> As I said elsewhere in the thread, suspend/resume to RAM works ok on
+> my thinkpad x60. I posted my .config there, perhaps difference is in
+> it? Ingo identified KVM as possible culprit.
 
-The "assuming arbitration of access" is the key part of your
-sentence ;) The problem is that currently no arbitration is done. If it
-was done, then state would probably not be a problem. Most hardware
-monitoring drivers don't assume any state is preserved between
-accesses, and those which do can easily be changed not to. The ACPI
-side is another story though, I guess we can't assume anything about
-the AML code's assumption on states, as it differs from one machine to
-the next. But we can try to be cooperative and restore the sensible
-registers (e.g. bank selector) in the same state we found them.
-
-Anyway, just because we can't get things right on 100% of the machines
-is no reason not to try anything at all. The current situation is bad,
-any improvement would be welcome.
-
-> > Why would we end up with an overestimation if we check the I/O ports at
-> > boot time? Do you have concrete cases in mind?
-> 
-> ACPI will often describe large operation regions, but won't necessarily 
-> touch all of them. Effectively, every codepath would have to be walked 
-> through at boot time and checked for io access.
-
-Is there anything preventing us from doing such a walk and pre-allocate
-all the I/O ranges? I am not familiar with the ACPI code at all, would
-you possibly propose a patch doing that?
-
-If we can't do that, the overestimation approach might still work. I
-wonder if it would cause problems in practice. If it does, we're back
-to Pavel's AML lock.
+I'll try your .config for kicks, the problem that Ingo pin pointed is
+not what is affecting me.
 
 -- 
-Jean Delvare
+Jens Axboe
+
