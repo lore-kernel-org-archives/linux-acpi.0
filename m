@@ -1,42 +1,74 @@
-From: Jens Axboe <jens.axboe@oracle.com>
-Subject: Re: [linux-pm] 2.6.21-rc1: known regressions (v2) (part 1)
-Date: Sat, 3 Mar 2007 12:17:11 +0100
-Message-ID: <20070303111710.GL3178@kernel.dk>
-References: <Pine.LNX.4.64.0702202043280.4043@woody.linux-foundation.org> <20070226220152.GA29575@stusta.de> <20070228211318.GB4301@mellanox.co.il> <b6a2187b0702281945n5f62a6b5w1c535de3ef9aaa8f@mail.gmail.com> <20070302122641.GA3034@elf.ucw.cz>
+From: "David Hubbard" <david.c.hubbard@gmail.com>
+Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
+Date: Sat, 3 Mar 2007 08:47:21 -0700
+Message-ID: <4dfa50520703030747g3c887f5bxe25caefd1723c635@mail.gmail.com>
+References: <45D6DDCE.5050803@assembler.cz> <20070228213803.GA4877@ucw.cz>
+	 <20070301152655.f232db64.khali@linux-fr.org>
+	 <20070302114023.GD2163@elf.ucw.cz>
+	 <20070302114747.GB1212@srcf.ucam.org>
+	 <20070302151055.d2665d66.khali@linux-fr.org>
+	 <20070302141840.GA3441@srcf.ucam.org>
+	 <20070302220454.a0c66d04.khali@linux-fr.org>
+	 <20070302211251.GA10035@srcf.ucam.org>
+	 <20070303105316.d51e032d.khali@linux-fr.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from brick.kernel.dk ([62.242.22.158]:2389 "EHLO kernel.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751945AbXCCLRh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 3 Mar 2007 06:17:37 -0500
+Received: from an-out-0708.google.com ([209.85.132.243]:42038 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030660AbXCCPrX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 3 Mar 2007 10:47:23 -0500
+Received: by an-out-0708.google.com with SMTP id b33so1031691ana
+        for <linux-acpi@vger.kernel.org>; Sat, 03 Mar 2007 07:47:22 -0800 (PST)
+In-Reply-To: <20070303105316.d51e032d.khali@linux-fr.org>
 Content-Disposition: inline
-In-Reply-To: <20070302122641.GA3034@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Jeff Chua <jeff.chua.linux@gmail.com>, "Michael S. Tsirkin" <mst@mellanox.co.il>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, Adrian Bunk <bunk@stusta.de>, linux-pm@lists.osdl.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Jean Delvare <khali@linux-fr.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Pavel Machek <pavel@ucw.cz>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, Chuck Ebbert <cebbert@redhat.com>, Rudolf@atrpms.net
 
-On Fri, Mar 02 2007, Pavel Machek wrote:
-> On Thu 2007-03-01 11:45:35, Jeff Chua wrote:
-> > On 3/1/07, Michael S. Tsirkin <mst@mellanox.co.il> wrote:
-> > 
-> > > with 2.6.20, pressing Fn/F4 generates an ACPI event and triggers suspend to RAM.
-> > >
-> > > On 2.6.21-rc2, after resume (when the box is accessible from network),
-> > > pressing Fn/F4 again does not seem to have any effect.
-> > 
-> > I have the same problem on my IBM X60s on rc1 and rc2. Can't resume
-> > from RAM, can't suspend to disk. It is possible to revert all the
-> > changes to ACPI and test it?
-> 
-> As I said elsewhere in the thread, suspend/resume to RAM works ok on
-> my thinkpad x60. I posted my .config there, perhaps difference is in
-> it? Ingo identified KVM as possible culprit.
+Hi Jean,
 
-I'll try your .config for kicks, the problem that Ingo pin pointed is
-not what is affecting me.
+> Is there anything preventing us from doing such a walk and pre-allocate
+> all the I/O ranges? I am not familiar with the ACPI code at all, would
+> you possibly propose a patch doing that?
 
--- 
-Jens Axboe
+Here's a random idea -- what do you think of it?
 
+ACPI already allocates some I/O ranges, which was a surprise to me:
+
+> My machine looks like this:
+>
+> 1000-107f : 0000:00:1f.0
+>  1000-1003 : ACPI PM1a_EVT_BLK
+>  1004-1005 : ACPI PM1a_CNT_BLK
+>  1008-100b : ACPI PM_TMR
+>  1010-1015 : ACPI CPU throttle
+>  1020-1020 : ACPI PM2_CNT_BLK
+>  1028-102b : ACPI GPE0_BLK
+>  102c-102f : ACPI GPE1_BLK
+
+For I/O and memory that ACPI accesses and has not reserved, the AML
+interpreter could allocate at run-time.
+
+I'm not sure how to implement exactly. For example, it would be bad to
+have a /proc/ioports that had a lot of single ports allocated, for
+example:
+1000-107f : 0000:00:1f.0
+ 1000-1000 : ACPI PM1a_EVT_BLK
+ 1001-1001 : ACPI PM1a_EVT_BLK
+ 1002-1002 : ACPI PM1a_EVT_BLK
+ 1003-1003 : ACPI PM1a_EVT_BLK
+
+Thus the AML interpreter would need to have some reasonable
+intelligence when allocating regions. Conflict resolution would also
+be more difficult, e.g. if a hwmon driver was loaded first and then
+acpi as a module, ACPI could not allocate the region. Maybe run-time
+allocating won't work.
+
+And then, how would ACPI release a region after it has used it? The
+easiest method would be to never release anything used even once.
+
+Thoughts?
+
+David
