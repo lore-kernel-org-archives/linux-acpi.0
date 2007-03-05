@@ -1,46 +1,88 @@
 From: Adrian Bunk <bunk@stusta.de>
-Subject: Re: 2.6.21-rc1: known regressions (v2) (part 1)
-Date: Mon, 5 Mar 2007 01:04:21 +0100
-Message-ID: <20070305000421.GF3441@stusta.de>
-References: <Pine.LNX.4.64.0702202043280.4043@woody.linux-foundation.org> <20070226220152.GA29575@stusta.de> <20070228211318.GB4301@mellanox.co.il> <b6a2187b0702281945n5f62a6b5w1c535de3ef9aaa8f@mail.gmail.com>
+Subject: [-mm patch] drivers/cpuidle/: make code static
+Date: Mon, 5 Mar 2007 02:47:48 +0100
+Message-ID: <20070305014748.GT3441@stusta.de>
+References: <20070302030026.5eef0c92.akpm@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emailhub.stusta.mhn.de ([141.84.69.5]:49853 "EHLO
-	mailhub.stusta.mhn.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752550AbXCEAET (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Mar 2007 19:04:19 -0500
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751949AbXCEBr6@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <b6a2187b0702281945n5f62a6b5w1c535de3ef9aaa8f@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20070302030026.5eef0c92.akpm@linux-foundation.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>, lenb@kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeff Chua <jeff.chua.linux@gmail.com>
-Cc: "Michael S. Tsirkin" <mst@mellanox.co.il>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-pm@lists.osdl.org, Ingo Molnar <mingo@elte.hu>, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, Mar 01, 2007 at 11:45:35AM +0800, Jeff Chua wrote:
-> On 3/1/07, Michael S. Tsirkin <mst@mellanox.co.il> wrote:
-> 
-> >with 2.6.20, pressing Fn/F4 generates an ACPI event and triggers suspend 
-> >to RAM.
-> >
-> >On 2.6.21-rc2, after resume (when the box is accessible from network),
-> >pressing Fn/F4 again does not seem to have any effect.
-> 
-> I have the same problem on my IBM X60s on rc1 and rc2. Can't resume
-> from RAM, can't suspend to disk. It is possible to revert all the
-> changes to ACPI and test it?
+On Fri, Mar 02, 2007 at 03:00:26AM -0800, Andrew Morton wrote:
+>...
+> Changes since 2.6.20-mm2:
+>...
+>  git-acpi.patch
+>...
+>  git trees
+>...
 
-This is with CONFIG_KVM=n?
+This patch makes the following needlessly global code static:
+- driver.c: __cpuidle_find_driver()
+- governor.c: __cpuidle_find_governor()
+- ladder.c: struct ladder_governor
+ 
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
-> Jeff.
+---
 
-cu
-Adrian
+ drivers/cpuidle/cpuidle.h          |    2 --
+ drivers/cpuidle/driver.c           |    2 +-
+ drivers/cpuidle/governor.c         |    2 +-
+ drivers/cpuidle/governors/ladder.c |    2 +-
+ 4 files changed, 3 insertions(+), 5 deletions(-)
 
--- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
-
+--- linux-2.6.21-rc2-mm1/drivers/cpuidle/cpuidle.h.old	2007-03-04 20:42:29.000000000 +0100
++++ linux-2.6.21-rc2-mm1/drivers/cpuidle/cpuidle.h	2007-03-04 20:43:13.000000000 +0100
+@@ -23,13 +23,11 @@
+ /* drivers */
+ extern int cpuidle_attach_driver(struct cpuidle_device *dev);
+ extern void cpuidle_detach_driver(struct cpuidle_device *dev);
+-extern struct cpuidle_driver * __cpuidle_find_driver(const char *str);
+ extern int cpuidle_switch_driver(struct cpuidle_driver *drv);
+ 
+ /* governors */
+ extern int cpuidle_attach_governor(struct cpuidle_device *dev);
+ extern void cpuidle_detach_governor(struct cpuidle_device *dev);
+-extern struct cpuidle_governor * __cpuidle_find_governor(const char *str);
+ extern int cpuidle_switch_governor(struct cpuidle_governor *gov);
+ 
+ /* sysfs */
+--- linux-2.6.21-rc2-mm1/drivers/cpuidle/driver.c.old	2007-03-04 20:42:46.000000000 +0100
++++ linux-2.6.21-rc2-mm1/drivers/cpuidle/driver.c	2007-03-04 20:42:55.000000000 +0100
+@@ -73,7 +73,7 @@
+  *
+  * Must be called with cpuidle_lock aquired.
+  */
+-struct cpuidle_driver * __cpuidle_find_driver(const char *str)
++static struct cpuidle_driver * __cpuidle_find_driver(const char *str)
+ {
+ 	struct cpuidle_driver *drv;
+ 
+--- linux-2.6.21-rc2-mm1/drivers/cpuidle/governor.c.old	2007-03-04 20:43:22.000000000 +0100
++++ linux-2.6.21-rc2-mm1/drivers/cpuidle/governor.c	2007-03-04 20:43:29.000000000 +0100
+@@ -72,7 +72,7 @@
+  *
+  * Must be called with cpuidle_lock aquired.
+  */
+-struct cpuidle_governor * __cpuidle_find_governor(const char *str)
++static struct cpuidle_governor * __cpuidle_find_governor(const char *str)
+ {
+ 	struct cpuidle_governor *gov;
+ 
+--- linux-2.6.21-rc2-mm1/drivers/cpuidle/governors/ladder.c.old	2007-03-04 20:43:51.000000000 +0100
++++ linux-2.6.21-rc2-mm1/drivers/cpuidle/governors/ladder.c	2007-03-04 20:44:01.000000000 +0100
+@@ -199,7 +199,7 @@
+ 	kfree(dev->governor_data);
+ }
+ 
+-struct cpuidle_governor ladder_governor = {
++static struct cpuidle_governor ladder_governor = {
+ 	.name =		"ladder",
+ 	.init =		ladder_init_device,
+ 	.exit =		ladder_exit_device,
