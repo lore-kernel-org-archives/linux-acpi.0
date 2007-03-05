@@ -1,88 +1,80 @@
 From: Adrian Bunk <bunk@stusta.de>
-Subject: [-mm patch] drivers/cpuidle/: make code static
-Date: Mon, 5 Mar 2007 02:47:48 +0100
-Message-ID: <20070305014748.GT3441@stusta.de>
-References: <20070302030026.5eef0c92.akpm@linux-foundation.org>
+Subject: [2/6] 2.6.21-rc2: known regressions
+Date: Mon, 5 Mar 2007 02:50:34 +0100
+Message-ID: <20070305015034.GG3441@stusta.de>
+References: <Pine.LNX.4.64.0702272105220.12485@woody.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751949AbXCEBr6@vger.kernel.org>
+Return-path: <owner-linux-input@atrey.karlin.mff.cuni.cz>
 Content-Disposition: inline
-In-Reply-To: <20070302030026.5eef0c92.akpm@linux-foundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>, lenb@kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+In-Reply-To: <Pine.LNX.4.64.0702272105220.12485@woody.linux-foundation.org>
+Sender: owner-linux-input@atrey.karlin.mff.cuni.cz
+List-Help: <mailto:majordomo@atrey.karlin.mff.cuni.cz?body=help>
+List-Owner: <mailto:owner-linux-input@atrey.karlin.mff.cuni.cz>
+List-Post: <mailto:linux-input@atrey.karlin.mff.cuni.cz>
+List-Unsubscribe: <mailto:linux-input-request@atrey.karlin.mff.cuni.cz?body=unsubscribe>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jens Axboe <jens.axboe@oracle.com>, Jeff Chua <jeff.chua.linux@gmail.com>, pavel@suse.cz, linux-pm@lists.osdl.org, lenb@kernel.org, linux-acpi@vger.kernel.org, "Michael S. Tsirkin" <mst@mellanox.co.il>, luming.yu@intel.com, Arkadiusz Miskiewicz <arekm@maven.pl>, Konstantin Karasyov <konstantin.a.karasyov@intel.com>, greg@kroah.com, linux-usb-devel@lists.sourceforge.net, Thomas Meyer <thomas.mey@web.de>, Meelis Roos <mroos@linux.ee>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Janosch Machowinski <jmachowinski@gmx.de>, vladimir.p.lebedev@intel.com, Ash Milsted <thatistosayiseenem@gawab.com>, dmitry.torokhov@gmail.com, linux-input@atrey.karlin.mff.cuni.cz
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Mar 02, 2007 at 03:00:26AM -0800, Andrew Morton wrote:
->...
-> Changes since 2.6.20-mm2:
->...
->  git-acpi.patch
->...
->  git trees
->...
+This email lists some known regressions in 2.6.21-rc2 compared to 2.6.20
+that are not yet fixed in Linus' tree.
 
-This patch makes the following needlessly global code static:
-- driver.c: __cpuidle_find_driver()
-- governor.c: __cpuidle_find_governor()
-- ladder.c: struct ladder_governor
- 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+If you find your name in the Cc header, you are either submitter of one
+of the bugs, maintainer of an affectected subsystem or driver, a patch
+of you caused a breakage or I'm considering you in any other way
+possibly involved with one or more of these issues.
 
----
+Due to the huge amount of recipients, please trim the Cc when answering.
 
- drivers/cpuidle/cpuidle.h          |    2 --
- drivers/cpuidle/driver.c           |    2 +-
- drivers/cpuidle/governor.c         |    2 +-
- drivers/cpuidle/governors/ladder.c |    2 +-
- 4 files changed, 3 insertions(+), 5 deletions(-)
 
---- linux-2.6.21-rc2-mm1/drivers/cpuidle/cpuidle.h.old	2007-03-04 20:42:29.000000000 +0100
-+++ linux-2.6.21-rc2-mm1/drivers/cpuidle/cpuidle.h	2007-03-04 20:43:13.000000000 +0100
-@@ -23,13 +23,11 @@
- /* drivers */
- extern int cpuidle_attach_driver(struct cpuidle_device *dev);
- extern void cpuidle_detach_driver(struct cpuidle_device *dev);
--extern struct cpuidle_driver * __cpuidle_find_driver(const char *str);
- extern int cpuidle_switch_driver(struct cpuidle_driver *drv);
- 
- /* governors */
- extern int cpuidle_attach_governor(struct cpuidle_device *dev);
- extern void cpuidle_detach_governor(struct cpuidle_device *dev);
--extern struct cpuidle_governor * __cpuidle_find_governor(const char *str);
- extern int cpuidle_switch_governor(struct cpuidle_governor *gov);
- 
- /* sysfs */
---- linux-2.6.21-rc2-mm1/drivers/cpuidle/driver.c.old	2007-03-04 20:42:46.000000000 +0100
-+++ linux-2.6.21-rc2-mm1/drivers/cpuidle/driver.c	2007-03-04 20:42:55.000000000 +0100
-@@ -73,7 +73,7 @@
-  *
-  * Must be called with cpuidle_lock aquired.
-  */
--struct cpuidle_driver * __cpuidle_find_driver(const char *str)
-+static struct cpuidle_driver * __cpuidle_find_driver(const char *str)
- {
- 	struct cpuidle_driver *drv;
- 
---- linux-2.6.21-rc2-mm1/drivers/cpuidle/governor.c.old	2007-03-04 20:43:22.000000000 +0100
-+++ linux-2.6.21-rc2-mm1/drivers/cpuidle/governor.c	2007-03-04 20:43:29.000000000 +0100
-@@ -72,7 +72,7 @@
-  *
-  * Must be called with cpuidle_lock aquired.
-  */
--struct cpuidle_governor * __cpuidle_find_governor(const char *str)
-+static struct cpuidle_governor * __cpuidle_find_governor(const char *str)
- {
- 	struct cpuidle_governor *gov;
- 
---- linux-2.6.21-rc2-mm1/drivers/cpuidle/governors/ladder.c.old	2007-03-04 20:43:51.000000000 +0100
-+++ linux-2.6.21-rc2-mm1/drivers/cpuidle/governors/ladder.c	2007-03-04 20:44:01.000000000 +0100
-@@ -199,7 +199,7 @@
- 	kfree(dev->governor_data);
- }
- 
--struct cpuidle_governor ladder_governor = {
-+static struct cpuidle_governor ladder_governor = {
- 	.name =		"ladder",
- 	.init =		ladder_init_device,
- 	.exit =		ladder_exit_device,
+Subject    : ThinkPad doesn't resume from suspend to RAM
+References : http://lkml.org/lkml/2007/2/27/80
+             http://lkml.org/lkml/2007/2/28/348
+Submitter  : Jens Axboe <jens.axboe@oracle.com>
+             Jeff Chua <jeff.chua.linux@gmail.com>
+Status     : unknown
+
+
+Subject    : beeps get longer after suspend
+References : http://lkml.org/lkml/2007/2/26/276
+Submitter  : Pavel Machek <pavel@ucw.cz>
+Status     : unknown
+
+
+Subject    : ThinkPad T60: no screen after suspend to RAM
+References : http://lkml.org/lkml/2007/2/22/391
+Submitter  : Michael S. Tsirkin <mst@mellanox.co.il>
+Status     : unknown
+
+
+Subject    : ThinkPad Z60m: usb mouse stops working after suspend to ram
+References : http://lkml.org/lkml/2007/2/21/413
+             http://lkml.org/lkml/2007/2/28/172
+Submitter  : Arkadiusz Miskiewicz <arekm@maven.pl>
+Caused-By  : Konstantin Karasyov <konstantin.a.karasyov@intel.com>
+             commit 0a6139027f3986162233adc17285151e78b39cac
+Handled-By : Konstantin Karasyov <konstantin.a.karasyov@intel.com>
+Status     : problem is being debugged
+
+
+Subject    : AE_NOT_FOUND ACPI messages
+References : http://bugzilla.kernel.org/show_bug.cgi?id=8066
+             http://lkml.org/lkml/2007/2/27/263
+Submitter  : Thomas Meyer <thomas.mey@web.de>
+             Meelis Roos <mroos@linux.ee>
+Handled-By : Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Patch      : http://bugzilla.kernel.org/show_bug.cgi?id=8066
+Status     : patch available
+
+
+Subject    : Asus M6Ne notebook: ACPI: First battery is not detected
+References : http://bugzilla.kernel.org/show_bug.cgi?id=8080
+Submitter  : Janosch Machowinski <jmachowinski@gmx.de>
+Status     : unknown
+
+
+Subject    : AT keyboard only works with pci=noacpi
+References : http://lkml.org/lkml/2007/3/3/68
+Submitter  : Ash Milsted <thatistosayiseenem@gawab.com>
+Status     : unknown
