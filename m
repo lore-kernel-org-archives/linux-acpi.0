@@ -1,36 +1,63 @@
-From: Michal Jaegermann <michal@ellpspace.math.ualberta.ca>
-Subject: Re: [3/6] 2.6.21-rc2: known regressions
-Date: Sun, 4 Mar 2007 20:58:59 -0700
-Message-ID: <20070305035859.GA29234@ellpspace.math.ualberta.ca>
-References: <Pine.LNX.4.64.0702272105220.12485@woody.linux-foundation.org> <20070305015036.GH3441@stusta.de>
-Reply-To: michal@harddata.com
+From: "Antonino A. Daplas" <adaplas@gmail.com>
+Subject: Re: 2.6.21-rc1: framebuffer/console boot failure
+Date: Mon, 05 Mar 2007 14:12:38 +0800
+Message-ID: <1173075158.4158.1.camel@daplas>
+References: <35472.86.7.220.119.1172237750.squirrel@wmbeta.mxes.net>
+	 <20070224030950.074f88d4.akpm@linux-foundation.org>
+	 <33525.86.7.220.119.1172358010.squirrel@wmbeta.mxes.net>
+	 <1172359843.4415.8.camel@daplas>
+	 <34578.86.7.220.119.1172401665.squirrel@wmbeta.mxes.net>
+	 <1172493697.20842.6.camel@daplas>
+	 <36488.86.7.220.119.1172515738.squirrel@wmbeta.mxes.net>
+	 <1172531359.7101.22.camel@daplas>
+	 <35793.86.7.220.119.1173019974.squirrel@wmbeta.mxes.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ide-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20070305015036.GH3441@stusta.de>
-Sender: linux-ide-owner@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mathieu =?iso-8859-1?Q?B=E9rard?= <Mathieu.Berard@crans.org>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Fabio Comolli <fabio.comolli@gmail.com>, Tejun Heo <htejun@gmail.com>, Janosch Machowinski <jmachowinski@gmx.de>, Lukas Hejtmanek <xhejtman@fi.muni.cz>, Meelis Roos <mroos@linux.ee>, Olivier Mondoloni <darkcore71@yahoo.fr>, Thomas Renninger <trenn@suse.de>, Robert Moore <robert.moore@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from nz-out-0506.google.com ([64.233.162.224]:5287 "EHLO
+	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750934AbXCEGKj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Mar 2007 01:10:39 -0500
+Received: by nz-out-0506.google.com with SMTP id s1so1661255nze
+        for <linux-acpi@vger.kernel.org>; Sun, 04 Mar 2007 22:10:38 -0800 (PST)
+In-Reply-To: <35793.86.7.220.119.1173019974.squirrel@wmbeta.mxes.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrew Nelless <andrew@nelless.net>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, Mar 05, 2007 at 02:50:36AM +0100, Adrian Bunk wrote:
-> This email lists some known regressions in 2.6.21-rc2 compared to 2.6.20
-> that are not yet fixed in Linus' tree.
-....
-> Subject    : kernels fail to boot with drives on ATIIXP controller
-> References : https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=229621
-> Submitter  : Michal Jaegermann <michal@ellpspace.math.ualberta.ca>
-> Status     : unknown
+On Sun, 2007-03-04 at 14:52 +0000, Andrew Nelless wrote:
+> On Mon, February 26, 2007 11:09 pm, Antonino A. Daplas wrote:
+> >
+> > Not sure if the timer override workaround for nvidia chipsets is the
+> > culprit, but if you want, you can choose to revert that to the previous behavior (which is
+> > ignoring ACPI timer override). Open arch/x86_64/kernel/earlyquirk.c:nvidia_bugs() and change
+> > this line:
+> >
+> > if (acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check)) return; into this:
+> >
+> > acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check); /* return; */
+> >
+> >
+> > Tony
+> >
+> 
+> This fixes the problem. After a lot of rebooting
+> and testing the problem is definitely gone when this
+> check is patched out and the ACPI timer override is
+> ignored. It looks like there should be a cleaner
+> patch than just obliterating the condition and return
+> though.
+> 
+> Perhaps the code should remain as is and
+> "acpi_use_timer_override" could be complimented
+> by exposing the "acpi_skip_timer_override" option to
+> the kernel command line?
 
-Alan added comment to my posting that my problems are caused by
-messed up IRQ routing on that box I tried.  Indeed, I can boot
-kernel 2.6.20-1.2962.fc7, which really is 2.6.21-rc2, provided
-I will use 'acpi=off irqpoll'.  Anything else and a boot silently
-dies if 'acpi=off' is skipped or is not finding disk if 'irqpoll'
-is missing.
+acpi_skip_timer_override is still documented in
+Documentation/kernel-parameters.txt. 
 
-Somehow 2.6.19 is booting on the same hardware without "valliant
-efforts"; OTOH 'ahci' driver was not used there.
+Tony
 
-    Michal
+
