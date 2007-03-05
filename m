@@ -1,63 +1,35 @@
-From: "Antonino A. Daplas" <adaplas@gmail.com>
-Subject: Re: 2.6.21-rc1: framebuffer/console boot failure
-Date: Mon, 05 Mar 2007 14:12:38 +0800
-Message-ID: <1173075158.4158.1.camel@daplas>
-References: <35472.86.7.220.119.1172237750.squirrel@wmbeta.mxes.net>
-	 <20070224030950.074f88d4.akpm@linux-foundation.org>
-	 <33525.86.7.220.119.1172358010.squirrel@wmbeta.mxes.net>
-	 <1172359843.4415.8.camel@daplas>
-	 <34578.86.7.220.119.1172401665.squirrel@wmbeta.mxes.net>
-	 <1172493697.20842.6.camel@daplas>
-	 <36488.86.7.220.119.1172515738.squirrel@wmbeta.mxes.net>
-	 <1172531359.7101.22.camel@daplas>
-	 <35793.86.7.220.119.1173019974.squirrel@wmbeta.mxes.net>
+From: Stefan Seyfried <seife@suse.de>
+Subject: Re: [Suspend-devel] VBETool 1.0
+Date: Mon, 5 Mar 2007 08:46:07 +0100
+Message-ID: <20070305074607.GD16551@suse.de>
+References: <20070303030810.GA14967@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nz-out-0506.google.com ([64.233.162.224]:5287 "EHLO
-	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750934AbXCEGKj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Mar 2007 01:10:39 -0500
-Received: by nz-out-0506.google.com with SMTP id s1so1661255nze
-        for <linux-acpi@vger.kernel.org>; Sun, 04 Mar 2007 22:10:38 -0800 (PST)
-In-Reply-To: <35793.86.7.220.119.1173019974.squirrel@wmbeta.mxes.net>
+Received: from mx1.suse.de ([195.135.220.2]:56176 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752718AbXCEHv2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 Mar 2007 02:51:28 -0500
+Content-Disposition: inline
+In-Reply-To: <20070303030810.GA14967@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Nelless <andrew@nelless.net>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: suspend-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-On Sun, 2007-03-04 at 14:52 +0000, Andrew Nelless wrote:
-> On Mon, February 26, 2007 11:09 pm, Antonino A. Daplas wrote:
-> >
-> > Not sure if the timer override workaround for nvidia chipsets is the
-> > culprit, but if you want, you can choose to revert that to the previous behavior (which is
-> > ignoring ACPI timer override). Open arch/x86_64/kernel/earlyquirk.c:nvidia_bugs() and change
-> > this line:
-> >
-> > if (acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check)) return; into this:
-> >
-> > acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check); /* return; */
-> >
-> >
-> > Tony
-> >
+On Sat, Mar 03, 2007 at 03:08:10AM +0000, Matthew Garrett wrote:
+> I've just released version 1.0 of vbetool. The only real difference 
+> between this and older versions is that I've moved over to using libx86 
+> rather than carrying around an extra copy of lrmi and x86emu. In the 
+> process I've fixed a pile of bugs in the x86emu code, so it should work 
+> much better on amd64 now.
 > 
-> This fixes the problem. After a lot of rebooting
-> and testing the problem is definitely gone when this
-> check is patched out and the ACPI timer override is
-> ignored. It looks like there should be a cleaner
-> patch than just obliterating the condition and return
-> though.
-> 
-> Perhaps the code should remain as is and
-> "acpi_use_timer_override" could be complimented
-> by exposing the "acpi_skip_timer_override" option to
-> the kernel command line?
+> Download is at http://www.codon.org.uk/~mjg59/vbetool
 
-acpi_skip_timer_override is still documented in
-Documentation/kernel-parameters.txt. 
+Thanks Matthew, this is really appreciated. I will look into integrating
+the latest version into s2ram ASAP.
+-- 
+Stefan Seyfried
 
-Tony
-
-
+"Any ideas, John?"
+"Well, surrounding them's out." 
