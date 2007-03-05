@@ -1,23 +1,21 @@
 From: Adrian Bunk <bunk@stusta.de>
-Subject: [2/6] 2.6.21-rc2: known regressions
-Date: Mon, 5 Mar 2007 02:50:34 +0100
-Message-ID: <20070305015034.GG3441@stusta.de>
+Subject: [3/6] 2.6.21-rc2: known regressions
+Date: Mon, 5 Mar 2007 02:50:36 +0100
+Message-ID: <20070305015036.GH3441@stusta.de>
 References: <Pine.LNX.4.64.0702272105220.12485@woody.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Return-path: <owner-linux-input@atrey.karlin.mff.cuni.cz>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-ide-owner@vger.kernel.org>
 Content-Disposition: inline
 In-Reply-To: <Pine.LNX.4.64.0702272105220.12485@woody.linux-foundation.org>
-Sender: owner-linux-input@atrey.karlin.mff.cuni.cz
-List-Help: <mailto:majordomo@atrey.karlin.mff.cuni.cz?body=help>
-List-Owner: <mailto:owner-linux-input@atrey.karlin.mff.cuni.cz>
-List-Post: <mailto:linux-input@atrey.karlin.mff.cuni.cz>
-List-Unsubscribe: <mailto:linux-input-request@atrey.karlin.mff.cuni.cz?body=unsubscribe>
+Sender: linux-ide-owner@vger.kernel.org
 To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jens Axboe <jens.axboe@oracle.com>, Jeff Chua <jeff.chua.linux@gmail.com>, pavel@suse.cz, linux-pm@lists.osdl.org, lenb@kernel.org, linux-acpi@vger.kernel.org, "Michael S. Tsirkin" <mst@mellanox.co.il>, luming.yu@intel.com, Arkadiusz Miskiewicz <arekm@maven.pl>, Konstantin Karasyov <konstantin.a.karasyov@intel.com>, greg@kroah.com, linux-usb-devel@lists.sourceforge.net, Thomas Meyer <thomas.mey@web.de>, Meelis Roos <mroos@linux.ee>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Janosch Machowinski <jmachowinski@gmx.de>, vladimir.p.lebedev@intel.com, Ash Milsted <thatistosayiseenem@gawab.com>, dmitry.torokhov@gmail.com, linux-input@atrey.karlin.mff.cuni.cz
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mathieu =?utf-8?Q?B=C3=A9rard?= <Mathieu.Berard@crans.org>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Michal Jaegermann <michal@ellpspace.math.ualberta.ca>, Fabio Comolli <fabio.comolli@gmail.com>, Tejun Heo <htejun@gmail.com>, Janosch Machowinski <jmachowinski@gmx.de>, Lukas Hejtmanek <xhejtman@fi.muni.cz>, Meelis Roos <mroos@linux.ee>, Olivier Mondoloni <darkcore71@yahoo.fr>, Thomas Renninger <trenn@suse.de>, Robert Moore <robert.moore@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This email lists some known regressions in 2.6.21-rc2 compared to 2.6.20
+This email lists some known regressions in 2.6.21-rc2 compared to 2.6.2=
+0
 that are not yet fixed in Linus' tree.
 
 If you find your name in the Cc header, you are either submitter of one
@@ -25,56 +23,43 @@ of the bugs, maintainer of an affectected subsystem or driver, a patch
 of you caused a breakage or I'm considering you in any other way
 possibly involved with one or more of these issues.
 
-Due to the huge amount of recipients, please trim the Cc when answering.
+Due to the huge amount of recipients, please trim the Cc when answering=
+=2E
 
 
-Subject    : ThinkPad doesn't resume from suspend to RAM
-References : http://lkml.org/lkml/2007/2/27/80
-             http://lkml.org/lkml/2007/2/28/348
-Submitter  : Jens Axboe <jens.axboe@oracle.com>
-             Jeff Chua <jeff.chua.linux@gmail.com>
+Subject    : NCQ problem with ahci and Hitachi drive
+References : http://lkml.org/lkml/2007/3/4/178
+Submitter  : Mathieu B=C3=A9rard <Mathieu.Berard@crans.org>
 Status     : unknown
 
 
-Subject    : beeps get longer after suspend
-References : http://lkml.org/lkml/2007/2/26/276
-Submitter  : Pavel Machek <pavel@ucw.cz>
+Subject    : kernels fail to boot with drives on ATIIXP controller
+References : https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=3D229=
+621
+Submitter  : Michal Jaegermann <michal@ellpspace.math.ualberta.ca>
 Status     : unknown
 
 
-Subject    : ThinkPad T60: no screen after suspend to RAM
-References : http://lkml.org/lkml/2007/2/22/391
-Submitter  : Michael S. Tsirkin <mst@mellanox.co.il>
-Status     : unknown
+Subject    : libata: PATA UDMA/100 configured as UDMA/33
+References : http://lkml.org/lkml/2007/2/20/294
+             http://www.mail-archive.com/linux-ide@vger.kernel.org/msg0=
+4115.html
+Submitter  : Fabio Comolli <fabio.comolli@gmail.com>
+Handled-By : Tejun Heo <htejun@gmail.com>
+Status     : problem is being discussed
 
 
-Subject    : ThinkPad Z60m: usb mouse stops working after suspend to ram
-References : http://lkml.org/lkml/2007/2/21/413
-             http://lkml.org/lkml/2007/2/28/172
-Submitter  : Arkadiusz Miskiewicz <arekm@maven.pl>
-Caused-By  : Konstantin Karasyov <konstantin.a.karasyov@intel.com>
-             commit 0a6139027f3986162233adc17285151e78b39cac
-Handled-By : Konstantin Karasyov <konstantin.a.karasyov@intel.com>
+Subject    : SATA_ACPI errors during kernel boot
+References : http://bugzilla.kernel.org/show_bug.cgi?id=3D8080
+             http://bugzilla.kernel.org/show_bug.cgi?id=3D8046
+             http://bugzilla.kernel.org/show_bug.cgi?id=3D8095
+             http://lkml.org/lkml/2007/2/22/159
+Submitter  : Janosch Machowinski <jmachowinski@gmx.de>
+             Lukas Hejtmanek <xhejtman@fi.muni.cz>
+             Meelis Roos <mroos@linux.ee>
+             Olivier Mondoloni <darkcore71@yahoo.fr>
+Handled-By : Thomas Renninger <trenn@suse.de>
+             Tejun Heo <htejun@gmail.com>
+             Robert Moore <robert.moore@intel.com>
 Status     : problem is being debugged
 
-
-Subject    : AE_NOT_FOUND ACPI messages
-References : http://bugzilla.kernel.org/show_bug.cgi?id=8066
-             http://lkml.org/lkml/2007/2/27/263
-Submitter  : Thomas Meyer <thomas.mey@web.de>
-             Meelis Roos <mroos@linux.ee>
-Handled-By : Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-Patch      : http://bugzilla.kernel.org/show_bug.cgi?id=8066
-Status     : patch available
-
-
-Subject    : Asus M6Ne notebook: ACPI: First battery is not detected
-References : http://bugzilla.kernel.org/show_bug.cgi?id=8080
-Submitter  : Janosch Machowinski <jmachowinski@gmx.de>
-Status     : unknown
-
-
-Subject    : AT keyboard only works with pci=noacpi
-References : http://lkml.org/lkml/2007/3/3/68
-Submitter  : Ash Milsted <thatistosayiseenem@gawab.com>
-Status     : unknown
