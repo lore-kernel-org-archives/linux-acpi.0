@@ -1,35 +1,31 @@
-From: "Jeff Chua" <jeff.chua.linux@gmail.com>
-Subject: Re: 2.6.21-rc1: known regressions (v2) (part 1)
-Date: Tue, 6 Mar 2007 09:32:30 +0800
-Message-ID: <b6a2187b0703051732v79a532f6mbf0d3da857a914e6@mail.gmail.com>
-References: <Pine.LNX.4.64.0702202043280.4043@woody.linux-foundation.org>
-	 <20070226220152.GA29575@stusta.de>
-	 <20070228211318.GB4301@mellanox.co.il>
-	 <b6a2187b0702281945n5f62a6b5w1c535de3ef9aaa8f@mail.gmail.com>
-	 <20070305000421.GF3441@stusta.de>
+From: "Zhao Forrest" <forrest.zhao@gmail.com>
+Subject: Any difference between disabling ACPI in BIOS and acpi=off
+Date: Tue, 6 Mar 2007 13:56:17 +0800
+Message-ID: <ac8af0be0703052156y76e15dbqf4e6683695b5ae07@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.186]:39582 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933781AbXCFBcc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Mar 2007 20:32:32 -0500
-Received: by nf-out-0910.google.com with SMTP id o25so2297537nfa
-        for <linux-acpi@vger.kernel.org>; Mon, 05 Mar 2007 17:32:31 -0800 (PST)
-In-Reply-To: <20070305000421.GF3441@stusta.de>
+Received: from nz-out-0506.google.com ([64.233.162.238]:11965 "EHLO
+	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965789AbXCFF4S (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Mar 2007 00:56:18 -0500
+Received: by nz-out-0506.google.com with SMTP id s1so2022817nze
+        for <linux-acpi@vger.kernel.org>; Mon, 05 Mar 2007 21:56:17 -0800 (PST)
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: "Michael S. Tsirkin" <mst@mellanox.co.il>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-pm@lists.osdl.org, Ingo Molnar <mingo@elte.hu>, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On 3/5/07, Adrian Bunk <bunk@stusta.de> wrote:
+Hi,
 
-> > I have the same problem on my IBM X60s on rc1 and rc2. Can't resume
-> > from RAM, can't suspend to disk. It is possible to revert all the
-> > changes to ACPI and test it?
->
-> This is with CONFIG_KVM=n?
+For RHEL4-U4-64bit, we can boot up kernel with ACPI enabled in BIOS
+whether we add the kernel parameter "acpi=off" or not; however kernel
+can't boot with ACPI  disabled in BIOS whether we add kernel parameter
+"acpi=off" or not.
 
-Yes.
+My question is, is there any difference between disabling ACPI in BIOS
+and acpi=off from the kernel's point of view?
+
+Thanks,
+Forrest
