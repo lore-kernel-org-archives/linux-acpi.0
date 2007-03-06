@@ -1,57 +1,80 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [GIT PATCH] ACPI patches for 2.6.21 - part II (resend)
-Date: Tue, 6 Mar 2007 22:47:25 +0100
-Message-ID: <20070306214725.GA3916@inferi.kami.home>
-References: <200702162223.59837.lenb@kernel.org> <20020101045751.GD4106@ucw.cz> <20070306122213.GF2919@inferi.kami.home> <20070306210959.GB3843@elf.ucw.cz>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: Fixing DSDT table for correct LID behavior
+Date: Tue, 6 Mar 2007 15:17:13 -0800
+Message-ID: <B28E9812BAF6E2498B7EC5C427F293A40205FC35@orsmsx415.amr.corp.intel.com>
+References: <45ECB866.6010201@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aa012msr.fastwebnet.it ([85.18.95.72]:36795 "EHLO
-	aa012msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030428AbXCFW4L (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Mar 2007 17:56:11 -0500
-Content-Disposition: inline
-In-Reply-To: <20070306210959.GB3843@elf.ucw.cz>
+Received: from mga01.intel.com ([192.55.52.88]:11502 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030679AbXCFXRR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Mar 2007 18:17:17 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <45ECB866.6010201@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Renato Alves <simpledark@gmail.com>, linux-acpi@vger.kernel.org
 
-On Tue, Mar 06, 2007 at 10:09:59PM +0100, Pavel Machek wrote:
-> Hi!
-> 
-> > > > commit 4465857d5f99079bae00621626adf74ed8256296
-> > > > Author: Mattia Dongili <malattia@linux.it>
-> > > > Date:   Sat Jan 13 23:04:39 2007 +0100
-> > > > 
-> > > >     sony_acpi: Add lanpower and audiopower controls
-> > > >     
-> > > >     audiopower works well on my SZ72B so it's not marked has "debug" while lanpower
-> > > >     has at least one report of not resuming power happily so morked as "debug"
-> > > >     
-> > > >     Signed-off-by: Mattia Dongili <malattia@linux.it>
-> > > >     Signed-off-by: Len Brown <len.brown@intel.com>
-> > > 
-> > > What is interface to these? It would be nice to automagically disable
-> > > audiopower when sound device is closed, and automagically power down
-> > > lan on ifconfig ... down.
-> > 
-> > the audiopower is basically a _PS3/_PS0 switch for the device, while the
-> > lanpower plays with the embedded controller to powerdown/powerup.
-> > 
-> > Now, unfortunately those methods are attached to a fake device in the
-> > DSDT and afaict there's no way to tell which real device they are
-> > playing with (except by inspecting the method implementations).
-> 
-> > Well of course iff there's only _one_ sound card and _one_ nic you can
-> > easily guess it :)
-> 
-> Hmm... you are on sony notebook... right? That means it is very likely
-> it has just one sound card, and just one ethernet, no?
+Probably, the intended statement was
 
-I was thinking about hotpluggable audio/nic (pcmcia, usb). Anyway I have
-a sky2 and ipw3945 and yes, just one sound card :)
+And (0xFE, Local7, Local7)
 
--- 
-mattia
-:wq!
+This type of thing should certainly be reported to the vendor.
+
+> -----Original Message-----
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> owner@vger.kernel.org] On Behalf Of Renato Alves
+> Sent: Monday, March 05, 2007 4:40 PM
+> To: linux-acpi@vger.kernel.org
+> Subject: Fixing DSDT table for correct LID behavior
+> 
+> Hi guys.
+> 
+> This is my first message to the mailing list.
+> I'm still new to the ACPI and DSDT mambo jumbo and not a programmer,
+but
+> anyway... I tried to debug the dsdt of my laptop (Acer Aspire 1694
+LMi)
+> to solve some of the typical problems (no BAT info, boot hangs...). So
+> far, by using a mixture of the custom DSDTs at acpi.sf.net I managed
+to
+> solve the BAT issues and the boot hangs.
+> Using iasl I got only one warning, that I don't know how to solve:
+> 
+> dsdt.custom.dsl  7598:                             And (0xFE, Local7)
+> Warning  1104 -          Result is not used, operator has no effect ^
+> 
+> Past this, I now have the system with thermal support in passive mode
+> (no throttling), no fan info (no rpm, no throttling, no nothing),
+> ac_adapter is fine, button power and sleep are fine, lid works but I
+> will get back to it later, processor is also fine (with throttling)
+and
+> battery is also fine except for present rate when charging.
+> 
+> Now the LID: the problem with this is the number of events generated.
+> The ideal behavior would be 1 event on lid close and 1 on lid open.
+But
+> actually what happens is 5 events per second when the lid is closed.
+> This causes high CPU loads when software like cpufreq parses the logs
+> and huge logs by acpid.
+> 
+> I was hoping someone could tip me on how to reduce the number of
+events
+> generated to prevent this flooding. And enlighten about the
+possibility
+> of getting the fan and thermal parts working "non-passive".
+> 
+> Here is a copy of what I have been working on:
+> http://apollo.dq.fct.unl.pt/~al1133/dsdt.tar.bz2
+> 
+> Thanks
+> --
+> Renato Alves
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
