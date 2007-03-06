@@ -1,52 +1,44 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [GIT PATCH] ACPI patches for 2.6.21 - part II (resend)
-Date: Tue, 6 Mar 2007 22:09:59 +0100
-Message-ID: <20070306210959.GB3843@elf.ucw.cz>
-References: <200702162223.59837.lenb@kernel.org> <20020101045751.GD4106@ucw.cz> <20070306122213.GF2919@inferi.kami.home>
+Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
+Date: Tue, 6 Mar 2007 22:20:56 +0100
+Message-ID: <20070306212056.GC3843@elf.ucw.cz>
+References: <20070301152655.f232db64.khali@linux-fr.org> <20070302114023.GD2163@elf.ucw.cz> <20070302114747.GB1212@srcf.ucam.org> <20070302151055.d2665d66.khali@linux-fr.org> <20070302141840.GA3441@srcf.ucam.org> <20070302220454.a0c66d04.khali@linux-fr.org> <20070302211251.GA10035@srcf.ucam.org> <20070303105316.d51e032d.khali@linux-fr.org> <20070305222548.GA4946@ucw.cz> <20070306162634.bcaaf0c7.khali@linux-fr.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:45471 "EHLO amd.ucw.cz"
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:44543 "EHLO amd.ucw.cz"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751099AbXCFVKI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 Mar 2007 16:10:08 -0500
+	id S932334AbXCFVVI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 6 Mar 2007 16:21:08 -0500
 Content-Disposition: inline
-In-Reply-To: <20070306122213.GF2919@inferi.kami.home>
+In-Reply-To: <20070306162634.bcaaf0c7.khali@linux-fr.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
 Hi!
 
-> > > commit 4465857d5f99079bae00621626adf74ed8256296
-> > > Author: Mattia Dongili <malattia@linux.it>
-> > > Date:   Sat Jan 13 23:04:39 2007 +0100
-> > > 
-> > >     sony_acpi: Add lanpower and audiopower controls
-> > >     
-> > >     audiopower works well on my SZ72B so it's not marked has "debug" while lanpower
-> > >     has at least one report of not resuming power happily so morked as "debug"
-> > >     
-> > >     Signed-off-by: Mattia Dongili <malattia@linux.it>
-> > >     Signed-off-by: Len Brown <len.brown@intel.com>
+> > > Is there anything preventing us from doing such a walk and pre-allocate
+> > > all the I/O ranges? I am not familiar with the ACPI code at all, would
+> > > you possibly propose a patch doing that?
 > > 
-> > What is interface to these? It would be nice to automagically disable
-> > audiopower when sound device is closed, and automagically power down
-> > lan on ifconfig ... down.
+> > ACPI AML is probably turing-complete: I'm afraid you are trying to
+> > solve the halting problem (-> impossible).
 > 
-> the audiopower is basically a _PS3/_PS0 switch for the device, while the
-> lanpower plays with the embedded controller to powerdown/powerup.
-> 
-> Now, unfortunately those methods are attached to a fake device in the
-> DSDT and afaict there's no way to tell which real device they are
-> playing with (except by inspecting the method implementations).
+> Can you please translate this into something mere humans like myself
+> have a chance to understand?
 
-> Well of course iff there's only _one_ sound card and _one_ nic you can
-> easily guess it :)
+ACPI AML is turing-complete -- that means it is as powerful any
+programming language. It can do arbitrary computation. That means it
+is theoretically impossible to analyze its accesses using any program.
 
-Hmm... you are on sony notebook... right? That means it is very likely
-it has just one sound card, and just one ethernet, no?
+Now... may be possible to introduce _some_ ACPI BIOSes, but doing it
+would certainly be very complex -- we are talking "put gcc into
+kernel" here.
 
+So no, it is not possible to preallocate the ranges.
+								Pavel
 -- 
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
