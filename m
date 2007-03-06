@@ -1,59 +1,35 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: acpi-fan-after-suspend-to-mem-fix.patch
-Date: Mon, 5 Mar 2007 17:04:18 -0800
-Message-ID: <20070305170418.866b3921.akpm@linux-foundation.org>
+From: "Jeff Chua" <jeff.chua.linux@gmail.com>
+Subject: Re: 2.6.21-rc1: known regressions (v2) (part 1)
+Date: Tue, 6 Mar 2007 09:32:30 +0800
+Message-ID: <b6a2187b0703051732v79a532f6mbf0d3da857a914e6@mail.gmail.com>
+References: <Pine.LNX.4.64.0702202043280.4043@woody.linux-foundation.org>
+	 <20070226220152.GA29575@stusta.de>
+	 <20070228211318.GB4301@mellanox.co.il>
+	 <b6a2187b0702281945n5f62a6b5w1c535de3ef9aaa8f@mail.gmail.com>
+	 <20070305000421.GF3441@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44049 "EHLO smtp.osdl.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933689AbXCFBFq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Mar 2007 20:05:46 -0500
+Received: from nf-out-0910.google.com ([64.233.182.186]:39582 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933781AbXCFBcc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Mar 2007 20:32:32 -0500
+Received: by nf-out-0910.google.com with SMTP id o25so2297537nfa
+        for <linux-acpi@vger.kernel.org>; Mon, 05 Mar 2007 17:32:31 -0800 (PST)
+In-Reply-To: <20070305000421.GF3441@stusta.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Tommi Kyntola <tommi.kyntola@ray.fi>
+To: Adrian Bunk <bunk@stusta.de>
+Cc: "Michael S. Tsirkin" <mst@mellanox.co.il>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-pm@lists.osdl.org, Ingo Molnar <mingo@elte.hu>, lenb@kernel.org, linux-acpi@vger.kernel.org
 
+On 3/5/07, Adrian Bunk <bunk@stusta.de> wrote:
 
-Should I merge this into mainline??
+> > I have the same problem on my IBM X60s on rc1 and rc2. Can't resume
+> > from RAM, can't suspend to disk. It is possible to revert all the
+> > changes to ACPI and test it?
+>
+> This is with CONFIG_KVM=n?
 
-
-From: Tommi Kyntola <tommi.kyntola@ray.fi>
-
-acpi_fan_suspend should probably set state to ACPI_D3, rather than ACPI_D0.
- With this change the fan works after S3 suspend atleast on HP nw8000
-laptop, for which the suspended fan has been broken since sword-and-stone.
-
-Why this was ACPI_D0 beats me, but it's been that way since the
-_suspend/_resume functios got added in the commit
-0feabb01d93e5801d1127416a66cfc3963280bca (2.6.18-rc1, I think).
-
-The fan hasn't worked on my HP nw8000 laptop after an S3 suspend ever, but
-fixing that to ACPI_D3 there finally makes it work as expected.
-
-If there was some hidden reason why that was set to ACPI_D0, then perhaps a
-config option for some ICH4 or HP laptops is called for.
-
-Signed-off-by: Tommi Kyntola <tommi.kyntola@ray.fi>
-Cc: Len Brown <lenb@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/acpi/fan.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
-
-diff -puN drivers/acpi/fan.c~acpi-fan-after-suspend-to-mem-fix drivers/acpi/fan.c
---- a/drivers/acpi/fan.c~acpi-fan-after-suspend-to-mem-fix
-+++ a/drivers/acpi/fan.c
-@@ -241,7 +241,7 @@ static int acpi_fan_suspend(struct acpi_
- 	if (!device)
- 		return -EINVAL;
- 
--	acpi_bus_set_power(device->handle, ACPI_STATE_D0);
-+	acpi_bus_set_power(device->handle, ACPI_STATE_D3);
- 
- 	return AE_OK;
- }
-_
-
+Yes.
