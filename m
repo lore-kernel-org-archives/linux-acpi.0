@@ -1,39 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: [patch 6/6] Fix ACPI documentation in kernel-parameters.txt
-Date: Tue, 06 Mar 2007 02:29:44 -0800
-Message-ID: <200703061029.l26ATiiQ019139@shell0.pdx.osdl.net>
+Subject: [patch 4/6] sony-laptop fix uninitialised variable
+Date: Tue, 06 Mar 2007 02:29:42 -0800
+Message-ID: <200703061029.l26ATgUA019125@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33923 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33928 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933234AbXCFKa7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 Mar 2007 05:30:59 -0500
+	id S934012AbXCFKbD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 6 Mar 2007 05:31:03 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, bwalle@suse.de
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, malattia@linux.it
 
-From: Bernhard Walle <bwalle@suse.de>
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add hint that acpi=off doesn't work on IA64.
+drivers/misc/sony-laptop.c: In function 'sony_acpi_add':
+drivers/misc/sony-laptop.c:456: warning: 'result' may be used uninitialized in this function
 
-Signed-off-by: Bernhard Walle <bwalle@suse.de>
+The compiler seems to actually be telling the truth this time.
+
+Cc: Mattia Dongili <malattia@linux.it>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/misc/sony-laptop.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/kernel-parameters.txt~fix-acpi-documentation-in-kernel-parameterstxt Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~fix-acpi-documentation-in-kernel-parameterstxt
-+++ a/Documentation/kernel-parameters.txt
-@@ -125,7 +125,8 @@ and is between 256 and 4096 characters. 
- 			See header of drivers/scsi/53c7xx.c.
- 			See also Documentation/scsi/ncr53c7xx.txt.
+diff -puN drivers/misc/sony-laptop.c~sony-laptop-fix-uninitialised-variable drivers/misc/sony-laptop.c
+--- a/drivers/misc/sony-laptop.c~sony-laptop-fix-uninitialised-variable
++++ a/drivers/misc/sony-laptop.c
+@@ -453,7 +453,7 @@ static int sony_acpi_resume(struct acpi_
+ static int sony_acpi_add(struct acpi_device *device)
+ {
+ 	acpi_status status;
+-	int result;
++	int result = 0;
+ 	acpi_handle handle;
  
--	acpi=		[HW,ACPI] Advanced Configuration and Power Interface
-+	acpi=		[HW,ACPI,X86-64,i386]
-+			Advanced Configuration and Power Interface
- 			Format: { force | off | ht | strict | noirq }
- 			force -- enable ACPI if default was off
- 			off -- disable ACPI if default was on
+ 	sony_acpi_acpi_device = device;
 _
