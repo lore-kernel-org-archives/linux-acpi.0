@@ -1,45 +1,30 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Date: Tue, 6 Mar 2007 16:26:34 +0100
-Message-ID: <20070306162634.bcaaf0c7.khali@linux-fr.org>
-References: <20070218183805.5a4fd813.khali@linux-fr.org>
-	<20070228213803.GA4877@ucw.cz>
-	<20070301152655.f232db64.khali@linux-fr.org>
-	<20070302114023.GD2163@elf.ucw.cz>
-	<20070302114747.GB1212@srcf.ucam.org>
-	<20070302151055.d2665d66.khali@linux-fr.org>
-	<20070302141840.GA3441@srcf.ucam.org>
-	<20070302220454.a0c66d04.khali@linux-fr.org>
-	<20070302211251.GA10035@srcf.ucam.org>
-	<20070303105316.d51e032d.khali@linux-fr.org>
-	<20070305222548.GA4946@ucw.cz>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [3/6] 2.6.21-rc2: known regressions
+Date: Tue, 6 Mar 2007 17:08:48 +0000
+Message-ID: <20070306170848.4c4f2608@lxorguk.ukuu.org.uk>
+References: <Pine.LNX.4.64.0702272105220.12485@woody.linux-foundation.org>
+	<20070305015036.GH3441@stusta.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-102-tuesday.nerim.net ([62.4.16.102]:1640 "EHLO
-	kraid.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S965929AbXCFP12 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Mar 2007 10:27:28 -0500
-In-Reply-To: <20070305222548.GA4946@ucw.cz>
+Received: from [81.2.110.250] ([81.2.110.250]:57992 "EHLO lxorguk.ukuu.org.uk"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S965202AbXCFQJR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 6 Mar 2007 11:09:17 -0500
+In-Reply-To: <20070305015036.GH3441@stusta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mathieu =?UTF-8?B?QsOpcmFyZA==?= <Mathieu.Berard@crans.org>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Michal Jaegermann <michal@ellpspace.math.ualberta.ca>, Fabio Comolli <fabio.comolli@gmail.com>, Tejun Heo <htejun@gmail.com>, Janosch Machowinski <jmachowinski@gmx.de>, Lukas Hejtmanek <xhejtman@fi.muni.cz>, Meelis Roos <mroos@linux.ee>, Olivier Mondoloni <darkcore71@yahoo.fr>, Thomas Renninger <trenn@suse.de>, Robert Moore <robert.moore@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-Hi Pavel,
+> Subject    : libata: PATA UDMA/100 configured as UDMA/33
+> References : http://lkml.org/lkml/2007/2/20/294
+>              http://www.mail-archive.com/linux-ide@vger.kernel.org/msg04115.html
+> Submitter  : Fabio Comolli <fabio.comolli@gmail.com>
+> Handled-By : Tejun Heo <htejun@gmail.com>
+> Status     : problem is being discussed
 
-On Mon, 5 Mar 2007 22:25:48 +0000, Pavel Machek wrote:
-> > Is there anything preventing us from doing such a walk and pre-allocate
-> > all the I/O ranges? I am not familiar with the ACPI code at all, would
-> > you possibly propose a patch doing that?
-> 
-> ACPI AML is probably turing-complete: I'm afraid you are trying to
-> solve the halting problem (-> impossible).
+Patch went to Jeff, hopefully it is now fixed. Bigger rework is heading
+into -mm but not appropriate or neccessary for 2.6.21
 
-Can you please translate this into something mere humans like myself
-have a chance to understand?
-
-Thanks,
--- 
-Jean Delvare
