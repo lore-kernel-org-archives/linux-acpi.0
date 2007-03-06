@@ -1,89 +1,39 @@
-From: akpm@linux-foundation.org
-Subject: [patch 2/6] drivers/cpuidle/: make code static
-Date: Tue, 06 Mar 2007 02:29:40 -0800
-Message-ID: <200703061029.l26ATeKJ019119@shell0.pdx.osdl.net>
+From: "Jeff Chua" <jeff.chua.linux@gmail.com>
+Subject: Re: 2.6.21-rc1: known regressions (v2) (part 1)
+Date: Tue, 6 Mar 2007 20:03:58 +0800
+Message-ID: <b6a2187b0703060403o48130853m9393df70160303c1@mail.gmail.com>
+References: <Pine.LNX.4.64.0702202043280.4043@woody.linux-foundation.org>
+	 <20070226220152.GA29575@stusta.de>
+	 <20070228211318.GB4301@mellanox.co.il>
+	 <b6a2187b0702281945n5f62a6b5w1c535de3ef9aaa8f@mail.gmail.com>
+	 <20070305000421.GF3441@stusta.de>
+	 <b6a2187b0703051732v79a532f6mbf0d3da857a914e6@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34215 "EHLO smtp.osdl.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933222AbXCFKem (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 Mar 2007 05:34:42 -0500
+Received: from ik-out-1112.google.com ([66.249.90.176]:47861 "EHLO
+	ik-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933244AbXCFMEB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Mar 2007 07:04:01 -0500
+Received: by ik-out-1112.google.com with SMTP id c21so1009893ika
+        for <linux-acpi@vger.kernel.org>; Tue, 06 Mar 2007 04:03:59 -0800 (PST)
+In-Reply-To: <b6a2187b0703051732v79a532f6mbf0d3da857a914e6@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, bunk@stusta.de, abelay@novell.com, shaohua.li@intel.com, venkatesh.pallipadi@intel.com
+To: Adrian Bunk <bunk@stusta.de>
+Cc: "Michael S. Tsirkin" <mst@mellanox.co.il>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-pm@lists.osdl.org, Ingo Molnar <mingo@elte.hu>, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-From: Adrian Bunk <bunk@stusta.de>
+On 3/6/07, Jeff Chua <jeff.chua.linux@gmail.com> wrote:
+> On 3/5/07, Adrian Bunk <bunk@stusta.de> wrote:
+>
+> > > I have the same problem on my IBM X60s on rc1 and rc2. Can't resume
+> > > from RAM, can't suspend to disk. It is possible to revert all the
+> > > changes to ACPI and test it?
+> >
+> > This is with CONFIG_KVM=n?
+>
+> Yes.
 
-This patch makes the following needlessly global code static:
-- driver.c: __cpuidle_find_driver()
-- governor.c: __cpuidle_find_governor()
-- ladder.c: struct ladder_governor
-
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Adam Belay <abelay@novell.com>
-Cc: Shaohua Li <shaohua.li@intel.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/cpuidle/cpuidle.h          |    2 --
- drivers/cpuidle/driver.c           |    2 +-
- drivers/cpuidle/governor.c         |    2 +-
- drivers/cpuidle/governors/ladder.c |    2 +-
- 4 files changed, 3 insertions(+), 5 deletions(-)
-
-diff -puN drivers/cpuidle/cpuidle.h~drivers-cpuidle-make-code-static drivers/cpuidle/cpuidle.h
---- a/drivers/cpuidle/cpuidle.h~drivers-cpuidle-make-code-static
-+++ a/drivers/cpuidle/cpuidle.h
-@@ -23,13 +23,11 @@ extern void cpuidle_rescan_device(struct
- /* drivers */
- extern int cpuidle_attach_driver(struct cpuidle_device *dev);
- extern void cpuidle_detach_driver(struct cpuidle_device *dev);
--extern struct cpuidle_driver * __cpuidle_find_driver(const char *str);
- extern int cpuidle_switch_driver(struct cpuidle_driver *drv);
- 
- /* governors */
- extern int cpuidle_attach_governor(struct cpuidle_device *dev);
- extern void cpuidle_detach_governor(struct cpuidle_device *dev);
--extern struct cpuidle_governor * __cpuidle_find_governor(const char *str);
- extern int cpuidle_switch_governor(struct cpuidle_governor *gov);
- 
- /* sysfs */
-diff -puN drivers/cpuidle/driver.c~drivers-cpuidle-make-code-static drivers/cpuidle/driver.c
---- a/drivers/cpuidle/driver.c~drivers-cpuidle-make-code-static
-+++ a/drivers/cpuidle/driver.c
-@@ -73,7 +73,7 @@ void cpuidle_detach_driver(struct cpuidl
-  *
-  * Must be called with cpuidle_lock aquired.
-  */
--struct cpuidle_driver * __cpuidle_find_driver(const char *str)
-+static struct cpuidle_driver * __cpuidle_find_driver(const char *str)
- {
- 	struct cpuidle_driver *drv;
- 
-diff -puN drivers/cpuidle/governor.c~drivers-cpuidle-make-code-static drivers/cpuidle/governor.c
---- a/drivers/cpuidle/governor.c~drivers-cpuidle-make-code-static
-+++ a/drivers/cpuidle/governor.c
-@@ -72,7 +72,7 @@ void cpuidle_detach_governor(struct cpui
-  *
-  * Must be called with cpuidle_lock aquired.
-  */
--struct cpuidle_governor * __cpuidle_find_governor(const char *str)
-+static struct cpuidle_governor * __cpuidle_find_governor(const char *str)
- {
- 	struct cpuidle_governor *gov;
- 
-diff -puN drivers/cpuidle/governors/ladder.c~drivers-cpuidle-make-code-static drivers/cpuidle/governors/ladder.c
---- a/drivers/cpuidle/governors/ladder.c~drivers-cpuidle-make-code-static
-+++ a/drivers/cpuidle/governors/ladder.c
-@@ -199,7 +199,7 @@ static void ladder_exit_device(struct cp
- 	kfree(dev->governor_data);
- }
- 
--struct cpuidle_governor ladder_governor = {
-+static struct cpuidle_governor ladder_governor = {
- 	.name =		"ladder",
- 	.init =		ladder_init_device,
- 	.exit =		ladder_exit_device,
-_
+I've tried with CONFIG_KVM=n and CONFIG_KVM=y and both does not suspend.
