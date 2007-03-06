@@ -1,47 +1,53 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Date: Mon, 5 Mar 2007 22:25:48 +0000
-Message-ID: <20070305222548.GA4946@ucw.cz>
-References: <20070218183805.5a4fd813.khali@linux-fr.org> <20070228213803.GA4877@ucw.cz> <20070301152655.f232db64.khali@linux-fr.org> <20070302114023.GD2163@elf.ucw.cz> <20070302114747.GB1212@srcf.ucam.org> <20070302151055.d2665d66.khali@linux-fr.org> <20070302141840.GA3441@srcf.ucam.org> <20070302220454.a0c66d04.khali@linux-fr.org> <20070302211251.GA10035@srcf.ucam.org> <20070303105316.d51e032d.khali@linux-fr.org>
+From: Renato Alves <simpledark@gmail.com>
+Subject: Fixing DSDT table for correct LID behavior
+Date: Tue, 06 Mar 2007 00:40:06 +0000
+Message-ID: <45ECB866.6010201@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:2485 "EHLO spitz.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751552AbXCEWZ7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Mar 2007 17:25:59 -0500
-Content-Disposition: inline
-In-Reply-To: <20070303105316.d51e032d.khali@linux-fr.org>
+Received: from ug-out-1314.google.com ([66.249.92.174]:29029 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933612AbXCFAkK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Mar 2007 19:40:10 -0500
+Received: by ug-out-1314.google.com with SMTP id 44so19382uga
+        for <linux-acpi@vger.kernel.org>; Mon, 05 Mar 2007 16:40:09 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: linux-acpi@vger.kernel.org
 
-Hi!
+Hi guys.
 
-> > > Why would we end up with an overestimation if we check the I/O ports at
-> > > boot time? Do you have concrete cases in mind?
-> > 
-> > ACPI will often describe large operation regions, but won't necessarily 
-> > touch all of them. Effectively, every codepath would have to be walked 
-> > through at boot time and checked for io access.
-> 
-> Is there anything preventing us from doing such a walk and pre-allocate
-> all the I/O ranges? I am not familiar with the ACPI code at all, would
-> you possibly propose a patch doing that?
+This is my first message to the mailing list.
+I'm still new to the ACPI and DSDT mambo jumbo and not a programmer, but
+anyway... I tried to debug the dsdt of my laptop (Acer Aspire 1694 LMi)
+to solve some of the typical problems (no BAT info, boot hangs...). So
+far, by using a mixture of the custom DSDTs at acpi.sf.net I managed to
+solve the BAT issues and the boot hangs.
+Using iasl I got only one warning, that I don't know how to solve:
 
-ACPI AML is probably turing-complete: I'm afraid you are trying to
-solve the halting problem (-> impossible).
-						Pavel
+dsdt.custom.dsl  7598:                             And (0xFE, Local7)
+Warning  1104 -          Result is not used, operator has no effect ^
 
-> 
-> If we can't do that, the overestimation approach might still work. I
-> wonder if it would cause problems in practice. If it does, we're back
-> to Pavel's AML lock.
-> 
-> -- 
-> Jean Delvare
+Past this, I now have the system with thermal support in passive mode
+(no throttling), no fan info (no rpm, no throttling, no nothing),
+ac_adapter is fine, button power and sleep are fine, lid works but I
+will get back to it later, processor is also fine (with throttling) and
+battery is also fine except for present rate when charging.
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Now the LID: the problem with this is the number of events generated.
+The ideal behavior would be 1 event on lid close and 1 on lid open. But
+actually what happens is 5 events per second when the lid is closed.
+This causes high CPU loads when software like cpufreq parses the logs
+and huge logs by acpid.
+
+I was hoping someone could tip me on how to reduce the number of events
+generated to prevent this flooding. And enlighten about the possibility
+of getting the fan and thermal parts working "non-passive".
+
+Here is a copy of what I have been working on:
+http://apollo.dq.fct.unl.pt/~al1133/dsdt.tar.bz2
+
+Thanks
+--
+Renato Alves
