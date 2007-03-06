@@ -1,53 +1,59 @@
-From: Renato Alves <simpledark@gmail.com>
-Subject: Fixing DSDT table for correct LID behavior
-Date: Tue, 06 Mar 2007 00:40:06 +0000
-Message-ID: <45ECB866.6010201@gmail.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: acpi-fan-after-suspend-to-mem-fix.patch
+Date: Mon, 5 Mar 2007 17:04:18 -0800
+Message-ID: <20070305170418.866b3921.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.174]:29029 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933612AbXCFAkK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Mar 2007 19:40:10 -0500
-Received: by ug-out-1314.google.com with SMTP id 44so19382uga
-        for <linux-acpi@vger.kernel.org>; Mon, 05 Mar 2007 16:40:09 -0800 (PST)
+Received: from smtp.osdl.org ([65.172.181.24]:44049 "EHLO smtp.osdl.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933689AbXCFBFq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 Mar 2007 20:05:46 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Tommi Kyntola <tommi.kyntola@ray.fi>
 
-Hi guys.
 
-This is my first message to the mailing list.
-I'm still new to the ACPI and DSDT mambo jumbo and not a programmer, but
-anyway... I tried to debug the dsdt of my laptop (Acer Aspire 1694 LMi)
-to solve some of the typical problems (no BAT info, boot hangs...). So
-far, by using a mixture of the custom DSDTs at acpi.sf.net I managed to
-solve the BAT issues and the boot hangs.
-Using iasl I got only one warning, that I don't know how to solve:
+Should I merge this into mainline??
 
-dsdt.custom.dsl  7598:                             And (0xFE, Local7)
-Warning  1104 -          Result is not used, operator has no effect ^
 
-Past this, I now have the system with thermal support in passive mode
-(no throttling), no fan info (no rpm, no throttling, no nothing),
-ac_adapter is fine, button power and sleep are fine, lid works but I
-will get back to it later, processor is also fine (with throttling) and
-battery is also fine except for present rate when charging.
+From: Tommi Kyntola <tommi.kyntola@ray.fi>
 
-Now the LID: the problem with this is the number of events generated.
-The ideal behavior would be 1 event on lid close and 1 on lid open. But
-actually what happens is 5 events per second when the lid is closed.
-This causes high CPU loads when software like cpufreq parses the logs
-and huge logs by acpid.
+acpi_fan_suspend should probably set state to ACPI_D3, rather than ACPI_D0.
+ With this change the fan works after S3 suspend atleast on HP nw8000
+laptop, for which the suspended fan has been broken since sword-and-stone.
 
-I was hoping someone could tip me on how to reduce the number of events
-generated to prevent this flooding. And enlighten about the possibility
-of getting the fan and thermal parts working "non-passive".
+Why this was ACPI_D0 beats me, but it's been that way since the
+_suspend/_resume functios got added in the commit
+0feabb01d93e5801d1127416a66cfc3963280bca (2.6.18-rc1, I think).
 
-Here is a copy of what I have been working on:
-http://apollo.dq.fct.unl.pt/~al1133/dsdt.tar.bz2
+The fan hasn't worked on my HP nw8000 laptop after an S3 suspend ever, but
+fixing that to ACPI_D3 there finally makes it work as expected.
 
-Thanks
---
-Renato Alves
+If there was some hidden reason why that was set to ACPI_D0, then perhaps a
+config option for some ICH4 or HP laptops is called for.
+
+Signed-off-by: Tommi Kyntola <tommi.kyntola@ray.fi>
+Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/acpi/fan.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
+
+diff -puN drivers/acpi/fan.c~acpi-fan-after-suspend-to-mem-fix drivers/acpi/fan.c
+--- a/drivers/acpi/fan.c~acpi-fan-after-suspend-to-mem-fix
++++ a/drivers/acpi/fan.c
+@@ -241,7 +241,7 @@ static int acpi_fan_suspend(struct acpi_
+ 	if (!device)
+ 		return -EINVAL;
+ 
+-	acpi_bus_set_power(device->handle, ACPI_STATE_D0);
++	acpi_bus_set_power(device->handle, ACPI_STATE_D3);
+ 
+ 	return AE_OK;
+ }
+_
+
