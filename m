@@ -1,52 +1,57 @@
-From: "Jeff Chua" <jeff.chua.linux@gmail.com>
-Subject: Re: 2.6.21-rc1: known regressions (v2) (part 1)
-Date: Tue, 6 Mar 2007 20:12:20 +0800
-Message-ID: <b6a2187b0703060412l66fe8db8l12e5403821d1438b@mail.gmail.com>
-References: <Pine.LNX.4.64.0702202043280.4043@woody.linux-foundation.org>
-	 <20070226220152.GA29575@stusta.de>
-	 <20070228211318.GB4301@mellanox.co.il>
-	 <b6a2187b0702281945n5f62a6b5w1c535de3ef9aaa8f@mail.gmail.com>
-	 <20070305000421.GF3441@stusta.de>
-	 <b6a2187b0703051732v79a532f6mbf0d3da857a914e6@mail.gmail.com>
-	 <b6a2187b0703060403o48130853m9393df70160303c1@mail.gmail.com>
-	 <20070306120808.GA9537@mellanox.co.il>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: [GIT PATCH] ACPI patches for 2.6.21 - part II (resend)
+Date: Tue, 6 Mar 2007 13:22:13 +0100
+Message-ID: <20070306122213.GF2919@inferi.kami.home>
+References: <200702162223.59837.lenb@kernel.org> <20020101045751.GD4106@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.169]:17032 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934096AbXCFMMX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Mar 2007 07:12:23 -0500
-Received: by ug-out-1314.google.com with SMTP id 44so156667uga
-        for <linux-acpi@vger.kernel.org>; Tue, 06 Mar 2007 04:12:21 -0800 (PST)
-In-Reply-To: <20070306120808.GA9537@mellanox.co.il>
+Received: from aa014msr.fastwebnet.it ([85.18.95.74]:49263 "EHLO
+	aa014msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752912AbXCFMYM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Mar 2007 07:24:12 -0500
 Content-Disposition: inline
+In-Reply-To: <20020101045751.GD4106@ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Michael S. Tsirkin" <mst@mellanox.co.il>
-Cc: Adrian Bunk <bunk@stusta.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-pm@lists.osdl.org, Ingo Molnar <mingo@elte.hu>, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 3/6/07, Michael S. Tsirkin <mst@mellanox.co.il> wrote:
-> > Quoting Jeff Chua <jeff.chua.linux@gmail.com>:
-> > Subject: Re: 2.6.21-rc1: known regressions (v2) (part 1)
-> >
-> > On 3/6/07, Jeff Chua <jeff.chua.linux@gmail.com> wrote:
-> > > On 3/5/07, Adrian Bunk <bunk@stusta.de> wrote:
-> > >
-> > > > > I have the same problem on my IBM X60s on rc1 and rc2. Can't resume
-> > > > > from RAM, can't suspend to disk. It is possible to revert all the
-> > > > > changes to ACPI and test it?
-> > > >
-> > > > This is with CONFIG_KVM=n?
-> > >
-> > > Yes.
-> >
-> > I've tried with CONFIG_KVM=n and CONFIG_KVM=y and both does not suspend.
->
-> Do you mean that they "do not resume after suspend"?
+On Tue, Jan 01, 2002 at 04:57:52AM +0000, Pavel Machek wrote:
+> Hi!
+> 
+> > commit 4465857d5f99079bae00621626adf74ed8256296
+> > Author: Mattia Dongili <malattia@linux.it>
+> > Date:   Sat Jan 13 23:04:39 2007 +0100
+> > 
+> >     sony_acpi: Add lanpower and audiopower controls
+> >     
+> >     audiopower works well on my SZ72B so it's not marked has "debug" while lanpower
+> >     has at least one report of not resuming power happily so morked as "debug"
+> >     
+> >     Signed-off-by: Mattia Dongili <malattia@linux.it>
+> >     Signed-off-by: Len Brown <len.brown@intel.com>
+> 
+> What is interface to these? It would be nice to automagically disable
+> audiopower when sound device is closed, and automagically power down
+> lan on ifconfig ... down.
 
-I can't even suspend to disk/ram. It just hangs and the lights just
-blink and everything else hangs. With 2.6.20, it works fine.
+the audiopower is basically a _PS3/_PS0 switch for the device, while the
+lanpower plays with the embedded controller to powerdown/powerup.
 
-Jeff.
+Now, unfortunately those methods are attached to a fake device in the
+DSDT and afaict there's no way to tell which real device they are
+playing with (except by inspecting the method implementations).
+Well of course iff there's only _one_ sound card and _one_ nic you can
+easily guess it :)
+
+Is there some way to hook into drivers for such kind of runtime power
+management?
+
+PS: lanpower currently seems to be a little too invasive (or it's just
+ACPI that reacts badly) because switching off lanpower also disables the
+pic link and never comes back. I need to better diagnose what's
+happening and report to linux-acpi.
+-- 
+mattia
+:wq!
