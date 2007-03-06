@@ -1,71 +1,62 @@
 From: Jean Delvare <khali@linux-fr.org>
 Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Date: Tue, 6 Mar 2007 16:10:02 +0100
-Message-ID: <20070306161002.2a7d5c74.khali@linux-fr.org>
-References: <20070228213803.GA4877@ucw.cz>
-	<20070302141840.GA3441@srcf.ucam.org>
-	<20070302220454.a0c66d04.khali@linux-fr.org>
-	<20070302211251.GA10035@srcf.ucam.org>
-	<20070303105316.d51e032d.khali@linux-fr.org>
-	<4dfa50520703030747g3c887f5bxe25caefd1723c635@mail.gmail.com>
-	<20070303155048.GA22755@srcf.ucam.org>
-	<45E9AB8B.1070804@assembler.cz>
-	<45EB01E8.5080003@assembler.cz>
-	<20070305221635.8b20eab5.khali@linux-fr.org>
-	<4dfa50520703051335j34e7d92bl982705adcfd8b1d5@mail.gmail.com>
+Date: Tue, 6 Mar 2007 16:19:35 +0100
+Message-ID: <20070306161935.025a3ec1.khali@linux-fr.org>
+References: <7PvLN-1cj-3@gated-at.bofh.it>
+	<7TEGV-6Jy-39@gated-at.bofh.it>
+	<7TUBX-6TN-5@gated-at.bofh.it>
+	<7UeqX-4QO-17@gated-at.bofh.it>
+	<7UeqZ-4QO-27@gated-at.bofh.it>
+	<7UgM5-np-1@gated-at.bofh.it>
+	<7UgM8-np-11@gated-at.bofh.it>
+	<7UnaS-2xP-9@gated-at.bofh.it>
+	<7UnkC-2JB-9@gated-at.bofh.it>
+	<7Uzcd-49u-3@gated-at.bofh.it>
+	<7UEEN-4xi-3@gated-at.bofh.it>
+	<E1HODgC-0000h8-Vc@be1.lrz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-102-tuesday.noc.nerim.net ([62.4.17.102]:1216 "EHLO
+Received: from smtp-102-tuesday.noc.nerim.net ([62.4.17.102]:3365 "EHLO
 	mallaury.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S965921AbXCFPKv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Mar 2007 10:10:51 -0500
-In-Reply-To: <4dfa50520703051335j34e7d92bl982705adcfd8b1d5@mail.gmail.com>
+	with ESMTP id S965924AbXCFPUY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Mar 2007 10:20:24 -0500
+In-Reply-To: <E1HODgC-0000h8-Vc@be1.lrz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Hubbard <david.c.hubbard@gmail.com>
-Cc: Rudolf Marek <r.marek@assembler.cz>, Matthew Garrett <mjg59@srcf.ucam.org>, Ebbert <cebbert@redhat.com>, Chuck@atrpms.net, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Machek <pavel@ucw.cz>, Pavel@atrpms.net, lm-sensors@lm-sensors.org
+To: Bodo Eggert <7eggert@gmx.de>
+Cc: David Hubbard <david.c.hubbard@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Pavel Machek <pavel@ucw.cz>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, Chuck Ebbert <cebbert@redhat.com>, Rudolf@atrpms.net
 
-Hi David,
+Hi Bodo,
 
-On Mon, 5 Mar 2007 13:35:20 -0800, David Hubbard wrote:
-> > 2* It seems to incur a signficant performance penalty.
-> > ____request_resource isn't cheap as far as I know. And in the
-> > absence of conflict, you are even allocating and releasing the resource
-> > on _each_ I/O operation, which certainly isn't cheap either. Again, it
-> > is not a blocker point, after all this is a workaround for an improper
-> > behavior of the acpi subsystem, this performance penalty is the price to
-> > pay. But there is also a performance penalty for legitimate I/O access,
-> > which worries me more.
-> 
-> I thought Rudolf's patch allocated the resource in the driver
-> (w83627ehf) and ACPI contacted the driver when it could not allocate
-> the resource. Since ACPI never *really* wants to allocate the
-> resource, is there a fast-path check it could do? This would help
-> performance.
+On Mon, 05 Mar 2007 14:56:44 +0100, Bodo Eggert wrote:
+> 1) Make a general resource allocation lock, if there is none.
 
-Alas, I don't think it can work safely. If ACPI doesn't actually
-allocate the resource, there is a risk that another driver does so
-between the conflict check and the I/O access. I believe this is the
-reason why Rudolf used ____request_resource and not __check_region.
+Such a lock certainly exists, but I doubt it is public at the moment.
 
-> I like the virtualized driver method (if it wasn't obvious!) but the
-> global AML lock works also. It will be interesting to see profiling of
-> both solutions.
+> 2) make ACPI take this lock whenever it touches ports not allocated by itself
+>    and release it on function return.
 
-In fact Rudolf's solution is nice for LPC chips, however I don't think
-it can work with SMBus chips. It might intercept the accesses to the
-SMBus master and be able to emulate it, even though this will be more
-complex that the W83627EHF case, and I'm not sure about the PCI config
-space. But ultimately we need to emulate all the chips behind the
-SMBus, too. The drivers for these chips won't know if they are accessed
-for real of through the emulation layer, so there is no way they'll
-remember states, while they might have to (e.g. the W83781D has a bank
-register too.)
+This is costly.
 
-The AML lock approach, OTOH, should work fine in all cases as long as
-the context doesn't need to be remembered across AML "sections".
+> 3) Make ACPI callback the allocating device if it touches allocated ranges,
+>    and on function return.
 
+By callback, do you mean port forwarding as Rudolf Marek did, or more
+simple "stop touching the device" and "you can touch the device again"
+sort of signals? If the latter, this is no different from a mutex.
+
+> 1 + 2 will replace allocating single ports and freeing them again (so ACPI won't
+> prevent e.g. the display driver from loading just because it turned on the
+> backlight) while preventing races with newly allocated ranges, and 3 allows
+> coexistence with other drivers.
+
+What benefit do you see compared to a lock taken by both AML and the
+hardware monitoring drivers?
+
+Care to submit a sample implementation?
+
+Thanks,
 -- 
 Jean Delvare
