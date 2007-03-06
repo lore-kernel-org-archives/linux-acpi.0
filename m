@@ -1,58 +1,28 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: backlight mystery
-Date: Mon, 5 Mar 2007 23:48:12 -0800
-Message-ID: <20070305234812.d8b2b08d.akpm@linux-foundation.org>
-References: <20070305233037.0c5727e7.akpm@linux-foundation.org>
-	<20070306074312.GC23955@redhat.com>
+From: Benny Amorsen <benny+usenet@amorsen.dk>
+Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
+Date: 06 Mar 2007 08:55:58 +0100
+Message-ID: <m3k5xukdpt.fsf@ursa.amorsen.dk>
+References: <20070218183805.5a4fd813.khali@linux-fr.org> <20070228213803.GA4877@ucw.cz> <20070301152655.f232db64.khali@linux-fr.org> <20070302114023.GD2163@elf.ucw.cz> <20070302114747.GB1212@srcf.ucam.org> <20070302151055.d2665d66.khali@linux-fr.org> <20070302141840.GA3441@srcf.ucam.org> <20070302220454.a0c66d04.khali@linux-fr.org> <20070302211251.GA10035@srcf.ucam.org> <20070303105316.d51e032d.khali@linux-fr.org> <20070305222548.GA4946@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54904 "EHLO smtp.osdl.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933986AbXCFHsX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 Mar 2007 02:48:23 -0500
-In-Reply-To: <20070306074312.GC23955@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933993AbXCFH4V@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dave Jones <davej@redhat.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>, linux-acpi@vger.kernel.org
 
-On Tue, 6 Mar 2007 02:43:12 -0500 Dave Jones <davej@redhat.com> wrote:
+>>>>> "PM" == Pavel Machek <pavel@ucw.cz> writes:
 
-> On Mon, Mar 05, 2007 at 11:30:37PM -0800, Andrew Morton wrote:
->  > 
->  > I always get stuff like this coming out when I boot my x86_64 machine:
->  > 
->  > asus_acpi: Unknown symbol backlight_device_unregister
->  > asus_acpi: Unknown symbol backlight_device_register
->  > ibm_acpi: Unknown symbol backlight_device_unregister
->  > ibm_acpi: Unknown symbol backlight_device_register
->  > toshiba_acpi: Unknown symbol backlight_device_unregister
->  > toshiba_acpi: Unknown symbol backlight_device_register
->  > video: Unknown symbol backlight_device_unregister
->  > video: Unknown symbol backlight_device_register
->  > 
->  > This is a nocoma server, not a laptop.  I'm not sure how those modules are
->  > even getting loaded.  The distro is FC4, which might be doing something
->  > peculiar.  
-> 
-> I covered this on the list last week.  There's no way to
-> have a module autoload based on dmi strings or the like,
-> (Which is the only sane way these modules can determine
->  if they need to run).
-> 
-> Given the absense of mechanism, there's a pretty gross hack
-> in Fedora's rc.sysinit which loads every module in drivers/acpi/*/*
-> that it finds.  Shameful I know.
-> 
-> 	Dave
+PM> ACPI AML is probably turing-complete: I'm afraid you are trying to
+PM> solve the halting problem (-> impossible).
 
-I thought it might be something like that.  I'm a bit surprised that we
-can't get at the DMI stuff from userspace, or export it from the kernel. 
-But whatever.
+If you can restrict the virtual machine which AML runs in to a limited
+amount of memory/storage, you can solve halting for it in exponential
+time.
 
-Something appears to have gone wrong with the dependencies though - the
-load of the acpi drivers should have triggered a load of the backlight
-driver.
+Unfortunately the problem here is even harder than halting. With the
+halting problem you get all inputs beforehand. For AML, the locations
+it accesses could be dependent on what it reads off of the hardware.
 
+
+/Benny
