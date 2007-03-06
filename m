@@ -1,42 +1,71 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [GIT PATCH] ACPI patches for 2.6.21 - part II (resend)
-Date: Tue, 6 Mar 2007 13:17:53 +0000
-Message-ID: <20070306131753.GA15187@srcf.ucam.org>
-References: <200702162223.59837.lenb@kernel.org> <20020101045751.GD4106@ucw.cz> <20070306122213.GF2919@inferi.kami.home>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
+Date: Tue, 6 Mar 2007 16:10:02 +0100
+Message-ID: <20070306161002.2a7d5c74.khali@linux-fr.org>
+References: <20070228213803.GA4877@ucw.cz>
+	<20070302141840.GA3441@srcf.ucam.org>
+	<20070302220454.a0c66d04.khali@linux-fr.org>
+	<20070302211251.GA10035@srcf.ucam.org>
+	<20070303105316.d51e032d.khali@linux-fr.org>
+	<4dfa50520703030747g3c887f5bxe25caefd1723c635@mail.gmail.com>
+	<20070303155048.GA22755@srcf.ucam.org>
+	<45E9AB8B.1070804@assembler.cz>
+	<45EB01E8.5080003@assembler.cz>
+	<20070305221635.8b20eab5.khali@linux-fr.org>
+	<4dfa50520703051335j34e7d92bl982705adcfd8b1d5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:51273 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933277AbXCFNSa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Mar 2007 08:18:30 -0500
-Content-Disposition: inline
-In-Reply-To: <20070306122213.GF2919@inferi.kami.home>
+Received: from smtp-102-tuesday.noc.nerim.net ([62.4.17.102]:1216 "EHLO
+	mallaury.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S965921AbXCFPKv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Mar 2007 10:10:51 -0500
+In-Reply-To: <4dfa50520703051335j34e7d92bl982705adcfd8b1d5@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: David Hubbard <david.c.hubbard@gmail.com>
+Cc: Rudolf Marek <r.marek@assembler.cz>, Matthew Garrett <mjg59@srcf.ucam.org>, Ebbert <cebbert@redhat.com>, Chuck@atrpms.net, linux-kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Machek <pavel@ucw.cz>, Pavel@atrpms.net, lm-sensors@lm-sensors.org
 
-On Tue, Mar 06, 2007 at 01:22:13PM +0100, Mattia Dongili wrote:
+Hi David,
 
-> the audiopower is basically a _PS3/_PS0 switch for the device, while the
-> lanpower plays with the embedded controller to powerdown/powerup.
->
-> Now, unfortunately those methods are attached to a fake device in the
-> DSDT and afaict there's no way to tell which real device they are
-> playing with (except by inspecting the method implementations).
-> Well of course iff there's only _one_ sound card and _one_ nic you can
-> easily guess it :)
+On Mon, 5 Mar 2007 13:35:20 -0800, David Hubbard wrote:
+> > 2* It seems to incur a signficant performance penalty.
+> > ____request_resource isn't cheap as far as I know. And in the
+> > absence of conflict, you are even allocating and releasing the resource
+> > on _each_ I/O operation, which certainly isn't cheap either. Again, it
+> > is not a blocker point, after all this is a workaround for an improper
+> > behavior of the acpi subsystem, this performance penalty is the price to
+> > pay. But there is also a performance penalty for legitimate I/O access,
+> > which worries me more.
 > 
-> Is there some way to hook into drivers for such kind of runtime power
-> management?
+> I thought Rudolf's patch allocated the resource in the driver
+> (w83627ehf) and ACPI contacted the driver when it could not allocate
+> the resource. Since ACPI never *really* wants to allocate the
+> resource, is there a fast-path check it could do? This would help
+> performance.
 
-Before worrying, I think it would make more sense to instrument the 
-benefit gained against doing more "traditional" runtime management - 
-that is, simply shutting down the ethernet chipset or doing ac97 power 
-management. It's trivial to add those to the existing drivers, and if 
-the additional benefit of using the Sony-specific methods is small then 
-it's probably not really worth working out how to add it in.
+Alas, I don't think it can work safely. If ACPI doesn't actually
+allocate the resource, there is a risk that another driver does so
+between the conflict check and the I/O access. I believe this is the
+reason why Rudolf used ____request_resource and not __check_region.
 
-Plus, implementing the generic support benefits more people :)
+> I like the virtualized driver method (if it wasn't obvious!) but the
+> global AML lock works also. It will be interesting to see profiling of
+> both solutions.
+
+In fact Rudolf's solution is nice for LPC chips, however I don't think
+it can work with SMBus chips. It might intercept the accesses to the
+SMBus master and be able to emulate it, even though this will be more
+complex that the W83627EHF case, and I'm not sure about the PCI config
+space. But ultimately we need to emulate all the chips behind the
+SMBus, too. The drivers for these chips won't know if they are accessed
+for real of through the emulation layer, so there is no way they'll
+remember states, while they might have to (e.g. the W83781D has a bank
+register too.)
+
+The AML lock approach, OTOH, should work fine in all cases as long as
+the context doesn't need to be remembered across AML "sections".
+
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Jean Delvare
