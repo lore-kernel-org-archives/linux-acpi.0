@@ -1,85 +1,52 @@
-From: Bodo Eggert <7eggert@gmx.de>
-Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Date: Tue, 6 Mar 2007 21:40:19 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0703061804360.2988@be1.lrz>
-References: <7PvLN-1cj-3@gated-at.bofh.it> <7TEGV-6Jy-39@gated-at.bofh.it>
- <7TUBX-6TN-5@gated-at.bofh.it> <7UeqX-4QO-17@gated-at.bofh.it>
- <7UeqZ-4QO-27@gated-at.bofh.it> <7UgM5-np-1@gated-at.bofh.it>
- <7UgM8-np-11@gated-at.bofh.it> <7UnaS-2xP-9@gated-at.bofh.it>
- <7UnkC-2JB-9@gated-at.bofh.it> <7Uzcd-49u-3@gated-at.bofh.it>
- <7UEEN-4xi-3@gated-at.bofh.it> <E1HODgC-0000h8-Vc@be1.lrz>
- <20070306161935.025a3ec1.khali@linux-fr.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [GIT PATCH] ACPI patches for 2.6.21 - part II (resend)
+Date: Tue, 6 Mar 2007 22:09:59 +0100
+Message-ID: <20070306210959.GB3843@elf.ucw.cz>
+References: <200702162223.59837.lenb@kernel.org> <20020101045751.GD4106@ucw.cz> <20070306122213.GF2919@inferi.kami.home>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964852AbXCFUkv@vger.kernel.org>
-In-Reply-To: <20070306161935.025a3ec1.khali@linux-fr.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Bodo Eggert <7eggert@gmx.de>, David Hubbard <david.c.hubbard@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Pavel Machek <pavel@ucw.cz>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, Chuck Ebbert <cebbert@redhat.com>, Rudolf@atrpms.net
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:45471 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751099AbXCFVKI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 6 Mar 2007 16:10:08 -0500
+Content-Disposition: inline
+In-Reply-To: <20070306122213.GF2919@inferi.kami.home>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, 6 Mar 2007, Jean Delvare wrote:
-> On Mon, 05 Mar 2007 14:56:44 +0100, Bodo Eggert wrote:
+Hi!
 
-> > 2) make ACPI take this lock whenever it touches ports not allocated by itself
-> >    and release it on function return.
+> > > commit 4465857d5f99079bae00621626adf74ed8256296
+> > > Author: Mattia Dongili <malattia@linux.it>
+> > > Date:   Sat Jan 13 23:04:39 2007 +0100
+> > > 
+> > >     sony_acpi: Add lanpower and audiopower controls
+> > >     
+> > >     audiopower works well on my SZ72B so it's not marked has "debug" while lanpower
+> > >     has at least one report of not resuming power happily so morked as "debug"
+> > >     
+> > >     Signed-off-by: Mattia Dongili <malattia@linux.it>
+> > >     Signed-off-by: Len Brown <len.brown@intel.com>
+> > 
+> > What is interface to these? It would be nice to automagically disable
+> > audiopower when sound device is closed, and automagically power down
+> > lan on ifconfig ... down.
 > 
-> This is costly.
-
-TANSTAAFL. You'll need to take some lock, and if you want port emulation 
-or per-device-mutex, you'll have to pay the price.
-
-> > 3) Make ACPI callback the allocating device if it touches allocated ranges,
-> >    and on function return.
+> the audiopower is basically a _PS3/_PS0 switch for the device, while the
+> lanpower plays with the embedded controller to powerdown/powerup.
 > 
-> By callback, do you mean port forwarding as Rudolf Marek did, or more
-> simple "stop touching the device" and "you can touch the device again"
-> sort of signals? If the latter, this is no different from a mutex.
+> Now, unfortunately those methods are attached to a fake device in the
+> DSDT and afaict there's no way to tell which real device they are
+> playing with (except by inspecting the method implementations).
 
-It may be the described port emulation callback (which is very nice and
-possibly desired for some devices), but if you add an "I am done tampering
-with your hardware" callback, the driver can also implement the mutex.
+> Well of course iff there's only _one_ sound card and _one_ nic you can
+> easily guess it :)
 
-Some drivers will not understand all possible access patterns, they may 
-try to emulate first, and if they fail, fall back to taking the mutex and 
-passing the raw port access.
+Hmm... you are on sony notebook... right? That means it is very likely
+it has just one sound card, and just one ethernet, no?
 
-> > 1 + 2 will replace allocating single ports and freeing them again (so ACPI won't
-> > prevent e.g. the display driver from loading just because it turned on the
-> > backlight) while preventing races with newly allocated ranges, and 3 allows
-> > coexistence with other drivers.
-> 
-> What benefit do you see compared to a lock taken by both AML and the
-> hardware monitoring drivers?
-
-1) I asume port allocations or ACPI foreign port acces to be rare, so
-   there would be little impact on (un)registering hardware. Off cause
-   there are some long ACPI calls (like reading the battery?), in these
-   cases it might be beneficial to release the global allocation lock
-   after gaining exclusive access to the driver's port range. (This can
-   only be done if the device driver is loaded.)
-
-2) If there is a global lock for accessing ACPI-tampered hardware, each
-   driver that *might* conflict with ACPI _must_ take it on each access.  
-   This would seialize unrelated sensor busses, IDE, graphics ...  (AFAI
-   can imagine.)  A callback allows using a per-(device|bus)-mutex instead.
-
-> Care to submit a sample implementation?
-
-I think somebody experienced with the internals should do this.
-
-Rudolph's implementation is close enough to imagine what would be done,
-the changes would be:
-
-- Add a "done" call to resource_ops
-
-in ACPI:
-- Check for own region first and do raw access there
-- get the lock before __request_region
-- s/__request/__check/
-
-in driver:
-- If emulation fails, get the local lock and switch to passthrough mode
-- if in passthrough mode and done is called, release the lock
 -- 
-Those who hesitate under fire usually do not end up KIA or WIA. 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
