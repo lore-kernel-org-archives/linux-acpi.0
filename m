@@ -1,51 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [patch 5/6] Altix: reinitialize acpi tables
-Date: Tue, 06 Mar 2007 02:29:43 -0800
-Message-ID: <200703061029.l26AThio019132@shell0.pdx.osdl.net>
+Subject: [patch 6/6] Fix ACPI documentation in kernel-parameters.txt
+Date: Tue, 06 Mar 2007 02:29:44 -0800
+Message-ID: <200703061029.l26ATiiQ019139@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33912 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33923 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933227AbXCFKa4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 Mar 2007 05:30:56 -0500
+	id S933234AbXCFKa7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 6 Mar 2007 05:30:59 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, jpk@sgi.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, bwalle@suse.de
 
-From: John Keller <jpk@sgi.com>
+From: Bernhard Walle <bwalle@suse.de>
 
-To provide compatibilty with SN kernels that do and do not have ACPI IO
-support, the SN PROM must build different versions of some ACPI tables
-based on which kernel is booting.  As such, the tables may have to change
-at kernel boot time.  By default, prior to kernel boot, the PROM builds an
-empty DSDT (header only) and no SSDTs.  If an ACPI capable kernel boots,
-the kernel will notify the PROM, at platform setup time, and the PROM will
-build full DSDT and SSDT tables.
+Add hint that acpi=off doesn't work on IA64.
 
-With the latest changes to acpi_table_init(), the table lengths are saved,
-and when our PROM changes them, the changes are not seen, and the kernel
-will crash on boot.  Because of issues with kexec support, we are not able
-to create the tables prior to acpi_table_init().  As a result, we are
-making a second call to acpi_table_init() to process the rebuilt DSDT and
-SSDTs.
-
-Signed-off-by: John Keller <jpk@sgi.com>
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/sn/kernel/setup.c |    2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/kernel-parameters.txt |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/ia64/sn/kernel/setup.c~altix-reinitialize-acpi-tables arch/ia64/sn/kernel/setup.c
---- a/arch/ia64/sn/kernel/setup.c~altix-reinitialize-acpi-tables
-+++ a/arch/ia64/sn/kernel/setup.c
-@@ -54,6 +54,8 @@
- #include "xtalk/hubdev.h"
- #include <asm/sn/klconfig.h>
+diff -puN Documentation/kernel-parameters.txt~fix-acpi-documentation-in-kernel-parameterstxt Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~fix-acpi-documentation-in-kernel-parameterstxt
++++ a/Documentation/kernel-parameters.txt
+@@ -125,7 +125,8 @@ and is between 256 and 4096 characters. 
+ 			See header of drivers/scsi/53c7xx.c.
+ 			See also Documentation/scsi/ncr53c7xx.txt.
  
-+	/* Load the new DSDT and SSDT tables into the global table list. */
-+ 	acpi_table_init();
- 
- DEFINE_PER_CPU(struct pda_s, pda_percpu);
- 
+-	acpi=		[HW,ACPI] Advanced Configuration and Power Interface
++	acpi=		[HW,ACPI,X86-64,i386]
++			Advanced Configuration and Power Interface
+ 			Format: { force | off | ht | strict | noirq }
+ 			force -- enable ACPI if default was off
+ 			off -- disable ACPI if default was on
 _
