@@ -1,64 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [patch 3/6] Exit ACPI processor module gracefully if acpi is disabled
-Date: Tue, 06 Mar 2007 02:29:41 -0800
-Message-ID: <200703061029.l26ATf9x019122@shell0.pdx.osdl.net>
+Subject: [patch 1/6] git-acpi-fix-cpuidle-borkage 2
+Date: Tue, 06 Mar 2007 02:29:39 -0800
+Message-ID: <200703061029.l26ATdeL019116@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33926 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33957 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934007AbXCFKbB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 Mar 2007 05:31:01 -0500
+	id S933224AbXCFKb1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 6 Mar 2007 05:31:27 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, trenn@suse.de
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, venkatesh.pallipadi@intel.com, abelay@novell.com, len.brown@intel.com, shaohua.li@intel.com
 
-From: Thomas Renninger <trenn@suse.de>
+From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-Cc: Len Brown <lenb@kernel.org>
+Fix the compile issues when CPU_IDLE is not configured.
+
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Adam Belay <abelay@novell.com>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: Len Brown <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_core.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ include/linux/cpuidle.h |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff -puN drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled drivers/acpi/processor_core.c
---- a/drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled
-+++ a/drivers/acpi/processor_core.c
-@@ -994,6 +994,8 @@ void acpi_processor_uninstall_hotplug_no
-  * ACPI, but needs symbols from this driver
-  */
+diff -puN include/linux/cpuidle.h~git-acpi-fix-cpuidle-borkage-2 include/linux/cpuidle.h
+--- a/include/linux/cpuidle.h~git-acpi-fix-cpuidle-borkage-2
++++ a/include/linux/cpuidle.h
+@@ -130,10 +130,21 @@ struct cpuidle_driver {
+ 	struct module 		*owner;
+ };
  
-+static int processor_driver_registered;
++#ifdef CONFIG_CPU_IDLE
 +
- static int __init acpi_processor_init(void)
- {
- 	int result = 0;
-@@ -1019,6 +1021,8 @@ static int __init acpi_processor_init(vo
- 		return result;
- 	}
+ extern int cpuidle_register_driver(struct cpuidle_driver *drv);
+ extern void cpuidle_unregister_driver(struct cpuidle_driver *drv);
+ extern int cpuidle_force_redetect(struct cpuidle_device *dev);
  
-+	processor_driver_registered = 1;
++#else
 +
- 	acpi_processor_install_hotplug_notify();
++static inline int cpuidle_register_driver(struct cpuidle_driver *drv)
++{return 0;}
++static inline void cpuidle_unregister_driver(struct cpuidle_driver *drv) { }
++static inline int cpuidle_force_redetect(struct cpuidle_device *dev)
++{return 0;}
++
++#endif
  
- 	acpi_thermal_cpufreq_init();
-@@ -1037,12 +1041,13 @@ static void __exit acpi_processor_exit(v
+ /******************************
+  * CPUIDLE GOVERNOR INTERFACE *
+@@ -153,8 +164,20 @@ struct cpuidle_governor {
+ 	struct module 		*owner;
+ };
  
- 	acpi_thermal_cpufreq_exit();
++#ifdef CONFIG_CPU_IDLE
++
+ extern int cpuidle_register_governor(struct cpuidle_governor *gov);
+ extern void cpuidle_unregister_governor(struct cpuidle_governor *gov);
+ extern int cpuidle_get_bm_activity(void);
  
--	acpi_processor_uninstall_hotplug_notify();
--
--	acpi_bus_unregister_driver(&acpi_processor_driver);
-+	if (processor_driver_registered) {
-+		acpi_processor_uninstall_hotplug_notify();
- 
--	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
-+		acpi_bus_unregister_driver(&acpi_processor_driver);
- 
-+		remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
-+	}
- 	return;
- }
- 
++#else
++
++static inline int cpuidle_register_governor(struct cpuidle_governor *gov)
++{return 0;}
++static inline void cpuidle_unregister_governor(struct cpuidle_governor *gov) { }
++static inline int cpuidle_get_bm_activity(void)
++{return 0;}
++
++#endif
++
+ #endif /* _LINUX_CPUIDLE_H */
 _
