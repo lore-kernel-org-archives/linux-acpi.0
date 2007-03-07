@@ -1,60 +1,103 @@
-From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-Subject: Re: final set of EC init patches
-Date: Wed, 07 Mar 2007 11:04:46 +0300
-Message-ID: <45EE721E.50909@linux.intel.com>
-References: <45E6050D.2060908@linux.intel.com> <200703070034.06530.lenb@kernel.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [patch 2/6] drivers/cpuidle/: make code static
+Date: Wed, 7 Mar 2007 03:02:03 -0500
+Message-ID: <200703070302.03923.lenb@kernel.org>
+References: <200703061029.l26ATeKJ019119@shell0.pdx.osdl.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:41129 "EHLO mga09.intel.com"
+Received: from hera.kernel.org ([140.211.167.34]:57685 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964893AbXCGIEu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 7 Mar 2007 03:04:50 -0500
-In-Reply-To: <200703070034.06530.lenb@kernel.org>
+	id S964969AbXCGIG2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 7 Mar 2007 03:06:28 -0500
+In-Reply-To: <200703061029.l26ATeKJ019119@shell0.pdx.osdl.net>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>
+To: akpm@linux-foundation.org
+Cc: linux-acpi@vger.kernel.org, bunk@stusta.de, abelay@novell.com, shaohua.li@intel.com, venkatesh.pallipadi@intel.com
 
-Len Brown wrote:
-> why is fake_ecdt no longer necessary -- because ec initializes first now?
->
->   
-right
-> while I'm glad to see the ec_burst_enable exported -- it is currently
-> not called and we continue to always operate in normal mode, yes?
->
->   
-yes
-> it seems that burst mode is intended for when we want to push
-> a series of commands to the ec, so we'd
-> 1. enable burst mode
-> 2. do a bunch of ec transactions
-> 2. disable burst mode
-> right?
->
->   
-right
-> Anybody got any candidates for a series of transactions that would
-> benefit from this mode?  If yes, is it possible to detect an efficiency
-> benefit from enabling burst mode for that series?
->
->   
-the one obvious candidate is smart battery, it reads all of its data as 
-separate read/writes through EC.
-> yes, i like "boot_ec" better than "ec_ecdt".
->
->   
-glad to hear that :)
-> as usual, they patch series is "light" on check-in comments --
-> in particular, there are none at all explaining why these
-> changes are necessary.
->
->   
-make code cleaner...
-> thanks,
-> -Len
->
-> ps. mbox applies better if "From" is not replaced by ">From"
->   
+Applied.
+
+thanks,
+-Len
+
+On Tuesday 06 March 2007 05:29, akpm@linux-foundation.org wrote:
+> From: Adrian Bunk <bunk@stusta.de>
+> 
+> This patch makes the following needlessly global code static:
+> - driver.c: __cpuidle_find_driver()
+> - governor.c: __cpuidle_find_governor()
+> - ladder.c: struct ladder_governor
+> 
+> Signed-off-by: Adrian Bunk <bunk@stusta.de>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+> Cc: Adam Belay <abelay@novell.com>
+> Cc: Shaohua Li <shaohua.li@intel.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  drivers/cpuidle/cpuidle.h          |    2 --
+>  drivers/cpuidle/driver.c           |    2 +-
+>  drivers/cpuidle/governor.c         |    2 +-
+>  drivers/cpuidle/governors/ladder.c |    2 +-
+>  4 files changed, 3 insertions(+), 5 deletions(-)
+> 
+> diff -puN drivers/cpuidle/cpuidle.h~drivers-cpuidle-make-code-static drivers/cpuidle/cpuidle.h
+> --- a/drivers/cpuidle/cpuidle.h~drivers-cpuidle-make-code-static
+> +++ a/drivers/cpuidle/cpuidle.h
+> @@ -23,13 +23,11 @@ extern void cpuidle_rescan_device(struct
+>  /* drivers */
+>  extern int cpuidle_attach_driver(struct cpuidle_device *dev);
+>  extern void cpuidle_detach_driver(struct cpuidle_device *dev);
+> -extern struct cpuidle_driver * __cpuidle_find_driver(const char *str);
+>  extern int cpuidle_switch_driver(struct cpuidle_driver *drv);
+>  
+>  /* governors */
+>  extern int cpuidle_attach_governor(struct cpuidle_device *dev);
+>  extern void cpuidle_detach_governor(struct cpuidle_device *dev);
+> -extern struct cpuidle_governor * __cpuidle_find_governor(const char *str);
+>  extern int cpuidle_switch_governor(struct cpuidle_governor *gov);
+>  
+>  /* sysfs */
+> diff -puN drivers/cpuidle/driver.c~drivers-cpuidle-make-code-static drivers/cpuidle/driver.c
+> --- a/drivers/cpuidle/driver.c~drivers-cpuidle-make-code-static
+> +++ a/drivers/cpuidle/driver.c
+> @@ -73,7 +73,7 @@ void cpuidle_detach_driver(struct cpuidl
+>   *
+>   * Must be called with cpuidle_lock aquired.
+>   */
+> -struct cpuidle_driver * __cpuidle_find_driver(const char *str)
+> +static struct cpuidle_driver * __cpuidle_find_driver(const char *str)
+>  {
+>  	struct cpuidle_driver *drv;
+>  
+> diff -puN drivers/cpuidle/governor.c~drivers-cpuidle-make-code-static drivers/cpuidle/governor.c
+> --- a/drivers/cpuidle/governor.c~drivers-cpuidle-make-code-static
+> +++ a/drivers/cpuidle/governor.c
+> @@ -72,7 +72,7 @@ void cpuidle_detach_governor(struct cpui
+>   *
+>   * Must be called with cpuidle_lock aquired.
+>   */
+> -struct cpuidle_governor * __cpuidle_find_governor(const char *str)
+> +static struct cpuidle_governor * __cpuidle_find_governor(const char *str)
+>  {
+>  	struct cpuidle_governor *gov;
+>  
+> diff -puN drivers/cpuidle/governors/ladder.c~drivers-cpuidle-make-code-static drivers/cpuidle/governors/ladder.c
+> --- a/drivers/cpuidle/governors/ladder.c~drivers-cpuidle-make-code-static
+> +++ a/drivers/cpuidle/governors/ladder.c
+> @@ -199,7 +199,7 @@ static void ladder_exit_device(struct cp
+>  	kfree(dev->governor_data);
+>  }
+>  
+> -struct cpuidle_governor ladder_governor = {
+> +static struct cpuidle_governor ladder_governor = {
+>  	.name =		"ladder",
+>  	.init =		ladder_init_device,
+>  	.exit =		ladder_exit_device,
+> _
+> 
