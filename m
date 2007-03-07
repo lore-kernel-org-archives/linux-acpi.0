@@ -1,25 +1,47 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] ACPI: eliminate useless bay events
-Date: Tue, 6 Mar 2007 23:16:49 -0300
-Message-ID: <20070307021649.GA1448@khazad-dum.debian.net>
-References: <20070306154046.942b0706.kristen.c.accardi@intel.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: final set of EC init patches
+Date: Wed, 7 Mar 2007 00:34:06 -0500
+Message-ID: <200703070034.06530.lenb@kernel.org>
+References: <45E6050D.2060908@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1161219AbXCGCRN@vger.kernel.org>
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:55447 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751523AbXCGFfZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 7 Mar 2007 00:35:25 -0500
+In-Reply-To: <45E6050D.2060908@linux.intel.com>
 Content-Disposition: inline
-In-Reply-To: <20070306154046.942b0706.kristen.c.accardi@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>
 
-On Tue, 06 Mar 2007, Kristen Carlson Accardi wrote:
-> Eliminate bay events on resume if nothing has changed.
+why is fake_ecdt no longer necessary -- because ec initializes first now?
 
-Are these *really* useless?  What if the *contents* of the bay changed?
+while I'm glad to see the ec_burst_enable exported -- it is currently
+not called and we continue to always operate in normal mode, yes?
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+it seems that burst mode is intended for when we want to push
+a series of commands to the ec, so we'd
+1. enable burst mode
+2. do a bunch of ec transactions
+2. disable burst mode
+right?
+
+Anybody got any candidates for a series of transactions that would
+benefit from this mode?  If yes, is it possible to detect an efficiency
+benefit from enabling burst mode for that series?
+
+yes, i like "boot_ec" better than "ec_ecdt".
+
+as usual, they patch series is "light" on check-in comments --
+in particular, there are none at all explaining why these
+changes are necessary.
+
+thanks,
+-Len
+
+ps. mbox applies better if "From" is not replaced by ">From"
