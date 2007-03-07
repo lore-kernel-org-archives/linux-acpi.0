@@ -1,61 +1,36 @@
-From: Bodo Eggert <7eggert@gmx.de>
-Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Date: Wed, 7 Mar 2007 18:09:09 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0703071806340.2556@be1.lrz>
-References: <7PvLN-1cj-3@gated-at.bofh.it> <7TEGV-6Jy-39@gated-at.bofh.it>
- <7TUBX-6TN-5@gated-at.bofh.it> <7UeqX-4QO-17@gated-at.bofh.it>
- <7UeqZ-4QO-27@gated-at.bofh.it> <7UgM5-np-1@gated-at.bofh.it>
- <7UgM8-np-11@gated-at.bofh.it> <7UnaS-2xP-9@gated-at.bofh.it>
- <7UnkC-2JB-9@gated-at.bofh.it> <7Uzcd-49u-3@gated-at.bofh.it>
- <7UEEN-4xi-3@gated-at.bofh.it> <E1HODgC-0000h8-Vc@be1.lrz>
- <20070306161935.025a3ec1.khali@linux-fr.org> <Pine.LNX.4.58.0703061804360.2988@be1.lrz>
- <20070307101758.8cf2c53d.khali@linux-fr.org>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: post-2.6.20 hangs during boot
+Date: Wed, 7 Mar 2007 12:41:20 -0800
+Message-ID: <20070307124120.9d9b3bb9.randy.dunlap@oracle.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.179]:64096 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422745AbXCGRJ3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Mar 2007 12:09:29 -0500
-In-Reply-To: <20070307101758.8cf2c53d.khali@linux-fr.org>
+Received: from agminet01.oracle.com ([141.146.126.228]:30611 "EHLO
+	agminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S2992545AbXCGUnZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Mar 2007 15:43:25 -0500
+Received: from rgmgw3.us.oracle.com (rgmgw3.us.oracle.com [138.1.186.112])
+	by agminet01.oracle.com (Switch-3.2.4/Switch-3.1.7) with ESMTP id l27KhMAI017604
+	for <linux-acpi@vger.kernel.org>; Wed, 7 Mar 2007 14:43:23 -0600
+Received: from rcsmt251.oracle.com (rcsmt251.oracle.com [148.87.90.196])
+	by rgmgw3.us.oracle.com (Switch-3.2.4/Switch-3.1.7) with ESMTP id l27HlFSI024260
+	for <linux-acpi@vger.kernel.org>; Wed, 7 Mar 2007 13:43:22 -0700
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Bodo Eggert <7eggert@gmx.de>, David Hubbard <david.c.hubbard@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Pavel Machek <pavel@ucw.cz>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, Chuck Ebbert <cebbert@redhat.com>, Rudolf@atrpms.net
+To: linux-acpi@vger.kernel.org
 
-On Wed, 7 Mar 2007, Jean Delvare wrote:
-> On Tue, 6 Mar 2007 21:40:19 +0100 (CET), Bodo Eggert wrote:
+Hi,
 
-> > 1) I asume port allocations or ACPI foreign port acces to be rare, so
-> >    there would be little impact on (un)registering hardware. Off cause
-> >    there are some long ACPI calls (like reading the battery?), in these
-> >    cases it might be beneficial to release the global allocation lock
-> >    after gaining exclusive access to the driver's port range. (This can
-> >    only be done if the device driver is loaded.)
-> 
-> The problem is that the rarity of ACPI foreign port access doesn't
-> matter much, as you have to do all the tests first to find out that it
-> was a foreign port, and I suspect that these tests will cost more than
-> taking the lock itself.
+Anything after 2.6.20-pv (plain vanilla) hangs during boot
+for me.  I built a kernel with CONFIG_ACPI_DEBUG=y and booted
+with acpi_dbg_level=0x10 acpi_dbg_layer=01x1ff.
 
-Testing for the internal ranges can be done by searching a list of about
-five ranges, that should be not much slower than taking an uncontended
-lock, and very much faster than waiting for smbus to finish it's current
-task in case the lock is contended. I'm more concerned about driver
-(un)loading being slowed down by ACPI.
+Boot log for 2.6.20-git1 is here:
+  http://www.xenotime.net/linux/logs/2620-g1-bootlog.txt
 
-[...]
-> We may be able to workaround the inter-driver exclusion though, if we
-> use a semaphore initialized to N, have ACPI take N, but other drivers
-> take just one. This would let ACPI be exclusive with all the other
-> drivers, but drivers themselves could otherwise run concurrently. That
-> being said, we do not appear to have the required primitives to take
-> more than 1 semaphore resource at once at the moment, so we'd need to
-> do that first.
+Ideas, suggestions?
 
-worst case I can imagine: IDE/graphic stalles while ACPI takes a second to
-read the battery state.
-
--- 
-Top 100 things you don't want the sysadmin to say:
-82. Where's the DIR command?
+Thanks,
+---
+~Randy
