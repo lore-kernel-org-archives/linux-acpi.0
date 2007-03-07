@@ -1,78 +1,83 @@
-From: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
-Subject: Re: 2.6.21-rc2 regression vs. 2.6.20: AT keyboard only works with pci=noacpi
-Date: Wed, 7 Mar 2007 09:22:24 -0500
-Message-ID: <d120d5000703070622h6d4225abm19da7032f69182e2@mail.gmail.com>
-References: <20070303151424.3b08c33e.thatistosayiseenem@gawab.com>
-	 <20070304142350.7c3c79af.thatistosayiseenem@gawab.com>
-	 <20070307120004.0bab0f76.thatistosayiseenem@gawab.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [2/6] 2.6.21-rc2: known regressions
+Date: Wed, 7 Mar 2007 08:10:45 -0800 (PST)
+Message-ID: <Pine.LNX.4.64.0703070746150.5963@woody.linux-foundation.org>
+References: <Pine.LNX.4.64.0702272105220.12485@woody.linux-foundation.org>
+ <20070305015034.GG3441@stusta.de> <45EE9D52.9060807@garzik.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ik-out-1112.google.com ([66.249.90.176]:62525 "EHLO
-	ik-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965519AbXCGOW1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Mar 2007 09:22:27 -0500
-Received: by ik-out-1112.google.com with SMTP id c21so166110ika
-        for <linux-acpi@vger.kernel.org>; Wed, 07 Mar 2007 06:22:26 -0800 (PST)
-In-Reply-To: <20070307120004.0bab0f76.thatistosayiseenem@gawab.com>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <owner-linux-input@atrey.karlin.mff.cuni.cz>
+In-Reply-To: <45EE9D52.9060807@garzik.org>
+Sender: owner-linux-input@atrey.karlin.mff.cuni.cz
+List-Help: <mailto:majordomo@atrey.karlin.mff.cuni.cz?body=help>
+List-Owner: <mailto:owner-linux-input@atrey.karlin.mff.cuni.cz>
+List-Post: <mailto:linux-input@atrey.karlin.mff.cuni.cz>
+List-Unsubscribe: <mailto:linux-input-request@atrey.karlin.mff.cuni.cz?body=unsubscribe>
+To: Jeff Garzik <jeff@garzik.org>, Ash Milsted <thatistosayiseenem@gawab.com>
+Cc: Adrian Bunk <bunk@stusta.de>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jens Axboe <jens.axboe@oracle.com>, Jeff Chua <jeff.chua.linux@gmail.com>, pavel@suse.cz, linux-pm@lists.osdl.org, lenb@kernel.org, linux-acpi@vger.kernel.org, "Michael S. Tsirkin" <mst@mellanox.co.il>, luming.yu@intel.com, Arkadiusz Miskiewicz <arekm@maven.pl>, Konstantin Karasyov <konstantin.a.karasyov@intel.com>, Thomas Meyer <thomas.mey@web.de>, Meelis Roos <mroos@linux.ee>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Janosch Machowinski <jmachowinski@gmx.de>, vladimir.p.lebedev@intel.com, dmitry.torokhov@gmail.com, linux-input@atrey.karlin.mff.cuni.cz
 List-Id: linux-acpi@vger.kernel.org
-To: Ash Milsted <thatistosayiseenem@gawab.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, vojtech@suse.cz
 
-On 3/7/07, Ash Milsted <thatistosayiseenem@gawab.com> wrote:
-> On Sun, 4 Mar 2007 14:23:50 +0000
-> Ash Milsted <thatistosayiseenem@gawab.com> wrote:
+
+
+On Wed, 7 Mar 2007, Jeff Garzik wrote:
 >
-> > On Sat, 3 Mar 2007 15:14:24 +0000
-> > Ash Milsted <thatistosayiseenem@gawab.com> wrote:
-> >
-> > > Hi,
-> > > With 2.6.21-rc2-git1 I have a problem with my ps/2 port keyboard - it only works
-> > > with one of the following on the command-line:
-> > >  - nolapic
-> > >  - irqfixup
-> > >  - pci=noacpi
-> > > Otherwise it gets stuck with the numlock on.
-> > > The following options have no effect:
-> > >  - nohz=off (who knows eh?)
-> > >  - pci=nomsi
-> > >
-> snip
-> > >
-> > > Ash
-> >
-> > Just checked 2.6.21-rc2-mm1, still has the problem.
-> > Also, acpi=noirq fixes it too.
-> > To clarify, the problem is that my ps/2 port keyboard is completely frozen
-> > on boot - usually it gets activated when udev probes for hardware (my kernel
-> > config is highly modular). It worked fine with 2.6.20 and earlier with acpi
-> > taking care of interrupt routing.
-> >
-> > Ash
->
-> Any thoughts on this? It still occurs with 2.6.21-rc3. Here's my config
-> in case that helps. You'll see that I have swap-prefetch patched in (I
-> also have RDSL and some VM changes in there), but I have confirmed that
-> the problem occurs with no extra patches. By the way, I tested mm1 with
-> a rather different config (I used my distro package) and still saw the
-> problem.
->
+> Adrian Bunk wrote:
+> > Subject    : AT keyboard only works with pci=noacpi
+> > References : http://lkml.org/lkml/2007/3/3/68
+> > Submitter  : Ash Milsted <thatistosayiseenem@gawab.com>
+> > Status     : unknown
+> 
+> sounds like a BIOS bug, even though it appears to be a regression?
 
-Your config looks fine so it must be some ACPI change that affected
-IRQ routing. If IRQ's not being delievered AT keyboard probe will time
-out. You said that it broke between 2.6.20 and 2.6.20-rc2.. Have you
-tried -rc1?
- .
-> Also, you should probably ignore that bit above where I suggest the
-> keyboard driver is being loaded as a module, because of course it
-> isn't.. Yet it does start responding (with pci=noacpi) at about that
-> time that udev does its thing.
+So?
 
-Tha happens because actual keyboard/mouse probing is offloaded to
-kseriod thread so nothing happens untul it actually gets scheduled.
+BIOS bugs are not bugs we can fix, they are things we have to work around. 
+They are like hardware bugs in a network chip: a "driver" that doesn't 
+work around a BIOS bug is simply a *buggy* driver, exactly the same way a 
+network driver has to work around errata in the hardware.
 
--- 
-Dmitry
+So it doesn't really matter if something is a BIOS bug or not. It's not 
+reasonable to expect people to upgrade their BIOS'es - even if such an 
+upgrade were to exist (which is fairly rare in itself). 
+
+If it used to work, that just makes it (a) doubly important to try to fix 
+it, since regressions are BAD BAD BAD and (b) a fair amount *easier* to 
+fix, since we can hopefully get an idea of what broke it.
+
+Ash, can you try to use "git bisect" to figure where it started? But 
+perhaps just try -rc3 first to see if it's been fixed?
+
+The working setups (whether with irqfixup or with pci=noacpi seem to both 
+have a nice
+
+	input: AT Translated Set 2 keyboard as /class/input/inputX
+
+but the nonworking one does not. But even the nonworking one actually 
+*found* the controller:
+
+	PNP: PS/2 Controller [PNP0303:PS2K] at 0x60,0x64 irq 1
+	PNP: PS/2 controller doesn't have AUX irq; using default 12
+	serio: i8042 KBD port at 0x60,0x64 irq 1
+	serio: i8042 AUX port at 0x60,0x64 irq 12
+	mice: PS/2 mouse device common for all mice
+
+which probably means that the "atkbd_probe()" function fails (probably 
+because it never gets a reply, which in turn is probably because the 
+interrupt routing is broken).
+
+If you use "atkbd.reset=1" on the kernel command line, you would probably 
+get a message like "keyboard reset failed"..
+
+Now, the most likely cause is obviously just the ACPI changes that mess up 
+irq routing somehow, but it would be important to figure out *what* makes 
+it happen, which is why "git bisect" would be wonderful to try.
+
+So Ash, if you get the git tree, just start with
+
+	git bisect start
+	git bisect good v2.6.20
+	git bisect bad v2.6.21-rc1
+
+and off you go.. git isn't really that hard to use any more.
+
+		Linus
