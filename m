@@ -1,21 +1,49 @@
-From: Mrs Felicia Hines <feliciahines1903@yahoo.co.uk>
-Subject: IN HIS LOVE/GET BACK TO ME
-Date: Tue, 6 Mar 2007 20:43:34 +0100
-Message-ID: <200703061943.l26JhYci032518@n7.sivit.org>
-Reply-To: feliciahines1903@yahoo.co.uk
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [Bug 8136] 2.6.21-rc2-mm2 won't boot
+Date: Tue, 6 Mar 2007 16:15:59 -0800
+Message-ID: <20070306161559.e0c7ee71.akpm@linux-foundation.org>
+References: <200703062336.l26NaTZA026385@fire-2.osdl.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from n7.sivit.org ([194.146.224.110]:32946 "EHLO n7.sivit.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38460 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030730AbXCFXrd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 Mar 2007 18:47:33 -0500
-Received: from n7.sivit.org (mail.one.net.au [127.0.0.1])
-	by n7.sivit.org (8.12.8/8.12.8) with ESMTP id l26JhYvs032519
-	for <linux-acpi@vger.kernel.org>; Tue, 6 Mar 2007 20:43:34 +0100
+	id S1030767AbXCGAQJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 6 Mar 2007 19:16:09 -0500
+In-Reply-To: <200703062336.l26NaTZA026385@fire-2.osdl.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Nicolas.Mailhot@LaPoste.net
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "bugme-daemon@kernel-bugs.osdl.org" <bugme-daemon@bugzilla.kernel.org>
 
-<<< No Message Collected >>>
+On Tue, 6 Mar 2007 15:36:29 -0800
+bugme-daemon@bugzilla.kernel.org wrote:
+
+> http://bugzilla.kernel.org/show_bug.cgi?id=8136
+> 
+
+Let's take this to email.
+
+> 
+> 
+> 
+> ------- Additional Comments From Nicolas.Mailhot@LaPoste.net  2007-03-06 15:36 -------
+> Created an attachment (id=10631)
+>  --> (http://bugzilla.kernel.org/attachment.cgi?id=10631&action=view)
+> Printscreen with vesfg disabled and earlyprintk=vga
+> 
+
+So rc2-mm2 panics due to "MP-BIOS bug: 8254 timer not connected to IO-APIC" and
+rc2-mm1 does not.
+
+Could be ACPI, could be x86_64 timer changes, could be something else.
+
+Would you have time to bisect it? 
+http://www.zip.com.au/~akpm/linux/patches/stuff/bisecting-mm-trees.txt
+explains how.
+
+If so, I'd suggest you drill in on the patches between
+x86_64-mm-defconfig-update.patch and
+optimize-and-simplify-get_cycles_sync.patch: the x86 changes.
+
