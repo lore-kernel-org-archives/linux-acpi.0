@@ -1,79 +1,34 @@
-From: Ash Milsted <thatistosayiseenem@gawab.com>
-Subject: Re: 2.6.21-rc2 regression vs. 2.6.20: AT keyboard only works with
- pci=noacpi
-Date: Wed, 7 Mar 2007 21:25:34 +0000
-Message-ID: <20070307212534.325f2f32.thatistosayiseenem@gawab.com>
-References: <20070303151424.3b08c33e.thatistosayiseenem@gawab.com>
-	<20070304142350.7c3c79af.thatistosayiseenem@gawab.com>
-	<20070307120004.0bab0f76.thatistosayiseenem@gawab.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: final set of EC init patches
+Date: Wed, 7 Mar 2007 18:26:09 -0300
+Message-ID: <20070307212609.GA1796@khazad-dum.debian.net>
+References: <45E6050D.2060908@linux.intel.com> <200703070034.06530.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hermes2.dur.ac.uk ([129.234.8.21]:51937 "EHLO hermes2.dur.ac.uk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965671AbXCGVVQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 7 Mar 2007 16:21:16 -0500
-In-Reply-To: <20070307120004.0bab0f76.thatistosayiseenem@gawab.com>
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:49105 "EHLO
+	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S965657AbXCGV0Q (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Mar 2007 16:26:16 -0500
+Content-Disposition: inline
+In-Reply-To: <200703070034.06530.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, torvalds@linux-foundation.org, dmitry.torokhov@gmail.com
+To: Len Brown <lenb@kernel.org>
+Cc: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Wed, 7 Mar 2007 12:00:04 +0000
-Ash Milsted <thatistosayiseenem@gawab.com> wrote:
+On Wed, 07 Mar 2007, Len Brown wrote:
+> Anybody got any candidates for a series of transactions that would
+> benefit from this mode?  If yes, is it possible to detect an efficiency
+> benefit from enabling burst mode for that series?
 
-> On Sun, 4 Mar 2007 14:23:50 +0000
-> Ash Milsted <thatistosayiseenem@gawab.com> wrote:
-> 
-> > On Sat, 3 Mar 2007 15:14:24 +0000
-> > Ash Milsted <thatistosayiseenem@gawab.com> wrote:
-> > 
-> > > Hi,
-> > > With 2.6.21-rc2-git1 I have a problem with my ps/2 port keyboard - it only works
-> > > with one of the following on the command-line:
-> > >  - nolapic
-> > >  - irqfixup
-> > >  - pci=noacpi
-> > > Otherwise it gets stuck with the numlock on.
-> > > The following options have no effect:
-> > >  - nohz=off (who knows eh?)
-> > >  - pci=nomsi
-> > > 
-> snip
-> > > 
-> > > Ash
-> > 
-> > Just checked 2.6.21-rc2-mm1, still has the problem.
-> > Also, acpi=noirq fixes it too.
-> > To clarify, the problem is that my ps/2 port keyboard is completely frozen
-> > on boot - usually it gets activated when udev probes for hardware (my kernel
-> > config is highly modular). It worked fine with 2.6.20 and earlier with acpi 
-> > taking care of interrupt routing.
-> > 
-> > Ash
-> 
-> Any thoughts on this? It still occurs with 2.6.21-rc3. Here's my config
-> in case that helps. You'll see that I have swap-prefetch patched in (I
-> also have RDSL and some VM changes in there), but I have confirmed that
-> the problem occurs with no extra patches. By the way, I tested mm1 with
-> a rather different config (I used my distro package) and still saw the
-> problem.
-> 
-> Also, you should probably ignore that bit above where I suggest the
-> keyboard driver is being loaded as a module, because of course it
-> isn't.. Yet it does start responding (with pci=noacpi) at about that
-> time that udev does its thing.
-> 
-schnip
+ibm-acpi would like a lot to have burst-mode for EC dumps (read of 256 EC
+registers), and for thermal reading (two bursts of eight register reads, or
+one of sixteen non-contiguous reads if that is possible -- I need to read
+the ACPI spec on the burst mode).
 
-So, I tracked this down to 2.6.21-git7, the first snapshot that gives me
-this problem. Tellingly it does contain an input tree merge. I would git bisect
-but I don't have a local copy of the tree - I tried to get one, but it stopped
-halfway through the clone, probably because I had to use http... So, I hope that
-helps.
-
-Ash
-
-PS: I should have said I'm not subscribed, so please CC me on reply.
-PPS: That almost rhymes. Almost.
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
