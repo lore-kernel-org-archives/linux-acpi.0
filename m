@@ -1,106 +1,40 @@
 From: Ash Milsted <thatistosayiseenem@gawab.com>
-Subject: Re: 2.6.21-rc2 regression vs. 2.6.20: AT keyboard only works with
- pci=noacpi
-Date: Thu, 8 Mar 2007 11:58:43 +0000
-Message-ID: <20070308115843.8d264f91.thatistosayiseenem@gawab.com>
-References: <20070303151424.3b08c33e.thatistosayiseenem@gawab.com>
-	<20070304142350.7c3c79af.thatistosayiseenem@gawab.com>
-	<20070307120004.0bab0f76.thatistosayiseenem@gawab.com>
-	<20070307212534.325f2f32.thatistosayiseenem@gawab.com>
-	<20070307234914.430caffa.thatistosayiseenem@gawab.com>
+Subject: Re: [2/6] 2.6.21-rc2: known regressions
+Date: Thu, 8 Mar 2007 12:03:03 +0000
+Message-ID: <20070308120303.d285e4a3.thatistosayiseenem@gawab.com>
+References: <Pine.LNX.4.64.0702272105220.12485@woody.linux-foundation.org>
+	<20070305015034.GG3441@stusta.de>
+	<45EE9D52.9060807@garzik.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hermes1.dur.ac.uk ([129.234.8.20]:43867 "EHLO hermes1.dur.ac.uk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751452AbXCHLyy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 8 Mar 2007 06:54:54 -0500
-In-Reply-To: <20070307234914.430caffa.thatistosayiseenem@gawab.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <owner-linux-input@atrey.karlin.mff.cuni.cz>
+In-Reply-To: <45EE9D52.9060807@garzik.org>
+Sender: owner-linux-input@atrey.karlin.mff.cuni.cz
+List-Help: <mailto:majordomo@atrey.karlin.mff.cuni.cz?body=help>
+List-Owner: <mailto:owner-linux-input@atrey.karlin.mff.cuni.cz>
+List-Post: <mailto:linux-input@atrey.karlin.mff.cuni.cz>
+List-Unsubscribe: <mailto:linux-input-request@atrey.karlin.mff.cuni.cz?body=unsubscribe>
+To: Jeff Garzik <jeff@garzik.org>
+Cc: Adrian Bunk <bunk@stusta.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jens Axboe <jens.axboe@oracle.com>, Jeff Chua <jeff.chua.linux@gmail.com>, pavel@suse.cz, linux-pm@lists.osdl.org, lenb@kernel.org, linux-acpi@vger.kernel.org, "Michael S. Tsirkin" <mst@mellanox.co.il>, luming.yu@intel.com, Arkadiusz Miskiewicz <arekm@maven.pl>, Konstantin Karasyov <konstantin.a.karasyov@intel.com>, greg@kroah.com, linux-usb-devel@lists.sourceforge.net, Thomas Meyer <thomas.mey@web.de>, Meelis Roos <mroos@linux.ee>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Janosch Machowinski <jmachowinski@gmx.de>, vladimir.p.lebedev@intel.com, dmitry.torokhov@gmail.com, linux-input@atrey.karlin.mff.cuni.cz
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, torvalds@linux-foundation.org, dmitry.torokhov@gmail.com
 
-On Wed, 7 Mar 2007 23:49:14 +0000
-Ash Milsted <thatistosayiseenem@gawab.com> wrote:
+On Wed, 07 Mar 2007 06:09:06 -0500
+Jeff Garzik <jeff@garzik.org> wrote:
 
-> On Wed, 7 Mar 2007 21:25:34 +0000
-> Ash Milsted <thatistosayiseenem@gawab.com> wrote:
+> Adrian Bunk wrote:
+> > Subject    : AT keyboard only works with pci=noacpi
+> > References : http://lkml.org/lkml/2007/3/3/68
+> > Submitter  : Ash Milsted <thatistosayiseenem@gawab.com>
+> > Status     : unknown
 > 
-> > On Wed, 7 Mar 2007 12:00:04 +0000
-> > Ash Milsted <thatistosayiseenem@gawab.com> wrote:
-> > 
-> > > On Sun, 4 Mar 2007 14:23:50 +0000
-> > > Ash Milsted <thatistosayiseenem@gawab.com> wrote:
-> > > 
-> > > > On Sat, 3 Mar 2007 15:14:24 +0000
-> > > > Ash Milsted <thatistosayiseenem@gawab.com> wrote:
-> > > > 
-> > > > > Hi,
-> > > > > With 2.6.21-rc2-git1 I have a problem with my ps/2 port keyboard - it only works
-> > > > > with one of the following on the command-line:
-> > > > >  - nolapic
-> > > > >  - irqfixup
-> > > > >  - pci=noacpi
-> > > > > Otherwise it gets stuck with the numlock on.
-> > > > > The following options have no effect:
-> > > > >  - nohz=off (who knows eh?)
-> > > > >  - pci=nomsi
-> > > > > 
-> > > snip
-> > > > > 
-> > > > > Ash
-> > > > 
-> > > > Just checked 2.6.21-rc2-mm1, still has the problem.
-> > > > Also, acpi=noirq fixes it too.
-> > > > To clarify, the problem is that my ps/2 port keyboard is completely frozen
-> > > > on boot - usually it gets activated when udev probes for hardware (my kernel
-> > > > config is highly modular). It worked fine with 2.6.20 and earlier with acpi 
-> > > > taking care of interrupt routing.
-> > > > 
-> > > > Ash
-> > > 
-> > > Any thoughts on this? It still occurs with 2.6.21-rc3. Here's my config
-> > > in case that helps. You'll see that I have swap-prefetch patched in (I
-> > > also have RDSL and some VM changes in there), but I have confirmed that
-> > > the problem occurs with no extra patches. By the way, I tested mm1 with
-> > > a rather different config (I used my distro package) and still saw the
-> > > problem.
-> > > 
-> > > Also, you should probably ignore that bit above where I suggest the
-> > > keyboard driver is being loaded as a module, because of course it
-> > > isn't.. Yet it does start responding (with pci=noacpi) at about that
-> > > time that udev does its thing.
-> > > 
-> > schnip
-> > 
-> > So, I tracked this down to 2.6.21-git7, the first snapshot that gives me
-> > this problem. Tellingly it does contain an input tree merge. I would git bisect
-> > but I don't have a local copy of the tree - I tried to get one, but it stopped
-> > halfway through the clone, probably because I had to use http... So, I hope that
-> > helps.
-> > 
-> > Ash
-> > 
-> > PS: I should have said I'm not subscribed, so please CC me on reply.
-> > PPS: That almost rhymes. Almost.
 > 
-> Apologies for only replying to my own mails, but I need to be CC'd if
-> any alternative is to be convenient :)
+> sounds like a BIOS bug, even though it appears to be a regression?
 > 
-> Linus, thanks for your detailed messages. I will try to get a bisect done, but 
-> the university firewall is likely to put up a fight against rsync as much as it
-> does with the git protocol. We will see. And yeah, that 2.6.21-git7 business was
-> a typo, should've been 2.6.20-git7, natch.
-> 
-ker-cut
 
->Argh, I can't believe I forgot to get this into my tree. Could you
->please tell me if the patch below fixes ytour issue?
+Resolved here:
+http://marc.theaimsgroup.com/?l=linux-kernel&m=117332735404395&w=2
 
-Yup, that patch really hit the spot. Now I don't have to bisect :)
-
-Thanks for your help (both of you),
+Was a bug in the i8042 driver it seems.
 
 Ash
