@@ -1,59 +1,46 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Bug 8136] 2.6.21-rc2-mm2 won't boot
-Date: Thu, 8 Mar 2007 22:33:12 +0100
-Message-ID: <200703082233.13728.rjw@sisk.pl>
-References: <200703062336.l26NaTZA026385@fire-2.osdl.org> <20070306161559.e0c7ee71.akpm@linux-foundation.org> <200703070132.08217.rjw@sisk.pl>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [2/6] 2.6.21-rc2: known regressions
+Date: Fri, 9 Mar 2007 00:07:05 +0100
+Message-ID: <20070308230705.GA4611@elte.hu>
+References: <Pine.LNX.4.64.0702272105220.12485@woody.linux-foundation.org> <20070305015034.GG3441@stusta.de> <20070308123143.GF5149@mellanox.co.il> <Pine.LNX.4.64.0703080954220.10832@woody.linux-foundation.org> <20070308192554.GA2999@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933351AbXCHVat@vger.kernel.org>
-In-Reply-To: <200703070132.08217.rjw@sisk.pl>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-input@atrey.karlin.mff.cuni.cz>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Nicolas.Mailhot@laposte.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "bugme-daemon@kernel-bugs.osdl.org" <bugme-daemon@bugzilla.kernel.org>
+In-Reply-To: <20070308192554.GA2999@elte.hu>
+Sender: owner-linux-input@atrey.karlin.mff.cuni.cz
+List-Help: <mailto:majordomo@atrey.karlin.mff.cuni.cz?body=help>
+List-Owner: <mailto:owner-linux-input@atrey.karlin.mff.cuni.cz>
+List-Post: <mailto:linux-input@atrey.karlin.mff.cuni.cz>
+List-Unsubscribe: <mailto:linux-input-request@atrey.karlin.mff.cuni.cz?body=unsubscribe>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "Michael S. Tsirkin" <mst@mellanox.co.il>, Adrian Bunk <bunk@stusta.de>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jens Axboe <jens.axboe@oracle.com>, Jeff Chua <jeff.chua.linux@gmail.com>, pavel@suse.cz, linux-pm@lists.osdl.org, lenb@kernel.org, linux-acpi@vger.kernel.org, luming.yu@intel.com, Arkadiusz Miskiewicz <arekm@maven.pl>, Konstantin Karasyov <konstantin.a.karasyov@intel.com>, Greg KH <greg@kroah.com>, linux-usb-devel@lists.sourceforge.net, Thomas Meyer <thomas.mey@web.de>, Meelis Roos <mroos@linux.ee>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Janosch Machowinski <jmachowinski@gmx.de>, vladimir.p.lebedev@intel.com, Ash Milsted <thatistosayiseenem@gawab.com>, dmitry.torokhov@gmail.com, linux-input@atrey.karlin.mff.cuni.cz, "Eric W. Biederman" <ebiederm@xmission.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, 7 March 2007 01:32, Rafael J. Wysocki wrote:
-> Hi,
-> 
-> On Wednesday, 7 March 2007 01:15, Andrew Morton wrote:
-> > On Tue, 6 Mar 2007 15:36:29 -0800
-> > bugme-daemon@bugzilla.kernel.org wrote:
-> > 
-> > > http://bugzilla.kernel.org/show_bug.cgi?id=8136
-> > > 
-> > 
-> > Let's take this to email.
-> > 
-> > > 
-> > > 
-> > > 
-> > > ------- Additional Comments From Nicolas.Mailhot@LaPoste.net  2007-03-06 15:36 -------
-> > > Created an attachment (id=10631)
-> > >  --> (http://bugzilla.kernel.org/attachment.cgi?id=10631&action=view)
-> > > Printscreen with vesfg disabled and earlyprintk=vga
-> > > 
-> > 
-> > So rc2-mm2 panics due to "MP-BIOS bug: 8254 timer not connected to IO-APIC" and
-> > rc2-mm1 does not.
-> 
-> I'm observing a similar thing on my dual-core AMD64 testbed desktop.  Still,
-> another dual-core AMD64 machine I have runs -rc2-mm2 just fine.
-> 
-> One of the differences between them is that the failing one uses gcc 4.1.0 (sigh).
-> 
-> > Could be ACPI, could be x86_64 timer changes, could be something else.
-> > 
-> > Would you have time to bisect it? 
-> > http://www.zip.com.au/~akpm/linux/patches/stuff/bisecting-mm-trees.txt
-> > explains how.
-> > 
-> > If so, I'd suggest you drill in on the patches between
-> > x86_64-mm-defconfig-update.patch and
-> > optimize-and-simplify-get_cycles_sync.patch: the x86 changes.
-> 
-> I'll try to debug it tomorrow.
 
-OK, this seems to be fixed in 2.6.21-rc3-mm2.
+* Ingo Molnar <mingo@elte.hu> wrote:
+
+> Thomas found a new twist to this today: applying the patch below 
+> (which turns on ATA_DEBUG) made the SATA problem go away on his 
+> laptop. Michael, could you try this patch, does it change the behavior 
+> of your laptop in any way?
+
+Here's another suspend/resume artifact: one of my boxes wouldnt resume, 
+it hangs at:
+
+[    1.456633] pci 0000:00:18.2: resuming
+[    1.456641] pci 0000:00:18.3: resuming
+[    1.456648] 8139too 0000:05:07.0: resuming
+[    1.456667] radeonfb 0000:01:00.0: resuming
+
+the box is pingable but otherwise no console and it's hung as well. [I 
+got the log above via netconsole]
+
+disabling the following radeonfb options in the .config made resume work 
+again:
+
+ CONFIG_FB_RADEON=y
+ CONFIG_FB_RADEON_I2C=y
+ CONFIG_FB_RADEON_BACKLIGHT=y
+
+	Ingo
