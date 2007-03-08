@@ -1,14 +1,14 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH] ACPI: ibm-acpi: fix initial status of backlight device
-Date: Thu,  8 Mar 2007 05:28:14 -0300
-Message-ID: <11733424952501-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH] ACPI: ibm-acpi: improve backlight power handling
+Date: Thu,  8 Mar 2007 05:28:15 -0300
+Message-ID: <11733424953358-git-send-email-hmh@hmh.eng.br>
+References: 20070308074326.GA13601@khazad-dum.debian.net <11733424952501-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:36374 "EHLO
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:48395 "EHLO
 	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030259AbXCHI2U (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Mar 2007 03:28:20 -0500
-In-Reply-To: 20070308074326.GA13601@khazad-dum.debian.net
-References: 20070308074326.GA13601@khazad-dum.debian.net
+	by vger.kernel.org with ESMTP id S1030262AbXCHI2V (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Mar 2007 03:28:21 -0500
+In-Reply-To: <11733424952501-git-send-email-hmh@hmh.eng.br>
 In-Reply-To: <20070308074326.GA13601@khazad-dum.debian.net>
 References: <20070308074326.GA13601@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -16,43 +16,40 @@ List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-The brightness class core does not update the initial status of the
-device's brightness at register time.  Do it by ourselves.
+Improve the backlight code to emulate as much as possible the power
+management events, as we are unable to really power on or power off the
+backlight.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Acked-by: Richard Purdie <rpurdie@rpsys.net>
 ---
- drivers/acpi/ibm_acpi.c |   10 +++++++++-
- 1 files changed, 9 insertions(+), 1 deletions(-)
+ drivers/acpi/ibm_acpi.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
-index 4cc534e..7c1b418 100644
+index 7c1b418..63d7a85 100644
 --- a/drivers/acpi/ibm_acpi.c
 +++ b/drivers/acpi/ibm_acpi.c
-@@ -1711,6 +1711,12 @@ static struct backlight_ops ibm_backlight_data = {
+@@ -86,6 +86,7 @@
  
- static int brightness_init(void)
+ #include <linux/proc_fs.h>
+ #include <linux/backlight.h>
++#include <linux/fb.h>
+ #include <asm/uaccess.h>
+ 
+ #include <linux/dmi.h>
+@@ -1701,7 +1702,10 @@ static int brightness_write(char *buf)
+ 
+ static int brightness_update_status(struct backlight_device *bd)
  {
-+	int b;
-+
-+	b = brightness_get(NULL);
-+	if (b < 0)
-+		return b;
-+
- 	ibm_backlight_device = backlight_device_register("ibm", NULL, NULL,
- 							 &ibm_backlight_data);
- 	if (IS_ERR(ibm_backlight_device)) {
-@@ -1718,7 +1724,9 @@ static int brightness_init(void)
- 		return PTR_ERR(ibm_backlight_device);
- 	}
- 
--        ibm_backlight_device->props.max_brightness = 7;
-+	ibm_backlight_device->props.max_brightness = 7;
-+	ibm_backlight_device->props.brightness = b;
-+	backlight_update_status(ibm_backlight_device);
- 
- 	return 0;
+-	return brightness_set(bd->props.brightness);
++	return brightness_set(
++		(bd->props.fb_blank == FB_BLANK_UNBLANK &&
++		 bd->props.power == FB_BLANK_UNBLANK) ?
++				bd->props.brightness : 0);
  }
+ 
+ static struct backlight_ops ibm_backlight_data = {
 -- 
 1.5.0.3
 
