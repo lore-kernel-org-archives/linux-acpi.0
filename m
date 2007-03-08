@@ -1,242 +1,58 @@
-From: Andrey Borzenkov <arvidjaar@mail.ru>
-Subject: Re: 2.6.19: ACPI reports AC not present after resume from STD
-Date: Thu, 8 Mar 2007 10:51:42 +0300
-Message-ID: <200703081051.44272.arvidjaar@mail.ru>
-References: <8E389A5F2FEABA4CB1DEC35A25CB39CE82FE9F@mssmsx411> <200702252014.26110.arvidjaar@mail.ru> <200703052307.58499.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2080766.JnLvlFGA27";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [PATCH] ACPI: ibm-acpi: fix initial status of backlight device
+Date: Thu,  8 Mar 2007 05:28:14 -0300
+Message-ID: <11733424952501-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx33.mail.ru ([194.67.23.194]:27259 "EHLO mx33.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965164AbXCHHvz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 8 Mar 2007 02:51:55 -0500
-In-Reply-To: <200703052307.58499.rjw@sisk.pl>
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:36374 "EHLO
+	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1030259AbXCHI2U (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Mar 2007 03:28:20 -0500
+In-Reply-To: 20070308074326.GA13601@khazad-dum.debian.net
+References: 20070308074326.GA13601@khazad-dum.debian.net
+In-Reply-To: <20070308074326.GA13601@khazad-dum.debian.net>
+References: <20070308074326.GA13601@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andrew Morton <akpm@osdl.org>, Pavel Machek <pavel@ucw.cz>
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
---nextPart2080766.JnLvlFGA27
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+The brightness class core does not update the initial status of the
+device's brightness at register time.  Do it by ourselves.
 
-On Tuesday 06 March 2007, Rafael J. Wysocki wrote:
-> [changed Cc list]
->
-> On Sunday, 25 February 2007 18:14, Andrey Borzenkov wrote:
-> > On =D0=92=D0=BE=D1=81=D0=BA=D1=80=D0=B5=D1=81=D0=B5=D0=BD=D1=8C=D0=B5 2=
-5 =D1=84=D0=B5=D0=B2=D1=80=D0=B0=D0=BB=D1=8F 2007, Rafael J. Wysocki wrote:
-> > > On Sunday, 25 February 2007 11:37, Andrey Borzenkov wrote:
-> > > > On =D0=92=D0=BE=D1=81=D0=BA=D1=80=D0=B5=D1=81=D0=B5=D0=BD=D1=8C=D0=
-=B5 25 =D1=84=D0=B5=D0=B2=D1=80=D0=B0=D0=BB=D1=8F 2007, Rafael J. Wysocki w=
-rote:
-> > > > > On Sunday, 25 February 2007 00:26, Andrey Borzenkov wrote:
-> > > > > > On =D0=A1=D1=83=D0=B1=D0=B1=D0=BE=D1=82=D0=B0 24 =D1=84=D0=B5=
-=D0=B2=D1=80=D0=B0=D0=BB=D1=8F 2007, Rafael J. Wysocki wrote:
-> > > > > > > Hi,
-> > > > > > >
-> > > > > > > On Saturday, 24 February 2007 10:55, Andrey Borzenkov wrote:
-> > > > > > > > On =D0=92=D1=82=D0=BE=D1=80=D0=BD=D0=B8=D0=BA 13 =D1=84=D0=
-=B5=D0=B2=D1=80=D0=B0=D0=BB=D1=8F 2007, Andrey Borzenkov wrote:
-> > > > > > > > > On =D0=A7=D0=B5=D1=82=D0=B2=D0=B5=D1=80=D0=B3 07 =D0=B4=
-=D0=B5=D0=BA=D0=B0=D0=B1=D1=80=D1=8F 2006, Lebedev, Vladimir P wrote:
-> > > > > > > > > > Please register new bug, attach acpidump and dmesg.
-> > > > > > > > >
-> > > > > > > > > http://bugzilla.kernel.org/show_bug.cgi?id=3D7995
-> > > > > > > > >
-> > > > > > > > > regards
-> > > > > > > >
-> > > > > > > > Well, this starts looking like ACPI is not at fault.
-> > > > > > > >
-> > > > > > > > When reporting AC state ACPI just reads contents of system
-> > > > > > > > memory (I presume it gets updated by BIOS/ACPI when AC state
-> > > > > > > > changes). It looks like this memory area is restored during
-> > > > > > > > resume from STD. I updated mentioned bug report with more
-> > > > > > > > detailed description. Now if someone could suggest a way to
-> > > > > > > > catch if specific physical address gets saved/restored this
-> > > > > > > > would finally explain it.
-> > > > > > >
-> > > > > > > First, if you want the reserved memory areas to be left alone
-> > > > > > > by swsusp, you need to mark them as 'nosave'.  On x86_64 this
-> > > > > > > is done by the function e820_mark_nosave_range() in
-> > > > > > > arch/x86_64/kernel/e820.c that can be ported to i386 with no
-> > > > > > > problems.  However, we haven't found that very useful, so far,
-> > > > > > > since no one has ever reported any problems with the current
-> > > > > > > approach, which is to save and restore them.
-> > > > > >
-> > > > > > Well, the following proof of concept patch fixes this issue for
-> > > > > > me. Please notice that original version of
-> > > > > > e820_mark_nosave_range() could fail to exclude some areas due to
-> > > > > > alignment issues (exactly what happened to me on first try) so =
-it
-> > > > > > still can explain your problem too.
-> > > > >
-> > > > > Great job, thanks for the patch!  It looks good, so I'm going to
-> > > > > forward it for merging.
-> > > >
-> > > > Please no; I'm currently testing slightly more polished version; I
-> > > > will send it later.
-> > >
-> > > OK
-> > >
-> > > > Could anybody explain (or give pointer to) what happens which region
-> > > > that is not page-aligned? In particular, the very first one:
-> > > >
-> > > >  BIOS-e820: 0000000000000000 - 000000000009fc00 (usable)
-> > > >  BIOS-e820: 000000000009fc00 - 00000000000a0000 (reserved)
-> > > >
-> > > > Will the kernel allocate partial page (how?) or will the kernel
-> > > > ignore last (first) incomplete page? In the former case how those
-> > > > incomplete pages can be detected?
-> > >
-> > > Well, on x86_64, if I understand e820_register_active_regions()
-> > > correctly, the partial pages won't be registered.
-> >
-> > It appears that for low memory kernel will ignore incomplete pages for
-> > sure. I hope it does the same for high memory - but for now I just throw
-> > this in and pray :) This also significantly simplifies patch.
->
-> Well, can you please check if the appended modification of your patch sti=
-ll
-> works?
->
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Acked-by: Richard Purdie <rpurdie@rpsys.net>
+---
+ drivers/acpi/ibm_acpi.c |   10 +++++++++-
+ 1 files changed, 9 insertions(+), 1 deletions(-)
 
-It works for me with caveat
+diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
+index 4cc534e..7c1b418 100644
+--- a/drivers/acpi/ibm_acpi.c
++++ b/drivers/acpi/ibm_acpi.c
+@@ -1711,6 +1711,12 @@ static struct backlight_ops ibm_backlight_data = {
+ 
+ static int brightness_init(void)
+ {
++	int b;
++
++	b = brightness_get(NULL);
++	if (b < 0)
++		return b;
++
+ 	ibm_backlight_device = backlight_device_register("ibm", NULL, NULL,
+ 							 &ibm_backlight_data);
+ 	if (IS_ERR(ibm_backlight_device)) {
+@@ -1718,7 +1724,9 @@ static int brightness_init(void)
+ 		return PTR_ERR(ibm_backlight_device);
+ 	}
+ 
+-        ibm_backlight_device->props.max_brightness = 7;
++	ibm_backlight_device->props.max_brightness = 7;
++	ibm_backlight_device->props.brightness = b;
++	backlight_update_status(ibm_backlight_device);
+ 
+ 	return 0;
+ }
+-- 
+1.5.0.3
 
-/home/bor/src/linux-git/arch/i386/kernel/e820.c: In=20
-function =E2=80=98e820_mark_nosave_range=E2=80=99:
-/home/bor/src/linux-git/arch/i386/kernel/e820.c:328: warning: format =E2=80=
-=98%016Lx=E2=80=99=20
-expects type =E2=80=98long long unsigned int=E2=80=99, but argument 2 has t=
-ype =E2=80=98long unsigned=20
-int=E2=80=99
-/home/bor/src/linux-git/arch/i386/kernel/e820.c:328: warning: format =E2=80=
-=98%016Lx=E2=80=99=20
-expects type =E2=80=98long long unsigned int=E2=80=99, but argument 3 has t=
-ype =E2=80=98long unsigned=20
-int=E2=80=99
-
-regards=20
-
-=2Dandrey
-
-> Thanks,
-> Rafael
->
->
-> ---
->  arch/i386/kernel/e820.c  |   47
-> +++++++++++++++++++++++++++++++++++++++++++++++ arch/i386/kernel/setup.c =
-|=20
->   1 +
->  include/asm-i386/e820.h  |    1 +
->  3 files changed, 49 insertions(+)
->
-> Index: linux-2.6.21-rc2/arch/i386/kernel/e820.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux-2.6.21-rc2.orig/arch/i386/kernel/e820.c
-> +++ linux-2.6.21-rc2/arch/i386/kernel/e820.c
-> @@ -313,6 +313,53 @@ static int __init request_standard_resou
->
->  subsys_initcall(request_standard_resources);
->
-> +/*
-> + * Mark pages corresponding to given pfn range as 'nosave'.
-> + */
-> +static void __init
-> +e820_mark_nosave_range(unsigned long start_pfn, unsigned long end_pfn)
-> +{
-> +	unsigned long pfn;
-> +
-> +	if (start_pfn >=3D end_pfn)
-> +		return;
-> +
-> +	printk("Nosave address range: %016Lx - %016Lx\n",
-> +				PFN_PHYS(start_pfn), PFN_PHYS(end_pfn));
-> +	for (pfn =3D start_pfn; pfn < end_pfn; pfn++)
-> +		if (pfn_valid(pfn))
-> +			SetPageNosave(pfn_to_page(pfn));
-> +}
-> +
-> +/*
-> + * Find the ranges of physical addresses that do not correspond to
-> + * e820 RAM areas and mark the corresponding pages as nosave for software
-> + * suspend and suspend to RAM.
-> + *
-> + * This function requires the e820 map to be sorted and without any
-> + * overlapping entries and assumes the first e820 area to be RAM.
-> + */
-> +void __init e820_mark_nosave_regions(void)
-> +{
-> +	int i;
-> +	unsigned long pfn;
-> +
-> +	pfn =3D PFN_DOWN(e820.map[0].addr + e820.map[0].size);
-> +	for (i =3D 1; i < e820.nr_map; i++) {
-> +		struct e820entry *ei =3D &e820.map[i];
-> +
-> +		if (pfn < PFN_UP(ei->addr))
-> +			e820_mark_nosave_range(pfn, PFN_UP(ei->addr));
-> +
-> +		pfn =3D PFN_DOWN(ei->addr + ei->size);
-> +		if (ei->type !=3D E820_RAM)
-> +			e820_mark_nosave_range(PFN_UP(ei->addr), pfn);
-> +
-> +		if (pfn >=3D max_low_pfn)
-> +			break;
-> +	}
-> +}
-> +
->  void __init add_memory_region(unsigned long long start,
->  			      unsigned long long size, int type)
->  {
-> Index: linux-2.6.21-rc2/arch/i386/kernel/setup.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux-2.6.21-rc2.orig/arch/i386/kernel/setup.c
-> +++ linux-2.6.21-rc2/arch/i386/kernel/setup.c
-> @@ -648,6 +648,7 @@ void __init setup_arch(char **cmdline_p)
->  #endif
->
->  	e820_register_memory();
-> +	e820_mark_nosave_regions();
->
->  #ifdef CONFIG_VT
->  #if defined(CONFIG_VGA_CONSOLE)
-> Index: linux-2.6.21-rc2/include/asm-i386/e820.h
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux-2.6.21-rc2.orig/include/asm-i386/e820.h
-> +++ linux-2.6.21-rc2/include/asm-i386/e820.h
-> @@ -43,6 +43,7 @@ extern void register_bootmem_low_pages(u
->  extern void e820_register_memory(void);
->  extern void limit_regions(unsigned long long size);
->  extern void print_memory_map(char *who);
-> +extern void e820_mark_nosave_regions(void);
->
->  #endif/*!__ASSEMBLY__*/
-
-
-
---nextPart2080766.JnLvlFGA27
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (GNU/Linux)
-
-iD8DBQBF78CQR6LMutpd94wRAsuEAJ9d3DWUQhSR2Wf2RPtvX7a7225KvACfUnPZ
-BwLtqCGQzogg9aeRn5c5D8w=
-=sOQc
------END PGP SIGNATURE-----
-
---nextPart2080766.JnLvlFGA27--
