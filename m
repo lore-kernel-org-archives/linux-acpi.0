@@ -1,65 +1,164 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: Conversion of ACPI fan+thermal to hwmon sysfs
-Date: Thu, 8 Mar 2007 10:13:23 -0300
-Message-ID: <20070308131323.GA417@khazad-dum.debian.net>
-References: <20070224182024.GA23865@khazad-dum.debian.net> <20070226172716.b2e956b7.khali@linux-fr.org> <1172655111.11100.50.camel@localhost.localdomain> <20070228143433.GB30168@khazad-dum.debian.net> <1172797936.14827.33.camel@localhost.localdomain> <20070302121304.9db20131.khali@linux-fr.org> <1173346084.10227.136.camel@localhost.localdomain>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [patch 04/13] Exit ACPI processor module gracefully if acpi is
+	disabled
+Date: Thu, 08 Mar 2007 14:20:32 +0100
+Message-ID: <1173360032.5863.57.camel@queen.suse.de>
+References: <200702060010.l160ADKR003729@shell0.pdx.osdl.net>
+	 <200702090047.25044.lenb@kernel.org>
+	 <1171010060.25027.616.camel@d36.suse.de>
+	 <200703070300.55821.lenb@kernel.org>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:37318 "EHLO
-	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751795AbXCHNNb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Mar 2007 08:13:31 -0500
-Content-Disposition: inline
-In-Reply-To: <1173346084.10227.136.camel@localhost.localdomain>
+Received: from mx1.suse.de ([195.135.220.2]:52095 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751809AbXCHNUi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 8 Mar 2007 08:20:38 -0500
+In-Reply-To: <200703070300.55821.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Jean Delvare <khali@linux-fr.org>, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lm-sensors@lm-sensors.org, lenb@kernel.org, trenn@suse.de
+To: Len Brown <lenb@kernel.org>
+Cc: cpufreq@lists.linux.org.uk, akpm@linux-foundation.org, linux-acpi@vger.kernel.org
 
-On Thu, 08 Mar 2007, Zhang Rui wrote:
-> First, ACPI thermal zone can be used to set different cooling policies,
-> i.e. passive cooling mode and active cooling mode.
-> In passive mode, just as Matthew Garrett described, ACPI thermal may
-> throttle the CPU if the passive trip point is triggered, i.e. cool a
-> thermal zone by decreasing the performance of the devices(always CPU
-> now) in the zone.
-> The active cooling mode will use one or more active devices(usually fan)
-> to decrease the temperature, which consume extra power. And this is
-> really like the way that the hwmon is doing.
-> So we can only map the active cooling policy to hwmon, right?
+On Wed, 2007-03-07 at 03:00 -0500, Len Brown wrote:
+> On Friday 09 February 2007 03:34, Thomas Renninger wrote:
+> > On Fri, 2007-02-09 at 00:47 -0500, Len Brown wrote:
+> > > Why not simply check acpi_disabled, like other drivers do?
+> > >=20
+> > See comment from Dominik when I sent something similar some time ag=
+o:
+> > http://marc.theaimsgroup.com/?l=3Dlinux-acpi&m=3D114563882012355&w=3D=
+2
+>=20
+> Dominik is right right driver registration should fail w/o
+> a check for acpi_disabled.  However, we use acpi_disabled all
+> over the place already when that is not sufficient, so if we
+> need it here, we can use it..
+>=20
+> >> [Dominik wrote]
+> >> No. For example powernow-k8 and speedstep-centrino do have a depen=
+dency on a
+> >> function which is exported by processor_perflib.c. THis means you =
+cannot
+> >> load these modules (which can run without ACPI support) if loading=
+ the
+> >> processor module fails. Therefore its init function must not fail.
+>=20
+> Blech, so the drivers that can be either native or ACPI can't link
+> in native mode unless their ACPI processor driver symbols resolve?
+>=20
+> Hmmm.  Perhaps we should delete the ACPI part of speedstep_centrino
+> now that it is deprecated by acpi-cpufreq?  That way it can be
+> just a native driver for folks who want to run
+> with hard-coded tables and no ACPI.
+> Or perhaps at this point we should delete speedstep_centrino entirely=
+?
+>=20
+> Looks like powernow-k7.c and powernow-k8.c have the same issue --
+> acpi_processor_register_performance() ain't gonna resolve if the acpi=
+ processor
+> driver isn't present.  Perhaps they can be split into native and ACPI=
+ drivers?
+But all this sounds like a lot work?
+Can you just add the patch for now, to solve the "oops or whatever bad
+happened when booted without acpi and processor module gets unloaded"?
 
-Right, which is not to say we can't extend hwmon to also cover passive.
+Thanks,
 
-> Second, one ACPI thermal zone may have more than one fan devices, even
-> one active trip point may associate with several fan devices. And this
-> seems to be different from the sensors, doesn't it?
+   Thomas
 
-No, a LM85 does that too.  I don't recall if the current interface allows
-for that mapping easily, but if it doesn't, it needs to be modified.
+> -Len
+>=20
+>=20
+> > > On Monday 05 February 2007 19:09, akpm@linux-foundation.org wrote=
+:
+> > > > From: Thomas Renninger <trenn@suse.de>
+> > > >=20
+> > > > Signed-off-by: Thomas Renninger <trenn@suse.de>
+> > > > Cc: Len Brown <lenb@kernel.org>
+> > > > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> > > > ---
+> > > >=20
+> > > >  drivers/acpi/processor_core.c |   13 +++++++++----
+> > > >  1 file changed, 9 insertions(+), 4 deletions(-)
+> > > >=20
+> > > > diff -puN drivers/acpi/processor_core.c~exit-acpi-processor-mod=
+ule-gracefully-if-acpi-is-disabled drivers/acpi/processor_core.c
+> > > > --- a/drivers/acpi/processor_core.c~exit-acpi-processor-module-=
+gracefully-if-acpi-is-disabled
+> > > > +++ a/drivers/acpi/processor_core.c
+> > > > @@ -994,6 +994,8 @@ void acpi_processor_uninstall_hotplug_no
+> > > >   * ACPI, but needs symbols from this driver
+> > > >   */
+> > > > =20
+> > > > +static int processor_driver_registered;
+> > > > +
+> > > >  static int __init acpi_processor_init(void)
+> > > >  {
+> > > >  	int result =3D 0;
+> > > > @@ -1019,6 +1021,8 @@ static int __init acpi_processor_init(vo
+> > > >  		return result;
+> > > >  	}
+> > > > =20
+> > > > +	processor_driver_registered =3D 1;
+> > > > +
+> > > >  	acpi_processor_install_hotplug_notify();
+> > > > =20
+> > > >  	acpi_thermal_cpufreq_init();
+> > > > @@ -1035,12 +1039,13 @@ static void __exit acpi_processor_exit(=
+v
+> > > > =20
+> > > >  	acpi_thermal_cpufreq_exit();
+> > > > =20
+> > > > -	acpi_processor_uninstall_hotplug_notify();
+> > > > -
+> > > > -	acpi_bus_unregister_driver(&acpi_processor_driver);
+> > > > +	if (processor_driver_registered) {
+> > > > +		acpi_processor_uninstall_hotplug_notify();
+> > > > =20
+> > > > -	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+> > > > +		acpi_bus_unregister_driver(&acpi_processor_driver);
+> > > > =20
+> > > > +		remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+> > > > +	}
+> > > >  	return;
+> > > >  }
+> > > > =20
+> > > > _
+> > > > -
+> > > > To unsubscribe from this list: send the line "unsubscribe linux=
+-acpi" in
+> > > > the body of a message to majordomo@vger.kernel.org
+> > > > More majordomo info at  http://vger.kernel.org/majordomo-info.h=
+tml
+> > > >=20
+> >=20
+> > -
+> > To unsubscribe from this list: send the line "unsubscribe linux-acp=
+i" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >=20
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+Thomas Renninger
 
-> Third, ACPI can not get/set the fan speed. It can only deal with the fan
-> D-state. Fan is on in D0 state and off in D3 state.
+Research and Developement Departement
+SUSE LINUX Products GmbH,
+Maxfeldstr. 5, D - 90409 N=C3=BCrnberg
+Phone: +49 (0)911 - 740 53 675
+e-mail: trenn@suse.de
 
-That is easy to map to hwmon, you just don't implement some of the pwm
-stuff.
+SUSE LINUX Products GmbH, GF: Markus Rex, HRB 16746 (AG N=C3=BCrnberg)
 
-> IMO, the hwmon sysfs interface make it very convenient for users to
-> define the desired fan speed depending on a temperature measurement.
-> And it seems that we can't take use of this if we map ACPI thermal and
-> fan to hwmon-like sysfs interface, right?
-
-Well, it is certainly not easy.  I am not really sure the answer is "we
-cannot", though, but I don't really have the inclination to break out the
-paper and pencil and start thinking *hard* on it right now, sorry :(
-
-> Oh, a _read-only_ interface? Then, it will be much easier.
-> But what is it used for?
-
-Monitoring.  It is actually used more than the read-write interface...
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
