@@ -1,58 +1,47 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [2/6] 2.6.21-rc2: known regressions
-Date: Fri, 9 Mar 2007 12:19:58 +0100
-Message-ID: <20070309111957.GA3928@elf.ucw.cz>
-References: <Pine.LNX.4.64.0702272105220.12485@woody.linux-foundation.org> <20070305015034.GG3441@stusta.de> <20070308123143.GF5149@mellanox.co.il> <Pine.LNX.4.64.0703080954220.10832@woody.linux-foundation.org> <20070308192554.GA2999@elte.hu> <20070308230705.GA4611@elte.hu> <Pine.LNX.4.64.0703081545110.10832@woody.linux-foundation.org>
+Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
+Date: Fri, 9 Mar 2007 12:21:18 +0100
+Message-ID: <20070309112118.GC3925@elf.ucw.cz>
+References: <20070302220454.a0c66d04.khali@linux-fr.org> <B28E9812BAF6E2498B7EC5C427F293A402021B07@orsmsx415.amr.corp.intel.com> <20070309071855.GA5148@ucw.cz> <20070309112420.42420cf2.khali@linux-fr.org> <45F13965.2030709@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-input@atrey.karlin.mff.cuni.cz>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:42667 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1767197AbXCILVa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 Mar 2007 06:21:30 -0500
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0703081545110.10832@woody.linux-foundation.org>
-Sender: owner-linux-input@atrey.karlin.mff.cuni.cz
-List-Help: <mailto:majordomo@atrey.karlin.mff.cuni.cz?body=help>
-List-Owner: <mailto:owner-linux-input@atrey.karlin.mff.cuni.cz>
-List-Post: <mailto:linux-input@atrey.karlin.mff.cuni.cz>
-List-Unsubscribe: <mailto:linux-input-request@atrey.karlin.mff.cuni.cz?body=unsubscribe>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Ingo Molnar <mingo@elte.hu>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Adrian Bunk <bunk@stusta.de>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jens Axboe <jens.axboe@oracle.com>, Jeff Chua <jeff.chua.linux@gmail.com>, linux-pm@lists.osdl.org, lenb@kernel.org, linux-acpi@vger.kernel.org, luming.yu@intel.com, Arkadiusz Miskiewicz <arekm@maven.pl>, Konstantin Karasyov <konstantin.a.karasyov@intel.com>, Greg KH <greg@kroah.com>, linux-usb-devel@lists.sourceforge.net, Thomas Meyer <thomas.mey@web.de>, Meelis Roos <mroos@linux.ee>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Janosch Machowinski <jmachowinski@gmx.de>, vladimir.p.lebedev@intel.com, Ash Milsted <thatistosayiseenem@gawab.com>, dmitry.torokhov@gmail.com, linux-input@atrey.karlin.mff.cuni.cz, "Eric W. Biederman" <ebiederm@xmission.com>
+In-Reply-To: <45F13965.2030709@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Cc: Jean Delvare <khali@linux-fr.org>, "Moore, Robert" <robert.moore@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
 Hi!
 
-> > disabling the following radeonfb options in the .config made resume work 
-> > again:
-> 
-> In general, don't even *try* to use radeonfb for suspend/resume.
-> 
-> I don't think it has ever worked, except on some very rare laptops 
-> (largely PPC Macs) where people had enough information to set up the 
-> PLL's.
+> >>Can you take this as a wishlist item?
+> >>
+> >>It would be nice if next version of acpi specs supported table
+> >>
+> >>'AML / SMM BIOS will access these ports'
+> >>
+> >>...so we can get it correct with acpi4 or something..?
+> >>    
+> >
+> >I can only second Pavel's wish here. This would be highly convenient
+> >for OS developers to at least know which resources are accessed by AML
+> >and SMM. Without this information, we can never be sure that OS-level
+> >code won't conflict with ACPI or SMM.
+> >
+> >  
+> BIOS vendors are not required to support latest and greatest ACPI spec. 
+> So even if some future spec version
+> will include this ports description, we will still have majority of 
+> hardware not exporting it...
 
-It worked ok on thinkpad x32. BIOS did the setup in resume case (with
-acpi_sleep=..., anyway), and radeonfb could pick the card up from there.
-
-> I don't think the other framebuffer drivers are much better.
-> 
-> You're better off using the VGA console, and lettign X re-initialize the 
-> graphics device. That generally at least has a reasonably good chance of 
-> working.
-
-suspend.sf.net, s2ram there has a long list of tricks. If you invent
-new one, please add it there.
-
-> Re-initializing graphics modes really is very hard. You can try with the 
-> BIOS video hack (I forget the kernel command line to turn it on), but we 
-> really do end up depending on X doing it better.
-
-...or you can try vbetool; it is similar hack to acpi_sleep=... , but
-it works for more people.
-
-> Some day we may have modesetting support in the kernel for some graphics 
-> hw, right now it's pretty damn spotty.
-
-Yep, that's the way to go.
-									Pavel
-
+That's okay... vendors are not required to support _ACPI_, but they
+mostly do. Can we get the "ports used by BIOS" table to the spec?
+								Pavel
 -- 
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
