@@ -1,94 +1,44 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Date: Fri, 9 Mar 2007 13:03:31 -0800
-Message-ID: <B28E9812BAF6E2498B7EC5C427F293A4020CD43E@orsmsx415.amr.corp.intel.com>
-References: <45F19ACD.6030906@linux.intel.com>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: [2/6] 2.6.21-rc2: known regressions
+Date: Sat, 10 Mar 2007 00:35:08 +0100
+Message-ID: <20070309233508.GB2197@elf.ucw.cz>
+References: <Pine.LNX.4.64.0702272105220.12485@woody.linux-foundation.org> <20070305015034.GG3441@stusta.de> <20070308123143.GF5149@mellanox.co.il> <Pine.LNX.4.64.0703080954220.10832@woody.linux-foundation.org> <20070308192554.GA2999@elte.hu> <20070308230705.GA4611@elte.hu> <Pine.LNX.4.64.0703081545110.10832@woody.linux-foundation.org> <20070309174821.GA31754@linuxtv.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:33423 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2993126AbXCIVDh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Mar 2007 16:03:37 -0500
-Content-class: urn:content-classes:message
-In-Reply-To: <45F19ACD.6030906@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-input@atrey.karlin.mff.cuni.cz>
+Content-Disposition: inline
+In-Reply-To: <20070309174821.GA31754@linuxtv.org>
+Sender: owner-linux-input@atrey.karlin.mff.cuni.cz
+List-Help: <mailto:majordomo@atrey.karlin.mff.cuni.cz?body=help>
+List-Owner: <mailto:owner-linux-input@atrey.karlin.mff.cuni.cz>
+List-Post: <mailto:linux-input@atrey.karlin.mff.cuni.cz>
+List-Unsubscribe: <mailto:linux-input-request@atrey.karlin.mff.cuni.cz?body=unsubscribe>
+To: Johannes Stezenbach <js@linuxtv.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Adrian Bunk <bunk@stusta.de>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jens Axboe <jens.axboe@oracle.com>, Jeff Chua <jeff.chua.linux@gmail.com>, linux-pm@lists.osdl.org, lenb@kernel.org, linux-acpi@vger.kernel.org, luming.yu@intel.com, Arkadiusz Miskiewicz <arekm@maven.pl>, Konstantin Karasyov <konstantin.a.karasyov@intel.com>, Greg KH <greg@kroah.com>, linux-usb-devel@lists.sourceforge.net, Thomas Meyer <thomas.mey@web.de>, Meelis Roos <mroos@linux.ee>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Janosch Machowinski <jmachowinski@gmx.de>, vladimir.p.lebedev@intel.com, Ash Milsted <thatistosayiseenem@gawab.com>, dmitry.torokhov@gmail.com, linux-input@atrey.karlin.mff.cuni.
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Jean Delvare <khali@linux-fr.org>
-Cc: Pavel Machek <pavel@ucw.cz>, Matthew Garrett <mjg59@srcf.ucam.org>, Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, "Therien, Guy" <guy.therien@intel.com>, "Walz, Michael" <michael.walz@intel.com>
 
-No ACPI discussion can be complete without mentioning Microsoft and
-Microsoft compatibility -- Windows does not fully support ACPI 2.0 to
-this day, even though it was released in the year 2000, and ACPI 3.0 has
-been out since 2004.
+Hi!
 
-> -----Original Message-----
-> From: Alexey Starikovskiy
-[mailto:alexey.y.starikovskiy@linux.intel.com]
-> Sent: Friday, March 09, 2007 9:35 AM
-> To: Jean Delvare
-> Cc: Pavel Machek; Moore, Robert; Matthew Garrett; Chuck Ebbert; Rudolf
-> Marek; linux-acpi@vger.kernel.org; linux-kernel;
-lm-sensors@lm-sensors.org
-> Subject: Re: [lm-sensors] Could the k8temp driver be interfering with
-> ACPI?
+> > You're better off using the VGA console, and lettign X re-initialize the 
+> > graphics device. That generally at least has a reasonably good chance of 
+> > working.
+> > 
+> > Re-initializing graphics modes really is very hard. You can try with the 
+> > BIOS video hack (I forget the kernel command line to turn it on), but we 
+> > really do end up depending on X doing it better.
 > 
-> Jean Delvare wrote:
-> > Hi Alexey,
-> >
-> > On Fri, 09 Mar 2007 13:39:33 +0300, Alexey Starikovskiy wrote:
-> >
-> >> Jean Delvare wrote:
-> >>
-> >>> I can only second Pavel's wish here. This would be highly
-convenient
-> >>> for OS developers to at least know which resources are accessed by
-AML
-> >>> and SMM. Without this information, we can never be sure that
-OS-level
-> >>> code won't conflict with ACPI or SMM.
-> >>>
-> >> BIOS vendors are not required to support latest and greatest ACPI
-spec.
-> >> So even if some future spec version
-> >> will include this ports description, we will still have majority of
-> >> hardware not exporting it...
-> >>
-> >
-> > Your reasoning is amazing. So we should refrain from proposing any
-> > improvement which we aren't certain 100% of the systems will support
-> > tomorrow? Then let's all stay away from our keyboards forever, as
-the
-> > evolution of computer technology is based on exactly that -
-> > improvements which not all systems implement.
-> >
-> > It's friday evening, let's have some more for fun. With a similar
-> > logic, ten years ago we'd have come up with the following
-conclusions:
-> >
-> > The majority of computers have a single CPU, there is no point in
-> > adding SMP support to Linux.
-> >
-> > Let's not add a new instruction set in our next CPU family. The
-> > majority of systems will not implement it so it will be useless
-anyway.
-> >
-> > There's no point in supporting PnP in Linux, there are a majority of
-> > legacy ISA cards out there which do not support it anyway!
-> >
-> > See my point? Just because not every hardware out there supports a
-> > given standard doesn't make that standard necessarily useless.
-> >
-> > Just make the next version of ACPI better than the previous one (not
-> > necessarily a challenge) and everyone will embrace it.
-> >
-> >
-> You get me wrong, I'm not against the proposal, so keep your breath.
-> I'm just saying that you get old waiting for BIOS vendors to export
-this
-> info, even if it's in spec.
+> acpi_sleep=s3_bios has always worked for me on my ThinkPad T42p.
 > 
-> Regards,
-> Alex.
+> Even if one doesn't use the fb console at all, radeonfb apparently
+> is still required on some ThinkPad models to work around BIOS bugs:
+> 
+> http://www.thinkwiki.org/wiki/Problem_with_high_power_drain_in_ACPI_sleep#Radeon_GPU_not_powered_off
+
+
+s2ram should be able to work around this, it has parts from
+radeontool. (suspend.sf.net).
+
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
