@@ -1,156 +1,106 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 03/22] cpuidle take2: Basic documentation for cpuidle
-Date: Fri,  9 Mar 2007 23:00:40 -0500
-Message-ID: <11734992634177-git-send-email-lenb@kernel.org>
+Subject: [PATCH 04/22] ACPI: battery: make internal names consistent with battery "state"
+Date: Fri,  9 Mar 2007 23:00:41 -0500
+Message-ID: <11734992641781-git-send-email-lenb@kernel.org>
 References: <11734992592550-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:16045 "EHLO
+Received: from mga05.intel.com ([192.55.52.89]:30186 "EHLO
 	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752837AbXCJEBE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Mar 2007 23:01:04 -0500
+	with ESMTP id S1752842AbXCJEBF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Mar 2007 23:01:05 -0500
 In-Reply-To: <11734992592550-git-send-email-lenb@kernel.org>
-Message-Id: <c5bb38e598e68202e0d6f08b3fe0f30f12999357.1173498651.git.len.brown@intel.com>
+Message-Id: <a1f0eff21edac1bd87e397f56c4258b9611b5a50.1173498652.git.len.brown@intel.com>
 In-Reply-To: <941b1971a405f95537bc6f9a738e737eb2186e45.1173498647.git.len.brown@intel.com>
 References: <941b1971a405f95537bc6f9a738e737eb2186e45.1173498647.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Adam Belay <abelay@novell.com>, Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Vladimir Lebedev <vladimir.p.lebedev@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+From: Vladimir Lebedev <vladimir.p.lebedev@intel.com>
 
-Documentation for cpuidle infrastructure
+Cleanup -- No functional changes.
 
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Signed-off-by: Adam Belay <abelay@novell.com>
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Battery state is currently exported in a proc "state" file.
+Update associated #defines and routines to be consistent.
+
+Signed-off-by: Vladimir Lebedev <vladimir.p.lebedev@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/cpuidle/core.txt     |   17 +++++++++++++++++
- Documentation/cpuidle/driver.txt   |   24 ++++++++++++++++++++++++
- Documentation/cpuidle/governor.txt |   24 ++++++++++++++++++++++++
- Documentation/cpuidle/sysfs.txt    |   27 +++++++++++++++++++++++++++
- 4 files changed, 92 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/cpuidle/core.txt
- create mode 100644 Documentation/cpuidle/driver.txt
- create mode 100644 Documentation/cpuidle/governor.txt
- create mode 100644 Documentation/cpuidle/sysfs.txt
+ drivers/acpi/battery.c |   18 +++++++++---------
+ 1 files changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/Documentation/cpuidle/core.txt b/Documentation/cpuidle/core.txt
-new file mode 100644
-index 0000000..e686cfc
---- /dev/null
-+++ b/Documentation/cpuidle/core.txt
-@@ -0,0 +1,17 @@
-+
-+		Supporting multiple CPU idle levels in kernel
-+
-+				cpuidle
-+
-+General Information:
-+
-+Various CPUs today support multiple idle levels that are differentiated
-+by varying exit latencies and power consumption during idle.
-+cpuidle is a generic in-kernel infrastructure that separates
-+idle policy (governor) from idle mechanism (driver) and provides a
-+standardized infrastructure to support independent development of
-+governors and drivers.
-+
-+cpuidle resides under /drivers/cpuidle.
-+
-+
-diff --git a/Documentation/cpuidle/driver.txt b/Documentation/cpuidle/driver.txt
-new file mode 100644
-index 0000000..2dbee4b
---- /dev/null
-+++ b/Documentation/cpuidle/driver.txt
-@@ -0,0 +1,24 @@
-+
-+
-+		Supporting multiple CPU idle levels in kernel
-+
-+				cpuidle drivers
-+
-+
-+
-+
-+cpuidle driver supports capability detection for a particular system. The
-+init and exit routines will be called for each online CPU, with a percpu
-+cpuidle_driver object and driver should fill in cpuidle_states inside
-+cpuidle_driver depending on the CPU capability.
-+
-+Driver can handle dynamic state changes (like battery<->AC), by calling
-+force_redetect interface.
-+
-+It is possible to have more than one driver registered at the same time and
-+user can switch between drivers using /sysfs interface.
-+
-+Interfaces:
-+int cpuidle_register_driver(struct cpuidle_driver *drv);
-+void cpuidle_unregister_driver(struct cpuidle_driver *drv);
-+int cpuidle_force_redetect(struct cpuidle_device *dev);
-diff --git a/Documentation/cpuidle/governor.txt b/Documentation/cpuidle/governor.txt
-new file mode 100644
-index 0000000..a0fc3e5
---- /dev/null
-+++ b/Documentation/cpuidle/governor.txt
-@@ -0,0 +1,24 @@
-+
-+
-+
-+		Supporting multiple CPU idle levels in kernel
-+
-+				cpuidle governors
-+
-+
-+
-+
-+cpuidle governor is policy routine that decides what idle state to enter at
-+any given time. cpuidle core uses different callbacks to governor while
-+handling idle entry.
-+* select_state callback where governor can determine next idle state to enter
-+* prepare_idle callback is called before entering an idle state
-+* scan callback is called after a driver forces redetection of the states
-+
-+More than one governor can be registered at the same time and
-+user can switch between drivers using /sysfs interface.
-+
-+Interfaces:
-+int cpuidle_register_governor(struct cpuidle_governor *gov);
-+void cpuidle_unregister_governor(struct cpuidle_governor *gov);
-+
-diff --git a/Documentation/cpuidle/sysfs.txt b/Documentation/cpuidle/sysfs.txt
-new file mode 100644
-index 0000000..7fbf644
---- /dev/null
-+++ b/Documentation/cpuidle/sysfs.txt
-@@ -0,0 +1,27 @@
-+
-+
-+		Supporting multiple CPU idle levels in kernel
-+
-+				cpuidle sysfs
-+
-+System global cpuidle information are under
-+/sys/devices/system/cpu/cpuidle
-+
-+The current interfaces in this directory has self-explanatory names:
-+* available_drivers
-+* available_governors
-+* current_driver
-+* current_governor
-+
-+Per logical CPU specific cpuidle information are under
-+/sys/devices/system/cpu/cpuX/cpuidle
-+for each online cpu X
-+
-+Under this percpu directory, there is a directory for each idle state supported
-+by the driver, which in turn has
-+* latency
-+* power
-+* time
-+* usage
-+
-+
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index e64c76c..df04f87 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -44,7 +44,7 @@
+ #define ACPI_BATTERY_HID		"PNP0C0A"
+ #define ACPI_BATTERY_DEVICE_NAME	"Battery"
+ #define ACPI_BATTERY_FILE_INFO		"info"
+-#define ACPI_BATTERY_FILE_STATUS	"state"
++#define ACPI_BATTERY_FILE_STATE		"state"
+ #define ACPI_BATTERY_FILE_ALARM		"alarm"
+ #define ACPI_BATTERY_NOTIFY_STATUS	0x80
+ #define ACPI_BATTERY_NOTIFY_INFO	0x81
+@@ -76,7 +76,7 @@ static struct acpi_driver acpi_battery_driver = {
+ 		},
+ };
+ 
+-struct acpi_battery_status {
++struct acpi_battery_state {
+ 	acpi_integer state;
+ 	acpi_integer present_rate;
+ 	acpi_integer remaining_capacity;
+@@ -183,8 +183,8 @@ acpi_battery_get_info(struct acpi_battery *battery,
+ }
+ 
+ static int
+-acpi_battery_get_status(struct acpi_battery *battery,
+-			struct acpi_battery_status **bst)
++acpi_battery_get_state(struct acpi_battery *battery,
++			struct acpi_battery_state **bst)
+ {
+ 	int result = 0;
+ 	acpi_status status = 0;
+@@ -425,7 +425,7 @@ static int acpi_battery_read_state(struct seq_file *seq, void *offset)
+ {
+ 	int result = 0;
+ 	struct acpi_battery *battery = seq->private;
+-	struct acpi_battery_status *bst = NULL;
++	struct acpi_battery_state *bst = NULL;
+ 	char *units = "?";
+ 
+ 
+@@ -449,9 +449,9 @@ static int acpi_battery_read_state(struct seq_file *seq, void *offset)
+ 
+ 	/* Battery Status (_BST) */
+ 
+-	result = acpi_battery_get_status(battery, &bst);
++	result = acpi_battery_get_state(battery, &bst);
+ 	if (result || !bst) {
+-		seq_printf(seq, "ERROR: Unable to read battery status\n");
++		seq_printf(seq, "ERROR: Unable to read battery state\n");
+ 		goto end;
+ 	}
+ 
+@@ -621,7 +621,7 @@ static int acpi_battery_add_fs(struct acpi_device *device)
+ 	}
+ 
+ 	/* 'status' [R] */
+-	entry = create_proc_entry(ACPI_BATTERY_FILE_STATUS,
++	entry = create_proc_entry(ACPI_BATTERY_FILE_STATE,
+ 				  S_IRUGO, acpi_device_dir(device));
+ 	if (!entry)
+ 		return -ENODEV;
+@@ -652,7 +652,7 @@ static int acpi_battery_remove_fs(struct acpi_device *device)
+ 	if (acpi_device_dir(device)) {
+ 		remove_proc_entry(ACPI_BATTERY_FILE_ALARM,
+ 				  acpi_device_dir(device));
+-		remove_proc_entry(ACPI_BATTERY_FILE_STATUS,
++		remove_proc_entry(ACPI_BATTERY_FILE_STATE,
+ 				  acpi_device_dir(device));
+ 		remove_proc_entry(ACPI_BATTERY_FILE_INFO,
+ 				  acpi_device_dir(device));
 -- 
 1.5.0.3.310.g05ef5
