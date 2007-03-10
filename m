@@ -1,262 +1,475 @@
-From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
-Subject: and try remove another quirk on this computers Re: [3/6]
-	2.6.21-rc2: known regressions
-Date: Sat, 10 Mar 2007 04:11:36 +0000
-Message-ID: <1173499896.21891.34.camel@localhost.localdomain>
-References: <Pine.LNX.4.64.0702272105220.12485@woody.linux-foundation.org>
-	 <20070305015036.GH3441@stusta.de> <45EE9E39.3010800@garzik.org>
-	 <45F20541.9090208@crans.org>
+From: Len Brown <lenb@kernel.org>
+Subject: [GIT PATCH] ACPI patches for 2.6.21-rc3
+Date: Sat, 10 Mar 2007 00:34:01 -0500
+Message-ID: <200703100034.03148.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-rcvjDeUNh1VIPUv47EU4"
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1767801AbXCJEM2@vger.kernel.org>
-In-Reply-To: <45F20541.9090208@crans.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mathieu =?ISO-8859-1?Q?B=E9rard?= <Mathieu.Berard@crans.org>
-Cc: Jeff Garzik <jeff@garzik.org>, Adrian Bunk <bunk@stusta.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-ide@vger.kernel.org, Michal Jaegermann <michal@ellpspace.math.ualberta.ca>, Fabio Comolli <fabio.comolli@gmail.com>, Tejun Heo <htejun@gmail.com>, Janosch Machowinski <jmachowinski@gmx.de>, Lukas Hejtmanek <xhejtman@fi.muni.cz>, Meelis Roos <mroos@linux.ee>, Olivier Mondoloni <darkcore71@yahoo.fr>, Thomas Renninger <trenn@suse.de>, Robert Moore <robert.moore@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:57788 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752104AbXCJFf5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 10 Mar 2007 00:35:57 -0500
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
+Hi Linus,
 
---=-rcvjDeUNh1VIPUv47EU4
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+please pull from: 
 
-On Sat, 2007-03-10 at 02:09 +0100, Mathieu B=C3=A9rard wrote:
-> Jeff Garzik a =C3=A9crit :
-> > Adrian Bunk wrote:
-> >> Subject    : NCQ problem with ahci and Hitachi drive
-> >> References : http://lkml.org/lkml/2007/3/4/178
-> >> Submitter  : Mathieu B=C3=A9rard <Mathieu.Berard@crans.org>
-> >> Status     : unknown
-> >
-> > according to the last message in that thread, it sounds like ACPI and
-> > interrupt problems
-> >
-> Hi,
-> after more testing with a 2.6.21-rc3, it appears that after several ata
-> errors the boot process
-> somehow continued as normal, after a "NCQ disabled due to excessive
-> errors" message.
-> "pci=3Dnoacpi" or "noacpi" parameters workarounds the problem "irqpoll"
-> does nothing.
+git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
 
+This should delete a good part of the 2.6.21-rc regression list.
+This will update the files shown below.
 
-Hi, I have a laptop quite similar to this report, but still running
-2.4.20.
-With /usr/bin/hal-device-manager on (00:1f.1) 82801FB/FBM/FR/FW/FRW
-(ICH6 Family) IDE Controller (rev 03
-I found that I have an Hitachi Travelstar 80GN.=20
+thanks!
 
-And your initial report point that you have an Hitachi Travelstar 5K100
-and the patch http://lkml.org/lkml/2007/2/22/8 blacklist your HD ,
-correct ?=20
+-Len
 
-I will try 20-rc3 to see if I have any problem.
-but blacklist it is not a good solution ...=20
+ps. individual patches are available on linux-acpi@vger.kernel.org
+and a consolidated plain patch is available here:
+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.21/acpi-release-20070126-2.6.21-rc3.diff.gz
 
-well I recently found a quirk that is apply on laptop that I mention
-here. which I remove from my kernel because I don't have a Assus and my
-laptop is quirked too.=20
+ Documentation/kernel-parameters.txt |    3 
+ arch/i386/kernel/acpi/boot.c        |   23 ++++
+ arch/ia64/sn/kernel/io_acpi_init.c  |   44 ++++----
+ arch/ia64/sn/kernel/setup.c         |    2 
+ drivers/acpi/Kconfig                |   12 ++
+ drivers/acpi/blacklist.c            |   10 +-
+ drivers/acpi/ec.c                   |   40 ++++----
+ drivers/acpi/events/evmisc.c        |   25 ++++-
+ drivers/acpi/ibm_acpi.c             |   28 +++++
+ drivers/acpi/power.c                |   20 +---
+ drivers/acpi/resources/rscreate.c   |   25 ++++-
+ drivers/acpi/video.c                |   38 +++----
+ drivers/ata/libata-acpi.c           |    7 +
+ drivers/misc/asus-laptop.c          |    2 
+ drivers/misc/sony-laptop.c          |    2 
+ drivers/pnp/pnpacpi/rsparser.c      |  120 ++++++++++++++----------
+ 16 files changed, 271 insertions(+), 130 deletions(-)
 
---- linux-2.6.20.i686/drivers/pci/quirks.c.orig 2007-03-04 04:52:21.0000000=
-00 +0000
-+++ linux-2.6.20.i686/drivers/pci/quirks.c      2007-03-04 04:52:41.0000000=
-00 +0000
-@@ -1121,8 +1121,8 @@ static void asus_hides_smbus_lpc_ich6(st
-        iounmap(base);
-        printk(KERN_INFO "PCI: Enabled ICH6/i801 SMBus device\n");
- }
--DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,  PCI_DEVICE_ID_INTEL_ICH6_1,=
-     asus_hides_smbus_lpc_ich6 );
--DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_INTEL,  PCI_DEVICE_ID_INTEL_ICH6_1,=
-     asus_hides_smbus_lpc_ich6 );
-+/* DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,       PCI_DEVICE_ID_INTEL=
-_ICH6_1,     asus_hides_smbus_lpc_ich6 ); */
-+/* DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_INTEL,       PCI_DEVICE_ID_INTEL=
-_ICH6_1,     asus_hides_smbus_lpc_ich6 ); */
+through these commits:
 
- /*
-  * SiS 96x south bridge: BIOS typically hides SMBus device...
+Adrian Bunk (1):
+      asus-laptop: make code static
 
+Alexey Starikovskiy (2):
+      ACPICA: Fix ACPI Global Lock re-entrancy
+      ACPI: ec: fix race in status register access
 
-With this quirk I got this oops on hibernate (but computer still
-working)=20
+Andrew Morton (1):
+      sony-laptop: fix uninitialised variable
 
-Suspending console(s)
-eth1: Going into suspend...
-ACPI: PCI interrupt for device 0000:02:04.0 disabled
-ACPI: PCI interrupt for device 0000:00:1e.3 disabled
-ACPI: PCI interrupt for device 0000:00:1e.2 disabled
-ACPI: PCI interrupt for device 0000:00:1d.7 disabled
-ACPI: PCI interrupt for device 0000:00:1d.3 disabled
-ACPI: PCI interrupt for device 0000:00:1d.2 disabled
-ACPI: PCI interrupt for device 0000:00:1d.1 disabled
-ACPI: PCI interrupt for device 0000:00:1d.0 disabled
-ipw2200: Unable to load ucode: -22
-ipw2200: Unable to load firmware: -22
-ipw2200: Failed to up device
-swsusp: critical section:
-swsusp: Need to copy 57480 pages
-Intel machine check architecture supported.
-Intel machine check reporting enabled on CPU#0.
-BUG: sleeping function called from invalid context at mm/slab.c:3035
-in_atomic():0, irqs_disabled():1
-no locks held by pm-hibernate/22979.
-irq event stamp: 0
-hardirqs last  enabled at (0): [<00000000>] 0x0
-hardirqs last disabled at (0): [<c042580c>] copy_process+0x311/0x1249
-softirqs last  enabled at (0): [<c042580c>] copy_process+0x311/0x1249
-softirqs last disabled at (0): [<00000000>] 0x0
- [<c04051c9>] show_trace_log_lvl+0x1a/0x2f
- [<c040576e>] show_trace+0x12/0x14
- [<c04057f2>] dump_stack+0x16/0x18
- [<c0421266>] __might_sleep+0xc9/0xcf
- [<c0474cb1>] kmem_cache_alloc+0x28/0xc4
- [<c046bb50>] __get_vm_area_node+0x87/0x16f
- [<c046bcae>] __get_vm_area+0x22/0x28
- [<c046bcf3>] get_vm_area+0x3f/0x43
- [<c041f0ed>] __ioremap+0xa0/0xe6
- [<c041f147>] ioremap_nocache+0x14/0x79
- [<c04f070a>] asus_hides_smbus_lpc_ich6+0x37/0x61
- [<c04ef384>] pci_fixup_device+0x70/0x7c
- [<c04f0a70>] pci_device_resume_early+0x17/0x2e
- [<c0550779>] dpm_power_up+0x41/0x53
- [<c0550798>] device_power_up+0xd/0xf
- [<c0448bc4>] swsusp_suspend+0x55/0x62
- [<c044929c>] pm_suspend_disk+0xd5/0x181
- [<c04480a7>] enter_state+0x51/0x172
- [<c044824e>] state_store+0x86/0x9c
- [<c04b0a58>] subsys_attr_store+0x20/0x25
- [<c04b0b69>] sysfs_write_file+0xb8/0xe0
- [<c0478c68>] vfs_write+0xaf/0x163
- [<c04792b6>] sys_write+0x3d/0x61
- [<c0404058>] syscall_call+0x7/0xb
- =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-PCI: Enabled ICH6/i801 SMBus device
+Anthony Godshall, Ampro Computers, Inc (1):
+      ACPI: make blacklist more verbose
 
-removing quirk resolve the oops.
+Bernhard Walle (1):
+      ACPI: Add kernel-parameters hint that acpi=off doesn't work on IA64.
 
-BTW I have an HP Compaq nx6110 , what laptop is yours ?=20
+Henrique de Moraes Holschuh (3):
+      ACPI: ibm-acpi: fix initial status of backlight device
+      ACPI: ibm-acpi: make ibm-acpi bay support optional
+      ACPI: ibm-acpi: improve backlight power handling
 
-ah! and WTF I don't attach your dmesg in a file ?=20
-=20
->=20
-> lspci:
-> 00:00.0 Host bridge: Intel Corporation Mobile 915GM/PM/GMS/910GML
-> Express Processor to DRAM Controller (rev 03)
-> 00:01.0 PCI bridge: Intel Corporation Mobile 915GM/PM Express PCI
-> Express Root Port (rev 03)
-> 00:1c.0 PCI bridge: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6
-> Family) PCI Express Port 1 (rev 03)
-> 00:1c.1 PCI bridge: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6
-> Family) PCI Express Port 2 (rev 03)
-> 00:1d.0 USB Controller: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6
-> Family) USB UHCI #1 (rev 03)
-> 00:1d.1 USB Controller: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6
-> Family) USB UHCI #2 (rev 03)
-> 00:1d.2 USB Controller: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6
-> Family) USB UHCI #3 (rev 03)
-> 00:1d.3 USB Controller: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6
-> Family) USB UHCI #4 (rev 03)
-> 00:1d.7 USB Controller: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6
-> Family) USB2 EHCI Controller (rev 03)
-> 00:1e.0 PCI bridge: Intel Corporation 82801 Mobile PCI Bridge (rev d3)
-> 00:1e.2 Multimedia audio controller: Intel Corporation
-> 82801FB/FBM/FR/FW/FRW (ICH6 Family) AC'97 Audio Controller (rev 03)
-> 00:1e.3 Modem: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6 Family)
-> AC'97 Modem Controller (rev 03)
-> 00:1f.0 ISA bridge: Intel Corporation 82801FBM (ICH6M) LPC Interface
-> Bridge (rev 03)
-> 00:1f.1 IDE interface: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6
-> Family) IDE Controller (rev 03)
-> 00:1f.2 IDE interface: Intel Corporation 82801FBM (ICH6M) SATA
-> Controller (rev 03)
-> 00:1f.3 SMBus: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6 Family)
-> SMBus Controller (rev 03)
-> 01:00.0 VGA compatible controller: ATI Technologies Inc M24 [Radeon
-> Mobility X600]
-> 06:01.0 Ethernet controller: Realtek Semiconductor Co., Ltd.
-> RTL-8139/8139C/8139C+ (rev 10)
-> 06:02.0 Network controller: Intel Corporation PRO/Wireless 2200BG
-> Network Connection (rev 05)
-> 06:04.0 CardBus bridge: Texas Instruments PCIxx21/x515 Cardbus Controller
-> 06:04.2 FireWire (IEEE 1394): Texas Instruments OHCI Compliant IEEE 1394
-> Host Controller
-> 06:04.3 Mass storage controller: Texas Instruments PCIxx21 Integrated
-> FlashMedia Controller
-> 06:04.4 Generic system peripheral [0805]: Texas Instruments
-> PCI6411/6421/6611/6621/7411/7421/7611/7621 Secure Digital Controller
->=20
->=20
-> /proc/interrupts:
->         CPU0     =20
->   0:       3242   IO-APIC-edge      timer
->   1:        863   IO-APIC-edge      i8042
->   8:          3   IO-APIC-edge      rtc
->   9:          1   IO-APIC-fasteoi   acpi
->  12:        116   IO-APIC-edge      i8042
->  14:        128   IO-APIC-edge      libata
->  15:          0   IO-APIC-edge      libata
->  16:          1   IO-APIC-fasteoi   uhci_hcd:usb4, yenta
->  17:          0   IO-APIC-fasteoi   tifm_7xx1, Intel ICH6
->  18:        249   IO-APIC-fasteoi   eth0
->  19:       2712   IO-APIC-fasteoi   libata, uhci_hcd:usb2, sdhci:slot0,
-> sdhci:slot1, sdhci:slot2
->  20:         47   IO-APIC-fasteoi   uhci_hcd:usb1, ehci_hcd:usb5
->  21:          3   IO-APIC-fasteoi   uhci_hcd:usb3, ohci1394
->  22:          1   IO-APIC-fasteoi   ipw2200
-> NMI:          0
-> LOC:      15767
-> ERR:          0
-> MIS:          0
+John Keller (2):
+      ACPI: Altix: cannot register acpi bus driver before bus scan
+      ACPI: Altix: reinitialize acpi tables
 
+Julius Volz (1):
+      ACPI: video: Fix spelling and grammar mistakes
 
---=20
-S=C3=A9rgio M. B.
+Konstantin Karasyov (2):
+      ACPI: fix S3 fan resume issue
+      ACPI: ThinkPad Z60m: usb mouse stops working after suspend to RAM
 
---=-rcvjDeUNh1VIPUv47EU4
-Content-Type: application/x-pkcs7-signature; name=smime.p7s
-Content-Disposition: attachment; filename=smime.p7s
-Content-Transfer-Encoding: base64
+Kristen Accardi (1):
+      libata-acpi: allow _GTF on SATA, but disable on PATA for now
 
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGVjCCAw8w
-ggJ4oAMCAQICEGne8YrzxxgYAeyxZxmiO+owDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UEBhMCWkEx
-JTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQ
-ZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA2MTAxMTEwMjAzOVoXDTA3MTAxMTEwMjAz
-OVowSzEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjEoMCYGCSqGSIb3DQEJARYZc2Vy
-Z2lvQHNlcmdpb21iLm5vLWlwLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAN9R
-ix9koyWSNQDmAHxcSeWXdFO1osqg2yeNgBBl+fz8FLYyROsDGpZMcnOd/Df6tWwMZpMSYDNIksiZ
-5VkCWaWIzIBccHX3wIkqrkcq3v1OcPGW9adXClXSbSZ0Hb4V4+bQ9LMAOjaMlH/dKLVkln6qmbko
-NOxgPotdVxCGcUy1Pqa4dT1zFo5+nIv1NAUNqKpq63X/+3nILNG4JGAvLIL8wcYs0cETGS6vISgd
-YFN/JlIqekWUGGUmc+SJcyyTWjXGN+2G0SDS8K3a9NFCo7a1Y0FyHQxikQRtB9sCcpQCoXiqaWsT
-npSrNJ0Od4w1sHZz09uEdhWKqXEmJsKKwi8CAwEAAaNZMFcwDgYDVR0PAQH/BAQDAgSQMBEGCWCG
-SAGG+EIBAQQEAwIFoDAkBgNVHREEHTAbgRlzZXJnaW9Ac2VyZ2lvbWIubm8taXAub3JnMAwGA1Ud
-EwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEAwVE8/kY82qYG7I2+gW0NhSyn+DR0uAWYbSxB2NgP
-16QOrzXt2HazlXkl2Bc+NKQEqEGKOu5fPPg2GoJ3zDO1Y8GUNGtJH0sX+63RGoUNOAv+bAK1Nxhb
-illDUUCjW3OqA/hRyBwjU9kHJPYhl1EbAUGpAhfENHjkS/S7b1REBLMwggM/MIICqKADAgECAgEN
-MA0GCSqGSIb3DQEBBQUAMIHRMQswCQYDVQQGEwJaQTEVMBMGA1UECBMMV2VzdGVybiBDYXBlMRIw
-EAYDVQQHEwlDYXBlIFRvd24xGjAYBgNVBAoTEVRoYXd0ZSBDb25zdWx0aW5nMSgwJgYDVQQLEx9D
-ZXJ0aWZpY2F0aW9uIFNlcnZpY2VzIERpdmlzaW9uMSQwIgYDVQQDExtUaGF3dGUgUGVyc29uYWwg
-RnJlZW1haWwgQ0ExKzApBgkqhkiG9w0BCQEWHHBlcnNvbmFsLWZyZWVtYWlsQHRoYXd0ZS5jb20w
-HhcNMDMwNzE3MDAwMDAwWhcNMTMwNzE2MjM1OTU5WjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMc
-VGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZy
-ZWVtYWlsIElzc3VpbmcgQ0EwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMSmPFVzVftOucqZ
-Wh5owHUEcJ3f6f+jHuy9zfVb8hp2vX8MOmHyv1HOAdTlUAow1wJjWiyJFXCO3cnwK4Vaqj9xVsuv
-PAsH5/EfkTYkKhPPK9Xzgnc9A74r/rsYPge/QIACZNenprufZdHFKlSFD0gEf6e20TxhBEAeZBly
-YLf7AgMBAAGjgZQwgZEwEgYDVR0TAQH/BAgwBgEB/wIBADBDBgNVHR8EPDA6MDigNqA0hjJodHRw
-Oi8vY3JsLnRoYXd0ZS5jb20vVGhhd3RlUGVyc29uYWxGcmVlbWFpbENBLmNybDALBgNVHQ8EBAMC
-AQYwKQYDVR0RBCIwIKQeMBwxGjAYBgNVBAMTEVByaXZhdGVMYWJlbDItMTM4MA0GCSqGSIb3DQEB
-BQUAA4GBAEiM0VCD6gsuzA2jZqxnD3+vrL7CF6FDlpSdf0whuPg2H6otnzYvwPQcUCCTcDz9reFh
-YsPZOhl+hLGZGwDFGguCdJ4lUJRix9sncVcljd2pnDmOjCBPZV+V2vf3h9bGCE6u9uo05RAaWzVN
-d+NWIXiC3CEZNd4ksdMdRv9dX2VPMYIB/DCCAfgCAQEwdjBiMQswCQYDVQQGEwJaQTElMCMGA1UE
-ChMcVGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFs
-IEZyZWVtYWlsIElzc3VpbmcgQ0ECEGne8YrzxxgYAeyxZxmiO+owCQYFKw4DAhoFAKBdMBgGCSqG
-SIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA3MDMxMDA0MTEzNlowIwYJKoZI
-hvcNAQkEMRYEFKBVbB8uCua9Kg1iisMv5xvyKX7MMA0GCSqGSIb3DQEBAQUABIIBAFJzLMgV+7dO
-Ebhm1WNpY9fIg5TEqwp4tnGg7/LcczCpGacQLf4pHROLjqGm2xeprFgjqJ5jIMWuYDIPgGiKw7Op
-KG9PYzMFGxuSA8eA7DQZ/X+Fdo2oDXMdOOK0QLTHDnAvWDia8pnINeACw5HmMrjX4MYOvIGFfKhl
-NMAcweYkswSBYs21HL6iUEaF5gL49Ox15Jorr39WM7U0RkYpQYa22xtgptBHiARKIbCSzrunkrME
-5DQ/moF81OL/SGSb4/6cYfpJ15F2vv/vHUBNjUzLlN7/S0cu/oz50eZP3BPHNExd5NV3uVVrhPvG
-sIQsY6m/HY1PofrY2nErn41cVk8AAAAAAAA=
+Len Brown (2):
+      ACPI: fix Thinkpad 600/600E/600X interrupts
+      ACPI: repair nvidia early quirk breakage on x86_64
 
+Michael Karcher (1):
+      ACPI: fix parallel port IRQ after resume from S3
 
---=-rcvjDeUNh1VIPUv47EU4--
+Robert P. J. Day (1):
+      ACPI: Kconfig: hide ACPI menu when CONFIG_PM=n
+
+Shaohua Li (1):
+      ACPI: fix boot hang w/o "noapic" on MSI MS-6390-L
+
+with this log:
+
+commit 63e34ca93a62f472144db60fa3b81111c0d15721
+Merge: 51e7fff... 9327f46...
+Author: Len Brown <len.brown@intel.com>
+Date:   Fri Mar 9 23:19:50 2007 -0500
+
+    Pull misc-for-upstream into release branch
+
+commit 51e7fff1c2b763da910db3a875eac5b992df91d9
+Merge: bdf3aaf... 9e19721...
+Author: Len Brown <len.brown@intel.com>
+Date:   Fri Mar 9 23:19:25 2007 -0500
+
+    Pull bugzilla-8110 into release branch
+
+commit bdf3aaf9519ddd8a026b5e04e713d2fa673532e5
+Merge: b252630... 610a3d0...
+Author: Len Brown <len.brown@intel.com>
+Date:   Fri Mar 9 23:19:19 2007 -0500
+
+    Pull bugzilla-8066 into release branch
+
+commit b2526300ab242dc31f9006dbf9a4de40797571bc
+Merge: cb2ebc5... df33c77...
+Author: Len Brown <len.brown@intel.com>
+Date:   Fri Mar 9 23:18:53 2007 -0500
+
+    Pull bugzilla-7907 into release branch
+
+commit cb2ebc59ff52cee770cfd6ba5f23a6cc3c214648
+Merge: 3dfb737... 7292576...
+Author: Len Brown <len.brown@intel.com>
+Date:   Fri Mar 9 23:18:46 2007 -0500
+
+    Pull bugzilla-7570 into release branch
+
+commit 3dfb737998c265d3c8a15b931dc4d72335ab8255
+Merge: 63be2d9... 2f894ef...
+Author: Len Brown <len.brown@intel.com>
+Date:   Fri Mar 9 23:18:35 2007 -0500
+
+    Pull bugzilla-6859 into release branch
+
+commit 63be2d9305a5865580c6faee2c1eb477c09eac18
+Merge: 653351b... 362ea08...
+Author: Len Brown <len.brown@intel.com>
+Date:   Fri Mar 9 23:18:22 2007 -0500
+
+    Pull bugzilla-6316 into release branch
+
+commit 653351b0b9c97d4ec93aed499b542cbcd85309ca
+Merge: 5cb69bc... 74586fc...
+Author: Len Brown <len.brown@intel.com>
+Date:   Fri Mar 9 23:18:05 2007 -0500
+
+    Pull bugzilla-5966 into release branch
+
+commit 5cb69bcacea70024252138a9cb4229a142a93389
+Merge: c207908... c9bf296...
+Author: Len Brown <len.brown@intel.com>
+Date:   Fri Mar 9 23:17:46 2007 -0500
+
+    Pull ibm into release branch
+
+commit c207908fcc451e31d7fbba31541bd04f93787eb4
+Merge: a967e12... 3fd0b2d...
+Author: Len Brown <len.brown@intel.com>
+Date:   Fri Mar 9 23:17:39 2007 -0500
+
+    Pull altix into release branch
+
+commit 9e197219605513c14d3eae41039ecf1b82d1920d
+Author: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
+Date:   Wed Mar 7 18:29:35 2007 -0500
+
+    ACPI: ec: fix race in status register access
+    
+    Delay the read of the EC status register until
+    after the event that caused it occurs -- otherwise
+    it is possible to read and act on stale status that was
+    associated with the previous event.
+    
+    Do this with a perpetually incrementing "event_count" to detect
+    when a new event occurs and it is safe to read status.
+    
+    There is no workaround for polling mode -- it is inherently
+    exposed to reading and acting on stale status, since it
+    doesn't have an interrupt to tell it the event completed.
+    
+    http://bugzilla.kernel.org/show_bug.cgi?id=8110
+    
+    Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 9327f46ee28116b17f15f6505edd90f905908d62
+Author: Robert P. J. Day <rpjday@mindspring.com>
+Date:   Sun Mar 4 13:17:43 2007 -0500
+
+    ACPI: Kconfig: hide ACPI menu when CONFIG_PM=n
+    
+    Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 98fb8fe10f4b88170f578d8c33eaa2315d73b4f7
+Author: Julius Volz <julius.volz@s2003.tu-chemnitz.de>
+Date:   Tue Feb 20 16:38:40 2007 +0100
+
+    ACPI: video: Fix spelling and grammar mistakes
+    
+    Correct some of the most obvious spelling and grammar
+    mistakes in drivers/acpi/video.c (comments and printk output).
+    
+    Signed-off-by: Julius Volz <juliusrv@gmail.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 5b27b176da6cc83b0f904c7e0aabd9362d70bf70
+Author: Anthony Godshall, Ampro Computers, Inc <agodshall@ampro.com>
+Date:   Fri Mar 9 21:19:05 2007 -0500
+
+    ACPI: make blacklist more verbose
+    
+    IMHO, ACPI disabled due to DMI failure or blacklisted year should be noted,
+    as is done with other ACPI blacklisting.
+    
+    This will help people troubleshoot when ACPI isn't working.  Status quo is
+    a mysterious "ACPI Disabled" message without explanation on BIOS that
+    implements ACPI but not DMI.  This is actually fairly common on embedded
+    x86 boards.
+    
+    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit f110ef58e6c9bd562999247c5e8a5b8e722fbd11
+Author: Adrian Bunk <bunk@stusta.de>
+Date:   Tue Feb 20 01:07:25 2007 +0100
+
+    asus-laptop: make code static
+    
+    This patch makes some needlessly global code static.
+    
+    Signed-off-by: Adrian Bunk <bunk@stusta.de>
+    Cc: Corentin Chary <corentincj@iksaif.net>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit df33c77e3981e71afc8727ee5c432ba1a1bba68c
+Author: Kristen Accardi <kristen.c.accardi@intel.com>
+Date:   Fri Mar 9 18:15:33 2007 -0500
+
+    libata-acpi: allow _GTF on SATA, but disable on PATA for now
+    
+    The ACPI specification states, and BIOS implementations depend on,
+    _STM being called before _GTF.
+    
+    SATA does this, but PATA does not.  So for now, simply
+    prevent execution of _GTF on PATA devices.  Longer term we
+    should implement ACPI support for PATA devices in libata.
+    
+    Signed-off-by: Kristen Accardi <kristen.c.accardi@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit d7930085c28d295b573f6862ff863ccbb8a580ce
+Author: Len Brown <len.brown@intel.com>
+Date:   Thu Mar 8 18:30:25 2007 -0500
+
+    ACPI: repair nvidia early quirk breakage on x86_64
+    
+    x86_64 nvidia_bugs() broke when we bailed out on not finding the HPET.
+    However, the quirk works by checking for not finding the HPET...
+    
+    Delete the nvidia_hpet_detected flag and simply test for
+    not finding the HPET, which is simple to do now that
+    acpi_table_parse returns 1 on failure.
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 362ea087db9d99bb0cf79479544dfafa9e18c300
+Author: Michael Karcher <bugzilla-kernel@mkarcher.dialup.fu-berlin.de>
+Date:   Thu Mar 8 23:29:29 2007 -0500
+
+    ACPI: fix parallel port IRQ after resume from S3
+    
+    The PNPACPI resource flags were broken.
+    This would apply to re-enabling a device any-time after boot,
+    not just after resume from S3.
+    
+    http://bugzilla.kernel.org/show_bug.cgi?id=6316
+    
+    Acked-by: Shaohua Li <shaohua.li@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit c9bf296b6467968ecb9d988e7ed754a19c2e63d9
+Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Date:   Thu Mar 8 05:28:15 2007 -0300
+
+    ACPI: ibm-acpi: improve backlight power handling
+    
+    Improve the backlight code to emulate as much as possible the power
+    management events, as we are unable to really power on or power off the
+    backlight.
+    
+    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+    Acked-by: Richard Purdie <rpurdie@rpsys.net>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 2f894ef9c8b36a35d80709bedca276d2fc691941
+Author: Shaohua Li <shaohua.li@intel.com>
+Date:   Thu Mar 8 03:42:42 2007 -0500
+
+    ACPI: fix boot hang w/o "noapic" on MSI MS-6390-L
+    
+    This is a workaround to handle a BIOS bug where the
+    programmer exchanged the name and index fields of
+    a _PRT entry.  Apparently this BIOS error does not
+    confuse Windows and thus it lurks in the field
+    on various machines.
+    
+    boot with "acpi=strict" to disable this workaround
+    
+    http://bugzilla.kernel.org/show_bug.cgi?id=6859
+    
+    Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 74586fca38109d2fc75daf678635928f64b4ccec
+Author: Len Brown <len.brown@intel.com>
+Date:   Thu Mar 8 02:48:30 2007 -0500
+
+    ACPI: fix Thinkpad 600/600E/600X interrupts
+    
+    The root cause of this bug shows that this machine
+    could not possibly run an ACPI-aware OS without a
+    model specific workaround.
+    
+    http://bugzilla.kernel.org/show_bug.cgi?id=5966
+    
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit ff24ba74b6d3befbfbafa142582211b5a6095d45
+Author: Konstantin Karasyov <konstantin.a.karasyov@intel.com>
+Date:   Wed Mar 7 03:50:11 2007 -0500
+
+    ACPI: ThinkPad Z60m: usb mouse stops working after suspend to RAM
+    
+    (http://www.mail-archive.com/linux-acpi@vger.kernel.org/msg05270.html):
+    
+    References : http://lkml.org/lkml/2007/2/21/413
+                 http://lkml.org/lkml/2007/2/28/172
+    Submitter  : Arkadiusz Miskiewicz <arekm@maven.pl>
+    Caused-By  : Konstantin Karasyov <konstantin.a.karasyov@intel.com>
+                 commit 0a6139027f3986162233adc17285151e78b39cac
+    
+    Do not disable power resources on resume even if there are no devices referencing it.
+    
+    Signed-off-by: Konstantin Karasyov <konstantin.a.karasyov@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 03d926f82800f32642b32ba547c7a002a371a78f
+Author: Bernhard Walle <bwalle@suse.de>
+Date:   Tue Mar 6 02:29:44 2007 -0800
+
+    ACPI: Add kernel-parameters hint that acpi=off doesn't work on IA64.
+    
+    Signed-off-by: Bernhard Walle <bwalle@suse.de>
+    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 8607c673bdd593d4ce439a36412a213a8efb282b
+Author: Andrew Morton <akpm@linux-foundation.org>
+Date:   Tue Mar 6 02:29:42 2007 -0800
+
+    sony-laptop: fix uninitialised variable
+    
+    drivers/misc/sony-laptop.c: In function 'sony_acpi_add':
+    drivers/misc/sony-laptop.c:456: warning: 'result' may be used uninitialized in this function
+    
+    The compiler seems to actually be telling the truth this time.
+    
+    Cc: Mattia Dongili <malattia@linux.it>
+    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 610a3d069665ba2b27e42c90129ce640c4d6e515
+Author: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Date:   Wed Mar 7 00:57:30 2007 -0500
+
+    ACPICA: Fix ACPI Global Lock re-entrancy
+    
+    patch "Delete recursive feature of ACPI Global Lock"
+    broke re-entrancy of the Global Lock.
+    The common routine to acquire GL is acpi_ev_acquire_global_lock,
+    so check for re-entrancy _must_ be there, and not anywhere else.
+    
+    http://bugzilla.kernel.org/show_bug.cgi?id=8066#c9
+    
+    Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 3fd0b2d9ad7612f249e5516d887ab7c61b24ddb9
+Author: John Keller <jpk@sgi.com>
+Date:   Wed Feb 28 17:47:27 2007 -0600
+
+    ACPI: Altix: reinitialize acpi tables
+    
+    To provide compatibilty with SN kernels that do and do not
+    have ACPI IO support, the SN PROM must build different
+    versions of some ACPI tables based on which kernel is booting.
+    As such, the tables may have to change at kernel boot time.
+    By default, prior to kernel boot, the PROM builds an empty
+    DSDT (header only) and no SSDTs. If an ACPI capable kernel
+    boots, the kernel will notify the PROM, at platform setup time,
+    and the PROM will build full DSDT and SSDT tables.
+    
+    With the latest changes to acpi_table_init(), the table lengths
+    are saved, and when our PROM changes them, the changes are not seen,
+    and the kernel will crash on boot. Because of issues with kexec support,
+    we are not able to create the tables prior to acpi_table_init().
+    As a result, we are making a second call to acpi_table_init() to
+    process the rebuilt DSDT and SSDTs.
+    
+    Signed-off-by: John Keller <jpk@sgi.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 690b8d9d54941c90af1d43b0cc24903d20386f5b
+Author: John Keller <jpk@sgi.com>
+Date:   Fri Feb 23 16:24:16 2007 -0600
+
+    ACPI: Altix: cannot register acpi bus driver before bus scan
+    
+    SN code to initialize the Hub/TIO infrastructure needs to
+    execute before bus scanning. This was previously done with
+    an early call to acpi_bus_register_driver().  But now that
+    ACPI is using the Linux driver model, a driver cannot be registered
+    that early. Make changes to have the init routines invoked via
+    calls to acpi_get_devices().
+    
+    Signed-off-by: John Keller <jpk@sgi.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
+
+commit 2bc808a8c4821a8ef4e3dc35b8fc577a9d2c6f0d
+Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Date:   Wed Feb 21 13:05:38 2007 -0200
+
+    ACPI: ibm-acpi: make ibm-acpi bay support optional
+    
+    Make ibm-acpi bay support optional at kernel compile time.
+    
+    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+
+commit adb005818b71e9476581a1de5742e2f427ac9e2b
+Author: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Date:   Thu Feb 22 16:04:55 2007 -0200
+
+    ACPI: ibm-acpi: fix initial status of backlight device
+    
+    The brightness class core does not update the initial status of the
+    device's brightness at register time.  Do it by ourselves.
+    
+    Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+    Acked-by: Richard Purdie <rpurdie@rpsys.net>
+
+commit 7292576043666ff39946dee14641fe719ba8c7e8
+Author: Konstantin Karasyov <konstantin.a.karasyov@intel.com>
+Date:   Wed Feb 21 02:05:58 2007 -0500
+
+    ACPI: fix S3 fan resume issue
+    
+    http://bugzilla.kernel.org/show_bug.cgi?id=7570#c14
+    
+    Signed-off-by: Konstantin Karasyov <konstantin.a.karasyov@intel.com>
+    Signed-off-by: Len Brown <len.brown@intel.com>
