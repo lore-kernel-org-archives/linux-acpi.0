@@ -1,15 +1,15 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 11/22] ACPI: EC: Don't use Global Lock if not asked to do so
-Date: Fri,  9 Mar 2007 23:00:48 -0500
-Message-ID: <11734992704035-git-send-email-lenb@kernel.org>
+Subject: [PATCH 15/22] ACPI: EC: Remove casts to/from void* from ec.c
+Date: Fri,  9 Mar 2007 23:00:52 -0500
+Message-ID: <11734992732878-git-send-email-lenb@kernel.org>
 References: <11734992592550-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:44913 "EHLO
+Received: from mga05.intel.com ([192.55.52.89]:23753 "EHLO
 	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752851AbXCJEBL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Mar 2007 23:01:11 -0500
+	with ESMTP id S2993170AbXCJEBO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Mar 2007 23:01:14 -0500
 In-Reply-To: <11734992592550-git-send-email-lenb@kernel.org>
-Message-Id: <705ff592931e6738926fd6d596461010a1e8977d.1173498654.git.len.brown@intel.com>
+Message-Id: <388ea1ea778138553bc42b8d4aa26b9221faee23.1173498656.git.len.brown@intel.com>
 In-Reply-To: <941b1971a405f95537bc6f9a738e737eb2186e45.1173498647.git.len.brown@intel.com>
 References: <941b1971a405f95537bc6f9a738e737eb2186e45.1173498647.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -22,29 +22,68 @@ From: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
 Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/ec.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+ drivers/acpi/ec.c |   13 ++++++-------
+ 1 files changed, 6 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 1e525dd..0e06ba8 100644
+index e7ce6e4..1989631 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -827,7 +827,6 @@ acpi_fake_ecdt_callback(acpi_handle handle,
- 	status = acpi_evaluate_integer(handle, "_GPE", NULL, &ec_ecdt->gpe);
- 	if (ACPI_FAILURE(status))
- 		return status;
--	ec_ecdt->global_lock = TRUE;
- 	ec_ecdt->handle = handle;
+@@ -406,7 +406,7 @@ static int acpi_ec_query(struct acpi_ec *ec, u8 * data)
  
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "GPE=0x%02lx, ports=0x%2lx, 0x%2lx",
-@@ -901,8 +900,6 @@ static int __init acpi_ec_get_real_ecdt(void)
- 	ec_ecdt->command_addr = ecdt_ptr->control.address;
- 	ec_ecdt->data_addr = ecdt_ptr->data.address;
- 	ec_ecdt->gpe = ecdt_ptr->gpe;
--	/* use the GL just to be safe */
--	ec_ecdt->global_lock = TRUE;
- 	ec_ecdt->uid = ecdt_ptr->uid;
+ static void acpi_ec_gpe_query(void *ec_cxt)
+ {
+-	struct acpi_ec *ec = (struct acpi_ec *)ec_cxt;
++	struct acpi_ec *ec = ec_cxt;
+ 	u8 value = 0;
+ 	char object_name[8];
  
- 	status = acpi_get_handle(NULL, ecdt_ptr->id, &ec_ecdt->handle);
+@@ -424,8 +424,9 @@ static u32 acpi_ec_gpe_handler(void *data)
+ {
+ 	acpi_status status = AE_OK;
+ 	u8 value;
+-	struct acpi_ec *ec = (struct acpi_ec *)data;
++	struct acpi_ec *ec = data;
+ 	atomic_inc(&ec->event_count);
++
+ 	if (acpi_ec_mode == EC_INTR) {
+ 		wake_up(&ec->wait);
+ 	}
+@@ -468,7 +469,7 @@ acpi_ec_space_handler(u32 function,
+ 		      void *handler_context, void *region_context)
+ {
+ 	int result = 0;
+-	struct acpi_ec *ec = NULL;
++	struct acpi_ec *ec = handler_context;
+ 	u64 temp = *value;
+ 	acpi_integer f_v = 0;
+ 	int i = 0;
+@@ -480,8 +481,6 @@ acpi_ec_space_handler(u32 function,
+ 		return AE_BAD_PARAMETER;
+ 	}
+ 
+-	ec = (struct acpi_ec *)handler_context;
+-
+       next_byte:
+ 	switch (function) {
+ 	case ACPI_READ:
+@@ -537,7 +536,7 @@ static struct proc_dir_entry *acpi_ec_dir;
+ 
+ static int acpi_ec_read_info(struct seq_file *seq, void *offset)
+ {
+-	struct acpi_ec *ec = (struct acpi_ec *)seq->private;
++	struct acpi_ec *ec = seq->private;
+ 
+ 	if (!ec)
+ 		goto end;
+@@ -694,7 +693,7 @@ static int acpi_ec_remove(struct acpi_device *device, int type)
+ static acpi_status
+ acpi_ec_io_ports(struct acpi_resource *resource, void *context)
+ {
+-	struct acpi_ec *ec = (struct acpi_ec *)context;
++	struct acpi_ec *ec = context;
+ 
+ 	if (resource->type != ACPI_RESOURCE_TYPE_IO) {
+ 		return AE_OK;
 -- 
 1.5.0.3.310.g05ef5
