@@ -1,64 +1,35 @@
-From: Johannes Stezenbach <js@linuxtv.org>
-Subject: Re: [2/6] 2.6.21-rc2: known regressions
-Date: Sat, 10 Mar 2007 14:53:12 +0100
-Message-ID: <20070310135312.GA7659@linuxtv.org>
-References: <20070305015034.GG3441@stusta.de>
-	<20070308123143.GF5149@mellanox.co.il>
-	<Pine.LNX.4.64.0703080954220.10832@woody.linux-foundation.org>
-	<20070308192554.GA2999@elte.hu> <20070308230705.GA4611@elte.hu>
-	<Pine.LNX.4.64.0703081545110.10832@woody.linux-foundation.org>
-	<20070309174821.GA31754@linuxtv.org>
-	<20070309233508.GB2197@elf.ucw.cz> <20070310090121.GB15647@elte.hu>
-	<20070310114301.GA30554@suse.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.osdl.org>
-Content-Disposition: inline
-In-Reply-To: <20070310114301.GA30554@suse.de>
-List-Unsubscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
-List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.osdl.org>
-List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
-List-Subscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.osdl.org
-Errors-To: linux-pm-bounces@lists.osdl.org
-To: Stefan Seyfried <seife@suse.de>
-Cc: Ash Milsted <thatistosayiseenem@gawab.com>, dmitry.torokhov@gmail.com, Arkadiusz Miskiewicz <arekm@maven.pl>, linux-pm@lists.osdl.org, Jens Axboe <jens.axboe@oracle.com>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, linux-usb-devel@lists.sourceforge.net, Jeff Chua <jeff.chua.linux@gmail.com>, Meelis Roos <mroos@linux.ee>, Janosch Machowinski <jmachowinski@gmx.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@stusta.de>, linux-acpi@vger.kernel.org, Thomas Meyer <thomas.mey@web.de>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>
+From: Sanjoy Mahajan <sanjoy@mrao.cam.ac.uk>
+Subject: Re: [PATCH 11/22] ACPI: EC: Don't use Global Lock if not asked to do so
+Date: Sat, 10 Mar 2007 14:12:05 +0000
+Message-ID: <E1HQ2In-0001fp-00@skye.ra.phy.cam.ac.uk>
+References: <11734992704035-git-send-email-lenb@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mraos.ra.phy.cam.ac.uk ([131.111.48.8]:62822 "EHLO
+	mraos.ra.phy.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161062AbXCJOqB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Mar 2007 09:46:01 -0500
+In-Reply-To: Your message of "Fri, 09 Mar 2007 23:00:48 EST."
+             <11734992704035-git-send-email-lenb@kernel.org> <705ff592931e6738926fd6d596461010a1e8977d.1173498654.git.len.brown@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>, Len Brown <len.brown@intel.com>
 
-On Sat, Mar 10, 2007 at 12:43:01PM +0100, Stefan Seyfried wrote:
-> On Sat, Mar 10, 2007 at 10:01:21AM +0100, Ingo Molnar wrote:
-> > =
+Does this patch obsolete the patch to "release global lock in
+acpi_ec_wait"?  It's part of bugzilla 6749 "Thinkpad A21m freeze after
+second supedn to RAM"
+<http://bugzilla.kernel.org/show_bug.cgi?id=6749> and its direct url
+is <http://bugzilla.kernel.org/attachment.cgi?id=8481&action=view>.
 
-> > i'm wondering, do you have any idea how Windows handles the =
+Or did that patch get integrated via some other flow of code?  It
+fixed the S3 suspend hangs on my TP 600X.  It might also help the T60:
+Once in a long while it would hang on suspend and it reminded me of
+the 600X's behavior (though the T60 has an ancient kernel, 2.6.17-10
+from ubuntu, which is why I never filed a report).  I work around the
+problem by unloading the fan and thermal modules before suspending.
+It also hangs once in a while on resume, but those problems will
+hopefully be resolved by a more recent kernel.
 
-> > suspend/resume quirks problem area? Do they "curse BIOS vendors and =
+-Sanjoy
 
-> > maintain a large DB of DMI-driven exceptions", or do they perhaps have =
-
-> > some fundamentally better approach than us? If it's the former, then we =
-
-> > might as well try to bring more automatism (and more of your database) =
-
-> > into the kernel itself.
-> =
-
-> I think that in windows, you simply install the "HP nx$FOOBAR intel graph=
-ics
-> driver" on a nx$FOOBAR machine, and the "ASUS $FOOBAR ATI graphics driver"
-> on an ASUS $FOOBAR machine etc. Those drivers are mostly stock intel/ATI/
-> whoever drivers, but with the little bit of extra knowledge on how to wake
-> up the graphics chip.
-
-That's also what the thinkwiki page suggests. It says:
-
-"Affected Operating Systems:
-  * Linux, all flavours.
-  * Windows, for some models as well (only when using non-IBM drivers).
-  * FreeBSD (on the A22M)"
-
-
-Johannes
+`Not all those who wander are lost.' (J.R.R. Tolkien)
