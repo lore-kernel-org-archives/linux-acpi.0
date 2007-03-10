@@ -1,64 +1,17 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH][RFC] Make entire ACPI submenu dependent on PM.
-Date: Fri, 9 Mar 2007 22:26:14 -0500
-Message-ID: <200703092226.14552.lenb@kernel.org>
-References: <Pine.LNX.4.64.0703041312490.5332@CPE00045a9c397f-CM001225dbafb6>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Len Brown <len.brown@intel.com>
+Subject: ACPI patches for release to 2.6.21-rc
+Date: Fri,  9 Mar 2007 22:49:18 -0500
+Message-ID: <11734985781377-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:55310 "EHLO hera.kernel.org"
+Received: from mga01.intel.com ([192.55.52.88]:23581 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752798AbXCJD1l (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 9 Mar 2007 22:27:41 -0500
-In-Reply-To: <Pine.LNX.4.64.0703041312490.5332@CPE00045a9c397f-CM001225dbafb6>
-Content-Disposition: inline
+	id S1752805AbXCJDtk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 Mar 2007 22:49:40 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Robert P. J. Day" <rpjday@mindspring.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-This patch is right, and I applied it.
+I'm about to forward this batch to Linus.
 
-On i386, it did what it should -- made the menus look better.
-
-Testing x86_64 exposed a latent bug, however.
-Since CONFIG_X86_64_ACPI_NUMA=y does a select on ACPI,
-it is possible to config a kernel with PM=n
-and ACPI=y, which violates ACPI's dependency on PM.
-
-Basically, select of something that has dependencies doesn't
-enforce those dependencies.
-
-When will somebody re-write Kconfig into something that
-humans can use?
-
+cheers,
 -Len
-
-On Sunday 04 March 2007 13:17, Robert P. J. Day wrote:
-> 
->   Make the visibility of the entire ACPI submenu dependent on PM.
-> 
-> Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-> 
-> ---
-> 
->   given that de-selecting Power Management (PM) de-activates the
-> entire contents of the ACPI submenu, it seems pointless to leave the
-> top-level menu entry visible.  but this is just a hack and i'll leave
-> it to the official maintainers to do it properly. :-)
-> 
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 7c49e10..3208ce0 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -7,6 +7,7 @@ menu "ACPI (Advanced Configuration and Power Interface) Support"
->  	depends on !X86_VISWS
->  	depends on !IA64_HP_SIM
->  	depends on IA64 || X86
-> +	depends on PM
-> 
->  config ACPI
->  	bool "ACPI Support"
-> 
