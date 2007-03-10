@@ -1,63 +1,38 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: Re: [GIT PULL] ibm-acpi: more updates
-Date: Sat, 10 Mar 2007 14:16:26 -0300
-Message-ID: <20070310171626.GA9644@khazad-dum.debian.net>
-References: <11723292823837-git-send-email-hmh@hmh.eng.br>
-	<200703082259.55832.lenb@kernel.org>
+From: "Salatiel Filho" <salatiel.filho@gmail.com>
+Subject: acpi_serialize lock kernel 2.6.21-rc3
+Date: Sat, 10 Mar 2007 16:42:48 -0300
+Message-ID: <beb91d720703101142q7e82cf8dt392eb932d12b1813@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ug-out-1314.google.com ([66.249.92.174]:9781 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932091AbXCJTmv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Mar 2007 14:42:51 -0500
+Received: by ug-out-1314.google.com with SMTP id 44so1733572uga
+        for <linux-acpi@vger.kernel.org>; Sat, 10 Mar 2007 11:42:49 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <200703082259.55832.lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Thu, 08 Mar 2007, Len Brown wrote:
-> Henrique,
-> If you could refresh this on to of the latest acpi-test,
-> that would be great.  (ibm-acpi changes in acpi-test are
-> headed for 2.6.21).
+Is anyone having problems with acpi_serialize in kernel 2.6.21-rc3 ?
+Kernel locks during boot when i use acpi_serialize, and i need it to
+acpi function properly on my laptop. It worked fine in 2.6.20.
 
-These are not 2.6.21 material, I don't want Linus goint postal on either of
-us :-)
+Any help ?
 
-Please tell me when you open the merge window for acpi-test targeting
-2.6.22, and I will rediff and resubmit them.
 
-> note also that you have some whitespace violations.
-> Space in indent is followed by a tab.
-> .dotest/patch:41:                                            led * led_exp_hlbl[ind]);
-> Space in indent is followed by a tab.
-> .dotest/patch:46:                                            led * led_exp_hlcl[ind]);
-> 
-> probably the simplest way to stay on top of these is
-> to maintain the driver as Lindent free upon every patch.
-> eg. run Lindent after every patch to make sure it doesn't
-> introduce any violations.
-> 
-> you can also use git-apply --whitespace=strip
+--=20
+[]'s
+Salatiel
 
-Will do, thanks.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
-
--------------------------------------------------------------------------
-Take Surveys. Earn Cash. Influence the Future of IT
-Join SourceForge.net's Techsay panel and you'll get the chance to share your
-opinions on IT & business topics through brief surveys-and earn cash
-http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
+"O maior prazer do inteligente =E9 bancar o  idiota
+   diante de um  idiota que banca o inteligente".
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
