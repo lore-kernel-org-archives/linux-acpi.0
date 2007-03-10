@@ -1,98 +1,63 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [2/6] 2.6.21-rc2: known regressions
-Date: Sat, 10 Mar 2007 16:18:04 +0100
-Message-ID: <20070310151804.GA10627@elte.hu>
-References: <20070305015034.GG3441@stusta.de>
-	<20070308123143.GF5149@mellanox.co.il>
-	<Pine.LNX.4.64.0703080954220.10832@woody.linux-foundation.org>
-	<20070308192554.GA2999@elte.hu> <20070308230705.GA4611@elte.hu>
-	<Pine.LNX.4.64.0703081545110.10832@woody.linux-foundation.org>
-	<20070309174821.GA31754@linuxtv.org>
-	<20070309233508.GB2197@elf.ucw.cz> <20070310090121.GB15647@elte.hu>
-	<20070310114301.GA30554@suse.de>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: Re: [GIT PULL] ibm-acpi: more updates
+Date: Sat, 10 Mar 2007 14:16:26 -0300
+Message-ID: <20070310171626.GA9644@khazad-dum.debian.net>
+References: <11723292823837-git-send-email-hmh@hmh.eng.br>
+	<200703082259.55832.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.osdl.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20070310114301.GA30554@suse.de>
-List-Unsubscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
-List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.osdl.org>
-List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
-List-Subscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.osdl.org
-Errors-To: linux-pm-bounces@lists.osdl.org
-To: Stefan Seyfried <seife@suse.de>
-Cc: Ash Milsted <thatistosayiseenem@gawab.com>, Johannes Stezenbach <js@linuxtv.org>, Arkadiusz Miskiewicz <arekm@maven.pl>, linux-pm@lists.osdl.org, Jens Axboe <jens.axboe@oracle.com>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, dmitry.torokhov@gmail.com, linux-usb-devel@lists.sourceforge.net, Jeff Chua <jeff.chua.linux@gmail.com>, Meelis Roos <mroos@linux.ee>, Janosch Machowinski <jmachowinski@gmx.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@stusta.de>, linux-acpi@vger.kernel.org, Thomas Meyer <thomas.mey@web.de>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+In-Reply-To: <200703082259.55832.lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Thu, 08 Mar 2007, Len Brown wrote:
+> Henrique,
+> If you could refresh this on to of the latest acpi-test,
+> that would be great.  (ibm-acpi changes in acpi-test are
+> headed for 2.6.21).
 
-* Stefan Seyfried <seife@suse.de> wrote:
+These are not 2.6.21 material, I don't want Linus goint postal on either of
+us :-)
 
-> > btw., the s2ram database seems quite a bit spotty:
-> > =
+Please tell me when you open the merge window for acpi-test targeting
+2.6.22, and I will rediff and resubmit them.
 
-> >  $ ./s2ram -n
-> >  Machine is unknown.
-> >  This machine can be identified by:
-> >      sys_vendor   =3D "System manufacturer"
-> >      sys_product  =3D "System Product Name"
-> >      sys_version  =3D "System Version"
-> >      bios_version =3D "ASUS A8N-E ACPI BIOS Revision 1008"
-> > =
+> note also that you have some whitespace violations.
+> Space in indent is followed by a tab.
+> .dotest/patch:41:                                            led * led_exp_hlbl[ind]);
+> Space in indent is followed by a tab.
+> .dotest/patch:46:                                            led * led_exp_hlcl[ind]);
+> 
+> probably the simplest way to stay on top of these is
+> to maintain the driver as Lindent free upon every patch.
+> eg. run Lindent after every patch to make sure it doesn't
+> introduce any violations.
+> 
+> you can also use git-apply --whitespace=strip
 
-> >  $ ./s2ram -n
-> >  Machine is unknown.
-> >  This machine can be identified by:
-> >     sys_vendor   =3D "Hewlett-Packard "
-> >     sys_product  =3D "compaq nx9030 (PG630ET#ABD)       "
-> >     sys_version  =3D "Rev 1           "
-> >     bios_version =3D "F.15    "
-> >  See http://en.opensuse.org/S2ram for details.
-> > =
+Will do, thanks.
 
-> > even at the link above i didnt find any clear algorithm about how to =
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
 
-> > extend the quirks-list and the white-list - while i expect that most =
-
-> > people experience what i did: that s2ram doesnt know their boxes. =
-
-> > (otherwise they would not visit that URL at all i suspect)
-> =
-
-> Ok. To be honest, you are the first reporter that seems to have read =
-
-> the documentation above, but not understood what to do.
-
-thanks for the compliment ;-) _I_ very much know what to do (i mailed =
-
-the right person after all ;), but i dont really count and on the 6 =
-
-systems i tried s2ram said on 5 that it's 'unknown', i assumed it could =
-
-possibly be due to the visible lack of clear instructions on that =
-
-webpage ;-)
-
-> i might consider reworking the documentation if there are more reports =
-
-> about problems with the procedure.
-
-Probably tweaking the webpage doesnt help because people dont get there =
-
-- as the results plainly show it. Maybe some more automation would be =
-
-useful too, a tool that detects failed resume and tries all those =
-
-options that makes sense on that box or something? It's not like that =
-
-people dont _try_ suspend/resume on Linux, it's just that they find it =
-
-doesnt work and there is no clear mortal-usable (end-user-) way of =
-
-fixing it and submitting the result of that fixing.
-
-	Ingo
+-------------------------------------------------------------------------
+Take Surveys. Earn Cash. Influence the Future of IT
+Join SourceForge.net's Techsay panel and you'll get the chance to share your
+opinions on IT & business topics through brief surveys-and earn cash
+http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
