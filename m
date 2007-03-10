@@ -1,43 +1,30 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: and try remove another quirk on this computers Re: [3/6]
- 2.6.21-rc2: known regressions
-Date: Fri, 9 Mar 2007 21:41:20 -0800 (PST)
-Message-ID: <Pine.LNX.4.64.0703092134330.10832@woody.linux-foundation.org>
-References: <Pine.LNX.4.64.0702272105220.12485@woody.linux-foundation.org>
- <20070305015036.GH3441@stusta.de> <45EE9E39.3010800@garzik.org>
- <45F20541.9090208@crans.org> <1173499896.21891.34.camel@localhost.localdomain>
+From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Subject: Re: [PATCH 10/20] ACPI: ec: fix race in status register access
+Date: Sat, 10 Mar 2007 10:29:04 +0300
+Message-ID: <45F25E40.3040908@linux.intel.com>
+References: <11734985781377-git-send-email-len.brown@intel.com> <11734985791126-git-send-email-len.brown@intel.com> <1173498580364-git-send-email-len.brown@intel.com> <11734985813852-git-send-email-len.brown@intel.com> <11734985822692-git-send-email-len.brown@intel.com> <11734985822425-git-send-email-len.brown@intel.com> <11734985831806-git-send-email-len.brown@intel.com> <11734985842575-git-send-email-len.brown@intel.com> <1173498585454-git-send-email-len.brown@intel.com> <11734985862291-git-send-email-len.brown@intel.com> <11734985863491-git-send-email-len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <1173499896.21891.34.camel@localhost.localdomain>
-Sender: linux-ide-owner@vger.kernel.org
-To: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
-Cc: =?ISO-8859-1?Q?Mathieu_B=E9rard?= <Mathieu.Berard@crans.org>, Jeff Garzik <jeff@garzik.org>, Adrian Bunk <bunk@stusta.de>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-ide@vger.kernel.org, Michal Jaegermann <michal@ellpspace.math.ualberta.ca>, Fabio Comolli <fabio.comolli@gmail.com>, Tejun Heo <htejun@gmail.com>, Janosch Machowinski <jmachowinski@gmx.de>, Lukas Hejtmanek <xhejtman@fi.muni.cz>, Meelis Roos <mroos@linux.ee>, Olivier Mondoloni <darkcore71@yahoo.fr>, Thomas Renninger <trenn@suse.de>, Robert Moore <robert.moore@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga07.intel.com ([143.182.124.22]:24149 "EHLO
+	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S933509AbXCJH3I (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Mar 2007 02:29:08 -0500
+In-Reply-To: <11734985863491-git-send-email-len.brown@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org, Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
 
-
-
-On Sat, 10 Mar 2007, Sergio Monteiro Basto wrote:
-> 
-> With this quirk I got this oops on hibernate (but computer still
-> working) 
-
-Well, strictly speaking it's a warning, not an oops per se. 
-
-What happens is that the quirk wants to do an "ioremap_nocache()", which 
-allocates memory, and that happens very early during initialization when 
-interrupts are disabled.
-
-And you're really not supposed to allocate memory, except using 
-GFP_ATOMIC. But we've always been lax about that during early boot, so we 
-have stuff that does. And resume ends up doing a lot of the same things 
-early boot does, and shows issues like this.
-
-So the quirk is probably still a good idea, and the warning message is 
-just that - a very scary warning message, but not an indicator that 
-anything is seriously screwed up for you.
-
-(It is an indication of a real bug, though, even though it's harmless in 
-practice in this case)
-
-		Linus
+Len Brown wrote:
+> @@ -807,6 +812,7 @@ acpi_fake_ecdt_callback(acpi_handle handle,
+>  	acpi_status status;
+>  
+>  	mutex_init(&ec_ecdt->lock);
+> +	atomic_set(&ec->event_count, 1);
+>  	if (acpi_ec_mode == EC_INTR) {
+>  		init_waitqueue_head(&ec_ecdt->wait);
+>  	}
+>   
+here it should be ec_ecdt, not ec to make it compile...
