@@ -1,15 +1,15 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 18/22] ACPI: EC: Rename ec_ecdt to more informative boot_ec
-Date: Fri,  9 Mar 2007 23:00:55 -0500
-Message-ID: <11734992751593-git-send-email-lenb@kernel.org>
+Subject: [PATCH 13/22] ACPI: EC: "Fake ECDT" workaround is not needed any longer.
+Date: Fri,  9 Mar 2007 23:00:50 -0500
+Message-ID: <1173499271658-git-send-email-lenb@kernel.org>
 References: <11734992592550-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:23753 "EHLO
+Received: from mga05.intel.com ([192.55.52.89]:16104 "EHLO
 	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S2993174AbXCJEBS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Mar 2007 23:01:18 -0500
+	with ESMTP id S2992726AbXCJEBM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Mar 2007 23:01:12 -0500
 In-Reply-To: <11734992592550-git-send-email-lenb@kernel.org>
-Message-Id: <105cfb8936ce350c426b9b2a42e52cd3a625d102.1173498657.git.len.brown@intel.com>
+Message-Id: <94418415a62ec4c88109385d8663e56aac54dfd6.1173498656.git.len.brown@intel.com>
 In-Reply-To: <941b1971a405f95537bc6f9a738e737eb2186e45.1173498647.git.len.brown@intel.com>
 References: <941b1971a405f95537bc6f9a738e737eb2186e45.1173498647.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -22,114 +22,120 @@ From: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
 Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/ec.c |   43 ++++++++++++++++++++-----------------------
- 1 files changed, 20 insertions(+), 23 deletions(-)
+ drivers/acpi/ec.c |   81 -----------------------------------------------------
+ 1 files changed, 0 insertions(+), 81 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index c9dcf9a..1250468 100644
+index 0e06ba8..5999abd 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -102,7 +102,7 @@ static struct acpi_ec {
- 	atomic_t query_pending;
- 	atomic_t event_count;
- 	wait_queue_head_t wait;
--} *ec_ecdt;
-+} *boot_ec;
- 
- /* External interfaces use first EC only, so remember */
- static struct acpi_device *first_ec;
-@@ -646,21 +646,18 @@ static int acpi_ec_add(struct acpi_device *device)
- 	}
- 
- 	/* Check if we found the boot EC */
--	if (ec_ecdt) {
--		if (ec_ecdt->gpe == ec->gpe) {
-+	if (boot_ec) {
-+		if (boot_ec->gpe == ec->gpe) {
- 			/* We might have incorrect info for GL at boot time */
--			mutex_lock(&ec_ecdt->lock);
--			ec_ecdt->global_lock = ec->global_lock;
--			mutex_unlock(&ec_ecdt->lock);
-+			mutex_lock(&boot_ec->lock);
-+			boot_ec->global_lock = ec->global_lock;
-+			mutex_unlock(&boot_ec->lock);
- 			kfree(ec);
--			ec = ec_ecdt;
-+			ec = boot_ec;
- 		}
- 	}
--
- 	ec->handle = device->handle;
--
- 	acpi_driver_data(device) = ec;
--
- 	if (!first_ec)
- 		first_ec = device;
- 
-@@ -689,7 +686,7 @@ static int acpi_ec_remove(struct acpi_device *device, int type)
- 		first_ec = NULL;
- 
- 	/* Don't touch boot EC */
--	if (ec_ecdt != ec)
-+	if (boot_ec != ec)
- 		kfree(ec);
- 
+@@ -805,74 +805,6 @@ static int acpi_ec_stop(struct acpi_device *device, int type)
  	return 0;
-@@ -759,7 +756,7 @@ static int acpi_ec_start(struct acpi_device *device)
- 			  ec->gpe, ec->command_addr, ec->data_addr));
+ }
  
- 	/* Boot EC is already working */
--	if (ec == ec_ecdt)
-+	if (ec == boot_ec)
- 		return 0;
- 
- 	return ec_install_handlers(ec);
-@@ -778,7 +775,7 @@ static int acpi_ec_stop(struct acpi_device *device, int type)
- 		return -EINVAL;
- 
- 	/* Don't touch boot EC */
--	if (ec == ec_ecdt)
-+	if (ec == boot_ec)
- 		return 0;
- 
- 	status = acpi_remove_address_space_handler(ec->handle,
-@@ -828,8 +825,8 @@ int __init acpi_ec_ecdt_probe(void)
+-static acpi_status __init
+-acpi_fake_ecdt_callback(acpi_handle handle,
+-			u32 Level, void *context, void **retval)
+-{
+-	acpi_status status;
+-
+-	mutex_init(&ec_ecdt->lock);
+-	atomic_set(&ec->event_count, 1);
+-	if (acpi_ec_mode == EC_INTR) {
+-		init_waitqueue_head(&ec_ecdt->wait);
+-	}
+-	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
+-				     acpi_ec_io_ports, ec_ecdt);
+-	if (ACPI_FAILURE(status))
+-		return status;
+-
+-	ec_ecdt->uid = -1;
+-	acpi_evaluate_integer(handle, "_UID", NULL, &ec_ecdt->uid);
+-
+-	status = acpi_evaluate_integer(handle, "_GPE", NULL, &ec_ecdt->gpe);
+-	if (ACPI_FAILURE(status))
+-		return status;
+-	ec_ecdt->handle = handle;
+-
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "GPE=0x%02lx, ports=0x%2lx, 0x%2lx",
+-			  ec_ecdt->gpe, ec_ecdt->command_addr,
+-			  ec_ecdt->data_addr));
+-
+-	return AE_CTRL_TERMINATE;
+-}
+-
+-/*
+- * Some BIOS (such as some from Gateway laptops) access EC region very early
+- * such as in BAT0._INI or EC._INI before an EC device is found and
+- * do not provide an ECDT. According to ACPI spec, ECDT isn't mandatorily
+- * required, but if EC regison is accessed early, it is required.
+- * The routine tries to workaround the BIOS bug by pre-scan EC device
+- * It assumes that _CRS, _HID, _GPE, _UID methods of EC don't touch any
+- * op region (since _REG isn't invoked yet). The assumption is true for
+- * all systems found.
+- */
+-static int __init acpi_ec_fake_ecdt(void)
+-{
+-	acpi_status status;
+-	int ret = 0;
+-
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Try to make an fake ECDT"));
+-
+-	ec_ecdt = kzalloc(sizeof(struct acpi_ec), GFP_KERNEL);
+-	if (!ec_ecdt) {
+-		ret = -ENOMEM;
+-		goto error;
+-	}
+-
+-	status = acpi_get_devices(ACPI_EC_HID,
+-				  acpi_fake_ecdt_callback, NULL, NULL);
+-	if (ACPI_FAILURE(status)) {
+-		kfree(ec_ecdt);
+-		ec_ecdt = NULL;
+-		ret = -ENODEV;
+-		ACPI_EXCEPTION((AE_INFO, status, "Can't make an fake ECDT"));
+-		goto error;
+-	}
+-	return 0;
+-      error:
+-	return ret;
+-}
+-
+ static int __init acpi_ec_get_real_ecdt(void)
+ {
  	acpi_status status;
- 	struct acpi_table_ecdt *ecdt_ptr;
- 
--	ec_ecdt = make_acpi_ec();
--	if (!ec_ecdt)
-+	boot_ec = make_acpi_ec();
-+	if (!boot_ec)
- 		return -ENOMEM;
- 	/*
- 	 * Generate a boot ec context
-@@ -842,18 +839,18 @@ int __init acpi_ec_ecdt_probe(void)
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found ECDT"));
- 
--	ec_ecdt->command_addr = ecdt_ptr->control.address;
--	ec_ecdt->data_addr = ecdt_ptr->data.address;
--	ec_ecdt->gpe = ecdt_ptr->gpe;
--	ec_ecdt->uid = ecdt_ptr->uid;
--	ec_ecdt->handle = ACPI_ROOT_OBJECT;
-+	boot_ec->command_addr = ecdt_ptr->control.address;
-+	boot_ec->data_addr = ecdt_ptr->data.address;
-+	boot_ec->gpe = ecdt_ptr->gpe;
-+	boot_ec->uid = ecdt_ptr->uid;
-+	boot_ec->handle = ACPI_ROOT_OBJECT;
- 
--	ret = ec_install_handlers(ec_ecdt);
-+	ret = ec_install_handlers(boot_ec);
- 	if (!ret)
- 		return 0;
-       error:
--	kfree(ec_ecdt);
--	ec_ecdt = NULL;
-+	kfree(boot_ec);
-+	boot_ec = NULL;
- 
+@@ -916,18 +848,12 @@ static int __init acpi_ec_get_real_ecdt(void)
  	return -ENODEV;
  }
+ 
+-static int __initdata acpi_fake_ecdt_enabled;
+ int __init acpi_ec_ecdt_probe(void)
+ {
+ 	acpi_status status;
+ 	int ret;
+ 
+ 	ret = acpi_ec_get_real_ecdt();
+-	/* Try to make a fake ECDT */
+-	if (ret && acpi_fake_ecdt_enabled) {
+-		ret = acpi_ec_fake_ecdt();
+-	}
+-
+ 	if (ret)
+ 		return 0;
+ 
+@@ -1000,13 +926,6 @@ static void __exit acpi_ec_exit(void)
+ }
+ #endif				/* 0 */
+ 
+-static int __init acpi_fake_ecdt_setup(char *str)
+-{
+-	acpi_fake_ecdt_enabled = 1;
+-	return 1;
+-}
+-
+-__setup("acpi_fake_ecdt", acpi_fake_ecdt_setup);
+ static int __init acpi_ec_set_intr_mode(char *str)
+ {
+ 	int intr;
 -- 
 1.5.0.3.310.g05ef5
