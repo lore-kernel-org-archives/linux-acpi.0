@@ -1,259 +1,199 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 14/20] ACPI: fix parallel port IRQ after resume from S3
-Date: Fri,  9 Mar 2007 22:49:32 -0500
-Message-ID: <11734985892382-git-send-email-len.brown@intel.com>
-References: <11734985781377-git-send-email-len.brown@intel.com> <11734985791126-git-send-email-len.brown@intel.com> <1173498580364-git-send-email-len.brown@intel.com> <11734985813852-git-send-email-len.brown@intel.com> <11734985822692-git-send-email-len.brown@intel.com> <11734985822425-git-send-email-len.brown@intel.com> <11734985831806-git-send-email-len.brown@intel.com> <11734985842575-git-send-email-len.brown@intel.com> <1173498585454-git-send-email-len.brown@intel.com> <11734985862291-git-send-email-len.brown@intel.com> <11734985863491-git-send-email-len.brown@intel.com> <1173498587849-git-send-email-len.brown@intel.com> <11734985882949-git-send-email-len.brown@intel.com> <11734985891723-git-send-email-len.brown@intel.com>
+Subject: [PATCH 10/20] ACPI: ec: fix race in status register access
+Date: Fri,  9 Mar 2007 22:49:28 -0500
+Message-ID: <11734985863491-git-send-email-len.brown@intel.com>
+References: <11734985781377-git-send-email-len.brown@intel.com> <11734985791126-git-send-email-len.brown@intel.com> <1173498580364-git-send-email-len.brown@intel.com> <11734985813852-git-send-email-len.brown@intel.com> <11734985822692-git-send-email-len.brown@intel.com> <11734985822425-git-send-email-len.brown@intel.com> <11734985831806-git-send-email-len.brown@intel.com> <11734985842575-git-send-email-len.brown@intel.com> <1173498585454-git-send-email-len.brown@intel.com> <11734985862291-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:16223 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:34271 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965668AbXCJDtv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 9 Mar 2007 22:49:51 -0500
-In-Reply-To: <11734985891723-git-send-email-len.brown@intel.com>
-Message-Id: <362ea087db9d99bb0cf79479544dfafa9e18c300.1173498420.git.len.brown@intel.com>
+	id S965830AbXCJDts (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 Mar 2007 22:49:48 -0500
+In-Reply-To: <11734985862291-git-send-email-len.brown@intel.com>
+Message-Id: <c70b5fb8f6869f720160f774f9915730a6371d9c.1173498420.git.len.brown@intel.com>
 In-Reply-To: <7292576043666ff39946dee14641fe719ba8c7e8.1173498420.git.len.brown@intel.com>
 References: <7292576043666ff39946dee14641fe719ba8c7e8.1173498420.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Michael Karcher <bugzilla-kernel@mkarcher.dialup.fu-berlin.de>, Len Brown <len.brown@intel.com>
+Cc: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Michael Karcher <bugzilla-kernel@mkarcher.dialup.fu-berlin.de>
+From: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
 
-The PNPACPI resource flags were broken.
-This would apply to re-enabling a device any-time after boot,
-not just after resume from S3.
+Delay the read of the EC status register until
+after the event that caused it occurs -- otherwise
+it is possible to read and act on stale status that was
+associated with the previous event.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=6316
+Do this with a perpetually incrementing "event_count" to detect
+when a new event occurs and it is safe to read status.
 
-Acked-by: Shaohua Li <shaohua.li@intel.com>
+There is no workaround for polling mode -- it is inherently
+exposed to reading and acting on stale status, since it
+doesn't have an interrupt to tell it the event completed.
+
+http://bugzilla.kernel.org/show_bug.cgi?id=8110
+
+Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/pnp/pnpacpi/rsparser.c |  120 ++++++++++++++++++++++++----------------
- 1 files changed, 73 insertions(+), 47 deletions(-)
+ drivers/acpi/ec.c |   40 +++++++++++++++++++++++-----------------
+ 1 files changed, 23 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
-index 7a53554..118ac97 100644
---- a/drivers/pnp/pnpacpi/rsparser.c
-+++ b/drivers/pnp/pnpacpi/rsparser.c
-@@ -89,6 +89,7 @@ pnpacpi_parse_allocated_irqresource(struct pnp_resource_table *res, u32 gsi,
- 		return;
- 
- 	res->irq_resource[i].flags = IORESOURCE_IRQ;  // Also clears _UNSET flag
-+	res->irq_resource[i].flags |= irq_flags(triggering, polarity);
- 	irq = acpi_register_gsi(gsi, triggering, polarity);
- 	if (irq < 0) {
- 		res->irq_resource[i].flags |= IORESOURCE_DISABLED;
-@@ -103,8 +104,52 @@ pnpacpi_parse_allocated_irqresource(struct pnp_resource_table *res, u32 gsi,
- 	pcibios_penalize_isa_irq(irq, 1);
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index ab68883..1e525dd 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -100,6 +100,7 @@ static struct acpi_ec {
+ 	unsigned long global_lock;
+ 	struct mutex lock;
+ 	atomic_t query_pending;
++	atomic_t event_count;
+ 	atomic_t leaving_burst;	/* 0 : No, 1 : Yes, 2: abort */
+ 	wait_queue_head_t wait;
+ } *ec_ecdt;
+@@ -131,10 +132,12 @@ static inline void acpi_ec_write_data(struct acpi_ec *ec, u8 data)
+ 	outb(data, ec->data_addr);
  }
  
-+static int dma_flags(int type, int bus_master, int transfer)
-+{
-+	int flags = 0;
-+
-+	if (bus_master)
-+		flags |= IORESOURCE_DMA_MASTER;
-+	switch (type) {
-+	case ACPI_COMPATIBILITY:
-+		flags |= IORESOURCE_DMA_COMPATIBLE;
-+		break;
-+	case ACPI_TYPE_A:
-+		flags |= IORESOURCE_DMA_TYPEA;
-+		break;
-+	case ACPI_TYPE_B:
-+		flags |= IORESOURCE_DMA_TYPEB;
-+		break;
-+	case ACPI_TYPE_F:
-+		flags |= IORESOURCE_DMA_TYPEF;
-+		break;
-+	default:
-+		/* Set a default value ? */
-+		flags |= IORESOURCE_DMA_COMPATIBLE;
-+		pnp_err("Invalid DMA type");
-+	}
-+	switch (transfer) {
-+	case ACPI_TRANSFER_8:
-+		flags |= IORESOURCE_DMA_8BIT;
-+		break;
-+	case ACPI_TRANSFER_8_16:
-+		flags |= IORESOURCE_DMA_8AND16BIT;
-+		break;
-+	case ACPI_TRANSFER_16:
-+		flags |= IORESOURCE_DMA_16BIT;
-+		break;
-+	default:
-+		/* Set a default value ? */
-+		flags |= IORESOURCE_DMA_8AND16BIT;
-+		pnp_err("Invalid DMA transfer type");
-+	}
-+
-+	return flags;
-+}
-+
- static void
--pnpacpi_parse_allocated_dmaresource(struct pnp_resource_table *res, u32 dma)
-+pnpacpi_parse_allocated_dmaresource(struct pnp_resource_table *res, u32 dma,
-+	int type, int bus_master, int transfer)
+-static inline int acpi_ec_check_status(struct acpi_ec *ec, enum ec_event event)
++static inline int acpi_ec_check_status(struct acpi_ec *ec, enum ec_event event,
++				       unsigned old_count)
  {
- 	int i = 0;
- 	while (i < PNP_MAX_DMA &&
-@@ -112,6 +157,7 @@ pnpacpi_parse_allocated_dmaresource(struct pnp_resource_table *res, u32 dma)
- 		i++;
- 	if (i < PNP_MAX_DMA) {
- 		res->dma_resource[i].flags = IORESOURCE_DMA;  // Also clears _UNSET flag
-+		res->dma_resource[i].flags |= dma_flags(type, bus_master, transfer);
- 		if (dma == -1) {
- 			res->dma_resource[i].flags |= IORESOURCE_DISABLED;
- 			return;
-@@ -123,7 +169,7 @@ pnpacpi_parse_allocated_dmaresource(struct pnp_resource_table *res, u32 dma)
+ 	u8 status = acpi_ec_read_status(ec);
+-
++	if (old_count == atomic_read(&ec->event_count))
++		return 0;
+ 	if (event == ACPI_EC_EVENT_OBF_1) {
+ 		if (status & ACPI_EC_FLAG_OBF)
+ 			return 1;
+@@ -146,19 +149,19 @@ static inline int acpi_ec_check_status(struct acpi_ec *ec, enum ec_event event)
+ 	return 0;
+ }
  
- static void
- pnpacpi_parse_allocated_ioresource(struct pnp_resource_table *res,
--	u64 io, u64 len)
-+	u64 io, u64 len, int io_decode)
+-static int acpi_ec_wait(struct acpi_ec *ec, enum ec_event event)
++static int acpi_ec_wait(struct acpi_ec *ec, enum ec_event event, unsigned count)
  {
- 	int i = 0;
- 	while (!(res->port_resource[i].flags & IORESOURCE_UNSET) &&
-@@ -131,6 +177,8 @@ pnpacpi_parse_allocated_ioresource(struct pnp_resource_table *res,
- 		i++;
- 	if (i < PNP_MAX_PORT) {
- 		res->port_resource[i].flags = IORESOURCE_IO;  // Also clears _UNSET flag
-+		if (io_decode == ACPI_DECODE_16)
-+			res->port_resource[i].flags |= PNP_PORT_FLAG_16BITADDR;
- 		if (len <= 0 || (io + len -1) >= 0x10003) {
- 			res->port_resource[i].flags |= IORESOURCE_DISABLED;
- 			return;
-@@ -142,7 +190,7 @@ pnpacpi_parse_allocated_ioresource(struct pnp_resource_table *res,
- 
- static void
- pnpacpi_parse_allocated_memresource(struct pnp_resource_table *res,
--	u64 mem, u64 len)
-+	u64 mem, u64 len, int write_protect)
- {
- 	int i = 0;
- 	while (!(res->mem_resource[i].flags & IORESOURCE_UNSET) &&
-@@ -154,6 +202,9 @@ pnpacpi_parse_allocated_memresource(struct pnp_resource_table *res,
- 			res->mem_resource[i].flags |= IORESOURCE_DISABLED;
- 			return;
+ 	if (acpi_ec_mode == EC_POLL) {
+ 		unsigned long delay = jiffies + msecs_to_jiffies(ACPI_EC_DELAY);
+ 		while (time_before(jiffies, delay)) {
+-			if (acpi_ec_check_status(ec, event))
++			if (acpi_ec_check_status(ec, event, 0))
+ 				return 0;
  		}
-+		if(write_protect == ACPI_READ_WRITE_MEMORY)
-+			res->mem_resource[i].flags |= IORESOURCE_MEM_WRITEABLE;
-+
- 		res->mem_resource[i].start = mem;
- 		res->mem_resource[i].end = mem + len - 1;
+ 	} else {
+ 		if (wait_event_timeout(ec->wait,
+-				       acpi_ec_check_status(ec, event),
++				       acpi_ec_check_status(ec, event, count),
+ 				       msecs_to_jiffies(ACPI_EC_DELAY)) ||
+-		    acpi_ec_check_status(ec, event)) {
++		    acpi_ec_check_status(ec, event, 0)) {
+ 			return 0;
+ 		} else {
+ 			printk(KERN_ERR PREFIX "acpi_ec_wait timeout,"
+@@ -225,21 +228,22 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec, u8 command,
+ 					u8 * rdata, unsigned rdata_len)
+ {
+ 	int result = 0;
+-
++	unsigned count = atomic_read(&ec->event_count);
+ 	acpi_ec_write_cmd(ec, command);
+ 
+ 	for (; wdata_len > 0; --wdata_len) {
+-		result = acpi_ec_wait(ec, ACPI_EC_EVENT_IBF_0);
++		result = acpi_ec_wait(ec, ACPI_EC_EVENT_IBF_0, count);
+ 		if (result) {
+ 			printk(KERN_ERR PREFIX
+ 			       "write_cmd timeout, command = %d\n", command);
+ 			goto end;
+ 		}
++		count = atomic_read(&ec->event_count);
+ 		acpi_ec_write_data(ec, *(wdata++));
  	}
-@@ -178,10 +229,11 @@ pnpacpi_parse_allocated_address_space(struct pnp_resource_table *res_table,
  
- 	if (p->resource_type == ACPI_MEMORY_RANGE)
- 		pnpacpi_parse_allocated_memresource(res_table,
--				p->minimum, p->address_length);
-+				p->minimum, p->address_length, p->info.mem.write_protect);
- 	else if (p->resource_type == ACPI_IO_RANGE)
- 		pnpacpi_parse_allocated_ioresource(res_table,
--				p->minimum, p->address_length);
-+				p->minimum, p->address_length,
-+				p->granularity == 0xfff ? ACPI_DECODE_10 : ACPI_DECODE_16);
+ 	if (!rdata_len) {
+-		result = acpi_ec_wait(ec, ACPI_EC_EVENT_IBF_0);
++		result = acpi_ec_wait(ec, ACPI_EC_EVENT_IBF_0, count);
+ 		if (result) {
+ 			printk(KERN_ERR PREFIX
+ 			       "finish-write timeout, command = %d\n", command);
+@@ -250,13 +254,13 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec, u8 command,
+ 	}
+ 
+ 	for (; rdata_len > 0; --rdata_len) {
+-		result = acpi_ec_wait(ec, ACPI_EC_EVENT_OBF_1);
++		result = acpi_ec_wait(ec, ACPI_EC_EVENT_OBF_1, count);
+ 		if (result) {
+ 			printk(KERN_ERR PREFIX "read timeout, command = %d\n",
+ 			       command);
+ 			goto end;
+ 		}
+-
++		count = atomic_read(&ec->event_count);
+ 		*(rdata++) = acpi_ec_read_data(ec);
+ 	}
+       end:
+@@ -288,7 +292,7 @@ static int acpi_ec_transaction(struct acpi_ec *ec, u8 command,
+ 	/* Make sure GPE is enabled before doing transaction */
+ 	acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
+ 
+-	status = acpi_ec_wait(ec, ACPI_EC_EVENT_IBF_0);
++	status = acpi_ec_wait(ec, ACPI_EC_EVENT_IBF_0, 0);
+ 	if (status) {
+ 		printk(KERN_DEBUG PREFIX
+ 		       "input buffer is not empty, aborting transaction\n");
+@@ -369,8 +373,8 @@ int ec_write(u8 addr, u8 val)
+ EXPORT_SYMBOL(ec_write);
+ 
+ int ec_transaction(u8 command,
+-			  const u8 * wdata, unsigned wdata_len,
+-			  u8 * rdata, unsigned rdata_len)
++		   const u8 * wdata, unsigned wdata_len,
++		   u8 * rdata, unsigned rdata_len)
+ {
+ 	struct acpi_ec *ec;
+ 
+@@ -435,7 +439,7 @@ static u32 acpi_ec_gpe_handler(void *data)
+ 	acpi_status status = AE_OK;
+ 	u8 value;
+ 	struct acpi_ec *ec = (struct acpi_ec *)data;
+-
++	atomic_inc(&ec->event_count);
+ 	if (acpi_ec_mode == EC_INTR) {
+ 		wake_up(&ec->wait);
+ 	}
+@@ -633,6 +637,7 @@ static int acpi_ec_add(struct acpi_device *device)
+ 	ec->uid = -1;
+ 	mutex_init(&ec->lock);
+ 	atomic_set(&ec->query_pending, 0);
++	atomic_set(&ec->event_count, 1);
+ 	if (acpi_ec_mode == EC_INTR) {
+ 		atomic_set(&ec->leaving_burst, 1);
+ 		init_waitqueue_head(&ec->wait);
+@@ -807,6 +812,7 @@ acpi_fake_ecdt_callback(acpi_handle handle,
+ 	acpi_status status;
+ 
+ 	mutex_init(&ec_ecdt->lock);
++	atomic_set(&ec->event_count, 1);
+ 	if (acpi_ec_mode == EC_INTR) {
+ 		init_waitqueue_head(&ec_ecdt->wait);
+ 	}
+@@ -888,6 +894,7 @@ static int __init acpi_ec_get_real_ecdt(void)
+ 		return -ENOMEM;
+ 
+ 	mutex_init(&ec_ecdt->lock);
++	atomic_set(&ec_ecdt->event_count, 1);
+ 	if (acpi_ec_mode == EC_INTR) {
+ 		init_waitqueue_head(&ec_ecdt->wait);
+ 	}
+@@ -1016,8 +1023,7 @@ static int __init acpi_ec_set_intr_mode(char *str)
+ 		acpi_ec_mode = EC_POLL;
+ 	}
+ 	acpi_ec_driver.ops.add = acpi_ec_add;
+-	printk(KERN_NOTICE PREFIX "%s mode.\n",
+-			  intr ? "interrupt" : "polling");
++	printk(KERN_NOTICE PREFIX "%s mode.\n", intr ? "interrupt" : "polling");
+ 
+ 	return 1;
  }
- 
- static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
-@@ -208,13 +260,17 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
- 	case ACPI_RESOURCE_TYPE_DMA:
- 		if (res->data.dma.channel_count > 0)
- 			pnpacpi_parse_allocated_dmaresource(res_table,
--					res->data.dma.channels[0]);
-+					res->data.dma.channels[0],
-+					res->data.dma.type,
-+					res->data.dma.bus_master,
-+					res->data.dma.transfer);
- 		break;
- 
- 	case ACPI_RESOURCE_TYPE_IO:
- 		pnpacpi_parse_allocated_ioresource(res_table,
- 				res->data.io.minimum,
--				res->data.io.address_length);
-+				res->data.io.address_length,
-+				res->data.io.io_decode);
- 		break;
- 
- 	case ACPI_RESOURCE_TYPE_START_DEPENDENT:
-@@ -224,7 +280,8 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
- 	case ACPI_RESOURCE_TYPE_FIXED_IO:
- 		pnpacpi_parse_allocated_ioresource(res_table,
- 				res->data.fixed_io.address,
--				res->data.fixed_io.address_length);
-+				res->data.fixed_io.address_length,
-+				ACPI_DECODE_10);
- 		break;
- 
- 	case ACPI_RESOURCE_TYPE_VENDOR:
-@@ -236,17 +293,20 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
- 	case ACPI_RESOURCE_TYPE_MEMORY24:
- 		pnpacpi_parse_allocated_memresource(res_table,
- 				res->data.memory24.minimum,
--				res->data.memory24.address_length);
-+				res->data.memory24.address_length,
-+				res->data.memory24.write_protect);
- 		break;
- 	case ACPI_RESOURCE_TYPE_MEMORY32:
- 		pnpacpi_parse_allocated_memresource(res_table,
- 				res->data.memory32.minimum,
--				res->data.memory32.address_length);
-+				res->data.memory32.address_length,
-+				res->data.memory32.write_protect);
- 		break;
- 	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
- 		pnpacpi_parse_allocated_memresource(res_table,
- 				res->data.fixed_memory32.address,
--				res->data.fixed_memory32.address_length);
-+				res->data.fixed_memory32.address_length,
-+				res->data.fixed_memory32.write_protect);
- 		break;
- 	case ACPI_RESOURCE_TYPE_ADDRESS16:
- 	case ACPI_RESOURCE_TYPE_ADDRESS32:
-@@ -304,42 +364,8 @@ static void pnpacpi_parse_dma_option(struct pnp_option *option, struct acpi_reso
- 
- 	for(i = 0; i < p->channel_count; i++)
- 		dma->map |= 1 << p->channels[i];
--	dma->flags = 0;
--	if (p->bus_master)
--		dma->flags |= IORESOURCE_DMA_MASTER;
--	switch (p->type) {
--	case ACPI_COMPATIBILITY:
--		dma->flags |= IORESOURCE_DMA_COMPATIBLE;
--		break;
--	case ACPI_TYPE_A:
--		dma->flags |= IORESOURCE_DMA_TYPEA;
--		break;
--	case ACPI_TYPE_B:
--		dma->flags |= IORESOURCE_DMA_TYPEB;
--		break;
--	case ACPI_TYPE_F:
--		dma->flags |= IORESOURCE_DMA_TYPEF;
--		break;
--	default:
--		/* Set a default value ? */
--		dma->flags |= IORESOURCE_DMA_COMPATIBLE;
--		pnp_err("Invalid DMA type");
--	}
--	switch (p->transfer) {
--	case ACPI_TRANSFER_8:
--		dma->flags |= IORESOURCE_DMA_8BIT;
--		break;
--	case ACPI_TRANSFER_8_16:
--		dma->flags |= IORESOURCE_DMA_8AND16BIT;
--		break;
--	case ACPI_TRANSFER_16:
--		dma->flags |= IORESOURCE_DMA_16BIT;
--		break;
--	default:
--		/* Set a default value ? */
--		dma->flags |= IORESOURCE_DMA_8AND16BIT;
--		pnp_err("Invalid DMA transfer type");
--	}
-+
-+	dma->flags = dma_flags(p->type, p->bus_master, p->transfer);
- 
- 	pnp_register_dma_resource(option, dma);
- 	return;
 -- 
 1.5.0.3.310.g05ef5
