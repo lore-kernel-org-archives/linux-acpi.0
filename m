@@ -1,60 +1,62 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 02/20] ACPI: ibm-acpi: fix initial status of backlight device
-Date: Fri,  9 Mar 2007 22:49:20 -0500
-Message-ID: <1173498580364-git-send-email-len.brown@intel.com>
-References: <11734985781377-git-send-email-len.brown@intel.com> <11734985791126-git-send-email-len.brown@intel.com>
+Subject: [PATCH 01/20] ACPI: fix S3 fan resume issue
+Date: Fri,  9 Mar 2007 22:49:19 -0500
+Message-ID: <11734985791126-git-send-email-len.brown@intel.com>
+References: <11734985781377-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga01.intel.com ([192.55.52.88]:23581 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752808AbXCJDtl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 9 Mar 2007 22:49:41 -0500
-In-Reply-To: <11734985791126-git-send-email-len.brown@intel.com>
-Message-Id: <adb005818b71e9476581a1de5742e2f427ac9e2b.1173498420.git.len.brown@intel.com>
-In-Reply-To: <7292576043666ff39946dee14641fe719ba8c7e8.1173498420.git.len.brown@intel.com>
-References: <7292576043666ff39946dee14641fe719ba8c7e8.1173498420.git.len.brown@intel.com>
+	id S965668AbXCJDtk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 Mar 2007 22:49:40 -0500
+In-Reply-To: <11734985781377-git-send-email-len.brown@intel.com>
+Message-Id: <7292576043666ff39946dee14641fe719ba8c7e8.1173498420.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Konstantin Karasyov <konstantin.a.karasyov@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: Konstantin Karasyov <konstantin.a.karasyov@intel.com>
 
-The brightness class core does not update the initial status of the
-device's brightness at register time.  Do it by ourselves.
+http://bugzilla.kernel.org/show_bug.cgi?id=7570#c14
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Acked-by: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Konstantin Karasyov <konstantin.a.karasyov@intel.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/ibm_acpi.c |   10 +++++++++-
- 1 files changed, 9 insertions(+), 1 deletions(-)
+ drivers/acpi/power.c |   13 +++++++------
+ 1 files changed, 7 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
-index 4cc534e..7c1b418 100644
---- a/drivers/acpi/ibm_acpi.c
-+++ b/drivers/acpi/ibm_acpi.c
-@@ -1711,6 +1711,12 @@ static struct backlight_ops ibm_backlight_data = {
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+index 1ef3385..547eee7 100644
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -436,8 +436,6 @@ int acpi_power_transition(struct acpi_device *device, int state)
+ 	cl = &device->power.states[device->power.state].resources;
+ 	tl = &device->power.states[state].resources;
  
- static int brightness_init(void)
- {
-+	int b;
-+
-+	b = brightness_get(NULL);
-+	if (b < 0)
-+		return b;
-+
- 	ibm_backlight_device = backlight_device_register("ibm", NULL, NULL,
- 							 &ibm_backlight_data);
- 	if (IS_ERR(ibm_backlight_device)) {
-@@ -1718,7 +1724,9 @@ static int brightness_init(void)
- 		return PTR_ERR(ibm_backlight_device);
+-	device->power.state = ACPI_STATE_UNKNOWN;
+-
+ 	if (!cl->count && !tl->count) {
+ 		result = -ENODEV;
+ 		goto end;
+@@ -468,12 +466,15 @@ int acpi_power_transition(struct acpi_device *device, int state)
+ 			goto end;
  	}
  
--        ibm_backlight_device->props.max_brightness = 7;
-+	ibm_backlight_device->props.max_brightness = 7;
-+	ibm_backlight_device->props.brightness = b;
-+	backlight_update_status(ibm_backlight_device);
+-	/* We shouldn't change the state till all above operations succeed */
+-	device->power.state = state;
+-      end:
+-	if (result)
++     end:
++	if (result) {
++		device->power.state = ACPI_STATE_UNKNOWN;
+ 		printk(KERN_WARNING PREFIX "Transitioning device [%s] to D%d\n",
+ 			      device->pnp.bus_id, state);
++	} else {
++	/* We shouldn't change the state till all above operations succeed */
++		device->power.state = state;
++	}
  
- 	return 0;
+ 	return result;
  }
 -- 
 1.5.0.3.310.g05ef5
