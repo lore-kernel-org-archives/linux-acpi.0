@@ -1,62 +1,146 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 01/20] ACPI: fix S3 fan resume issue
-Date: Fri,  9 Mar 2007 22:49:19 -0500
-Message-ID: <11734985791126-git-send-email-len.brown@intel.com>
-References: <11734985781377-git-send-email-len.brown@intel.com>
+Subject: [PATCH 03/20] ACPI: ibm-acpi: make ibm-acpi bay support optional
+Date: Fri,  9 Mar 2007 22:49:21 -0500
+Message-ID: <11734985813852-git-send-email-len.brown@intel.com>
+References: <11734985781377-git-send-email-len.brown@intel.com> <11734985791126-git-send-email-len.brown@intel.com> <1173498580364-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga01.intel.com ([192.55.52.88]:23581 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965668AbXCJDtk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 9 Mar 2007 22:49:40 -0500
-In-Reply-To: <11734985781377-git-send-email-len.brown@intel.com>
-Message-Id: <7292576043666ff39946dee14641fe719ba8c7e8.1173498420.git.len.brown@intel.com>
+	id S1752817AbXCJDtm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 Mar 2007 22:49:42 -0500
+In-Reply-To: <1173498580364-git-send-email-len.brown@intel.com>
+Message-Id: <2bc808a8c4821a8ef4e3dc35b8fc577a9d2c6f0d.1173498420.git.len.brown@intel.com>
+In-Reply-To: <7292576043666ff39946dee14641fe719ba8c7e8.1173498420.git.len.brown@intel.com>
+References: <7292576043666ff39946dee14641fe719ba8c7e8.1173498420.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Konstantin Karasyov <konstantin.a.karasyov@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-From: Konstantin Karasyov <konstantin.a.karasyov@intel.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-http://bugzilla.kernel.org/show_bug.cgi?id=7570#c14
+Make ibm-acpi bay support optional at kernel compile time.
 
-Signed-off-by: Konstantin Karasyov <konstantin.a.karasyov@intel.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 ---
- drivers/acpi/power.c |   13 +++++++------
- 1 files changed, 7 insertions(+), 6 deletions(-)
+ drivers/acpi/Kconfig    |   11 +++++++++++
+ drivers/acpi/ibm_acpi.c |   12 ++++++++++++
+ 2 files changed, 23 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index 1ef3385..547eee7 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -436,8 +436,6 @@ int acpi_power_transition(struct acpi_device *device, int state)
- 	cl = &device->power.states[device->power.state].resources;
- 	tl = &device->power.states[state].resources;
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index e942ffe..ee3dcd1 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -242,6 +242,17 @@ config ACPI_IBM_DOCK
  
--	device->power.state = ACPI_STATE_UNKNOWN;
--
- 	if (!cl->count && !tl->count) {
- 		result = -ENODEV;
- 		goto end;
-@@ -468,12 +466,15 @@ int acpi_power_transition(struct acpi_device *device, int state)
- 			goto end;
- 	}
+ 	  If you are not sure, say N here.
  
--	/* We shouldn't change the state till all above operations succeed */
--	device->power.state = state;
--      end:
--	if (result)
-+     end:
-+	if (result) {
-+		device->power.state = ACPI_STATE_UNKNOWN;
- 		printk(KERN_WARNING PREFIX "Transitioning device [%s] to D%d\n",
- 			      device->pnp.bus_id, state);
-+	} else {
-+	/* We shouldn't change the state till all above operations succeed */
-+		device->power.state = state;
-+	}
++config ACPI_IBM_BAY
++	bool "Legacy Removable Bay Support"
++	depends on ACPI_IBM
++	default y
++	---help---
++	  Allows the ibm_acpi driver to handle removable bays.  It will allow
++	  disabling the device in the bay, and also generate notifications when
++	  the bay lever is ejected or inserted.
++
++	  If you are not sure, say Y here.
++
+ config ACPI_TOSHIBA
+ 	tristate "Toshiba Laptop Extras"
+ 	depends on X86
+diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
+index 7c1b418..e7309a6 100644
+--- a/drivers/acpi/ibm_acpi.c
++++ b/drivers/acpi/ibm_acpi.c
+@@ -157,6 +157,7 @@ IBM_HANDLE(dock, root, "\\_SB.GDCK",	/* X30, X31, X40 */
+ 	   "\\_SB.PCI.ISA.SLCE",	/* 570 */
+     );				/* A21e,G4x,R30,R31,R32,R40,R40e,R50e */
+ #endif
++#ifdef CONFIG_ACPI_IBM_BAY
+ IBM_HANDLE(bay, root, "\\_SB.PCI.IDE.SECN.MAST",	/* 570 */
+ 	   "\\_SB.PCI0.IDE0.IDES.IDSM",	/* 600e/x, 770e, 770x */
+ 	   "\\_SB.PCI0.SATA.SCND.MSTR",	/* T60, X60, Z60 */ 
+@@ -174,6 +175,7 @@ IBM_HANDLE(bay2, root, "\\_SB.PCI0.IDE0.PRIM.SLAV",	/* A3x, R32 */
+ IBM_HANDLE(bay2_ej, bay2, "_EJ3",	/* 600e/x, 770e, A3x */
+ 	   "_EJ0",		/* 770x */
+     );				/* all others */
++#endif /* CONFIG_ACPI_IBM_BAY */
  
- 	return result;
+ /* don't list other alternatives as we install a notify handler on the 570 */
+ IBM_HANDLE(pci, root, "\\_SB.PCI");	/* 570 */
+@@ -1044,6 +1046,7 @@ static int light_write(char *buf)
+ 	return 0;
  }
+ 
++#if defined(CONFIG_ACPI_IBM_DOCK) || defined(CONFIG_ACPI_IBM_BAY)
+ static int _sta(acpi_handle handle)
+ {
+ 	int status;
+@@ -1053,6 +1056,7 @@ static int _sta(acpi_handle handle)
+ 
+ 	return status;
+ }
++#endif
+ 
+ #ifdef CONFIG_ACPI_IBM_DOCK
+ #define dock_docked() (_sta(dock_handle) & 1)
+@@ -1119,6 +1123,7 @@ static void dock_notify(struct ibm_struct *ibm, u32 event)
+ }
+ #endif
+ 
++#ifdef CONFIG_ACPI_IBM_BAY
+ static int bay_status_supported;
+ static int bay_status2_supported;
+ static int bay_eject_supported;
+@@ -1194,6 +1199,7 @@ static void bay_notify(struct ibm_struct *ibm, u32 event)
+ {
+ 	acpi_bus_generate_event(ibm->device, event, 0);
+ }
++#endif /* CONFIG_ACPI_IBM_BAY */
+ 
+ static int cmos_read(char *p)
+ {
+@@ -2361,6 +2367,7 @@ static struct ibm_struct ibms[] = {
+ 	 .type = ACPI_SYSTEM_NOTIFY,
+ 	 },
+ #endif
++#ifdef CONFIG_ACPI_IBM_BAY
+ 	{
+ 	 .name = "bay",
+ 	 .init = bay_init,
+@@ -2370,6 +2377,7 @@ static struct ibm_struct ibms[] = {
+ 	 .handle = &bay_handle,
+ 	 .type = ACPI_SYSTEM_NOTIFY,
+ 	 },
++#endif /* CONFIG_ACPI_IBM_BAY */
+ 	{
+ 	 .name = "cmos",
+ 	 .read = cmos_read,
+@@ -2655,7 +2663,9 @@ IBM_PARAM(light);
+ #ifdef CONFIG_ACPI_IBM_DOCK
+ IBM_PARAM(dock);
+ #endif
++#ifdef CONFIG_ACPI_IBM_BAY
+ IBM_PARAM(bay);
++#endif /* CONFIG_ACPI_IBM_BAY */
+ IBM_PARAM(cmos);
+ IBM_PARAM(led);
+ IBM_PARAM(beep);
+@@ -2731,12 +2741,14 @@ static int __init acpi_ibm_init(void)
+ 	IBM_HANDLE_INIT(dock);
+ #endif
+ 	IBM_HANDLE_INIT(pci);
++#ifdef CONFIG_ACPI_IBM_BAY
+ 	IBM_HANDLE_INIT(bay);
+ 	if (bay_handle)
+ 		IBM_HANDLE_INIT(bay_ej);
+ 	IBM_HANDLE_INIT(bay2);
+ 	if (bay2_handle)
+ 		IBM_HANDLE_INIT(bay2_ej);
++#endif /* CONFIG_ACPI_IBM_BAY */
+ 	IBM_HANDLE_INIT(beep);
+ 	IBM_HANDLE_INIT(ecrd);
+ 	IBM_HANDLE_INIT(ecwr);
 -- 
 1.5.0.3.310.g05ef5
