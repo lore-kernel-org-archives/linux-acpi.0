@@ -1,63 +1,61 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 10/22] cpuidle: ladder does not depend on ACPI
-Date: Fri,  9 Mar 2007 23:00:47 -0500
-Message-ID: <11734992693895-git-send-email-lenb@kernel.org>
+Subject: [PATCH 12/22] ACPI: EC: Make EC to initialize first in ACPI
+Date: Fri,  9 Mar 2007 23:00:49 -0500
+Message-ID: <11734992701086-git-send-email-lenb@kernel.org>
 References: <11734992592550-git-send-email-lenb@kernel.org>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:27693 "EHLO
+Received: from mga05.intel.com ([192.55.52.89]:44913 "EHLO
 	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1945928AbXCJEBK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Mar 2007 23:01:10 -0500
+	with ESMTP id S1945929AbXCJEBL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Mar 2007 23:01:11 -0500
 In-Reply-To: <11734992592550-git-send-email-lenb@kernel.org>
-Message-Id: <b51f201f9a9af932c723492551f9e688d34cc468.1173498654.git.len.brown@intel.com>
+Message-Id: <e4382a15d138ea6c0d4277967e646216ce57040f.1173498654.git.len.brown@intel.com>
 In-Reply-To: <941b1971a405f95537bc6f9a738e737eb2186e45.1173498647.git.len.brown@intel.com>
 References: <941b1971a405f95537bc6f9a738e737eb2186e45.1173498647.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Len Brown <len.brown@intel.com>
+Cc: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>, Len Brown <len.brown@intel.com>
 
-=46rom: Len Brown <len.brown@intel.com>
+From: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
 
-build fix for CONFIG_ACPI=3Dn
-
-In file included from drivers/cpuidle/governors/ladder.c:21:
-include/acpi/processor.h:88: error: expected specifier-qualifier-list b=
-efore =E2=80=98acpi_integer=E2=80=99
-include/acpi/processor.h:106: error: expected specifier-qualifier-list =
-before =E2=80=98acpi_integer=E2=80=99
-include/acpi/processor.h:168: error: expected specifier-qualifier-list =
-before =E2=80=98acpi_handle=E2=80=99
-
+Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/cpuidle/governors/ladder.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+ drivers/acpi/Makefile |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/cpuidle/governors/ladder.c b/drivers/cpuidle/gover=
-nors/ladder.c
-index 87d2e54..cf5a7a7 100644
---- a/drivers/cpuidle/governors/ladder.c
-+++ b/drivers/cpuidle/governors/ladder.c
-@@ -14,11 +14,9 @@
-=20
- #include <linux/kernel.h>
- #include <linux/cpuidle.h>
--#include <linux/acpi.h>
- #include <linux/latency.h>
- #include <linux/moduleparam.h>
- #include <linux/jiffies.h>
--#include <acpi/processor.h>
-=20
- #include <asm/io.h>
- #include <asm/uaccess.h>
---=20
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 5956e9f..9623aac 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -1,6 +1,6 @@
+ #
+ # Makefile for the Linux ACPI interpreter
+-# 
++#
+ 
+ export ACPI_CFLAGS
+ 
+@@ -32,16 +32,17 @@ obj-y				+= osl.o utils.o \
+ processor-objs	+= processor_core.o processor_throttling.o \
+ 				processor_idle.o processor_thermal.o
+ ifdef CONFIG_CPU_FREQ
+-processor-objs	+= processor_perflib.o			
++processor-objs	+= processor_perflib.o
+ endif
+ 
+ obj-y				+= sleep/
+ obj-y				+= bus.o glue.o
+ obj-y				+= scan.o
++# Keep EC driver first. Initialization of others depend on it.
++obj-$(CONFIG_ACPI_EC)		+= ec.o
+ obj-$(CONFIG_ACPI_AC) 		+= ac.o
+ obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
+ obj-$(CONFIG_ACPI_BUTTON)	+= button.o
+-obj-$(CONFIG_ACPI_EC)		+= ec.o
+ obj-$(CONFIG_ACPI_FAN)		+= fan.o
+ obj-$(CONFIG_ACPI_DOCK)		+= dock.o
+ obj-$(CONFIG_ACPI_BAY)		+= bay.o
+-- 
 1.5.0.3.310.g05ef5
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
