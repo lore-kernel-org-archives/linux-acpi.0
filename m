@@ -1,48 +1,34 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [2/6] 2.6.21-rc2: known regressions
-Date: Sat, 10 Mar 2007 23:08:10 +0100
-Message-ID: <20070310220810.GF2758@elf.ucw.cz>
-References: <20070308123143.GF5149@mellanox.co.il> <Pine.LNX.4.64.0703080954220.10832@woody.linux-foundation.org> <20070308192554.GA2999@elte.hu> <20070308230705.GA4611@elte.hu> <Pine.LNX.4.64.0703081545110.10832@woody.linux-foundation.org> <20070309174821.GA31754@linuxtv.org> <20070309233508.GB2197@elf.ucw.cz> <20070310090121.GB15647@elte.hu> <20070310114301.GA30554@suse.de> <20070310151804.GA10627@elte.hu>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: acpi_serialize lock kernel 2.6.21-rc3
+Date: Sat, 10 Mar 2007 22:26:02 -0500
+Message-ID: <200703102226.02991.lenb@kernel.org>
+References: <beb91d720703101142q7e82cf8dt392eb932d12b1813@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:51118 "EHLO amd.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751205AbXCJWI2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 10 Mar 2007 17:08:28 -0500
+Received: from hera.kernel.org ([140.211.167.34]:59224 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932809AbXCKD1X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 10 Mar 2007 22:27:23 -0500
+In-Reply-To: <beb91d720703101142q7e82cf8dt392eb932d12b1813@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <20070310151804.GA10627@elte.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Stefan Seyfried <seife@suse.de>, Johannes Stezenbach <js@linuxtv.org>, Linus Torvalds <torvalds@linux-foundation.org>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Adrian Bunk <bunk@stusta.de>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jens Axboe <jens.axboe@oracle.com>, Jeff Chua <jeff.chua.linux@gmail.com>, linux-pm@lists.osdl.org, lenb@kernel.org, linux-acpi@vger.kernel.org, luming.yu@intel.com, Arkadiusz Miskiewicz <arekm@maven.pl>, Konstantin Karasyov <konstantin.a.karasyov@intel.com>, Greg KH <greg@kroah.com>, linux-usb-devel@lists.sourceforge.net, Thomas Meyer <thomas.mey@web.de>, Meelis Roos <mroos@linux.ee>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Janosch Machowinski <jmachowinski@gmx.de>, vladimir.p.lebedev@intel.com, Ash Milsted <thatistosayiseenem@gawab.com>, dmitry.torokhov@g
+To: Salatiel Filho <salatiel.filho@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-Hi!
-
-> > Ok. To be honest, you are the first reporter that seems to have read 
-> > the documentation above, but not understood what to do.
+On Saturday 10 March 2007 14:42, Salatiel Filho wrote:
+> Is anyone having problems with acpi_serialize in kernel 2.6.21-rc3 ?
+> Kernel locks during boot when i use acpi_serialize, and i need it to
+> acpi function properly on my laptop. It worked fine in 2.6.20.
 > 
-> thanks for the compliment ;-) _I_ very much know what to do (i mailed 
-> the right person after all ;), but i dont really count and on the 6 
+> Any help ?
 
-(Can we get the whitelist entries?)
+Why were you using acpi_serialize in the first place.
+There is a serious bug if you need it -- which is obscured
+by the fact that you're using it...
 
-> > i might consider reworking the documentation if there are more reports 
-> > about problems with the procedure.
-> 
-> Probably tweaking the webpage doesnt help because people dont get there 
-> - as the results plainly show it. Maybe some more automation would be 
-> useful too, a tool that detects failed resume and tries all those 
-> options that makes sense on that box or something? It's not like
-> that 
+-Len
 
-Unfortunately, these tend to crash the box when you pass wrong
-options, and I do not see easy way to test "can user see whats on
-display" automatically.
-
-Feel free to send patches, but I do not think it is easy/possible.
-
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
