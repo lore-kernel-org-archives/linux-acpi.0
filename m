@@ -1,7 +1,7 @@
 From: Corentin CHARY <corentincj@iksaif.net>
-Subject: [PATCH 1/5] asus-laptop use acpi_evaluate_integer instead of read_acpi_int
-Date: Sun, 11 Mar 2007 10:25:38 +0100
-Message-ID: <200703111025.38141.corentincj@iksaif.net>
+Subject: [PATCH 2/5] asus-laptop clean write_status
+Date: Sun, 11 Mar 2007 10:26:12 +0100
+Message-ID: <200703111026.12665.corentincj@iksaif.net>
 References: <200703111023.04437.corentincj@iksaif.net>
 Reply-To: corentincj@iksaif.net
 Mime-Version: 1.0
@@ -9,10 +9,10 @@ Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iksaif.dns26.com ([84.246.226.15]:47963 "EHLO iksaif.net"
+Received: from iksaif.dns26.com ([84.246.226.15]:48097 "EHLO iksaif.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751919AbXCKJZj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 11 Mar 2007 05:25:39 -0400
+	id S1751923AbXCKJ0O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 11 Mar 2007 05:26:14 -0400
 In-Reply-To: <200703111023.04437.corentincj@iksaif.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
@@ -22,159 +22,140 @@ Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net
 
 From: Corentin Chary <corentincj@iksaif.net>
 
-Use acpi_evaluate_integer() instead of read_acpi_int()
+Clean the write_status function, and implement special case with
+a switch inside write_status. It also make sure bt and wl status
+are right when booting with the hardware switch off.
 
 Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 ---
- asus-laptop.c |   68 +++++++++++++++++++++++++++++-----------------------------
- 1 file changed, 34 insertions(+), 34 deletions(-)
+ asus-laptop.c |   48 +++++++++++++++++++++++++++++-------------------
+ 1 file changed, 29 insertions(+), 19 deletions(-)
 
---- a/drivers/misc/asus-laptop.c	2007-03-10 15:52:25.000000000 +0100
-+++ b/drivers/misc/asus-laptop.c	2007-03-10 16:16:18.000000000 +0100
-@@ -245,32 +245,19 @@
- 	return (status == AE_OK);
- }
- 
--static int read_acpi_int(acpi_handle handle, const char *method, int *val,
--			 struct acpi_object_list *params)
--{
--	struct acpi_buffer output;
--	union acpi_object out_obj;
--	acpi_status status;
--
--	output.length = sizeof(out_obj);
--	output.pointer = &out_obj;
--
--	status = acpi_evaluate_object(handle, (char *)method, params, &output);
--	*val = out_obj.integer.value;
--	return (status == AE_OK) && (out_obj.type == ACPI_TYPE_INTEGER);
--}
--
- static int read_wireless_status(int mask)
- {
--	int status;
-+	ulong status;
-+	acpi_status rv = AE_OK;
- 
- 	if (!wireless_status_handle)
- 		return (hotk->status & mask) ? 1 : 0;
- 
--	if (read_acpi_int(wireless_status_handle, NULL, &status, NULL)) {
--		return (status & mask) ? 1 : 0;
--	} else
-+	rv = acpi_evaluate_integer(wireless_status_handle, NULL, NULL, &status);
-+	if (ACPI_FAILURE(rv))
- 		printk(ASUS_WARNING "Error reading Wireless status\n");
-+	else
-+		return (status & mask) ? 1 : 0;
- 
+--- a/drivers/misc/asus-laptop.c	2007-03-10 16:26:02.000000000 +0100
++++ b/drivers/misc/asus-laptop.c	2007-03-10 16:25:08.000000000 +0100
+@@ -272,19 +272,25 @@
  	return (hotk->status & mask) ? 1 : 0;
  }
-@@ -354,9 +341,11 @@
  
- static int read_brightness(struct backlight_device *bd)
+-static void write_status(acpi_handle handle, int out, int mask, int invert)
++static void write_status(acpi_handle handle, int out, int mask)
  {
--	int value;
-+	ulong value;
-+	acpi_status rv = AE_OK;
+ 	hotk->status = (out) ? (hotk->status | mask) : (hotk->status & ~mask);
  
--	if (!read_acpi_int(brightness_get_handle, NULL, &value, NULL))
-+	rv = acpi_evaluate_integer(brightness_get_handle, NULL, NULL, &value);
-+	if (ACPI_FAILURE(rv))
- 		printk(ASUS_WARNING "Error reading brightness\n");
+-	if (invert)		/* invert target value */
++	switch (mask) {
++	case MLED_ON:
+ 		out = !out & 0x1;
++		break;
++	default:
++		out &= 0x1;
++		break;
++	}
  
- 	return value;
-@@ -403,8 +392,10 @@
- 			  struct device_attribute *attr, char *page)
+ 	if (handle && !write_acpi_int(handle, NULL, out, NULL))
+-		printk(ASUS_WARNING " write failed\n");
++		printk(ASUS_WARNING " write failed %x\n", mask);
+ }
+ 
+ /* /sys/class/led handlers */
+-#define ASUS_LED_HANDLER(object, mask, invert)				\
++#define ASUS_LED_HANDLER(object, mask)					\
+ 	static void object##_led_set(struct led_classdev *led_cdev,	\
+ 				     enum led_brightness value)		\
+ 	{								\
+@@ -294,13 +300,13 @@
+ 	static void object##_led_update(struct work_struct *ignored)	\
+ 	{								\
+ 		int value = object##_led_wk;				\
+-		write_status(object##_set_handle, value, (mask), (invert)); \
++		write_status(object##_set_handle, value, (mask));	\
+ 	}
+ 
+-ASUS_LED_HANDLER(mled, MLED_ON, 1);
+-ASUS_LED_HANDLER(pled, PLED_ON, 0);
+-ASUS_LED_HANDLER(rled, RLED_ON, 0);
+-ASUS_LED_HANDLER(tled, TLED_ON, 0);
++ASUS_LED_HANDLER(mled, MLED_ON);
++ASUS_LED_HANDLER(pled, PLED_ON);
++ASUS_LED_HANDLER(rled, RLED_ON);
++ASUS_LED_HANDLER(tled, TLED_ON);
+ 
+ static int get_lcd_state(void)
  {
- 	int len = 0;
--	int temp;
-+	ulong temp;
- 	char buf[16];		//enough for all info
-+	acpi_status rv = AE_OK;
+@@ -325,7 +331,7 @@
+ 			printk(ASUS_WARNING "Error switching LCD\n");
+ 	}
+ 
+-	write_status(NULL, lcd, LCD_ON, 0);
++	write_status(NULL, lcd, LCD_ON);
+ 	return 0;
+ }
+ 
+@@ -458,7 +464,7 @@
+ }
+ 
+ static ssize_t store_status(const char *buf, size_t count,
+-			    acpi_handle handle, int mask, int invert)
++			    acpi_handle handle, int mask)
+ {
+ 	int rv, value;
+ 	int out = 0;
+@@ -467,7 +473,7 @@
+ 	if (rv > 0)
+ 		out = value ? 1 : 0;
+ 
+-	write_status(handle, out, mask, invert);
++	write_status(handle, out, mask);
+ 
+ 	return rv;
+ }
+@@ -508,7 +514,7 @@
+ static ssize_t store_wlan(struct device *dev, struct device_attribute *attr,
+ 			  const char *buf, size_t count)
+ {
+-	return store_status(buf, count, wl_switch_handle, WL_ON, 0);
++	return store_status(buf, count, wl_switch_handle, WL_ON);
+ }
+ 
+ /*
+@@ -524,7 +530,7 @@
+ 			       struct device_attribute *attr, const char *buf,
+ 			       size_t count)
+ {
+-	return store_status(buf, count, bt_switch_handle, BT_ON, 0);
++	return store_status(buf, count, bt_switch_handle, BT_ON);
+ }
+ 
+ /*
+@@ -652,10 +658,10 @@
+ 	 * switched
+ 	 */
+ 	if (event == ATKD_LCD_ON) {
+-		write_status(NULL, 1, LCD_ON, 0);
++		write_status(NULL, 1, LCD_ON);
+ 		lcd_blank(FB_BLANK_UNBLANK);
+ 	} else if (event == ATKD_LCD_OFF) {
+-		write_status(NULL, 0, LCD_ON, 0);
++		write_status(NULL, 0, LCD_ON);
+ 		lcd_blank(FB_BLANK_POWERDOWN);
+ 	}
+ 
+@@ -928,11 +934,15 @@
+ 	asus_hotk_found = 1;
+ 
+ 	/* WLED and BLED are on by default */
+-	write_status(bt_switch_handle, 1, BT_ON, 0);
+-	write_status(wl_switch_handle, 1, WL_ON, 0);
++	write_status(bt_switch_handle, 1, BT_ON);
++	write_status(wl_switch_handle, 1, WL_ON);
 +
- 	/*
- 	 * We use the easy way, we don't care of off and count, so we don't set eof
- 	 * to 1
-@@ -418,9 +409,10 @@
- 	 * bit signifies that the laptop is equipped with a Wi-Fi MiniPCI card.
- 	 * The significance of others is yet to be found.
- 	 */
--	if (read_acpi_int(hotk->handle, "SFUN", &temp, NULL))
--		len +=
--		    sprintf(page + len, "SFUN value         : 0x%04x\n", temp);
-+	rv = acpi_evaluate_integer(hotk->handle, "SFUN", NULL, &temp);
-+	if (!ACPI_FAILURE(rv))
-+		len += sprintf(page + len, "SFUN value         : 0x%04x\n",
-+			       (uint) temp);
- 	/*
- 	 * Another value for userspace: the ASYM method returns 0x02 for
- 	 * battery low and 0x04 for battery critical, its readings tend to be
-@@ -428,9 +420,10 @@
- 	 * Note: since not all the laptops provide this method, errors are
- 	 * silently ignored.
- 	 */
--	if (read_acpi_int(hotk->handle, "ASYM", &temp, NULL))
--		len +=
--		    sprintf(page + len, "ASYM value         : 0x%04x\n", temp);
-+	rv = acpi_evaluate_integer(hotk->handle, "ASYM", NULL, &temp);
-+	if (!ACPI_FAILURE(rv))
-+		len += sprintf(page + len, "ASYM value         : 0x%04x\n",
-+			       (uint) temp);
- 	if (asus_info) {
- 		snprintf(buf, 16, "%d", asus_info->length);
- 		len += sprintf(page + len, "DSDT length        : %s\n", buf);
-@@ -547,12 +540,15 @@
++	/* If the h/w switch is off, we need to check the real status */
++	write_status(NULL, read_status(BT_ON), BT_ON);
++	write_status(NULL, read_status(WL_ON), WL_ON);
  
- static int read_display(void)
- {
--	int value = 0;
-+	ulong value = 0;
-+	acpi_status rv = AE_OK;
+ 	/* LCD Backlight is on by default */
+-	write_status(NULL, 1, LCD_ON, 0);
++	write_status(NULL, 1, LCD_ON);
  
- 	/* In most of the case, we know how to set the display, but sometime
- 	   we can't read it */
- 	if (display_get_handle) {
--		if (!read_acpi_int(display_get_handle, NULL, &value, NULL))
-+		rv = acpi_evaluate_integer(display_get_handle, NULL,
-+					   NULL, &value);
-+		if (ACPI_FAILURE(rv))
- 			printk(ASUS_WARNING "Error reading display status\n");
- 	}
- 
-@@ -771,7 +767,7 @@
- {
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 	union acpi_object *model = NULL;
--	int bsts_result, hwrs_result;
-+	ulong bsts_result, hwrs_result;
- 	char *string = NULL;
- 	acpi_status status;
- 
-@@ -794,11 +790,13 @@
- 	}
- 
- 	/* This needs to be called for some laptops to init properly */
--	if (!read_acpi_int(hotk->handle, "BSTS", &bsts_result, NULL))
-+	status =
-+	    acpi_evaluate_integer(hotk->handle, "BSTS", NULL, &bsts_result);
-+	if (ACPI_FAILURE(status))
- 		printk(ASUS_WARNING "Error calling BSTS\n");
- 	else if (bsts_result)
- 		printk(ASUS_NOTICE "BSTS called, 0x%02x returned\n",
--		       bsts_result);
-+		       (uint) bsts_result);
- 
- 	/*
- 	 * Try to match the object returned by INIT to the specific model.
-@@ -840,7 +838,9 @@
- 	 * The significance of others is yet to be found.
- 	 * If we don't find the method, we assume the device are present.
- 	 */
--	if (!read_acpi_int(hotk->handle, "HRWS", &hwrs_result, NULL))
-+	status =
-+	    acpi_evaluate_integer(hotk->handle, "HRWS", NULL, &hwrs_result);
-+	if (ACPI_FAILURE(status))
- 		hwrs_result = WL_HWRS | BT_HWRS;
- 
- 	if (hwrs_result & WL_HWRS)
+ 	/* LED display is off by default */
+ 	hotk->ledd_status = 0xFFF;
