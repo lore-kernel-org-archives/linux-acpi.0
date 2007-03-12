@@ -1,108 +1,91 @@
-From: "Salatiel Filho" <salatiel.filho@gmail.com>
-Subject: Re: acpi_serialize lock kernel 2.6.21-rc3
-Date: Sun, 11 Mar 2007 18:02:26 -0300
-Message-ID: <beb91d720703111402g5d8a2010q4f57e33c22cac675@mail.gmail.com>
-References: <beb91d720703101142q7e82cf8dt392eb932d12b1813@mail.gmail.com>
-	 <200703102226.02991.lenb@kernel.org>
-	 <beb91d720703110801q71199cd2iee7f655541137d13@mail.gmail.com>
-	 <200703111536.21753.lenb@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [PATCH 1/6] ACPI: ibm-acpi: kill trailing whitespace
+Date: Sun, 11 Mar 2007 21:20:44 -0300
+Message-ID: <11736588493322-git-send-email-hmh@hmh.eng.br>
+References: <11736588493609-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.247]:25352 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932279AbXCKVC2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 11 Mar 2007 17:02:28 -0400
-Received: by an-out-0708.google.com with SMTP id b33so1250703ana
-        for <linux-acpi@vger.kernel.org>; Sun, 11 Mar 2007 14:02:27 -0700 (PDT)
-In-Reply-To: <200703111536.21753.lenb@kernel.org>
-Content-Disposition: inline
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:52438 "EHLO
+	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S964817AbXCLAVo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 11 Mar 2007 20:21:44 -0400
+In-Reply-To: <11736588493609-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-On 3/11/07, Len Brown <lenb@kernel.org> wrote:
-> On Sunday 11 March 2007 11:01, you wrote:
-> > Sometime ago i ask in this same list how to fix problems like :
-> >
-> > Jan  6 00:43:49 localhost kernel: ACPI Error (psargs-0355): [PBST]
-> > Namespace lookup failure, AE_NOT_FOUND
-> > Jan  6 00:43:49 localhost kernel: ACPI Error (psparse-0537): Method
-> > parse/execution failed [\_SB_.PCI0.LPCB.BAT1._BST] (Node c1910770),
-> > AE_NOT_FOUND
-> > Jan  6 00:43:49 localhost kernel: ACPI Exception (acpi_battery-0207=
-):
-> > AE_NOT_FOUND, Evaluating _BST [20060707]
-> > Jan  6 00:44:19 localhost kernel: ACPI Error (psargs-0355): [PBST]
-> > Namespace lookup failure, AE_NOT_FOUND
-> > Jan  6 00:44:19 localhost kernel: ACPI Error (psparse-0537): Method
-> > parse/execution failed [\_SB_.PCI0.LPCB.BAT1._BST] (Node c1910770),
-> > AE_NOT_FOUND
-> > Jan  6 00:44:19 localhost kernel: ACPI Exception (acpi_battery-0207=
-):
-> > AE_NOT_FOUND, Evaluating _BST [20060707]
-> > Jan  6 00:44:49 localhost kernel: ACPI Error (psargs-0355): [PBST]
-> > Namespace lookup failure, AE_NOT_FOUND
-> > Jan  6 00:44:49 localhost kernel: ACPI Error (psparse-0537): Method
-> > parse/execution failed [\_SB_.PCI0.LPCB.BAT1._BST] (Node c1910770),
-> > AE_NOT_FOUND
-> > Jan  6 00:44:49 localhost kernel: ACPI Exception (acpi_battery-0207=
-):
-> > AE_NOT_FOUND, Evaluating _BST [20060707]
-> >
-> >
-> > and someone recommend me to use acpi_serialize flag and that fixed =
-all
-> > problems. Do you have another suggestion ?
->
-> That isn't a "fix", that is a "workaround".
-> Please open a bugzilla with the error messages and the output
-> from acpidump so we can get to the root cause of the issue
-> and fix it for everybody.
->
-> thanks,
-> -Len
-Hi , i found the same bug already opened in bugzilla, so i put my
-acpidump output there.
-HERE -> http://bugzilla.kernel.org/show_bug.cgi?id=3D8171
-I hope it helps.
+I shall protect the ibm-acpi city against the invasion of the barbarian
+blanks!  To the unforgiving jaws of sed s/[[:blank:]]\+$// they go!
 
->
-> >
-> >
-> > On 3/11/07, Len Brown <lenb@kernel.org> wrote:
-> > > On Saturday 10 March 2007 14:42, Salatiel Filho wrote:
-> > > > Is anyone having problems with acpi_serialize in kernel 2.6.21-=
-rc3 ?
-> > > > Kernel locks during boot when i use acpi_serialize, and i need =
-it to
-> > > > acpi function properly on my laptop. It worked fine in 2.6.20.
-> > > >
-> > > > Any help ?
-> > >
-> > > Why were you using acpi_serialize in the first place.
-> > > There is a serious bug if you need it -- which is obscured
-> > > by the fact that you're using it...
-> > >
-> > > -Len
-> > >
-> > >
-> >
-> >
->
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+---
+ Documentation/ibm-acpi.txt |    6 +++---
+ drivers/acpi/ibm_acpi.c    |    6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
+diff --git a/Documentation/ibm-acpi.txt b/Documentation/ibm-acpi.txt
+index 0132d36..cdcef01 100644
+--- a/Documentation/ibm-acpi.txt
++++ b/Documentation/ibm-acpi.txt
+@@ -21,7 +21,7 @@ detailed description):
+ 
+ 	- Fn key combinations
+ 	- Bluetooth enable and disable
+-	- video output switching, expansion control	
++	- video output switching, expansion control
+ 	- ThinkLight on and off
+ 	- limited docking and undocking
+ 	- UltraBay eject
+@@ -472,7 +472,7 @@ This feature dumps the values of 256 embedded controller
+ registers. Values which have changed since the last time the registers
+ were dumped are marked with a star:
+ 
+-[root@x40 ibm-acpi]# cat /proc/acpi/ibm/ecdump 
++[root@x40 ibm-acpi]# cat /proc/acpi/ibm/ecdump
+ EC       +00 +01 +02 +03 +04 +05 +06 +07 +08 +09 +0a +0b +0c +0d +0e +0f
+ EC 0x00:  a7  47  87  01  fe  96  00  08  01  00  cb  00  00  00  40  00
+ EC 0x10:  00  00  ff  ff  f4  3c  87  09  01  ff  42  01  ff  ff  0d  00
+@@ -503,7 +503,7 @@ vary. The second ensures that the fan-related values do vary, since
+ the fan speed fluctuates a bit. The third will (hopefully) mark the
+ fan register with a star:
+ 
+-[root@x40 ibm-acpi]# cat /proc/acpi/ibm/ecdump 
++[root@x40 ibm-acpi]# cat /proc/acpi/ibm/ecdump
+ EC       +00 +01 +02 +03 +04 +05 +06 +07 +08 +09 +0a +0b +0c +0d +0e +0f
+ EC 0x00:  a7  47  87  01  fe  96  00  08  01  00  cb  00  00  00  40  00
+ EC 0x10:  00  00  ff  ff  f4  3c  87  09  01  ff  42  01  ff  ff  0d  00
+diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
+index 3690136..a889dc5 100644
+--- a/drivers/acpi/ibm_acpi.c
++++ b/drivers/acpi/ibm_acpi.c
+@@ -28,7 +28,7 @@
+  *  2006-11-22	0.13	new maintainer
+  *  			changelog now lives in git commit history, and will
+  *  			not be updated further in-file.
+- *  
++ *
+  *  2005-08-17  0.12	fix compilation on 2.6.13-rc kernels
+  *  2005-03-17	0.11	support for 600e, 770x
+  *			    thanks to Jamie Lentin <lentinj@dial.pipex.com>
+@@ -38,7 +38,7 @@
+  *			experimental brightness control
+  *			experimental volume control
+  *			experimental fan enable/disable
+- *  2005-01-16	0.10	fix module loading on R30, R31 
++ *  2005-01-16	0.10	fix module loading on R30, R31
+  *  2005-01-16	0.9	support for 570, R30, R31
+  *			ultrabay support on A22p, A3x
+  *			limit arg for cmos, led, beep, drop experimental status
+@@ -161,7 +161,7 @@ IBM_HANDLE(dock, root, "\\_SB.GDCK",	/* X30, X31, X40 */
+ #ifdef CONFIG_ACPI_IBM_BAY
+ IBM_HANDLE(bay, root, "\\_SB.PCI.IDE.SECN.MAST",	/* 570 */
+ 	   "\\_SB.PCI0.IDE0.IDES.IDSM",	/* 600e/x, 770e, 770x */
+-	   "\\_SB.PCI0.SATA.SCND.MSTR",	/* T60, X60, Z60 */ 
++	   "\\_SB.PCI0.SATA.SCND.MSTR",	/* T60, X60, Z60 */
+ 	   "\\_SB.PCI0.IDE0.SCND.MSTR",	/* all others */
+     );				/* A21e, R30, R31 */
+ 
+-- 
+1.5.0.3
 
---=20
-[]'s
-Salatiel
-
-"O maior prazer do inteligente =E9 bancar o  idiota
-   diante de um  idiota que banca o inteligente".
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
