@@ -1,58 +1,188 @@
-From: Tejun Heo <htejun@gmail.com>
-Subject: Re: [3/6] 2.6.21-rc2: known regressions
-Date: Mon, 12 Mar 2007 20:37:04 +0900
-Message-ID: <45F53B60.8020908@gmail.com>
-References: <Pine.LNX.4.64.0702272105220.12485@woody.linux-foundation.org> <20070305015036.GH3441@stusta.de> <45EE9E39.3010800@garzik.org> <45F20541.9090208@crans.org>
+From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Subject: Re: [repost] acpi on gentoo
+Date: Mon, 12 Mar 2007 16:46:12 +0300
+Message-ID: <45F559A4.6090606@linux.intel.com>
+References: <BAY123-W214EDC3E723EFE3C0B5E8FD57D0@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nz-out-0506.google.com ([64.233.162.230]:9216 "EHLO
-	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965689AbXCLLhG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Mar 2007 07:37:06 -0400
-Received: by nz-out-0506.google.com with SMTP id s1so1324860nze
-        for <linux-acpi@vger.kernel.org>; Mon, 12 Mar 2007 04:37:05 -0700 (PDT)
-In-Reply-To: <45F20541.9090208@crans.org>
+Received: from mga07.intel.com ([143.182.124.22]:40260 "EHLO
+	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S965585AbXCLNqQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Mar 2007 09:46:16 -0400
+In-Reply-To: <BAY123-W214EDC3E723EFE3C0B5E8FD57D0@phx.gbl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?UTF-8?B?TWF0aGlldSBCw6lyYXJk?= <Mathieu.Berard@crans.org>
-Cc: Jeff Garzik <jeff@garzik.org>, Adrian Bunk <bunk@stusta.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-ide@vger.kernel.org, Michal Jaegermann <michal@ellpspace.math.ualberta.ca>, Fabio Comolli <fabio.comolli@gmail.com>, Janosch Machowinski <jmachowinski@gmx.de>, Lukas Hejtmanek <xhejtman@fi.muni.cz>, Meelis Roos <mroos@linux.ee>, Olivier Mondoloni <darkcore71@yahoo.fr>, Thomas Renninger <trenn@suse.de>, Robert Moore <robert.moore@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Nigel Nigel <nigels@hotmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-Mathieu B=C3=A9rard wrote:
-> Jeff Garzik a =C3=A9crit :
->> Adrian Bunk wrote:
->>> Subject    : NCQ problem with ahci and Hitachi drive
->>> References : http://lkml.org/lkml/2007/3/4/178
->>> Submitter  : Mathieu B=C3=A9rard <Mathieu.Berard@crans.org>
->>> Status     : unknown
->> according to the last message in that thread, it sounds like ACPI an=
-d
->> interrupt problems
+Nigel Nigel wrote:
+>
+>
+>
+>
+>
+> ----------------------------------------
+>   
+>> Date: Mon, 12 Mar 2007 14:16:51 +0300
+>> From: alexey.y.starikovskiy@linux.intel.com
+>> To: nigels@hotmail.com
+>> CC: linux-acpi@vger.kernel.org
+>> Subject: Re: [repost] acpi on gentoo
 >>
-> Hi,
-> after more testing with a 2.6.21-rc3, it appears that after several a=
-ta
-> errors the boot process
-> somehow continued as normal, after a "NCQ disabled due to excessive
-> errors" message.
-> "pci=3Dnoacpi" or "noacpi" parameters workarounds the problem "irqpol=
-l"
-> does nothing.
-
-I was mistaken.  It can't be IRQ routing problem.  I somehow thought th=
-e
-port was a ata_piix one.  Considering the reported broken NCQ feature o=
-n
-the device GTF might be mangling with the drive to disable NCQ or
-something.  Does giving "libata.noacpi=3D1" make any difference?
-
-Thanks.
-
---=20
-tejun
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Nigel wrote:
+>>     
+>>>> Date: Sun, 11 Mar 2007 18:57:58 +0300
+>>>> From: alexey.y.starikovskiy@linux.intel.com
+>>>> To: nigels@hotmail.com
+>>>> CC: luming.yu@gmail.com; linux-acpi@vger.kernel.org
+>>>> Subject: Re: [repost] acpi on gentoo
+>>>>
+>>>> Nigel wrote:
+>>>>         
+>>>>> response inline
+>>>>>
+>>>>> Luming Yu said on 11/3/2007 3:12 PM:
+>>>>>           
+>>>>>> On 3/11/07, Nigel  wrote:
+>>>>>>             
+>>>>>>> Trying again to see if anyone had any other ideas.
+>>>>>>>
+>>>>>>> In addition:
+>>>>>>> The acpid daemon is running.
+>>>>>>> The same machine when booted into windows will automatically go to
+>>>>>>> powersave mode when the power cable is removed.
+>>>>>>>
+>>>>>>>               
+>>>>>> what condition is your battery in? It makes sense if battery 
+>>>>>>             
+>>> power is
+>>>       
+>>>>>> very low.
+>>>>>>             
+>>>>> Battery #1 : present
+>>>>> Remaining capacity : 47822 mWh, 100.0%
+>>>>> Design capacity : 50760 mWh
+>>>>> Last full capacity : 47822 mWh, 94.21% of design capacity
+>>>>> (similar output was included in the original post)
+>>>>>
+>>>>> Regardless of battery condition should I not still get an event for
+>>>>> removing and reinserting the power cable? (Obviously waiting for a
+>>>>> minute or two in-between )
+>>>>>
+>>>>>           
+>>>>>> If battery is still full, then it sounds like a bug. You need to 
+>>>>>>             
+>>> test
+>>>       
+>>>>>> the latest base kernel before entering a acpi bug into
+>>>>>> bugzilla.kernel.org.
+>>>>>>             
+>>>>> It works just fine on 2.6.19-r5 (gentoo)
+>>>>> Whilst is *may* have been a bug, the issue should no longer exist 
+>>>>>           
+>>> on a
+>>>       
+>>>>> newer kernel.
+>>>>>
+>>>>>           
+>>>>>>> One interesting though, if I do : modprobe button
+>>>>>>> then every 30 seconds or so I get:
+>>>>>>> received event "battery BAT1 00000080 00000001"
+>>>>>>>
+>>>>>>> Even when i do rmmod button I still keep getting these events.
+>>>>>>> The only way to go back to "normal" behaviour is to reboot.
+>>>>>>>
+>>>>>>> Any suggestions as to what might be my problem here ?
+>>>>>>>
+>>>>>>>               
+>>>>>> I guess your battery power level is low.
+>>>>>>             
+>>>>> Nope, that's not it.
+>>>>> Don't really get your logic either. *Only* when a certain module is
+>>>>> loaded and after that *only* a reboot stops these messages means that
+>>>>> the battery is low?
+>>>>>
+>>>>>           
+>>>>>>  > > >>
+>>>>>>             
+>>>>> So, I take it that my choice is limited to using the newer kernel ?
+>>>>> I would normally not hesitate to use the newer kernel but my
+>>>>> employer's vpn client is limited to 2.6.17
+>>>>>
+>>>>> Nigel.
+>>>>> -
+>>>>> To unsubscribe from this list: send the line "unsubscribe 
+>>>>>           
+>>> linux-acpi" in
+>>>       
+>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>> More majordomo info at http://vger.kernel.org/majordomo-info.html
+>>>>>           
+>>>> 2.6.19-rc5 has EC driver almost re-written (drivers/acpi/ec.c). Please
+>>>> check if putting it into 2.6.17 works/helps. You may also try to put an
+>>>> 2.6.20/21-rc version of the same file... It has even more changes.
+>>>>
+>>>>
+>>>> Regards,
+>>>> Alex.
+>>>>         
+>>> I tried copying all of the directories with "acpi" and a few .h files 
+>>> as well (from 2.6.19-rc5) . This is what I get:
+>>>
+>>> [skipped]
+>>>       
+>> I asked if copying of single file helps... I didn't ask you to copy all 
+>> acpi files two kernel releases back and make it work...
+>>     
+>>> If there is a relatively simple way to get this to work. Let me know.
+>>>       
+>> Copy one file: drivers/acpi/ec.c
+>>     
+>
+> Sorry, I should have explained in more detail. I did copy just the one file to start with, and  got this :
+> CHK     include/linux/version.h
+> CHK     include/linux/compile.h
+> CC      drivers/acpi/ec.o
+> drivers/acpi/ec.c: In function 'acpi_ec_gpe_handler':
+> drivers/acpi/ec.c:467: warning: implicit declaration of function
+> 'acpi_os_execute'
+> drivers/acpi/ec.c:467: error: 'OSL_EC_BURST_HANDLER' undeclared (first
+> use in this function)
+> drivers/acpi/ec.c:467: error: (Each undeclared identifier is reported
+> only once
+> drivers/acpi/ec.c:467: error: for each function it appears in.)
+> make[2]: *** [drivers/acpi/ec.o] Error 1
+> make[1]: *** [drivers/acpi] Error 2
+> make: *** [drivers] Error 2
+>
+>
+> Is there something I can do to get this going ?
+>
+>   
+change call to acpi_os_execute to call to acpi_os_queue_for_execution() 
+as it was in 2.6.17.
+It is just rename of the function in this case.
+>>> Otherwise I'll just leave it, and hopefully in a year or so I'll be 
+>>> able  to upgrade.
+>>>
+>>>       
+>> Ok.
+>>     
+>>> Thanks,
+>>> Nigel.
+>>> -
+>>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>       
+>> -
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>     
+>
+> _________________________________________________________________
+> Explore the seven wonders of the world
+> http://search.msn.com/results.aspx?q=7+wonders+world&mkt=en-US&form=QBRE
