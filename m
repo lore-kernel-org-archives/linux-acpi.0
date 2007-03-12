@@ -1,43 +1,25 @@
-From: Tejun Heo <htejun@gmail.com>
-Subject: regarding ACPI support in 2.6.21
-Date: Mon, 12 Mar 2007 23:32:44 +0900
-Message-ID: <45F5648C.7020506@gmail.com>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: regarding ACPI support in 2.6.21
+Date: Mon, 12 Mar 2007 15:46:49 +0000
+Message-ID: <20070312154649.5f661a39@lxorguk.ukuu.org.uk>
+References: <45F5648C.7020506@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wr-out-0506.google.com ([64.233.184.239]:15191 "EHLO
-	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030187AbXCLOco (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Mar 2007 10:32:44 -0400
-Received: by wr-out-0506.google.com with SMTP id i28so994490wra
-        for <linux-acpi@vger.kernel.org>; Mon, 12 Mar 2007 07:32:43 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <45F5648C.7020506@gmail.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Tejun Heo <htejun@gmail.com>
+Cc: Jeff Garzik <jeff@garzik.org>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeff Garzik <jeff@garzik.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-Hello, all.
+> I think it might be better to give up ACPI support in 2.6.21 and target
+> 2.6.22.  What do you think?
 
-Currently, libata-acpi has the following problems.
+I removed it from my tree already so that I can actually use libata and
+do real work. The "crash every non PCI controller" feature in the current
+ACPI hacks means PCMCIA and ISAPnP do not work any more with libata.
 
-1. Matching controller/device to ACPI node.  It currently uses ap->cbl
-== ATA_CBL_SATA test to choose between two formats - the traditional ATA
-nodes with master/slave devices and new native SATA nodes.  This is
-incorrect as ata_piix even if it's SATA should map to traditional ATA
-nodes while in ahci 00 _ADR in traditional format shouldn't trigger
-"don't know how to handle SATA port multiplier".
+In its current state it should be disabled, its broken, its wrong.
 
-2. Although this isn't very clear in the spec, but some methods seem to
-be designed to be used only over suspend/resume cycle.  SATA aware
-methods (w/ _SDD) should probably called after every PHY event (device
-might have been hardreset), but _GTM/_STM/_GTF combination does look
-like they should be used only over suspend/resume cycles.  This is caus
-
-I think it might be better to give up ACPI support in 2.6.21 and target
-2.6.22.  What do you think?
-
-Thanks.
-
--- 
-tejun
+Alan
