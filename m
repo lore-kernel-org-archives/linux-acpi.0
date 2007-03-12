@@ -1,41 +1,44 @@
-From: "Anthony Godshall, Ampro Computers, Inc." <agodshall@ampro.com>
-Subject: Re: [PATCH] ACPI disabled due to DMI failure or blacklisted year should be noted, as is done with other ACPI blacklisting
-Date: Mon, 12 Mar 2007 13:39:12 -0700
-Message-ID: <3424dc900703121339n13181c6dv9f575834b5c4718@mail.gmail.com>
-References: <3424dc900703061527i6153573wc7b932dd69c50f6d@mail.gmail.com>
-	 <3424dc900703061538q564de10y4ea47dc97a7cc96@mail.gmail.com>
+From: Mattia Dongili <malattia@linux.it>
+Subject: [PATCH] sony-laptop: MAINTAINERS fix entry, add L: and W:
+Date: Mon, 12 Mar 2007 21:43:57 +0100
+Message-ID: <20070312204357.GJ3071@inferi.kami.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.240]:56564 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752891AbXCLUjN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Mar 2007 16:39:13 -0400
-Received: by an-out-0708.google.com with SMTP id b33so1598595ana
-        for <linux-acpi@vger.kernel.org>; Mon, 12 Mar 2007 13:39:13 -0700 (PDT)
-In-Reply-To: <3424dc900703061538q564de10y4ea47dc97a7cc96@mail.gmail.com>
+Received: from aa011msr.fastwebnet.it ([85.18.95.71]:45696 "EHLO
+	aa011msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752890AbXCLUpS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Mar 2007 16:45:18 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Wednesday 07 March 2007 17:00, akpm@linux-foundation.org wrote:
->
-> The patch titled
->      ACPI disabled due to DMI failure or blacklisted year should be noted, as is done with other ACPI blacklisting
-> has been added to the -mm tree.  Its filename is
->      acpi-disabled-due-to-dmi-failure-or-blacklisted-year-should-be-noted-as-is-done-with-other-acpi-blacklisting.patch
->
+Probably the wrong MAINTAINERS patch has been picked up (sorry for not
+checking earlier), the following fix that and adds WWW and list contacts
+for the Sony drivers.
 
-Thank you for applying it, Andrew.
+Signed-off-by: Mattia Dongili <malattia@linux.it>
+---
 
-> good one -- i just ran into this yesterday:-)
->
-> applied.
-> thanks,
-> -len
+Sorry for the inconvenience Len.
 
-No, thank you.
-
-Tony Godshall
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 17555bb..f3a79d4 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -3066,11 +3066,10 @@ L:	netdev@vger.kernel.org
+ S:	Maintained
+ 
+ SONY VAIO CONTROL DEVICE DRIVER
+-P:	Stelian Pop
+-M:	stelian@popies.net
+ P:	Mattia Dongili
+ M:	malattia@linux.it
+-W:	http://popies.net/sonypi/
++L:	linux-acpi@vger.kernel.org
++W:	http://www.linux.it/~malattia/wiki/index.php/Sony_drivers
+ S:	Maintained
+ 
+ SOUND
