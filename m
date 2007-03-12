@@ -1,57 +1,46 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 2/2] ACPI: parse 2nd MADT by default
-Date: Sun, 11 Mar 2007 21:24:21 -0400
-Message-ID: <1173662663486-git-send-email-lenb@kernel.org>
-References: <11736626612135-git-send-email-lenb@kernel.org> <11736626621682-git-send-email-lenb@kernel.org>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [GIT PULL] ibm-acpi: more updates
+Date: Sun, 11 Mar 2007 22:26:03 -0300
+Message-ID: <20070312012603.GA19808@khazad-dum.debian.net>
+References: <11723292823837-git-send-email-hmh@hmh.eng.br> <200703082259.55832.lenb@kernel.org> <20070310171626.GA9644@khazad-dum.debian.net> <200703111534.34366.lenb@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([143.182.124.22]:40297 "EHLO
-	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751034AbXCLBYb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 11 Mar 2007 21:24:31 -0400
-In-Reply-To: <11736626621682-git-send-email-lenb@kernel.org>
-Message-Id: <60367f94b0f1c6678e559191af6b0c6aab8ce4e6.1173661284.git.len.brown@intel.com>
-In-Reply-To: <a1fdcc0d2714b6622e3fd5c00db1635213d6c41a.1173661284.git.len.brown@intel.com>
-References: <a1fdcc0d2714b6622e3fd5c00db1635213d6c41a.1173661284.git.len.brown@intel.com>
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:55391 "EHLO
+	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751034AbXCLB0L (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 11 Mar 2007 21:26:11 -0400
+Content-Disposition: inline
+In-Reply-To: <200703111534.34366.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Len Brown <len.brown@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-From: Len Brown <len.brown@intel.com>
+On Sun, 11 Mar 2007, Len Brown wrote:
+> heh, the service window is always open at this restaurant:-)
 
-http://bugzilla.kernel.org/show_bug.cgi?id=7465
+Nice :-)
 
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- Documentation/kernel-parameters.txt |    2 +-
- drivers/acpi/tables.c               |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+> seriously, as I use topic branches, I'm happy to accept patches
+> for future releases sooner than later and they will not get
+> in the way of the current release.
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 22c6b8c..f0b7a5e 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -142,7 +142,7 @@ and is between 256 and 4096 characters. It is defined in the file
- 			Format: <int>
- 			2: use 2nd APIC table, if available
- 			1,0: use 1st APIC table
--			default: 0
-+			default: 2
- 
- 	acpi_sleep=	[HW,ACPI] Sleep options
- 			Format: { s3_bios, s3_mode }
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index c341918..6d5515a 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -42,7 +42,7 @@ static char *mps_inti_flags_trigger[] = { "dfl", "edge", "res", "level" };
- 
- static struct acpi_table_desc initial_tables[ACPI_MAX_TABLES] __initdata;
- 
--static int acpi_apic_instance __initdata;
-+static int acpi_apic_instance = 2; __initdata;
- 
- void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
- {
+Ok. I will make sure to mention which release I am targetting for, anyway.
+
+> ps. ibm-acpi-devel@lists.sourceforge.net almost always bounces
+> on me with a timeout.  I think sourceforge as an e-mail
+> list host is disfunctional (which is why we moved linux-acpi
+> a while back)
+
+Well, I don't know if ibm-acpi-devel is the kind of stuff that would be
+accepted in vger :(
+
+But yes, sf.net mail handling leaves *much* to be desired.
+
 -- 
-1.5.0.3.316.gbd1fc
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
