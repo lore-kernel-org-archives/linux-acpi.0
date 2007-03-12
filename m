@@ -1,76 +1,33 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: Odd suspend regression in 2.6.21-rc[123]
-Date: Mon, 12 Mar 2007 10:42:46 -0500
-Message-ID: <200703121142.46705.lenb@kernel.org>
-References: <45F0C018.2020409@madrabbit.org> <45F24DCE.8060902@madrabbit.org>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: regarding ACPI support in 2.6.21
+Date: Mon, 12 Mar 2007 17:01:10 +0000
+Message-ID: <20070312170110.4911203d@lxorguk.ukuu.org.uk>
+References: <45F5648C.7020506@gmail.com>
+	<20070312154649.5f661a39@lxorguk.ukuu.org.uk>
+	<45F56BD5.6040408@garzik.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:36291 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030459AbXCLPux (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 Mar 2007 11:50:53 -0400
-In-Reply-To: <45F24DCE.8060902@madrabbit.org>
-Content-Disposition: inline
+Received: from [81.2.110.250] ([81.2.110.250]:48208 "EHLO lxorguk.ukuu.org.uk"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1030456AbXCLP5n (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 Mar 2007 11:57:43 -0400
+In-Reply-To: <45F56BD5.6040408@garzik.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ray Lee <ray-lk@madrabbit.org>
-Cc: Adrian Bunk <bunk@stusta.de>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Vladimir Lebedev <vladimir.p.lebedev@intel.com>, linux-acpi@vger.kernel.org
+To: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Saturday 10 March 2007 01:18, Ray Lee wrote:
-> Ray Lee wrote:
-> > In 2.6.21-rc1,2,3, my laptop will fully suspend to ram, but then
-> > *immediately* resumes back from suspension. (It resumes just fine, as well.)
-> [...]
-> > HP/Compaq NX6125 system, AMD64, dmesg attached.
-> 
-> hg bisect found the below patch as the culprit, and reverting it does
-> fix the regression. It's supposed to address "sometime ac/battery update
-> stops after resume from disk." This thread:
-> http://lkml.org/lkml/2007/2/24/111 appears to talk about the same issue,
-> and therefore it may be solved without the below patch, so perhaps we
-> can all be happy.
-> 
-> Regardless, I think my laptop no longer being able to go into S3 sleep
-> is a bit more important than someone else's laptop merely not showing
-> the correct AC status :-).
-> 
-> Please revert. (git patch id ed41dab90eb40ac4911e60406bc653661f0e4ce1)
+> It sounds like your tree is out-of-date.  Your patch to fix that went in 
+> days ago, applied by Linus directly:
 
-I'd rather not break the Acer, if possible.
+Its purposefully not tracking every Linus update so I can build a
+replicable environment. I missed the list mail it went in tho.
 
-Ray, Please test the incremental patch below.
+> I lean towards disabling it by default in 2.6.21 anyway, but am 
+> interested in hearing an updated opinion on what's actually in the 
+> public tree.
 
----
-Subject: ACPI: resolve GPE immediate wakeup regression
-From: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+For PATA disable it, for SATA no opinion.
 
-Removing disabling of GPEs from enter_sleep function causes regression on nx6125.
-Doing disable_all_gpes both in prepare to sleep and in enter sleep resolves regression,
-while still fixes Acer notebooks.
-
-Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
-
- drivers/acpi/hardware/hwsleep.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/acpi/hardware/hwsleep.c b/drivers/acpi/hardware/hwsleep.c
-index 8fa9312..c84b1fa 100644
---- a/drivers/acpi/hardware/hwsleep.c
-+++ b/drivers/acpi/hardware/hwsleep.c
-@@ -300,6 +300,11 @@ acpi_status asmlinkage acpi_enter_sleep_state(u8 sleep_state)
- 	/*
- 	 * 2) Enable all wakeup GPEs
- 	 */
-+	status = acpi_hw_disable_all_gpes();
-+	if (ACPI_FAILURE(status)) {
-+		return_ACPI_STATUS(status);
-+	}
-+
- 	acpi_gbl_system_awake_and_running = FALSE;
- 
- 	status = acpi_hw_enable_all_wakeup_gpes();
