@@ -1,69 +1,45 @@
-From: Oliver Neukum <oneukum@suse.de>
-Subject: Re: [linux-usb-devel] [Bugme-new] [Bug 8190] New: ehci_hcd can't reinitialize scanner after suspend>resume
-Date: Tue, 13 Mar 2007 09:19:33 +0100
-Message-ID: <200703130919.33845.oneukum@suse.de>
-References: <200703130751.l2D7pWks011303@fire-2.osdl.org> <20070313010057.e998fb6e.akpm@linux-foundation.org>
+From: Tejun Heo <htejun@gmail.com>
+Subject: Re: [3/6] 2.6.21-rc2: known regressions
+Date: Tue, 13 Mar 2007 21:41:38 +0900
+Message-ID: <45F69C02.2020206@gmail.com>
+References: <Pine.LNX.4.64.0702272105220.12485@woody.linux-foundation.org> <20070305015036.GH3441@stusta.de> <45EE9E39.3010800@garzik.org> <45F20541.9090208@crans.org> <45F53B60.8020908@gmail.com> <45F69989.70702@crans.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:48571 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965109AbXCMIWR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Mar 2007 04:22:17 -0400
-In-Reply-To: <20070313010057.e998fb6e.akpm@linux-foundation.org>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="------------080708000805060406020507"
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <45F69989.70702@crans.org>
+Sender: linux-ide-owner@vger.kernel.org
+To: =?UTF-8?B?TWF0aGlldSBCw6lyYXJk?= <Mathieu.Berard@crans.org>
+Cc: Jeff Garzik <jeff@garzik.org>, Adrian Bunk <bunk@stusta.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-ide@vger.kernel.org, Michal Jaegermann <michal@ellpspace.math.ualberta.ca>, Fabio Comolli <fabio.comolli@gmail.com>, Janosch Machowinski <jmachowinski@gmx.de>, Lukas Hejtmanek <xhejtman@fi.muni.cz>, Meelis Roos <mroos@linux.ee>, Olivier Mondoloni <darkcore71@yahoo.fr>, Thomas Renninger <trenn@suse.de>, Robert Moore <robert.moore@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-usb-devel@lists.sourceforge.net
-Cc: Andrew Morton <akpm@linux-foundation.org>, "bugme-daemon@kernel-bugs.osdl.org" <bugme-daemon@bugzilla.kernel.org>, linux-acpi@vger.kernel.org, bug-track@fisher-privat.net
 
-Am Dienstag, 13. M=E4rz 2007 10:00 schrieb Andrew Morton:
-> > On Tue, 13 Mar 2007 00:51:32 -0700 bugme-daemon@bugzilla.kernel.org=
- wrote:
-> > http://bugzilla.kernel.org/show_bug.cgi?id=3D8190
-> >=20
-> >            Summary: ehci_hcd can't reinitialize scanner after suspe=
-nd>resume
-> >     Kernel Version: 2.6.20, 2.6.21-rc3-gbe521466
-> >             Status: NEW
-> >           Severity: normal
-> >              Owner: acpi_power-sleep-wake@kernel-bugs.osdl.org
-> >          Submitter: bug-track@fisher-privat.net
-> >=20
-> >=20
-> > Most recent kernel where this bug did *NOT* occur:
-> > Distribution:gentoo 2006.1 i686-pc-linux-gnu
-> > Hardware Environment:scanner epson perfection 1670, 82801G (ICH7 Fa=
-mily) USB2
-> > EHCI Controller
-> >=20
-> > Problem Description: with suspend to ram kernel will set scanner to=
- the standby
-> > mode, but after resume kernel can't resume scanner _if_ ehci (modul=
-e) is used.
-> > With this issue sane can't use the scanner you need replug it to ma=
-ke it use.
-> >=20
-> > This issue not upper if kernel compiled without ehci support.
-> >=20
-> > Steps to reproduce:
-> > 1. compile kernel with ehci (module or build-in) and restart
-> > 2. plugin scanner (sane is working)
-> > 3. echo mem > /sys/power/state && scanner will be set to standby mo=
-de too.
-> > 4. resume && scanner will stay in standby mode
-> > 5. replug the scanner to make it use.
-> >=20
->=20
-> Is this an ACPI bug, or a USB bug?
+This is a multi-part message in MIME format.
+--------------080708000805060406020507
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-If any other USB device works, it is USB. Otherwise it may be both.
+Can you apply the attached patch and report what the kernel says with
+ACPI turned on?
 
-	Regards
-		Oliver
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+tejun
+
+--------------080708000805060406020507
+Content-Type: text/plain;
+ name="patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="patch"
+
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvYXRhL2xpYmF0YS1hY3BpLmMgYi9kcml2ZXJzL2F0YS9s
+aWJhdGEtYWNwaS5jCmluZGV4IDAxOWQ4ZmYuLjZhMjdhN2YgMTAwNjQ0Ci0tLSBhL2RyaXZl
+cnMvYXRhL2xpYmF0YS1hY3BpLmMKKysrIGIvZHJpdmVycy9hdGEvbGliYXRhLWFjcGkuYwpA
+QCAtNDczLDggKzQ3Myw4IEBAIHN0YXRpYyB2b2lkIHRhc2tmaWxlX2xvYWRfcmF3KHN0cnVj
+dCBhdGFfcG9ydCAqYXAsCiAJc3RydWN0IGF0YV90YXNrZmlsZSB0ZjsKIAl1bnNpZ25lZCBp
+bnQgZXJyOwogCi0JaWYgKGF0YV9tc2dfcHJvYmUoYXApKQotCQlhdGFfZGV2X3ByaW50ayhh
+dGFkZXYsIEtFUk5fREVCVUcsICIlczogKDB4MWYxLTFmNyk6IGhleDogIgorCWlmICgxIHx8
+IGF0YV9tc2dfcHJvYmUoYXApKQorCQlhdGFfZGV2X3ByaW50ayhhdGFkZXYsIEtFUk5fSU5G
+TywgIiVzOiAoMHgxZjEtMWY3KTogaGV4OiAiCiAJCQkiJTAyeCAlMDJ4ICUwMnggJTAyeCAl
+MDJ4ICUwMnggJTAyeFxuIiwKIAkJCV9fRlVOQ1RJT05fXywKIAkJCWd0Zi0+dGZhWzBdLCBn
+dGYtPnRmYVsxXSwgZ3RmLT50ZmFbMl0sCg==
+--------------080708000805060406020507--
