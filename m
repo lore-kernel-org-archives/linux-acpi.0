@@ -1,32 +1,36 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [3/6] 2.6.21-rc3: known regressions
-Date: Tue, 13 Mar 2007 14:03:23 +0000
-Message-ID: <20070313140323.6ee03eee@lxorguk.ukuu.org.uk>
+From: Lukas Hejtmanek <xhejtman@mail.muni.cz>
+Subject: Re: [5/6] 2.6.21-rc3: known regressions
+Date: Tue, 13 Mar 2007 14:29:37 +0100
+Message-ID: <20070313132937.GE3553@mail.muni.cz>
 References: <Pine.LNX.4.64.0703062050570.5963@woody.linux-foundation.org>
-	<20070313125006.GT18731@stusta.de>
+	<20070313125016.GV18731@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outpipe-village-512-1.bc.nu ([81.2.110.250]:33039 "EHLO
-	lxorguk.ukuu.org.uk" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753246AbXCMNF2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Mar 2007 09:05:28 -0400
-In-Reply-To: <20070313125006.GT18731@stusta.de>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.osdl.org>
+Content-Disposition: inline
+In-Reply-To: <20070313125016.GV18731@stusta.de>
+List-Unsubscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
+List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.osdl.org>
+List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
+List-Subscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.osdl.org
+Errors-To: linux-pm-bounces@lists.osdl.org
 To: Adrian Bunk <bunk@stusta.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Vladimir Brik <no.hope@gmail.com>, Andi Kleen <ak@muc.de>, gregkh@suse.de, linux-pci@atrey.karlin.mff.cuni.cz, Randy Dunlap <randy.dunlap@oracle.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, Ray Lee <ray-lk@madrabbit.org>, Colchao <colchaodemola@gmail.com>, Mathieu =?UTF-8?B?QsOpcmFyZA==?= <Mathieu.Berard@crans.org>, Tejun Heo <htejun@gmail.com>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Michal Jaegermann <michal@ellpspace.math.ualberta.ca>, Fabio Comolli <fabio.comolli@gmail.com>, Plamen Petrov <plamen.petrov@tk.ru.acad.bg>, Laurent Riffard <laurent.riffard@free.fr>
+Cc: linux-acpi@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-pm@lists.osdl.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-> Subject    : libata: PATA UDMA/100 configured as UDMA/33
-> References : http://lkml.org/lkml/2007/2/20/294
->              http://www.mail-archive.com/linux-ide@vger.kernel.org/msg04115.html
->              http://bugzilla.kernel.org/show_bug.cgi?id=8133
->              http://bugzilla.kernel.org/show_bug.cgi?id=8164
-> Submitter  : Fabio Comolli <fabio.comolli@gmail.com>
->              Plamen Petrov <plamen.petrov@tk.ru.acad.bg>
->              Laurent Riffard <laurent.riffard@free.fr>
-> Handled-By : Tejun Heo <htejun@gmail.com>
-> Status     : patch available
+On Tue, Mar 13, 2007 at 01:50:16PM +0100, Adrian Bunk wrote:
+> Subject    : suspend to disk breaks ACPI
+> References : http://lkml.org/lkml/2007/3/5/127
+> Submitter  : Lukas Hejtmanek <xhejtman@mail.muni.cz>
+> Status     : unknown
 
-Some cases should be fixed now but probably not all (eg the Nvidia one)
+seems to be fixed in 2.6.21-rc3
+
+-- =
+
+Luk=E1=B9 Hejtm=E1nek
