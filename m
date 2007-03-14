@@ -1,38 +1,72 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: serial port discovery on a motion computing tablet
-Date: Wed, 14 Mar 2007 15:14:41 +0000
-Message-ID: <20070314151441.GA3396@srcf.ucam.org>
-References: <45F7688B.8000101@elevating.com> <20070314134323.GC1467@srcf.ucam.org> <45F806B1.3060807@elevating.com> <20070314143534.GA2655@srcf.ucam.org> <45F80EAA.6010808@elevating.com>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: 2.6.21-rc3: known regressions with patches
+Date: Wed, 14 Mar 2007 19:11:02 +0100
+Message-ID: <20070314181102.GE18731@stusta.de>
+References: <Pine.LNX.4.64.0703062050570.5963@woody.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:60138 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422638AbXCNPOz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Mar 2007 11:14:55 -0400
+Received: from mailout.stusta.mhn.de ([141.84.69.5]:59455 "EHLO
+	mailhub.stusta.mhn.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752767AbXCNSLA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Mar 2007 14:11:00 -0400
 Content-Disposition: inline
-In-Reply-To: <45F80EAA.6010808@elevating.com>
+In-Reply-To: <Pine.LNX.4.64.0703062050570.5963@woody.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bret Hughes <bhughes@elevating.com>
-Cc: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mark Lord <lkml@rtr.ca>, Jim Radford <radford@blackbean.org>, Oliver Neukum <oneukum@suse.de>, gregkh@suse.de, linux-usb-devel@lists.sourceforge.net, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, Randy Cushman <rcushman_linux@earthlink.net>, Takashi Iwai <tiwai@suse.de>, perex@suse.cz, alsa-devel@alsa-project.org, Vladimir Brik <no.hope@gmail.com>, Andi Kleen <ak@muc.de>, Ray Lee <ray-lk@madrabbit.org>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Wed, Mar 14, 2007 at 10:03:06AM -0500, Bret Hughes wrote:
-> >That's, uh, surprising - is CONFIG_PNPACPI set?
-> >
-> >  
-> 
-> not there:
-> 
-> [root@localhost linux-2.6.9]# grep PNPACPI .config
-> [root@localhost linux-2.6.9]#
+This email lists known regressions in Linus' tree compared to 2.6.20
+with patches available.
 
-Ok. You'll certainly need that.
+If possible, the patches should be included in 2.6.21-rc4 for reducing 
+the number of known regressiond in -rc4 a little bit.
 
-> 2.6.9-42 Latest Centos kernel.  Too old?
 
-Ouch. Life will probably be easier if you can use anything newer - I 
-don't have any trees anywhere near that old now.
+If you find your name in the Cc header, you are either submitter of one
+of the bugs, maintainer of an affectected subsystem or driver, a patch
+of you caused a breakage or I'm considering you in any other way
+possibly involved with one or more of these issues.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Due to the huge amount of recipients, please trim the Cc when answering.
+
+
+Subject    : USB: Oops when connecting USB 1.1 docks
+References : http://lkml.org/lkml/2007/3/4/266
+Submitter  : Mark Lord <lkml@rtr.ca>
+Caused-By  : Jim Radford <radford@blackbean.org>
+             commit d9a7ecacac5f8274d2afce09aadcf37bdb42b93a
+Handled-By : Oliver Neukum <oneukum@suse.de>
+             Jim Radford <radford@blackbean.org>
+Patch      : http://lkml.org/lkml/2007/3/13/217
+Status     : patch available
+
+
+Subject    : snd-intel8x0: no 3d surround sound
+References : http://lkml.org/lkml/2007/3/5/164
+Submitter  : Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Caused-By  : Randy Cushman <rcushman_linux@earthlink.net>
+             commit 831466f4ad2b5fe23dff77edbe6a7c244435e973
+Handled-By : Takashi Iwai <tiwai@suse.de>
+Status     : patch available
+
+
+Subject    : AMD Elan: Crash after "Allocating PCI resources"
+References : http://bugzilla.kernel.org/show_bug.cgi?id=8161
+Submitter  : Vladimir Brik <no.hope@gmail.com>
+Handled-By : Andi Kleen <ak@muc.de>
+Status     : patch available
+
+
+Subject    : laptop immediately resumes after suspend
+References : http://lkml.org/lkml/2007/3/8/469
+Submitter  : Ray Lee <ray-lk@madrabbit.org>
+Caused-By  : Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+             commit ed41dab90eb40ac4911e60406bc653661f0e4ce1
+Handled-By : Len Brown <lenb@kernel.org>
+Patch      : http://lkml.org/lkml/2007/3/12/228
+Status     : patch available
+
+
+
