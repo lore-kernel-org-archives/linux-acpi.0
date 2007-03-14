@@ -1,68 +1,56 @@
-From: Bret Hughes <bhughes@elevating.com>
-Subject: serial port discovery on a motion computing tablet
-Date: Tue, 13 Mar 2007 22:14:19 -0500
-Message-ID: <45F7688B.8000101@elevating.com>
+From: Tejun Heo <htejun@gmail.com>
+Subject: Re: [3/6] 2.6.21-rc2: known regressions
+Date: Wed, 14 Mar 2007 15:07:08 +0900
+Message-ID: <45F7910C.6060502@gmail.com>
+References: <Pine.LNX.4.64.0702272105220.12485@woody.linux-foundation.org> <20070305015036.GH3441@stusta.de> <45EE9E39.3010800@garzik.org> <45F20541.9090208@crans.org> <45F53B60.8020908@gmail.com> <45F69989.70702@crans.org> <45F69C02.2020206@gmail.com> <45F71003.4030003@crans.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from h186.102.16.72.ip.alltel.net ([72.16.102.186]:30419 "EHLO
-	mail1.imperiumsolutions.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752700AbXCNDn0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Mar 2007 23:43:26 -0400
-Received: from localhost (unknown [127.0.0.1])
-	by mail1.imperiumsolutions.net (Postfix) with ESMTP id 01BDCBF9057
-	for <linux-acpi@vger.kernel.org>; Wed, 14 Mar 2007 03:14:29 +0000 (UTC)
-Received: from mail1.imperiumsolutions.net ([127.0.0.1])
-	by localhost (xypris.imperiumsolutions.net [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id e-1WnLlyEbnP for <linux-acpi@vger.kernel.org>;
-	Tue, 13 Mar 2007 22:14:27 -0500 (CDT)
-Received: from [10.23.0.144] (wsip-68-99-77-157.tu.ok.cox.net [68.99.77.157])
-	by mail1.imperiumsolutions.net (Postfix) with ESMTP id C2EB5BF8FBE
-	for <linux-acpi@vger.kernel.org>; Tue, 13 Mar 2007 22:14:26 -0500 (CDT)
+Received: from ug-out-1314.google.com ([66.249.92.168]:25147 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965136AbXCNGHR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Mar 2007 02:07:17 -0400
+Received: by ug-out-1314.google.com with SMTP id 44so480958uga
+        for <linux-acpi@vger.kernel.org>; Tue, 13 Mar 2007 23:07:16 -0700 (PDT)
+In-Reply-To: <45F71003.4030003@crans.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: =?UTF-8?B?TWF0aGlldSBCw6lyYXJk?= <Mathieu.Berard@crans.org>
+Cc: Jeff Garzik <jeff@garzik.org>, Adrian Bunk <bunk@stusta.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-ide@vger.kernel.org, Michal Jaegermann <michal@ellpspace.math.ualberta.ca>, Fabio Comolli <fabio.comolli@gmail.com>, Janosch Machowinski <jmachowinski@gmx.de>, Lukas Hejtmanek <xhejtman@fi.muni.cz>, Meelis Roos <mroos@linux.ee>, Olivier Mondoloni <darkcore71@yahoo.fr>, Thomas Renninger <trenn@suse.de>, Robert Moore <robert.moore@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-I am evaluating a motion computing LE1600 tablet for possible use with 
-linux using Centos 4.4 since that is what we use for several servers and 
-had the installation media handy.  This device uses a TouchKO serial 
-touchscreen that has been used by linux in the past but the issue I am 
-facing is that the bios does not expose the serial ports.  I spoke with 
-an engineer at TouchKO familiar with the LE1600 project an he told me I 
-would have to access the serial port via acpi.  Hmm says I, I guess I 
-have some reading to do.  DO after a day or so of trying to get up to 
-speed, I feel I can ask a fairly decent question or two. 
+Hello,
 
-I found a lot of wacom references but as this touchscreen has ELO and 
-Microtouch emulations I am hard pressed to figure out where to separate 
-the detection of the port from the driver of the device.
+Mathieu B=C3=A9rard wrote:
+> [   15.031823] ata1.00: taskfile_load_raw: (0x1f1-1f7): hex: 10 03 00=
+ 00
+> 00 a0 ef
 
-What I need to do is get a connection to the serial port send a couple 
-of commands to it to set the baud rate and emulation mode and then start 
-X where the MuTouch Driver should work.
+Okay, this is interesting.  This is Enable Device-Initiated Interface
+Power State Transitions.  So, after this command is executed the device
+will try to transit to partial/slumber SATA PHY power states at its
+discretion, which is all cool and dandy in theory but depending on
+controller and drive firmware can cause all sorts of problems.
 
-So.  Is this where I need to be asking acpi serial port questions?  I 
-found a tc1100 prog somewhere but could not get it to compile 
-correctly,  pacpidump compiled ok and I have the output of of acpidump 
-if that helps.
+The NCQ problem you're seeing probably is some side effect of device
+initiated link PS.  Can't tell whether the controller or the drive's
+firmware is problem without further info.  Due to blacklisting, NCQ
+won't be turned on your drive in future kernels and link PS doesn't see=
+m
+to cause any problem no non-NCQ, so your case is taken care of here but
+this leaves me a bit worried about what _GTF feeds us.
 
-Is this a doable deal?  I dled the current (2.6.9-42xxx I think) kernel 
-tree from Centos as the last thing I did before leaving work today and 
-will look at both how Centos (and the upstream provider) configure the 
-kernel and if there are options that look like it might work. 
+I don't think we can reliably filter out command TFs as it might even
+contain vendor-specific commands but it might be better to always log
+TFs executed for _GTF such that we at least know what's going on with
+the drive.
 
-Googling today turned up several references to a 8250_acpi module and 
-then I found a patch somewhere that indicated that it was no longer 
-needed.  I wish I had looked at the kernel tree before leaving today but 
-I thought i would ask for some tips to get me going and possibly add 
-some known good hardware to the list before I am done.
+Thanks.
 
-Am I correct in thinking that I should be able to get a reference to the 
-serial port through acpi on this box?  Any tips ?  Any testing that you 
-guys would like done while I have this hardware?
-
-TIA
-
-Bret
+--=20
+tejun
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
