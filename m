@@ -1,90 +1,43 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH] ACPI: ibm-acpi: allow module to load when acpi notifiers can't be set
-Date: Thu, 15 Mar 2007 14:51:14 -0300
-Message-ID: <20070315175113.GA6596@khazad-dum.debian.net>
-References: <20070315071019.GA22613@tuatara.stupidest.org>
+Subject: Re: CONFIG_IBM_BAY
+Date: Thu, 15 Mar 2007 14:55:06 -0300
+Message-ID: <20070315175505.GB6596@khazad-dum.debian.net>
+References: <11736588493609-git-send-email-hmh@hmh.eng.br> <20070315031015.GA6292@khazad-dum.debian.net> <20070315031251.GB6292@khazad-dum.debian.net> <200703150206.05811.lenb@kernel.org> <20070315133900.GC26862@khazad-dum.debian.net> <20070315080644.c73db24a.kristen.c.accardi@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:46660 "EHLO
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:39935 "EHLO
 	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750844AbXCORvW (ORCPT
+	by vger.kernel.org with ESMTP id S1750773AbXCORzL (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Mar 2007 13:51:22 -0400
+	Thu, 15 Mar 2007 13:55:11 -0400
 Content-Disposition: inline
-In-Reply-To: <20070315071019.GA22613@tuatara.stupidest.org>
+In-Reply-To: <20070315080644.c73db24a.kristen.c.accardi@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Chris Wedgwood <cw@f00f.org>, ibm-acpi-devel@lists.sourceforge.net, kristen.c.accardi@intel.com
+To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-This patch allows for ibm-acpi to coexist (with diminished functionality) with
-other drivers like ACPI_BAY.  ibm-acpi will simply disable the functions it is
-not able to register ACPI notifiers for.
+On Thu, 15 Mar 2007, Kristen Carlson Accardi wrote:
+> Doesn't this option enable support for controlling the bay device via ibm_acpi?
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Chris Wedgwood <cw@f00f.org>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
----
+Yes, but the problem is that ACPI_BAY is not nearly good enough in
+ThinkPads... yet.
 
- Len, you can pull this patch from:
- git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git
- branch for-upstream/acpi-release
+> If so - if you compile this one, then the user who chooses to use bay.ko instead
+> to control the bay can not use ibm_acpi at all to control the remaining
+> functionality.  I feel this should be dependent on ACPI_BAY=n.
 
- Please send it to Linus for merge in 2.6.21.
+Please look at the patch I just sent.  It allows ibm-acpi to load if
+ACPI_BAY is loaded.  It will, of course, cause ACPI_BAY to refuse to load if
+ibm-acpi is already loaded, but that's probably fine as ACPI_BAY has just a
+single function.
 
- It will clash with the patches in acpi-test that are waiting for 2.6.22.
- I will rediff those, and send you a pull request when this patch
- gets accepted in mainline.
-
- drivers/acpi/ibm_acpi.c |   17 ++++++++++++++---
- 1 files changed, 14 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
-index 3690136..f9f36f9 100644
---- a/drivers/acpi/ibm_acpi.c
-+++ b/drivers/acpi/ibm_acpi.c
-@@ -2507,7 +2507,7 @@ static int __init setup_notify(struct ibm_struct *ibm)
- 	ret = acpi_bus_get_device(*ibm->handle, &ibm->device);
- 	if (ret < 0) {
- 		printk(IBM_ERR "%s device not present\n", ibm->name);
--		return 0;
-+		return -ENODEV;
- 	}
- 
- 	acpi_driver_data(ibm->device) = ibm;
-@@ -2516,8 +2516,13 @@ static int __init setup_notify(struct ibm_struct *ibm)
- 	status = acpi_install_notify_handler(*ibm->handle, ibm->type,
- 					     dispatch_notify, ibm);
- 	if (ACPI_FAILURE(status)) {
--		printk(IBM_ERR "acpi_install_notify_handler(%s) failed: %d\n",
--		       ibm->name, status);
-+		if (status == AE_ALREADY_EXISTS) {
-+			printk(IBM_NOTICE "another device driver is already handling %s events\n",
-+				ibm->name);
-+		} else {
-+			printk(IBM_ERR "acpi_install_notify_handler(%s) failed: %d\n",
-+				ibm->name, status);
-+		}
- 		return -ENODEV;
- 	}
- 	ibm->notify_installed = 1;
-@@ -2594,6 +2599,12 @@ static int __init ibm_init(struct ibm_struct *ibm)
- 
- 	if (ibm->notify) {
- 		ret = setup_notify(ibm);
-+		if (ret == -ENODEV) {
-+			printk(IBM_NOTICE "disabling subdriver %s\n",
-+				ibm->name);
-+			ibm_exit(ibm);
-+			return 0;
-+		}
- 		if (ret < 0)
- 			return ret;
- 	}
--- 
-1.5.0.3
-
+Note that these are all just stop-gap measures.  We either need to have
+ACPI_BAY do everything needed in ThinkPads (like handling bay batteries), or
+to make both drivers work together, or I'll just pull all the ACPI_BAY
+functionality into ibm-acpi (and then I will definately conflict with
+ACPI_BAY).
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
