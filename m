@@ -1,32 +1,78 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [ibm-acpi-devel] CONFIG_IBM_BAY
-Date: Thu, 15 Mar 2007 17:49:48 -0300
-Message-ID: <20070315204948.GA15572@khazad-dum.debian.net>
-References: <11736588493609-git-send-email-hmh@hmh.eng.br> <20070315031015.GA6292@khazad-dum.debian.net> <20070315031251.GB6292@khazad-dum.debian.net> <200703150206.05811.lenb@kernel.org> <20070315133900.GC26862@khazad-dum.debian.net> <20070315080644.c73db24a.kristen.c.accardi@intel.com> <20070315175505.GB6596@khazad-dum.debian.net> <20070315110156.09e80b99.kristen.c.accardi@intel.com> <20070315193123.GB14394@khazad-dum.debian.net> <41840b750703151331j115df8fcu9cc1084203903c26@mail.gmail.com>
+From: Holger Macht <hmacht@suse.de>
+Subject: Re: [PATCH] ACPI: ibm-acpi: allow module to load when acpi notifiers can't be set
+Date: Thu, 15 Mar 2007 22:57:28 +0100
+Message-ID: <20070315215728.GA15231@homac2>
+References: <20070315071019.GA22613@tuatara.stupidest.org> <20070315175113.GA6596@khazad-dum.debian.net> <20070315191721.GB2556@tuatara.stupidest.org> <20070315123732.2ac478a3.kristen.c.accardi@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:59481 "EHLO
-	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753361AbXCOUuD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Mar 2007 16:50:03 -0400
+Received: from ns2.suse.de ([195.135.220.15]:35154 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751908AbXCOV5j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Mar 2007 17:57:39 -0400
 Content-Disposition: inline
-In-Reply-To: <41840b750703151331j115df8fcu9cc1084203903c26@mail.gmail.com>
+In-Reply-To: <20070315123732.2ac478a3.kristen.c.accardi@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shem Multinymous <multinymous@gmail.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Len Brown <lenb@kernel.org>
+To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Chris Wedgwood <cw@f00f.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-On Thu, 15 Mar 2007, Shem Multinymous wrote:
-> I'm not sure which stage of the unplug  you're referring to, but after
-> a "lever released" event on ThinkPads there must remain a way for
-> userspace code to run before the kernel does anything irreversible to
+On Thu 15. Mar - 12:37:32, Kristen Carlson Accardi wrote:
+> On Thu, 15 Mar 2007 12:17:21 -0700
+> Chris Wedgwood <cw@f00f.org> wrote:
+> 
+> > On Thu, Mar 15, 2007 at 02:51:14PM -0300, Henrique de Moraes Holschuh wrote:
+> > 
+> > > This patch allows for ibm-acpi to coexist (with diminished
+> > > functionality) with other drivers like ACPI_BAY.
+> > 
+> > Given the ACP_IBM_BAY implementation is more complete (or seems to be,
+> > please comment if that isn't the case) we should probably actually
+> > make sure that is the *preferred* code used (on suitable hardware) at
+> > run time surely?
+> 
+> I haven't followed the ibm_acpi development lately, but when I first
+> wrote the bay driver, it had a couple features that ibm_acpi didn't have,
+> and then of course, is missing some it does have.  What used to be the
+> case is that if bay was inserted after the laptop was booted, the ibm_acpi
+> driver would not capture the events because it would only install it's 
+> notifier at driver load time on bay devices that existed.  The second
+> case is that if you are using the generic dock driver (which is more
+> funtional than the ibm_acpi dock feature), for certain ibm laptops such
+> as the X60, you need to have undock events sent to the bay device so that
+> it can alert user space to unmount cd's etc (since the bay is on the ultrabase).
 
-I mean when one echo 1 >eject, so it won't clash with what you speak of.
+But there's currently an issue with the second case you're talking
+about. The dock driver doesn't generate any event in the bay driver on
+undock. And due to the fact that the dock driver automatically issues a
+ACPI undock, the hardware indication on the dock station signals
+"everything alright" to the user so there's no way to tell the user that
+he is not allowed to pull away the docking station because there's still
+some file system mounted inside the cdrom. Userspace would need some time
+to handle that IMHO.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Just a note,
+  Holger
+
+> 
+> > 
+> > That way distributions can build both options and on IBM/Lenovo
+> > hardware it will use the IBM ACPI code and otherwise will use the
+> > generic ACPI BAY code?
+> 
+> I think for now this is a good idea - the ibm_acpi solution should be
+> preferred over the generic bay driver till it is more fully developed.
+> I don't know how to ensure this is done wrt load order though.
+> 
+> > 
+> > Perhaps the IBM_ACPI_BAY code should go away and any missing
+> > functionality provided there should be merged into ACPI_BAY?
+> > 
+> 
+> I think this is a good idea.  It would certainly be less confusing for users.
+> too late for this release though, perhaps this can be targetted at 2.6.22/23?
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
