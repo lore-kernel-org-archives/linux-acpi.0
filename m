@@ -1,39 +1,29 @@
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Subject: Re: CONFIG_IBM_BAY
-Date: Thu, 15 Mar 2007 08:06:44 -0700
-Message-ID: <20070315080644.c73db24a.kristen.c.accardi@intel.com>
-References: <11736588493609-git-send-email-hmh@hmh.eng.br>
-	<20070315031015.GA6292@khazad-dum.debian.net>
-	<20070315031251.GB6292@khazad-dum.debian.net>
-	<200703150206.05811.lenb@kernel.org>
-	<20070315133900.GC26862@khazad-dum.debian.net>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH 01/22] cpuidle take2: Core cpuidle infrastructure
+Date: Thu, 15 Mar 2007 12:38:16 -0400
+Message-ID: <200703151238.16785.lenb@kernel.org>
+References: <11734992592550-git-send-email-lenb@kernel.org> <11734992601441-git-send-email-lenb@kernel.org> <15e53e180703150613k7cda1497pec39160343222ad5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:44596 "EHLO mga01.intel.com"
+Received: from hera.kernel.org ([140.211.167.34]:37637 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422883AbXCOPJj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Mar 2007 11:09:39 -0400
-In-Reply-To: <20070315133900.GC26862@khazad-dum.debian.net>
+	id S1030505AbXCOQjr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Mar 2007 12:39:47 -0400
+In-Reply-To: <15e53e180703150613k7cda1497pec39160343222ad5@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
+To: Richard Hughes <hughsient@gmail.com>
+Cc: linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Adam Belay <abelay@novell.com>, Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
 
-On Thu, 15 Mar 2007 10:39:00 -0300
-Henrique de Moraes Holschuh <hmh@hmh.eng.br> wrote:
+On Thursday 15 March 2007 09:13, Richard Hughes wrote:
 
-> On Thu, 15 Mar 2007, Len Brown wrote:
-> > > +config ACPI_IBM_BAY
-> > 
-> > Should this depend on ACPI_BAY=n?
-> 
-> It should allow both as modules, so that the user can choose which one to
-> run.
+> What about some documentation so that userspace knows what to do with
+> this new framework?
 
-Doesn't this option enable support for controlling the bay device via ibm_acpi?
-If so - if you compile this one, then the user who chooses to use bay.ko instead
-to control the bay can not use ibm_acpi at all to control the remaining
-functionality.  I feel this should be dependent on ACPI_BAY=n.
- 
+What does userspace need to know in addition to what is in Documentation/cpuidle/?
+
+
