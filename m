@@ -1,58 +1,93 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 01/22] cpuidle take2: Core cpuidle infrastructure
-Date: Thu, 15 Mar 2007 12:47:42 -0400
-Message-ID: <200703151247.42326.lenb@kernel.org>
-References: <11734992592550-git-send-email-lenb@kernel.org> <11734992601441-git-send-email-lenb@kernel.org> <p7364928z8a.fsf@bingen.suse.de>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [PATCH] ACPI: ibm-acpi: allow module to load when acpi notifiers can't be set
+Date: Thu, 15 Mar 2007 14:51:14 -0300
+Message-ID: <20070315175113.GA6596@khazad-dum.debian.net>
+References: <20070315071019.GA22613@tuatara.stupidest.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:50360 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030649AbXCOQtH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Mar 2007 12:49:07 -0400
-In-Reply-To: <p7364928z8a.fsf@bingen.suse.de>
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:46660 "EHLO
+	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750844AbXCORvW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Mar 2007 13:51:22 -0400
 Content-Disposition: inline
+In-Reply-To: <20070315071019.GA22613@tuatara.stupidest.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: venkatesh.pallipadi@intel.com, linux-acpi@vger.kernel.org, Adam Belay <abelay@novell.com>, Shaohua Li <shaohua.li@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Chris Wedgwood <cw@f00f.org>, ibm-acpi-devel@lists.sourceforge.net, kristen.c.accardi@intel.com
 
-On Thursday 15 March 2007 08:31, Andi Kleen wrote:
-> Len Brown <lenb@kernel.org> writes:
-> > +
-> > +/**
-> > + * cpuidle_idle_call - the main idle loop
-> > + *
-> > + * NOTE: no locks or semaphores should be used here
-> > + * FIXME: DYNTICKS handling
-> 
-> I don't think you can merge anything anymore with such a FIXME.
+This patch allows for ibm-acpi to coexist (with diminished functionality) with
+other drivers like ACPI_BAY.  ibm-acpi will simply disable the functions it is
+not able to register ACPI notifiers for.
 
-Certainly it need to work well with NOHZ before it can go upstream.
-Indeed, NOHZ is one of the reasons for doing cpuidle in the first place.
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Chris Wedgwood <cw@f00f.org>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+---
 
-But then NOHZ is probably going to take some time to mature also,
-certainly it can't be considered mature until it is also in the 64-bit kernel.
+ Len, you can pull this patch from:
+ git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git
+ branch for-upstream/acpi-release
 
-The question becomes if NOHZ matures w/o cpuidle -- do we need
-to modify the existing tick-based ACPI idle code before cpuidle?
+ Please send it to Linus for merge in 2.6.21.
 
-> Besides cpuidle is a pretty radical change outside ACPI and I would recommend to 
-> make a few review cycles over linux-kernel and likely linux-arch. 
+ It will clash with the patches in acpi-test that are waiting for 2.6.22.
+ I will rediff those, and send you a pull request when this patch
+ gets accepted in mainline.
 
-I agree.  acpi-test and -mm would not be sufficient exposure for generic code.
+ drivers/acpi/ibm_acpi.c |   17 ++++++++++++++---
+ 1 files changed, 14 insertions(+), 3 deletions(-)
 
-> For me it's not clear it has enough advantages for its amount of code
+diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
+index 3690136..f9f36f9 100644
+--- a/drivers/acpi/ibm_acpi.c
++++ b/drivers/acpi/ibm_acpi.c
+@@ -2507,7 +2507,7 @@ static int __init setup_notify(struct ibm_struct *ibm)
+ 	ret = acpi_bus_get_device(*ibm->handle, &ibm->device);
+ 	if (ret < 0) {
+ 		printk(IBM_ERR "%s device not present\n", ibm->name);
+-		return 0;
++		return -ENODEV;
+ 	}
+ 
+ 	acpi_driver_data(ibm->device) = ibm;
+@@ -2516,8 +2516,13 @@ static int __init setup_notify(struct ibm_struct *ibm)
+ 	status = acpi_install_notify_handler(*ibm->handle, ibm->type,
+ 					     dispatch_notify, ibm);
+ 	if (ACPI_FAILURE(status)) {
+-		printk(IBM_ERR "acpi_install_notify_handler(%s) failed: %d\n",
+-		       ibm->name, status);
++		if (status == AE_ALREADY_EXISTS) {
++			printk(IBM_NOTICE "another device driver is already handling %s events\n",
++				ibm->name);
++		} else {
++			printk(IBM_ERR "acpi_install_notify_handler(%s) failed: %d\n",
++				ibm->name, status);
++		}
+ 		return -ENODEV;
+ 	}
+ 	ibm->notify_installed = 1;
+@@ -2594,6 +2599,12 @@ static int __init ibm_init(struct ibm_struct *ibm)
+ 
+ 	if (ibm->notify) {
+ 		ret = setup_notify(ibm);
++		if (ret == -ENODEV) {
++			printk(IBM_NOTICE "disabling subdriver %s\n",
++				ibm->name);
++			ibm_exit(ibm);
++			return 0;
++		}
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+-- 
+1.5.0.3
 
-Understood.  Measurements will tell.
-This is the very reason we created tools which can simultaneously
-measure performance and battery life: http://sourceforge.net/projects/bltk
 
-I think that for cpuidle to go upstream, its default should not require any user-space changes
-to work as well as the old code.  If some sysfs hooks are available to get added
-value, such as useful statistics or modifying policy, that is something that
-user-space can safely ignore and not break.
-
--Len
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
