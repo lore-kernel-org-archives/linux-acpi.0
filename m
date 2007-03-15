@@ -1,36 +1,42 @@
-From: Andi Kleen <andi@firstfloor.org>
+From: "Richard Hughes" <hughsient@gmail.com>
 Subject: Re: [PATCH 01/22] cpuidle take2: Core cpuidle infrastructure
-Date: 15 Mar 2007 13:31:33 +0100
-Message-ID: <p7364928z8a.fsf@bingen.suse.de>
+Date: Thu, 15 Mar 2007 13:13:11 +0000
+Message-ID: <15e53e180703150613k7cda1497pec39160343222ad5@mail.gmail.com>
 References: <11734992592550-git-send-email-lenb@kernel.org>
-	<11734992601441-git-send-email-lenb@kernel.org>
+	 <11734992601441-git-send-email-lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.suse.de ([195.135.220.2]:45491 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933465AbXCOLcU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Mar 2007 07:32:20 -0400
+Received: from an-out-0708.google.com ([209.85.132.247]:4190 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933539AbXCONNM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Mar 2007 09:13:12 -0400
+Received: by an-out-0708.google.com with SMTP id b33so145639ana
+        for <linux-acpi@vger.kernel.org>; Thu, 15 Mar 2007 06:13:11 -0700 (PDT)
 In-Reply-To: <11734992601441-git-send-email-lenb@kernel.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: venkatesh.pallipadi@intel.com, linux-acpi@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Adam Belay <abelay@novell.com>, Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
 
-Len Brown <lenb@kernel.org> writes:
-> +
-> +/**
-> + * cpuidle_idle_call - the main idle loop
-> + *
-> + * NOTE: no locks or semaphores should be used here
-> + * FIXME: DYNTICKS handling
+On 10/03/07, Len Brown <lenb@kernel.org> wrote:
+>  arch/i386/Kconfig                  |    2 +
+>  arch/x86_64/Kconfig                |    2 +
+>  drivers/Makefile                   |    1 +
+>  drivers/cpuidle/Kconfig            |   28 +++
+>  drivers/cpuidle/Makefile           |    5 +
+>  drivers/cpuidle/cpuidle.c          |  287 ++++++++++++++++++++++++++++++
+>  drivers/cpuidle/cpuidle.h          |   52 ++++++
+>  drivers/cpuidle/driver.c           |  219 +++++++++++++++++++++++
+>  drivers/cpuidle/governor.c         |  160 +++++++++++++++++
+>  drivers/cpuidle/governors/Makefile |    5 +
+>  drivers/cpuidle/governors/ladder.c |  229 ++++++++++++++++++++++++
+>  drivers/cpuidle/sysfs.c            |  340 ++++++++++++++++++++++++++++++++++++
+>  include/linux/cpuidle.h            |  160 +++++++++++++++++
 
-I don't think you can merge anything anymore with such a FIXME.
+What about some documentation so that userspace knows what to do with
+this new framework?
 
-Besides cpuidle is a pretty radical change outside ACPI and I would recommend to 
-make a few review cycles over linux-kernel and likely linux-arch. 
-
-For me it's not clear it has enough advantages for its amount of code
-
--Andi
-
+Richard.
