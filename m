@@ -1,36 +1,89 @@
-From: Chris Wedgwood <cw@f00f.org>
-Subject: Re: [PATCH] ACPI: ibm-acpi: allow module to load when acpi notifiers can't be set
-Date: Thu, 15 Mar 2007 12:17:21 -0700
-Message-ID: <20070315191721.GB2556@tuatara.stupidest.org>
-References: <20070315071019.GA22613@tuatara.stupidest.org> <20070315175113.GA6596@khazad-dum.debian.net>
+From: Kristen Carlson Accardi <kristen.c.accardi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] ACPI: ibm-acpi: allow module to load
+ when acpi notifiers can't be set
+Date: Thu, 15 Mar 2007 12:26:54 -0700
+Message-ID: <20070315122654.468bdd39.kristen.c.accardi@intel.com>
+References: <20070315071019.GA22613@tuatara.stupidest.org>
+	<20070315175113.GA6596@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp102.sbc.mail.mud.yahoo.com ([68.142.198.201]:31775 "HELO
-	smtp102.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S932810AbXCOTRX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Mar 2007 15:17:23 -0400
-Content-Disposition: inline
-In-Reply-To: <20070315175113.GA6596@khazad-dum.debian.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20070315175113.GA6596-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chris Wedgwood <cw-LC2/xnR6T6k@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, kristen.c.accardi@intel.com
 
-On Thu, Mar 15, 2007 at 02:51:14PM -0300, Henrique de Moraes Holschuh wrote:
-
-> This patch allows for ibm-acpi to coexist (with diminished
-> functionality) with other drivers like ACPI_BAY.
-
-Given the ACP_IBM_BAY implementation is more complete (or seems to be,
-please comment if that isn't the case) we should probably actually
-make sure that is the *preferred* code used (on suitable hardware) at
-run time surely?
-
-That way distributions can build both options and on IBM/Lenovo
-hardware it will use the IBM ACPI code and otherwise will use the
-generic ACPI BAY code?
-
-Perhaps the IBM_ACPI_BAY code should go away and any missing
-functionality provided there should be merged into ACPI_BAY?
+T24gVGh1LCAxNSBNYXIgMjAwNyAxNDo1MToxNCAtMDMwMApIZW5yaXF1ZSBkZSBNb3JhZXMgSG9s
+c2NodWggPGhtaEBobWguZW5nLmJyPiB3cm90ZToKCj4gVGhpcyBwYXRjaCBhbGxvd3MgZm9yIGli
+bS1hY3BpIHRvIGNvZXhpc3QgKHdpdGggZGltaW5pc2hlZCBmdW5jdGlvbmFsaXR5KSB3aXRoCj4g
+b3RoZXIgZHJpdmVycyBsaWtlIEFDUElfQkFZLiAgaWJtLWFjcGkgd2lsbCBzaW1wbHkgZGlzYWJs
+ZSB0aGUgZnVuY3Rpb25zIGl0IGlzCj4gbm90IGFibGUgdG8gcmVnaXN0ZXIgQUNQSSBub3RpZmll
+cnMgZm9yLgoKCnRoaXMgcGF0Y2ggZ2l2ZXMgbWUgdGhlIGZvbGxvd2luZyBjb21waWxlIGVycm9y
+OgoKZHJpdmVycy9hY3BpL2libV9hY3BpLmM6IEluIGZ1bmN0aW9uIOKAmGlibV9pbml04oCZOgpk
+cml2ZXJzL2FjcGkvaWJtX2FjcGkuYzoyNjA1OiB3YXJuaW5nOiBpbXBsaWNpdCBkZWNsYXJhdGlv
+biBvZiBmdW5jdGlvbiDigJhpYm1fZXhpdOKAmQpkcml2ZXJzL2FjcGkvaWJtX2FjcGkuYzogQXQg
+dG9wIGxldmVsOgpkcml2ZXJzL2FjcGkvaWJtX2FjcGkuYzoyNjE2OiB3YXJuaW5nOiBjb25mbGlj
+dGluZyB0eXBlcyBmb3Ig4oCYaWJtX2V4aXTigJkKZHJpdmVycy9hY3BpL2libV9hY3BpLmM6MjYx
+NjogZXJyb3I6IHN0YXRpYyBkZWNsYXJhdGlvbiBvZiDigJhpYm1fZXhpdOKAmSBmb2xsb3dzIG5v
+bi1zdGF0aWMgZGVjbGFyYXRpb24KZHJpdmVycy9hY3BpL2libV9hY3BpLmM6MjYwNTogZXJyb3I6
+IHByZXZpb3VzIGltcGxpY2l0IGRlY2xhcmF0aW9uIG9mIOKAmGlibV9leGl04oCZIHdhcyBoZXJl
+CgoKCj4gCj4gU2lnbmVkLW9mZi1ieTogSGVucmlxdWUgZGUgTW9yYWVzIEhvbHNjaHVoIDxobWhA
+aG1oLmVuZy5icj4KPiBDYzogQ2hyaXMgV2VkZ3dvb2QgPGN3QGYwMGYub3JnPgo+IENjOiBLcmlz
+dGVuIENhcmxzb24gQWNjYXJkaSA8a3Jpc3Rlbi5jLmFjY2FyZGlAaW50ZWwuY29tPgo+IC0tLQo+
+IAo+ICBMZW4sIHlvdSBjYW4gcHVsbCB0aGlzIHBhdGNoIGZyb206Cj4gIGdpdDovL3JlcG8ub3Iu
+Y3ovbGludXgtMi42L2xpbnV4LWFjcGktMi42L2libS1hY3BpLTIuNi5naXQKPiAgYnJhbmNoIGZv
+ci11cHN0cmVhbS9hY3BpLXJlbGVhc2UKPiAKPiAgUGxlYXNlIHNlbmQgaXQgdG8gTGludXMgZm9y
+IG1lcmdlIGluIDIuNi4yMS4KPiAKPiAgSXQgd2lsbCBjbGFzaCB3aXRoIHRoZSBwYXRjaGVzIGlu
+IGFjcGktdGVzdCB0aGF0IGFyZSB3YWl0aW5nIGZvciAyLjYuMjIuCj4gIEkgd2lsbCByZWRpZmYg
+dGhvc2UsIGFuZCBzZW5kIHlvdSBhIHB1bGwgcmVxdWVzdCB3aGVuIHRoaXMgcGF0Y2gKPiAgZ2V0
+cyBhY2NlcHRlZCBpbiBtYWlubGluZS4KPiAKPiAgZHJpdmVycy9hY3BpL2libV9hY3BpLmMgfCAg
+IDE3ICsrKysrKysrKysrKysrLS0tCj4gIDEgZmlsZXMgY2hhbmdlZCwgMTQgaW5zZXJ0aW9ucygr
+KSwgMyBkZWxldGlvbnMoLSkKPiAKPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2libV9hY3Bp
+LmMgYi9kcml2ZXJzL2FjcGkvaWJtX2FjcGkuYwo+IGluZGV4IDM2OTAxMzYuLmY5ZjM2ZjkgMTAw
+NjQ0Cj4gLS0tIGEvZHJpdmVycy9hY3BpL2libV9hY3BpLmMKPiArKysgYi9kcml2ZXJzL2FjcGkv
+aWJtX2FjcGkuYwo+IEBAIC0yNTA3LDcgKzI1MDcsNyBAQCBzdGF0aWMgaW50IF9faW5pdCBzZXR1
+cF9ub3RpZnkoc3RydWN0IGlibV9zdHJ1Y3QgKmlibSkKPiAgCXJldCA9IGFjcGlfYnVzX2dldF9k
+ZXZpY2UoKmlibS0+aGFuZGxlLCAmaWJtLT5kZXZpY2UpOwo+ICAJaWYgKHJldCA8IDApIHsKPiAg
+CQlwcmludGsoSUJNX0VSUiAiJXMgZGV2aWNlIG5vdCBwcmVzZW50XG4iLCBpYm0tPm5hbWUpOwo+
+IC0JCXJldHVybiAwOwo+ICsJCXJldHVybiAtRU5PREVWOwo+ICAJfQo+ICAKPiAgCWFjcGlfZHJp
+dmVyX2RhdGEoaWJtLT5kZXZpY2UpID0gaWJtOwo+IEBAIC0yNTE2LDggKzI1MTYsMTMgQEAgc3Rh
+dGljIGludCBfX2luaXQgc2V0dXBfbm90aWZ5KHN0cnVjdCBpYm1fc3RydWN0ICppYm0pCj4gIAlz
+dGF0dXMgPSBhY3BpX2luc3RhbGxfbm90aWZ5X2hhbmRsZXIoKmlibS0+aGFuZGxlLCBpYm0tPnR5
+cGUsCj4gIAkJCQkJICAgICBkaXNwYXRjaF9ub3RpZnksIGlibSk7Cj4gIAlpZiAoQUNQSV9GQUlM
+VVJFKHN0YXR1cykpIHsKPiAtCQlwcmludGsoSUJNX0VSUiAiYWNwaV9pbnN0YWxsX25vdGlmeV9o
+YW5kbGVyKCVzKSBmYWlsZWQ6ICVkXG4iLAo+IC0JCSAgICAgICBpYm0tPm5hbWUsIHN0YXR1cyk7
+Cj4gKwkJaWYgKHN0YXR1cyA9PSBBRV9BTFJFQURZX0VYSVNUUykgewo+ICsJCQlwcmludGsoSUJN
+X05PVElDRSAiYW5vdGhlciBkZXZpY2UgZHJpdmVyIGlzIGFscmVhZHkgaGFuZGxpbmcgJXMgZXZl
+bnRzXG4iLAo+ICsJCQkJaWJtLT5uYW1lKTsKPiArCQl9IGVsc2Ugewo+ICsJCQlwcmludGsoSUJN
+X0VSUiAiYWNwaV9pbnN0YWxsX25vdGlmeV9oYW5kbGVyKCVzKSBmYWlsZWQ6ICVkXG4iLAo+ICsJ
+CQkJaWJtLT5uYW1lLCBzdGF0dXMpOwo+ICsJCX0KPiAgCQlyZXR1cm4gLUVOT0RFVjsKPiAgCX0K
+PiAgCWlibS0+bm90aWZ5X2luc3RhbGxlZCA9IDE7Cj4gQEAgLTI1OTQsNiArMjU5OSwxMiBAQCBz
+dGF0aWMgaW50IF9faW5pdCBpYm1faW5pdChzdHJ1Y3QgaWJtX3N0cnVjdCAqaWJtKQo+ICAKPiAg
+CWlmIChpYm0tPm5vdGlmeSkgewo+ICAJCXJldCA9IHNldHVwX25vdGlmeShpYm0pOwo+ICsJCWlm
+IChyZXQgPT0gLUVOT0RFVikgewo+ICsJCQlwcmludGsoSUJNX05PVElDRSAiZGlzYWJsaW5nIHN1
+YmRyaXZlciAlc1xuIiwKPiArCQkJCWlibS0+bmFtZSk7Cj4gKwkJCWlibV9leGl0KGlibSk7Cj4g
+KwkJCXJldHVybiAwOwo+ICsJCX0KPiAgCQlpZiAocmV0IDwgMCkKPiAgCQkJcmV0dXJuIHJldDsK
+PiAgCX0KPiAtLSAKPiAxLjUuMC4zCj4gCj4gCj4gLS0gCj4gICAiT25lIGRpc2sgdG8gcnVsZSB0
+aGVtIGFsbCwgT25lIGRpc2sgdG8gZmluZCB0aGVtLiBPbmUgZGlzayB0byBicmluZwo+ICAgdGhl
+bSBhbGwgYW5kIGluIHRoZSBkYXJrbmVzcyBncmluZCB0aGVtLiBJbiB0aGUgTGFuZCBvZiBSZWRt
+b25kCj4gICB3aGVyZSB0aGUgc2hhZG93cyBsaWUuIiAtLSBUaGUgU2lsaWNvbiBWYWxsZXkgVGFy
+b3QKPiAgIEhlbnJpcXVlIEhvbHNjaHVoCj4gCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tClRha2UgU3VydmV5
+cy4gRWFybiBDYXNoLiBJbmZsdWVuY2UgdGhlIEZ1dHVyZSBvZiBJVApKb2luIFNvdXJjZUZvcmdl
+Lm5ldCdzIFRlY2hzYXkgcGFuZWwgYW5kIHlvdSdsbCBnZXQgdGhlIGNoYW5jZSB0byBzaGFyZSB5
+b3VyCm9waW5pb25zIG9uIElUICYgYnVzaW5lc3MgdG9waWNzIHRocm91Z2ggYnJpZWYgc3VydmV5
+cy1hbmQgZWFybiBjYXNoCmh0dHA6Ly93d3cudGVjaHNheS5jb20vZGVmYXVsdC5waHA/cGFnZT1q
+b2luLnBocCZwPXNvdXJjZWZvcmdlJkNJRD1ERVZERVYKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KaWJtLWFjcGktZGV2ZWwgbWFpbGluZyBsaXN0CmlibS1h
+Y3BpLWRldmVsQGxpc3RzLnNvdXJjZWZvcmdlLm5ldApodHRwczovL2xpc3RzLnNvdXJjZWZvcmdl
+Lm5ldC9saXN0cy9saXN0aW5mby9pYm0tYWNwaS1kZXZlbAo=
