@@ -1,50 +1,46 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: Gigabyte GA-M57SLI-S4 (the linuxbios compatible version)
- problems
-Date: Thu, 15 Mar 2007 11:05:57 -0800
-Message-ID: <20070315110557.ef1df0c8.akpm@linux-foundation.org>
-References: <200703121210.15812.st@iss.tu-darmstadt.de>
+Subject: Re: lid switch hangs notebook
+Date: Thu, 15 Mar 2007 11:06:06 -0800
+Message-ID: <20070315110606.741c2dc4.akpm@linux-foundation.org>
+References: <a790ea7a0703120753i232ace2bg7272fa479b821e32@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36592 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36594 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751289AbXCOTGH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Mar 2007 15:06:07 -0400
-In-Reply-To: <200703121210.15812.st@iss.tu-darmstadt.de>
+	id S1751894AbXCOTGJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Mar 2007 15:06:09 -0400
+In-Reply-To: <a790ea7a0703120753i232ace2bg7272fa479b821e32@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ST <st@iss.tu-darmstadt.de>
+To: Antonio Mignolli <antoniomignolli@gmail.com>
 Cc: linux-acpi@vger.kernel.org
 
-> On Mon, 12 Mar 2007 12:10:15 +0100 ST <st@iss.tu-darmstadt.de> wrote:
-> Hi
+> On Mon, 12 Mar 2007 15:53:18 +0100 "Antonio Mignolli" <antoniomignolli@gmail.com> wrote:
+> Hi,
+> I'm running a slackware 10.2 on a HP/Compaq nx5000.
 > 
-> I am trying to boot 2.6.20.2 on a Gigabyte GA-M57SLI-S4 with f7 stock bios.
-> I get the message:
-> ENABLING IO-APIC IRQs
-> ..TIMER: vector=0x31 apic1=0 pin1=0 apic2=-1 pin2=-1
-> ..MP-BIOS bug: 8254 timer not connected to IO-APIC
-> ...trying to set up timer (IRQ0) through the 8259A ... failed.
-> ...trying to set up timer as Virtual Wire IRQ... failed.
-> ...trying to set up timer as ExtINT IRQ... failed :(.
-> Kernel panic - not syncing: IO-APIC + timer doesn't work!
+> With kernels <= 2.6.17.3 I didn't have problems.
+> Starting from 2.6.19 if I close the notebook's video,
+> or if I press the lid switch,
+> after a couple of time, or after a few seconds, the o.s. hangs
+> completely. The only thing to do is a brute power off
+> by pressing for 5 seconds the power button
+> (If I press for few it should do a clean shutdown -h).
+> I've tried 2.6.19, 2.6.19.1, 2.6.19.2, 2.6.20, 2.6.20.1, 2.6.20.2,
+> and all of them seem to give problems.
 > 
-> I can boot with noapic option but then i only have one processor (AMD X2 3800+ 
-> stepping 02).
-> 
-> apic=debug doesn't give any more output than this. 
-> 
-> A bios update didn't help to the f7 version didn't help. This error is also 
-> present with the debian stock kernel.
-> 
-> I thought that this MB should be pretty good supported, given the fact that 
-> there is an linuxbios in the works for this MB or am i bitten by a HW 
-> failure?
-> 
+> I don't have KERNEL_DEBUG set, so I haven't any debug informations,
+> I will be happy to activate it and provide more info if someone suggests
+> me which debug parameters I should set.
+> There's nothing in /var/log/messages and /var/log/syslog,
+> except for the message "LID switch" added by me
+> with a logger command in /etc/acpi/acpi_handler.sh.
+> I've put it after noticing the problem, in order to be sure the event was
+> detected, and it was.
 
-Apparently pci=noacpi fixes this.
+I guess this is an ACPI think, although not necessarily.
 
-ST (what sort of a name is that?): please raise a report against ACPI
-at bugzilla.kernel.org, thanks.
+Len & co: do you think we should ask Antonio to raise a report
+against ACPI at bugzilla.kernel.org?
