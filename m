@@ -1,15 +1,21 @@
-From: Kristen Carlson Accardi <kristen.c.accardi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] ACPI: ibm-acpi: allow module to load
- when acpi notifiers can't be set
-Date: Thu, 15 Mar 2007 12:26:54 -0700
-Message-ID: <20070315122654.468bdd39.kristen.c.accardi@intel.com>
-References: <20070315071019.GA22613@tuatara.stupidest.org>
-	<20070315175113.GA6596@khazad-dum.debian.net>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: Re: CONFIG_IBM_BAY
+Date: Thu, 15 Mar 2007 16:31:24 -0300
+Message-ID: <20070315193123.GB14394@khazad-dum.debian.net>
+References: <11736588493609-git-send-email-hmh@hmh.eng.br>
+	<20070315031015.GA6292@khazad-dum.debian.net>
+	<20070315031251.GB6292@khazad-dum.debian.net>
+	<200703150206.05811.lenb@kernel.org>
+	<20070315133900.GC26862@khazad-dum.debian.net>
+	<20070315080644.c73db24a.kristen.c.accardi@intel.com>
+	<20070315175505.GB6596@khazad-dum.debian.net>
+	<20070315110156.09e80b99.kristen.c.accardi@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20070315175113.GA6596-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20070315110156.09e80b99.kristen.c.accardi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
 	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ibm-acpi-devel>
@@ -19,71 +25,56 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
 	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chris Wedgwood <cw-LC2/xnR6T6k@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Kristen Carlson Accardi <kristen.c.accardi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gVGh1LCAxNSBNYXIgMjAwNyAxNDo1MToxNCAtMDMwMApIZW5yaXF1ZSBkZSBNb3JhZXMgSG9s
-c2NodWggPGhtaEBobWguZW5nLmJyPiB3cm90ZToKCj4gVGhpcyBwYXRjaCBhbGxvd3MgZm9yIGli
-bS1hY3BpIHRvIGNvZXhpc3QgKHdpdGggZGltaW5pc2hlZCBmdW5jdGlvbmFsaXR5KSB3aXRoCj4g
-b3RoZXIgZHJpdmVycyBsaWtlIEFDUElfQkFZLiAgaWJtLWFjcGkgd2lsbCBzaW1wbHkgZGlzYWJs
-ZSB0aGUgZnVuY3Rpb25zIGl0IGlzCj4gbm90IGFibGUgdG8gcmVnaXN0ZXIgQUNQSSBub3RpZmll
-cnMgZm9yLgoKCnRoaXMgcGF0Y2ggZ2l2ZXMgbWUgdGhlIGZvbGxvd2luZyBjb21waWxlIGVycm9y
-OgoKZHJpdmVycy9hY3BpL2libV9hY3BpLmM6IEluIGZ1bmN0aW9uIOKAmGlibV9pbml04oCZOgpk
-cml2ZXJzL2FjcGkvaWJtX2FjcGkuYzoyNjA1OiB3YXJuaW5nOiBpbXBsaWNpdCBkZWNsYXJhdGlv
-biBvZiBmdW5jdGlvbiDigJhpYm1fZXhpdOKAmQpkcml2ZXJzL2FjcGkvaWJtX2FjcGkuYzogQXQg
-dG9wIGxldmVsOgpkcml2ZXJzL2FjcGkvaWJtX2FjcGkuYzoyNjE2OiB3YXJuaW5nOiBjb25mbGlj
-dGluZyB0eXBlcyBmb3Ig4oCYaWJtX2V4aXTigJkKZHJpdmVycy9hY3BpL2libV9hY3BpLmM6MjYx
-NjogZXJyb3I6IHN0YXRpYyBkZWNsYXJhdGlvbiBvZiDigJhpYm1fZXhpdOKAmSBmb2xsb3dzIG5v
-bi1zdGF0aWMgZGVjbGFyYXRpb24KZHJpdmVycy9hY3BpL2libV9hY3BpLmM6MjYwNTogZXJyb3I6
-IHByZXZpb3VzIGltcGxpY2l0IGRlY2xhcmF0aW9uIG9mIOKAmGlibV9leGl04oCZIHdhcyBoZXJl
-CgoKCj4gCj4gU2lnbmVkLW9mZi1ieTogSGVucmlxdWUgZGUgTW9yYWVzIEhvbHNjaHVoIDxobWhA
-aG1oLmVuZy5icj4KPiBDYzogQ2hyaXMgV2VkZ3dvb2QgPGN3QGYwMGYub3JnPgo+IENjOiBLcmlz
-dGVuIENhcmxzb24gQWNjYXJkaSA8a3Jpc3Rlbi5jLmFjY2FyZGlAaW50ZWwuY29tPgo+IC0tLQo+
-IAo+ICBMZW4sIHlvdSBjYW4gcHVsbCB0aGlzIHBhdGNoIGZyb206Cj4gIGdpdDovL3JlcG8ub3Iu
-Y3ovbGludXgtMi42L2xpbnV4LWFjcGktMi42L2libS1hY3BpLTIuNi5naXQKPiAgYnJhbmNoIGZv
-ci11cHN0cmVhbS9hY3BpLXJlbGVhc2UKPiAKPiAgUGxlYXNlIHNlbmQgaXQgdG8gTGludXMgZm9y
-IG1lcmdlIGluIDIuNi4yMS4KPiAKPiAgSXQgd2lsbCBjbGFzaCB3aXRoIHRoZSBwYXRjaGVzIGlu
-IGFjcGktdGVzdCB0aGF0IGFyZSB3YWl0aW5nIGZvciAyLjYuMjIuCj4gIEkgd2lsbCByZWRpZmYg
-dGhvc2UsIGFuZCBzZW5kIHlvdSBhIHB1bGwgcmVxdWVzdCB3aGVuIHRoaXMgcGF0Y2gKPiAgZ2V0
-cyBhY2NlcHRlZCBpbiBtYWlubGluZS4KPiAKPiAgZHJpdmVycy9hY3BpL2libV9hY3BpLmMgfCAg
-IDE3ICsrKysrKysrKysrKysrLS0tCj4gIDEgZmlsZXMgY2hhbmdlZCwgMTQgaW5zZXJ0aW9ucygr
-KSwgMyBkZWxldGlvbnMoLSkKPiAKPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2libV9hY3Bp
-LmMgYi9kcml2ZXJzL2FjcGkvaWJtX2FjcGkuYwo+IGluZGV4IDM2OTAxMzYuLmY5ZjM2ZjkgMTAw
-NjQ0Cj4gLS0tIGEvZHJpdmVycy9hY3BpL2libV9hY3BpLmMKPiArKysgYi9kcml2ZXJzL2FjcGkv
-aWJtX2FjcGkuYwo+IEBAIC0yNTA3LDcgKzI1MDcsNyBAQCBzdGF0aWMgaW50IF9faW5pdCBzZXR1
-cF9ub3RpZnkoc3RydWN0IGlibV9zdHJ1Y3QgKmlibSkKPiAgCXJldCA9IGFjcGlfYnVzX2dldF9k
-ZXZpY2UoKmlibS0+aGFuZGxlLCAmaWJtLT5kZXZpY2UpOwo+ICAJaWYgKHJldCA8IDApIHsKPiAg
-CQlwcmludGsoSUJNX0VSUiAiJXMgZGV2aWNlIG5vdCBwcmVzZW50XG4iLCBpYm0tPm5hbWUpOwo+
-IC0JCXJldHVybiAwOwo+ICsJCXJldHVybiAtRU5PREVWOwo+ICAJfQo+ICAKPiAgCWFjcGlfZHJp
-dmVyX2RhdGEoaWJtLT5kZXZpY2UpID0gaWJtOwo+IEBAIC0yNTE2LDggKzI1MTYsMTMgQEAgc3Rh
-dGljIGludCBfX2luaXQgc2V0dXBfbm90aWZ5KHN0cnVjdCBpYm1fc3RydWN0ICppYm0pCj4gIAlz
-dGF0dXMgPSBhY3BpX2luc3RhbGxfbm90aWZ5X2hhbmRsZXIoKmlibS0+aGFuZGxlLCBpYm0tPnR5
-cGUsCj4gIAkJCQkJICAgICBkaXNwYXRjaF9ub3RpZnksIGlibSk7Cj4gIAlpZiAoQUNQSV9GQUlM
-VVJFKHN0YXR1cykpIHsKPiAtCQlwcmludGsoSUJNX0VSUiAiYWNwaV9pbnN0YWxsX25vdGlmeV9o
-YW5kbGVyKCVzKSBmYWlsZWQ6ICVkXG4iLAo+IC0JCSAgICAgICBpYm0tPm5hbWUsIHN0YXR1cyk7
-Cj4gKwkJaWYgKHN0YXR1cyA9PSBBRV9BTFJFQURZX0VYSVNUUykgewo+ICsJCQlwcmludGsoSUJN
-X05PVElDRSAiYW5vdGhlciBkZXZpY2UgZHJpdmVyIGlzIGFscmVhZHkgaGFuZGxpbmcgJXMgZXZl
-bnRzXG4iLAo+ICsJCQkJaWJtLT5uYW1lKTsKPiArCQl9IGVsc2Ugewo+ICsJCQlwcmludGsoSUJN
-X0VSUiAiYWNwaV9pbnN0YWxsX25vdGlmeV9oYW5kbGVyKCVzKSBmYWlsZWQ6ICVkXG4iLAo+ICsJ
-CQkJaWJtLT5uYW1lLCBzdGF0dXMpOwo+ICsJCX0KPiAgCQlyZXR1cm4gLUVOT0RFVjsKPiAgCX0K
-PiAgCWlibS0+bm90aWZ5X2luc3RhbGxlZCA9IDE7Cj4gQEAgLTI1OTQsNiArMjU5OSwxMiBAQCBz
-dGF0aWMgaW50IF9faW5pdCBpYm1faW5pdChzdHJ1Y3QgaWJtX3N0cnVjdCAqaWJtKQo+ICAKPiAg
-CWlmIChpYm0tPm5vdGlmeSkgewo+ICAJCXJldCA9IHNldHVwX25vdGlmeShpYm0pOwo+ICsJCWlm
-IChyZXQgPT0gLUVOT0RFVikgewo+ICsJCQlwcmludGsoSUJNX05PVElDRSAiZGlzYWJsaW5nIHN1
-YmRyaXZlciAlc1xuIiwKPiArCQkJCWlibS0+bmFtZSk7Cj4gKwkJCWlibV9leGl0KGlibSk7Cj4g
-KwkJCXJldHVybiAwOwo+ICsJCX0KPiAgCQlpZiAocmV0IDwgMCkKPiAgCQkJcmV0dXJuIHJldDsK
-PiAgCX0KPiAtLSAKPiAxLjUuMC4zCj4gCj4gCj4gLS0gCj4gICAiT25lIGRpc2sgdG8gcnVsZSB0
-aGVtIGFsbCwgT25lIGRpc2sgdG8gZmluZCB0aGVtLiBPbmUgZGlzayB0byBicmluZwo+ICAgdGhl
-bSBhbGwgYW5kIGluIHRoZSBkYXJrbmVzcyBncmluZCB0aGVtLiBJbiB0aGUgTGFuZCBvZiBSZWRt
-b25kCj4gICB3aGVyZSB0aGUgc2hhZG93cyBsaWUuIiAtLSBUaGUgU2lsaWNvbiBWYWxsZXkgVGFy
-b3QKPiAgIEhlbnJpcXVlIEhvbHNjaHVoCj4gCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tClRha2UgU3VydmV5
-cy4gRWFybiBDYXNoLiBJbmZsdWVuY2UgdGhlIEZ1dHVyZSBvZiBJVApKb2luIFNvdXJjZUZvcmdl
-Lm5ldCdzIFRlY2hzYXkgcGFuZWwgYW5kIHlvdSdsbCBnZXQgdGhlIGNoYW5jZSB0byBzaGFyZSB5
-b3VyCm9waW5pb25zIG9uIElUICYgYnVzaW5lc3MgdG9waWNzIHRocm91Z2ggYnJpZWYgc3VydmV5
-cy1hbmQgZWFybiBjYXNoCmh0dHA6Ly93d3cudGVjaHNheS5jb20vZGVmYXVsdC5waHA/cGFnZT1q
-b2luLnBocCZwPXNvdXJjZWZvcmdlJkNJRD1ERVZERVYKX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KaWJtLWFjcGktZGV2ZWwgbWFpbGluZyBsaXN0CmlibS1h
-Y3BpLWRldmVsQGxpc3RzLnNvdXJjZWZvcmdlLm5ldApodHRwczovL2xpc3RzLnNvdXJjZWZvcmdl
-Lm5ldC9saXN0cy9saXN0aW5mby9pYm0tYWNwaS1kZXZlbAo=
+On Thu, 15 Mar 2007, Kristen Carlson Accardi wrote:
+> I think we should focus our efforts on a generic (non platform specific) 
+> solution that can work across many laptops (i.e. ACPI_BAY).  Let's make
+
+Agreed, as long as that doesn't mean we have to pollute ACPI_BAY with a
+truckload of crap required to deal with vendor/model-specific idioticities.
+I hope ThinkPads are not like that, but I am not sure, and I'd feel bad
+about adding a lot of quirks to ACPI_BAY because of ThinkPad weirdness :p
+
+Otherwise, it would be best to allow model-specific modules to provide extra
+functionality for ACPI_BAY, that way we have generic code, and we can
+contain the braindamage to where it belongs (e.g. in ibm-acpi).
+
+> so if you do have time to work on this, that would be great.  I am happy 
+> to test on the set of laptops I've got.
+
+I will see what I can do.  My "first approach" at a requirements list for a
+proper bay module are as follows:
+
+1. It will handle all device types (ATAPI, PATA, SATA, batteries);
+
+2. It will do the right thing on plug and unplug.  This means telling the
+rest of the kernel to disable the device in the bay, for example.  Right now
+we shutdown one end of the PATA/SATA link on ThinkPads eletrically, and
+leave libata to scream blood murder until it disables its end due to too
+many retries, for example;
+
+3. It will allow model-specific drivers (like ibm-acpi) to be notified of
+bay events (callbacks or a notifier chain, since ACPICA doesn't allow for
+more than one driver notifier per handle) and to request an immediate
+attempt of ejection or hotplug/bay device change verification.  Some
+thinkpads benefit from an eject before S3 sleep -- as long as what is inside
+is not a battery...
+
+I don't see why the generic driver could not do all of the above.  But it
+will take a while to get there :-)  And no, ibm-acpi can't do much more than
+(1).
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
+
+-------------------------------------------------------------------------
+Take Surveys. Earn Cash. Influence the Future of IT
+Join SourceForge.net's Techsay panel and you'll get the chance to share your
+opinions on IT & business topics through brief surveys-and earn cash
+http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
