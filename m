@@ -1,39 +1,36 @@
-From: Chris Wedgwood <cw@f00f.org>
-Subject: [PATCH] ACPI_IBM_BAY can not coexist with ACPI_BAY
-Date: Thu, 15 Mar 2007 00:10:19 -0700
-Message-ID: <20070315071019.GA22613@tuatara.stupidest.org>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: [PATCH 01/22] cpuidle take2: Core cpuidle infrastructure
+Date: 15 Mar 2007 13:31:33 +0100
+Message-ID: <p7364928z8a.fsf@bingen.suse.de>
+References: <11734992592550-git-send-email-lenb@kernel.org>
+	<11734992601441-git-send-email-lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp108.sbc.mail.mud.yahoo.com ([68.142.198.207]:47513 "HELO
-	smtp108.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750934AbXCOHRB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Mar 2007 03:17:01 -0400
-Content-Disposition: inline
+Received: from mail.suse.de ([195.135.220.2]:45491 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933465AbXCOLcU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Mar 2007 07:32:20 -0400
+In-Reply-To: <11734992601441-git-send-email-lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, ibm-acpi@hmh.eng.br
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: venkatesh.pallipadi@intel.com, linux-acpi@vger.kernel.org
 
-ACPI_IBM_BAY cannot coexist with ACPI_BAY --- it causes the IBM ACPI
-code to fail to initialize so all the IBM ACPI functionality is
-missing.  The simplest fix is to just make sure the Kconfig magic
-disallows ACPI_IBM_BAY when ACPI_BAY is enabled.
+Len Brown <lenb@kernel.org> writes:
+> +
+> +/**
+> + * cpuidle_idle_call - the main idle loop
+> + *
+> + * NOTE: no locks or semaphores should be used here
+> + * FIXME: DYNTICKS handling
 
-Signed-off-by: Chris Wedgwood <cw@f00f.org>
+I don't think you can merge anything anymore with such a FIXME.
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index e2ce4a9..1a83fc6 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -246,7 +246,7 @@ config ACPI_IBM_DOCK
- 
- config ACPI_IBM_BAY
- 	bool "Legacy Removable Bay Support"
--	depends on ACPI_IBM
-+	depends on ACPI_IBM && !ACPI_BAY
- 	default y
- 	---help---
- 	  Allows the ibm_acpi driver to handle removable bays.  It will allow
+Besides cpuidle is a pretty radical change outside ACPI and I would recommend to 
+make a few review cycles over linux-kernel and likely linux-arch. 
+
+For me it's not clear it has enough advantages for its amount of code
+
+-Andi
 
