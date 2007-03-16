@@ -1,75 +1,111 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: ibm-acpi bay and acpi generic bay convergence
-Date: Thu, 15 Mar 2007 19:04:14 -0300
-Message-ID: <20070315220414.GC15572@khazad-dum.debian.net>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI: ibm-acpi: allow module to load when acpi notifiers can't be set (v2)
+Date: Fri, 16 Mar 2007 01:24:18 -0400
+Message-ID: <200703160124.18942.lenb@kernel.org>
+References: <20070315071019.GA22613@tuatara.stupidest.org> <20070315175113.GA6596@khazad-dum.debian.net> <20070315191506.GA14394@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:58150 "EHLO
-	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753392AbXCOWEW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Mar 2007 18:04:22 -0400
+Received: from hera.kernel.org ([140.211.167.34]:56036 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752596AbXCPGos (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 16 Mar 2007 02:44:48 -0400
+In-Reply-To: <20070315191506.GA14394@khazad-dum.debian.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Chris Wedgwood <cw@f00f.org>, ibm-acpi-devel@lists.sourceforge.net, kristen.c.accardi@intel.com
 
-Kristen,
-
-I just compared ibm-acpi bay stuff with what is in the generic driver.
-Here's a initial take of stuff to do:
+Applied.
 
 
-1. The generic driver only handles hotplug bays (_EJ0).  I'd like to also
-handle warm/coldplug bays (_EJ3).
+On Thursday 15 March 2007 15:15, Henrique de Moraes Holschuh wrote:
+> This patch allows for ibm-acpi to coexist (with diminished functionality) with
+> other drivers like ACPI_BAY.  ibm-acpi will simply disable the functions it is
+> not able to register ACPI notifiers for.
+> 
+> Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+> Cc: Chris Wedgwood <cw@f00f.org>
+> Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+> ---
+> 
+>  There was a minor problem in the first version of the patch, which I didn't
+>  notice when backporting from acpi-test.  This is a fixed version.  Sorry
+>  about this.
+> 
+>  Len, you can pull this patch from:
+>  git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git
+>  branch for-upstream/acpi-release
+>  
+>  Please send it to Linus for merge in 2.6.21.
+>  
+>  It will clash with the patches in acpi-test that are waiting for 2.6.22.
+>  I will rediff those, and send you a pull request when this patch
+>  gets accepted in mainline.
 
-Warm/coldplug bays are available on ThinkPads model 600e/x, A2Xm/p, A3Xm/p.
-They are otherwise as hard (or easy) to handle as any other thinkpad bay.
+ok
 
-I don't know if for such bays it would be better to eject when preparing for
-a suspend instead of immediately, as they lack the required hardware to
-allow for safe removal of devices while the machine is still on.
-
-2. The current logic for is_ata probably won't get everything PATA.  I
-assume nobody is doing SATA bays without the SATA namespace nodes, but that
-is also a possible source of error.  I didn't have time to manually check
-the ThinkPad DSDTs I have around to see if there is a known failure for
-PATA, yet.
-
-If is_ata could try harder to identify a PATA/SATA device that is missing
-the usual nodes, it would be better. However, I have *no* idea on how to do
-that.
-
-It is, however, a good enough reason to export an API to allow drivers like
-ibm-acpi to inform ACPI_BAY that a given handle should be added as a bay --
-this allows us to use higly model-specific knowledge (like a fixed map
-between DSDT namespace to PATA port) to locate every bay.  That would also
-require an API for ibm-acpi to know if ACPI_BAY gets loaded/unloaded...
-
-If we were using anything less limited than the platform bus, we could even
-do this properly and just have ibm-acpi register bay devices that the driver
-model would match with a bay driver (ACPI_BAY).  That would also make it
-extremely easy to deal with device-specific attributes, and inter-module
-communication.  Can we have that proper bus for ACPI stuff, pretty please?
-
-3. is_ejectable_bay is too simple-minded.  It could work for batteries, if it
-didn't try so hard to detect only sata/ata devices as bays.  Maybe it can be
-changed to try to detect anything that can be ejected and which is not a
-dock?  It would find thinkpad batteries, then.
-
-Alternatively, I can use the API I asked for (2) to register the battery bay
-handler.  But that looks less optimal, right now.
+thanks Henrique,
+-Len
 
 
-I need to do some tests to check what happens in a thinkpad when you swap an
-ATAPI device with a battery, let's hope IBM did the right thing re. the
-event sources since they have two bay handles that belong to the same bay,
-and that Lenovo didn't break it.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+>  drivers/acpi/ibm_acpi.c |   19 ++++++++++++++++---
+>  1 files changed, 16 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
+> index 3690136..dc10966 100644
+> --- a/drivers/acpi/ibm_acpi.c
+> +++ b/drivers/acpi/ibm_acpi.c
+> @@ -2507,7 +2507,7 @@ static int __init setup_notify(struct ibm_struct *ibm)
+>  	ret = acpi_bus_get_device(*ibm->handle, &ibm->device);
+>  	if (ret < 0) {
+>  		printk(IBM_ERR "%s device not present\n", ibm->name);
+> -		return 0;
+> +		return -ENODEV;
+>  	}
+>  
+>  	acpi_driver_data(ibm->device) = ibm;
+> @@ -2516,8 +2516,13 @@ static int __init setup_notify(struct ibm_struct *ibm)
+>  	status = acpi_install_notify_handler(*ibm->handle, ibm->type,
+>  					     dispatch_notify, ibm);
+>  	if (ACPI_FAILURE(status)) {
+> -		printk(IBM_ERR "acpi_install_notify_handler(%s) failed: %d\n",
+> -		       ibm->name, status);
+> +		if (status == AE_ALREADY_EXISTS) {
+> +			printk(IBM_NOTICE "another device driver is already handling %s events\n",
+> +				ibm->name);
+> +		} else {
+> +			printk(IBM_ERR "acpi_install_notify_handler(%s) failed: %d\n",
+> +				ibm->name, status);
+> +		}
+>  		return -ENODEV;
+>  	}
+>  	ibm->notify_installed = 1;
+> @@ -2553,6 +2558,8 @@ static int __init register_driver(struct ibm_struct *ibm)
+>  	return ret;
+>  }
+>  
+> +static void ibm_exit(struct ibm_struct *ibm);
+> +
+>  static int __init ibm_init(struct ibm_struct *ibm)
+>  {
+>  	int ret;
+> @@ -2594,6 +2601,12 @@ static int __init ibm_init(struct ibm_struct *ibm)
+>  
+>  	if (ibm->notify) {
+>  		ret = setup_notify(ibm);
+> +		if (ret == -ENODEV) {
+> +			printk(IBM_NOTICE "disabling subdriver %s\n",
+> +				ibm->name);
+> +			ibm_exit(ibm);
+> +			return 0;
+> +		}
+>  		if (ret < 0)
+>  			return ret;
+>  	}
+> -- 
+> 1.5.0.3
+> 
