@@ -1,74 +1,46 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: ibm-acpi bay and acpi generic bay convergence
-Date: Sat, 17 Mar 2007 16:24:29 -0300
-Message-ID: <20070317192429.GA6508@khazad-dum.debian.net>
-References: <20070315220414.GC15572@khazad-dum.debian.net>
+From: Tejun Heo <htejun@gmail.com>
+Subject: Re: CONFIG_IBM_BAY
+Date: Sun, 18 Mar 2007 14:38:42 +0900
+Message-ID: <45FCD062.3050001@gmail.com>
+References: <11736588493609-git-send-email-hmh@hmh.eng.br>	<20070315031015.GA6292@khazad-dum.debian.net>	<20070315031251.GB6292@khazad-dum.debian.net>	<200703150206.05811.lenb@kernel.org>	<20070315133900.GC26862@khazad-dum.debian.net>	<20070315080644.c73db24a.kristen.c.accardi@intel.com>	<20070315175505.GB6596@khazad-dum.debian.net>	<20070315110156.09e80b99.kristen.c.accardi@intel.com>	<20070315193123.GB14394@khazad-dum.debian.net> <20070315125037.3e82e0c4.kristen.c.accardi@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:59305 "EHLO
-	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753789AbXCQTYh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 17 Mar 2007 15:24:37 -0400
-Content-Disposition: inline
-In-Reply-To: <20070315220414.GC15572@khazad-dum.debian.net>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <20070315125037.3e82e0c4.kristen.c.accardi@intel.com>
+Sender: linux-ide-owner@vger.kernel.org
 To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, linux-ide@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 15 Mar 2007, Henrique de Moraes Holschuh wrote:
-> 3. is_ejectable_bay is too simple-minded.  It could work for batteries, if it
-> didn't try so hard to detect only sata/ata devices as bays.  Maybe it can be
-> changed to try to detect anything that can be ejected and which is not a
-> dock?  It would find thinkpad batteries, then.
-> 
-> Alternatively, I can use the API I asked for (2) to register the battery bay
-> handler.  But that looks less optimal, right now.
-> 
-> 
-> I need to do some tests to check what happens in a thinkpad when you swap an
-> ATAPI device with a battery, let's hope IBM did the right thing re. the
-> event sources since they have two bay handles that belong to the same bay,
-> and that Lenovo didn't break it.
+Hello,
 
-Well, I have done the tests.  A quick hack to is_ejectable_bay so that it
-registers anything that is not a dock lets ACPI_BAY handle thinkpad bay
-batteries almost perfectly in a T43.  It is that simple.
+Kristen Carlson Accardi wrote:
+>> 1. It will handle all device types (ATAPI, PATA, SATA, batteries);
+>>
+>> 2. It will do the right thing on plug and unplug.  This means telling the
+>> rest of the kernel to disable the device in the bay, for example.  Right now
+>> we shutdown one end of the PATA/SATA link on ThinkPads eletrically, and
+>> leave libata to scream blood murder until it disables its end due to too
+>> many retries, for example;
 
-So the first step is to improve is_ejectable_bay.  What reason did you have
-to limit it only to devices where is_ata returns true?  Is there a reason
-why anything that is not a dock and is ejectable should not be handled as a
-bay ?
+:-)
 
-Back to thinkpad bay batteries:  The ACPI firmware in a T43 knows what you
-inserted in the bay (even before you press the lever!), and directs *all*
-bay events to either the BAT1 node or the relevant IDE0 node.  I don't know
-if the other thinkpad firmwares are also this fine, but if they are, it will
-just work.
+> Personally - I think tighter integration to libata here would be beneficial.
+> Once libata acpi support is straightened out, if we can store acpi handles
+> associated with libata devices, we can perhaps have a mechanism of obtaining
+> ata_device structs so that we can have a nice way of telling libata to 
+> delete devices etc.  I am hoping libata-acpi will be straightened out for
+> 2.6.22.
 
-ThinkPad bay events:  *IF* you have not ejected the device, you get one
-event when the bay release lever is unlocked (eject request), and one when
-the device is pulled off (and phisically disconnected) (hotunplug
-notification).  If you eject the device, you receive no further eject
-events.
+I dunno what the thread is really about but can't this be dealt within
+acpid?  Finding out the correct scsi host node can be tricky but I think
+it can be done reliably by jumping through some sysfs whoops.  Once
+you're there, telling libata to kill or probe is really easy.
 
-You receive one event when the lever is inserted if there is something
-inside the bay (hotplug).
+  http://www.thinkwiki.org/wiki/How_to_hotswap_UltraBay_devices
 
-The only drawback is that the user gets two bays (bay.0/bay.1) which are
-actually the same thing.  Ejecting either will eject the device, which may
-cause issues if the _EJ0 ACPI firmware is different... you really should
-eject them using the correct handler for the device inside the bay.
-
-_STA is decoupled, and will report 1 only for the node with the correct
-device type, which is nice.  This CAN be used to mask off eject requests on
-bays that have nothing inside, but I don't know if that is desired as a
-general setup.
+Thanks.
 
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+tejun
