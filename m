@@ -1,40 +1,77 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: 2.6.21-rc1: known regressions (v2) (part 1)
-Date: Mon, 19 Mar 2007 16:32:22 +0100
-Message-ID: <20070319153222.GF1915@elf.ucw.cz>
-References: <Pine.LNX.4.64.0702202043280.4043@woody.linux-foundation.org> <20070226220152.GA29575@stusta.de> <20070228211318.GB4301@mellanox.co.il> <b6a2187b0702281945n5f62a6b5w1c535de3ef9aaa8f@mail.gmail.com> <20070305000421.GF3441@stusta.de> <b6a2187b0703051732v79a532f6mbf0d3da857a914e6@mail.gmail.com> <b6a2187b0703060403o48130853m9393df70160303c1@mail.gmail.com> <20070306120808.GA9537@mellanox.co.il> <b6a2187b0703060412l66fe8db8l12e5403821d1438b@mail.gmail.com>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: Re: CONFIG_IBM_BAY
+Date: Mon, 19 Mar 2007 12:36:59 -0300
+Message-ID: <20070319153659.GB15942@khazad-dum.debian.net>
+References: <20070315080644.c73db24a.kristen.c.accardi@intel.com>
+	<20070315175505.GB6596@khazad-dum.debian.net>
+	<20070315110156.09e80b99.kristen.c.accardi@intel.com>
+	<20070315193123.GB14394@khazad-dum.debian.net>
+	<20070315125037.3e82e0c4.kristen.c.accardi@intel.com>
+	<45FCD062.3050001@gmail.com> <20070318082751.GA28591@homac2>
+	<20070319132243.GA2869@srcf.ucam.org>
+	<20070319134822.GA4885@homac2.suse.de>
+	<20070319140403.GA3697@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:38440 "EHLO amd.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S965885AbXCSPcq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Mar 2007 11:32:46 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <b6a2187b0703060412l66fe8db8l12e5403821d1438b@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20070319140403.GA3697-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: Tejun Heo <htejun-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Kristen Carlson Accardi <kristen.c.accardi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Jeff Chua <jeff.chua.linux@gmail.com>
-Cc: "Michael S. Tsirkin" <mst@mellanox.co.il>, Adrian Bunk <bunk@stusta.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm@lists.osdl.org, Ingo Molnar <mingo@elte.hu>, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-
-> >> > > > I have the same problem on my IBM X60s on rc1 and rc2. Can't resume
-> >> > > > from RAM, can't suspend to disk. It is possible to revert all the
-> >> > > > changes to ACPI and test it?
-> >> > >
-> >> > > This is with CONFIG_KVM=n?
-> >> >
-> >> > Yes.
-> >>
-> >> I've tried with CONFIG_KVM=n and CONFIG_KVM=y and both does not suspend.
-> >
-> >Do you mean that they "do not resume after suspend"?
+On Mon, 19 Mar 2007, Matthew Garrett wrote:
+> > But you still have to deal with mounted filesystems, no matter if it a
+> > cardbus or a cdrom. Wouldn't we need something like 'save removal'
+> > triggered from userspace like you maybe know from 'the other' operating
+> > system?
 > 
-> I can't even suspend to disk/ram. It just hangs and the lights just
-> blink and everything else hangs. With 2.6.20, it works fine.
+> Yes, there's a need for a mechanism to deal with all of this safely, but 
+> the same is true of any storage device that can be hotplugged (USB, 
+> firewire, anything in a hotplug bay...)
 
-Turn up console loglevel, and see where it hangs...
+True.  The best available procedure to do this for ACPI bay/dock currently
+is, AFAIK:
+
+1. Send event when bay/dock "please release" button/lever is pressed. Do
+*nothing* else.  I know bay does this right, maybe dock doesn't.
+
+2. Wait for something to echo 1 >eject or to call the appropriate routine
+directly, or (if this exists) for an notification from firmware that the
+user IS disconnecting the device for real.
+
+3. delete the device.  This means force-umount, force-close, etc.
+
+4. Tell the hardware to eject.
+
+
+Note that currently (2) and (3) are swapped, as (3) is being done by
+userspace request, instead of by the kernel.  This is something I *don't*
+like.  IMO should do as PCMCIA and hotplug PCI does, and do that in kernel
+space.
+
+The time window where one can ask the user something or notify it is not a
+good idea to eject is between (1) and (2).  If the eject command is issued,
+delete devices (includes sync, of course) and eject.
 
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
+
+-------------------------------------------------------------------------
+Take Surveys. Earn Cash. Influence the Future of IT
+Join SourceForge.net's Techsay panel and you'll get the chance to share your
+opinions on IT & business topics through brief surveys-and earn cash
+http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
