@@ -1,82 +1,45 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: 2.6.21-rc4: known regressions with patches available
-Date: Mon, 19 Mar 2007 21:39:43 +0100
-Message-ID: <20070319203943.GZ752@stusta.de>
-References: <Pine.LNX.4.64.0703160925270.26106@woody.linux-foundation.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: 2.6.21-rc1: known regressions (v2) (part 1)
+Date: Mon, 19 Mar 2007 22:23:29 +0100
+Message-ID: <200703192223.31222.rjw@sisk.pl>
+References: <Pine.LNX.4.64.0702202043280.4043@woody.linux-foundation.org> <b6a2187b0703060412l66fe8db8l12e5403821d1438b@mail.gmail.com> <20070319153222.GF1915@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emailhub.stusta.mhn.de ([141.84.69.5]:35629 "EHLO
-	mailhub.stusta.mhn.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S964796AbXCSUjl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Mar 2007 16:39:41 -0400
+Received: from ogre.sisk.pl ([217.79.144.158]:48824 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753217AbXCSVUo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 Mar 2007 17:20:44 -0400
+In-Reply-To: <20070319153222.GF1915@elf.ucw.cz>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0703160925270.26106@woody.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Colchao <colchaodemola@gmail.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Ray Lee <ray-lk@madrabbit.org>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Tomas Janousek <tomi@nomi.cz>, Thomas Meyer <thomas@m3y3r.de>, Milan Broz <mbroz@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, Randy Cushman <rcushman_linux@earthlink.net>, Takashi Iwai <tiwai@suse.de>, perex@suse.cz, alsa-devel@alsa-project.org, Mark Lord <lkml@rtr.ca>, Jim Radford <radford@blackbean.org>, Oliver Neukum <oneukum@suse.de>, greg@kroah.com, linux-usb-devel@lists.sourceforge.net
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Jeff Chua <jeff.chua.linux@gmail.com>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Adrian Bunk <bunk@stusta.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pm@lists.osdl.org, Ingo Molnar <mingo@elte.hu>, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-Let's not bore people running -rc kernels with regressions that have 
-patches available - let's get this patches into the tree for giving 
-them the pure exciting experience of the many unfixed regressions.
+On Monday, 19 March 2007 16:32, Pavel Machek wrote:
+> 
+> > >> > > > I have the same problem on my IBM X60s on rc1 and rc2. Can't resume
+> > >> > > > from RAM, can't suspend to disk. It is possible to revert all the
+> > >> > > > changes to ACPI and test it?
+> > >> > >
+> > >> > > This is with CONFIG_KVM=n?
+> > >> >
+> > >> > Yes.
+> > >>
+> > >> I've tried with CONFIG_KVM=n and CONFIG_KVM=y and both does not suspend.
+> > >
+> > >Do you mean that they "do not resume after suspend"?
+> > 
+> > I can't even suspend to disk/ram. It just hangs and the lights just
+> > blink and everything else hangs. With 2.6.20, it works fine.
+> 
+> Turn up console loglevel, and see where it hangs...
 
+I think CONFIG_DISABLE_CONSOLE_SUSPEND would have to be set for this purpose
+too.
 
-This email lists some known regressions in Linus' tree compared to 2.6.20
-with patches available.
-
-If you find your name in the Cc header, you are either submitter of one
-of the bugs, maintainer of an affectected subsystem or driver, a patch
-of you caused a breakage or I'm considering you in any other way
-possibly involved with one or more of these issues.
-
-Due to the huge amount of recipients, please trim the Cc when answering.
-
-
-Subject    : acpi_serialize locks system during boot
-References : http://bugzilla.kernel.org/show_bug.cgi?id=8171
-Submitter  : Colchao <colchaodemola@gmail.com>
-Handled-By : Len Brown <len.brown@intel.com>
-Patch      : http://bugzilla.kernel.org/show_bug.cgi?id=8171
-Status     : patch available
-
-
-Subject    : laptop immediately resumes after suspend
-References : http://lkml.org/lkml/2007/3/8/469
-Submitter  : Ray Lee <ray-lk@madrabbit.org>
-Caused-By  : Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
-             commit ed41dab90eb40ac4911e60406bc653661f0e4ce1
-Handled-By : Len Brown <lenb@kernel.org>
-Patch      : http://lkml.org/lkml/2007/3/12/228
-Status     : patch available
-
-
-Subject    : suspend/resume hangs (until keypress)  (CONFIG_NO_HZ)
-References : http://bugzilla.kernel.org/show_bug.cgi?id=8181
-             http://lkml.org/lkml/2007/3/11/112
-Submitter  : Tomas Janousek <tomi@nomi.cz>
-             Thomas Meyer <thomas@m3y3r.de>
-             Milan Broz <mbroz@redhat.com>
-Handled-By : Thomas Gleixner <tglx@linutronix.de>
-Patch      : http://lkml.org/lkml/2007/3/16/406
-Status     : patch available
-
-
-Subject    : snd-intel8x0: no 3d surround sound
-References : http://lkml.org/lkml/2007/3/5/164
-Submitter  : Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Caused-By  : Randy Cushman <rcushman_linux@earthlink.net>
-             commit 831466f4ad2b5fe23dff77edbe6a7c244435e973
-Handled-By : Takashi Iwai <tiwai@suse.de>
-Status     : patch available
-
-
-Subject    : USB: Oops when connecting USB 1.1 docks
-References : http://lkml.org/lkml/2007/3/4/266
-Submitter  : Mark Lord <lkml@rtr.ca>
-Caused-By  : Jim Radford <radford@blackbean.org>
-             commit d9a7ecacac5f8274d2afce09aadcf37bdb42b93a
-Handled-By : Oliver Neukum <oneukum@suse.de>
-             Jim Radford <radford@blackbean.org>
-Patch      : http://lkml.org/lkml/2007/3/13/217
-Status     : patch available
-
+Greetings,
+Rafael
