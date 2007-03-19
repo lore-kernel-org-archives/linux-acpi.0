@@ -1,56 +1,70 @@
-From: Theodore Tso <tytso@mit.edu>
-Subject: Re: [ibm-acpi-devel] CONFIG_IBM_BAY
-Date: Mon, 19 Mar 2007 08:04:55 -0400
-Message-ID: <20070319120455.GI11371@thunk.org>
-References: <11736588493609-git-send-email-hmh@hmh.eng.br> <20070315031015.GA6292@khazad-dum.debian.net> <20070315031251.GB6292@khazad-dum.debian.net> <200703150206.05811.lenb@kernel.org> <20070315133900.GC26862@khazad-dum.debian.net> <20070315080644.c73db24a.kristen.c.accardi@intel.com> <20070315175505.GB6596@khazad-dum.debian.net> <20070315110156.09e80b99.kristen.c.accardi@intel.com> <20070315193123.GB14394@khazad-dum.debian.net>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: [2/6] 2.6.21-rc4: known regressions
+Date: Mon, 19 Mar 2007 10:07:57 -0700
+Message-ID: <45FEC36D.4060106@oracle.com>
+References: <Pine.LNX.4.64.0703160925270.26106@woody.linux-foundation.org> <20070318184915.GV752@stusta.de> <20070319090657.3142b8a8.randy.dunlap@oracle.com> <20070319161504.GU752@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from thunk.org ([69.25.196.29]:42161 "EHLO thunker.thunk.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965847AbXCSRC6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Mar 2007 13:02:58 -0400
-Content-Disposition: inline
-In-Reply-To: <20070315193123.GB14394@khazad-dum.debian.net>
+Received: from rgminet01.oracle.com ([148.87.113.118]:21484 "EHLO
+	rgminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966040AbXCSR2o (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Mar 2007 13:28:44 -0400
+In-Reply-To: <20070319161504.GU752@stusta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Len Brown <lenb@kernel.org>
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, Mar 15, 2007 at 04:31:24PM -0300, Henrique de Moraes Holschuh wrote:
-> I will see what I can do.  My "first approach" at a requirements list for a
-> proper bay module are as follows:
+Adrian Bunk wrote:
+> On Mon, Mar 19, 2007 at 09:06:57AM -0700, Randy Dunlap wrote:
+>> On Sun, 18 Mar 2007 19:49:15 +0100 Adrian Bunk wrote:
+>>
+>>> This email lists some known regressions in Linus' tree compared to 2.6.20.
+>>>
+>>> If you find your name in the Cc header, you are either submitter of one
+>>> of the bugs, maintainer of an affectected subsystem or driver, a patch
+>>> of you caused a breakage or I'm considering you in any other way
+>>> possibly involved with one or more of these issues.
+>>>
+>>> Due to the huge amount of recipients, please trim the Cc when answering.
+>>>
+>>>
+>>> Subject    : x86_64: boot hangs unless CONFIG_PCIEPORTBUS=n and acpi=off
+>>> References : http://bugzilla.kernel.org/show_bug.cgi?id=8162
+>>> Submitter  : Randy Dunlap <randy.dunlap@oracle.com>
+>>> Status     : unknown
+>> Bug is rejected due to user error.
+>> This seems to be a netconsole hang, not ACPI.
 > 
-> 1. It will handle all device types (ATAPI, PATA, SATA, batteries);
+> Thanks for this information.
 > 
-> 2. It will do the right thing on plug and unplug.  This means telling the
-> rest of the kernel to disable the device in the bay, for example.  Right now
-> we shutdown one end of the PATA/SATA link on ThinkPads eletrically, and
-> leave libata to scream blood murder until it disables its end due to too
-> many retries, for example;
-> 
-> 3. It will allow model-specific drivers (like ibm-acpi) to be notified of
-> bay events (callbacks or a notifier chain, since ACPICA doesn't allow for
-> more than one driver notifier per handle) and to request an immediate
-> attempt of ejection or hotplug/bay device change verification.  Some
-> thinkpads benefit from an eject before S3 sleep -- as long as what is inside
-> is not a battery...
-> 
-> I don't see why the generic driver could not do all of the above.  But it
-> will take a while to get there :-)  And no, ibm-acpi can't do much more than
-> (1).
+> Is the netconsole hang a regression?
 
-One more thing I would add from a power management perspective.  It
-should be able to powerdown the bay cleanly on suspend-to-ram, without
-necessarily disconnecting libata or unmounting the filesystem.  
+I have to do more debugging to find out what is going on.  It may be
+PCIEPORTBUS-related, but 2.6.20 or later now boot for me without
+netconsole and hang when using netconsole.  The ending lines in the console
+log are:
 
-It should also be possible for the user to be able to powerdown the
-bay (after first unmounting the filesystem and telling libata to let
-go of the device) if the user wishes to power down the bay for battery
-life reasons --- *without* requiring the user to eject the lever or
-remove the bay as a prerequisite to powering down the bay.
+[   17.946918] PCI: Setting latency timer of device 0000:00:02.0 to 64
+[   17.953211] assign_interrupt_mode Found MSI capability
+[   17.958388] Allocate Port Service[0000:00:02.0:pcie00]
+[   17.963565] Allocate Port Service[0000:00:02.0:pcie01]
+[   17.968736] Allocate Port Service[0000:00:02.0:pcie02]
+[   17.973903] Allocate Port Service[0000:00:02.0:pcie03]
+[   17.979134] PCI: Setting latency timer of device 0000:00:03.0 to 64
+[   17.985430] assign_interrupt_mode Found MSI capability
+[   17.990565] Losing some ticks... checking if CPU frequency changed.
+[   17.996857] Allocate Port Service[0000:00:03.0:pcie00]
+[   18.002013] Allocate Port Service[0000:00:03.0:pcie01]
+[   18.007175] Allocate Port Service[0000:00:03.0:pcie02]
+[   18.012336] Allocate Port Service[0000:00:03.0:pcie03]
+[   18.017552] PCI: Setting latency timer of device 0000:00:03.1 to 64
+[   18.023848] assign_interrupt_mode Found MSI capability
+[   18.029012] Allocate Port Service[0000:00:03.1:pcie00]
 
-(The T60 burns enough power as it is, without any additional help from
-the bay.  :-)
 
-						- Ted
+-- 
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
