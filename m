@@ -1,75 +1,71 @@
-From: Kristen Carlson Accardi <kristen.c.accardi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: ibm-acpi bay and acpi generic bay convergence
-Date: Mon, 19 Mar 2007 11:32:19 -0700
-Message-ID: <20070319113219.0ca52dd8.kristen.c.accardi@intel.com>
-References: <20070315220414.GC15572@khazad-dum.debian.net>
-	<20070317192429.GA6508@khazad-dum.debian.net>
+From: Bill Davidsen <davidsen@tmr.com>
+Subject: Re: [linux-pm] [2/6] 2.6.21-rc2: known regressions
+Date: Mon, 19 Mar 2007 16:33:25 -0400
+Message-ID: <45FEF395.9050409@tmr.com>
+References: <Pine.LNX.4.64.0702272105220.12485@woody.linux-foundation.org>	 <20070305015034.GG3441@stusta.de> <20070308123143.GF5149@mellanox.co.il>	 <Pine.LNX.4.64.0703080954220.10832@woody.linux-foundation.org>	 <20070308192554.GA2999@elte.hu> <20070308230705.GA4611@elte.hu>	 <Pine.LNX.4.64.0703081545110.10832@woody.linux-foundation.org>	 <20070309111957.GA3928@elf.ucw.cz>  <20070318160707.GC12673@elte.hu> <1174236045.6832.9.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20070317192429.GA6508-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <owner-linux-input@atrey.karlin.mff.cuni.cz>
+In-Reply-To: <1174236045.6832.9.camel@localhost>
+Sender: owner-linux-input@atrey.karlin.mff.cuni.cz
+List-Help: <mailto:majordomo@atrey.karlin.mff.cuni.cz?body=help>
+List-Owner: <mailto:owner-linux-input@atrey.karlin.mff.cuni.cz>
+List-Post: <mailto:linux-input@atrey.karlin.mff.cuni.cz>
+List-Unsubscribe: <mailto:linux-input-request@atrey.karlin.mff.cuni.cz?body=unsubscribe>
+To: jg@laptop.org
+Cc: Ingo Molnar <mingo@elte.hu>, Pavel Machek <pavel@ucw.cz>, Ash Milsted <thatistosayiseenem@gawab.com>, dmitry.torokhov@gmail.com, Arkadiusz Miskiewicz <arekm@maven.pl>, linux-pm@lists.osdl.org, Jens Axboe <jens.axboe@oracle.com>, linux-input@atrey.karlin.mff.cuni.cz, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, linux-usb-devel@lists.sourceforge.net, Jeff Chua <jeff.chua.linux@gmail.com>, Meelis Roos <mroos@linux.ee>, Janosch Machowinski <jmachowinski@gmx.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@stusta.de>, linux-acpi@vger.kernel.org, "Eric W. Biederman" <ebiederm@xmission.com>, Thomas Meyer <thomas.mey@web.de>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, 17 Mar 2007 16:24:29 -0300
-Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org> wrote:
-
-> On Thu, 15 Mar 2007, Henrique de Moraes Holschuh wrote:
-> > 3. is_ejectable_bay is too simple-minded.  It could work for batteries, if it
-> > didn't try so hard to detect only sata/ata devices as bays.  Maybe it can be
-> > changed to try to detect anything that can be ejected and which is not a
-> > dock?  It would find thinkpad batteries, then.
-> > 
-> > Alternatively, I can use the API I asked for (2) to register the battery bay
-> > handler.  But that looks less optimal, right now.
-> > 
-> > 
-> > I need to do some tests to check what happens in a thinkpad when you swap an
-> > ATAPI device with a battery, let's hope IBM did the right thing re. the
-> > event sources since they have two bay handles that belong to the same bay,
-> > and that Lenovo didn't break it.
+Jim Gettys wrote:
+> On Sun, 2007-03-18 at 17:07 +0100, Ingo Molnar wrote:
+>> * Pavel Machek <pavel@ucw.cz> wrote:
+>>
+>>>> Some day we may have modesetting support in the kernel for some 
+>>>> graphics hw, right now it's pretty damn spotty.
+>>> Yep, that's the way to go.
+>> hey, i wildly supported this approach ever since 1996, when GGI came up
+>> :-/
+>>
 > 
-> Well, I have done the tests.  A quick hack to is_ejectable_bay so that it
-> registers anything that is not a dock lets ACPI_BAY handle thinkpad bay
-> batteries almost perfectly in a T43.  It is that simple.
+> So wildly you wrote tons of code.... ;-).
 > 
-> So the first step is to improve is_ejectable_bay.  What reason did you have
-> to limit it only to devices where is_ata returns true?  Is there a reason
-> why anything that is not a dock and is ejectable should not be handled as a
-> bay ?
+> More seriously, at the time, XFree86 would have spat in your face for
+> any such thing.  Thankfully, times are changing.
+> 
+> Also more seriously, a somewhat hybrid approach is in order for mode
+> setting: simple mode setting isn't much code and is required for sane
+> behavior on crash (it is nice to get oopses onto a screen); but the full
+> blown mode setting/configuration problem is so large that on some
+> hardware, it is likely left best left to a helper process (not the X
+> server).
+> 
+> Also key to get sane behavior out of the scheduler is to get the X
+> server to yield (sleep in the kernel) rather than busy waiting when the
+> GPU is busy; a standardized interface for this for both fbdev and dri is
+> in order.  Right now, X is a misbehaving compute bound process rather
+> than the properly interactive process it can/should/will be, releasing
+> the CPU whenever the hardware is busy. Needless to say, this wastes
+> cycles and hurts interactivity with just about any scheduler you can
+> devise. It isn't as if this is hard; on UNIX systems we did it in 1984
+> or thereabouts.
 
-The only reason the generic bay driver is limited to only ata devices is
-simply because that's all I decided to implement for the first revision
-of the driver.  So, the perfect time to expand is now :).
-
-Yes - there's a reason why we can't just blindly claim anything ejectable
-that isn't a dock.  PCI Hotplug for example.  What I think would be
-ideal would be if the bay driver could register for events on anything
-ejectable iff no other driver has claimed them.  I couldn't find an easy
-way to do this last time I checked (months ago).  Seems like we might have
-to change the way ACPI notifications are sent - I was hoping they could be
-changed to be more like interrupts - so that you could have a return code
-from the notification call that indicates whether the driver handled the
-event or not - and allow multiple drivers to register for the same event.
-This would also make it possible to eliminate weird stuff like what I'm doing
-with the dock driver to allow the bay driver to get dock notifications -
-the bay driver could just check to see if it's dependent on another object
-using _EJD and then request events on that object as well.
+What you say sounds good, assuming that the cost of a sleep is less than 
+the cost of the busy wait. But this may be hardware, the waits may be 
+very small and frequent, and if it's hitting a small hardware window 
+like retrace, delays in response will cause the time period to be missed 
+completely. This probably less critical with very smart cards, many of 
+us don't run them.
+> 
+> Of course, in 1996, XFree86 would have ignored any such interfaces, in
+> its insane quest for operating system independent user space drivers
+> requiring no standard kernel interfaces.... (it is the second part of
+> this where the true insanity lay).
+>                                   - Jim
+> 
 
 
--------------------------------------------------------------------------
-Take Surveys. Earn Cash. Influence the Future of IT
-Join SourceForge.net's Techsay panel and you'll get the chance to share your
-opinions on IT & business topics through brief surveys-and earn cash
-http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
+-- 
+Bill Davidsen <davidsen@tmr.com>
+   "We have more to fear from the bungling of the incompetent than from
+the machinations of the wicked."  - from Slashdot
