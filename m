@@ -1,46 +1,75 @@
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Subject: Re: CONFIG_IBM_BAY
-Date: Mon, 19 Mar 2007 11:17:45 -0700
-Message-ID: <20070319111745.faa38198.kristen.c.accardi@intel.com>
-References: <20070315031251.GB6292@khazad-dum.debian.net>
-	<200703150206.05811.lenb@kernel.org>
-	<20070315133900.GC26862@khazad-dum.debian.net>
-	<20070315080644.c73db24a.kristen.c.accardi@intel.com>
-	<20070315175505.GB6596@khazad-dum.debian.net>
-	<20070315110156.09e80b99.kristen.c.accardi@intel.com>
-	<20070315193123.GB14394@khazad-dum.debian.net>
-	<20070315125037.3e82e0c4.kristen.c.accardi@intel.com>
-	<45FCD062.3050001@gmail.com>
-	<20070318082751.GA28591@homac2>
-	<20070318183652.GB29422@khazad-dum.debian.net>
+From: Kristen Carlson Accardi <kristen.c.accardi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: ibm-acpi bay and acpi generic bay convergence
+Date: Mon, 19 Mar 2007 11:32:19 -0700
+Message-ID: <20070319113219.0ca52dd8.kristen.c.accardi@intel.com>
+References: <20070315220414.GC15572@khazad-dum.debian.net>
+	<20070317192429.GA6508@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:23147 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932601AbXCSSUO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Mar 2007 14:20:14 -0400
-In-Reply-To: <20070318183652.GB29422@khazad-dum.debian.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20070317192429.GA6508-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, linux-ide@vger.kernel.org
 
-On Sun, 18 Mar 2007 15:36:52 -0300
-Henrique de Moraes Holschuh <hmh@hmh.eng.br> wrote:
+On Sat, 17 Mar 2007 16:24:29 -0300
+Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org> wrote:
 
-> On Sun, 18 Mar 2007, Holger Macht wrote:
-> > those ThinkPads where it is needed. Afterwards it does the corresponding
-> > dock/undock request on ibm_acpi. And this works reliably good what I can
-> > see from the feedback I already got. But for this to work, userspace would
+> On Thu, 15 Mar 2007, Henrique de Moraes Holschuh wrote:
+> > 3. is_ejectable_bay is too simple-minded.  It could work for batteries, if it
+> > didn't try so hard to detect only sata/ata devices as bays.  Maybe it can be
+> > changed to try to detect anything that can be ejected and which is not a
+> > dock?  It would find thinkpad batteries, then.
+> > 
+> > Alternatively, I can use the API I asked for (2) to register the battery bay
+> > handler.  But that looks less optimal, right now.
+> > 
+> > 
+> > I need to do some tests to check what happens in a thinkpad when you swap an
+> > ATAPI device with a battery, let's hope IBM did the right thing re. the
+> > event sources since they have two bay handles that belong to the same bay,
+> > and that Lenovo didn't break it.
 > 
-> It should work with the generic bay device too, but I have no ideas about
-> dock.  But you'll need to deal with udev with the new bay device, something
-> I am not too happy about.  These things are ACPI events, they should remain
-> so unless all other ACPI events are going to become uevents.
+> Well, I have done the tests.  A quick hack to is_ejectable_bay so that it
+> registers anything that is not a dock lets ACPI_BAY handle thinkpad bay
+> batteries almost perfectly in a T43.  It is that simple.
+> 
+> So the first step is to improve is_ejectable_bay.  What reason did you have
+> to limit it only to devices where is_ata returns true?  Is there a reason
+> why anything that is not a dock and is ejectable should not be handled as a
+> bay ?
 
-So ACPI is just a mechanism - an implementation detail in the kernel.  I
-don't think we should have special ACPI events to deal with bay/dock activity.
-If for whatever reason we ever dock something without using ACPI, we can
-make this transparent to userspace.  
+The only reason the generic bay driver is limited to only ata devices is
+simply because that's all I decided to implement for the first revision
+of the driver.  So, the perfect time to expand is now :).
+
+Yes - there's a reason why we can't just blindly claim anything ejectable
+that isn't a dock.  PCI Hotplug for example.  What I think would be
+ideal would be if the bay driver could register for events on anything
+ejectable iff no other driver has claimed them.  I couldn't find an easy
+way to do this last time I checked (months ago).  Seems like we might have
+to change the way ACPI notifications are sent - I was hoping they could be
+changed to be more like interrupts - so that you could have a return code
+from the notification call that indicates whether the driver handled the
+event or not - and allow multiple drivers to register for the same event.
+This would also make it possible to eliminate weird stuff like what I'm doing
+with the dock driver to allow the bay driver to get dock notifications -
+the bay driver could just check to see if it's dependent on another object
+using _EJD and then request events on that object as well.
+
+
+-------------------------------------------------------------------------
+Take Surveys. Earn Cash. Influence the Future of IT
+Join SourceForge.net's Techsay panel and you'll get the chance to share your
+opinions on IT & business topics through brief surveys-and earn cash
+http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
