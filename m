@@ -1,15 +1,16 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 3/8] [-mm] ACPI: add ACPI Fan sysfs interface
-Date: Tue, 20 Mar 2007 17:21:24 +0800
-Message-ID: <1174382484.8833.82.camel@localhost.localdomain>
+Subject: [PATCH 6/8] [-mm] ACPI: add ACPI Processor_throttling sysfs
+	interface
+Date: Tue, 20 Mar 2007 17:21:33 +0800
+Message-ID: <1174382493.8833.85.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga01.intel.com ([192.55.52.88]:5539 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932563AbXCTJWM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Mar 2007 05:22:12 -0400
+	id S932760AbXCTJWU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Mar 2007 05:22:20 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
@@ -17,189 +18,150 @@ Cc: lenb@kernel.org
 
 From: Zhang Rui <rui.zhang@intel.com>
 
-Add ACPI Fan device sysfs interface.
+Add ACPI Processor throttling control sysfs interface.
 
 Attribute	Mode	Description
-state		RW	Fan state.
-			0: Fan is in D0 state(on).
-			3: Fan is in D3 state(off).
+state_count	RO	Maximum throttling state supported by this
+			processor.
+active_state	RW	the current throttling state.
+
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/fan.c |   98 +++++++++++++++++++++++++++++++++++++++++++++++------
- 1 files changed, 87 insertions(+), 11 deletions(-)
+ drivers/acpi/processor_core.c       |   11 ++++++
+ drivers/acpi/processor_throttling.c |   59 ++++++++++++++++++++++++++++++++++++
+ include/acpi/processor.h            |    3 +
+ 3 files changed, 73 insertions(+)
 
-Index: linux-2.6.21-rc3-mm2/drivers/acpi/fan.c
+Index: linux-2.6.21-rc3-mm2/drivers/acpi/processor_throttling.c
 ===================================================================
---- linux-2.6.21-rc3-mm2.orig/drivers/acpi/fan.c	2007-03-16 10:08:06.000000000 +0800
-+++ linux-2.6.21-rc3-mm2/drivers/acpi/fan.c	2007-03-16 10:20:02.000000000 +0800
-@@ -67,8 +67,57 @@ struct acpi_fan {
- };
+--- linux-2.6.21-rc3-mm2.orig/drivers/acpi/processor_throttling.c	2007-03-14 18:47:42.000000000 +0800
++++ linux-2.6.21-rc3-mm2/drivers/acpi/processor_throttling.c	2007-03-14 18:58:59.000000000 +0800
+@@ -37,6 +37,7 @@
+ #include <asm/uaccess.h>
  
- /* --------------------------------------------------------------------------
-+                              FS Interface (/sys)
-+   -------------------------------------------------------------------------- */
-+
+ #include <acpi/acpi_bus.h>
++#include <acpi/acpi_drivers.h>
+ #include <acpi/processor.h>
+ 
+ #define ACPI_PROCESSOR_COMPONENT        0x01000000
+@@ -253,6 +254,62 @@ int acpi_processor_get_throttling_info(s
+ 	return result;
+ }
+ 
++/* sys interface */
 +static ssize_t
-+acpi_fan_state_show(struct acpi_device *dev, char *buf)
++acpi_processor_throttling_state_count_show(struct acpi_device *dev, char *buf)
 +{
-+	struct acpi_fan *fan = acpi_driver_data(dev);
-+	int state = 0;
-+	ssize_t result = 0;
++	struct acpi_processor *pr = acpi_driver_data(dev);
 +
-+	if (!fan)
++	if (!pr || !pr->flags.throttling)
 +		return -EINVAL;
 +
-+	result = acpi_bus_get_power(fan->device->handle, &state);
-+	if (!result)
-+		result = sprintf(buf, "%u\n", state);
-+
-+	return result;
++	return sprintf(buf, "%d\n",  pr->throttling.state_count);
 +}
++static ACPI_DEVICE_ATTR(state_count, 0444, acpi_processor_throttling_state_count_show, NULL);
 +
 +static ssize_t
-+acpi_fan_state_store(struct acpi_device *dev, const char *buf, size_t count)
++acpi_processor_throttling_active_state_show(struct acpi_device *dev, char *buf)
 +{
-+	struct acpi_fan *fan = acpi_driver_data(dev);
-+	ssize_t result;
-+	char * end;
-+	int state;
++	struct acpi_processor *pr = acpi_driver_data(dev);
++	int result;
 +
-+	if (!fan)
++	result = acpi_processor_get_throttling(pr);
++	if (result)
++		return result;
++	else
++		return sprintf(buf, "%d\n",  pr->throttling.state);
++}
++static ssize_t
++acpi_processor_throttling_active_state_store(struct acpi_device *dev, const char *buf, size_t count)
++{
++	struct acpi_processor *pr = acpi_driver_data(dev);
++	int state, result;
++	char* endp;
++
++	state = simple_strtol(buf, &endp, 0);
++	if (*endp == '\0')
 +		return -EINVAL;
 +
-+	state = simple_strtoul(buf, &end, 0);
-+	if (*end == '\0')
-+		return -EINVAL;
-+
-+	result = acpi_bus_set_power(fan->device->handle, state);
++	result = acpi_processor_set_throttling(pr, state);
 +	if (!result)
 +		result = count;
 +
 +	return result;
 +}
-+static ACPI_DEVICE_ATTR(state, 0644, acpi_fan_state_show, acpi_fan_state_store);
++static ACPI_DEVICE_ATTR(active_state, 0644, acpi_processor_throttling_active_state_show, acpi_processor_throttling_active_state_store);
 +
-+static struct device_attribute* fan_attr[] = {
-+	GET_DEV_ATTR(state),
++static struct attribute * processor_throttling_attr[] = {
++	GET_ATTR(state_count),
++	GET_ATTR(active_state),
 +	NULL,
 +};
-+/* --------------------------------------------------------------------------
-                               FS Interface (/proc)
-    -------------------------------------------------------------------------- */
++
++struct attribute_group processor_throttling_group = {
++	.name	= "throttling",
++	.attrs	= processor_throttling_attr,
++};
++
 +#ifdef CONFIG_ACPI_PROCFS
+ /* proc interface */
  
- static struct proc_dir_entry *acpi_fan_dir;
- 
-@@ -128,7 +177,7 @@ static const struct file_operations acpi
- 	.owner = THIS_MODULE,
+ static int acpi_processor_throttling_seq_show(struct seq_file *seq,
+@@ -335,3 +392,5 @@ struct file_operations acpi_processor_th
+ 	.llseek = seq_lseek,
+ 	.release = single_release,
  };
- 
--static int acpi_fan_add_fs(struct acpi_device *device)
-+static int acpi_fan_add_procfs(struct acpi_device *device)
- {
- 	struct proc_dir_entry *entry = NULL;
- 
-@@ -159,7 +208,7 @@ static int acpi_fan_add_fs(struct acpi_d
- 	return 0;
- }
- 
--static int acpi_fan_remove_fs(struct acpi_device *device)
-+static int acpi_fan_remove_procfs(struct acpi_device *device)
- {
- 
- 	if (acpi_device_dir(device)) {
-@@ -171,6 +220,25 @@ static int acpi_fan_remove_fs(struct acp
- 	return 0;
- }
- 
-+static int acpi_fan_procfs_init(void)
-+{
-+	acpi_fan_dir = proc_mkdir(ACPI_FAN_CLASS, acpi_root_dir);
-+	if (!acpi_fan_dir)
-+		return -ENODEV;
-+	acpi_fan_dir->owner = THIS_MODULE;
-+
-+	return 0;
-+}
-+
-+static int acpi_fan_procfs_exit(void)
-+{
-+	remove_proc_entry(ACPI_FAN_CLASS, acpi_root_dir);
-+
-+	return 0;
-+}
-+#else
-+DECLARE_ACPI_DEVICE_PROCFS(fan);
 +#endif
- /* --------------------------------------------------------------------------
-                                  Driver Interface
-    -------------------------------------------------------------------------- */
-@@ -204,18 +272,25 @@ static int acpi_fan_add(struct acpi_devi
- 	acpi_bus_set_power(device->handle, state);
- 	device->flags.force_power_state = 0;
++
+Index: linux-2.6.21-rc3-mm2/include/acpi/processor.h
+===================================================================
+--- linux-2.6.21-rc3-mm2.orig/include/acpi/processor.h	2007-03-14 18:47:42.000000000 +0800
++++ linux-2.6.21-rc3-mm2/include/acpi/processor.h	2007-03-14 18:58:59.000000000 +0800
+@@ -268,7 +268,10 @@ static inline int acpi_processor_ppc_has
+ /* in processor_throttling.c */
+ int acpi_processor_get_throttling_info(struct acpi_processor *pr);
+ int acpi_processor_set_throttling(struct acpi_processor *pr, int state);
++#ifdef CONFIG_ACPI_PROCFS
+ extern struct file_operations acpi_processor_throttling_fops;
++#endif
++extern struct attribute_group processor_throttling_group;
  
--	result = acpi_fan_add_fs(device);
-+	result = acpi_device_add_sysfs(device, fan_attr);
+ /* in processor_idle.c */
+ int acpi_processor_power_init(struct acpi_processor *pr,
+Index: linux-2.6.21-rc3-mm2/drivers/acpi/processor_core.c
+===================================================================
+--- linux-2.6.21-rc3-mm2.orig/drivers/acpi/processor_core.c	2007-03-14 18:58:51.000000000 +0800
++++ linux-2.6.21-rc3-mm2/drivers/acpi/processor_core.c	2007-03-14 19:00:36.000000000 +0800
+@@ -735,6 +735,12 @@ static int __cpuinit acpi_processor_star
  	if (result)
  		goto end;
  
-+	result = acpi_fan_add_procfs(device);
-+	if (result)
-+		goto procfs_error;
++	if (pr->flags.throttling) {
++		result =sysfs_create_group(&device->dev.kobj, &processor_throttling_group);
++		if (result)
++			goto throttling_attr_error;
++	}
 +
- 	printk(KERN_INFO PREFIX "%s [%s] (%s)\n",
- 	       acpi_device_name(device), acpi_device_bid(device),
- 	       !device->power.state ? "on" : "off");
- 
-+	goto end;
-+
-+      procfs_error:
-+	acpi_device_remove_sysfs(device,fan_attr);
-       end:
+ 	result = acpi_processor_add_procfs(device);
  	if (result)
- 		kfree(fan);
--
+ 		goto procfs_error;
+@@ -757,6 +763,8 @@ static int __cpuinit acpi_processor_star
+ 	goto end;
+ 
+       procfs_error:
++	sysfs_remove_group(&device->dev.kobj, &processor_throttling_group);
++      throttling_attr_error:
+ 	acpi_device_remove_sysfs(device, processor_info_attr);
+       end:
  	return result;
- }
+@@ -841,6 +849,9 @@ static int acpi_processor_remove(struct 
  
-@@ -229,7 +304,9 @@ static int acpi_fan_remove(struct acpi_d
+ 	acpi_processor_remove_procfs(device);
  
- 	fan = acpi_driver_data(device);
- 
--	acpi_fan_remove_fs(device);
-+	acpi_fan_remove_procfs(device);
++	if (pr->flags.throttling)
++		sysfs_remove_group(&device->dev.kobj, &processor_throttling_group);
 +
-+	acpi_device_remove_sysfs(device, fan_attr);
+ 	acpi_device_remove_sysfs(device, processor_info_attr);
  
- 	kfree(fan);
- 
-@@ -272,15 +349,14 @@ static int __init acpi_fan_init(void)
- {
- 	int result = 0;
- 
--
--	acpi_fan_dir = proc_mkdir(ACPI_FAN_CLASS, acpi_root_dir);
--	if (!acpi_fan_dir)
-+	result = acpi_fan_procfs_init();
-+	if (result)
- 		return -ENODEV;
--	acpi_fan_dir->owner = THIS_MODULE;
- 
-+	acpi_fan_driver.owner = THIS_MODULE;
- 	result = acpi_bus_register_driver(&acpi_fan_driver);
- 	if (result < 0) {
--		remove_proc_entry(ACPI_FAN_CLASS, acpi_root_dir);
-+		acpi_fan_procfs_exit();
- 		return -ENODEV;
- 	}
- 
-@@ -292,7 +368,7 @@ static void __exit acpi_fan_exit(void)
- 
- 	acpi_bus_unregister_driver(&acpi_fan_driver);
- 
--	remove_proc_entry(ACPI_FAN_CLASS, acpi_root_dir);
-+	acpi_fan_procfs_exit();
- 
- 	return;
- }
+ 	processors[pr->id] = NULL;
