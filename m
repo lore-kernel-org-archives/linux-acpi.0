@@ -1,44 +1,58 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [ibm-acpi-devel] CONFIG_IBM_BAY
-Date: Mon, 19 Mar 2007 21:12:40 -0300
-Message-ID: <20070320001240.GF5932@khazad-dum.debian.net>
-References: <20070315125037.3e82e0c4.kristen.c.accardi@intel.com> <45FCD062.3050001@gmail.com> <20070318082751.GA28591@homac2> <20070319132243.GA2869@srcf.ucam.org> <20070319134822.GA4885@homac2.suse.de> <20070319140403.GA3697@srcf.ucam.org> <20070319143746.GC4885@homac2.suse.de> <20070319111109.1a62740b.kristen.c.accardi@intel.com> <20070319231119.GB5932@khazad-dum.debian.net> <20070319165634.2f2f380c.kristen.c.accardi@intel.com>
+Subject: Re: ibm-acpi bay and acpi generic bay convergence
+Date: Mon, 19 Mar 2007 21:25:18 -0300
+Message-ID: <20070320002518.GG5932@khazad-dum.debian.net>
+References: <20070315220414.GC15572@khazad-dum.debian.net> <20070317192429.GA6508@khazad-dum.debian.net> <20070319113219.0ca52dd8.kristen.c.accardi@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:35982 "EHLO
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:53885 "EHLO
 	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030768AbXCTAMy (ORCPT
+	by vger.kernel.org with ESMTP id S1030782AbXCTAZo (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Mar 2007 20:12:54 -0400
+	Mon, 19 Mar 2007 20:25:44 -0400
 Content-Disposition: inline
-In-Reply-To: <20070319165634.2f2f380c.kristen.c.accardi@intel.com>
+In-Reply-To: <20070319113219.0ca52dd8.kristen.c.accardi@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Holger Macht <hmacht@suse.de>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, lenb@kernel.org
 
 On Mon, 19 Mar 2007, Kristen Carlson Accardi wrote:
-> Is this what you had in mind?  (Warning - I didn't test this).
+> Henrique de Moraes Holschuh <hmh@hmh.eng.br> wrote:
+> > So the first step is to improve is_ejectable_bay.  What reason did you have
+> > to limit it only to devices where is_ata returns true?  Is there a reason
+> > why anything that is not a dock and is ejectable should not be handled as a
+> > bay ?
 > 
+> The only reason the generic bay driver is limited to only ata devices is
+> simply because that's all I decided to implement for the first revision
+> of the driver.  So, the perfect time to expand is now :).
 > 
-> Allow the driver to be loaded with an option that will allow userspace to
-> control whether the laptop is ejected immediately when the user presses the
-> button, or only when the syfs undock file is written.  
-> 
-> if immediate_undock == 1, then when the user presses the undock button, the
-> laptop will send an event to userspace to notify userspace of the undock, but
-> then immediately undock without waiting for userspace.  This is the current
-> behavior, and I set this to be the default.
-> 
-> if immediate_undock == 0, then when the user presses the undock button, the
-> laptop will send an event to userspace and do nothing.  User space can query
-> the "flags" sysfs entry to determine if an undock request has been made by
-> the user (if bit 1 is set).  User space will then need to write the undock 
-> sysfs entry to complete the undocking process.
+> Yes - there's a reason why we can't just blindly claim anything ejectable
+> that isn't a dock.  PCI Hotplug for example.  What I think would be
+> ideal would be if the bay driver could register for events on anything
+> ejectable iff no other driver has claimed them.  I couldn't find an easy
+> way to do this last time I checked (months ago).  Seems like we might have
+> to change the way ACPI notifications are sent - I was hoping they could be
+> changed to be more like interrupts - so that you could have a return code
+> from the notification call that indicates whether the driver handled the
+> event or not - and allow multiple drivers to register for the same event.
+> This would also make it possible to eliminate weird stuff like what I'm doing
+> with the dock driver to allow the bay driver to get dock notifications -
+> the bay driver could just check to see if it's dependent on another object
+> using _EJD and then request events on that object as well.
 
-Yes, that's it exactly.  I didn't try to test it, as I don't have a dock,
-but the above describes what I wanted, indeed.
+I like this idea quite a lot.  Only, we probably need to not only support a
+"walk until someone consumes the event" chain, but also a "notify every
+interested party that an event has happened and was consumed/was not
+consumed" functionality.  You also may wany the "consume event" chain to
+understand priorities when inserting drivers in it, so that you can be a
+"well, if nobody else wants it..." consumer or a "me! me! me!" consumer.
+
+It is not complete (it doesn't allow ibm-acpi to talk to bay and dock
+without using module dependencies for example), but it is quite a good
+start.
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
