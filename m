@@ -1,61 +1,88 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: ibm-acpi bay and acpi generic bay convergence
-Date: Mon, 19 Mar 2007 21:25:18 -0300
-Message-ID: <20070320002518.GG5932@khazad-dum.debian.net>
-References: <20070315220414.GC15572@khazad-dum.debian.net> <20070317192429.GA6508@khazad-dum.debian.net> <20070319113219.0ca52dd8.kristen.c.accardi@intel.com>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [RFC PATCH] _TPC support
+Date: Tue, 20 Mar 2007 09:11:10 +0800
+Message-ID: <1174353070.1665.7.camel@sli10-conroe.sh.intel.com>
+References: <3877989d0703190230v3a3c1c7alfa52fe0c87a12aca@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:53885 "EHLO
-	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030782AbXCTAZo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Mar 2007 20:25:44 -0400
-Content-Disposition: inline
-In-Reply-To: <20070319113219.0ca52dd8.kristen.c.accardi@intel.com>
+Received: from mga01.intel.com ([192.55.52.88]:24211 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030823AbXCTBOA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 Mar 2007 21:14:00 -0400
+In-Reply-To: <3877989d0703190230v3a3c1c7alfa52fe0c87a12aca@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, lenb@kernel.org
+To: Luming Yu <luming.yu@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Mon, 19 Mar 2007, Kristen Carlson Accardi wrote:
-> Henrique de Moraes Holschuh <hmh@hmh.eng.br> wrote:
-> > So the first step is to improve is_ejectable_bay.  What reason did you have
-> > to limit it only to devices where is_ata returns true?  Is there a reason
-> > why anything that is not a dock and is ejectable should not be handled as a
-> > bay ?
+On Mon, 2007-03-19 at 17:30 +0800, Luming Yu wrote:
+> adds _TPC support which support Throttling Present Capabilities
+> change for ACPI processor driver
 > 
-> The only reason the generic bay driver is limited to only ata devices is
-> simply because that's all I decided to implement for the first revision
-> of the driver.  So, the perfect time to expand is now :).
+> signed-off-by: Luming Yu <Luming.yu@intel.com>
+> --
 > 
-> Yes - there's a reason why we can't just blindly claim anything ejectable
-> that isn't a dock.  PCI Hotplug for example.  What I think would be
-> ideal would be if the bay driver could register for events on anything
-> ejectable iff no other driver has claimed them.  I couldn't find an easy
-> way to do this last time I checked (months ago).  Seems like we might have
-> to change the way ACPI notifications are sent - I was hoping they could be
-> changed to be more like interrupts - so that you could have a return code
-> from the notification call that indicates whether the driver handled the
-> event or not - and allow multiple drivers to register for the same event.
-> This would also make it possible to eliminate weird stuff like what I'm doing
-> with the dock driver to allow the bay driver to get dock notifications -
-> the bay driver could just check to see if it's dependent on another object
-> using _EJD and then request events on that object as well.
+>  drivers/acpi/processor_core.c       |    4 ++++
+>  drivers/acpi/processor_throttling.c |   30
+> ++++++++++++++++++++++++++++--
+>  include/acpi/processor.h            |    3 +++
+>  3 files changed, 35 insertions(+), 2 deletions(-)
+> 
+> 
+> diff --git a/drivers/acpi/processor_core.c
+> b/drivers/acpi/processor_core.c
+> index ddc9e20..b2093ca 100644
+> --- a/drivers/acpi/processor_core.c
+> +++ b/drivers/acpi/processor_core.c
+> @@ -67,6 +67,7 @@ #define ACPI_PROCESSOR_FILE_THROTTLING        "
+>  #define ACPI_PROCESSOR_FILE_LIMIT      "limit"
+>  #define ACPI_PROCESSOR_NOTIFY_PERFORMANCE 0x80
+>  #define ACPI_PROCESSOR_NOTIFY_POWER    0x81
+> +#define ACPI_PROCESSOR_NOTIFY_THROTTLING       0x82
+> 
+>  #define ACPI_PROCESSOR_LIMIT_USER      0
+>  #define ACPI_PROCESSOR_LIMIT_THERMAL   1
+> @@ -702,6 +703,9 @@ static void acpi_processor_notify(acpi_h
+>                 acpi_processor_cst_has_changed(pr);
+>                 acpi_bus_generate_event(device, event, 0);
+>                 break;
+> +       case ACPI_PROCESSOR_NOTIFY_THROTTLING:
+> +               acpi_processor_tstate_has_changed(pr);
+> +               acpi_bus_generate_event(device, event, 0);
+>         default:
+>                 ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+>                                   "Unsupported event [0x%x]\n",
+> event));
+> diff --git a/drivers/acpi/processor_throttling.c
+> b/drivers/acpi/processor_throttling.c
+> index b334860..0528b27 100644
+> --- a/drivers/acpi/processor_throttling.c
+> +++ b/drivers/acpi/processor_throttling.c
+> @@ -44,6 +44,27 @@ #define ACPI_PROCESSOR_CLASS
+>  #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
+>  ACPI_MODULE_NAME("processor_throttling");
+> 
+> +static int acpi_processor_get_platform_limit(struct acpi_processor
+> *pr)
+> +{
+> +       acpi_status status = 0;
+> +       unsigned long tpc = 0;
+> +
+> +       if(!pr)
+> +               return -EINVAL;
+> +       status = acpi_evaluate_integer(pr->handle, "_TPC", NULL,
+> &tpc);
+> +       if(ACPI_FAILURE(status) && status != AE_NOT_FOUND){
+> +               ACPI_EXCEPTION((AE_INFO, status, "Evaluating _TPC"));
+> +               return -ENODEV;
+> +       }
+> +       pr->throttling_platform_limit = (int)tpc;
+> +       return 0;
+> +}
+I think we should reset throttling here, as limit is changed, previous
+throttling setting might not be feasible.
 
-I like this idea quite a lot.  Only, we probably need to not only support a
-"walk until someone consumes the event" chain, but also a "notify every
-interested party that an event has happened and was consumed/was not
-consumed" functionality.  You also may wany the "consume event" chain to
-understand priorities when inserting drivers in it, so that you can be a
-"well, if nobody else wants it..." consumer or a "me! me! me!" consumer.
-
-It is not complete (it doesn't allow ibm-acpi to talk to bay and dock
-without using module dependencies for example), but it is quite a good
-start.
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Thanks,
+Shaohua
