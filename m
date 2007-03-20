@@ -1,82 +1,79 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: Re: CONFIG_IBM_BAY
-Date: Tue, 20 Mar 2007 17:44:25 -0300
-Message-ID: <20070320204425.GA29560@khazad-dum.debian.net>
-References: <20070315133900.GC26862@khazad-dum.debian.net>
-	<20070315080644.c73db24a.kristen.c.accardi@intel.com>
-	<20070315175505.GB6596@khazad-dum.debian.net>
-	<20070315110156.09e80b99.kristen.c.accardi@intel.com>
-	<20070315193123.GB14394@khazad-dum.debian.net>
-	<20070319120455.GI11371@thunk.org>
-	<20070319232419.GC5932@khazad-dum.debian.net>
-	<20070320145722.GB6043@thunk.org>
-	<20070320151443.GB13042@khazad-dum.debian.net>
-	<20070320184541.GB29493@thunk.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Suspend to RAM doesn't work anymore in 2.6.21
+Date: Tue, 20 Mar 2007 23:21:28 +0100
+Message-ID: <200703202321.28808.rjw@sisk.pl>
+References: <200703191350.44105.tobias.doerffel@gmail.com> <200703192243.20836.rjw@sisk.pl> <200703200154.49695.tobias.doerffel@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752040AbXCTWSm@vger.kernel.org>
+In-Reply-To: <200703200154.49695.tobias.doerffel@gmail.com>
 Content-Disposition: inline
-In-Reply-To: <20070320184541.GB29493-AKGzg7BKzIDYtjvyW6yDsg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Theodore Tso <tytso-3s7WtUTddSA@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kristen Carlson Accardi <kristen.c.accardi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tobias Doerffel <tobias.doerffel@gmail.com>
+Cc: linux-kernel@vger.kernel.org, Adrian Bunk <bunk@stusta.de>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 20 Mar 2007, Theodore Tso wrote:
-> On Tue, Mar 20, 2007 at 12:14:43PM -0300, Henrique de Moraes Holschuh wrote:
-> > > Maybe, but then the suspend mail have to fail if there are processes
-> > > that are keeping the filesystem from being unmounted.  Or the
-> > 
-> > Yes. But this is standard functionality on the suspend path, anyway.
+On Tuesday, 20 March 2007 01:54, Tobias Doerffel wrote:
+> On Monday 19 March 2007 22:43:20 you wrote:
+> > Hi,
+> >
+> > On Monday, 19 March 2007 13:50, Tobias Doerffel wrote:
+> > > Hi,
+> > >
+> > > Suspend to RAM used to work fine on my computer (Intel Core Duo, 1 GB
+> > > RAM, Intel 82801G (ICH7-chipset) mainboard, NVIDIA-gfx-card,
+> > > tg3-ethernet) up to 2.6.20.3. But no matter which rc of 2.6.21 I use,
+> > > suspend to RAM doesn't work anymore. Up to rc3 even suspending stopped at
+> > > "suspending console" which appearently seems to be fixed in rc4. I tried
+> > > rc4-git4 with minimal config (no dyndicks, no HRT, no MSI, no sound, no
+> > > bluetooth, no PCMCIA, no WLAN, no USB, no cpufreq) but still I can't
+> > > resume properly. Caps works and I can login through SSH. Back to a more
+> > > complete config (sound, MMC, WLAN, PCMCIA - still no dynticks or HRT -
+> > > see attachment "config") I get exactly the same behaviour.
+> > >
+> > > When logged in through SSH after resume I saved output of dmesg (which
+> > > includes full power management debug messages), see
+> > > attachement "dmesg-resume". The system basically seems to be back but lot
+> > > of things do not work such as loading/unloading e.g. my WLAN-driver
+> > > (ipw3945), running "top" or "dstat" etc.   "uptime" always returns 0 min,
+> > > even with power management debug disabled.
+> > >
+> > > Kernel:
+> > > Linux version 2.6.21-rc4 (gcc version 4.1.2 20061115 (prerelease) (Debian
+> > > 4.1.1-21)) #23 SMP PREEMPT Mon Mar 19 12:27:56 CET 2007
+> I made some further investigations on this issue. A complete bisect between 
+> 2.6.20 and 2.6.21-rc4-git4 stops at a stage 
+> (a4bbb810dedaecf74d54b16b6dd3c33e95e1024c) where I'm not able to compile the 
+> kernel anymore because of compiling-errors in arch/i386/kernel/setup.c 
+> (ACPI-related compiling errors). Stepping some revisions back until it 
+> compiled again resume didn't work either.
 > 
-> The problem with this is that some users will hit the suspend button,
-> close the lid, put the laptop into their laptop bag, and then
-> immediately head off to the next conference talk (or whatever).  If
-> the suspend is going to fail, they might not notice, and they might
-> not swap out the bay in any case.  
-
-Well, it needs to be *optional* anyway.  But the above isn't the reason,
-though.  Suspend *can* already fail, and anyone who acts like the above
-deserves to have to replace their laptop HD more often than those who
-actually wait the laptop to be suspended before they toss it into the bag
-:-)
-
-> > > processes hanging out on the hard drive or CD-ROM could get all of
-> > > their file descriptors revoked on resume, I suppose, if the bay has
-> > > been switched out.....
-> > 
-> > Urk.  It is better to either fail the suspend, or to not power down the bay.
-> > Or to give the user a choice of which he'd rather happen.  Hmm...
+> So I started all over again with bisect only on arch/i386 and ended up at 
+> ceb6c46839021d5c7c338d48deac616944660124 as the bad commit. But this file 
+> seems to be some kind of finalization of a series of patches ("ACPICA: Remove 
+> duplicate table manager") so I guess it's hard to debug this thing...
 > 
-> Yeah, I think it needs to be configurable.  In many cases the right
-> thing to do is for the user to promise not to swap out bay, and in the
-> exception case where they do, all of the processes that have files
-> open on that bay will have to get their fd's revoked.  We can try to
-> make it less likely for there to be data loss, like asking filesystems
-> that support write_super_lockfs() to quiesce the filesystem before the
-> suspend, but the assumption should be that users aren't supposed to be
-> swapping out the bay if they request the suspend code not to
-> disconnect the filesystem.
+> > Can you please do
+> >
+> > # echo test > /sys/power/disk
+> > # echo disk > /sys/power/state
+> >
+> > (the system should freeze tasks, suspend devices, disable nonboot CPUs,
+> > wait for 5 seconds, enable nonboot CPUs, resume devices, thaw tasks and
+> > return to your command prompt) and see if you can reproduce the problem?
+> Same problem here. Works fine in 2.6.20 as well as before 
+> ceb6c46839021d5c7c338d48deac616944660124. Doesn't work on recent 
+> 2.6.21-rc4-git4.
+> 
+> Any more information I can give?
 
-Agreed.
+Well, this looks like an ACPI problem, and actually a regression.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+I think you can open a bugzilla entry in the ACPI category and put the
+above information in there (please add rjwysocki@sisk.pl to the entry's Cc
+list).
 
--------------------------------------------------------------------------
-Take Surveys. Earn Cash. Influence the Future of IT
-Join SourceForge.net's Techsay panel and you'll get the chance to share your
-opinions on IT & business topics through brief surveys-and earn cash
-http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
+Greetings,
+Rafael
