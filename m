@@ -1,15 +1,15 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 2/8] [-mm] ACPI: add ACPI EC sysfs interface
-Date: Tue, 20 Mar 2007 17:21:19 +0800
-Message-ID: <1174382479.8833.81.camel@localhost.localdomain>
+Subject: [PATCH 3/8] [-mm] ACPI: add ACPI Fan sysfs interface
+Date: Tue, 20 Mar 2007 17:21:24 +0800
+Message-ID: <1174382484.8833.82.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:20126 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:5539 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932562AbXCTJWA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Mar 2007 05:22:00 -0400
+	id S932563AbXCTJWM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Mar 2007 05:22:12 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
@@ -17,84 +17,71 @@ Cc: lenb@kernel.org
 
 From: Zhang Rui <rui.zhang@intel.com>
 
-Add ACPI Embedded Controller sysfs interface.
+Add ACPI Fan device sysfs interface.
 
 Attribute	Mode	Description
-gpe		RO	bit assignment of the SCI interrupt within
-			the GPEx_STS register of a GPE block described
-			in FADT that EC will trigger
-command_port	RO	the status/command port for the EC
-data_port	RO	the data port for the EC
-global_lock	RO	
+state		RW	Fan state.
+			0: Fan is in D0 state(on).
+			3: Fan is in D3 state(off).
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/ec.c |   96 +++++++++++++++++++++++++++++++++++++++++++++++++-----
- 1 files changed, 88 insertions(+), 8 deletions(-)
+ drivers/acpi/fan.c |   98 +++++++++++++++++++++++++++++++++++++++++++++++------
+ 1 files changed, 87 insertions(+), 11 deletions(-)
 
-Index: linux-2.6.21-rc4-mm1/drivers/acpi/ec.c
+Index: linux-2.6.21-rc3-mm2/drivers/acpi/fan.c
 ===================================================================
---- linux-2.6.21-rc4-mm1.orig/drivers/acpi/ec.c	2007-03-20 16:16:26.000000000 +0800
-+++ linux-2.6.21-rc4-mm1/drivers/acpi/ec.c	2007-03-20 16:16:29.000000000 +0800
-@@ -514,8 +514,67 @@ acpi_ec_space_handler(u32 function,
- }
+--- linux-2.6.21-rc3-mm2.orig/drivers/acpi/fan.c	2007-03-16 10:08:06.000000000 +0800
++++ linux-2.6.21-rc3-mm2/drivers/acpi/fan.c	2007-03-16 10:20:02.000000000 +0800
+@@ -67,8 +67,57 @@ struct acpi_fan {
+ };
  
  /* --------------------------------------------------------------------------
 +                              FS Interface (/sys)
 +   -------------------------------------------------------------------------- */
-+static ssize_t
-+acpi_ec_gpe_show(struct acpi_device *dev, char *buf)
-+{
-+	struct acpi_ec *ec = acpi_driver_data(dev);
-+
-+	if (!ec)
-+		return -EINVAL;
-+
-+	return sprintf(buf, "0x%02x\n", (u32)ec->gpe);
-+}
-+static ACPI_DEVICE_ATTR(gpe, 0444, acpi_ec_gpe_show, NULL);
 +
 +static ssize_t
-+acpi_ec_command_port_show(struct acpi_device *dev, char *buf)
++acpi_fan_state_show(struct acpi_device *dev, char *buf)
 +{
-+	struct acpi_ec *ec = acpi_driver_data(dev);
++	struct acpi_fan *fan = acpi_driver_data(dev);
++	int state = 0;
++	ssize_t result = 0;
 +
-+	if (!ec)
++	if (!fan)
 +		return -EINVAL;
 +
-+	return sprintf(buf, "0x%02x\n", (u32)ec->command_addr);
++	result = acpi_bus_get_power(fan->device->handle, &state);
++	if (!result)
++		result = sprintf(buf, "%u\n", state);
++
++	return result;
 +}
-+static ACPI_DEVICE_ATTR(command_port, 0444, acpi_ec_command_port_show, NULL);
 +
 +static ssize_t
-+acpi_ec_data_port_show(struct acpi_device *dev, char *buf)
++acpi_fan_state_store(struct acpi_device *dev, const char *buf, size_t count)
 +{
-+	struct acpi_ec *ec = acpi_driver_data(dev);
++	struct acpi_fan *fan = acpi_driver_data(dev);
++	ssize_t result;
++	char * end;
++	int state;
 +
-+	if (!ec)
++	if (!fan)
 +		return -EINVAL;
 +
-+	return sprintf(buf, "0x%02x\n", (u32)ec->data_addr);
-+}
-+static ACPI_DEVICE_ATTR(data_port, 0444, acpi_ec_data_port_show, NULL);
-+
-+static ssize_t
-+acpi_ec_global_lock_show(struct acpi_device *dev, char *buf)
-+{
-+	struct acpi_ec *ec = acpi_driver_data(dev);
-+
-+	if (!ec)
++	state = simple_strtoul(buf, &end, 0);
++	if (*end == '\0')
 +		return -EINVAL;
 +
-+	return sprintf(buf, "%u\n", (u32)ec->global_lock);
-+}
-+static ACPI_DEVICE_ATTR(global_lock, 0444, acpi_ec_global_lock_show, NULL);
++	result = acpi_bus_set_power(fan->device->handle, state);
++	if (!result)
++		result = count;
 +
-+static struct device_attribute * ec_attr[] = {
-+	GET_DEV_ATTR(gpe),
-+	GET_DEV_ATTR(command_port),
-+	GET_DEV_ATTR(data_port),
-+	GET_DEV_ATTR(global_lock),
++	return result;
++}
++static ACPI_DEVICE_ATTR(state, 0644, acpi_fan_state_show, acpi_fan_state_store);
++
++static struct device_attribute* fan_attr[] = {
++	GET_DEV_ATTR(state),
 +	NULL,
 +};
 +/* --------------------------------------------------------------------------
@@ -102,99 +89,117 @@ Index: linux-2.6.21-rc4-mm1/drivers/acpi/ec.c
     -------------------------------------------------------------------------- */
 +#ifdef CONFIG_ACPI_PROCFS
  
- static struct proc_dir_entry *acpi_ec_dir;
+ static struct proc_dir_entry *acpi_fan_dir;
  
-@@ -548,7 +607,7 @@ static struct file_operations acpi_ec_in
+@@ -128,7 +177,7 @@ static const struct file_operations acpi
  	.owner = THIS_MODULE,
  };
  
--static int acpi_ec_add_fs(struct acpi_device *device)
-+static int acpi_ec_add_procfs(struct acpi_device *device)
+-static int acpi_fan_add_fs(struct acpi_device *device)
++static int acpi_fan_add_procfs(struct acpi_device *device)
  {
  	struct proc_dir_entry *entry = NULL;
  
-@@ -572,7 +631,7 @@ static int acpi_ec_add_fs(struct acpi_de
+@@ -159,7 +208,7 @@ static int acpi_fan_add_fs(struct acpi_d
  	return 0;
  }
  
--static int acpi_ec_remove_fs(struct acpi_device *device)
-+static void acpi_ec_remove_procfs(struct acpi_device *device)
+-static int acpi_fan_remove_fs(struct acpi_device *device)
++static int acpi_fan_remove_procfs(struct acpi_device *device)
  {
  
  	if (acpi_device_dir(device)) {
-@@ -581,9 +640,26 @@ static int acpi_ec_remove_fs(struct acpi
- 		acpi_device_dir(device) = NULL;
- 	}
- 
-+	return ;
-+}
-+
-+static int acpi_ec_procfs_init(void)
-+{
-+	acpi_ec_dir = proc_mkdir(ACPI_EC_CLASS, acpi_root_dir);
-+	if (!acpi_ec_dir)
-+		return -ENODEV;
-+
+@@ -171,6 +220,25 @@ static int acpi_fan_remove_fs(struct acp
  	return 0;
  }
  
-+static void acpi_ec_procfs_exit(void)
++static int acpi_fan_procfs_init(void)
 +{
-+	remove_proc_entry(ACPI_EC_CLASS, acpi_root_dir);
-+	return ;
++	acpi_fan_dir = proc_mkdir(ACPI_FAN_CLASS, acpi_root_dir);
++	if (!acpi_fan_dir)
++		return -ENODEV;
++	acpi_fan_dir->owner = THIS_MODULE;
++
++	return 0;
++}
++
++static int acpi_fan_procfs_exit(void)
++{
++	remove_proc_entry(ACPI_FAN_CLASS, acpi_root_dir);
++
++	return 0;
 +}
 +#else
-+DECLARE_ACPI_DEVICE_PROCFS(ec);
++DECLARE_ACPI_DEVICE_PROCFS(fan);
 +#endif
  /* --------------------------------------------------------------------------
-                                Driver Interface
+                                  Driver Interface
     -------------------------------------------------------------------------- */
-@@ -643,7 +719,9 @@ static int acpi_ec_add(struct acpi_devic
- 	ec->handle = device->handle;
- 	acpi_driver_data(device) = ec;
+@@ -204,18 +272,25 @@ static int acpi_fan_add(struct acpi_devi
+ 	acpi_bus_set_power(device->handle, state);
+ 	device->flags.force_power_state = 0;
  
--	acpi_ec_add_fs(device);
-+	acpi_device_add_sysfs(device, ec_attr);
+-	result = acpi_fan_add_fs(device);
++	result = acpi_device_add_sysfs(device, fan_attr);
+ 	if (result)
+ 		goto end;
+ 
++	result = acpi_fan_add_procfs(device);
++	if (result)
++		goto procfs_error;
 +
-+	acpi_ec_add_procfs(device);
+ 	printk(KERN_INFO PREFIX "%s [%s] (%s)\n",
+ 	       acpi_device_name(device), acpi_device_bid(device),
+ 	       !device->power.state ? "on" : "off");
  
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "%s [%s] (gpe %d) interrupt mode.",
- 			  acpi_device_name(device), acpi_device_bid(device),
-@@ -660,7 +738,8 @@ static int acpi_ec_remove(struct acpi_de
- 		return -EINVAL;
++	goto end;
++
++      procfs_error:
++	acpi_device_remove_sysfs(device,fan_attr);
+       end:
+ 	if (result)
+ 		kfree(fan);
+-
+ 	return result;
+ }
  
- 	ec = acpi_driver_data(device);
--	acpi_ec_remove_fs(device);
-+	acpi_ec_remove_procfs(device);
-+	acpi_device_remove_sysfs(device, ec_attr);
- 	acpi_driver_data(device) = NULL;
- 	if (ec == first_ec)
- 		first_ec = NULL;
-@@ -844,14 +923,15 @@ static int __init acpi_ec_init(void)
- 	if (acpi_disabled)
- 		return 0;
+@@ -229,7 +304,9 @@ static int acpi_fan_remove(struct acpi_d
  
--	acpi_ec_dir = proc_mkdir(ACPI_EC_CLASS, acpi_root_dir);
--	if (!acpi_ec_dir)
-+	result = acpi_ec_procfs_init();
+ 	fan = acpi_driver_data(device);
+ 
+-	acpi_fan_remove_fs(device);
++	acpi_fan_remove_procfs(device);
++
++	acpi_device_remove_sysfs(device, fan_attr);
+ 
+ 	kfree(fan);
+ 
+@@ -272,15 +349,14 @@ static int __init acpi_fan_init(void)
+ {
+ 	int result = 0;
+ 
+-
+-	acpi_fan_dir = proc_mkdir(ACPI_FAN_CLASS, acpi_root_dir);
+-	if (!acpi_fan_dir)
++	result = acpi_fan_procfs_init();
 +	if (result)
  		return -ENODEV;
+-	acpi_fan_dir->owner = THIS_MODULE;
  
- 	/* Now register the driver for the EC */
-+	acpi_ec_driver.owner = THIS_MODULE;
- 	result = acpi_bus_register_driver(&acpi_ec_driver);
++	acpi_fan_driver.owner = THIS_MODULE;
+ 	result = acpi_bus_register_driver(&acpi_fan_driver);
  	if (result < 0) {
--		remove_proc_entry(ACPI_EC_CLASS, acpi_root_dir);
-+		acpi_ec_procfs_exit();
+-		remove_proc_entry(ACPI_FAN_CLASS, acpi_root_dir);
++		acpi_fan_procfs_exit();
  		return -ENODEV;
  	}
  
-@@ -867,7 +947,7 @@ static void __exit acpi_ec_exit(void)
+@@ -292,7 +368,7 @@ static void __exit acpi_fan_exit(void)
  
- 	acpi_bus_unregister_driver(&acpi_ec_driver);
+ 	acpi_bus_unregister_driver(&acpi_fan_driver);
  
--	remove_proc_entry(ACPI_EC_CLASS, acpi_root_dir);
-+	acpi_ec_procfs_exit();
+-	remove_proc_entry(ACPI_FAN_CLASS, acpi_root_dir);
++	acpi_fan_procfs_exit();
  
  	return;
  }
