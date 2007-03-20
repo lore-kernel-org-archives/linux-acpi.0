@@ -1,88 +1,439 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: [RFC PATCH] _TPC support
-Date: Tue, 20 Mar 2007 09:11:10 +0800
-Message-ID: <1174353070.1665.7.camel@sli10-conroe.sh.intel.com>
-References: <3877989d0703190230v3a3c1c7alfa52fe0c87a12aca@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+From: Keith Owens <kaos@kao2.melbourne.sgi.com>
+Subject: PNPACPI probes serial twice, messes up serial console
+Date: Tue, 20 Mar 2007 17:46:46 +1100
+Message-ID: <17887.1174373206@kao2.melbourne.sgi.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:24211 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030823AbXCTBOA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Mar 2007 21:14:00 -0400
-In-Reply-To: <3877989d0703190230v3a3c1c7alfa52fe0c87a12aca@mail.gmail.com>
+Received: from netops-testserver-3-out.sgi.com ([192.48.171.28]:56043 "EHLO
+	netops-testserver-3.corp.sgi.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932159AbXCTGqs (ORCPT
+	<rfc822;@relay.sgi.com:linux-acpi@vger.kernel.org>);
+	Tue, 20 Mar 2007 02:46:48 -0400
+Received: from larry.melbourne.sgi.com (larry.melbourne.sgi.com [134.14.52.130])
+	by netops-testserver-3.corp.sgi.com (Postfix) with SMTP id A96BE908F2
+	for <linux-acpi@vger.kernel.org>; Mon, 19 Mar 2007 23:46:45 -0700 (PDT)
+Received: from kao2.melbourne.sgi.com (kao2.melbourne.sgi.com [134.14.55.180]) by larry.melbourne.sgi.com (950413.SGI.8.6.12/950213.SGI.AUTOCF) via ESMTP id RAA12046 for <linux-acpi@vger.kernel.org>; Tue, 20 Mar 2007 17:46:43 +1100
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Luming Yu <luming.yu@gmail.com>
-Cc: linux-acpi@vger.kernel.org
 
-On Mon, 2007-03-19 at 17:30 +0800, Luming Yu wrote:
-> adds _TPC support which support Throttling Present Capabilities
-> change for ACPI processor driver
-> 
-> signed-off-by: Luming Yu <Luming.yu@intel.com>
-> --
-> 
->  drivers/acpi/processor_core.c       |    4 ++++
->  drivers/acpi/processor_throttling.c |   30
-> ++++++++++++++++++++++++++++--
->  include/acpi/processor.h            |    3 +++
->  3 files changed, 35 insertions(+), 2 deletions(-)
-> 
-> 
-> diff --git a/drivers/acpi/processor_core.c
-> b/drivers/acpi/processor_core.c
-> index ddc9e20..b2093ca 100644
-> --- a/drivers/acpi/processor_core.c
-> +++ b/drivers/acpi/processor_core.c
-> @@ -67,6 +67,7 @@ #define ACPI_PROCESSOR_FILE_THROTTLING        "
->  #define ACPI_PROCESSOR_FILE_LIMIT      "limit"
->  #define ACPI_PROCESSOR_NOTIFY_PERFORMANCE 0x80
->  #define ACPI_PROCESSOR_NOTIFY_POWER    0x81
-> +#define ACPI_PROCESSOR_NOTIFY_THROTTLING       0x82
-> 
->  #define ACPI_PROCESSOR_LIMIT_USER      0
->  #define ACPI_PROCESSOR_LIMIT_THERMAL   1
-> @@ -702,6 +703,9 @@ static void acpi_processor_notify(acpi_h
->                 acpi_processor_cst_has_changed(pr);
->                 acpi_bus_generate_event(device, event, 0);
->                 break;
-> +       case ACPI_PROCESSOR_NOTIFY_THROTTLING:
-> +               acpi_processor_tstate_has_changed(pr);
-> +               acpi_bus_generate_event(device, event, 0);
->         default:
->                 ACPI_DEBUG_PRINT((ACPI_DB_INFO,
->                                   "Unsupported event [0x%x]\n",
-> event));
-> diff --git a/drivers/acpi/processor_throttling.c
-> b/drivers/acpi/processor_throttling.c
-> index b334860..0528b27 100644
-> --- a/drivers/acpi/processor_throttling.c
-> +++ b/drivers/acpi/processor_throttling.c
-> @@ -44,6 +44,27 @@ #define ACPI_PROCESSOR_CLASS
->  #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
->  ACPI_MODULE_NAME("processor_throttling");
-> 
-> +static int acpi_processor_get_platform_limit(struct acpi_processor
-> *pr)
-> +{
-> +       acpi_status status = 0;
-> +       unsigned long tpc = 0;
-> +
-> +       if(!pr)
-> +               return -EINVAL;
-> +       status = acpi_evaluate_integer(pr->handle, "_TPC", NULL,
-> &tpc);
-> +       if(ACPI_FAILURE(status) && status != AE_NOT_FOUND){
-> +               ACPI_EXCEPTION((AE_INFO, status, "Evaluating _TPC"));
-> +               return -ENODEV;
-> +       }
-> +       pr->throttling_platform_limit = (int)tpc;
-> +       return 0;
-> +}
-I think we should reset throttling here, as limit is changed, previous
-throttling setting might not be feasible.
+------- Blind-Carbon-Copy
 
-Thanks,
-Shaohua
+X-Mailer: exmh version 2.7.2 01/07/2005 with nmh-1.1
+From: Keith Owens <kaos@ocs.com.au>
+To: linux-kernel@vger.kernel.org
+cc: len.brown@intel.com
+Subject: PNPACPI probes serial twice, messes up serial console
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Date: Tue, 20 Mar 2007 17:46:46 +1100
+Message-ID: <17887.1174373206@kao2.melbourne.sgi.com>
+
+Dell SC1425 x86_64 running in i386 mode (the problem also occurs in
+x86_64 mode).  Kernel 2.6.21-rc4, gcc 4.1.0.  Config extract at end.
+
+Booting with 'console=tty console=ttyS0,9600'.  The serial console on
+ttyS0 (0x3f8, irq 4) is probed twice, once from serial8250_init() and
+again from serial_pnp_probe().  The serial console output is correct
+until the second probe (from PNP) gets to these lines in
+serial8250_config_port()
+
+	if (flags & UART_CONFIG_TYPE)
+		autoconfig(up, probeflags);
+
+After the call to autoconfig(), the serial console starts printing NUL
+characters instead of the console output.  The number of NUL characters
+corresponds closely with the number of characters written to the VT
+console, IOW it outputs each serial character as NUL instead of the
+correct character.  When the kernel boots /sbin/init, the console
+resets to printing normal characters.
+
+AFAICT, the second probe of the UART is doing something nasty to the
+hardware.  This is not a recent problem, I can reproduce the problem on
+2.6.16.  Booting with pnpacpi=off removes the problem, but that
+supresses all the PNPACPI code, not just the second probe of the serial
+devices.
+
+Should pnpacpi probe and setup the serial devices even when thay have
+already been setup?  Or this is something strange about the UART in
+this particular box?
+
+FWIW, the serial console is plugged into a serial to USB converter
+(pl2303), my laptop has no serial ports.  That should not make a
+difference, but just in case it does ...
+
+Config extract:
+
+X86_32=y
+GENERIC_TIME=y
+CLOCKSOURCE_WATCHDOG=y
+GENERIC_CLOCKEVENTS=y
+GENERIC_CLOCKEVENTS_BROADCAST=y
+LOCKDEP_SUPPORT=y
+STACKTRACE_SUPPORT=y
+SEMAPHORE_SLEEPERS=y
+X86=y
+MMU=y
+ZONE_DMA=y
+GENERIC_ISA_DMA=y
+GENERIC_IOMAP=y
+GENERIC_BUG=y
+GENERIC_HWEIGHT=y
+ARCH_MAY_HAVE_PC_FDC=y
+DMI=y
+DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
+EXPERIMENTAL=y
+LOCK_KERNEL=y
+INIT_ENV_ARG_LIMIT=32
+LOCALVERSION="-i386-kaos"
+LOCALVERSION_AUTO=y
+SWAP=y
+SYSVIPC=y
+SYSVIPC_SYSCTL=y
+POSIX_MQUEUE=y
+IKCONFIG=y
+IKCONFIG_PROC=y
+SYSFS_DEPRECATED=y
+CC_OPTIMIZE_FOR_SIZE=y
+SYSCTL=y
+EMBEDDED=y
+SYSCTL_SYSCALL=y
+KALLSYMS=y
+KALLSYMS_ALL=y
+HOTPLUG=y
+PRINTK=y
+BUG=y
+ELF_CORE=y
+BASE_FULL=y
+FUTEX=y
+EPOLL=y
+SHMEM=y
+SLAB=y
+VM_EVENT_COUNTERS=y
+RT_MUTEXES=y
+BASE_SMALL=0
+MODULES=y
+MODULE_UNLOAD=y
+KMOD=y
+STOP_MACHINE=y
+BLOCK=y
+LBD=y
+LSF=y
+IOSCHED_NOOP=y
+IOSCHED_AS=y
+IOSCHED_DEADLINE=y
+IOSCHED_CFQ=y
+DEFAULT_DEADLINE=y
+DEFAULT_IOSCHED="deadline"
+TICK_ONESHOT=y
+HIGH_RES_TIMERS=y
+SMP=y
+X86_PC=y
+MPENTIUM4=y
+X86_CMPXCHG=y
+X86_L1_CACHE_SHIFT=7
+RWSEM_XCHGADD_ALGORITHM=y
+GENERIC_CALIBRATE_DELAY=y
+X86_WP_WORKS_OK=y
+X86_INVLPG=y
+X86_BSWAP=y
+X86_POPAD_OK=y
+X86_CMPXCHG64=y
+X86_GOOD_APIC=y
+X86_INTEL_USERCOPY=y
+X86_USE_PPRO_CHECKSUM=y
+X86_TSC=y
+HPET_TIMER=y
+HPET_EMULATE_RTC=y
+NR_CPUS=8
+SCHED_SMT=y
+PREEMPT_NONE=y
+X86_LOCAL_APIC=y
+X86_IO_APIC=y
+X86_MCE=y
+X86_MCE_NONFATAL=y
+X86_MCE_P4THERMAL=y
+MICROCODE=m
+MICROCODE_OLD_INTERFACE=y
+X86_MSR=m
+X86_CPUID=m
+HIGHMEM4G=y
+VMSPLIT_3G=y
+PAGE_OFFSET=0xC0000000
+HIGHMEM=y
+ARCH_FLATMEM_ENABLE=y
+ARCH_SPARSEMEM_ENABLE=y
+ARCH_SELECT_MEMORY_MODEL=y
+ARCH_POPULATES_NODE_MAP=y
+SELECT_MEMORY_MODEL=y
+FLATMEM_MANUAL=y
+FLATMEM=y
+FLAT_NODE_MEM_MAP=y
+SPARSEMEM_STATIC=y
+SPLIT_PTLOCK_CPUS=4
+ZONE_DMA_FLAG=1
+MTRR=y
+IRQBALANCE=y
+HZ_250=y
+HZ=250
+PHYSICAL_START=0x100000
+PHYSICAL_ALIGN=0x100000
+COMPAT_VDSO=y
+ARCH_ENABLE_MEMORY_HOTPLUG=y
+PM=y
+ACPI=y
+ACPI_PROCFS=y
+ACPI_BUTTON=m
+ACPI_FAN=m
+ACPI_PROCESSOR=m
+ACPI_BLACKLIST_YEAR=0
+ACPI_EC=y
+ACPI_POWER=y
+ACPI_SYSTEM=y
+PCI=y
+PCI_GOANY=y
+PCI_BIOS=y
+PCI_DIRECT=y
+PCI_MMCONFIG=y
+PCIEPORTBUS=y
+PCIEAER=y
+PCI_MSI=y
+HT_IRQ=y
+ISA_DMA_API=y
+BINFMT_ELF=y
+BINFMT_MISC=m
+NET=y
+PACKET=y
+PACKET_MMAP=y
+UNIX=y
+XFRM=y
+INET=y
+IP_MULTICAST=y
+IP_ADVANCED_ROUTER=y
+ASK_IP_FIB_HASH=y
+IP_FIB_HASH=y
+IP_ROUTE_MULTIPATH=y
+IP_ROUTE_VERBOSE=y
+SYN_COOKIES=y
+INET_XFRM_MODE_BEET=y
+INET_DIAG=y
+INET_TCP_DIAG=y
+TCP_CONG_CUBIC=y
+DEFAULT_TCP_CONG="cubic"
+NETFILTER=y
+NETFILTER_NETLINK=m
+NETFILTER_NETLINK_LOG=m
+NETFILTER_XTABLES=y
+NETFILTER_XT_TARGET_CLASSIFY=m
+NETFILTER_XT_TARGET_MARK=m
+NETFILTER_XT_MATCH_COMMENT=m
+NETFILTER_XT_MATCH_DCCP=m
+NETFILTER_XT_MATCH_ESP=m
+NETFILTER_XT_MATCH_LENGTH=m
+NETFILTER_XT_MATCH_LIMIT=m
+NETFILTER_XT_MATCH_MAC=m
+NETFILTER_XT_MATCH_MARK=m
+NETFILTER_XT_MATCH_MULTIPORT=m
+NETFILTER_XT_MATCH_PKTTYPE=m
+NETFILTER_XT_MATCH_QUOTA=m
+NETFILTER_XT_MATCH_REALM=m
+NETFILTER_XT_MATCH_SCTP=m
+NETFILTER_XT_MATCH_STATISTIC=m
+NETFILTER_XT_MATCH_TCPMSS=m
+IP_NF_IPTABLES=y
+IP_NF_MATCH_IPRANGE=m
+IP_NF_MATCH_TOS=m
+IP_NF_MATCH_RECENT=m
+IP_NF_MATCH_ECN=m
+IP_NF_MATCH_AH=m
+IP_NF_MATCH_TTL=m
+IP_NF_MATCH_OWNER=m
+IP_NF_MATCH_ADDRTYPE=m
+IP_NF_FILTER=y
+IP_NF_TARGET_REJECT=y
+IP_NF_TARGET_ULOG=y
+VLAN_8021Q=y
+NET_CLS_ROUTE=y
+STANDALONE=y
+PREVENT_FIRMWARE_BUILD=y
+FW_LOADER=m
+CONNECTOR=m
+PNP=y
+PNP_DEBUG=y
+PNPACPI=y
+BLK_DEV_FD=m
+BLK_DEV_LOOP=m
+IDE=m
+IDE_MAX_HWIFS=4
+BLK_DEV_IDE=m
+BLK_DEV_IDEDISK=m
+IDEDISK_MULTI_MODE=y
+BLK_DEV_IDECD=m
+IDE_TASK_IOCTL=y
+BLK_DEV_IDEPCI=y
+IDEPCI_SHARE_IRQ=y
+BLK_DEV_IDEDMA_PCI=y
+IDEDMA_PCI_AUTO=y
+BLK_DEV_PIIX=m
+BLK_DEV_IDEDMA=y
+IDEDMA_AUTO=y
+RAID_ATTRS=m
+SCSI=y
+SCSI_PROC_FS=y
+BLK_DEV_SD=y
+CHR_DEV_SG=y
+SCSI_CONSTANTS=y
+SCSI_SPI_ATTRS=y
+SCSI_3W_9XXX=y
+SCSI_SYM53C8XX_2=y
+SCSI_SYM53C8XX_DMA_ADDRESSING_MODE=1
+SCSI_SYM53C8XX_DEFAULT_TAGS=16
+SCSI_SYM53C8XX_MAX_TAGS=64
+SCSI_SYM53C8XX_MMIO=y
+ATA=y
+ATA_PIIX=y
+SATA_ACPI=y
+MD=y
+BLK_DEV_MD=y
+MD_RAID1=y
+BLK_DEV_DM=y
+DM_SNAPSHOT=y
+DM_MIRROR=y
+NETDEVICES=y
+DUMMY=m
+BONDING=m
+E1000=y
+E1000_NAPI=y
+SKY2=m
+NETCONSOLE=m
+NETPOLL=y
+NET_POLL_CONTROLLER=y
+INPUT=y
+INPUT_KEYBOARD=y
+KEYBOARD_ATKBD=y
+SERIO=y
+SERIO_I8042=y
+SERIO_LIBPS2=y
+SERIO_RAW=m
+VT=y
+VT_CONSOLE=y
+HW_CONSOLE=y
+SERIAL_8250=y
+SERIAL_8250_CONSOLE=y
+SERIAL_8250_PCI=m
+SERIAL_8250_PNP=y
+SERIAL_8250_NR_UARTS=4
+SERIAL_8250_RUNTIME_UARTS=4
+SERIAL_CORE=y
+SERIAL_CORE_CONSOLE=y
+UNIX98_PTYS=y
+IPMI_HANDLER=y
+IPMI_PANIC_EVENT=y
+IPMI_DEVICE_INTERFACE=y
+IPMI_SI=y
+IPMI_WATCHDOG=y
+IPMI_POWEROFF=m
+WATCHDOG=y
+SOFT_WATCHDOG=m
+I8XX_TCO=y
+NVRAM=m
+RTC=y
+HPET=y
+HPET_MMAP=y
+I2C=y
+I2C_CHARDEV=m
+I2C_ALGOBIT=m
+I2C_I801=y
+SENSORS_EEPROM=m
+HWMON=y
+VGA_CONSOLE=y
+DUMMY_CONSOLE=y
+HID=y
+USB_ARCH_HAS_HCD=y
+USB_ARCH_HAS_OHCI=y
+USB_ARCH_HAS_EHCI=y
+USB=y
+USB_DEVICEFS=y
+USB_EHCI_HCD=y
+USB_STORAGE=m
+USB_HID=y
+USB_MON=y
+USB_SERIAL=m
+USB_SERIAL_GENERIC=y
+USB_SERIAL_PL2303=m
+EDAC=y
+EDAC_MM_EDAC=y
+EDAC_E752X=y
+EDAC_POLL=y
+EXT2_FS=m
+EXT3_FS=y
+JBD=y
+XFS_FS=y
+INOTIFY=y
+INOTIFY_USER=y
+ISO9660_FS=m
+JOLIET=y
+UDF_FS=m
+UDF_NLS=y
+FAT_FS=m
+MSDOS_FS=m
+VFAT_FS=m
+FAT_DEFAULT_CODEPAGE=850
+FAT_DEFAULT_IOCHARSET="iso8859-1"
+PROC_FS=y
+PROC_KCORE=y
+PROC_SYSCTL=y
+SYSFS=y
+TMPFS=y
+RAMFS=y
+NFS_FS=y
+NFS_V3=y
+NFSD=y
+NFSD_V3=y
+LOCKD=y
+LOCKD_V4=y
+EXPORTFS=y
+NFS_COMMON=y
+SUNRPC=y
+MSDOS_PARTITION=y
+NLS=m
+NLS_DEFAULT="iso8859-15"
+NLS_CODEPAGE_437=m
+NLS_CODEPAGE_850=m
+NLS_CODEPAGE_865=m
+NLS_ASCII=m
+NLS_ISO8859_1=m
+NLS_ISO8859_15=m
+NLS_UTF8=m
+TRACE_IRQFLAGS_SUPPORT=y
+ENABLE_MUST_CHECK=y
+MAGIC_SYSRQ=y
+DEBUG_KERNEL=y
+LOG_BUF_SHIFT=16
+DETECT_SOFTLOCKUP=y
+DEBUG_SPINLOCK=y
+DEBUG_MUTEXES=y
+DEBUG_BUGVERBOSE=y
+FORCED_INLINING=y
+DEBUG_STACKOVERFLOW=y
+DEBUG_RODATA=y
+X86_FIND_SMP_CONFIG=y
+X86_MPPARSE=y
+DOUBLEFAULT=y
+KDB=y
+KDB_MODULES=y
+KDB_CONTINUE_CATASTROPHIC=0
+BITREVERSE=y
+CRC32=y
+PLIST=y
+HAS_IOMEM=y
+HAS_IOPORT=y
+GENERIC_HARDIRQS=y
+GENERIC_IRQ_PROBE=y
+GENERIC_PENDING_IRQ=y
+X86_SMP=y
+X86_HT=y
+X86_BIOS_REBOOT=y
+X86_TRAMPOLINE=y
+KTIME_SCALAR=y
+
+
+------- End of Blind-Carbon-Copy
