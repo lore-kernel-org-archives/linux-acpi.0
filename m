@@ -1,15 +1,15 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH 5/8] [-mm] ACPI: add ACPI Processor_core sysfs interface
-Date: Tue, 20 Mar 2007 17:21:31 +0800
-Message-ID: <1174382491.8833.84.camel@localhost.localdomain>
+Subject: [PATCH 7/8] [-mm] ACPI: add ACPI device sysfs interface
+Date: Tue, 20 Mar 2007 17:21:36 +0800
+Message-ID: <1174382496.8833.86.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga01.intel.com ([192.55.52.88]:5539 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932564AbXCTJWR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Mar 2007 05:22:17 -0400
+	id S932975AbXCTJWW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Mar 2007 05:22:22 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
@@ -17,240 +17,164 @@ Cc: lenb@kernel.org
 
 From: Zhang Rui <rui.zhang@intel.com>
 
-Add ACPI Processor_core sysfs interface.
+Add ACPI Processor passive cooling sysfs interface.
 
 Attribute	Mode	Description
-processor_id	RO
-acpi_id		RO
-throttling
-_control	RO	whether throttling control is supported
-			1 = Support, 0 = Not Support.
-limit_interface	RO	whether processor thermal control is supported
-			1 = Support, 0 = Not Support.
+active		RO	the current throttling state limit
+user		RW	throttling state limit set by user
+thermal		RO	throttling state limit set by thermal
+
+A value "n" means that only Tn ~ Tmax throttling states are allowed.
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/processor_core.c |  126 +++++++++++++++++++++++++++++++++++-------
- 1 files changed, 105 insertions(+), 21 deletions(-)
+ drivers/acpi/processor_core.c    |   11 +++++
+ drivers/acpi/processor_thermal.c |   78 ++++++++++++++++++++++++++++++++++++++-
+ include/acpi/processor.h         |    3 +
+ 3 files changed, 91 insertions(+), 1 deletion(-)
 
-Index: linux-2.6.21-rc3-mm2/drivers/acpi/processor_core.c
+Index: linux-2.6.21-rc3-mm2/drivers/acpi/processor_thermal.c
 ===================================================================
---- linux-2.6.21-rc3-mm2.orig/drivers/acpi/processor_core.c	2007-03-16 10:08:06.000000000 +0800
-+++ linux-2.6.21-rc3-mm2/drivers/acpi/processor_core.c	2007-03-16 10:21:01.000000000 +0800
-@@ -83,7 +83,6 @@ MODULE_LICENSE("GPL");
- static int acpi_processor_add(struct acpi_device *device);
- static int acpi_processor_start(struct acpi_device *device);
- static int acpi_processor_remove(struct acpi_device *device, int type);
--static int acpi_processor_info_open_fs(struct inode *inode, struct file *file);
- static void acpi_processor_notify(acpi_handle handle, u32 event, void *data);
- static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu);
- static int acpi_processor_handle_eject(struct acpi_processor *pr);
-@@ -102,13 +101,6 @@ static struct acpi_driver acpi_processor
- #define INSTALL_NOTIFY_HANDLER		1
- #define UNINSTALL_NOTIFY_HANDLER	2
- 
--static const struct file_operations acpi_processor_info_fops = {
--	.open = acpi_processor_info_open_fs,
--	.read = seq_read,
--	.llseek = seq_lseek,
--	.release = single_release,
--};
--
- struct acpi_processor *processors[NR_CPUS];
- struct acpi_processor_errata errata __read_mostly;
- 
-@@ -270,9 +262,68 @@ static int acpi_processor_set_pdc(struct
+--- linux-2.6.21-rc3-mm2.orig/drivers/acpi/processor_thermal.c	2007-03-16 10:08:05.000000000 +0800
++++ linux-2.6.21-rc3-mm2/drivers/acpi/processor_thermal.c	2007-03-16 11:21:10.000000000 +0800
+@@ -310,8 +310,82 @@ int acpi_processor_get_limit_info(struct
+ 	return 0;
  }
  
- /* --------------------------------------------------------------------------
--                              FS Interface (/proc)
-+                              FS Interface (/sys)
-    -------------------------------------------------------------------------- */
+-/* /proc interface */
++/* sys interface */
++static ssize_t
++acpi_processor_active_limit_show(struct acpi_device *dev, char *buf)
++{
++	struct acpi_processor *pr = acpi_driver_data(dev);
++
++        if (!pr || !pr->flags.limit)
++		return -EINVAL;
++
++	return sprintf(buf, "%d\n", pr->limit.state.tx);
++}
++
++static ACPI_DEVICE_ATTR(active_limit, 0444, acpi_processor_active_limit_show, NULL);
++
++static ssize_t
++acpi_processor_user_limit_show(struct acpi_device *dev, char *buf)
++{
++	struct acpi_processor *pr = acpi_driver_data(dev);
++
++	if (!pr || !pr->flags.limit)
++		return -EINVAL;
++
++	return sprintf(buf, "%d\n", pr->limit.user.tx);
++}
++static ssize_t
++acpi_processor_user_limit_store(struct acpi_device *dev, const char *buf, size_t count)
++{
++	struct acpi_processor *pr = acpi_driver_data(dev);
++	int result;
++	char *endp;
++	int tx = 0;
  
++	tx = simple_strtol(buf, &endp, 0);
++	if (*endp == '\0')
++		return -EINVAL;
++
++	if (pr->flags.throttling) {
++		if ((tx < 0) || (tx > (pr->throttling.state_count - 1))) {
++			return -EINVAL;
++		}
++		pr->limit.user.tx = tx;
++	}
++
++	result = acpi_processor_apply_limit(pr);
++	if (!result)
++		result = count;
++	return result;
++}
++static ACPI_DEVICE_ATTR(user_limit, 0644, acpi_processor_user_limit_show, acpi_processor_user_limit_store);
++
 +static ssize_t
-+acpi_processor_id_show(struct acpi_device *dev, char *buf)
++acpi_processor_thermal_limit_show(struct acpi_device *dev, char *buf)
 +{
 +	struct acpi_processor *pr = acpi_driver_data(dev);
 +
-+	if (!pr)
++	if (!pr || !pr->flags.limit)
 +		return -EINVAL;
 +
-+	return sprintf(buf, "%d\n", pr->id);
++	return sprintf(buf, "%d\n", pr->limit.thermal.tx);
 +}
-+static ACPI_DEVICE_ATTR(processor_id, 0444, acpi_processor_id_show, NULL);
++static ACPI_DEVICE_ATTR(thermal_limit, 0444, acpi_processor_thermal_limit_show, NULL);
 +
-+static ssize_t
-+acpi_processor_acpi_id_show(struct acpi_device *dev, char *buf)
-+{
-+	struct acpi_processor *pr = acpi_driver_data(dev);
-+
-+	if (!pr)
-+		return -EINVAL;
-+
-+	return sprintf(buf, "%d\n", pr->acpi_id);
-+}
-+static ACPI_DEVICE_ATTR(acpi_id, 0444, acpi_processor_acpi_id_show, NULL);
-+
-+static ssize_t
-+acpi_processor_throttling_control_show(struct acpi_device *dev, char *buf)
-+{
-+	struct acpi_processor *pr = acpi_driver_data(dev);
-+
-+	if (!pr)
-+		return -EINVAL;
-+
-+	return sprintf(buf, "%d\n", pr->flags.throttling);
-+}
-+static ACPI_DEVICE_ATTR(throttling_control, 0444, acpi_processor_throttling_control_show, NULL);
-+
-+static ssize_t
-+acpi_processor_limit_interaface_show(struct acpi_device *dev, char *buf)
-+{
-+	struct acpi_processor *pr = acpi_driver_data(dev);
-+
-+	if (!pr)
-+		return -EINVAL;
-+
-+	return sprintf(buf, "%d\n", pr->flags.limit);
-+}
-+static ACPI_DEVICE_ATTR(limit_interface, 0444, acpi_processor_limit_interaface_show, NULL);
-+
-+static struct device_attribute* processor_info_attr[] = {
-+	GET_DEV_ATTR(processor_id),
-+	GET_DEV_ATTR(acpi_id),
-+	GET_DEV_ATTR(throttling_control),
-+	GET_DEV_ATTR(limit_interface),
++static struct attribute * processor_limit_attr[] = {
++	GET_ATTR(active_limit),
++	GET_ATTR(user_limit),
++	GET_ATTR(thermal_limit),
 +	NULL,
 +};
-+/* --------------------------------------------------------------------------
-+                              FS Interface (/proc)
-+   -------------------------------------------------------------------------- */
-+#ifdef CONFIG_ACPI_PROCFS
- static struct proc_dir_entry *acpi_processor_dir = NULL;
- 
- static int acpi_processor_info_seq_show(struct seq_file *seq, void *offset)
-@@ -306,7 +357,14 @@ static int acpi_processor_info_open_fs(s
- 			   PDE(inode)->data);
- }
- 
--static int acpi_processor_add_fs(struct acpi_device *device)
-+static const struct file_operations acpi_processor_info_fops = {
-+	.open = acpi_processor_info_open_fs,
-+	.read = seq_read,
-+	.llseek = seq_lseek,
-+	.release = single_release,
++
++struct attribute_group processor_limit_group = {
++	.name	= "limit",
++	.attrs	= processor_limit_attr,
 +};
 +
-+static int acpi_processor_add_procfs(struct acpi_device *device)
++/* /proc interface */
++#ifdef CONFIG_ACPI_PROCFS
+ static int acpi_processor_limit_seq_show(struct seq_file *seq, void *offset)
  {
- 	struct proc_dir_entry *entry = NULL;
- 
-@@ -357,9 +415,8 @@ static int acpi_processor_add_fs(struct 
- 	return 0;
- }
- 
--static int acpi_processor_remove_fs(struct acpi_device *device)
-+static void acpi_processor_remove_procfs(struct acpi_device *device)
- {
--
- 	if (acpi_device_dir(device)) {
- 		remove_proc_entry(ACPI_PROCESSOR_FILE_INFO,
- 				  acpi_device_dir(device));
-@@ -371,9 +428,28 @@ static int acpi_processor_remove_fs(stru
- 		acpi_device_dir(device) = NULL;
- 	}
- 
-+	return;
-+}
-+
-+static int acpi_processor_procfs_init(void)
-+{
-+	acpi_processor_dir = proc_mkdir(ACPI_PROCESSOR_CLASS, acpi_root_dir);
-+	if (!acpi_processor_dir)
-+		return -ENOMEM;
-+	acpi_processor_dir->owner = THIS_MODULE;
-+
- 	return 0;
- }
- 
-+static void acpi_processor_procfs_exit(void)
-+{
-+	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
-+	return;
-+}
-+#else
-+DECLARE_ACPI_DEVICE_PROCFS(processor);
+ 	struct acpi_processor *pr = (struct acpi_processor *)seq->private;
+@@ -389,3 +463,5 @@ struct file_operations acpi_processor_li
+ 	.llseek = seq_lseek,
+ 	.release = single_release,
+ };
 +#endif
 +
- /* Use the acpiid in MADT to map cpus in case of SMP */
+Index: linux-2.6.21-rc3-mm2/include/acpi/processor.h
+===================================================================
+--- linux-2.6.21-rc3-mm2.orig/include/acpi/processor.h	2007-03-16 10:21:06.000000000 +0800
++++ linux-2.6.21-rc3-mm2/include/acpi/processor.h	2007-03-16 10:21:11.000000000 +0800
+@@ -283,7 +283,10 @@ extern struct cpuidle_driver acpi_idle_d
  
- #ifndef CONFIG_SMP
-@@ -655,10 +731,14 @@ static int __cpuinit acpi_processor_star
+ /* in processor_thermal.c */
+ int acpi_processor_get_limit_info(struct acpi_processor *pr);
++#ifdef CONFIG_ACPI_PROCFS
+ extern struct file_operations acpi_processor_limit_fops;
++#endif
++extern struct attribute_group processor_limit_group;
  
- 	processors[pr->id] = pr;
- 
--	result = acpi_processor_add_fs(device);
-+	result = acpi_device_add_sysfs(device, processor_info_attr);
- 	if (result)
- 		goto end;
- 
-+	result = acpi_processor_add_procfs(device);
-+	if (result)
-+		goto procfs_error;
-+
- 	status = acpi_install_notify_handler(pr->handle, ACPI_DEVICE_NOTIFY,
- 					     acpi_processor_notify, pr);
- 
-@@ -674,9 +754,11 @@ static int __cpuinit acpi_processor_star
- 		printk(" %d throttling states", pr->throttling.state_count);
- 		printk(")\n");
+ #ifdef CONFIG_CPU_FREQ
+ void acpi_thermal_cpufreq_init(void);
+Index: linux-2.6.21-rc3-mm2/drivers/acpi/processor_core.c
+===================================================================
+--- linux-2.6.21-rc3-mm2.orig/drivers/acpi/processor_core.c	2007-03-16 10:21:06.000000000 +0800
++++ linux-2.6.21-rc3-mm2/drivers/acpi/processor_core.c	2007-03-16 10:21:11.000000000 +0800
+@@ -741,6 +741,12 @@ static int __cpuinit acpi_processor_star
+ 			goto throttling_attr_error;
  	}
-+	goto end;
  
-+      procfs_error:
-+	acpi_device_remove_sysfs(device, processor_info_attr);
-       end:
--
- 	return result;
- }
- 
-@@ -757,7 +839,9 @@ static int acpi_processor_remove(struct 
- 	status = acpi_remove_notify_handler(pr->handle, ACPI_DEVICE_NOTIFY,
- 					    acpi_processor_notify);
- 
--	acpi_processor_remove_fs(device);
-+	acpi_processor_remove_procfs(device);
++	if (pr->flags.limit) {
++		result = sysfs_create_group(&device->dev.kobj, &processor_limit_group);
++		if (result)
++			goto limit_attr_error;
++		}
 +
-+	acpi_device_remove_sysfs(device, processor_info_attr);
+ 	result = acpi_processor_add_procfs(device);
+ 	if (result)
+ 		goto procfs_error;
+@@ -763,6 +769,8 @@ static int __cpuinit acpi_processor_star
+ 	goto end;
+ 
+       procfs_error:
++	sysfs_remove_group(&device->dev.kobj, &processor_limit_group);
++      limit_attr_error:
+ 	sysfs_remove_group(&device->dev.kobj, &processor_throttling_group);
+       throttling_attr_error:
+ 	acpi_device_remove_sysfs(device, processor_info_attr);
+@@ -852,6 +860,9 @@ static int acpi_processor_remove(struct 
+ 	if (pr->flags.throttling)
+ 		sysfs_remove_group(&device->dev.kobj, &processor_throttling_group);
+ 
++	if (pr->flags.limit)
++		sysfs_remove_group(&device->dev.kobj, &processor_limit_group);
++
+ 	acpi_device_remove_sysfs(device, processor_info_attr);
  
  	processors[pr->id] = NULL;
- 
-@@ -1010,14 +1094,14 @@ static int __init acpi_processor_init(vo
- 		madt = NULL;
- #endif
- 
--	acpi_processor_dir = proc_mkdir(ACPI_PROCESSOR_CLASS, acpi_root_dir);
--	if (!acpi_processor_dir)
--		return -ENOMEM;
--	acpi_processor_dir->owner = THIS_MODULE;
-+	result = acpi_processor_procfs_init();
-+	if (result)
-+		return -ENODEV;
- 
-+	acpi_processor_driver.owner = THIS_MODULE;
- 	result = acpi_bus_register_driver(&acpi_processor_driver);
- 	if (result < 0) {
--		remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
-+		acpi_processor_procfs_exit();
- 		return result;
- 	}
- 
-@@ -1046,7 +1130,7 @@ static void __exit acpi_processor_exit(v
- 
- 		acpi_bus_unregister_driver(&acpi_processor_driver);
- 
--		remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
-+		acpi_processor_procfs_exit();
- 	}
- 	return;
- }
