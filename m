@@ -1,39 +1,31 @@
-From: Dave Jones <davej@redhat.com>
-Subject: Re: Ambient Light Sensor?
-Date: Tue, 20 Mar 2007 11:13:42 -0400
-Message-ID: <20070320151342.GA8667@redhat.com>
-References: <200703191341.41823.lenb@kernel.org>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 2/8] [-mm] ACPI: add ACPI EC sysfs interface
+Date: Tue, 20 Mar 2007 12:18:02 -0300
+Message-ID: <20070320151802.GC13042@khazad-dum.debian.net>
+References: <1174382479.8833.81.camel@localhost.localdomain> <45FFA87A.7040406@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:33387 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933679AbXCTPO5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Mar 2007 11:14:57 -0400
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:60306 "EHLO
+	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933679AbXCTPSH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Mar 2007 11:18:07 -0400
 Content-Disposition: inline
-In-Reply-To: <200703191341.41823.lenb@kernel.org>
+In-Reply-To: <45FFA87A.7040406@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-On Mon, Mar 19, 2007 at 01:41:41PM -0400, Len Brown wrote:
- > Has anybody seen ACPI-based ambient light sensor support on a commercial system?
- > 
- > You'd recognize it by a device with PNPid ACPI0008 exported via the AML device tree.
- > 
- > I've seen it on an Intel Capell Valley CRB, but I was wondering
- > if anybody is using it in the "real world" yet.
- > 
- > I've seen just the dmesg from a MacBook Pro on the web
- > suggesting that system exports ACPI0008:
- > http://www.uwsg.iu.edu/hypermail/linux/kernel/0703.0/1475.html
+On Tue, 20 Mar 2007, Alexey Starikovskiy wrote:
+> So either make it just a printk (KERN_INFO) at init time or drop it 
+> completely.
 
-Right. Under OSX, it uses it to adjust the keyboard backlight.
-(It may also do something fancy wrt gamma correction with the
- built-in webcam)
-
-	Dave
+A printk might be useful for debugging...
 
 -- 
-http://www.codemonkey.org.uk
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
