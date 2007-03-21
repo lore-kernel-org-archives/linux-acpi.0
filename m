@@ -1,79 +1,50 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Suspend to RAM doesn't work anymore in 2.6.21
-Date: Tue, 20 Mar 2007 23:21:28 +0100
-Message-ID: <200703202321.28808.rjw@sisk.pl>
-References: <200703191350.44105.tobias.doerffel@gmail.com> <200703192243.20836.rjw@sisk.pl> <200703200154.49695.tobias.doerffel@gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH 0/8] [-mm] ACPI: add ACPI device sysfs interface
+Date: Wed, 21 Mar 2007 15:17:01 +0800
+Message-ID: <1174461421.8833.103.camel@localhost.localdomain>
+References: <1174382471.8833.79.camel@localhost.localdomain>
+	 <20070320153105.GD13042@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752040AbXCTWSm@vger.kernel.org>
-In-Reply-To: <200703200154.49695.tobias.doerffel@gmail.com>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tobias Doerffel <tobias.doerffel@gmail.com>
-Cc: linux-kernel@vger.kernel.org, Adrian Bunk <bunk@stusta.de>, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:8813 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932825AbXCUHRk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Mar 2007 03:17:40 -0400
+In-Reply-To: <20070320153105.GD13042@khazad-dum.debian.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
 
-On Tuesday, 20 March 2007 01:54, Tobias Doerffel wrote:
-> On Monday 19 March 2007 22:43:20 you wrote:
-> > Hi,
-> >
-> > On Monday, 19 March 2007 13:50, Tobias Doerffel wrote:
-> > > Hi,
-> > >
-> > > Suspend to RAM used to work fine on my computer (Intel Core Duo, 1 GB
-> > > RAM, Intel 82801G (ICH7-chipset) mainboard, NVIDIA-gfx-card,
-> > > tg3-ethernet) up to 2.6.20.3. But no matter which rc of 2.6.21 I use,
-> > > suspend to RAM doesn't work anymore. Up to rc3 even suspending stopped at
-> > > "suspending console" which appearently seems to be fixed in rc4. I tried
-> > > rc4-git4 with minimal config (no dyndicks, no HRT, no MSI, no sound, no
-> > > bluetooth, no PCMCIA, no WLAN, no USB, no cpufreq) but still I can't
-> > > resume properly. Caps works and I can login through SSH. Back to a more
-> > > complete config (sound, MMC, WLAN, PCMCIA - still no dynticks or HRT -
-> > > see attachment "config") I get exactly the same behaviour.
-> > >
-> > > When logged in through SSH after resume I saved output of dmesg (which
-> > > includes full power management debug messages), see
-> > > attachement "dmesg-resume". The system basically seems to be back but lot
-> > > of things do not work such as loading/unloading e.g. my WLAN-driver
-> > > (ipw3945), running "top" or "dstat" etc.   "uptime" always returns 0 min,
-> > > even with power management debug disabled.
-> > >
-> > > Kernel:
-> > > Linux version 2.6.21-rc4 (gcc version 4.1.2 20061115 (prerelease) (Debian
-> > > 4.1.1-21)) #23 SMP PREEMPT Mon Mar 19 12:27:56 CET 2007
-> I made some further investigations on this issue. A complete bisect between 
-> 2.6.20 and 2.6.21-rc4-git4 stops at a stage 
-> (a4bbb810dedaecf74d54b16b6dd3c33e95e1024c) where I'm not able to compile the 
-> kernel anymore because of compiling-errors in arch/i386/kernel/setup.c 
-> (ACPI-related compiling errors). Stepping some revisions back until it 
-> compiled again resume didn't work either.
+On Tue, 2007-03-20 at 12:31 -0300, Henrique de Moraes Holschuh wrote:
+> On Tue, 20 Mar 2007, Zhang Rui wrote:
+> > Add sysfs interface for ACPI devices.
 > 
-> So I started all over again with bisect only on arch/i386 and ended up at 
-> ceb6c46839021d5c7c338d48deac616944660124 as the bad commit. But this file 
-> seems to be some kind of finalization of a series of patches ("ACPICA: Remove 
-> duplicate table manager") so I guess it's hard to debug this thing...
+> While doing the ibm-acpi sysfs work (not submitted yet), I have found I need
+> something like this to properly parse simple ulongs from sysfs:
 > 
-> > Can you please do
-> >
-> > # echo test > /sys/power/disk
-> > # echo disk > /sys/power/state
-> >
-> > (the system should freeze tasks, suspend devices, disable nonboot CPUs,
-> > wait for 5 seconds, enable nonboot CPUs, resume devices, thaw tasks and
-> > return to your command prompt) and see if you can reproduce the problem?
-> Same problem here. Works fine in 2.6.20 as well as before 
-> ceb6c46839021d5c7c338d48deac616944660124. Doesn't work on recent 
-> 2.6.21-rc4-git4.
+> static int parse_strtoul(const char *buf,
+> 		unsigned long max, unsigned long *value)
+> {
+> 	char *endp;
 > 
-> Any more information I can give?
+> 	*value = simple_strtoul(buf, &endp, 0);
+> 	while (*endp && isspace(*endp))
+> 		endp++;
+> 	if (*endp || *value > max)
+> 		return -EINVAL;
+> 
+> 	return 0;
+> }
+> 
+Sounds nice.
+But I think it can work better without the parameter "max".
+Not all of the .store functions have "max" limit, e.g. the thermal
+polling_freq, while some of them may need "max" and "min" limit both,
+like fan state (0/3).
+So why not just get the value and let the .store function judge it? :)
 
-Well, this looks like an ACPI problem, and actually a regression.
-
-I think you can open a bugzilla entry in the ACPI category and put the
-above information in there (please add rjwysocki@sisk.pl to the entry's Cc
-list).
-
-Greetings,
-Rafael
+Thanks,
+Rui.
