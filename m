@@ -1,40 +1,47 @@
-From: Mirco Jeske <m.jeske@web.de>
-Subject: active[0] being ignored
-Date: Wed, 21 Mar 2007 20:46:34 +0100
-Message-ID: <46018B9A.7060106@web.de>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: 2.6.21-rc4-mm1 - problem with cpuidle routine
+Date: Wed, 21 Mar 2007 13:38:15 -0700
+Message-ID: <20070321133815.304eb256.akpm@linux-foundation.org>
+References: <20070319205623.299d0378.akpm@linux-foundation.org>
+	<1174433034.62033.16.camel@localhost>
+	<20070320223643.d8cbc3f6.akpm@linux-foundation.org>
+	<46017E56.7050400@lwfinger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fmmailgate01.web.de ([217.72.192.221]:44375 "EHLO
-	fmmailgate01.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933825AbXCUTqF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Mar 2007 15:46:05 -0400
-Received: from smtp08.web.de (fmsmtp08.dlan.cinetic.de [172.20.5.216])
-	by fmmailgate01.web.de (Postfix) with ESMTP id 418E16CFA7CB
-	for <linux-acpi@vger.kernel.org>; Wed, 21 Mar 2007 20:46:04 +0100 (CET)
-Received: from [82.83.120.119] (helo=[192.168.1.6])
-	by smtp08.web.de with asmtp (WEB.DE 4.107 #114)
-	id 1HU6l1-0003ty-00
-	for linux-acpi@vger.kernel.org; Wed, 21 Mar 2007 20:46:04 +0100
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964828AbXCUUiV@vger.kernel.org>
+In-Reply-To: <46017E56.7050400@lwfinger.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Larry Finger <larry.finger@lwfinger.net>
+Cc: LKML <linux-kernel@vger.kernel.org>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Hi all,
-I have an asus A3G with opensuse 10.2 running. My trip points are
+On Wed, 21 Mar 2007 13:49:58 -0500
+Larry Finger <larry.finger@lwfinger.net> wrote:
 
-critical (S5):           99 C
-passive:                 60 C: tc1=2 tc2=10 tsp=100 devices=0xdffec504
-active[0]:               75 C: devices=0xdffe157c
+> When I configure 'CPU Idle PM Support' on my HP dv2125nr notebook with a Turion X64 X2 processor and
+> X86_64 architecture selected, the computer freezes on bootup. I have included a portion the
+> configuration file and part of /var/log/boot.msg for my working system. Please let me know if
+> further info from my system is required. I would be happy to test any patches, etc.
+> 
+> Larry
+> 
+> ==============================================================
+> 
+> The console log ends with the following entries:
+> 
+> ACPI: Processor [CPU0] (supports 8 throttling states)
+> ACPI: Processor [CPU1] (supports 8 throttling states)
+> cpuidle: driver acpi_idle failed to attach to cpu 0
+> cpuidle: driver acpi_idle failed to attach to cpu 0
+> cpuidle: using driver acpi_idle
+> Loading thermal
+> 
+> At this point, the system hangs.
+> 
+> =================================================
+> 
+> The beginning section of my .config is as follows:
+> 
 
-I do not have an active[1] point. My cooling_mode is active. Therefore I
-would expect the fan to start cooling as soon as the temperature
-reaches  the 75C mark. Instead, the fan runs even if the temperature is
-like 45C. Sometimes the fan goes on and off several times within a short
-period of time so it starts to be annoying.
-
-Is there a way to force the fan to only run at 75C?
-
-thx, Mirco
-
+Thanks.   Cc's added..
