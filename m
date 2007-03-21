@@ -1,54 +1,40 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 0/8] [-mm] ACPI: add ACPI device sysfs interface
-Date: Wed, 21 Mar 2007 16:11:44 -0300
-Message-ID: <20070321191144.GA21721@khazad-dum.debian.net>
-References: <1174382471.8833.79.camel@localhost.localdomain> <20070320153105.GD13042@khazad-dum.debian.net> <1174461421.8833.103.camel@localhost.localdomain>
+From: Mirco Jeske <m.jeske@web.de>
+Subject: active[0] being ignored
+Date: Wed, 21 Mar 2007 20:46:34 +0100
+Message-ID: <46018B9A.7060106@web.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:44159 "EHLO
-	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933751AbXCUTMH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Mar 2007 15:12:07 -0400
-Content-Disposition: inline
-In-Reply-To: <1174461421.8833.103.camel@localhost.localdomain>
+Received: from fmmailgate01.web.de ([217.72.192.221]:44375 "EHLO
+	fmmailgate01.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933825AbXCUTqF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Mar 2007 15:46:05 -0400
+Received: from smtp08.web.de (fmsmtp08.dlan.cinetic.de [172.20.5.216])
+	by fmmailgate01.web.de (Postfix) with ESMTP id 418E16CFA7CB
+	for <linux-acpi@vger.kernel.org>; Wed, 21 Mar 2007 20:46:04 +0100 (CET)
+Received: from [82.83.120.119] (helo=[192.168.1.6])
+	by smtp08.web.de with asmtp (WEB.DE 4.107 #114)
+	id 1HU6l1-0003ty-00
+	for linux-acpi@vger.kernel.org; Wed, 21 Mar 2007 20:46:04 +0100
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Wed, 21 Mar 2007, Zhang Rui wrote:
-> On Tue, 2007-03-20 at 12:31 -0300, Henrique de Moraes Holschuh wrote:
-> > On Tue, 20 Mar 2007, Zhang Rui wrote:
-> > > Add sysfs interface for ACPI devices.
-> > 
-> > While doing the ibm-acpi sysfs work (not submitted yet), I have found I need
-> > something like this to properly parse simple ulongs from sysfs:
-> > 
-> > static int parse_strtoul(const char *buf,
-> > 		unsigned long max, unsigned long *value)
-> > {
-> > 	char *endp;
-> > 
-> > 	*value = simple_strtoul(buf, &endp, 0);
-> > 	while (*endp && isspace(*endp))
-> > 		endp++;
-> > 	if (*endp || *value > max)
-> > 		return -EINVAL;
-> > 
-> > 	return 0;
-> > }
-> > 
-> Sounds nice.
-> But I think it can work better without the parameter "max".
+Hi all,
+I have an asus A3G with opensuse 10.2 running. My trip points are
 
-Well, it is a generic parser for unsigned longs as I needed them in
-ibm-acpi, where the minimum value is always zero, and there is always a
-maximum value.  If you don't need "max", just remove it :-)
+critical (S5):           99 C
+passive:                 60 C: tc1=2 tc2=10 tsp=100 devices=0xdffec504
+active[0]:               75 C: devices=0xdffe157c
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+I do not have an active[1] point. My cooling_mode is active. Therefore I
+would expect the fan to start cooling as soon as the temperature
+reaches  the 75C mark. Instead, the fan runs even if the temperature is
+like 45C. Sometimes the fan goes on and off several times within a short
+period of time so it starts to be annoying.
+
+Is there a way to force the fan to only run at 75C?
+
+thx, Mirco
+
