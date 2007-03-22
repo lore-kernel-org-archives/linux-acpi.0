@@ -1,59 +1,65 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: Re: 2.6.21-rc[123] regression with NOAPIC
-Date: Thu, 22 Mar 2007 15:16:30 +0100
-Message-ID: <20070322141630.GA752@stusta.de>
-References: <4601573A.8070602@madrabbit.org> <20070322134238.GY752@stusta.de> <1174572603.10840.162.camel@localhost.localdomain>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [Bugme-new] [Bug 8249] New: NMI watchdog
+ detected LOCKUP when plugging USB devices with acpi=off
+Date: Thu, 22 Mar 2007 10:49:52 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.0703221047300.3605-100000@iolanthe.rowland.org>
+References: <20070321175624.GA10891@xanadu.blop.info>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emailhub.stusta.mhn.de ([141.84.69.5]:37994 "EHLO
-	mailhub.stusta.mhn.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932879AbXCVOQ1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Mar 2007 10:16:27 -0400
-Content-Disposition: inline
-In-Reply-To: <1174572603.10840.162.camel@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-devel-bounces@lists.sourceforge.net>
+In-Reply-To: <20070321175624.GA10891@xanadu.blop.info>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
+	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-usb-devel>
+List-Post: <mailto:linux-usb-devel@lists.sourceforge.net>
+List-Help: <mailto:linux-usb-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
+	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=subscribe>
+Sender: linux-usb-devel-bounces@lists.sourceforge.net
+Errors-To: linux-usb-devel-bounces@lists.sourceforge.net
+To: Lucas Nussbaum <lucas@lucas-nussbaum.net>
+Cc: linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-usb-devel@lists.sourceforge.net, "bugme-daemon@kernel-bugs.osdl.org" <bugme-daemon@bugzilla.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ray Lee <ray-lk@madrabbit.org>, LKML <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, john stultz <johnstul@us.ibm.com>, Len Brown <len.brown@intel.com>, Andi Kleen <ak@suse.de>, linux-acpi@vger.kernel.org
 
-On Thu, Mar 22, 2007 at 03:10:03PM +0100, Thomas Gleixner wrote:
-> On Thu, 2007-03-22 at 14:42 +0100, Adrian Bunk wrote:
-> > > Starting with head as of yesterday and reverting two commits (that are
-> > > duplicates of each other -- the same commit came into Linus's tree via
-> > > two different paths) 'fixes' the problem for me. I'll let those with the
-> > > big brains decide just why.
+On Wed, 21 Mar 2007, Lucas Nussbaum wrote:
+
+> On 21/03/07 at 08:41 -0800, Andrew Morton wrote:
+> > On Wed, 21 Mar 2007 07:18:45 -0700 bugme-daemon@bugzilla.kernel.org wrote:
+> > 
+> > > http://bugzilla.kernel.org/show_bug.cgi?id=8249
 > > > 
-> > > The two commits are 5c95d3f5783ab184f64b7848f0a871352c35c3cf and
-> > > 3434933b17fa64adddf83059603c61296f6e1ee2 . The net reverse diff of those
-> > > two is below.
-> > >...
-> > 
-> > Thanks for tracking it down.
-> > 
-> > It's quite possible that these commits trigger your problem.
-> > 
-> > Does it work if you do _not_ revert the commits, and instead replace in
-> > drivers/acpi/processor_idle.c the
-> >   #ifdef ARCH_APICTIMER_STOPS_ON_C3
-> > with an
-> >   #if 0
-> > ?
-> 
-> Then NOAPIC probably works again, but booting w/o NOAPIC fails.
+> > >            Summary: NMI watchdog detected LOCKUP when plugging USB devices
+> > >                     with acpi=off
+> > >     Kernel Version: 2.6.21-rc4
+> > >             Status: NEW
+> > >           Severity: high
+> > >              Owner: greg@kroah.com
+> > >          Submitter: lucas@lucas-nussbaum.net
+> > > 
+> > > 
+> > > Most recent kernel where this bug did *NOT* occur: none, as far as I know
+> > > Problem Description:
+> > > 
+> > > My kernel is running with acpi=off to workaround another bug. When I turn on my
+> > > USB printer (a Canon PIXMA MP750), I get this on the serial console:
 
-But we'll know that it's this code that has a problen with noapic
-in the CONFIG_GENERIC_CLOCKEVENTS=n case.
+It looks like your problem occurs either as a result of the USB printer
+driver's actions or as a result of HAL.  You could try turning off the HAL
+daemon and renaming the usblp.ko file so that it won't get loaded
+automatically.  Then after plugging in the printer you could insmod the
+renamed driver file by hand, and see whether that causes the oops.  Then
+start HAL by hand and see whether that causes the oops.
 
-> 	tglx
+Alan Stern
 
-cu
-Adrian
 
--- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
-
+-------------------------------------------------------------------------
+Take Surveys. Earn Cash. Influence the Future of IT
+Join SourceForge.net's Techsay panel and you'll get the chance to share your
+opinions on IT & business topics through brief surveys-and earn cash
+http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
+_______________________________________________
+linux-usb-devel@lists.sourceforge.net
+To unsubscribe, use the last form field at:
+https://lists.sourceforge.net/lists/listinfo/linux-usb-devel
