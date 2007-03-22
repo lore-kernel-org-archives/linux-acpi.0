@@ -1,65 +1,72 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [Bugme-new] [Bug 8249] New: NMI watchdog
- detected LOCKUP when plugging USB devices with acpi=off
-Date: Thu, 22 Mar 2007 10:49:52 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0703221047300.3605-100000@iolanthe.rowland.org>
-References: <20070321175624.GA10891@xanadu.blop.info>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: 2.6.21-rc[123] regression with NOAPIC
+Date: Thu, 22 Mar 2007 16:16:41 +0100
+Message-ID: <1174576601.10840.189.camel@localhost.localdomain>
+References: <4601573A.8070602@madrabbit.org>
+	 <20070322134238.GY752@stusta.de>
+	 <1174572603.10840.162.camel@localhost.localdomain>
+	 <20070322141630.GA752@stusta.de>
+Reply-To: tglx@linutronix.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <20070321175624.GA10891@xanadu.blop.info>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
-	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-usb-devel>
-List-Post: <mailto:linux-usb-devel@lists.sourceforge.net>
-List-Help: <mailto:linux-usb-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
-	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=subscribe>
-Sender: linux-usb-devel-bounces@lists.sourceforge.net
-Errors-To: linux-usb-devel-bounces@lists.sourceforge.net
-To: Lucas Nussbaum <lucas@lucas-nussbaum.net>
-Cc: linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-usb-devel@lists.sourceforge.net, "bugme-daemon@kernel-bugs.osdl.org" <bugme-daemon@bugzilla.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933115AbXCVPJ1@vger.kernel.org>
+In-Reply-To: <20070322141630.GA752@stusta.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Ray Lee <ray-lk@madrabbit.org>, LKML <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, john stultz <johnstul@us.ibm.com>, Len Brown <len.brown@intel.com>, Andi Kleen <ak@suse.de>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 21 Mar 2007, Lucas Nussbaum wrote:
-
-> On 21/03/07 at 08:41 -0800, Andrew Morton wrote:
-> > On Wed, 21 Mar 2007 07:18:45 -0700 bugme-daemon@bugzilla.kernel.org wrote:
+On Thu, 2007-03-22 at 15:16 +0100, Adrian Bunk wrote:
+> > > Does it work if you do _not_ revert the commits, and instead replace in
+> > > drivers/acpi/processor_idle.c the
+> > >   #ifdef ARCH_APICTIMER_STOPS_ON_C3
+> > > with an
+> > >   #if 0
+> > > ?
 > > 
-> > > http://bugzilla.kernel.org/show_bug.cgi?id=8249
-> > > 
-> > >            Summary: NMI watchdog detected LOCKUP when plugging USB devices
-> > >                     with acpi=off
-> > >     Kernel Version: 2.6.21-rc4
-> > >             Status: NEW
-> > >           Severity: high
-> > >              Owner: greg@kroah.com
-> > >          Submitter: lucas@lucas-nussbaum.net
-> > > 
-> > > 
-> > > Most recent kernel where this bug did *NOT* occur: none, as far as I know
-> > > Problem Description:
-> > > 
-> > > My kernel is running with acpi=off to workaround another bug. When I turn on my
-> > > USB printer (a Canon PIXMA MP750), I get this on the serial console:
+> > Then NOAPIC probably works again, but booting w/o NOAPIC fails.
+> 
+> But we'll know that it's this code that has a problen with noapic
+> in the CONFIG_GENERIC_CLOCKEVENTS=n case.
 
-It looks like your problem occurs either as a result of the USB printer
-driver's actions or as a result of HAL.  You could try turning off the HAL
-daemon and renaming the usblp.ko file so that it won't get loaded
-automatically.  Then after plugging in the printer you could insmod the
-renamed driver file by hand, and see whether that causes the oops.  Then
-start HAL by hand and see whether that causes the oops.
+Nope. This code does not have a problem. It causes a problem elsewhere:
 
-Alan Stern
+It calls switch_ipi_to_APIC_timer() or switch_APIC_timer_to_ipi(), which
+sets/clears a bit in the broadcast mask and enables / disables the local
+APIC timer.
 
+I don't see right now, why this causes the box to lock up hard, but
+maybe the debug printk's below give us some hint.
 
--------------------------------------------------------------------------
-Take Surveys. Earn Cash. Influence the Future of IT
-Join SourceForge.net's Techsay panel and you'll get the chance to share your
-opinions on IT & business topics through brief surveys-and earn cash
-http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
-_______________________________________________
-linux-usb-devel@lists.sourceforge.net
-To unsubscribe, use the last form field at:
-https://lists.sourceforge.net/lists/listinfo/linux-usb-devel
+	tglx
+
+diff --git a/arch/x86_64/kernel/apic.c b/arch/x86_64/kernel/apic.c
+index 723417d..29376e2 100644
+--- a/arch/x86_64/kernel/apic.c
++++ b/arch/x86_64/kernel/apic.c
+@@ -886,6 +886,8 @@ void disable_APIC_timer(void)
+ 	if (using_apic_timer) {
+ 		unsigned long v;
+ 
++		printk("Disabling local APIC timer %d\n", apic_runs_main_timer);
++
+ 		v = apic_read(APIC_LVTT);
+ 		/*
+ 		 * When an illegal vector value (0-15) is written to an LVT
+@@ -910,6 +912,7 @@ void enable_APIC_timer(void)
+ 	    !cpu_isset(cpu, timer_interrupt_broadcast_ipi_mask)) {
+ 		unsigned long v;
+ 
++		printk("Enabling local APIC timer: %d\n", apic_runs_main_timer);
+ 		v = apic_read(APIC_LVTT);
+ 		apic_write(APIC_LVTT, v & ~APIC_LVT_MASKED);
+ 	}
+@@ -934,6 +937,7 @@ void smp_send_timer_broadcast_ipi(void)
+ 
+ 	cpus_and(mask, cpu_online_map, timer_interrupt_broadcast_ipi_mask);
+ 	if (!cpus_empty(mask)) {
++		printk("Send IPI\n");
+ 		send_IPI_mask(mask, LOCAL_TIMER_VECTOR);
+ 	}
+ }
