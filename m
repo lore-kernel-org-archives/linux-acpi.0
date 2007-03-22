@@ -1,72 +1,83 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: 2.6.21-rc[123] regression with NOAPIC
-Date: Thu, 22 Mar 2007 16:16:41 +0100
-Message-ID: <1174576601.10840.189.camel@localhost.localdomain>
-References: <4601573A.8070602@madrabbit.org>
-	 <20070322134238.GY752@stusta.de>
-	 <1174572603.10840.162.camel@localhost.localdomain>
-	 <20070322141630.GA752@stusta.de>
-Reply-To: tglx@linutronix.de
+From: Lucas Nussbaum <lucas@lucas-nussbaum.net>
+Subject: Re: [linux-usb-devel] [Bugme-new] [Bug 8249] New: NMI watchdog detected LOCKUP when plugging USB devices with acpi=off
+Date: Thu, 22 Mar 2007 16:38:47 +0100
+Message-ID: <20070322153847.GA24904@xanadu.blop.info>
+References: <20070321175624.GA10891@xanadu.blop.info> <Pine.LNX.4.44L0.0703221047300.3605-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933115AbXCVPJ1@vger.kernel.org>
-In-Reply-To: <20070322141630.GA752@stusta.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Ray Lee <ray-lk@madrabbit.org>, LKML <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, john stultz <johnstul@us.ibm.com>, Len Brown <len.brown@intel.com>, Andi Kleen <ak@suse.de>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vds456.sivit.org ([80.248.208.235]:53253 "EHLO xanadu.blop.info"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933251AbXCVPjK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 Mar 2007 11:39:10 -0400
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.0703221047300.3605-100000@iolanthe.rowland.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-usb-devel@lists.sourceforge.net, "bugme-daemon@kernel-bugs.osdl.org" <bugme-daemon@bugzilla.kernel.org>
 
-On Thu, 2007-03-22 at 15:16 +0100, Adrian Bunk wrote:
-> > > Does it work if you do _not_ revert the commits, and instead replace in
-> > > drivers/acpi/processor_idle.c the
-> > >   #ifdef ARCH_APICTIMER_STOPS_ON_C3
-> > > with an
-> > >   #if 0
-> > > ?
-> > 
-> > Then NOAPIC probably works again, but booting w/o NOAPIC fails.
+On 22/03/07 at 10:49 -0400, Alan Stern wrote:
+> On Wed, 21 Mar 2007, Lucas Nussbaum wrote:
 > 
-> But we'll know that it's this code that has a problen with noapic
-> in the CONFIG_GENERIC_CLOCKEVENTS=n case.
+> > On 21/03/07 at 08:41 -0800, Andrew Morton wrote:
+> > > On Wed, 21 Mar 2007 07:18:45 -0700 bugme-daemon@bugzilla.kernel.org wrote:
+> > > 
+> > > > http://bugzilla.kernel.org/show_bug.cgi?id=8249
+> > > > 
+> > > >            Summary: NMI watchdog detected LOCKUP when plugging USB devices
+> > > >                     with acpi=off
+> > > >     Kernel Version: 2.6.21-rc4
+> > > >             Status: NEW
+> > > >           Severity: high
+> > > >              Owner: greg@kroah.com
+> > > >          Submitter: lucas@lucas-nussbaum.net
+> > > > 
+> > > > 
+> > > > Most recent kernel where this bug did *NOT* occur: none, as far as I know
+> > > > Problem Description:
+> > > > 
+> > > > My kernel is running with acpi=off to workaround another bug. When I turn on my
+> > > > USB printer (a Canon PIXMA MP750), I get this on the serial console:
+> 
+> It looks like your problem occurs either as a result of the USB printer
+> driver's actions or as a result of HAL.  You could try turning off the HAL
+> daemon and renaming the usblp.ko file so that it won't get loaded
+> automatically.  Then after plugging in the printer you could insmod the
+> renamed driver file by hand, and see whether that causes the oops.  Then
+> start HAL by hand and see whether that causes the oops.
 
-Nope. This code does not have a problem. It causes a problem elsewhere:
+Ah, good idea.
 
-It calls switch_ipi_to_APIC_timer() or switch_APIC_timer_to_ipi(), which
-sets/clears a bit in the broadcast mask and enables / disables the local
-APIC timer.
+A problem specific to usblp is unlikely, since it also fails with other
+USB devices (mouse, remote controler).
 
-I don't see right now, why this causes the box to lock up hard, but
-maybe the debug printk's below give us some hint.
+If I kill hald before turning on the printer, the kernel doesn't
+deadlock.
 
-	tglx
+If then, I modprobe usblp, the module gets inserted ok.
 
-diff --git a/arch/x86_64/kernel/apic.c b/arch/x86_64/kernel/apic.c
-index 723417d..29376e2 100644
---- a/arch/x86_64/kernel/apic.c
-+++ b/arch/x86_64/kernel/apic.c
-@@ -886,6 +886,8 @@ void disable_APIC_timer(void)
- 	if (using_apic_timer) {
- 		unsigned long v;
- 
-+		printk("Disabling local APIC timer %d\n", apic_runs_main_timer);
-+
- 		v = apic_read(APIC_LVTT);
- 		/*
- 		 * When an illegal vector value (0-15) is written to an LVT
-@@ -910,6 +912,7 @@ void enable_APIC_timer(void)
- 	    !cpu_isset(cpu, timer_interrupt_broadcast_ipi_mask)) {
- 		unsigned long v;
- 
-+		printk("Enabling local APIC timer: %d\n", apic_runs_main_timer);
- 		v = apic_read(APIC_LVTT);
- 		apic_write(APIC_LVTT, v & ~APIC_LVT_MASKED);
- 	}
-@@ -934,6 +937,7 @@ void smp_send_timer_broadcast_ipi(void)
- 
- 	cpus_and(mask, cpu_online_map, timer_interrupt_broadcast_ipi_mask);
- 	if (!cpus_empty(mask)) {
-+		printk("Send IPI\n");
- 		send_IPI_mask(mask, LOCAL_TIMER_VECTOR);
- 	}
- }
+If then, I start hald (or if I start if with the module unloaded), it
+deadlocks.
+
+I straced hald. The output is on http://blop.info/strace-hald.log, but
+it's probably not very interesting, except for the end:
+[pid  2619] close(14)                   = 0
+[pid  2619] munmap(0xb7f19000, 4096)    = 0
+[pid  2619] readlink("/sys/block/ram0/device", 0x8150f30, 256) = -1 ENOENT (No such file or directory)
+[pid  2619] open("/sys/block/ram0/slaves", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY) = 14
+[pid  2619] fstat64(14, {st_mode=S_IFDIR|0755, st_size=0, ...}) = 0
+[pid  2619] fcntl64(14, F_SETFD, FD_CLOEXEC) = 0
+[pid  2619] getdents64(14, /* 2 entries */, 4096) = 48
+[pid  2619] getdents64(14, /* 0 entries */, 4096) = 0
+[pid  2619] close(14)                   = 0
+[pid  2619] open("//proc/apm", O_RDONLY|O_LARGEFILE) = 14
+
+I also confirmed that "cat /proc/apm" works fine when the USB printer is
+off. But it deadlocks when the USB printer is on. With the printer off:
+# cat /proc/apm 
+1.16ac 1.2 0x03 0x01 0xff 0x80 -1% -1 ?
+-- 
+| Lucas Nussbaum
+| lucas@lucas-nussbaum.net   http://www.lucas-nussbaum.net/ |
+| jabber: lucas@nussbaum.fr             GPG: 1024D/023B3F4F |
