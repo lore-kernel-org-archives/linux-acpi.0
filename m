@@ -1,239 +1,268 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 3/8] [-mm] ACPI: add ACPI Fan sysfs interface
-Date: Thu, 22 Mar 2007 00:47:51 -0400
-Message-ID: <200703220047.51688.lenb@kernel.org>
-References: <1174382484.8833.82.camel@localhost.localdomain>
+Subject: Re: [PATCH 5/8] [-mm] ACPI: add ACPI Processor_core sysfs interface
+Date: Thu, 22 Mar 2007 00:51:32 -0400
+Message-ID: <200703220051.32920.lenb@kernel.org>
+References: <1174382491.8833.84.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:36063 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:37647 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932469AbXCVEtI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 Mar 2007 00:49:08 -0400
-In-Reply-To: <1174382484.8833.82.camel@localhost.localdomain>
+	id S932493AbXCVEwt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 Mar 2007 00:52:49 -0400
+In-Reply-To: <1174382491.8833.84.camel@localhost.localdomain>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi@vger.kernel.org, "Karasyov, Konstantin A" <konstantin.a.karasyov@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
 On Tuesday 20 March 2007 05:21, Zhang Rui wrote:
 > From: Zhang Rui <rui.zhang@intel.com>
 > 
-> Add ACPI Fan device sysfs interface.
+> Add ACPI Processor_core sysfs interface.
 > 
 > Attribute	Mode	Description
-> state		RW	Fan state.
-> 			0: Fan is in D0 state(on).
-> 			3: Fan is in D3 state(off).
+> processor_id	RO
+> acpi_id		RO
+> throttling
+> _control	RO	whether throttling control is supported
+> 			1 = Support, 0 = Not Support.
+> limit_interface	RO	whether processor thermal control is supported
+> 			1 = Support, 0 = Not Support.
 
-I hate the current /proc/acpi/fan/*/interface,
-and don't think we should carry it forward into sysfs.
+What bad things would happen if we exported none of these?
 
-Forced to propose an alternative, I'd say:
+I think the answer is "nothing", and thus we shouldn't do it.
 
-0: off
-1: on-lowest speed
-2: on-next faster speed
-3: on-next faster speed
-...
-n: maximum speed
-
-Where n may be device dependent -- probably exported in an additional file.
-
-So the state file would show the number, not the words on/off
-(because, echo "on" and "off" into the file has no effect,
- which is the confusing mess we have today)
-
-Note that for some systems, the different fan speeds are actually
-exported as multiple fan devices, each with a simple on/off.
-
-thanks,
 -Len
 
 > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 > ---
->  drivers/acpi/fan.c |   98 +++++++++++++++++++++++++++++++++++++++++++++++------
->  1 files changed, 87 insertions(+), 11 deletions(-)
+>  drivers/acpi/processor_core.c |  126 +++++++++++++++++++++++++++++++++++-------
+>  1 files changed, 105 insertions(+), 21 deletions(-)
 > 
-> Index: linux-2.6.21-rc3-mm2/drivers/acpi/fan.c
+> Index: linux-2.6.21-rc3-mm2/drivers/acpi/processor_core.c
 > ===================================================================
-> --- linux-2.6.21-rc3-mm2.orig/drivers/acpi/fan.c	2007-03-16 10:08:06.000000000 +0800
-> +++ linux-2.6.21-rc3-mm2/drivers/acpi/fan.c	2007-03-16 10:20:02.000000000 +0800
-> @@ -67,8 +67,57 @@ struct acpi_fan {
->  };
+> --- linux-2.6.21-rc3-mm2.orig/drivers/acpi/processor_core.c	2007-03-16 10:08:06.000000000 +0800
+> +++ linux-2.6.21-rc3-mm2/drivers/acpi/processor_core.c	2007-03-16 10:21:01.000000000 +0800
+> @@ -83,7 +83,6 @@ MODULE_LICENSE("GPL");
+>  static int acpi_processor_add(struct acpi_device *device);
+>  static int acpi_processor_start(struct acpi_device *device);
+>  static int acpi_processor_remove(struct acpi_device *device, int type);
+> -static int acpi_processor_info_open_fs(struct inode *inode, struct file *file);
+>  static void acpi_processor_notify(acpi_handle handle, u32 event, void *data);
+>  static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu);
+>  static int acpi_processor_handle_eject(struct acpi_processor *pr);
+> @@ -102,13 +101,6 @@ static struct acpi_driver acpi_processor
+>  #define INSTALL_NOTIFY_HANDLER		1
+>  #define UNINSTALL_NOTIFY_HANDLER	2
+>  
+> -static const struct file_operations acpi_processor_info_fops = {
+> -	.open = acpi_processor_info_open_fs,
+> -	.read = seq_read,
+> -	.llseek = seq_lseek,
+> -	.release = single_release,
+> -};
+> -
+>  struct acpi_processor *processors[NR_CPUS];
+>  struct acpi_processor_errata errata __read_mostly;
+>  
+> @@ -270,9 +262,68 @@ static int acpi_processor_set_pdc(struct
+>  }
 >  
 >  /* --------------------------------------------------------------------------
+> -                              FS Interface (/proc)
 > +                              FS Interface (/sys)
-> +   -------------------------------------------------------------------------- */
+>     -------------------------------------------------------------------------- */
+>  
+> +static ssize_t
+> +acpi_processor_id_show(struct acpi_device *dev, char *buf)
+> +{
+> +	struct acpi_processor *pr = acpi_driver_data(dev);
+> +
+> +	if (!pr)
+> +		return -EINVAL;
+> +
+> +	return sprintf(buf, "%d\n", pr->id);
+> +}
+> +static ACPI_DEVICE_ATTR(processor_id, 0444, acpi_processor_id_show, NULL);
 > +
 > +static ssize_t
-> +acpi_fan_state_show(struct acpi_device *dev, char *buf)
+> +acpi_processor_acpi_id_show(struct acpi_device *dev, char *buf)
 > +{
-> +	struct acpi_fan *fan = acpi_driver_data(dev);
-> +	int state = 0;
-> +	ssize_t result = 0;
+> +	struct acpi_processor *pr = acpi_driver_data(dev);
 > +
-> +	if (!fan)
+> +	if (!pr)
 > +		return -EINVAL;
 > +
-> +	result = acpi_bus_get_power(fan->device->handle, &state);
-> +	if (!result)
-> +		result = sprintf(buf, "%u\n", state);
-> +
-> +	return result;
+> +	return sprintf(buf, "%d\n", pr->acpi_id);
 > +}
+> +static ACPI_DEVICE_ATTR(acpi_id, 0444, acpi_processor_acpi_id_show, NULL);
 > +
 > +static ssize_t
-> +acpi_fan_state_store(struct acpi_device *dev, const char *buf, size_t count)
+> +acpi_processor_throttling_control_show(struct acpi_device *dev, char *buf)
 > +{
-> +	struct acpi_fan *fan = acpi_driver_data(dev);
-> +	ssize_t result;
-> +	char * end;
-> +	int state;
+> +	struct acpi_processor *pr = acpi_driver_data(dev);
 > +
-> +	if (!fan)
+> +	if (!pr)
 > +		return -EINVAL;
 > +
-> +	state = simple_strtoul(buf, &end, 0);
-> +	if (*end == '\0')
-> +		return -EINVAL;
-> +
-> +	result = acpi_bus_set_power(fan->device->handle, state);
-> +	if (!result)
-> +		result = count;
-> +
-> +	return result;
+> +	return sprintf(buf, "%d\n", pr->flags.throttling);
 > +}
-> +static ACPI_DEVICE_ATTR(state, 0644, acpi_fan_state_show, acpi_fan_state_store);
+> +static ACPI_DEVICE_ATTR(throttling_control, 0444, acpi_processor_throttling_control_show, NULL);
 > +
-> +static struct device_attribute* fan_attr[] = {
-> +	GET_DEV_ATTR(state),
+> +static ssize_t
+> +acpi_processor_limit_interaface_show(struct acpi_device *dev, char *buf)
+> +{
+> +	struct acpi_processor *pr = acpi_driver_data(dev);
+> +
+> +	if (!pr)
+> +		return -EINVAL;
+> +
+> +	return sprintf(buf, "%d\n", pr->flags.limit);
+> +}
+> +static ACPI_DEVICE_ATTR(limit_interface, 0444, acpi_processor_limit_interaface_show, NULL);
+> +
+> +static struct device_attribute* processor_info_attr[] = {
+> +	GET_DEV_ATTR(processor_id),
+> +	GET_DEV_ATTR(acpi_id),
+> +	GET_DEV_ATTR(throttling_control),
+> +	GET_DEV_ATTR(limit_interface),
 > +	NULL,
 > +};
 > +/* --------------------------------------------------------------------------
->                                FS Interface (/proc)
->     -------------------------------------------------------------------------- */
+> +                              FS Interface (/proc)
+> +   -------------------------------------------------------------------------- */
 > +#ifdef CONFIG_ACPI_PROCFS
+>  static struct proc_dir_entry *acpi_processor_dir = NULL;
 >  
->  static struct proc_dir_entry *acpi_fan_dir;
+>  static int acpi_processor_info_seq_show(struct seq_file *seq, void *offset)
+> @@ -306,7 +357,14 @@ static int acpi_processor_info_open_fs(s
+>  			   PDE(inode)->data);
+>  }
 >  
-> @@ -128,7 +177,7 @@ static const struct file_operations acpi
->  	.owner = THIS_MODULE,
->  };
->  
-> -static int acpi_fan_add_fs(struct acpi_device *device)
-> +static int acpi_fan_add_procfs(struct acpi_device *device)
+> -static int acpi_processor_add_fs(struct acpi_device *device)
+> +static const struct file_operations acpi_processor_info_fops = {
+> +	.open = acpi_processor_info_open_fs,
+> +	.read = seq_read,
+> +	.llseek = seq_lseek,
+> +	.release = single_release,
+> +};
+> +
+> +static int acpi_processor_add_procfs(struct acpi_device *device)
 >  {
 >  	struct proc_dir_entry *entry = NULL;
 >  
-> @@ -159,7 +208,7 @@ static int acpi_fan_add_fs(struct acpi_d
+> @@ -357,9 +415,8 @@ static int acpi_processor_add_fs(struct 
 >  	return 0;
 >  }
 >  
-> -static int acpi_fan_remove_fs(struct acpi_device *device)
-> +static int acpi_fan_remove_procfs(struct acpi_device *device)
+> -static int acpi_processor_remove_fs(struct acpi_device *device)
+> +static void acpi_processor_remove_procfs(struct acpi_device *device)
 >  {
->  
+> -
 >  	if (acpi_device_dir(device)) {
-> @@ -171,6 +220,25 @@ static int acpi_fan_remove_fs(struct acp
->  	return 0;
->  }
+>  		remove_proc_entry(ACPI_PROCESSOR_FILE_INFO,
+>  				  acpi_device_dir(device));
+> @@ -371,9 +428,28 @@ static int acpi_processor_remove_fs(stru
+>  		acpi_device_dir(device) = NULL;
+>  	}
 >  
-> +static int acpi_fan_procfs_init(void)
-> +{
-> +	acpi_fan_dir = proc_mkdir(ACPI_FAN_CLASS, acpi_root_dir);
-> +	if (!acpi_fan_dir)
-> +		return -ENODEV;
-> +	acpi_fan_dir->owner = THIS_MODULE;
-> +
-> +	return 0;
+> +	return;
 > +}
 > +
-> +static int acpi_fan_procfs_exit(void)
+> +static int acpi_processor_procfs_init(void)
 > +{
-> +	remove_proc_entry(ACPI_FAN_CLASS, acpi_root_dir);
+> +	acpi_processor_dir = proc_mkdir(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+> +	if (!acpi_processor_dir)
+> +		return -ENOMEM;
+> +	acpi_processor_dir->owner = THIS_MODULE;
 > +
-> +	return 0;
+>  	return 0;
+>  }
+>  
+> +static void acpi_processor_procfs_exit(void)
+> +{
+> +	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+> +	return;
 > +}
 > +#else
-> +DECLARE_ACPI_DEVICE_PROCFS(fan);
+> +DECLARE_ACPI_DEVICE_PROCFS(processor);
 > +#endif
->  /* --------------------------------------------------------------------------
->                                   Driver Interface
->     -------------------------------------------------------------------------- */
-> @@ -204,18 +272,25 @@ static int acpi_fan_add(struct acpi_devi
->  	acpi_bus_set_power(device->handle, state);
->  	device->flags.force_power_state = 0;
+> +
+>  /* Use the acpiid in MADT to map cpus in case of SMP */
 >  
-> -	result = acpi_fan_add_fs(device);
-> +	result = acpi_device_add_sysfs(device, fan_attr);
+>  #ifndef CONFIG_SMP
+> @@ -655,10 +731,14 @@ static int __cpuinit acpi_processor_star
+>  
+>  	processors[pr->id] = pr;
+>  
+> -	result = acpi_processor_add_fs(device);
+> +	result = acpi_device_add_sysfs(device, processor_info_attr);
 >  	if (result)
 >  		goto end;
 >  
-> +	result = acpi_fan_add_procfs(device);
+> +	result = acpi_processor_add_procfs(device);
 > +	if (result)
 > +		goto procfs_error;
 > +
->  	printk(KERN_INFO PREFIX "%s [%s] (%s)\n",
->  	       acpi_device_name(device), acpi_device_bid(device),
->  	       !device->power.state ? "on" : "off");
+>  	status = acpi_install_notify_handler(pr->handle, ACPI_DEVICE_NOTIFY,
+>  					     acpi_processor_notify, pr);
 >  
+> @@ -674,9 +754,11 @@ static int __cpuinit acpi_processor_star
+>  		printk(" %d throttling states", pr->throttling.state_count);
+>  		printk(")\n");
+>  	}
 > +	goto end;
-> +
+>  
 > +      procfs_error:
-> +	acpi_device_remove_sysfs(device,fan_attr);
+> +	acpi_device_remove_sysfs(device, processor_info_attr);
 >        end:
->  	if (result)
->  		kfree(fan);
 > -
 >  	return result;
 >  }
 >  
-> @@ -229,7 +304,9 @@ static int acpi_fan_remove(struct acpi_d
+> @@ -757,7 +839,9 @@ static int acpi_processor_remove(struct 
+>  	status = acpi_remove_notify_handler(pr->handle, ACPI_DEVICE_NOTIFY,
+>  					    acpi_processor_notify);
 >  
->  	fan = acpi_driver_data(device);
->  
-> -	acpi_fan_remove_fs(device);
-> +	acpi_fan_remove_procfs(device);
+> -	acpi_processor_remove_fs(device);
+> +	acpi_processor_remove_procfs(device);
 > +
-> +	acpi_device_remove_sysfs(device, fan_attr);
+> +	acpi_device_remove_sysfs(device, processor_info_attr);
 >  
->  	kfree(fan);
+>  	processors[pr->id] = NULL;
 >  
-> @@ -272,15 +349,14 @@ static int __init acpi_fan_init(void)
->  {
->  	int result = 0;
+> @@ -1010,14 +1094,14 @@ static int __init acpi_processor_init(vo
+>  		madt = NULL;
+>  #endif
 >  
-> -
-> -	acpi_fan_dir = proc_mkdir(ACPI_FAN_CLASS, acpi_root_dir);
-> -	if (!acpi_fan_dir)
-> +	result = acpi_fan_procfs_init();
+> -	acpi_processor_dir = proc_mkdir(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+> -	if (!acpi_processor_dir)
+> -		return -ENOMEM;
+> -	acpi_processor_dir->owner = THIS_MODULE;
+> +	result = acpi_processor_procfs_init();
 > +	if (result)
->  		return -ENODEV;
-> -	acpi_fan_dir->owner = THIS_MODULE;
+> +		return -ENODEV;
 >  
-> +	acpi_fan_driver.owner = THIS_MODULE;
->  	result = acpi_bus_register_driver(&acpi_fan_driver);
+> +	acpi_processor_driver.owner = THIS_MODULE;
+>  	result = acpi_bus_register_driver(&acpi_processor_driver);
 >  	if (result < 0) {
-> -		remove_proc_entry(ACPI_FAN_CLASS, acpi_root_dir);
-> +		acpi_fan_procfs_exit();
->  		return -ENODEV;
+> -		remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+> +		acpi_processor_procfs_exit();
+>  		return result;
 >  	}
 >  
-> @@ -292,7 +368,7 @@ static void __exit acpi_fan_exit(void)
+> @@ -1046,7 +1130,7 @@ static void __exit acpi_processor_exit(v
 >  
->  	acpi_bus_unregister_driver(&acpi_fan_driver);
+>  		acpi_bus_unregister_driver(&acpi_processor_driver);
 >  
-> -	remove_proc_entry(ACPI_FAN_CLASS, acpi_root_dir);
-> +	acpi_fan_procfs_exit();
->  
+> -		remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+> +		acpi_processor_procfs_exit();
+>  	}
 >  	return;
 >  }
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
