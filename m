@@ -1,79 +1,48 @@
-From: Adrian Bunk <bunk@stusta.de>
+From: Thomas Gleixner <tglx@linutronix.de>
 Subject: Re: 2.6.21-rc[123] regression with NOAPIC
-Date: Thu, 22 Mar 2007 14:42:38 +0100
-Message-ID: <20070322134238.GY752@stusta.de>
+Date: Thu, 22 Mar 2007 15:10:03 +0100
+Message-ID: <1174572603.10840.162.camel@localhost.localdomain>
 References: <4601573A.8070602@madrabbit.org>
+	 <20070322134238.GY752@stusta.de>
+Reply-To: tglx@linutronix.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932203AbXCVNmi@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4601573A.8070602@madrabbit.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ray Lee <ray-lk@madrabbit.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, john stultz <johnstul@us.ibm.com>, Len Brown <len.brown@intel.com>, Andi Kleen <ak@suse.de>, linux-acpi@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from www.osadl.org ([213.239.205.134]:55277 "EHLO mail.tglx.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932837AbXCVOCq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 Mar 2007 10:02:46 -0400
+In-Reply-To: <20070322134238.GY752@stusta.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Ray Lee <ray-lk@madrabbit.org>, LKML <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, john stultz <johnstul@us.ibm.com>, Len Brown <len.brown@intel.com>, Andi Kleen <ak@suse.de>, linux-acpi@vger.kernel.org
 
-On Wed, Mar 21, 2007 at 09:03:06AM -0700, Ray Lee wrote:
-> Hey Thomas, Ingo, et al.
-> 
-> I'm having a problem, and tracked it down to what looks like a harmless
-> commit of yours. I didn't quite believe the bisect at first, so tested
-> it multiple times.
-> 
-> The original problem report, when I boot with NOAPIC on the command line
-> on my x86_64 box, the boot hangs and the system is totally unresponsive:
-> 
-> > For me, this is a minor regression as I no longer need to boot with
-> > NOAPIC, it just happened to still be the default when I tried 2.6.21-rc3.
+On Thu, 2007-03-22 at 14:42 +0100, Adrian Bunk wrote:
+> > Starting with head as of yesterday and reverting two commits (that are
+> > duplicates of each other -- the same commit came into Linus's tree via
+> > two different paths) 'fixes' the problem for me. I'll let those with the
+> > big brains decide just why.
 > > 
-> > During boot, the computer wedges, hard. It's unresponsive to SysRq
-> > combos, or ctrl-alt-del, but the fan kicks in pretty quickly, so I'm
-> > guessing the CPU is still going wild.
-> > 
-> > The boot locks right before, or during, or immediately after the ** line
-> > below:
-> > 
-> >    [   15.020037] ACPI: CPU0 (power states: C1[C1] C3[C3])
-> > ** [   15.020221] ACPI: Processor [C000] (supports 8 throttling states)
-> >    [   15.036059] ACPI: Thermal Zone [TZ1] (66 C)
-> >    [   15.041893] ACPI: Thermal Zone [TZ2] (53 C)
-> >    [   15.051285] ACPI: Thermal Zone [TZ3] (33 C)
-> >    [   15.054922] ACPI: Thermal Zone [TZ4] (34 C)
-> > 
-> > This is an x86-64 system, HP/Compaq nx6125, ATI chipset (sigh). Booting
-> > with NOAPIC worked in 2.6.20, fails in 2.6.21-rc1 (and 2, and 3).
-> (& UP, not compiled for SMP.)
+> > The two commits are 5c95d3f5783ab184f64b7848f0a871352c35c3cf and
+> > 3434933b17fa64adddf83059603c61296f6e1ee2 . The net reverse diff of those
+> > two is below.
+> >...
 > 
-> Starting with head as of yesterday and reverting two commits (that are
-> duplicates of each other -- the same commit came into Linus's tree via
-> two different paths) 'fixes' the problem for me. I'll let those with the
-> big brains decide just why.
+> Thanks for tracking it down.
 > 
-> The two commits are 5c95d3f5783ab184f64b7848f0a871352c35c3cf and
-> 3434933b17fa64adddf83059603c61296f6e1ee2 . The net reverse diff of those
-> two is below.
->...
+> It's quite possible that these commits trigger your problem.
+> 
+> Does it work if you do _not_ revert the commits, and instead replace in
+> drivers/acpi/processor_idle.c the
+>   #ifdef ARCH_APICTIMER_STOPS_ON_C3
+> with an
+>   #if 0
+> ?
 
-Thanks for tracking it down.
+Then NOAPIC probably works again, but booting w/o NOAPIC fails.
 
-It's quite possible that these commits trigger your problem.
+	tglx
 
-Does it work if you do _not_ revert the commits, and instead replace in
-drivers/acpi/processor_idle.c the
-  #ifdef ARCH_APICTIMER_STOPS_ON_C3
-with an
-  #if 0
-?
 
-> Ray
->...
-
-cu
-Adrian
-
--- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
