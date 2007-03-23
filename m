@@ -1,91 +1,158 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 1/7] ACPI: ibm-acpi: kill trailing whitespace
-Date: Fri, 23 Mar 2007 17:33:54 -0300
-Message-ID: <11746820401476-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 7/7] ACPI: ibm-acpi: move driver to drivers/misc hierarchy
+Date: Fri, 23 Mar 2007 17:34:00 -0300
+Message-ID: <11746820421611-git-send-email-hmh@hmh.eng.br>
 References: <11746820402862-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:50211 "EHLO
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:43149 "EHLO
 	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753419AbXCWUeH (ORCPT
+	by vger.kernel.org with ESMTP id S1753432AbXCWUeK (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 23 Mar 2007 16:34:07 -0400
+	Fri, 23 Mar 2007 16:34:10 -0400
 In-Reply-To: <11746820402862-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
 Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-I shall protect the ibm-acpi city against the invasion of the barbarian
-blanks!  To the unforgiving jaws of sed s/[[:blank:]]\+$// they go!
+ibm-acpi is not an ACPICA driver, so move it to drivers/misc as per Len
+Brown's request.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 ---
- Documentation/ibm-acpi.txt |    6 +++---
- drivers/acpi/ibm_acpi.c    |    6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/acpi/Kconfig              |   37 -------------------------------------
+ drivers/acpi/Makefile             |    1 -
+ drivers/misc/Kconfig              |   37 +++++++++++++++++++++++++++++++++++++
+ drivers/misc/Makefile             |    1 +
+ drivers/{acpi => misc}/ibm_acpi.c |    0 
+ drivers/{acpi => misc}/ibm_acpi.h |    0 
+ 6 files changed, 38 insertions(+), 38 deletions(-)
+ rename drivers/{acpi => misc}/ibm_acpi.c (100%)
+ rename drivers/{acpi => misc}/ibm_acpi.h (100%)
 
-diff --git a/Documentation/ibm-acpi.txt b/Documentation/ibm-acpi.txt
-index 0132d36..cdcef01 100644
---- a/Documentation/ibm-acpi.txt
-+++ b/Documentation/ibm-acpi.txt
-@@ -21,7 +21,7 @@ detailed description):
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index e2ce4a9..45c4315 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -218,43 +218,6 @@ config ACPI_ASUS
+ 	  NOTE: This driver is deprecated and will probably be removed soon,
+ 	  use asus-laptop instead.
  
- 	- Fn key combinations
- 	- Bluetooth enable and disable
--	- video output switching, expansion control	
-+	- video output switching, expansion control
- 	- ThinkLight on and off
- 	- limited docking and undocking
- 	- UltraBay eject
-@@ -472,7 +472,7 @@ This feature dumps the values of 256 embedded controller
- registers. Values which have changed since the last time the registers
- were dumped are marked with a star:
+-config ACPI_IBM
+-	tristate "IBM ThinkPad Laptop Extras"
+-	depends on X86
+-	select BACKLIGHT_CLASS_DEVICE
+-	---help---
+-	  This is a Linux ACPI driver for the IBM ThinkPad laptops. It adds
+-	  support for Fn-Fx key combinations, Bluetooth control, video
+-	  output switching, ThinkLight control, UltraBay eject and more.
+-	  For more information about this driver see <file:Documentation/ibm-acpi.txt>
+-	  and <http://ibm-acpi.sf.net/> .
+-
+-	  If you have an IBM ThinkPad laptop, say Y or M here.
+-
+-config ACPI_IBM_DOCK
+-	bool "Legacy Docking Station Support"
+-	depends on ACPI_IBM
+-	depends on ACPI_DOCK=n
+-	default n
+-	---help---
+-	  Allows the ibm_acpi driver to handle docking station events.
+-	  This support is obsoleted by CONFIG_HOTPLUG_PCI_ACPI.  It will
+-	  allow locking and removing the laptop from the docking station,
+-	  but will not properly connect PCI devices.
+-
+-	  If you are not sure, say N here.
+-
+-config ACPI_IBM_BAY
+-	bool "Legacy Removable Bay Support"
+-	depends on ACPI_IBM
+-	default y
+-	---help---
+-	  Allows the ibm_acpi driver to handle removable bays.  It will allow
+-	  disabling the device in the bay, and also generate notifications when
+-	  the bay lever is ejected or inserted.
+-
+-	  If you are not sure, say Y here.
+-
+ config ACPI_TOSHIBA
+ 	tristate "Toshiba Laptop Extras"
+ 	depends on X86
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 5956e9f..92642ab 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -55,7 +55,6 @@ obj-$(CONFIG_ACPI_SYSTEM)	+= system.o event.o
+ obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
+ obj-$(CONFIG_ACPI_NUMA)		+= numa.o
+ obj-$(CONFIG_ACPI_ASUS)		+= asus_acpi.o
+-obj-$(CONFIG_ACPI_IBM)		+= ibm_acpi.o
+ obj-$(CONFIG_ACPI_TOSHIBA)	+= toshiba_acpi.o
+ obj-$(CONFIG_ACPI_HOTPLUG_MEMORY)	+= acpi_memhotplug.o
+ obj-y				+= cm_sbs.o
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index 80b199f..5d2bcbf 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -122,4 +122,41 @@ config SONY_LAPTOP
  
--[root@x40 ibm-acpi]# cat /proc/acpi/ibm/ecdump 
-+[root@x40 ibm-acpi]# cat /proc/acpi/ibm/ecdump
- EC       +00 +01 +02 +03 +04 +05 +06 +07 +08 +09 +0a +0b +0c +0d +0e +0f
- EC 0x00:  a7  47  87  01  fe  96  00  08  01  00  cb  00  00  00  40  00
- EC 0x10:  00  00  ff  ff  f4  3c  87  09  01  ff  42  01  ff  ff  0d  00
-@@ -503,7 +503,7 @@ vary. The second ensures that the fan-related values do vary, since
- the fan speed fluctuates a bit. The third will (hopefully) mark the
- fan register with a star:
+ 	  Read <file:Documentation/sony-laptop.txt> for more information.
  
--[root@x40 ibm-acpi]# cat /proc/acpi/ibm/ecdump 
-+[root@x40 ibm-acpi]# cat /proc/acpi/ibm/ecdump
- EC       +00 +01 +02 +03 +04 +05 +06 +07 +08 +09 +0a +0b +0c +0d +0e +0f
- EC 0x00:  a7  47  87  01  fe  96  00  08  01  00  cb  00  00  00  40  00
- EC 0x10:  00  00  ff  ff  f4  3c  87  09  01  ff  42  01  ff  ff  0d  00
-diff --git a/drivers/acpi/ibm_acpi.c b/drivers/acpi/ibm_acpi.c
-index dc10966..60aaed9 100644
---- a/drivers/acpi/ibm_acpi.c
-+++ b/drivers/acpi/ibm_acpi.c
-@@ -28,7 +28,7 @@
-  *  2006-11-22	0.13	new maintainer
-  *  			changelog now lives in git commit history, and will
-  *  			not be updated further in-file.
-- *  
-+ *
-  *  2005-08-17  0.12	fix compilation on 2.6.13-rc kernels
-  *  2005-03-17	0.11	support for 600e, 770x
-  *			    thanks to Jamie Lentin <lentinj@dial.pipex.com>
-@@ -38,7 +38,7 @@
-  *			experimental brightness control
-  *			experimental volume control
-  *			experimental fan enable/disable
-- *  2005-01-16	0.10	fix module loading on R30, R31 
-+ *  2005-01-16	0.10	fix module loading on R30, R31
-  *  2005-01-16	0.9	support for 570, R30, R31
-  *			ultrabay support on A22p, A3x
-  *			limit arg for cmos, led, beep, drop experimental status
-@@ -161,7 +161,7 @@ IBM_HANDLE(dock, root, "\\_SB.GDCK",	/* X30, X31, X40 */
- #ifdef CONFIG_ACPI_IBM_BAY
- IBM_HANDLE(bay, root, "\\_SB.PCI.IDE.SECN.MAST",	/* 570 */
- 	   "\\_SB.PCI0.IDE0.IDES.IDSM",	/* 600e/x, 770e, 770x */
--	   "\\_SB.PCI0.SATA.SCND.MSTR",	/* T60, X60, Z60 */ 
-+	   "\\_SB.PCI0.SATA.SCND.MSTR",	/* T60, X60, Z60 */
- 	   "\\_SB.PCI0.IDE0.SCND.MSTR",	/* all others */
-     );				/* A21e, R30, R31 */
- 
++config ACPI_IBM
++	tristate "IBM ThinkPad Laptop Extras"
++	depends on X86 && ACPI
++	select BACKLIGHT_CLASS_DEVICE
++	---help---
++	  This is a Linux ACPI driver for the IBM ThinkPad laptops. It adds
++	  support for Fn-Fx key combinations, Bluetooth control, video
++	  output switching, ThinkLight control, UltraBay eject and more.
++	  For more information about this driver see <file:Documentation/ibm-acpi.txt>
++	  and <http://ibm-acpi.sf.net/> .
++
++	  If you have an IBM ThinkPad laptop, say Y or M here.
++
++config ACPI_IBM_DOCK
++	bool "Legacy Docking Station Support"
++	depends on ACPI_IBM
++	depends on ACPI_DOCK=n
++	default n
++	---help---
++	  Allows the ibm_acpi driver to handle docking station events.
++	  This support is obsoleted by CONFIG_HOTPLUG_PCI_ACPI.  It will
++	  allow locking and removing the laptop from the docking station,
++	  but will not properly connect PCI devices.
++
++	  If you are not sure, say N here.
++
++config ACPI_IBM_BAY
++	bool "Legacy Removable Bay Support"
++	depends on ACPI_IBM
++	default y
++	---help---
++	  Allows the ibm_acpi driver to handle removable bays.  It will allow
++	  disabling the device in the bay, and also generate notifications when
++	  the bay lever is ejected or inserted.
++
++	  If you are not sure, say Y here.
++
+ endmenu
+diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
+index 7793ccd..848b398 100644
+--- a/drivers/misc/Makefile
++++ b/drivers/misc/Makefile
+@@ -12,3 +12,4 @@ obj-$(CONFIG_TIFM_CORE)       	+= tifm_core.o
+ obj-$(CONFIG_TIFM_7XX1)       	+= tifm_7xx1.o
+ obj-$(CONFIG_SGI_IOC4)		+= ioc4.o
+ obj-$(CONFIG_SONY_LAPTOP)	+= sony-laptop.o
++obj-$(CONFIG_ACPI_IBM)		+= ibm_acpi.o
+diff --git a/drivers/acpi/ibm_acpi.c b/drivers/misc/ibm_acpi.c
+similarity index 100%
+rename from drivers/acpi/ibm_acpi.c
+rename to drivers/misc/ibm_acpi.c
+diff --git a/drivers/acpi/ibm_acpi.h b/drivers/misc/ibm_acpi.h
+similarity index 100%
+rename from drivers/acpi/ibm_acpi.h
+rename to drivers/misc/ibm_acpi.h
 -- 
 1.5.0.3
 
