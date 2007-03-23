@@ -1,46 +1,65 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: Fw: Re: 2.6.21-rc4-mm1 + 4 hotfixes -- BUG: unable to handle kernel paging request at virtual address 6b6b6ceb -- EIP is at module_put+0x7/0x1f
-Date: Thu, 22 Mar 2007 22:16:13 -0700
-Message-ID: <20070323051613.GA9560@kroah.com>
-References: <20070322095232.f992794a.akpm@linux-foundation.org> <1174615467.23591.3.camel@sli10-conroe.sh.intel.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: active[0] being ignored
+Date: Fri, 23 Mar 2007 12:06:13 -0400
+Message-ID: <200703231206.13236.lenb@kernel.org>
+References: <46018B9A.7060106@web.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kroah.org ([69.55.234.183]:49189 "EHLO perch.kroah.org"
+Received: from hera.kernel.org ([140.211.167.34]:38397 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753127AbXCWFmZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 23 Mar 2007 01:42:25 -0400
+	id S2992480AbXCWQHd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 23 Mar 2007 12:07:33 -0400
+In-Reply-To: <46018B9A.7060106@web.de>
 Content-Disposition: inline
-In-Reply-To: <1174615467.23591.3.camel@sli10-conroe.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, linux-acpi@vger.kernel.org
+To: Mirco Jeske <m.jeske@web.de>
+Cc: linux-acpi@vger.kernel.org
 
-On Fri, Mar 23, 2007 at 10:04:26AM +0800, Shaohua Li wrote:
-> On Fri, 2007-03-23 at 01:52 +0800, Andrew Morton wrote:
-> > 
-> > It looks like the cpuidle patches are doing incorrect things
-> > with their kobject protocol.
-> Looks the goal to force kobject to be allocated dynamically is to
-> release the memory of the kobject. But in the cpuidle case, we don't
-> want to free the memory as it might be used soon.
+On Wednesday 21 March 2007 15:46, you wrote:
+> Hi all,
+> I have an asus A3G with opensuse 10.2 running. My trip points are
+> 
+> critical (S5):           99 C
+> passive:                 60 C: tc1=2 tc2=10 tsp=100 devices=0xdffec504
+> active[0]:               75 C: devices=0xdffe157c
+> 
+> I do not have an active[1] point. My cooling_mode is active. Therefore I
+> would expect the fan to start cooling as soon as the temperature
+> reaches  the 75C mark. Instead, the fan runs even if the temperature is
+> like 45C. Sometimes the fan goes on and off several times within a short
+> period of time so it starts to be annoying.
+> 
+> Is there a way to force the fan to only run at 75C?
 
-What do you mean "used soon"?  Is this a time critical thing?
+Probably not.
 
-> I saw a lot of similar staff too, like 'cpu_devices' in
-> arch/i386/kernel/topology.c.
+Every system is different in this area, and some of them
+simply over-ride the trip points you set,
+but the picture above shows that passive throttling is
+supposed to kick in at 60C, and  the active fan at 75C.
 
-The point is that kobjects should be created dynamically as they can be
-referenced by different threads at different times, so you need to let
-it manage the reference counting logic for you.  Don't create them
-statically, it's almost always wrong.
+75C is pretty hot.  It is possible that there are other
+fan controls -- perhaps lower speeds -- done by microcontroller
+before  you hit this level, and the device at 75C may refer to top speed.
 
-Note, one valid use of static kobject is in struct bus_type and in some
-class definitions.
+See if you can have any effect on this at all
 
-So this should probably be fixed.
+echo 99:98:75:40 > trip_points
 
-thanks,
+and in theory, if temperature is above 40, the fan should turn on.
+If it does, then look at trip_points and see if the BIOS overwrites them.
 
-greg k-h
+As the fan is doing things below the 75C above already, I predict
+that you have little control over it with these methods.
+If you really want to dig into it, you'll need to dis-assemble your DSDT
+to see what the AML for this box does with temperature events --
+but your description above suggests that will not show you the whole
+picture.  See also if there are any options in BIOS setup related
+to active and passive cooling.
+
+cheers,
+-Len
