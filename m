@@ -1,56 +1,44 @@
-From: Maxim <maximlevitsky@gmail.com>
-Subject: Re: [3/5] 2.6.21-rc4: known regressions (v2)
-Date: Fri, 23 Mar 2007 21:07:33 +0200
-Message-ID: <200703232107.34020.maximlevitsky@gmail.com>
-References: <Pine.LNX.4.64.0703160925270.26106@woody.linux-foundation.org> <20070323185022.GQ752@stusta.de>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [GIT PULL] ibm-acpi changes for acpi-test/2.6.22 (try 2)
+Date: Fri, 23 Mar 2007 17:33:53 -0300
+Message-ID: <11746820402862-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mu-out-0910.google.com ([209.85.134.191]:53357 "EHLO
-	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752369AbXCWTHx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Mar 2007 15:07:53 -0400
-Received: by mu-out-0910.google.com with SMTP id g7so1790267muf
-        for <linux-acpi@vger.kernel.org>; Fri, 23 Mar 2007 12:07:52 -0700 (PDT)
-In-Reply-To: <20070323185022.GQ752@stusta.de>
-Content-Disposition: inline
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:53895 "EHLO
+	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753423AbXCWUeH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 23 Mar 2007 16:34:07 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Dave Jones <davej@redhat.com>, Jeremy Fitzhardinge <jeremy@goop.org>, "Eric W. Biederman" <ebiederm@xmission.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, gregkh@suse.de, linux-pci@atrey.karlin.mff.cuni.c, pavel@suse.cz, linux-pm@lists.osdl.org, =?utf-8?q?Fr=C3=A9d=C3=A9ric_RISS?= <frederic.riss@gmail.com>, Tino Keitel <tino.keitel@gmx.de>, Bob Moore <robert.moore@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, Tobias Doerffel <tobias.doerffel@gmail.com>, Jens Axboe <jens.axboe@oracle.com>, Jeff Chua <jeff.chua.linux@gmail.com>, Mike Harris <atarimike@wavecable.com>, Marcus Better <marcus@better.se>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Thomas Meyer <thomas@m3y3r.de>, Thomas Gleixner <tglx@linutronix.de>S
+To: lenb@kernel.org
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-On Friday 23 March 2007 20:50:22 Adrian Bunk wrote:
+Len,
 
-> Subject    : suspend to disk hangs
-> References : http://lkml.org/lkml/2007/3/16/126
-> Submitter  : Maxim Levitsky <maximlevitsky@gmail.com>
-> Caused-By  : Rafael J. Wysocki <rjw@sisk.pl>
->              commit e3c7db621bed4afb8e231cb005057f2feb5db557
->              commit ed746e3b18f4df18afa3763155972c5835f284c5
->              commit 259130526c267550bc365d3015917d90667732f1
-> Status     : unknown
-> 
-> 
+After you have updated to the latest linus tree, please pull from:
+git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git
+branch for-upstream/acpi-test
 
-Hello, 
-	It is fixed
+to receive the following patches:
+      ACPI: ibm-acpi: kill trailing whitespace
+      ACPI: ibm-acpi: rename some identifiers
+      ACPI: ibm-acpi: add header file
+      ACPI: ibm-acpi: organize code
+      ACPI: ibm-acpi: update copyright notice
+      ACPI: ibm-acpi: update documentation
+      ACPI: ibm-acpi: move driver to drivers/misc hierarchy
 
-	The problem is that now cpu_up/cpu_down is called with tasks frozen,
-	and this can lead to deadlock if some driver that registered cpu up/down notifier, sleeps,
+Please merge them into acpi-test, targetting 2.6.22.
 
-	On my system it froze in two places, one in XFS due to freezable workqueues, and in
-	microcode update driver that ask the "frozen" userspace for firmware.
+This is almost the same patch set I had sent before, but properly rediffed to
+apply to the latest 2.6.21 tree.  It also includes one extra patch to move
+ibm-acpi to drivers/misc.
 
-	Fix for XFS is already in mainline, and Rafael J. Wysocki. already posted a patch that fixes microcode issue,
-	I will test it.
+Note that this patch set was generated using git format-patch -M to avoid the
+noise caused by the renames, and may require git-apply to apply.
 
-	But I feel that there are more drivers that can deadlock system in same way, on my system S3/S4 works perfect :-)
-	Even the weird  hang i had disappeared.
-
-	Big thanks to Rafael J. Wysocki.
-
-
-	Best regards,
-		Maxim Levitsky
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
