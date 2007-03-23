@@ -1,75 +1,95 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: Fw: Re: 2.6.21-rc4-mm1 + 4 hotfixes -- BUG: unable to handle
-	kernel paging request at virtual address 6b6b6ceb -- EIP is at
-	module_put+0x7/0x1f
-Date: Fri, 23 Mar 2007 10:04:26 +0800
-Message-ID: <1174615467.23591.3.camel@sli10-conroe.sh.intel.com>
-References: <20070322095232.f992794a.akpm@linux-foundation.org>
+From: Ray Lee <ray-lk@madrabbit.org>
+Subject: Re: 2.6.21-rc[123] regression with NOAPIC
+Date: Thu, 22 Mar 2007 22:35:20 -0700
+Message-ID: <46036718.7060502@madrabbit.org>
+References: <4601573A.8070602@madrabbit.org>	 <20070322134238.GY752@stusta.de>	 <1174572603.10840.162.camel@localhost.localdomain>	 <20070322141630.GA752@stusta.de> <1174576601.10840.189.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:24263 "EHLO mga01.intel.com"
+Received: from tapsys.com ([72.36.178.242]:37453 "EHLO tapsys.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422631AbXCWCHh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 Mar 2007 22:07:37 -0400
-In-Reply-To: <20070322095232.f992794a.akpm@linux-foundation.org>
+	id S1751326AbXCWFf0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 23 Mar 2007 01:35:26 -0400
+In-Reply-To: <1174576601.10840.189.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, linux-acpi@vger.kernel.org, Greg KH <greg@kroah.com>
+To: tglx@linutronix.de
+Cc: Adrian Bunk <bunk@stusta.de>, LKML <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>, john stultz <johnstul@us.ibm.com>, Len Brown <len.brown@intel.com>, Andi Kleen <ak@suse.de>, linux-acpi@vger.kernel.org
 
-On Fri, 2007-03-23 at 01:52 +0800, Andrew Morton wrote:
+Thomas Gleixner wrote:
+> On Thu, 2007-03-22 at 15:16 +0100, Adrian Bunk wrote:
+>>>> Does it work if you do _not_ revert the commits, and instead replace in
+>>>> drivers/acpi/processor_idle.c the
+>>>>   #ifdef ARCH_APICTIMER_STOPS_ON_C3
+>>>> with an
+>>>>   #if 0
+>>>> ?
+>>> Then NOAPIC probably works again, but booting w/o NOAPIC fails.
+>> But we'll know that it's this code that has a problen with noapic
+>> in the CONFIG_GENERIC_CLOCKEVENTS=n case.
 > 
-> It looks like the cpuidle patches are doing incorrect things
-> with their kobject protocol.
-Looks the goal to force kobject to be allocated dynamically is to
-release the memory of the kobject. But in the cpuidle case, we don't
-want to free the memory as it might be used soon. I saw a lot of similar
-staff too, like 'cpu_devices' in arch/i386/kernel/topology.c.
+> Nope. This code does not have a problem. It causes a problem elsewhere:
 
+I can still try the above if it ends up being a useful data point.
 
-Thanks,
-Shaohua
-> Begin forwarded message:
 > 
-> Date: Thu, 22 Mar 2007 09:24:38 -0700
-> From: "Miles Lane" <miles.lane@gmail.com>
-> To: "Andrew Morton" <akpm@linux-foundation.org>
-> Cc: LKML <linux-kernel@vger.kernel.org>,
-> linux-wireless@vger.kernel.org
-> Subject: Re: 2.6.21-rc4-mm1 + 4 hotfixes -- BUG: unable to handle
-> kernel paging request at virtual address 6b6b6ceb -- EIP is at
-> module_put+0x7/0x1f
+> It calls switch_ipi_to_APIC_timer() or switch_APIC_timer_to_ipi(), which
+> sets/clears a bit in the broadcast mask and enables / disables the local
+> APIC timer.
 > 
+> I don't see right now, why this causes the box to lock up hard, but
+> maybe the debug printk's below give us some hint.
 > 
-> I cannot reproduce the BUG with your ml.bz2 patch applied.
-> I am seeing this with both 2.6.21-rc4-mm1 + hotfixes, and with
-> 2.6.21-rc4 + ml.bz2:
+> 	tglx
 > 
-> Mar 22 09:10:35 FractalPath kernel: ACPI: CPU0 (power states: C1[C1]
-> C2[C2] C3[C3])
-> Mar 22 09:10:35 FractalPath kernel: The kobject at, or inside
-> per_cpu__cpuidle_devices+0x40/0x558 is not dynamically allocated.
-> Mar 22 09:10:35 FractalPath kernel: The kobject at, or inside
-> per_cpu__cpuidle_devices+0xd4/0x558 is not dynamically allocated.
-> Mar 22 09:10:35 FractalPath kernel: The kobject at, or inside
-> per_cpu__cpuidle_devices+0x168/0x558 is not dynamically allocated.
-> Mar 22 09:10:35 FractalPath kernel: cpuidle: using driver acpi_idle
-> 
-> Not sure if this is a problem.  Also, the first time I booted the
-> ml.bz2
-> build, it hung.  I don't have netconsole or a serial debugging system
-> set up, so I have no idea what the problem was.  The second boot,
-> ipw2200 loaded with no errors, but NetworkManager wouldn't
-> connect until I removed and reinserted the module.
-> 
-> All the best,
->            Miles
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/arch/x86_64/kernel/apic.c b/arch/x86_64/kernel/apic.c
+> index 723417d..29376e2 100644
+> --- a/arch/x86_64/kernel/apic.c
+> +++ b/arch/x86_64/kernel/apic.c
+> @@ -886,6 +886,8 @@ void disable_APIC_timer(void)
+>  	if (using_apic_timer) {
+>  		unsigned long v;
+>  
+> +		printk("Disabling local APIC timer %d\n", apic_runs_main_timer);
+> +
+>  		v = apic_read(APIC_LVTT);
+>  		/*
+>  		 * When an illegal vector value (0-15) is written to an LVT
+> @@ -910,6 +912,7 @@ void enable_APIC_timer(void)
+>  	    !cpu_isset(cpu, timer_interrupt_broadcast_ipi_mask)) {
+>  		unsigned long v;
+>  
+> +		printk("Enabling local APIC timer: %d\n", apic_runs_main_timer);
+>  		v = apic_read(APIC_LVTT);
+>  		apic_write(APIC_LVTT, v & ~APIC_LVT_MASKED);
+>  	}
+> @@ -934,6 +937,7 @@ void smp_send_timer_broadcast_ipi(void)
+>  
+>  	cpus_and(mask, cpu_online_map, timer_interrupt_broadcast_ipi_mask);
+>  	if (!cpus_empty(mask)) {
+> +		printk("Send IPI\n");
+>  		send_IPI_mask(mask, LOCAL_TIMER_VECTOR);
+>  	}
+>  }
 > 
 > 
+
+I didn't see the first two print, but I'm having to watch the bad
+bootups (with NOAPIC) by eyesight alone, as I don't have a second system
+to run netconsole on at the moment.
+
+However, on the NOAPIC, locking boot, the last thing that prints out is
+the final printk, Send IPI.
+
+On the boots without NOAPIC, at the same spot roughly a thousand
+(estimated) "Send IPI" messages hit the screen before transitioning to
+the initramfs and continuing normally.
+
+In the morning, I can rework the patch to set a global in the first two
+cases (Disabling/Enabling local APIC timer), and print the result of
+those in the last case, as we know the system will hang there. (I would
+have done this before sending the message, but given our timezone
+difference, figured this was a good start.)
+
+Ray
