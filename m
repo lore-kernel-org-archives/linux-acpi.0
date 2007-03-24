@@ -1,20 +1,20 @@
 From: Szymon Olko <szymonolko@o2.pl>
 Subject: Re: Asus V1j
-Date: Sat, 24 Mar 2007 15:46:13 +0200
-Message-ID: <46052BA5.4060604@o2.pl>
+Date: Sat, 24 Mar 2007 15:47:35 +0200
+Message-ID: <46052BF7.3030602@o2.pl>
 References: <46051CEE.4030402@o2.pl> <200703241415.04656.corentincj@iksaif.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tur.go2.pl ([193.17.41.50]:43228 "EHLO tur.go2.pl"
+Received: from tur.go2.pl ([193.17.41.50]:43288 "EHLO tur.go2.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751724AbXCXNrM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 24 Mar 2007 09:47:12 -0400
+	id S1751744AbXCXNsb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 24 Mar 2007 09:48:31 -0400
 Received: from poczta.o2.pl (unknown [193.17.41.142])
-	by tur.go2.pl (o2.pl Mailer 2.0.1) with ESMTP id 2C4C02300E2
-	for <linux-acpi@vger.kernel.org>; Sat, 24 Mar 2007 14:47:10 +0100 (CET)
+	by tur.go2.pl (o2.pl Mailer 2.0.1) with ESMTP id 257112300F6
+	for <linux-acpi@vger.kernel.org>; Sat, 24 Mar 2007 14:48:30 +0100 (CET)
 In-Reply-To: <200703241415.04656.corentincj@iksaif.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -67,7 +67,8 @@ nto
 >>    =20
 > I don't know :/ So, let's ask linux-acpi@vger.kernel.org
 >
->
+>  =20
+Thx for forwarding problem.
 >
 >  =20
 >> 2. This laptop has doubled buttons.
@@ -147,6 +148,9 @@ een=20
 > (I think OSVT is for Os Vista).
 >
 >  =20
+I did that an now it works beautiful. Returning 0x1y and 0x2y where y i=
+s=20
+state of brightness.
 >> 4. Multimedia button, the first on the left side from top buttons. O=
 n
 >> windows it runs full screen application to what movies, presentation=
@@ -233,8 +237,9 @@ d,
 >> /proc/acpi/events.
 >>    =20
 > Does they work on the other OS ?
->
 >  =20
+Will try that now with windows xp. I uninstalled some drivers, because=20
+it was so heavy and system was very slow.
 >> ---------------
 >> That is all about buttons. Summarizing, all except (play, stop, rewi=
 nd,
@@ -250,7 +255,9 @@ eds
 > I didn't find a way to know if BLED and WLED will handle the device, =
 the led,=20
 > or both .. So I can't move them to /sys/class/leds ..
->
+>  =20
+My mistake, now I see it is working via=20
+/sys/devices/platform/asus-laptop/ (bluetooth and wlan).
 >  =20
 >> Asus laptops in Windows notifies about plugin connector into sound
 >> device. I think that this code:
@@ -265,11 +272,15 @@ wright?
 > I don't think any modules handles this .. But MC97 seems to be a mode=
 m=20
 > controller.
->
-> Thanks =3D)
->
->
 >  =20
+Yes, i think also this is a modem. I think that HDAC may stand for HIGH=
+=20
+DEFINITON AUDIO CONTROLER or CODEC. Audio device is intel High Definiti=
+on.
+
+Thanks again
+
+S.O.
 
 -
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
