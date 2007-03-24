@@ -1,128 +1,215 @@
 From: Adam Belay <abelay@novell.com>
-Subject: [RFC][PATCH 1/3] cpuidle governor API changes
-Date: Sat, 24 Mar 2007 03:46:58 -0400
-Message-ID: <1174722418.32554.82.camel@localhost.localdomain>
+Subject: [RFC][PATCH 3/3] add the 'menu' cpuidle governor
+Date: Sat, 24 Mar 2007 03:47:07 -0400
+Message-ID: <1174722427.32554.84.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from peabody.ximian.com ([130.57.169.10]:36812 "EHLO
+Received: from peabody.ximian.com ([130.57.169.10]:36817 "EHLO
 	peabody.ximian.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964777AbXCXHbZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 24 Mar 2007 03:31:25 -0400
+	with ESMTP id S965323AbXCXHbc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 24 Mar 2007 03:31:32 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>
 Cc: linux-kernel <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, Shaohua Li <shaohua.li@intel.com>, Pallipadi@vger.kernel.org, Venkatesh <venkatesh.pallipadi@intel.com>, linux-acpi@vger.kernel.org
 
-This patch prepares cpuidle for the menu governor.  It adds an optional
-stage after idle state entry to give the governor an opportunity to
-check why the state was exited.  Also it makes sure the idle loop
-returns after each state entry, allowing the appropriate dynticks code
-to run.
+This patch adds the 'menu' governor, as was described in my first email.
 
 Thanks,
 Adam
 
- drivers/cpuidle/cpuidle.c          |   33 ++++++++++++++-------------------
- drivers/cpuidle/governor.c         |    2 +-
- drivers/cpuidle/governors/ladder.c |    2 +-
- include/linux/cpuidle.h            |    4 ++--
- 4 files changed, 18 insertions(+), 23 deletions(-)
+ Kconfig            |   11 +++
+ governors/Makefile |    1
+ governors/menu.c   |  152 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 164 insertions(+)
 
 
-diff -urN a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
---- a/drivers/cpuidle/cpuidle.c	2007-03-23 23:09:45.000000000 -0400
-+++ b/drivers/cpuidle/cpuidle.c	2007-03-24 00:22:09.000000000 -0400
-@@ -30,12 +30,10 @@
-  * cpuidle_idle_call - the main idle loop
-  *
-  * NOTE: no locks or semaphores should be used here
-- * FIXME: DYNTICKS handling
-  */
- static void cpuidle_idle_call(void)
- {
- 	struct cpuidle_device *dev = &__get_cpu_var(cpuidle_devices);
--
- 	struct cpuidle_state *target_state;
- 	int next_state;
+diff -urN a/drivers/cpuidle/governors/Makefile b/drivers/cpuidle/governors/Makefile
+--- a/drivers/cpuidle/governors/Makefile	2007-03-23 23:09:45.000000000 -0400
++++ b/drivers/cpuidle/governors/Makefile	2007-03-24 02:10:29.000000000 -0400
+@@ -3,3 +3,4 @@
+ #
  
-@@ -46,24 +44,21 @@
- 		return;
- 	}
- 
--	if (cpuidle_curr_governor->prepare_idle)
--		cpuidle_curr_governor->prepare_idle(dev);
--
--	while(!need_resched()) {
--		next_state = cpuidle_curr_governor->select_state(dev);
--		if (need_resched())
--			break;
--
--		target_state = &dev->states[next_state];
--
--		dev->last_residency = target_state->enter(dev, target_state);
--		dev->last_state = target_state;
--		target_state->time += dev->last_residency;
--		target_state->usage++;
-+	/* ask the governor for the next state */
-+	next_state = cpuidle_curr_governor->select(dev);
-+	if (need_resched())
-+		return;
-+	target_state = &dev->states[next_state];
- 
--		if (dev->status != CPUIDLE_STATUS_DOIDLE)
--			break;
--	}
-+	/* enter the state and update stats */
-+	dev->last_residency = target_state->enter(dev, target_state);
-+	dev->last_state = target_state;
-+	target_state->time += dev->last_residency;
-+	target_state->usage++;
+ obj-$(CONFIG_CPU_IDLE_GOV_LADDER) += ladder.o
++obj-$(CONFIG_CPU_IDLE_GOV_MENU) += menu.o
+diff -urN a/drivers/cpuidle/governors/menu.c b/drivers/cpuidle/governors/menu.c
+--- a/drivers/cpuidle/governors/menu.c	1969-12-31 19:00:00.000000000 -0500
++++ b/drivers/cpuidle/governors/menu.c	2007-03-23 23:51:15.000000000 -0400
+@@ -0,0 +1,152 @@
++/*
++ * menu.c - the menu idle governor
++ *
++ * Copyright (C) 2006-2007 Adam Belay <abelay@novell.com>
++ *
++ * This code is licenced under the GPL.
++ */
 +
-+	/* give the governor an opportunity to reflect on the outcome */
-+	if (cpuidle_curr_governor->reflect)
-+		cpuidle_curr_governor->reflect(dev);
- }
++#include <linux/kernel.h>
++#include <linux/cpuidle.h>
++#include <linux/latency.h>
++#include <linux/time.h>
++#include <linux/ktime.h>
++#include <linux/tick.h>
++#include <linux/hrtimer.h>
++
++#define BM_HOLDOFF	20000	/* 20 ms */
++
++struct menu_device {
++	int		last_state_idx;
++	int		deepest_bm_state;
++
++	int		break_last_us;
++	int		break_elapsed_us;
++
++	int		bm_elapsed_us;
++	int		bm_holdoff_us;
++
++	unsigned long	idle_jiffies;
++};
++
++static DEFINE_PER_CPU(struct menu_device, menu_devices);
++
++/**
++ * menu_select - selects the next idle state to enter
++ * @dev: the CPU
++ */
++static int menu_select(struct cpuidle_device *dev)
++{
++	struct menu_device *data = &__get_cpu_var(menu_devices);
++	int i, expected_us, max_state = dev->state_count;
++
++	/* discard BM history because it is sticky */
++	cpuidle_get_bm_activity();
++
++	/* determine the expected residency time */
++	expected_us = (s32) ktime_to_ns(tick_nohz_get_sleep_length()) / 1000;
++	expected_us = min(expected_us, data->break_last_us);
++
++	/* determine the maximum state compatible with current BM status */
++	if (cpuidle_get_bm_activity())
++		data->bm_elapsed_us = 0;
++	if (data->bm_elapsed_us <= data->bm_holdoff_us)
++		max_state = data->deepest_bm_state + 1;
++
++	/* find the deepest idle state that satisfies our constraints */
++	for (i = 1; i < max_state; i++) {
++		struct cpuidle_state *s = &dev->states[i];
++		if (s->target_residency > expected_us)
++			break;
++		if (s->exit_latency > system_latency_constraint())
++			break;
++	}
++
++	data->last_state_idx = i - 1;
++	data->idle_jiffies = tick_nohz_get_idle_jiffies();
++	return i - 1;
++}
++
++/**
++ * menu_reflect - attempts to guess what happened after entry
++ * @dev: the CPU
++ *
++ * NOTE: it's important to be fast here because this operation will add to
++ *       the overall exit latency.
++ */
++static void menu_reflect(struct cpuidle_device *dev)
++{
++	struct menu_device *data = &__get_cpu_var(menu_devices);
++	int last_idx = data->last_state_idx;
++	int measured_us = cpuidle_get_last_residency(dev);
++	struct cpuidle_state *target = &dev->states[last_idx];
++
++	/*
++	 * Ugh, this idle state doesn't support residency measurements, so we
++	 * are basically lost in the dark.  As a compromise, assume we slept
++	 * for one full standard timer tick.  However, be aware that this
++	 * could potentially result in a suboptimal state transition.
++	 */
++	if (!(target->flags & CPUIDLE_FLAG_TIME_VALID))
++		measured_us = USEC_PER_SEC / HZ;
++
++	data->bm_elapsed_us += measured_us;
++	data->break_elapsed_us += measured_us;
++
++	/*
++	 * Did something other than the timer interrupt cause the break event?
++	 */
++	if (tick_nohz_get_idle_jiffies() == data->idle_jiffies) {
++		data->break_last_us = data->break_elapsed_us;
++		data->break_elapsed_us = 0;
++	}
++}
++
++/**
++ * menu_scan_device - scans a CPU's states and does setup
++ * @dev: the CPU
++ */
++static void menu_scan_device(struct cpuidle_device *dev)
++{
++	struct menu_device *data = &per_cpu(menu_devices, dev->cpu);
++	int i;
++
++	data->last_state_idx = 0;
++	data->break_last_us = 0;
++	data->break_elapsed_us = 0;
++	data->bm_elapsed_us = 0;
++	data->bm_holdoff_us = BM_HOLDOFF;
++
++	for (i = 1; i < dev->state_count; i++)
++		if (dev->states[i].flags & CPUIDLE_FLAG_CHECK_BM)
++			break;
++	data->deepest_bm_state = i - 1;
++}
++
++struct cpuidle_governor menu_governor = {
++	.name =		"menu",
++	.scan =		menu_scan_device,
++	.select =	menu_select,
++	.reflect =	menu_reflect,
++	.owner =	THIS_MODULE,
++};
++
++/**
++ * init_menu - initializes the governor
++ */
++static int __init init_menu(void)
++{
++	return cpuidle_register_governor(&menu_governor);
++}
++
++/**
++ * exit_menu - exits the governor
++ */
++static void __exit exit_menu(void)
++{
++	cpuidle_unregister_governor(&menu_governor);
++}
++
++MODULE_LICENSE("GPL");
++module_init(init_menu);
++module_exit(exit_menu);
+diff -urN a/drivers/cpuidle/Kconfig b/drivers/cpuidle/Kconfig
+--- a/drivers/cpuidle/Kconfig	2007-03-23 23:09:45.000000000 -0400
++++ b/drivers/cpuidle/Kconfig	2007-03-24 02:18:19.000000000 -0400
+@@ -23,6 +23,17 @@
+ 	  states using residency time and bus master activity as metrics.  This
+ 	  algorithm was originally introduced in the old ACPI processor driver.
  
- /**
-diff -urN a/drivers/cpuidle/governor.c b/drivers/cpuidle/governor.c
---- a/drivers/cpuidle/governor.c	2007-03-23 23:09:45.000000000 -0400
-+++ b/drivers/cpuidle/governor.c	2007-03-24 00:31:04.000000000 -0400
-@@ -124,7 +124,7 @@
- {
- 	int ret = -EEXIST;
++config CPU_IDLE_GOV_MENU
++	tristate "'menu' governor"
++	depends on CPU_IDLE && NO_HZ
++	default y
++	help
++	  This cpuidle governor evaluates all available states and chooses the
++	  deepest state that meets all of the following constraints: BM activity,
++	  expected time until next timer interrupt, and last break event time
++	  delta.  It is designed to minimize power consumption.  Currently
++	  dynticks is required.
++
+ endif	# CPU_IDLE
  
--	if (!gov || !gov->select_state)
-+	if (!gov || !gov->select)
- 		return -EINVAL;
- 
- 	mutex_lock(&cpuidle_lock);
-diff -urN a/drivers/cpuidle/governors/ladder.c b/drivers/cpuidle/governors/ladder.c
---- a/drivers/cpuidle/governors/ladder.c	2007-03-23 23:09:45.000000000 -0400
-+++ b/drivers/cpuidle/governors/ladder.c	2007-03-23 23:26:06.000000000 -0400
-@@ -202,7 +202,7 @@
- 	.init =		ladder_init_device,
- 	.exit =		ladder_exit_device,
- 	.scan =		ladder_scan_device,
--	.select_state =	ladder_select_state,
-+	.select =	ladder_select_state,
- 	.owner =	THIS_MODULE,
- };
- 
-diff -urN a/include/linux/cpuidle.h b/include/linux/cpuidle.h
---- a/include/linux/cpuidle.h	2007-03-23 23:09:46.000000000 -0400
-+++ b/include/linux/cpuidle.h	2007-03-23 23:24:02.000000000 -0400
-@@ -158,8 +158,8 @@
- 	void (*exit)		(struct cpuidle_device *dev);
- 	void (*scan)		(struct cpuidle_device *dev);
- 
--	void (*prepare_idle)	(struct cpuidle_device *dev);
--	int  (*select_state)	(struct cpuidle_device *dev);
-+	int  (*select)		(struct cpuidle_device *dev);
-+	void (*reflect)		(struct cpuidle_device *dev);
- 
- 	struct module 		*owner;
- };
+ endmenu
 
 
