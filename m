@@ -1,55 +1,53 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Notify(0x88) (was Re: Asus V1j)
-Date: Mon, 26 Mar 2007 00:32:46 -0400
-Message-ID: <200703260032.46355.lenb@kernel.org>
-References: <46051CEE.4030402@o2.pl> <200703241415.04656.corentincj@iksaif.net>
+From: "Jeff Chua" <jeff.chua.linux@gmail.com>
+Subject: Re: [3/6] 2.6.21-rc4: known regressions
+Date: Mon, 26 Mar 2007 13:37:08 +0800
+Message-ID: <b6a2187b0703252237l4f662fb3n7f57dfb10360c4f6@mail.gmail.com>
+References: <Pine.LNX.4.64.0703160925270.26106@woody.linux-foundation.org>
+	 <20070318184919.GW752@stusta.de>
+	 <b6a2187b0703251825l2b2ab9d3j43e17523cbca87ac@mail.gmail.com>
+	 <20070326040509.GU16477@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:41563 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933586AbXCZElB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 Mar 2007 00:41:01 -0400
-In-Reply-To: <200703241415.04656.corentincj@iksaif.net>
+Received: from wr-out-0506.google.com ([64.233.184.226]:8472 "EHLO
+	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752209AbXCZFhJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Mar 2007 01:37:09 -0400
+Received: by wr-out-0506.google.com with SMTP id 76so1382898wra
+        for <linux-acpi@vger.kernel.org>; Sun, 25 Mar 2007 22:37:09 -0700 (PDT)
+In-Reply-To: <20070326040509.GU16477@stusta.de>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: corentincj@iksaif.net
-Cc: acpi4asus-user@lists.sourceforge.net, Szymon Olko <szymonolko@o2.pl>, linux-acpi@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Eric W. Biederman" <ebiederm@xmission.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, pavel@suse.cz, linux-pm@lists.osdl.org, gregkh@suse.de, linux-pci@atrey.karlin.mff.cuni.cz, Jens Axboe <jens.axboe@oracle.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, jgarzik@pobox.com, linux-ide@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Ingo Molnar <mingo@elte.hu>
 
+On 3/26/07, Adrian Bunk <bunk@stusta.de> wrote:
 
-> > 1. In /proc/acpi/events few keys which looks normal in DSDT are not
-> > reported. I found that all of them have code bigger than 0x80. I founded
-> > those lines and changed them to return codes below 0x80 (to ones that
-> > are not used) and that solved problem. I did not have time to look into
-> > acpi source code and maybe my solution is not the best way to do it, and
-> > maybe not solves the problem, but works for me.
-> > Example:
-> >
-> >     - F2 wifi button
-> >     //Notify (\_SB.ATKD, 0x88)
-> >     Notify (\_SB.ATKD, 0x56)
-> >
-> > The only exception is sleep button F1 but it is notified not to
-> > \_SB.ATKD but to \_SB.SLPB and is processed by buttons module.
-> >
-> > Notify (\_SB.SLPB, 0x80)
-> >
-> > Is it a bug or a feature that codes over 0x80 are not reported?
-> I don't know :/ So, let's ask linux-acpi@vger.kernel.org
+> > Resume from RAM (s2ram) still broke (tried with or without
+> > CONFIG_NO_HZ). Suspend to RAM seems ok, but upon resume, the screen
+> > will only display "inu" and only after pressing the power button will
+> > the system return to console. But "date" still doesn't advance.
+>
+> This might be related to the following regression:
+>
+> Subject    : first disk access after resume takes several minutes
+>              ('date' does not advance after resume from RAM, CONFIG_NO_HZ=n)
+> References : http://lkml.org/lkml/2007/3/8/117
+>              http://lkml.org/lkml/2007/3/25/20
+> Submitter  : Michael S. Tsirkin <mst@mellanox.co.il>
+> Handled-By : Thomas Gleixner <tglx@linutronix.de>
+>              Ingo Molnar <mingo@elte.hu>
+> Status     : problem is being debugged
 
-According to the ACPI spec, section 5.6.3 "Device Object Notifications"
-0-7f common for all devices
-80-bf device specific
-c0-ff vendor specific
+Adrian,
 
-so I think that what happens to codes of 80 and above should
-depend on the device driver that is bound to the device
-that handles the notify.
+It's related. I tested without CONFIG_HPET_TIMER, and now my X60 can
+suspend and resume from RAM (s2ram). Even better, it works
+with/without CONFIG_NO_HZ.
 
-I'll venture that SLPB is the sleep button, and the standard button driver
-is already bound to handle that one.
+But, suspend to disk still broke with CONFIG_NO_HZ set.
 
--Len
+Thanks,
+Jeff.
