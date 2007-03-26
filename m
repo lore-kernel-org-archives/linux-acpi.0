@@ -1,53 +1,97 @@
-From: "Jeff Chua" <jeff.chua.linux@gmail.com>
-Subject: Re: [3/6] 2.6.21-rc4: known regressions
-Date: Mon, 26 Mar 2007 13:37:08 +0800
-Message-ID: <b6a2187b0703252237l4f662fb3n7f57dfb10360c4f6@mail.gmail.com>
-References: <Pine.LNX.4.64.0703160925270.26106@woody.linux-foundation.org>
-	 <20070318184919.GW752@stusta.de>
-	 <b6a2187b0703251825l2b2ab9d3j43e17523cbca87ac@mail.gmail.com>
-	 <20070326040509.GU16477@stusta.de>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: [RFC][PATCH 3/3] add the 'menu' cpuidle governor
+Date: Mon, 26 Mar 2007 13:36:28 +0800
+Message-ID: <1174887388.5523.7.camel@sli10-conroe.sh.intel.com>
+References: <1174722427.32554.84.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wr-out-0506.google.com ([64.233.184.226]:8472 "EHLO
-	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752209AbXCZFhJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Mar 2007 01:37:09 -0400
-Received: by wr-out-0506.google.com with SMTP id 76so1382898wra
-        for <linux-acpi@vger.kernel.org>; Sun, 25 Mar 2007 22:37:09 -0700 (PDT)
-In-Reply-To: <20070326040509.GU16477@stusta.de>
-Content-Disposition: inline
+Received: from mga01.intel.com ([192.55.52.88]:40547 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933593AbXCZFjQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Mar 2007 01:39:16 -0400
+In-Reply-To: <1174722427.32554.84.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Eric W. Biederman" <ebiederm@xmission.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, pavel@suse.cz, linux-pm@lists.osdl.org, gregkh@suse.de, linux-pci@atrey.karlin.mff.cuni.cz, Jens Axboe <jens.axboe@oracle.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, jgarzik@pobox.com, linux-ide@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Ingo Molnar <mingo@elte.hu>
+To: Adam Belay <abelay@novell.com>
+Cc: Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, linux-kernel <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, Pallipadi@vger.kernel.org, Venkatesh <venkatesh.pallipadi@intel.com>, linux-acpi@vger.kernel.org
 
-On 3/26/07, Adrian Bunk <bunk@stusta.de> wrote:
+Hi,
+On Sat, 2007-03-24 at 03:47 -0400, Adam Belay wrote:
+> This patch adds the 'menu' governor, as was described in my first email.
+> 
 
-> > Resume from RAM (s2ram) still broke (tried with or without
-> > CONFIG_NO_HZ). Suspend to RAM seems ok, but upon resume, the screen
-> > will only display "inu" and only after pressing the power button will
-> > the system return to console. But "date" still doesn't advance.
->
-> This might be related to the following regression:
->
-> Subject    : first disk access after resume takes several minutes
->              ('date' does not advance after resume from RAM, CONFIG_NO_HZ=n)
-> References : http://lkml.org/lkml/2007/3/8/117
->              http://lkml.org/lkml/2007/3/25/20
-> Submitter  : Michael S. Tsirkin <mst@mellanox.co.il>
-> Handled-By : Thomas Gleixner <tglx@linutronix.de>
->              Ingo Molnar <mingo@elte.hu>
-> Status     : problem is being debugged
+> +/**
+> + * menu_select - selects the next idle state to enter
+> + * @dev: the CPU
+> + */
+> +static int menu_select(struct cpuidle_device *dev)
+> +{
+> +	struct menu_device *data = &__get_cpu_var(menu_devices);
+> +	int i, expected_us, max_state = dev->state_count;
+> +
+> +	/* discard BM history because it is sticky */
+> +	cpuidle_get_bm_activity();
+Why discard BM history here? This way the next bm check almost always
+return 0.
+BTW, bm activity is global (Not cpu specific), we'd better account it
+system wide.
 
-Adrian,
-
-It's related. I tested without CONFIG_HPET_TIMER, and now my X60 can
-suspend and resume from RAM (s2ram). Even better, it works
-with/without CONFIG_NO_HZ.
-
-But, suspend to disk still broke with CONFIG_NO_HZ set.
+> +	/* determine the expected residency time */
+> +	expected_us = (s32) ktime_to_ns(tick_nohz_get_sleep_length()) / 1000;
+> +	expected_us = min(expected_us, data->break_last_us);
+> +
+> +	/* determine the maximum state compatible with current BM status */
+> +	if (cpuidle_get_bm_activity())
+> +		data->bm_elapsed_us = 0;
+> +	if (data->bm_elapsed_us <= data->bm_holdoff_us)
+> +		max_state = data->deepest_bm_state + 1;
+> +
+> +	/* find the deepest idle state that satisfies our constraints */
+> +	for (i = 1; i < max_state; i++) {
+> +		struct cpuidle_state *s = &dev->states[i];
+> +		if (s->target_residency > expected_us)
+> +			break;
+> +		if (s->exit_latency > system_latency_constraint())
+> +			break;
+> +	}
+> +
+> +	data->last_state_idx = i - 1;
+> +	data->idle_jiffies = tick_nohz_get_idle_jiffies();
+> +	return i - 1;
+> +}
+> +
+> +/**
+> + * menu_reflect - attempts to guess what happened after entry
+> + * @dev: the CPU
+> + *
+> + * NOTE: it's important to be fast here because this operation will add to
+> + *       the overall exit latency.
+> + */
+> +static void menu_reflect(struct cpuidle_device *dev)
+> +{
+> +	struct menu_device *data = &__get_cpu_var(menu_devices);
+> +	int last_idx = data->last_state_idx;
+> +	int measured_us = cpuidle_get_last_residency(dev);
+> +	struct cpuidle_state *target = &dev->states[last_idx];
+> +
+> +	/*
+> +	 * Ugh, this idle state doesn't support residency measurements, so we
+> +	 * are basically lost in the dark.  As a compromise, assume we slept
+> +	 * for one full standard timer tick.  However, be aware that this
+> +	 * could potentially result in a suboptimal state transition.
+> +	 */
+> +	if (!(target->flags & CPUIDLE_FLAG_TIME_VALID))
+> +		measured_us = USEC_PER_SEC / HZ;
+> +
+> +	data->bm_elapsed_us += measured_us;
+> +	data->break_elapsed_us += measured_us;
+See the system state: idle->running->idle
+Looks the bm_elapsed_us and break_elapsed_us account ingored the running
+state between the two idles. Eg, the 'running' might generate a lot of
+bm activity, then maybe we should reset bm_elapsed_us in the next
+'idle'.
 
 Thanks,
-Jeff.
+Shaohua
