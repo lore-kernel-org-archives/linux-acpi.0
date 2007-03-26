@@ -1,33 +1,51 @@
-From: fred <fredmfp@gmail.com>
-Subject: Re: ACPI/sound issue with my Toshiba laptop (P100-473)...
-Date: Mon, 26 Mar 2007 02:08:38 +0200
-Message-ID: <46070F06.4070309@gmail.com>
-References: <4606BF08.5070706@gmail.com>
+From: "Jeff Chua" <jeff.chua.linux@gmail.com>
+Subject: Re: [3/6] 2.6.21-rc4: known regressions
+Date: Mon, 26 Mar 2007 09:25:51 +0800
+Message-ID: <b6a2187b0703251825l2b2ab9d3j43e17523cbca87ac@mail.gmail.com>
+References: <Pine.LNX.4.64.0703160925270.26106@woody.linux-foundation.org>
+	 <20070318184919.GW752@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.190]:6078 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933041AbXCZAIn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Mar 2007 20:08:43 -0400
-Received: by nf-out-0910.google.com with SMTP id o25so2730204nfa
-        for <linux-acpi@vger.kernel.org>; Sun, 25 Mar 2007 17:08:42 -0700 (PDT)
-In-Reply-To: <4606BF08.5070706@gmail.com>
+Received: from wr-out-0506.google.com ([64.233.184.239]:54049 "EHLO
+	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933314AbXCZBZw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Mar 2007 21:25:52 -0400
+Received: by wr-out-0506.google.com with SMTP id 76so1330352wra
+        for <linux-acpi@vger.kernel.org>; Sun, 25 Mar 2007 18:25:51 -0700 (PDT)
+In-Reply-To: <20070318184919.GW752@stusta.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Dave Jones <davej@redhat.com>, Jeremy Fitzhardinge <jeremy@goop.org>, "Eric W. Biederman" <ebiederm@xmission.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, pavel@suse.cz, linux-pm@lists.osdl.org, gregkh@suse.de, linux-pci@atrey.karlin.mff.cuni.cz, Jens Axboe <jens.axboe@oracle.com>, Maxim Levitsky <maximlevitsky@gmail.com>, Mike Harris <atarimike@wavecable.com>, Marcus Better <marcus@better.se>, Ray Lee <ray-lk@madrabbit.org>, Alexey Starikovskiy <alexey.y.starikovskiy@linux.intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Thomas Meyer <thomas@m3y3r.de>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Soeren Sonnenburg <kernel@nn7.de>
 
-Ok, I have fixed it, following 
-http://forums.gentoo.org/viewtopic-t-444743-highlight-sndhdaintel.html
+On 3/19/07, Adrian Bunk <bunk@stusta.de> wrote:
 
-Sorry for the noise.
+> Subject    : ThinkPad doesn't resume from suspend to RAM
+> References : http://lkml.org/lkml/2007/2/27/80
+>              http://lkml.org/lkml/2007/2/28/348
+> Submitter  : Jens Axboe <jens.axboe@oracle.com>
+>              Jeff Chua <jeff.chua.linux@gmail.com>
+> Status     : unknown
+>
+>
+> Subject    : suspend to disk hangs
+> References : http://lkml.org/lkml/2007/3/6/142
+> Submitter  : Jeff Chua <jeff.chua.linux@gmail.com>
+> Status     : unknown
 
-By the way, as the toshiba p100-473 is not present in your repository,
-should I post mine ?
+The good news is on 2.6.21-rc5, suspend to disk, and resume from disk works.
+But, it only works with CONFIG_NO_HZ unset.
 
-Cheers,
+Setting CONFIG_NO_HZ will cause suspend to disk to hang just before
+saving memory to disk.
 
--- 
-http://scipy.org/FredericPetit
+Resume from RAM (s2ram) still broke (tried with or without
+CONFIG_NO_HZ). Suspend to RAM seems ok, but upon resume, the screen
+will only display "inu" and only after pressing the power button will
+the system return to console. But "date" still doesn't advance.
 
+Thanks,
+Jeff.
