@@ -1,70 +1,55 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: Re: [3/6] 2.6.21-rc4: known regressions
-Date: Mon, 26 Mar 2007 06:05:09 +0200
-Message-ID: <20070326040509.GU16477@stusta.de>
-References: <Pine.LNX.4.64.0703160925270.26106@woody.linux-foundation.org> <20070318184919.GW752@stusta.de> <b6a2187b0703251825l2b2ab9d3j43e17523cbca87ac@mail.gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Notify(0x88) (was Re: Asus V1j)
+Date: Mon, 26 Mar 2007 00:32:46 -0400
+Message-ID: <200703260032.46355.lenb@kernel.org>
+References: <46051CEE.4030402@o2.pl> <200703241415.04656.corentincj@iksaif.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-ide-owner@vger.kernel.org>
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:41563 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933586AbXCZElB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Mar 2007 00:41:01 -0400
+In-Reply-To: <200703241415.04656.corentincj@iksaif.net>
 Content-Disposition: inline
-In-Reply-To: <b6a2187b0703251825l2b2ab9d3j43e17523cbca87ac@mail.gmail.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Jeff Chua <jeff.chua.linux@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Eric W. Biederman" <ebiederm@xmission.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, pavel@suse.cz, linux-pm@lists.osdl.org, gregkh@suse.de, linux-pci@atrey.karlin.mff.cuni.cz, Jens Axboe <jens.axboe@oracle.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, jgarzik@pobox.com, linux-ide@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Ingo Molnar <mingo@elte.hu>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: corentincj@iksaif.net
+Cc: acpi4asus-user@lists.sourceforge.net, Szymon Olko <szymonolko@o2.pl>, linux-acpi@vger.kernel.org
 
-On Mon, Mar 26, 2007 at 09:25:51AM +0800, Jeff Chua wrote:
-> On 3/19/07, Adrian Bunk <bunk@stusta.de> wrote:
-> 
-> >Subject    : ThinkPad doesn't resume from suspend to RAM
-> >References : http://lkml.org/lkml/2007/2/27/80
-> >             http://lkml.org/lkml/2007/2/28/348
-> >Submitter  : Jens Axboe <jens.axboe@oracle.com>
-> >             Jeff Chua <jeff.chua.linux@gmail.com>
-> >Status     : unknown
+
+> > 1. In /proc/acpi/events few keys which looks normal in DSDT are not
+> > reported. I found that all of them have code bigger than 0x80. I founded
+> > those lines and changed them to return codes below 0x80 (to ones that
+> > are not used) and that solved problem. I did not have time to look into
+> > acpi source code and maybe my solution is not the best way to do it, and
+> > maybe not solves the problem, but works for me.
+> > Example:
 > >
+> >     - F2 wifi button
+> >     //Notify (\_SB.ATKD, 0x88)
+> >     Notify (\_SB.ATKD, 0x56)
 > >
-> >Subject    : suspend to disk hangs
-> >References : http://lkml.org/lkml/2007/3/6/142
-> >Submitter  : Jeff Chua <jeff.chua.linux@gmail.com>
-> >Status     : unknown
-> 
-> The good news is on 2.6.21-rc5, suspend to disk, and resume from disk works.
-> But, it only works with CONFIG_NO_HZ unset.
+> > The only exception is sleep button F1 but it is notified not to
+> > \_SB.ATKD but to \_SB.SLPB and is processed by buttons module.
+> >
+> > Notify (\_SB.SLPB, 0x80)
+> >
+> > Is it a bug or a feature that codes over 0x80 are not reported?
+> I don't know :/ So, let's ask linux-acpi@vger.kernel.org
 
-Thanks for this information.
+According to the ACPI spec, section 5.6.3 "Device Object Notifications"
+0-7f common for all devices
+80-bf device specific
+c0-ff vendor specific
 
-> Setting CONFIG_NO_HZ will cause suspend to disk to hang just before
-> saving memory to disk.
+so I think that what happens to codes of 80 and above should
+depend on the device driver that is bound to the device
+that handles the notify.
 
-Thanks, noted.
+I'll venture that SLPB is the sleep button, and the standard button driver
+is already bound to handle that one.
 
-> Resume from RAM (s2ram) still broke (tried with or without
-> CONFIG_NO_HZ). Suspend to RAM seems ok, but upon resume, the screen
-> will only display "inu" and only after pressing the power button will
-> the system return to console. But "date" still doesn't advance.
-
-This might be related to the following regression:
-
-Subject    : first disk access after resume takes several minutes
-             ('date' does not advance after resume from RAM, CONFIG_NO_HZ=n)
-References : http://lkml.org/lkml/2007/3/8/117
-             http://lkml.org/lkml/2007/3/25/20
-Submitter  : Michael S. Tsirkin <mst@mellanox.co.il>
-Handled-By : Thomas Gleixner <tglx@linutronix.de>
-             Ingo Molnar <mingo@elte.hu>
-Status     : problem is being debugged
-
-> Thanks,
-> Jeff.
-
-cu
-Adrian
-
--- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
-
+-Len
