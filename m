@@ -1,64 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: [patch 2/4] Exit ACPI processor module gracefully if acpi is disabled
-Date: Mon, 26 Mar 2007 21:38:47 -0800
-Message-ID: <200703270538.l2R5clon007933@shell0.pdx.osdl.net>
+Subject: [patch 4/4] acpi/dock: use NULL for pointer
+Date: Mon, 26 Mar 2007 21:38:49 -0800
+Message-ID: <200703270538.l2R5cnU9007940@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39765 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39766 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933998AbXC0FkF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 Mar 2007 01:40:05 -0400
+	id S933982AbXC0FkG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 27 Mar 2007 01:40:06 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, trenn@suse.de
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, randy.dunlap@oracle.com
 
-From: Thomas Renninger <trenn@suse.de>
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
+Use NULL instead of 0 for pointers:
+drivers/acpi/dock.c:677:75: warning: Using plain integer as NULL pointer
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_core.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ drivers/acpi/dock.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled drivers/acpi/processor_core.c
---- a/drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled
-+++ a/drivers/acpi/processor_core.c
-@@ -994,6 +994,8 @@ void acpi_processor_uninstall_hotplug_no
-  * ACPI, but needs symbols from this driver
-  */
+diff -puN drivers/acpi/dock.c~acpi-dock-use-null-for-pointer drivers/acpi/dock.c
+--- a/drivers/acpi/dock.c~acpi-dock-use-null-for-pointer
++++ a/drivers/acpi/dock.c
+@@ -29,6 +29,7 @@
+ #include <linux/notifier.h>
+ #include <linux/platform_device.h>
+ #include <linux/jiffies.h>
++#include <linux/stddef.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
  
-+static int processor_driver_registered;
-+
- static int __init acpi_processor_init(void)
+@@ -674,7 +675,7 @@ static ssize_t show_dock_uid(struct devi
+ 			     struct device_attribute *attr, char *buf)
  {
- 	int result = 0;
-@@ -1019,6 +1021,8 @@ static int __init acpi_processor_init(vo
- 		return result;
+ 	unsigned long lbuf;
+-	acpi_status status = acpi_evaluate_integer(dock_station->handle, "_UID", 0, &lbuf);
++	acpi_status status = acpi_evaluate_integer(dock_station->handle, "_UID", NULL, &lbuf);
+ 	if(ACPI_FAILURE(status)) {
+ 	    return 0;
  	}
- 
-+	processor_driver_registered = 1;
-+
- 	acpi_processor_install_hotplug_notify();
- 
- 	acpi_thermal_cpufreq_init();
-@@ -1037,12 +1041,13 @@ static void __exit acpi_processor_exit(v
- 
- 	acpi_thermal_cpufreq_exit();
- 
--	acpi_processor_uninstall_hotplug_notify();
--
--	acpi_bus_unregister_driver(&acpi_processor_driver);
-+	if (processor_driver_registered) {
-+		acpi_processor_uninstall_hotplug_notify();
- 
--	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
-+		acpi_bus_unregister_driver(&acpi_processor_driver);
- 
-+		remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
-+	}
- 	return;
- }
- 
 _
