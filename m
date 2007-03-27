@@ -1,126 +1,89 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: [4/5] 2.6.21-rc5: known regressions
-Date: Tue, 27 Mar 2007 03:59:49 +0200
-Message-ID: <20070327015949.GB16477@stusta.de>
-References: <Pine.LNX.4.64.0703251559560.6730@woody.linux-foundation.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: akpm@linux-foundation.org
+Subject: [patch 1/4] cuidle: fix boot hang
+Date: Mon, 26 Mar 2007 21:38:46 -0800
+Message-ID: <200703270538.l2R5ckE5007930@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emailhub.stusta.mhn.de ([141.84.69.5]:35539 "EHLO
-	mailhub.stusta.mhn.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752876AbXC0B7q (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Mar 2007 21:59:46 -0400
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0703251559560.6730@woody.linux-foundation.org>
+Received: from smtp.osdl.org ([65.172.181.24]:39764 "EHLO smtp.osdl.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933997AbXC0FkF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 27 Mar 2007 01:40:05 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Dave Jones <davej@redhat.com>, Jeremy Fitzhardinge <jeremy@goop.org>, "Eric W. Biederman" <ebiederm@xmission.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, gregkh@suse.de, linux-pci@atrey.karlin.mff.cuni.cz, pavel@suse.cz, linux-pm@lists.osdl.org, Thomas Meyer <thomas@m3y3r.de>, =?utf-8?B?RnLDqWTDqXJpYw==?= Riss <frederic.riss@gmail.com>, Marcus Better <marcus@better.se>, Tobias Doerffel <tobias.doerffel@gmail.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Soeren Sonnenburg <kernel@nn7.de>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Jens Axboe <jens.axboe@oracle.com>, Jeff Chua <jeff.chua.linux@gmail.com>, Maxim Levitsky <maximlevitsky@gmail.com>, tigran@aivazian.fsnet.co.uk
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, venkatesh.pallipadi@intel.com, larry.finger@lwfinger.net
 
-This email lists some known regressions in Linus' tree compared to 2.6.=
-20.
+From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-If you find your name in the Cc header, you are either submitter of one
-of the bugs, maintainer of an affectected subsystem or driver, a patch
-of you caused a breakage or I'm considering you in any other way
-possibly involved with one or more of these issues.
+Patch for cpuidle boot hang reported by Larry Finger here.
+http://www.ussg.iu.edu/hypermail/linux/kernel/0703.2/2025.html
 
-Due to the huge amount of recipients, please trim the Cc when answering=
-=2E
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Larry Finger <larry.finger@lwfinger.net>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
+ drivers/cpuidle/cpuidle.c |   26 +++++++++++++++++++-------
+ drivers/cpuidle/driver.c  |    4 ++--
+ 2 files changed, 21 insertions(+), 9 deletions(-)
 
-Subject    : ThinkPad X60: resume no longer works  (PCI related?)
-References : http://lkml.org/lkml/2007/3/13/3
-Submitter  : Dave Jones <davej@redhat.com>
-             Jeremy Fitzhardinge <jeremy@goop.org>
-Caused-By  : PCI merge
-             commit 78149df6d565c36675463352d0bfe0000b02b7a7
-Handled-By : Eric W. Biederman <ebiederm@xmission.com>
-             Rafael J. Wysocki <rjw@sisk.pl>
-Status     : problem is being debugged
-
-
-Subject    : second suspend to disk in a row results in an oops  (MSI)
-References : http://lkml.org/lkml/2007/3/17/43
-             http://lkml.org/lkml/2007/3/22/150
-             http://lkml.org/lkml/2007/3/26/205
-             http://lkml.org/lkml/2007/3/26/76
-Submitter  : Thomas Meyer <thomas@m3y3r.de>
-             Fr=C3=A9d=C3=A9ric Riss <frederic.riss@gmail.com>
-             Marcus Better <marcus@better.se>
-Handled-By : Eric W. Biederman <ebiederm@xmission.com>
-Patch      : http://lkml.org/lkml/2007/3/24/136
-Status     : patch was suggested
-
-
-Subject    : Suspend to RAM doesn't work anymore  (ACPI?)
-References : http://lkml.org/lkml/2007/3/19/128
-             http://bugzilla.kernel.org/show_bug.cgi?id=3D8247
-Submitter  : Tobias Doerffel <tobias.doerffel@gmail.com>
-Handled-By : Rafael J. Wysocki <rjw@sisk.pl>
-             Len Brown <len.brown@intel.com>
-Status     : problem is being debugged
-
-
-Subject    : s2ram autowake regression  (ACPI?)
-References : http://lkml.org/lkml/2007/3/20/96
-Submitter  : Pavel Machek <pavel@ucw.cz>
-Handled-By : Len Brown <lenb@kernel.org>
-Status     : submitter was asked to test a patch
-
-
-Subject    : SATA breakage on resume
-References : http://lkml.org/lkml/2007/3/7/233
-Submitter  : Thomas Gleixner <tglx@linutronix.de>
-             Soeren Sonnenburg <kernel@nn7.de>
-Status     : unknown
-
-
-Subject    : suspend to disk: keypress required for power down
-References : http://lkml.org/lkml/2007/3/25/78
-Submitter  : Thomas Meyer <thomas@m3y3r.de>
-Status     : unknown
-
-
-Subject    : resume from RAM corrupts vesafb console
-References : http://lkml.org/lkml/2007/3/26/76
-Submitter  : Marcus Better <marcus@better.se>
-Handled-By : Pavel Machek <pavel@ucw.cz>
-Status     : problem is being debugged
-
-
-Subject    : suspend to disk: non-boot cpus are disabled again
-References : http://lkml.org/lkml/2007/3/25/78
-Submitter  : Thomas Meyer <thomas@m3y3r.de>
-Handled-By : Rafael J. Wysocki <rjw@sisk.pl>
-             Eric W. Biederman <ebiederm@xmission.com>
-Status     : problem is being debugged
-
-
-Subject    : ThinkPad doesn't resume from suspend to RAM
-References : http://lkml.org/lkml/2007/2/27/80
-             http://lkml.org/lkml/2007/2/28/348
-Submitter  : Jens Axboe <jens.axboe@oracle.com>
-             Jeff Chua <jeff.chua.linux@gmail.com>
-Status     : unknown
-
-
-Subject    : suspend to disk hangs  (microcode driver)
-References : http://lkml.org/lkml/2007/3/16/126
-Submitter  : Maxim Levitsky <maximlevitsky@gmail.com>
-Caused-By  : Rafael J. Wysocki <rjw@sisk.pl>
-             commit e3c7db621bed4afb8e231cb005057f2feb5db557
-             commit ed746e3b18f4df18afa3763155972c5835f284c5
-             commit 259130526c267550bc365d3015917d90667732f1
-Handled-By : Rafael J. Wysocki <rjw@sisk.pl>
-Patch      : http://lkml.org/lkml/2007/3/23/179
-Status     : patch available
-
-
-
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff -puN drivers/cpuidle/cpuidle.c~cpuidle-fix-boot-hang drivers/cpuidle/cpuidle.c
+--- a/drivers/cpuidle/cpuidle.c~cpuidle-fix-boot-hang
++++ a/drivers/cpuidle/cpuidle.c
+@@ -119,6 +119,7 @@ static int cpuidle_add_device(struct sys
+ 
+ 	dev = &per_cpu(cpuidle_devices, cpu);
+ 
++	dev->cpu = cpu;
+ 	mutex_lock(&cpuidle_lock);
+ 	if (cpu_is_offline(cpu)) {
+ 		mutex_unlock(&cpuidle_lock);
+@@ -129,15 +130,26 @@ static int cpuidle_add_device(struct sys
+ 		mutex_unlock(&cpuidle_lock);
+ 		return 0;
+ 	}
+-	dev->status |= CPUIDLE_STATUS_DETECTED;
+-	list_add(&dev->device_list, &cpuidle_detected_devices);
+-	cpuidle_add_sysfs(sys_dev);
+-	if (cpuidle_curr_driver)
+-		cpuidle_attach_driver(dev);
+-	if (cpuidle_curr_governor)
+-		cpuidle_attach_governor(dev);
++	if (cpuidle_curr_driver) {
++		if (cpuidle_attach_driver(dev))
++			goto err_ret;
++	}
++
++	if (cpuidle_curr_governor) {
++		if (cpuidle_attach_governor(dev)) {
++			cpuidle_detach_driver(dev);
++			goto err_ret;
++		}
++	}
++
+ 	if (cpuidle_device_can_idle(dev))
+ 		cpuidle_install_idle_handler();
++
++	list_add(&dev->device_list, &cpuidle_detected_devices);
++	cpuidle_add_sysfs(sys_dev);
++	dev->status |= CPUIDLE_STATUS_DETECTED;
++
++err_ret:
+ 	mutex_unlock(&cpuidle_lock);
+ 
+ 	return 0;
+diff -puN drivers/cpuidle/driver.c~cpuidle-fix-boot-hang drivers/cpuidle/driver.c
+--- a/drivers/cpuidle/driver.c~cpuidle-fix-boot-hang
++++ a/drivers/cpuidle/driver.c
+@@ -37,8 +37,8 @@ int cpuidle_attach_driver(struct cpuidle
+ 	ret = cpuidle_curr_driver->init(dev);
+ 	if (ret) {
+ 		module_put(cpuidle_curr_driver->owner);
+-		printk(KERN_ERR "cpuidle: driver %s failed to attach to cpu %d\n",
+-			cpuidle_curr_driver->name, dev->cpu);
++		printk(KERN_INFO "cpuidle: driver %s failed to attach to "
++			"cpu %d\n", cpuidle_curr_driver->name, dev->cpu);
+ 	} else {
+ 		if (dev->status & CPUIDLE_STATUS_GOVERNOR_ATTACHED)
+ 			cpuidle_rescan_device(dev);
+_
