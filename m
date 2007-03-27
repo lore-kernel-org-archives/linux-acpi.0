@@ -1,41 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [patch 3/4] cpuidle: unsigned bitfield
-Date: Mon, 26 Mar 2007 21:38:48 -0800
-Message-ID: <200703270538.l2R5cmFX007936@shell0.pdx.osdl.net>
+Subject: [patch 2/4] Exit ACPI processor module gracefully if acpi is disabled
+Date: Mon, 26 Mar 2007 21:38:47 -0800
+Message-ID: <200703270538.l2R5clon007933@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39763 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39765 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933993AbXC0FkF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S933998AbXC0FkF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Tue, 27 Mar 2007 01:40:05 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, randy.dunlap@oracle.com, venkatesh.pallipadi@intel.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, trenn@suse.de
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
+From: Thomas Renninger <trenn@suse.de>
 
-A 1-bit bitfield has no room for a sign bit.
-drivers/cpuidle/governors/ladder.c:54:16: error: dubious bitfield without explicit `signed' or `unsigned'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Signed-off-by: Thomas Renninger <trenn@suse.de>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/governors/ladder.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/processor_core.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN drivers/cpuidle/governors/ladder.c~cpuidle-unsigned-bitfield drivers/cpuidle/governors/ladder.c
---- a/drivers/cpuidle/governors/ladder.c~cpuidle-unsigned-bitfield
-+++ a/drivers/cpuidle/governors/ladder.c
-@@ -51,7 +51,7 @@ struct ladder_device_state {
+diff -puN drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled drivers/acpi/processor_core.c
+--- a/drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled
++++ a/drivers/acpi/processor_core.c
+@@ -994,6 +994,8 @@ void acpi_processor_uninstall_hotplug_no
+  * ACPI, but needs symbols from this driver
+  */
  
- struct ladder_device {
- 	struct ladder_device_state states[CPUIDLE_STATE_MAX];
--	int bm_check:1;
-+	unsigned int bm_check:1;
- 	unsigned long bm_check_timestamp;
- 	unsigned long bm_activity; /* FIXME: bm activity should be global */
- 	int last_state_idx;
++static int processor_driver_registered;
++
+ static int __init acpi_processor_init(void)
+ {
+ 	int result = 0;
+@@ -1019,6 +1021,8 @@ static int __init acpi_processor_init(vo
+ 		return result;
+ 	}
+ 
++	processor_driver_registered = 1;
++
+ 	acpi_processor_install_hotplug_notify();
+ 
+ 	acpi_thermal_cpufreq_init();
+@@ -1037,12 +1041,13 @@ static void __exit acpi_processor_exit(v
+ 
+ 	acpi_thermal_cpufreq_exit();
+ 
+-	acpi_processor_uninstall_hotplug_notify();
+-
+-	acpi_bus_unregister_driver(&acpi_processor_driver);
++	if (processor_driver_registered) {
++		acpi_processor_uninstall_hotplug_notify();
+ 
+-	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
++		acpi_bus_unregister_driver(&acpi_processor_driver);
+ 
++		remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
++	}
+ 	return;
+ }
+ 
 _
