@@ -1,89 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [patch 1/4] cuidle: fix boot hang
-Date: Mon, 26 Mar 2007 21:38:46 -0800
-Message-ID: <200703270538.l2R5ckE5007930@shell0.pdx.osdl.net>
+Subject: [patch 3/4] cpuidle: unsigned bitfield
+Date: Mon, 26 Mar 2007 21:38:48 -0800
+Message-ID: <200703270538.l2R5cmFX007936@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39764 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39763 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933997AbXC0FkF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S933993AbXC0FkF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Tue, 27 Mar 2007 01:40:05 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, venkatesh.pallipadi@intel.com, larry.finger@lwfinger.net
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, randy.dunlap@oracle.com, venkatesh.pallipadi@intel.com
 
-From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Patch for cpuidle boot hang reported by Larry Finger here.
-http://www.ussg.iu.edu/hypermail/linux/kernel/0703.2/2025.html
+A 1-bit bitfield has no room for a sign bit.
+drivers/cpuidle/governors/ladder.c:54:16: error: dubious bitfield without explicit `signed' or `unsigned'
 
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Cc: Len Brown <lenb@kernel.org>
-Cc: Larry Finger <larry.finger@lwfinger.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/cpuidle.c |   26 +++++++++++++++++++-------
- drivers/cpuidle/driver.c  |    4 ++--
- 2 files changed, 21 insertions(+), 9 deletions(-)
+ drivers/cpuidle/governors/ladder.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/cpuidle/cpuidle.c~cpuidle-fix-boot-hang drivers/cpuidle/cpuidle.c
---- a/drivers/cpuidle/cpuidle.c~cpuidle-fix-boot-hang
-+++ a/drivers/cpuidle/cpuidle.c
-@@ -119,6 +119,7 @@ static int cpuidle_add_device(struct sys
+diff -puN drivers/cpuidle/governors/ladder.c~cpuidle-unsigned-bitfield drivers/cpuidle/governors/ladder.c
+--- a/drivers/cpuidle/governors/ladder.c~cpuidle-unsigned-bitfield
++++ a/drivers/cpuidle/governors/ladder.c
+@@ -51,7 +51,7 @@ struct ladder_device_state {
  
- 	dev = &per_cpu(cpuidle_devices, cpu);
- 
-+	dev->cpu = cpu;
- 	mutex_lock(&cpuidle_lock);
- 	if (cpu_is_offline(cpu)) {
- 		mutex_unlock(&cpuidle_lock);
-@@ -129,15 +130,26 @@ static int cpuidle_add_device(struct sys
- 		mutex_unlock(&cpuidle_lock);
- 		return 0;
- 	}
--	dev->status |= CPUIDLE_STATUS_DETECTED;
--	list_add(&dev->device_list, &cpuidle_detected_devices);
--	cpuidle_add_sysfs(sys_dev);
--	if (cpuidle_curr_driver)
--		cpuidle_attach_driver(dev);
--	if (cpuidle_curr_governor)
--		cpuidle_attach_governor(dev);
-+	if (cpuidle_curr_driver) {
-+		if (cpuidle_attach_driver(dev))
-+			goto err_ret;
-+	}
-+
-+	if (cpuidle_curr_governor) {
-+		if (cpuidle_attach_governor(dev)) {
-+			cpuidle_detach_driver(dev);
-+			goto err_ret;
-+		}
-+	}
-+
- 	if (cpuidle_device_can_idle(dev))
- 		cpuidle_install_idle_handler();
-+
-+	list_add(&dev->device_list, &cpuidle_detected_devices);
-+	cpuidle_add_sysfs(sys_dev);
-+	dev->status |= CPUIDLE_STATUS_DETECTED;
-+
-+err_ret:
- 	mutex_unlock(&cpuidle_lock);
- 
- 	return 0;
-diff -puN drivers/cpuidle/driver.c~cpuidle-fix-boot-hang drivers/cpuidle/driver.c
---- a/drivers/cpuidle/driver.c~cpuidle-fix-boot-hang
-+++ a/drivers/cpuidle/driver.c
-@@ -37,8 +37,8 @@ int cpuidle_attach_driver(struct cpuidle
- 	ret = cpuidle_curr_driver->init(dev);
- 	if (ret) {
- 		module_put(cpuidle_curr_driver->owner);
--		printk(KERN_ERR "cpuidle: driver %s failed to attach to cpu %d\n",
--			cpuidle_curr_driver->name, dev->cpu);
-+		printk(KERN_INFO "cpuidle: driver %s failed to attach to "
-+			"cpu %d\n", cpuidle_curr_driver->name, dev->cpu);
- 	} else {
- 		if (dev->status & CPUIDLE_STATUS_GOVERNOR_ATTACHED)
- 			cpuidle_rescan_device(dev);
+ struct ladder_device {
+ 	struct ladder_device_state states[CPUIDLE_STATE_MAX];
+-	int bm_check:1;
++	unsigned int bm_check:1;
+ 	unsigned long bm_check_timestamp;
+ 	unsigned long bm_activity; /* FIXME: bm activity should be global */
+ 	int last_state_idx;
 _
