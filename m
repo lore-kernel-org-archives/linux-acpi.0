@@ -1,40 +1,83 @@
-From: Greg KH <greg@kroah.com>
+From: Shaohua Li <shaohua.li@intel.com>
 Subject: Re: Fw: Re: 2.6.21-rc4-mm1 + 4 hotfixes -- BUG: unable to handle
 	kernel paging request at virtual address 6b6b6ceb -- EIP is at
 	module_put+0x7/0x1f
-Date: Tue, 27 Mar 2007 22:15:27 -0700
-Message-ID: <20070328051527.GB8730@kroah.com>
-References: <20070322095232.f992794a.akpm@linux-foundation.org> <1174615467.23591.3.camel@sli10-conroe.sh.intel.com> <20070323051613.GA9560@kroah.com> <1175053953.10369.2.camel@sli10-conroe.sh.intel.com> <20070328041958.GA7669@kroah.com> <20070327212719.68c7729f.akpm@linux-foundation.org> <20070328045124.GA8156@kroah.com> <20070327220904.4ba4f920.akpm@linux-foundation.org>
+Date: Wed, 28 Mar 2007 13:13:56 +0800
+Message-ID: <1175058836.10661.6.camel@sli10-conroe.sh.intel.com>
+References: <20070322095232.f992794a.akpm@linux-foundation.org>
+	 <1174615467.23591.3.camel@sli10-conroe.sh.intel.com>
+	 <20070323051613.GA9560@kroah.com>
+	 <1175053953.10369.2.camel@sli10-conroe.sh.intel.com>
+	 <20070328041958.GA7669@kroah.com>
+	 <20070327212719.68c7729f.akpm@linux-foundation.org>
+	 <20070328045124.GA8156@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from canuck.infradead.org ([209.217.80.40]:38910 "EHLO
-	canuck.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753602AbXC1FQt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Mar 2007 01:16:49 -0400
-Content-Disposition: inline
-In-Reply-To: <20070327220904.4ba4f920.akpm@linux-foundation.org>
+Received: from mga01.intel.com ([192.55.52.88]:34770 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753601AbXC1FQq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Mar 2007 01:16:46 -0400
+In-Reply-To: <20070328045124.GA8156@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Shaohua Li <shaohua.li@intel.com>, "Brown, Len" <len.brown@intel.com>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, linux-acpi@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, "Brown, Len" <len.brown@intel.com>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, linux-acpi@vger.kernel.org
 
-On Tue, Mar 27, 2007 at 10:09:04PM -0700, Andrew Morton wrote:
-> On Tue, 27 Mar 2007 21:51:24 -0700 Greg KH <greg@kroah.com> wrote:
+On Tue, 2007-03-27 at 21:51 -0700, Greg KH wrote:
+> On Tue, Mar 27, 2007 at 09:27:19PM -0700, Andrew Morton wrote:
+> > On Tue, 27 Mar 2007 21:19:58 -0700 Greg KH <greg@kroah.com> wrote:
+> > 
+> > > On Wed, Mar 28, 2007 at 11:52:33AM +0800, Shaohua Li wrote:
+> > > > +static void cpuidle_state_sysfs_release(struct kobject *kobj)
+> > > > +{
+> > > > +	/* Nothing required to do here, just workaround kobject warning*/
+> > > > +}
+> > > 
+> > > NO!!!
+> > 
+> > heh.  This happens rather a lot.
+> >  
+> > > Do people think that I add warnings to the kernel so that people can
+> > > just work around them by passing empty functions to the driver core?
+> > > 
+> > > Sometimes I wonder why I even try...
+> > > 
+> > > Please fix this code, it is wrong.
+> > > 
+> > 
+> > Is it documented anywhere?  I always forget the reasoning so I have to
+> > cc you each time I see it happening.
 > 
-> > So, where do I need to put this information so that people stop trying
-> > to be smarter than the kernel...
+> The fact that the kernel itself spits out a message saying:
+> 	"Device '%s' does not have a release() function, it is broken
+> 	and must be fixed."
 > 
-> Documentation/driver-model/driver.txt?
+> isn't enough?  What should I change it to, something like this:
 > 
-> And a pointer to a sample properly-written driver would help.
+> 	"Device '%s' does not have a release() function, it is broken
+> 	and must be fixed, and if you just provide an empty function to
+> 	remove this warning, rabid echidnas will track you down and
+> 	puncture your spleen."
+> 
+> 
+> The reason for this is that the device is a reference counted object,
+> and you have to free the memory in the release function, otherwise you
+> can easily be accessing memory that is freed already.
+> 
+> Now note, this patch used a completion function to wait for the object
+> to be destroyed, which isn't the nicest.  But if you are going to do
+> this, do it in the release function, like the code did a bit earlier.
+> 
+> And if you are doing this because you have two kobjects in the same
+> structure, well, your code is so messed up beyond belief that it needs
+> to be fixed.  And yes scsi developers, I'm pointing at you...
+The two kobjects will be removed in the maintime. As I wait for one
+object to be destroyed (the two objects are in one structure, and one
+object's release will free the memory), we haven't the 'using freed
+memory' issue here. Do we still need a .release for the kobject you
+pointed out?
 
-Well, this is not something that a driver will ever have to do, it's
-only people writing a driver subsystem, or messing with sysfs in
-"different" ways.
-
-But yes, I will do that, it is really needed...
-
-thanks,
-
-greg k-h
+Thanks,
+Shaohua
