@@ -1,58 +1,93 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [3/6] 2.6.21-rc4: known regressions
-Date: Wed, 28 Mar 2007 09:38:48 -0700 (PDT)
-Message-ID: <Pine.LNX.4.64.0703280931520.6730@woody.linux-foundation.org>
-References: <Pine.LNX.4.64.0703160925270.26106@woody.linux-foundation.org>
-	<200703281543.47049.maximlevitsky@gmail.com>
-	<20070328144148.GA16244@elte.hu>
-	<200703281701.23876.maximlevitsky@gmail.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: libata-acpi: summary, problems, questions and proposal
+Date: Wed, 28 Mar 2007 18:57:12 +0100
+Message-ID: <20070328175712.GA10293@srcf.ucam.org>
+References: <460A197A.9000708@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <200703281701.23876.maximlevitsky@gmail.com>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Maxim <maximlevitsky@gmail.com>
-Cc: Jeff Chua <jeff.chua.linux@gmail.com>, linux-ide@vger.kernel.org, gregkh@suse.de, linux-pm@lists.osdl.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@stusta.de>, linux-acpi@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, "Eric W. Biederman" <ebiederm@xmission.com>, Ingo Molnar <mingo@elte.hu>, Jens Axboe <jens.axboe@oracle.com>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Thomas Gleixner <tglx@linutronix.de>, jgarzik@pobox.com, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([217.147.92.49]:48976 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965574AbXC1R6A (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Mar 2007 13:58:00 -0400
+Content-Disposition: inline
+In-Reply-To: <460A197A.9000708@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tejun Heo <htejun@gmail.com>
+Cc: "Randy.Dunlap y" <rdunlap@xenotime.net>, trenn@suse.de, Jeff Garzik <jeff@garzik.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, forrest.zhao@gmail.com, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, linux-acpi@vger.kernel.org
 
+On Wed, Mar 28, 2007 at 04:30:02PM +0900, Tejun Heo wrote:
 
+Hi Tejun,
 
-On Wed, 28 Mar 2007, Maxim wrote:
-> =
+Firstly, could I ask you to take a look at the patch in 
+http://permalink.gmane.org/gmane.linux.acpi.devel/22066/ ? It deals with 
+some of these issues.
 
-> 	Now I don't have a clue how to set those bits if only HPET is used as cl=
-ock source because now clocksources
-> 	don't have _any_ resume hook.
+> ACPI support implementation in libata-dev supports both IDE and SATA
+> ACPI object layouts and subset of ATA ACPI methods - _SDD and _GTF.
+> It incorrectly uses ap->cbl (the port's cable type) to choose between
+> the two ACPI layouts.  Association between the host and its ACPI
+> object is performed every time ACPI methods are invoked but the
+> association between an ATA device and its ACPI object is cached in
+> ata_device object.
 
-One thing that drives me wild about that "clocksource resume" thing is =
+These issues are both fixed in my patch, I believe.
 
-that it seems to think that clocksources are somehow different from any =
+> 2-2. Missing proper _GTM/_STM support.  As stated above, although -mm
+>     contains _GTM/_STM support, it does not hook it to regular
+>     exception handling path and thus _GTF cannot be used in a lot of
+>     cases.
 
-other system devices..
+I've added _GTM and _STM support over suspend/resume. Right now they're 
+in the host power management code - I'm not sure whether they should be 
+here or the SCSI glue layer?
 
-Why isn't the HPET considered a "device", and has it's own *device* =
+> 2-3. Misplaced _GTF hook.  _GTF currently is called prior to every
+>     device configuration.  This is unnecessary and incorrect.  The
+>     ACPI spec specifies that _GTM/_STM and _GTF should be executed
+>     during suspend/resume cycles not on every reset or
+>     reconfiguration.  This, for example, causes the following
+>     problem.
 
-"suspend" and "resume"? Why do we seem to think that only "set_mode()" =
+That should be quite easily fixable with the above patch.
 
-etc should wake up clock sources?
+> 4-1. Depending on how questions in section 3 are answered, fix and
+>     clean up ATA host/device <-> ACPI object association.  Whether
+>     IDE or SATA native style hierarchy is used should be determined
+>     by driver flag not cable type.  e.g. ahci and sata_sil24 should
+>     use SATA native style hierarchy while ata_piix should use IDE
+>     hierarchy whether the port is SATA or PATA.
 
-It's a *device*, dammit. It should save and resume like one (probably as a =
+I think this is just a matter of making sure that the sata and pata 
+handle matching code matches reality now :)
 
-system device). The "set_mode()" etc stuff is at a completely different =
+> 4-2. Only associate once during initialization.  There is no reason to
+>     try to associate hosts and devices with ACPI objects at each try.
+>     Do it once during host initialization and use it if available or
+>     forget about ACPI if not available.
 
-(higher) conceptual level.
+Fixed.
 
-Thomas? It does seem like Maxim has hit the nail on the head (at least =
+> 4-3. Integrate _GTM/_STM support and invoke methods only when the spec
+>     specifies to.  For IDE object, do _GTM during suspend and _STM
+>     followed by _GTF during resume.  There is no reason to call them
+>     anytime else.  For SATA native object, do _SDD followed by _GTF
+>     after every hardreset.
 
-partly) on the HPET timer resume problems..
+Patrially fixed.
 
-		Linus
+> 4-4. Implement helpers for cable detection using _GTM/_STM and use it
+>     in sata_nv if CK804.  This is to substitute independent pata_acpi
+>     driver.  Low level driver should know when _GTM/_STM should be
+>     used for cable detection and/or device programming and doing it
+>     this way reduces user confusion (sata_nv also supports ck804 but
+>     you probably need to load pata_acpi if ACPI is available) and
+>     allows better integration with the rest of the low level driver
+>     (e.g. ADMA mode + _GTM/_STM cable detection).
+
+Not done.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
