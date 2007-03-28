@@ -1,145 +1,103 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: [3/6] 2.6.21-rc4: known regressions
-Date: Wed, 28 Mar 2007 11:35:55 -0700
-Message-ID: <20070328113555.c17bc1da.randy.dunlap@oracle.com>
-References: <Pine.LNX.4.64.0703160925270.26106@woody.linux-foundation.org>
-	<b6a2187b0703261046r46782eedv64464ceddb44bc27@mail.gmail.com>
-	<1175065468.4017.1.camel@chaos>
-	<200703281543.47049.maximlevitsky@gmail.com>
-	<20070328180457.GA4253@mellanox.co.il>
+From: Len Brown <lenb@kernel.org>
+Subject: toshiba video brightness
+Date: Wed, 28 Mar 2007 14:50:30 -0400
+Message-ID: <200703281450.30165.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <20070328180457.GA4253@mellanox.co.il>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Michael S. Tsirkin" <mst@dev.mellanox.co.il>
-Cc: jgarzik@pobox.com, Maxim <maximlevitsky@gmail.com>, Jeff Chua <jeff.chua.linux@gmail.com>, linux-ide@vger.kernel.org, Torvalds <torvalds@linux-foundation.org>, gregkh@suse.de, linux-pm@lists.osdl.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len@smtp.osdl.org, Adrian Bunk <bunk@stusta.de>, linux-acpi@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, "Eric W. Biederman" <ebiederm@xmission.com>, Ingo Molnar <mingo@elte.hu>, Jens Axboe <jens.axboe@oracle.com>, Thomas Gleixner <tglx@linutronix.de>, Linus@smtp.osdl.org, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:42995 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965638AbXC1Svr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Mar 2007 14:51:47 -0400
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Yu, Luming" <luming.yu@gmail.com>, linux-acpi@vger.kernel.org
 
-On Wed, 28 Mar 2007 20:04:57 +0200 Michael S. Tsirkin wrote:
+Luming
+I've got 2.6.21-rc5 running on a Toshiba Satellite Pro laptop.
+The ACPI video drivers seems to supply 2 brightness levels in proc,
+but nothing in /sys/backlight, and the toshiba_acpi driver
+seems to supply 8 levels in /proc.
 
-> > Subject    : first disk access after resume takes several minutes
-> >              ('date' does not advance after resume from RAM, CONFIG_NO_=
-HZ=3Dn)
-> > References : http://lkml.org/lkml/2007/3/8/117
-> >              http://lkml.org/lkml/2007/3/25/20
-> > Submitter  : Michael S. Tsirkin <mst@mellanox.co.il>
-> =
+what am I missing?
 
-> ...
-> =
-
-> > Subject    : after resume: X hangs after drawing a couple of windows
-> > References : http://lkml.org/lkml/2007/3/8/117
-> > Submitter  : Michael S. Tsirkin <mst@mellanox.co.il>
-> > Status     : unknown
-> =
-
-> ...
-> =
-
-> > > > > From: Jeff Chua <jeff.chua.linux@gmail.com>
-> > > > > > It's related. I tested without CONFIG_HPET_TIMER, and now my X6=
-0 can
-> > > > > > suspend and resume from RAM (s2ram). Even better, it works
-> > > > > > with/without CONFIG_NO_HZ.
-> > =
-
-> > Quoting Maxim <maximlevitsky@gmail.com>:
-> > =
-
-> > Hi,
-> > 	I almost sure Iknow why this happens,
-> > 			The problem is that both hpet clock source
-> > 	and hpet clockevents doesn't have a suspend/resume function
-> > 	On resume we should enable the main counter _and_ enable
-> > 	legacy replacement mode, On my system main counter in
-> > 	enabled, by I think by bios, but legacy replacement mode is
-> > 	not, so if a system doesn't use lapic as a tick source, but
-> > 	use hpet+broadcast, it will hang for sure on resume, and i
-> > 	tested it
-> > 	=
-
-> > 			The patch below is a temporally fix, until
-> > 	clock-events and clocksources will get proper suspend/resume
-> > 	hooks:
-> > =
-
-> > 		Regards,
-> > 			Maxim Levitsky
-> =
-
-> Bingo!
-> =
-
-> The patch below fixes the two problems (listed above) with
-> resume from RAM that I have observed on my T60 with
-> 2.6.21-rc5: with this patch applied, and with CONFIG_NO_HZ
-> unset, date advances correctly, X functions properly and
-> there is no delay on first disk access.
-> =
-
-> Thanks very much.
-> =
-
-> ---
-> > Add suspend/resume for HPET
-> > Signed-off-by: Maxim Levitsky <maximlevisky@gmail.com>
-> =
-
-> Maxim, do you plan to send this upstream?
-
-with whitespace fixes, please...
+thanks,
+-Len
 
 
-> Acked-by: Michael S. Tsirkin <mst@dev.mellanox.co.il>
-> =
+loading the video driver, I see this:
+lenb@toshiba:/proc/acpi/video> ls -R
+.:
+VGA
 
-> ---
-> =
+./VGA:
+CRT  DOS  info  LCD  POST  POST_info  ROM  TV
 
-> diff --git a/arch/i386/kernel/hpet.c b/arch/i386/kernel/hpet.c
-> index 0fd9fba..a1ec79e 100644
-> --- a/arch/i386/kernel/hpet.c
-> +++ b/arch/i386/kernel/hpet.c
-> @@ -152,6 +152,16 @@ static void hpet_set_mode(enum clock_event_mode mode,
->  	unsigned long cfg, cmp, now;
->  	uint64_t delta;
->  =
+./VGA/CRT:
+brightness  EDID  info  state
 
-> +
-> +	if ( mode !=3D CLOCK_EVT_MODE_UNUSED && mode !=3D CLOCK_EVT_MODE_SHUTDO=
-WN)
-> +	{
+./VGA/LCD:
+brightness  EDID  info  state
 
-	if (mode !=3D CLOCK_EVT_MODE_UNUSED && mode !=3D CLOCK_EVT_MODE_SHUTDOWN) {
+./VGA/TV:
+brightness  EDID  info  state
 
-> +		unsigned long cfg =3D hpet_readl(HPET_CFG);
-> +		cfg |=3D HPET_CFG_ENABLE | HPET_CFG_LEGACY;
-> +		hpet_writel(cfg, HPET_CFG);
-> +		=
+lenb@toshiba:/proc/acpi/video/VGA/LCD> cd /proc/acpi/video/VGA/LCD
+lenb@toshiba:/proc/acpi/video/VGA/LCD> su
+Password:
+toshiba:/proc/acpi/video/VGA/LCD # echo 0 > brightness
 
+(this dimmed the screen to minimum)
 
-delete above line.
+toshiba:/proc/acpi/video/VGA/LCD # echo 40 > brightness
 
-> +	}
-> +		=
+(this make the screen max brightness)
 
-> +
->  	switch(mode) {
->  	case CLOCK_EVT_MODE_PERIODIC:
->  		delta =3D ((uint64_t)(NSEC_PER_SEC/HZ)) * hpet_clockevent.mult;
+toshiba:/proc/acpi/video/VGA/LCD # echo 100 > brightness
+bash: echo: write error: Invalid argument
+toshiba:/proc/acpi/video/VGA/LCD # echo 20 > brightness
+toshiba:/proc/acpi/video/VGA/LCD # echo 10 > brightness
+toshiba:/proc/acpi/video/VGA/LCD # echo 0 > brightness
+toshiba:/proc/acpi/video/VGA/LCD # echo 40 > brightness
+toshiba:/proc/acpi/video/VGA/LCD # echo 50 > brightness
+toshiba:/proc/acpi/video/VGA/LCD # echo 30 > brightness
 
+Only the values of 0 and 40 have any effect, the others are a NOP
 
----
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+toshiba:/proc/acpi/video/VGA/LCD # cd /proc/acpi/toshiba/
+toshiba:/proc/acpi/toshiba # ls
+fan  keys  lcd  version  video
+toshiba:/proc/acpi/toshiba # cat lcd
+brightness:              3
+brightness_levels:       8
+toshiba:/proc/acpi/toshiba # echo brightness:0 > lcd
+toshiba:/proc/acpi/toshiba # echo brightness:2 > lcd
+toshiba:/proc/acpi/toshiba # echo brightness:3 > lcd
+toshiba:/proc/acpi/toshiba # echo brightness:4 > lcd
+toshiba:/proc/acpi/toshiba # echo brightness:5 > lcd
+toshiba:/proc/acpi/toshiba # echo brightness:6 > lcd
+toshiba:/proc/acpi/toshiba # echo brightness:7 > lcd
+toshiba:/proc/acpi/toshiba # echo brightness:8 > lcd
+bash: echo: write error: Invalid argument
+toshiba:/proc/acpi/toshiba #    
+
+All of these 8 give a different brightness
+
+video.c: brightness 0 = toshiba_acpi brightness 0
+video.c: brightness 40 = toshiba_acpi brightness 3
+
+rmmod toshiba_acpi makes no difference.
+
+toshiba:/proc/acpi/video/VGA/LCD # ls /sys/class/backlight/
+toshiba:/proc/acpi/video/VGA/LCD #  
+
+toshiba:/proc/acpi/video/VGA/LCD # gunzip -dc /proc/config.gz |grep BACKLIGHT
+CONFIG_BACKLIGHT_LCD_SUPPORT=y
+CONFIG_BACKLIGHT_CLASS_DEVICE=y
+# CONFIG_BACKLIGHT_PROGEAR is not set
+CONFIG_FB_BACKLIGHT=y
+CONFIG_FB_RADEON_BACKLIGHT=y
+
