@@ -1,40 +1,68 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: WMI vs Linux
-Date: Wed, 28 Mar 2007 23:17:26 +0100
-Message-ID: <20070328221726.GA14968@srcf.ucam.org>
-References: <200703281544.41842.lenb@kernel.org>
+From: Maxim <maximlevitsky@gmail.com>
+Subject: Re: [linux-pm] [3/6] 2.6.21-rc4: known regressions
+Date: Thu, 29 Mar 2007 00:26:18 +0200
+Message-ID: <200703290026.18555.maximlevitsky@gmail.com>
+References: <Pine.LNX.4.64.0703160925270.26106@woody.linux-foundation.org> <200703281238.57811.david-b@pacbell.net> <Pine.LNX.4.64.0703281336280.6730@woody.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:60967 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933862AbXC1WRn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Mar 2007 18:17:43 -0400
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.64.0703281336280.6730@woody.linux-foundation.org>
 Content-Disposition: inline
-In-Reply-To: <200703281544.41842.lenb@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-ide-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: David Brownell <david-b@pacbell.net>, linux-pm@lists.linux-foundation.org, Jeff Chua <jeff.chua.linux@gmail.com>, linux-ide@vger.kernel.org, gregkh@suse.de, linux-pm@lists.osdl.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@stusta.de>, linux-acpi@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, "Eric W. Biederman" <ebiederm@xmission.com>, Ingo Molnar <mingo@elte.hu>, Jens Axboe <jens.axboe@oracle.com>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Thomas Gleixner <tglx@linutronix.de>, jgarzik@pobox.com, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: jamey.hicks@hp.com, linux-acpi@vger.kernel.org
 
-On Wed, Mar 28, 2007 at 03:44:41PM -0400, Len Brown wrote:
+On Wednesday 28 March 2007 22:42:00 Linus Torvalds wrote:
+> 
+> On Wed, 28 Mar 2007, David Brownell wrote:
+> >
+> > On Wednesday 28 March 2007 9:38 am, Linus Torvalds wrote:
+> > 
+> > > It's a *device*, dammit. It should save and resume like one (probably as a 
+> > > system device). The "set_mode()" etc stuff is at a completely different 
+> > > (higher) conceptual level.
+> > 
+> > Agreed, except about "probably as a system device".
+> > 
+> > Last I checked, there was no good reason to use sysdev suspend()/resume()
+> > rather than platform_device suspend_late()/early_resume().  Which more
+> > or less means no good reason to use sysdev in new code...
+> 
+> I won't disagree - it might well be much nicer to just show it in the 
+> "real" device tree. I'm not 100% sure where in the tree it would go, 
+> though. It should probably be "inside" the root entry, before any of the 
+> PCI buses. It's generally what we've used those "system device" things 
+> for, but I agree that it would be better to just make system devices show 
+> up early on the regular device list than it is to have them be special 
+> cases.
+> 
+> Bit I think that's a separate (and fairly small) issue compared to the 
+> "don't use the clocksource infrastructure as a make-believe suspend/resume 
+> mechanism" problem that Maxim's patch had.
+> 
+> (Maxim, don't take that the wrong way - I think your analysis and patch 
+> were great, I just think another organization would be better)
 
-> I was wondering if you could tell me about it.
-> I was just about to write a little driver that binds to PNP0C14 and tells the
-> user that they should not buy machines with WMI extensions and run Linux on them --
-> but maybe an exception to that rule already exists?
+Exactly, I agree completely
+I said that my patch was a  temporary fix, and I agree that the best way is to create a new system device
+and use its suspend/resume hooks to bring HPET back to life on resume.
 
-It would be helpful to export as much WMI information as possible - we 
-can supply information to utilise it via HAL, which would at least 
-provide support for doing things like poking the wireless and bluetooth 
-hardware on the old HP tablets.
+> 
+> > Also, making HPET use the legacy mode seems like a step backwards.
+> 
+> I don't think that's actually "legacy" in any sense but the interrupt 
+> delivery, where the "legacy mode" bit is not so much that the HPET itself 
+> is "legacy" but that it *replaces* legacy devices.
+> 
+> But I may have misunderstood the thing. I'm an old fart, so I know the old 
+> timers much better than I know the new ones ;). Somebody feel free to hit 
+> me with the clue-2x4.
+> 
+> 			Linus
+> 
 
-I agree that WMI functionality is generally a bad sign, but where we can 
-drive it I think we probably should be.
-
-> ps. while you're at it, what is the WACF005 Wacom Digitizer device also in the patch --
-> I don't see that upstream either.
-
-It's handled by 8250_pnp.c now.
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Best regards,
+	Maxim Levitsky
