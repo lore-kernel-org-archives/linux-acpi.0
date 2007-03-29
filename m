@@ -1,41 +1,138 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: Developing ACPI for Linux - March 27, 2007
-Date: Thu, 29 Mar 2007 00:33:29 -0400
-Message-ID: <200703290033.29208.lenb@kernel.org>
-References: <200703271650.16945.lenb@kernel.org> <8f8ff01d0703272210h1242875cs5f00a7d29da14fc0@mail.gmail.com>
+From: Maxim <maximlevitsky@gmail.com>
+Subject: [ PATCH] Add suspend/resume for HPET was: Re: [3/6] 2.6.21-rc4: known regressions
+Date: Thu, 29 Mar 2007 06:41:16 +0200
+Message-ID: <200703290641.20236.maximlevitsky@gmail.com>
+References: <Pine.LNX.4.64.0703160925270.26106@woody.linux-foundation.org> <200703281701.23876.maximlevitsky@gmail.com> <Pine.LNX.4.64.0703280931520.6730@woody.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:43062 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753043AbXC2Eeq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 29 Mar 2007 00:34:46 -0400
-In-Reply-To: <8f8ff01d0703272210h1242875cs5f00a7d29da14fc0@mail.gmail.com>
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.64.0703280931520.6730@woody.linux-foundation.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-ide-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Jeff Chua <jeff.chua.linux@gmail.com>, Adrian Bunk <bunk@stusta.de>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Eric W. Biederman" <ebiederm@xmission.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, pavel@suse.cz, linux-pm@lists.osdl.org, gregkh@suse.de, linux-pci@atrey.karlin.mff.cuni.cz, Jens Axboe <jens.axboe@oracle.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, jgarzik@pobox.com, linux-ide@vger.kernel.org, "Michael S. Tsirkin" <mst@mellanox.co.il>
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>, robert.moore@intel.com
-Cc: linux-acpi@vger.kernel.org
 
-On Wednesday 28 March 2007 01:10, Alexey Starikovskiy wrote:
-> Len,
-> We talked about converting ACPICA tree from CVS to git, and didn't
-> find a reason for that.
-> I think now it's become interesting again. What if you make snapshot
-> "git cvsimport" of CVS  ACPICA (Acpi/source) is enough, and make it
-> available as all other ACPI git trees you have?
+On Wednesday 28 March 2007 18:38:48 Linus Torvalds wrote:
 > 
-> It is also possible to modify our conversion scripts to work from this
-> snapshot, so it will be easy to try modifications on Linux.
+> On Wed, 28 Mar 2007, Maxim wrote:
+> > 
+> > 	Now I don't have a clue how to set those bits if only HPET is used as clock source because now clocksources
+> > 	don't have _any_ resume hook.
+> 
+> One thing that drives me wild about that "clocksource resume" thing is 
+> that it seems to think that clocksources are somehow different from any 
+> other system devices..
+> 
+> Why isn't the HPET considered a "device", and has it's own *device* 
+> "suspend" and "resume"? Why do we seem to think that only "set_mode()" 
+> etc should wake up clock sources?
+> 
+> It's a *device*, dammit. It should save and resume like one (probably as a 
+> system device). The "set_mode()" etc stuff is at a completely different 
+> (higher) conceptual level.
+> 
+> Thomas? It does seem like Maxim has hit the nail on the head (at least 
+> partly) on the HPET timer resume problems..
+> 
+> 		Linus
+> 
 
-Yes, I think we should look into this.
 
-I don't know if it would be acceptable to the folks on kernel.org
-to host the tree, since it contains code that is non-linux too,
-but I can ask -- or probably we can find a spot on another server.
+Hi,
+	I am sending here a patch that as was discussed here adds hpet to list of system devices
+	and adds suspend/resume hooks this way.
+	I tested it and it works fine.
 
-thanks,
--Len
+---
+Add suspend/resume support for HPET
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+
+---
+ arch/i386/kernel/hpet.c |   64 +++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 64 insertions(+), 0 deletions(-)
+
+diff --git a/arch/i386/kernel/hpet.c b/arch/i386/kernel/hpet.c
+index 0fd9fba..ac41476 100644
+--- a/arch/i386/kernel/hpet.c
++++ b/arch/i386/kernel/hpet.c
+@@ -3,6 +3,8 @@
+ #include <linux/errno.h>
+ #include <linux/hpet.h>
+ #include <linux/init.h>
++#include <linux/sysdev.h>
++#include <linux/pm.h>
+ 
+ #include <asm/hpet.h>
+ #include <asm/io.h>
+@@ -524,3 +526,65 @@ irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id)
+ 	return IRQ_HANDLED;
+ }
+ #endif
++
++
++/*
++ * Suspend/resume part
++ */
++
++#ifdef CONFIG_PM
++
++static int hpet_suspend(struct sys_device *sys_device, pm_message_t state)
++{
++	unsigned long cfg = hpet_readl(HPET_CFG);
++
++	cfg &= ~(HPET_CFG_ENABLE|HPET_CFG_LEGACY);
++	hpet_writel(cfg, HPET_CFG);
++
++	return 0;
++}
++
++static int hpet_resume(struct sys_device *sys_device)
++{
++	unsigned int id;
++
++	hpet_start_counter();
++
++	id = hpet_readl(HPET_ID);
++
++	if (id & HPET_ID_LEGSUP)
++		hpet_enable_int();
++
++	return 0;
++}
++
++static struct sysdev_class hpet_class = {
++	set_kset_name("hpet"),
++	.suspend	= hpet_suspend,
++	.resume		= hpet_resume,
++};
++
++static struct sys_device hpet_device = {
++	.id		= 0,
++	.cls		= &hpet_class,
++};
++
++
++static __init int hpet_register_sysfs(void)
++{
++	int err;
++
++	err = sysdev_class_register(&hpet_class);
++
++	if (!err) {
++		sysdev_register(&hpet_device);
++		if (err)
++			sysdev_class_unregister(&hpet_class);
++	}
++
++	return err;
++}
++
++device_initcall(hpet_register_sysfs);
++
++#endif
+-- 
+1.4.4.2
 
