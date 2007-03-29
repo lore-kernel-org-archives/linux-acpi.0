@@ -1,40 +1,37 @@
 From: Conke Hu <conke.hu@gmail.com>
-Subject: [Help] "Error attaching device data"
-Date: Thu, 29 Mar 2007 17:05:10 +0800
-Message-ID: <1175159110.2901.22.camel@localhost.localdomain>
+Subject: [Help] "Error attaching device data" (re-sent without attachment)
+Date: Thu, 29 Mar 2007 17:11:21 +0800
+Message-ID: <1175159481.2901.28.camel@localhost.localdomain>
+References: <1175159110.2901.22.camel@localhost.localdomain>
 Reply-To: conke.hu@gmail.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-tgHl572HxJn/3L6sRFXe"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from py-out-1112.google.com ([64.233.166.183]:10919 "EHLO
+Received: from py-out-1112.google.com ([64.233.166.183]:14755 "EHLO
 	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752142AbXC2JDY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Mar 2007 05:03:24 -0400
-Received: by py-out-1112.google.com with SMTP id a29so54503pyi
-        for <linux-acpi@vger.kernel.org>; Thu, 29 Mar 2007 02:03:24 -0700 (PDT)
+	with ESMTP id S1752142AbXC2JJb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Mar 2007 05:09:31 -0400
+Received: by py-out-1112.google.com with SMTP id a29so54980pyi
+        for <linux-acpi@vger.kernel.org>; Thu, 29 Mar 2007 02:09:31 -0700 (PDT)
+In-Reply-To: <1175159110.2901.22.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-
---=-tgHl572HxJn/3L6sRFXe
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-
 Hi all,
     I am idiot on ACPI knowing nothing about it :)
     When I boot linux on AMD Athlon64x2 + A690G + SB600 platform, I get
-2 lines of error message saying "Error attaching device data", pls see
-the attachment. I've tested on kernels 2.6.18 ~ 2.6.20, and each of them
-has the same error.
+2 lines of error message saying "Error attaching device data". I've
+tested on kernels 2.6.18 ~ 2.6.20, and each of them has the same error.
     I debug the drivers/acpi/scan.c and find the error message is dumped
-by the following code. and type == ACPI_BUS_TYPE_PROCESSOR, status ==
-AE_ALREADY_EXISTS. 
+in fuction acpi_device_set_context. and type == ACPI_BUS_TYPE_PROCESSOR,
+status == AE_ALREADY_EXISTS. (pls see the following code.) 
     There are 2 error lines in dmesg because, I think, I use a dual core
 CPU.
     Any suggestion is very thankful!
 
-
+--------------- in drivers/acpi/scan.c --------------------
 static int acpi_device_set_context(struct acpi_device *device, int type)
 {
     acpi_status status = AE_OK;
@@ -63,14 +60,9 @@ the
 }
    
     
-    
-
---=-tgHl572HxJn/3L6sRFXe
-Content-Disposition: attachment; filename=dmesg-error-attching-driver-data
-Content-Type: text/plain; name=dmesg-error-attching-driver-data; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-Linux version 2.6.21-rc5-git1 (root@localhost.localdomain) (gcc version 4.1.1 20061011 (Red Hat 4.1.1-30)) #2 SMP Sat Apr 7 22:47:58 CST 2007
+--------- dmesg ------------
+Linux version 2.6.21-rc5-git1 (root@localhost.localdomain) (gcc version
+4.1.1 20061011 (Red Hat 4.1.1-30)) #2 SMP Sat Apr 7 22:47:58 CST 2007
 Command line: ro root=LABEL=/1234 resume=/dev/hda6 3
 BIOS-provided physical RAM map:
  BIOS-e820: 0000000000000000 - 000000000009fc00 (usable)
@@ -148,8 +140,10 @@ Checking aperture...
 CPU 0: aperture @ 442a000000 size 32 MB
 Aperture too small (32 MB)
 No AGP bridge found
-Memory: 446036k/458368k available (1714k kernel code, 11944k reserved, 812k data, 268k init)
-Calibrating delay using timer specific routine.. 4916.88 BogoMIPS (lpj=24584405)
+Memory: 446036k/458368k available (1714k kernel code, 11944k reserved,
+812k data, 268k init)
+Calibrating delay using timer specific routine.. 4916.88 BogoMIPS
+(lpj=24584405)
 Mount-cache hash table entries: 256
 CPU: L1 I Cache: 64K (64 bytes/line), D cache 64K (64 bytes/line)
 CPU: L2 Cache: 1024K (64 bytes/line)
@@ -164,7 +158,8 @@ Detected 12.500 MHz APIC timer.
 SMP alternatives: switching to SMP code
 Booting processor 1/2 APIC 0x1
 Initializing CPU#1
-Calibrating delay using timer specific routine.. 4800.16 BogoMIPS (lpj=24000821)
+Calibrating delay using timer specific routine.. 4800.16 BogoMIPS
+(lpj=24000821)
 CPU: L1 I Cache: 64K (64 bytes/line), D cache 64K (64 bytes/line)
 CPU: L2 Cache: 1024K (64 bytes/line)
 CPU 1/1 -> Node 0
@@ -196,19 +191,27 @@ ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P1._PRT]
 ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCE6._PRT]
 ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCE7._PRT]
 ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0PC._PRT]
-ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 7 10 11 12 14 15) *0, disabled.
-ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 7 10 11 12 14 15) *0, disabled.
-ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 7 10 11 12 14 15) *0, disabled.
-ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 7 10 11 12 14 15) *0, disabled.
-ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 7 10 11 12 14 15) *0, disabled.
+ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 7 10 11 12 14 15) *0,
+disabled.
+ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 7 10 11 12 14 15) *0,
+disabled.
+ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 7 10 11 12 14 15) *0,
+disabled.
+ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 7 10 11 12 14 15) *0,
+disabled.
+ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 7 10 11 12 14 15) *0,
+disabled.
 ACPI: PCI Interrupt Link [LNKF] (IRQs 9) *0, disabled.
-ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 7 10 11 12 14 15) *0, disabled.
-ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 7 10 11 12 14 15) *0, disabled.
+ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 7 10 11 12 14 15) *0,
+disabled.
+ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 7 10 11 12 14 15) *0,
+disabled.
 Linux Plug and Play Support v0.97 (c) Adam Belay
 pnp: PnP ACPI init
 pnp: PnP ACPI: found 15 devices
 PCI: Using ACPI for IRQ routing
-PCI: If a device doesn't work, try "pci=routeirq".  If it helps, post a report
+PCI: If a device doesn't work, try "pci=routeirq".  If it helps, post a
+report
 hpet0: at MMIO 0xfed00000, IRQs 2, 8, 0, 0
 hpet0: 4 32-bit timers, 14318180 Hz
 pnp: 00:01: iomem range 0x1c000000-0x1fffffff has been reserved
@@ -259,7 +262,8 @@ Real Time Clock Driver v1.12ac
 hpet_resources: 0xfed00000 is busy
 Non-volatile memory driver v1.2
 Linux agpgart interface v0.102 (c) Dave Jones
-Serial: 8250/16550 driver $Revision: 1.90 $ 4 ports, IRQ sharing disabled
+Serial: 8250/16550 driver $Revision: 1.90 $ 4 ports, IRQ sharing
+disabled
 serial8250: ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
 00:06: ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
 RAMDISK driver initialized: 16 RAM disks of 4096K size 1024 blocksize
@@ -277,5 +281,5 @@ TCP cubic registered
 NET: Registered protocol family 1
 <snip>
 
---=-tgHl572HxJn/3L6sRFXe--
+   
 
