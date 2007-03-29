@@ -1,35 +1,37 @@
-From: "Jeff Chua" <jeff.chua.linux@gmail.com>
-Subject: Re: [3/6] 2.6.21-rc4: known regressions
-Date: Thu, 29 Mar 2007 22:24:33 +0800
-Message-ID: <b6a2187b0703290724l1ca26fa4vdb73f3ae82d6514f@mail.gmail.com>
-References: <Pine.LNX.4.64.0703160925270.26106@woody.linux-foundation.org>
-	 <b6a2187b0703261046r46782eedv64464ceddb44bc27@mail.gmail.com>
-	 <1175065468.4017.1.camel@chaos>
-	 <200703281543.47049.maximlevitsky@gmail.com>
-	 <20070328180457.GA4253@mellanox.co.il>
+From: Daniel Drake <dsd@gentoo.org>
+Subject: Re: [Bug 8255] Frequency Scaling not working properly using powernow-k7
+Date: Thu, 29 Mar 2007 11:43:17 -0400
+Message-ID: <460BDE95.90204@gentoo.org>
+References: <200703291304.l2TD4Dd6016401@fire-2.osdl.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <20070328180457.GA4253@mellanox.co.il>
-Content-Disposition: inline
-Sender: linux-ide-owner@vger.kernel.org
-To: "Michael S. Tsirkin" <mst@dev.mellanox.co.il>
-Cc: Maxim <maximlevitsky@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Adrian Bunk <bunk@stusta.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Eric W. Biederman" <ebiederm@xmission.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, pavel@suse.cz, linux-pm@lists.osdl.org, gregkh@suse.de, linux-pci@atrey.karlin.mff.cuni.cz, Jens Axboe <jens.axboe@oracle.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, jgarzik@pobox.com, linux-ide@vger.kernel.org, Ingo Molnar <mingo@elte.hu>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932282AbXC2PnT@vger.kernel.org>
+In-Reply-To: <200703291304.l2TD4Dd6016401@fire-2.osdl.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dave Jones <davej@redhat.com>
+Cc: bugme-daemon@bugzilla.kernel.org, linux list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>
 List-Id: linux-acpi@vger.kernel.org
 
-On 3/29/07, Michael S. Tsirkin <mst@dev.mellanox.co.il> wrote:
-> > Quoting Maxim <maximlevitsky@gmail.com>:
-> >                       The patch below is a temporally fix, until
-> >       clock-events and clocksources will get proper suspend/resume
-> >       hooks:
-> Bingo!
+Dave,
 
-I confirmed that it suspend/resume disk/ram all works on my X60s with
-CONFIG_HPET_TIMER=y and CONFIG_NO_HZ unset.
+bugme-daemon@bugzilla.kernel.org wrote:
+> http://bugzilla.kernel.org/show_bug.cgi?id=8255
 
-But suspend to disk still hang with CONFIG_NO_HZ=y no matter what
-setting CONFIG_HPET_TIMER is set to.
+> Okay. I tracked down the problem with git. Here is what is the submission that
+> causes the problem:
+> 
+> solaris linux-git # git bisect good
+> 0916bd3ebb7cefdd0f432e8491abe24f4b5a101e is first bad commit
+> commit 0916bd3ebb7cefdd0f432e8491abe24f4b5a101e
+> Author: Dave Jones <davej@redhat.com>
+> Date:   Wed Nov 22 20:42:01 2006 -0500
+> 
+>         [PATCH] Correct bound checking from the value returned from _PPC method.
+
+The above commit seems to be the culprit behind this 2.6.19 regression, 
+which is still present as of 2.6.21-rc3 (so it's not the earlier issue 
+found by Ingo). Any ideas?
 
 Thanks,
-Jeff.
+Daniel
