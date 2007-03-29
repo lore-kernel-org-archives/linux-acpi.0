@@ -1,33 +1,60 @@
-From: "Miles Lane" <miles.lane@gmail.com>
-Subject: Re: 2.6.21-rc5-mm2 -- ACPI problems (lid switch broken, always shows running from AC, plugging in AC hangs machine)
-Date: Thu, 29 Mar 2007 14:49:14 -0700
-Message-ID: <a44ae5cd0703291449p1e8f75a2i68e9874362cef061@mail.gmail.com>
-References: <a44ae5cd0703281355h13f1bd70s9eb94092bfa9c3e@mail.gmail.com>
-	 <a44ae5cd0703290100q1bb80390ke66333407bbeecfd@mail.gmail.com>
-	 <20070329011503.00c89cb8.akpm@linux-foundation.org>
-	 <200703291311.09893.lenb@kernel.org>
-	 <a44ae5cd0703291314i6cd6cbaeo8ed0d7037b746cd5@mail.gmail.com>
-	 <a44ae5cd0703291335q1eff6661hf398dfca1db8e491@mail.gmail.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [linux-pm] [3/6] 2.6.21-rc4: known regressions
+Date: Thu, 29 Mar 2007 15:33:35 -0700
+Message-ID: <200703291533.38002.david-b@pacbell.net>
+References: <Pine.LNX.4.64.0703160925270.26106@woody.linux-foundation.org> <200703281359.29009.david-b@pacbell.net> <200703282327.56132.maximlevitsky@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.175]:42727 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934346AbXC2VtQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Mar 2007 17:49:16 -0400
-Received: by ug-out-1314.google.com with SMTP id 44so638599uga
-        for <linux-acpi@vger.kernel.org>; Thu, 29 Mar 2007 14:49:15 -0700 (PDT)
-In-Reply-To: <a44ae5cd0703291335q1eff6661hf398dfca1db8e491@mail.gmail.com>
+Received: from smtp110.sbc.mail.mud.yahoo.com ([68.142.198.209]:41900 "HELO
+	smtp110.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1422668AbXC2Wdk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 29 Mar 2007 18:33:40 -0400
+In-Reply-To: <200703282327.56132.maximlevitsky@gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Maxim <maximlevitsky@gmail.com>
+Cc: Adrian Bunk <bunk@stusta.de>, Andrew Morton <akpm@linux-foundation.org>, "Eric W. Biederman" <ebiederm@xmission.com>, gregkh@suse.de, Ingo Molnar <mingo@elte.hu>, Jeff Chua <jeff.chua.linux@gmail.com>, Jens Axboe <jens.axboe@oracle.com>, jgarzik@pobox.com, Linus Torvalds <torvalds@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pci@atrey.karlin.mff.cuni.cz, linux-pm@lists.linux-foundation.org, "Michael S. Tsirkin" <mst@mellanox.co.il>, Thomas Gleixner <tglx@linutronix.de>
 
-Hmm.   I've reproduced these problems with vanilla 2.6.21-rc5, so the
-latest acpi-git changes are off the hook.  I am currently trying to
-reproduce the problems with 2.6.21-rc4.  I'll let you know how it
-turns out.
+On Wednesday 28 March 2007 2:27 pm, Maxim wrote:
+> On Wednesday 28 March 2007 22:59:26 David Brownell wrote:
 
-       Miles
+> 	When HPET is active it eats RTC IRQ,
+
+Only when HPET timers 0 and 1 are set up for "Legacy Replacement Mode".
+In the more sensible "Standard Mode", they have their own IRQs.
+
+
+> 	So the only way out is to emulate RTC using HPET,
+> 	It is done this way in old rtc driver, rtc-cmos should do the same.
+
+No.  Patches like
+
+  http://marc.info/?l=linux-kernel&m=117219531503973&w=2
+
+should be merged (I hope they're in the 2.6.22 queue!), making
+HPET run in "Standard Mode" so that HPET can stop sticking its
+fingers in code where they don't belong.
+
+
+> 	I am also planning to add support of HPET and suspend/resume
+> 	for rtc-cmos, but I didn't start this yet. 
+
+It's already got suspend/resume support, and in the 2.6.22 queue
+are RTC framework updates which will let the RTC framework replace
+a lot more platform-specific RTC support.  (Platform changes can come
+later, where they're needed.  ARM for example doesn't need any.)
+
+Once HPET stops using "Legacy Replacement Mode" you won't need to
+touch anything in the RTC stack (except maybe the legacy char/rtc.c
+driver, removing HPET stuff).
+
+The open issue with suspend/resume support in rtc-cmos relates to
+how ACPI wakeup alarms should trigger.  I've not made time to test
+those patches.
+
+- Dave
