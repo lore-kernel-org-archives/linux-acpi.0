@@ -1,62 +1,74 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: 2.6.21-rc5-mm2 -- ACPI problems (lid switch broken, always
- shows running from AC, plugging in AC hangs machine)
-Date: Thu, 29 Mar 2007 01:15:03 -0700
-Message-ID: <20070329011503.00c89cb8.akpm@linux-foundation.org>
-References: <a44ae5cd0703281355h13f1bd70s9eb94092bfa9c3e@mail.gmail.com>
-	<20070328142000.ebc7712d.akpm@linux-foundation.org>
-	<a44ae5cd0703290100q1bb80390ke66333407bbeecfd@mail.gmail.com>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: Fw: Re: 2.6.21-rc4-mm1 + 4 hotfixes -- BUG: unable to handle
+	kernel paging request at virtual address 6b6b6ceb -- EIP is at
+	module_put+0x7/0x1f
+Date: Thu, 29 Mar 2007 16:16:50 +0800
+Message-ID: <1175156210.22487.2.camel@sli10-conroe.sh.intel.com>
+References: <20070322095232.f992794a.akpm@linux-foundation.org>
+	 <1174615467.23591.3.camel@sli10-conroe.sh.intel.com>
+	 <20070323051613.GA9560@kroah.com>
+	 <1175053953.10369.2.camel@sli10-conroe.sh.intel.com>
+	 <20070328041958.GA7669@kroah.com>
+	 <20070327212719.68c7729f.akpm@linux-foundation.org>
+	 <20070328045124.GA8156@kroah.com>
+	 <1175058836.10661.6.camel@sli10-conroe.sh.intel.com>
+	 <20070328052706.GA9459@kroah.com>
+	 <1175060366.10661.13.camel@sli10-conroe.sh.intel.com>
+	 <20070328055825.GA10064@kroah.com>
+	 <1175064552.10661.17.camel@sli10-conroe.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47009 "EHLO smtp.osdl.org"
+Received: from mga01.intel.com ([192.55.52.88]:29117 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934039AbXC2IPM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 29 Mar 2007 04:15:12 -0400
-In-Reply-To: <a44ae5cd0703290100q1bb80390ke66333407bbeecfd@mail.gmail.com>
+	id S1751038AbXC2ITq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 29 Mar 2007 04:19:46 -0400
+In-Reply-To: <1175064552.10661.17.camel@sli10-conroe.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Miles Lane <miles.lane@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Andy Grover <andrew.grover@intel.com>, Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>, len.brown@intel.com, linux-acpi@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, "Brown, Len" <len.brown@intel.com>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, linux-acpi@vger.kernel.org
 
-On Thu, 29 Mar 2007 01:00:45 -0700 "Miles Lane" <miles.lane@gmail.com> wrote:
+On Wed, 2007-03-28 at 14:49 +0800, Shaohua Li wrote:
+> On Tue, 2007-03-27 at 22:58 -0700, Greg KH wrote:
+> > On Wed, Mar 28, 2007 at 01:39:26PM +0800, Shaohua Li wrote:
+> > > On Tue, 2007-03-27 at 22:27 -0700, Greg KH wrote:
+> > > > 
+> > > > Putting more than one kobject in the same structure is a broken design.
+> > > > How can you control the lifetime rules properly if there are two
+> > > > reference counts for the same structure?  It doesn't work.
+> > > > 
+> > > > If you really need something like this, then just use a pointer to a
+> > > > kobject for one of them instead of embedding it.  Why do you need two
+> > > > different kobjects here?
+> > > Our data structure is something like below:
+> > > 
+> > > struct foo {
+> > > 	kobject kobja;
+> > > }
+> > > 
+> > > struct bar {
+> > > 	struct foo foo[];
+> > 
+> > Ick, don't do that...
+> why?
+Greg, can you share why don't do that? Or I can assume the patch is ok
+to push to len?
 
-> On 3/28/07, Andrew Morton <akpm@linux-foundation.org> wrote:
-> > On Wed, 28 Mar 2007 13:55:54 -0700
-> > "Miles Lane" <miles.lane@gmail.com> wrote:
-> >
-> > > My laptop (HP dv1240us) is always showing that my laptop is plugged
-> > > into AC power, even when it is running off of the battery.  When I
-> > > plug into the AC after running on the battery, the machine immediately
-> > > locks up.  Also, the laptop lid button isn't working -- pressing it
-> > > doesn't trigger a suspend.
-> >
-> > OK, thanks.
-> >
-> > If you have time, could you please test
-> >
-> > 2.6.21-rc5 +
-> > ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.21-rc5/2.6.21-rc5-mm2/broken-out/origin.patch + ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.21-rc5/2.6.21-rc5-mm2/broken-out/git-acpi.patch
-> > which will allow us to eliminate any non-acpi patches.
+> > > 	kobject kobjb
+> > > }
+> > > 
+> > > kobjb's .release will free struct bar. kobjb is the parent of kobja. if
+> > > you have a reference on kobja, then kobjb can't be released too, right?
+> > > So we only kobjb provide a .release to free the memory, kobja's .release
+> > > isn't required.
+> > 
+> > Why not just use the "normal" parent/child relationship with the
+> > kobjects like the rest of the kernel does?
+> I still didn't get the reason why we couldn't do this in the way of my
+> patch. As I said, there isn't risk to use 'freed memory'. I can make the
+> 'struct foo' a pointer, but this will mess the cpuidle driver.
 > 
-> Okay, I tested with those patches and got the same problems with the
-> resulting build.
-> I can't reproduce the hang on plugging in the AC with either
-> 2.6.21-rc5-mm2 or the
-> build with the patches you sent.  The other problems are 100% reproducible.
-> I have some new details:
-> 
-> 1.  Power always shows up as plugged in to AC.
-> 2.  The lid button is non-operational for initiating a suspend.
-> 3.  Suspending from the Gnome shutdown menu works.   Afterwards, the
-> lid button works for resuming from suspend.
-> 4.  If I suspend, resume and then try to shutdown; when I see the
-> message "The machine will now halt" the power does not shut off.  That
-> is, the various buttons on my laptop stay lit up.  I am forced to
-> shutdown by holding down the power button for five seconds.
-> 
-
-Thanks.  So we can conclude that all these problems are due to changes in
-2.6.21-rc5-mm2's git-acpi.patch?
-
+> Thanks,
+> Shaohua
