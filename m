@@ -1,91 +1,57 @@
-From: Tejun Heo <htejun@gmail.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: libata-acpi: summary, problems, questions and proposal
-Date: Thu, 29 Mar 2007 10:42:03 +0900
-Message-ID: <460B196B.5040306@gmail.com>
-References: <460A197A.9000708@gmail.com> <20070328175712.GA10293@srcf.ucam.org>
+Date: Thu, 29 Mar 2007 03:05:17 +0100
+Message-ID: <20070329020517.GA18249@srcf.ucam.org>
+References: <460A197A.9000708@gmail.com> <20070328175712.GA10293@srcf.ucam.org> <460B196B.5040306@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <20070328175712.GA10293@srcf.ucam.org>
+Content-Disposition: inline
+In-Reply-To: <460B196B.5040306@gmail.com>
 Sender: linux-ide-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
+To: Tejun Heo <htejun@gmail.com>
 Cc: "Randy.Dunlap y" <rdunlap@xenotime.net>, trenn@suse.de, Jeff Garzik <jeff@garzik.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, forrest.zhao@gmail.com, Kristen Carlson Accardi <kristen.c.accardi@intel.com>, Len Brown <lenb@kernel.org>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello, Matthew.
+On Thu, Mar 29, 2007 at 10:42:03AM +0900, Tejun Heo wrote:
 
-Matthew Garrett wrote:
-> On Wed, Mar 28, 2007 at 04:30:02PM +0900, Tejun Heo wrote:
+> Yeap, I think it's in the right direction but we need to go further.
 > 
-> Hi Tejun,
+> * I'm not sure whether the complex walk libata-acpi is doing is justifiable.
+
+Yeah, that may well be less than ideal.
+
+> * You'll end up doing _STM/_GTM on ahci controller on some BIOSen - 1. 
+> it can be dangerous 2. you might get partial or incorrect mapping - 
+> think about ICH8-split-to-two-PCI-fn-in-piix-mode case.
+
+So far I haven't seen any DSDTs that include _GTM and _STM methods for 
+controllers that come up flagged as ahci, though I'm perfectly willing 
+to believe that they're out there...
+
+> I think PM functions in libata-eh is better place and you also need to 
+> do _GTF after _GTM during resume.
+
+Well, "need" - I haven't actually found hardware that seems upset about 
+the missing _GTF call :) But you're right, it ought to be done. Can you 
+point me at the right bits of the libata-eh code? I was trying to work 
+through it earlier, but keeping track of the conditional paths is a bit 
+tricky.
+
+> >I think this is just a matter of making sure that the sata and pata 
+> >handle matching code matches reality now :)
 > 
-> Firstly, could I ask you to take a look at the patch in 
-> http://permalink.gmane.org/gmane.linux.acpi.devel/22066/ ? It deals with 
-> some of these issues.
+> Currently 1/2 of libata-acpi code is dealing with the above.  I'm trying 
+> to figure out why it needs to be that complex.
 
-Yeap, I've seen the patch.  That's why you're on the cc list in the 
-first place.  :-)
-
->> ACPI support implementation in libata-dev supports both IDE and SATA
->> ACPI object layouts and subset of ATA ACPI methods - _SDD and _GTF.
->> It incorrectly uses ap->cbl (the port's cable type) to choose between
->> the two ACPI layouts.  Association between the host and its ACPI
->> object is performed every time ACPI methods are invoked but the
->> association between an ATA device and its ACPI object is cached in
->> ata_device object.
-> 
-> These issues are both fixed in my patch, I believe.
-
-Yeap, I think it's in the right direction but we need to go further.
-
-* I'm not sure whether the complex walk libata-acpi is doing is justifiable.
-
-* You'll end up doing _STM/_GTM on ahci controller on some BIOSen - 1. 
-it can be dangerous 2. you might get partial or incorrect mapping - 
-think about ICH8-split-to-two-PCI-fn-in-piix-mode case.
-
->> 2-2. Missing proper _GTM/_STM support.  As stated above, although -mm
->>     contains _GTM/_STM support, it does not hook it to regular
->>     exception handling path and thus _GTF cannot be used in a lot of
->>     cases.
-> 
-> I've added _GTM and _STM support over suspend/resume. Right now they're 
-> in the host power management code - I'm not sure whether they should be 
-> here or the SCSI glue layer?
-
-I think PM functions in libata-eh is better place and you also need to 
-do _GTF after _GTM during resume.
-
->> 2-3. Misplaced _GTF hook.  _GTF currently is called prior to every
->>     device configuration.  This is unnecessary and incorrect.  The
->>     ACPI spec specifies that _GTM/_STM and _GTF should be executed
->>     during suspend/resume cycles not on every reset or
->>     reconfiguration.  This, for example, causes the following
->>     problem.
-> 
-> That should be quite easily fixable with the above patch.
-
-Yeap.
-
->> 4-1. Depending on how questions in section 3 are answered, fix and
->>     clean up ATA host/device <-> ACPI object association.  Whether
->>     IDE or SATA native style hierarchy is used should be determined
->>     by driver flag not cable type.  e.g. ahci and sata_sil24 should
->>     use SATA native style hierarchy while ata_piix should use IDE
->>     hierarchy whether the port is SATA or PATA.
-> 
-> I think this is just a matter of making sure that the sata and pata 
-> handle matching code matches reality now :)
-
-Currently 1/2 of libata-acpi code is dealing with the above.  I'm trying 
-to figure out why it needs to be that complex.
-
-Anyways, I think your patch is a step in the right direction, so 
-depending on how ACPI gurus enlighten us here, we can base further fix 
-on your patch.  Let's see how the questions are answered.
-
-Thanks.
+I wrote a patch at one point that simplified this to an extent 
+(http://lkml.org/lkml/2005/12/7/425), but it got somewhat bogged down in 
+discussion about where the right place to do the binding was. Personally 
+I'd prefer to handle this in a similar way to PCI - that is, register 
+the ata bus with ACPI and then find handles as and when new ata devices 
+are added to that bus. This has the advantage that it's easy to tie ACPI 
+events to specific ata devices, which could then be integrated with the 
+bay and dock drivers.
 
 -- 
-tejun
+Matthew Garrett | mjg59@srcf.ucam.org
