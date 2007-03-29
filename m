@@ -1,138 +1,68 @@
-From: Maxim <maximlevitsky@gmail.com>
-Subject: [ PATCH] Add suspend/resume for HPET was: Re: [3/6] 2.6.21-rc4: known regressions
-Date: Thu, 29 Mar 2007 06:41:16 +0200
-Message-ID: <200703290641.20236.maximlevitsky@gmail.com>
-References: <Pine.LNX.4.64.0703160925270.26106@woody.linux-foundation.org> <200703281701.23876.maximlevitsky@gmail.com> <Pine.LNX.4.64.0703280931520.6730@woody.linux-foundation.org>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: [GIT PULL] rename ibm-acpi driver to thinkpad-acpi
+Date: Thu, 29 Mar 2007 01:58:39 -0300
+Message-ID: <11751443243976-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0703280931520.6730@woody.linux-foundation.org>
-Content-Disposition: inline
-Sender: linux-ide-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Jeff Chua <jeff.chua.linux@gmail.com>, Adrian Bunk <bunk@stusta.de>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Eric W. Biederman" <ebiederm@xmission.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, pavel@suse.cz, linux-pm@lists.osdl.org, gregkh@suse.de, linux-pci@atrey.karlin.mff.cuni.cz, Jens Axboe <jens.axboe@oracle.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, jgarzik@pobox.com, linux-ide@vger.kernel.org, "Michael S. Tsirkin" <mst@mellanox.co.il>
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday 28 March 2007 18:38:48 Linus Torvalds wrote:
-> 
-> On Wed, 28 Mar 2007, Maxim wrote:
-> > 
-> > 	Now I don't have a clue how to set those bits if only HPET is used as clock source because now clocksources
-> > 	don't have _any_ resume hook.
-> 
-> One thing that drives me wild about that "clocksource resume" thing is 
-> that it seems to think that clocksources are somehow different from any 
-> other system devices..
-> 
-> Why isn't the HPET considered a "device", and has it's own *device* 
-> "suspend" and "resume"? Why do we seem to think that only "set_mode()" 
-> etc should wake up clock sources?
-> 
-> It's a *device*, dammit. It should save and resume like one (probably as a 
-> system device). The "set_mode()" etc stuff is at a completely different 
-> (higher) conceptual level.
-> 
-> Thomas? It does seem like Maxim has hit the nail on the head (at least 
-> partly) on the HPET timer resume problems..
-> 
-> 		Linus
-> 
 
+Len,
 
-Hi,
-	I am sending here a patch that as was discussed here adds hpet to list of system devices
-	and adds suspend/resume hooks this way.
-	I tested it and it works fine.
+Please pull from: 
+git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git
+branch for-upstream/acpi-test
 
----
-Add suspend/resume support for HPET
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+to receive the following patches *already* in acpi-test:
+      ACPI: ibm-acpi: kill trailing whitespace
+      ACPI: ibm-acpi: rename some identifiers
+      ACPI: ibm-acpi: add header file
+      ACPI: ibm-acpi: organize code
+      ACPI: ibm-acpi: update copyright notice
+      ACPI: ibm-acpi: update documentation
+      ACPI: ibm-acpi: move driver to drivers/misc hierarchy
 
----
- arch/i386/kernel/hpet.c |   64 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 64 insertions(+), 0 deletions(-)
+and to receive the following **new** patches:
+      ACPI: ibm-acpi: rename driver to thinkpad-acpi
+      ACPI: thinkpad-acpi: cleanup Kconfig for thinkpad-acpi
+      ACPI: thinkpad-acpi: add compatibility MODULE_ALIAS entry
+      ACPI: thinkpad-acpi: cleanup after rename
+      ACPI: thinkpad-acpi: update MAINTAINERS
 
-diff --git a/arch/i386/kernel/hpet.c b/arch/i386/kernel/hpet.c
-index 0fd9fba..ac41476 100644
---- a/arch/i386/kernel/hpet.c
-+++ b/arch/i386/kernel/hpet.c
-@@ -3,6 +3,8 @@
- #include <linux/errno.h>
- #include <linux/hpet.h>
- #include <linux/init.h>
-+#include <linux/sysdev.h>
-+#include <linux/pm.h>
- 
- #include <asm/hpet.h>
- #include <asm/io.h>
-@@ -524,3 +526,65 @@ irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
- #endif
-+
-+
-+/*
-+ * Suspend/resume part
-+ */
-+
-+#ifdef CONFIG_PM
-+
-+static int hpet_suspend(struct sys_device *sys_device, pm_message_t state)
-+{
-+	unsigned long cfg = hpet_readl(HPET_CFG);
-+
-+	cfg &= ~(HPET_CFG_ENABLE|HPET_CFG_LEGACY);
-+	hpet_writel(cfg, HPET_CFG);
-+
-+	return 0;
-+}
-+
-+static int hpet_resume(struct sys_device *sys_device)
-+{
-+	unsigned int id;
-+
-+	hpet_start_counter();
-+
-+	id = hpet_readl(HPET_ID);
-+
-+	if (id & HPET_ID_LEGSUP)
-+		hpet_enable_int();
-+
-+	return 0;
-+}
-+
-+static struct sysdev_class hpet_class = {
-+	set_kset_name("hpet"),
-+	.suspend	= hpet_suspend,
-+	.resume		= hpet_resume,
-+};
-+
-+static struct sys_device hpet_device = {
-+	.id		= 0,
-+	.cls		= &hpet_class,
-+};
-+
-+
-+static __init int hpet_register_sysfs(void)
-+{
-+	int err;
-+
-+	err = sysdev_class_register(&hpet_class);
-+
-+	if (!err) {
-+		sysdev_register(&hpet_device);
-+		if (err)
-+			sysdev_class_unregister(&hpet_class);
-+	}
-+
-+	return err;
-+}
-+
-+device_initcall(hpet_register_sysfs);
-+
-+#endif
+As you can notice from the above, the branch contains the patches you have
+already pulled into acpi-test.  I don't know how well git will handle the
+merging as some *have* been rebased and whitespace-modified since you last
+pulled them (they are now exactly the same of what you have in acpi-test).
+
+I suppose you could just drop the ones already in acpi-test and get them
+all again from the above branch, or you can get just the new ones from
+this thread using git-am.  I didn't base the branch on acpi-test, as you
+previously told me not to do that as it would make matters worse for you.
+
+If you'd rather I prepare these branches in a different way, just tell me
+how you'd like them done.
+
 -- 
-1.4.4.2
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
 
+-------------------------------------------------------------------------
+Take Surveys. Earn Cash. Influence the Future of IT
+Join SourceForge.net's Techsay panel and you'll get the chance to share your
+opinions on IT & business topics through brief surveys-and earn cash
+http://www.techsay.com/default.php?page=join.php&p=sourceforge&CID=DEVDEV
