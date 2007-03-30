@@ -1,161 +1,37 @@
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: Re: [3/6] 2.6.21-rc4: known regressions
-Date: Fri, 30 Mar 2007 03:48:38 +0300
-Message-ID: <200703300348.38402.maximlevitsky@gmail.com>
-References: <Pine.LNX.4.64.0703160925270.26106@woody.linux-foundation.org>
-	<200703300129.27474.maximlevitsky@gmail.com>
-	<200703291709.17085.david-b@pacbell.net>
+From: "Lee Revell" <rlrevell@joe-job.com>
+Subject: Re: 2.6.21-rc4-mm1 and rc5-mm2 - problem with cpuidle routine
+Date: Thu, 29 Mar 2007 22:17:27 -0400
+Message-ID: <75b66ecd0703291917x4f497f53s464663a1e8a0fa3c@mail.gmail.com>
+References: <20070319205623.299d0378.akpm@linux-foundation.org>
+	 <1174433034.62033.16.camel@localhost>
+	 <20070320223643.d8cbc3f6.akpm@linux-foundation.org>
+	 <46017E56.7050400@lwfinger.net>
+	 <20070321133815.304eb256.akpm@linux-foundation.org>
+	 <20070322003315.GA17996@linux-os.sc.intel.com>
+	 <460C670A.9060204@comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <200703291709.17085.david-b@pacbell.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ik-out-1112.google.com ([66.249.90.177]:26244 "EHLO
+	ik-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753804AbXC3CR3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Mar 2007 22:17:29 -0400
+Received: by ik-out-1112.google.com with SMTP id c21so295676ika
+        for <linux-acpi@vger.kernel.org>; Thu, 29 Mar 2007 19:17:28 -0700 (PDT)
+In-Reply-To: <460C670A.9060204@comcast.net>
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Jeff Chua <jeff.chua.linux@gmail.com>, linux-acpi@vger.kernel.org, jgarzik@pobox.com, linux-pm@lists.linux-foundation.org, gregkh@suse.de, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@stusta.de>, linux-ide@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, Thomas Gleixner <tglx@linutronix.de>, "Eric W. Biederman" <ebiederm@xmission.com>, Jens Axboe <jens.axboe@oracle.com>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ed Sweetman <safemode2@comcast.net>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Larry Finger <larry.finger@lwfinger.net>, LKML <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-On Friday 30 March 2007 03:09:14 David Brownell wrote:
-> On Thursday 29 March 2007 4:29 pm, Maxim Levitsky wrote:
-> > On Friday 30 March 2007 00:33:35 David Brownell wrote:
-> > > On Wednesday 28 March 2007 2:27 pm, Maxim wrote:
-> =
+On 3/29/07, Ed Sweetman <safemode2@comcast.net> wrote:
+> NVRM: loading NVIDIA UNIX x86_64 Kernel Module  1.0-9746  Fri Dec 15 10:19:35 PST 2006
+> PCI: Setting latency timer of device 0000:01:00.0 to 64
+> NVRM: loading NVIDIA UNIX x86_64 Kernel Module  1.0-9746  Fri Dec 15 10:19:35 PST 2006
+> **WARNING** I2C adapter driver [NVIDIA i2c adapter ] forgot to specify physical
 
-> > > > 	So the only way out is to emulate RTC using HPET,
-> > > > 	It is done this way in old rtc driver, rtc-cmos should do the same.
-> > > =
+Please try to reproduce with an untainted kernel.
 
-> > > No.  Patches like
-> > > =
-
-> > >   http://marc.info/?l=3Dlinux-kernel&m=3D117219531503973&w=3D2
-> =
-
-> also:   http://marc.info/?l=3Dlinux-kernel&m=3D117219531526317&w=3D2
-> =
-
-> > > should be merged (I hope they're in the 2.6.22 queue!), making
-> > > HPET run in "Standard Mode" so that HPET can stop sticking its
-> > > fingers in code where they don't belong.
-> > >
-> > > ...
-> >
-> > 	It is not that simple,
-> > =
-
-> > 	Only in legacy replacement mode HPET can be put on IRQ0 (and sadly  IR=
-Q8)
-> > 	At least this is true on some systems, on mine for example
-> =
-
-> Right, that's the entire point of legacy replacement mode.
-> =
-
-> But so what?  In standard mode, HPET just uses other IRQs.
-> Nothing would care about irq0, and irq8 would be used by
-> the RTC as necessary.
-> =
-
-> =
-
-> > 	this will make it difficult to use it as a clockevents source
-> =
-
-> Why?  It's not like the clockevent logic cares what IRQ a given
-> programmable timer uses.  So long as the HPET driver can receive
-> its IRQ, it'll make a fine clockevent.  There's no reason to have
-> HPET prevent other drivers from working, by insisting it use that
-> nasty "prevent other hardware from issuing IRQs" mode.
-> =
-
-> The patches from Venkatesh sure seem to have behaved for him.
-> And while he might have complained about difficulty, I think
-> that'd be more likely due to the SMP issues he also addressed
-> than because of some (historical?) attachment to irq0.
-> =
-
-> =
-
-> > 	Not to mention the fact that current code assumes that BIOS
-> > 	assigned IRQs to all timers which is not true on my system. =
-
-> =
-
-> Getting IRQ routing sorted out is a problem that's been solved
-> numerous times before.  And again, the patches referenced above
-> seem to have resolved any such issues.
-No they don't, =
-
-
-First patch does that:
-
-                        hd.hd_irq[i] =3D (timer->hpet_config &
-                                        Tn_INT_ROUTE_CNF_MASK) >>          =
-                      =
-
-					Tn_INT_ROUTE_CNF_SHIFT;
-
-This just reads values assigned by BIOS.
-
-
-> =
-
-> =
-
-> > 	What is wrong with relying on HPET to provide RTC IRQ ?
-> =
-
-> For starters, it's not an RTC.  Why in the world would you want to
-> make the OS think it's an RTC ... unless you're Microsoft, and are
-> desperate to get another periodic timer (and don't much care about
-> the other RTC functionality?
-> =
-
-> =
-
-> ... that's all off-topic for 2.6.21 regressions though; it's too
-> late to merge x86_64 clockevent support, or fix HPET issues like
-> not using "standard mode".
-> =
-
-> - Dave
-> =
-
-> =
-
-
-Hi,
-	I feel that you are right,
-
-	You meant that one of HPET timers will be used as clock source and will be=
- assigned some IRQ (not IRQ0)
-	=
-
-	Seems fine,
-
-	Only one thing: the kernel must assign IRQs to HPETS , relying on bios is =
-not good,
-	Also the IRQ for clocksource should be not shared, but maybe I am wrong he=
-re =
-
-	(I am afraid that latencies might be a problem here)
-
-	By the way I never thought about the fact that legacy replacement mode  is=
- a 'virtual legacy'
-
-	I mean that it is intended to simulate RTCs and PITs on systems that don't=
- have them, am I right here ?
-	HPET spec says that RTC is still requred to provide all its usial function=
-s except periodic freq.
-
-	Best regards,
-		Maxim Levitsky
+Lee
