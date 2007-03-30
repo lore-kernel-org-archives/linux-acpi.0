@@ -1,37 +1,48 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: [1/4] 2.6.21-rc5: known regressions (v2)
-Date: Fri, 30 Mar 2007 14:38:50 -0700
-Message-ID: <20070330213850.GA5564@suse.de>
-References: <Pine.LNX.4.64.0703251559560.6730@woody.linux-foundation.org> <20070330213209.GM14134@stusta.de>
+From: "Miles Lane" <miles.lane@gmail.com>
+Subject: Re: 2.6.21-rc5-mm2 -- ACPI problems (lid switch broken, always shows running from AC, plugging in AC hangs machine)
+Date: Fri, 30 Mar 2007 15:30:10 -0700
+Message-ID: <a44ae5cd0703301530i8c5fa51n767538d78065dca7@mail.gmail.com>
+References: <a44ae5cd0703281355h13f1bd70s9eb94092bfa9c3e@mail.gmail.com>
+	 <a44ae5cd0703291335q1eff6661hf398dfca1db8e491@mail.gmail.com>
+	 <a44ae5cd0703291449p1e8f75a2i68e9874362cef061@mail.gmail.com>
+	 <200703301410.43857.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:52050 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754047AbXC3Vkr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 30 Mar 2007 17:40:47 -0400
+Received: from nz-out-0506.google.com ([64.233.162.233]:25785 "EHLO
+	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932658AbXC3WaL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Mar 2007 18:30:11 -0400
+Received: by nz-out-0506.google.com with SMTP id s1so551469nze
+        for <linux-acpi@vger.kernel.org>; Fri, 30 Mar 2007 15:30:10 -0700 (PDT)
+In-Reply-To: <200703301410.43857.lenb@kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20070330213209.GM14134@stusta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Oliver Pinter <oliver.pntr@gmail.com>, Ingo Molnar <mingo@elte.hu>, Kay Sievers <kay.sievers@vrfy.org>, Michal Jaegermann <michal@ellpspace.math.ualberta.ca>, lenb@kernel.org, linux-acpi@vger.kernel.org, jgarzik@pobox.com, linux-ide@vger.kernel.org, Mathieu B??rard <Mathieu.Berard@crans.org>, Tejun Heo <htejun@gmail.com>
+To: Len Brown <lenb@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Fri, Mar 30, 2007 at 11:32:09PM +0200, Adrian Bunk wrote:
-> Subject    : hung bootup in various drivers
-> References : http://lkml.org/lkml/2007/3/30/68
-> Submitter  : Ingo Molnar <mingo@elte.hu>
-> Handled-By : Ingo Molnar <mingo@elte.hu>
->              Greg KH <gregkh@suse.de>
->              Kay Sievers <kay.sievers@vrfy.org>
-> Status     : problem is being discussed
+On 3/30/07, Len Brown <lenb@kernel.org> wrote:
+> On Thursday 29 March 2007 17:49, Miles Lane wrote:
+> > Hmm.   I've reproduced these problems with vanilla 2.6.21-rc5, so the
+> > latest acpi-git changes are off the hook....
+>
+> I think the 1st message on this thread holds the answer:
+>
+> > ACPI: BIOS bug: multiple APIC/MADT found, using 2
+> > ACPI: If "acpi_apic_instance=0" works better, notify linux-acpi@vger.kernel.org
+>
+> Looking at your acpidump in
+> http://bugzilla.kernel.org/show_bug.cgi?id=8283
+> clearly the 2nd table is broken (it is missing the SCI override)
+> and that is why you get no ACPI interrupts.
+>
+> If Windows works on your machine -- ACPI events such as power button etc --
+> then that is proof that Windows doesn't use the 2nd MADT and I need
+> to revert 09fe58356d148ff66901ddf639e725ca1a48a0af
 
-Note, this should probably read:
-	hung bootup for drivers built into the kernel, that fail their
-	module_init() call.
+Yes, the patch you sent fixes these problems.
 
-A much smaller minority of cases :)
-
-thanks,
-
-greg k-h
+Thanks!
+       Miles
