@@ -1,37 +1,74 @@
-From: "Jeff Chua" <jeff.chua.linux@gmail.com>
-Subject: Re: [3/4] 2.6.21-rc5: known regressions (v2)
-Date: Sat, 31 Mar 2007 10:52:59 +0800
-Message-ID: <b6a2187b0703301952s6042fbfdu2e15e0f868a958f4@mail.gmail.com>
-References: <Pine.LNX.4.64.0703251559560.6730@woody.linux-foundation.org>
-	 <20070330213220.GO14134@stusta.de>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [GIT PULL] rename ibm-acpi driver to thinkpad-acpi
+Date: Fri, 30 Mar 2007 16:03:55 -0400
+Message-ID: <200703301603.55424.lenb@kernel.org>
+References: <11751443243976-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nz-out-0506.google.com ([64.233.162.225]:45458 "EHLO
-	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933506AbXCaCxD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Mar 2007 22:53:03 -0400
-Received: by nz-out-0506.google.com with SMTP id s1so588258nze
-        for <linux-acpi@vger.kernel.org>; Fri, 30 Mar 2007 19:53:02 -0700 (PDT)
-In-Reply-To: <20070330213220.GO14134@stusta.de>
+Received: from hera.kernel.org ([140.211.167.34]:45415 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753540AbXC3UMA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 30 Mar 2007 16:12:00 -0400
+In-Reply-To: <11751443243976-git-send-email-hmh@hmh.eng.br>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Dave Jones <davej@redhat.com>, Jeremy Fitzhardinge <jeremy@goop.org>, "Eric W. Biederman" <ebiederm@xmission.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, pavel@suse.cz, linux-pm@lists.osdl.org, gregkh@suse.de, linux-pci@atrey.karlin.mff.cuni.cz, Tobias Doerffel <tobias.doerffel@gmail.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Soeren Sonnenburg <kernel@nn7.de>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Marcus Better <marcus@better.se>, adaplas@gmail.com, Jens Axboe <jens.axboe@oracle.com>, Mike Harris <atarimike@wavecable.com>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, Stephen Hemminger <shemminger@linux-foundation.org>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-On 3/31/07, Adrian Bunk <bunk@stusta.de> wrote:
 
-> Subject    : ThinkPad doesn't resume from suspend to RAM
-> References : http://lkml.org/lkml/2007/2/27/80
->              http://lkml.org/lkml/2007/2/28/348
-> Submitter  : Jens Axboe <jens.axboe@oracle.com>
->              Jeff Chua <jeff.chua.linux@gmail.com>
-> Status     : unknown
++MODULE_ALIAS("ibm_acpi");
+good
 
-Fixed with CONFIG_NO_HZ unset and patch from Maxim
-(http://lkml.org/lkml/2007/3/29/108).
+> 
+> Len,
+> 
+> Please pull from: 
+> git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git
+> branch for-upstream/acpi-test
+> 
+> to receive the following patches *already* in acpi-test:
+>       ACPI: ibm-acpi: kill trailing whitespace
+>       ACPI: ibm-acpi: rename some identifiers
+>       ACPI: ibm-acpi: add header file
+>       ACPI: ibm-acpi: organize code
+>       ACPI: ibm-acpi: update copyright notice
+>       ACPI: ibm-acpi: update documentation
+>       ACPI: ibm-acpi: move driver to drivers/misc hierarchy
 
-Thanks,
-Jeff,
+had these already.
+
+> and to receive the following **new** patches:
+>       ACPI: ibm-acpi: rename driver to thinkpad-acpi
+>       ACPI: thinkpad-acpi: cleanup Kconfig for thinkpad-acpi
+>       ACPI: thinkpad-acpi: add compatibility MODULE_ALIAS entry
+>       ACPI: thinkpad-acpi: cleanup after rename
+>       ACPI: thinkpad-acpi: update MAINTAINERS
+
+applied these.
+
+
+> As you can notice from the above, the branch contains the patches you have
+> already pulled into acpi-test.  I don't know how well git will handle the
+> merging as some *have* been rebased and whitespace-modified since you last
+> pulled them (they are now exactly the same of what you have in acpi-test).
+> 
+> I suppose you could just drop the ones already in acpi-test and get them
+> all again from the above branch, or you can get just the new ones from
+> this thread using git-am.  I didn't base the branch on acpi-test, as you
+> previously told me not to do that as it would make matters worse for you.
+> 
+> If you'd rather I prepare these branches in a different way, just tell me
+> how you'd like them done.
+
+I'm glad you're using git, it formats the patches perfectly.
+But, I'll probably always apply the plain patches instead of pulling 
+from your tree.  This is because i reserve the right to re-write history
+of my test branch to suite my own needs, and I don't want to pull
+back duplicate history from somebody that pulled acpi-test.
+
+thanks,
+-Len
