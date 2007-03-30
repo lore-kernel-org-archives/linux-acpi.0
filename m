@@ -1,46 +1,72 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: Fw: Re: 2.6.21-rc4-mm1 + 4 hotfixes -- BUG: unable to handle
-	kernel paging request at virtual address 6b6b6ceb -- EIP is at
-	module_put+0x7/0x1f
-Date: Fri, 30 Mar 2007 15:55:23 +0800
-Message-ID: <1175241323.23353.1.camel@sli10-conroe.sh.intel.com>
-References: <20070328045124.GA8156@kroah.com>
-	 <1175058836.10661.6.camel@sli10-conroe.sh.intel.com>
-	 <20070328052706.GA9459@kroah.com>
-	 <1175060366.10661.13.camel@sli10-conroe.sh.intel.com>
-	 <20070328055825.GA10064@kroah.com>
-	 <1175064552.10661.17.camel@sli10-conroe.sh.intel.com>
-	 <20070330051825.GB26194@kroah.com>
-	 <1175236424.19154.7.camel@sli10-conroe.sh.intel.com>
-	 <20070330070547.GA5469@kroah.com>
-	 <1175238483.22293.0.camel@sli10-conroe.sh.intel.com>
-	 <20070330075111.GA12031@kroah.com>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: [1/4] 2.6.21-rc5: known regressions (v2)
+Date: Fri, 30 Mar 2007 23:32:09 +0200
+Message-ID: <20070330213209.GM14134@stusta.de>
+References: <Pine.LNX.4.64.0703251559560.6730@woody.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:24058 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933102AbXC3H6e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 30 Mar 2007 03:58:34 -0400
-In-Reply-To: <20070330075111.GA12031@kroah.com>
+Received: from emailhub.stusta.mhn.de ([141.84.69.5]:38898 "EHLO
+	mailhub.stusta.mhn.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932114AbXC3VcL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Mar 2007 17:32:11 -0400
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0703251559560.6730@woody.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, "Brown, Len" <len.brown@intel.com>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Oliver Pinter <oliver.pntr@gmail.com>, Ingo Molnar <mingo@elte.hu>, Greg KH <gregkh@suse.de>, Kay Sievers <kay.sievers@vrfy.org>, Michal Jaegermann <michal@ellpspace.math.ualberta.ca>, lenb@kernel.org, linux-acpi@vger.kernel.org, jgarzik@pobox.com, linux-ide@vger.kernel.org, Mathieu =?utf-8?Q?B=C3=A9rard?= <Mathieu.Berard@crans.org>, Tejun Heo <htejun@gmail.com>
 
-On Fri, 2007-03-30 at 00:51 -0700, Greg KH wrote:
-> On Fri, Mar 30, 2007 at 03:08:03PM +0800, Shaohua Li wrote:
-> > On Fri, 2007-03-30 at 00:05 -0700, Greg KH wrote:
-> > > 
-> > > I'm still confused as to why you are creating these "extra" kobjects.
-> > > What are they used for?
-> > It's for each idle state.
-> 
-> Where are these states in sysfs?  Is this the
-> /sys/devices/system/cpu/cpu0/cache/indexN directories?
-Similar with cache info, the sysfs is
-/sys/devices/system/cpu/cpu1/cpuidle/statex
+This email lists some known regressions in Linus' tree compared to 2.6.=
+20.
 
-Thanks,
-Shaohua
+If you find your name in the Cc header, you are either submitter of one
+of the bugs, maintainer of an affectected subsystem or driver, a patch
+of you caused a breakage or I'm considering you in any other way
+possibly involved with one or more of these issues.
+
+Due to the huge amount of recipients, please trim the Cc when answering=
+=2E
+
+
+Subject    : crashes in KDE
+References : http://bugzilla.kernel.org/show_bug.cgi?id=3D8157
+Submitter  : Oliver Pinter <oliver.pntr@gmail.com>
+Status     : unknown
+
+
+Subject    : hung bootup in various drivers
+References : http://lkml.org/lkml/2007/3/30/68
+Submitter  : Ingo Molnar <mingo@elte.hu>
+Handled-By : Ingo Molnar <mingo@elte.hu>
+             Greg KH <gregkh@suse.de>
+             Kay Sievers <kay.sievers@vrfy.org>
+Status     : problem is being discussed
+
+
+Subject    : kernels fail to boot with drives on ATIIXP controller
+             (ACPI/IRQ related)
+References : https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=3D229=
+621
+             http://lkml.org/lkml/2007/3/4/257
+Submitter  : Michal Jaegermann <michal@ellpspace.math.ualberta.ca>
+Status     : unknown
+
+
+Subject    : NCQ problem with ahci and Hitachi drive
+References : http://lkml.org/lkml/2007/3/4/178
+             http://lkml.org/lkml/2007/3/9/475
+             http://lkml.org/lkml/2007/2/22/8
+Submitter  : Mathieu B=C3=A9rard <Mathieu.Berard@crans.org>
+Handled-By : Tejun Heo <htejun@gmail.com>
+Patch      : http://lkml.org/lkml/2007/2/22/8
+Status     : possible patch available
+
+
+
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
