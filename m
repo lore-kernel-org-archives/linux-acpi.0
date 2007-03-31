@@ -1,54 +1,75 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: Re: [1/4] 2.6.21-rc5: known regressions (v2)
-Date: Sat, 31 Mar 2007 17:01:23 +0200
-Message-ID: <20070331150123.GU14134@stusta.de>
-References: <Pine.LNX.4.64.0703251559560.6730@woody.linux-foundation.org> <20070330213209.GM14134@stusta.de> <20070331002310.GA3213@ellpspace.math.ualberta.ca>
+From: "Jordan Crouse" <jordan.crouse@amd.com>
+Subject: Re: Power Mangement Interfaces
+Date: Sat, 31 Mar 2007 09:16:13 -0600
+Message-ID: <20070331151613.GA8091@cosmic.amd.com>
+References: <20070330235759.GC4252@cosmic.amd.com>
+	<1175300283.23438.38.camel@johannes.berg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emailhub.stusta.mhn.de ([141.84.69.5]:39292 "EHLO
-	mailhub.stusta.mhn.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753137AbXCaPBY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 31 Mar 2007 11:01:24 -0400
+Content-Type: text/plain;
+ charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <devel-bounces@laptop.org>
+In-Reply-To: <1175300283.23438.38.camel@johannes.berg>
 Content-Disposition: inline
-In-Reply-To: <20070331002310.GA3213@ellpspace.math.ualberta.ca>
-Sender: linux-acpi-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.laptop.org/mailman/listinfo/devel>,
+	<mailto:devel-request@laptop.org?subject=unsubscribe>
+List-Archive: <http://mailman.laptop.org/pipermail/devel>
+List-Post: <mailto:devel@laptop.org>
+List-Help: <mailto:devel-request@laptop.org?subject=help>
+List-Subscribe: <http://mailman.laptop.org/mailman/listinfo/devel>,
+	<mailto:devel-request@laptop.org?subject=subscribe>
+Sender: devel-bounces@laptop.org
+Errors-To: devel-bounces@laptop.org
+To: Johannes Berg <johannes@sipsolutions.net>
+Cc: linux-acpi@vger.kernel.org, linux-pm@lists.osdl.org, devel@laptop.org
 List-Id: linux-acpi@vger.kernel.org
-To: Michal Jaegermann <michal@ellpspace.math.ualberta.ca>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, jgarzik@pobox.com, linux-ide@vger.kernel.org, Tejun Heo <htejun@gmail.com>
 
-On Fri, Mar 30, 2007 at 06:23:10PM -0600, Michal Jaegermann wrote:
-> On Fri, Mar 30, 2007 at 11:32:09PM +0200, Adrian Bunk wrote:
-> > 
-> > Subject    : kernels fail to boot with drives on ATIIXP controller
-> >              (ACPI/IRQ related)
-> > References : https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=229621
-> >              http://lkml.org/lkml/2007/3/4/257
-> > Submitter  : Michal Jaegermann <michal@ellpspace.math.ualberta.ca>
-> > Status     : unknown
+On 31/03/07 02:18 +0200, Johannes Berg wrote:
+> On Fri, 2007-03-30 at 17:57 -0600, Jordan Crouse wrote:
 > 
-> I have now even better one with pata_via.  A kernel, which for
-> all practical purposes is 2.6.21-rc5, not only refuses to boot
-> (and I cannot find some option combination which would allow me to
-> do so anyway) but simply refuses to read _any_ data from a media.
-> This included a partitioning information.
+> I think the sources file isn't really useful, a
+>   grep -l 1 /sys/power/wakeup/*
+> should do.
+
+I was just trying to be friendly to folks who may be used to the ACPI
+method. 
+
+> About different possible states: I think each of those can have
+> different possible wakeup sources, ACPI can afaik go to S4 and still be
+> able to configure the wakeup sources. So I suppose this really needs to
+> be something like /sys/power/wakeup/<state>/<event> then where <state>
+> is one of (currently) "mem", "disk" and "standby". And then change the
+> interface of pm_register_wakeup_source to include the state.
 > 
-> Earlier kernel on the same hardware boots without raising any fuss.
-> 
-> Details are collected as
-> https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=234650
+> Also, I'm not sure I like the interface with the name of the wakeup
+> event set by the platform driver. That will probably lead to
+> inconsistencies, a centrally maintained file with items could be nicer.
 
-If I understand this correctly, a plain 2.6.20 kernel is already broken?
+I considered that - but different platforms and PM methods may have 
+radically different events (will WLAN ever be an event that any other x86
+platform would use)?
 
->    Michal
+So I thought it best that we allow the platform driver to provide the
+name, and then enforce consistancy from the developers. 
 
-cu
-Adrian
+> About test mode: there is such a thing for suspend to disk. In fact, if
+> you just want to test driver suspend you could use that. See
+> the /sys/power/disk file.
+
+Yeah - I stole the idea from there.  That only works when you go down the
+suspend to disk path, though, and I wanted to make sure we were going down
+our own STR path. We go all the way into our sleep methods (in fact, I used
+it to catch an early bug where we were not restoring the stack correctly in
+the lowlevel resume function).  I think there are other uses for the test
+mode that even extend into the firmware - consider a clocks on test method
+that goes as far as setting up the wake events, but never actually turn
+off the power rails.
+
+Thanks for your comments.
+Jordan
 
 -- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
-
+Jordan Crouse
+Senior Linux Engineer
+Advanced Micro Devices, Inc.
+<www.amd.com/embeddedprocessors>
