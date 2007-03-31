@@ -1,55 +1,37 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [GIT PATCH] ACPI patch for 2.6.21-rc5
-Date: Fri, 30 Mar 2007 14:37:33 -0400
-Message-ID: <200703301437.33798.lenb@kernel.org>
+From: "Jeff Chua" <jeff.chua.linux@gmail.com>
+Subject: Re: [3/4] 2.6.21-rc5: known regressions (v2)
+Date: Sat, 31 Mar 2007 10:52:59 +0800
+Message-ID: <b6a2187b0703301952s6042fbfdu2e15e0f868a958f4@mail.gmail.com>
+References: <Pine.LNX.4.64.0703251559560.6730@woody.linux-foundation.org>
+	 <20070330213220.GO14134@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:57847 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751366AbXC3Six (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 30 Mar 2007 14:38:53 -0400
+Received: from nz-out-0506.google.com ([64.233.162.225]:45458 "EHLO
+	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933506AbXCaCxD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Mar 2007 22:53:03 -0400
+Received: by nz-out-0506.google.com with SMTP id s1so588258nze
+        for <linux-acpi@vger.kernel.org>; Fri, 30 Mar 2007 19:53:02 -0700 (PDT)
+In-Reply-To: <20070330213220.GO14134@stusta.de>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Dave Jones <davej@redhat.com>, Jeremy Fitzhardinge <jeremy@goop.org>, "Eric W. Biederman" <ebiederm@xmission.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, pavel@suse.cz, linux-pm@lists.osdl.org, gregkh@suse.de, linux-pci@atrey.karlin.mff.cuni.cz, Tobias Doerffel <tobias.doerffel@gmail.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Soeren Sonnenburg <kernel@nn7.de>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Marcus Better <marcus@better.se>, adaplas@gmail.com, Jens Axboe <jens.axboe@oracle.com>, Mike Harris <atarimike@wavecable.com>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, Stephen Hemminger <shemminger@linux-foundation.org>
 
-Hi Linus,
+On 3/31/07, Adrian Bunk <bunk@stusta.de> wrote:
 
-please pull from: 
+> Subject    : ThinkPad doesn't resume from suspend to RAM
+> References : http://lkml.org/lkml/2007/2/27/80
+>              http://lkml.org/lkml/2007/2/28/348
+> Submitter  : Jens Axboe <jens.axboe@oracle.com>
+>              Jeff Chua <jeff.chua.linux@gmail.com>
+> Status     : unknown
 
-git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
+Fixed with CONFIG_NO_HZ unset and patch from Maxim
+(http://lkml.org/lkml/2007/3/29/108).
 
-This restores 2.6.20 behavior, fixing the 2.6.21 regression below.
-
-thanks!
-
--Len
-
-ps. individual patches are available on linux-acpi@vger.kernel.org
-and a consolidated plain patch is available here:
-ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.21/acpi-release-20070126-2.6.21-rc5.diff.gz
-
- Documentation/kernel-parameters.txt |    2 +-
- drivers/acpi/tables.c               |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-through these commits:
-
-Len Brown (1):
-      Revert "ACPI: parse 2nd MADT by default"
-
-with this log:
-
-commit 4e381a4f06e3c7b350b55a2636b9d45691780eba
-Author: Len Brown <len.brown@intel.com>
-Date:   Fri Mar 30 14:16:10 2007 -0400
-
-    Revert "ACPI: parse 2nd MADT by default"
-    
-    This reverts commit 09fe58356d148ff66901ddf639e725ca1a48a0af.
-    http://bugzilla.kernel.org/show_bug.cgi?id=8283
-    
-    Signed-off-by: Len Brown <len.brown@intel.com>
+Thanks,
+Jeff,
