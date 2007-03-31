@@ -1,54 +1,91 @@
-From: "Miles Lane" <miles.lane@gmail.com>
-Subject: Fwd: [Bug 8286] New: HP dv1420us -- synaptics touchpad events do not wake the laptop from suspend state
-Date: Fri, 30 Mar 2007 17:18:34 -0700
-Message-ID: <a44ae5cd0703301718h62421922h53d0b42135ee00e6@mail.gmail.com>
-References: <200703310016.l2V0GT5K015512@fire-2.osdl.org>
+From: Johannes Berg <johannes@sipsolutions.net>
+Subject: Re: Power Mangement Interfaces
+Date: Sat, 31 Mar 2007 02:18:03 +0200
+Message-ID: <1175300283.23438.38.camel@johannes.berg>
+References: <20070330235759.GC4252@cosmic.amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ik-out-1112.google.com ([66.249.90.177]:32321 "EHLO
-	ik-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933161AbXCaASg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Mar 2007 20:18:36 -0400
-Received: by ik-out-1112.google.com with SMTP id c21so568246ika
-        for <linux-acpi@vger.kernel.org>; Fri, 30 Mar 2007 17:18:35 -0700 (PDT)
-In-Reply-To: <200703310016.l2V0GT5K015512@fire-2.osdl.org>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============1190542818=="
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <20070330235759.GC4252@cosmic.amd.com>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Jordan Crouse <jordan.crouse@amd.com>
+Cc: linux-acpi@vger.kernel.org, linux-pm@lists.osdl.org, devel@laptop.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
-
-http://bugzilla.kernel.org/show_bug.cgi?id=8286
-
-  Summary: HP dv1420us -- synaptics touchpad events do not wake the
-                  laptop from suspend state
-  Kernel Version: 2.6.21-rc5
-  Status: NEW
-  Severity: normal
-  Owner: acpi_power-sleep-wake@kernel-bugs.osdl.org
-  Submitter: miles.lane@gmail.com
 
 
-Most recent kernel where this bug did *NOT* occur:
+--===============1190542818==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-Cgnjn1SY5pCPpk9OwP10"
 
-    This happens with all the ACPI-enabled kernels I have tried.
 
-Distribution:
+--=-Cgnjn1SY5pCPpk9OwP10
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-    Ubuntu 7.04 development packages
-    FC7 development packages
+On Fri, 2007-03-30 at 17:57 -0600, Jordan Crouse wrote:
 
-Hardware Environment:
+> I am now turning my attention to handling wakeup events - in particular,
+> events that we can set at run-time.  My thoughts on the matter are=20
+> detailed here:
+>=20
+> http://wiki.laptop.org/go/Power_Management_Interface
 
-    HP dv1240us
+Interesting. I thought about something like that a few days ago and it
+was pretty much identical to what you're saying there. Except I didn't
+write it down ;)
 
-Software Environment:
-Problem Description:
+A few comments:
 
-    Synaptics touchpad events do not wake the laptop from suspend state
+I think the sources file isn't really useful, a
+  grep -l 1 /sys/power/wakeup/*
+should do.
 
-Steps to reproduce:
+About different possible states: I think each of those can have
+different possible wakeup sources, ACPI can afaik go to S4 and still be
+able to configure the wakeup sources. So I suppose this really needs to
+be something like /sys/power/wakeup/<state>/<event> then where <state>
+is one of (currently) "mem", "disk" and "standby". And then change the
+interface of pm_register_wakeup_source to include the state.
 
-------- You are receiving this mail because: -------
-You reported the bug, or are watching the reporter.
+Also, I'm not sure I like the interface with the name of the wakeup
+event set by the platform driver. That will probably lead to
+inconsistencies, a centrally maintained file with items could be nicer.
+
+About test mode: there is such a thing for suspend to disk. In fact, if
+you just want to test driver suspend you could use that. See
+the /sys/power/disk file.
+
+johannes
+
+--=-Cgnjn1SY5pCPpk9OwP10
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Comment: Johannes Berg (powerbook)
+
+iD8DBQBGDai7/ETPhpq3jKURAotlAJ9QvDuTUQI9DspU990/2+AssEu+wQCfURes
+tcxxFUFlFiCRWtDPCg7rxy4=
+=iiZJ
+-----END PGP SIGNATURE-----
+
+--=-Cgnjn1SY5pCPpk9OwP10--
+
+
+--===============1190542818==
+Content-Type: text/plain; charset="iso-8859-1"
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+
+--===============1190542818==--
