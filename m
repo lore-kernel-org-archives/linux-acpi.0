@@ -1,39 +1,42 @@
-From: Andi Kleen <ak@suse.de>
-Subject: Re: 2.6.21-rc5: Thinkpad X60 gets critical thermal shutdowns
-Date: Sat, 31 Mar 2007 11:31:54 +0200
-Message-ID: <200703311131.54704.ak@suse.de>
-References: <460E0158.7090705@goop.org>
+From: Jens Axboe <jens.axboe@oracle.com>
+Subject: Re: [3/4] 2.6.21-rc5: known regressions (v2)
+Date: Sat, 31 Mar 2007 13:08:56 +0200
+Message-ID: <20070331110855.GG6246@kernel.dk>
+References: <Pine.LNX.4.64.0703251559560.6730@woody.linux-foundation.org> <20070330213220.GO14134@stusta.de> <b6a2187b0703301952s6042fbfdu2e15e0f868a958f4@mail.gmail.com> <20070331031650.GR14134@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:46847 "EHLO mx2.suse.de"
+Received: from brick.kernel.dk ([62.242.22.158]:11610 "EHLO kernel.dk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752568AbXCaJcG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 31 Mar 2007 05:32:06 -0400
-In-Reply-To: <460E0158.7090705@goop.org>
+	id S1752893AbXCaLOI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 31 Mar 2007 07:14:08 -0400
 Content-Disposition: inline
+In-Reply-To: <20070331031650.GR14134@stusta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: "Brown, Len" <len.brown@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Jeff Chua <jeff.chua.linux@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, pavel@suse.cz, linux-pm@lists.osdl.org, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Maxim Levitsky <maximlevitsky@gmail.com>
 
-On Saturday 31 March 2007 08:36, Jeremy Fitzhardinge wrote:
-> When I run 2.6.21-rc5 + Andi's x86 patches + paravirt_ops patches, I've
-> been getting my machine shut down with critical thermal shutdown messages:
-
-Hmm, don't think there's anything either in x86 that would touch this code.
-But can you double check with plain rc5? 
-
-> Mar 30 23:19:03 localhost kernel: ACPI: Critical trip point
-> Mar 30 23:19:03 localhost kernel: Critical temperature reached (128 C), shutting down.
-> Mar 30 23:19:03 localhost kernel: Critical temperature reached (128 C), shutting down.
-> Mar 30 23:19:03 localhost shutdown[19417]: shutting down for system halt
+On Sat, Mar 31 2007, Adrian Bunk wrote:
+> On Sat, Mar 31, 2007 at 10:52:59AM +0800, Jeff Chua wrote:
+> > On 3/31/07, Adrian Bunk <bunk@stusta.de> wrote:
+> > 
+> > >Subject    : ThinkPad doesn't resume from suspend to RAM
+> > >References : http://lkml.org/lkml/2007/2/27/80
+> > >             http://lkml.org/lkml/2007/2/28/348
+> > >Submitter  : Jens Axboe <jens.axboe@oracle.com>
+> > >             Jeff Chua <jeff.chua.linux@gmail.com>
+> > >Status     : unknown
+> > 
+> > Fixed with CONFIG_NO_HZ unset and patch from Maxim
+> > (http://lkml.org/lkml/2007/3/29/108).
 > 
-> and the machine does feel pretty hot.
+> Thanks for this information.
+> 
+> Jens, does suspend to RAM also work for you with the latest -git?
 
-Pavel has been complaining about higher power consumption on his laptop versus
-.20 too.
+Yep, it does, no problems since the last -rc.
 
--Andi
+-- 
+Jens Axboe
+
