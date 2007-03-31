@@ -1,56 +1,26 @@
-From: "Jordan Crouse" <jordan.crouse@amd.com>
-Subject: Power Mangement Interfaces
-Date: Fri, 30 Mar 2007 17:57:59 -0600
-Message-ID: <20070330235759.GC4252@cosmic.amd.com>
+From: "Miles Lane" <miles.lane@gmail.com>
+Subject: HP dv1420us -- lid button triggers suspend only every other attempt
+Date: Fri, 30 Mar 2007 17:07:43 -0700
+Message-ID: <a44ae5cd0703301707i4001afe5q7784256d7e506fee@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound-fra.frontbridge.com ([62.209.45.174]:61278 "EHLO
-	outbound3-fra-R.bigfish.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933138AbXC3X5c (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 30 Mar 2007 19:57:32 -0400
+Received: from nz-out-0506.google.com ([64.233.162.225]:59610 "EHLO
+	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933142AbXCaAHo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Mar 2007 20:07:44 -0400
+Received: by nz-out-0506.google.com with SMTP id s1so566458nze
+        for <linux-acpi@vger.kernel.org>; Fri, 30 Mar 2007 17:07:44 -0700 (PDT)
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: devel@laptop.org
-Cc: linux-acpi@vger.kernel.org, linux-pm@lists.osdl.org
+To: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-Hey all -
+http://bugzilla.kernel.org/show_bug.cgi?id=8285
 
-I'm happy to report that the OLPC power management effort is proceeding
-nicely.  We have suspend to RAM functional, and the system is resuming
-back to the framebuffer console.  We have the usual blips (USB), but
-those will be resolved in the fullness of time.
-
-I am now turning my attention to handling wakeup events - in particular,
-events that we can set at run-time.  My thoughts on the matter are 
-detailed here:
-
-http://wiki.laptop.org/go/Power_Management_Interface
-
-I use the ACPI wakeup infrastructure as an example because a) it exists,
-and b) it works.  However, it doesn't share nicely, and it is a /proc
-file, so I sat down and thought of a more /sysfs friendly and generic
-model.  I did keep APCI in mind, figuring that if a generic framework was
-designed well enough, they could slowly transition over as well (which is
-why the ACPI list is CCed).
-
-Comments are welcome.
-
-Jordan
-
-PS: If you have a XO machine, and you're interested in trying out power
-management for yourself, documentation and information is forthcoming.
-If you can't wait, pop in to #olpc on irc.freenode.net, and somebody 
-there will help you get started.
-
--- 
-Jordan Crouse
-Senior Linux Engineer
-Advanced Micro Devices, Inc.
-<www.amd.com/embeddedprocessors>
-
-
+The same information from bug #8283 applies to this bug as well (same laptop):
+http://bugzilla.kernel.org/attachment.cgi?id=10990&action=view
+http://bugzilla.kernel.org/attachment.cgi?id=10991&action=view
+http://bugzilla.kernel.org/attachment.cgi?id=10996&action=view
+http://bugzilla.kernel.org/attachment.cgi?id=10997&action=view
