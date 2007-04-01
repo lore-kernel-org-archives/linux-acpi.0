@@ -1,32 +1,66 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 Subject: Re: 2.6.21-rc5: Thinkpad X60 gets critical thermal shutdowns
-Date: Sun, 1 Apr 2007 19:46:25 -0300
-Message-ID: <20070401224625.GB28561@khazad-dum.debian.net>
-References: <460E0158.7090705@goop.org> <8f8ff01d0703310033y74421cfcl747ece1be003471@mail.gmail.com> <460F511E.2090102@goop.org> <20070401163204.GB5762@ucw.cz>
+Date: Sun, 01 Apr 2007 16:19:14 -0700
+Message-ID: <46103DF2.30001@goop.org>
+References: <460E0158.7090705@goop.org> <8f8ff01d0703310033y74421cfcl747ece1be003471@mail.gmail.com> <460F511E.2090102@goop.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:32954 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752776AbXDAWq2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 1 Apr 2007 18:46:28 -0400
-Content-Disposition: inline
-In-Reply-To: <20070401163204.GB5762@ucw.cz>
+Received: from gw.goop.org ([64.81.55.164]:55914 "EHLO mail.goop.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750874AbXDAXT0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 1 Apr 2007 19:19:26 -0400
+In-Reply-To: <460F511E.2090102@goop.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>, Alexey Starikovskiy <aystarik@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Alexey Starikovskiy <aystarik@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>
 
-On Sun, 01 Apr 2007, Pavel Machek wrote:
-> ACPI is misdesigned, and lm_sensors can't cope with that.
+Jeremy Fitzhardinge wrote:
+> Alexey Starikovskiy wrote:
+>   
+>> Could you try to unload or disable hardware sensors and check if it
+>> helps?
+>> CONFIG_I2C=m
+>> CONFIG_I2C_ALGOBIT=m
+>> CONFIG_I2C_ALGOPCA=m
+>> CONFIG_I2C_I810=m
+>> CONFIG_I2C_PIIX4=m
+>> CONFIG_SENSORS_DS1337=m
+>> CONFIG_SENSORS_DS1374=m
+>> CONFIG_SENSORS_EEPROM=m
+>> CONFIG_SENSORS_PCF8574=m
+>> CONFIG_SENSORS_PCA9539=m
+>> CONFIG_SENSORS_PCF8591=m
+>> CONFIG_SENSORS_MAX6875=m
+>>     
+>
+> That seems to have helped.  If I watch
+> /proc/acpi/thermal_zone/THM?/temperature, it seems stable even under
+> load.   I didn't try watching the thermal_zones when these options were
+> enabled, but I presume the temperature was not controlled for it to hit
+> 128 degC.
 
-Err, HOW exactly are you accessing the ThinkPad i2c buses directly? Or did
-Lenovo change completely the hardware project of thinkpads in the X60?
+Hm, perhaps I was too optimistic.  I have lm_sensors disabled, and all
+i2c options unconfigured in my kernel, but it still has temperature
+control problems.  Perhaps the ambient temperature was lower when I
+reported success.
 
-Or did anyone add an lm-sensors that attach to the ACPI EC ports now?
+When I do a big compile, the temperature reported in
+/proc/acpi/thermal_zone/THM0/temperature rapidly approaches 100C, and
+when it goes over 100 it triggers the critical shutdown.  When it shuts
+down, it (mis-?)reports the temperature as 128C.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+This seems to be real, and not a kernel artifact.  If I reboot the same
+kernel immediately, it boots up to the message "ACPI: Core revision
+20070126" and then hangs.  If I boot Windows immediately afterwards, it
+reboots a short way into the boot process.
+
+I've noticed one behavioral change with this kernel.  On the older
+kernels, the CPU frequency would sometimes drop to lowest speed,
+apparently because of an ACPI thermal limiting event.  This kernel
+doesn't seem to drop speed.  I seem to remember Ingo had a patch to
+ignore the ACPI thermal limits in cpufreq; did that get merged?
+
+    J
