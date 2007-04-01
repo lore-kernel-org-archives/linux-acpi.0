@@ -1,45 +1,46 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Date: Sun, 1 Apr 2007 15:39:52 +0000
-Message-ID: <20070401153951.GE5095@ucw.cz>
-References: <45D5EA88.7090300@redhat.com> <45D6DDCE.5050803@assembler.cz> <45D7461A.2040808@redhat.com> <20070218183805.5a4fd813.khali@linux-fr.org> <20070228213803.GA4877@ucw.cz> <20070301152655.f232db64.khali@linux-fr.org> <20070302114023.GD2163@elf.ucw.cz> <20070302114747.GB1212@srcf.ucam.org> <20070302135810.GF2156@elf.ucw.cz> <20070302220052.f93f3976.khali@linux-fr.org>
+Subject: Re: 2.6.21-rc5: Thinkpad X60 gets critical thermal shutdowns
+Date: Sun, 1 Apr 2007 16:30:31 +0000
+Message-ID: <20070401163031.GA5762@ucw.cz>
+References: <460E0158.7090705@goop.org> <200703311131.54704.ak@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:2841 "EHLO spitz.ucw.cz"
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:1034 "EHLO spitz.ucw.cz"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S933458AbXDAPkC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 1 Apr 2007 11:40:02 -0400
+	id S933605AbXDAQas (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 1 Apr 2007 12:30:48 -0400
 Content-Disposition: inline
-In-Reply-To: <20070302220052.f93f3976.khali@linux-fr.org>
+In-Reply-To: <200703311131.54704.ak@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: Andi Kleen <ak@suse.de>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>, "Brown, Len" <len.brown@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
 Hi!
 
-> > Actually for the acpi stuff... we might wrap ACPI interpretter with a
-> > semaphore that needs to be taken before starting any AML code. Then
-> > just make sure sensors take same semaphore?
+> > When I run 2.6.21-rc5 + Andi's x86 patches + paravirt_ops patches, I've
+> > been getting my machine shut down with critical thermal shutdown messages:
 > 
-> I like the idea, it should work as long as we are guaranteed that all
-> the hwmon device accesses happen in the AML code? I'm not familiar with
-> ACPI, so you tell me.
+> Hmm, don't think there's anything either in x86 that would touch this code.
+> But can you double check with plain rc5? 
 > 
-> In practice it's rather the SMBus drivers which will need to take the
-> lock, as this is what the AML code will access (for SMBus-based
-> hardware monitoring drivers.) For non-SMBus based hardware monitoring
-> drivers, indeed the driver itself should take it. We will have to pay
-> attention to deadlocks on systems with multiple hardware monitoring
-> chips and/or SMBus channels.
+> > Mar 30 23:19:03 localhost kernel: ACPI: Critical trip point
+> > Mar 30 23:19:03 localhost kernel: Critical temperature reached (128 C), shutting down.
+> > Mar 30 23:19:03 localhost kernel: Critical temperature reached (128 C), shutting down.
+> > Mar 30 23:19:03 localhost shutdown[19417]: shutting down for system halt
+> > 
+> > and the machine does feel pretty hot.
 > 
-> Can you please provide a patch implementing your proposal in acpi? Then
-> I could implement the i2c/hwmon part on some selected drivers and start
-> testing real world scenarii.
+> Pavel has been complaining about higher power consumption on his laptop versus
+> .20 too.
 
-I'm sorry, but I do not have time for a patch.... and I'm not really
-acpi expert, anyway. Ask Len?
+Yep, sometimes it takes 30W instead of 12W... Anyway, this seems to
+be measurement error. Notice how acpi claims 128C. I do not think cpu
+can work at 128C and hardware should kill us before cpu is that hot.
+
+Are you running lm_sensors?
+
 -- 
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
