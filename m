@@ -1,38 +1,45 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH v2] Add suspend/resume for HPET
-Date: Sat, 31 Mar 2007 21:13:51 -0700
-Message-ID: <200703312113.52789.david-b@pacbell.net>
-References: <Pine.LNX.4.64.0703160925270.26106@woody.linux-foundation.org>
-	<200703311232.57505.david-b@pacbell.net>
-	<b6a2187b0703312013o6c305e00v829894f215812550@mail.gmail.com>
+From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: Re: 2.6.21-rc5: Thinkpad X60 gets critical thermal shutdowns
+Date: Sat, 31 Mar 2007 23:28:46 -0700
+Message-ID: <460F511E.2090102@goop.org>
+References: <460E0158.7090705@goop.org> <8f8ff01d0703310033y74421cfcl747ece1be003471@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <b6a2187b0703312013o6c305e00v829894f215812550@mail.gmail.com>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Jeff Chua <jeff.chua.linux@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, Sergei Shtylyov <sshtylyov@ru.mvista.com>, jgarzik@pobox.com, gregkh@suse.de, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Bunk <bunk@stusta.de>, linux-ide@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, Thomas Gleixner <tglx@linutronix.de>, "Eric W. Biederman" <ebiederm@xmission.com>, Jens Axboe <jens.axboe@oracle.com>, "Michael S. Tsirkin" <mst@mellanox.co.il>, Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>, linux-pm@lists.linux-foundation.org, Maxim Levitsky <maximlevitsky@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from gw.goop.org ([64.81.55.164]:49617 "EHLO mail.goop.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932716AbXDAG2r (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 1 Apr 2007 02:28:47 -0400
+In-Reply-To: <8f8ff01d0703310033y74421cfcl747ece1be003471@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On Saturday 31 March 2007 8:13 pm, Jeff Chua wrote:
-> On 4/1/07, David Brownell <david-b@pacbell.net> wrote:
-> > for those will all get grouped together ... suspended "very late" and
-> > resumed "very early", regardless of when they get registered.  Pretty
-> > much the driver model parts of what Linus was suggesting; clockevent
-> > bits would still be needed.
-> =
+Alexey Starikovskiy wrote:
+> Could you try to unload or disable hardware sensors and check if it
+> helps?
+> CONFIG_I2C=m
+> CONFIG_I2C_ALGOBIT=m
+> CONFIG_I2C_ALGOPCA=m
+> CONFIG_I2C_I810=m
+> CONFIG_I2C_PIIX4=m
+> CONFIG_SENSORS_DS1337=m
+> CONFIG_SENSORS_DS1374=m
+> CONFIG_SENSORS_EEPROM=m
+> CONFIG_SENSORS_PCF8574=m
+> CONFIG_SENSORS_PCA9539=m
+> CONFIG_SENSORS_PCF8591=m
+> CONFIG_SENSORS_MAX6875=m
 
-> I tested your patch with CONFIG_NO_HZ=3Dy, but it still hangs while
-> suspending to disk (before the percent saving).
+That seems to have helped.  If I watch
+/proc/acpi/thermal_zone/THM?/temperature, it seems stable even under
+load.   I didn't try watching the thermal_zones when these options were
+enabled, but I presume the temperature was not controlled for it to hit
+128 degC.
 
-Of course.  No clockevent updates...
+What's going on here?  Does reading an i2c sensor from the kernel
+prevent something else from doing it?
+
+    J
