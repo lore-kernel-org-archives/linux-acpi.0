@@ -1,123 +1,66 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: [PATCH] acpi cpuidle driver should handle max_cstate
-Date: Mon, 02 Apr 2007 16:37:44 +0800
-Message-ID: <1175503064.22290.5.camel@sli10-conroe.sh.intel.com>
+From: Rene Rebe <rene@exactcode.de>
+Subject: Re: 2.6.21-rc5: Thinkpad X60 gets critical thermal shutdowns
+Date: Mon, 2 Apr 2007 10:35:40 +0200
+Message-ID: <200704021035.40672.rene@exactcode.de>
+References: <460E0158.7090705@goop.org> <8393D4C0-57C5-4CD2-8CA4-E4241E74FB4E@mac.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:42500 "EHLO mga01.intel.com"
+Received: from mx01.qsc.de ([213.148.129.14]:42886 "EHLO mx01.qsc.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753412AbXDBIkm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 2 Apr 2007 04:40:42 -0400
+	id S933281AbXDBJEQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Apr 2007 05:04:16 -0400
+In-Reply-To: <8393D4C0-57C5-4CD2-8CA4-E4241E74FB4E@mac.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux acpi <linux-acpi@vger.kernel.org>
-Cc: "Brown, Len" <len.brown@intel.com>, Adam Belay <abelay@novell.com>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+To: Kyle Moffett <mrmacman_g4@mac.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>, Andi Kleen <ak@suse.de>, "Brown, Len" <len.brown@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-After switching to cpuidle framework, acpi driver ingorned max_cstate,
-which will break ipw driver. Below patch fixed the issue. It's a little
-complicated, but this really should be handled in the driver instead of
-cpuidle core. If you have better fix, please speak.
+On Sunday 01 April 2007 20:57:57 Kyle Moffett wrote:
+> On Mar 31, 2007, at 02:36:08, Jeremy Fitzhardinge wrote:
+> > When I run 2.6.21-rc5 + Andi's x86 patches + paravirt_ops patches, =
+=20
+> > I've been getting my machine shut down with critical thermal =20
+> > shutdown messages:
+> >
+> > Mar 30 23:19:03 localhost kernel: ACPI: Critical trip point
+> > Mar 30 23:19:03 localhost kernel: Critical temperature reached (128=
+ =20
+> > C), shutting down.
+> > Mar 30 23:19:03 localhost kernel: Critical temperature reached (128=
+ =20
+> > C), shutting down.
+> > Mar 30 23:19:03 localhost shutdown[19417]: shutting down for system=
+ =20
+> > halt
+> >
+> > and the machine does feel pretty hot.  Interestingly, when the =20
+> > machine reboots, the fan spins up to a noticeably higher speed, so =
+=20
+> > it seems that maybe something is getting fan speed control wrong.
+>=20
+> Well, 128C is more than hot enough to boil water and well above the =20
+> thermal tolerances of most CPUs, so I would imagine that were your =20
+> CPU actually that hot it wouldn't be capable of printing the =20
+> "Critical temperature reached" messages, let alone properly rebooting=
+=2E
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+IIRC a MSI Megabook S270 (I formerly owned) BIOS notifies this
+"Critical temperature reached (128C)" when the battery run empty
+when the OS did no action due to battery low indications. I guess
+the BIOS people thought this is a good last resort to let the OS
+really shutdown before the box just turns off.
 
-Index: linux/drivers/acpi/osl.c
-===================================================================
---- linux.orig/drivers/acpi/osl.c	2007-04-02 16:21:10.000000000 +0800
-+++ linux/drivers/acpi/osl.c	2007-04-02 16:21:57.000000000 +0800
-@@ -997,6 +997,16 @@ unsigned int max_cstate = ACPI_PROCESSOR
- 
- EXPORT_SYMBOL(max_cstate);
- 
-+void (*acpi_do_set_cstate_limit)(void);
-+EXPORT_SYMBOL(acpi_do_set_cstate_limit);
-+
-+void acpi_set_cstate_limit(unsigned int new_limit)
-+{
-+	max_cstate = new_limit;
-+	if (acpi_do_set_cstate_limit)
-+		acpi_do_set_cstate_limit();
-+}
-+
- /*
-  * Acquire a spinlock.
-  *
-Index: linux/drivers/acpi/processor_core.c
-===================================================================
---- linux.orig/drivers/acpi/processor_core.c	2007-04-02 16:21:10.000000000 +0800
-+++ linux/drivers/acpi/processor_core.c	2007-04-02 16:21:37.000000000 +0800
-@@ -1026,11 +1026,13 @@ static int __init acpi_processor_init(vo
- 	acpi_processor_ppc_init();
- 
- 	cpuidle_register_driver(&acpi_idle_driver);
-+	acpi_do_set_cstate_limit = acpi_max_cstate_changed;
- 	return 0;
- }
- 
- static void __exit acpi_processor_exit(void)
- {
-+	acpi_do_set_cstate_limit = NULL;
- 	cpuidle_unregister_driver(&acpi_idle_driver);
- 
- 	acpi_processor_ppc_exit();
-Index: linux/drivers/acpi/processor_idle.c
-===================================================================
---- linux.orig/drivers/acpi/processor_idle.c	2007-04-02 16:21:10.000000000 +0800
-+++ linux/drivers/acpi/processor_idle.c	2007-04-02 16:22:40.000000000 +0800
-@@ -75,7 +75,27 @@ ACPI_MODULE_NAME("processor_idle");
- #define C2_OVERHEAD			1	/* 1us */
- #define C3_OVERHEAD			1	/* 1us */
- 
--module_param(max_cstate, uint, 0644);
-+void acpi_max_cstate_changed(void)
-+{
-+	/* Driver will reset devices' max cstate limit */
-+	cpuidle_unregister_driver(&acpi_idle_driver);
-+	cpuidle_register_driver(&acpi_idle_driver);
-+}
-+
-+static int change_max_cstate(const char *val, struct kernel_param *kp)
-+{
-+	int max;
-+
-+	max = simple_strtol(val, NULL, 0);
-+	if (!max)
-+		return -EINVAL;
-+	max_cstate = max;
-+	if (acpi_do_set_cstate_limit)
-+		acpi_do_set_cstate_limit();
-+	return 0;
-+}
-+
-+module_param_call(max_cstate, change_max_cstate, param_get_uint, &max_cstate, 0644);
- 
- static unsigned int nocst __read_mostly;
- module_param(nocst, uint, 0000);
-@@ -1054,7 +1074,7 @@ static int acpi_idle_init(struct cpuidle
- 		return -EINVAL;
- 	}
- 
--	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
-+	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER && i <= max_cstate; i++) {
- 		cx = &pr->power.states[i];
- 		state = &dev->states[count];
- 
-Index: linux/include/linux/acpi.h
-===================================================================
---- linux.orig/include/linux/acpi.h	2007-04-02 16:21:10.000000000 +0800
-+++ linux/include/linux/acpi.h	2007-04-02 16:21:37.000000000 +0800
-@@ -205,11 +205,8 @@ static inline unsigned int acpi_get_csta
- {
- 	return max_cstate;
- }
--static inline void acpi_set_cstate_limit(unsigned int new_limit)
--{
--	max_cstate = new_limit;
--	return;
--}
-+extern void (*acpi_do_set_cstate_limit)(void);
-+extern void acpi_set_cstate_limit(unsigned int new_limit);
- #else
- static inline unsigned int acpi_get_cstate_limit(void) { return 0; }
- static inline void acpi_set_cstate_limit(unsigned int new_limit) { return; }
+Yours,
+
+--=20
+  Ren=E9 Rebe - ExactCODE GmbH - Europe, Germany, Berlin
+  http://exactcode.de | http://t2-project.org | http://rene.rebe.name
+  +49 (0)30 / 255 897 45
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
