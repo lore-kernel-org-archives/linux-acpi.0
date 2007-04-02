@@ -1,81 +1,40 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: Power Mangement Interfaces
-Date: Mon, 2 Apr 2007 11:24:21 -0700
-Message-ID: <200704021124.21926.david-b@pacbell.net>
-References: <20070330235759.GC4252@cosmic.amd.com>
-	<200703312001.55231.david-b@pacbell.net>
-	<1175509422.5321.37.camel@localhost.localdomain>
+From: Dave Jones <davej@redhat.com>
+Subject: Re: Could the k8temp driver be interfering with ACPI?
+Date: Mon, 2 Apr 2007 15:22:09 -0400
+Message-ID: <20070402192209.GB15810@redhat.com>
+References: <45D7461A.2040808@redhat.com> <20070218183805.5a4fd813.khali@linux-fr.org> <20070228213803.GA4877@ucw.cz> <20070301152655.f232db64.khali@linux-fr.org> <20070302114023.GD2163@elf.ucw.cz> <20070302114747.GB1212@srcf.ucam.org> <20070302135810.GF2156@elf.ucw.cz> <20070302220052.f93f3976.khali@linux-fr.org> <20070401153951.GE5095@ucw.cz> <20070402174859.80b74b05.khali@linux-fr.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devel-bounces@laptop.org>
-In-Reply-To: <1175509422.5321.37.camel@localhost.localdomain>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([66.187.233.31]:33432 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965673AbXDBTYu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 2 Apr 2007 15:24:50 -0400
 Content-Disposition: inline
-List-Unsubscribe: <http://mailman.laptop.org/mailman/listinfo/devel>,
-	<mailto:devel-request@laptop.org?subject=unsubscribe>
-List-Archive: <http://mailman.laptop.org/pipermail/devel>
-List-Post: <mailto:devel@laptop.org>
-List-Help: <mailto:devel-request@laptop.org?subject=help>
-List-Subscribe: <http://mailman.laptop.org/mailman/listinfo/devel>,
-	<mailto:devel-request@laptop.org?subject=subscribe>
-Sender: devel-bounces@laptop.org
-Errors-To: devel-bounces@laptop.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-pm@lists.linux-foundation.org, devel@laptop.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>
+In-Reply-To: <20070402174859.80b74b05.khali@linux-fr.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Pavel Machek <pavel@ucw.cz>, Len Brown <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-On Monday 02 April 2007 3:23 am, Zhang Rui wrote:
+On Mon, Apr 02, 2007 at 05:48:59PM +0200, Jean Delvare wrote:
+ > +	u8  val;
+ > +#ifdef CONFIG_ACPI
+ > +	acpi_ut_acquire_mutex(ACPI_MTX_INTERPRETER);
+ > +#endif
+ >  	outb(reg, data->addr + ADDR_REG_OFFSET);
+ > -	return inb(data->addr + DATA_REG_OFFSET);
+ > +	val = inb(data->addr + DATA_REG_OFFSET);
+ > +#ifdef CONFIG_ACPI
+ > +	acpi_ut_release_mutex(ACPI_MTX_INTERPRETER);
+ > +#endif
+ > +	return val;
+ > ... deletia, more of the same.
 
-> > > The only other issue then, is how we could define and manage wakeup events
-> > > for events that aren't associated with specific devices, like power button
-> > > and lid events.  We'll need some way to control those somewhere in sysfs -
-> > > if not in /sys/power/wakeup like I had proposed, then somewhere under the
-> > > platform or system hierarchy .
-> > 
-> > I see /sys/devices/acpi_system:00/button_power:00 on this system; and
-> > /sys/devices/acpi_system:00/device:00/PNP0C0D:00 has path \_SB_.LID_ ...
-> > such device nodes already exist, even though they're not really hooked
-> > up to anything much.  Notably, their "wakeup" state is not initialized.
-> 
-> That's right.
-> This is meaningless now and we don't intend to use it in the future.
+it'd probably end up a lot cleaner to #define them to empty macros
+in the !ACPI case in acpi/acpi.h and just #include it unconditionally.
 
-Why not?  Exactly how do you anticipate ACPI exposing its wakeup
-capabilities, if it's not going to use the existing platform-neutral
-interface?
+	Dave
 
-
-> If a device is also described in ACPI namespace, it should know its ACPI
-> device node in sysfs.
-
-What about PCI or PNP devices that have "shadow" listings in ACPI?
-
-
-> Then when we want to enable/disable a deivce's wakeup ability, just goto
-> the physical device node in sysfs. What we need is a hook offered by
-> ACPI device driver.
-
-I don't follow this at all.  Most of the relevant devices have a PCI
-device driver, not an ACPI device driver.  Surely you aren't proposing
-that PCI drivers should incorporate lots of ACPI-specific code (which
-won't be useful on non-ACPI platforms) before they start to work right?
-
-For a PCI device driver, pci_enable_wake() is all the hook that it should
-ever need.  If ACPI magic is needed, it should be called from inside that
-routine.
-
-
-> > And while it seems that the three USB controllers on this system show up
-> > as /sys/devices/acpi_system:00/device:00/PNP0A03:00/device:{01,02,03} I
-> > have no idea which one is /sys/devices/pci0000:00/0000:00:02.2 versus
-> > 0000:00:02.1 or 0000:00:02.0 ... I know that USB0 is device:01 and so
-> > on (by reading "path"), but associating one with a PCI device seems to
-> > involve pure guesswork.
->
-> Sorry to make you confused.
-> That's what we need to improve in the wish list. :)
-
-Do you mean the "ACPI 4.0" wishlist?  Or the "Linux ACPI" wishlist?
-
-- Dave
+-- 
+http://www.codemonkey.org.uk
