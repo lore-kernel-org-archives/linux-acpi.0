@@ -1,40 +1,44 @@
-From: Dave Jones <davej@redhat.com>
-Subject: Re: Could the k8temp driver be interfering with ACPI?
-Date: Mon, 2 Apr 2007 15:22:09 -0400
-Message-ID: <20070402192209.GB15810@redhat.com>
-References: <45D7461A.2040808@redhat.com> <20070218183805.5a4fd813.khali@linux-fr.org> <20070228213803.GA4877@ucw.cz> <20070301152655.f232db64.khali@linux-fr.org> <20070302114023.GD2163@elf.ucw.cz> <20070302114747.GB1212@srcf.ucam.org> <20070302135810.GF2156@elf.ucw.cz> <20070302220052.f93f3976.khali@linux-fr.org> <20070401153951.GE5095@ucw.cz> <20070402174859.80b74b05.khali@linux-fr.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: Power Mangement Interfaces
+Date: Mon, 2 Apr 2007 20:40:39 +0100
+Message-ID: <20070402194039.GA8044@srcf.ucam.org>
+References: <20070330235759.GC4252@cosmic.amd.com>
+	<200703312001.55231.david-b@pacbell.net>
+	<1175509422.5321.37.camel@localhost.localdomain>
+	<200704021124.21926.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([66.187.233.31]:33432 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965673AbXDBTYu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 2 Apr 2007 15:24:50 -0400
+Return-path: <devel-bounces@laptop.org>
 Content-Disposition: inline
-In-Reply-To: <20070402174859.80b74b05.khali@linux-fr.org>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <200704021124.21926.david-b@pacbell.net>
+List-Unsubscribe: <http://mailman.laptop.org/mailman/listinfo/devel>,
+	<mailto:devel-request@laptop.org?subject=unsubscribe>
+List-Archive: <http://mailman.laptop.org/pipermail/devel>
+List-Post: <mailto:devel@laptop.org>
+List-Help: <mailto:devel-request@laptop.org?subject=help>
+List-Subscribe: <http://mailman.laptop.org/mailman/listinfo/devel>,
+	<mailto:devel-request@laptop.org?subject=subscribe>
+Sender: devel-bounces@laptop.org
+Errors-To: devel-bounces@laptop.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Zhang Rui <rui.zhang@intel.com>, linux-pm@lists.linux-foundation.org, devel@laptop.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Pavel Machek <pavel@ucw.cz>, Len Brown <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-On Mon, Apr 02, 2007 at 05:48:59PM +0200, Jean Delvare wrote:
- > +	u8  val;
- > +#ifdef CONFIG_ACPI
- > +	acpi_ut_acquire_mutex(ACPI_MTX_INTERPRETER);
- > +#endif
- >  	outb(reg, data->addr + ADDR_REG_OFFSET);
- > -	return inb(data->addr + DATA_REG_OFFSET);
- > +	val = inb(data->addr + DATA_REG_OFFSET);
- > +#ifdef CONFIG_ACPI
- > +	acpi_ut_release_mutex(ACPI_MTX_INTERPRETER);
- > +#endif
- > +	return val;
- > ... deletia, more of the same.
+On Mon, Apr 02, 2007 at 11:24:21AM -0700, David Brownell wrote:
 
-it'd probably end up a lot cleaner to #define them to empty macros
-in the !ACPI case in acpi/acpi.h and just #include it unconditionally.
+> I don't follow this at all.  Most of the relevant devices have a PCI
+> device driver, not an ACPI device driver.  Surely you aren't proposing
+> that PCI drivers should incorporate lots of ACPI-specific code (which
+> won't be useful on non-ACPI platforms) before they start to work right?
 
-	Dave
+PCI devices have a handle to their ACPI object in platform_data, so it's 
+easy enough to have generic code that interacts with both objects.
+
+> For a PCI device driver, pci_enable_wake() is all the hook that it should
+> ever need.  If ACPI magic is needed, it should be called from inside that
+> routine.
+
+Yeah, I don't see that being a problem.
 
 -- 
-http://www.codemonkey.org.uk
+Matthew Garrett | mjg59@srcf.ucam.org
