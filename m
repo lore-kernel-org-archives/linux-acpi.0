@@ -1,52 +1,48 @@
-From: Jeremy Fitzhardinge <jeremy@goop.org>
-Subject: Re: 2.6.21-rc5: Thinkpad X60 gets critical thermal shutdowns
-Date: Sun, 01 Apr 2007 21:53:38 -0700
-Message-ID: <46108C52.7030301@goop.org>
-References: <460E0158.7090705@goop.org> <8f8ff01d0703310033y74421cfcl747ece1be003471@mail.gmail.com> <460F511E.2090102@goop.org> <46103DF2.30001@goop.org> <20070402023846.GC28561@khazad-dum.debian.net>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: [linux-pm] Power Mangement Interfaces
+Date: Mon, 2 Apr 2007 09:38:55 +0200
+Message-ID: <20070402073855.GB13104@elf.ucw.cz>
+References: <20070330235759.GC4252@cosmic.amd.com> <1175300283.23438.38.camel@johannes.berg> <20070331151613.GA8091@cosmic.amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gw.goop.org ([64.81.55.164]:43379 "EHLO mail.goop.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753203AbXDBExv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 2 Apr 2007 00:53:51 -0400
-In-Reply-To: <20070402023846.GC28561@khazad-dum.debian.net>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:36270 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751260AbXDBHjG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 2 Apr 2007 03:39:06 -0400
+Content-Disposition: inline
+In-Reply-To: <20070331151613.GA8091@cosmic.amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>
+To: Jordan Crouse <jordan.crouse@amd.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>, linux-acpi@vger.kernel.org, linux-pm@lists.osdl.org, devel@laptop.org
 
-Henrique de Moraes Holschuh wrote:
-> On Sun, 01 Apr 2007, Jeremy Fitzhardinge wrote:
->   
->> control problems.  Perhaps the ambient temperature was lower when I
->> reported success.
->>     
->
-> You can use ibm-acpi to properly track your thinkpad thermal sensors, load
-> it with the "experimental=1" parameter, and look at what gets exported at
-> /proc/acpi/ibm/thermal.
->   
+Hi!
 
-Interesting.  The first number corresponds with the ACPI THM0
-temperature, but I can't see anything corresponding to THM1.  Is there
-something that documents what all the temperatures are measuring in an
-X60?  Thinkwiki doesn't seem to have any info.
+> > I think the sources file isn't really useful, a
+> >   grep -l 1 /sys/power/wakeup/*
+> > should do.
+> 
+> I was just trying to be friendly to folks who may be used to the ACPI
+> method. 
 
-ezr:pts/1; cat /proc/acpi/ibm/thermal
-temperatures:   72 55 -128 65 40 -128 35 -128 51 53 -128 -128 -128 -128
--128 -128
+Kernel is not place to be friendly.
 
-> You can also use /proc/acpi/ibm/fan to check the fan's state.  And use the
-> "level 7" /proc/acpi/ibm/fan command to set the emergency cooling level, and
-> "level disengaged" command to set the really badass fan cooling level (might
-> damage your hardware, we don't know if it is safe and IBM/Lenovo isn't
-> talking).
->   
+#echo PWRB > /proc/acpi/wakeup
+#
+#Which changes the PWRB line to this:
+#
+#PWRB       1            *disabled
+#
+#I like this interface - its clean and pretty intuitive. Two problems -
+#first, it is ACPI specific, so we can't share it, and secondly, it
+#doesn't fit in to the sysfs model (which is to return only one value
+#per file). An alternative would be something like this: 
 
-It's set to auto.  Presumably that means its tied into the temperature
-sensors and will be able to keep the temp under control...
+Was this april's fools joke? /proc/acpi/wakeup is a nightmare, not a
+clean interface.
+								Pavel
 
-    J
-
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
