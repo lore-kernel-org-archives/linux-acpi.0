@@ -1,38 +1,94 @@
-From: RusH <citizenr@gmail.com>
-Subject: Re: 2.6.21-rc5: Thinkpad X60 gets critical thermal shutdowns
-Date: Tue, 3 Apr 2007 23:25:06 +0200
-Message-ID: <3df49b7b0704031425y57418c21ge4cba7116f5b4745@mail.gmail.com>
-References: <460E0158.7090705@goop.org>
-	 <8f8ff01d0703310033y74421cfcl747ece1be003471@mail.gmail.com>
-	 <460F511E.2090102@goop.org> <46103DF2.30001@goop.org>
-	 <20070402023846.GC28561@khazad-dum.debian.net>
-	 <46108C52.7030301@goop.org>
-	 <20070403123431.GA24717@khazad-dum.debian.net>
-	 <46129E7D.60103@goop.org>
+From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
+Subject: Re: system freeze with acpi
+Date: Wed, 04 Apr 2007 00:19:15 +0100
+Message-ID: <1175642355.3457.14.camel@monteirov>
+References: <20070331121551.2b9c5dce@localhost>
+Reply-To: sergio@sergiomb.no-ip.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-aOowfUCW2I1My2o7MDgF"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wr-out-0506.google.com ([64.233.184.224]:52000 "EHLO
-	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1945951AbXDCVZI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Apr 2007 17:25:08 -0400
-Received: by wr-out-0506.google.com with SMTP id 76so2050072wra
-        for <linux-acpi@vger.kernel.org>; Tue, 03 Apr 2007 14:25:07 -0700 (PDT)
-In-Reply-To: <46129E7D.60103@goop.org>
-Content-Disposition: inline
+Received: from smtp3.netcabo.pt ([212.113.174.30]:8614 "EHLO
+	exch01smtp10.hdi.tvcabo" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1945915AbXDCX2d (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Apr 2007 19:28:33 -0400
+In-Reply-To: <20070331121551.2b9c5dce@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Alexey Starikovskiy <aystarik@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>
+To: Dominique Michel <dominique.michel@citycable.ch>
+Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net
 
-On 4/3/07, Jeremy Fitzhardinge <jeremy@goop.org> wrote:
 
-> Attached.  Is there some tool for decoding the DSDT?
+--=-aOowfUCW2I1My2o7MDgF
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 
-iasl
-http://www.intel.com/technology/iapc/acpi/downloads.htm
-http://www.intel.com/technology/iapc/acpi/license2.htm
+On Sat, 2007-03-31 at 12:15 +0200, Dominique Michel wrote:
 
---
-Who logs in to gdm? Not I, said the duck.
+>=20
+> My problem is at I really want to use CONFIG_X86_PM_TIMER in the ACPI con=
+fig.
+>=20
+> Cheers,
+> Dominique
+
+
+you should put all this information on bugzilla=20
+http://bugzilla.kernel.org/enter_bug.cgi?product=3DPlatform%20Specific%2FHa=
+rdware
+
+
+and _attach_ all the information on this email,
+what is yours CPU ?
+
+
+Regards=20
+--=20
+S=E9rgio M.B.
+
+--=-aOowfUCW2I1My2o7MDgF
+Content-Type: application/x-pkcs7-signature; name=smime.p7s
+Content-Disposition: attachment; filename=smime.p7s
+Content-Transfer-Encoding: base64
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGVjCCAw8w
+ggJ4oAMCAQICEGne8YrzxxgYAeyxZxmiO+owDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UEBhMCWkEx
+JTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQ
+ZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA2MTAxMTEwMjAzOVoXDTA3MTAxMTEwMjAz
+OVowSzEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjEoMCYGCSqGSIb3DQEJARYZc2Vy
+Z2lvQHNlcmdpb21iLm5vLWlwLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAN9R
+ix9koyWSNQDmAHxcSeWXdFO1osqg2yeNgBBl+fz8FLYyROsDGpZMcnOd/Df6tWwMZpMSYDNIksiZ
+5VkCWaWIzIBccHX3wIkqrkcq3v1OcPGW9adXClXSbSZ0Hb4V4+bQ9LMAOjaMlH/dKLVkln6qmbko
+NOxgPotdVxCGcUy1Pqa4dT1zFo5+nIv1NAUNqKpq63X/+3nILNG4JGAvLIL8wcYs0cETGS6vISgd
+YFN/JlIqekWUGGUmc+SJcyyTWjXGN+2G0SDS8K3a9NFCo7a1Y0FyHQxikQRtB9sCcpQCoXiqaWsT
+npSrNJ0Od4w1sHZz09uEdhWKqXEmJsKKwi8CAwEAAaNZMFcwDgYDVR0PAQH/BAQDAgSQMBEGCWCG
+SAGG+EIBAQQEAwIFoDAkBgNVHREEHTAbgRlzZXJnaW9Ac2VyZ2lvbWIubm8taXAub3JnMAwGA1Ud
+EwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEAwVE8/kY82qYG7I2+gW0NhSyn+DR0uAWYbSxB2NgP
+16QOrzXt2HazlXkl2Bc+NKQEqEGKOu5fPPg2GoJ3zDO1Y8GUNGtJH0sX+63RGoUNOAv+bAK1Nxhb
+illDUUCjW3OqA/hRyBwjU9kHJPYhl1EbAUGpAhfENHjkS/S7b1REBLMwggM/MIICqKADAgECAgEN
+MA0GCSqGSIb3DQEBBQUAMIHRMQswCQYDVQQGEwJaQTEVMBMGA1UECBMMV2VzdGVybiBDYXBlMRIw
+EAYDVQQHEwlDYXBlIFRvd24xGjAYBgNVBAoTEVRoYXd0ZSBDb25zdWx0aW5nMSgwJgYDVQQLEx9D
+ZXJ0aWZpY2F0aW9uIFNlcnZpY2VzIERpdmlzaW9uMSQwIgYDVQQDExtUaGF3dGUgUGVyc29uYWwg
+RnJlZW1haWwgQ0ExKzApBgkqhkiG9w0BCQEWHHBlcnNvbmFsLWZyZWVtYWlsQHRoYXd0ZS5jb20w
+HhcNMDMwNzE3MDAwMDAwWhcNMTMwNzE2MjM1OTU5WjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMc
+VGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZy
+ZWVtYWlsIElzc3VpbmcgQ0EwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMSmPFVzVftOucqZ
+Wh5owHUEcJ3f6f+jHuy9zfVb8hp2vX8MOmHyv1HOAdTlUAow1wJjWiyJFXCO3cnwK4Vaqj9xVsuv
+PAsH5/EfkTYkKhPPK9Xzgnc9A74r/rsYPge/QIACZNenprufZdHFKlSFD0gEf6e20TxhBEAeZBly
+YLf7AgMBAAGjgZQwgZEwEgYDVR0TAQH/BAgwBgEB/wIBADBDBgNVHR8EPDA6MDigNqA0hjJodHRw
+Oi8vY3JsLnRoYXd0ZS5jb20vVGhhd3RlUGVyc29uYWxGcmVlbWFpbENBLmNybDALBgNVHQ8EBAMC
+AQYwKQYDVR0RBCIwIKQeMBwxGjAYBgNVBAMTEVByaXZhdGVMYWJlbDItMTM4MA0GCSqGSIb3DQEB
+BQUAA4GBAEiM0VCD6gsuzA2jZqxnD3+vrL7CF6FDlpSdf0whuPg2H6otnzYvwPQcUCCTcDz9reFh
+YsPZOhl+hLGZGwDFGguCdJ4lUJRix9sncVcljd2pnDmOjCBPZV+V2vf3h9bGCE6u9uo05RAaWzVN
+d+NWIXiC3CEZNd4ksdMdRv9dX2VPMYIB/DCCAfgCAQEwdjBiMQswCQYDVQQGEwJaQTElMCMGA1UE
+ChMcVGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFs
+IEZyZWVtYWlsIElzc3VpbmcgQ0ECEGne8YrzxxgYAeyxZxmiO+owCQYFKw4DAhoFAKBdMBgGCSqG
+SIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA3MDQwMzIzMTkxNVowIwYJKoZI
+hvcNAQkEMRYEFIyj0oOdhxYRDdMghR0CuIsqahoJMA0GCSqGSIb3DQEBAQUABIIBAAAuT7zgBg/z
+aKiwc1K2VwLG56ftALboIf5/QwObfAKhN3zBvGR261Wecp2GVBJ5TJgQ0pfHgnc1QyqiYZs+g2bN
+oL1czqTIy4upnt4q1BrxkviyhirB8sWkZtMxB3UBhjbfN/hmkRNa0HPyVdShzLG9XEQ2mh9ph0Pq
+NmlJNBkLEkOWmgASC6naKUbjKYnDCyYeTTgkBoi9HphG+udanodYJJXyzlumExl6aqViyAuil76d
+16Z6AjDfAnnrdr41StvcttQ+UFQGEfL7U9bQoh5euz4w527rJ/5IVPNHwPNhACqZPBv6OUOsyEJj
+r7vDta25kvYgota3UBH86qR5+SUAAAAAAAA=
+
+
+--=-aOowfUCW2I1My2o7MDgF--
