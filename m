@@ -1,82 +1,58 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: Could the k8temp driver be interfering with ACPI?
-Date: Tue, 3 Apr 2007 09:21:02 +0200
-Message-ID: <20070403092102.1b3d3a23.khali@linux-fr.org>
-References: <20070402174859.80b74b05.khali@linux-fr.org>
-	<B28E9812BAF6E2498B7EC5C427F293A40232DFA9@orsmsx415.amr.corp.intel.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: 2.6.21-rc5: Thinkpad X60 gets critical thermal shutdowns
+Date: Tue, 3 Apr 2007 09:34:31 -0300
+Message-ID: <20070403123431.GA24717@khazad-dum.debian.net>
+References: <460E0158.7090705@goop.org> <8f8ff01d0703310033y74421cfcl747ece1be003471@mail.gmail.com> <460F511E.2090102@goop.org> <46103DF2.30001@goop.org> <20070402023846.GC28561@khazad-dum.debian.net> <46108C52.7030301@goop.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-102-tuesday.nerim.net ([62.4.16.102]:3841 "EHLO
-	kraid.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753458AbXDCHXK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Apr 2007 03:23:10 -0400
-In-Reply-To: <B28E9812BAF6E2498B7EC5C427F293A40232DFA9@orsmsx415.amr.corp.intel.com>
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:56220 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S965573AbXDCMeh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Apr 2007 08:34:37 -0400
+Content-Disposition: inline
+In-Reply-To: <46108C52.7030301@goop.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: Pavel Machek <pavel@ucw.cz>, "Brown, Len" <len.brown@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Alexey Starikovskiy <aystarik@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>
 
-Hi Bob,
-
-On Mon, 2 Apr 2007 13:55:49 -0700, Moore, Robert wrote:
-> The ACPI specification allows concurrent execution of control methods
-> although methods cannot be preempted. The ACPICA interpreter mutex is
-> used to implement this model. 
+On Sun, 01 Apr 2007, Jeremy Fitzhardinge wrote:
+> > You can use ibm-acpi to properly track your thinkpad thermal sensors, load
+> > it with the "experimental=1" parameter, and look at what gets exported at
+> > /proc/acpi/ibm/thermal.
 > 
-> From section 5.5.2, "Control Method Execution": Interpretation of a
-> Control Method is not preemptive, but it can block. When a control
-> method does block, the operating software can initiate or continue the
-> execution of a different control method. A control method can only
-> assume that access to global objects is exclusive for any period the
-> control method does not block.
+> Interesting.  The first number corresponds with the ACPI THM0
+> temperature, but I can't see anything corresponding to THM1.  Is there
+> something that documents what all the temperatures are measuring in an
+> X60?  Thinkwiki doesn't seem to have any info.
 
-Do I/O regions count as "global objects"?
+Well, send me the DSDT and dmidecode output (mask off the UUID and serial
+numbers), and I will be able to say more.
 
-> Therefore, the interpreter lock is acquired and a control method is
-> allowed to execute to completion unless it blocks on one of the events
-> described below. If the method blocks, the interpreter is unlocked and
-> other control methods may execute.
+> ezr:pts/1; cat /proc/acpi/ibm/thermal
+> temperatures:   72 55 -128 65 40 -128 35 -128 51 53 -128 -128 -128 -128
+> -128 -128
+
+This is a highly unusual output for thinkpads, but might be the expected one
+for your X60, the X-series has always been a bit weird.  I'd higly suggest
+asking for X60 thermal data from other X60 owners on the linux-thinkpad ML.
+Make sure to state your X60 model number, and to request that everyone does
+the same.
+
+> > You can also use /proc/acpi/ibm/fan to check the fan's state.  And use the
 > 
-> I'm not sure what you mean by "in the middle of an SMBus transaction", I
-> don't know how long such a transaction is valid. I might guess that a
-> single transaction can only span a single operation region access, but
-> I'm not sure of this.
+> It's set to auto.  Presumably that means its tied into the temperature
+> sensors and will be able to keep the temp under control...
 
-Basically an SMBus transaction looks like this:
-1* Prepare the transaction.
-2* Start the transaction.
-3* Wait for the transaction to complete, typically a few ms.
-4* Read the result of the transaction.
-
-Steps 1 and 2 require writing to the SMBus I/O region. Step 4 requires
-reading from it, and so does step 3 if the wait loop is poll-based. The
-transaction is only safe if we have an exclusive access to the I/O
-region during all the 4 steps. My fear is that step 3 could be
-implemented by ACPI using either a Sleep() or Acquire() or Wait()
-opcode. If it is, we're doomed. OTOH, if it does, it is probably not
-even safe for itself, unless there's an additional,
-implementation-specific mutex to protect SMBus transactions. I yet have
-to get my hands on the DSDT of ACPI implementations which actually
-access the SMBus to see exactly how they do it.
-
-> A user-installed operation region handler is an operation region handler
-> that is installed by a device driver. This feature would probably only
-> be used for custom (OEM-defined) operation region address spaces. (I
-> have not seen one yet.) For the standard address spaces (memory, I/O,
-> etc.), usually only the default handlers are used.
-
-Could regular Linux device drivers install such handlers for a specific
-I/O region? I'm asking because Rudolf Marek's proposal [1] to solve the
-concurrent access problem involved extending struct resource with
-callbacks to driver-specific routines to handle external access to an
-I/O region. This sounds somewhat similar to these "user-installed
-operation region handler" defined by ACPI, doesn't it? If ACPI already
-has an infrastructure to handle this problem, we probably want to use
-it rather than implementing our own.
-
-[1] http://marc.info/?l=linux-kernel&m=117302946017204&w=2
+Yes, if all sensors are working fine.  That said, people override the EC fan
+control all the time, because it seems not to be doing what people want.
+Thinkwiki has more on this, and you want to set your fan to level 7 when
+doing CPU-intensive work for now, since you are experiencing some sort of
+trouble anyway...
 
 -- 
-Jean Delvare
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
