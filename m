@@ -1,58 +1,51 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: 2.6.21-rc5: Thinkpad X60 gets critical thermal shutdowns
-Date: Tue, 3 Apr 2007 09:34:31 -0300
-Message-ID: <20070403123431.GA24717@khazad-dum.debian.net>
-References: <460E0158.7090705@goop.org> <8f8ff01d0703310033y74421cfcl747ece1be003471@mail.gmail.com> <460F511E.2090102@goop.org> <46103DF2.30001@goop.org> <20070402023846.GC28561@khazad-dum.debian.net> <46108C52.7030301@goop.org>
+From: Ray Lee <ray-lk@madrabbit.org>
+Subject: [PATCH] [TRIVIAL]  remove duplicate include
+Date: Tue, 03 Apr 2007 09:58:14 -0700
+Message-ID: <461287A6.9080409@madrabbit.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:56220 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965573AbXDCMeh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Apr 2007 08:34:37 -0400
-Content-Disposition: inline
-In-Reply-To: <46108C52.7030301@goop.org>
+Received: from tapsys.com ([72.36.178.242]:47105 "EHLO tapsys.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965418AbXDCQ6i (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 3 Apr 2007 12:58:38 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>
+To: LKML <linux-kernel@vger.kernel.org>, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-On Sun, 01 Apr 2007, Jeremy Fitzhardinge wrote:
-> > You can use ibm-acpi to properly track your thinkpad thermal sensors, load
-> > it with the "experimental=1" parameter, and look at what gets exported at
-> > /proc/acpi/ibm/thermal.
-> 
-> Interesting.  The first number corresponds with the ACPI THM0
-> temperature, but I can't see anything corresponding to THM1.  Is there
-> something that documents what all the temperatures are measuring in an
-> X60?  Thinkwiki doesn't seem to have any info.
+Thomas's patch for including <asm/apic.h> for x86 UP builds came into
+Linus's tree from two different directions, both of which were merged.
+This reverts the latter, yanking out the duplicate #include and comment.
 
-Well, send me the DSDT and dmidecode output (mask off the UUID and serial
-numbers), and I will be able to say more.
+Signed-off-by: Ray Lee <ray-lk@madrabbit.org>
+Cc: Len Brown <lenb@kernel.org>
 
-> ezr:pts/1; cat /proc/acpi/ibm/thermal
-> temperatures:   72 55 -128 65 40 -128 35 -128 51 53 -128 -128 -128 -128
-> -128 -128
+---
 
-This is a highly unusual output for thinkpads, but might be the expected one
-for your X60, the X-series has always been a bit weird.  I'd higly suggest
-asking for X60 thermal data from other X60 owners on the linux-thinkpad ML.
-Make sure to state your X60 model number, and to request that everyone does
-the same.
+Len, would you like to take this?
 
-> > You can also use /proc/acpi/ibm/fan to check the fan's state.  And use the
-> 
-> It's set to auto.  Presumably that means its tied into the temperature
-> sensors and will be able to keep the temp under control...
+ drivers/acpi/processor_idle.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-Yes, if all sensors are working fine.  That said, people override the EC fan
-control all the time, because it seems not to be doing what people want.
-Thinkwiki has more on this, and you want to set your fan to level 7 when
-doing CPU-intensive work for now, since you are experiencing some sort of
-trouble anyway...
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 562124e..0abf740 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -51,14 +51,6 @@
+ #include <asm/apic.h>
+ #endif
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+-/*
+- * Include the apic definitions for x86 to have the APIC timer related defines
+- * available also for UP (on SMP it gets magically included via linux/smp.h).
+- */
+-#ifdef CONFIG_X86
+-#include <asm/apic.h>
+-#endif
+-
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+
+
+
