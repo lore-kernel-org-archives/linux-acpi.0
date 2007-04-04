@@ -1,81 +1,61 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.21-rc5-git] make /proc/acpi/wakeup more useful
-Date: Tue, 3 Apr 2007 17:41:42 -0700
-Message-ID: <200704031741.42273.david-b@pacbell.net>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: 2.6.21-rc5: Thinkpad X60 gets critical thermal shutdowns
+Date: Wed, 4 Apr 2007 00:46:39 -0300
+Message-ID: <20070404034639.GB4511@khazad-dum.debian.net>
+References: <460E0158.7090705@goop.org> <8f8ff01d0703310033y74421cfcl747ece1be003471@mail.gmail.com> <460F511E.2090102@goop.org> <46103DF2.30001@goop.org> <20070402023846.GC28561@khazad-dum.debian.net> <46108C52.7030301@goop.org> <20070403123431.GA24717@khazad-dum.debian.net> <46129E7D.60103@goop.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S966220AbXDDBPR@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:56735 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1030384AbXDDDqn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Apr 2007 23:46:43 -0400
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linux Kernel list <linux-kernel@vger.kernel.org>
-Cc: Linux ACPI list <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+In-Reply-To: <46129E7D.60103@goop.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Alexey Starikovskiy <aystarik@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@elte.hu>
 
-This updates /proc/acpi/wakeup to be more informative, primarily by showing
-the sysfs node associated with each wakeup-enabled device.  Example:
+On Tue, 03 Apr 2007, Jeremy Fitzhardinge wrote:
+> Attached.  Is there some tool for decoding the DSDT?
 
-	Device	S-state	  Status   Sysfs node
-	PCI0	  S4	 disabled  no-bus:pci0000:00
-	PS2M	  S4	 disabled  pnp:00:05
-	PS2K	  S4	 disabled  pnp:00:06
-	UAR1	  S4	 disabled  pnp:00:08
-	USB1	  S3	 disabled  pci:0000:00:03.0
-	USB2	  S3	 disabled  pci:0000:00:03.1
-	USB3	  S3	 disabled  
-	USB4	  S3	 disabled  pci:0000:00:03.3
-	S139	  S4	 disabled  
-	LAN	  S4	 disabled  pci:0000:00:04.0
-	MDM	  S4	 disabled  
-	AUD	  S4	 disabled  pci:0000:00:02.7
-	SLPB	  S4	*enabled   
+iasl.  The documentation is the ACPI Specification.
 
-Eventually this file should be removed, but until then it's almost the only
-way we have to tell how the relevant ACPI tables are broken (and cope).  In
-that example, two devices don't actually exist (USB3, S139), one can't issue
-wakeup events (PCI0), and two seem harmlessly (?) confused (MDM and AUD are
-the same PCI device, but it's the _modem_ that does wake-on-ring).  
+> >> ezr:pts/1; cat /proc/acpi/ibm/thermal
+> >> temperatures:   72 55 -128 65 40 -128 35 -128 51 53 -128 -128 -128 -128
+> >> -128 -128
+> >
+> > This is a highly unusual output for thinkpads, but might be the expected one
+> > for your X60, the X-series has always been a bit weird.  I'd higly suggest
+> 
+> How would you expect it to look?  I did some non-conclusive tests under
 
-In particular, we need to be sure driver model nodes are properly hooked
-up before we can get rid of this ACPI-only interface for wakeup events.
+I would not expect a -128 on the third position.  The other two -128 are
+expected, as they are the thermal sensors for the secondary battery.  There
+is also one less sensor than I'd expect.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+> Windows, and I'm beginning to get the feeling that there is actually a
+> cooling problem with the hardware.
 
---- g26.orig/drivers/acpi/sleep/proc.c	2007-04-03 16:27:22.000000000 -0700
-+++ g26/drivers/acpi/sleep/proc.c	2007-04-03 16:43:26.000000000 -0700
-@@ -360,21 +360,31 @@ acpi_system_wakeup_device_seq_show(struc
- {
- 	struct list_head *node, *next;
- 
--	seq_printf(seq, "Device	Sleep state	Status\n");
-+	seq_printf(seq, "Device\tS-state\t  Status   Sysfs node\n");
- 
- 	spin_lock(&acpi_device_lock);
- 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
- 		struct acpi_device *dev =
- 		    container_of(node, struct acpi_device, wakeup_list);
-+		struct device *ldev;
- 
- 		if (!dev->wakeup.flags.valid)
- 			continue;
- 		spin_unlock(&acpi_device_lock);
--		seq_printf(seq, "%4s	%4d		%s%8s\n",
-+
-+		ldev = acpi_get_physical_device(dev->handle);
-+		seq_printf(seq, "%s\t  S%d\t%c%-8s  ",
- 			   dev->pnp.bus_id,
- 			   (u32) dev->wakeup.sleep_state,
--			   dev->wakeup.flags.run_wake ? "*" : "",
-+			   dev->wakeup.flags.run_wake ? '*' : ' ',
- 			   dev->wakeup.state.enabled ? "enabled" : "disabled");
-+		if (ldev)
-+			seq_printf(seq, "%s:%s",
-+				ldev->bus ? ldev->bus->name : "no-bus",
-+				ldev->bus_id);
-+		seq_printf(seq, "\n");
-+		put_device(ldev);
-+
- 		spin_lock(&acpi_device_lock);
- 	}
- 	spin_unlock(&acpi_device_lock);
+This must be at least the third complain I come across of a X60 which boils
+the CPU.  The standard fix from Lenovo is a planar card swap (motherboard
+swap).  Since this *does* mean they replace the thermal compounds, and a
+full reassembly of the heat pipes, it might be that just fixing the thermal
+coupling between cooling assembly and the CPU might do it.
+
+> It doesn't seem to help.  When its failing to control cooling (temp
+> creeps towards 100C while under load), its going at ~3700RPM, which is
+> about what level 7 does.
+
+Well, at least the EC is not misbehaving, then.
+
+> What's a typical max RPM?  I'm getting the impression that there's
+
+More than 4000rpm, in disengaged mode.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
