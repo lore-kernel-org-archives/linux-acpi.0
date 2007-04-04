@@ -1,91 +1,64 @@
-From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
-Subject: Re: 2.6.21-rc5-mm4 -- laptop lid button only triggers suspend on
-	HP dv1240us every other time.
-Date: Wed, 04 Apr 2007 20:13:38 +0100
-Message-ID: <1175714018.15359.3.camel@localhost.localdomain>
-References: <a44ae5cd0704032233sa893351le119152668557e72@mail.gmail.com>
-	 <20070403224420.7dcfe334.akpm@linux-foundation.org>
+From: Johan Brannlund <johan_brn@yahoo.com>
+Subject: Minor acpi problems on nx6125
+Date: Wed, 4 Apr 2007 20:31:34 +0000 (UTC)
+Message-ID: <ev11v6$ets$1@sea.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-pAPc+/ttDmvYBfLrB1Ix"
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S2993037AbXDDTNM@vger.kernel.org>
-In-Reply-To: <20070403224420.7dcfe334.akpm@linux-foundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Miles Lane <miles.lane@gmail.com>, LKML <linux-kernel@vger.kernel.org>, linux-pm@lists.osdl.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from main.gmane.org ([80.91.229.2]:40592 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750799AbXDDUfH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 4 Apr 2007 16:35:07 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1HZCC6-00061x-6f
+	for linux-acpi@vger.kernel.org; Wed, 04 Apr 2007 22:35:02 +0200
+Received: from jbrannlund.mathstat.dal.ca ([129.173.119.27])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Wed, 04 Apr 2007 22:35:02 +0200
+Received: from johan_brn by jbrannlund.mathstat.dal.ca with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Wed, 04 Apr 2007 22:35:02 +0200
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
+Hi. I have an HP nx6125, whose acpi implementation seems to be somewhat
+notorious. With the most recent kernels, I now have most things working,
+there are just a few minor things left:
 
---=-pAPc+/ttDmvYBfLrB1Ix
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+1. With the laptop running on AC, the fan is always on at a low speed.
+Unplugging the power makes the fan turn off (and re-plugging does not
+make it come back on). There is a "fan always on when on ac" option in the
+bios, but that's turned off. Does anyone have any idea why it does this?
 
-On Tue, 2007-04-03 at 22:44 -0700, Andrew Morton wrote:
-> On Wed, 4 Apr 2007 00:33:36 -0500 "Miles Lane" <miles.lane@gmail.com> wro=
-te:
->=20
-> > This is an old bug.  It has been happening forever, but I'd love to
-> > know how I can help get this tracked down and fixed.
->=20
-> Yes, I've been hitting something like that in the past 3-4 weeks.  We
-> started to diagnose it but I got distracted.
->=20
-> For a start, please review
-> http://www.mail-archive.com/linux-acpi@vger.kernel.org/msg05094.html, the=
-n
-> see if you are able to take it further than I was.
+2. I just looked into what sort of wakeup events this machine can process,
+but the list is somewhat hard to decipher:
 
-I had a similar problem with my laptop that loose ACPI events, after
-suspend to disk, on kernels (I don't remember well) works on 2.6.16 or
-15, stops work on 2.6.17 and 2.6.18 and works again on 2.6.19 and 20=20
+$ cat /proc/acpi/wakeup
+Device  Sleep state     Status
+C047       4            disabled
+C0AB       4            disabled
+C1D2       5            disabled
+C0DD       3            disabled
+C0E3       3            disabled
+C0E8       3            disabled
+C1D4       3            disabled
+C1D5       3            disabled
 
+How do I find out which devices these are? The hex codes do not appear in
+any other file in /proc or /sys. 
 
---=20
-S=C3=A9rgio M. B.
+3. When on battery, the max cpu frequency drops down from 1.8 ghz to 1.6
+ghz. This is easily fixed by echoing back the higher value into the
+appropriate file in /sys, but it's still somewhat annoying. I assume this
+is the bios playing tricks on me?
 
---=-pAPc+/ttDmvYBfLrB1Ix
-Content-Type: application/x-pkcs7-signature; name=smime.p7s
-Content-Disposition: attachment; filename=smime.p7s
-Content-Transfer-Encoding: base64
+By the way, I'm running the latest bios available from HP, F.11, released
+August 29, 2006.
 
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGVjCCAw8w
-ggJ4oAMCAQICEGne8YrzxxgYAeyxZxmiO+owDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UEBhMCWkEx
-JTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQ
-ZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA2MTAxMTEwMjAzOVoXDTA3MTAxMTEwMjAz
-OVowSzEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjEoMCYGCSqGSIb3DQEJARYZc2Vy
-Z2lvQHNlcmdpb21iLm5vLWlwLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAN9R
-ix9koyWSNQDmAHxcSeWXdFO1osqg2yeNgBBl+fz8FLYyROsDGpZMcnOd/Df6tWwMZpMSYDNIksiZ
-5VkCWaWIzIBccHX3wIkqrkcq3v1OcPGW9adXClXSbSZ0Hb4V4+bQ9LMAOjaMlH/dKLVkln6qmbko
-NOxgPotdVxCGcUy1Pqa4dT1zFo5+nIv1NAUNqKpq63X/+3nILNG4JGAvLIL8wcYs0cETGS6vISgd
-YFN/JlIqekWUGGUmc+SJcyyTWjXGN+2G0SDS8K3a9NFCo7a1Y0FyHQxikQRtB9sCcpQCoXiqaWsT
-npSrNJ0Od4w1sHZz09uEdhWKqXEmJsKKwi8CAwEAAaNZMFcwDgYDVR0PAQH/BAQDAgSQMBEGCWCG
-SAGG+EIBAQQEAwIFoDAkBgNVHREEHTAbgRlzZXJnaW9Ac2VyZ2lvbWIubm8taXAub3JnMAwGA1Ud
-EwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEAwVE8/kY82qYG7I2+gW0NhSyn+DR0uAWYbSxB2NgP
-16QOrzXt2HazlXkl2Bc+NKQEqEGKOu5fPPg2GoJ3zDO1Y8GUNGtJH0sX+63RGoUNOAv+bAK1Nxhb
-illDUUCjW3OqA/hRyBwjU9kHJPYhl1EbAUGpAhfENHjkS/S7b1REBLMwggM/MIICqKADAgECAgEN
-MA0GCSqGSIb3DQEBBQUAMIHRMQswCQYDVQQGEwJaQTEVMBMGA1UECBMMV2VzdGVybiBDYXBlMRIw
-EAYDVQQHEwlDYXBlIFRvd24xGjAYBgNVBAoTEVRoYXd0ZSBDb25zdWx0aW5nMSgwJgYDVQQLEx9D
-ZXJ0aWZpY2F0aW9uIFNlcnZpY2VzIERpdmlzaW9uMSQwIgYDVQQDExtUaGF3dGUgUGVyc29uYWwg
-RnJlZW1haWwgQ0ExKzApBgkqhkiG9w0BCQEWHHBlcnNvbmFsLWZyZWVtYWlsQHRoYXd0ZS5jb20w
-HhcNMDMwNzE3MDAwMDAwWhcNMTMwNzE2MjM1OTU5WjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMc
-VGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZy
-ZWVtYWlsIElzc3VpbmcgQ0EwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMSmPFVzVftOucqZ
-Wh5owHUEcJ3f6f+jHuy9zfVb8hp2vX8MOmHyv1HOAdTlUAow1wJjWiyJFXCO3cnwK4Vaqj9xVsuv
-PAsH5/EfkTYkKhPPK9Xzgnc9A74r/rsYPge/QIACZNenprufZdHFKlSFD0gEf6e20TxhBEAeZBly
-YLf7AgMBAAGjgZQwgZEwEgYDVR0TAQH/BAgwBgEB/wIBADBDBgNVHR8EPDA6MDigNqA0hjJodHRw
-Oi8vY3JsLnRoYXd0ZS5jb20vVGhhd3RlUGVyc29uYWxGcmVlbWFpbENBLmNybDALBgNVHQ8EBAMC
-AQYwKQYDVR0RBCIwIKQeMBwxGjAYBgNVBAMTEVByaXZhdGVMYWJlbDItMTM4MA0GCSqGSIb3DQEB
-BQUAA4GBAEiM0VCD6gsuzA2jZqxnD3+vrL7CF6FDlpSdf0whuPg2H6otnzYvwPQcUCCTcDz9reFh
-YsPZOhl+hLGZGwDFGguCdJ4lUJRix9sncVcljd2pnDmOjCBPZV+V2vf3h9bGCE6u9uo05RAaWzVN
-d+NWIXiC3CEZNd4ksdMdRv9dX2VPMYIB/DCCAfgCAQEwdjBiMQswCQYDVQQGEwJaQTElMCMGA1UE
-ChMcVGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFs
-IEZyZWVtYWlsIElzc3VpbmcgQ0ECEGne8YrzxxgYAeyxZxmiO+owCQYFKw4DAhoFAKBdMBgGCSqG
-SIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA3MDQwNDE5MTMzNFowIwYJKoZI
-hvcNAQkEMRYEFLC4OtL/LseHxeCNWBXGjNUqem5SMA0GCSqGSIb3DQEBAQUABIIBAM4nDrpxDKku
-mA0Uw2KTvWaa3upcztPHAPBsGxNQcqkthQyqGGzIiBotdVB0m8p6Giz4OAS5KFtEwbefNHVqxK6r
-N2R36tBVEkMWYgbS9VSE/hHt6+cmDGNnCNWBY/mw4Gz9q3H6Olh/uAGhusUIZp3JYDWbpU8irtS3
-gWAhRjd1RkJFGLQnAXqAZ03hzIRZM7pfF/H+CE3zFw7+xCRtkOgZIkh9+7AXmvSq84OZh78yweCs
-BexvE+4yHJjKcP4hNdwE+SnPVUAK8Op5a7NL5hyKBnSMUkvehiz9u9U3ks0nVRypk5ed3Kmcpu6C
-p56KSRbsH/eWIlP626ab7SRSyPgAAAAAAAA=
+Thanks in advance for any help!
 
+- Johan
 
---=-pAPc+/ttDmvYBfLrB1Ix--
