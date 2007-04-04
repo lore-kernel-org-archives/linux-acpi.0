@@ -1,94 +1,81 @@
-From: Sergio Monteiro Basto <sergio@sergiomb.no-ip.org>
-Subject: Re: system freeze with acpi
-Date: Wed, 04 Apr 2007 00:19:15 +0100
-Message-ID: <1175642355.3457.14.camel@monteirov>
-References: <20070331121551.2b9c5dce@localhost>
-Reply-To: sergio@sergiomb.no-ip.org
+From: David Brownell <david-b@pacbell.net>
+Subject: [patch 2.6.21-rc5-git] make /proc/acpi/wakeup more useful
+Date: Tue, 3 Apr 2007 17:41:42 -0700
+Message-ID: <200704031741.42273.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-aOowfUCW2I1My2o7MDgF"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp3.netcabo.pt ([212.113.174.30]:8614 "EHLO
-	exch01smtp10.hdi.tvcabo" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1945915AbXDCX2d (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Apr 2007 19:28:33 -0400
-In-Reply-To: <20070331121551.2b9c5dce@localhost>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S966220AbXDDBPR@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linux Kernel list <linux-kernel@vger.kernel.org>
+Cc: Linux ACPI list <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Dominique Michel <dominique.michel@citycable.ch>
-Cc: linux-acpi@vger.kernel.org, acpi4asus-user@lists.sourceforge.net
 
+This updates /proc/acpi/wakeup to be more informative, primarily by showing
+the sysfs node associated with each wakeup-enabled device.  Example:
 
---=-aOowfUCW2I1My2o7MDgF
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+	Device	S-state	  Status   Sysfs node
+	PCI0	  S4	 disabled  no-bus:pci0000:00
+	PS2M	  S4	 disabled  pnp:00:05
+	PS2K	  S4	 disabled  pnp:00:06
+	UAR1	  S4	 disabled  pnp:00:08
+	USB1	  S3	 disabled  pci:0000:00:03.0
+	USB2	  S3	 disabled  pci:0000:00:03.1
+	USB3	  S3	 disabled  
+	USB4	  S3	 disabled  pci:0000:00:03.3
+	S139	  S4	 disabled  
+	LAN	  S4	 disabled  pci:0000:00:04.0
+	MDM	  S4	 disabled  
+	AUD	  S4	 disabled  pci:0000:00:02.7
+	SLPB	  S4	*enabled   
 
-On Sat, 2007-03-31 at 12:15 +0200, Dominique Michel wrote:
+Eventually this file should be removed, but until then it's almost the only
+way we have to tell how the relevant ACPI tables are broken (and cope).  In
+that example, two devices don't actually exist (USB3, S139), one can't issue
+wakeup events (PCI0), and two seem harmlessly (?) confused (MDM and AUD are
+the same PCI device, but it's the _modem_ that does wake-on-ring).  
 
->=20
-> My problem is at I really want to use CONFIG_X86_PM_TIMER in the ACPI con=
-fig.
->=20
-> Cheers,
-> Dominique
+In particular, we need to be sure driver model nodes are properly hooked
+up before we can get rid of this ACPI-only interface for wakeup events.
 
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 
-you should put all this information on bugzilla=20
-http://bugzilla.kernel.org/enter_bug.cgi?product=3DPlatform%20Specific%2FHa=
-rdware
-
-
-and _attach_ all the information on this email,
-what is yours CPU ?
-
-
-Regards=20
---=20
-S=E9rgio M.B.
-
---=-aOowfUCW2I1My2o7MDgF
-Content-Type: application/x-pkcs7-signature; name=smime.p7s
-Content-Disposition: attachment; filename=smime.p7s
-Content-Transfer-Encoding: base64
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGVjCCAw8w
-ggJ4oAMCAQICEGne8YrzxxgYAeyxZxmiO+owDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UEBhMCWkEx
-JTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQ
-ZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA2MTAxMTEwMjAzOVoXDTA3MTAxMTEwMjAz
-OVowSzEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjEoMCYGCSqGSIb3DQEJARYZc2Vy
-Z2lvQHNlcmdpb21iLm5vLWlwLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAN9R
-ix9koyWSNQDmAHxcSeWXdFO1osqg2yeNgBBl+fz8FLYyROsDGpZMcnOd/Df6tWwMZpMSYDNIksiZ
-5VkCWaWIzIBccHX3wIkqrkcq3v1OcPGW9adXClXSbSZ0Hb4V4+bQ9LMAOjaMlH/dKLVkln6qmbko
-NOxgPotdVxCGcUy1Pqa4dT1zFo5+nIv1NAUNqKpq63X/+3nILNG4JGAvLIL8wcYs0cETGS6vISgd
-YFN/JlIqekWUGGUmc+SJcyyTWjXGN+2G0SDS8K3a9NFCo7a1Y0FyHQxikQRtB9sCcpQCoXiqaWsT
-npSrNJ0Od4w1sHZz09uEdhWKqXEmJsKKwi8CAwEAAaNZMFcwDgYDVR0PAQH/BAQDAgSQMBEGCWCG
-SAGG+EIBAQQEAwIFoDAkBgNVHREEHTAbgRlzZXJnaW9Ac2VyZ2lvbWIubm8taXAub3JnMAwGA1Ud
-EwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEAwVE8/kY82qYG7I2+gW0NhSyn+DR0uAWYbSxB2NgP
-16QOrzXt2HazlXkl2Bc+NKQEqEGKOu5fPPg2GoJ3zDO1Y8GUNGtJH0sX+63RGoUNOAv+bAK1Nxhb
-illDUUCjW3OqA/hRyBwjU9kHJPYhl1EbAUGpAhfENHjkS/S7b1REBLMwggM/MIICqKADAgECAgEN
-MA0GCSqGSIb3DQEBBQUAMIHRMQswCQYDVQQGEwJaQTEVMBMGA1UECBMMV2VzdGVybiBDYXBlMRIw
-EAYDVQQHEwlDYXBlIFRvd24xGjAYBgNVBAoTEVRoYXd0ZSBDb25zdWx0aW5nMSgwJgYDVQQLEx9D
-ZXJ0aWZpY2F0aW9uIFNlcnZpY2VzIERpdmlzaW9uMSQwIgYDVQQDExtUaGF3dGUgUGVyc29uYWwg
-RnJlZW1haWwgQ0ExKzApBgkqhkiG9w0BCQEWHHBlcnNvbmFsLWZyZWVtYWlsQHRoYXd0ZS5jb20w
-HhcNMDMwNzE3MDAwMDAwWhcNMTMwNzE2MjM1OTU5WjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMc
-VGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZy
-ZWVtYWlsIElzc3VpbmcgQ0EwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMSmPFVzVftOucqZ
-Wh5owHUEcJ3f6f+jHuy9zfVb8hp2vX8MOmHyv1HOAdTlUAow1wJjWiyJFXCO3cnwK4Vaqj9xVsuv
-PAsH5/EfkTYkKhPPK9Xzgnc9A74r/rsYPge/QIACZNenprufZdHFKlSFD0gEf6e20TxhBEAeZBly
-YLf7AgMBAAGjgZQwgZEwEgYDVR0TAQH/BAgwBgEB/wIBADBDBgNVHR8EPDA6MDigNqA0hjJodHRw
-Oi8vY3JsLnRoYXd0ZS5jb20vVGhhd3RlUGVyc29uYWxGcmVlbWFpbENBLmNybDALBgNVHQ8EBAMC
-AQYwKQYDVR0RBCIwIKQeMBwxGjAYBgNVBAMTEVByaXZhdGVMYWJlbDItMTM4MA0GCSqGSIb3DQEB
-BQUAA4GBAEiM0VCD6gsuzA2jZqxnD3+vrL7CF6FDlpSdf0whuPg2H6otnzYvwPQcUCCTcDz9reFh
-YsPZOhl+hLGZGwDFGguCdJ4lUJRix9sncVcljd2pnDmOjCBPZV+V2vf3h9bGCE6u9uo05RAaWzVN
-d+NWIXiC3CEZNd4ksdMdRv9dX2VPMYIB/DCCAfgCAQEwdjBiMQswCQYDVQQGEwJaQTElMCMGA1UE
-ChMcVGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFs
-IEZyZWVtYWlsIElzc3VpbmcgQ0ECEGne8YrzxxgYAeyxZxmiO+owCQYFKw4DAhoFAKBdMBgGCSqG
-SIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA3MDQwMzIzMTkxNVowIwYJKoZI
-hvcNAQkEMRYEFIyj0oOdhxYRDdMghR0CuIsqahoJMA0GCSqGSIb3DQEBAQUABIIBAAAuT7zgBg/z
-aKiwc1K2VwLG56ftALboIf5/QwObfAKhN3zBvGR261Wecp2GVBJ5TJgQ0pfHgnc1QyqiYZs+g2bN
-oL1czqTIy4upnt4q1BrxkviyhirB8sWkZtMxB3UBhjbfN/hmkRNa0HPyVdShzLG9XEQ2mh9ph0Pq
-NmlJNBkLEkOWmgASC6naKUbjKYnDCyYeTTgkBoi9HphG+udanodYJJXyzlumExl6aqViyAuil76d
-16Z6AjDfAnnrdr41StvcttQ+UFQGEfL7U9bQoh5euz4w527rJ/5IVPNHwPNhACqZPBv6OUOsyEJj
-r7vDta25kvYgota3UBH86qR5+SUAAAAAAAA=
-
-
---=-aOowfUCW2I1My2o7MDgF--
+--- g26.orig/drivers/acpi/sleep/proc.c	2007-04-03 16:27:22.000000000 -0700
++++ g26/drivers/acpi/sleep/proc.c	2007-04-03 16:43:26.000000000 -0700
+@@ -360,21 +360,31 @@ acpi_system_wakeup_device_seq_show(struc
+ {
+ 	struct list_head *node, *next;
+ 
+-	seq_printf(seq, "Device	Sleep state	Status\n");
++	seq_printf(seq, "Device\tS-state\t  Status   Sysfs node\n");
+ 
+ 	spin_lock(&acpi_device_lock);
+ 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+ 		struct acpi_device *dev =
+ 		    container_of(node, struct acpi_device, wakeup_list);
++		struct device *ldev;
+ 
+ 		if (!dev->wakeup.flags.valid)
+ 			continue;
+ 		spin_unlock(&acpi_device_lock);
+-		seq_printf(seq, "%4s	%4d		%s%8s\n",
++
++		ldev = acpi_get_physical_device(dev->handle);
++		seq_printf(seq, "%s\t  S%d\t%c%-8s  ",
+ 			   dev->pnp.bus_id,
+ 			   (u32) dev->wakeup.sleep_state,
+-			   dev->wakeup.flags.run_wake ? "*" : "",
++			   dev->wakeup.flags.run_wake ? '*' : ' ',
+ 			   dev->wakeup.state.enabled ? "enabled" : "disabled");
++		if (ldev)
++			seq_printf(seq, "%s:%s",
++				ldev->bus ? ldev->bus->name : "no-bus",
++				ldev->bus_id);
++		seq_printf(seq, "\n");
++		put_device(ldev);
++
+ 		spin_lock(&acpi_device_lock);
+ 	}
+ 	spin_unlock(&acpi_device_lock);
