@@ -1,64 +1,64 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [patch 2.6.21-rc5-git] make /proc/acpi/wakeup more useful
-Date: Thu, 5 Apr 2007 03:58:43 -0700
-Message-ID: <200704050358.43689.david-b@pacbell.net>
-References: <200704031741.42273.david-b@pacbell.net> <1175759995.23121.18.camel@localhost.localdomain>
+From: Danny Kukawka <dkukawka@suse.de>
+Subject: [PATCH] ACPI: more verbose thermal zone shutdown message
+Date: Thu, 5 Apr 2007 16:15:07 +0200
+Message-ID: <200704051615.07960.dkukawka@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp107.sbc.mail.mud.yahoo.com ([68.142.198.206]:29764 "HELO
-	smtp107.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1946101AbXDEK6q (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Apr 2007 06:58:46 -0400
-In-Reply-To: <1175759995.23121.18.camel@localhost.localdomain>
+Received: from cantor.suse.de ([195.135.220.2]:56793 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1767004AbXDEOQS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 5 Apr 2007 10:16:18 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Linux Kernel list <linux-kernel@vger.kernel.org>, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-On Thursday 05 April 2007 12:59 am, Zhang Rui wrote:
-> On Wed, 2007-04-04 at 08:41 +0800, David Brownell wrote:
-> > In that example, two devices don't actually exist (USB3, S139), one can't
-> > issue wakeup events (PCI0), and two seem harmlessly (?) confused (MDM and
-> > AUD are the same PCI device, but it's the _modem_ that does wake-on-ring). 
-> > 
-> Well, ACPI can't find the sysfs node for all the wakeup-enabled devices.
+Hi,
 
-The only example of that type in the example I provided is SLPB, where the
-sysfs node is ACPI-internal; I'm not sure how one can detect such cases.
+while debug some strange termal shutdowns I wrote this patch to get more 
+information in /var/log/messages about the reason for the shutdown. I 
+think this would be useful in general.
 
+Danny
 
-> In fact, only pci and pnp devices can be found now.
+From: Danny Kukawka <dkukawka@suse.de>
+Subject: ACPI: more verbose thermal zone shutdown message
 
-Well, PNP courtesy of a previous patch from me, but remember that I was
-using that as an example of a ** BOGUS ACPI TABLE ** as summarized above.
-In my observation, such bogus tables are common.  (This particular one
-was, I believe, copied from a system using a higher end version of the
-same southbridge ... but which may well have had its own errors.)
+add more information to acpi thermal zone shutdown message for easier
+debugging
 
+Signed-off-by: Danny Kukawka <dkukawka@suse.de>
+---
+ thermal.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-> ACPI needs the ability to distinguish all the physical devices, i.e. map
-> ACPI device to physical device nodes in sysfs, which I mentioned before.
-
-For wakeup devices, the main issue I've seen is with button devices.
-In my limited set of test sytems, everything else is either PCI, PNP,
-or a bug (listing a non-existent device).
-
-If this patch starts to get deployed, I expect other people will find
-a few other curiousities ... and likely some things to be fixed.
-
-The /sys/devices/acpi_system:00/ tree is kind of new.  I suspect one
-way it could be more informative is to set up cross-links in sysfs
-between the ACPI devices and the "real" device nodes ... e.g. on the
-system I'm using right now .../device:00/PNP0A03:00/device:15/PNP0B00:00
-could have a link pointing to /sys/devices/pnp0/00:06 ... and that PNP
-node in turn could have an "acpi" link pointing back to the ACPI thing.
-
-Such cross-links would let people see those relationships, and observe
-which links are missing or otherwise strange.  Fixing the bugs would
-seem unlikely until those things become visible.
-
-- Dave
+--- linux-2.6.21-rc5/drivers/acpi/thermal.c	2007-04-05 13:37:07.000000000 +0200
++++ linux-2.6.21-rc5/drivers/acpi/thermal.c	2007-04-05 16:02:03.000000000 +0200
+@@ -457,14 +457,20 @@
+ 		return -EINVAL;
+ 
+ 	if (tz->temperature >= tz->trips.critical.temperature) {
+-		printk(KERN_WARNING PREFIX "Critical trip point\n");
++		printk(KERN_WARNING PREFIX 
++		       "Critical trip point (%ld C) reached on thermal zone [%s]\n",
++		       KELVIN_TO_CELSIUS(tz->trips.critical.temperature),
++		       acpi_device_bid(tz->device)); 
+ 		tz->trips.critical.flags.enabled = 1;
+ 	} else if (tz->trips.critical.flags.enabled)
+ 		tz->trips.critical.flags.enabled = 0;
+ 
+ 	printk(KERN_EMERG
+-	       "Critical temperature reached (%ld C), shutting down.\n",
+-	       KELVIN_TO_CELSIUS(tz->temperature));
++	       "Critical temperature reached (%ld C on [%s] with trip point set to: %ld C), shutting down.\n",
++	       KELVIN_TO_CELSIUS(tz->temperature),
++	       acpi_device_bid(tz->device),
++	       KELVIN_TO_CELSIUS(tz->trips.critical.temperature));
++
+ 	acpi_bus_generate_event(tz->device, ACPI_THERMAL_NOTIFY_CRITICAL,
+ 				tz->trips.critical.flags.enabled);
+ 
