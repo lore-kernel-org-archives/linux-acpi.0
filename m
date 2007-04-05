@@ -1,55 +1,64 @@
 From: David Brownell <david-b@pacbell.net>
 Subject: Re: [patch 2.6.21-rc5-git] make /proc/acpi/wakeup more useful
-Date: Thu, 5 Apr 2007 03:35:35 -0700
-Message-ID: <200704050335.36141.david-b@pacbell.net>
-References: <200704031741.42273.david-b@pacbell.net> <20070405092638.GA30208@srcf.ucam.org>
+Date: Thu, 5 Apr 2007 03:58:43 -0700
+Message-ID: <200704050358.43689.david-b@pacbell.net>
+References: <200704031741.42273.david-b@pacbell.net> <1175759995.23121.18.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp106.sbc.mail.mud.yahoo.com ([68.142.198.205]:37180 "HELO
-	smtp106.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S966071AbXDEKfi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Apr 2007 06:35:38 -0400
-In-Reply-To: <20070405092638.GA30208@srcf.ucam.org>
+Received: from smtp107.sbc.mail.mud.yahoo.com ([68.142.198.206]:29764 "HELO
+	smtp107.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1946101AbXDEK6q (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Apr 2007 06:58:46 -0400
+In-Reply-To: <1175759995.23121.18.camel@localhost.localdomain>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Linux Kernel list <linux-kernel@vger.kernel.org>, Linux ACPI list <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Linux Kernel list <linux-kernel@vger.kernel.org>, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 
-On Thursday 05 April 2007 2:26 am, Matthew Garrett wrote:
-> On Tue, Apr 03, 2007 at 05:41:42PM -0700, David Brownell wrote:
-> > This updates /proc/acpi/wakeup to be more informative, primarily by showing
-> > the sysfs node associated with each wakeup-enabled device.  Example:
-> 
-> This looks good. 
+On Thursday 05 April 2007 12:59 am, Zhang Rui wrote:
+> On Wed, 2007-04-04 at 08:41 +0800, David Brownell wrote:
+> > In that example, two devices don't actually exist (USB3, S139), one can't
+> > issue wakeup events (PCI0), and two seem harmlessly (?) confused (MDM and
+> > AUD are the same PCI device, but it's the _modem_ that does wake-on-ring). 
+> > 
+> Well, ACPI can't find the sysfs node for all the wakeup-enabled devices.
 
-Also "good at exposing some puzzling info" ... ;)
-
-
-> > 	S139	  S4	 disabled  
-> 
-> Any idea what this one is? There's the potential for all sorts of weird 
-> platform devices to expose wakeup capabilities.
-
-My guess is Firewire (IEEE 1394); "F193" on a different system (different
-chip vendor) *is* Firewire.  This BIOS seems to have wrongly copied ACPI
-tables from a similar system with a fancier southbridge from the same
-chip vendor.  (ISTR the vendor's reference design used the fancier chip.)
+The only example of that type in the example I provided is SLPB, where the
+sysfs node is ACPI-internal; I'm not sure how one can detect such cases.
 
 
-> > Eventually this file should be removed, but until then it's almost the only
-> > way we have to tell how the relevant ACPI tables are broken (and cope).  In
-> > that example, two devices don't actually exist (USB3, S139), one can't issue
-> > wakeup events (PCI0), and two seem harmlessly (?) confused (MDM and AUD are
-> > the same PCI device, but it's the _modem_ that does wake-on-ring).  
-> 
-> Could the MDM entry be referring to the modem codec on the ac97 or 
-> hda bus? 
+> In fact, only pci and pnp devices can be found now.
 
-That's my assumption; yes.   Another system lists "AUD0" and "MODM", but
-shows neither as a wakeup device.  As I said, "confused".
+Well, PNP courtesy of a previous patch from me, but remember that I was
+using that as an example of a ** BOGUS ACPI TABLE ** as summarized above.
+In my observation, such bogus tables are common.  (This particular one
+was, I believe, copied from a system using a higher end version of the
+same southbridge ... but which may well have had its own errors.)
+
+
+> ACPI needs the ability to distinguish all the physical devices, i.e. map
+> ACPI device to physical device nodes in sysfs, which I mentioned before.
+
+For wakeup devices, the main issue I've seen is with button devices.
+In my limited set of test sytems, everything else is either PCI, PNP,
+or a bug (listing a non-existent device).
+
+If this patch starts to get deployed, I expect other people will find
+a few other curiousities ... and likely some things to be fixed.
+
+The /sys/devices/acpi_system:00/ tree is kind of new.  I suspect one
+way it could be more informative is to set up cross-links in sysfs
+between the ACPI devices and the "real" device nodes ... e.g. on the
+system I'm using right now .../device:00/PNP0A03:00/device:15/PNP0B00:00
+could have a link pointing to /sys/devices/pnp0/00:06 ... and that PNP
+node in turn could have an "acpi" link pointing back to the ACPI thing.
+
+Such cross-links would let people see those relationships, and observe
+which links are missing or otherwise strange.  Fixing the bugs would
+seem unlikely until those things become visible.
 
 - Dave
