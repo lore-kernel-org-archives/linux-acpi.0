@@ -1,62 +1,139 @@
-From: Valdis.Kletnieks@vt.edu
-Subject: Re: 2.6.21-rc5: Thinkpad X60 gets critical thermal shutdowns
-Date: Sun, 08 Apr 2007 15:09:57 -0400
-Message-ID: <28333.1176059397@turing-police.cc.vt.edu>
-References: <460E0158.7090705@goop.org> <8393D4C0-57C5-4CD2-8CA4-E4241E74FB4E@mac.com>
-            <200704021035.40672.rene@exactcode.de>
+From: Dominique Michel <dominique.michel@citycable.ch>
+Subject: Re: daylight saving makes computer wake up late
+Date: Sun, 8 Apr 2007 21:50:37 +0200
+Message-ID: <20070408215037.425b4883@localhost>
+References: <135ab3ff0704080512k2bcf3973m46c8153ff6a6f7df@mail.gmail.com>
+ <20070408141040.GA14308@khazad-dum.debian.net>
+ <135ab3ff0704081118g3bebd25bj7394483a50549dea@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="==_Exmh_1176059397_28267P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751752AbXDHTLK@vger.kernel.org>
-In-Reply-To: Your message of "Mon, 02 Apr 2007 10:35:40 +0200."
-             <200704021035.40672.rene@exactcode.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rene Rebe <rene@exactcode.de>
-Cc: Kyle Moffett <mrmacman_g4@mac.com>, Jeremy Fitzhardinge <jeremy@goop.org>, Andi Kleen <ak@suse.de>, "Brown, Len" <len.brown@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.alinto.citycable.ch ([85.218.0.111]:39454 "HELO
+	citycable.ch" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1751975AbXDHT5M convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 8 Apr 2007 15:57:12 -0400
+In-Reply-To: <135ab3ff0704081118g3bebd25bj7394483a50549dea@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Morten Friesgaard <friesgaard@gmail.com>, linux-acpi@vger.kernel.org
 
---==_Exmh_1176059397_28267P
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Le Sun, 8 Apr 2007 20:18:28 +0200,
+"Morten Friesgaard" <friesgaard@gmail.com> a =C3=A9crit :
 
-On Mon, 02 Apr 2007 10:35:40 +0200, Rene Rebe said:
+> I'm not sure what to do, how do I make these changes?
+>=20
+> when I run the following it gives me somewhat the same values, but it
+> seems the BIOS clock i different (?!)
+> # hwclock ; date
+> Sun Apr  8 20:13:56 2007  -0.069330 seconds
+> Sun Apr  8 20:13:55 CEST 2007
+>=20
+> it worked before daylight savings, is it something I can ignore and
+> still get it to wake up the corret time?
+>=20
+> should I change
+> TIMEZONE=3D"Europe/Copenhagen"
+>=20
+> to
+> TIMEZONE=3D"UTC"
+> ??
+>=20
+> /Morten
+>=20
 
-(Sorry for the late reply..)
+You must have 2 things:
 
-> IIRC a MSI Megabook S270 (I formerly owned) BIOS notifies this
-> =22Critical temperature reached (128C)=22 when the battery run empty
-> when the OS did no action due to battery low indications. I guess
-> the BIOS people thought this is a good last resort to let the OS
-> really shutdown before the box just turns off.
+CLOCK=3D"UTC"
+TIMEZONE=3D"Europe/Copenhagen"
 
-It's not just MSI - I recently managed to put a Dell Latitude D820 into i=
-ts bag
-while still running, where it babbled to itself running on the warm side =
-for
-several hours.  When I finally did get it out, it *was* quite hot to the =
-touch,
-but I was amazed that it managed to run the battery down to somewhere und=
-er 4%
-(which took some 4 or 5 hours) and then throw the thermal check that made=
- it
-shut down - quite the coincidence indeed.
+The first one tell the OS that the rtc use UTC time, the second one at =
+it must
+convert the UTC time into Europe/Copenhagen time to get the current sys=
+tem
+time.
 
-However, =22ran warm but tolerable and then used the thermal to shut down=
- when
-the battery failed=22 matches the symptoms much better....
+On gentoo I also have an option that set the Hardware Clock to the curr=
+ent
+System Time during shutdown:
+
+CLOCK_SYSTOHC=3D"yes"
+
+Some linux distributions use CLOCK=3D"local" because, I guess, they are
+thinking at it is best to do so when you are double booting with window=
+s. It is
+wrong because when the rtc use local time, the system have to change th=
+e time
+in the rtc (read in the hardware) when the daylight is changing, and ea=
+ch OS
+will change the time in the rtc.=20
+
+So, you will get the correct time after booting the first OS, a shift o=
+f one
+hour after booting the second OS, and so on. It is much simpler to use =
+UTC
+with all the OS in the box, and that even with window$ (it is an option=
+ in the
+register base, I don't remember where but a google search will give you=
+ the
+reference.)
+
+With CLOCK=3D"UTC", the time in the rtc (in the hardware) will never ch=
+ange, the
+OS will just interpret it with the value of TIMEZONE.
+
+Ciao,
+Dominique
+
+>=20
+> On 08/04/07, Henrique de Moraes Holschuh <hmh@hmh.eng.br> wrote:
+> > On Sun, 08 Apr 2007, Morten Friesgaard wrote:
+> > > I'm running a mythbox, and ever since we had our yearly change of
+> > > daylight savings (summer time) my computer wakes up late. At firs=
+t it
+> > > was only an hour, then I set the time with hwclock (realised that
+> > > CLOCK_SYSTOHC=3D"no"), now it is 2 hours late. And it is really p=
+recise
+> > > (1-2 hours later), and it is certainly because of daylight saving=
+s.
+> > >
+> > > Any ideas?
+> >
+> > My guess is that you have to set ACPI wake times to *exactly* the t=
+ime zone
+> > you use your RTC in.  Typically UTC, but semi-broken MS-compatible =
+setups
+> > use the local time zone.
+> >
+> > The kernel can know the timezone, but almost nobody ever sets that =
+right,
+> > and it is not summer-time aware anyway (too complex).  It is best t=
+o just
+> > keep everything UTC as far as the kernel goes, *including* the RTC.
+> >
+> > --
+> >   "One disk to rule them all, One disk to find them. One disk to br=
+ing
+> >   them all and in the darkness grind them. In the Land of Redmond
+> >   where the shadows lie." -- The Silicon Valley Tarot
+> >   Henrique Holschuh
+> >
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
---==_Exmh_1176059397_28267P
-Content-Type: application/pgp-signature
+--=20
+Dominique Michel
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
-Comment: Exmh version 2.5 07/13/2001
-
-iD8DBQFGGT4FcC3lWbTT17ARAhUrAJwJSoCK3homnoc3dhaKTZh0mIVC5ACeIvXr
-TMz47x5h/nNyv5nuuUXZFYM=
-=NvHm
------END PGP SIGNATURE-----
-
---==_Exmh_1176059397_28267P--
+--
+N.B.: Tous les emails que je re=C3=A7ois sont filtr=C3=A9s par spamassa=
+ssin avant de me
+parvenir.
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
