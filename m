@@ -1,41 +1,39 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: daylight saving makes computer wake up late
-Date: Sun, 8 Apr 2007 11:10:40 -0300
-Message-ID: <20070408141040.GA14308@khazad-dum.debian.net>
-References: <135ab3ff0704080512k2bcf3973m46c8153ff6a6f7df@mail.gmail.com>
+From: "Jordan Crouse" <jordan.crouse@amd.com>
+Subject: Re: x86_pc and ACPI support /sys/devices/.../wakeup
+Date: Sun, 8 Apr 2007 10:56:25 -0600
+Message-ID: <20070408165625.GE32713@cosmic.amd.com>
+References: <200704051248.40745.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+ charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:38426 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751205AbXDHOKp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 8 Apr 2007 10:10:45 -0400
+Received: from outbound-fra.frontbridge.com ([62.209.45.174]:13876 "EHLO
+	outbound2-fra-R.bigfish.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751467AbXDHQ4f (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 8 Apr 2007 12:56:35 -0400
+In-Reply-To: <200704051248.40745.david-b@pacbell.net>
 Content-Disposition: inline
-In-Reply-To: <135ab3ff0704080512k2bcf3973m46c8153ff6a6f7df@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Morten Friesgaard <friesgaard@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org
 
-On Sun, 08 Apr 2007, Morten Friesgaard wrote:
-> I'm running a mythbox, and ever since we had our yearly change of
-> daylight savings (summer time) my computer wakes up late. At first it
-> was only an hour, then I set the time with hwclock (realised that
-> CLOCK_SYSTOHC="no"), now it is 2 hours late. And it is really precise
-> (1-2 hours later), and it is certainly because of daylight savings.
+On 05/04/07 12:48 -0700, David Brownell wrote:
+> Following are three patches for basic driver model wakeup flag support on
+> PCs.  I think the first two are nearly mergable.  The third previously broke
+> powerpc, so it's likely not yet mergeable ... the issue was arch-specific
+> differences in PCI initialization, someone else will need to solve them.
 > 
-> Any ideas?
+> The patches are:
+> 
+>  - Define a platform_enable_wakeup() PM hook and use it with PCI.  (This
+>    might help OLPC with its non-RTC events...)
 
-My guess is that you have to set ACPI wake times to *exactly* the time zone
-you use your RTC in.  Typically UTC, but semi-broken MS-compatible setups
-use the local time zone.
+Neat!  I'll looking forward to studying it in more detail.  I've also
+forwarded this e-mail and the three patches to devel@laptop.org for their
+perusual.
 
-The kernel can know the timezone, but almost nobody ever sets that right,
-and it is not summer-time aware anyway (too complex).  It is best to just
-keep everything UTC as far as the kernel goes, *including* the RTC.
+Jordan
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+
