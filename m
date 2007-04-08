@@ -1,68 +1,62 @@
-From: "Morten Friesgaard" <friesgaard@gmail.com>
-Subject: Re: daylight saving makes computer wake up late
-Date: Sun, 8 Apr 2007 20:18:28 +0200
-Message-ID: <135ab3ff0704081118g3bebd25bj7394483a50549dea@mail.gmail.com>
-References: <135ab3ff0704080512k2bcf3973m46c8153ff6a6f7df@mail.gmail.com>
-	 <20070408141040.GA14308@khazad-dum.debian.net>
+From: Valdis.Kletnieks@vt.edu
+Subject: Re: 2.6.21-rc5: Thinkpad X60 gets critical thermal shutdowns
+Date: Sun, 08 Apr 2007 15:09:57 -0400
+Message-ID: <28333.1176059397@turing-police.cc.vt.edu>
+References: <460E0158.7090705@goop.org> <8393D4C0-57C5-4CD2-8CA4-E4241E74FB4E@mac.com>
+            <200704021035.40672.rene@exactcode.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: multipart/signed; boundary="==_Exmh_1176059397_28267P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.246]:62349 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751677AbXDHSS3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 8 Apr 2007 14:18:29 -0400
-Received: by an-out-0708.google.com with SMTP id b33so1412754ana
-        for <linux-acpi@vger.kernel.org>; Sun, 08 Apr 2007 11:18:28 -0700 (PDT)
-In-Reply-To: <20070408141040.GA14308@khazad-dum.debian.net>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751752AbXDHTLK@vger.kernel.org>
+In-Reply-To: Your message of "Mon, 02 Apr 2007 10:35:40 +0200."
+             <200704021035.40672.rene@exactcode.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rene Rebe <rene@exactcode.de>
+Cc: Kyle Moffett <mrmacman_g4@mac.com>, Jeremy Fitzhardinge <jeremy@goop.org>, Andi Kleen <ak@suse.de>, "Brown, Len" <len.brown@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: linux-acpi@vger.kernel.org
 
-I'm not sure what to do, how do I make these changes?
+--==_Exmh_1176059397_28267P
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-when I run the following it gives me somewhat the same values, but it
-seems the BIOS clock i different (?!)
-# hwclock ; date
-Sun Apr  8 20:13:56 2007  -0.069330 seconds
-Sun Apr  8 20:13:55 CEST 2007
+On Mon, 02 Apr 2007 10:35:40 +0200, Rene Rebe said:
 
-it worked before daylight savings, is it something I can ignore and
-still get it to wake up the corret time?
+(Sorry for the late reply..)
 
-should I change
-TIMEZONE="Europe/Copenhagen"
+> IIRC a MSI Megabook S270 (I formerly owned) BIOS notifies this
+> =22Critical temperature reached (128C)=22 when the battery run empty
+> when the OS did no action due to battery low indications. I guess
+> the BIOS people thought this is a good last resort to let the OS
+> really shutdown before the box just turns off.
 
-to
-TIMEZONE="UTC"
-??
+It's not just MSI - I recently managed to put a Dell Latitude D820 into i=
+ts bag
+while still running, where it babbled to itself running on the warm side =
+for
+several hours.  When I finally did get it out, it *was* quite hot to the =
+touch,
+but I was amazed that it managed to run the battery down to somewhere und=
+er 4%
+(which took some 4 or 5 hours) and then throw the thermal check that made=
+ it
+shut down - quite the coincidence indeed.
 
-/Morten
+However, =22ran warm but tolerable and then used the thermal to shut down=
+ when
+the battery failed=22 matches the symptoms much better....
 
 
-On 08/04/07, Henrique de Moraes Holschuh <hmh@hmh.eng.br> wrote:
-> On Sun, 08 Apr 2007, Morten Friesgaard wrote:
-> > I'm running a mythbox, and ever since we had our yearly change of
-> > daylight savings (summer time) my computer wakes up late. At first it
-> > was only an hour, then I set the time with hwclock (realised that
-> > CLOCK_SYSTOHC="no"), now it is 2 hours late. And it is really precise
-> > (1-2 hours later), and it is certainly because of daylight savings.
-> >
-> > Any ideas?
->
-> My guess is that you have to set ACPI wake times to *exactly* the time zone
-> you use your RTC in.  Typically UTC, but semi-broken MS-compatible setups
-> use the local time zone.
->
-> The kernel can know the timezone, but almost nobody ever sets that right,
-> and it is not summer-time aware anyway (too complex).  It is best to just
-> keep everything UTC as far as the kernel goes, *including* the RTC.
->
-> --
->   "One disk to rule them all, One disk to find them. One disk to bring
->   them all and in the darkness grind them. In the Land of Redmond
->   where the shadows lie." -- The Silicon Valley Tarot
->   Henrique Holschuh
->
+--==_Exmh_1176059397_28267P
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+Comment: Exmh version 2.5 07/13/2001
+
+iD8DBQFGGT4FcC3lWbTT17ARAhUrAJwJSoCK3homnoc3dhaKTZh0mIVC5ACeIvXr
+TMz47x5h/nNyv5nuuUXZFYM=
+=NvHm
+-----END PGP SIGNATURE-----
+
+--==_Exmh_1176059397_28267P--
