@@ -1,139 +1,56 @@
-From: Dominique Michel <dominique.michel@citycable.ch>
-Subject: Re: daylight saving makes computer wake up late
-Date: Sun, 8 Apr 2007 21:50:37 +0200
-Message-ID: <20070408215037.425b4883@localhost>
-References: <135ab3ff0704080512k2bcf3973m46c8153ff6a6f7df@mail.gmail.com>
- <20070408141040.GA14308@khazad-dum.debian.net>
- <135ab3ff0704081118g3bebd25bj7394483a50549dea@mail.gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [patch 2.6.21-rc5-git] make /proc/acpi/wakeup more useful
+Date: Mon, 09 Apr 2007 10:36:25 +0800
+Message-ID: <1176086185.2650.28.camel@localhost.localdomain>
+References: <200704031741.42273.david-b@pacbell.net>
+	 <200704060843.30723.david-b@pacbell.net> <20070407050131.GB25511@kroah.com>
+	 <200704071308.07571.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.alinto.citycable.ch ([85.218.0.111]:39454 "HELO
-	citycable.ch" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1751975AbXDHT5M convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 8 Apr 2007 15:57:12 -0400
-In-Reply-To: <135ab3ff0704081118g3bebd25bj7394483a50549dea@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752391AbXDIChj@vger.kernel.org>
+In-Reply-To: <200704071308.07571.david-b@pacbell.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>, Greg KH <greg@kroah.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, lenb@kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Morten Friesgaard <friesgaard@gmail.com>, linux-acpi@vger.kernel.org
 
-Le Sun, 8 Apr 2007 20:18:28 +0200,
-"Morten Friesgaard" <friesgaard@gmail.com> a =C3=A9crit :
+On Sat, 2007-04-07 at 13:08 -0700, David Brownell wrote:
+> On Friday 06 April 2007 10:01 pm, Greg KH wrote:
+> 
+> > Are you _sure_ you have a 1-to-1 relationship here?  No multiple devices
+> > pointing to the same acpi node?  Or the other way around?  If so, you
+> > are going to have to change the name to be something more unique.
+> 
+> I've wondered that too.  The short answer:  APCI only supports 1-1
+> here.
+Right.
+>   It will emit warnings if it tries to bind more than one ACPI
+> device to a given "real" device ... but errors the other way are
+> silently ignored.
+> 
+My understanding is different.
+First, one "real" device can only have one device.archdata.acpi_handle,
+which means it can only be bound to one ACPI device.
+Second, AE_ALREADY_EXISTS will be returned when ACPI tries to bind more
+than one "real" devices to the same ACPI device.
+> By adding a warning over this create-links patch, I found that the
+> system in the $SUBJECT patch (and likely every ACPI system) has
+> two different nodes that correspond to one ACPI node:
+> 
+> 	/sys/devices/pci0000:00 ... pci root node
+> 	/sys/devices/pnp0/00:00 ... id PNP0a03
+> 	/sys/devices/acpi_system:00/device:00/PNP0A03:00 ... ditto
+> 
+> Arguably that's too many sysfs nodes for one device...
+> 
+> Plus, there's the issue of flakey ACPI tables; in the $SUBJECT patch
+> both MDM and AUD nodes exist in the ACPI namespace, but they could
+> only refer to one PCI device (with MDM as the wakeup source, not AUD
+> as listed in the table).  Or maybe that's another case where the ACPI
+> code isn't handling the tables as sensibly as it might...
+> 
+Could you attach this acpidump please? :)
 
-> I'm not sure what to do, how do I make these changes?
->=20
-> when I run the following it gives me somewhat the same values, but it
-> seems the BIOS clock i different (?!)
-> # hwclock ; date
-> Sun Apr  8 20:13:56 2007  -0.069330 seconds
-> Sun Apr  8 20:13:55 CEST 2007
->=20
-> it worked before daylight savings, is it something I can ignore and
-> still get it to wake up the corret time?
->=20
-> should I change
-> TIMEZONE=3D"Europe/Copenhagen"
->=20
-> to
-> TIMEZONE=3D"UTC"
-> ??
->=20
-> /Morten
->=20
-
-You must have 2 things:
-
-CLOCK=3D"UTC"
-TIMEZONE=3D"Europe/Copenhagen"
-
-The first one tell the OS that the rtc use UTC time, the second one at =
-it must
-convert the UTC time into Europe/Copenhagen time to get the current sys=
-tem
-time.
-
-On gentoo I also have an option that set the Hardware Clock to the curr=
-ent
-System Time during shutdown:
-
-CLOCK_SYSTOHC=3D"yes"
-
-Some linux distributions use CLOCK=3D"local" because, I guess, they are
-thinking at it is best to do so when you are double booting with window=
-s. It is
-wrong because when the rtc use local time, the system have to change th=
-e time
-in the rtc (read in the hardware) when the daylight is changing, and ea=
-ch OS
-will change the time in the rtc.=20
-
-So, you will get the correct time after booting the first OS, a shift o=
-f one
-hour after booting the second OS, and so on. It is much simpler to use =
-UTC
-with all the OS in the box, and that even with window$ (it is an option=
- in the
-register base, I don't remember where but a google search will give you=
- the
-reference.)
-
-With CLOCK=3D"UTC", the time in the rtc (in the hardware) will never ch=
-ange, the
-OS will just interpret it with the value of TIMEZONE.
-
-Ciao,
-Dominique
-
->=20
-> On 08/04/07, Henrique de Moraes Holschuh <hmh@hmh.eng.br> wrote:
-> > On Sun, 08 Apr 2007, Morten Friesgaard wrote:
-> > > I'm running a mythbox, and ever since we had our yearly change of
-> > > daylight savings (summer time) my computer wakes up late. At firs=
-t it
-> > > was only an hour, then I set the time with hwclock (realised that
-> > > CLOCK_SYSTOHC=3D"no"), now it is 2 hours late. And it is really p=
-recise
-> > > (1-2 hours later), and it is certainly because of daylight saving=
-s.
-> > >
-> > > Any ideas?
-> >
-> > My guess is that you have to set ACPI wake times to *exactly* the t=
-ime zone
-> > you use your RTC in.  Typically UTC, but semi-broken MS-compatible =
-setups
-> > use the local time zone.
-> >
-> > The kernel can know the timezone, but almost nobody ever sets that =
-right,
-> > and it is not summer-time aware anyway (too complex).  It is best t=
-o just
-> > keep everything UTC as far as the kernel goes, *including* the RTC.
-> >
-> > --
-> >   "One disk to rule them all, One disk to find them. One disk to br=
-ing
-> >   them all and in the darkness grind them. In the Land of Redmond
-> >   where the shadows lie." -- The Silicon Valley Tarot
-> >   Henrique Holschuh
-> >
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
---=20
-Dominique Michel
-
---
-N.B.: Tous les emails que je re=C3=A7ois sont filtr=C3=A9s par spamassa=
-ssin avant de me
-parvenir.
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Rui
