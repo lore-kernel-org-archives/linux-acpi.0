@@ -1,77 +1,50 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [patch 2.6.21-rc5-git] make /proc/acpi/wakeup more useful
-Date: Sun, 08 Apr 2007 22:35:49 -0700
-Message-ID: <20070409053549.C7C64229527@adsl-69-226-248-13.dsl.pltn13.pacbell.net>
-References: <200704031741.42273.david-b@pacbell.net>
- <200704060843.30723.david-b@pacbell.net>
- <20070407050131.GB25511@kroah.com>
- <200704071308.07571.david-b@pacbell.net>
- <1176086185.2650.28.camel@localhost.localdomain>
+From: malattia@linux.it
+Subject: [patch 0/9] [RFC] sonypi ACPI reimplementation (resend 3)
+Date: Mon, 9 Apr 2007 19:15:04 +0200
+Message-ID: <20070409171504.GA10646@inferi.kami.home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp101.sbc.mail.mud.yahoo.com ([68.142.198.200]:37260 "HELO
-	smtp101.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752940AbXDIFfw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Apr 2007 01:35:52 -0400
-In-Reply-To: <1176086185.2650.28.camel@localhost.localdomain>
+Received: from aa012msr.fastwebnet.it ([85.18.95.72]:45017 "EHLO
+	aa012msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752145AbXDIRQk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Apr 2007 13:16:40 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rui.zhang@intel.com, greg@kroah.com
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, akpm@linux-foundation.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, stelian@popies.net
 
-> On Sat, 2007-04-07 at 13:08 -0700, David Brownell wrote:
-> > On Friday 06 April 2007 10:01 pm, Greg KH wrote:
-> > 
-> > > Are you _sure_ you have a 1-to-1 relationship here?  No multiple devices
-> > > pointing to the same acpi node?  Or the other way around?  If so, you
-> > > are going to have to change the name to be something more unique.
-> > 
-> > I've wondered that too.  The short answer:  APCI only supports 1-1
-> > here.
->
-> Right.
->
-> >   It will emit warnings if it tries to bind more than one ACPI
-> > device to a given "real" device ... but errors the other way are
-> > silently ignored.
->
-> My understanding is different.
-> First, one "real" device can only have one device.archdata.acpi_handle,
-> which means it can only be bound to one ACPI device.
-> Second, AE_ALREADY_EXISTS will be returned when ACPI tries to bind more
-> than one "real" devices to the same ACPI device.
+[Resend 3: hopefully this time it will make to the list and the intended
+recipients]
 
-Exactly.  The "first" case emits a warning, the "second" case doesn't;
-no matter what it is (though I only saw ALREADY_EXISTS).
+The following patch series is the state of the art of my work toward
+reimplementing sonypi into sony-laptop. Most patches are mostly cosmetic
+to try to obtain a decent namespace separation between the used
+subsystems and the drivers driving the two sony devices (SNC and SPIC).
+If suitable it would be nice to start applying to acpi-test so that akpm
+gets them in -mm (update: it's already in .21-rc6-mm1).
 
+Len, if you prefer a big large patch or a different series, just ask.
+The most interesting patches are probably 0004, 0006 and 0009.
+Andrew, the 9th patch is now really against acpi-test (I think the Kconfig hunk
+didn't apply correclty).
 
-When I added a warning to that case:
+0001-Remove-ACPI-references-from-variable-and-function-names.patch
+0002-prepare-pfdriver-for-multiple-users.patch
+0003-introduce-debug-macros.patch
+0004-add-sny6001-device-handling-from-sonypi.patch
+0005-unify-input-subsystem-event-fwd.patch
+0006-add-SNY6001-platform-attributes.patch
+0007-sanitize-printk-logs.patch
+0008-update-documentation.patch
+0009-add-sonypi-compat-code.patch
+---
+ Documentation/sony-laptop.txt |   25 
+ drivers/misc/Kconfig          |   15 
+ drivers/misc/sony-laptop.c    | 2019 +++++++++++++++++++++++++++++++++++++-----
+ 3 files changed, 1842 insertions(+), 217 deletions(-)
 
-> > By adding a warning over this create-links patch, I found that the
-> > system in the $SUBJECT patch (and likely every ACPI system) has
-> > two different nodes that correspond to one ACPI node:
-> > 
-> > 	/sys/devices/pci0000:00 ... pci root node
-> > 	/sys/devices/pnp0/00:00 ... id PNP0a03
-> > 	/sys/devices/acpi_system:00/device:00/PNP0A03:00 ... ditto
-> > 
-> > Arguably that's too many sysfs nodes for one device...
-
-Presumably you've noticed this same thing (not necessarily pnp0/00:00)
-on other systems ...
-
-
-> > Plus, there's the issue of flakey ACPI tables; in the $SUBJECT patch
-> > both MDM and AUD nodes exist in the ACPI namespace, but they could
-> > only refer to one PCI device (with MDM as the wakeup source, not AUD
-> > as listed in the table).  Or maybe that's another case where the ACPI
-> > code isn't handling the tables as sensibly as it might...
->
-> Could you attach this acpidump please? :)
-
-Off-list; yes.
-
-- Dave
-
+-- 
+mattia
+:wq!
