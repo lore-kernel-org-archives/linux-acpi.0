@@ -1,294 +1,187 @@
 From: malattia@linux.it
-Subject: [patch 2/9] Prepare the platform driver for multiple users.
-Date: Mon, 9 Apr 2007 19:20:19 +0200
-Message-ID: <20070409172019.GC10646@inferi.kami.home>
+Subject: [patch 7/9] sanitize printks
+Date: Mon, 9 Apr 2007 19:31:06 +0200
+Message-ID: <20070409173106.GH10646@inferi.kami.home>
 References: <20070409081903.057292676@linux.it>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aa011msr.fastwebnet.it ([85.18.95.71]:53132 "EHLO
-	aa011msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751917AbXDIRWA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Apr 2007 13:22:00 -0400
-Content-Disposition: inline; filename="0002-prepare-pfdriver-for-multiple-users.patch"
+Received: from aa013msr.fastwebnet.it ([85.18.95.73]:38284 "EHLO
+	aa013msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752225AbXDIRci (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Apr 2007 13:32:38 -0400
+Content-Disposition: inline; filename="0007-sanitize-printk-logs.patch"
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, stelian@popies.net
 
-Both the SNC and SPIC device drivers will create attributes and thus
-there's the need to have an internal usage count to avoid
-re-registering or de-registering at the wrong time.
+Unify printks to resemble a unique driver.
 
 Signed-off-by: Mattia Dongili <malattia@linux.it>
 ---
- drivers/misc/sony-laptop.c |  212 ++++++++++++++++++++++++++++++----------------------------
- 1 file changed, 112 insertions(+), 100 deletions(-)
+ drivers/misc/sony-laptop.c |   40 +++++++++++++++++++---------------------
+ 1 file changed, 19 insertions(+), 21 deletions(-)
 
 Index: linux-2.6/drivers/misc/sony-laptop.c
 ===================================================================
---- linux-2.6.orig/drivers/misc/sony-laptop.c	2007-03-16 16:08:17.490191147 +0100
-+++ linux-2.6/drivers/misc/sony-laptop.c	2007-03-18 18:50:17.769519953 +0100
-@@ -54,6 +54,64 @@ module_param(debug, int, 0);
- MODULE_PARM_DESC(debug, "set this to 1 (and RTFM) if you want to help "
- 		 "the development of this driver");
+--- linux-2.6.orig/drivers/misc/sony-laptop.c	2007-04-05 15:33:32.785751095 +0200
++++ linux-2.6/drivers/misc/sony-laptop.c	2007-04-05 15:33:37.786035924 +0200
+@@ -64,20 +64,19 @@
+ #include <linux/sonypi.h>
  
-+/*********** Platform Device ***********/
-+
-+static atomic_t sony_pf_users = ATOMIC_INIT(0);
-+static struct platform_driver sony_pf_driver = {
-+	.driver = {
-+		   .name = "sony-laptop",
-+		   .owner = THIS_MODULE,
-+		   }
-+};
-+static struct platform_device *sony_pf_device;
-+
-+static int sony_pf_add(void)
-+{
-+	int ret = 0;
-+
-+	/* don't run again if already initialized */
-+	if (atomic_add_return(1, &sony_pf_users) > 1)
-+		return 0;
-+
-+	ret = platform_driver_register(&sony_pf_driver);
-+	if (ret)
-+		goto out;
-+
-+	sony_pf_device = platform_device_alloc("sony-laptop", -1);
-+	if (!sony_pf_device) {
-+		ret = -ENOMEM;
-+		goto out_platform_registered;
-+	}
-+
-+	ret = platform_device_add(sony_pf_device);
-+	if (ret)
-+		goto out_platform_alloced;
-+
-+	return 0;
-+
-+      out_platform_alloced:
-+	platform_device_put(sony_pf_device);
-+	sony_pf_device = NULL;
-+      out_platform_registered:
-+	platform_driver_unregister(&sony_pf_driver);
-+      out:
-+	atomic_dec(&sony_pf_users);
-+	return ret;
-+}
-+
-+static void sony_pf_remove(void)
-+{
-+	/* deregister only after the last user has gone */
-+	if (!atomic_dec_and_test(&sony_pf_users))
-+		return;
-+
-+	platform_device_del(sony_pf_device);
-+	platform_device_put(sony_pf_device);
-+	platform_driver_unregister(&sony_pf_driver);
-+}
-+
-+/*********** SNC (SNY5001) Device ***********/
-+
- static ssize_t sony_nc_sysfs_show(struct device *, struct device_attribute *,
- 			      char *);
- static ssize_t sony_nc_sysfs_store(struct device *, struct device_attribute *,
-@@ -279,104 +337,6 @@ static ssize_t sony_nc_sysfs_store(struc
- 	return count;
- }
+ #define DRV_PFX			"sony-laptop: "
+-#define LOG_PFX			KERN_WARNING DRV_PFX
+ #define dprintk(msg...)		do {			\
+-	if (debug) printk(LOG_PFX  msg);		\
++	if (debug) printk(KERN_WARNING DRV_PFX  msg);	\
+ } while (0)
  
--/*
-- * Platform device
-- */
--static struct platform_driver sncpf_driver = {
--	.driver = {
--		   .name = "sony-laptop",
--		   .owner = THIS_MODULE,
--		   }
--};
--static struct platform_device *sncpf_device;
--
--static int sony_nc_pf_add(void)
--{
--	acpi_handle handle;
--	struct sony_nc_value *item;
--	int ret = 0;
--
--	ret = platform_driver_register(&sncpf_driver);
--	if (ret)
--		goto out;
--
--	sncpf_device = platform_device_alloc("sony-laptop", -1);
--	if (!sncpf_device) {
--		ret = -ENOMEM;
--		goto out_platform_registered;
--	}
--
--	ret = platform_device_add(sncpf_device);
--	if (ret)
--		goto out_platform_alloced;
--
--	for (item = sony_nc_values; item->name; ++item) {
--
--		if (!debug && item->debug)
--			continue;
--
--		/* find the available acpiget as described in the DSDT */
--		for (; item->acpiget && *item->acpiget; ++item->acpiget) {
--			if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle,
--							 *item->acpiget,
--							 &handle))) {
--				if (debug)
--					printk(LOG_PFX "Found %s getter: %s\n",
--					       item->name, *item->acpiget);
--				item->devattr.attr.mode |= S_IRUGO;
--				break;
--			}
--		}
--
--		/* find the available acpiset as described in the DSDT */
--		for (; item->acpiset && *item->acpiset; ++item->acpiset) {
--			if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle,
--							 *item->acpiset,
--							 &handle))) {
--				if (debug)
--					printk(LOG_PFX "Found %s setter: %s\n",
--					       item->name, *item->acpiset);
--				item->devattr.attr.mode |= S_IWUSR;
--				break;
--			}
--		}
--
--		if (item->devattr.attr.mode != 0) {
--			ret =
--			    device_create_file(&sncpf_device->dev,
--					       &item->devattr);
--			if (ret)
--				goto out_sysfs;
--		}
--	}
--
--	return 0;
--
--      out_sysfs:
--	for (item = sony_nc_values; item->name; ++item) {
--		device_remove_file(&sncpf_device->dev, &item->devattr);
--	}
--	platform_device_del(sncpf_device);
--      out_platform_alloced:
--	platform_device_put(sncpf_device);
--      out_platform_registered:
--	platform_driver_unregister(&sncpf_driver);
--      out:
--	return ret;
--}
--
--static void sony_nc_pf_remove(void)
--{
--	struct sony_nc_value *item;
--
--	for (item = sony_nc_values; item->name; ++item) {
--		device_remove_file(&sncpf_device->dev, &item->devattr);
--	}
--
--	platform_device_del(sncpf_device);
--	platform_device_put(sncpf_device);
--	platform_driver_unregister(&sncpf_driver);
--}
+ #define SONY_LAPTOP_DRIVER_VERSION	"0.5"
  
- /*
-  * Backlight device
-@@ -455,6 +415,7 @@ static int sony_nc_add(struct acpi_devic
- 	acpi_status status;
- 	int result = 0;
- 	acpi_handle handle;
-+	struct sony_nc_value *item;
+ #define SONY_NC_CLASS		"sony-nc"
+ #define SONY_NC_HID		"SNY5001"
+-#define SONY_NC_DRIVER_NAME	"Sony Notebook Control"
++#define SONY_NC_DRIVER_NAME	"Sony Notebook Control Driver"
  
- 	sony_nc_acpi_device = device;
+ #define SONY_PIC_CLASS		"sony-pic"
+ #define SONY_PIC_HID		"SNY6001"
+-#define SONY_PIC_DRIVER_NAME	"Sony Programmable IO Control"
++#define SONY_PIC_DRIVER_NAME	"Sony Programmable IO Control Driver"
  
-@@ -497,13 +458,59 @@ static int sony_nc_add(struct acpi_devic
- 
+ MODULE_AUTHOR("Stelian Pop, Mattia Dongili");
+ MODULE_DESCRIPTION("Sony laptop extras driver (SPIC and SNC ACPI device)");
+@@ -518,7 +517,7 @@ static int acpi_callgetfunc(acpi_handle 
+ 		return 0;
  	}
  
--	if (sony_nc_pf_add())
-+	if (sony_pf_add())
- 		goto outbacklight;
+-	printk(LOG_PFX "acpi_callreadfunc failed\n");
++	printk(KERN_WARNING DRV_PFX "acpi_callreadfunc failed\n");
  
-+	/* create sony_pf sysfs attributes related to the SNC device */
-+	for (item = sony_nc_values; item->name; ++item) {
-+
-+		if (!debug && item->debug)
-+			continue;
-+
-+		/* find the available acpiget as described in the DSDT */
-+		for (; item->acpiget && *item->acpiget; ++item->acpiget) {
-+			if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle,
-+							 *item->acpiget,
-+							 &handle))) {
-+				if (debug)
-+					printk(LOG_PFX "Found %s getter: %s\n",
-+					       item->name, *item->acpiget);
-+				item->devattr.attr.mode |= S_IRUGO;
-+				break;
-+			}
-+		}
-+
-+		/* find the available acpiset as described in the DSDT */
-+		for (; item->acpiset && *item->acpiset; ++item->acpiset) {
-+			if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle,
-+							 *item->acpiset,
-+							 &handle))) {
-+				if (debug)
-+					printk(LOG_PFX "Found %s setter: %s\n",
-+					       item->name, *item->acpiset);
-+				item->devattr.attr.mode |= S_IWUSR;
-+				break;
-+			}
-+		}
-+
-+		if (item->devattr.attr.mode != 0) {
-+			result =
-+			    device_create_file(&sony_pf_device->dev,
-+					       &item->devattr);
-+			if (result)
-+				goto out_sysfs;
-+		}
-+	}
-+
- 	printk(KERN_INFO SONY_NC_DRIVER_NAME " successfully installed\n");
+ 	return -1;
+ }
+@@ -544,7 +543,7 @@ static int acpi_callsetfunc(acpi_handle 
+ 	if (status == AE_OK) {
+ 		if (result != NULL) {
+ 			if (out_obj.type != ACPI_TYPE_INTEGER) {
+-				printk(LOG_PFX "acpi_evaluate_object bad "
++				printk(KERN_WARNING DRV_PFX "acpi_evaluate_object bad "
+ 				       "return type\n");
+ 				return -1;
+ 			}
+@@ -553,7 +552,7 @@ static int acpi_callsetfunc(acpi_handle 
+ 		return 0;
+ 	}
  
+-	printk(LOG_PFX "acpi_evaluate_object failed\n");
++	printk(KERN_WARNING DRV_PFX "acpi_evaluate_object failed\n");
+ 
+ 	return -1;
+ }
+@@ -689,7 +688,7 @@ static acpi_status sony_walk_callback(ac
+ 	node = (struct acpi_namespace_node *)handle;
+ 	operand = (union acpi_operand_object *)node->object;
+ 
+-	printk(LOG_PFX "method: name: %4.4s, args %X\n", node->name.ascii,
++	printk(KERN_WARNING DRV_PFX "method: name: %4.4s, args %X\n", node->name.ascii,
+ 	       (u32) operand->method.param_count);
+ 
+ 	return AE_OK;
+@@ -724,6 +723,9 @@ static int sony_nc_add(struct acpi_devic
+ 	acpi_handle handle;
+ 	struct sony_nc_value *item;
+ 
++	printk(KERN_INFO DRV_PFX "%s v%s.\n",
++		SONY_NC_DRIVER_NAME, SONY_LAPTOP_DRIVER_VERSION);
++
+ 	sony_nc_acpi_device = device;
+ 	strcpy(acpi_device_class(device), "sony/hotkey");
+ 
+@@ -733,7 +735,7 @@ static int sony_nc_add(struct acpi_devic
+ 		status = acpi_walk_namespace(ACPI_TYPE_METHOD, sony_nc_acpi_handle,
+ 					     1, sony_walk_callback, NULL, NULL);
+ 		if (ACPI_FAILURE(status)) {
+-			printk(LOG_PFX "unable to walk acpi resources\n");
++			printk(KERN_WARNING DRV_PFX "unable to walk acpi resources\n");
+ 			result = -ENODEV;
+ 			goto outwalk;
+ 		}
+@@ -751,7 +753,7 @@ static int sony_nc_add(struct acpi_devic
+ 					     ACPI_DEVICE_NOTIFY,
+ 					     sony_acpi_notify, NULL);
+ 	if (ACPI_FAILURE(status)) {
+-		printk(LOG_PFX "unable to install notify handler\n");
++		printk(KERN_WARNING DRV_PFX "unable to install notify handler\n");
+ 		result = -ENODEV;
+ 		goto outinput;
+ 	}
+@@ -762,7 +764,7 @@ static int sony_nc_add(struct acpi_devic
+ 								  &sony_backlight_ops);
+ 
+ 		if (IS_ERR(sony_backlight_device)) {
+-			printk(LOG_PFX "unable to register backlight device\n");
++			printk(KERN_WARNING DRV_PFX "unable to register backlight device\n");
+ 			sony_backlight_device = NULL;
+ 		} else {
+ 			sony_backlight_device->props.brightness =
+@@ -817,8 +819,6 @@ static int sony_nc_add(struct acpi_devic
+ 		}
+ 	}
+ 
+-	printk(KERN_INFO SONY_NC_DRIVER_NAME " successfully installed\n");
+-
  	return 0;
  
-+      out_sysfs:
-+	for (item = sony_nc_values; item->name; ++item) {
-+		device_remove_file(&sony_pf_device->dev, &item->devattr);
-+	}
-+	sony_pf_remove();
-       outbacklight:
- 	if (sony_backlight_device)
- 		backlight_device_unregister(sony_backlight_device);
-@@ -520,6 +527,7 @@ static int sony_nc_add(struct acpi_devic
- static int sony_nc_remove(struct acpi_device *device, int type)
- {
- 	acpi_status status;
-+	struct sony_nc_value *item;
- 
- 	if (sony_backlight_device)
- 		backlight_device_unregister(sony_backlight_device);
-@@ -532,7 +540,11 @@ static int sony_nc_remove(struct acpi_de
+       out_sysfs:
+@@ -835,7 +835,7 @@ static int sony_nc_add(struct acpi_devic
+ 					    ACPI_DEVICE_NOTIFY,
+ 					    sony_acpi_notify);
  	if (ACPI_FAILURE(status))
- 		printk(LOG_PFX "unable to remove notify handler\n");
+-		printk(LOG_PFX "unable to remove notify handler\n");
++		printk(KERN_WARNING DRV_PFX "unable to remove notify handler\n");
  
--	sony_nc_pf_remove();
-+	for (item = sony_nc_values; item->name; ++item) {
-+		device_remove_file(&sony_pf_device->dev, &item->devattr);
-+	}
-+
-+	sony_pf_remove();
+       outinput:
+ 	sony_laptop_remove_input();
+@@ -858,7 +858,7 @@ static int sony_nc_remove(struct acpi_de
+ 					    ACPI_DEVICE_NOTIFY,
+ 					    sony_acpi_notify);
+ 	if (ACPI_FAILURE(status))
+-		printk(LOG_PFX "unable to remove notify handler\n");
++		printk(KERN_WARNING DRV_PFX "unable to remove notify handler\n");
  
- 	printk(KERN_INFO SONY_NC_DRIVER_NAME " successfully removed\n");
+ 	for (item = sony_nc_values; item->name; ++item) {
+ 		device_remove_file(&sony_pf_device->dev, &item->devattr);
+@@ -866,8 +866,7 @@ static int sony_nc_remove(struct acpi_de
  
+ 	sony_pf_remove();
+ 	sony_laptop_remove_input();
+-
+-	printk(KERN_INFO SONY_NC_DRIVER_NAME " successfully removed\n");
++	dprintk(SONY_NC_DRIVER_NAME " removed.\n");
+ 
+ 	return 0;
+ }
+@@ -1645,7 +1644,7 @@ static int sony_pic_remove(struct acpi_d
+ 	spic_dev.cur_ioport = NULL;
+ 	spic_dev.cur_irq = NULL;
+ 
+-	dprintk("removed.\n");
++	dprintk(SONY_PIC_DRIVER_NAME " removed.\n");
+ 	return 0;
+ }
+ 
+@@ -1655,9 +1654,8 @@ static int sony_pic_add(struct acpi_devi
+ 	struct sony_pic_ioport *io, *tmp_io;
+ 	struct sony_pic_irq *irq, *tmp_irq;
+ 
+-	printk(KERN_INFO DRV_PFX
+-		"Sony Programmable I/O Controller Driver v%s.\n",
+-		SONY_LAPTOP_DRIVER_VERSION);
++	printk(KERN_INFO DRV_PFX "%s v%s.\n",
++		SONY_PIC_DRIVER_NAME, SONY_LAPTOP_DRIVER_VERSION);
+ 
+ 	spic_dev.acpi_dev = device;
+ 	strcpy(acpi_device_class(device), "sony/hotkey");
 
 --
 -- 
