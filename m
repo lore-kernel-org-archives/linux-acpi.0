@@ -1,187 +1,473 @@
 From: malattia@linux.it
-Subject: [patch 7/9] sanitize printks
-Date: Mon, 9 Apr 2007 19:31:06 +0200
-Message-ID: <20070409173106.GH10646@inferi.kami.home>
+Subject: [patch 1/9] Remove ACPI references from variable and function names.
+Date: Mon, 9 Apr 2007 19:18:26 +0200
+Message-ID: <20070409171826.GB10646@inferi.kami.home>
 References: <20070409081903.057292676@linux.it>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aa013msr.fastwebnet.it ([85.18.95.73]:38284 "EHLO
-	aa013msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752225AbXDIRci (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Apr 2007 13:32:38 -0400
-Content-Disposition: inline; filename="0007-sanitize-printk-logs.patch"
+Received: from aa012msr.fastwebnet.it ([85.18.95.72]:57625 "EHLO
+	aa012msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752226AbXDIRT7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Apr 2007 13:19:59 -0400
+Content-Disposition: inline; filename="0001-Remove-ACPI-references-from-variable-and-function-names.patch"
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, stelian@popies.net
 
-Unify printks to resemble a unique driver.
-
 Signed-off-by: Mattia Dongili <malattia@linux.it>
 ---
- drivers/misc/sony-laptop.c |   40 +++++++++++++++++++---------------------
- 1 file changed, 19 insertions(+), 21 deletions(-)
+ drivers/misc/sony-laptop.c |  178 ++++++++++++++++++++++----------------------
+ 1 files changed, 89 insertions(+), 89 deletions(-)
 
 Index: linux-2.6/drivers/misc/sony-laptop.c
 ===================================================================
---- linux-2.6.orig/drivers/misc/sony-laptop.c	2007-04-05 15:33:32.785751095 +0200
-+++ linux-2.6/drivers/misc/sony-laptop.c	2007-04-05 15:33:37.786035924 +0200
-@@ -64,20 +64,19 @@
- #include <linux/sonypi.h>
+--- linux-2.6.orig/drivers/misc/sony-laptop.c	2007-03-16 16:03:25.973578562 +0100
++++ linux-2.6/drivers/misc/sony-laptop.c	2007-03-16 16:08:17.490191147 +0100
+@@ -35,9 +35,9 @@
+ #include <acpi/acpi_bus.h>
+ #include <asm/uaccess.h>
  
- #define DRV_PFX			"sony-laptop: "
--#define LOG_PFX			KERN_WARNING DRV_PFX
- #define dprintk(msg...)		do {			\
--	if (debug) printk(LOG_PFX  msg);		\
-+	if (debug) printk(KERN_WARNING DRV_PFX  msg);	\
- } while (0)
+-#define ACPI_SNC_CLASS		"sony"
+-#define ACPI_SNC_HID		"SNY5001"
+-#define ACPI_SNC_DRIVER_NAME	"ACPI Sony Notebook Control Driver v0.4"
++#define SONY_NC_CLASS		"sony"
++#define SONY_NC_HID		"SNY5001"
++#define SONY_NC_DRIVER_NAME	"ACPI Sony Notebook Control Driver v0.4"
  
- #define SONY_LAPTOP_DRIVER_VERSION	"0.5"
- 
- #define SONY_NC_CLASS		"sony-nc"
- #define SONY_NC_HID		"SNY5001"
--#define SONY_NC_DRIVER_NAME	"Sony Notebook Control"
-+#define SONY_NC_DRIVER_NAME	"Sony Notebook Control Driver"
- 
- #define SONY_PIC_CLASS		"sony-pic"
- #define SONY_PIC_HID		"SNY6001"
--#define SONY_PIC_DRIVER_NAME	"Sony Programmable IO Control"
-+#define SONY_PIC_DRIVER_NAME	"Sony Programmable IO Control Driver"
+ /* the device uses 1-based values, while the backlight subsystem uses
+    0-based values */
+@@ -46,7 +46,7 @@
+ #define LOG_PFX			KERN_WARNING "sony-laptop: "
  
  MODULE_AUTHOR("Stelian Pop, Mattia Dongili");
- MODULE_DESCRIPTION("Sony laptop extras driver (SPIC and SNC ACPI device)");
-@@ -518,7 +517,7 @@ static int acpi_callgetfunc(acpi_handle 
- 		return 0;
+-MODULE_DESCRIPTION(ACPI_SNC_DRIVER_NAME);
++MODULE_DESCRIPTION(SONY_NC_DRIVER_NAME);
+ MODULE_LICENSE("GPL");
+ 
+ static int debug;
+@@ -54,9 +54,9 @@ module_param(debug, int, 0);
+ MODULE_PARM_DESC(debug, "set this to 1 (and RTFM) if you want to help "
+ 		 "the development of this driver");
+ 
+-static ssize_t sony_acpi_show(struct device *, struct device_attribute *,
++static ssize_t sony_nc_sysfs_show(struct device *, struct device_attribute *,
+ 			      char *);
+-static ssize_t sony_acpi_store(struct device *, struct device_attribute *,
++static ssize_t sony_nc_sysfs_store(struct device *, struct device_attribute *,
+ 			       const char *, size_t);
+ static int boolean_validate(const int, const int);
+ static int brightness_default_validate(const int, const int);
+@@ -64,7 +64,7 @@ static int brightness_default_validate(c
+ #define SNC_VALIDATE_IN		0
+ #define SNC_VALIDATE_OUT	1
+ 
+-struct sony_acpi_value {
++struct sony_nc_value {
+ 	char *name;		/* name of the entry */
+ 	char **acpiget;		/* names of the ACPI get function */
+ 	char **acpiset;		/* names of the ACPI set function */
+@@ -75,65 +75,65 @@ struct sony_acpi_value {
+ 	struct device_attribute devattr;	/* sysfs atribute */
+ };
+ 
+-#define HANDLE_NAMES(_name, _values...) \
++#define SNC_HANDLE_NAMES(_name, _values...) \
+ 	static char *snc_##_name[] = { _values, NULL }
+ 
+-#define SONY_ACPI_VALUE(_name, _getters, _setters, _validate, _debug) \
++#define SNC_HANDLE(_name, _getters, _setters, _validate, _debug) \
+ 	{ \
+ 		.name		= __stringify(_name), \
+ 		.acpiget	= _getters, \
+ 		.acpiset	= _setters, \
+ 		.validate	= _validate, \
+ 		.debug		= _debug, \
+-		.devattr	= __ATTR(_name, 0, sony_acpi_show, sony_acpi_store), \
++		.devattr	= __ATTR(_name, 0, sony_nc_sysfs_show, sony_nc_sysfs_store), \
  	}
  
--	printk(LOG_PFX "acpi_callreadfunc failed\n");
-+	printk(KERN_WARNING DRV_PFX "acpi_callreadfunc failed\n");
+-#define SONY_ACPI_VALUE_NULL	{ .name = NULL }
++#define SNC_HANDLE_NULL	{ .name = NULL }
  
- 	return -1;
+-HANDLE_NAMES(fnkey_get, "GHKE");
++SNC_HANDLE_NAMES(fnkey_get, "GHKE");
+ 
+-HANDLE_NAMES(brightness_def_get, "GPBR");
+-HANDLE_NAMES(brightness_def_set, "SPBR");
++SNC_HANDLE_NAMES(brightness_def_get, "GPBR");
++SNC_HANDLE_NAMES(brightness_def_set, "SPBR");
+ 
+-HANDLE_NAMES(cdpower_get, "GCDP");
+-HANDLE_NAMES(cdpower_set, "SCDP", "CDPW");
++SNC_HANDLE_NAMES(cdpower_get, "GCDP");
++SNC_HANDLE_NAMES(cdpower_set, "SCDP", "CDPW");
+ 
+-HANDLE_NAMES(audiopower_get, "GAZP");
+-HANDLE_NAMES(audiopower_set, "AZPW");
++SNC_HANDLE_NAMES(audiopower_get, "GAZP");
++SNC_HANDLE_NAMES(audiopower_set, "AZPW");
+ 
+-HANDLE_NAMES(lanpower_get, "GLNP");
+-HANDLE_NAMES(lanpower_set, "LNPW");
++SNC_HANDLE_NAMES(lanpower_get, "GLNP");
++SNC_HANDLE_NAMES(lanpower_set, "LNPW");
+ 
+-HANDLE_NAMES(PID_get, "GPID");
++SNC_HANDLE_NAMES(PID_get, "GPID");
+ 
+-HANDLE_NAMES(CTR_get, "GCTR");
+-HANDLE_NAMES(CTR_set, "SCTR");
++SNC_HANDLE_NAMES(CTR_get, "GCTR");
++SNC_HANDLE_NAMES(CTR_set, "SCTR");
+ 
+-HANDLE_NAMES(PCR_get, "GPCR");
+-HANDLE_NAMES(PCR_set, "SPCR");
++SNC_HANDLE_NAMES(PCR_get, "GPCR");
++SNC_HANDLE_NAMES(PCR_set, "SPCR");
+ 
+-HANDLE_NAMES(CMI_get, "GCMI");
+-HANDLE_NAMES(CMI_set, "SCMI");
++SNC_HANDLE_NAMES(CMI_get, "GCMI");
++SNC_HANDLE_NAMES(CMI_set, "SCMI");
+ 
+-static struct sony_acpi_value sony_acpi_values[] = {
+-	SONY_ACPI_VALUE(brightness_default, snc_brightness_def_get,
++static struct sony_nc_value sony_nc_values[] = {
++	SNC_HANDLE(brightness_default, snc_brightness_def_get,
+ 			snc_brightness_def_set, brightness_default_validate, 0),
+-	SONY_ACPI_VALUE(fnkey, snc_fnkey_get, NULL, NULL, 0),
+-	SONY_ACPI_VALUE(cdpower, snc_cdpower_get, snc_cdpower_set, boolean_validate, 0),
+-	SONY_ACPI_VALUE(audiopower, snc_audiopower_get, snc_audiopower_set,
++	SNC_HANDLE(fnkey, snc_fnkey_get, NULL, NULL, 0),
++	SNC_HANDLE(cdpower, snc_cdpower_get, snc_cdpower_set, boolean_validate, 0),
++	SNC_HANDLE(audiopower, snc_audiopower_get, snc_audiopower_set,
+ 			boolean_validate, 0),
+-	SONY_ACPI_VALUE(lanpower, snc_lanpower_get, snc_lanpower_set,
++	SNC_HANDLE(lanpower, snc_lanpower_get, snc_lanpower_set,
+ 			boolean_validate, 1),
+ 	/* unknown methods */
+-	SONY_ACPI_VALUE(PID, snc_PID_get, NULL, NULL, 1),
+-	SONY_ACPI_VALUE(CTR, snc_CTR_get, snc_CTR_set, NULL, 1),
+-	SONY_ACPI_VALUE(PCR, snc_PCR_get, snc_PCR_set, NULL, 1),
+-	SONY_ACPI_VALUE(CMI, snc_CMI_get, snc_CMI_set, NULL, 1),
+-	SONY_ACPI_VALUE_NULL
++	SNC_HANDLE(PID, snc_PID_get, NULL, NULL, 1),
++	SNC_HANDLE(CTR, snc_CTR_get, snc_CTR_set, NULL, 1),
++	SNC_HANDLE(PCR, snc_PCR_get, snc_PCR_set, NULL, 1),
++	SNC_HANDLE(CMI, snc_CMI_get, snc_CMI_set, NULL, 1),
++	SNC_HANDLE_NULL
+ };
+ 
+-static acpi_handle sony_acpi_handle;
+-static struct acpi_device *sony_acpi_acpi_device = NULL;
++static acpi_handle sony_nc_acpi_handle;
++static struct acpi_device *sony_nc_acpi_device = NULL;
+ 
+ /*
+  * acpi_evaluate_object wrappers
+@@ -194,7 +194,7 @@ static int acpi_callsetfunc(acpi_handle 
  }
-@@ -544,7 +543,7 @@ static int acpi_callsetfunc(acpi_handle 
- 	if (status == AE_OK) {
- 		if (result != NULL) {
- 			if (out_obj.type != ACPI_TYPE_INTEGER) {
--				printk(LOG_PFX "acpi_evaluate_object bad "
-+				printk(KERN_WARNING DRV_PFX "acpi_evaluate_object bad "
- 				       "return type\n");
- 				return -1;
- 			}
-@@ -553,7 +552,7 @@ static int acpi_callsetfunc(acpi_handle 
- 		return 0;
- 	}
  
--	printk(LOG_PFX "acpi_evaluate_object failed\n");
-+	printk(KERN_WARNING DRV_PFX "acpi_evaluate_object failed\n");
+ /*
+- * sony_acpi_values input/output validate functions
++ * sony_nc_values input/output validate functions
+  */
  
- 	return -1;
+ /* brightness_default_validate:
+@@ -229,19 +229,19 @@ static int boolean_validate(const int di
  }
-@@ -689,7 +688,7 @@ static acpi_status sony_walk_callback(ac
- 	node = (struct acpi_namespace_node *)handle;
- 	operand = (union acpi_operand_object *)node->object;
  
--	printk(LOG_PFX "method: name: %4.4s, args %X\n", node->name.ascii,
-+	printk(KERN_WARNING DRV_PFX "method: name: %4.4s, args %X\n", node->name.ascii,
- 	       (u32) operand->method.param_count);
+ /*
+- * Sysfs show/store common to all sony_acpi_values
++ * Sysfs show/store common to all sony_nc_values
+  */
+-static ssize_t sony_acpi_show(struct device *dev, struct device_attribute *attr,
++static ssize_t sony_nc_sysfs_show(struct device *dev, struct device_attribute *attr,
+ 			      char *buffer)
+ {
+ 	int value;
+-	struct sony_acpi_value *item =
+-	    container_of(attr, struct sony_acpi_value, devattr);
++	struct sony_nc_value *item =
++	    container_of(attr, struct sony_nc_value, devattr);
  
- 	return AE_OK;
-@@ -724,6 +723,9 @@ static int sony_nc_add(struct acpi_devic
+ 	if (!*item->acpiget)
+ 		return -EIO;
+ 
+-	if (acpi_callgetfunc(sony_acpi_handle, *item->acpiget, &value) < 0)
++	if (acpi_callgetfunc(sony_nc_acpi_handle, *item->acpiget, &value) < 0)
+ 		return -EIO;
+ 
+ 	if (item->validate)
+@@ -250,13 +250,13 @@ static ssize_t sony_acpi_show(struct dev
+ 	return snprintf(buffer, PAGE_SIZE, "%d\n", value);
+ }
+ 
+-static ssize_t sony_acpi_store(struct device *dev,
++static ssize_t sony_nc_sysfs_store(struct device *dev,
+ 			       struct device_attribute *attr,
+ 			       const char *buffer, size_t count)
+ {
+ 	int value;
+-	struct sony_acpi_value *item =
+-	    container_of(attr, struct sony_acpi_value, devattr);
++	struct sony_nc_value *item =
++	    container_of(attr, struct sony_nc_value, devattr);
+ 
+ 	if (!item->acpiset)
+ 		return -EIO;
+@@ -272,7 +272,7 @@ static ssize_t sony_acpi_store(struct de
+ 	if (value < 0)
+ 		return value;
+ 
+-	if (acpi_callsetfunc(sony_acpi_handle, *item->acpiset, value, NULL) < 0)
++	if (acpi_callsetfunc(sony_nc_acpi_handle, *item->acpiset, value, NULL) < 0)
+ 		return -EIO;
+ 	item->value = value;
+ 	item->valid = 1;
+@@ -290,10 +290,10 @@ static struct platform_driver sncpf_driv
+ };
+ static struct platform_device *sncpf_device;
+ 
+-static int sony_snc_pf_add(void)
++static int sony_nc_pf_add(void)
+ {
  	acpi_handle handle;
- 	struct sony_nc_value *item;
+-	struct sony_acpi_value *item;
++	struct sony_nc_value *item;
+ 	int ret = 0;
  
-+	printk(KERN_INFO DRV_PFX "%s v%s.\n",
-+		SONY_NC_DRIVER_NAME, SONY_LAPTOP_DRIVER_VERSION);
-+
- 	sony_nc_acpi_device = device;
- 	strcpy(acpi_device_class(device), "sony/hotkey");
+ 	ret = platform_driver_register(&sncpf_driver);
+@@ -310,14 +310,14 @@ static int sony_snc_pf_add(void)
+ 	if (ret)
+ 		goto out_platform_alloced;
  
-@@ -733,7 +735,7 @@ static int sony_nc_add(struct acpi_devic
- 		status = acpi_walk_namespace(ACPI_TYPE_METHOD, sony_nc_acpi_handle,
- 					     1, sony_walk_callback, NULL, NULL);
- 		if (ACPI_FAILURE(status)) {
--			printk(LOG_PFX "unable to walk acpi resources\n");
-+			printk(KERN_WARNING DRV_PFX "unable to walk acpi resources\n");
- 			result = -ENODEV;
- 			goto outwalk;
- 		}
-@@ -751,7 +753,7 @@ static int sony_nc_add(struct acpi_devic
- 					     ACPI_DEVICE_NOTIFY,
- 					     sony_acpi_notify, NULL);
- 	if (ACPI_FAILURE(status)) {
--		printk(LOG_PFX "unable to install notify handler\n");
-+		printk(KERN_WARNING DRV_PFX "unable to install notify handler\n");
- 		result = -ENODEV;
- 		goto outinput;
- 	}
-@@ -762,7 +764,7 @@ static int sony_nc_add(struct acpi_devic
- 								  &sony_backlight_ops);
+-	for (item = sony_acpi_values; item->name; ++item) {
++	for (item = sony_nc_values; item->name; ++item) {
  
- 		if (IS_ERR(sony_backlight_device)) {
--			printk(LOG_PFX "unable to register backlight device\n");
-+			printk(KERN_WARNING DRV_PFX "unable to register backlight device\n");
- 			sony_backlight_device = NULL;
- 		} else {
- 			sony_backlight_device->props.brightness =
-@@ -817,8 +819,6 @@ static int sony_nc_add(struct acpi_devic
- 		}
- 	}
+ 		if (!debug && item->debug)
+ 			continue;
  
--	printk(KERN_INFO SONY_NC_DRIVER_NAME " successfully installed\n");
--
+ 		/* find the available acpiget as described in the DSDT */
+ 		for (; item->acpiget && *item->acpiget; ++item->acpiget) {
+-			if (ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle,
++			if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle,
+ 							 *item->acpiget,
+ 							 &handle))) {
+ 				if (debug)
+@@ -330,7 +330,7 @@ static int sony_snc_pf_add(void)
+ 
+ 		/* find the available acpiset as described in the DSDT */
+ 		for (; item->acpiset && *item->acpiset; ++item->acpiset) {
+-			if (ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle,
++			if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle,
+ 							 *item->acpiset,
+ 							 &handle))) {
+ 				if (debug)
+@@ -353,7 +353,7 @@ static int sony_snc_pf_add(void)
  	return 0;
  
        out_sysfs:
-@@ -835,7 +835,7 @@ static int sony_nc_add(struct acpi_devic
+-	for (item = sony_acpi_values; item->name; ++item) {
++	for (item = sony_nc_values; item->name; ++item) {
+ 		device_remove_file(&sncpf_device->dev, &item->devattr);
+ 	}
+ 	platform_device_del(sncpf_device);
+@@ -365,11 +365,11 @@ static int sony_snc_pf_add(void)
+ 	return ret;
+ }
+ 
+-static void sony_snc_pf_remove(void)
++static void sony_nc_pf_remove(void)
+ {
+-	struct sony_acpi_value *item;
++	struct sony_nc_value *item;
+ 
+-	for (item = sony_acpi_values; item->name; ++item) {
++	for (item = sony_nc_values; item->name; ++item) {
+ 		device_remove_file(&sncpf_device->dev, &item->devattr);
+ 	}
+ 
+@@ -383,7 +383,7 @@ static void sony_snc_pf_remove(void)
+  */
+ static int sony_backlight_update_status(struct backlight_device *bd)
+ {
+-	return acpi_callsetfunc(sony_acpi_handle, "SBRT",
++	return acpi_callsetfunc(sony_nc_acpi_handle, "SBRT",
+ 				bd->props.brightness + 1, NULL);
+ }
+ 
+@@ -391,7 +391,7 @@ static int sony_backlight_get_brightness
+ {
+ 	int value;
+ 
+-	if (acpi_callgetfunc(sony_acpi_handle, "GBRT", &value))
++	if (acpi_callgetfunc(sony_nc_acpi_handle, "GBRT", &value))
+ 		return 0;
+ 	/* brightness levels are 1-based, while backlight ones are 0-based */
+ 	return value - 1;
+@@ -410,7 +410,7 @@ static void sony_acpi_notify(acpi_handle
+ {
+ 	if (debug)
+ 		printk(LOG_PFX "sony_acpi_notify, event: %d\n", event);
+-	acpi_bus_generate_event(sony_acpi_acpi_device, 1, event);
++	acpi_bus_generate_event(sony_nc_acpi_device, 1, event);
+ }
+ 
+ static acpi_status sony_walk_callback(acpi_handle handle, u32 level,
+@@ -431,16 +431,16 @@ static acpi_status sony_walk_callback(ac
+ /*
+  * ACPI device
+  */
+-static int sony_acpi_resume(struct acpi_device *device)
++static int sony_nc_resume(struct acpi_device *device)
+ {
+-	struct sony_acpi_value *item;
++	struct sony_nc_value *item;
+ 
+-	for (item = sony_acpi_values; item->name; item++) {
++	for (item = sony_nc_values; item->name; item++) {
+ 		int ret;
+ 
+ 		if (!item->valid)
+ 			continue;
+-		ret = acpi_callsetfunc(sony_acpi_handle, *item->acpiset,
++		ret = acpi_callsetfunc(sony_nc_acpi_handle, *item->acpiset,
+ 				       item->value, NULL);
+ 		if (ret < 0) {
+ 			printk("%s: %d\n", __FUNCTION__, ret);
+@@ -450,18 +450,18 @@ static int sony_acpi_resume(struct acpi_
+ 	return 0;
+ }
+ 
+-static int sony_acpi_add(struct acpi_device *device)
++static int sony_nc_add(struct acpi_device *device)
+ {
+ 	acpi_status status;
+ 	int result = 0;
+ 	acpi_handle handle;
+ 
+-	sony_acpi_acpi_device = device;
++	sony_nc_acpi_device = device;
+ 
+-	sony_acpi_handle = device->handle;
++	sony_nc_acpi_handle = device->handle;
+ 
+ 	if (debug) {
+-		status = acpi_walk_namespace(ACPI_TYPE_METHOD, sony_acpi_handle,
++		status = acpi_walk_namespace(ACPI_TYPE_METHOD, sony_nc_acpi_handle,
+ 					     1, sony_walk_callback, NULL, NULL);
+ 		if (ACPI_FAILURE(status)) {
+ 			printk(LOG_PFX "unable to walk acpi resources\n");
+@@ -470,7 +470,7 @@ static int sony_acpi_add(struct acpi_dev
+ 		}
+ 	}
+ 
+-	status = acpi_install_notify_handler(sony_acpi_handle,
++	status = acpi_install_notify_handler(sony_nc_acpi_handle,
+ 					     ACPI_DEVICE_NOTIFY,
+ 					     sony_acpi_notify, NULL);
+ 	if (ACPI_FAILURE(status)) {
+@@ -479,7 +479,7 @@ static int sony_acpi_add(struct acpi_dev
+ 		goto outwalk;
+ 	}
+ 
+-	if (ACPI_SUCCESS(acpi_get_handle(sony_acpi_handle, "GBRT", &handle))) {
++	if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle, "GBRT", &handle))) {
+ 		sony_backlight_device = backlight_device_register("sony", NULL,
+ 								  NULL,
+ 								  &sony_backlight_ops);
+@@ -497,10 +497,10 @@ static int sony_acpi_add(struct acpi_dev
+ 
+ 	}
+ 
+-	if (sony_snc_pf_add())
++	if (sony_nc_pf_add())
+ 		goto outbacklight;
+ 
+-	printk(KERN_INFO ACPI_SNC_DRIVER_NAME " successfully installed\n");
++	printk(KERN_INFO SONY_NC_DRIVER_NAME " successfully installed\n");
+ 
+ 	return 0;
+ 
+@@ -508,7 +508,7 @@ static int sony_acpi_add(struct acpi_dev
+ 	if (sony_backlight_device)
+ 		backlight_device_unregister(sony_backlight_device);
+ 
+-	status = acpi_remove_notify_handler(sony_acpi_handle,
++	status = acpi_remove_notify_handler(sony_nc_acpi_handle,
  					    ACPI_DEVICE_NOTIFY,
  					    sony_acpi_notify);
  	if (ACPI_FAILURE(status))
--		printk(LOG_PFX "unable to remove notify handler\n");
-+		printk(KERN_WARNING DRV_PFX "unable to remove notify handler\n");
+@@ -517,48 +517,48 @@ static int sony_acpi_add(struct acpi_dev
+ 	return result;
+ }
  
-       outinput:
- 	sony_laptop_remove_input();
-@@ -858,7 +858,7 @@ static int sony_nc_remove(struct acpi_de
+-static int sony_acpi_remove(struct acpi_device *device, int type)
++static int sony_nc_remove(struct acpi_device *device, int type)
+ {
+ 	acpi_status status;
+ 
+ 	if (sony_backlight_device)
+ 		backlight_device_unregister(sony_backlight_device);
+ 
+-	sony_acpi_acpi_device = NULL;
++	sony_nc_acpi_device = NULL;
+ 
+-	status = acpi_remove_notify_handler(sony_acpi_handle,
++	status = acpi_remove_notify_handler(sony_nc_acpi_handle,
  					    ACPI_DEVICE_NOTIFY,
  					    sony_acpi_notify);
  	if (ACPI_FAILURE(status))
--		printk(LOG_PFX "unable to remove notify handler\n");
-+		printk(KERN_WARNING DRV_PFX "unable to remove notify handler\n");
+ 		printk(LOG_PFX "unable to remove notify handler\n");
  
- 	for (item = sony_nc_values; item->name; ++item) {
- 		device_remove_file(&sony_pf_device->dev, &item->devattr);
-@@ -866,8 +866,7 @@ static int sony_nc_remove(struct acpi_de
+-	sony_snc_pf_remove();
++	sony_nc_pf_remove();
  
- 	sony_pf_remove();
- 	sony_laptop_remove_input();
--
--	printk(KERN_INFO SONY_NC_DRIVER_NAME " successfully removed\n");
-+	dprintk(SONY_NC_DRIVER_NAME " removed.\n");
+-	printk(KERN_INFO ACPI_SNC_DRIVER_NAME " successfully removed\n");
++	printk(KERN_INFO SONY_NC_DRIVER_NAME " successfully removed\n");
  
  	return 0;
  }
-@@ -1645,7 +1644,7 @@ static int sony_pic_remove(struct acpi_d
- 	spic_dev.cur_ioport = NULL;
- 	spic_dev.cur_irq = NULL;
  
--	dprintk("removed.\n");
-+	dprintk(SONY_PIC_DRIVER_NAME " removed.\n");
- 	return 0;
+-static struct acpi_driver sony_acpi_driver = {
+-	.name = ACPI_SNC_DRIVER_NAME,
+-	.class = ACPI_SNC_CLASS,
+-	.ids = ACPI_SNC_HID,
++static struct acpi_driver sony_nc_driver = {
++	.name = SONY_NC_DRIVER_NAME,
++	.class = SONY_NC_CLASS,
++	.ids = SONY_NC_HID,
+ 	.ops = {
+-		.add = sony_acpi_add,
+-		.remove = sony_acpi_remove,
+-		.resume = sony_acpi_resume,
++		.add = sony_nc_add,
++		.remove = sony_nc_remove,
++		.resume = sony_nc_resume,
+ 		},
+ };
+ 
+-static int __init sony_acpi_init(void)
++static int __init sony_laptop_init(void)
+ {
+-	return acpi_bus_register_driver(&sony_acpi_driver);
++	return acpi_bus_register_driver(&sony_nc_driver);
  }
  
-@@ -1655,9 +1654,8 @@ static int sony_pic_add(struct acpi_devi
- 	struct sony_pic_ioport *io, *tmp_io;
- 	struct sony_pic_irq *irq, *tmp_irq;
+-static void __exit sony_acpi_exit(void)
++static void __exit sony_laptop_exit(void)
+ {
+-	acpi_bus_unregister_driver(&sony_acpi_driver);
++	acpi_bus_unregister_driver(&sony_nc_driver);
+ }
  
--	printk(KERN_INFO DRV_PFX
--		"Sony Programmable I/O Controller Driver v%s.\n",
--		SONY_LAPTOP_DRIVER_VERSION);
-+	printk(KERN_INFO DRV_PFX "%s v%s.\n",
-+		SONY_PIC_DRIVER_NAME, SONY_LAPTOP_DRIVER_VERSION);
- 
- 	spic_dev.acpi_dev = device;
- 	strcpy(acpi_device_class(device), "sony/hotkey");
+-module_init(sony_acpi_init);
+-module_exit(sony_acpi_exit);
++module_init(sony_laptop_init);
++module_exit(sony_laptop_exit);
 
 --
 -- 
