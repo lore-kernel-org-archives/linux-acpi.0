@@ -1,52 +1,90 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: PROBLEM:  ACPI Thermal Zone for CPU0 does not update after
+Subject: Re: PROBLEM:  ACPI Thermal Zone for CPU0 does not update after   
  hibernation
-Date: Mon, 9 Apr 2007 17:47:00 -0700
-Message-ID: <20070409174700.2e0a14d8.akpm@linux-foundation.org>
+Date: Mon, 9 Apr 2007 18:57:02 -0700
+Message-ID: <20070409185702.bbea2cb9.akpm@linux-foundation.org>
 References: <11584.192.146.101.26.1175890435.squirrel@panacea.theblackmoor.net>
+	<20070409174700.2e0a14d8.akpm@linux-foundation.org>
+	<33389.192.168.0.107.1176169658.squirrel@panacea.theblackmoor.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38946 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40093 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966031AbXDJArK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 9 Apr 2007 20:47:10 -0400
-In-Reply-To: <11584.192.146.101.26.1175890435.squirrel@panacea.theblackmoor.net>
+	id S1030302AbXDJB5J (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 9 Apr 2007 21:57:09 -0400
+In-Reply-To: <33389.192.168.0.107.1176169658.squirrel@panacea.theblackmoor.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: wally@theblackmoor.net
-Cc: linux-kernel@vger.kernel.org, "Jung-Ik (John) Lee" <jilee@google.com>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Jung-Ik  Lee <jilee@google.com>, linux-acpi@vger.kernel.org
 
-On Fri, 6 Apr 2007 16:13:55 -0400 (EDT)
-"Walter Francis" <wally@theblackmoor.net> wrote:
+On Mon, 9 Apr 2007 21:47:38 -0400 (EDT) "Walter Francis" <wally@theblackmoor.net> wrote:
 
-> After hibernating, the CPU0 thermal zone never updates.  It will stay at 59C
-> forever for example.
+> > On Fri, 6 Apr 2007 16:13:55 -0400 (EDT)
+> > "Walter Francis" <wally@theblackmoor.net> wrote:
 > 
-> I've tried making the thermal driver a module and unloading it before
-> hibernating and it didn't help, also went back as far as 2.6.19 and saw the
-> same behavior there.  Currently using 2.6.21-pre6.  If I reboot or suspend to
-> *RAM*, the problem fixes itself.  And CPU1's thermal zone is fine.  But CPU0
-> if it's (example) 59C, it stays 59C forever.  I'm seeing it in gkrellm, but
-> it's coming from /proc/acpi/thermal_zone/*/temperature and verified to match
-> there.
+> >> After hibernating, the CPU0 thermal zone never updates.  It will stay at 59C
+> >> forever for example.
+> 
+> > Yeah, John spotted a bug in there the other day.
+> >
+> > Does this fix it?
+> >
+> > --- a/drivers/acpi/thermal.c~acpi-thermal-fix-mod_timer-interval
+> > +++ a/drivers/acpi/thermal.c
+> > @@ -758,7 +758,8 @@ static void acpi_thermal_check(void *dat
+> >  			del_timer(&(tz->timer));
+> >  	} else {
+> >  		if (timer_pending(&(tz->timer)))
+> > -			mod_timer(&(tz->timer), (HZ * sleep_time) / 1000);
+> > +			mod_timer(&(tz->timer),
+> > +					jiffies + (HZ * sleep_time) / 1000);
+> >  		else {
+> >  			tz->timer.data = (unsigned long)tz;
+> >  			tz->timer.function = acpi_thermal_run;
+> 
+> No joy, didn't help.
+>
+> Didn't apply clean to 21-pre6 (still latest I see on kernel.org), but here's
+> the section that seemed right.
+> 
+>         /*
+>          * Schedule Next Poll
+>          * ------------------
+>          */
+>         if (!sleep_time) {
+>                 if (timer_pending(&(tz->timer)))
+>                         del_timer(&(tz->timer));
+>         } else {
+>                 if (timer_pending(&(tz->timer)))
+>                         mod_timer(&(tz->timer),jiffies + (HZ * sleep_time) /
+> 1000);
+>                 else {
+>                         tz->timer.data = (unsigned long)tz;
+>                         tz->timer.function = acpi_thermal_run;
+>                         tz->timer.expires = jiffies + (HZ * sleep_time) / 1000;
+>                         add_timer(&(tz->timer));
 
-Yeah, John spotted a bug in there the other day.
+Yes, the above looks like the correct change.
 
-Does this fix it?
+> Also, I think this is new with the line replaced..  Not sure exactly what's
+> causing it, but when I restart the cpuspeed daemon:
+> 
+> Starting cpuspeed: Error: Not an integer:
+> /proc/acpi/thermal_zone/TZS1/temperature
 
---- a/drivers/acpi/thermal.c~acpi-thermal-fix-mod_timer-interval
-+++ a/drivers/acpi/thermal.c
-@@ -758,7 +758,8 @@ static void acpi_thermal_check(void *dat
- 			del_timer(&(tz->timer));
- 	} else {
- 		if (timer_pending(&(tz->timer)))
--			mod_timer(&(tz->timer), (HZ * sleep_time) / 1000);
-+			mod_timer(&(tz->timer),
-+					jiffies + (HZ * sleep_time) / 1000);
- 		else {
- 			tz->timer.data = (unsigned long)tz;
- 			tz->timer.function = acpi_thermal_run;
-_
+Strange.  Maybe a timing thing.
+
+> # cat /proc/acpi/thermal_zone/TZS1/temperature
+> temperature:             41 C
+> 
+> Looks normal to me?
+
+Yes it does.  What happens of you stop and restart the daemon a second
+time?
+
+fwiw, /proc/acpi/thermal_zone/ATF0/temperature seems to do the right thing
+here.
 
