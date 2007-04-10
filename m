@@ -1,41 +1,74 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: CPU offline but power consumption increased?
-Date: Tue, 10 Apr 2007 15:44:58 +0200
-Message-ID: <20070410134458.GA723@one.firstfloor.org>
-References: <7e0bae390704062123i2dfaf030icd5a710677bc989a@mail.gmail.com> <p73odlzkb6h.fsf@bingen.suse.de> <200704100413.51637.lenb@kernel.org>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: [PATCH 01/30] Use menuconfig objects - ACPI
+Date: Tue, 10 Apr 2007 21:22:41 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0704102119430.32056@yvahk01.tjqt.qr>
+References: <Pine.LNX.4.61.0704102046520.32056@yvahk01.tjqt.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:50971 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753109AbXDJNpA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Apr 2007 09:45:00 -0400
-Content-Disposition: inline
-In-Reply-To: <200704100413.51637.lenb@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753327AbXDJTXa@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.61.0704102046520.32056@yvahk01.tjqt.qr>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <len.brown@intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Andi Kleen <andi@firstfloor.org>, Andika Triwidada <andika@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-> Speaking for all Intel hardware implemented from pre-history until now,
-> deep C-states is the best you can do, and there is no special offline
-> mode to save more power.
 
-We don't use deep c states currently; just HLT.
+Use menuconfigs instead of menus, so the whole menu can be disabled at 
+once instead of going through all options.
 
-Right now it doesn't make much difference because no multi socket
-servers do deep C states and secondary cores can normally not go
-deep on their own; but if any of this changes this code would
-need to be fixed.
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
 
-But cpu off line is really a special case -- maybe it is even 
-possible to do something better on current hardware.
-
-> and if the BIOS is implemented properly, the core will be spinning in the
-> deepest available C-state.  Of course, it would probably be more interesting
-> to simply leave the core on-line and let it go idle...
-
-I don't see any BIOS call in play_dead()
-
--Andi
-
+Index: linux-2.6.21-rc5/drivers/acpi/Kconfig
+===================================================================
+--- linux-2.6.21-rc5.orig/drivers/acpi/Kconfig
++++ linux-2.6.21-rc5/drivers/acpi/Kconfig
+@@ -2,16 +2,12 @@
+ # ACPI Configuration
+ #
+ 
+-menu "ACPI (Advanced Configuration and Power Interface) Support"
++menuconfig ACPI
++	bool "ACPI Support (Advanced Configuration and Power Interface) Support"
+ 	depends on !X86_NUMAQ
+ 	depends on !X86_VISWS
+ 	depends on !IA64_HP_SIM
+ 	depends on IA64 || X86
+-	depends on PM
+-
+-config ACPI
+-	bool "ACPI Support"
+-	depends on IA64 || X86
+ 	depends on PCI
+ 	depends on PM
+ 	select PNP
+@@ -49,7 +45,6 @@ if ACPI
+ config ACPI_SLEEP
+ 	bool "Sleep States"
+ 	depends on X86 && (!SMP || SUSPEND_SMP)
+-	depends on PM
+ 	default y
+ 	---help---
+ 	  This option adds support for ACPI suspend states. 
+@@ -82,7 +77,6 @@ config ACPI_SLEEP_PROC_SLEEP
+ 
+ config ACPI_PROCFS
+ 	bool "Procfs interface (deprecated)"
+-	depends on ACPI
+ 	default y
+ 	---help---
+ 	  Procfs interface for ACPI is made optional for back-compatible.
+@@ -367,7 +361,6 @@ config ACPI_CONTAINER
+ 
+ config ACPI_HOTPLUG_MEMORY
+ 	tristate "Memory Hotplug"
+-	depends on ACPI
+ 	depends on MEMORY_HOTPLUG
+ 	default n
+ 	help
+@@ -397,5 +390,3 @@ config ACPI_SBS
+ 	  to today's ACPI "Control Method" battery.
+ 
+ endif	# ACPI
+-
+-endmenu
+#<EOF>
