@@ -1,77 +1,61 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 0/9] [RFC] sonypi ACPI reimplementation (resend 3)
-Date: Tue, 10 Apr 2007 16:13:43 -0400
-Message-ID: <200704101613.43751.lenb@kernel.org>
-References: <20070409081903.057292676@linux.it>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [patch 2.6.21-rc5-git] make /proc/acpi/wakeup more useful
+Date: Tue, 10 Apr 2007 16:29:18 -0700
+Message-ID: <200704101629.18412.david-b@pacbell.net>
+References: <200704031741.42273.david-b@pacbell.net> <20070407050131.GB25511@kroah.com> <200704071308.07571.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:37887 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753362AbXDJUPZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 10 Apr 2007 16:15:25 -0400
-In-Reply-To: <20070409081903.057292676@linux.it>
+Received: from smtp104.sbc.mail.mud.yahoo.com ([68.142.198.203]:43429 "HELO
+	smtp104.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753671AbXDJX3h (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Apr 2007 19:29:37 -0400
+In-Reply-To: <200704071308.07571.david-b@pacbell.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: malattia@linux.it
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, stelian@popies.net
+To: Greg KH <greg@kroah.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, lenb@kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>
 
-On Monday 09 April 2007 04:19, malattia@linux.it wrote:
-> [Resend 3: hopefully this time it will make to the list and the intended
-> recipients]
+On Saturday 07 April 2007 1:08 pm, David Brownell wrote:
+
+> By adding a warning over this create-links patch, I found that the
+> system in the $SUBJECT patch (and likely every ACPI system) has
+> two different nodes that correspond to one ACPI node:
 > 
-> The following patch series is the state of the art of my work toward
-> reimplementing sonypi into sony-laptop. Most patches are mostly cosmetic
-> to try to obtain a decent namespace separation between the used
-> subsystems and the drivers driving the two sony devices (SNC and SPIC).
-> If suitable it would be nice to start applying to acpi-test so that akpm
-> gets them in -mm (update: it's already in .21-rc6-mm1).
+> 	/sys/devices/pci0000:00 ... pci root node
+> 	/sys/devices/pnp0/00:00 ... id PNP0a03
+> 	/sys/devices/acpi_system:00/device:00/PNP0A03:00 ... ditto
 > 
-> Len, if you prefer a big large patch or a different series, just ask.
+> Arguably that's too many sysfs nodes for one device...
 
-This is fine, thanks.
+On a different system, I found a more interesting issue.
 
-> The most interesting patches are probably 0004, 0006 and 0009.
-> Andrew, the 9th patch is now really against acpi-test (I think the Kconfig hunk
-> didn't apply correclty).
+Specifically, pnp0/00:01 and pnp0:00/03 both have ids ... the appended
+patch goes on top of the previous pnpacpi patch, and should (nyet tested!)
+fix another place I saw that warning.
 
-BTW. I check-in on top of Linus' tree, not on top of acpi-test.
-Then i merge into acpi-test.  So in the future, you could just as well base
-on Linus' tree and let me deal with the conflicts within acpi-test.
-fine with me either way, just mention where the base is like you have.
+- Dave
 
-> 0001-Remove-ACPI-references-from-variable-and-function-names.patch
-> 0002-prepare-pfdriver-for-multiple-users.patch
-> 0003-introduce-debug-macros.patch
-> 0004-add-sny6001-device-handling-from-sonypi.patch
-> 0005-unify-input-subsystem-event-fwd.patch
-> 0006-add-SNY6001-platform-attributes.patch
-> 0007-sanitize-printk-logs.patch
-> 0008-update-documentation.patch
-> 0009-add-sonypi-compat-code.patch
-> ---
->  Documentation/sony-laptop.txt |   25 
->  drivers/misc/Kconfig          |   15 
->  drivers/misc/sony-laptop.c    | 2019 +++++++++++++++++++++++++++++++++++++-----
->  3 files changed, 1842 insertions(+), 217 deletions(-)
+=========	CUT HERE
+Handle PNP devices that have the same IDs a bit more sanely ... I suspect
+that pnp_dev.number should be compared with some acpi_device field to make
+it hook up to a particular ACPI device, but I'll leave that to someone who
+knows how that's supposed to work.  At least this will connect e.g. multiple
+PNP nodes to ACPI nodes sharing the same PNP0c02 id.
 
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 
->SONY_LAPTOP_OLD 
-
-There is probably a better name for this -- like SONY_PI_COMPATIBILITY or something.
-
-What about CONFIG_SONYPI? -- should it now depend on this driver not being included?
-
-SONYPI depends on !64BIT -- is that invalid, or perhaps you only need the compatibility
-stuff only in 32-bit mode?
-
-applied to acpi-test.
-
-It would be great if you can get some test feedback for the sonypi-era features
-to make sure that the code moved into the new driver works as well as the old sonypi.
-
-thanks,
--Len
+--- g26.orig/drivers/pnp/pnpacpi/core.c	2007-04-10 01:38:53.000000000 -0700
++++ g26/drivers/pnp/pnpacpi/core.c	2007-04-10 16:16:07.000000000 -0700
+@@ -243,6 +243,7 @@ static int __init acpi_pnp_match(struct 
+ 
+ 	/* true means it matched */
+ 	return acpi->flags.hardware_id
++		&& !dev->archdata.acpi_handle
+ 		&& compare_pnp_id(pnp->id, acpi->pnp.hardware_id);
+ }
+ 
