@@ -1,90 +1,56 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: PROBLEM:  ACPI Thermal Zone for CPU0 does not update after   
- hibernation
-Date: Mon, 9 Apr 2007 18:57:02 -0700
-Message-ID: <20070409185702.bbea2cb9.akpm@linux-foundation.org>
-References: <11584.192.146.101.26.1175890435.squirrel@panacea.theblackmoor.net>
-	<20070409174700.2e0a14d8.akpm@linux-foundation.org>
-	<33389.192.168.0.107.1176169658.squirrel@panacea.theblackmoor.net>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: CPU offline but power consumption increased?
+Date: Tue, 10 Apr 2007 04:13:51 -0400
+Message-ID: <200704100413.51637.lenb@kernel.org>
+References: <7e0bae390704062123i2dfaf030icd5a710677bc989a@mail.gmail.com> <p73odlzkb6h.fsf@bingen.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40093 "EHLO smtp.osdl.org"
+Received: from hera.kernel.org ([140.211.167.34]:60036 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030302AbXDJB5J (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 9 Apr 2007 21:57:09 -0400
-In-Reply-To: <33389.192.168.0.107.1176169658.squirrel@panacea.theblackmoor.net>
+	id S933106AbXDJIP3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Apr 2007 04:15:29 -0400
+In-Reply-To: <p73odlzkb6h.fsf@bingen.suse.de>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: wally@theblackmoor.net
-Cc: linux-kernel@vger.kernel.org, Jung-Ik  Lee <jilee@google.com>, linux-acpi@vger.kernel.org
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Andika Triwidada <andika@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, 9 Apr 2007 21:47:38 -0400 (EDT) "Walter Francis" <wally@theblackmoor.net> wrote:
-
-> > On Fri, 6 Apr 2007 16:13:55 -0400 (EDT)
-> > "Walter Francis" <wally@theblackmoor.net> wrote:
+On Saturday 07 April 2007 19:38, Andi Kleen wrote:
+> "Andika Triwidada" <andika@gmail.com> writes:
 > 
-> >> After hibernating, the CPU0 thermal zone never updates.  It will stay at 59C
-> >> forever for example.
+> [cc linux-acpi]
+>  
+> > Question: is that normal? I thought power consumption will be
+> > automatically reduced if one core offlined.
+
+Known?  Yes.
+What people would expect? No.
+
+http://bugzilla.kernel.org/show_bug.cgi?id=5471
+
+> The current cpu offline essentially just runs a special idle loop.
+> The standard idle loop is even a bit more aggressive on some systems
+> because it knows about the deeper ACPI sleep modi.
 > 
-> > Yeah, John spotted a bug in there the other day.
-> >
-> > Does this fix it?
-> >
-> > --- a/drivers/acpi/thermal.c~acpi-thermal-fix-mod_timer-interval
-> > +++ a/drivers/acpi/thermal.c
-> > @@ -758,7 +758,8 @@ static void acpi_thermal_check(void *dat
-> >  			del_timer(&(tz->timer));
-> >  	} else {
-> >  		if (timer_pending(&(tz->timer)))
-> > -			mod_timer(&(tz->timer), (HZ * sleep_time) / 1000);
-> > +			mod_timer(&(tz->timer),
-> > +					jiffies + (HZ * sleep_time) / 1000);
-> >  		else {
-> >  			tz->timer.data = (unsigned long)tz;
-> >  			tz->timer.function = acpi_thermal_run;
+> There are also dependencies between cores because current CPUs
+> have shared power planes between cores.
 > 
-> No joy, didn't help.
->
-> Didn't apply clean to 21-pre6 (still latest I see on kernel.org), but here's
-> the section that seemed right.
-> 
->         /*
->          * Schedule Next Poll
->          * ------------------
->          */
->         if (!sleep_time) {
->                 if (timer_pending(&(tz->timer)))
->                         del_timer(&(tz->timer));
->         } else {
->                 if (timer_pending(&(tz->timer)))
->                         mod_timer(&(tz->timer),jiffies + (HZ * sleep_time) /
-> 1000);
->                 else {
->                         tz->timer.data = (unsigned long)tz;
->                         tz->timer.function = acpi_thermal_run;
->                         tz->timer.expires = jiffies + (HZ * sleep_time) / 1000;
->                         add_timer(&(tz->timer));
+> I suppose in the future when a whole socket goes off line one could
+> implement special code to turn off the CPU further. But it likely
+> won't work on older hardware.
 
-Yes, the above looks like the correct change.
+Speaking for all Intel hardware implemented from pre-history until now,
+deep C-states is the best you can do, and there is no special offline
+mode to save more power.
 
-> Also, I think this is new with the line replaced..  Not sure exactly what's
-> causing it, but when I restart the cpuspeed daemon:
-> 
-> Starting cpuspeed: Error: Not an integer:
-> /proc/acpi/thermal_zone/TZS1/temperature
+If you really want to not use a core and the above bug isn't fixed in linux,
+you can use maxcpus=1 to never bring the other core on-line in the first place,
+and if the BIOS is implemented properly, the core will be spinning in the
+deepest available C-state.  Of course, it would probably be more interesting
+to simply leave the core on-line and let it go idle...
 
-Strange.  Maybe a timing thing.
-
-> # cat /proc/acpi/thermal_zone/TZS1/temperature
-> temperature:             41 C
-> 
-> Looks normal to me?
-
-Yes it does.  What happens of you stop and restart the daemon a second
-time?
-
-fwiw, /proc/acpi/thermal_zone/ATF0/temperature seems to do the right thing
-here.
-
+-Len
