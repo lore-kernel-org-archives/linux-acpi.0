@@ -1,57 +1,119 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [patch 2.6.21-rc5-git] make /proc/acpi/wakeup more useful
-Date: Tue, 10 Apr 2007 17:10:50 -0700
-Message-ID: <200704101710.50936.david-b@pacbell.net>
-References: <200704031741.42273.david-b@pacbell.net> <200704071308.07571.david-b@pacbell.net> <200704101629.18412.david-b@pacbell.net>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: Jiri Slaby <jirislaby@gmail.com>
+Subject: [PATCH 1/1] ACPI: asus_acpi, support F2JE model
+Date: Wed, 11 Apr 2007 11:33:48 +0200 (CEST)
+Message-ID: <22473653910004885@karneval.cz>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp112.sbc.mail.mud.yahoo.com ([68.142.198.211]:30264 "HELO
-	smtp112.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1161104AbXDKAK4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 10 Apr 2007 20:10:56 -0400
-In-Reply-To: <200704101629.18412.david-b@pacbell.net>
-Content-Disposition: inline
+Received: from av1.karneval.cz ([81.27.192.123]:3649 "EHLO av1.karneval.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751890AbXDKJwE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Apr 2007 05:52:04 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, lenb@kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, corentincj@iksaif.net, sziwan@users.sourceforge.net, acpi4asus-user@lists.sourceforge.net, len.brown@intel.com, linux-acpi@vger.kernel.org
 
-On Tuesday 10 April 2007 4:29 pm, David Brownell wrote:
-> 	... the appended
-> patch goes on top of the previous pnpacpi patch, and should (nyet tested!)
-> fix another place I saw that warning.
+asus_acpi, support F2JE model
 
-And here's a tested version.  Curiouser and curiouser.  I think the mapping
-of ACPI tables to sysfs nodes still needs a bunch of work...
+also augment the driver to support switching LCD status even if no function
+for getting lcd status doesn't exist in DSDT.
 
-- Dave
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 
-==========	CUT HERE
-Handle PNP devices that have the same IDs a bit more sanely ... this at least
-arranges multiple one-to-one mappings between PNP nodes and ACPI nodes that
-all share the same PNP0c02 id.  (Maybe mapped to the wrong node though...)
+---
+commit 4e55effd524fffae1113c301d63d4cd5280264ab
+tree 96d1c15a7ee82558bcbf1bb4b6e66c435781758d
+parent 0156510dee9d326af2ec52cf8b1a388ce9a839e9
+author Jiri Slaby <jirislaby@gmail.com> Wed, 11 Apr 2007 11:28:34 +0200
+committer Jiri Slaby <jirislaby@gmail.com> Wed, 11 Apr 2007 11:28:34 +0200
 
-This remains a hack, since it masks failures where PNP0a03 (a PCI root bridge)
-is handled by ACPI special case code (/sys/devices/pci0000:00 on my systems
-instead of /sys/devices/pnp0/pnp00:0/pci0000:00!) not pure PNPACPI logic.
+ drivers/acpi/asus_acpi.c |   33 +++++++++++++++++++++++++++++----
+ 1 files changed, 29 insertions(+), 4 deletions(-)
 
-I suspect that pnp_dev.number and some acpi_device field need to be compared,
-(so the right PNP0c02 nodes hook up to each other, PNP0a03 likewise) but I'll
-leave that to someone who knows how those ACPI table lookups "should" work.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-
---- g26.orig/drivers/pnp/pnpacpi/core.c	2007-04-10 01:38:53.000000000 -0700
-+++ g26/drivers/pnp/pnpacpi/core.c	2007-04-10 16:35:13.000000000 -0700
-@@ -243,6 +243,7 @@ static int __init acpi_pnp_match(struct 
+diff --git a/drivers/acpi/asus_acpi.c b/drivers/acpi/asus_acpi.c
+index 0a9ea00..e9c1630 100644
+--- a/drivers/acpi/asus_acpi.c
++++ b/drivers/acpi/asus_acpi.c
+@@ -123,6 +123,7 @@ struct asus_hotk {
+ 		A2x,		//A2500H
+ 		A4G,		//A4700G
+ 		D1x,		//D1
++		F2x,		//F2JE
+ 		L2D,		//L2000D
+ 		L3C,		//L3800C
+ 		L3D,		//L3400D
+@@ -150,6 +151,7 @@ struct asus_hotk {
  
- 	/* true means it matched */
- 	return acpi->flags.hardware_id
-+		&& !acpi_get_physical_device(acpi->handle)
- 		&& compare_pnp_id(pnp->id, acpi->pnp.hardware_id);
+ /* Here we go */
+ #define A1x_PREFIX "\\_SB.PCI0.ISA.EC0."
++#define F2x_PREFIX "\\_SB.PCI0.SBRG.EC0."
+ #define L3C_PREFIX "\\_SB.PCI0.PX40.ECD0."
+ #define M1A_PREFIX "\\_SB.PCI0.PX40.EC0."
+ #define P30_PREFIX "\\_SB.PCI0.LPCB.EC0."
+@@ -206,6 +208,17 @@ static struct model_data model_conf[END_MODEL] = {
+ 	 .display_get = "\\INFB"},
+ 
+ 	{
++	 .name = "F2x",
++	 .mt_wled = "WLED",
++	 .mt_bt_switch = "BLED",
++	 .mt_lcd_switch = F2x_PREFIX "_Q10",
++	 .lcd_status = "",
++	 .brightness_set = "SPLV",
++	 .brightness_get = "GPLV",
++	 .display_set = "SDSP",
++	 .display_get = "\\ADVG"},
++
++	{
+ 	 .name = "L2D",
+ 	 .mt_mled = "MLED",
+ 	 .mled_status = "\\SGP6",
+@@ -706,6 +719,8 @@ static int get_lcd_state(void)
+ {
+ 	int lcd = 0;
+ 
++	BUG_ON(!*hotk->methods->lcd_status);
++
+ 	if (hotk->model != L3H) {
+ 		/* We don't have to check anything if we are here */
+ 		if (!read_acpi_int(NULL, hotk->methods->lcd_status, &lcd))
+@@ -748,11 +763,17 @@ static int get_lcd_state(void)
+ 
+ static int set_lcd_state(int value)
+ {
+-	int lcd = 0;
+ 	acpi_status status = 0;
+ 
+-	lcd = value ? 1 : 0;
+-	if (lcd != get_lcd_state()) {
++	if (!value && !*hotk->methods->lcd_status) {
++		printk(KERN_ERR "You must pass nonzero value to switch LCD "
++				"status for this model\n");
++		return -EINVAL;
++	}
++
++	/* pay attention to lazy evaluation, we don't want to reach
++	   get_lcd_state if lcd_status is empty string */
++	if (!*hotk->methods->lcd_status || !!value != get_lcd_state()) {
+ 		/* switch */
+ 		if (hotk->model != L3H) {
+ 			status =
+@@ -778,7 +799,9 @@ static int
+ proc_read_lcd(char *page, char **start, off_t off, int count, int *eof,
+ 	      void *data)
+ {
+-	return sprintf(page, "%d\n", get_lcd_state());
++	return *hotk->methods->lcd_status ?
++		sprintf(page, "%d\n", get_lcd_state()) :
++		sprintf(page, "n/a (but 1 may be written to switch LCD)\n");
  }
  
+ static int
+@@ -1091,6 +1114,8 @@ static int asus_model_match(char *model)
+ 		return L8L;
+ 	else if (strncmp(model, "L4R", 3) == 0)
+ 		return L4R;
++	else if (strncmp(model, "F2JE", 4) == 0)
++		return F2x;
+ 	else if (strncmp(model, "M6N", 3) == 0 || strncmp(model, "W3N", 3) == 0)
+ 		return M6N;
+ 	else if (strncmp(model, "M6R", 3) == 0 || strncmp(model, "A3G", 3) == 0)
