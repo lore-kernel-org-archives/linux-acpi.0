@@ -1,52 +1,50 @@
-From: Jiri Slaby <jirislaby@gmail.com>
-Subject: Re: [PATCH 1/1] ACPI: asus_acpi, support F2JE model
-Date: Wed, 11 Apr 2007 23:17:36 +0200
-Message-ID: <461D5070.7080902@gmail.com>
-References: <2189310342910921713@karneval.cz>	<20070411132053.899462b4.akpm@linux-foundation.org>	<461D45CE.3030309@gmail.com>	<461D46EF.2040805@gmail.com> <20070411140655.6dd2cb3f.akpm@linux-foundation.org>
+From: Stelian Pop <stelian@popies.net>
+Subject: Re: [patch 0/9] [RFC] sonypi ACPI reimplementation (resend 3)
+Date: Thu, 12 Apr 2007 11:20:10 +0200
+Message-ID: <1176369610.5573.76.camel@localhost.localdomain>
+References: <20070409081903.057292676@linux.it>
+	 <200704101613.43751.lenb@kernel.org>
+	 <20070410220423.GA4041@inferi.kami.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mu-out-0910.google.com ([209.85.134.185]:40523 "EHLO
-	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753650AbXDKVRh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Apr 2007 17:17:37 -0400
-Received: by mu-out-0910.google.com with SMTP id g7so377563muf
-        for <linux-acpi@vger.kernel.org>; Wed, 11 Apr 2007 14:17:35 -0700 (PDT)
-In-Reply-To: <20070411140655.6dd2cb3f.akpm@linux-foundation.org>
+Received: from sd291.sivit.org ([194.146.225.122]:2157 "EHLO sd291.sivit.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1161159AbXDLJUN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 Apr 2007 05:20:13 -0400
+In-Reply-To: <20070410220423.GA4041@inferi.kami.home>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, corentincj@iksaif.net, sziwan@users.sourceforge.net, acpi4asus-user@lists.sourceforge.net, len.brown@intel.com, linux-acpi@vger.kernel.org
+To: Mattia Dongili <malattia@linux.it>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
 
-Andrew Morton napsal(a):
-> On Wed, 11 Apr 2007 22:37:03 +0200
-> Jiri Slaby <jirislaby@gmail.com> wrote:
-> 
->> Jiri Slaby napsal(a):
->>> Side note, as Danny wrote, there is an asus-laptop driver sitting in -mm,
->>> which supersedes this one -- if you plan to push it upstream in the near
->>> future, don't bother with this patch.
->> Hmm, there is a 0.40 version in -rc6 yet. There is something weird with me
->> today.
->>
-> 
-> I don't know what you mean by this.
+Le mercredi 11 avril 2007 =E0 00:04 +0200, Mattia Dongili a =E9crit :
 
-Oh, 0.40 version, which is in 2.6.21-rc6's drivers/misc/ directory would
-"contain" the changes, which are in my patch -- so I thought it's useless,
-but the driver is still marked as EXPERIMENTAL, so:
+> The only function that sony-laptop doesn't offer is the motion eye
+> camera stuff, which the meye driver also depend on and which makes
+> sonypi useful at least for a couple of vaio models.  I can add it to
+> sony-laptop[1] but I can't test.
 
-> If your patch is still good then I'd be inclined to proceed with it - yes,
-> there's a new driver in Len's tree but I assume we'll be maintaining the
-> old one until the new one is proven to be a successful replacement.
+The meye stuff is quite trivial, I think you can try putting it in and
+let the users test...
 
-as you wrote, we might want the patch for the old one to go through if
-nobody has objections.
+> I should probably add some printks in sonypi to suggest moving toward=
+s
+> sony-laptop and try to detect if the known ioports are being used by
+> sony-laptop to better handle the sonypi load failure (see below).
 
-thanks, sorry for the confusion,
--- 
-http://www.fi.muni.cz/~xslaby/            Jiri Slaby
-faculty of informatics, masaryk university, brno, cz
-e-mail: jirislaby gmail com, gpg pubkey fingerprint:
- B674 9967 0407 CE62 ACC8  22A0 32CC 55C3 39D4 7A7E
+This would be a good idea. Maybe let it printk a pointer to the sonypi
+wiki.
+
+I have also put links to the new wiki on my sonypi web pages, this
+should help the users find the relevant information.
+
+--=20
+Stelian Pop <stelian@popies.net>
+
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
