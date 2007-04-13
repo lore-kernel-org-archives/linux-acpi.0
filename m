@@ -1,51 +1,38 @@
-From: "Andrew Grover" <andy.grover@gmail.com>
-Subject: Re: Comes Vs Microsoft, mail from Bill Gates Subject: ACPI extensions
-Date: Sat, 14 Apr 2007 13:49:02 -0700
-Message-ID: <c0a09e5c0704141349g37d1d1f3y532836e93384b932@mail.gmail.com>
-References: <3df49b7b0704130436w588a5b06uec5088c15d7493c0@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [patch 2.6.21-rc5-git] make /proc/acpi/wakeup more useful
+Date: Fri, 13 Apr 2007 15:59:50 +0000
+Message-ID: <20070413155949.GA9157@ucw.cz>
+References: <200704031741.42273.david-b@pacbell.net> <200704060843.30723.david-b@pacbell.net> <20070407050131.GB25511@kroah.com> <200704071308.07571.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nz-out-0506.google.com ([64.233.162.233]:49774 "EHLO
-	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752209AbXDNUtE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 14 Apr 2007 16:49:04 -0400
-Received: by nz-out-0506.google.com with SMTP id s1so1000511nze
-        for <linux-acpi@vger.kernel.org>; Sat, 14 Apr 2007 13:49:02 -0700 (PDT)
-In-Reply-To: <3df49b7b0704130436w588a5b06uec5088c15d7493c0@mail.gmail.com>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:1073 "EHLO spitz.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752826AbXDOJhM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 15 Apr 2007 05:37:12 -0400
 Content-Disposition: inline
+In-Reply-To: <200704071308.07571.david-b@pacbell.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Greg KH <greg@kroah.com>, Zhang Rui <rui.zhang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, lenb@kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>
 
-Yes, but do we know if billg got his wish to make ACPI linked to
-Windows? In any case, it's been a great deal of work to implement ACPI
-for Linux, by a great many people. I do think ACPI assumes some things
-about the OS that Windows had at the time and Linux didn't (e.g.
-global device tree) but those were things that Linux needed to add at
-some point anyways.
+Hi!
 
-Regards -- Andy
+> > Are you _sure_ you have a 1-to-1 relationship here?  No multiple devices
+> > pointing to the same acpi node?  Or the other way around?  If so, you
+> > are going to have to change the name to be something more unique.
+> 
+> I've wondered that too.  The short answer:  APCI only supports 1-1
+> here.  It will emit warnings if it tries to bind more than one ACPI
+...
+> Assuming they all adopt that same "parallel tree" model, that seems
+> like a good idea.  The tools will likely need to understand how ACPI
+> and OF differ, but there's no point in reserving more names than we
+> really need.  Though it may be that "parallel trees" should go away.
 
-On 4/13/07, RusH <citizenr@gmail.com> wrote:
-> http://www.os2site.com/sw/info/comes/px03020.zip
->
-> "One thing I find myself wondering about is whether we shouldn't try
-> and make the "ACPI" extensions somehow Windows
-> specific.
-> If seems unfortunate if we do this work and get our partners to do the
-> work and the result is that Linux works great without
-> having to do the work.
-> Maybe there is no way Io avoid this problem but it does bother me.
-> Maybe we couid define the APIs so that they work well with NT and not
-> the others even if they are open.
-> Or maybe we could patent something relaled to this."
->
-> --
-> Who logs in to gdm? Not I, said the duck.
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+If mapping is indeed 1-to-1 in acpi... it would be nice to just merge
+the trees.
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
