@@ -1,56 +1,34 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: Thermal Zones and Throttling
-Date: Fri, 13 Apr 2007 09:38:10 +0800
-Message-ID: <1176428290.29594.18.camel@localhost.localdomain>
-References: <11b141710704121410j16011387q4640f07f1e27a85f@mail.gmail.com>
+From: RusH <citizenr@gmail.com>
+Subject: Comes Vs Microsoft, mail from Bill Gates Subject: ACPI extensions
+Date: Fri, 13 Apr 2007 13:36:04 +0200
+Message-ID: <3df49b7b0704130436w588a5b06uec5088c15d7493c0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:45651 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752854AbXDMBjP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 Apr 2007 21:39:15 -0400
-In-Reply-To: <11b141710704121410j16011387q4640f07f1e27a85f@mail.gmail.com>
+Received: from wx-out-0506.google.com ([66.249.82.232]:58679 "EHLO
+	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753098AbXDMLgF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Apr 2007 07:36:05 -0400
+Received: by wx-out-0506.google.com with SMTP id h31so853125wxd
+        for <linux-acpi@vger.kernel.org>; Fri, 13 Apr 2007 04:36:05 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Paulo J. Matos" <pocm@soton.ac.uk>
-Cc: "linux-acpi@vger" <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-HI, Paulo,
+http://www.os2site.com/sw/info/comes/px03020.zip
 
-On Thu, 2007-04-12 at 22:10 +0100, Paulo J. Matos wrote:
-> Hello,
-> 
-> I'm almost sure by laptop is burning [almost] and yet, no throttling
-> change is happening.
-> The only wierd thing I can find is the fact that:
-> euler ~ # cat /proc/acpi/processor/CPU0/info
-> processor id:            0
-> acpi id:                 0
-> bus mastering control:   yes
-> power management:        yes
-> throttling control:      yes
-> limit interface:         yes
-> euler ~ # cat /proc/acpi/processor/CPU0/throttling
-> state count:             4
-> active state:            T0
-> states:
->    *T0:                  00%
->     T1:                  25%
->     T2:                  50%
->     T3:                  75%
-> euler ~ # ls -la /proc/acpi/thermal_zone/
-> total 0
-> dr-xr-xr-x  2 root root 0 Apr 12 22:07 .
-> dr-xr-xr-x 10 root root 0 Apr 12 15:26 ..
-> 
-> Isn't it wierd that although I have throttling control, there are no
-> thermal zones?
-> 
-Please attach the acpidump file of your laptop.
-Or you can file a bug report at bugzilla.kernel.org and attach the
-acpidump there, so that we can track it better. :)
+"One thing I find myself wondering about is whether we shouldn't try
+and make the "ACPI" extensions somehow Windows
+specific.
+If seems unfortunate if we do this work and get our partners to do the
+work and the result is that Linux works great without
+having to do the work.
+Maybe there is no way Io avoid this problem but it does bother me.
+Maybe we couid define the APIs so that they work well with NT and not
+the others even if they are open.
+Or maybe we could patent something relaled to this."
 
-Thanks,
-Ray
+-- 
+Who logs in to gdm? Not I, said the duck.
