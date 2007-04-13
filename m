@@ -1,65 +1,64 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Date: Fri, 13 Apr 2007 14:59:45 -0600
-Message-ID: <200704131459.45867.bjorn.helgaas@hp.com>
-References: <45D5EA88.7090300@redhat.com> <200704131218.44045.bjorn.helgaas@hp.com> <20070413200746.GD28264@elf.ucw.cz>
+Subject: Re: suspend kills serial wacom tablet
+Date: Fri, 13 Apr 2007 15:10:26 -0600
+Message-ID: <200704131510.26565.bjorn.helgaas@hp.com>
+References: <pan.2007.02.20.13.52.07.111117@metm.org> <200704131249.23640.bjorn.helgaas@hp.com> <d120d5000704131216h7ccabc12uf0e649105fd7b6b0@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel7.hp.com ([156.153.255.213]:52664 "EHLO atlrel7.hp.com"
+Received: from atlrel8.hp.com ([156.153.255.206]:60844 "EHLO atlrel8.hp.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030297AbXDMU74 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 13 Apr 2007 16:59:56 -0400
-In-Reply-To: <20070413200746.GD28264@elf.ucw.cz>
+	id S1030319AbXDMVKg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 13 Apr 2007 17:10:36 -0400
+In-Reply-To: <d120d5000704131216h7ccabc12uf0e649105fd7b6b0@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Jean Delvare <khali@linux-fr.org>, Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: marco <marco@metm.org>, linux-acpi@vger.kernel.org
 
-On Friday 13 April 2007 14:07, Pavel Machek wrote:
-> > > ... The primary issue is the concurrent access
-> > > to resources, which cause lots of trouble which are hard to investigate.
-> > > If ACPI reserves the ports, then the SMBus or hardware monitoring
-> > > drivers (or any other conflicting driver) will cleanly fail to load,
-> > > which would be a move in the right direction. ...
-> > > 
-> > > So, can ACPI actually reserve the ports it accesses?
-> > 
-> > Sorry to join this discussion so late.
-> > 
-> > ACPI tells us the resources used by devices.  Today, we don't
-> > reserve
+On Friday 13 April 2007 13:16, Dmitry Torokhov wrote:
+> On 4/13/07, Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+> > On Tuesday 20 February 2007 06:52, marco wrote:
+> > > I have a thinkpad X41-tablet which uses the linuxwacom serial drivers.
+> > > The tablet works perfectly when the laptop first boots, but does not work
+> > > at all after resuming from sleep.  I posted to the linuxwacom list but
+> > > think that the problem might be more general in how acpi resumes the
+> > > serial ports.
+> > >
+> > > As suggested here:
+> > > http://www.thinkwiki.org/wiki/Installing_Ubuntu_6.10_on_a_ThinkPad_X41_Tablet
+> > > I have added a script to resume.d which calls the setserial command:
+> > >   /bin/setserial /dev/ttyS0 port 0x0200 irq 5 autoconfig
+> >
+> > Using setserial to change port or IRQ usage is a good clue that the
+> > kernel is doing something wrong.  Usually it's "we KNOW that ttyS0
+> > lives at 0x3f8 and IRQ 4, so we'll ignore what ACPI is telling us."
+> > But it sounds like this is a tangent and not related to your current
+> > problem.
+> >
+> > Can you post the dmesg log from a boot where the tablet works
+> > correctly?  That will tell us exactly what kernel you're running
+> > and how the kernel detected the serial port.  There've been some
+> > serial port resume changes in the not-too-distant past, and I
+> > don't know whether they're in the Ubuntu kernel yet.
 > 
-> Problem seems to be that ACPI does _not_ tell us which ports it
-> accesses from AML code.
+> It has nothing to do with changes to serial. Wacom driver for tablets
+> connected to serial ports lives completely in userspace (X) and is
+> completelyunaware that the box is coming out of sleep and that
+> conncted device needs to be reinitialized.
 
-I think that would violate at least the spirit of the ACPI spec.
-The example in section 11.6 of the ACPI 3.0 spec shows a _TMP
-method that runs an EC method to read the temp, and the EC ioport
-usage is correctly declared in the EC device's _CRS method.
+OK, that sounds good, because if it's an X issue, it's Someone Else's
+Problem :-)
 
-Of course, there are always BIOS defects.  But if we could make a
-case that a BIOS that doesn't declare the resources used by the AML
-is defective, we could add quirks to reserve the undeclared resources.
+I'm a little concerned because Marco said that after a resume,
+"cat /dev/ttyS0" caused his system to hang, and not even Ctrl-Alt-Del
+worked.  Can we blame that all on X?
 
-Chuck's last update (http://lkml.org/lkml/2007/2/20/136) says his
-problem turned out to be unrelated to k8temp and may have gone away
-after a BIOS update.
-
-> But we already found a lock we can take; AFAICT we know how to solve
-> this problem.
-
-This might solve it, but doesn't seem like a clean way to do it.
-I don't like the idea of sharing a lock between drivers and ACPI.
-k8temp happens to be x86-dependent, so we'll always have ACPI, but
-in principle, we could have the same problem with an arch-independent
-PCI driver that only has ACPI on x86 and ia64 platforms.
-
-(BTW, if Chuck's problem was solved by the BIOS update, I assume
-there *is* another instance of the problem that we're trying to
-solve with this lock.)
+Would stopping the X server before suspend and restarting
+it after resume be a workaround?
 
 Bjorn
+
