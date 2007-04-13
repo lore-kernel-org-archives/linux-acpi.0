@@ -1,59 +1,43 @@
-From: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
-Subject: Re: suspend kills serial wacom tablet
-Date: Fri, 13 Apr 2007 15:16:51 -0400
-Message-ID: <d120d5000704131216h7ccabc12uf0e649105fd7b6b0@mail.gmail.com>
-References: <pan.2007.02.20.13.52.07.111117@metm.org>
-	 <200704131249.23640.bjorn.helgaas@hp.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
+Date: Fri, 13 Apr 2007 22:07:46 +0200
+Message-ID: <20070413200746.GD28264@elf.ucw.cz>
+References: <45D5EA88.7090300@redhat.com> <20070302114023.GD2163@elf.ucw.cz> <20070302150313.198b6053.khali@linux-fr.org> <200704131218.44045.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nz-out-0506.google.com ([64.233.162.231]:30751 "EHLO
-	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932179AbXDMTQw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Apr 2007 15:16:52 -0400
-Received: by nz-out-0506.google.com with SMTP id s1so819833nze
-        for <linux-acpi@vger.kernel.org>; Fri, 13 Apr 2007 12:16:51 -0700 (PDT)
-In-Reply-To: <200704131249.23640.bjorn.helgaas@hp.com>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:39859 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S964976AbXDMUIi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 13 Apr 2007 16:08:38 -0400
 Content-Disposition: inline
+In-Reply-To: <200704131218.44045.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: marco <marco@metm.org>, linux-acpi@vger.kernel.org
+Cc: Jean Delvare <khali@linux-fr.org>, Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-On 4/13/07, Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
-> On Tuesday 20 February 2007 06:52, marco wrote:
-> > I have a thinkpad X41-tablet which uses the linuxwacom serial drivers.
-> > The tablet works perfectly when the laptop first boots, but does not work
-> > at all after resuming from sleep.  I posted to the linuxwacom list but
-> > think that the problem might be more general in how acpi resumes the
-> > serial ports.
-> >
-> > As suggested here:
-> > http://www.thinkwiki.org/wiki/Installing_Ubuntu_6.10_on_a_ThinkPad_X41_Tablet
-> > I have added a script to resume.d which calls the setserial command:
-> >   /bin/setserial /dev/ttyS0 port 0x0200 irq 5 autoconfig
->
-> Using setserial to change port or IRQ usage is a good clue that the
-> kernel is doing something wrong.  Usually it's "we KNOW that ttyS0
-> lives at 0x3f8 and IRQ 4, so we'll ignore what ACPI is telling us."
-> But it sounds like this is a tangent and not related to your current
-> problem.
->
-> Can you post the dmesg log from a boot where the tablet works
-> correctly?  That will tell us exactly what kernel you're running
-> and how the kernel detected the serial port.  There've been some
-> serial port resume changes in the not-too-distant past, and I
-> don't know whether they're in the Ubuntu kernel yet.
+Hi!
 
-It has nothing to do with changes to serial. Wacom driver for tablets
-connected to serial ports lives completely in userspace (X) and is
-completelyunaware that the box is coming out of sleep and that
-conncted device needs to be reinitialized.
+> > ... The primary issue is the concurrent access
+> > to resources, which cause lots of trouble which are hard to investigate.
+> > If ACPI reserves the ports, then the SMBus or hardware monitoring
+> > drivers (or any other conflicting driver) will cleanly fail to load,
+> > which would be a move in the right direction. ...
+> > 
+> > So, can ACPI actually reserve the ports it accesses?
+> 
+> Sorry to join this discussion so late.
+> 
+> ACPI tells us the resources used by devices.  Today, we don't
+> reserve
 
-... Not to say that wacom with in-kernel portion of the driver (USB)
-handles resuming well... But that should change when X starts
-supporintg hotplug.
+Problem seems to be that ACPI does _not_ tell us which ports it
+accesses from AML code.
 
+But we already found a lock we can take; AFAICT we know how to solve
+this problem.
+									Pavel
 -- 
-Dmitry
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
