@@ -1,81 +1,89 @@
-From: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
-Subject: Re: suspend kills serial wacom tablet
-Date: Fri, 13 Apr 2007 17:20:51 -0400
-Message-ID: <d120d5000704131420n65dd47d1r97442785d8617977@mail.gmail.com>
-References: <pan.2007.02.20.13.52.07.111117@metm.org>
-	 <200704131249.23640.bjorn.helgaas@hp.com>
-	 <d120d5000704131216h7ccabc12uf0e649105fd7b6b0@mail.gmail.com>
-	 <200704131510.26565.bjorn.helgaas@hp.com>
+From: Mattia Dongili <malattia@linux.it>
+Subject: CPU_IDLE prevents resuming from STR [was: Re: 2.6.21-rc6-mm1]
+Date: Sat, 14 Apr 2007 01:45:13 +0200
+Message-ID: <20070413234513.GA2940@inferi.kami.home>
+References: <20070408143559.f5014629.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nz-out-0506.google.com ([64.233.162.229]:21960 "EHLO
-	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030456AbXDMVUw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Apr 2007 17:20:52 -0400
-Received: by nz-out-0506.google.com with SMTP id s1so849538nze
-        for <linux-acpi@vger.kernel.org>; Fri, 13 Apr 2007 14:20:52 -0700 (PDT)
-In-Reply-To: <200704131510.26565.bjorn.helgaas@hp.com>
+Received: from smtp-out20.alice.it ([85.33.2.20]:4611 "EHLO
+	smtp-out01.alice.it" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1030906AbXDNABQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Apr 2007 20:01:16 -0400
 Content-Disposition: inline
+In-Reply-To: <20070408143559.f5014629.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: marco <marco@metm.org>, linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Shaohua Li <shaohua.li@intel.com>
 
-On 4/13/07, Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
-> On Friday 13 April 2007 13:16, Dmitry Torokhov wrote:
-> > On 4/13/07, Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
-> > > On Tuesday 20 February 2007 06:52, marco wrote:
-> > > > I have a thinkpad X41-tablet which uses the linuxwacom serial drivers.
-> > > > The tablet works perfectly when the laptop first boots, but does not work
-> > > > at all after resuming from sleep.  I posted to the linuxwacom list but
-> > > > think that the problem might be more general in how acpi resumes the
-> > > > serial ports.
-> > > >
-> > > > As suggested here:
-> > > > http://www.thinkwiki.org/wiki/Installing_Ubuntu_6.10_on_a_ThinkPad_X41_Tablet
-> > > > I have added a script to resume.d which calls the setserial command:
-> > > >   /bin/setserial /dev/ttyS0 port 0x0200 irq 5 autoconfig
-> > >
-> > > Using setserial to change port or IRQ usage is a good clue that the
-> > > kernel is doing something wrong.  Usually it's "we KNOW that ttyS0
-> > > lives at 0x3f8 and IRQ 4, so we'll ignore what ACPI is telling us."
-> > > But it sounds like this is a tangent and not related to your current
-> > > problem.
-> > >
-> > > Can you post the dmesg log from a boot where the tablet works
-> > > correctly?  That will tell us exactly what kernel you're running
-> > > and how the kernel detected the serial port.  There've been some
-> > > serial port resume changes in the not-too-distant past, and I
-> > > don't know whether they're in the Ubuntu kernel yet.
-> >
-> > It has nothing to do with changes to serial. Wacom driver for tablets
-> > connected to serial ports lives completely in userspace (X) and is
-> > completelyunaware that the box is coming out of sleep and that
-> > conncted device needs to be reinitialized.
->
-> OK, that sounds good, because if it's an X issue, it's Someone Else's
-> Problem :-)
->
+On Sun, Apr 08, 2007 at 02:35:59PM -0700, Andrew Morton wrote:
+...
+>  git-acpi.patch
 
-Exactly ;)
+after bisecting I can finally say what breaks resume from STR here:
 
-> I'm a little concerned because Marco said that after a resume,
-> "cat /dev/ttyS0" caused his system to hang, and not even Ctrl-Alt-Del
-> worked.  Can we blame that all on X?
->
+tadaaaaa: CPU_IDLE.
+I first spotted the git-acpi.patch then reapplied it and disabled
+CPU_IDLE, now my laptop resumes.
 
-No, I don't think we can. The device connected to the port is simply
-not re-initialized and mey either transmit garbage or not transmit
-data at all. However accessing the port should not hang kernel.
+Any useful information I should add?
 
-> Would stopping the X server before suspend and restarting
-> it after resume be a workaround?
->
+$ cat /sys/devices/system/cpu/cpuidle/*
+acpi_idle 
+no governors
+acpi_idle
+no governor
 
-I do not think it is feasible.  If you have to shut down X you might
-as well shut down entire box.
+$ cat /proc/cpuinfo
+processor	: 0
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 15
+model name	: Intel(R) Core(TM)2 CPU         T5600  @ 1.83GHz
+stepping	: 6
+cpu MHz		: 1000.000
+cache size	: 2048 KB
+physical id	: 0
+siblings	: 2
+core id		: 0
+cpu cores	: 2
+fdiv_bug	: no
+hlt_bug		: no
+f00f_bug	: no
+coma_bug	: no
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 10
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe nx lm constant_tsc pni monitor ds_cpl vmx est tm2 ssse3 cx16 xtpr lahf_lm
+bogomips	: 3671.24
+clflush size	: 64
+
+processor	: 1
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 15
+model name	: Intel(R) Core(TM)2 CPU         T5600  @ 1.83GHz
+stepping	: 6
+cpu MHz		: 1000.000
+cache size	: 2048 KB
+physical id	: 0
+siblings	: 2
+core id		: 1
+cpu cores	: 2
+fdiv_bug	: no
+hlt_bug		: no
+f00f_bug	: no
+coma_bug	: no
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 10
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe nx lm constant_tsc pni monitor ds_cpl vmx est tm2 ssse3 cx16 xtpr lahf_lm
+bogomips	: 15805.85
+clflush size	: 64
 
 -- 
-Dmitry
+mattia
+:wq!
