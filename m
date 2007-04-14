@@ -1,89 +1,60 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: CPU_IDLE prevents resuming from STR [was: Re: 2.6.21-rc6-mm1]
-Date: Sat, 14 Apr 2007 01:45:13 +0200
-Message-ID: <20070413234513.GA2940@inferi.kami.home>
-References: <20070408143559.f5014629.akpm@linux-foundation.org>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: [1/3] 2.6.21-rc6: known regressions
+Date: Sat, 14 Apr 2007 02:36:25 +0200
+Message-ID: <20070414003625.GS5907@stusta.de>
+References: <Pine.LNX.4.64.0704051944230.6730@woody.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-out20.alice.it ([85.33.2.20]:4611 "EHLO
-	smtp-out01.alice.it" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1030906AbXDNABQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Apr 2007 20:01:16 -0400
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-ide-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20070408143559.f5014629.akpm@linux-foundation.org>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <Pine.LNX.4.64.0704051944230.6730@woody.linux-foundation.org>
+Sender: linux-ide-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Stephen Clark <Stephen.Clark@seclark.us>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Michal Jaegermann <michal@ellpspace.math.ualberta.ca>, lenb@kernel.org, linux-acpi@vger.kernel.org, netdev@vger.kernel.org, Dave Jones <davej@redhat.com>, cramerj@intel.com, john.ronciak@intel.com, jeffrey.t.kirsher@intel.com, auke-jan.h.kok@intel.com, e1000-devel@lists.sourceforge.net, Ingo Molnar <mingo@elte.hu>, Ayaz Abdulla <aabdulla@nvidia.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>, Shaohua Li <shaohua.li@intel.com>
 
-On Sun, Apr 08, 2007 at 02:35:59PM -0700, Andrew Morton wrote:
-...
->  git-acpi.patch
+This email lists some known regressions in Linus' tree compared to 2.6.20.
 
-after bisecting I can finally say what breaks resume from STR here:
+If you find your name in the Cc header, you are either submitter of one
+of the bugs, maintainer of an affectected subsystem or driver, a patch
+of you caused a breakage or I'm considering you in any other way
+possibly involved with one or more of these issues.
 
-tadaaaaa: CPU_IDLE.
-I first spotted the git-acpi.patch then reapplied it and disabled
-CPU_IDLE, now my laptop resumes.
+Due to the huge amount of recipients, please trim the Cc when answering.
 
-Any useful information I should add?
 
-$ cat /sys/devices/system/cpu/cpuidle/*
-acpi_idle 
-no governors
-acpi_idle
-no governor
+Subject    : ali_pata: boot from CD fails
+References : http://lkml.org/lkml/2007/3/31/160
+Submitter  : Stephen Clark <Stephen.Clark@seclark.us>
+Status     : unknown
 
-$ cat /proc/cpuinfo
-processor	: 0
-vendor_id	: GenuineIntel
-cpu family	: 6
-model		: 15
-model name	: Intel(R) Core(TM)2 CPU         T5600  @ 1.83GHz
-stepping	: 6
-cpu MHz		: 1000.000
-cache size	: 2048 KB
-physical id	: 0
-siblings	: 2
-core id		: 0
-cpu cores	: 2
-fdiv_bug	: no
-hlt_bug		: no
-f00f_bug	: no
-coma_bug	: no
-fpu		: yes
-fpu_exception	: yes
-cpuid level	: 10
-wp		: yes
-flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe nx lm constant_tsc pni monitor ds_cpl vmx est tm2 ssse3 cx16 xtpr lahf_lm
-bogomips	: 3671.24
-clflush size	: 64
 
-processor	: 1
-vendor_id	: GenuineIntel
-cpu family	: 6
-model		: 15
-model name	: Intel(R) Core(TM)2 CPU         T5600  @ 1.83GHz
-stepping	: 6
-cpu MHz		: 1000.000
-cache size	: 2048 KB
-physical id	: 0
-siblings	: 2
-core id		: 1
-cpu cores	: 2
-fdiv_bug	: no
-hlt_bug		: no
-f00f_bug	: no
-coma_bug	: no
-fpu		: yes
-fpu_exception	: yes
-cpuid level	: 10
-wp		: yes
-flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe nx lm constant_tsc pni monitor ds_cpl vmx est tm2 ssse3 cx16 xtpr lahf_lm
-bogomips	: 15805.85
-clflush size	: 64
+Subject    : kernels fail to boot with drives on ATIIXP controller
+             (ACPI/IRQ related)
+References : https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=229621
+             http://lkml.org/lkml/2007/3/4/257
+Submitter  : Michal Jaegermann <michal@ellpspace.math.ualberta.ca>
+Status     : unknown
 
--- 
-mattia
-:wq!
+
+Subject    : boot failure: rtl8139: exception in interrupt routine
+References : http://lkml.org/lkml/2007/3/31/160
+Submitter  : Stephen Clark <Stephen.Clark@seclark.us>
+Status     : unknown
+
+
+Subject    : laptops with e1000: lockups
+References : https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=229603
+Submitter  : Dave Jones <davej@redhat.com>
+Handled-By : Jesse Brandeburg <jesse.brandeburg@intel.com>
+Status     : problem is being debugged
+
+
+Subject    : forcedeth: interface hangs under load
+References : http://lkml.org/lkml/2007/4/3/39
+Submitter  : Ingo Molnar <mingo@elte.hu>
+Handled-By : Ingo Molnar <mingo@elte.hu>
+             Ayaz Abdulla <aabdulla@nvidia.com>
+Status     : problem is being debugged
+
+
