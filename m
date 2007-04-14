@@ -1,17 +1,21 @@
 From: Adrian Bunk <bunk@stusta.de>
-Subject: [1/3] 2.6.21-rc6: known regressions
-Date: Sat, 14 Apr 2007 02:36:25 +0200
-Message-ID: <20070414003625.GS5907@stusta.de>
+Subject: [3/3] 2.6.21-rc6: known regressions
+Date: Sat, 14 Apr 2007 02:38:08 +0200
+Message-ID: <20070414003808.GU5907@stusta.de>
 References: <Pine.LNX.4.64.0704051944230.6730@woody.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Return-path: <linux-ide-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from emailhub.stusta.mhn.de ([141.84.69.5]:49960 "EHLO
+	mailhub.stusta.mhn.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753667AbXDNAiC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Apr 2007 20:38:02 -0400
 Content-Disposition: inline
 In-Reply-To: <Pine.LNX.4.64.0704051944230.6730@woody.linux-foundation.org>
-Sender: linux-ide-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Stephen Clark <Stephen.Clark@seclark.us>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Michal Jaegermann <michal@ellpspace.math.ualberta.ca>, lenb@kernel.org, linux-acpi@vger.kernel.org, netdev@vger.kernel.org, Dave Jones <davej@redhat.com>, cramerj@intel.com, john.ronciak@intel.com, jeffrey.t.kirsher@intel.com, auke-jan.h.kok@intel.com, e1000-devel@lists.sourceforge.net, Ingo Molnar <mingo@elte.hu>, Ayaz Abdulla <aabdulla@nvidia.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tobias Diedrich <ranma+kernel@tdiedrich.de>, pavel@suse.cz, linux-pm@lists.osdl.org, Dave Jones <davej@redhat.com>, Jeremy Fitzhardinge <jeremy@goop.org>, "Eric W. Biederman" <ebiederm@xmission.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, gregkh@suse.de, linux-pci@atrey.karlin.mff.cuni.cz, Tobias Doerffel <tobias.doerffel@gmail.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Marcus Better <marcus@better.se>, adaplas@gmail.com, James Simmons <jsimmons@infradead.org>, Jeff Chua <jeff.chua.linux@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>
 
 This email lists some known regressions in Linus' tree compared to 2.6.20.
 
@@ -23,38 +27,42 @@ possibly involved with one or more of these issues.
 Due to the huge amount of recipients, please trim the Cc when answering.
 
 
-Subject    : ali_pata: boot from CD fails
-References : http://lkml.org/lkml/2007/3/31/160
-Submitter  : Stephen Clark <Stephen.Clark@seclark.us>
+Subject    : suspend to disk works only once
+References : http://lkml.org/lkml/2007/4/13/240
+Submitter  : Tobias Diedrich <ranma+kernel@tdiedrich.de>
 Status     : unknown
 
 
-Subject    : kernels fail to boot with drives on ATIIXP controller
-             (ACPI/IRQ related)
-References : https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=229621
-             http://lkml.org/lkml/2007/3/4/257
-Submitter  : Michal Jaegermann <michal@ellpspace.math.ualberta.ca>
-Status     : unknown
-
-
-Subject    : boot failure: rtl8139: exception in interrupt routine
-References : http://lkml.org/lkml/2007/3/31/160
-Submitter  : Stephen Clark <Stephen.Clark@seclark.us>
-Status     : unknown
-
-
-Subject    : laptops with e1000: lockups
-References : https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=229603
+Subject    : ThinkPad X60: resume no longer works  (PCI related?)
+             workaround: booting with "hpet=disable"
+References : http://lkml.org/lkml/2007/3/13/3
 Submitter  : Dave Jones <davej@redhat.com>
-Handled-By : Jesse Brandeburg <jesse.brandeburg@intel.com>
+             Jeremy Fitzhardinge <jeremy@goop.org>
+Caused-By  : PCI merge
+             commit 78149df6d565c36675463352d0bfe0000b02b7a7
+Handled-By : Eric W. Biederman <ebiederm@xmission.com>
+             Rafael J. Wysocki <rjw@sisk.pl>
 Status     : problem is being debugged
 
 
-Subject    : forcedeth: interface hangs under load
-References : http://lkml.org/lkml/2007/4/3/39
-Submitter  : Ingo Molnar <mingo@elte.hu>
-Handled-By : Ingo Molnar <mingo@elte.hu>
-             Ayaz Abdulla <aabdulla@nvidia.com>
+Subject    : Suspend to RAM doesn't work anymore  (ACPI?)
+References : http://lkml.org/lkml/2007/3/19/128
+             http://bugzilla.kernel.org/show_bug.cgi?id=8247
+Submitter  : Tobias Doerffel <tobias.doerffel@gmail.com>
+Handled-By : Rafael J. Wysocki <rjw@sisk.pl>
+             Len Brown <len.brown@intel.com>
 Status     : problem is being debugged
 
+
+Subject    : resume from RAM corrupts vesafb console
+References : http://lkml.org/lkml/2007/3/26/76
+Submitter  : Marcus Better <marcus@better.se>
+Handled-By : Pavel Machek <pavel@ucw.cz>
+Status     : problem is being debugged
+
+
+Subject    : suspend to disk hangs  (CONFIG_NO_HZ)
+References : http://lkml.org/lkml/2007/3/25/217
+Submitter  : Jeff Chua <jeff.chua.linux@gmail.com>
+Status     : unknown
 
