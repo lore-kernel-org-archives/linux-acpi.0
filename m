@@ -1,65 +1,50 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] ACPI: more verbose thermal zone shutdown message
-Date: Sun, 15 Apr 2007 19:11:07 +0000
-Message-ID: <20070415191107.GD10097@ucw.cz>
-References: <200704051615.07960.dkukawka@suse.de>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
+Date: Sun, 15 Apr 2007 14:31:41 -0600
+Message-ID: <200704151431.41503.bjorn.helgaas@hp.com>
+References: <45D5EA88.7090300@redhat.com> <200704131459.45867.bjorn.helgaas@hp.com> <20070415114159.05026483@hyperion.delvare>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:3842 "EHLO spitz.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753536AbXDOT5h (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 15 Apr 2007 15:57:37 -0400
+Received: from atlrel7.hp.com ([156.153.255.213]:44584 "EHLO atlrel7.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753726AbXDOUbv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 15 Apr 2007 16:31:51 -0400
+In-Reply-To: <20070415114159.05026483@hyperion.delvare>
 Content-Disposition: inline
-In-Reply-To: <200704051615.07960.dkukawka@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Danny Kukawka <dkukawka@suse.de>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Pavel Machek <pavel@ucw.cz>, Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-Hi!
-
-> while debug some strange termal shutdowns I wrote this patch to get more 
-> information in /var/log/messages about the reason for the shutdown. I 
-> think this would be useful in general.
+On Sunday 15 April 2007 03:41, Jean Delvare wrote:
+> On Fri, 13 Apr 2007 14:59:45 -0600, Bjorn Helgaas wrote:
+> > Of course, there are always BIOS defects.  But if we could make a
+> > case that a BIOS that doesn't declare the resources used by the AML
+> > is defective, we could add quirks to reserve the undeclared resources.
 > 
-> Danny
-> 
-> From: Danny Kukawka <dkukawka@suse.de>
-> Subject: ACPI: more verbose thermal zone shutdown message
-> 
-> add more information to acpi thermal zone shutdown message for easier
-> debugging
-> 
-> Signed-off-by: Danny Kukawka <dkukawka@suse.de>
+> Only realistic if the list of systems needing a quirk is small. Do you
+> think that would be the case?
 
-Yes, please.
+I don't know.  I confess that I don't clearly understand the problem
+yet.  It sounds like the sensor drivers want to talk to hardware that
+ACPI methods might also use.
 
-(I actually had similar patch in my tree forever).
+But I missed the details, such as the specific devices in question,
+which ports they use, how they are described in ACPI, which AML
+methods use those ports, and which non-ACPI drivers also use them.
 
->  	if (tz->temperature >= tz->trips.critical.temperature) {
-> -		printk(KERN_WARNING PREFIX "Critical trip point\n");
-> +		printk(KERN_WARNING PREFIX 
-> +		       "Critical trip point (%ld C) reached on thermal zone [%s]\n",
-> +		       KELVIN_TO_CELSIUS(tz->trips.critical.temperature),
-> +		       acpi_device_bid(tz->device)); 
->  		tz->trips.critical.flags.enabled = 1;
->  	} else if (tz->trips.critical.flags.enabled)
->  		tz->trips.critical.flags.enabled = 0;
->  
->  	printk(KERN_EMERG
-> -	       "Critical temperature reached (%ld C), shutting down.\n",
-> -	       KELVIN_TO_CELSIUS(tz->temperature));
-> +	       "Critical temperature reached (%ld C on [%s] with trip point set to: %ld C), shutting down.\n",
-> +	       KELVIN_TO_CELSIUS(tz->temperature),
-> +	       acpi_device_bid(tz->device),
-> +	       KELVIN_TO_CELSIUS(tz->trips.critical.temperature));
-> +
+It also sounds like the non-ACPI drivers provide much more
+functionality than ACPI exposes.  I'd like to understand this,
+too, because an  obvious way to solve the problem would be to
+drop the non-ACPI drivers.  Is this extra functionality available
+on Windows?  If so, do we know whether Windows uses non-ACPI drivers
+or whether they have some smarter way to use ACPI?  In the long
+run, I think the easiest, most reliable route would be to use the
+system in a similar way.  Then we'd be doing things the way the
+manufacturer intended and we'd take advantage of all the Windows-
+focused firmware testing.
 
-Why two printks with same info, and why is one of them WARNING and
-second EMERG?
-
-							Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Bjorn
