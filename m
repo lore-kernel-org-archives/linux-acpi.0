@@ -1,38 +1,98 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [patch 2.6.21-rc5-git] make /proc/acpi/wakeup more useful
-Date: Fri, 13 Apr 2007 15:59:50 +0000
-Message-ID: <20070413155949.GA9157@ucw.cz>
-References: <200704031741.42273.david-b@pacbell.net> <200704060843.30723.david-b@pacbell.net> <20070407050131.GB25511@kroah.com> <200704071308.07571.david-b@pacbell.net>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
+Date: Sun, 15 Apr 2007 11:41:59 +0200
+Message-ID: <20070415114159.05026483@hyperion.delvare>
+References: <45D5EA88.7090300@redhat.com>
+	<200704131218.44045.bjorn.helgaas@hp.com>
+	<20070413200746.GD28264@elf.ucw.cz>
+	<200704131459.45867.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:1073 "EHLO spitz.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752826AbXDOJhM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 15 Apr 2007 05:37:12 -0400
-Content-Disposition: inline
-In-Reply-To: <200704071308.07571.david-b@pacbell.net>
+Received: from smtp-100-sunday.nerim.net ([62.4.16.100]:2035 "EHLO
+	kraid.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751468AbXDOJmz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Apr 2007 05:42:55 -0400
+In-Reply-To: <200704131459.45867.bjorn.helgaas@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Greg KH <greg@kroah.com>, Zhang Rui <rui.zhang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, lenb@kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Chuck Ebbert <cebbert@redhat.com>, Rudolf Marek <r.marek@assembler.cz>, linux-acpi@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-Hi!
+Hi Bjorn,
 
-> > Are you _sure_ you have a 1-to-1 relationship here?  No multiple devices
-> > pointing to the same acpi node?  Or the other way around?  If so, you
-> > are going to have to change the name to be something more unique.
+On Fri, 13 Apr 2007 14:59:45 -0600, Bjorn Helgaas wrote:
+> On Friday 13 April 2007 14:07, Pavel Machek wrote:
+> > > > ... The primary issue is the concurrent access
+> > > > to resources, which cause lots of trouble which are hard to investigate.
+> > > > If ACPI reserves the ports, then the SMBus or hardware monitoring
+> > > > drivers (or any other conflicting driver) will cleanly fail to load,
+> > > > which would be a move in the right direction. ...
+> > > > 
+> > > > So, can ACPI actually reserve the ports it accesses?
+> > > 
+> > > Sorry to join this discussion so late.
+> > > 
+> > > ACPI tells us the resources used by devices.  Today, we don't
+> > > reserve
+> > 
+> > Problem seems to be that ACPI does _not_ tell us which ports it
+> > accesses from AML code.
 > 
-> I've wondered that too.  The short answer:  APCI only supports 1-1
-> here.  It will emit warnings if it tries to bind more than one ACPI
-...
-> Assuming they all adopt that same "parallel tree" model, that seems
-> like a good idea.  The tools will likely need to understand how ACPI
-> and OF differ, but there's no point in reserving more names than we
-> really need.  Though it may be that "parallel trees" should go away.
+> I think that would violate at least the spirit of the ACPI spec.
+> The example in section 11.6 of the ACPI 3.0 spec shows a _TMP
+> method that runs an EC method to read the temp, and the EC ioport
+> usage is correctly declared in the EC device's _CRS method.
+> 
+> Of course, there are always BIOS defects.  But if we could make a
+> case that a BIOS that doesn't declare the resources used by the AML
+> is defective, we could add quirks to reserve the undeclared resources.
 
-If mapping is indeed 1-to-1 in acpi... it would be nice to just merge
-the trees.
+Only realistic if the list of systems needing a quirk is small. Do you
+think that would be the case?
+
+> > But we already found a lock we can take; AFAICT we know how to solve
+> > this problem.
+
+We even have two solutions, but both have drawbacks.
+
+The AML lock solution has performance issue. It could be improved with a
+better semaphore primitive, but that needs to be implemented first. It
+also requires to modify all drivers ACPI might conflict with, and
+that's a rather long list.
+
+Rudolf Marek's port forwarding idea should perform better, and might
+also be useful for other problems than ACPI vs. regular drivers,
+however it makes resources bigger, and requires to modify the same long
+list of drivers, and with specific code for every driver. I'm not sure
+that it will be possible for all driver in practice, as this more or
+less requires to forecast the I/O access pattern of ACPI.
+
+> This might solve it, but doesn't seem like a clean way to do it.
+> I don't like the idea of sharing a lock between drivers and ACPI.
+> k8temp happens to be x86-dependent, so we'll always have ACPI, but
+> in principle, we could have the same problem with an arch-independent
+> PCI driver that only has ACPI on x86 and ia64 platforms.
+
+We can protect the additional driver code with #ifdef CONFIG_ACPI, as I
+did in my proof-of-concept. Not particularly elegant, granted, but it
+should work.
+
+If something cleaner can be done, I'm all for it. Could you please
+propose an implementation of your idea? It doesn't need to be perfect,
+but I would like to see what it would look like.
+
+> (BTW, if Chuck's problem was solved by the BIOS update, I assume
+> there *is* another instance of the problem that we're trying to
+> solve with this lock.)
+
+Yes, there are several other systems out there which are known to be
+affected by the problem. And probably many others where ACPI access I/O
+ports reserved by regular drivers and we are simply lucky that nothing
+bad happens. My desktop system has such a motherboard (Jetway K8M8MS).
+But SMP alternatives are becoming more popular, so we might start
+seeing more problems in practice in a near future.
+
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Jean Delvare
