@@ -1,44 +1,58 @@
-From: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
-Subject: Re: suspend kills serial wacom tablet
-Date: Mon, 16 Apr 2007 17:25:15 -0400
-Message-ID: <d120d5000704161425o2b493af6r673c8ea3d21ba91@mail.gmail.com>
-References: <pan.2007.02.20.13.52.07.111117@metm.org>
-	 <d120d5000704131420n65dd47d1r97442785d8617977@mail.gmail.com>
-	 <4623D585.5010005@metm.org> <200704161510.18246.bjorn.helgaas@hp.com>
-	 <d120d5000704161418w7603e760wb34b90d8e3974537@mail.gmail.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
+Date: Mon, 16 Apr 2007 16:28:47 -0600
+Message-ID: <200704161628.47707.bjorn.helgaas@hp.com>
+References: <45D5EA88.7090300@redhat.com> <200704151857.03115.bjorn.helgaas@hp.com> <20070416211411.GA16150@dreamland.darkstar.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wr-out-0506.google.com ([64.233.184.226]:39846 "EHLO
-	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030979AbXDPVZQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Apr 2007 17:25:16 -0400
-Received: by wr-out-0506.google.com with SMTP id 76so1641020wra
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Apr 2007 14:25:16 -0700 (PDT)
-In-Reply-To: <d120d5000704161418w7603e760wb34b90d8e3974537@mail.gmail.com>
+Received: from atlrel9.hp.com ([156.153.255.214]:39692 "EHLO atlrel9.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753705AbXDPW25 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 16 Apr 2007 18:28:57 -0400
+In-Reply-To: <20070416211411.GA16150@dreamland.darkstar.lan>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: marco <marco@metm.org>, linux-acpi@vger.kernel.org
+To: Luca Tettamanti <kronos.it@gmail.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Pavel Machek <pavel@ucw.cz>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, Chuck Ebbert <cebbert@redhat.com>
 
-On 4/16/07, Dmitry Torokhov <dmitry.torokhov@gmail.com> wrote:
-> On 4/16/07, Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
->
-> >  It seems a bit
-> > strange that the device is associated differently after resume, but
-> > I don't know enough about input drivers to know whether that's by
-> > design or not.
-> >
->
-> It should not change input devices, I would like to see output of boot
-> and suspend/resume cycle with "i8042.debug log_buf_len=131072" kernel
-> boot options.
->
+On Monday 16 April 2007 15:14, Luca Tettamanti wrote:
+> It seems that Asus exposes monitorining data using "ATK0110" (enumerated
+> in DSDT); I see it both on my P5B-E motherboard and on my notebook (L3D)
+> (they have different methods though). Another motherboard with the same
+> device may actually call it "FOOBAR123" or "WTFISTHIS".
 
-Btw, I am really interested in that log from a recent kernel. 2.6.20
-or 2.6.21-rc7.
+Yup, we have the same problem with other devices.  See the long list
+of PNP IDs in 8250_pnp.c :-)
 
--- 
-Dmitry
+> Problem is that ACPI methods are not documented at all (how am I
+> supposed to know that "G6T6" is the reading of the 12V rail?) while the
+> datasheet of hw monitoring chips (w83627ehf in my case) are public (more
+> or less).
+
+Yes, I see that it's attractive to use a single w83627ehf.c driver.
+For an ACPI driver, we'd have to build a list of PNP IDs, and possibly
+information about which methods read which information.  That's
+certainly more work.
+
+On the other hand, the ACPI driver would avoid the synchronization
+issues that started this whole thread.  That's a pretty compelling
+advantage.
+
+> Furthermore, sensor driver exposes all the reading of the chip
+> (e.g. in the DSDT I can't find the VSB or battery voltage).
+
+Maybe Asus didn't hook up those readings on the board.  I would
+guess that PC Probe doesn't expose the VSB or battery voltage either.
+
+I'm sure you've seen these:
+  http://lists.lm-sensors.org/pipermail/lm-sensors/2005-October/014050.html
+  http://www.lm-sensors.org/wiki/AsusFormulaHacking
+
+Looks like nobody took up the challenge, though :-)  It looks fun
+to play with, if only I had the time and hardware.
+
+Bjorn
