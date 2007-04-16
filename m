@@ -1,41 +1,43 @@
-From: Michal Jaegermann <michal@ellpspace.math.ualberta.ca>
-Subject: Re: [1/2] 2.6.21-rc7: known regressions
-Date: Sun, 15 Apr 2007 20:21:07 -0600
-Message-ID: <20070416022107.GA21432@ellpspace.math.ualberta.ca>
-References: <Pine.LNX.4.64.0704151659570.5473@woody.linux-foundation.org> <20070416003714.GL3691@stusta.de>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: Re: CPU_IDLE prevents resuming from STR [was: Re: 2.6.21-rc6-mm1]
+Date: Mon, 16 Apr 2007 10:40:27 +0800
+Message-ID: <1176691227.6993.1.camel@sli10-conroe.sh.intel.com>
+References: <20070408143559.f5014629.akpm@linux-foundation.org>
+	 <20070413234513.GA2940@inferi.kami.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ellpspace.math.ualberta.ca ([129.128.207.67]:48938 "EHLO
-	ellpspace.math.ualberta.ca" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753825AbXDPCXb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 15 Apr 2007 22:23:31 -0400
-Content-Disposition: inline
-In-Reply-To: <20070416003714.GL3691@stusta.de>
+Received: from mga01.intel.com ([192.55.52.88]:20810 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754198AbXDPCns (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 15 Apr 2007 22:43:48 -0400
+In-Reply-To: <20070413234513.GA2940@inferi.kami.home>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, Dave Jones <davej@redhat.com>
+To: Mattia Dongili <malattia@linux.it>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-On Mon, Apr 16, 2007 at 02:37:14AM +0200, Adrian Bunk wrote:
+On Sat, 2007-04-14 at 01:45 +0200, Mattia Dongili wrote:
+> On Sun, Apr 08, 2007 at 02:35:59PM -0700, Andrew Morton wrote:
+> ...
+> >  git-acpi.patch
 > 
-> Subject    : kernels fail to boot with drives on ATIIXP controller
->              (ACPI/IRQ related)
-> References : https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=229621
-c              http://lkml.org/lkml/2007/3/4/257
-> Submitter  : Michal Jaegermann <michal@ellpspace.math.ualberta.ca>
-> Status     : unknown
+> after bisecting I can finally say what breaks resume from STR here:
+> 
+> tadaaaaa: CPU_IDLE.
+> I first spotted the git-acpi.patch then reapplied it and disabled
+> CPU_IDLE, now my laptop resumes.
+> 
+> Any useful information I should add?
+> 
+> $ cat /sys/devices/system/cpu/cpuidle/*
+> acpi_idle 
+> no governors
+> acpi_idle
+> no governor
+please check if the patch at
+http://marc.info/?l=linux-acpi&m=117523651630038&w=2 fixed the issue
 
-Sigh!  Again!  AFAICT the current "rc" kernels should boot
-using 'pata_atiixp' driver _provided_ I will use 'acpi=off'.
-At least on the hardware in question.  More details at
-https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=229621#c10
-
-OTOH I mentioned few times that another machine, which want
-to use 'pata_via' fails to read _anything_ from a disk.  See
-https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=234650
-Mentioned there 2.6.20-1.3054.fc7 really corresponds to
-2.6.21-rc6-git1 (AFAICT).
-
-   Michal
+Thanks,
+Shaohua
