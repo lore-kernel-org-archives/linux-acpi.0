@@ -1,92 +1,98 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: [1/2] 2.6.21-rc7: known regressions
-Date: Mon, 16 Apr 2007 02:37:14 +0200
-Message-ID: <20070416003714.GL3691@stusta.de>
-References: <Pine.LNX.4.64.0704151659570.5473@woody.linux-foundation.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
+Date: Sun, 15 Apr 2007 18:57:02 -0600
+Message-ID: <200704151857.03115.bjorn.helgaas@hp.com>
+References: <45D5EA88.7090300@redhat.com> <200704151431.41503.bjorn.helgaas@hp.com> <68676e00704151359g18bf6935wcb2144bcbcf4edd2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from emailhub.stusta.mhn.de ([141.84.69.5]:51631 "EHLO
-	mailhub.stusta.mhn.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754208AbXDPAhJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Apr 2007 20:37:09 -0400
+Received: from atlrel6.hp.com ([156.153.255.205]:38468 "EHLO atlrel6.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754119AbXDPA5N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 15 Apr 2007 20:57:13 -0400
+In-Reply-To: <68676e00704151359g18bf6935wcb2144bcbcf4edd2@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0704151659570.5473@woody.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
-Cc: Hans-Georg Rist <hg.rist@web.de>, perex@suse.cz, alsa-devel@alsa-project.org, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, Stephen Clark <Stephen.Clark@seclark.us>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Michal Jaegermann <michal@ellpspace.math.ualberta.ca>, lenb@kernel.org, linux-acpi@vger.kernel.org, netdev@vger.kernel.org, Dave Jones <davej@redhat.com>, Jesse Brandeburg <jesse.brandeburg@intel.com>, e1000-devel@lists.sourceforge.net, Ingo Molnar <mingo@elte.hu>, Ayaz Abdulla <aabdulla@nvidia.com>, David Miller <davem@davemloft.net>, Andi Kleen <ak@suse.de>, Oliver Neukum <oneukum@suse.de>, greg@kroah.com, linux-usb-devel@lists.sourceforge.net, CIJOML <cijoml@volny.cz>, Markus Rechberger <markus.rechberger@amd.com>, v4l-dvb-maintainer@linuxtv.org
+To: Luca Tettamanti <kronos.it@gmail.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Pavel Machek <pavel@ucw.cz>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, Chuck Ebbert <cebbert@redhat.com>
 
-This email lists some known regressions in Linus' tree compared to 2.6.20.
+On Sunday 15 April 2007 14:59, Luca Tettamanti wrote:
+> On 4/15/07, Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+> > But I missed the details, such as the specific devices in question,
+> > which ports they use, how they are described in ACPI, which AML
+> > methods use those ports, and which non-ACPI drivers also use them.
+> 
+> The original report was about the temperature sensors of K8 cpus. It
+> happens that ACPI reads the sensors while the linux driver is using it
+> and gets garbage (and shut down the system). The problem is more
+> generic though, and applies to all hardware monitoring chips for which
+> a driver exists.
 
-If you find your name in the Cc header, you are either submitter of one
-of the bugs, maintainer of an affectected subsystem or driver, a patch
-of you caused a breakage or I'm considering you in any other way
-possibly involved with one or more of these issues.
+Yes, I saw that much, but that's not enough detail to craft a good
+solution.
 
-Due to the huge amount of recipients, please trim the Cc when answering.
+In the case of k8temp, the driver claims PCI devices with a certain
+vendor and device ID.  PCI devices are mostly outside the scope of
+ACPI.  There's a standard enumeration protocol, and a driver should
+be able to claim any device it recognizes without fear of conflict.
 
+I claim that an AML method that accesses a PCI device is
+defective because the AML can't know whether a native driver
+has claimed the device.
 
-Subject    : snd_hda_intel doesn't work with ASUS M2V mainboard
-References : http://bugzilla.kernel.org/show_bug.cgi?id=8273
-Submitter  : Hans-Georg Rist <hg.rist@web.de>
-Status     : unknown
+Sometimes the firmware can hide PCI devices so the OS
+enumeration doesn't find them.  In that case, AML might
+be able to safely use the PCI device, but the native
+driver wouldn't be able to claim the device, so there
+would be no conflict.  (Linux sometimes uses quirks to
+"unhide" things like this, which could lead to a conflict
+of our own making.)
 
+I suspect that other sensor drivers may just probe for devices
+at "known" addresses hard-coded in the driver.  This is a
+problem because the ACPI model is that the OS learns about
+all built-in devices via the ACPI namespace.  If it isn't
+in the namespace, it shouldn't exist as far as the OS is
+concerned.
 
-Subject    : snd_intel8x0: divide error: 0000
-References : http://lkml.org/lkml/2007/3/5/252
-Submitter  : Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Status     : unknown
+So we could easily have the situation where ACPI uses a
+sensor and does not expose it to the OS in the namespace.
+In that case, the firmware expectation is that the OS
+won't touch the device.  If the OS pokes around at the
+magic addresses and happens to trip over the device, we
+just made ourselves a problem.
 
+> > It also sounds like the non-ACPI drivers provide much more
+> > functionality than ACPI exposes.  I'd like to understand this,
+> > too, because an  obvious way to solve the problem would be to
+> > drop the non-ACPI drivers.
+> 
+> Problem is that ACPI may access the sensors anyway (e.g. via SMM).
 
-Subject    : ali_pata: boot from CD fails
-References : http://lkml.org/lkml/2007/3/31/160
-Submitter  : Stephen Clark <Stephen.Clark@seclark.us>
-Status     : unknown
+If ACPI accesses sensors but there is no native driver, there
+should be no conflict.
 
+> > Is this extra functionality available
+> > on Windows?  If so, do we know whether Windows uses non-ACPI drivers
+> > or whether they have some smarter way to use ACPI?
+> 
+> Usually ACPI exposes 1 or 2 temperature readings (CPU and
+> motherboard), while the hw driver can also provide fans and voltages
+> measurements.
+> 
+> Vendors usually provides a monitoring utility for Win that also
+> exposes these information. It's not known whether there's a way to
+> avoid conflicting accesses between ACPI and the raw driver; it's
+> possible that it's vendor-specific and not documented.
 
-Subject    : kernels fail to boot with drives on ATIIXP controller
-             (ACPI/IRQ related)
-References : https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=229621
-             http://lkml.org/lkml/2007/3/4/257
-Submitter  : Michal Jaegermann <michal@ellpspace.math.ualberta.ca>
-Status     : unknown
+I'd be surprised if Windows provided interfaces to coordinate
+between two drivers.  My impression is that they really want
+to have a single owner for a piece of hardware.  It would be
+interesting to figure out how these monitoring utilities work.
+Maybe the monitor and the AML both go through an embedded
+controller driver and coordinate that way?
 
-
-Subject    : boot failure: rtl8139: exception in interrupt routine
-References : http://lkml.org/lkml/2007/3/31/160
-Submitter  : Stephen Clark <Stephen.Clark@seclark.us>
-Status     : unknown
-
-
-Subject    : laptops with e1000: lockups
-References : https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=229603
-Submitter  : Dave Jones <davej@redhat.com>
-Handled-By : Jesse Brandeburg <jesse.brandeburg@intel.com>
-Status     : problem is being debugged
-
-
-Subject    : forcedeth: interface hangs under load
-References : http://lkml.org/lkml/2007/4/3/39
-             http://www.spinics.net/lists/netdev/msg28981.html
-Submitter  : Ingo Molnar <mingo@elte.hu>
-Handled-By : Ingo Molnar <mingo@elte.hu>
-             Ayaz Abdulla <aabdulla@nvidia.com>
-             David Miller <davem@davemloft.net>
-Status     : problem is being debugged
-
-
-Subject    : hal daemon crashes after pulling a USB serial device
-References : http://www.opensubscriber.com/message/linux-usb-devel@lists.sourceforge.net/6369800.html
-Submitter  : Andi Kleen <ak@suse.de>
-Handled-By : Oliver Neukum <oneukum@suse.de>
-Status     : problem is being debugged
-
-
-Subject    : Oops when changing USB DVB-T adapter
-References : http://lkml.org/lkml/2007/3/9/212
-             http://lkml.org/lkml/2007/4/5/154
-Submitter  : CIJOML <cijoml@volny.cz>
-Handled-By : Markus Rechberger <markus.rechberger@amd.com>
-Status     : patches available
-
+Bjorn
