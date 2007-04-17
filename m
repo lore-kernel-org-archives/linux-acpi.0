@@ -1,313 +1,185 @@
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: Re: CPU_IDLE prevents resuming from STR [was: Re: 2.6.21-rc6-mm1]
-Date: Tue, 17 Apr 2007 14:47:35 +0800
-Message-ID: <1176792455.7371.7.camel@sli10-conroe.sh.intel.com>
-References: <20070408143559.f5014629.akpm@linux-foundation.org>
-	 <20070413234513.GA2940@inferi.kami.home>
-	 <1176691227.6993.1.camel@sli10-conroe.sh.intel.com>
-	 <Pine.LNX.4.63.0704162243070.3859@dashnine.joshuawise.com>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
+Date: Tue, 17 Apr 2007 12:03:09 +0200
+Message-ID: <20070417120309.38a57579@hyperion.delvare>
+References: <45D5EA88.7090300@redhat.com>
+	<200704151431.41503.bjorn.helgaas@hp.com>
+	<68676e00704151359g18bf6935wcb2144bcbcf4edd2@mail.gmail.com>
+	<200704151857.03115.bjorn.helgaas@hp.com>
+	<20070416211411.GA16150@dreamland.darkstar.lan>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751709AbXDQGu5@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.63.0704162243070.3859@dashnine.joshuawise.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753258AbXDQKDR@vger.kernel.org>
+In-Reply-To: <20070416211411.GA16150@dreamland.darkstar.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Joshua Wise <joshua@joshuawise.com>
-Cc: Mattia Dongili <malattia@linux.it>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+To: Luca Tettamanti <kronos.it@gmail.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Pavel Machek <pavel@ucw.cz>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, Chuck Ebbert <cebbert@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2007-04-16 at 22:50 -0400, Joshua Wise wrote:
-> On Mon, 16 Apr 2007, Shaohua Li wrote:
-> > On Sat, 2007-04-14 at 01:45 +0200, Mattia Dongili wrote:
-> >> ...
-> > please check if the patch at
-> > http://marc.info/?l=linux-acpi&m=117523651630038&w=2 fixed the issue
-> 
-> I have the same system as Mattia, and when I applied this patch and turned
-> CPU_IDLE back on, I got a panic on boot. Unfortunately, the EIP scrolled off
-> screen, so I can't get a line number.
-> 
-> (I had the same STR breakage as him; STR did not work with CPU_IDLE turned
-> on, and it did work with CPU_IDLE turned off.)
-> 
-> I'm running +rc6+mm(April 11) on a Sony VAIO SZ.
-Looks there is init order issue of sysfs files. The new refreshed patch
-should fix your bug.
+Hi Bjorn, Luca,
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+On Mon, 16 Apr 2007 23:14:11 +0200, Luca Tettamanti wrote:
+> Il Sun, Apr 15, 2007 at 06:57:02PM -0600, Bjorn Helgaas ha scritto: 
+> > In the case of k8temp, the driver claims PCI devices with a certain
+> > vendor and device ID.  PCI devices are mostly outside the scope of
+> > ACPI.  There's a standard enumeration protocol, and a driver should
+> > be able to claim any device it recognizes without fear of conflict.
+> >
+> > I claim that an AML method that accesses a PCI device is
+> > defective because the AML can't know whether a native driver
+> > has claimed the device.
+> 
+> k8temp seems a special case tough.
 
-Index: 21-rc6-mm1/drivers/acpi/processor_idle.c
-===================================================================
---- 21-rc6-mm1.orig/drivers/acpi/processor_idle.c	2007-04-17 13:41:29.000000000 +0800
-+++ 21-rc6-mm1/drivers/acpi/processor_idle.c	2007-04-17 14:03:56.000000000 +0800
-@@ -624,7 +624,7 @@ int acpi_processor_cst_has_changed(struc
- 		return -ENODEV;
- 
- 	acpi_processor_get_power_info(pr);
--	return cpuidle_force_redetect(&per_cpu(cpuidle_devices, pr->id));
-+	return cpuidle_force_redetect(per_cpu(cpuidle_devices, pr->id));
- }
- 
- /* proc interface */
-Index: 21-rc6-mm1/drivers/cpuidle/cpuidle.c
-===================================================================
---- 21-rc6-mm1.orig/drivers/cpuidle/cpuidle.c	2007-04-17 13:41:29.000000000 +0800
-+++ 21-rc6-mm1/drivers/cpuidle/cpuidle.c	2007-04-17 14:42:17.000000000 +0800
-@@ -18,7 +18,7 @@
- 
- #include "cpuidle.h"
- 
--DEFINE_PER_CPU(struct cpuidle_device, cpuidle_devices);
-+DEFINE_PER_CPU(struct cpuidle_device *, cpuidle_devices);
- EXPORT_PER_CPU_SYMBOL_GPL(cpuidle_devices);
- 
- DEFINE_MUTEX(cpuidle_lock);
-@@ -34,13 +34,13 @@ static void (*pm_idle_old)(void);
-  */
- static void cpuidle_idle_call(void)
- {
--	struct cpuidle_device *dev = &__get_cpu_var(cpuidle_devices);
-+	struct cpuidle_device *dev = __get_cpu_var(cpuidle_devices);
- 
- 	struct cpuidle_state *target_state;
- 	int next_state;
- 
- 	/* check if the device is ready */
--	if (dev->status != CPUIDLE_STATUS_DOIDLE) {
-+	if (!dev || dev->status != CPUIDLE_STATUS_DOIDLE) {
- 		if (pm_idle_old)
- 			pm_idle_old();
- 		return;
-@@ -117,19 +117,32 @@ static int cpuidle_add_device(struct sys
- 	int cpu = sys_dev->id;
- 	struct cpuidle_device *dev;
- 
--	dev = &per_cpu(cpuidle_devices, cpu);
-+	dev = per_cpu(cpuidle_devices, cpu);
- 
--	dev->cpu = cpu;
- 	mutex_lock(&cpuidle_lock);
- 	if (cpu_is_offline(cpu)) {
- 		mutex_unlock(&cpuidle_lock);
- 		return 0;
- 	}
- 
-+	if (!dev) {
-+		dev = kzalloc(sizeof(struct cpuidle_device), GFP_KERNEL);
-+		if (!dev) {
-+			mutex_unlock(&cpuidle_lock);
-+			return -ENOMEM;
-+		}
-+		init_completion(&dev->kobj_unregister);
-+		per_cpu(cpuidle_devices, cpu) = dev;
-+	}
-+	dev->cpu = cpu;
-+
- 	if (dev->status & CPUIDLE_STATUS_DETECTED) {
- 		mutex_unlock(&cpuidle_lock);
- 		return 0;
- 	}
-+
-+	cpuidle_add_sysfs(sys_dev);
-+
- 	if (cpuidle_curr_driver) {
- 		if (cpuidle_attach_driver(dev))
- 			goto err_ret;
-@@ -146,7 +159,6 @@ static int cpuidle_add_device(struct sys
- 		cpuidle_install_idle_handler();
- 
- 	list_add(&dev->device_list, &cpuidle_detected_devices);
--	cpuidle_add_sysfs(sys_dev);
- 	dev->status |= CPUIDLE_STATUS_DETECTED;
- 
- err_ret:
-@@ -165,7 +177,7 @@ static int __cpuidle_remove_device(struc
- {
- 	struct cpuidle_device *dev;
- 
--	dev = &per_cpu(cpuidle_devices, sys_dev->id);
-+	dev = per_cpu(cpuidle_devices, sys_dev->id);
- 
- 	if (!(dev->status & CPUIDLE_STATUS_DETECTED)) {
- 		return 0;
-@@ -178,6 +190,9 @@ static int __cpuidle_remove_device(struc
- 		cpuidle_detach_driver(dev);
- 	cpuidle_remove_sysfs(sys_dev);
- 	list_del(&dev->device_list);
-+	wait_for_completion(&dev->kobj_unregister);
-+	per_cpu(cpuidle_devices, sys_dev->id) = NULL;
-+	kfree(dev);
- 
- 	return 0;
- }
-Index: 21-rc6-mm1/drivers/cpuidle/sysfs.c
-===================================================================
---- 21-rc6-mm1.orig/drivers/cpuidle/sysfs.c	2007-04-17 13:41:29.000000000 +0800
-+++ 21-rc6-mm1/drivers/cpuidle/sysfs.c	2007-04-17 14:03:56.000000000 +0800
-@@ -210,8 +210,16 @@ static struct sysfs_ops cpuidle_sysfs_op
- 	.store = cpuidle_store,
- };
- 
-+static void cpuidle_sysfs_release(struct kobject *kobj)
-+{
-+	struct cpuidle_device *dev = kobj_to_cpuidledev(kobj);
-+
-+	complete(&dev->kobj_unregister);
-+}
-+
- static struct kobj_type ktype_cpuidle = {
- 	.sysfs_ops = &cpuidle_sysfs_ops,
-+	.release = cpuidle_sysfs_release,
- };
- 
- struct cpuidle_state_attr {
-@@ -246,7 +254,8 @@ static struct attribute *cpuidle_state_d
- 	NULL
- };
- 
--#define kobj_to_state(k) container_of(k, struct cpuidle_state, kobj)
-+#define kobj_to_state_obj(k) container_of(k, struct cpuidle_state_kobj, kobj)
-+#define kobj_to_state(k) (kobj_to_state_obj(k)->state)
- #define attr_to_stateattr(a) container_of(a, struct cpuidle_state_attr, attr)
- static ssize_t cpuidle_state_show(struct kobject * kobj,
- 	struct attribute * attr ,char * buf)
-@@ -265,11 +274,27 @@ static struct sysfs_ops cpuidle_state_sy
- 	.show = cpuidle_state_show,
- };
- 
-+static void cpuidle_state_sysfs_release(struct kobject *kobj)
-+{
-+	struct cpuidle_state_kobj *state_obj = kobj_to_state_obj(kobj);
-+
-+	complete(&state_obj->kobj_unregister);
-+}
-+
- static struct kobj_type ktype_state_cpuidle = {
- 	.sysfs_ops = &cpuidle_state_sysfs_ops,
- 	.default_attrs = cpuidle_state_default_attrs,
-+	.release = cpuidle_state_sysfs_release,
- };
- 
-+static void inline cpuidle_free_state_kobj(struct cpuidle_device *device, int i)
-+{
-+	kobject_unregister(&device->kobjs[i]->kobj);
-+	wait_for_completion(&device->kobjs[i]->kobj_unregister);
-+	kfree(device->kobjs[i]);
-+	device->kobjs[i] = NULL;
-+}
-+
- /**
-  * cpuidle_add_driver_sysfs - adds driver-specific sysfs attributes
-  * @device: the target device
-@@ -277,24 +302,32 @@ static struct kobj_type ktype_state_cpui
- int cpuidle_add_driver_sysfs(struct cpuidle_device *device)
- {
- 	int i, ret;
--	struct cpuidle_state *state;
-+	struct cpuidle_state_kobj *kobj;
- 
- 	/* state statistics */
- 	for (i = 0; i < device->state_count; i++) {
--		state = &device->states[i];
--		state->kobj.parent = &device->kobj;
--		state->kobj.ktype = &ktype_state_cpuidle;
--		kobject_set_name(&state->kobj, "state%d", i);
--		ret = kobject_register(&state->kobj);
--		if (ret)
-+		kobj = kzalloc(sizeof(struct cpuidle_state_kobj), GFP_KERNEL);
-+		if (!kobj)
-+			goto error_state;
-+		kobj->state = &device->states[i];
-+		init_completion(&kobj->kobj_unregister);
-+
-+		kobj->kobj.parent = &device->kobj;
-+		kobj->kobj.ktype = &ktype_state_cpuidle;
-+		kobject_set_name(&kobj->kobj, "state%d", i);
-+		ret = kobject_register(&kobj->kobj);
-+		if (ret) {
-+			kfree(kobj);
- 			goto error_state;
-+		}
-+		device->kobjs[i] = kobj;
- 	}
- 
- 	return 0;
- 
- error_state:
- 	for (i = i - 1; i >= 0; i--)
--		kobject_unregister(&device->states[i].kobj);
-+		cpuidle_free_state_kobj(device, i);
- 	return ret;
- }
- 
-@@ -307,7 +340,7 @@ void cpuidle_remove_driver_sysfs(struct 
- 	int i;
- 
- 	for (i = 0; i < device->state_count; i++)
--		kobject_unregister(&device->states[i].kobj);
-+		cpuidle_free_state_kobj(device, i);
- }
- 
- /**
-@@ -319,7 +352,7 @@ int cpuidle_add_sysfs(struct sys_device 
- 	int cpu = sysdev->id;
- 	struct cpuidle_device *dev;
- 
--	dev = &per_cpu(cpuidle_devices, cpu);
-+	dev = per_cpu(cpuidle_devices, cpu);
- 	dev->kobj.parent = &sysdev->kobj;
- 	dev->kobj.ktype = &ktype_cpuidle;
- 	kobject_set_name(&dev->kobj, "%s", "cpuidle");
-@@ -335,6 +368,6 @@ void cpuidle_remove_sysfs(struct sys_dev
- 	int cpu = sysdev->id;
- 	struct cpuidle_device *dev;
- 
--	dev = &per_cpu(cpuidle_devices, cpu);
-+	dev = per_cpu(cpuidle_devices, cpu);
- 	kobject_unregister(&dev->kobj);
- }
-Index: 21-rc6-mm1/include/linux/cpuidle.h
-===================================================================
---- 21-rc6-mm1.orig/include/linux/cpuidle.h	2007-04-17 13:41:29.000000000 +0800
-+++ 21-rc6-mm1/include/linux/cpuidle.h	2007-04-17 14:03:56.000000000 +0800
-@@ -41,8 +41,6 @@ struct cpuidle_state {
- 
- 	int (*enter)	(struct cpuidle_device *dev,
- 			 struct cpuidle_state *state);
--
--	struct kobject	kobj;
- };
- 
- /* Idle State Flags */
-@@ -74,6 +72,12 @@ cpuidle_set_statedata(struct cpuidle_sta
- 	state->driver_data = data;
- }
- 
-+struct cpuidle_state_kobj {
-+	struct cpuidle_state *state;
-+	struct completion kobj_unregister;
-+	struct kobject kobj;
-+};
-+
- struct cpuidle_device {
- 	unsigned int		status;
- 	int			cpu;
-@@ -81,6 +85,7 @@ struct cpuidle_device {
- 	int			last_residency;
- 	int			state_count;
- 	struct cpuidle_state	states[CPUIDLE_STATE_MAX];
-+	struct cpuidle_state_kobj *kobjs[CPUIDLE_STATE_MAX];
- 	struct cpuidle_state	*last_state;
- 
- 	struct list_head 	device_list;
-@@ -89,9 +94,7 @@ struct cpuidle_device {
- 	void			*governor_data;
- };
- 
--#define to_cpuidle_device(n) container_of(n, struct cpuidle_device, kobj);
--
--DECLARE_PER_CPU(struct cpuidle_device, cpuidle_devices);
-+DECLARE_PER_CPU(struct cpuidle_device *, cpuidle_devices);
- 
- /* Device Status Flags */
- #define CPUIDLE_STATUS_DETECTED		 (0x1)
+Yes, it is, and the latest news are that there were no problems with
+the k8temp driver, it was a false alert.
+
+> > Sometimes the firmware can hide PCI devices so the OS
+> > enumeration doesn't find them.  In that case, AML might
+> > be able to safely use the PCI device, but the native
+> > driver wouldn't be able to claim the device, so there
+> > would be no conflict.  (Linux sometimes uses quirks to
+> > "unhide" things like this, which could lead to a conflict
+> > of our own making.)
+
+True, and we are stepping back on this. See:
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=9208ee8286ea2c0136a4bc58638b0295bad791c8
+
+However, it's not so easy, as I have been explaining to Pavel lately.
+Some machines have the ACPI vs. lm-sensors conflict while the SMBus
+wasn't hidden. On others, the SMBus was hidden and there was no
+conflict. So we are not going to just stop unhiding the SMBus and fix
+all the problems that way. It's neither necessary, nor sufficient. The
+decision must be taken independently for every motherboard / laptop.
+
+> > I suspect that other sensor drivers may just probe for devices
+> > at "known" addresses hard-coded in the driver.
+> 
+> Usually sensors are attached to SMBUS or available in ISA IO space.
+> AFAIK they're not enumerated anywhere (at least I2C devices are not, you
+> poke at various addresses and see if something responds - not sure about
+> ISA).
+
+Legacy ISA hardware monitoring chips (W83781D, W83782D, LM78, LM79)
+were indeed probed at an arbitrary address (0x290). I pretty much doubt
+that these old chips are found on systems with (working) ACPI though.
+
+More recent "ISA" hardware monitoring chips are embedded in Super-I/O
+chips, they are in fact LPC devices, not ISA. The base I/O address is
+read from the Super-I/O configuration space, (0x2e/0x2f or 0x4e/0x4f),
+just like serial ports, parallel ports, floppy disk controllers, IR,
+etc. So these devices _are_ enumerated. Sometimes they are also listed
+as PNP devices.
+
+As for I2C/SMBus devices, they are indeed not enumerated. But I fail to
+see why non-enumerated devices would be the sole properly of ACPI.
+
+> > This is a
+> > problem because the ACPI model is that the OS learns about
+> > all built-in devices via the ACPI namespace.  If it isn't
+> > in the namespace, it shouldn't exist as far as the OS is
+> > concerned.
+> >
+> > So we could easily have the situation where ACPI uses a
+> > sensor and does not expose it to the OS in the namespace.
+> > In that case, the firmware expectation is that the OS
+> > won't touch the device.  If the OS pokes around at the
+> > magic addresses and happens to trip over the device, we
+> > just made ourselves a problem.
+
+Interesting theory, but how does it fly in practice? Not much, I guess.
+I doubt you could do any useful with an ACPI-enabled system today
+without any non-ACPI driver.
+
+> > > > Is this extra functionality available
+> > > > on Windows?  If so, do we know whether Windows uses non-ACPI drivers
+> > > > or whether they have some smarter way to use ACPI?
+> > > 
+> > > Usually ACPI exposes 1 or 2 temperature readings (CPU and
+> > > motherboard), while the hw driver can also provide fans and voltages
+> > > measurements.
+
+And fan speed control.
+
+> > > Vendors usually provides a monitoring utility for Win that also
+> > > exposes these information. It's not known whether there's a way to
+> > > avoid conflicting accesses between ACPI and the raw driver; it's
+> > > possible that it's vendor-specific and not documented.
+> > 
+> > I'd be surprised if Windows provided interfaces to coordinate
+> > between two drivers.  My impression is that they really want
+> > to have a single owner for a piece of hardware.  It would be
+> > interesting to figure out how these monitoring utilities work.
+> > Maybe the monitor and the AML both go through an embedded
+> > controller driver and coordinate that way?
+> 
+> Hum, the utility I have here (Asus PC Probe) seems to use ACPI:
+> 
+> Pro2.dll:
+> [Ordinal/Name Pointer] Table
+>         [  11] OCAPI_ACPI_OC_PresetList
+>         [  12] OCAPI_ACPI_OC__MB_GetBoardName
+>         [  23] OCAPI_CheckAiGear
+>         [   0] OCAPI_CheckIntelPowerSaving
+>         [   6] OCAPI_CheckWorkable
+>         [   2] OCAPI_Close
+>         [   9] OCAPI_EnableQFan
+>         [  16] OCAPI_GENERAL_GetList
+>         [  14] OCAPI_GetCpuVoltRange
+>         [  13] OCAPI_GetCurrentCpuFrequency
+>         [  15] OCAPI_GetFanStartTemp
+>         [   3] OCAPI_GetHealthData
+>         [   4] OCAPI_GetHwSensorData
+>         [  22] OCAPI_GetMBIF
+>         [   8] OCAPI_GetQFanInfo
+>         [   5] OCAPI_HW_EnumerateOption
+>         [   7] OCAPI_HideQFan
+>         [   1] OCAPI_Initialization
+>         [  19] OCAPI_NQFAN_GetData
+>         [  21] OCAPI_NQFAN_GetList
+>         [  20] OCAPI_NQFAN_SetData
+>         [  17] OCAPI_QFAN_GetData
+>         [  18] OCAPI_QFAN_SetData
+>         [  10] OCAPI_SetQFanTarget
+>         [  24] ___CPPdebugHook
+> 
+> ASiO.dll:
+> [Ordinal/Name Pointer] Table
+>         [   1] ASIO_Close
+>         [   9] ASIO_GetCpuID
+>         [   3] ASIO_InPortB
+>         [   5] ASIO_InPortD
+>         [   7] ASIO_MapMem
+>         [   0] ASIO_Open
+>         [   4] ASIO_OutPortB
+>         [   6] ASIO_OutPortD
+>         [  10] ASIO_ReadMSR
+>         [   8] ASIO_UnmapMem
+>         [  11] ASIO_WriteMSR
+>         [   2] OC_GetCurrentCpuFrequency
+> 
+> It seems that Asus exposes monitorining data using "ATK0110" (enumerated
+> in DSDT); I see it both on my P5B-E motherboard and on my notebook (L3D)
+> (they have different methods though). Another motherboard with the same
+> device may actually call it "FOOBAR123" or "WTFISTHIS".
+> 
+> Problem is that ACPI methods are not documented at all (how am I
+> supposed to know that "G6T6" is the reading of the 12V rail?) while the
+> datasheet of hw monitoring chips (w83627ehf in my case) are public (more
+> or less). Furthermore, sensor driver exposes all the reading of the chip
+> (e.g. in the DSDT I can't find the VSB or battery voltage).
+
+Asus does things like this, yeah, but I don't remember any other vendor
+having such ACPI methods. It would make sense to write a driver for
+this Asus stuff. One of the problem we have in hardware monitoring
+drivers is that we usually don't know how the chip is wired on a given
+motherboard. The ACPI data might help.
+
+For the other vendors, my assumption is the same as yours: they either
+ignore the conflict, or have proprietary, undocumented ways to get
+around it. After all, there must be a reason why there is no native
+sensors support in Windows and every vendor provides it's own tool.
+
+-- 
+Jean Delvare
