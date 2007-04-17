@@ -1,58 +1,50 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Date: Mon, 16 Apr 2007 16:28:47 -0600
-Message-ID: <200704161628.47707.bjorn.helgaas@hp.com>
-References: <45D5EA88.7090300@redhat.com> <200704151857.03115.bjorn.helgaas@hp.com> <20070416211411.GA16150@dreamland.darkstar.lan>
+From: "Brandeburg, Jesse" <jesse.brandeburg@intel.com>
+Subject: RE: [1/2] 2.6.21-rc7: known regressions
+Date: Mon, 16 Apr 2007 17:14:40 -0700
+Message-ID: <36D9DB17C6DE9E40B059440DB8D95F5202505C7E@orsmsx418.amr.corp.intel.com>
+References: <20070416003714.GL3691@stusta.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atlrel9.hp.com ([156.153.255.214]:39692 "EHLO atlrel9.hp.com"
+Received: from mga01.intel.com ([192.55.52.88]:37367 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753705AbXDPW25 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 16 Apr 2007 18:28:57 -0400
-In-Reply-To: <20070416211411.GA16150@dreamland.darkstar.lan>
-Content-Disposition: inline
+	id S1754073AbXDQAOo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Apr 2007 20:14:44 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <20070416003714.GL3691@stusta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Luca Tettamanti <kronos.it@gmail.com>
-Cc: Jean Delvare <khali@linux-fr.org>, Pavel Machek <pavel@ucw.cz>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, Chuck Ebbert <cebbert@redhat.com>
+To: Adrian Bunk <bunk@stusta.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Hans-Georg Rist <hg.rist@web.de>, perex@suse.cz, alsa-devel@alsa-project.org, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, Stephen Clark <Stephen.Clark@seclark.us>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Michal Jaegermann <michal@ellpspace.math.ualberta.ca>, lenb@kernel.org, linux-acpi@vger.kernel.org, netdev@vger.kernel.org, Dave Jones <davej@redhat.com>, e1000-devel@lists.sourceforge.net, Ingo Molnar <mingo@elte.hu>, Ayaz Abdulla <aabdulla@nvidia.com>, David Miller <davem@davemloft.net>, Andi Kleen <ak@suse.de>, Oliver Neukum <oneukum@suse.de>, greg@kroah.com, linux-usb-devel@lists.sourceforge.net, CIJOML <cijoml@volny.cz>, Markus Rechberger <markus.rechberger@amd.com>, v4l-dvb-maintainer@linuxtv.org
 
-On Monday 16 April 2007 15:14, Luca Tettamanti wrote:
-> It seems that Asus exposes monitorining data using "ATK0110" (enumerated
-> in DSDT); I see it both on my P5B-E motherboard and on my notebook (L3D)
-> (they have different methods though). Another motherboard with the same
-> device may actually call it "FOOBAR123" or "WTFISTHIS".
+Adrian Bunk wrote:
+> Subject    : laptops with e1000: lockups
+> References :
+> https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=229603 
+> Submitter  : Dave Jones <davej@redhat.com>
+> Handled-By : Jesse Brandeburg <jesse.brandeburg@intel.com>
+> Status     : problem is being debugged
 
-Yup, we have the same problem with other devices.  See the long list
-of PNP IDs in 8250_pnp.c :-)
+this is being actively debugged, here is what we have so far:
+o v2.6.20: crashes during boot, unless noacpi and nousb bootparams used
+o v2.6.21-rc6: some userspace issue, crashes just after root mount
+without init=/bin/bash
+o v2.6.2X: serial console in docking station spews goo at all speeds
+with console=ttyS0,bbbbn8 . work continues on this, as we don't know if
+there are kernel panic messages during the hard lock.
+o fedora 7 test kernel 2948: boots okay, have been using this as only
+truly working kernel on this machine.
 
-> Problem is that ACPI methods are not documented at all (how am I
-> supposed to know that "G6T6" is the reading of the 12V rail?) while the
-> datasheet of hw monitoring chips (w83627ehf in my case) are public (more
-> or less).
+one reproduction of the problem was had with scp -l 5000 <file> <remote>
+when linked at 100Mb/Full.  Tried probably 20 other times same test with
+no repro, ugh.
 
-Yes, I see that it's attractive to use a single w83627ehf.c driver.
-For an ACPI driver, we'd have to build a list of PNP IDs, and possibly
-information about which methods read which information.  That's
-certainly more work.
+Otherwise, slogging through continues.  We are actively working on this
+in case it *is* an e1000 issue.  Right now the repro is so unlikely we
+could hardly tell if we fixed it.
 
-On the other hand, the ACPI driver would avoid the synchronization
-issues that started this whole thread.  That's a pretty compelling
-advantage.
+Jesse
 
-> Furthermore, sensor driver exposes all the reading of the chip
-> (e.g. in the DSDT I can't find the VSB or battery voltage).
-
-Maybe Asus didn't hook up those readings on the board.  I would
-guess that PC Probe doesn't expose the VSB or battery voltage either.
-
-I'm sure you've seen these:
-  http://lists.lm-sensors.org/pipermail/lm-sensors/2005-October/014050.html
-  http://www.lm-sensors.org/wiki/AsusFormulaHacking
-
-Looks like nobody took up the challenge, though :-)  It looks fun
-to play with, if only I had the time and hardware.
-
-Bjorn
+PS .config available on request
