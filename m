@@ -1,68 +1,49 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [patch 2.6.21-rc5-git] make /proc/acpi/wakeup more useful
-Date: Tue, 17 Apr 2007 14:57:49 -0700
-Message-ID: <200704171457.50416.david-b@pacbell.net>
-References: <200704031741.42273.david-b@pacbell.net> <20070413155949.GA9157@ucw.cz> <200704171253.02748.david-b@pacbell.net>
+From: Corey Minyard <minyard@acm.org>
+Subject: Re: acpi_find_bmc() and acpi_get_table()
+Date: Tue, 17 Apr 2007 17:50:05 -0500
+Message-ID: <46254F1D.1050903@acm.org>
+References: <200702102327.28312.lenb@kernel.org>
+	<20070225215922.GA28931@lists.us.dell.com>
+	<5DDAB7BA7BDB58439DD0EED0B8E9A3AE073879@ausx3mpc102.aus.amer.dell.com>
+	<200704131144.32051.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp108.sbc.mail.mud.yahoo.com ([68.142.198.207]:24363 "HELO
-	smtp108.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1031269AbXDQWAo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Apr 2007 18:00:44 -0400
-In-Reply-To: <200704171253.02748.david-b@pacbell.net>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <openipmi-developer-bounces@lists.sourceforge.net>
+In-Reply-To: <200704131144.32051.bjorn.helgaas@hp.com>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
+	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=openipmi-developer>
+List-Post: <mailto:openipmi-developer@lists.sourceforge.net>
+List-Help: <mailto:openipmi-developer-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
+	<mailto:openipmi-developer-request@lists.sourceforge.net?subject=subscribe>
+Sender: openipmi-developer-bounces@lists.sourceforge.net
+Errors-To: openipmi-developer-bounces@lists.sourceforge.net
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Jordan_Hargrave@dell.com, linux-acpi@vger.kernel.org, Matt_Domsch@dell.com, alexey.y.starikovskiy@linux.intel.com, openipmi-developer@lists.sourceforge.net, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Greg KH <greg@kroah.com>, Zhang Rui <rui.zhang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, lenb@kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>
 
-On Tuesday 17 April 2007 12:53 pm, David Brownell wrote:
-> On Friday 13 April 2007 8:59 am, Pavel Machek wrote:
-> 
-> > ...
-> > > Assuming they all adopt that same "parallel tree" model, that seems
-> > > like a good idea.  The tools will likely need to understand how ACPI
-> > > and OF differ, but there's no point in reserving more names than we
-> > > really need.  Though it may be that "parallel trees" should go away.
-> > 
-> > If mapping is indeed 1-to-1 in acpi... it would be nice to just merge
-> > the trees.
-> 
-> Could you elaborate a bit ... what do you mean by "merge"?
-> 
-> One way to merge the trees would be to relocate
-> 
-> 	/sys/devices/pci* --> ... this *HAS* a PNP node
-> 	/sys/devices/pnp*/X --> /sys/devices/acpi_system*/.../X
-> 
-> Not having the PCI root be its PNPACPI node seems more buglike
-> to me than anything else.  And for other nodes...
+Bjorn Helgaas wrote:
+> On Monday 26 February 2007 11:30, Jordan_Hargrave@dell.com wrote:
+>   
+>>   Here is the patch (RHEL5 base code) I've been testing that detects the ACPI namespace object.
+>> The IPI0001 device doesn't contain the register spacing directly; it has a _CRS resource object that
+>> (for KCS) has two I/O port entries.  I save the first port in io.addr_data, then calculate the register spacing based on subtracting the 2nd port address and the 1st.
+>>     
+>
+> Whatever happened with this patch?  I think we should pursue it, but
+> I don't see it in -mm.
+>
+> Bjorn
+>   
+Sorry, I was under the impression that more work was required here
+dealing with the irqs.  Is that not the case?
 
-Looks like the i8042 serial nodes will be bizarre too:
+-corey
 
-	/sys/devices/pnp0/00:09
-		... touchpad's PNP node
-	/sys/devices/acpi_system:00/device:00/PNP0A03:00/device:15/PNP0F13:00
-		... its ACPI node
-	/sys/devices/platform/i8042/serio4
-		... its serio node
-
-That seems like two nodes too many, but without me trying to twist
-my mind around i8042 issues, I can't quite speculate why struct
-serio "is-a" device rather than "has-a" device (the PNP node) as
-would be the case with a more normal driver structure.
-
-But the existence of that device_add() in serio.c sure explains why
-the PNP node doesn't get associated with the input class device one
-would expect from knowing that 00:09 is the touchpad.
-
-And hmm, just this morning I saw email from Greg re-affirming that
-drivers should not device_add().  Converting such legacy drivers is
-simple though, right?  :)
-
-- Dave
-
+-------------------------------------------------------------------------
+This SF.net email is sponsored by DB2 Express
+Download DB2 Express C - the FREE version of DB2 express and take
+control of your XML. No limits. Just data. Click to get it now.
+http://sourceforge.net/powerbar/db2/
