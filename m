@@ -1,194 +1,68 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: Re: [patch 2.6.21-rc5-git 0/3] x86_pc and ACPI support /sys/devices/.../wakeup
-Date: Tue, 17 Apr 2007 13:15:34 -0700
-Message-ID: <200704171315.35160.david-b@pacbell.net>
-References: <200704051248.40745.david-b@pacbell.net>
+Subject: Re: [patch 2.6.21-rc5-git] make /proc/acpi/wakeup more useful
+Date: Tue, 17 Apr 2007 14:57:49 -0700
+Message-ID: <200704171457.50416.david-b@pacbell.net>
+References: <200704031741.42273.david-b@pacbell.net> <20070413155949.GA9157@ucw.cz> <200704171253.02748.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp109.sbc.mail.mud.yahoo.com ([68.142.198.208]:31452 "HELO
-	smtp109.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1161228AbXDQUPi (ORCPT
+Received: from smtp108.sbc.mail.mud.yahoo.com ([68.142.198.207]:24363 "HELO
+	smtp108.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1031269AbXDQWAo (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Apr 2007 16:15:38 -0400
-In-Reply-To: <200704051248.40745.david-b@pacbell.net>
+	Tue, 17 Apr 2007 18:00:44 -0400
+In-Reply-To: <200704171253.02748.david-b@pacbell.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-pm@lists.linux-foundation.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Greg KH <greg@kroah.com>, Zhang Rui <rui.zhang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, lenb@kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>
 
-So, ACPI team ... will there be any signed-off-by lines forthcoming?
-On at least the first two patches, which are now known to work and
-which don't raise any cross-platform issues.
+On Tuesday 17 April 2007 12:53 pm, David Brownell wrote:
+> On Friday 13 April 2007 8:59 am, Pavel Machek wrote:
+> 
+> > ...
+> > > Assuming they all adopt that same "parallel tree" model, that seems
+> > > like a good idea.  The tools will likely need to understand how ACPI
+> > > and OF differ, but there's no point in reserving more names than we
+> > > really need.  Though it may be that "parallel trees" should go away.
+> > 
+> > If mapping is indeed 1-to-1 in acpi... it would be nice to just merge
+> > the trees.
+> 
+> Could you elaborate a bit ... what do you mean by "merge"?
+> 
+> One way to merge the trees would be to relocate
+> 
+> 	/sys/devices/pci* --> ... this *HAS* a PNP node
+> 	/sys/devices/pnp*/X --> /sys/devices/acpi_system*/.../X
+> 
+> Not having the PCI root be its PNPACPI node seems more buglike
+> to me than anything else.  And for other nodes...
 
-And if you could share an explanation for why sometimes PCI bridges
-seem to get marked as wakeup-capable in the ACPI tables, that would
-be nice too ...
+Looks like the i8042 serial nodes will be bizarre too:
+
+	/sys/devices/pnp0/00:09
+		... touchpad's PNP node
+	/sys/devices/acpi_system:00/device:00/PNP0A03:00/device:15/PNP0F13:00
+		... its ACPI node
+	/sys/devices/platform/i8042/serio4
+		... its serio node
+
+That seems like two nodes too many, but without me trying to twist
+my mind around i8042 issues, I can't quite speculate why struct
+serio "is-a" device rather than "has-a" device (the PNP node) as
+would be the case with a more normal driver structure.
+
+But the existence of that device_add() in serio.c sure explains why
+the PNP node doesn't get associated with the input class device one
+would expect from knowing that 00:09 is the touchpad.
+
+And hmm, just this morning I saw email from Greg re-affirming that
+drivers should not device_add().  Converting such legacy drivers is
+simple though, right?  :)
 
 - Dave
 
-
-
-On Thursday 05 April 2007 12:48 pm, David Brownell wrote:
-> Following are three patches for basic driver model wakeup flag support on
-> PCs.  I think the first two are nearly mergable.  The third previously broke
-> powerpc, so it's likely not yet mergeable ... the issue was arch-specific
-> differences in PCI initialization, someone else will need to solve them.
-> 
-> The patches are:
-> 
->  - Define a platform_enable_wakeup() PM hook and use it with PCI.  (This
->    might help OLPC with its non-RTC events...)
-> 
->  - Make ACPI init and use driver model wakeup flags for the (motherboard)
->    devices in its table ... and implement that new platform hook.  Now
->    /proc/acpi/wakeup is almost purely informative.
-> 
->  - Update PCI to set those flags on devices that can issue PME#/WAKE#;
->    this gets overridden by ACPI, except for add-on cards.
-> 
-> Now, I've not yet made time to test whether the results _work_ but they
-> do look like they do the right thing.  (So far I've had lousy luck seeing
-> ACPI recover from wake events...)  The script I append (which I've posted
-> before) gave the following on one system:
-> 
-> 	input      on  acpi_system:00/device:00/PNP0C0E:00
-> 	           on  pci0000:00/0000:00:09.0
-> 	lan        on  pci0000:00/0000:00:04.0
-> 	hub        on  pci0000:00/0000:00:03.3/usb1
-> 	usb_host   on  pci0000:00/0000:00:03.3
-> 	hub        on  pci0000:00/0000:00:03.1/usb3
-> 	usb_host   on  pci0000:00/0000:00:03.1
-> 	input      on  pci0000:00/0000:00:03.0/usb2/2-1/2-1.1
-> 	hub        on  pci0000:00/0000:00:03.0/usb2/2-1
-> 	hub        on  pci0000:00/0000:00:03.0/usb2
-> 	usb_host   on  pci0000:00/0000:00:03.0
-> 	modem      on  pci0000:00/0000:00:02.7
-> 	           on  pci0000:00
-> 	tty        on  pnp0/00:08
-> 	           on  pnp0/00:06
-> 	           on  pnp0/00:05
-> 	rtc        on  pnp0/00:02
-> 
-> Notice the external USB hub and keyboard.  The i8042 drivers don't
-> seem to list themselvs as input drivers in the usual way, or those
-> PS2 kbd/aux nodes would also say "input".  PCI 00:09.0 is an add-in
-> card, invisible without the third patch; it'd be a USB host if it
-> had a Linux driver.
-> 
-> - Dave
-> 
-> #!/bin/bash
-> # pm-wake
-> 
-> # classfilename *:* ==> $type
-> class_label ()
-> {
-> 	case $1 in
-> 	# recognize common types of wakeup-capable devices
-> 	i2c-dev:*)	type="smbus     "; return 0;;
-> 	input:*)	type="input     "; return 0;;
-> 	mmc_host:*)	type="mmc_host  "; return 0;;
-> 	net:eth*)	type="lan       "; return 0;;
-> 	net:*)		type="net       "; return 0;;
-> 	pcmcia_socket:*)type="pcmcia    "; return 0;;
-> 	rtc:*)		type="rtc       "; return 0;;
-> 	sound:*)	type="modem     "; return 0;;
-> 	tty:*)		type="tty       "; return 0;;
-> 	usb_host:*)	type="usb_host  "; return 0;;
-> 	esac
-> 	return 1
-> }
-> 
-> # interface_label $PATH ==> $type
-> interface_label ()
-> {
-> 	for F in $(cd $1 >/dev/null 2>&1 ; echo *:*)
-> 	do
-> 		class_label $F && return
-> 	done
-> }
-> 
-> # devtype $PATH ==> $type
-> devtype ()
-> {
-> 	local F T
-> 
-> 	# fixed length, currently ten spaces
-> 	type=""
-> 
-> 	for F in $(cd $1 >/dev/null 2>&1 ; echo *:*)
-> 	do
-> 		if [ ! -d "$1/$F" ]
-> 		then
-> 			break;
-> 		fi
-> 
-> 		# is this a usb interface?
-> 		if [ -f $1/$F/bInterfaceClass ]
-> 		then
-> 			interface_label $1/$F && return
-> 		fi
-> 
-> 		case $F in
-> 		# use interface's label if possible, else generic
-> 		usb_device:*)
-> 			read T < $1/maxchild
-> 			if [ 0 -lt $T ]
-> 			then
-> 				type="hub       "
-> 				return
-> 			fi
-> 			type="(usb)     "
-> 			continue;;
-> 		*:*)	class_label $F && return ;;
-> 		esac
-> 
-> 	done
-> 
-> 	if [ "$type" = "" ]
-> 	then
-> 		for T in $(cd $1 >/dev/null 2>&1 ; echo fw-host*/ieee1394_host:*)
-> 		do
-> 			if [ ! -L "$1/$T" ]
-> 			then
-> 				break;
-> 			fi
-> 			type="firewire  "
-> 			return
-> 		done
-> 	fi
-> 
-> 	if [ "$type" = "" ]
-> 		then
-> 		type="          "
-> 	fi
-> }
-> 
-> cd /sys/devices
-> for F in $(find * -name 'wakeup')
-> do
-> 	# F=.../power/wakeup
-> 	read value < $F
-> 	if [ "$value" = "" ]
-> 	then
-> 		continue
-> 	fi
-> 
-> 	# F=...
-> 	F=$(dirname $(dirname $F))
-> 	devtype $F
-> 
-> 	# for each entry that actually supports wakeup, one line with:
-> 	#  - device type (if recognized)
-> 	#  - wake on/OFF
-> 	#  - /sys/devices/... path
-> 	case "$value" in
-> 	"disabled")	echo "$type OFF $F" ;;
-> 	"enabled")	echo "$type on  $F" ;;
-> 	esac
-> done
-> 
