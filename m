@@ -1,53 +1,65 @@
-From: marco <marco@metm.org>
-Subject: Re: suspend kills serial wacom tablet
-Date: Wed, 18 Apr 2007 18:13:11 -0400
-Message-ID: <462697F7.3060507@metm.org>
-References: <pan.2007.02.20.13.52.07.111117@metm.org> <200704161510.18246.bjorn.helgaas@hp.com> <d120d5000704161418w7603e760wb34b90d8e3974537@mail.gmail.com> <200704181600.47561.bjorn.helgaas@hp.com>
+From: Dave Jones <davej@redhat.com>
+Subject: Re: [PATCH] Improve acpi_dbg_level= documentation
+Date: Wed, 18 Apr 2007 18:35:13 -0400
+Message-ID: <20070418223513.GA20204@redhat.com>
+References: <200704181221.37897.ak@suse.de> <20070418080812.0f7f559a.randy.dunlap@oracle.com> <200704181626.21213.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns.metm.org ([64.81.200.243]:44931 "EHLO mail.metm.org"
+Received: from mx1.redhat.com ([66.187.233.31]:46364 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754090AbXDRWNM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Apr 2007 18:13:12 -0400
-In-Reply-To: <200704181600.47561.bjorn.helgaas@hp.com>
+	id S2992899AbXDRWgd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Apr 2007 18:36:33 -0400
+Content-Disposition: inline
+In-Reply-To: <200704181626.21213.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>, Andi Kleen <ak@suse.de>, linux-acpi@vger.kernel.org
 
-Bjorn Helgaas wrote:
-> On Monday 16 April 2007 15:18, Dmitry Torokhov wrote:
->   
->> As far as I understand Marco has a serial Wacom table. There is no
->> in-kernel driver for serial wacoms, they are handled entirely in
->> userspace (X).
->>     
->
-> Duh.  Thanks for straightening me out.  If I'd bothered to read the
-> subject line, I would have been much less confused :-)
->
-> Marco, since the kernel correctly detects your serial port, you should
-> not need "setserial."
->
-> I'm curious about the hang you saw when doing "cat /dev/ttyS0".  I
-> would expect the "cat" to block until the tablet sends data.  But
-> it should not affect the rest of the system, and you should be able
-> to kill the "cat."  Are you observing something different?
->   
-Thank you all for keeping an interest in this issue,
+On Wed, Apr 18, 2007 at 04:26:20PM -0400, Len Brown wrote:
+ 
+ > lenb@nx6325:~> cat /sys/module/acpi/parameters/debug_level
+ > Description                     Hex        SET
+ > ACPI_LV_ERROR                   0x00000001 [*]
+ > ACPI_LV_WARN                    0x00000002 [*]
+ > ACPI_LV_INIT                    0x00000004 [*]
+ > ACPI_LV_DEBUG_OBJECT            0x00000008 [*]
+ > ACPI_LV_INFO                    0x00000010 [ ]
+ > ACPI_LV_INIT_NAMES              0x00000020 [ ]
+ > ACPI_LV_PARSE                   0x00000040 [ ]
+ > ACPI_LV_LOAD                    0x00000080 [ ]
+ > ACPI_LV_DISPATCH                0x00000100 [ ]
+ > ACPI_LV_EXEC                    0x00000200 [ ]
+ > ACPI_LV_NAMES                   0x00000400 [ ]
+ > ACPI_LV_OPREGION                0x00000800 [ ]
+ > ACPI_LV_BFIELD                  0x00001000 [ ]
+ > ACPI_LV_TABLES                  0x00002000 [ ]
+ > ACPI_LV_VALUES                  0x00004000 [ ]
+ > ACPI_LV_OBJECTS                 0x00008000 [ ]
+ > ACPI_LV_RESOURCES               0x00010000 [ ]
+ > ACPI_LV_USER_REQUESTS           0x00020000 [ ]
+ > ACPI_LV_PACKAGE                 0x00040000 [ ]
+ > ACPI_LV_ALLOCATIONS             0x00100000 [ ]
+ > ACPI_LV_FUNCTIONS               0x00200000 [ ]
+ > ACPI_LV_OPTIMIZATIONS           0x00400000 [ ]
+ > ACPI_LV_MUTEX                   0x01000000 [ ]
+ > ACPI_LV_THREADS                 0x02000000 [ ]
+ > ACPI_LV_IO                      0x04000000 [ ]
+ > ACPI_LV_INTERRUPTS              0x08000000 [ ]
+ > ACPI_LV_AML_DISASSEMBLE         0x10000000 [ ]
+ > ACPI_LV_VERBOSE_INFO            0x20000000 [ ]
+ > ACPI_LV_FULL_TABLES             0x40000000 [ ]
+ > ACPI_LV_EVENTS                  0x80000000 [ ]
+ > --
+ > debug_level = 0x0000000F (* = enabled)
 
-Yes.  I am using my laptop right now, and as it has gone to sleep, so 
-the pen tablet does not work.
+Seems to violate the 'one value per file' rule.
+ok, it's one value broken down into its component parts,
+but still, it's a bit ott, and we don't do similar
+expansion for other bitmasks in sysfs do we?
 
-When I "cat /dev/ttyS0"  and move the pen on the tablet there is no 
-output.  I do not get the hang that I reported before.  I apologize if 
-that was erroneous but I definitely remember the laptop hanging.  Anyway 
-now, I  can  ^C  and get out of the  cat.
-
-I promise to run the tests with the new kernel and the debug lines that 
-Dimitry asked for very soon.
+	Dave
 
 -- 
-Marco
+http://www.codemonkey.org.uk
