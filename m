@@ -1,71 +1,79 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [patch 2.6.21-rc5-git] make /proc/acpi/wakeup more useful
-Date: Wed, 18 Apr 2007 03:03:43 +0000
-Message-ID: <20070418030343.GB12756@kroah.com>
-References: <200704031741.42273.david-b@pacbell.net> <20070413155949.GA9157@ucw.cz> <200704171253.02748.david-b@pacbell.net> <200704171457.50416.david-b@pacbell.net>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [patch 2.6.21-rc6-git] workaround rtc-related acpi table bugs
+Date: Tue, 17 Apr 2007 23:10:33 -0400
+Message-ID: <200704172310.33284.lenb@kernel.org>
+References: <200704121414.01828.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pentafluge.infradead.org ([213.146.154.40]:46284 "EHLO
-	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030848AbXDRDFw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Apr 2007 23:05:52 -0400
+Received: from hera.kernel.org ([140.211.167.34]:36897 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030851AbXDRDM1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Apr 2007 23:12:27 -0400
+In-Reply-To: <200704121414.01828.david-b@pacbell.net>
 Content-Disposition: inline
-In-Reply-To: <200704171457.50416.david-b@pacbell.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: David Brownell <david-b@pacbell.net>
-Cc: Pavel Machek <pavel@ucw.cz>, Zhang Rui <rui.zhang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, lenb@kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>
+Cc: Linux Kernel list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-On Tue, Apr 17, 2007 at 02:57:49PM -0700, David Brownell wrote:
-> On Tuesday 17 April 2007 12:53 pm, David Brownell wrote:
-> > On Friday 13 April 2007 8:59 am, Pavel Machek wrote:
-> > 
-> > > ...
-> > > > Assuming they all adopt that same "parallel tree" model, that seems
-> > > > like a good idea.  The tools will likely need to understand how ACPI
-> > > > and OF differ, but there's no point in reserving more names than we
-> > > > really need.  Though it may be that "parallel trees" should go away.
-> > > 
-> > > If mapping is indeed 1-to-1 in acpi... it would be nice to just merge
-> > > the trees.
-> > 
-> > Could you elaborate a bit ... what do you mean by "merge"?
-> > 
-> > One way to merge the trees would be to relocate
-> > 
-> > 	/sys/devices/pci* --> ... this *HAS* a PNP node
-> > 	/sys/devices/pnp*/X --> /sys/devices/acpi_system*/.../X
-> > 
-> > Not having the PCI root be its PNPACPI node seems more buglike
-> > to me than anything else.  And for other nodes...
+On Thursday 12 April 2007 17:14, David Brownell wrote:
+> This works around a bug seen in some RTC-related ACPI table entries, and
+> tweaks related diagnostics to follow the ACPI convention.
 > 
-> Looks like the i8042 serial nodes will be bizarre too:
+> The bug prevents misleading boot-time messages:  platforms affected by this
+> bug wrongly report they can support alarms up to one year in the future,
+> when in fact the longest alarm is just 24 hours.  That will surprise anyone
+> trying to use those extended alarms.
 > 
-> 	/sys/devices/pnp0/00:09
-> 		... touchpad's PNP node
-> 	/sys/devices/acpi_system:00/device:00/PNP0A03:00/device:15/PNP0F13:00
-> 		... its ACPI node
-> 	/sys/devices/platform/i8042/serio4
-> 		... its serio node
+> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+> ---
+>  glue.c |   10 ++++++++--
+>  1 files changed, 8 insertions(+), 2 deletions(-)
 > 
-> That seems like two nodes too many, but without me trying to twist
-> my mind around i8042 issues, I can't quite speculate why struct
-> serio "is-a" device rather than "has-a" device (the PNP node) as
-> would be the case with a more normal driver structure.
+> --- g26.orig/drivers/acpi/glue.c	2007-04-12 10:56:35.000000000 -0700
+> +++ g26/drivers/acpi/glue.c	2007-04-12 10:56:35.000000000 -0700
+> @@ -316,13 +316,19 @@ static int __init acpi_rtc_init(void)
+>  		rtc_info.wake_on = rtc_wake_on;
+>  		rtc_info.wake_off = rtc_wake_off;
+
+probably worth a comment right here that this clause is a BIOS workaround.
+Unclear what value the DBG statement adds, since only somebody
+editing this file will ever enable it.
+
+-Len
+
+> +		if (acpi_gbl_FADT.month_alarm && !acpi_gbl_FADT.day_alarm) {
+> +			DBG("bogus FADT month_alarm\n");
+> +			acpi_gbl_FADT.month_alarm = 0;
+> +		}
+> +
+>  		rtc_info.rtc_day_alarm = acpi_gbl_FADT.day_alarm;
+>  		rtc_info.rtc_mon_alarm = acpi_gbl_FADT.month_alarm;
+>  		rtc_info.rtc_century = acpi_gbl_FADT.century;
+>  
+>  		/* NOTE:  S4_RTC_WAKE is NOT currently useful to Linux */
+>  		if (acpi_gbl_FADT.flags & ACPI_FADT_S4_RTC_WAKE)
+> -			printk("ACPI: RTC can wake from S4\n");
+> +			printk(PREFIX "RTC can wake from S4\n");
+> +
+>  
+>  		dev->platform_data = &rtc_info;
+>  
+> @@ -331,7 +337,7 @@ static int __init acpi_rtc_init(void)
+>  
+>  		put_device(dev);
+>  	} else
+> -		pr_debug("ACPI: RTC unavailable?\n");
+> +		DBG("RTC unavailable?\n");
+>  	return 0;
+>  }
+>  /* do this between RTC subsys_initcall() and rtc_cmos driver_initcall() */
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 > 
-> But the existence of that device_add() in serio.c sure explains why
-> the PNP node doesn't get associated with the input class device one
-> would expect from knowing that 00:09 is the touchpad.
-
-Ick, how can we fix this up?
-
-> And hmm, just this morning I saw email from Greg re-affirming that
-> drivers should not device_add().  Converting such legacy drivers is
-> simple though, right?  :)
-
-Heh, yeah right, they can remain platform drivers :)
-
-thanks,
-
-greg k-h
