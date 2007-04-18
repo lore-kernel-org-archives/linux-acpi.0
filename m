@@ -1,163 +1,40 @@
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Subject: [PATCH] SBS ACPI: convert binary semaphore to mutex
-Date: Wed, 18 Apr 2007 17:04:58 +0200
-Message-ID: <20070418150458.GC6474@traven>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [Openipmi-developer] acpi_find_bmc() and acpi_get_table()
+Date: Wed, 18 Apr 2007 09:32:47 -0600
+Message-ID: <200704180932.48403.bjorn.helgaas@hp.com>
+References: <200702102327.28312.lenb@kernel.org> <200704131144.32051.bjorn.helgaas@hp.com> <46254F1D.1050903@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S2992731AbXDRPIV@vger.kernel.org>
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from atlrel9.hp.com ([156.153.255.214]:36776 "EHLO atlrel9.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753086AbXDRPdH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Apr 2007 11:33:07 -0400
+In-Reply-To: <46254F1D.1050903@acm.org>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: rhdt@bartol.udel.edu
-Cc: len.brown@intel.com, vladimir.p.lebedev@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Corey Minyard <minyard@acm.org>
+Cc: Jordan_Hargrave@dell.com, Matt_Domsch@dell.com, alexey.y.starikovskiy@linux.intel.com, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net, lenb@kernel.org
 
-according to http://lwn.net/Articles/167034/ binary semaphores (which
-aren't given in interrupt context or locked/unlocked in different
-process contexts) should be converted to the new mutex API.
+On Tuesday 17 April 2007 16:50, Corey Minyard wrote:
+> Bjorn Helgaas wrote:
+> > On Monday 26 February 2007 11:30, Jordan_Hargrave@dell.com wrote:
+> >   
+> >>   Here is the patch (RHEL5 base code) I've been testing that detects the ACPI namespace object.
+> >> The IPI0001 device doesn't contain the register spacing directly; it has a _CRS resource object that
+> >> (for KCS) has two I/O port entries.  I save the first port in io.addr_data, then calculate the register spacing based on subtracting the 2nd port address and the 1st.
+> >>     
+> >
+> > Whatever happened with this patch?  I think we should pursue it, but
+> > I don't see it in -mm.
+> >
+> > Bjorn
+> >   
+> Sorry, I was under the impression that more work was required here
+> dealing with the irqs.  Is that not the case?
 
-this patch converts the semaphore used by the Smart Battery System
-ACPI interface driver to a mutex.
-
-please let me know your comments if i misinterpreted the article or if
-you see something wrong in the patch
-
---
-
-Smart Battery System ACPI driver: convert binary semaphore to mutex
-
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-
---
-
-diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-index 59640d9..7e90132 100644
---- a/drivers/acpi/sbs.c
-+++ b/drivers/acpi/sbs.c
-@@ -32,6 +32,7 @@
- #include <linux/acpi.h>
- #include <linux/i2c.h>
- #include <linux/delay.h>
-+#include <linux/mutex.h>
- 
- #include "i2c_ec.h"
- 
-@@ -83,7 +84,7 @@ MODULE_AUTHOR("Rich Townsend");
- MODULE_DESCRIPTION("Smart Battery System ACPI interface driver");
- MODULE_LICENSE("GPL");
- 
--static struct semaphore sbs_sem;
-+static DEFINE_MUTEX(sbs_mutex);
- 
- #define	UPDATE_MODE		QUEUE_UPDATE_MODE
- /* REQUEST_UPDATE_MODE  QUEUE_UPDATE_MODE */
-@@ -930,7 +931,7 @@ static int acpi_battery_read_info(struct seq_file *seq, void *offset)
- 		return -ENODEV;
- 	}
- 
--	down(&sbs_sem);
-+	mutex_lock(&sbs_mutex);
- 
- 	if (update_mode == REQUEST_UPDATE_MODE) {
- 		result = acpi_sbs_update_run(battery->sbs, DATA_TYPE_INFO);
-@@ -984,7 +985,7 @@ static int acpi_battery_read_info(struct seq_file *seq, void *offset)
- 
-       end:
- 
--	up(&sbs_sem);
-+	mutex_unlock(&sbs_mutex);
- 
- 	return result;
- }
-@@ -1005,7 +1006,7 @@ static int acpi_battery_read_state(struct seq_file *seq, void *offset)
- 		return -ENODEV;
- 	}
- 
--	down(&sbs_sem);
-+	mutex_lock(&sbs_mutex);
- 
- 	if (update_mode == REQUEST_UPDATE_MODE) {
- 		result = acpi_sbs_update_run(battery->sbs, DATA_TYPE_STATE);
-@@ -1061,7 +1062,7 @@ static int acpi_battery_read_state(struct seq_file *seq, void *offset)
- 
-       end:
- 
--	up(&sbs_sem);
-+	mutex_unlock(&sbs_mutex);
- 
- 	return result;
- }
-@@ -1081,7 +1082,7 @@ static int acpi_battery_read_alarm(struct seq_file *seq, void *offset)
- 		return -ENODEV;
- 	}
- 
--	down(&sbs_sem);
-+	mutex_lock(&sbs_mutex);
- 
- 	if (update_mode == REQUEST_UPDATE_MODE) {
- 		result = acpi_sbs_update_run(battery->sbs, DATA_TYPE_ALARM);
-@@ -1113,7 +1114,7 @@ static int acpi_battery_read_alarm(struct seq_file *seq, void *offset)
- 
-       end:
- 
--	up(&sbs_sem);
-+	mutex_unlock(&sbs_mutex);
- 
- 	return result;
- }
-@@ -1131,7 +1132,7 @@ acpi_battery_write_alarm(struct file *file, const char __user * buffer,
- 		return -ENODEV;
- 	}
- 
--	down(&sbs_sem);
-+	mutex_lock(&sbs_mutex);
- 
- 	if (!acpi_battery_is_present(battery)) {
- 		result = -ENODEV;
-@@ -1169,7 +1170,7 @@ acpi_battery_write_alarm(struct file *file, const char __user * buffer,
- 	}
- 
-       end:
--	up(&sbs_sem);
-+	mutex_unlock(&sbs_mutex);
- 
- 	if (result) {
- 		return result;
-@@ -1221,7 +1222,7 @@ static int acpi_ac_read_state(struct seq_file *seq, void *offset)
- 		return -ENODEV;
- 	}
- 
--	down(&sbs_sem);
-+	mutex_lock(&sbs_mutex);
- 
- 	if (update_mode == REQUEST_UPDATE_MODE) {
- 		result = acpi_sbs_update_run(sbs, DATA_TYPE_AC_STATE);
-@@ -1234,7 +1235,7 @@ static int acpi_ac_read_state(struct seq_file *seq, void *offset)
- 	seq_printf(seq, "state:                   %s\n",
- 		   sbs->ac_present ? "on-line" : "off-line");
- 
--	up(&sbs_sem);
-+	mutex_unlock(&sbs_mutex);
- 
- 	return 0;
- }
-@@ -1719,8 +1720,6 @@ static int __init acpi_sbs_init(void)
- 	if (acpi_disabled)
- 		return -ENODEV;
- 
--	init_MUTEX(&sbs_sem);
--
- 	if (capacity_mode != DEF_CAPACITY_UNIT
- 	    && capacity_mode != MAH_CAPACITY_UNIT
- 	    && capacity_mode != MWH_CAPACITY_UNIT) {
- 
--- 
-Matthias Kaehlcke
-Linux Application Developer
-Barcelona
-
-      Anyone who has never made a mistake has never tried anything new
-                            (Albert Einstein)
-                                                                 .''`.
-    using free software / Debian GNU/Linux | http://debian.org  : :'  :
-                                                                `. `'`
-gpg --keyserver pgp.mit.edu --recv-keys 47D8E5D4                  `-
+I think there was a little more work required.  I just didn't want
+it to be dropped altogether.
