@@ -1,102 +1,240 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [patch 2.6.21-rc5-git 0/3] x86_pc and ACPI support /sys/devices/.../wakeup
-Date: Wed, 18 Apr 2007 09:33:07 -0700
-Message-ID: <200704180933.07601.david-b@pacbell.net>
-References: <200704051248.40745.david-b@pacbell.net> <1176889866.5376.34.camel@localhost.localdomain>
+From: "Morten Friesgaard" <friesgaard@gmail.com>
+Subject: Re: daylight saving makes computer wake up late
+Date: Wed, 18 Apr 2007 19:15:43 +0200
+Message-ID: <135ab3ff0704181015u371da251ye16e613252dc7fac@mail.gmail.com>
+References: <135ab3ff0704080512k2bcf3973m46c8153ff6a6f7df@mail.gmail.com>
+	 <20070408141040.GA14308@khazad-dum.debian.net>
+	 <135ab3ff0704081118g3bebd25bj7394483a50549dea@mail.gmail.com>
+	 <20070408215037.425b4883@localhost>
+	 <135ab3ff0704140306j33ac1efat116c2a215f2b5d1c@mail.gmail.com>
+	 <20070414184639.79fb4835@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp112.sbc.mail.mud.yahoo.com ([68.142.198.211]:27134 "HELO
-	smtp112.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S2992821AbXDRQhS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Apr 2007 12:37:18 -0400
-In-Reply-To: <1176889866.5376.34.camel@localhost.localdomain>
+Received: from an-out-0708.google.com ([209.85.132.249]:19853 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S2992880AbXDRRPo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Apr 2007 13:15:44 -0400
+Received: by an-out-0708.google.com with SMTP id b33so279160ana
+        for <linux-acpi@vger.kernel.org>; Wed, 18 Apr 2007 10:15:43 -0700 (PDT)
+In-Reply-To: <20070414184639.79fb4835@localhost>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-pm@lists.linux-foundation.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>
+To: Dominique Michel <dominique.michel@citycable.ch>, linux-acpi@vger.kernel.org
 
-On Wednesday 18 April 2007 2:51 am, Zhang Rui wrote:
-> Hi, David,
-> 
-> On Thu, 2007-04-05 at 12:48 -0700, David Brownell wrote:
-> > Following are three patches for basic driver model wakeup flag support on
-> > PCs.  I think the first two are nearly mergable.  The third previously broke
-> > powerpc, so it's likely not yet mergeable ... the issue was arch-specific
-> > differences in PCI initialization, someone else will need to solve them.
-> > 
-> > The patches are:
-> > 
-> >  - Define a platform_enable_wakeup() PM hook and use it with PCI.  (This
-> >    might help OLPC with its non-RTC events...)
-> > 
-> >  - Make ACPI init and use driver model wakeup flags for the (motherboard)
-> >    devices in its table ... and implement that new platform hook.  Now
-> >    /proc/acpi/wakeup is almost purely informative.
-> 
-> Yes.
-> But /proc/acpi/wakeup is exporting the wrong information then.
+Hi again.
+when I installed Gentoo i copied the timezone with
 
-I'd say it's always exported the wrong information ... and
-since those /proc files are going away, this there's no
-strong need to continue following that path.
+# cp /usr/share/zoneinfo/Europe/Copenhagen /etc/localtime
 
-The literal meaning hasn't changed:  it still reflects the
-value of the acpi_device.wakeup.state.enabled flag.  This
-version of the patch avoided changing that meaning, to make
-the compatibility story simpler.
+last week i did a diff on the files, and the differed, so I changed it
+to a symbolic link
+# ln -sf /usr/share/zoneinfo/Europe/Copenhagen /etc/localtime
 
-But managing that ACPI flag through that procfs file has never
-related well to what has been needed, or how non-ACPI systems
-(e.g. without GPEs) behave.
+well I still got the same problem...
 
+Don't see any way to solve it but my temporary script...
+/Morten
 
-> I.e. when a physical device is set to may_wakeup, the corresponding
-> GPE will be enabled before entering a system sleep state.
-
-The GPE is not always enabled when device_may_wakeup(dev)
-returns true.  When drivers aren't set up to handle wakeups,
-they won't make requests that boil down to enabling GPEs.
-
-What /proc/acpi/wakeup shows in those cases is the state
-of what I called "manual overrides".  Drivers that aren't
-wakeup-aware will use those settings ... same as always.
-(Unless userspace disables wakeup for that device through
-the driver model.)
-
-
-Wakeup-aware drivers will manage their GPEs directly, by
-calling pci_enable_wake() -- or whatever -- according to
-what device_may_wakeup(dev) tells them to do.
-
-It's always been strange that /proc/acpi/wakeup flags just
-ignored pci_enable_wake() directions from drivers.  From the
-driver perspective, those flags have been sadly divorced from
-what they needed to do ... I count that as a bug, so that
-these two patches are a bugfix for pci_enable_wake() in the
-context of ACPI.
-
-
-> But we always get status of the ACPI device is disabled
-> via /proc/acpi/wakeup, even if they could be enabled in
-> acpi_platform_enable_wakeup when suspending.
-
-If a driver enables wakeup earlier, then it would be
-displayed earlier.  But of course, pci_enable_wake()
-and similar wakeup control logic mostly triggers when
-a system leaves (or reenters) the S0 state(*).
-
-You're overlooking the flip side.  Previously, that
-flag would be shown as "enabled" even when drivers
-requested that their device NOT be a wakeup source.
-Surely that has been equally wrong...
-
-- Dave
-
-(*) The separate issue of wanting devices enter e.g. a
-    D3hot state to save power when the system is in S0,
-    and then rely on wake events, still remains.
+On 14/04/07, Dominique Michel <dominique.michel@citycable.ch> wrote:
+> Le Sat, 14 Apr 2007 12:06:49 +0200,
+> "Morten Friesgaard" <friesgaard@gmail.com> a =E9crit :
+>
+> > Hi again.
+> >
+> > I have the following settings:
+> > CLOCK=3D"UTC"
+> > TIMEZONE=3D"Europe/Copenhagen"
+> > CLOCK_SYSTOHC=3D"yes"
+> >
+> On gentoo, I also have to copy one file as /etc/localtime. It the fil=
+e
+> in /usr/zoneinfo that correspond to your local time. Don't copy the f=
+iles
+> in /usr/zoneinfo/Etc, but the one that correspond to your geographica=
+l
+> location, as example /usr/zoneinfo/Europe/London and rename it
+> to /etc/localtime.
+>
+> But those settings can differ between different distributions. If it =
+still
+> doesn't work, take a look in the doc or in a forum for your distribut=
+ion. Some
+> bios also have a setting for this.
+>
+> Dominique
+>
+> > but still nothing works correctly, so until it is fixed, i going to
+> > use the following script (now it works)
+> >
+> > hope anyone else can benefit from it :)
+> > /Morten
+> >
+> > -------------------------------------------------------------------=
+-----
+> > #script /usr/sbin/mythsettime
+> > #sudo chmod u+x /usr/sbin/mythsettime
+> >
+> > d=3D$1
+> > t=3D$2
+> >
+> > #AT=3D`cat /proc/acpi/alarm`
+> > RT=3D`date -d "${d} ${t} 2 hours ago" +'%Y-%m-%d %H:%M:%S'`
+> >
+> > echo $RT > /home/mythtv/myth.time
+> > echo $RT > /proc/acpi/alarm
+> > #echo $AT
+> > -------------------------------------------------------------------=
+-----
+> >
+> >
+> > On 08/04/07, Dominique Michel <dominique.michel@citycable.ch> wrote=
+:
+> > > Le Sun, 8 Apr 2007 20:18:28 +0200,
+> > > "Morten Friesgaard" <friesgaard@gmail.com> a =E9crit :
+> > >
+> > > > I'm not sure what to do, how do I make these changes?
+> > > >
+> > > > when I run the following it gives me somewhat the same values, =
+but it
+> > > > seems the BIOS clock i different (?!)
+> > > > # hwclock ; date
+> > > > Sun Apr  8 20:13:56 2007  -0.069330 seconds
+> > > > Sun Apr  8 20:13:55 CEST 2007
+> > > >
+> > > > it worked before daylight savings, is it something I can ignore=
+ and
+> > > > still get it to wake up the corret time?
+> > > >
+> > > > should I change
+> > > > TIMEZONE=3D"Europe/Copenhagen"
+> > > >
+> > > > to
+> > > > TIMEZONE=3D"UTC"
+> > > > ??
+> > > >
+> > > > /Morten
+> > > >
+> > >
+> > > You must have 2 things:
+> > >
+> > > CLOCK=3D"UTC"
+> > > TIMEZONE=3D"Europe/Copenhagen"
+> > >
+> > > The first one tell the OS that the rtc use UTC time, the second o=
+ne at it
+> > > must convert the UTC time into Europe/Copenhagen time to get the =
+current
+> > > system time.
+> > >
+> > > On gentoo I also have an option that set the Hardware Clock to th=
+e current
+> > > System Time during shutdown:
+> > >
+> > > CLOCK_SYSTOHC=3D"yes"
+> > >
+> > > Some linux distributions use CLOCK=3D"local" because, I guess, th=
+ey are
+> > > thinking at it is best to do so when you are double booting with =
+windows.
+> > > It is wrong because when the rtc use local time, the system have =
+to change
+> > > the time in the rtc (read in the hardware) when the daylight is c=
+hanging,
+> > > and each OS will change the time in the rtc.
+> > >
+> > > So, you will get the correct time after booting the first OS, a s=
+hift of one
+> > > hour after booting the second OS, and so on. It is much simpler t=
+o use UTC
+> > > with all the OS in the box, and that even with window$ (it is an =
+option in
+> > > the register base, I don't remember where but a google search wil=
+l give you
+> > > the reference.)
+> > >
+> > > With CLOCK=3D"UTC", the time in the rtc (in the hardware) will ne=
+ver change,
+> > > the OS will just interpret it with the value of TIMEZONE.
+> > >
+> > > Ciao,
+> > > Dominique
+> > >
+> > > >
+> > > > On 08/04/07, Henrique de Moraes Holschuh <hmh@hmh.eng.br> wrote=
+:
+> > > > > On Sun, 08 Apr 2007, Morten Friesgaard wrote:
+> > > > > > I'm running a mythbox, and ever since we had our yearly cha=
+nge of
+> > > > > > daylight savings (summer time) my computer wakes up late. A=
+t first it
+> > > > > > was only an hour, then I set the time with hwclock (realise=
+d that
+> > > > > > CLOCK_SYSTOHC=3D"no"), now it is 2 hours late. And it is re=
+ally precise
+> > > > > > (1-2 hours later), and it is certainly because of daylight =
+savings.
+> > > > > >
+> > > > > > Any ideas?
+> > > > >
+> > > > > My guess is that you have to set ACPI wake times to *exactly*=
+ the time
+> > > > > zone you use your RTC in.  Typically UTC, but semi-broken MS-=
+compatible
+> > > > > setups use the local time zone.
+> > > > >
+> > > > > The kernel can know the timezone, but almost nobody ever sets=
+ that
+> > > > > right, and it is not summer-time aware anyway (too complex). =
+ It is
+> > > > > best to just keep everything UTC as far as the kernel goes, *=
+including*
+> > > > > the RTC.
+> > > > >
+> > > > > --
+> > > > >   "One disk to rule them all, One disk to find them. One disk=
+ to bring
+> > > > >   them all and in the darkness grind them. In the Land of Red=
+mond
+> > > > >   where the shadows lie." -- The Silicon Valley Tarot
+> > > > >   Henrique Holschuh
+> > > > >
+> > > > -
+> > > > To unsubscribe from this list: send the line "unsubscribe linux=
+-acpi" in
+> > > > the body of a message to majordomo@vger.kernel.org
+> > > > More majordomo info at  http://vger.kernel.org/majordomo-info.h=
+tml
+> > >
+> > >
+> > > --
+> > > Dominique Michel
+> > >
+> > > --
+> > > N.B.: Tous les emails que je re=E7ois sont filtr=E9s par spamassa=
+ssin avant de
+> > > me parvenir.
+> > >
+> > -
+> > To unsubscribe from this list: send the line "unsubscribe linux-acp=
+i" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
+> --
+> Dominique Michel
+>
+> --
+> N.B.: Tous les emails que je re=E7ois sont filtr=E9s par spamassassin=
+ avant de me
+> parvenir.
+>
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
