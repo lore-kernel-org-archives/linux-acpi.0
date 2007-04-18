@@ -1,99 +1,47 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [patch 2.6.21-rc6-git] workaround rtc-related acpi table bugs
-Date: Tue, 17 Apr 2007 21:41:11 -0700
-Message-ID: <200704172141.12131.david-b@pacbell.net>
-References: <200704121414.01828.david-b@pacbell.net> <200704172310.33284.lenb@kernel.org>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [patch 2.6.21-rc5-git 0/3] x86_pc and ACPI support
+	/sys/devices/.../wakeup
+Date: Wed, 18 Apr 2007 17:51:06 +0800
+Message-ID: <1176889866.5376.34.camel@localhost.localdomain>
+References: <200704051248.40745.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753570AbXDRElR@vger.kernel.org>
-In-Reply-To: <200704172310.33284.lenb@kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linux Kernel list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:12267 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1422751AbXDRJwF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Apr 2007 05:52:05 -0400
+In-Reply-To: <200704051248.40745.david-b@pacbell.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-pm@lists.linux-foundation.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>
 
-On Tuesday 17 April 2007 8:10 pm, Len Brown wrote:
-> On Thursday 12 April 2007 17:14, David Brownell wrote:
+Hi, David,
 
-> > --- g26.orig/drivers/acpi/glue.c	2007-04-12 10:56:35.000000000 -0700
-> > +++ g26/drivers/acpi/glue.c	2007-04-12 10:56:35.000000000 -0700
-> > @@ -316,13 +316,19 @@ static int __init acpi_rtc_init(void)
-> >  		rtc_info.wake_on = rtc_wake_on;
-> >  		rtc_info.wake_off = rtc_wake_off;
+On Thu, 2007-04-05 at 12:48 -0700, David Brownell wrote:
+> Following are three patches for basic driver model wakeup flag support on
+> PCs.  I think the first two are nearly mergable.  The third previously broke
+> powerpc, so it's likely not yet mergeable ... the issue was arch-specific
+> differences in PCI initialization, someone else will need to solve them.
 > 
-> probably worth a comment right here that this clause is a BIOS workaround.
-
-Done, see the appended.
-
-
-> Unclear what value the DBG statement adds, since only somebody
-> editing this file will ever enable it.
-
-Um, it should come automagically when ACPI debug is enabled, right?
-Just like when any other subsystem's debug tools are enabled.
-
-... AH, I see, "glue" is a separate debug category not affected by
-Kconfig.  Buglike.  :)
-
-- Dave
-
-
-> -Len
+> The patches are:
 > 
-> > +		if (acpi_gbl_FADT.month_alarm && !acpi_gbl_FADT.day_alarm) {
-> > +			DBG("bogus FADT month_alarm\n");
-> > +			acpi_gbl_FADT.month_alarm = 0;
-> > +		}
-> ...
+>  - Define a platform_enable_wakeup() PM hook and use it with PCI.  (This
+>    might help OLPC with its non-RTC events...)
+> 
+>  - Make ACPI init and use driver model wakeup flags for the (motherboard)
+>    devices in its table ... and implement that new platform hook.  Now
+>    /proc/acpi/wakeup is almost purely informative.
+> 
+Yes.
+But /proc/acpi/wakeup is exporting the wrong information then.
+I.e. when a physical device is set to may_wakeup, the corresponding GPE
+will be enabled before entering a system sleep state.
+But we always get status of the ACPI device is disabled
+via /proc/acpi/wakeup, even if they could be enabled in
+acpi_platform_enable_wakeup when suspending.
 
-
-===============	CUT HERE
-This works around a bug seen in some RTC-related ACPI table entries, and
-tweaks related diagnostics to follow the ACPI convention.
-
-The bug prevents misleading boot-time messages:  platforms affected by this
-bug wrongly report they can support alarms up to one year in the future,
-when in fact the longest alarm is just 24 hours.  That will surprise anyone
-trying to use those extended alarms.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
----
- drivers/acpi/glue.c |   11 +++++++++--
- 1 files changed, 9 insertions(+), 2 deletions(-)
-
---- g26.orig/drivers/acpi/glue.c	2007-04-17 17:46:47.000000000 -0700
-+++ g26/drivers/acpi/glue.c	2007-04-17 21:31:27.000000000 -0700
-@@ -316,13 +316,20 @@ static int __init acpi_rtc_init(void)
- 		rtc_info.wake_on = rtc_wake_on;
- 		rtc_info.wake_off = rtc_wake_off;
- 
-+		/* workaround bug in some ACPI tables */
-+		if (acpi_gbl_FADT.month_alarm && !acpi_gbl_FADT.day_alarm) {
-+			DBG("bogus FADT month_alarm\n");
-+			acpi_gbl_FADT.month_alarm = 0;
-+		}
-+
- 		rtc_info.rtc_day_alarm = acpi_gbl_FADT.day_alarm;
- 		rtc_info.rtc_mon_alarm = acpi_gbl_FADT.month_alarm;
- 		rtc_info.rtc_century = acpi_gbl_FADT.century;
- 
- 		/* NOTE:  S4_RTC_WAKE is NOT currently useful to Linux */
- 		if (acpi_gbl_FADT.flags & ACPI_FADT_S4_RTC_WAKE)
--			printk("ACPI: RTC can wake from S4\n");
-+			printk(PREFIX "RTC can wake from S4\n");
-+
- 
- 		dev->platform_data = &rtc_info;
- 
-@@ -331,7 +338,7 @@ static int __init acpi_rtc_init(void)
- 
- 		put_device(dev);
- 	} else
--		pr_debug("ACPI: RTC unavailable?\n");
-+		DBG("RTC unavailable?\n");
- 	return 0;
- }
- /* do this between RTC subsys_initcall() and rtc_cmos driver_initcall() */
+Thanks,
+Rui
