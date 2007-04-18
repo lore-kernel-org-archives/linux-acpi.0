@@ -1,70 +1,163 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: [PATCH] Improve acpi_dbg_level= documentation
-Date: Wed, 18 Apr 2007 08:08:12 -0700
-Message-ID: <20070418080812.0f7f559a.randy.dunlap@oracle.com>
-References: <200704181221.37897.ak@suse.de>
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: [PATCH] SBS ACPI: convert binary semaphore to mutex
+Date: Wed, 18 Apr 2007 17:04:58 +0200
+Message-ID: <20070418150458.GC6474@traven>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rgminet01.oracle.com ([148.87.113.118]:45451 "EHLO
-	rgminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S2992727AbXDRPF5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Apr 2007 11:05:57 -0400
-In-Reply-To: <200704181221.37897.ak@suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S2992731AbXDRPIV@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: rhdt@bartol.udel.edu
+Cc: len.brown@intel.com, vladimir.p.lebedev@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andi Kleen <ak@suse.de>
-Cc: len.brown@intel.com, linux-acpi@vger.kernel.org
 
-On Wed, 18 Apr 2007 12:21:37 +0200 Andi Kleen wrote:
+according to http://lwn.net/Articles/167034/ binary semaphores (which
+aren't given in interrupt context or locked/unlocked in different
+process contexts) should be converted to the new mutex API.
 
-> 
-> First it was documented twice.
+this patch converts the semaphore used by the Smart Battery System
+ACPI interface driver to a mutex.
 
-acpi_dbg_layer and
-acpi_dbg_level are different.
+please let me know your comments if i misinterpreted the article or if
+you see something wrong in the patch
 
-But the added text is Good.
+--
 
-> Since this is a fairly important option document it properly.
-> I kept myself looking for this information again and again.
-> 
-> In particular the individual bits are fairly important. And add some 
-> warnings.
-> 
-> Signed-off-by: Andi Kleen <ak@suse.de>
-> 
-> Index: linux/Documentation/kernel-parameters.txt
-> ===================================================================
-> --- linux.orig/Documentation/kernel-parameters.txt
-> +++ linux/Documentation/kernel-parameters.txt
-> @@ -187,13 +187,16 @@ and is between 256 and 4096 characters. 
->  			1: enable, 0: disable. It is useful for boot time
->  			debugging. After system has booted up, it can be set
->  			via /proc/acpi/debug_layer.
-> -
-> -	acpi_dbg_level=	[HW,ACPI]
-> -			Format: <int>
-> -			Each bit of the <int> indicates an ACPI debug level,
-> -			1: enable, 0: disable. It is useful for boot time
-> -			debugging. After system has booted up, it can be set
-> -			via /proc/acpi/debug_level.
-> +			CONFIG_ACPI_DEBUG must be enabled for this to produce any output.
-> +			Available bits (add the numbers together) to enable debug output
-> +			for specific parts of the ACPI subsystem:
-> +			1 utilities 2 hardware 4 events 8 tables 
-> +			0x10 namespace 0x20 parser 0x40 dispatcher
-> +			0x80 executer 0x100 resources 0x200 debugger
-> +			0x400 os services
-> +			The number can be in decimal or prefixed with 0x in hex.
-> +			Warning: Many of these options can produce a lot of 
-> +			output and make your system unusable. Be very careful.
->  
->  	acpi_fake_ecdt	[HW,ACPI] Workaround failure due to BIOS lacking ECDT
->  
+Smart Battery System ACPI driver: convert binary semaphore to mutex
 
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
----
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+--
+
+diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+index 59640d9..7e90132 100644
+--- a/drivers/acpi/sbs.c
++++ b/drivers/acpi/sbs.c
+@@ -32,6 +32,7 @@
+ #include <linux/acpi.h>
+ #include <linux/i2c.h>
+ #include <linux/delay.h>
++#include <linux/mutex.h>
+ 
+ #include "i2c_ec.h"
+ 
+@@ -83,7 +84,7 @@ MODULE_AUTHOR("Rich Townsend");
+ MODULE_DESCRIPTION("Smart Battery System ACPI interface driver");
+ MODULE_LICENSE("GPL");
+ 
+-static struct semaphore sbs_sem;
++static DEFINE_MUTEX(sbs_mutex);
+ 
+ #define	UPDATE_MODE		QUEUE_UPDATE_MODE
+ /* REQUEST_UPDATE_MODE  QUEUE_UPDATE_MODE */
+@@ -930,7 +931,7 @@ static int acpi_battery_read_info(struct seq_file *seq, void *offset)
+ 		return -ENODEV;
+ 	}
+ 
+-	down(&sbs_sem);
++	mutex_lock(&sbs_mutex);
+ 
+ 	if (update_mode == REQUEST_UPDATE_MODE) {
+ 		result = acpi_sbs_update_run(battery->sbs, DATA_TYPE_INFO);
+@@ -984,7 +985,7 @@ static int acpi_battery_read_info(struct seq_file *seq, void *offset)
+ 
+       end:
+ 
+-	up(&sbs_sem);
++	mutex_unlock(&sbs_mutex);
+ 
+ 	return result;
+ }
+@@ -1005,7 +1006,7 @@ static int acpi_battery_read_state(struct seq_file *seq, void *offset)
+ 		return -ENODEV;
+ 	}
+ 
+-	down(&sbs_sem);
++	mutex_lock(&sbs_mutex);
+ 
+ 	if (update_mode == REQUEST_UPDATE_MODE) {
+ 		result = acpi_sbs_update_run(battery->sbs, DATA_TYPE_STATE);
+@@ -1061,7 +1062,7 @@ static int acpi_battery_read_state(struct seq_file *seq, void *offset)
+ 
+       end:
+ 
+-	up(&sbs_sem);
++	mutex_unlock(&sbs_mutex);
+ 
+ 	return result;
+ }
+@@ -1081,7 +1082,7 @@ static int acpi_battery_read_alarm(struct seq_file *seq, void *offset)
+ 		return -ENODEV;
+ 	}
+ 
+-	down(&sbs_sem);
++	mutex_lock(&sbs_mutex);
+ 
+ 	if (update_mode == REQUEST_UPDATE_MODE) {
+ 		result = acpi_sbs_update_run(battery->sbs, DATA_TYPE_ALARM);
+@@ -1113,7 +1114,7 @@ static int acpi_battery_read_alarm(struct seq_file *seq, void *offset)
+ 
+       end:
+ 
+-	up(&sbs_sem);
++	mutex_unlock(&sbs_mutex);
+ 
+ 	return result;
+ }
+@@ -1131,7 +1132,7 @@ acpi_battery_write_alarm(struct file *file, const char __user * buffer,
+ 		return -ENODEV;
+ 	}
+ 
+-	down(&sbs_sem);
++	mutex_lock(&sbs_mutex);
+ 
+ 	if (!acpi_battery_is_present(battery)) {
+ 		result = -ENODEV;
+@@ -1169,7 +1170,7 @@ acpi_battery_write_alarm(struct file *file, const char __user * buffer,
+ 	}
+ 
+       end:
+-	up(&sbs_sem);
++	mutex_unlock(&sbs_mutex);
+ 
+ 	if (result) {
+ 		return result;
+@@ -1221,7 +1222,7 @@ static int acpi_ac_read_state(struct seq_file *seq, void *offset)
+ 		return -ENODEV;
+ 	}
+ 
+-	down(&sbs_sem);
++	mutex_lock(&sbs_mutex);
+ 
+ 	if (update_mode == REQUEST_UPDATE_MODE) {
+ 		result = acpi_sbs_update_run(sbs, DATA_TYPE_AC_STATE);
+@@ -1234,7 +1235,7 @@ static int acpi_ac_read_state(struct seq_file *seq, void *offset)
+ 	seq_printf(seq, "state:                   %s\n",
+ 		   sbs->ac_present ? "on-line" : "off-line");
+ 
+-	up(&sbs_sem);
++	mutex_unlock(&sbs_mutex);
+ 
+ 	return 0;
+ }
+@@ -1719,8 +1720,6 @@ static int __init acpi_sbs_init(void)
+ 	if (acpi_disabled)
+ 		return -ENODEV;
+ 
+-	init_MUTEX(&sbs_sem);
+-
+ 	if (capacity_mode != DEF_CAPACITY_UNIT
+ 	    && capacity_mode != MAH_CAPACITY_UNIT
+ 	    && capacity_mode != MWH_CAPACITY_UNIT) {
+ 
+-- 
+Matthias Kaehlcke
+Linux Application Developer
+Barcelona
+
+      Anyone who has never made a mistake has never tried anything new
+                            (Albert Einstein)
+                                                                 .''`.
+    using free software / Debian GNU/Linux | http://debian.org  : :'  :
+                                                                `. `'`
+gpg --keyserver pgp.mit.edu --recv-keys 47D8E5D4                  `-
