@@ -1,83 +1,99 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: Re: [patch 2.6.21-rc5-git] make /proc/acpi/wakeup more useful
-Date: Tue, 17 Apr 2007 20:25:52 -0700
-Message-ID: <200704172025.52862.david-b@pacbell.net>
-References: <200704031741.42273.david-b@pacbell.net> <200704171457.50416.david-b@pacbell.net> <20070418030343.GB12756@kroah.com>
+Subject: Re: [patch 2.6.21-rc6-git] workaround rtc-related acpi table bugs
+Date: Tue, 17 Apr 2007 21:41:11 -0700
+Message-ID: <200704172141.12131.david-b@pacbell.net>
+References: <200704121414.01828.david-b@pacbell.net> <200704172310.33284.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp104.sbc.mail.mud.yahoo.com ([68.142.198.203]:48714 "HELO
-	smtp104.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1031025AbXDRDZ4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Apr 2007 23:25:56 -0400
-In-Reply-To: <20070418030343.GB12756@kroah.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753570AbXDRElR@vger.kernel.org>
+In-Reply-To: <200704172310.33284.lenb@kernel.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Linux Kernel list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Pavel Machek <pavel@ucw.cz>, Zhang Rui <rui.zhang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, lenb@kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>
 
-On Tuesday 17 April 2007 8:03 pm, Greg KH wrote:
-> On Tue, Apr 17, 2007 at 02:57:49PM -0700, David Brownell wrote:
+On Tuesday 17 April 2007 8:10 pm, Len Brown wrote:
+> On Thursday 12 April 2007 17:14, David Brownell wrote:
 
-> > Looks like the i8042 serial nodes will be bizarre too:
-> > 
-> > 	/sys/devices/pnp0/00:09
-> > 		... touchpad's PNP node
-> > 	/sys/devices/acpi_system:00/device:00/PNP0A03:00/device:15/PNP0F13:00
-> > 		... its ACPI node
-> > 	/sys/devices/platform/i8042/serio4
-> > 		... its serio node
-> > 
-> > That seems like two nodes too many, but without me trying to twist
-> > my mind around i8042 issues, I can't quite speculate why struct
-> > serio "is-a" device rather than "has-a" device (the PNP node) as
-> > would be the case with a more normal driver structure.
-> > 
-> > But the existence of that device_add() in serio.c sure explains why
-> > the PNP node doesn't get associated with the input class device one
-> > would expect from knowing that 00:09 is the touchpad.
+> > --- g26.orig/drivers/acpi/glue.c	2007-04-12 10:56:35.000000000 -0700
+> > +++ g26/drivers/acpi/glue.c	2007-04-12 10:56:35.000000000 -0700
+> > @@ -316,13 +316,19 @@ static int __init acpi_rtc_init(void)
+> >  		rtc_info.wake_on = rtc_wake_on;
+> >  		rtc_info.wake_off = rtc_wake_off;
 > 
-> Ick, how can we fix this up?
+> probably worth a comment right here that this clause is a BIOS workaround.
 
-You're asking the wrong penguin for that answer ... :)
-
-But I'd suggest that someone who knows ACPI -- and PNPACPI --- work
-on merging those ACPI and PNP nodes.  (Same thing would need doing
-with ACPI and PCI ...)
-
-That ACPI subtree is quite new, at least in terms of being public.
-So I'd think its details must be very flexible right now.
+Done, see the appended.
 
 
-> > And hmm, just this morning I saw email from Greg re-affirming that
-> > drivers should not device_add().  Converting such legacy drivers is
-> > simple though, right?  :)
-> 
-> Heh, yeah right, they can remain platform drivers :)
+> Unclear what value the DBG statement adds, since only somebody
+> editing this file will ever enable it.
 
-Most platform drivers aren't legacy drivers.  Just the x86 ones!
-And a lot of those wouldn't be headaches if PNPACPI were used better...
+Um, it should come automagically when ACPI debug is enabled, right?
+Just like when any other subsystem's debug tools are enabled.
 
-In this case, making the i8042 stuff use PNP more naturally would
-seem like the most natural way to resolve the problem for all but
-pre-ACPI legacy x86 hardware.  Now that ACPI implies PNPACPI by
-default, various corner cases have vanished.
-
-That said, I know less about i8042 wierdness -- and I know there's
-a lot of it! -- than about ACPI, so I'll stay out of that.  Beyond
-pointing out these curious little corner cases I've uncovered while
-trying to make sure wakeup annotations get assigned to the right
-sysfs device nodes.  :)
+... AH, I see, "glue" is a separate debug category not affected by
+Kconfig.  Buglike.  :)
 
 - Dave
 
 
+> -Len
 > 
-> thanks,
-> 
-> greg k-h
-> 
+> > +		if (acpi_gbl_FADT.month_alarm && !acpi_gbl_FADT.day_alarm) {
+> > +			DBG("bogus FADT month_alarm\n");
+> > +			acpi_gbl_FADT.month_alarm = 0;
+> > +		}
+> ...
+
+
+===============	CUT HERE
+This works around a bug seen in some RTC-related ACPI table entries, and
+tweaks related diagnostics to follow the ACPI convention.
+
+The bug prevents misleading boot-time messages:  platforms affected by this
+bug wrongly report they can support alarms up to one year in the future,
+when in fact the longest alarm is just 24 hours.  That will surprise anyone
+trying to use those extended alarms.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+---
+ drivers/acpi/glue.c |   11 +++++++++--
+ 1 files changed, 9 insertions(+), 2 deletions(-)
+
+--- g26.orig/drivers/acpi/glue.c	2007-04-17 17:46:47.000000000 -0700
++++ g26/drivers/acpi/glue.c	2007-04-17 21:31:27.000000000 -0700
+@@ -316,13 +316,20 @@ static int __init acpi_rtc_init(void)
+ 		rtc_info.wake_on = rtc_wake_on;
+ 		rtc_info.wake_off = rtc_wake_off;
+ 
++		/* workaround bug in some ACPI tables */
++		if (acpi_gbl_FADT.month_alarm && !acpi_gbl_FADT.day_alarm) {
++			DBG("bogus FADT month_alarm\n");
++			acpi_gbl_FADT.month_alarm = 0;
++		}
++
+ 		rtc_info.rtc_day_alarm = acpi_gbl_FADT.day_alarm;
+ 		rtc_info.rtc_mon_alarm = acpi_gbl_FADT.month_alarm;
+ 		rtc_info.rtc_century = acpi_gbl_FADT.century;
+ 
+ 		/* NOTE:  S4_RTC_WAKE is NOT currently useful to Linux */
+ 		if (acpi_gbl_FADT.flags & ACPI_FADT_S4_RTC_WAKE)
+-			printk("ACPI: RTC can wake from S4\n");
++			printk(PREFIX "RTC can wake from S4\n");
++
+ 
+ 		dev->platform_data = &rtc_info;
+ 
+@@ -331,7 +338,7 @@ static int __init acpi_rtc_init(void)
+ 
+ 		put_device(dev);
+ 	} else
+-		pr_debug("ACPI: RTC unavailable?\n");
++		DBG("RTC unavailable?\n");
+ 	return 0;
+ }
+ /* do this between RTC subsys_initcall() and rtc_cmos driver_initcall() */
