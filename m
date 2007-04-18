@@ -1,47 +1,58 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [patch 2.6.21-rc5-git 0/3] x86_pc and ACPI support
-	/sys/devices/.../wakeup
-Date: Wed, 18 Apr 2007 17:51:06 +0800
-Message-ID: <1176889866.5376.34.camel@localhost.localdomain>
-References: <200704051248.40745.david-b@pacbell.net>
+From: Andi Kleen <ak@suse.de>
+Subject: [PATCH] Improve acpi_dbg_level= documentation
+Date: Wed, 18 Apr 2007 12:21:37 +0200
+Message-ID: <200704181221.37897.ak@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:12267 "EHLO mga01.intel.com"
+Received: from cantor2.suse.de ([195.135.220.15]:59789 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422751AbXDRJwF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Apr 2007 05:52:05 -0400
-In-Reply-To: <200704051248.40745.david-b@pacbell.net>
+	id S1751894AbXDRKVo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Apr 2007 06:21:44 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-pm@lists.linux-foundation.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>
+To: len.brown@intel.com
+Cc: linux-acpi@vger.kernel.org
 
-Hi, David,
 
-On Thu, 2007-04-05 at 12:48 -0700, David Brownell wrote:
-> Following are three patches for basic driver model wakeup flag support on
-> PCs.  I think the first two are nearly mergable.  The third previously broke
-> powerpc, so it's likely not yet mergeable ... the issue was arch-specific
-> differences in PCI initialization, someone else will need to solve them.
-> 
-> The patches are:
-> 
->  - Define a platform_enable_wakeup() PM hook and use it with PCI.  (This
->    might help OLPC with its non-RTC events...)
-> 
->  - Make ACPI init and use driver model wakeup flags for the (motherboard)
->    devices in its table ... and implement that new platform hook.  Now
->    /proc/acpi/wakeup is almost purely informative.
-> 
-Yes.
-But /proc/acpi/wakeup is exporting the wrong information then.
-I.e. when a physical device is set to may_wakeup, the corresponding GPE
-will be enabled before entering a system sleep state.
-But we always get status of the ACPI device is disabled
-via /proc/acpi/wakeup, even if they could be enabled in
-acpi_platform_enable_wakeup when suspending.
+First it was documented twice.
 
-Thanks,
-Rui
+Since this is a fairly important option document it properly.
+I kept myself looking for this information again and again.
+
+In particular the individual bits are fairly important. And add some 
+warnings.
+
+Signed-off-by: Andi Kleen <ak@suse.de>
+
+Index: linux/Documentation/kernel-parameters.txt
+===================================================================
+--- linux.orig/Documentation/kernel-parameters.txt
++++ linux/Documentation/kernel-parameters.txt
+@@ -187,13 +187,16 @@ and is between 256 and 4096 characters. 
+ 			1: enable, 0: disable. It is useful for boot time
+ 			debugging. After system has booted up, it can be set
+ 			via /proc/acpi/debug_layer.
+-
+-	acpi_dbg_level=	[HW,ACPI]
+-			Format: <int>
+-			Each bit of the <int> indicates an ACPI debug level,
+-			1: enable, 0: disable. It is useful for boot time
+-			debugging. After system has booted up, it can be set
+-			via /proc/acpi/debug_level.
++			CONFIG_ACPI_DEBUG must be enabled for this to produce any output.
++			Available bits (add the numbers together) to enable debug output
++			for specific parts of the ACPI subsystem:
++			1 utilities 2 hardware 4 events 8 tables 
++			0x10 namespace 0x20 parser 0x40 dispatcher
++			0x80 executer 0x100 resources 0x200 debugger
++			0x400 os services
++			The number can be in decimal or prefixed with 0x in hex.
++			Warning: Many of these options can produce a lot of 
++			output and make your system unusable. Be very careful.
+ 
+ 	acpi_fake_ecdt	[HW,ACPI] Workaround failure due to BIOS lacking ECDT
+ 
