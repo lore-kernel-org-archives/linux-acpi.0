@@ -1,61 +1,71 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: Thermal Zones and Throttling
-Date: Tue, 17 Apr 2007 23:03:46 -0400
-Message-ID: <200704172303.46321.lenb@kernel.org>
-References: <11b141710704121410j16011387q4640f07f1e27a85f@mail.gmail.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [patch 2.6.21-rc5-git] make /proc/acpi/wakeup more useful
+Date: Wed, 18 Apr 2007 03:03:43 +0000
+Message-ID: <20070418030343.GB12756@kroah.com>
+References: <200704031741.42273.david-b@pacbell.net> <20070413155949.GA9157@ucw.cz> <200704171253.02748.david-b@pacbell.net> <200704171457.50416.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:53704 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965427AbXDRDFO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Apr 2007 23:05:14 -0400
-In-Reply-To: <11b141710704121410j16011387q4640f07f1e27a85f@mail.gmail.com>
+Received: from pentafluge.infradead.org ([213.146.154.40]:46284 "EHLO
+	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030848AbXDRDFw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Apr 2007 23:05:52 -0400
 Content-Disposition: inline
+In-Reply-To: <200704171457.50416.david-b@pacbell.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Paulo J. Matos" <pocm@soton.ac.uk>
-Cc: linux-acpi@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Pavel Machek <pavel@ucw.cz>, Zhang Rui <rui.zhang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, lenb@kernel.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>
 
-On Thursday 12 April 2007 17:10, Paulo J. Matos wrote:
-> Hello,
+On Tue, Apr 17, 2007 at 02:57:49PM -0700, David Brownell wrote:
+> On Tuesday 17 April 2007 12:53 pm, David Brownell wrote:
+> > On Friday 13 April 2007 8:59 am, Pavel Machek wrote:
+> > 
+> > > ...
+> > > > Assuming they all adopt that same "parallel tree" model, that seems
+> > > > like a good idea.  The tools will likely need to understand how ACPI
+> > > > and OF differ, but there's no point in reserving more names than we
+> > > > really need.  Though it may be that "parallel trees" should go away.
+> > > 
+> > > If mapping is indeed 1-to-1 in acpi... it would be nice to just merge
+> > > the trees.
+> > 
+> > Could you elaborate a bit ... what do you mean by "merge"?
+> > 
+> > One way to merge the trees would be to relocate
+> > 
+> > 	/sys/devices/pci* --> ... this *HAS* a PNP node
+> > 	/sys/devices/pnp*/X --> /sys/devices/acpi_system*/.../X
+> > 
+> > Not having the PCI root be its PNPACPI node seems more buglike
+> > to me than anything else.  And for other nodes...
 > 
-> I'm almost sure by laptop is burning [almost] and yet, no throttling
-> change is happening.
-> The only wierd thing I can find is the fact that:
-> euler ~ # cat /proc/acpi/processor/CPU0/info
-> processor id:            0
-> acpi id:                 0
-> bus mastering control:   yes
-> power management:        yes
-> throttling control:      yes
-> limit interface:         yes
-> euler ~ # cat /proc/acpi/processor/CPU0/throttling
-> state count:             4
-> active state:            T0
-> states:
->    *T0:                  00%
->     T1:                  25%
->     T2:                  50%
->     T3:                  75%
-> euler ~ # ls -la /proc/acpi/thermal_zone/
-> total 0
-> dr-xr-xr-x  2 root root 0 Apr 12 22:07 .
-> dr-xr-xr-x 10 root root 0 Apr 12 15:26 ..
+> Looks like the i8042 serial nodes will be bizarre too:
 > 
-> Isn't it wierd that although I have throttling control, there are no
-> thermal zones?
+> 	/sys/devices/pnp0/00:09
+> 		... touchpad's PNP node
+> 	/sys/devices/acpi_system:00/device:00/PNP0A03:00/device:15/PNP0F13:00
+> 		... its ACPI node
+> 	/sys/devices/platform/i8042/serio4
+> 		... its serio node
 > 
-> I'm almost sure throttling should be activated... my laptop is
-> practically burning my hands as I write this.... Is there anything I
-> can check out?
+> That seems like two nodes too many, but without me trying to twist
+> my mind around i8042 issues, I can't quite speculate why struct
+> serio "is-a" device rather than "has-a" device (the PNP node) as
+> would be the case with a more normal driver structure.
+> 
+> But the existence of that device_add() in serio.c sure explains why
+> the PNP node doesn't get associated with the input class device one
+> would expect from knowing that 00:09 is the touchpad.
 
-Cat /proc/cpuinfo will tell if the hardware has automatic throttling
-for thermal emergencies.
+Ick, how can we fix this up?
 
-However, the real question is why you're having a thermal emergency
-in the first place.  Is there dust blocking the fan?
+> And hmm, just this morning I saw email from Greg re-affirming that
+> drivers should not device_add().  Converting such legacy drivers is
+> simple though, right?  :)
 
--Len
+Heh, yeah right, they can remain platform drivers :)
+
+thanks,
+
+greg k-h
