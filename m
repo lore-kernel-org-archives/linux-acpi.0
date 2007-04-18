@@ -1,72 +1,38 @@
-From: "Paulo J. Matos" <pocm@soton.ac.uk>
-Subject: Re: Thermal Zones and Throttling
-Date: Wed, 18 Apr 2007 21:43:36 +0100
-Message-ID: <11b141710704181343s515b2532j4b465541cc1fb011@mail.gmail.com>
-References: <11b141710704121410j16011387q4640f07f1e27a85f@mail.gmail.com>
-	 <200704172303.46321.lenb@kernel.org>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: suspend kills serial wacom tablet
+Date: Wed, 18 Apr 2007 16:00:47 -0600
+Message-ID: <200704181600.47561.bjorn.helgaas@hp.com>
+References: <pan.2007.02.20.13.52.07.111117@metm.org> <200704161510.18246.bjorn.helgaas@hp.com> <d120d5000704161418w7603e760wb34b90d8e3974537@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wx-out-0506.google.com ([66.249.82.239]:50805 "EHLO
-	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S2992557AbXDRUnh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Apr 2007 16:43:37 -0400
-Received: by wx-out-0506.google.com with SMTP id h31so326435wxd
-        for <linux-acpi@vger.kernel.org>; Wed, 18 Apr 2007 13:43:36 -0700 (PDT)
-In-Reply-To: <200704172303.46321.lenb@kernel.org>
+Received: from atlrel8.hp.com ([156.153.255.206]:42955 "EHLO atlrel8.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754052AbXDRWBD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Apr 2007 18:01:03 -0400
+In-Reply-To: <d120d5000704161418w7603e760wb34b90d8e3974537@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: marco <marco@metm.org>, linux-acpi@vger.kernel.org
 
-On 4/18/07, Len Brown <lenb@kernel.org> wrote:
->
-> Cat /proc/cpuinfo will tell if the hardware has automatic throttling
-> for thermal emergencies.
->
+On Monday 16 April 2007 15:18, Dmitry Torokhov wrote:
+> As far as I understand Marco has a serial Wacom table. There is no
+> in-kernel driver for serial wacoms, they are handled entirely in
+> userspace (X).
 
-Which flag tells me that?
-$ cat /proc/cpuinfo
-processor       : 0
-vendor_id       : GenuineIntel
-cpu family      : 15
-model           : 2
-model name      : Mobile Intel(R) Pentium(R) 4 - M CPU 2.20GHz
-stepping        : 7
-cpu MHz         : 2200.000
-cache size      : 512 KB
-fdiv_bug        : no
-hlt_bug         : no
-f00f_bug        : no
-coma_bug        : no
-fpu             : yes
-fpu_exception   : yes
-cpuid level     : 2
-wp              : yes
-flags           : fpu vme de pse tsc msr pae mce cx8 sep mtrr pge mca
-cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe up cid
-bogomips        : 4389.84
-clflush size    : 64
+Duh.  Thanks for straightening me out.  If I'd bothered to read the
+subject line, I would have been much less confused :-)
 
-> However, the real question is why you're having a thermal emergency
-> in the first place.  Is there dust blocking the fan?
->
+Marco, since the kernel correctly detects your serial port, you should
+not need "setserial."
 
-Well, it's probably a very badly ventilated, 2.2Ghz Pentium4 M in a laptop! :-(
-I've already ordered some notebook coolers!
+I'm curious about the hang you saw when doing "cat /dev/ttyS0".  I
+would expect the "cat" to block until the tablet sends data.  But
+it should not affect the rest of the system, and you should be able
+to kill the "cat."  Are you observing something different?
 
-> -Len
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
--- 
-Paulo Jorge Matos - pocm at soton.ac.uk
-http://www.personal.soton.ac.uk/pocm
-PhD Student @ ECS
-University of Southampton, UK
+Bjorn
