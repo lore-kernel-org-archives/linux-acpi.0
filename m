@@ -1,100 +1,94 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH] Improve acpi_dbg_level= documentation
-Date: Thu, 19 Apr 2007 15:38:35 +0800
-Message-ID: <1176968315.9072.11.camel@localhost.localdomain>
-References: <200704181221.37897.ak@suse.de>
-	 <20070418080812.0f7f559a.randy.dunlap@oracle.com>
-	 <200704181626.21213.lenb@kernel.org>
+Subject: Re: [patch 2.6.21-rc5-git 0/3] x86_pc and ACPI support
+	/sys/devices/.../wakeup
+Date: Thu, 19 Apr 2007 17:48:32 +0800
+Message-ID: <1176976112.9072.54.camel@localhost.localdomain>
+References: <200704051248.40745.david-b@pacbell.net>
+	 <1176889866.5376.34.camel@localhost.localdomain>
+	 <200704180933.07601.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:16622 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:43688 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030188AbXDSHje (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Apr 2007 03:39:34 -0400
-In-Reply-To: <200704181626.21213.lenb@kernel.org>
+	id S2993220AbXDSJt2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Apr 2007 05:49:28 -0400
+In-Reply-To: <200704180933.07601.david-b@pacbell.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, Andi Kleen <ak@suse.de>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>, "linux-acpi@vger" <linux-acpi@vger.kernel.org>
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-pm@lists.linux-foundation.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>
 
-On Wed, 2007-04-18 at 12:21 +0200, Andi Kleen wrote: 
-> First it was documented twice.
+On Wed, 2007-04-18 at 09:33 -0700, David Brownell wrote:
+> On Wednesday 18 April 2007 2:51 am, Zhang Rui wrote:
+> > Hi, David,
+> > 
+> > On Thu, 2007-04-05 at 12:48 -0700, David Brownell wrote:
+> > > Following are three patches for basic driver model wakeup flag support on
+> > > PCs.  I think the first two are nearly mergable.  The third previously broke
+> > > powerpc, so it's likely not yet mergeable ... the issue was arch-specific
+> > > differences in PCI initialization, someone else will need to solve them.
+> > > 
+> > > The patches are:
+> > > 
+> > >  - Define a platform_enable_wakeup() PM hook and use it with PCI.  (This
+> > >    might help OLPC with its non-RTC events...)
+> > > 
+> > >  - Make ACPI init and use driver model wakeup flags for the (motherboard)
+> > >    devices in its table ... and implement that new platform hook.  Now
+> > >    /proc/acpi/wakeup is almost purely informative.
+> > 
+> > Yes.
+> > But /proc/acpi/wakeup is exporting the wrong information then.
 > 
-> Since this is a fairly important option document it properly.
-> I kept myself looking for this information again and again.
+> I'd say it's always exported the wrong information ... and
+> since those /proc files are going away, this there's no
+> strong need to continue following that path.
 > 
-> In particular the individual bits are fairly important. And add some 
-> warnings.
+> The literal meaning hasn't changed:  it still reflects the
+> value of the acpi_device.wakeup.state.enabled flag.  This
+> version of the patch avoided changing that meaning, to make
+> the compatibility story simpler.
 > 
-That's right. Thanks for pointing out.
-Does the patch below make sense?
+> > I.e. when a physical device is set to may_wakeup, the corresponding
+> > GPE will be enabled before entering a system sleep state.
+> 
+> The GPE is not always enabled when device_may_wakeup(dev)
+> returns true.  When drivers aren't set up to handle wakeups,
+> they won't make requests that boil down to enabling GPEs.
+> 
+> What /proc/acpi/wakeup shows in those cases is the state
+> of what I called "manual overrides".  Drivers that aren't
+> wakeup-aware will use those settings ... same as always.
+> (Unless userspace disables wakeup for that device through
+> the driver model.)
+> 
 
-On Wed, 2007-04-18 at 16:26 -0400, Len Brown wrote:
-> (though in looking at it, I think it is incorrect for
-> sysfs to use debug_level and debug_layer instead of
-> acpi_dbg_level and acpi_dbg_layer, which would match
-> the actual name of the kernel boot parameters)
+> Wakeup-aware drivers will manage their GPEs directly, by
+> calling pci_enable_wake() -- or whatever -- according to
+> what device_may_wakeup(dev) tells them to do.
+> 
 
-Now we use acpi.debug_level and acpi.debug_layer as kernel boot
-parameters instead of acpi_dbg_level and acpi_dbg_layer.
-But the document is not updated in time.
+That's true.
+Now acpi_device.wakeup.state.enabled is handled by
+the wakeup-aware drivers of the "real" device.
 
-This is the patch to update document for ACPI debug option.
+I love the first two patches which help user space get rid of
+this ACPI specific GPE control.
+
+What I meant yesterday is that, as /proc/acpi/wakeup won't be
+removed until we are able to map all the ACPI devices shown to
+the real device node, if they have one,
+it would be better if we either remove this GPE status information
+from /proc/acpi/wakeup, or export something that really makes sense.
+But now I think it's wrong. Because the other devices that are not
+mapped yet still need this I/F to enable/disable GPE, we can not
+remove/change this at the current stage.
+
+Then the first two patches are OK with me.:)
 
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- Documentation/kernel-parameters.txt |   30 ++++++++++++++++++++++++++----
- 1 files changed, 26 insertions(+), 4 deletions(-)
 
-Index: linux-2.6.21-rc7/Documentation/kernel-parameters.txt
-===================================================================
---- linux-2.6.21-rc7.orig/Documentation/kernel-parameters.txt	2007-04-18 15:22:49.000000000 +0800
-+++ linux-2.6.21-rc7/Documentation/kernel-parameters.txt	2007-04-19 15:21:17.000000000 +0800
-@@ -181,19 +181,41 @@ and is between 256 and 4096 characters. 
- 			that require a timer override, but don't have
- 			HPET
- 
--	acpi_dbg_layer=	[HW,ACPI]
-+	acpi.dbg_layer=	[HW,ACPI]
- 			Format: <int>
- 			Each bit of the <int> indicates an ACPI debug layer,
- 			1: enable, 0: disable. It is useful for boot time
- 			debugging. After system has booted up, it can be set
--			via /proc/acpi/debug_layer.
-+			via /sys/module/acpi/parameters/debug_layer.
-+			CONFIG_ACPI_DEBUG must be enabled for this to produce any output.
-+			Available bits (add the numbers together) to enable debug output
-+			for specific parts of the ACPI subsystem:
-+			0x01 utilities 0x02 hardware 0x04 events 0x08 tables
-+			0x10 namespace 0x20 parser 0x40 dispatcher
-+			0x80 executer 0x100 resources 0x200 acpica debugger
-+			0x400 os services 0x800 acpica disassembler
-+			The number can be in decimal or prefixed with 0x in hex.
-+			Warning: Many of these options can produce a lot of
-+			output and make your system unusable. Be very careful.
- 
--	acpi_dbg_level=	[HW,ACPI]
-+	acpi.dbg_level=	[HW,ACPI]
- 			Format: <int>
- 			Each bit of the <int> indicates an ACPI debug level,
- 			1: enable, 0: disable. It is useful for boot time
- 			debugging. After system has booted up, it can be set
--			via /proc/acpi/debug_level.
-+			via /sys/module/acpi/parameters/debug_level.
-+			CONFIG_ACPI_DEBUG must be enabled for this to produce any output.
-+			Available bits (add the numbers together) to enable defferent
-+			debug output levels of the ACPI subsystem:
-+			0x01 error 0x02 warn 0x04 init 0x08 debug object
-+			0x10 info 0x20 init names 0x40 parse 0x80 load
-+			0x100 dispatch 0x200 execute 0x400 names 0x800 operation region
-+			0x1000 bfield 0x2000 tables 0x4000 values 0x8000 objects
-+			0x10000 resources 0x20000 user requests 0x40000 package
-+			The number can be in decimal or prefixed with 0x in hex.
-+			Warning: Many of these options can produce a lot of
-+			output and make your system unusable. Be very careful.
-+
- 
- 	acpi_fake_ecdt	[HW,ACPI] Workaround failure due to BIOS lacking ECDT
- 
+Thanks,
+Rui
