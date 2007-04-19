@@ -1,94 +1,105 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [patch 2.6.21-rc5-git 0/3] x86_pc and ACPI support
-	/sys/devices/.../wakeup
-Date: Thu, 19 Apr 2007 17:48:32 +0800
-Message-ID: <1176976112.9072.54.camel@localhost.localdomain>
-References: <200704051248.40745.david-b@pacbell.net>
-	 <1176889866.5376.34.camel@localhost.localdomain>
-	 <200704180933.07601.david-b@pacbell.net>
+From: Thomas Renninger <trenn@suse.de>
+Subject: HP nx8220 psmouse vs ACPI at boot up
+Date: Thu, 19 Apr 2007 14:44:58 +0200
+Message-ID: <1176986698.1231.390.camel@queen.suse.de>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:43688 "EHLO mga01.intel.com"
+Received: from mx1.suse.de ([195.135.220.2]:51640 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2993220AbXDSJt2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Apr 2007 05:49:28 -0400
-In-Reply-To: <200704180933.07601.david-b@pacbell.net>
+	id S637744AbXDSMo7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Apr 2007 08:44:59 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-pm@lists.linux-foundation.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, kssingvo@suse.de
 
-On Wed, 2007-04-18 at 09:33 -0700, David Brownell wrote:
-> On Wednesday 18 April 2007 2:51 am, Zhang Rui wrote:
-> > Hi, David,
-> > 
-> > On Thu, 2007-04-05 at 12:48 -0700, David Brownell wrote:
-> > > Following are three patches for basic driver model wakeup flag support on
-> > > PCs.  I think the first two are nearly mergable.  The third previously broke
-> > > powerpc, so it's likely not yet mergeable ... the issue was arch-specific
-> > > differences in PCI initialization, someone else will need to solve them.
-> > > 
-> > > The patches are:
-> > > 
-> > >  - Define a platform_enable_wakeup() PM hook and use it with PCI.  (This
-> > >    might help OLPC with its non-RTC events...)
-> > > 
-> > >  - Make ACPI init and use driver model wakeup flags for the (motherboard)
-> > >    devices in its table ... and implement that new platform hook.  Now
-> > >    /proc/acpi/wakeup is almost purely informative.
-> > 
-> > Yes.
-> > But /proc/acpi/wakeup is exporting the wrong information then.
-> 
-> I'd say it's always exported the wrong information ... and
-> since those /proc files are going away, this there's no
-> strong need to continue following that path.
-> 
-> The literal meaning hasn't changed:  it still reflects the
-> value of the acpi_device.wakeup.state.enabled flag.  This
-> version of the patch avoided changing that meaning, to make
-> the compatibility story simpler.
-> 
-> > I.e. when a physical device is set to may_wakeup, the corresponding
-> > GPE will be enabled before entering a system sleep state.
-> 
-> The GPE is not always enabled when device_may_wakeup(dev)
-> returns true.  When drivers aren't set up to handle wakeups,
-> they won't make requests that boil down to enabling GPEs.
-> 
-> What /proc/acpi/wakeup shows in those cases is the state
-> of what I called "manual overrides".  Drivers that aren't
-> wakeup-aware will use those settings ... same as always.
-> (Unless userspace disables wakeup for that device through
-> the driver model.)
-> 
+Hi,
 
-> Wakeup-aware drivers will manage their GPEs directly, by
-> calling pci_enable_wake() -- or whatever -- according to
-> what device_may_wakeup(dev) tells them to do.
-> 
+I first thought it's the "unload psmouse" or "cleanup psmouse ports"
+at shutdown problem again.
 
-That's true.
-Now acpi_device.wakeup.state.enabled is handled by
-the wakeup-aware drivers of the "real" device.
+I think this time EC gets confused at boot time.
+Compiling psmouse as module helps again.
 
-I love the first two patches which help user space get rid of
-this ACPI specific GPE control.
+Symptom:
+AC adapter status is wrong if booted with AC unplugged.
+Replugging helps.
+This sounds like a minor bug, but ACPI errors at other places
+with AE_TIME errors also happen and theoretically all kind of
+ACPI breakage could happen...
 
-What I meant yesterday is that, as /proc/acpi/wakeup won't be
-removed until we are able to map all the ACPI devices shown to
-the real device node, if they have one,
-it would be better if we either remove this GPE status information
-from /proc/acpi/wakeup, or export something that really makes sense.
-But now I think it's wrong. Because the other devices that are not
-mapped yet still need this I/F to enable/disable GPE, we can not
-remove/change this at the current stage.
+I can reproduce this with a 2.6.18 and a 2.6.16 kernel.
+Latest 2.6.21-rc7 does not show the problem.
+I wonder whether this really got fixed or whether this
+is just because psmouse gets activated at some earlier or later
+time because of other changes in the kernel.
 
-Then the first two patches are OK with me.:)
+This looks a bit related to the 
+"Could the k8temp driver be interfering with ACPI"
+discussion. It seems as if mouse ports should not get touched
+when ACPI is accessing the EC on HP laptops (and others?) in general?
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+I can't access the machine anymore, I possibly can have it for
+some more tests.
+I just want to point out that there still could be trouble.
 
-Thanks,
-Rui
+   Thomas
+
+I thought that attached patch helps (exclude psmouse init and ACPI
+interpreter). But it seems that not.
+Hmm, so strange, I removed processor, fan and thermal module to not be
+loaded via initrd -> works. However adding them again still works, maybe
+they are loaded in different order. Really confused now, as this problem
+is a BIOS problem and what I see cannot get cleanly workarounded I am
+giving up.
+
+---
+ drivers/input/mouse/psmouse-base.c |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+Index: linux-2.6.18-SL102_BRANCH/drivers/input/mouse/psmouse-base.c
+===================================================================
+--- linux-2.6.18-SL102_BRANCH.orig/drivers/input/mouse/psmouse-base.c
++++ linux-2.6.18-SL102_BRANCH/drivers/input/mouse/psmouse-base.c
+@@ -22,6 +22,8 @@
+ #include <linux/libps2.h>
+ #include <linux/mutex.h>
+ 
++#include <acpi/acpi.h>
++
+ #include "psmouse.h"
+ #include "synaptics.h"
+ #include "logips2pp.h"
+@@ -1513,6 +1515,14 @@ static int psmouse_get_maxproto(char *bu
+ 
+ static int __init psmouse_init(void)
+ {
++	acpi_status status;
++
++	status = acpi_ut_acquire_mutex(ACPI_MTX_INTERPRETER);
++	if (status) {
++		printk (KERN_ERR "%s - Could not acquire ACPI interpreter"
++			" mutex\n", __FUNCTION__);
++	}
++
+ 	kpsmoused_wq = create_singlethread_workqueue("kpsmoused");
+ 	if (!kpsmoused_wq) {
+ 		printk(KERN_ERR "psmouse: failed to create kpsmoused workqueue\n");
+@@ -1521,6 +1531,12 @@ static int __init psmouse_init(void)
+ 
+ 	serio_register_driver(&psmouse_drv);
+ 
++	status = acpi_ut_release_mutex(ACPI_MTX_INTERPRETER);
++	if (status) {
++		printk (KERN_ERR "%s - Could not release ACPI interpreter"
++			" mutex\n", __FUNCTION__);
++	}
++
+ 	return 0;
+ }
+ 
+
+
