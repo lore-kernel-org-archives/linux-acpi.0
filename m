@@ -1,274 +1,113 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH 05/22] ACPI: Cache battery status instead of
- re-evaluating AML
-Date: Thu, 19 Apr 2007 11:23:13 -0700
-Message-ID: <20070419112313.24e43271.akpm@linux-foundation.org>
-References: <11734992592550-git-send-email-lenb@kernel.org>
-	<11734992652665-git-send-email-lenb@kernel.org>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [patch 2.6.21-rc5-git 0/3] x86_pc and ACPI support /sys/devices/.../wakeup
+Date: Thu, 19 Apr 2007 12:24:08 -0700
+Message-ID: <200704191224.08474.david-b@pacbell.net>
+References: <200704051248.40745.david-b@pacbell.net> <200704180933.07601.david-b@pacbell.net> <1176976112.9072.54.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42012 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753398AbXDSSe4 (ORCPT
+Received: from smtp104.sbc.mail.mud.yahoo.com ([68.142.198.203]:48981 "HELO
+	smtp104.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1766960AbXDSTj2 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Apr 2007 14:34:56 -0400
-In-Reply-To: <11734992652665-git-send-email-lenb@kernel.org>
+	Thu, 19 Apr 2007 15:39:28 -0400
+In-Reply-To: <1176976112.9072.54.camel@localhost.localdomain>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Vladimir Lebedev <vladimir.p.lebedev@intel.com>, Len Brown <len.brown@intel.com>
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-pm@lists.linux-foundation.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>
 
-On Fri,  9 Mar 2007 23:00:42 -0500
-Len Brown <lenb@kernel.org> wrote:
-
-> From: Vladimir Lebedev <vladimir.p.lebedev@intel.com>
+> > > > The patches are:
+> > > > 
+> > > >  - Define a platform_enable_wakeup() PM hook and use it with PCI.  (This
+> > > >    might help OLPC with its non-RTC events...)
+> > > > 
+> > > >  - Make ACPI init and use driver model wakeup flags for the (motherboard)
+> > > >    devices in its table ... and implement that new platform hook.  Now
+> > > >    /proc/acpi/wakeup is almost purely informative.
+> > > 
+> > > Yes.
+> > > But /proc/acpi/wakeup is exporting the wrong information then.
+> > 
+> > I'd say it's always exported the wrong information ... and
+> > since those /proc files are going away, this there's no
+> > strong need to continue following that path.
+> > 
+> > The literal meaning hasn't changed:  it still reflects the
+> > value of the acpi_device.wakeup.state.enabled flag.  This
+> > version of the patch avoided changing that meaning, to make
+> > the compatibility story simpler.
+> > 
+> > > I.e. when a physical device is set to may_wakeup, the corresponding
+> > > GPE will be enabled before entering a system sleep state.
+> > 
+> > The GPE is not always enabled when device_may_wakeup(dev)
+> > returns true.  When drivers aren't set up to handle wakeups,
+> > they won't make requests that boil down to enabling GPEs.
+> > 
+> > What /proc/acpi/wakeup shows in those cases is the state
+> > of what I called "manual overrides".  Drivers that aren't
+> > wakeup-aware will use those settings ... same as always.
+> > (Unless userspace disables wakeup for that device through
+> > the driver model.)
+> > 
 > 
-> /proc exports _BST in a single file, and _BST is re-evaulated
-> whenever that file is read.
+> > Wakeup-aware drivers will manage their GPEs directly, by
+> > calling pci_enable_wake() -- or whatever -- according to
+> > what device_may_wakeup(dev) tells them to do.
+> > 
 > 
-> Sometimes user-space reads this file frequently, and on some
-> systems _BST takes a long time to evaluate due to a slow EC.
+> That's true.
+> Now acpi_device.wakeup.state.enabled is handled by
+> the wakeup-aware drivers of the "real" device.
 > 
-> Further, when we move to sysfs, the values returned from _BST
-> will be in multiple files, and evaluating _BST for each
-> file read would make matters worse.
+> I love the first two patches which help user space get rid of
+> this ACPI specific GPE control.
+
+OK, good -- we're on the same page then!
+
+
+> What I meant yesterday is that, as /proc/acpi/wakeup won't be
+> removed until we are able to map all the ACPI devices shown to
+> the real device node, if they have one,
+> it would be better if we either remove this GPE status information
+> from /proc/acpi/wakeup, or export something that really makes sense.
+
+That's a bit of a sticky situation.  I went back and forth
+on it a bit ... and eventually decided the simplest, and
+clearest, approach was not to change how /proc/acpi/wakeup
+handles those flags.
+
+
+> But now I think it's wrong. Because the other devices that are not
+> mapped yet still need this I/F to enable/disable GPE, we can not
+> remove/change this at the current stage.
+
+Exactly!
+
+
+> Then the first two patches are OK with me.:)
 > 
-> Here code is added to support caching the results of _BST.
-> A new module parameter "update_time" tells how many seconds the
-> cached _BST should be used before it is re-evaluated.
-> Currently, update_time defaults to 0, and so the
-> existing behaviour of re-evaluating on each read retained.
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+
+Great -- thanks!  I'll append that to these patches and ask
+Andrew to merge them.
+
+Given these and the PNP patches, most /proc/acpi/wakeup
+devices will now get the right annotations.  There will still
+be some puzzles to work out over time though ... the PS2
+devices, some ACPI buttons, and PCI bridges.
+
+Plus of course the PCI issues addressed in the third patch.
+I switched things around a bit; maybe it's now easier to
+have something that won't break powerpc.
+
+- Dave
+
+ 
+> Thanks,
+> Rui
 > 
-> ...
->  
-> +#define acpi_battery_present(battery) battery->device->status.battery_present
-> +#define acpi_battery_present_prev(battery) battery->flags.battery_present_prev
-> +#define acpi_battery_alarm_present(battery) battery->flags.alarm_present
-> +#define acpi_battery_init_update_flag(battery) battery->flags.init_update
-> +#define acpi_battery_info_update_flag(battery) battery->flags.info_update
-> +#define acpi_battery_state_update_flag(battery) battery->flags.state_update
-> +#define acpi_battery_alarm_update_flag(battery) battery->flags.alarm_update
-> +#define acpi_battery_power_units(battery) battery->flags.power_unit ? \
-> +		ACPI_BATTERY_UNITS_AMPS : ACPI_BATTERY_UNITS_WATTS
-> +#define acpi_battery_handle(battery) battery->device->handle
-> +#define acpi_battery_inserted(battery) (!acpi_battery_present_prev(battery) & acpi_battery_present(battery))
-> +#define acpi_battery_removed(battery) (acpi_battery_present_prev(battery) & !acpi_battery_present(battery))
-> +#define acpi_battery_bid(battery) acpi_device_bid(battery->device)
-> +#define acpi_battery_status_str(battery) acpi_battery_present(battery) ? "present" : "absent"
-
-These macros are
-
-a) insufficiently parenthesised: try evaluating
-
-	acpi_battery_present(battery + 1);
-
-b) ugly.  It's a real bad sign when we see
-
-	acpi_battery_init_update_flag(battery) = 1;
-
-   which simply isn't C.
-
-If we really insist on this obfuscation layer then it would be much better
-to do
-
-static inline int acpi_battery_init_update_flag(struct acpi_battery *battery)
-{
-	return battery->flags.init_update;
-}
-
-static inline void
-acpi_battery_set_init_update_flag(struct acpi_battery *battery, int value)
-{
-	battery->flags.init_update = value;
-}
-
-> +static void acpi_battery_mutex_lock(struct acpi_battery *battery)
-> +{
-> +	mutex_lock(&battery->mutex);
-> +}
-> +
-> +static void acpi_battery_mutex_unlock(struct acpi_battery *battery)
-> +{
-> +	mutex_unlock(&battery->mutex);
-> +}
-
-These wrappers don't add any value and should be removed.
-
-> +static void acpi_battery_check_result(struct acpi_battery *battery, int result)
-> +{
-> +	if (!battery)
-> +		return;
-> +
-> +	if (result) {
-> +		acpi_battery_init_update_flag(battery) = 1;
-> +	}
-> +}
-
-We prefer not to have braces around a single statement like this.
-
-> +static int acpi_battery_extract_package(struct acpi_battery *battery,
-> +					union acpi_object *package,
-> +					struct acpi_buffer *format,
-> +					struct acpi_buffer *data,
-> +					char *package_name)
-> +{
-> +	acpi_status status = AE_OK;
-> +	struct acpi_buffer data_null = { 0, NULL };
-> +
-> +	status = acpi_extract_package(package, format, &data_null);
-> +	if (status != AE_BUFFER_OVERFLOW) {
-> +		ACPI_EXCEPTION((AE_INFO, status, "Extracting size %s",
-> +				package_name));
-> +		return -ENODEV;
-> +	}
-> +
-> +	if (data_null.length != data->length) {
-> +		if (data->pointer) {
-> +			kfree(data->pointer);
-> +		}
-
-kfree(NULL) is legal and preferred kernel style is to not duplicate the
-test fro NULL in the kfree() caller like this (there are multiple instances
-of this in this patch).
-
-> +		data->pointer = kzalloc(data_null.length, GFP_KERNEL);
-> +		if (!data->pointer) {
-> +			ACPI_EXCEPTION((AE_INFO, AE_NO_MEMORY, "kzalloc()"));
-> +			return -ENOMEM;
-> +		}
-> +		data->length = data_null.length;
-> +	}
-> +
-> +	status = acpi_extract_package(package, format, data);
-> +	if (ACPI_FAILURE(status)) {
-> +		ACPI_EXCEPTION((AE_INFO, status, "Extracting %s",
-> +				package_name));
-> +		return -ENODEV;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->
-> ...
->
-> +static int acpi_battery_read_info(struct seq_file *seq, void *offset)
-> +{
-> +	struct acpi_battery *battery = seq->private;
-> +	int result = 0;
-> +	int update_result = ACPI_BATTERY_NONE_UPDATE;
-> +	int update = 0;
-> +
-> +	acpi_battery_mutex_lock(battery);
-> +
-> +	update = (get_seconds() - battery->info_update_time >= update_time);
-> +	update = (update | acpi_battery_info_update_flag(battery));
-> +
-> +	result = acpi_battery_update(battery, update, &update_result);
-> +	if (result)
-> +		goto end;
-> +
-> +	/* Battery Info (_BIF) */
-> +
-> +	if (update_result == ACPI_BATTERY_EASY_UPDATE) {
-> +		result = acpi_battery_get_info(battery);
-> +		if (result)
-> +			goto end;
-> +	}
-> +
-> +      end:
-> +
-> +	result = acpi_battery_read_info_print(seq, result);
-> +
-> +	acpi_battery_check_result(battery, result);
-> +
-> +	acpi_battery_info_update_flag(battery) = result;
-> +
-> +	acpi_battery_mutex_unlock(battery);
-> +
-> +	return result;
->  }
-
-We have several copies of this function, each with tiny variations:
-
-> +static int acpi_battery_read_state(struct seq_file *seq, void *offset)
-> +{
-> +	struct acpi_battery *battery = seq->private;
-> +	int result = 0;
-> +	int update_result = ACPI_BATTERY_NONE_UPDATE;
-> +	int update = 0;
-> +
-> +	acpi_battery_mutex_lock(battery);
-> +
-> +	update = (get_seconds() - battery->state_update_time >= update_time);
-> +	update = (update | acpi_battery_state_update_flag(battery));
-> +
-> +	result = acpi_battery_update(battery, update, &update_result);
-> +	if (result)
-> +		goto end;
-> +
-> +	/* Battery State (_BST) */
-> +
-> +	if (update_result == ACPI_BATTERY_EASY_UPDATE) {
-> +		result = acpi_battery_get_state(battery);
-> +		if (result)
-> +			goto end;
-> +	}
-> +
-> +      end:
-> +
-> +	result = acpi_battery_read_state_print(seq, result);
-> +
-> +	acpi_battery_check_result(battery, result);
-> +
-> +	acpi_battery_state_update_flag(battery) = result;
-> +
-> +	acpi_battery_mutex_unlock(battery);
-> +
-> +	return result;
->  }
-
-Can we not find a way of consolidating all this duplication?
-
-> +static int acpi_battery_read_alarm(struct seq_file *seq, void *offset)
-> +{
-> +	struct acpi_battery *battery = seq->private;
-> +	int result = 0;
-> +	int update_result = ACPI_BATTERY_NONE_UPDATE;
-> +	int update = 0;
-> +
-> +	acpi_battery_mutex_lock(battery);
-> +
-> +	update = (get_seconds() - battery->alarm_update_time >= update_time);
-> +	update = (update | acpi_battery_alarm_update_flag(battery));
-> +
-> +	result = acpi_battery_update(battery, update, &update_result);
-> +	if (result)
-> +		goto end;
-> +
-> +	/* Battery Alarm */
-> +
-> +	if (update_result == ACPI_BATTERY_EASY_UPDATE) {
-> +		result = acpi_battery_get_alarm(battery);
-> +		if (result)
-> +			goto end;
-> +	}
-> +
-> +      end:
-> +
-> +	result = acpi_battery_read_alarm_print(seq, result);
-> +
-> +	acpi_battery_check_result(battery, result);
-> +
-> +	acpi_battery_alarm_update_flag(battery) = result;
-> +
-> +	acpi_battery_mutex_unlock(battery);
-> +
-> +	return result;
->  }
-
-More here.
-
-
