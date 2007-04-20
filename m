@@ -1,113 +1,112 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [patch 2.6.21-rc5-git 0/3] x86_pc and ACPI support /sys/devices/.../wakeup
-Date: Thu, 19 Apr 2007 12:24:08 -0700
-Message-ID: <200704191224.08474.david-b@pacbell.net>
-References: <200704051248.40745.david-b@pacbell.net> <200704180933.07601.david-b@pacbell.net> <1176976112.9072.54.camel@localhost.localdomain>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [patch] ACPI: Remove duplicate definitions for _STA bits
+Date: Fri, 20 Apr 2007 10:56:48 -0600
+Message-ID: <200704201056.48764.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp104.sbc.mail.mud.yahoo.com ([68.142.198.203]:48981 "HELO
-	smtp104.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1766960AbXDSTj2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Apr 2007 15:39:28 -0400
-In-Reply-To: <1176976112.9072.54.camel@localhost.localdomain>
+Received: from atlrel9.hp.com ([156.153.255.214]:47879 "EHLO atlrel9.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S2993288AbXDTQ5J (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 20 Apr 2007 12:57:09 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-pm@lists.linux-foundation.org, "linux-acpi@vger" <linux-acpi@vger.kernel.org>
+To: bjorn.helgaas@hp.com, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Naveen B S <naveen.b.s@intel.com>, Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>, Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
 
-> > > > The patches are:
-> > > > 
-> > > >  - Define a platform_enable_wakeup() PM hook and use it with PCI.  (This
-> > > >    might help OLPC with its non-RTC events...)
-> > > > 
-> > > >  - Make ACPI init and use driver model wakeup flags for the (motherboard)
-> > > >    devices in its table ... and implement that new platform hook.  Now
-> > > >    /proc/acpi/wakeup is almost purely informative.
-> > > 
-> > > Yes.
-> > > But /proc/acpi/wakeup is exporting the wrong information then.
-> > 
-> > I'd say it's always exported the wrong information ... and
-> > since those /proc files are going away, this there's no
-> > strong need to continue following that path.
-> > 
-> > The literal meaning hasn't changed:  it still reflects the
-> > value of the acpi_device.wakeup.state.enabled flag.  This
-> > version of the patch avoided changing that meaning, to make
-> > the compatibility story simpler.
-> > 
-> > > I.e. when a physical device is set to may_wakeup, the corresponding
-> > > GPE will be enabled before entering a system sleep state.
-> > 
-> > The GPE is not always enabled when device_may_wakeup(dev)
-> > returns true.  When drivers aren't set up to handle wakeups,
-> > they won't make requests that boil down to enabling GPEs.
-> > 
-> > What /proc/acpi/wakeup shows in those cases is the state
-> > of what I called "manual overrides".  Drivers that aren't
-> > wakeup-aware will use those settings ... same as always.
-> > (Unless userspace disables wakeup for that device through
-> > the driver model.)
-> > 
-> 
-> > Wakeup-aware drivers will manage their GPEs directly, by
-> > calling pci_enable_wake() -- or whatever -- according to
-> > what device_may_wakeup(dev) tells them to do.
-> > 
-> 
-> That's true.
-> Now acpi_device.wakeup.state.enabled is handled by
-> the wakeup-aware drivers of the "real" device.
-> 
-> I love the first two patches which help user space get rid of
-> this ACPI specific GPE control.
+No need to duplicate the existing definitions in include/acpi/actypes.h.
 
-OK, good -- we're on the same page then!
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-
-> What I meant yesterday is that, as /proc/acpi/wakeup won't be
-> removed until we are able to map all the ACPI devices shown to
-> the real device node, if they have one,
-> it would be better if we either remove this GPE status information
-> from /proc/acpi/wakeup, or export something that really makes sense.
-
-That's a bit of a sticky situation.  I went back and forth
-on it a bit ... and eventually decided the simplest, and
-clearest, approach was not to change how /proc/acpi/wakeup
-handles those flags.
-
-
-> But now I think it's wrong. Because the other devices that are not
-> mapped yet still need this I/F to enable/disable GPE, we can not
-> remove/change this at the current stage.
-
-Exactly!
-
-
-> Then the first two patches are OK with me.:)
-> 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-
-Great -- thanks!  I'll append that to these patches and ask
-Andrew to merge them.
-
-Given these and the PNP patches, most /proc/acpi/wakeup
-devices will now get the right annotations.  There will still
-be some puzzles to work out over time though ... the PS2
-devices, some ACPI buttons, and PCI bridges.
-
-Plus of course the PCI issues addressed in the third patch.
-I switched things around a bit; maybe it's now easier to
-have something that won't break powerpc.
-
-- Dave
-
+Index: w/drivers/acpi/acpi_memhotplug.c
+===================================================================
+--- w.orig/drivers/acpi/acpi_memhotplug.c	2007-04-19 21:14:41.000000000 -0600
++++ w/drivers/acpi/acpi_memhotplug.c	2007-04-19 21:25:33.000000000 -0600
+@@ -44,11 +44,6 @@
+ MODULE_DESCRIPTION("Hotplug Mem Driver");
+ MODULE_LICENSE("GPL");
  
-> Thanks,
-> Rui
-> 
+-/* ACPI _STA method values */
+-#define ACPI_MEMORY_STA_PRESENT		(0x00000001UL)
+-#define ACPI_MEMORY_STA_ENABLED		(0x00000002UL)
+-#define ACPI_MEMORY_STA_FUNCTIONAL	(0x00000008UL)
+-
+ /* Memory Device States */
+ #define MEMORY_INVALID_STATE	0
+ #define MEMORY_POWER_ON_STATE	1
+@@ -204,9 +199,9 @@
+ 	 * Check for device status. Device should be
+ 	 * present/enabled/functioning.
+ 	 */
+-	if (!((current_status & ACPI_MEMORY_STA_PRESENT)
+-	      && (current_status & ACPI_MEMORY_STA_ENABLED)
+-	      && (current_status & ACPI_MEMORY_STA_FUNCTIONAL)))
++	if (!((current_status & ACPI_STA_DEVICE_PRESENT)
++	      && (current_status & ACPI_STA_DEVICE_ENABLED)
++	      && (current_status & ACPI_STA_DEVICE_FUNCTIONING)))
+ 		return -ENODEV;
+ 
+ 	return 0;
+@@ -286,7 +281,7 @@
+ 		return -ENODEV;
+ 
+ 	/* Check for device status.  Device should be disabled */
+-	if (current_status & ACPI_MEMORY_STA_ENABLED)
++	if (current_status & ACPI_STA_DEVICE_ENABLED)
+ 		return -EINVAL;
+ 
+ 	return 0;
+Index: w/drivers/acpi/container.c
+===================================================================
+--- w.orig/drivers/acpi/container.c	2007-04-19 21:14:41.000000000 -0600
++++ w/drivers/acpi/container.c	2007-04-19 21:14:44.000000000 -0600
+@@ -49,8 +49,6 @@
+ MODULE_DESCRIPTION("ACPI container driver");
+ MODULE_LICENSE("GPL");
+ 
+-#define ACPI_STA_PRESENT		(0x00000001)
+-
+ static int acpi_container_add(struct acpi_device *device);
+ static int acpi_container_remove(struct acpi_device *device, int type);
+ 
+@@ -75,13 +73,13 @@
+ 
+ 	status = acpi_get_handle(handle, "_STA", &temp);
+ 	if (ACPI_FAILURE(status))
+-		return 1;	/* _STA not found, assmue device present */
++		return 1;	/* _STA not found, assume device present */
+ 
+ 	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
+ 	if (ACPI_FAILURE(status))
+ 		return 0;	/* Firmware error */
+ 
+-	return ((sta & ACPI_STA_PRESENT) == ACPI_STA_PRESENT);
++	return ((sta & ACPI_STA_DEVICE_PRESENT) == ACPI_STA_DEVICE_PRESENT);
+ }
+ 
+ /*******************************************************************/
+Index: w/drivers/acpi/processor_core.c
+===================================================================
+--- w.orig/drivers/acpi/processor_core.c	2007-04-19 21:14:41.000000000 -0600
++++ w/drivers/acpi/processor_core.c	2007-04-19 21:14:44.000000000 -0600
+@@ -71,8 +71,6 @@
+ #define ACPI_PROCESSOR_LIMIT_USER	0
+ #define ACPI_PROCESSOR_LIMIT_THERMAL	1
+ 
+-#define ACPI_STA_PRESENT 0x00000001
+-
+ #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
+ ACPI_MODULE_NAME("processor_core");
+ 
+@@ -780,7 +778,7 @@
+ 
+ 
+ 	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
+-	if (ACPI_FAILURE(status) || !(sta & ACPI_STA_PRESENT)) {
++	if (ACPI_FAILURE(status) || !(sta & ACPI_STA_DEVICE_PRESENT)) {
+ 		ACPI_EXCEPTION((AE_INFO, status, "Processor Device is not present"));
+ 		return 0;
+ 	}
