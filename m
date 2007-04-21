@@ -1,319 +1,171 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 16/20] ACPI: thinkpad-acpi: cleanup
-	bluetooth and wan for sysfs conversion
-Date: Sat, 21 Apr 2007 11:08:40 -0300
-Message-ID: <1177164529354-git-send-email-hmh@hmh.eng.br>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [PATCH 11/20] ACPI: thinkpad-acpi: use bitfields to hold subdriver flags
+Date: Sat, 21 Apr 2007 11:08:35 -0300
+Message-ID: <11771645272450-git-send-email-hmh@hmh.eng.br>
 References: <11771645253042-git-send-email-hmh@hmh.eng.br>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <11771645253042-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:51001 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1031229AbXDUOJH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 21 Apr 2007 10:09:07 -0400
+In-Reply-To: <11771645253042-git-send-email-hmh@hmh.eng.br>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Prepare bluetooth and wan driver code to be more easily hooked into sysfs
-helpers, by separating the procfs logic from the device attribute handling.
+Save some memory by using bitfields to hold boolean flags for the
+subdrivers.
 
-These changes also remove the entries from procfs on notebooks without the
-bluetooth/wan hardware installed.
-
-Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 ---
- drivers/misc/thinkpad_acpi.c |  130 +++++++++++++++++++++++++++++-------------
- drivers/misc/thinkpad_acpi.h |   20 ++++++-
- 2 files changed, 108 insertions(+), 42 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   32 ++++++++++++++++----------------
+ drivers/misc/thinkpad_acpi.h |   13 +++++++------
+ 2 files changed, 23 insertions(+), 22 deletions(-)
 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 344eb55..a77368f 100644
+index cddf81b..a5efd06 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -681,6 +681,8 @@ static struct ibm_struct hotkey_driver_data = {
- 
- static int __init bluetooth_init(struct ibm_init_struct *iibm)
- {
-+	int status = 0;
-+
- 	vdbg_printk(TPACPI_DBG_INIT, "initializing bluetooth subdriver\n");
- 
- 	IBM_ACPIHANDLE_INIT(hkey);
-@@ -688,36 +690,65 @@ static int __init bluetooth_init(struct ibm_init_struct *iibm)
- 	/* bluetooth not supported on 570, 600e/x, 770e, 770x, A21e, A2xm/p,
- 	   G4x, R30, R31, R40e, R50e, T20-22, X20-21 */
- 	tp_features.bluetooth = hkey_handle &&
--	    acpi_evalf(hkey_handle, NULL, "GBDC", "qv");
-+	    acpi_evalf(hkey_handle, &status, "GBDC", "qd");
- 
--	vdbg_printk(TPACPI_DBG_INIT, "bluetooth is %s\n",
--		str_supported(tp_features.bluetooth));
-+	vdbg_printk(TPACPI_DBG_INIT, "bluetooth is %s, status 0x%02x\n",
-+		str_supported(tp_features.bluetooth),
-+		status);
-+
-+	if (tp_features.bluetooth &&
-+	    !(status & TP_ACPI_BLUETOOTH_HWPRESENT)) {
-+		/* no bluetooth hardware present in system */
-+		tp_features.bluetooth = 0;
-+		dbg_printk(TPACPI_DBG_INIT,
-+			   "bluetooth hardware not installed\n");
-+	}
- 
- 	return (tp_features.bluetooth)? 0 : 1;
- }
- 
--static int bluetooth_status(void)
-+static int bluetooth_get_radiosw(void)
- {
- 	int status;
- 
--	if (!tp_features.bluetooth ||
--	    !acpi_evalf(hkey_handle, &status, "GBDC", "d"))
--		status = 0;
-+	if (!tp_features.bluetooth)
-+		return -ENODEV;
- 
--	return status;
-+	if (!acpi_evalf(hkey_handle, &status, "GBDC", "d"))
-+		return -EIO;
-+
-+	return ((status & TP_ACPI_BLUETOOTH_RADIOSSW) != 0);
-+}
-+
-+static int bluetooth_set_radiosw(int radio_on)
-+{
-+	int status;
-+
-+	if (!tp_features.bluetooth)
-+		return -ENODEV;
-+
-+	if (!acpi_evalf(hkey_handle, &status, "GBDC", "d"))
-+		return -EIO;
-+	if (radio_on)
-+		status |= TP_ACPI_BLUETOOTH_RADIOSSW;
-+	else
-+		status &= ~TP_ACPI_BLUETOOTH_RADIOSSW;
-+	if (!acpi_evalf(hkey_handle, NULL, "SBDC", "vd", status))
-+		return -EIO;
-+
-+	return 0;
- }
- 
- static int bluetooth_read(char *p)
- {
- 	int len = 0;
--	int status = bluetooth_status();
-+	int status = bluetooth_get_radiosw();
- 
- 	if (!tp_features.bluetooth)
- 		len += sprintf(p + len, "status:\t\tnot supported\n");
--	else if (!(status & 1))
--		len += sprintf(p + len, "status:\t\tnot installed\n");
- 	else {
--		len += sprintf(p + len, "status:\t\t%s\n", enabled(status, 1));
-+		len += sprintf(p + len, "status:\t\t%s\n",
-+				(status)? "enabled" : "disabled");
- 		len += sprintf(p + len, "commands:\tenable, disable\n");
- 	}
- 
-@@ -726,26 +757,20 @@ static int bluetooth_read(char *p)
- 
- static int bluetooth_write(char *buf)
- {
--	int status = bluetooth_status();
- 	char *cmd;
--	int do_cmd = 0;
- 
- 	if (!tp_features.bluetooth)
+@@ -339,7 +339,7 @@ static int __init setup_notify(struct ibm_struct *ibm)
+ 		}
  		return -ENODEV;
- 
- 	while ((cmd = next_cmd(&buf))) {
- 		if (strlencmp(cmd, "enable") == 0) {
--			status |= 2;
-+			bluetooth_set_radiosw(1);
- 		} else if (strlencmp(cmd, "disable") == 0) {
--			status &= ~2;
-+			bluetooth_set_radiosw(0);
- 		} else
- 			return -EINVAL;
--		do_cmd = 1;
  	}
- 
--	if (do_cmd && !acpi_evalf(hkey_handle, NULL, "SBDC", "vd", status))
--		return -EIO;
--
+-	ibm->notify_installed = 1;
++	ibm->flags.notify_installed = 1;
  	return 0;
  }
  
-@@ -761,41 +786,72 @@ static struct ibm_struct bluetooth_driver_data = {
+@@ -372,7 +372,7 @@ static int __init register_tpacpi_subdriver(struct ibm_struct *ibm)
+ 		kfree(ibm->driver);
+ 		ibm->driver = NULL;
+ 	} else if (!ret)
+-		ibm->driver_registered = 1;
++		ibm->flags.driver_registered = 1;
  
- static int __init wan_init(struct ibm_init_struct *iibm)
- {
-+	int status = 0;
-+
- 	vdbg_printk(TPACPI_DBG_INIT, "initializing wan subdriver\n");
- 
- 	IBM_ACPIHANDLE_INIT(hkey);
- 
- 	tp_features.wan = hkey_handle &&
--			  acpi_evalf(hkey_handle, NULL, "GWAN", "qv");
-+	    acpi_evalf(hkey_handle, &status, "GWAN", "qd");
- 
--	vdbg_printk(TPACPI_DBG_INIT, "wan is %s\n",
--		str_supported(tp_features.wan));
-+	vdbg_printk(TPACPI_DBG_INIT, "wan is %s, status 0x%02x\n",
-+		str_supported(tp_features.wan),
-+		status);
-+
-+	if (tp_features.wan &&
-+	    !(status & TP_ACPI_WANCARD_HWPRESENT)) {
-+		/* no wan hardware present in system */
-+		tp_features.wan = 0;
-+		dbg_printk(TPACPI_DBG_INIT,
-+			   "wan hardware not installed\n");
-+	}
- 
- 	return (tp_features.wan)? 0 : 1;
+ 	return ret;
  }
+@@ -815,7 +815,7 @@ static struct ibm_struct wan_driver_data = {
+ 	.name = "wan",
+ 	.read = wan_read,
+ 	.write = wan_write,
+-	.experimental = 1,
++	.flags.experimental = 1,
+ };
  
--static int wan_status(void)
-+static int wan_get_radiosw(void)
- {
- 	int status;
+ /*************************************************************************
+@@ -1851,7 +1851,7 @@ static struct ibm_struct ecdump_driver_data = {
+ 	.name = "ecdump",
+ 	.read = ecdump_read,
+ 	.write = ecdump_write,
+-	.experimental = 1,
++	.flags.experimental = 1,
+ };
  
--	if (!tp_features.wan ||
--	    !acpi_evalf(hkey_handle, &status, "GWAN", "d"))
--		status = 0;
-+	if (!tp_features.wan)
-+		return -ENODEV;
+ /*************************************************************************
+@@ -2684,7 +2684,7 @@ static struct ibm_struct fan_driver_data = {
+ 	.read = fan_read,
+ 	.write = fan_write,
+ 	.exit = fan_exit,
+-	.experimental = 1,
++	.flags.experimental = 1,
+ };
  
--	return status;
-+	if (!acpi_evalf(hkey_handle, &status, "GWAN", "d"))
-+		return -EIO;
-+
-+	return ((status & TP_ACPI_WANCARD_RADIOSSW) != 0);
-+}
-+
-+static int wan_set_radiosw(int radio_on)
-+{
-+	int status;
-+
-+	if (!tp_features.wan)
-+		return -ENODEV;
-+
-+	if (!acpi_evalf(hkey_handle, &status, "GWAN", "d"))
-+		return -EIO;
-+	if (radio_on)
-+		status |= TP_ACPI_WANCARD_RADIOSSW;
-+	else
-+		status &= ~TP_ACPI_WANCARD_RADIOSSW;
-+	if (!acpi_evalf(hkey_handle, NULL, "SWAN", "vd", status))
-+		return -EIO;
-+
-+	return 0;
- }
+ /****************************************************************************
+@@ -2725,7 +2725,7 @@ static int __init ibm_init(struct ibm_init_struct *iibm)
  
- static int wan_read(char *p)
- {
- 	int len = 0;
--	int status = wan_status();
-+	int status = wan_get_radiosw();
+ 	INIT_LIST_HEAD(&ibm->all_drivers);
  
- 	if (!tp_features.wan)
- 		len += sprintf(p + len, "status:\t\tnot supported\n");
--	else if (!(status & 1))
--		len += sprintf(p + len, "status:\t\tnot installed\n");
- 	else {
--		len += sprintf(p + len, "status:\t\t%s\n", enabled(status, 1));
-+		len += sprintf(p + len, "status:\t\t%s\n",
-+				(status)? "enabled" : "disabled");
- 		len += sprintf(p + len, "commands:\tenable, disable\n");
+-	if (ibm->experimental && !experimental)
++	if (ibm->flags.experimental && !experimental)
+ 		return 0;
+ 
+ 	dbg_printk(TPACPI_DBG_INIT,
+@@ -2738,7 +2738,7 @@ static int __init ibm_init(struct ibm_init_struct *iibm)
+ 		if (ret)
+ 			return ret;
+ 
+-		ibm->init_called = 1;
++		ibm->flags.init_called = 1;
  	}
  
-@@ -804,26 +860,20 @@ static int wan_read(char *p)
- 
- static int wan_write(char *buf)
- {
--	int status = wan_status();
- 	char *cmd;
--	int do_cmd = 0;
- 
- 	if (!tp_features.wan)
- 		return -ENODEV;
- 
- 	while ((cmd = next_cmd(&buf))) {
- 		if (strlencmp(cmd, "enable") == 0) {
--			status |= 2;
-+			wan_set_radiosw(1);
- 		} else if (strlencmp(cmd, "disable") == 0) {
--			status &= ~2;
-+			wan_set_radiosw(0);
- 		} else
- 			return -EINVAL;
--		do_cmd = 1;
+ 	if (ibm->hid) {
+@@ -2777,7 +2777,7 @@ static int __init ibm_init(struct ibm_init_struct *iibm)
+ 		entry->read_proc = &dispatch_read;
+ 		if (ibm->write)
+ 			entry->write_proc = &dispatch_write;
+-		ibm->proc_created = 1;
++		ibm->flags.proc_created = 1;
  	}
  
--	if (do_cmd && !acpi_evalf(hkey_handle, NULL, "SWAN", "vd", status))
--		return -EIO;
--
- 	return 0;
- }
+ 	list_add_tail(&ibm->all_drivers, &tpacpi_all_drivers);
+@@ -2799,33 +2799,33 @@ static void ibm_exit(struct ibm_struct *ibm)
  
+ 	list_del_init(&ibm->all_drivers);
+ 
+-	if (ibm->notify_installed) {
++	if (ibm->flags.notify_installed) {
+ 		dbg_printk(TPACPI_DBG_EXIT,
+ 			"%s: acpi_remove_notify_handler\n", ibm->name);
+ 		acpi_remove_notify_handler(*ibm->handle, ibm->type,
+ 					   dispatch_notify);
+-		ibm->notify_installed = 0;
++		ibm->flags.notify_installed = 0;
+ 	}
+ 
+-	if (ibm->proc_created) {
++	if (ibm->flags.proc_created) {
+ 		dbg_printk(TPACPI_DBG_EXIT,
+ 			"%s: remove_proc_entry\n", ibm->name);
+ 		remove_proc_entry(ibm->name, proc_dir);
+-		ibm->proc_created = 0;
++		ibm->flags.proc_created = 0;
+ 	}
+ 
+-	if (ibm->driver_registered) {
++	if (ibm->flags.driver_registered) {
+ 		dbg_printk(TPACPI_DBG_EXIT,
+ 			"%s: acpi_bus_unregister_driver\n", ibm->name);
+ 		acpi_bus_unregister_driver(ibm->driver);
+ 		kfree(ibm->driver);
+ 		ibm->driver = NULL;
+-		ibm->driver_registered = 0;
++		ibm->flags.driver_registered = 0;
+ 	}
+ 
+-	if (ibm->init_called && ibm->exit) {
++	if (ibm->flags.init_called && ibm->exit) {
+ 		ibm->exit();
+-		ibm->init_called = 0;
++		ibm->flags.init_called = 0;
+ 	}
+ 
+ 	dbg_printk(TPACPI_DBG_INIT, "finished removing %s\n", ibm->name);
 diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index 1b4cd16..e06bad5 100644
+index 2020398..8b72061 100644
 --- a/drivers/misc/thinkpad_acpi.h
 +++ b/drivers/misc/thinkpad_acpi.h
-@@ -241,8 +241,16 @@ static int beep_write(char *buf);
-  * Bluetooth subdriver
-  */
+@@ -157,12 +157,13 @@ struct ibm_struct {
  
-+enum {
-+	/* ACPI GBDC/SBDC bits */
-+	TP_ACPI_BLUETOOTH_HWPRESENT	= 0x01,	/* Bluetooth hw available */
-+	TP_ACPI_BLUETOOTH_RADIOSSW	= 0x02,	/* Bluetooth radio enabled */
-+	TP_ACPI_BLUETOOTH_UNK		= 0x04,	/* unknown function */
-+};
-+
- static int bluetooth_init(struct ibm_init_struct *iibm);
--static int bluetooth_status(void);
-+static int bluetooth_get_radiosw(void);
-+static int bluetooth_set_radiosw(int radio_on);
- static int bluetooth_read(char *p);
- static int bluetooth_write(char *buf);
+ 	struct list_head all_drivers;
  
-@@ -467,8 +475,16 @@ static int volume_write(char *buf);
-  * Wan subdriver
-  */
+-	int driver_registered;
+-	int proc_created;
+-	int init_called;
+-	int notify_installed;
+-
+-	int experimental;
++	struct {
++		u8 driver_registered:1;
++		u8 proc_created:1;
++		u8 init_called:1;
++		u8 notify_installed:1;
++		u8 experimental:1;
++	} flags;
+ };
  
-+enum {
-+	/* ACPI GWAN/SWAN bits */
-+	TP_ACPI_WANCARD_HWPRESENT	= 0x01,	/* Wan hw available */
-+	TP_ACPI_WANCARD_RADIOSSW	= 0x02,	/* Wan radio enabled */
-+	TP_ACPI_WANCARD_UNK		= 0x04,	/* unknown function */
-+};
-+
- static int wan_init(struct ibm_init_struct *iibm);
--static int wan_status(void);
-+static int wan_get_radiosw(void);
-+static int wan_set_radiosw(int radio_on);
- static int wan_read(char *p);
- static int wan_write(char *buf);
- 
+ struct ibm_init_struct {
 -- 
 1.5.1
 
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by DB2 Express
-Download DB2 Express C - the FREE version of DB2 express and take
-control of your XML. No limits. Just data. Click to get it now.
-http://sourceforge.net/powerbar/db2/
