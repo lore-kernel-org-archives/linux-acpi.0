@@ -1,7 +1,8 @@
 From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 06/20] ACPI: thinkpad-acpi: add debug mode
-Date: Sat, 21 Apr 2007 11:08:30 -0300
-Message-ID: <11771645261301-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 15/20] ACPI: thinkpad-acpi: clean up hotkey
+	subdriver
+Date: Sat, 21 Apr 2007 11:08:39 -0300
+Message-ID: <11771645283975-git-send-email-hmh@hmh.eng.br>
 References: <11771645253042-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,103 +22,143 @@ To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Add a debug mode parameter and verbose debug mode Kconfig option.
+Cleanup hotkey subdriver code.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 ---
- Documentation/thinkpad-acpi.txt |   13 +++++++++++++
- drivers/misc/Kconfig            |   10 ++++++++++
- drivers/misc/thinkpad_acpi.c    |    3 +++
- drivers/misc/thinkpad_acpi.h    |   13 +++++++++++++
- 4 files changed, 39 insertions(+), 0 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   46 ++++++++++++++++++++++++++---------------
+ 1 files changed, 29 insertions(+), 17 deletions(-)
 
-diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
-index af18d29..82fd822 100644
---- a/Documentation/thinkpad-acpi.txt
-+++ b/Documentation/thinkpad-acpi.txt
-@@ -699,3 +699,16 @@ for example:
- 
- 	modprobe thinkpad_acpi hotkey=enable,0xffff video=auto_disable
- 
-+Enabling debugging output
-+-------------------------
-+
-+The module takes a debug paramater which can be used to selectively
-+enable various classes of debugging output, for example:
-+
-+	 modprobe ibm_acpi debug=0xffff
-+
-+will enable all debugging output classes.  It takes a bitmask, so
-+to enable more than one output class, just add their values.
-+
-+There is also a kernel build option to enable more debugging
-+information, which may be necessary to debug driver problems.
-diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index 2cd96a3..44e4c8f 100644
---- a/drivers/misc/Kconfig
-+++ b/drivers/misc/Kconfig
-@@ -137,6 +137,16 @@ config THINKPAD_ACPI
- 
- 	  If you have an IBM or Lenovo ThinkPad laptop, say Y or M here.
- 
-+config THINKPAD_ACPI_DEBUG
-+	bool "Verbose debug mode"
-+	depends on THINKPAD_ACPI
-+	default n
-+	---help---
-+	  Enables extra debugging information, at the expense of a slightly
-+	  increase in driver size.
-+
-+	  If you are not sure, say N here.
-+
- config THINKPAD_ACPI_DOCK
- 	bool "Legacy Docking Station Support"
- 	depends on THINKPAD_ACPI
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 4131a78..7fa906f 100644
+index 809ec84..344eb55 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -2684,6 +2684,9 @@ static int __init set_ibm_param(const char *val, struct kernel_param *kp)
- static int experimental;
- module_param(experimental, int, 0);
+@@ -511,6 +511,8 @@ static int hotkey_orig_mask;
  
-+static u32 dbg_level;
-+module_param_named(debug, dbg_level, uint, 0);
+ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ {
++	int res;
 +
- #define IBM_PARAM(feature) \
- 	module_param_call(feature, set_ibm_param, NULL, NULL, 0)
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing hotkey subdriver\n");
  
-diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index 02a297e..b2348d7 100644
---- a/drivers/misc/thinkpad_acpi.h
-+++ b/drivers/misc/thinkpad_acpi.h
-@@ -74,6 +74,18 @@
- #define enabled(status,bit) ((status) & (1 << (bit)) ? "enabled" : "disabled")
- #define strlencmp(a,b) (strncmp((a), (b), strlen(b)))
+ 	IBM_ACPIHANDLE_INIT(hkey);
+@@ -530,8 +532,9 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 		vdbg_printk(TPACPI_DBG_INIT, "hotkey masks are %s\n",
+ 			str_supported(tp_features.hotkey_mask));
  
-+/* Debugging */
-+#define TPACPI_DBG_ALL		0xffff
-+#define dbg_printk(a_dbg_level, format, arg...) \
-+	do { if (dbg_level & a_dbg_level) \
-+		printk(IBM_DEBUG "%s: " format, __func__ , ## arg); } while (0)
-+#ifdef CONFIG_THINKPAD_ACPI_DEBUG
-+#define vdbg_printk(a_dbg_level, format, arg...) \
-+	dbg_printk(a_dbg_level, format, ## arg)
-+#else
-+#define vdbg_printk(a_dbg_level, format, arg...)
-+#endif
+-		if (!hotkey_get(&hotkey_orig_status, &hotkey_orig_mask))
+-			return -ENODEV;
++		res = hotkey_get(&hotkey_orig_status, &hotkey_orig_mask);
++		if (res)
++			return res;
+ 	}
+ 
+ 	return (tp_features.hotkey)? 0 : 1;
+@@ -539,9 +542,13 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 
+ static void hotkey_exit(void)
+ {
++	int res;
 +
- /* ACPI HIDs */
- #define IBM_HKEY_HID    "IBM0068"
- #define IBM_PCI_HID     "PNP0A03"
-@@ -112,6 +124,7 @@ static char *next_cmd(char **cmds);
+ 	if (tp_features.hotkey) {
+ 		dbg_printk(TPACPI_DBG_EXIT, "restoring original hotkey mask\n");
+-		hotkey_set(hotkey_orig_status, hotkey_orig_mask);
++		res = hotkey_set(hotkey_orig_status, hotkey_orig_mask);
++		if (res)
++			printk(IBM_ERR "failed to restore hotkey to BIOS defaults\n");
+ 	}
+ }
  
- /* Module */
- static int experimental;
-+static u32 dbg_level;
- static char *ibm_thinkpad_ec_found;
+@@ -560,13 +567,13 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+ static int hotkey_get(int *status, int *mask)
+ {
+ 	if (!acpi_evalf(hkey_handle, status, "DHKC", "d"))
+-		return 0;
++		return -EIO;
  
- static char* check_dmi_for_ec(void);
+ 	if (tp_features.hotkey_mask)
+ 		if (!acpi_evalf(hkey_handle, mask, "DHKN", "d"))
+-			return 0;
++			return -EIO;
+ 
+-	return 1;
++	return 0;
+ }
+ 
+ static int hotkey_set(int status, int mask)
+@@ -574,22 +581,22 @@ static int hotkey_set(int status, int mask)
+ 	int i;
+ 
+ 	if (!acpi_evalf(hkey_handle, NULL, "MHKC", "vd", status))
+-		return 0;
++		return -EIO;
+ 
+ 	if (tp_features.hotkey_mask)
+ 		for (i = 0; i < 32; i++) {
+ 			int bit = ((1 << i) & mask) != 0;
+ 			if (!acpi_evalf(hkey_handle,
+ 					NULL, "MHKM", "vdd", i + 1, bit))
+-				return 0;
++				return -EIO;
+ 		}
+ 
+-	return 1;
++	return 0;
+ }
+ 
+ static int hotkey_read(char *p)
+ {
+-	int status, mask;
++	int res, status, mask;
+ 	int len = 0;
+ 
+ 	if (!tp_features.hotkey) {
+@@ -597,8 +604,9 @@ static int hotkey_read(char *p)
+ 		return len;
+ 	}
+ 
+-	if (!hotkey_get(&status, &mask))
+-		return -EIO;
++	res = hotkey_get(&status, &mask);
++	if (res)
++		return res;
+ 
+ 	len += sprintf(p + len, "status:\t\t%s\n", enabled(status, 0));
+ 	if (tp_features.hotkey_mask) {
+@@ -615,15 +623,16 @@ static int hotkey_read(char *p)
+ 
+ static int hotkey_write(char *buf)
+ {
+-	int status, mask;
++	int res, status, mask;
+ 	char *cmd;
+ 	int do_cmd = 0;
+ 
+ 	if (!tp_features.hotkey)
+ 		return -ENODEV;
+ 
+-	if (!hotkey_get(&status, &mask))
+-		return -EIO;
++	res = hotkey_get(&status, &mask);
++	if (res)
++		return res;
+ 
+ 	while ((cmd = next_cmd(&buf))) {
+ 		if (strlencmp(cmd, "enable") == 0) {
+@@ -642,8 +651,11 @@ static int hotkey_write(char *buf)
+ 		do_cmd = 1;
+ 	}
+ 
+-	if (do_cmd && !hotkey_set(status, mask))
+-		return -EIO;
++	if (do_cmd) {
++		res = hotkey_set(status, mask);
++		if (res)
++			return res;
++	}
+ 
+ 	return 0;
+ }
 -- 
 1.5.1
 
