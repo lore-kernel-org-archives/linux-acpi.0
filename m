@@ -1,8 +1,8 @@
 From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 20/20] ACPI: thinkpad-acpi: improve fan
-	watchdog messages
-Date: Sat, 21 Apr 2007 11:08:44 -0300
-Message-ID: <11771645293633-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 19/20] ACPI: thinkpad-acpi: cleanup thermal
+	subdriver for sysfs conversion
+Date: Sat, 21 Apr 2007 11:08:43 -0300
+Message-ID: <11771645291715-git-send-email-hmh@hmh.eng.br>
 References: <11771645253042-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,43 +22,170 @@ To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Improve some of the fan watchdog error messages to be a little more
-helpful.
+Clean-up the thermal subdriver for sysfs conversion.  Make thermal_get_*
+reentrancy-safe while at it, and add the missing thermal_read_mode variable
+to the header file.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 ---
- drivers/misc/thinkpad_acpi.c |   10 +++++++---
- 1 files changed, 7 insertions(+), 3 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   79 ++++++++++++++++++++++++++++--------------
+ drivers/misc/thinkpad_acpi.h |    8 ++++
+ 2 files changed, 61 insertions(+), 26 deletions(-)
 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index e9aec87..9b4eea4 100644
+index 8829d3c..e9aec87 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -2524,7 +2524,7 @@ static int fan_get_status(u8 *status)
+@@ -1818,13 +1818,13 @@ static int __init thermal_init(struct ibm_init_struct *iibm)
  
- static void fan_exit(void)
- {
--	vdbg_printk(TPACPI_DBG_EXIT, "cancelling any pending watchdogs\n");
-+	vdbg_printk(TPACPI_DBG_EXIT, "cancelling any pending fan watchdog tasks\n");
- 	cancel_delayed_work(&fan_watchdog_task);
- 	flush_scheduled_work();
+ 		ta1 = ta2 = 0;
+ 		for (i = 0; i < 8; i++) {
+-			if (likely(acpi_ec_read(0x78 + i, &t))) {
++			if (acpi_ec_read(TP_EC_THERMAL_TMP0 + i, &t)) {
+ 				ta1 |= t;
+ 			} else {
+ 				ta1 = 0;
+ 				break;
+ 			}
+-			if (likely(acpi_ec_read(0xC0 + i, &t))) {
++			if (acpi_ec_read(TP_EC_THERMAL_TMP8 + i, &t)) {
+ 				ta2 |= t;
+ 			} else {
+ 				ta1 = 0;
+@@ -1869,57 +1869,84 @@ static int __init thermal_init(struct ibm_init_struct *iibm)
+ 	return (thermal_read_mode != TPACPI_THERMAL_NONE)? 0 : 1;
  }
-@@ -2554,9 +2554,13 @@ static int fan_get_speed(unsigned int *speed)
  
- static void fan_watchdog_fire(struct work_struct *ignored)
+-static int thermal_get_sensors(struct ibm_thermal_sensors_struct *s)
++/* idx is zero-based */
++static int thermal_get_sensor(int idx, s32 *value)
  {
-+	int rc;
-+
- 	printk(IBM_NOTICE "fan watchdog: enabling fan\n");
--	if (fan_set_enable()) {
--		printk(IBM_ERR "fan watchdog: error while enabling fan\n");
-+	rc = fan_set_enable();
-+	if (rc < 0) {
-+		printk(IBM_ERR "fan watchdog: error %d while enabling fan, "
-+			"will try again later...\n", -rc);
- 		/* reschedule for later */
- 		fan_watchdog_reset();
+-	int i, t;
++	int t;
+ 	s8 tmp;
+-	char tmpi[] = "TMPi";
++	char tmpi[5];
+ 
+-	if (!s)
+-		return -EINVAL;
++	t = TP_EC_THERMAL_TMP0;
+ 
+ 	switch (thermal_read_mode) {
+ #if TPACPI_MAX_THERMAL_SENSORS >= 16
+ 	case TPACPI_THERMAL_TPEC_16:
+-		for (i = 0; i < 8; i++) {
+-			if (!acpi_ec_read(0xC0 + i, &tmp))
+-				return -EIO;
+-			s->temp[i + 8] = tmp * 1000;
++		if (idx >= 8 && idx <= 15) {
++			t = TP_EC_THERMAL_TMP8;
++			idx -= 8;
+ 		}
+ 		/* fallthrough */
+ #endif
+ 	case TPACPI_THERMAL_TPEC_8:
+-		for (i = 0; i < 8; i++) {
+-			if (!acpi_ec_read(0x78 + i, &tmp))
++		if (idx <= 7) {
++			if (!acpi_ec_read(t + idx, &tmp))
+ 				return -EIO;
+-			s->temp[i] = tmp * 1000;
++			*value = tmp * 1000;
++			return 0;
+ 		}
+-		return (thermal_read_mode == TPACPI_THERMAL_TPEC_16) ? 16 : 8;
++		break;
+ 
+ 	case TPACPI_THERMAL_ACPI_UPDT:
+-		if (!acpi_evalf(ec_handle, NULL, "UPDT", "v"))
+-			return -EIO;
+-		for (i = 0; i < 8; i++) {
+-			tmpi[3] = '0' + i;
++		if (idx <= 7) {
++			snprintf(tmpi, sizeof(tmpi), "TMP%c", '0' + idx);
++			if (!acpi_evalf(ec_handle, NULL, "UPDT", "v"))
++				return -EIO;
+ 			if (!acpi_evalf(ec_handle, &t, tmpi, "d"))
+ 				return -EIO;
+-			s->temp[i] = (t - 2732) * 100;
++			*value = (t - 2732) * 100;
++			return 0;
+ 		}
+-		return 8;
++		break;
+ 
+ 	case TPACPI_THERMAL_ACPI_TMP07:
+-		for (i = 0; i < 8; i++) {
+-			tmpi[3] = '0' + i;
++		if (idx <= 7) {
++			snprintf(tmpi, sizeof(tmpi), "TMP%c", '0' + idx);
+ 			if (!acpi_evalf(ec_handle, &t, tmpi, "d"))
+ 				return -EIO;
+-			s->temp[i] = t * 1000;
++			*value = t * 1000;
++			return 0;
+ 		}
+-		return 8;
++		break;
+ 
+ 	case TPACPI_THERMAL_NONE:
+ 	default:
+-		return 0;
++		return -ENOSYS;
  	}
++
++	return -EINVAL;
++}
++
++static int thermal_get_sensors(struct ibm_thermal_sensors_struct *s)
++{
++	int res, i;
++	int n;
++
++	n = 8;
++	i = 0;
++
++	if (!s)
++		return -EINVAL;
++
++	if (thermal_read_mode == TPACPI_THERMAL_TPEC_16)
++		n = 16;
++
++	for(i = 0 ; i < n; i++) {
++		res = thermal_get_sensor(i, &s->temp[i]);
++		if (res)
++			return res;
++	}
++
++	return n;
+ }
+ 
+ static int thermal_read(char *p)
+diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
+index fb0abb0..6432b28 100644
+--- a/drivers/misc/thinkpad_acpi.h
++++ b/drivers/misc/thinkpad_acpi.h
+@@ -427,12 +427,20 @@ enum thermal_access_mode {
+ 	TPACPI_THERMAL_TPEC_16,		/* Use ACPI EC regs, 16 sensors */
+ };
+ 
++enum { /* TPACPI_THERMAL_TPEC_* */
++	TP_EC_THERMAL_TMP0 = 0x78,	/* ACPI EC regs TMP 0..7 */
++	TP_EC_THERMAL_TMP8 = 0xC0,	/* ACPI EC regs TMP 8..15 */
++};
++
+ #define TPACPI_MAX_THERMAL_SENSORS 16	/* Max thermal sensors supported */
+ struct ibm_thermal_sensors_struct {
+ 	s32 temp[TPACPI_MAX_THERMAL_SENSORS];
+ };
+ 
++static enum thermal_access_mode thermal_read_mode;
++
+ static int thermal_init(struct ibm_init_struct *iibm);
++static int thermal_get_sensor(int idx, s32 *value);
+ static int thermal_get_sensors(struct ibm_thermal_sensors_struct *s);
+ static int thermal_read(char *p);
+ 
 -- 
 1.5.1
 
