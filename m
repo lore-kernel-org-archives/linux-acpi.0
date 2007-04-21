@@ -1,448 +1,895 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [PATCH 08/20] ACPI: thinkpad-acpi: add subdriver
-	debug statements
-Date: Sat, 21 Apr 2007 11:08:32 -0300
-Message-ID: <11771645271333-git-send-email-hmh@hmh.eng.br>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [PATCH 09/20] ACPI: thinkpad-acpi: uncouple subdriver init from ibms struct
+Date: Sat, 21 Apr 2007 11:08:33 -0300
+Message-ID: <11771645271352-git-send-email-hmh@hmh.eng.br>
 References: <11771645253042-git-send-email-hmh@hmh.eng.br>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <11771645253042-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:48908 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1031168AbXDUOI6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 21 Apr 2007 10:08:58 -0400
+In-Reply-To: <11771645253042-git-send-email-hmh@hmh.eng.br>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@debian.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Add debug messages to the subdriver initialization and exit code.
+From: Henrique de Moraes Holschuh <hmh@debian.org>
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Move the .init method from ibms struct to another struct, and use a list
+head to control which subdrivers have been activated.
+
+This allows us to have the subdriver init methods marked __init, saving
+quite a lot of .text size, and even a bit of .data size as some data can
+now be made __initdata.
+
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 ---
- Documentation/thinkpad-acpi.txt |    4 ++
- drivers/misc/thinkpad_acpi.c    |  111 +++++++++++++++++++++++++++++++++++++++
- drivers/misc/thinkpad_acpi.h    |    4 ++
- 3 files changed, 119 insertions(+), 0 deletions(-)
+ drivers/misc/thinkpad_acpi.c |  402 ++++++++++++++++++++++++++----------------
+ drivers/misc/thinkpad_acpi.h |   51 +++---
+ 2 files changed, 278 insertions(+), 175 deletions(-)
 
-diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
-index 82fd822..20d5ec3 100644
---- a/Documentation/thinkpad-acpi.txt
-+++ b/Documentation/thinkpad-acpi.txt
-@@ -710,5 +710,9 @@ enable various classes of debugging output, for example:
- will enable all debugging output classes.  It takes a bitmask, so
- to enable more than one output class, just add their values.
- 
-+	Debug bitmask		Description
-+	0x0001			Initialization and probing
-+	0x0002			Removal
-+
- There is also a kernel build option to enable more debugging
- information, which may be necessary to debug driver problems.
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index eeab394..e8fc8da 100644
+index e8fc8da..5611268 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -313,6 +313,9 @@ static int __init setup_notify(struct ibm_struct *ibm)
- 	if (!*ibm->handle)
- 		return 0;
+@@ -470,7 +470,7 @@ static char *next_cmd(char **cmds)
+  * thinkpad-acpi init subdriver
+  */
  
-+	dbg_printk(TPACPI_DBG_INIT,
-+		"setting up ACPI notify for %s\n", ibm->name);
-+
- 	ret = acpi_bus_get_device(*ibm->handle, &ibm->device);
- 	if (ret < 0) {
- 		printk(IBM_ERR "%s device not present\n", ibm->name);
-@@ -349,6 +352,9 @@ static int __init register_tpacpi_subdriver(struct ibm_struct *ibm)
+-static int thinkpad_acpi_driver_init(void)
++static int __init thinkpad_acpi_driver_init(struct ibm_init_struct *iibm)
  {
- 	int ret;
- 
-+	dbg_printk(TPACPI_DBG_INIT,
-+		"registering %s as an ACPI driver\n", ibm->name);
-+
- 	ibm->driver = kzalloc(sizeof(struct acpi_driver), GFP_KERNEL);
- 	if (!ibm->driver) {
- 		printk(IBM_ERR "kzalloc(ibm->driver) failed\n");
-@@ -497,17 +503,25 @@ static int hotkey_orig_mask;
- 
- static int hotkey_init(void)
- {
-+	vdbg_printk(TPACPI_DBG_INIT, "initializing hotkey subdriver\n");
-+
- 	IBM_HANDLE_INIT(hkey);
- 
- 	/* hotkey not supported on 570 */
- 	hotkey_supported = hkey_handle != NULL;
- 
-+	vdbg_printk(TPACPI_DBG_INIT, "hotkeys are %s\n",
-+		str_supported(hotkey_supported));
-+
- 	if (hotkey_supported) {
- 		/* mask not supported on 570, 600e/x, 770e, 770x, A21e, A2xm/p,
- 		   A30, R30, R31, T20-22, X20-21, X22-24 */
- 		hotkey_mask_supported =
- 		    acpi_evalf(hkey_handle, NULL, "DHKN", "qv");
- 
-+		vdbg_printk(TPACPI_DBG_INIT, "hotkey masks are %s\n",
-+			str_supported(hotkey_mask_supported));
-+
- 		if (!hotkey_get(&hotkey_orig_status, &hotkey_orig_mask))
- 			return -ENODEV;
- 	}
-@@ -518,6 +532,7 @@ static int hotkey_init(void)
- static void hotkey_exit(void)
- {
- 	if (hotkey_supported) {
-+		dbg_printk(TPACPI_DBG_EXIT, "restoring original hotkey mask\n");
- 		hotkey_set(hotkey_orig_status, hotkey_orig_mask);
- 	}
- }
-@@ -633,6 +648,8 @@ static int bluetooth_supported;
- 
- static int bluetooth_init(void)
- {
-+	vdbg_printk(TPACPI_DBG_INIT, "initializing bluetooth subdriver\n");
-+
- 	IBM_HANDLE_INIT(hkey);
- 
- 	/* bluetooth not supported on 570, 600e/x, 770e, 770x, A21e, A2xm/p,
-@@ -640,6 +657,9 @@ static int bluetooth_init(void)
- 	bluetooth_supported = hkey_handle &&
- 	    acpi_evalf(hkey_handle, NULL, "GBDC", "qv");
- 
-+	vdbg_printk(TPACPI_DBG_INIT, "bluetooth is %s\n",
-+		str_supported(bluetooth_supported));
-+
- 	return (bluetooth_supported)? 0 : 1;
+ 	printk(IBM_INFO "%s v%s\n", IBM_DESC, IBM_VERSION);
+ 	printk(IBM_INFO "%s\n", IBM_URL);
+@@ -492,6 +492,11 @@ static int thinkpad_acpi_driver_read(char *p)
+ 	return len;
  }
  
-@@ -704,11 +724,16 @@ static int wan_supported;
++static struct ibm_struct thinkpad_acpi_driver_data = {
++	.name = "driver",
++	.read = thinkpad_acpi_driver_read,
++};
++
+ /*************************************************************************
+  * Hotkey subdriver
+  */
+@@ -501,7 +506,7 @@ static int hotkey_mask_supported;
+ static int hotkey_orig_status;
+ static int hotkey_orig_mask;
  
- static int wan_init(void)
+-static int hotkey_init(void)
++static int __init hotkey_init(struct ibm_init_struct *iibm)
  {
-+	vdbg_printk(TPACPI_DBG_INIT, "initializing wan subdriver\n");
-+
- 	IBM_HANDLE_INIT(hkey);
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing hotkey subdriver\n");
  
- 	wan_supported = hkey_handle &&
- 	    acpi_evalf(hkey_handle, NULL, "GWAN", "qv");
- 
-+	vdbg_printk(TPACPI_DBG_INIT, "wan is %s\n",
-+		str_supported(wan_supported));
-+
- 	return (wan_supported)? 0 : 1;
+@@ -640,13 +645,24 @@ static int hotkey_write(char *buf)
+ 	return 0;
  }
  
-@@ -784,6 +809,8 @@ static int video_init(void)
++static struct ibm_struct hotkey_driver_data = {
++	.name = "hotkey",
++	.hid = IBM_HKEY_HID,
++	.read = hotkey_read,
++	.write = hotkey_write,
++	.exit = hotkey_exit,
++	.notify = hotkey_notify,
++	.handle = &hkey_handle,
++	.type = ACPI_DEVICE_NOTIFY,
++};
++
+ /*************************************************************************
+  * Bluetooth subdriver
+  */
+ 
+ static int bluetooth_supported;
+ 
+-static int bluetooth_init(void)
++static int __init bluetooth_init(struct ibm_init_struct *iibm)
+ {
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing bluetooth subdriver\n");
+ 
+@@ -716,13 +732,19 @@ static int bluetooth_write(char *buf)
+ 	return 0;
+ }
+ 
++static struct ibm_struct bluetooth_driver_data = {
++	.name = "bluetooth",
++	.read = bluetooth_read,
++	.write = bluetooth_write,
++};
++
+ /*************************************************************************
+  * Wan subdriver
+  */
+ 
+ static int wan_supported;
+ 
+-static int wan_init(void)
++static int __init wan_init(struct ibm_init_struct *iibm)
+ {
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing wan subdriver\n");
+ 
+@@ -789,6 +811,13 @@ static int wan_write(char *buf)
+ 	return 0;
+ }
+ 
++static struct ibm_struct wan_driver_data = {
++	.name = "wan",
++	.read = wan_read,
++	.write = wan_write,
++	.experimental = 1,
++};
++
+ /*************************************************************************
+  * Video subdriver
+  */
+@@ -805,7 +834,7 @@ IBM_HANDLE(vid, root, "\\_SB.PCI.AGP.VGA",	/* 570 */
+ 
+ IBM_HANDLE(vid2, root, "\\_SB.PCI0.AGPB.VID");	/* G41 */
+ 
+-static int video_init(void)
++static int __init video_init(struct ibm_init_struct *iibm)
  {
  	int ivga;
  
-+	vdbg_printk(TPACPI_DBG_INIT, "initializing video subdriver\n");
-+
- 	IBM_HANDLE_INIT(vid);
- 	IBM_HANDLE_INIT(vid2);
- 
-@@ -804,11 +831,16 @@ static int video_init(void)
- 		/* all others */
- 		video_supported = TPACPI_VIDEO_NEW;
- 
-+	vdbg_printk(TPACPI_DBG_INIT, "video is %s, mode %d\n",
-+		str_supported(video_supported != TPACPI_VIDEO_NONE),
-+		video_supported);
-+
- 	return (video_supported != TPACPI_VIDEO_NONE)? 0 : 1;
+@@ -1011,6 +1040,13 @@ static int video_write(char *buf)
+ 	return 0;
  }
  
- static void video_exit(void)
++static struct ibm_struct video_driver_data = {
++	.name = "video",
++	.read = video_read,
++	.write = video_write,
++	.exit = video_exit,
++};
++
+ /*************************************************************************
+  * Light (thinklight) subdriver
+  */
+@@ -1021,7 +1057,7 @@ static int light_status_supported;
+ IBM_HANDLE(lght, root, "\\LGHT");	/* A21e, A2xm/p, T20-22, X20-21 */
+ IBM_HANDLE(ledb, ec, "LEDB");		/* G4x */
+ 
+-static int light_init(void)
++static int __init light_init(struct ibm_init_struct *iibm)
  {
-+	dbg_printk(TPACPI_DBG_EXIT, "restoring original video autoswitch mode\n");
- 	acpi_evalf(vid_handle, NULL, "_DOS", "vd", video_orig_autosw);
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing light subdriver\n");
+ 
+@@ -1093,6 +1129,12 @@ static int light_write(char *buf)
+ 	return 0;
  }
  
-@@ -991,6 +1023,8 @@ IBM_HANDLE(ledb, ec, "LEDB");		/* G4x */
++static struct ibm_struct light_driver_data = {
++	.name = "light",
++	.read = light_read,
++	.write = light_write,
++};
++
+ /*************************************************************************
+  * Dock subdriver
+  */
+@@ -1110,7 +1152,7 @@ IBM_HANDLE(pci, root, "\\_SB.PCI");	/* 570 */
  
- static int light_init(void)
+ #define dock_docked() (_sta(dock_handle) & 1)
+ 
+-static int dock_init(void)
++static int __init dock_init(struct ibm_init_struct *iibm)
  {
-+	vdbg_printk(TPACPI_DBG_INIT, "initializing light subdriver\n");
-+
- 	IBM_HANDLE_INIT(ledb);
- 	IBM_HANDLE_INIT(lght);
- 	IBM_HANDLE_INIT(cmos);
-@@ -1004,6 +1038,9 @@ static int light_init(void)
- 		light_status_supported = acpi_evalf(ec_handle, NULL,
- 						    "KBLT", "qv");
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing dock subdriver\n");
  
-+	vdbg_printk(TPACPI_DBG_INIT, "light is %s\n",
-+		str_supported(light_supported));
-+
- 	return (light_supported)? 0 : 1;
+@@ -1184,6 +1226,24 @@ static int dock_write(char *buf)
+ 	return 0;
  }
  
-@@ -1075,9 +1112,14 @@ IBM_HANDLE(pci, root, "\\_SB.PCI");	/* 570 */
++static struct ibm_struct dock_driver_data[2] = {
++	{
++	 .name = "dock",
++	 .read = dock_read,
++	 .write = dock_write,
++	 .notify = dock_notify,
++	 .handle = &dock_handle,
++	 .type = ACPI_SYSTEM_NOTIFY,
++	},
++	{
++	 .name = "dock",
++	 .hid = IBM_PCI_HID,
++	 .notify = dock_notify,
++	 .handle = &pci_handle,
++	 .type = ACPI_SYSTEM_NOTIFY,
++	},
++};
++
+ #endif /* CONFIG_THINKPAD_ACPI_DOCK */
  
- static int dock_init(void)
+ /*************************************************************************
+@@ -1211,7 +1271,7 @@ IBM_HANDLE(bay2_ej, bay2, "_EJ3",	/* 600e/x, 770e, A3x */
+ 	   "_EJ0",			/* 770x */
+ 	   );				/* all others */
+ 
+-static int bay_init(void)
++static int __init bay_init(struct ibm_init_struct *iibm)
  {
-+	vdbg_printk(TPACPI_DBG_INIT, "initializing dock subdriver\n");
-+
- 	IBM_HANDLE_INIT(dock);
- 	IBM_HANDLE_INIT(pci);
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing bay subdriver\n");
  
-+	vdbg_printk(TPACPI_DBG_INIT, "dock is %s\n",
-+		str_supported(dock_handle != NULL));
-+
- 	return (dock_handle)? 0 : 1;
+@@ -1298,13 +1358,23 @@ static int bay_write(char *buf)
+ 
+ 	return 0;
  }
++
++static struct ibm_struct bay_driver_data = {
++	.name = "bay",
++	.read = bay_read,
++	.write = bay_write,
++	.notify = bay_notify,
++	.handle = &bay_handle,
++	.type = ACPI_SYSTEM_NOTIFY,
++};
++
+ #endif /* CONFIG_THINKPAD_ACPI_BAY */
  
-@@ -1171,6 +1213,8 @@ IBM_HANDLE(bay2_ej, bay2, "_EJ3",	/* 600e/x, 770e, A3x */
+ /*************************************************************************
+  * CMOS subdriver
+  */
  
- static int bay_init(void)
+-static int cmos_init(void)
++static int __init cmos_init(struct ibm_init_struct *iibm)
  {
-+	vdbg_printk(TPACPI_DBG_INIT, "initializing bay subdriver\n");
-+
- 	IBM_HANDLE_INIT(bay);
- 	if (bay_handle)
- 		IBM_HANDLE_INIT(bay_ej);
-@@ -1188,6 +1232,13 @@ static int bay_init(void)
- 	bay_eject2_supported = bay2_handle && bay2_ej_handle &&
- 	    (strlencmp(bay2_ej_path, "_EJ0") == 0 || experimental);
- 
-+	vdbg_printk(TPACPI_DBG_INIT,
-+		"bay 1: status %s, eject %s; bay 2: status %s, eject %s\n",
-+		str_supported(bay_status_supported),
-+		str_supported(bay_eject_supported),
-+		str_supported(bay_status2_supported),
-+		str_supported(bay_eject2_supported));
-+
- 	return (bay_status_supported || bay_eject_supported ||
- 		bay_status2_supported || bay_eject2_supported)? 0 : 1;
+ 	vdbg_printk(TPACPI_DBG_INIT,
+ 		"initializing cmos commands subdriver\n");
+@@ -1362,6 +1432,11 @@ static int cmos_write(char *buf)
+ 	return 0;
  }
-@@ -1255,8 +1306,13 @@ static int bay_write(char *buf)
  
- static int cmos_init(void)
++static struct ibm_struct cmos_driver_data = {
++	.name = "cmos",
++	.read = cmos_read,
++	.write = cmos_write,
++};
+ 
+ /*************************************************************************
+  * LED subdriver
+@@ -1374,7 +1449,7 @@ IBM_HANDLE(led, ec, "SLED",	/* 570 */
+ 	   "LED",		/* all others */
+ 	   );			/* R30, R31 */
+ 
+-static int led_init(void)
++static int __init led_init(struct ibm_init_struct *iibm)
  {
-+	vdbg_printk(TPACPI_DBG_INIT,
-+		"initializing cmos commands subdriver\n");
-+
- 	IBM_HANDLE_INIT(cmos);
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing LED subdriver\n");
  
-+	vdbg_printk(TPACPI_DBG_INIT, "cmos commands are %s\n",
-+		str_supported(cmos_handle != NULL));
- 	return (cmos_handle)? 0 : 1;
+@@ -1487,13 +1562,19 @@ static int led_write(char *buf)
+ 	return 0;
  }
  
-@@ -1320,6 +1376,8 @@ IBM_HANDLE(led, ec, "SLED",	/* 570 */
++static struct ibm_struct led_driver_data = {
++	.name = "led",
++	.read = led_read,
++	.write = led_write,
++};
++
+ /*************************************************************************
+  * Beep subdriver
+  */
  
- static int led_init(void)
+ IBM_HANDLE(beep, ec, "BEEP");	/* all except R30, R31 */
+ 
+-static int beep_init(void)
++static int __init beep_init(struct ibm_init_struct *iibm)
  {
-+	vdbg_printk(TPACPI_DBG_INIT, "initializing LED subdriver\n");
-+
- 	IBM_HANDLE_INIT(led);
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing beep subdriver\n");
  
- 	if (!led_handle)
-@@ -1335,6 +1393,9 @@ static int led_init(void)
- 		/* all others */
- 		led_supported = TPACPI_LED_NEW;
- 
-+	vdbg_printk(TPACPI_DBG_INIT, "LED commands are %s, mode %d\n",
-+		str_supported(led_supported), led_supported);
-+
- 	return (led_supported != TPACPI_LED_NONE)? 0 : 1;
+@@ -1540,13 +1621,19 @@ static int beep_write(char *buf)
+ 	return 0;
  }
  
-@@ -1434,8 +1495,13 @@ IBM_HANDLE(beep, ec, "BEEP");	/* all except R30, R31 */
++static struct ibm_struct beep_driver_data = {
++	.name = "beep",
++	.read = beep_read,
++	.write = beep_write,
++};
++
+ /*************************************************************************
+  * Thermal subdriver
+  */
  
- static int beep_init(void)
+ static enum thermal_access_mode thermal_read_mode;
+ 
+-static int thermal_init(void)
++static int __init thermal_init(struct ibm_init_struct *iibm)
  {
-+	vdbg_printk(TPACPI_DBG_INIT, "initializing beep subdriver\n");
-+
- 	IBM_HANDLE_INIT(beep);
- 
-+	vdbg_printk(TPACPI_DBG_INIT, "beep is %s\n",
-+		str_supported(beep_handle != NULL));
-+
- 	return (beep_handle)? 0 : 1;
- }
- 
-@@ -1486,6 +1552,8 @@ static int thermal_init(void)
+ 	u8 t, ta1, ta2;
  	int i;
- 	int acpi_tmp7;
- 
-+	vdbg_printk(TPACPI_DBG_INIT, "initializing thermal subdriver\n");
-+
- 	acpi_tmp7 = acpi_evalf(ec_handle, NULL, "TMP7", "qv");
- 
- 	if (ibm_thinkpad_ec_found && experimental) {
-@@ -1542,6 +1610,10 @@ static int thermal_init(void)
- 		thermal_read_mode = TPACPI_THERMAL_NONE;
- 	}
- 
-+	vdbg_printk(TPACPI_DBG_INIT, "thermal is %s, mode %d\n",
-+		str_supported(thermal_read_mode != TPACPI_THERMAL_NONE),
-+		thermal_read_mode);
-+
- 	return (thermal_read_mode != TPACPI_THERMAL_NONE)? 0 : 1;
+@@ -1692,6 +1779,11 @@ static int thermal_read(char *p)
+ 	return len;
  }
  
-@@ -1698,6 +1770,8 @@ static int brightness_init(void)
++static struct ibm_struct thermal_driver_data = {
++	.name = "thermal",
++	.read = thermal_read,
++};
++
+ /*************************************************************************
+  * EC Dump subdriver
+  */
+@@ -1755,6 +1847,13 @@ static int ecdump_write(char *buf)
+ 	return 0;
+ }
+ 
++static struct ibm_struct ecdump_driver_data = {
++	.name = "ecdump",
++	.read = ecdump_read,
++	.write = ecdump_write,
++	.experimental = 1,
++};
++
+ /*************************************************************************
+  * Backlight/brightness subdriver
+  */
+@@ -1766,7 +1865,7 @@ static struct backlight_ops ibm_backlight_data = {
+         .update_status  = brightness_update_status,
+ };
+ 
+-static int brightness_init(void)
++static int __init brightness_init(struct ibm_init_struct *iibm)
  {
  	int b;
  
-+	vdbg_printk(TPACPI_DBG_INIT, "initializing brightness subdriver\n");
-+
- 	b = brightness_get(NULL);
- 	if (b < 0)
- 		return b;
-@@ -1708,6 +1782,7 @@ static int brightness_init(void)
- 		printk(IBM_ERR "Could not register backlight device\n");
- 		return PTR_ERR(ibm_backlight_device);
- 	}
-+	vdbg_printk(TPACPI_DBG_INIT, "brightness is supported\n");
- 
- 	ibm_backlight_device->props.max_brightness = 7;
- 	ibm_backlight_device->props.brightness = b;
-@@ -1719,6 +1794,8 @@ static int brightness_init(void)
- static void brightness_exit(void)
- {
- 	if (ibm_backlight_device) {
-+		vdbg_printk(TPACPI_DBG_EXIT,
-+			    "calling backlight_device_unregister()\n");
- 		backlight_device_unregister(ibm_backlight_device);
- 		ibm_backlight_device = NULL;
- 	}
-@@ -2017,6 +2094,8 @@ IBM_HANDLE(sfan, ec, "SFAN",	/* 570 */
- 
- static int fan_init(void)
- {
-+	vdbg_printk(TPACPI_DBG_INIT, "initializing fan subdriver\n");
-+
- 	fan_status_access_mode = TPACPI_FAN_NONE;
- 	fan_control_access_mode = TPACPI_FAN_WR_NONE;
- 	fan_control_commands = 0;
-@@ -2095,6 +2174,11 @@ static int fan_init(void)
- 		}
- 	}
- 
-+	vdbg_printk(TPACPI_DBG_INIT, "fan is %s, modes %d, %d\n",
-+		str_supported(fan_status_access_mode != TPACPI_FAN_NONE ||
-+		  fan_control_access_mode != TPACPI_FAN_WR_NONE),
-+		fan_status_access_mode, fan_control_access_mode);
-+
- 	return (fan_status_access_mode != TPACPI_FAN_NONE ||
- 	        fan_control_access_mode != TPACPI_FAN_WR_NONE)?
- 			0 : 1;
-@@ -2138,6 +2222,7 @@ static int fan_get_status(u8 *status)
- 
- static void fan_exit(void)
- {
-+	vdbg_printk(TPACPI_DBG_EXIT, "cancelling any pending watchdogs\n");
- 	cancel_delayed_work(&fan_watchdog_task);
- 	flush_scheduled_work();
+@@ -1883,6 +1982,13 @@ static int brightness_write(char *buf)
+ 	return 0;
  }
-@@ -2622,6 +2707,15 @@ static struct ibm_struct ibms[] = {
+ 
++static struct ibm_struct brightness_driver_data = {
++	.name = "brightness",
++	.read = brightness_read,
++	.write = brightness_write,
++	.exit = brightness_exit,
++};
++
+ /*************************************************************************
+  * Volume subdriver
+  */
+@@ -1967,6 +2073,11 @@ static int volume_write(char *buf)
+ 	return 0;
+ }
+ 
++static struct ibm_struct volume_driver_data = {
++	.name = "volume",
++	.read = volume_read,
++	.write = volume_write,
++};
+ 
+ /*************************************************************************
+  * Fan subdriver
+@@ -2092,7 +2203,7 @@ IBM_HANDLE(sfan, ec, "SFAN",	/* 570 */
+ 	   "JFNS",		/* 770x-JL */
+ 	   );			/* all others */
+ 
+-static int fan_init(void)
++static int __init fan_init(struct ibm_init_struct *iibm)
+ {
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing fan subdriver\n");
+ 
+@@ -2568,6 +2679,14 @@ static int fan_write(char *buf)
+ 	return rc;
+ }
+ 
++static struct ibm_struct fan_driver_data = {
++	.name = "fan",
++	.read = fan_read,
++	.write = fan_write,
++	.exit = fan_exit,
++	.experimental = 1,
++};
++
+ /****************************************************************************
+  ****************************************************************************
+  *
+@@ -2580,159 +2699,45 @@ static int fan_write(char *buf)
+ static struct proc_dir_entry *proc_dir = NULL;
+ 
+ /* Subdriver registry */
+-static struct ibm_struct ibms[] = {
+-	{
+-	 .name = "driver",
+-	 .init = thinkpad_acpi_driver_init,
+-	 .read = thinkpad_acpi_driver_read,
+-	 },
+-	{
+-	 .name = "hotkey",
+-	 .hid = IBM_HKEY_HID,
+-	 .init = hotkey_init,
+-	 .read = hotkey_read,
+-	 .write = hotkey_write,
+-	 .exit = hotkey_exit,
+-	 .notify = hotkey_notify,
+-	 .handle = &hkey_handle,
+-	 .type = ACPI_DEVICE_NOTIFY,
+-	 },
+-	{
+-	 .name = "bluetooth",
+-	 .init = bluetooth_init,
+-	 .read = bluetooth_read,
+-	 .write = bluetooth_write,
+-	 },
+-	{
+-	 .name = "wan",
+-	 .init = wan_init,
+-	 .read = wan_read,
+-	 .write = wan_write,
+-	 .experimental = 1,
+-	 },
+-	{
+-	 .name = "video",
+-	 .init = video_init,
+-	 .read = video_read,
+-	 .write = video_write,
+-	 .exit = video_exit,
+-	 },
+-	{
+-	 .name = "light",
+-	 .init = light_init,
+-	 .read = light_read,
+-	 .write = light_write,
+-	 },
+-#ifdef CONFIG_THINKPAD_ACPI_DOCK
+-	{
+-	 .name = "dock",
+-	 .init = dock_init,
+-	 .read = dock_read,
+-	 .write = dock_write,
+-	 .notify = dock_notify,
+-	 .handle = &dock_handle,
+-	 .type = ACPI_SYSTEM_NOTIFY,
+-	 },
+-	{
+-	 .name = "dock",
+-	 .hid = IBM_PCI_HID,
+-	 .notify = dock_notify,
+-	 .handle = &pci_handle,
+-	 .type = ACPI_SYSTEM_NOTIFY,
+-	 },
+-#endif
+-#ifdef CONFIG_THINKPAD_ACPI_BAY
+-	{
+-	 .name = "bay",
+-	 .init = bay_init,
+-	 .read = bay_read,
+-	 .write = bay_write,
+-	 .notify = bay_notify,
+-	 .handle = &bay_handle,
+-	 .type = ACPI_SYSTEM_NOTIFY,
+-	 },
+-#endif /* CONFIG_THINKPAD_ACPI_BAY */
+-	{
+-	 .name = "cmos",
+-	 .init = cmos_init,
+-	 .read = cmos_read,
+-	 .write = cmos_write,
+-	 },
+-	{
+-	 .name = "led",
+-	 .init = led_init,
+-	 .read = led_read,
+-	 .write = led_write,
+-	 },
+-	{
+-	 .name = "beep",
+-	 .init = beep_init,
+-	 .read = beep_read,
+-	 .write = beep_write,
+-	 },
+-	{
+-	 .name = "thermal",
+-	 .init = thermal_init,
+-	 .read = thermal_read,
+-	 },
+-	{
+-	 .name = "ecdump",
+-	 .read = ecdump_read,
+-	 .write = ecdump_write,
+-	 .experimental = 1,
+-	 },
+-	{
+-	 .name = "brightness",
+-	 .read = brightness_read,
+-	 .write = brightness_write,
+-	 .init = brightness_init,
+-	 .exit = brightness_exit,
+-	 },
+-	{
+-	 .name = "volume",
+-	 .read = volume_read,
+-	 .write = volume_write,
+-	 },
+-	{
+-	 .name = "fan",
+-	 .read = fan_read,
+-	 .write = fan_write,
+-	 .init = fan_init,
+-	 .exit = fan_exit,
+-	 .experimental = 1,
+-	 },
+-};
++static LIST_HEAD(tpacpi_all_drivers);
++
+ 
+ /*
   * Module and infrastructure proble, init and exit handling
   */
  
-+#ifdef CONFIG_THINKPAD_ACPI_DEBUG
-+static const char * str_supported(int is_supported)
-+{
-+	static const char * const text_unsupported = "not supported";
-+
-+	return (is_supported)? text_unsupported + 4 : text_unsupported;
-+}
-+#endif /* CONFIG_THINKPAD_ACPI_DEBUG */
-+
- static int __init ibm_init(struct ibm_struct *ibm)
+ #ifdef CONFIG_THINKPAD_ACPI_DEBUG
+-static const char * str_supported(int is_supported)
++static const char * __init str_supported(int is_supported)
+ {
+-	static const char * const text_unsupported = "not supported";
++	static char text_unsupported[] __initdata = "not supported";
+ 
+-	return (is_supported)? text_unsupported + 4 : text_unsupported;
++	return (is_supported)? &text_unsupported[4] : &text_unsupported[0];
+ }
+ #endif /* CONFIG_THINKPAD_ACPI_DEBUG */
+ 
+-static int __init ibm_init(struct ibm_struct *ibm)
++static int __init ibm_init(struct ibm_init_struct *iibm)
  {
  	int ret;
-@@ -2630,6 +2724,9 @@ static int __init ibm_init(struct ibm_struct *ibm)
++	struct ibm_struct *ibm = iibm->data;
+ 	struct proc_dir_entry *entry;
+ 
++	BUG_ON(ibm == NULL);
++
++	INIT_LIST_HEAD(&ibm->all_drivers);
++
  	if (ibm->experimental && !experimental)
  		return 0;
  
-+	dbg_printk(TPACPI_DBG_INIT,
-+		"probing for %s\n", ibm->name);
-+
- 	if (ibm->init) {
- 		ret = ibm->init();
+ 	dbg_printk(TPACPI_DBG_INIT,
+ 		"probing for %s\n", ibm->name);
+ 
+-	if (ibm->init) {
+-		ret = ibm->init();
++	if (iibm->init) {
++		ret = iibm->init(iibm);
  		if (ret > 0)
-@@ -2657,6 +2754,9 @@ static int __init ibm_init(struct ibm_struct *ibm)
- 			goto err_out;
+ 			return 0;	/* probe failed */
+ 		if (ret)
+ 			return ret;
++
+ 		ibm->init_called = 1;
  	}
  
-+	dbg_printk(TPACPI_DBG_INIT,
-+		"%s installed\n", ibm->name);
+@@ -2775,6 +2780,8 @@ static int __init ibm_init(struct ibm_struct *ibm)
+ 		ibm->proc_created = 1;
+ 	}
+ 
++	list_add_tail(&ibm->all_drivers, &tpacpi_all_drivers);
 +
- 	if (ibm->read) {
- 		entry = create_proc_entry(ibm->name,
- 					  S_IFREG | S_IRUGO | S_IWUSR,
-@@ -2678,24 +2778,35 @@ static int __init ibm_init(struct ibm_struct *ibm)
  	return 0;
  
  err_out:
-+	dbg_printk(TPACPI_DBG_INIT,
-+		"%s: at error exit path with result %d\n",
-+		ibm->name, ret);
-+
- 	ibm_exit(ibm);
- 	return (ret < 0)? ret : 0;
- }
- 
+@@ -2789,6 +2796,9 @@ err_out:
  static void ibm_exit(struct ibm_struct *ibm)
  {
-+	dbg_printk(TPACPI_DBG_EXIT, "removing %s\n", ibm->name);
+ 	dbg_printk(TPACPI_DBG_EXIT, "removing %s\n", ibm->name);
++
++	list_del_init(&ibm->all_drivers);
++
  	if (ibm->notify_installed) {
-+		dbg_printk(TPACPI_DBG_EXIT,
-+			"%s: acpi_remove_notify_handler\n", ibm->name);
- 		acpi_remove_notify_handler(*ibm->handle, ibm->type,
- 					   dispatch_notify);
- 		ibm->notify_installed = 0;
+ 		dbg_printk(TPACPI_DBG_EXIT,
+ 			"%s: acpi_remove_notify_handler\n", ibm->name);
+@@ -2817,6 +2827,8 @@ static void ibm_exit(struct ibm_struct *ibm)
+ 		ibm->exit();
+ 		ibm->init_called = 0;
  	}
++
++	dbg_printk(TPACPI_DBG_INIT, "finished removing %s\n", ibm->name);
+ }
  
- 	if (ibm->proc_created) {
-+		dbg_printk(TPACPI_DBG_EXIT,
-+			"%s: remove_proc_entry\n", ibm->name);
- 		remove_proc_entry(ibm->name, proc_dir);
- 		ibm->proc_created = 0;
+ /* Probing */
+@@ -2875,18 +2887,95 @@ static int __init probe_for_thinkpad(void)
+ 
+ /* Module init, exit, parameters */
+ 
++static struct ibm_init_struct ibms_init[] __initdata = {
++	{
++		.init = thinkpad_acpi_driver_init,
++		.data = &thinkpad_acpi_driver_data,
++	},
++	{
++		.init = hotkey_init,
++		.data = &hotkey_driver_data,
++	},
++	{
++		.init = bluetooth_init,
++		.data = &bluetooth_driver_data,
++	},
++	{
++		.init = wan_init,
++		.data = &wan_driver_data,
++	},
++	{
++		.init = video_init,
++		.data = &video_driver_data,
++	},
++	{
++		.init = light_init,
++		.data = &light_driver_data,
++	},
++#ifdef CONFIG_THINKPAD_ACPI_DOCK
++	{
++		.init = dock_init,
++		.data = &dock_driver_data[0],
++	},
++	{
++		.data = &dock_driver_data[1],
++	},
++#endif
++#ifdef CONFIG_THINKPAD_ACPI_BAY
++	{
++		.init = bay_init,
++		.data = &bay_driver_data,
++	},
++#endif
++	{
++		.init = cmos_init,
++		.data = &cmos_driver_data,
++	},
++	{
++		.init = led_init,
++		.data = &led_driver_data,
++	},
++	{
++		.init = beep_init,
++		.data = &beep_driver_data,
++	},
++	{
++		.init = thermal_init,
++		.data = &thermal_driver_data,
++	},
++	{
++		.data = &ecdump_driver_data,
++	},
++	{
++		.init = brightness_init,
++		.data = &brightness_driver_data,
++	},
++	{
++		.data = &volume_driver_data,
++	},
++	{
++		.init = fan_init,
++		.data = &fan_driver_data,
++	},
++};
++
+ static int __init set_ibm_param(const char *val, struct kernel_param *kp)
+ {
+ 	unsigned int i;
++	struct ibm_struct *ibm;
+ 
+-	for (i = 0; i < ARRAY_SIZE(ibms); i++)
+-		if (strcmp(ibms[i].name, kp->name) == 0 && ibms[i].write) {
+-			if (strlen(val) > sizeof(ibms[i].param) - 2)
++	for (i = 0; i < ARRAY_SIZE(ibms_init); i++) {
++		ibm = ibms_init[i].data;
++		BUG_ON(ibm == NULL);
++
++		if (strcmp(ibm->name, kp->name) == 0 && ibm->write) {
++			if (strlen(val) > sizeof(ibms_init[i].param) - 2)
+ 				return -ENOSPC;
+-			strcpy(ibms[i].param, val);
+-			strcat(ibms[i].param, ",");
++			strcpy(ibms_init[i].param, val);
++			strcat(ibms_init[i].param, ",");
+ 			return 0;
+ 		}
++	}
+ 
+ 	return -EINVAL;
+ }
+@@ -2938,10 +3027,10 @@ static int __init thinkpad_acpi_module_init(void)
  	}
+ 	proc_dir->owner = THIS_MODULE;
  
- 	if (ibm->driver_registered) {
-+		dbg_printk(TPACPI_DBG_EXIT,
-+			"%s: acpi_bus_unregister_driver\n", ibm->name);
- 		acpi_bus_unregister_driver(ibm->driver);
- 		kfree(ibm->driver);
- 		ibm->driver = NULL;
+-	for (i = 0; i < ARRAY_SIZE(ibms); i++) {
+-		ret = ibm_init(&ibms[i]);
+-		if (ret >= 0 && *ibms[i].param)
+-			ret = ibms[i].write(ibms[i].param);
++	for (i = 0; i < ARRAY_SIZE(ibms_init); i++) {
++		ret = ibm_init(&ibms_init[i]);
++		if (ret >= 0 && *ibms_init[i].param)
++			ret = ibms_init[i].data->write(ibms_init[i].param);
+ 		if (ret < 0) {
+ 			thinkpad_acpi_module_exit();
+ 			return ret;
+@@ -2953,10 +3042,15 @@ static int __init thinkpad_acpi_module_init(void)
+ 
+ static void thinkpad_acpi_module_exit(void)
+ {
+-	int i;
++	struct ibm_struct *ibm, *itmp;
++
++	list_for_each_entry_safe_reverse(ibm, itmp,
++					 &tpacpi_all_drivers,
++					 all_drivers) {
++		ibm_exit(ibm);
++	}
+ 
+-	for (i = ARRAY_SIZE(ibms) - 1; i >= 0; i--)
+-		ibm_exit(&ibms[i]);
++	dbg_printk(TPACPI_DBG_INIT, "finished subdriver exit path...\n");
+ 
+ 	if (proc_dir)
+ 		remove_proc_entry(IBM_DIR, acpi_root_dir);
 diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index 06d4c38..beb1447 100644
+index beb1447..97467b7 100644
 --- a/drivers/misc/thinkpad_acpi.h
 +++ b/drivers/misc/thinkpad_acpi.h
-@@ -76,12 +76,16 @@
+@@ -29,6 +29,7 @@
+ #include <linux/init.h>
+ #include <linux/types.h>
+ #include <linux/string.h>
++#include <linux/list.h>
  
- /* Debugging */
- #define TPACPI_DBG_ALL		0xffff
-+#define TPACPI_DBG_ALL		0xffff
-+#define TPACPI_DBG_INIT		0x0001
-+#define TPACPI_DBG_EXIT		0x0002
- #define dbg_printk(a_dbg_level, format, arg...) \
- 	do { if (dbg_level & a_dbg_level) \
- 		printk(IBM_DEBUG "%s: " format, __func__ , ## arg); } while (0)
- #ifdef CONFIG_THINKPAD_ACPI_DEBUG
- #define vdbg_printk(a_dbg_level, format, arg...) \
- 	dbg_printk(a_dbg_level, format, ## arg)
-+static const char *str_supported(int is_supported);
- #else
- #define vdbg_printk(a_dbg_level, format, arg...)
- #endif
+ #include <linux/proc_fs.h>
+ #include <linux/backlight.h>
+@@ -116,8 +117,6 @@ static void ibm_handle_init(char *name,
+ 
+ /* procfs support */
+ static struct proc_dir_entry *proc_dir;
+-static int thinkpad_acpi_driver_init(void);
+-static int thinkpad_acpi_driver_read(char *p);
+ 
+ /* procfs helpers */
+ static int dispatch_read(char *page, char **start, off_t off, int count,
+@@ -142,12 +141,10 @@ static void thinkpad_acpi_module_exit(void);
+ 
+ struct ibm_struct {
+ 	char *name;
+-	char param[32];
+ 
+ 	char *hid;
+ 	struct acpi_driver *driver;
+ 
+-	int (*init) (void);
+ 	int (*read) (char *);
+ 	int (*write) (char *);
+ 	void (*exit) (void);
+@@ -157,6 +154,8 @@ struct ibm_struct {
+ 	int type;
+ 	struct acpi_device *device;
+ 
++	struct list_head all_drivers;
++
+ 	int driver_registered;
+ 	int proc_created;
+ 	int init_called;
+@@ -165,16 +164,26 @@ struct ibm_struct {
+ 	int experimental;
+ };
+ 
+-static struct ibm_struct ibms[];
++struct ibm_init_struct {
++	char param[32];
++
++	int (*init) (struct ibm_init_struct *);
++	struct ibm_struct *data;
++};
++
++static struct list_head tpacpi_all_drivers;
++
++static struct ibm_init_struct ibms_init[];
+ static int set_ibm_param(const char *val, struct kernel_param *kp);
+-static int ibm_init(struct ibm_struct *ibm);
++static int ibm_init(struct ibm_init_struct *iibm);
+ static void ibm_exit(struct ibm_struct *ibm);
+ 
+-/* ACPI devices */
+-static void dispatch_notify(acpi_handle handle, u32 event, void *data);
+-static int setup_notify(struct ibm_struct *ibm);
+-static int ibm_device_add(struct acpi_device *device);
+-static int register_tpacpi_subdriver(struct ibm_struct *ibm);
++
++/*
++ * procfs master subdriver
++ */
++static int thinkpad_acpi_driver_init(struct ibm_init_struct *iibm);
++static int thinkpad_acpi_driver_read(char *p);
+ 
+ 
+ /*
+@@ -188,7 +197,7 @@ static int bay_status2_supported, bay_eject2_supported;
+ static acpi_handle bay_handle, bay_ej_handle;
+ static acpi_handle bay2_handle, bay2_ej_handle;
+ 
+-static int bay_init(void);
++static int bay_init(struct ibm_init_struct *iibm);
+ static void bay_notify(struct ibm_struct *ibm, u32 event);
+ static int bay_read(char *p);
+ static int bay_write(char *buf);
+@@ -211,7 +220,7 @@ static int beep_write(char *buf);
+ 
+ static int bluetooth_supported;
+ 
+-static int bluetooth_init(void);
++static int bluetooth_init(struct ibm_init_struct *iibm);
+ static int bluetooth_status(void);
+ static int bluetooth_read(char *p);
+ static int bluetooth_write(char *buf);
+@@ -224,7 +233,7 @@ static int bluetooth_write(char *buf);
+ static struct backlight_device *ibm_backlight_device;
+ static int brightness_offset = 0x31;
+ 
+-static int brightness_init(void);
++static int brightness_init(struct ibm_init_struct *iibm);
+ static void brightness_exit(void);
+ static int brightness_get(struct backlight_device *bd);
+ static int brightness_set(int value);
+@@ -306,7 +315,7 @@ static int fan_watchdog_maxinterval;
+ 
+ static acpi_handle fans_handle, gfan_handle, sfan_handle;
+ 
+-static int fan_init(void);
++static int fan_init(struct ibm_init_struct *iibm);
+ static void fan_exit(void);
+ static int fan_get_status(u8 *status);
+ static int fan_get_speed(unsigned int *speed);
+@@ -334,7 +343,7 @@ static int hotkey_mask_supported;
+ static int hotkey_orig_status;
+ static int hotkey_orig_mask;
+ 
+-static int hotkey_init(void);
++static int hotkey_init(struct ibm_init_struct *iibm);
+ static void hotkey_exit(void);
+ static int hotkey_get(int *status, int *mask);
+ static int hotkey_set(int status, int mask);
+@@ -363,7 +372,7 @@ enum {	/* For TPACPI_LED_OLD */
+ static enum led_access_mode led_supported;
+ static acpi_handle led_handle;
+ 
+-static int led_init(void);
++static int led_init(struct ibm_init_struct *iibm);
+ static int led_read(char *p);
+ static int led_write(char *buf);
+ 
+@@ -375,7 +384,7 @@ static int light_supported;
+ static int light_status_supported;
+ static acpi_handle lght_handle, ledb_handle;
+ 
+-static int light_init(void);
++static int light_init(struct ibm_init_struct *iibm);
+ static int light_read(char *p);
+ static int light_write(char *buf);
+ 
+@@ -397,7 +406,7 @@ struct ibm_thermal_sensors_struct {
+ 	s32 temp[TPACPI_MAX_THERMAL_SENSORS];
+ };
+ 
+-static int thermal_init(void);
++static int thermal_init(struct ibm_init_struct *iibm);
+ static int thermal_get_sensors(struct ibm_thermal_sensors_struct *s);
+ static int thermal_read(char *p);
+ 
+@@ -417,7 +426,7 @@ static enum video_access_mode video_supported;
+ static int video_orig_autosw;
+ static acpi_handle vid_handle, vid2_handle;
+ 
+-static int video_init(void);
++static int video_init(struct ibm_init_struct *iibm);
+ static void video_exit(void);
+ static int video_status(void);
+ static int video_autosw(void);
+@@ -444,7 +453,7 @@ static int volume_write(char *buf);
+ 
+ static int wan_supported;
+ 
+-static int wan_init(void);
++static int wan_init(struct ibm_init_struct *iibm);
+ static int wan_status(void);
+ static int wan_read(char *p);
+ static int wan_write(char *buf);
 -- 
 1.5.1
 
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by DB2 Express
-Download DB2 Express C - the FREE version of DB2 express and take
-control of your XML. No limits. Just data. Click to get it now.
-http://sourceforge.net/powerbar/db2/
