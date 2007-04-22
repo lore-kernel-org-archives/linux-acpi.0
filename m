@@ -1,705 +1,455 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Subject: Re: [lm-sensors] Could the k8temp driver be interfering with ACPI?
-Date: Sun, 22 Apr 2007 18:55:03 +0200
-Message-ID: <20070422165503.GA10081@dreamland.darkstar.lan>
-References: <45D5EA88.7090300@redhat.com> <200704151857.03115.bjorn.helgaas@hp.com> <20070416211411.GA16150@dreamland.darkstar.lan> <200704161628.47707.bjorn.helgaas@hp.com> <68676e00704171650t604e30f4j3749b7c5a8ddc5c5@mail.gmail.com>
+From: "Sunil Naidu" <akula2.shark@gmail.com>
+Subject: Re: ACPI issues? (2.6.20.7 dmesg, interrupts, lspci output)
+Date: Sun, 22 Apr 2007 22:32:37 +0530
+Message-ID: <8355959a0704221002w2d1de35dlfd40373d31a5190d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+	boundary="----=_Part_122168_12816342.1177261357448"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mu-out-0910.google.com ([209.85.134.186]:14127 "EHLO
-	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161479AbXDVQyI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Apr 2007 12:54:08 -0400
-Received: by mu-out-0910.google.com with SMTP id g7so1692125muf
-        for <linux-acpi@vger.kernel.org>; Sun, 22 Apr 2007 09:54:06 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <68676e00704171650t604e30f4j3749b7c5a8ddc5c5@mail.gmail.com>
+Received: from nz-out-0506.google.com ([64.233.162.231]:31745 "EHLO
+	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161508AbXDVRCi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Apr 2007 13:02:38 -0400
+Received: by nz-out-0506.google.com with SMTP id s1so1103223nze
+        for <linux-acpi@vger.kernel.org>; Sun, 22 Apr 2007 10:02:37 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Jean Delvare <khali@linux-fr.org>, Pavel Machek <pavel@ucw.cz>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, Chuck Ebbert <cebbert@redhat.com>
-
-Il Wed, Apr 18, 2007 at 01:50:29AM +0200, Luca Tettamanti ha scritto: 
-> >I'm sure you've seen these:
-> >  http://lists.lm-sensors.org/pipermail/lm-sensors/2005-October/014050.html
-> >  http://www.lm-sensors.org/wiki/AsusFormulaHacking
-> 
-> Actually I haven't, I've happily ignored ACPI until now ;-) My DSDT
-> doesn't look too bad, I may give it a try...
-
-It wasn't hard :) Temperature reading works fine. AML code is still a
-bit obscure though: the reading are enumerated in two different
-sections:
-
-* TSIF, FSIF, VSIF: they have read/write methods, easy to understand (I'm
-  using these right now)
-
-* SITM/GITM and GGPR for enumeration: more settings are available and in
-  part they overlap the others. The methods are very strange, for e.g.
-  temperature GITM (which calls GIT6) returns a hard-coded magic value;
-  other methods (e.g. CPU frequency, Q-FAN settings) write a random
-  number somewhere in the system memory and return an obscure magic
-  value... very cool :)
-
-
-I'm posting the proof-of-concept driver. A few notes:
-- only temperature reading is implemented: I just got my MS degree so
-  I've been drun^Wbusy
-- sysfs files are still RO
-- coding style: yes, I know... will cleanup
-- There's a gazillion of debugging printk's :)
-- I've extended the hwmon sysfs interface, with a new "temp%d_name";
-  ACPI knows how the sensor is wired
-- You'll need the following patch (against current Linus' git):
-
-diff --git a/drivers/acpi/namespace/nsutils.c b/drivers/acpi/namespace/nsutils.c
-index 90fd059..97e1139 100644
---- a/drivers/acpi/namespace/nsutils.c
-+++ b/drivers/acpi/namespace/nsutils.c
-@@ -700,6 +700,7 @@ struct acpi_namespace_node *acpi_ns_map_handle_to_node(acpi_handle handle)
- 
- 	return (ACPI_CAST_PTR(struct acpi_namespace_node, handle));
- }
-+EXPORT_SYMBOL(acpi_ns_map_handle_to_node);
- 
- /*******************************************************************************
-  *
-@@ -736,6 +737,7 @@ acpi_handle acpi_ns_convert_entry_to_handle(struct acpi_namespace_node *node)
- 	return ((acpi_handle) Node);
- ------------------------------------------------------*/
- }
-+EXPORT_SYMBOL(acpi_ns_convert_entry_to_handle);
- 
- /*******************************************************************************
-  *
-@@ -875,6 +877,7 @@ acpi_ns_get_node(struct acpi_namespace_node *prefix_node,
- 	ACPI_FREE(internal_path);
- 	return_ACPI_STATUS(status);
- }
-+EXPORT_SYMBOL(acpi_ns_get_node);
- 
- /*******************************************************************************
-  *
-
-Now the driver:
-
-/* 
- * Copyright (C) 2007 Luca Tettamanti <kronos.it@gmail.com>
- * Distribute under GPLv2.
- */
-#include <linux/module.h>
-#include <linux/kernel.h>
-#include <linux/hwmon.h>
-
-#include <acpi/acpi.h>
-#include <acpi/acnamesp.h>
-#include <acpi/acpi_drivers.h>
-#include <acpi/acpi_bus.h>
-
-
-#define ATK_HID "ATK0110"
-#define ATK_DRV "atk-hwmon"
-#define ASOC "_SB.PCI0.SBRG.ASOC"
-
-struct atk_data {
-	struct class_device *class_dev;	
-	acpi_handle atk_handle;
-	struct acpi_device *device;
-
-	acpi_handle rtmp_handle;
-} atk_data;
-
-
-typedef ssize_t (*sysfs_show_func)(struct device *dev, struct device_attribute *attr, char *buf);
-typedef ssize_t (*sysfs_store_func)(struct device *dev, struct device_attribute *attr,
-			const char *buf, size_t count);
-
-
-static void atk_init_attribute(struct device_attribute *attr, char *name, mode_t mode,
-		sysfs_show_func show, sysfs_store_func store)
-{
-	attr->attr.name = name;
-	attr->attr.mode = mode;
-	attr->show = show;
-	attr->store = store;
-}
-
-#define ATTR_NAME_SIZE 32
-
-struct atk_temp_input {
-	struct device_attribute dev_attr;
-	/* id is used for the ACPI ID of the temp */
-	int id;
-	char attr_name[ATTR_NAME_SIZE];
-};
-
-struct atk_temp_input_list {
-	int count;
-	struct atk_temp_input temp_input[];
-};
-
-#define to_atk_temp_input(attr) \
-	container_of(attr, struct atk_temp_input, dev_attr)
-
-static ssize_t atk_temp_input_show(struct device *dev, struct device_attribute *attr, char *buf) {
-	struct atk_temp_input *a = to_atk_temp_input(attr);
-	union acpi_object temp;
-	struct acpi_buffer ret;
-	struct acpi_object_list params;
-	union acpi_object id;
-	acpi_status status;
-	ssize_t count;
-
-	id.type = ACPI_TYPE_INTEGER;
-	id.integer.value = a->id;
-
-	params.count = 1;
-	params.pointer = &id;
-
-	ret.length = sizeof(temp);
-	ret.pointer = &temp;
-
-	status = acpi_evaluate_object(atk_data.rtmp_handle, NULL, &params, &ret);
-	if (status != AE_OK) {
-		printk("acpi_evaluate_object: %s\n", acpi_format_exception(status));
-		return -EIO;
-	}
-
-	if (temp.type != ACPI_TYPE_INTEGER) {
-		printk("not an integer (%d)\n", temp.type);
-		return -EIO;
-	}
-
-	/* ACPI returns centidegree */
-	count = sprintf(buf, "%llu\n", temp.integer.value * 10);
-
-	return count;
-}
-
-struct atk_temp_name {
-	struct device_attribute dev_attr;
-	char attr_name[ATTR_NAME_SIZE];
-	char const *name;
-};
-
-struct atk_temp_name_list {
-	int count;
-	struct atk_temp_name temp_name[];
-};
-
-#define to_atk_temp_name(attr) \
-	container_of(attr, struct atk_temp_name, dev_attr)
-
-static ssize_t atk_temp_name_show(struct device *dev, struct device_attribute *attr, char *buf) {
-	struct atk_temp_name *a = to_atk_temp_name(attr);
-
-	return sprintf(buf, "%s\n", a->name);
-}
-
-enum atk_temp_pack_id {
-	ATK_TEMP_PACK_MAX = 2,
-	ATK_TEMP_PACK_CRIT = 3,
-};
-
-static int atk_temp_pack_read(acpi_handle handle, int pack_id, enum atk_temp_pack_id temp_id,
-		unsigned long long *temp) {
-	struct acpi_buffer ret;
-	struct acpi_object_list params;
-	union acpi_object id;
-	union acpi_object *pack;
-	union acpi_object *obj;
-	acpi_status status;
-	int err = 0;
-	
-	ret.length = ACPI_ALLOCATE_BUFFER;
-
-	id.type = ACPI_TYPE_INTEGER;
-	id.integer.value = pack_id;
-
-	params.count = 1;
-	params.pointer = &id;
-
-	status = acpi_evaluate_object(handle, NULL, &params, &ret);
-	if (status != AE_OK) {
-		printk("atk_temp_pack_read: acpi_evaluate_object: %s\n",
-				acpi_format_exception(status));
-		return -EIO;
-	}
-
-	pack = ret.pointer;
-
-	if (pack->type != ACPI_TYPE_PACKAGE) {
-		printk("atk_temp_pack_read: ret object is not a package: %d\n",
-			pack->type);
-
-		err = -EIO;
-		goto out;
-	}
-	if (pack->package.count != 5) {
-		printk("atk_temp_pack_read: unexpected package size: %d\n",
-				pack->package.count);
-		err = -EIO;
-		goto out;
-	}
-
-	obj = &pack->package.elements[temp_id];
-	if (obj->type != ACPI_TYPE_INTEGER) {
-		printk("atk_temp_pack_read: unexepected type %d\n",
-				obj->type);
-		err = -EIO;
-		goto out;
-	}
-
-	*temp = obj->integer.value;
-	
-out:
-	ACPI_FREE(ret.pointer);
-
-	return err;
-}
-
-struct atk_temp_max {
-	struct device_attribute dev_attr;
-	int id;
-	acpi_handle handle;
-	char attr_name[ATTR_NAME_SIZE];
-};
-
-struct atk_temp_max_list {
-	int count;
-	struct atk_temp_max temp_max[];
-};
-
-#define to_atk_temp_max(attr) \
-	container_of(attr, struct atk_temp_max, dev_attr)
-
-static ssize_t atk_temp_max_show(struct device *dev, struct device_attribute *attr, char *buf) {
-	struct atk_temp_max *a = to_atk_temp_max(attr);
-	unsigned long long temp;
-
-	if (atk_temp_pack_read(a->handle, a->id, ATK_TEMP_PACK_MAX, &temp))
-		return -EIO;
-
-	return sprintf(buf, "%lld\n", temp * 10);
-}
-
-struct atk_temp_crit {
-	struct device_attribute dev_attr;
-	int id;
-	acpi_handle handle;
-	char attr_name[ATTR_NAME_SIZE];
-};
-
-struct atk_temp_crit_list {
-	int count;
-	struct atk_temp_crit temp_crit[];
-};
-
-#define to_atk_temp_crit(attr) \
-	container_of(attr, struct atk_temp_crit, dev_attr)
-
-static ssize_t atk_temp_crit_show(struct device *dev, struct device_attribute *attr, char *buf) {
-	struct atk_temp_crit *a = to_atk_temp_crit(attr);
-	unsigned long long temp;
-
-	if (atk_temp_pack_read(a->handle, a->id, ATK_TEMP_PACK_CRIT, &temp))
-		return -EIO;
-
-	return sprintf(buf, "%lld\n", temp * 10);
-}
-
-struct atk_temp_input_list *temp_input_list;
-struct atk_temp_name_list *temp_name_list;
-struct atk_temp_max_list *temp_max_list;
-struct atk_temp_crit_list *temp_crit_list;
-
-static int atk_found;
-
-static int atk_add(struct acpi_device *device);
-static int atk_remove(struct acpi_device *device, int type);
-
-static struct acpi_driver atk_driver = {
-	.name	= ATK_HID,
-	.class	= "hwmon",
-	.ids	= ATK_HID,
-	.ops	= {
-		.add	= atk_add,
-		.remove	= atk_remove,
-	},
-};
-
-static int atk_create_files(struct device *dev) {
-	int i;
-	int ret;
-
-	/* Temperatures */
-	for (i = 0; i < temp_input_list->count; i++) {
-		ret = device_create_file(dev, &temp_input_list->temp_input[i].dev_attr);
-		if (ret)
-			return ret;
-	}
-	for (i = 0; i < temp_name_list->count; i++) {
-		ret = device_create_file(dev, &temp_name_list->temp_name[i].dev_attr);
-		if (ret)
-			return ret;
-	}
-	for (i = 0; i < temp_max_list->count; i++) {
-		ret = device_create_file(dev, &temp_max_list->temp_max[i].dev_attr);
-		if (ret)
-			return ret;
-	}
-	for (i = 0; i < temp_crit_list->count; i++) {
-		ret = device_create_file(dev, &temp_crit_list->temp_crit[i].dev_attr);
-		if (ret)
-			return ret;
-	}
-
-	return 0;
-}
-
-static void atk_remove_files(struct device *dev) {
-	int i;
-
-	/* Temperatures */
-	if (temp_input_list) {
-		for (i = 0; i < temp_input_list->count; i++)
-			device_remove_file(dev, &temp_input_list->temp_input[i].dev_attr);
-	}
-	kfree(temp_input_list);
-
-	if (temp_name_list) {
-		for (i = 0; i < temp_name_list->count; i++) {
-			device_remove_file(dev, &temp_name_list->temp_name[i].dev_attr);
-			kfree(temp_name_list->temp_name[i].name);
-		}
-	}
-	kfree(temp_name_list);
-
-	if (temp_max_list) {
-		for (i = 0; i < temp_max_list->count; i++)
-			device_remove_file(dev, &temp_max_list->temp_max[i].dev_attr);
-	}
-	kfree(temp_max_list);
-
-	if (temp_crit_list) {
-		for (i = 0; i < temp_crit_list->count; i++)
-			device_remove_file(dev, &temp_crit_list->temp_crit[i].dev_attr);
-	}
-	kfree(temp_max_list);
-}
-
-static int atk_enumerate_temp(struct acpi_buffer *buf) {
-	union acpi_object *pack;
-	union acpi_object *obj;
-	struct atk_temp_input_list *inputs;
-	struct atk_temp_name_list *names;
-	struct atk_temp_max_list *max;
-	struct atk_temp_crit_list *crit;
-	int i, ret;
-
-	/* Result must be a package */
-	pack = buf->pointer;
-	if (pack->type != ACPI_TYPE_PACKAGE) {
-		printk("atk_enumerate_temp: not a package\n");
-		return -EINVAL;
-	}
-
-	if (pack->package.count < 1) {
-		printk("atk_enumerate_temp: count < 1\n");
-		return -EINVAL;
-	}
-
-	/* First field is the number of available readings */
-	obj = &pack->package.elements[0];
-	if (obj->type != ACPI_TYPE_INTEGER) {
-		printk("atk_enumerate_temp: element 0 is not an int (%u)\n", obj->type);
-		return -EINVAL;
-	}
-
-	/* Sanity check */
-	if (pack->package.count != obj->integer.value + 1) {
-		printk("atk_enumerate_temp: temperature count (%llu) differs from package count (%u)\n",
-				obj->integer.value, pack->package.count);
-		return -EINVAL;
-	}
-
-	inputs = kzalloc(sizeof(struct atk_temp_input_list) + sizeof(*inputs->temp_input) * obj->integer.value, GFP_KERNEL);
-	if (!inputs)
-		return -ENOMEM;
-
-	names = kzalloc(sizeof(struct atk_temp_name_list) + sizeof(*names->temp_name) * obj->integer.value, GFP_KERNEL);
-	if (!names) {
-		ret = -ENOMEM;
-		goto cleanup4;
-	}
-
-	max = kzalloc(sizeof(*max) + sizeof(*max->temp_max) * obj->integer.value, GFP_KERNEL);
-	if (!max) {
-		ret = -ENOMEM;
-		goto cleanup3;
-	}
-
-	crit = kzalloc(sizeof(*crit) + sizeof(*crit->temp_crit) * obj->integer.value, GFP_KERNEL);
-	if (!crit) {
-		ret = -ENOMEM;
-		goto cleanup2;
-	}
-
-	inputs->count = names->count = max->count = crit->count = obj->integer.value;
-	for (i = 0; i < pack->package.count - 1; i++) {
-		struct acpi_buffer buf;
-		union acpi_object *temp_pack;
-		union acpi_object *name;
-		union acpi_object *tmax;
-		union acpi_object *tcrit;
-		acpi_status status;
-
-		obj = &pack->package.elements[i + 1];
-
-		/* obj is a handle to the temperature package */
-		if (obj->type != ACPI_TYPE_ANY) {
-			printk("atk_enumerate_temp: unexpected type: %d\n", obj->type);
-			ret = -EINVAL;
-			goto cleanup;
-		}
-
-		buf.length = ACPI_ALLOCATE_BUFFER;
-		status = acpi_evaluate_object(obj->reference.handle, NULL, NULL, &buf);
-		if (status != AE_OK) {
-			printk("ACPI exception on object %u: %s\n", i + 1, acpi_format_exception(status));
-			ret = -EINVAL;
-			goto cleanup;
-		}
-
-		/* Temperature package:
-		 * byte buffer?
-		 *   [3]: used by GITM/SITM to locate correct GITx/SITx,
-		 *        method, same as the other package (GPID)
-		 *   [2]: same as the other package, seems unused in
-		 *        GITM/STIM
-		 *   [1]: type?
-		 *        1: cpu freq?
-		 *        2: voltage
-		 *        3: temperature
-		 *        4: fan
-		 *        7: Q-FAN (alarm?)
-		 *        8: NOS
-		 *   [0]: used by GITx/SITx for demux; selects the
-		 *        value stored in ASB1 (PRM0)
-		 * description
-		 * max
-		 * critical
-		 * unknown
-		 */
-		temp_pack = buf.pointer;
-
-		if (temp_pack->type != ACPI_TYPE_PACKAGE) {
-			printk("atk_enumerate_temp: unexpected type for package %u: %d\n", i + 1, temp_pack->type);
-			ret = -EINVAL;
-			goto cleanup;
-		}
-
-		if (temp_pack->package.count != 5) {
-			printk("Invalid package count: %u\n", temp_pack->package.count);
-			ret = -EINVAL;
-			goto cleanup;
-		}
-
-		name = &temp_pack->package.elements[1];
-		tmax = &temp_pack->package.elements[2];
-		tcrit = &temp_pack->package.elements[3];
-
-		if (name->type != ACPI_TYPE_STRING) {
-			printk("atk_enumerate_temp: object %d not a string (%d)\n",
-					i, name->type);
-			ret = -EINVAL;
-			goto cleanup;
-		}
-
-		if (tmax->type != ACPI_TYPE_INTEGER) {
-			printk("atk_enumerate_temp: object %d int expected (tmax), got: %d\n",
-					i, tmax->type);
-			ret = -EINVAL;
-			goto cleanup;
-		}
-		if (tcrit->type != ACPI_TYPE_INTEGER) {
-			printk("atk_enumerate_temp: object %d int expected (tmax), got: %d\n",
-					i, tcrit->type);
-			ret = -EINVAL;
-			goto cleanup;
-		}
-
-		inputs->temp_input[i].id = i;
-		snprintf(inputs->temp_input[i].attr_name, ATTR_NAME_SIZE, "temp%d_input", i);
-		atk_init_attribute(&inputs->temp_input[i].dev_attr, inputs->temp_input[i].attr_name,
-				0444, atk_temp_input_show, NULL);
-		names->temp_name[i].name = kstrdup(name->string.pointer, GFP_KERNEL);
-		
-		snprintf(names->temp_name[i].attr_name, ATTR_NAME_SIZE, "temp%d_name", i);
-		atk_init_attribute(&names->temp_name[i].dev_attr, names->temp_name[i].attr_name,
-				0444, atk_temp_name_show, NULL);
-		
-		max->temp_max[i].handle = obj->reference.handle;
-		snprintf(max->temp_max[i].attr_name, ATTR_NAME_SIZE, "temp%d_max", i);
-		atk_init_attribute(&max->temp_max[i].dev_attr, max->temp_max[i].attr_name,
-				0444, atk_temp_max_show, NULL);
-
-		crit->temp_crit[i].handle = obj->reference.handle;
-		snprintf(crit->temp_crit[i].attr_name, ATTR_NAME_SIZE, "temp%d_crit", i);
-		atk_init_attribute(&crit->temp_crit[i].dev_attr, crit->temp_crit[i].attr_name,
-				0444, atk_temp_crit_show, NULL);
-
-		printk("temp %u: %s [%llu-%llu]\n", inputs->temp_input[i].id, names->temp_name[i].name,
-				tmax->integer.value, tcrit->integer.value);
-
-		ACPI_FREE(buf.pointer);
-	}
-
-	temp_name_list = names;
-	temp_input_list = inputs;
-	temp_max_list = max;
-	temp_crit_list = crit;
-
-	return 0;
-cleanup:
-	kfree(crit);
-cleanup2:
-	kfree(max);
-cleanup3:
-	for (i = 0; i < names->count; i++)
-		kfree(names->temp_name[i].name);
-	kfree(names);
-cleanup4:
-	kfree(inputs);
-
-	return ret;
-}
-
-static int atk_add(struct acpi_device *device) {
-	acpi_status ret;
-	int err;
-	struct acpi_buffer buf;
-	union acpi_object *obj;
-	struct acpi_namespace_node *search_ns;
-	struct acpi_namespace_node *ns;
-
-	printk("adding...\n");
-
-	atk_data.device = device;
-	atk_data.atk_handle = device->handle;
-	acpi_driver_data(device) = &atk_data;
-
-	buf.length = ACPI_ALLOCATE_BUFFER;
-	ret = acpi_evaluate_object(atk_data.atk_handle, "MBIF", NULL, &buf);
-	if (ret != AE_OK)
-		return -ENODEV;
-
-	obj = buf.pointer;
-	if (obj->type == ACPI_TYPE_PACKAGE) {
-		printk("id: %s\n", obj->package.elements[1].string.pointer);
-	}
-	ACPI_FREE(buf.pointer);
-
-	/* Check for hwmon methods */
-	search_ns = acpi_ns_map_handle_to_node(device->handle);
-	if (search_ns == NULL) {
-		printk("NULL\n");
-		return -ENODEV;
-	}
-
-	/* RTMP: read temperature */
-	ret = acpi_ns_get_node(search_ns, "RTMP", ACPI_NS_NO_UPSEARCH, &ns);
-	if (ret != AE_OK) {
-		printk(KERN_INFO "atk: RTMP not found\n");
-		return -ENODEV;
-	}
-
-	atk_data.rtmp_handle = acpi_ns_convert_entry_to_handle(ns);
-
-	/* Enumerate temp data - TSIF */
-	buf.length = ACPI_ALLOCATE_BUFFER;
-	ret = acpi_evaluate_object(atk_data.atk_handle, "TSIF", NULL, &buf);
-	if (ret != AE_OK) {
-		printk("TSIF failed: %s\n", acpi_format_exception(ret));
-		return -ENODEV;
-	}
-
-	err = atk_enumerate_temp(&buf);
-	ACPI_FREE(buf.pointer);
-	if (err)
-		return err;
-
-	atk_found = 1;
-
-	return 0;
-}
-
-static int atk_remove(struct acpi_device *device, int type) {
-	printk("remove %d\n", type);
-
-	acpi_driver_data(device) = NULL;
-
-	return AE_OK;
-}
-
-int atk_init(void) {
-	int ret;
-
-	ret = acpi_bus_register_driver(&atk_driver);
-	printk("%d\n", ret);
-	if (ret)
-		return ret;
-
-	if (!atk_data.atk_handle) {
-		ret = -ENODEV;
-		goto bus_unreg;
-	}
-
-	if (!atk_found) {
-		printk("atk not found\n");
-		ret = -ENODEV;
-		goto bus_unreg;
-	}
-
-	atk_data.class_dev = hwmon_device_register(&atk_data.device->dev);
-	if (IS_ERR(atk_data.class_dev)) {
-		ret = PTR_ERR(atk_data.class_dev);
-		goto bus_unreg;
-	}
-	
-	ret = atk_create_files(&atk_data.device->dev);
-	if (ret)
-		goto remove_files;
-
-	return ret;
-
-remove_files:
-	atk_remove_files(&atk_data.device->dev);
-	hwmon_device_unregister(atk_data.class_dev);
-bus_unreg:
-	acpi_bus_unregister_driver(&atk_driver);
-
-	return ret;
-}
-
-void atk_exit(void) {
-	hwmon_device_unregister(atk_data.class_dev);
-
-	atk_remove_files(&atk_data.device->dev);
-
-	acpi_bus_unregister_driver(&atk_driver);
-
-
-}
-
-module_init(atk_init);
-module_exit(atk_exit);
-
-MODULE_LICENSE("GPL");
-
-
-
-Luca
--- 
-Dicono che  il cane sia  il miglior  amico dell'uomo. Secondo me  non e`
-vero. Quanti dei vostri amici avete fatto castrare, recentemente?
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>
+
+------=_Part_122168_12816342.1177261357448
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+On 4/22/07, Len Brown <lenb@kernel.org> wrote:
+>
+> This is an AML run-time error from a PCI Interrupt Link
+> trying to find its "Present Resource Settings" --
+> ie. the current IRQ for a programmable IRQ.
+>
+> Please open up a bug report here:
+> http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
+>
+> For 2.6.20.stable and the latest 2.6.21, please
+> build with CONFIG_ACPI_DEBUG=y, and
+> attach the complete output from dmesg -s64000
+> and paste the /proc/interrupts.
+>
+> Also, please attach the output from acpidump
+> and lspci -vv taken from either boot.
+>
+> thanks,
+> -Len
+
+Attached all the above except acpidump - it says command not found !!
+What is that am missing here?
+
+~Akula2
+
+------=_Part_122168_12816342.1177261357448
+Content-Type: application/octet-stream;
+	name=dmesg-sukhoi-pIII-2.6.20.7-acpi-debug
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_f0tqxqp2
+Content-Disposition: attachment; filename="dmesg-sukhoi-pIII-2.6.20.7-acpi-debug"
+
+TGludXggdmVyc2lvbiAyLjYuMjAuNy1TdWtob2kgKHJvb3RAQWt1bGEyKSAoZ2NjIHZlcnNpb24g
+NC4xLjEgMjAwNzAxMDUgKFJlZCBIYXQgNC4xLjEtNTEpKSAjMSBQUkVFTVBUIFN1biBBcHIgMjIg
+MjA6NTM6NTAgSVNUIDIwMDcKQklPUy1wcm92aWRlZCBwaHlzaWNhbCBSQU0gbWFwOgpzYW5pdGl6
+ZSBzdGFydApzYW5pdGl6ZSBlbmQKY29weV9lODIwX21hcCgpIHN0YXJ0OiAwMDAwMDAwMDAwMDAw
+MDAwIHNpemU6IDAwMDAwMDAwMDAwOWZjMDAgZW5kOiAwMDAwMDAwMDAwMDlmYzAwIHR5cGU6IDEK
+Y29weV9lODIwX21hcCgpIHR5cGUgaXMgRTgyMF9SQU0KY29weV9lODIwX21hcCgpIHN0YXJ0OiAw
+MDAwMDAwMDAwMDlmYzAwIHNpemU6IDAwMDAwMDAwMDAwMDA0MDAgZW5kOiAwMDAwMDAwMDAwMGEw
+MDAwIHR5cGU6IDIKY29weV9lODIwX21hcCgpIHN0YXJ0OiAwMDAwMDAwMDAwMGYwMDAwIHNpemU6
+IDAwMDAwMDAwMDAwMTAwMDAgZW5kOiAwMDAwMDAwMDAwMTAwMDAwIHR5cGU6IDIKY29weV9lODIw
+X21hcCgpIHN0YXJ0OiAwMDAwMDAwMDAwMTAwMDAwIHNpemU6IDAwMDAwMDAwMWZkZjAwMDAgZW5k
+OiAwMDAwMDAwMDFmZWYwMDAwIHR5cGU6IDEKY29weV9lODIwX21hcCgpIHR5cGUgaXMgRTgyMF9S
+QU0KY29weV9lODIwX21hcCgpIHN0YXJ0OiAwMDAwMDAwMDFmZWYwMDAwIHNpemU6IDAwMDAwMDAw
+MDAwMDgwMDAgZW5kOiAwMDAwMDAwMDFmZWY4MDAwIHR5cGU6IDMKY29weV9lODIwX21hcCgpIHN0
+YXJ0OiAwMDAwMDAwMDFmZWY4MDAwIHNpemU6IDAwMDAwMDAwMDAwMDgwMDAgZW5kOiAwMDAwMDAw
+MDFmZjAwMDAwIHR5cGU6IDQKY29weV9lODIwX21hcCgpIHN0YXJ0OiAwMDAwMDAwMGZmZmMwMDAw
+IHNpemU6IDAwMDAwMDAwMDAwNDAwMDAgZW5kOiAwMDAwMDAwMTAwMDAwMDAwIHR5cGU6IDIKIEJJ
+T1MtZTgyMDogMDAwMDAwMDAwMDAwMDAwMCAtIDAwMDAwMDAwMDAwOWZjMDAgKHVzYWJsZSkKIEJJ
+T1MtZTgyMDogMDAwMDAwMDAwMDA5ZmMwMCAtIDAwMDAwMDAwMDAwYTAwMDAgKHJlc2VydmVkKQog
+QklPUy1lODIwOiAwMDAwMDAwMDAwMGYwMDAwIC0gMDAwMDAwMDAwMDEwMDAwMCAocmVzZXJ2ZWQp
+CiBCSU9TLWU4MjA6IDAwMDAwMDAwMDAxMDAwMDAgLSAwMDAwMDAwMDFmZWYwMDAwICh1c2FibGUp
+CiBCSU9TLWU4MjA6IDAwMDAwMDAwMWZlZjAwMDAgLSAwMDAwMDAwMDFmZWY4MDAwIChBQ1BJIGRh
+dGEpCiBCSU9TLWU4MjA6IDAwMDAwMDAwMWZlZjgwMDAgLSAwMDAwMDAwMDFmZjAwMDAwIChBQ1BJ
+IE5WUykKIEJJT1MtZTgyMDogMDAwMDAwMDBmZmZjMDAwMCAtIDAwMDAwMDAxMDAwMDAwMDAgKHJl
+c2VydmVkKQo1MTBNQiBMT1dNRU0gYXZhaWxhYmxlLgpmb3VuZCBTTVAgTVAtdGFibGUgYXQgMDAw
+ZmJiMTAKRW50ZXJpbmcgYWRkX2FjdGl2ZV9yYW5nZSgwLCAwLCAxMzA4MDApIDAgZW50cmllcyBv
+ZiAyNTYgdXNlZApab25lIFBGTiByYW5nZXM6CiAgRE1BICAgICAgICAgICAgIDAgLT4gICAgIDQw
+OTYKICBOb3JtYWwgICAgICAgNDA5NiAtPiAgIDEzMDgwMAplYXJseV9ub2RlX21hcFsxXSBhY3Rp
+dmUgUEZOIHJhbmdlcwogICAgMDogICAgICAgIDAgLT4gICAxMzA4MDAKT24gbm9kZSAwIHRvdGFs
+cGFnZXM6IDEzMDgwMAogIERNQSB6b25lOiAzMiBwYWdlcyB1c2VkIGZvciBtZW1tYXAKICBETUEg
+em9uZTogMCBwYWdlcyByZXNlcnZlZAogIERNQSB6b25lOiA0MDY0IHBhZ2VzLCBMSUZPIGJhdGNo
+OjAKICBOb3JtYWwgem9uZTogOTg5IHBhZ2VzIHVzZWQgZm9yIG1lbW1hcAogIE5vcm1hbCB6b25l
+OiAxMjU3MTUgcGFnZXMsIExJRk8gYmF0Y2g6MzEKRE1JIDIuMyBwcmVzZW50LgpBQ1BJOiBSU0RQ
+ICh2MDAwIEFNSSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgKSBAIDB4MDAwZmEz
+ODAKQUNQSTogUlNEVCAodjAwMSBBTUlJTlQgQU1JSVROMDkgMHgwMDAwMDAxMCBNU0ZUIDB4MDAw
+MDAwOTcpIEAgMHgxZmVmMDAwMApBQ1BJOiBGQURUICh2MDAxIEFNSUlOVCBBTUlJVE4wOSAweDAw
+MDAwMDExIE1TRlQgMHgwMDAwMDA5NykgQCAweDFmZWYwMDMwCkFDUEk6IE1BRFQgKHYwMDEgQU1J
+SU5UIEFNSUlUTjA5IDB4MDAwMDAwMDkgTVNGVCAweDAwMDAwMDk3KSBAIDB4MWZlZjAwYzAKQUNQ
+STogRFNEVCAodjAwMSAgSU5URUwgIFdISVRORVkgMHgwMDAwMTAwMCBNU0ZUIDB4MDEwMDAwMGQp
+IEAgMHgwMDAwMDAwMApBQ1BJOiBQTS1UaW1lciBJTyBQb3J0OiAweDQwOApBQ1BJOiBMb2NhbCBB
+UElDIGFkZHJlc3MgMHhmZWUwMDAwMApBQ1BJOiBMQVBJQyAoYWNwaV9pZFsweDAxXSBsYXBpY19p
+ZFsweDAwXSBlbmFibGVkKQpQcm9jZXNzb3IgIzAgNjoxMSBBUElDIHZlcnNpb24gMTcKQUNQSTog
+SU9BUElDIChpZFsweDAyXSBhZGRyZXNzWzB4ZmVjMDAwMDBdIGdzaV9iYXNlWzBdKQpJT0FQSUNb
+MF06IGFwaWNfaWQgMiwgdmVyc2lvbiAzMiwgYWRkcmVzcyAweGZlYzAwMDAwLCBHU0kgMC0yMwpB
+Q1BJOiBJTlRfU1JDX09WUiAoYnVzIDAgYnVzX2lycSAwIGdsb2JhbF9pcnEgMiBkZmwgZGZsKQpB
+Q1BJOiBJTlRfU1JDX09WUiAoYnVzIDAgYnVzX2lycSA5IGdsb2JhbF9pcnEgOSBoaWdoIGxldmVs
+KQpBQ1BJOiBJUlEwIHVzZWQgYnkgb3ZlcnJpZGUuCkFDUEk6IElSUTIgdXNlZCBieSBvdmVycmlk
+ZS4KQUNQSTogSVJROSB1c2VkIGJ5IG92ZXJyaWRlLgpFbmFibGluZyBBUElDIG1vZGU6ICBGbGF0
+LiAgVXNpbmcgMSBJL08gQVBJQ3MKVXNpbmcgQUNQSSAoTUFEVCkgZm9yIFNNUCBjb25maWd1cmF0
+aW9uIGluZm9ybWF0aW9uCkFsbG9jYXRpbmcgUENJIHJlc291cmNlcyBzdGFydGluZyBhdCAyMDAw
+MDAwMCAoZ2FwOiAxZmYwMDAwMDplMDBjMDAwMCkKRGV0ZWN0ZWQgMTIwMi43NjIgTUh6IHByb2Nl
+c3Nvci4KQnVpbHQgMSB6b25lbGlzdHMuICBUb3RhbCBwYWdlczogMTI5Nzc5Cktlcm5lbCBjb21t
+YW5kIGxpbmU6IHJvIHJvb3Q9TEFCRUw9LyAKbWFwcGVkIEFQSUMgdG8gZmZmZmQwMDAgKGZlZTAw
+MDAwKQptYXBwZWQgSU9BUElDIHRvIGZmZmZjMDAwIChmZWMwMDAwMCkKRW5hYmxpbmcgZmFzdCBG
+UFUgc2F2ZSBhbmQgcmVzdG9yZS4uLiBkb25lLgpFbmFibGluZyB1bm1hc2tlZCBTSU1EIEZQVSBl
+eGNlcHRpb24gc3VwcG9ydC4uLiBkb25lLgpJbml0aWFsaXppbmcgQ1BVIzAKUElEIGhhc2ggdGFi
+bGUgZW50cmllczogMjA0OCAob3JkZXI6IDExLCA4MTkyIGJ5dGVzKQpDb25zb2xlOiBjb2xvdXIg
+VkdBKyA4MHgyNQpEZW50cnkgY2FjaGUgaGFzaCB0YWJsZSBlbnRyaWVzOiA2NTUzNiAob3JkZXI6
+IDYsIDI2MjE0NCBieXRlcykKSW5vZGUtY2FjaGUgaGFzaCB0YWJsZSBlbnRyaWVzOiAzMjc2OCAo
+b3JkZXI6IDUsIDEzMTA3MiBieXRlcykKTWVtb3J5OiA1MTMwNzJrLzUyMzIwMGsgYXZhaWxhYmxl
+ICgyMzU0ayBrZXJuZWwgY29kZSwgOTU3NmsgcmVzZXJ2ZWQsIDc2MmsgZGF0YSwgMjAwayBpbml0
+LCAwayBoaWdobWVtKQp2aXJ0dWFsIGtlcm5lbCBtZW1vcnkgbGF5b3V0OgogICAgZml4bWFwICA6
+IDB4ZmZmYjcwMDAgLSAweGZmZmZmMDAwICAgKCAyODgga0IpCiAgICB2bWFsbG9jIDogMHhlMDgw
+MDAwMCAtIDB4ZmZmYjUwMDAgICAoIDUwMyBNQikKICAgIGxvd21lbSAgOiAweGMwMDAwMDAwIC0g
+MHhkZmVmMDAwMCAgICggNTEwIE1CKQogICAgICAuaW5pdCA6IDB4YzA0MGUwMDAgLSAweGMwNDQw
+MDAwICAgKCAyMDAga0IpCiAgICAgIC5kYXRhIDogMHhjMDM0Yzk5ZCAtIDB4YzA0MGI0NzQgICAo
+IDc2MiBrQikKICAgICAgLnRleHQgOiAweGMwMTAwMDAwIC0gMHhjMDM0Yzk5ZCAgICgyMzU0IGtC
+KQpDaGVja2luZyBpZiB0aGlzIHByb2Nlc3NvciBob25vdXJzIHRoZSBXUCBiaXQgZXZlbiBpbiBz
+dXBlcnZpc29yIG1vZGUuLi4gT2suCkNhbGlicmF0aW5nIGRlbGF5IHVzaW5nIHRpbWVyIHNwZWNp
+ZmljIHJvdXRpbmUuLiAyNDA2LjI2IEJvZ29NSVBTIChscGo9MTIwMzEzMikKU2VjdXJpdHkgRnJh
+bWV3b3JrIHYxLjAuMCBpbml0aWFsaXplZApTRUxpbnV4OiAgSW5pdGlhbGl6aW5nLgpTRUxpbnV4
+OiAgU3RhcnRpbmcgaW4gcGVybWlzc2l2ZSBtb2RlCnNlbGludXhfcmVnaXN0ZXJfc2VjdXJpdHk6
+ICBSZWdpc3RlcmluZyBzZWNvbmRhcnkgbW9kdWxlIGNhcGFiaWxpdHkKQ2FwYWJpbGl0eSBMU00g
+aW5pdGlhbGl6ZWQgYXMgc2Vjb25kYXJ5Ck1vdW50LWNhY2hlIGhhc2ggdGFibGUgZW50cmllczog
+NTEyCkNQVTogQWZ0ZXIgZ2VuZXJpYyBpZGVudGlmeSwgY2FwczogMDM4M2ZiZmYgMDAwMDAwMDAg
+MDAwMDAwMDAgMDAwMDAwMDAgMDAwMDAwMDAgMDAwMDAwMDAgMDAwMDAwMDAKQ1BVOiBMMSBJIGNh
+Y2hlOiAxNkssIEwxIEQgY2FjaGU6IDE2SwpDUFU6IEwyIGNhY2hlOiAyNTZLCkNQVTogQWZ0ZXIg
+YWxsIGluaXRzLCBjYXBzOiAwMzgzZmJmZiAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDA0MCAwMDAw
+MDAwMCAwMDAwMDAwMCAwMDAwMDAwMApJbnRlbCBtYWNoaW5lIGNoZWNrIGFyY2hpdGVjdHVyZSBz
+dXBwb3J0ZWQuCkludGVsIG1hY2hpbmUgY2hlY2sgcmVwb3J0aW5nIGVuYWJsZWQgb24gQ1BVIzAu
+CkNQVTogSW50ZWwoUikgUGVudGl1bShSKSBJSUkgQ1BVICAgICAgICAgICAgIDEyMDBNSHogc3Rl
+cHBpbmcgMDEKQ2hlY2tpbmcgJ2hsdCcgaW5zdHJ1Y3Rpb24uLi4gT0suCkFDUEk6IENvcmUgcmV2
+aXNpb24gMjAwNjA3MDcKIHRieGZhY2UtMDEwNyBbMDFdIGxvYWRfdGFibGVzICAgICAgICAgICA6
+IEFDUEkgVGFibGVzIHN1Y2Nlc3NmdWxseSBhY3F1aXJlZApQYXJzaW5nIGFsbCBDb250cm9sIE1l
+dGhvZHM6ClRhYmxlIFtEU0RUXShpZCAwMDA1KSAtIDQ3OSBPYmplY3RzIHdpdGggNDEgRGV2aWNl
+cyAxNTUgTWV0aG9kcyAyMCBSZWdpb25zCkFDUEkgTmFtZXNwYWNlIHN1Y2Nlc3NmdWxseSBsb2Fk
+ZWQgYXQgcm9vdCBjMDQ1ZjViMApldnhmZXZudC0wMDg5IFswMl0gZW5hYmxlICAgICAgICAgICAg
+ICAgIDogVHJhbnNpdGlvbiB0byBBQ1BJIG1vZGUgc3VjY2Vzc2Z1bApFTkFCTElORyBJTy1BUElD
+IElSUXMKLi5USU1FUjogdmVjdG9yPTB4MzEgYXBpYzE9MCBwaW4xPTIgYXBpYzI9LTEgcGluMj0t
+MQpORVQ6IFJlZ2lzdGVyZWQgcHJvdG9jb2wgZmFtaWx5IDE2CkFDUEk6IGJ1cyB0eXBlIHBjaSBy
+ZWdpc3RlcmVkClBDSTogUENJIEJJT1MgcmV2aXNpb24gMi4xMCBlbnRyeSBhdCAweGZkYjgxLCBs
+YXN0IGJ1cz0xClBDSTogVXNpbmcgY29uZmlndXJhdGlvbiB0eXBlIDEKU2V0dGluZyB1cCBzdGFu
+ZGFyZCBQQ0kgcmVzb3VyY2VzCmV2Z3BlYmxrLTA5NTEgWzA0XSBldl9jcmVhdGVfZ3BlX2Jsb2Nr
+ICAgOiBHUEUgMDAgdG8gMEYgW19HUEVdIDIgcmVncyBvbiBpbnQgMHg5CmV2Z3BlYmxrLTA5NTEg
+WzA0XSBldl9jcmVhdGVfZ3BlX2Jsb2NrICAgOiBHUEUgMTAgdG8gMUYgW19HUEVdIDIgcmVncyBv
+biBpbnQgMHg5CmV2Z3BlYmxrLTEwNDggWzAzXSBldl9pbml0aWFsaXplX2dwZV9ibG9jOiBGb3Vu
+ZCA0IFdha2UsIEVuYWJsZWQgMCBSdW50aW1lIEdQRXMgaW4gdGhpcyBibG9jawpldmdwZWJsay0x
+MDQ4IFswM10gZXZfaW5pdGlhbGl6ZV9ncGVfYmxvYzogRm91bmQgMiBXYWtlLCBFbmFibGVkIDAg
+UnVudGltZSBHUEVzIGluIHRoaXMgYmxvY2sKQ29tcGxldGluZyBSZWdpb24vRmllbGQvQnVmZmVy
+L1BhY2thZ2UgaW5pdGlhbGl6YXRpb246Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u
+Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4KSW5pdGlhbGl6
+ZWQgMjAvMjAgUmVnaW9ucyA2LzYgRmllbGRzIDQyLzQyIEJ1ZmZlcnMgMTIvMTggUGFja2FnZXMg
+KDQ4OCBub2RlcykKSW5pdGlhbGl6aW5nIERldmljZS9Qcm9jZXNzb3IvVGhlcm1hbCBvYmplY3Rz
+IGJ5IGV4ZWN1dGluZyBfSU5JIG1ldGhvZHM6LgpFeGVjdXRlZCAxIF9JTkkgbWV0aG9kcyByZXF1
+aXJpbmcgMCBfU1RBIGV4ZWN1dGlvbnMgKGV4YW1pbmVkIDQ0IG9iamVjdHMpCkFDUEk6IEludGVy
+cHJldGVyIGVuYWJsZWQKQUNQSTogVXNpbmcgSU9BUElDIGZvciBpbnRlcnJ1cHQgcm91dGluZwpB
+Q1BJOiBQQ0kgUm9vdCBCcmlkZ2UgW1BDSTBdICgwMDAwOjAwKQpQQ0k6IFByb2JpbmcgUENJIGhh
+cmR3YXJlIChidXMgMDApCkJvb3QgdmlkZW8gZGV2aWNlIGlzIDAwMDA6MDA6MDEuMApQQ0kgcXVp
+cms6IHJlZ2lvbiAwNDAwLTA0N2YgY2xhaW1lZCBieSBJQ0g0IEFDUEkvR1BJTy9UQ08KUENJIHF1
+aXJrOiByZWdpb24gMDQ4MC0wNGJmIGNsYWltZWQgYnkgSUNINCBHUElPCjAwMDA6MDA6MWYuMTog
+Y2Fubm90IGFkanVzdCBCQVIwIChub3QgSS9PKQowMDAwOjAwOjFmLjE6IGNhbm5vdCBhZGp1c3Qg
+QkFSMSAobm90IEkvTykKMDAwMDowMDoxZi4xOiBjYW5ub3QgYWRqdXN0IEJBUjIgKG5vdCBJL08p
+CjAwMDA6MDA6MWYuMTogY2Fubm90IGFkanVzdCBCQVIzIChub3QgSS9PKQpQQ0k6IFRyYW5zcGFy
+ZW50IGJyaWRnZSAtIDAwMDA6MDA6MWUuMApBQ1BJOiBQQ0kgSW50ZXJydXB0IFJvdXRpbmcgVGFi
+bGUgW1xfU0JfLlBDSTAuX1BSVF0KQUNQSTogUENJIEludGVycnVwdCBSb3V0aW5nIFRhYmxlIFtc
+X1NCXy5QQ0kwLklDSEIuX1BSVF0KQUNQSTogUG93ZXIgUmVzb3VyY2UgW1VSUDFdIChvZmYpCkFD
+UEk6IFBvd2VyIFJlc291cmNlIFtVUlAyXSAob2ZmKQpBQ1BJOiBQb3dlciBSZXNvdXJjZSBbRkRE
+UF0gKG9mZikKQUNQSTogUG93ZXIgUmVzb3VyY2UgW0xQVFBdIChvZmYpCkFDUEk6IFBDSSBJbnRl
+cnJ1cHQgTGluayBbTE5LQV0gKElSUXMgMyA0IDUgNiA3IDEwIDExICoxMiAxNCAxNSkKQUNQSTog
+UENJIEludGVycnVwdCBMaW5rIFtMTktCXSAoSVJRcyAzIDQgKjUgNiA3IDEwIDExIDEyIDE0IDE1
+KQpBQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xOS0NdIChJUlFzIDMgNCA1IDYgNyAxMCAqMTEg
+MTIgMTQgMTUpCkFDUEk6IFBDSSBJbnRlcnJ1cHQgTGluayBbTE5LRF0gKElSUXMgOSkgKjExCkFD
+UEkgRXJyb3IgKHBzYXJncy0wMzU1KTogW1BSU0VdIE5hbWVzcGFjZSBsb29rdXAgZmFpbHVyZSwg
+QUVfTk9UX0ZPVU5ECkFDUEkgRXJyb3IgKHBzcGFyc2UtMDUzNyk6IE1ldGhvZCBwYXJzZS9leGVj
+dXRpb24gZmFpbGVkIFtcX1NCXy5MTktFLl9QUlNdIChOb2RlIGRmZDYzZjQwKSwgQUVfTk9UX0ZP
+VU5ECkFDUEkgRXhjZXB0aW9uIChwY2lfbGluay0wMTgwKTogQUVfTk9UX0ZPVU5ELCBFdmFsdWF0
+aW5nIF9QUlMgWzIwMDYwNzA3XQpBQ1BJIEVycm9yIChwc2FyZ3MtMDM1NSk6IFtQUlNGXSBOYW1l
+c3BhY2UgbG9va3VwIGZhaWx1cmUsIEFFX05PVF9GT1VORApBQ1BJIEVycm9yIChwc3BhcnNlLTA1
+MzcpOiBNZXRob2QgcGFyc2UvZXhlY3V0aW9uIGZhaWxlZCBbXF9TQl8uTE5LRi5fUFJTXSAoTm9k
+ZSBkZmQ2M2VhMCksIEFFX05PVF9GT1VORApBQ1BJIEV4Y2VwdGlvbiAocGNpX2xpbmstMDE4MCk6
+IEFFX05PVF9GT1VORCwgRXZhbHVhdGluZyBfUFJTIFsyMDA2MDcwN10KQUNQSSBFcnJvciAocHNh
+cmdzLTAzNTUpOiBbUFJTR10gTmFtZXNwYWNlIGxvb2t1cCBmYWlsdXJlLCBBRV9OT1RfRk9VTkQK
+QUNQSSBFcnJvciAocHNwYXJzZS0wNTM3KTogTWV0aG9kIHBhcnNlL2V4ZWN1dGlvbiBmYWlsZWQg
+W1xfU0JfLkxOS0cuX1BSU10gKE5vZGUgZGZkNjNlMDApLCBBRV9OT1RfRk9VTkQKQUNQSSBFeGNl
+cHRpb24gKHBjaV9saW5rLTAxODApOiBBRV9OT1RfRk9VTkQsIEV2YWx1YXRpbmcgX1BSUyBbMjAw
+NjA3MDddCkFDUEkgRXJyb3IgKHBzYXJncy0wMzU1KTogW1BSU0hdIE5hbWVzcGFjZSBsb29rdXAg
+ZmFpbHVyZSwgQUVfTk9UX0ZPVU5ECkFDUEkgRXJyb3IgKHBzcGFyc2UtMDUzNyk6IE1ldGhvZCBw
+YXJzZS9leGVjdXRpb24gZmFpbGVkIFtcX1NCXy5MTktILl9QUlNdIChOb2RlIGMxNDdkNzVjKSwg
+QUVfTk9UX0ZPVU5ECkFDUEkgRXhjZXB0aW9uIChwY2lfbGluay0wMTgwKTogQUVfTk9UX0ZPVU5E
+LCBFdmFsdWF0aW5nIF9QUlMgWzIwMDYwNzA3XQpMaW51eCBQbHVnIGFuZCBQbGF5IFN1cHBvcnQg
+djAuOTcgKGMpIEFkYW0gQmVsYXkKdXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRy
+aXZlciB1c2Jmcwp1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIGh1Ygp1
+c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBkZXZpY2UgZHJpdmVyIHVzYgpQQ0k6IFVzaW5nIEFDUEkg
+Zm9yIElSUSByb3V0aW5nClBDSTogSWYgYSBkZXZpY2UgZG9lc24ndCB3b3JrLCB0cnkgInBjaT1y
+b3V0ZWlycSIuICBJZiBpdCBoZWxwcywgcG9zdCBhIHJlcG9ydApOZXRMYWJlbDogSW5pdGlhbGl6
+aW5nCk5ldExhYmVsOiAgZG9tYWluIGhhc2ggc2l6ZSA9IDEyOApOZXRMYWJlbDogIHByb3RvY29s
+cyA9IFVOTEFCRUxFRCBDSVBTT3Y0Ck5ldExhYmVsOiAgdW5sYWJlbGVkIHRyYWZmaWMgYWxsb3dl
+ZCBieSBkZWZhdWx0ClBDSTogSWdub3JlIGJvZ3VzIHJlc291cmNlIDYgWzA6MF0gb2YgMDAwMDow
+MDowMS4wClBDSTogQnJpZGdlOiAwMDAwOjAwOjFlLjAKICBJTyB3aW5kb3c6IGMwMDAtY2ZmZgog
+IE1FTSB3aW5kb3c6IGVmZDAwMDAwLWVmZGZmZmZmCiAgUFJFRkVUQ0ggd2luZG93OiBlN2IwMDAw
+MC1lN2JmZmZmZgpQQ0k6IFNldHRpbmcgbGF0ZW5jeSB0aW1lciBvZiBkZXZpY2UgMDAwMDowMDox
+ZS4wIHRvIDY0Ck5FVDogUmVnaXN0ZXJlZCBwcm90b2NvbCBmYW1pbHkgMgpJUCByb3V0ZSBjYWNo
+ZSBoYXNoIHRhYmxlIGVudHJpZXM6IDQwOTYgKG9yZGVyOiAyLCAxNjM4NCBieXRlcykKVENQIGVz
+dGFibGlzaGVkIGhhc2ggdGFibGUgZW50cmllczogMTYzODQgKG9yZGVyOiA0LCA2NTUzNiBieXRl
+cykKVENQIGJpbmQgaGFzaCB0YWJsZSBlbnRyaWVzOiA4MTkyIChvcmRlcjogMywgMzI3NjggYnl0
+ZXMpClRDUDogSGFzaCB0YWJsZXMgY29uZmlndXJlZCAoZXN0YWJsaXNoZWQgMTYzODQgYmluZCA4
+MTkyKQpUQ1AgcmVubyByZWdpc3RlcmVkCmNoZWNraW5nIGlmIGltYWdlIGlzIGluaXRyYW1mcy4u
+LiBpdCBpcwpGcmVlaW5nIGluaXRyZCBtZW1vcnk6IDE0NjhrIGZyZWVkCmF1ZGl0OiBpbml0aWFs
+aXppbmcgbmV0bGluayBzb2NrZXQgKGRpc2FibGVkKQphdWRpdCgxMTc3Mjc5NjQ2Ljc1MzoxKTog
+aW5pdGlhbGl6ZWQKVkZTOiBEaXNrIHF1b3RhcyBkcXVvdF82LjUuMQpEcXVvdC1jYWNoZSBoYXNo
+IHRhYmxlIGVudHJpZXM6IDEwMjQgKG9yZGVyIDAsIDQwOTYgYnl0ZXMpClNFTGludXg6ICBSZWdp
+c3RlcmluZyBuZXRmaWx0ZXIgaG9va3MKaW8gc2NoZWR1bGVyIG5vb3AgcmVnaXN0ZXJlZAppbyBz
+Y2hlZHVsZXIgY2ZxIHJlZ2lzdGVyZWQgKGRlZmF1bHQpCkFDUEk6IFByb2Nlc3NvciBbQ1BVMV0g
+KHN1cHBvcnRzIDggdGhyb3R0bGluZyBzdGF0ZXMpCmlzYXBucDogU2Nhbm5pbmcgZm9yIFBuUCBj
+YXJkcy4uLgppc2FwbnA6IE5vIFBsdWcgJiBQbGF5IGRldmljZSBmb3VuZApSZWFsIFRpbWUgQ2xv
+Y2sgRHJpdmVyIHYxLjEyYWMKTm9uLXZvbGF0aWxlIG1lbW9yeSBkcml2ZXIgdjEuMgpMaW51eCBh
+Z3BnYXJ0IGludGVyZmFjZSB2MC4xMDEgKGMpIERhdmUgSm9uZXMKYWdwZ2FydDogRGV0ZWN0ZWQg
+YW4gSW50ZWwgaTgxMCBFIENoaXBzZXQuCmFncGdhcnQ6IEFHUCBhcGVydHVyZSBpcyA2NE0gQCAw
+eGU4MDAwMDAwCltkcm1dIEluaXRpYWxpemVkIGRybSAxLjEuMCAyMDA2MDgxMApTZXJpYWw6IDgy
+NTAvMTY1NTAgZHJpdmVyICRSZXZpc2lvbjogMS45MCAkIDQgcG9ydHMsIElSUSBzaGFyaW5nIGVu
+YWJsZWQKc2VyaWFsODI1MDogdHR5UzAgYXQgSS9PIDB4M2Y4IChpcnEgPSA0KSBpcyBhIDE2NTUw
+QQpzZXJpYWw4MjUwOiB0dHlTMSBhdCBJL08gMHgyZjggKGlycSA9IDMpIGlzIGEgMTY1NTBBClJB
+TURJU0sgZHJpdmVyIGluaXRpYWxpemVkOiAxNiBSQU0gZGlza3Mgb2YgMTYzODRLIHNpemUgNDA5
+NiBibG9ja3NpemUKVW5pZm9ybSBNdWx0aS1QbGF0Zm9ybSBFLUlERSBkcml2ZXIgUmV2aXNpb246
+IDcuMDBhbHBoYTIKaWRlOiBBc3N1bWluZyAzM01IeiBzeXN0ZW0gYnVzIHNwZWVkIGZvciBQSU8g
+bW9kZXM7IG92ZXJyaWRlIHdpdGggaWRlYnVzPXh4CklDSDI6IElERSBjb250cm9sbGVyIGF0IFBD
+SSBzbG90IDAwMDA6MDA6MWYuMQpJQ0gyOiBjaGlwc2V0IHJldmlzaW9uIDUKSUNIMjogbm90IDEw
+MCUgbmF0aXZlIG1vZGU6IHdpbGwgcHJvYmUgaXJxcyBsYXRlcgogICAgaWRlMDogQk0tRE1BIGF0
+IDB4ZmYwMC0weGZmMDcsIEJJT1Mgc2V0dGluZ3M6IGhkYTpETUEsIGhkYjpETUEKICAgIGlkZTE6
+IEJNLURNQSBhdCAweGZmMDgtMHhmZjBmLCBCSU9TIHNldHRpbmdzOiBoZGM6cGlvLCBoZGQ6cGlv
+ClByb2JpbmcgSURFIGludGVyZmFjZSBpZGUwLi4uCmhkYTogU1QzMTAyMTJBLCBBVEEgRElTSyBk
+cml2ZQpoZGI6IFNPTlkgQ0QtUlcgQ1JYMzIwRSwgQVRBUEkgQ0QvRFZELVJPTSBkcml2ZQpoZGE6
+IGh3X2NvbmZpZz00MDNiCmhkYTogaHdfY29uZmlnPTQwM2IKaGRiOiBod19jb25maWc9MDAwMApo
+ZGI6IGh3X2NvbmZpZz0wMDAwCmlkZTAgYXQgMHgxZjAtMHgxZjcsMHgzZjYgb24gaXJxIDE0ClBy
+b2JpbmcgSURFIGludGVyZmFjZSBpZGUxLi4uClByb2JpbmcgSURFIGludGVyZmFjZSBpZGUxLi4u
+CmhkYTogbWF4IHJlcXVlc3Qgc2l6ZTogMTI4S2lCCmhkYTogMjAwMDU2NTAgc2VjdG9ycyAoMTAy
+NDIgTUIpIHcvNTEyS2lCIENhY2hlLCBDSFM9MTk4NDYvMTYvNjM8Nj5oZGE6IGh3X2NvbmZpZz00
+MDNiCiwgVURNQSg2NikKaGRhOiBjYWNoZSBmbHVzaGVzIG5vdCBzdXBwb3J0ZWQKIGhkYTogaGRh
+MSBoZGEyIGhkYTMKdXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZlciBsaWJ1
+c3VhbAp1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIGhpZGRldgp1c2Jj
+b3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIHVzYmhpZApkcml2ZXJzL3VzYi9p
+bnB1dC9oaWQtY29yZS5jOiB2Mi42OlVTQiBISUQgY29yZSBkcml2ZXIKUE5QOiBObyBQUy8yIGNv
+bnRyb2xsZXIgZm91bmQuIFByb2JpbmcgcG9ydHMgZGlyZWN0bHkuCnNlcmlvOiBpODA0MiBLQkQg
+cG9ydCBhdCAweDYwLDB4NjQgaXJxIDEKbWljZTogUFMvMiBtb3VzZSBkZXZpY2UgY29tbW9uIGZv
+ciBhbGwgbWljZQppbnB1dDogQVQgVHJhbnNsYXRlZCBTZXQgMiBrZXlib2FyZCBhcyAvY2xhc3Mv
+aW5wdXQvaW5wdXQwClRDUCBjdWJpYyByZWdpc3RlcmVkCkluaXRpYWxpemluZyBYRlJNIG5ldGxp
+bmsgc29ja2V0Ck5FVDogUmVnaXN0ZXJlZCBwcm90b2NvbCBmYW1pbHkgMQpORVQ6IFJlZ2lzdGVy
+ZWQgcHJvdG9jb2wgZmFtaWx5IDE3ClVzaW5nIElQSSBTaG9ydGN1dCBtb2RlClRpbWU6IHRzYyBj
+bG9ja3NvdXJjZSBoYXMgYmVlbiBpbnN0YWxsZWQuCkFDUEk6IChzdXBwb3J0cyBTMCBTMSBTNCBT
+NSkKRnJlZWluZyB1bnVzZWQga2VybmVsIG1lbW9yeTogMjAwayBmcmVlZApVU0IgVW5pdmVyc2Fs
+IEhvc3QgQ29udHJvbGxlciBJbnRlcmZhY2UgZHJpdmVyIHYzLjAKQUNQSTogUENJIEludGVycnVw
+dCAwMDAwOjAwOjFmLjJbRF0gLT4gR1NJIDE5IChsZXZlbCwgbG93KSAtPiBJUlEgMTYKUENJOiBT
+ZXR0aW5nIGxhdGVuY3kgdGltZXIgb2YgZGV2aWNlIDAwMDA6MDA6MWYuMiB0byA2NAp1aGNpX2hj
+ZCAwMDAwOjAwOjFmLjI6IFVIQ0kgSG9zdCBDb250cm9sbGVyCnVoY2lfaGNkIDAwMDA6MDA6MWYu
+MjogbmV3IFVTQiBidXMgcmVnaXN0ZXJlZCwgYXNzaWduZWQgYnVzIG51bWJlciAxCnVoY2lfaGNk
+IDAwMDA6MDA6MWYuMjogaXJxIDE2LCBpbyBiYXNlIDB4MDAwMGRkODAKdXNiIHVzYjE6IGNvbmZp
+Z3VyYXRpb24gIzEgY2hvc2VuIGZyb20gMSBjaG9pY2UKaHViIDEtMDoxLjA6IFVTQiBodWIgZm91
+bmQKaHViIDEtMDoxLjA6IDIgcG9ydHMgZGV0ZWN0ZWQKb2hjaV9oY2Q6IDIwMDYgQXVndXN0IDA0
+IFVTQiAxLjEgJ09wZW4nIEhvc3QgQ29udHJvbGxlciAoT0hDSSkgRHJpdmVyIChQQ0kpCkFDUEk6
+IFBDSSBJbnRlcnJ1cHQgMDAwMDowMTowNC4wW0JdIC0+IEdTSSAxNyAobGV2ZWwsIGxvdykgLT4g
+SVJRIDE3Cm9oY2lfaGNkIDAwMDA6MDE6MDQuMDogT0hDSSBIb3N0IENvbnRyb2xsZXIKb2hjaV9o
+Y2QgMDAwMDowMTowNC4wOiBuZXcgVVNCIGJ1cyByZWdpc3RlcmVkLCBhc3NpZ25lZCBidXMgbnVt
+YmVyIDIKb2hjaV9oY2QgMDAwMDowMTowNC4wOiBpcnEgMTcsIGlvIG1lbSAweGVmZGZkMDAwCnVz
+YiB1c2IyOiBjb25maWd1cmF0aW9uICMxIGNob3NlbiBmcm9tIDEgY2hvaWNlCmh1YiAyLTA6MS4w
+OiBVU0IgaHViIGZvdW5kCmh1YiAyLTA6MS4wOiAyIHBvcnRzIGRldGVjdGVkCkFDUEk6IFBDSSBJ
+bnRlcnJ1cHQgMDAwMDowMTowNC4xW0NdIC0+IEdTSSAxOCAobGV2ZWwsIGxvdykgLT4gSVJRIDE4
+Cm9oY2lfaGNkIDAwMDA6MDE6MDQuMTogT0hDSSBIb3N0IENvbnRyb2xsZXIKb2hjaV9oY2QgMDAw
+MDowMTowNC4xOiBuZXcgVVNCIGJ1cyByZWdpc3RlcmVkLCBhc3NpZ25lZCBidXMgbnVtYmVyIDMK
+b2hjaV9oY2QgMDAwMDowMTowNC4xOiBpcnEgMTgsIGlvIG1lbSAweGVmZGZlMDAwCnVzYiB1c2Iz
+OiBjb25maWd1cmF0aW9uICMxIGNob3NlbiBmcm9tIDEgY2hvaWNlCmh1YiAzLTA6MS4wOiBVU0Ig
+aHViIGZvdW5kCmh1YiAzLTA6MS4wOiAyIHBvcnRzIGRldGVjdGVkCkFDUEk6IFBDSSBJbnRlcnJ1
+cHQgMDAwMDowMTowNC4zW0FdIC0+IEdTSSAxNiAobGV2ZWwsIGxvdykgLT4gSVJRIDE5CmVoY2lf
+aGNkIDAwMDA6MDE6MDQuMzogRUhDSSBIb3N0IENvbnRyb2xsZXIKZWhjaV9oY2QgMDAwMDowMTow
+NC4zOiBuZXcgVVNCIGJ1cyByZWdpc3RlcmVkLCBhc3NpZ25lZCBidXMgbnVtYmVyIDQKZWhjaV9o
+Y2QgMDAwMDowMTowNC4zOiBkZWJ1ZyBwb3J0IDEKZWhjaV9oY2QgMDAwMDowMTowNC4zOiBpcnEg
+MTksIGlvIG1lbSAweGVmZGZmZTAwCmVoY2lfaGNkIDAwMDA6MDE6MDQuMzogVVNCIDIuMCBzdGFy
+dGVkLCBFSENJIDEuMDAsIGRyaXZlciAxMCBEZWMgMjAwNAp1c2IgdXNiNDogY29uZmlndXJhdGlv
+biAjMSBjaG9zZW4gZnJvbSAxIGNob2ljZQpodWIgNC0wOjEuMDogVVNCIGh1YiBmb3VuZApodWIg
+NC0wOjEuMDogNiBwb3J0cyBkZXRlY3RlZApTQ1NJIHN1YnN5c3RlbSBpbml0aWFsaXplZApsaWJh
+dGEgdmVyc2lvbiAyLjAwIGxvYWRlZC4Ka2pvdXJuYWxkIHN0YXJ0aW5nLiAgQ29tbWl0IGludGVy
+dmFsIDUgc2Vjb25kcwpFWFQzLWZzOiBtb3VudGVkIGZpbGVzeXN0ZW0gd2l0aCBvcmRlcmVkIGRh
+dGEgbW9kZS4KdXNiIDMtMTogbmV3IGxvdyBzcGVlZCBVU0IgZGV2aWNlIHVzaW5nIG9oY2lfaGNk
+IGFuZCBhZGRyZXNzIDIKdXNiIDMtMTogY29uZmlndXJhdGlvbiAjMSBjaG9zZW4gZnJvbSAxIGNo
+b2ljZQppbnB1dDogTWljcm9zb2Z0IEJhc2ljIE9wdGljYWwgTW91c2UgYXMgL2NsYXNzL2lucHV0
+L2lucHV0MQppbnB1dDogVVNCIEhJRCB2MS4xMCBNb3VzZSBbTWljcm9zb2Z0IEJhc2ljIE9wdGlj
+YWwgTW91c2VdIG9uIHVzYi0wMDAwOjAxOjA0LjEtMQp1c2IgMy0yOiBuZXcgZnVsbCBzcGVlZCBV
+U0IgZGV2aWNlIHVzaW5nIG9oY2lfaGNkIGFuZCBhZGRyZXNzIDMKdXNiIDMtMjogY29uZmlndXJh
+dGlvbiAjMSBjaG9zZW4gZnJvbSAxIGNob2ljZQpTRUxpbnV4OiAgRGlzYWJsZWQgYXQgcnVudGlt
+ZS4KU0VMaW51eDogIFVucmVnaXN0ZXJpbmcgbmV0ZmlsdGVyIGhvb2tzCmF1ZGl0KDExNzcyNzk2
+NTMuNTk2OjIpOiBzZWxpbnV4PTAgYXVpZD00Mjk0OTY3Mjk1CmlUQ09fd2R0OiBJbnRlbCBUQ08g
+V2F0Y2hEb2cgVGltZXIgRHJpdmVyIHYxLjAxICgxMS1Ob3YtMjAwNikKaVRDT193ZHQ6IGZhaWxl
+ZCB0byByZXNldCBOT19SRUJPT1QgZmxhZywgcmVib290IGRpc2FibGVkIGJ5IGhhcmR3YXJlCmlU
+Q09fd2R0OiBObyBjYXJkIGRldGVjdGVkCnZpYS1yaGluZS5jOnYxLjEwLUxLMS40LjIgU2VwdC0x
+MS0yMDA2IFdyaXR0ZW4gYnkgRG9uYWxkIEJlY2tlcgpBQ1BJOiBQQ0kgSW50ZXJydXB0IDAwMDA6
+MDE6MDUuMFtBXSAtPiBHU0kgMTcgKGxldmVsLCBsb3cpIC0+IElSUSAxNwpldGgwOiBWSUEgUmhp
+bmUgSUlJIGF0IDB4ZWZkZmZmMDAsIDAwOjE1OmU5OjQ4OmIxOmE0LCBJUlEgMTcuCmV0aDA6IE1J
+SSBQSFkgZm91bmQgYXQgYWRkcmVzcyAxLCBzdGF0dXMgMHg3ODZkIGFkdmVydGlzaW5nIDA1ZTEg
+TGluayAwMDIxLgppbnB1dDogUEMgU3BlYWtlciBhcyAvY2xhc3MvaW5wdXQvaW5wdXQyCmludGVs
+X3JuZzogRldIIG5vdCBkZXRlY3RlZAppODEwX3NtYnVzIDAwMDA6MDA6MDEuMDogaTgxMC9pODE1
+IGkyYyBkZXZpY2UgZm91bmQuCmhkYjogQVRBUEkgNDBYIERWRC1ST00gQ0QtUi9SVyBkcml2ZSwg
+MjA0OGtCIENhY2hlLCBVRE1BKDMzKQpVbmlmb3JtIENELVJPTSBkcml2ZXIgUmV2aXNpb246IDMu
+MjAKQUNQSTogUENJIEludGVycnVwdCAwMDAwOjAwOjFmLjVbQl0gLT4gR1NJIDE3IChsZXZlbCwg
+bG93KSAtPiBJUlEgMTcKUENJOiBTZXR0aW5nIGxhdGVuY3kgdGltZXIgb2YgZGV2aWNlIDAwMDA6
+MDA6MWYuNSB0byA2NApGbG9wcHkgZHJpdmUocyk6IGZkMCBpcyAxLjQ0TQpGREMgMCBpcyBhIHBv
+c3QtMTk5MSA4MjA3NwppbnRlbDh4MF9tZWFzdXJlX2FjOTdfY2xvY2s6IG1lYXN1cmVkIDUwMTY1
+IHVzZWNzCmludGVsOHgwOiBjbG9ja2luZyB0byA0ODAwMApwYXJwb3J0MDogUEMtc3R5bGUgYXQg
+MHgzNzggKDB4Nzc4KSBbUENTUFAoLC4uLildCnBhcnBvcnQwOiBpcnEgNyBkZXRlY3RlZApscDA6
+IHVzaW5nIHBhcnBvcnQwIChwb2xsaW5nKS4KaW5wdXQ6IFBvd2VyIEJ1dHRvbiAoRkYpIGFzIC9j
+bGFzcy9pbnB1dC9pbnB1dDMKQUNQSTogUG93ZXIgQnV0dG9uIChGRikgW1BXUkZdCmlucHV0OiBQ
+b3dlciBCdXR0b24gKENNKSBhcyAvY2xhc3MvaW5wdXQvaW5wdXQ0CkFDUEk6IFBvd2VyIEJ1dHRv
+biAoQ00pIFtQV1JCXQppbnB1dDogU2xlZXAgQnV0dG9uIChDTSkgYXMgL2NsYXNzL2lucHV0L2lu
+cHV0NQpBQ1BJOiBTbGVlcCBCdXR0b24gKENNKSBbU0xQQl0KRVhUMyBGUyBvbiBoZGEzLCBpbnRl
+cm5hbCBqb3VybmFsCmZ1c2UgaW5pdCAoQVBJIHZlcnNpb24gNy44KQpBZGRpbmcgMjY1MDMyayBz
+d2FwIG9uIC9kZXYvaGRhMi4gIFByaW9yaXR5Oi0xIGV4dGVudHM6MSBhY3Jvc3M6MjY1MDMyawpp
+cF90YWJsZXM6IChDKSAyMDAwLTIwMDYgTmV0ZmlsdGVyIENvcmUgVGVhbQpOZXRmaWx0ZXIgbWVz
+c2FnZXMgdmlhIE5FVExJTksgdjAuMzAuCm5mX2Nvbm50cmFjayB2ZXJzaW9uIDAuNS4wICg0MDg3
+IGJ1Y2tldHMsIDMyNjk2IG1heCkKZXRoMDogbGluayB1cCwgMTBNYnBzLCBoYWxmLWR1cGxleCwg
+bHBhIDB4MDAyMQphdWRpdCgxMTc3MjU5ODcyLjY1NDozKTogYXVkaXRfcGlkPTE1MDEgb2xkPTAg
+YnkgYXVpZD00Mjk0OTY3Mjk1Cg==
+------=_Part_122168_12816342.1177261357448
+Content-Type: application/octet-stream; name=lspci-2.6.20.7-acpi-debug
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_f0tqy0fd
+Content-Disposition: attachment; filename="lspci-2.6.20.7-acpi-debug"
+
+MDA6MDAuMCBIb3N0IGJyaWRnZTogSW50ZWwgQ29ycG9yYXRpb24gODI4MTBFIERDLTEzMyBHTUNI
+IFtHcmFwaGljcyBNZW1vcnkgQ29udHJvbGxlciBIdWJdIChyZXYgMDMpCglTdWJzeXN0ZW06IElu
+dGVsIENvcnBvcmF0aW9uIDgyODEwRSBEQy0xMzMgR01DSCBbR3JhcGhpY3MgTWVtb3J5IENvbnRy
+b2xsZXIgSHViXQoJQ29udHJvbDogSS9PLSBNZW0rIEJ1c01hc3RlcisgU3BlY0N5Y2xlLSBNZW1X
+SU5WLSBWR0FTbm9vcC0gUGFyRXJyLSBTdGVwcGluZy0gU0VSUisgRmFzdEIyQi0KCVN0YXR1czog
+Q2FwLSA2Nk1Iei0gVURGLSBGYXN0QjJCKyBQYXJFcnItIERFVlNFTD1mYXN0ID5UQWJvcnQtIDxU
+QWJvcnQtIDxNQWJvcnQrID5TRVJSLSA8UEVSUi0KCUxhdGVuY3k6IDAKCjAwOjAxLjAgVkdBIGNv
+bXBhdGlibGUgY29udHJvbGxlcjogSW50ZWwgQ29ycG9yYXRpb24gODI4MTBFIERDLTEzMyBDR0Mg
+W0NoaXBzZXQgR3JhcGhpY3MgQ29udHJvbGxlcl0gKHJldiAwMykgKHByb2ctaWYgMDAgW1ZHQV0p
+CglTdWJzeXN0ZW06IEludGVsIENvcnBvcmF0aW9uIFVua25vd24gZGV2aWNlIDExMzIKCUNvbnRy
+b2w6IEkvTysgTWVtKyBCdXNNYXN0ZXIrIFNwZWNDeWNsZS0gTWVtV0lOVi0gVkdBU25vb3AtIFBh
+ckVyci0gU3RlcHBpbmctIFNFUlItIEZhc3RCMkItCglTdGF0dXM6IENhcCsgNjZNSHorIFVERi0g
+RmFzdEIyQisgUGFyRXJyLSBERVZTRUw9bWVkaXVtID5UQWJvcnQtIDxUQWJvcnQtIDxNQWJvcnQt
+ID5TRVJSLSA8UEVSUi0KCUxhdGVuY3k6IDAKCUludGVycnVwdDogcGluIEEgcm91dGVkIHRvIElS
+USAxMgoJUmVnaW9uIDA6IE1lbW9yeSBhdCBlODAwMDAwMCAoMzItYml0LCBwcmVmZXRjaGFibGUp
+IFtzaXplPTY0TV0KCVJlZ2lvbiAxOiBNZW1vcnkgYXQgZWZmODAwMDAgKDMyLWJpdCwgbm9uLXBy
+ZWZldGNoYWJsZSkgW3NpemU9NTEyS10KCUNhcGFiaWxpdGllczogPGFjY2VzcyBkZW5pZWQ+Cgow
+MDoxZS4wIFBDSSBicmlkZ2U6IEludGVsIENvcnBvcmF0aW9uIDgyODAxIFBDSSBCcmlkZ2UgKHJl
+diAwNSkgKHByb2ctaWYgMDAgW05vcm1hbCBkZWNvZGVdKQoJQ29udHJvbDogSS9PKyBNZW0rIEJ1
+c01hc3RlcisgU3BlY0N5Y2xlLSBNZW1XSU5WLSBWR0FTbm9vcC0gUGFyRXJyLSBTdGVwcGluZy0g
+U0VSUisgRmFzdEIyQi0KCVN0YXR1czogQ2FwLSA2Nk1Iei0gVURGLSBGYXN0QjJCKyBQYXJFcnIt
+IERFVlNFTD1mYXN0ID5UQWJvcnQtIDxUQWJvcnQtIDxNQWJvcnQtID5TRVJSLSA8UEVSUi0KCUxh
+dGVuY3k6IDAKCUJ1czogcHJpbWFyeT0wMCwgc2Vjb25kYXJ5PTAxLCBzdWJvcmRpbmF0ZT0wMSwg
+c2VjLWxhdGVuY3k9MzIKCUkvTyBiZWhpbmQgYnJpZGdlOiAwMDAwYzAwMC0wMDAwY2ZmZgoJTWVt
+b3J5IGJlaGluZCBicmlkZ2U6IGVmZDAwMDAwLWVmZGZmZmZmCglQcmVmZXRjaGFibGUgbWVtb3J5
+IGJlaGluZCBicmlkZ2U6IGU3YjAwMDAwLWU3YmZmZmZmCglTZWNvbmRhcnkgc3RhdHVzOiA2Nk1I
+ei0gRmFzdEIyQisgUGFyRXJyLSBERVZTRUw9bWVkaXVtID5UQWJvcnQtIDxUQWJvcnQtIDxNQWJv
+cnQtIDxTRVJSLSA8UEVSUi0KCUJyaWRnZUN0bDogUGFyaXR5LSBTRVJSKyBOb0lTQS0gVkdBLSBN
+QWJvcnQtID5SZXNldC0gRmFzdEIyQi0KCjAwOjFmLjAgSVNBIGJyaWRnZTogSW50ZWwgQ29ycG9y
+YXRpb24gODI4MDFCQSBJU0EgQnJpZGdlIChMUEMpIChyZXYgMDUpCglDb250cm9sOiBJL08rIE1l
+bSsgQnVzTWFzdGVyKyBTcGVjQ3ljbGUrIE1lbVdJTlYtIFZHQVNub29wLSBQYXJFcnItIFN0ZXBw
+aW5nLSBTRVJSKyBGYXN0QjJCLQoJU3RhdHVzOiBDYXAtIDY2TUh6LSBVREYtIEZhc3RCMkIrIFBh
+ckVyci0gREVWU0VMPW1lZGl1bSA+VEFib3J0LSA8VEFib3J0LSA8TUFib3J0LSA+U0VSUi0gPFBF
+UlItCglMYXRlbmN5OiAwCgowMDoxZi4xIElERSBpbnRlcmZhY2U6IEludGVsIENvcnBvcmF0aW9u
+IDgyODAxQkEgSURFIFUxMDAgKHJldiAwNSkgKHByb2ctaWYgODAgW01hc3Rlcl0pCglTdWJzeXN0
+ZW06IEludGVsIENvcnBvcmF0aW9uIFVua25vd24gZGV2aWNlIDI0NDAKCUNvbnRyb2w6IEkvTysg
+TWVtLSBCdXNNYXN0ZXIrIFNwZWNDeWNsZS0gTWVtV0lOVi0gVkdBU25vb3AtIFBhckVyci0gU3Rl
+cHBpbmctIFNFUlItIEZhc3RCMkItCglTdGF0dXM6IENhcC0gNjZNSHotIFVERi0gRmFzdEIyQisg
+UGFyRXJyLSBERVZTRUw9bWVkaXVtID5UQWJvcnQtIDxUQWJvcnQtIDxNQWJvcnQtID5TRVJSLSA8
+UEVSUi0KCUxhdGVuY3k6IDAKCVJlZ2lvbiAwOiBbdmlydHVhbF0gTWVtb3J5IGF0IDAwMDAwMWYw
+ICgzMi1iaXQsIG5vbi1wcmVmZXRjaGFibGUpIFtkaXNhYmxlZF0gW3NpemU9OF0KCVJlZ2lvbiAx
+OiBbdmlydHVhbF0gTWVtb3J5IGF0IDAwMDAwM2YwICh0eXBlIDMsIG5vbi1wcmVmZXRjaGFibGUp
+IFtkaXNhYmxlZF0gW3NpemU9MV0KCVJlZ2lvbiAyOiBbdmlydHVhbF0gTWVtb3J5IGF0IDAwMDAw
+MTcwICgzMi1iaXQsIG5vbi1wcmVmZXRjaGFibGUpIFtkaXNhYmxlZF0gW3NpemU9OF0KCVJlZ2lv
+biAzOiBbdmlydHVhbF0gTWVtb3J5IGF0IDAwMDAwMzcwICh0eXBlIDMsIG5vbi1wcmVmZXRjaGFi
+bGUpIFtkaXNhYmxlZF0gW3NpemU9MV0KCVJlZ2lvbiA0OiBJL08gcG9ydHMgYXQgZmYwMCBbc2l6
+ZT0xNl0KCjAwOjFmLjIgVVNCIENvbnRyb2xsZXI6IEludGVsIENvcnBvcmF0aW9uIDgyODAxQkEv
+QkFNIFVTQiAoSHViICMxKSAocmV2IDA1KSAocHJvZy1pZiAwMCBbVUhDSV0pCglTdWJzeXN0ZW06
+IEludGVsIENvcnBvcmF0aW9uIFVua25vd24gZGV2aWNlIDI0NDAKCUNvbnRyb2w6IEkvTysgTWVt
+LSBCdXNNYXN0ZXIrIFNwZWNDeWNsZS0gTWVtV0lOVi0gVkdBU25vb3AtIFBhckVyci0gU3RlcHBp
+bmctIFNFUlItIEZhc3RCMkItCglTdGF0dXM6IENhcC0gNjZNSHotIFVERi0gRmFzdEIyQisgUGFy
+RXJyLSBERVZTRUw9bWVkaXVtID5UQWJvcnQtIDxUQWJvcnQtIDxNQWJvcnQtID5TRVJSLSA8UEVS
+Ui0KCUxhdGVuY3k6IDAKCUludGVycnVwdDogcGluIEQgcm91dGVkIHRvIElSUSAxNgoJUmVnaW9u
+IDQ6IEkvTyBwb3J0cyBhdCBkZDgwIFtzaXplPTMyXQoKMDA6MWYuNSBNdWx0aW1lZGlhIGF1ZGlv
+IGNvbnRyb2xsZXI6IEludGVsIENvcnBvcmF0aW9uIDgyODAxQkEvQkFNIEFDJzk3IEF1ZGlvIChy
+ZXYgMDUpCglTdWJzeXN0ZW06IEF2YW5jZSBMb2dpYyBJbmMuIFVua25vd24gZGV2aWNlIDQ3MTAK
+CUNvbnRyb2w6IEkvTysgTWVtLSBCdXNNYXN0ZXIrIFNwZWNDeWNsZS0gTWVtV0lOVi0gVkdBU25v
+b3AtIFBhckVyci0gU3RlcHBpbmctIFNFUlItIEZhc3RCMkItCglTdGF0dXM6IENhcC0gNjZNSHot
+IFVERi0gRmFzdEIyQisgUGFyRXJyLSBERVZTRUw9bWVkaXVtID5UQWJvcnQtIDxUQWJvcnQtIDxN
+QWJvcnQtID5TRVJSLSA8UEVSUi0KCUxhdGVuY3k6IDAKCUludGVycnVwdDogcGluIEIgcm91dGVk
+IHRvIElSUSAxNwoJUmVnaW9uIDA6IEkvTyBwb3J0cyBhdCBkZTAwIFtzaXplPTI1Nl0KCVJlZ2lv
+biAxOiBJL08gcG9ydHMgYXQgZGM4MCBbc2l6ZT02NF0KCjAxOjA0LjAgVVNCIENvbnRyb2xsZXI6
+IEFMaSBDb3Jwb3JhdGlvbiBVU0IgMS4xIENvbnRyb2xsZXIgKHJldiAwMykgKHByb2ctaWYgMTAg
+W09IQ0ldKQoJU3Vic3lzdGVtOiBBTGkgQ29ycG9yYXRpb24gVVNCIDEuMSBDb250cm9sbGVyCglD
+b250cm9sOiBJL08rIE1lbSsgQnVzTWFzdGVyKyBTcGVjQ3ljbGUtIE1lbVdJTlYrIFZHQVNub29w
+LSBQYXJFcnItIFN0ZXBwaW5nLSBTRVJSKyBGYXN0QjJCLQoJU3RhdHVzOiBDYXArIDY2TUh6KyBV
+REYtIEZhc3RCMkIrIFBhckVyci0gREVWU0VMPW1lZGl1bSA+VEFib3J0LSA8VEFib3J0LSA8TUFi
+b3J0LSA+U0VSUi0gPFBFUlItCglMYXRlbmN5OiA2NCAoMjAwMDBucyBtYXgpLCBDYWNoZSBMaW5l
+IFNpemU6IDMyIGJ5dGVzCglJbnRlcnJ1cHQ6IHBpbiBCIHJvdXRlZCB0byBJUlEgMTcKCVJlZ2lv
+biAwOiBNZW1vcnkgYXQgZWZkZmQwMDAgKDMyLWJpdCwgbm9uLXByZWZldGNoYWJsZSkgW3NpemU9
+NEtdCglDYXBhYmlsaXRpZXM6IDxhY2Nlc3MgZGVuaWVkPgoKMDE6MDQuMSBVU0IgQ29udHJvbGxl
+cjogQUxpIENvcnBvcmF0aW9uIFVTQiAxLjEgQ29udHJvbGxlciAocmV2IDAzKSAocHJvZy1pZiAx
+MCBbT0hDSV0pCglTdWJzeXN0ZW06IEFMaSBDb3Jwb3JhdGlvbiBVU0IgMS4xIENvbnRyb2xsZXIK
+CUNvbnRyb2w6IEkvTysgTWVtKyBCdXNNYXN0ZXIrIFNwZWNDeWNsZS0gTWVtV0lOVisgVkdBU25v
+b3AtIFBhckVyci0gU3RlcHBpbmctIFNFUlIrIEZhc3RCMkItCglTdGF0dXM6IENhcCsgNjZNSHor
+IFVERi0gRmFzdEIyQisgUGFyRXJyLSBERVZTRUw9bWVkaXVtID5UQWJvcnQtIDxUQWJvcnQtIDxN
+QWJvcnQtID5TRVJSLSA8UEVSUi0KCUxhdGVuY3k6IDY0ICgyMDAwMG5zIG1heCksIENhY2hlIExp
+bmUgU2l6ZTogMzIgYnl0ZXMKCUludGVycnVwdDogcGluIEMgcm91dGVkIHRvIElSUSAxOAoJUmVn
+aW9uIDA6IE1lbW9yeSBhdCBlZmRmZTAwMCAoMzItYml0LCBub24tcHJlZmV0Y2hhYmxlKSBbc2l6
+ZT00S10KCUNhcGFiaWxpdGllczogPGFjY2VzcyBkZW5pZWQ+CgowMTowNC4zIFVTQiBDb250cm9s
+bGVyOiBBTGkgQ29ycG9yYXRpb24gVVNCIDIuMCBDb250cm9sbGVyIChyZXYgMDEpIChwcm9nLWlm
+IDIwIFtFSENJXSkKCVN1YnN5c3RlbTogQUxpIENvcnBvcmF0aW9uIFVTQiAyLjAgQ29udHJvbGxl
+cgoJQ29udHJvbDogSS9PLSBNZW0rIEJ1c01hc3RlcisgU3BlY0N5Y2xlLSBNZW1XSU5WKyBWR0FT
+bm9vcC0gUGFyRXJyLSBTdGVwcGluZy0gU0VSUisgRmFzdEIyQi0KCVN0YXR1czogQ2FwKyA2Nk1I
+eisgVURGLSBGYXN0QjJCKyBQYXJFcnItIERFVlNFTD1tZWRpdW0gPlRBYm9ydC0gPFRBYm9ydC0g
+PE1BYm9ydC0gPlNFUlItIDxQRVJSLQoJTGF0ZW5jeTogNjQgKDIwMDAwbnMgbWF4KSwgQ2FjaGUg
+TGluZSBTaXplOiAzMiBieXRlcwoJSW50ZXJydXB0OiBwaW4gQSByb3V0ZWQgdG8gSVJRIDE5CglS
+ZWdpb24gMDogTWVtb3J5IGF0IGVmZGZmZTAwICgzMi1iaXQsIG5vbi1wcmVmZXRjaGFibGUpIFtz
+aXplPTI1Nl0KCUNhcGFiaWxpdGllczogPGFjY2VzcyBkZW5pZWQ+CgowMTowNS4wIEV0aGVybmV0
+IGNvbnRyb2xsZXI6IFZJQSBUZWNobm9sb2dpZXMsIEluYy4gVlQ2MTA1IFtSaGluZS1JSUldIChy
+ZXYgOGIpCglTdWJzeXN0ZW06IEQtTGluayBTeXN0ZW0gSW5jIFVua25vd24gZGV2aWNlIDE0MDUK
+CUNvbnRyb2w6IEkvTysgTWVtKyBCdXNNYXN0ZXIrIFNwZWNDeWNsZS0gTWVtV0lOVisgVkdBU25v
+b3AtIFBhckVyci0gU3RlcHBpbmctIFNFUlIrIEZhc3RCMkItCglTdGF0dXM6IENhcCsgNjZNSHot
+IFVERi0gRmFzdEIyQi0gUGFyRXJyLSBERVZTRUw9bWVkaXVtID5UQWJvcnQtIDxUQWJvcnQtIDxN
+QWJvcnQtID5TRVJSLSA8UEVSUi0KCUxhdGVuY3k6IDY0ICg3NTBucyBtaW4sIDIwMDBucyBtYXgp
+LCBDYWNoZSBMaW5lIFNpemU6IDMyIGJ5dGVzCglJbnRlcnJ1cHQ6IHBpbiBBIHJvdXRlZCB0byBJ
+UlEgMTcKCVJlZ2lvbiAwOiBJL08gcG9ydHMgYXQgY2MwMCBbc2l6ZT0yNTZdCglSZWdpb24gMTog
+TWVtb3J5IGF0IGVmZGZmZjAwICgzMi1iaXQsIG5vbi1wcmVmZXRjaGFibGUpIFtzaXplPTI1Nl0K
+CUNhcGFiaWxpdGllczogPGFjY2VzcyBkZW5pZWQ+CgowMTowNi4wIENvbW11bmljYXRpb24gY29u
+dHJvbGxlcjogQW5hbG9nIERldmljZXMgU001NiBQQ0kgbW9kZW0KCVN1YnN5c3RlbTogQW5hbG9n
+IERldmljZXMgU001NiBQQ0kgbW9kZW0KCUNvbnRyb2w6IEkvTy0gTWVtKyBCdXNNYXN0ZXIrIFNw
+ZWNDeWNsZS0gTWVtV0lOVi0gVkdBU25vb3AtIFBhckVyci0gU3RlcHBpbmctIFNFUlIrIEZhc3RC
+MkItCglTdGF0dXM6IENhcCsgNjZNSHotIFVERi0gRmFzdEIyQisgUGFyRXJyLSBERVZTRUw9bWVk
+aXVtID5UQWJvcnQtIDxUQWJvcnQtIDxNQWJvcnQtID5TRVJSLSA8UEVSUi0KCUxhdGVuY3k6IDY0
+ICgyNTBucyBtaW4sIDYzNzUwbnMgbWF4KQoJSW50ZXJydXB0OiBwaW4gQSByb3V0ZWQgdG8gSVJR
+IDExCglSZWdpb24gMDogTWVtb3J5IGF0IGU3YmZmZjAwICgzMi1iaXQsIHByZWZldGNoYWJsZSkg
+W3NpemU9MjU2XQoJQ2FwYWJpbGl0aWVzOiA8YWNjZXNzIGRlbmllZD4KCg==
+------=_Part_122168_12816342.1177261357448
+Content-Type: application/octet-stream;
+	name=proc-interrupts-2.6.20.7-acpi-debug
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_f0tqy63p
+Content-Disposition: attachment; filename="proc-interrupts-2.6.20.7-acpi-debug"
+
+ICAgICAgICAgICBDUFUwICAgICAgIAogIDA6ICAgICAzMDU1NTYgICBJTy1BUElDLWVkZ2UgICAg
+ICB0aW1lcgogIDE6ICAgICAgICA2MjcgICBJTy1BUElDLWVkZ2UgICAgICBpODA0MgogIDY6ICAg
+ICAgICAgIDUgICBJTy1BUElDLWVkZ2UgICAgICBmbG9wcHkKICA4OiAgICAgICAgICAxICAgSU8t
+QVBJQy1lZGdlICAgICAgcnRjCiAgOTogICAgICAgICAgMSAgIElPLUFQSUMtZmFzdGVvaSAgIGFj
+cGkKIDE0OiAgICAgICA5MDU3ICAgSU8tQVBJQy1lZGdlICAgICAgaWRlMAogMTY6ICAgICAgICAg
+IDAgICBJTy1BUElDLWZhc3Rlb2kgICB1aGNpX2hjZDp1c2IxCiAxNzogICAgICAyNTI2OSAgIElP
+LUFQSUMtZmFzdGVvaSAgIG9oY2lfaGNkOnVzYjIsIEludGVsIDgyODAxQkEtSUNIMiwgZXRoMAog
+MTg6ICAgICAgIDIzMzQgICBJTy1BUElDLWZhc3Rlb2kgICBvaGNpX2hjZDp1c2IzCiAxOTogICAg
+ICAgICAgMyAgIElPLUFQSUMtZmFzdGVvaSAgIGVoY2lfaGNkOnVzYjQKTk1JOiAgICAgICAgICAw
+IApMT0M6ICAgICAzMDU0NTYgCkVSUjogICAgICAgICAgMApNSVM6ICAgICAgICAgIDAK
+------=_Part_122168_12816342.1177261357448--
