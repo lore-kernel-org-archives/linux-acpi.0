@@ -1,45 +1,36 @@
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [PATCH 07/13] libata-acpi: add ATA_FLAG_ACPI_SATA port flag
-Date: Sun, 22 Apr 2007 19:14:49 +0100
-Message-ID: <20070422191449.726e0fb4@the-village.bc.nu>
+Subject: Re: [PATCHSET] libata: improve ATA ACPI support
+Date: Sun, 22 Apr 2007 19:25:00 +0100
+Message-ID: <20070422192500.2e1014fd@the-village.bc.nu>
 References: <11772636651400-git-send-email-htejun@gmail.com>
-	<11772636662936-git-send-email-htejun@gmail.com>
-	<20070422185351.12adf7d8@the-village.bc.nu>
-	<462BA35C.5040702@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outpipe-village-512-1.bc.nu ([81.2.110.250]:59451 "EHLO
+Received: from outpipe-village-512-1.bc.nu ([81.2.110.250]:49025 "EHLO
 	the-village.bc.nu" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754309AbXDVSNR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Apr 2007 14:13:17 -0400
-In-Reply-To: <462BA35C.5040702@gmail.com>
+	with ESMTP id S1754330AbXDVSX1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Apr 2007 14:23:27 -0400
+In-Reply-To: <11772636651400-git-send-email-htejun@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Tejun Heo <htejun@gmail.com>
 Cc: jeff@garzik.org, mjg59@srcf.ucam.org, rdunlap@xenotime.net, trenn@suse.de, forrest.zhao@gmail.com, kristen.c.accardi@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org
 
-> > Take the ACPI handle, go look for _GTF, _SDD etc and believe the
-> > firmware. Nothing else works.
-> 
-> Actually, that's dangerous.  For example, you must not do _STM/_GTM on
-> ahci becuase _STM/_GTM access PCI config registers which must not be
-> accessed in achi modes and some BIOSen supply the same _STM/_GTM nodes
-> whether the controller is in ata_piix mode or ahci mode.  Also, on ICH8,
-> the association gets quite weird due to PCI device splitting.
+> * after successfully executing _GTF taskfiles, IDENTIFY page is
+>   reloaded
 
-You can end up with _SDD methods for SFF format controllers (or what we
-think of as SFF format controllers) when we don't have the knowledge to
-drive them in their full super-whizzo method (eg Marvell)
+Interesting question we should sort out: What is our identify page as
+supplied to the user meant to be ?
 
-> The ACPI spec says the layout is dependent on controller interface and I
->  can see reasons why we need to follow that but not the other way
-> around.  Do you have counter-examples?
+The old IDE one started off as the "identify data at boot" (which is
+useful) and mutated through a million "kind of boot but mangled" and "not
+boot" versions of the identify data, all of which are useless to
+userspace.
 
-The first problem is the words "the spec". 
+Having the "boot" data (for some definition of boot) is important in
+order to know things like the BIOS view of the disk geometry and HPA (eg
+for partitioning), having the current data is useless as its already
+available via SG_IO.
 
-Agreed that STM/GTM are not safe except when expected (and not always safe
-when they are) but that ought to be ok as we then set all the modes
-properly ourselves afterwards.
-
+Alan
