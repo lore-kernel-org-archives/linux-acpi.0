@@ -1,39 +1,45 @@
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Subject: Re: [PATCH 07/13] libata-acpi: add ATA_FLAG_ACPI_SATA port flag
-Date: Sun, 22 Apr 2007 18:53:51 +0100
-Message-ID: <20070422185351.12adf7d8@the-village.bc.nu>
+Date: Sun, 22 Apr 2007 19:03:57 +0100
+Message-ID: <20070422190357.0fcae68b@the-village.bc.nu>
 References: <11772636651400-git-send-email-htejun@gmail.com>
 	<11772636662936-git-send-email-htejun@gmail.com>
+	<20070422185351.12adf7d8@the-village.bc.nu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outpipe-village-512-1.bc.nu ([81.2.110.250]:47421 "EHLO
+Received: from outpipe-village-512-1.bc.nu ([81.2.110.250]:47059 "EHLO
 	the-village.bc.nu" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753570AbXDVRwY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Apr 2007 13:52:24 -0400
-In-Reply-To: <11772636662936-git-send-email-htejun@gmail.com>
+	with ESMTP id S1754240AbXDVSCX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Apr 2007 14:02:23 -0400
+In-Reply-To: <20070422185351.12adf7d8@the-village.bc.nu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tejun Heo <htejun@gmail.com>
-Cc: jeff@garzik.org, mjg59@srcf.ucam.org, rdunlap@xenotime.net, trenn@suse.de, forrest.zhao@gmail.com, kristen.c.accardi@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Tejun Heo <htejun@gmail.com>, jeff@garzik.org, mjg59@srcf.ucam.org, rdunlap@xenotime.net, trenn@suse.de, forrest.zhao@gmail.com, kristen.c.accardi@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org
 
-On Mon, 23 Apr 2007 02:41:06 +0900
-Tejun Heo <htejun@gmail.com> wrote:
+> The ACPI interface to use can only be safely determined one way - and
+> that is to see what methods the BIOS has attached to the device and use
+> those.
+> 
+> Take the ACPI handle, go look for _GTF, _SDD etc and believe the
+> firmware. Nothing else works.
 
-> Whether a controller needs IDE or SATA ACPI hierarchy is determined by
-> the programming interface of the controller not by whether the
-> controller is SATA or PATA
+Actually its even worse a mess than I thought 8(
 
-NAK
+We have to look at the BIOS method offered and we have to know if we
+changed the mode of the controller.
 
-I keep trying to point out that this is not true.
+If the BIOS mode of an IDE controller is SFF and we flip it into AHCI
+mode then we can no longer use the BIOS provided methods because they are
+the wrong ones.
 
-The ACPI interface to use can only be safely determined one way - and
-that is to see what methods the BIOS has attached to the device and use
-those.
+For the sane cases (where we don't frob the device) we can ask the BIOS
+what methods it has to guess what to use. If we change the mode of the
+controller we need to look for methods that match our change, and be
+aware we may have totally hosed the ACPI method support by changing the
+chip config.
 
-Take the ACPI handle, go look for _GTF, _SDD etc and believe the
-firmware. Nothing else works.
-
-Alan
+Bletch, ACPI, its like openprom crossed with european law, a million
+times larger than needed, and full of holes.
