@@ -1,34 +1,39 @@
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [PATCH 02/13] libata: separate ATA_EHI_DID_RESET into
- DID_SOFTRESET and DID_HARDRESET
-Date: Sun, 22 Apr 2007 18:50:30 +0100
-Message-ID: <20070422185030.41a342c4@the-village.bc.nu>
+Subject: Re: [PATCH 07/13] libata-acpi: add ATA_FLAG_ACPI_SATA port flag
+Date: Sun, 22 Apr 2007 18:53:51 +0100
+Message-ID: <20070422185351.12adf7d8@the-village.bc.nu>
 References: <11772636651400-git-send-email-htejun@gmail.com>
-	<11772636652710-git-send-email-htejun@gmail.com>
+	<11772636662936-git-send-email-htejun@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outpipe-village-512-1.bc.nu ([81.2.110.250]:41447 "EHLO
+Received: from outpipe-village-512-1.bc.nu ([81.2.110.250]:47421 "EHLO
 	the-village.bc.nu" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753317AbXDVRsu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Apr 2007 13:48:50 -0400
-In-Reply-To: <11772636652710-git-send-email-htejun@gmail.com>
+	with ESMTP id S1753570AbXDVRwY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Apr 2007 13:52:24 -0400
+In-Reply-To: <11772636662936-git-send-email-htejun@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Tejun Heo <htejun@gmail.com>
 Cc: jeff@garzik.org, mjg59@srcf.ucam.org, rdunlap@xenotime.net, trenn@suse.de, forrest.zhao@gmail.com, kristen.c.accardi@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org
 
-On Mon, 23 Apr 2007 02:41:05 +0900
+On Mon, 23 Apr 2007 02:41:06 +0900
 Tejun Heo <htejun@gmail.com> wrote:
 
-> Separate ATA_EHI_DID_RESET into ATA_EHI_DID_SOFTRESET and
-> ATA_EHI_DID_HARDRESET.  ATA_EHI_DID_RESET is redefined as OR of the
-> two flags.  This patch doesn't introduce any behavior change.  This
-> will be used later to determine whether _SDD is necessary or not.
-> 
-> Signed-off-by: Tejun Heo <htejun@gmail.com>
+> Whether a controller needs IDE or SATA ACPI hierarchy is determined by
+> the programming interface of the controller not by whether the
+> controller is SATA or PATA
 
-Acked-by: Alan Cox <alan@redhat.com>
+NAK
 
->
+I keep trying to point out that this is not true.
+
+The ACPI interface to use can only be safely determined one way - and
+that is to see what methods the BIOS has attached to the device and use
+those.
+
+Take the ACPI handle, go look for _GTF, _SDD etc and believe the
+firmware. Nothing else works.
+
+Alan
