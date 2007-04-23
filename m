@@ -1,111 +1,52 @@
-From: Lex Neva <acpi@lexneva.name>
-Subject: C2 and C3 processor states cause mouse desynchronization
-Date: Sun, 22 Apr 2007 22:57:50 -0400 (EDT)
-Message-ID: <Pine.LNX.4.64.0704222237480.25154@lexneva.name>
+From: Tejun Heo <htejun@gmail.com>
+Subject: Re: [PATCH 07/13] libata-acpi: add ATA_FLAG_ACPI_SATA port flag
+Date: Mon, 23 Apr 2007 17:00:20 +0900
+Message-ID: <462C6794.7000506@gmail.com>
+References: <11772636651400-git-send-email-htejun@gmail.com>	<11772636662936-git-send-email-htejun@gmail.com>	<20070422185351.12adf7d8@the-village.bc.nu>	<462BA35C.5040702@gmail.com> <20070422191449.726e0fb4@the-village.bc.nu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lexneva.name ([207.210.101.78]:2015 "EHLO lexneva.name"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030971AbXDWC5w (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Apr 2007 22:57:52 -0400
-Received: from localhost ([127.0.0.1])
-	by lexneva.name with esmtp (Exim 4.62 #1 (Debian))
-	id 1HfokQ-0006a0-Iq
-	for <linux-acpi@vger.kernel.org>; Sun, 22 Apr 2007 22:57:51 -0400
+Received: from nz-out-0506.google.com ([64.233.162.236]:47201 "EHLO
+	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751630AbXDWIBe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Apr 2007 04:01:34 -0400
+Received: by nz-out-0506.google.com with SMTP id o1so6380nzf
+        for <linux-acpi@vger.kernel.org>; Mon, 23 Apr 2007 01:01:33 -0700 (PDT)
+In-Reply-To: <20070422191449.726e0fb4@the-village.bc.nu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: jeff@garzik.org, mjg59@srcf.ucam.org, rdunlap@xenotime.net, trenn@suse.de, forrest.zhao@gmail.com, kristen.c.accardi@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org
 
-I recently bought one of these beauties:
+Alan Cox wrote:
+> You can end up with _SDD methods for SFF format controllers (or what we
+> think of as SFF format controllers) when we don't have the knowledge to
+> drive them in their full super-whizzo method (eg Marvell)
+> 
+>> The ACPI spec says the layout is dependent on controller interface and I
+>>  can see reasons why we need to follow that but not the other way
+>> around.  Do you have counter-examples?
+> 
+> The first problem is the words "the spec". 
+> 
+> Agreed that STM/GTM are not safe except when expected (and not always safe
+> when they are) but that ought to be ok as we then set all the modes
+> properly ourselves afterwards.
 
-http://www.sagernotebook.com/pages/notebooks/product2.cfm?ProductType=2030&SubType=C
+I agree that there are cases where we drive a controller in different
+way than how the BIOS configured it and as a result we can end up with
+unmatching ACPI nodes, but I think that it's safer to ignore unmatched
+ACPI nodes than to do what seems likely without really knowing what's
+going on.
 
-Mine's got a T7200 Core 2 Duo 2.0ghz processor and a gig of ram.
+There just isn't a generic way to determine which node matches which
+device.  The first two ports might map to the first IDE channel or port
+1 and 3 (ata_piix).  Or each port might map to a separate IDE channel
+with slave spot disabled.  Even if we support 'best effort' matching, it
+is something that only the LLD knows how it should be done and whether
+it's safe or not.  IMHO, we're better off just ignoring ATA ACPI
+hierarchy if it doesn't match the expectation of the driver.
 
-It works pretty beautifully in linux, and acpi support seems to work well.  No 
-throttling (thanks, intel), but battery and power button and all that work 
-beautifully.  All hardware is supported save the SD card reader, webcam, and 
-possibly pcmcia (it froze the one time I tried it, and I haven't bothered 
-messing with it).
-
-One thing that's caused a pretty nasty problem is that the mouse driver 
-desynchronizes fairly frequently.  Symptoms include a mouse going nuts all 
-over my X session, usually doing exciting things like opening 30 xterms and 
-pasting code all over my shell, along with triggering wonderful bugs in 
-Enlightenment that cause it to freeze.  The kernel usually shows messages like 
-this:
-
-Apr 22 22:12:20 lextop psmouse.c: Wheel Mouse at isa0060/serio4/input0 lost 
-synchronization, throwing 3 bytes away.
-
-Sometimes this is followed by a message like this:
-
-psmouse.c: resync failed, issuing reconnect request
-
->From what I can tell, the mouse-going-nuts part happens BEFORE the "lost 
-synchronization" message.  I'm not clear on why the psmouse driver doesn't 
-figure out that it's getting tons of junk data.
-
-I've tried TONS of things to narrow down and fix the problem, up to and 
-including hacking some suggested workarounds into my psmouse driver, to no 
-avail.  The thing desynchronizes, and there's not much I could figure out to 
-do about it with my meager kernel knowledge.
-
-I tried many different kernel options, such as PM_TIMER, disabling SMP, etc. 
-I've compiled more kernels for this thing than I've had to in ages.  I tried 
-isolating and removing many different factors one at a time, including the 
-nvidia drivers, sound drivers (hda_intel in ALSA), network (wireless and 
-wired), etc... no luck.  I've spent days on this problem.
-
-The only clue I had was that Puppy Linux (puppylinux.org, a livecd distro) 
-didn't seem to trigger the problem no matter how long I waggled the touchpad 
-(usually 30 seconds is enough to do it)... even with a 2.6.18 kernel (mine is 
-2.6.20.6).  Not much has changed in the psmouse driver since then.  I tried 
-using their kernel configuration on the 2.6.20.7 kernel, and with a little 
-tweaking, I FINALLY discovered what the big difference was: the processor ACPI 
-module.  If it's in, the mouse goes nuts frequently.  If it's not, the mouse 
-only goes nuts if I waggle it for 5-10 minutes straight (my finger's tired!)
-
-My CPU has 3 Cstates:
-
-active state:            C1
-max_cstate:              C1
-bus master activity:     00000000
-maximum allowed latency: 5850 usec
-states:
-    *C1:                  type[C1] promotion[C2] demotion[--] latency[001] usage[00902132] duration[00000000000000000000]
-     C2:                  type[C2] promotion[C3] demotion[C1] latency[001] usage[00000000] duration[00000000000000000000]
-     C3:                  type[C3] promotion[--] demotion[C2] latency[057] usage[00000000] duration[00000000000000000000]
-
-I think you can already see what the (unfortunate) solution is.  If I set 
-max_cstate to 2, the problem's still there.  Set it to 1, and it goes away. 
-So does 5-6% more of my battery per hour. :(  All told, I guess that's not 
-that much, considering.  It could be worse.
-
-So, the questions I have:
-
-Is this a problem anyone's seen before?
-
-Is this a bug?  If so, is it in linux-ACPI or psmouse (or something else)?
-
-Is there anything I can do to get my power savings and still make the mouse 
-driver happy?
-
-Is there any chance that I can work with the linux-ACPI developers to get a 
-fix produced?
-
-
-
-For reference, windows doesn't seem to have any kind of 
-mouse-desynchronization problems.  I haven't seen the mouse stutter or 
-anything that would indicate a quiet reset behind the scenes.  I'm not sure 
-what they're doing that Linux isn't.  I sure don't want to use Windows just to 
-avoid a flakey touchpad :P
-
-Let me know if you need any more information about my laptop.  I'm rather 
-linux-savvy from an administration standpoint, although I'm no kernel hacker. 
-I'd be glad to run tests for you, try bleeding-edge kernels, and provide you 
-pages of diagnostic data.  Just let me know how I can help.
-
---Lex Neva
+-- 
+tejun
