@@ -1,44 +1,36 @@
-From: Tejun Heo <htejun@gmail.com>
-Subject: Re: [PATCHSET] libata: improve ATA ACPI support
-Date: Mon, 23 Apr 2007 17:06:35 +0900
-Message-ID: <462C690B.1090802@gmail.com>
-References: <11772636651400-git-send-email-htejun@gmail.com> <20070422192500.2e1014fd@the-village.bc.nu>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [linux-pm] [patch 2.6.21-rc5-git 1/3] new platform_enable_wake() hook; use it in PCI
+Date: Mon, 23 Apr 2007 12:51:06 +0000
+Message-ID: <20070423125106.GA4077@ucw.cz>
+References: <200704051248.56703.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <20070422192500.2e1014fd@the-village.bc.nu>
-Sender: linux-ide-owner@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: jeff@garzik.org, mjg59@srcf.ucam.org, rdunlap@xenotime.net, trenn@suse.de, forrest.zhao@gmail.com, kristen.c.accardi@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:3660 "EHLO spitz.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1161522AbXDWMvU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 23 Apr 2007 08:51:20 -0400
+Content-Disposition: inline
+In-Reply-To: <200704051248.56703.david-b@pacbell.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
 
-Alan Cox wrote:
->> * after successfully executing _GTF taskfiles, IDENTIFY page is
->>   reloaded
-> 
-> Interesting question we should sort out: What is our identify page as
-> supplied to the user meant to be ?
-> 
-> The old IDE one started off as the "identify data at boot" (which is
-> useful) and mutated through a million "kind of boot but mangled" and "not
-> boot" versions of the identify data, all of which are useless to
-> userspace.
-> 
-> Having the "boot" data (for some definition of boot) is important in
-> order to know things like the BIOS view of the disk geometry and HPA (eg
-> for partitioning), having the current data is useless as its already
-> available via SG_IO.
+Hi!
 
-AFAIK, IDENTIFY using SG_IO is the way to obtain ID data.
-HDIO_GET_IDENTITY is only added for backward compatibility and as a
-sideway to obtain ATAPI IDENTIFY page while IDENTIFY_PACKET_DEVICE via
-SG_IO is broken.  libata tries pretty hard to keep the cached IDENTIFY
-page up-to-date and I'm pretty sure it stays in sync with the drive most
-of the time.  I think HDIO_GET_IDENTITY's meaning is something like
-"give me IDENTIFY page of the device as seen by the driver" and doesn't
-really matter as long as it can be used to get general idea about the
-device.
+>  static inline int device_suspend(pm_message_t state)
+> --- g26.orig/drivers/base/power/main.c	2007-04-04 13:03:33.000000000 -0700
+> +++ g26/drivers/base/power/main.c	2007-04-04 13:03:34.000000000 -0700
+> @@ -29,6 +29,9 @@ LIST_HEAD(dpm_off_irq);
+>  DECLARE_MUTEX(dpm_sem);
+>  DECLARE_MUTEX(dpm_list_sem);
+>  
+> +int (*platform_enable_wakeup)(struct device *dev, int is_on) = NULL;
 
+Static variables do not need zero initializers.
+
+Otherwise it looks ok.
 -- 
-tejun
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
