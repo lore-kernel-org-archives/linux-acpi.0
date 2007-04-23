@@ -1,27 +1,66 @@
-From: Len Brown <lenb@kernel.org>
-Subject: ACPI in Windows Vista
-Date: Mon, 23 Apr 2007 14:58:31 -0400
-Message-ID: <200704231458.31767.lenb@kernel.org>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: [2/3] 2.6.21-rc7: known regressions (v2)
+Date: Mon, 23 Apr 2007 23:48:57 +0200
+Message-ID: <20070423214857.GC3468@stusta.de>
+References: <Pine.LNX.4.64.0704151659570.5473@woody.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:36071 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161475AbXDWS7s (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 23 Apr 2007 14:59:48 -0400
-Received: from d975xbx2 (c-65-96-213-102.hsd1.ma.comcast.net [65.96.213.102])
-	(authenticated bits=0)
-	by hera.kernel.org (8.13.8/8.13.7) with ESMTP id l3NIwbK7015679
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Mon, 23 Apr 2007 18:59:46 GMT
+Received: from emailhub.stusta.mhn.de ([141.84.69.5]:60319 "EHLO
+	mailhub.stusta.mhn.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754240AbXDWVsr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Apr 2007 17:48:47 -0400
 Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0704151659570.5473@woody.linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Olaf Kirch <okir@lst.de>, lenb@kernel.org, linux-acpi@vger.kernel.org, Michal Jaegermann <michal@ellpspace.math.ualberta.ca>, jgarzik@pobox.com, linux-ide@vger.kernel.org, Stephen Clark <Stephen.Clark@seclark.us>, netdev@vger.kernel.org, David Miller <davem@davemloft.net>, Robert Peterson <rpeterso@redhat.com>, linux-driver@qlogic.com, James.Bottomley@SteelEye.com, linux-scsi@vger.kernel.org
 
-It is useful to see what Microsoft is doing with ACPI in Vista --
-as that shapes many of the BIOS implementations that Linux will encounter:
+This email lists some known regressions in Linus' tree compared to 2.6.20.
 
-http://download.microsoft.com/download/5/b/9/5b97017b-e28a-4bae-ba48-174cf47d23cd/CPA002_WH06.ppt
+If you find your name in the Cc header, you are either submitter of one
+of the bugs, maintainer of an affectected subsystem or driver, a patch
+of you caused a breakage or I'm considering you in any other way
+possibly involved with one or more of these issues.
+
+Due to the huge amount of recipients, please trim the Cc when answering.
+
+
+Subject    : ACPI: Crashes + hangs during modprobe processor
+                   unless "processor.nocst"
+References : http://bugzilla.kernel.org/show_bug.cgi?id=8346
+Submitter  : Olaf Kirch <okir@lst.de>
+Status     : unknown
+
+
+Subject    : kernels fail to boot with drives on ATIIXP controller
+             (ACPI/IRQ related)
+References : https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=229621
+             http://lkml.org/lkml/2007/3/4/257
+Submitter  : Michal Jaegermann <michal@ellpspace.math.ualberta.ca>
+Status     : unknown
+
+
+Subject    : ali_pata: boot from CD fails
+References : http://lkml.org/lkml/2007/3/31/160
+Submitter  : Stephen Clark <Stephen.Clark@seclark.us>
+Status     : unknown
+
+
+Subject    : boot failure: rtl8139: exception in interrupt routine
+References : http://lkml.org/lkml/2007/3/31/160
+Submitter  : Stephen Clark <Stephen.Clark@seclark.us>
+Status     : unknown
+
+
+Subject    : qla2xxx driver no longer works
+References : http://lkml.org/lkml/2007/4/16/49
+             http://lkml.org/lkml/2007/4/20/224
+Submitter  : David Miller <davem@davemloft.net>
+             Robert Peterson <rpeterso@redhat.com>
+Handled-By : David Miller <davem@davemloft.net>
+Patch      : http://lkml.org/lkml/2007/4/16/234
+Status     : patch was suggested
+
+
