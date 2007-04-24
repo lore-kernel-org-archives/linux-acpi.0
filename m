@@ -1,79 +1,43 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH] Improve acpi debug documentation
-Date: Tue, 24 Apr 2007 13:53:22 +0800
-Message-ID: <1177394002.9072.98.camel@localhost.localdomain>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: ACPI in Windows Vista
+Date: Tue, 24 Apr 2007 11:28:27 -0300
+Message-ID: <20070424142827.GB474@khazad-dum.debian.net>
+References: <200704231458.31767.lenb@kernel.org> <1177385966.4635.5.camel@sli10-conroe.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:4093 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752549AbXDXFyT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 24 Apr 2007 01:54:19 -0400
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:38045 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1161765AbXDXO2b (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 Apr 2007 10:28:31 -0400
+Content-Disposition: inline
+In-Reply-To: <1177385966.4635.5.camel@sli10-conroe.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org, ak@suse.de, randy.dunlap@oracle.com
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-Now we use acpi.debug_level and acpi.debug_layer as kernel boot
-parameters instead of acpi_dbg_level and acpi_dbg_layer.
-But the document is not updated in time.
-Thanks to Andi Kleen for pointing it out.
+On Tue, 24 Apr 2007, Shaohua Li wrote:
+> On Tue, 2007-04-24 at 02:58 +0800, Len Brown wrote:
+> > It is useful to see what Microsoft is doing with ACPI in Vista --
+> > as that shapes many of the BIOS implementations that Linux will
+> > encounter:
+> > 
+> > http://download.microsoft.com/download/5/b/9/5b97017b-e28a-4bae-ba48-174cf47d23cd/CPA002_WH06.ppt
+> vista disable MSI per fadt.iapc_boot_arch flags, looks we should do the
+> same. This means we don't need MSI quirk too.
 
-This is the patch to update documentation for ACPI debug option.
+It actually means we need both.  Not every manufacturer is Intel.
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- Documentation/kernel-parameters.txt |   30 ++++++++++++++++++++++++++----
- 1 files changed, 26 insertions(+), 4 deletions(-)
+> I'm curious why firmware shouldn't change low 1M memory between sleep,
+> considering some ranges are reserved.
 
-Index: linux-2.6.21-rc7/Documentation/kernel-parameters.txt
-===================================================================
---- linux-2.6.21-rc7.orig/Documentation/kernel-parameters.txt	2007-04-18 15:22:49.000000000 +0800
-+++ linux-2.6.21-rc7/Documentation/kernel-parameters.txt	2007-04-24 13:42:54.000000000 +0800
-@@ -181,19 +181,41 @@ and is between 256 and 4096 characters. 
- 			that require a timer override, but don't have
- 			HPET
- 
--	acpi_dbg_layer=	[HW,ACPI]
-+	acpi.debug_layer=	[HW,ACPI]
- 			Format: <int>
- 			Each bit of the <int> indicates an ACPI debug layer,
- 			1: enable, 0: disable. It is useful for boot time
- 			debugging. After system has booted up, it can be set
--			via /proc/acpi/debug_layer.
-+			via /sys/module/acpi/parameters/debug_layer.
-+			CONFIG_ACPI_DEBUG must be enabled for this to produce any output.
-+			Available bits (add the numbers together) to enable debug output
-+			for specific parts of the ACPI subsystem:
-+			0x01 utilities 0x02 hardware 0x04 events 0x08 tables
-+			0x10 namespace 0x20 parser 0x40 dispatcher
-+			0x80 executer 0x100 resources 0x200 acpica debugger
-+			0x400 os services 0x800 acpica disassembler.
-+			The number can be in decimal or prefixed with 0x in hex.
-+			Warning: Many of these options can produce a lot of
-+			output and make your system unusable. Be very careful.
- 
--	acpi_dbg_level=	[HW,ACPI]
-+	acpi.debug_level=	[HW,ACPI]
- 			Format: <int>
- 			Each bit of the <int> indicates an ACPI debug level,
- 			1: enable, 0: disable. It is useful for boot time
- 			debugging. After system has booted up, it can be set
--			via /proc/acpi/debug_level.
-+			via /sys/module/acpi/parameters/debug_level.
-+			CONFIG_ACPI_DEBUG must be enabled for this to produce any output.
-+			Available bits (add the numbers together) to enable different
-+			debug output levels of the ACPI subsystem:
-+			0x01 error 0x02 warn 0x04 init 0x08 debug object
-+			0x10 info 0x20 init names 0x40 parse 0x80 load
-+			0x100 dispatch 0x200 execute 0x400 names 0x800 operation region
-+			0x1000 bfield 0x2000 tables 0x4000 values 0x8000 objects
-+			0x10000 resources 0x20000 user requests 0x40000 package.
-+			The number can be in decimal or prefixed with 0x in hex.
-+			Warning: Many of these options can produce a lot of
-+			output and make your system unusable. Be very careful.
-+
- 
- 	acpi_fake_ecdt	[HW,ACPI] Workaround failure due to BIOS lacking ECDT
- 
+It is quite possible that they mean it as in "don't change the contents of
+non-reserved ranges, nor the ranges themselves".
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
