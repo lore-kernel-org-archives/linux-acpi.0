@@ -1,133 +1,150 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: [PATCH 9/9] ACPI: thinkpad-acpi: update brightness sysfs interface support
-Date: Tue, 24 Apr 2007 11:48:20 -0300
-Message-ID: <1177426102527-git-send-email-hmh@hmh.eng.br>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: [PATCH 8/9] ACPI: thinkpad-acpi: add sysfs support
+	to the cmos command subdriver
+Date: Tue, 24 Apr 2007 11:48:19 -0300
+Message-ID: <11774261023992-git-send-email-hmh@hmh.eng.br>
 References: <11774261003184-git-send-email-hmh@hmh.eng.br>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:33099 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161488AbXDXOsc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 24 Apr 2007 10:48:32 -0400
-In-Reply-To: <11774261003184-git-send-email-hmh@hmh.eng.br>
-Sender: linux-acpi-owner@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <11774261003184-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Update the brightness sysfs interface (done through the backlight class) to
-be in line with the rest of the thinkpad-acpi driver.
+Add sysfs attributes to send ThinkPad CMOS commands.
 
-This renames the incorrect, un-obvious, and clash-prone name of "ibm" for
-the backlight device to a much more fitting and descriptive
-"thinkpad_screen".  This is something I wanted to do for quite a while...
-
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 ---
- Documentation/thinkpad-acpi.txt |   52 ++++++++++++++++++++++++++++++++++----
- drivers/misc/thinkpad_acpi.c    |    5 ++-
- drivers/misc/thinkpad_acpi.h    |    2 +
- 3 files changed, 51 insertions(+), 8 deletions(-)
+ Documentation/thinkpad-acpi.txt |   23 +++++++++++------------
+ drivers/misc/thinkpad_acpi.c    |   33 +++++++++++++++++++++++++++++++++
+ 2 files changed, 44 insertions(+), 12 deletions(-)
 
 diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
-index 352e8ae..eab4997 100644
+index 339ce21..352e8ae 100644
 --- a/Documentation/thinkpad-acpi.txt
 +++ b/Documentation/thinkpad-acpi.txt
-@@ -611,19 +611,59 @@ registers contain the current battery capacity, etc. If you experiment
- with this, do send me your results (including some complete dumps with
- a description of the conditions when they were taken.)
+@@ -378,23 +378,19 @@ supported. Use "eject2" instead of "eject" for the second bay.
+ Note: the UltraBay eject support on the 600e/x, A22p and A3x is
+ EXPERIMENTAL and may not work as expected. USE WITH CAUTION!
  
--LCD brightness control -- /proc/acpi/ibm/brightness
-----------------------------------------------------
-+LCD brightness control
-+----------------------
+-CMOS control -- /proc/acpi/ibm/cmos
+------------------------------------
++CMOS control
++------------
 +
-+procfs: /proc/acpi/ibm/brightness
-+sysfs backlight device "thinkpad_screen"
++procfs: /proc/acpi/ibm/cmos
++sysfs device attribute: cmos_command
  
- This feature allows software control of the LCD brightness on ThinkPad
--models which don't have a hardware brightness slider. The available
--commands are:
-+models which don't have a hardware brightness slider.
-+
-+It has some limitations: the LCD backlight cannot be actually turned on or off
-+by this interface, and in many ThinkPad models, the "dim while on battery"
-+functionality will be enabled by the BIOS when this interface is used, and
-+cannot be controlled.
-+
-+The backlight control has eight levels, ranging from 0 to 7.  Some of the
-+levels may not be distinct.
-+
-+Procfs notes:
-+
-+	The available commands are:
+ This feature is used internally by the ACPI firmware to control the
+ ThinkLight on most newer ThinkPad models. It may also control LCD
+ brightness, sounds volume and more, but only on some models.
  
- 	echo up   >/proc/acpi/ibm/brightness
- 	echo down >/proc/acpi/ibm/brightness
- 	echo 'level <level>' >/proc/acpi/ibm/brightness
+-The commands are non-negative integer numbers:
+-
+-	echo 0 >/proc/acpi/ibm/cmos
+-	echo 1 >/proc/acpi/ibm/cmos
+-	echo 2 >/proc/acpi/ibm/cmos
+-	...
+-
+-The range of valid numbers is 0 to 21, but not all have an effect and
+-the behavior varies from model to model. Here is the behavior on the
+-X40 (tpb is the ThinkPad Buttons utility):
++The range of valid cmos command numbers is 0 to 21, but not all have an
++effect and the behavior varies from model to model.  Here is the behavior
++on the X40 (tpb is the ThinkPad Buttons utility):
  
--The <level> number range is 0 to 7, although not all of them may be
--distinct. The current brightness level is shown in the file.
-+Sysfs notes:
-+
-+The interface is implemented through the backlight sysfs class, which is poorly
-+documented at this time.
-+
-+Locate the thinkpad_screen device under /sys/class/backlight, and inside it
-+there will be the following attributes:
-+
-+	max_brightness:
-+		Reads the maximum brightness the hardware can be set to.
-+		The minimum is always zero.
-+
-+	actual_brightness:
-+		Reads what brightness the screen is set to at this instant.
-+
-+	brightness:
-+		Writes request the driver to change brightness to the given
-+		value.  Reads will tell you what brightness the driver is trying
-+		to set the display to when "power" is set to zero and the display
-+		has not been dimmed by a kernel power management event.
-+
-+	power:
-+		power management mode, where 0 is "display on", and 1 to 3 will
-+		dim the display backlight to brightness level 0 because
-+		thinkpad-acpi cannot really turn the backlight off.  Kernel
-+		power management events can temporarily increase the current
-+		power management level, i.e. they can dim the display.
-+
+ 	0 - no effect but tpb reports "Volume down"
+ 	1 - no effect but tpb reports "Volume up"
+@@ -407,6 +403,9 @@ X40 (tpb is the ThinkPad Buttons utility):
+ 	13 - ThinkLight off
+ 	14 - no effect but tpb reports ThinkLight status change
  
- Volume control -- /proc/acpi/ibm/volume
- ---------------------------------------
++The cmos command interface is prone to firmware split-brain problems, as
++in newer ThinkPads it is just a compatibility layer.
++
+ LED control -- /proc/acpi/ibm/led
+ ---------------------------------
+ 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index ba749df..c0a023c 100644
+index 79abc68..ba749df 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -2414,8 +2414,9 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
- 	if (b < 0)
- 		return b;
- 
--	ibm_backlight_device = backlight_device_register("ibm", NULL, NULL,
--							 &ibm_backlight_data);
-+	ibm_backlight_device = backlight_device_register(
-+					TPACPI_BACKLIGHT_DEV_NAME, NULL, NULL,
-+					&ibm_backlight_data);
- 	if (IS_ERR(ibm_backlight_device)) {
- 		printk(IBM_ERR "Could not register backlight device\n");
- 		return PTR_ERR(ibm_backlight_device);
-diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index 2fe4d61..8348fc6 100644
---- a/drivers/misc/thinkpad_acpi.h
-+++ b/drivers/misc/thinkpad_acpi.h
-@@ -296,6 +296,8 @@ static int bluetooth_write(char *buf);
-  * Brightness (backlight) subdriver
+@@ -1743,8 +1743,30 @@ static struct ibm_struct bay_driver_data = {
+  * CMOS subdriver
   */
  
-+#define TPACPI_BACKLIGHT_DEV_NAME "thinkpad_screen"
++/* sysfs cmos_command -------------------------------------------------- */
++static ssize_t cmos_command_store(struct device *dev,
++			    struct device_attribute *attr,
++			    const char *buf, size_t count)
++{
++	unsigned long cmos_cmd;
++	int res;
 +
- static struct backlight_device *ibm_backlight_device;
- static int brightness_offset = 0x31;
++	if (parse_strtoul(buf, 21, &cmos_cmd))
++		return -EINVAL;
++
++	res = issue_thinkpad_cmos_command(cmos_cmd);
++	return (res)? res : count;
++}
++
++static struct device_attribute dev_attr_cmos_command =
++	__ATTR(cmos_command, S_IWUSR, NULL, cmos_command_store);
++
++/* --------------------------------------------------------------------- */
++
+ static int __init cmos_init(struct ibm_init_struct *iibm)
+ {
++	int res;
++
+ 	vdbg_printk(TPACPI_DBG_INIT,
+ 		"initializing cmos commands subdriver\n");
  
+@@ -1752,9 +1774,19 @@ static int __init cmos_init(struct ibm_init_struct *iibm)
+ 
+ 	vdbg_printk(TPACPI_DBG_INIT, "cmos commands are %s\n",
+ 		str_supported(cmos_handle != NULL));
++
++	res = device_create_file(&tpacpi_pdev->dev, &dev_attr_cmos_command);
++	if (res)
++		return res;
++
+ 	return (cmos_handle)? 0 : 1;
+ }
+ 
++static void cmos_exit(void)
++{
++	device_remove_file(&tpacpi_pdev->dev, &dev_attr_cmos_command);
++}
++
+ static int cmos_read(char *p)
+ {
+ 	int len = 0;
+@@ -1795,6 +1827,7 @@ static struct ibm_struct cmos_driver_data = {
+ 	.name = "cmos",
+ 	.read = cmos_read,
+ 	.write = cmos_write,
++	.exit = cmos_exit,
+ };
+ 
+ /*************************************************************************
 -- 
 1.5.1
 
+
+-------------------------------------------------------------------------
+This SF.net email is sponsored by DB2 Express
+Download DB2 Express C - the FREE version of DB2 express and take
+control of your XML. No limits. Just data. Click to get it now.
+http://sourceforge.net/powerbar/db2/
