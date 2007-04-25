@@ -1,57 +1,49 @@
-From: "Guilherme Salgado" <gsalgado@gmail.com>
-Subject: Re: Thinkpad suspend-to-disk regression
-Date: Tue, 24 Apr 2007 23:25:00 -0300
-Message-ID: <3d7cf86d0704241925u61b46ac0m2df1f5ac194832b@mail.gmail.com>
-References: <3d7cf86d0704241129i23da1b9fq93876573618e9dcd@mail.gmail.com>
-	 <200704250032.11108.rjw@sisk.pl>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: [PATCH] Disable MSI per FADT
+Date: Wed, 25 Apr 2007 11:05:12 +0800
+Message-ID: <1177470312.11073.10.camel@sli10-conroe.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wx-out-0506.google.com ([66.249.82.234]:21826 "EHLO
-	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161823AbXDYCZM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Apr 2007 22:25:12 -0400
-Received: by wx-out-0506.google.com with SMTP id h31so71763wxd
-        for <linux-acpi@vger.kernel.org>; Tue, 24 Apr 2007 19:25:11 -0700 (PDT)
-In-Reply-To: <200704250032.11108.rjw@sisk.pl>
-Content-Disposition: inline
+Received: from mga01.intel.com ([192.55.52.88]:58294 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753169AbXDYDIl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 Apr 2007 23:08:41 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org
+To: linux acpi <linux-acpi@vger.kernel.org>
+Cc: Len Brown <lenb@kernel.org>, Greg KH <greg@kroah.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-On 4/24/07, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Tuesday, 24 April 2007 20:29, Guilherme Salgado wrote:
-> > (I've already sent this to linux-acpi but got no response so far, so I
-> > thought it could be a good idea to send directly to you)
-> >
-> > Hi there,
-> >
-> > I recently noticed that my thinkpad T60 would lose the sound after
-> > being suspended to disk (https://launchpad.net/bugs/80893), requiring
-> > a cold restart to fix it. After some git-bisect work I found this
-> > regression was a consequence of
-> > http://git.kernel.org/?p=linux/kernel/git/lenb/linux-acpi-2.6.git;a=commitdiff;h=9185cfa92507d07ac787bc73d06c42222eec7239
-> > (patch inlined here)
-> >
-> > Is there any chance of fixing the regression this introduced without
-> > reverting it? Please let me know if you want any other info or have a
-> > patch for me to try.
->
-> You don't need a patch, I think.  Please try
->
-> # echo shutdown > /sys/power/disk
->
-> before the suspend (assuming you use the built-in swsusp).  If that works,
-> just make your configuration scripts echo 'shutdown' to /sys/power/disk at
-> system startup.
->
+ACPI spec defines the bit and Microsoft uses it. Suppose Linux should
+use it too.
 
-I use Ubuntu's default /etc/acpi/hibernate.sh, which already sets
-/sys/power/disk to shutdown before echoing "disk" to /sys/power/state.
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 
-Anything else I could try?
-
-Cheers,
-Guilherme
+Index: 2.6.21-rc6/drivers/pci/pci-acpi.c
+===================================================================
+--- 2.6.21-rc6.orig/drivers/pci/pci-acpi.c	2007-04-06 10:36:56.000000000 +0800
++++ 2.6.21-rc6/drivers/pci/pci-acpi.c	2007-04-25 10:58:12.000000000 +0800
+@@ -317,6 +317,10 @@ static int __init acpi_pci_init(void)
+ {
+ 	int ret;
+ 
++	if (acpi_gbl_FADT.boot_flags & BAF_MSI_NOT_SUPPORTED) {
++		printk(KERN_INFO"ACPI FADT declares the system doesn't support MSI, so disable it\n");
++		pci_no_msi();
++	}
+ 	ret = register_acpi_bus_type(&acpi_pci_bus);
+ 	if (ret)
+ 		return 0;
+Index: 2.6.21-rc6/include/acpi/actbl.h
+===================================================================
+--- 2.6.21-rc6.orig/include/acpi/actbl.h	2007-04-06 10:36:56.000000000 +0800
++++ 2.6.21-rc6/include/acpi/actbl.h	2007-04-25 10:22:28.000000000 +0800
+@@ -276,6 +276,7 @@ enum acpi_prefered_pm_profiles {
+ 
+ #define BAF_LEGACY_DEVICES              0x0001
+ #define BAF_8042_KEYBOARD_CONTROLLER    0x0002
++#define BAF_MSI_NOT_SUPPORTED           0x0008
+ 
+ #define FADT2_REVISION_ID               3
+ #define FADT2_MINUS_REVISION_ID         2
