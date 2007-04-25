@@ -1,101 +1,64 @@
-From: "Luming Yu" <luming.yu@gmail.com>
-Subject: Fwd: [RFC PATCH] _TPC support
-Date: Wed, 25 Apr 2007 22:23:44 +0800
-Message-ID: <3877989d0704250723x6466f10cjdca695b10aabe26e@mail.gmail.com>
-References: <3877989d0703190230v3a3c1c7alfa52fe0c87a12aca@mail.gmail.com>
-	 <1174353070.1665.7.camel@sli10-conroe.sh.intel.com>
-	 <3877989d0704250723o5c65982fp1305ccadd04c09ef@mail.gmail.com>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: [PATCH] Disable MSI per FADT
+Date: Wed, 25 Apr 2007 08:01:10 -0700
+Message-ID: <20070425080110.ab2bbe5f.randy.dunlap@oracle.com>
+References: <1177470312.11073.10.camel@sli10-conroe.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nz-out-0506.google.com ([64.233.162.230]:7986 "EHLO
-	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030302AbXDYOXp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Apr 2007 10:23:45 -0400
-Received: by nz-out-0506.google.com with SMTP id o1so304860nzf
-        for <linux-acpi@vger.kernel.org>; Wed, 25 Apr 2007 07:23:44 -0700 (PDT)
-In-Reply-To: <3877989d0704250723o5c65982fp1305ccadd04c09ef@mail.gmail.com>
-Content-Disposition: inline
+Received: from agminet01.oracle.com ([141.146.126.228]:19198 "EHLO
+	agminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161427AbXDYO7R (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Apr 2007 10:59:17 -0400
+In-Reply-To: <1177470312.11073.10.camel@sli10-conroe.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-
----------- Forwarded message ----------
-From: Luming Yu <luming.yu@gmail.com>
-Date: Apr 25, 2007 10:23 PM
-Subject: Re: [RFC PATCH] _TPC support
 To: Shaohua Li <shaohua.li@intel.com>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Greg KH <greg@kroah.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+
+On Wed, 25 Apr 2007 11:05:12 +0800 Shaohua Li wrote:
+
+> ACPI spec defines the bit and Microsoft uses it. Suppose Linux should
+> use it too.
+> 
+> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+
+ack.  looks familiar.
+
+http://marc.info/?l=linux-kernel&m=116361622308907&w=2
+http://marc.info/?l=linux-kernel&m=116362326505789&w=2
 
 
-On 3/20/07, Shaohua Li <shaohua.li@intel.com> wrote:
-> On Mon, 2007-03-19 at 17:30 +0800, Luming Yu wrote:
-> > adds _TPC support which support Throttling Present Capabilities
-> > change for ACPI processor driver
-> >
-> > signed-off-by: Luming Yu <Luming.yu@intel.com>
-> > --
-> >
-> >  drivers/acpi/processor_core.c       |    4 ++++
-> >  drivers/acpi/processor_throttling.c |   30
-> > ++++++++++++++++++++++++++++--
-> >  include/acpi/processor.h            |    3 +++
-> >  3 files changed, 35 insertions(+), 2 deletions(-)
-> >
-> >
-> > diff --git a/drivers/acpi/processor_core.c
-> > b/drivers/acpi/processor_core.c
-> > index ddc9e20..b2093ca 100644
-> > --- a/drivers/acpi/processor_core.c
-> > +++ b/drivers/acpi/processor_core.c
-> > @@ -67,6 +67,7 @@ #define ACPI_PROCESSOR_FILE_THROTTLING        "
-> >  #define ACPI_PROCESSOR_FILE_LIMIT      "limit"
-> >  #define ACPI_PROCESSOR_NOTIFY_PERFORMANCE 0x80
-> >  #define ACPI_PROCESSOR_NOTIFY_POWER    0x81
-> > +#define ACPI_PROCESSOR_NOTIFY_THROTTLING       0x82
-> >
-> >  #define ACPI_PROCESSOR_LIMIT_USER      0
-> >  #define ACPI_PROCESSOR_LIMIT_THERMAL   1
-> > @@ -702,6 +703,9 @@ static void acpi_processor_notify(acpi_h
-> >                 acpi_processor_cst_has_changed(pr);
-> >                 acpi_bus_generate_event(device, event, 0);
-> >                 break;
-> > +       case ACPI_PROCESSOR_NOTIFY_THROTTLING:
-> > +               acpi_processor_tstate_has_changed(pr);
-> > +               acpi_bus_generate_event(device, event, 0);
-> >         default:
-> >                 ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-> >                                   "Unsupported event [0x%x]\n",
-> > event));
-> > diff --git a/drivers/acpi/processor_throttling.c
-> > b/drivers/acpi/processor_throttling.c
-> > index b334860..0528b27 100644
-> > --- a/drivers/acpi/processor_throttling.c
-> > +++ b/drivers/acpi/processor_throttling.c
-> > @@ -44,6 +44,27 @@ #define ACPI_PROCESSOR_CLASS
-> >  #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
-> >  ACPI_MODULE_NAME("processor_throttling");
-> >
-> > +static int acpi_processor_get_platform_limit(struct acpi_processor
-> > *pr)
-> > +{
-> > +       acpi_status status = 0;
-> > +       unsigned long tpc = 0;
-> > +
-> > +       if(!pr)
-> > +               return -EINVAL;
-> > +       status = acpi_evaluate_integer(pr->handle, "_TPC", NULL,
-> > &tpc);
-> > +       if(ACPI_FAILURE(status) && status != AE_NOT_FOUND){
-> > +               ACPI_EXCEPTION((AE_INFO, status, "Evaluating _TPC"));
-> > +               return -ENODEV;
-> > +       }
-> > +       pr->throttling_platform_limit = (int)tpc;
-> > +       return 0;
-> > +}
-> I think we should reset throttling here, as limit is changed, previous
-> throttling setting might not be feasible.
+> Index: 2.6.21-rc6/drivers/pci/pci-acpi.c
+> ===================================================================
+> --- 2.6.21-rc6.orig/drivers/pci/pci-acpi.c	2007-04-06 10:36:56.000000000 +0800
+> +++ 2.6.21-rc6/drivers/pci/pci-acpi.c	2007-04-25 10:58:12.000000000 +0800
+> @@ -317,6 +317,10 @@ static int __init acpi_pci_init(void)
+>  {
+>  	int ret;
+>  
+> +	if (acpi_gbl_FADT.boot_flags & BAF_MSI_NOT_SUPPORTED) {
+> +		printk(KERN_INFO"ACPI FADT declares the system doesn't support MSI, so disable it\n");
+> +		pci_no_msi();
+> +	}
+>  	ret = register_acpi_bus_type(&acpi_pci_bus);
+>  	if (ret)
+>  		return 0;
+> Index: 2.6.21-rc6/include/acpi/actbl.h
+> ===================================================================
+> --- 2.6.21-rc6.orig/include/acpi/actbl.h	2007-04-06 10:36:56.000000000 +0800
+> +++ 2.6.21-rc6/include/acpi/actbl.h	2007-04-25 10:22:28.000000000 +0800
+> @@ -276,6 +276,7 @@ enum acpi_prefered_pm_profiles {
+>  
+>  #define BAF_LEGACY_DEVICES              0x0001
+>  #define BAF_8042_KEYBOARD_CONTROLLER    0x0002
+> +#define BAF_MSI_NOT_SUPPORTED           0x0008
+>  
+>  #define FADT2_REVISION_ID               3
+>  #define FADT2_MINUS_REVISION_ID         2
 
-It may make sense to change the current throttling level to be in line
-with the changes of the throttling platform limit. Through I expect it
-would be initiated from user land (a event has be sent to  user space)
+
+---
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
