@@ -1,65 +1,55 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 6/9] ACPI: thinkpad-acpi: add sysfs support to fan subdriver
-Date: Wed, 25 Apr 2007 09:49:13 -0300
-Message-ID: <20070425124913.GA14497@khazad-dum.debian.net>
-References: <11774261003184-git-send-email-hmh@hmh.eng.br> <11774261011195-git-send-email-hmh@hmh.eng.br> <200704250158.18297.lenb@kernel.org>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: Re: [PATCH 6/9] ACPI: thinkpad-acpi: add sysfs
+	support to fan subdriver
+Date: Wed, 25 Apr 2007 09:59:43 -0300
+Message-ID: <20070425125943.GB14497@khazad-dum.debian.net>
+References: <11774261003184-git-send-email-hmh@hmh.eng.br>
+	<11774261011195-git-send-email-hmh@hmh.eng.br>
+	<200704250158.18297.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:57872 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965522AbXDYMtT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Apr 2007 08:49:19 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200704250158.18297.lenb@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <200704250158.18297.lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
 On Wed, 25 Apr 2007, Len Brown wrote:
-> I'm glad to see the proc->sysfs conversion.
-> I'm glad to see compatibility with hwmon.
-> I think it will be handy to read fan speed.
-> 
-> I'm doubtful about the utility of setting fan speed.
 > It seems like it is enough rope for users to hang themselves,
 > and the need for a "safety net" seems to confirm that.
 
-The safety net was added out of sheer paranoia in the last few days, nobody
-*ever* reported any problems with this functionality, and I have never seen
-a ThinkPad DSDT that does not support the AUTO mode in HFSP fan control
-mode.
+I will cook up a patch that removes the experimental status of fan control,
+and adds in its place an explicit toggle to enable fan control (as opposed
+to fan monitoring, i.e. read-only operations) as a module parameter.  And it
+will default to "fan control is forbidden".
 
-I was doing a final review before sending the patches to you, looked at that
-code, and though "hey, wait.  There *is* a possible worst case scenario
-here.  Nobody ever reported it, but what the heck...".
+That way, the user has to effectively tell the kernel, through the kernel
+command line or a module parameter, that he wants thinkpad-acpi to be
+capable of writing fan control information to the EC.  Otherwise the driver
+will return -EPERM on all fan control operations, and just allow one to read
+fan status.
 
-Fan speed control is a feature thinkpad owners want, it is in use for about
-two years now.  Before I started maintaining ibm-acpi / thinkpad-acpi, it
-already supported basic fan control, and a lot of people that wanted more
-used some unwise tricks to do it (like playing directly with the EC).
-
-What we have now is at least *known safe* for the A31, T2x, T3x, T4x, T6x,
-X3x, X4x, X6x, R4x, R5x, R6x, Z6x in most commonly used BIOS/EC firmware
-revisions.  All of those models are known *not* to need any safety nets,
-either.  And earlier models don't support the codepath we are talking about
-anyway, so the driver doesn't enable it.
-
-Besides, unless the user decides to tell it to do something, the driver
-changes exactly *nothing* on the EC (no writes at all), so the ThinkPad will
-just continue doing whatever its firmware default operating mode and DSDT
-told it to.
-
-I won't say fan speed control is 100% safe, it would be foolhardy to do so,
-especially if you factor in firmware bugs.  But it is safe enough that
-nobody ever reported any problems with it in two years, so it is good enough
-for the population that would want to use it.  And the driver is intelligent
-enough to not change EC state unless it is actually commanded to do so.
+What do you think?
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
   them all and in the darkness grind them. In the Land of Redmond
   where the shadows lie." -- The Silicon Valley Tarot
   Henrique Holschuh
+
+-------------------------------------------------------------------------
+This SF.net email is sponsored by DB2 Express
+Download DB2 Express C - the FREE version of DB2 express and take
+control of your XML. No limits. Just data. Click to get it now.
+http://sourceforge.net/powerbar/db2/
