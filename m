@@ -1,59 +1,65 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Thinkpad suspend-to-disk regression
-Date: Wed, 25 Apr 2007 14:47:52 +0200
-Message-ID: <200704251447.53288.rjw@sisk.pl>
-References: <3d7cf86d0704241129i23da1b9fq93876573618e9dcd@mail.gmail.com> <200704250032.11108.rjw@sisk.pl> <3d7cf86d0704241925u61b46ac0m2df1f5ac194832b@mail.gmail.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 6/9] ACPI: thinkpad-acpi: add sysfs support to fan subdriver
+Date: Wed, 25 Apr 2007 09:49:13 -0300
+Message-ID: <20070425124913.GA14497@khazad-dum.debian.net>
+References: <11774261003184-git-send-email-hmh@hmh.eng.br> <11774261011195-git-send-email-hmh@hmh.eng.br> <200704250158.18297.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:42618 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965573AbXDYMn7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Apr 2007 08:43:59 -0400
-In-Reply-To: <3d7cf86d0704241925u61b46ac0m2df1f5ac194832b@mail.gmail.com>
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:57872 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S965522AbXDYMtT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Apr 2007 08:49:19 -0400
 Content-Disposition: inline
+In-Reply-To: <200704250158.18297.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Guilherme Salgado <gsalgado@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-On Wednesday, 25 April 2007 04:25, Guilherme Salgado wrote:
-> On 4/24/07, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Tuesday, 24 April 2007 20:29, Guilherme Salgado wrote:
-> > > (I've already sent this to linux-acpi but got no response so far, so I
-> > > thought it could be a good idea to send directly to you)
-> > >
-> > > Hi there,
-> > >
-> > > I recently noticed that my thinkpad T60 would lose the sound after
-> > > being suspended to disk (https://launchpad.net/bugs/80893), requiring
-> > > a cold restart to fix it. After some git-bisect work I found this
-> > > regression was a consequence of
-> > > http://git.kernel.org/?p=linux/kernel/git/lenb/linux-acpi-2.6.git;a=commitdiff;h=9185cfa92507d07ac787bc73d06c42222eec7239
-> > > (patch inlined here)
-> > >
-> > > Is there any chance of fixing the regression this introduced without
-> > > reverting it? Please let me know if you want any other info or have a
-> > > patch for me to try.
-> >
-> > You don't need a patch, I think.  Please try
-> >
-> > # echo shutdown > /sys/power/disk
-> >
-> > before the suspend (assuming you use the built-in swsusp).  If that works,
-> > just make your configuration scripts echo 'shutdown' to /sys/power/disk at
-> > system startup.
-> >
+On Wed, 25 Apr 2007, Len Brown wrote:
+> I'm glad to see the proc->sysfs conversion.
+> I'm glad to see compatibility with hwmon.
+> I think it will be handy to read fan speed.
 > 
-> I use Ubuntu's default /etc/acpi/hibernate.sh, which already sets
-> /sys/power/disk to shutdown before echoing "disk" to /sys/power/state.
+> I'm doubtful about the utility of setting fan speed.
+> It seems like it is enough rope for users to hang themselves,
+> and the need for a "safety net" seems to confirm that.
 
-In that case it's impossible that the commit you have identified causes the
-problem to happen.
+The safety net was added out of sheer paranoia in the last few days, nobody
+*ever* reported any problems with this functionality, and I have never seen
+a ThinkPad DSDT that does not support the AUTO mode in HFSP fan control
+mode.
 
-It doesn't even touch the 'shutdown' code path.
+I was doing a final review before sending the patches to you, looked at that
+code, and though "hey, wait.  There *is* a possible worst case scenario
+here.  Nobody ever reported it, but what the heck...".
 
-Greetings,
-Rafael
+Fan speed control is a feature thinkpad owners want, it is in use for about
+two years now.  Before I started maintaining ibm-acpi / thinkpad-acpi, it
+already supported basic fan control, and a lot of people that wanted more
+used some unwise tricks to do it (like playing directly with the EC).
+
+What we have now is at least *known safe* for the A31, T2x, T3x, T4x, T6x,
+X3x, X4x, X6x, R4x, R5x, R6x, Z6x in most commonly used BIOS/EC firmware
+revisions.  All of those models are known *not* to need any safety nets,
+either.  And earlier models don't support the codepath we are talking about
+anyway, so the driver doesn't enable it.
+
+Besides, unless the user decides to tell it to do something, the driver
+changes exactly *nothing* on the EC (no writes at all), so the ThinkPad will
+just continue doing whatever its firmware default operating mode and DSDT
+told it to.
+
+I won't say fan speed control is 100% safe, it would be foolhardy to do so,
+especially if you factor in firmware bugs.  But it is safe enough that
+nobody ever reported any problems with it in two years, so it is good enough
+for the population that would want to use it.  And the driver is intelligent
+enough to not change EC state unless it is actually commanded to do so.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
