@@ -1,62 +1,66 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: [PATCH] Disable MSI per FADT
-Date: Wed, 25 Apr 2007 08:01:10 -0700
-Message-ID: <20070425080110.ab2bbe5f.randy.dunlap@oracle.com>
-References: <1177470312.11073.10.camel@sli10-conroe.sh.intel.com>
+From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: Re: [patch] ACPI video driver output switch sysfs support
+Date: Wed, 25 Apr 2007 08:31:11 -0700
+Message-ID: <20070425083111.e8c24bd4.rdunlap@xenotime.net>
+References: <3877989d0703122231v7bb04f03ydf4c1de03040085f@mail.gmail.com>
+	<Pine.LNX.4.58.0703122231580.22327@shark.he.net>
+	<3877989d0704250706x57084249nc26ace98033c22d0@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from agminet01.oracle.com ([141.146.126.228]:19198 "EHLO
-	agminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161427AbXDYO7R (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Apr 2007 10:59:17 -0400
-In-Reply-To: <1177470312.11073.10.camel@sli10-conroe.sh.intel.com>
+Received: from xenotime.net ([66.160.160.81]:44353 "HELO xenotime.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1031092AbXDYP1m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Apr 2007 11:27:42 -0400
+Received: from midway.site ([71.245.96.31]) by xenotime.net for <linux-acpi@vger.kernel.org>; Wed, 25 Apr 2007 08:27:35 -0700
+In-Reply-To: <3877989d0704250706x57084249nc26ace98033c22d0@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Greg KH <greg@kroah.com>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+To: Luming Yu <luming.yu@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Wed, 25 Apr 2007 11:05:12 +0800 Shaohua Li wrote:
+On Wed, 25 Apr 2007 22:06:56 +0800 Luming Yu wrote:
 
-> ACPI spec defines the bit and Microsoft uses it. Suppose Linux should
-> use it too.
+> The update patch:
 > 
-> Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+> Add output switch sysfs class support for ACPI video driver.
+> 
+> signed-off-by: Luming Yu <Luming.yu@intel.com>
+> ---
+>  acpi/Kconfig   |    2 +-
+>  acpi/video.c   |   40 ++++++++++++++++++++++++++++++++++++++++
+>  video/Kconfig  |    7 +++++++
+>  video/Makefile |    3 +++
+>  4 files changed, 51 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
+> index 8372ace..8f2c02b 100644
+> --- a/drivers/video/Kconfig
+> +++ b/drivers/video/Kconfig
+> @@ -6,6 +6,13 @@ menu "Graphics support"
+> 
+>  source "drivers/video/backlight/Kconfig"
+> 
+> +config VIDEO_OUTPUT_CONTROL
+> +	tristate "Lowlevel video output switch controls"
+> +	default m
+> +	help
+> +	This framework adds support for low-level control of the video
+> +	output switch.
 
-ack.  looks familiar.
+Please indent the 2 lines of help text (only)
+with <tab><space><space>.
 
-http://marc.info/?l=linux-kernel&m=116361622308907&w=2
-http://marc.info/?l=linux-kernel&m=116362326505789&w=2
+>From Documentation/CodingStyle:
+Help text is indented with 2 spaces.
 
+(meaning 2 spaces more than the word "help" :)
 
-> Index: 2.6.21-rc6/drivers/pci/pci-acpi.c
-> ===================================================================
-> --- 2.6.21-rc6.orig/drivers/pci/pci-acpi.c	2007-04-06 10:36:56.000000000 +0800
-> +++ 2.6.21-rc6/drivers/pci/pci-acpi.c	2007-04-25 10:58:12.000000000 +0800
-> @@ -317,6 +317,10 @@ static int __init acpi_pci_init(void)
->  {
->  	int ret;
->  
-> +	if (acpi_gbl_FADT.boot_flags & BAF_MSI_NOT_SUPPORTED) {
-> +		printk(KERN_INFO"ACPI FADT declares the system doesn't support MSI, so disable it\n");
-> +		pci_no_msi();
-> +	}
->  	ret = register_acpi_bus_type(&acpi_pci_bus);
->  	if (ret)
->  		return 0;
-> Index: 2.6.21-rc6/include/acpi/actbl.h
-> ===================================================================
-> --- 2.6.21-rc6.orig/include/acpi/actbl.h	2007-04-06 10:36:56.000000000 +0800
-> +++ 2.6.21-rc6/include/acpi/actbl.h	2007-04-25 10:22:28.000000000 +0800
-> @@ -276,6 +276,7 @@ enum acpi_prefered_pm_profiles {
->  
->  #define BAF_LEGACY_DEVICES              0x0001
->  #define BAF_8042_KEYBOARD_CONTROLLER    0x0002
-> +#define BAF_MSI_NOT_SUPPORTED           0x0008
->  
->  #define FADT2_REVISION_ID               3
->  #define FADT2_MINUS_REVISION_ID         2
+> +
+>  config FB
+>  	tristate "Support for frame buffer devices"
+>  	---help---
 
 
 ---
