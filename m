@@ -1,158 +1,139 @@
 From: Shaohua Li <shaohua.li@intel.com>
-Subject: [cpuidle 2/3] add cpuidle_fore_redetect_devices API
-Date: Thu, 26 Apr 2007 10:40:13 +0800
-Message-ID: <1177555213.11629.14.camel@sli10-conroe.sh.intel.com>
+Subject: [cpuidle 3/3] utilize max_cstate limit in acpi cpuidle driver
+Date: Thu, 26 Apr 2007 10:40:09 +0800
+Message-ID: <1177555209.11629.12.camel@sli10-conroe.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga01.intel.com ([192.55.52.88]:37429 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754681AbXDZCnm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Apr 2007 22:43:42 -0400
+	id S1754075AbXDZCni (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Apr 2007 22:43:38 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
 Cc: linux acpi <linux-acpi@vger.kernel.org>
 
-add cpuidle_force_redetect_devices API, which force all CPU redetect idle states. Next patch will use it.
+With CPUIDLE framework, the max_cstate (to limit max cpu c-state) parameter is ingored. Some systems require it to ignore C2/C3 and some drivers like ipw require it too.
 
 Signed-off-by: Shaohua Li <shaohua.li@intel.com>
----
- drivers/acpi/processor_idle.c |    3 +-
- drivers/cpuidle/driver.c      |   56 +++++++++++++++++++++++++++++++++++++++---
- include/linux/cpuidle.h       |    7 +++--
- 3 files changed, 59 insertions(+), 7 deletions(-)
 
-Index: 21-rc6-mm1/drivers/cpuidle/driver.c
+---
+ drivers/acpi/osl.c            |   10 ++++++++++
+ drivers/acpi/processor_core.c |    2 ++
+ drivers/acpi/processor_idle.c |   23 +++++++++++++++++++++--
+ include/acpi/processor.h      |    1 +
+ include/linux/acpi.h          |    7 ++-----
+ 5 files changed, 36 insertions(+), 7 deletions(-)
+
+Index: 21-rc6-mm1/drivers/acpi/osl.c
 ===================================================================
---- 21-rc6-mm1.orig/drivers/cpuidle/driver.c	2007-04-26 09:56:53.000000000 +0800
-+++ 21-rc6-mm1/drivers/cpuidle/driver.c	2007-04-26 10:06:26.000000000 +0800
-@@ -160,20 +160,34 @@ void cpuidle_unregister_driver(struct cp
+--- 21-rc6-mm1.orig/drivers/acpi/osl.c	2007-04-26 10:06:41.000000000 +0800
++++ 21-rc6-mm1/drivers/acpi/osl.c	2007-04-26 10:11:15.000000000 +0800
+@@ -996,6 +996,16 @@ unsigned int max_cstate = ACPI_PROCESSOR
  
- EXPORT_SYMBOL_GPL(cpuidle_unregister_driver);
+ EXPORT_SYMBOL(max_cstate);
  
-+static void __cpuidle_force_redetect(struct cpuidle_device *dev)
++void (*acpi_do_set_cstate_limit)(void);
++EXPORT_SYMBOL(acpi_do_set_cstate_limit);
++
++void acpi_set_cstate_limit(unsigned int new_limit)
 +{
-+	cpuidle_remove_driver_sysfs(dev);
-+	cpuidle_curr_driver->redetect(dev);
-+	cpuidle_add_driver_sysfs(dev);
++	max_cstate = new_limit;
++	if (acpi_do_set_cstate_limit)
++		acpi_do_set_cstate_limit();
 +}
 +
- /**
-  * cpuidle_force_redetect - redetects the idle states of a CPU
+ /*
+  * Acquire a spinlock.
   *
-  * @dev: the CPU to redetect
-+ * @drv: the target driver
-  *
-  * Generally, the driver will call this when the supported states set has
-  * changed. (e.g. as the result of an ACPI transition to battery power)
-  */
--int cpuidle_force_redetect(struct cpuidle_device *dev)
-+int cpuidle_force_redetect(struct cpuidle_device *dev,
-+		struct cpuidle_driver *drv)
- {
- 	int uninstalled = 0;
- 
- 	mutex_lock(&cpuidle_lock);
- 
-+	if (drv != cpuidle_curr_driver) {
-+		mutex_unlock(&cpuidle_lock);
-+		return 0;
-+	}
-+
- 	if (!(dev->status & CPUIDLE_STATUS_DRIVER_ATTACHED) ||
- 	    !cpuidle_curr_driver->redetect) {
- 		mutex_unlock(&cpuidle_lock);
-@@ -185,9 +199,7 @@ int cpuidle_force_redetect(struct cpuidl
- 		cpuidle_uninstall_idle_handler();
- 	}
- 
--	cpuidle_remove_driver_sysfs(dev);
--	cpuidle_curr_driver->redetect(dev);
--	cpuidle_add_driver_sysfs(dev);
-+	__cpuidle_force_redetect(dev);
- 
- 	if (cpuidle_device_can_idle(dev)) {
- 		cpuidle_rescan_device(dev);
-@@ -206,6 +218,42 @@ int cpuidle_force_redetect(struct cpuidl
- EXPORT_SYMBOL_GPL(cpuidle_force_redetect);
- 
- /**
-+ * cpuidle_force_redetect_devices - redetects the idle states of all CPUs
-+ *
-+ * @drv: the target driver
-+ *
-+ * Generally, the driver will call this when the supported states set has
-+ * changed. (e.g. as the result of an ACPI transition to battery power)
-+ */
-+int cpuidle_force_redetect_devices(struct cpuidle_driver *drv)
-+{
-+	struct cpuidle_device *dev;
-+	int ret = 0;
-+
-+	mutex_lock(&cpuidle_lock);
-+
-+	if (drv != cpuidle_curr_driver)
-+		goto out;
-+
-+	if (!cpuidle_curr_driver->redetect) {
-+		ret = -EIO;
-+		goto out;
-+	}
-+
-+	cpuidle_uninstall_idle_handler();
-+
-+	list_for_each_entry(dev, &cpuidle_detected_devices, device_list)
-+		__cpuidle_force_redetect(dev);
-+
-+	cpuidle_install_idle_handler();
-+out:
-+	mutex_unlock(&cpuidle_lock);
-+	return ret;
-+}
-+
-+EXPORT_SYMBOL_GPL(cpuidle_force_redetect_devices);
-+
-+/**
-  * cpuidle_get_bm_activity - determines if BM activity has occured
-  */
- int cpuidle_get_bm_activity(void)
-Index: 21-rc6-mm1/include/linux/cpuidle.h
+Index: 21-rc6-mm1/drivers/acpi/processor_core.c
 ===================================================================
---- 21-rc6-mm1.orig/include/linux/cpuidle.h	2007-04-26 10:05:55.000000000 +0800
-+++ 21-rc6-mm1/include/linux/cpuidle.h	2007-04-26 10:06:26.000000000 +0800
-@@ -137,14 +137,17 @@ struct cpuidle_driver {
+--- 21-rc6-mm1.orig/drivers/acpi/processor_core.c	2007-04-26 10:06:41.000000000 +0800
++++ 21-rc6-mm1/drivers/acpi/processor_core.c	2007-04-26 10:11:15.000000000 +0800
+@@ -1030,11 +1030,13 @@ static int __init acpi_processor_init(vo
+ 	acpi_processor_ppc_init();
  
- extern int cpuidle_register_driver(struct cpuidle_driver *drv);
- extern void cpuidle_unregister_driver(struct cpuidle_driver *drv);
--extern int cpuidle_force_redetect(struct cpuidle_device *dev);
-+extern int cpuidle_force_redetect(struct cpuidle_device *dev, struct cpuidle_driver *drv);
-+extern int cpuidle_force_redetect_devices(struct cpuidle_driver *drv);
- 
- #else
- 
- static inline int cpuidle_register_driver(struct cpuidle_driver *drv)
- {return 0;}
- static inline void cpuidle_unregister_driver(struct cpuidle_driver *drv) { }
--static inline int cpuidle_force_redetect(struct cpuidle_device *dev)
-+static inline int cpuidle_force_redetect(struct cpuidle_device *dev, struct cpuidle_driver *drv)
-+{return 0;}
-+static inline int cpuidle_force_redetect_devices(struct cpuidle_driver *drv)
- {return 0;}
- 
- #endif
-Index: 21-rc6-mm1/drivers/acpi/processor_idle.c
-===================================================================
---- 21-rc6-mm1.orig/drivers/acpi/processor_idle.c	2007-04-26 10:05:55.000000000 +0800
-+++ 21-rc6-mm1/drivers/acpi/processor_idle.c	2007-04-26 10:06:41.000000000 +0800
-@@ -624,7 +624,8 @@ int acpi_processor_cst_has_changed(struc
- 		return -ENODEV;
- 
- 	acpi_processor_get_power_info(pr);
--	return cpuidle_force_redetect(per_cpu(cpuidle_devices, pr->id));
-+	return cpuidle_force_redetect(per_cpu(cpuidle_devices, pr->id),
-+		&acpi_idle_driver);
+ 	cpuidle_register_driver(&acpi_idle_driver);
++	acpi_do_set_cstate_limit = acpi_max_cstate_changed;
+ 	return 0;
  }
  
- /* proc interface */
+ static void __exit acpi_processor_exit(void)
+ {
++	acpi_do_set_cstate_limit = NULL;
+ 	cpuidle_unregister_driver(&acpi_idle_driver);
+ 
+ 	acpi_processor_ppc_exit();
+Index: 21-rc6-mm1/drivers/acpi/processor_idle.c
+===================================================================
+--- 21-rc6-mm1.orig/drivers/acpi/processor_idle.c	2007-04-26 10:09:07.000000000 +0800
++++ 21-rc6-mm1/drivers/acpi/processor_idle.c	2007-04-26 10:11:15.000000000 +0800
+@@ -75,7 +75,26 @@ ACPI_MODULE_NAME("processor_idle");
+ #define C2_OVERHEAD			1	/* 1us */
+ #define C3_OVERHEAD			1	/* 1us */
+ 
+-module_param(max_cstate, uint, 0644);
++void acpi_max_cstate_changed(void)
++{
++	/* Driver will reset devices' max cstate limit */
++	cpuidle_force_redetect_devices(&acpi_idle_driver);
++}
++
++static int change_max_cstate(const char *val, struct kernel_param *kp)
++{
++	int max;
++
++	max = simple_strtol(val, NULL, 0);
++	if (!max)
++		return -EINVAL;
++	max_cstate = max;
++	if (acpi_do_set_cstate_limit)
++		acpi_do_set_cstate_limit();
++	return 0;
++}
++
++module_param_call(max_cstate, change_max_cstate, param_get_uint, &max_cstate, 0644);
+ 
+ static unsigned int nocst __read_mostly;
+ module_param(nocst, uint, 0000);
+@@ -1055,7 +1074,7 @@ static int acpi_idle_init(struct cpuidle
+ 		return -EINVAL;
+ 	}
+ 
+-	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
++	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER && i <= max_cstate; i++) {
+ 		cx = &pr->power.states[i];
+ 		state = &dev->states[count];
+ 
+Index: 21-rc6-mm1/include/linux/acpi.h
+===================================================================
+--- 21-rc6-mm1.orig/include/linux/acpi.h	2007-04-26 10:06:41.000000000 +0800
++++ 21-rc6-mm1/include/linux/acpi.h	2007-04-26 10:11:15.000000000 +0800
+@@ -205,11 +205,8 @@ static inline unsigned int acpi_get_csta
+ {
+ 	return max_cstate;
+ }
+-static inline void acpi_set_cstate_limit(unsigned int new_limit)
+-{
+-	max_cstate = new_limit;
+-	return;
+-}
++extern void (*acpi_do_set_cstate_limit)(void);
++extern void acpi_set_cstate_limit(unsigned int new_limit);
+ #else
+ static inline unsigned int acpi_get_cstate_limit(void) { return 0; }
+ static inline void acpi_set_cstate_limit(unsigned int new_limit) { return; }
+Index: 21-rc6-mm1/include/acpi/processor.h
+===================================================================
+--- 21-rc6-mm1.orig/include/acpi/processor.h	2007-04-26 10:06:41.000000000 +0800
++++ 21-rc6-mm1/include/acpi/processor.h	2007-04-26 10:11:15.000000000 +0800
+@@ -277,6 +277,7 @@ int acpi_processor_cst_has_changed(struc
+ int acpi_processor_power_exit(struct acpi_processor *pr,
+ 			      struct acpi_device *device);
+ extern struct cpuidle_driver acpi_idle_driver;
++void acpi_max_cstate_changed(void);
+ 
+ /* in processor_thermal.c */
+ int acpi_processor_get_limit_info(struct acpi_processor *pr);
