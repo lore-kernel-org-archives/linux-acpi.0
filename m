@@ -1,75 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [patch 2/3] cpuidle hang fix
-Date: Thu, 26 Apr 2007 00:03:59 -0700
-Message-ID: <200704260703.l3Q73xdQ023270@shell0.pdx.osdl.net>
+Subject: [patch 1/3] Exit ACPI processor module gracefully if acpi is disabled
+Date: Thu, 26 Apr 2007 00:03:58 -0700
+Message-ID: <200704260703.l3Q73xIT023267@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36821 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50532 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933273AbXDZHFP (ORCPT
+	by vger.kernel.org with ESMTP id S933275AbXDZHFS (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Apr 2007 03:05:15 -0400
+	Thu, 26 Apr 2007 03:05:18 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, venkatesh.pallipadi@intel.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, trenn@suse.de
 
-From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+From: Thomas Renninger <trenn@suse.de>
 
-Prevent hang on x86-64, when ACPI processor driver is added as a module on
-a system that does not support C-states.
-
-x86-64 expects all idle handlers to enable interrupts before returning from
-idle handler.  This is due to enter_idle(), exit_idle() races.  Make
-cpuidle_idle_call() confirm to this when there is no pm_idle_old.
-
-Also, cpuidle look at the return values of attch_driver() and set
-current_driver to NULL if attach fails on all CPUs.
-
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/cpuidle.c |    2 ++
- drivers/cpuidle/driver.c  |   15 ++++++++++++---
- 2 files changed, 14 insertions(+), 3 deletions(-)
+ drivers/acpi/processor_core.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN drivers/cpuidle/cpuidle.c~cpuidle-hang-fix drivers/cpuidle/cpuidle.c
---- a/drivers/cpuidle/cpuidle.c~cpuidle-hang-fix
-+++ a/drivers/cpuidle/cpuidle.c
-@@ -43,6 +43,8 @@ static void cpuidle_idle_call(void)
- 	if (dev->status != CPUIDLE_STATUS_DOIDLE) {
- 		if (pm_idle_old)
- 			pm_idle_old();
-+		else
-+			local_irq_enable();
- 		return;
+diff -puN drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled drivers/acpi/processor_core.c
+--- a/drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled
++++ a/drivers/acpi/processor_core.c
+@@ -992,6 +992,8 @@ void acpi_processor_uninstall_hotplug_no
+  * ACPI, but needs symbols from this driver
+  */
+ 
++static int processor_driver_registered;
++
+ static int __init acpi_processor_init(void)
+ {
+ 	int result = 0;
+@@ -1017,6 +1019,8 @@ static int __init acpi_processor_init(vo
+ 		return result;
  	}
  
-diff -puN drivers/cpuidle/driver.c~cpuidle-hang-fix drivers/cpuidle/driver.c
---- a/drivers/cpuidle/driver.c~cpuidle-hang-fix
-+++ a/drivers/cpuidle/driver.c
-@@ -107,11 +107,20 @@ int cpuidle_switch_driver(struct cpuidle
- 	cpuidle_curr_driver = drv;
- 
- 	if (drv) {
-+		int ret = 1;
- 		list_for_each_entry(dev, &cpuidle_detected_devices, device_list)
--			cpuidle_attach_driver(dev);
--		if (cpuidle_curr_governor)
-+			if (cpuidle_attach_driver(dev) == 0)
-+				ret = 0;
++	processor_driver_registered = 1;
 +
-+		/* If attach on all devices fail, switch to NULL driver */
-+		if (ret)
-+			cpuidle_curr_driver = NULL;
-+
-+		if (cpuidle_curr_driver && cpuidle_curr_governor) {
-+			printk(KERN_INFO "cpuidle: using driver %s\n",
-+					drv->name);
- 			cpuidle_install_idle_handler();
--		printk(KERN_INFO "cpuidle: using driver %s\n", drv->name);
-+		}
- 	}
+ 	acpi_processor_install_hotplug_notify();
  
- 	return 0;
+ 	acpi_thermal_cpufreq_init();
+@@ -1035,12 +1039,13 @@ static void __exit acpi_processor_exit(v
+ 
+ 	acpi_thermal_cpufreq_exit();
+ 
+-	acpi_processor_uninstall_hotplug_notify();
+-
+-	acpi_bus_unregister_driver(&acpi_processor_driver);
++	if (processor_driver_registered) {
++		acpi_processor_uninstall_hotplug_notify();
+ 
+-	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
++		acpi_bus_unregister_driver(&acpi_processor_driver);
+ 
++		remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
++	}
+ 	return;
+ }
+ 
 _
