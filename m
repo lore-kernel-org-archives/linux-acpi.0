@@ -1,59 +1,75 @@
-From: "Michal Piotrowski" <michal.k.k.piotrowski@gmail.com>
-Subject: 2.6.21-rc7: known regressions
-Date: Sat, 28 Apr 2007 00:38:07 +0200
-Message-ID: <6bffcb0e0704271538v435bfd45u7e06a7f5f5e9a8b@mail.gmail.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: 2.6.21-rc6-mm1 USB related boot hang - bisection result
+Date: Fri, 27 Apr 2007 15:41:56 -0700
+Message-ID: <20070427154156.c1388f94.akpm@linux-foundation.org>
+References: <20070411194227.GA31286@aitel.hist.no>
+	<20070411134346.d10765da.akpm@linux-foundation.org>
+	<20070411230700.GA4023@aitel.hist.no>
+	<Pine.LNX.4.64.0704122023510.12991@twin.jikos.cz>
+	<20070412202519.GB14705@aitel.hist.no>
+	<Pine.LNX.4.64.0704130107170.12991@twin.jikos.cz>
+	<462F2558.5010909@aitel.hist.no>
+	<Pine.LNX.4.64.0704251324540.20657@twin.jikos.cz>
+	<46312787.1020702@aitel.hist.no>
+	<Pine.LNX.4.64.0704270038150.20657@twin.jikos.cz>
+	<20070427210458.GA4302@aitel.hist.no>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nz-out-0506.google.com ([64.233.162.229]:4577 "EHLO
-	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757499AbXD0WiJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Apr 2007 18:38:09 -0400
-Received: by nz-out-0506.google.com with SMTP id o1so1288745nzf
-        for <linux-acpi@vger.kernel.org>; Fri, 27 Apr 2007 15:38:09 -0700 (PDT)
-Content-Disposition: inline
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54555 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754383AbXD0Wne (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 27 Apr 2007 18:43:34 -0400
+In-Reply-To: <20070427210458.GA4302@aitel.hist.no>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: stable@kernel.org, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Riccardo Ricci <rricci@nuovanetmore.it>, "Udo A. Steinberg" <us15@os.inf.tu-dresden.de>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, David Brownell <david-b@pacbell.net>, Jeff Mahoney <jeffm@suse.com>, reiserfs-dev@namesys.com
+To: Helge Hafting <helgehaf@aitel.hist.no>
+Cc: Jiri Kosina <jikos@jikos.cz>, linux-usb-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-Hi all,
+On Fri, 27 Apr 2007 23:04:58 +0200
+Helge Hafting <helgehaf@aitel.hist.no> wrote:
 
-Here is a list of known regressions reported after 2.6.21 release.
+> On Fri, Apr 27, 2007 at 12:39:19AM +0200, Jiri Kosina wrote:
+> > On Fri, 27 Apr 2007, Helge Hafting wrote:
+> > 
+> > > 2.6.21-rc6 boots up fine.  Both rc6 and rc7 has a different problem - 
+> > > the machine tends to hang after some minutes work in X.  That hang is 
+> > > unusual in that moving the mouse still move the X cursor, but everything 
+> > > else stops and sysrq fails me. But that is another story.
+> > [...]
+> > > The (first) "hanging" patch in 2.6.21-rc6-mm1 is: git-acpi.patch
+> > 
+> > Hi Helge,
+> > 
+> > thanks for the effort. If you take stock rc6-mm1 and revert just 
+> > git-acpi.patch, doesn the machine behave correctly?
+> 
+> Just compiled & booted such a kernel - it came up fine!
+> So it looks like USB is fine then, and the problem is in
+> that ACPI patch.
+> 
 
-=46eel free to add new regressions/remove fixed etc.
-http://lkr.wikidot.com/list
+OK, thanks.  Len&co: we've established that 2.6.21-rc6-mm1's git-acpi.patch
+causes this:
 
-Subject : 2.6.21 don't boot, it stops after ACPI: PCI Interrupt Link
-[LNKB] (IRQs 3 4 *5 6 7 9 10 11 12 14 15).
-References : http://lkml.org/lkml/2007/4/27/400
-Submitter : Riccardo Ricci <rricci@nuovanetmore.it>
-Status : unknown
-
-Subject : ACPI interpreter errors
-References : http://lkml.org/lkml/2007/4/27/206
-Submitter : Udo A. Steinberg <us15@os.inf.tu-dresden.de>
-Status : unknown
-
-Subject : reiserfs =97 circular locking
-References : http://lkml.org/lkml/2007/4/26/648
-Submitter : David Brownell <david-b@pacbell.net>
-Handled-By : Jeff Mahoney <jeffm@suse.com>
-Status : patch available http://lkml.org/lkml/2007/4/27/332
-
-Regards,
-Michal
-
---=20
-Michal K. K. Piotrowski
-LTG - Linux Testers Group (PL)
-(http://www.stardust.webpages.pl/ltg/)
-LTG - Linux Testers Group (EN)
-(http://www.stardust.webpages.pl/linux_testers_group_en/)
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 2.6.21-rc6 boots up fine.  Both rc6 and rc7 has a different problem - the
+> machine tends to hang after some minutes work in X.  That hang is
+> unusual in that moving the mouse still move the X cursor, but
+> everything else stops and sysrq fails me. But that is another story.
+> 
+> rc6 boots, rc6-mm1 hangs at the "usbcore registered hiddev" message.
+> Bisection:
+> 1, 2, 3: the three first hangs at "usbcore registered hiddev"
+> 4, 5, 6: the next three hangs at a message about ACPI  PCI[A]->IRQ17
+> I decided to keep bisecting these hangers as "bad", I don't really know
+> if this could be the same thing or completely different issues.  If they are
+> different, then one problem will mask the other anyway, so
+> calling every hanging kernel "bad" will at least find the first broken 
+> patch.
+> 7: boots up ok!
+> 8,9,10: hangs at the aboce mentioned ACPI message
+> The (first) "hanging" patch in 2.6.21-rc6-mm1 is: git-acpi.patch
+> 
+> 
