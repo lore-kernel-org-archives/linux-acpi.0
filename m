@@ -1,66 +1,59 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: ACPI interpreter errors
-Date: Fri, 27 Apr 2007 11:05:17 -0700
-Message-ID: <B28E9812BAF6E2498B7EC5C427F293A4025DC20B@orsmsx415.amr.corp.intel.com>
-References: <20070427140757.56f5e218@laptop.hypervisor.org>
+From: "Michal Piotrowski" <michal.k.k.piotrowski@gmail.com>
+Subject: 2.6.21-rc7: known regressions
+Date: Sat, 28 Apr 2007 00:38:07 +0200
+Message-ID: <6bffcb0e0704271538v435bfd45u7e06a7f5f5e9a8b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=WINDOWS-1252;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756963AbXD0SFW@vger.kernel.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <20070427140757.56f5e218@laptop.hypervisor.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Udo A. Steinberg" <us15@os.inf.tu-dresden.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Linux ACPI Mailing List <linux-acpi@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from nz-out-0506.google.com ([64.233.162.229]:4577 "EHLO
+	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757499AbXD0WiJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Apr 2007 18:38:09 -0400
+Received: by nz-out-0506.google.com with SMTP id o1so1288745nzf
+        for <linux-acpi@vger.kernel.org>; Fri, 27 Apr 2007 15:38:09 -0700 (PDT)
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: stable@kernel.org, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Riccardo Ricci <rricci@nuovanetmore.it>, "Udo A. Steinberg" <us15@os.inf.tu-dresden.de>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, David Brownell <david-b@pacbell.net>, Jeff Mahoney <jeffm@suse.com>, reiserfs-dev@namesys.com
 
-Status 5 from ACPICA is AE_NOT_FOUND.
+Hi all,
 
-_OSC is an optional control method, so whatever code is squawking about=
- it probably handle it and shut up.
+Here is a list of known regressions reported after 2.6.21 release.
 
+=46eel free to add new regressions/remove fixed etc.
+http://lkr.wikidot.com/list
 
------Original Message-----
-=46rom: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.=
-kernel.org] On Behalf Of Udo A. Steinberg
-Sent: Friday, April 27, 2007 5:08 AM
-To: Linux Kernel Mailing List
-Cc: Linux ACPI Mailing List
-Subject: ACPI interpreter errors
+Subject : 2.6.21 don't boot, it stops after ACPI: PCI Interrupt Link
+[LNKB] (IRQs 3 4 *5 6 7 9 10 11 12 14 15).
+References : http://lkml.org/lkml/2007/4/27/400
+Submitter : Riccardo Ricci <rricci@nuovanetmore.it>
+Status : unknown
 
-Hello,
+Subject : ACPI interpreter errors
+References : http://lkml.org/lkml/2007/4/27/206
+Submitter : Udo A. Steinberg <us15@os.inf.tu-dresden.de>
+Status : unknown
 
-With 2.6.21 I am getting the following errors from the ACPI interpreter=
- on an
-Intel S5000PSL board:
+Subject : reiserfs =97 circular locking
+References : http://lkml.org/lkml/2007/4/26/648
+Submitter : David Brownell <david-b@pacbell.net>
+Handled-By : Jeff Mahoney <jeffm@suse.com>
+Status : patch available http://lkml.org/lkml/2007/4/27/332
 
-Allocate Port Service[0000:02:02.0:pcie20]
-Allocate Port Service[0000:02:02.0:pcie21]
-Evaluate _OSC Set fails. Status =3D 0x0005
-Evaluate _OSC Set fails. Status =3D 0x0005
-aer_init: AER service init fails - Run ACPI _OSC fails
-aer: probe of 0000:00:02.0:pcie01 failed with error 2
-aer_init: AER service init fails - No ACPI _OSC support
-aer: probe of 0000:00:03.0:pcie01 failed with error 1
-Evaluate _OSC Set fails. Status =3D 0x0005
-Evaluate _OSC Set fails. Status =3D 0x0005
-aer_init: AER service init fails - Run ACPI _OSC fails
-aer: probe of 0000:00:04.0:pcie01 failed with error 2
-Evaluate _OSC Set fails. Status =3D 0x0005
-Evaluate _OSC Set fails. Status =3D 0x0005
-aer_init: AER service init fails - Run ACPI _OSC fails
-aer: probe of 0000:00:05.0:pcie01 failed with error 2
-Evaluate _OSC Set fails. Status =3D 0x0005
-Evaluate _OSC Set fails. Status =3D 0x0005
-aer_init: AER service init fails - Run ACPI _OSC fails
-aer: probe of 0000:00:06.0:pcie01 failed with error 2
-aer_init: AER service init fails - No ACPI _OSC support
-aer: probe of 0000:00:07.0:pcie01 failed with error 1
+Regards,
+Michal
 
-The complete dmesg output is attached. If you need more information, pl=
-ease let
-me know.
-
-Cheers,
-
-=A0=A0=A0=A0=A0=A0=A0 - Udo
+--=20
+Michal K. K. Piotrowski
+LTG - Linux Testers Group (PL)
+(http://www.stardust.webpages.pl/ltg/)
+LTG - Linux Testers Group (EN)
+(http://www.stardust.webpages.pl/linux_testers_group_en/)
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
