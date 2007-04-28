@@ -1,12 +1,14 @@
 From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: [GIT PULL] thinkpad-acpi fixes and sysfs support
-	part 2 (try 2)
-Date: Fri, 27 Apr 2007 22:00:08 -0300
-Message-ID: <11777220172751-git-send-email-hmh@hmh.eng.br>
+Subject: [PATCH 6/9] ACPI: thinkpad-acpi: improve debugging
+	for acpi helpers
+Date: Fri, 27 Apr 2007 22:00:14 -0300
+Message-ID: <11777220183170-git-send-email-hmh@hmh.eng.br>
+References: <11777220172751-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <11777220172751-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
 	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ibm-acpi-devel>
@@ -17,85 +19,104 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
 Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Len,
+Some issues with the dock subdriver proved that a slightly improved
+debugging setup for ACPI notifiers and handler helpers would be useful.
 
-Please pull from:
-git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git for-upstream/acpi-test
+Signed-off-by: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+---
+ drivers/misc/thinkpad_acpi.c |   31 ++++++++++++++++++++-----------
+ 1 files changed, 20 insertions(+), 11 deletions(-)
 
-to receive the following patches *already* in acpi-test:
-      ACPI: ibm-acpi: kill trailing whitespace
-      ACPI: ibm-acpi: rename some identifiers
-      ACPI: ibm-acpi: add header file
-      ACPI: ibm-acpi: organize code
-      ACPI: ibm-acpi: update copyright notice
-      ACPI: ibm-acpi: update documentation
-      ACPI: ibm-acpi: move driver to drivers/misc hierarchy
-      ACPI: ibm-acpi: rename driver to thinkpad-acpi
-      ACPI: thinkpad-acpi: cleanup Kconfig for thinkpad-acpi
-      ACPI: thinkpad-acpi: add compatibility MODULE_ALIAS entry
-      ACPI: thinkpad-acpi: cleanup after rename
-      ACPI: thinkpad-acpi: update MAINTAINERS
-      ACPI: thinkpad-acpi: rename register_ibmacpi_subdriver
-      ACPI: thinkpad-acpi: rename one stray use of ibm-acpi in a comment
-      ACPI: thinkpad-acpi: rename module glue
-      ACPI: thinkpad-acpi: rename thinkpad constants
-      ACPI: thinkpad-acpi: update fan firmware documentation
-      ACPI: thinkpad-acpi: add debug mode
-      ACPI: thinkpad-acpi: clean up probing and move init to subdrivers
-      ACPI: thinkpad-acpi: add subdriver debug statements
-      ACPI: thinkpad-acpi: uncouple subdriver init from ibms struct
-      ACPI: thinkpad-acpi: improve thinkpad detection
-      ACPI: thinkpad-acpi: use bitfields to hold subdriver flags
-      ACPI: thinkpad-acpi: use bitfields for module flags
-      ACPI: thinkpad-acpi: prepare for device model conversion
-      ACPI: thinkpad-acpi: mark acpi helper functions __must_check
-      ACPI: thinkpad-acpi: clean up hotkey subdriver
-      ACPI: thinkpad-acpi: cleanup bluetooth and wan for sysfs conversion
-      ACPI: thinkpad-acpi: cleanup video subdriver
-      ACPI: thinkpad-acpi: clean up CMOS commands subdriver
-      ACPI: thinkpad-acpi: cleanup thermal subdriver for sysfs conversion
-      ACPI: thinkpad-acpi: improve fan watchdog messages
-      ACPI: thinkpad-acpi: register with the device model
-      ACPI: thinkpad-acpi: driver sysfs conversion
-      ACPI: thinkpad-acpi: add infrastructure for the sysfs device attributes
-      ACPI: thinkpad-acpi: protect fan and hotkey data structures
-      ACPI: thinkpad-acpi: add sysfs support to the thermal subdriver
-      ACPI: thinkpad-acpi: add sysfs support to fan subdriver
-      ACPI: thinkpad-acpi: add a safety net for TPEC fan control mode
-      ACPI: thinkpad-acpi: add sysfs support to the cmos command subdriver
-      ACPI: thinkpad-acpi: update brightness sysfs interface support
-
-      (the above should not cause any probles if you already pulled
-      from that branch, as I have not rebased the branch or modified
-      any of the above patches)
-
-and to receive the following *new* patches:
-
-      ACPI: thinkpad-acpi: add a fan-control feature master toggle
-      ACPI: thinkpad-acpi: do not arm fan watchdog if it would not work
-      ACPI: thinkpad-acpi: fix a fan watchdog invocation
-      ACPI: thinkpad-acpi: map ENXIO to EINVAL for fan sysfs
-      ACPI: thinkpad-acpi: improve fan control documentation
-      ACPI: thinkpad-acpi: improve debugging for acpi helpers
-      ACPI: thinkpad-acpi: improve dock subdriver initialization
-      ACPI: thinkpad-acpi: add sysfs support to hotkey subdriver
-      ACPI: thinkpad-acpi: add sysfs support to wan and bluetooth subdrivers
-
-This is some cleaning-up of the fan sysfs support and the "no fan
-control by default" master switch (patches 1-5), some extra debugging
-and a minor fix to a deprecated subdriver (patches 6, 7), and two more
-sysfs conversions (patches 8, 9).
-
-Please merge for 2.6.22.
-
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index 7aed118..68f1cc0 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -296,14 +296,22 @@ static void drv_acpi_handle_init(char *name,
+ 	int i;
+ 	acpi_status status;
+ 
++	vdbg_printk(TPACPI_DBG_INIT, "trying to locate ACPI handle for %s\n",
++		name);
++
+ 	for (i = 0; i < num_paths; i++) {
+ 		status = acpi_get_handle(parent, paths[i], handle);
+ 		if (ACPI_SUCCESS(status)) {
+ 			*path = paths[i];
++			dbg_printk(TPACPI_DBG_INIT,
++				   "Found ACPI handle %s for %s\n",
++				   *path, name);
+ 			return;
+ 		}
+ 	}
+ 
++	vdbg_printk(TPACPI_DBG_INIT, "ACPI handle for %s not found\n",
++		    name);
+ 	*handle = NULL;
+ }
+ 
+@@ -320,19 +328,20 @@ static void dispatch_acpi_notify(acpi_handle handle, u32 event, void *data)
+ static int __init setup_acpi_notify(struct ibm_struct *ibm)
+ {
+ 	acpi_status status;
+-	int ret;
++	int rc;
+ 
+ 	BUG_ON(!ibm->acpi);
+ 
+ 	if (!*ibm->acpi->handle)
+ 		return 0;
+ 
+-	dbg_printk(TPACPI_DBG_INIT,
++	vdbg_printk(TPACPI_DBG_INIT,
+ 		"setting up ACPI notify for %s\n", ibm->name);
+ 
+-	ret = acpi_bus_get_device(*ibm->acpi->handle, &ibm->acpi->device);
+-	if (ret < 0) {
+-		printk(IBM_ERR "%s device not present\n", ibm->name);
++	rc = acpi_bus_get_device(*ibm->acpi->handle, &ibm->acpi->device);
++	if (rc < 0) {
++		printk(IBM_ERR "acpi_bus_get_device(%s) failed: %d\n",
++			ibm->name, rc);
+ 		return -ENODEV;
+ 	}
+ 
+@@ -364,7 +373,7 @@ static int __init tpacpi_device_add(struct acpi_device *device)
+ 
+ static int __init register_tpacpi_subdriver(struct ibm_struct *ibm)
+ {
+-	int ret;
++	int rc;
+ 
+ 	dbg_printk(TPACPI_DBG_INIT,
+ 		"registering %s as an ACPI driver\n", ibm->name);
+@@ -381,16 +390,16 @@ static int __init register_tpacpi_subdriver(struct ibm_struct *ibm)
+ 	ibm->acpi->driver->ids = ibm->acpi->hid;
+ 	ibm->acpi->driver->ops.add = &tpacpi_device_add;
+ 
+-	ret = acpi_bus_register_driver(ibm->acpi->driver);
+-	if (ret < 0) {
++	rc = acpi_bus_register_driver(ibm->acpi->driver);
++	if (rc < 0) {
+ 		printk(IBM_ERR "acpi_bus_register_driver(%s) failed: %d\n",
+-		       ibm->acpi->hid, ret);
++		       ibm->acpi->hid, rc);
+ 		kfree(ibm->acpi->driver);
+ 		ibm->acpi->driver = NULL;
+-	} else if (!ret)
++	} else if (!rc)
+ 		ibm->flags.acpi_driver_registered = 1;
+ 
+-	return ret;
++	return rc;
+ }
+ 
+ 
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+1.5.1
+
 
 -------------------------------------------------------------------------
 This SF.net email is sponsored by DB2 Express
