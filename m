@@ -1,75 +1,104 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: 2.6.21-rc6-mm1 USB related boot hang - bisection result
-Date: Fri, 27 Apr 2007 15:41:56 -0700
-Message-ID: <20070427154156.c1388f94.akpm@linux-foundation.org>
-References: <20070411194227.GA31286@aitel.hist.no>
-	<20070411134346.d10765da.akpm@linux-foundation.org>
-	<20070411230700.GA4023@aitel.hist.no>
-	<Pine.LNX.4.64.0704122023510.12991@twin.jikos.cz>
-	<20070412202519.GB14705@aitel.hist.no>
-	<Pine.LNX.4.64.0704130107170.12991@twin.jikos.cz>
-	<462F2558.5010909@aitel.hist.no>
-	<Pine.LNX.4.64.0704251324540.20657@twin.jikos.cz>
-	<46312787.1020702@aitel.hist.no>
-	<Pine.LNX.4.64.0704270038150.20657@twin.jikos.cz>
-	<20070427210458.GA4302@aitel.hist.no>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: [GIT PULL] thinkpad-acpi fixes and sysfs support
+	part 2
+Date: Fri, 27 Apr 2007 21:57:40 -0300
+Message-ID: <1177721861912-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54555 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754383AbXD0Wne (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 27 Apr 2007 18:43:34 -0400
-In-Reply-To: <20070427210458.GA4302@aitel.hist.no>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Helge Hafting <helgehaf@aitel.hist.no>
-Cc: Jiri Kosina <jikos@jikos.cz>, linux-usb-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On Fri, 27 Apr 2007 23:04:58 +0200
-Helge Hafting <helgehaf@aitel.hist.no> wrote:
+Len,
 
-> On Fri, Apr 27, 2007 at 12:39:19AM +0200, Jiri Kosina wrote:
-> > On Fri, 27 Apr 2007, Helge Hafting wrote:
-> > 
-> > > 2.6.21-rc6 boots up fine.  Both rc6 and rc7 has a different problem - 
-> > > the machine tends to hang after some minutes work in X.  That hang is 
-> > > unusual in that moving the mouse still move the X cursor, but everything 
-> > > else stops and sysrq fails me. But that is another story.
-> > [...]
-> > > The (first) "hanging" patch in 2.6.21-rc6-mm1 is: git-acpi.patch
-> > 
-> > Hi Helge,
-> > 
-> > thanks for the effort. If you take stock rc6-mm1 and revert just 
-> > git-acpi.patch, doesn the machine behave correctly?
-> 
-> Just compiled & booted such a kernel - it came up fine!
-> So it looks like USB is fine then, and the problem is in
-> that ACPI patch.
-> 
+Please pull from:
+git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git for-upstream/acpi-test
 
-OK, thanks.  Len&co: we've established that 2.6.21-rc6-mm1's git-acpi.patch
-causes this:
+to receive the following patches *already* in acpi-test:
+      ACPI: ibm-acpi: kill trailing whitespace
+      ACPI: ibm-acpi: rename some identifiers
+      ACPI: ibm-acpi: add header file
+      ACPI: ibm-acpi: organize code
+      ACPI: ibm-acpi: update copyright notice
+      ACPI: ibm-acpi: update documentation
+      ACPI: ibm-acpi: move driver to drivers/misc hierarchy
+      ACPI: ibm-acpi: rename driver to thinkpad-acpi
+      ACPI: thinkpad-acpi: cleanup Kconfig for thinkpad-acpi
+      ACPI: thinkpad-acpi: add compatibility MODULE_ALIAS entry
+      ACPI: thinkpad-acpi: cleanup after rename
+      ACPI: thinkpad-acpi: update MAINTAINERS
+      ACPI: thinkpad-acpi: rename register_ibmacpi_subdriver
+      ACPI: thinkpad-acpi: rename one stray use of ibm-acpi in a comment
+      ACPI: thinkpad-acpi: rename module glue
+      ACPI: thinkpad-acpi: rename thinkpad constants
+      ACPI: thinkpad-acpi: update fan firmware documentation
+      ACPI: thinkpad-acpi: add debug mode
+      ACPI: thinkpad-acpi: clean up probing and move init to subdrivers
+      ACPI: thinkpad-acpi: add subdriver debug statements
+      ACPI: thinkpad-acpi: uncouple subdriver init from ibms struct
+      ACPI: thinkpad-acpi: improve thinkpad detection
+      ACPI: thinkpad-acpi: use bitfields to hold subdriver flags
+      ACPI: thinkpad-acpi: use bitfields for module flags
+      ACPI: thinkpad-acpi: prepare for device model conversion
+      ACPI: thinkpad-acpi: mark acpi helper functions __must_check
+      ACPI: thinkpad-acpi: clean up hotkey subdriver
+      ACPI: thinkpad-acpi: cleanup bluetooth and wan for sysfs conversion
+      ACPI: thinkpad-acpi: cleanup video subdriver
+      ACPI: thinkpad-acpi: clean up CMOS commands subdriver
+      ACPI: thinkpad-acpi: cleanup thermal subdriver for sysfs conversion
+      ACPI: thinkpad-acpi: improve fan watchdog messages
+      ACPI: thinkpad-acpi: register with the device model
+      ACPI: thinkpad-acpi: driver sysfs conversion
+      ACPI: thinkpad-acpi: add infrastructure for the sysfs device attributes
+      ACPI: thinkpad-acpi: protect fan and hotkey data structures
+      ACPI: thinkpad-acpi: add sysfs support to the thermal subdriver
+      ACPI: thinkpad-acpi: add sysfs support to fan subdriver
+      ACPI: thinkpad-acpi: add a safety net for TPEC fan control mode
+      ACPI: thinkpad-acpi: add sysfs support to the cmos command subdriver
+      ACPI: thinkpad-acpi: update brightness sysfs interface support
 
-> 2.6.21-rc6 boots up fine.  Both rc6 and rc7 has a different problem - the
-> machine tends to hang after some minutes work in X.  That hang is
-> unusual in that moving the mouse still move the X cursor, but
-> everything else stops and sysrq fails me. But that is another story.
-> 
-> rc6 boots, rc6-mm1 hangs at the "usbcore registered hiddev" message.
-> Bisection:
-> 1, 2, 3: the three first hangs at "usbcore registered hiddev"
-> 4, 5, 6: the next three hangs at a message about ACPI  PCI[A]->IRQ17
-> I decided to keep bisecting these hangers as "bad", I don't really know
-> if this could be the same thing or completely different issues.  If they are
-> different, then one problem will mask the other anyway, so
-> calling every hanging kernel "bad" will at least find the first broken 
-> patch.
-> 7: boots up ok!
-> 8,9,10: hangs at the aboce mentioned ACPI message
-> The (first) "hanging" patch in 2.6.21-rc6-mm1 is: git-acpi.patch
-> 
-> 
+      (the above should not cause any probles if you already pulled
+      from that branch, as I have not rebased the branch or modified
+      any of the above patches)
+
+and to receive the following *new* patches:
+
+      ACPI: thinkpad-acpi: add a fan-control feature master toggle
+      ACPI: thinkpad-acpi: do not arm fan watchdog if it would not work
+      ACPI: thinkpad-acpi: fix a fan watchdog invocation
+      ACPI: thinkpad-acpi: map ENXIO to EINVAL for fan sysfs
+      ACPI: thinkpad-acpi: improve fan control documentation
+      ACPI: thinkpad-acpi: improve debugging for acpi helpers
+      ACPI: thinkpad-acpi: improve dock subdriver initialization
+      ACPI: thinkpad-acpi: add sysfs support to hotkey subdriver
+      ACPI: thinkpad-acpi: add sysfs support to wan and bluetooth subdrivers
+
+This is some cleaning-up of the fan sysfs support and the "no fan
+control by default" master switch (patches 1-5), some extra debugging
+and a minor fix to a deprecated subdriver (patches 6, 7), and two more
+sysfs conversions (patches 8, 9).
+
+Please merge for 2.6.22.
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
+
+-------------------------------------------------------------------------
+This SF.net email is sponsored by DB2 Express
+Download DB2 Express C - the FREE version of DB2 express and take
+control of your XML. No limits. Just data. Click to get it now.
+http://sourceforge.net/powerbar/db2/
