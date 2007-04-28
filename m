@@ -1,86 +1,104 @@
-From: malattia@linux.it
-Subject: [patch 9/9 v2] sony-laptop: remove user visible camera controls as platform attributes
-Date: Sat, 28 Apr 2007 23:36:40 +0900
-Message-ID: <20070428143640.GI5293@inferi.kami.home>
-References: <20070428141557.GA4764@inferi.kami.home>
+From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Subject: 2.6.21 known regressions (v2) (for -stable team)
+Date: Sat, 28 Apr 2007 18:27:17 +0200
+Message-ID: <463375E5.5040108@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mtoichi11.ns.itscom.net ([219.110.2.181]:58732 "EHLO
-	mtoichi11.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965839AbXD1OiE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Apr 2007 10:38:04 -0400
-Content-Disposition: inline; filename="0016-remove-camera-platform-attributes.patch"
+Received: from ug-out-1314.google.com ([66.249.92.170]:3999 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965884AbXD1Q22 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Apr 2007 12:28:28 -0400
+Received: by ug-out-1314.google.com with SMTP id 44so1005261uga
+        for <linux-acpi@vger.kernel.org>; Sat, 28 Apr 2007 09:28:27 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Stelian Pop <stelian@popies.net>, Mattia Dongili <malattia@linux.it>
+To: stable@kernel.org, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Riccardo Ricci <rricci@nuovanetmore.it>, "Udo A. Steinberg" <us15@os.inf.tu-dresden.de>, Len Brown <len.brown@intel.com>, David Brownell <david-b@pacbell.net>, Jeff Mahoney <jeffm@suse.com>, reiserfs-dev@namesys.com, Jeff Chua <jeff.chua.linux@gmail.com>, Francois SIMOND <curio@free.fr>, Stephen Hemminger <shemminger@linux-foundation.org>, netdev@vger.kernel.org, =?UTF-8?B?SMOla2FuIExpbmRxdmlzdA==?= <lindqvist@netstar.se>, Vincent Frentzel <zcecc22@ucl.ac.uk>, =?UTF-8?B?RnJhbsOnb2lzIFZhbGVuZHVj?= <francois.valenduc@skynet.be>, Thomas Meyer <thomas.mey@web.de>, Giorgio Lando <patroclo7@gmail.com>, Dave Jones <davej@redhat.com>, Thomas Gleixner <tglx@linutronix.de>
 
-Avoid giving the user the possibility to shoot his own foot and let
-the meye driver enable/disable the camera wisely (PCI_ID based).
+Hi all,
 
-Signed-off-by: Mattia Dongili <malattia@linux.it>
----
-Index: linux-2.6/drivers/misc/sony-laptop.c
-===================================================================
---- linux-2.6.orig/drivers/misc/sony-laptop.c	2007-04-25 22:35:50.616962991 +0900
-+++ linux-2.6/drivers/misc/sony-laptop.c	2007-04-25 22:36:37.119613026 +0900
-@@ -1317,40 +1317,6 @@ static int __sony_pic_camera_on(void)
- 	return 0;
- }
- 
--static ssize_t sony_pic_camerapower_store(struct device *dev,
--		struct device_attribute *attr,
--		const char *buffer, size_t count)
--{
--	unsigned long value;
--	int result;
--	if (count > 31)
--		return -EINVAL;
--
--	value = simple_strtoul(buffer, NULL, 10);
--
--	mutex_lock(&spic_dev.lock);
--	if (value)
--		result = __sony_pic_camera_on();
--	else
--		result = __sony_pic_camera_off();
--	mutex_unlock(&spic_dev.lock);
--
--	if (result)
--		return result;
--
--	return count;
--}
--
--static ssize_t sony_pic_camerapower_show(struct device *dev,
--		struct device_attribute *attr, char *buffer)
--{
--	ssize_t count;
--	mutex_lock(&spic_dev.lock);
--	count = snprintf(buffer, PAGE_SIZE, "%d\n", spic_dev.camera_power);
--	mutex_unlock(&spic_dev.lock);
--	return count;
--}
--
- /* External camera command (exported to the motion eye v4l driver) */
- int sony_pic_camera_command(int command, u8 value)
- {
-@@ -1522,13 +1488,11 @@ struct device_attribute spic_attr_##_nam
- 		_mode, sony_pic_## _name ##_show,		\
- 		sony_pic_## _name ##_store)
- 
--static SPIC_ATTR(camerapower, 0644);
- static SPIC_ATTR(bluetoothpower, 0644);
- static SPIC_ATTR(wwanpower, 0644);
- static SPIC_ATTR(fanspeed, 0644);
- 
- static struct attribute *spic_attributes[] = {
--	&spic_attr_camerapower.attr,
- 	&spic_attr_bluetoothpower.attr,
- 	&spic_attr_wwanpower.attr,
- 	&spic_attr_fanspeed.attr,
+Here is a list of known regressions reported after 2.6.21 release.
 
--- 
-mattia
-:wq!
+=46eel free to add new regressions/remove fixed etc.
+http://kernelnewbies.org/known_regressions
+
+
+Subject    : kernel crash at boot with maxcpus=3D1 on quad core
+             kernel BUG at drivers/cpufreq/cpufreq.c:1023
+References : http://lkml.org/lkml/2007/4/27/460
+Submitter  : Brandeburg, Jesse <jesse.brandeburg@intel.com>
+Status     : Unknow
+
+Subject    : Soft lockup on CPU0 when resuming from suspension to ram, =
+related to acpi processor module
+References : http://bugzilla.kernel.org/show_bug.cgi?id=3D8391
+Submitter  : Giorgio Lando <patroclo7@gmail.com>
+Status     : Unknow
+
+Subject    : Bad interaction between dynticks and amarok?
+References : http://lkml.org/lkml/2007/4/26/307
+Submitter  : Thomas Meyer <thomas.mey@web.de>
+Status     : Unknow
+
+Subject    : Long pause initializating usb-storage
+References : http://bugzilla.kernel.org/show_bug.cgi?id=3D8380
+Submitter  : Vincent Frentzel <zcecc22@ucl.ac.uk>
+Status     : Unknow
+
+Subject    : Multpiple problem when thermal is loaded with kernel 2.6.2=
+1
+References : http://bugzilla.kernel.org/show_bug.cgi?id=3D8385
+Submitter  : Fran=C3=A7ois Valenduc <francois.valenduc@skynet.be>
+Status     : Unknow
+
+Subject    : 2.6.21: sky2 "hw csum failure" problem
+References : http://lkml.org/lkml/2007/4/28/105
+Submitter  : H=C3=A5kan Lindqvist <lindqvist@netstar.se>
+Status     : unknown
+
+Subject    : sky2 regression in 2.6.21: Asus P5B-E Plus ethernet adapte=
+r no more supported =20
+References : http://lkml.org/lkml/2007/4/26/599
+Submitter  : Francois SIMOND <curio@free.fr>=20
+Handled-By : Stephen Hemminger <shemminger@linux-foundation.org>
+Status     : unknown
+
+Subject    : 2.6.21 - BUG: at arch/i386/kernel/smp.c:177 send_IPI_mask_=
+bitmask()
+References : http://lkml.org/lkml/2007/4/27/621
+Submitter  : Jeff Chua <jeff.chua.linux@gmail.com>
+Status     : unknown
+
+Subject    : 2.6.21 don't boot, it stops after ACPI: PCI Interrupt Link=
+ [LNKB] (IRQs 3 4 *5 6 7 9 10 11 12 14 15).
+References : http://lkml.org/lkml/2007/4/27/400
+Submitter  : Riccardo Ricci < rricci@nuovanetmore.it >
+Handled-By : Len Brown <lenb@kernel.org>
+Status     : unknown
+
+Subject    : ACPI interpreter errors
+References : http://lkml.org/lkml/2007/4/27/206
+Submitter  : Udo A. Steinberg < us15@os.inf.tu-dresden.de >
+Handled-By : Len Brown <lenb@kernel.org>
+Status     : unknown
+
+Subject    : reiserfs -- circular locking
+References : http://lkml.org/lkml/2007/4/26/648
+Submitter  : David Brownell < david-b@pacbell.net >
+Handled-By : Jeff Mahoney < jeffm@suse.com >
+Patch      : http://lkml.org/lkml/2007/4/27/332
+Status     : patch available
+
+Regards,
+Michal
+
+--=20
+Michal K. K. Piotrowski
+Kernel Monkeys
+(http://kernel.wikidot.com/start)
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
