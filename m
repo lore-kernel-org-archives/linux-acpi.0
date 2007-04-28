@@ -1,117 +1,55 @@
-From: Thomas Meyer <thomas@m3y3r.de>
-Subject: Re: 2.6.21 known regressions (v2) (for -stable team)
-Date: Sat, 28 Apr 2007 20:03:07 +0200
-Message-ID: <46338C5B.4010809@m3y3r.de>
-References: <463375E5.5040108@googlemail.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [stable] 2.6.21 known regressions (v2) (for -stable team)
+Date: Sat, 28 Apr 2007 11:19:33 -0700
+Message-ID: <20070428181933.GA9811@kroah.com>
+References: <463375E5.5040108@googlemail.com> <200704281252.20381.gene.heskett@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1163363AbXD1SE4@vger.kernel.org>
-In-Reply-To: <463375E5.5040108@googlemail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: stable@kernel.org, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Riccardo Ricci <rricci@nuovanetmore.it>, "Udo A. Steinberg" <us15@os.inf.tu-dresden.de>, Len Brown <len.brown@intel.com>, David Brownell <david-b@pacbell.net>, Jeff Mahoney <jeffm@suse.com>, reiserfs-dev@namesys.com, Jeff Chua <jeff.chua.linux@gmail.com>, Francois SIMOND <curio@free.fr>, Stephen Hemminger <shemminger@linux-foundation.org>, netdev@vger.kernel.org, =?UTF-8?B?SMOla2FuIExpbmRxdmlzdA==?= <lindqvist@netstar.se>, Vincent Frentzel <zcecc22@ucl.ac.uk>, =?UTF-8?B?RnJhbsOnb2lzIFZhbGVuZHVj?= <francois.valenduc@skynet.be>, Thomas Meyer <thomas.mey@web.de>, Giorgio Lando <patroclo7@gmail.com>, Dave Jones <davej@redhat.com>, Thomas Gleixner <tglx@linutronix.de>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from pentafluge.infradead.org ([213.146.154.40]:39440 "EHLO
+	pentafluge.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1163330AbXD1SW2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Apr 2007 14:22:28 -0400
+Content-Disposition: inline
+In-Reply-To: <200704281252.20381.gene.heskett@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Gene Heskett <gene.heskett@gmail.com>
+Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, Jeff Mahoney <jeffm@suse.com>, Vincent Frentzel <zcecc22@ucl.ac.uk>, Riccardo Ricci <rricci@nuovanetmore.it>, Stephen Hemminger <shemminger@linux-foundation.org>, David Brownell <david-b@pacbell.net>, Giorgio Lando <patroclo7@gmail.com>, Jeff Chua <jeff.chua.linux@gmail.com>, H??kan Lindqvist <lindqvist@netstar.se>, Fran??ois Valenduc <francois.valenduc@skynet.be>, "Udo A. Steinberg" <us15@os.inf.tu-dresden.de>, linux-acpi@vger.kernel.org, Thomas Meyer <thomas.mey@web.de>, stable@kernel.org, Len Brown <len.brown@intel.com>, Dave Jones <davej@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, netdev@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Francois SIMOND <curio@free.fr>, Andrew Morton <akpm@linux-foundation.org>, reiserfs-dev@namesy
 
-Michal Piotrowski schrieb:
-> Subject    : Bad interaction between dynticks and amarok?
-> References : http://lkml.org/lkml/2007/4/26/307
-> Submitter  : Thomas Meyer <thomas.mey@web.de>
-> Status     : Unknow
->
->   
-Please remove this from the regression list. This seems to be an
-userspace only problem and is not related to any kernel driver:
-amarok and/or audacious seems to repeatedly read/write to the X socket:
+On Sat, Apr 28, 2007 at 12:52:19PM -0400, Gene Heskett wrote:
+> On Saturday 28 April 2007, Michal Piotrowski wrote:
+> >Hi all,
+> >
+> >Here is a list of known regressions reported after 2.6.21 release.
+> >
+> >Feel free to add new regressions/remove fixed etc.
+> >http://kernelnewbies.org/known_regressions
+> >
+> I went here, but without a login the page is immutable
+> 
+> Therefore I'll add it here
+> 
+> Subject		:proprietary belkin upsd turns into cpu hog
+> Submitter	:gene.heskett@gmail.com
+> Reference	:something changed in how /dev/ttyUSB's handle 1 and 2 byte messages 
+> from pl2303 usb<->serial adaptors.
 
-tail of the strace of audacious:
-gettimeofday({1177782978, 24491}, NULL) = 0
-clock_gettime(CLOCK_MONOTONIC, {224, 581502867}) = 0
-clock_gettime(CLOCK_MONOTONIC, {224, 581614815}) = 0
-select(4, [3], [3], NULL, NULL)         = 1 (out [3])
-writev(3,
-[{"\221\3\n\0\3\0\200\2#\0\200\2\0\6@\0\240\4\20\0L\0\20\0"..., 40}], 1)
-= 40
-read(3, 0x80da6c8, 4096)                = -1 EAGAIN (Resource
-temporarily unavailable)
-gettimeofday({1177782978, 25286}, NULL) = 0
-poll([{fd=4, events=POLLIN}, {fd=3, events=POLLIN}], 2, 9) = 0
-gettimeofday({1177782978, 33242}, NULL) = 0
-read(3, 0x80da6c8, 4096)                = -1 EAGAIN (Resource
-temporarily unavailable)
-gettimeofday({1177782978, 33475}, NULL) = 0
-poll([{fd=4, events=POLLIN}, {fd=3, events=POLLIN}], 2, 1) = 0
-gettimeofday({1177782978, 36548}, NULL) = 0
-clock_gettime(CLOCK_MONOTONIC, {224, 593554129}) = 0
-read(3, 0x80da6c8, 4096)                = -1 EAGAIN (Resource
-temporarily unavailable)
-gettimeofday({1177782978, 36921}, NULL) = 0
-poll([{fd=4, events=POLLIN}, {fd=3, events=POLLIN}], 2, 9) = 0
-gettimeofday({1177782978, 46572}, NULL) = 0
-clock_gettime(CLOCK_MONOTONIC, {224, 603578038}) = 0
-clock_gettime(CLOCK_MONOTONIC, {224, 603689148}) = 0
-select(4, [3], [3], NULL, NULL)         = 1 (out [3])
-writev(3, [{"\221\3\n\0\3\0\200\2#\0\200\2\0\6@\0\0\4 \0L\0\20\0\23"...,
-40}], 1) = 40
-read(3, 0x80da6c8, 4096)                = -1 EAGAIN (Resource
-temporarily unavailable)
-gettimeofday({1177782978, 47341}, NULL) = 0
-poll([{fd=4, events=POLLIN}, {fd=3, events=POLLIN}], 2, 9) = 0
-gettimeofday({1177782978, 56566}, NULL) = 0
-read(3, 0x80da6c8, 4096)                = -1 EAGAIN (Resource
-temporarily unavailable)
-gettimeofday({1177782978, 56799}, NULL) = 0
-poll([{fd=4, events=POLLIN}, {fd=3, events=POLLIN}], 2, 0) = 0
-clock_gettime(CLOCK_MONOTONIC, {224, 613921380}) = 0
-read(3, 0x80da6c8, 4096)                = -1 EAGAIN (Resource
-temporarily unavailable)
-gettimeofday({1177782978, 57282}, NULL) = 0
-poll([{fd=4, events=POLLIN}, {fd=3, events=POLLIN}], 2, 9) = 0
-gettimeofday({1177782978, 67696}, NULL) = 0
-clock_gettime(CLOCK_MONOTONIC, {224, 624704202}) = 0
-clock_gettime(CLOCK_MONOTONIC, {224, 624817966}) = 0
-select(4, [3], [3], NULL, NULL)         = 1 (out [3])
-writev(3, [{"\221\3\n\0\3\0\200\2#\0\200\2\0\6@\0P\4
-\0L\0\20\0\23\0"..., 40}], 1) = 40
-read(3, 0x80da6c8, 4096)                = -1 EAGAIN (Resource
-temporarily unavailable)
-gettimeofday({1177782978, 68476}, NULL) = 0
-poll([{fd=4, events=POLLIN}, {fd=3, events=POLLIN}], 2, 9) = 0
-gettimeofday({1177782978, 76564}, NULL) = 0
-read(3, 0x80da6c8, 4096)                = -1 EAGAIN (Resource
-temporarily unavailable)
-gettimeofday({1177782978, 76796}, NULL) = 0
-poll([{fd=4, events=POLLIN}, {fd=3, events=POLLIN}], 2, 0) = 0
-clock_gettime(CLOCK_MONOTONIC, {224, 633919963}) = 0
-read(3, 0x80da6c8, 4096)                = -1 EAGAIN (Resource
-temporarily unavailable)
-gettimeofday({1177782978, 77280}, NULL) = 0
-poll([{fd=4, events=POLLIN}, {fd=3, events=POLLIN}], 2, 9) = 0
-gettimeofday({1177782978, 86898}, NULL) = 0
-clock_gettime(CLOCK_MONOTONIC, {224, 643911329}) = 0
-clock_gettime(CLOCK_MONOTONIC, {224, 644025581}) = 0
-select(4, [3], [3], NULL, NULL)         = 1 (out [3])
-writev(3, [{"\221\3\n\0\3\0\200\2#\0\200\2\0\6@\0\240\4
-\0L\0\20\0\23"..., 40}], 1) = 40
-read(3, 0x80da6c8, 4096)                = -1 EAGAIN (Resource
-temporarily unavailable)
-gettimeofday({1177782978, 87702}, NULL) = 0
-poll([{fd=4, events=POLLIN}, {fd=3, events=POLLIN, revents=POLLIN}], 2,
-9) = 1
-read(3, "\n\3P\v\4\0\200\2\0\0\0\0\210v\274\277r\300\10\10x\35!"...,
-4096) = 96
-read(3, 0x80da6c8, 4096)                = -1 EAGAIN (Resource
-temporarily unavailable)
-read(3, 0x80da6c8, 4096)                = -1 EAGAIN (Resource
-temporarily unavailable)
-read(3, 0x80da6c8, 4096)                = -1 EAGAIN (Resource
-temporarily unavailable)
-gettimeofday({1177782978, 90108}, NULL) = 0
-gettimeofday({1177782978, 90163}, NULL) = 0
+Last time this came up, I asked you to enable debugging in the driver to
+see the data flow through it and find out if it really is the driver at
+fault here.
 
-But i didn't have a look at what is going on here. But running amarok
-and/or audacious (without playing a song!) adds 50-70 more interrupts to
-the timer interrupt.
+Did you do this?  Did anything happen that was "odd"?
 
-with kind regards
-thomas
+Can you do a 'git bisect' of Linus's tree to try to track down the
+issue?
+
+> Also, assignation of ttyUSB#'s is volatile depending on phase of the
+> moon when booted.
+
+That's always been the case, ever since the 2.2 kernel releases.  Please
+use udev if you want persistent device names for your tty USB devices.
+
+thanks,
+
+greg k-h
