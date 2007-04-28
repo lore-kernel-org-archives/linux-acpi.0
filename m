@@ -1,37 +1,55 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: Problem 2.6.21
-Date: Sat, 28 Apr 2007 01:34:08 -0400
-Message-ID: <200704280134.08636.lenb@kernel.org>
-References: <40771.172.20.1.1.1177699187.squirrel@srv01.nuovanetmore.it>
+Subject: Re: [Mactel-linux-users] C4 state problem
+Date: Sat, 28 Apr 2007 02:10:23 -0400
+Message-ID: <200704280210.23848.lenb@kernel.org>
+References: <4616D602.2090706@anduras.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:36495 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:36161 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754688AbXD1Fft (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 28 Apr 2007 01:35:49 -0400
-In-Reply-To: <40771.172.20.1.1.1177699187.squirrel@srv01.nuovanetmore.it>
+	id S1754750AbXD1GZR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 28 Apr 2007 02:25:17 -0400
+In-Reply-To: <4616D602.2090706@anduras.de>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Riccardo Ricci <rricci@nuovanetmore.it>, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+To: mactel-linux-users@lists.sourceforge.net, linux-acpi@vger.kernel.org
+Cc: Sven Anders <anders@anduras.de>, mactel <mactel-linux-devel@lists.sourceforge.net>, Nicolas Boichat <nicolas@boichat.ch>
 
-On Friday 27 April 2007 14:39, Riccardo Ricci wrote:
+On Friday 06 April 2007 19:21, Sven Anders wrote:
+> Hello!
 > 
-> Hi to everyone,
-> i've compiled kernel 2.6.21 on my debian PIII 650 / 256MB / Dell Latitude
-> J650GT. With 2.6.20.8 all works very good, with 2.6.21 don't boot... While
-> booting it stops after ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 *5 6 7 9
-> 10 11 12 14 15).
+> I spend my day analysing why the Linux could not use the C4 state(s).
+> Here my results...
+> 
+> For a start we take a look at the current available c-states:
+> 
+> #> cat /proc/acpi/processor/CPU?/power
+> 
+> active state:            C3
+> max_cstate:              C8
+> bus master activity:     00000000
+> maximum allowed latency: 8000 usec
+> states:
+>     C1:                  type[C1] promotion[C2] demotion[--] latency[001]
+> usage[00002590] duration[00000000000000000000]
+>     C2:                  type[C2] promotion[C3] demotion[C1] latency[001]
+> usage[00002086] duration[00000000000006795863]
+>    *C3:                  type[C3] promotion[--] demotion[C2] latency[055]
+> usage[00003633] duration[00000000000009200376]
 
-Does 2.6.20.8 boot with acpi=off, does 2.6.21?
+First note that there are "hardware C-states", and "ACPI C-states".
+The table above shows the ACPI C-states that the BIOS makes visible to the OS.
 
-Any chance you can get the serial console log of the failure when booted with "debug"?
-Also, the 2.6.20.8 dmesg is missing the beginning, try dmesg -s64000 --
-though it will probably not be very interesting until 2.6.21 output is available to compare to it.
+The BIOS (via the FADT or _CST) can map any hardware C-state it wants
+to ACPI C3.  It is likely that you are already getting hardware C4
+and simply skipping over hardware C3.
 
-thanks,
+If you provide the complete raw output from acpidump, then it should be
+possible to tell.
+
+cheers,
 -Len
