@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 084/105] ACPI: Remove a warning about unused variable in !CONFIG_ACPI compilation.
-Date: Sun, 29 Apr 2007 00:51:24 -0400
-Message-ID: <11778223823637-git-send-email-len.brown@intel.com>
+Subject: [PATCH 083/105] ACPI: prevent ACPI quirk warning mass spamming in logs
+Date: Sun, 29 Apr 2007 00:51:23 -0400
+Message-ID: <11778223812071-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -85,44 +85,61 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223782086-git-send-email-len.brown@intel.com>
  <11778223792074-git-send-email-len.brown@intel.com>
  <11778223802796-git-send-email-len.brown@intel.com>
- <11778223812071-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:11191 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:37949 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754622AbXD2ExF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 00:53:05 -0400
-In-Reply-To: <11778223812071-git-send-email-len.brown@intel.com>
-Message-Id: <afd3810d9b6b0d446a34e1d4e94f0cc020b00a14.1177822058.git.len.brown@intel.com>
+	id S1756168AbXD2ExE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 00:53:04 -0400
+In-Reply-To: <11778223802796-git-send-email-len.brown@intel.com>
+Message-Id: <b2983f10f87423fab92326bbe1e92e2256573d4f.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Zachary Amsden <zach@vmware.com>, Andi Kleen <ak@suse.de>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
+Cc: Thierry Vignaud <tvignaud@mandriva.com>, Andi Kleen <ak@suse.de>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
 
-From: Zachary Amsden <zach@vmware.com>
+From: Thierry Vignaud <tvignaud@mandriva.com>
 
-Signed-off-by: Zachary Amsden <zach@vmware.com>
-Cc: Andi Kleen <ak@suse.de>
+The following patch prevent this warning to be displayed again & again (eg:
+nine times on my NForce2 motherboard) and thus improve signal to noise
+ratio in logs.
+
+The ATI quirk below probably needs a similar "fix" but I don't have
+the hardware to test.
+
+Btw arch/x86_64/kernel/early-quirks.c::nvidia_bugs() would probably need to
+be synced (but I don't have an x86_64 NVidia motherboard to boot test it).
+Still it shows the usefullity of the recent x86 merge thread.
+
+[akpm@linux-foundation.org: cleanup]
+Signed-off-by: Thierry Vignaud <tvignaud@mandriva.com>
+Signed-off-by: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- arch/i386/kernel/acpi/earlyquirk.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/i386/kernel/acpi/earlyquirk.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
 diff --git a/arch/i386/kernel/acpi/earlyquirk.c b/arch/i386/kernel/acpi/earlyquirk.c
-index fa3255a..8f7efd3 100644
+index a7d22d9..fa3255a 100644
 --- a/arch/i386/kernel/acpi/earlyquirk.c
 +++ b/arch/i386/kernel/acpi/earlyquirk.c
-@@ -22,8 +22,8 @@ static int __init nvidia_hpet_check(struct acpi_table_header *header)
+@@ -22,11 +22,14 @@ static int __init nvidia_hpet_check(struct acpi_table_header *header)
  
  static int __init check_bridge(int vendor, int device)
  {
--	static int warned;
- #ifdef CONFIG_ACPI
 +	static int warned;
+ #ifdef CONFIG_ACPI
  	/* According to Nvidia all timer overrides are bogus unless HPET
  	   is enabled. */
  	if (!acpi_use_timer_override && vendor == PCI_VENDOR_ID_NVIDIA) {
+-		if (acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check)) {
++		if (!warned && acpi_table_parse(ACPI_SIG_HPET,
++						nvidia_hpet_check)) {
++			warned = 1;
+ 			acpi_skip_timer_override = 1;
+ 			  printk(KERN_INFO "Nvidia board "
+                        "detected. Ignoring ACPI "
 -- 
 1.5.2.rc0.34.gda94
