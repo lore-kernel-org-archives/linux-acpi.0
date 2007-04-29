@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 080/105] ACPI: correct pathname in comment
-Date: Sun, 29 Apr 2007 00:51:20 -0400
-Message-ID: <11778223782086-git-send-email-len.brown@intel.com>
+Subject: [PATCH 079/105] ACPI: use _STA bit names rather than 0x0F
+Date: Sun, 29 Apr 2007 00:51:19 -0400
+Message-ID: <11778223771048-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -81,42 +81,63 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223741-git-send-email-len.brown@intel.com>
  <11778223752175-git-send-email-len.brown@intel.com>
  <1177822376123-git-send-email-len.brown@intel.com>
- <11778223771048-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:23431 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:11191 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754615AbXD2ExA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 00:53:00 -0400
-In-Reply-To: <11778223771048-git-send-email-len.brown@intel.com>
-Message-Id: <8ce8e2f99a973c39c4aeddbe0966038196a8e71a.1177822058.git.len.brown@intel.com>
+	id S1756176AbXD2Ew7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 00:52:59 -0400
+In-Reply-To: <1177822376123-git-send-email-len.brown@intel.com>
+Message-Id: <0c0e8921018dbb4fe189a1034f80ac32553bc7bc.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Daniel Walker <dwalker@mvista.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
 
-From: Daniel Walker <dwalker@mvista.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Be explicit about what "device->status = 0x0F" really means.
+
+syntax only.
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/clocksource/acpi_pm.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/acpi/bus.c  |    4 +++-
+ drivers/acpi/scan.c |    4 +++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/clocksource/acpi_pm.c b/drivers/clocksource/acpi_pm.c
-index 5ac309e..5cfcff5 100644
---- a/drivers/clocksource/acpi_pm.c
-+++ b/drivers/clocksource/acpi_pm.c
-@@ -26,7 +26,7 @@
- /*
-  * The I/O port the PMTMR resides at.
-  * The location is detected during setup_arch(),
-- * in arch/i386/acpi/boot.c
-+ * in arch/i386/kernel/acpi/boot.c
-  */
- u32 pmtmr_ioport __read_mostly;
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index dd49ea0..e5084ec 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -103,7 +103,9 @@ int acpi_bus_get_status(struct acpi_device *device)
+ 	else if (device->parent)
+ 		device->status = device->parent->status;
+ 	else
+-		STRUCT_TO_INT(device->status) = 0x0F;
++		STRUCT_TO_INT(device->status) =
++		    ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED |
++		    ACPI_STA_DEVICE_UI      | ACPI_STA_DEVICE_FUNCTIONING;
+ 
+ 	if (device->status.functional && !device->status.present) {
+ 		printk(KERN_WARNING PREFIX "Device [%s] status [%08x]: "
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index bb0e0da..d80dd84 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1068,7 +1068,9 @@ acpi_add_single_object(struct acpi_device **child,
+ 		}
+ 		break;
+ 	default:
+-		STRUCT_TO_INT(device->status) = 0x0F;
++		STRUCT_TO_INT(device->status) =
++		    ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED |
++		    ACPI_STA_DEVICE_UI      | ACPI_STA_DEVICE_FUNCTIONING;
+ 		break;
+ 	}
  
 -- 
 1.5.2.rc0.34.gda94
