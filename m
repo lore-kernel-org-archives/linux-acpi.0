@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 069/105] ACPI: thinkpad-acpi: driver sysfs conversion
-Date: Sun, 29 Apr 2007 00:51:09 -0400
-Message-ID: <1177822368793-git-send-email-len.brown@intel.com>
+Subject: [PATCH 070/105] ACPI: thinkpad-acpi: add infrastructure for the sysfs device attributes
+Date: Sun, 29 Apr 2007 00:51:10 -0400
+Message-ID: <11778223692377-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -71,13 +71,14 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223663850-git-send-email-len.brown@intel.com>
  <11778223673988-git-send-email-len.brown@intel.com>
  <1177822368767-git-send-email-len.brown@intel.com>
+ <1177822368793-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:11191 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:42357 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756143AbXD2Ewu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 00:52:50 -0400
-In-Reply-To: <1177822368767-git-send-email-len.brown@intel.com>
-Message-Id: <176750d68801bfa4a88d1cf54174aa0347d7e5d8.1177822058.git.len.brown@intel.com>
+	id S1756155AbXD2Ewv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 00:52:51 -0400
+In-Reply-To: <1177822368793-git-send-email-len.brown@intel.com>
+Message-Id: <7252374a39d794879f5e47bcfa0a16e7599b27b5.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -87,224 +88,152 @@ Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com
 
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Add the sysfs attributes for the platform driver.
+Add infrastructure to deal with sysfs attributes and grouping, and helpers
+for common sysfs parsing.  Switch driver attributes to use them.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/thinkpad-acpi.txt |   42 +++++++++++++++++-
- drivers/misc/thinkpad_acpi.c    |   90 +++++++++++++++++++++++++++++++++++++++
- drivers/misc/thinkpad_acpi.h    |    3 +
- 3 files changed, 133 insertions(+), 2 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   86 +++++++++++++++++++++++++++++++++++++++--
+ drivers/misc/thinkpad_acpi.h |   21 ++++++++++
+ 2 files changed, 102 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
-index 0e4e053..cc079af 100644
---- a/Documentation/thinkpad-acpi.txt
-+++ b/Documentation/thinkpad-acpi.txt
-@@ -101,11 +101,39 @@ follow all sysfs guidelines and correctly process all errors (the sysfs
- interface makes extensive use of errors).  File descriptors and open /
- close operations to the sysfs inodes must also be properly implemented.
- 
--Driver version -- /proc/acpi/ibm/driver
-----------------------------------------
-+The version of thinkpad-acpi's sysfs interface is exported by the driver
-+as a driver attribute (see below).
-+
-+Sysfs driver attributes are on the driver's sysfs attribute space,
-+for 2.6.20 this is /sys/bus/platform/drivers/thinkpad-acpi/.
-+
-+Sysfs device attributes are on the driver's sysfs attribute space,
-+for 2.6.20 this is /sys/devices/platform/thinkpad-acpi/.
-+
-+Driver version
-+--------------
-+
-+procfs: /proc/acpi/ibm/driver
-+sysfs driver attribute: version
- 
- The driver name and version. No commands can be written to this file.
- 
-+Sysfs interface version
-+-----------------------
-+
-+sysfs driver attribute: interface_version
-+
-+Version of the thinkpad-acpi sysfs interface, as an unsigned long
-+(output in hex format: 0xAAAABBCC), where:
-+	AAAA - major revision
-+	BB - minor revision
-+	CC - bugfix revision
-+
-+The sysfs interface version changelog for the driver can be found at the
-+end of this document.  Changes to the sysfs interface done by the kernel
-+subsystems are not documented here, nor are they tracked by this
-+attribute.
-+
- Hot keys -- /proc/acpi/ibm/hotkey
- ---------------------------------
- 
-@@ -745,9 +773,19 @@ to enable more than one output class, just add their values.
- There is also a kernel build option to enable more debugging
- information, which may be necessary to debug driver problems.
- 
-+The level of debugging information output by the driver can be changed
-+at runtime through sysfs, using the driver attribute debug_level.  The
-+attribute takes the same bitmask as the debug module parameter above.
-+
- Force loading of module
- -----------------------
- 
- If thinkpad-acpi refuses to detect your ThinkPad, you can try to specify
- the module parameter force_load=1.  Regardless of whether this works or
- not, please contact ibm-acpi-devel@lists.sourceforge.net with a report.
-+
-+
-+Sysfs interface changelog:
-+
-+0x000100:	Initial sysfs support, as a single platform driver and
-+		device.
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index e47eaf7..a31d00d 100644
+index a31d00d..ca6d15c 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -22,6 +22,7 @@
-  */
+@@ -520,12 +520,8 @@ static ssize_t tpacpi_driver_debug_store(struct device_driver *drv,
+ 						const char *buf, size_t count)
+ {
+ 	unsigned long t;
+-	char *endp;
  
- #define IBM_VERSION "0.14"
-+#define TPACPI_SYSFS_VERSION 0x000100
+-	t = simple_strtoul(buf, &endp, 0);
+-	while (*endp && isspace(*endp))
+-		endp++;
+-	if (*endp)
++	if (parse_strtoul(buf, 0xffff, &t))
+ 		return -EINVAL;
  
- /*
-  *  Changelog:
-@@ -493,6 +494,87 @@ static struct platform_driver tpacpi_pdriver = {
- };
- 
+ 	dbg_level = t;
+@@ -575,6 +571,86 @@ static void tpacpi_remove_driver_attributes(struct device_driver *drv)
+ 		driver_remove_file(drv, tpacpi_driver_attributes[i]);
+ }
  
 +/*************************************************************************
-+ * thinkpad-acpi driver attributes
++ * sysfs support helpers
 + */
 +
-+/* interface_version --------------------------------------------------- */
-+static ssize_t tpacpi_driver_interface_version_show(
-+				struct device_driver *drv,
-+				char *buf)
++struct attribute_set_obj {
++	struct attribute_set s;
++	struct attribute *a;
++} __attribute__((packed));
++
++static struct attribute_set *create_attr_set(unsigned int max_members,
++						const char* name)
 +{
-+	return snprintf(buf, PAGE_SIZE, "0x%08x\n", TPACPI_SYSFS_VERSION);
++	struct attribute_set_obj *sobj;
++
++	if (max_members == 0)
++		return NULL;
++
++	/* Allocates space for implicit NULL at the end too */
++	sobj = kzalloc(sizeof(struct attribute_set_obj) +
++		    max_members * sizeof(struct attribute *),
++		    GFP_KERNEL);
++	if (!sobj)
++		return NULL;
++	sobj->s.max_members = max_members;
++	sobj->s.group.attrs = &sobj->a;
++	sobj->s.group.name = name;
++
++	return &sobj->s;
 +}
 +
-+static DRIVER_ATTR(interface_version, S_IRUGO,
-+		tpacpi_driver_interface_version_show, NULL);
-+
-+/* debug_level --------------------------------------------------------- */
-+static ssize_t tpacpi_driver_debug_show(struct device_driver *drv,
-+						char *buf)
++/* not multi-threaded safe, use it in a single thread per set */
++static int add_to_attr_set(struct attribute_set* s, struct attribute *attr)
 +{
-+	return snprintf(buf, PAGE_SIZE, "0x%04x\n", dbg_level);
-+}
-+
-+static ssize_t tpacpi_driver_debug_store(struct device_driver *drv,
-+						const char *buf, size_t count)
-+{
-+	unsigned long t;
-+	char *endp;
-+
-+	t = simple_strtoul(buf, &endp, 0);
-+	while (*endp && isspace(*endp))
-+		endp++;
-+	if (*endp)
++	if (!s || !attr)
 +		return -EINVAL;
 +
-+	dbg_level = t;
++	if (s->members >= s->max_members)
++		return -ENOMEM;
 +
-+	return count;
++	s->group.attrs[s->members] = attr;
++	s->members++;
++
++	return 0;
 +}
 +
-+static DRIVER_ATTR(debug_level, S_IWUSR | S_IRUGO,
-+		tpacpi_driver_debug_show, tpacpi_driver_debug_store);
-+
-+/* version ------------------------------------------------------------- */
-+static ssize_t tpacpi_driver_version_show(struct device_driver *drv,
-+						char *buf)
-+{
-+	return snprintf(buf, PAGE_SIZE, "%s v%s\n", IBM_DESC, IBM_VERSION);
-+}
-+
-+static DRIVER_ATTR(version, S_IRUGO,
-+		tpacpi_driver_version_show, NULL);
-+
-+/* --------------------------------------------------------------------- */
-+
-+static struct driver_attribute* tpacpi_driver_attributes[] = {
-+	&driver_attr_debug_level, &driver_attr_version,
-+	&driver_attr_interface_version,
-+};
-+
-+static int __init tpacpi_create_driver_attributes(struct device_driver *drv)
++static int add_many_to_attr_set(struct attribute_set* s,
++			struct attribute **attr,
++			unsigned int count)
 +{
 +	int i, res;
 +
-+	i = 0;
-+	res = 0;
-+	while (!res && i < ARRAY_SIZE(tpacpi_driver_attributes)) {
-+		res = driver_create_file(drv, tpacpi_driver_attributes[i]);
-+		i++;
++	for (i = 0; i < count; i++) {
++		res = add_to_attr_set(s, attr[i]);
++		if (res)
++			return res;
 +	}
 +
-+	return res;
++	return 0;
 +}
 +
-+static void tpacpi_remove_driver_attributes(struct device_driver *drv)
++static void delete_attr_set(struct attribute_set* s, struct kobject *kobj)
 +{
-+	int i;
++	sysfs_remove_group(kobj, &s->group);
++	destroy_attr_set(s);
++}
 +
-+	for(i = 0; i < ARRAY_SIZE(tpacpi_driver_attributes); i++)
-+		driver_remove_file(drv, tpacpi_driver_attributes[i]);
++static int parse_strtoul(const char *buf,
++		unsigned long max, unsigned long *value)
++{
++	char *endp;
++
++	*value = simple_strtoul(buf, &endp, 0);
++	while (*endp && isspace(*endp))
++		endp++;
++	if (*endp || *value > max)
++		return -EINVAL;
++
++	return 0;
 +}
 +
  /****************************************************************************
   ****************************************************************************
   *
-@@ -3268,6 +3350,13 @@ static int __init thinkpad_acpi_module_init(void)
- 		thinkpad_acpi_module_exit();
- 		return ret;
- 	}
-+	ret = tpacpi_create_driver_attributes(&tpacpi_pdriver.driver);
-+	if (ret) {
-+		printk(IBM_ERR "unable to create sysfs driver attributes\n");
-+		thinkpad_acpi_module_exit();
-+		return ret;
-+	}
-+
- 
- 	/* Device initialization */
- 	tpacpi_pdev = platform_device_register_simple(IBM_DRVR_NAME, -1,
-@@ -3318,6 +3407,7 @@ static void thinkpad_acpi_module_exit(void)
- 	if (tpacpi_pdev)
- 		platform_device_unregister(tpacpi_pdev);
- 
-+	tpacpi_remove_driver_attributes(&tpacpi_pdriver.driver);
- 	platform_driver_unregister(&tpacpi_pdriver);
- 
- 	if (proc_dir)
 diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index fea5809..3786058 100644
+index 3786058..84fdefe 100644
 --- a/drivers/misc/thinkpad_acpi.h
 +++ b/drivers/misc/thinkpad_acpi.h
-@@ -32,6 +32,7 @@
- #include <linux/list.h>
+@@ -134,6 +134,27 @@ static int dispatch_procfs_write(struct file *file,
+ 		unsigned long count, void *data);
+ static char *next_cmd(char **cmds);
  
- #include <linux/proc_fs.h>
-+#include <linux/sysfs.h>
- #include <linux/backlight.h>
- #include <linux/fb.h>
- #include <linux/platform_device.h>
-@@ -137,6 +138,8 @@ static char *next_cmd(char **cmds);
++/* sysfs support */
++struct attribute_set {
++	unsigned int members, max_members;
++	struct attribute_group group;
++};
++
++static struct attribute_set *create_attr_set(unsigned int max_members,
++						const char* name);
++#define destroy_attr_set(_set) \
++	kfree(_set);
++static int add_to_attr_set(struct attribute_set* s, struct attribute *attr);
++static int add_many_to_attr_set(struct attribute_set* s,
++			struct attribute **attr,
++			unsigned int count);
++#define register_attr_set_with_sysfs(_attr_set, _kobj) \
++	sysfs_create_group(_kobj, &_attr_set->group)
++static void delete_attr_set(struct attribute_set* s, struct kobject *kobj);
++
++static int parse_strtoul(const char *buf, unsigned long max,
++			unsigned long *value);
++
+ /* Device model */
  static struct platform_device *tpacpi_pdev;
  static struct class_device *tpacpi_hwmon;
- static struct platform_driver tpacpi_pdriver;
-+static int tpacpi_create_driver_attributes(struct device_driver *drv);
-+static void tpacpi_remove_driver_attributes(struct device_driver *drv);
- 
- /* Module */
- static int experimental;
 -- 
 1.5.2.rc0.34.gda94
