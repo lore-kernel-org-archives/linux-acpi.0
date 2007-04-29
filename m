@@ -1,39 +1,21 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch 0/9 v2] sony drivers: finish rewriting sonypi and updates
-Date: Sun, 29 Apr 2007 00:42:54 -0400
-Message-ID: <200704290042.54938.lenb@kernel.org>
-References: <20070428141557.GA4764@inferi.kami.home>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Len Brown <len.brown@intel.com>
+Subject: ACPI patches for 2.6.22 merge window
+Date: Sun, 29 Apr 2007 00:50:00 -0400
+Message-ID: <11778223052751-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:48296 "EHLO hera.kernel.org"
+Received: from mga02.intel.com ([134.134.136.20]:20110 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754573AbXD2EoR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 00:44:17 -0400
-In-Reply-To: <20070428141557.GA4764@inferi.kami.home>
-Content-Disposition: inline
+	id S1754577AbXD2Evr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 00:51:47 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: malattia@linux.it
-Cc: linux-acpi@vger.kernel.org, Stelian Pop <stelian@popies.net>
+To: linux-acpi@vger.kernel.org
 
-On Saturday 28 April 2007 10:15, malattia@linux.it wrote:
-> [It seems vger doesn't like my batch mailings... so retrying also with
-> an updated patchset]
-> 
-> Hi Len,
-> 
-> first of all a thought about pushing all the latest sony-laptop stuff
-> for 2.6.22: many recent vaios are not supported anymore by sonypi wrt
-> its functionalities while they all seem to work with the acpi based
-> implementation present in sony-laptop in acpi-test. Thus I'd suggest
-> pushing all of it to Linus when the 2.6.22 window opens.
-> Agree?
+I'm sending this batch upstream.
+If you see anything wrong, please speak up.
 
-Yes.
+If I've missed something that you think is appropriate
+for 2.6.22 (I'm sure there are several) please let me know.
 
-Applied.
 thanks,
 -Len
