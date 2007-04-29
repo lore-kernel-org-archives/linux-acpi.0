@@ -1,67 +1,46 @@
-From: Len Brown <lenb@kernel.org>
-Subject: send_IPI_mask_bitmask() (Re: 2.6.21 known regressions (v2) (for -stable team))
-Date: Sun, 29 Apr 2007 01:34:38 -0400
-Message-ID: <200704290134.39048.lenb@kernel.org>
-References: <463375E5.5040108@googlemail.com> <1177779533.7646.264.camel@localhost.localdomain>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [GIT PATCH] ACPI patches for 2.6.22
+Date: Sun, 29 Apr 2007 01:01:04 -0700
+Message-ID: <20070429010104.68c51d1a.akpm@linux-foundation.org>
+References: <200704290102.33533.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:35978 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754968AbXD2FgG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 01:36:06 -0400
-In-Reply-To: <1177779533.7646.264.camel@localhost.localdomain>
-Content-Disposition: inline
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49236 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932659AbXD2ICi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 04:02:38 -0400
+In-Reply-To: <200704290102.33533.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: tglx@linutronix.de, venkatesh.pallipadi@intel.com
-Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, stable@kernel.org, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Jeff Chua <jeff.chua.linux@gmail.com>
+To: Len Brown <lenb@kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Miles Lane <miles.lane@gmail.com>, lollul@wp.pl, Matt Mackall <mpm@selenic.com>, Helge Hafting <helgehaf@aitel.hist.no>
 
-On Saturday 28 April 2007 12:58, Thomas Gleixner wrote:
-> On Sat, 2007-04-28 at 18:27 +0200, Michal Piotrowski wrote:
-> > Hi all,
-> > 
-> > Here is a list of known regressions reported after 2.6.21 release.
+On Sun, 29 Apr 2007 01:02:33 -0400 Len Brown <lenb@kernel.org> wrote:
+
+> please pull from: 
 > 
-> Michal, thanks for stepping up !
+> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
 > 
-> > Subject    : 2.6.21 - BUG: at arch/i386/kernel/smp.c:177 send_IPI_mask_bitmask()
-> > References : http://lkml.org/lkml/2007/4/27/621
-> > Submitter  : Jeff Chua <jeff.chua.linux@gmail.com>
-> > Status     : unknown
-> 
-> Len,
-> 
-> clockevents_notify() is called with the power verify information for an
-> offline CPU. I can handle this in the clockevents code, but I think acpi
-> is the correct place.
+> This batch mostly updates the platform-specific drivers that use ACPI.
+> The EC and sbs changes are primarily cleanups.
+> There are no changes to the ACPICA core, except a single bugfix
+> that was related to a 2.6.21 boot regression on some older machines.
+> And then the usual mix of random tweaks.
 
-So the CONFIG_GENERIC_CLOCKEVENTS=y case is broken,
-but the CONFIG_GENERIC_CLOCKEVENTS=n below is okay?
-Not immediately clear why both cases can't fail.
+There might still be a few regressions in this lot:
 
-Maybe Venki can explain.
+- Miles Lane's "2.6.21-rc7-mm2 -- gnome-power-manager always shows the
+  power as coming from AC"
 
--Len
+- "battery caching introduces a lock up"
+  http://bugzilla.kernel.org/show_bug.cgi?id=8351
 
+These are older and might have been fixed:
 
-static void acpi_propagate_timer_broadcast(struct acpi_processor *pr)
-{
-#ifdef CONFIG_GENERIC_CLOCKEVENTS
-        unsigned long reason;
+- Mat Mackall's "Thinkpads not waking up on lid open with -rc6-mm1"
 
-        reason = pr->power.timer_broadcast_on_state < INT_MAX ?
-                CLOCK_EVT_NOTIFY_BROADCAST_ON : CLOCK_EVT_NOTIFY_BROADCAST_OFF;
+- Helge Hafting's "2.6.21-rc3-mm2 hangs my opteron during bootup, ACPI?"
 
-        clockevents_notify(reason, &pr->id);
-#else
-        cpumask_t mask = cpumask_of_cpu(pr->id);
-
-        if (pr->power.timer_broadcast_on_state < INT_MAX)
-                on_each_cpu(switch_APIC_timer_to_ipi, &mask, 1, 1);
-        else
-                on_each_cpu(switch_ipi_to_APIC_timer, &mask, 1, 1);
-#endif
-}
