@@ -1,55 +1,79 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [2.6.21.stable PATCH] ACPI: Fix 2.6.21 boot regression on P4/HT
-Date: Sat, 28 Apr 2007 20:37:26 -0400
-Message-ID: <200704282037.26662.lenb@kernel.org>
+From: Robert Hancock <hancockr@shaw.ca>
+Subject: Re: PCI Express MMCONFIG and BIOS Bug messages..
+Date: Sat, 28 Apr 2007 19:22:43 -0600
+Message-ID: <4633F363.4000009@shaw.ca>
+References: <4626C514.5010605@shaw.ca> <46279358.1010002@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:55896 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754514AbXD2Ain (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 28 Apr 2007 20:38:43 -0400
-Content-Disposition: inline
+Received: from shawidc-mo1.cg.shawcable.net ([24.71.223.10]:26533 "EHLO
+	pd2mo1so.prod.shaw.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752443AbXD2BYE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 Apr 2007 21:24:04 -0400
+In-reply-to: <46279358.1010002@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: stable@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Chuck Ebbert <cebbert@redhat.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, Andi Kleen <ak@suse.de>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-Up through 2.6.20 we cleared the FADT.CSTATE_CONTROL field
-for FADT versions before r3, because it made no sense
-for that reserved field to be set for pre-ACPI 2.0 systems.
+Chuck Ebbert wrote:
+> Robert Hancock wrote:
+>> I've seen a lot of systems (including brand new Xeon-based servers from
+>> IBM and HP) that output messages on boot like:
+>>
+>> PCI: BIOS Bug: MCFG area at f0000000 is not E820-reserved
+>> PCI: Not using MMCONFIG.
+>>
+>>
+>> So Microsoft is explicitly telling the BIOS developers that there is no
+>> need to reserve the MMCONFIG space in the E820 table because Windows
+>> doesn't care. On that basis it doesn't seem like a valid check to
+>> require it to be so reserved, then.
+>>
+>> Really, I think we should be basing this check on whether the
+>> corresponding memory range is reserved in the ACPI resources, like
+>> Windows expects. This does require putting more fingers into ACPI from
+>> this early boot stage, though..
+>>
+> 
+> Intel had posted patches to do exactly that, but they were rejected.
+> I don't remember why now...
 
-It turns out that not clearing this field exposes
-Linux to SMM BIOS failures, so do the same in 2.6.21.
+I tried adapting a patch by Rajesh Shah to do this for current kernels:
 
-http://bugzilla.kernel.org/show_bug.cgi?id=8346
+http://lkml.org/lkml/2006/6/23/365
 
-Signed-off-by: Len Brown <len.brown@intel.com>
----
-diff --git a/drivers/acpi/tables/tbfadt.c b/drivers/acpi/tables/tbfadt.c
-index 807c711..d341491 100644
---- a/drivers/acpi/tables/tbfadt.c
-+++ b/drivers/acpi/tables/tbfadt.c
-@@ -347,6 +347,20 @@ static void acpi_tb_convert_fadt(void)
- 		acpi_gbl_xpm1b_enable.space_id = acpi_gbl_FADT.xpm1a_event_block.space_id;
- 
- 	}
-+	/*
-+	 * _CST object and C States change notification start with
-+	 * ACPI 2.0 (FADT r3).  Although the field should be Reserved
-+	 * and 0 before then, some pre-r3 FADT set this field and
-+	 * it results in SMM-related boot failures.  For them, clear it.
-+	 */
-+	if ((acpi_gbl_FADT.header.revision < 3) &&
-+		(acpi_gbl_FADT.cst_control != 0)) {
-+			ACPI_WARNING((AE_INFO,
-+				"Ignoring BIOS FADT r%u C-state control",
-+				acpi_gbl_FADT.header.revision));
-+		 	acpi_gbl_FADT.cst_control = 0;
-+	}
-+
- }
- 
- /******************************************************************************
+It walks through all the motherboard resource devices and tries to pull 
+out the resource settings for all of them using the _CRS method. 
+(Depending on how you do the probing, the _STA method is called as well, 
+either before or after.) From my limited ACPI knowledge, the problem is 
+that the PCI MMCONFIG initialization is called before the main ACPI 
+interpreter is enabled, and these control methods may try to access 
+operation regions who don't have handlers set up for them yet, so a 
+bunch of "no handler for region" errors show up.
+
+I think some earlier version of this patch was in -mm for a while back 
+in 2.6.18 times, I actually complained about it back then because it 
+falsely detected the region wasn't reserved on my system since it bailed 
+out on the first such error before it found the reservation. On my 
+system it turns out that the device called EXPL that has the MCFG table 
+reservation in it has the addresses statically defined in the _CRS 
+method and doesn't need to access any regions, so if you make the search 
+continue on after errors, it does actually work, but there's probably no 
+guarantee that all systems will have the MCFG reservation statically 
+defined like this, and we can't have all those ACPI errors from other 
+devices clogging the logs either.
+
+So essentially if we want to do this check based on ACPI resource 
+reservations, we need to be able to execute control methods at the point 
+that MMCONFIG is set up. Is there a reason why this can't be made 
+possible (like by moving the necessary parts of ACPI initialization 
+earlier)?
+
+-- 
+Robert Hancock      Saskatoon, SK, Canada
+To email, remove "nospam" from hancockr@nospamshaw.ca
+Home Page: http://www.roberthancock.com/
+
+
