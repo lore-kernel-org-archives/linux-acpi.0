@@ -1,51 +1,46 @@
-From: Tejun Heo <htejun@gmail.com>
-Subject: Re: [PATCH 09/13] libata-acpi: clean up ata_acpi_exec_tfs()
-Date: Sun, 29 Apr 2007 11:56:46 +0900
-Message-ID: <4634096E.2060708@gmail.com>
-References: <1177263666341-git-send-email-htejun@gmail.com> <463399C4.80505@garzik.org>
+From: Jeff Garzik <jeff@garzik.org>
+Subject: Re: [PATCH 06/13] libata-acpi: clean up parameters and misc stuff
+Date: Sat, 28 Apr 2007 23:12:57 -0400
+Message-ID: <46340D39.9030001@garzik.org>
+References: <11772636663949-git-send-email-htejun@gmail.com> <463398B4.1010004@garzik.org> <463408CF.1060200@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <463399C4.80505@garzik.org>
-Sender: linux-ide-owner@vger.kernel.org
-To: Jeff Garzik <jeff@garzik.org>
-Cc: mjg59@srcf.ucam.org, rdunlap@xenotime.net, trenn@suse.de, alan@lxorguk.ukuu.org.uk, forrest.zhao@gmail.com, kristen.c.accardi@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from srv5.dvmed.net ([207.36.208.214]:55884 "EHLO mail.dvmed.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754291AbXD2DNG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 28 Apr 2007 23:13:06 -0400
+In-Reply-To: <463408CF.1060200@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tejun Heo <htejun@gmail.com>
+Cc: mjg59@srcf.ucam.org, rdunlap@xenotime.net, trenn@suse.de, alan@lxorguk.ukuu.org.uk, forrest.zhao@gmail.com, kristen.c.accardi@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org
 
-Jeff Garzik wrote:
-> Tejun Heo wrote:
->> This patch cleans up ata_acpi_exec_tfs() and its friends.
->>
->> * Rename taskfile_array to ata_acpi_gtf and make it __packed as it's
->>   used as argument to ACPI method, and use pointer to ata_acpi_gtf and
->>   number of taskfiles to represent _GTF taskfiles instead of a pointer
->>   casted into unsigned long and byte count.  This makes argument
->>   re-checking in do_drive_set_taskfiles() unnecessary.
->>
->> * Pointer in void * not in unsigned long.
->>
->> * Clean up do_drive_get_GTF() error handling and make
->>   do_drive_get_GTF() return number of taskfiles on success, 0 if _GTF
->>   doesn't exist or doesn't contain valid ata.  -errno on other errors.
->>
->> * Remove superflous check for acpi->buffer.pointer.
->>
->> * Update taskfile_load_raw() such that printed messages look similar
->>   to the messages printed by ata_eh_report().
->>
->> Signed-off-by: Tejun Heo <htejun@gmail.com>
->> ---
->>  drivers/ata/libata-acpi.c |  219
->> ++++++++++++++++++++++-----------------------
->>  1 files changed, 107 insertions(+), 112 deletions(-)
+Tejun Heo wrote:
+> Jeff Garzik wrote:
+>> Tejun Heo wrote:
+>>> This patch cleans up libata-acpi such that it looks similar to other
+>>> libata files.  This patch doesn't introuce any behavior changes.
+>>>
+>>> * make libata-acpi functions take ata_device instead of ata_port +
+>>>   device index
+>>> * s/atadev/adev/
+>>> * de-indent local variable declarations
+>> I prefer 'dev' over 'adev', unless that makes the code in question more
+>> ambiguous.
 > 
-> ACK
-> 
-> As an aside, I hate the "do_" prefix on functions.  It is utterly
-> redundant.
+> Alan is preferring adev over dev and I thought that might be better in
+> the spirit of 'ap'.  I don't really care about the naming tho.  Will
+> convert to dev.  It won't increase ambiguity.
 
-Okay, will drop.
+Cool.  You will see 'dev' used universally in the code I wrote.  It also 
+matches well with "ata_dev_" prefixes, which are a bit better than 
+"ata_adev_" prefix if one were to apply the alternate policy.
 
--- 
-tejun
+Yes, I sometimes spend way too much time pay attention to trivialities :)
+
+	Jeff
+
+
+
