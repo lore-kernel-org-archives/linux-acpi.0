@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 076/105] ACPI: thinkpad-acpi: update brightness sysfs interface support
-Date: Sun, 29 Apr 2007 00:51:16 -0400
-Message-ID: <11778223741-git-send-email-len.brown@intel.com>
+Subject: [PATCH 078/105] ACPI: Remove duplicate definitions for _STA bits
+Date: Sun, 29 Apr 2007 00:51:18 -0400
+Message-ID: <1177822376123-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -78,135 +78,125 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223721984-git-send-email-len.brown@intel.com>
  <11778223732286-git-send-email-len.brown@intel.com>
  <11778223733679-git-send-email-len.brown@intel.com>
+ <11778223741-git-send-email-len.brown@intel.com>
+ <11778223752175-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga02.intel.com ([134.134.136.20]:42357 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756165AbXD2Ew6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 00:52:58 -0400
-In-Reply-To: <11778223733679-git-send-email-len.brown@intel.com>
-Message-Id: <7d5a015eece8be9186d3613d595643a520555e33.1177822058.git.len.brown@intel.com>
+	id S1756177AbXD2Ew7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 00:52:59 -0400
+In-Reply-To: <11778223752175-git-send-email-len.brown@intel.com>
+Message-Id: <a0bd4ac498acfe60f7533d15ba60d5efdd4e9ca5.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Update the brightness sysfs interface (done through the backlight class) to
-be in line with the rest of the thinkpad-acpi driver.
+No need to duplicate the existing definitions in include/acpi/actypes.h.
 
-This renames the incorrect, un-obvious, and clash-prone name of "ibm" for
-the backlight device to a much more fitting and descriptive
-"thinkpad_screen".  This is something I wanted to do for quite a while...
+syntax only -- no functional change.
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/thinkpad-acpi.txt |   52 ++++++++++++++++++++++++++++++++++----
- drivers/misc/thinkpad_acpi.c    |    5 ++-
- drivers/misc/thinkpad_acpi.h    |    2 +
- 3 files changed, 51 insertions(+), 8 deletions(-)
+ drivers/acpi/acpi_memhotplug.c |   13 ++++---------
+ drivers/acpi/container.c       |    6 ++----
+ drivers/acpi/processor_core.c  |    4 +---
+ 3 files changed, 7 insertions(+), 16 deletions(-)
 
-diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
-index 352e8ae..eab4997 100644
---- a/Documentation/thinkpad-acpi.txt
-+++ b/Documentation/thinkpad-acpi.txt
-@@ -611,19 +611,59 @@ registers contain the current battery capacity, etc. If you experiment
- with this, do send me your results (including some complete dumps with
- a description of the conditions when they were taken.)
+diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+index c261726..e65628a 100644
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -44,11 +44,6 @@ MODULE_AUTHOR("Naveen B S <naveen.b.s@intel.com>");
+ MODULE_DESCRIPTION("Hotplug Mem Driver");
+ MODULE_LICENSE("GPL");
  
--LCD brightness control -- /proc/acpi/ibm/brightness
-----------------------------------------------------
-+LCD brightness control
-+----------------------
-+
-+procfs: /proc/acpi/ibm/brightness
-+sysfs backlight device "thinkpad_screen"
+-/* ACPI _STA method values */
+-#define ACPI_MEMORY_STA_PRESENT		(0x00000001UL)
+-#define ACPI_MEMORY_STA_ENABLED		(0x00000002UL)
+-#define ACPI_MEMORY_STA_FUNCTIONAL	(0x00000008UL)
+-
+ /* Memory Device States */
+ #define MEMORY_INVALID_STATE	0
+ #define MEMORY_POWER_ON_STATE	1
+@@ -204,9 +199,9 @@ static int acpi_memory_check_device(struct acpi_memory_device *mem_device)
+ 	 * Check for device status. Device should be
+ 	 * present/enabled/functioning.
+ 	 */
+-	if (!((current_status & ACPI_MEMORY_STA_PRESENT)
+-	      && (current_status & ACPI_MEMORY_STA_ENABLED)
+-	      && (current_status & ACPI_MEMORY_STA_FUNCTIONAL)))
++	if (!((current_status & ACPI_STA_DEVICE_PRESENT)
++	      && (current_status & ACPI_STA_DEVICE_ENABLED)
++	      && (current_status & ACPI_STA_DEVICE_FUNCTIONING)))
+ 		return -ENODEV;
  
- This feature allows software control of the LCD brightness on ThinkPad
--models which don't have a hardware brightness slider. The available
--commands are:
-+models which don't have a hardware brightness slider.
-+
-+It has some limitations: the LCD backlight cannot be actually turned on or off
-+by this interface, and in many ThinkPad models, the "dim while on battery"
-+functionality will be enabled by the BIOS when this interface is used, and
-+cannot be controlled.
-+
-+The backlight control has eight levels, ranging from 0 to 7.  Some of the
-+levels may not be distinct.
-+
-+Procfs notes:
-+
-+	The available commands are:
+ 	return 0;
+@@ -286,7 +281,7 @@ static int acpi_memory_powerdown_device(struct acpi_memory_device *mem_device)
+ 		return -ENODEV;
  
- 	echo up   >/proc/acpi/ibm/brightness
- 	echo down >/proc/acpi/ibm/brightness
- 	echo 'level <level>' >/proc/acpi/ibm/brightness
+ 	/* Check for device status.  Device should be disabled */
+-	if (current_status & ACPI_MEMORY_STA_ENABLED)
++	if (current_status & ACPI_STA_DEVICE_ENABLED)
+ 		return -EINVAL;
  
--The <level> number range is 0 to 7, although not all of them may be
--distinct. The current brightness level is shown in the file.
-+Sysfs notes:
-+
-+The interface is implemented through the backlight sysfs class, which is poorly
-+documented at this time.
-+
-+Locate the thinkpad_screen device under /sys/class/backlight, and inside it
-+there will be the following attributes:
-+
-+	max_brightness:
-+		Reads the maximum brightness the hardware can be set to.
-+		The minimum is always zero.
-+
-+	actual_brightness:
-+		Reads what brightness the screen is set to at this instant.
-+
-+	brightness:
-+		Writes request the driver to change brightness to the given
-+		value.  Reads will tell you what brightness the driver is trying
-+		to set the display to when "power" is set to zero and the display
-+		has not been dimmed by a kernel power management event.
-+
-+	power:
-+		power management mode, where 0 is "display on", and 1 to 3 will
-+		dim the display backlight to brightness level 0 because
-+		thinkpad-acpi cannot really turn the backlight off.  Kernel
-+		power management events can temporarily increase the current
-+		power management level, i.e. they can dim the display.
-+
+ 	return 0;
+diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
+index 0930d94..0dd3bf7 100644
+--- a/drivers/acpi/container.c
++++ b/drivers/acpi/container.c
+@@ -49,8 +49,6 @@ MODULE_AUTHOR("Anil S Keshavamurthy");
+ MODULE_DESCRIPTION("ACPI container driver");
+ MODULE_LICENSE("GPL");
  
- Volume control -- /proc/acpi/ibm/volume
- ---------------------------------------
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index ba749df..c0a023c 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -2414,8 +2414,9 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
- 	if (b < 0)
- 		return b;
+-#define ACPI_STA_PRESENT		(0x00000001)
+-
+ static int acpi_container_add(struct acpi_device *device);
+ static int acpi_container_remove(struct acpi_device *device, int type);
  
--	ibm_backlight_device = backlight_device_register("ibm", NULL, NULL,
--							 &ibm_backlight_data);
-+	ibm_backlight_device = backlight_device_register(
-+					TPACPI_BACKLIGHT_DEV_NAME, NULL, NULL,
-+					&ibm_backlight_data);
- 	if (IS_ERR(ibm_backlight_device)) {
- 		printk(IBM_ERR "Could not register backlight device\n");
- 		return PTR_ERR(ibm_backlight_device);
-diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index 2fe4d61..8348fc6 100644
---- a/drivers/misc/thinkpad_acpi.h
-+++ b/drivers/misc/thinkpad_acpi.h
-@@ -296,6 +296,8 @@ static int bluetooth_write(char *buf);
-  * Brightness (backlight) subdriver
-  */
+@@ -75,13 +73,13 @@ static int is_device_present(acpi_handle handle)
  
-+#define TPACPI_BACKLIGHT_DEV_NAME "thinkpad_screen"
-+
- static struct backlight_device *ibm_backlight_device;
- static int brightness_offset = 0x31;
+ 	status = acpi_get_handle(handle, "_STA", &temp);
+ 	if (ACPI_FAILURE(status))
+-		return 1;	/* _STA not found, assmue device present */
++		return 1;	/* _STA not found, assume device present */
  
+ 	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
+ 	if (ACPI_FAILURE(status))
+ 		return 0;	/* Firmware error */
+ 
+-	return ((sta & ACPI_STA_PRESENT) == ACPI_STA_PRESENT);
++	return ((sta & ACPI_STA_DEVICE_PRESENT) == ACPI_STA_DEVICE_PRESENT);
+ }
+ 
+ /*******************************************************************/
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index 99d1516..f7de02a 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -70,8 +70,6 @@
+ #define ACPI_PROCESSOR_LIMIT_USER	0
+ #define ACPI_PROCESSOR_LIMIT_THERMAL	1
+ 
+-#define ACPI_STA_PRESENT 0x00000001
+-
+ #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
+ ACPI_MODULE_NAME("processor_core");
+ 
+@@ -779,7 +777,7 @@ static int is_processor_present(acpi_handle handle)
+ 
+ 
+ 	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
+-	if (ACPI_FAILURE(status) || !(sta & ACPI_STA_PRESENT)) {
++	if (ACPI_FAILURE(status) || !(sta & ACPI_STA_DEVICE_PRESENT)) {
+ 		ACPI_EXCEPTION((AE_INFO, status, "Processor Device is not present"));
+ 		return 0;
+ 	}
 -- 
 1.5.2.rc0.34.gda94
