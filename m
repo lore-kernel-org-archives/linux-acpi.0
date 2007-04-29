@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 067/105] ACPI: Improve acpi debug documentation
-Date: Sun, 29 Apr 2007 00:51:07 -0400
-Message-ID: <11778223673988-git-send-email-len.brown@intel.com>
+Subject: [PATCH 071/105] ACPI: thinkpad-acpi: protect fan and hotkey data structures
+Date: Sun, 29 Apr 2007 00:51:11 -0400
+Message-ID: <1177822370442-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -69,82 +69,322 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <1177822364262-git-send-email-len.brown@intel.com>
  <11778223653391-git-send-email-len.brown@intel.com>
  <11778223663850-git-send-email-len.brown@intel.com>
+ <11778223673988-git-send-email-len.brown@intel.com>
+ <1177822368767-git-send-email-len.brown@intel.com>
+ <1177822368793-git-send-email-len.brown@intel.com>
+ <11778223692377-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:11191 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:23431 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756146AbXD2Ews (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 00:52:48 -0400
-In-Reply-To: <11778223663850-git-send-email-len.brown@intel.com>
-Message-Id: <f989106cac719f8fe91da7734e73b3ca09146ecc.1177822058.git.len.brown@intel.com>
+	id S1756156AbXD2Ewx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 00:52:53 -0400
+In-Reply-To: <11778223692377-git-send-email-len.brown@intel.com>
+Message-Id: <40ca9fdf8aa7d929e2b8939be1e6380d107381e1.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
 
-From: Zhang Rui <rui.zhang@intel.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Now we use acpi.debug_level and acpi.debug_layer as kernel boot
-parameters instead of acpi_dbg_level and acpi_dbg_layer.
-Thanks to Andi Kleen for pointing it out.
+Add proper mutex locking to some data structures access subject to races
+due to concurrent access of driver functions on the hotkey and fan
+subdrivers.
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/kernel-parameters.txt |   32 +++++++++++++++++++++++++++-----
- 1 files changed, 27 insertions(+), 5 deletions(-)
+ drivers/misc/thinkpad_acpi.c |  114 ++++++++++++++++++++++++++++++++----------
+ drivers/misc/thinkpad_acpi.h |    5 ++
+ 2 files changed, 92 insertions(+), 27 deletions(-)
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 12533a9..e3394eb 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -181,19 +181,41 @@ and is between 256 and 4096 characters. It is defined in the file
- 			that require a timer override, but don't have
- 			HPET
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index ca6d15c..aa69ff0 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -704,6 +704,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing hotkey subdriver\n");
  
--	acpi_dbg_layer=	[HW,ACPI]
-+	acpi.debug_layer=	[HW,ACPI]
- 			Format: <int>
- 			Each bit of the <int> indicates an ACPI debug layer,
- 			1: enable, 0: disable. It is useful for boot time
- 			debugging. After system has booted up, it can be set
--			via /proc/acpi/debug_layer.
--
--	acpi_dbg_level=	[HW,ACPI]
-+			via /sys/module/acpi/parameters/debug_layer.
-+			CONFIG_ACPI_DEBUG must be enabled for this to produce any output.
-+			Available bits (add the numbers together) to enable debug output
-+			for specific parts of the ACPI subsystem:
-+			0x01 utilities 0x02 hardware 0x04 events 0x08 tables
-+			0x10 namespace 0x20 parser 0x40 dispatcher
-+			0x80 executer 0x100 resources 0x200 acpica debugger
-+			0x400 os services 0x800 acpica disassembler.
-+			The number can be in decimal or prefixed with 0x in hex.
-+			Warning: Many of these options can produce a lot of
-+			output and make your system unusable. Be very careful.
+ 	IBM_ACPIHANDLE_INIT(hkey);
++	mutex_init(&hotkey_mutex);
+ 
+ 	/* hotkey not supported on 570 */
+ 	tp_features.hotkey = hkey_handle != NULL;
+@@ -752,6 +753,9 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
+ 	}
+ }
+ 
++/*
++ * Call with hotkey_mutex held
++ */
+ static int hotkey_get(int *status, int *mask)
+ {
+ 	if (!acpi_evalf(hkey_handle, status, "DHKC", "d"))
+@@ -764,6 +768,9 @@ static int hotkey_get(int *status, int *mask)
+ 	return 0;
+ }
+ 
++/*
++ * Call with hotkey_mutex held
++ */
+ static int hotkey_set(int status, int mask)
+ {
+ 	int i;
+@@ -792,7 +799,11 @@ static int hotkey_read(char *p)
+ 		return len;
+ 	}
+ 
++	res = mutex_lock_interruptible(&hotkey_mutex);
++	if (res < 0)
++		return res;
+ 	res = hotkey_get(&status, &mask);
++	mutex_unlock(&hotkey_mutex);
+ 	if (res)
+ 		return res;
+ 
+@@ -818,10 +829,15 @@ static int hotkey_write(char *buf)
+ 	if (!tp_features.hotkey)
+ 		return -ENODEV;
+ 
++	res = mutex_lock_interruptible(&hotkey_mutex);
++	if (res < 0)
++		return res;
 +
-+	acpi.debug_level=	[HW,ACPI]
- 			Format: <int>
- 			Each bit of the <int> indicates an ACPI debug level,
- 			1: enable, 0: disable. It is useful for boot time
- 			debugging. After system has booted up, it can be set
--			via /proc/acpi/debug_level.
-+			via /sys/module/acpi/parameters/debug_level.
-+			CONFIG_ACPI_DEBUG must be enabled for this to produce any output.
-+			Available bits (add the numbers together) to enable different
-+			debug output levels of the ACPI subsystem:
-+			0x01 error 0x02 warn 0x04 init 0x08 debug object
-+			0x10 info 0x20 init names 0x40 parse 0x80 load
-+			0x100 dispatch 0x200 execute 0x400 names 0x800 operation region
-+			0x1000 bfield 0x2000 tables 0x4000 values 0x8000 objects
-+			0x10000 resources 0x20000 user requests 0x40000 package.
-+			The number can be in decimal or prefixed with 0x in hex.
-+			Warning: Many of these options can produce a lot of
-+			output and make your system unusable. Be very careful.
+ 	res = hotkey_get(&status, &mask);
+ 	if (res)
+-		return res;
++		goto errexit;
+ 
++	res = 0;
+ 	while ((cmd = next_cmd(&buf))) {
+ 		if (strlencmp(cmd, "enable") == 0) {
+ 			status = 1;
+@@ -834,18 +850,19 @@ static int hotkey_write(char *buf)
+ 			/* mask set */
+ 		} else if (sscanf(cmd, "%x", &mask) == 1) {
+ 			/* mask set */
+-		} else
+-			return -EINVAL;
++		} else {
++			res = -EINVAL;
++			goto errexit;
++		}
+ 		do_cmd = 1;
+ 	}
+ 
+-	if (do_cmd) {
++	if (do_cmd)
+ 		res = hotkey_set(status, mask);
+-		if (res)
+-			return res;
+-	}
+ 
+-	return 0;
++errexit:
++	mutex_unlock(&hotkey_mutex);
++	return res;
+ }
+ 
+ static struct tp_acpi_drv_struct ibm_hotkey_acpidriver = {
+@@ -2575,6 +2592,7 @@ static int __init fan_init(struct ibm_init_struct *iibm)
+ {
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing fan subdriver\n");
+ 
++	mutex_init(&fan_mutex);
+ 	fan_status_access_mode = TPACPI_FAN_NONE;
+ 	fan_control_access_mode = TPACPI_FAN_WR_NONE;
+ 	fan_control_commands = 0;
+@@ -2764,10 +2782,17 @@ static void fan_watchdog_reset(void)
+ 
+ static int fan_set_level(int level)
+ {
++	int res;
 +
+ 	switch (fan_control_access_mode) {
+ 	case TPACPI_FAN_WR_ACPI_SFAN:
+ 		if (level >= 0 && level <= 7) {
+-			if (!acpi_evalf(sfan_handle, NULL, NULL, "vd", level))
++			res = mutex_lock_interruptible(&fan_mutex);
++			if (res < 0)
++				return res;
++			res = acpi_evalf(sfan_handle, NULL, NULL, "vd", level);
++			mutex_unlock(&fan_mutex);
++			if (!res)
+ 				return -EIO;
+ 		} else
+ 			return -EINVAL;
+@@ -2780,7 +2805,12 @@ static int fan_set_level(int level)
+ 		    ((level < 0) || (level > 7)))
+ 			return -EINVAL;
  
- 	acpi_fake_ecdt	[HW,ACPI] Workaround failure due to BIOS lacking ECDT
+-		if (!acpi_ec_write(fan_status_offset, level))
++		res = mutex_lock_interruptible(&fan_mutex);
++		if (res < 0)
++			return res;
++		res = acpi_ec_write(fan_status_offset, level);
++		mutex_unlock(&fan_mutex);
++		if (!res)
+ 			return -EIO;
+ 		else
+ 			tp_features.fan_ctrl_status_undef = 0;
+@@ -2797,25 +2827,33 @@ static int fan_set_enable(void)
+ 	u8 s;
+ 	int rc;
  
++	rc = mutex_lock_interruptible(&fan_mutex);
++	if (rc < 0)
++		return rc;
++
+ 	switch (fan_control_access_mode) {
+ 	case TPACPI_FAN_WR_ACPI_FANS:
+ 	case TPACPI_FAN_WR_TPEC:
+-		if ((rc = fan_get_status(&s)) < 0)
+-			return rc;
++		rc = fan_get_status(&s);
++		if (rc < 0)
++			break;
+ 
+ 		/* Don't go out of emergency fan mode */
+ 		if (s != 7)
+ 			s = TP_EC_FAN_AUTO;
+ 
+ 		if (!acpi_ec_write(fan_status_offset, s))
+-			return -EIO;
+-		else
++			rc = -EIO;
++		else {
+ 			tp_features.fan_ctrl_status_undef = 0;
++			rc = 0;
++		}
+ 		break;
+ 
+ 	case TPACPI_FAN_WR_ACPI_SFAN:
+-		if ((rc = fan_get_status(&s)) < 0)
+-			return rc;
++		rc = fan_get_status(&s);
++		if (rc < 0)
++			break;
+ 
+ 		s &= 0x07;
+ 
+@@ -2824,53 +2862,75 @@ static int fan_set_enable(void)
+ 			s = 4;
+ 
+ 		if (!acpi_evalf(sfan_handle, NULL, NULL, "vd", s))
+-			return -EIO;
++			rc= -EIO;
++		else
++			rc = 0;
+ 		break;
+ 
+ 	default:
+-		return -ENXIO;
++		rc = -ENXIO;
+ 	}
+-	return 0;
++
++	mutex_unlock(&fan_mutex);
++	return rc;
+ }
+ 
+ static int fan_set_disable(void)
+ {
++	int rc;
++
++	rc = mutex_lock_interruptible(&fan_mutex);
++	if (rc < 0)
++		return rc;
++
++	rc = 0;
+ 	switch (fan_control_access_mode) {
+ 	case TPACPI_FAN_WR_ACPI_FANS:
+ 	case TPACPI_FAN_WR_TPEC:
+ 		if (!acpi_ec_write(fan_status_offset, 0x00))
+-			return -EIO;
++			rc = -EIO;
+ 		else
+ 			tp_features.fan_ctrl_status_undef = 0;
+ 		break;
+ 
+ 	case TPACPI_FAN_WR_ACPI_SFAN:
+ 		if (!acpi_evalf(sfan_handle, NULL, NULL, "vd", 0x00))
+-			return -EIO;
++			rc = -EIO;
+ 		break;
+ 
+ 	default:
+-		return -ENXIO;
++		rc = -ENXIO;
+ 	}
+-	return 0;
++
++	mutex_unlock(&fan_mutex);
++	return rc;
+ }
+ 
+ static int fan_set_speed(int speed)
+ {
++	int rc;
++
++	rc = mutex_lock_interruptible(&fan_mutex);
++	if (rc < 0)
++		return rc;
++
++	rc = 0;
+ 	switch (fan_control_access_mode) {
+ 	case TPACPI_FAN_WR_ACPI_FANS:
+ 		if (speed >= 0 && speed <= 65535) {
+ 			if (!acpi_evalf(fans_handle, NULL, NULL, "vddd",
+ 					speed, speed, speed))
+-				return -EIO;
++				rc = -EIO;
+ 		} else
+-			return -EINVAL;
++			rc = -EINVAL;
+ 		break;
+ 
+ 	default:
+-		return -ENXIO;
++		rc = -ENXIO;
+ 	}
+-	return 0;
++
++	mutex_unlock(&fan_mutex);
++	return rc;
+ }
+ 
+ static int fan_read(char *p)
+diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
+index 84fdefe..a9feb53 100644
+--- a/drivers/misc/thinkpad_acpi.h
++++ b/drivers/misc/thinkpad_acpi.h
+@@ -30,6 +30,7 @@
+ #include <linux/types.h>
+ #include <linux/string.h>
+ #include <linux/list.h>
++#include <linux/mutex.h>
+ 
+ #include <linux/proc_fs.h>
+ #include <linux/sysfs.h>
+@@ -375,6 +376,8 @@ static enum fan_control_commands fan_control_commands;
+ static u8 fan_control_initial_status;
+ static int fan_watchdog_maxinterval;
+ 
++struct mutex fan_mutex;
++
+ static acpi_handle fans_handle, gfan_handle, sfan_handle;
+ 
+ static int fan_init(struct ibm_init_struct *iibm);
+@@ -403,6 +406,8 @@ static int fan_write_cmd_watchdog(const char *cmd, int *rc);
+ static int hotkey_orig_status;
+ static int hotkey_orig_mask;
+ 
++static struct mutex hotkey_mutex;
++
+ static int hotkey_init(struct ibm_init_struct *iibm);
+ static void hotkey_exit(void);
+ static int hotkey_get(int *status, int *mask);
 -- 
 1.5.2.rc0.34.gda94
