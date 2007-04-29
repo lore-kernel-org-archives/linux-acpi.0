@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 029/105] ACPI: ibm-acpi: update documentation
-Date: Sun, 29 Apr 2007 00:50:29 -0400
-Message-ID: <1177822331727-git-send-email-len.brown@intel.com>
+Subject: [PATCH 033/105] ACPI: thinkpad-acpi: cleanup Kconfig for thinkpad-acpi
+Date: Sun, 29 Apr 2007 00:50:33 -0400
+Message-ID: <1177822337332-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -31,13 +31,17 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223282154-git-send-email-len.brown@intel.com>
  <11778223282215-git-send-email-len.brown@intel.com>
  <11778223304019-git-send-email-len.brown@intel.com>
+ <1177822331727-git-send-email-len.brown@intel.com>
+ <117782233197-git-send-email-len.brown@intel.com>
+ <11778223331858-git-send-email-len.brown@intel.com>
+ <11778223353919-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:55051 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:54971 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754612AbXD2EwO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 00:52:14 -0400
-In-Reply-To: <11778223304019-git-send-email-len.brown@intel.com>
-Message-Id: <38f996ed21089fa4ae40526a5f428e3c792ea561.1177822058.git.len.brown@intel.com>
+	id S1754588AbXD2EwT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 00:52:19 -0400
+In-Reply-To: <11778223353919-git-send-email-len.brown@intel.com>
+Message-Id: <85998248b2e8c6ae7d3ad1fa7b059aed22205ec4.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -47,126 +51,233 @@ Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com
 
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Update documentation header, and relocate a hunk of text that was missplaced.
+Since ibm-acpi was renamed to thinkpad-acpi, rename and update its Kconfig
+entries and Kconfig-related symbols accordingly.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/ibm-acpi.txt |   85 +++++++++++++-------------------------------
- 1 files changed, 25 insertions(+), 60 deletions(-)
+ drivers/misc/Kconfig         |   37 ++++++++++++++++++++-----------------
+ drivers/misc/Makefile        |    2 +-
+ drivers/misc/thinkpad_acpi.c |   26 +++++++++++++-------------
+ drivers/misc/thinkpad_acpi.h |    8 ++++----
+ 4 files changed, 38 insertions(+), 35 deletions(-)
 
-diff --git a/Documentation/ibm-acpi.txt b/Documentation/ibm-acpi.txt
-index cdcef01..f409f4b 100644
---- a/Documentation/ibm-acpi.txt
-+++ b/Documentation/ibm-acpi.txt
-@@ -1,16 +1,17 @@
- 		    IBM ThinkPad ACPI Extras Driver
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index 5d2bcbf..2cd96a3 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -122,40 +122,43 @@ config SONY_LAPTOP
  
--                            Version 0.12
--                           17 August 2005
-+                            Version 0.13
-+                           31 December 2006
+ 	  Read <file:Documentation/sony-laptop.txt> for more information.
  
-                Borislav Deianov <borislav@users.sf.net>
-+	     Henrique de Moraes Holschuh <hmh@hmh.eng.br>
- 		      http://ibm-acpi.sf.net/
+-config ACPI_IBM
+-	tristate "IBM ThinkPad Laptop Extras"
++config THINKPAD_ACPI
++	tristate "ThinkPad ACPI Laptop Extras"
+ 	depends on X86 && ACPI
+ 	select BACKLIGHT_CLASS_DEVICE
+ 	---help---
+-	  This is a Linux ACPI driver for the IBM ThinkPad laptops. It adds
++	  This is a driver for the IBM and Lenovo ThinkPad laptops. It adds
+ 	  support for Fn-Fx key combinations, Bluetooth control, video
+ 	  output switching, ThinkLight control, UltraBay eject and more.
+-	  For more information about this driver see <file:Documentation/ibm-acpi.txt>
+-	  and <http://ibm-acpi.sf.net/> .
++	  For more information about this driver see 
++	  <file:Documentation/thinkpad-acpi.txt> and <http://ibm-acpi.sf.net/> .
  
+-	  If you have an IBM ThinkPad laptop, say Y or M here.
++	  This driver was formely known as ibm-acpi.
  
- This is a Linux ACPI driver for the IBM ThinkPad laptops. It supports
- various features of these laptops which are accessible through the
--ACPI framework but not otherwise supported by the generic Linux ACPI
--drivers.
-+ACPI framework but not otherwise fully supported by the generic Linux
-+ACPI drivers.
- 
- 
- Status
-@@ -638,6 +639,26 @@ The ThinkPad's ACPI DSDT code will reprogram the fan on its own when
- certain conditions are met.  It will override any fan programming done
- through ibm-acpi.
- 
-+The ibm-acpi kernel driver can be programmed to revert the fan level
-+to a safe setting if userspace does not issue one of the fan commands:
-+"enable", "disable", "level" or "watchdog" within a configurable
-+ammount of time.  To do this, use the "watchdog" command.
+-config ACPI_IBM_DOCK
++	  If you have an IBM or Lenovo ThinkPad laptop, say Y or M here.
 +
-+	echo 'watchdog <interval>' > /proc/acpi/ibm/fan
-+
-+Interval is the ammount of time in seconds to wait for one of the
-+above mentioned fan commands before reseting the fan level to a safe
-+one.  If set to zero, the watchdog is disabled (default).  When the
-+watchdog timer runs out, it does the exact equivalent of the "enable"
-+fan command.
-+
-+Note that the watchdog timer stops after it enables the fan.  It will
-+be rearmed again automatically (using the same interval) when one of
-+the above mentioned fan commands is received.  The fan watchdog is,
-+therefore, not suitable to protect against fan mode changes made
-+through means other than the "enable", "disable", and "level" fan
-+commands.
-+
- EXPERIMENTAL: WAN -- /proc/acpi/ibm/wan
- ---------------------------------------
++config THINKPAD_ACPI_DOCK
+ 	bool "Legacy Docking Station Support"
+-	depends on ACPI_IBM
++	depends on THINKPAD_ACPI
+ 	depends on ACPI_DOCK=n
+ 	default n
+ 	---help---
+-	  Allows the ibm_acpi driver to handle docking station events.
+-	  This support is obsoleted by CONFIG_HOTPLUG_PCI_ACPI.  It will
+-	  allow locking and removing the laptop from the docking station,
+-	  but will not properly connect PCI devices.
++	  Allows the thinkpad_acpi driver to handle docking station events.
++	  This support was made obsolete by the generic ACPI docking station
++	  support (CONFIG_ACPI_DOCK).  It will allow locking and removing the
++	  laptop from the docking station, but will not properly connect PCI
++	  devices.
  
-@@ -670,59 +691,3 @@ example:
+ 	  If you are not sure, say N here.
  
- 	modprobe ibm_acpi hotkey=enable,0xffff video=auto_disable
+-config ACPI_IBM_BAY
++config THINKPAD_ACPI_BAY
+ 	bool "Legacy Removable Bay Support"
+-	depends on ACPI_IBM
++	depends on THINKPAD_ACPI
+ 	default y
+ 	---help---
+-	  Allows the ibm_acpi driver to handle removable bays.  It will allow
+-	  disabling the device in the bay, and also generate notifications when
+-	  the bay lever is ejected or inserted.
++	  Allows the thinkpad_acpi driver to handle removable bays.  It will
++	  eletrically disable the device in the bay, and also generate
++	  notifications when the bay lever is ejected or inserted.
  
--The ibm-acpi kernel driver can be programmed to revert the fan level
--to a safe setting if userspace does not issue one of the fan commands:
--"enable", "disable", "level" or "watchdog" within a configurable
--ammount of time.  To do this, use the "watchdog" command.
--
--	echo 'watchdog <interval>' > /proc/acpi/ibm/fan
--
--Interval is the ammount of time in seconds to wait for one of the
--above mentioned fan commands before reseting the fan level to a safe
--one.  If set to zero, the watchdog is disabled (default).  When the
--watchdog timer runs out, it does the exact equivalent of the "enable"
--fan command.
--
--Note that the watchdog timer stops after it enables the fan.  It will
--be rearmed again automatically (using the same interval) when one of
--the above mentioned fan commands is received.  The fan watchdog is,
--therefore, not suitable to protect against fan mode changes made
--through means other than the "enable", "disable", and "level" fan
--commands.
--
--
--Example Configuration
-----------------------
--
--The ACPI support in the kernel is intended to be used in conjunction
--with a user-space daemon, acpid. The configuration files for this
--daemon control what actions are taken in response to various ACPI
--events. An example set of configuration files are included in the
--config/ directory of the tarball package available on the web
--site. Note that these are provided for illustration purposes only and
--may need to be adapted to your particular setup.
--
--The following utility scripts are used by the example action
--scripts (included with ibm-acpi for completeness):
--
--	/usr/local/sbin/idectl -- from the hdparm source distribution,
--		see http://www.ibiblio.org/pub/Linux/system/hardware
--	/usr/local/sbin/laptop_mode -- from the Linux kernel source
--		distribution, see Documentation/laptop-mode.txt
--	/sbin/service -- comes with Redhat/Fedora distributions
--	/usr/sbin/hibernate -- from the Software Suspend 2 distribution,
--		see http://softwaresuspend.berlios.de/
--
--Toan T Nguyen <ntt@physics.ucla.edu> notes that Suse uses the
--powersave program to suspend ('powersave --suspend-to-ram') or
--hibernate ('powersave --suspend-to-disk'). This means that the
--hibernate script is not needed on that distribution.
--
--Henrik Brix Andersen <brix@gentoo.org> has written a Gentoo ACPI event
--handler script for the X31. You can get the latest version from
--http://dev.gentoo.org/~brix/files/x31.sh
--
--David Schweikert <dws@ee.eth.ch> has written an alternative blank.sh
--script which works on Debian systems. This scripts has now been
--extended to also work on Fedora systems and included as the default
--blank.sh in the distribution.
+ 	  If you are not sure, say Y here.
+ 
+diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
+index ebf4ff2..e325164 100644
+--- a/drivers/misc/Makefile
++++ b/drivers/misc/Makefile
+@@ -12,4 +12,4 @@ obj-$(CONFIG_TIFM_CORE)       	+= tifm_core.o
+ obj-$(CONFIG_TIFM_7XX1)       	+= tifm_7xx1.o
+ obj-$(CONFIG_SGI_IOC4)		+= ioc4.o
+ obj-$(CONFIG_SONY_LAPTOP)	+= sony-laptop.o
+-obj-$(CONFIG_ACPI_IBM)		+= thinkpad_acpi.o
++obj-$(CONFIG_THINKPAD_ACPI)	+= thinkpad_acpi.o
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index 2836516..bb789db 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -1040,7 +1040,7 @@ static int light_write(char *buf)
+ /* don't list other alternatives as we install a notify handler on the 570 */
+ IBM_HANDLE(pci, root, "\\_SB.PCI");	/* 570 */
+ 
+-#ifdef CONFIG_ACPI_IBM_DOCK
++#ifdef CONFIG_THINKPAD_ACPI_DOCK
+ 
+ IBM_HANDLE(dock, root, "\\_SB.GDCK",	/* X30, X31, X40 */
+ 	   "\\_SB.PCI0.DOCK",	/* 600e/x,770e,770x,A2xm/p,T20-22,X20-21 */
+@@ -1111,13 +1111,13 @@ static int dock_write(char *buf)
+ 	return 0;
+ }
+ 
+-#endif /* CONFIG_ACPI_IBM_DOCK */
++#endif /* CONFIG_THINKPAD_ACPI_DOCK */
+ 
+ /*************************************************************************
+  * Bay subdriver
+  */
+ 
+-#ifdef CONFIG_ACPI_IBM_BAY
++#ifdef CONFIG_THINKPAD_ACPI_BAY
+ static int bay_status_supported;
+ static int bay_status2_supported;
+ static int bay_eject_supported;
+@@ -1208,7 +1208,7 @@ static int bay_write(char *buf)
+ 
+ 	return 0;
+ }
+-#endif /* CONFIG_ACPI_IBM_BAY */
++#endif /* CONFIG_THINKPAD_ACPI_BAY */
+ 
+ /*************************************************************************
+  * CMOS subdriver
+@@ -2477,7 +2477,7 @@ static struct ibm_struct ibms[] = {
+ 	 .read = light_read,
+ 	 .write = light_write,
+ 	 },
+-#ifdef CONFIG_ACPI_IBM_DOCK
++#ifdef CONFIG_THINKPAD_ACPI_DOCK
+ 	{
+ 	 .name = "dock",
+ 	 .read = dock_read,
+@@ -2494,7 +2494,7 @@ static struct ibm_struct ibms[] = {
+ 	 .type = ACPI_SYSTEM_NOTIFY,
+ 	 },
+ #endif
+-#ifdef CONFIG_ACPI_IBM_BAY
++#ifdef CONFIG_THINKPAD_ACPI_BAY
+ 	{
+ 	 .name = "bay",
+ 	 .init = bay_init,
+@@ -2504,7 +2504,7 @@ static struct ibm_struct ibms[] = {
+ 	 .handle = &bay_handle,
+ 	 .type = ACPI_SYSTEM_NOTIFY,
+ 	 },
+-#endif /* CONFIG_ACPI_IBM_BAY */
++#endif /* CONFIG_THINKPAD_ACPI_BAY */
+ 	{
+ 	 .name = "cmos",
+ 	 .read = cmos_read,
+@@ -2686,12 +2686,12 @@ IBM_PARAM(hotkey);
+ IBM_PARAM(bluetooth);
+ IBM_PARAM(video);
+ IBM_PARAM(light);
+-#ifdef CONFIG_ACPI_IBM_DOCK
++#ifdef CONFIG_THINKPAD_ACPI_DOCK
+ IBM_PARAM(dock);
+ #endif
+-#ifdef CONFIG_ACPI_IBM_BAY
++#ifdef CONFIG_THINKPAD_ACPI_BAY
+ IBM_PARAM(bay);
+-#endif /* CONFIG_ACPI_IBM_BAY */
++#endif /* CONFIG_THINKPAD_ACPI_BAY */
+ IBM_PARAM(cmos);
+ IBM_PARAM(led);
+ IBM_PARAM(beep);
+@@ -2725,18 +2725,18 @@ static int __init acpi_ibm_init(void)
+ 	IBM_HANDLE_INIT(hkey);
+ 	IBM_HANDLE_INIT(lght);
+ 	IBM_HANDLE_INIT(cmos);
+-#ifdef CONFIG_ACPI_IBM_DOCK
++#ifdef CONFIG_THINKPAD_ACPI_DOCK
+ 	IBM_HANDLE_INIT(dock);
+ #endif
+ 	IBM_HANDLE_INIT(pci);
+-#ifdef CONFIG_ACPI_IBM_BAY
++#ifdef CONFIG_THINKPAD_ACPI_BAY
+ 	IBM_HANDLE_INIT(bay);
+ 	if (bay_handle)
+ 		IBM_HANDLE_INIT(bay_ej);
+ 	IBM_HANDLE_INIT(bay2);
+ 	if (bay2_handle)
+ 		IBM_HANDLE_INIT(bay2_ej);
+-#endif /* CONFIG_ACPI_IBM_BAY */
++#endif /* CONFIG_THINKPAD_ACPI_BAY */
+ 	IBM_HANDLE_INIT(beep);
+ 	IBM_HANDLE_INIT(ecrd);
+ 	IBM_HANDLE_INIT(ecwr);
+diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
+index 7ebaaa4..ee1b93a 100644
+--- a/drivers/misc/thinkpad_acpi.h
++++ b/drivers/misc/thinkpad_acpi.h
+@@ -163,7 +163,7 @@ static int register_ibmacpi_subdriver(struct ibm_struct *ibm);
+  * Bay subdriver
+  */
+ 
+-#ifdef CONFIG_ACPI_IBM_BAY
++#ifdef CONFIG_THINKPAD_ACPI_BAY
+ static int bay_status_supported, bay_eject_supported;
+ static int bay_status2_supported, bay_eject2_supported;
+ 
+@@ -174,7 +174,7 @@ static int bay_init(void);
+ static void bay_notify(struct ibm_struct *ibm, u32 event);
+ static int bay_read(char *p);
+ static int bay_write(char *buf);
+-#endif /* CONFIG_ACPI_IBM_BAY */
++#endif /* CONFIG_THINKPAD_ACPI_BAY */
+ 
+ 
+ /*
+@@ -229,13 +229,13 @@ static int cmos_write(char *buf);
+  */
+ 
+ static acpi_handle pci_handle;
+-#ifdef CONFIG_ACPI_IBM_DOCK
++#ifdef CONFIG_THINKPAD_ACPI_DOCK
+ static acpi_handle dock_handle;
+ 
+ static void dock_notify(struct ibm_struct *ibm, u32 event);
+ static int dock_read(char *p);
+ static int dock_write(char *buf);
+-#endif /* CONFIG_ACPI_IBM_DOCK */
++#endif /* CONFIG_THINKPAD_ACPI_DOCK */
+ 
+ 
+ /*
 -- 
 1.5.2.rc0.34.gda94
