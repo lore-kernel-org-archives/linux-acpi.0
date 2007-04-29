@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 079/105] ACPI: use _STA bit names rather than 0x0F
-Date: Sun, 29 Apr 2007 00:51:19 -0400
-Message-ID: <11778223771048-git-send-email-len.brown@intel.com>
+Subject: [PATCH 077/105] ACPI: remove duplicate include
+Date: Sun, 29 Apr 2007 00:51:17 -0400
+Message-ID: <11778223752175-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -79,65 +79,51 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223732286-git-send-email-len.brown@intel.com>
  <11778223733679-git-send-email-len.brown@intel.com>
  <11778223741-git-send-email-len.brown@intel.com>
- <11778223752175-git-send-email-len.brown@intel.com>
- <1177822376123-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:11191 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:23431 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756176AbXD2Ew7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1756167AbXD2Ew7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Sun, 29 Apr 2007 00:52:59 -0400
-In-Reply-To: <1177822376123-git-send-email-len.brown@intel.com>
-Message-Id: <0c0e8921018dbb4fe189a1034f80ac32553bc7bc.1177822058.git.len.brown@intel.com>
+In-Reply-To: <11778223741-git-send-email-len.brown@intel.com>
+Message-Id: <d8938801d10945ac2fbe0f41ded43f6276660a17.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
+Cc: Ray Lee <ray-lk@madrabbit.org>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+From: Ray Lee <ray-lk@madrabbit.org>
 
-Be explicit about what "device->status = 0x0F" really means.
+Thomas's patch for including <asm/apic.h> for x86 UP builds came into
+Linus's tree from two different directions, both of which were merged.
+This reverts the latter, yanking out the duplicate #include and comment.
 
-syntax only.
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Ray Lee <ray-lk@madrabbit.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/bus.c  |    4 +++-
- drivers/acpi/scan.c |    4 +++-
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ drivers/acpi/processor_idle.c |    8 --------
+ 1 files changed, 0 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index dd49ea0..e5084ec 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -103,7 +103,9 @@ int acpi_bus_get_status(struct acpi_device *device)
- 	else if (device->parent)
- 		device->status = device->parent->status;
- 	else
--		STRUCT_TO_INT(device->status) = 0x0F;
-+		STRUCT_TO_INT(device->status) =
-+		    ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED |
-+		    ACPI_STA_DEVICE_UI      | ACPI_STA_DEVICE_FUNCTIONING;
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index cdf7894..ae0654c 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -51,14 +51,6 @@
+ #include <asm/apic.h>
+ #endif
  
- 	if (device->status.functional && !device->status.present) {
- 		printk(KERN_WARNING PREFIX "Device [%s] status [%08x]: "
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index bb0e0da..d80dd84 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1068,7 +1068,9 @@ acpi_add_single_object(struct acpi_device **child,
- 		}
- 		break;
- 	default:
--		STRUCT_TO_INT(device->status) = 0x0F;
-+		STRUCT_TO_INT(device->status) =
-+		    ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED |
-+		    ACPI_STA_DEVICE_UI      | ACPI_STA_DEVICE_FUNCTIONING;
- 		break;
- 	}
+-/*
+- * Include the apic definitions for x86 to have the APIC timer related defines
+- * available also for UP (on SMP it gets magically included via linux/smp.h).
+- */
+-#ifdef CONFIG_X86
+-#include <asm/apic.h>
+-#endif
+-
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
  
 -- 
 1.5.2.rc0.34.gda94
