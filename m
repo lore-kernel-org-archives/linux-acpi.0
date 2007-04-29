@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 075/105] ACPI: thinkpad-acpi: add sysfs support to the cmos command subdriver
-Date: Sun, 29 Apr 2007 00:51:15 -0400
-Message-ID: <11778223733679-git-send-email-len.brown@intel.com>
+Subject: [PATCH 076/105] ACPI: thinkpad-acpi: update brightness sysfs interface support
+Date: Sun, 29 Apr 2007 00:51:16 -0400
+Message-ID: <11778223741-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -77,13 +77,14 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <1177822371935-git-send-email-len.brown@intel.com>
  <11778223721984-git-send-email-len.brown@intel.com>
  <11778223732286-git-send-email-len.brown@intel.com>
+ <11778223733679-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:11191 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:42357 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754614AbXD2Ewz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 00:52:55 -0400
-In-Reply-To: <11778223732286-git-send-email-len.brown@intel.com>
-Message-Id: <b616004c70dd7f60a1477c3e9d6fddd00ee1fa37.1177822058.git.len.brown@intel.com>
+	id S1756165AbXD2Ew6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 00:52:58 -0400
+In-Reply-To: <11778223733679-git-send-email-len.brown@intel.com>
+Message-Id: <7d5a015eece8be9186d3613d595643a520555e33.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -93,123 +94,119 @@ Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com
 
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Add sysfs attributes to send ThinkPad CMOS commands.
+Update the brightness sysfs interface (done through the backlight class) to
+be in line with the rest of the thinkpad-acpi driver.
+
+This renames the incorrect, un-obvious, and clash-prone name of "ibm" for
+the backlight device to a much more fitting and descriptive
+"thinkpad_screen".  This is something I wanted to do for quite a while...
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/thinkpad-acpi.txt |   23 +++++++++++------------
- drivers/misc/thinkpad_acpi.c    |   33 +++++++++++++++++++++++++++++++++
- 2 files changed, 44 insertions(+), 12 deletions(-)
+ Documentation/thinkpad-acpi.txt |   52 ++++++++++++++++++++++++++++++++++----
+ drivers/misc/thinkpad_acpi.c    |    5 ++-
+ drivers/misc/thinkpad_acpi.h    |    2 +
+ 3 files changed, 51 insertions(+), 8 deletions(-)
 
 diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
-index 339ce21..352e8ae 100644
+index 352e8ae..eab4997 100644
 --- a/Documentation/thinkpad-acpi.txt
 +++ b/Documentation/thinkpad-acpi.txt
-@@ -378,23 +378,19 @@ supported. Use "eject2" instead of "eject" for the second bay.
- Note: the UltraBay eject support on the 600e/x, A22p and A3x is
- EXPERIMENTAL and may not work as expected. USE WITH CAUTION!
+@@ -611,19 +611,59 @@ registers contain the current battery capacity, etc. If you experiment
+ with this, do send me your results (including some complete dumps with
+ a description of the conditions when they were taken.)
  
--CMOS control -- /proc/acpi/ibm/cmos
-------------------------------------
-+CMOS control
-+------------
+-LCD brightness control -- /proc/acpi/ibm/brightness
+----------------------------------------------------
++LCD brightness control
++----------------------
 +
-+procfs: /proc/acpi/ibm/cmos
-+sysfs device attribute: cmos_command
++procfs: /proc/acpi/ibm/brightness
++sysfs backlight device "thinkpad_screen"
  
- This feature is used internally by the ACPI firmware to control the
- ThinkLight on most newer ThinkPad models. It may also control LCD
- brightness, sounds volume and more, but only on some models.
- 
--The commands are non-negative integer numbers:
--
--	echo 0 >/proc/acpi/ibm/cmos
--	echo 1 >/proc/acpi/ibm/cmos
--	echo 2 >/proc/acpi/ibm/cmos
--	...
--
--The range of valid numbers is 0 to 21, but not all have an effect and
--the behavior varies from model to model. Here is the behavior on the
--X40 (tpb is the ThinkPad Buttons utility):
-+The range of valid cmos command numbers is 0 to 21, but not all have an
-+effect and the behavior varies from model to model.  Here is the behavior
-+on the X40 (tpb is the ThinkPad Buttons utility):
- 
- 	0 - no effect but tpb reports "Volume down"
- 	1 - no effect but tpb reports "Volume up"
-@@ -407,6 +403,9 @@ X40 (tpb is the ThinkPad Buttons utility):
- 	13 - ThinkLight off
- 	14 - no effect but tpb reports ThinkLight status change
- 
-+The cmos command interface is prone to firmware split-brain problems, as
-+in newer ThinkPads it is just a compatibility layer.
+ This feature allows software control of the LCD brightness on ThinkPad
+-models which don't have a hardware brightness slider. The available
+-commands are:
++models which don't have a hardware brightness slider.
 +
- LED control -- /proc/acpi/ibm/led
- ---------------------------------
++It has some limitations: the LCD backlight cannot be actually turned on or off
++by this interface, and in many ThinkPad models, the "dim while on battery"
++functionality will be enabled by the BIOS when this interface is used, and
++cannot be controlled.
++
++The backlight control has eight levels, ranging from 0 to 7.  Some of the
++levels may not be distinct.
++
++Procfs notes:
++
++	The available commands are:
  
+ 	echo up   >/proc/acpi/ibm/brightness
+ 	echo down >/proc/acpi/ibm/brightness
+ 	echo 'level <level>' >/proc/acpi/ibm/brightness
+ 
+-The <level> number range is 0 to 7, although not all of them may be
+-distinct. The current brightness level is shown in the file.
++Sysfs notes:
++
++The interface is implemented through the backlight sysfs class, which is poorly
++documented at this time.
++
++Locate the thinkpad_screen device under /sys/class/backlight, and inside it
++there will be the following attributes:
++
++	max_brightness:
++		Reads the maximum brightness the hardware can be set to.
++		The minimum is always zero.
++
++	actual_brightness:
++		Reads what brightness the screen is set to at this instant.
++
++	brightness:
++		Writes request the driver to change brightness to the given
++		value.  Reads will tell you what brightness the driver is trying
++		to set the display to when "power" is set to zero and the display
++		has not been dimmed by a kernel power management event.
++
++	power:
++		power management mode, where 0 is "display on", and 1 to 3 will
++		dim the display backlight to brightness level 0 because
++		thinkpad-acpi cannot really turn the backlight off.  Kernel
++		power management events can temporarily increase the current
++		power management level, i.e. they can dim the display.
++
+ 
+ Volume control -- /proc/acpi/ibm/volume
+ ---------------------------------------
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 79abc68..ba749df 100644
+index ba749df..c0a023c 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -1743,8 +1743,30 @@ static struct ibm_struct bay_driver_data = {
-  * CMOS subdriver
+@@ -2414,8 +2414,9 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
+ 	if (b < 0)
+ 		return b;
+ 
+-	ibm_backlight_device = backlight_device_register("ibm", NULL, NULL,
+-							 &ibm_backlight_data);
++	ibm_backlight_device = backlight_device_register(
++					TPACPI_BACKLIGHT_DEV_NAME, NULL, NULL,
++					&ibm_backlight_data);
+ 	if (IS_ERR(ibm_backlight_device)) {
+ 		printk(IBM_ERR "Could not register backlight device\n");
+ 		return PTR_ERR(ibm_backlight_device);
+diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
+index 2fe4d61..8348fc6 100644
+--- a/drivers/misc/thinkpad_acpi.h
++++ b/drivers/misc/thinkpad_acpi.h
+@@ -296,6 +296,8 @@ static int bluetooth_write(char *buf);
+  * Brightness (backlight) subdriver
   */
  
-+/* sysfs cmos_command -------------------------------------------------- */
-+static ssize_t cmos_command_store(struct device *dev,
-+			    struct device_attribute *attr,
-+			    const char *buf, size_t count)
-+{
-+	unsigned long cmos_cmd;
-+	int res;
++#define TPACPI_BACKLIGHT_DEV_NAME "thinkpad_screen"
 +
-+	if (parse_strtoul(buf, 21, &cmos_cmd))
-+		return -EINVAL;
-+
-+	res = issue_thinkpad_cmos_command(cmos_cmd);
-+	return (res)? res : count;
-+}
-+
-+static struct device_attribute dev_attr_cmos_command =
-+	__ATTR(cmos_command, S_IWUSR, NULL, cmos_command_store);
-+
-+/* --------------------------------------------------------------------- */
-+
- static int __init cmos_init(struct ibm_init_struct *iibm)
- {
-+	int res;
-+
- 	vdbg_printk(TPACPI_DBG_INIT,
- 		"initializing cmos commands subdriver\n");
+ static struct backlight_device *ibm_backlight_device;
+ static int brightness_offset = 0x31;
  
-@@ -1752,9 +1774,19 @@ static int __init cmos_init(struct ibm_init_struct *iibm)
- 
- 	vdbg_printk(TPACPI_DBG_INIT, "cmos commands are %s\n",
- 		str_supported(cmos_handle != NULL));
-+
-+	res = device_create_file(&tpacpi_pdev->dev, &dev_attr_cmos_command);
-+	if (res)
-+		return res;
-+
- 	return (cmos_handle)? 0 : 1;
- }
- 
-+static void cmos_exit(void)
-+{
-+	device_remove_file(&tpacpi_pdev->dev, &dev_attr_cmos_command);
-+}
-+
- static int cmos_read(char *p)
- {
- 	int len = 0;
-@@ -1795,6 +1827,7 @@ static struct ibm_struct cmos_driver_data = {
- 	.name = "cmos",
- 	.read = cmos_read,
- 	.write = cmos_write,
-+	.exit = cmos_exit,
- };
- 
- /*************************************************************************
 -- 
 1.5.2.rc0.34.gda94
