@@ -1,16 +1,17 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 002/105] ACPI: EC: Don't use Global Lock if not asked to do so
-Date: Sun, 29 Apr 2007 00:50:02 -0400
-Message-ID: <11778223072296-git-send-email-len.brown@intel.com>
+Subject: [PATCH 003/105] ACPI: EC: Make EC to initialize first in ACPI
+Date: Sun, 29 Apr 2007 00:50:03 -0400
+Message-ID: <11778223083747-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
+ <11778223072296-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:20110 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:62745 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754580AbXD2Evs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 00:51:48 -0400
-In-Reply-To: <11778223068-git-send-email-len.brown@intel.com>
-Message-Id: <a5f8dee2d367e69fd57f5ea107072bb72eb15327.1177822058.git.len.brown@intel.com>
+	id S1754581AbXD2Evt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 00:51:49 -0400
+In-Reply-To: <11778223072296-git-send-email-len.brown@intel.com>
+Message-Id: <33d20b6100d05a0b14883e7dc8ab41e4531fcf59.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -23,29 +24,40 @@ From: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
 Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/ec.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+ drivers/acpi/Makefile |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index a802962..7828ac5 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -827,7 +827,6 @@ acpi_fake_ecdt_callback(acpi_handle handle,
- 	status = acpi_evaluate_integer(handle, "_GPE", NULL, &ec_ecdt->gpe);
- 	if (ACPI_FAILURE(status))
- 		return status;
--	ec_ecdt->global_lock = TRUE;
- 	ec_ecdt->handle = handle;
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 5956e9f..9623aac 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -1,6 +1,6 @@
+ #
+ # Makefile for the Linux ACPI interpreter
+-# 
++#
  
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "GPE=0x%02lx, ports=0x%2lx, 0x%2lx",
-@@ -901,8 +900,6 @@ static int __init acpi_ec_get_real_ecdt(void)
- 	ec_ecdt->command_addr = ecdt_ptr->control.address;
- 	ec_ecdt->data_addr = ecdt_ptr->data.address;
- 	ec_ecdt->gpe = ecdt_ptr->gpe;
--	/* use the GL just to be safe */
--	ec_ecdt->global_lock = TRUE;
- 	ec_ecdt->uid = ecdt_ptr->uid;
+ export ACPI_CFLAGS
  
- 	status = acpi_get_handle(NULL, ecdt_ptr->id, &ec_ecdt->handle);
+@@ -32,16 +32,17 @@ obj-y				+= osl.o utils.o \
+ processor-objs	+= processor_core.o processor_throttling.o \
+ 				processor_idle.o processor_thermal.o
+ ifdef CONFIG_CPU_FREQ
+-processor-objs	+= processor_perflib.o			
++processor-objs	+= processor_perflib.o
+ endif
+ 
+ obj-y				+= sleep/
+ obj-y				+= bus.o glue.o
+ obj-y				+= scan.o
++# Keep EC driver first. Initialization of others depend on it.
++obj-$(CONFIG_ACPI_EC)		+= ec.o
+ obj-$(CONFIG_ACPI_AC) 		+= ac.o
+ obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
+ obj-$(CONFIG_ACPI_BUTTON)	+= button.o
+-obj-$(CONFIG_ACPI_EC)		+= ec.o
+ obj-$(CONFIG_ACPI_FAN)		+= fan.o
+ obj-$(CONFIG_ACPI_DOCK)		+= dock.o
+ obj-$(CONFIG_ACPI_BAY)		+= bay.o
 -- 
 1.5.2.rc0.34.gda94
