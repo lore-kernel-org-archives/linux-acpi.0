@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 088/105] ACPI: thinkpad-acpi: fix a fan watchdog invocation
-Date: Sun, 29 Apr 2007 00:51:28 -0400
-Message-ID: <11778223861983-git-send-email-len.brown@intel.com>
+Subject: [PATCH 090/105] ACPI: thinkpad-acpi: improve fan control documentation
+Date: Sun, 29 Apr 2007 00:51:30 -0400
+Message-ID: <1177822387623-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -90,13 +90,15 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <117782238310-git-send-email-len.brown@intel.com>
  <11778223843825-git-send-email-len.brown@intel.com>
  <11778223852391-git-send-email-len.brown@intel.com>
+ <11778223861983-git-send-email-len.brown@intel.com>
+ <11778223872566-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:18569 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:37949 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754612AbXD2ExM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 00:53:12 -0400
-In-Reply-To: <11778223852391-git-send-email-len.brown@intel.com>
-Message-Id: <ca4ac2f48a4502bbbfcb47b86312273c28194f53.1177822058.git.len.brown@intel.com>
+	id S1756192AbXD2ExN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 00:53:13 -0400
+In-Reply-To: <11778223872566-git-send-email-len.brown@intel.com>
+Message-Id: <b39fe582eb9252dca9a62f7135bcad2e486083e5.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -106,31 +108,55 @@ Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com
 
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-The fan control watchdog was being called in one place even when the fan
-control operation had failed.  Fix it.
+Improve fan control documentation and fix one mistake.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/thinkpad_acpi.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ Documentation/thinkpad-acpi.txt |   18 +++++++++++++-----
+ 1 files changed, 13 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index f824259..b85f096 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -2888,9 +2888,10 @@ static ssize_t fan_pwm1_store(struct device *dev,
- 	if (!rc && (status &
- 		    (TP_EC_FAN_AUTO | TP_EC_FAN_FULLSPEED)) == 0) {
- 		rc = fan_set_level(newlevel);
--		if (!rc)
-+		if (!rc) {
- 			fan_update_desired_level(newlevel);
--		fan_watchdog_reset();
-+			fan_watchdog_reset();
-+		}
- 	}
+diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
+index bca50d7..e3ad7a4 100644
+--- a/Documentation/thinkpad-acpi.txt
++++ b/Documentation/thinkpad-acpi.txt
+@@ -795,15 +795,23 @@ Sysfs notes:
+ The sysfs interface follows the hwmon subsystem guidelines for the most
+ part, and the exception is the fan safety watchdog.
  
- 	mutex_unlock(&fan_mutex);
++Writes to any of the sysfs attributes may return the EINVAL error if
++that operation is not supported in a given ThinkPad or if the parameter
++is out-of-bounds, and EPERM if it is forbidden.  They may also return
++EINTR (interrupted system call), and EIO (I/O error while trying to talk
++to the firmware).
++
++Features not yet implemented by the driver return ENOSYS.
++
+ hwmon device attribute pwm1_enable:
+ 	0: PWM offline (fan is set to full-speed mode)
+ 	1: Manual PWM control (use pwm1 to set fan level)
+ 	2: Hardware PWM control (EC "auto" mode)
+ 	3: reserved (Software PWM control, not implemented yet)
+ 
+-	Modes 0 and 2 are not supported by all ThinkPads, and the driver
+-	is not always able to detect this.  If it does know a mode is
+-	unsupported, it will return -EINVAL.
++	Modes 0 and 2 are not supported by all ThinkPads, and the
++	driver is not always able to detect this.  If it does know a
++	mode is unsupported, it will return -EINVAL.
+ 
+ hwmon device attribute pwm1:
+ 	Fan level, scaled from the firmware values of 0-7 to the hwmon
+@@ -826,8 +834,8 @@ driver attribute fan_watchdog:
+ To stop the fan: set pwm1 to zero, and pwm1_enable to 1.
+ 
+ To start the fan in a safe mode: set pwm1_enable to 2.  If that fails
+-with ENOTSUP, set it to 1 and set pwm1 to at least 128 (255 would be the
+-safest choice, though).
++with EINVAL, try to set pwm1_enable to 1 and pwm1 to at least 128 (255
++would be the safest choice, though).
+ 
+ 
+ EXPERIMENTAL: WAN -- /proc/acpi/ibm/wan
 -- 
 1.5.2.rc0.34.gda94
