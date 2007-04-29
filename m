@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 061/105] ACPI: thinkpad-acpi: cleanup bluetooth and wan for sysfs conversion
-Date: Sun, 29 Apr 2007 00:51:01 -0400
-Message-ID: <117782236226-git-send-email-len.brown@intel.com>
+Subject: [PATCH 062/105] ACPI: thinkpad-acpi: cleanup video subdriver
+Date: Sun, 29 Apr 2007 00:51:02 -0400
+Message-ID: <11778223624095-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -63,13 +63,14 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223593048-git-send-email-len.brown@intel.com>
  <11778223602019-git-send-email-len.brown@intel.com>
  <11778223612093-git-send-email-len.brown@intel.com>
+ <117782236226-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:9417 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:54971 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756142AbXD2Ewn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 00:52:43 -0400
-In-Reply-To: <11778223612093-git-send-email-len.brown@intel.com>
-Message-Id: <d6fdd1e91a8a4cd852dc1d945165e3a69ac9e257.1177822058.git.len.brown@intel.com>
+	id S1756144AbXD2Ewo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 00:52:44 -0400
+In-Reply-To: <117782236226-git-send-email-len.brown@intel.com>
+Message-Id: <83f34724643a3b0ec9322490b9ad9f1b60170a6c.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -79,292 +80,398 @@ Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com
 
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Prepare bluetooth and wan driver code to be more easily hooked into sysfs
-helpers, by separating the procfs logic from the device attribute handling.
-
-These changes also remove the entries from procfs on notebooks without the
-bluetooth/wan hardware installed.
+Cleanup video subdriver for sysfs conversion, and properly check
+result status of acpi_evalf.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/thinkpad_acpi.c |  130 +++++++++++++++++++++++++++++-------------
- drivers/misc/thinkpad_acpi.h |   20 ++++++-
- 2 files changed, 108 insertions(+), 42 deletions(-)
+ drivers/misc/thinkpad_acpi.c |  262 ++++++++++++++++++++++++++++--------------
+ drivers/misc/thinkpad_acpi.h |   25 +++-
+ 2 files changed, 197 insertions(+), 90 deletions(-)
 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 344eb55..a77368f 100644
+index a77368f..19c14bb 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -681,6 +681,8 @@ static struct ibm_struct hotkey_driver_data = {
+@@ -935,111 +935,194 @@ static int __init video_init(struct ibm_init_struct *iibm)
  
- static int __init bluetooth_init(struct ibm_init_struct *iibm)
+ static void video_exit(void)
  {
-+	int status = 0;
-+
- 	vdbg_printk(TPACPI_DBG_INIT, "initializing bluetooth subdriver\n");
- 
- 	IBM_ACPIHANDLE_INIT(hkey);
-@@ -688,36 +690,65 @@ static int __init bluetooth_init(struct ibm_init_struct *iibm)
- 	/* bluetooth not supported on 570, 600e/x, 770e, 770x, A21e, A2xm/p,
- 	   G4x, R30, R31, R40e, R50e, T20-22, X20-21 */
- 	tp_features.bluetooth = hkey_handle &&
--	    acpi_evalf(hkey_handle, NULL, "GBDC", "qv");
-+	    acpi_evalf(hkey_handle, &status, "GBDC", "qd");
- 
--	vdbg_printk(TPACPI_DBG_INIT, "bluetooth is %s\n",
--		str_supported(tp_features.bluetooth));
-+	vdbg_printk(TPACPI_DBG_INIT, "bluetooth is %s, status 0x%02x\n",
-+		str_supported(tp_features.bluetooth),
-+		status);
-+
-+	if (tp_features.bluetooth &&
-+	    !(status & TP_ACPI_BLUETOOTH_HWPRESENT)) {
-+		/* no bluetooth hardware present in system */
-+		tp_features.bluetooth = 0;
-+		dbg_printk(TPACPI_DBG_INIT,
-+			   "bluetooth hardware not installed\n");
-+	}
- 
- 	return (tp_features.bluetooth)? 0 : 1;
+-	dbg_printk(TPACPI_DBG_EXIT, "restoring original video autoswitch mode\n");
+-	acpi_evalf(vid_handle, NULL, "_DOS", "vd", video_orig_autosw);
++	dbg_printk(TPACPI_DBG_EXIT,
++		   "restoring original video autoswitch mode\n");
++	if (video_autosw_set(video_orig_autosw))
++		printk(IBM_ERR "error while trying to restore original "
++			"video autoswitch mode\n");
  }
  
--static int bluetooth_status(void)
-+static int bluetooth_get_radiosw(void)
+-static int video_status(void)
++static int video_outputsw_get(void)
  {
- 	int status;
+ 	int status = 0;
+ 	int i;
  
--	if (!tp_features.bluetooth ||
--	    !acpi_evalf(hkey_handle, &status, "GBDC", "d"))
--		status = 0;
-+	if (!tp_features.bluetooth)
-+		return -ENODEV;
+-	if (video_supported == TPACPI_VIDEO_570) {
+-		if (acpi_evalf(NULL, &i, "\\_SB.PHS", "dd", 0x87))
+-			status = i & 3;
+-	} else if (video_supported == TPACPI_VIDEO_770) {
+-		if (acpi_evalf(NULL, &i, "\\VCDL", "d"))
+-			status |= 0x01 * i;
+-		if (acpi_evalf(NULL, &i, "\\VCDC", "d"))
+-			status |= 0x02 * i;
+-	} else if (video_supported == TPACPI_VIDEO_NEW) {
+-		acpi_evalf(NULL, NULL, "\\VUPS", "vd", 1);
+-		if (acpi_evalf(NULL, &i, "\\VCDC", "d"))
+-			status |= 0x02 * i;
+-
+-		acpi_evalf(NULL, NULL, "\\VUPS", "vd", 0);
+-		if (acpi_evalf(NULL, &i, "\\VCDL", "d"))
+-			status |= 0x01 * i;
+-		if (acpi_evalf(NULL, &i, "\\VCDD", "d"))
+-			status |= 0x08 * i;
++	switch (video_supported) {
++	case TPACPI_VIDEO_570:
++		if (!acpi_evalf(NULL, &i, "\\_SB.PHS", "dd",
++				 TP_ACPI_VIDEO_570_PHSCMD))
++			return -EIO;
++		status = i & TP_ACPI_VIDEO_570_PHSMASK;
++		break;
++	case TPACPI_VIDEO_770:
++		if (!acpi_evalf(NULL, &i, "\\VCDL", "d"))
++			return -EIO;
++		if (i)
++			status |= TP_ACPI_VIDEO_S_LCD;
++		if (!acpi_evalf(NULL, &i, "\\VCDC", "d"))
++			return -EIO;
++		if (i)
++			status |= TP_ACPI_VIDEO_S_CRT;
++		break;
++	case TPACPI_VIDEO_NEW:
++		if (!acpi_evalf(NULL, NULL, "\\VUPS", "vd", 1) ||
++		    !acpi_evalf(NULL, &i, "\\VCDC", "d"))
++			return -EIO;
++		if (i)
++			status |= TP_ACPI_VIDEO_S_CRT;
++
++		if (!acpi_evalf(NULL, NULL, "\\VUPS", "vd", 0) ||
++		    !acpi_evalf(NULL, &i, "\\VCDL", "d"))
++			return -EIO;
++		if (i)
++			status |= TP_ACPI_VIDEO_S_LCD;
++		if (!acpi_evalf(NULL, &i, "\\VCDD", "d"))
++			return -EIO;
++		if (i)
++			status |= TP_ACPI_VIDEO_S_DVI;
++		break;
++	default:
++		return -ENOSYS;
+ 	}
  
--	return status;
-+	if (!acpi_evalf(hkey_handle, &status, "GBDC", "d"))
+ 	return status;
+ }
+ 
+-static int video_autosw(void)
++static int video_outputsw_set(int status)
+ {
+-	int autosw = 0;
++	int autosw;
++	int res = 0;
+ 
+-	if (video_supported == TPACPI_VIDEO_570)
+-		acpi_evalf(vid_handle, &autosw, "SWIT", "d");
+-	else if (video_supported == TPACPI_VIDEO_770 ||
+-		 video_supported == TPACPI_VIDEO_NEW)
+-		acpi_evalf(vid_handle, &autosw, "^VDEE", "d");
++	switch (video_supported) {
++	case TPACPI_VIDEO_570:
++		res = acpi_evalf(NULL, NULL,
++				 "\\_SB.PHS2", "vdd",
++				 TP_ACPI_VIDEO_570_PHS2CMD,
++				 status | TP_ACPI_VIDEO_570_PHS2SET);
++		break;
++	case TPACPI_VIDEO_770:
++		autosw = video_autosw_get();
++		if (autosw < 0)
++			return autosw;
+ 
+-	return autosw & 1;
++		res = video_autosw_set(1);
++		if (res)
++			return res;
++		res = acpi_evalf(vid_handle, NULL,
++				 "ASWT", "vdd", status * 0x100, 0);
++		if (!autosw && video_autosw_set(autosw)) {
++			printk(IBM_ERR "video auto-switch left enabled due to error\n");
++			return -EIO;
++		}
++		break;
++	case TPACPI_VIDEO_NEW:
++		res = acpi_evalf(NULL, NULL, "\\VUPS", "vd", 0x80) &&
++			acpi_evalf(NULL, NULL, "\\VSDS", "vdd", status, 1);
++		break;
++	default:
++		return -ENOSYS;
++	}
++
++	return (res)? 0 : -EIO;
+ }
+ 
+-static int video_switch(void)
++static int video_autosw_get(void)
+ {
+-	int autosw = video_autosw();
+-	int ret;
++	int autosw = 0;
+ 
+-	if (!acpi_evalf(vid_handle, NULL, "_DOS", "vd", 1))
+-		return -EIO;
+-	ret = video_supported == TPACPI_VIDEO_570 ?
+-	    acpi_evalf(ec_handle, NULL, "_Q16", "v") :
+-	    acpi_evalf(vid_handle, NULL, "VSWT", "v");
+-	acpi_evalf(vid_handle, NULL, "_DOS", "vd", autosw);
++	switch (video_supported) {
++	case TPACPI_VIDEO_570:
++		if (!acpi_evalf(vid_handle, &autosw, "SWIT", "d"))
++			return -EIO;
++		break;
++	case TPACPI_VIDEO_770:
++	case TPACPI_VIDEO_NEW:
++		if (!acpi_evalf(vid_handle, &autosw, "^VDEE", "d"))
++			return -EIO;
++		break;
++	default:
++		return -ENOSYS;
++	}
+ 
+-	return ret;
++	return autosw & 1;
+ }
+ 
+-static int video_expand(void)
++static int video_autosw_set(int enable)
+ {
+-	if (video_supported == TPACPI_VIDEO_570)
+-		return acpi_evalf(ec_handle, NULL, "_Q17", "v");
+-	else if (video_supported == TPACPI_VIDEO_770)
+-		return acpi_evalf(vid_handle, NULL, "VEXP", "v");
+-	else
+-		return acpi_evalf(NULL, NULL, "\\VEXP", "v");
++	if (!acpi_evalf(vid_handle, NULL, "_DOS", "vd", (enable)? 1 : 0))
 +		return -EIO;
-+
-+	return ((status & TP_ACPI_BLUETOOTH_RADIOSSW) != 0);
-+}
-+
-+static int bluetooth_set_radiosw(int radio_on)
-+{
-+	int status;
-+
-+	if (!tp_features.bluetooth)
-+		return -ENODEV;
-+
-+	if (!acpi_evalf(hkey_handle, &status, "GBDC", "d"))
-+		return -EIO;
-+	if (radio_on)
-+		status |= TP_ACPI_BLUETOOTH_RADIOSSW;
-+	else
-+		status &= ~TP_ACPI_BLUETOOTH_RADIOSSW;
-+	if (!acpi_evalf(hkey_handle, NULL, "SBDC", "vd", status))
-+		return -EIO;
-+
 +	return 0;
  }
  
- static int bluetooth_read(char *p)
+-static int video_switch2(int status)
++static int video_outputsw_cycle(void)
  {
- 	int len = 0;
--	int status = bluetooth_status();
-+	int status = bluetooth_get_radiosw();
- 
- 	if (!tp_features.bluetooth)
- 		len += sprintf(p + len, "status:\t\tnot supported\n");
--	else if (!(status & 1))
--		len += sprintf(p + len, "status:\t\tnot installed\n");
- 	else {
--		len += sprintf(p + len, "status:\t\t%s\n", enabled(status, 1));
-+		len += sprintf(p + len, "status:\t\t%s\n",
-+				(status)? "enabled" : "disabled");
- 		len += sprintf(p + len, "commands:\tenable, disable\n");
- 	}
- 
-@@ -726,26 +757,20 @@ static int bluetooth_read(char *p)
- 
- static int bluetooth_write(char *buf)
- {
--	int status = bluetooth_status();
- 	char *cmd;
--	int do_cmd = 0;
- 
- 	if (!tp_features.bluetooth)
- 		return -ENODEV;
- 
- 	while ((cmd = next_cmd(&buf))) {
- 		if (strlencmp(cmd, "enable") == 0) {
--			status |= 2;
-+			bluetooth_set_radiosw(1);
- 		} else if (strlencmp(cmd, "disable") == 0) {
--			status &= ~2;
-+			bluetooth_set_radiosw(0);
- 		} else
- 			return -EINVAL;
--		do_cmd = 1;
- 	}
- 
--	if (do_cmd && !acpi_evalf(hkey_handle, NULL, "SBDC", "vd", status))
--		return -EIO;
+-	int ret;
 -
- 	return 0;
- }
+-	if (video_supported == TPACPI_VIDEO_570) {
+-		ret = acpi_evalf(NULL, NULL,
+-				 "\\_SB.PHS2", "vdd", 0x8b, status | 0x80);
+-	} else if (video_supported == TPACPI_VIDEO_770) {
+-		int autosw = video_autosw();
+-		if (!acpi_evalf(vid_handle, NULL, "_DOS", "vd", 1))
+-			return -EIO;
++	int autosw = video_autosw_get();
++	int res;
  
-@@ -761,41 +786,72 @@ static struct ibm_struct bluetooth_driver_data = {
+-		ret = acpi_evalf(vid_handle, NULL,
+-				 "ASWT", "vdd", status * 0x100, 0);
++	if (autosw < 0)
++		return autosw;
  
- static int __init wan_init(struct ibm_init_struct *iibm)
- {
-+	int status = 0;
-+
- 	vdbg_printk(TPACPI_DBG_INIT, "initializing wan subdriver\n");
- 
- 	IBM_ACPIHANDLE_INIT(hkey);
- 
- 	tp_features.wan = hkey_handle &&
--			  acpi_evalf(hkey_handle, NULL, "GWAN", "qv");
-+	    acpi_evalf(hkey_handle, &status, "GWAN", "qd");
- 
--	vdbg_printk(TPACPI_DBG_INIT, "wan is %s\n",
--		str_supported(tp_features.wan));
-+	vdbg_printk(TPACPI_DBG_INIT, "wan is %s, status 0x%02x\n",
-+		str_supported(tp_features.wan),
-+		status);
-+
-+	if (tp_features.wan &&
-+	    !(status & TP_ACPI_WANCARD_HWPRESENT)) {
-+		/* no wan hardware present in system */
-+		tp_features.wan = 0;
-+		dbg_printk(TPACPI_DBG_INIT,
-+			   "wan hardware not installed\n");
+-		acpi_evalf(vid_handle, NULL, "_DOS", "vd", autosw);
+-	} else {
+-		ret = acpi_evalf(NULL, NULL, "\\VUPS", "vd", 0x80) &&
+-		    acpi_evalf(NULL, NULL, "\\VSDS", "vdd", status, 1);
++	switch (video_supported) {
++	case TPACPI_VIDEO_570:
++		res = video_autosw_set(1);
++		if (res)
++			return res;
++		res = acpi_evalf(ec_handle, NULL, "_Q16", "v");
++		break;
++	case TPACPI_VIDEO_770:
++	case TPACPI_VIDEO_NEW:
++		res = video_autosw_set(1);
++		if (res)
++			return res;
++		res = acpi_evalf(vid_handle, NULL, "VSWT", "v");
++		break;
++	default:
++		return -ENOSYS;
 +	}
- 
- 	return (tp_features.wan)? 0 : 1;
- }
- 
--static int wan_status(void)
-+static int wan_get_radiosw(void)
- {
- 	int status;
- 
--	if (!tp_features.wan ||
--	    !acpi_evalf(hkey_handle, &status, "GWAN", "d"))
--		status = 0;
-+	if (!tp_features.wan)
-+		return -ENODEV;
- 
--	return status;
-+	if (!acpi_evalf(hkey_handle, &status, "GWAN", "d"))
++	if (!autosw && video_autosw_set(autosw)) {
++		printk(IBM_ERR "video auto-switch left enabled due to error\n");
 +		return -EIO;
-+
-+	return ((status & TP_ACPI_WANCARD_RADIOSSW) != 0);
+ 	}
+ 
+-	return ret;
++	return (res)? 0 : -EIO;
 +}
 +
-+static int wan_set_radiosw(int radio_on)
++static int video_expand_toggle(void)
 +{
-+	int status;
-+
-+	if (!tp_features.wan)
-+		return -ENODEV;
-+
-+	if (!acpi_evalf(hkey_handle, &status, "GWAN", "d"))
-+		return -EIO;
-+	if (radio_on)
-+		status |= TP_ACPI_WANCARD_RADIOSSW;
-+	else
-+		status &= ~TP_ACPI_WANCARD_RADIOSSW;
-+	if (!acpi_evalf(hkey_handle, NULL, "SWAN", "vd", status))
-+		return -EIO;
-+
-+	return 0;
++	switch (video_supported) {
++	case TPACPI_VIDEO_570:
++		return acpi_evalf(ec_handle, NULL, "_Q17", "v")?
++			0 : -EIO;
++	case TPACPI_VIDEO_770:
++		return acpi_evalf(vid_handle, NULL, "VEXP", "v")?
++			0 : -EIO;
++	case TPACPI_VIDEO_NEW:
++		return acpi_evalf(NULL, NULL, "\\VEXP", "v")?
++			0 : -EIO;
++	default:
++		return -ENOSYS;
++	}
++	/* not reached */
  }
  
- static int wan_read(char *p)
+ static int video_read(char *p)
  {
+-	int status = video_status();
+-	int autosw = video_autosw();
++	int status, autosw;
  	int len = 0;
--	int status = wan_status();
-+	int status = wan_get_radiosw();
  
- 	if (!tp_features.wan)
+-	if (!video_supported) {
++	if (video_supported == TPACPI_VIDEO_NONE) {
  		len += sprintf(p + len, "status:\t\tnot supported\n");
--	else if (!(status & 1))
--		len += sprintf(p + len, "status:\t\tnot installed\n");
- 	else {
--		len += sprintf(p + len, "status:\t\t%s\n", enabled(status, 1));
-+		len += sprintf(p + len, "status:\t\t%s\n",
-+				(status)? "enabled" : "disabled");
- 		len += sprintf(p + len, "commands:\tenable, disable\n");
+ 		return len;
  	}
  
-@@ -804,26 +860,20 @@ static int wan_read(char *p)
- 
- static int wan_write(char *buf)
++	status = video_outputsw_get();
++	if (status < 0)
++		return status;
++
++	autosw = video_autosw_get();
++	if (autosw < 0)
++		return autosw;
++
+ 	len += sprintf(p + len, "status:\t\tsupported\n");
+ 	len += sprintf(p + len, "lcd:\t\t%s\n", enabled(status, 0));
+ 	len += sprintf(p + len, "crt:\t\t%s\n", enabled(status, 1));
+@@ -1060,47 +1143,56 @@ static int video_write(char *buf)
  {
--	int status = wan_status();
  	char *cmd;
--	int do_cmd = 0;
+ 	int enable, disable, status;
++	int res;
  
- 	if (!tp_features.wan)
+-	if (!video_supported)
++	if (video_supported == TPACPI_VIDEO_NONE)
  		return -ENODEV;
  
+-	enable = disable = 0;
++	enable = 0;
++	disable = 0;
+ 
  	while ((cmd = next_cmd(&buf))) {
- 		if (strlencmp(cmd, "enable") == 0) {
--			status |= 2;
-+			wan_set_radiosw(1);
- 		} else if (strlencmp(cmd, "disable") == 0) {
--			status &= ~2;
-+			wan_set_radiosw(0);
+ 		if (strlencmp(cmd, "lcd_enable") == 0) {
+-			enable |= 0x01;
++			enable |= TP_ACPI_VIDEO_S_LCD;
+ 		} else if (strlencmp(cmd, "lcd_disable") == 0) {
+-			disable |= 0x01;
++			disable |= TP_ACPI_VIDEO_S_LCD;
+ 		} else if (strlencmp(cmd, "crt_enable") == 0) {
+-			enable |= 0x02;
++			enable |= TP_ACPI_VIDEO_S_CRT;
+ 		} else if (strlencmp(cmd, "crt_disable") == 0) {
+-			disable |= 0x02;
++			disable |= TP_ACPI_VIDEO_S_CRT;
+ 		} else if (video_supported == TPACPI_VIDEO_NEW &&
+ 			   strlencmp(cmd, "dvi_enable") == 0) {
+-			enable |= 0x08;
++			enable |= TP_ACPI_VIDEO_S_DVI;
+ 		} else if (video_supported == TPACPI_VIDEO_NEW &&
+ 			   strlencmp(cmd, "dvi_disable") == 0) {
+-			disable |= 0x08;
++			disable |= TP_ACPI_VIDEO_S_DVI;
+ 		} else if (strlencmp(cmd, "auto_enable") == 0) {
+-			if (!acpi_evalf(vid_handle, NULL, "_DOS", "vd", 1))
+-				return -EIO;
++			res = video_autosw_set(1);
++			if (res)
++				return res;
+ 		} else if (strlencmp(cmd, "auto_disable") == 0) {
+-			if (!acpi_evalf(vid_handle, NULL, "_DOS", "vd", 0))
+-				return -EIO;
++			res = video_autosw_set(0);
++			if (res)
++				return res;
+ 		} else if (strlencmp(cmd, "video_switch") == 0) {
+-			if (!video_switch())
+-				return -EIO;
++			res = video_outputsw_cycle();
++			if (res)
++				return res;
+ 		} else if (strlencmp(cmd, "expand_toggle") == 0) {
+-			if (!video_expand())
+-				return -EIO;
++			res = video_expand_toggle();
++			if (res)
++				return res;
  		} else
  			return -EINVAL;
--		do_cmd = 1;
  	}
  
--	if (do_cmd && !acpi_evalf(hkey_handle, NULL, "SWAN", "vd", status))
--		return -EIO;
--
- 	return 0;
- }
+ 	if (enable || disable) {
+-		status = (video_status() & 0x0f & ~disable) | enable;
+-		if (!video_switch2(status))
+-			return -EIO;
++		status = video_outputsw_get();
++		if (status < 0)
++			return status;
++		res = video_outputsw_set((status & ~disable) | enable);
++		if (res)
++			return res;
+ 	}
  
+ 	return 0;
 diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index 1b4cd16..e06bad5 100644
+index e06bad5..3a8718a 100644
 --- a/drivers/misc/thinkpad_acpi.h
 +++ b/drivers/misc/thinkpad_acpi.h
-@@ -241,8 +241,16 @@ static int beep_write(char *buf);
-  * Bluetooth subdriver
-  */
+@@ -446,17 +446,32 @@ enum video_access_mode {
+ 	TPACPI_VIDEO_NEW,	/* all others */
+ };
  
-+enum {
-+	/* ACPI GBDC/SBDC bits */
-+	TP_ACPI_BLUETOOTH_HWPRESENT	= 0x01,	/* Bluetooth hw available */
-+	TP_ACPI_BLUETOOTH_RADIOSSW	= 0x02,	/* Bluetooth radio enabled */
-+	TP_ACPI_BLUETOOTH_UNK		= 0x04,	/* unknown function */
++enum {	/* video status flags, based on VIDEO_570 */
++	TP_ACPI_VIDEO_S_LCD = 0x01,	/* LCD output enabled */
++	TP_ACPI_VIDEO_S_CRT = 0x02,	/* CRT output enabled */
++	TP_ACPI_VIDEO_S_DVI = 0x08,	/* DVI output enabled */
 +};
 +
- static int bluetooth_init(struct ibm_init_struct *iibm);
--static int bluetooth_status(void);
-+static int bluetooth_get_radiosw(void);
-+static int bluetooth_set_radiosw(int radio_on);
- static int bluetooth_read(char *p);
- static int bluetooth_write(char *buf);
- 
-@@ -467,8 +475,16 @@ static int volume_write(char *buf);
-  * Wan subdriver
-  */
- 
-+enum {
-+	/* ACPI GWAN/SWAN bits */
-+	TP_ACPI_WANCARD_HWPRESENT	= 0x01,	/* Wan hw available */
-+	TP_ACPI_WANCARD_RADIOSSW	= 0x02,	/* Wan radio enabled */
-+	TP_ACPI_WANCARD_UNK		= 0x04,	/* unknown function */
++enum {  /* TPACPI_VIDEO_570 constants */
++	TP_ACPI_VIDEO_570_PHSCMD = 0x87,	/* unknown magic constant :( */
++	TP_ACPI_VIDEO_570_PHSMASK = 0x03,	/* PHS bits that map to
++						 * video_status_flags */
++	TP_ACPI_VIDEO_570_PHS2CMD = 0x8b,	/* unknown magic constant :( */
++	TP_ACPI_VIDEO_570_PHS2SET = 0x80,	/* unknown magic constant :( */
 +};
 +
- static int wan_init(struct ibm_init_struct *iibm);
--static int wan_status(void);
-+static int wan_get_radiosw(void);
-+static int wan_set_radiosw(int radio_on);
- static int wan_read(char *p);
- static int wan_write(char *buf);
+ static enum video_access_mode video_supported;
+ static int video_orig_autosw;
+ static acpi_handle vid_handle, vid2_handle;
+ 
+ static int video_init(struct ibm_init_struct *iibm);
+ static void video_exit(void);
+-static int video_status(void);
+-static int video_autosw(void);
+-static int video_switch(void);
+-static int video_switch2(int status);
+-static int video_expand(void);
++static int video_outputsw_get(void);
++static int video_outputsw_set(int status);
++static int video_autosw_get(void);
++static int video_autosw_set(int enable);
++static int video_outputsw_cycle(void);
++static int video_expand_toggle(void);
+ static int video_read(char *p);
+ static int video_write(char *buf);
  
 -- 
 1.5.2.rc0.34.gda94
