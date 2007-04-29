@@ -1,29 +1,55 @@
-From: Krzysztof Halasa <khc@pm.waw.pl>
-Subject: Re: [stable] 2.6.21 known regressions (v2) (for -stable team)
-Date: Sat, 28 Apr 2007 23:21:54 +0200
-Message-ID: <m3647gchzh.fsf@maximus.localdomain>
-References: <463375E5.5040108@googlemail.com>
-	<200704281252.20381.gene.heskett@gmail.com>
-	<20070428181933.GA9811@kroah.com>
+From: Len Brown <lenb@kernel.org>
+Subject: [2.6.21.stable PATCH] ACPI: Fix 2.6.21 boot regression on P4/HT
+Date: Sat, 28 Apr 2007 20:37:26 -0400
+Message-ID: <200704282037.26662.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20070428181933.GA9811@kroah.com> (Greg KH's message of "Sat, 28 Apr 2007 11:19:33 -0700")
-Sender: netdev-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Gene Heskett <gene.heskett@gmail.com>, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, Jeff Mahoney <jeffm@suse.com>, Vincent Frentzel <zcecc22@ucl.ac.uk>, Riccardo Ricci <rricci@nuovanetmore.it>, Stephen Hemminger <shemminger@linux-foundation.org>, David Brownell <david-b@pacbell.net>, Giorgio Lando <patroclo7@gmail.com>, Jeff Chua <jeff.chua.linux@gmail.com>, H??kan Lindqvist <lindqvist@netstar.se>, Fran??ois Valenduc <francois.valenduc@skynet.be>, "Udo A. Steinberg" <us15@os.inf.tu-dresden.de>, linux-acpi@vger.kernel.org, Thomas Meyer <thomas.mey@web.de>, stable@kernel.org, Len Brown <len.brown@intel.com>, Dave Jones <davej@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, netdev@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Francois SIMOND <curio@free.fr>, Andrew Morton <akpm@lin>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:55896 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754514AbXD2Ain (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 28 Apr 2007 20:38:43 -0400
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: stable@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Greg KH <greg@kroah.com> writes:
+Up through 2.6.20 we cleared the FADT.CSTATE_CONTROL field
+for FADT versions before r3, because it made no sense
+for that reserved field to be set for pre-ACPI 2.0 systems.
 
->> Also, assignation of ttyUSB#'s is volatile depending on phase of the
->> moon when booted.
->
-> That's always been the case, ever since the 2.2 kernel releases.  Please
-> use udev if you want persistent device names for your tty USB devices.
+It turns out that not clearing this field exposes
+Linux to SMM BIOS failures, so do the same in 2.6.21.
 
-I don't know how udev (or anything) could help here. AFAIK the
-converters have no serial numbers and no other means to
-differentiate.
--- 
-Krzysztof Halasa
+http://bugzilla.kernel.org/show_bug.cgi?id=8346
+
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+diff --git a/drivers/acpi/tables/tbfadt.c b/drivers/acpi/tables/tbfadt.c
+index 807c711..d341491 100644
+--- a/drivers/acpi/tables/tbfadt.c
++++ b/drivers/acpi/tables/tbfadt.c
+@@ -347,6 +347,20 @@ static void acpi_tb_convert_fadt(void)
+ 		acpi_gbl_xpm1b_enable.space_id = acpi_gbl_FADT.xpm1a_event_block.space_id;
+ 
+ 	}
++	/*
++	 * _CST object and C States change notification start with
++	 * ACPI 2.0 (FADT r3).  Although the field should be Reserved
++	 * and 0 before then, some pre-r3 FADT set this field and
++	 * it results in SMM-related boot failures.  For them, clear it.
++	 */
++	if ((acpi_gbl_FADT.header.revision < 3) &&
++		(acpi_gbl_FADT.cst_control != 0)) {
++			ACPI_WARNING((AE_INFO,
++				"Ignoring BIOS FADT r%u C-state control",
++				acpi_gbl_FADT.header.revision));
++		 	acpi_gbl_FADT.cst_control = 0;
++	}
++
+ }
+ 
+ /******************************************************************************
