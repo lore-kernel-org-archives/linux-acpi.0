@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 064/105] ACPI: thinkpad-acpi: cleanup thermal subdriver for sysfs conversion
-Date: Sun, 29 Apr 2007 00:51:04 -0400
-Message-ID: <1177822364262-git-send-email-len.brown@intel.com>
+Subject: [PATCH 066/105] ACPI: Disable MSI on request of FADT
+Date: Sun, 29 Apr 2007 00:51:06 -0400
+Message-ID: <11778223663850-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -66,186 +66,60 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <117782236226-git-send-email-len.brown@intel.com>
  <11778223624095-git-send-email-len.brown@intel.com>
  <11778223633408-git-send-email-len.brown@intel.com>
+ <1177822364262-git-send-email-len.brown@intel.com>
+ <11778223653391-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:9417 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:11191 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754606AbXD2Ewr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1754925AbXD2Ewr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Sun, 29 Apr 2007 00:52:47 -0400
-In-Reply-To: <11778223633408-git-send-email-len.brown@intel.com>
-Message-Id: <04cc862c1893a055ab1117fa6f3aa0886c0ba032.1177822058.git.len.brown@intel.com>
+In-Reply-To: <11778223653391-git-send-email-len.brown@intel.com>
+Message-Id: <f8993aff8b4de0317c6e081802ca5c86c449fef2.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
+Cc: Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: Shaohua Li <shaohua.li@intel.com>
 
-Clean-up the thermal subdriver for sysfs conversion.  Make thermal_get_*
-reentrancy-safe while at it, and add the missing thermal_read_mode variable
-to the header file.
+The ACPI spec defines the bit and Microsoft uses it,
+so Linux must use it too.
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/thinkpad_acpi.c |   79 ++++++++++++++++++++++++++++--------------
- drivers/misc/thinkpad_acpi.h |    8 ++++
- 2 files changed, 61 insertions(+), 26 deletions(-)
+ drivers/pci/pci-acpi.c |    4 ++++
+ include/acpi/actbl.h   |    1 +
+ 2 files changed, 5 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 8829d3c..e9aec87 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -1818,13 +1818,13 @@ static int __init thermal_init(struct ibm_init_struct *iibm)
- 
- 		ta1 = ta2 = 0;
- 		for (i = 0; i < 8; i++) {
--			if (likely(acpi_ec_read(0x78 + i, &t))) {
-+			if (acpi_ec_read(TP_EC_THERMAL_TMP0 + i, &t)) {
- 				ta1 |= t;
- 			} else {
- 				ta1 = 0;
- 				break;
- 			}
--			if (likely(acpi_ec_read(0xC0 + i, &t))) {
-+			if (acpi_ec_read(TP_EC_THERMAL_TMP8 + i, &t)) {
- 				ta2 |= t;
- 			} else {
- 				ta1 = 0;
-@@ -1869,57 +1869,84 @@ static int __init thermal_init(struct ibm_init_struct *iibm)
- 	return (thermal_read_mode != TPACPI_THERMAL_NONE)? 0 : 1;
- }
- 
--static int thermal_get_sensors(struct ibm_thermal_sensors_struct *s)
-+/* idx is zero-based */
-+static int thermal_get_sensor(int idx, s32 *value)
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index a064f36..b5ac810 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -317,6 +317,10 @@ static int __init acpi_pci_init(void)
  {
--	int i, t;
-+	int t;
- 	s8 tmp;
--	char tmpi[] = "TMPi";
-+	char tmpi[5];
+ 	int ret;
  
--	if (!s)
--		return -EINVAL;
-+	t = TP_EC_THERMAL_TMP0;
- 
- 	switch (thermal_read_mode) {
- #if TPACPI_MAX_THERMAL_SENSORS >= 16
- 	case TPACPI_THERMAL_TPEC_16:
--		for (i = 0; i < 8; i++) {
--			if (!acpi_ec_read(0xC0 + i, &tmp))
--				return -EIO;
--			s->temp[i + 8] = tmp * 1000;
-+		if (idx >= 8 && idx <= 15) {
-+			t = TP_EC_THERMAL_TMP8;
-+			idx -= 8;
- 		}
- 		/* fallthrough */
- #endif
- 	case TPACPI_THERMAL_TPEC_8:
--		for (i = 0; i < 8; i++) {
--			if (!acpi_ec_read(0x78 + i, &tmp))
-+		if (idx <= 7) {
-+			if (!acpi_ec_read(t + idx, &tmp))
- 				return -EIO;
--			s->temp[i] = tmp * 1000;
-+			*value = tmp * 1000;
-+			return 0;
- 		}
--		return (thermal_read_mode == TPACPI_THERMAL_TPEC_16) ? 16 : 8;
-+		break;
- 
- 	case TPACPI_THERMAL_ACPI_UPDT:
--		if (!acpi_evalf(ec_handle, NULL, "UPDT", "v"))
--			return -EIO;
--		for (i = 0; i < 8; i++) {
--			tmpi[3] = '0' + i;
-+		if (idx <= 7) {
-+			snprintf(tmpi, sizeof(tmpi), "TMP%c", '0' + idx);
-+			if (!acpi_evalf(ec_handle, NULL, "UPDT", "v"))
-+				return -EIO;
- 			if (!acpi_evalf(ec_handle, &t, tmpi, "d"))
- 				return -EIO;
--			s->temp[i] = (t - 2732) * 100;
-+			*value = (t - 2732) * 100;
-+			return 0;
- 		}
--		return 8;
-+		break;
- 
- 	case TPACPI_THERMAL_ACPI_TMP07:
--		for (i = 0; i < 8; i++) {
--			tmpi[3] = '0' + i;
-+		if (idx <= 7) {
-+			snprintf(tmpi, sizeof(tmpi), "TMP%c", '0' + idx);
- 			if (!acpi_evalf(ec_handle, &t, tmpi, "d"))
- 				return -EIO;
--			s->temp[i] = t * 1000;
-+			*value = t * 1000;
-+			return 0;
- 		}
--		return 8;
-+		break;
- 
- 	case TPACPI_THERMAL_NONE:
- 	default:
--		return 0;
-+		return -ENOSYS;
- 	}
-+
-+	return -EINVAL;
-+}
-+
-+static int thermal_get_sensors(struct ibm_thermal_sensors_struct *s)
-+{
-+	int res, i;
-+	int n;
-+
-+	n = 8;
-+	i = 0;
-+
-+	if (!s)
-+		return -EINVAL;
-+
-+	if (thermal_read_mode == TPACPI_THERMAL_TPEC_16)
-+		n = 16;
-+
-+	for(i = 0 ; i < n; i++) {
-+		res = thermal_get_sensor(i, &s->temp[i]);
-+		if (res)
-+			return res;
++	if (acpi_gbl_FADT.boot_flags & BAF_MSI_NOT_SUPPORTED) {
++		printk(KERN_INFO"ACPI FADT declares the system doesn't support MSI, so disable it\n");
++		pci_no_msi();
 +	}
-+
-+	return n;
- }
+ 	ret = register_acpi_bus_type(&acpi_pci_bus);
+ 	if (ret)
+ 		return 0;
+diff --git a/include/acpi/actbl.h b/include/acpi/actbl.h
+index 09469e7..955adfb 100644
+--- a/include/acpi/actbl.h
++++ b/include/acpi/actbl.h
+@@ -276,6 +276,7 @@ enum acpi_prefered_pm_profiles {
  
- static int thermal_read(char *p)
-diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index fb0abb0..6432b28 100644
---- a/drivers/misc/thinkpad_acpi.h
-+++ b/drivers/misc/thinkpad_acpi.h
-@@ -427,12 +427,20 @@ enum thermal_access_mode {
- 	TPACPI_THERMAL_TPEC_16,		/* Use ACPI EC regs, 16 sensors */
- };
+ #define BAF_LEGACY_DEVICES              0x0001
+ #define BAF_8042_KEYBOARD_CONTROLLER    0x0002
++#define BAF_MSI_NOT_SUPPORTED           0x0008
  
-+enum { /* TPACPI_THERMAL_TPEC_* */
-+	TP_EC_THERMAL_TMP0 = 0x78,	/* ACPI EC regs TMP 0..7 */
-+	TP_EC_THERMAL_TMP8 = 0xC0,	/* ACPI EC regs TMP 8..15 */
-+};
-+
- #define TPACPI_MAX_THERMAL_SENSORS 16	/* Max thermal sensors supported */
- struct ibm_thermal_sensors_struct {
- 	s32 temp[TPACPI_MAX_THERMAL_SENSORS];
- };
- 
-+static enum thermal_access_mode thermal_read_mode;
-+
- static int thermal_init(struct ibm_init_struct *iibm);
-+static int thermal_get_sensor(int idx, s32 *value);
- static int thermal_get_sensors(struct ibm_thermal_sensors_struct *s);
- static int thermal_read(char *p);
- 
+ #define FADT2_REVISION_ID               3
+ #define FADT2_MINUS_REVISION_ID         2
 -- 
 1.5.2.rc0.34.gda94
