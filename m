@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 036/105] ACPI: thinkpad-acpi: update MAINTAINERS
-Date: Sun, 29 Apr 2007 00:50:36 -0400
-Message-ID: <11778223401417-git-send-email-len.brown@intel.com>
+Subject: [PATCH 046/105] ACPI: thinkpad-acpi: rename register_ibmacpi_subdriver
+Date: Sun, 29 Apr 2007 00:50:46 -0400
+Message-ID: <1177822348546-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -38,13 +38,23 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <1177822337332-git-send-email-len.brown@intel.com>
  <11778223382880-git-send-email-len.brown@intel.com>
  <11778223392178-git-send-email-len.brown@intel.com>
+ <11778223401417-git-send-email-len.brown@intel.com>
+ <11778223411658-git-send-email-len.brown@intel.com>
+ <11778223412672-git-send-email-len.brown@intel.com>
+ <11778223423-git-send-email-len.brown@intel.com>
+ <1177822343712-git-send-email-len.brown@intel.com>
+ <11778223442065-git-send-email-len.brown@intel.com>
+ <11778223452843-git-send-email-len.brown@intel.com>
+ <11778223461282-git-send-email-len.brown@intel.com>
+ <11778223472316-git-send-email-len.brown@intel.com>
+ <1177822347845-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:9417 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:11191 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754590AbXD2EwV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 00:52:21 -0400
-In-Reply-To: <11778223392178-git-send-email-len.brown@intel.com>
-Message-Id: <756970ad4bb93027a60da2de9b43d094b7f387a2.1177822058.git.len.brown@intel.com>
+	id S1754947AbXD2Ewe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 00:52:34 -0400
+In-Reply-To: <1177822347845-git-send-email-len.brown@intel.com>
+Message-Id: <6700121b535fa16fe1c8aaac03559b2f12909726.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -54,49 +64,50 @@ Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com
 
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Update MAINTAINERS file for the ibm-acpi -> thinkpad-acpi renaming.
+Rename register_ibmacpi_subdriver to register_tpacpi_subdriver, as
+we are not called ibmacpi anymore.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- MAINTAINERS |   18 +++++++++---------
- 1 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/misc/thinkpad_acpi.c |    4 ++--
+ drivers/misc/thinkpad_acpi.h |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index dd6978b..7d42183 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -1618,15 +1618,6 @@ W:	http://www.ia64-linux.org/
- T:	git kernel.org:/pub/scm/linux/kernel/git/aegl/linux-2.6.git
- S:	Maintained
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index ddaedf8..cac73e5 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -345,7 +345,7 @@ static int __init ibm_device_add(struct acpi_device *device)
+ 	return 0;
+ }
  
--IBM ACPI EXTRAS DRIVER
--P:	Henrique de Moraes Holschuh
--M:	ibm-acpi@hmh.eng.br
--L:	ibm-acpi-devel@lists.sourceforge.net
--W:	http://ibm-acpi.sourceforge.net
--W:	http://thinkwiki.org/wiki/Ibm-acpi
--T:	git repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git
--S:	Maintained
--
- SN-IA64 (Itanium) SUB-PLATFORM
- P:	Jes Sorensen
- M:	jes@sgi.com
-@@ -3118,6 +3109,15 @@ P:	Chris Zankel
- M:	chris@zankel.net
- S:	Maintained
+-static int __init register_ibmacpi_subdriver(struct ibm_struct *ibm)
++static int __init register_tpacpi_subdriver(struct ibm_struct *ibm)
+ {
+ 	int ret;
  
-+THINKPAD ACPI EXTRAS DRIVER
-+P:	Henrique de Moraes Holschuh
-+M:	ibm-acpi@hmh.eng.br
-+L:	ibm-acpi-devel@lists.sourceforge.net
-+W:	http://ibm-acpi.sourceforge.net
-+W:	http://thinkwiki.org/wiki/Ibm-acpi
-+T:	git repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git
-+S:	Maintained
-+
- UltraSPARC (sparc64):
- P:	David S. Miller
- M:	davem@davemloft.net
+@@ -2574,7 +2574,7 @@ static int __init ibm_init(struct ibm_struct *ibm)
+ 		return 0;
+ 
+ 	if (ibm->hid) {
+-		ret = register_ibmacpi_subdriver(ibm);
++		ret = register_tpacpi_subdriver(ibm);
+ 		if (ret < 0)
+ 			return ret;
+ 		ibm->driver_registered = 1;
+diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
+index 015c02b..b86e574 100644
+--- a/drivers/misc/thinkpad_acpi.h
++++ b/drivers/misc/thinkpad_acpi.h
+@@ -157,7 +157,7 @@ static void ibm_exit(struct ibm_struct *ibm);
+ static void dispatch_notify(acpi_handle handle, u32 event, void *data);
+ static int setup_notify(struct ibm_struct *ibm);
+ static int ibm_device_add(struct acpi_device *device);
+-static int register_ibmacpi_subdriver(struct ibm_struct *ibm);
++static int register_tpacpi_subdriver(struct ibm_struct *ibm);
+ 
+ 
+ /*
 -- 
 1.5.2.rc0.34.gda94
