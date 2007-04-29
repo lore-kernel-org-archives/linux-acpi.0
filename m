@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 012/105] ACPI: EC: Block queries until EC is fully initialized
-Date: Sun, 29 Apr 2007 00:50:12 -0400
-Message-ID: <11778223152006-git-send-email-len.brown@intel.com>
+Subject: [PATCH 015/105] asus-laptop: add GLED
+Date: Sun, 29 Apr 2007 00:50:15 -0400
+Message-ID: <11778223183783-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -14,50 +14,107 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223131932-git-send-email-len.brown@intel.com>
  <11778223143898-git-send-email-len.brown@intel.com>
  <11778223151972-git-send-email-len.brown@intel.com>
+ <11778223152006-git-send-email-len.brown@intel.com>
+ <11778223161614-git-send-email-len.brown@intel.com>
+ <11778223173663-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:57052 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:58359 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754595AbXD2Ev4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 00:51:56 -0400
-In-Reply-To: <11778223151972-git-send-email-len.brown@intel.com>
-Message-Id: <9fd9f8e8bdcfc9aa309dae5bccc55d02804337d0.1177822058.git.len.brown@intel.com>
+	id S1754599AbXD2Ev7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 00:51:59 -0400
+In-Reply-To: <11778223173663-git-send-email-len.brown@intel.com>
+Message-Id: <fdd8d08084663242b42e27f7d71739f3f9009286.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Corentin Chary <corentincj@iksaif.net>, Len Brown <len.brown@intel.com>
 
-From: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
+From: Corentin Chary <corentincj@iksaif.net>
 
-Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
+Add support for "gaming" led.
+
+Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/ec.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+ drivers/misc/asus-laptop.c |   15 ++++++++++++++-
+ 1 files changed, 14 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 2a17229..e08cf98 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -599,7 +599,7 @@ static struct acpi_ec *make_acpi_ec(void)
- 	if (!ec)
- 		return NULL;
+diff --git a/drivers/misc/asus-laptop.c b/drivers/misc/asus-laptop.c
+index 3ba5798..475709b 100644
+--- a/drivers/misc/asus-laptop.c
++++ b/drivers/misc/asus-laptop.c
+@@ -81,7 +81,8 @@
+ #define TLED_ON     0x08	//touchpad LED
+ #define RLED_ON     0x10	//Record LED
+ #define PLED_ON     0x20	//Phone LED
+-#define LCD_ON      0x40	//LCD backlight
++#define GLED_ON     0x40	//Gaming LED
++#define LCD_ON      0x80	//LCD backlight
  
--	atomic_set(&ec->query_pending, 0);
-+	atomic_set(&ec->query_pending, 1);
- 	atomic_set(&ec->event_count, 1);
- 	mutex_init(&ec->lock);
- 	init_waitqueue_head(&ec->wait);
-@@ -715,6 +715,9 @@ static int ec_install_handlers(struct acpi_ec *ec)
- 		return -ENODEV;
- 	}
+ #define ASUS_LOG    ASUS_HOTK_FILE ": "
+ #define ASUS_ERR    KERN_ERR    ASUS_LOG
+@@ -103,6 +104,7 @@ ASUS_HANDLE(mled_set, ASUS_HOTK_PREFIX "MLED");
+ ASUS_HANDLE(tled_set, ASUS_HOTK_PREFIX "TLED");
+ ASUS_HANDLE(rled_set, ASUS_HOTK_PREFIX "RLED");	/* W1JC */
+ ASUS_HANDLE(pled_set, ASUS_HOTK_PREFIX "PLED");	/* A7J */
++ASUS_HANDLE(gled_set, ASUS_HOTK_PREFIX "GLED");	/* G1, G2 (probably) */
  
-+	/* EC is fully operational, allow queries */
-+	atomic_set(&ec->query_pending, 0);
-+
- 	return 0;
+ /* LEDD */
+ ASUS_HANDLE(ledd_set, ASUS_HOTK_PREFIX "SLCM");
+@@ -221,6 +223,7 @@ ASUS_LED(mled, "mail");
+ ASUS_LED(tled, "touchpad");
+ ASUS_LED(rled, "record");
+ ASUS_LED(pled, "phone");
++ASUS_LED(gled, "gaming");
+ 
+ /*
+  * This function evaluates an ACPI method, given an int as parameter, the
+@@ -280,6 +283,9 @@ static void write_status(acpi_handle handle, int out, int mask)
+ 	case MLED_ON:
+ 		out = !out & 0x1;
+ 		break;
++	case GLED_ON:
++		out = (out & 0x1) + 1;
++		break;
+ 	default:
+ 		out &= 0x1;
+ 		break;
+@@ -307,6 +313,7 @@ ASUS_LED_HANDLER(mled, MLED_ON);
+ ASUS_LED_HANDLER(pled, PLED_ON);
+ ASUS_LED_HANDLER(rled, RLED_ON);
+ ASUS_LED_HANDLER(tled, TLED_ON);
++ASUS_LED_HANDLER(gled, GLED_ON);
+ 
+ static int get_lcd_state(void)
+ {
+@@ -835,6 +842,7 @@ static int asus_hotk_get_info(void)
+ 	ASUS_HANDLE_INIT(tled_set);
+ 	ASUS_HANDLE_INIT(rled_set);
+ 	ASUS_HANDLE_INIT(pled_set);
++	ASUS_HANDLE_INIT(gled_set);
+ 
+ 	ASUS_HANDLE_INIT(ledd_set);
+ 
+@@ -1001,6 +1009,7 @@ static void asus_led_exit(void)
+ 	ASUS_LED_UNREGISTER(tled);
+ 	ASUS_LED_UNREGISTER(pled);
+ 	ASUS_LED_UNREGISTER(rled);
++	ASUS_LED_UNREGISTER(gled);
+ 
+ 	destroy_workqueue(led_workqueue);
  }
+@@ -1072,6 +1081,10 @@ static int asus_led_init(struct device *dev)
+ 	if (rv)
+ 		return rv;
  
++	rv = ASUS_LED_REGISTER(gled, dev);
++	if (rv)
++		return rv;
++
+ 	led_workqueue = create_singlethread_workqueue("led_workqueue");
+ 	if (!led_workqueue)
+ 		return -ENOMEM;
 -- 
 1.5.2.rc0.34.gda94
