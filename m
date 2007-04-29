@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 019/105] ACPI: sbs: remove I2C Kconfig dependency
-Date: Sun, 29 Apr 2007 00:50:19 -0400
-Message-ID: <11778223211710-git-send-email-len.brown@intel.com>
+Subject: [PATCH 017/105] asus-laptop: version bump
+Date: Sun, 29 Apr 2007 00:50:17 -0400
+Message-ID: <11778223201940-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -19,48 +19,51 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223173663-git-send-email-len.brown@intel.com>
  <11778223183783-git-send-email-len.brown@intel.com>
  <11778223192706-git-send-email-len.brown@intel.com>
- <11778223201940-git-send-email-len.brown@intel.com>
- <11778223212414-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:29561 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:58359 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754605AbXD2EwD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 00:52:03 -0400
-In-Reply-To: <11778223212414-git-send-email-len.brown@intel.com>
-Message-Id: <b4150fc4ae20621edf2f8e1ea5ce13eb2c803e7a.1177822058.git.len.brown@intel.com>
+	id S1754602AbXD2EwB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 00:52:01 -0400
+In-Reply-To: <11778223192706-git-send-email-len.brown@intel.com>
+Message-Id: <8ec555c2c4c6c33759a1dbb13fa8f3b14fc77e10.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Vladimir Lebedev <vladimir.p.lebedev@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Corentin Chary <corentincj@iksaif.net>, Len Brown <len.brown@intel.com>
 
-From: Vladimir Lebedev <vladimir.p.lebedev@intel.com>
+From: Corentin Chary <corentincj@iksaif.net>
 
-SBS does not depend on I2C.
+Version and copyright bump.
 
-Signed-off-by: Vladimir Lebedev <vladimir.p.lebedev@intel.com>
+Signed-off-by: Corentin Chary <corentincj@iksaif.net>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/Kconfig |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ drivers/misc/asus-laptop.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index e2ce4a9..d9d9721 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -388,11 +388,10 @@ config ACPI_HOTPLUG_MEMORY
+diff --git a/drivers/misc/asus-laptop.c b/drivers/misc/asus-laptop.c
+index d75e447..65c32a9 100644
+--- a/drivers/misc/asus-laptop.c
++++ b/drivers/misc/asus-laptop.c
+@@ -3,7 +3,7 @@
+  *
+  *
+  *  Copyright (C) 2002-2005 Julien Lerouge, 2003-2006 Karol Kozimor
+- *  Copyright (C) 2006 Corentin Chary
++ *  Copyright (C) 2006-2007 Corentin Chary
+  *
+  *  This program is free software; you can redistribute it and/or modify
+  *  it under the terms of the GNU General Public License as published by
+@@ -48,7 +48,7 @@
+ #include <acpi/acpi_bus.h>
+ #include <asm/uaccess.h>
  
- config ACPI_SBS
- 	tristate "Smart Battery System (EXPERIMENTAL)"
--	depends on X86 && I2C
-+	depends on X86
- 	depends on EXPERIMENTAL
- 	help
- 	  This driver adds support for the Smart Battery System.
--	  Depends on I2C (Device Drivers ---> I2C support)
- 	  A "Smart Battery" is quite old and quite rare compared
- 	  to today's ACPI "Control Method" battery.
+-#define ASUS_LAPTOP_VERSION "0.40"
++#define ASUS_LAPTOP_VERSION "0.41"
  
+ #define ASUS_HOTK_NAME          "Asus Laptop Support"
+ #define ASUS_HOTK_CLASS         "hotkey"
 -- 
 1.5.2.rc0.34.gda94
