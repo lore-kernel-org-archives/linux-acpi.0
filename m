@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 091/105] ACPI: thinkpad-acpi: improve debugging for acpi helpers
-Date: Sun, 29 Apr 2007 00:51:31 -0400
-Message-ID: <1177822388542-git-send-email-len.brown@intel.com>
+Subject: [PATCH 092/105] ACPI: thinkpad-acpi: improve dock subdriver initialization
+Date: Sun, 29 Apr 2007 00:51:32 -0400
+Message-ID: <1177822389199-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -93,13 +93,14 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223861983-git-send-email-len.brown@intel.com>
  <11778223872566-git-send-email-len.brown@intel.com>
  <1177822387623-git-send-email-len.brown@intel.com>
+ <1177822388542-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:18569 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:37949 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756203AbXD2ExN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 00:53:13 -0400
-In-Reply-To: <1177822387623-git-send-email-len.brown@intel.com>
-Message-Id: <5ae930e685018e2dc6d4139362213e4b283e5700.1177822058.git.len.brown@intel.com>
+	id S1756206AbXD2ExO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 00:53:14 -0400
+In-Reply-To: <1177822388542-git-send-email-len.brown@intel.com>
+Message-Id: <d94a7f16cad7700f8d2b142cc13cfba5387af3db.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -109,98 +110,133 @@ Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com
 
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Some issues with the dock subdriver proved that a slightly improved
-debugging setup for ACPI notifiers and handler helpers would be useful.
+The dock sub-driver has split-personality (two subdrivers), and it was
+doing some unoptimal things on init because of that.  Fix it so that the
+second half of it will only init when necessary, and only if the first half
+initialized sucessfully in the first place.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/thinkpad_acpi.c |   31 ++++++++++++++++++++-----------
- 1 files changed, 20 insertions(+), 11 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   78 +++++++++++++++++++++++++++---------------
+ 1 files changed, 50 insertions(+), 28 deletions(-)
 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index 7aed118..68f1cc0 100644
+index 68f1cc0..a565265 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -296,14 +296,22 @@ static void drv_acpi_handle_init(char *name,
- 	int i;
- 	acpi_status status;
+@@ -1519,6 +1519,33 @@ IBM_HANDLE(dock, root, "\\_SB.GDCK",	/* X30, X31, X40 */
+ /* don't list other alternatives as we install a notify handler on the 570 */
+ IBM_HANDLE(pci, root, "\\_SB.PCI");	/* 570 */
  
-+	vdbg_printk(TPACPI_DBG_INIT, "trying to locate ACPI handle for %s\n",
-+		name);
++static struct tp_acpi_drv_struct ibm_dock_acpidriver[2] = {
++	{
++	 .notify = dock_notify,
++	 .handle = &dock_handle,
++	 .type = ACPI_SYSTEM_NOTIFY,
++	},
++	{
++	 .hid = IBM_PCI_HID,
++	 .notify = dock_notify,
++	 .handle = &pci_handle,
++	 .type = ACPI_SYSTEM_NOTIFY,
++	},
++};
 +
- 	for (i = 0; i < num_paths; i++) {
- 		status = acpi_get_handle(parent, paths[i], handle);
- 		if (ACPI_SUCCESS(status)) {
- 			*path = paths[i];
-+			dbg_printk(TPACPI_DBG_INIT,
-+				   "Found ACPI handle %s for %s\n",
-+				   *path, name);
- 			return;
- 		}
- 	}
++static struct ibm_struct dock_driver_data[2] = {
++	{
++	 .name = "dock",
++	 .read = dock_read,
++	 .write = dock_write,
++	 .acpi = &ibm_dock_acpidriver[0],
++	},
++	{
++	 .name = "dock",
++	 .acpi = &ibm_dock_acpidriver[1],
++	},
++};
++
+ #define dock_docked() (_sta(dock_handle) & 1)
  
-+	vdbg_printk(TPACPI_DBG_INIT, "ACPI handle for %s not found\n",
-+		    name);
- 	*handle = NULL;
+ static int __init dock_init(struct ibm_init_struct *iibm)
+@@ -1526,7 +1553,6 @@ static int __init dock_init(struct ibm_init_struct *iibm)
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing dock subdriver\n");
+ 
+ 	IBM_ACPIHANDLE_INIT(dock);
+-	IBM_ACPIHANDLE_INIT(pci);
+ 
+ 	vdbg_printk(TPACPI_DBG_INIT, "dock is %s\n",
+ 		str_supported(dock_handle != NULL));
+@@ -1534,6 +1560,28 @@ static int __init dock_init(struct ibm_init_struct *iibm)
+ 	return (dock_handle)? 0 : 1;
  }
  
-@@ -320,19 +328,20 @@ static void dispatch_acpi_notify(acpi_handle handle, u32 event, void *data)
- static int __init setup_acpi_notify(struct ibm_struct *ibm)
++static int __init dock_init2(struct ibm_init_struct *iibm)
++{
++	int dock2_needed;
++
++	vdbg_printk(TPACPI_DBG_INIT, "initializing dock subdriver part 2\n");
++
++	if (dock_driver_data[0].flags.acpi_driver_registered &&
++	    dock_driver_data[0].flags.acpi_notify_installed) {
++		IBM_ACPIHANDLE_INIT(pci);
++		dock2_needed = (pci_handle != NULL);
++		vdbg_printk(TPACPI_DBG_INIT,
++			    "dock PCI handler for the TP 570 is %s\n",
++			    str_supported(dock2_needed));
++	} else {
++		vdbg_printk(TPACPI_DBG_INIT,
++		"dock subdriver part 2 not required\n");
++		dock2_needed = 0;
++	}
++
++	return (dock2_needed)? 0 : 1;
++}
++
+ static void dock_notify(struct ibm_struct *ibm, u32 event)
  {
- 	acpi_status status;
--	int ret;
-+	int rc;
- 
- 	BUG_ON(!ibm->acpi);
- 
- 	if (!*ibm->acpi->handle)
- 		return 0;
- 
--	dbg_printk(TPACPI_DBG_INIT,
-+	vdbg_printk(TPACPI_DBG_INIT,
- 		"setting up ACPI notify for %s\n", ibm->name);
- 
--	ret = acpi_bus_get_device(*ibm->acpi->handle, &ibm->acpi->device);
--	if (ret < 0) {
--		printk(IBM_ERR "%s device not present\n", ibm->name);
-+	rc = acpi_bus_get_device(*ibm->acpi->handle, &ibm->acpi->device);
-+	if (rc < 0) {
-+		printk(IBM_ERR "acpi_bus_get_device(%s) failed: %d\n",
-+			ibm->name, rc);
- 		return -ENODEV;
- 	}
- 
-@@ -364,7 +373,7 @@ static int __init tpacpi_device_add(struct acpi_device *device)
- 
- static int __init register_tpacpi_subdriver(struct ibm_struct *ibm)
- {
--	int ret;
-+	int rc;
- 
- 	dbg_printk(TPACPI_DBG_INIT,
- 		"registering %s as an ACPI driver\n", ibm->name);
-@@ -381,16 +390,16 @@ static int __init register_tpacpi_subdriver(struct ibm_struct *ibm)
- 	ibm->acpi->driver->ids = ibm->acpi->hid;
- 	ibm->acpi->driver->ops.add = &tpacpi_device_add;
- 
--	ret = acpi_bus_register_driver(ibm->acpi->driver);
--	if (ret < 0) {
-+	rc = acpi_bus_register_driver(ibm->acpi->driver);
-+	if (rc < 0) {
- 		printk(IBM_ERR "acpi_bus_register_driver(%s) failed: %d\n",
--		       ibm->acpi->hid, ret);
-+		       ibm->acpi->hid, rc);
- 		kfree(ibm->acpi->driver);
- 		ibm->acpi->driver = NULL;
--	} else if (!ret)
-+	} else if (!rc)
- 		ibm->flags.acpi_driver_registered = 1;
- 
--	return ret;
-+	return rc;
+ 	int docked = dock_docked();
+@@ -1595,33 +1643,6 @@ static int dock_write(char *buf)
+ 	return 0;
  }
  
+-static struct tp_acpi_drv_struct ibm_dock_acpidriver[2] = {
+-	{
+-	 .notify = dock_notify,
+-	 .handle = &dock_handle,
+-	 .type = ACPI_SYSTEM_NOTIFY,
+-	},
+-	{
+-	 .hid = IBM_PCI_HID,
+-	 .notify = dock_notify,
+-	 .handle = &pci_handle,
+-	 .type = ACPI_SYSTEM_NOTIFY,
+-	},
+-};
+-
+-static struct ibm_struct dock_driver_data[2] = {
+-	{
+-	 .name = "dock",
+-	 .read = dock_read,
+-	 .write = dock_write,
+-	 .acpi = &ibm_dock_acpidriver[0],
+-	},
+-	{
+-	 .name = "dock",
+-	 .acpi = &ibm_dock_acpidriver[1],
+-	},
+-};
+-
+ #endif /* CONFIG_THINKPAD_ACPI_DOCK */
  
+ /*************************************************************************
+@@ -3850,6 +3871,7 @@ static struct ibm_init_struct ibms_init[] __initdata = {
+ 		.data = &dock_driver_data[0],
+ 	},
+ 	{
++		.init = dock_init2,
+ 		.data = &dock_driver_data[1],
+ 	},
+ #endif
 -- 
 1.5.2.rc0.34.gda94
