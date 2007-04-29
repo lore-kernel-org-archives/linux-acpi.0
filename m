@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 093/105] ACPI: thinkpad-acpi: add sysfs support to hotkey subdriver
-Date: Sun, 29 Apr 2007 00:51:33 -0400
-Message-ID: <11778223902327-git-send-email-len.brown@intel.com>
+Subject: [PATCH 105/105] sonypi: use mutex instead of semaphore
+Date: Sun, 29 Apr 2007 00:51:45 -0400
+Message-ID: <11778224002762-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -95,293 +95,126 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <1177822387623-git-send-email-len.brown@intel.com>
  <1177822388542-git-send-email-len.brown@intel.com>
  <1177822389199-git-send-email-len.brown@intel.com>
+ <11778223902327-git-send-email-len.brown@intel.com>
+ <11778223912498-git-send-email-len.brown@intel.com>
+ <11778223921730-git-send-email-len.brown@intel.com>
+ <11778223931192-git-send-email-len.brown@intel.com>
+ <11778223942367-git-send-email-len.brown@intel.com>
+ <11778223942377-git-send-email-len.brown@intel.com>
+ <1177822395384-git-send-email-len.brown@intel.com>
+ <11778223963095-git-send-email-len.brown@intel.com>
+ <11778223972558-git-send-email-len.brown@intel.com>
+ <11778223981263-git-send-email-len.brown@intel.com>
+ <117782239917-git-send-email-len.brown@intel.com>
+ <11778223992559-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:11191 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:37949 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756214AbXD2ExR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 00:53:17 -0400
-In-Reply-To: <1177822389199-git-send-email-len.brown@intel.com>
-Message-Id: <a0416420e2c6244792d6f308183ad57c40532078.1177822058.git.len.brown@intel.com>
+	id S1754589AbXD2ExX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 00:53:23 -0400
+In-Reply-To: <11778223992559-git-send-email-len.brown@intel.com>
+Message-Id: <c6c60106b9584f17c55e4c5e0ce9b905a1a6cdb6.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
+Cc: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>, Len Brown <len.brown@intel.com>
 
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-Add the hotkey sysfs support.
+the Sony Programmable I/O Control driver uses a semaphore as
+mutex. use the mutex API instead of the (binary) semaphore
 
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Acked-by: Mattia Dongili <malattia@linux.it>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/thinkpad-acpi.txt |   58 ++++++++++++++----
- drivers/misc/thinkpad_acpi.c    |  127 +++++++++++++++++++++++++++++++++++++++
- drivers/misc/thinkpad_acpi.h    |    2 +
- 3 files changed, 176 insertions(+), 11 deletions(-)
+ drivers/char/sonypi.c |   20 ++++++++++----------
+ 1 files changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
-index e3ad7a4..ebeed58 100644
---- a/Documentation/thinkpad-acpi.txt
-+++ b/Documentation/thinkpad-acpi.txt
-@@ -134,8 +134,11 @@ end of this document.  Changes to the sysfs interface done by the kernel
- subsystems are not documented here, nor are they tracked by this
- attribute.
+diff --git a/drivers/char/sonypi.c b/drivers/char/sonypi.c
+index b699890..3ef593a 100644
+--- a/drivers/char/sonypi.c
++++ b/drivers/char/sonypi.c
+@@ -484,7 +484,7 @@ static struct sonypi_device {
+ 	u16 evtype_offset;
+ 	int camera_power;
+ 	int bluetooth_power;
+-	struct semaphore lock;
++	struct mutex lock;
+ 	struct kfifo *fifo;
+ 	spinlock_t fifo_lock;
+ 	wait_queue_head_t fifo_proc_list;
+@@ -891,7 +891,7 @@ int sonypi_camera_command(int command, u8 value)
+ 	if (!camera)
+ 		return -EIO;
  
--Hot keys -- /proc/acpi/ibm/hotkey
-----------------------------------
-+Hot keys
-+--------
-+
-+procfs: /proc/acpi/ibm/hotkey
-+sysfs device attribute: hotkey/*
+-	down(&sonypi_device.lock);
++	mutex_lock(&sonypi_device.lock);
  
- Without this driver, only the Fn-F4 key (sleep button) generates an
- ACPI event. With the driver loaded, the hotkey feature enabled and the
-@@ -149,15 +152,6 @@ All labeled Fn-Fx key combinations generate distinct events. In
- addition, the lid microswitch and some docking station buttons may
- also generate such events.
- 
--The following commands can be written to this file:
--
--	echo enable > /proc/acpi/ibm/hotkey -- enable the hot keys feature
--	echo disable > /proc/acpi/ibm/hotkey -- disable the hot keys feature
--	echo 0xffff > /proc/acpi/ibm/hotkey -- enable all possible hot keys
--	echo 0x0000 > /proc/acpi/ibm/hotkey -- disable all possible hot keys
--	... any other 4-hex-digit mask ...
--	echo reset > /proc/acpi/ibm/hotkey -- restore the original mask
--
- The bit mask allows some control over which hot keys generate ACPI
- events. Not all bits in the mask can be modified. Not all bits that
- can be modified do anything. Not all hot keys can be individually
-@@ -189,6 +183,48 @@ buttons do not generate ACPI events even with this driver. They *can*
- be used through the "ThinkPad Buttons" utility, see
- http://www.nongnu.org/tpb/
- 
-+procfs notes:
-+
-+The following commands can be written to the /proc/acpi/ibm/hotkey file:
-+
-+	echo enable > /proc/acpi/ibm/hotkey -- enable the hot keys feature
-+	echo disable > /proc/acpi/ibm/hotkey -- disable the hot keys feature
-+	echo 0xffff > /proc/acpi/ibm/hotkey -- enable all possible hot keys
-+	echo 0x0000 > /proc/acpi/ibm/hotkey -- disable all possible hot keys
-+	... any other 4-hex-digit mask ...
-+	echo reset > /proc/acpi/ibm/hotkey -- restore the original mask
-+
-+sysfs notes:
-+
-+	The hot keys attributes are in a hotkey/ subdirectory off the
-+	thinkpad device.
-+
-+	bios_enabled:
-+		Returns the status of the hot keys feature when
-+		thinkpad-acpi was loaded.  Upon module unload, the hot
-+		key feature status will be restored to this value.
-+
-+		0: hot keys were disabled
-+		1: hot keys were enabled
-+
-+	bios_mask:
-+		Returns the hot keys mask when thinkpad-acpi was loaded.
-+		Upon module unload, the hot keys mask will be restored
-+		to this value.
-+
-+	enable:
-+		Enables/disables the hot keys feature, and reports
-+		current status of the hot keys feature.
-+
-+		0: disables the hot keys feature / feature disabled
-+		1: enables the hot keys feature / feature enabled
-+
-+	mask:
-+		bit mask to enable ACPI event generation for each hot
-+		key (see above).  Returns the current status of the hot
-+		keys mask, and allows one to modify it.
-+
-+
- Bluetooth -- /proc/acpi/ibm/bluetooth
- -------------------------------------
- 
-diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index a565265..83a8d98 100644
---- a/drivers/misc/thinkpad_acpi.c
-+++ b/drivers/misc/thinkpad_acpi.c
-@@ -706,6 +706,108 @@ static struct ibm_struct thinkpad_acpi_driver_data = {
- static int hotkey_orig_status;
- static int hotkey_orig_mask;
- 
-+static struct attribute_set *hotkey_dev_attributes = NULL;
-+
-+/* sysfs hotkey enable ------------------------------------------------- */
-+static ssize_t hotkey_enable_show(struct device *dev,
-+			   struct device_attribute *attr,
-+			   char *buf)
-+{
-+	int res, status, mask;
-+
-+	res = hotkey_get(&status, &mask);
-+	if (res)
-+		return res;
-+
-+	return snprintf(buf, PAGE_SIZE, "%d\n", status);
-+}
-+
-+static ssize_t hotkey_enable_store(struct device *dev,
-+			    struct device_attribute *attr,
-+			    const char *buf, size_t count)
-+{
-+	unsigned long t;
-+	int res, status, mask;
-+
-+	if (parse_strtoul(buf, 1, &t))
-+		return -EINVAL;
-+
-+	res = hotkey_get(&status, &mask);
-+	if (!res)
-+		res = hotkey_set(t, mask);
-+
-+	return (res) ? res : count;
-+}
-+
-+static struct device_attribute dev_attr_hotkey_enable =
-+	__ATTR(enable, S_IWUSR | S_IRUGO,
-+		hotkey_enable_show, hotkey_enable_store);
-+
-+/* sysfs hotkey mask --------------------------------------------------- */
-+static ssize_t hotkey_mask_show(struct device *dev,
-+			   struct device_attribute *attr,
-+			   char *buf)
-+{
-+	int res, status, mask;
-+
-+	res = hotkey_get(&status, &mask);
-+	if (res)
-+		return res;
-+
-+	return snprintf(buf, PAGE_SIZE, "0x%04x\n", mask);
-+}
-+
-+static ssize_t hotkey_mask_store(struct device *dev,
-+			    struct device_attribute *attr,
-+			    const char *buf, size_t count)
-+{
-+	unsigned long t;
-+	int res, status, mask;
-+
-+	if (parse_strtoul(buf, 0xffff, &t))
-+		return -EINVAL;
-+
-+	res = hotkey_get(&status, &mask);
-+	if (!res)
-+		hotkey_set(status, t);
-+
-+	return (res) ? res : count;
-+}
-+
-+static struct device_attribute dev_attr_hotkey_mask =
-+	__ATTR(mask, S_IWUSR | S_IRUGO,
-+		hotkey_mask_show, hotkey_mask_store);
-+
-+/* sysfs hotkey bios_enabled ------------------------------------------- */
-+static ssize_t hotkey_bios_enabled_show(struct device *dev,
-+			   struct device_attribute *attr,
-+			   char *buf)
-+{
-+	return snprintf(buf, PAGE_SIZE, "%d\n", hotkey_orig_status);
-+}
-+
-+static struct device_attribute dev_attr_hotkey_bios_enabled =
-+	__ATTR(bios_enabled, S_IRUGO, hotkey_bios_enabled_show, NULL);
-+
-+/* sysfs hotkey bios_mask ---------------------------------------------- */
-+static ssize_t hotkey_bios_mask_show(struct device *dev,
-+			   struct device_attribute *attr,
-+			   char *buf)
-+{
-+	return snprintf(buf, PAGE_SIZE, "0x%04x\n", hotkey_orig_mask);
-+}
-+
-+static struct device_attribute dev_attr_hotkey_bios_mask =
-+	__ATTR(bios_mask, S_IRUGO, hotkey_bios_mask_show, NULL);
-+
-+/* --------------------------------------------------------------------- */
-+
-+static struct attribute *hotkey_mask_attributes[] = {
-+	&dev_attr_hotkey_mask.attr,
-+	&dev_attr_hotkey_bios_enabled.attr,
-+	&dev_attr_hotkey_bios_mask.attr,
-+};
-+
- static int __init hotkey_init(struct ibm_init_struct *iibm)
- {
- 	int res;
-@@ -722,6 +824,15 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 		str_supported(tp_features.hotkey));
- 
- 	if (tp_features.hotkey) {
-+		hotkey_dev_attributes = create_attr_set(4,
-+						TPACPI_HOTKEY_SYSFS_GROUP);
-+		if (!hotkey_dev_attributes)
-+			return -ENOMEM;
-+		res = add_to_attr_set(hotkey_dev_attributes,
-+				&dev_attr_hotkey_enable.attr);
-+		if (res)
-+			return res;
-+
- 		/* mask not supported on 570, 600e/x, 770e, 770x, A21e, A2xm/p,
- 		   A30, R30, R31, T20-22, X20-21, X22-24 */
- 		tp_features.hotkey_mask =
-@@ -731,6 +842,16 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 			str_supported(tp_features.hotkey_mask));
- 
- 		res = hotkey_get(&hotkey_orig_status, &hotkey_orig_mask);
-+		if (!res && tp_features.hotkey_mask) {
-+			res = add_many_to_attr_set(hotkey_dev_attributes,
-+				hotkey_mask_attributes,
-+				ARRAY_SIZE(hotkey_mask_attributes));
-+		}
-+		if (!res)
-+			res = register_attr_set_with_sysfs(
-+					hotkey_dev_attributes,
-+					&tpacpi_pdev->dev.kobj);
-+
- 		if (res)
- 			return res;
+ 	switch (command) {
+ 	case SONYPI_COMMAND_SETCAMERA:
+@@ -926,7 +926,7 @@ int sonypi_camera_command(int command, u8 value)
+ 		       command);
+ 		break;
  	}
-@@ -748,6 +869,11 @@ static void hotkey_exit(void)
- 		if (res)
- 			printk(IBM_ERR "failed to restore hotkey to BIOS defaults\n");
- 	}
-+
-+	if (hotkey_dev_attributes) {
-+		delete_attr_set(hotkey_dev_attributes, &tpacpi_pdev->dev.kobj);
-+		hotkey_dev_attributes = NULL;
-+	}
- }
- 
- static void hotkey_notify(struct ibm_struct *ibm, u32 event)
-@@ -798,6 +924,7 @@ static int hotkey_set(int status, int mask)
+-	up(&sonypi_device.lock);
++	mutex_unlock(&sonypi_device.lock);
  	return 0;
  }
  
-+/* procfs -------------------------------------------------------------- */
- static int hotkey_read(char *p)
+@@ -945,20 +945,20 @@ static int sonypi_misc_fasync(int fd, struct file *filp, int on)
+ static int sonypi_misc_release(struct inode *inode, struct file *file)
  {
- 	int res, status, mask;
-diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index a9e7093..7615adb 100644
---- a/drivers/misc/thinkpad_acpi.h
-+++ b/drivers/misc/thinkpad_acpi.h
-@@ -414,6 +414,8 @@ static int fan_write_cmd_watchdog(const char *cmd, int *rc);
-  * Hotkey subdriver
-  */
+ 	sonypi_misc_fasync(-1, file, 0);
+-	down(&sonypi_device.lock);
++	mutex_lock(&sonypi_device.lock);
+ 	sonypi_device.open_count--;
+-	up(&sonypi_device.lock);
++	mutex_unlock(&sonypi_device.lock);
+ 	return 0;
+ }
  
-+#define TPACPI_HOTKEY_SYSFS_GROUP "hotkey"
-+
- static int hotkey_orig_status;
- static int hotkey_orig_mask;
+ static int sonypi_misc_open(struct inode *inode, struct file *file)
+ {
+-	down(&sonypi_device.lock);
++	mutex_lock(&sonypi_device.lock);
+ 	/* Flush input queue on first open */
+ 	if (!sonypi_device.open_count)
+ 		kfifo_reset(sonypi_device.fifo);
+ 	sonypi_device.open_count++;
+-	up(&sonypi_device.lock);
++	mutex_unlock(&sonypi_device.lock);
+ 	return 0;
+ }
  
+@@ -1008,7 +1008,7 @@ static int sonypi_misc_ioctl(struct inode *ip, struct file *fp,
+ 	u8 val8;
+ 	u16 val16;
+ 
+-	down(&sonypi_device.lock);
++	mutex_lock(&sonypi_device.lock);
+ 	switch (cmd) {
+ 	case SONYPI_IOCGBRT:
+ 		if (sonypi_ec_read(SONYPI_LCD_LIGHT, &val8)) {
+@@ -1108,7 +1108,7 @@ static int sonypi_misc_ioctl(struct inode *ip, struct file *fp,
+ 	default:
+ 		ret = -EINVAL;
+ 	}
+-	up(&sonypi_device.lock);
++	mutex_unlock(&sonypi_device.lock);
+ 	return ret;
+ }
+ 
+@@ -1363,7 +1363,7 @@ static int __devinit sonypi_probe(struct platform_device *dev)
+ 	}
+ 
+ 	init_waitqueue_head(&sonypi_device.fifo_proc_list);
+-	init_MUTEX(&sonypi_device.lock);
++	mutex_init(&sonypi_device.lock);
+ 	sonypi_device.bluetooth_power = -1;
+ 
+ 	if ((pcidev = pci_get_device(PCI_VENDOR_ID_INTEL,
 -- 
 1.5.2.rc0.34.gda94
