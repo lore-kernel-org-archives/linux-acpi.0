@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 085/105] ACPICA: clear fields reserved before FADT r3
-Date: Sun, 29 Apr 2007 00:51:25 -0400
-Message-ID: <117782238310-git-send-email-len.brown@intel.com>
+Subject: [PATCH 087/105] ACPI: thinkpad-acpi: do not arm fan watchdog if it would not work
+Date: Sun, 29 Apr 2007 00:51:27 -0400
+Message-ID: <11778223852391-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -87,66 +87,46 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223802796-git-send-email-len.brown@intel.com>
  <11778223812071-git-send-email-len.brown@intel.com>
  <11778223823637-git-send-email-len.brown@intel.com>
+ <117782238310-git-send-email-len.brown@intel.com>
+ <11778223843825-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:18569 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:11191 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756193AbXD2ExG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1756194AbXD2ExG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Sun, 29 Apr 2007 00:53:06 -0400
-In-Reply-To: <11778223823637-git-send-email-len.brown@intel.com>
-Message-Id: <79fff270026dc46634563a29b99e4034028ee919.1177822058.git.len.brown@intel.com>
+In-Reply-To: <11778223843825-git-send-email-len.brown@intel.com>
+Message-Id: <4985cd0a63b0713b6469ef01aae6a0e63ea72f83.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bob Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Linux-2.6.21 stopped booting on a P4/HT because Linux
-wrote the FADT.CST_CNT value to the SMI_CMD.
-Apparently this stumbled over some SMM instability,
-such as confusing SMM when invoking it from cpu1.
+Do not enable/rearm the fan control safety watchdog if we would not be able
+to do anything to the fan anyway.
 
-Linux did this because even though the r2 FADT reserves
-the CST_CNT field, this BIOS set that field and Linux
-used it.
-
-Turns out that up through 2.6.20 we explicitly cleared
-cst_control for r2 FADTs.  So here we go back to doing that,
-plus also clear some additional fields that are reserved
-until FADT r3.
-
-http://bugzilla.kernel.org/show_bug.cgi?id=8346
-
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/tables/tbfadt.c |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
+ drivers/misc/thinkpad_acpi.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/tables/tbfadt.c b/drivers/acpi/tables/tbfadt.c
-index 807c711..1db833e 100644
---- a/drivers/acpi/tables/tbfadt.c
-+++ b/drivers/acpi/tables/tbfadt.c
-@@ -347,6 +347,18 @@ static void acpi_tb_convert_fadt(void)
- 		acpi_gbl_xpm1b_enable.space_id = acpi_gbl_FADT.xpm1a_event_block.space_id;
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index 7dc3a22..f824259 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -3197,6 +3197,9 @@ static void fan_watchdog_reset(void)
+ {
+ 	static int fan_watchdog_active = 0;
  
- 	}
++	if (fan_control_access_mode == TPACPI_FAN_WR_NONE)
++		return;
 +
-+	/*
-+	 * For ACPI 1.0 FADTs, ensure that reserved fields (which should be zero)
-+	 * are indeed zero. This will workaround BIOSs that inadvertently placed
-+	 * values in these fields.
-+	 */
-+	if (acpi_gbl_FADT.header.revision < 3) {
-+		acpi_gbl_FADT.preferred_profile = 0;
-+		acpi_gbl_FADT.pstate_control = 0;
-+		acpi_gbl_FADT.cst_control = 0;
-+		acpi_gbl_FADT.boot_flags = 0;
-+	}
- }
+ 	if (fan_watchdog_active)
+ 		cancel_delayed_work(&fan_watchdog_task);
  
- /******************************************************************************
 -- 
 1.5.2.rc0.34.gda94
