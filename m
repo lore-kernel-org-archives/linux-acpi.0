@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 081/105] ACPI: word-smith kconfig help
-Date: Sun, 29 Apr 2007 00:51:21 -0400
-Message-ID: <11778223792074-git-send-email-len.brown@intel.com>
+Subject: [PATCH 082/105] ACPI: make /proc/acpi/wakeup more useful
+Date: Sun, 29 Apr 2007 00:51:22 -0400
+Message-ID: <11778223802796-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -83,43 +83,95 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <1177822376123-git-send-email-len.brown@intel.com>
  <11778223771048-git-send-email-len.brown@intel.com>
  <11778223782086-git-send-email-len.brown@intel.com>
+ <11778223792074-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:11191 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:18569 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754627AbXD2ExB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 00:53:01 -0400
-In-Reply-To: <11778223782086-git-send-email-len.brown@intel.com>
-Message-Id: <cf6c6045a06aed2ccd8ebd0a3128ce0f2f8a11aa.1177822058.git.len.brown@intel.com>
+	id S1756180AbXD2ExC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 00:53:02 -0400
+In-Reply-To: <11778223792074-git-send-email-len.brown@intel.com>
+Message-Id: <8aa55591bfea25c441117e82711cbfd7c274250a.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Borislav Petkov <bbpetkov@yahoo.de>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
+Cc: David Brownell <david-b@pacbell.net>, David Brownell <dbrownell@users.sourceforge.net>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
 
-From: Borislav Petkov <bbpetkov@yahoo.de>
+From: David Brownell <david-b@pacbell.net>
 
-Signed-off-by: <bbpetkov@yahoo.de>
+This updates /proc/acpi/wakeup to be more informative, primarily by showing
+the sysfs node associated with each wakeup-enabled device.  Example:
+
+	Device	S-state	  Status   Sysfs node
+	PCI0	  S4	 disabled  no-bus:pci0000:00
+	PS2M	  S4	 disabled  pnp:00:05
+	PS2K	  S4	 disabled  pnp:00:06
+	UAR1	  S4	 disabled  pnp:00:08
+	USB1	  S3	 disabled  pci:0000:00:03.0
+	USB2	  S3	 disabled  pci:0000:00:03.1
+	USB3	  S3	 disabled
+	USB4	  S3	 disabled  pci:0000:00:03.3
+	S139	  S4	 disabled
+	LAN	  S4	 disabled  pci:0000:00:04.0
+	MDM	  S4	 disabled
+	AUD	  S4	 disabled  pci:0000:00:02.7
+	SLPB	  S4	*enabled
+
+Eventually this file should be removed, but until then it's almost the only
+way we have to tell how the relevant ACPI tables are broken (and cope).  In
+that example, two devices don't actually exist (USB3, S139), one can't issue
+wakeup events (PCI0), and two seem harmlessly (?) confused (MDM and AUD are
+the same PCI device, but it's the _modem_ that does wake-on-ring).
+
+In particular, we need to be sure driver model nodes are properly hooked
+up before we can get rid of this ACPI-only interface for wakeup events.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/Kconfig |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/sleep/proc.c |   16 +++++++++++++---
+ 1 files changed, 13 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index e2ce4a9..2a18d4c 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -85,8 +85,8 @@ config ACPI_PROCFS
- 	depends on ACPI
- 	default y
- 	---help---
--	  Procfs interface for ACPI is made optional for back-compatible.
--	  As the same functions are duplicated in sysfs interface
-+	  The Procfs interface for ACPI is made optional for backward compatibility.
-+	  As the same functions are duplicated in the sysfs interface
- 	  and this proc interface will be removed some time later,
- 	  it's marked as deprecated.
- 	  ( /proc/acpi/debug_layer && debug_level are deprecated by
+diff --git a/drivers/acpi/sleep/proc.c b/drivers/acpi/sleep/proc.c
+index ccc11b3..2d912b7 100644
+--- a/drivers/acpi/sleep/proc.c
++++ b/drivers/acpi/sleep/proc.c
+@@ -350,21 +350,31 @@ acpi_system_wakeup_device_seq_show(struct seq_file *seq, void *offset)
+ {
+ 	struct list_head *node, *next;
+ 
+-	seq_printf(seq, "Device	Sleep state	Status\n");
++	seq_printf(seq, "Device\tS-state\t  Status   Sysfs node\n");
+ 
+ 	spin_lock(&acpi_device_lock);
+ 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+ 		struct acpi_device *dev =
+ 		    container_of(node, struct acpi_device, wakeup_list);
++		struct device *ldev;
+ 
+ 		if (!dev->wakeup.flags.valid)
+ 			continue;
+ 		spin_unlock(&acpi_device_lock);
+-		seq_printf(seq, "%4s	%4d		%s%8s\n",
++
++		ldev = acpi_get_physical_device(dev->handle);
++		seq_printf(seq, "%s\t  S%d\t%c%-8s  ",
+ 			   dev->pnp.bus_id,
+ 			   (u32) dev->wakeup.sleep_state,
+-			   dev->wakeup.flags.run_wake ? "*" : "",
++			   dev->wakeup.flags.run_wake ? '*' : ' ',
+ 			   dev->wakeup.state.enabled ? "enabled" : "disabled");
++		if (ldev)
++			seq_printf(seq, "%s:%s",
++				ldev->bus ? ldev->bus->name : "no-bus",
++				ldev->bus_id);
++		seq_printf(seq, "\n");
++		put_device(ldev);
++
+ 		spin_lock(&acpi_device_lock);
+ 	}
+ 	spin_unlock(&acpi_device_lock);
 -- 
 1.5.2.rc0.34.gda94
