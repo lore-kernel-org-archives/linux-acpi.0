@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 082/105] ACPI: make /proc/acpi/wakeup more useful
-Date: Sun, 29 Apr 2007 00:51:22 -0400
-Message-ID: <11778223802796-git-send-email-len.brown@intel.com>
+Subject: [PATCH 084/105] ACPI: Remove a warning about unused variable in !CONFIG_ACPI compilation.
+Date: Sun, 29 Apr 2007 00:51:24 -0400
+Message-ID: <11778223823637-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -84,94 +84,45 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223771048-git-send-email-len.brown@intel.com>
  <11778223782086-git-send-email-len.brown@intel.com>
  <11778223792074-git-send-email-len.brown@intel.com>
+ <11778223802796-git-send-email-len.brown@intel.com>
+ <11778223812071-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:18569 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:11191 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756180AbXD2ExC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 00:53:02 -0400
-In-Reply-To: <11778223792074-git-send-email-len.brown@intel.com>
-Message-Id: <8aa55591bfea25c441117e82711cbfd7c274250a.1177822058.git.len.brown@intel.com>
+	id S1754622AbXD2ExF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 00:53:05 -0400
+In-Reply-To: <11778223812071-git-send-email-len.brown@intel.com>
+Message-Id: <afd3810d9b6b0d446a34e1d4e94f0cc020b00a14.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: David Brownell <david-b@pacbell.net>, David Brownell <dbrownell@users.sourceforge.net>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
+Cc: Zachary Amsden <zach@vmware.com>, Andi Kleen <ak@suse.de>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
 
-From: David Brownell <david-b@pacbell.net>
+From: Zachary Amsden <zach@vmware.com>
 
-This updates /proc/acpi/wakeup to be more informative, primarily by showing
-the sysfs node associated with each wakeup-enabled device.  Example:
-
-	Device	S-state	  Status   Sysfs node
-	PCI0	  S4	 disabled  no-bus:pci0000:00
-	PS2M	  S4	 disabled  pnp:00:05
-	PS2K	  S4	 disabled  pnp:00:06
-	UAR1	  S4	 disabled  pnp:00:08
-	USB1	  S3	 disabled  pci:0000:00:03.0
-	USB2	  S3	 disabled  pci:0000:00:03.1
-	USB3	  S3	 disabled
-	USB4	  S3	 disabled  pci:0000:00:03.3
-	S139	  S4	 disabled
-	LAN	  S4	 disabled  pci:0000:00:04.0
-	MDM	  S4	 disabled
-	AUD	  S4	 disabled  pci:0000:00:02.7
-	SLPB	  S4	*enabled
-
-Eventually this file should be removed, but until then it's almost the only
-way we have to tell how the relevant ACPI tables are broken (and cope).  In
-that example, two devices don't actually exist (USB3, S139), one can't issue
-wakeup events (PCI0), and two seem harmlessly (?) confused (MDM and AUD are
-the same PCI device, but it's the _modem_ that does wake-on-ring).
-
-In particular, we need to be sure driver model nodes are properly hooked
-up before we can get rid of this ACPI-only interface for wakeup events.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Zachary Amsden <zach@vmware.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/sleep/proc.c |   16 +++++++++++++---
- 1 files changed, 13 insertions(+), 3 deletions(-)
+ arch/i386/kernel/acpi/earlyquirk.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/sleep/proc.c b/drivers/acpi/sleep/proc.c
-index ccc11b3..2d912b7 100644
---- a/drivers/acpi/sleep/proc.c
-+++ b/drivers/acpi/sleep/proc.c
-@@ -350,21 +350,31 @@ acpi_system_wakeup_device_seq_show(struct seq_file *seq, void *offset)
+diff --git a/arch/i386/kernel/acpi/earlyquirk.c b/arch/i386/kernel/acpi/earlyquirk.c
+index fa3255a..8f7efd3 100644
+--- a/arch/i386/kernel/acpi/earlyquirk.c
++++ b/arch/i386/kernel/acpi/earlyquirk.c
+@@ -22,8 +22,8 @@ static int __init nvidia_hpet_check(struct acpi_table_header *header)
+ 
+ static int __init check_bridge(int vendor, int device)
  {
- 	struct list_head *node, *next;
- 
--	seq_printf(seq, "Device	Sleep state	Status\n");
-+	seq_printf(seq, "Device\tS-state\t  Status   Sysfs node\n");
- 
- 	spin_lock(&acpi_device_lock);
- 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
- 		struct acpi_device *dev =
- 		    container_of(node, struct acpi_device, wakeup_list);
-+		struct device *ldev;
- 
- 		if (!dev->wakeup.flags.valid)
- 			continue;
- 		spin_unlock(&acpi_device_lock);
--		seq_printf(seq, "%4s	%4d		%s%8s\n",
-+
-+		ldev = acpi_get_physical_device(dev->handle);
-+		seq_printf(seq, "%s\t  S%d\t%c%-8s  ",
- 			   dev->pnp.bus_id,
- 			   (u32) dev->wakeup.sleep_state,
--			   dev->wakeup.flags.run_wake ? "*" : "",
-+			   dev->wakeup.flags.run_wake ? '*' : ' ',
- 			   dev->wakeup.state.enabled ? "enabled" : "disabled");
-+		if (ldev)
-+			seq_printf(seq, "%s:%s",
-+				ldev->bus ? ldev->bus->name : "no-bus",
-+				ldev->bus_id);
-+		seq_printf(seq, "\n");
-+		put_device(ldev);
-+
- 		spin_lock(&acpi_device_lock);
- 	}
- 	spin_unlock(&acpi_device_lock);
+-	static int warned;
+ #ifdef CONFIG_ACPI
++	static int warned;
+ 	/* According to Nvidia all timer overrides are bogus unless HPET
+ 	   is enabled. */
+ 	if (!acpi_use_timer_override && vendor == PCI_VENDOR_ID_NVIDIA) {
 -- 
 1.5.2.rc0.34.gda94
