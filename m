@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 077/105] ACPI: remove duplicate include
-Date: Sun, 29 Apr 2007 00:51:17 -0400
-Message-ID: <11778223752175-git-send-email-len.brown@intel.com>
+Subject: [PATCH 081/105] ACPI: word-smith kconfig help
+Date: Sun, 29 Apr 2007 00:51:21 -0400
+Message-ID: <11778223792074-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -79,51 +79,47 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223732286-git-send-email-len.brown@intel.com>
  <11778223733679-git-send-email-len.brown@intel.com>
  <11778223741-git-send-email-len.brown@intel.com>
+ <11778223752175-git-send-email-len.brown@intel.com>
+ <1177822376123-git-send-email-len.brown@intel.com>
+ <11778223771048-git-send-email-len.brown@intel.com>
+ <11778223782086-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:23431 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:11191 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756167AbXD2Ew7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 00:52:59 -0400
-In-Reply-To: <11778223741-git-send-email-len.brown@intel.com>
-Message-Id: <d8938801d10945ac2fbe0f41ded43f6276660a17.1177822058.git.len.brown@intel.com>
+	id S1754627AbXD2ExB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 00:53:01 -0400
+In-Reply-To: <11778223782086-git-send-email-len.brown@intel.com>
+Message-Id: <cf6c6045a06aed2ccd8ebd0a3128ce0f2f8a11aa.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Ray Lee <ray-lk@madrabbit.org>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
+Cc: Borislav Petkov <bbpetkov@yahoo.de>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
 
-From: Ray Lee <ray-lk@madrabbit.org>
+From: Borislav Petkov <bbpetkov@yahoo.de>
 
-Thomas's patch for including <asm/apic.h> for x86 UP builds came into
-Linus's tree from two different directions, both of which were merged.
-This reverts the latter, yanking out the duplicate #include and comment.
-
-Signed-off-by: Ray Lee <ray-lk@madrabbit.org>
+Signed-off-by: <bbpetkov@yahoo.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/processor_idle.c |    8 --------
- 1 files changed, 0 insertions(+), 8 deletions(-)
+ drivers/acpi/Kconfig |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index cdf7894..ae0654c 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -51,14 +51,6 @@
- #include <asm/apic.h>
- #endif
- 
--/*
-- * Include the apic definitions for x86 to have the APIC timer related defines
-- * available also for UP (on SMP it gets magically included via linux/smp.h).
-- */
--#ifdef CONFIG_X86
--#include <asm/apic.h>
--#endif
--
- #include <asm/io.h>
- #include <asm/uaccess.h>
- 
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index e2ce4a9..2a18d4c 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -85,8 +85,8 @@ config ACPI_PROCFS
+ 	depends on ACPI
+ 	default y
+ 	---help---
+-	  Procfs interface for ACPI is made optional for back-compatible.
+-	  As the same functions are duplicated in sysfs interface
++	  The Procfs interface for ACPI is made optional for backward compatibility.
++	  As the same functions are duplicated in the sysfs interface
+ 	  and this proc interface will be removed some time later,
+ 	  it's marked as deprecated.
+ 	  ( /proc/acpi/debug_layer && debug_level are deprecated by
 -- 
 1.5.2.rc0.34.gda94
