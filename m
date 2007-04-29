@@ -1,38 +1,53 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [-mm patch] make drivers/misc/thinkpad_acpi:fan_mutex static
-Date: Sun, 29 Apr 2007 01:09:53 -0300
-Message-ID: <20070429040953.GA29832@khazad-dum.debian.net>
-References: <20070425225716.8e9b28ca.akpm@linux-foundation.org> <20070428191938.GO3468@stusta.de> <20070428195821.GC2392@khazad-dum.debian.net> <20070429025008.GK3468@stusta.de>
+Subject: Re: [PATCH 8/9] ACPI: thinkpad-acpi: add sysfs support to hotkey subdriver
+Date: Sun, 29 Apr 2007 01:15:43 -0300
+Message-ID: <20070429041543.GB29832@khazad-dum.debian.net>
+References: <11777220172751-git-send-email-hmh@hmh.eng.br> <11777220182109-git-send-email-hmh@hmh.eng.br> <200704282148.00041.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:45630 "EHLO
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:44091 "EHLO
 	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754552AbXD2EKB (ORCPT
+	by vger.kernel.org with ESMTP id S1754562AbXD2EPs (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 00:10:01 -0400
+	Sun, 29 Apr 2007 00:15:48 -0400
 Content-Disposition: inline
-In-Reply-To: <20070429025008.GK3468@stusta.de>
+In-Reply-To: <200704282148.00041.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>, lenb@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, luming.yu@intel.com
 
-On Sun, 29 Apr 2007, Adrian Bunk wrote:
-> Forward declarations of static functions (if required) and actual 
-> variables (like fan_mutex) belong into the C file, not the header.
-
-Very well.  I will fix the mess for 2.6.23, or, time permitting, 2.6.22.
-
-> > Maybe I should just break the driver into multiple files in a subdirectory?
-> > That would certainly make it *much* cleaner...
+On Sat, 28 Apr 2007, Len Brown wrote:
+> On Friday 27 April 2007 21:00, Henrique de Moraes Holschuh wrote:
+> > Add the hotkey sysfs support.
+> > 
+> > Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+> > ---
+> >  Documentation/thinkpad-acpi.txt |   58 ++++++++++++++----
+> >  drivers/misc/thinkpad_acpi.c    |  127 +++++++++++++++++++++++++++++++++++++++
+> >  drivers/misc/thinkpad_acpi.h    |    2 +
+> >  3 files changed, 176 insertions(+), 11 deletions(-)
 > 
-> But even more in this case, you will not want to have actual variables 
-> or prototypes of static functions in the header file.
+> I haven't tried this out.
+> I was wondering how you know what action should be associated with what key?
 
-I would not have to, in that case.  The driver would be much easier to
-write, and I will need to break it in two for an alsa module anyway, might
-as well break it in one subdriver per file.
+I don't.  I could though, using model-specific knowledge (i.e. a table) and
+help from the linux thinkpad community and thinkwiki.org.
+
+We deliver to userspace something like "Fn+F1" pressed, instead of "blank
+screen" pressed, because "blank screen" is in different keys depending on
+thinkpad model.
+
+The BIOS *does* know, and that's what the Mask does. If you leave a bit
+off, the bios handles that key (typically doing nothing), but for some keys
+like "suspend to disk", it actually generates a ACPI suspend event... etc.
+
+> if that association can be made, is is possible to send the events to
+> the input layer like other keyboard events?
+
+I plan to connect to the input layer later on, yes.  But I haven't started
+down that road yet.
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
