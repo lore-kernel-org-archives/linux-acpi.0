@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 066/105] ACPI: Disable MSI on request of FADT
-Date: Sun, 29 Apr 2007 00:51:06 -0400
-Message-ID: <11778223663850-git-send-email-len.brown@intel.com>
+Subject: [PATCH 065/105] ACPI: thinkpad-acpi: improve fan watchdog messages
+Date: Sun, 29 Apr 2007 00:51:05 -0400
+Message-ID: <11778223653391-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -67,59 +67,59 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223624095-git-send-email-len.brown@intel.com>
  <11778223633408-git-send-email-len.brown@intel.com>
  <1177822364262-git-send-email-len.brown@intel.com>
- <11778223653391-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:11191 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:54971 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754925AbXD2Ewr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1754633AbXD2Ewr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Sun, 29 Apr 2007 00:52:47 -0400
-In-Reply-To: <11778223653391-git-send-email-len.brown@intel.com>
-Message-Id: <f8993aff8b4de0317c6e081802ca5c86c449fef2.1177822058.git.len.brown@intel.com>
+In-Reply-To: <1177822364262-git-send-email-len.brown@intel.com>
+Message-Id: <99fba3f8177956170f3d86f83c2cf2f70747105f.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Shaohua Li <shaohua.li@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
 
-From: Shaohua Li <shaohua.li@intel.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-The ACPI spec defines the bit and Microsoft uses it,
-so Linux must use it too.
+Improve some of the fan watchdog error messages to be a little more
+helpful.
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/pci/pci-acpi.c |    4 ++++
- include/acpi/actbl.h   |    1 +
- 2 files changed, 5 insertions(+), 0 deletions(-)
+ drivers/misc/thinkpad_acpi.c |   10 +++++++---
+ 1 files changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index a064f36..b5ac810 100644
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -317,6 +317,10 @@ static int __init acpi_pci_init(void)
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index e9aec87..9b4eea4 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -2524,7 +2524,7 @@ static int fan_get_status(u8 *status)
+ 
+ static void fan_exit(void)
  {
- 	int ret;
+-	vdbg_printk(TPACPI_DBG_EXIT, "cancelling any pending watchdogs\n");
++	vdbg_printk(TPACPI_DBG_EXIT, "cancelling any pending fan watchdog tasks\n");
+ 	cancel_delayed_work(&fan_watchdog_task);
+ 	flush_scheduled_work();
+ }
+@@ -2554,9 +2554,13 @@ static int fan_get_speed(unsigned int *speed)
  
-+	if (acpi_gbl_FADT.boot_flags & BAF_MSI_NOT_SUPPORTED) {
-+		printk(KERN_INFO"ACPI FADT declares the system doesn't support MSI, so disable it\n");
-+		pci_no_msi();
-+	}
- 	ret = register_acpi_bus_type(&acpi_pci_bus);
- 	if (ret)
- 		return 0;
-diff --git a/include/acpi/actbl.h b/include/acpi/actbl.h
-index 09469e7..955adfb 100644
---- a/include/acpi/actbl.h
-+++ b/include/acpi/actbl.h
-@@ -276,6 +276,7 @@ enum acpi_prefered_pm_profiles {
- 
- #define BAF_LEGACY_DEVICES              0x0001
- #define BAF_8042_KEYBOARD_CONTROLLER    0x0002
-+#define BAF_MSI_NOT_SUPPORTED           0x0008
- 
- #define FADT2_REVISION_ID               3
- #define FADT2_MINUS_REVISION_ID         2
+ static void fan_watchdog_fire(struct work_struct *ignored)
+ {
++	int rc;
++
+ 	printk(IBM_NOTICE "fan watchdog: enabling fan\n");
+-	if (fan_set_enable()) {
+-		printk(IBM_ERR "fan watchdog: error while enabling fan\n");
++	rc = fan_set_enable();
++	if (rc < 0) {
++		printk(IBM_ERR "fan watchdog: error %d while enabling fan, "
++			"will try again later...\n", -rc);
+ 		/* reschedule for later */
+ 		fan_watchdog_reset();
+ 	}
 -- 
 1.5.2.rc0.34.gda94
