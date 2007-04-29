@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 078/105] ACPI: Remove duplicate definitions for _STA bits
-Date: Sun, 29 Apr 2007 00:51:18 -0400
-Message-ID: <1177822376123-git-send-email-len.brown@intel.com>
+Subject: [PATCH 080/105] ACPI: correct pathname in comment
+Date: Sun, 29 Apr 2007 00:51:20 -0400
+Message-ID: <11778223782086-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -80,123 +80,43 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223733679-git-send-email-len.brown@intel.com>
  <11778223741-git-send-email-len.brown@intel.com>
  <11778223752175-git-send-email-len.brown@intel.com>
+ <1177822376123-git-send-email-len.brown@intel.com>
+ <11778223771048-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:42357 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:23431 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756177AbXD2Ew7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 00:52:59 -0400
-In-Reply-To: <11778223752175-git-send-email-len.brown@intel.com>
-Message-Id: <a0bd4ac498acfe60f7533d15ba60d5efdd4e9ca5.1177822058.git.len.brown@intel.com>
+	id S1754615AbXD2ExA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 00:53:00 -0400
+In-Reply-To: <11778223771048-git-send-email-len.brown@intel.com>
+Message-Id: <8ce8e2f99a973c39c4aeddbe0966038196a8e71a.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
+Cc: Daniel Walker <dwalker@mvista.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
 
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+From: Daniel Walker <dwalker@mvista.com>
 
-No need to duplicate the existing definitions in include/acpi/actypes.h.
-
-syntax only -- no functional change.
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpi_memhotplug.c |   13 ++++---------
- drivers/acpi/container.c       |    6 ++----
- drivers/acpi/processor_core.c  |    4 +---
- 3 files changed, 7 insertions(+), 16 deletions(-)
+ drivers/clocksource/acpi_pm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index c261726..e65628a 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -44,11 +44,6 @@ MODULE_AUTHOR("Naveen B S <naveen.b.s@intel.com>");
- MODULE_DESCRIPTION("Hotplug Mem Driver");
- MODULE_LICENSE("GPL");
+diff --git a/drivers/clocksource/acpi_pm.c b/drivers/clocksource/acpi_pm.c
+index 5ac309e..5cfcff5 100644
+--- a/drivers/clocksource/acpi_pm.c
++++ b/drivers/clocksource/acpi_pm.c
+@@ -26,7 +26,7 @@
+ /*
+  * The I/O port the PMTMR resides at.
+  * The location is detected during setup_arch(),
+- * in arch/i386/acpi/boot.c
++ * in arch/i386/kernel/acpi/boot.c
+  */
+ u32 pmtmr_ioport __read_mostly;
  
--/* ACPI _STA method values */
--#define ACPI_MEMORY_STA_PRESENT		(0x00000001UL)
--#define ACPI_MEMORY_STA_ENABLED		(0x00000002UL)
--#define ACPI_MEMORY_STA_FUNCTIONAL	(0x00000008UL)
--
- /* Memory Device States */
- #define MEMORY_INVALID_STATE	0
- #define MEMORY_POWER_ON_STATE	1
-@@ -204,9 +199,9 @@ static int acpi_memory_check_device(struct acpi_memory_device *mem_device)
- 	 * Check for device status. Device should be
- 	 * present/enabled/functioning.
- 	 */
--	if (!((current_status & ACPI_MEMORY_STA_PRESENT)
--	      && (current_status & ACPI_MEMORY_STA_ENABLED)
--	      && (current_status & ACPI_MEMORY_STA_FUNCTIONAL)))
-+	if (!((current_status & ACPI_STA_DEVICE_PRESENT)
-+	      && (current_status & ACPI_STA_DEVICE_ENABLED)
-+	      && (current_status & ACPI_STA_DEVICE_FUNCTIONING)))
- 		return -ENODEV;
- 
- 	return 0;
-@@ -286,7 +281,7 @@ static int acpi_memory_powerdown_device(struct acpi_memory_device *mem_device)
- 		return -ENODEV;
- 
- 	/* Check for device status.  Device should be disabled */
--	if (current_status & ACPI_MEMORY_STA_ENABLED)
-+	if (current_status & ACPI_STA_DEVICE_ENABLED)
- 		return -EINVAL;
- 
- 	return 0;
-diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
-index 0930d94..0dd3bf7 100644
---- a/drivers/acpi/container.c
-+++ b/drivers/acpi/container.c
-@@ -49,8 +49,6 @@ MODULE_AUTHOR("Anil S Keshavamurthy");
- MODULE_DESCRIPTION("ACPI container driver");
- MODULE_LICENSE("GPL");
- 
--#define ACPI_STA_PRESENT		(0x00000001)
--
- static int acpi_container_add(struct acpi_device *device);
- static int acpi_container_remove(struct acpi_device *device, int type);
- 
-@@ -75,13 +73,13 @@ static int is_device_present(acpi_handle handle)
- 
- 	status = acpi_get_handle(handle, "_STA", &temp);
- 	if (ACPI_FAILURE(status))
--		return 1;	/* _STA not found, assmue device present */
-+		return 1;	/* _STA not found, assume device present */
- 
- 	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
- 	if (ACPI_FAILURE(status))
- 		return 0;	/* Firmware error */
- 
--	return ((sta & ACPI_STA_PRESENT) == ACPI_STA_PRESENT);
-+	return ((sta & ACPI_STA_DEVICE_PRESENT) == ACPI_STA_DEVICE_PRESENT);
- }
- 
- /*******************************************************************/
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 99d1516..f7de02a 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -70,8 +70,6 @@
- #define ACPI_PROCESSOR_LIMIT_USER	0
- #define ACPI_PROCESSOR_LIMIT_THERMAL	1
- 
--#define ACPI_STA_PRESENT 0x00000001
--
- #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
- ACPI_MODULE_NAME("processor_core");
- 
-@@ -779,7 +777,7 @@ static int is_processor_present(acpi_handle handle)
- 
- 
- 	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
--	if (ACPI_FAILURE(status) || !(sta & ACPI_STA_PRESENT)) {
-+	if (ACPI_FAILURE(status) || !(sta & ACPI_STA_DEVICE_PRESENT)) {
- 		ACPI_EXCEPTION((AE_INFO, status, "Processor Device is not present"));
- 		return 0;
- 	}
 -- 
 1.5.2.rc0.34.gda94
