@@ -1,59 +1,107 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [GIT PATCH] ACPI patches for 2.6.22
-Date: Sun, 29 Apr 2007 11:53:10 -0400
-Message-ID: <200704291153.10451.lenb@kernel.org>
-References: <200704290102.33533.lenb@kernel.org> <20070429010104.68c51d1a.akpm@linux-foundation.org>
+From: Robert Hancock <hancockr@shaw.ca>
+Subject: Re: PCI Express MMCONFIG and BIOS Bug messages..
+Date: Sun, 29 Apr 2007 12:20:40 -0600
+Message-ID: <4634E1F8.5000806@shaw.ca>
+References: <4626C514.5010605@shaw.ca> <46279358.1010002@redhat.com>
+ <4633F363.4000009@shaw.ca> <200704291212.03171.ak@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:42186 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755405AbXD2Pyj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 11:54:39 -0400
-In-Reply-To: <20070429010104.68c51d1a.akpm@linux-foundation.org>
-Content-Disposition: inline
+Received: from shawidc-mo1.cg.shawcable.net ([24.71.223.10]:8097 "EHLO
+	pd2mo1so.prod.shaw.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030840AbXD2SUr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Apr 2007 14:20:47 -0400
+In-reply-to: <200704291212.03171.ak@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Miles Lane <miles.lane@gmail.com>, lollul@wp.pl, Matt Mackall <mpm@selenic.com>, Helge Hafting <helgehaf@aitel.hist.no>
+To: Andi Kleen <ak@suse.de>
+Cc: Chuck Ebbert <cebbert@redhat.com>, linux-kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Jesse Barnes <jbarnes@virtuousgeek.org>
 
-On Sunday 29 April 2007 04:01, Andrew Morton wrote:
-> On Sun, 29 Apr 2007 01:02:33 -0400 Len Brown <lenb@kernel.org> wrote:
+Andi Kleen wrote:
+>> I tried adapting a patch by Rajesh Shah to do this for current kernels:
 > 
-> > please pull from: 
-> > 
-> > git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
-> > 
-> > This batch mostly updates the platform-specific drivers that use ACPI.
-> > The EC and sbs changes are primarily cleanups.
-> > There are no changes to the ACPICA core, except a single bugfix
-> > that was related to a 2.6.21 boot regression on some older machines.
-> > And then the usual mix of random tweaks.
+> The Intel patches checked against ACPI which also didn't work in all cases.
 > 
-> There might still be a few regressions in this lot:
+> You're right the e820 check is overzealous and has a lot of false positives,
+> but it is the only generic way we know right now to handle a common i965 BIOS
+> bug. Also there is the nasty case of the Apple EFI boxes where only mmconfig
+> works which has to be handled too.
 > 
-> - Miles Lane's "2.6.21-rc7-mm2 -- gnome-power-manager always shows the
->   power as coming from AC"
+> I expect eventually the logic to be:
 > 
-> - "battery caching introduces a lock up"
->   http://bugzilla.kernel.org/show_bug.cgi?id=8351
+> - If we know the hardware: read it from hw registers; trust them; ignore BIOS.
+> - Otherwise check e820 and ACPI resources and be very trigger happy at not using
+> it
 
-This git pull request does not include the proposed changes to the battery.
+Problem is that even if we read the MMCONFIG table location from the 
+hardware registers, that doesn't mean we can trust the result. It could 
+be that the BIOS hasn't lied about where it put the table, it just stuck 
+it someplace completely unsuitable like on top of RAM or other 
+registers. It seems that with some of those 965 chipsets the latter is 
+what the BIOS is actually doing, and so when we think we're writing to 
+the table we're really writing to random chipset registers and hosing 
+things. (Jesse Barnes ran into this while trying to add chipset support 
+for the 965).
 
-cheers,
--Len
+Likely what we need to do is:
 
-> These are older and might have been fixed:
+-If chipset is known, take table address from registers, otherwise check 
+the MCFG table
+-Take the resulting area (Ideally not just the first minimum part as we 
+check now, but the full area based on the expected length) and make sure 
+that the entire area is covered by a reservation in ACPI motherboard 
+resources.
+-If that passes, then we still need to sanity check the result by making 
+sure it hasn't been mapped over top of something else important. How to 
+do this depends on exactly how they've set up the ACPI reservations on 
+these broken boxes.. Does someone have a full dmesg from one on a recent 
+kernel that shows all the pnpacpi resource reservation output?
+-If these checks fail, we don't use the table, and the chipset is known, 
+we should likely try to disable decoding of the region so that it won't 
+get in the way of anything else.
+
+The current check we have really should go, though. It only excludes 
+these broken chipsets based on luck, not on anything that is guaranteed, 
+and ends up disabling the table on systems where it's perfectly functional.
+
 > 
-> - Mat Mackall's "Thinkpads not waking up on lid open with -rc6-mm1"
+>> It walks through all the motherboard resource devices and tries to pull 
+>> out the resource settings for all of them using the _CRS method. 
 > 
-> - Helge Hafting's "2.6.21-rc3-mm2 hangs my opteron during bootup, ACPI?"
+> I tested it originally on a Intel system with the above BIOS problem
+> and it didn't help there.
 > 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+>> (Depending on how you do the probing, the _STA method is called as well, 
+>> either before or after.) From my limited ACPI knowledge, the problem is 
+>> that the PCI MMCONFIG initialization is called before the main ACPI 
+>> interpreter is enabled, and these control methods may try to access 
+>> operation regions who don't have handlers set up for them yet, so a 
+>> bunch of "no handler for region" errors show up.
 > 
+> mmconfig access can be switched later without problems; so it would
+> be possible to boot using Type1 if it works (e.g. detect the Apple case) 
+> and switch later.
+> 
+> It's all quite tricky unfortunately; that is why i left it at the current
+> relatively safe state for now. After all mmconfig is normally not needed.
+> 
+>> So essentially if we want to do this check based on ACPI resource 
+>> reservations, we need to be able to execute control methods at the point 
+>> that MMCONFIG is set up. Is there a reason why this can't be made 
+>> possible (like by moving the necessary parts of ACPI initialization 
+>> earlier)?
+> 
+> ACPI Interpreter wants to allocate memory and use other kernel services that
+> are not available in really early boot. It could be probably done somehow,
+> but would be quite ugly with lots of special cases.
+
+Yeah, if we can do this part of MMCONFIG initialization later that would 
+likely be a better solution.
+
+-- 
+Robert Hancock      Saskatoon, SK, Canada
+To email, remove "nospam" from hancockr@nospamshaw.ca
+Home Page: http://www.roberthancock.com/
+
+
