@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 070/105] ACPI: thinkpad-acpi: add infrastructure for the sysfs device attributes
-Date: Sun, 29 Apr 2007 00:51:10 -0400
-Message-ID: <11778223692377-git-send-email-len.brown@intel.com>
+Subject: [PATCH 072/105] ACPI: thinkpad-acpi: add sysfs support to the thermal subdriver
+Date: Sun, 29 Apr 2007 00:51:12 -0400
+Message-ID: <1177822371935-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -72,13 +72,15 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223673988-git-send-email-len.brown@intel.com>
  <1177822368767-git-send-email-len.brown@intel.com>
  <1177822368793-git-send-email-len.brown@intel.com>
+ <11778223692377-git-send-email-len.brown@intel.com>
+ <1177822370442-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:42357 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:11191 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756155AbXD2Ewv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 00:52:51 -0400
-In-Reply-To: <1177822368793-git-send-email-len.brown@intel.com>
-Message-Id: <7252374a39d794879f5e47bcfa0a16e7599b27b5.1177822058.git.len.brown@intel.com>
+	id S1754609AbXD2Ewy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 00:52:54 -0400
+In-Reply-To: <1177822370442-git-send-email-len.brown@intel.com>
+Message-Id: <2c37aa4e22dd55070c608290c5031f2ee93e69ce.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -88,152 +90,247 @@ Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com
 
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Add infrastructure to deal with sysfs attributes and grouping, and helpers
-for common sysfs parsing.  Switch driver attributes to use them.
+Export thinkpad thermal sensors to sysfs, following the hwmon
+specification for thermal monitoring sensors.
+
+ThinkPad thermal monitoring is done by the EC.  Sensors can show up or
+disappear at runtime when they are inside hotswappable hardware, such as
+batteries.  Sensors that are not available return -ENXIO when accessed.
+
+Up to 16 thermal sensors are supported on new firmware (but nobody has
+reported a ThinkPad with more than 12 sensors so far), and 8 sensors are
+supported on older firmware.  Thermal sensor mapping is model-specific.
+Precision varies, it is 1 degree Celcius on new ThinkPads, but higher on
+some older models.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/thinkpad_acpi.c |   86 +++++++++++++++++++++++++++++++++++++++--
- drivers/misc/thinkpad_acpi.h |   21 ++++++++++
- 2 files changed, 102 insertions(+), 5 deletions(-)
+ Documentation/thinkpad-acpi.txt |   26 ++++++--
+ drivers/misc/thinkpad_acpi.c    |  122 ++++++++++++++++++++++++++++++++++++++-
+ drivers/misc/thinkpad_acpi.h    |    2 +
+ 3 files changed, 143 insertions(+), 7 deletions(-)
 
+diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
+index cc079af..80c0bf2 100644
+--- a/Documentation/thinkpad-acpi.txt
++++ b/Documentation/thinkpad-acpi.txt
+@@ -458,17 +458,17 @@ X40:
+ 	16 - one medium-pitched beep repeating constantly, stop with 17
+ 	17 - stop 16
+ 
+-Temperature sensors -- /proc/acpi/ibm/thermal
+----------------------------------------------
++Temperature sensors
++-------------------
++
++procfs: /proc/acpi/ibm/thermal
++sysfs device attributes: (hwmon) temp*_input
+ 
+ Most ThinkPads include six or more separate temperature sensors but
+ only expose the CPU temperature through the standard ACPI methods.
+ This feature shows readings from up to eight different sensors on older
+ ThinkPads, and it has experimental support for up to sixteen different
+-sensors on newer ThinkPads.  Readings from sensors that are not available
+-return -128.
+-
+-No commands can be written to this file.
++sensors on newer ThinkPads.
+ 
+ EXPERIMENTAL: The 16-sensors feature is marked EXPERIMENTAL because the
+ implementation directly accesses hardware registers and may not work as
+@@ -525,6 +525,20 @@ The A31 has a very atypical layout for the thermal sensors
+ 8:  Bay Battery: secondary sensor
+ 
+ 
++Procfs notes:
++	Readings from sensors that are not available return -128.
++	No commands can be written to this file.
++
++Sysfs notes:
++	Sensors that are not available return the ENXIO error.  This
++	status may change at runtime, as there are hotplug thermal
++	sensors, like those inside the batteries and docks.
++
++	thinkpad-acpi thermal sensors are reported through the hwmon
++	subsystem, and follow all of the hwmon guidelines at
++	Documentation/hwmon.
++
++
+ EXPERIMENTAL: Embedded controller register dump -- /proc/acpi/ibm/ecdump
+ ------------------------------------------------------------------------
+ 
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index a31d00d..ca6d15c 100644
+index aa69ff0..d5526e8 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -520,12 +520,8 @@ static ssize_t tpacpi_driver_debug_store(struct device_driver *drv,
- 						const char *buf, size_t count)
+@@ -1992,11 +1992,91 @@ static struct ibm_struct beep_driver_data = {
+ 
+ static enum thermal_access_mode thermal_read_mode;
+ 
++/* sysfs temp##_input -------------------------------------------------- */
++
++static ssize_t thermal_temp_input_show(struct device *dev,
++			   struct device_attribute *attr,
++			   char *buf)
++{
++	struct sensor_device_attribute *sensor_attr =
++					to_sensor_dev_attr(attr);
++	int idx = sensor_attr->index;
++	s32 value;
++	int res;
++
++	res = thermal_get_sensor(idx, &value);
++	if (res)
++		return res;
++	if (value == TP_EC_THERMAL_TMP_NA * 1000)
++		return -ENXIO;
++
++	return snprintf(buf, PAGE_SIZE, "%d\n", value);
++}
++
++#define THERMAL_SENSOR_ATTR_TEMP(_idxA, _idxB) \
++	 SENSOR_ATTR(temp##_idxA##_input, S_IRUGO, thermal_temp_input_show, NULL, _idxB)
++
++static struct sensor_device_attribute sensor_dev_attr_thermal_temp_input[] = {
++	THERMAL_SENSOR_ATTR_TEMP(1, 0),
++	THERMAL_SENSOR_ATTR_TEMP(2, 1),
++	THERMAL_SENSOR_ATTR_TEMP(3, 2),
++	THERMAL_SENSOR_ATTR_TEMP(4, 3),
++	THERMAL_SENSOR_ATTR_TEMP(5, 4),
++	THERMAL_SENSOR_ATTR_TEMP(6, 5),
++	THERMAL_SENSOR_ATTR_TEMP(7, 6),
++	THERMAL_SENSOR_ATTR_TEMP(8, 7),
++	THERMAL_SENSOR_ATTR_TEMP(9, 8),
++	THERMAL_SENSOR_ATTR_TEMP(10, 9),
++	THERMAL_SENSOR_ATTR_TEMP(11, 10),
++	THERMAL_SENSOR_ATTR_TEMP(12, 11),
++	THERMAL_SENSOR_ATTR_TEMP(13, 12),
++	THERMAL_SENSOR_ATTR_TEMP(14, 13),
++	THERMAL_SENSOR_ATTR_TEMP(15, 14),
++	THERMAL_SENSOR_ATTR_TEMP(16, 15),
++};
++
++#define THERMAL_ATTRS(X) \
++	&sensor_dev_attr_thermal_temp_input[X].dev_attr.attr
++
++static struct attribute *thermal_temp_input_attr[] = {
++	THERMAL_ATTRS(8),
++	THERMAL_ATTRS(9),
++	THERMAL_ATTRS(10),
++	THERMAL_ATTRS(11),
++	THERMAL_ATTRS(12),
++	THERMAL_ATTRS(13),
++	THERMAL_ATTRS(14),
++	THERMAL_ATTRS(15),
++	THERMAL_ATTRS(0),
++	THERMAL_ATTRS(1),
++	THERMAL_ATTRS(2),
++	THERMAL_ATTRS(3),
++	THERMAL_ATTRS(4),
++	THERMAL_ATTRS(5),
++	THERMAL_ATTRS(6),
++	THERMAL_ATTRS(7),
++	NULL
++};
++
++static const struct attribute_group thermal_temp_input16_group = {
++	.attrs = thermal_temp_input_attr
++};
++
++static const struct attribute_group thermal_temp_input8_group = {
++	.attrs = &thermal_temp_input_attr[8]
++};
++
++#undef THERMAL_SENSOR_ATTR_TEMP
++#undef THERMAL_ATTRS
++
++/* --------------------------------------------------------------------- */
++
+ static int __init thermal_init(struct ibm_init_struct *iibm)
  {
- 	unsigned long t;
--	char *endp;
+ 	u8 t, ta1, ta2;
+ 	int i;
+ 	int acpi_tmp7;
++	int res;
  
--	t = simple_strtoul(buf, &endp, 0);
--	while (*endp && isspace(*endp))
--		endp++;
--	if (*endp)
-+	if (parse_strtoul(buf, 0xffff, &t))
- 		return -EINVAL;
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing thermal subdriver\n");
  
- 	dbg_level = t;
-@@ -575,6 +571,86 @@ static void tpacpi_remove_driver_attributes(struct device_driver *drv)
- 		driver_remove_file(drv, tpacpi_driver_attributes[i]);
- }
+@@ -2060,7 +2140,46 @@ static int __init thermal_init(struct ibm_init_struct *iibm)
+ 		str_supported(thermal_read_mode != TPACPI_THERMAL_NONE),
+ 		thermal_read_mode);
  
-+/*************************************************************************
-+ * sysfs support helpers
-+ */
-+
-+struct attribute_set_obj {
-+	struct attribute_set s;
-+	struct attribute *a;
-+} __attribute__((packed));
-+
-+static struct attribute_set *create_attr_set(unsigned int max_members,
-+						const char* name)
-+{
-+	struct attribute_set_obj *sobj;
-+
-+	if (max_members == 0)
-+		return NULL;
-+
-+	/* Allocates space for implicit NULL at the end too */
-+	sobj = kzalloc(sizeof(struct attribute_set_obj) +
-+		    max_members * sizeof(struct attribute *),
-+		    GFP_KERNEL);
-+	if (!sobj)
-+		return NULL;
-+	sobj->s.max_members = max_members;
-+	sobj->s.group.attrs = &sobj->a;
-+	sobj->s.group.name = name;
-+
-+	return &sobj->s;
-+}
-+
-+/* not multi-threaded safe, use it in a single thread per set */
-+static int add_to_attr_set(struct attribute_set* s, struct attribute *attr)
-+{
-+	if (!s || !attr)
-+		return -EINVAL;
-+
-+	if (s->members >= s->max_members)
-+		return -ENOMEM;
-+
-+	s->group.attrs[s->members] = attr;
-+	s->members++;
-+
-+	return 0;
-+}
-+
-+static int add_many_to_attr_set(struct attribute_set* s,
-+			struct attribute **attr,
-+			unsigned int count)
-+{
-+	int i, res;
-+
-+	for (i = 0; i < count; i++) {
-+		res = add_to_attr_set(s, attr[i]);
+-	return (thermal_read_mode != TPACPI_THERMAL_NONE)? 0 : 1;
++	switch(thermal_read_mode) {
++	case TPACPI_THERMAL_TPEC_16:
++		res = sysfs_create_group(&tpacpi_pdev->dev.kobj,
++				&thermal_temp_input16_group);
 +		if (res)
 +			return res;
++		break;
++	case TPACPI_THERMAL_TPEC_8:
++	case TPACPI_THERMAL_ACPI_TMP07:
++	case TPACPI_THERMAL_ACPI_UPDT:
++		res = sysfs_create_group(&tpacpi_pdev->dev.kobj,
++				&thermal_temp_input8_group);
++		if (res)
++			return res;
++		break;
++	case TPACPI_THERMAL_NONE:
++	default:
++		return 1;
 +	}
 +
 +	return 0;
 +}
 +
-+static void delete_attr_set(struct attribute_set* s, struct kobject *kobj)
++static void thermal_exit(void)
 +{
-+	sysfs_remove_group(kobj, &s->group);
-+	destroy_attr_set(s);
-+}
-+
-+static int parse_strtoul(const char *buf,
-+		unsigned long max, unsigned long *value)
-+{
-+	char *endp;
-+
-+	*value = simple_strtoul(buf, &endp, 0);
-+	while (*endp && isspace(*endp))
-+		endp++;
-+	if (*endp || *value > max)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
- /****************************************************************************
-  ****************************************************************************
-  *
++	switch(thermal_read_mode) {
++	case TPACPI_THERMAL_TPEC_16:
++		sysfs_remove_group(&tpacpi_pdev->dev.kobj,
++				   &thermal_temp_input16_group);
++		break;
++	case TPACPI_THERMAL_TPEC_8:
++	case TPACPI_THERMAL_ACPI_TMP07:
++	case TPACPI_THERMAL_ACPI_UPDT:
++		sysfs_remove_group(&tpacpi_pdev->dev.kobj,
++				   &thermal_temp_input16_group);
++		break;
++	case TPACPI_THERMAL_NONE:
++	default:
++		break;
++	}
+ }
+ 
+ /* idx is zero-based */
+@@ -2168,6 +2287,7 @@ static int thermal_read(char *p)
+ static struct ibm_struct thermal_driver_data = {
+ 	.name = "thermal",
+ 	.read = thermal_read,
++	.exit = thermal_exit,
+ };
+ 
+ /*************************************************************************
 diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index 3786058..84fdefe 100644
+index a9feb53..e833ff3 100644
 --- a/drivers/misc/thinkpad_acpi.h
 +++ b/drivers/misc/thinkpad_acpi.h
-@@ -134,6 +134,27 @@ static int dispatch_procfs_write(struct file *file,
- 		unsigned long count, void *data);
- static char *next_cmd(char **cmds);
+@@ -38,6 +38,7 @@
+ #include <linux/fb.h>
+ #include <linux/platform_device.h>
+ #include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
+ #include <asm/uaccess.h>
  
-+/* sysfs support */
-+struct attribute_set {
-+	unsigned int members, max_members;
-+	struct attribute_group group;
-+};
-+
-+static struct attribute_set *create_attr_set(unsigned int max_members,
-+						const char* name);
-+#define destroy_attr_set(_set) \
-+	kfree(_set);
-+static int add_to_attr_set(struct attribute_set* s, struct attribute *attr);
-+static int add_many_to_attr_set(struct attribute_set* s,
-+			struct attribute **attr,
-+			unsigned int count);
-+#define register_attr_set_with_sysfs(_attr_set, _kobj) \
-+	sysfs_create_group(_kobj, &_attr_set->group)
-+static void delete_attr_set(struct attribute_set* s, struct kobject *kobj);
-+
-+static int parse_strtoul(const char *buf, unsigned long max,
-+			unsigned long *value);
-+
- /* Device model */
- static struct platform_device *tpacpi_pdev;
- static struct class_device *tpacpi_hwmon;
+ #include <linux/dmi.h>
+@@ -467,6 +468,7 @@ enum thermal_access_mode {
+ enum { /* TPACPI_THERMAL_TPEC_* */
+ 	TP_EC_THERMAL_TMP0 = 0x78,	/* ACPI EC regs TMP 0..7 */
+ 	TP_EC_THERMAL_TMP8 = 0xC0,	/* ACPI EC regs TMP 8..15 */
++	TP_EC_THERMAL_TMP_NA = -128,	/* ACPI EC sensor not available */
+ };
+ 
+ #define TPACPI_MAX_THERMAL_SENSORS 16	/* Max thermal sensors supported */
 -- 
 1.5.2.rc0.34.gda94
