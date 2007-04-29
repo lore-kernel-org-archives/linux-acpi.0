@@ -1,165 +1,330 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [cpuidle 3/3] utilize max_cstate limit in acpi cpuidle driver
-Date: Sun, 29 Apr 2007 00:41:30 -0400
-Message-ID: <200704290041.31078.lenb@kernel.org>
-References: <1177555209.11629.12.camel@sli10-conroe.sh.intel.com>
+Subject: Re: [patch 3/3] CPU_IDLE prevents resuming from STR
+Date: Sun, 29 Apr 2007 00:42:33 -0400
+Message-ID: <200704290042.33948.lenb@kernel.org>
+References: <200704260704.l3Q740TW023273@shell0.pdx.osdl.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:57470 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:57484 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754550AbXD2Ems (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 00:42:48 -0400
-In-Reply-To: <1177555209.11629.12.camel@sli10-conroe.sh.intel.com>
+	id S1754572AbXD2Emw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 00:42:52 -0400
+In-Reply-To: <200704260704.l3Q740TW023273@shell0.pdx.osdl.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>
+To: akpm@linux-foundation.org
+Cc: linux-acpi@vger.kernel.org, shaohua.li@intel.com
 
-On Wednesday 25 April 2007 22:40, Shaohua Li wrote:
-> With CPUIDLE framework, the max_cstate (to limit max cpu c-state) parameter is ingored. Some systems require it to ignore C2/C3 and some drivers like ipw require it too.
+refreshed version of this one already applied to acpi-test.
+
+thanks,
+-Len
+
+On Thursday 26 April 2007 03:04, akpm@linux-foundation.org wrote:
+> From: Shaohua Li <shaohua.li@intel.com>
+> 
+> On Mon, 2007-04-16 at 22:50 -0400, Joshua Wise wrote:
+> > On Mon, 16 Apr 2007, Shaohua Li wrote:
+> > > On Sat, 2007-04-14 at 01:45 +0200, Mattia Dongili wrote:
+> > >> ...
+> > > please check if the patch at
+> > > http://marc.info/?l=linux-acpi&m=117523651630038&w=2 fixed the issue
+> >
+> > I have the same system as Mattia, and when I applied this patch and turned
+> > CPU_IDLE back on, I got a panic on boot. Unfortunately, the EIP scrolled off
+> > screen, so I can't get a line number.
+> >
+> > (I had the same STR breakage as him; STR did not work with CPU_IDLE turned
+> > on, and it did work with CPU_IDLE turned off.)
+> >
+> > I'm running +rc6+mm(April 11) on a Sony VAIO SZ.
+> Looks there is init order issue of sysfs files. The new refreshed patch
+> should fix your bug.
 > 
 > Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-> 
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 > ---
->  drivers/acpi/osl.c            |   10 ++++++++++
->  drivers/acpi/processor_core.c |    2 ++
->  drivers/acpi/processor_idle.c |   23 +++++++++++++++++++++--
->  include/acpi/processor.h      |    1 +
->  include/linux/acpi.h          |    7 ++-----
->  5 files changed, 36 insertions(+), 7 deletions(-)
 > 
-> Index: 21-rc6-mm1/drivers/acpi/osl.c
-> ===================================================================
-> --- 21-rc6-mm1.orig/drivers/acpi/osl.c	2007-04-26 10:06:41.000000000 +0800
-> +++ 21-rc6-mm1/drivers/acpi/osl.c	2007-04-26 10:11:15.000000000 +0800
-> @@ -996,6 +996,16 @@ unsigned int max_cstate = ACPI_PROCESSOR
+>  drivers/acpi/processor_idle.c |    2 -
+>  drivers/cpuidle/cpuidle.c     |   29 ++++++++++++----
+>  drivers/cpuidle/sysfs.c       |   57 +++++++++++++++++++++++++-------
+>  include/linux/cpuidle.h       |   13 ++++---
+>  4 files changed, 76 insertions(+), 25 deletions(-)
+> 
+> diff -puN drivers/acpi/processor_idle.c~cpu_idle-prevents-resuming-from-str drivers/acpi/processor_idle.c
+> --- a/drivers/acpi/processor_idle.c~cpu_idle-prevents-resuming-from-str
+> +++ a/drivers/acpi/processor_idle.c
+> @@ -616,7 +616,7 @@ int acpi_processor_cst_has_changed(struc
+>  		return -ENODEV;
 >  
->  EXPORT_SYMBOL(max_cstate);
->  
-> +void (*acpi_do_set_cstate_limit)(void);
-> +EXPORT_SYMBOL(acpi_do_set_cstate_limit);
-
-there must be a better name for this than ...do...
-
-
-> +
-> +void acpi_set_cstate_limit(unsigned int new_limit)
-> +{
-> +	max_cstate = new_limit;
-> +	if (acpi_do_set_cstate_limit)
-> +		acpi_do_set_cstate_limit();
-> +}
-> +
->  /*
->   * Acquire a spinlock.
->   *
-> Index: 21-rc6-mm1/drivers/acpi/processor_core.c
-> ===================================================================
-> --- 21-rc6-mm1.orig/drivers/acpi/processor_core.c	2007-04-26 10:06:41.000000000 +0800
-> +++ 21-rc6-mm1/drivers/acpi/processor_core.c	2007-04-26 10:11:15.000000000 +0800
-> @@ -1030,11 +1030,13 @@ static int __init acpi_processor_init(vo
->  	acpi_processor_ppc_init();
->  
->  	cpuidle_register_driver(&acpi_idle_driver);
-> +	acpi_do_set_cstate_limit = acpi_max_cstate_changed;
->  	return 0;
+>  	acpi_processor_get_power_info(pr);
+> -	return cpuidle_force_redetect(&per_cpu(cpuidle_devices, pr->id));
+> +	return cpuidle_force_redetect(per_cpu(cpuidle_devices, pr->id));
 >  }
 >  
->  static void __exit acpi_processor_exit(void)
+>  /* proc interface */
+> diff -puN drivers/cpuidle/cpuidle.c~cpu_idle-prevents-resuming-from-str drivers/cpuidle/cpuidle.c
+> --- a/drivers/cpuidle/cpuidle.c~cpu_idle-prevents-resuming-from-str
+> +++ a/drivers/cpuidle/cpuidle.c
+> @@ -18,7 +18,7 @@
+>  
+>  #include "cpuidle.h"
+>  
+> -DEFINE_PER_CPU(struct cpuidle_device, cpuidle_devices);
+> +DEFINE_PER_CPU(struct cpuidle_device *, cpuidle_devices);
+>  EXPORT_PER_CPU_SYMBOL_GPL(cpuidle_devices);
+>  
+>  DEFINE_MUTEX(cpuidle_lock);
+> @@ -34,13 +34,13 @@ static void (*pm_idle_old)(void);
+>   */
+>  static void cpuidle_idle_call(void)
 >  {
-> +	acpi_do_set_cstate_limit = NULL;
->  	cpuidle_unregister_driver(&acpi_idle_driver);
+> -	struct cpuidle_device *dev = &__get_cpu_var(cpuidle_devices);
+> +	struct cpuidle_device *dev = __get_cpu_var(cpuidle_devices);
 >  
->  	acpi_processor_ppc_exit();
-> Index: 21-rc6-mm1/drivers/acpi/processor_idle.c
-> ===================================================================
-> --- 21-rc6-mm1.orig/drivers/acpi/processor_idle.c	2007-04-26 10:09:07.000000000 +0800
-> +++ 21-rc6-mm1/drivers/acpi/processor_idle.c	2007-04-26 10:11:15.000000000 +0800
-> @@ -75,7 +75,26 @@ ACPI_MODULE_NAME("processor_idle");
->  #define C2_OVERHEAD			1	/* 1us */
->  #define C3_OVERHEAD			1	/* 1us */
+>  	struct cpuidle_state *target_state;
+>  	int next_state;
 >  
-> -module_param(max_cstate, uint, 0644);
-
-but kernel-parameters.txt says this:
-
-        processor.max_cstate=   [HW,ACPI]
-                        Limit processor to maximum C-state
-                        max_cstate=9 overrides any DMI blacklist limit.
-
-> +void acpi_max_cstate_changed(void)
-> +{
-> +	/* Driver will reset devices' max cstate limit */
-> +	cpuidle_force_redetect_devices(&acpi_idle_driver);
-> +}
-> +
-> +static int change_max_cstate(const char *val, struct kernel_param *kp)
-> +{
-> +	int max;
-> +
-> +	max = simple_strtol(val, NULL, 0);
-> +	if (!max)
-> +		return -EINVAL;
-> +	max_cstate = max;
-> +	if (acpi_do_set_cstate_limit)
-> +		acpi_do_set_cstate_limit();
-> +	return 0;
-> +}
-> +
-> +module_param_call(max_cstate, change_max_cstate, param_get_uint, &max_cstate, 0644);
+>  	/* check if the device is ready */
+> -	if (dev->status != CPUIDLE_STATUS_DOIDLE) {
+> +	if (!dev || dev->status != CPUIDLE_STATUS_DOIDLE) {
+>  		if (pm_idle_old)
+>  			pm_idle_old();
+>  		else
+> @@ -119,19 +119,32 @@ static int cpuidle_add_device(struct sys
+>  	int cpu = sys_dev->id;
+>  	struct cpuidle_device *dev;
 >  
->  static unsigned int nocst __read_mostly;
->  module_param(nocst, uint, 0000);
-> @@ -1055,7 +1074,7 @@ static int acpi_idle_init(struct cpuidle
->  		return -EINVAL;
+> -	dev = &per_cpu(cpuidle_devices, cpu);
+> +	dev = per_cpu(cpuidle_devices, cpu);
+>  
+> -	dev->cpu = cpu;
+>  	mutex_lock(&cpuidle_lock);
+>  	if (cpu_is_offline(cpu)) {
+>  		mutex_unlock(&cpuidle_lock);
+>  		return 0;
 >  	}
 >  
-> -	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
-> +	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER && i <= max_cstate; i++) {
->  		cx = &pr->power.states[i];
->  		state = &dev->states[count];
+> +	if (!dev) {
+> +		dev = kzalloc(sizeof(struct cpuidle_device), GFP_KERNEL);
+> +		if (!dev) {
+> +			mutex_unlock(&cpuidle_lock);
+> +			return -ENOMEM;
+> +		}
+> +		init_completion(&dev->kobj_unregister);
+> +		per_cpu(cpuidle_devices, cpu) = dev;
+> +	}
+> +	dev->cpu = cpu;
+> +
+>  	if (dev->status & CPUIDLE_STATUS_DETECTED) {
+>  		mutex_unlock(&cpuidle_lock);
+>  		return 0;
+>  	}
+> +
+> +	cpuidle_add_sysfs(sys_dev);
+> +
+>  	if (cpuidle_curr_driver) {
+>  		if (cpuidle_attach_driver(dev))
+>  			goto err_ret;
+> @@ -148,7 +161,6 @@ static int cpuidle_add_device(struct sys
+>  		cpuidle_install_idle_handler();
 >  
-> Index: 21-rc6-mm1/include/linux/acpi.h
-> ===================================================================
-> --- 21-rc6-mm1.orig/include/linux/acpi.h	2007-04-26 10:06:41.000000000 +0800
-> +++ 21-rc6-mm1/include/linux/acpi.h	2007-04-26 10:11:15.000000000 +0800
-> @@ -205,11 +205,8 @@ static inline unsigned int acpi_get_csta
+>  	list_add(&dev->device_list, &cpuidle_detected_devices);
+> -	cpuidle_add_sysfs(sys_dev);
+>  	dev->status |= CPUIDLE_STATUS_DETECTED;
+>  
+>  err_ret:
+> @@ -167,7 +179,7 @@ static int __cpuidle_remove_device(struc
 >  {
->  	return max_cstate;
->  }
-> -static inline void acpi_set_cstate_limit(unsigned int new_limit)
-> -{
-> -	max_cstate = new_limit;
-> -	return;
-> -}
-
-WARNING: "acpi_set_cstate_limit" [drivers/net/wireless/ipw2100.ko] undefined!
-make[1]: *** [__modpost] Error 1
-
-
-> +extern void (*acpi_do_set_cstate_limit)(void);
-> +extern void acpi_set_cstate_limit(unsigned int new_limit);
->  #else
->  static inline unsigned int acpi_get_cstate_limit(void) { return 0; }
->  static inline void acpi_set_cstate_limit(unsigned int new_limit) { return; }
-> Index: 21-rc6-mm1/include/acpi/processor.h
-> ===================================================================
-> --- 21-rc6-mm1.orig/include/acpi/processor.h	2007-04-26 10:06:41.000000000 +0800
-> +++ 21-rc6-mm1/include/acpi/processor.h	2007-04-26 10:11:15.000000000 +0800
-> @@ -277,6 +277,7 @@ int acpi_processor_cst_has_changed(struc
->  int acpi_processor_power_exit(struct acpi_processor *pr,
->  			      struct acpi_device *device);
->  extern struct cpuidle_driver acpi_idle_driver;
-> +void acpi_max_cstate_changed(void);
+>  	struct cpuidle_device *dev;
 >  
->  /* in processor_thermal.c */
->  int acpi_processor_get_limit_info(struct acpi_processor *pr);
+> -	dev = &per_cpu(cpuidle_devices, sys_dev->id);
+> +	dev = per_cpu(cpuidle_devices, sys_dev->id);
+>  
+>  	if (!(dev->status & CPUIDLE_STATUS_DETECTED)) {
+>  		return 0;
+> @@ -180,6 +192,9 @@ static int __cpuidle_remove_device(struc
+>  		cpuidle_detach_driver(dev);
+>  	cpuidle_remove_sysfs(sys_dev);
+>  	list_del(&dev->device_list);
+> +	wait_for_completion(&dev->kobj_unregister);
+> +	per_cpu(cpuidle_devices, sys_dev->id) = NULL;
+> +	kfree(dev);
+>  
+>  	return 0;
+>  }
+> diff -puN drivers/cpuidle/sysfs.c~cpu_idle-prevents-resuming-from-str drivers/cpuidle/sysfs.c
+> --- a/drivers/cpuidle/sysfs.c~cpu_idle-prevents-resuming-from-str
+> +++ a/drivers/cpuidle/sysfs.c
+> @@ -210,8 +210,16 @@ static struct sysfs_ops cpuidle_sysfs_op
+>  	.store = cpuidle_store,
+>  };
+>  
+> +static void cpuidle_sysfs_release(struct kobject *kobj)
+> +{
+> +	struct cpuidle_device *dev = kobj_to_cpuidledev(kobj);
+> +
+> +	complete(&dev->kobj_unregister);
+> +}
+> +
+>  static struct kobj_type ktype_cpuidle = {
+>  	.sysfs_ops = &cpuidle_sysfs_ops,
+> +	.release = cpuidle_sysfs_release,
+>  };
+>  
+>  struct cpuidle_state_attr {
+> @@ -246,7 +254,8 @@ static struct attribute *cpuidle_state_d
+>  	NULL
+>  };
+>  
+> -#define kobj_to_state(k) container_of(k, struct cpuidle_state, kobj)
+> +#define kobj_to_state_obj(k) container_of(k, struct cpuidle_state_kobj, kobj)
+> +#define kobj_to_state(k) (kobj_to_state_obj(k)->state)
+>  #define attr_to_stateattr(a) container_of(a, struct cpuidle_state_attr, attr)
+>  static ssize_t cpuidle_state_show(struct kobject * kobj,
+>  	struct attribute * attr ,char * buf)
+> @@ -265,11 +274,27 @@ static struct sysfs_ops cpuidle_state_sy
+>  	.show = cpuidle_state_show,
+>  };
+>  
+> +static void cpuidle_state_sysfs_release(struct kobject *kobj)
+> +{
+> +	struct cpuidle_state_kobj *state_obj = kobj_to_state_obj(kobj);
+> +
+> +	complete(&state_obj->kobj_unregister);
+> +}
+> +
+>  static struct kobj_type ktype_state_cpuidle = {
+>  	.sysfs_ops = &cpuidle_state_sysfs_ops,
+>  	.default_attrs = cpuidle_state_default_attrs,
+> +	.release = cpuidle_state_sysfs_release,
+>  };
+>  
+> +static void inline cpuidle_free_state_kobj(struct cpuidle_device *device, int i)
+> +{
+> +	kobject_unregister(&device->kobjs[i]->kobj);
+> +	wait_for_completion(&device->kobjs[i]->kobj_unregister);
+> +	kfree(device->kobjs[i]);
+> +	device->kobjs[i] = NULL;
+> +}
+> +
+>  /**
+>   * cpuidle_add_driver_sysfs - adds driver-specific sysfs attributes
+>   * @device: the target device
+> @@ -277,24 +302,32 @@ static struct kobj_type ktype_state_cpui
+>  int cpuidle_add_driver_sysfs(struct cpuidle_device *device)
+>  {
+>  	int i, ret;
+> -	struct cpuidle_state *state;
+> +	struct cpuidle_state_kobj *kobj;
+>  
+>  	/* state statistics */
+>  	for (i = 0; i < device->state_count; i++) {
+> -		state = &device->states[i];
+> -		state->kobj.parent = &device->kobj;
+> -		state->kobj.ktype = &ktype_state_cpuidle;
+> -		kobject_set_name(&state->kobj, "state%d", i);
+> -		ret = kobject_register(&state->kobj);
+> -		if (ret)
+> +		kobj = kzalloc(sizeof(struct cpuidle_state_kobj), GFP_KERNEL);
+> +		if (!kobj)
+> +			goto error_state;
+> +		kobj->state = &device->states[i];
+> +		init_completion(&kobj->kobj_unregister);
+> +
+> +		kobj->kobj.parent = &device->kobj;
+> +		kobj->kobj.ktype = &ktype_state_cpuidle;
+> +		kobject_set_name(&kobj->kobj, "state%d", i);
+> +		ret = kobject_register(&kobj->kobj);
+> +		if (ret) {
+> +			kfree(kobj);
+>  			goto error_state;
+> +		}
+> +		device->kobjs[i] = kobj;
+>  	}
+>  
+>  	return 0;
+>  
+>  error_state:
+>  	for (i = i - 1; i >= 0; i--)
+> -		kobject_unregister(&device->states[i].kobj);
+> +		cpuidle_free_state_kobj(device, i);
+>  	return ret;
+>  }
+>  
+> @@ -307,7 +340,7 @@ void cpuidle_remove_driver_sysfs(struct 
+>  	int i;
+>  
+>  	for (i = 0; i < device->state_count; i++)
+> -		kobject_unregister(&device->states[i].kobj);
+> +		cpuidle_free_state_kobj(device, i);
+>  }
+>  
+>  /**
+> @@ -319,7 +352,7 @@ int cpuidle_add_sysfs(struct sys_device 
+>  	int cpu = sysdev->id;
+>  	struct cpuidle_device *dev;
+>  
+> -	dev = &per_cpu(cpuidle_devices, cpu);
+> +	dev = per_cpu(cpuidle_devices, cpu);
+>  	dev->kobj.parent = &sysdev->kobj;
+>  	dev->kobj.ktype = &ktype_cpuidle;
+>  	kobject_set_name(&dev->kobj, "%s", "cpuidle");
+> @@ -335,6 +368,6 @@ void cpuidle_remove_sysfs(struct sys_dev
+>  	int cpu = sysdev->id;
+>  	struct cpuidle_device *dev;
+>  
+> -	dev = &per_cpu(cpuidle_devices, cpu);
+> +	dev = per_cpu(cpuidle_devices, cpu);
+>  	kobject_unregister(&dev->kobj);
+>  }
+> diff -puN include/linux/cpuidle.h~cpu_idle-prevents-resuming-from-str include/linux/cpuidle.h
+> --- a/include/linux/cpuidle.h~cpu_idle-prevents-resuming-from-str
+> +++ a/include/linux/cpuidle.h
+> @@ -41,8 +41,6 @@ struct cpuidle_state {
+>  
+>  	int (*enter)	(struct cpuidle_device *dev,
+>  			 struct cpuidle_state *state);
 > -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -	struct kobject	kobj;
+>  };
+>  
+>  /* Idle State Flags */
+> @@ -74,6 +72,12 @@ cpuidle_set_statedata(struct cpuidle_sta
+>  	state->driver_data = data;
+>  }
+>  
+> +struct cpuidle_state_kobj {
+> +	struct cpuidle_state *state;
+> +	struct completion kobj_unregister;
+> +	struct kobject kobj;
+> +};
+> +
+>  struct cpuidle_device {
+>  	unsigned int		status;
+>  	int			cpu;
+> @@ -81,6 +85,7 @@ struct cpuidle_device {
+>  	int			last_residency;
+>  	int			state_count;
+>  	struct cpuidle_state	states[CPUIDLE_STATE_MAX];
+> +	struct cpuidle_state_kobj *kobjs[CPUIDLE_STATE_MAX];
+>  	struct cpuidle_state	*last_state;
+>  
+>  	struct list_head 	device_list;
+> @@ -89,9 +94,7 @@ struct cpuidle_device {
+>  	void			*governor_data;
+>  };
+>  
+> -#define to_cpuidle_device(n) container_of(n, struct cpuidle_device, kobj);
+> -
+> -DECLARE_PER_CPU(struct cpuidle_device, cpuidle_devices);
+> +DECLARE_PER_CPU(struct cpuidle_device *, cpuidle_devices);
+>  
+>  /* Device Status Flags */
+>  #define CPUIDLE_STATUS_DETECTED		 (0x1)
+> _
 > 
