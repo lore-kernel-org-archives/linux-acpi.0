@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 083/105] ACPI: prevent ACPI quirk warning mass spamming in logs
-Date: Sun, 29 Apr 2007 00:51:23 -0400
-Message-ID: <11778223812071-git-send-email-len.brown@intel.com>
+Subject: [PATCH 085/105] ACPICA: clear fields reserved before FADT r3
+Date: Sun, 29 Apr 2007 00:51:25 -0400
+Message-ID: <117782238310-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -85,61 +85,68 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223782086-git-send-email-len.brown@intel.com>
  <11778223792074-git-send-email-len.brown@intel.com>
  <11778223802796-git-send-email-len.brown@intel.com>
+ <11778223812071-git-send-email-len.brown@intel.com>
+ <11778223823637-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:37949 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:18569 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756168AbXD2ExE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 00:53:04 -0400
-In-Reply-To: <11778223802796-git-send-email-len.brown@intel.com>
-Message-Id: <b2983f10f87423fab92326bbe1e92e2256573d4f.1177822058.git.len.brown@intel.com>
+	id S1756193AbXD2ExG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 00:53:06 -0400
+In-Reply-To: <11778223823637-git-send-email-len.brown@intel.com>
+Message-Id: <79fff270026dc46634563a29b99e4034028ee919.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Thierry Vignaud <tvignaud@mandriva.com>, Andi Kleen <ak@suse.de>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <len.brown@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Thierry Vignaud <tvignaud@mandriva.com>
+From: Bob Moore <robert.moore@intel.com>
 
-The following patch prevent this warning to be displayed again & again (eg:
-nine times on my NForce2 motherboard) and thus improve signal to noise
-ratio in logs.
+Linux-2.6.21 stopped booting on a P4/HT because Linux
+wrote the FADT.CST_CNT value to the SMI_CMD.
+Apparently this stumbled over some SMM instability,
+such as confusing SMM when invoking it from cpu1.
 
-The ATI quirk below probably needs a similar "fix" but I don't have
-the hardware to test.
+Linux did this because even though the r2 FADT reserves
+the CST_CNT field, this BIOS set that field and Linux
+used it.
 
-Btw arch/x86_64/kernel/early-quirks.c::nvidia_bugs() would probably need to
-be synced (but I don't have an x86_64 NVidia motherboard to boot test it).
-Still it shows the usefullity of the recent x86 merge thread.
+Turns out that up through 2.6.20 we explicitly cleared
+cst_control for r2 FADTs.  So here we go back to doing that,
+plus also clear some additional fields that are reserved
+until FADT r3.
 
-[akpm@linux-foundation.org: cleanup]
-Signed-off-by: Thierry Vignaud <tvignaud@mandriva.com>
-Signed-off-by: Andi Kleen <ak@suse.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+http://bugzilla.kernel.org/show_bug.cgi?id=8346
+
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- arch/i386/kernel/acpi/earlyquirk.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+ drivers/acpi/tables/tbfadt.c |   12 ++++++++++++
+ 1 files changed, 12 insertions(+), 0 deletions(-)
 
-diff --git a/arch/i386/kernel/acpi/earlyquirk.c b/arch/i386/kernel/acpi/earlyquirk.c
-index a7d22d9..fa3255a 100644
---- a/arch/i386/kernel/acpi/earlyquirk.c
-+++ b/arch/i386/kernel/acpi/earlyquirk.c
-@@ -22,11 +22,14 @@ static int __init nvidia_hpet_check(struct acpi_table_header *header)
+diff --git a/drivers/acpi/tables/tbfadt.c b/drivers/acpi/tables/tbfadt.c
+index 807c711..1db833e 100644
+--- a/drivers/acpi/tables/tbfadt.c
++++ b/drivers/acpi/tables/tbfadt.c
+@@ -347,6 +347,18 @@ static void acpi_tb_convert_fadt(void)
+ 		acpi_gbl_xpm1b_enable.space_id = acpi_gbl_FADT.xpm1a_event_block.space_id;
  
- static int __init check_bridge(int vendor, int device)
- {
-+	static int warned;
- #ifdef CONFIG_ACPI
- 	/* According to Nvidia all timer overrides are bogus unless HPET
- 	   is enabled. */
- 	if (!acpi_use_timer_override && vendor == PCI_VENDOR_ID_NVIDIA) {
--		if (acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check)) {
-+		if (!warned && acpi_table_parse(ACPI_SIG_HPET,
-+						nvidia_hpet_check)) {
-+			warned = 1;
- 			acpi_skip_timer_override = 1;
- 			  printk(KERN_INFO "Nvidia board "
-                        "detected. Ignoring ACPI "
+ 	}
++
++	/*
++	 * For ACPI 1.0 FADTs, ensure that reserved fields (which should be zero)
++	 * are indeed zero. This will workaround BIOSs that inadvertently placed
++	 * values in these fields.
++	 */
++	if (acpi_gbl_FADT.header.revision < 3) {
++		acpi_gbl_FADT.preferred_profile = 0;
++		acpi_gbl_FADT.pstate_control = 0;
++		acpi_gbl_FADT.cst_control = 0;
++		acpi_gbl_FADT.boot_flags = 0;
++	}
+ }
+ 
+ /******************************************************************************
 -- 
 1.5.2.rc0.34.gda94
