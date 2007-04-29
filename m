@@ -1,46 +1,41 @@
-From: Jeff Garzik <jeff@garzik.org>
-Subject: Re: [PATCH 06/13] libata-acpi: clean up parameters and misc stuff
-Date: Sat, 28 Apr 2007 23:12:57 -0400
-Message-ID: <46340D39.9030001@garzik.org>
-References: <11772636663949-git-send-email-htejun@gmail.com> <463398B4.1010004@garzik.org> <463408CF.1060200@gmail.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [-mm patch] make drivers/misc/thinkpad_acpi:fan_mutex static
+Date: Sun, 29 Apr 2007 01:09:53 -0300
+Message-ID: <20070429040953.GA29832@khazad-dum.debian.net>
+References: <20070425225716.8e9b28ca.akpm@linux-foundation.org> <20070428191938.GO3468@stusta.de> <20070428195821.GC2392@khazad-dum.debian.net> <20070429025008.GK3468@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from srv5.dvmed.net ([207.36.208.214]:55884 "EHLO mail.dvmed.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754291AbXD2DNG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 28 Apr 2007 23:13:06 -0400
-In-Reply-To: <463408CF.1060200@gmail.com>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:45630 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754552AbXD2EKB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 00:10:01 -0400
+Content-Disposition: inline
+In-Reply-To: <20070429025008.GK3468@stusta.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tejun Heo <htejun@gmail.com>
-Cc: mjg59@srcf.ucam.org, rdunlap@xenotime.net, trenn@suse.de, alan@lxorguk.ukuu.org.uk, forrest.zhao@gmail.com, kristen.c.accardi@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>, lenb@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Tejun Heo wrote:
-> Jeff Garzik wrote:
->> Tejun Heo wrote:
->>> This patch cleans up libata-acpi such that it looks similar to other
->>> libata files.  This patch doesn't introuce any behavior changes.
->>>
->>> * make libata-acpi functions take ata_device instead of ata_port +
->>>   device index
->>> * s/atadev/adev/
->>> * de-indent local variable declarations
->> I prefer 'dev' over 'adev', unless that makes the code in question more
->> ambiguous.
+On Sun, 29 Apr 2007, Adrian Bunk wrote:
+> Forward declarations of static functions (if required) and actual 
+> variables (like fan_mutex) belong into the C file, not the header.
+
+Very well.  I will fix the mess for 2.6.23, or, time permitting, 2.6.22.
+
+> > Maybe I should just break the driver into multiple files in a subdirectory?
+> > That would certainly make it *much* cleaner...
 > 
-> Alan is preferring adev over dev and I thought that might be better in
-> the spirit of 'ap'.  I don't really care about the naming tho.  Will
-> convert to dev.  It won't increase ambiguity.
+> But even more in this case, you will not want to have actual variables 
+> or prototypes of static functions in the header file.
 
-Cool.  You will see 'dev' used universally in the code I wrote.  It also 
-matches well with "ata_dev_" prefixes, which are a bit better than 
-"ata_adev_" prefix if one were to apply the alternate policy.
+I would not have to, in that case.  The driver would be much easier to
+write, and I will need to break it in two for an alsa module anyway, might
+as well break it in one subdriver per file.
 
-Yes, I sometimes spend way too much time pay attention to trivialities :)
-
-	Jeff
-
-
-
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
