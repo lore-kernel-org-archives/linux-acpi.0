@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 095/105] thinkpad-acpi: make drivers/misc/thinkpad_acpi:fan_mutex static
-Date: Sun, 29 Apr 2007 00:51:35 -0400
-Message-ID: <11778223921730-git-send-email-len.brown@intel.com>
+Subject: [PATCH 094/105] ACPI: thinkpad-acpi: add sysfs support to wan and bluetooth subdrivers
+Date: Sun, 29 Apr 2007 00:51:34 -0400
+Message-ID: <11778223912498-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -96,44 +96,364 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <1177822388542-git-send-email-len.brown@intel.com>
  <1177822389199-git-send-email-len.brown@intel.com>
  <11778223902327-git-send-email-len.brown@intel.com>
- <11778223912498-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:37949 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:18569 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756215AbXD2ExR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1756218AbXD2ExR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Sun, 29 Apr 2007 00:53:17 -0400
-In-Reply-To: <11778223912498-git-send-email-len.brown@intel.com>
-Message-Id: <836a53f42f3b5d5cb3a0751587ea33801e4b120d.1177822058.git.len.brown@intel.com>
+In-Reply-To: <11778223902327-git-send-email-len.brown@intel.com>
+Message-Id: <d3a6ade4f84416d774c3e5db5faae1840d55bd97.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Adrian Bunk <bunk@stusta.de>, Len Brown <len.brown@intel.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com>
 
-From: Adrian Bunk <bunk@stusta.de>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-This patch makes the needlessly global fan_mutex static.
+Add support to sysfs to the wan and bluetooth subdrivers.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/thinkpad_acpi.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ Documentation/thinkpad-acpi.txt |   61 ++++++++++++++---
+ drivers/misc/thinkpad_acpi.c    |  144 +++++++++++++++++++++++++++++++++++---
+ drivers/misc/thinkpad_acpi.h    |    4 +
+ 3 files changed, 186 insertions(+), 23 deletions(-)
 
+diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
+index ebeed58..2d48033 100644
+--- a/Documentation/thinkpad-acpi.txt
++++ b/Documentation/thinkpad-acpi.txt
+@@ -225,15 +225,35 @@ sysfs notes:
+ 		keys mask, and allows one to modify it.
+ 
+ 
+-Bluetooth -- /proc/acpi/ibm/bluetooth
+--------------------------------------
++Bluetooth
++---------
+ 
+-This feature shows the presence and current state of a Bluetooth
+-device. If Bluetooth is installed, the following commands can be used:
++procfs: /proc/acpi/ibm/bluetooth
++sysfs device attribute: bluetooth/enable
++
++This feature shows the presence and current state of a ThinkPad
++Bluetooth device in the internal ThinkPad CDC slot.
++
++Procfs notes:
++
++If Bluetooth is installed, the following commands can be used:
+ 
+ 	echo enable > /proc/acpi/ibm/bluetooth
+ 	echo disable > /proc/acpi/ibm/bluetooth
+ 
++Sysfs notes:
++
++	If the Bluetooth CDC card is installed, it can be enabled /
++	disabled through the "bluetooth/enable" thinkpad-acpi device
++	attribute, and its current status can also be queried.
++
++	enable:
++		0: disables Bluetooth / Bluetooth is disabled
++		1: enables Bluetooth / Bluetooth is enabled.
++
++	Note: this interface will be probably be superseeded by the
++	generic rfkill class.
++
+ Video output control -- /proc/acpi/ibm/video
+ --------------------------------------------
+ 
+@@ -874,23 +894,42 @@ with EINVAL, try to set pwm1_enable to 1 and pwm1 to at least 128 (255
+ would be the safest choice, though).
+ 
+ 
+-EXPERIMENTAL: WAN -- /proc/acpi/ibm/wan
+----------------------------------------
++EXPERIMENTAL: WAN
++-----------------
++
++procfs: /proc/acpi/ibm/wan
++sysfs device attribute: wwan/enable
+ 
+ This feature is marked EXPERIMENTAL because the implementation
+ directly accesses hardware registers and may not work as expected. USE
+ WITH CAUTION! To use this feature, you need to supply the
+ experimental=1 parameter when loading the module.
+ 
+-This feature shows the presence and current state of a WAN (Sierra
+-Wireless EV-DO) device. If WAN is installed, the following commands can
+-be used:
++This feature shows the presence and current state of a W-WAN (Sierra
++Wireless EV-DO) device.
++
++It was tested on a Lenovo Thinkpad X60. It should probably work on other
++Thinkpad models which come with this module installed.
++
++Procfs notes:
++
++If the W-WAN card is installed, the following commands can be used:
+ 
+ 	echo enable > /proc/acpi/ibm/wan
+ 	echo disable > /proc/acpi/ibm/wan
+ 
+-It was tested on a Lenovo Thinkpad X60. It should probably work on other
+-Thinkpad models which come with this module installed.
++Sysfs notes:
++
++	If the W-WAN card is installed, it can be enabled /
++	disabled through the "wwan/enable" thinkpad-acpi device
++	attribute, and its current status can also be queried.
++
++	enable:
++		0: disables WWAN card / WWAN card is disabled
++		1: enables WWAN card / WWAN card is enabled.
++
++	Note: this interface will be probably be superseeded by the
++	generic rfkill class.
+ 
+ Multiple Commands, Module Parameters
+ ------------------------------------
+diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+index 83a8d98..6c36a55 100644
+--- a/drivers/misc/thinkpad_acpi.c
++++ b/drivers/misc/thinkpad_acpi.c
+@@ -1020,8 +1020,54 @@ static struct ibm_struct hotkey_driver_data = {
+  * Bluetooth subdriver
+  */
+ 
++/* sysfs bluetooth enable ---------------------------------------------- */
++static ssize_t bluetooth_enable_show(struct device *dev,
++			   struct device_attribute *attr,
++			   char *buf)
++{
++	int status;
++
++	status = bluetooth_get_radiosw();
++	if (status < 0)
++		return status;
++
++	return snprintf(buf, PAGE_SIZE, "%d\n", status ? 1 : 0);
++}
++
++static ssize_t bluetooth_enable_store(struct device *dev,
++			    struct device_attribute *attr,
++			    const char *buf, size_t count)
++{
++	unsigned long t;
++	int res;
++
++	if (parse_strtoul(buf, 1, &t))
++		return -EINVAL;
++
++	res = bluetooth_set_radiosw(t);
++
++	return (res) ? res : count;
++}
++
++static struct device_attribute dev_attr_bluetooth_enable =
++	__ATTR(enable, S_IWUSR | S_IRUGO,
++		bluetooth_enable_show, bluetooth_enable_store);
++
++/* --------------------------------------------------------------------- */
++
++static struct attribute *bluetooth_attributes[] = {
++	&dev_attr_bluetooth_enable.attr,
++	NULL
++};
++
++static const struct attribute_group bluetooth_attr_group = {
++	.name = TPACPI_BLUETH_SYSFS_GROUP,
++	.attrs = bluetooth_attributes,
++};
++
+ static int __init bluetooth_init(struct ibm_init_struct *iibm)
+ {
++	int res;
+ 	int status = 0;
+ 
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing bluetooth subdriver\n");
+@@ -1037,17 +1083,29 @@ static int __init bluetooth_init(struct ibm_init_struct *iibm)
+ 		str_supported(tp_features.bluetooth),
+ 		status);
+ 
+-	if (tp_features.bluetooth &&
+-	    !(status & TP_ACPI_BLUETOOTH_HWPRESENT)) {
+-		/* no bluetooth hardware present in system */
+-		tp_features.bluetooth = 0;
+-		dbg_printk(TPACPI_DBG_INIT,
+-			   "bluetooth hardware not installed\n");
++	if (tp_features.bluetooth) {
++		if (!(status & TP_ACPI_BLUETOOTH_HWPRESENT)) {
++			/* no bluetooth hardware present in system */
++			tp_features.bluetooth = 0;
++			dbg_printk(TPACPI_DBG_INIT,
++				   "bluetooth hardware not installed\n");
++		} else {
++			res = sysfs_create_group(&tpacpi_pdev->dev.kobj,
++					&bluetooth_attr_group);
++			if (res)
++				return res;
++		}
+ 	}
+ 
+ 	return (tp_features.bluetooth)? 0 : 1;
+ }
+ 
++static void bluetooth_exit(void)
++{
++	sysfs_remove_group(&tpacpi_pdev->dev.kobj,
++			&bluetooth_attr_group);
++}
++
+ static int bluetooth_get_radiosw(void)
+ {
+ 	int status;
+@@ -1080,6 +1138,7 @@ static int bluetooth_set_radiosw(int radio_on)
+ 	return 0;
+ }
+ 
++/* procfs -------------------------------------------------------------- */
+ static int bluetooth_read(char *p)
+ {
+ 	int len = 0;
+@@ -1119,14 +1178,61 @@ static struct ibm_struct bluetooth_driver_data = {
+ 	.name = "bluetooth",
+ 	.read = bluetooth_read,
+ 	.write = bluetooth_write,
++	.exit = bluetooth_exit,
+ };
+ 
+ /*************************************************************************
+  * Wan subdriver
+  */
+ 
++/* sysfs wan enable ---------------------------------------------------- */
++static ssize_t wan_enable_show(struct device *dev,
++			   struct device_attribute *attr,
++			   char *buf)
++{
++	int status;
++
++	status = wan_get_radiosw();
++	if (status < 0)
++		return status;
++
++	return snprintf(buf, PAGE_SIZE, "%d\n", status ? 1 : 0);
++}
++
++static ssize_t wan_enable_store(struct device *dev,
++			    struct device_attribute *attr,
++			    const char *buf, size_t count)
++{
++	unsigned long t;
++	int res;
++
++	if (parse_strtoul(buf, 1, &t))
++		return -EINVAL;
++
++	res = wan_set_radiosw(t);
++
++	return (res) ? res : count;
++}
++
++static struct device_attribute dev_attr_wan_enable =
++	__ATTR(enable, S_IWUSR | S_IRUGO,
++		wan_enable_show, wan_enable_store);
++
++/* --------------------------------------------------------------------- */
++
++static struct attribute *wan_attributes[] = {
++	&dev_attr_wan_enable.attr,
++	NULL
++};
++
++static const struct attribute_group wan_attr_group = {
++	.name = TPACPI_WAN_SYSFS_GROUP,
++	.attrs = wan_attributes,
++};
++
+ static int __init wan_init(struct ibm_init_struct *iibm)
+ {
++	int res;
+ 	int status = 0;
+ 
+ 	vdbg_printk(TPACPI_DBG_INIT, "initializing wan subdriver\n");
+@@ -1140,17 +1246,29 @@ static int __init wan_init(struct ibm_init_struct *iibm)
+ 		str_supported(tp_features.wan),
+ 		status);
+ 
+-	if (tp_features.wan &&
+-	    !(status & TP_ACPI_WANCARD_HWPRESENT)) {
+-		/* no wan hardware present in system */
+-		tp_features.wan = 0;
+-		dbg_printk(TPACPI_DBG_INIT,
+-			   "wan hardware not installed\n");
++	if (tp_features.wan) {
++		if (!(status & TP_ACPI_WANCARD_HWPRESENT)) {
++			/* no wan hardware present in system */
++			tp_features.wan = 0;
++			dbg_printk(TPACPI_DBG_INIT,
++				   "wan hardware not installed\n");
++		} else {
++			res = sysfs_create_group(&tpacpi_pdev->dev.kobj,
++					&wan_attr_group);
++			if (res)
++				return res;
++		}
+ 	}
+ 
+ 	return (tp_features.wan)? 0 : 1;
+ }
+ 
++static void wan_exit(void)
++{
++	sysfs_remove_group(&tpacpi_pdev->dev.kobj,
++		&wan_attr_group);
++}
++
+ static int wan_get_radiosw(void)
+ {
+ 	int status;
+@@ -1183,6 +1301,7 @@ static int wan_set_radiosw(int radio_on)
+ 	return 0;
+ }
+ 
++/* procfs -------------------------------------------------------------- */
+ static int wan_read(char *p)
+ {
+ 	int len = 0;
+@@ -1222,6 +1341,7 @@ static struct ibm_struct wan_driver_data = {
+ 	.name = "wan",
+ 	.read = wan_read,
+ 	.write = wan_write,
++	.exit = wan_exit,
+ 	.flags.experimental = 1,
+ };
+ 
 diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index a6c2855..440145a 100644
+index 7615adb..a6c2855 100644
 --- a/drivers/misc/thinkpad_acpi.h
 +++ b/drivers/misc/thinkpad_acpi.h
-@@ -386,7 +386,7 @@ static u8 fan_control_initial_status;
- static u8 fan_control_desired_level;
- static int fan_watchdog_maxinterval;
+@@ -278,6 +278,8 @@ static int beep_write(char *buf);
+  * Bluetooth subdriver
+  */
  
--struct mutex fan_mutex;
-+static struct mutex fan_mutex;
++#define TPACPI_BLUETH_SYSFS_GROUP "bluetooth"
++
+ enum {
+ 	/* ACPI GBDC/SBDC bits */
+ 	TP_ACPI_BLUETOOTH_HWPRESENT	= 0x01,	/* Bluetooth hw available */
+@@ -551,6 +553,8 @@ static int volume_write(char *buf);
+  * Wan subdriver
+  */
  
- static acpi_handle fans_handle, gfan_handle, sfan_handle;
- 
++#define TPACPI_WAN_SYSFS_GROUP "wwan"
++
+ enum {
+ 	/* ACPI GWAN/SWAN bits */
+ 	TP_ACPI_WANCARD_HWPRESENT	= 0x01,	/* Wan hw available */
 -- 
 1.5.2.rc0.34.gda94
