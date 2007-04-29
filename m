@@ -1,7 +1,7 @@
 From: Len Brown <len.brown@intel.com>
-Subject: [PATCH 071/105] ACPI: thinkpad-acpi: protect fan and hotkey data structures
-Date: Sun, 29 Apr 2007 00:51:11 -0400
-Message-ID: <1177822370442-git-send-email-len.brown@intel.com>
+Subject: [PATCH 069/105] ACPI: thinkpad-acpi: driver sysfs conversion
+Date: Sun, 29 Apr 2007 00:51:09 -0400
+Message-ID: <1177822368793-git-send-email-len.brown@intel.com>
 References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223068-git-send-email-len.brown@intel.com>
  <11778223072296-git-send-email-len.brown@intel.com>
@@ -71,15 +71,13 @@ References: <11778223052751-git-send-email-len.brown@intel.com>
  <11778223663850-git-send-email-len.brown@intel.com>
  <11778223673988-git-send-email-len.brown@intel.com>
  <1177822368767-git-send-email-len.brown@intel.com>
- <1177822368793-git-send-email-len.brown@intel.com>
- <11778223692377-git-send-email-len.brown@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:23431 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:11191 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756156AbXD2Ewx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Apr 2007 00:52:53 -0400
-In-Reply-To: <11778223692377-git-send-email-len.brown@intel.com>
-Message-Id: <40ca9fdf8aa7d929e2b8939be1e6380d107381e1.1177822058.git.len.brown@intel.com>
+	id S1756143AbXD2Ewu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2007 00:52:50 -0400
+In-Reply-To: <1177822368767-git-send-email-len.brown@intel.com>
+Message-Id: <176750d68801bfa4a88d1cf54174aa0347d7e5d8.1177822058.git.len.brown@intel.com>
 In-Reply-To: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 References: <ac122bb64b0d51f0512185d3522a75f3f3a80bc9.1177822058.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -89,302 +87,224 @@ Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Len Brown <len.brown@intel.com
 
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Add proper mutex locking to some data structures access subject to races
-due to concurrent access of driver functions on the hotkey and fan
-subdrivers.
+Add the sysfs attributes for the platform driver.
 
 Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/misc/thinkpad_acpi.c |  114 ++++++++++++++++++++++++++++++++----------
- drivers/misc/thinkpad_acpi.h |    5 ++
- 2 files changed, 92 insertions(+), 27 deletions(-)
+ Documentation/thinkpad-acpi.txt |   42 +++++++++++++++++-
+ drivers/misc/thinkpad_acpi.c    |   90 +++++++++++++++++++++++++++++++++++++++
+ drivers/misc/thinkpad_acpi.h    |    3 +
+ 3 files changed, 133 insertions(+), 2 deletions(-)
 
+diff --git a/Documentation/thinkpad-acpi.txt b/Documentation/thinkpad-acpi.txt
+index 0e4e053..cc079af 100644
+--- a/Documentation/thinkpad-acpi.txt
++++ b/Documentation/thinkpad-acpi.txt
+@@ -101,11 +101,39 @@ follow all sysfs guidelines and correctly process all errors (the sysfs
+ interface makes extensive use of errors).  File descriptors and open /
+ close operations to the sysfs inodes must also be properly implemented.
+ 
+-Driver version -- /proc/acpi/ibm/driver
+----------------------------------------
++The version of thinkpad-acpi's sysfs interface is exported by the driver
++as a driver attribute (see below).
++
++Sysfs driver attributes are on the driver's sysfs attribute space,
++for 2.6.20 this is /sys/bus/platform/drivers/thinkpad-acpi/.
++
++Sysfs device attributes are on the driver's sysfs attribute space,
++for 2.6.20 this is /sys/devices/platform/thinkpad-acpi/.
++
++Driver version
++--------------
++
++procfs: /proc/acpi/ibm/driver
++sysfs driver attribute: version
+ 
+ The driver name and version. No commands can be written to this file.
+ 
++Sysfs interface version
++-----------------------
++
++sysfs driver attribute: interface_version
++
++Version of the thinkpad-acpi sysfs interface, as an unsigned long
++(output in hex format: 0xAAAABBCC), where:
++	AAAA - major revision
++	BB - minor revision
++	CC - bugfix revision
++
++The sysfs interface version changelog for the driver can be found at the
++end of this document.  Changes to the sysfs interface done by the kernel
++subsystems are not documented here, nor are they tracked by this
++attribute.
++
+ Hot keys -- /proc/acpi/ibm/hotkey
+ ---------------------------------
+ 
+@@ -745,9 +773,19 @@ to enable more than one output class, just add their values.
+ There is also a kernel build option to enable more debugging
+ information, which may be necessary to debug driver problems.
+ 
++The level of debugging information output by the driver can be changed
++at runtime through sysfs, using the driver attribute debug_level.  The
++attribute takes the same bitmask as the debug module parameter above.
++
+ Force loading of module
+ -----------------------
+ 
+ If thinkpad-acpi refuses to detect your ThinkPad, you can try to specify
+ the module parameter force_load=1.  Regardless of whether this works or
+ not, please contact ibm-acpi-devel@lists.sourceforge.net with a report.
++
++
++Sysfs interface changelog:
++
++0x000100:	Initial sysfs support, as a single platform driver and
++		device.
 diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
-index ca6d15c..aa69ff0 100644
+index e47eaf7..a31d00d 100644
 --- a/drivers/misc/thinkpad_acpi.c
 +++ b/drivers/misc/thinkpad_acpi.c
-@@ -704,6 +704,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 	vdbg_printk(TPACPI_DBG_INIT, "initializing hotkey subdriver\n");
+@@ -22,6 +22,7 @@
+  */
  
- 	IBM_ACPIHANDLE_INIT(hkey);
-+	mutex_init(&hotkey_mutex);
+ #define IBM_VERSION "0.14"
++#define TPACPI_SYSFS_VERSION 0x000100
  
- 	/* hotkey not supported on 570 */
- 	tp_features.hotkey = hkey_handle != NULL;
-@@ -752,6 +753,9 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 	}
- }
+ /*
+  *  Changelog:
+@@ -493,6 +494,87 @@ static struct platform_driver tpacpi_pdriver = {
+ };
  
-+/*
-+ * Call with hotkey_mutex held
+ 
++/*************************************************************************
++ * thinkpad-acpi driver attributes
 + */
- static int hotkey_get(int *status, int *mask)
- {
- 	if (!acpi_evalf(hkey_handle, status, "DHKC", "d"))
-@@ -764,6 +768,9 @@ static int hotkey_get(int *status, int *mask)
- 	return 0;
- }
- 
-+/*
-+ * Call with hotkey_mutex held
-+ */
- static int hotkey_set(int status, int mask)
- {
- 	int i;
-@@ -792,7 +799,11 @@ static int hotkey_read(char *p)
- 		return len;
- 	}
- 
-+	res = mutex_lock_interruptible(&hotkey_mutex);
-+	if (res < 0)
-+		return res;
- 	res = hotkey_get(&status, &mask);
-+	mutex_unlock(&hotkey_mutex);
- 	if (res)
- 		return res;
- 
-@@ -818,10 +829,15 @@ static int hotkey_write(char *buf)
- 	if (!tp_features.hotkey)
- 		return -ENODEV;
- 
-+	res = mutex_lock_interruptible(&hotkey_mutex);
-+	if (res < 0)
-+		return res;
 +
- 	res = hotkey_get(&status, &mask);
- 	if (res)
--		return res;
-+		goto errexit;
- 
++/* interface_version --------------------------------------------------- */
++static ssize_t tpacpi_driver_interface_version_show(
++				struct device_driver *drv,
++				char *buf)
++{
++	return snprintf(buf, PAGE_SIZE, "0x%08x\n", TPACPI_SYSFS_VERSION);
++}
++
++static DRIVER_ATTR(interface_version, S_IRUGO,
++		tpacpi_driver_interface_version_show, NULL);
++
++/* debug_level --------------------------------------------------------- */
++static ssize_t tpacpi_driver_debug_show(struct device_driver *drv,
++						char *buf)
++{
++	return snprintf(buf, PAGE_SIZE, "0x%04x\n", dbg_level);
++}
++
++static ssize_t tpacpi_driver_debug_store(struct device_driver *drv,
++						const char *buf, size_t count)
++{
++	unsigned long t;
++	char *endp;
++
++	t = simple_strtoul(buf, &endp, 0);
++	while (*endp && isspace(*endp))
++		endp++;
++	if (*endp)
++		return -EINVAL;
++
++	dbg_level = t;
++
++	return count;
++}
++
++static DRIVER_ATTR(debug_level, S_IWUSR | S_IRUGO,
++		tpacpi_driver_debug_show, tpacpi_driver_debug_store);
++
++/* version ------------------------------------------------------------- */
++static ssize_t tpacpi_driver_version_show(struct device_driver *drv,
++						char *buf)
++{
++	return snprintf(buf, PAGE_SIZE, "%s v%s\n", IBM_DESC, IBM_VERSION);
++}
++
++static DRIVER_ATTR(version, S_IRUGO,
++		tpacpi_driver_version_show, NULL);
++
++/* --------------------------------------------------------------------- */
++
++static struct driver_attribute* tpacpi_driver_attributes[] = {
++	&driver_attr_debug_level, &driver_attr_version,
++	&driver_attr_interface_version,
++};
++
++static int __init tpacpi_create_driver_attributes(struct device_driver *drv)
++{
++	int i, res;
++
++	i = 0;
 +	res = 0;
- 	while ((cmd = next_cmd(&buf))) {
- 		if (strlencmp(cmd, "enable") == 0) {
- 			status = 1;
-@@ -834,18 +850,19 @@ static int hotkey_write(char *buf)
- 			/* mask set */
- 		} else if (sscanf(cmd, "%x", &mask) == 1) {
- 			/* mask set */
--		} else
--			return -EINVAL;
-+		} else {
-+			res = -EINVAL;
-+			goto errexit;
-+		}
- 		do_cmd = 1;
- 	}
- 
--	if (do_cmd) {
-+	if (do_cmd)
- 		res = hotkey_set(status, mask);
--		if (res)
--			return res;
--	}
- 
--	return 0;
-+errexit:
-+	mutex_unlock(&hotkey_mutex);
++	while (!res && i < ARRAY_SIZE(tpacpi_driver_attributes)) {
++		res = driver_create_file(drv, tpacpi_driver_attributes[i]);
++		i++;
++	}
++
 +	return res;
- }
- 
- static struct tp_acpi_drv_struct ibm_hotkey_acpidriver = {
-@@ -2575,6 +2592,7 @@ static int __init fan_init(struct ibm_init_struct *iibm)
- {
- 	vdbg_printk(TPACPI_DBG_INIT, "initializing fan subdriver\n");
- 
-+	mutex_init(&fan_mutex);
- 	fan_status_access_mode = TPACPI_FAN_NONE;
- 	fan_control_access_mode = TPACPI_FAN_WR_NONE;
- 	fan_control_commands = 0;
-@@ -2764,10 +2782,17 @@ static void fan_watchdog_reset(void)
- 
- static int fan_set_level(int level)
- {
-+	int res;
++}
 +
- 	switch (fan_control_access_mode) {
- 	case TPACPI_FAN_WR_ACPI_SFAN:
- 		if (level >= 0 && level <= 7) {
--			if (!acpi_evalf(sfan_handle, NULL, NULL, "vd", level))
-+			res = mutex_lock_interruptible(&fan_mutex);
-+			if (res < 0)
-+				return res;
-+			res = acpi_evalf(sfan_handle, NULL, NULL, "vd", level);
-+			mutex_unlock(&fan_mutex);
-+			if (!res)
- 				return -EIO;
- 		} else
- 			return -EINVAL;
-@@ -2780,7 +2805,12 @@ static int fan_set_level(int level)
- 		    ((level < 0) || (level > 7)))
- 			return -EINVAL;
- 
--		if (!acpi_ec_write(fan_status_offset, level))
-+		res = mutex_lock_interruptible(&fan_mutex);
-+		if (res < 0)
-+			return res;
-+		res = acpi_ec_write(fan_status_offset, level);
-+		mutex_unlock(&fan_mutex);
-+		if (!res)
- 			return -EIO;
- 		else
- 			tp_features.fan_ctrl_status_undef = 0;
-@@ -2797,25 +2827,33 @@ static int fan_set_enable(void)
- 	u8 s;
- 	int rc;
- 
-+	rc = mutex_lock_interruptible(&fan_mutex);
-+	if (rc < 0)
-+		return rc;
++static void tpacpi_remove_driver_attributes(struct device_driver *drv)
++{
++	int i;
 +
- 	switch (fan_control_access_mode) {
- 	case TPACPI_FAN_WR_ACPI_FANS:
- 	case TPACPI_FAN_WR_TPEC:
--		if ((rc = fan_get_status(&s)) < 0)
--			return rc;
-+		rc = fan_get_status(&s);
-+		if (rc < 0)
-+			break;
- 
- 		/* Don't go out of emergency fan mode */
- 		if (s != 7)
- 			s = TP_EC_FAN_AUTO;
- 
- 		if (!acpi_ec_write(fan_status_offset, s))
--			return -EIO;
--		else
-+			rc = -EIO;
-+		else {
- 			tp_features.fan_ctrl_status_undef = 0;
-+			rc = 0;
-+		}
- 		break;
- 
- 	case TPACPI_FAN_WR_ACPI_SFAN:
--		if ((rc = fan_get_status(&s)) < 0)
--			return rc;
-+		rc = fan_get_status(&s);
-+		if (rc < 0)
-+			break;
- 
- 		s &= 0x07;
- 
-@@ -2824,53 +2862,75 @@ static int fan_set_enable(void)
- 			s = 4;
- 
- 		if (!acpi_evalf(sfan_handle, NULL, NULL, "vd", s))
--			return -EIO;
-+			rc= -EIO;
-+		else
-+			rc = 0;
- 		break;
- 
- 	default:
--		return -ENXIO;
-+		rc = -ENXIO;
++	for(i = 0; i < ARRAY_SIZE(tpacpi_driver_attributes); i++)
++		driver_remove_file(drv, tpacpi_driver_attributes[i]);
++}
++
+ /****************************************************************************
+  ****************************************************************************
+  *
+@@ -3268,6 +3350,13 @@ static int __init thinkpad_acpi_module_init(void)
+ 		thinkpad_acpi_module_exit();
+ 		return ret;
  	}
--	return 0;
++	ret = tpacpi_create_driver_attributes(&tpacpi_pdriver.driver);
++	if (ret) {
++		printk(IBM_ERR "unable to create sysfs driver attributes\n");
++		thinkpad_acpi_module_exit();
++		return ret;
++	}
 +
-+	mutex_unlock(&fan_mutex);
-+	return rc;
- }
  
- static int fan_set_disable(void)
- {
-+	int rc;
-+
-+	rc = mutex_lock_interruptible(&fan_mutex);
-+	if (rc < 0)
-+		return rc;
-+
-+	rc = 0;
- 	switch (fan_control_access_mode) {
- 	case TPACPI_FAN_WR_ACPI_FANS:
- 	case TPACPI_FAN_WR_TPEC:
- 		if (!acpi_ec_write(fan_status_offset, 0x00))
--			return -EIO;
-+			rc = -EIO;
- 		else
- 			tp_features.fan_ctrl_status_undef = 0;
- 		break;
+ 	/* Device initialization */
+ 	tpacpi_pdev = platform_device_register_simple(IBM_DRVR_NAME, -1,
+@@ -3318,6 +3407,7 @@ static void thinkpad_acpi_module_exit(void)
+ 	if (tpacpi_pdev)
+ 		platform_device_unregister(tpacpi_pdev);
  
- 	case TPACPI_FAN_WR_ACPI_SFAN:
- 		if (!acpi_evalf(sfan_handle, NULL, NULL, "vd", 0x00))
--			return -EIO;
-+			rc = -EIO;
- 		break;
++	tpacpi_remove_driver_attributes(&tpacpi_pdriver.driver);
+ 	platform_driver_unregister(&tpacpi_pdriver);
  
- 	default:
--		return -ENXIO;
-+		rc = -ENXIO;
- 	}
--	return 0;
-+
-+	mutex_unlock(&fan_mutex);
-+	return rc;
- }
- 
- static int fan_set_speed(int speed)
- {
-+	int rc;
-+
-+	rc = mutex_lock_interruptible(&fan_mutex);
-+	if (rc < 0)
-+		return rc;
-+
-+	rc = 0;
- 	switch (fan_control_access_mode) {
- 	case TPACPI_FAN_WR_ACPI_FANS:
- 		if (speed >= 0 && speed <= 65535) {
- 			if (!acpi_evalf(fans_handle, NULL, NULL, "vddd",
- 					speed, speed, speed))
--				return -EIO;
-+				rc = -EIO;
- 		} else
--			return -EINVAL;
-+			rc = -EINVAL;
- 		break;
- 
- 	default:
--		return -ENXIO;
-+		rc = -ENXIO;
- 	}
--	return 0;
-+
-+	mutex_unlock(&fan_mutex);
-+	return rc;
- }
- 
- static int fan_read(char *p)
+ 	if (proc_dir)
 diff --git a/drivers/misc/thinkpad_acpi.h b/drivers/misc/thinkpad_acpi.h
-index 84fdefe..a9feb53 100644
+index fea5809..3786058 100644
 --- a/drivers/misc/thinkpad_acpi.h
 +++ b/drivers/misc/thinkpad_acpi.h
-@@ -30,6 +30,7 @@
- #include <linux/types.h>
- #include <linux/string.h>
+@@ -32,6 +32,7 @@
  #include <linux/list.h>
-+#include <linux/mutex.h>
  
  #include <linux/proc_fs.h>
- #include <linux/sysfs.h>
-@@ -375,6 +376,8 @@ static enum fan_control_commands fan_control_commands;
- static u8 fan_control_initial_status;
- static int fan_watchdog_maxinterval;
++#include <linux/sysfs.h>
+ #include <linux/backlight.h>
+ #include <linux/fb.h>
+ #include <linux/platform_device.h>
+@@ -137,6 +138,8 @@ static char *next_cmd(char **cmds);
+ static struct platform_device *tpacpi_pdev;
+ static struct class_device *tpacpi_hwmon;
+ static struct platform_driver tpacpi_pdriver;
++static int tpacpi_create_driver_attributes(struct device_driver *drv);
++static void tpacpi_remove_driver_attributes(struct device_driver *drv);
  
-+struct mutex fan_mutex;
-+
- static acpi_handle fans_handle, gfan_handle, sfan_handle;
- 
- static int fan_init(struct ibm_init_struct *iibm);
-@@ -403,6 +406,8 @@ static int fan_write_cmd_watchdog(const char *cmd, int *rc);
- static int hotkey_orig_status;
- static int hotkey_orig_mask;
- 
-+static struct mutex hotkey_mutex;
-+
- static int hotkey_init(struct ibm_init_struct *iibm);
- static void hotkey_exit(void);
- static int hotkey_get(int *status, int *mask);
+ /* Module */
+ static int experimental;
 -- 
 1.5.2.rc0.34.gda94
