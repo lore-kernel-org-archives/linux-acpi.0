@@ -1,63 +1,29 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [GIT PATCH] ACPI patches for 2.6.22
-Date: Mon, 30 Apr 2007 23:31:42 +0200
-Message-ID: <200704302331.43934.rjw@sisk.pl>
-References: <200704290102.33533.lenb@kernel.org> <200704302203.31757.rjw@sisk.pl> <20070430200524.GA11115@waste.org>
+From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: Re: 2.6.21 known regressions (v2) (for -stable team)
+Date: Mon, 30 Apr 2007 14:30:57 -0700
+Message-ID: <20070430143057.41ec75db@freekitty>
+References: <463375E5.5040108@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:43118 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946586AbXD3V1h (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 30 Apr 2007 17:27:37 -0400
-In-Reply-To: <20070430200524.GA11115@waste.org>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <463375E5.5040108@googlemail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: stable@kernel.org, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Riccardo Ricci <rricci@nuovanetmore.it>, "Udo A. Steinberg" <us15@os.inf.tu-dresden.de>, Len Brown <len.brown@intel.com>, David Brownell <david-b@pacbell.net>, Jeff Mahoney <jeffm@suse.com>, reiserfs-dev@namesys.com, Jeff Chua <jeff.chua.linux@gmail.com>, Francois SIMOND <curio@free.fr>, netdev@vger.kernel.org, =?UTF-8?B?SMOla2Fu?= Lindqvist <lindqvist@netstar.se>, Vincent Frentzel <zcecc22@ucl.ac.uk>, =?UTF-8?B?RnJhbsOnb2lz?= Valenduc <francois.valenduc@skynet.be>, Thomas Meyer <thomas.mey@web.de>, Giorgio Lando <patroclo7@gmail.com>, Dave Jones <davej@redhat.com>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Matt Mackall <mpm@selenic.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Miles Lane <miles.lane@gmail.com>, lollul@wp.pl, Helge Hafting <helgehaf@aitel.hist.no>
 
-On Monday, 30 April 2007 22:05, Matt Mackall wrote:
-> On Mon, Apr 30, 2007 at 10:03:30PM +0200, Rafael J. Wysocki wrote:
-> > > > > > These are older and might have been fixed:
-> > > > > > 
-> > > > > > - Mat Mackall's "Thinkpads not waking up on lid open with -rc6-mm1"
-> > > > > 
-> > > > > This seems to be related to suspend to disk. After the first suspend
-> > > > > to disk/resume, suspend to ram stops resuming from lid open and needs
-> > > > > me to hit the power button. As I just started using suspend to disk in
-> > > > > the past couple weeks, this may be a long-standing bug.
-> > > > > 
-> > > > > I think it's still present in -rc7-mm1 but I don't have my laptop
-> > > > > handy to double-check.
-> > > > 
-> > > > Can you please check if the appended debug patch helps?
-> > > 
-> > > Nope.
-> > > 
-> > > boot into new kernel
-> > > lid switch -> suspend
-> > > lid switch -> resume
-> > > power button -> hibernate
-> > > power button -> resume
-> > > lid switch -> suspend
-> > > lid switch -> nothing
-> > > power button -> resume
-> > > echo LID > /proc/acpi/wakeup -> "*disabled"
-> > > echo LID > /proc/acpi/wakeup -> "*enabled"
-> > > lid switch -> suspend
-> > > lid switch -> nothing
-> > 
-> > Then this is unrelated.
-> > 
-> > What does 'cat /sys/power/disk' show?
-> 
-> $ cat /sys/power/disk
-> [platform] shutdown reboot test testproc
 
-Can you please do 'echo shutdown > /sys/power/disk' before the hibernation
-and see what happens?
+> Subject    : 2.6.21: sky2 "hw csum failure" problem
+> References : http://lkml.org/lkml/2007/4/28/105
+> Submitter  : H=C3=A5kan Lindqvist <lindqvist@netstar.se>
+> Status     : unknown
+>=20
 
-Rafael
+This is not a "regression" it is a bug, that has shown up for
+some users for quite a while, see:
+ http://bugzilla.kernel.org/show_bug.cgi?id=3D7579
+
+
+--=20
+Stephen Hemminger <shemminger@linux-foundation.org>
