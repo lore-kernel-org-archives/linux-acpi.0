@@ -1,67 +1,61 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: [PATCH 03/36] Use menuconfig objects II - battery
-Date: Mon, 30 Apr 2007 13:21:43 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0704301320520.29151@yvahk01.tjqt.qr>
-References: <Pine.LNX.4.61.0704301225060.29151@yvahk01.tjqt.qr>
+From: "Michal Piotrowski" <michal.k.k.piotrowski@gmail.com>
+Subject: Re: 2.6.21: ACPI related kernel panic
+Date: Mon, 30 Apr 2007 14:46:00 +0200
+Message-ID: <6bffcb0e0704300546w1eff1a92gff047117e9e756e@mail.gmail.com>
+References: <20070430122940.GA25848@anna.darkstar.lan>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailer.gwdg.de ([134.76.10.26]:51340 "EHLO mailer.gwdg.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030892AbXD3LXU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 30 Apr 2007 07:23:20 -0400
-In-Reply-To: <Pine.LNX.4.61.0704301225060.29151@yvahk01.tjqt.qr>
+Received: from nz-out-0506.google.com ([64.233.162.227]:62864 "EHLO
+	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1423209AbXD3MqC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Apr 2007 08:46:02 -0400
+Received: by nz-out-0506.google.com with SMTP id o1so1900414nzf
+        for <linux-acpi@vger.kernel.org>; Mon, 30 Apr 2007 05:46:01 -0700 (PDT)
+In-Reply-To: <20070430122940.GA25848@anna.darkstar.lan>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Vladimir P. Lebedev" <vladimir.p.lebedev@intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Sebastian Kemper <sebastian_ml@gmx.net>
+Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
+Hi,
 
-Change Kconfig objects from "menu, config" into "menuconfig" so
-that the user can disable the whole feature without having to
-enter the menu first.
+On 30/04/07, Sebastian Kemper <sebastian_ml@gmx.net> wrote:
+> Hello all,
+>
+> I have updated some different boxes to 2.6.21 with success. One laptop,
+> though, has some issue with it.
+>
+> It's an Acer TravelMate 4002WLMi. Sometimes it boots fine and sometimes
+> not. Thanks to netconsole you can see what happens when it boots fine in
+> the attached bootsie.out.good. bootsie.out shows what happens on the
+> screen when things get out of hand (kernel panic).
+>
+> Also attached you'll find the output of lspci, lsusb, ver_linux and the
+> kernel configuration.
+>
+> If there's more you need (git bisection or more info in general,
+> testing ...) just say so.
+>
+> Thanks in advance!
+>
+> Regards
+> Sebastian
+>
+> P.S.: Please CC.
+>
+>
 
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+I added this to the list of known regressions.
 
----
- drivers/battery/Kconfig |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+Len and ACPI folks CC'ed.
 
---- linux-2.6.21-mm_20070428.orig/drivers/battery/Kconfig
-+++ linux-2.6.21-mm_20070428/drivers/battery/Kconfig
-@@ -1,7 +1,5 @@
- 
--menu "Battery devices"
--
--config BATTERY
-+menuconfig BATTERY
- 	tristate "Battery class support"
- 	select EXTERNAL_POWER
- 	help
-@@ -9,16 +7,18 @@ config BATTERY
- 	  monitoring by userspace via sysfs (if available) and/or APM
- 	  kernel interface (if selected below).
- 
-+if BATTERY
-+
- config APM_POWER
- 	tristate "APM emulation for class batteries"
--	depends on BATTERY && APM_EMULATION
-+	depends on APM_EMULATION
- 	help
- 	  Say Y here to enable support APM status emulation using
- 	  battery class devices.
- 
- config BATTERY_DS2760
- 	tristate "DS2760 battery driver (HP iPAQ & others)"
--	depends on BATTERY && W1
-+	depends on W1
- 	select W1_SLAVE_DS2760
- 	help
- 	  Say Y here to enable support for batteries with ds2760 chip.
-@@ -30,4 +30,4 @@ config BATTERY_PMU
- 	  Say Y here to expose battery information on Apple machines
- 	  through the generic battery class.
- 
--endmenu
-+endif # BATTERY
+Regards,
+Michal
+
+-- 
+Michal K. K. Piotrowski
+Kernel Monkeys
+(http://kernel.wikidot.com/start)
