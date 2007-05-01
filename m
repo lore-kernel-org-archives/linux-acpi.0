@@ -1,37 +1,112 @@
-From: Markus Feldmann <feldmann_markus@gmx.de>
-Subject: Re: syntax error, unexpected PARSEOP_NAMESEG, expecting PARSEOP_DEFINITIONBLOCK
-Date: Tue, 01 May 2007 12:38:51 +0200
-Message-ID: <463718BB.6070804@gmx.de>
-References: <46370B26.2080704@gmx.de> <8f8ff01d0705010308q197c7314o1f3dd34670b58c05@mail.gmail.com>
+From: Marvin Stark <marv@der-marv.de>
+Subject: Re: 2.6.21.1 problems during suspend-to-ram
+Date: Tue, 1 May 2007 14:33:08 +0200
+Message-ID: <200705011433.12748.marv@der-marv.de>
+References: <200704292348.33869.marv@der-marv.de> <200704302027.27244.marv@der-marv.de> <200704302201.15586.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: multipart/signed;
+  boundary="nextPart1906606.lpmk3VfN0z";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:58244 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1031144AbXEAKif (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 1 May 2007 06:38:35 -0400
-In-Reply-To: <8f8ff01d0705010308q197c7314o1f3dd34670b58c05@mail.gmail.com>
+Received: from 139-66-107-89.rdns.global-control.de ([89.107.66.139]:42562
+	"EHLO mail.der-marv.de" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1030673AbXEAMdb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 May 2007 08:33:31 -0400
+In-Reply-To: <200704302201.15586.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org
 
-Alexey Starikovskiy schrieb:
-> 1. why do you think that making custom DSDT is going to help you?
-> 2. please attach your dsdt.dsl, so we could see on what iasl barks...
->  From your report it looks like you trying to fed it with some non-aml
-> code.
-> 
-> Regards,
-> Alex.
-To 1.) I thought that my dsdt was changed, but that is my mistake. I 
-compared my dsdt_2.6.18.dsl with my dsdt_2.6.21.dsl and they seems to be 
-equal.
-To 2.) I didnt know aml-code, but i followed the Instructions from 
-http://acpi.sourceforge.net/ to fix my dsdt-table .
+--nextPart1906606.lpmk3VfN0z
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Because the original error Message, can you please tell me what i should 
-do to correct this?
+On Monday 30 April 2007 22:01, Rafael J. Wysocki wrote:
+> On Monday, 30 April 2007 20:27, Marvin Stark wrote:
+> > On Monday 30 April 2007 19:43, Matthew Garrett wrote:
+> > > On Mon, Apr 30, 2007 at 07:31:11PM +0200, Marvin Stark wrote:
+> > > > On Monday 30 April 2007 00:32, Matthew Garrett wrote:
+> > > > > On Sun, Apr 29, 2007 at 11:48:29PM +0200, Marvin Stark wrote:
+> > > > > > Hi,
+> > > > > >
+> > > > > > I'm trying to suspend my MacBook2,1 to ram and always get
+> > > > > > following error during suspend:
+> > > > > >
+> > > > > > ACPI: PCI interrupt for device 0000:00.1f.2 disabled.
+> > > > >
+> > > > > That's not an error - what problems do you think it's causing?
+> > > >
+> > > > I realy dont know... Maybe you can give me some hints?
+> > > > Is there a way to get more debug info except enable debugging in the
+> > > > kernel?
+> > >
+> > > Well, uh, to start with it might help if you actually told us what the
+> > > problem is.
+> >
+> > Main problem is, that the maschine is not shutting down (suspend
+> > consoles). I tried s2ram and s2disk with both programs I'm not able to
+> > suspend my maschine. All devices (nic, firewire, usb etc) except hdd we=
+re
+> > suspended without any problems. After that the maschine freezes, showing
+> > this message:
+> >
+> > ------- 8< -------
+> > ACPI: PCI interrupt for device 0000:00.1f.2 disabled.
+> > ------- 8< -------
+> >
+> > As 00:1f.2 is my S-ATA controller, I think my harddisk will not get
+> > suspended...
+> >
+> > ------- 8< -------
+> > 00:1f.2 IDE interface: Intel Corporation 82801GBM/GHM (ICH7 Family)
+> > Serial ATA Storage Controller IDE (rev 02)
+> > ------- 8< -------
+> >
+> > The only possibly way to suspend my system to disk is using sysfs.
+> > But this also only works when I set /sys/power/disk to "shutdown".
+> > If it's set to "platform" my system will not suspend.
+> >
+> > So there must be a problem with ACPI. Am I right with this suspicion?
+>
+> Probably, but the stack trace that you have quoted is likely unrelated to
+> this problem.
+>
+> Please try the appended patch and see if you can suspend to disk in the
+> platform mode with it.
 
-bye Markus
+I applied this patch but suspend to disk still doesn't work in platform mod=
+e.
+Any other ideas? Do you have a clue whats going wrong here?
+If you need more infos or data please tell me.
 
+>
+> Greetings,
+> Rafael
+
+
+[...]
+
+Thanks,
+=2D-=20
+ .""`.     Marvin Stark <marv@der-marv.de>
+: :"  :    Homepage: www.der-marv.de
+`. `"`
+  `-  Debian - when you have better things to do than fix a system
+
+--nextPart1906606.lpmk3VfN0z
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQBGNzOIQV+FW6osnHMRApbYAJ9GbWp1BveJn+ZPsg8x4yG5e9mZAgCffxp8
+U13u3d/GLGb0Gbn2mpcXnOk=
+=Fblc
+-----END PGP SIGNATURE-----
+
+--nextPart1906606.lpmk3VfN0z--
