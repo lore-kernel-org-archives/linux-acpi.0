@@ -1,82 +1,207 @@
-From: Markus Feldmann <feldmann_markus@gmx.de>
-Subject: Re: syntax error, unexpected PARSEOP_NAMESEG, expecting PARSEOP_DEFINITIONBLOCK
-Date: Tue, 01 May 2007 20:43:02 +0200
-Message-ID: <46378A36.7080108@gmx.de>
-References: <46370B26.2080704@gmx.de>	 <8f8ff01d0705010308q197c7314o1f3dd34670b58c05@mail.gmail.com>	 <46371966.2020300@gmx.de> <8f8ff01d0705010638x5d4d398dk6f754e1f2cd2198a@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH -mm] working 3D/DRI intel-agp.ko resume for i815 chip; Intel chipset testers wanted! (was: Re: intel-agp PM experiences ...)
+Date: Wed, 2 May 2007 12:17:18 +0200
+Message-ID: <20070502101718.GC10245@elf.ucw.cz>
+References: <20070116135727.GA2831@elf.ucw.cz> <d120d5000701160608t73db4405n5d157db43899776a@mail.gmail.com> <20070116142432.GA6171@elf.ucw.cz> <d120d5000701161325h112a9299w944763b7f1032a61@mail.gmail.com> <20070117004012.GA11140@rhlx01.hs-esslingen.de> <20070117005755.GB6270@elf.ucw.cz> <20070118115105.GA28233@rhlx01.hs-esslingen.de> <20070118231650.GA5352@ucw.cz> <20070501145947.GA19953@rhlx01.hs-esslingen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:58600 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1031267AbXEASmp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 1 May 2007 14:42:45 -0400
-In-Reply-To: <8f8ff01d0705010638x5d4d398dk6f754e1f2cd2198a@mail.gmail.com>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:51987 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754992AbXEBKR2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 2 May 2007 06:17:28 -0400
+Content-Disposition: inline
+In-Reply-To: <20070501145947.GA19953@rhlx01.hs-esslingen.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: Andreas Mohr <andi@rhlx01.fht-esslingen.de>
+Cc: Andrew Morton <akpm@osdl.org>, davej@codemonkey.org.uk, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, andi@lisas.de
 
-Alexey Starikovskiy schrieb:
-> Please remove error lines at the beginning of the file and try to
-> compile it again...
+Hi!
+
+> > > > > Especially the PCI video_state trick finally got me a working resume on
+> > > > > 2.6.19-ck2 r128 Rage Mobility M4 AGP *WITH*(!) fully enabled and working
+> > > > > (and keeping working!) DRI (3D).
+> > > > 
+> > > > Can we get whitelist entry for suspend.sf.net? s2ram from there can do
+> > > > all the tricks you described, one letter per trick :-). We even got
+> > > > PCI saving lately.
+> > > 
+> > > Whitelist? Let me blacklist it all the way to Timbuktu instead!
+> > 
+> > > I've been doing more testing, and X never managed to come back to working
+> > > state without some of my couple intel-agp changes:
+> > > - a proper suspend method, doing a proper pci_save_state()
+> > >   or improved equivalent
+> > > - a missing resume check for my i815 chipset
+> > > - global cache flush in _configure
+> > > - restoring AGP bridge PCI config space
+> > 
+> > Can you post a patch?
 > 
-Ok here it comes the corrected dsdt_2.6.21.dsl file with the new error
-messages,
+> Took way longer than I'd have wanted it to (nice daughter and stuff ;),
+> but here it is.
 
-feld-bertlap:~/acpi/dsdt# iasl -tc dsdt_2.6.21.dsl
+No problem.
 
-Intel ACPI Component Architecture
-ASL Optimizing Compiler version 20060912 [Dec 20 2006]
-Copyright (C) 2000 - 2006 Intel Corporation
-Supports ACPI Specification Revision 3.0a
-
-dsdt_2.6.21.dsl    20:     Name (_T00, 0x00)
-Warning  1097 -                     ^ Unknown reserved name (_T00)
-
-dsdt_2.6.21.dsl  6218:             Acquire (MUTE, 0x03E8)
-Warning  1103 -   Possible operator timeout is ignored ^
-
-dsdt_2.6.21.dsl  6232:             Acquire (MUTE, 0x03E8)
-Warning  1103 -   Possible operator timeout is ignored ^
-
-dsdt_2.6.21.dsl  6247:             Acquire (MUTE, 0x03E8)
-Warning  1103 -   Possible operator timeout is ignored ^
-
-dsdt_2.6.21.dsl  6262:             Acquire (MUTE, 0x0FFF)
-Warning  1103 -   Possible operator timeout is ignored ^
-
-dsdt_2.6.21.dsl  6276:             Acquire (MUTE, 0x03E8)
-Warning  1103 -   Possible operator timeout is ignored ^
-
-dsdt_2.6.21.dsl  6291:             Acquire (MUTE, 0x03E8)
-Warning  1103 -   Possible operator timeout is ignored ^
-
-dsdt_2.6.21.dsl  6306:             Acquire (MUTE, 0x03E8)
-Warning  1103 -   Possible operator timeout is ignored ^
-
-dsdt_2.6.21.dsl  6504:     Method (WFZF, 1, NotSerialized)
-Warning  1086 -                       ^ Not all control paths return a 
-value (WFZF)
-
-dsdt_2.6.21.dsl  6519:                 Return (Stall (0x0F))
-Error    4094 -                                    ^ syntax error, 
-unexpected PARSEOP_STALL
-
-dsdt_2.6.21.dsl  6606:         Zero
-Error    4094 -                   ^ syntax error, unexpected PARSEOP_ZERO
-
-dsdt_2.6.21.dsl  6671:         Zero
-Error    4094 -                   ^ syntax error, unexpected PARSEOP_ZERO
-
-ASL Input:  dsdt_2.6.21.dsl - 7677 lines, 256431 bytes, 2870 keywords
-Compilation complete. 3 Errors, 9 Warnings, 0 Remarks, 701 Optimizations
+Ok, I guess we'll  need a real commit log.
 
 
+>  #define INTEL_I820_RDCR		0x51
+> @@ -664,7 +671,7 @@
+>  	if ((pg_start + mem->page_count) > num_entries)
+>  		goto out_err;
+>  
+> -	/* The i830 can't check the GTT for entries since its read only,
+> +	/* The i830 can't check the GTT for entries since it's read-only,
+>  	 * depend on the caller to make the correct offset decisions.
+>  	 */
+>  
+> @@ -787,7 +794,7 @@
+>  	if ((pg_start + mem->page_count) > num_entries)
+>  		goto out_err;
+>  
+> -	/* The i915 can't check the GTT for entries since its read only,
+> +	/* The i915 can't check the GTT for entries since it's read-only,
+>  	 * depend on the caller to make the correct offset decisions.
+>  	 */
+>  
 
+You should not do cleanups at the same time as code changes.
 
+> @@ -1103,8 +1110,8 @@
+>  	/* attbase - aperture base */
+>  	/* the Intel 815 chipset spec. says that bits 29-31 in the
+>  	* ATTBASE register are reserved -> try not to write them */
+> -	if (agp_bridge->gatt_bus_addr & INTEL_815_ATTBASE_MASK) {
+> -		printk (KERN_EMERG PFX "gatt bus addr too high");
+> +	if (agp_bridge->gatt_bus_addr & I815_ATTBASE_MASK) {
+> +		printk (KERN_EMERG PFX "gatt bus addr too high\n");
+>  		return -EINVAL;
+>  	}
+>  
+> @@ -1119,7 +1126,7 @@
+>  	agp_bridge->gart_bus_addr = (temp & PCI_BASE_ADDRESS_MEM_MASK);
+>  
+>  	pci_read_config_dword(agp_bridge->dev, INTEL_ATTBASE, &addr);
+> -	addr &= INTEL_815_ATTBASE_MASK;
+> +	addr &= I815_ATTBASE_MASK;
+>  	addr |= agp_bridge->gatt_bus_addr;
+>  	pci_write_config_dword(agp_bridge->dev, INTEL_ATTBASE, addr);
 
+And I guess macro search&replace counts as cleanup, too. It would be
+nice to submit them separately and first.
 
-can you help me to fix the errors?
+> @@ -1355,7 +1362,7 @@
+>  	pci_write_config_dword(agp_bridge->dev, INTEL_ATTBASE, agp_bridge->gatt_bus_addr);
+>  
+>  	/* agpctrl */
+> -	pci_write_config_dword(agp_bridge->dev, INTEL_AGPCTRL, 0x0000);
+> +	pci_write_config_dword(agp_bridge->dev, INTEL_AGPCTRL, 0x00000000);
+>  
 
-thanks and bye Markus
+Huh?
+
+>  #ifdef CONFIG_PM
+> +
+
+I'd kill this empty line.
+
+> +static int agp_i815_remember_state(struct pci_dev *pdev, int restore)
+> +{
+> +	typedef struct {
+> +		int reg;
+> +		u32 value;
+> +	} saved_regs;
+> +
+> +	/* Dell Inspiron 8000 BIOS rev. A23 needs the following registers saved
+> +	 * to be able to successfully restore X11 when AGP 3D is enabled
+> +	 * (register values given are after resume vs. before suspend):
+> +	 *
+> +	 * I815_GMCHCFG (0x50; we need to set bit 1 (Aperture Access Global Enable) of I815_APCONT (0x51),
+> +	 *              thus use I815_GMCHCFG (0x50) as 32bit base register); 0x4fdd0040 instead of 0x4fdd0240
+> +	 * ??? (0x80); 0x07ce1cde instead of 0x07cb94de
+> +	 * I815_SM_RCOMP (0x98); 0x80648064 instead of 0x80548054
+> +	 * I815_SM (0x9c); 0x00c48405 instead of 0x04848405
+> +	 * I815_AGPCMD (0xa8); 0x00000000 instead of 0x00000304
+> +	 * INTEL_AGPCTRL (0xb0); 0x00000000 instead of 0x00000080
+> +	 * INTEL_APSIZE (0xb4);
+> +	 * INTEL_ATTBASE (0xb8); 0x00000000 instead of 0x024b0000
+> +	 * I815_ERRSTS?? (0xc8; undocumented for i815, see above); 0x00000000 instead of 0x00000800
+> +	 * ??? (0xe8); 0x1c700000 instead of 0x18500000
+> +	 *
+> +	 * Other machines/chipsets/BIOS versions may require
+> +	 * a different set of registers to be properly saved.
+> +	 */
+> +	static saved_regs i815_saved_regs[] = {
+> +		{ I815_UNKNOWN_80, 0 },
+> +		{ I815_GMCHCFG, 0 },
+> +		{ I815_SM_RCOMP, 0 },
+> +		{ I815_SM, 0 },
+> +		{ I815_AGPCMD, 0 },
+> +		{ INTEL_AGPCTRL, 0 },
+> +		{ INTEL_APSIZE, 0 },
+> +		{ INTEL_ATTBASE, 0 },
+> +		{ I815_ERRSTS, 0 },
+> +		{ I815_UNKNOWN_E8, 0 },
+> +		{ 0, 0 }, /* DELIMITER */
+> +	};
+> +	saved_regs *p;
+> +
+> +	if (restore) {
+> +		u32 val;
+> +		for (p = i815_saved_regs; (p->reg != 0); p++)
+> +		{
+
+This goes to previous line. ";p->reg ;" is enough.
+
+> +			pci_read_config_dword(pdev, p->reg, &val);
+> +			if (val != p->value) {
+> +				printk(KERN_DEBUG "AGP: Writing back config space on "
+> +					"device %s at offset %x (was %x, writing %x)\n",
+> +					pci_name(pdev), p->reg,
+> +					val, p->value);
+> +				pci_write_config_dword(pdev, p->reg,
+> +					p->value);
+> +			}
+> +		}	
+> +	} else {
+> +		for (p = i815_saved_regs; (p->reg != 0); p++)
+
+Same here.
+
+> +			pci_read_config_dword(pdev, p->reg, &p->value);
+> +	}
+> +	return 1;
+> +}
+
+Should this betwo functions, one for save, one for restore, with "to
+save" array being global?
+
+> +/*
+> + * set DEBUG_AGP_PM to 1 if your AGP chipset has issues resuming
+> + * (machine lockups due to non-restored hardware registered values),
+> + * then figure out from the log which registers have to be restored manually,
+> + * then add specific support for your chipset, similar to what already exists
+
+Can we get debugging stuff separately?
+
+> @@ -2106,6 +2282,12 @@
+>  {
+>  	if (agp_off)
+>  		return -EINVAL;
+> +	/* let people know that this is an important place to investigate at in case of resume lockups */
+> +	printk(KERN_INFO PFX
+> +		"suspend/resume of intel-agp.ko is NOT always stable for all Intel AGP\n"
+> +		"chipset/BIOS combos, may cause resume lockups when DRI (3D accel) active,\n"
+> +		"in AGP (non-PCI) mode! (see DEBUG_AGP_PM in intel-agp.c source to investigate)\n"
+> +	);
+
+I'm not sure if we want such big/ugly warnings. Can you get it to one
+line, at least?
+
+Otherwise it looks ok.
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
