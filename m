@@ -1,101 +1,27 @@
-From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Subject: 2.6.21: known regressions with patches  (for -stable team)
-Date: Wed, 02 May 2007 14:09:58 +0200
-Message-ID: <46387F96.30409@googlemail.com>
+From: Janosch Machowinski <scotch@tzi.de>
+Subject: ACPI/APIC bug
+Date: Wed, 02 May 2007 16:08:01 +0200
+Message-ID: <46389B41.3060204@tzi.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ik-out-1112.google.com ([66.249.90.178]:58777 "EHLO
-	ik-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S2993074AbXEBMKQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 May 2007 08:10:16 -0400
-Received: by ik-out-1112.google.com with SMTP id b35so106909ika
-        for <linux-acpi@vger.kernel.org>; Wed, 02 May 2007 05:10:14 -0700 (PDT)
+Received: from mailhost.informatik.uni-bremen.de ([134.102.201.18]:52216 "EHLO
+	informatik.uni-bremen.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S2993252AbXEBOcQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 May 2007 10:32:16 -0400
+Received: from [134.102.116.147] (wlan-client-146.informatik.uni-bremen.de [134.102.116.147])
+	(authenticated bits=0)
+	by informatik.uni-bremen.de (8.14.0/8.13.2) with ESMTP id l42E81MU002524
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-acpi@vger.kernel.org>; Wed, 2 May 2007 16:08:02 +0200 (CEST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: stable@kernel.org, David Miller <davem@davemloft.net>, Robert Peterson <rpeterso@redhat.com>, James.Bottomley@steeleye.com, linux-scsi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, alsa-devel@alsa-project.org, perex@suse.cz, Markus Rechberger <markus.rechberger@amd.com>, CIJOML <cijoml@volny.cz>, david-b@pacbell.net, Jeff Mahoney <jeffm@suse.com>, reiserfs-dev@namesys.com, Brett Ryland <nappers@gmail.com>, Daniele Venzano <venza@brownhat.org>, netdev@vger.kernel.org, Sebastian Kemper <sebastian_ml@gmx.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Daniel Walker <dwalker@mvista.com>, Thomas Gleixner <tglx@linutronix.de>, Jan Kiszka <jan.kiszka@web.de>, =?ISO-8859-2?Q?Rafa=B3_Bilski?= <rafalbilski@interia.pl>, Dave Jones <davej@codemonkey.org.uk>, Greg KH <gregkh@suse.de>
+To: linux-acpi@vger.kernel.org
 
-Hi all,
-
-Here is a list of known regressions with patches available.
-
-Feel free to add new regressions/remove fixed etc.
-http://kernelnewbies.org/known_regressions
-
-
-Subject    : 2.6.21: longhaul freq-scaling broken
-References : http://lkml.org/lkml/2007/5/1/260
-Submitter  : Jan Kiszka <jan.kiszka@web.de>
-Patch      : http://git.kernel.org/?p=linux/kernel/git/davej/cpufreq.git;a=commitdiff_plain;h=07844252ffd81ec192a62014bada1016c9703765
-Status     : patch available
-
-
-Subject    : Kernel hang at "kernel: switched to high resolution mode on cpu 0" when 
-             either/both of CONFIG_NO_HZ, CONFIG_HIGH_RES_TIMERS is used
-References : http://lkml.org/lkml/2007/4/30/464
-Submitter  : Mark Lord <lkml@rtr.ca>
-Handled-By : Daniel Walker <dwalker@mvista.com>
-             Thomas Gleixner <tglx@linutronix.de>
-Patch      : http://lkml.org/lkml/2007/4/13/190
-Status     : patch was suggested
-
-
-Subject    : ACPI related kernel panic
-References : http://lkml.org/lkml/2007/4/30/193
-             http://bugzilla.kernel.org/show_bug.cgi?id=8385
-Submitter  : Sebastian Kemper <sebastian_ml@gmx.net>
-Patches    : http://bugzilla.kernel.org/attachment.cgi?id=11331&action=view
-             http://bugzilla.kernel.org/attachment.cgi?id=11332&action=view
-Status     : patches was suggested
-
-
-Subject    : sis900 oops in 2.6.21.1 after bringing up the network
-References : http://lkml.org/lkml/2007/4/29/138
-             http://lkml.org/lkml/2007/4/29/151
-Patch      : http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff_plain;h=dc5a144991ba803bc8afded105c9db1dea0e57ab
-Submitter  : Brett Ryland <nappers@gmail.com>
-Status     : patch available
-
-
-Subject    : reiserfs -- circular locking
-References : http://lkml.org/lkml/2007/4/26/648
-Submitter  : David Brownell < david-b@pacbell.net >
-Handled-By : Jeff Mahoney < jeffm@suse.com >
-Patch      : http://lkml.org/lkml/2007/4/27/332
-Status     : patch available
-
-
-Subject    : Oops when changing USB DVB-T adapter
-References : http://lkml.org/lkml/2007/3/9/212
-             http://lkml.org/lkml/2007/4/5/154
-Submitter  : CIJOML <cijoml@volny.cz>
-Handled-By : Markus Rechberger < markus.rechberger@amd.com >
-Status     : patches available
-
-
-Subject    : snd_intel8x0: divide error: 0000
-References : http://lkml.org/lkml/2007/3/5/252
-Submitter  : Michal Piotrowski < michal.k.k.piotrowski@gmail.com >
-Handled-By : Takashi Iwai < tiwai@suse.de >
-Patch      : http://lkml.org/lkml/2007/4/20/117
-Status     : patch available
-
-
-Subject    : qla2xxx driver no longer works
-References : http://lkml.org/lkml/2007/4/16/49
-             http://lkml.org/lkml/2007/4/20/224
-Submitter  : David Miller < davem@davemloft.net >
-             Robert Peterson < rpeterso@redhat.com >
-Handled-By : David Miller < davem@davemloft.net >
-Patch      : http://lkml.org/lkml/2007/4/16/234
-Status     : patch was suggested
-
-
-Regards,
-Michal
-
--- 
-Michal K. K. Piotrowski
-Kernel Monkeys
-(http://kernel.wikidot.com/start)
+Hey,
+can someone with more knowledge than me please take a look at this bug :
+http://bugzilla.kernel.org/show_bug.cgi?id=8367
+and say weather this is a bios or linux bug.
+Thanks
+   Janosch
