@@ -1,207 +1,101 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH -mm] working 3D/DRI intel-agp.ko resume for i815 chip; Intel chipset testers wanted! (was: Re: intel-agp PM experiences ...)
-Date: Wed, 2 May 2007 12:17:18 +0200
-Message-ID: <20070502101718.GC10245@elf.ucw.cz>
-References: <20070116135727.GA2831@elf.ucw.cz> <d120d5000701160608t73db4405n5d157db43899776a@mail.gmail.com> <20070116142432.GA6171@elf.ucw.cz> <d120d5000701161325h112a9299w944763b7f1032a61@mail.gmail.com> <20070117004012.GA11140@rhlx01.hs-esslingen.de> <20070117005755.GB6270@elf.ucw.cz> <20070118115105.GA28233@rhlx01.hs-esslingen.de> <20070118231650.GA5352@ucw.cz> <20070501145947.GA19953@rhlx01.hs-esslingen.de>
+From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Subject: 2.6.21: known regressions with patches  (for -stable team)
+Date: Wed, 02 May 2007 14:09:58 +0200
+Message-ID: <46387F96.30409@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:51987 "EHLO amd.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754992AbXEBKR2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 2 May 2007 06:17:28 -0400
-Content-Disposition: inline
-In-Reply-To: <20070501145947.GA19953@rhlx01.hs-esslingen.de>
+Received: from ik-out-1112.google.com ([66.249.90.178]:58777 "EHLO
+	ik-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S2993074AbXEBMKQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 May 2007 08:10:16 -0400
+Received: by ik-out-1112.google.com with SMTP id b35so106909ika
+        for <linux-acpi@vger.kernel.org>; Wed, 02 May 2007 05:10:14 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andreas Mohr <andi@rhlx01.fht-esslingen.de>
-Cc: Andrew Morton <akpm@osdl.org>, davej@codemonkey.org.uk, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, andi@lisas.de
+To: stable@kernel.org, David Miller <davem@davemloft.net>, Robert Peterson <rpeterso@redhat.com>, James.Bottomley@steeleye.com, linux-scsi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, alsa-devel@alsa-project.org, perex@suse.cz, Markus Rechberger <markus.rechberger@amd.com>, CIJOML <cijoml@volny.cz>, david-b@pacbell.net, Jeff Mahoney <jeffm@suse.com>, reiserfs-dev@namesys.com, Brett Ryland <nappers@gmail.com>, Daniele Venzano <venza@brownhat.org>, netdev@vger.kernel.org, Sebastian Kemper <sebastian_ml@gmx.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Mark Lord <lkml@rtr.ca>, Daniel Walker <dwalker@mvista.com>, Thomas Gleixner <tglx@linutronix.de>, Jan Kiszka <jan.kiszka@web.de>, =?ISO-8859-2?Q?Rafa=B3_Bilski?= <rafalbilski@interia.pl>, Dave Jones <davej@codemonkey.org.uk>, Greg KH <gregkh@suse.de>
 
-Hi!
+Hi all,
 
-> > > > > Especially the PCI video_state trick finally got me a working resume on
-> > > > > 2.6.19-ck2 r128 Rage Mobility M4 AGP *WITH*(!) fully enabled and working
-> > > > > (and keeping working!) DRI (3D).
-> > > > 
-> > > > Can we get whitelist entry for suspend.sf.net? s2ram from there can do
-> > > > all the tricks you described, one letter per trick :-). We even got
-> > > > PCI saving lately.
-> > > 
-> > > Whitelist? Let me blacklist it all the way to Timbuktu instead!
-> > 
-> > > I've been doing more testing, and X never managed to come back to working
-> > > state without some of my couple intel-agp changes:
-> > > - a proper suspend method, doing a proper pci_save_state()
-> > >   or improved equivalent
-> > > - a missing resume check for my i815 chipset
-> > > - global cache flush in _configure
-> > > - restoring AGP bridge PCI config space
-> > 
-> > Can you post a patch?
-> 
-> Took way longer than I'd have wanted it to (nice daughter and stuff ;),
-> but here it is.
+Here is a list of known regressions with patches available.
 
-No problem.
-
-Ok, I guess we'll  need a real commit log.
+Feel free to add new regressions/remove fixed etc.
+http://kernelnewbies.org/known_regressions
 
 
->  #define INTEL_I820_RDCR		0x51
-> @@ -664,7 +671,7 @@
->  	if ((pg_start + mem->page_count) > num_entries)
->  		goto out_err;
->  
-> -	/* The i830 can't check the GTT for entries since its read only,
-> +	/* The i830 can't check the GTT for entries since it's read-only,
->  	 * depend on the caller to make the correct offset decisions.
->  	 */
->  
-> @@ -787,7 +794,7 @@
->  	if ((pg_start + mem->page_count) > num_entries)
->  		goto out_err;
->  
-> -	/* The i915 can't check the GTT for entries since its read only,
-> +	/* The i915 can't check the GTT for entries since it's read-only,
->  	 * depend on the caller to make the correct offset decisions.
->  	 */
->  
+Subject    : 2.6.21: longhaul freq-scaling broken
+References : http://lkml.org/lkml/2007/5/1/260
+Submitter  : Jan Kiszka <jan.kiszka@web.de>
+Patch      : http://git.kernel.org/?p=linux/kernel/git/davej/cpufreq.git;a=commitdiff_plain;h=07844252ffd81ec192a62014bada1016c9703765
+Status     : patch available
 
-You should not do cleanups at the same time as code changes.
 
-> @@ -1103,8 +1110,8 @@
->  	/* attbase - aperture base */
->  	/* the Intel 815 chipset spec. says that bits 29-31 in the
->  	* ATTBASE register are reserved -> try not to write them */
-> -	if (agp_bridge->gatt_bus_addr & INTEL_815_ATTBASE_MASK) {
-> -		printk (KERN_EMERG PFX "gatt bus addr too high");
-> +	if (agp_bridge->gatt_bus_addr & I815_ATTBASE_MASK) {
-> +		printk (KERN_EMERG PFX "gatt bus addr too high\n");
->  		return -EINVAL;
->  	}
->  
-> @@ -1119,7 +1126,7 @@
->  	agp_bridge->gart_bus_addr = (temp & PCI_BASE_ADDRESS_MEM_MASK);
->  
->  	pci_read_config_dword(agp_bridge->dev, INTEL_ATTBASE, &addr);
-> -	addr &= INTEL_815_ATTBASE_MASK;
-> +	addr &= I815_ATTBASE_MASK;
->  	addr |= agp_bridge->gatt_bus_addr;
->  	pci_write_config_dword(agp_bridge->dev, INTEL_ATTBASE, addr);
+Subject    : Kernel hang at "kernel: switched to high resolution mode on cpu 0" when 
+             either/both of CONFIG_NO_HZ, CONFIG_HIGH_RES_TIMERS is used
+References : http://lkml.org/lkml/2007/4/30/464
+Submitter  : Mark Lord <lkml@rtr.ca>
+Handled-By : Daniel Walker <dwalker@mvista.com>
+             Thomas Gleixner <tglx@linutronix.de>
+Patch      : http://lkml.org/lkml/2007/4/13/190
+Status     : patch was suggested
 
-And I guess macro search&replace counts as cleanup, too. It would be
-nice to submit them separately and first.
 
-> @@ -1355,7 +1362,7 @@
->  	pci_write_config_dword(agp_bridge->dev, INTEL_ATTBASE, agp_bridge->gatt_bus_addr);
->  
->  	/* agpctrl */
-> -	pci_write_config_dword(agp_bridge->dev, INTEL_AGPCTRL, 0x0000);
-> +	pci_write_config_dword(agp_bridge->dev, INTEL_AGPCTRL, 0x00000000);
->  
+Subject    : ACPI related kernel panic
+References : http://lkml.org/lkml/2007/4/30/193
+             http://bugzilla.kernel.org/show_bug.cgi?id=8385
+Submitter  : Sebastian Kemper <sebastian_ml@gmx.net>
+Patches    : http://bugzilla.kernel.org/attachment.cgi?id=11331&action=view
+             http://bugzilla.kernel.org/attachment.cgi?id=11332&action=view
+Status     : patches was suggested
 
-Huh?
 
->  #ifdef CONFIG_PM
-> +
+Subject    : sis900 oops in 2.6.21.1 after bringing up the network
+References : http://lkml.org/lkml/2007/4/29/138
+             http://lkml.org/lkml/2007/4/29/151
+Patch      : http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff_plain;h=dc5a144991ba803bc8afded105c9db1dea0e57ab
+Submitter  : Brett Ryland <nappers@gmail.com>
+Status     : patch available
 
-I'd kill this empty line.
 
-> +static int agp_i815_remember_state(struct pci_dev *pdev, int restore)
-> +{
-> +	typedef struct {
-> +		int reg;
-> +		u32 value;
-> +	} saved_regs;
-> +
-> +	/* Dell Inspiron 8000 BIOS rev. A23 needs the following registers saved
-> +	 * to be able to successfully restore X11 when AGP 3D is enabled
-> +	 * (register values given are after resume vs. before suspend):
-> +	 *
-> +	 * I815_GMCHCFG (0x50; we need to set bit 1 (Aperture Access Global Enable) of I815_APCONT (0x51),
-> +	 *              thus use I815_GMCHCFG (0x50) as 32bit base register); 0x4fdd0040 instead of 0x4fdd0240
-> +	 * ??? (0x80); 0x07ce1cde instead of 0x07cb94de
-> +	 * I815_SM_RCOMP (0x98); 0x80648064 instead of 0x80548054
-> +	 * I815_SM (0x9c); 0x00c48405 instead of 0x04848405
-> +	 * I815_AGPCMD (0xa8); 0x00000000 instead of 0x00000304
-> +	 * INTEL_AGPCTRL (0xb0); 0x00000000 instead of 0x00000080
-> +	 * INTEL_APSIZE (0xb4);
-> +	 * INTEL_ATTBASE (0xb8); 0x00000000 instead of 0x024b0000
-> +	 * I815_ERRSTS?? (0xc8; undocumented for i815, see above); 0x00000000 instead of 0x00000800
-> +	 * ??? (0xe8); 0x1c700000 instead of 0x18500000
-> +	 *
-> +	 * Other machines/chipsets/BIOS versions may require
-> +	 * a different set of registers to be properly saved.
-> +	 */
-> +	static saved_regs i815_saved_regs[] = {
-> +		{ I815_UNKNOWN_80, 0 },
-> +		{ I815_GMCHCFG, 0 },
-> +		{ I815_SM_RCOMP, 0 },
-> +		{ I815_SM, 0 },
-> +		{ I815_AGPCMD, 0 },
-> +		{ INTEL_AGPCTRL, 0 },
-> +		{ INTEL_APSIZE, 0 },
-> +		{ INTEL_ATTBASE, 0 },
-> +		{ I815_ERRSTS, 0 },
-> +		{ I815_UNKNOWN_E8, 0 },
-> +		{ 0, 0 }, /* DELIMITER */
-> +	};
-> +	saved_regs *p;
-> +
-> +	if (restore) {
-> +		u32 val;
-> +		for (p = i815_saved_regs; (p->reg != 0); p++)
-> +		{
+Subject    : reiserfs -- circular locking
+References : http://lkml.org/lkml/2007/4/26/648
+Submitter  : David Brownell < david-b@pacbell.net >
+Handled-By : Jeff Mahoney < jeffm@suse.com >
+Patch      : http://lkml.org/lkml/2007/4/27/332
+Status     : patch available
 
-This goes to previous line. ";p->reg ;" is enough.
 
-> +			pci_read_config_dword(pdev, p->reg, &val);
-> +			if (val != p->value) {
-> +				printk(KERN_DEBUG "AGP: Writing back config space on "
-> +					"device %s at offset %x (was %x, writing %x)\n",
-> +					pci_name(pdev), p->reg,
-> +					val, p->value);
-> +				pci_write_config_dword(pdev, p->reg,
-> +					p->value);
-> +			}
-> +		}	
-> +	} else {
-> +		for (p = i815_saved_regs; (p->reg != 0); p++)
+Subject    : Oops when changing USB DVB-T adapter
+References : http://lkml.org/lkml/2007/3/9/212
+             http://lkml.org/lkml/2007/4/5/154
+Submitter  : CIJOML <cijoml@volny.cz>
+Handled-By : Markus Rechberger < markus.rechberger@amd.com >
+Status     : patches available
 
-Same here.
 
-> +			pci_read_config_dword(pdev, p->reg, &p->value);
-> +	}
-> +	return 1;
-> +}
+Subject    : snd_intel8x0: divide error: 0000
+References : http://lkml.org/lkml/2007/3/5/252
+Submitter  : Michal Piotrowski < michal.k.k.piotrowski@gmail.com >
+Handled-By : Takashi Iwai < tiwai@suse.de >
+Patch      : http://lkml.org/lkml/2007/4/20/117
+Status     : patch available
 
-Should this betwo functions, one for save, one for restore, with "to
-save" array being global?
 
-> +/*
-> + * set DEBUG_AGP_PM to 1 if your AGP chipset has issues resuming
-> + * (machine lockups due to non-restored hardware registered values),
-> + * then figure out from the log which registers have to be restored manually,
-> + * then add specific support for your chipset, similar to what already exists
+Subject    : qla2xxx driver no longer works
+References : http://lkml.org/lkml/2007/4/16/49
+             http://lkml.org/lkml/2007/4/20/224
+Submitter  : David Miller < davem@davemloft.net >
+             Robert Peterson < rpeterso@redhat.com >
+Handled-By : David Miller < davem@davemloft.net >
+Patch      : http://lkml.org/lkml/2007/4/16/234
+Status     : patch was suggested
 
-Can we get debugging stuff separately?
 
-> @@ -2106,6 +2282,12 @@
->  {
->  	if (agp_off)
->  		return -EINVAL;
-> +	/* let people know that this is an important place to investigate at in case of resume lockups */
-> +	printk(KERN_INFO PFX
-> +		"suspend/resume of intel-agp.ko is NOT always stable for all Intel AGP\n"
-> +		"chipset/BIOS combos, may cause resume lockups when DRI (3D accel) active,\n"
-> +		"in AGP (non-PCI) mode! (see DEBUG_AGP_PM in intel-agp.c source to investigate)\n"
-> +	);
+Regards,
+Michal
 
-I'm not sure if we want such big/ugly warnings. Can you get it to one
-line, at least?
-
-Otherwise it looks ok.
-									Pavel
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Michal K. K. Piotrowski
+Kernel Monkeys
+(http://kernel.wikidot.com/start)
