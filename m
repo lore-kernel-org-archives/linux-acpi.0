@@ -1,91 +1,79 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: ACPI code in platform mode hibernation code paths (was: Re: [PATCH] swsusp: do not use pm_ops)
-Date: Fri, 4 May 2007 01:14:11 +0200
-Message-ID: <200705040114.12497.rjw@sisk.pl>
-References: <20070425072350.GA6866@ucw.cz> <200705022126.47897.rjw@sisk.pl> <20070503224807.GD13426@elf.ucw.cz>
+Subject: Re: Why don't we use _TTS method?
+Date: Fri, 4 May 2007 01:22:56 +0200
+Message-ID: <200705040122.56563.rjw@sisk.pl>
+References: <B28E9812BAF6E2498B7EC5C427F293A40267F659@orsmsx415.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:54934 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:54956 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1767469AbXECXKF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 May 2007 19:10:05 -0400
-In-Reply-To: <20070503224807.GD13426@elf.ucw.cz>
+	id S1767465AbXECXSR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 3 May 2007 19:18:17 -0400
+In-Reply-To: <B28E9812BAF6E2498B7EC5C427F293A40267F659@orsmsx415.amr.corp.intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>, Johannes Berg <johannes@sipsolutions.net>, linux-pm@lists.linux-foundation.org, Pekka Enberg <penberg@cs.helsinki.fi>, Nigel Cunningham <nigel@nigel.suspend2.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Pavel Machek <pavel@ucw.cz>
 
-Hi,
-
-On Friday, 4 May 2007 00:48, Pavel Machek wrote:
-> Hi!
+On Friday, 4 May 2007 00:57, Moore, Robert wrote:
 > 
-> Crazy idea... could we kill hibernate_ops-like struct, and just create
-> a device for ACPI, using its suspend()/resume()/whatever callbacks to
-> do the ACPI magic?
-
-Hmm, I didn't think about that.  It seems to be viable at first sight.
-
-Still, I think we can first separate hibernation_ops from pm_ops, figure out
-what they should be and then try to replace them with a cleaner solution.
-
-> > Okay.  Since we're trying to separate the hibernation code from the
-> > suspend code anyway, we can use the opportunity to introduce some new
-> > callbacks for the hibernation and/or redefine the existing ones.
+> > -----Original Message-----
+> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> > owner@vger.kernel.org] On Behalf Of Rafael J. Wysocki
+> > Sent: Thursday, May 03, 2007 1:02 PM
+> > To: ACPI Devel Maling List
+> > Cc: pm list; Pavel Machek
+> > Subject: Why don't we use _TTS method?
 > > 
-> > The spec suggests that we need the following callbacks:
-
-In fact, I should have added
-
-(0) start() - called before device_suspend(), execute _TTS(S4)
-
-and I'm not sure if the GPEs should be disabled here or in prepare()
-
-In principle this could be done as a device's .resume() call, but that would
-have to be the very first device registered (can we do that?).
-
-> > (1) prepare() - called after device_suspend(), execute _PTS and
-> > disable GPEs
+> > Hi,
+> > 
+> > I've got two questions regarding the implementation of the ACPI
+> > poweroff/sleep
+> > code in drivers/acpi/sleep and drivers/acpi/hardware .
+> > 
+> > 1) We don't seem to use the _TTS system-control method, although the
+> ACPI
+> > specification (ACPI 3.0b) says that this method should be used for
+> > intiating
+> > and finishing power transitions.  Could you please tell me why we
+> don't
+> > use it?
+> > 
+> [Moore, Robert] 
 > 
-> sysdev .suspend() method would do the trick.
+> Probably because it's fairly new and it takes a long time for these
+> things to appear in real machines. Also, needs to be supported in
+> Windows before we ever see it in real machines.
 
-Yes.
+Hmm, it already was in the 3.0 spec from 2004, so it doesn't seem to be
+that new.  Still, I'm not an expert ...
 
-> > (2) cancel() - called at any time after prepare() if there's an error, execute
-> >     _WAK and enable run-time GPEs
+> > 2) In the functions acpi_enter_sleep_state_prep(),
+> > acpi_enter_sleep_state(),
+> > acpi_leave_sleep_state() we manipulate GPEs quite extensively (we
+> disable
+> > and enable them for a couple of times during a transition), although
+> the
+> > specification doesn't tell anything about that explicitly.  Could you
+> > please
+> > explain to me what the purpose of that is?
+> > 
+> [Moore, Robert] 
 > 
-> sysdev .resume() should do the trick.
+> There a wake GPEs and runtime GPEs that need to be managed separately.
+> We want to make sure that only the "Wake" GPEs are enabled as we goto
+> sleep.
 
-But .resume() would be called unconditionally, so there should be a way of
-figuring out what to do - looks complicated.
- 
-> > (3) enter() - called after the image has been saved, execute _GTS and do what's
-> >     currently done in pm_enter()
-> 
-> This one is tricky. It is essentially
-> powerdown_but_enter_S4_instead. I guess we can live with if()... as we
-> need to special-case reboot in the same place.
+I understand that, but the runtime GPEs seem to be disabled before we call
+device drivers' .suspend() routines (ie. before the devices are placed in the
+appropriate Dx states) and that's the point I don't quite get.  Is there a
+technical reason for doing it in this particular place?
 
-Yes.
-
-> > (4) finish() - called after the image has been restored, do what's currently
-> >     done in pm_finish()
->
-> platform (?) device .resume() method should work.
-
-Hmm, perhaps.
-
-And we need one more (in fact this one should be called finish() and the
-previous one wake() or something like that):
-
-(5) finish() - called after device_resume(), but only after the image has been
-restored or in case of a hibernation error, execute _TTS(S0).  It looks like
-this also should enable the GPEs (or the previous one; that's the information
-I'm looking for).
+Thanks a lot for your reply.
 
 Greetings,
 Rafael
