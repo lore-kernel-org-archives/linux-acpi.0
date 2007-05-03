@@ -1,41 +1,46 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: [PATCH] swsusp: Do not use pm_ops
-Date: Thu, 3 May 2007 11:52:38 +0200
-Message-ID: <200705031152.38933.rjw@sisk.pl>
-References: <200705022213.35831.rjw@sisk.pl> <200705031146.03358.rjw@sisk.pl> <1178185551.13233.85.camel@johannes.berg>
+Date: Thu, 3 May 2007 12:11:18 +0200
+Message-ID: <20070503101118.GJ12554@elf.ucw.cz>
+References: <200705022213.35831.rjw@sisk.pl> <1178181680.13233.74.camel@johannes.berg> <200705031146.03358.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:52725 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161158AbXECJsI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 May 2007 05:48:08 -0400
-In-Reply-To: <1178185551.13233.85.camel@johannes.berg>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:37464 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1031092AbXECKL1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 3 May 2007 06:11:27 -0400
 Content-Disposition: inline
+In-Reply-To: <200705031146.03358.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Johannes Berg <johannes@sipsolutions.net>
-Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Nigel Cunningham <nigel@nigel.suspend2.net>, Pavel Machek <pavel@ucw.cz>, Pekka Enberg <penberg@cs.helsinki.fi>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Johannes Berg <johannes@sipsolutions.net>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Nigel Cunningham <nigel@nigel.suspend2.net>, Pekka Enberg <penberg@cs.helsinki.fi>
 
-On Thursday, 3 May 2007 11:45, Johannes Berg wrote:
-> On Thu, 2007-05-03 at 11:46 +0200, Rafael J. Wysocki wrote:
+On Thu 2007-05-03 11:46:02, Rafael J. Wysocki wrote:
+> On Thursday, 3 May 2007 10:41, Johannes Berg wrote:
+> > On Wed, 2007-05-02 at 22:13 +0200, Rafael J. Wysocki wrote:
+> > 
+> > > +void hibernation_set_ops(struct hibernation_ops *ops)
+> > > +{
+> > > +	if (ops && !(ops->prepare && ops->enter && ops->finish)) {
+> > > +		printk(KERN_ERR "Wrong definition of hibernation operations! "
+> > > +			"Using defaults\n");
+> > > +		return;
+> > > +	}
+> > 
+> > Why not BUG_ON here as I had before? I don't see much point in giving a
+> > runtime warning, and the docs clearly state that you must assign all
+> > three items. Oh, I see I had a bug before when ops was NULL, but you can
+> > still do
+> >   BUG_ON(ops && !(ops->prepare && ops->enter && ops->finish));
 > 
-> > Well, BUG_ON() is extremely user-unfriendly, and it'd trigger even if the user
-> > actually didn't intend to suspend at all.
-> 
-> Well, hibernation_set_ops is invoked whenever the user loads his ACPI
-> module with S4 possible, and typically having a BUG_ON here will make
-> the developers who wrote the code that calls hibernation_set_ops see it
-> right away while they might miss the message.
-> 
-> I don't care much though, it just seems wasteful to have this string in
-> there when it'll never be seen by anyone but the developers who create
-> new hibernation_ops.
+> Well, BUG_ON() is extremely user-unfriendly, and it'd trigger even if the user
+> actually didn't intend to suspend at all.
 
-You're making the dangerous assumption that all patches get tested before
-hitting users. ;-)
+WARN_ON()?
+									Pavel
 
-Greetings,
-Rafael
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
