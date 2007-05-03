@@ -1,49 +1,44 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Nigel Cunningham <nigel@nigel.suspend2.net>
 Subject: Re: [PATCH] swsusp: Do not use pm_ops
-Date: Thu, 3 May 2007 12:18:58 +0200
-Message-ID: <200705031218.59256.rjw@sisk.pl>
-References: <200705022213.35831.rjw@sisk.pl> <200705031146.03358.rjw@sisk.pl> <20070503101118.GJ12554@elf.ucw.cz>
+Date: Thu, 03 May 2007 20:31:15 +1000
+Message-ID: <1178188275.4494.46.camel@nigel.suspend2.net>
+References: <200705022213.35831.rjw@sisk.pl>
+Reply-To: nigel@nigel.suspend2.net
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-J1twf3mpCzJpW2+r6iIc"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:52827 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752854AbXECKOi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 May 2007 06:14:38 -0400
-In-Reply-To: <20070503101118.GJ12554@elf.ucw.cz>
-Content-Disposition: inline
+Received: from nigel.suspend2.net ([203.171.70.205]:43974 "EHLO
+	nigel.suspend2.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161783AbXECKbQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 May 2007 06:31:16 -0400
+In-Reply-To: <200705022213.35831.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Johannes Berg <johannes@sipsolutions.net>, pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Nigel Cunningham <nigel@nigel.suspend2.net>, Pekka Enberg <penberg@cs.helsinki.fi>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: pm list <linux-pm@lists.linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Johannes Berg <johannes@sipsolutions.net>, Pavel Machek <pavel@ucw.cz>, Pekka Enberg <penberg@cs.helsinki.fi>
 
-On Thursday, 3 May 2007 12:11, Pavel Machek wrote:
-> On Thu 2007-05-03 11:46:02, Rafael J. Wysocki wrote:
-> > On Thursday, 3 May 2007 10:41, Johannes Berg wrote:
-> > > On Wed, 2007-05-02 at 22:13 +0200, Rafael J. Wysocki wrote:
-> > > 
-> > > > +void hibernation_set_ops(struct hibernation_ops *ops)
-> > > > +{
-> > > > +	if (ops && !(ops->prepare && ops->enter && ops->finish)) {
-> > > > +		printk(KERN_ERR "Wrong definition of hibernation operations! "
-> > > > +			"Using defaults\n");
-> > > > +		return;
-> > > > +	}
-> > > 
-> > > Why not BUG_ON here as I had before? I don't see much point in giving a
-> > > runtime warning, and the docs clearly state that you must assign all
-> > > three items. Oh, I see I had a bug before when ops was NULL, but you can
-> > > still do
-> > >   BUG_ON(ops && !(ops->prepare && ops->enter && ops->finish));
-> > 
-> > Well, BUG_ON() is extremely user-unfriendly, and it'd trigger even if the user
-> > actually didn't intend to suspend at all.
-> 
-> WARN_ON()?
 
-Sure, why not.
+--=-J1twf3mpCzJpW2+r6iIc
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Greetings,
-Rafael
+Hi.
+
+Sorry for my quietness. Looks pretty straightforward to me :)
+
+Nigel
+
+--=-J1twf3mpCzJpW2+r6iIc
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQBGObnzN0y+n1M3mo0RApelAKCqwg8QOZqshtzd76NZCsMGnYPm1gCeM2qi
+uRMuyhXqN90U4iCK/RBRaeM=
+=GuXy
+-----END PGP SIGNATURE-----
+
+--=-J1twf3mpCzJpW2+r6iIc--
+
