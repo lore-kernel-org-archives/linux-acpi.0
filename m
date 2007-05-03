@@ -1,79 +1,111 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Why don't we use _TTS method?
-Date: Fri, 4 May 2007 01:22:56 +0200
-Message-ID: <200705040122.56563.rjw@sisk.pl>
-References: <B28E9812BAF6E2498B7EC5C427F293A40267F659@orsmsx415.amr.corp.intel.com>
+From: "Guilherme Salgado" <gsalgado@gmail.com>
+Subject: Re: Thinkpad suspend-to-disk regression
+Date: Thu, 3 May 2007 20:34:43 -0300
+Message-ID: <3d7cf86d0705031634j5dc116fbwf2870773713f3b92@mail.gmail.com>
+References: <3d7cf86d0704241129i23da1b9fq93876573618e9dcd@mail.gmail.com>
+	 <200705022137.07346.rjw@sisk.pl>
+	 <3d7cf86d0705030645p2c2a2c4aib3fcfb8bad8deb0d@mail.gmail.com>
+	 <200705031923.16436.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:54956 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1767465AbXECXSR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 May 2007 19:18:17 -0400
-In-Reply-To: <B28E9812BAF6E2498B7EC5C427F293A40267F659@orsmsx415.amr.corp.intel.com>
+Received: from an-out-0708.google.com ([209.85.132.246]:61451 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754528AbXECXer (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 May 2007 19:34:47 -0400
+Received: by an-out-0708.google.com with SMTP id b33so674635ana
+        for <linux-acpi@vger.kernel.org>; Thu, 03 May 2007 16:34:47 -0700 (PDT)
+In-Reply-To: <200705031923.16436.rjw@sisk.pl>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Pavel Machek <pavel@ucw.cz>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org
 
-On Friday, 4 May 2007 00:57, Moore, Robert wrote:
-> 
-> > -----Original Message-----
-> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> > owner@vger.kernel.org] On Behalf Of Rafael J. Wysocki
-> > Sent: Thursday, May 03, 2007 1:02 PM
-> > To: ACPI Devel Maling List
-> > Cc: pm list; Pavel Machek
-> > Subject: Why don't we use _TTS method?
-> > 
-> > Hi,
-> > 
-> > I've got two questions regarding the implementation of the ACPI
-> > poweroff/sleep
-> > code in drivers/acpi/sleep and drivers/acpi/hardware .
-> > 
-> > 1) We don't seem to use the _TTS system-control method, although the
-> ACPI
-> > specification (ACPI 3.0b) says that this method should be used for
-> > intiating
-> > and finishing power transitions.  Could you please tell me why we
-> don't
-> > use it?
-> > 
-> [Moore, Robert] 
-> 
-> Probably because it's fairly new and it takes a long time for these
-> things to appear in real machines. Also, needs to be supported in
-> Windows before we ever see it in real machines.
+On 5/3/07, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Thursday, 3 May 2007 15:45, Guilherme Salgado wrote:
+> > On 5/2/07, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > > On Wednesday, 2 May 2007 19:28, Guilherme Salgado wrote:
+> > > > On 4/25/07, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > > > > On Wednesday, 25 April 2007 04:25, Guilherme Salgado wrote:
+> > > > > > On 4/24/07, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > > > > > > On Tuesday, 24 April 2007 20:29, Guilherme Salgado wrote:
+> > > > > > > > (I've already sent this to linux-acpi but got no response so far, so I
+> > > > > > > > thought it could be a good idea to send directly to you)
+> > > > > > > >
+> > > > > > > > Hi there,
+> > > > > > > >
+> > > > > > > > I recently noticed that my thinkpad T60 would lose the sound after
+> > > > > > > > being suspended to disk (https://launchpad.net/bugs/80893), requiring
+> > > > > > > > a cold restart to fix it. After some git-bisect work I found this
+> > > > > > > > regression was a consequence of
+> > > > > > > > http://git.kernel.org/?p=linux/kernel/git/lenb/linux-acpi-2.6.git;a=commitdiff;h=9185cfa92507d07ac787bc73d06c42222eec7239
+> > > > > > > > (patch inlined here)
+> > > > > > > >
+> > > > > > > > Is there any chance of fixing the regression this introduced without
+> > > > > > > > reverting it? Please let me know if you want any other info or have a
+> > > > > > > > patch for me to try.
+> > > > > > >
+> > > > > > > You don't need a patch, I think.  Please try
+> > > > > > >
+> > > > > > > # echo shutdown > /sys/power/disk
+> > > > > > >
+> > > > > > > before the suspend (assuming you use the built-in swsusp).  If that works,
+> > > > > > > just make your configuration scripts echo 'shutdown' to /sys/power/disk at
+> > > > > > > system startup.
+> > > > > > >
+> > > > > >
+> > > > > > I use Ubuntu's default /etc/acpi/hibernate.sh, which already sets
+> > > > > > /sys/power/disk to shutdown before echoing "disk" to /sys/power/state.
+> > > > >
+> > > > > In that case it's impossible that the commit you have identified causes the
+> > > > > problem to happen.
+> > > > >
+> > > > > It doesn't even touch the 'shutdown' code path.
+> > > >
+> > > > Is it be possible that the change to /sys/power/disk is not doing what
+> > > > it should? I think that's likely to be the case because I got a bunch
+> > > > of people to try a kernel with the patch reverted and it fixed the
+> > > > problem they were having.
+> > > >
+> > > > The most recent comments at https://bugs.launchpad.net/+bugs/80893 are
+> > > > all confirming that the kernel at
+> > > > http://rookery.ubuntu.com/~kyle/kernels/salgado/2007-04-25/ fixes
+> > > > their problem.
+> > > >
+> > > > I'd be glad to do anything to further debug this if you can give me
+> > > > some pointers.
+> > >
+> > > Well, the problem is that we have switched to the platform mode by default
+> > > and "echo shutdown > /sys/power/disk" before the suspend should get the old
+> > > behavior back
+> > >
+> >
+> > Right, that's why I asked if it'd be possible that echoing "shutdown"
+> > to /sys/power/disk could somehow be a no-op in this case.
+> >
+> > > Please try to apply the appended patch instead of reverting the entire commit
+> > > and see if the problem is still present.
+> > >
+> >
+> > That works just fine, yes. Are you willing to change the default back
+> > to PM_DISK_SHUTDOWN or should we find out why "echo shutdown >
+> > /sys/power/disk" is not having the same effect as changing the
+> > default, as it should?
+>
+> In fact, I'd rather would like to find out what's the reason for the
+> "echo shutdown > /sys/power/disk" not working.
+>
 
-Hmm, it already was in the 3.0 spec from 2004, so it doesn't seem to be
-that new.  Still, I'm not an expert ...
+So do I, but I'm sort of short on ideas for how to debug this (IANAKD
+:-); that's why I asked if you'd have any pointers.
 
-> > 2) In the functions acpi_enter_sleep_state_prep(),
-> > acpi_enter_sleep_state(),
-> > acpi_leave_sleep_state() we manipulate GPEs quite extensively (we
-> disable
-> > and enable them for a couple of times during a transition), although
-> the
-> > specification doesn't tell anything about that explicitly.  Could you
-> > please
-> > explain to me what the purpose of that is?
-> > 
-> [Moore, Robert] 
-> 
-> There a wake GPEs and runtime GPEs that need to be managed separately.
-> We want to make sure that only the "Wake" GPEs are enabled as we goto
-> sleep.
+> Besides, could you please check if the problems with the 'platform' mode
+> suspend persist with the appended patch applied?
+>
 
-I understand that, but the runtime GPEs seem to be disabled before we call
-device drivers' .suspend() routines (ie. before the devices are placed in the
-appropriate Dx states) and that's the point I don't quite get.  Is there a
-technical reason for doing it in this particular place?
+Yep, the problem persists, unfortunately.
 
-Thanks a lot for your reply.
-
-Greetings,
-Rafael
+Cheers,
+Guilherme
