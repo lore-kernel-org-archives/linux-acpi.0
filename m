@@ -1,96 +1,128 @@
-From: "Guilherme Salgado" <gsalgado@gmail.com>
-Subject: Re: Thinkpad suspend-to-disk regression
-Date: Thu, 3 May 2007 10:45:12 -0300
-Message-ID: <3d7cf86d0705030645p2c2a2c4aib3fcfb8bad8deb0d@mail.gmail.com>
-References: <3d7cf86d0704241129i23da1b9fq93876573618e9dcd@mail.gmail.com>
-	 <200704251447.53288.rjw@sisk.pl>
-	 <3d7cf86d0705021028k6ec2770eh3e4ae68385353442@mail.gmail.com>
-	 <200705022137.07346.rjw@sisk.pl>
+From: Dave Jones <davej@redhat.com>
+Subject: Re: [PATCH -mm] working 3D/DRI intel-agp.ko resume for i815 chip; Intel chipset testers wanted! (was: Re: intel-agp PM experiences ...)
+Date: Thu, 3 May 2007 11:47:36 -0400
+Message-ID: <20070503154736.GA23922@redhat.com>
+References: <20070116135727.GA2831@elf.ucw.cz> <d120d5000701160608t73db4405n5d157db43899776a@mail.gmail.com> <20070116142432.GA6171@elf.ucw.cz> <d120d5000701161325h112a9299w944763b7f1032a61@mail.gmail.com> <20070117004012.GA11140@rhlx01.hs-esslingen.de> <20070117005755.GB6270@elf.ucw.cz> <20070118115105.GA28233@rhlx01.hs-esslingen.de> <20070118231650.GA5352@ucw.cz> <20070501145947.GA19953@rhlx01.hs-esslingen.de> <20070502101718.GC10245@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.240]:10666 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031284AbXECNpO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 May 2007 09:45:14 -0400
-Received: by an-out-0708.google.com with SMTP id b33so492483ana
-        for <linux-acpi@vger.kernel.org>; Thu, 03 May 2007 06:45:14 -0700 (PDT)
-In-Reply-To: <200705022137.07346.rjw@sisk.pl>
+Received: from mx1.redhat.com ([66.187.233.31]:57188 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S637768AbXECPr5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 3 May 2007 11:47:57 -0400
 Content-Disposition: inline
+In-Reply-To: <20070502101718.GC10245@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Andreas Mohr <andi@rhlx01.fht-esslingen.de>, Andrew Morton <akpm@osdl.org>, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>, andi@lisas.de
 
-On 5/2/07, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Wednesday, 2 May 2007 19:28, Guilherme Salgado wrote:
-> > On 4/25/07, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > > On Wednesday, 25 April 2007 04:25, Guilherme Salgado wrote:
-> > > > On 4/24/07, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > > > > On Tuesday, 24 April 2007 20:29, Guilherme Salgado wrote:
-> > > > > > (I've already sent this to linux-acpi but got no response so far, so I
-> > > > > > thought it could be a good idea to send directly to you)
-> > > > > >
-> > > > > > Hi there,
-> > > > > >
-> > > > > > I recently noticed that my thinkpad T60 would lose the sound after
-> > > > > > being suspended to disk (https://launchpad.net/bugs/80893), requiring
-> > > > > > a cold restart to fix it. After some git-bisect work I found this
-> > > > > > regression was a consequence of
-> > > > > > http://git.kernel.org/?p=linux/kernel/git/lenb/linux-acpi-2.6.git;a=commitdiff;h=9185cfa92507d07ac787bc73d06c42222eec7239
-> > > > > > (patch inlined here)
-> > > > > >
-> > > > > > Is there any chance of fixing the regression this introduced without
-> > > > > > reverting it? Please let me know if you want any other info or have a
-> > > > > > patch for me to try.
-> > > > >
-> > > > > You don't need a patch, I think.  Please try
-> > > > >
-> > > > > # echo shutdown > /sys/power/disk
-> > > > >
-> > > > > before the suspend (assuming you use the built-in swsusp).  If that works,
-> > > > > just make your configuration scripts echo 'shutdown' to /sys/power/disk at
-> > > > > system startup.
-> > > > >
-> > > >
-> > > > I use Ubuntu's default /etc/acpi/hibernate.sh, which already sets
-> > > > /sys/power/disk to shutdown before echoing "disk" to /sys/power/state.
-> > >
-> > > In that case it's impossible that the commit you have identified causes the
-> > > problem to happen.
-> > >
-> > > It doesn't even touch the 'shutdown' code path.
-> >
-> > Is it be possible that the change to /sys/power/disk is not doing what
-> > it should? I think that's likely to be the case because I got a bunch
-> > of people to try a kernel with the patch reverted and it fixed the
-> > problem they were having.
-> >
-> > The most recent comments at https://bugs.launchpad.net/+bugs/80893 are
-> > all confirming that the kernel at
-> > http://rookery.ubuntu.com/~kyle/kernels/salgado/2007-04-25/ fixes
-> > their problem.
-> >
-> > I'd be glad to do anything to further debug this if you can give me
-> > some pointers.
->
-> Well, the problem is that we have switched to the platform mode by default
-> and "echo shutdown > /sys/power/disk" before the suspend should get the old
-> behavior back
->
+On Wed, May 02, 2007 at 12:17:18PM +0200, Pavel Machek wrote:
 
-Right, that's why I asked if it'd be possible that echoing "shutdown"
-to /sys/power/disk could somehow be a no-op in this case.
+ > >  #define INTEL_I820_RDCR		0x51
+ > > @@ -664,7 +671,7 @@
+ > >  	if ((pg_start + mem->page_count) > num_entries)
+ > >  		goto out_err;
+ > >  
+ > > -	/* The i830 can't check the GTT for entries since its read only,
+ > > +	/* The i830 can't check the GTT for entries since it's read-only,
+ > >  	 * depend on the caller to make the correct offset decisions.
+ > >  	 */
+ > >  
+ > > @@ -787,7 +794,7 @@
+ > >  	if ((pg_start + mem->page_count) > num_entries)
+ > >  		goto out_err;
+ > >  
+ > > -	/* The i915 can't check the GTT for entries since its read only,
+ > > +	/* The i915 can't check the GTT for entries since it's read-only,
+ > >  	 * depend on the caller to make the correct offset decisions.
+ > >  	 */
+ > 
+ > You should not do cleanups at the same time as code changes.
 
-> Please try to apply the appended patch instead of reverting the entire commit
-> and see if the problem is still present.
->
+Indeed.
 
-That works just fine, yes. Are you willing to change the default back
-to PM_DISK_SHUTDOWN or should we find out why "echo shutdown >
-/sys/power/disk" is not having the same effect as changing the
-default, as it should?
+ > > @@ -1103,8 +1110,8 @@
+ > >  	/* attbase - aperture base */
+ > >  	/* the Intel 815 chipset spec. says that bits 29-31 in the
+ > >  	* ATTBASE register are reserved -> try not to write them */
+ > > -	if (agp_bridge->gatt_bus_addr & INTEL_815_ATTBASE_MASK) {
+ > > -		printk (KERN_EMERG PFX "gatt bus addr too high");
+ > > +	if (agp_bridge->gatt_bus_addr & I815_ATTBASE_MASK) {
+ > > +		printk (KERN_EMERG PFX "gatt bus addr too high\n");
+ > >  		return -EINVAL;
+ > >  	}
+ > >  
+ > > @@ -1119,7 +1126,7 @@
+ > >  	agp_bridge->gart_bus_addr = (temp & PCI_BASE_ADDRESS_MEM_MASK);
+ > >  
+ > >  	pci_read_config_dword(agp_bridge->dev, INTEL_ATTBASE, &addr);
+ > > -	addr &= INTEL_815_ATTBASE_MASK;
+ > > +	addr &= I815_ATTBASE_MASK;
+ > >  	addr |= agp_bridge->gatt_bus_addr;
+ > >  	pci_write_config_dword(agp_bridge->dev, INTEL_ATTBASE, addr);
+ > 
+ > And I guess macro search&replace counts as cleanup, too. It would be
+ > nice to submit them separately and first.
 
-Cheers,
-Guilherme
+I'm not a big fan of the s/INTEL_/I_/ change to be honest.
+I'd prefer we didn't change this, as a) there may be additional
+patches in flight which touch intel-agp.c depending on those defines,
+b) it'll make future changes to intel-agp.c harder to backport to
+-stable releases, and c) it doesn't really add any value.
+
+ > > @@ -1355,7 +1362,7 @@
+ > >  	pci_write_config_dword(agp_bridge->dev, INTEL_ATTBASE, agp_bridge->gatt_bus_addr);
+ > >  
+ > >  	/* agpctrl */
+ > > -	pci_write_config_dword(agp_bridge->dev, INTEL_AGPCTRL, 0x0000);
+ > > +	pci_write_config_dword(agp_bridge->dev, INTEL_AGPCTRL, 0x00000000);
+ > 
+ > Huh?
+
+harmless, but ok.
+
+ > > +			pci_read_config_dword(pdev, p->reg, &p->value);
+ > > +	}
+ > > +	return 1;
+ > > +}
+ > 
+ > Should this betwo functions, one for save, one for restore, with "to
+ > save" array being global?
+
+yes.
+
+ > > +/*
+ > > + * set DEBUG_AGP_PM to 1 if your AGP chipset has issues resuming
+ > > + * (machine lockups due to non-restored hardware registered values),
+ > > + * then figure out from the log which registers have to be restored manually,
+ > > + * then add specific support for your chipset, similar to what already exists
+ > 
+ > Can we get debugging stuff separately?
+
+ACK.
+
+ > > @@ -2106,6 +2282,12 @@
+ > >  {
+ > >  	if (agp_off)
+ > >  		return -EINVAL;
+ > > +	/* let people know that this is an important place to investigate at in case of resume lockups */
+ > > +	printk(KERN_INFO PFX
+ > > +		"suspend/resume of intel-agp.ko is NOT always stable for all Intel AGP\n"
+ > > +		"chipset/BIOS combos, may cause resume lockups when DRI (3D accel) active,\n"
+ > > +		"in AGP (non-PCI) mode! (see DEBUG_AGP_PM in intel-agp.c source to investigate)\n"
+ > > +	);
+ > 
+ > I'm not sure if we want such big/ugly warnings. Can you get it to one
+ > line, at least?
+
+I'd drop this completely. The majority of users will never see it anyway,
+and the boot process already spews so much stuff that it'll just get lost
+in the noise.
+
+Thanks,
+
+	Dave
+
+-- 
+http://www.codemonkey.org.uk
