@@ -1,186 +1,170 @@
-From: Markus Feldmann <feldmann_markus@gmx.de>
-Subject: Re: syntax error, unexpected PARSEOP_NAMESEG, expecting PARSEOP_DEFINITIONBLOCK
-Date: Fri, 04 May 2007 18:30:59 +0200
-Message-ID: <463B5FC3.9030300@gmx.de>
-References: <46370B26.2080704@gmx.de>	 <8f8ff01d0705010308q197c7314o1f3dd34670b58c05@mail.gmail.com>	 <46371966.2020300@gmx.de>	 <8f8ff01d0705010638x5d4d398dk6f754e1f2cd2198a@mail.gmail.com>	 <463982CA.1060806@gmx.de> <8f8ff01d0705030912p1694820by1b61a85604d62916@mail.gmail.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: Why don't we use _TTS method?
+Date: Fri, 4 May 2007 11:10:47 -0700
+Message-ID: <B28E9812BAF6E2498B7EC5C427F293A4026B61BC@orsmsx415.amr.corp.intel.com>
+References: <200705041050.41439.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:36448 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1031346AbXEDQai (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 4 May 2007 12:30:38 -0400
-In-Reply-To: <8f8ff01d0705030912p1694820by1b61a85604d62916@mail.gmail.com>
+Received: from mga01.intel.com ([192.55.52.88]:8425 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1031486AbXEDSKy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 May 2007 14:10:54 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <200705041050.41439.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <aystarik@gmail.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Pavel Machek <pavel@ucw.cz>
 
-Alexey Starikovskiy schrieb:
-> I already received your dsdt.dsl to my mailbox. I answered as well,
-> but your provider seem to block whole gmail.com domain.
-> Lets try to go without attachements:
-> First error -- move Stall() function out of Return().
-> Second error -- you have wrong length for optional _PSD object, so
-> iasl puts everything after first item as garbage. just delete whole
-> Name(_PSD {} from both places, it will ok.
+"New" is of course relative. In the ACPI world, anything about ACPI 3.0
+is still considered "new". Windows has yet to fully implement ACPI 2.0,
+let alone ACPI 3.0...
+
+Please point me to where the "spec spec seems to suggest that _GTS
+should be executed with interrupts off", as I don't think it should.
+
+In any case, the AML interpreter cannot be executed with interrupts off.
+There is way too much going on in that code.
+
+Bob
+
+
+> -----Original Message-----
+> From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
+> Sent: Friday, May 04, 2007 1:51 AM
+> To: Alexey Starikovskiy
+> Cc: Moore, Robert; ACPI Devel Maling List; pm list; Pavel Machek
+> Subject: Re: Why don't we use _TTS method?
 > 
-> Regards,
-> Alex.
-Hi Alex,
-
-i have changed some settings in my gmx account to receive mails from
-gmail.
-It should work now.
-
-I have moved out Stall(0x0F),
-########################
-{
-	Stall (0x0F)
-	Return ()
-}
-########################
-
-and i have deleted,
-###########################
-Name (_PSD, Package (0x01)
-{
-	Package (0x05)
-	{
-		0x05
-		0x00
-		0x00000000,
-		0x000000FD
-	}
-})
-#############################
-
-
-But then i got this errors,
-#########################################################
-dsdt_2.6.21.dsl    20:     Name (_T00, 0x00)
-Warning  1097 -                     ^ Unknown reserved name (_T00)
-
-dsdt_2.6.21.dsl  6218:             Acquire (MUTE, 0x03E8)
-Warning  1103 -   Possible operator timeout is ignored ^
-
-dsdt_2.6.21.dsl  6232:             Acquire (MUTE, 0x03E8)
-Warning  1103 -   Possible operator timeout is ignored ^
-
-dsdt_2.6.21.dsl  6247:             Acquire (MUTE, 0x03E8)
-Warning  1103 -   Possible operator timeout is ignored ^
-
-dsdt_2.6.21.dsl  6262:             Acquire (MUTE, 0x0FFF)
-Warning  1103 -   Possible operator timeout is ignored ^
-
-dsdt_2.6.21.dsl  6276:             Acquire (MUTE, 0x03E8)
-Warning  1103 -   Possible operator timeout is ignored ^
-
-dsdt_2.6.21.dsl  6291:             Acquire (MUTE, 0x03E8)
-Warning  1103 -   Possible operator timeout is ignored ^
-
-dsdt_2.6.21.dsl  6306:             Acquire (MUTE, 0x03E8)
-Warning  1103 -   Possible operator timeout is ignored ^
-
-dsdt_2.6.21.dsl  6504:     Method (WFZF, 1, NotSerialized)
-Warning  1086 -                       ^ Not all control paths return a
-value (WFZF)
-
-dsdt_2.6.21.dsl  6520:         #Return ()
-Error    4094 -                ^ Invalid character (0x23), expecting ASL
-keyword or name
-
-dsdt_2.6.21.dsl  6597:         #Name (_PSD, Package (0x01)
-Error    4094 -                ^ Invalid character (0x23), expecting ASL
-keyword or name
-
-dsdt_2.6.21.dsl  6598:         #{
-Error    4094 -                ^ Invalid character (0x23), expecting ASL
-keyword or name
-
-dsdt_2.6.21.dsl  6599:         #    Package (0x05)
-Error    4094 -                ^ Invalid character (0x23), expecting ASL
-keyword or name
-
-dsdt_2.6.21.dsl  6600:         #    {
-Error    4094 -                ^ Invalid character (0x23), expecting ASL
-keyword or name
-
-dsdt_2.6.21.dsl  6601:         #        0x05,
-Error    4094 -                ^ Invalid character (0x23), expecting ASL
-keyword or name
-
-dsdt_2.6.21.dsl  6602:         #        0x00,
-Error    4094 -                ^ Invalid character (0x23), expecting ASL
-keyword or name
-
-dsdt_2.6.21.dsl  6603:         #        0x00000000,
-Error    4094 -                ^ Invalid character (0x23), expecting ASL
-keyword or name
-
-dsdt_2.6.21.dsl  6604:         #        0x000000FD
-Error    4094 -                ^ Invalid character (0x23), expecting ASL
-keyword or name
-
-dsdt_2.6.21.dsl  6605:         #    }
-Error    4094 -                ^ Invalid character (0x23), expecting ASL
-keyword or name
-
-dsdt_2.6.21.dsl  6606:         #})
-Error    4094 -                ^ Invalid character (0x23), expecting ASL
-keyword or name
-
-dsdt_2.6.21.dsl  6607:         Zero
-Error    4094 -                   ^ syntax error, unexpected PARSEOP_ZERO
-
-dsdt_2.6.21.dsl  6662:         #Name (_PSD, Package (0x01)
-Error    4094 -                ^ Invalid character (0x23), expecting ASL
-keyword or name
-
-dsdt_2.6.21.dsl  6663:         #{
-Error    4094 -                ^ Invalid character (0x23), expecting ASL
-keyword or name
-
-dsdt_2.6.21.dsl  6664:         #    Package (0x05)
-Error    4094 -                ^ Invalid character (0x23), expecting ASL
-keyword or name
-
-dsdt_2.6.21.dsl  6665:         #    {
-Error    4094 -                ^ Invalid character (0x23), expecting ASL
-keyword or name
-
-dsdt_2.6.21.dsl  6666:         #        0x05,
-Error    4094 -                ^ Invalid character (0x23), expecting ASL
-keyword or name
-
-dsdt_2.6.21.dsl  6667:         #        0x00,
-Error    4094 -                ^ Invalid character (0x23), expecting ASL
-keyword or name
-
-dsdt_2.6.21.dsl  6668:         #        0x00000000,
-Error    4094 -                ^ Invalid character (0x23), expecting ASL
-keyword or name
-
-dsdt_2.6.21.dsl  6669:         #        0x000000FD
-Error    4094 -                ^ Invalid character (0x23), expecting ASL
-keyword or name
-
-dsdt_2.6.21.dsl  6670:         #    }
-Error    4094 -                ^ Invalid character (0x23), expecting ASL
-keyword or name
-
-dsdt_2.6.21.dsl  6671:         #})
-Error    4094 -                ^ Invalid character (0x23), expecting ASL
-keyword or name
-
-dsdt_2.6.21.dsl  6672:         Zero
-Error    4094 -                   ^ syntax error, unexpected PARSEOP_ZERO
-
-ASL Input:  dsdt_2.6.21.dsl - 7678 lines, 256455 bytes, 2870 keywords
-Compilation complete. 23 Errors, 9 Warnings, 0 Remarks, 701 Optimizations
-
-#########################################################
-
-
-bye Markus
-
+> Hi Alexey,
+> 
+> On Friday, 4 May 2007 06:34, Alexey Starikovskiy wrote:
+> > Rafael,
+> >
+> > code in prepare() and enter() is split as code with interrupts on
+and
+> > code with interrupts off.
+> 
+> I see.  Still, the spec seems to suggest that _GTS should be executed
+with
+> interrupts off, but we run it in the 'interrupts on' part of code.
+Isn't
+> that
+> wrong?
+> 
+> > thus it doesn't quite follow a spec in regards of driver suspend.
+> 
+> Yes.
+> 
+> > Basically we need to either split it to smaller pieces or have hooks
+> > to control interrupts/driver suspend from this code.
+> 
+> I'd like to split it and I'd like to figure out *how* to do this.
+More
+> precisely, I'd like to learn which part of acpi_pm_prepare() should be
+> executed before device_suspend() and which part can be run after it.
+> Analogously, I'd like to learn which part of acpi_pm_finish() needs to
+be
+> run before device_resume() and which part can be (or should be) run
+> after it.
+> 
+> Greetings,
+> Rafael
+> 
+> 
+> > On 5/4/07, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > > On Friday, 4 May 2007 00:57, Moore, Robert wrote:
+> > > >
+> > > > > -----Original Message-----
+> > > > > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> > > > > owner@vger.kernel.org] On Behalf Of Rafael J. Wysocki
+> > > > > Sent: Thursday, May 03, 2007 1:02 PM
+> > > > > To: ACPI Devel Maling List
+> > > > > Cc: pm list; Pavel Machek
+> > > > > Subject: Why don't we use _TTS method?
+> > > > >
+> > > > > Hi,
+> > > > >
+> > > > > I've got two questions regarding the implementation of the
+ACPI
+> > > > > poweroff/sleep
+> > > > > code in drivers/acpi/sleep and drivers/acpi/hardware .
+> > > > >
+> > > > > 1) We don't seem to use the _TTS system-control method,
+although
+> the
+> > > > ACPI
+> > > > > specification (ACPI 3.0b) says that this method should be used
+for
+> > > > > intiating
+> > > > > and finishing power transitions.  Could you please tell me why
+we
+> > > > don't
+> > > > > use it?
+> > > > >
+> > > > [Moore, Robert]
+> > > >
+> > > > Probably because it's fairly new and it takes a long time for
+these
+> > > > things to appear in real machines. Also, needs to be supported
+in
+> > > > Windows before we ever see it in real machines.
+> > >
+> > > Hmm, it already was in the 3.0 spec from 2004, so it doesn't seem
+to
+> be
+> > > that new.  Still, I'm not an expert ...
+> > >
+> > > > > 2) In the functions acpi_enter_sleep_state_prep(),
+> > > > > acpi_enter_sleep_state(),
+> > > > > acpi_leave_sleep_state() we manipulate GPEs quite extensively
+(we
+> > > > disable
+> > > > > and enable them for a couple of times during a transition),
+> although
+> > > > the
+> > > > > specification doesn't tell anything about that explicitly.
+Could
+> you
+> > > > > please
+> > > > > explain to me what the purpose of that is?
+> > > > >
+> > > > [Moore, Robert]
+> > > >
+> > > > There a wake GPEs and runtime GPEs that need to be managed
+> separately.
+> > > > We want to make sure that only the "Wake" GPEs are enabled as we
+> goto
+> > > > sleep.
+> > >
+> > > I understand that, but the runtime GPEs seem to be disabled before
+we
+> call
+> > > device drivers' .suspend() routines (ie. before the devices are
+placed
+> in the
+> > > appropriate Dx states) and that's the point I don't quite get.  Is
+> there a
+> > > technical reason for doing it in this particular place?
+> > >
+> > > Thanks a lot for your reply.
+> > >
+> > > Greetings,
+> > > Rafael
+> > > -
+> > > To unsubscribe from this list: send the line "unsubscribe
+linux-acpi"
+> in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > >
+> >
+> >
+> 
+> --
+> If you don't have the time to read,
+> you don't have the time or the tools to write.
+> 		- Stephen King
