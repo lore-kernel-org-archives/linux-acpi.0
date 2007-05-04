@@ -1,129 +1,52 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Thinkpad suspend-to-disk regression
-Date: Fri, 4 May 2007 11:07:45 +0200
-Message-ID: <200705041107.45968.rjw@sisk.pl>
-References: <3d7cf86d0704241129i23da1b9fq93876573618e9dcd@mail.gmail.com> <200705031923.16436.rjw@sisk.pl> <3d7cf86d0705031634j5dc116fbwf2870773713f3b92@mail.gmail.com>
+From: Johannes Berg <johannes@sipsolutions.net>
+Subject: Re: ACPI code in platform mode hibernation code paths (was: Re:
+	[PATCH] swsusp: do not use pm_ops)
+Date: Fri, 04 May 2007 12:54:32 +0200
+Message-ID: <1178276072.7408.7.camel@johannes.berg>
+References: <20070425072350.GA6866@ucw.cz> <200705021542.24988.rjw@sisk.pl>
+	 <8f8ff01d0705020711r630b8b92sdd2cd9316eb39edc@mail.gmail.com>
+	 <200705022126.47897.rjw@sisk.pl>  <20070503224807.GD13426@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-CjF+mLxeAtR+/hSspegD"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:56116 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933041AbXEDJD0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 4 May 2007 05:03:26 -0400
-In-Reply-To: <3d7cf86d0705031634j5dc116fbwf2870773713f3b92@mail.gmail.com>
-Content-Disposition: inline
+Received: from crystal.sipsolutions.net ([195.210.38.204]:38511 "EHLO
+	sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1767855AbXEDKyD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 May 2007 06:54:03 -0400
+In-Reply-To: <20070503224807.GD13426@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Guilherme Salgado <gsalgado@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Alexey Starikovskiy <aystarik@gmail.com>, linux-pm@lists.linux-foundation.org, Pekka Enberg <penberg@cs.helsinki.fi>, Nigel Cunningham <nigel@nigel.suspend2.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Friday, 4 May 2007 01:34, Guilherme Salgado wrote:
-> On 5/3/07, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Thursday, 3 May 2007 15:45, Guilherme Salgado wrote:
-> > > On 5/2/07, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > > > On Wednesday, 2 May 2007 19:28, Guilherme Salgado wrote:
-> > > > > On 4/25/07, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > > > > > On Wednesday, 25 April 2007 04:25, Guilherme Salgado wrote:
-> > > > > > > On 4/24/07, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > > > > > > > On Tuesday, 24 April 2007 20:29, Guilherme Salgado wrote:
-> > > > > > > > > (I've already sent this to linux-acpi but got no response so far, so I
-> > > > > > > > > thought it could be a good idea to send directly to you)
-> > > > > > > > >
-> > > > > > > > > Hi there,
-> > > > > > > > >
-> > > > > > > > > I recently noticed that my thinkpad T60 would lose the sound after
-> > > > > > > > > being suspended to disk (https://launchpad.net/bugs/80893), requiring
-> > > > > > > > > a cold restart to fix it. After some git-bisect work I found this
-> > > > > > > > > regression was a consequence of
-> > > > > > > > > http://git.kernel.org/?p=linux/kernel/git/lenb/linux-acpi-2.6.git;a=commitdiff;h=9185cfa92507d07ac787bc73d06c42222eec7239
-> > > > > > > > > (patch inlined here)
-> > > > > > > > >
-> > > > > > > > > Is there any chance of fixing the regression this introduced without
-> > > > > > > > > reverting it? Please let me know if you want any other info or have a
-> > > > > > > > > patch for me to try.
-> > > > > > > >
-> > > > > > > > You don't need a patch, I think.  Please try
-> > > > > > > >
-> > > > > > > > # echo shutdown > /sys/power/disk
-> > > > > > > >
-> > > > > > > > before the suspend (assuming you use the built-in swsusp).  If that works,
-> > > > > > > > just make your configuration scripts echo 'shutdown' to /sys/power/disk at
-> > > > > > > > system startup.
-> > > > > > > >
-> > > > > > >
-> > > > > > > I use Ubuntu's default /etc/acpi/hibernate.sh, which already sets
-> > > > > > > /sys/power/disk to shutdown before echoing "disk" to /sys/power/state.
-> > > > > >
-> > > > > > In that case it's impossible that the commit you have identified causes the
-> > > > > > problem to happen.
-> > > > > >
-> > > > > > It doesn't even touch the 'shutdown' code path.
-> > > > >
-> > > > > Is it be possible that the change to /sys/power/disk is not doing what
-> > > > > it should? I think that's likely to be the case because I got a bunch
-> > > > > of people to try a kernel with the patch reverted and it fixed the
-> > > > > problem they were having.
-> > > > >
-> > > > > The most recent comments at https://bugs.launchpad.net/+bugs/80893 are
-> > > > > all confirming that the kernel at
-> > > > > http://rookery.ubuntu.com/~kyle/kernels/salgado/2007-04-25/ fixes
-> > > > > their problem.
-> > > > >
-> > > > > I'd be glad to do anything to further debug this if you can give me
-> > > > > some pointers.
-> > > >
-> > > > Well, the problem is that we have switched to the platform mode by default
-> > > > and "echo shutdown > /sys/power/disk" before the suspend should get the old
-> > > > behavior back
-> > > >
-> > >
-> > > Right, that's why I asked if it'd be possible that echoing "shutdown"
-> > > to /sys/power/disk could somehow be a no-op in this case.
-> > >
-> > > > Please try to apply the appended patch instead of reverting the entire commit
-> > > > and see if the problem is still present.
-> > > >
-> > >
-> > > That works just fine, yes. Are you willing to change the default back
-> > > to PM_DISK_SHUTDOWN or should we find out why "echo shutdown >
-> > > /sys/power/disk" is not having the same effect as changing the
-> > > default, as it should?
-> >
-> > In fact, I'd rather would like to find out what's the reason for the
-> > "echo shutdown > /sys/power/disk" not working.
-> >
-> 
-> So do I, but I'm sort of short on ideas for how to debug this (IANAKD
-> :-); that's why I asked if you'd have any pointers.
 
-Hmm, can you try to start the hibernation manually?  I mean, do
+--=-CjF+mLxeAtR+/hSspegD
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-# echo 5 > /proc/sys/kernel/printk
-# echo shutdown > /sys/power/disk
+On Fri, 2007-05-04 at 00:48 +0200, Pavel Machek wrote:
 
-and check what it shows:
+> Crazy idea... could we kill hibernate_ops-like struct, and just create
+> a device for ACPI, using its suspend()/resume()/whatever callbacks to
+> do the ACPI magic?
 
-# cat /sys/power/disk
+Doesn't that have the ordering problem again? You must ensure that this
+sysdev is suspended as the last one, and that's currently impossible if
+ACPI is modular.
 
-If this is 'shutdown', then do
+johannes
 
-# echo disk > /sys/power/state
+--=-CjF+mLxeAtR+/hSspegD
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-and see if that works.
+-----BEGIN PGP SIGNATURE-----
+Comment: Johannes Berg (powerbook)
 
-If you've done it already, please let me know and I'll prepare a debug patch
-for you.
+iD8DBQBGOxDo/ETPhpq3jKURAlG2AJwN0pnM3ASCTCS07ixmYkmKTm0eWQCeJx0Y
+KFGVxDWv+FATUIUpsxC0ZBc=
+=YONC
+-----END PGP SIGNATURE-----
 
-> 
-> > Besides, could you please check if the problems with the 'platform' mode
-> > suspend persist with the appended patch applied?
-> >
-> 
-> Yep, the problem persists, unfortunately.
+--=-CjF+mLxeAtR+/hSspegD--
 
-OK, so much for that.  Thanks for testing.
-
-Greetings,
-Rafael
