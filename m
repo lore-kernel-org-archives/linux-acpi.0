@@ -1,41 +1,40 @@
-From: Andreas Mohr <andi@rhlx01.hs-esslingen.de>
-Subject: Re: [PATCH -mm] working 3D/DRI intel-agp.ko resume for i815 chip; Intel chipset testers wanted! (was: Re: intel-agp PM experiences ...)
-Date: Sat, 5 May 2007 19:56:05 +0200
-Message-ID: <20070505175605.GA24615@rhlx01.hs-esslingen.de>
-References: <20070116135727.GA2831@elf.ucw.cz> <d120d5000701160608t73db4405n5d157db43899776a@mail.gmail.com> <20070116142432.GA6171@elf.ucw.cz> <d120d5000701161325h112a9299w944763b7f1032a61@mail.gmail.com> <20070117004012.GA11140@rhlx01.hs-esslingen.de> <20070117005755.GB6270@elf.ucw.cz> <20070118115105.GA28233@rhlx01.hs-esslingen.de> <20070118231650.GA5352@ucw.cz> <20070501145947.GA19953@rhlx01.hs-esslingen.de> <20070502101718.GC10245@elf.ucw.cz>
+From: "Luming Yu" <luming.yu@gmail.com>
+Subject: Re: [PATCH 8/9] ACPI: thinkpad-acpi: add sysfs support to hotkey subdriver
+Date: Sun, 6 May 2007 17:33:56 +0800
+Message-ID: <3877989d0705060233g44a0b461rd6d13911bb63593a@mail.gmail.com>
+References: <11777220172751-git-send-email-hmh@hmh.eng.br>
+	 <11777220182109-git-send-email-hmh@hmh.eng.br>
+	 <200704282148.00041.lenb@kernel.org>
+	 <20070429041543.GB29832@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rhlx01.hs-esslingen.de ([129.143.116.10]:35298 "EHLO
-	rhlx01.hs-esslingen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934164AbXEER4H (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 5 May 2007 13:56:07 -0400
+Received: from wr-out-0506.google.com ([64.233.184.237]:11174 "EHLO
+	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754709AbXEFJeE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 May 2007 05:34:04 -0400
+Received: by wr-out-0506.google.com with SMTP id 76so1282781wra
+        for <linux-acpi@vger.kernel.org>; Sun, 06 May 2007 02:34:02 -0700 (PDT)
+In-Reply-To: <20070429041543.GB29832@khazad-dum.debian.net>
 Content-Disposition: inline
-In-Reply-To: <20070502101718.GC10245@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Andreas Mohr <andi@rhlx01.fht-esslingen.de>, Andrew Morton <akpm@osdl.org>, davej@codemonkey.org.uk, dri-devel <dri-devel@lists.sourceforge.net>, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, kernel list <linux-kernel@vger.kernel.org>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Len Brown <lenb@kernel.org>, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, luming.yu@intel.com
 
-[dri-devel added]
+> > I was wondering how you know what action should be associated with what key?
+>
+> I don't.  I could though, using model-specific knowledge (i.e. a table) and
+> help from the linux thinkpad community and thinkwiki.org.
 
-Hi,
+I don't like the idea of stuffing kernel space with model-specific
+knowledge (i.e. a table) even if it is in a driver. These tables
+should be in user space...
 
-On Wed, May 02, 2007 at 12:17:18PM +0200, Pavel Machek wrote:
-> > Took way longer than I'd have wanted it to (nice daughter and stuff ;),
-> > but here it is.
-> 
-> No problem.
-> 
-> Ok, I guess we'll  need a real commit log.
+>
+> We deliver to userspace something like "Fn+F1" pressed, instead of "blank
+> screen" pressed, because "blank screen" is in different keys depending on
+> thinkpad model.
 
-Thanks to all the people who replied and sent some suggestions!
-
-Due to the "scathing" (well, thorough ;) code review I'll send a patch
-with those cleanups against 2.6.21-mm1 very soon.
-(I was actually a bit surprised to see akpm commit this thing after this
-review mail, but it's ok since it lets people experiment with it).
-
-Thanks!
-
-Andreas Mohr
+Yes, you should generate generic key event through input layer..
