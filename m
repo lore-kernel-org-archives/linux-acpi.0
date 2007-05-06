@@ -1,40 +1,56 @@
 From: "Luming Yu" <luming.yu@gmail.com>
-Subject: Re: [PATCH 8/9] ACPI: thinkpad-acpi: add sysfs support to hotkey subdriver
-Date: Sun, 6 May 2007 17:33:56 +0800
-Message-ID: <3877989d0705060233g44a0b461rd6d13911bb63593a@mail.gmail.com>
-References: <11777220172751-git-send-email-hmh@hmh.eng.br>
-	 <11777220182109-git-send-email-hmh@hmh.eng.br>
-	 <200704282148.00041.lenb@kernel.org>
-	 <20070429041543.GB29832@khazad-dum.debian.net>
+Subject: Re: [PATCH] ACPI video: Don't export sysfs backlight interface if query _BCL fail
+Date: Sun, 6 May 2007 17:35:52 +0800
+Message-ID: <3877989d0705060235p7bb7e58j1cf3172f3971c7c5@mail.gmail.com>
+References: <200704271218.07411.dkukawka@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wr-out-0506.google.com ([64.233.184.237]:11174 "EHLO
-	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754709AbXEFJeE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 May 2007 05:34:04 -0400
-Received: by wr-out-0506.google.com with SMTP id 76so1282781wra
-        for <linux-acpi@vger.kernel.org>; Sun, 06 May 2007 02:34:02 -0700 (PDT)
-In-Reply-To: <20070429041543.GB29832@khazad-dum.debian.net>
+Received: from nz-out-0506.google.com ([64.233.162.237]:10074 "EHLO
+	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933471AbXEFJfx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 May 2007 05:35:53 -0400
+Received: by nz-out-0506.google.com with SMTP id o1so1269784nzf
+        for <linux-acpi@vger.kernel.org>; Sun, 06 May 2007 02:35:53 -0700 (PDT)
+In-Reply-To: <200704271218.07411.dkukawka@suse.de>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Len Brown <lenb@kernel.org>, ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, luming.yu@intel.com
+To: Danny Kukawka <dkukawka@suse.de>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, luming.yu@intel.com
 
-> > I was wondering how you know what action should be associated with what key?
+Ack!
+
+
+On 4/27/07, Danny Kukawka <dkukawka@suse.de> wrote:
+> Hi,
 >
-> I don't.  I could though, using model-specific knowledge (i.e. a table) and
-> help from the linux thinkpad community and thinkwiki.org.
-
-I don't like the idea of stuffing kernel space with model-specific
-knowledge (i.e. a table) even if it is in a driver. These tables
-should be in user space...
-
+> currently the acpi video module export the backlight interface to sysfs also
+> if acpi_video_device_lcd_query_levels() fails to read _BLC method (e.g.
+> because the method is not available). In this case the userspace don't know
+> which brightness level are supported and can't set a brightness level (echo
+> return with: "write error: Invalid Argument"). This happend e.g. on a ASUS
+> RF1 (correct supported by the asus-laptop module).
 >
-> We deliver to userspace something like "Fn+F1" pressed, instead of "blank
-> screen" pressed, because "blank screen" is in different keys depending on
-> thinkpad model.
-
-Yes, you should generate generic key event through input layer..
+> The video module should not export the backlight interface if query _BLC fail,
+> because you can't set anything from userspace and this make it useless.
+>
+> See also: http://bugzilla.kernel.org/show_bug.cgi?id=8375
+>
+> Danny
+>
+> From: Danny Kukawka <dkukawka@suse.de>
+> Subject: ACPI video: Don't export sysfs backlight interface if query _BLC fail
+>
+> if qeuery _BCL fail (e.g. because the method is missing in BIOS) don't
+> export the backlight interface to sysfs.
+>
+> Signed-off-by: Danny Kukawka <dkukawka@suse.de>
+> ---
+>  video.c |   78 ++++++++++++++++++++++++++++--------------------------
+>  1 file changed, 41 insertions(+), 37 deletions(-)
+>
+> --- linux-2.6.21/drivers/acpi/video.c   2007-04-26 13:50:51.000000000 +0200
+> +++ linux-2.6.21/drivers/acpi/video.c   2007-04-26 13:50:53.000000000 +0200
+> @@ -531,7 +531,6 @@
