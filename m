@@ -1,57 +1,96 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 0/4] asus-laptop
-Date: Mon, 07 May 2007 12:00:01 +0200
-Message-ID: <1178532004.1231.982.camel@queen.suse.de>
-References: <200705061445.03504.corentincj@iksaif.net>
-Reply-To: trenn@suse.de
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: [patch] ACPI: Keep TSC stable, when lapic_timer_c2_ok is set
+Date: Mon, 07 May 2007 18:33:31 +0200
+Message-ID: <1178555611.3042.13.camel@localhost.localdomain>
+Reply-To: tglx@linutronix.de
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns2.suse.de ([195.135.220.15]:49745 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754274AbXEGKAF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 May 2007 06:00:05 -0400
-In-Reply-To: <200705061445.03504.corentincj@iksaif.net>
+Received: from www.osadl.org ([213.239.205.134]:47963 "EHLO mail.tglx.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S965749AbXEGQas (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 May 2007 12:30:48 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: corentincj@iksaif.net
-Cc: linux-acpi@vger.kernel.org, Danny Kukawka <dkukawka@suse.de>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-On Sun, 2007-05-06 at 14:45 +0200, Corentin CHARY wrote:
-> Hi Len,
-> Some asus-laptop patchs for 2.6.22 =).
+Len,
 
-I recently had a look at an ASUS and wanted to try out
-the video module.
-The laptop had the ACPI specific general brightness
-and other video AML functions.
-But also the ATKxy Asus specific device that asus_acpi
-makes use of.
-
-In AML code one could see, that the use of those was
-exclusive, a variable (or method?) was used to either
-return out immediately from ATKxy or general ACPI funcs
-(the ones from ACPI spec. Appendix B).
-
-On a quick try asus_acpi worked, video did not.
-
-It looks as if asus begins to move to the spec?
-Some problems might come up:
-  - Interference between asus_acpi and video
-  - Which model works better with what kind
-    of method (there might come a break point,
-    (possibly Vista?), when the ACPI spec functions
-    work better than ATKxy the asus specific device
-    vanishes totally at some point).
-
-While I like the idea that vendors move on to the standard, I fear
-some more very machine specific problems might hit us in future...
-
-Just some info, if anyone finds out more, I'd be interested in
-any related info...
+can you please integrate the patch into your git tree to make Andrew
+happier. I'd like to see this in 2.6.22 if possible.
 
 Thanks,
 
-   Thomas
+	tglx
+
+------------------------>
+
+Subject: ACPI: Keep TSC stable, when lapic_timer_c2_ok is set
+
+The local apic timer stop in C2 resp. C3 states is coupled with the
+stop of the TSC. When the local apic timer is marked stable in C2
+on the kernel commandline, then keep the TSC marked stable in C2 as well.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+
+---
+ drivers/acpi/processor_idle.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
+
+Index: linux-acpi-2.6/drivers/acpi/processor_idle.c
+===================================================================
+--- linux-acpi-2.6.orig/drivers/acpi/processor_idle.c
++++ linux-acpi-2.6/drivers/acpi/processor_idle.c
+@@ -305,18 +305,23 @@ static void acpi_state_timer_broadcast(s
+ 				       struct acpi_processor_cx *cx,
+ 				       int broadcast)
+ {
+-#ifdef CONFIG_GENERIC_CLOCKEVENTS
+-
+ 	int state = cx - pr->power.states;
+ 
+ 	if (state >= pr->power.timer_broadcast_on_state) {
++
++#ifdef CONFIG_GENERIC_CLOCKEVENTS
+ 		unsigned long reason;
+ 
+ 		reason = broadcast ?  CLOCK_EVT_NOTIFY_BROADCAST_ENTER :
+ 			CLOCK_EVT_NOTIFY_BROADCAST_EXIT;
+ 		clockevents_notify(reason, &pr->id);
+-	}
+ #endif
++
++#ifdef CONFIG_GENERIC_TIME
++		/* TSC halts in C2/3, so notify users */
++		mark_tsc_unstable();
++#endif
++	}
+ }
+ 
+ #else
+@@ -481,10 +489,6 @@ static void acpi_processor_idle(void)
+ 		/* Get end time (ticks) */
+ 		t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+ 
+-#ifdef CONFIG_GENERIC_TIME
+-		/* TSC halts in C2, so notify users */
+-		mark_tsc_unstable();
+-#endif
+ 		/* Re-enable interrupts */
+ 		local_irq_enable();
+ 		current_thread_info()->status |= TS_POLLING;
+@@ -523,10 +527,6 @@ static void acpi_processor_idle(void)
+ 			acpi_set_register(ACPI_BITREG_ARB_DISABLE, 0);
+ 		}
+ 
+-#ifdef CONFIG_GENERIC_TIME
+-		/* TSC halts in C3, so notify users */
+-		mark_tsc_unstable();
+-#endif
+ 		/* Re-enable interrupts */
+ 		local_irq_enable();
+ 		current_thread_info()->status |= TS_POLLING;
+
 
