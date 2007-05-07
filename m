@@ -1,96 +1,75 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: [patch] ACPI: Keep TSC stable, when lapic_timer_c2_ok is set
-Date: Mon, 07 May 2007 18:33:31 +0200
-Message-ID: <1178555611.3042.13.camel@localhost.localdomain>
-Reply-To: tglx@linutronix.de
+From: tarr qt <tarrqt@yahoo.com>
+Subject: Dell Optiplex GX240 and the ACPI blacklist
+Date: Mon, 7 May 2007 11:57:23 -0700 (PDT)
+Message-ID: <250126.55752.qm@web63607.mail.re1.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.osadl.org ([213.239.205.134]:47963 "EHLO mail.tglx.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S965749AbXEGQas (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 May 2007 12:30:48 -0400
+Received: from n10a.bullet.mail.re3.yahoo.com ([68.142.236.51]:30424 "HELO
+	n10a.bullet.mail.re3.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S966205AbXEGTDb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 May 2007 15:03:31 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Len,
 
-can you please integrate the patch into your git tree to make Andrew
-happier. I'd like to see this in 2.6.22 if possible.
+Summary: If ACPI is not enabled but APIC is,
+then there is trouble on Dell Optiplex GX240.
+If both are enabled or if both are disabled, then
+everything is fine.
 
-Thanks,
+Hello,
 
-	tglx
+I have a Dell Optiplex GX240 and when I boot Linux, ACPI
+gets set up by only acpi=ht. dmesg shows the following line:
 
------------------------->
+   DELL GX240 detected: force use of acpi=ht
 
-Subject: ACPI: Keep TSC stable, when lapic_timer_c2_ok is set
+Everything seemed to be fine. However, I discovered that
+everything is not fine. The USB controller works so slowly
+that copying a few (uncached) 1 megabyte large photos from
+a USB-enabled digital camera takes many minutes instead of
+a couple of seconds.
 
-The local apic timer stop in C2 resp. C3 states is coupled with the
-stop of the TSC. When the local apic timer is marked stable in C2
-on the kernel commandline, then keep the TSC marked stable in C2 as well.
+I am using Linux 2.6.21.1 on a Debian 4.0 ("Etch") system.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+I thought that this might be related to ACPI. So I tried
+to boot with _only_ "acpi=force" appended to the kernel
+command line. Voila, the USB controller started to work
+at full speed and copying photos from my digital camera
+took only seconds.
 
----
- drivers/acpi/processor_idle.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+I tested the system with "acpi=force" and could not find
+anything which did not work. So, can we please remove
+Dell Optiplex GX240 from the blacklist in
 
-Index: linux-acpi-2.6/drivers/acpi/processor_idle.c
-===================================================================
---- linux-acpi-2.6.orig/drivers/acpi/processor_idle.c
-+++ linux-acpi-2.6/drivers/acpi/processor_idle.c
-@@ -305,18 +305,23 @@ static void acpi_state_timer_broadcast(s
- 				       struct acpi_processor_cx *cx,
- 				       int broadcast)
- {
--#ifdef CONFIG_GENERIC_CLOCKEVENTS
--
- 	int state = cx - pr->power.states;
- 
- 	if (state >= pr->power.timer_broadcast_on_state) {
-+
-+#ifdef CONFIG_GENERIC_CLOCKEVENTS
- 		unsigned long reason;
- 
- 		reason = broadcast ?  CLOCK_EVT_NOTIFY_BROADCAST_ENTER :
- 			CLOCK_EVT_NOTIFY_BROADCAST_EXIT;
- 		clockevents_notify(reason, &pr->id);
--	}
- #endif
-+
-+#ifdef CONFIG_GENERIC_TIME
-+		/* TSC halts in C2/3, so notify users */
-+		mark_tsc_unstable();
-+#endif
-+	}
- }
- 
- #else
-@@ -481,10 +489,6 @@ static void acpi_processor_idle(void)
- 		/* Get end time (ticks) */
- 		t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
- 
--#ifdef CONFIG_GENERIC_TIME
--		/* TSC halts in C2, so notify users */
--		mark_tsc_unstable();
--#endif
- 		/* Re-enable interrupts */
- 		local_irq_enable();
- 		current_thread_info()->status |= TS_POLLING;
-@@ -523,10 +527,6 @@ static void acpi_processor_idle(void)
- 			acpi_set_register(ACPI_BITREG_ARB_DISABLE, 0);
- 		}
- 
--#ifdef CONFIG_GENERIC_TIME
--		/* TSC halts in C3, so notify users */
--		mark_tsc_unstable();
--#endif
- 		/* Re-enable interrupts */
- 		local_irq_enable();
- 		current_thread_info()->status |= TS_POLLING;
+..../arch/i386/kernel/acpi/boot.c
 
+?
+
+I thought that this might be related to interrupts and
+APIC as well. (Note that this is APIC, not ACPI.) I tried
+booting with _only_ "noapic" and "nolapic" appended to the
+command line. Again, the USB controller started to work
+at full speed.
+
+If removing Dell Optiplex GX240 from the ACPI blacklist
+is not wanted/possible, then is there a way to disable
+APIC and LAPIC (note that this is APIC not ACPI) by
+default on Dell GX240 machines? (I.e. Can one patch
+the kernel so that APIC and LAPIC isn't used on
+these machines? - I know that I can use the noapic
+and nolapic options on the kernel command line.)
+
+Thank you for your attention.
+
+tarrqt
+
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
 
