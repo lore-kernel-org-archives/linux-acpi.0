@@ -1,75 +1,37 @@
-From: tarr qt <tarrqt@yahoo.com>
-Subject: Dell Optiplex GX240 and the ACPI blacklist
-Date: Mon, 7 May 2007 11:57:23 -0700 (PDT)
-Message-ID: <250126.55752.qm@web63607.mail.re1.yahoo.com>
+From: "Miles Lane" <miles.lane@gmail.com>
+Subject: 2.6.21-mm1+hotfix -- Lid button does not initiate a suspend
+Date: Mon, 7 May 2007 14:05:59 -0700
+Message-ID: <a44ae5cd0705071405x61f72efao706aeecbc02e772e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from n10a.bullet.mail.re3.yahoo.com ([68.142.236.51]:30424 "HELO
-	n10a.bullet.mail.re3.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S966205AbXEGTDb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 May 2007 15:03:31 -0400
+Received: from wr-out-0506.google.com ([64.233.184.232]:13114 "EHLO
+	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966662AbXEGVGD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 May 2007 17:06:03 -0400
+Received: by wr-out-0506.google.com with SMTP id 76so1741639wra
+        for <linux-acpi@vger.kernel.org>; Mon, 07 May 2007 14:06:02 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-
-Summary: If ACPI is not enabled but APIC is,
-then there is trouble on Dell Optiplex GX240.
-If both are enabled or if both are disabled, then
-everything is fine.
-
-Hello,
-
-I have a Dell Optiplex GX240 and when I boot Linux, ACPI
-gets set up by only acpi=ht. dmesg shows the following line:
-
-   DELL GX240 detected: force use of acpi=ht
-
-Everything seemed to be fine. However, I discovered that
-everything is not fine. The USB controller works so slowly
-that copying a few (uncached) 1 megabyte large photos from
-a USB-enabled digital camera takes many minutes instead of
-a couple of seconds.
-
-I am using Linux 2.6.21.1 on a Debian 4.0 ("Etch") system.
-
-I thought that this might be related to ACPI. So I tried
-to boot with _only_ "acpi=force" appended to the kernel
-command line. Voila, the USB controller started to work
-at full speed and copying photos from my digital camera
-took only seconds.
-
-I tested the system with "acpi=force" and could not find
-anything which did not work. So, can we please remove
-Dell Optiplex GX240 from the blacklist in
-
-..../arch/i386/kernel/acpi/boot.c
-
-?
-
-I thought that this might be related to interrupts and
-APIC as well. (Note that this is APIC, not ACPI.) I tried
-booting with _only_ "noapic" and "nolapic" appended to the
-command line. Again, the USB controller started to work
-at full speed.
-
-If removing Dell Optiplex GX240 from the ACPI blacklist
-is not wanted/possible, then is there a way to disable
-APIC and LAPIC (note that this is APIC not ACPI) by
-default on Dell GX240 machines? (I.e. Can one patch
-the kernel so that APIC and LAPIC isn't used on
-these machines? - I know that I can use the noapic
-and nolapic options on the kernel command line.)
-
-Thank you for your attention.
-
-tarrqt
-
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
-
+This is on my HP Pavilion dv1240us laptop.
+I know the events are generated correctly:
+# killall acpid
+# cat /proc/acpi/event
+button/lid LID0 00000080 00000001 (Press #1)
+button/lid LID0 00000080 00000002 (Release #1)
+button/lid LID0 00000080 00000003 (Press #2)
+button/lid LID0 00000080 00000004 (Release #2)
+# cat /proc/acpi/wakeup
+Device  S-state   Status   Sysfs node
+PCIB      S5     disabled  pci:0000:00:1e.0
+LAN       S5     disabled  pci:0000:01:00.0
+PS2K      S3     disabled  pnp:00:05
+PSM1      S3     disabled  pnp:00:06
+USB0      S3     disabled  pci:0000:00:1d.0
+USB1      S3     disabled  pci:0000:00:1d.1
+USB2      S3     disabled  pci:0000:00:1d.2
+USB7      S3     disabled  pci:0000:00:1d.7
