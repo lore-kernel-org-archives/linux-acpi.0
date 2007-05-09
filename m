@@ -1,45 +1,63 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [patch 3/3] clockevents: Fix resume logic - updated version
-Date: Wed, 09 May 2007 10:59:43 +0200
-Message-ID: <1178701183.3042.469.camel@localhost.localdomain>
-References: <20070430102837.748238000@linutronix.de>
-	 <20070430102852.042964000@linutronix.de>
-	 <20070505003421.00ec45ba.akpm@linux-foundation.org>
-	 <20070505115127.GA17815@elte.hu>
-	 <1178463784.31213.46.camel@localhost.localdomain>
-	 <20070508225920.258d8d34.akpm@linux-foundation.org>
-	 <20070509001032.dbb982ca.akpm@linux-foundation.org>
-	 <1178698697.3042.461.camel@localhost.localdomain>
-	 <20070509012257.ceb825c4.akpm@linux-foundation.org>
-	 <20070509013119.dbea7233.akpm@linux-foundation.org>
-Reply-To: tglx@linutronix.de
+From: Jan Willies <jan@willies.info>
+Subject: BenQ S73U - no ACPI
+Date: Wed, 09 May 2007 09:50:19 +0200
+Message-ID: <46417D3B.4020305@willies.info>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.osadl.org ([213.239.205.134]:51184 "EHLO mail.tglx.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754198AbXEII4x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 9 May 2007 04:56:53 -0400
-In-Reply-To: <20070509013119.dbea7233.akpm@linux-foundation.org>
+Received: from metis.intersales.de ([213.133.99.69]:42464 "EHLO
+	metis.intersales.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754640AbXEIJGJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 May 2007 05:06:09 -0400
+Received: from e176241165.adsl.alicedsl.de ([85.176.241.165] helo=[192.168.2.101])
+	by metis.intersales.de with esmtpa (Exim 4.63)
+	(envelope-from <jan@willies.info>)
+	id 1HlgwZ-0001vf-26
+	for linux-acpi@vger.kernel.org; Wed, 09 May 2007 09:50:39 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, John Stultz <johnstul@us.ibm.com>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Wed, 2007-05-09 at 01:31 -0700, Andrew Morton wrote:
-> > I suspect I just tested the wrong thing yesterday.  Let me recheck just
-> > these patches against 2.6.21.
-> 
-> yup, same hang with just these three:
-> 
-> origin
-> clocksource-fix-resume-logic
-> clockevents-fix-resume-logic-updated-version
+Hello,
 
-I have no idea, how this affects acpi_evaluate_object()
+I got a BenQ S73U and it doesn't support ACPI very well. I got 23=20
+warnings when compiling /proc/acpi/dsdt with the iasl-compiler, but no=20
+errors. This is confusing, it should work well cause they are only=20
+warnings, not errors!
+Anyway, Sebastian Lammermann managed to turn all warnings down by=20
+rewriting the DSDT, but one. Unfortunately the behavior didn't change,=20
+shutdown is still not working.
 
-	tglx
+The last unsolved warning:
+
+dsdt.dsl  1164:             Method (_OSC, 5, NotSerialized)
+Warning  1075 -                        ^ Reserved method has too many=20
+arguments (_OSC requires 4)
+
+If anyone please have a look at the DSDT, it would be very kind! I'm=20
+really desperate to get this thing working under Linux.
+
+original: http://openwrt.loswillios.de/dsdt.dsl
+modified: http://www.hft-leipzig.de/~s03114/dsdt.dsl
+
+
+I mailed BenQ about this problem, they even replied which surprised me =
+a=20
+bit. They promised to pass the mail to their developers, but I don't=20
+think it will change something... I reckon I'm not the first one who=20
+mailed them about that.
 
 
 
+regards
+Jan Willies
+
+PS. If you want a nice office-laptop, apart from the ACPI-stuff, the=20
+S73U is a good deal for 599=E2=82=AC ;-)
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
