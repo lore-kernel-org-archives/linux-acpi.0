@@ -1,92 +1,89 @@
-From: Ross Patterson <me@rpatterson.net>
-Subject: Re: Toshiba Setellite U205-S5067 Suspend to RAM
-Date: Tue, 08 May 2007 14:59:11 -0700
-Message-ID: <87ejlrrn80.fsf@superfluity.lefae.org>
-References: <1178503360.5988.22.camel@trinity>
-	<87wszlnumj.fsf@superfluity.lefae.org>
-	<87hcqntd5z.fsf@superfluity.lefae.org>
-	<200705082133.23094.rjw@sisk.pl>
+From: Frittella Laurento <laurento.frittella@gmail.com>
+Subject: How can I solve these DSL warnings?
+Date: Wed, 09 May 2007 08:56:46 +0200
+Message-ID: <464170AE.2000607@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Return-path: <suspend-devel-bounces@lists.sourceforge.net>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=suspend-devel>
-List-Post: <mailto:suspend-devel@lists.sourceforge.net>
-List-Help: <mailto:suspend-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/suspend-devel>,
-	<mailto:suspend-devel-request@lists.sourceforge.net?subject=subscribe>
-Sender: suspend-devel-bounces@lists.sourceforge.net
-Errors-To: suspend-devel-bounces@lists.sourceforge.net
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: suspend-devel@lists.sourceforge.net, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ik-out-1112.google.com ([66.249.90.182]:57240 "EHLO
+	ik-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752274AbXEIG5Y (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 May 2007 02:57:24 -0400
+Received: by ik-out-1112.google.com with SMTP id b35so64939ika
+        for <linux-acpi@vger.kernel.org>; Tue, 08 May 2007 23:57:23 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-"Rafael J. Wysocki" <rjw@sisk.pl> writes:
+Hi all,
+I'm trying to fix these warnings that appears during dsl compile:
 
-> On Tuesday, 8 May 2007 19:53, Ross Patterson wrote:
->> Ross Patterson <me@rpatterson.net> writes:
->> 
->> > Ross Patterson <me@rpatterson.net> writes:
->> >
->> >> "Paulo J. S. Silva" <pjssilva@ime.usp.br> writes:
->> >>
->> >>> I am not a kernel hacker, but I have tried to add some printk as
->> >>> suggested by Pavel (I haven't used udelay, I was not sure what it did
->> >>> (Is there a good explanation anywhere?). I added one printk to
->> >>> state_store function in main.c file (in kernel/power/ directory of
->> >>> course) to make sure that the process was starting, and many in
->> >>> enter_state function.
->> >>>
->> >>> What I could see, at first, is that something was taking long while the
->> >>> kernel was trying to disable the non-boot CPU. Here is the important log
->> >>> snippet (mine printk start with ****):
->> >>>
->> >>>
->> >>>> May  6 12:44:44 trinity kernel: [  704.412000] ****Receiving request to power sa
->> >>>> ve: mem
->> >>>> May  6 12:44:44 trinity kernel: [  704.412000] .
->> >>>> May  6 12:44:44 trinity kernel: [  704.412000] **** starting enter_state.
->> >>>> May  6 12:44:44 trinity kernel: [  704.412000] **** Preparing system for mem sle
->> >>>> ep
->> >>>> May  6 12:44:44 trinity kernel: [  704.416000] Disabling non-boot CPUs ...
->> >>>> May  6 12:44:44 trinity kernel: [  704.552000] CPU 1 is now offline
->> >>>> May  6 12:44:44 trinity kernel: [  704.552000] SMP alternatives: switching to UP
->> >>>>  code
->> >>>> May  6 12:55:00 trinity kernel: [  704.552000] CPU1 is down
->> >>>
->> >>> You see? Something took 10 minutes between the last two lines.
->> >>>
->> >>> I then thought that SMP was the problem. I have then disabled the second
->> >>> CPU during boot using "noapic nosmp" options. But I still get the same
->> >>> long wait before suspending. Moreover, something weird happens. There is
->> >>> no more delay in the sequence of messages related to suspend. But the
->> >>> whole sequence of messages, even the first sentence that says that the
->> >>> system is calling the function state_store, is only written to the disk
->> >>> when the system is waked up and not before the suspend take place. The
->> >>> same thing happen if I disable the second CPU in the bios, instead of
->> >>> using "noapic nosmp". What should I try now?
->> 
->> I was wondering if anyone has any thoughts on what we might try from
->> here?  I think there are at least two willing, if not knowledgable :),
->> testers here.
->
-> Well, I'm afraid no one has any idea.  Otherwise, someone would have responded. ;-)
->
-> I've added more appropriate lists for your problem report to the CC list.
-> Also, it probably would be a good idea to file a bug report at
-> http://bugzilla.kernel.org, in the ACPI->Power-Sleep-Wake category (please
-> add my address to the bugzilla entry's CC list if you do that).
+  dsdt.dsl  2341:                 Method (_S0D, 0, NotSerialized)
+  Warning  1097 -      Unknown reserved name ^  (_S0D)
 
-http://bugzilla.kernel.org/show_bug.cgi?id=8456
+Code (part of interest):
+  Method (_S0D, 0, NotSerialized)
+  {
+      Store (SMI (0x85, 0x00), Local0)
+      And (Local0, 0x01, Local0)
+      If (LEqual (Local0, 0x00))
+      {
+        Return (0x03)
+      }
+      Else
+      {
+        Return (0x00)
+      }
+  }
 
-Thanks!
 
-Ross
+The other kind of warning is:
 
--------------------------------------------------------------------------
-This SF.net email is sponsored by DB2 Express
-Download DB2 Express C - the FREE version of DB2 express and take
-control of your XML. No limits. Just data. Click to get it now.
-http://sourceforge.net/powerbar/db2/
+  dsdt.dsl  3040:                         And (Local0, 0x0F)
+  Warning  1104 -                                   ^ Result is not
+used, operator has no effect
+
+Code (part of interest):
+  If (LLess (Local0, 0x80))
+  {
+    And (Local0, 0x0F)
+    Store (0x01, Local1)
+    ShiftLeft (Local1, Local0, Local1)
+    Store (Local1, IRA)
+  }
+
+
+Another one:
+  dsdt.dsl  3818:                     Return (Package (0x00) {})
+  Remark   5070 -    Effective AML package length is zero ^
+
+  Method (_DOD, 0, NotSerialized)
+  {
+     Return (Package (0x00) {})
+  }
+
+The last ;)
+  dsdt.dsl  4044:                             Wait (EJTD, 0xA000)
+  Warning  1103 -         Possible operator timeout is ignored ^
+
+  Method (_EJ0, 1, NotSerialized)
+  {
+    Store (SMI (0x87, 0x00), MIS7)
+    If (MIS7)
+    {
+      SMI (0xA6, 0x02)
+      SMI (0x49, 0x01)
+      Wait (EJTD, 0xA000)
+      SMI (0x49, 0x00)
+    }
+
+    Return (0x00)
+  }
+
+
+I searched for them on the acpi website but I haven't find these warning
+codes.
+
+Regards,
+Laurento
