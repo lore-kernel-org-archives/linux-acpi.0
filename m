@@ -1,62 +1,68 @@
-From: Andrew Morton <akpm@linux-foundation.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [patch 3/3] clockevents: Fix resume logic - updated version
-Date: Wed, 9 May 2007 10:14:45 -0700
-Message-ID: <20070509101445.fa6b60cb.akpm@linux-foundation.org>
-References: <20070430102837.748238000@linutronix.de>
-	<1178701183.3042.469.camel@localhost.localdomain>
-	<200705091345.55207.rjw@sisk.pl>
-	<200705091452.08092.rjw@sisk.pl>
+Date: Wed, 9 May 2007 20:36:20 +0200
+Message-ID: <200705092036.20953.rjw@sisk.pl>
+References: <20070430102837.748238000@linutronix.de> <200705091909.25443.rjw@sisk.pl> <1178730950.3042.533.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47880 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754784AbXEIRPB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 May 2007 13:15:01 -0400
-In-Reply-To: <200705091452.08092.rjw@sisk.pl>
+Received: from ogre.sisk.pl ([217.79.144.158]:50593 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756763AbXEISbk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 9 May 2007 14:31:40 -0400
+In-Reply-To: <1178730950.3042.533.camel@localhost.localdomain>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: tglx@linutronix.de, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, John Stultz <johnstul@us.ibm.com>, linux-acpi@vger.kernel.org
+To: tglx@linutronix.de
+Cc: Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, John Stultz <johnstul@us.ibm.com>, linux-acpi@vger.kernel.org
 
-On Wed, 9 May 2007 14:52:07 +0200 "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
-
-> > Andrew, could you please apply the appended patch and see if that
-> > helps (should apply to -mm2)?
+On Wednesday, 9 May 2007 19:15, Thomas Gleixner wrote:
+> On Wed, 2007-05-09 at 19:09 +0200, Rafael J. Wysocki wrote:
+> > > > Well, where is unregister_time_interpolator() called from?
+> > > 
+> > > # grep -rn unregister_time_interpolator .
+> > > ./kernel/timer.c:1893:unregister_time_interpolator(struct time_interpolator *ti)
+> > > ./include/linux/timex.h:270:extern void unregister_time_interpolator(struct time_interpolator *);
+> > > 
+> > > I don't see a caller. i386 does not use time interpolator anyway.
+> > > 
+> > > # find -iname Kconfig | xargs grep TIME_INTERPOLATION
+> > > ./arch/sparc64/Kconfig:37:config TIME_INTERPOLATION
+> > > ./arch/ia64/Kconfig:60:config TIME_INTERPOLATION
+> > 
+> > But clocksource_resume() has no other caller, AFAICS ...
 > 
-> Argh, sorry.  This needs yet another patch (sent for review to linux-pm) to
-> be applied.  The following one is against -mm2:
+> Eeep ?
 > 
-> ---
-> NOTE: This is not a complete solution, because it removes the enabling of GPEs
-> from the resume-during-hibernation code path entirely, which probbably is not a
-> good idea in general.
-> ---
->  kernel/power/disk.c |    1 -
->  1 file changed, 1 deletion(-)
+> clocksource_resume is called from timekeeping_resume()
 > 
-> Index: linux-2.6.21-mm2/kernel/power/disk.c
-> ===================================================================
-> --- linux-2.6.21-mm2.orig/kernel/power/disk.c
-> +++ linux-2.6.21-mm2/kernel/power/disk.c
-> @@ -205,7 +205,6 @@ int hibernate(void)
->  
->  	if (in_suspend) {
->  		enable_nonboot_cpus();
-> -		platform_finish();
->  		device_resume();
->  		resume_console();
->  		pr_debug("PM: writing image.\n");
+> timestatic int timekeeping_resume(struct sys_device *dev)
+> {
+>         unsigned long flags;
+>         unsigned long now = read_persistent_clock();
+> 
+>         clocksource_resume();
+> ....
+> }
+> 
+> keeping_resume() called via the sysdev resume 
+> 
+> static struct sysdev_class timekeeping_sysclass = {
+>         .resume         = timekeeping_resume,
+>         .suspend        = timekeeping_suspend,
+>         set_kset_name("timekeeping"),
+> };
 
-It now hangs in a similar fashion in the device_resume() call.
+Well, apparently, not in -mm2:
 
-If I back off Thomas's clockevents-fix-resume-logic-updated-version.patch
-and include just the above patch the machine does suspend and resume
-correctly.
+rafael@albercik:~/src/mm/linux-2.6.21-mm2> grep -r -I -l 'timekeeping_resume' *
+kernel/time/timekeeping.c
+rafael@albercik:~/src/mm/linux-2.6.21-mm2> grep clocksource_resume kernel/time/timekeeping.c
+rafael@albercik:~/src/mm/linux-2.6.21-mm2>
 
-I can delve further into the device_resume() hang if we think it would be
-useful.  Maybe Linus's clock-stomping tracer can help here, if I can
-remember how to use it.
+Hmm?
 
-
+Rafael
