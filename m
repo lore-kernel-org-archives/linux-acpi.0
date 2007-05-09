@@ -1,61 +1,71 @@
-From: "Luming Yu" <luming.yu@gmail.com>
-Subject: Re: BenQ S73U - no ACPI
-Date: Wed, 9 May 2007 17:28:51 +0800
-Message-ID: <3877989d0705090228n295a7e86vd66fd0138d9e77e4@mail.gmail.com>
-References: <46417D3B.4020305@willies.info>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [patch 3/3] clockevents: Fix resume logic - updated version
+Date: Wed, 9 May 2007 13:45:54 +0200
+Message-ID: <200705091345.55207.rjw@sisk.pl>
+References: <20070430102837.748238000@linutronix.de> <20070509013119.dbea7233.akpm@linux-foundation.org> <1178701183.3042.469.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wr-out-0506.google.com ([64.233.184.234]:60959 "EHLO
-	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753205AbXEIJ2x (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 May 2007 05:28:53 -0400
-Received: by wr-out-0506.google.com with SMTP id 76so143111wra
-        for <linux-acpi@vger.kernel.org>; Wed, 09 May 2007 02:28:52 -0700 (PDT)
-In-Reply-To: <46417D3B.4020305@willies.info>
+Received: from ogre.sisk.pl ([217.79.144.158]:48980 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750708AbXEILlN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 9 May 2007 07:41:13 -0400
+In-Reply-To: <1178701183.3042.469.camel@localhost.localdomain>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jan Willies <jan@willies.info>
-Cc: linux-acpi@vger.kernel.org
+To: tglx@linutronix.de, Andrew Morton <akpm@linux-foundation.org>
+Cc: Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, John Stultz <johnstul@us.ibm.com>, linux-acpi@vger.kernel.org
 
-On 5/9/07, Jan Willies <jan@willies.info> wrote:
-> Hello,
->
-> I got a BenQ S73U and it doesn't support ACPI very well. I got 23
+On Wednesday, 9 May 2007 10:59, Thomas Gleixner wrote:
+> On Wed, 2007-05-09 at 01:31 -0700, Andrew Morton wrote:
+> > > I suspect I just tested the wrong thing yesterday.  Let me recheck just
+> > > these patches against 2.6.21.
+> > 
+> > yup, same hang with just these three:
+> > 
+> > origin
+> > clocksource-fix-resume-logic
+> > clockevents-fix-resume-logic-updated-version
+> 
+> I have no idea, how this affects acpi_evaluate_object()
 
-please describe the problem in detail.
+I think the problem is that the ACPI code ordering here is broken in a
+difficult to fix way.
 
-> warnings when compiling /proc/acpi/dsdt with the iasl-compiler, but no
-> errors. This is confusing, it should work well cause they are only
-> warnings, not errors!
+Definitely, we shouldn't execute the _BFS method after creating the image
+and most probably _WAK shouldn't be executed here either.  Moreover,
+acpi_leave_sleep_state() enables the runtime GPEs, which AFAICS
+is equivalent to allowing ACPI to generate SCIs.  I'm not sure if this is a
+good idea to do such a thing in this particular place.
 
-compile-time working doesn't mean run-time working.
+Andrew, could you please apply the appended patch and see if that
+helps (should apply to -mm2)?
 
-> Anyway, Sebastian Lammermann managed to turn all warnings down by
-> rewriting the DSDT, but one. Unfortunately the behavior didn't change,
-> shutdown is still not working.
->
-> The last unsolved warning:
->
-> dsdt.dsl  1164:             Method (_OSC, 5, NotSerialized)
-> Warning  1075 -                        ^ Reserved method has too many
-> arguments (_OSC requires 4)
->
-> If anyone please have a look at the DSDT, it would be very kind! I'm
-> really desperate to get this thing working under Linux.
->
-> original: http://openwrt.loswillios.de/dsdt.dsl
-> modified: http://www.hft-leipzig.de/~s03114/dsdt.dsl
+Rafael
 
-please in details...
+---
+NOTE: This is not a complete solution, because it removes the enabling of GPEs
+from the resume-during-hibernation code path entirely, which probbably is not a
+good idea in general.
+---
+ kernel/power/disk.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
->
->
-> I mailed BenQ about this problem, they even replied which surprised me a
-> bit. They promised to pass the mail to their developers, but I don't
-> think it will change something... I reckon I'm not the first one who
-> mailed them about that.
-
-That's interesting.. BenQ begins to care about linux?
+Index: linux-2.6.21/kernel/power/disk.c
+===================================================================
+--- linux-2.6.21.orig/kernel/power/disk.c
++++ linux-2.6.21/kernel/power/disk.c
+@@ -131,7 +131,9 @@ int hibernation_snapshot(int platform_mo
+ 	}
+ 	enable_nonboot_cpus();
+  Resume_devices:
+-	platform_finish(platform_mode);
++	if (!in_suspend || error)
++		platform_finish(platform_mode);
++
+ 	device_resume();
+ 	resume_console();
+  Finish:
