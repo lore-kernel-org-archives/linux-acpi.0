@@ -1,104 +1,86 @@
-From: "Alexey Starikovskiy" <aystarik@gmail.com>
-Subject: Re: How can I solve these DSL warnings?
-Date: Wed, 9 May 2007 11:04:54 +0400
-Message-ID: <8f8ff01d0705090004u2ee9348ex499d89e9cae747e2@mail.gmail.com>
-References: <464170AE.2000607@gmail.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [patch 3/3] clockevents: Fix resume logic - updated version
+Date: Wed, 9 May 2007 00:10:32 -0700
+Message-ID: <20070509001032.dbb982ca.akpm@linux-foundation.org>
+References: <20070430102837.748238000@linutronix.de>
+	<20070430102852.042964000@linutronix.de>
+	<20070505003421.00ec45ba.akpm@linux-foundation.org>
+	<20070505115127.GA17815@elte.hu>
+	<1178463784.31213.46.camel@localhost.localdomain>
+	<20070508225920.258d8d34.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.241]:7320 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967876AbXEIHEz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 May 2007 03:04:55 -0400
-Received: by an-out-0708.google.com with SMTP id d18so22239and
-        for <linux-acpi@vger.kernel.org>; Wed, 09 May 2007 00:04:54 -0700 (PDT)
-In-Reply-To: <464170AE.2000607@gmail.com>
-Content-Disposition: inline
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39847 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S968443AbXEIHKs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 May 2007 03:10:48 -0400
+In-Reply-To: <20070508225920.258d8d34.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Frittella Laurento <laurento.frittella@gmail.com>
+To: tglx@linutronix.de, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, John Stultz <johnstul@us.ibm.com>
 Cc: linux-acpi@vger.kernel.org
 
-On 5/9/07, Frittella Laurento <laurento.frittella@gmail.com> wrote:
-> Hi all,
-> I'm trying to fix these warnings that appears during dsl compile:
->
->   dsdt.dsl  2341:                 Method (_S0D, 0, NotSerialized)
->   Warning  1097 -      Unknown reserved name ^  (_S0D)
-Remove underscore from name ('_S0D'->'S0D') or just ignore...
->
-> Code (part of interest):
->   Method (_S0D, 0, NotSerialized)
->   {
->       Store (SMI (0x85, 0x00), Local0)
->       And (Local0, 0x01, Local0)
->       If (LEqual (Local0, 0x00))
->       {
->         Return (0x03)
->       }
->       Else
->       {
->         Return (0x00)
->       }
->   }
->
->
-> The other kind of warning is:
->
->   dsdt.dsl  3040:                         And (Local0, 0x0F)
-Change to And(Local0, 0x0F, Local0). This form will store result of
-operator back to Local0, probable intention of the statement...
->   Warning  1104 -                                   ^ Result is not
-> used, operator has no effect
->
-> Code (part of interest):
->   If (LLess (Local0, 0x80))
->   {
->     And (Local0, 0x0F)
->     Store (0x01, Local1)
->     ShiftLeft (Local1, Local0, Local1)
->     Store (Local1, IRA)
->   }
->
->
-> Another one:
->   dsdt.dsl  3818:                     Return (Package (0x00) {})
-Ignore.
->   Remark   5070 -    Effective AML package length is zero ^
->
->   Method (_DOD, 0, NotSerialized)
->   {
->      Return (Package (0x00) {})
->   }
->
-> The last ;)
->   dsdt.dsl  4044:                             Wait (EJTD, 0xA000)
-Ignore, or change to 0xFFFF.
->   Warning  1103 -         Possible operator timeout is ignored ^
->
->   Method (_EJ0, 1, NotSerialized)
->   {
->     Store (SMI (0x87, 0x00), MIS7)
->     If (MIS7)
->     {
->       SMI (0xA6, 0x02)
->       SMI (0x49, 0x01)
->       Wait (EJTD, 0xA000)
->       SMI (0x49, 0x00)
->     }
->
->     Return (0x00)
->   }
->
->
-> I searched for them on the acpi website but I haven't find these warning
-> codes.
->
-> Regards,
-> Laurento
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+On Tue, 8 May 2007 22:59:20 -0700 Andrew Morton <akpm@linux-foundation.org> wrote:
+
+> On Sun, 06 May 2007 17:03:03 +0200 Thomas Gleixner <tglx@linutronix.de> wrote:
+> 
+> > Andrew,
+> > 
+> > On Sat, 2007-05-05 at 13:51 +0200, Ingo Molnar wrote:
+> > > * Andrew Morton <akpm@linux-foundation.org> wrote:
+> > > 
+> > > > > Fixup the existing users.
+> > > > 
+> > > > This one makes the Vaio-of-fun hang during suspend to disk.  It gets 
+> > > > up to "swsusp: critical section/: done (%d pages copied)" then it 
+> > > > freezes.
+> > > 
+> > > after trying to reproduce it on 2 boxes without success it did trigger 
+> > > some sw-suspend weirdness on a third box :) We are debugging it now.
+> > 
+> > find an updated patch below. It fixes the problem on Ingo's
+> > VAIO-of-fun-emulator and I got confirmation from several other affected
+> > users, that the patch series is still solving their problems.
+> > 
+> 
+> The machine is still hanging with this patch applied.
+> 
+> suspend-to-disk gets up to "swsusp: critical section: done (NNN pages copied)"
+> 
+> No netconsole, no printk-timestamping.
+> 
+> ho hum, I guess I get to debug this.
+
+It got ugly.
+
+We finish swsusp_save() and a few other functions then we go
+
+	hibernate
+	->platform_finish
+	  ->acpi_hibernation_finish
+	    ->acpi_leave_sleep_state
+	      ->acpi_evaluate_object
+
+and there it dies, in this call:
+
+	status = acpi_evaluate_object(NULL, METHOD_NAME__WAK, &arg_list, NULL);
+
+I wonder how your patch caused that?
+
+<debugs further>
+
+OK, it gets to the last statement in acpi_evaluate_object():
+
+	return_ACPI_STATUS(status);
+
+but doesn't hit the printk on return to the caller,
+acpi_leave_sleep_state().
+
+A working theory would be that something we did trashed the stack in
+acpi_evaluate_object().
+
+<switches from 8k stacks to 4k. No change>
+
+foo.  I'm not sure what to do now.
