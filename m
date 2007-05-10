@@ -1,99 +1,139 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: ACPI patches for 2.6.22 merge window
-Date: Thu, 10 May 2007 02:44:43 -0400
-Message-ID: <200705100244.43635.lenb@kernel.org>
-References: <11778223052751-git-send-email-len.brown@intel.com> <20070501021953.GC2923@inferi.kami.home>
+Subject: Re: [PATCH] ACPI: dock: use dynamically allocated platform device
+Date: Thu, 10 May 2007 03:44:12 -0400
+Message-ID: <200705100344.12706.lenb@kernel.org>
+References: <20070509150704.64e454ab.kristen.c.accardi@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:48036 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:44326 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755945AbXEJGpj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 May 2007 02:45:39 -0400
-In-Reply-To: <20070501021953.GC2923@inferi.kami.home>
+	id S1756588AbXEJHp3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 May 2007 03:45:29 -0400
+In-Reply-To: <20070509150704.64e454ab.kristen.c.accardi@intel.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: linux-acpi@vger.kernel.org
+To: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Applied.
+This batch of 7 patches is applied to acpi-test.
 
 thanks,
 -Len
 
-On Monday 30 April 2007 22:19, Mattia Dongili wrote:
-> On Sun, Apr 29, 2007 at 12:50:00AM -0400, Len Brown wrote:
-> ...
-> > If I've missed something that you think is appropriate
-> > for 2.6.22 (I'm sure there are several) please let me know.
+On Wednesday 09 May 2007 18:07, Kristen Carlson Accardi wrote:
+> ACPI: dock: use dynamically allocated platform device
 > 
-> It's me who actually forgot to submit a trivial patch for 2.6.22,
-> appended below.
+> Get rid of no release function warnings by switching to dynamically
+> allocating the platform_device and using the platform device release
+> routine in the base driver.
 > 
-> mattia
-> ---
-> Subject: rename SONY_LAPTOP_OLD to a more meaningful SONYPI_COMPAT
-> 
-> Signed-off-by: Mattia Dongili <malattia@linux.it>
-> ---
-> Index: linux-2.6/drivers/misc/Kconfig
+> Signed-off-by:  Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+> Index: 2.6-git/drivers/acpi/dock.c
 > ===================================================================
-> --- linux-2.6.orig/drivers/misc/Kconfig	2007-04-30 12:18:58.534918327 +0900
-> +++ linux-2.6/drivers/misc/Kconfig	2007-04-30 12:19:24.036371572 +0900
-> @@ -121,7 +121,7 @@ config SONY_LAPTOP
+> --- 2.6-git.orig/drivers/acpi/dock.c
+> +++ 2.6-git/drivers/acpi/dock.c
+> @@ -41,7 +41,7 @@ MODULE_DESCRIPTION(ACPI_DOCK_DRIVER_DESC
+>  MODULE_LICENSE("GPL");
 >  
->  	  Read <file:Documentation/sony-laptop.txt> for more information.
+>  static struct atomic_notifier_head dock_notifier_list;
+> -static struct platform_device dock_device;
+> +static struct platform_device *dock_device;
+>  static char dock_device_name[] = "dock";
 >  
-> -config SONY_LAPTOP_OLD
-> +config SONYPI_COMPAT
->  	bool "Sonypi compatibility"
->  	depends on SONY_LAPTOP
->  	  ---help---
-> Index: linux-2.6/drivers/misc/sony-laptop.c
-> ===================================================================
-> --- linux-2.6.orig/drivers/misc/sony-laptop.c	2007-04-30 12:18:55.534747357 +0900
-> +++ linux-2.6/drivers/misc/sony-laptop.c	2007-04-30 12:19:35.537026957 +0900
-> @@ -63,7 +63,7 @@
->  #include <asm/uaccess.h>
->  #include <linux/sonypi.h>
->  #include <linux/sony-laptop.h>
-> -#ifdef CONFIG_SONY_LAPTOP_OLD
-> +#ifdef CONFIG_SONYPI_COMPAT
->  #include <linux/poll.h>
->  #include <linux/miscdevice.h>
->  #endif
-> @@ -114,7 +114,7 @@ MODULE_PARM_DESC(camera,
->  		 "set this to 1 to enable Motion Eye camera controls "
->  		 "(only use it if you have a C1VE or C1VN model)");
+>  struct dock_station {
+> @@ -327,7 +327,7 @@ static void hotplug_dock_devices(struct 
 >  
-> -#ifdef CONFIG_SONY_LAPTOP_OLD
-> +#ifdef CONFIG_SONYPI_COMPAT
->  static int minor = -1;
->  module_param(minor, int, 0);
->  MODULE_PARM_DESC(minor,
-> @@ -1504,7 +1504,7 @@ static struct attribute_group spic_attri
->  };
+>  static void dock_event(struct dock_station *ds, u32 event, int num)
+>  {
+> -	struct device *dev = &dock_device.dev;
+> +	struct device *dev = &dock_device->dev;
+>  	/*
+>  	 * Indicate that the status of the dock station has
+>  	 * changed.
+> @@ -710,37 +710,36 @@ static int dock_add(acpi_handle handle)
+>  	ATOMIC_INIT_NOTIFIER_HEAD(&dock_notifier_list);
 >  
->  /******** SONYPI compatibility **********/
-> -#ifdef CONFIG_SONY_LAPTOP_OLD
-> +#ifdef CONFIG_SONYPI_COMPAT
+>  	/* initialize platform device stuff */
+> -	dock_device.name = dock_device_name;
+> -	ret = platform_device_register(&dock_device);
+> -	if (ret) {
+> -		printk(KERN_ERR PREFIX "Error %d registering dock device\n", ret);
+> +	dock_device =
+> +		platform_device_register_simple(dock_device_name, 0, NULL, 0);
+> +	if (IS_ERR(dock_device)) {
+>  		kfree(dock_station);
+>  		dock_station = NULL;
+> -		return ret;
+> +		return PTR_ERR(dock_device);
+>  	}
+> -	ret = device_create_file(&dock_device.dev, &dev_attr_docked);
+> +	ret = device_create_file(&dock_device->dev, &dev_attr_docked);
+>  	if (ret) {
+>  		printk("Error %d adding sysfs file\n", ret);
+> -		platform_device_unregister(&dock_device);
+> +		platform_device_unregister(dock_device);
+>  		kfree(dock_station);
+>  		dock_station = NULL;
+>  		return ret;
+>  	}
+> -	ret = device_create_file(&dock_device.dev, &dev_attr_undock);
+> +	ret = device_create_file(&dock_device->dev, &dev_attr_undock);
+>  	if (ret) {
+>  		printk("Error %d adding sysfs file\n", ret);
+> -		device_remove_file(&dock_device.dev, &dev_attr_docked);
+> -		platform_device_unregister(&dock_device);
+> +		device_remove_file(&dock_device->dev, &dev_attr_docked);
+> +		platform_device_unregister(dock_device);
+>  		kfree(dock_station);
+>  		dock_station = NULL;
+>  		return ret;
+>  	}
+> -	ret = device_create_file(&dock_device.dev, &dev_attr_uid);
+> +	ret = device_create_file(&dock_device->dev, &dev_attr_uid);
+>  	if (ret) {
+>  		printk("Error %d adding sysfs file\n", ret);
+> -		device_remove_file(&dock_device.dev, &dev_attr_docked);
+> -		device_remove_file(&dock_device.dev, &dev_attr_undock);
+> -		platform_device_unregister(&dock_device);
+> +		device_remove_file(&dock_device->dev, &dev_attr_docked);
+> +		device_remove_file(&dock_device->dev, &dev_attr_undock);
+> +		platform_device_unregister(dock_device);
+>  		kfree(dock_station);
+>  		dock_station = NULL;
+>  		return ret;
+> @@ -779,10 +778,10 @@ static int dock_add(acpi_handle handle)
+>  dock_add_err:
+>  	kfree(dd);
+>  dock_add_err_unregister:
+> -	device_remove_file(&dock_device.dev, &dev_attr_docked);
+> -	device_remove_file(&dock_device.dev, &dev_attr_undock);
+> -	device_remove_file(&dock_device.dev, &dev_attr_uid);
+> -	platform_device_unregister(&dock_device);
+> +	device_remove_file(&dock_device->dev, &dev_attr_docked);
+> +	device_remove_file(&dock_device->dev, &dev_attr_undock);
+> +	device_remove_file(&dock_device->dev, &dev_attr_uid);
+> +	platform_device_unregister(dock_device);
+>  	kfree(dock_station);
+>  	dock_station = NULL;
+>  	return ret;
+> @@ -812,10 +811,10 @@ static int dock_remove(void)
+>  		printk(KERN_ERR "Error removing notify handler\n");
 >  
->  /* battery / brightness / temperature  addresses */
->  #define SONYPI_BAT_FLAGS	0x81
-> @@ -1798,7 +1798,7 @@ static void sonypi_compat_exit(void)
->  static int sonypi_compat_init(void) { return 0; }
->  static void sonypi_compat_exit(void) { }
->  static void sonypi_compat_report_event(u8 event) { }
-> -#endif /* CONFIG_SONY_LAPTOP_OLD */
-> +#endif /* CONFIG_SONYPI_COMPAT */
+>  	/* cleanup sysfs */
+> -	device_remove_file(&dock_device.dev, &dev_attr_docked);
+> -	device_remove_file(&dock_device.dev, &dev_attr_undock);
+> -	device_remove_file(&dock_device.dev, &dev_attr_uid);
+> -	platform_device_unregister(&dock_device);
+> +	device_remove_file(&dock_device->dev, &dev_attr_docked);
+> +	device_remove_file(&dock_device->dev, &dev_attr_undock);
+> +	device_remove_file(&dock_device->dev, &dev_attr_uid);
+> +	platform_device_unregister(dock_device);
 >  
->  /*
->   * ACPI callbacks
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  	/* free dock station memory */
+>  	kfree(dock_station);
+> 
 > 
