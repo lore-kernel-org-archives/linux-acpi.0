@@ -1,65 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: [patch 1/4] Exit ACPI processor module gracefully if acpi is disabled
-Date: Thu, 10 May 2007 22:31:38 -0700
-Message-ID: <200705110531.l4B5VcWw007233@shell0.pdx.osdl.net>
+Subject: [patch 2/4] ACPI video: don't export sysfs backlight interface if query _BCL fail
+Date: Thu, 10 May 2007 22:31:39 -0700
+Message-ID: <200705110531.l4B5Vdeh007236@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36926 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48516 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754412AbXEKFdX (ORCPT
+	by vger.kernel.org with ESMTP id S1754568AbXEKFdY (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 May 2007 01:33:23 -0400
+	Fri, 11 May 2007 01:33:24 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, trenn@suse.de
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, dkukawka@suse.de, luming.yu@intel.com
 
-From: Thomas Renninger <trenn@suse.de>
+From: Danny Kukawka <dkukawka@suse.de>
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
+Currently the acpi video module export the backlight interface to sysfs
+also if acpi_video_device_lcd_query_levels() fails to read _BLC method
+(e.g.  because the method is not available).  In this case the userspace
+don't know which brightness level are supported and can't set a brightness
+level (echo return with: "write error: Invalid Argument").  This happend
+e.g.  on a ASUS RF1 (correct supported by the asus-laptop module).
+
+The video module should not export the backlight interface if query _BLC fail,
+because you can't set anything from userspace and this make it useless.
+
+See also: http://bugzilla.kernel.org/show_bug.cgi?id=8375
+
+Signed-off-by: Danny Kukawka <dkukawka@suse.de>
+Cc: "Yu, Luming" <luming.yu@intel.com>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_core.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ drivers/acpi/video.c |   78 +++++++++++++++++++++--------------------
+ 1 file changed, 41 insertions(+), 37 deletions(-)
 
-diff -puN drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled drivers/acpi/processor_core.c
---- a/drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled
-+++ a/drivers/acpi/processor_core.c
-@@ -991,6 +991,8 @@ void acpi_processor_uninstall_hotplug_no
-  * ACPI, but needs symbols from this driver
-  */
+diff -puN drivers/acpi/video.c~acpi-video-dont-export-sysfs-backlight-interface-if-query-_bcl-fail drivers/acpi/video.c
+--- a/drivers/acpi/video.c~acpi-video-dont-export-sysfs-backlight-interface-if-query-_bcl-fail
++++ a/drivers/acpi/video.c
+@@ -559,7 +559,6 @@ acpi_video_bus_DOS(struct acpi_video_bus
  
-+static int processor_driver_registered;
-+
- static int __init acpi_processor_init(void)
+ static void acpi_video_device_find_cap(struct acpi_video_device *device)
  {
- 	int result = 0;
-@@ -1016,6 +1018,8 @@ static int __init acpi_processor_init(vo
- 		return result;
+-	acpi_integer status;
+ 	acpi_handle h_dummy1;
+ 	int i;
+ 	u32 max_level = 0;
+@@ -593,50 +592,55 @@ static void acpi_video_device_find_cap(s
+ 		device->cap._DSS = 1;
  	}
  
-+	processor_driver_registered = 1;
-+
- 	acpi_processor_install_hotplug_notify();
+-	status = acpi_video_device_lcd_query_levels(device, &obj);
++	if (ACPI_SUCCESS(acpi_video_device_lcd_query_levels(device, &obj))) {
  
- 	acpi_thermal_cpufreq_init();
-@@ -1032,12 +1036,13 @@ static void __exit acpi_processor_exit(v
- 
- 	acpi_thermal_cpufreq_exit();
- 
--	acpi_processor_uninstall_hotplug_notify();
+-	if (obj && obj->type == ACPI_TYPE_PACKAGE && obj->package.count >= 2) {
+-		int count = 0;
+-		union acpi_object *o;
 -
--	acpi_bus_unregister_driver(&acpi_processor_driver);
-+	if (processor_driver_registered) {
-+		acpi_processor_uninstall_hotplug_notify();
+-		br = kzalloc(sizeof(*br), GFP_KERNEL);
+-		if (!br) {
+-			printk(KERN_ERR "can't allocate memory\n");
+-		} else {
+-			br->levels = kmalloc(obj->package.count *
+-					     sizeof *(br->levels), GFP_KERNEL);
+-			if (!br->levels)
+-				goto out;
+-
+-			for (i = 0; i < obj->package.count; i++) {
+-				o = (union acpi_object *)&obj->package.
+-				    elements[i];
+-				if (o->type != ACPI_TYPE_INTEGER) {
+-					printk(KERN_ERR PREFIX "Invalid data\n");
+-					continue;
+-				}
+-				br->levels[count] = (u32) o->integer.value;
+-				if (br->levels[count] > max_level)
+-					max_level = br->levels[count];
+-				count++;
+-			}
+-		      out:
+-			if (count < 2) {
+-				kfree(br->levels);
+-				kfree(br);
++		if (obj->package.count >= 2) {
++			int count = 0;
++			union acpi_object *o;
++
++			br = kzalloc(sizeof(*br), GFP_KERNEL);
++			if (!br) {
++				printk(KERN_ERR "can't allocate memory\n");
+ 			} else {
+-				br->count = count;
+-				device->brightness = br;
+-				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-						  "found %d brightness levels\n",
+-						  count));
++				br->levels = kmalloc(obj->package.count *
++						     sizeof *(br->levels), GFP_KERNEL);
++				if (!br->levels)
++					goto out;
++
++				for (i = 0; i < obj->package.count; i++) {
++					o = (union acpi_object *)&obj->package.
++					    elements[i];
++					if (o->type != ACPI_TYPE_INTEGER) {
++						printk(KERN_ERR PREFIX "Invalid data\n");
++						continue;
++					}
++					br->levels[count] = (u32) o->integer.value;
++
++					if (br->levels[count] > max_level)
++						max_level = br->levels[count];
++					count++;
++				}
++			      out:
++				if (count < 2) {
++					kfree(br->levels);
++					kfree(br);
++				} else {
++					br->count = count;
++					device->brightness = br;
++					ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++							  "found %d brightness levels\n",
++							  count));
++				}
+ 			}
+ 		}
++
++	} else {
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Could not query available LCD brightness level\n"));
+ 	}
  
--	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
-+		acpi_bus_unregister_driver(&acpi_processor_driver);
+ 	kfree(obj);
  
-+		remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
-+	}
- 	return;
- }
- 
+-	if (device->cap._BCL && device->cap._BCM && device->cap._BQC){
++	if (device->cap._BCL && device->cap._BCM && device->cap._BQC && max_level > 0){
+ 		unsigned long tmp;
+ 		static int count = 0;
+ 		char *name;
 _
