@@ -1,108 +1,90 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: [PATCH] swsusp: Use platform mode by default
-Date: Fri, 11 May 2007 11:21:50 +0200
-Message-ID: <200705111121.51704.rjw@sisk.pl>
-References: <200611011323.14830.rjw@sisk.pl> <200611012240.13412.len.brown@intel.com> <2cd57c900705110136r11f23797gdf09df36559c6a3b@mail.gmail.com>
+Date: Fri, 11 May 2007 09:30:37 -0700 (PDT)
+Message-ID: <alpine.LFD.0.98.0705110912290.3986@woody.linux-foundation.org>
+References: <200611011323.14830.rjw@sisk.pl> <200611012240.13412.len.brown@intel.com>
+ <2cd57c900705110136r11f23797gdf09df36559c6a3b@mail.gmail.com>
+ <200705111121.51704.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:58538 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751998AbXEKJRR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 May 2007 05:17:17 -0400
-In-Reply-To: <2cd57c900705110136r11f23797gdf09df36559c6a3b@mail.gmail.com>
-Content-Disposition: inline
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42702 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759877AbXEKQcb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 May 2007 12:32:31 -0400
+In-Reply-To: <200705111121.51704.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Coywolf Qi Hunt <coywolf@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-acpi@vger.kernel.org, Stefan Seyfried <seife@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Coywolf Qi Hunt <coywolf@gmail.com>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-acpi@vger.kernel.org, Stefan Seyfried <seife@suse.de>
 
-On Friday, 11 May 2007 10:36, Coywolf Qi Hunt wrote:
-> Hello,
+
+
+On Fri, 11 May 2007, Rafael J. Wysocki wrote:
 > 
-> (This patch is merged in 2.6.20 as commit
-> 9185cfa92507d07ac787bc73d06c42222eec7239)
-> 
-> With this patch, my desktop no longer powers off after hibernate(8).
-> It just reboots.
-> 
-> This user land fix can restore the old behavior:
-> echo shutdown > /sys/power/disk
-> 
-> The commit causes user land breakage. Is this behavior on purpose?
+> We're working on fixing the breakage, but currently it's difficult, because
+> none of my testboxes has problems with the 'platform' hibernation and I
+> cannot reproduce the reported issues.
 
-The change to using the 'platform' mode by default was made because some
-notebooks didn't suspend and resume correctly in the 'shutdown' mode.
+The rule for anything ACPI-related has been: no regressions.
 
-We're working on fixing the breakage, but currently it's difficult, because
-none of my testboxes has problems with the 'platform' hibernation and I
-cannot reproduce the reported issues.
+It doesn't matter if something fixes 10 boxes, if it breaks a single one, 
+it's going to get reverted.
 
-BTW, which kernel have you tested?
+We had much too much of the "two steps forward, one step back" dance with 
+ACPI a few years ago, which is the reason that rule got installed (and 
+which is why it's ACPI-only: in some other subsystems we accept the fact 
+that sometimes we don't know how to fix some hardware issue, but the new 
+situation is at least better than the old one).
 
-Greetings,
-Rafael
+I agree that it can be aggravating to know that you can fix a problem for 
+some people, but then being limited by the fact that it breaks for others. 
+But beign able to *rely* on something that used to work is just too 
+important, and with ACPI, you can never make a good judgement of which way 
+works better (since it really just depends on some random firmware issues 
+that we have zero visibility into).
 
+Also, quite often, it may *seem* like something fixes more boxes than it 
+breaks, but it's because people report *breakage* only, and then a few 
+months later it turns out that it's exactly the other way around: now it's 
+a hundred people who report breakage with the *new* code, and the reason 
+people thought it fixed more than it broke was that the people for whom 
+the old code worked fine obviously never reported it!
 
-> On 02/11/06, Len Brown <len.brown@intel.com> wrote:
-> > Applied.
-> >
-> > thanks,
-> > -Len
-> >
-> > On Wednesday 01 November 2006 07:23, Rafael J. Wysocki wrote:
-> > > It has been reported that on some systems the functionality after a resume
-> > > from disk is limited if the system is simply powered off during the suspend
-> > > instead of using the ACPI S4 suspend (aka platform mode).
-> > >
-> > > Unfortunately the default is currently to power off the system during the
-> > > suspend so the users of these systems experience problems after the resume
-> > > if they don't switch to the platform mode explicitly.  This patch makes swsusp
-> > > use the platform mode by default to avoid such situations.
-> > >
-> > > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> > > ---
-> > >  kernel/power/disk.c |    8 +++++---
-> > >  kernel/power/main.c |    2 +-
-> > >  2 files changed, 6 insertions(+), 4 deletions(-)
-> > >
-> > > Index: linux-2.6.19-rc4-mm1/kernel/power/main.c
-> > > ===================================================================
-> > > --- linux-2.6.19-rc4-mm1.orig/kernel/power/main.c
-> > > +++ linux-2.6.19-rc4-mm1/kernel/power/main.c
-> > > @@ -29,7 +29,7 @@
-> > >  DECLARE_MUTEX(pm_sem);
-> > >
-> > >  struct pm_ops *pm_ops;
-> > > -suspend_disk_method_t pm_disk_mode = PM_DISK_SHUTDOWN;
-> > > +suspend_disk_method_t pm_disk_mode = PM_DISK_PLATFORM;
-> > >
-> > >  /**
-> > >   *   pm_set_ops - Set the global power method table.
-> > > Index: linux-2.6.19-rc4-mm1/kernel/power/disk.c
-> > > ===================================================================
-> > > --- linux-2.6.19-rc4-mm1.orig/kernel/power/disk.c
-> > > +++ linux-2.6.19-rc4-mm1/kernel/power/disk.c
-> > > @@ -62,9 +62,11 @@ static void power_down(suspend_disk_meth
-> > >
-> > >       switch(mode) {
-> > >       case PM_DISK_PLATFORM:
-> > > -             kernel_shutdown_prepare(SYSTEM_SUSPEND_DISK);
-> > > -             error = pm_ops->enter(PM_SUSPEND_DISK);
-> > > -             break;
-> > > +             if (pm_ops && pm_ops->enter) {
-> > > +                     kernel_shutdown_prepare(SYSTEM_SUSPEND_DISK);
-> > > +                     error = pm_ops->enter(PM_SUSPEND_DISK);
-> > > +                     break;
-> > > +             }
-> > >       case PM_DISK_SHUTDOWN:
-> > >               kernel_power_off();
-> > >               break;
-> > > -
+So this is why "a single regression is considered more important than ten 
+fixes" - because a single regressionr report tends to actually be just the 
+first indication of a lot of people who simply haven't tested the new code 
+yet! People for whom the old code is broken are more likely to test new 
+things.
 
--- 
-If you don't have the time to read,
-you don't have the time or the tools to write.
-		- Stephen King
+So I'd just suggest changing the default back to PM_DISK_SHUTDOWN (but 
+leave the "pm_ops->enter" testing in place - ie not reverting the other 
+commits in the series).
+
+The patch would look something like this. Coywolf, does this fix it for 
+you?
+
+			Linus
+
+---
+ kernel/power/disk.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/kernel/power/disk.c b/kernel/power/disk.c
+index b5f0543..f6aa06e 100644
+--- a/kernel/power/disk.c
++++ b/kernel/power/disk.c
+@@ -60,9 +60,9 @@ void hibernation_set_ops(struct hibernation_ops *ops)
+ 	}
+ 	mutex_lock(&pm_mutex);
+ 	hibernation_ops = ops;
+-	if (ops)
+-		hibernation_mode = HIBERNATION_PLATFORM;
+-	else if (hibernation_mode == HIBERNATION_PLATFORM)
++
++	/* Turn off HIBERNATION_PLATFORM if we no longer have any platform ops */
++	if (!ops && hibernation_mode == HIBERNATION_PLATFORM)
+ 		hibernation_mode = HIBERNATION_SHUTDOWN;
+ 
+ 	mutex_unlock(&pm_mutex);
