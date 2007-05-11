@@ -1,69 +1,36 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [patch 3/3] clockevents: Fix resume logic - updated version
-Date: Fri, 11 May 2007 23:09:15 +0200
-Message-ID: <200705112309.15996.rjw@sisk.pl>
-References: <20070430102837.748238000@linutronix.de> <20070511132846.5ebf4437.akpm@linux-foundation.org> <200705112302.47726.rjw@sisk.pl>
+From: Jeff Garzik <jeff@garzik.org>
+Subject: Re: [PATCH 03/11] libata-acpi: s/CONFIG_SATA_ACPI/CONFIG_ATA_ACPI/
+Date: Fri, 11 May 2007 18:13:04 -0400
+Message-ID: <4644EA70.9020700@garzik.org>
+References: <11783766382010-git-send-email-htejun@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:60767 "EHLO ogre.sisk.pl"
+Received: from srv5.dvmed.net ([207.36.208.214]:43638 "EHLO mail.dvmed.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761033AbXEKVEQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 May 2007 17:04:16 -0400
-In-Reply-To: <200705112302.47726.rjw@sisk.pl>
-Content-Disposition: inline
+	id S1760763AbXEKWNL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 May 2007 18:13:11 -0400
+In-Reply-To: <11783766382010-git-send-email-htejun@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, John Stultz <johnstul@us.ibm.com>, linux-acpi@vger.kernel.org
+To: Tejun Heo <htejun@gmail.com>
+Cc: mjg59@srcf.ucam.org, rdunlap@xenotime.net, alan@lxorguk.ukuu.org.uk, forrest.zhao@gmail.com, lenb@kernel.org, linux-acpi@vger.kernel.org, hare@suse.de, linux-ide@vger.kernel.org
 
-On Friday, 11 May 2007 23:02, Rafael J. Wysocki wrote:
-> On Friday, 11 May 2007 22:28, Andrew Morton wrote:
-> > On Fri, 11 May 2007 22:10:24 +0200
-> > "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
-> > 
-> > > > > Index: linux-2.6.21/drivers/acpi/hardware/hwsleep.c
-> > > > > ===================================================================
-> > > > > --- linux-2.6.21.orig/drivers/acpi/hardware/hwsleep.c
-> > > > > +++ linux-2.6.21/drivers/acpi/hardware/hwsleep.c
-> > > > > @@ -200,10 +200,10 @@ acpi_status acpi_enter_sleep_state_prep(
-> > > > >  		return_ACPI_STATUS(status);
-> > > > >  	}
-> > > > >  
-> > > > > -	status = acpi_evaluate_object(NULL, METHOD_NAME__GTS, &arg_list, NULL);
-> > > > > +	/*status = acpi_evaluate_object(NULL, METHOD_NAME__GTS, &arg_list, NULL);
-> > > > >  	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
-> > > > >  		return_ACPI_STATUS(status);
-> > > > > -	}
-> > > > > +	}*/
-> > > > >  
-> > > > >  	/* Setup the argument to _SST */
-> > > > >  
-> > > > 
-> > > > I tested this against Thomas's original patch (below).  Still hangs, in the
-> > > > same way.
-> > > 
-> > > Well, I'm out of ideas. :-(
-> > > 
-> > > Could you please send me the Vaio's DSDT?
-> > 
-> > Maybe I should send you the Vaio ;)
+Tejun Heo wrote:
+> ACPI applies to both SATA and PATA.  Drop the 'S' from the config
+> variable.
 > 
-> Well, machines with so much potential of exposing problems are priceless. ;-)
-> 
-> > I have this 1999-era pre-ACPI, pre-everything-else Dual-PIII-based
-> > Supermicro machine and it just *always* works.  Sigh.
-> > 
-> > 
-> > hm, Fedora don't seem to want to give me an RPM which contains acpidump and
-> > all the yum servers are featuring scrogged checksums.  I could build it, I
-> > guess, but there's a principle involved ;)
-> > 
-> > http://userweb.kernel.org/~akpm/dsdt is /proc/acpi/dsdt.  Is that OK?
-> 
-> Yes, thanks.
+> Signed-off-by: Tejun Heo <htejun@gmail.com>
+> ---
+>  drivers/ata/Kconfig    |   26 +++++++++++++-------------
+>  drivers/ata/Makefile   |    2 +-
+>  drivers/ata/libata.h   |    2 +-
+>  include/linux/libata.h |    2 +-
+>  4 files changed, 16 insertions(+), 16 deletions(-)
 
-Hmm, have you tried to do 'echo shutdown > /sys/power/disk' before the
-hibernation?
+applied 3-4
+
+the code has been stirred, so I request resend of the other patches
+
+
