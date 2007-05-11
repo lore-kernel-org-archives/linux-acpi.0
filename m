@@ -1,90 +1,362 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH] swsusp: Use platform mode by default
-Date: Fri, 11 May 2007 09:30:37 -0700 (PDT)
-Message-ID: <alpine.LFD.0.98.0705110912290.3986@woody.linux-foundation.org>
-References: <200611011323.14830.rjw@sisk.pl> <200611012240.13412.len.brown@intel.com>
- <2cd57c900705110136r11f23797gdf09df36559c6a3b@mail.gmail.com>
- <200705111121.51704.rjw@sisk.pl>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [patch 3/3] clockevents: Fix resume logic - updated version
+Date: Fri, 11 May 2007 09:47:50 -0700
+Message-ID: <20070511094750.e91ea55b.akpm@linux-foundation.org>
+References: <20070430102837.748238000@linutronix.de>
+	<20070510021841.2dff9233.akpm@linux-foundation.org>
+	<1178789261.4646.9.camel@chaos>
+	<200705102212.08046.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42702 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37711 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759877AbXEKQcb (ORCPT
+	by vger.kernel.org with ESMTP id S1753661AbXEKQsT (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 May 2007 12:32:31 -0400
-In-Reply-To: <200705111121.51704.rjw@sisk.pl>
+	Fri, 11 May 2007 12:48:19 -0400
+In-Reply-To: <200705102212.08046.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Coywolf Qi Hunt <coywolf@gmail.com>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-acpi@vger.kernel.org, Stefan Seyfried <seife@suse.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, John Stultz <johnstul@us.ibm.com>, linux-acpi@vger.kernel.org
 
+On Thu, 10 May 2007 22:12:07 +0200 "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
 
-
-On Fri, 11 May 2007, Rafael J. Wysocki wrote:
+> On Thursday, 10 May 2007 11:27, Thomas Gleixner wrote:
+> > On Thu, 2007-05-10 at 02:18 -0700, Andrew Morton wrote:
+> > > > > > If that patch makes the problem go away, then we should have a quite
+> > > > > > good hint what we need to look at.
+> > > > > 
+> > > > > No joy, sorry.  It still hangs at the last statement in acpi_evaluate_object().
+> > > > 
+> > > > Can you add "nolapic_timer" to the command line please ?
+> > > > 
+> > > 
+> > > That works.
+> > 
+> > Ok, that boils it down to the change, which affects the lapic timer
+> > resume. It does nothing else, than fiddling in some APIC registers, but
+> > I don't see how this affects the ACPI stuff. This smells extremly fishy.
 > 
-> We're working on fixing the breakage, but currently it's difficult, because
-> none of my testboxes has problems with the 'platform' hibernation and I
-> cannot reproduce the reported issues.
+> Hmm, I wonder if it might be related to the execution of the _GTS ACPI control
+> method in acpi_enter_sleep_state_prep() in violation of the spec.
+> 
+> Andrew, could you please try to apply the following change on top of the
+> previous ones and see if the machine still hangs in the same place without
+> "nolapic_timer"?
+> 
+> ---
+>  drivers/acpi/hardware/hwsleep.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> Index: linux-2.6.21/drivers/acpi/hardware/hwsleep.c
+> ===================================================================
+> --- linux-2.6.21.orig/drivers/acpi/hardware/hwsleep.c
+> +++ linux-2.6.21/drivers/acpi/hardware/hwsleep.c
+> @@ -200,10 +200,10 @@ acpi_status acpi_enter_sleep_state_prep(
+>  		return_ACPI_STATUS(status);
+>  	}
+>  
+> -	status = acpi_evaluate_object(NULL, METHOD_NAME__GTS, &arg_list, NULL);
+> +	/*status = acpi_evaluate_object(NULL, METHOD_NAME__GTS, &arg_list, NULL);
+>  	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+>  		return_ACPI_STATUS(status);
+> -	}
+> +	}*/
+>  
+>  	/* Setup the argument to _SST */
+>  
 
-The rule for anything ACPI-related has been: no regressions.
+I tested this against Thomas's original patch (below).  Still hangs, in the
+same way.
 
-It doesn't matter if something fixes 10 boxes, if it breaks a single one, 
-it's going to get reverted.
+From: Thomas Gleixner <tglx@linutronix.de>
 
-We had much too much of the "two steps forward, one step back" dance with 
-ACPI a few years ago, which is the reason that rule got installed (and 
-which is why it's ACPI-only: in some other subsystems we accept the fact 
-that sometimes we don't know how to fix some hardware issue, but the new 
-situation is at least better than the old one).
+We need to make sure that the clockevent devices are resumed before the
+tick is resumed.  The current resume logic does not guarantee this.
 
-I agree that it can be aggravating to know that you can fix a problem for 
-some people, but then being limited by the fact that it breaks for others. 
-But beign able to *rely* on something that used to work is just too 
-important, and with ACPI, you can never make a good judgement of which way 
-works better (since it really just depends on some random firmware issues 
-that we have zero visibility into).
+Add CLOCK_EVT_MODE_RESUME and call the set mode functions of the clock
+event devices before resuming the tick / oneshot functionality.
 
-Also, quite often, it may *seem* like something fixes more boxes than it 
-breaks, but it's because people report *breakage* only, and then a few 
-months later it turns out that it's exactly the other way around: now it's 
-a hundred people who report breakage with the *new* code, and the reason 
-people thought it fixed more than it broke was that the people for whom 
-the old code worked fine obviously never reported it!
+Fixup the existing users.
 
-So this is why "a single regression is considered more important than ten 
-fixes" - because a single regressionr report tends to actually be just the 
-first indication of a lot of people who simply haven't tested the new code 
-yet! People for whom the old code is broken are more likely to test new 
-things.
+Fix the PIT handling of CLOCK_EVT_SHUTDOWN by disabling the interrupt
+instead of switching to oneshot mode, as this causes slowness on a couple
+of systems.
 
-So I'd just suggest changing the default back to PM_DISK_SHUTDOWN (but 
-leave the "pm_ops->enter" testing in place - ie not reverting the other 
-commits in the series).
-
-The patch would look something like this. Coywolf, does this fix it for 
-you?
-
-			Linus
-
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: <stable@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
- kernel/power/disk.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/kernel/power/disk.c b/kernel/power/disk.c
-index b5f0543..f6aa06e 100644
---- a/kernel/power/disk.c
-+++ b/kernel/power/disk.c
-@@ -60,9 +60,9 @@ void hibernation_set_ops(struct hibernation_ops *ops)
+ arch/i386/kernel/apic.c      |    3 +
+ arch/i386/kernel/hpet.c      |   71 ++-------------------------------
+ arch/i386/kernel/i8253.c     |   43 +++++++++++++------
+ include/linux/clockchips.h   |    1 
+ kernel/time/tick-broadcast.c |    4 +
+ kernel/time/tick-common.c    |   16 ++++---
+ 6 files changed, 51 insertions(+), 87 deletions(-)
+
+diff -puN arch/i386/kernel/apic.c~clockevents-fix-resume-logic-updated-version arch/i386/kernel/apic.c
+--- a/arch/i386/kernel/apic.c~clockevents-fix-resume-logic-updated-version
++++ a/arch/i386/kernel/apic.c
+@@ -263,6 +263,9 @@ static void lapic_timer_setup(enum clock
+ 		v |= (APIC_LVT_MASKED | LOCAL_TIMER_VECTOR);
+ 		apic_write_around(APIC_LVTT, v);
+ 		break;
++	case CLOCK_EVT_MODE_RESUME:
++		/* Nothing to do here */
++		break;
  	}
- 	mutex_lock(&pm_mutex);
- 	hibernation_ops = ops;
--	if (ops)
--		hibernation_mode = HIBERNATION_PLATFORM;
--	else if (hibernation_mode == HIBERNATION_PLATFORM)
-+
-+	/* Turn off HIBERNATION_PLATFORM if we no longer have any platform ops */
-+	if (!ops && hibernation_mode == HIBERNATION_PLATFORM)
- 		hibernation_mode = HIBERNATION_SHUTDOWN;
  
- 	mutex_unlock(&pm_mutex);
+ 	local_irq_restore(flags);
+diff -puN arch/i386/kernel/hpet.c~clockevents-fix-resume-logic-updated-version arch/i386/kernel/hpet.c
+--- a/arch/i386/kernel/hpet.c~clockevents-fix-resume-logic-updated-version
++++ a/arch/i386/kernel/hpet.c
+@@ -187,6 +187,10 @@ static void hpet_set_mode(enum clock_eve
+ 		cfg &= ~HPET_TN_ENABLE;
+ 		hpet_writel(cfg, HPET_T0_CFG);
+ 		break;
++
++	case CLOCK_EVT_MODE_RESUME:
++		hpet_enable_int();
++		break;
+ 	}
+ }
+ 
+@@ -217,6 +221,7 @@ static struct clocksource clocksource_hp
+ 	.mask		= HPET_MASK,
+ 	.shift		= HPET_SHIFT,
+ 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
++	.resume		= hpet_start_counter,
+ };
+ 
+ /*
+@@ -291,7 +296,6 @@ int __init hpet_enable(void)
+ 
+ 	clocksource_register(&clocksource_hpet);
+ 
+-
+ 	if (id & HPET_ID_LEGSUP) {
+ 		hpet_enable_int();
+ 		hpet_reserve_platform_timers(id);
+@@ -524,68 +528,3 @@ irqreturn_t hpet_rtc_interrupt(int irq, 
+ 	return IRQ_HANDLED;
+ }
+ #endif
+-
+-
+-/*
+- * Suspend/resume part
+- */
+-
+-#ifdef CONFIG_PM
+-
+-static int hpet_suspend(struct sys_device *sys_device, pm_message_t state)
+-{
+-	unsigned long cfg = hpet_readl(HPET_CFG);
+-
+-	cfg &= ~(HPET_CFG_ENABLE|HPET_CFG_LEGACY);
+-	hpet_writel(cfg, HPET_CFG);
+-
+-	return 0;
+-}
+-
+-static int hpet_resume(struct sys_device *sys_device)
+-{
+-	unsigned int id;
+-
+-	hpet_start_counter();
+-
+-	id = hpet_readl(HPET_ID);
+-
+-	if (id & HPET_ID_LEGSUP)
+-		hpet_enable_int();
+-
+-	return 0;
+-}
+-
+-static struct sysdev_class hpet_class = {
+-	set_kset_name("hpet"),
+-	.suspend	= hpet_suspend,
+-	.resume		= hpet_resume,
+-};
+-
+-static struct sys_device hpet_device = {
+-	.id		= 0,
+-	.cls		= &hpet_class,
+-};
+-
+-
+-static __init int hpet_register_sysfs(void)
+-{
+-	int err;
+-
+-	if (!is_hpet_capable())
+-		return 0;
+-
+-	err = sysdev_class_register(&hpet_class);
+-
+-	if (!err) {
+-		err = sysdev_register(&hpet_device);
+-		if (err)
+-			sysdev_class_unregister(&hpet_class);
+-	}
+-
+-	return err;
+-}
+-
+-device_initcall(hpet_register_sysfs);
+-
+-#endif
+diff -puN arch/i386/kernel/i8253.c~clockevents-fix-resume-logic-updated-version arch/i386/kernel/i8253.c
+--- a/arch/i386/kernel/i8253.c~clockevents-fix-resume-logic-updated-version
++++ a/arch/i386/kernel/i8253.c
+@@ -3,11 +3,11 @@
+  *
+  */
+ #include <linux/clockchips.h>
+-#include <linux/spinlock.h>
++#include <linux/init.h>
++#include <linux/interrupt.h>
+ #include <linux/jiffies.h>
+-#include <linux/sysdev.h>
+ #include <linux/module.h>
+-#include <linux/init.h>
++#include <linux/spinlock.h>
+ 
+ #include <asm/smp.h>
+ #include <asm/delay.h>
+@@ -26,6 +26,24 @@ EXPORT_SYMBOL(i8253_lock);
+  */
+ struct clock_event_device *global_clock_event;
+ 
++/* Status of the PIT interrupt */
++static int pit_irq_disabled;
++
++/*
++ * Control pit interrupt enable / disable
++ */
++static void pit_control_irq(int disable)
++{
++	if (pit_irq_disabled == disable)
++		return;
++
++	pit_irq_disabled = disable;
++	if (disable)
++		disable_irq(0);
++	else
++		enable_irq(0);
++}
++
+ /*
+  * Initialize the PIT timer.
+  *
+@@ -42,26 +60,23 @@ static void init_pit_timer(enum clock_ev
+ 	case CLOCK_EVT_MODE_PERIODIC:
+ 		/* binary, mode 2, LSB/MSB, ch 0 */
+ 		outb_p(0x34, PIT_MODE);
+-		udelay(10);
+ 		outb_p(LATCH & 0xff , PIT_CH0);	/* LSB */
+-		udelay(10);
+ 		outb(LATCH >> 8 , PIT_CH0);	/* MSB */
++		pit_control_irq(0);
+ 		break;
+ 
+-	/*
+-	 * Avoid unnecessary state transitions, as it confuses
+-	 * Geode / Cyrix based boxen.
+-	 */
+ 	case CLOCK_EVT_MODE_SHUTDOWN:
+-		if (evt->mode == CLOCK_EVT_MODE_UNUSED)
+-			break;
+ 	case CLOCK_EVT_MODE_UNUSED:
+-		if (evt->mode == CLOCK_EVT_MODE_SHUTDOWN)
+-			break;
++		pit_control_irq(1);
++		break;
+ 	case CLOCK_EVT_MODE_ONESHOT:
+ 		/* One shot setup */
+ 		outb_p(0x38, PIT_MODE);
+-		udelay(10);
++		pit_control_irq(0);
++		break;
++
++	case CLOCK_EVT_MODE_RESUME:
++		/* Nothing to do here */
+ 		break;
+ 	}
+ 	spin_unlock_irqrestore(&i8253_lock, flags);
+diff -puN include/linux/clockchips.h~clockevents-fix-resume-logic-updated-version include/linux/clockchips.h
+--- a/include/linux/clockchips.h~clockevents-fix-resume-logic-updated-version
++++ a/include/linux/clockchips.h
+@@ -23,6 +23,7 @@ enum clock_event_mode {
+ 	CLOCK_EVT_MODE_SHUTDOWN,
+ 	CLOCK_EVT_MODE_PERIODIC,
+ 	CLOCK_EVT_MODE_ONESHOT,
++	CLOCK_EVT_MODE_RESUME,
+ };
+ 
+ /* Clock event notification values */
+diff -puN kernel/time/tick-broadcast.c~clockevents-fix-resume-logic-updated-version kernel/time/tick-broadcast.c
+--- a/kernel/time/tick-broadcast.c~clockevents-fix-resume-logic-updated-version
++++ a/kernel/time/tick-broadcast.c
+@@ -292,7 +292,7 @@ void tick_suspend_broadcast(void)
+ 	spin_lock_irqsave(&tick_broadcast_lock, flags);
+ 
+ 	bc = tick_broadcast_device.evtdev;
+-	if (bc && tick_broadcast_device.mode == TICKDEV_MODE_PERIODIC)
++	if (bc)
+ 		clockevents_set_mode(bc, CLOCK_EVT_MODE_SHUTDOWN);
+ 
+ 	spin_unlock_irqrestore(&tick_broadcast_lock, flags);
+@@ -309,6 +309,8 @@ int tick_resume_broadcast(void)
+ 	bc = tick_broadcast_device.evtdev;
+ 
+ 	if (bc) {
++		clockevents_set_mode(bc, CLOCK_EVT_MODE_RESUME);
++
+ 		switch (tick_broadcast_device.mode) {
+ 		case TICKDEV_MODE_PERIODIC:
+ 			if(!cpus_empty(tick_broadcast_mask))
+diff -puN kernel/time/tick-common.c~clockevents-fix-resume-logic-updated-version kernel/time/tick-common.c
+--- a/kernel/time/tick-common.c~clockevents-fix-resume-logic-updated-version
++++ a/kernel/time/tick-common.c
+@@ -318,12 +318,17 @@ static void tick_resume(void)
+ {
+ 	struct tick_device *td = &__get_cpu_var(tick_cpu_device);
+ 	unsigned long flags;
++	int broadcast = tick_resume_broadcast();
+ 
+ 	spin_lock_irqsave(&tick_device_lock, flags);
+-	if (td->mode == TICKDEV_MODE_PERIODIC)
+-		tick_setup_periodic(td->evtdev, 0);
+-	else
+-		tick_resume_oneshot();
++	clockevents_set_mode(td->evtdev, CLOCK_EVT_MODE_RESUME);
++
++	if (!broadcast) {
++		if (td->mode == TICKDEV_MODE_PERIODIC)
++			tick_setup_periodic(td->evtdev, 0);
++		else
++			tick_resume_oneshot();
++	}
+ 	spin_unlock_irqrestore(&tick_device_lock, flags);
+ }
+ 
+@@ -360,8 +365,7 @@ static int tick_notify(struct notifier_b
+ 		break;
+ 
+ 	case CLOCK_EVT_NOTIFY_RESUME:
+-		if (!tick_resume_broadcast())
+-			tick_resume();
++		tick_resume();
+ 		break;
+ 
+ 	default:
+_
+
