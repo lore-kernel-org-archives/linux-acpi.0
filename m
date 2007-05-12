@@ -1,44 +1,95 @@
-From: Arjan van de Ven <arjan@linux.intel.com>
-Subject: Re: [announce] Intel announces the PowerTOP utility for Linux
-Date: Sat, 12 May 2007 10:44:11 -0700
-Message-ID: <1178991851.3591.0.camel@laptopd505.fenrus.org>
-References: <4644F726.1050806@linux.intel.com>
-	 <Pine.LNX.4.61.0705121256430.9570@yvahk01.tjqt.qr>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [patch 3/3] clockevents: Fix resume logic - updated version
+Date: Sat, 12 May 2007 20:49:32 +0200
+Message-ID: <1178995772.22481.205.camel@localhost.localdomain>
+References: <20070430102837.748238000@linutronix.de>
+	 <20070511132846.5ebf4437.akpm@linux-foundation.org>
+	 <200705112302.47726.rjw@sisk.pl> <200705112309.15996.rjw@sisk.pl>
+	 <20070511235607.83ad0eb5.akpm@linux-foundation.org>
+	 <1178959563.22481.126.camel@localhost.localdomain>
+	 <20070512020056.a24cf472.akpm@linux-foundation.org>
+	 <1178961489.22481.133.camel@localhost.localdomain>
+	 <20070512030754.90488f79.akpm@linux-foundation.org>
+	 <1178970253.22481.143.camel@localhost.localdomain>
+	 <20070512095145.0cf58a57.akpm@linux-foundation.org>
+	 <1178989302.22481.185.camel@localhost.localdomain>
+Reply-To: tglx@linutronix.de
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [71.237.232.134] ([71.237.232.134]:43626 "EHLO
-	laptopd505.fenrus.org" rhost-flags-FAIL-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753215AbXELR4l (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 12 May 2007 13:56:41 -0400
-In-Reply-To: <Pine.LNX.4.61.0705121256430.9570@yvahk01.tjqt.qr>
+Received: from www.osadl.org ([213.239.205.134]:38056 "EHLO mail.tglx.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750833AbXELSqZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 12 May 2007 14:46:25 -0400
+In-Reply-To: <1178989302.22481.185.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, John Stultz <johnstul@us.ibm.com>, linux-acpi@vger.kernel.org
 
-On Sat, 2007-05-12 at 13:00 +0200, Jan Engelhardt wrote:
-> On May 11 2007 16:07, Arjan van de Ven wrote:
-> >
-> > A typical Linux distribution has many components that wake the processor up
-> > frequently for no good reason. In our testing with PowerTOP, we have seen many
-> > cases where with some simple fixes, the battery life of typical laptops was
-> > increased by one hour or more!
-> >
-> > We are providing fixes for several of the issues we identified, and we
-> > encourage the Linux community to help us in this quest to get the maximum
-> > battery life out of your (hopefully Intel based) laptops. Try the PowerTOP
-> > tool, join the mailing list or the IRC channel and provide feedback, problem
-> > reports or fixes!
+On Sat, 2007-05-12 at 19:01 +0200, Thomas Gleixner wrote:
+> On Sat, 2007-05-12 at 09:51 -0700, Andrew Morton wrote:
+> > The locking in clocksource_resume_watchdog looks pretty pointless anyway.
+> > Can't we just delete it?
+> > 
+> > The only thing it can race against is, conceivably,
+> > 
+> >         resumed = watchdog_resumed;
+> >         if (unlikely(resumed))
+> >                 watchdog_resumed = 0;
+> > 
+> > which could be solved by using test_and_clear_bit().
 > 
-> Yeah, hal happily wakes up every two seconds. So much for
-> the effectivity of NO_HZ.
+> True. I'll redo it.
 
+Here you go.
 
-The AN patches that Kristen posted a few days ago will fix this part of
-hal for real... assuming you have hardware with AN support that is.
+	tglx
 
-they are in -mm now... should go mainline in like 2.6.23
+------------------------------->
+Subject: clocksource fix lock order in the resume path
+
+lockdep complains about the lock nesting of clocksource and watchdog
+lock in the resume path.
+
+Change the resume marker to a bit operation and remove the lock from
+this path.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+
+--- a/kernel/time/clocksource.c
++++ b/kernel/time/clocksource.c
+@@ -74,7 +74,7 @@ static struct clocksource *watchdog;
+ static struct timer_list watchdog_timer;
+ static DEFINE_SPINLOCK(watchdog_lock);
+ static cycle_t watchdog_last;
+-static int watchdog_resumed;
++static unsigned long watchdog_resumed;
+ 
+ /*
+  * Interval: 0.5sec Threshold: 0.0625s
+@@ -104,9 +104,7 @@ static void clocksource_watchdog(unsigned long data)
+ 
+ 	spin_lock(&watchdog_lock);
+ 
+-	resumed = watchdog_resumed;
+-	if (unlikely(resumed))
+-		watchdog_resumed = 0;
++	resumed = test_and_clear_bit(0, &watchdog_resumed);
+ 
+ 	wdnow = watchdog->read();
+ 	wd_nsec = cyc2ns(watchdog, (wdnow - watchdog_last) & watchdog->mask);
+@@ -151,9 +149,7 @@ static void clocksource_watchdog(unsigned long data)
+ }
+ static void clocksource_resume_watchdog(void)
+ {
+-	spin_lock(&watchdog_lock);
+-	watchdog_resumed = 1;
+-	spin_unlock(&watchdog_lock);
++	set_bit(0, &watchdog_resumed);
+ }
+ 
+ static void clocksource_check_watchdog(struct clocksource *cs)
+
 
