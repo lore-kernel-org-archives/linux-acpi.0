@@ -1,41 +1,87 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] swsusp: Use platform mode by default
-Date: Fri, 11 May 2007 23:50:43 -0400
-Message-ID: <200705112350.43462.lenb@kernel.org>
-References: <200611011323.14830.rjw@sisk.pl> <alpine.LFD.0.98.0705111550540.3986@woody.linux-foundation.org> <20070511232326.GB28092@elf.ucw.cz>
+From: Jose Celestino <japc@co.sapo.pt>
+Subject: Re: Re: Re: [announce] Intel announces the PowerTOP utility for
+	Linux
+Date: Sat, 12 May 2007 05:09:31 +0100
+Message-ID: <20070512040930.GC6464@co.sapo.pt>
+References: <4644F726.1050806@linux.intel.com> <20070512001718.GY11166@waste.org> <20070512014052.GA4082@co.sapo.pt> <20070512023904.GY11115@waste.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:58495 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750881AbXELDw1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 May 2007 23:52:27 -0400
-In-Reply-To: <20070511232326.GB28092@elf.ucw.cz>
+Received: from relay1.ptmail.sapo.pt ([212.55.154.21]:48218 "HELO sapo.pt"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1752854AbXELEJ2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 12 May 2007 00:09:28 -0400
 Content-Disposition: inline
+In-Reply-To: <20070512023904.GY11115@waste.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, Alexey Starikovskiy <aystarik@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Coywolf Qi Hunt <coywolf@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Stefan Seyfried <seife@suse.de>
+To: Matt Mackall <mpm@selenic.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-I agree that we should keep the "platform" default,
-as it went in 2 releases ago (nearly 6 months) without
-any reported failures until this one -- and it fixed
-a longstanding issue documented on many machines.
+Words by Matt Mackall [Fri, May 11, 2007 at 09:39:05PM -0500]:
+> On Sat, May 12, 2007 at 02:40:52AM +0100, Jose Celestino wrote:
+> > Words by Matt Mackall [Fri, May 11, 2007 at 07:17:19PM -0500]:
+> > > On Fri, May 11, 2007 at 04:07:18PM -0700, Arjan van de Ven wrote:
+> > > > 
+> > > > What's eating the battery life of my laptop? Why isn't it many more 
+> > > > hours? Which software component causes the most power to be burned? 
+> > > > These are important questions without a good answer... until now.
+> > > 
+> > > I get:
+> > > 
+> > > No detailed statistics available; please enable the CONFIG_TIMER_STATS
+> > > kernel option
+> > > 
+> > 
+> > Must run as root (rw to /proc/timer_stats is needed).
+> 
+> That file doesn't exist, despite CONFIG_TIMER_STATS being in
+> /proc/config.gz.
+> 
 
-We should debug Qi's failure like any other.
-We are actually in better shape on this one than others
-because we already know something that works around it.
+Then again, perhaps you have /proc/tstats instead.
 
-Qi,
-Please open a bug report here:
+If so apply this (well, you get the idea):
 
-http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
-in the Power-Off category.  There are some other open
-poweroff bugs and maybe we'll find a common thread.
-Please attach the output from acpidump and
-dmesg -s64000.
+--- powertop/powertop.c 2007-05-12 05:01:15.000000000 +0100
++++ powertop_new/powertop.c     2007-05-12 05:08:46.000000000 +0100
+@@ -212,8 +212,8 @@
+ void stop_timerstats(void)
+ {
+        FILE *file;
+-       file = fopen("/proc/timer_stats","w");
+-       if (!file) {
++       if (!(file = fopen("/proc/timer_stats","w")) &&
++               !(file = fopen("/proc/stats","w")) ) {
+                nostats = 1;
+                return;
+        }
+@@ -223,8 +223,8 @@
+ void start_timerstats(void)
+ {
+        FILE *file;
+-       file = fopen("/proc/timer_stats","w");
+-       if (!file) {
++       if (!(file = fopen("/proc/timer_stats","w")) &&
++               !(file = fopen("/proc/stats","w")) ) {
+                nostats = 1;
+                return;
+        }
+@@ -388,7 +388,7 @@
+                i = 0;
+                totalticks = 0;
+                if (!nostats)
+-                       file = popen("cat /proc/timer_stats | sort -n | tail -190", "r");
++                       file = popen("cat /proc/timer_stats 2>>/dev/null|| cat /proc/tstats | sort -n | tail -190", "r");
+                while (file && !feof(file) && i<190) {
+                        char *count, *pid, *process, *func;
+                        int cnt;
 
-thanks,
--Len
+
+-- 
+Jose Celestino
+----------------------------------------------------------------
+http://www.msversus.org/     ; http://techp.org/petition/show/1
+http://www.vinc17.org/noswpat.en.html
+----------------------------------------------------------------
+"And on the trillionth day, Man created Gods." -- Thomas D. Pate
