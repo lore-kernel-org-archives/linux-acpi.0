@@ -1,110 +1,67 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [patch 3/3] clockevents: Fix resume logic - updated version
-Date: Sat, 12 May 2007 03:07:54 -0700
-Message-ID: <20070512030754.90488f79.akpm@linux-foundation.org>
-References: <20070430102837.748238000@linutronix.de>
-	<20070511132846.5ebf4437.akpm@linux-foundation.org>
-	<200705112302.47726.rjw@sisk.pl>
-	<200705112309.15996.rjw@sisk.pl>
-	<20070511235607.83ad0eb5.akpm@linux-foundation.org>
-	<1178959563.22481.126.camel@localhost.localdomain>
-	<20070512020056.a24cf472.akpm@linux-foundation.org>
-	<1178961489.22481.133.camel@localhost.localdomain>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: [announce] Intel announces the PowerTOP utility for Linux
+Date: Sat, 12 May 2007 13:00:26 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0705121256430.9570@yvahk01.tjqt.qr>
+References: <4644F726.1050806@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33094 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755466AbXELKIV convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 12 May 2007 06:08:21 -0400
-In-Reply-To: <1178961489.22481.133.camel@localhost.localdomain>
+Received: from mailer.gwdg.de ([134.76.10.26]:58704 "EHLO mailer.gwdg.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756159AbXELLBQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 12 May 2007 07:01:16 -0400
+In-Reply-To: <4644F726.1050806@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: tglx@linutronix.de
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, John Stultz <johnstul@us.ibm.com>, linux-acpi@vger.kernel.org
-
-On Sat, 12 May 2007 11:18:09 +0200 Thomas Gleixner <tglx@linutronix.de> wrote:
-
-> > It's peculiar that the hang happens when acpi_evaluate_object() hits its
-> > return statement.  Any theories there?
-> 
-> Only stack or memory corruption come into mind, but I have no clue how
-> this is related to the resume logic changes.
-
-So I had the brilliant idea of turning on some kernel debugging.  It's
-a shame that CONFIG_SOFTWARE_SUSPEND disables CONFIG_DEBUG_PAGEALLOC.
-
-[   73.533454] swsusp: Basic memory bitmaps created
-[   73.550429] Stopping tasks ... BUG: at kernel/lockdep.c:2414 check_flags()
-[   73.550988]  [<c0104c14>] show_trace_log_lvl+0x1a/0x30
-[   73.551143]  [<c0105769>] show_trace+0x12/0x14
-[   73.551279]  [<c01057c1>] dump_stack+0x15/0x17
-[   73.551412]  [<c0132732>] check_flags+0x93/0x13d
-[   73.551554]  [<c0135558>] lock_acquire+0x28/0x7f
-[   73.551691]  [<c0310e35>] _spin_lock+0x2b/0x38
-[   73.551827]  [<c013dc43>] refrigerator+0x16/0xc7
-[   73.551965]  [<c0125d2e>] get_signal_to_deliver+0x32/0x387
-[   73.552124]  [<c010336d>] do_notify_resume+0x91/0x6a9
-[   73.552271]  [<c0103df1>] work_notifysig+0x13/0x1a
-[   73.552413]  =======================
-[   73.552507] irq event stamp: 3075
-[   73.552595] hardirqs last  enabled at (3075): [<c0103e51>] syscall_exit_work+0x11/0x26
-[   73.552821] hardirqs last disabled at (3074): [<c0103d35>] syscall_exit+0x9/0x1a
-[   73.553046] softirqs last  enabled at (2778): [<c01209f2>] __do_softirq+0x92/0x9a
-[   73.553255] softirqs last disabled at (2693): [<c0120a27>] do_softirq+0x2d/0x46
-[   73.559504] done.
-[   73.559569] Shrinking memory...  -done (0 pages freed)
-[   73.646511] Freed 0 kbytes in 0.08 seconds (0.00 MB/s)
-[   73.649595] platform sonypi: freeze
-[   73.649707] platform bluetooth: freeze
-[   73.649817] usb_endpoint usbdev5.1_ep81: PM: suspend 0->1, parent 5-0:1.0 already 2
-[   73.650023] hub 5-0:1.0: PM: suspend 2-->1
-
-<snippage>
-
-[   73.739499] ipw2200 0000:06:0b.0: freeze
-[   73.743860] eth1: Going into suspend...
-[   73.748444] e100 0000:06:08.0: freeze
-
-at this point I lost netconsole (earlier testing was without netconsole
-btw)
+To: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
 
-The lockdep spew is coming out of here:
+On May 11 2007 16:07, Arjan van de Ven wrote:
+>
+> A typical Linux distribution has many components that wake the processor up
+> frequently for no good reason. In our testing with PowerTOP, we have seen many
+> cases where with some simple fixes, the battery life of typical laptops was
+> increased by one hour or more!
+>
+> We are providing fixes for several of the issues we identified, and we
+> encourage the Linux community to help us in this quest to get the maximum
+> battery life out of your (hopefully Intel based) laptops. Try the PowerTOP
+> tool, join the mailing list or the IRC channel and provide feedback, problem
+> reports or fixes!
 
-static void check_flags(unsigned long flags)
-{
-#if defined(CONFIG_DEBUG_LOCKDEP) && defined(CONFIG_TRACE_IRQFLAGS)
-	if (!debug_locks)
-		return;
+Yeah, hal happily wakes up every two seconds. So much for
+the effectivity of NO_HZ.
 
-	if (irqs_disabled_flags(flags))
--->		DEBUG_LOCKS_WARN_ON(current->hardirqs_enabled);
-	else
-		DEBUG_LOCKS_WARN_ON(!current->hardirqs_enabled);
+# ps afx | grep hal
+ ...
+ 3003 ?        S      0:00      \_ hald-addon-storage: polling /dev/hdb
+ ...
+# strace -p 3003
+Process 3003 attached - interrupt to quit
+restart_syscall(<... resuming interrupted call ...>) = 0
+open("/dev/hdb", O_RDONLY|O_NONBLOCK|O_EXCL|O_LARGEFILE) = 4
+ioctl(4, CDROM_DRIVE_STATUS, 0x7fffffff) = 1
+close(4)                                = 0
+rt_sigprocmask(SIG_BLOCK, [CHLD], [], 8) = 0
+rt_sigaction(SIGCHLD, NULL, {SIG_DFL}, 8) = 0
+rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+nanosleep({2, 0}, {2, 0})               = 0
+open("/dev/hdb", O_RDONLY|O_NONBLOCK|O_EXCL|O_LARGEFILE) = 4
+ioctl(4, CDROM_DRIVE_STATUS, 0x7fffffff) = 1
+close(4)                                = 0
+rt_sigprocmask(SIG_BLOCK, [CHLD], [], 8) = 0
+rt_sigaction(SIGCHLD, NULL, {SIG_DFL}, 8) = 0
+rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+nanosleep({2, 0}, {2, 0})               = 0
+open("/dev/hdb", O_RDONLY|O_NONBLOCK|O_EXCL|O_LARGEFILE) = 4
+ioctl(4, CDROM_DRIVE_STATUS, 0x7fffffff) = 1
+close(4)                                = 0
+rt_sigprocmask(SIG_BLOCK, [CHLD], [], 8) = 0
+rt_sigaction(SIGCHLD, NULL, {SIG_DFL}, 8) = 0
+rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+nanosleep({2, 0},  <unfinished ...>
 
-and the callsite is:
 
-void refrigerator(void)
-{
-	/* Hmm, should we be allowed to suspend when there are realtime
-	   processes around? */
-	long save;
-
--->	task_lock(current);
-	if (freezing(current)) {
-		frozen_process();
-		task_unlock(current);
-	} else {
-
-
-I don't really know what lockdep is complaining about there.  I assume I'm
-not supposed to, given that whoever wrote that couldn't be bothered
-documenting any of it.
-
-I _think_ it means that lockdep believes that local irqs are enabled
-(according to its state tracking), only it turns out that they're not.
-
-
+	Jan
+-- 
