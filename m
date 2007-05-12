@@ -1,40 +1,39 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] swsusp: Use platform mode by default
-Date: Sat, 12 May 2007 01:23:26 +0200
-Message-ID: <20070511232326.GB28092@elf.ucw.cz>
-References: <200611011323.14830.rjw@sisk.pl> <200705111121.51704.rjw@sisk.pl> <alpine.LFD.0.98.0705110912290.3986@woody.linux-foundation.org> <200705112208.53971.rjw@sisk.pl> <alpine.LFD.0.98.0705111550540.3986@woody.linux-foundation.org>
+From: Matt Mackall <mpm@selenic.com>
+Subject: Re: [announce] Intel announces the PowerTOP utility for Linux
+Date: Fri, 11 May 2007 19:17:19 -0500
+Message-ID: <20070512001718.GY11166@waste.org>
+References: <4644F726.1050806@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:51317 "EHLO amd.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755556AbXEKXX3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 May 2007 19:23:29 -0400
+Received: from waste.org ([66.93.16.53]:55826 "EHLO waste.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754709AbXELAR1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 May 2007 20:17:27 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.0.98.0705111550540.3986@woody.linux-foundation.org>
+In-Reply-To: <4644F726.1050806@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Coywolf Qi Hunt <coywolf@gmail.com>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Alexey Starikovskiy <alexey_y_starikovskiy@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Stefan Seyfried <seife@suse.de>
+To: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-Hi!
-
-> > Just to clarify, the change in question isn't new.  It was introduced by the
-> > commit 9185cfa92507d07ac787bc73d06c42222eec7239 before 2.6.20, at Seife's
-> > request and with Pavel's acceptance.
+On Fri, May 11, 2007 at 04:07:18PM -0700, Arjan van de Ven wrote:
 > 
-> Ok, if it's that old, we migt as leave it in. Clearly there weren't many 
-> regressions, and this isn't a case of other monsters lurking behind a lack 
-> of testers.
+> What's eating the battery life of my laptop? Why isn't it many more 
+> hours? Which software component causes the most power to be burned? 
+> These are important questions without a good answer... until now.
 
-Ok, so what is the result?
+I get:
 
-"platform" is the correct default, because it is as the spec said.
+No detailed statistics available; please enable the CONFIG_TIMER_STATS
+kernel option
 
-Both were default in recent history, and neither is too horrible. So
-I'd prefer "platform" to be default, as it is correct.
+with:
 
-									Pavel
+$ zgrep STATS /proc/config.gz 
+# CONFIG_TASKSTATS is not set
+# CONFIG_SCHEDSTATS is not set
+CONFIG_TIMER_STATS=y
+
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Mathematics is the supreme nostalgia of our time.
