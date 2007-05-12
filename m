@@ -1,43 +1,42 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [patch 3/3] clockevents: Fix resume logic - updated version
-Date: Sat, 12 May 2007 21:56:10 +0200
-Message-ID: <1178999770.22481.211.camel@localhost.localdomain>
-References: <20070430102837.748238000@linutronix.de>
-	 <20070511132846.5ebf4437.akpm@linux-foundation.org>
-	 <200705112302.47726.rjw@sisk.pl> <200705112309.15996.rjw@sisk.pl>
-	 <20070511235607.83ad0eb5.akpm@linux-foundation.org>
-	 <1178959563.22481.126.camel@localhost.localdomain>
-	 <20070512020056.a24cf472.akpm@linux-foundation.org>
-	 <1178961489.22481.133.camel@localhost.localdomain>
-	 <20070512030754.90488f79.akpm@linux-foundation.org>
-	 <1178970253.22481.143.camel@localhost.localdomain>
-	 <20070512095145.0cf58a57.akpm@linux-foundation.org>
-	 <1178989302.22481.185.camel@localhost.localdomain>
-	 <20070512102350.04126320.akpm@linux-foundation.org>
-Reply-To: tglx@linutronix.de
+From: Alistair John Strachan <s0348365@sms.ed.ac.uk>
+Subject: Re: [announce] Intel announces the PowerTOP utility for Linux
+Date: Sat, 12 May 2007 22:12:43 +0100
+Message-ID: <200705122212.43653.s0348365@sms.ed.ac.uk>
+References: <4644F726.1050806@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.osadl.org ([213.239.205.134]:60953 "EHLO mail.tglx.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754712AbXELTxE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 12 May 2007 15:53:04 -0400
-In-Reply-To: <20070512102350.04126320.akpm@linux-foundation.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758020AbXELVM6@vger.kernel.org>
+In-Reply-To: <4644F726.1050806@linux.intel.com>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, John Stultz <johnstul@us.ibm.com>, linux-acpi@vger.kernel.org
 
-On Sat, 2007-05-12 at 10:23 -0700, Andrew Morton wrote:
-> The broken-out queue should turn up at
-> ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/mm/
-> in a few minutes.
+On Saturday 12 May 2007 00:07:18 Arjan van de Ven wrote:
+> What's eating the battery life of my laptop? Why isn't it many more
+> hours? Which software component causes the most power to be burned?
+> These are important questions without a good answer... until now.
 
-Sigh. I can't reproduce your lockdep problem :(
+This is a really great tool and presents a very intuitive alternative to the 
+timer stats file..
 
-Can you send me your .config please ?
+On a Core 2 Duo Macbook, Linux always gets around 3.2h battery, OS X about 
+4.2h. This tool has identified that uhci_hcd is where 75% of the ticks are 
+going when X is not loaded. Unloading uhci_hcd drops the battery life back to 
+around 4.2h, but I lose the keyboard.
 
-	tglx
+Is there any way to find out what USB driver is causing usb_uhci to be this 
+busy?
 
+(BTW, the link to Keith's patch for dhcdbd seems to be broken on your 
+homepage.)
 
+-- 
+Cheers,
+Alistair.
+
+Final year Computer Science undergraduate.
+1F2 55 South Clerk Street, Edinburgh, UK.
