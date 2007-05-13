@@ -1,57 +1,72 @@
-From: Stephen Hemminger <shemminger@linux-foundation.org>
-Subject: Re: ACPI Power Down is broken in 2.6.21.1
-Date: Sun, 13 May 2007 09:22:27 -0700
-Message-ID: <20070513092227.6d87e60d@freepuppy>
-References: <loom.20070508T175303-27@post.gmane.org>
-	<6bffcb0e0705130729n2c47f0f4h6791ac4b74b9bb62@mail.gmail.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [patch 3/3] clockevents: Fix resume logic - updated version
+Date: Sun, 13 May 2007 18:48:07 +0200
+Message-ID: <1179074887.22481.271.camel@localhost.localdomain>
+References: <20070430102837.748238000@linutronix.de>
+	 <20070511132846.5ebf4437.akpm@linux-foundation.org>
+	 <200705112302.47726.rjw@sisk.pl> <200705112309.15996.rjw@sisk.pl>
+	 <20070511235607.83ad0eb5.akpm@linux-foundation.org>
+	 <1178959563.22481.126.camel@localhost.localdomain>
+	 <20070512020056.a24cf472.akpm@linux-foundation.org>
+	 <1178961489.22481.133.camel@localhost.localdomain>
+	 <20070512030754.90488f79.akpm@linux-foundation.org>
+	 <1178970253.22481.143.camel@localhost.localdomain>
+	 <20070512095145.0cf58a57.akpm@linux-foundation.org>
+	 <1178989302.22481.185.camel@localhost.localdomain>
+	 <20070512102350.04126320.akpm@linux-foundation.org>
+	 <1178999770.22481.211.camel@localhost.localdomain>
+	 <20070512181140.50140334.akpm@linux-foundation.org>
+	 <1179043652.22481.243.camel@localhost.localdomain>
+Reply-To: tglx@linutronix.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.linux-foundation.org ([207.189.120.12]:44674 "EHLO
-	smtp.osdl.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759159AbXEMQdJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 13 May 2007 12:33:09 -0400
-In-Reply-To: <6bffcb0e0705130729n2c47f0f4h6791ac4b74b9bb62@mail.gmail.com>
+Received: from www.osadl.org ([213.239.205.134]:43257 "EHLO mail.tglx.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1759104AbXEMQo6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 13 May 2007 12:44:58 -0400
+In-Reply-To: <1179043652.22481.243.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: Vladimir Pouzanov <farcaller@gmail.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, John Stultz <johnstul@us.ibm.com>, linux-acpi@vger.kernel.org
 
-On Sun, 13 May 2007 16:29:25 +0200
-"Michal Piotrowski" <michal.k.k.piotrowski@gmail.com> wrote:
+On Sun, 2007-05-13 at 10:07 +0200, Thomas Gleixner wrote:
+> > > Can you send me your .config please ?
+> > > 
+> > 
+> > http://userweb.kernel.org/~akpm/config-sony.txt
+> 
+> No luck. 
 
-> Hi Vladimir,
-> 
-> [adding Len and ACPI gurus to CC]
-> 
-> On 08/05/07, Vladimir Pouzanov <farcaller@gmail.com> wrote:
-> > Hi all,
-> >
-> > I have got a problem with Asus F3T notebook and 2.6.21.1 kernel. When I
-> > perform powerdown (with user-space app or alt+sysrq+o) I get "Power Down."
-> > message, but the notebook doesn't turn off. Everything is ok on 2.6.20.
-> >
-> > There seem to be no changes in acpi/sleep/poweroff.c so I don't know where
-> > should I start looking for a bug.
-> >
-> > F3T is based on Thrion64 X2 CPU (I'm running it in x86 mode with SMP and
-> > PREEMPT).
-> >
-> > Sincerely,
-> > Vladimir "Farcaller" Pouzanov
-> > http://hackndev.com
-> >
-> 
-> I added this bug to the list of known regressions.
-> (http://kernelnewbies.org/known_regressions)
-> 
-> Regards,
-> Michal
-> 
+I'm making progress. After fiddling with the config options I get a
+solid lockup of netconsole during boot :(
 
-Is the network still connected? Maybe there is a wake on lan
-problem with the network device.
+But also lockdep itself is broken on my box, so I would not see warnings
+anyway:
 
--- 
-Stephen Hemminger <shemminger@linux-foundation.org>
+     soft-irqs-on + irq-safe-A/21:  ok  |  ok  |  ok  |
+       sirq-safe-A => hirqs-on/12:  ok  |  ok  |irq event stamp: 472
+hardirqs last  enabled at (472): [<c01e8bba>] irqsafe2A_rlock_12+0x94/0xa1
+hardirqs last disabled at (471): [<c0109541>] native_sched_clock+0x55/0xe8
+softirqs last  enabled at (468): [<c01e8ba5>] irqsafe2A_rlock_12+0x7f/0xa1
+softirqs last disabled at (464): [<c01e8b31>] irqsafe2A_rlock_12+0xb/0xa1
+FAILED| [<c0104d21>] dump_trace+0x61/0x1e7
+ [<c0104ec1>] show_trace_log_lvl+0x1a/0x30
+ [<c0105a1b>] show_trace+0x12/0x14
+ [<c0105a73>] dump_stack+0x15/0x17
+ [<c01e6971>] dotest+0x6b/0x3ce
+ [<c01efc1f>] locking_selftest+0x915/0x1a5a
+ [<c04a0a0a>] start_kernel+0x1d5/0x2a7
+ =======================
+
+.... more of those
+
+-----------------------------------------------------------------
+BUG:   6 unexpected failures (out of 218) - debugging disabled! |
+-----------------------------------------------------------------
+
+	tglx
+
+
