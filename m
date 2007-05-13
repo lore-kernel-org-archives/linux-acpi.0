@@ -1,130 +1,54 @@
-From: Tear <tarrqt@yahoo.com>
-Subject: Re: Dell Optiplex GX240, ACPI and APIC
-Date: Sun, 13 May 2007 03:57:34 -0700 (PDT)
-Message-ID: <897169.90621.qm@web63615.mail.re1.yahoo.com>
-References: <20070512103441.a21194fc.akpm@linux-foundation.org>
+From: "Michal Piotrowski" <michal.k.k.piotrowski@gmail.com>
+Subject: Re: ACPI Power Down is broken in 2.6.21.1
+Date: Sun, 13 May 2007 16:29:25 +0200
+Message-ID: <6bffcb0e0705130729n2c47f0f4h6791ac4b74b9bb62@mail.gmail.com>
+References: <loom.20070508T175303-27@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758887AbXEMK5q@vger.kernel.org>
-In-Reply-To: <20070512103441.a21194fc.akpm@linux-foundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from nz-out-0506.google.com ([64.233.162.238]:10605 "EHLO
+	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756781AbXEMO30 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 13 May 2007 10:29:26 -0400
+Received: by nz-out-0506.google.com with SMTP id o1so1545568nzf
+        for <linux-acpi@vger.kernel.org>; Sun, 13 May 2007 07:29:25 -0700 (PDT)
+In-Reply-To: <loom.20070508T175303-27@post.gmane.org>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Vladimir Pouzanov <farcaller@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
+Hi Vladimir,
 
---- Andrew Morton <akpm@linux-foundation.org> wrote:
+[adding Len and ACPI gurus to CC]
 
-> On Sat, 12 May 2007 07:04:25 -0700 (PDT) Tear <tarrqt@yahoo.com> wrote:
-> 
-> > Summary: If ACPI is not enabled but APIC is,
-> > then there is trouble on Dell Optiplex GX240.
-> > If both are enabled or if both are disabled, then
-> > everything is fine. The attached patch removes
-> > Dell Optiplex GX240 from the ACPI blacklist.
-> > 
-> > ---
-> > 
-> > Hello,
-> > 
-> > I have a Dell Optiplex GX240 and when I boot Linux, ACPI
-> > gets set up by only acpi=ht. dmesg shows the following line:
-> > 
-> >    DELL GX240 detected: force use of acpi=ht
-> > 
-> > Everything seemed to be fine. However, I discovered that
-> > everything is not fine. The USB controller works so slowly
-> > that copying a few (uncached) 1 megabyte large photos from
-> > a USB-enabled digital camera takes many minutes instead of
-> > a couple of seconds.
-> > 
-> > I am using Linux 2.6.21.1 on a Debian 4.0 ("Etch") system.
-> > 
-> > I thought that this might be related to ACPI. So I tried
-> > to boot with _only_ "acpi=force" appended to the kernel
-> > command line. Voila, the USB controller started to work
-> > at full speed and copying photos from my digital camera
-> > took only seconds.
-> > 
-> > I tested the system with "acpi=force" and could not find
-> > anything which did not work. So, can we please remove
-> > Dell Optiplex GX240 from the blacklist in
-> > 
-> > ..../arch/i386/kernel/acpi/boot.c
-> > 
-> > ? The attached patch does just that: It removes Dell
-> > Optiplex GX240 from the ACPI blacklist.
-> > 
-> > I thought that this might be related to interrupts and
-> > APIC as well. (Note that this is APIC, not ACPI.) I tried
-> > booting with _only_ "noapic" and "nolapic" appended to the
-> > command line. Again, the USB controller started to work
-> > at full speed.
-> > 
-> > If removing Dell Optiplex GX240 from the ACPI blacklist
-> > is not wanted/possible, then is there a way to disable
-> > APIC and LAPIC (note that this is APIC not ACPI) by
-> > default on Dell GX240 machines? (I.e. Can one patch
-> > the kernel so that APIC and LAPIC isn't used on
-> > these machines? - I know that I can use the noapic
-> > and nolapic options on the kernel command line.)
-> > 
-> > Thank you for your attention.
-> > 
-> > - Tear
-> > 
-> > Note: Please include me in CC of your replies.
-> > 
-> > 
-> > --- linux-2.6.21.1.orig/arch/i386/kernel/acpi/boot.c	2007-05-01 17:10:30.000000000 +0300
-> > +++ linux-2.6.21.1/arch/i386/kernel/acpi/boot.c	2007-05-01 20:31:53.000000000 +0300
-> > @@ -971,14 +971,6 @@
-> >  	 },
-> >  	{
-> >  	 .callback = force_acpi_ht,
-> > -	 .ident = "DELL GX240",
-> > -	 .matches = {
-> > -		     DMI_MATCH(DMI_BOARD_VENDOR, "Dell Computer Corporation"),
-> > -		     DMI_MATCH(DMI_BOARD_NAME, "OptiPlex GX240"),
-> > -		     },
-> > -	 },
-> > -	{
-> > -	 .callback = force_acpi_ht,
-> >  	 .ident = "HP VISUALIZE NT Workstation",
-> >  	 .matches = {
-> >  		     DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
-> > 
-> 
-> Thanks.  Let's cc the acpi list.
-> 
-> The origin of that blacklist entry appears to be lost in the mists of time.
-> git-blame got tripped up by an intervening Lindent run and my gittiness
-> is insufficient for tracking changes before that.
-> 
+On 08/05/07, Vladimir Pouzanov <farcaller@gmail.com> wrote:
+> Hi all,
+>
+> I have got a problem with Asus F3T notebook and 2.6.21.1 kernel. When I
+> perform powerdown (with user-space app or alt+sysrq+o) I get "Power Down."
+> message, but the notebook doesn't turn off. Everything is ok on 2.6.20.
+>
+> There seem to be no changes in acpi/sleep/poweroff.c so I don't know where
+> should I start looking for a bug.
+>
+> F3T is based on Thrion64 X2 CPU (I'm running it in x86 mode with SMP and
+> PREEMPT).
+>
+> Sincerely,
+> Vladimir "Farcaller" Pouzanov
+> http://hackndev.com
+>
 
-Mr. Morton,
+I added this bug to the list of known regressions.
+(http://kernelnewbies.org/known_regressions)
 
-I have already sent a very similar e-mail to the linux-acpi
-mailing list. Please see the following for that:
+Regards,
+Michal
 
-http://marc.info/?l=linux-acpi&m=117856470816834&w=2
-
-I haven't received a reply and that is why sent this e-mail
-to the linux-kernel mailing list.
-
-I would be very pleased to see the removal of Dell Optiplex
-GX240 from the ACPI blacklist.
-
-Is there a blacklist for APIC? (Note that this is APIC,
-not ACPI.)
-
-Thank you.
-
-Tear
-
-
-
-       
-____________________________________________________________________________________Boardwalk for $500? In 2007? Ha! Play Monopoly Here and Now (it's updated for today's economy) at Yahoo! Games.
-http://get.games.yahoo.com/proddesc?gamekey=monopolyherenow  
+-- 
+Michal K. K. Piotrowski
+Kernel Monkeys
+(http://kernel.wikidot.com/start)
