@@ -1,42 +1,57 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [patch 3/3] clockevents: Fix resume logic - updated version
-Date: Sun, 13 May 2007 18:12:50 +0200
-Message-ID: <1179072770.22481.265.camel@localhost.localdomain>
-References: <20070430102837.748238000@linutronix.de>
-	 <20070511132846.5ebf4437.akpm@linux-foundation.org>
-	 <200705112302.47726.rjw@sisk.pl> <200705112309.15996.rjw@sisk.pl>
-	 <20070511235607.83ad0eb5.akpm@linux-foundation.org>
-	 <1178959563.22481.126.camel@localhost.localdomain>
-	 <20070512020056.a24cf472.akpm@linux-foundation.org>
-Reply-To: tglx@linutronix.de
+From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: Re: ACPI Power Down is broken in 2.6.21.1
+Date: Sun, 13 May 2007 09:22:27 -0700
+Message-ID: <20070513092227.6d87e60d@freepuppy>
+References: <loom.20070508T175303-27@post.gmane.org>
+	<6bffcb0e0705130729n2c47f0f4h6791ac4b74b9bb62@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.osadl.org ([213.239.205.134]:51228 "EHLO mail.tglx.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755568AbXEMQJj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 13 May 2007 12:09:39 -0400
-In-Reply-To: <20070512020056.a24cf472.akpm@linux-foundation.org>
+Received: from smtp.linux-foundation.org ([207.189.120.12]:44674 "EHLO
+	smtp.osdl.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759159AbXEMQdJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 13 May 2007 12:33:09 -0400
+In-Reply-To: <6bffcb0e0705130729n2c47f0f4h6791ac4b74b9bb62@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, John Stultz <johnstul@us.ibm.com>, linux-acpi@vger.kernel.org
+To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: Vladimir Pouzanov <farcaller@gmail.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sat, 2007-05-12 at 02:00 -0700, Andrew Morton wrote:
-> Still hangs in the same fashion, sorry.
+On Sun, 13 May 2007 16:29:25 +0200
+"Michal Piotrowski" <michal.k.k.piotrowski@gmail.com> wrote:
+
+> Hi Vladimir,
 > 
-> It's peculiar that the hang happens when acpi_evaluate_object() hits its
-> return statement.  Any theories there?
+> [adding Len and ACPI gurus to CC]
+> 
+> On 08/05/07, Vladimir Pouzanov <farcaller@gmail.com> wrote:
+> > Hi all,
+> >
+> > I have got a problem with Asus F3T notebook and 2.6.21.1 kernel. When I
+> > perform powerdown (with user-space app or alt+sysrq+o) I get "Power Down."
+> > message, but the notebook doesn't turn off. Everything is ok on 2.6.20.
+> >
+> > There seem to be no changes in acpi/sleep/poweroff.c so I don't know where
+> > should I start looking for a bug.
+> >
+> > F3T is based on Thrion64 X2 CPU (I'm running it in x86 mode with SMP and
+> > PREEMPT).
+> >
+> > Sincerely,
+> > Vladimir "Farcaller" Pouzanov
+> > http://hackndev.com
+> >
+> 
+> I added this bug to the list of known regressions.
+> (http://kernelnewbies.org/known_regressions)
+> 
+> Regards,
+> Michal
+> 
 
-I assume you have a printk right before the return and one after the
-call to acpi_evaluate_object().
+Is the network still connected? Maybe there is a wake on lan
+problem with the network device.
 
-Can you dump the stack at the point before the return, so we can see if
-the stack is corrupt there ? A WARN_ON(1) should do the trick.
-
-	tglx
-
-
-
-
+-- 
+Stephen Hemminger <shemminger@linux-foundation.org>
