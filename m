@@ -1,68 +1,57 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: Reboot PATCH (ACPI related)
-Date: Sat, 12 May 2007 23:44:13 -0700
-Message-ID: <20070512234413.54fc6afa.akpm@linux-foundation.org>
-References: <20070512201006.GA3569@ics.muni.cz>
+From: Tomasz Chmielewski <mangoo@wpkg.org>
+Subject: Re: Oops when removing button and asus_acpi modules
+Date: Sun, 13 May 2007 09:32:23 +0200
+Message-ID: <4646BF07.1020603@wpkg.org>
+References: <46461602.3040503@wpkg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48148 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757122AbXEMGoZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 13 May 2007 02:44:25 -0400
-In-Reply-To: <20070512201006.GA3569@ics.muni.cz>
+Received: from mail.syneticon.net ([213.239.212.131]:44909 "EHLO
+	mail2.syneticon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757286AbXEMHcp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 13 May 2007 03:32:45 -0400
+In-Reply-To: <46461602.3040503@wpkg.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lukas Hejtmanek <xhejtman@ics.muni.cz>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, paul.s.diefenbaugh@intel.com, julien.lerouge@m4x.org, sziwan@hell.org.pl
 
-On Sat, 12 May 2007 22:10:07 +0200 Lukas Hejtmanek <xhejtman@ics.muni.c=
-z> wrote:
+Tomasz Chmielewski schrieb:
+> I have a kernel OOPS when I remove button and/or asus_acpi modules on 
+> 2.6.21.1 kernel.
 
-> why the attached patch is still not included in mainline kernel? It f=
-ixes boot
-> problems after suspend to RAM.
->=20
-> --=20
-> Luk=C3=A1=C5=A1 Hejtm=C3=A1nek
->=20
->=20
-> [reboot.patch  text/x-diff (564B)]
-> --- arch/i386/kernel/reboot.c.old	2006-06-18 03:49:35.000000000 +0200
-> +++ arch/i386/kernel/reboot.c	2006-07-01 17:29:23.000000000 +0200
-> @@ -31,6 +31,12 @@
->  #ifdef CONFIG_SMP
->  static int reboot_cpu =3D -1;
->  #endif
-> +#ifdef CONFIG_ACPI
-> +extern u32 acpi_disable(void);
-> +#else
-> +static u32 acpi_disable(void){};
-> +#endif
-> +
->  static int __init reboot_setup(char *str)
->  {
->  	while(1) {
-> @@ -322,6 +328,7 @@
-> =20
->  void machine_emergency_restart(void)
->  {
-> +	acpi_disable();
->  	if (!reboot_thru_bios) {
->  		if (efi_enabled) {
->  			efi.reset_system(EFI_RESET_COLD, EFI_SUCCESS, 0, NULL);
+Here's my lspci, if anyone is interested:
 
-We'd prefer to fix the problem, whatever it is, rather than just turnin=
-g
-APCI off.
 
-Please ensure that a full bug report has been entered at bugzilla.kerne=
-l.org,
-thanks.
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+# lspci
+00:00.0 Host bridge: VIA Technologies, Inc. VT8377 [KT400/KT600 AGP] 
+Host Bridge (rev 80)
+00:01.0 PCI bridge: VIA Technologies, Inc. VT8237 PCI Bridge
+00:0b.0 Ethernet controller: Realtek Semiconductor Co., Ltd. 
+RTL-8139/8139C/8139C+ (rev 10)
+00:0f.0 RAID bus controller: VIA Technologies, Inc. VIA VT6420 SATA RAID 
+Controller (rev 80)
+00:0f.1 IDE interface: VIA Technologies, Inc. 
+VT82C586A/B/VT82C686/A/B/VT823x/A/C PIPC Bus Master IDE (rev 06)
+00:10.0 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 
+Controller (rev 81)
+00:10.1 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 
+Controller (rev 81)
+00:10.2 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 
+Controller (rev 81)
+00:10.3 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 
+Controller (rev 81)
+00:10.4 USB Controller: VIA Technologies, Inc. USB 2.0 (rev 86)
+00:11.0 ISA bridge: VIA Technologies, Inc. VT8237 ISA bridge 
+[KT600/K8T800/K8T890 South]
+00:11.5 Multimedia audio controller: VIA Technologies, Inc. 
+VT8233/A/8235/8237 AC97 Audio Controller (rev 60)
+00:12.0 Ethernet controller: VIA Technologies, Inc. VT6102 [Rhine-II] 
+(rev 78)
+01:00.0 VGA compatible controller: nVidia Corporation NV34 [GeForce FX 
+5200] (rev a1)
+
+
+-- 
+Tomasz Chmielewski
+http://wpkg.org
