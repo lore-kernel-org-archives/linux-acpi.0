@@ -1,57 +1,57 @@
-From: Tomasz Chmielewski <mangoo@wpkg.org>
-Subject: Re: Oops when removing button and asus_acpi modules
-Date: Sun, 13 May 2007 09:32:23 +0200
-Message-ID: <4646BF07.1020603@wpkg.org>
-References: <46461602.3040503@wpkg.org>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [patch 3/3] clockevents: Fix resume logic - updated version
+Date: Sun, 13 May 2007 10:07:32 +0200
+Message-ID: <1179043652.22481.243.camel@localhost.localdomain>
+References: <20070430102837.748238000@linutronix.de>
+	 <20070511132846.5ebf4437.akpm@linux-foundation.org>
+	 <200705112302.47726.rjw@sisk.pl> <200705112309.15996.rjw@sisk.pl>
+	 <20070511235607.83ad0eb5.akpm@linux-foundation.org>
+	 <1178959563.22481.126.camel@localhost.localdomain>
+	 <20070512020056.a24cf472.akpm@linux-foundation.org>
+	 <1178961489.22481.133.camel@localhost.localdomain>
+	 <20070512030754.90488f79.akpm@linux-foundation.org>
+	 <1178970253.22481.143.camel@localhost.localdomain>
+	 <20070512095145.0cf58a57.akpm@linux-foundation.org>
+	 <1178989302.22481.185.camel@localhost.localdomain>
+	 <20070512102350.04126320.akpm@linux-foundation.org>
+	 <1178999770.22481.211.camel@localhost.localdomain>
+	 <20070512181140.50140334.akpm@linux-foundation.org>
+Reply-To: tglx@linutronix.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.syneticon.net ([213.239.212.131]:44909 "EHLO
-	mail2.syneticon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757286AbXEMHcp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 13 May 2007 03:32:45 -0400
-In-Reply-To: <46461602.3040503@wpkg.org>
+Received: from www.osadl.org ([213.239.205.134]:37664 "EHLO mail.tglx.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755948AbXEMIEX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 13 May 2007 04:04:23 -0400
+In-Reply-To: <20070512181140.50140334.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, paul.s.diefenbaugh@intel.com, julien.lerouge@m4x.org, sziwan@hell.org.pl
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, John Stultz <johnstul@us.ibm.com>, linux-acpi@vger.kernel.org
 
-Tomasz Chmielewski schrieb:
-> I have a kernel OOPS when I remove button and/or asus_acpi modules on 
-> 2.6.21.1 kernel.
+On Sat, 2007-05-12 at 18:11 -0700, Andrew Morton wrote:
+> On Sat, 12 May 2007 21:56:10 +0200 Thomas Gleixner <tglx@linutronix.de> wrote:
+> 
+> > On Sat, 2007-05-12 at 10:23 -0700, Andrew Morton wrote:
+> > > The broken-out queue should turn up at
+> > > ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/mm/
+> > > in a few minutes.
+> > 
+> > Sigh. I can't reproduce your lockdep problem :(
+> 
+> We should write a Vaio emulator.
 
-Here's my lspci, if anyone is interested:
+:)
 
+> > Can you send me your .config please ?
+> > 
+> 
+> http://userweb.kernel.org/~akpm/config-sony.txt
 
-# lspci
-00:00.0 Host bridge: VIA Technologies, Inc. VT8377 [KT400/KT600 AGP] 
-Host Bridge (rev 80)
-00:01.0 PCI bridge: VIA Technologies, Inc. VT8237 PCI Bridge
-00:0b.0 Ethernet controller: Realtek Semiconductor Co., Ltd. 
-RTL-8139/8139C/8139C+ (rev 10)
-00:0f.0 RAID bus controller: VIA Technologies, Inc. VIA VT6420 SATA RAID 
-Controller (rev 80)
-00:0f.1 IDE interface: VIA Technologies, Inc. 
-VT82C586A/B/VT82C686/A/B/VT823x/A/C PIPC Bus Master IDE (rev 06)
-00:10.0 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 
-Controller (rev 81)
-00:10.1 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 
-Controller (rev 81)
-00:10.2 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 
-Controller (rev 81)
-00:10.3 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 
-Controller (rev 81)
-00:10.4 USB Controller: VIA Technologies, Inc. USB 2.0 (rev 86)
-00:11.0 ISA bridge: VIA Technologies, Inc. VT8237 ISA bridge 
-[KT600/K8T800/K8T890 South]
-00:11.5 Multimedia audio controller: VIA Technologies, Inc. 
-VT8233/A/8235/8237 AC97 Audio Controller (rev 60)
-00:12.0 Ethernet controller: VIA Technologies, Inc. VT6102 [Rhine-II] 
-(rev 78)
-01:00.0 VGA compatible controller: nVidia Corporation NV34 [GeForce FX 
-5200] (rev a1)
+No luck. 
+
+	tglx
 
 
--- 
-Tomasz Chmielewski
-http://wpkg.org
