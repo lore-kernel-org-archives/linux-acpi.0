@@ -1,43 +1,68 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [patch 3/3] clockevents: Fix resume logic - updated version
-Date: Sat, 12 May 2007 18:11:40 -0700
-Message-ID: <20070512181140.50140334.akpm@linux-foundation.org>
-References: <20070430102837.748238000@linutronix.de>
-	<20070511132846.5ebf4437.akpm@linux-foundation.org>
-	<200705112302.47726.rjw@sisk.pl>
-	<200705112309.15996.rjw@sisk.pl>
-	<20070511235607.83ad0eb5.akpm@linux-foundation.org>
-	<1178959563.22481.126.camel@localhost.localdomain>
-	<20070512020056.a24cf472.akpm@linux-foundation.org>
-	<1178961489.22481.133.camel@localhost.localdomain>
-	<20070512030754.90488f79.akpm@linux-foundation.org>
-	<1178970253.22481.143.camel@localhost.localdomain>
-	<20070512095145.0cf58a57.akpm@linux-foundation.org>
-	<1178989302.22481.185.camel@localhost.localdomain>
-	<20070512102350.04126320.akpm@linux-foundation.org>
-	<1178999770.22481.211.camel@localhost.localdomain>
+Subject: Re: Reboot PATCH (ACPI related)
+Date: Sat, 12 May 2007 23:44:13 -0700
+Message-ID: <20070512234413.54fc6afa.akpm@linux-foundation.org>
+References: <20070512201006.GA3569@ics.muni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757874AbXEMBMW@vger.kernel.org>
-In-Reply-To: <1178999770.22481.211.camel@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tglx@linutronix.de
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, John Stultz <johnstul@us.ibm.com>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48148 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757122AbXEMGoZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 13 May 2007 02:44:25 -0400
+In-Reply-To: <20070512201006.GA3569@ics.muni.cz>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lukas Hejtmanek <xhejtman@ics.muni.cz>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Sat, 12 May 2007 21:56:10 +0200 Thomas Gleixner <tglx@linutronix.de> wrote:
+On Sat, 12 May 2007 22:10:07 +0200 Lukas Hejtmanek <xhejtman@ics.muni.c=
+z> wrote:
 
-> On Sat, 2007-05-12 at 10:23 -0700, Andrew Morton wrote:
-> > The broken-out queue should turn up at
-> > ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/mm/
-> > in a few minutes.
-> 
-> Sigh. I can't reproduce your lockdep problem :(
+> why the attached patch is still not included in mainline kernel? It f=
+ixes boot
+> problems after suspend to RAM.
+>=20
+> --=20
+> Luk=C3=A1=C5=A1 Hejtm=C3=A1nek
+>=20
+>=20
+> [reboot.patch  text/x-diff (564B)]
+> --- arch/i386/kernel/reboot.c.old	2006-06-18 03:49:35.000000000 +0200
+> +++ arch/i386/kernel/reboot.c	2006-07-01 17:29:23.000000000 +0200
+> @@ -31,6 +31,12 @@
+>  #ifdef CONFIG_SMP
+>  static int reboot_cpu =3D -1;
+>  #endif
+> +#ifdef CONFIG_ACPI
+> +extern u32 acpi_disable(void);
+> +#else
+> +static u32 acpi_disable(void){};
+> +#endif
+> +
+>  static int __init reboot_setup(char *str)
+>  {
+>  	while(1) {
+> @@ -322,6 +328,7 @@
+> =20
+>  void machine_emergency_restart(void)
+>  {
+> +	acpi_disable();
+>  	if (!reboot_thru_bios) {
+>  		if (efi_enabled) {
+>  			efi.reset_system(EFI_RESET_COLD, EFI_SUCCESS, 0, NULL);
 
-We should write a Vaio emulator.
+We'd prefer to fix the problem, whatever it is, rather than just turnin=
+g
+APCI off.
 
-> Can you send me your .config please ?
-> 
-
-http://userweb.kernel.org/~akpm/config-sony.txt
+Please ensure that a full bug report has been entered at bugzilla.kerne=
+l.org,
+thanks.
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
