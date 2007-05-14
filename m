@@ -1,80 +1,44 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: Fwd: Re: Linux 2.6.22-rc1
-Date: Mon, 14 May 2007 07:49:31 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0705140742350.9570@yvahk01.tjqt.qr>
-References: <Pine.LNX.4.61.0705131123280.9570@yvahk01.tjqt.qr>
- <20070514015541.GB4800@inferi.kami.home>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [patch 3/3] clockevents: Fix resume logic - updated version
+Date: Sun, 13 May 2007 23:42:43 -0700
+Message-ID: <20070513234243.2b17bc2a.akpm@linux-foundation.org>
+References: <20070430102837.748238000@linutronix.de>
+	<20070511132846.5ebf4437.akpm@linux-foundation.org>
+	<200705112302.47726.rjw@sisk.pl>
+	<200705112309.15996.rjw@sisk.pl>
+	<20070511235607.83ad0eb5.akpm@linux-foundation.org>
+	<1178959563.22481.126.camel@localhost.localdomain>
+	<20070512020056.a24cf472.akpm@linux-foundation.org>
+	<1179072770.22481.265.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailer.gwdg.de ([134.76.10.26]:36274 "EHLO mailer.gwdg.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757638AbXENFuV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 May 2007 01:50:21 -0400
-In-Reply-To: <20070514015541.GB4800@inferi.kami.home>
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48844 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753549AbXENGnP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 May 2007 02:43:15 -0400
+In-Reply-To: <1179072770.22481.265.camel@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: tglx@linutronix.de
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, John Stultz <johnstul@us.ibm.com>, linux-acpi@vger.kernel.org
 
+On Sun, 13 May 2007 18:12:50 +0200 Thomas Gleixner <tglx@linutronix.de> wrote:
 
-On May 14 2007 10:55, Mattia Dongili wrote:
->On Sun, May 13, 2007 at 11:27:31AM +0200, Jan Engelhardt wrote:
->> On May 12 2007 20:20, Linus Torvalds wrote:
->> >
->> >Ok, the merge window has closed, and 2.6.22-rc1 is out there.
->> 
->> I have hit a randconfig compile failure. .config attached.
->> 
->>   LD      .tmp_vmlinux1
->> drivers/built-in.o: In function `acpi_bus_generate_event':
->> (.text+0x233f7): undefined reference to `event_is_open'
->> drivers/built-in.o: In function `acpi_bus_get_power':
->> (.text+0x236ad): undefined reference to `acpi_power_get_inferred_state'
->> drivers/built-in.o: In function `acpi_bus_set_power':
->> (.text+0x237c3): undefined reference to `acpi_power_transition'
->> drivers/built-in.o: In function `acpi_bus_set_power':
->> (.text+0x23835): undefined reference to `acpi_power_transition'
->> drivers/built-in.o: In function `sony_pic_fanspeed_store':
->> sony-laptop.c:(.text+0x91930): undefined reference to `ec_write'
->> drivers/built-in.o: In function `sony_pic_fanspeed_show':
->> sony-laptop.c:(.text+0x9195d): undefined reference to `ec_read'
->> make: *** [.tmp_vmlinux1] Error 1
->
->I actually can't reproduce it with your .config.
+> On Sat, 2007-05-12 at 02:00 -0700, Andrew Morton wrote:
+> > Still hangs in the same fashion, sorry.
+> > 
+> > It's peculiar that the hang happens when acpi_evaluate_object() hits its
+> > return statement.  Any theories there?
+> 
+> I assume you have a printk right before the return and one after the
+> call to acpi_evaluate_object().
+> 
+> Can you dump the stack at the point before the return, so we can see if
+> the stack is corrupt there ? A WARN_ON(1) should do the trick.
+> 
 
-But I can. Did you try it on x86_64? From 2.6.22-rc1 [
-commit 39403865d2e4590802553370a56c9ab93131e4ee in /linux-2.6.git] ?
-
-	bzip2 -cd randconfig-1.bz2 >.config
-	make -j8
-
-  HOSTLD  scripts/kconfig/conf
-scripts/kconfig/conf -s arch/x86_64/Kconfig
-drivers/macintosh/Kconfig:116:warning: 'select' used by config symbol '
-drivers/net/Kconfig:2283:warning: 'select' used by config symbol 'UCC_G
-drivers/input/keyboard/Kconfig:170:warning: 'select' used by config sym
-drivers/input/mouse/Kconfig:181:warning: 'select' used by config symbol
-  CHK     include/linux/version.h
-  UPD     include/linux/version.h
-  CHK     include/linux/utsrelease.h
-  UPD     include/linux/utsrelease.h
-  SYMLINK include/asm -> include/asm-x86_64
-
-
->>From a clean tree, running make fires up the oldconfig which fixes the
->many missing/garbled dependencies. In any case SONY_LAPTOP depends on
->ACPI which always build EC statically if selected.
-
-I really presume it is something on x86_64, because doing
-
-	gzip -cd /proc/config.gz
-	make
-
-on i386 seemed to compile fine - including the sony modules.
-
-
-
-
-	Jan
--- 
+It all looks clean.  I spose I should do a hex dump and a byte-by-byte
+walkthough, but time is short...
