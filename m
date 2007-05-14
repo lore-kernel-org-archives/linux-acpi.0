@@ -1,81 +1,31 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: Fwd: Re: Linux 2.6.22-rc1
-Date: Mon, 14 May 2007 10:45:46 -0700
-Message-ID: <20070514104546.10a4368f.randy.dunlap@oracle.com>
-References: <Pine.LNX.4.61.0705131123280.9570@yvahk01.tjqt.qr>
-	<20070514015541.GB4800@inferi.kami.home>
-	<Pine.LNX.4.61.0705140742350.9570@yvahk01.tjqt.qr>
+From: Tejun Heo <htejun@gmail.com>
+Subject: [PATCHSET] libata: improve ATA ACPI support, take#3
+Date: Tue, 15 May 2007 03:28:15 +0900
+Message-ID: <11791672953697-git-send-email-htejun@gmail.com>
+Reply-To: Tejun Heo <htejun@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758731AbXENRl4@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.61.0705140742350.9570@yvahk01.tjqt.qr>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Cc: Mattia Dongili <malattia@linux.it>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: 
+Sender: linux-ide-owner@vger.kernel.org
+To: jeff@garzik.org, mjg59@srcf.ucam.org, rdunlap@xenotime.net, alan@lxorguk.ukuu.org.uk, forrest.zhao@gmail.com, lenb@kernel.org, linux-acpi@vger.kernel.org, hare@suse.de, linux-ide@vger.kernel.org, htejun@gmail.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 14 May 2007 07:49:31 +0200 (MEST) Jan Engelhardt wrote:
+Hello,
 
-> 
-> On May 14 2007 10:55, Mattia Dongili wrote:
-> >On Sun, May 13, 2007 at 11:27:31AM +0200, Jan Engelhardt wrote:
-> >> On May 12 2007 20:20, Linus Torvalds wrote:
-> >> >
-> >> >Ok, the merge window has closed, and 2.6.22-rc1 is out there.
-> >> 
-> >> I have hit a randconfig compile failure. .config attached.
-> >> 
-> >>   LD      .tmp_vmlinux1
-> >> drivers/built-in.o: In function `acpi_bus_generate_event':
-> >> (.text+0x233f7): undefined reference to `event_is_open'
-> >> drivers/built-in.o: In function `acpi_bus_get_power':
-> >> (.text+0x236ad): undefined reference to `acpi_power_get_inferred_state'
-> >> drivers/built-in.o: In function `acpi_bus_set_power':
-> >> (.text+0x237c3): undefined reference to `acpi_power_transition'
-> >> drivers/built-in.o: In function `acpi_bus_set_power':
-> >> (.text+0x23835): undefined reference to `acpi_power_transition'
-> >> drivers/built-in.o: In function `sony_pic_fanspeed_store':
-> >> sony-laptop.c:(.text+0x91930): undefined reference to `ec_write'
-> >> drivers/built-in.o: In function `sony_pic_fanspeed_show':
-> >> sony-laptop.c:(.text+0x9195d): undefined reference to `ec_read'
-> >> make: *** [.tmp_vmlinux1] Error 1
-> >
-> >I actually can't reproduce it with your .config.
-> 
-> But I can. Did you try it on x86_64? From 2.6.22-rc1 [
-> commit 39403865d2e4590802553370a56c9ab93131e4ee in /linux-2.6.git] ?
-> 
-> 	bzip2 -cd randconfig-1.bz2 >.config
-> 	make -j8
+This is the third take of improve-ata-acpi.  Except for regeneration
+to fit the current libata-dev#upstream[U], there's no change from
+the last take[L].
 
-Yes, build easily fails for me also.
+Jeff, the first two fixes possible problem when HPA is used.  I think
+these two should go into 2.6.22.
 
->   HOSTLD  scripts/kconfig/conf
-> scripts/kconfig/conf -s arch/x86_64/Kconfig
-> drivers/macintosh/Kconfig:116:warning: 'select' used by config symbol '
-> drivers/net/Kconfig:2283:warning: 'select' used by config symbol 'UCC_G
-> drivers/input/keyboard/Kconfig:170:warning: 'select' used by config sym
-> drivers/input/mouse/Kconfig:181:warning: 'select' used by config symbol
->   CHK     include/linux/version.h
->   UPD     include/linux/version.h
->   CHK     include/linux/utsrelease.h
->   UPD     include/linux/utsrelease.h
->   SYMLINK include/asm -> include/asm-x86_64
-> 
-> 
-> >>From a clean tree, running make fires up the oldconfig which fixes the
-> >many missing/garbled dependencies. In any case SONY_LAPTOP depends on
-> >ACPI which always build EC statically if selected.
-> 
-> I really presume it is something on x86_64, because doing
-> 
-> 	gzip -cd /proc/config.gz
-> 	make
-> 
-> on i386 seemed to compile fine - including the sony modules.
+Thanks.
 
+--
+tejun
 
----
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+[U] b9a3b4d1453689f2927668fcdc4827fdccf44d1b
+[L] http://thread.gmane.org/gmane.linux.acpi.devel/22819
+
