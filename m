@@ -1,53 +1,43 @@
-From: Alistair John Strachan <s0348365@sms.ed.ac.uk>
-Subject: Re: [announce] Intel announces the PowerTOP utility for Linux
-Date: Mon, 14 May 2007 21:42:07 +0100
-Message-ID: <200705142142.07983.s0348365@sms.ed.ac.uk>
-References: <4644F726.1050806@linux.intel.com> <200705122212.43653.s0348365@sms.ed.ac.uk> <Pine.LNX.4.61.0705142221440.9570@yvahk01.tjqt.qr>
+From: Johannes Engel <j-engel@gmx.de>
+Subject: Re: Suspend2RAM Asus V6V
+Date: Tue, 15 May 2007 00:40:25 +0200
+Message-ID: <20070515004025.a4533bbd.j-engel@gmx.de>
+References: <463BC369.7010309@gmx.de>
+	<20070506225824.GA14463@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mcr-smtp-001.bulldogdsl.com ([212.158.248.7]:4517 "EHLO
-	mcr-smtp-001.bulldogdsl.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758409AbXENUmW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 May 2007 16:42:22 -0400
-In-Reply-To: <Pine.LNX.4.61.0705142221440.9570@yvahk01.tjqt.qr>
-Content-Disposition: inline
+Received: from mail.gmx.net ([213.165.64.20]:51216 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754775AbXENWj4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 May 2007 18:39:56 -0400
+In-Reply-To: <20070506225824.GA14463@gamma.logic.tuwien.ac.at>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Cc: Arjan van de Ven <arjan@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: Norbert Preining <preining@logic.at>
+Cc: linux-acpi@vger.kernel.org
 
-On Monday 14 May 2007 21:22:50 Jan Engelhardt wrote:
-> On May 12 2007 22:12, Alistair John Strachan wrote:
-> >On Saturday 12 May 2007 00:07:18 Arjan van de Ven wrote:
-> >> What's eating the battery life of my laptop? Why isn't it many more
-> >> hours? Which software component causes the most power to be burned?
-> >> These are important questions without a good answer... until now.
-> >
-> >This is a really great tool and presents a very intuitive alternative to
-> > the timer stats file..
-> >
-> >On a Core 2 Duo Macbook, Linux always gets around 3.2h battery, OS X about
-> >4.2h. This tool has identified that uhci_hcd is where 75% of the ticks are
-> >going when X is not loaded. Unloading uhci_hcd drops the battery life back
-> > to around 4.2h, but I lose the keyboard.
-> >
-> >Is there any way to find out what USB driver is causing usb_uhci to be
-> > this busy?
->
-> At its worst, it _is_ the USB chip that draws the power when it is active
-> (when uhci_hcd is loaded); does not need to be usbhid or so.
+On Mon, 7 May 2007 00:58:24 +0200
+Norbert Preining <preining@logic.at> wrote:
 
-This is certainly true, and to a significant extent it _was_ the uhci_hcd, but 
-it turns out the main contributor to HZ here were the appletouch and hci_usb 
-drivers. Disabling both drops the ticks down from about 850 to 150.
+> Hi Johannes,
+> 
+> On Sam, 05 Mai 2007, Johannes Engel wrote:
+> > Switching the laptop on again hitting the power button (other buttons do
+> > not show any effect) the cdrom drive gets initialised, the harddisk led
+> > gets switched on but the screen remains black and the laptop hangs
+> > completely (no keystroke accepted, even not Magic SysRq keys).
+> 
+> I have the same problem, and tried to debug it with net console, with
+> minimal kernel configs, with init=/bin/bash, with all the combinations,
+> to no avail. I did submit a bug report to the resepctive bug tracker but
+> it looks like nobody is caring for this kind of stuff.
+OK, I investigated further with the following result:
+Bios 0401 works quite well.
+BIOS >=1001 seems to introduce a bug: s2ram does not work any more.
+Since I do not have a BIOS between 04 and 10 (especially 0602 or 0801a) I cannot test the versions inbetween. If someone can provide me one of these versions I will try to hunt down the error which possibly resides in the DSDT.
 
+Greetings, Johannes
 -- 
-Cheers,
-Alistair.
-
-Final year Computer Science undergraduate.
-1F2 55 South Clerk Street, Edinburgh, UK.
+Johannes Engel <j-engel@gmx.de>
