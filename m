@@ -1,72 +1,54 @@
-From: Andreas Messer <andreas.messer@stud-mail.uni-wuerzburg.de>
-Subject: 2.6.21 -- polling /proc/acpi/battery/*/state breaks ibm_acpi
-Date: Mon, 14 May 2007 13:53:54 +0200
-Message-ID: <20070514115354.GA16885@proton>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [linux-pm] [patch 2.6.21-git] pci_choose_state() works, does ACPI magic
+Date: Mon, 14 May 2007 08:01:28 -0700
+Message-ID: <200705140801.28416.david-b@pacbell.net>
+References: <200705091222.29561.david-b@pacbell.net> <20070514093916.GA12074@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="X1bOJ3K7DJ5YkBrT"
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wrzx28.rz.uni-wuerzburg.de ([132.187.3.28]:40617 "EHLO
-	mailrelay.rz.uni-wuerzburg.de" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751076AbXENMVN (ORCPT
+Received: from smtp105.sbc.mail.mud.yahoo.com ([68.142.198.204]:37461 "HELO
+	smtp105.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754863AbXENRIb (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 May 2007 08:21:13 -0400
-Received: from virusscan.mail (localhost [127.0.0.1])
-	by mailrelay.mail (Postfix) with ESMTP id EB22AB14C
-	for <linux-acpi@vger.kernel.org>; Mon, 14 May 2007 13:53:55 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	by virusscan.mail (Postfix) with ESMTP id DE024B156
-	for <linux-acpi@vger.kernel.org>; Mon, 14 May 2007 13:53:55 +0200 (CEST)
-Received: from proton.satura-wue.home (p5B0A9A0A.dip0.t-ipconnect.de [91.10.154.10])
-	by mailmaster.uni-wuerzburg.de (Postfix) with ESMTP id 9B07F6BD1
-	for <linux-acpi@vger.kernel.org>; Mon, 14 May 2007 13:53:55 +0200 (CEST)
-Received: from satura by proton.satura-wue.home with local (Exim 4.63)
-	(envelope-from <andreas.messer@stud-mail.uni-wuerzburg.de>)
-	id 1HnZ7i-00057P-MA
-	for linux-acpi@vger.kernel.org; Mon, 14 May 2007 13:53:54 +0200
+	Mon, 14 May 2007 13:08:31 -0400
+In-Reply-To: <20070514093916.GA12074@elf.ucw.cz>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org
 
+On Monday 14 May 2007, Pavel Machek wrote:
+> > --- g26.orig/drivers/acpi/sleep/main.c	2007-05-09 08:57:37.000000000 -0700
+> > +++ g26/drivers/acpi/sleep/main.c	2007-05-09 08:58:33.000000000 -0700
+> > @@ -35,6 +35,20 @@ static u32 acpi_suspend_states[] = {
+> >  
+> >  static int init_8259A_after_S1;
+> >  
+> > +static u8 acpi_target_sleep_state = ACPI_STATE_S0;
+> > +
+> > +/**
+> > + *	acpi_get_target_sleep_state - return target ACPI S-state
+> > + *
+> > + *	When used during suspend processing, this returns the target state
+> > + *	such as ACPI_STATE_S3.  Otherwise it returns ACPI_STATE_S0.
+> > + */
+> > +int acpi_get_target_sleep_state(void)
+> > +{
+> > +	return acpi_target_sleep_state;
+> > +}
+> > +/* EXPORT_SYMBOL(acpi_get_target_sleep_state); ... if you need it */
+> > +
+> >  /**
+> >   *	acpi_pm_prepare - Do preliminary suspend work.
+> >   *	@pm_state:		suspend state we're entering.
+> 
+> This is quite an ugly hack, right? Is it really neccessary to use
+> global variable for this?
 
---X1bOJ3K7DJ5YkBrT
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+It's not a global variable; observe the "static", and the way it
+has an accessor.  It does expose global state however.
 
-Hello,
-
-Up to Kernel 2.6.20 ibm_acpi was working fine on my TP X21.
-At least all Fn + <?> Keys worked. Now, since 2.6.21 it generally
-works but: When some Application is polling /proc/acpi/battery/*/state,
-the Fn - Keys (and perhaps the Lid-Button) became disfunctional until
-the next reboot. (Terminating the App didn't help)
-I can also produce the problem with a simple loop on cmd-line:
-
-while true; do cat /proc/acpi/battery/BAT0/state; done
-
-I figured out, that after system boot I can do a
-cat /proc/acpi/battery/BAT0/state for at least 3 times without
-breaking ibm_acpi. But then suddenly the keys FN - Keys are dead.
-
-greetings
-Andreas
---=20
-gnuPG keyid: 8C2BAF51
-fingerprint: 28EE 8438 E688 D992 3661 C753 90B3 BAAA 8C2B AF51
-
---X1bOJ3K7DJ5YkBrT
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFGSE3SkLO6qowrr1ERAtt3AJ9gm42tRqCJ/15q/4lkf3GKCl1VZQCfSsEf
-xOIoBq8VtQnz0jUzQDrQnPg=
-=t7li
------END PGP SIGNATURE-----
-
---X1bOJ3K7DJ5YkBrT--
+- Dave
