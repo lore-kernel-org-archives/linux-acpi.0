@@ -1,74 +1,39 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [linux-pm] [patch 2.6.21-git] pci_choose_state() works, does ACPI magic
-Date: Mon, 14 May 2007 11:39:16 +0200
-Message-ID: <20070514093916.GA12074@elf.ucw.cz>
-References: <200705091222.29561.david-b@pacbell.net>
+From: Lukas Hejtmanek <xhejtman@ics.muni.cz>
+Subject: Re: Reboot PATCH (ACPI related)
+Date: Mon, 14 May 2007 13:57:12 +0200
+Message-ID: <20070514115712.GB3564@ics.muni.cz>
+References: <20070512201006.GA3569@ics.muni.cz> <20070512234413.54fc6afa.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:45688 "EHLO amd.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1758601AbXENJjP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 May 2007 05:39:15 -0400
+Received: from minas.ics.muni.cz ([147.251.4.40]:33083 "EHLO minas.ics.muni.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1762928AbXENL4u (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 May 2007 07:56:50 -0400
 Content-Disposition: inline
-In-Reply-To: <200705091222.29561.david-b@pacbell.net>
+In-Reply-To: <20070512234413.54fc6afa.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi!
+On Sat, May 12, 2007 at 11:44:13PM -0700, Andrew Morton wrote:
+> We'd prefer to fix the problem, whatever it is, rather than just turn=
+ing
+> APCI off.
+>=20
+> Please ensure that a full bug report has been entered at bugzilla.ker=
+nel.org,
+> thanks.
 
-> Provide new ACPI method tracking the target system state, for use
-> during suspend() and other PM calls.  It returns ACPI_STATE_S0
-> except during true suspend paths.
-> 
-> Use that to finally implement the platform_pci_choose_state() hook
-> on ACPI platforms.  It calls "_S3D" and similar methods, and uses
-> the result appropriately.
-> 
-> Fix pci_choose_state() to finally behave sanely too.
-> 
-> Minor whitespace fixes.
-> 
-> Lightly tested -- STR only, with only USB affected by the new code.
-> 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> 
-> ---
->  drivers/acpi/sleep/main.c |   29 +++++++++++-
->  drivers/pci/pci-acpi.c    |  107 +++++++++++++++++++++++++++++++++-------------
->  drivers/pci/pci.c         |   51 ++++++++++++---------
->  include/acpi/acpixf.h     |    2 
->  4 files changed, 135 insertions(+), 54 deletions(-)
-> 
-> --- g26.orig/drivers/acpi/sleep/main.c	2007-05-09 08:57:37.000000000 -0700
-> +++ g26/drivers/acpi/sleep/main.c	2007-05-09 08:58:33.000000000 -0700
-> @@ -35,6 +35,20 @@ static u32 acpi_suspend_states[] = {
->  
->  static int init_8259A_after_S1;
->  
-> +static u8 acpi_target_sleep_state = ACPI_STATE_S0;
-> +
-> +/**
-> + *	acpi_get_target_sleep_state - return target ACPI S-state
-> + *
-> + *	When used during suspend processing, this returns the target state
-> + *	such as ACPI_STATE_S3.  Otherwise it returns ACPI_STATE_S0.
-> + */
-> +int acpi_get_target_sleep_state(void)
-> +{
-> +	return acpi_target_sleep_state;
-> +}
-> +/* EXPORT_SYMBOL(acpi_get_target_sleep_state); ... if you need it */
-> +
->  /**
->   *	acpi_pm_prepare - Do preliminary suspend work.
->   *	@pm_state:		suspend state we're entering.
+The patch resulted from the following bug report:
+http://bugzilla.kernel.org/show_bug.cgi?id=3D6655
 
-This is quite an ugly hack, right? Is it really neccessary to use
-global variable for this?
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+--=20
+Luk=E1=B9 Hejtm=E1nek
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
