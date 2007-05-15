@@ -1,54 +1,53 @@
-From: "Alexey Starikovskiy" <aystarik@gmail.com>
-Subject: [PATCH] ACPI: Remove possible recursion from thermal driver
-Date: Tue, 15 May 2007 09:54:51 +0400
-Message-ID: <8f8ff01d0705142254r97c8dd9h8aa82eb67e44ae5f@mail.gmail.com>
+From: Norbert Preining <preining@logic.at>
+Subject: Re: Suspend2RAM Asus V6V
+Date: Tue, 15 May 2007 08:17:15 +0200
+Message-ID: <20070515061715.GA19470@gamma.logic.tuwien.ac.at>
+References: <463BC369.7010309@gmx.de> <20070506225824.GA14463@gamma.logic.tuwien.ac.at> <20070515004025.a4533bbd.j-engel@gmx.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_95215_21776734.1179208491475"
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.242]:20429 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756854AbXEOFyx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 May 2007 01:54:53 -0400
-Received: by an-out-0708.google.com with SMTP id d18so483641and
-        for <linux-acpi@vger.kernel.org>; Mon, 14 May 2007 22:54:51 -0700 (PDT)
+Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:53201 "EHLO
+	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758980AbXEOGRQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 May 2007 02:17:16 -0400
+Content-Disposition: inline
+In-Reply-To: <20070515004025.a4533bbd.j-engel@gmx.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Johannes Engel <j-engel@gmx.de>
+Cc: linux-acpi@vger.kernel.org
 
-------=_Part_95215_21776734.1179208491475
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Die, 15 Mai 2007, Johannes Engel wrote:
+> Bios 0401 works quite well.
+> BIOS >=3D1001 seems to introduce a bug: s2ram does not work any more.
 
-Hi,
+Well I have an Acer TM 3012, but with more or less the same hardware, s=
+o
+I guess this won't help you. Could you dump and disassemble the two
+DSDTs and compare them, maybe the difference between those also may be
+found in the DSDT of the Acer.
 
-This patch helps to fight infinite recursion on some ACER laptops, see
-bugzilla #8385.
+Best wishes
 
-Thanks,
-Alex.
+Norbert
 
-------=_Part_95215_21776734.1179208491475
-Content-Type: text/x-diff;
-	name=remove_thermal_check_from_change_thermal_points.patch;
-	charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_f1py87id
-Content-Disposition: attachment; filename="remove_thermal_check_from_change_thermal_points.patch"
-
-VGhlcm1hbCBjaGVjayBtYXkgcmVzdWx0IGluIHRoZXJtYWwgcG9pbnRzIHRvIGJlIG1vdmVkIGRv
-d24uIERvbid0IGRvIHRoZXJtYWwgY2hlY2sgYWdhaW4gaW4gdGhpcyBjYXNlLgoKRnJvbTogQWxl
-eGV5IFN0YXJpa292c2tpeSA8YXlzdGFyaWtAZ21haWwuY29tPgoKU2lnbmVkLW9mZi1ieTogQWxl
-eGV5IFN0YXJpa292c2tpeSA8YXlzdGFyaWtAZ21haWwuY29tPgotLS0KCiBkcml2ZXJzL2FjcGkv
-dGhlcm1hbC5jIHwgICAgMSAtCiAxIGZpbGVzIGNoYW5nZWQsIDAgaW5zZXJ0aW9ucygrKSwgMSBk
-ZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvdGhlcm1hbC5jIGIvZHJpdmVy
-cy9hY3BpL3RoZXJtYWwuYwppbmRleCAxYWRhMDE3Li43YWE1ZjExIDEwMDY0NAotLS0gYS9kcml2
-ZXJzL2FjcGkvdGhlcm1hbC5jCisrKyBiL2RyaXZlcnMvYWNwaS90aGVybWFsLmMKQEAgLTExMDYs
-NyArMTEwNiw2IEBAIHN0YXRpYyB2b2lkIGFjcGlfdGhlcm1hbF9ub3RpZnkoYWNwaV9oYW5kbGUg
-aGFuZGxlLCB1MzIgZXZlbnQsIHZvaWQgKmRhdGEpCiAJCWJyZWFrOwogCWNhc2UgQUNQSV9USEVS
-TUFMX05PVElGWV9USFJFU0hPTERTOgogCQlhY3BpX3RoZXJtYWxfZ2V0X3RyaXBfcG9pbnRzKHR6
-KTsKLQkJYWNwaV90aGVybWFsX2NoZWNrKHR6KTsKIAkJYWNwaV9idXNfZ2VuZXJhdGVfZXZlbnQo
-ZGV2aWNlLCBldmVudCwgMCk7CiAJCWJyZWFrOwogCWNhc2UgQUNQSV9USEVSTUFMX05PVElGWV9E
-RVZJQ0VTOgo=
-------=_Part_95215_21776734.1179208491475--
+-----------------------------------------------------------------------=
+--------
+Dr. Norbert Preining <preining@logic.at>                    Universit=E0=
+ di Siena
+Debian Developer <preining@debian.org>                         Debian T=
+eX Group
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 0=
+9C5 B094
+-----------------------------------------------------------------------=
+--------
+MELCOMBE REGIS (n.)
+The name of the style of decoration used in cocktail lounges in mock
+Tudor hotels in Surrey.
+			--- Douglas Adams, The Meaning of Liff
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
