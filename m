@@ -1,43 +1,49 @@
-From: Johannes Engel <j-engel@gmx.de>
-Subject: Re: Suspend2RAM Asus V6V
-Date: Tue, 15 May 2007 00:40:25 +0200
-Message-ID: <20070515004025.a4533bbd.j-engel@gmx.de>
-References: <463BC369.7010309@gmx.de>
-	<20070506225824.GA14463@gamma.logic.tuwien.ac.at>
+From: "Luming Yu" <luming.yu@gmail.com>
+Subject: Re: BenQ S73U - no ACPI
+Date: Tue, 15 May 2007 09:26:35 +0800
+Message-ID: <3877989d0705141826i7e78e5fmc81e8010bb3cf3ea@mail.gmail.com>
+References: <46417D3B.4020305@willies.info>
+	 <3877989d0705090228n295a7e86vd66fd0138d9e77e4@mail.gmail.com>
+	 <46435CCD.5010609@willies.info>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:51216 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754775AbXENWj4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 May 2007 18:39:56 -0400
-In-Reply-To: <20070506225824.GA14463@gamma.logic.tuwien.ac.at>
+Received: from nz-out-0506.google.com ([64.233.162.228]:49679 "EHLO
+	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757804AbXEOB0h (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 May 2007 21:26:37 -0400
+Received: by nz-out-0506.google.com with SMTP id r28so5650nza
+        for <linux-acpi@vger.kernel.org>; Mon, 14 May 2007 18:26:37 -0700 (PDT)
+In-Reply-To: <46435CCD.5010609@willies.info>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Norbert Preining <preining@logic.at>
+To: Jan Willies <jan@willies.info>
 Cc: linux-acpi@vger.kernel.org
 
-On Mon, 7 May 2007 00:58:24 +0200
-Norbert Preining <preining@logic.at> wrote:
+please enter a bug on bugzilla.kernel.org in ACPI category
 
-> Hi Johannes,
-> 
-> On Sam, 05 Mai 2007, Johannes Engel wrote:
-> > Switching the laptop on again hitting the power button (other buttons do
-> > not show any effect) the cdrom drive gets initialised, the harddisk led
-> > gets switched on but the screen remains black and the laptop hangs
-> > completely (no keystroke accepted, even not Magic SysRq keys).
-> 
-> I have the same problem, and tried to debug it with net console, with
-> minimal kernel configs, with init=/bin/bash, with all the combinations,
-> to no avail. I did submit a bug report to the resepctive bug tracker but
-> it looks like nobody is caring for this kind of stuff.
-OK, I investigated further with the following result:
-Bios 0401 works quite well.
-BIOS >=1001 seems to introduce a bug: s2ram does not work any more.
-Since I do not have a BIOS between 04 and 10 (especially 0602 or 0801a) I cannot test the versions inbetween. If someone can provide me one of these versions I will try to hunt down the error which possibly resides in the DSDT.
-
-Greetings, Johannes
--- 
-Johannes Engel <j-engel@gmx.de>
+On 5/11/07, Jan Willies <jan@willies.info> wrote:
+> Luming Yu wrote:
+> > On 5/9/07, Jan Willies <jan@willies.info> wrote:
+> >> I got a BenQ S73U and it doesn't support ACPI very well. I got 23
+> > please describe the problem in detail.
+> What information are useful? I have put some log-files here:
+>
+>     http://web746.webbox240.server-home.org/acpi/acpid
+>     http://web746.webbox240.server-home.org/acpi/acpi.log
+>
+> There simply is no S{1,2,3,4,5} with this laptop. It won't even
+> power-off itself after halt.
+> >> errors. This is confusing, it should work well cause they are only
+> >> warnings, not errors!
+> > warnings when compiling /proc/acpi/dsdt with the iasl-compiler, but no
+> >
+> > compile-time working doesn't mean run-time working.
+> I discovered that, sadly.
+>
+>
+> - jcw
+>
+>
