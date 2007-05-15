@@ -1,49 +1,43 @@
-From: "Luming Yu" <luming.yu@gmail.com>
-Subject: Re: BenQ S73U - no ACPI
-Date: Tue, 15 May 2007 09:26:35 +0800
-Message-ID: <3877989d0705141826i7e78e5fmc81e8010bb3cf3ea@mail.gmail.com>
-References: <46417D3B.4020305@willies.info>
-	 <3877989d0705090228n295a7e86vd66fd0138d9e77e4@mail.gmail.com>
-	 <46435CCD.5010609@willies.info>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: 2.6.21 -- polling /proc/acpi/battery/*/state breaks ibm_acpi
+Date: Tue, 15 May 2007 00:04:25 -0300
+Message-ID: <20070515030425.GD22949@khazad-dum.debian.net>
+References: <20070514115354.GA16885@proton>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nz-out-0506.google.com ([64.233.162.228]:49679 "EHLO
-	nz-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757804AbXEOB0h (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 May 2007 21:26:37 -0400
-Received: by nz-out-0506.google.com with SMTP id r28so5650nza
-        for <linux-acpi@vger.kernel.org>; Mon, 14 May 2007 18:26:37 -0700 (PDT)
-In-Reply-To: <46435CCD.5010609@willies.info>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:59066 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753643AbXEODEb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 May 2007 23:04:31 -0400
 Content-Disposition: inline
+In-Reply-To: <20070514115354.GA16885@proton>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jan Willies <jan@willies.info>
+To: Andreas Messer <andreas.messer@stud-mail.uni-wuerzburg.de>
 Cc: linux-acpi@vger.kernel.org
 
-please enter a bug on bugzilla.kernel.org in ACPI category
+On Mon, 14 May 2007, Andreas Messer wrote:
+> Up to Kernel 2.6.20 ibm_acpi was working fine on my TP X21.
+> At least all Fn + <?> Keys worked. Now, since 2.6.21 it generally
+> works but: When some Application is polling /proc/acpi/battery/*/state,
+> the Fn - Keys (and perhaps the Lid-Button) became disfunctional until
+> the next reboot. (Terminating the App didn't help)
+> I can also produce the problem with a simple loop on cmd-line:
+> 
+> while true; do cat /proc/acpi/battery/BAT0/state; done
+> 
+> I figured out, that after system boot I can do a
+> cat /proc/acpi/battery/BAT0/state for at least 3 times without
+> breaking ibm_acpi. But then suddenly the keys FN - Keys are dead.
 
-On 5/11/07, Jan Willies <jan@willies.info> wrote:
-> Luming Yu wrote:
-> > On 5/9/07, Jan Willies <jan@willies.info> wrote:
-> >> I got a BenQ S73U and it doesn't support ACPI very well. I got 23
-> > please describe the problem in detail.
-> What information are useful? I have put some log-files here:
->
->     http://web746.webbox240.server-home.org/acpi/acpid
->     http://web746.webbox240.server-home.org/acpi/acpi.log
->
-> There simply is no S{1,2,3,4,5} with this laptop. It won't even
-> power-off itself after halt.
-> >> errors. This is confusing, it should work well cause they are only
-> >> warnings, not errors!
-> > warnings when compiling /proc/acpi/dsdt with the iasl-compiler, but no
-> >
-> > compile-time working doesn't mean run-time working.
-> I discovered that, sadly.
->
->
-> - jcw
->
->
+Are you using the latest BIOS and EC firmware for the X21?
+
+Also, does ec_intr=0 on the kernel command line makes any difference?
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
