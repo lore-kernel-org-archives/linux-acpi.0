@@ -1,53 +1,90 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Re: Suspend2RAM Asus V6V
-Date: Tue, 15 May 2007 08:17:15 +0200
-Message-ID: <20070515061715.GA19470@gamma.logic.tuwien.ac.at>
-References: <463BC369.7010309@gmx.de> <20070506225824.GA14463@gamma.logic.tuwien.ac.at> <20070515004025.a4533bbd.j-engel@gmx.de>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: Fwd: Re: Linux 2.6.22-rc1
+Date: Wed, 16 May 2007 00:42:08 +0900
+Message-ID: <20070515154208.GJ5043@inferi.kami.home>
+References: <Pine.LNX.4.61.0705131123280.9570@yvahk01.tjqt.qr> <20070514015541.GB4800@inferi.kami.home> <Pine.LNX.4.61.0705140742350.9570@yvahk01.tjqt.qr> <20070514104546.10a4368f.randy.dunlap@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:53201 "EHLO
-	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758980AbXEOGRQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 May 2007 02:17:16 -0400
+Received: from mtoichi11.ns.itscom.net ([219.110.2.181]:59259 "EHLO
+	mtoichi11.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754985AbXEOPmT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 May 2007 11:42:19 -0400
 Content-Disposition: inline
-In-Reply-To: <20070515004025.a4533bbd.j-engel@gmx.de>
+In-Reply-To: <20070514104546.10a4368f.randy.dunlap@oracle.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Johannes Engel <j-engel@gmx.de>
-Cc: linux-acpi@vger.kernel.org
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Jan Engelhardt <jengelh@linux01.gwdg.de>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, sam@ravnborg.org
 
-On Die, 15 Mai 2007, Johannes Engel wrote:
-> Bios 0401 works quite well.
-> BIOS >=3D1001 seems to introduce a bug: s2ram does not work any more.
+On Mon, May 14, 2007 at 10:45:46AM -0700, Randy Dunlap wrote:
+> On Mon, 14 May 2007 07:49:31 +0200 (MEST) Jan Engelhardt wrote:
+> 
+> > 
+> > On May 14 2007 10:55, Mattia Dongili wrote:
+> > >On Sun, May 13, 2007 at 11:27:31AM +0200, Jan Engelhardt wrote:
+> > >> On May 12 2007 20:20, Linus Torvalds wrote:
+> > >> >
+> > >> >Ok, the merge window has closed, and 2.6.22-rc1 is out there.
+> > >> 
+> > >> I have hit a randconfig compile failure. .config attached.
+> > >> 
+> > >>   LD      .tmp_vmlinux1
+> > >> drivers/built-in.o: In function `acpi_bus_generate_event':
+> > >> (.text+0x233f7): undefined reference to `event_is_open'
+> > >> drivers/built-in.o: In function `acpi_bus_get_power':
+> > >> (.text+0x236ad): undefined reference to `acpi_power_get_inferred_state'
+> > >> drivers/built-in.o: In function `acpi_bus_set_power':
+> > >> (.text+0x237c3): undefined reference to `acpi_power_transition'
+> > >> drivers/built-in.o: In function `acpi_bus_set_power':
+> > >> (.text+0x23835): undefined reference to `acpi_power_transition'
+> > >> drivers/built-in.o: In function `sony_pic_fanspeed_store':
+> > >> sony-laptop.c:(.text+0x91930): undefined reference to `ec_write'
+> > >> drivers/built-in.o: In function `sony_pic_fanspeed_show':
+> > >> sony-laptop.c:(.text+0x9195d): undefined reference to `ec_read'
+> > >> make: *** [.tmp_vmlinux1] Error 1
+> > >
+> > >I actually can't reproduce it with your .config.
+> > 
+> > But I can. Did you try it on x86_64? From 2.6.22-rc1 [
+> > commit 39403865d2e4590802553370a56c9ab93131e4ee in /linux-2.6.git] ?
+> > 
+> > 	bzip2 -cd randconfig-1.bz2 >.config
+> > 	make -j8
+> 
+> Yes, build easily fails for me also.
 
-Well I have an Acer TM 3012, but with more or less the same hardware, s=
-o
-I guess this won't help you. Could you dump and disassemble the two
-DSDTs and compare them, maybe the difference between those also may be
-found in the DSDT of the Acer.
+ok, as far as sony-laptop is concerned a dependency on ACPI_EC suffices
+to fix the link failure, but I guess that would just hide the real
+issue.
+IOW: why does ACPI_EC, ACPI_SYSTEM and ACPI_POWER are not set when the
+ACPI symbol is?
 
-Best wishes
+Given the drivers/acpi/Kconfig portion
 
-Norbert
+  if ACPI
+  ...
+  config ACPI_EC
+          bool
+          default y
+          help
+            ...
+  
+  config ACPI_POWER
+          bool
+          default y
+  
+  config ACPI_SYSTEM
+          bool
+          default y
+          help
+	  ...
+  ...
+  endif
 
------------------------------------------------------------------------=
---------
-Dr. Norbert Preining <preining@logic.at>                    Universit=E0=
- di Siena
-Debian Developer <preining@debian.org>                         Debian T=
-eX Group
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 0=
-9C5 B094
------------------------------------------------------------------------=
---------
-MELCOMBE REGIS (n.)
-The name of the style of decoration used in cocktail lounges in mock
-Tudor hotels in Surrey.
-			--- Douglas Adams, The Meaning of Liff
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'd expect the 3 symbols to be all set when CONFIG_ACPI=y.
+What am I overseeing?
+
+-- 
+mattia
+:wq!
