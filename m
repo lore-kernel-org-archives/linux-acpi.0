@@ -1,230 +1,100 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH] ACPI: export ACPI events via netlink
-Date: Wed, 16 May 2007 16:28:30 +0800
-Message-ID: <1179304110.7707.10.camel@localhost.localdomain>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [patch 3/3] clockevents: Fix resume logic - updated version
+Date: Tue, 15 May 2007 16:52:46 +0000
+Message-ID: <20070515165245.GG6816@ucw.cz>
+References: <20070430102837.748238000@linutronix.de> <20070511132846.5ebf4437.akpm@linux-foundation.org> <200705112302.47726.rjw@sisk.pl> <200705112309.15996.rjw@sisk.pl> <20070511235607.83ad0eb5.akpm@linux-foundation.org> <1178959563.22481.126.camel@localhost.localdomain> <20070512020056.a24cf472.akpm@linux-foundation.org> <1178961489.22481.133.camel@localhost.localdomain> <20070512030754.90488f79.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:7809 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754241AbXEPI3X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 May 2007 04:29:23 -0400
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:2060 "EHLO spitz.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754497AbXEPNfq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 May 2007 09:35:46 -0400
+Content-Disposition: inline
+In-Reply-To: <20070512030754.90488f79.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: tglx@linutronix.de, "Rafael J. Wysocki" <rjw@sisk.pl>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, John Stultz <johnstul@us.ibm.com>, linux-acpi@vger.kernel.org
 
-From: Zhang Rui <rui.zhang@intel.com>
+Hi!
 
-Export ACPI events via netlink.
-A netlink message is broadcasted when an ACPI event is generated.
+> > > It's peculiar that the hang happens when acpi_evaluate_object() hits its
+> > > return statement.  Any theories there?
+> > 
+> > Only stack or memory corruption come into mind, but I have no clue how
+> > this is related to the resume logic changes.
+> 
+> So I had the brilliant idea of turning on some kernel debugging.  It's
+> a shame that CONFIG_SOFTWARE_SUSPEND disables CONFIG_DEBUG_PAGEALLOC.
 
-Note:	The behaviour of how ACPI event works nowadays is not changed.
-	Netlink is used to export ACPI event instead of
-	/proc/acpi/event someday, but not now.
-	This patch only adds the function of sending netlink messages
-	when an ACPI event is generated.
-	Following is an example of how to receive ACPI event messages.
+We now switch to separate page tables for hibernation, IIRC, so we may
+be able to get DEBUG_PAGEALLOC to work. I'll take a look.
 
-#include <linux/socket.h>
-#include <linux/netlink.h>
-#include "stdio.h"
+> [   73.533454] swsusp: Basic memory bitmaps created
+> [   73.550429] Stopping tasks ... BUG: at kernel/lockdep.c:2414 check_flags()
+> [   73.550988]  [<c0104c14>] show_trace_log_lvl+0x1a/0x30
+> [   73.551143]  [<c0105769>] show_trace+0x12/0x14
+> [   73.551279]  [<c01057c1>] dump_stack+0x15/0x17
+> [   73.551412]  [<c0132732>] check_flags+0x93/0x13d
+> [   73.551554]  [<c0135558>] lock_acquire+0x28/0x7f
+> [   73.551691]  [<c0310e35>] _spin_lock+0x2b/0x38
+> [   73.551827]  [<c013dc43>] refrigerator+0x16/0xc7
+> [   73.551965]  [<c0125d2e>] get_signal_to_deliver+0x32/0x387
+> [   73.552124]  [<c010336d>] do_notify_resume+0x91/0x6a9
+> [   73.552271]  [<c0103df1>] work_notifysig+0x13/0x1a
+> [   73.552413]  =======================
+> [   73.552507] irq event stamp: 3075
+> [   73.552595] hardirqs last  enabled at (3075): [<c0103e51>] syscall_exit_work+0x11/0x26
+> [   73.552821] hardirqs last disabled at (3074): [<c0103d35>] syscall_exit+0x9/0x1a
+> [   73.553046] softirqs last  enabled at (2778): [<c01209f2>] __do_softirq+0x92/0x9a
+> [   73.553255] softirqs last disabled at (2693): [<c0120a27>] do_softirq+0x2d/0x46
+> [   73.559504] done.
+> [   73.559569] Shrinking memory...  -done (0 pages freed)
+> [   73.646511] Freed 0 kbytes in 0.08 seconds (0.00 MB/s)
+> [   73.649595] platform sonypi: freeze
+> [   73.649707] platform bluetooth: freeze
+> [   73.649817] usb_endpoint usbdev5.1_ep81: PM: suspend 0->1, parent 5-0:1.0 already 2
+> [   73.650023] hub 5-0:1.0: PM: suspend 2-->1
+> 
+> <snippage>
+> 
+> [   73.739499] ipw2200 0000:06:0b.0: freeze
+> [   73.743860] eth1: Going into suspend...
+> [   73.748444] e100 0000:06:08.0: freeze
+> 
+> at this point I lost netconsole (earlier testing was without netconsole
+> btw)
 
-#define NETLINK_ACPI_EVENT	20
-#define SOCK_RAW		3
+Commenting out e100's suspend routine might do the trick.
 
-struct acpi_event{
-	char device_class[20];
-	char bus_id[15];
-	unsigned int type;
-	unsigned int data;
-};
+> void refrigerator(void)
+> {
+> 	/* Hmm, should we be allowed to suspend when there are realtime
+> 	   processes around? */
+> 	long save;
+> 
+> -->	task_lock(current);
+> 	if (freezing(current)) {
+> 		frozen_process();
+> 		task_unlock(current);
+> 	} else {
+> 
+> 
+> I don't really know what lockdep is complaining about there.  I assume I'm
+> not supposed to, given that whoever wrote that couldn't be bothered
+> documenting any of it.
 
-struct sockaddr_nl src_addr, dest_addr;
-int sock_fd;
-struct msghdr msg;
-struct iovec iov;
+> I _think_ it means that lockdep believes that local irqs are enabled
+> (according to its state tracking), only it turns out that they're not.
 
 
-int main (void){
-	int i = 10;
-	int result;
-	struct acpi_event event;
+Huh, running refrigerator with interrupts disabled? I do not think we
+are doing _that_.
 
-	sock_fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_ACPI_EVENT);
-	if (sock_fd == -1) {
-		printf("Socket faied!\n");
-		return 0;
-	}
+							Pavel
 
-	src_addr.nl_family = AF_NETLINK;
-	src_addr.nl_pid = getpid();
-
-	src_addr.nl_groups = 1;
-
-	result = bind(sock_fd, (struct sockaddr*)&src_addr, sizeof(src_addr));
-	if (result) {
-		printf("Bind faied! %d.\n", result);
-		return result;
-	}
-
-	iov.iov_base = (void *)&event;
-	iov.iov_len = sizeof(struct acpi_event);
-
-	msg.msg_name = (void *)&dest_addr;
-	msg.msg_namelen = sizeof(dest_addr);
-	msg.msg_iov = &iov;
-	msg.msg_iovlen = 1;
-
-	while(i > 0) {
-		printf("Wait...\n");
-		result = recvmsg(sock_fd, &msg, 0);
-		if (result == -1) {
-			printf("Rui: recvmsg failed, error is %d\n", result);
-			return result;
-		}
-		printf("%20s %15s %08x %08x\n",
-			event.device_class, event.bus_id, event.type, event.data);
-		i--;
-	}
-
-	close(sock_fd);
-	return 0;
-}
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/bus.c      |   34 ++++++++++++++++++++++++++++++++++
- drivers/acpi/event.c    |   19 +++++++++++++++++++
- include/acpi/acpi_bus.h |    1 +
- include/linux/netlink.h |    1 +
- 4 files changed, 55 insertions(+)
-
-Index: linux-2.6.22-rc1/drivers/acpi/bus.c
-===================================================================
---- linux-2.6.22-rc1.orig/drivers/acpi/bus.c	2007-05-16 13:41:30.000000000 +0800
-+++ linux-2.6.22-rc1/drivers/acpi/bus.c	2007-05-16 15:36:47.000000000 +0800
-@@ -37,6 +37,7 @@
- #endif
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
-+#include <linux/netlink.h>
- 
- #define _COMPONENT		ACPI_BUS_COMPONENT
- ACPI_MODULE_NAME("bus");
-@@ -275,6 +276,37 @@
- /* --------------------------------------------------------------------------
-                                 Event Management
-    -------------------------------------------------------------------------- */
-+struct acpi_bus_netlink_event {
-+	acpi_device_class device_class;
-+	char bus_id[15];
-+	u32 type;
-+	u32 data;
-+};
-+
-+static int acpi_bus_generate_netlink_event(struct acpi_device *device,
-+						u8 type, int data)
-+{
-+	struct sk_buff *skb = NULL;
-+	struct acpi_bus_netlink_event *event = NULL;
-+
-+	skb = alloc_skb(sizeof(struct acpi_bus_event), GFP_ATOMIC);
-+	if (!skb)
-+		return -ENOMEM;
-+
-+	event = (struct acpi_bus_netlink_event *)
-+			skb_put(skb, sizeof(struct acpi_bus_netlink_event));
-+	strcpy(event->device_class, device->pnp.device_class);
-+	strcpy(event->bus_id, device->dev.bus_id);
-+	event->type = type;
-+	event->data = data;
-+
-+	NETLINK_CB(skb).dst_group = 1;
-+
-+	if (netlink_broadcast(acpi_event_sock, skb, 0, 1, GFP_ATOMIC))
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+			"Failed to send a netlink message for ACPI event\n"));
-+	return 0;
-+}
- 
- static DEFINE_SPINLOCK(acpi_bus_event_lock);
- 
-@@ -292,6 +324,8 @@
- 	if (!device)
- 		return -EINVAL;
- 
-+	acpi_bus_generate_netlink_event(device, type, data);
-+
- 	/* drop event on the floor if no one's listening */
- 	if (!event_is_open)
- 		return 0;
-Index: linux-2.6.22-rc1/drivers/acpi/event.c
-===================================================================
---- linux-2.6.22-rc1.orig/drivers/acpi/event.c	2007-05-16 13:40:25.000000000 +0800
-+++ linux-2.6.22-rc1/drivers/acpi/event.c	2007-05-16 13:55:05.000000000 +0800
-@@ -11,6 +11,7 @@
- #include <linux/init.h>
- #include <linux/poll.h>
- #include <acpi/acpi_drivers.h>
-+#include <linux/netlink.h>
- 
- #define _COMPONENT		ACPI_SYSTEM_COMPONENT
- ACPI_MODULE_NAME("event");
-@@ -106,6 +107,18 @@
- 	.poll = acpi_system_poll_event,
- };
- 
-+struct sock* acpi_event_sock;
-+static int acpi_event_netlink_init(void)
-+{
-+	acpi_event_sock = netlink_kernel_create(NETLINK_ACPI_EVENT, 1, NULL,
-+						NULL, THIS_MODULE);
-+
-+	if (!acpi_event_sock)
-+		return -ENODEV;
-+
-+	return 0;
-+}
-+
- static int __init acpi_event_init(void)
- {
- 	struct proc_dir_entry *entry;
-@@ -115,6 +128,12 @@
- 	if (acpi_disabled)
- 		return 0;
- 
-+	/* create netlink for acpi event */
-+	error = acpi_event_netlink_init();
-+	if (error)
-+		printk(KERN_WARNING PREFIX
-+		       "Failed to create netlink for ACPI event\n");
-+
- 	/* 'event' [R] */
- 	entry = create_proc_entry("event", S_IRUSR, acpi_root_dir);
- 	if (entry)
-Index: linux-2.6.22-rc1/include/linux/netlink.h
-===================================================================
---- linux-2.6.22-rc1.orig/include/linux/netlink.h	2007-05-16 13:41:33.000000000 +0800
-+++ linux-2.6.22-rc1/include/linux/netlink.h	2007-05-16 13:43:53.000000000 +0800
-@@ -24,6 +24,7 @@
- /* leave room for NETLINK_DM (DM Events) */
- #define NETLINK_SCSITRANSPORT	18	/* SCSI Transports */
- #define NETLINK_ECRYPTFS	19
-+#define NETLINK_ACPI_EVENT	20	/* acpi event notifications */
- 
- #define MAX_LINKS 32		
- 
-Index: linux-2.6.22-rc1/include/acpi/acpi_bus.h
-===================================================================
---- linux-2.6.22-rc1.orig/include/acpi/acpi_bus.h	2007-05-16 13:41:33.000000000 +0800
-+++ linux-2.6.22-rc1/include/acpi/acpi_bus.h	2007-05-16 13:44:14.000000000 +0800
-@@ -322,6 +322,7 @@
- 
- extern struct kset acpi_subsys;
- 
-+extern struct sock* acpi_event_sock;
- /*
-  * External Functions
-  */
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
