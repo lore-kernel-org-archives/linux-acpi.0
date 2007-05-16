@@ -1,54 +1,58 @@
-From: "Alexey Starikovskiy" <aystarik@gmail.com>
-Subject: Re: [PATCH] ACPI: Remove possible recursion from thermal driver
-Date: Wed, 16 May 2007 06:19:22 +0400
-Message-ID: <8f8ff01d0705151919i23fe8edchce960bef242ce145@mail.gmail.com>
-References: <8f8ff01d0705142254r97c8dd9h8aa82eb67e44ae5f@mail.gmail.com>
-	 <200705151626.02687.lenb@kernel.org>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: Fwd: Re: Linux 2.6.22-rc1
+Date: Wed, 16 May 2007 11:41:01 +0900
+Message-ID: <20070516024101.GC3971@inferi.kami.home>
+References: <Pine.LNX.4.61.0705131123280.9570@yvahk01.tjqt.qr> <20070514015541.GB4800@inferi.kami.home> <Pine.LNX.4.61.0705140742350.9570@yvahk01.tjqt.qr> <20070514104546.10a4368f.randy.dunlap@oracle.com> <20070515154208.GJ5043@inferi.kami.home> <20070515104621.a4e0e609.randy.dunlap@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wr-out-0506.google.com ([64.233.184.228]:38062 "EHLO
-	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758692AbXEPCTY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 May 2007 22:19:24 -0400
-Received: by wr-out-0506.google.com with SMTP id 76so33083wra
-        for <linux-acpi@vger.kernel.org>; Tue, 15 May 2007 19:19:22 -0700 (PDT)
-In-Reply-To: <200705151626.02687.lenb@kernel.org>
+Received: from mtoichi12.ns.itscom.net ([219.110.2.182]:47475 "EHLO
+	mtoichi12.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759779AbXEPClP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 May 2007 22:41:15 -0400
 Content-Disposition: inline
+In-Reply-To: <20070515104621.a4e0e609.randy.dunlap@oracle.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Jan Engelhardt <jengelh@linux01.gwdg.de>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, sam@ravnborg.org
 
-Please read the spec 11.1.2 and 11.1.2.3. Trip points change _only_ to
-create a hysteresis loop, not by themselves. This means that we will
-get 0x81 type _only_ in response to us changing active state, the
-moment then we have temperature and just decided to move away from
-this trip point, not closer to it.
-If the temperature change, we get another event, 0x80, and _then_ we
-do thermal_check()...
+On Tue, May 15, 2007 at 10:46:21AM -0700, Randy Dunlap wrote:
+> On Wed, 16 May 2007 00:42:08 +0900 Mattia Dongili wrote:
+...
+> > Given the drivers/acpi/Kconfig portion
+> > 
+> >   if ACPI
+> >   ...
+> >   config ACPI_EC
+> >           bool
+> >           default y
+> >           help
+> >             ...
+> >   
+> >   config ACPI_POWER
+> >           bool
+> >           default y
+> >   
+> >   config ACPI_SYSTEM
+> >           bool
+> >           default y
+> >           help
+> > 	  ...
+> >   ...
+> >   endif
+> > 
+> > I'd expect the 3 symbols to be all set when CONFIG_ACPI=y.
+> > What am I overseeing?
+> 
+> I think that this is just 'make randconfig' throwing a curve ball.
+> ACPI depends on PM, but PM=n.  In my experience, randconfig is a
+> good tool for testing oddball configs, but the results are not
+> always something that is fixable or needs to be fixed.
 
-Regards,
-Alex.
+It looks like Kconfig does the right thing on i386 though. Not the same
+on x84_64.
 
-
-On 5/16/07, Len Brown <lenb@kernel.org> wrote:
->
-> > --- a/drivers/acpi/thermal.c
-> > +++ b/drivers/acpi/thermal.c
-> > @@ -1106,7 +1106,6 @@ static void acpi_thermal_notify(acpi_handle handle, u32 event, void *data)
-> >               break;
-> >       case ACPI_THERMAL_NOTIFY_THRESHOLDS:
-> >               acpi_thermal_get_trip_points(tz);
-> >-              acpi_thermal_check(tz);
-> >               acpi_bus_generate_event(device, event, 0);
-> >               break;
-> >       case ACPI_THERMAL_NOTIFY_DEVICES:
->
-> I don't think we can do this.
-> When the thresholds change, there must be a check to compare the temperature
-> with the thresholds -- otherwise what good was it to change the thresholds?
->
-> -Len
->
+-- 
+mattia
+:wq!
