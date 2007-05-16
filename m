@@ -1,75 +1,83 @@
-From: Goulven Guillard <lecotegougdelaforce@free.fr>
-Subject: Re: 2.6.22-rc1-mm1 [cannot change thermal trip points]
-Date: Wed, 16 May 2007 20:10:25 +0200
-Message-ID: <464B4911.4050903@free.fr>
-References: <20070515201914.16944e04.akpm@linux-foundation.org> <464B4155.9070902@gmail.com> <464B43BB.3070505@redhat.com>
-Reply-To: lecotegougdelaforce@free.fr
+From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Subject: [1/3] 2.6.22-rc1: known regressions v2
+Date: Wed, 16 May 2007 22:31:30 +0200
+Message-ID: <464B6A22.905__26514.1427204528$1179347532$gmane$org@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ires.in2p3.fr ([193.48.86.184]:35103 "EHLO IReS.in2p3.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758412AbXEPSKA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 May 2007 14:10:00 -0400
-In-Reply-To: <464B43BB.3070505@redhat.com>
+Received: from ug-out-1314.google.com ([66.249.92.171]:17937 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1763342AbXEPUb6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 May 2007 16:31:58 -0400
+Received: by ug-out-1314.google.com with SMTP id 44so193387uga
+        for <linux-acpi@vger.kernel.org>; Wed, 16 May 2007 13:31:57 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chuck Ebbert <cebbert@redhat.com>
-Cc: Maciej Rutecki <maciej.rutecki@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Bob Tracy <rct@gherkin.frus.com>, Dave Jones <davej@codemonkey.org.uk>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Ray Lee <ray-lk@madrabbit.org>, alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.de>, Jaroslav Kysela <perex@suse.cz>, Pete Clements <clem@clem.clem-digital.net>, Rene Herman <rene.herman@gmail.com>, viro@zeniv.linux.org.uk, Uwe Bugla <uwe.bugla@gmx.de>, linux-crypto@vger.kernel.org, Luca Tettamanti <kronos.it@gmail.com>, Herbert Xu <herbert@gondor.apana.org.au>
 
-Le 05/16/2007 07:47 PM, Chuck Ebbert a d=C3=A9clar=C3=A9 :
+Hi all,
 
-> Gitweb:     http://git.kernel.org/git/?p=3Dlinux/kernel/git/torvalds/=
-linux-2.6.git;a=3Dcommit;h=3D11ccc0f249cb01a129f54760b8ff087f242935d4
-> Commit:     11ccc0f249cb01a129f54760b8ff087f242935d4
-> Parent:     de46c33745f5e2ad594c72f2cf5f490861b16ce1
-> Author:     Len Brown <len.brown@intel.com>
-> AuthorDate: Mon Apr 30 22:36:01 2007 -0400
-> Committer:  Len Brown <len.brown@intel.com>
-> CommitDate: Mon Apr 30 22:36:01 2007 -0400
->=20
->     ACPI: thermal trip points are read-only
+Here is a list of some known regressions in 2.6.22-rc1.
 
-
-Should one understand that it IS a wanted behaviour ?
-
-Isn't it the DSDT job (which is kernel-accessible, or isn't it ?) to
-communicate trip_points to ACPI thermal zone ?
-
-Isn't OSPM managing thermal zone ?
-
-(http://acpi.sourceforge.net/documentation/thermal.html)
+Feel free to add new regressions/remove fixed etc.
+http://kernelnewbies.org/known_regressions
 
 
 
+Unclassified
 
-PS : Sorry for all these (maybe stupid) questions, but I think I
-remember that changing trip_points had an effect on a (DSDT-bugged)
-laptop I used to use, and I'd like to understand...
-
-PPS : Sorry also for the english mistakes or approximations...
-
-
-
-
---=20
-    ~~
-   |Oo|   La banquise fond !!! Adoptez un pingouin...
-  /|\/|\
-   |__|            =3D> http://doc.ubuntu-fr.org/
-   ^__^
-~~~|  |~~~
+Subject    : AMD k6-III/450 won't boot w/2.6.22-rc1
+References : http://lkml.org/lkml/2007/5/16/192
+Submitter  : Bob Tracy <rct@gherkin.frus.com>
+Handled-By : Dave Jones <davej@codemonkey.org.uk>
+Status     : problem is being debugged
 
 
 
+ACPI
+
+Subject    : nx6125 has lost fan control
+References : http://lkml.org/lkml/2007/5/16/249
+Submitter  : Ray Lee <ray-lk@madrabbit.org>
+Status     : Unknown
 
 
 
+ALSA
+
+Subject    : lost snd_4236 device
+References : http://lkml.org/lkml/2007/5/13/87
+Submitter  : Pete Clements <clem@clem.clem-digital.net>
+Handled-By : Rene Herman <rene.herman@gmail.com>
+Patch      : http://lkml.org/lkml/2007/5/15/23
+Status     : patch available
 
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Block devices
+
+Subject    : loop devices limited to one single device
+References : http://lkml.org/lkml/2007/5/16/229
+Submitter  : Uwe Bugla <uwe.bugla@gmx.de>
+Status     : Unknown
+
+
+
+Cryptography
+
+Subject    : cryptomgr oops
+References : http://lkml.org/lkml/2007/5/14/283
+Submitter  : Luca Tettamanti <kronos.it@gmail.com>
+Handled-By : Herbert Xu <herbert@gondor.apana.org.au>
+Status     : problem is being debugged
+
+
+
+Regards,
+Michal
+
+--
+Michal K. K. Piotrowski
+Kernel Monkeys
+(http://kernel.wikidot.com/start)
