@@ -1,100 +1,92 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [patch 3/3] clockevents: Fix resume logic - updated version
-Date: Tue, 15 May 2007 16:52:46 +0000
-Message-ID: <20070515165245.GG6816@ucw.cz>
-References: <20070430102837.748238000@linutronix.de> <20070511132846.5ebf4437.akpm@linux-foundation.org> <200705112302.47726.rjw@sisk.pl> <200705112309.15996.rjw@sisk.pl> <20070511235607.83ad0eb5.akpm@linux-foundation.org> <1178959563.22481.126.camel@localhost.localdomain> <20070512020056.a24cf472.akpm@linux-foundation.org> <1178961489.22481.133.camel@localhost.localdomain> <20070512030754.90488f79.akpm@linux-foundation.org>
+From: "Ray Lee" <ray-lk@madrabbit.org>
+Subject: Re: [GIT PATCH] ACPI patches for 2.6.22 - part 2
+Date: Wed, 16 May 2007 08:49:58 -0700
+Message-ID: <2c0942db0705160849x50817a50h7fe413bae0093082@mail.gmail.com>
+References: <200705100411.32349.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:2060 "EHLO spitz.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754497AbXEPNfq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 May 2007 09:35:46 -0400
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1762333AbXEPPuT@vger.kernel.org>
+In-Reply-To: <200705100411.32349.lenb@kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20070512030754.90488f79.akpm@linux-foundation.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: tglx@linutronix.de, "Rafael J. Wysocki" <rjw@sisk.pl>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, John Stultz <johnstul@us.ibm.com>, linux-acpi@vger.kernel.org
 
-Hi!
+On 5/10/07, Len Brown <lenb@kernel.org> wrote:
+> please pull from:
+>
+> git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
+[...]
+> I'm not totally satisfied that we've reverse engineered
+> all the bizarre Notify cases that BIOS send us, but this
+> should work on the machines we've seen to date...
+[...]
+> commit 88db5e1489f23876a226f5393fd978ddc09dc5f9
+> Author: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
+> Date:   Wed May 9 23:31:03 2007 -0400
+>
+>     ACPI: created a dedicated workqueue for notify() execution
+>
+>     HP nx6125/nx6325/... machines have a _GPE handler with an infinite
+>     loop sending Notify() events to different ACPI subsystems.
+>
+>     Notify handler in ACPI driver is a C-routine, which may call ACPI
+>     interpreter again to get access to some ACPI variables
+>     (acpi_evaluate_xxx).
+>     On these HP machines such an evaluation changes state of some variable
+>     and lets the loop above break.
+>
+>     In the current ACPI implementation Notify requests are being deferred
+>     to the same kacpid workqueue on which the above GPE handler with
+>     infinite loop is executing. Thus we have a deadlock -- loop will
+>     continue to spin, sending notify events, and at the same time
+>     preventing these notify events from being run on a workqueue. All
+>     notify events are deferred, thus we see increase in memory consumption
+>     noticed by author of the thread. Also as GPE handling is bloked,
+>     machines overheat. Eventually by external poll of the same
+>     acpi_evaluate, kacpid is released and all the queued notify events are
+>     free to run, thus 100% cpu utilization by kacpid for several seconds
+>     or more.
+>
+>     To prevent all these horrors it's needed to not put notify events to
+>     kacpid workqueue by either executing them immediately or putting them
+>     on some other thread. It's dangerous to execute notify events in
+>     place, as it will put several ACPI interpreter stacks on top of each
+>     other (at least 4 in case of nx6125), thus causing kernel  stack
+>     overflow.
+>
+>     First attempt to create a new thread was done by Peter Wainwright
+>     He created a bunch of threads, which were stealing work from a kacpid
+>     workqueue.
+>     This patch appeared in 2.6.15 kernel shipped with Ubuntu 6.06 LTS.
+>
+>     Second attempt was done by me, I created a new thread for each Notify
+>     event. This worked OK on HP nx machines, but broke Linus' Compaq
+>     n620c, by producing threads with a speed what they stopped the machine
+>     completely. Thus this patch was reverted from 18-rc2 as I remember.
+>     I re-made the patch to create second workqueue just for notify events,
+>     thus hopping it will not break Linus' machine. Patch was tested on the
+>     same HP nx machines in #5534 and #7122, but I did not received reply
+>     from Linus on a test patch sent to him.
+>     Patch went to 19-rc and was rejected with much fanfare again.
+>     There was 4th patch, which inserted schedule_timeout(1) into deferred
+>     execution of kacpid, if we had any notify requests pending, but Linus
+>     decided that it was too complex (involved either changes to workqueue
+>     to see if it's empty or atomic inc/dec).
+>     Now you see last variant which adds yield() to every GPE execution.
+>
+>     http://bugzilla.kernel.org/show_bug.cgi?id=5534
+>     http://bugzilla.kernel.org/show_bug.cgi?id=8385
+>
+>     Signed-off-by: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
+>     Signed-off-by: Len Brown <len.brown@intel.com>
 
-> > > It's peculiar that the hang happens when acpi_evaluate_object() hits its
-> > > return statement.  Any theories there?
-> > 
-> > Only stack or memory corruption come into mind, but I have no clue how
-> > this is related to the resume logic changes.
-> 
-> So I had the brilliant idea of turning on some kernel debugging.  It's
-> a shame that CONFIG_SOFTWARE_SUSPEND disables CONFIG_DEBUG_PAGEALLOC.
+I've just tried booting up 2.6.22-rc1-+a-day-or-two and my nx6125 has
+lost fan control again. It doesn't sound like that's an expected
+result of this patch series, but it seems unlikely that it's due to
+anything but the ACPI merge.
 
-We now switch to separate page tables for hibernation, IIRC, so we may
-be able to get DEBUG_PAGEALLOC to work. I'll take a look.
-
-> [   73.533454] swsusp: Basic memory bitmaps created
-> [   73.550429] Stopping tasks ... BUG: at kernel/lockdep.c:2414 check_flags()
-> [   73.550988]  [<c0104c14>] show_trace_log_lvl+0x1a/0x30
-> [   73.551143]  [<c0105769>] show_trace+0x12/0x14
-> [   73.551279]  [<c01057c1>] dump_stack+0x15/0x17
-> [   73.551412]  [<c0132732>] check_flags+0x93/0x13d
-> [   73.551554]  [<c0135558>] lock_acquire+0x28/0x7f
-> [   73.551691]  [<c0310e35>] _spin_lock+0x2b/0x38
-> [   73.551827]  [<c013dc43>] refrigerator+0x16/0xc7
-> [   73.551965]  [<c0125d2e>] get_signal_to_deliver+0x32/0x387
-> [   73.552124]  [<c010336d>] do_notify_resume+0x91/0x6a9
-> [   73.552271]  [<c0103df1>] work_notifysig+0x13/0x1a
-> [   73.552413]  =======================
-> [   73.552507] irq event stamp: 3075
-> [   73.552595] hardirqs last  enabled at (3075): [<c0103e51>] syscall_exit_work+0x11/0x26
-> [   73.552821] hardirqs last disabled at (3074): [<c0103d35>] syscall_exit+0x9/0x1a
-> [   73.553046] softirqs last  enabled at (2778): [<c01209f2>] __do_softirq+0x92/0x9a
-> [   73.553255] softirqs last disabled at (2693): [<c0120a27>] do_softirq+0x2d/0x46
-> [   73.559504] done.
-> [   73.559569] Shrinking memory...  -done (0 pages freed)
-> [   73.646511] Freed 0 kbytes in 0.08 seconds (0.00 MB/s)
-> [   73.649595] platform sonypi: freeze
-> [   73.649707] platform bluetooth: freeze
-> [   73.649817] usb_endpoint usbdev5.1_ep81: PM: suspend 0->1, parent 5-0:1.0 already 2
-> [   73.650023] hub 5-0:1.0: PM: suspend 2-->1
-> 
-> <snippage>
-> 
-> [   73.739499] ipw2200 0000:06:0b.0: freeze
-> [   73.743860] eth1: Going into suspend...
-> [   73.748444] e100 0000:06:08.0: freeze
-> 
-> at this point I lost netconsole (earlier testing was without netconsole
-> btw)
-
-Commenting out e100's suspend routine might do the trick.
-
-> void refrigerator(void)
-> {
-> 	/* Hmm, should we be allowed to suspend when there are realtime
-> 	   processes around? */
-> 	long save;
-> 
-> -->	task_lock(current);
-> 	if (freezing(current)) {
-> 		frozen_process();
-> 		task_unlock(current);
-> 	} else {
-> 
-> 
-> I don't really know what lockdep is complaining about there.  I assume I'm
-> not supposed to, given that whoever wrote that couldn't be bothered
-> documenting any of it.
-
-> I _think_ it means that lockdep believes that local irqs are enabled
-> (according to its state tracking), only it turns out that they're not.
-
-
-Huh, running refrigerator with interrupts disabled? I do not think we
-are doing _that_.
-
-							Pavel
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Shall I bisect, or do you have enough to go on, given the long history
+of grief that this laptop has caused you?
