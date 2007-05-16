@@ -1,58 +1,30 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: Fwd: Re: Linux 2.6.22-rc1
-Date: Wed, 16 May 2007 11:41:01 +0900
-Message-ID: <20070516024101.GC3971@inferi.kami.home>
-References: <Pine.LNX.4.61.0705131123280.9570@yvahk01.tjqt.qr> <20070514015541.GB4800@inferi.kami.home> <Pine.LNX.4.61.0705140742350.9570@yvahk01.tjqt.qr> <20070514104546.10a4368f.randy.dunlap@oracle.com> <20070515154208.GJ5043@inferi.kami.home> <20070515104621.a4e0e609.randy.dunlap@oracle.com>
+From: Jeff Garzik <jeff@garzik.org>
+Subject: Re: [PATCH 1/9] libata: separate out ata_dev_reread_id()
+Date: Wed, 16 May 2007 01:21:50 -0400
+Message-ID: <464A94EE.9010206@garzik.org>
+References: <11791672951781-git-send-email-htejun@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mtoichi12.ns.itscom.net ([219.110.2.182]:47475 "EHLO
-	mtoichi12.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759779AbXEPClP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 May 2007 22:41:15 -0400
-Content-Disposition: inline
-In-Reply-To: <20070515104621.a4e0e609.randy.dunlap@oracle.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <11791672951781-git-send-email-htejun@gmail.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Tejun Heo <htejun@gmail.com>
+Cc: mjg59@srcf.ucam.org, rdunlap@xenotime.net, alan@lxorguk.ukuu.org.uk, forrest.zhao@gmail.com, lenb@kernel.org, linux-acpi@vger.kernel.org, hare@suse.de, linux-ide@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jan Engelhardt <jengelh@linux01.gwdg.de>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, sam@ravnborg.org
 
-On Tue, May 15, 2007 at 10:46:21AM -0700, Randy Dunlap wrote:
-> On Wed, 16 May 2007 00:42:08 +0900 Mattia Dongili wrote:
-...
-> > Given the drivers/acpi/Kconfig portion
-> > 
-> >   if ACPI
-> >   ...
-> >   config ACPI_EC
-> >           bool
-> >           default y
-> >           help
-> >             ...
-> >   
-> >   config ACPI_POWER
-> >           bool
-> >           default y
-> >   
-> >   config ACPI_SYSTEM
-> >           bool
-> >           default y
-> >           help
-> > 	  ...
-> >   ...
-> >   endif
-> > 
-> > I'd expect the 3 symbols to be all set when CONFIG_ACPI=y.
-> > What am I overseeing?
+Tejun Heo wrote:
+> Separate out ata_dev_reread_id() from ata_dev_revalidate().
+> ata_dev_reread_id() reads IDENTIFY page and determines whether the
+> same device is still there.  ata_dev_revalidate() reconfigures after
+> reread completes.  This will be used by ACPI update.
 > 
-> I think that this is just 'make randconfig' throwing a curve ball.
-> ACPI depends on PM, but PM=n.  In my experience, randconfig is a
-> good tool for testing oddball configs, but the results are not
-> always something that is fixable or needs to be fixed.
+> Signed-off-by: Tejun Heo <htejun@gmail.com>
+> ---
+>  drivers/ata/libata-core.c |   47 ++++++++++++++++++++++++++++++++------------
+>  drivers/ata/libata.h      |    3 +-
+>  2 files changed, 36 insertions(+), 14 deletions(-)
 
-It looks like Kconfig does the right thing on i386 though. Not the same
-on x84_64.
+applied 1-3 to #upstream-fixes
 
--- 
-mattia
-:wq!
+
