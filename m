@@ -1,59 +1,71 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI: Remove possible recursion from thermal driver
-Date: Thu, 17 May 2007 14:23:45 -0400
-Message-ID: <200705171423.45700.lenb@kernel.org>
-References: <8f8ff01d0705142254r97c8dd9h8aa82eb67e44ae5f@mail.gmail.com> <200705151626.02687.lenb@kernel.org> <8f8ff01d0705151919i23fe8edchce960bef242ce145@mail.gmail.com>
+From: "Alexey Starikovskiy" <aystarik@gmail.com>
+Subject: Re: Why is it so hard to (get) help on ACPI?
+Date: Thu, 17 May 2007 22:58:33 +0400
+Message-ID: <8f8ff01d0705171158q3412f0f1o4465562bb961d774@mail.gmail.com>
+References: <200705172005.47845.matija.suklje@rutka.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=WINDOWS-1252;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:53805 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756558AbXEQSZD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 May 2007 14:25:03 -0400
-In-Reply-To: <8f8ff01d0705151919i23fe8edchce960bef242ce145@mail.gmail.com>
+Received: from an-out-0708.google.com ([209.85.132.243]:64275 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753949AbXEQS6d convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 May 2007 14:58:33 -0400
+Received: by an-out-0708.google.com with SMTP id d18so156124and
+        for <linux-acpi@vger.kernel.org>; Thu, 17 May 2007 11:58:33 -0700 (PDT)
+In-Reply-To: <200705172005.47845.matija.suklje@rutka.net>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: =?WINDOWS-1252?Q?Matija_=8Auklje?= <matija.suklje@rutka.net>
+Cc: linux-acpi@vger.kernel.org
 
-On Tuesday 15 May 2007 22:19, Alexey Starikovskiy wrote:
-> Please read the spec 11.1.2 and 11.1.2.3. Trip points change _only_ to
-> create a hysteresis loop, not by themselves. This means that we will
-> get 0x81 type _only_ in response to us changing active state, the
-> moment then we have temperature and just decided to move away from
-> this trip point, not closer to it.
-> If the temperature change, we get another event, 0x80, and _then_ we
-> do thermal_check()...
-> 
+Hi,
 
-Hmm, this sounds promising.
-Bob and I discussed this a few weeks ago and for some reason
-we were convinced that we needed to get the temperature and
-compare it to the new trip points.  Maybe we were wrong.
+=46irst of all, why do you want/need to change your DSDT?
+Second, patching DSDT is meant to be a last resort if any other
+method, like finding error in our implementation of ACPI or drivers.
 
--Len
+So "better" DSDT patch is patch of zero length -- don't touch it, fix
+ACPI or drivers.
 
-> 
-> On 5/16/07, Len Brown <lenb@kernel.org> wrote:
-> >
-> > > --- a/drivers/acpi/thermal.c
-> > > +++ b/drivers/acpi/thermal.c
-> > > @@ -1106,7 +1106,6 @@ static void acpi_thermal_notify(acpi_handle handle, u32 event, void *data)
-> > >               break;
-> > >       case ACPI_THERMAL_NOTIFY_THRESHOLDS:
-> > >               acpi_thermal_get_trip_points(tz);
-> > >-              acpi_thermal_check(tz);
-> > >               acpi_bus_generate_event(device, event, 0);
-> > >               break;
-> > >       case ACPI_THERMAL_NOTIFY_DEVICES:
-> >
-> > I don't think we can do this.
-> > When the thresholds change, there must be a check to compare the temperature
-> > with the thresholds -- otherwise what good was it to change the thresholds?
-> >
-> > -Len
-> >
-> 
+Regards,
+Alex.
+
+On 5/17/07, Matija =8Auklje <matija.suklje@rutka.net> wrote:
+> Hi,
+>
+> what do I have to do to upload my DSDT patch and find help on how to =
+make it
+> better?
+>
+> I've already tried registering on http://acpi.sourceforge.net/dsdt/ ,=
+ but my
+> account just doesn't show up on the list.
+> I've already sent my DSDT patch to this mailing list (after joining i=
+t, of
+> course) with connected questions, but it didn't get through?
+>
+> Why is it so hard to help or get help on ACPI? What am I doing wrong?
+>
+> regards,
+> Matija =8Auklje
+>
+> --
+> gsm: +386 41 849 552
+> e-mail: matija.suklje@rutka.net
+> www: http://matija.suklje.name
+>
+> aim: hookofsilver
+> icq: 110183360
+> jabber/g-talk: matija.suklje@jabber.com
+> msn: matija.suklje@rutka.net
+> yahoo: matija_suklje
+>
+>
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
