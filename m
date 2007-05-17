@@ -1,43 +1,33 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: 2.6.22-rc1-mm1 [cannot change thermal trip points]
-Date: Thu, 17 May 2007 23:53:21 +0200
-Message-ID: <20070517215321.GC7336@elf.ucw.cz>
-References: <20070515201914.16944e04.akpm@linux-foundation.org> <20070517092318.GD3975@ucw.cz> <464C5A62.6060604@gmail.com> <200705171508.40202.lenb@kernel.org>
+From: Johannes Engel <j-engel@gmx.de>
+Subject: Re: Why is it so hard to (get) help on ACPI?
+Date: Fri, 18 May 2007 00:16:30 +0200
+Message-ID: <464CD43E.8060409@gmx.de>
+References: <200705172005.47845.matija.suklje@rutka.net> <200705172132.06026.matija.suklje@rutka.net> <8f8ff01d0705171256m39b6e5t8a69f8095f00594b@mail.gmail.com> <200705172210.14815.matija.suklje@rutka.net> <20070517204439.GA23599@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:39313 "EHLO amd.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756493AbXEQVxV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 May 2007 17:53:21 -0400
-Content-Disposition: inline
-In-Reply-To: <200705171508.40202.lenb@kernel.org>
+Received: from mail.gmx.net ([213.165.64.20]:58937 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1755149AbXEQWP4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 May 2007 18:15:56 -0400
+In-Reply-To: <20070517204439.GA23599@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Maciej Rutecki <maciej.rutecki@gmail.com>, Chuck Ebbert <cebbert@redhat.com>, len.brown@intel.com, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, torvalds@linux-foundation.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: =?UTF-8?B?TWF0aWphIMWgdWtsamU=?= <matija.suklje@rutka.net>, Alexey Starikovskiy <aystarik@gmail.com>, linux-acpi@vger.kernel.org
 
-On Thu 2007-05-17 15:08:39, Len Brown wrote:
-> On Thursday 17 May 2007 09:36, Maciej Rutecki wrote:
-> 
-> > Many people need change trippoints, for example I have:
-> > 
-> > cat /proc/acpi/thermal_zone/TZ0/trip_points  | grep critical
-> > critical (S5):           256 C
-> > 
-> > I _must_ change it to below 105 C, or edit DSDT table (too difficult to
-> > me). I cannot use this kernel, when trip points are read only.
-> 
-> What bad things happen if you leave the critical trip point at 256?
-> Do you find that you can drive the temperature over 105 and
-> the system fails to shut down?
+Matthew Garrett schrieb:
+> The kernel's job is to make hardware work. If the hardware works under 
+> another OS, then it failing to work in Linux is a bug in Linux. So, yes, 
+> the correct place to fix this sort of thing is in the kernel rather than 
+> your DSDT.
+>
+> However, please note that the DSDT is almost entirely irrelevant when it 
+> comes to things like suspend/resume. Modifying it is hugely unlikely to 
+> make things work there.
+Hm, I do not totally agree. Since in some cases you know that a BIOS
+update caused the trouble it seems to be likely in my eyes that these
+problems could be fixed by DSDT changes. Please correct me if I'm wrong.
 
-Something similar happened to me on XE3, yes.
-
-(Actual values were different; BIOS specified critical temperature at
-cca 95C, but hw killed the power at cca 83C. Setting critical trip
-point at 80C made the problem go away.)
-								Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Greetings, Johannes
