@@ -1,87 +1,32 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 1/4] swsusp: Remove incorrect code from user.c
-Date: Fri, 18 May 2007 00:21:21 +0200
-Message-ID: <200705180021.21953.rjw@sisk.pl>
-References: <200705180019.35548.rjw@sisk.pl>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: Why is it so hard to (get) help on ACPI?
+Date: Thu, 17 May 2007 23:24:33 +0100
+Message-ID: <20070517222432.GA25402@srcf.ucam.org>
+References: <200705172005.47845.matija.suklje@rutka.net> <200705172132.06026.matija.suklje@rutka.net> <8f8ff01d0705171256m39b6e5t8a69f8095f00594b@mail.gmail.com> <200705172210.14815.matija.suklje@rutka.net> <20070517204439.GA23599@srcf.ucam.org> <464CD43E.8060409@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:60800 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755767AbXEQWYH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 May 2007 18:24:07 -0400
-In-Reply-To: <200705180019.35548.rjw@sisk.pl>
+Received: from cavan.codon.org.uk ([217.147.92.49]:38728 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757484AbXEQWYl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 May 2007 18:24:41 -0400
 Content-Disposition: inline
+In-Reply-To: <464CD43E.8060409@gmx.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alexey Starikovskiy <aystarik@gmail.com>, Johannes Berg <johannes@sipsolutions.net>
+To: Johannes Engel <j-engel@gmx.de>
+Cc: Matija =?iso-8859-15?Q?=A6uklje?= <matija.suklje@rutka.net>, Alexey Starikovskiy <aystarik@gmail.com>, linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+On Fri, May 18, 2007 at 12:16:30AM +0200, Johannes Engel wrote:
 
-Make the code hibernation code in kernel/power/user.c be functionally equivalent
-to the corresponding code in kernel/power/disk.c , as it should be.
+> Hm, I do not totally agree. Since in some cases you know that a BIOS
+> update caused the trouble it seems to be likely in my eyes that these
+> problems could be fixed by DSDT changes. Please correct me if I'm wrong.
 
-The calls to the platform functions removed by this patch are incorrect.  They
-should be replaced with some other "platform" operations that will be
-introduced in one of the subsequent patches.
+The DSDT is far from the only bit of the BIOS used during 
+suspend/resume. When you wake up, the system jumps back into the BIOS. 
+An arbitrarily large amount of code can be executed there before control 
+is passed back to the kernel. That's likely to be much more significant.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- kernel/power/user.c |   17 ++++-------------
- 1 file changed, 4 insertions(+), 13 deletions(-)
-
-Index: linux-2.6.21/kernel/power/user.c
-===================================================================
---- linux-2.6.21.orig/kernel/power/user.c	2007-05-08 22:10:36.000000000 +0200
-+++ linux-2.6.21/kernel/power/user.c	2007-05-08 23:03:17.000000000 +0200
-@@ -179,34 +179,25 @@ static inline int snapshot_suspend(int p
- 	return error;
- }
- 
--static inline int snapshot_restore(int platform_suspend)
-+static inline int snapshot_restore(void)
- {
- 	int error;
- 
- 	mutex_lock(&pm_mutex);
- 	pm_prepare_console();
--	if (platform_suspend) {
--		error = platform_prepare();
--		if (error)
--			goto Finish;
--	}
- 	suspend_console();
- 	error = device_suspend(PMSG_PRETHAW);
- 	if (error)
--		goto Resume_devices;
-+		goto Finish;
- 
- 	error = disable_nonboot_cpus();
- 	if (!error)
- 		error = swsusp_resume();
- 
- 	enable_nonboot_cpus();
-- Resume_devices:
--	if (platform_suspend)
--		platform_finish();
--
-+ Finish:
- 	device_resume();
- 	resume_console();
-- Finish:
- 	pm_restore_console();
- 	mutex_unlock(&pm_mutex);
- 	return error;
-@@ -272,7 +263,7 @@ static int snapshot_ioctl(struct inode *
- 			error = -EPERM;
- 			break;
- 		}
--		error = snapshot_restore(data->platform_suspend);
-+		error = snapshot_restore();
- 		break;
- 
- 	case SNAPSHOT_FREE:
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
