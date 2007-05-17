@@ -1,62 +1,51 @@
-From: Matija =?utf-8?q?=C5=A0uklje?= <matija.suklje@rutka.net>
-Subject: Re: Why is it so hard to (get) help on ACPI?
-Date: Fri, 18 May 2007 00:20:52 +0200
-Message-ID: <200705180020.54536.matija.suklje@rutka.net>
-References: <200705172005.47845.matija.suklje@rutka.net> <20070517204439.GA23599@srcf.ucam.org> <464CD43E.8060409@gmx.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [RFC][PATCH 0/4] swsusp: Fix hibernation/restore code ordering
+Date: Fri, 18 May 2007 00:19:34 +0200
+Message-ID: <200705180019.35548.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1344452.7DEyUtDNfn";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mta1.siol.net ([193.189.160.87]:50890 "EHLO mta1.siol.net"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755342AbXEQWVI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 May 2007 18:21:08 -0400
-In-Reply-To: <464CD43E.8060409@gmx.de>
+Received: from ogre.sisk.pl ([217.79.144.158]:60793 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755524AbXEQWX7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 May 2007 18:23:59 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Johannes Engel <j-engel@gmx.de>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Alexey Starikovskiy <aystarik@gmail.com>, linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alexey Starikovskiy <aystarik@gmail.com>, Johannes Berg <johannes@sipsolutions.net>
 
---nextPart1344452.7DEyUtDNfn
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Hi,
 
-Dne petek 18 maj 2007 00:16 je Johannes Engel napisal(a):
-> Hm, I do not totally agree. Since in some cases you know that a BIOS
-> update caused the trouble it seems to be likely in my eyes that these
-> problems could be fixed by DSDT changes. Please correct me if I'm wrong.
+In the face of this change:
 
-No, no ...the problems existed already before the BIOS update. They just=20
-persisted after it as well.
+http://marc.info/?l=linux-acpi&m=117938245931603&w=2
 
-regards,
-Matija
+I think we should also modify the code ordering in swsusp so that
+hibernation_ops->prepare() is executed after device_suspend().
 
-=2D-=20
-gsm: +386 41 849 552
-e-mail: matija.suklje@rutka.net
-www: http://matija.suklje.name
+However, for this purpose it seems reasonable to eliminate the code duplication
+between kernel/power/disk.c and kernel/power/user.c first.  By eliminating it
+we can reduce the size of user.c quite substantially and remove the
+maintenance difficulty with making essentially the same changes in two
+different places.
 
-aim: hookofsilver
-icq: 110183360
-jabber/g-talk: matija.suklje@jabber.com
-msn: matija.suklje@rutka.net
-yahoo: matija_suklje
+Moreover, we should also remove the calls to "platform" functions from the
+restore code path, since it doesn't carry out any power transition of the
+system, but we generally need to disable the GPEs before the restore if the
+'platform' hibernation mode has been used.  To do this, we can introduce
+two new hibernation_ops to be used in the restore code.
 
---nextPart1344452.7DEyUtDNfn
-Content-Type: application/pgp-signature
+Comments welcome.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
+Greetings,
+Rafael
 
-iD8DBQBGTNVGK2gLUQVJ0ngRAtlxAKCSMwUcL0F8+INeEqxi/KRagOgsEACfckDQ
-RKYeCYkBwaFAhphfoTlDQcA=
-=3YaE
------END PGP SIGNATURE-----
 
---nextPart1344452.7DEyUtDNfn--
+-- 
+If you don't have the time to read,
+you don't have the time or the tools to write.
+		- Stephen King
+
