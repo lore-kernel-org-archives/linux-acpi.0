@@ -1,72 +1,74 @@
-From: Matthias =?ISO-8859-1?Q?Bl=E4sing?=
-	<matthias.blaesing@rwth-aachen.de>
-Subject: 2.6.22-rc1-git5 hangs on boot
-Date: Thu, 17 May 2007 18:35:08 +0200
-Message-ID: <1179419708.24672.6.camel@prometheus.glx>
+From: Matija =?utf-8?q?=C5=A0uklje?= <matija.suklje@rutka.net>
+Subject: Why is it so hard to (get) help on ACPI?
+Date: Thu, 17 May 2007 20:05:45 +0200
+Message-ID: <200705172005.47845.matija.suklje@rutka.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature"; boundary="=-7MpjJq9cUBM8keg+j5Ur"
+Content-Type: multipart/signed;
+  boundary="nextPart47199215.oIQABPnqmc";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mta-2.ms.rz.RWTH-Aachen.DE ([134.130.7.73]:42819 "EHLO
-	mta-2.ms.rz.rwth-aachen.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755705AbXEQQf0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 May 2007 12:35:26 -0400
-Received: from r220-1 ([134.130.3.31]) by mta-2.ms.rz.RWTH-Aachen.de
- (Sun Java System Messaging Server 6.2-7.05 (built Sep  5 2006))
- with ESMTP id <0JI700FS022POZ90@mta-2.ms.rz.RWTH-Aachen.de> for
- linux-acpi@vger.kernel.org; Thu, 17 May 2007 18:35:13 +0200 (CEST)
-Received: from [137.226.29.188]
- (ip29-188.kullen.RWTH-Aachen.DE [137.226.29.188])	(authenticated bits=0)
-	by relay-auth.rwth-aachen.de (8.13.8/8.13.1/1) with ESMTP id l4HGZDPb004493
-	(version=TLSv1/SSLv3 cipher=RC4-MD5 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Thu, 17 May 2007 18:35:13 +0200
+Received: from mta1.siol.net ([193.189.160.87]:45603 "EHLO mta1.siol.net"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755004AbXEQSGA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 May 2007 14:06:00 -0400
+Received: from mailhub-5.siol.net ([10.10.10.105]) by mta1.siol.net
+          with ESMTP
+          id <20070517180555.NUKG21179.mta1.siol.net@mailhub-5.siol.net>
+          for <linux-acpi@vger.kernel.org>; Thu, 17 May 2007 20:05:55 +0200
+Received: from [192.168.1.3] (really [86.61.66.55]) by mailhub-5.siol.net
+          with ESMTP
+          id <20070517180554.WYAA13546.mailhub-5.siol.net@[192.168.1.3]>
+          for <linux-acpi@vger.kernel.org>; Thu, 17 May 2007 20:05:54 +0200
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-
---=-7MpjJq9cUBM8keg+j5Ur
-Content-Type: text/plain; charset=ISO-8859-1
+--nextPart47199215.oIQABPnqmc
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Hello,
+Hi,
 
-there was/is a regression in ACPI (my internal battery is not recogniced
-anymore: http://article.gmane.org/gmane.linux.acpi.devel/22838.
+what do I have to do to upload my DSDT patch and find help on how to make i=
+t=20
+better?
 
-So I got the latest test version of the kernel and compiled it, to see
-whether the regression still exists. I compiled the kernel and got this
-after boot:
+I've already tried registering on http://acpi.sourceforge.net/dsdt/ , but m=
+y=20
+account just doesn't show up on the list.
+I've already sent my DSDT patch to this mailing list (after joining it, of=
+=20
+course) with connected questions, but it didn't get through?
 
-http://www.doppel-helix.eu/acpi_hang.jpg
+Why is it so hard to help or get help on ACPI? What am I doing wrong?
 
-It does not boot further. Any ideas?!
+regards,
+Matija =C5=A0uklje
 
-Greetings
+=2D-=20
+gsm: +386 41 849 552
+e-mail: matija.suklje@rutka.net
+www: http://matija.suklje.name
 
-Matthias
+aim: hookofsilver
+icq: 110183360
+jabber/g-talk: matija.suklje@jabber.com
+msn: matija.suklje@rutka.net
+yahoo: matija_suklje
 
---=20
-Matthias Bl=E4sing (GPG-Schl=FCsselkennung: A71B4BD5)
-ICQ: 84617206   AIM: linuxfun81   MSN: linuxfun@hotmail.com
-"Wer die Freiheit aufgibt um Sicherheit zu gewinnen, der wird am Ende beide=
-s verlieren."
-Benjamin Franklin
-
-
---=-7MpjJq9cUBM8keg+j5Ur
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Dies ist ein digital signierter Nachrichtenteil
+--nextPart47199215.oIQABPnqmc
+Content-Type: application/pgp-signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.6 (GNU/Linux)
 
-iD8DBQBGTIQ8wuNy6qcbS9URAkt+AJ98moq+ETi3M7kXAa8sSLTa+A11bQCfV/Re
-aq6fNHSOkrbBi+wHcrnYDcg=
-=Ba1/
+iD8DBQBGTJl7K2gLUQVJ0ngRAkwIAJ90XQTuI/Zy+ZUQxJ+bbBXUQOyPQACgj0TU
+VXBV/VlwCMz8t2W84Y5xO9U=
+=VqpT
 -----END PGP SIGNATURE-----
 
---=-7MpjJq9cUBM8keg+j5Ur--
-
-
+--nextPart47199215.oIQABPnqmc--
