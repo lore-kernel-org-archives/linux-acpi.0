@@ -1,50 +1,64 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: 2.6.22-rc1-mm1 [cannot change thermal trip points]
-Date: Thu, 17 May 2007 15:17:13 -0400
-Message-ID: <200705171517.14087.lenb@kernel.org>
-References: <20070515201914.16944e04.akpm@linux-foundation.org> <464B43BB.3070505@redhat.com> <20070517092318.GD3975@ucw.cz>
+From: Norbert Preining <preining@logic.at>
+Subject: Re: Why is it so hard to (get) help on ACPI?
+Date: Thu, 17 May 2007 21:21:23 +0200
+Message-ID: <20070517192123.GD7637@gamma.logic.tuwien.ac.at>
+References: <200705172005.47845.matija.suklje@rutka.net> <8f8ff01d0705171158q3412f0f1o4465562bb961d774@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:38927 "EHLO hera.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756270AbXEQTT6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 May 2007 15:19:58 -0400
-In-Reply-To: <20070517092318.GD3975@ucw.cz>
+Received: from mx.logic.tuwien.ac.at ([128.130.175.19]:41266 "EHLO
+	mx.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758040AbXEQTV0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 May 2007 15:21:26 -0400
 Content-Disposition: inline
+In-Reply-To: <8f8ff01d0705171158q3412f0f1o4465562bb961d774@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Chuck Ebbert <cebbert@redhat.com>, len.brown@intel.com, Maciej Rutecki <maciej.rutecki@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, torvalds@linux-foundation.org
+To: Alexey Starikovskiy <aystarik@gmail.com>
+Cc: Matija =?iso-8859-15?Q?=A6uklje?= <matija.suklje@rutka.net>, linux-acpi@vger.kernel.org
 
-On Thursday 17 May 2007 05:23, Pavel Machek wrote:
+On Don, 17 Mai 2007, Alexey Starikovskiy wrote:
+> First of all, why do you want/need to change your DSDT?
+> Second, patching DSDT is meant to be a last resort if any other
+> method, like finding error in our implementation of ACPI or drivers.
 
-> >     ACPI: thermal trip points are read-only
-> 
-> What was the rationale? Can we get this one reverted? 
-> 
-> Some machines (HP omnibook xe3) have broken trip points -- too high --
-> so machine will overheat and trigger hw shutdown before starting
-> passive cooling.
-> 
-> That's really broken, and write to trip points is reasonable way to
-> 'fix' that. (I'd understand if you only ever let trip points to
-> decrease... but otoh root should be able to shoot himself....)
+Well, of course, but frustration level is sometimes getting high, and
+one tries to fix as much as possible to get it working. I for example
+removed my modified DSDT some time ago to test the `official' ACPI
+implementation. Then I tried to get s2ram to working, to no avail.
+Restarting was freezing the kernel beyond repair (there is already a bu=
+g
+reported, but no real action).
 
-No, writing trip-points is neither a fix, nor it is reasonable.
-It is a workaround at best, and it is a dangerous and mis-leading hack.
+Now of course I tried also to fix the compile errors in the DSDT etc.
 
-The OS has no capability to actually change the ACPI trip points
-that are used by the BIOS.  Changing the OS copy of them
-to make the user think that trip events will actually
-happen when the temperature crosses the OS copy is crazy.
+> So "better" DSDT patch is patch of zero length -- don't touch it, fix
+> ACPI or drivers.
 
-If there are systems with broken thermals and the
-ACPI thermal control needs and over-ride to turn
-on the fan, then that is fine -- but using
-fake trip-points and giving the user the impression
-that they are real is not viable.
+Well, tell me how?
 
--Len
+Best wishes
+
+Norbert
+
+-----------------------------------------------------------------------=
+--------
+Dr. Norbert Preining <preining@logic.at>                    Universit=E0=
+ di Siena
+Debian Developer <preining@debian.org>                         Debian T=
+eX Group
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 0=
+9C5 B094
+-----------------------------------------------------------------------=
+--------
+DEEPING ST NICHOLAS (n.)
+			--- Douglas Adams, The Meaning of Liff
+What street-wise kids do at Christmas. They hide on the rooftops
+waiting for Santa Claus so that if he arrives and goes down the
+chimney, they can rip stuff off from his sleigh.
+-
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
