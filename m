@@ -1,33 +1,33 @@
 From: Matija =?utf-8?q?=C5=A0uklje?= <matija.suklje@rutka.net>
 Subject: Re: Why is it so hard to (get) help on ACPI?
-Date: Thu, 17 May 2007 21:32:03 +0200
-Message-ID: <200705172132.06026.matija.suklje@rutka.net>
+Date: Thu, 17 May 2007 21:52:11 +0200
+Message-ID: <200705172152.13046.matija.suklje@rutka.net>
 References: <200705172005.47845.matija.suklje@rutka.net> <8f8ff01d0705171158q3412f0f1o4465562bb961d774@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed;
-  boundary="nextPart2784341.KojGYYkeQ0";
+  boundary="nextPart32784197.s6ameE5x44";
   protocol="application/pgp-signature";
   micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mta1.siol.net ([193.189.160.87]:64688 "EHLO mta1.siol.net"
+Received: from mta1.siol.net ([193.189.160.87]:64871 "EHLO mta1.siol.net"
 	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756131AbXEQTux (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 May 2007 15:50:53 -0400
+	id S1754243AbXEQTwR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 May 2007 15:52:17 -0400
 Received: from mailhub-5.siol.net ([10.10.10.105]) by mta1.siol.net
           with ESMTP
-          id <20070517195051.OZBK21179.mta1.siol.net@mailhub-5.siol.net>
-          for <linux-acpi@vger.kernel.org>; Thu, 17 May 2007 21:50:51 +0200
+          id <20070517195216.OZKS21179.mta1.siol.net@mailhub-5.siol.net>
+          for <linux-acpi@vger.kernel.org>; Thu, 17 May 2007 21:52:16 +0200
 Received: from [192.168.1.3] (really [86.61.66.55]) by mailhub-5.siol.net
           with ESMTP
-          id <20070517195054.XRYD13546.mailhub-5.siol.net@[192.168.1.3]>
-          for <linux-acpi@vger.kernel.org>; Thu, 17 May 2007 21:50:54 +0200
+          id <20070517195219.XSEN13546.mailhub-5.siol.net@[192.168.1.3]>
+          for <linux-acpi@vger.kernel.org>; Thu, 17 May 2007 21:52:19 +0200
 In-Reply-To: <8f8ff01d0705171158q3412f0f1o4465562bb961d774@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
+To: linux-acpi@vger.kernel.org
 
---nextPart2784341.KojGYYkeQ0
+--nextPart32784197.s6ameE5x44
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
@@ -95,15 +95,15 @@ jabber/g-talk: matija.suklje@jabber.com
 msn: matija.suklje@rutka.net
 yahoo: matija_suklje
 
---nextPart2784341.KojGYYkeQ0
+--nextPart32784197.s6ameE5x44
 Content-Type: application/pgp-signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.6 (GNU/Linux)
 
-iD8DBQBGTK21K2gLUQVJ0ngRAnufAJwJ1LgH0MHv7jsSXgeENYQs/nzn4QCfTrfv
-Sm2sXh+6MUQy12fX6fJtFis=
-=VhR7
+iD8DBQBGTLJtK2gLUQVJ0ngRAh+8AJ9HR7NnK8xbxDJc3SDBGk1qQzRHqwCfXl/a
+o7z++QjwJaFRY26vNKGkBS8=
+=CMKv
 -----END PGP SIGNATURE-----
 
---nextPart2784341.KojGYYkeQ0--
+--nextPart32784197.s6ameE5x44--
