@@ -1,114 +1,47 @@
-From: Maciej Rutecki <maciej.rutecki@gmail.com>
-Subject: Re: 2.6.22-rc1-mm1 [cannot change thermal trip points]
-Date: Thu, 17 May 2007 22:09:14 +0200
-Message-ID: <464CB66A.8020506@gmail.com>
-References: <20070515201914.16944e04.akpm@linux-foundation.org> <20070517092318.GD3975@ucw.cz> <464C5A62.6060604@gmail.com> <200705171508.40202.lenb@kernel.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: Why is it so hard to (get) help on ACPI?
+Date: Thu, 17 May 2007 16:32:18 -0400
+Message-ID: <200705171632.18755.lenb@kernel.org>
+References: <200705172005.47845.matija.suklje@rutka.net> <8f8ff01d0705171158q3412f0f1o4465562bb961d774@mail.gmail.com> <200705172152.13046.matija.suklje@rutka.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms010306050406070103050904"
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.174]:46456 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756400AbXEQUJ0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 May 2007 16:09:26 -0400
-Received: by ug-out-1314.google.com with SMTP id 44so410033uga
-        for <linux-acpi@vger.kernel.org>; Thu, 17 May 2007 13:09:25 -0700 (PDT)
-In-Reply-To: <200705171508.40202.lenb@kernel.org>
+Received: from hera.kernel.org ([140.211.167.34]:44290 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758984AbXEQUeA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 May 2007 16:34:00 -0400
+In-Reply-To: <200705172152.13046.matija.suklje@rutka.net>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>, Chuck Ebbert <cebbert@redhat.com>, len.brown@intel.com, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, torvalds@linux-foundation.org
+To: Matija =?utf-8?q?=C5=A0uklje?= <matija.suklje@rutka.net>
+Cc: linux-acpi@vger.kernel.org
 
-This is a cryptographically signed message in MIME format.
+> I *think* I need it because I didn't find any better solution. On my Acer 
+> Aspire 5022 for some time I've been getting APIC errors (most commonly "40
+> (40)")
 
---------------ms010306050406070103050904
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+APIC errors have nothing to do with ACPI.
+(other than the fact that on lots of systems, ACPI is required
+if you want to configure the APIC).
 
-Len Brown pisze:
+If you don't like the APIC errors, then run with "noapic".
+very few laptop uses would notice a difference.
 
-> What bad things happen if you leave the critical trip point at 256?
-> Do you find that you can drive the temperature over 105 and
-> the system fails to shut down?
+> But this still doesn't explain why it seems like I cannot make a user account 
+> on the acpi.sf.net/dsdt page and why my previous e-mail did not arrive to the 
+> list. Is the attachment size quota set to less then 1 MiB?
 > 
-> -Len
-> 
-> 
+> best regards and kudos for all your hard work on ACPI!
 
-It isn't problem in this case (nx6310). But on hp nc nc6220 first trip
-point is at 30 *C, so fan is usually on (noise, power consumption).
+acpi.sf.net is used as a project home page, but we otherwise
+don't use the services of sourceforge.
 
--- 
-Maciej Rutecki
-www.unixy.pl
-Kernel Monkeys
-(http://kernel.wikidot.com/)
+we use bugzilla.kernel.org for Linux/ACPI bugs
+we use this list on vger.kernel.org -- which has a 100K limit.
+If you want to file a bug and attach a dsdt, use the bugzilla above.
 
-
---------------ms010306050406070103050904
-Content-Type: application/x-pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIJHzCC
-AuowggJToAMCAQICEE6xoJMcyW54m7Gt6FEjF3swDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UE
-BhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMT
-I1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA2MDgyODEyMzAwNloX
-DTA3MDgyODEyMzAwNlowSjEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjEnMCUG
-CSqGSIb3DQEJARYYbWFjaWVqLnJ1dGVja2lAZ21haWwuY29tMIIBIjANBgkqhkiG9w0BAQEF
-AAOCAQ8AMIIBCgKCAQEAxmrZ/vMNBQsTG+9oNg9WeFTNtluscxhg5oBwudmsZhsoDdtQYPlK
-ZsRSZnkKTdEWR9w8dwi0JBxmq1XHumBA6/rFfAfhbOV1SBH3ktZ9foamMjpJTjO3+3gF9ocT
-wj1GzfReeGZuPgr4qVVvOT5FfD/PkAJzvur7fyLnviiZokQz8R3c+VhJlW3HurhlOlK0ItUu
-UuVtCdJosQRepYdPQ6H3Mvn74UxVttDeVxWNlQ2DaS7cy8wTmtc5CTNMVctbJkzFz0a/7wCJ
-JHdmqKTgjMBm+ry/IC50jvwkLKAumSJBLWhoIB+LxkJlMwgn69jc0KJkrdkpsUjPdo+zDgff
-iQIDAQABozUwMzAjBgNVHREEHDAagRhtYWNpZWoucnV0ZWNraUBnbWFpbC5jb20wDAYDVR0T
-AQH/BAIwADANBgkqhkiG9w0BAQUFAAOBgQC2O4xAuM7DplCDsgJuaMKz3uR25rq9ucMqVtCW
-CAfCyORrFaxN8LFF9KcYx6M4AK1fQ36JVPtMER2VzGMF74gXgrFQ4A9tno6rKzi/QpzwWoPE
-4I1hcOKz/YxOK0sRjSDR3p5s2XrKVxgUe+TEeJ6/y1iv52o41oYVmilsUovvHzCCAuowggJT
-oAMCAQICEE6xoJMcyW54m7Gt6FEjF3swDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UEBhMCWkEx
-JTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0
-ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA2MDgyODEyMzAwNloXDTA3MDgy
-ODEyMzAwNlowSjEfMB0GA1UEAxMWVGhhd3RlIEZyZWVtYWlsIE1lbWJlcjEnMCUGCSqGSIb3
-DQEJARYYbWFjaWVqLnJ1dGVja2lAZ21haWwuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A
-MIIBCgKCAQEAxmrZ/vMNBQsTG+9oNg9WeFTNtluscxhg5oBwudmsZhsoDdtQYPlKZsRSZnkK
-TdEWR9w8dwi0JBxmq1XHumBA6/rFfAfhbOV1SBH3ktZ9foamMjpJTjO3+3gF9ocTwj1GzfRe
-eGZuPgr4qVVvOT5FfD/PkAJzvur7fyLnviiZokQz8R3c+VhJlW3HurhlOlK0ItUuUuVtCdJo
-sQRepYdPQ6H3Mvn74UxVttDeVxWNlQ2DaS7cy8wTmtc5CTNMVctbJkzFz0a/7wCJJHdmqKTg
-jMBm+ry/IC50jvwkLKAumSJBLWhoIB+LxkJlMwgn69jc0KJkrdkpsUjPdo+zDgffiQIDAQAB
-ozUwMzAjBgNVHREEHDAagRhtYWNpZWoucnV0ZWNraUBnbWFpbC5jb20wDAYDVR0TAQH/BAIw
-ADANBgkqhkiG9w0BAQUFAAOBgQC2O4xAuM7DplCDsgJuaMKz3uR25rq9ucMqVtCWCAfCyORr
-FaxN8LFF9KcYx6M4AK1fQ36JVPtMER2VzGMF74gXgrFQ4A9tno6rKzi/QpzwWoPE4I1hcOKz
-/YxOK0sRjSDR3p5s2XrKVxgUe+TEeJ6/y1iv52o41oYVmilsUovvHzCCAz8wggKooAMCAQIC
-AQ0wDQYJKoZIhvcNAQEFBQAwgdExCzAJBgNVBAYTAlpBMRUwEwYDVQQIEwxXZXN0ZXJuIENh
-cGUxEjAQBgNVBAcTCUNhcGUgVG93bjEaMBgGA1UEChMRVGhhd3RlIENvbnN1bHRpbmcxKDAm
-BgNVBAsTH0NlcnRpZmljYXRpb24gU2VydmljZXMgRGl2aXNpb24xJDAiBgNVBAMTG1RoYXd0
-ZSBQZXJzb25hbCBGcmVlbWFpbCBDQTErMCkGCSqGSIb3DQEJARYccGVyc29uYWwtZnJlZW1h
-aWxAdGhhd3RlLmNvbTAeFw0wMzA3MTcwMDAwMDBaFw0xMzA3MTYyMzU5NTlaMGIxCzAJBgNV
-BAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQD
-EyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQTCBnzANBgkqhkiG9w0BAQEF
-AAOBjQAwgYkCgYEAxKY8VXNV+065yplaHmjAdQRwnd/p/6Me7L3N9VvyGna9fww6YfK/Uc4B
-1OVQCjDXAmNaLIkVcI7dyfArhVqqP3FWy688Cwfn8R+RNiQqE88r1fOCdz0Dviv+uxg+B79A
-gAJk16emu59l0cUqVIUPSAR/p7bRPGEEQB5kGXJgt/sCAwEAAaOBlDCBkTASBgNVHRMBAf8E
-CDAGAQH/AgEAMEMGA1UdHwQ8MDowOKA2oDSGMmh0dHA6Ly9jcmwudGhhd3RlLmNvbS9UaGF3
-dGVQZXJzb25hbEZyZWVtYWlsQ0EuY3JsMAsGA1UdDwQEAwIBBjApBgNVHREEIjAgpB4wHDEa
-MBgGA1UEAxMRUHJpdmF0ZUxhYmVsMi0xMzgwDQYJKoZIhvcNAQEFBQADgYEASIzRUIPqCy7M
-DaNmrGcPf6+svsIXoUOWlJ1/TCG4+DYfqi2fNi/A9BxQIJNwPP2t4WFiw9k6GX6EsZkbAMUa
-C4J0niVQlGLH2ydxVyWN3amcOY6MIE9lX5Xa9/eH1sYITq726jTlEBpbNU1341YheILcIRk1
-3iSx0x1G/11fZU8xggNkMIIDYAIBATB2MGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3
-dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJl
-ZW1haWwgSXNzdWluZyBDQQIQTrGgkxzJbnibsa3oUSMXezAJBgUrDgMCGgUAoIIBwzAYBgkq
-hkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0wNzA1MTcyMDA5MTRaMCMG
-CSqGSIb3DQEJBDEWBBRBcert1leUfZOe+vAI8cBP59dFNTBSBgkqhkiG9w0BCQ8xRTBDMAoG
-CCqGSIb3DQMHMA4GCCqGSIb3DQMCAgIAgDANBggqhkiG9w0DAgIBQDAHBgUrDgMCBzANBggq
-hkiG9w0DAgIBKDCBhQYJKwYBBAGCNxAEMXgwdjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMc
-VGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFs
-IEZyZWVtYWlsIElzc3VpbmcgQ0ECEE6xoJMcyW54m7Gt6FEjF3swgYcGCyqGSIb3DQEJEAIL
-MXigdjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhhd3RlIENvbnN1bHRpbmcgKFB0eSkg
-THRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVtYWlsIElzc3VpbmcgQ0ECEE6x
-oJMcyW54m7Gt6FEjF3swDQYJKoZIhvcNAQEBBQAEggEABoxoAAhNlXEaLB9pqA/+75cjf0h9
-7q8NQxLWrXgI4G3tXQALmxdb8rk0HqFhCyTqKDhsEmUTTaumB3Nf9giron4GoF0GN02XGJJ6
-Mg0PyD8ehZoviKpStttbAV79uTJ6WYePzqubxdeUVGOSowcOi4Ydg3lo3yZi9mYxA/6xaT9I
-cGxYlthdruL1lc5n7Uh0R0QIJ554LhrudwXyI2Du7loDWFDCpxf7mNiP541uZkxfv17avIEZ
-AKRIUgKhk7NUI4INDYczhEadhR/O8dKHsbO3JiyaktofiueuqpzZgQ/1v66WvGUwfCzWC115
-6SS/YhUGEwLG4e0VUJoOjRPIggAAAAAAAA==
---------------ms010306050406070103050904--
+cheers,
+-Len
