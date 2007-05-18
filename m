@@ -1,66 +1,57 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [2.6.22-rc1-mm1] vaio laptop (SZ72B) immediately resumes after
- STR
-Date: Fri, 18 May 2007 00:22:40 -0700
-Message-ID: <20070518002240.bc08e811.akpm@linux-foundation.org>
-References: <20070518071523.GA3195@inferi.kami.home>
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: [PATCH] ACPI: bay: send envp with uevent
+Date: Fri, 18 May 2007 13:53:26 -0700
+Message-ID: <20070518135326.52aa7e91.kristen.c.accardi@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35896 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752306AbXERHZI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 May 2007 03:25:08 -0400
-In-Reply-To: <20070518071523.GA3195@inferi.kami.home>
+Received: from mga01.intel.com ([192.55.52.88]:27934 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756833AbXERU4z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 May 2007 16:56:55 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, 18 May 2007 16:15:24 +0900 Mattia Dongili <malattia@linux.it> wrote:
+Make the bay driver send env information on bay events.  
 
-> Hello,
-> 
-> After finally catching fw-{ohci,core} to be problematic during resume,
-> I'm now experiencing an immediate resume after suspending.
-> 
-> 2.6.21-rc7-mm* didn't even suspend, my last known suspend-and-resuming
-> kernel was 2.6.21-rc5-mm3 (I know one other vaio SZ user could STR with
-> 2.6.21-rc6-mm* after the cpuidle fixes).
-> 
-> my .config is: http://oioio.altervista.org/linux/config-2.6.22-rc1-mm1-1
-> and a str cycle with PM_DEBUG=y:
-> http://oioio.altervista.org/linux/dmesg-SRT-immediately-resumes.txt
-> 
-> So this is on a vaio Sz72B,
-> 00:00.0 Host bridge: Intel Corporation Mobile 945GM/PM/GMS/940GML and 945GT Express Memory Controller Hub (rev 03)
-> 00:02.0 VGA compatible controller: Intel Corporation Mobile 945GM/GMS/940GML Express Integrated Graphics Controller (rev 03)
-> 00:02.1 Display controller: Intel Corporation Mobile 945GM/GMS/940GML Express Integrated Graphics Controller (rev 03)
-> 00:1b.0 Audio device: Intel Corporation 82801G (ICH7 Family) High Definition Audio Controller (rev 02)
-> 00:1c.0 PCI bridge: Intel Corporation 82801G (ICH7 Family) PCI Express Port 1 (rev 02)
-> 00:1c.1 PCI bridge: Intel Corporation 82801G (ICH7 Family) PCI Express Port 2 (rev 02)
-> 00:1c.2 PCI bridge: Intel Corporation 82801G (ICH7 Family) PCI Express Port 3 (rev 02)
-> 00:1c.3 PCI bridge: Intel Corporation 82801G (ICH7 Family) PCI Express Port 4 (rev 02)
-> 00:1d.0 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI #1 (rev 02)
-> 00:1d.1 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI #2 (rev 02)
-> 00:1d.2 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI #3 (rev 02)
-> 00:1d.3 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI #4 (rev 02)
-> 00:1d.7 USB Controller: Intel Corporation 82801G (ICH7 Family) USB2 EHCI Controller (rev 02)
-> 00:1e.0 PCI bridge: Intel Corporation 82801 Mobile PCI Bridge (rev e2)
-> 00:1f.0 ISA bridge: Intel Corporation 82801GBM (ICH7-M) LPC Interface Bridge (rev 02)
-> 00:1f.1 IDE interface: Intel Corporation 82801G (ICH7 Family) IDE Controller (rev 02)
-> 00:1f.2 IDE interface: Intel Corporation 82801GBM/GHM (ICH7 Family) Serial ATA Storage Controller IDE (rev 02)
-> 00:1f.3 SMBus: Intel Corporation 82801G (ICH7 Family) SMBus Controller (rev 02)
-> 06:00.0 Network controller: Intel Corporation PRO/Wireless 3945ABG Network Connection (rev 02)
-> 07:00.0 Ethernet controller: Marvell Technology Group Ltd. 88E8036 PCI-E Fast Ethernet Controller (rev 15)
-> 09:04.0 CardBus bridge: Texas Instruments PCIxx12 Cardbus Controller
-> 09:04.1 FireWire (IEEE 1394): Texas Instruments PCIxx12 OHCI Compliant IEEE 1394 Host Controller
-> 09:04.2 Mass storage controller: Texas Instruments 5-in-1 Multimedia Card Reader (SD/MMC/MS/MS PRO/xD)
-> 
-> Any idea where to start from? (bisecting is ok, but it'll take some
-> time...)
+Upon any bay event, we will send the string "BAY_EVENT=%d" along with the 
+KOBJ_CHANGE, and report the event number.  What the event number means will 
+be platform specific.  Event 3 is always an eject request, but an insert 
+may be either event 1, or it may be event 0.  Event 1 may also be a
+remove request.  It would be best if you check the number of your event 
+with udevmonitor before writing any udev scripts for inserting and 
+removing drive bays.
 
-Bisecting isn't that bad ;) I'd pick git-acpi.patch as the starting point.
+Signed-off-by:  Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc:  Stephan Berberig <s.berberig@arcor.de>
 
+Index: 2.6-git/drivers/acpi/bay.c
+===================================================================
+--- 2.6-git.orig/drivers/acpi/bay.c
++++ 2.6-git/drivers/acpi/bay.c
+@@ -328,18 +328,12 @@ static void bay_notify(acpi_handle handl
+ {
+ 	struct bay *bay_dev = (struct bay *)data;
+ 	struct device *dev = &bay_dev->pdev->dev;
++	char event_string[12];
++	char *envp[] = { event_string, NULL };
+ 
+ 	bay_dprintk(handle, "Bay event");
+-
+-	switch(event) {
+-	case ACPI_NOTIFY_BUS_CHECK:
+-	case ACPI_NOTIFY_DEVICE_CHECK:
+-	case ACPI_NOTIFY_EJECT_REQUEST:
+-		kobject_uevent(&dev->kobj, KOBJ_CHANGE);
+-		break;
+-	default:
+-		printk(KERN_ERR PREFIX "Bay: unknown event %d\n", event);
+-	}
++	sprintf(event_string, "BAY_EVENT=%d\n", event);
++	kobject_uevent_env(&dev->kobj, KOBJ_CHANGE, envp);
+ }
+ 
+ static acpi_status
