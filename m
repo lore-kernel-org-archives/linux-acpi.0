@@ -1,57 +1,60 @@
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Subject: [PATCH] ACPI: bay: send envp with uevent
-Date: Fri, 18 May 2007 13:53:26 -0700
-Message-ID: <20070518135326.52aa7e91.kristen.c.accardi@intel.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [BUG] acpi double resume and fail
+Date: Fri, 18 May 2007 15:45:07 -0700
+Message-ID: <20070518154507.30ebfdcb.akpm@linux-foundation.org>
+References: <20070518213701.GA810@core>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:27934 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756833AbXERU4z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 May 2007 16:56:55 -0400
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57194 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754880AbXERWrF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 May 2007 18:47:05 -0400
+In-Reply-To: <20070518213701.GA810@core>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Christian Leber <christian@leber.de>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Make the bay driver send env information on bay events.  
+On Fri, 18 May 2007 23:37:01 +0200
+Christian Leber <christian@leber.de> wrote:
 
-Upon any bay event, we will send the string "BAY_EVENT=%d" along with the 
-KOBJ_CHANGE, and report the event number.  What the event number means will 
-be platform specific.  Event 3 is always an eject request, but an insert 
-may be either event 1, or it may be event 0.  Event 1 may also be a
-remove request.  It would be best if you check the number of your event 
-with udevmonitor before writing any udev scripts for inserting and 
-removing drive bays.
+> Hello,
+> 
+> i hit a problem with suspend to ram and especially resume.
+> Hardware: Dell Latitude D810 (some Intel 915 with Intel Pentium M)
+> 
+> With 2.6.19.7 suspend to ram works reliable, but with 2.6.20-rc4
+> it stopped working reliable.
 
-Signed-off-by:  Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc:  Stephan Berberig <s.berberig@arcor.de>
+argh, that sounds like an ACPI regression.
 
-Index: 2.6-git/drivers/acpi/bay.c
-===================================================================
---- 2.6-git.orig/drivers/acpi/bay.c
-+++ 2.6-git/drivers/acpi/bay.c
-@@ -328,18 +328,12 @@ static void bay_notify(acpi_handle handl
- {
- 	struct bay *bay_dev = (struct bay *)data;
- 	struct device *dev = &bay_dev->pdev->dev;
-+	char event_string[12];
-+	char *envp[] = { event_string, NULL };
- 
- 	bay_dprintk(handle, "Bay event");
--
--	switch(event) {
--	case ACPI_NOTIFY_BUS_CHECK:
--	case ACPI_NOTIFY_DEVICE_CHECK:
--	case ACPI_NOTIFY_EJECT_REQUEST:
--		kobject_uevent(&dev->kobj, KOBJ_CHANGE);
--		break;
--	default:
--		printk(KERN_ERR PREFIX "Bay: unknown event %d\n", event);
--	}
-+	sprintf(event_string, "BAY_EVENT=%d\n", event);
-+	kobject_uevent_env(&dev->kobj, KOBJ_CHANGE, envp);
- }
- 
- static acpi_status
+> I still can suspend, but after the first resume it goes back to sleep
+> directly again, when resuming again it works.
+> After the second suspend it won't resume at all.
+> 
+> The problem is that i can't try out the kernel versions <rc4, because
+> rc1, rc2 and rc3 doesn't boot at all, so git-bisect also won't help.
+> 
+> Has somebody an idea what i could try out?
+> 
+> (the distribution is in this case ubuntu feisty)
+> 
+
+The fact that bisection broke really does make it hard.  What you would
+need to do is to find the patch which fixed that doesn't-boot problem, then
+reapply it each time you perform an iteration.  That's all doable, if you
+have the time.  Use git-bisect for it.
+
+Have you tested 2.6.21 and/or 2.6.22-rc1?
+
+We had one other report earlier today that 2.6.22-rc1 does an immediate
+resume after suspend-to-RAM - perhaps that is related.
+
+
+Of course the alternative way of debugging this is just to debug it, rather
+than the difficult bisecting.  Perhaps an ACPI developer can help with
+that.
+
