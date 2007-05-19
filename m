@@ -1,83 +1,57 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [RFC][PATCH 4/4] swsusp: Fix hibernation code ordering (updated)
-Date: Sat, 19 May 2007 10:36:57 +0200
-Message-ID: <200705191036.58177.rjw@sisk.pl>
-References: <200705180019.35548.rjw@sisk.pl> <200705180026.20647.rjw@sisk.pl>
+From: Tear <tarrqt@yahoo.com>
+Subject: [patch] Dell Optiplex GX240, ACPI and APIC
+Date: Sat, 19 May 2007 03:00:27 -0700 (PDT)
+Message-ID: <147799.82847.qm@web63612.mail.re1.yahoo.com>
+References: <20070512103441.a21194fc.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:38244 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755321AbXESIbj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 19 May 2007 04:31:39 -0400
-In-Reply-To: <200705180026.20647.rjw@sisk.pl>
-Content-Disposition: inline
+Received: from n8.bullet.re3.yahoo.com ([68.142.237.93]:27068 "HELO
+	n8.bullet.re3.yahoo.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755946AbXESKA2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 May 2007 06:00:28 -0400
+In-Reply-To: <20070512103441.a21194fc.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alexey Starikovskiy <aystarik@gmail.com>, Johannes Berg <johannes@sipsolutions.net>
+To: akpm@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Hello,
 
-Change the code ordering so that hibernation_ops->prepare() is called after
-device_suspend().  This is needed so that we don't violate the ACPI
-specification, which states that the _PTS and _GTS system-control methods,
-executed from acpi_sleep_prepare(), ought to be called after devices have been
-put in low power states.
+This patch removes Dell Optiplex GX240 from
+the ACPI blacklist.
 
-The "Finish" label in hibernation_restore() is moved, because device_suspend()
-resumes devices if the suspending of them fails and the restore code ordering
-should reflect the hibernation code ordering.
+Please see the following for more information:
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- kernel/power/disk.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+http://marc.info/?l=linux-kernel&m=117897875024464&w=2
 
-Index: linux-2.6.22-rc1/kernel/power/disk.c
-===================================================================
---- linux-2.6.22-rc1.orig/kernel/power/disk.c	2007-05-18 23:49:33.000000000 +0200
-+++ linux-2.6.22-rc1/kernel/power/disk.c	2007-05-18 23:56:47.000000000 +0200
-@@ -133,15 +133,15 @@ int hibernation_snapshot(int platform_mo
- 	/* Free memory before shutting down devices. */
- 	error = swsusp_shrink_memory();
- 	if (error)
--		goto Finish;
--
--	error = platform_prepare(platform_mode);
--	if (error)
--		goto Finish;
-+		return error;
- 
- 	suspend_console();
- 	error = device_suspend(PMSG_FREEZE);
- 	if (error)
-+		goto Resume_console;
-+
-+	error = platform_prepare(platform_mode);
-+	if (error)
- 		goto Resume_devices;
- 
- 	error = disable_nonboot_cpus();
-@@ -159,8 +159,8 @@ int hibernation_snapshot(int platform_mo
-  Resume_devices:
- 	platform_finish(platform_mode);
- 	device_resume();
-+ Resume_console:
- 	resume_console();
-- Finish:
- 	return error;
- }
- 
-@@ -191,8 +191,8 @@ int hibernation_restore(int platform_mod
- 		enable_nonboot_cpus();
- 	}
- 	platform_restore_cleanup(platform_mode);
-- Finish:
- 	device_resume();
-+ Finish:
- 	resume_console();
- 	pm_restore_console();
- 	return error;
+Regards,
+- Tear
+
+--- linux-2.6.21.1.orig/arch/i386/kernel/acpi/boot.c	2007-05-01 17:10:30.000000000 +0300
++++ linux-2.6.21.1/arch/i386/kernel/acpi/boot.c	2007-05-01 20:31:53.000000000 +0300
+@@ -971,14 +971,6 @@
+ 	 },
+ 	{
+ 	 .callback = force_acpi_ht,
+-	 .ident = "DELL GX240",
+-	 .matches = {
+-		     DMI_MATCH(DMI_BOARD_VENDOR, "Dell Computer Corporation"),
+-		     DMI_MATCH(DMI_BOARD_NAME, "OptiPlex GX240"),
+-		     },
+-	 },
+-	{
+-	 .callback = force_acpi_ht,
+ 	 .ident = "HP VISUALIZE NT Workstation",
+ 	 .matches = {
+ 		     DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
+
+
+
+
+
+       
+____________________________________________________________________________________Get the Yahoo! toolbar and be alerted to new email wherever you're surfing.
+http://new.toolbar.yahoo.com/toolbar/features/mail/index.php
+
