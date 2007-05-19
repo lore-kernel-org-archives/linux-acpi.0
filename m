@@ -1,146 +1,85 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH] Workaround for _PPC (BIOS cpufreq limitations)
-Date: Fri, 18 May 2007 21:59:28 -0500
-Message-ID: <1179543568.16465.35.camel@sublime.suse.de>
+Subject: Re: DSDT compilation issues
+Date: Fri, 18 May 2007 22:13:47 -0500
+Message-ID: <1179544427.16465.46.camel@sublime.suse.de>
+References: <loom.20070518T040303-255@post.gmane.org>
 Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-3/7ambbo2bfSSzTII3tA"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:46192 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754522AbXESC70 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 May 2007 22:59:26 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, cpufreq@lists.linux.org.uk
-
-
---=-3/7ambbo2bfSSzTII3tA
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ns.suse.de ([195.135.220.2]:43926 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754356AbXESDNc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 May 2007 23:13:32 -0400
+In-Reply-To: <loom.20070518T040303-255@post.gmane.org>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
+To: Martian67 <Martian67@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-Len, can you apply this one, pls.
+On Fri, 2007-05-18 at 02:17 +0000, Martian67 wrote:
+> Hi, when i attempt to recompile a buggy DSDT table for my 	
+> PSPA3C-MA502C, I get some compiletime errors, and i am not sure how to adress
+> them properly.
+> 
+> I am running through this procedure as outlined @
+> http://gentoo-wiki.com/HOWTO_Fix_Common_ACPI_Problems
+> 
+> **************************************************************************
+> 
+> cat /proc/acpi/dsdt > dsdt.dat
+> 
+> iasl -d dsdt.dat
+> 
+> iasl -tc dsdt.dsl
+> 
+> **************************************************************************
+> 
+> When I attempt to  do this it results in these errors
+> 
+> ***************************************************************************
+> 
+> Intel ACPI Component Architecture
+> ASL Optimizing Compiler version 20061109 [May 15 2007]
+> Copyright (C) 2000 - 2006 Intel Corporation
+> Supports ACPI Specification Revision 3.0a
+> 
+> dsdt.dsl  1773:                                 Name (_T_0, 0x00)
+> Error    4081 -                     Use of reserved word ^  (_T_0)
+> 
+> dsdt.dsl  1851:                                 Name (_T_0, 0x00)
+> Error    4081 -                     Use of reserved word ^  (_T_0)
+> 
+> dsdt.dsl  2145:                             Name (_T_0, 0x00)
+> Error    4081 -                 Use of reserved word ^  (_T_0)
+> 
+> dsdt.dsl  2223:                             Name (_T_0, 0x00)
+> Error    4081 -                 Use of reserved word ^  (_T_0)
+Hmm, I wonder why this is reserved, but renaming all instances of _T_0
+to e.g. _TX0 or whatever should solve this?
+Looks like a minor bug in the ACPI disassembler for me.
 
-Workaround for _PPC (BIOS cpufreq limitations)
+> 
+> dsdt.dsl  6516:             Method (BTST, 0, NotSerialized)
+> Warning  1086 -                        ^ Not all control paths return a 
+> value (BTST)
+> 
+> dsdt.dsl  6543:             Name (_HID, "*PNP0C14")
+> Error    4001 -                                  ^ String must be entirely
+> alphanumeric (*PNP0C14)
+Remove the "*".
 
-There have been fixes using _PPC, which seem to unhide a problem
-on HP nx6125 (double cpufreq switch freezes the machine for
-several seconds).
-This one should provide a workaround for the nx6125 and for
-possible other machines that show any weird _PPC behaviour.
+Could you explain why your DSDT is broken and what kind of bug you like
+to fix.
+To workaround ACPICA or DSDT bugs by simply overriding it is not a good
+idea
+as others might also slip into this. If possible, let's better try to
+find a
+general solution in the kernel/ACPICA code...
 
+You also might want to open a bug report for your problem:
+http://bugzilla.kernel.org
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-
----
- drivers/acpi/processor_perflib.c |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
-
-Index: linux-2.6.21/drivers/acpi/processor_perflib.c
-===================================================================
---- linux-2.6.21.orig/drivers/acpi/processor_perflib.c
-+++ linux-2.6.21/drivers/acpi/processor_perflib.c
-@@ -60,6 +60,11 @@ static DEFINE_MUTEX(performance_mutex);
-  * policy is adjusted accordingly.
-  */
- 
-+static unsigned int ignore_ppc = 0;
-+module_param(ignore_ppc, uint, 0644);
-+MODULE_PARM_DESC(ignore_ppc, "If the frequency of your machine gets wrongly" \
-+		 "limited by BIOS, this should help");
-+
- #define PPC_REGISTERED   1
- #define PPC_IN_USE       2
- 
-@@ -72,6 +77,9 @@ static int acpi_processor_ppc_notifier(s
- 	struct acpi_processor *pr;
- 	unsigned int ppc = 0;
- 
-+	if (ignore_ppc)
-+		return 0;
-+
- 	mutex_lock(&performance_mutex);
- 
- 	if (event != CPUFREQ_INCOMPATIBLE)
-@@ -130,7 +138,13 @@ static int acpi_processor_get_platform_l
- 
- int acpi_processor_ppc_has_changed(struct acpi_processor *pr)
- {
--	int ret = acpi_processor_get_platform_limit(pr);
-+	int ret;
-+
-+	if (ignore_ppc)
-+		return 0;
-+
-+	ret = acpi_processor_get_platform_limit(pr);
-+
- 	if (ret < 0)
- 		return (ret);
- 	else
-
-
---=-3/7ambbo2bfSSzTII3tA
-Content-Disposition: attachment; filename=cpufreq_ppc_boot_option.patch
-Content-Type: text/x-patch; name=cpufreq_ppc_boot_option.patch; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-Workaround for _PPC (BIOS cpufreq limitations)
-
-There have been fixes using _PPC, which seem to unhide a problem
-on HP nx6125 (double cpufreq switch freezes the machine for
-several seconds). 
-This one should provide a workaround for the nx6125 and for
-possible other machines that show any weird _PPC behaviour.
-
-
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-
----
- drivers/acpi/processor_perflib.c |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
-
-Index: linux-2.6.21/drivers/acpi/processor_perflib.c
-===================================================================
---- linux-2.6.21.orig/drivers/acpi/processor_perflib.c
-+++ linux-2.6.21/drivers/acpi/processor_perflib.c
-@@ -60,6 +60,11 @@ static DEFINE_MUTEX(performance_mutex);
-  * policy is adjusted accordingly.
-  */
- 
-+static unsigned int ignore_ppc = 0;
-+module_param(ignore_ppc, uint, 0644);
-+MODULE_PARM_DESC(ignore_ppc, "If the frequency of your machine gets wrongly" \
-+		 "limited by BIOS, this should help");
-+
- #define PPC_REGISTERED   1
- #define PPC_IN_USE       2
- 
-@@ -72,6 +77,9 @@ static int acpi_processor_ppc_notifier(s
- 	struct acpi_processor *pr;
- 	unsigned int ppc = 0;
- 
-+	if (ignore_ppc)
-+		return 0;
-+
- 	mutex_lock(&performance_mutex);
- 
- 	if (event != CPUFREQ_INCOMPATIBLE)
-@@ -130,7 +138,13 @@ static int acpi_processor_get_platform_l
- 
- int acpi_processor_ppc_has_changed(struct acpi_processor *pr)
- {
--	int ret = acpi_processor_get_platform_limit(pr);
-+	int ret;
-+
-+	if (ignore_ppc)
-+		return 0;
-+
-+	ret = acpi_processor_get_platform_limit(pr);
-+
- 	if (ret < 0)
- 		return (ret);
- 	else
-
---=-3/7ambbo2bfSSzTII3tA--
+    Thomas
 
