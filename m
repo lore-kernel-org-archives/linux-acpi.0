@@ -1,78 +1,51 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: 2.6.22-rc1 regression: tifm prevents suspending [was: Re: [2.6.22-rc1-mm1] vaio laptop (SZ72B) immediately resumes after STR]
-Date: Sun, 20 May 2007 00:11:10 +0900
-Message-ID: <20070519151110.GA3393@inferi.kami.home>
-References: <20070518071523.GA3195@inferi.kami.home> <20070518002240.bc08e811.akpm@linux-foundation.org> <20070519064829.GA15518@inferi.kami.home> <20070519000413.75badb6f.akpm@linux-foundation.org>
+From: Mircea Bardac <dev.list@mircea.bardac.net>
+Subject: Touchpad and i8042
+Date: Sat, 19 May 2007 18:28:08 +0300
+Message-ID: <200705191828.09719.dev.list@mircea.bardac.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mtoichi12.ns.itscom.net ([219.110.2.182]:56154 "EHLO
-	mtoichi12.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758753AbXESPNe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 May 2007 11:13:34 -0400
+Received: from bravo.securenet-server.net ([207.210.84.244]:41354 "EHLO
+	bravo.securenet-server.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758825AbXESP2t (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 19 May 2007 11:28:49 -0400
+Received: from p5.pub.ro ([141.85.0.70] helo=mircea.home.bardac.net)
+	by bravo.securenet-server.net with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.63)
+	(envelope-from <dev.list@mircea.bardac.net>)
+	id 1HpQrG-0003yx-4j
+	for linux-acpi@vger.kernel.org; Sat, 19 May 2007 11:28:39 -0400
 Content-Disposition: inline
-In-Reply-To: <20070519000413.75badb6f.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, Alex Dubov <oakad@yahoo.com>, Pierre Ossman <drzeus@drzeus.cx>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Sat, May 19, 2007 at 12:04:13AM -0700, Andrew Morton wrote:
-> On Sat, 19 May 2007 15:48:29 +0900 Mattia Dongili <malattia@linux.it> wrote:
-> 
-> > On Fri, May 18, 2007 at 12:22:40AM -0700, Andrew Morton wrote:
-> > > On Fri, 18 May 2007 16:15:24 +0900 Mattia Dongili <malattia@linux.it> wrote:
-> > > 
-> > > > Hello,
-> > > > 
-> > > > After finally catching fw-{ohci,core} to be problematic during resume,
-> > > > I'm now experiencing an immediate resume after suspending.
-> > > > 
-> > > > 2.6.21-rc7-mm* didn't even suspend, my last known suspend-and-resuming
-> > > > kernel was 2.6.21-rc5-mm3 (I know one other vaio SZ user could STR with
-> > > > 2.6.21-rc6-mm* after the cpuidle fixes).
-> > > > 
-> > > > my .config is: http://oioio.altervista.org/linux/config-2.6.22-rc1-mm1-1
-> > > > and a str cycle with PM_DEBUG=y:
-> > > > http://oioio.altervista.org/linux/dmesg-SRT-immediately-resumes.txt
-> > ...
-> > > > Any idea where to start from? (bisecting is ok, but it'll take some
-> > > > time...)
-> > > 
-> > > Bisecting isn't that bad ;) I'd pick git-acpi.patch as the starting point.
-> > 
-> > ok, git-acpi.patch is not the bad boy :)
-> > Anyway what we have is a regression in 2.6.22-rc1 since the laptop can't
-> > suspend (it sits on the "Stopping tasks" console screen) while 2.6.21
-> > can.
-> > I'm now bisecting this, will come to -mm1 later when done with this one.
-> 
-> OK, thanks.
-> 
-> > Who is the regression-guy?
-> 
-> Len, usually ;)    But I think you meant Michal, cc'ed here.
+Hi all,
 
-LOL, not this time. We have the responsible commit for 2.6.22-rc1 (Cc
-added):
+I've noticed a weird behaviour when monitoring roughly the number of 
+interrupts fired. The number of interrupts for "i8042" increase dramatically 
+when I move the pointer using the touchpad.
 
-3540af8ffddcdbc7573451ac0b5cd57a2eaf8af5 is first bad commit
-commit 3540af8ffddcdbc7573451ac0b5cd57a2eaf8af5
-Author: Alex Dubov <oakad@yahoo.com>
-Date:   Thu Apr 12 16:59:15 2007 +1000
+I've only used "watch cat /proc/interrupts".
 
-    tifm: replace per-adapter kthread with freezeable workqueue
-    
-    Freezeable workqueue makes sure that adapter work items (device insertions
-    and removals) would be handled after the system is fully resumed. Previously
-    this was achieved by explicit freezing of the kthread.
-    
-    Signed-off-by: Alex Dubov <oakad@yahoo.com>
-    Signed-off-by: Pierre Ossman <drzeus@drzeus.cx>
+dramatically = ~800 interrupts
+for only moving the finger from the top to the bottom of the touchpad.
 
-I'm now seeing if avoiding the tifm stuff in -mm1 fixes the
-immediately-resumes-after-str problem (unfortunately the commint doesn't
-revert cleanly).
--- 
-mattia
-:wq!
+I'm using kernel 2.6.21.1, don't know if this happened before - I noticed it 
+now.
+
+The interrupts only appear on touchpad usage, not on standby.
+
+I think it is a synaptics touchpad, but I'm not really sure (how could I find 
+out?)
+
+Does anyone have an explanation for this? I've seen the "appletouch" problem 
+problem on the linuxpowertop.org site but I don't know if they're related.
+
+
+If any other info is needed, let me know.
+
+Mircea
