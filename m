@@ -1,31 +1,62 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: 2.6.22-rc1 regression: tifm prevents suspending [was: Re: [2.6.22-rc1-mm1] vaio laptop (SZ72B) immediately resumes after STR]
-Date: Sun, 20 May 2007 01:43:29 +0900
-Message-ID: <20070519164329.GA3224@inferi.kami.home>
-References: <20070518071523.GA3195@inferi.kami.home> <20070518002240.bc08e811.akpm@linux-foundation.org> <20070519064829.GA15518@inferi.kami.home> <20070519000413.75badb6f.akpm@linux-foundation.org> <20070519151110.GA3393@inferi.kami.home>
+From: Matt Mackall <mpm@selenic.com>
+Subject: 2.6.21-mm2: ACPI exception on resume
+Date: Sat, 19 May 2007 11:57:38 -0500
+Message-ID: <20070519165738.GK11115@waste.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mtoichi13.ns.itscom.net ([219.110.2.183]:49991 "EHLO
-	mtoichi13.ns.itscom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754880AbXESQpK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 May 2007 12:45:10 -0400
+Received: from waste.org ([66.93.16.53]:53859 "EHLO waste.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754356AbXESQ6Z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 19 May 2007 12:58:25 -0400
 Content-Disposition: inline
-In-Reply-To: <20070519151110.GA3393@inferi.kami.home>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org, Michal Piotrowski <michal.k.k.piotrowski@gmail.com>, Alex Dubov <oakad@yahoo.com>, Pierre Ossman <drzeus@drzeus.cx>
+To: linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org
 
-On Sun, May 20, 2007 at 12:11:10AM +0900, Mattia Dongili wrote:
-...
-> I'm now seeing if avoiding the tifm stuff in -mm1 fixes the
-> immediately-resumes-after-str problem (unfortunately the commint doesn't
-> revert cleanly).
+Starting with 2.6.21-mm2, I'm seeing occassional failures to resume
+from suspend-to-ram on my Thinkpad R51. The screen will flash as it
+usually does, then go black and the machine will become totally
+unresponsive, even to holding down the power button for 30+ seconds.
+But the hard drive light will occassionally flash, so the machine is
+clearly not completely dead at this point.
 
-as (almost) expected it is not related... tomorrow is another bisecting
-day...
+The log contains this:
+
+08:57:25 hub 1-0:1.0: over-current change on port 4
+08:57:26 ACPI: EC: acpi_ec_wait timeout, status = 10, expect_event = 2
+08:57:26 ACPI: EC: write_cmd timeout, command = 128
+08:57:26 ACPI Exception (evregion-0424): AE_TIME, Returned by Handler for [EmbeddedControl] [20070126]
+08:57:26 ACPI Exception (dswexec-0462): AE_TIME, While resolving operands for [OpcodeName unavailable] [20070126]
+08:57:26 ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPC_.EC__.GBIF] (Node c203270c), AE_TIME
+08:57:26 ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c2032644), AE_TIME
+08:57:26 ACPI Exception (battery-0147): AE_TIME, Evaluating _BIF [20070126]
+08:57:26 ACPI: EC: acpi_ec_wait timeout, status = 10, expect_event = 2
+08:57:26 ACPI: EC: input buffer is not empty, aborting transaction
+08:57:26 ACPI Exception (evregion-0424): AE_TIME, Returned by Handler for [EmbeddedControl] [20070126]
+08:57:26 ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPC_.EC__.AC__._PSR] (Node c20324c8), AE_TIME
+08:57:26 ACPI Exception (ac-0095): AE_TIME, Error reading AC Adapter state [20070126]
+08:57:27 ACPI: EC: acpi_ec_wait timeout, status = 10, expect_event = 2
+08:57:27 ACPI: EC: input buffer is not empty, aborting transaction
+08:57:27 ACPI Exception (evregion-0424): AE_TIME, Returned by Handler for [EmbeddedControl] [20070126]
+08:57:27 ACPI Exception (dswexec-0462): AE_TIME, While resolving operands for [OpcodeName unavailable] [20070126]
+08:57:27 ACPI Error (psparse-0537): Method parse/execution failed [\_TZ_.THM0._TMP] (Node c202db30), AE_TIME
+08:57:27 agpgart: Found an AGP 2.0 compliant device at 0000:00:00.0.
+08:57:27 agpgart: Putting AGP V2 device at 0000:00:00.0 into 4x mode
+08:57:27 agpgart: Putting AGP V2 device at 0000:01:00.0 into 4x mode
+08:57:27 [drm] Loading R200 Microcode
+08:57:27 ACPI: EC: acpi_ec_wait timeout, status = 10, expect_event = 2
+08:57:27 ACPI: EC: input buffer is not empty, aborting transaction
+08:57:28 ACPI: EC: acpi_ec_wait timeout, status = 10, expect_event = 2
+
+followed by a continual stream of these:
+
+08:57:32 ACPI Exception (evregion-0424): AE_TIME, Returned by Handler for [EmbeddedControl] [20070126]
+08:57:32 ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPC_.EC__.AC__._PSR] (Node c20324c8), AE_TIME
+08:57:32 ACPI Exception (ac-0095): AE_TIME, Error reading AC Adapter state [20070126]
+08:57:33 ACPI: EC: acpi_ec_wait timeout, status = 10, expect_event = 2
+08:57:33 ACPI: EC: input buffer is not empty, aborting transaction
 
 -- 
-mattia
-:wq!
+Mathematics is the supreme nostalgia of our time.
