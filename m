@@ -1,75 +1,44 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: 2.6.22-rc1-mm1 [cannot change thermal trip points]
-Date: Sat, 19 May 2007 14:56:49 -0500
-Message-ID: <1179604609.16465.83.camel@sublime.suse.de>
-References: <20070515201914.16944e04.akpm@linux-foundation.org>
-	 <464B43BB.3070505@redhat.com> <20070517092318.GD3975@ucw.cz>
-	 <200705171517.14087.lenb@kernel.org>
-Reply-To: trenn@suse.de
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: 2.6.21-mm2: ACPI exception on resume
+Date: Sat, 19 May 2007 17:45:04 -0300
+Message-ID: <20070519204504.GA24704@khazad-dum.debian.net>
+References: <20070519165738.GK11115@waste.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ns.suse.de ([195.135.220.2]:36724 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758623AbXEST4r (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 19 May 2007 15:56:47 -0400
-In-Reply-To: <200705171517.14087.lenb@kernel.org>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:46896 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756823AbXESUpI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 19 May 2007 16:45:08 -0400
+Content-Disposition: inline
+In-Reply-To: <20070519165738.GK11115@waste.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>, Chuck Ebbert <cebbert@redhat.com>, len.brown@intel.com, Maciej Rutecki <maciej.rutecki@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, torvalds@linux-foundation.org
+To: Matt Mackall <mpm@selenic.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
 
-On Thu, 2007-05-17 at 15:17 -0400, Len Brown wrote:
-> On Thursday 17 May 2007 05:23, Pavel Machek wrote:
-> 
-> > >     ACPI: thermal trip points are read-only
-> > 
-> > What was the rationale? Can we get this one reverted? 
-> > 
-> > Some machines (HP omnibook xe3) have broken trip points -- too high --
-> > so machine will overheat and trigger hw shutdown before starting
-> > passive cooling.
-> > 
-> > That's really broken, and write to trip points is reasonable way to
-> > 'fix' that. (I'd understand if you only ever let trip points to
-> > decrease... but otoh root should be able to shoot himself....)
-> 
-> No, writing trip-points is neither a fix, nor it is reasonable.
-> It is a workaround at best, and it is a dangerous and mis-leading hack.
-Yes it is a workaround for critical ACPI bugs like that or similar:
-https://bugs.launchpad.net/ubuntu/+source/linux-source-2.6.17/+bug/22336
+On Sat, 19 May 2007, Matt Mackall wrote:
+> usually does, then go black and the machine will become totally
+> unresponsive, even to holding down the power button for 30+ seconds.
 
-It's also convenient to e.g. lower passive trip point to avoid fan
-noise.
+Now, that means either the BIOS or EC have been thrown out of whack,
+otherwise one of the two would have force-powered-off the machine a bit
+after 10s.
 
-Some people are used to it, I already wanted to write a little userspace
-prog to use them as it is really easy to fake cooling_mode (trip points
-are modified by BIOS) and eliminate fan noise and other things by e.g.
-reducing passsive or whatever trip point.
+Are you using the latest BIOS and EC firmware available?
 
-This is at least a major sysfs interface change, has this been discussed
-somewhere before or declared deprecated?
+If you are at the latest BIOS and EC releases, does ec_intr=0 fix the issue?
 
-It's there for a long time, why is this "a dangerous and mis-leading
-hack." now?
+> 08:57:27 [drm] Loading R200 Microcode
+> 08:57:27 ACPI: EC: acpi_ec_wait timeout, status = 10, expect_event = 2
+> 08:57:27 ACPI: EC: input buffer is not empty, aborting transaction
+> 08:57:28 ACPI: EC: acpi_ec_wait timeout, status = 10, expect_event = 2
 
-I'd suggest to revert this and I can come with something like "only
-allow lower values
-than BIOS provides" patch if the current implementation is considered
-dangerous.
+Yep, EC is confused.  Not Good!
 
-      Thomas
-
-> The OS has no capability to actually change the ACPI trip points
-> that are used by the BIOS.  Changing the OS copy of them
-> to make the user think that trip events will actually
-> happen when the temperature crosses the OS copy is crazy.
-> 
-> If there are systems with broken thermals and the
-> ACPI thermal control needs and over-ride to turn
-> on the fan, then that is fine -- but using
-> fake trip-points and giving the user the impression
-> that they are real is not viable.
-
-
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
