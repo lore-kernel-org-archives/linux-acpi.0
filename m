@@ -1,58 +1,112 @@
-From: Christian Leber <christian@leber.de>
-Subject: Re: [BUG] acpi double resume and fail
-Date: Sat, 19 May 2007 21:42:53 +0200
-Message-ID: <20070519194253.GA27651@core>
-References: <20070518213701.GA810@core> <20070518154507.30ebfdcb.akpm@linux-foundation.org>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH] Workaround for _PPC (BIOS cpufreq limitations)
+Date: Sat, 19 May 2007 14:41:57 -0500
+Message-ID: <1179603717.16465.71.camel@sublime.suse.de>
+References: <1179543568.16465.35.camel@sublime.suse.de>
+	 <200705190055.58626.lenb@kernel.org>
+Reply-To: trenn@suse.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1764205AbXESTnG@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20070518154507.30ebfdcb.akpm@linux-foundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:58965 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758243AbXEST4h (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 19 May 2007 15:56:37 -0400
+In-Reply-To: <200705190055.58626.lenb@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, cpufreq@lists.linux.org.uk
 
-On Fri, May 18, 2007 at 03:45:07PM -0700, Andrew Morton wrote:
-
-> > I still can suspend, but after the first resume it goes back to sleep
-> > directly again, when resuming again it works.
-> > After the second suspend it won't resume at all.
-
-I should add, that it goes from the suspend state to "on" and back to
-suspend, when i press power again it goes "on", but the screen stays
-black, but network doesn't work and most likely linux isn't running,
-because the laptop sucks max_power. (2.6.20-rc4)
-
-> > The problem is that i can't try out the kernel versions <rc4, because
-> > rc1, rc2 and rc3 doesn't boot at all, so git-bisect also won't help.
+On Sat, 2007-05-19 at 00:55 -0400, Len Brown wrote:
+> On Friday 18 May 2007 22:59, Thomas Renninger wrote:
+> > Len, can you apply this one, pls.
 > > 
-> > Has somebody an idea what i could try out?
+> > Workaround for _PPC (BIOS cpufreq limitations)
 > > 
-> > (the distribution is in this case ubuntu feisty)
- 
-> The fact that bisection broke really does make it hard.  What you would
-> need to do is to find the patch which fixed that doesn't-boot problem, then
-> reapply it each time you perform an iteration.  That's all doable, if you
-> have the time.  Use git-bisect for it.
+> > There have been fixes using _PPC, which seem to unhide a problem
+> > on HP nx6125 (double cpufreq switch freezes the machine for
+> > several seconds).
+> > This one should provide a workaround for the nx6125 and for
+> > possible other machines that show any weird _PPC behaviour.
+> 
+> I don't understand what the failure is, and why this workaround
+> is effective.  Is this a clue here to a real bug
+> that requires a real fix, rather than a workaround?
+I am not sure what the real cause is, the machine hangs because
+CPU freq is limited and then all freqs are allowed again at the same
+time.
 
-I'll try, unfortunatelly the problem is that PCI doesn't work with this
-versions.
+Also this is a SLES bug, not sure whether this also happens in mainline.
+(I mentioned that so if someone else with this machine experience that
+problem he has a pointer).
+The reason why I think this should go into mainline is because there
+were
+three patches concerning _PPC in the last months:
+  - one from Bruno Ducrot (which I expect unhided the other problems)
+  - one from Ingo Molnar (Do not read _PPC on startup - fixes some
+ThinkPads)
+  - one from me to get highest freq again if booted on battery/limited
+freq.
 
-> Have you tested 2.6.21 and/or 2.6.22-rc1?
+I expect more machines have problems here (or will have in future) and
+this is a nice
+and easy possibility to workaround such problems, without loosing
+frequency
+scaling functionality.
 
-I just have tried 2.6.22-rc2 and it's a bit different, I still have to resume
-2 times and X does only work the "first" resume correctly, but it somewhat
-works.
+    Thomas
+> 
+> -Len
+> 
+> > Signed-off-by: Thomas Renninger <trenn@suse.de>
+> > 
+> > ---
+> >  drivers/acpi/processor_perflib.c |   16 +++++++++++++++-
+> >  1 file changed, 15 insertions(+), 1 deletion(-)
+> > 
+> > Index: linux-2.6.21/drivers/acpi/processor_perflib.c
+> > ===================================================================
+> > --- linux-2.6.21.orig/drivers/acpi/processor_perflib.c
+> > +++ linux-2.6.21/drivers/acpi/processor_perflib.c
+> > @@ -60,6 +60,11 @@ static DEFINE_MUTEX(performance_mutex);
+> >   * policy is adjusted accordingly.
+> >   */
+> >  
+> > +static unsigned int ignore_ppc = 0;
+> > +module_param(ignore_ppc, uint, 0644);
+> > +MODULE_PARM_DESC(ignore_ppc, "If the frequency of your machine gets wrongly" \
+> > +		 "limited by BIOS, this should help");
+> > +
+> >  #define PPC_REGISTERED   1
+> >  #define PPC_IN_USE       2
+> >  
+> > @@ -72,6 +77,9 @@ static int acpi_processor_ppc_notifier(s
+> >  	struct acpi_processor *pr;
+> >  	unsigned int ppc = 0;
+> >  
+> > +	if (ignore_ppc)
+> > +		return 0;
+> > +
+> >  	mutex_lock(&performance_mutex);
+> >  
+> >  	if (event != CPUFREQ_INCOMPATIBLE)
+> > @@ -130,7 +138,13 @@ static int acpi_processor_get_platform_l
+> >  
+> >  int acpi_processor_ppc_has_changed(struct acpi_processor *pr)
+> >  {
+> > -	int ret = acpi_processor_get_platform_limit(pr);
+> > +	int ret;
+> > +
+> > +	if (ignore_ppc)
+> > +		return 0;
+> > +
+> > +	ret = acpi_processor_get_platform_limit(pr);
+> > +
+> >  	if (ret < 0)
+> >  		return (ret);
+> >  	else
+> > 
+> > 
 
-> We had one other report earlier today that 2.6.22-rc1 does an immediate
-> resume after suspend-to-RAM - perhaps that is related.
-
-no
-
-
-Regards
-Christian Leber
-
--- 
-http://rettetdieti.vde-uni-mannheim.de/
