@@ -1,62 +1,107 @@
-From: Matt Mackall <mpm@selenic.com>
-Subject: 2.6.21-mm2: ACPI exception on resume
-Date: Sat, 19 May 2007 11:57:38 -0500
-Message-ID: <20070519165738.GK11115@waste.org>
+From: "Michal Piotrowski" <michal.k.k.piotrowski@gmail.com>
+Subject: Re: 2.6.22-rc1 regression: tifm prevents suspending [was: Re: [2.6.22-rc1-mm1] vaio laptop (SZ72B) immediately resumes after STR]
+Date: Sat, 19 May 2007 19:17:37 +0200
+Message-ID: <6bffcb0e0705191017n1d1e6eb7k1370d5ce5cf17fb9@mail.gmail.com>
+References: <20070518071523.GA3195@inferi.kami.home>
+	 <20070518002240.bc08e811.akpm@linux-foundation.org>
+	 <20070519064829.GA15518@inferi.kami.home>
+	 <20070519000413.75badb6f.akpm@linux-foundation.org>
+	 <20070519151110.GA3393@inferi.kami.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from waste.org ([66.93.16.53]:53859 "EHLO waste.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754356AbXESQ6Z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 19 May 2007 12:58:25 -0400
+Received: from wr-out-0506.google.com ([64.233.184.224]:60232 "EHLO
+	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755016AbXESRRj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 May 2007 13:17:39 -0400
+Received: by wr-out-0506.google.com with SMTP id 76so1241194wra
+        for <linux-acpi@vger.kernel.org>; Sat, 19 May 2007 10:17:39 -0700 (PDT)
+In-Reply-To: <20070519151110.GA3393@inferi.kami.home>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org
+To: Mattia Dongili <malattia@linux.it>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org, Alex Dubov <oakad@yahoo.com>, Pierre Ossman <drzeus@drzeus.cx>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-Starting with 2.6.21-mm2, I'm seeing occassional failures to resume
-from suspend-to-ram on my Thinkpad R51. The screen will flash as it
-usually does, then go black and the machine will become totally
-unresponsive, even to holding down the power button for 30+ seconds.
-But the hard drive light will occassionally flash, so the machine is
-clearly not completely dead at this point.
+Hi,
 
-The log contains this:
+On 19/05/07, Mattia Dongili <malattia@linux.it> wrote:
+> On Sat, May 19, 2007 at 12:04:13AM -0700, Andrew Morton wrote:
+> > On Sat, 19 May 2007 15:48:29 +0900 Mattia Dongili <malattia@linux.it> wrote:
+> >
+> > > On Fri, May 18, 2007 at 12:22:40AM -0700, Andrew Morton wrote:
+> > > > On Fri, 18 May 2007 16:15:24 +0900 Mattia Dongili <malattia@linux.it> wrote:
+> > > >
+> > > > > Hello,
+> > > > >
+> > > > > After finally catching fw-{ohci,core} to be problematic during resume,
+> > > > > I'm now experiencing an immediate resume after suspending.
+> > > > >
+> > > > > 2.6.21-rc7-mm* didn't even suspend, my last known suspend-and-resuming
+> > > > > kernel was 2.6.21-rc5-mm3 (I know one other vaio SZ user could STR with
+> > > > > 2.6.21-rc6-mm* after the cpuidle fixes).
+> > > > >
+> > > > > my .config is: http://oioio.altervista.org/linux/config-2.6.22-rc1-mm1-1
+> > > > > and a str cycle with PM_DEBUG=y:
+> > > > > http://oioio.altervista.org/linux/dmesg-SRT-immediately-resumes.txt
+> > > ...
+> > > > > Any idea where to start from? (bisecting is ok, but it'll take some
+> > > > > time...)
+> > > >
+> > > > Bisecting isn't that bad ;) I'd pick git-acpi.patch as the starting point.
+> > >
+> > > ok, git-acpi.patch is not the bad boy :)
+> > > Anyway what we have is a regression in 2.6.22-rc1 since the laptop can't
+> > > suspend (it sits on the "Stopping tasks" console screen) while 2.6.21
+> > > can.
+> > > I'm now bisecting this, will come to -mm1 later when done with this one.
+> >
+> > OK, thanks.
+> >
+> > > Who is the regression-guy?
+> >
+> > Len, usually ;)    But I think you meant Michal, cc'ed here.
+>
+> LOL, not this time. We have the responsible commit for 2.6.22-rc1 (Cc
+> added):
+>
+> 3540af8ffddcdbc7573451ac0b5cd57a2eaf8af5 is first bad commit
+> commit 3540af8ffddcdbc7573451ac0b5cd57a2eaf8af5
+> Author: Alex Dubov <oakad@yahoo.com>
+> Date:   Thu Apr 12 16:59:15 2007 +1000
+>
 
-08:57:25 hub 1-0:1.0: over-current change on port 4
-08:57:26 ACPI: EC: acpi_ec_wait timeout, status = 10, expect_event = 2
-08:57:26 ACPI: EC: write_cmd timeout, command = 128
-08:57:26 ACPI Exception (evregion-0424): AE_TIME, Returned by Handler for [EmbeddedControl] [20070126]
-08:57:26 ACPI Exception (dswexec-0462): AE_TIME, While resolving operands for [OpcodeName unavailable] [20070126]
-08:57:26 ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPC_.EC__.GBIF] (Node c203270c), AE_TIME
-08:57:26 ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c2032644), AE_TIME
-08:57:26 ACPI Exception (battery-0147): AE_TIME, Evaluating _BIF [20070126]
-08:57:26 ACPI: EC: acpi_ec_wait timeout, status = 10, expect_event = 2
-08:57:26 ACPI: EC: input buffer is not empty, aborting transaction
-08:57:26 ACPI Exception (evregion-0424): AE_TIME, Returned by Handler for [EmbeddedControl] [20070126]
-08:57:26 ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPC_.EC__.AC__._PSR] (Node c20324c8), AE_TIME
-08:57:26 ACPI Exception (ac-0095): AE_TIME, Error reading AC Adapter state [20070126]
-08:57:27 ACPI: EC: acpi_ec_wait timeout, status = 10, expect_event = 2
-08:57:27 ACPI: EC: input buffer is not empty, aborting transaction
-08:57:27 ACPI Exception (evregion-0424): AE_TIME, Returned by Handler for [EmbeddedControl] [20070126]
-08:57:27 ACPI Exception (dswexec-0462): AE_TIME, While resolving operands for [OpcodeName unavailable] [20070126]
-08:57:27 ACPI Error (psparse-0537): Method parse/execution failed [\_TZ_.THM0._TMP] (Node c202db30), AE_TIME
-08:57:27 agpgart: Found an AGP 2.0 compliant device at 0000:00:00.0.
-08:57:27 agpgart: Putting AGP V2 device at 0000:00:00.0 into 4x mode
-08:57:27 agpgart: Putting AGP V2 device at 0000:01:00.0 into 4x mode
-08:57:27 [drm] Loading R200 Microcode
-08:57:27 ACPI: EC: acpi_ec_wait timeout, status = 10, expect_event = 2
-08:57:27 ACPI: EC: input buffer is not empty, aborting transaction
-08:57:28 ACPI: EC: acpi_ec_wait timeout, status = 10, expect_event = 2
+Subject    : Broken suspend on SMP with tifm
+References : http://lkml.org/lkml/2007/5/13/161
+Submitter  : Rafael J. Wysocki <rjw@sisk.pl>
+Status     : patch was suggested
 
-followed by a continual stream of these:
+Actually should be "a few patches was suggested"
 
-08:57:32 ACPI Exception (evregion-0424): AE_TIME, Returned by Handler for [EmbeddedControl] [20070126]
-08:57:32 ACPI Error (psparse-0537): Method parse/execution failed [\_SB_.PCI0.LPC_.EC__.AC__._PSR] (Node c20324c8), AE_TIME
-08:57:32 ACPI Exception (ac-0095): AE_TIME, Error reading AC Adapter state [20070126]
-08:57:33 ACPI: EC: acpi_ec_wait timeout, status = 10, expect_event = 2
-08:57:33 ACPI: EC: input buffer is not empty, aborting transaction
+Rafael, please point me the right patch.
+
+>     tifm: replace per-adapter kthread with freezeable workqueue
+>
+>     Freezeable workqueue makes sure that adapter work items (device insertions
+>     and removals) would be handled after the system is fully resumed. Previously
+>     this was achieved by explicit freezing of the kthread.
+>
+>     Signed-off-by: Alex Dubov <oakad@yahoo.com>
+>     Signed-off-by: Pierre Ossman <drzeus@drzeus.cx>
+>
+> I'm now seeing if avoiding the tifm stuff in -mm1 fixes the
+> immediately-resumes-after-str problem (unfortunately the commint doesn't
+> revert cleanly).
+> --
+> mattia
+> :wq!
+>
+
+Regards,
+Michal
 
 -- 
-Mathematics is the supreme nostalgia of our time.
+Michal K. K. Piotrowski
+Kernel Monkeys
+(http://kernel.wikidot.com/start)
