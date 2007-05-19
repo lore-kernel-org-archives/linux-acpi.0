@@ -1,107 +1,228 @@
-From: "Michal Piotrowski" <michal.k.k.piotrowski@gmail.com>
-Subject: Re: 2.6.22-rc1 regression: tifm prevents suspending [was: Re: [2.6.22-rc1-mm1] vaio laptop (SZ72B) immediately resumes after STR]
-Date: Sat, 19 May 2007 19:17:37 +0200
-Message-ID: <6bffcb0e0705191017n1d1e6eb7k1370d5ce5cf17fb9@mail.gmail.com>
-References: <20070518071523.GA3195@inferi.kami.home>
-	 <20070518002240.bc08e811.akpm@linux-foundation.org>
-	 <20070519064829.GA15518@inferi.kami.home>
-	 <20070519000413.75badb6f.akpm@linux-foundation.org>
-	 <20070519151110.GA3393@inferi.kami.home>
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: Re: 2.6.19: ACPI reports AC not present after resume from STD
+Date: Sat, 19 May 2007 22:03:09 +0400
+Message-ID: <200705192203.10206.arvidjaar@mail.ru>
+References: <8E389A5F2FEABA4CB1DEC35A25CB39CE82FE9F@mssmsx411> <200702252014.26110.arvidjaar@mail.ru> <200703052307.58499.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: multipart/signed;
+  boundary="nextPart1944328.AU5brYm0Fr";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wr-out-0506.google.com ([64.233.184.224]:60232 "EHLO
-	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755016AbXESRRj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 19 May 2007 13:17:39 -0400
-Received: by wr-out-0506.google.com with SMTP id 76so1241194wra
-        for <linux-acpi@vger.kernel.org>; Sat, 19 May 2007 10:17:39 -0700 (PDT)
-In-Reply-To: <20070519151110.GA3393@inferi.kami.home>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1763927AbXESSDY@vger.kernel.org>
+In-Reply-To: <200703052307.58499.rjw@sisk.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andrew Morton <akpm@osdl.org>, Pavel Machek <pavel@ucw.cz>
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org, Alex Dubov <oakad@yahoo.com>, Pierre Ossman <drzeus@drzeus.cx>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-Hi,
+--nextPart1944328.AU5brYm0Fr
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-On 19/05/07, Mattia Dongili <malattia@linux.it> wrote:
-> On Sat, May 19, 2007 at 12:04:13AM -0700, Andrew Morton wrote:
-> > On Sat, 19 May 2007 15:48:29 +0900 Mattia Dongili <malattia@linux.it> wrote:
-> >
-> > > On Fri, May 18, 2007 at 12:22:40AM -0700, Andrew Morton wrote:
-> > > > On Fri, 18 May 2007 16:15:24 +0900 Mattia Dongili <malattia@linux.it> wrote:
+On Tuesday 06 March 2007, Rafael J. Wysocki wrote:
+> [changed Cc list]
+>
+> On Sunday, 25 February 2007 18:14, Andrey Borzenkov wrote:
+> > On =D0=92=D0=BE=D1=81=D0=BA=D1=80=D0=B5=D1=81=D0=B5=D0=BD=D1=8C=D0=B5 2=
+5 =D1=84=D0=B5=D0=B2=D1=80=D0=B0=D0=BB=D1=8F 2007, Rafael J. Wysocki wrote:
+> > > On Sunday, 25 February 2007 11:37, Andrey Borzenkov wrote:
+> > > > On =D0=92=D0=BE=D1=81=D0=BA=D1=80=D0=B5=D1=81=D0=B5=D0=BD=D1=8C=D0=
+=B5 25 =D1=84=D0=B5=D0=B2=D1=80=D0=B0=D0=BB=D1=8F 2007, Rafael J. Wysocki w=
+rote:
+> > > > > On Sunday, 25 February 2007 00:26, Andrey Borzenkov wrote:
+> > > > > > On =D0=A1=D1=83=D0=B1=D0=B1=D0=BE=D1=82=D0=B0 24 =D1=84=D0=B5=
+=D0=B2=D1=80=D0=B0=D0=BB=D1=8F 2007, Rafael J. Wysocki wrote:
+> > > > > > > Hi,
+> > > > > > >
+> > > > > > > On Saturday, 24 February 2007 10:55, Andrey Borzenkov wrote:
+> > > > > > > > On =D0=92=D1=82=D0=BE=D1=80=D0=BD=D0=B8=D0=BA 13 =D1=84=D0=
+=B5=D0=B2=D1=80=D0=B0=D0=BB=D1=8F 2007, Andrey Borzenkov wrote:
+> > > > > > > > > On =D0=A7=D0=B5=D1=82=D0=B2=D0=B5=D1=80=D0=B3 07 =D0=B4=
+=D0=B5=D0=BA=D0=B0=D0=B1=D1=80=D1=8F 2006, Lebedev, Vladimir P wrote:
+> > > > > > > > > > Please register new bug, attach acpidump and dmesg.
+> > > > > > > > >
+> > > > > > > > > http://bugzilla.kernel.org/show_bug.cgi?id=3D7995
+> > > > > > > > >
+> > > > > > > > > regards
+> > > > > > > >
+> > > > > > > > Well, this starts looking like ACPI is not at fault.
+> > > > > > > >
+> > > > > > > > When reporting AC state ACPI just reads contents of system
+> > > > > > > > memory (I presume it gets updated by BIOS/ACPI when AC state
+> > > > > > > > changes). It looks like this memory area is restored during
+> > > > > > > > resume from STD. I updated mentioned bug report with more
+> > > > > > > > detailed description. Now if someone could suggest a way to
+> > > > > > > > catch if specific physical address gets saved/restored this
+> > > > > > > > would finally explain it.
+> > > > > > >
+> > > > > > > First, if you want the reserved memory areas to be left alone
+> > > > > > > by swsusp, you need to mark them as 'nosave'.  On x86_64 this
+> > > > > > > is done by the function e820_mark_nosave_range() in
+> > > > > > > arch/x86_64/kernel/e820.c that can be ported to i386 with no
+> > > > > > > problems.  However, we haven't found that very useful, so far,
+> > > > > > > since no one has ever reported any problems with the current
+> > > > > > > approach, which is to save and restore them.
+> > > > > >
+> > > > > > Well, the following proof of concept patch fixes this issue for
+> > > > > > me. Please notice that original version of
+> > > > > > e820_mark_nosave_range() could fail to exclude some areas due to
+> > > > > > alignment issues (exactly what happened to me on first try) so =
+it
+> > > > > > still can explain your problem too.
+> > > > >
+> > > > > Great job, thanks for the patch!  It looks good, so I'm going to
+> > > > > forward it for merging.
 > > > >
-> > > > > Hello,
-> > > > >
-> > > > > After finally catching fw-{ohci,core} to be problematic during resume,
-> > > > > I'm now experiencing an immediate resume after suspending.
-> > > > >
-> > > > > 2.6.21-rc7-mm* didn't even suspend, my last known suspend-and-resuming
-> > > > > kernel was 2.6.21-rc5-mm3 (I know one other vaio SZ user could STR with
-> > > > > 2.6.21-rc6-mm* after the cpuidle fixes).
-> > > > >
-> > > > > my .config is: http://oioio.altervista.org/linux/config-2.6.22-rc1-mm1-1
-> > > > > and a str cycle with PM_DEBUG=y:
-> > > > > http://oioio.altervista.org/linux/dmesg-SRT-immediately-resumes.txt
-> > > ...
-> > > > > Any idea where to start from? (bisecting is ok, but it'll take some
-> > > > > time...)
-> > > >
-> > > > Bisecting isn't that bad ;) I'd pick git-acpi.patch as the starting point.
+> > > > Please no; I'm currently testing slightly more polished version; I
+> > > > will send it later.
 > > >
-> > > ok, git-acpi.patch is not the bad boy :)
-> > > Anyway what we have is a regression in 2.6.22-rc1 since the laptop can't
-> > > suspend (it sits on the "Stopping tasks" console screen) while 2.6.21
-> > > can.
-> > > I'm now bisecting this, will come to -mm1 later when done with this one.
+> > > OK
+> > >
+> > > > Could anybody explain (or give pointer to) what happens which region
+> > > > that is not page-aligned? In particular, the very first one:
+> > > >
+> > > >  BIOS-e820: 0000000000000000 - 000000000009fc00 (usable)
+> > > >  BIOS-e820: 000000000009fc00 - 00000000000a0000 (reserved)
+> > > >
+> > > > Will the kernel allocate partial page (how?) or will the kernel
+> > > > ignore last (first) incomplete page? In the former case how those
+> > > > incomplete pages can be detected?
+> > >
+> > > Well, on x86_64, if I understand e820_register_active_regions()
+> > > correctly, the partial pages won't be registered.
 > >
-> > OK, thanks.
-> >
-> > > Who is the regression-guy?
-> >
-> > Len, usually ;)    But I think you meant Michal, cc'ed here.
+> > It appears that for low memory kernel will ignore incomplete pages for
+> > sure. I hope it does the same for high memory - but for now I just throw
+> > this in and pray :) This also significantly simplifies patch.
 >
-> LOL, not this time. We have the responsible commit for 2.6.22-rc1 (Cc
-> added):
->
-> 3540af8ffddcdbc7573451ac0b5cd57a2eaf8af5 is first bad commit
-> commit 3540af8ffddcdbc7573451ac0b5cd57a2eaf8af5
-> Author: Alex Dubov <oakad@yahoo.com>
-> Date:   Thu Apr 12 16:59:15 2007 +1000
+> Well, can you please check if the appended modification of your patch sti=
+ll
+> works?
 >
 
-Subject    : Broken suspend on SMP with tifm
-References : http://lkml.org/lkml/2007/5/13/161
-Submitter  : Rafael J. Wysocki <rjw@sisk.pl>
-Status     : patch was suggested
+what is the state of this problem? It is still not fixed in 2.6.22-rc2 and=
+=20
+this patch no more applies as well (changes are trivial but I cannot test=20
+them because USB refuses to suspend on my system in this version :)
 
-Actually should be "a few patches was suggested"
+In previous versions patch worked just fine.
 
-Rafael, please point me the right patch.
+This is http://bugzilla.kernel.org/show_bug.cgi?id=3D7995 BTW.
 
->     tifm: replace per-adapter kthread with freezeable workqueue
+> Thanks,
+> Rafael
 >
->     Freezeable workqueue makes sure that adapter work items (device insertions
->     and removals) would be handled after the system is fully resumed. Previously
->     this was achieved by explicit freezing of the kthread.
 >
->     Signed-off-by: Alex Dubov <oakad@yahoo.com>
->     Signed-off-by: Pierre Ossman <drzeus@drzeus.cx>
+> ---
+>  arch/i386/kernel/e820.c  |   47
+> +++++++++++++++++++++++++++++++++++++++++++++++ arch/i386/kernel/setup.c =
+|=20
+>   1 +
+>  include/asm-i386/e820.h  |    1 +
+>  3 files changed, 49 insertions(+)
 >
-> I'm now seeing if avoiding the tifm stuff in -mm1 fixes the
-> immediately-resumes-after-str problem (unfortunately the commint doesn't
-> revert cleanly).
-> --
-> mattia
-> :wq!
+> Index: linux-2.6.21-rc2/arch/i386/kernel/e820.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux-2.6.21-rc2.orig/arch/i386/kernel/e820.c
+> +++ linux-2.6.21-rc2/arch/i386/kernel/e820.c
+> @@ -313,6 +313,53 @@ static int __init request_standard_resou
 >
+>  subsys_initcall(request_standard_resources);
+>
+> +/*
+> + * Mark pages corresponding to given pfn range as 'nosave'.
+> + */
+> +static void __init
+> +e820_mark_nosave_range(unsigned long start_pfn, unsigned long end_pfn)
+> +{
+> +	unsigned long pfn;
+> +
+> +	if (start_pfn >=3D end_pfn)
+> +		return;
+> +
+> +	printk("Nosave address range: %016Lx - %016Lx\n",
+> +				PFN_PHYS(start_pfn), PFN_PHYS(end_pfn));
+> +	for (pfn =3D start_pfn; pfn < end_pfn; pfn++)
+> +		if (pfn_valid(pfn))
+> +			SetPageNosave(pfn_to_page(pfn));
+> +}
+> +
+> +/*
+> + * Find the ranges of physical addresses that do not correspond to
+> + * e820 RAM areas and mark the corresponding pages as nosave for software
+> + * suspend and suspend to RAM.
+> + *
+> + * This function requires the e820 map to be sorted and without any
+> + * overlapping entries and assumes the first e820 area to be RAM.
+> + */
+> +void __init e820_mark_nosave_regions(void)
+> +{
+> +	int i;
+> +	unsigned long pfn;
+> +
+> +	pfn =3D PFN_DOWN(e820.map[0].addr + e820.map[0].size);
+> +	for (i =3D 1; i < e820.nr_map; i++) {
+> +		struct e820entry *ei =3D &e820.map[i];
+> +
+> +		if (pfn < PFN_UP(ei->addr))
+> +			e820_mark_nosave_range(pfn, PFN_UP(ei->addr));
+> +
+> +		pfn =3D PFN_DOWN(ei->addr + ei->size);
+> +		if (ei->type !=3D E820_RAM)
+> +			e820_mark_nosave_range(PFN_UP(ei->addr), pfn);
+> +
+> +		if (pfn >=3D max_low_pfn)
+> +			break;
+> +	}
+> +}
+> +
+>  void __init add_memory_region(unsigned long long start,
+>  			      unsigned long long size, int type)
+>  {
+> Index: linux-2.6.21-rc2/arch/i386/kernel/setup.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux-2.6.21-rc2.orig/arch/i386/kernel/setup.c
+> +++ linux-2.6.21-rc2/arch/i386/kernel/setup.c
+> @@ -648,6 +648,7 @@ void __init setup_arch(char **cmdline_p)
+>  #endif
+>
+>  	e820_register_memory();
+> +	e820_mark_nosave_regions();
+>
+>  #ifdef CONFIG_VT
+>  #if defined(CONFIG_VGA_CONSOLE)
+> Index: linux-2.6.21-rc2/include/asm-i386/e820.h
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux-2.6.21-rc2.orig/include/asm-i386/e820.h
+> +++ linux-2.6.21-rc2/include/asm-i386/e820.h
+> @@ -43,6 +43,7 @@ extern void register_bootmem_low_pages(u
+>  extern void e820_register_memory(void);
+>  extern void limit_regions(unsigned long long size);
+>  extern void print_memory_map(char *who);
+> +extern void e820_mark_nosave_regions(void);
+>
+>  #endif/*!__ASSEMBLY__*/
 
-Regards,
-Michal
 
--- 
-Michal K. K. Piotrowski
-Kernel Monkeys
-(http://kernel.wikidot.com/start)
+
+--nextPart1944328.AU5brYm0Fr
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
+
+iD8DBQBGTzveR6LMutpd94wRAsSWAJ9mIJFOtE8VNG4Yg1cqsR4rM5/5NACfQs1H
+eqb/zkVzcfiQucAQu4xO/s4=
+=3f70
+-----END PGP SIGNATURE-----
+
+--nextPart1944328.AU5brYm0Fr--
