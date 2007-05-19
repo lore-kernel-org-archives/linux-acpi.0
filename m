@@ -1,112 +1,75 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] Workaround for _PPC (BIOS cpufreq limitations)
-Date: Sat, 19 May 2007 14:41:57 -0500
-Message-ID: <1179603717.16465.71.camel@sublime.suse.de>
-References: <1179543568.16465.35.camel@sublime.suse.de>
-	 <200705190055.58626.lenb@kernel.org>
+Subject: Re: 2.6.22-rc1-mm1 [cannot change thermal trip points]
+Date: Sat, 19 May 2007 14:56:49 -0500
+Message-ID: <1179604609.16465.83.camel@sublime.suse.de>
+References: <20070515201914.16944e04.akpm@linux-foundation.org>
+	 <464B43BB.3070505@redhat.com> <20070517092318.GD3975@ucw.cz>
+	 <200705171517.14087.lenb@kernel.org>
 Reply-To: trenn@suse.de
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:58965 "EHLO mx2.suse.de"
+Received: from ns.suse.de ([195.135.220.2]:36724 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758243AbXEST4h (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 19 May 2007 15:56:37 -0400
-In-Reply-To: <200705190055.58626.lenb@kernel.org>
+	id S1758623AbXEST4r (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 19 May 2007 15:56:47 -0400
+In-Reply-To: <200705171517.14087.lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, cpufreq@lists.linux.org.uk
+Cc: Pavel Machek <pavel@ucw.cz>, Chuck Ebbert <cebbert@redhat.com>, len.brown@intel.com, Maciej Rutecki <maciej.rutecki@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, torvalds@linux-foundation.org
 
-On Sat, 2007-05-19 at 00:55 -0400, Len Brown wrote:
-> On Friday 18 May 2007 22:59, Thomas Renninger wrote:
-> > Len, can you apply this one, pls.
-> > 
-> > Workaround for _PPC (BIOS cpufreq limitations)
-> > 
-> > There have been fixes using _PPC, which seem to unhide a problem
-> > on HP nx6125 (double cpufreq switch freezes the machine for
-> > several seconds).
-> > This one should provide a workaround for the nx6125 and for
-> > possible other machines that show any weird _PPC behaviour.
+On Thu, 2007-05-17 at 15:17 -0400, Len Brown wrote:
+> On Thursday 17 May 2007 05:23, Pavel Machek wrote:
 > 
-> I don't understand what the failure is, and why this workaround
-> is effective.  Is this a clue here to a real bug
-> that requires a real fix, rather than a workaround?
-I am not sure what the real cause is, the machine hangs because
-CPU freq is limited and then all freqs are allowed again at the same
-time.
-
-Also this is a SLES bug, not sure whether this also happens in mainline.
-(I mentioned that so if someone else with this machine experience that
-problem he has a pointer).
-The reason why I think this should go into mainline is because there
-were
-three patches concerning _PPC in the last months:
-  - one from Bruno Ducrot (which I expect unhided the other problems)
-  - one from Ingo Molnar (Do not read _PPC on startup - fixes some
-ThinkPads)
-  - one from me to get highest freq again if booted on battery/limited
-freq.
-
-I expect more machines have problems here (or will have in future) and
-this is a nice
-and easy possibility to workaround such problems, without loosing
-frequency
-scaling functionality.
-
-    Thomas
+> > >     ACPI: thermal trip points are read-only
+> > 
+> > What was the rationale? Can we get this one reverted? 
+> > 
+> > Some machines (HP omnibook xe3) have broken trip points -- too high --
+> > so machine will overheat and trigger hw shutdown before starting
+> > passive cooling.
+> > 
+> > That's really broken, and write to trip points is reasonable way to
+> > 'fix' that. (I'd understand if you only ever let trip points to
+> > decrease... but otoh root should be able to shoot himself....)
 > 
-> -Len
+> No, writing trip-points is neither a fix, nor it is reasonable.
+> It is a workaround at best, and it is a dangerous and mis-leading hack.
+Yes it is a workaround for critical ACPI bugs like that or similar:
+https://bugs.launchpad.net/ubuntu/+source/linux-source-2.6.17/+bug/22336
+
+It's also convenient to e.g. lower passive trip point to avoid fan
+noise.
+
+Some people are used to it, I already wanted to write a little userspace
+prog to use them as it is really easy to fake cooling_mode (trip points
+are modified by BIOS) and eliminate fan noise and other things by e.g.
+reducing passsive or whatever trip point.
+
+This is at least a major sysfs interface change, has this been discussed
+somewhere before or declared deprecated?
+
+It's there for a long time, why is this "a dangerous and mis-leading
+hack." now?
+
+I'd suggest to revert this and I can come with something like "only
+allow lower values
+than BIOS provides" patch if the current implementation is considered
+dangerous.
+
+      Thomas
+
+> The OS has no capability to actually change the ACPI trip points
+> that are used by the BIOS.  Changing the OS copy of them
+> to make the user think that trip events will actually
+> happen when the temperature crosses the OS copy is crazy.
 > 
-> > Signed-off-by: Thomas Renninger <trenn@suse.de>
-> > 
-> > ---
-> >  drivers/acpi/processor_perflib.c |   16 +++++++++++++++-
-> >  1 file changed, 15 insertions(+), 1 deletion(-)
-> > 
-> > Index: linux-2.6.21/drivers/acpi/processor_perflib.c
-> > ===================================================================
-> > --- linux-2.6.21.orig/drivers/acpi/processor_perflib.c
-> > +++ linux-2.6.21/drivers/acpi/processor_perflib.c
-> > @@ -60,6 +60,11 @@ static DEFINE_MUTEX(performance_mutex);
-> >   * policy is adjusted accordingly.
-> >   */
-> >  
-> > +static unsigned int ignore_ppc = 0;
-> > +module_param(ignore_ppc, uint, 0644);
-> > +MODULE_PARM_DESC(ignore_ppc, "If the frequency of your machine gets wrongly" \
-> > +		 "limited by BIOS, this should help");
-> > +
-> >  #define PPC_REGISTERED   1
-> >  #define PPC_IN_USE       2
-> >  
-> > @@ -72,6 +77,9 @@ static int acpi_processor_ppc_notifier(s
-> >  	struct acpi_processor *pr;
-> >  	unsigned int ppc = 0;
-> >  
-> > +	if (ignore_ppc)
-> > +		return 0;
-> > +
-> >  	mutex_lock(&performance_mutex);
-> >  
-> >  	if (event != CPUFREQ_INCOMPATIBLE)
-> > @@ -130,7 +138,13 @@ static int acpi_processor_get_platform_l
-> >  
-> >  int acpi_processor_ppc_has_changed(struct acpi_processor *pr)
-> >  {
-> > -	int ret = acpi_processor_get_platform_limit(pr);
-> > +	int ret;
-> > +
-> > +	if (ignore_ppc)
-> > +		return 0;
-> > +
-> > +	ret = acpi_processor_get_platform_limit(pr);
-> > +
-> >  	if (ret < 0)
-> >  		return (ret);
-> >  	else
-> > 
-> > 
+> If there are systems with broken thermals and the
+> ACPI thermal control needs and over-ride to turn
+> on the fan, then that is fine -- but using
+> fake trip-points and giving the user the impression
+> that they are real is not viable.
+
 
