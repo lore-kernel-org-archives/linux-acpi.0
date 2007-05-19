@@ -1,34 +1,82 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: 2.6.21-mm2: ACPI exception on resume
-Date: Sat, 19 May 2007 20:24:16 +0200
-Message-ID: <200705192024.16812.rjw@sisk.pl>
-References: <20070519165738.GK11115@waste.org>
+Subject: Re: 2.6.22-rc1 regression: tifm prevents suspending [was: Re: [2.6.22-rc1-mm1] vaio laptop (SZ72B) immediately resumes after STR]
+Date: Sat, 19 May 2007 20:29:36 +0200
+Message-ID: <200705192029.37436.rjw@sisk.pl>
+References: <20070518071523.GA3195@inferi.kami.home> <20070519151110.GA3393@inferi.kami.home> <6bffcb0e0705191017n1d1e6eb7k1370d5ce5cf17fb9@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:40161 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758208AbXESSTH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 19 May 2007 14:19:07 -0400
-In-Reply-To: <20070519165738.GK11115@waste.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1763919AbXESSYW@vger.kernel.org>
+In-Reply-To: <6bffcb0e0705191017n1d1e6eb7k1370d5ce5cf17fb9@mail.gmail.com>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: Mattia Dongili <malattia@linux.it>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org, Alex Dubov <oakad@yahoo.com>, Pierre Ossman <drzeus@drzeus.cx>
 List-Id: linux-acpi@vger.kernel.org
-To: Matt Mackall <mpm@selenic.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
 
-Hi,
+On Saturday, 19 May 2007 19:17, Michal Piotrowski wrote:
+> Hi,
+> 
+> On 19/05/07, Mattia Dongili <malattia@linux.it> wrote:
+> > On Sat, May 19, 2007 at 12:04:13AM -0700, Andrew Morton wrote:
+> > > On Sat, 19 May 2007 15:48:29 +0900 Mattia Dongili <malattia@linux.it> wrote:
+> > >
+> > > > On Fri, May 18, 2007 at 12:22:40AM -0700, Andrew Morton wrote:
+> > > > > On Fri, 18 May 2007 16:15:24 +0900 Mattia Dongili <malattia@linux.it> wrote:
+> > > > >
+> > > > > > Hello,
+> > > > > >
+> > > > > > After finally catching fw-{ohci,core} to be problematic during resume,
+> > > > > > I'm now experiencing an immediate resume after suspending.
+> > > > > >
+> > > > > > 2.6.21-rc7-mm* didn't even suspend, my last known suspend-and-resuming
+> > > > > > kernel was 2.6.21-rc5-mm3 (I know one other vaio SZ user could STR with
+> > > > > > 2.6.21-rc6-mm* after the cpuidle fixes).
+> > > > > >
+> > > > > > my .config is: http://oioio.altervista.org/linux/config-2.6.22-rc1-mm1-1
+> > > > > > and a str cycle with PM_DEBUG=y:
+> > > > > > http://oioio.altervista.org/linux/dmesg-SRT-immediately-resumes.txt
+> > > > ...
+> > > > > > Any idea where to start from? (bisecting is ok, but it'll take some
+> > > > > > time...)
+> > > > >
+> > > > > Bisecting isn't that bad ;) I'd pick git-acpi.patch as the starting point.
+> > > >
+> > > > ok, git-acpi.patch is not the bad boy :)
+> > > > Anyway what we have is a regression in 2.6.22-rc1 since the laptop can't
+> > > > suspend (it sits on the "Stopping tasks" console screen) while 2.6.21
+> > > > can.
+> > > > I'm now bisecting this, will come to -mm1 later when done with this one.
+> > >
+> > > OK, thanks.
+> > >
+> > > > Who is the regression-guy?
+> > >
+> > > Len, usually ;)    But I think you meant Michal, cc'ed here.
+> >
+> > LOL, not this time. We have the responsible commit for 2.6.22-rc1 (Cc
+> > added):
+> >
+> > 3540af8ffddcdbc7573451ac0b5cd57a2eaf8af5 is first bad commit
+> > commit 3540af8ffddcdbc7573451ac0b5cd57a2eaf8af5
+> > Author: Alex Dubov <oakad@yahoo.com>
+> > Date:   Thu Apr 12 16:59:15 2007 +1000
+> >
+> 
+> Subject    : Broken suspend on SMP with tifm
+> References : http://lkml.org/lkml/2007/5/13/161
+> Submitter  : Rafael J. Wysocki <rjw@sisk.pl>
+> Status     : patch was suggested
+> 
+> Actually should be "a few patches was suggested"
+> 
+> Rafael, please point me the right patch.
 
-On Saturday, 19 May 2007 18:57, Matt Mackall wrote:
-> Starting with 2.6.21-mm2, I'm seeing occassional failures to resume
-> from suspend-to-ram on my Thinkpad R51. The screen will flash as it
-> usually does, then go black and the machine will become totally
-> unresponsive, even to holding down the power button for 30+ seconds.
-> But the hard drive light will occassionally flash, so the machine is
-> clearly not completely dead at this point.
+Fixed in the mainline, by
 
-Does the mainline (as of 2.6.22-rc2) do this?
+commit e3dfd2964ea86ae65f511b10d62ea54d46db3708
+make freezeable workqueues singlethread
 
+Greetings,
 Rafael
