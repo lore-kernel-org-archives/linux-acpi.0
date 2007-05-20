@@ -1,194 +1,171 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [2.6.22-rc1-mm1] vaio laptop (SZ72B) immediately resumes after STR
-Date: Sun, 20 May 2007 11:38:04 -0700
-Message-ID: <200705201138.05146.david-b@pacbell.net>
-References: <20070518071523.GA3195@inferi.kami.home> <20070519000413.75badb6f.akpm@linux-foundation.org> <20070520061408.GA3325@inferi.kami.home>
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH 1/2] ACPI: extend acpi_osi= boot option
+Date: Sun, 20 May 2007 16:53:52 -0400
+Message-ID: <200705201653.52199.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp108.sbc.mail.mud.yahoo.com ([68.142.198.207]:28737 "HELO
-	smtp108.sbc.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1757842AbXETSiP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 20 May 2007 14:38:15 -0400
-In-Reply-To: <20070520061408.GA3325@inferi.kami.home>
+Received: from hera.kernel.org ([140.211.167.34]:60595 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756748AbXETUzJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 20 May 2007 16:55:09 -0400
+Received: from d975xbx2 (c-65-96-213-102.hsd1.ma.comcast.net [65.96.213.102])
+	(authenticated bits=0)
+	by hera.kernel.org (8.13.8/8.13.7) with ESMTP id l4KKrvXL010391
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-acpi@vger.kernel.org>; Sun, 20 May 2007 20:55:07 GMT
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Greg KH <greg@kroah.com>
+To: linux-acpi@vger.kernel.org
 
-On Saturday 19 May 2007, Mattia Dongili wrote:
-> On Sat, May 19, 2007 at 12:04:13AM -0700, Andrew Morton wrote:
-> > On Sat, 19 May 2007 15:48:29 +0900 Mattia Dongili <malattia@linux.it> wrote:
-> > 
-> > > On Fri, May 18, 2007 at 12:22:40AM -0700, Andrew Morton wrote:
-> > > > On Fri, 18 May 2007 16:15:24 +0900 Mattia Dongili <malattia@linux.it> wrote:
-> > > > 
-> > > > > Hello,
-> > > > > 
-> > > > > After finally catching fw-{ohci,core} to be problematic during resume,
-> > > > > I'm now experiencing an immediate resume after suspending.
-> > > > > 
-> > > > > 2.6.21-rc7-mm* didn't even suspend, my last known suspend-and-resuming
-> > > > > kernel was 2.6.21-rc5-mm3 (I know one other vaio SZ user could STR with
-> > > > > 2.6.21-rc6-mm* after the cpuidle fixes).
-> > > > > 
-> > > > > my .config is: http://oioio.altervista.org/linux/config-2.6.22-rc1-mm1-1
-> > > > > and a str cycle with PM_DEBUG=y:
-> > > > > http://oioio.altervista.org/linux/dmesg-SRT-immediately-resumes.txt
+Previously, "acpi_osi=" would completely disable the OS Interface strings
+advertised by Linux to the BIOS.  This is unchanged, and now
+acpi_osi="string" adds the interface string, and
+acpi_osi="!string" invalidates the pre-defined interface string
 
-Can you also provide /proc/acpi/wakeup and /proc/bus/usb/devices?
-Plus "ethool eth0" and "ethtool -i eth0"?
+eg. acpi_osi="!Windows 2006"
+will disable our claim to be compatible with Vista.
 
-And, for a bit more info, the output of the appended script.
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ Documentation/kernel-parameters.txt |    5 ++++-
+ drivers/acpi/osl.c                  |   25 ++++++++++++++++---------
+ drivers/acpi/utilities/uteval.c     |   27 ++++++++++++++++++++++++++-
+ include/acpi/acpiosxf.h             |    1 +
+ 4 files changed, 47 insertions(+), 11 deletions(-)
 
-(That's all *with* the patch listed below -- not reverted.)
-
-
-> > > ...
-> > > 
-> 
-> but very very close:
-> acpi-driver-model-flags-and-platform_enable_wake.patch
-
-Which only affects PCI devices at this time, FWIW ...
-
-This is a symptom of a device or driver misbehaving.  You can
-work around that; update the relevant /sys/devices/.../power/wakeup
-value(s) to "disabled", pending a driver bugfix (or workaround).
-
-In fact, you could turn them all off (see appended diagnostic
-script) then turn them on one at a time to highlight problems
-
-Reverting that patch just papers over the problem...
-
-
-My suspicion, based on the dmesg and seeing what drivers actually
-try to enable wakeup, would be the 'sky2' driver.  The other two
-obvious candidates are EHCI (which behaves for me on non-Intel
-hardware) and UHCI ... but USB has had a fair amount of testing
-in terms of wakeup mechanisms, so that seems a bit less likely
-to me (assuming no hardware bugs).
-
-However, since after reverting the patch above you still saw
-other problems (immediate re-suspend) I'm suspecting this isn't
-a single simple problem you're finding.
-
-- Dave
-
-
-==========	CUT HERE
-#!/bin/bash
-
-# show the wakeup-capable devices and what's enabled/disabled
-
-# class_label *:* ==> $type
-class_label ()
-{
-	case $1 in
-	# recognize common types of wakeup-capable devices
-	i2c-dev:*)	type="smbus     "; return 0;;
-	input:*)	type="input     "; return 0;;
-	mmc_host:*)	type="mmc_host  "; return 0;;
-	net:eth*)	type="lan       "; return 0;;
-	net:*)		type="net       "; return 0;;
-	pcmcia_socket:*)type="pcmcia    "; return 0;;
-	rtc:*)		type="rtc       "; return 0;;
-	sound:*)	type="modem     "; return 0;;
-	tty:*)		type="tty       "; return 0;;
-	usb_host:*)	type="usb_host  "; return 0;;
-	esac
-	return 1
-}
-
-# interface_label $PATH ==> $type
-interface_label ()
-{
-	for F in $(cd $1 >/dev/null 2>&1 ; echo *:*)
-	do
-		class_label $F && return
-	done
-}
-
-# devtype $PATH ==> $type
-devtype ()
-{
-	local F T
-
-	# fixed length, currently ten spaces
-	type=""
-
-	for F in $(cd $1 >/dev/null 2>&1 ; echo *:*)
-	do
-		if [ ! -d "$1/$F" ]
-		then
-			break;
-		fi
-
-		# is this a usb interface?
-		if [ -f $1/$F/bInterfaceClass ]
-		then
-			interface_label $1/$F && return
-		fi
-
-		case $F in
-		# use interface's label if possible, else generic
-		usb_device:*)
-			read T < $1/maxchild
-			if [ 0 -lt $T ]
-			then
-				type="hub       "
-				return
-			fi
-			type="(usb)     "
-			continue;;
-		*:*)	class_label $F && return ;;
-		esac
-
-	done
-
-	if [ "$type" = "" ]
-	then
-		for T in $(cd $1 >/dev/null 2>&1 ; echo fw-host*/ieee1394_host:*)
-		do
-			if [ ! -L "$1/$T" ]
-			then
-				break;
-			fi
-			type="firewire  "
-			return
-		done
-	fi
-
-	if [ "$type" = "" ]
-		then
-		type="          "
-	fi
-}
-
-cd /sys/devices
-for F in $(find * -name 'wakeup')
-do
-	# F=.../power/wakeup
-	read value < $F
-	if [ "$value" = "" ]
-	then
-		continue
-	fi
-
-	# F=...
-	F=$(dirname $(dirname $F))
-	devtype $F
-
-	# for each entry that actually supports wakeup, one line with:
-	#  - device type (if recognized)
-	#  - wake on/OFF
-	#  - /sys/devices/... path
-	case "$value" in
-	"disabled")	echo "$type OFF $F" ;;
-	"enabled")	echo "$type on  $F" ;;
-	esac
-done
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 09220a1..1dd4fc1 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -170,7 +170,10 @@ and is between 256 and 4096 characters. It is defined in the file
+ 	acpi_os_name=	[HW,ACPI] Tell ACPI BIOS the name of the OS
+ 			Format: To spoof as Windows 98: ="Microsoft Windows"
+ 
+-	acpi_osi=	[HW,ACPI] empty param disables _OSI
++	acpi_osi=	[HW,ACPI] Modify list of supported OS interface strings
++			acpi_osi="string1"	# add string1 -- only one string
++			acpi_osi="!string2"	# remove built-in string2
++			acpi_osi=		# disable all strings
+ 
+ 	acpi_serialize	[HW,ACPI] force serialization of AML methods
+ 
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index b998340..f4760cf 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -73,6 +73,9 @@ static void *acpi_irq_context;
+ static struct workqueue_struct *kacpid_wq;
+ static struct workqueue_struct *kacpi_notify_wq;
+ 
++#define	OSI_STRING_LENGTH_MAX 64	/* arbitrary */
++static char osi_additional_string[OSI_STRING_LENGTH_MAX];
++
+ static void __init acpi_request_region (struct acpi_generic_address *addr,
+ 	unsigned int length, char *desc)
+ {
+@@ -961,19 +964,23 @@ static int __init acpi_os_name_setup(char *str)
+ __setup("acpi_os_name=", acpi_os_name_setup);
+ 
+ /*
+- * _OSI control
++ * Modify the list of "OS Interfaces" reported to BIOS via _OSI
++ *
+  * empty string disables _OSI
+- * TBD additional string adds to _OSI
++ * string starting with '!' disables that string
++ * otherwise string is added to list, augmenting built-in strings
+  */
+ static int __init acpi_osi_setup(char *str)
+ {
+ 	if (str == NULL || *str == '\0') {
+ 		printk(KERN_INFO PREFIX "_OSI method disabled\n");
+ 		acpi_gbl_create_osi_method = FALSE;
+-	} else {
+-		/* TBD */
+-		printk(KERN_ERR PREFIX "_OSI additional string ignored -- %s\n",
+-		       str);
++	} else if (*str == '!') {
++		if (acpi_osi_invalidate(++str) == AE_OK)
++			printk(KERN_INFO PREFIX "Deleted _OSI(%s)\n", str);
++	} else if (*osi_additional_string == '\0') {
++		strncpy(osi_additional_string, str, OSI_STRING_LENGTH_MAX);
++		printk(KERN_INFO PREFIX "Added _OSI(%s)\n", str);
+ 	}
+ 
+ 	return 1;
+@@ -1143,11 +1150,11 @@ acpi_status acpi_os_release_object(acpi_cache_t * cache, void *object)
+ acpi_status
+ acpi_os_validate_interface (char *interface)
+ {
+-
+-    return AE_SUPPORT;
++	if (!strncmp(osi_additional_string, interface, OSI_STRING_LENGTH_MAX))
++		return AE_OK;
++	return AE_SUPPORT;
+ }
+ 
+-
+ /******************************************************************************
+  *
+  * FUNCTION:    acpi_os_validate_address
+diff --git a/drivers/acpi/utilities/uteval.c b/drivers/acpi/utilities/uteval.c
+index 13d5879..a10120a 100644
+--- a/drivers/acpi/utilities/uteval.c
++++ b/drivers/acpi/utilities/uteval.c
+@@ -59,7 +59,7 @@ acpi_ut_translate_one_cid(union acpi_operand_object *obj_desc,
+ /*
+  * Strings supported by the _OSI predefined (internal) method.
+  */
+-static const char *acpi_interfaces_supported[] = {
++static char *acpi_interfaces_supported[] = {
+ 	/* Operating System Vendor Strings */
+ 
+ 	"Linux",
+@@ -158,6 +158,31 @@ acpi_status acpi_ut_osi_implementation(struct acpi_walk_state *walk_state)
+ 
+ /*******************************************************************************
+  *
++ * FUNCTION:    acpi_osi_invalidate
++ *
++ * PARAMETERS:  interface_string
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: invalidate string in pre-defiend _OSI string list
++ *
++ ******************************************************************************/
++
++acpi_status acpi_osi_invalidate(char *interface)
++{
++	int i;
++
++	for (i = 0; i < ACPI_ARRAY_LENGTH(acpi_interfaces_supported); i++) {
++		if (!ACPI_STRCMP(interface, acpi_interfaces_supported[i])) {
++			*acpi_interfaces_supported[i] = '\0';
++			return AE_OK;
++		}
++	}
++	return AE_NOT_FOUND;
++}
++
++/*******************************************************************************
++ *
+  * FUNCTION:    acpi_ut_evaluate_object
+  *
+  * PARAMETERS:  prefix_node         - Starting node
+diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
+index 5e07db0..de26ee1 100644
+--- a/include/acpi/acpiosxf.h
++++ b/include/acpi/acpiosxf.h
+@@ -236,6 +236,7 @@ acpi_os_derive_pci_id(acpi_handle rhandle,
+  * Miscellaneous
+  */
+ acpi_status acpi_os_validate_interface(char *interface);
++acpi_status acpi_osi_invalidate(char* interface);
+ 
+ acpi_status
+ acpi_os_validate_address(u8 space_id,
