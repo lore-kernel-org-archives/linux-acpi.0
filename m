@@ -1,41 +1,41 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Subject: Re: 2.6.21-mm2: ACPI exception on resume
-Date: Sun, 20 May 2007 01:05:44 +0200
-Message-ID: <200705200105.44576.rjw@sisk.pl>
-References: <20070519165738.GK11115@waste.org> <200705192024.16812.rjw@sisk.pl> <20070519224028.GO11115@waste.org>
+Date: Sun, 20 May 2007 00:52:59 -0300
+Message-ID: <20070520035259.GA13224@khazad-dum.debian.net>
+References: <20070519165738.GK11115@waste.org> <20070519204504.GA24704@khazad-dum.debian.net> <20070519223843.GN11115@waste.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:41066 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760096AbXESXAd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 19 May 2007 19:00:33 -0400
-In-Reply-To: <20070519224028.GO11115@waste.org>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25]:44875 "EHLO
+	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755641AbXETDxG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 19 May 2007 23:53:06 -0400
 Content-Disposition: inline
+In-Reply-To: <20070519223843.GN11115@waste.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Matt Mackall <mpm@selenic.com>
 Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
 
-On Sunday, 20 May 2007 00:40, Matt Mackall wrote:
-> On Sat, May 19, 2007 at 08:24:16PM +0200, Rafael J. Wysocki wrote:
-> > Hi,
-> > 
-> > On Saturday, 19 May 2007 18:57, Matt Mackall wrote:
-> > > Starting with 2.6.21-mm2, I'm seeing occassional failures to resume
-> > > from suspend-to-ram on my Thinkpad R51. The screen will flash as it
+On Sat, 19 May 2007, Matt Mackall wrote:
+> On Sat, May 19, 2007 at 05:45:04PM -0300, Henrique de Moraes Holschuh wrote:
+> > On Sat, 19 May 2007, Matt Mackall wrote:
 > > > usually does, then go black and the machine will become totally
 > > > unresponsive, even to holding down the power button for 30+ seconds.
-> > > But the hard drive light will occassionally flash, so the machine is
-> > > clearly not completely dead at this point.
 > > 
-> > Does the mainline (as of 2.6.22-rc2) do this?
+> > Now, that means either the BIOS or EC have been thrown out of whack,
+> > otherwise one of the two would have force-powered-off the machine a bit
+> > after 10s.
+> > 
+> > Are you using the latest BIOS and EC firmware available?
 > 
-> Dunno. I've triggered it twice since -mm2 was released, never before
-> that point. -mm1 was fine.
+> No, I've been running the same BIOS without issue for two years.
 
-Can you please test 2.6.22-rc2?
+Version of BIOS and EC firmware, please?  It is in the dmidecode output.
 
-Rafael
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
