@@ -1,171 +1,167 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 1/2] ACPI: extend acpi_osi= boot option
-Date: Sun, 20 May 2007 16:53:52 -0400
-Message-ID: <200705201653.52199.lenb@kernel.org>
+Subject: [PATCH 2/2] ACPI: disable _OSI(Linux) by default
+Date: Sun, 20 May 2007 16:57:49 -0400
+Message-ID: <200705201657.49058.lenb@kernel.org>
+References: <200705201653.52199.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:60595 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:53288 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756748AbXETUzJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 20 May 2007 16:55:09 -0400
+	id S1756325AbXETU7H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 20 May 2007 16:59:07 -0400
 Received: from d975xbx2 (c-65-96-213-102.hsd1.ma.comcast.net [65.96.213.102])
 	(authenticated bits=0)
-	by hera.kernel.org (8.13.8/8.13.7) with ESMTP id l4KKrvXL010391
+	by hera.kernel.org (8.13.8/8.13.7) with ESMTP id l4KKvsu3011403
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Sun, 20 May 2007 20:55:07 GMT
+	for <linux-acpi@vger.kernel.org>; Sun, 20 May 2007 20:59:04 GMT
+In-Reply-To: <200705201653.52199.lenb@kernel.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 
-Previously, "acpi_osi=" would completely disable the OS Interface strings
-advertised by Linux to the BIOS.  This is unchanged, and now
-acpi_osi="string" adds the interface string, and
-acpi_osi="!string" invalidates the pre-defined interface string
+_OSI("Linux") is like _OS("Linux"), it is ill-defined and
+virtually no BIOS vendors test interaction with it.
+As a result, it can do more damage than good because
+it causes the BIOS to follow un-tested paths.
 
-eg. acpi_osi="!Windows 2006"
-will disable our claim to be compatible with Vista.
+Recently, several machines have turned up that erroneously
+test this string in a way which causes them to not test other
+compatibility strings, including the ZI9 and Toshiba.
+So it appears that this bad code has made it into
+a BIOS vendor's reference BIOS.
+
+Linux has no choice but to stop advertising compatibility
+with _OSI string "Linux" - as there are an unbounded
+number of possible incompatibilities going forward.
+
+But some BIOSes have already shipped which do use it
+for things like conditionally re-enabling video on resume
+from S3.  (They should have done it unconditionally)
+To avoid breaking these boxes, add a DMI list, and
+squawk when we see others which may need to be on the list.
+
+http://bugzilla.kernel.org/show_bug.cgi?id=7787
 
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/kernel-parameters.txt |    5 ++++-
- drivers/acpi/osl.c                  |   25 ++++++++++++++++---------
- drivers/acpi/utilities/uteval.c     |   27 ++++++++++++++++++++++++++-
- include/acpi/acpiosxf.h             |    1 +
- 4 files changed, 47 insertions(+), 11 deletions(-)
+ osl.c              |   49 +++++++++++++++++++++++++++++++++++++++++++++++++
+ utilities/uteval.c |    1 -
+ 2 files changed, 49 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 09220a1..1dd4fc1 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -170,7 +170,10 @@ and is between 256 and 4096 characters. It is defined in the file
- 	acpi_os_name=	[HW,ACPI] Tell ACPI BIOS the name of the OS
- 			Format: To spoof as Windows 98: ="Microsoft Windows"
+Index: linus/drivers/acpi/osl.c
+===================================================================
+--- linus.orig/drivers/acpi/osl.c
++++ linus/drivers/acpi/osl.c
+@@ -33,6 +33,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/kmod.h>
+ #include <linux/delay.h>
++#include <linux/dmi.h>
+ #include <linux/workqueue.h>
+ #include <linux/nmi.h>
+ #include <linux/acpi.h>
+@@ -75,6 +76,11 @@ static struct workqueue_struct *kacpi_no
  
--	acpi_osi=	[HW,ACPI] empty param disables _OSI
-+	acpi_osi=	[HW,ACPI] Modify list of supported OS interface strings
-+			acpi_osi="string1"	# add string1 -- only one string
-+			acpi_osi="!string2"	# remove built-in string2
-+			acpi_osi=		# disable all strings
- 
- 	acpi_serialize	[HW,ACPI] force serialization of AML methods
- 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index b998340..f4760cf 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -73,6 +73,9 @@ static void *acpi_irq_context;
- static struct workqueue_struct *kacpid_wq;
- static struct workqueue_struct *kacpi_notify_wq;
- 
-+#define	OSI_STRING_LENGTH_MAX 64	/* arbitrary */
-+static char osi_additional_string[OSI_STRING_LENGTH_MAX];
+ #define	OSI_STRING_LENGTH_MAX 64	/* arbitrary */
+ static char osi_additional_string[OSI_STRING_LENGTH_MAX];
++int osi_linux;	/* set to match on _OSI(Linux)*/
 +
++#ifdef CONFIG_DMI
++static struct dmi_system_id __initdata acpi_osl_dmi_table[];
++#endif
+ 
  static void __init acpi_request_region (struct acpi_generic_address *addr,
  	unsigned int length, char *desc)
- {
-@@ -961,19 +964,23 @@ static int __init acpi_os_name_setup(char *str)
- __setup("acpi_os_name=", acpi_os_name_setup);
+@@ -126,6 +132,7 @@ device_initcall(acpi_reserve_resources);
  
- /*
-- * _OSI control
-+ * Modify the list of "OS Interfaces" reported to BIOS via _OSI
-+ *
-  * empty string disables _OSI
-- * TBD additional string adds to _OSI
-+ * string starting with '!' disables that string
-+ * otherwise string is added to list, augmenting built-in strings
-  */
- static int __init acpi_osi_setup(char *str)
+ acpi_status acpi_os_initialize(void)
  {
- 	if (str == NULL || *str == '\0') {
- 		printk(KERN_INFO PREFIX "_OSI method disabled\n");
- 		acpi_gbl_create_osi_method = FALSE;
--	} else {
--		/* TBD */
--		printk(KERN_ERR PREFIX "_OSI additional string ignored -- %s\n",
--		       str);
-+	} else if (*str == '!') {
-+		if (acpi_osi_invalidate(++str) == AE_OK)
-+			printk(KERN_INFO PREFIX "Deleted _OSI(%s)\n", str);
-+	} else if (*osi_additional_string == '\0') {
-+		strncpy(osi_additional_string, str, OSI_STRING_LENGTH_MAX);
-+		printk(KERN_INFO PREFIX "Added _OSI(%s)\n", str);
- 	}
- 
- 	return 1;
-@@ -1143,11 +1150,11 @@ acpi_status acpi_os_release_object(acpi_cache_t * cache, void *object)
- acpi_status
- acpi_os_validate_interface (char *interface)
- {
--
--    return AE_SUPPORT;
-+	if (!strncmp(osi_additional_string, interface, OSI_STRING_LENGTH_MAX))
-+		return AE_OK;
-+	return AE_SUPPORT;
++	dmi_check_system(acpi_osl_dmi_table);
+ 	return AE_OK;
  }
  
--
- /******************************************************************************
-  *
-  * FUNCTION:    acpi_os_validate_address
-diff --git a/drivers/acpi/utilities/uteval.c b/drivers/acpi/utilities/uteval.c
-index 13d5879..a10120a 100644
---- a/drivers/acpi/utilities/uteval.c
-+++ b/drivers/acpi/utilities/uteval.c
-@@ -59,7 +59,7 @@ acpi_ut_translate_one_cid(union acpi_operand_object *obj_desc,
- /*
-  * Strings supported by the _OSI predefined (internal) method.
-  */
--static const char *acpi_interfaces_supported[] = {
-+static char *acpi_interfaces_supported[] = {
- 	/* Operating System Vendor Strings */
+@@ -963,6 +970,12 @@ static int __init acpi_os_name_setup(cha
  
- 	"Linux",
-@@ -158,6 +158,31 @@ acpi_status acpi_ut_osi_implementation(struct acpi_walk_state *walk_state)
+ __setup("acpi_os_name=", acpi_os_name_setup);
  
- /*******************************************************************************
-  *
-+ * FUNCTION:    acpi_osi_invalidate
-+ *
-+ * PARAMETERS:  interface_string
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: invalidate string in pre-defiend _OSI string list
-+ *
-+ ******************************************************************************/
-+
-+acpi_status acpi_osi_invalidate(char *interface)
-+{
-+	int i;
-+
-+	for (i = 0; i < ACPI_ARRAY_LENGTH(acpi_interfaces_supported); i++) {
-+		if (!ACPI_STRCMP(interface, acpi_interfaces_supported[i])) {
-+			*acpi_interfaces_supported[i] = '\0';
-+			return AE_OK;
-+		}
-+	}
-+	return AE_NOT_FOUND;
++static void enable_osi_linux(void) {
++	osi_linux = 1;
++	printk(KERN_INFO PREFIX "Enabled _OSI(Linux)\n");
++	return;
 +}
 +
-+/*******************************************************************************
-+ *
-  * FUNCTION:    acpi_ut_evaluate_object
+ /*
+  * Modify the list of "OS Interfaces" reported to BIOS via _OSI
   *
-  * PARAMETERS:  prefix_node         - Starting node
-diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
-index 5e07db0..de26ee1 100644
---- a/include/acpi/acpiosxf.h
-+++ b/include/acpi/acpiosxf.h
-@@ -236,6 +236,7 @@ acpi_os_derive_pci_id(acpi_handle rhandle,
-  * Miscellaneous
-  */
- acpi_status acpi_os_validate_interface(char *interface);
-+acpi_status acpi_osi_invalidate(char* interface);
+@@ -978,6 +991,8 @@ static int __init acpi_osi_setup(char *s
+ 	} else if (*str == '!') {
+ 		if (acpi_osi_invalidate(++str) == AE_OK)
+ 			printk(KERN_INFO PREFIX "Deleted _OSI(%s)\n", str);
++	} else if (!strcmp("Linux", str)) {
++		enable_osi_linux();
+ 	} else if (*osi_additional_string == '\0') {
+ 		strncpy(osi_additional_string, str, OSI_STRING_LENGTH_MAX);
+ 		printk(KERN_INFO PREFIX "Added _OSI(%s)\n", str);
+@@ -1152,6 +1167,16 @@ acpi_os_validate_interface (char *interf
+ {
+ 	if (!strncmp(osi_additional_string, interface, OSI_STRING_LENGTH_MAX))
+ 		return AE_OK;
++	if (!strcmp("Linux", interface)) {
++		if(osi_linux)
++			return AE_OK;
++		else
++			printk(KERN_WARNING PREFIX
++				"System is requesting _OSI(Linux)\n");
++			printk(KERN_WARNING PREFIX
++				"If \"acpi_osi=Linux\" helps, send dmidecode "
++				"to linux-acpi@vger.kernel.org\n");
++	}
+ 	return AE_SUPPORT;
+ }
  
- acpi_status
- acpi_os_validate_address(u8 space_id,
+@@ -1181,5 +1206,29 @@ acpi_os_validate_address (
+     return AE_OK;
+ }
+ 
++#ifdef CONFIG_DMI
++static int __init dmi_osi_linux(struct dmi_system_id *d)
++{
++	printk(KERN_NOTICE "%s detected: requires _OSI(Linux)\n",
++	       d->ident);
++	enable_osi_linux();
++	return 0;
++}
++
++static struct dmi_system_id __initdata acpi_osl_dmi_table[] = {
++	/*
++	 * Boxes that need _OSI(Linux)
++	 */
++	{
++	 .callback = dmi_osi_linux,
++	 .ident = "Intel Napa CRB",
++	 .matches = {
++		     DMI_MATCH(DMI_BOARD_VENDOR, "Intel Corporation"),
++		     DMI_MATCH(DMI_BOARD_NAME, "MPAD-MSAE Customer Reference Boards"),
++		     },
++	 },
++	{}
++};
++#endif /* CONFIG_DMI */
+ 
+ #endif
+Index: linus/drivers/acpi/utilities/uteval.c
+===================================================================
+--- linus.orig/drivers/acpi/utilities/uteval.c
++++ linus/drivers/acpi/utilities/uteval.c
+@@ -62,7 +62,6 @@ acpi_ut_translate_one_cid(union acpi_ope
+ static char *acpi_interfaces_supported[] = {
+ 	/* Operating System Vendor Strings */
+ 
+-	"Linux",
+ 	"Windows 2000",
+ 	"Windows 2001",
+ 	"Windows 2001 SP0",
