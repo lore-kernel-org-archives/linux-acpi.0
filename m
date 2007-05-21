@@ -1,34 +1,52 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: 2.6.22-rc1-mm1 [cannot change thermal trip points]
-Date: Mon, 21 May 2007 14:45:53 +0100
-Message-ID: <20070521134553.GA7911@srcf.ucam.org>
-References: <20070515201914.16944e04.akpm@linux-foundation.org> <200705171517.14087.lenb@kernel.org> <1179604609.16465.83.camel@sublime.suse.de> <200705202350.45145.lenb@kernel.org> <20070521121048.GA8332@elf.ucw.cz> <20070521132711.GA7540@srcf.ucam.org> <20070521132948.GD8332@elf.ucw.cz> <20070521133608.GB7540@srcf.ucam.org> <20070521134046.GE8332@elf.ucw.cz>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [patch 2.6.21-git] pci_choose_state() works, does ACPI magic
+Date: Mon, 21 May 2007 11:34:36 -0600
+Message-ID: <200705211134.36578.bjorn.helgaas@hp.com>
+References: <200705091222.29561.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:44133 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755323AbXEUNrY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 May 2007 09:47:24 -0400
+Received: from atlrel6.hp.com ([156.153.255.205]:33492 "EHLO atlrel6.hp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755107AbXEURea (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 May 2007 13:34:30 -0400
+In-Reply-To: <200705091222.29561.david-b@pacbell.net>
 Content-Disposition: inline
-In-Reply-To: <20070521134046.GE8332@elf.ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Len Brown <lenb@kernel.org>, trenn@suse.de, Chuck Ebbert <cebbert@redhat.com>, len.brown@intel.com, Maciej Rutecki <maciej.rutecki@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, torvalds@linux-foundation.org
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org
 
-On Mon, May 21, 2007 at 03:40:46PM +0200, Pavel Machek wrote:
-> On Mon 2007-05-21 14:36:08, Matthew Garrett wrote:
-> > On Mon, May 21, 2007 at 03:29:48PM +0200, Pavel Machek wrote:
-> > > Significantly more correct? It forces you to do all the thermal
-> > > management in userspace!
-> > 
-> > Why's that a problem? 
-> 
-> Duplicating all the kernel logic in userspace, badly?
+On Wednesday 09 May 2007 01:22:29 pm David Brownell wrote:
+>  static int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
+>  {
+> ...
+> +	switch (state) {
+> +	case PCI_D0:
+> +	case PCI_D1:
+> +	case PCI_D2:
+> +	case PCI_D3hot:
+> +	case PCI_D3cold:
+> +		return acpi_bus_set_power(handle, state_conv[state]);
+> +	}
+> +
+> +	return -EINVAL;
+>  }
 
-So don't do it badly. The advantage of doing so is that you can make it 
-work properly, which you can't by putting it in the kernel.
+Did you account for the fact that PCI works on a per-function basis,
+but ACPI power management works on a per-slot basis?
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+We had a bug[1] a while back where e1000 would suspend a device and
+call pci_power_state(), which used ACPI to turn off the slot.  The
+only problem was that this was a dual-port card and the other port
+was still active when the lights went out.
+
+Maybe you deal with this already; it just wasn't obvious to me from
+a quick glance through your patch.
+
+Bjorn
+
+
+[1] https://bugzilla.novell.com/show_bug.cgi?id=162320
