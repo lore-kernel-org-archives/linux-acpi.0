@@ -1,43 +1,48 @@
-From: Matt Mackall <mpm@selenic.com>
-Subject: Re: 2.6.21-mm2: ACPI exception on resume
-Date: Mon, 21 May 2007 17:23:39 -0500
-Message-ID: <20070521222339.GF11115@waste.org>
-References: <20070519165738.GK11115@waste.org> <20070519204504.GA24704@khazad-dum.debian.net> <20070519223843.GN11115@waste.org> <20070520035259.GA13224@khazad-dum.debian.net>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: 2.6.22-rc1-mm1 [cannot change thermal trip points]
+Date: Tue, 22 May 2007 00:42:00 +0200
+Message-ID: <20070521224200.GF10714@elf.ucw.cz>
+References: <20070515201914.16944e04.akpm@linux-foundation.org> <200705171517.14087.lenb@kernel.org> <1179604609.16465.83.camel@sublime.suse.de> <200705202350.45145.lenb@kernel.org> <20070521121048.GA8332@elf.ucw.cz> <20070521132711.GA7540@srcf.ucam.org> <20070521132948.GD8332@elf.ucw.cz> <20070521133608.GB7540@srcf.ucam.org> <20070521134046.GE8332@elf.ucw.cz> <20070521134553.GA7911@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from waste.org ([66.93.16.53]:57721 "EHLO waste.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755970AbXEUWYi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 May 2007 18:24:38 -0400
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:43984 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756020AbXEUWmI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 May 2007 18:42:08 -0400
 Content-Disposition: inline
-In-Reply-To: <20070520035259.GA13224@khazad-dum.debian.net>
+In-Reply-To: <20070521134553.GA7911@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Len Brown <lenb@kernel.org>, trenn@suse.de, Chuck Ebbert <cebbert@redhat.com>, len.brown@intel.com, Maciej Rutecki <maciej.rutecki@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, torvalds@linux-foundation.org
 
-On Sun, May 20, 2007 at 12:52:59AM -0300, Henrique de Moraes Holschuh wrote:
-> > > On Sat, 19 May 2007, Matt Mackall wrote:
-> > > > usually does, then go black and the machine will become totally
-> > > > unresponsive, even to holding down the power button for 30+ seconds.
+On Mon 2007-05-21 14:45:53, Matthew Garrett wrote:
+> On Mon, May 21, 2007 at 03:40:46PM +0200, Pavel Machek wrote:
+> > On Mon 2007-05-21 14:36:08, Matthew Garrett wrote:
+> > > On Mon, May 21, 2007 at 03:29:48PM +0200, Pavel Machek wrote:
+> > > > Significantly more correct? It forces you to do all the thermal
+> > > > management in userspace!
 > > > 
-> > > Now, that means either the BIOS or EC have been thrown out of whack,
-> > > otherwise one of the two would have force-powered-off the machine a bit
-> > > after 10s.
-> > > 
-> > > Are you using the latest BIOS and EC firmware available?
+> > > Why's that a problem? 
 > > 
-> > No, I've been running the same BIOS without issue for two years.
+> > Duplicating all the kernel logic in userspace, badly?
 > 
-> Version of BIOS and EC firmware, please?  It is in the dmidecode output.
+> So don't do it badly. The advantage of doing so is that you can make it 
+> work properly, which you can't by putting it in the kernel.
 
-BIOS Information
-        Vendor: IBM
-        Version: 1RETDHWW (3.13 )
-        Release Date: 10/29/2004
+You want stuff like critical shutdowns to work even if userspace is
+dead.
 
-No sign of any EC version in the output.
+I do not think you can control passive cooling adequately from
+userspace, and you can certainly not prevent kernel from slowing
+machine down too soon.
 
+Plus, this is actually nasty user-visible change, and a regression
+from 2.6.21. I am not sure why we are even debating this; user-kernel
+interface changed without warning. Patch should be simply reverted.
+
+								Pavel
 -- 
-Mathematics is the supreme nostalgia of our time.
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
