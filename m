@@ -1,38 +1,36 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: 2.6.21-mm2: ACPI exception on resume
-Date: Mon, 21 May 2007 20:03:49 -0300
-Message-ID: <20070521230349.GA645@khazad-dum.debian.net>
-References: <20070519165738.GK11115@waste.org> <20070519204504.GA24704@khazad-dum.debian.net> <20070519223843.GN11115@waste.org> <20070520035259.GA13224@khazad-dum.debian.net> <20070521222339.GF11115@waste.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [RFC][PATCH 1/4] swsusp: Remove incorrect code from user.c
+Date: Tue, 22 May 2007 01:29:04 +0200
+Message-ID: <20070521232904.GJ10714@elf.ucw.cz>
+References: <200705180019.35548.rjw@sisk.pl> <200705180021.21953.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:41966 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757137AbXEUXEA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 May 2007 19:04:00 -0400
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:48786 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755817AbXEUX3L (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 May 2007 19:29:11 -0400
 Content-Disposition: inline
-In-Reply-To: <20070521222339.GF11115@waste.org>
+In-Reply-To: <200705180021.21953.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matt Mackall <mpm@selenic.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alexey Starikovskiy <aystarik@gmail.com>, Johannes Berg <johannes@sipsolutions.net>
 
-On Mon, 21 May 2007, Matt Mackall wrote:
-> BIOS Information
->         Vendor: IBM
->         Version: 1RETDHWW (3.13 )
->         Release Date: 10/29/2004
+On Fri 2007-05-18 00:21:21, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rjw@sisk.pl>
 > 
-> No sign of any EC version in the output.
+> Make the code hibernation code in kernel/power/user.c be functionally equivalent
+> to the corresponding code in kernel/power/disk.c , as it should be.
+> 
+> The calls to the platform functions removed by this patch are incorrect.  They
+> should be replaced with some other "platform" operations that will be
+> introduced in one of the subsequent patches.
+> 
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
-This is a buggy, ancient version of the BIOS, which probably means you have
-an old and slightly buggy EC firmware.  I recommend you to upgrade to BIOS
-3.21 and EC 3.04.  See http://thinkwiki.org/wiki/BIOS_Upgrade for more
-details.
+ACK.
 
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
