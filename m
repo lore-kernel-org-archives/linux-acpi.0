@@ -1,51 +1,37 @@
 From: Luca <kronos.it@gmail.com>
-Subject: Re: [RFC] ACPI based hwmon driver for ASUS
-Date: Mon, 21 May 2007 23:38:17 +0200
-Message-ID: <68676e00705211438y3fd063fdg39014f4108d92b3d@mail.gmail.com>
+Subject: Re: [lm-sensors] [RFC] ACPI based hwmon driver for ASUS
+Date: Mon, 21 May 2007 23:53:49 +0200
+Message-ID: <68676e00705211453n69de6868lc5da2cad64f65699@mail.gmail.com>
 References: <20070513223329.GA29207@dreamland.darkstar.lan>
-	<46520F36.4080006@assembler.cz>
+	 <46520F36.4080006@assembler.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <lm-sensors-bounces@lm-sensors.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from wr-out-0506.google.com ([64.233.184.237]:44488 "EHLO
+	wr-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757764AbXEUVxu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 May 2007 17:53:50 -0400
+Received: by wr-out-0506.google.com with SMTP id 76so1546323wra
+        for <linux-acpi@vger.kernel.org>; Mon, 21 May 2007 14:53:50 -0700 (PDT)
 In-Reply-To: <46520F36.4080006@assembler.cz>
 Content-Disposition: inline
-List-Unsubscribe: <http://lists.lm-sensors.org/mailman/listinfo/lm-sensors>,
-	<mailto:lm-sensors-request@lm-sensors.org?subject=unsubscribe>
-List-Archive: <http://lists.lm-sensors.org/pipermail/lm-sensors>
-List-Post: <mailto:lm-sensors@lm-sensors.org>
-List-Help: <mailto:lm-sensors-request@lm-sensors.org?subject=help>
-List-Subscribe: <http://lists.lm-sensors.org/mailman/listinfo/lm-sensors>,
-	<mailto:lm-sensors-request@lm-sensors.org?subject=subscribe>
-Sender: lm-sensors-bounces@lm-sensors.org
-Errors-To: lm-sensors-bounces@lm-sensors.org
-To: Rudolf Marek <r.marek@assembler.cz>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Rudolf Marek <r.marek@assembler.cz>
+Cc: lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-T24gNS8yMS8wNywgUnVkb2xmIE1hcmVrIDxyLm1hcmVrQGFzc2VtYmxlci5jej4gd3JvdGU6Cj4g
-SGVsbG8gYWxsLAo+Cj4gU29ycnkgZm9yIHRoZSBkZWxheS4gR2xhZCB0aGF0IHNvbWVvbmUgdG9v
-ayBhIGxvb2sgaW50byB0aGlzLgo+IEFUSzAxMTAgQVRLMDExMDowMDogYXRrOiBhZGRpbmcuLi4K
-PiBBVEswMTEwIEFUSzAxMTA6MDA6IGJvYXJkIElEID0gQThWRS1TRQo+IEFUSzAxMTAgQVRLMDEx
-MDowMDogdGVtcCAwOiBDUFUgVGVtcGVyYXR1cmUgWzkwMC0xMjUwXQo+IEFUSzAxMTAgQVRLMDEx
-MDowMDogdGVtcCAxOiBNQiBUZW1wZXJhdHVyZSBbNzAwLTEyNTBdCj4gQVRLMDExMCBBVEswMTEw
-OjAwOiB2b2x0YWdlIDA6IFZjb3JlIFZvbHRhZ2UgWzE0NTAtMTc1MF0KPiBBVEswMTEwIEFUSzAx
-MTA6MDA6IHZvbHRhZ2UgMTogICszLjMgVm9sdGFnZSBbMzAwMC0zNjAwXQo+IEFUSzAxMTAgQVRL
-MDExMDowMDogdm9sdGFnZSAyOiAgKzUuMCBWb2x0YWdlIFs0NTAwLTU1MDBdCj4gQVRLMDExMCBB
-VEswMTEwOjAwOiB2b2x0YWdlIDM6ICsxMi4wIFZvbHRhZ2UgWzExMjAwLTEzMjAwXQo+IEFUSzAx
-MTAgQVRLMDExMDowMDogYXRrX2VudW1lcmF0ZV9mYW46IGludmFsaWQgZmFuIGNvdW50IDMgKHNo
-b3VsZCBiZSA1KQo+IEFUSzAxMTA6IHByb2JlIG9mIEFUSzAxMTA6MDAgZmFpbGVkIHdpdGggZXJy
-b3IgLTIyCj4gcnVpa0BydWlrOn4kCj4KPiBOb3QgMTAwJSBzdWNjZXNzIGJ1dCBhdCBsZWFzdCBz
-b21ldGhpbmcgOykuIEkgZGlkIHNvbWUgcmVzZWFyY2ggb24gdGhpcyBzb21lCj4gdGltZSBhZ28g
-KDIwMDUpOgo+IGh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9waXBlcm1haWwvbG0tc2Vuc29y
-cy8yMDA1LU9jdG9iZXIvMDE0MDUwLmh0bWwKPgo+Cj4gSSdtIGF0dGFjaGluZyBteSBkc2R0LmJp
-bi4KClRoYW5rcywgSSdsbCB0YWtlIGEgbG9vayBhdCB5b3VyIGRzZHQgKGJ0dywgdGhlcm1hbCBs
-aW1pdHMgc2VlbSBib2d1czoKMTI1wrAgaXMgYSBiaXQgdG9vIG11Y2ggT19vKS4KCj4gQWxzbyBr
-ZWVwIGluIG1pbmQgdGhhdCB3ZSB3aWxsIG5lZWQgc29tZQo+ICJzeW5jaHJvbml6ZXIiIGZvciB0
-aGUgQUNQSSB2ZXJzdXMgb3RoZXIgZHJpdmVycy4KCkkgZG9uJ3QgdGhpbmsgaXQncyBuZWNlc3Nh
-cnksIHRoZSBBTUwgaW50ZXJwcmV0ZXIgc2VyaWFsaXplcyBhbGwKY2FsbGVycywgc28gYXQgbW9z
-dCBvbmUgbWV0aG9kIGlzIGV4ZWN1dGluZyBhdCBhIGdpdmVuIHRpbWUsIHByb3ZpZGVkCnRoYXQg
-aXQgZG9lc24ndCBzbGVlcCAoaHdtb24gbWV0aG9kcyBkb24ndCkuCgpMdWNhCl9fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBs
-aXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3Jn
-L21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw==
+On 5/21/07, Rudolf Marek <r.marek@assembler.cz> wrote:
+> ATK0110 ATK0110:00: atk_enumerate_fan: invalid fan count 3 (should be 5)
+> ATK0110: probe of ATK0110:00 failed with error -22
+
+Ok, the FAN package contains 5 items, but the enumerator only
+advertises the first 3. I guess that the other 2 (chipset fan and
+chassis2 fan) are not usable? Are the connectors for those two fans on
+your motherboard? Do you get any reading from them?
+
+Plus: your ACPI code uses the full "magic number" (first item in the
+package) to demux the reading, while my board masks the upper 2 bytes;
+I need to change the driver. Will send another iteration.
+
+Luca
