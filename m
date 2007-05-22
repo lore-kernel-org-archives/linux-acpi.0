@@ -1,59 +1,34 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: HP Compaq nc6320 Suspend / Resume (changes in behaviour)
-Date: Tue, 22 May 2007 22:08:19 +0200
-Message-ID: <200705222208.20215.rjw@sisk.pl>
-References: <1179859741.27532.8.camel@localhost> <200705222127.32713.rjw@sisk.pl> <1179867447.15226.1.camel@localhost>
+From: Alexey Starikovskiy <aystarik@gmail.com>
+Subject: Re: [RFC][PATCH 3/4] swsusp: Introduce restore platform operations
+Date: Wed, 23 May 2007 00:10:20 +0400
+Message-ID: <46534E2C.60808@gmail.com>
+References: <200705180019.35548.rjw@sisk.pl> <20070521233848.GN10714@elf.ucw.cz> <200705220155.44430.rjw@sisk.pl> <200705222203.48568.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:57973 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758650AbXEVUCr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 May 2007 16:02:47 -0400
-In-Reply-To: <1179867447.15226.1.camel@localhost>
-Content-Disposition: inline
+Received: from ug-out-1314.google.com ([66.249.92.168]:55334 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757498AbXEVUK3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 May 2007 16:10:29 -0400
+Received: by ug-out-1314.google.com with SMTP id 44so407882uga
+        for <linux-acpi@vger.kernel.org>; Tue, 22 May 2007 13:10:27 -0700 (PDT)
+In-Reply-To: <200705222203.48568.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Clifton <pcjc2@cam.ac.uk>
-Cc: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Pavel Machek <pavel@ucw.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Johannes Berg <johannes@sipsolutions.net>
 
-On Tuesday, 22 May 2007 22:57, Peter Clifton wrote:
-> On Tue, 2007-05-22 at 21:27 +0200, Rafael J. Wysocki wrote:
-> > Hi,
-> > 
-> > On Tuesday, 22 May 2007 20:49, Peter Clifton wrote:
-> > > Hi,
-> > > 
-> > > I just updated my bios to HP's latest, and have recently been
-> upgraded
-> > > to Ubuntu Gutsy kernel version:
-> > > 
-> > > Linux version 2.6.22-1-generic (buildd@palmer) (gcc version 4.1.3
-> > > 20070423 (prerelease) (Ubuntu 4.1.2-3ubuntu3)) #1 SMP Mon Apr 30
-> > > 10:49:22 GMT 2007
-> 
-> [snip]
-> 
-> > Well, threre's a couple of such things.  You may try the kernel.org
-> kernel
-> > 2.6.22-rc2 with the hibernation and suspend patchset available from
-> > http://www.sisk.pl/kernel/hibernation_and_suspend/2.6.22-rc2/patches .
-> 
-> I wonder if those are included in Ubuntu's kernel (I'm being dumb today,
-> but I couldn't work out if the debian build was adding patches or not,
-> nor which exact version they started from.
-> 
-> (The source filename is linux-source-2.6.22_2.6.22-5.11.tar.gz)
-> 
-> Just FYI, the link you posted has a file with funny permissions on it:
-> 
-> http://www.sisk.pl/kernel/hibernation_and_suspend/2.6.22-rc2/patches/16-usb-use-freezable-workqueue.patch
-> 
-> Gives me a 403 error.
+Rafael J. Wysocki ?????:
+> On Tuesday, 22 May 2007 01:55, Rafael J. Wysocki wrote:
+> Moreover, I'm not quite certain in which points the GPEs should actually be
+>   
+> disabled and enabled.  For example, there are some testing data indicating that
+> the enabling of GPEs should be done after all of the device drivers' .resume()
+> callbacks have run.
+Opposite, ACPI devices require enabled GPEs to do their resume, so 
+enabling of GPEs
+should happen at least before .resume() of ACPI devices is called.
 
-Fixed now, sorry for the inconvenience.
-
-Greetings,
-Rafael
+Regards,
+Alex.
