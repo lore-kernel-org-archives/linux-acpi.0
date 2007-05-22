@@ -1,60 +1,39 @@
-From: "Paa Paa" <paapaa125@hotmail.com>
-Subject: Core 2 Duo and power states
-Date: Tue, 22 May 2007 20:34:14 +0000
-Message-ID: <BAY20-F69C884E2742B1B312C8F7F9360@phx.gbl>
+From: Matt Mackall <mpm@selenic.com>
+Subject: Re: 2.6.21-mm2: ACPI exception on resume
+Date: Tue, 22 May 2007 17:45:15 -0500
+Message-ID: <20070522224515.GW11115@waste.org>
+References: <20070519165738.GK11115@waste.org> <20070519204504.GA24704@khazad-dum.debian.net> <20070519223843.GN11115@waste.org> <20070520035259.GA13224@khazad-dum.debian.net> <20070521222339.GF11115@waste.org> <20070521230349.GA645@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bay0-omc3-s3.bay0.hotmail.com ([65.54.246.203]:40695 "EHLO
-	bay0-omc3-s3.bay0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756523AbXEVUsY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 May 2007 16:48:24 -0400
+Received: from waste.org ([66.93.16.53]:42396 "EHLO waste.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755675AbXEVWqY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 May 2007 18:46:24 -0400
+Content-Disposition: inline
+In-Reply-To: <20070521230349.GA645@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
 
-For some reason I'm not able to enable processor power states (c1, c2 etc.)
-for my Core 2 Duo. This is what I get::
+On Mon, May 21, 2007 at 08:03:49PM -0300, Henrique de Moraes Holschuh wrote:
+> On Mon, 21 May 2007, Matt Mackall wrote:
+> > BIOS Information
+> >         Vendor: IBM
+> >         Version: 1RETDHWW (3.13 )
+> >         Release Date: 10/29/2004
+> > 
+> > No sign of any EC version in the output.
+> 
+> This is a buggy, ancient version of the BIOS, which probably means you have
+> an old and slightly buggy EC firmware.  I recommend you to upgrade to BIOS
+> 3.21 and EC 3.04.  See http://thinkwiki.org/wiki/BIOS_Upgrade for more
+> details.
 
-cat /proc/acpi/processor/CPU1/info
-processor id:            0
-acpi id:                 1
-bus mastering control:   no
-power management:        no
-throttling control:      no
-limit interface:         no
+Really, I'd much prefer my kernel not regress instead. Updating
+firmware is just introducing more potential instability and ignoring
+the problem.
 
-cat /proc/acpi/processor/CPU1/power
-active state:            C0
-max_cstate:              C8
-bus master activity:     00000000
-maximum allowed latency: 2000 usec
-states:
-
-"dmesg | grep -i power" also gives nothing. I have ACPI enabled in BIOS and
-in kernel I have these set ("grep -i acpi .config | grep =y"):
-
-CONFIG_ACPI=y
-CONFIG_ACPI_PROCESSOR=y
-CONFIG_ACPI_THERMAL=y
-CONFIG_ACPI_EC=y
-CONFIG_ACPI_POWER=y
-CONFIG_ACPI_SYSTEM=y
-CONFIG_X86_ACPI_CPUFREQ=y
-CONFIG_PNPACPI=y
-CONFIG_SATA_ACPI=y
-
-I'm probably missing something crucial here. So how do I enable power
-states or how do I debug the cause of them missing?
-
-Kernel: 2.6.21.1
-CPU: Intel E6400
-Mobo: Asus P5B Deluxe (latest BIOS)
-Distro: 64-bit Gentoo
-I have EIST and ACPI2 enabled in BIOS.
-
-_________________________________________________________________
-FREE pop-up blocking with the new MSN Toolbar - get it now! 
-http://toolbar.msn.click-url.com/go/onm00200415ave/direct/01/
-
+-- 
+Mathematics is the supreme nostalgia of our time.
