@@ -1,58 +1,45 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH 3/4] swsusp: Introduce restore platform operations
-Date: Tue, 22 May 2007 01:55:43 +0200
-Message-ID: <200705220155.44430.rjw@sisk.pl>
-References: <200705180019.35548.rjw@sisk.pl> <200705180024.52170.rjw@sisk.pl> <20070521233848.GN10714@elf.ucw.cz>
+From: "Ray Lee" <ray-lk@madrabbit.org>
+Subject: Re: [1/5] 2.6.22-rc2: known regressions
+Date: Mon, 21 May 2007 17:29:40 -0700
+Message-ID: <2c0942db0705211729r185d7d77r2750d82f4a3b3e9c@mail.gmail.com>
+References: <464F74BB.9070402@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:51747 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753959AbXEUXua (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 May 2007 19:50:30 -0400
-In-Reply-To: <20070521233848.GN10714@elf.ucw.cz>
+Received: from ug-out-1314.google.com ([66.249.92.171]:34340 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755100AbXEVA3m (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 May 2007 20:29:42 -0400
+Received: by ug-out-1314.google.com with SMTP id 44so100376uga
+        for <linux-acpi@vger.kernel.org>; Mon, 21 May 2007 17:29:40 -0700 (PDT)
+In-Reply-To: <464F74BB.9070402@googlemail.com>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alexey Starikovskiy <aystarik@gmail.com>, Johannes Berg <johannes@sipsolutions.net>
+To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, Adrian McMenamin <adrian@newgolddream.dyndns.info>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On Tuesday, 22 May 2007 01:38, Pavel Machek wrote:
-> Hi!
-> 
-> > From: Rafael J. Wysocki <rjw@sisk.pl>
-> > 
-> > At least on some machines it is necessary to prepare the ACPI firmware for the
-> > restoration of the system memory state from the hibernation image if the
-> > "platform" mode of hibernation has been used.  Namely, in that cases we need to
-> > disable the GPEs before replacing the "boot" kernel with the "frozen" kernel.
-> > After the restore they will be re-enabled by hibernation_ops->finish(), but if
-> > the restore fails, they have to be re-enabled by the restore code explicitly.
-> > 
-> > For this purpose we can introduce two additional hibernation operations, called
-> > pre_restore() and restore_cleanup() and call them from the restore code path.
-> > Still, they should be called if the "platform" mode of hibernation has been
-> > used, so we need to pass the information about the hibernation mode from the
-> > "frozen" kernel to the "boot" kernel in the image header.
-> 
-> I don't quite like this one... passing flags from frozen to boot
-> kernel makes it more complex.
-> 
-> Is it really neccessary?
+Hey there,
 
-I think so.
+On 5/19/07, Michal Piotrowski <michal.k.k.piotrowski@gmail.com> wrote:
+> Here is a list of some known regressions in 2.6.22-rc2.
+>
+> Feel free to add new regressions/remove fixed etc.
+> http://kernelnewbies.org/known_regressions
+>
+> Subject    : nx6125 has lost fan control
+> References : http://lkml.org/lkml/2007/5/16/249
+> Submitter  : Ray Lee <ray-lk@madrabbit.org>
+> Status     : Unknown
 
-> Could we do the same steps as the first thing when the frozen kernel
-> wakes up?
+I'm withdrawing this one. At boot, it wasn't controlling the fans, but
+after a suspend-resume it started up fine. My subsequent boots have
+also been okay, so I'm at a loss to explain what I saw.
 
-At that time we do hibernate_ops->finish() which enables the GPEs anyway
-in the right place.
+Regardless, given that it's hard to reproduce, I have no evidence that
+it's a regression, it could just be something that's really rare.
 
-> What machines does it fix?
+Thanks,
 
-http://bugzilla.kernel.org/show_bug.cgi?id=7887
-
-Greetings,
-Rafael
+Ray
