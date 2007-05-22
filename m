@@ -1,89 +1,59 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH 3/4] swsusp: Introduce restore platform operations
-Date: Tue, 22 May 2007 22:03:47 +0200
-Message-ID: <200705222203.48568.rjw@sisk.pl>
-References: <200705180019.35548.rjw@sisk.pl> <20070521233848.GN10714@elf.ucw.cz> <200705220155.44430.rjw@sisk.pl>
+Subject: Re: HP Compaq nc6320 Suspend / Resume (changes in behaviour)
+Date: Tue, 22 May 2007 22:08:19 +0200
+Message-ID: <200705222208.20215.rjw@sisk.pl>
+References: <1179859741.27532.8.camel@localhost> <200705222127.32713.rjw@sisk.pl> <1179867447.15226.1.camel@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:57945 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:57973 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755359AbXEVT6l (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 May 2007 15:58:41 -0400
-In-Reply-To: <200705220155.44430.rjw@sisk.pl>
+	id S1758650AbXEVUCr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 May 2007 16:02:47 -0400
+In-Reply-To: <1179867447.15226.1.camel@localhost>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Alexey Starikovskiy <aystarik@gmail.com>, Johannes Berg <johannes@sipsolutions.net>
+To: Peter Clifton <pcjc2@cam.ac.uk>
+Cc: linux-acpi@vger.kernel.org
 
-On Tuesday, 22 May 2007 01:55, Rafael J. Wysocki wrote:
-> On Tuesday, 22 May 2007 01:38, Pavel Machek wrote:
-> > Hi!
+On Tuesday, 22 May 2007 22:57, Peter Clifton wrote:
+> On Tue, 2007-05-22 at 21:27 +0200, Rafael J. Wysocki wrote:
+> > Hi,
 > > 
-> > > From: Rafael J. Wysocki <rjw@sisk.pl>
+> > On Tuesday, 22 May 2007 20:49, Peter Clifton wrote:
+> > > Hi,
 > > > 
-> > > At least on some machines it is necessary to prepare the ACPI firmware for the
-> > > restoration of the system memory state from the hibernation image if the
-> > > "platform" mode of hibernation has been used.  Namely, in that cases we need to
-> > > disable the GPEs before replacing the "boot" kernel with the "frozen" kernel.
-> > > After the restore they will be re-enabled by hibernation_ops->finish(), but if
-> > > the restore fails, they have to be re-enabled by the restore code explicitly.
+> > > I just updated my bios to HP's latest, and have recently been
+> upgraded
+> > > to Ubuntu Gutsy kernel version:
 > > > 
-> > > For this purpose we can introduce two additional hibernation operations, called
-> > > pre_restore() and restore_cleanup() and call them from the restore code path.
-> > > Still, they should be called if the "platform" mode of hibernation has been
-> > > used, so we need to pass the information about the hibernation mode from the
-> > > "frozen" kernel to the "boot" kernel in the image header.
-> > 
-> > I don't quite like this one... passing flags from frozen to boot
-> > kernel makes it more complex.
-
-BTW, we've been doing this for months in the userland version, so why not to do
-it here?
- 
-> > Is it really neccessary?
+> > > Linux version 2.6.22-1-generic (buildd@palmer) (gcc version 4.1.3
+> > > 20070423 (prerelease) (Ubuntu 4.1.2-3ubuntu3)) #1 SMP Mon Apr 30
+> > > 10:49:22 GMT 2007
 > 
-> I think so.
+> [snip]
 > 
-> > Could we do the same steps as the first thing when the frozen kernel
-> > wakes up?
+> > Well, threre's a couple of such things.  You may try the kernel.org
+> kernel
+> > 2.6.22-rc2 with the hibernation and suspend patchset available from
+> > http://www.sisk.pl/kernel/hibernation_and_suspend/2.6.22-rc2/patches .
 > 
-> At that time we do hibernate_ops->finish() which enables the GPEs anyway
-> in the right place.
+> I wonder if those are included in Ubuntu's kernel (I'm being dumb today,
+> but I couldn't work out if the debian build was adding patches or not,
+> nor which exact version they started from.
 > 
-> > What machines does it fix?
+> (The source filename is linux-source-2.6.22_2.6.22-5.11.tar.gz)
 > 
-> http://bugzilla.kernel.org/show_bug.cgi?id=7887
+> Just FYI, the link you posted has a file with funny permissions on it:
+> 
+> http://www.sisk.pl/kernel/hibernation_and_suspend/2.6.22-rc2/patches/16-usb-use-freezable-workqueue.patch
+> 
+> Gives me a 403 error.
 
-Some more clarification is necessary, I think.
-
-Apparently, we can't drop the disabling of GPEs before the restore because of
-Bug #7887 .  We also can't do it unconditionally, because the GPEs wouldn't be
-enabled after a successful restore if the suspend was done in the 'shutdown' or
-'reboot' mode.
-
-In principle we could (and probably should) unconditionally disable the GPEs
-before each snapshot creation *and* before the restore, but then we'd have to
-unconditionally enable them after the snapshot creation as well as after the
-restore (or restore failure)   Still, for this purpose we'd need to modify
-acpi_enter_sleep_state_prep() and acpi_leave_sleep_state() and we'd have to
-introduce some mechanism synchronizing the disablind/enabling of the GPEs with
-the device drivers' .suspend()/.resume() routines and with
-disable_/enable_nonboot_cpus().  The problem with this approach is that it
-affects the suspend (ie. s2ram) code as well as the hibernation, which I'd like
-to avoid, for now.
-
-Moreover, I'm not quite certain in which points the GPEs should actually be
-disabled and enabled.  For example, there are some testing data indicating that
-the enabling of GPEs should be done after all of the device drivers' .resume()
-callbacks have run.  For this reason we need to have a (temporary) flexible
-design that would allow us to try different variants until we are sure which
-one is correct.  I regard this particular patch as a step in that direction.
+Fixed now, sorry for the inconvenience.
 
 Greetings,
 Rafael
-
-
