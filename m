@@ -1,46 +1,60 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC][PATCH 3/4] swsusp: Introduce restore platform operations
-Date: Tue, 22 May 2007 22:30:34 +0200
-Message-ID: <200705222230.35078.rjw@sisk.pl>
-References: <200705180019.35548.rjw@sisk.pl> <200705222203.48568.rjw@sisk.pl> <46534E2C.60808@gmail.com>
+From: "Paa Paa" <paapaa125@hotmail.com>
+Subject: Core 2 Duo and power states
+Date: Tue, 22 May 2007 20:34:14 +0000
+Message-ID: <BAY20-F69C884E2742B1B312C8F7F9360@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; format=flowed
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:58056 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754431AbXEVUZ2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 May 2007 16:25:28 -0400
-In-Reply-To: <46534E2C.60808@gmail.com>
-Content-Disposition: inline
+Received: from bay0-omc3-s3.bay0.hotmail.com ([65.54.246.203]:40695 "EHLO
+	bay0-omc3-s3.bay0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756523AbXEVUsY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 May 2007 16:48:24 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Starikovskiy <aystarik@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pm list <linux-pm@lists.linux-foundation.org>, Johannes Berg <johannes@sipsolutions.net>
+To: linux-acpi@vger.kernel.org
 
-On Tuesday, 22 May 2007 22:10, Alexey Starikovskiy wrote:
-> Rafael J. Wysocki ?????:
-> > On Tuesday, 22 May 2007 01:55, Rafael J. Wysocki wrote:
-> > Moreover, I'm not quite certain in which points the GPEs should actually be
-> >   
-> > disabled and enabled.  For example, there are some testing data indicating that
-> > the enabling of GPEs should be done after all of the device drivers' .resume()
-> > callbacks have run.
-> Opposite, ACPI devices require enabled GPEs to do their resume, so 
-> enabling of GPEs
-> should happen at least before .resume() of ACPI devices is called.
+For some reason I'm not able to enable processor power states (c1, c2 etc.)
+for my Core 2 Duo. This is what I get::
 
-Theoretically, that surely is correct, and which is what the patch actually
-does. :-)
+cat /proc/acpi/processor/CPU1/info
+processor id:            0
+acpi id:                 1
+bus mastering control:   no
+power management:        no
+throttling control:      no
+limit interface:         no
 
-Still, we have users for whom hibernation was broken by moving the execution
-of acpi_leave_sleep_state() before enable_nonboot_cpus().  At least on one
-of these systems the hibernation can be fixed by removing the execution of
-acpi_leave_sleep_state() from before enable_nonboot_cpus() and adding a
-simplified version of it that only executes _WAK and enables the GPEs *after*
-device_resume().  Unfortunately, I was unable to check if _WAK was necessary
-for this (I hope it wasn't).
+cat /proc/acpi/processor/CPU1/power
+active state:            C0
+max_cstate:              C8
+bus master activity:     00000000
+maximum allowed latency: 2000 usec
+states:
 
-Greetings,
-Rafael
+"dmesg | grep -i power" also gives nothing. I have ACPI enabled in BIOS and
+in kernel I have these set ("grep -i acpi .config | grep =y"):
+
+CONFIG_ACPI=y
+CONFIG_ACPI_PROCESSOR=y
+CONFIG_ACPI_THERMAL=y
+CONFIG_ACPI_EC=y
+CONFIG_ACPI_POWER=y
+CONFIG_ACPI_SYSTEM=y
+CONFIG_X86_ACPI_CPUFREQ=y
+CONFIG_PNPACPI=y
+CONFIG_SATA_ACPI=y
+
+I'm probably missing something crucial here. So how do I enable power
+states or how do I debug the cause of them missing?
+
+Kernel: 2.6.21.1
+CPU: Intel E6400
+Mobo: Asus P5B Deluxe (latest BIOS)
+Distro: 64-bit Gentoo
+I have EIST and ACPI2 enabled in BIOS.
+
+_________________________________________________________________
+FREE pop-up blocking with the new MSN Toolbar - get it now! 
+http://toolbar.msn.click-url.com/go/onm00200415ave/direct/01/
+
