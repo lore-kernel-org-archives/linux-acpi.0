@@ -1,56 +1,59 @@
-From: Rudolf Marek <r.marek@assembler.cz>
-Subject: Re: [lm-sensors] [RFC] ACPI based hwmon driver for ASUS
-Date: Tue, 22 May 2007 08:19:27 +0200
-Message-ID: <46528B6F.3050701@assembler.cz>
-References: <20070513223329.GA29207@dreamland.darkstar.lan>	 <46520F36.4080006@assembler.cz> <68676e00705211453n69de6868lc5da2cad64f65699@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: 2.6.22-rc1-mm1 [cannot change thermal trip points]
+Date: Tue, 22 May 2007 11:06:36 +0200
+Message-ID: <20070522090636.GO10714@elf.ucw.cz>
+References: <1179604609.16465.83.camel@sublime.suse.de> <200705202350.45145.lenb@kernel.org> <20070521121048.GA8332@elf.ucw.cz> <20070521132711.GA7540@srcf.ucam.org> <20070521132948.GD8332@elf.ucw.cz> <20070521133608.GB7540@srcf.ucam.org> <20070521134046.GE8332@elf.ucw.cz> <20070521134553.GA7911@srcf.ucam.org> <20070521224200.GF10714@elf.ucw.cz> <20070522003153.GA18162@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ms.trustica.cz ([82.208.32.68]:44541 "EHLO ms.trustica.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762042AbXEVGVS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 May 2007 02:21:18 -0400
-In-Reply-To: <68676e00705211453n69de6868lc5da2cad64f65699@mail.gmail.com>
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:38466 "EHLO amd.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755131AbXEVJGr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 May 2007 05:06:47 -0400
+Content-Disposition: inline
+In-Reply-To: <20070522003153.GA18162@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Luca <kronos.it@gmail.com>
-Cc: lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Len Brown <lenb@kernel.org>, trenn@suse.de, Chuck Ebbert <cebbert@redhat.com>, len.brown@intel.com, Maciej Rutecki <maciej.rutecki@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, torvalds@linux-foundation.org
 
-Hi,
+Hi!
 
-I have following readings:
+> > > So don't do it badly. The advantage of doing so is that you can make it 
+> > > work properly, which you can't by putting it in the kernel.
+> > 
+> > You want stuff like critical shutdowns to work even if userspace is
+> > dead.
+> 
+> I don't think anyone suggested putting the critical shutdown control in 
+> userspace. The kernel already handles that fine.
 
-w83627ehf-isa-0290
-Adapter: ISA adapter
-VCore:     +1.52 V  (min =3D  +0.00 V, max =3D  +1.74 V)
-in1:      +12.30 V  (min =3D +13.46 V, max =3D +13.04 V) ALARM
-AVCC:      +3.36 V  (min =3D  +4.08 V, max =3D  +3.95 V) ALARM
-3VCC:      +3.36 V  (min =3D  +4.05 V, max =3D  +3.06 V) ALARM
-in4:       +2.04 V  (min =3D  +1.78 V, max =3D  +2.04 V)
-in5:       +1.60 V  (min =3D  +2.04 V, max =3D  +2.02 V) ALARM
-in6:       +5.12 V  (min =3D  +6.12 V, max =3D  +6.53 V) ALARM
-VSB:       +3.36 V  (min =3D  +4.08 V, max =3D  +4.08 V) ALARM
-VBAT:      +3.30 V  (min =3D  +4.08 V, max =3D  +3.04 V) ALARM
-in9:       +1.65 V  (min =3D  +0.98 V, max =3D  +2.04 V)
-Case Fan:    0 RPM  (min =3D    0 RPM, div =3D 8)
-CPU Fan:  1638 RPM  (min =3D    0 RPM, div =3D 4)
-Aux Fan:  1436 RPM  (min =3D 4272 RPM, div =3D 4) ALARM
-fan5:        0 RPM  (min =3D    0 RPM, div =3D 16)
-Sys Temp:    +28=C2=B0C  (high =3D   -65=C2=B0C, hyst =3D   -34=C2=B0C)=
-   ALARM
-CPU Temp:  +34.0=C2=B0C  (high =3D +80.0=C2=B0C, hyst =3D +75.0=C2=B0C)
-AUX Temp:  +38.5=C2=B0C  (high =3D +80.0=C2=B0C, hyst =3D +75.0=C2=B0C)
+No it does not. That is what this thread is about.
 
-=46an4 is disabled in the chip. I think the board has 4 connectors. I d=
-ont have=20
-time right now to check the manual.
+(On old xe3, critical trip point set by BIOS is ~95C, but machine dies
+by hw safeguard at ~83C. Workaround is to lower critical trip point to
+80C or so. Len broke this.)
 
-Rudolf
+> Imagine the following situation:
+> 
+> 1) Platform sets critical shutdown trip point to 85C
+> 2) Userspace sets critical shutdown trip point to 95C
+> 3) Temperature reaches 90C
+> 4) Platform forces reevaluation of trip points
+> 5) Entire invasion fleet is lost
+> 
+> How do you avoid that? Disable the ability for the platform to set trip 
+> points? You're breaking the spec and potentially causing hardware 
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+We need to ignore trip point updates from BIOS, and we need to poll
+thermals when use overrides trip points. That's expected. Plus I've
+yet to see platform actually updating the trip points.
+
+Speaking about hw damage... The broken BIOS on xe3 definitely caused
+damage to its harddrive, so... we are preventing hw damage here.
+
+(Plus, Len's patch broke user-kernel in stable series, without warning).
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
