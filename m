@@ -1,95 +1,59 @@
-From: Pavel Troller <patrol@sinus.cz>
-Subject: Re: Core 2 Duo and power states
-Date: Wed, 23 May 2007 06:29:22 +0200
-Message-ID: <20070523042922.GA32257@tangens.sinus.cz>
-References: <BAY20-F69C884E2742B1B312C8F7F9360@phx.gbl>
-Reply-To: Pavel Troller <patrol@sinus.cz>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: 2.6.21-mm2: ACPI exception on resume
+Date: Wed, 23 May 2007 10:57:47 +0200
+Message-ID: <200705231057.48320.rjw@sisk.pl>
+References: <20070519165738.GK11115@waste.org> <20070523001943.GA3743@khazad-dum.debian.net> <20070523014825.GX11115@waste.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tangens.sinus.cz ([195.39.17.8]:57425 "EHLO tangens.sinus.cz"
+Received: from ogre.sisk.pl ([217.79.144.158]:60335 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755524AbXEWEp1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 May 2007 00:45:27 -0400
+	id S1756488AbXEWIwa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 23 May 2007 04:52:30 -0400
+In-Reply-To: <20070523014825.GX11115@waste.org>
 Content-Disposition: inline
-In-Reply-To: <BAY20-F69C884E2742B1B312C8F7F9360@phx.gbl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Paa Paa <paapaa125@hotmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: Matt Mackall <mpm@selenic.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
 
-Hi!
-> For some reason I'm not able to enable processor power states (c1, c2 etc.)
-> for my Core 2 Duo. This is what I get::
- 
-  I have a very similar setup and exactly the same results:
-  
-> cat /proc/acpi/processor/CPU1/info
-> processor id:            0
-> acpi id:                 1
-> bus mastering control:   no
-> power management:        no
-> throttling control:      no
-> limit interface:         no
+On Wednesday, 23 May 2007 03:48, Matt Mackall wrote:
+> On Tue, May 22, 2007 at 09:19:43PM -0300, Henrique de Moraes Holschuh wrote:
+> > On Tue, 22 May 2007, Matt Mackall wrote:
+> > > On Mon, May 21, 2007 at 08:03:49PM -0300, Henrique de Moraes Holschuh wrote:
+> > > > On Mon, 21 May 2007, Matt Mackall wrote:
+> > > > > BIOS Information
+> > > > >         Vendor: IBM
+> > > > >         Version: 1RETDHWW (3.13 )
+> > > > >         Release Date: 10/29/2004
+> > > > > 
+> > > > > No sign of any EC version in the output.
+> > > > 
+> > > > This is a buggy, ancient version of the BIOS, which probably means you have
+> > > > an old and slightly buggy EC firmware.  I recommend you to upgrade to BIOS
+> > > > 3.21 and EC 3.04.  See http://thinkwiki.org/wiki/BIOS_Upgrade for more
+> > > > details.
+> > > 
+> > > Really, I'd much prefer my kernel not regress instead. Updating
+> > > firmware is just introducing more potential instability and ignoring
+> > > the problem.
+> > 
+> > We can't very much know if the kernel is really buggy, then.
 > 
-> cat /proc/acpi/processor/CPU1/power
-> active state:            C0
-> max_cstate:              C8
-> bus master activity:     00000000
-> maximum allowed latency: 2000 usec
-> states:
+> Whether the 'bug' is in the firmware or the kernel, it is the kernel
+> that has regressed. Suspend worked fine for 2+ years before this.
 > 
-> "dmesg | grep -i power" also gives nothing. I have ACPI enabled in BIOS and
-> in kernel I have these set ("grep -i acpi .config | grep =y"):
-> 
-> CONFIG_ACPI=y
-> CONFIG_ACPI_PROCESSOR=y
-> CONFIG_ACPI_THERMAL=y
-> CONFIG_ACPI_EC=y
-> CONFIG_ACPI_POWER=y
-> CONFIG_ACPI_SYSTEM=y
-> CONFIG_X86_ACPI_CPUFREQ=y
-> CONFIG_PNPACPI=y
-> CONFIG_SATA_ACPI=y
-> 
-> I'm probably missing something crucial here. So how do I enable power
-> states or how do I debug the cause of them missing?
+> Breaking working systems, either software or hardware, is a bad idea.
+> I shouldn't have to upgrade my BIOS to work with a new kernel any more
+> than I should have to upgrade my browser.
 
-You are not missing anything. Our ACPI BIOS doesn't want to use these states.
-> 
-> Kernel: 2.6.21.1
-> CPU: Intel E6400
+While I agree with that, it would really be helpful if you tested the latest -rc
+kernel and saw if the bug was present in there.
 
-E6600 here.
+If the bug is not present in the latest -rc, it'll be possible to identify the
+patch that causes it to appear in -mm and find the reason of the breakage.
 
-> Mobo: Asus P5B Deluxe (latest BIOS)
-
-The same mobo.
-
-> Distro: 64-bit Gentoo
-
-Distro is unimportant, but it's vanilla 2.6.21.1.
-
-> I have EIST and ACPI2 enabled in BIOS.
-
-Me too :-).
-
-The reason is the following:
-
-1) In the DSDT, there is no _CST method, which is the more modern method of
-   determining C-state capabilities.
-2) In the FADT, the following is there:
-   ...
-   P_LVL2_LAT:	101
-   P_LVL3_LAT:  1001
-
-   These two values mean "Disable C2 / C3 functionality" - the spec says that
-C2 latency should be below 100 and C3 below 1000, so you can see that these
-values are especially formed to disable the feature.
-
-However, after updating the BIOS and enabling something like "C1E" in its
-setup, the CPU is now really cold - it has 37C now with fan at minimum speed,
-so I believe that the obvious "deep sleep" states from C2 up are not necessary
-for Core2 Duo.
-               With regards, Pavel Troller
-
+Greetings,
+Rafael
