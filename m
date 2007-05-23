@@ -1,81 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: [patch 4/6] Use menuconfig objects: ACPI
-Date: Wed, 23 May 2007 14:12:28 -0700
-Message-ID: <200705232112.l4NLCSLd032154@shell0.pdx.osdl.net>
+Subject: [patch 3/6] git-acpi: export acpi_set_cstate_limit
+Date: Wed, 23 May 2007 14:12:27 -0700
+Message-ID: <200705232112.l4NLCR85032151@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:57412 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:59283 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755850AbXEWVYt (ORCPT
+	by vger.kernel.org with ESMTP id S1754268AbXEWV2b (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 May 2007 17:24:49 -0400
+	Wed, 23 May 2007 17:28:31 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, jengelh@linux01.gwdg.de, jengelh@gmx.de
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org
 
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Use menuconfigs instead of menus, so the whole menu can be disabled at once
-instead of going through all options.
+ipw2100 uses this.
 
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/Kconfig |   13 ++-----------
- 1 files changed, 2 insertions(+), 11 deletions(-)
+ drivers/acpi/osl.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/acpi/Kconfig~use-menuconfig-objects-acpi drivers/acpi/Kconfig
---- a/drivers/acpi/Kconfig~use-menuconfig-objects-acpi
-+++ a/drivers/acpi/Kconfig
-@@ -2,16 +2,12 @@
- # ACPI Configuration
- #
+diff -puN drivers/acpi/osl.c~git-acpi-export-acpi_set_cstate_limit drivers/acpi/osl.c
+--- a/drivers/acpi/osl.c~git-acpi-export-acpi_set_cstate_limit
++++ a/drivers/acpi/osl.c
+@@ -1033,6 +1033,7 @@ acpi_cpu_flags acpi_os_acquire_lock(acpi
+ 	spin_lock_irqsave(lockp, flags);
+ 	return flags;
+ }
++EXPORT_SYMBOL(acpi_set_cstate_limit);
  
--menu "ACPI (Advanced Configuration and Power Interface) Support"
-+menuconfig ACPI
-+	bool "ACPI Support (Advanced Configuration and Power Interface) Support"
- 	depends on !X86_NUMAQ
- 	depends on !X86_VISWS
- 	depends on !IA64_HP_SIM
- 	depends on IA64 || X86
--	depends on PM
--
--config ACPI
--	bool "ACPI Support"
--	depends on IA64 || X86
- 	depends on PCI
- 	depends on PM
- 	select PNP
-@@ -49,7 +45,6 @@ if ACPI
- config ACPI_SLEEP
- 	bool "Sleep States"
- 	depends on X86 && (!SMP || SUSPEND_SMP)
--	depends on PM
- 	default y
- 	---help---
- 	  This option adds support for ACPI suspend states. 
-@@ -82,7 +77,6 @@ config ACPI_SLEEP_PROC_SLEEP
- 
- config ACPI_PROCFS
- 	bool "Procfs interface (deprecated)"
--	depends on ACPI
- 	default y
- 	---help---
- 	  The Procfs interface for ACPI is made optional for backward compatibility.
-@@ -330,7 +324,6 @@ config ACPI_CONTAINER
- 
- config ACPI_HOTPLUG_MEMORY
- 	tristate "Memory Hotplug"
--	depends on ACPI
- 	depends on MEMORY_HOTPLUG
- 	default n
- 	help
-@@ -359,5 +352,3 @@ config ACPI_SBS
- 	  to today's ACPI "Control Method" battery.
- 
- endif	# ACPI
--
--endmenu
+ /*
+  * Release a spinlock. See above.
 _
