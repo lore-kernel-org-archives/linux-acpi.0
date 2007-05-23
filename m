@@ -1,73 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: [patch 6/6] Remove Dell Optiplex GX240 from the ACPI blacklist
-Date: Wed, 23 May 2007 14:12:30 -0700
-Message-ID: <200705232112.l4NLCUrC032160@shell0.pdx.osdl.net>
+Subject: [patch 2/6] ACPI video: don't export sysfs backlight interface if query _BCL fail
+Date: Wed, 23 May 2007 14:12:26 -0700
+Message-ID: <200705232112.l4NLCRUw032148@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([207.189.120.13]:57412 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755684AbXEWVYp (ORCPT
+	by vger.kernel.org with ESMTP id S1755898AbXEWVYu (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 May 2007 17:24:45 -0400
+	Wed, 23 May 2007 17:24:50 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, tarrqt@yahoo.com
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, dkukawka@suse.de, luming.yu@intel.com
 
-From: Tear <tarrqt@yahoo.com>
+From: Danny Kukawka <dkukawka@suse.de>
 
-I have a Dell Optiplex GX240 and when I boot Linux, ACPI gets set up by only
-acpi=ht.  dmesg shows the following line:
+Currently the acpi video module export the backlight interface to sysfs
+also if acpi_video_device_lcd_query_levels() fails to read _BLC method
+(e.g.  because the method is not available).  In this case the userspace
+don't know which brightness level are supported and can't set a brightness
+level (echo return with: "write error: Invalid Argument").  This happend
+e.g.  on a ASUS RF1 (correct supported by the asus-laptop module).
 
-   DELL GX240 detected: force use of acpi=ht
+The video module should not export the backlight interface if query _BLC fail,
+because you can't set anything from userspace and this make it useless.
 
-Everything seemed to be fine.  However, I discovered that everything is not
-fine.  The USB controller works so slowly that copying a few (uncached) 1
-megabyte large photos from a USB-enabled digital camera takes many minutes
-instead of a couple of seconds.
+See also: http://bugzilla.kernel.org/show_bug.cgi?id=8375
 
-I am using Linux 2.6.21.1 on a Debian 4.0 ("Etch") system.
-
-I thought that this might be related to ACPI.  So I tried to boot with _only_
-"acpi=force" appended to the kernel command line.  Voila, the USB controller
-started to work at full speed and copying photos from my digital camera took
-only seconds.
-
-I tested the system with "acpi=force" and could not find anything which did
-not work.  So, can we please remove Dell Optiplex GX240 from the blacklist in
-
-..../arch/i386/kernel/acpi/boot.c
-
-?  The attached patch does just that: It removes Dell Optiplex GX240 from the
-ACPI blacklist.
-
-I thought that this might be related to interrupts and APIC as well.  (Note
-that this is APIC, not ACPI.) I tried booting with _only_ "noapic" and
-"nolapic" appended to the command line.  Again, the USB controller started to
-work at full speed.
-
+Signed-off-by: Danny Kukawka <dkukawka@suse.de>
+Cc: "Yu, Luming" <luming.yu@intel.com>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/acpi/boot.c |    8 --------
- 1 files changed, 8 deletions(-)
+ drivers/acpi/video.c |   78 +++++++++++++++++++++--------------------
+ 1 files changed, 41 insertions(+), 37 deletions(-)
 
-diff -puN arch/i386/kernel/acpi/boot.c~remove-dell-optiplex-gx240-from-the-acpi-blacklist arch/i386/kernel/acpi/boot.c
---- a/arch/i386/kernel/acpi/boot.c~remove-dell-optiplex-gx240-from-the-acpi-blacklist
-+++ a/arch/i386/kernel/acpi/boot.c
-@@ -971,14 +971,6 @@ static struct dmi_system_id __initdata a
- 	 },
- 	{
- 	 .callback = force_acpi_ht,
--	 .ident = "DELL GX240",
--	 .matches = {
--		     DMI_MATCH(DMI_BOARD_VENDOR, "Dell Computer Corporation"),
--		     DMI_MATCH(DMI_BOARD_NAME, "OptiPlex GX240"),
--		     },
--	 },
--	{
--	 .callback = force_acpi_ht,
- 	 .ident = "HP VISUALIZE NT Workstation",
- 	 .matches = {
- 		     DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
+diff -puN drivers/acpi/video.c~acpi-video-dont-export-sysfs-backlight-interface-if-query-_bcl-fail drivers/acpi/video.c
+--- a/drivers/acpi/video.c~acpi-video-dont-export-sysfs-backlight-interface-if-query-_bcl-fail
++++ a/drivers/acpi/video.c
+@@ -559,7 +559,6 @@ acpi_video_bus_DOS(struct acpi_video_bus
+ 
+ static void acpi_video_device_find_cap(struct acpi_video_device *device)
+ {
+-	acpi_integer status;
+ 	acpi_handle h_dummy1;
+ 	int i;
+ 	u32 max_level = 0;
+@@ -593,50 +592,55 @@ static void acpi_video_device_find_cap(s
+ 		device->cap._DSS = 1;
+ 	}
+ 
+-	status = acpi_video_device_lcd_query_levels(device, &obj);
++	if (ACPI_SUCCESS(acpi_video_device_lcd_query_levels(device, &obj))) {
+ 
+-	if (obj && obj->type == ACPI_TYPE_PACKAGE && obj->package.count >= 2) {
+-		int count = 0;
+-		union acpi_object *o;
+-
+-		br = kzalloc(sizeof(*br), GFP_KERNEL);
+-		if (!br) {
+-			printk(KERN_ERR "can't allocate memory\n");
+-		} else {
+-			br->levels = kmalloc(obj->package.count *
+-					     sizeof *(br->levels), GFP_KERNEL);
+-			if (!br->levels)
+-				goto out;
+-
+-			for (i = 0; i < obj->package.count; i++) {
+-				o = (union acpi_object *)&obj->package.
+-				    elements[i];
+-				if (o->type != ACPI_TYPE_INTEGER) {
+-					printk(KERN_ERR PREFIX "Invalid data\n");
+-					continue;
+-				}
+-				br->levels[count] = (u32) o->integer.value;
+-				if (br->levels[count] > max_level)
+-					max_level = br->levels[count];
+-				count++;
+-			}
+-		      out:
+-			if (count < 2) {
+-				kfree(br->levels);
+-				kfree(br);
++		if (obj->package.count >= 2) {
++			int count = 0;
++			union acpi_object *o;
++
++			br = kzalloc(sizeof(*br), GFP_KERNEL);
++			if (!br) {
++				printk(KERN_ERR "can't allocate memory\n");
+ 			} else {
+-				br->count = count;
+-				device->brightness = br;
+-				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-						  "found %d brightness levels\n",
+-						  count));
++				br->levels = kmalloc(obj->package.count *
++						     sizeof *(br->levels), GFP_KERNEL);
++				if (!br->levels)
++					goto out;
++
++				for (i = 0; i < obj->package.count; i++) {
++					o = (union acpi_object *)&obj->package.
++					    elements[i];
++					if (o->type != ACPI_TYPE_INTEGER) {
++						printk(KERN_ERR PREFIX "Invalid data\n");
++						continue;
++					}
++					br->levels[count] = (u32) o->integer.value;
++
++					if (br->levels[count] > max_level)
++						max_level = br->levels[count];
++					count++;
++				}
++			      out:
++				if (count < 2) {
++					kfree(br->levels);
++					kfree(br);
++				} else {
++					br->count = count;
++					device->brightness = br;
++					ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++							  "found %d brightness levels\n",
++							  count));
++				}
+ 			}
+ 		}
++
++	} else {
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Could not query available LCD brightness level\n"));
+ 	}
+ 
+ 	kfree(obj);
+ 
+-	if (device->cap._BCL && device->cap._BCM && device->cap._BQC){
++	if (device->cap._BCL && device->cap._BCM && device->cap._BQC && max_level > 0){
+ 		unsigned long tmp;
+ 		static int count = 0;
+ 		char *name;
 _
