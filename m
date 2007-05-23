@@ -1,50 +1,39 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: 2.6.21-mm2: ACPI exception on resume
-Date: Tue, 22 May 2007 21:19:43 -0300
-Message-ID: <20070523001943.GA3743@khazad-dum.debian.net>
-References: <20070519165738.GK11115@waste.org> <20070519204504.GA24704@khazad-dum.debian.net> <20070519223843.GN11115@waste.org> <20070520035259.GA13224@khazad-dum.debian.net> <20070521222339.GF11115@waste.org> <20070521230349.GA645@khazad-dum.debian.net> <20070522224515.GW11115@waste.org>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] [-mm] ACPI: export ACPI events via netlink
+Date: Wed, 23 May 2007 09:17:31 +0800
+Message-ID: <1179883051.7707.35.camel@localhost.localdomain>
+References: <1179827251.7707.29.camel@localhost.localdomain>
+	 <1179831825.4121.30.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:43027 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965941AbXEWATy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 May 2007 20:19:54 -0400
-Content-Disposition: inline
-In-Reply-To: <20070522224515.GW11115@waste.org>
+Received: from mga01.intel.com ([192.55.52.88]:20387 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756899AbXEWBST (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 May 2007 21:18:19 -0400
+In-Reply-To: <1179831825.4121.30.camel@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matt Mackall <mpm@selenic.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
+To: hadi@cyberus.ca
+Cc: "linux-acpi@vger" <linux-acpi@vger.kernel.org>, lenb@kernel.org, netdev@vger.kernel.org
 
-On Tue, 22 May 2007, Matt Mackall wrote:
-> On Mon, May 21, 2007 at 08:03:49PM -0300, Henrique de Moraes Holschuh wrote:
-> > On Mon, 21 May 2007, Matt Mackall wrote:
-> > > BIOS Information
-> > >         Vendor: IBM
-> > >         Version: 1RETDHWW (3.13 )
-> > >         Release Date: 10/29/2004
-> > > 
-> > > No sign of any EC version in the output.
-> > 
-> > This is a buggy, ancient version of the BIOS, which probably means you have
-> > an old and slightly buggy EC firmware.  I recommend you to upgrade to BIOS
-> > 3.21 and EC 3.04.  See http://thinkwiki.org/wiki/BIOS_Upgrade for more
-> > details.
+On Tue, 2007-05-22 at 07:03 -0400, jamal wrote:
+> Hi Zhang Rui,
 > 
-> Really, I'd much prefer my kernel not regress instead. Updating
-> firmware is just introducing more potential instability and ignoring
-> the problem.
+> Really cool stuff. Can you instead use genetlink?
+> http://linux-net.osdl.org/index.php/Generic_Netlink_HOWTO 
+> should help. And if you have more questions post on netdev (not lk).
+> 
+That's really helpful, thanks.
+Will post the second version soon. :)
 
-We can't very much know if the kernel is really buggy, then.  I'd say we
-need a report from someone with another thinkpad that uses the 1R BIOS that
-has an up-to-date BIOS, to know for sure.  Since that includes the T41 and
-T42, chances are others would have spoken up about it already if it affected
-the more recent versions of the 1R BIOS.
+Thanks,
+Rui
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+> On Tue, 2007-22-05 at 17:47 +0800, Zhang Rui wrote:
+> > From: Zhang Rui <rui.zhang@intel.com>
+> > 
+> > Export ACPI events via netlink.
+> > A netlink message is broadcasted when an ACPI event is generated.
+> > 
