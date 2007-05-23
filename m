@@ -1,62 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [patch 5/6] ACPI: bay: send envp with uevent
-Date: Wed, 23 May 2007 14:12:29 -0700
-Message-ID: <200705232112.l4NLCTIn032157@shell0.pdx.osdl.net>
+Subject: [patch 4/6] Use menuconfig objects: ACPI
+Date: Wed, 23 May 2007 14:12:28 -0700
+Message-ID: <200705232112.l4NLCSLd032154@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([207.189.120.13]:57412 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755799AbXEWVYs (ORCPT
+	by vger.kernel.org with ESMTP id S1755850AbXEWVYt (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 May 2007 17:24:48 -0400
+	Wed, 23 May 2007 17:24:49 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, kristen.c.accardi@intel.com, s.berberig@arcor.de
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, jengelh@linux01.gwdg.de, jengelh@gmx.de
 
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-Make the bay driver send env information on bay events.
+Use menuconfigs instead of menus, so the whole menu can be disabled at once
+instead of going through all options.
 
-Upon any bay event, we will send the string "BAY_EVENT=%d" along with the
-KOBJ_CHANGE, and report the event number.  What the event number means will
-be platform specific.  Event 3 is always an eject request, but an insert
-may be either event 1, or it may be event 0.  Event 1 may also be a
-remove request.  It would be best if you check the number of your event
-with udevmonitor before writing any udev scripts for inserting and
-removing drive bays.
-
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Stephan Berberig <s.berberig@arcor.de>
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/bay.c |   14 ++++----------
- 1 files changed, 4 insertions(+), 10 deletions(-)
+ drivers/acpi/Kconfig |   13 ++-----------
+ 1 files changed, 2 insertions(+), 11 deletions(-)
 
-diff -puN drivers/acpi/bay.c~acpi-bay-send-envp-with-uevent drivers/acpi/bay.c
---- a/drivers/acpi/bay.c~acpi-bay-send-envp-with-uevent
-+++ a/drivers/acpi/bay.c
-@@ -333,18 +333,12 @@ static void bay_notify(acpi_handle handl
- {
- 	struct bay *bay_dev = (struct bay *)data;
- 	struct device *dev = &bay_dev->pdev->dev;
-+	char event_string[12];
-+	char *envp[] = { event_string, NULL };
+diff -puN drivers/acpi/Kconfig~use-menuconfig-objects-acpi drivers/acpi/Kconfig
+--- a/drivers/acpi/Kconfig~use-menuconfig-objects-acpi
++++ a/drivers/acpi/Kconfig
+@@ -2,16 +2,12 @@
+ # ACPI Configuration
+ #
  
- 	bay_dprintk(handle, "Bay event");
+-menu "ACPI (Advanced Configuration and Power Interface) Support"
++menuconfig ACPI
++	bool "ACPI Support (Advanced Configuration and Power Interface) Support"
+ 	depends on !X86_NUMAQ
+ 	depends on !X86_VISWS
+ 	depends on !IA64_HP_SIM
+ 	depends on IA64 || X86
+-	depends on PM
 -
--	switch(event) {
--	case ACPI_NOTIFY_BUS_CHECK:
--	case ACPI_NOTIFY_DEVICE_CHECK:
--	case ACPI_NOTIFY_EJECT_REQUEST:
--		kobject_uevent(&dev->kobj, KOBJ_CHANGE);
--		break;
--	default:
--		printk(KERN_ERR PREFIX "Bay: unknown event %d\n", event);
--	}
-+	sprintf(event_string, "BAY_EVENT=%d\n", event);
-+	kobject_uevent_env(&dev->kobj, KOBJ_CHANGE, envp);
- }
+-config ACPI
+-	bool "ACPI Support"
+-	depends on IA64 || X86
+ 	depends on PCI
+ 	depends on PM
+ 	select PNP
+@@ -49,7 +45,6 @@ if ACPI
+ config ACPI_SLEEP
+ 	bool "Sleep States"
+ 	depends on X86 && (!SMP || SUSPEND_SMP)
+-	depends on PM
+ 	default y
+ 	---help---
+ 	  This option adds support for ACPI suspend states. 
+@@ -82,7 +77,6 @@ config ACPI_SLEEP_PROC_SLEEP
  
- static acpi_status
+ config ACPI_PROCFS
+ 	bool "Procfs interface (deprecated)"
+-	depends on ACPI
+ 	default y
+ 	---help---
+ 	  The Procfs interface for ACPI is made optional for backward compatibility.
+@@ -330,7 +324,6 @@ config ACPI_CONTAINER
+ 
+ config ACPI_HOTPLUG_MEMORY
+ 	tristate "Memory Hotplug"
+-	depends on ACPI
+ 	depends on MEMORY_HOTPLUG
+ 	default n
+ 	help
+@@ -359,5 +352,3 @@ config ACPI_SBS
+ 	  to today's ACPI "Control Method" battery.
+ 
+ endif	# ACPI
+-
+-endmenu
 _
