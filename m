@@ -1,65 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [patch 1/6] Exit ACPI processor module gracefully if acpi is disabled
-Date: Wed, 23 May 2007 14:12:26 -0700
-Message-ID: <200705232112.l4NLCQh5032145@shell0.pdx.osdl.net>
+Subject: [patch 6/6] Remove Dell Optiplex GX240 from the ACPI blacklist
+Date: Wed, 23 May 2007 14:12:30 -0700
+Message-ID: <200705232112.l4NLCUrC032160@shell0.pdx.osdl.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([207.189.120.13]:57412 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755625AbXEWVYo (ORCPT
+	by vger.kernel.org with ESMTP id S1755684AbXEWVYp (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 May 2007 17:24:44 -0400
+	Wed, 23 May 2007 17:24:45 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, trenn@suse.de
+Cc: linux-acpi@vger.kernel.org, akpm@linux-foundation.org, tarrqt@yahoo.com
 
-From: Thomas Renninger <trenn@suse.de>
+From: Tear <tarrqt@yahoo.com>
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
+I have a Dell Optiplex GX240 and when I boot Linux, ACPI gets set up by only
+acpi=ht.  dmesg shows the following line:
+
+   DELL GX240 detected: force use of acpi=ht
+
+Everything seemed to be fine.  However, I discovered that everything is not
+fine.  The USB controller works so slowly that copying a few (uncached) 1
+megabyte large photos from a USB-enabled digital camera takes many minutes
+instead of a couple of seconds.
+
+I am using Linux 2.6.21.1 on a Debian 4.0 ("Etch") system.
+
+I thought that this might be related to ACPI.  So I tried to boot with _only_
+"acpi=force" appended to the kernel command line.  Voila, the USB controller
+started to work at full speed and copying photos from my digital camera took
+only seconds.
+
+I tested the system with "acpi=force" and could not find anything which did
+not work.  So, can we please remove Dell Optiplex GX240 from the blacklist in
+
+..../arch/i386/kernel/acpi/boot.c
+
+?  The attached patch does just that: It removes Dell Optiplex GX240 from the
+ACPI blacklist.
+
+I thought that this might be related to interrupts and APIC as well.  (Note
+that this is APIC, not ACPI.) I tried booting with _only_ "noapic" and
+"nolapic" appended to the command line.  Again, the USB controller started to
+work at full speed.
+
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_core.c |   13 +++++++++----
- 1 files changed, 9 insertions(+), 4 deletions(-)
+ arch/i386/kernel/acpi/boot.c |    8 --------
+ 1 files changed, 8 deletions(-)
 
-diff -puN drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled drivers/acpi/processor_core.c
---- a/drivers/acpi/processor_core.c~exit-acpi-processor-module-gracefully-if-acpi-is-disabled
-+++ a/drivers/acpi/processor_core.c
-@@ -991,6 +991,8 @@ void acpi_processor_uninstall_hotplug_no
-  * ACPI, but needs symbols from this driver
-  */
- 
-+static int processor_driver_registered;
-+
- static int __init acpi_processor_init(void)
- {
- 	int result = 0;
-@@ -1016,6 +1018,8 @@ static int __init acpi_processor_init(vo
- 		return result;
- 	}
- 
-+	processor_driver_registered = 1;
-+
- 	acpi_processor_install_hotplug_notify();
- 
- 	acpi_thermal_cpufreq_init();
-@@ -1032,12 +1036,13 @@ static void __exit acpi_processor_exit(v
- 
- 	acpi_thermal_cpufreq_exit();
- 
--	acpi_processor_uninstall_hotplug_notify();
--
--	acpi_bus_unregister_driver(&acpi_processor_driver);
-+	if (processor_driver_registered) {
-+		acpi_processor_uninstall_hotplug_notify();
- 
--	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
-+		acpi_bus_unregister_driver(&acpi_processor_driver);
- 
-+		remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
-+	}
- 	return;
- }
- 
+diff -puN arch/i386/kernel/acpi/boot.c~remove-dell-optiplex-gx240-from-the-acpi-blacklist arch/i386/kernel/acpi/boot.c
+--- a/arch/i386/kernel/acpi/boot.c~remove-dell-optiplex-gx240-from-the-acpi-blacklist
++++ a/arch/i386/kernel/acpi/boot.c
+@@ -971,14 +971,6 @@ static struct dmi_system_id __initdata a
+ 	 },
+ 	{
+ 	 .callback = force_acpi_ht,
+-	 .ident = "DELL GX240",
+-	 .matches = {
+-		     DMI_MATCH(DMI_BOARD_VENDOR, "Dell Computer Corporation"),
+-		     DMI_MATCH(DMI_BOARD_NAME, "OptiPlex GX240"),
+-		     },
+-	 },
+-	{
+-	 .callback = force_acpi_ht,
+ 	 .ident = "HP VISUALIZE NT Workstation",
+ 	 .matches = {
+ 		     DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
 _
