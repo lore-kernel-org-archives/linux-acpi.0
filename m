@@ -1,90 +1,54 @@
-From: "Ray Lee" <ray-lk@madrabbit.org>
-Subject: Re: 2.6.21-mm2: ACPI exception on resume
-Date: Wed, 23 May 2007 18:37:38 -0700
-Message-ID: <2c0942db0705231837k2941b9a0l9bb7d7cdc7d35195@mail.gmail.com>
-References: <20070520035259.GA13224@khazad-dum.debian.net>
-	 <20070521230349.GA645@khazad-dum.debian.net>
-	 <20070522224515.GW11115@waste.org>
-	 <20070523001943.GA3743@khazad-dum.debian.net>
-	 <20070523014825.GX11115@waste.org>
-	 <20070523041958.GA15952@khazad-dum.debian.net>
-	 <2c0942db0705222141se133553re06370476d436b12@mail.gmail.com>
-	 <20070523125100.GA826@khazad-dum.debian.net>
-	 <2c0942db0705231550x70432ceaw1d428d7a25ffe8aa@mail.gmail.com>
-	 <20070524002826.GA2644@khazad-dum.debian.net>
+From: Len Brown <lenb@kernel.org>
+Subject: [PATCH] ACPICA: allow Load(OEMx) tables
+Date: Thu, 24 May 2007 01:16:40 -0400
+Message-ID: <200705240116.40229.lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.174]:17958 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755240AbXEXBhk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 May 2007 21:37:40 -0400
-Received: by ug-out-1314.google.com with SMTP id 70so761170ugb
-        for <linux-acpi@vger.kernel.org>; Wed, 23 May 2007 18:37:38 -0700 (PDT)
-In-Reply-To: <20070524002826.GA2644@khazad-dum.debian.net>
+Received: from hera.kernel.org ([140.211.167.34]:58739 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756667AbXEXFR7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 24 May 2007 01:17:59 -0400
+Received: from d975xbx2 (c-65-96-213-102.hsd1.ma.comcast.net [65.96.213.102])
+	(authenticated bits=0)
+	by hera.kernel.org (8.13.8/8.13.7) with ESMTP id l4O5GjWC003109
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-acpi@vger.kernel.org>; Thu, 24 May 2007 05:17:56 GMT
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Matt Mackall <mpm@selenic.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
+To: linux-acpi@vger.kernel.org
 
-On 5/23/07, Henrique de Moraes Holschuh <hmh@hmh.eng.br> wrote:
-> On Wed, 23 May 2007, Ray Lee wrote:
-> > Which is the crux of my problem with your statement. I feel we
-> > shouldn't give the wrong idea to those authors. They need to know that
-> > the expectation is that 2.6.x is a stable series, and 2.6.x.y is for
-> > dealing with unavoidable mistakes.
->
-> Well, the only case where I feel a regression is justified is one where it
-> is caused by a bug in the firmware or the hardware.
+HP and Hitachi machines have been implemented with SSDTs
+that use the "OEMx" signatures.  But upon Load, ACPICA is rejecting
+these tables because they are not using the "SSDT" signature.
 
-Here's the problem. Each of the people testing the kernel is a 'canary
-in the coalmine.' If one person is having trouble, then it's likely
-that there are ten more that will have the same issue. The real
-problem here is that those other ten people aren't going to know how
-to fix it, other than "it used to work, so obviously the kernel is now
-doing something wrong."
+ACPI Error (tbinstal-0134): Table has invalid signature [OEMx], must be SSDT...
 
-This is particularly bad for firmware, where upgrading it may
-introduce new regressions. I understand that there are broken
-firmwares out there -- I have a laptop with one.  But there needs to
-be a way to support broken systems and the sane ones simultaneously.
-This is a requirement for the ACPI tree, for example, and it seems to
-work.
+Signed-off-by: Len Brown <len.brown@intel.com>
 
-All of this is assuming that the firmware really was at fault. It's
-also possible that it's just doing something different than before,
-and both behaviors are valid and should be dealt with gracefully.
-
-> At which point my personal opinion is that users of firmware/hardware *that
-> have a fix available* are to be told to apply the fix, unless the problem is
-> so serious that it could potentially cause extreme damage (loss of human
-> life, permanent hardware damage, major data loss).
-
-Those are extreme. My point is that if you know who all those people
-are, and are willing to contact them, then sure, that's viable.
-Otherwise, the bottom line is that the kernel used to deal with a
-problem gracefully, and now it doesn't. There's no telling how many
-other people will get bit by the same problem, and most of those
-people aren't going to know what to do about it, other than to
-downgrade the kernel, and wait for it to magically get fixed by
-someone else.
-
-> If there is no fix the user can apply, then it really depends on how
-> damaging it is to work around the issue for others: you don't punish those
-> who have non-broken stuff to avoid problems for those that have broken
-> stuff.
-
-I understand your point of view, but another way to look at it is that
-we always want to make forward progress on the code. If we don't, then
-we're never going to have a good metric (measure) of how we're doing.
-
-> Fortunately, most of the time one can come up with a fix that causes little
-> to no loss to those with non-broken hardware/firmware.
-
-And I'm sure those with the Big Brains(tm) can do so again.
-
-Thanks,
-
-Ray
+diff --git a/drivers/acpi/tables/tbinstal.c b/drivers/acpi/tables/tbinstal.c
+index 0e7b121..609f67e 100644
+--- a/drivers/acpi/tables/tbinstal.c
++++ b/drivers/acpi/tables/tbinstal.c
+@@ -123,14 +123,14 @@ acpi_tb_add_table(struct acpi_table_desc *table_desc,
+ 		}
+ 	}
+ 
+-	/* The table must be either an SSDT or a PSDT */
++	/* The table must be either an SSDT or a PSDT or an OEMx */
+ 
+ 	if ((!ACPI_COMPARE_NAME(table_desc->pointer->signature, ACPI_SIG_PSDT))
+ 	    &&
+-	    (!ACPI_COMPARE_NAME(table_desc->pointer->signature, ACPI_SIG_SSDT)))
+-	{
++	    (!ACPI_COMPARE_NAME(table_desc->pointer->signature, ACPI_SIG_SSDT))
++	    && (!strncmp(table_desc->pointer->signature, "OEM", 3))) {
+ 		ACPI_ERROR((AE_INFO,
+-			    "Table has invalid signature [%4.4s], must be SSDT or PSDT",
++			    "Table has invalid signature [%4.4s], must be SSDT, PSDT or OEMx",
+ 			    table_desc->pointer->signature));
+ 		return_ACPI_STATUS(AE_BAD_SIGNATURE);
+ 	}
