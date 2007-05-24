@@ -1,54 +1,37 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: [PATCH] Section mismatch ... acpi_map_pxm_to_node
-Date: Thu, 24 May 2007 13:57:40 -0700
-Message-ID: <617E1C2C70743745A92448908E030B2A018B0FBA@scsmsx411.amr.corp.intel.com>
-References: <617E1C2C70743745A92448908E030B2A018B0DBA@scsmsx411.amr.corp.intel.com>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [BUG] long freezes on thinkpad t60
+Date: Thu, 24 May 2007 23:01:53 +0200
+Message-ID: <20070524210153.GB19672@elte.hu>
+References: <E1HrC3W-0005SZ-00@dorka.pomaz.szeredi.hu> <20070524125453.GA7554@elte.hu> <E1HrDuQ-0005m7-00@dorka.pomaz.szeredi.hu> <20070524141059.GA19872@elte.hu> <E1HrEIp-0005qy-00@dorka.pomaz.szeredi.hu> <20070524144447.GA25068@elte.hu> <E1HrGom-0006AC-00@dorka.pomaz.szeredi.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <617E1C2C70743745A92448908E030B2A018B0DBA@scsmsx411.amr.corp.intel.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx3.mail.elte.hu ([157.181.1.138]:38949 "EHLO mx3.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751882AbXEXVCA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 24 May 2007 17:02:00 -0400
+Content-Disposition: inline
+In-Reply-To: <E1HrGom-0006AC-00@dorka.pomaz.szeredi.hu>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tglx@linutronix.de
 
-Last of the "Section mismatch" errors from ia64 builds! acpi_map_pxm_to_node()
-is defined with attribute __cpuinit, but is called by "normal" kernel functions
-acpi_getnode() and acpi_map_cpu2node().
 
-Commit f363d16fbb9374c0bd7f2757d412c287169094c9 moved the data structures on
-which this routine operates from __cpuinitdata to regular memory, so this
-routine can also move out of init space.
+* Miklos Szeredi <miklos@szeredi.hu> wrote:
 
-Signed-off-by: Tony Luck <tony.luck@intel.com>
+> 2.6.22-rc2, only EVENT_TRACE - boots, can't rerpoduce
+> 2.6.21-vanila - can reproduce
+> 2.6.21-rt7, trace options off - can reproduce
+> 2.6.21-rt7, trace options on - can't reproduce
+> 
+> Possibly something timing related, that's altered by the trace code. I 
+> tried the trace kernel without starting the trace app, but still no 
+> bug.
+> 
+> Any other ideas?
 
----
+perhaps try 2.6.21-rt7 with EVENT_TRACE on (the other trace options off) 
+- does that hide the bug too?
 
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index a2efae8..0c9f15c 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -59,7 +59,7 @@ int node_to_pxm(int node)
- 	return node_to_pxm_map[node];
- }
- 
--int __cpuinit acpi_map_pxm_to_node(int pxm)
-+int acpi_map_pxm_to_node(int pxm)
- {
- 	int node = pxm_to_node_map[pxm];
- 
-diff --git a/include/acpi/acpi_numa.h b/include/acpi/acpi_numa.h
-index b62cd36..e2fcee2 100644
---- a/include/acpi/acpi_numa.h
-+++ b/include/acpi/acpi_numa.h
-@@ -13,7 +13,7 @@
- 
- extern int pxm_to_node(int);
- extern int node_to_pxm(int);
--extern int __cpuinit acpi_map_pxm_to_node(int);
-+extern int acpi_map_pxm_to_node(int);
- extern void __cpuinit acpi_unmap_pxm_to_node(int);
- 
- #endif				/* CONFIG_ACPI_NUMA */
+	Ingo
