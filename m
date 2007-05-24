@@ -1,36 +1,39 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH] ACPICA: allow Load(OEMx) tables
-Date: Thu, 24 May 2007 01:16:40 -0400
-Message-ID: <200705240116.40229.lenb@kernel.org>
+Subject: [PATCH] ACPICA: allow Load(OEMx) tables - take 2
+Date: Thu, 24 May 2007 02:25:00 -0400
+Message-ID: <200705240225.00740.lenb@kernel.org>
+References: <200705240116.40229.lenb@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hera.kernel.org ([140.211.167.34]:58739 "EHLO hera.kernel.org"
+Received: from hera.kernel.org ([140.211.167.34]:52252 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756667AbXEXFR7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 24 May 2007 01:17:59 -0400
-Received: from d975xbx2 (c-65-96-213-102.hsd1.ma.comcast.net [65.96.213.102])
-	(authenticated bits=0)
-	by hera.kernel.org (8.13.8/8.13.7) with ESMTP id l4O5GjWC003109
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Thu, 24 May 2007 05:17:56 GMT
+	id S1754335AbXEXG0Q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 24 May 2007 02:26:16 -0400
+In-Reply-To: <200705240116.40229.lenb@kernel.org>
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
 
-HP and Hitachi machines have been implemented with SSDTs
+Subject: ACPICA: allow Load(OEMx) tables
+From: Len Brown <len.brown@intel.com>
+
+HP and Hitachi machines have been implemented with SSDT's
 that use the "OEMx" signatures.  But upon Load, ACPICA is rejecting
 these tables because they are not using the "SSDT" signature.
 
 ACPI Error (tbinstal-0134): Table has invalid signature [OEMx], must be SSDT...
 
 Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ tbinstal.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/acpi/tables/tbinstal.c b/drivers/acpi/tables/tbinstal.c
-index 0e7b121..609f67e 100644
+index 0e7b121..3bc0c67 100644
 --- a/drivers/acpi/tables/tbinstal.c
 +++ b/drivers/acpi/tables/tbinstal.c
 @@ -123,14 +123,14 @@ acpi_tb_add_table(struct acpi_table_desc *table_desc,
@@ -45,7 +48,7 @@ index 0e7b121..609f67e 100644
 -	    (!ACPI_COMPARE_NAME(table_desc->pointer->signature, ACPI_SIG_SSDT)))
 -	{
 +	    (!ACPI_COMPARE_NAME(table_desc->pointer->signature, ACPI_SIG_SSDT))
-+	    && (!strncmp(table_desc->pointer->signature, "OEM", 3))) {
++	    && (strncmp(table_desc->pointer->signature, "OEM", 3))) {
  		ACPI_ERROR((AE_INFO,
 -			    "Table has invalid signature [%4.4s], must be SSDT or PSDT",
 +			    "Table has invalid signature [%4.4s], must be SSDT, PSDT or OEMx",
