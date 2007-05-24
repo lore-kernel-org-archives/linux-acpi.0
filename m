@@ -1,36 +1,37 @@
-From: "Ray Lee" <ray-lk@madrabbit.org>
-Subject: Re: [1/3] 2.6.22-rc2: known regressions v2
-Date: Thu, 24 May 2007 07:06:44 -0700
-Message-ID: <2c0942db0705240706n48152c73v810f3a147f646033@mail.gmail.com>
-References: <46559B49.8020304@googlemail.com>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [BUG] long freezes on thinkpad t60
+Date: Thu, 24 May 2007 16:10:59 +0200
+Message-ID: <20070524141059.GA19872@elte.hu>
+References: <E1HrC3W-0005SZ-00@dorka.pomaz.szeredi.hu> <20070524125453.GA7554@elte.hu> <E1HrDuQ-0005m7-00@dorka.pomaz.szeredi.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751375AbXEXOHG@vger.kernel.org>
-In-Reply-To: <46559B49.8020304@googlemail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750938AbXEXOLS@vger.kernel.org>
 Content-Disposition: inline
+In-Reply-To: <E1HrDuQ-0005m7-00@dorka.pomaz.szeredi.hu>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tglx@linutronix.de
 List-Id: linux-acpi@vger.kernel.org
 
-On 5/24/07, Michal Piotrowski <michal.k.k.piotrowski@gmail.com> wrote:
-> Here is a list of some known regressions in 2.6.22-rc2.
->
-> Feel free to add new regressions/remove fixed etc.
-> http://kernelnewbies.org/known_regressions
->
-> ACPI
->
-> Subject    : nx6125 has lost fan control
-> References : http://lkml.org/lkml/2007/5/16/249
-> Submitter  : Ray Lee <ray-lk@madrabbit.org>
-> Status     : Unknown
 
-I'm withdrawing this. It's not a regression, and Raphael (an nx6325
-owner) says it does it on his system as well from time to time. It's
-just another example of the sad state of the firmware on this laptop.
+* Miklos Szeredi <miklos@szeredi.hu> wrote:
 
-Thanks,
+> > how reproducable are these lockups - could you possibly trace it? If 
+> > yes then please apply:
+> > 
+> >   http://www.tglx.de/private/tglx/ht-debug/tracer.diff
+> 
+> With this patch boot stops at segfaulting fsck.  I enabled all the new 
+> config options, is that not a good idea?  Which one exactly do I need?
 
-~r.
+hm, you should only need these:
+
+ CONFIG_EVENT_TRACE=y
+ CONFIG_FUNCTION_TRACE=y
+ # CONFIG_WAKEUP_TIMING is not set
+ # CONFIG_CRITICAL_IRQSOFF_TIMING is not set
+ CONFIG_MCOUNT=y
+
+does it boot with these?
+
+	Ingo
