@@ -1,50 +1,39 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [BUG] long freezes on thinkpad t60
-Date: Fri, 25 May 2007 11:51:29 +0200
-Message-ID: <E1HrWSH-0000mH-00@dorka.pomaz.szeredi.hu>
-References: <E1HrC3W-0005SZ-00@dorka.pomaz.szeredi.hu> <20070524125453.GA7554@elte.hu> <E1HrDuQ-0005m7-00@dorka.pomaz.szeredi.hu> <20070524141059.GA19872@elte.hu> <E1HrEIp-0005qy-00@dorka.pomaz.szeredi.hu> <20070524144447.GA25068@elte.hu> <E1HrGom-0006AC-00@dorka.pomaz.szeredi.hu> <20070524210153.GB19672@elte.hu>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: [PATCH] ACPI: thinkpad-acpi: do not use named sysfs groups
+Date: Fri, 25 May 2007 20:53:21 -0300
+Message-ID: <118013720199-git-send-email-hmh@hmh.eng.br>
+References: <1180137201942-git-send-email-hmh@hmh.eng.br>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gw2.sa.eol.hu ([212.108.200.109]:42199 "EHLO
-	mail-gw2.sa.eol.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751163AbXEYJwW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 May 2007 05:52:22 -0400
-In-reply-to: <20070524210153.GB19672@elte.hu> (message from Ingo Molnar on
-	Thu, 24 May 2007 23:01:53 +0200)
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:51372 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752801AbXEYXx1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 25 May 2007 19:53:27 -0400
+In-Reply-To: <1180137201942-git-send-email-hmh@hmh.eng.br>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: mingo@elte.hu
-Cc: chris@atlee.ca, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tglx@linutronix.de
+To: lenb@kernel.org
+Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-> > 2.6.22-rc2, only EVENT_TRACE - boots, can't rerpoduce
-> > 2.6.21-vanila - can reproduce
-> > 2.6.21-rt7, trace options off - can reproduce
-> > 2.6.21-rt7, trace options on - can't reproduce
-> > 
-> > Possibly something timing related, that's altered by the trace code. I 
-> > tried the trace kernel without starting the trace app, but still no 
-> > bug.
-> > 
-> > Any other ideas?
-> 
-> perhaps try 2.6.21-rt7 with EVENT_TRACE on (the other trace options off) 
-> - does that hide the bug too?
+The initial version of the thinkpad-acpi sysfs interface (not yet released
+in any stable mainline kernel) made liberal use of named sysfs groups, in
+order to get the attributes more organized.
 
-The option itself doesn't hide the bug this time, I got one freeze
-pretty quickly.  But after starting the trace-it-1sec loop, I couldn't
-get it any more.
+This proved to be a really bad design decision.  Maybe if attribute groups
+were as flexible as a real directory, and if binary attributes were not
+second-class citizens, the idea of subdirs and named groups would not have
+been so bad.
 
-Normally I get a freeze after 3-5 minutes of testing, but with
-trace-it-1sec there's still nothing after 30 minutes.
+This patch makes all the thinkpad-acpi sysfs groups anonymous (thus
+removing the subdirs), adds the former group names as a prefix (so that
+hotkey/enable becomes hotkey_enable for example), and updates the
+documentation.
 
-If I stop trace-it, and do "echo 0 > /proc/sys/kernel/trace_enabled",
-I get the freeze again. It's a perfect heisenbug.
+These changes will make the thinkpad-acpi sysfs ABI a lot easier to
+maintain.
 
-This issue came up when I was testing a userspace fuse bug, and now
-the reporter of that bug (added to CC) says that he also sometimes
-experienced a hard lockup during testing but ignored it up to now.  So
-we may yet get some info from him.
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-It could be something fuse related, but it's very hard to imagine how
-fuse could trigger such a low-level problem.
+-- 
+1.5.1.4
 
-Miklos
