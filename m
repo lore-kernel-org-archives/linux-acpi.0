@@ -1,44 +1,39 @@
-From: Jeff Garzik <jeff@garzik.org>
-Subject: Re: [PATCH 4/9] libata-acpi: implement ata_acpi_associate()
-Date: Thu, 24 May 2007 22:50:27 -0400
-Message-ID: <46564EF3.8080103@garzik.org>
-References: <11791672962540-git-send-email-htejun@gmail.com>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [BUG] long freezes on thinkpad t60
+Date: Fri, 25 May 2007 08:58:58 +0200
+Message-ID: <20070525065858.GA4257@elte.hu>
+References: <E1HrC3W-0005SZ-00@dorka.pomaz.szeredi.hu> <20070524220816.GC23214@khazad-dum.debian.net> <46560E04.2090500@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from srv5.dvmed.net ([207.36.208.214]:50594 "EHLO mail.dvmed.net"
+Received: from mx2.mail.elte.hu ([157.181.151.9]:51754 "EHLO mx2.mail.elte.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752947AbXEYCuf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 24 May 2007 22:50:35 -0400
-In-Reply-To: <11791672962540-git-send-email-htejun@gmail.com>
+	id S1752719AbXEYG7I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 25 May 2007 02:59:08 -0400
+Content-Disposition: inline
+In-Reply-To: <46560E04.2090500@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tejun Heo <htejun@gmail.com>
-Cc: mjg59@srcf.ucam.org, rdunlap@xenotime.net, alan@lxorguk.ukuu.org.uk, forrest.zhao@gmail.com, lenb@kernel.org, linux-acpi@vger.kernel.org, hare@suse.de, linux-ide@vger.kernel.org
+To: "Kok, Auke" <auke-jan.h.kok@intel.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Miklos Szeredi <miklos@szeredi.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Tejun Heo wrote:
-> * Add acpi_handle to ata_host and ata_port.  Rename
->   ata_device->obj_handle to ->acpi_handle and move it above such that
->   it doesn't get cleared on reconfiguration.
+
+* Kok, Auke <auke-jan.h.kok@intel.com> wrote:
+
+> Henrique de Moraes Holschuh wrote:
+> >On Thu, 24 May 2007, Miklos Szeredi wrote:
+> >>Tried nmi_watchdog=1, but then the machine locks up hard shortly after
+> >>boot.
+> >
+> >NMIs in some thinkpads are bad trouble, they lock up the blasted IBM/Lenovo
+> >SMBIOS if they happen to hit it while it is servicing a SMI, and thinkpads
+> >do SMIs like crazy.
 > 
-> * Replace ACPI node association which ata_acpi_associate() which is
->   called once during host initialization.  Unlike the previous
->   implementation, ata_acpi_associate() uses ATA_FLAG_ACPI_SATA to
->   choose between IDE or SATA ACPI hierarchy and uses simple child look
->   up instead of recursive walk to match the nodes.  This is way safer
->   and simpler.  Please read the following message for more info.
-> 
->   http://article.gmane.org/gmane.linux.ide/17554
-> 
-> Signed-off-by: Tejun Heo <htejun@gmail.com>
-> ---
->  drivers/ata/libata-acpi.c |  369 ++++++---------------------------------------
->  drivers/ata/libata-core.c |    3 +
->  drivers/ata/libata.h      |    2 +
->  include/linux/libata.h    |   13 +-
->  4 files changed, 63 insertions(+), 324 deletions(-)
+> there's also a L1 ASPM issue with the e1000 chipset in the way (for 
+> T60/X60 only). Make sure you are using 2.6.21 or newer. See netdev 
+> archives for more on that.
 
-applied 4-9 to #upstream
+Miklos is using latest -git and he has nmi_watchdog disabled - still the 
+long pauses persist. (i've never seen that on my t60)
 
-
+	Ingo
