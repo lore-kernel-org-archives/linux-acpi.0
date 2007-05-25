@@ -1,33 +1,57 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: RTC_DRV_CMOS can break userspace interface
-Date: Sun, 27 May 2007 20:03:51 +0100
-Message-ID: <20070527190351.GA21387@srcf.ucam.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: 2.6.22-rc1-mm1 Implementing fan/thermal control in userspace - Was: [cannot change thermal trip points]
+Date: Fri, 25 May 2007 06:38:15 +0000
+Message-ID: <20070525063815.GA3989@ucw.cz>
+References: <20070521121048.GA8332@elf.ucw.cz> <20070521132711.GA7540@srcf.ucam.org> <20070521132948.GD8332@elf.ucw.cz> <20070521133608.GB7540@srcf.ucam.org> <20070521134046.GE8332@elf.ucw.cz> <20070521134553.GA7911@srcf.ucam.org> <20070521224200.GF10714@elf.ucw.cz> <20070522003153.GA18162@srcf.ucam.org> <1180016213.16396.74.camel@queen.suse.de> <20070524143644.GA27364@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:51905 "EHLO
-	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752806AbXE0TED (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 May 2007 15:04:03 -0400
+Received: from gprs189-60.eurotel.cz ([160.218.189.60]:2049 "EHLO spitz.ucw.cz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751316AbXE0VAW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 27 May 2007 17:00:22 -0400
 Content-Disposition: inline
+In-Reply-To: <20070524143644.GA27364@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: david-b@pacbell.net
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Thomas Renninger <trenn@suse.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-f5f72b46c349fefcfd4421b2213c6ffb324c5e56 appears to break the userspace 
-interface to the CMOS alarm. This could previously be accessed via 
-/proc/acpi/alarm, but if RTC_DRV_CMOS is enabled that vanishes. The help 
-text for the module doesn't mention this, which makes tracking it down a 
-touch irritating.
+Hi!
 
-I'm not actually sure why this is the case. It doesn't look like the two 
-interfaces are fundamentally incompatible. I agree that removing the 
-proc code is a good long-term aim, but it'd be nice to be able to test 
-the new RTC code without removing existing functionality.
+> 
+> > I doubt it is impossible, would you mind sharing your knowledge why you
+> > think it is impossible or point to some related discussion, pls.
+> 
+> Because, as Len has pointed out, you end up with two different ideas 
+> about what the trip points are - the kernel's and the hardware's. That 
+> works fine until some event in the firmware either forcibly 
+> resynchronises the two or makes assumptions about the spec-compliance of 
+> the interpreter.
 
-(It doesn't really help that rtc-cmos doesn't load on this machine, but 
-I'll try to track that down later - right now I suspect some sort of PNP 
-issue)
+...and suggested workaround is to drive fans directly from userspace,
+which not only violates the specs and has all the problems with
+desynchronized state, but ALSO FAILS TO WORK IN PRACTICE.
+
+> > I could imagine an implementation for this, that e.g. critical...active9
+> > get module parameters. BIOS updates for trip points get ignored as soon
+> > as one is set and you can only decrease a value. Nothing bad can happen
+> > and it will make some people happy (yes it's hacky, violates the specs
+> > and so on..., but some more people have a working machine). Will this
+> > (or similar) get accepted?
+> 
+> The interface would need to be more complicated than that if you wanted 
+> to be able to implement hysteresis, and there's the potential for 
+> hardware damage if paramaters are set inappropriately. Even then, 
+> there's no easy way of programatically determining whether it would work 
+> on any given hardware.
+
+Not sure why you try to scare people with 'hardware damage'. HP XE3
+bios already _was_ damaging hardware (it cooked the hard drive using
+cpu as a heater), and no acpi magic can damage correctly working
+machine.
+							Pavel
+
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
