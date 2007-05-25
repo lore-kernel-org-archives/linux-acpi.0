@@ -1,39 +1,50 @@
-From: Ingo Molnar <mingo@elte.hu>
+From: Miklos Szeredi <miklos@szeredi.hu>
 Subject: Re: [BUG] long freezes on thinkpad t60
-Date: Fri, 25 May 2007 08:58:58 +0200
-Message-ID: <20070525065858.GA4257@elte.hu>
-References: <E1HrC3W-0005SZ-00@dorka.pomaz.szeredi.hu> <20070524220816.GC23214@khazad-dum.debian.net> <46560E04.2090500@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Date: Fri, 25 May 2007 11:51:29 +0200
+Message-ID: <E1HrWSH-0000mH-00@dorka.pomaz.szeredi.hu>
+References: <E1HrC3W-0005SZ-00@dorka.pomaz.szeredi.hu> <20070524125453.GA7554@elte.hu> <E1HrDuQ-0005m7-00@dorka.pomaz.szeredi.hu> <20070524141059.GA19872@elte.hu> <E1HrEIp-0005qy-00@dorka.pomaz.szeredi.hu> <20070524144447.GA25068@elte.hu> <E1HrGom-0006AC-00@dorka.pomaz.szeredi.hu> <20070524210153.GB19672@elte.hu>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:51754 "EHLO mx2.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752719AbXEYG7I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 25 May 2007 02:59:08 -0400
-Content-Disposition: inline
-In-Reply-To: <46560E04.2090500@intel.com>
+Received: from mail-gw2.sa.eol.hu ([212.108.200.109]:42199 "EHLO
+	mail-gw2.sa.eol.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751163AbXEYJwW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 May 2007 05:52:22 -0400
+In-reply-to: <20070524210153.GB19672@elte.hu> (message from Ingo Molnar on
+	Thu, 24 May 2007 23:01:53 +0200)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Kok, Auke" <auke-jan.h.kok@intel.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Miklos Szeredi <miklos@szeredi.hu>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: mingo@elte.hu
+Cc: chris@atlee.ca, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tglx@linutronix.de
 
-
-* Kok, Auke <auke-jan.h.kok@intel.com> wrote:
-
-> Henrique de Moraes Holschuh wrote:
-> >On Thu, 24 May 2007, Miklos Szeredi wrote:
-> >>Tried nmi_watchdog=1, but then the machine locks up hard shortly after
-> >>boot.
-> >
-> >NMIs in some thinkpads are bad trouble, they lock up the blasted IBM/Lenovo
-> >SMBIOS if they happen to hit it while it is servicing a SMI, and thinkpads
-> >do SMIs like crazy.
+> > 2.6.22-rc2, only EVENT_TRACE - boots, can't rerpoduce
+> > 2.6.21-vanila - can reproduce
+> > 2.6.21-rt7, trace options off - can reproduce
+> > 2.6.21-rt7, trace options on - can't reproduce
+> > 
+> > Possibly something timing related, that's altered by the trace code. I 
+> > tried the trace kernel without starting the trace app, but still no 
+> > bug.
+> > 
+> > Any other ideas?
 > 
-> there's also a L1 ASPM issue with the e1000 chipset in the way (for 
-> T60/X60 only). Make sure you are using 2.6.21 or newer. See netdev 
-> archives for more on that.
+> perhaps try 2.6.21-rt7 with EVENT_TRACE on (the other trace options off) 
+> - does that hide the bug too?
 
-Miklos is using latest -git and he has nmi_watchdog disabled - still the 
-long pauses persist. (i've never seen that on my t60)
+The option itself doesn't hide the bug this time, I got one freeze
+pretty quickly.  But after starting the trace-it-1sec loop, I couldn't
+get it any more.
 
-	Ingo
+Normally I get a freeze after 3-5 minutes of testing, but with
+trace-it-1sec there's still nothing after 30 minutes.
+
+If I stop trace-it, and do "echo 0 > /proc/sys/kernel/trace_enabled",
+I get the freeze again. It's a perfect heisenbug.
+
+This issue came up when I was testing a userspace fuse bug, and now
+the reporter of that bug (added to CC) says that he also sometimes
+experienced a hard lockup during testing but ignored it up to now.  So
+we may yet get some info from him.
+
+It could be something fuse related, but it's very hard to imagine how
+fuse could trigger such a low-level problem.
+
+Miklos
