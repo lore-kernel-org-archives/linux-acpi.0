@@ -1,39 +1,59 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: 2.6.21-mm2: ACPI exception on resume
-Date: Sun, 27 May 2007 21:02:37 +0000
-Message-ID: <20070527210236.GF3989@ucw.cz>
-References: <20070519223843.GN11115@waste.org> <20070520035259.GA13224@khazad-dum.debian.net> <20070521222339.GF11115@waste.org> <20070521230349.GA645@khazad-dum.debian.net> <20070522224515.GW11115@waste.org> <20070523001943.GA3743@khazad-dum.debian.net> <20070523014825.GX11115@waste.org> <20070523041958.GA15952@khazad-dum.debian.net> <2c0942db0705222141se133553re06370476d436b12@mail.gmail.com> <20070523125100.GA826@khazad-dum.debian.net>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: 2.6.22-rc1-mm1 Implementing fan/thermal control in userspace - Was: [cannot change thermal trip points]
+Date: Sun, 27 May 2007 22:51:23 +0100
+Message-ID: <20070527215123.GA22687@srcf.ucam.org>
+References: <20070521132711.GA7540@srcf.ucam.org> <20070521132948.GD8332@elf.ucw.cz> <20070521133608.GB7540@srcf.ucam.org> <20070521134046.GE8332@elf.ucw.cz> <20070521134553.GA7911@srcf.ucam.org> <20070521224200.GF10714@elf.ucw.cz> <20070522003153.GA18162@srcf.ucam.org> <1180016213.16396.74.camel@queen.suse.de> <20070524143644.GA27364@srcf.ucam.org> <20070525063815.GA3989@ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gprs189-60.eurotel.cz ([160.218.189.60]:4889 "EHLO spitz.ucw.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756261AbXE0VC5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 27 May 2007 17:02:57 -0400
+Received: from cavan.codon.org.uk ([217.147.92.49]:33414 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756506AbXE0Vva (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 May 2007 17:51:30 -0400
 Content-Disposition: inline
-In-Reply-To: <20070523125100.GA826@khazad-dum.debian.net>
+In-Reply-To: <20070525063815.GA3989@ucw.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Ray Lee <ray-lk@madrabbit.org>, Matt Mackall <mpm@selenic.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akpm@linux-foundation.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Thomas Renninger <trenn@suse.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi!
-
-> > >> I shouldn't have to upgrade my BIOS to work with a new kernel any more
-> > >> than I should have to upgrade my browser.
-> > >
-> > >We don't agree there, as you are not talking about a stable kernel series.
-> > 
-> > Ah, so you're planning on submitting these patches for 2.7 then? 2.6
-> > is perpetually stable. Matt is quite correct; feel free to ask for
-> > clarifications from Linus et al if you need guidance.
+On Fri, May 25, 2007 at 06:38:15AM +0000, Pavel Machek wrote:
+> Hi!
+> > Because, as Len has pointed out, you end up with two different ideas 
+> > about what the trip points are - the kernel's and the hardware's. That 
+> > works fine until some event in the firmware either forcibly 
+> > resynchronises the two or makes assumptions about the spec-compliance of 
+> > the interpreter.
 > 
-> 2.6.x.y is stable.  2.6.x is not by any reasonably strict definition of
+> ...and suggested workaround is to drive fans directly from userspace,
+> which not only violates the specs and has all the problems with
+> desynchronized state, but ALSO FAILS TO WORK IN PRACTICE.
 
-Wrong. 2.6.x is stable as in 'must not break userspace, must not
-regress'.
+I don't think that's obviously true. 11.3.2 of the 3.0 spec states:
 
-							Pavel
+"A package consisting of references to all active cooling devices that 
+should be engaged when the associated active cooling threshold (_ACx) is 
+exceeded." 
+
+(referring to _ALx objects).
+
+> > The interface would need to be more complicated than that if you wanted 
+> > to be able to implement hysteresis, and there's the potential for 
+> > hardware damage if paramaters are set inappropriately. Even then, 
+> > there's no easy way of programatically determining whether it would work 
+> > on any given hardware.
+> 
+> Not sure why you try to scare people with 'hardware damage'. HP XE3
+> bios already _was_ damaging hardware (it cooked the hard drive using
+> cpu as a heater), and no acpi magic can damage correctly working
+> machine.
+
+Given that this presumably didn't occur under Windows, I think it would 
+be significantly better to figure out why and then fix that. 
+Alternatively, if the firmware tables are actually genuinely broken in a 
+way that's impossible to repair, you can replace the table. That has the 
+advantage that there's no risk of the platform and the OS becoming 
+confused.
+
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Matthew Garrett | mjg59@srcf.ucam.org
