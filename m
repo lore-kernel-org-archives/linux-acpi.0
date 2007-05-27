@@ -1,59 +1,39 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: 2.6.22-rc1-mm1 Implementing fan/thermal control in userspace - Was: [cannot change thermal trip points]
-Date: Sun, 27 May 2007 22:51:23 +0100
-Message-ID: <20070527215123.GA22687@srcf.ucam.org>
-References: <20070521132711.GA7540@srcf.ucam.org> <20070521132948.GD8332@elf.ucw.cz> <20070521133608.GB7540@srcf.ucam.org> <20070521134046.GE8332@elf.ucw.cz> <20070521134553.GA7911@srcf.ucam.org> <20070521224200.GF10714@elf.ucw.cz> <20070522003153.GA18162@srcf.ucam.org> <1180016213.16396.74.camel@queen.suse.de> <20070524143644.GA27364@srcf.ucam.org> <20070525063815.GA3989@ucw.cz>
+Subject: Re: RTC_DRV_CMOS can break userspace interface
+Date: Mon, 28 May 2007 00:39:11 +0100
+Message-ID: <20070527233911.GA23491@srcf.ucam.org>
+References: <20070527190351.GA21387@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([217.147.92.49]:33414 "EHLO
+Received: from cavan.codon.org.uk ([217.147.92.49]:52739 "EHLO
 	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756506AbXE0Vva (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 May 2007 17:51:30 -0400
+	with ESMTP id S1752905AbXE0XjU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 May 2007 19:39:20 -0400
 Content-Disposition: inline
-In-Reply-To: <20070525063815.GA3989@ucw.cz>
+In-Reply-To: <20070527190351.GA21387@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Thomas Renninger <trenn@suse.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: david-b@pacbell.net
 
-On Fri, May 25, 2007 at 06:38:15AM +0000, Pavel Machek wrote:
-> Hi!
-> > Because, as Len has pointed out, you end up with two different ideas 
-> > about what the trip points are - the kernel's and the hardware's. That 
-> > works fine until some event in the firmware either forcibly 
-> > resynchronises the two or makes assumptions about the spec-compliance of 
-> > the interpreter.
-> 
-> ...and suggested workaround is to drive fans directly from userspace,
-> which not only violates the specs and has all the problems with
-> desynchronized state, but ALSO FAILS TO WORK IN PRACTICE.
+On Sun, May 27, 2007 at 08:03:51PM +0100, Matthew Garrett wrote:
 
-I don't think that's obviously true. 11.3.2 of the 3.0 spec states:
+> (It doesn't really help that rtc-cmos doesn't load on this machine, but 
+> I'll try to track that down later - right now I suspect some sort of PNP 
+> issue)
 
-"A package consisting of references to all active cooling devices that 
-should be engaged when the associated active cooling threshold (_ACx) is 
-exceeded." 
+Ah, no, it's because the ioports for the rtc-cmos driver are already 
+claimed by the old driver from CONFIG_RTC. The following configuration 
+is valid in Kconfig:
 
-(referring to _ALx objects).
+CONFIG_RTC=y
+CONFIG_RTC_CMOS=m
 
-> > The interface would need to be more complicated than that if you wanted 
-> > to be able to implement hysteresis, and there's the potential for 
-> > hardware damage if paramaters are set inappropriately. Even then, 
-> > there's no easy way of programatically determining whether it would work 
-> > on any given hardware.
-> 
-> Not sure why you try to scare people with 'hardware damage'. HP XE3
-> bios already _was_ damaging hardware (it cooked the hard drive using
-> cpu as a heater), and no acpi magic can damage correctly working
-> machine.
-
-Given that this presumably didn't occur under Windows, I think it would 
-be significantly better to figure out why and then fix that. 
-Alternatively, if the firmware tables are actually genuinely broken in a 
-way that's impossible to repair, you can replace the table. That has the 
-advantage that there's no risk of the platform and the OS becoming 
-confused.
+but will disable /proc/acpi/wakeup. It'll also be impossible to load 
+CONFIG_RTC_CMOS because CONFIG_RTC has grabbed the io ports, so it's not 
+possible to use the new interface. This situation doesn't appear to be 
+documented, which is less than ideal...
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
