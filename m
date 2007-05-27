@@ -1,66 +1,151 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] ACPI: thinkpad-acpi: add thinkpad keys to input.h
-Date: Sun, 27 May 2007 09:15:13 -0300
-Message-ID: <20070527121513.GC19562@khazad-dum.debian.net>
-References: <11802004861625-git-send-email-hmh@hmh.eng.br> <11802006652058-git-send-email-hmh@hmh.eng.br> <1180200665989-git-send-email-hmh@hmh.eng.br> <200705262340.28219.dtor@insightbb.com>
+From: jamal <hadi@cyberus.ca>
+Subject: Fwd: [PATCH] [-mm] ACPI: export ACPI events via netlink
+Date: Sun, 27 May 2007 09:34:27 -0400
+Message-ID: <4466a10705270634j3560c9a3j9c3630ddc20a24aa@mail.gmail.com>
+References: <1179827251.7707.29.camel@localhost.localdomain>
+	 <1179831825.4121.30.camel@localhost>
+	 <1180258853.7707.53.camel@localhost.localdomain>
+	 <4466a10705270629h31977813hd2fc8330bcd87f78@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-input@atrey.karlin.mff.cuni.cz>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <4466a10705270629h31977813hd2fc8330bcd87f78@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <200705262340.28219.dtor@insightbb.com>
-Sender: owner-linux-input@atrey.karlin.mff.cuni.cz
-List-Help: <mailto:majordomo@atrey.karlin.mff.cuni.cz?body=help>
-List-Owner: <mailto:owner-linux-input@atrey.karlin.mff.cuni.cz>
-List-Post: <mailto:linux-input@atrey.karlin.mff.cuni.cz>
-List-Unsubscribe: <mailto:linux-input-request@atrey.karlin.mff.cuni.cz?body=unsubscribe>
-To: Dmitry Torokhov <dtor@insightbb.com>
-Cc: ibm-acpi-devel@lists.sourceforge.net, Richard Hughes <hughsient@gmail.com>, linux-acpi@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, 26 May 2007, Dmitry Torokhov wrote:
-> On Saturday 26 May 2007 13:31, Henrique de Moraes Holschuh wrote:
-> > Add hotkeys available in almost all ThinkPads manufactured in the last five
-> > years (more than one million machines given the ammount of batteries
-> > recalled) to input.h, and make thinkpad-acpi use those instead of issuing
-> > KEY_UNKNOWN.
-> > 
-> > KEY_FN_PAGEDOWN is not ever reported by the ThinkPad firmware due to random
-> > bogon-induced stupidity at IBM some years ago, but it is provided because
-> > it doesn't make sense to define KEY_FN_PAGEUP and not define
-> > KEY_FN_PAGEDOWN at the same time.
-> > 
-> 
-> I am unconvinced that we need new keycodes. Isn't there a better default
-> keycodes for these keys? You mentioned that fn+f5 controls radio on many
-> thinkpads, why don't you use KEY_WLAN in your keymap?
+I can never get these web-browser email clients to work well.
+Sorry for sending fscking html earlier.
 
-No can do the KEY-WLAN thing, sorry.  I *don't* have a way to know, unless I
-add a model-specific map table to the kernel, and I have been told by
-numerous people to don't even try, unless it is for quirks, etc.
+cheers,
+jamal
 
-Really, what are we to do with that input.h scancode map?  It *IS* supposed
-to be absolute, i.e. one is not supposed to reuse keys in there if the
-functionality *or* the generic description is not an exact match.  This is
-extremely clear, and it makes complete sense from the point of view of
-userland: HAL and others can properly assign functions to all scan codes and
-it will be always correct.
+---------- Forwarded message ----------
+From: jamal <hadi@cyberus.ca>
+Date: May 27, 2007 9:29 AM
+Subject: Re: [PATCH] [-mm] ACPI: export ACPI events via netlink
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi@vger.kernel.org, netdev@vger.kernel.org
 
-But then, it is expensive memory-wise, so it is near the current KEY_MAX,
-and people are very, very relutant to add another bit to it.
 
-This is definately a ridiculous and aggravating situation, that deserves a
-proper fix.  If increasing the scancode table cannot be done (why?), it is
-time to stop denying reality, and remove everything after KEY_FN (0x1d0),
-and instead give us a block of KEY_HOSTSPECIFIC_* scancodes, from 0x1d0 to
-at least 0x1ef.
 
-Given the way that scancode table is being used, it is one way or the other.
-Either increase it to KEY_MAX=0x3ff, or do exactly what UNICODE did, give us
-a decently sized block of host-specific scancodes, and shunt the problem to
-userspace to clean up after.
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+On 5/27/07, Zhang Rui <rui.zhang@intel.com> wrote:
+>
+> I need to write a user application to test my patch.
+> Netlink messages can be sent/received using the standard socket API.
+
+sure.
+
+> But how to receive Genetlink messages from specified genetlink family?
+> There is no socket ACPI with such a parameter, right?
+
+Each module has a unique identifier that it receives dynamically on
+ insertion at the kernel.
+
+> Do I have to receive all the genetlink messages first?
+
+ No, just the ones for your dynamic id. Try what i described first for
+ kernel side on the earlier email. I will repeat it here for clarity.
+Then look at genl code and if you have questions i can
+ help.
+Note: You need to discover your dynamic id (the iproute2/genl code has a stub
+example code)
+ As i told you in the earlier email, in your development:
+ - start first by just writting your kernel side.
+ - Then use the genl utility - which is part of iproute2 to see if the
+ kernel side is "discoverable".
+
+ E.g if i wanted to "discover" currently loaded modules on my laptop, i
+ would do this:
+
+ ---------------
+ hadi@lilsol:~$ genl ctrl ls
+
+ Name: nlctrl
+         ID: 0x10  Version: 0x2  header size: 0  max attribs: 6
+         commands supported:
+                 #1:  ID-0x3  flags-0xe
+
+
+ Name: nl80211
+         ID: 0x11  Version: 0x1  header size: 0  max attribs: 22
+         commands supported:
+                 #1:  ID-0x1  flags-0xa
+                 #2:  ID-0x6  flags-0xa
+                 #3:  ID-0x8  flags-0xa
+                 #4:  ID-0x3  flags-0xb
+                 #5:  ID-0x4  flags-0xb
+                 #6:  ID-0x5  flags-0xb
+                 #7:  ID-0xa  flags-0xb
+                 #8:  ID-0xb  flags-0xa
+                 #9:  ID-0xf  flags-0xb
+                 #10:  ID-0x10  flags-0xa
+                 #11:  ID-0x12  flags-0xb
+                 #12:  ID-0x13  flags-0xa
+                 #13:  ID-0x15  flags-0xa
+                 #14:  ID-0x19  flags-0xb
+                 #15:  ID-0x17  flags-0xb
+                 #16:  ID-0x18  flags-0xb
+                 #17:  ID-0x1a  flags-0xb
+                 #18:  ID-0x1b  flags-0xa
+                 #19:  ID-0xd  flags-0xb
+
+
+ Name: TASKSTATS
+         ID: 0x12  Version: 0x1  header size: 0  max attribs: 4
+         commands supported:
+                 #1:  ID-0x1  flags-0xa
+ ---------------------------
+
+ As you can see, i can see from user space the name of the kernel end
+ point, its numeric id, what version it is running (so i can make sure
+ user space is compatible), what extra header it may have, what the
+ maximum number of attributes it can take. The last thing that gets
+ listed is the commands, and flags for those commands.
+
+ Lets load tipc kernel module and repeat...
+
+ -----------
+
+ hadi@lilsol:~$ sudo modprobe tipc
+ Name: nlctrl
+         ID: 0x10  Version: 0x2  header size: 0  max attribs: 6
+         commands supported:
+                 #1:  ID-0x3  flags-0xe
+
+ ....
+ [same as before]
+ ....
+
+ Name: TIPC
+         ID: 0x13  Version: 0x1  header size: 8  max attribs: 0
+         commands supported:
+                 #1:  ID-0x1  flags-0x2
+
+ ===============
+
+> It would be great if there are any examples on user space communication.
+
+
+
+Bug Thomas - he has written some simple example. I also have some but i
+ changed laptops and i have to go and dig it up for you.
+ I do have plans for making this easier for people - but havent had time.
+ If there is persistence - or someone out there wants to be a hero email
+ me privately and i will explain it.
+
+> Or should I use libnl library instead?
+
+Why am i answering all these questions if you are fine with using libnl?
+Last time you said you couldnt use a library, no?
+
+cheers,
+jamal
+
+
+> Thanks,
+> Rui.
+>
