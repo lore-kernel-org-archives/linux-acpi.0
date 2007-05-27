@@ -1,38 +1,71 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] ACPI: thinkpad-acpi: allow hotkey to input event map to be modified
-Date: Sun, 27 May 2007 15:07:29 -0300
-Message-ID: <20070527180729.GA4507@khazad-dum.debian.net>
-References: <11802004861625-git-send-email-hmh@hmh.eng.br> <11802006652128-git-send-email-hmh@hmh.eng.br> <11802006652058-git-send-email-hmh@hmh.eng.br> <200705262338.19137.dtor@insightbb.com>
+Subject: Re: [PATCH] ACPI: thinkpad-acpi: add thinkpad keys to input.h
+Date: Sun, 27 May 2007 15:10:23 -0300
+Message-ID: <20070527181023.GB4507@khazad-dum.debian.net>
+References: <11802004861625-git-send-email-hmh@hmh.eng.br> <11802006652058-git-send-email-hmh@hmh.eng.br> <1180200665989-git-send-email-hmh@hmh.eng.br> <200705262340.28219.dtor@insightbb.com> <20070527121513.GC19562@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:56433 "EHLO
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:48635 "EHLO
 	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752806AbXE0SHf (ORCPT
+	by vger.kernel.org with ESMTP id S1752384AbXE0SK3 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 27 May 2007 14:07:35 -0400
+	Sun, 27 May 2007 14:10:29 -0400
 Content-Disposition: inline
-In-Reply-To: <200705262338.19137.dtor@insightbb.com>
+In-Reply-To: <20070527121513.GC19562@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Dmitry Torokhov <dtor@insightbb.com>
-Cc: ibm-acpi-devel@lists.sourceforge.net, Richard Hughes <hughsient@gmail.com>, linux-acpi@vger.kernel.org
+Cc: ibm-acpi-devel@lists.sourceforge.net, Richard Hughes <hughsient@gmail.com>, linux-acpi@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz
 
-On Sat, 26 May 2007, Dmitry Torokhov wrote:
-> On Saturday 26 May 2007 13:31, Henrique de Moraes Holschuh wrote:
-> > Add a sysfs interface to allow userspace to modify the mapping between
-> > ThinkPad hotkeys and the keycode input events they generate.
+On Sun, 27 May 2007, Henrique de Moraes Holschuh wrote:
+> On Sat, 26 May 2007, Dmitry Torokhov wrote:
+> > On Saturday 26 May 2007 13:31, Henrique de Moraes Holschuh wrote:
+> > > Add hotkeys available in almost all ThinkPads manufactured in the last five
+> > > years (more than one million machines given the ammount of batteries
+> > > recalled) to input.h, and make thinkpad-acpi use those instead of issuing
+> > > KEY_UNKNOWN.
+> > > 
+> > > KEY_FN_PAGEDOWN is not ever reported by the ThinkPad firmware due to random
+> > > bogon-induced stupidity at IBM some years ago, but it is provided because
+> > > it doesn't make sense to define KEY_FN_PAGEUP and not define
+> > > KEY_FN_PAGEDOWN at the same time.
+> > > 
+> > 
+> > I am unconvinced that we need new keycodes. Isn't there a better default
+> > keycodes for these keys? You mentioned that fn+f5 controls radio on many
+> > thinkpads, why don't you use KEY_WLAN in your keymap?
 > 
-> No, please do not do that. We have a standard way to adjust keymap for
-> an input device via EVIOCGKEYCODE/EVIOCSKEYCODE ioctls on corresponding
-> event device; there is no need to invent another interface. Just define
-> getkeycodes() and setkeycode() methods for your input device and be done
-> with it.
+> No can do the KEY-WLAN thing, sorry.  I *don't* have a way to know, unless I
+> add a model-specific map table to the kernel, and I have been told by
+> numerous people to don't even try, unless it is for quirks, etc.
+> 
+> Really, what are we to do with that input.h scancode map?  It *IS* supposed
+> to be absolute, i.e. one is not supposed to reuse keys in there if the
+> functionality *or* the generic description is not an exact match.  This is
+> extremely clear, and it makes complete sense from the point of view of
+> userland: HAL and others can properly assign functions to all scan codes and
+> it will be always correct.
+> 
+> But then, it is expensive memory-wise, so it is near the current KEY_MAX,
+> and people are very, very relutant to add another bit to it.
+> 
+> This is definately a ridiculous and aggravating situation, that deserves a
+> proper fix.  If increasing the scancode table cannot be done (why?), it is
+> time to stop denying reality, and remove everything after KEY_FN (0x1d0),
+> and instead give us a block of KEY_HOSTSPECIFIC_* scancodes, from 0x1d0 to
+> at least 0x1ef.
+> 
+> Given the way that scancode table is being used, it is one way or the other.
+> Either increase it to KEY_MAX=0x3ff, or do exactly what UNICODE did, give us
+> a decently sized block of host-specific scancodes, and shunt the problem to
+> userspace to clean up after.
 
-I have fixed this to use the standard keycode, keycodesize and other such
-stuff, now.  I am working with 2.6.20/2.6.21 as my base, so there is no
-getkeycodes() and setkeycode(), but that is not a problem.  It is trivial
-enough that I will just maintain two sets of the code for now.
+I can come up with a patch that converts all the keycodes after KEY_FN to
+host-specific keycodes, and fix all in-tree drivers to use them (without
+modifying any of the scancodes they will generate, i.e. maintaining the ABI
+to userspace).  Is there any chance of such a patch being accepted?
+Otherwise, I'd rather waste my time doing something else :-)
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
