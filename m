@@ -1,50 +1,63 @@
 From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] ACPI: thinkpad-acpi: allow hotkey to input event map to be modified
-Date: Sun, 27 May 2007 09:03:19 -0300
-Message-ID: <20070527120319.GB19562@khazad-dum.debian.net>
-References: <11802004861625-git-send-email-hmh@hmh.eng.br> <11802006652128-git-send-email-hmh@hmh.eng.br> <11802006652058-git-send-email-hmh@hmh.eng.br> <200705262338.19137.dtor@insightbb.com>
+Subject: Re: [PATCH] ACPI: thinkpad-acpi: add thinkpad keys to input.h
+Date: Sun, 27 May 2007 09:15:13 -0300
+Message-ID: <20070527121513.GC19562@khazad-dum.debian.net>
+References: <11802004861625-git-send-email-hmh@hmh.eng.br> <11802006652058-git-send-email-hmh@hmh.eng.br> <1180200665989-git-send-email-hmh@hmh.eng.br> <200705262340.28219.dtor@insightbb.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:57247 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751300AbXE0MD0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 27 May 2007 08:03:26 -0400
+Return-path: <owner-linux-input@atrey.karlin.mff.cuni.cz>
 Content-Disposition: inline
-In-Reply-To: <200705262338.19137.dtor@insightbb.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <200705262340.28219.dtor@insightbb.com>
+Sender: owner-linux-input@atrey.karlin.mff.cuni.cz
+List-Help: <mailto:majordomo@atrey.karlin.mff.cuni.cz?body=help>
+List-Owner: <mailto:owner-linux-input@atrey.karlin.mff.cuni.cz>
+List-Post: <mailto:linux-input@atrey.karlin.mff.cuni.cz>
+List-Unsubscribe: <mailto:linux-input-request@atrey.karlin.mff.cuni.cz?body=unsubscribe>
 To: Dmitry Torokhov <dtor@insightbb.com>
-Cc: ibm-acpi-devel@lists.sourceforge.net, Richard Hughes <hughsient@gmail.com>, linux-acpi@vger.kernel.org
+Cc: ibm-acpi-devel@lists.sourceforge.net, Richard Hughes <hughsient@gmail.com>, linux-acpi@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz
+List-Id: linux-acpi@vger.kernel.org
 
 On Sat, 26 May 2007, Dmitry Torokhov wrote:
 > On Saturday 26 May 2007 13:31, Henrique de Moraes Holschuh wrote:
-> > Add a sysfs interface to allow userspace to modify the mapping between
-> > ThinkPad hotkeys and the keycode input events they generate.
+> > Add hotkeys available in almost all ThinkPads manufactured in the last five
+> > years (more than one million machines given the ammount of batteries
+> > recalled) to input.h, and make thinkpad-acpi use those instead of issuing
+> > KEY_UNKNOWN.
+> > 
+> > KEY_FN_PAGEDOWN is not ever reported by the ThinkPad firmware due to random
+> > bogon-induced stupidity at IBM some years ago, but it is provided because
+> > it doesn't make sense to define KEY_FN_PAGEUP and not define
+> > KEY_FN_PAGEDOWN at the same time.
+> > 
 > 
-> No, please do not do that. We have a standard way to adjust keymap for
-> an input device via EVIOCGKEYCODE/EVIOCSKEYCODE ioctls on corresponding
-> event device; there is no need to invent another interface. Just define
-> getkeycodes() and setkeycode() methods for your input device and be done
-> with it.
+> I am unconvinced that we need new keycodes. Isn't there a better default
+> keycodes for these keys? You mentioned that fn+f5 controls radio on many
+> thinkpads, why don't you use KEY_WLAN in your keymap?
 
-Sure, I will change to the IOCTLs.  Such stuff is exactly why I sent out a
-partway-done "don't merge it yet" patch set: I had a hunch that the code
-would need some changes as the documentation on how to use the input device
-in-kernel API is worth very little.
+No can do the KEY-WLAN thing, sorry.  I *don't* have a way to know, unless I
+add a model-specific map table to the kernel, and I have been told by
+numerous people to don't even try, unless it is for quirks, etc.
 
-IMO if there is an API that is dedicated to drivers (and not, say, kernel
-core), full documentation and keeping it up-to-date should be non-negotiable
-requirements for the initial merge in mainline, and any subsequent patches
-that touch it.  Oh well.   I am reading the corgikbd driver now, it looks
-sane enough to use as documentation.
+Really, what are we to do with that input.h scancode map?  It *IS* supposed
+to be absolute, i.e. one is not supposed to reuse keys in there if the
+functionality *or* the generic description is not an exact match.  This is
+extremely clear, and it makes complete sense from the point of view of
+userland: HAL and others can properly assign functions to all scan codes and
+it will be always correct.
 
-On that topic, am I to send SYNC events between key-press and key-release
-events?  Just after a key-press+key release event?  Or not at all for a
-EV_KEY ? And exactly what should go in the hardware port descriptor? I used
-module name/input device number relative to the module.  THIS ONE REALLY
-NEEDS TO BE DOCUMENTED PROPERLY.
+But then, it is expensive memory-wise, so it is near the current KEY_MAX,
+and people are very, very relutant to add another bit to it.
+
+This is definately a ridiculous and aggravating situation, that deserves a
+proper fix.  If increasing the scancode table cannot be done (why?), it is
+time to stop denying reality, and remove everything after KEY_FN (0x1d0),
+and instead give us a block of KEY_HOSTSPECIFIC_* scancodes, from 0x1d0 to
+at least 0x1ef.
+
+Given the way that scancode table is being used, it is one way or the other.
+Either increase it to KEY_MAX=0x3ff, or do exactly what UNICODE did, give us
+a decently sized block of host-specific scancodes, and shunt the problem to
+userspace to clean up after.
 
 -- 
   "One disk to rule them all, One disk to find them. One disk to bring
