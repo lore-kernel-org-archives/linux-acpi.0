@@ -1,49 +1,62 @@
-From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Subject: Re: [RFC] thinkpad-acpi input hotkey events
-Date: Sat, 26 May 2007 14:36:33 -0300
-Message-ID: <20070526173633.GA8053@khazad-dum.debian.net>
-References: <11802004861625-git-send-email-hmh@hmh.eng.br>
+From: Dmitry Torokhov <dtor@insightbb.com>
+Subject: Re: [PATCH] ACPI: thinkpad-acpi: register input device
+Date: Sat, 26 May 2007 23:35:03 -0400
+Message-ID: <200705262335.03978.dtor@insightbb.com>
+References: <11802004861625-git-send-email-hmh@hmh.eng.br> <11802006651698-git-send-email-hmh@hmh.eng.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from gateway.insightbb.com ([74.128.0.19]:6893 "EHLO
+	asav06.insightbb.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751001AbXE0De4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 26 May 2007 23:34:56 -0400
+In-Reply-To: <11802006651698-git-send-email-hmh@hmh.eng.br>
 Content-Disposition: inline
-In-Reply-To: <11802004861625-git-send-email-hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Sender: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Richard Hughes <hughsient-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, dtor-JGs/UdohzUI@public.gmane.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: ibm-acpi-devel@lists.sourceforge.net, Richard Hughes <hughsient@gmail.com>, linux-acpi@vger.kernel.org
 
-On Sat, 26 May 2007, Henrique de Moraes Holschuh wrote:
-> This patch is a preliminary version of the input device support for
-> thinkpad-acpi hotkeys.  It is not for merging.
-> 
-> Please comment.
-> 
-> TODO: monitor input device open/close and block ACPI hotkeys events that
-> are also going to be sent over the input device, when it is open? [for
-> HAL]
-> TODO: Document the interface
+Hi,
 
-This tree is available at:
-git://repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git input-hotkeys
+On Saturday 26 May 2007 13:31, Henrique de Moraes Holschuh wrote:
+> Register an input device to send input events to userspace.
+> 
+> This patch is based on a patch by Richard Hughes <hughsient@gmail.com>.
+> 
+> Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+> Cc: Richard Hughes <hughsient@gmail.com>
+
+Looks OK, however I am curious why you split registration and generating
+input events into 2 patches...
+ 
+> ---
+>  drivers/misc/thinkpad_acpi.c |   31 +++++++++++++++++++++++++++++--
+>  drivers/misc/thinkpad_acpi.h |    3 +++
+>  2 files changed, 32 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/misc/thinkpad_acpi.c b/drivers/misc/thinkpad_acpi.c
+> index e1c84e3..c0b8155 100644
+> --- a/drivers/misc/thinkpad_acpi.c
+> +++ b/drivers/misc/thinkpad_acpi.c
+> @@ -487,13 +487,14 @@ static char *next_cmd(char **cmds)
+>  /****************************************************************************
+>   ****************************************************************************
+>   *
+> - * Device model: hwmon and platform
+> + * Device model: input, hwmon and platform
+>   *
+>   ****************************************************************************
+>   ****************************************************************************/
+>  
+>  static struct platform_device *tpacpi_pdev = NULL;
+>  static struct class_device *tpacpi_hwmon = NULL;
+> +static struct input_dev *tpacpi_inputdev = NULL;
+>  
+
+Why do you initialize static variables?  They are guaranteed to be 0/NULL.
 
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
-
--------------------------------------------------------------------------
-This SF.net email is sponsored by DB2 Express
-Download DB2 Express C - the FREE version of DB2 express and take
-control of your XML. No limits. Just data. Click to get it now.
-http://sourceforge.net/powerbar/db2/
+Dmitry
