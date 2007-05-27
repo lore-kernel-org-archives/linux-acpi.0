@@ -1,74 +1,33 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] ACPI: thinkpad-acpi: add thinkpad keys to input.h
-Date: Sun, 27 May 2007 15:10:23 -0300
-Message-ID: <20070527181023.GB4507@khazad-dum.debian.net>
-References: <11802004861625-git-send-email-hmh@hmh.eng.br> <11802006652058-git-send-email-hmh@hmh.eng.br> <1180200665989-git-send-email-hmh@hmh.eng.br> <200705262340.28219.dtor@insightbb.com> <20070527121513.GC19562@khazad-dum.debian.net>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: RTC_DRV_CMOS can break userspace interface
+Date: Sun, 27 May 2007 20:03:51 +0100
+Message-ID: <20070527190351.GA21387@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:48635 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752384AbXE0SK3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 27 May 2007 14:10:29 -0400
+Received: from cavan.codon.org.uk ([217.147.92.49]:51905 "EHLO
+	vavatch.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752806AbXE0TED (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 May 2007 15:04:03 -0400
 Content-Disposition: inline
-In-Reply-To: <20070527121513.GC19562@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dtor@insightbb.com>
-Cc: ibm-acpi-devel@lists.sourceforge.net, Richard Hughes <hughsient@gmail.com>, linux-acpi@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: david-b@pacbell.net
 
-On Sun, 27 May 2007, Henrique de Moraes Holschuh wrote:
-> On Sat, 26 May 2007, Dmitry Torokhov wrote:
-> > On Saturday 26 May 2007 13:31, Henrique de Moraes Holschuh wrote:
-> > > Add hotkeys available in almost all ThinkPads manufactured in the last five
-> > > years (more than one million machines given the ammount of batteries
-> > > recalled) to input.h, and make thinkpad-acpi use those instead of issuing
-> > > KEY_UNKNOWN.
-> > > 
-> > > KEY_FN_PAGEDOWN is not ever reported by the ThinkPad firmware due to random
-> > > bogon-induced stupidity at IBM some years ago, but it is provided because
-> > > it doesn't make sense to define KEY_FN_PAGEUP and not define
-> > > KEY_FN_PAGEDOWN at the same time.
-> > > 
-> > 
-> > I am unconvinced that we need new keycodes. Isn't there a better default
-> > keycodes for these keys? You mentioned that fn+f5 controls radio on many
-> > thinkpads, why don't you use KEY_WLAN in your keymap?
-> 
-> No can do the KEY-WLAN thing, sorry.  I *don't* have a way to know, unless I
-> add a model-specific map table to the kernel, and I have been told by
-> numerous people to don't even try, unless it is for quirks, etc.
-> 
-> Really, what are we to do with that input.h scancode map?  It *IS* supposed
-> to be absolute, i.e. one is not supposed to reuse keys in there if the
-> functionality *or* the generic description is not an exact match.  This is
-> extremely clear, and it makes complete sense from the point of view of
-> userland: HAL and others can properly assign functions to all scan codes and
-> it will be always correct.
-> 
-> But then, it is expensive memory-wise, so it is near the current KEY_MAX,
-> and people are very, very relutant to add another bit to it.
-> 
-> This is definately a ridiculous and aggravating situation, that deserves a
-> proper fix.  If increasing the scancode table cannot be done (why?), it is
-> time to stop denying reality, and remove everything after KEY_FN (0x1d0),
-> and instead give us a block of KEY_HOSTSPECIFIC_* scancodes, from 0x1d0 to
-> at least 0x1ef.
-> 
-> Given the way that scancode table is being used, it is one way or the other.
-> Either increase it to KEY_MAX=0x3ff, or do exactly what UNICODE did, give us
-> a decently sized block of host-specific scancodes, and shunt the problem to
-> userspace to clean up after.
+f5f72b46c349fefcfd4421b2213c6ffb324c5e56 appears to break the userspace 
+interface to the CMOS alarm. This could previously be accessed via 
+/proc/acpi/alarm, but if RTC_DRV_CMOS is enabled that vanishes. The help 
+text for the module doesn't mention this, which makes tracking it down a 
+touch irritating.
 
-I can come up with a patch that converts all the keycodes after KEY_FN to
-host-specific keycodes, and fix all in-tree drivers to use them (without
-modifying any of the scancodes they will generate, i.e. maintaining the ABI
-to userspace).  Is there any chance of such a patch being accepted?
-Otherwise, I'd rather waste my time doing something else :-)
+I'm not actually sure why this is the case. It doesn't look like the two 
+interfaces are fundamentally incompatible. I agree that removing the 
+proc code is a good long-term aim, but it'd be nice to be able to test 
+the new RTC code without removing existing functionality.
 
+(It doesn't really help that rtc-cmos doesn't load on this machine, but 
+I'll try to track that down later - right now I suspect some sort of PNP 
+issue)
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Matthew Garrett | mjg59@srcf.ucam.org
