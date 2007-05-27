@@ -1,39 +1,35 @@
-From: Dmitry Torokhov <dtor@insightbb.com>
-Subject: Re: [PATCH] ACPI: thinkpad-acpi: add thinkpad keys to input.h
-Date: Sat, 26 May 2007 23:40:27 -0400
-Message-ID: <200705262340.28219.dtor@insightbb.com>
-References: <11802004861625-git-send-email-hmh@hmh.eng.br> <11802006652058-git-send-email-hmh@hmh.eng.br> <1180200665989-git-send-email-hmh@hmh.eng.br>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] [-mm] ACPI: export ACPI events via netlink
+Date: Sun, 27 May 2007 17:40:53 +0800
+Message-ID: <1180258853.7707.53.camel@localhost.localdomain>
+References: <1179827251.7707.29.camel@localhost.localdomain>
+	 <1179831825.4121.30.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-input@atrey.karlin.mff.cuni.cz>
-In-Reply-To: <1180200665989-git-send-email-hmh@hmh.eng.br>
-Content-Disposition: inline
-Sender: owner-linux-input@atrey.karlin.mff.cuni.cz
-List-Help: <mailto:majordomo@atrey.karlin.mff.cuni.cz?body=help>
-List-Owner: <mailto:owner-linux-input@atrey.karlin.mff.cuni.cz>
-List-Post: <mailto:linux-input@atrey.karlin.mff.cuni.cz>
-List-Unsubscribe: <mailto:linux-input-request@atrey.karlin.mff.cuni.cz?body=unsubscribe>
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: ibm-acpi-devel@lists.sourceforge.net, Richard Hughes <hughsient@gmail.com>, linux-acpi@vger.kernel.org, linux-input@atrey.karlin.mff.cuni.cz
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1179831825.4121.30.camel@localhost>
+Sender: netdev-owner@vger.kernel.org
+To: hadi@cyberus.ca
+Cc: linux-acpi@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Saturday 26 May 2007 13:31, Henrique de Moraes Holschuh wrote:
-> Add hotkeys available in almost all ThinkPads manufactured in the last five
-> years (more than one million machines given the ammount of batteries
-> recalled) to input.h, and make thinkpad-acpi use those instead of issuing
-> KEY_UNKNOWN.
+On Tue, 2007-05-22 at 07:03 -0400, jamal wrote:
+> Hi Zhang Rui,
 > 
-> KEY_FN_PAGEDOWN is not ever reported by the ThinkPad firmware due to random
-> bogon-induced stupidity at IBM some years ago, but it is provided because
-> it doesn't make sense to define KEY_FN_PAGEUP and not define
-> KEY_FN_PAGEDOWN at the same time.
+> Really cool stuff. Can you instead use genetlink?
+> http://linux-net.osdl.org/index.php/Generic_Netlink_HOWTO 
+> should help. And if you have more questions post on netdev (not lk).
 > 
+Yes, I have one now. :)
+I need to write a user application to test my patch.
+Netlink messages can be sent/received using the standard socket API.
+But how to receive Genetlink messages from specified genetlink family?
+There is no socket ACPI with such a parameter, right?
+Do I have to receive all the genetlink messages first?
+It would be great if there are any examples on user space communication.
 
-I am unconvinced that we need new keycodes. Isn't there a better default
-keycodes for these keys? You mentioned that fn+f5 controls radio on many
-thinkpads, why don't you use KEY_WLAN in your keymap?
- 
--- 
-Dmitry
+Or should I use libnl library instead?
+
+Thanks,
+Rui.
